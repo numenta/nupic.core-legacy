@@ -22,47 +22,49 @@
  */
 
 /** @file
- * Notes
+ * Definitions for SpatialPoolerTest
  */
 
-//----------------------------------------------------------------------
+#ifndef NTA_FLAT_SPATIAL_POOLER_TEST
+#define NTA_FLAT_SPATIAL_POOLER_TEST
 
+#include <nta/algorithms/flat_spatial_pooler.hpp>
 #include <nta/test/Tester.hpp>
-#include <nta/algorithms/Grouper.hpp>
 
-//----------------------------------------------------------------------
-
-#ifndef NTA_GROUPER_UNIT_TEST_HPP
-#define NTA_GROUPER_UNIT_TEST_HPP
+using namespace nta::algorithms::spatial_pooler;
 
 namespace nta {
 
-  //----------------------------------------------------------------------
-  class GrouperUnitTest : public Tester
+  class FlatSpatialPoolerTest : public Tester
   {
   public:
-    GrouperUnitTest() {}
-    virtual ~GrouperUnitTest() {}
+    FlatSpatialPoolerTest() {}
+    virtual ~FlatSpatialPoolerTest() {}
 
     // Run all appropriate tests
     virtual void RunTests();
 
   private:
-    //void doOneTestCase(const std::string& tcName, bool diagnose =false);
-    //void testInference(Grouper& g, bool diagnose=false);
-    //void testTBI(bool diagnose=false);
-    //void testSaveReadState();
+    void setup(SpatialPooler& sp, UInt numInputs, UInt numColumns);
+    bool check_vector_eq(UInt arr[], vector<UInt> vec);
+    bool check_vector_eq(Real arr[], vector<Real> vec);
+    bool check_vector_eq(UInt arr1[], UInt arr2[], UInt n);
+    bool check_vector_eq(Real arr1[], Real arr2[], UInt n);
+    bool check_vector_eq(vector<UInt> vec1, vector<UInt> vec2);
+    bool almost_eq(Real a, Real b);
 
-    // Default copy ctor and assignment operator forbidden by default
-    GrouperUnitTest(const GrouperUnitTest&);
-    GrouperUnitTest& operator=(const GrouperUnitTest&);
+    void testSelectVirgin();
+    void testSelectHighTierColumns();
+    void testAddBonus();
+    void testSerialize();
 
-  }; // end class GrouperUnitTest
-    
-  //----------------------------------------------------------------------
+    void print_vec(UInt arr[], UInt n);
+    void print_vec(Real arr[], UInt n);
+    void print_vec(vector<UInt> vec);
+    void print_vec(vector<Real> vec);
+
+  }; // end class SpatialPoolerTest
+
 } // end namespace nta
 
-#endif // NTA_GROUPER_UNIT_TEST_HPP
-
-
-
+#endif // NTA_FLAT_SPATIAL_POOLER_TEST
