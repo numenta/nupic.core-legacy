@@ -1,8 +1,8 @@
 language: c++
 
-matrix:
-  - CC=clang
-  - CC=gcc
+compiler:
+  - clang
+  - gcc
 
 notifications:
   irc:
