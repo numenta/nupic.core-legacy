@@ -1,4 +1,4 @@
-# NuPIC Core
+# NuPIC Core [![Build Status](https://travis-ci.org/numenta/nupic.core.png?branch=master)](https://travis-ci.org/numenta/nupic.core)
 
 > This project is still in the process of being extracted from the [NuPIC](http://github.com/numenta/nupic) codebase as a part of our [core extraction plan](https://github.com/numenta/nupic/wiki/nupic.core-Extraction-Plan). 
 
