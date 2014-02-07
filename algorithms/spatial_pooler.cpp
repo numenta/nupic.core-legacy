@@ -96,7 +96,10 @@ class CoordinateConverterND {
     vector<UInt> bounds_;
 };
 
-SpatialPooler::SpatialPooler() { }
+SpatialPooler::SpatialPooler() {
+  // The current version number. 
+  version_ = 1;
+}
 
 UInt SpatialPooler::getNumColumns() {
   return numColumns_;
@@ -473,7 +476,6 @@ void SpatialPooler::initialize(vector<UInt> inputDimensions,
   NTA_ASSERT(synPermTrimThreshold_ < synPermConnected_);
   updatePeriod_ = 50;
   initConnectedPct_ = 0.5;
-  version_ = 1;
   iterationNum_ = 0;
   iterationLearnNum_ = 0;
 
@@ -1343,6 +1345,9 @@ void SpatialPooler::save(ostream& outStream)
 
 }
 
+// Implementation note: this method sets up the instance using data from
+// inStream. This method does not call initialize. As such we have to be careful
+// that everything in initialize is handled properly here.
 void SpatialPooler::load(istream& inStream)
 {
 
@@ -1354,7 +1359,7 @@ void SpatialPooler::load(istream& inStream)
   // Check the version.
   UInt version;
   inStream >> version;
-  NTA_CHECK(version <= 1);  
+  NTA_CHECK(version == 1);  
 
 
   // Retrieve simple variables
