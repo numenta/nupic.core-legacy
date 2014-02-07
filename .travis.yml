@@ -1,0 +1,22 @@
+language: cpp
+
+compiler:
+  - clang
+  - gcc
+
+notifications:
+  irc:
+    channels:
+      - "irc.freenode.net#nupic-hackers"
+  webhooks: http://issues.numenta.org:8081/travis
+
+before_install:
+  - if [ "$CC" = "gcc" ]; then export CXX=g++; fi
+  - if [ "$CC" = "clang" ]; then export CXX=clang++; fi
+
+install:
+  - echo This is where the build should happen
+
+script:
+  - echo This is where the tests should run
+
