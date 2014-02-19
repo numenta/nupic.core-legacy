@@ -29,6 +29,7 @@
 
 #include <nta/types/types.hpp>
 #include <stdexcept>
+#include <string>
 
 //----------------------------------------------------------------------
 
