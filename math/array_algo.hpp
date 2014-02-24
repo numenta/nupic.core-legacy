@@ -42,11 +42,6 @@
 #undef max
 #endif
 
-// This include because on darwin86 darwin64, vDSP provides high quality optimized code that exploits SSE. 
-#if defined(NTA_PLATFORM_darwin86) || defined(NTA_PLATFORM_darwin64)
-#include <vecLib/vDSP.h>
-#endif
-
 namespace nta {
 
   //--------------------------------------------------------------------------------
@@ -893,12 +888,8 @@ namespace nta {
   inline float dot(const float* x, const float* x_end, const float* y)
   {
     float result = 0;
-#if defined(NTA_PLATFORM_darwin86) || defined(NTA_PLATFORM_darwin64)
-    vDSP_dotpr(x, 1, y, 1, &result, (x_end - x));
-#else
     for (; x != x_end; ++x, ++y)
       result += *x * *y;
-#endif
     return result;
   }
   
@@ -2828,20 +2819,6 @@ namespace nta {
    */
   
   //--------------------------------------------------------------------------------
-#if defined(NTA_PLATFORM_darwin86) || defined(NTA_PLATFORM_darwin64)  
-  inline void sum_of_squares(float* begin, int n, float* s)
-  {
-    vDSP_svesq(begin, 1, s, n);
-  }
-  
-  //--------------------------------------------------------------------------------
-  inline void sum_of_squares(double* begin, int n, double* s)
-  {
-    vDSP_svesqD(begin, 1, s, n);
-  }
-#endif
-
-  //--------------------------------------------------------------------------------
   template <typename It>
   inline typename std::iterator_traits<It>::value_type
   l2_norm(It begin, It end, bool take_root =true)
@@ -2856,19 +2833,9 @@ namespace nta {
 
     Lp2<value_type> lp2;
 
-#if defined(NTA_PLATFORM_darwin86) || defined(NTA_PLATFORM_darwin64) // 10X faster
-
-    // &*begin won't work on platforms where the iterators are not pointers (win32)
-    // also, sum_of_squares uses vDSP.h -> Mac only
-    sum_of_squares(&*begin, (end - begin), &n);
-
-#else
-
     for (; begin != end; ++begin)
       lp2(n, *begin);
    
-#endif
-
     if (take_root)
       n = lp2.root(n);
     
@@ -3887,11 +3854,13 @@ namespace nta {
   //--------------------------------------------------------------------------------
   /**
    * Computes the sum of the elements in a range.
-   * vDSP is much faster than C++, even optimized by gcc, but for now this works
-   * only with float (rather than double), and only on darwin86. With these 
-   * restrictions the speed-up is usually better than 5X over optimized C++.
-   * vDSP also handles unaligned vectors correctly, and has good performance
-   * also when the vectors are small, not just when they are big. 
+   * 
+	 * Note: a previous version used veclib on Mac's and vDSP. vDSP is much faster
+	 * than C++, even optimized by gcc, but for now this works
+	 * only with float (rather than double), and only on darwin86. With these
+	 * restrictions the speed-up is usually better than 5X over optimized C++.
+	 * vDSP also handles unaligned vectors correctly, and has good performance
+	 * also when the vectors are small, not just when they are big. 
    */
   inline nta::Real32 sum(nta::Real32* begin, nta::Real32* end)
   {
@@ -3900,20 +3869,11 @@ namespace nta {
         << "sum: Invalid range";
     }
 
-#if defined(NTA_PLATFORM_darwin86) || defined(NTA_PLATFORM_darwin64)
-
-    nta::Real32 result = 0;
-    vDSP_sve(begin, 1, &result, (end - begin));
-    return result;
-    
-#else
-
     nta::Real32 result = 0;
     for (; begin != end; ++begin)
       result += *begin;
     return result;
 
-#endif
   }
 
   //--------------------------------------------------------------------------------
