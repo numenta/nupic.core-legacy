@@ -42,10 +42,11 @@ install:
   - "mkdir -p $TRAVIS_BUILD_DIR/build/scripts"
   - "cd $TRAVIS_BUILD_DIR/build/scripts"
   - "cmake $TRAVIS_BUILD_DIR"
-  - "make -j3"
 
 script:
   # legacy binary tests
+  - "cd $TRAVIS_BUILD_DIR/build/scripts"
+  - "make -j3"
 
 after_script:
   - travis_retry gem install travis-artifacts > /dev/null
