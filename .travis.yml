@@ -43,12 +43,11 @@ install:
   - "cd $TRAVIS_BUILD_DIR/build/scripts"
   - "cmake $TRAVIS_BUILD_DIR"
   - "make -j3"
-  - "cd"
 
 script:
   # legacy binary tests
 
 after_script:
   - travis_retry gem install travis-artifacts > /dev/null
-  - tar -zcf nupic-linux64-$TRAVIS_COMMIT.tar.gz -C $NTA/.. --transform=s/eng/nupic-linux64-$TRAVIS_COMMIT/ --exclude="*.pyc" eng
+  - tar -zcf nupic-linux64-$TRAVIS_COMMIT.tar.gz -C $TRAVIS_BUILD_DIR/build/release/.. --transform=s/eng/nupic-linux64-$TRAVIS_COMMIT/ eng
   - travis-artifacts upload --path nupic-linux64-$TRAVIS_COMMIT.tar.gz --target-path $TRAVIS_REPO_SLUG
