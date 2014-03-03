@@ -109,6 +109,14 @@ macro(generate_static_library name cxx_flags source_files)
   set_target_properties(${name} PROPERTIES COMPILE_FLAGS "${cxx_flags}")
 endmacro()
 
+# This macro generates a object library
+macro(generate_object_library name cxx_flags source_files)
+  add_library(${name}
+    OBJECT ${source_files}
+  )
+  set_target_properties(${name} PROPERTIES COMPILE_FLAGS "${cxx_flags}")
+endmacro()
+
 # This macro generates a dynamic library
 macro(generate_dynamic_library name cxx_flags source_files link_flags libraries)
   add_library(${name} SHARED
@@ -142,7 +150,8 @@ endif()
 # Project configuration
 #
 cmake_minimum_required(VERSION 2.8)
-project(Nupic CXX)
+cmake_policy(SET CMP0002 NEW)
+project(nupic.core CXX)
 
 #
 # Sets default locations.
@@ -161,7 +170,7 @@ project(Nupic CXX)
 # Repository root is the parent directory which this CMake file is located
 # This CMake file must be always on /repository/src subdirectory.
 #get_filename_component(REPOSITORY_DIR ${PROJECT_SOURCE_DIR} PATH)
-# ATTENTION: This is palliative, it should be removed after repository restructuring
+# TODO: This is palliative, it should be removed after repository restructuring
 set(REPOSITORY_DIR ${PROJECT_SOURCE_DIR})
 # 'release' is a subdirectory created on /build root.
 if("${PROJECT_BUILD_RELEASE_DIR}" STREQUAL "")
@@ -174,7 +183,7 @@ endif()
 # CMAKE_CURRENT_BINARY_DIR is used by swig module for put wrappers on, so don't erase this line!
 set(CMAKE_CURRENT_BINARY_DIR ${PROJECT_BUILD_TEMP_DIR})
 
-# ATTENTION: This is palliative, it should be removed after repository restructuring
+# TODO: This is palliative, it should be removed after repository restructuring
 # Makes a copy to simulate /nta folder
 execute_process(COMMAND ${CMAKE_COMMAND} -E remove_directory ${PROJECT_SOURCE_DIR}/nta)
 execute_process(COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR} ${PROJECT_SOURCE_DIR}/nta)
@@ -203,6 +212,12 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   set(STATIC_LIB_EXTENSION "lib")
   set(DYNAMIC_LIB_EXTENSION "dll")
 endif()
+
+#
+# Remove libraries prefixes (ex: libsome_thing => some_thing)
+#
+set(CMAKE_STATIC_LIBRARY_PREFIX "")
+set(CMAKE_SHARED_LIBRARY_PREFIX "")
 
 #
 # Determine Nupic.Core platform type
@@ -250,18 +265,24 @@ message(STATUS "  Debug flags: ${COMPILER_PLATFORM_DEBUGFLAGS}")
 message(STATUS "  LD flags: ${COMPILER_PLATFORM_LINKFLAGS}")
 
 #
+# Shows components details.
+#
+message(STATUS "C++ details:")
+message(STATUS "  Compiler: ${CMAKE_CXX_COMPILER}")
+
+#
 # Config output paths.
 # First config output paths for the generic no-config case.
 # Second, for multi-config builds (DEBUG or RELEASE, for example).
 #
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BUILD_TEMP_DIR}/lib)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BUILD_RELEASE_DIR}/bin)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BUILD_RELEASE_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BUILD_RELEASE_DIR}/lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BUILD_RELEASE_DIR}/bin)
 foreach(OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES})
   string(TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG)
   set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY})
-  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
   set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
+  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 endforeach()
 
 #
@@ -434,7 +455,7 @@ set(COMPILER_STANDARD_LIBS
 #
 set(LIB_STATIC_ALGORITHMS algorithms)
 set(CURRENT_SOURCE_DIR "${PROJECT_SOURCE_DIR}/algorithms")
-set(SOURCE
+set(LIB_STATIC_ALGORITHMS_SOURCE
   ${CURRENT_SOURCE_DIR}/bit_history.cpp
   ${CURRENT_SOURCE_DIR}/Cell.cpp
   ${CURRENT_SOURCE_DIR}/Cells4.cpp
@@ -473,14 +494,14 @@ set(SOURCE
   ${CURRENT_SOURCE_DIR}/svm.hpp
   ${CURRENT_SOURCE_DIR}/svm_t.hpp
 )
-generate_static_library(${LIB_STATIC_ALGORITHMS} "${COMPILER_CXXFLAGS}" "${SOURCE}")
+generate_object_library(${LIB_STATIC_ALGORITHMS} "${COMPILER_CXXFLAGS}" "${LIB_STATIC_ALGORITHMS_SOURCE}")
 
 #
 # LibMath
 #
 set(LIB_STATIC_MATH math)
 set(CURRENT_SOURCE_DIR "${PROJECT_SOURCE_DIR}/math")
-set(SOURCE
+set(LIB_STATIC_MATH_SOURCE
   ${CURRENT_SOURCE_DIR}/SparseMatrixAlgorithms.cpp
   ${CURRENT_SOURCE_DIR}/stl_io.cpp
   ${CURRENT_SOURCE_DIR}/array2D.hpp
@@ -506,14 +527,14 @@ set(SOURCE
   ${CURRENT_SOURCE_DIR}/types.hpp
   ${CURRENT_SOURCE_DIR}/utils.hpp
 )
-generate_static_library(${LIB_STATIC_MATH} "${COMPILER_CXXFLAGS}" "${SOURCE}")
+generate_object_library(${LIB_STATIC_MATH} "${COMPILER_CXXFLAGS}" "${LIB_STATIC_MATH_SOURCE}")
 
 #
 # LibTypes
 #
 set(LIB_STATIC_TYPES types)
 set(CURRENT_SOURCE_DIR "${PROJECT_SOURCE_DIR}/types")
-set(SOURCE
+set(LIB_STATIC_TYPES_SOURCE
   ${CURRENT_SOURCE_DIR}/BasicType.cpp
   ${CURRENT_SOURCE_DIR}/Fraction.cpp
   ${CURRENT_SOURCE_DIR}/BasicType.hpp
@@ -522,25 +543,25 @@ set(SOURCE
   ${CURRENT_SOURCE_DIR}/types.hpp
   ${CURRENT_SOURCE_DIR}/types.h
 )
-generate_static_library(${LIB_STATIC_TYPES} "${COMPILER_CXXFLAGS}" "${SOURCE}")
+generate_object_library(${LIB_STATIC_TYPES} "${COMPILER_CXXFLAGS}" "${LIB_STATIC_TYPES_SOURCE}")
 
 #
 # LibTest
 #
 set(LIB_STATIC_TEST test)
 set(CURRENT_SOURCE_DIR "${PROJECT_SOURCE_DIR}/test")
-set(SOURCE
+set(LIB_STATIC_TEST_SOURCE
   ${CURRENT_SOURCE_DIR}/Tester.cpp
   ${CURRENT_SOURCE_DIR}/Tester.hpp
 )
-generate_static_library(${LIB_STATIC_TEST} "${COMPILER_CXXFLAGS}" "${SOURCE}")
+generate_object_library(${LIB_STATIC_TEST} "${COMPILER_CXXFLAGS}" "${LIB_STATIC_TEST_SOURCE}")
 
 #
 # LibUtils
 #
 set(LIB_STATIC_UTILS utils)
 set(CURRENT_SOURCE_DIR "${PROJECT_SOURCE_DIR}/utils")
-set(SOURCE
+set(LIB_STATIC_UTILS_SOURCE
   ${CURRENT_SOURCE_DIR}/LoggingException.cpp
   ${CURRENT_SOURCE_DIR}/LogItem.cpp
   ${CURRENT_SOURCE_DIR}/Random.cpp
@@ -556,14 +577,14 @@ set(SOURCE
   ${CURRENT_SOURCE_DIR}/utils.hpp
   ${CURRENT_SOURCE_DIR}/Watcher.hpp
 )
-generate_static_library(${LIB_STATIC_UTILS} "${COMPILER_CXXFLAGS}" "${SOURCE}")
+generate_object_library(${LIB_STATIC_UTILS} "${COMPILER_CXXFLAGS}" "${LIB_STATIC_UTILS_SOURCE}")
 
 #
 # LibNTypes
 #
 set(LIB_STATIC_NTYPES ntypes)
 set(CURRENT_SOURCE_DIR "${PROJECT_SOURCE_DIR}/ntypes")
-set(SOURCE
+set(LIB_STATIC_NTYPES_SOURCE
   ${CURRENT_SOURCE_DIR}/ArrayBase.cpp
   ${CURRENT_SOURCE_DIR}/Buffer.cpp
   ${CURRENT_SOURCE_DIR}/BundleIO.cpp
@@ -587,14 +608,14 @@ set(SOURCE
   ${CURRENT_SOURCE_DIR}/Value.hpp
   ${CURRENT_SOURCE_DIR}/object_model.h
 )
-generate_static_library(${LIB_STATIC_NTYPES} "${COMPILER_CXXFLAGS}" "${SOURCE}")
+generate_object_library(${LIB_STATIC_NTYPES} "${COMPILER_CXXFLAGS}" "${LIB_STATIC_NTYPES_SOURCE}")
 
 #
 # LibEngine
 #
 set(LIB_STATIC_ENGINE engine)
 set(CURRENT_SOURCE_DIR "${PROJECT_SOURCE_DIR}/engine")
-set(SOURCE
+set(LIB_STATIC_ENGINE_SOURCE
   ${CURRENT_SOURCE_DIR}/Collections.cpp
   ${CURRENT_SOURCE_DIR}/Input.cpp
   ${CURRENT_SOURCE_DIR}/Link.cpp
@@ -628,14 +649,14 @@ set(SOURCE
   ${CURRENT_SOURCE_DIR}/UniformLinkPolicy.hpp
   ${CURRENT_SOURCE_DIR}/YAMLUtils.hpp
 )
-generate_static_library(${LIB_STATIC_ENGINE} "${COMPILER_CXXFLAGS}" "${SOURCE}")
+generate_object_library(${LIB_STATIC_ENGINE} "${COMPILER_CXXFLAGS}" "${LIB_STATIC_ENGINE_SOURCE}")
 
 #
 # LibOS
 #
 set(LIB_STATIC_OS os)
 set(CURRENT_SOURCE_DIR "${PROJECT_SOURCE_DIR}/os")
-set(SOURCE
+set(LIB_STATIC_OS_SOURCE
   ${CURRENT_SOURCE_DIR}/Directory.cpp
   ${CURRENT_SOURCE_DIR}/DynamicLibrary.cpp
   ${CURRENT_SOURCE_DIR}/Env.cpp
@@ -655,14 +676,14 @@ set(SOURCE
   ${CURRENT_SOURCE_DIR}/regex.hpp
   ${CURRENT_SOURCE_DIR}/Timer.hpp
 )
-generate_static_library(${LIB_STATIC_OS} "${COMPILER_CXXFLAGS}" "${SOURCE}")
+generate_object_library(${LIB_STATIC_OS} "${COMPILER_CXXFLAGS}" "${LIB_STATIC_OS_SOURCE}")
 
 #
 # LibRegions
 #
 set(LIB_STATIC_REGIONS regions)
 set(CURRENT_SOURCE_DIR "${PROJECT_SOURCE_DIR}/regions")
-set(SOURCE
+set(LIB_STATIC_REGIONS_SOURCE
   ${CURRENT_SOURCE_DIR}/VectorFile.cpp
   ${CURRENT_SOURCE_DIR}/VectorFileEffector.cpp
   ${CURRENT_SOURCE_DIR}/VectorFileSensor.cpp
@@ -670,32 +691,33 @@ set(SOURCE
   ${CURRENT_SOURCE_DIR}/VectorFileEffector.hpp
   ${CURRENT_SOURCE_DIR}/VectorFileSensor.hpp
 )
-generate_static_library(${LIB_STATIC_REGIONS} "${COMPILER_CXXFLAGS}" "${SOURCE}")
+generate_object_library(${LIB_STATIC_REGIONS} "${COMPILER_CXXFLAGS}" "${LIB_STATIC_REGIONS_SOURCE}")
 
 #
 # LibNupicCore
 #
-# A regular shared library that is installed in <build/release/lib> and
-# loaded dynamically.
+# This library is installed in <build/release/lib> and
+# loaded dynamically or statically.
 #
-set(LIB_DYNAMIC_CORE nupiccore)
+set(LIB_NUPICCORE nupic.core)
 set(CURRENT_SOURCE_DIR "${PROJECT_SOURCE_DIR}")
 set(SOURCE
-  ${CURRENT_SOURCE_DIR}/Main.cpp
+  ${LIB_STATIC_ENGINE_SOURCE}
+  ${LIB_STATIC_REGIONS_SOURCE}
+  ${LIB_STATIC_ALGORITHMS_SOURCE}
+  ${LIB_STATIC_MATH_SOURCE}
+  ${LIB_STATIC_NTYPES_SOURCE}
+  ${LIB_STATIC_SUPPORT_SOURCE}
+  ${LIB_STATIC_OS_SOURCE}
+  ${LIB_STATIC_UTILS_SOURCE}
+  ${LIB_STATIC_TEST_SOURCE}
+  ${LIB_STATIC_TYPES_SOURCE}
 )
 set(LIBRARIES
-  ${LIB_STATIC_ENGINE}
-  ${LIB_STATIC_REGIONS}
-  ${LIB_STATIC_ALGORITHMS}
-  ${LIB_STATIC_MATH}
-  ${LIB_STATIC_NTYPES}
-  ${LIB_STATIC_SUPPORT}
-  ${LIB_STATIC_OS}
-  ${LIB_STATIC_UTILS}
-  ${LIB_STATIC_TYPES}
   ${COMPILER_STANDARD_LIBS}
 )
-generate_dynamic_library(${LIB_DYNAMIC_CORE} "${COMPILER_CXXFLAGS}" "${SOURCE}" "${COMPILER_LINKFLAGS}" "${LIBRARIES}")
+generate_static_library(${LIB_NUPICCORE} "${COMPILER_CXXFLAGS}" "${SOURCE}")
+# TODO: Generate a dynamic library too: generate_dynamic_library(${LIB_NUPICCORE} "${COMPILER_CXXFLAGS}" "${SOURCE}" "${COMPILER_LINKFLAGS}" "${LIBRARIES}")
 
 
 ############################################################################################################################
