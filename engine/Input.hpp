@@ -200,8 +200,6 @@ namespace nta
     // Use a vector of links because order is important.
     std::vector<Link*> links_;
 
-    //bool zeroCopyEnabled_; // TODO implement optimizations for zero-copy
-
     // volatile (non-serialized) state
     bool initialized_;
     Array data_;

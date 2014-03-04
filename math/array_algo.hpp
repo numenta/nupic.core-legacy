@@ -1664,7 +1664,6 @@ namespace nta {
         << "normal_range: Invalid input range";
     }
 
-    //typedef typename std::iterator_traits<It>::value_type value_type;
     //TODO implement numerical recipes' method
   }
 
