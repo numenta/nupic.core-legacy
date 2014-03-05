@@ -175,7 +175,7 @@ namespace nta {
 		 int *incy)
       {
 	long i, m, ix, iy, nn = *n, iincx = *incx, iincy = *incy;
-	register float ssa = *sa;
+	float ssa = *sa;
 
 	if( nn > 0 && ssa != 0.0f)
 	  {
