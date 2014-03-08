@@ -272,10 +272,16 @@ message(STATUS "  Debug flags: ${COMPILER_PLATFORM_DEBUGFLAGS}")
 message(STATUS "  LD flags: ${COMPILER_PLATFORM_LINKFLAGS}")
 
 #
+# Gives the version of C++ compiler
+#
+execute_process(COMMAND ${CMAKE_CXX_COMPILER} -dumpversion OUTPUT_VARIABLE CXX_VERSION)
+
+#
 # Shows components details.
 #
 message(STATUS "C++ details:")
 message(STATUS "  Compiler: ${CMAKE_CXX_COMPILER}")
+message(STATUS "  Version: ${CXX_VERSION}")
 
 #
 # Set environment variables of the operating system
@@ -404,8 +410,7 @@ if(CMAKE_COMPILER_IS_GNUCXX)
   set(COMPILER_CXXFLAGS_BASE "${COMPILER_CXXFLAGS_BASE} -Wno-sign-compare -Wno-error=format=")
   set(COMPILER_CXXFLAGS_OPTIMIZATION "${COMPILER_CXXFLAGS_OPTIMIZATION} -falign-loops=16")
   # Workaround for gcc 4.4 in Grok
-  execute_process(COMMAND ${CMAKE_CXX_COMPILER} -dumpversion OUTPUT_VARIABLE GXX_VERSION)
-  if (GXX_VERSION VERSION_GREATER 4.6 OR GXX_VERSION VERSION_EQUAL 4.6)
+  if (CXX_VERSION VERSION_GREATER 4.6 OR CXX_VERSION VERSION_EQUAL 4.6)
     set(COMPILER_CXXFLAGS_BASE "${COMPILER_CXXFLAGS_BASE} -Wno-error=cpp -Werror")
   endif()
 endif()
