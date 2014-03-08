@@ -90,7 +90,7 @@ macro (get_files_list current_dir dir_mask file_mask)
 endmacro()
 
 # This macro generates a executable
-macro(generate_executable name cxx_flags source_files link_flags libraries)
+macro(generate_executable name output_dir cxx_flags source_files link_flags libraries)
   add_executable(${name}
     ${source_files}
   )
@@ -99,26 +99,28 @@ macro(generate_executable name cxx_flags source_files link_flags libraries)
   )
   set_target_properties(${name} PROPERTIES COMPILE_FLAGS "${cxx_flags}")
   set_target_properties(${name} PROPERTIES LINK_FLAGS "${link_flags}")
+  set_target_properties(${name} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${output_dir})
+  foreach(OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES})
+    string(TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG)
+    set_target_properties(${name} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${output_dir})
+  endforeach()
 endmacro()
 
 # This macro generates a static library
-macro(generate_static_library name cxx_flags source_files)
+macro(generate_static_library name output_dir cxx_flags source_files)
   add_library(${name}
     ${source_files}
   )
   set_target_properties(${name} PROPERTIES COMPILE_FLAGS "${cxx_flags}")
-endmacro()
-
-# This macro generates a object library
-macro(generate_object_library name cxx_flags source_files)
-  add_library(${name}
-    OBJECT ${source_files}
-  )
-  set_target_properties(${name} PROPERTIES COMPILE_FLAGS "${cxx_flags}")
+  set_target_properties(${name} PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${output_dir})
+  foreach(OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES})
+    string(TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG)
+    set_target_properties(${name} PROPERTIES ARCHIVE_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${output_dir})
+  endforeach()
 endmacro()
 
 # This macro generates a dynamic library
-macro(generate_dynamic_library name cxx_flags source_files link_flags libraries)
+macro(generate_dynamic_library name output_dir cxx_flags source_files link_flags libraries)
   add_library(${name} SHARED
     ${source_files}
   )
@@ -127,6 +129,11 @@ macro(generate_dynamic_library name cxx_flags source_files link_flags libraries)
   )
   set_target_properties(${name} PROPERTIES COMPILE_FLAGS "${cxx_flags}")
   set_target_properties(${name} PROPERTIES LINK_FLAGS "${link_flags}")
+  set_target_properties(${name} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${output_dir})
+  foreach(OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES})
+    string(TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG)
+    set_target_properties(${name} PROPERTIES LIBRARY_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${output_dir})
+  endforeach()
 endmacro()
 
 
@@ -234,12 +241,12 @@ if(OSX)
   set(COMPILER_PLATFORM_CXXFLAGS "-fPIC -DPIC -m64")
   set(COMPILER_PLATFORM_DEBUGFLAGS "-gfull")
   set(COMPILER_PLATFORM_LINKFLAGS "-Wl,-u,_munmap")
-  set(COMPILER_PLATFORM_LIBS "-stdlib=libstdc++ -std=c++11 -lc++abi -liconv -lsqlite3 -framework CoreServices -framework Accelerate")
+  set(COMPILER_PLATFORM_LIBS "-stdlib=libstdc++ -std=c++98 -lc++abi -liconv -lsqlite3 -framework CoreServices -framework Accelerate")
 elseif(LINUX)
   set(COMPILER_PLATFORM_CXXFLAGS "-fPIC -DPIC")
   set(COMPILER_PLATFORM_DEBUGFLAGS "-g")
   set(COMPILER_PLATFORM_LINKFLAGS "-Wl,--no-as-needed -static-libgcc")
-  set(COMPILER_PLATFORM_LIBS "-std=c++11 -lm -lpthread -ldl -lutil")
+  set(COMPILER_PLATFORM_LIBS "-std=c++98 -lm -lpthread -ldl -lutil")
   if(${COMPILER_PLATFORM_ARCH} MATCHES "64")
     set(COMPILER_PLATFORM_OS "linux64")
     set(COMPILER_PLATFORM_CXXFLAGS "${COMPILER_PLATFORM_CXXFLAGS} -m64")
@@ -271,28 +278,13 @@ message(STATUS "C++ details:")
 message(STATUS "  Compiler: ${CMAKE_CXX_COMPILER}")
 
 #
-# Config output paths.
-# First config output paths for the generic no-config case.
-# Second, for multi-config builds (DEBUG or RELEASE, for example).
-#
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BUILD_RELEASE_DIR}/lib)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BUILD_RELEASE_DIR}/lib)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BUILD_RELEASE_DIR}/bin)
-foreach(OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES})
-  string(TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG)
-  set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY})
-  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
-  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
-endforeach()
-
-#
 # Set environment variables of the operating system
 #
 message(STATUS "Checking environment...")
 message(STATUS "Environment variables:")
-set_environment_variable(PATH "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}" ON)
-set_environment_variable(LD_LIBRARY_PATH "${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}" ON)
-set_environment_variable(DYLD_LIBRARY_PATH "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}" ON)
+set_environment_variable(PATH "${PROJECT_BUILD_RELEASE_DIR}/bin" ON)
+set_environment_variable(LD_LIBRARY_PATH "${PROJECT_BUILD_RELEASE_DIR}/lib" ON)
+set_environment_variable(DYLD_LIBRARY_PATH "${PROJECT_BUILD_RELEASE_DIR}/lib" ON)
 if(OSX)
   set_environment_variable(MACOSX_DEPLOYMENT_TARGET "${CMAKE_OSX_DEPLOYMENT_TARGET}" OFF)
   message(STATUS "  (some variables will be updated only after login.)")
@@ -318,17 +310,33 @@ message(STATUS "  Release: ${PROJECT_BUILD_RELEASE_DIR}")
 ############################################################################################################################
 
 #
+# Define custom preprocessor variables (#define XX in C++ code)
+# The reason to use add_definitions() instead of appending flag -std=c++0x directly to CXXBASE_FLAGS is that
+# cmake deploys "internal smarts" for compatibility with different compilers (clang, gcc 4.6 vs 4.8)
+add_definitions(-std=c++98) # smart flag setting for gcc/clang
+
+#
 # Include directories of headers
 # Allows us to find includes for external libraries and enables
 # #include <common/...>
 #
-set(COMPILER_INCLUDEFLAGS "-I${REPOSITORY_DIR} -I${REPOSITORY_DIR}/external/common/include -I${REPOSITORY_DIR}/external/${COMPILER_PLATFORM_OS}/include")
+set(COMPILER_INCLUDEFLAGS "-I${REPOSITORY_DIR} -isystem${REPOSITORY_DIR}/external/common/include -isystem${REPOSITORY_DIR}/external/${COMPILER_PLATFORM_OS}/include")
 
 #
 # NTA_INTERNAL tells us that the code is being built under the build system
 # and not as a separate program. Used for cppvision example.
 #
-set(COMPILER_CXXFLAGS_BASE "${COMPILER_INCLUDEFLAGS} ${COMPILER_PLATFORM_CXXFLAGS} -DHAVE_CONFIG_H -DNTA_INTERNAL -DNTA_PLATFORM_${COMPILER_PLATFORM_OS} -DBOOST_NO_WREGEX -DNUPIC2 -fvisibility=hidden -Wall -Wreturn-type -Wunused-variable -Wno-deprecated")
+set(COMPILER_CXXFLAGS_BASE "${COMPILER_INCLUDEFLAGS} ${COMPILER_PLATFORM_CXXFLAGS} -DHAVE_CONFIG_H -DNTA_INTERNAL -DNTA_PLATFORM_${COMPILER_PLATFORM_OS} -DBOOST_NO_WREGEX -DNUPIC2 -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-unused-parameter")
+
+#
+# Compiler specific (clang, gcc, ..) flags can be set here
+#
+message(STATUS "using ${CMAKE_CXX_COMPILER_ID}")
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+  message(STATUS "clang")
+elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+  set(COMPILER_CXXFLAGS_BASE "${COMPILER_CXXFLAGS_BASE} -Wno-error=cpp -Wno-error=format=") 
+endif()
 
 #
 # All executables and plugins are linked with these flags
@@ -390,11 +398,16 @@ option(COMPILER_MPI_SUPPORT "--mpi=[ON/OFF] turn on MPI support [default=ON]" ON
 message(STATUS "  MPI Support: ${COMPILER_MPI_SUPPORT}")
 
 #
-# Set GNU c/c++ flags in case of CLang is off.
+# Compiler specific (clang, gcc, ..) flags can be set here
 #
 if(CMAKE_COMPILER_IS_GNUCXX)
-  set(COMPILER_CXXFLAGS_BASE "${COMPILER_CXXFLAGS_BASE} -Wno-sign-compare")
+  set(COMPILER_CXXFLAGS_BASE "${COMPILER_CXXFLAGS_BASE} -Wno-sign-compare -Wno-error=format=")
   set(COMPILER_CXXFLAGS_OPTIMIZATION "${COMPILER_CXXFLAGS_OPTIMIZATION} -falign-loops=16")
+  # Workaround for gcc 4.4 in Grok
+  execute_process(COMMAND ${CMAKE_CXX_COMPILER} -dumpversion OUTPUT_VARIABLE GXX_VERSION)
+  if (GXX_VERSION VERSION_GREATER 4.6 OR GXX_VERSION VERSION_EQUAL 4.6)
+    set(COMPILER_CXXFLAGS_BASE "${COMPILER_CXXFLAGS_BASE} -Wno-error=cpp -Werror")
+  endif()
 endif()
 
 #
@@ -494,7 +507,7 @@ set(LIB_STATIC_ALGORITHMS_SOURCE
   ${CURRENT_SOURCE_DIR}/svm.hpp
   ${CURRENT_SOURCE_DIR}/svm_t.hpp
 )
-generate_object_library(${LIB_STATIC_ALGORITHMS} "${COMPILER_CXXFLAGS}" "${LIB_STATIC_ALGORITHMS_SOURCE}")
+generate_static_library(${LIB_STATIC_ALGORITHMS} "${PROJECT_BUILD_TEMP_DIR}/lib" "${COMPILER_CXXFLAGS}" "${LIB_STATIC_ALGORITHMS_SOURCE}")
 
 #
 # LibMath
@@ -527,7 +540,7 @@ set(LIB_STATIC_MATH_SOURCE
   ${CURRENT_SOURCE_DIR}/types.hpp
   ${CURRENT_SOURCE_DIR}/utils.hpp
 )
-generate_object_library(${LIB_STATIC_MATH} "${COMPILER_CXXFLAGS}" "${LIB_STATIC_MATH_SOURCE}")
+generate_static_library(${LIB_STATIC_MATH} "${PROJECT_BUILD_TEMP_DIR}/lib" "${COMPILER_CXXFLAGS}" "${LIB_STATIC_MATH_SOURCE}")
 
 #
 # LibTypes
@@ -543,7 +556,7 @@ set(LIB_STATIC_TYPES_SOURCE
   ${CURRENT_SOURCE_DIR}/types.hpp
   ${CURRENT_SOURCE_DIR}/types.h
 )
-generate_object_library(${LIB_STATIC_TYPES} "${COMPILER_CXXFLAGS}" "${LIB_STATIC_TYPES_SOURCE}")
+generate_static_library(${LIB_STATIC_TYPES} "${PROJECT_BUILD_TEMP_DIR}/lib" "${COMPILER_CXXFLAGS}" "${LIB_STATIC_TYPES_SOURCE}")
 
 #
 # LibTest
@@ -554,7 +567,7 @@ set(LIB_STATIC_TEST_SOURCE
   ${CURRENT_SOURCE_DIR}/Tester.cpp
   ${CURRENT_SOURCE_DIR}/Tester.hpp
 )
-generate_object_library(${LIB_STATIC_TEST} "${COMPILER_CXXFLAGS}" "${LIB_STATIC_TEST_SOURCE}")
+generate_static_library(${LIB_STATIC_TEST} "${PROJECT_BUILD_TEMP_DIR}/lib" "${COMPILER_CXXFLAGS}" "${LIB_STATIC_TEST_SOURCE}")
 
 #
 # LibUtils
@@ -577,7 +590,7 @@ set(LIB_STATIC_UTILS_SOURCE
   ${CURRENT_SOURCE_DIR}/utils.hpp
   ${CURRENT_SOURCE_DIR}/Watcher.hpp
 )
-generate_object_library(${LIB_STATIC_UTILS} "${COMPILER_CXXFLAGS}" "${LIB_STATIC_UTILS_SOURCE}")
+generate_static_library(${LIB_STATIC_UTILS} "${PROJECT_BUILD_TEMP_DIR}/lib" "${COMPILER_CXXFLAGS}" "${LIB_STATIC_UTILS_SOURCE}")
 
 #
 # LibNTypes
@@ -608,7 +621,7 @@ set(LIB_STATIC_NTYPES_SOURCE
   ${CURRENT_SOURCE_DIR}/Value.hpp
   ${CURRENT_SOURCE_DIR}/object_model.h
 )
-generate_object_library(${LIB_STATIC_NTYPES} "${COMPILER_CXXFLAGS}" "${LIB_STATIC_NTYPES_SOURCE}")
+generate_static_library(${LIB_STATIC_NTYPES} "${PROJECT_BUILD_TEMP_DIR}/lib" "${COMPILER_CXXFLAGS}" "${LIB_STATIC_NTYPES_SOURCE}")
 
 #
 # LibEngine
@@ -649,7 +662,7 @@ set(LIB_STATIC_ENGINE_SOURCE
   ${CURRENT_SOURCE_DIR}/UniformLinkPolicy.hpp
   ${CURRENT_SOURCE_DIR}/YAMLUtils.hpp
 )
-generate_object_library(${LIB_STATIC_ENGINE} "${COMPILER_CXXFLAGS}" "${LIB_STATIC_ENGINE_SOURCE}")
+generate_static_library(${LIB_STATIC_ENGINE} "${PROJECT_BUILD_TEMP_DIR}/lib" "${COMPILER_CXXFLAGS}" "${LIB_STATIC_ENGINE_SOURCE}")
 
 #
 # LibOS
@@ -676,7 +689,7 @@ set(LIB_STATIC_OS_SOURCE
   ${CURRENT_SOURCE_DIR}/regex.hpp
   ${CURRENT_SOURCE_DIR}/Timer.hpp
 )
-generate_object_library(${LIB_STATIC_OS} "${COMPILER_CXXFLAGS}" "${LIB_STATIC_OS_SOURCE}")
+generate_static_library(${LIB_STATIC_OS} "${PROJECT_BUILD_TEMP_DIR}/lib" "${COMPILER_CXXFLAGS}" "${LIB_STATIC_OS_SOURCE}")
 
 #
 # LibRegions
@@ -691,7 +704,7 @@ set(LIB_STATIC_REGIONS_SOURCE
   ${CURRENT_SOURCE_DIR}/VectorFileEffector.hpp
   ${CURRENT_SOURCE_DIR}/VectorFileSensor.hpp
 )
-generate_object_library(${LIB_STATIC_REGIONS} "${COMPILER_CXXFLAGS}" "${LIB_STATIC_REGIONS_SOURCE}")
+generate_static_library(${LIB_STATIC_REGIONS} "${PROJECT_BUILD_TEMP_DIR}/lib" "${COMPILER_CXXFLAGS}" "${LIB_STATIC_REGIONS_SOURCE}")
 
 #
 # LibNupicCore
@@ -716,8 +729,8 @@ set(SOURCE
 set(LIBRARIES
   ${COMPILER_STANDARD_LIBS}
 )
-generate_static_library(${LIB_NUPICCORE} "${COMPILER_CXXFLAGS}" "${SOURCE}")
-# TODO: Generate a dynamic library too: generate_dynamic_library(${LIB_NUPICCORE} "${COMPILER_CXXFLAGS}" "${SOURCE}" "${COMPILER_LINKFLAGS}" "${LIBRARIES}")
+generate_static_library(${LIB_NUPICCORE} "${PROJECT_BUILD_RELEASE_DIR}/lib" "${COMPILER_CXXFLAGS}" "${SOURCE}")
+# TODO: Generate a dynamic library too: generate_dynamic_library(${LIB_NUPICCORE} "${PROJECT_BUILD_RELEASE_DIR}/lib" "${COMPILER_CXXFLAGS}" "${SOURCE}" "${COMPILER_LINKFLAGS}" "${LIBRARIES}")
 
 
 ############################################################################################################################
