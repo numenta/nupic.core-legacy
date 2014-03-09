@@ -42,7 +42,7 @@ Important notes:
 
     mkdir -p $REPOSITORY/build/scripts
     cd $REPOSITORY/build/scripts
-    cmake $REPOSITORY/src
+    cmake $REPOSITORY
 
 #### Build:
 
@@ -53,7 +53,10 @@ Important notes:
 
 #### Run the C++ tests:
 
-    cd $REPOSITORY/build/release/bin
+    cd $REPOSITORY
+    # HTM network tests
+    htmtest
+    # remaining C++ unit tests
     testeverything
 
 ### Using graphical interface
