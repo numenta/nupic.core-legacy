@@ -205,6 +205,7 @@ set(CMAKE_CURRENT_BINARY_DIR ${PROJECT_BUILD_TEMP_DIR})
 # TODO: This is palliative, it should be removed after repository restructuring
 # Makes a copy to simulate /src folder
 execute_process(COMMAND ${CMAKE_COMMAND} -E remove_directory ${PROJECT_SOURCE_DIR}/src)
+copy_file(${PROJECT_SOURCE_DIR}/CMakeLists.txt ${PROJECT_SOURCE_DIR}/src/CMakeLists.txt)
 copy_directory(${PROJECT_SOURCE_DIR}/algorithms ${PROJECT_SOURCE_DIR}/src/algorithms)
 copy_directory(${PROJECT_SOURCE_DIR}/engine ${PROJECT_SOURCE_DIR}/src/engine)
 copy_directory(${PROJECT_SOURCE_DIR}/math ${PROJECT_SOURCE_DIR}/src/math)
