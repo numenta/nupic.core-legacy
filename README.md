@@ -42,7 +42,7 @@ Important notes:
 
     mkdir -p $REPOSITORY/build/scripts
     cd $REPOSITORY/build/scripts
-    cmake $REPOSITORY/src
+    cmake $REPOSITORY
 
 #### Build:
 
@@ -50,11 +50,6 @@ Important notes:
     make -j3
     
 > **Note**: -j3 option specify '3' as the maximum number of parallel jobs/threads that Make will use during the build in order to gain speed. However, you can increase this number depending your CPU.
-
-#### Run the C++ tests:
-
-    cd $REPOSITORY/build/release/bin
-    testeverything
 
 ### Using graphical interface
 
