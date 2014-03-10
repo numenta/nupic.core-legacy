@@ -64,6 +64,18 @@ macro (set_environment_variable variable value incremental)
   show_environment_variable(${variable} ${new_value})
 endmacro()
 
+# These macros copy all source directories after the configuration is done
+macro (copy suffix src dst)  
+  message(STATUS "Copying from '${src}' to '${dst}'")
+  execute_process(COMMAND ${CMAKE_COMMAND} -E copy${suffix} ${src} ${dst})
+endmacro()
+macro (copy_file src dst)
+  copy("" ${src} ${dst})
+endmacro()
+macro (copy_directory src dst)
+  copy("_directory" ${src} ${dst})
+endmacro()
+
 # This macro get all files from a directory and its subdirectories.
 macro (get_files_list current_dir dir_mask file_mask)
   file(GLOB children RELATIVE ${current_dir} ${current_dir}/*)
@@ -191,9 +203,17 @@ endif()
 set(CMAKE_CURRENT_BINARY_DIR ${PROJECT_BUILD_TEMP_DIR})
 
 # TODO: This is palliative, it should be removed after repository restructuring
-# Makes a copy to simulate /nta folder
-execute_process(COMMAND ${CMAKE_COMMAND} -E remove_directory ${PROJECT_SOURCE_DIR}/nta)
-execute_process(COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR} ${PROJECT_SOURCE_DIR}/nta)
+# Makes a copy to simulate /src folder
+execute_process(COMMAND ${CMAKE_COMMAND} -E remove_directory ${PROJECT_SOURCE_DIR}/src)
+copy_directory(${PROJECT_SOURCE_DIR}/algorithms ${PROJECT_SOURCE_DIR}/src/algorithms)
+copy_directory(${PROJECT_SOURCE_DIR}/engine ${PROJECT_SOURCE_DIR}/src/engine)
+copy_directory(${PROJECT_SOURCE_DIR}/math ${PROJECT_SOURCE_DIR}/src/math)
+copy_directory(${PROJECT_SOURCE_DIR}/ntypes ${PROJECT_SOURCE_DIR}/src/ntypes)
+copy_directory(${PROJECT_SOURCE_DIR}/os ${PROJECT_SOURCE_DIR}/src/os)
+copy_directory(${PROJECT_SOURCE_DIR}/regions ${PROJECT_SOURCE_DIR}/src/regions)
+copy_directory(${PROJECT_SOURCE_DIR}/test ${PROJECT_SOURCE_DIR}/src/test)
+copy_directory(${PROJECT_SOURCE_DIR}/types ${PROJECT_SOURCE_DIR}/src/types)
+copy_directory(${PROJECT_SOURCE_DIR}/utils ${PROJECT_SOURCE_DIR}/src/utils)
 
 #
 # Clean directories before generate files
@@ -326,23 +346,13 @@ add_definitions(-std=c++98) # smart flag setting for gcc/clang
 # Allows us to find includes for external libraries and enables
 # #include <common/...>
 #
-set(COMPILER_INCLUDEFLAGS "-I${REPOSITORY_DIR} -isystem${REPOSITORY_DIR}/external/common/include -isystem${REPOSITORY_DIR}/external/${COMPILER_PLATFORM_OS}/include")
+set(COMPILER_INCLUDEFLAGS "-I${REPOSITORY_DIR} -I${PROJECT_BUILD_RELEASE_DIR}/include -isystem${REPOSITORY_DIR}/external/common/include -isystem${REPOSITORY_DIR}/external/${COMPILER_PLATFORM_OS}/include")
 
 #
 # NTA_INTERNAL tells us that the code is being built under the build system
 # and not as a separate program. Used for cppvision example.
 #
 set(COMPILER_CXXFLAGS_BASE "${COMPILER_INCLUDEFLAGS} ${COMPILER_PLATFORM_CXXFLAGS} -DHAVE_CONFIG_H -DNTA_INTERNAL -DNTA_PLATFORM_${COMPILER_PLATFORM_OS} -DBOOST_NO_WREGEX -DNUPIC2 -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-unused-parameter")
-
-#
-# Compiler specific (clang, gcc, ..) flags can be set here
-#
-message(STATUS "using ${CMAKE_CXX_COMPILER_ID}")
-if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-  message(STATUS "clang")
-elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-  set(COMPILER_CXXFLAGS_BASE "${COMPILER_CXXFLAGS_BASE} -Wno-error=cpp -Wno-error=format=") 
-endif()
 
 #
 # All executables and plugins are linked with these flags
@@ -404,7 +414,7 @@ option(COMPILER_MPI_SUPPORT "--mpi=[ON/OFF] turn on MPI support [default=ON]" ON
 message(STATUS "  MPI Support: ${COMPILER_MPI_SUPPORT}")
 
 #
-# Compiler specific (clang, gcc, ..) flags can be set here
+# Compiler specific (clang, gcc, ..) flags can be set here.
 #
 if(CMAKE_COMPILER_IS_GNUCXX)
   set(COMPILER_CXXFLAGS_BASE "${COMPILER_CXXFLAGS_BASE} -Wno-sign-compare -Wno-error=format=")
@@ -714,7 +724,7 @@ generate_static_library(${LIB_STATIC_REGIONS} "${PROJECT_BUILD_TEMP_DIR}/lib" "$
 #
 # LibNupicCore
 #
-# This library is installed in <build/release/lib> and
+# This library is installed in 'build/release/lib' and
 # loaded dynamically or statically.
 #
 set(LIB_NUPICCORE nupic.core)
@@ -744,6 +754,24 @@ generate_static_library(${LIB_NUPICCORE} "${PROJECT_BUILD_RELEASE_DIR}/lib" "${C
 ###  Post configuration operations                                                                                       ###
 ###                                                                                                                      ###
 ############################################################################################################################
+
+#
+# Copy all headers files to 'build/release/include'
+#
+set(FILES_RETURNED)
+get_files_list(${PROJECT_SOURCE_DIR}/src " " ".h")
+set(files ${FILES_RETURNED})
+set(headers_file_content "")
+foreach(src_file ${files})
+  get_filename_component(src_dir ${src_file} ABSOLUTE)
+  if(NOT ${src_dir} MATCHES "unittests")
+    # TODO: This is palliative, it should be removed after repository restructuring
+    string(REPLACE "${PROJECT_SOURCE_DIR}/src" "${PROJECT_BUILD_RELEASE_DIR}/include/nta" dst_file ${src_file})
+
+    #string(REPLACE "${PROJECT_SOURCE_DIR}/src" "${PROJECT_BUILD_RELEASE_DIR}/include" dst_file ${src_file})
+    copy_file(${src_file} ${dst_file})
+  endif()
+endforeach()
 
 
 # Just to separate from result message
