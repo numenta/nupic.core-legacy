@@ -39,17 +39,15 @@ before_install:
   - if [ "$CC" = "clang" ]; then export CXX=clang++; fi
 
 install:
+  # cmake
   - "mkdir -p $TRAVIS_BUILD_DIR/build/scripts"
   - "cd $TRAVIS_BUILD_DIR/build/scripts"
   - "cmake $TRAVIS_BUILD_DIR"
-  - "cd $TRAVIS_BUILD_DIR/build/scripts"
-  - "make -j3"
 
 script:
-  # legacy binary tests
-  - cd $TRAVIS_BUILD_DIR
-  - htmtest
-  - testeverything
+  # make
+  - "cd $TRAVIS_BUILD_DIR/build/scripts"
+  - "make -j3"
 
 after_script:
   - travis_retry gem install travis-artifacts > /dev/null

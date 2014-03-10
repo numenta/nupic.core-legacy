@@ -51,14 +51,6 @@ Important notes:
     
 > **Note**: -j3 option specify '3' as the maximum number of parallel jobs/threads that Make will use during the build in order to gain speed. However, you can increase this number depending your CPU.
 
-#### Run the C++ tests:
-
-    cd $REPOSITORY
-    # HTM network tests
-    htmtest
-    # remaining C++ unit tests
-    testeverything
-
 ### Using graphical interface
 
 #### Generate the IDE solution:
