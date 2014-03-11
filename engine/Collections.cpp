@@ -29,6 +29,7 @@
  * instantiated below. 
  */
 #include <nta/ntypes/Collection.hpp>
+#include <nta/ntypes/Collection.cpp>
 #include <nta/engine/Region.hpp>
 #include <nta/engine/Network.hpp>
 

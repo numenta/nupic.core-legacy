@@ -773,6 +773,7 @@ foreach(src_file ${files})
     copy_file(${src_file} ${dst_file})
   endif()
 endforeach()
+copy_file(${PROJECT_SOURCE_DIR}/src/ntypes/Collection.cpp ${PROJECT_BUILD_RELEASE_DIR}/include/nta/ntypes/Collection.cpp)
 
 
 # Just to separate from result message
