@@ -42,7 +42,7 @@ Important notes:
 
     mkdir -p $REPOSITORY/build/scripts
     cd $REPOSITORY/build/scripts
-    cmake $REPOSITORY
+    cmake $REPOSITORY/src
 
 #### Build:
 
@@ -63,9 +63,5 @@ Important notes:
 
 #### Build:
 
- * Open 'Nupic.*proj' solution file generated on $REPOSITORY/build/scripts.
+ * Open 'nupic.core.*proj' solution file generated on $REPOSITORY/build/scripts.
  * Run 'ALL_BUILD' project from your IDE.
-
-#### Run the tests:
-
- * Run 'TestEverything' project from your IDE (check 'output' panel to see the results).

@@ -22,7 +22,7 @@ before_install:
 install:
   - "mkdir -p $TRAVIS_BUILD_DIR/build/scripts"
   - "cd $TRAVIS_BUILD_DIR/build/scripts"
-  - "cmake $TRAVIS_BUILD_DIR"
+  - "cmake $TRAVIS_BUILD_DIR/src"
 
 script:
   - "cd $TRAVIS_BUILD_DIR/build/scripts"
