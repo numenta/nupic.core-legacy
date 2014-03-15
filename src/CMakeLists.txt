@@ -736,6 +736,52 @@ set(LIBRARIES
 generate_static_library(${LIB_NUPICCORE} "${PROJECT_BUILD_RELEASE_DIR}/lib" "${COMPILER_CXXFLAGS}" "${SOURCE}")
 # TODO: Generate a dynamic library too: generate_dynamic_library(${LIB_NUPICCORE} "${PROJECT_BUILD_RELEASE_DIR}/lib" "${COMPILER_CXXFLAGS}" "${SOURCE}" "${COMPILER_LINKFLAGS}" "${LIBRARIES}")
 
+#
+# HtmTest
+#
+set(EXECUTABLE_HTMTEST htmtest)
+set(CURRENT_SOURCE_DIR "${PROJECT_SOURCE_DIR}/test/htmtest")
+set(SOURCE
+  ${CURRENT_SOURCE_DIR}/htmtest.cpp
+)
+set(LIBRARIES
+  ${LIB_STATIC_ENGINE}
+  ${LIB_STATIC_REGIONS}
+  ${LIB_STATIC_ALGORITHMS}
+  ${LIB_STATIC_MATH}
+  ${LIB_STATIC_NTYPES}
+  ${LIB_STATIC_SUPPORT}
+  ${LIB_STATIC_OS}
+  ${LIB_STATIC_UTILS}
+  ${LIB_STATIC_TEST}
+  ${LIB_STATIC_TYPES}
+  ${COMPILER_STANDARD_LIBS}
+)
+generate_executable(${EXECUTABLE_HTMTEST} "${PROJECT_BUILD_RELEASE_DIR}/bin" "${COMPILER_CXXFLAGS}" "${SOURCE}" "${COMPILER_LINKFLAGS}" "${LIBRARIES}")
+
+#
+# TestEverything
+#
+set(EXECUTABLE_TESTEVERYTHING testeverything)
+set(CURRENT_SOURCE_DIR "${PROJECT_SOURCE_DIR}/test/testeverything")
+set(FILES_RETURNED)
+get_files_list(${CURRENT_SOURCE_DIR} " " "Test.cpp")
+set(SOURCE ${FILES_RETURNED} ${CURRENT_SOURCE_DIR}/TestEverythingMain.cpp)
+set(LIBRARIES
+  ${LIB_STATIC_ENGINE}
+  ${LIB_STATIC_REGIONS}
+  ${LIB_STATIC_ALGORITHMS}
+  ${LIB_STATIC_MATH}
+  ${LIB_STATIC_NTYPES}
+  ${LIB_STATIC_SUPPORT}
+  ${LIB_STATIC_OS}
+  ${LIB_STATIC_UTILS}
+  ${LIB_STATIC_TEST}
+  ${LIB_STATIC_TYPES}
+  ${COMPILER_STANDARD_LIBS}
+)
+generate_executable(${EXECUTABLE_TESTEVERYTHING} "${PROJECT_BUILD_RELEASE_DIR}/bin" "${COMPILER_CXXFLAGS}" "${SOURCE}" "${COMPILER_LINKFLAGS} ${NTA_LINKFLAGS_PYEMBED}" "${LIBRARIES}")
+
 
 ############################################################################################################################
 ###                                                                                                                      ###
@@ -757,6 +803,24 @@ foreach(src_file ${files})
   copy_file(${src_file} ${dst_file})
 endforeach()
 copy_file(${PROJECT_SOURCE_DIR}/main/ntypes/Collection.cpp ${PROJECT_BUILD_RELEASE_DIR}/include/nta/ntypes/Collection.cpp)
+
+#
+# Create file with unit tests used by TestEverything
+#
+set(FILES_RETURNED)
+get_files_list(${PROJECT_SOURCE_DIR}/test/testeverything " " "Test.hpp")
+set(files ${FILES_RETURNED})
+set(tests_file_content "")
+set(headers_file_content "")
+foreach(file ${files})
+  get_filename_component(test ${file} NAME_WE)
+  if(NOT ${file} MATCHES "TesterTest")
+    set(tests_file_content "${tests_file_content}ADD_TEST(${test});\n")
+    set(headers_file_content "${headers_file_content}#include \"${file}\"\n")
+  endif()
+endforeach()
+file(WRITE "${PROJECT_SOURCE_DIR}/test/testeverything/everything_addtests.hpp" "${tests_file_content}")
+file(WRITE "${PROJECT_SOURCE_DIR}/test/testeverything/everything_headers.hpp" "${headers_file_content}")
 
 
 # Just to separate from result message

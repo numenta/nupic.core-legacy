@@ -51,6 +51,12 @@ Important notes:
     
 > **Note**: -j3 option specify '3' as the maximum number of parallel jobs/threads that Make will use during the build in order to gain speed. However, you can increase this number depending your CPU.
 
+#### Run the tests:
+
+    cd $REPOSITORY/build/release/bin
+    htmtest
+    testeverything
+
 ### Using graphical interface
 
 #### Generate the IDE solution:
@@ -65,3 +71,7 @@ Important notes:
 
  * Open 'nupic.core.*proj' solution file generated on $REPOSITORY/build/scripts.
  * Run 'ALL_BUILD' project from your IDE.
+
+#### Run the tests:
+
+ * Run 'HtmTest' and 'TestEverything' projects from your IDE (check 'output' panel to see the results).
