@@ -76,6 +76,25 @@ macro (copy_directory src dst)
   copy("_directory" ${src} ${dst})
 endmacro()
 
+# This macro get all subdirectories from a directory.
+macro (get_directories_list current_dir dir_mask)
+  file(GLOB children RELATIVE ${current_dir} ${current_dir}/*)
+  foreach(child ${children})
+    if(IS_DIRECTORY ${current_dir}/${child})
+      get_directories_list(${current_dir}/${child} ${dir_mask})
+      set(can_return_item ON)
+      if(NOT "${dir_mask}" STREQUAL " ")
+        if(NOT ${current_dir} MATCHES ${dir_mask})
+          set(can_return_item OFF)
+        endif()
+      endif()
+      if(can_return_item)
+        set(ITEMS_RETURNED ${ITEMS_RETURNED} ${current_dir}/${child})
+      endif()
+    endif()
+  endforeach()
+endmacro()
+
 # This macro get all files from a directory and its subdirectories.
 macro (get_files_list current_dir dir_mask file_mask)
   file(GLOB children RELATIVE ${current_dir} ${current_dir}/*)
@@ -83,28 +102,62 @@ macro (get_files_list current_dir dir_mask file_mask)
     if(IS_DIRECTORY ${current_dir}/${child})
       get_files_list(${current_dir}/${child} ${dir_mask} ${file_mask})
     else()
-      set(can_return_file ON)
+      set(can_return_item ON)
       if(NOT "${dir_mask}" STREQUAL " ")
         if(NOT ${current_dir} MATCHES ${dir_mask})
-          set(can_return_file OFF)
+          set(can_return_item OFF)
         endif()
       endif()
       if(NOT "${file_mask}" STREQUAL " ")
         if(NOT ${child} MATCHES ${file_mask})
-          set(can_return_file OFF)
+          set(can_return_item OFF)
         endif()
       endif()
-      if(can_return_file)
-        set(FILES_RETURNED ${FILES_RETURNED} ${current_dir}/${child})
+      if(can_return_item)
+        set(ITEMS_RETURNED ${ITEMS_RETURNED} ${current_dir}/${child})
       endif()
     endif()
   endforeach()
 endmacro()
 
+# This macro get all source files from a directory and its subdirectories.
+macro(get_source_groups src_dir)
+  set(SOURCE_RETURNED)
+  set(ITEMS_RETURNED)
+
+  # Add root files as a blank source group
+  file(GLOB src_files
+    ${src_dir}/*.cpp
+    ${src_dir}/*.hpp
+    ${src_dir}/*.h
+  )
+  if(src_files)
+    set(SOURCE_RETURNED ${SOURCE_RETURNED} ${src_files})
+    source_group("" FILES ${src_files})
+  endif()
+
+  # Add every subdir as a source group
+  get_directories_list(${src_dir} " ")
+  set(src_sub_dirs ${ITEMS_RETURNED})
+  if(src_sub_dirs)
+    foreach(dir ${src_sub_dirs})
+      file(GLOB src_files
+        ${dir}/*.cpp
+        ${dir}/*.hpp
+        ${dir}/*.h
+      )
+      get_filename_component(src_group ${dir} NAME)
+      set(SOURCE_RETURNED ${SOURCE_RETURNED} ${src_files})
+      source_group(${src_group} FILES ${src_files})
+    endforeach()
+  endif()
+endmacro()
+
 # This macro generates a executable
-macro(generate_executable name output_dir cxx_flags source_files link_flags libraries)
+macro(generate_executable name src_dir output_dir cxx_flags link_flags libraries)
+  get_source_groups(${src_dir})
   add_executable(${name}
-    ${source_files}
+    ${SOURCE_RETURNED}
   )
   target_link_libraries(${name}
     ${libraries}
@@ -119,9 +172,10 @@ macro(generate_executable name output_dir cxx_flags source_files link_flags libr
 endmacro()
 
 # This macro generates a static library
-macro(generate_static_library name output_dir cxx_flags source_files)
+macro(generate_static_library name src_dir output_dir cxx_flags)
+  get_source_groups(${src_dir})
   add_library(${name}
-    ${source_files}
+    ${SOURCE_RETURNED}
   )
   set_target_properties(${name} PROPERTIES COMPILE_FLAGS "${cxx_flags}")
   set_target_properties(${name} PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${output_dir})
@@ -132,14 +186,24 @@ macro(generate_static_library name output_dir cxx_flags source_files)
 endmacro()
 
 # This macro generates a dynamic library
-macro(generate_dynamic_library name output_dir cxx_flags source_files link_flags libraries)
+macro(generate_dynamic_library name src_dir output_dir cxx_flags link_flags project_libraries external_libraries)
+  get_source_groups(${src_dir})
   add_library(${name} SHARED
-    ${source_files}
+    ${SOURCE_RETURNED}
   )
+
+  # All project libraries should included as whole into dynamic library
+  foreach(library ${project_libraries})
+    target_link_libraries(${name}
+      ${COMPILER_LINKFLAGS_ARCHIVES} ${library}
+    )
+  endforeach()
   target_link_libraries(${name}
-    ${libraries}
+    ${external_libraries}
   )
+
   set_target_properties(${name} PROPERTIES COMPILE_FLAGS "${cxx_flags}")
+  set_target_properties(${name} PROPERTIES LINKER_LANGUAGE "CXX")
   set_target_properties(${name} PROPERTIES LINK_FLAGS "${link_flags}")
   set_target_properties(${name} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${output_dir})
   foreach(OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES})
@@ -157,6 +221,13 @@ endmacro()
 ############################################################################################################################
 
 #
+# Project configuration
+#
+cmake_minimum_required(VERSION 2.8)
+project(nupic.core CXX)
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+
+#
 # Set C++ compiler.
 # According to CMake documentation, this must be done before any language is set (ie before any project() or enable_language() command).
 #
@@ -164,13 +235,6 @@ set(USER_CXX_COMPILER "" CACHE STRING "Default C++ compiler to be used (GCC / CL
 if(NOT "${USER_CXX_COMPILER}" STREQUAL "")
   set(CMAKE_CXX_COMPILER "${USER_CXX_COMPILER}")
 endif()
-
-#
-# Project configuration
-#
-cmake_minimum_required(VERSION 2.8)
-cmake_policy(SET CMP0002 NEW)
-project(nupic.core CXX)
 
 #
 # Sets default locations.
@@ -228,8 +292,8 @@ endif()
 #
 # Remove libraries prefixes (ex: libsome_thing => some_thing)
 #
-set(CMAKE_STATIC_LIBRARY_PREFIX "")
-set(CMAKE_SHARED_LIBRARY_PREFIX "")
+#set(CMAKE_STATIC_LIBRARY_PREFIX "")
+#set(CMAKE_SHARED_LIBRARY_PREFIX "")
 
 #
 # Determine Nupic.Core platform type
@@ -240,18 +304,19 @@ if(${CMAKE_SIZEOF_VOID_P} MATCHES "8")
 else()
   set(COMPILER_PLATFORM_ARCH "32")
 endif()
+set(COMPILER_PLATFORM_CXXFLAGS "-fPIC -DPIC")
+set(COMPILER_PLATFORM_DEBUGFLAGS "-gfull")
+set(COMPILER_PLATFORM_LINKFLAGS "")
+set(COMPILER_PLATFORM_LIBS "-stdlib=libstdc++ -std=c++98 -lc++abi")
 if(OSX)
   set(CMAKE_OSX_DEPLOYMENT_TARGET "10.7")
   set(COMPILER_PLATFORM_OS "darwin64")
-  set(COMPILER_PLATFORM_CXXFLAGS "-fPIC -DPIC -m64")
-  set(COMPILER_PLATFORM_DEBUGFLAGS "-gfull")
-  set(COMPILER_PLATFORM_LINKFLAGS "-Wl,-u,_munmap")
-  set(COMPILER_PLATFORM_LIBS "-stdlib=libstdc++ -std=c++98 -lc++abi -liconv -lsqlite3 -framework CoreServices -framework Accelerate")
+  set(COMPILER_PLATFORM_CXXFLAGS "${COMPILER_PLATFORM_CXXFLAGS} -m64")
+  set(COMPILER_PLATFORM_LINKFLAGS "${COMPILER_PLATFORM_LINKFLAGS} -Wl,-u,_munmap")
+  set(COMPILER_PLATFORM_LIBS "${COMPILER_PLATFORM_LIBS} -liconv -lsqlite3 -framework CoreServices -framework Accelerate")
 elseif(LINUX)
-  set(COMPILER_PLATFORM_CXXFLAGS "-fPIC -DPIC")
-  set(COMPILER_PLATFORM_DEBUGFLAGS "-g")
-  set(COMPILER_PLATFORM_LINKFLAGS "-Wl,--no-as-needed -static-libgcc")
-  set(COMPILER_PLATFORM_LIBS "-std=c++98 -lm -lpthread -ldl -lutil")
+  set(COMPILER_PLATFORM_LINKFLAGS "${COMPILER_PLATFORM_LINKFLAGS} -Wl,--no-as-needed -static-libgcc")
+  set(COMPILER_PLATFORM_LIBS "${COMPILER_PLATFORM_LIBS} -lm -lpthread -ldl -lutil")
   if(${COMPILER_PLATFORM_ARCH} MATCHES "64")
     set(COMPILER_PLATFORM_OS "linux64")
     set(COMPILER_PLATFORM_CXXFLAGS "${COMPILER_PLATFORM_CXXFLAGS} -m64")
@@ -261,10 +326,7 @@ elseif(LINUX)
   endif()
 elseif(WINDOWS)
   set(COMPILER_PLATFORM_OS "win32")
-  set(COMPILER_PLATFORM_CXXFLAGS "-DWIN32")
-  set(COMPILER_PLATFORM_DEBUGFLAGS "")
-  set(COMPILER_PLATFORM_LINKFLAGS "")
-  set(COMPILER_PLATFORM_LIBS "")
+  set(COMPILER_PLATFORM_CXXFLAGS "${COMPILER_PLATFORM_CXXFLAGS} -DWIN32")
 else()
   message(FATAL_ERROR "${CMAKE_CURRENT_LIST_FILE}:${CMAKE_CURRENT_LIST_LINE}: error: ${CMAKE_SYSTEM_NAME} not supported yet.")
 endif()
@@ -410,6 +472,9 @@ if(CMAKE_COMPILER_IS_GNUCXX)
   if (CXX_VERSION VERSION_GREATER 4.6 OR CXX_VERSION VERSION_EQUAL 4.6)
     set(COMPILER_CXXFLAGS_BASE "${COMPILER_CXXFLAGS_BASE} -Wno-error=cpp -Werror")
   endif()
+  set(COMPILER_LINKFLAGS_ARCHIVES "-Wl,-whole-archive")
+else()
+  set(COMPILER_LINKFLAGS_ARCHIVES "-Wl,-force_load")
 endif()
 
 #
@@ -468,319 +533,30 @@ set(COMPILER_STANDARD_LIBS
 message(STATUS "Configuring subprojects...")
 
 #
-# LibAlgorithms
-#
-set(LIB_STATIC_ALGORITHMS algorithms)
-set(CURRENT_SOURCE_DIR "${PROJECT_SOURCE_DIR}/main/algorithms")
-set(LIB_STATIC_ALGORITHMS_SOURCE
-  ${CURRENT_SOURCE_DIR}/bit_history.cpp
-  ${CURRENT_SOURCE_DIR}/Cell.cpp
-  ${CURRENT_SOURCE_DIR}/Cells4.cpp
-  ${CURRENT_SOURCE_DIR}/classifier_result.cpp
-  ${CURRENT_SOURCE_DIR}/CondProbTable.cpp
-  ${CURRENT_SOURCE_DIR}/fast_cla_classifier.cpp
-  ${CURRENT_SOURCE_DIR}/flat_spatial_pooler.cpp
-  ${CURRENT_SOURCE_DIR}/gaborNode.cpp
-  ${CURRENT_SOURCE_DIR}/imageSensorLite.cpp
-  ${CURRENT_SOURCE_DIR}/InSynapse.cpp
-  ${CURRENT_SOURCE_DIR}/linear.cpp
-  ${CURRENT_SOURCE_DIR}/OutSynapse.cpp
-  ${CURRENT_SOURCE_DIR}/Segment.cpp
-  ${CURRENT_SOURCE_DIR}/SegmentUpdate.cpp
-  ${CURRENT_SOURCE_DIR}/spatial_pooler.cpp
-  ${CURRENT_SOURCE_DIR}/svm.cpp
-  ${CURRENT_SOURCE_DIR}/arrayBuffer.hpp
-  ${CURRENT_SOURCE_DIR}/bit_history.hpp
-  ${CURRENT_SOURCE_DIR}/Cell.hpp
-  ${CURRENT_SOURCE_DIR}/Cells4.hpp
-  ${CURRENT_SOURCE_DIR}/classifier_result.hpp
-  ${CURRENT_SOURCE_DIR}/CondProbTable.hpp
-  ${CURRENT_SOURCE_DIR}/fast_cla_classifier.hpp
-  ${CURRENT_SOURCE_DIR}/FDRCSpatial.hpp
-  ${CURRENT_SOURCE_DIR}/FDRSpatial.hpp
-  ${CURRENT_SOURCE_DIR}/flat_spatial_pooler.hpp
-  ${CURRENT_SOURCE_DIR}/gaborNode.hpp
-  ${CURRENT_SOURCE_DIR}/imageSensorLite.hpp
-  ${CURRENT_SOURCE_DIR}/InSynapse.hpp
-  ${CURRENT_SOURCE_DIR}/linear.hpp
-  ${CURRENT_SOURCE_DIR}/OutSynapse.hpp
-  ${CURRENT_SOURCE_DIR}/scanning.hpp
-  ${CURRENT_SOURCE_DIR}/Segment.hpp
-  ${CURRENT_SOURCE_DIR}/SegmentUpdate.hpp
-  ${CURRENT_SOURCE_DIR}/spatial_pooler.hpp
-  ${CURRENT_SOURCE_DIR}/svm.hpp
-  ${CURRENT_SOURCE_DIR}/svm_t.hpp
-)
-generate_static_library(${LIB_STATIC_ALGORITHMS} "${PROJECT_BUILD_TEMP_DIR}/lib" "${COMPILER_CXXFLAGS}" "${LIB_STATIC_ALGORITHMS_SOURCE}")
-
-#
-# LibMath
-#
-set(LIB_STATIC_MATH math)
-set(CURRENT_SOURCE_DIR "${PROJECT_SOURCE_DIR}/main/math")
-set(LIB_STATIC_MATH_SOURCE
-  ${CURRENT_SOURCE_DIR}/SparseMatrixAlgorithms.cpp
-  ${CURRENT_SOURCE_DIR}/stl_io.cpp
-  ${CURRENT_SOURCE_DIR}/array2D.hpp
-  ${CURRENT_SOURCE_DIR}/array_algo.hpp
-  ${CURRENT_SOURCE_DIR}/convolution.hpp
-  ${CURRENT_SOURCE_DIR}/DenseMatrix.hpp
-  ${CURRENT_SOURCE_DIR}/Domain.hpp
-  ${CURRENT_SOURCE_DIR}/erosion.hpp
-  ${CURRENT_SOURCE_DIR}/functions.hpp
-  ${CURRENT_SOURCE_DIR}/GraphAlgorithms.hpp
-  ${CURRENT_SOURCE_DIR}/Index.hpp
-  ${CURRENT_SOURCE_DIR}/math.hpp
-  ${CURRENT_SOURCE_DIR}/NearestNeighbor.hpp
-  ${CURRENT_SOURCE_DIR}/rotation.hpp
-  ${CURRENT_SOURCE_DIR}/Set.hpp
-  ${CURRENT_SOURCE_DIR}/SparseBinaryMatrix.hpp
-  ${CURRENT_SOURCE_DIR}/SparseMatrix.hpp
-  ${CURRENT_SOURCE_DIR}/SparseMatrix01.hpp
-  ${CURRENT_SOURCE_DIR}/SparseMatrixAlgorithms.hpp
-  ${CURRENT_SOURCE_DIR}/SparseRLEMatrix.hpp
-  ${CURRENT_SOURCE_DIR}/SparseTensor.hpp
-  ${CURRENT_SOURCE_DIR}/stl_io.hpp
-  ${CURRENT_SOURCE_DIR}/types.hpp
-  ${CURRENT_SOURCE_DIR}/utils.hpp
-)
-generate_static_library(${LIB_STATIC_MATH} "${PROJECT_BUILD_TEMP_DIR}/lib" "${COMPILER_CXXFLAGS}" "${LIB_STATIC_MATH_SOURCE}")
-
-#
-# LibTypes
-#
-set(LIB_STATIC_TYPES types)
-set(CURRENT_SOURCE_DIR "${PROJECT_SOURCE_DIR}/main/types")
-set(LIB_STATIC_TYPES_SOURCE
-  ${CURRENT_SOURCE_DIR}/BasicType.cpp
-  ${CURRENT_SOURCE_DIR}/Fraction.cpp
-  ${CURRENT_SOURCE_DIR}/BasicType.hpp
-  ${CURRENT_SOURCE_DIR}/Exception.hpp
-  ${CURRENT_SOURCE_DIR}/Fraction.hpp
-  ${CURRENT_SOURCE_DIR}/types.hpp
-  ${CURRENT_SOURCE_DIR}/types.h
-)
-generate_static_library(${LIB_STATIC_TYPES} "${PROJECT_BUILD_TEMP_DIR}/lib" "${COMPILER_CXXFLAGS}" "${LIB_STATIC_TYPES_SOURCE}")
-
-#
-# LibTest
-#
-set(LIB_STATIC_TEST test)
-set(CURRENT_SOURCE_DIR "${PROJECT_SOURCE_DIR}/main/test")
-set(LIB_STATIC_TEST_SOURCE
-  ${CURRENT_SOURCE_DIR}/Tester.cpp
-  ${CURRENT_SOURCE_DIR}/Tester.hpp
-)
-generate_static_library(${LIB_STATIC_TEST} "${PROJECT_BUILD_TEMP_DIR}/lib" "${COMPILER_CXXFLAGS}" "${LIB_STATIC_TEST_SOURCE}")
-
-#
-# LibUtils
-#
-set(LIB_STATIC_UTILS utils)
-set(CURRENT_SOURCE_DIR "${PROJECT_SOURCE_DIR}/main/utils")
-set(LIB_STATIC_UTILS_SOURCE
-  ${CURRENT_SOURCE_DIR}/LoggingException.cpp
-  ${CURRENT_SOURCE_DIR}/LogItem.cpp
-  ${CURRENT_SOURCE_DIR}/Random.cpp
-  ${CURRENT_SOURCE_DIR}/StringUtils.cpp
-  ${CURRENT_SOURCE_DIR}/TRandom.cpp
-  ${CURRENT_SOURCE_DIR}/Watcher.cpp
-  ${CURRENT_SOURCE_DIR}/Log.hpp
-  ${CURRENT_SOURCE_DIR}/LoggingException.hpp
-  ${CURRENT_SOURCE_DIR}/LogItem.hpp
-  ${CURRENT_SOURCE_DIR}/Random.hpp
-  ${CURRENT_SOURCE_DIR}/StringUtils.hpp
-  ${CURRENT_SOURCE_DIR}/TRandom.hpp
-  ${CURRENT_SOURCE_DIR}/utils.hpp
-  ${CURRENT_SOURCE_DIR}/Watcher.hpp
-)
-generate_static_library(${LIB_STATIC_UTILS} "${PROJECT_BUILD_TEMP_DIR}/lib" "${COMPILER_CXXFLAGS}" "${LIB_STATIC_UTILS_SOURCE}")
-
-#
-# LibNTypes
-#
-set(LIB_STATIC_NTYPES ntypes)
-set(CURRENT_SOURCE_DIR "${PROJECT_SOURCE_DIR}/main/ntypes")
-set(LIB_STATIC_NTYPES_SOURCE
-  ${CURRENT_SOURCE_DIR}/ArrayBase.cpp
-  ${CURRENT_SOURCE_DIR}/Buffer.cpp
-  ${CURRENT_SOURCE_DIR}/BundleIO.cpp
-  ${CURRENT_SOURCE_DIR}/Collection.cpp
-  ${CURRENT_SOURCE_DIR}/Dimensions.cpp
-  ${CURRENT_SOURCE_DIR}/MemParser.cpp
-  ${CURRENT_SOURCE_DIR}/Scalar.cpp
-  ${CURRENT_SOURCE_DIR}/Value.cpp
-  ${CURRENT_SOURCE_DIR}/Array.hpp
-  ${CURRENT_SOURCE_DIR}/ArrayBase.hpp
-  ${CURRENT_SOURCE_DIR}/ArrayRef.hpp
-  ${CURRENT_SOURCE_DIR}/Buffer.hpp
-  ${CURRENT_SOURCE_DIR}/BundleIO.hpp
-  ${CURRENT_SOURCE_DIR}/Collection.hpp
-  ${CURRENT_SOURCE_DIR}/Dimensions.hpp
-  ${CURRENT_SOURCE_DIR}/MemParser.hpp
-  ${CURRENT_SOURCE_DIR}/MemStream.hpp
-  ${CURRENT_SOURCE_DIR}/NodeSet.hpp
-  ${CURRENT_SOURCE_DIR}/object_model.hpp
-  ${CURRENT_SOURCE_DIR}/Scalar.hpp
-  ${CURRENT_SOURCE_DIR}/Value.hpp
-  ${CURRENT_SOURCE_DIR}/object_model.h
-)
-generate_static_library(${LIB_STATIC_NTYPES} "${PROJECT_BUILD_TEMP_DIR}/lib" "${COMPILER_CXXFLAGS}" "${LIB_STATIC_NTYPES_SOURCE}")
-
-#
-# LibEngine
-#
-set(LIB_STATIC_ENGINE engine)
-set(CURRENT_SOURCE_DIR "${PROJECT_SOURCE_DIR}/main/engine")
-set(LIB_STATIC_ENGINE_SOURCE
-  ${CURRENT_SOURCE_DIR}/Collections.cpp
-  ${CURRENT_SOURCE_DIR}/Input.cpp
-  ${CURRENT_SOURCE_DIR}/Link.cpp
-  ${CURRENT_SOURCE_DIR}/LinkPolicyFactory.cpp
-  ${CURRENT_SOURCE_DIR}/Network.cpp
-  ${CURRENT_SOURCE_DIR}/NuPIC.cpp
-  ${CURRENT_SOURCE_DIR}/Output.cpp
-  ${CURRENT_SOURCE_DIR}/Region.cpp
-  ${CURRENT_SOURCE_DIR}/Region_io.cpp
-  ${CURRENT_SOURCE_DIR}/Region_parameters.cpp
-  ${CURRENT_SOURCE_DIR}/RegionImpl.cpp
-  ${CURRENT_SOURCE_DIR}/RegionImplFactory.cpp
-  ${CURRENT_SOURCE_DIR}/Spec.cpp
-  ${CURRENT_SOURCE_DIR}/TestFanIn2LinkPolicy.cpp
-  ${CURRENT_SOURCE_DIR}/TestNode.cpp
-  ${CURRENT_SOURCE_DIR}/UniformLinkPolicy.cpp
-  ${CURRENT_SOURCE_DIR}/YAMLUtils.cpp
-  ${CURRENT_SOURCE_DIR}/Input.hpp
-  ${CURRENT_SOURCE_DIR}/Link.hpp
-  ${CURRENT_SOURCE_DIR}/LinkPolicy.hpp
-  ${CURRENT_SOURCE_DIR}/LinkPolicyFactory.hpp
-  ${CURRENT_SOURCE_DIR}/Network.hpp
-  ${CURRENT_SOURCE_DIR}/NuPIC.hpp
-  ${CURRENT_SOURCE_DIR}/Output.hpp
-  ${CURRENT_SOURCE_DIR}/Region.hpp
-  ${CURRENT_SOURCE_DIR}/RegionImpl.hpp
-  ${CURRENT_SOURCE_DIR}/RegionImplFactory.hpp
-  ${CURRENT_SOURCE_DIR}/Spec.hpp
-  ${CURRENT_SOURCE_DIR}/TestFanIn2LinkPolicy.hpp
-  ${CURRENT_SOURCE_DIR}/TestNode.hpp
-  ${CURRENT_SOURCE_DIR}/UniformLinkPolicy.hpp
-  ${CURRENT_SOURCE_DIR}/YAMLUtils.hpp
-)
-generate_static_library(${LIB_STATIC_ENGINE} "${PROJECT_BUILD_TEMP_DIR}/lib" "${COMPILER_CXXFLAGS}" "${LIB_STATIC_ENGINE_SOURCE}")
-
-#
-# LibOS
-#
-set(LIB_STATIC_OS os)
-set(CURRENT_SOURCE_DIR "${PROJECT_SOURCE_DIR}/main/os")
-set(LIB_STATIC_OS_SOURCE
-  ${CURRENT_SOURCE_DIR}/Directory.cpp
-  ${CURRENT_SOURCE_DIR}/DynamicLibrary.cpp
-  ${CURRENT_SOURCE_DIR}/Env.cpp
-  ${CURRENT_SOURCE_DIR}/FStream.cpp
-  ${CURRENT_SOURCE_DIR}/OS.cpp
-  ${CURRENT_SOURCE_DIR}/OSUnix.cpp
-  ${CURRENT_SOURCE_DIR}/OSWin.cpp
-  ${CURRENT_SOURCE_DIR}/Path.cpp
-  ${CURRENT_SOURCE_DIR}/regex.cpp
-  ${CURRENT_SOURCE_DIR}/Timer.cpp
-  ${CURRENT_SOURCE_DIR}/Directory.hpp
-  ${CURRENT_SOURCE_DIR}/DynamicLibrary.hpp
-  ${CURRENT_SOURCE_DIR}/Env.hpp
-  ${CURRENT_SOURCE_DIR}/FStream.hpp
-  ${CURRENT_SOURCE_DIR}/OS.hpp
-  ${CURRENT_SOURCE_DIR}/Path.hpp
-  ${CURRENT_SOURCE_DIR}/regex.hpp
-  ${CURRENT_SOURCE_DIR}/Timer.hpp
-)
-generate_static_library(${LIB_STATIC_OS} "${PROJECT_BUILD_TEMP_DIR}/lib" "${COMPILER_CXXFLAGS}" "${LIB_STATIC_OS_SOURCE}")
-
-#
-# LibRegions
-#
-set(LIB_STATIC_REGIONS regions)
-set(CURRENT_SOURCE_DIR "${PROJECT_SOURCE_DIR}/main/regions")
-set(LIB_STATIC_REGIONS_SOURCE
-  ${CURRENT_SOURCE_DIR}/VectorFile.cpp
-  ${CURRENT_SOURCE_DIR}/VectorFileEffector.cpp
-  ${CURRENT_SOURCE_DIR}/VectorFileSensor.cpp
-  ${CURRENT_SOURCE_DIR}/VectorFile.hpp
-  ${CURRENT_SOURCE_DIR}/VectorFileEffector.hpp
-  ${CURRENT_SOURCE_DIR}/VectorFileSensor.hpp
-)
-generate_static_library(${LIB_STATIC_REGIONS} "${PROJECT_BUILD_TEMP_DIR}/lib" "${COMPILER_CXXFLAGS}" "${LIB_STATIC_REGIONS_SOURCE}")
-
-#
 # LibNupicCore
 #
-# This library is installed in 'build/release/lib' and
-# loaded dynamically or statically.
-#
-set(LIB_NUPICCORE nupic.core)
-set(CURRENT_SOURCE_DIR "${PROJECT_SOURCE_DIR}/main")
-set(SOURCE
-  ${LIB_STATIC_ENGINE_SOURCE}
-  ${LIB_STATIC_REGIONS_SOURCE}
-  ${LIB_STATIC_ALGORITHMS_SOURCE}
-  ${LIB_STATIC_MATH_SOURCE}
-  ${LIB_STATIC_NTYPES_SOURCE}
-  ${LIB_STATIC_SUPPORT_SOURCE}
-  ${LIB_STATIC_OS_SOURCE}
-  ${LIB_STATIC_UTILS_SOURCE}
-  ${LIB_STATIC_TEST_SOURCE}
-  ${LIB_STATIC_TYPES_SOURCE}
-)
-set(LIBRARIES
-  ${COMPILER_STANDARD_LIBS}
-)
-generate_static_library(${LIB_NUPICCORE} "${PROJECT_BUILD_RELEASE_DIR}/lib" "${COMPILER_CXXFLAGS}" "${SOURCE}")
-# TODO: Generate a dynamic library too: generate_dynamic_library(${LIB_NUPICCORE} "${PROJECT_BUILD_RELEASE_DIR}/lib" "${COMPILER_CXXFLAGS}" "${SOURCE}" "${COMPILER_LINKFLAGS}" "${LIBRARIES}")
+set(LIB_STATIC_NUPICCORE nupic.core)
+generate_static_library(${LIB_STATIC_NUPICCORE} "${PROJECT_SOURCE_DIR}/main" "${PROJECT_BUILD_RELEASE_DIR}/lib" "${COMPILER_CXXFLAGS}")
 
 #
 # HtmTest
 #
 set(EXECUTABLE_HTMTEST htmtest)
-set(CURRENT_SOURCE_DIR "${PROJECT_SOURCE_DIR}/test/htmtest")
-set(SOURCE
-  ${CURRENT_SOURCE_DIR}/htmtest.cpp
-)
 set(LIBRARIES
-  ${LIB_STATIC_ENGINE}
-  ${LIB_STATIC_REGIONS}
-  ${LIB_STATIC_ALGORITHMS}
-  ${LIB_STATIC_MATH}
-  ${LIB_STATIC_NTYPES}
-  ${LIB_STATIC_SUPPORT}
-  ${LIB_STATIC_OS}
-  ${LIB_STATIC_UTILS}
-  ${LIB_STATIC_TEST}
-  ${LIB_STATIC_TYPES}
+  ${LIB_STATIC_NUPICCORE}
   ${COMPILER_STANDARD_LIBS}
 )
-generate_executable(${EXECUTABLE_HTMTEST} "${PROJECT_BUILD_RELEASE_DIR}/bin" "${COMPILER_CXXFLAGS}" "${SOURCE}" "${COMPILER_LINKFLAGS}" "${LIBRARIES}")
+generate_executable(${EXECUTABLE_HTMTEST} "${PROJECT_SOURCE_DIR}/test/htmtest" "${PROJECT_BUILD_RELEASE_DIR}/bin" "${COMPILER_CXXFLAGS}" "${COMPILER_LINKFLAGS}" "${LIBRARIES}")
 
 #
 # TestEverything
 #
 set(EXECUTABLE_TESTEVERYTHING testeverything)
-set(CURRENT_SOURCE_DIR "${PROJECT_SOURCE_DIR}/test/testeverything")
-set(FILES_RETURNED)
-get_files_list(${CURRENT_SOURCE_DIR} " " "Test.cpp")
-set(SOURCE ${FILES_RETURNED} ${CURRENT_SOURCE_DIR}/TestEverythingMain.cpp)
 set(LIBRARIES
-  ${LIB_STATIC_ENGINE}
-  ${LIB_STATIC_REGIONS}
-  ${LIB_STATIC_ALGORITHMS}
-  ${LIB_STATIC_MATH}
-  ${LIB_STATIC_NTYPES}
-  ${LIB_STATIC_SUPPORT}
-  ${LIB_STATIC_OS}
-  ${LIB_STATIC_UTILS}
-  ${LIB_STATIC_TEST}
-  ${LIB_STATIC_TYPES}
+  ${LIB_STATIC_NUPICCORE}
   ${COMPILER_STANDARD_LIBS}
 )
-generate_executable(${EXECUTABLE_TESTEVERYTHING} "${PROJECT_BUILD_RELEASE_DIR}/bin" "${COMPILER_CXXFLAGS}" "${SOURCE}" "${COMPILER_LINKFLAGS} ${NTA_LINKFLAGS_PYEMBED}" "${LIBRARIES}")
+generate_executable(${EXECUTABLE_TESTEVERYTHING} "${PROJECT_SOURCE_DIR}/test/testeverything" "${PROJECT_BUILD_RELEASE_DIR}/bin" "${COMPILER_CXXFLAGS}" "${COMPILER_LINKFLAGS} ${NTA_LINKFLAGS_PYEMBED}" "${LIBRARIES}")
 
 
 ############################################################################################################################
@@ -793,9 +569,9 @@ generate_executable(${EXECUTABLE_TESTEVERYTHING} "${PROJECT_BUILD_RELEASE_DIR}/b
 #
 # Copy all headers files to 'build/release/include'
 #
-set(FILES_RETURNED)
+set(ITEMS_RETURNED)
 get_files_list(${PROJECT_SOURCE_DIR}/main " " ".h")
-set(files ${FILES_RETURNED})
+set(files ${ITEMS_RETURNED})
 set(headers_file_content "")
 foreach(src_file ${files})
   get_filename_component(src_dir ${src_file} ABSOLUTE)
@@ -807,9 +583,9 @@ copy_file(${PROJECT_SOURCE_DIR}/main/ntypes/Collection.cpp ${PROJECT_BUILD_RELEA
 #
 # Create file with unit tests used by TestEverything
 #
-set(FILES_RETURNED)
+set(ITEMS_RETURNED)
 get_files_list(${PROJECT_SOURCE_DIR}/test/testeverything " " "Test.hpp")
-set(files ${FILES_RETURNED})
+set(files ${ITEMS_RETURNED})
 set(tests_file_content "")
 set(headers_file_content "")
 foreach(file ${files})
