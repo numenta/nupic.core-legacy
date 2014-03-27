@@ -1,0 +1,746 @@
+# --------------------------------------------------------------------------------------------------------------------------
+# Numenta Platform for Intelligent Computing (NuPIC)
+# Copyright (C) 2013, Numenta, Inc.  Unless you have purchased from
+# Numenta, Inc. a separate commercial license for this software code, the
+# following terms and conditions apply:
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License version 3 as
+# published by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+# See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see http://www.gnu.org/licenses.
+#
+# http://numenta.org/licenses/
+#
+# Contributor(s):
+#   David Ragazzi (@DavidRagazzi): Full conversion and adaptation from Autotools scripts
+# --------------------------------------------------------------------------------------------------------------------------
+ 
+
+############################################################################################################################
+###                                                                                                                      ###
+###  Macros                                                                                                              ###
+###                                                                                                                      ###
+############################################################################################################################
+
+# This macro set environment variables of the operating system
+macro (show_environment_variable variable value)
+  message(STATUS "  ${variable} = ${value}")
+endmacro()
+
+# These macros copy all source directories after the configuration is done
+# Note: If NTAX_DEVELOPER_BUILD is set, copy is optimized (directories are linked, and files are not copied if the modification time of the target is more recent).
+macro (copy suffix src dst)  
+  if("$ENV{NTAX_DEVELOPER_BUILD}" STREQUAL "1")
+    message(STATUS "Linking from '${src}' to '${dst}'")
+    get_filename_component(dst_dir ${dst} PATH)
+    execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${dst_dir})
+    execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${src} ${dst})
+  else()
+    message(STATUS "Copying from '${src}' to '${dst}'")
+    execute_process(COMMAND ${CMAKE_COMMAND} -E copy${suffix} ${src} ${dst})
+  endif()
+endmacro()
+macro (copy_file src dst)
+  copy("" ${src} ${dst})
+endmacro()
+macro (copy_directory src dst)
+  copy("_directory" ${src} ${dst})
+endmacro()
+
+# This macro get all subdirectories from a directory.
+macro (get_directories_list current_dir dir_mask)
+  file(GLOB children RELATIVE ${current_dir} ${current_dir}/*)
+  foreach(child ${children})
+    if(IS_DIRECTORY ${current_dir}/${child})
+      get_directories_list(${current_dir}/${child} ${dir_mask})
+      set(can_return_item ON)
+      if(NOT "${dir_mask}" STREQUAL " ")
+        if(NOT ${current_dir} MATCHES ${dir_mask})
+          set(can_return_item OFF)
+        endif()
+      endif()
+      if(can_return_item)
+        set(ITEMS_RETURNED ${ITEMS_RETURNED} ${current_dir}/${child})
+      endif()
+    endif()
+  endforeach()
+endmacro()
+
+# This macro get all files from a directory and its subdirectories.
+macro (get_files_list current_dir dir_mask file_mask)
+  file(GLOB children RELATIVE ${current_dir} ${current_dir}/*)
+  foreach(child ${children})
+    if(IS_DIRECTORY ${current_dir}/${child})
+      get_files_list(${current_dir}/${child} ${dir_mask} ${file_mask})
+    else()
+      set(can_return_item ON)
+      if(NOT "${dir_mask}" STREQUAL " ")
+        if(NOT ${current_dir} MATCHES ${dir_mask})
+          set(can_return_item OFF)
+        endif()
+      endif()
+      if(NOT "${file_mask}" STREQUAL " ")
+        if(NOT ${child} MATCHES ${file_mask})
+          set(can_return_item OFF)
+        endif()
+      endif()
+      if(can_return_item)
+        set(ITEMS_RETURNED ${ITEMS_RETURNED} ${current_dir}/${child})
+      endif()
+    endif()
+  endforeach()
+endmacro()
+
+# This macro get all source files from a directory and its subdirectories.
+macro(get_source_groups src_dir)
+  set(SOURCE_RETURNED)
+  set(ITEMS_RETURNED)
+
+  # Add root files as a blank source group
+  file(GLOB src_files
+    ${src_dir}/*.cpp
+    ${src_dir}/*.hpp
+    ${src_dir}/*.h
+  )
+  if(src_files)
+    set(SOURCE_RETURNED ${SOURCE_RETURNED} ${src_files})
+    source_group("" FILES ${src_files})
+  endif()
+
+  # Add every subdir as a source group
+  get_directories_list(${src_dir} " ")
+  set(src_sub_dirs ${ITEMS_RETURNED})
+  if(src_sub_dirs)
+    foreach(dir ${src_sub_dirs})
+      file(GLOB src_files
+        ${dir}/*.cpp
+        ${dir}/*.hpp
+        ${dir}/*.h
+      )
+      get_filename_component(src_group ${dir} NAME)
+      set(SOURCE_RETURNED ${SOURCE_RETURNED} ${src_files})
+      source_group(${src_group} FILES ${src_files})
+    endforeach()
+  endif()
+endmacro()
+
+# This macro generates a executable
+macro(generate_executable name src_dir output_dir cxx_flags link_flags libraries)
+  get_source_groups(${src_dir})
+  add_executable(${name}
+    ${SOURCE_RETURNED}
+  )
+  target_link_libraries(${name}
+    ${libraries}
+  )
+  set_target_properties(${name} PROPERTIES COMPILE_FLAGS "${cxx_flags}")
+  set_target_properties(${name} PROPERTIES LINK_FLAGS "${link_flags}")
+  set_target_properties(${name} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${output_dir})
+  foreach(OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES})
+    string(TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG)
+    set_target_properties(${name} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${output_dir})
+  endforeach()
+endmacro()
+
+# This macro generates a static library
+macro(generate_static_library name src_dir output_dir cxx_flags)
+  get_source_groups(${src_dir})
+  add_library(${name}
+    ${SOURCE_RETURNED}
+  )
+  set_target_properties(${name} PROPERTIES COMPILE_FLAGS "${cxx_flags}")
+  set_target_properties(${name} PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${output_dir})
+  foreach(OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES})
+    string(TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG)
+    set_target_properties(${name} PROPERTIES ARCHIVE_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${output_dir})
+  endforeach()
+endmacro()
+
+# This macro generates a dynamic library
+macro(generate_dynamic_library name src_dir output_dir cxx_flags link_flags project_libraries external_libraries)
+  get_source_groups(${src_dir})
+  add_library(${name} SHARED
+    ${SOURCE_RETURNED}
+  )
+
+  # All project libraries should included as whole into dynamic library
+  foreach(library ${project_libraries})
+    target_link_libraries(${name}
+      ${NTA_LINKFLAGS_ARCHIVES} ${library}
+    )
+  endforeach()
+  target_link_libraries(${name}
+    ${external_libraries}
+  )
+
+  set_target_properties(${name} PROPERTIES COMPILE_FLAGS "${cxx_flags}")
+  set_target_properties(${name} PROPERTIES LINKER_LANGUAGE "CXX")
+  set_target_properties(${name} PROPERTIES LINK_FLAGS "${link_flags}")
+  set_target_properties(${name} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${output_dir})
+  foreach(OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES})
+    string(TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG)
+    set_target_properties(${name} PROPERTIES LIBRARY_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${output_dir})
+  endforeach()
+endmacro()
+
+# This macro generates a static library by merging another ones
+macro(merge_static_libraries new_lib output_dir libraries target)
+  set(lib_files)
+  foreach(lib ${libraries})
+    get_target_property(lib_file ${lib} RELEASE_LOCATION)
+    set(lib_files ${lib_files} ${lib_file})
+  endforeach()
+  if(WINDOWS)
+    # TODO: Use "lib.exe" as equivalent of "ar"
+  else()
+    # Extract object files from the libraries
+    foreach(lib_file ${lib_files})
+      add_custom_command(TARGET ${target} POST_BUILD
+                         COMMAND ${CMAKE_AR} -x ${lib_file}
+                         WORKING_DIRECTORY ${PROJECT_BUILD_TEMP_DIR}/obj)
+    endforeach()
+    add_custom_command(TARGET ${target} POST_BUILD
+                       COMMAND ${CMAKE_AR} -rc ${output_dir}/lib${new_lib}.${STATIC_LIB_EXTENSION} *.o
+                       WORKING_DIRECTORY ${PROJECT_BUILD_TEMP_DIR}/obj)
+  endif()
+endmacro()
+
+
+############################################################################################################################
+###                                                                                                                      ###
+###  1st Part:                                                                                                           ###
+###  Configuration of the environment                                                                                    ###
+###                                                                                                                      ###
+############################################################################################################################
+
+#
+# Cannot have same $NTA and $NuPIC
+#
+if("$ENV{NTA}" STREQUAL "$ENV{NUPIC}")
+  #message(FATAL_ERROR "\$NTA environment variable cannot be the same as the \$NUPIC environment variable!")
+endif()
+
+#
+# Set C++ compiler.
+# According to CMake documentation, this must be done before any language is set (ie before any project() or enable_language() command).
+#
+set(USER_CXX_COMPILER "" CACHE STRING "Default C++ compiler to be used (GCC / CLANG) [default=system compiler]")
+if(NOT "${USER_CXX_COMPILER}" STREQUAL "")
+  set(CMAKE_CXX_COMPILER "${USER_CXX_COMPILER}")
+endif()
+
+cmake_minimum_required(VERSION 2.8)
+project(nupic.core CXX)
+
+#
+# Sets default locations.
+# 
+# Default directories structure is:
+#
+# ~/../repository (root directory with repository downloaded from internet)
+#         /docs (subdirectory with support documentation)
+#         /src (subdirectory with all source code)
+#         /build/scripts ([suggested] subdirectory with build process [makefiles or IDE solution] generated by CMake)
+#         /build/release (subdirectory with executables and libraries generated by build proccess)
+#         Readme.md
+#         Licence.txt
+# /tmp/ntabuild (directory with temporary files generated by build proccess)
+#
+# Note that:
+#   /repository/src is referenced by $NUPIC environment variable.
+#   /repository/build/release is referenced by $NTA environment variable.
+# This way, users have flexibility to change default locations.
+#
+# Repository root is the parent directory which this CMake file is located
+# This CMake file must be always on /repository/src subdirectory.
+get_filename_component(REPOSITORY_DIR ${PROJECT_SOURCE_DIR} PATH)
+# 'release' is a subdirectory created on /build root,
+# but if it already is specified on $NTA environment variable, simply re-use it!
+if("${PROJECT_BUILD_RELEASE_DIR}" STREQUAL "")
+  set(PROJECT_BUILD_RELEASE_DIR "${REPOSITORY_DIR}/build/release")
+endif()
+# 'temp' is a subdirectory created on /build root
+if("${PROJECT_BUILD_TEMP_DIR}" STREQUAL "")
+  set(PROJECT_BUILD_TEMP_DIR "${REPOSITORY_DIR}/build/temp")
+endif()
+# CMAKE_CURRENT_BINARY_DIR is used by swig module for put wrappers on, so don't erase this line!
+set(CMAKE_CURRENT_BINARY_DIR ${PROJECT_BUILD_TEMP_DIR})
+
+#
+# Clean directories before generate files
+#
+# Clean '/build/release'
+execute_process(COMMAND ${CMAKE_COMMAND} -E remove_directory ${PROJECT_BUILD_RELEASE_DIR})
+execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_RELEASE_DIR}/include)
+execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_RELEASE_DIR}/lib)
+execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_RELEASE_DIR}/bin)
+# Clean '/build/temp'
+execute_process(COMMAND ${CMAKE_COMMAND} -E remove_directory ${PROJECT_BUILD_TEMP_DIR})
+execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_TEMP_DIR}/lib)
+execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_TEMP_DIR}/obj)
+
+#
+# Update repository submodules
+#
+execute_process(COMMAND git submodule update --init
+                WORKING_DIRECTORY ${REPOSITORY_DIR}
+                RESULT_VARIABLE EXIT_CODE)
+if(NOT EXIT_CODE EQUAL 0)
+  message(FATAL_ERROR "Updating submodules within ${REPOSITORY_DIR} failed.")
+endif()
+
+#
+# Set OS flags
+#
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+  set(OSX ON)
+  set(STATIC_LIB_EXTENSION "a")
+  set(DYNAMIC_LIB_EXTENSION "dylib")
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+  set(LINUX ON)
+  set(STATIC_LIB_EXTENSION "a")
+  set(DYNAMIC_LIB_EXTENSION "so")
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+  set(WINDOWS ON)
+  set(STATIC_LIB_EXTENSION "lib")
+  set(DYNAMIC_LIB_EXTENSION "dll")
+endif()
+
+#
+# Determine NTA platform type
+#
+message(STATUS "Checking platform...")
+if(${CMAKE_SIZEOF_VOID_P} MATCHES "8")
+  set(NTA_PLATFORM_ARCH "64")
+else()
+  set(NTA_PLATFORM_ARCH "32")
+endif()
+if(OSX)
+  set(CMAKE_OSX_DEPLOYMENT_TARGET "10.7")
+  set(NTA_PLATFORM_OS "darwin64")
+  set(NTA_PLATFORM_CXXFLAGS "-fPIC -DPIC -m64")
+  set(NTA_PLATFORM_ASFLAGS "")
+  set(NTA_PLATFORM_DEBUGFLAGS "-gfull")
+  set(NTA_PLATFORM_LINKFLAGS "-Wl,-u,_munmap")
+  set(NTA_PLATFORM_LIBS "-stdlib=libstdc++ -std=c++98 -lc++abi -liconv -lsqlite3 -framework CoreServices -framework Accelerate")
+  set(NTA_PLATFORM_MPI_EXTRA_LIBS "")
+  set(NTA_PLATFORM_LINKFLAGS_PYMODULE "-bundle -undefined dynamic_lookup -fPIC")
+  set(NTA_PLATFORM_LINKFLAGS_PYEMBED "")
+elseif(LINUX)
+  if(${NTA_PLATFORM_ARCH} MATCHES "64")
+    set(NTA_PLATFORM_OS "linux64")
+    set(NTA_PLATFORM_CXXFLAGS "-fPIC -DPIC -m64")
+    set(NTA_PLATFORM_ASFLAGS "-msse2")
+    set(NTA_PLATFORM_DEBUGFLAGS "-g")
+    set(NTA_PLATFORM_LINKFLAGS "-Wl,--no-as-needed -static-libgcc")
+    # pthread needed by libapr-1
+    set(NTA_PLATFORM_LIBS "-std=c++98 -lm -lpthread -ldl -lutil")
+    set(NTA_PLATFORM_MPI_EXTRA_LIBS "-lrt")
+    set(NTA_PLATFORM_LINKFLAGS_PYMODULE "-pthread -shared")
+    set(NTA_PLATFORM_LINKFLAGS_PYEMBED "-Wl,--export-dynamic")
+  else()    
+    set(NTA_PLATFORM_OS "linux32")
+    set(NTA_PLATFORM_CXXFLAGS "-fPIC -DPIC -ffloat-store")
+    set(NTA_PLATFORM_ASFLAGS "")
+    set(NTA_PLATFORM_DEBUGFLAGS "-g")
+    set(NTA_PLATFORM_LINKFLAGS "-Wl,--no-as-needed -static-libgcc")
+    set(NTA_PLATFORM_LIBS "-std=c++98 -lm -lpthread -ldl -lutil -lrt")
+    set(NTA_PLATFORM_MPI_EXTRA_LIBS "-lrt")
+    set(NTA_PLATFORM_LINKFLAGS_PYMODULE "-pthread -shared")
+    set(NTA_PLATFORM_LINKFLAGS_PYEMBED "-Wl,--export-dynamic")
+  endif()
+elseif(WINDOWS)
+  set(NTA_PLATFORM_OS "win32")
+  set(NTA_PLATFORM_CXXFLAGS "-DWIN32")
+  set(NTA_PLATFORM_ASFLAGS "")
+  set(NTA_PLATFORM_DEBUGFLAGS "")
+  set(NTA_PLATFORM_LINKFLAGS "")
+  set(NTA_PLATFORM_LIBS "")
+  set(NTA_PLATFORM_MPI_EXTRA_LIBS "")
+  set(NTA_PLATFORM_LINKFLAGS_PYMODULE "")
+  set(NTA_PLATFORM_LINKFLAGS_PYEMBED "")
+else()
+  message(FATAL_ERROR "${CMAKE_CURRENT_LIST_FILE}:${CMAKE_CURRENT_LIST_LINE}: error: ${CMAKE_SYSTEM_NAME} not supported yet.")
+endif()
+
+message(STATUS "Platform: ${NTA_PLATFORM_OS}")
+message(STATUS "Platform-specific flags:")
+message(STATUS "  Libraries: ${NTA_PLATFORM_LIBS}")
+message(STATUS "  Extra MPI libraries: ${NTA_PLATFORM_MPI_EXTRA_LIBS}")
+message(STATUS "  CXX flags: ${NTA_PLATFORM_CXXFLAGS}")
+message(STATUS "  AS flags: ${NTA_PLATFORM_ASFLAGS}")
+message(STATUS "  Debug flags: ${NTA_PLATFORM_DEBUGFLAGS}")
+message(STATUS "  LD flags: ${NTA_PLATFORM_LINKFLAGS}")
+message(STATUS "  Python extension link flags: ${NTA_PLATFORM_LINKFLAGS_PYMODULE}")
+message(STATUS "  Python embedding link flags: ${NTA_PLATFORM_LINKFLAGS_PYEMBED}")
+
+#
+# Checks if Python is installed and gets its variables.
+# Minimum version of Python is 2.6 -- earlier versions *will* fail.
+#
+# Please don't use 'find_package' for finding Python (System version), it has presented several conflicting results.
+# Instead we just use a shell command to execute a simple python command, if exit code is 0 ('success') then we have python installed.
+#
+message(STATUS "Checking software tools...")
+
+#
+# Check for user-defined PYTHON env variable
+#
+if(NOT "$ENV{PYTHON}" STREQUAL "")
+  set(PYTHON "$ENV{PYTHON}")
+else()
+  set(PYTHON "python")
+endif()
+
+execute_process(COMMAND ${PYTHON} --version
+                RESULT_VARIABLE EXIT_CODE)
+if(NOT EXIT_CODE EQUAL 0)
+  message(FATAL_ERROR "System Python not found. You do not have a system version of Python or it is not set on environment path.")
+endif()
+
+#
+# Gives the version of Python necessary to get installation directories
+# for use with ${PYTHON_VERSION}, etc.
+#
+execute_process(COMMAND ${PYTHON} -c "import sys;sys.stdout.write(str(sys.version_info[0]) + '.' + str(sys.version_info[1]))"
+                OUTPUT_VARIABLE PYTHON_VERSION)
+if(NOT(${PYTHON_VERSION} EQUAL "2.6" OR ${PYTHON_VERSION} EQUAL "2.7"))
+  message(FATAL_ERROR "Only these versions of Python are accepted: 2.6, 2.7")
+endif()
+
+#
+# Find out where system installation of python is.
+#
+execute_process(COMMAND ${PYTHON} -c "import sys;sys.stdout.write(sys.prefix)"
+                OUTPUT_VARIABLE PYTHON_PREFIX)
+string(REGEX REPLACE "\\\\" "/" PYTHON_PREFIX ${PYTHON_PREFIX})
+set(PYTHON_INCLUDE_DIR "${PYTHON_PREFIX}/include/python${PYTHON_VERSION}")
+set(PYTHON_LIBRARY_DIR "${PYTHON_PREFIX}/lib/python${PYTHON_VERSION}")
+set(PYTHON_SITE_PACKAGES_DIR "${PROJECT_BUILD_RELEASE_DIR}/lib/python${PYTHON_VERSION}/site-packages")
+find_package(PythonLibs ${PYTHON_VERSION} REQUIRED)
+
+#
+# Finds out version of Numpy and headers's path.
+#
+execute_process(COMMAND ${PYTHON} -c "import sys;import numpy;sys.stdout.write(numpy.get_include())"
+                OUTPUT_VARIABLE NUMPY_INCLUDE_DIR)
+string(REGEX REPLACE "\\\\" "/" NUMPY_INCLUDE_DIR ${NUMPY_INCLUDE_DIR})
+execute_process(COMMAND ${PYTHON} -c "import sys;import numpy;sys.stdout.write(numpy.__version__)"
+                OUTPUT_VARIABLE NUMPY_VERSION)
+
+#
+# Checks if Swig is installed and gets its variables.
+# Minimum version of Swig is 1.3.36 -- earlier versions *will* fail
+# Later versions greater than 2.0.3 also *will* fail (SWIGPY_SLICE_ARG bug)
+#
+set(SWIG_EXECUTABLE "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/bin/swig")
+set(SWIG_DIR "${REPOSITORY_DIR}/external/common/share/swig/1.3.36")
+execute_process(COMMAND ${SWIG_EXECUTABLE} -version OUTPUT_VARIABLE SWIG_VERSION)
+#TODO: string(REGEX REPLACE ".*SWIG Version[^0-9.]*\([0-9.]+\).*" "\\1" SWIG_VERSION ${SWIG_VERSION})
+include(${CMAKE_ROOT}/Modules/UseSWIG.cmake)
+
+#
+# Shows components details.
+#
+message(STATUS "Python details:")
+message(STATUS "  Version: ${PYTHON_VERSION}")
+message(STATUS "  Include dir: ${PYTHON_INCLUDE_DIR}")
+message(STATUS "  Library dir: ${PYTHON_LIBRARY_DIR}")
+message(STATUS "  Site packages dir: ${PYTHON_SITE_PACKAGES_DIR}")
+message(STATUS "  Python lib: ${PYTHON_LIBRARY}")
+message(STATUS "  Python command: ${PYTHON}")
+message(STATUS "Numpy details:")
+message(STATUS "  Version: ${NUMPY_VERSION}")
+message(STATUS "  Include dir: ${NUMPY_INCLUDE_DIR}")
+message(STATUS "Swig details:")
+message(STATUS "  Version: ${SWIG_VERSION}")
+
+#
+# Project details
+#
+message(STATUS "Checking project...")
+message(STATUS "Project: ${PROJECT_NAME}")
+message(STATUS "Locations:")
+message(STATUS "  Source: ${PROJECT_SOURCE_DIR}")
+message(STATUS "  Build System: ${PROJECT_BINARY_DIR}")
+message(STATUS "  Build Directory: ${PROJECT_BUILD_TEMP_DIR}")
+message(STATUS "  Release: ${PROJECT_BUILD_RELEASE_DIR}")
+
+
+############################################################################################################################
+###                                                                                                                      ###
+###  2nd Part:                                                                                                           ###
+###  Configuration of compiler flags                                                                                     ###
+###                                                                                                                      ###
+############################################################################################################################
+
+#
+# Include directories of headers
+# Allows us to find includes for external libraries and enables
+# #include <nta/common/...>
+#
+set(NTA_INCLUDEFLAGS "-I${REPOSITORY_DIR} -I${PROJECT_BUILD_RELEASE_DIR}/include -isystem${REPOSITORY_DIR}/external/common/include -isystem${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/include")
+
+#
+# NTA_INTERNAL tells us that the code is being built under the build system
+# and not as a separate program. Used for cppvision example.
+#
+set(NTA_CXXFLAGS_BASE "${NTA_INCLUDEFLAGS} ${NTA_PLATFORM_CXXFLAGS} -DHAVE_CONFIG_H -DNTA_INTERNAL -DNTA_PLATFORM_${NTA_PLATFORM_OS} -DBOOST_NO_WREGEX -DNUPIC2 -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-unused-parameter")
+
+#
+# All executables and plugins are linked with these flags
+#
+set(NTA_LINKFLAGS "${NTA_PLATFORM_LINKFLAGS} ${NTA_PLATFORM_LIBS} -L${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib")
+
+#
+# Define custom preprocessor variables (#define XX in C++ code)
+#
+#add_definitions(-DNPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION) # silence numpy1.7 deprecated warning
+#
+# the reason to use add_definitions() instead of appending flag -std=c++0x directly to CXXBASE_FLAGS is that
+# cmake deploys "internal smarts" for compatibility with different compilers (clang, gcc 4.6 vs 4.8)
+add_definitions(-std=c++98) # smart flag setting for gcc/clang
+
+message(STATUS "Options:")
+
+#
+# Optimization can be set at configure time
+#
+option(NTA_OPTIMIZATION_ENABLED "--optimization=[ON/OFF] turn on optimization [default=ON]" ON)
+if(NTA_OPTIMIZATION_ENABLED)
+  # -ftree-vectorize conflicts with -no-tree-aliasing on leopard, so removed
+  # flag NTA_ASM enables/disables our hand tuned assbembly code (SSE), but it's available only for some platform
+  set(NTA_CXXFLAGS_OPTIMIZATION "-O3 -pipe -DNTA_ASM")
+  set(NTA_CXXFLAGS_OPTIMIZATION_PYMODULE "-O1")
+else()
+  set(NTA_CXXFLAGS_OPTIMIZATION "-O0 -fno-inline")
+  set(NTA_CXXFLAGS_OPTIMIZATION_PYMODULE "-O0 -fno-inline")
+endif()
+message(STATUS "  Optimization: ${NTA_OPTIMIZATION_ENABLED}")
+
+#
+# Enable/disable debugging symbols (-g). Enabled by default (stripped for release).
+# This is orthogonal to optimization
+#
+option(NTA_DEBUGSYMBOLS_ENABLED "--debugsymbols=[ON/OFF] turn on debug symbols [default=ON]" ON)
+if(NTA_DEBUGSYMBOLS_ENABLED)
+  set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} ${NTA_PLATFORM_DEBUGFLAGS}")
+endif()
+message(STATUS "  Debug Symbols: ${NTA_DEBUGSYMBOLS_ENABLED}")
+
+#
+# Enable/disable NTA_ASSERT.
+#
+option(NTA_ASSERTIONS_ENABLED "--assertions=[ON/OFF] turn on assertions [default=ON]" ON)
+if(NTA_ASSERTIONS_ENABLED)
+  set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -DNTA_ASSERTIONS_ON")
+else()
+  set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -DNDEBUG")
+endif()
+message(STATUS "  Assertions: ${NTA_ASSERTIONS_ENABLED}")
+
+#
+# Enable/disable gprof profiling (this option is not frequently used/tested).
+#
+option(NTA_PROFILING_ENABLED "--profiling=[ON/OFF] turn on profiling [default=OFF]" OFF)
+if(NTA_PROFILING_ENABLED)
+  set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -pg")
+  set(NTA_LINKFLAGS "${NTA_LINKFLAGS} -pg")
+endif()
+message(STATUS "  Profiling: ${NTA_PROFILING_ENABLED}")
+
+#
+# Build using Python headers and library,
+# and enable features that depend on Python.
+#
+option(NTA_PYTHON_SUPPORT "--python-support=[ON/OFF] turn on python support [default=ON]" ON)
+message(STATUS "  Python Support: ${NTA_PYTHON_SUPPORT}")
+
+#
+# Build using MPI headers and library,
+# and enable features that depend on MPI.
+#
+option(NTA_MPI_SUPPORT "--mpi=[ON/OFF] turn on MPI support [default=ON]" ON)
+message(STATUS "  MPI Support: ${NTA_MPI_SUPPORT}")
+
+#
+# Compiler specific (clang, gcc, ..) flags can be set here
+#
+if(CMAKE_COMPILER_IS_GNUCXX)
+  set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -Wno-sign-compare -Wno-error=format=")
+  set(NTA_CXXFLAGS_OPTIMIZATION "${NTA_CXXFLAGS_OPTIMIZATION} -falign-loops=16")
+  # workaround for gcc 4.4 in Grok
+  execute_process(COMMAND ${CMAKE_C_COMPILER} -dumpversion OUTPUT_VARIABLE GCC_VERSION)
+  if (GCC_VERSION VERSION_GREATER 4.6 OR GCC_VERSION VERSION_EQUAL 4.6)
+    set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -Wno-error=cpp -Werror")
+  endif()
+  set(NTA_LINKFLAGS_ARCHIVES "-Wl,-whole-archive")
+else()
+  set(NTA_LINKFLAGS_ARCHIVES "-Wl,-force_load")
+endif()
+
+#
+# Python compile flags
+# Flags necessary for Python support.
+# NTA_CXXFLAGS_PYMODULE is the same as NTA_CXXFLAGS but without
+# warnings=errors and without optimization.
+# We compile without optimization because it greatly speeds up
+# the build, and performance isn't too important for wrapper
+# functions.
+# NTA_LINKFLAGS_PYEMBED is for linking an executable with embedded interpreter
+# NTA_LINKFLAGS_PYMODULE is for linking a python module
+#
+if(NTA_PYTHON_SUPPORT)
+
+  set(NTA_SWIG_FLAGS "${NTA_SWIG_FLAGS} -features autodoc=0,directors=0 -noproxyimport -keyword -modern -modernargs -noproxydel -fvirtual -fastunpack -nofastproxy -fastquery -outputtuple -castmode -w402 -w503 -w511 -w302 -w362 -w312 -w389 -DNTA_PLATFORM_${NTA_PLATFORM_OS} -DNTA_PYTHON_SUPPORT=${PYTHON_VERSION} -I${REPOSITORY_DIR} -I${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/include -I${NUMPY_INCLUDE_DIR} -I${SWIG_DIR}/python -I${SWIG_DIR}")
+  string(REPLACE " " ";" NTA_SWIG_FLAGS ${NTA_SWIG_FLAGS})
+
+  # Minimal functional subset
+  set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -DNTA_PYTHON_SUPPORT=${PYTHON_VERSION} -isystem${NUMPY_INCLUDE_DIR} -isystem${PYTHON_INCLUDE_DIR}")
+
+  # -falign-functions is necessary to avoid a compiler problem on
+  # darwin. If you build without -falign-functions, exceptions
+  # thrown in a pynode result in an abort() instead of propagation
+  # up the call stack.
+  set(NTA_CXXFLAGS_PYMODULE "${NTA_CXXFLAGS_BASE} ${NTA_CXXFLAGS_OPTIMIZATION_PYMODULE} -falign-functions")
+
+  set(NTA_LINKFLAGS_PY "-L${PYTHON_LIBRARY_DIR}/config -ldl -lpython${PYTHON_VERSION}")
+
+  set(NTA_LINKFLAGS_PYEMBED "${NTA_PLATFORM_LINKFLAGS_PYEMBED} ${NTA_LINKFLAGS_PY}")
+
+  set(NTA_LINKFLAGS_PYMODULE "${NTA_PLATFORM_LINKFLAGS_PYMODULE} ${NTA_LINKFLAGS_PY} ${NTA_PLATFORM_LIBS} -L${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib")
+
+endif()
+
+#
+# NTA_CXXFLAGS are used everywhere.
+#
+set(NTA_CXXFLAGS "${NTA_CXXFLAGS_BASE} ${NTA_CXXFLAGS_OPTIMIZATION}")
+
+
+############################################################################################################################
+###                                                                                                                      ###
+###  3rd Part:                                                                                                           ###
+###  Generation of the project and its modules                                                                           ###
+###                                                                                                                      ###
+############################################################################################################################
+
+#
+# Set current source dir to source root
+#
+set(CURRENT_SOURCE_DIR ${PROJECT_SOURCE_DIR})
+
+#
+# Apache's external libraries.
+#
+set(LIB_STATIC_APR1 apr-1)
+add_library(${LIB_STATIC_APR1} STATIC IMPORTED)
+set_property(TARGET ${LIB_STATIC_APR1} PROPERTY IMPORTED_LOCATION "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib/libapr-1.${STATIC_LIB_EXTENSION}")
+
+set(LIB_STATIC_APRUTIL1 aprutil-1)
+add_library(${LIB_STATIC_APRUTIL1} STATIC IMPORTED)
+set_property(TARGET ${LIB_STATIC_APRUTIL1} PROPERTY IMPORTED_LOCATION "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib/libaprutil-1.${STATIC_LIB_EXTENSION}")
+
+set(LIB_STATIC_Z z)
+add_library(${LIB_STATIC_Z} STATIC IMPORTED)
+set_property(TARGET ${LIB_STATIC_Z} PROPERTY IMPORTED_LOCATION "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib/libz.${STATIC_LIB_EXTENSION}")
+
+set(LIB_STATIC_YAML yaml)
+add_library(${LIB_STATIC_YAML} STATIC IMPORTED)
+set_property(TARGET ${LIB_STATIC_YAML} PROPERTY IMPORTED_LOCATION "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib/libyaml.${STATIC_LIB_EXTENSION}")
+
+if(WINDOWS)
+  set(LIB_STATIC_PCRE pcre)
+  add_library(${LIB_STATIC_PCRE} STATIC IMPORTED)
+  set_property(TARGET ${LIB_STATIC_PCRE} PROPERTY IMPORTED_LOCATION "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib/libpcre.${STATIC_LIB_EXTENSION}")
+endif()
+
+#
+# Set list of external libraries to this project.
+#
+set(NTA_STANDARD_LIBS 
+  ${LIB_STATIC_YAML}
+  ${LIB_STATIC_APRUTIL1}
+  ${LIB_STATIC_APR1}
+  ${LIB_STATIC_Z}
+)
+
+#
+# LibNupicCore
+#
+set(LIB_STATIC_NUPICCORE nupic.core)
+generate_static_library(${LIB_STATIC_NUPICCORE} "${PROJECT_SOURCE_DIR}/main" "${PROJECT_BUILD_TEMP_DIR}/lib" "${NTA_CXXFLAGS}")
+
+#
+# HtmTest
+#
+set(EXECUTABLE_HTMTEST htmtest)
+set(LIBRARIES
+  ${LIB_STATIC_NUPICCORE}
+  ${NTA_STANDARD_LIBS}
+)
+generate_executable(${EXECUTABLE_HTMTEST} "${PROJECT_SOURCE_DIR}/test/htmtest" "${PROJECT_BUILD_RELEASE_DIR}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
+
+#
+# TestEverything
+#
+set(EXECUTABLE_TESTEVERYTHING testeverything)
+set(LIBRARIES
+  ${LIB_STATIC_NUPICCORE}
+  ${NTA_STANDARD_LIBS}
+)
+generate_executable(${EXECUTABLE_TESTEVERYTHING} "${PROJECT_SOURCE_DIR}/test/testeverything" "${PROJECT_BUILD_RELEASE_DIR}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS} ${NTA_LINKFLAGS_PYEMBED}" "${LIBRARIES}")
+
+# Merge nupic.core and all static libraries to a stand-alone library
+merge_static_libraries(${LIB_STATIC_NUPICCORE} "${PROJECT_BUILD_RELEASE_DIR}/lib" "${LIB_STATIC_NUPICCORE};${NTA_STANDARD_LIBS}" "${LIB_STATIC_NUPICCORE}")
+
+
+############################################################################################################################
+###                                                                                                                      ###
+###  4th Part:                                                                                                           ###
+###  Post configuration operations                                                                                       ###
+###                                                                                                                      ###
+############################################################################################################################
+
+#
+# Copy all headers files to 'build/release/include'
+#
+set(ITEMS_RETURNED)
+get_files_list(${PROJECT_SOURCE_DIR}/main " " ".h")
+set(files ${ITEMS_RETURNED})
+set(headers_file_content "")
+foreach(src_file ${files})
+  get_filename_component(src_dir ${src_file} ABSOLUTE)
+  string(REPLACE "${PROJECT_SOURCE_DIR}/main" "${PROJECT_BUILD_RELEASE_DIR}/include/nta" dst_file ${src_file})
+  copy_file(${src_file} ${dst_file})
+endforeach()
+copy_file(${PROJECT_SOURCE_DIR}/main/ntypes/Collection.cpp ${PROJECT_BUILD_RELEASE_DIR}/include/nta/ntypes/Collection.cpp)
+
+#
+# Create file with unit tests used by TestEverything
+#
+set(ITEMS_RETURNED)
+get_files_list(${PROJECT_SOURCE_DIR}/test/testeverything " " "Test.hpp")
+set(files ${ITEMS_RETURNED})
+set(tests_file_content "")
+set(headers_file_content "")
+foreach(file ${files})
+  get_filename_component(test ${file} NAME_WE)
+  if(NOT ${file} MATCHES "TesterTest")
+    set(tests_file_content "${tests_file_content}ADD_TEST(${test});\n")
+    set(headers_file_content "${headers_file_content}#include \"${file}\"\n")
+  endif()
+endforeach()
+file(WRITE "${PROJECT_SOURCE_DIR}/test/testeverything/everything_addtests.hpp" "${tests_file_content}")
+file(WRITE "${PROJECT_SOURCE_DIR}/test/testeverything/everything_headers.hpp" "${headers_file_content}")
+
+
+# Just to separate from result message
+message(STATUS "")

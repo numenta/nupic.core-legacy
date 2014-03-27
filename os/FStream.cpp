@@ -183,7 +183,7 @@ void *ZLib::fopen(const std::string &filename, const std::string &mode,
           case Z_VERSION_ERROR: message = "Zlib version error."; break;
           default:
             char errbuf[256];
-            char* retval = ::strerror_r(error, errbuf, 256);
+            char* retval = (char*)::strerror_r(error, errbuf, 256);
             if(retval != NULL) {
                 //empty code to silence -Werror=unused-variable warning
             }
