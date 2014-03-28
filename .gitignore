@@ -1,0 +1,23 @@
+.metadata
+.idea
+*.class
+*.am
+*.in
+*.manifest
+*.cache
+*~
+*.DS_Store
+*.swp
+
+html/
+
+Servers/
+
+# Build artifacts and .bashrc artifacts
+build/
+build/scripts/
+build/release/
+build/temp/
+
+# /
+/.gdb_history
