@@ -17,7 +17,7 @@ Important notes:
 
     mkdir -p $REPOSITORY/build/scripts
     cd $REPOSITORY/build/scripts
-    cmake $REPOSITORY
+    cmake $REPOSITORY/src
 
 #### Build:
 
