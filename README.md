@@ -44,7 +44,7 @@ Important notes:
 
 #### Build:
 
- * Open 'Nupic.*proj' solution file generated on $REPOSITORY/build/scripts.
+ * Open 'nupic.core.*proj' solution file generated on $REPOSITORY/build/scripts.
  * Run 'ALL_BUILD' project from your IDE.
 
 #### Run the C++ tests:
