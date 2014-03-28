@@ -28,7 +28,7 @@ Important notes:
 
 #### Run the C++ tests:
 
-    cd $REPOSITORY/build
+    cd $REPOSITORY/build/scripts
     make tests_htm 
     make tests_everything
 
