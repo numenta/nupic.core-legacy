@@ -31,3 +31,22 @@ Important notes:
     cd $REPOSITORY/build/release/bin
     htmtest
     testeverything
+
+### Using graphical interface
+
+#### Generate the IDE solution:
+
+ * Open CMake executable.
+ * Specify the source folder ($REPOSITORY/src).
+ * Specify the build system folder ($REPOSITORY/build/scripts), ie where IDE solution will be created.
+ * Click 'Generate'.
+ * Choose the IDE that interest you (remember that IDE choice is limited to your OS, ie Visual Studio is available only on CMake for Windows).
+
+#### Build:
+
+ * Open 'Nupic.*proj' solution file generated on $REPOSITORY/build/scripts.
+ * Run 'ALL_BUILD' project from your IDE.
+
+#### Run the C++ tests:
+
+ * Run 'HtmTest' and 'TestEverything' projects from your IDE (check 'output' panel to see the results).
