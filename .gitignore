@@ -19,5 +19,8 @@ build/scripts/
 build/release/
 build/temp/
 
+src/test/testeverything/everything_addtests.hpp
+src/test/testeverything/everything_headers.hpp
+
 # /
 /.gdb_history
