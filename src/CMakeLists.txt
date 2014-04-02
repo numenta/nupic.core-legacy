@@ -181,7 +181,7 @@ endmacro()
 ############################################################################################################################
 
 cmake_minimum_required(VERSION 2.8)
-project(nupic.core CXX)
+project(nupic_core CXX)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 #
@@ -483,7 +483,7 @@ message(STATUS "Configuring subprojects...")
 #
 # LibNupicCore
 #
-set(LIB_STATIC_NUPICCORE nupic.core)
+set(LIB_STATIC_NUPICCORE nupic_core)
 generate_static_library(${LIB_STATIC_NUPICCORE} "${PROJECT_SOURCE_DIR}/main" "${PROJECT_BUILD_TEMP_DIR}/lib" "${NTA_CXXFLAGS}")
 
 #
@@ -506,7 +506,7 @@ set(LIBRARIES
 )
 generate_executable(${EXECUTABLE_TESTEVERYTHING} "${PROJECT_SOURCE_DIR}/test/testeverything" "${PROJECT_BUILD_RELEASE_DIR}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
 
-# Merge nupic.core and all static libraries to a stand-alone library
+# Merge nupic_core and all static libraries to a stand-alone library
 merge_static_libraries(${LIB_STATIC_NUPICCORE} "${PROJECT_BUILD_RELEASE_DIR}/lib" "${LIB_STATIC_NUPICCORE};${NTA_STANDARD_LIBS}" "${LIB_STATIC_NUPICCORE}")
 
 
