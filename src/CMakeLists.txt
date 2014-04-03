@@ -551,3 +551,10 @@ file(WRITE "${PROJECT_SOURCE_DIR}/test/testeverything/everything_headers.hpp" "$
 
 # Just to separate from result message
 message(STATUS "")
+
+###################################################################
+###	5th custom targets					###
+###################################################################
+
+add_custom_target(tests_htm COMMAND ${CMAKE_BUILD_RELEASE_DIR}/bin/htmtest ) 
+add_custom_target(tests_everything COMMAND ${CMAKE_BUILD_RELEASE_DIR}/bin/testeverything )
