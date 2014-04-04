@@ -18,5 +18,9 @@ install:
   - echo This is where the build should happen
 
 script:
-  - echo This is where the tests should run
-
+  - "cd $TRAVIS_BUILD_DIR/build/scripts"
+  - "make -j3"
+  # legacy binary tests
+  - "make tests_htm"
+  # (not quite everything, really)
+  - "make tests_everything"
