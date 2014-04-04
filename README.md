@@ -28,9 +28,9 @@ Important notes:
 
 #### Run the C++ tests:
 
-    cd $REPOSITORY/build/release/bin
-    htmtest
-    testeverything
+    cd $REPOSITORY/build
+    make tests_htm 
+    make tests_everything
 
 ### Using graphical interface
 
