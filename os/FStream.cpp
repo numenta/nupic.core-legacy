@@ -181,9 +181,7 @@ void *ZLib::fopen(const std::string &filename, const std::string &mode,
           case Z_MEM_ERROR: message = "Zlib memory error."; break;
           case Z_BUF_ERROR: message = "Zlib buffer error."; break;
           case Z_VERSION_ERROR: message = "Zlib version error."; break;
-          default:
-            message = ::strerror(error);
-            break;
+          default: message = ::strerror(error); break;
         }   
         if(errorMessage) {
           *errorMessage = message;
