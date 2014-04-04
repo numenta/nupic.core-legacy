@@ -557,5 +557,5 @@ message(STATUS "")
 ###	5th custom targets					###
 ###################################################################
 
-add_custom_target(tests_htm COMMAND ${CMAKE_BUILD_RELEASE_DIR}/bin/htmtest ) 
-add_custom_target(tests_everything COMMAND ${CMAKE_BUILD_RELEASE_DIR}/bin/testeverything )
+add_custom_target(tests_htm COMMAND ${PROJECT_BUILD_RELEASE_DIR}/bin/htmtest ) 
+add_custom_target(tests_everything COMMAND ${PROJECT_BUILD_RELEASE_DIR}/bin/testeverything )
