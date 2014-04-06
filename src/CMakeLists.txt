@@ -487,7 +487,7 @@ message(STATUS "Configuring subprojects...")
 # LibNupicCore
 #
 set(LIB_STATIC_NUPICCORE nupic_core)
-generate_static_library(${LIB_STATIC_NUPICCORE} "${PROJECT_SOURCE_DIR}/main" "${PROJECT_BUILD_RELEASE_DIR}/lib" "${NTA_CXXFLAGS}")
+generate_static_library(${LIB_STATIC_NUPICCORE} "${PROJECT_SOURCE_DIR}/main" "${PROJECT_BUILD_TEMP_DIR}/lib" "${NTA_CXXFLAGS}")
 
 #
 # HtmTest
