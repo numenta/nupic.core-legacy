@@ -28,6 +28,6 @@ script:
   - "cd $TRAVIS_BUILD_DIR/build/scripts"
   - "make -j3"
   # legacy binary tests
-  - "make tests_htm"
-  # (not quite everything, really)
-  - "make tests_testeverything"
+  - "$TRAVIS_BUILD_DIR/build/release/bin/testcpphtm"
+   # (not quite everything, really)
+  - "$TRAVIS_BUILD_DIR/build/release/bin/testeverything"
