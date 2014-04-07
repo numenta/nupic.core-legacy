@@ -561,10 +561,12 @@ file(WRITE "${PROJECT_SOURCE_DIR}/test/testeverything/everything_headers.hpp" "$
 # Tests
 #
 add_custom_target(tests_htm
-                  COMMAND ${CMAKE_BUILD_RELEASE_DIR}/bin/${EXECUTABLE_HTMTEST})
+                  COMMAND ${CMAKE_BUILD_RELEASE_DIR}/bin/${EXECUTABLE_HTMTEST}
+                  DEPENDS ${EXECUTABLE_HTMTEST})
                   
 add_custom_target(tests_everything
-                  COMMAND ${CMAKE_BUILD_RELEASE_DIR}/bin/${EXECUTABLE_TESTEVERYTHING})
+                  COMMAND ${CMAKE_BUILD_RELEASE_DIR}/bin/${EXECUTABLE_TESTEVERYTHING}
+                  DEPENDS ${EXECUTABLE_TESTEVERYTHING})
                   
 # tests_all just calls other targets
 add_custom_target(tests_all
