@@ -565,6 +565,12 @@ add_custom_target(tests_htm
                   
 add_custom_target(tests_everything
                   COMMAND ${CMAKE_BUILD_RELEASE_DIR}/bin/${EXECUTABLE_TESTEVERYTHING})
+                  
+# tests_all just calls other targets
+add_custom_target(tests_all
+                  DEPENDS tests_htm
+                  DEPENDS tests_everything
+                  COMMENT "Running all tests")
 
 
 # Just to separate from result message
