@@ -210,6 +210,9 @@ endif()
 # Repository root is the parent directory which this CMake file is located
 # This CMake file must be always on /repository/src subdirectory.
 get_filename_component(REPOSITORY_DIR ${PROJECT_SOURCE_DIR} PATH)
+# respect user-defined paths NTA, NUPIC, BUILDDIR
+set(PROJECT_BUILD_RELEASE_DIR "$ENV{NTA}")
+set(PROJECT_BUILD_TEMP_DIR "$ENV{BUILDDIR}")
 # 'release' is a subdirectory created on /build root.
 if("${PROJECT_BUILD_RELEASE_DIR}" STREQUAL "")
   set(PROJECT_BUILD_RELEASE_DIR "${REPOSITORY_DIR}/build/release")
