@@ -9,7 +9,7 @@ This repository contains the C++ source code for the Numenta Platform for Intell
 ## Build and test NuPIC Core:
 
 Important notes:
- * $REPOSITORY is the current location of the repository that you downloaded from GitHub.
+ * `$REPOSITORY` is the current location of the repository that you downloaded from GitHub.
 
 ### Using command line
 
@@ -26,9 +26,9 @@ Important notes:
     
 > **Note**: -j3 option specify '3' as the maximum number of parallel jobs/threads that Make will use during the build in order to gain speed. However, you can increase this number depending your CPU.
 
-#### Run the C++ tests:
+#### Run the tests:
 
-    cd $REPOSITORY/build
+    cd $REPOSITORY/build/scripts
     make tests_htm 
     make tests_everything
 
@@ -37,16 +37,16 @@ Important notes:
 #### Generate the IDE solution:
 
  * Open CMake executable.
- * Specify the source folder ($REPOSITORY/src).
- * Specify the build system folder ($REPOSITORY/build/scripts), i.e. where IDE solution will be created.
- * Click 'Generate'.
+ * Specify the source folder (`$REPOSITORY/src`).
+ * Specify the build system folder (`$REPOSITORY/build/scripts`), i.e. where IDE solution will be created.
+ * Click `Generate`.
  * Choose the IDE that interest you (remember that IDE choice is limited to your OS, i.e. Visual Studio is available only on CMake for Windows).
 
 #### Build:
 
- * Open 'nupic.core.*proj' solution file generated on $REPOSITORY/build/scripts.
- * Run 'ALL_BUILD' project from your IDE.
+ * Open `nupic.core.*proj` solution file generated on `$REPOSITORY/build/scripts`.
+ * Run `ALL_BUILD` project from your IDE.
 
-#### Run the C++ tests:
+#### Run the tests:
 
- * Run 'HtmTest' and 'TestEverything' projects from your IDE (check 'output' panel to see the results).
+ * Run any `tests_*` project from your IDE (check `output` panel to see the results).

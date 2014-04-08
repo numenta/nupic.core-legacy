@@ -489,7 +489,7 @@ generate_static_library(${LIB_STATIC_NUPICCORE} "${PROJECT_SOURCE_DIR}/main" "${
 #
 # HtmTest
 #
-set(EXECUTABLE_HTMTEST htmtest)
+set(EXECUTABLE_HTMTEST testcpphtm)
 set(LIBRARIES
   ${LIB_STATIC_NUPICCORE}
   ${NTA_STANDARD_LIBS}
@@ -550,12 +550,28 @@ file(WRITE "${PROJECT_SOURCE_DIR}/test/testeverything/everything_addtests.hpp" "
 file(WRITE "${PROJECT_SOURCE_DIR}/test/testeverything/everything_headers.hpp" "${headers_file_content}")
 
 
+############################################################################################################################
+###                                                                                                                      ###
+###  5th Part:                                                                                                           ###
+###  Custom targets                                                                                                      ###
+###                                                                                                                      ###
+############################################################################################################################
+
+#
+# Tests
+#
+add_custom_target(tests_htm
+                  COMMAND ${PROJECT_BUILD_RELEASE_DIR}/bin/${EXECUTABLE_HTMTEST})
+                  
+add_custom_target(tests_everything
+                  COMMAND ${PROJECT_BUILD_RELEASE_DIR}/bin/${EXECUTABLE_TESTEVERYTHING})
+                  
+# tests_all just calls other targets
+add_custom_target(tests_all
+                  DEPENDS tests_htm
+                  DEPENDS tests_everything
+                  COMMENT "Running all tests")
+
+
 # Just to separate from result message
 message(STATUS "")
-
-###################################################################
-###	5th custom targets					###
-###################################################################
-
-add_custom_target(tests_htm COMMAND ${CMAKE_BUILD_RELEASE_DIR}/bin/htmtest ) 
-add_custom_target(tests_everything COMMAND ${CMAKE_BUILD_RELEASE_DIR}/bin/testeverything )
