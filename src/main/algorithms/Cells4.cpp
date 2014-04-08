@@ -28,7 +28,7 @@
 #include <set>
 #include <sstream>
 
-#include <external/common/include/cycle_counter.hpp>
+#include "cycle_counter.hpp"
 #include <nta/utils/Random.hpp>
 #include <nta/utils/Log.hpp>
 #include <assert.h>
