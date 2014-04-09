@@ -67,9 +67,9 @@ namespace nta
     {
       // To find the pynode plugin we need the nupic 
       // installation directory.
-      // Use NTA_ROOTDIR if it is set, otherwise we infer the 
+      // Use NTA if it is set, otherwise we infer the
       // location of the root directory from PYTHONPATH
-      bool found = Env::get("NTA_ROOTDIR", rootDir_);
+      bool found = Env::get("NTA", rootDir_);
       if (!found)
       {
         // look at each component of PYTHONPATH for component/nupic
@@ -77,7 +77,7 @@ namespace nta
         found = Env::get("PYTHONPATH", pythonPath);
         if (!found)
         {
-          NTA_THROW << "Unable to find the pynode dynamic library because neither NTA_ROOTDIR nor PYTHONPATH is set";
+          NTA_THROW << "Unable to find the pynode dynamic library because neither NTA nor PYTHONPATH is set";
         }
         found = false;
 #ifdef NTA_PLATFORM_win32
@@ -122,7 +122,7 @@ namespace nta
         }                                 
       }
       if (!found)
-        NTA_THROW << "Unable to find NuPIC installation dir from NTA_ROOTDIR or PYTHONPATH";
+        NTA_THROW << "Unable to find NuPIC installation dir from NTA or PYTHONPATH";
       
       
 #if defined(NTA_PLATFORM_darwin64)
