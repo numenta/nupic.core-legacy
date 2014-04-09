@@ -219,6 +219,16 @@ if("${PROJECT_BUILD_TEMP_DIR}" STREQUAL "")
   set(PROJECT_BUILD_TEMP_DIR "${REPOSITORY_DIR}/build/temp")
 endif()
 
+
+#
+# Prepare directory structure
+#
+execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_RELEASE_DIR}/include)
+execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_RELEASE_DIR}/lib)
+execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_RELEASE_DIR}/bin)
+execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_TEMP_DIR}/lib)
+execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_TEMP_DIR}/obj)
+
 #
 # Set OS flags
 #
@@ -562,14 +572,14 @@ add_custom_target(tests_all
 #
 # Clean
 #
-add_custom_target(clean
-		# Clean '/build/release'
+add_custom_target(distclean
+		# Clean '/build/release' and build/temp/
 		COMMAND ${CMAKE_COMMAND} -E remove_directory ${PROJECT_BUILD_RELEASE_DIR}
+		COMMAND ${CMAKE_COMMAND} -E remove_directory ${PROJECT_BUILD_TEMP_DIR}
+		# recreate dirs
 		COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_RELEASE_DIR}/include
 		COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_RELEASE_DIR}/lib
 		COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_RELEASE_DIR}/bin
-		# Clean '/build/temp'
-		COMMAND ${CMAKE_COMMAND} -E remove_directory ${PROJECT_BUILD_TEMP_DIR}
 		COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_TEMP_DIR}/lib
 		COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_TEMP_DIR}/obj
 		COMMENT "Cleaning temporary build files")

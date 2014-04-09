@@ -22,7 +22,7 @@ Important notes:
 #### Build:
 
     cd $REPOSITORY/build/scripts
-    (optional) make clean     # starts a fresh build
+    (optional) make clean / distclean    # starts a fresh build
     make -j3
     
 > **Note**: -j3 option specify '3' as the maximum number of parallel jobs/threads that Make will use during the build in order to gain speed. However, you can increase this number depending your CPU.
