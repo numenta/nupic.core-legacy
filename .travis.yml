@@ -4,6 +4,11 @@ compiler:
   - clang
   - gcc
 
+env:
+  matrix:
+    - CC=clang
+    - CC=gcc
+
 notifications:
   irc:
     channels:
@@ -15,8 +20,14 @@ before_install:
   - if [ "$CC" = "clang" ]; then export CXX=clang++; fi
 
 install:
-  - echo This is where the build should happen
+  - "mkdir -p $TRAVIS_BUILD_DIR/build/scripts"
+  - "cd $TRAVIS_BUILD_DIR/build/scripts"
+  - "cmake $TRAVIS_BUILD_DIR/src"
 
 script:
-  - echo This is where the tests should run
-
+  - "cd $TRAVIS_BUILD_DIR/build/scripts"
+  - "make -j3"
+  # legacy binary tests
+  - "make tests_htm"
+  # (not quite everything, really)
+  - "make tests_everything"
