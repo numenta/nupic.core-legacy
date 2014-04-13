@@ -219,16 +219,13 @@ if("${PROJECT_BUILD_TEMP_DIR}" STREQUAL "")
   set(PROJECT_BUILD_TEMP_DIR "${REPOSITORY_DIR}/build/temp")
 endif()
 
+
 #
-# Clean directories before generate files
+# Prepare directory structure
 #
-# Clean '/build/release'
-execute_process(COMMAND ${CMAKE_COMMAND} -E remove_directory ${PROJECT_BUILD_RELEASE_DIR})
 execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_RELEASE_DIR}/include)
 execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_RELEASE_DIR}/lib)
 execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_RELEASE_DIR}/bin)
-# Clean '/build/temp'
-execute_process(COMMAND ${CMAKE_COMMAND} -E remove_directory ${PROJECT_BUILD_TEMP_DIR})
 execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_TEMP_DIR}/lib)
 execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_TEMP_DIR}/obj)
 
@@ -348,7 +345,7 @@ set(USER_LINKFLAGS "" CACHE STRING "Extra Link flags")
 # Allows us to find includes for external libraries and enables
 # #include <nta/common/...>
 #
-set(NTA_INCLUDEFLAGS "-I${REPOSITORY_DIR} -I${PROJECT_BUILD_RELEASE_DIR}/include -isystem${REPOSITORY_DIR}/external/common/include -isystem${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/include")
+set(NTA_INCLUDEFLAGS "-I${PROJECT_BUILD_RELEASE_DIR}/include -isystem${REPOSITORY_DIR}/external/common/include -isystem${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/include")
 
 #
 # NTA_INTERNAL tells us that the code is being built under the build system
@@ -489,7 +486,7 @@ generate_static_library(${LIB_STATIC_NUPICCORE} "${PROJECT_SOURCE_DIR}/main" "${
 #
 # HtmTest
 #
-set(EXECUTABLE_HTMTEST htmtest)
+set(EXECUTABLE_HTMTEST testcpphtm)
 set(LIBRARIES
   ${LIB_STATIC_NUPICCORE}
   ${NTA_STANDARD_LIBS}
@@ -550,12 +547,42 @@ file(WRITE "${PROJECT_SOURCE_DIR}/test/testeverything/everything_addtests.hpp" "
 file(WRITE "${PROJECT_SOURCE_DIR}/test/testeverything/everything_headers.hpp" "${headers_file_content}")
 
 
+############################################################################################################################
+###                                                                                                                      ###
+###  5th Part:                                                                                                           ###
+###  Custom targets                                                                                                      ###
+###                                                                                                                      ###
+############################################################################################################################
+
+#
+# Tests
+#
+add_custom_target(tests_htm
+                  COMMAND ${PROJECT_BUILD_RELEASE_DIR}/bin/${EXECUTABLE_HTMTEST})
+                  
+add_custom_target(tests_everything
+                  COMMAND ${PROJECT_BUILD_RELEASE_DIR}/bin/${EXECUTABLE_TESTEVERYTHING})
+                  
+# tests_all just calls other targets
+add_custom_target(tests_all
+                  DEPENDS tests_htm
+                  DEPENDS tests_everything
+                  COMMENT "Running all tests")
+
+#
+# Clean
+#
+add_custom_target(distclean
+		# Clean '/build/release' and build/temp/
+		COMMAND ${CMAKE_COMMAND} -E remove_directory ${PROJECT_BUILD_RELEASE_DIR}
+		COMMAND ${CMAKE_COMMAND} -E remove_directory ${PROJECT_BUILD_TEMP_DIR}
+		# recreate dirs
+		COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_RELEASE_DIR}/include
+		COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_RELEASE_DIR}/lib
+		COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_RELEASE_DIR}/bin
+		COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_TEMP_DIR}/lib
+		COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_TEMP_DIR}/obj
+		COMMENT "Cleaning temporary build files")
+
 # Just to separate from result message
 message(STATUS "")
-
-###################################################################
-###	5th custom targets					###
-###################################################################
-
-add_custom_target(tests_htm COMMAND ${CMAKE_BUILD_RELEASE_DIR}/bin/htmtest ) 
-add_custom_target(tests_everything COMMAND ${CMAKE_BUILD_RELEASE_DIR}/bin/testeverything )
