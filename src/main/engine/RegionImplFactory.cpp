@@ -65,64 +65,23 @@ namespace nta
       destroySpec_(0),
       createPyNode_(0)
     {
-      // To find the pynode plugin we need the nupic 
+      // To find the pynode plugin we need the nupic
       // installation directory.
-      // Use NTA_ROOTDIR if it is set, otherwise we infer the 
-      // location of the root directory from PYTHONPATH
-      bool found = Env::get("NTA_ROOTDIR", rootDir_);
+      bool found = Env::get("NTA", rootDir_);
       if (!found)
       {
-        // look at each component of PYTHONPATH for component/nupic
-        std::string pythonPath;
-        found = Env::get("PYTHONPATH", pythonPath);
-        if (!found)
-        {
-          NTA_THROW << "Unable to find the pynode dynamic library because neither NTA_ROOTDIR nor PYTHONPATH is set";
-        }
+        NTA_THROW << "Unable to find the pynode dynamic library because NTA is not set";
+      }
+      else
+      {
         found = false;
-#ifdef NTA_PLATFORM_win32
-        const char* sep = ";";
-#else
-        const char* sep = ":";
-#endif
-        std::string::size_type start = 0;
-        std::string::size_type sz = pythonPath.size();
-        std::string::size_type len;
-        std::string::size_type end = pythonPath.find(sep);
-        if (end == std::string::npos)
-          len = sz - start;
-        else
-          len = end - start;
-
-        std::string path;
-        while (len > 0)
+        if (Path::exists(rootDir_) && Path::isDirectory(rootDir_))
         {
-          std::string component = pythonPath.substr(start, len);
-          path = Path::join(component, "nupic");
-          if (Path::exists(path) && Path::isDirectory(path))
-          {
-            found = true;
-            break;
-          }
-          // move to the next component; skip the ":"
-          start = start + len + 1;
-          if (start >= sz)
-            break;
-
-          std::string::size_type end = pythonPath.find(sep, start);
-          if (end == std::string::npos)
-
-            len = sz - start;
-          else
-            len = end - start;
+          found = true;
         }
-        if (found)
-        {
-          rootDir_ = Path::normalize(Path::makeAbsolute(Path::join(path, "../../../..")));
-        }                                 
       }
       if (!found)
-        NTA_THROW << "Unable to find NuPIC installation dir from NTA_ROOTDIR or PYTHONPATH";
+        NTA_THROW << "Unable to find NuPIC installation dir from NTA";
       
       
 #if defined(NTA_PLATFORM_darwin64)
