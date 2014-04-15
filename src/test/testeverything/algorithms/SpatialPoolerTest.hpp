@@ -57,7 +57,6 @@ namespace nta {
     bool almost_eq(Real a, Real b);
     bool findVector(UInt needle[], UInt n, vector<vector<UInt> > haystack);
     void testMapPotential1D();
-    void testMapPotential();
     void testInitPermConnected();
     void testInitPermNonConnected();
     void testInitPermanence();

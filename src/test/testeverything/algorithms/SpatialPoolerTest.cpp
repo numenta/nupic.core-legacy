@@ -245,7 +245,6 @@ namespace nta {
   {
     testRaisePermanencesToThreshold();
     testMapPotential1D();
-    // testMapPotential();
     testInitPermConnected();
     testInitPermNonConnected();
     testInitPermanence();
@@ -2312,108 +2311,6 @@ namespace nta {
     }
 
     NTA_CHECK(check_vector_eq(unionMask1, supersetMask1, 10));
-  }
-
-  void SpatialPoolerTest::testMapPotential()
-  {
-    vector<UInt> inputDim;
-    vector<UInt> columnDim;
-    inputDim.push_back(10);
-    columnDim.push_back(10);
-    SpatialPooler sp;
-    UInt potentialRadius = 1;
-    Real potentialPct = 1.0;
-    sp.initialize(inputDim,columnDim);
-    sp.setPotentialRadius(potentialRadius);
-    sp.setPotentialPct(potentialPct);
-
-    UInt truePotential1[10][10] =
-    {{ 1, 1, 0, 0, 0, 0, 0, 0, 0, 1 },
-     { 1, 1, 1, 0, 0, 0, 0, 0, 0, 0 },
-     { 0, 1, 1, 1, 0, 0, 0, 0, 0, 0 },
-     { 0, 0, 1, 1, 1, 0, 0, 0, 0, 0 },
-     { 0, 0, 0, 1, 1, 1, 0, 0, 0, 0 },
-     { 0, 0, 0, 0, 1, 1, 1, 0, 0, 0 },
-     { 0, 0, 0, 0, 0, 1, 1, 1, 0, 0 },
-     { 0, 0, 0, 0, 0, 0, 1, 1, 1, 0 },
-     { 0, 0, 0, 0, 0, 0, 0, 1, 1, 1 },
-     { 1, 0, 0, 0, 0, 0, 0, 0, 1, 1 }};
-
-    for (UInt i = 0; i < 10; i++) {
-      NTA_CHECK(check_vector_eq(truePotential1[i],
-                                sp.mapPotential1D_(i, true)));
-    }
-
-    inputDim[0] = 12;
-    columnDim[0] = 12;
-    potentialRadius = 3;
-    potentialPct = 1.0;
-    sp.initialize(inputDim,columnDim);
-    sp.setPotentialRadius(potentialRadius);
-    sp.setPotentialPct(potentialPct);
-
-    UInt truePotential2[12][12] =
-    {{ 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1 },
-     { 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1 },
-     { 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1 },
-     { 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0 },
-     { 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0 },
-     { 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0 },
-     { 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0 },
-     { 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0 },
-     { 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1 },
-     { 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1 },
-     { 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1 },
-     { 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1 }};
-
-    for (UInt i = 0; i < 12; i++) {
-      NTA_CHECK(check_vector_eq(truePotential2[i],
-                                sp.mapPotential1D_(i, true)));
-    }
-
-    inputDim[0] = 5;
-    columnDim[0] = 15;
-    potentialRadius = 1;
-    potentialPct = 1.0;
-    sp.initialize(inputDim,columnDim);
-    sp.setPotentialRadius(potentialRadius);
-    sp.setPotentialPct(potentialPct);
-
-    UInt truePotential3[15][5] =
-        {{1, 1, 0, 0, 1},
-         {1, 1, 1, 0, 0},
-         {0, 1, 1, 1, 0},
-         {0, 0, 1, 1, 1},
-         {1, 0, 0, 1, 1},
-         {1, 1, 0, 0, 1},
-         {1, 1, 1, 0, 0},
-         {0, 1, 1, 1, 0},
-         {0, 0, 1, 1, 1},
-         {1, 0, 0, 1, 1},
-         {1, 1, 0, 0, 1},
-         {1, 1, 1, 0, 0},
-         {0, 1, 1, 1, 0},
-         {0, 0, 1, 1, 1},
-         {1, 0, 0, 1, 1}};
-
-    for (UInt i = 0; i < 15; i++) {
-      NTA_CHECK(check_vector_eq(truePotential3[i],
-                                sp.mapPotential1D_(i, true)));
-    }
-
-    inputDim[0] = 5;
-    columnDim[0] = 5;
-    potentialRadius = 5;
-    potentialPct = 0;
-    sp.initialize(inputDim,columnDim);
-    sp.setPotentialRadius(potentialRadius);
-    sp.setPotentialPct(potentialPct);
-
-    UInt truePotential4[5] = {0, 0, 0, 0, 0};
-
-    for (UInt i = 0; i < 5; i++) {
-      NTA_CHECK(check_vector_eq(truePotential4, sp.mapPotential1D_(i, true)));
-    }
   }
 
   void SpatialPoolerTest::testSerialize() 
