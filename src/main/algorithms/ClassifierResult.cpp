@@ -23,8 +23,8 @@
 #include <map>
 #include <vector>
 
-#include <nta/algorithms/classifier_result.hpp>
-#include <nta/types/types.hpp>
+#include <nta/algorithms/ClassifierResult.hpp>
+#include <nta/types/Types.hpp>
 
 using namespace std;
 

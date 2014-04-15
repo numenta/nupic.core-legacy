@@ -32,7 +32,7 @@
 #include <string>
 #include <vector>
 #include <set>
-#include <nta/types/types.hpp>
+#include <nta/types/Types.hpp>
 #include <nta/ntypes/Collection.hpp>
 
 namespace nta

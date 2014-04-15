@@ -32,7 +32,7 @@
 #include <math.h>
 #include <nta/regions/VectorFile.hpp>
 #include <nta/utils/Log.hpp>
-#include <nta/utils/utils.hpp> // For isSystemLittleEndian and utils::swapBytesInPlace.
+#include <nta/utils/Utils.hpp> // For isSystemLittleEndian and utils::swapBytesInPlace.
 #include <nta/os/FStream.hpp>
 #include <nta/os/Path.hpp>
 #include <stdexcept>

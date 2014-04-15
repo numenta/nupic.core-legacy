@@ -35,7 +35,7 @@
 #include <map>
 #include <set>
 
-#include <nta/types/types.hpp>
+#include <nta/types/Types.hpp>
 // We need the full definitions because these
 // objects are returned by value.
 #include <nta/ntypes/Dimensions.hpp>

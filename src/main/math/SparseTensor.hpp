@@ -27,10 +27,10 @@
 #ifndef NTA_SPARSE_TENSOR_HPP
 #define NTA_SPARSE_TENSOR_HPP
 
-#include <nta/math/utils.hpp>
-#include <nta/math/math.hpp>
-#include <nta/math/array_algo.hpp>
-#include <nta/math/stl_io.hpp>
+#include <nta/math/Utils.hpp>
+#include <nta/math/Math.hpp>
+#include <nta/math/ArrayAlgo.hpp>
+#include <nta/math/StlIo.hpp>
 #include <nta/math/Domain.hpp>
 
 

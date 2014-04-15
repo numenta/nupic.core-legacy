@@ -27,13 +27,13 @@
 #ifndef NTA_UTILS_HPP
 #define NTA_UTILS_HPP
 
-#include <nta/types/types.hpp>
+#include <nta/types/Types.hpp>
 
 namespace utils 
 {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wstrict-aliasing"
-  inline bool isSystemLittleEndian() // TODO same fn is in nta/math/utils.hpp, deduplicate!
+  inline bool isSystemLittleEndian() // TODO same fn is in nta/math/Utils.hpp, deduplicate!
   {
     static const char test[2] = { 1, 0 };
     return (*(short *) test) == 1;

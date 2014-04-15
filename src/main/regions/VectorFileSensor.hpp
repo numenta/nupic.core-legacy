@@ -32,7 +32,7 @@
 //----------------------------------------------------------------------
 
 #include <vector>
-#include <nta/types/types.h>
+#include <nta/types/Types.h>
 #include <nta/os/FStream.hpp>
 #include <nta/engine/RegionImpl.hpp>
 #include <nta/ntypes/Array.hpp>

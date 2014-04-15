@@ -25,7 +25,7 @@
  */  
               
 //#include <nta/common/version.hpp>
-#include <nta/math/stl_io.hpp>
+#include <nta/math/StlIo.hpp>
 #include "SparseMatrixUnitTest.hpp"
     
 using namespace std;  

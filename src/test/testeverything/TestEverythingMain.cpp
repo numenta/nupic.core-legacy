@@ -31,7 +31,7 @@ Uber test program
 
 #include <nta/utils/Log.hpp>
 #include <nta/test/Tester.hpp>
-#include <nta/os/regex.hpp>
+#include <nta/os/Regex.hpp>
 #include <iostream>
 
 // APR must be explicit initialized

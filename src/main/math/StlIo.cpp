@@ -24,7 +24,7 @@
  * This file contains functions to print out and save/load various STL data structures.
  */
 
-#include <nta/math/stl_io.hpp>
+#include <nta/math/StlIo.hpp>
 
 namespace nta {
 

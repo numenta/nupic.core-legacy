@@ -27,7 +27,7 @@
 #ifndef NTA_EXCEPTION_HPP
 #define NTA_EXCEPTION_HPP
 
-#include <nta/types/types.hpp>
+#include <nta/types/Types.hpp>
 #include <stdexcept>
 #include <string>
 

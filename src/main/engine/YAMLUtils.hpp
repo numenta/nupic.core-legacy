@@ -23,7 +23,7 @@
 #define NTA_YAML_HPP
 
 
-#include <nta/types/types.hpp>
+#include <nta/types/Types.hpp>
 #include <nta/ntypes/Value.hpp>
 #include <nta/ntypes/Collection.hpp>
 #include <nta/engine/Spec.hpp>

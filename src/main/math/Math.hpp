@@ -37,8 +37,8 @@
 
 #include <boost/concept_check.hpp>
 
-#include <nta/types/types.hpp>
-#include <nta/math/utils.hpp>
+#include <nta/types/Types.hpp>
+#include <nta/math/Utils.hpp>
 
 #ifdef WIN32
 #undef min

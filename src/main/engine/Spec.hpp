@@ -27,7 +27,7 @@ Definition of Spec data structures
 #ifndef NTA_SPEC_HPP
 #define NTA_SPEC_HPP
 
-#include <nta/types/types.hpp>
+#include <nta/types/Types.hpp>
 #include <nta/ntypes/Collection.hpp>
 #include <string>
 #include <map>

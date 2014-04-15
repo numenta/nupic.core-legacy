@@ -44,7 +44,7 @@
 
 #include <boost/shared_array.hpp>
 
-#include <nta/types/types.hpp>
+#include <nta/types/Types.hpp>
 #include <nta/utils/Log.hpp>
 
 namespace nta {
