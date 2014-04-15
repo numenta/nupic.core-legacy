@@ -244,7 +244,8 @@ namespace nta {
   void SpatialPoolerTest::RunTests()
   {
     testRaisePermanencesToThreshold();
-    testMapPotential();
+    testMapPotential1D();
+    // testMapPotential();
     testInitPermConnected();
     testInitPermNonConnected();
     testInitPermanence();
@@ -2262,6 +2263,55 @@ namespace nta {
       NTA_CHECK(permVal >= 0 &&
                 permVal <= synPermConnected);
     }
+  }
+
+  void SpatialPoolerTest::testMapPotential1D()
+  {
+    vector<UInt> inputDim, columnDim;
+    inputDim.push_back(10);
+    columnDim.push_back(4);
+    UInt potentialRadius = 2;
+
+    SpatialPooler sp;
+    sp.initialize(inputDim, columnDim);
+    sp.setPotentialRadius(potentialRadius);
+
+    vector<UInt> mask;
+
+    // Test without wrapAround and potentialPct = 1
+    sp.setPotentialPct(1.0);
+
+    UInt expectedMask1[10] = {1, 1, 1, 0, 0, 0, 0, 0, 0, 0};
+    mask = sp.mapPotential1D_(0, false);
+    NTA_CHECK(check_vector_eq(expectedMask1, mask));
+
+    UInt expectedMask2[10] = {0, 0, 0, 0, 1, 1, 1, 1, 1, 0};
+    mask = sp.mapPotential1D_(2, false);
+    NTA_CHECK(check_vector_eq(expectedMask2, mask));
+
+    // Test with wrapAround and potentialPct = 1
+    sp.setPotentialPct(1.0);
+
+    UInt expectedMask3[10] = {1, 1, 1, 0, 0, 0, 0, 0, 1, 1};
+    mask = sp.mapPotential1D_(0, true);
+    NTA_CHECK(check_vector_eq(expectedMask3, mask));
+
+    UInt expectedMask4[10] = {1, 1, 0, 0, 0, 0, 0, 1, 1, 1};
+    mask = sp.mapPotential1D_(3, true);
+    NTA_CHECK(check_vector_eq(expectedMask4, mask));
+
+    // Test with potentialPct < 1
+    sp.setPotentialPct(0.5);
+    UInt supersetMask1[10] = {1, 1, 1, 0, 0, 0, 0, 0, 1, 1};
+    mask = sp.mapPotential1D_(0, true);
+    NTA_ASSERT(sum(mask) == 3);
+
+    UInt unionMask1[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    for (UInt i = 0; i < 10; i++) {
+      unionMask1[i] = supersetMask1[i] | mask.at(i);
+    }
+
+    NTA_CHECK(check_vector_eq(unionMask1, supersetMask1, 10));
   }
 
   void SpatialPoolerTest::testMapPotential()
