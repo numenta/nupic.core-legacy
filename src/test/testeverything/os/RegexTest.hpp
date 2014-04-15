@@ -36,9 +36,9 @@
 namespace nta 
 {
 
-  struct regexTest : public Tester
+  struct RegexTest : public Tester
   {
-    virtual ~regexTest() {}
+    virtual ~RegexTest() {}
     virtual void RunTests();
   };
 }

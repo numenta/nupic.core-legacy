@@ -32,7 +32,7 @@ using namespace std;
 using namespace nta;
 
 
-void regexTest::RunTests()
+void RegexTest::RunTests()
 {
   
   TEST(regex::match(".*", ""));
