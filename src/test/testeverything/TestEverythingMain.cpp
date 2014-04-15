@@ -119,7 +119,7 @@ int main (int argc, const char * const argv[], char *env[])
    * and pushed them on allTesters
    */
 
-#include "everything_addtests.hpp"
+#include "EverythingAddtests.hpp"
 
   // Run each test in our test suite
   std::cout << "Found " << allTesters.size() << " test ";
