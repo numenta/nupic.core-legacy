@@ -1,4 +1,4 @@
-> This documentation is a work in progress.
+> Note: This documentation is a work in progress.
 
 `NuPIC Core` contains core algorithms for NuPIC(the Numenta Platform for Intelligent Computing), implemented in C++.
 
