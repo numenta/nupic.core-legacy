@@ -77,6 +77,7 @@ namespace nta
     * @param nodeType Type of node in the region, e.g. "FDRNode"
     * @param dimensions Dimensions of the region
     * @param bundlePath The path to the bundle
+    * @param label The label of the bundle
     * @returns A pointer to the newly created Region
     */
     Region*

@@ -318,14 +318,11 @@ namespace nta
      * the output array. The actual behavior is controlled by the 'copy'
      * argument (see below).
      *
-     * @todo The param `array` below doesn't make sense
+     * @todo what's the copy' argument mentioned here?
      *
      * @param inputName The name of the target input
-     * @param array An output ArrayRef that will contain the input data after
-     *              the call returns. It is an error to supply an array with
-     *              an empty buffer.
      *
-     * @returns array that contains the input data.
+     * @returns An ArrayRef that contains the input data.
      */
     virtual ArrayRef
     getInputData(const std::string& inputName) const;
@@ -338,13 +335,11 @@ namespace nta
      * the output array. The actual behavior is controlled by the 'copy'
      * argument (see below).
      *
-     * @todo The param `array` below doesn't make sense
-     * 
-     * @param outputName The name of the target output
-     * @param array An output ArrayRef that will contain the output data after
-     *              the call returns.
+     * @todo what's the copy' argument mentioned here?
      *
-     * @returns array that contains the output data.
+     * @param outputName The name of the target output
+     *
+     * @returns An ArrayRef that contains the output data.
      */
     virtual ArrayRef
     getOutputData(const std::string& outputName) const;
