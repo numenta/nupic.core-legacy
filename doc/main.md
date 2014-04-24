@@ -8,7 +8,7 @@ For more information, see [numenta.org](http://numenta.org) or the [NuPIC wiki](
 
 For information specific to `NuPIC Core`, please refer to:
 
-* [nupic.core README](https://github.com/numenta/nupic/blob/master/README.md)
+* <a href="https://github.com/numenta/nupic/blob/master/README.md">nupic.core README</a> 
 * [nupic.core Extraction Plan](https://github.com/numenta/nupic/wiki/nupic.core-Extraction-Plan)
-* [NuPIC API A bird's eye view](https://github.com/numenta/nupic/wiki/NuPIC-API---A-bird's-eye-view)
+* <a href="https://github.com/numenta/nupic/wiki/NuPIC-API---A-bird's-eye-view">NuPIC API: A bird's eye view</a>
 * [NuPIC Architecture](https://github.com/numenta/nupic/wiki/NuPIC-Architecture)
