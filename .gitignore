@@ -6,6 +6,9 @@
 *.DS_Store
 *.swp
 
+# IDE project files
+/nbproject/
+
 # Build files
 build/
 
