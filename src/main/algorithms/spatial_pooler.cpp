@@ -627,7 +627,7 @@ vector<Real> SpatialPooler::initPermanence_(vector<UInt>& potential,
       continue;
     }
 
-    if (rng_.getReal64() < connectedPct) {
+    if (rng_.getReal64() <= connectedPct) {
       perm[i] = initPermConnected_();
     } else {
       perm[i] = initPermNonConnected_();
