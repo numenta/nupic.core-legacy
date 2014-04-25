@@ -25,6 +25,7 @@
 #include <set>
 
 /** @namespace nta
+ *
  * Contains the primary NuPIC API.
  */
 namespace nta
@@ -37,14 +38,27 @@ namespace nta
   class NuPIC 
   {
   public:
-    /** TODO: document */
+    /** 
+     * Initialize NuPIC.
+     *
+     * @note Creating a Network will auto-initialize NuPIC. 
+     */
     static void init();
-    /** TODO: document */
+
+    /** 
+     * Shutdown NuPIC.
+     *
+     * @note Shutting down NuPIC with any Network still registered to it will fail.
+     */
     static void shutdown();
-    /** TODO: document */
+
+    /** 
+     * 
+     * @return Whether NuPIC is initialized successfully.
+     */
     static bool isInitialized();
   private:
-    /**
+    /*
      * As a safety measure, don't allow NuPIC to be shut down 
      * if there are any networks still around. Networks 
      * register/unregister themselves at creation and 
@@ -52,6 +66,7 @@ namespace nta
      * 
      * TBD: license checking will be done in NuPIC::init()
      */
+    
     friend class Network;
     static void registerNetwork(Network* net);
     static void unregisterNetwork(Network* net);
