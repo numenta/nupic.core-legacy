@@ -52,6 +52,8 @@ void NuPIC::init()
   if (result) 
     NTA_THROW << "Error initializing APR (code " << result << ")";
 
+  // TODO: license checking will be done in NuPIC::init()
+
   initialized_ = true;
 }
 
