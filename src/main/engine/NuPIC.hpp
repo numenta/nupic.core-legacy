@@ -41,6 +41,7 @@ namespace nta
     /** 
      * Initialize NuPIC.
      *
+     * @note It's safe to reinitialize an initialized NuPIC.
      * @note Creating a Network will auto-initialize NuPIC. 
      */
     static void init();
@@ -61,7 +62,7 @@ namespace nta
   private:
 
     /**
-     * Networks register/unregister themselves at creation and 
+     * To allow Networks register/unregister themselves at creation and 
      * destruction time by calling static private methods of NuPIC.
      *
      * @todo should we document the above reason to have Network as friend class?
