@@ -33,7 +33,7 @@ namespace nta
   class Network;
 
   /**
-   * Contains initialization and shutdown operations
+   * NuPIC engine initialization and shutdown operations.
    */
   class NuPIC 
   {
@@ -62,10 +62,9 @@ namespace nta
   private:
 
     /**
-     * To allow Networks register/unregister themselves at creation and 
-     * destruction time by calling static private methods of NuPIC.
+     * Having Network as friend class to allow Networks register/unregister 
+     * themselves at creation and destruction time by calling non-public methods of NuPIC.
      *
-     * @todo should we document the above reason to have Network as friend class?
      */    
     friend class Network;
 

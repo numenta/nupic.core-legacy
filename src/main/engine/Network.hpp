@@ -72,13 +72,13 @@ namespace nta
     Network(const std::string& path);
 
     /** 
-     * Destructor
+     * Destructor.
      *
      * Destruct the network and unregister it from NuPIC:
      *
      * - Uninitialize all regions
      * - Remove all links
-     * - Delete the regions themselves. 
+     * - Delete the regions themselves
      *
      * @todo Should we document the tear down steps above?
      */
@@ -126,7 +126,7 @@ namespace nta
     removeRegion(const std::string& name);
 
    /**
-    * Create a link and add it to the network
+    * Create a link and add it to the network.
     * 
     * @param srcName Name of the source region
     * @param destName Name of the destination region
@@ -290,19 +290,19 @@ namespace nta
     void save(const std::string& name);
 
    /**
-    * Start profiling for all regions of this network
+    * Start profiling for all regions of this network.
     */
     void
     enableProfiling();
 
    /**
-    * Stop profiling for all regions of this network
+    * Stop profiling for all regions of this network.
     */
     void
     disableProfiling();
 
    /**
-    * Reset profiling timers for all regions of this network
+    * Reset profiling timers for all regions of this network.
     */
     void
     resetProfiling();
