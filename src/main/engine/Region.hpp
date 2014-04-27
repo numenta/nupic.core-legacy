@@ -57,6 +57,8 @@ namespace nta
   /**
    * A Region is one or more identical nodes in a Network.
    *
+   * @nosubgrouping
+   *
    * ### Constructors
    *
    * @note Region constructors are not available in the public API. 
