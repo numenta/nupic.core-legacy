@@ -340,6 +340,14 @@ namespace nta
     Collection<callbackItem>& getCallbacks();
 
     /**
+     * @}
+     *
+     * @name Profiling
+     *
+     * @{
+     */
+
+    /**
      * Start profiling for all regions of this network.
      */
     void

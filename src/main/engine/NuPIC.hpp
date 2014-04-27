@@ -33,7 +33,7 @@ namespace nta
   class Network;
 
   /**
-   * NuPIC engine initialization and shutdown operations.
+   * Initialization and shutdown operations for NuPIC engine.
    */
   class NuPIC 
   {
