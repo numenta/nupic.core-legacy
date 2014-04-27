@@ -468,7 +468,8 @@ namespace nta
      * @param outputName
      *        The name of the target output
      *
-     * @returns An @c ArrayRef that contains the output data.
+     * @returns
+     *        An @c ArrayRef that contains the output data.
      *
      * @internal
      * 
@@ -490,7 +491,8 @@ namespace nta
      * @param inputName
      *        The name of the target input
      *
-     * @returns The count of input data
+     * @returns
+     *        The count of input data
      * 
      * @todo are getOutput/InputCount needed? count can be obtained from the array objects. 
      * 
@@ -504,7 +506,8 @@ namespace nta
      * @param outputName
      *        The name of the target output
      *
-     * @returns The count of output data
+     * @returns
+     *        The count of output data
      * 
      * @todo are getOutput/InputCount needed? count can be obtained from the array objects. 
      * 
@@ -540,7 +543,8 @@ namespace nta
      *        A list of strings that the actual region will interpret. 
      *        The first string is the command name. The other arguments are optional.
      *
-     * @returns The result value of command execution is a string determined 
+     * @returns
+     *        The result value of command execution is a string determined 
      *          by the underlying region.
      */
     virtual std::string
@@ -582,14 +586,16 @@ namespace nta
     /**
      * Get the timer used to profile the compute operation.
      * 
-     * @returns The Timer object used to profile the compute operation
+     * @returns
+     *        The Timer object used to profile the compute operation
      */
     const Timer& getComputeTimer() const;
 
     /**
      * Get the timer used to profile the execute operation.
      * 
-     * @returns The Timer object used to profile the execute operation
+     * @returns
+     *        The Timer object used to profile the execute operation
      */
     const Timer& getExecuteTimer() const;
 
