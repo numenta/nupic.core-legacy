@@ -55,48 +55,384 @@ namespace nta
   class Network;
 
   /**
-   * A region is one or more identical nodes in a network.
+   * A Region is one or more identical nodes in a Network.
+   *
+   * @nosubgrouping
    *
    * ### Constructors
-   * Region constructors are not available in the public API. 
+   *
+   * @note Region constructors are not available in the public API. 
    * Internally regions are created and owned by Network.
+   * 
    */
   class Region 
   {
   public:
 
-    /* -------------- region information ----------------- */
+    /**
+     * @name Region information
+     *
+     * @{
+     */
 
     /**
      * Get the network containing this region.
+     * 
      * @returns The network containing this region
      */
     Network * 
     getNetwork();
 
     /**
-     * Get the name of the region
-     * @returns the region's name
+     * Get the name of the region.
+     * 
+     * @returns The region's name
      */
     const std::string&
     getName() const;
 
 
     /**
-     * Get the dimensions of the region
-     * @returns the region's dimensions
+     * Get the dimensions of the region.
+     * 
+     * @returns The region's dimensions
      */
     const Dimensions&
     getDimensions() const;
 
     /**
-     * Assign width and height to the region
-     * @param dimensions a Dimensions object that describes the width and height
+     * Assign width and height to the region.
+     * 
+     * @param dimensions
+     *        A Dimensions object that describes the width and height
      */
     void
     setDimensions(Dimensions & dimensions);
 
-    /* -------------- inputs/outputs ----------------- */
+    /**
+     * @}
+     *
+     * @name Element interface methods
+     *
+     * @todo What does "Element interface methods" mean here?
+     *
+     * @{
+     *
+     */
+
+    /**
+     * Get the type of the region.
+     * 
+     * @returns The node type as a string
+     */
+    const std::string&
+    getType() const;
+
+    /**
+     * Get the spec of the region.
+     * 
+     * @returns The spec that describes this region
+     */
+    const Spec* 
+    getSpec() const;
+
+    /**
+     * Get the Spec of a region type without an instance.
+     * 
+     * @param nodeType
+     *        A region type as a string
+     * 
+     * @returns The Spec that describes this region type
+     */
+    static const Spec* 
+    getSpecFromType(const std::string& nodeType);
+
+    /**
+     * @}
+     *
+     * @name Parameter getters and setters
+     *
+     * @{
+     *
+     */
+
+    /**
+     * Get the parameter as an @c Int32 value.
+     * 
+     * @param name
+     *        The name of the parameter
+     *        
+     * @returns The value of the parameter
+     */
+    Int32
+    getParameterInt32(const std::string& name) const;
+
+    /**
+     * Get the parameter as an @c UInt32 value.
+     * 
+     * @param name
+     *        The name of the parameter
+     *        
+     * @returns The value of the parameter
+     */
+    UInt32
+    getParameterUInt32(const std::string& name) const;
+
+    /**
+     * Get the parameter as an @c Int64 value.
+     * 
+     * @param name
+     *        The name of the parameter
+     *        
+     * @returns The value of the parameter
+     */
+    Int64
+    getParameterInt64(const std::string& name) const;
+
+    /**
+     * Get the parameter as an @c UInt64 value.
+     * 
+     * @param name
+     *        The name of the parameter
+     *        
+     * @returns The value of the parameter
+     */
+    UInt64
+    getParameterUInt64(const std::string& name) const;
+
+    /**
+     * Get the parameter as an @c Real32 value.
+     * 
+     * @param name
+     *        The name of the parameter
+     *        
+     * @returns The value of the parameter
+     */
+    Real32
+    getParameterReal32(const std::string& name) const;
+
+    /**
+     * Get the parameter as an @c Real64 value.
+     * 
+     * @param name
+     *        The name of the parameter
+     *        
+     * @returns The value of the parameter
+     */
+    Real64
+    getParameterReal64(const std::string& name) const;
+
+    /**
+     * Get the parameter as an @c Handle value.
+     * 
+     * @param name
+     *        The name of the parameter
+     *        
+     * @returns The value of the parameter
+     */
+    Handle
+    getParameterHandle(const std::string& name) const;
+
+    /**
+     * Set the parameter to an Int32 value.
+     * 
+     * @param name
+     *        The name of the parameter
+     *        
+     * @param value
+     *        The value of the parameter
+     */
+    void
+    setParameterInt32(const std::string& name, Int32 value);
+
+    /**
+     * Set the parameter to an UInt32 value.
+     * 
+     * @param name
+     *        The name of the parameter
+     *        
+     * @param value
+     *        The value of the parameter
+     */
+    void
+    setParameterUInt32(const std::string& name, UInt32 value);
+
+    /**
+     * Set the parameter to an Int64 value.
+     * 
+     * @param name
+     *        The name of the parameter
+     *        
+     * @param value
+     *        The value of the parameter
+     */
+    void
+    setParameterInt64(const std::string& name, Int64 value);
+
+    /**
+     * Set the parameter to an UInt64 value.
+     * 
+     * @param name
+     *        The name of the parameter
+     *        
+     * @param value
+     *        The value of the parameter
+     */
+    void
+    setParameterUInt64(const std::string& name, UInt64 value);
+
+    /**
+     * Set the parameter to a Real32 value.
+     * 
+     * @param name
+     *        The name of the parameter
+     *        
+     * @param value
+     *        The value of the parameter
+     */
+    void
+    setParameterReal32(const std::string& name, Real32 value);
+
+    /**
+     * Set the parameter to a Real64 value.
+     * 
+     * @param name
+     *        The name of the parameter
+     *        
+     * @param value
+     *        The value of the parameter
+     */
+    void
+    setParameterReal64(const std::string& name, Real64 value);
+
+    /**
+     * Set the parameter to a Handle value.
+     * 
+     * @param name
+     *        The name of the parameter
+     *        
+     * @param value
+     *        The value of the parameter
+     */
+    void
+    setParameterHandle(const std::string& name, Handle value);
+
+    /**
+     * Get the parameter as an @c Array value.
+     * 
+     * @param name
+     *        The name of the parameter
+     *        
+     * @param[out] array
+     *        The value of the parameter
+     *        
+     * @a array is a memory buffer. If the buffer is allocated, 
+     * the value is copied into the supplied buffer; otherwise
+     * @a array would be asked to allocate the buffer and copy into it. 
+     * 
+     * A typical use might be that the caller would supply an 
+     * unallocated buffer on the first call and then reuse the memory
+     * buffer on subsequent calls, i.e.
+     *
+     * @code{.cpp}
+     * 
+     *     {
+     *       // no buffer allocated
+     *       Array buffer(NTA_BasicTypeInt64); 
+     *       
+     *       // buffer is allocated, and owned by Array object 
+     *       getParameterArray("foo", buffer);
+     *       
+     *       // uses already-allocated buffer  
+     *       getParameterArray("foo", buffer);  
+     *       
+     *     } // Array destructor called -- frees the buffer
+     * @endcode
+     *
+     * Throws an exception if the supplied @a array is not big enough. 
+     * 
+     */
+    void
+    getParameterArray(const std::string& name, Array & array) const;
+
+    /**
+     * Set the parameter to an @c Array value.
+     * 
+     * @param name
+     *        The name of the parameter
+     *        
+     * @param array
+     *        The value of the parameter
+     *
+     * 
+     * @note @a array must be initialized before calling setParameterArray().
+     * 
+     */
+    void
+    setParameterArray(const std::string& name, const Array & array);
+
+    /**
+     * Set the parameter to a @c std::string value.
+     * 
+     * @param name
+     *        The name of the parameter
+     *        
+     * @param s
+     *        The value of the parameter
+     *        
+     * Strings are handled internally as Byte Arrays, but this interface
+     * is clumsy. setParameterString() and getParameterString() internally use 
+     * byte arrays but converts to/from strings.
+     *
+     * setParameterString() is implemented with one copy (from the string into
+     * the node) but getParameterString() requires a second copy so that there
+     * are temporarily three copies of the data in memory (in the node, 
+     * in an internal Array object, and in the string returned to the user)
+     * 
+     */
+    void
+    setParameterString(const std::string& name, const std::string& s);
+    
+    /**
+     * Get the parameter as a @c std::string value.
+     * 
+     * @param name
+     *        The name of the parameter
+     *        
+     * @returns
+     *         The value of the parameter
+     *
+     * @see setParameterString() 
+     */
+    std::string
+    getParameterString(const std::string& name);
+
+    /**
+     * Tells whether the parameter is shared.
+     * 
+     * @param name
+     *        The name of the parameter
+     *
+     * @returns
+     *        Whether the parameter is shared
+     *
+     * @todo figure out what "shared" means here
+     *
+     * @note This method must be overridden by subclasses.
+     *
+     * Throws an exception if it's not overridden
+     */
+    bool
+    isParameterShared(const std::string& name) const;
+
+    /**
+     * @}
+     *
+     * @name Inputs and outputs
+     *
+     * @{
+     *
+     */
 
     /**
      * Copies data into the inputs of this region, using
@@ -105,277 +441,99 @@ namespace nta
     void
     prepareInputs();
 
-    /* -------------- Element interface methods  ----------------- */
-
     /**
-     * Get the type of the region
-     * @returns The node type as a string
-     */
-    const std::string&
-    getType() const;
-
-    /**
-     * Get the spec of the region
-     * @returns The spec that describes this region
-     */
-    const Spec* 
-    getSpec() const;
-
-    /**
-     * Get the Spec of a region type without an instance
-     * @param nodeType a region type as a string
-     * @returns The Spec that describes this region type
-     */
-    static const Spec* 
-    getSpecFromType(const std::string& nodeType);
-
-    /**
-     * TODO: document
-     * @param name TODO: document
-     * @returns TODO: document
-     */
-    Int32
-    getParameterInt32(const std::string& name) const;
-
-    /**
-     * TODO: document
-     * @param name TODO: document
-     * @returns TODO: document
-     */
-    UInt32
-    getParameterUInt32(const std::string& name) const;
-
-    /**
-     * TODO: document
-     * @param name TODO: document
-     * @returns TODO: document
-     */
-    Int64
-    getParameterInt64(const std::string& name) const;
-
-    /**
-     * TODO: document
-     * @param name TODO: document
-     * @returns TODO: document
-     */
-    UInt64
-    getParameterUInt64(const std::string& name) const;
-
-    /**
-     * TODO: document
-     * @param name TODO: document
-     * @returns TODO: document
-     */
-    Real32
-    getParameterReal32(const std::string& name) const;
-
-    /**
-     * TODO: document
-     * @param name TODO: document
-     * @returns TODO: document
-     */
-    Real64
-    getParameterReal64(const std::string& name) const;
-
-    /**
-     * TODO: document
-     * @param name TODO: document
-     * @returns TODO: document
-     */
-    Handle
-    getParameterHandle(const std::string& name) const;
-
-
-    /**
-     * TODO: document
-     * @param name TODO: document
-     * @param value TODO: document
-     */
-    void
-    setParameterInt32(const std::string& name, Int32 value);
-
-    /**
-     * TODO: document
-     * @param name TODO: document
-     * @param value TODO: document
-     */
-    void
-    setParameterUInt32(const std::string& name, UInt32 value);
-
-    /**
-     * TODO: document
-     * @param name TODO: document
-     * @param value TODO: document
-     */
-    void
-    setParameterInt64(const std::string& name, Int64 value);
-
-    /**
-     * TODO: document
-     * @param name TODO: document
-     * @param value TODO: document
-     */
-    void
-    setParameterUInt64(const std::string& name, UInt64 value);
-
-    /**
-     * TODO: document
-     * @param name TODO: document
-     * @param value TODO: document
-     */
-    void
-    setParameterReal32(const std::string& name, Real32 value);
-
-    /**
-     * TODO: document
-     * @param name TODO: document
-     * @param value TODO: document
-     */
-    void
-    setParameterReal64(const std::string& name, Real64 value);
-
-    /**
-     * TODO: document
-     * @param name TODO: document
-     * @param value TODO: document
-     */
-    void
-    setParameterHandle(const std::string& name, Handle value);
-
-
-    /**
-     * get/setArray methods take a memory buffer. If buffer is
-     * not null, they copy into the supplied buffer; otherwise
-     * they ask Array to allocate an array and copy into it. 
-     * NuPIC throws an exception if supplied array is not big enough.  
-     *
-     * @todo: auto-reallocate?
-     *
-     * A typical use might be that the caller would supply an 
-     * unallocated buffer on the first call and then reuse the memory
-     * buffer on subsequent calls, i.e.
+     * Get the input data.
      * 
-     *     {
-     *       Array buffer(NTA_BasicTypeInt64); // no buffer allocated
-     *       getParameterArray("foo", array);  // buffer is allocated, and owned
-     *                                         // by array object
-     *       getParameterArray("foo", buffer); // uses already-allocated buffer
-     *     }    // Array destructor called -- frees the buffer
-     * 
-     * @param name TODO: document
-     * @param array TODO: document
-     * @returns TODO: document
-     */
-    void
-    getParameterArray(const std::string& name, Array & array) const;
-
-    /**
-     * Caller must initialize the array argument to setParameterArray 
-     * Depending on how the buffer was allocated
-     * the array owns its buffer.
-     * 
-     * @param name TODO: document
-     * @param array TODO: document
-     */
-    void
-    setParameterArray(const std::string& name, const Array & array);
-
-    /**
-     * Strings are handled internally as Byte Arrays, but this interface
-     * is clumsy. set/getParameterString internally use byte arrays but
-     * converts to/from strings
      *
-     * setParameterString is implemented with one copy (from the string into
-     * the node) but getParameterString requires a second copy so that there
-     * are temporarily three copies of the data in memory (in the node, 
-     * in an internal Array object, and in the string returned to the user)
+     * @param inputName
+     *        The name of the target input
+     *
+     * @returns An @c ArrayRef that contains the input data.
+     *
+     * @internal
+     *
+     * @note The data is either stored in the
+     * the @c ArrayRef or point to the internal stored data,
+     * the actual behavior is controlled by the 'copy' argument (see below).
+     *
+     * @todo what's the copy' argument mentioned here?
+     *
+     * @endinternal
      * 
-     * @param name TODO: document
-     * @param s TODO: document
-     */
-    void
-    setParameterString(const std::string& name, const std::string& s);
-    
-    /**
-     * TODO: document
-     * @param name TODO: document
-     */
-    std::string
-    getParameterString(const std::string& name);
-
-    /**
-     * TODO: document
-     * @param name TODO: document
-     */
-    bool
-    isParameterShared(const std::string& name) const;
-
-    /**
-     * Get the input data into the output array.
-     * 
-     * ### Description
-     * Get the data of an input and store it or point to it in the
-     * the output array. The actual behavior is controlled by the 'copy'
-     * argument (see below).
-     *
-     * @todo The param `array` below doesn't make sense
-     *
-     * @param inputName The name of the target input
-     * @param array An output ArrayRef that will contain the input data after
-     *              the call returns. It is an error to supply an array with
-     *              an empty buffer.
-     *
-     * @returns array that contains the input data.
      */
     virtual ArrayRef
     getInputData(const std::string& inputName) const;
 
     /**
-     * Get the output data into the output array.
-     * 
-     * ### Description
-     * Get the data of an output and store it or point to it in the
-     * the output array. The actual behavior is controlled by the 'copy'
-     * argument (see below).
+     * Get the output data.
      *
-     * @todo The param `array` below doesn't make sense
-     * 
-     * @param outputName The name of the target output
-     * @param array An output ArrayRef that will contain the output data after
-     *              the call returns.
+     * @param outputName
+     *        The name of the target output
      *
-     * @returns array that contains the output data.
+     * @returns
+     *        An @c ArrayRef that contains the output data.
+     *
+     * @internal
+     * 
+     * @note The data is either stored in the
+     * the @c ArrayRef or point to the internal stored data,
+     * the actual behavior is controlled by the 'copy' argument (see below).
+     *
+     * @todo what's the copy' argument mentioned here?
+     *
+     * @endinternal
+     *
      */
     virtual ArrayRef
     getOutputData(const std::string& outputName) const;
 
     /**
-     * TODO: document
+     * Get the count of input data.
+     *
+     * @param inputName
+     *        The name of the target input
+     *
+     * @returns
+     *        The count of input data
      * 
      * @todo are getOutput/InputCount needed? count can be obtained from the array objects. 
      * 
-     * @param outputName TODO: document
-     * @returns TODO: document
-     */
-    virtual size_t
-    getOutputCount(const std::string& outputName) const;
-
-    /**
-     * TODO: document
-     * @param inputName TODO: document
-     * @returns TODO: document
      */
     virtual size_t
     getInputCount(const std::string& inputName) const;
 
     /**
-     * TODO: document
+     * Get the count of output data.
+     *
+     * @param outputName
+     *        The name of the target output
+     *
+     * @returns
+     *        The count of output data
+     * 
+     * @todo are getOutput/InputCount needed? count can be obtained from the array objects. 
+     * 
+     */
+    virtual size_t
+    getOutputCount(const std::string& outputName) const;
+
+    /**
+     * @}
+     *
+     * @name Operations
+     *
+     * @{
+     *
+     */
+
+    /**
+     * @todo Region::enable() not implemented, should it be part of API at all?
      */
     virtual void
     enable();
 
     /**
-     * TODO: document
+     * @todo Region::disable() not implemented, should it be part of API at all?
      */
     virtual void
     disable();
@@ -383,11 +541,12 @@ namespace nta
     /**
      * Request the underlying region to execute a command.
      *
-     * @param args A list of strings that the actual region will interpret. 
-     *              The first string is the command name. The other arguments 
-     *              are optional.
+     * @param args 
+     *        A list of strings that the actual region will interpret. 
+     *        The first string is the command name. The other arguments are optional.
      *
-     * @returns The result value  of command execution is a string determined 
+     * @returns
+     *        The result value of command execution is a string determined 
      *          by the underlying region.
      */
     virtual std::string
@@ -398,6 +557,15 @@ namespace nta
      */
     void
     compute();
+
+    /**
+     * @}
+     *
+     * @name Profiling
+     *
+     * @{
+     *
+     */
 
     /**
      * Enable profiling of the compute and execute operations
@@ -418,16 +586,24 @@ namespace nta
     resetProfiling();
 
     /**
-     * Get the timer used to profile the compute operation
-     * @returns The Timer object used to profile the compute operation
+     * Get the timer used to profile the compute operation.
+     * 
+     * @returns
+     *        The Timer object used to profile the compute operation
      */
     const Timer& getComputeTimer() const;
 
     /**
-     * Get the timer used to profile the execute operation
-     * @returns The Timer object used to profile the execute operation
+     * Get the timer used to profile the execute operation.
+     * 
+     * @returns
+     *        The Timer object used to profile the execute operation
      */
     const Timer& getExecuteTimer() const;
+
+    /**
+     * @}
+     */
 
 #ifdef NTA_INTERNAL
     // Internal methods.
