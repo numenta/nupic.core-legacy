@@ -67,10 +67,10 @@ namespace nta
     {
       // To find the pynode plugin we need the nupic
       // installation directory.
-      bool found = Env::get("NTA", rootDir_);
+      bool found = Env::get("NUPIC", rootDir_);
       if (!found)
       {
-        NTA_THROW << "Unable to find the pynode dynamic library because NTA is not set";
+        NTA_THROW << "Unable to find the pynode dynamic library because NUPIC is not set";
       }
       else
       {
@@ -81,7 +81,7 @@ namespace nta
         }
       }
       if (!found)
-        NTA_THROW << "Unable to find NuPIC installation dir from NTA";
+        NTA_THROW << "Unable to find NuPIC installation dir";
       
       
 #if defined(NTA_PLATFORM_darwin64)
