@@ -100,6 +100,14 @@ SpatialPooler::SpatialPooler() {
   version_ = 1;
 }
 
+vector<UInt> SpatialPooler::getColumnDimensions() {
+  return columnDimensions_;
+}
+
+vector<UInt> SpatialPooler::getInputDimensions() {
+  return inputDimensions_;
+}
+
 UInt SpatialPooler::getNumColumns() {
   return numColumns_;
 }
