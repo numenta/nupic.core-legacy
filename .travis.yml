@@ -1,9 +1,8 @@
 language: cpp
 
-env:
-  matrix:
-    - CC=clang
-    - CC=gcc
+compilers:
+  - clang
+  - gcc
 
 notifications:
   irc:
