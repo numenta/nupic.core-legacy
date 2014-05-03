@@ -32,8 +32,15 @@ namespace nta
   /**
    * @typedef Coordinate
    * 
-   * A coordinate is a single point in an n-dimensional
-   * grid described by a Dimensions object. 
+   * A Coordinate is the location of a single cell in an n-dimensional
+   * grid described by a Dimensions object.
+   *
+   * It's a direct @c typedef, so it has the exactly the same interface as 
+   * @c std::vector<size_t> . A value with the index of `i` in the vector 
+   * represents the location of the cell along the `i`th dimension.
+   *
+   * @note It must have the same number of dimensions as its corresponding 
+   * Dimensions object.
    *
    * @internal
    *  
