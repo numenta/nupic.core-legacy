@@ -76,9 +76,9 @@ namespace nta
     /**
      * Create a new link and add it to this input
      * Also adds the link to the list of links on the output
-     * @param name TODO: linkType
-     * @param name TODO: linkParams
-     * @param name TODO: srcOutput
+     * @param linkType TODO: linkType
+     * @param linkParams TODO: linkParams
+     * @param srcOutput TODO: srcOutput
      */
     void
     addLink(const std::string& linkType, const std::string& linkParams, 
@@ -87,8 +87,8 @@ namespace nta
     /**
      * Locate an existing link. Returns NULL if no link exists
      * Called by Network.removeLink() and internally when adding a link
-     * @param name TODO: srcRegionName
-     * @param name TODO: srcRegionName
+     * @param srcRegionName TODO: srcRegionName
+     * @param srcOutputName TODO: srcOutputName
      * @returns TODO: document
      */
     Link* 

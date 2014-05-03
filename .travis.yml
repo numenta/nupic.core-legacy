@@ -4,11 +4,6 @@ compiler:
   - clang
   - gcc
 
-env:
-  matrix:
-    - CC=clang
-    - CC=gcc
-
 notifications:
   irc:
     channels:

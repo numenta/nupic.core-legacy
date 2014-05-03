@@ -284,6 +284,9 @@ namespace nta {
            */
           virtual UInt persistentSize();
 
+          vector<UInt> getColumnDimensions();
+          vector<UInt> getInputDimensions();
+
           UInt getNumColumns();
           UInt getNumInputs();
 
