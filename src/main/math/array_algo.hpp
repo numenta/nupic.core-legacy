@@ -323,7 +323,7 @@ namespace nta {
           return false;
       return true;
 
-#elif defined(NTA_PLATFORM_linux64) || defined(NTA_PLATFORM_darwin64)
+#elif (defined(NTA_PLATFORM_linux64) || defined(NTA_PLATFORM_darwin64)) && defined(NTA_ASM)
 
       // n is the total number of floats to process.
       // n1 is the number of floats we can process in parallel using SSE.
@@ -389,7 +389,7 @@ namespace nta {
           return false;
       return true;
 
-#else // darwin
+#else
     for (; x != x_end; ++x)
       if (*x > 0)
         return false;
@@ -486,7 +486,7 @@ namespace nta {
           return false;
       return true;
 
-#elif defined(NTA_PLATFORM_linux64) || defined(NTA_PLATFORM_darwin64)
+#elif (defined(NTA_PLATFORM_linux64) || defined(NTA_PLATFORM_darwin64)) && defined(NTA_ASM)
 
       // n is the total number of floats to process.
       // n1 is the number of floats we can process in parallel using SSE.
