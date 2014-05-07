@@ -21,7 +21,7 @@
  */
 
 /** @file 
- * Definition of the Link class
+ * Interface for the Link class
  */
 
 #ifndef NTA_LINK_HPP

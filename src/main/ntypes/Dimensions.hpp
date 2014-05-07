@@ -21,6 +21,10 @@
  * ---------------------------------------------------------------------
  */
 
+/** @file 
+ * Interface for the Dimensions class
+ */
+
 #ifndef NTA_DIMENSIONS_HPP
 #define NTA_DIMENSIONS_HPP
 
@@ -52,7 +56,7 @@ namespace nta
   typedef std::vector<size_t> Coordinate;
 
   /**
-   * A Dimensions object represents the dimensions of a Region.
+   * Represents the dimensions of a Region.
    *
    * A Dimensions object is an n-dimensional grid, consists of many cells, and 
    * each dimension has a size, i.e. how many cells can there be along this dimension. 

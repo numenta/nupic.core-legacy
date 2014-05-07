@@ -21,8 +21,9 @@
  */
 
 /** @file 
- * Definition of the Input class
- * This class is internal, and is not wrapped.
+ * Interface for the internal Input class.
+ *
+ * @note This class is internal, and is not wrapped.
  */
 
 #ifndef NTA_INPUT_HPP
@@ -44,7 +45,7 @@ namespace nta
   class Output;
 
   /**
-   * Input represents a named input to a Region. (e.g. bottomUpIn)
+   * Represents a named input to a Region. (e.g. bottomUpIn)
    * 
    * @note Input is not available in the public API, but is visible by 
    * the RegionImpl.

@@ -43,7 +43,7 @@ namespace nta
 
 
   /**
-   * A Network represents an HTM network. A network is a collection of regions.
+   * Represents an HTM network. A network is a collection of regions.
    *
    * @nosubgrouping
    */

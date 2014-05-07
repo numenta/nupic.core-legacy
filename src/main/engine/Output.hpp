@@ -21,7 +21,7 @@
  */
 
 /** @file 
- * Definition of the Internal Output API
+ * Interface for the internal Output class.
  */
 
 #ifndef NTA_OUTPUT_HPP
@@ -38,7 +38,7 @@ namespace nta
   class Array;
 
   /**
-   * TODO: document
+   * Represents a named output to a Region.
    */
   class Output
   {

@@ -20,7 +20,10 @@
  * ---------------------------------------------------------------------
  */
 
-/* @file NuPIC init/shutdown operations */
+/**
+ * @file
+ * NuPIC init/shutdown operations
+ */
 
 #include <set>
 
