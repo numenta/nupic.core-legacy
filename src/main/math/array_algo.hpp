@@ -90,7 +90,8 @@ namespace nta {
                          : "cc"
                          );
 
-  #elif defined(NTA_PLATFORM_linux64)
+#elif defined(NTA_PLATFORM_linux64) || defined(NTA_PLATFORM_darwin64)
+
     __asm__ __volatile__ (
                          "pushq  %%rbx\n\t"
 
@@ -100,32 +101,10 @@ namespace nta {
                          "movl   %%edx, %1\n\t"
 
                          "popq  %%rbx\n\t"
-                         : "=m" (c), "=m" (d)
-                         :
-                         : "%rax", "%rcx", "%rdx"
-			  );
-
-  #elif defined(NTA_PLATFORM_darwin64)
-    __asm__ __volatile__ (
-                         "pushq  %%rax\n\t"  // OS X process will crash if we don't save
-                         "pushq  %%rbx\n\t"  // and restore registers here
-                         "pushq  %%rcx\n\t"
-                         "pushq  %%rdx\n\t"
-
-                         "movl   $1, %%eax\n\t"
-                         "cpuid\n\t"
-                         "movl   %%ecx, %0\n\t"
-                         "movl   %%edx, %1\n\t"
-
-                         "popq  %%rdx\n\t"
-                         "popq  %%rcx\n\t"
-                         "popq  %%rbx\n\t"
-                         "popq  %%rax\n\t"
-
-                         : "=m" (c), "=m" (d)
+                         : "=c" (c), "=d" (d)
                          :
                          :
-			  );
+			 );
   #endif //NTA_PLATFORM_win32
 #endif //NTA_ASM
 
