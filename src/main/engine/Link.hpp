@@ -41,7 +41,7 @@ namespace nta
 
   /**
    * 
-   * Represents a link between regions in a Network . TODO 
+   * Represents a link between regions in a Network.
    *
    * @nosubgrouping
    * 
@@ -77,14 +77,20 @@ namespace nta
      */
 
     /**
-     * Initialization Phase 1: setting parameter of the link.
+     * Initialization Phase 1: setting parameters of the link.
      *
-     * @param linkType TODO: document
-     * @param linkParams TODO: document
-     * @param srcRegionName TODO: document
-     * @param destRegionName TODO: document
-     * @param srcOutputName TODO: document
-     * @param destInputName TODO: document
+     * @param linkType
+     *            The type of the link
+     * @param linkParams
+     *            The parameters of the link
+     * @param srcRegionName
+     *            The name of the source Region
+     * @param destRegionName
+     *            The name of the destination Region
+     * @param srcOutputName
+     *            The name of the source Output
+     * @param destInputName
+     *            The name of the destination Input
      *
      * @internal
      * 
@@ -106,19 +112,23 @@ namespace nta
      * the Network.
      * 
      * @param src
-     *            The source of the link, an Output
+     *            The source Output of the link
      * @param dest
-     *            The destination of the link, an Input
+     *            The destination Input of the link
      */
     void connectToNetwork(Output* src, Input* dest);
 
     /*
      * Initialization Phase 1 and 2.
      *
-     * @param linkType TODO: document
-     * @param linkParams TODO: document
-     * @param srcOutput TODO: document
-     * @param destInput TODO: document
+     * @param linkType
+     *            The type of the link
+     * @param linkParams
+     *            The parameters of the link
+     * @param srcOutput
+     *            The source Output of the link
+     * @param destInput
+     *            The destination Input of the link
      */
     Link(const std::string& linkType, const std::string& linkParams, 
          Output* srcOutput, Input* destInput);
@@ -182,45 +192,58 @@ namespace nta
     const Dimensions& getDestDimensions() const;
 
     /** 
-     * TODO: document 
-     * @returns TODO: document
+     * Get the type of the link.
+     * 
+     * @returns
+     *         The type of the link
      */
     const std::string& getLinkType() const;
 
     /** 
-     * TODO: document 
-     * @returns TODO: document
+     * Get the parameters of the link.
+     * 
+     * @returns
+     *         The parameters of the link
      */
     const std::string& getLinkParams() const;
 
     /** 
-     * TODO: document 
-     * @returns TODO: document
+     * Get the name of the source Region
+     * 
+     * @returns
+     *         The name of the source Region
      */
     const std::string& getSrcRegionName() const;
 
     /** 
-     * TODO: document 
-     * @returns TODO: document
+     * Get the name of the source Output.
+     * 
+     * @returns
+     *         The name of the source Output
      */
     const std::string& getSrcOutputName() const;
 
     /** 
-     * TODO: document 
-     * @returns TODO: document
+     * Get the name of the destination Region.
+     *  
+     * @returns
+     *         The name of the destination Region
+     *      
      */
     const std::string& getDestRegionName() const;
 
     /** 
-     * TODO: document 
-     * @returns TODO: document
+     * Get the name of the destination Input.
+     * 
+     * @returns
+     *         The name of the destination Input
      */
     const std::string& getDestInputName() const;
 
     /**
      * @}
      *
-     * @name TODO
+     * @name Misc
      *
      * @{
      */
@@ -228,72 +251,34 @@ namespace nta
     // The methods below only work on connected links (after phase 2)
 
     /** 
-     * TODO: document 
-     * @returns TODO: document
+     * 
+     * Get the source Output of the link.
+     * 
+     * @returns
+     *         The source Output of the link
      */
     Output& getSrc() const;
 
     /** 
-     * TODO: document 
-     * @returns TODO: document
+     * 
+     * Get the destination Input of the link.
+     * 
+     * @returns
+     *         The destination Input of the link
      */
     Input& getDest() const;
 
     /**
      * Copy data from source to destination.
      * 
-     * Nodes request input data from their input objects. 
-     * 
-     * The input objects, in turn, request links to copy data into the inputs.
+     * Nodes request input data from their input objects. The input objects, 
+     * in turn, request links to copy data into the inputs.
      *
      * @note This method must be called on a fully initialized link(all 4 phases).
      * 
      */
     void
     compute();
-
-    /**
-     * Get the size of the input contributed by this link for a single node.  
-     * 
-     * @param nodeIndex TODO: document
-     * 
-     * @returns
-     *         The size of the input contributed by this link for a single node. 
-     *
-     * @todo index=-1 for region-level input?
-     */
-    size_t
-    getNodeInputSize(size_t nodeIndex);
-
-    /**
-     * Tells whether the Input is contiguous.
-     *
-     * @returns
-     *         Whether the Input is contiguous, i.e. TODO
-     * 
-     * If the input for a particular node is a contiguous subset
-     * of the src output, then the splitter map is overkill, and 
-     * all we need to know is the offset/size (per node)
-     * Returns true if and only if the input for each node
-     * is a contiguous chunk of the input buffer. 
-     * 
-     * @todo not implemented;  necessary?
-     */
-    bool
-    isInputContiguous();
-
-    /**
-     * Locate the contiguous input for a node. 
-     * 
-     * This method is used only if the input is contiguous
-     * 
-     * @todo not implemented;  necessary?
-     *
-     * @param nodeIndex TODO: document
-     * @returns TODO: document
-     */
-    size_t
-    getInputOffset(size_t nodeIndex);
 
     /**
      * Build a splitter map from the link.
@@ -367,6 +352,65 @@ namespace nta
      *            The Link being serialized
      */
     friend std::ostream& operator<<(std::ostream& f, const Link& link);
+
+
+    /**
+     *
+     * @}
+     *
+     * @name Not implemented
+     *
+     * @{
+     */
+
+    /**
+     * Get the size of the input contributed by this link for a single node.  
+     * 
+     * @param nodeIndex
+     *            The index of the node
+     * 
+     * @returns
+     *         The size of the input contributed by this link for a single node. 
+     *
+     * @todo index=-1 for region-level input?
+     *
+     * @todo not implemented;  necessary?
+     */
+    size_t
+    getNodeInputSize(size_t nodeIndex);
+
+    /**
+     * Tells whether the Input is contiguous.
+     *
+     * @returns
+     *         Whether the Input is contiguous, i.e. TODO
+     * 
+     * If the input for a particular node is a contiguous subset
+     * of the src output, then the splitter map is overkill, and 
+     * all we need to know is the offset/size (per node)
+     * Returns true if and only if the input for each node
+     * is a contiguous chunk of the input buffer. 
+     * 
+     * @todo not implemented;  necessary?
+     */
+    bool
+    isInputContiguous();
+
+    /**
+     * Locate the contiguous input for a node. 
+     * 
+     * This method is used only if the input is contiguous
+     * 
+     * @param nodeIndex
+     *            The index of the node
+     *            
+     * @returns
+     *         The Input offset of the node
+     *
+     * @todo not implemented;  necessary?
+     */
+    size_t
+    getInputOffset(size_t nodeIndex);
 
     /**
      * @}
