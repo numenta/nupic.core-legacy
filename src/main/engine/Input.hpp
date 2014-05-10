@@ -114,7 +114,7 @@ namespace nta
             Output* srcOutput);
     
     /**
-     * Locate an existing Link .
+     * Locate an existing Link to the Input object.
      * 
      * It's called by Network.removeLink() and internally when adding a link
      * 
@@ -129,7 +129,7 @@ namespace nta
              const std::string& srcOutputName);
 
     /**
-     * Removing an existing link.
+     * Removing an existing link from the Input object.
      * 
      * It's called in four cases:
      * 
@@ -141,10 +141,12 @@ namespace nta
      * It is an error to call this if our containing region 
      * is uninitialized. 
      * 
-     * Sets the Link pointer to NULL on return (to avoid a dangling reference)
+     * @note This method will set the Link pointer to NULL on return (to avoid 
+     * a dangling reference)
      *
      * @param link
-     *        The Link to remove
+     *        The Link to remove, possibly retrieved by findLink(), note that 
+     *        it is a reference to the pointer, not the pointer itself.
      */
     void
     removeLink(Link*& link);
@@ -169,7 +171,7 @@ namespace nta
     
     /**
      *
-     * Get the Region that this Input object belongs to
+     * Get the Region that this Input object belongs to.
      * 
      * @returns
      *         The mutable reference to the Region that this Input object belongs to

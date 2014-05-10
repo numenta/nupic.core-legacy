@@ -167,7 +167,7 @@ namespace nta
                         const std::string& label);
 
     /**
-     * Removes a new region from the network.
+     * Removes an existing region from the network.
      * 
      * @param name
      *        Name of the Region
