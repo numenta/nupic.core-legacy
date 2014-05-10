@@ -116,7 +116,7 @@ namespace nta
      *        The Link to remove
      */
     void
-    removeLink(Link*);
+    removeLink(Link* link);
 
     /**
      * Tells whether the output has outgoing links, i.e. TODO

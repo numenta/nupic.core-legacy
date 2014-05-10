@@ -20,9 +20,12 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
- * Basic C type definitions used throughout the app. It is included by 
- * types.hpp - the C++ basic types file
+/** 
+ * @file
+ * 
+ * Basic C type definitions used throughout the app. 
+ * 
+ * It is included by types.hpp - the C++ basic types file
  */
 
 #ifndef NTA_TYPES_H
@@ -32,7 +35,9 @@
 
 /*---------------------------------------------------------------------- */
  
-/** Basic types enumeration */
+/** 
+ * Basic types enumeration
+ */
 typedef enum NTA_BasicType
   {
     /** TODO: document */
@@ -190,7 +195,7 @@ typedef  unsigned long       NTA_UInt64;
 #endif
 
 /** This enum represents the documented logging level
- * of the debug logger. Use LDEBUG(NTA_LogLevelXXX)
+ * of the debug logger. Use @c LDEBUG(NTA_LogLevel_XXX)
  */
 typedef enum NTA_LogLevel
   {
