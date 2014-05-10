@@ -328,7 +328,8 @@ namespace nta
     typedef void (*runCallbackFunction)(Network*, UInt64 iteration, void*);
 
     /**
-     * @todo document
+     * Type definition for a callback item, combines a @c runCallbackFunction and 
+     * a `void*` pointer to the associated data.
      */
     typedef std::pair<runCallbackFunction, void*> callbackItem;
 

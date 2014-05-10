@@ -63,7 +63,7 @@ namespace nta
      * @param region
      *        The region that the input belongs to.
      * @param type
-     *        The type of the input, TODO
+     *        The type of the input, i.e. TODO
      * @param isRegionLevel
      *        Whether the input is region level, i.e. TODO
      */
@@ -118,8 +118,10 @@ namespace nta
      * 
      * It's called by Network.removeLink() and internally when adding a link
      * 
-     * @param srcRegionName TODO: srcRegionName
-     * @param srcOutputName TODO: srcOutputName
+     * @param srcRegionName
+     *            The name of the source Region
+     * @param srcOutputName
+     *            The name of the source Output
      * 
      * @returns
      *     The link if found or @c NULL if no such link exists
@@ -239,8 +241,6 @@ namespace nta
 
     /**
      *
-     * @todo document
-     * 
      * @see Link.buildSplitterMap() 
      * 
      */
