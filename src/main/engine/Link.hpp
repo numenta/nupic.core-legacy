@@ -40,23 +40,44 @@ namespace nta
   class Input;
 
   /**
-   * Links have four-phase initialization. 
    * 
-   * 1. construct with link type, params, names of regions and inputs/outputs
-   * 2. wire in to network (setting src and dest Output/Input pointers)
-   * 3. set source and destination dimensions
-   * 4. initialize -- sets the offset in the destination Input (not known earlier)
+   * Represents a link between regions in a Network . TODO 
+   *
+   * @nosubgrouping
    * 
-   * De-serializing is the same as phase 1. 
-   * The linkType and linkParams parameters are given to 
-   * the LinkPolicyFactory to create a link policy
    */
   class Link
   {
   public:
 
     /**
-     * This constructor does phase 1 initialization 
+     * @name Initialization
+     *
+     * @{
+     * 
+     * Links have four-phase initialization. 
+     * 
+     * 1. construct with link type, params, names of regions and inputs/outputs
+     * 2. wire in to network (setting src and dest Output/Input pointers)
+     * 3. set source and destination dimensions
+     * 4. initialize -- sets the offset in the destination Input (not known earlier)
+     * 
+     * De-serializing is the same as phase 1. 
+     *
+     * In phase 3, NuPIC will set and/or get source and/or destination 
+     * dimensions until both are set. Normally we will only set the src dimensions, 
+     * and the dest dimensions will be induced. It is possible to go the other 
+     * way, though. 
+     * 
+     * The @a linkType and @a linkParams parameters are given to 
+     * the LinkPolicyFactory to create a link policy
+     *
+     * @todo Should LinkPolicyFactory be documented?
+     *
+     */
+
+    /**
+     * Initialization Phase 1: setting parameter of the link.
      *
      * @param linkType TODO: document
      * @param linkParams TODO: document
@@ -64,22 +85,35 @@ namespace nta
      * @param destRegionName TODO: document
      * @param srcOutputName TODO: document
      * @param destInputName TODO: document
+     *
+     * @internal
+     * 
+     * @todo It seems this constructor should be deprecated in favor of the other,
+     * which is less redundant. This constructor is being used for unit testing 
+     * and unit testing links and for deserializing networks.
+     *
+     * See comments below commonConstructorInit_()
+     *
+     * @endinternal
+     * 
      */
     Link(const std::string& linkType, const std::string& linkParams,
          const std::string& srcRegionName, const std::string& destRegionName, 
          const std::string& srcOutputName="", const std::string& destInputName="");
 
-
     /**
-     * Does phase 2 initialization 
-     *
-     * @param src TODO: document
-     * @param dest TODO: document
+     * Initialization Phase 2: connecting inputs/outputs to 
+     * the Network.
+     * 
+     * @param src
+     *            The source of the link, an Output
+     * @param dest
+     *            The destination of the link, an Input
      */
-    void connectToNetwork(Output *src, Input*dest);
+    void connectToNetwork(Output* src, Input* dest);
 
     /*
-     * This constructor combines phase 1 and phase 2 initialization
+     * Initialization Phase 1 and 2.
      *
      * @param linkType TODO: document
      * @param linkParams TODO: document
@@ -89,48 +123,63 @@ namespace nta
     Link(const std::string& linkType, const std::string& linkParams, 
          Output* srcOutput, Input* destInput);
 
-    /** Destructor */
-    ~Link();
-
     /**
-     * In phase 3, NuPIC will set and/or get 
-     * source and/or destination dimensions
-     * until both are set. 
-     * 
-     * Normally we will set the src dimensions and 
-     * the dest dimensions will be induced. 
-     * It is possible to go the other way, though. 
+     * Initialization Phase 3: set the Dimensions for the source Output, and 
+     * induce the Dimensions for the destination Input .
      *
-     * @param dims source Dimensions
+     * 
+     * @param dims
+     *         The Dimensions for the source Output
      */
     void setSrcDimensions(Dimensions& dims);
-
+    
     /**
-     * TODO: document
-     * @param dims TODO: document
+     * Initialization Phase 3: Set the Dimensions for the destination Input, and 
+     * induce the Dimensions for the source Output .
+     * 
+     * @param dims
+     *         The Dimensions for the destination Input
      */
     void setDestDimensions(Dimensions& dims);
 
     /**
-     * TODO: document
-     * @returns TODO: document
+     * Initialization Phase 4: sets the offset in the destination Input .
+     * 
+     * @param destinationOffset
+     *            The offset in the destination Input, i.e. TODO
+     *            
+     */
+    void initialize(size_t destinationOffset);
+
+    /** 
+     * Destructor
+     */
+    ~Link();
+
+    /**
+     * @}
+     *
+     * @name Parameter getters of the link
+     *
+     * @{
+     * 
+     */
+
+    /**
+     * Get the Dimensions for the source Output .
+     * 
+     * @returns
+     *         The Dimensions for the source Output
      */
     const Dimensions& getSrcDimensions() const;
 
     /**
-     * TODO: document
-     * @returns TODO: document
+     * Get the Dimensions for the destination Input .
+     * 
+     * @returns
+     *         The Dimensions for the destination Input
      */
     const Dimensions& getDestDimensions() const;
-
-    /**
-     * initialize does phase 4 initialization
-     * @param destinationOffset TODO: document
-     */
-    void initialize(size_t destinationOffset);
-
-
-    // Return constructor params
 
     /** 
      * TODO: document 
@@ -168,12 +217,13 @@ namespace nta
      */
     const std::string& getDestInputName() const;
 
-    /** 
-     * TODO: document 
-     * @returns TODO: document
+    /**
+     * @}
+     *
+     * @name TODO
+     *
+     * @{
      */
-    const std::string toString() const;
-
 
     // The methods below only work on connected links (after phase 2)
 
@@ -190,26 +240,37 @@ namespace nta
     Input& getDest() const;
 
     /**
+     * Copy data from source to destination.
+     * 
      * Nodes request input data from their input objects. 
-     * The input objects, in turn, request links to copy
-     * data into the inputs
+     * 
+     * The input objects, in turn, request links to copy data into the inputs.
+     *
+     * @note This method must be called on a fully initialized link(all 4 phases).
+     * 
      */
     void
     compute();
 
     /**
-     * Returns the size of the input contributed by this link
-     * for a single node. 
+     * Get the size of the input contributed by this link for a single node.  
      * 
-     * @todo index=-1 for region-level input?
-     *
      * @param nodeIndex TODO: document
-     * @returns TODO: document
+     * 
+     * @returns
+     *         The size of the input contributed by this link for a single node. 
+     *
+     * @todo index=-1 for region-level input?
      */
     size_t
     getNodeInputSize(size_t nodeIndex);
 
     /**
+     * Tells whether the Input is contiguous.
+     *
+     * @returns
+     *         Whether the Input is contiguous, i.e. TODO
+     * 
      * If the input for a particular node is a contiguous subset
      * of the src output, then the splitter map is overkill, and 
      * all we need to know is the offset/size (per node)
@@ -223,6 +284,7 @@ namespace nta
 
     /**
      * Locate the contiguous input for a node. 
+     * 
      * This method is used only if the input is contiguous
      * 
      * @todo not implemented;  necessary?
@@ -233,8 +295,12 @@ namespace nta
     size_t
     getInputOffset(size_t nodeIndex);
 
-
     /**
+     * Build a splitter map from the link.
+     *
+     * @param[out] splitter
+     *            The built SplitterMap 
+     * 
      * A splitter map is a matrix that maps the full input
      * of a region to the inputs of individual nodes within 
      * the region. 
@@ -274,18 +340,37 @@ namespace nta
      * 
      * For region-level inputs, a splitter map has just a single row. 
      *
-     * ### Splitter map ownership:
+     * ### Splitter map ownership
+     * 
      * The splitter map is owned by the containing Input. Each Link
      * in the input contributes a portion to the splitter map, through
      * the buildSplitterMap method. 
      * 
-     * @param splitter TODO: document
      */
     void 
     buildSplitterMap(Input::SplitterMap& splitter);
 
-    /** TODO: document */
+    /** 
+     * Convert the Link to a human-readable string.
+     * 
+     * @returns
+     *     The human-readable string describing the Link 
+     */
+    const std::string toString() const;
+
+    /**
+     * Serialize the link.
+     *
+     * @param f
+     *            The output stream being serialized to
+     * @param link
+     *            The Link being serialized
+     */
     friend std::ostream& operator<<(std::ostream& f, const Link& link);
+
+    /**
+     * @}
+     */
 
 
   private:
@@ -302,7 +387,7 @@ namespace nta
     // and for deserializing networks, we need to be able to create
     // a link object without a network. and for deserializing, we 
     // need to be able to instantiate a link before we have instantiated
-    // all the regions. (Maybe this isn't true? Revaluate when 
+    // all the regions. (Maybe this isn't true? Re-evaluate when 
     // more infrastructure is in place). 
 
     std::string srcRegionName_;
