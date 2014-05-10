@@ -21,7 +21,7 @@
  */
 
 /** @file 
- * Definition of the Region API
+ * Interface for the Region class.
  *
  * A region is a set of one or more "identical" nodes, implemented by a 
  * RegionImpl"plugin". A region contains nodes. 
@@ -55,7 +55,7 @@ namespace nta
   class Network;
 
   /**
-   * A Region is one or more identical nodes in a Network.
+   * Represents a set of one or more "identical" nodes in a Network.
    *
    * @nosubgrouping
    *

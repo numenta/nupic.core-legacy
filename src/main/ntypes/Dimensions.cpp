@@ -26,7 +26,6 @@
 
 using namespace nta;
 
-// default dimensions are Unspecified
 Dimensions::Dimensions() {};
 
 Dimensions::Dimensions(std::vector<size_t> v) : std::vector<size_t>(v) {};
@@ -233,7 +232,7 @@ Dimensions::promote(size_t newDimensionality)
 }
 
 bool
-Dimensions::operator==(const Dimensions& dims2) const
+Dimensions::operator == (const Dimensions& dims2) const
 {
   if ((std::vector<size_t>)(*this) == (std::vector<size_t>)dims2)
     return true;
@@ -245,7 +244,7 @@ Dimensions::operator==(const Dimensions& dims2) const
 }
 
 bool
-Dimensions::operator!=(const Dimensions& dims2) const
+Dimensions::operator != (const Dimensions& dims2) const
 {
   return ! operator==(dims2);
 }

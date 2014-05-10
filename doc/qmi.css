@@ -1077,3 +1077,10 @@ dl.citelist dd {
   }
 }
 
+/**
+ * Manual CSS fixes by NuPIC
+ */
+
+.ttc {
+    display: none;
+}

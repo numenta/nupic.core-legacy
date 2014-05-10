@@ -21,7 +21,7 @@
  */
 
 /** @file 
- * Definition of the Internal Output API
+ * Interface for the internal Output class.
  */
 
 #ifndef NTA_OUTPUT_HPP
@@ -38,17 +38,21 @@ namespace nta
   class Array;
 
   /**
-   * TODO: document
+   * Represents a named output to a Region.
    */
   class Output
   {
   public:
 
     /**
-     * TODO: document
-     * @param region TODO: document
-     * @param type TODO: document
-     * @param isRegionLevel TODO: document
+     * Constructor.
+     * 
+     * @param region
+     *        The region that the output belongs to.
+     * @param type
+     *        The type of the output, TODO
+     * @param isRegionLevel
+     *        Whether the output is region level, i.e. TODO
      */
     Output(Region& region, NTA_BasicType type, bool isRegionLevel);
 
@@ -58,72 +62,111 @@ namespace nta
     ~Output();
 
     /**
-     * Outputs need to know their own name
-     * @param name TODO: document
+     * Set the name for the output.
+     * 
+     * Output need to know their own name for error messages.
+     * 
+     * @param name
+     *        The name of the output
      */
     void setName(const std::string& name);
 
     /**
-     * TODO: document
+     * Get the name of the output.
+     * 
+     * @return 
+     *        The name of the output 
      */
     const std::string& getName() const;
-
-    /**
-     * TODO: document
-     * @param size TODO: document
+    
+    /** 
+     * Initialize the Output .
+     *
+     * @param size
+     *        The count of node output element, i.e. TODO
+     *
+     * @note It's safe to reinitialize an initialized Output with the same 
+     * parameters.
+     * 
      */
-    void
-    initialize(size_t size);
+    void initialize(size_t size);
 
     /**
-     * Does not take ownership
-     * @param link TODO: document
+     *
+     * Add a Link to the Output .
+     *
+     * @note The Output does NOT take ownership of @a link, it's created and 
+     * owned by an Input Object.
+     *
+     * Called by Input.addLink()
+     * 
+     * @param link
+     *        The Link to add
      */
     void
     addLink(Link* link);
 
     /**
-     * Called only by Input::removeLink() even
-     * if triggered by removing the region that contains us
-     * @ param Link TODO: document
+     * Removing an existing link from the output.
+     * 
+     * @note Called only by Input.removeLink() even if triggered by 
+     * Network.removeRegion() while removing the region that contains us.
+     * 
+     * @param link
+     *        The Link to remove
      */
     void
-    removeLink(Link*);
+    removeLink(Link* link);
 
     /**
-     * We cannot delete a region if there are any outgoing links
-     * This allows us to check in Network::removeRegion and 
-     * the network destructor;
-     * @returns TODO: document
+     * Tells whether the output has outgoing links, i.e. TODO
+     * 
+     * @note We cannot delete a region if there are any outgoing links
+     * This allows us to check in Network.removeRegion() and Network.~Network().
+     * @returns
+     *         Whether the output has outgoing links
      */
     bool
     hasOutgoingLinks();
 
-    /**
-     * important to return a const array so caller can't
+    /** 
+     *
+     * Get the data of the output.
+     *
+     * @returns
+     *         A constant reference to the data of the output as an @c Array
+     *         
+     * @note It's mportant to return a const array so caller can't
      * reallocate the buffer.
-     * @returns TODO: document
      */
     const Array &
     getData() const;
 
-    /**
-     * TODO: document
-     * @returns TODO: document
+    /** 
+     * 
+     * Tells whether the output is region level, i.e. TODO
+     * 
+     * @returns
+     *     Whether the output is region level, i.e. TODO
      */
     bool
     isRegionLevel() const;
 
     /**
-     * TODO: document
-     * @returns TODO: document
+     *
+     * Get the Region that the output belongs to.
+     * 
+     * @returns
+     *         The mutable reference to the Region that the output belongs to
      */
     Region&
     getRegion() const;
 
     /**
-     * TODO: document
-     * @returns TODO: document
+     * Get the count of node output element.
+     * 
+     * @returns
+     *         The count of node output element, previously set by initialize().
      */
     size_t
     getNodeOutputElementCount() const;
