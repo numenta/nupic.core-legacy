@@ -61,11 +61,11 @@ namespace nta
      * Constructor.
      * 
      * @param region
-     *        The region that this Input object belongs to.
+     *        The region that the input belongs to.
      * @param type
      *        The type of the input, TODO
      * @param isRegionLevel
-     *        Whether the Input object is region level, i.e. TODO
+     *        Whether the input is region level, i.e. TODO
      */
     Input(Region& region, NTA_BasicType type, bool isRegionLevel);
 
@@ -78,21 +78,21 @@ namespace nta
 
     /**
      *
-     * Set the name for the Input object.
+     * Set the name for the input.
      * 
      * Inputs need to know their own name for error messages.
      * 
      * @param name
-     *        The name of the Input object
+     *        The name of the input
      * 
      */
     void setName(const std::string& name);
 
     /**
-     * Get the name of the Input object.
+     * Get the name of the input.
      * 
      * @return 
-     *        The name of the Input object 
+     *        The name of the input 
      */
     const std::string& getName() const;
 
@@ -114,7 +114,7 @@ namespace nta
             Output* srcOutput);
     
     /**
-     * Locate an existing Link to the Input object.
+     * Locate an existing Link to the input.
      * 
      * It's called by Network.removeLink() and internally when adding a link
      * 
@@ -129,7 +129,7 @@ namespace nta
              const std::string& srcOutputName);
 
     /**
-     * Removing an existing link from the Input object.
+     * Removing an existing link from the input.
      * 
      * It's called in four cases:
      * 
@@ -171,30 +171,30 @@ namespace nta
     
     /**
      *
-     * Get the Region that this Input object belongs to.
+     * Get the Region that the input belongs to.
      * 
      * @returns
-     *         The mutable reference to the Region that this Input object belongs to
+     *         The mutable reference to the Region that the input belongs to
      */
     Region&
     getRegion();
 
     /** 
      * 
-     * Get all the Link objects added to this Input object.
+     * Get all the Link objects added to the input.
      * 
      * @returns
-     *         All the Link objects added to this Input object
+     *         All the Link objects added to the input
      */
     const std::vector<Link*>&
     getLinks();
 
     /** 
      * 
-     * Tells whether the Input object is region level, i.e. TODO
+     * Tells whether the input is region level, i.e. TODO
      * 
      * @returns
-     *     Whether the Input object is region level, i.e. TODO
+     *     Whether the input is region level, i.e. TODO
      */
     bool
     isRegionLevel();

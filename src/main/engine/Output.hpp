@@ -48,11 +48,11 @@ namespace nta
      * Constructor.
      * 
      * @param region
-     *        The region that this Output object belongs to.
+     *        The region that the output belongs to.
      * @param type
      *        The type of the output, TODO
      * @param isRegionLevel
-     *        Whether the Output object is region level, i.e. TODO
+     *        Whether the output is region level, i.e. TODO
      */
     Output(Region& region, NTA_BasicType type, bool isRegionLevel);
 
@@ -62,20 +62,20 @@ namespace nta
     ~Output();
 
     /**
-     * Set the name for the Output object.
+     * Set the name for the output.
      * 
      * Output need to know their own name for error messages.
      * 
      * @param name
-     *        The name of the Output object
+     *        The name of the output
      */
     void setName(const std::string& name);
 
     /**
-     * Get the name of the Output object.
+     * Get the name of the output.
      * 
      * @return 
-     *        The name of the Output object 
+     *        The name of the output 
      */
     const std::string& getName() const;
     
@@ -107,7 +107,7 @@ namespace nta
     addLink(Link* link);
 
     /**
-     * Removing an existing link from the Output object.
+     * Removing an existing link from the output.
      * 
      * @note Called only by Input.removeLink() even if triggered by 
      * Network.removeRegion() while removing the region that contains us.
@@ -119,19 +119,19 @@ namespace nta
     removeLink(Link*);
 
     /**
-     * Tells whether the Output object has outgoing links, i.e. TODO
+     * Tells whether the output has outgoing links, i.e. TODO
      * 
      * @note We cannot delete a region if there are any outgoing links
      * This allows us to check in Network.removeRegion() and Network.~Network().
      * @returns
-     *         Whether the Output object has outgoing links
+     *         Whether the output has outgoing links
      */
     bool
     hasOutgoingLinks();
 
     /** 
      *
-     * Get the data of the Output object.
+     * Get the data of the output.
      *
      * @returns
      *         A constant reference to the data of the output as an @c Array
@@ -144,20 +144,20 @@ namespace nta
 
     /** 
      * 
-     * Tells whether the Output object is region level, i.e. TODO
+     * Tells whether the output is region level, i.e. TODO
      * 
      * @returns
-     *     Whether the Output object is region level, i.e. TODO
+     *     Whether the output is region level, i.e. TODO
      */
     bool
     isRegionLevel() const;
 
     /**
      *
-     * Get the Region that this Output object belongs to.
+     * Get the Region that the output belongs to.
      * 
      * @returns
-     *         The mutable reference to the Region that this Output object belongs to
+     *         The mutable reference to the Region that the output belongs to
      */
     Region&
     getRegion() const;
