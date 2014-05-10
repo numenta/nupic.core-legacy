@@ -18,5 +18,5 @@ src/test/testeverything/everything_headers.hpp
 # /
 /.gdb_history
 
-# Doxygen doc
+# Doxygen generated doc
 html/
