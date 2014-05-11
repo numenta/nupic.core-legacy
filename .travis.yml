@@ -13,6 +13,14 @@ notifications:
 before_install:
   - if [ "$CC" = "gcc" ]; then export CXX=g++; fi
   - if [ "$CC" = "clang" ]; then export CXX=clang++; fi
+  - "sudo find / -name zlib.h"
+  # remove the `zlib.h` in system path to prevent implicit dependency 
+  # and to reproduce #48
+  - "sudo rm -f /usr/include/zlib.h"
+  - "sudo find / -name libz.a"
+  # remove the `libz.a` in system path to prevent implicit dependency
+  # and to reproduce #48
+  - "sudo rm -f /usr/lib/x86_64-linux-gnu/libz.a"
 
 install:
   - "mkdir -p $TRAVIS_BUILD_DIR/build/scripts"
