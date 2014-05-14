@@ -25,14 +25,14 @@
  */
 
 
-#include <nta/os/regex.hpp>
-#include "regexTest.hpp"
+#include <nta/os/Regex.hpp>
+#include "RegexTest.hpp"
 
 using namespace std;
 using namespace nta;
 
 
-void regexTest::RunTests()
+void RegexTest::RunTests()
 {
   
   TEST(regex::match(".*", ""));

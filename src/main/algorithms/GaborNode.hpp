@@ -34,8 +34,8 @@
 extern "C" {
 #endif  // __cplusplus
 
-#include <nta/types/types.h>
-#include "arrayBuffer.hpp"
+#include <nta/types/Types.h>
+#include "ArrayBuffer.hpp"
 
 // Number of bits that our gabor filter coefficients are
 // shifted (to the left) for scaling purposes, when

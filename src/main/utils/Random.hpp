@@ -24,7 +24,7 @@
     Random Number Generator interface
 */
 
-#include <nta/types/types.hpp>
+#include <nta/types/Types.hpp>
 #include <cstdlib>
 #include <string>
 #include <vector>

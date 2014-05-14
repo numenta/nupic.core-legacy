@@ -25,11 +25,11 @@
  */
 
 //#include <nta/common/utils.hpp>
-#include <nta/math/array_algo.hpp>
+#include <nta/math/ArrayAlgo.hpp>
 
 #include "MathsTest.hpp"
 
-#include <nta/math/math.hpp>
+#include <nta/math/Math.hpp>
 
 using namespace std;
 

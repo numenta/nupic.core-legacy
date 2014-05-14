@@ -23,7 +23,7 @@
 #ifndef NTA_INSYNAPSE_HPP
 #define NTA_INSYNAPSE_HPP
 
-#include <nta/types/types.hpp>
+#include <nta/types/Types.hpp>
 
 #include <ostream>
 #include <fstream>

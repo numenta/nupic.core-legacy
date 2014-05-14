@@ -65,7 +65,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <algorithm>
 
-#include <nta/algorithms/linear.hpp>
+#include <nta/algorithms/Linear.hpp>
 
 namespace nta {
   namespace algorithms {

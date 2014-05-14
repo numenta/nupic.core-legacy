@@ -49,7 +49,7 @@
 // Enable debugging
 //#define DEBUG   1
 
-#include "gaborNode.hpp"
+#include "GaborNode.hpp"
 
 
 // if INIT_FROM_PYTHON is defined, this module can initialize

@@ -29,7 +29,7 @@
 
 #include <string>
 #include <vector>
-#include <nta/types/types.hpp>
+#include <nta/types/Types.hpp>
 
 #ifdef _MSC_VER
   #pragma warning (disable: 4996)  
