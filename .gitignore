@@ -17,3 +17,6 @@ src/test/testeverything/EverythingHeaders.hpp
 
 # /
 /.gdb_history
+
+# Doxygen generated doc
+html/
