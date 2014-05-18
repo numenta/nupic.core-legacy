@@ -72,10 +72,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 #include <nta/utils/Random.hpp>
-#include <nta/math/math.hpp>
-#include <nta/math/stl_io.hpp>
-#include <nta/math/array2D.hpp>
-#include <nta/math/array_algo.hpp> // for int checkSSE()
+#include <nta/math/Math.hpp>
+#include <nta/math/StlIo.hpp>
+#include <nta/math/Array2D.hpp>
+#include <nta/math/ArrayAlgo.hpp> // for int checkSSE()
 
 namespace nta {
   namespace algorithms {
@@ -1167,7 +1167,7 @@ namespace nta {
 	}
       };
 
-#include <nta/algorithms/svm_t.hpp>
+#include <nta/algorithms/SvmT.hpp>
 
     } // end namespace svm
   } // end namespace algorithms

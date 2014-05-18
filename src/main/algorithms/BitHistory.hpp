@@ -31,7 +31,7 @@
 #include <string>
 #include <vector>
 
-#include <nta/types/types.hpp>
+#include <nta/types/Types.hpp>
 
 using namespace std;
 

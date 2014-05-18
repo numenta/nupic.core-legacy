@@ -29,10 +29,10 @@
 #include <vector>
 #include <stdio.h>
 
-#include <nta/algorithms/bit_history.hpp>
-#include <nta/algorithms/classifier_result.hpp>
-#include <nta/algorithms/fast_cla_classifier.hpp>
-#include <nta/types/types.hpp>
+#include <nta/algorithms/BitHistory.hpp>
+#include <nta/algorithms/ClassifierResult.hpp>
+#include <nta/algorithms/FastClaClassifier.hpp>
+#include <nta/types/Types.hpp>
 #include <nta/utils/Log.hpp>
 
 using namespace std;

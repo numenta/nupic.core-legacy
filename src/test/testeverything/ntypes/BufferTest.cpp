@@ -25,7 +25,7 @@
  */
 
 #include "BufferTest.hpp"
-#include <nta/math/math.hpp>
+#include <nta/math/Math.hpp>
 #include <nta/utils/Log.hpp>
 #include <cstring> // strlen
 

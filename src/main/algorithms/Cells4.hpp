@@ -26,7 +26,7 @@
 #include <ostream>
 #include <sstream>
 #include <fstream>
-#include <nta/types/types.hpp>
+#include <nta/types/Types.hpp>
 #include <nta/algorithms/Segment.hpp>
 #include <nta/algorithms/OutSynapse.hpp>
 #include <queue>

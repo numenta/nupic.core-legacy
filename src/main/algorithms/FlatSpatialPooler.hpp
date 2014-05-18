@@ -29,8 +29,8 @@
 
 #include <cstring>
 #include <iostream>
-#include <nta/algorithms/spatial_pooler.hpp>
-#include <nta/types/types.hpp>
+#include <nta/algorithms/SpatialPooler.hpp>
+#include <nta/types/Types.hpp>
 #include <string>
 #include <vector>
 

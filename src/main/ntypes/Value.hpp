@@ -33,7 +33,7 @@
 #ifndef NTA_VALUE_HPP
 #define NTA_VALUE_HPP
 
-#include <nta/types/types.h>
+#include <nta/types/Types.h>
 #include <nta/types/BasicType.hpp>
 #include <nta/ntypes/Scalar.hpp>
 #include <nta/ntypes/Array.hpp>

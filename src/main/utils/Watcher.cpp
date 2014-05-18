@@ -38,7 +38,7 @@
 #include <nta/utils/Log.hpp>
 #include <nta/types/BasicType.hpp>
 #include <nta/ntypes/Array.hpp>
-#include <nta/types/types.h>
+#include <nta/types/Types.h>
 
 namespace nta
 {

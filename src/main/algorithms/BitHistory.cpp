@@ -26,8 +26,8 @@
 #include <string>
 #include <vector>
 
-#include <nta/algorithms/bit_history.hpp>
-#include <nta/types/types.hpp>
+#include <nta/algorithms/BitHistory.hpp>
+#include <nta/types/Types.hpp>
 #include <nta/utils/Log.hpp>
 
 namespace nta
