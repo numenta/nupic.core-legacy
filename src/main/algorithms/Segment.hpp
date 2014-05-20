@@ -31,8 +31,8 @@
 #include <set>
 #include <vector>
 
-#include <nta/math/array_algo.hpp> // is_sorted
-#include <nta/math/stl_io.hpp> // binary_save
+#include <nta/math/ArrayAlgo.hpp> // is_sorted
+#include <nta/math/StlIo.hpp> // binary_save
 #include <nta/algorithms/InSynapse.hpp>
 
 

@@ -35,7 +35,7 @@
 #endif
 
 #include <string>
-#include <nta/types/types.hpp>
+#include <nta/types/Types.hpp>
 
 //----------------------------------------------------------------------
 

@@ -31,7 +31,7 @@
 #include <iostream>
 #include <nta/math/SparseBinaryMatrix.hpp>
 #include <nta/math/SparseMatrix.hpp>
-#include <nta/types/types.hpp>
+#include <nta/types/Types.hpp>
 #include <string>
 #include <vector>
 
@@ -283,6 +283,9 @@ namespace nta {
           @returns Integer number of bytes
            */
           virtual UInt persistentSize();
+
+          vector<UInt> getColumnDimensions();
+          vector<UInt> getInputDimensions();
 
           UInt getNumColumns();
           UInt getNumInputs();

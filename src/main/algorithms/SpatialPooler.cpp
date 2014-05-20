@@ -26,7 +26,7 @@
 
 #include <cstring>
 #include <iostream>
-#include <nta/algorithms/spatial_pooler.hpp>
+#include <nta/algorithms/SpatialPooler.hpp>
 #include <string>
 #include <vector>
 
@@ -98,6 +98,14 @@ class CoordinateConverterND {
 SpatialPooler::SpatialPooler() {
   // The current version number. 
   version_ = 1;
+}
+
+vector<UInt> SpatialPooler::getColumnDimensions() {
+  return columnDimensions_;
+}
+
+vector<UInt> SpatialPooler::getInputDimensions() {
+  return inputDimensions_;
 }
 
 UInt SpatialPooler::getNumColumns() {

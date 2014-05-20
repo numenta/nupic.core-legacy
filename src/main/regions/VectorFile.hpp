@@ -32,7 +32,7 @@
 //----------------------------------------------------------------------
 
 #include <vector>
-#include <nta/types/types.hpp>
+#include <nta/types/Types.hpp>
 #include <nta/os/FStream.hpp>
 
 namespace nta 

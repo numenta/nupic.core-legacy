@@ -23,7 +23,7 @@
 /** @file 
 */
 
-#include <nta/os/regex.hpp>
+#include <nta/os/Regex.hpp>
 #include <nta/utils/Log.hpp>
 #ifdef WIN32
   #include <pcre/pcreposix.h>

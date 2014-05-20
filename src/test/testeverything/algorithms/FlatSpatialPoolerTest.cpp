@@ -27,9 +27,9 @@
 #include <cstring>
 #include <iostream>
 #include <fstream>
-#include <nta/algorithms/flat_spatial_pooler.hpp>
-#include <nta/math/stl_io.hpp>
-#include <nta/types/types.hpp>
+#include <nta/algorithms/FlatSpatialPooler.hpp>
+#include <nta/math/StlIo.hpp>
+#include <nta/types/Types.hpp>
 #include <nta/utils/Log.hpp>
 #include "FlatSpatialPoolerTest.hpp"
 

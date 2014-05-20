@@ -1,26 +1,22 @@
 .metadata
 .idea
-*.class
-*.am
-*.in
 *.manifest
 *.cache
 *~
 *.DS_Store
 *.swp
 
-html/
+# IDE project files
+/nbproject/
 
-Servers/
-
-# Build artifacts and .bashrc artifacts
+# Build files
 build/
-build/scripts/
-build/release/
-build/temp/
 
-src/test/testeverything/everything_addtests.hpp
-src/test/testeverything/everything_headers.hpp
+src/test/testeverything/EverythingAddtests.hpp
+src/test/testeverything/EverythingHeaders.hpp
 
 # /
 /.gdb_history
+
+# Doxygen generated doc
+html/

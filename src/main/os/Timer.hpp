@@ -28,7 +28,7 @@
 #define NTA_TIMER2_HPP
 
 #include <string>
-#include <nta/types/types.hpp>
+#include <nta/types/Types.hpp>
 
 namespace nta 
 {

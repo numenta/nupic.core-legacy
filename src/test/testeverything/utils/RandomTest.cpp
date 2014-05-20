@@ -37,7 +37,7 @@ RandomTest::RandomTest() {};
 
 RandomTest::~RandomTest() {};
 
-#include "random_private_orig.c"
+#include "RandomPrivateOrig.c"
 
 // Expected values with seed of 148
 // Comparing against expected values ensures the same result

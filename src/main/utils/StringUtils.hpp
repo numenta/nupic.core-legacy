@@ -28,7 +28,7 @@
 #define NTA_STRING_UTILS_HPP
 
 
-#include <nta/types/types.hpp>
+#include <nta/types/Types.hpp>
 #include <boost/shared_array.hpp>
 #include <string>
 #include <vector>

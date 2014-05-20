@@ -28,9 +28,9 @@
 
 #include <boost/shared_array.hpp>
 #include <nta/ntypes/MemStream.hpp>
-#include <nta/ntypes/object_model.h>
-#include <nta/ntypes/object_model.hpp>
-#include <nta/types/types.hpp>
+#include <nta/ntypes/ObjectModel.h>
+#include <nta/ntypes/ObjectModel.hpp>
+#include <nta/types/Types.hpp>
 
 #include <string>
 #include <vector>

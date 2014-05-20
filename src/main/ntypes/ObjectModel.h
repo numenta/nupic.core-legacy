@@ -39,7 +39,7 @@
 extern "C" {
 #endif
 
-#include <nta/types/types.h>
+#include <nta/types/Types.h>
 
 /*----------------------------------------------------------------------
  */

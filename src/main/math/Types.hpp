@@ -32,7 +32,7 @@
 #include <set>
 #include <algorithm> // sort
 
-#include <nta/types/types.hpp>
+#include <nta/types/Types.hpp>
 #include <nta/utils/Log.hpp> 
 
 /* This file is used by array_algo.hpp */

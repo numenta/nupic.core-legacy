@@ -29,8 +29,8 @@
 #include <cstring>
 #include <string>
 #include <vector>
-#include <nta/algorithms/spatial_pooler.hpp>
-#include <nta/algorithms/flat_spatial_pooler.hpp>
+#include <nta/algorithms/SpatialPooler.hpp>
+#include <nta/algorithms/FlatSpatialPooler.hpp>
 
 using namespace std;
 using namespace nta;

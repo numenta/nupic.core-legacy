@@ -24,7 +24,7 @@
  * Implementation of the ArrayBase class
  */
 
-#include <nta/types/types.hpp>
+#include <nta/types/Types.hpp>
 #include <nta/types/BasicType.hpp>
 #include <nta/ntypes/ArrayBase.hpp>
 #include <nta/utils/Log.hpp>

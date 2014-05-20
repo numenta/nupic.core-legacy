@@ -26,10 +26,10 @@
 
 #include <iostream>
 
-#include <nta/algorithms/classifier_result.hpp>
-#include <nta/algorithms/fast_cla_classifier.hpp>
-#include <nta/math/stl_io.hpp>
-#include <nta/types/types.hpp>
+#include <nta/algorithms/ClassifierResult.hpp>
+#include <nta/algorithms/FastClaClassifier.hpp>
+#include <nta/math/StlIo.hpp>
+#include <nta/types/Types.hpp>
 #include <nta/utils/Log.hpp>
 #include "FastCLAClassifierTest.hpp"
 

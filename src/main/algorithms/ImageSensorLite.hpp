@@ -34,8 +34,8 @@
 extern "C" {
 #endif  // __cplusplus
 
-#include <nta/types/types.h>
-#include "arrayBuffer.hpp"
+#include <nta/types/Types.h>
+#include "ArrayBuffer.hpp"
 
 
 // ImageSensorLite control buffer

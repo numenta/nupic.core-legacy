@@ -32,7 +32,7 @@
 #include <string>
 #include <vector>
 #include <set>
-#include <nta/types/types.hpp>
+#include <nta/types/Types.hpp>
 #include <nta/ntypes/Collection.hpp>
 
 namespace nta
@@ -43,7 +43,7 @@ namespace nta
 
 
   /**
-   * A Network represents an HTM network. A network is a collection of regions.
+   * Represents an HTM network. A network is a collection of regions.
    *
    * @nosubgrouping
    */
@@ -167,7 +167,7 @@ namespace nta
                         const std::string& label);
 
     /**
-     * Removes a new region from the network.
+     * Removes an existing region from the network.
      * 
      * @param name
      *        Name of the Region
@@ -328,7 +328,8 @@ namespace nta
     typedef void (*runCallbackFunction)(Network*, UInt64 iteration, void*);
 
     /**
-     * @todo document
+     * Type definition for a callback item, combines a @c runCallbackFunction and 
+     * a `void*` pointer to the associated data.
      */
     typedef std::pair<runCallbackFunction, void*> callbackItem;
 

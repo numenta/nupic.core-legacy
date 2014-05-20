@@ -23,7 +23,7 @@
 #ifndef NTA_SEGMENTUPDATE_HPP
 #define NTA_SEGMENTUPDATE_HPP
 
-#include <nta/types/types.hpp>
+#include <nta/types/Types.hpp>
 #include <vector>
 using namespace nta;
 

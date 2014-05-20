@@ -1,13 +1,18 @@
 language: cpp
 
+os:
+  - linux
+  - osx
+
 compiler:
   - clang
   - gcc
 
-env:
-  matrix:
-    - CC=clang
-    - CC=gcc
+matrix:
+  # This excludes OSX builds from the build matrix for gcc
+  exclude:
+    - os: osx
+      compiler: gcc
 
 notifications:
   irc:
@@ -16,8 +21,9 @@ notifications:
   webhooks: http://issues.numenta.org:8081/travis
 
 before_install:
-  - if [ "$CC" = "gcc" ]; then export CXX=g++; fi
-  - if [ "$CC" = "clang" ]; then export CXX=clang++; fi
+  - "if [ $CC = 'gcc' ]; then export CXX=g++; fi"
+  - "if [ $CC = 'clang' ]; then export CXX=clang++; fi"
+  - "if [ $TRAVIS_OS_NAME = 'osx' ]; then brew install cmake; fi"
 
 install:
   - "mkdir -p $TRAVIS_BUILD_DIR/build/scripts"

@@ -56,7 +56,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <cstdio>
 #include <sstream>
 
-#include <nta/algorithms/svm.hpp>
+#include <nta/algorithms/Svm.hpp>
 
 namespace nta {
   namespace algorithms {

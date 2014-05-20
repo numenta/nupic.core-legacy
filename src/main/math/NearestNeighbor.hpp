@@ -28,7 +28,7 @@
 #define NTA_NEAREST_NEIGHBOR_HPP
 
 #include <nta/math/SparseMatrix.hpp>
-#include <nta/math/array_algo.hpp>
+#include <nta/math/ArrayAlgo.hpp>
 
 //----------------------------------------------------------------------
 namespace nta {
