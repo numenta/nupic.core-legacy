@@ -20,27 +20,14 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
- * DirectoryTest
+/** @file STL IO 
+ * This file contains functions to print out and save/load various STL data structures.
  */
 
-#ifndef NTA_REGEX_TEST_HPP
-#define NTA_REGEX_TEST_HPP
+#include <nta/math/StlIo.hpp>
 
-//----------------------------------------------------------------------
+namespace nta {
 
-#include <nta/test/Tester.hpp>
+  IOControl io_control;
 
-//----------------------------------------------------------------------
-
-namespace nta 
-{
-
-  struct regexTest : public Tester
-  {
-    virtual ~regexTest() {}
-    virtual void RunTests();
-  };
-}
-
-#endif // NTA_REGEX_TEST_HPP
+} // end namespace nta

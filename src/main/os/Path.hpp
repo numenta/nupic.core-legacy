@@ -27,7 +27,7 @@
 
 //----------------------------------------------------------------------
 
-#include <nta/types/types.hpp>
+#include <nta/types/Types.hpp>
 #include <string>
 #include <vector>
 

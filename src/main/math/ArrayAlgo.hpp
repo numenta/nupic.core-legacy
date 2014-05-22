@@ -34,8 +34,8 @@
 #include <algorithm>
 
 #include <nta/utils/Random.hpp> // For the official Numenta RNG
-#include <nta/math/math.hpp>
-#include <nta/math/types.hpp>
+#include <nta/math/Math.hpp>
+#include <nta/math/Types.hpp>
 
 #ifdef WIN32
 #undef min

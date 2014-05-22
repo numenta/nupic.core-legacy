@@ -26,7 +26,7 @@
               
 //#include <nta/common/version.hpp>
 
-#include <nta/math/array_algo.hpp>
+#include <nta/math/ArrayAlgo.hpp>
 #include "SparseMatrix01UnitTest.hpp"
 
 #include <boost/timer.hpp>

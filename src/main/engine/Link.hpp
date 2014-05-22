@@ -28,7 +28,7 @@
 #define NTA_LINK_HPP
 
 #include <string>
-#include <nta/types/types.hpp>
+#include <nta/types/Types.hpp>
 #include <nta/ntypes/Dimensions.hpp>
 #include <nta/engine/LinkPolicy.hpp>
 #include <nta/engine/Input.hpp> // needed for splitter map 

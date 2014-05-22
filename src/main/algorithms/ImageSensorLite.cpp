@@ -37,7 +37,7 @@
 // Enable debugging
 //#define DEBUG   1
 
-#include "imageSensorLite.hpp"
+#include "ImageSensorLite.hpp"
 
 #ifndef MAXFLOAT
 #define MAXFLOAT 9.9e19f

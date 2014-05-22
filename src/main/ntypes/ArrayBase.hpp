@@ -35,7 +35,7 @@
 #ifndef NTA_ARRAY_BASE_HPP
 #define NTA_ARRAY_BASE_HPP
 
-#include <nta/types/types.h>
+#include <nta/types/Types.h>
 #include <string>
 
 namespace nta

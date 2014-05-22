@@ -29,7 +29,7 @@
 #include <nta/engine/Spec.hpp>
 #include <nta/engine/Region.hpp>
 #include <nta/utils/Log.hpp>
-#include <nta/ntypes/object_model.hpp> // IWrite/ReadBuffer
+#include <nta/ntypes/ObjectModel.hpp> // IWrite/ReadBuffer
 #include <nta/ntypes/Array.hpp>
 #include <nta/ntypes/Value.hpp>
 #include <nta/ntypes/BundleIO.hpp>

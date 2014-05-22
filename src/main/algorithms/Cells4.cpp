@@ -34,8 +34,8 @@
 #include <assert.h>
 #include <cstring>
 #include <map>
-#include <nta/math/array_algo.hpp> // is_in
-#include <nta/math/stl_io.hpp> // binary_save
+#include <nta/math/ArrayAlgo.hpp> // is_in
+#include <nta/math/StlIo.hpp> // binary_save
 #include <nta/algorithms/Cells4.hpp>
 #include <nta/algorithms/SegmentUpdate.hpp>
 #include <nta/algorithms/Cell.hpp>

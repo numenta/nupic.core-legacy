@@ -29,7 +29,7 @@
 #include <nta/engine/Spec.hpp>
 #include <nta/utils/Log.hpp>
 #include <nta/ntypes/Array.hpp>
-#include <nta/types/types.h>
+#include <nta/types/Types.h>
 
 namespace nta
 {

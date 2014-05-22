@@ -20,45 +20,27 @@
  * ---------------------------------------------------------------------
  */
 
-#include <map>
-#include <vector>
+/** @file
+ * DirectoryTest
+ */
 
-#include <nta/algorithms/classifier_result.hpp>
-#include <nta/types/types.hpp>
+#ifndef NTA_REGEX_TEST_HPP
+#define NTA_REGEX_TEST_HPP
 
-using namespace std;
+//----------------------------------------------------------------------
 
-namespace nta
+#include <nta/test/Tester.hpp>
+
+//----------------------------------------------------------------------
+
+namespace nta 
 {
-  namespace algorithms
+
+  struct RegexTest : public Tester
   {
-    namespace cla_classifier
-    {
+    virtual ~RegexTest() {}
+    virtual void RunTests();
+  };
+}
 
-      ClassifierResult::~ClassifierResult()
-      {
-        for (map<Int, vector<Real64>*>::const_iterator it = result_.begin();
-             it != result_.end(); ++it)
-        {
-          delete it->second;
-        }
-      }
-
-      vector<Real64>* ClassifierResult::createVector(Int step, UInt size,
-                                                Real64 value)
-      {
-        vector<Real64>* v;
-        map<Int, vector<Real64>*>::const_iterator it = result_.find(step);
-        if (it != result_.end())
-        {
-          v = it->second;
-        } else {
-          v = new vector<Real64>(size, value);
-          result_.insert(pair<Int, vector<Real64>*>(step, v));
-        }
-        return v;
-      }
-
-    } // end namespace cla_classifier
-  } // end namespace algorithms
-} // end namespace nta
+#endif // NTA_REGEX_TEST_HPP

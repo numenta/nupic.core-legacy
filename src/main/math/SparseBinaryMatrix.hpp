@@ -29,9 +29,9 @@
 
 #include <sstream>
 
-#include <nta/math/math.hpp>
-#include <nta/math/stl_io.hpp>
-#include <nta/math/array_algo.hpp>
+#include <nta/math/Math.hpp>
+#include <nta/math/StlIo.hpp>
+#include <nta/math/ArrayAlgo.hpp>
 
 //--------------------------------------------------------------------------------
 namespace nta {

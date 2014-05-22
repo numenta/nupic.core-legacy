@@ -28,7 +28,7 @@
 #define NTA_OUTPUT_HPP
 
 #include <set>
-#include <nta/types/types.hpp>
+#include <nta/types/Types.hpp>
 #include <nta/utils/Log.hpp> // temporary, while impl is in this file
 namespace nta
 {
