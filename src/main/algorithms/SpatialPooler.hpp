@@ -1199,7 +1199,7 @@ namespace nta {
               @param dutyCycles     A real array containing one or more duty cycle values that need
                               to be updated.
 
-              @param newInput      A int vector used to update the duty cycle.
+              @param newValues      A int vector used to update the duty cycle.
 
               @param period         A int number indicating the period of the duty cycle
           */        
@@ -1218,7 +1218,7 @@ namespace nta {
                           of synapses in a "connected state" (connected synapses)
                           that are connected to input bits which are turned on.
 
-          @param activeArra  An int array containing the indices of the active columns,
+          @param activeArray  An int array containing the indices of the active columns,
                           the sprase set of columns which survived inhibition
           */            
           void updateDutyCycles_(vector<UInt>& overlaps,
