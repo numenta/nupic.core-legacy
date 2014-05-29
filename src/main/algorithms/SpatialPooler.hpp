@@ -125,7 +125,7 @@ namespace nta {
 
           @param numActiveColumnsPerInhArea An alternate way to control the sparsity of 
                 active columns. If numActivePerInhArea is specified then
-                localAreaDensity must less than 0, and vice versa. When 
+                localAreaDensity must be less than 0, and vice versa. When 
                 numActivePerInhArea > 0, the inhibition logic will insure that
                 at most 'numActivePerInhArea' columns remain ON within a local
                 inhibition area (the size of which is set by the internally
@@ -252,8 +252,9 @@ namespace nta {
                                UInt activeVector[]);
 
           /**
-           * Get the version number of this spatial pooler
-           * @returns Integer version number
+           * Get the version number of this spatial pooler.
+
+           * @returns Integer version number.
            */
           virtual UInt version() const {
             return version_;
@@ -284,383 +285,450 @@ namespace nta {
            */
           virtual UInt persistentSize();
           /**
-          Returns the dimensions of the columns in the region
-          @returns Integer number of column dimension
+          Returns the dimensions of the columns in the region.
+
+          @returns Integer number of column dimension.
           */
           vector<UInt> getColumnDimensions();
 
           /**
-          Returns the dimensions of the input vector
-          @returns Integer vector of input dimension
+          Returns the dimensions of the input vector.
+
+          @returns Integer vector of input dimension.
           */          
           vector<UInt> getInputDimensions();
 
           /**
-          Returns the total number of columns
-          @returns Integer number of column numbers
+          Returns the total number of columns.
+
+          @returns Integer number of column numbers.
           */         
           UInt getNumColumns();
 
           /**
-          Returns the total number of inputs
-          @returns Integer number of inputs
+          Returns the total number of inputs.
+
+          @returns Integer number of inputs.
           */             
           UInt getNumInputs();
 
           /**
-          Returns the potential radius
-          @returns Integer number of potential radius
+          Returns the potential radius.
+
+          @returns Integer number of potential radius.
           */             
           UInt getPotentialRadius();
 
           /**
-          sets the potential radius
-          @param potentialRadius integer number of potential raduis
+          Sets the potential radius.
+
+          @param potentialRadius integer number of potential raduis.
           */                 
           void setPotentialRadius(UInt potentialRadius);
           /**
-          Returns the potential percent          
-          @returns real number of the potential percent
+          Returns the potential percent.
+
+          @returns real number of the potential percent.
           */  
           Real getPotentialPct();
 
           /**
-          Sets the potential percent
-          @param potentialPct real number of potential percent
+          Sets the potential percent.
+
+          @param potentialPct real number of potential percent.
           */
           void setPotentialPct(Real potentialPct);
 
-          /**
-          Returns whether global inhibition is enabled
-          @returns boolen value of whether global inhibition is enabled
+          /**          
+          @returns boolen value of whether global inhibition is enabled.
           */
           bool getGlobalInhibition();
 
           /**
-          Sets global inhibition 
-          @param globalInhibition boolen varable of whether global inhibition is enabled
+          Sets global inhibition.
+
+          @param globalInhibition boolen varable of whether global inhibition is enabled.
           */
           void setGlobalInhibition(bool globalInhibition);
 
           /**
           Returns the number of active columns per inhibition area. 
+
           @returns integer number of active columns per inhbition area, Returns a
-          value less than 0 if parameter is unuse
+          value less than 0 if parameter is unuse.
           */
           Int getNumActiveColumnsPerInhArea();
 
 
           /**
           Sets the number of active columns per inhibition area. Invalidates the
-          'localAreaDensity' parameter
-          @param numActiveColumnsPerInhArea integer number of active columns per inhibition area
+          'localAreaDensity' parameter.
+
+          @param numActiveColumnsPerInhArea integer number of active columns per inhibition area.
           */
           void setNumActiveColumnsPerInhArea(UInt numActiveColumnsPerInhArea);
 
           /**
           Returns the local area density. Returns a value less than 0 if parameter
-          is unused"
-          @returns real number of local area density
+          is unused".
+
+          @returns real number of local area density.
           */
           Real getLocalAreaDensity();
 
           /**
           Sets the local area density. Invalidates the 'numActivePerInhArea'
-          parameter"
-          @param localAreaDensity real number of local area density
+          parameter".
+
+          @param localAreaDensity real number of local area density.
           */
           void setLocalAreaDensity(Real localAreaDensity);
 
           /**
-          Returns the stimulus threshold
-          @returns integer number of stimulus threshold
+          Returns the stimulus threshold.
+
+          @returns integer number of stimulus threshold.
           */
           UInt getStimulusThreshold();
 
           /**
-          Sets the stimulus threshold
-          @param stimulusThreshold integer number of stimulus threshold
+          Sets the stimulus threshold.
+
+          @param stimulusThreshold (positive) integer number of stimulus threshold
           */
           void setStimulusThreshold(UInt stimulusThreshold);
 
           /**
-          Returns the inhibition radius
-          @returns integer of inhibition radius
+          Returns the inhibition radius.
+
+          @returns (positive) integer of inhibition radius/
           */
           UInt getInhibitionRadius();
           /**
-          Sets the inhibition radius
-          @param inhibitionRadius integer of inhibition radius
+          Sets the inhibition radius.
+
+          @param inhibitionRadius integer of inhibition radius.
           */
           void setInhibitionRadius(UInt inhibitionRadius);
 
           /**
-          Returns the duty cycle period
-          @returns integer of duty cycle period
+          Returns the duty cycle period.
+
+          @returns integer of duty cycle period.
           */
           UInt getDutyCyclePeriod();
 
           /**
-          Sets the duty cycle period
-          @param dutyCyclePeriod integer number of duty cycle period
+          Sets the duty cycle period.
+
+          @param dutyCyclePeriod integer number of duty cycle period.
           */
           void setDutyCyclePeriod(UInt dutyCyclePeriod);
 
           /**
-          Returns the maximum boost value
-          @returns real number of the maximum boost value
+          Returns the maximum boost value.
+
+          @returns real number of the maximum boost value.
           */
           Real getMaxBoost();
 
           /**
-          Sets the maximum boost value
-          @param maxBoost real number of maximum boost value
+          Sets the maximum boost value.
+
+          @param maxBoost real number of maximum boost value, must be larger than 1.0
           */
           void setMaxBoost(Real maxBoost);
 
           /**
-          Returns the iteration number
-          @returns integer number of iteration number
+          Returns the iteration number.
+
+          @returns integer number of iteration number.
           */
           UInt getIterationNum();
 
           /**
-          Sets the iteration number
-          @param iterationNum integer number of iteration number
+          Sets the iteration number.
+
+          @param iterationNum integer number of iteration number.
           */
           void setIterationNum(UInt iterationNum);
 
           /**
-          Returns the learning iteration number
-          @returns integer of the learning iteration number
+          Returns the learning iteration number.
+
+          @returns integer of the learning iteration number.
           */
           UInt getIterationLearnNum();
 
           /**
-          Sets the learning iteration number
-          @param iterationLearnNum integer of learning iteration number
+          Sets the learning iteration number.
+
+          @param iterationLearnNum integer of learning iteration number.
           */
           void setIterationLearnNum(UInt iterationLearnNum);
 
           /**
-          Returns the verbosity level
-          @returns integer of the verbosity level
+          Returns the verbosity level.
+
+          @returns integer of the verbosity level.
           */
           UInt getSpVerbosity();
 
           /**
-          Sets the verbosity level
-          @param spVerbosity integer of verbosity level
+          Sets the verbosity level.
+
+          @param spVerbosity integer of verbosity level.
           */
           void setSpVerbosity(UInt spVerbosity);
 
           /**
-          Returns the update period
-          @returns integer of update period
+          Returns the update period.
+
+          @returns integer of update period.
           */
           UInt getUpdatePeriod();
           /**
-          Sets the update period
-          @param updatePeriod integer of update period
+          Sets the update period.
+
+          @param updatePeriod integer of update period.
           */
           void setUpdatePeriod(UInt updatePeriod);
 
           /**
-          Returns the permanence trim threshold
-          @returns real number of the permanence trim threshold
+          Returns the permanence trim threshold.
+
+          @returns real number of the permanence trim threshold.
           */
           Real getSynPermTrimThreshold();
           /**
-          Sets the permanence trim threshold
-          @param synPermTrimThreshold real number of the permanence trim threshold
+          Sets the permanence trim threshold.
+
+          @param synPermTrimThreshold real number of the permanence trim threshold.
           */
           void setSynPermTrimThreshold(Real synPermTrimThreshold);
 
           /**
           Returns the permanence increment amount for active synapses
-          inputs
+          inputs.
+
           @returns real number of the permanence increment amount for active synapses
-          inputs
+          inputs.
           */
           Real getSynPermActiveInc();
           /**
           Sets the permanence increment amount for active synapses
-          inputs
+          inputs.
+
           @param synPermActiveInc real number of the permanence increment amount
-          for active synapses inputs
+          for active synapses inputs, must be >0.
           */
           void setSynPermActiveInc(Real synPermActiveInc);
 
           /**
-          Returns the permanence decrement amount for inactive synapses
-          @returns real number of the permanence decrement amount for inactive synapses
+          Returns the permanence decrement amount for inactive synapses.
+
+          @returns real number of the permanence decrement amount for inactive synapses.
           */
           Real getSynPermInactiveDec();
           /**
-          Returns the permanence decrement amount for inactive synapses
-          @param synPermInactiveDec real number of the permanence decrement amount for inactive synapses
+          Returns the permanence decrement amount for inactive synapses.
+
+          @param synPermInactiveDec real number of the permanence decrement amount for inactive synapses.
           */
           void setSynPermInactiveDec(Real synPermInactiveDec);
 
           /**
           Returns the permanence increment amount for columns that have not been
-          recently active
-          @returns real number of the permanence increment amount for columns that have not been
-          recently active
+          recently active.
+
+          @returns positive real number of the permanence increment amount for columns that have not been
+          recently active.
           */
           Real getSynPermBelowStimulusInc();
           /**
           Sets the permanence increment amount for columns that have not been
-          recently active
+          recently active.
+
           @param synPermBelowStimulusInc real number of the permanence increment amount for columns that have not been
-          recently active
+          recently active, must be larger than 0.
           */
           void setSynPermBelowStimulusInc(Real synPermBelowStimulusInc);
 
           /**
           Returns the permanence amount that qualifies a synapse as
-          being connected
+          being connected.
+
           @returns real number of the permanence amount 
-          that qualifies a synapse as being connected
+          that qualifies a synapse as being connected.
           */
           Real getSynPermConnected();
           /**
           Sets the permanence amount that qualifies a synapse as
-          being connected
+          being connected.
+
           @param setSynPermConnected real number of the permanence amount that qualifies a synapse as
-          being connected
+          being connected.
           */
           void setSynPermConnected(Real setSynPermConnected);
 
           /**
           Returns the minimum tolerated overlaps, given as percent of
-          neighbors overlap score
-          @returns real number of the minimum tolerated overlaps
+          neighbors overlap score.
+
+          @returns real number of the minimum tolerated overlaps.
           */
           Real getMinPctOverlapDutyCycles();
           /**
           Sets the minimum tolerated overlaps, given as percent of
-          neighbors overlap score
-          @param minPctOverlapDutyCycles real number of the minimum tolerated overlaps
+          neighbors overlap score.
+
+          @param minPctOverlapDutyCycles real number of the minimum tolerated overlaps.
           */
           void setMinPctOverlapDutyCycles(Real minPctOverlapDutyCycles);
 
           /**
           Returns the minimum tolerated activity duty cycle, given as percent of
-          neighbors' activity duty cycle
-          @returns minPctOverlapDutyCycles real number of the minimum tolerated activity duty cycle
+          neighbors' activity duty cycle.
+
+          @returns minPctOverlapDutyCycles real number of the minimum tolerated activity duty cycle.
           */
           Real getMinPctActiveDutyCycles();
           /**
           Sets the minimum tolerated activity duty cycle, given as percent of
-          neighbors' activity duty cycle
-          @param minPctActiveDutyCycles real number of the minimum tolerated activity duty cycle
+          neighbors' activity duty cycle.
+
+          @param minPctActiveDutyCycles real number of the minimum tolerated activity duty cycle.
           */
           void setMinPctActiveDutyCycles(Real minPctActiveDutyCycles);
 
           /**
           Returns the boost factors for all columns. 'boostFactors' size must
-          match the number of columns
-          @param boostFactors real array to store boost factors of all columns
+          match the number of columns.
+
+          @param boostFactors real array to store boost factors of all columns.
           */
           void getBoostFactors(Real boostFactors[]);
           /**
           Sets the boost factors for all columns. 'boostFactors' size must
-          match the number of columns
-          @param boostFactors real array of boost factors of all columns
+          match the number of columns.
+
+          @param boostFactors real array of boost factors of all columns.
           */
           void setBoostFactors(Real boostFactors[]);
 
           /**
           Returns the overlap duty cycles for all columns. 'overlapDutyCycles'
-          size must match the number of columns          
+          size must match the number of columns.
+
+          @param overlapDutyCycles real array to store overlap duty cycles for all columns.
           */
           void getOverlapDutyCycles(Real overlapDutyCycles[]);
           /**
           Sets the overlap duty cycles for all columns. 'overlapDutyCycles'
-          size must match the number of columns
-          @param overlapDutyCycles real array of the overlap duty cycles for all columns
+          size must match the number of columns.
+
+          @param overlapDutyCycles real array of the overlap duty cycles for all columns.
           */
           void setOverlapDutyCycles(Real overlapDutyCycles[]);
 
           /**
           Returns the activity duty cycles for all columns. 'activeDutyCycles'
-          size must match the number of columns          
+          size must match the number of columns.
+
+          @param activeDutyCycles real array to store activity duty cycles for all columns.
           */
           void getActiveDutyCycles(Real activeDutyCycles[]);
           /**
           Sets the activity duty cycles for all columns. 'activeDutyCycles'
-          size must match the number of columns
-          @param activeDutyCycles real array of the activity duty cycles for all columns
+          size must match the number of columns.
+
+          @param activeDutyCycles real array of the activity duty cycles for all columns.
           */
           void setActiveDutyCycles(Real activeDutyCycles[]);
 
           /**
           Returns the minimum overlap duty cycles for all columns.
-          '_minOverlapDutyCycles' size must match the number of columns          
+
+          @param minOverlapDutyCycles real arry to store mininum overlap duty cycles for all columns.
+          'minOverlapDutyCycles' size must match the number of columns.
           */
           void getMinOverlapDutyCycles(Real minOverlapDutyCycles[]);
           /**
           Sets the minimum overlap duty cycles for all columns.
-          '_minOverlapDutyCycles' size must match the number of columns
-          @param minOverlapDutyCycles real array of the minimum overlap duty cycles for all columns
+          '_minOverlapDutyCycles' size must match the number of columns.
+
+          @param minOverlapDutyCycles real array of the minimum overlap duty cycles for all columns.
           */
           void setMinOverlapDutyCycles(Real minOverlapDutyCycles[]);
 
           /**
           Returns the minimum activity duty cycles for all columns.
-          '_minActiveDutyCycles' size must match the number of columns          
+          '_minActiveDutyCycles' size must match the number of columns.
+
+          @param minActiveDutyCycles real array to store the minimum activity duty cycles for all columns.
           */
           void getMinActiveDutyCycles(Real minActiveDutyCycles[]);
           /**
           Sets the minimum activity duty cycles for all columns.
-          '_minActiveDutyCycles' size must match the number of columns
-          @param minActiveDutyCycles real array of the minimum activity duty cycles for all columns
+          '_minActiveDutyCycles' size must match the number of columns.
+
+          @param minActiveDutyCycles real array of the minimum activity duty cycles for all columns.
           */
           void setMinActiveDutyCycles(Real minActiveDutyCycles[]);
 
           /**
           Returns the potential mapping for a given column. 'potential' size
-          must match the number of inputs
-          @param column integer of column index
-          @param potential integer array of potential mapping for the selected column
+          must match the number of inputs.
+
+          @param column integer of column index.
+
+          @param potential integer array of potential mapping for the selected column.
           */
           void getPotential(UInt column, UInt potential[]);
           /**
           Sets the potential mapping for a given column. 'potential' size
-          must match the number of inputs
-          @param column integer of column index
-          @param potential integer array of potential mapping for the selected column
+          must match the number of inputs.
+
+          @param column integer of column index.
+
+          @param potential integer array of potential mapping for the selected column.
           */
           void setPotential(UInt column, UInt potential[]);
 
           /**
           Returns the permanence values for a given column. 'permanence' size
-          must match the number of inputs
-          @param column integer of column index
-          @param permanence real array to store permanence values for the selected column
+          must match the number of inputs.
+
+          @param column integer of column index.
+
+          @param permanence real array to store permanence values for the selected column.
           */
           void getPermanence(UInt column, Real permanence[]);
           /**
           Sets the permanence values for a given column. 'permanence' size
-          must match the number of inputs
-          @param column integer of column index
-          @param permanence real array of permanence values for the selected column
+          must match the number of inputs.
+
+          @param column integer of column index.
+
+          @param permanence real array of permanence values for the selected column.
           */
           void setPermanence(UInt column, Real permanence[]);
 
           /**
           Returns the connected synapses for a given column.
-          'connectedSynapses' size must match the number of inputs
-          @param column integer of column index
-          @param connectedSynapses integer array to store the connected synapses for a given column
+          'connectedSynapses' size must match the number of inputs.
+
+          @param column integer of column index.
+
+          @param connectedSynapses integer array to store the connected synapses for a given column.
           */
           void getConnectedSynapses(UInt column, UInt connectedSynapses[]);
 
           /**
           Returns the number of connected synapses for all columns.
-          'connectedCounts' size must match the number of columns
-          @param connectedCounts integer array to store the connected synapses for all columns
+          'connectedCounts' size must match the number of columns.
+
+          @param connectedCounts integer array to store the connected synapses for all columns.
           */
           void getConnectedCounts(UInt connectedCounts[]);
 
@@ -681,7 +749,7 @@ namespace nta {
           represent learned pattern and are therefore meaningless if only inference
           is required.
           
-          @param activeArray  An int array containing the indices of the active columns
+          @param activeArray  An int array containing the indices of the active columns.
           */
           void stripNeverLearned_(UInt activeArray[]);
 
@@ -696,7 +764,9 @@ namespace nta {
                       vector<UInt>& rangeVector);
 
         /**
-            Maps a column to its input bits. This method encapsultes the topology of
+            Maps a column to its input bits. 
+
+            This method encapsultes the topology of
             the region. It takes the index of the column as an argument and determines
             what are the indices of the input vector that are located within the
             column's potential pool. The return value is a list containing the indices
@@ -715,10 +785,10 @@ namespace nta {
               '1's, where the exact indices are to be determined by the mapping from
               1-D index to 2-D position.
 
-            Parameters:
             ----------------------------
             @param column         An int index identifying a column in the permanence, potential
                             and connectivity matrices.
+
             @param wrapAround     A boolean value indicating that boundaries should be
                             region boundaries ignored.
         */
@@ -726,12 +796,15 @@ namespace nta {
 
           /**
           Returns a randomly generated permanence value for a synapses that is
-          initialized in a connected state. The basic idea here is to initialize
+          initialized in a connected state. 
+
+          The basic idea here is to initialize
           permanence values very close to synPermConnected so that a small number of
           learning steps could make it disconnected or connected.
 
           Note: experimentation was done a long time ago on the best way to initialize
           permanence values, but the history for this particular scheme has been lost.          
+
           @returns real number of a randomly generated permanence value for a synapses that is
           initialized in a connected state.
           */
@@ -739,6 +812,7 @@ namespace nta {
           /**
               Returns a randomly generated permanence value for a synapses that is to be
               initialized in a non-connected state.
+
               @returns real number of a randomly generated permanence value for a synapses that is to be
               initialized in a non-connected state.
           */
@@ -751,10 +825,10 @@ namespace nta {
             array represents the initial permanence value between the input bit
             at the particular index in the array, and the column represented by
             the 'index' parameter.
-
-            ----------------------------
+            
             @param potential      A int vector specifying the potential pool of the column.
                             Permanence values will only be generated for input bits
+
                             corresponding to indices for which the mask value is 1.
             @param connectedPct   A real value between 0 or 1 specifying the percent of the input
                             bits that will start off in a connected state.
@@ -763,31 +837,35 @@ namespace nta {
                                        Real connectedPct);
           void clip_(vector<Real>& perm, bool trim);
 
-/**
-    This method updates the permanence matrix with a column's new permanence
-    values. The column is identified by its index, which reflects the row in
-    the matrix, and the permanence is given in 'dense' form, i.e. a full
-    arrray containing all the zeros as well as the non-zero values. It is in
-    charge of implementing 'clipping' - ensuring that the permanence values are
-    always between 0 and 1 - and 'trimming' - enforcing sparsity by zeroing out
-    all permanence values below '_synPermTrimThreshold'. It also maintains
-    the consistency between 'self._permanences' (the matrix storeing the
-    permanence values), 'self._connectedSynapses', (the matrix storing the bits
-    each column is connected to), and 'self._connectedCounts' (an array storing
-    the number of input bits each column is connected to). Every method wishing
-    to modify the permanence matrix should do so through this method.
+        /**
+            This method updates the permanence matrix with a column's new permanence
+            values. 
 
-    ----------------------------
-    @param perm           An int vector of permanence values for a column. The array is
-                    "dense", i.e. it contains an entry for each input bit, even
-                    if the permanence value is 0.
-    @param column          An int number identifying a column in the permanence, potential
-                    and connectivity matrices
-    @param  raisePerm      a boolean value indicating whether the permanence values
-                    should be raised until a minimum number are synapses are in
-                    a connected state. Should be set to 'false' when a direct
-                    assignment is required.
-*/          
+            The column is identified by its index, which reflects the row in
+            the matrix, and the permanence is given in 'dense' form, i.e. a full
+            arrray containing all the zeros as well as the non-zero values. It is in
+            charge of implementing 'clipping' - ensuring that the permanence values are
+            always between 0 and 1 - and 'trimming' - enforcing sparsity by zeroing out
+            all permanence values below '_synPermTrimThreshold'. It also maintains
+            the consistency between 'self._permanences' (the matrix storeing the
+            permanence values), 'self._connectedSynapses', (the matrix storing the bits
+            each column is connected to), and 'self._connectedCounts' (an array storing
+            the number of input bits each column is connected to). Every method wishing
+            to modify the permanence matrix should do so through this method.
+
+            ----------------------------
+            @param perm           An int vector of permanence values for a column. The array is
+                            "dense", i.e. it contains an entry for each input bit, even
+                            if the permanence value is 0.
+
+            @param column          An int number identifying a column in the permanence, potential
+                            and connectivity matrices.
+
+            @param  raisePerm      a boolean value indicating whether the permanence values
+                            should be raised until a minimum number are synapses are in
+                            a connected state. Should be set to 'false' when a direct
+                            assignment is required.
+        */          
           void updatePermanencesForColumn_(vector<Real>& perm, UInt column,
                                            bool raisePerm=true);
           UInt countConnected_(vector<Real>& perm);
@@ -796,15 +874,18 @@ namespace nta {
 
           /**
               This function determines each column's overlap with the current input
-              vector. The overlap of a column is the number of synapses for that column
+              vector. 
+
+              The overlap of a column is the number of synapses for that column
               that are connected (permance value is greater than '_synPermConnected')
               to input bits which are turned on. Overlap values that are lower than
               the 'stimulusThreshold' are ignored. The implementation takes advantage of
               the SpraseBinaryMatrix class to perform this calculation efficiently.
 
-              ----------------------------
+
               @param inputVector    a int array of 0's and 1's that comprises the input to
                               the spatial pooler.
+
               @param overlap       an int vector containing the overlap score for each  column.
                     The overlap score for a column is defined as the number
                     of synapses in a "connected state" (connected synapses)
@@ -827,34 +908,41 @@ namespace nta {
               actually perform inhibition and then delegates the task of picking the
               active columns to helper functions.
 
-              ----------------------------
+
               @param overlaps       an array containing the overlap score for each  column.
                               The overlap score for a column is defined as the number
                               of synapses in a "connected state" (connected synapses)
                               that are connected to input bits which are turned on.
-              @param activeColumns an int array containing the indices of the active columns
+
+              @param activeColumns an int array containing the indices of the active columns.
           */
           void inhibitColumns_(vector<Real>& overlaps,
                                vector<UInt>& activeColumns);
 
           /**
-              Perform global inhibition. Performing global inhibition entails picking the
+              Perform global inhibition. 
+
+              Performing global inhibition entails picking the
               top 'numActive' columns with the highest overlap score in the entire
               region. At most half of the columns in a local neighborhood are allowed to
               be active.
-
-              ----------------------------
+              
               @param overlaps       a real array containing the overlap score for each  column.
                               The overlap score for a column is defined as the number
                               of synapses in a "connected state" (connected synapses)
                               that are connected to input bits which are turned on.
+
               @param density        a real number of the fraction of columns to survive inhibition.
-              @param activeColumns an int array containing the indices of the active columns
+
+              @param activeColumns an int array containing the indices of the active columns.
               */          
           void inhibitColumnsGlobal_(vector<Real>& overlaps, Real density,
                                      vector<UInt>& activeColumns);
+
           /**
-          Performs local inhibition. Local inhibition is performed on a column by
+          Performs local inhibition. 
+
+          Local inhibition is performed on a column by
           column basis. Each column observes the overlaps of its neighbors and is
           selected if its overlap score is within the top 'numActive' in its local
           neighborhood. At most half of the columns in a local neighborhood are
@@ -865,17 +953,20 @@ namespace nta {
                           The overlap score for a column is defined as the number
                           of synapses in a "connected state" (connected synapses)
                           that are connected to input bits which are turned on.
+
           @param density        The fraction of columns to survive inhibition. This
                           value is only an intended target. Since the surviving
                           columns are picked in a local fashion, the exact fraction
                           of survining columns is likely to vary.
-          @param activeColumns an int array containing the indices of the active columns
+
+          @param activeColumns an int array containing the indices of the active columns.
           */
           void inhibitColumnsLocal_(vector<Real>& overlaps, Real density,
                                     vector<UInt>& activeColumns);
 
           /**
               Returns a list of indices corresponding to the neighbors of a given column.
+
               In this variation of the method, which only supports a one dimensional
               column toplogy, a column's neighbors are those neighbors who are 'radius'
               indices away. This information is needed to perform inhibition. This method
@@ -886,19 +977,23 @@ namespace nta {
               ----------------------------
               @param column  An integer number. The index identifying a column in the permanence, potential
                               and connectivity matrices.
+
               @param  dimensions     An int array containg a dimensions for the column space. A 2x3
                               grid will be represented by [2,3].
+
               @param  radius      An integer number Indicates how far away from a given column are other
                               columns to be considered its neighbors. In the previous 2x3
                               example, each column with coordinates:
                               [2+/-radius, 3+/-radius] is considered a neighbor.
+
               @param  wrapAround     A boolean value indicating whether to consider columns at
                               the border of a dimensions to be adjacent to columns at the
                               other end of the dimension. For example, if the columns are
                               layed out in one deimnsion, columns 1 and 10 will be
                               considered adjacent if wrapAround is set to true:
-                              [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-              @param neighbors An int arrayof indices corresponding to the neighbors of a given column
+                              [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].
+
+              @param neighbors An int arrayof indices corresponding to the neighbors of a given column.
           */
           void getNeighbors1D_(UInt column, vector<UInt>& dimensions,
                                UInt radius, bool wrapAround,
@@ -906,6 +1001,7 @@ namespace nta {
 
           /**
               Returns a list of indices corresponding to the neighbors of a given column.
+
               Since the permanence values are stored in such a way that information about
               toplogy is lost, this method allows for reconstructing the toplogy of the
               inputs, which are flattened to one array. Given a column's index, its
@@ -916,22 +1012,25 @@ namespace nta {
               for spatial pooler implementations that only require a two-dimensional
               topology.
 
-              ----------------------------
               @param column   An integer number. The index identifying a column in the permanence, potential
                               and connectivity matrices.
+
               @param  dimensions     An int array containg a dimensions for the column space. A 2x3
                               grid will be represented by [2,3].
+
               @param  radius      An integer number Indicates how far away from a given column are other
                               columns to be considered its neighbors. In the previous 2x3
                               example, each column with coordinates:
                               [2+/-radius, 3+/-radius] is considered a neighbor.
+
               @param  wrapAround     A boolean value indicating whether to consider columns at
                               the border of a dimensions to be adjacent to columns at the
                               other end of the dimension. For example, if the columns are
                               layed out in one deimnsion, columns 1 and 10 will be
                               considered adjacent if wrapAround is set to true:
-                              [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-              @param neighbors An int array of indices corresponding to the neighbors of a given column
+                              [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].
+
+              @param neighbors An int array of indices corresponding to the neighbors of a given column.
           */          
           void getNeighbors2D_(UInt column, vector<UInt>& dimensions,
                                UInt radius, bool wrapAround,
@@ -940,8 +1039,10 @@ namespace nta {
                                  vector<vector<UInt> >& product);
 
           /**
-              Similar to _getNeighbors1D and _getNeighbors2D, this function Returns a
-              list of indices corresponding to the neighbors of a given column. Since the
+              Similar to _getNeighbors1D and _getNeighbors2D, this function returns a
+              list of indices corresponding to the neighbors of a given column. 
+
+              Since the
               permanence values are stored in such a way that information about toplogy
               is lost. This method allows for reconstructing the toplogy of the inputs,
               which are flattened to one array. Given a column's index, its neighbors are
@@ -951,19 +1052,23 @@ namespace nta {
               ----------------------------
               @param column   An integer number. The index identifying a column in the permanence, potential
                               and connectivity matrices.
+
               @param  dimensions     An int array containg a dimensions for the column space. A 2x3
                               grid will be represented by [2,3].
+
               @param  radius      An integer number Indicates how far away from a given column are other
                               columns to be considered its neighbors. In the previous 2x3
                               example, each column with coordinates:
                               [2+/-radius, 3+/-radius] is considered a neighbor.
+
               @param  wrapAround     A boolean value indicating whether to consider columns at
                               the border of a dimensions to be adjacent to columns at the
                               other end of the dimension. For example, if the columns are
                               layed out in one deimnsion, columns 1 and 10 will be
                               considered adjacent if wrapAround is set to true:
-                              [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-              @param neighbors An int arrayof indices corresponding to the neighbors of a given column
+                              [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].
+
+              @param neighbors An int arrayof indices corresponding to the neighbors of a given column.
           */          
           void getNeighborsND_(UInt column, vector<UInt>& dimensions,
                                UInt radius, bool wrapAround,
@@ -971,7 +1076,9 @@ namespace nta {
 
 
           /**
-              The primary method in charge of learning. Adapts the permanence values of
+              The primary method in charge of learning. 
+
+              Adapts the permanence values of
               the synapses based on the input vector, and the chosen columns after
               inhibition round. Permanence values are increased for synapses connected to
               input bits that are turned on, and decreased for synapses connected to
@@ -981,6 +1088,7 @@ namespace nta {
               @param inputVector    an int array of 0's and 1's that comprises the input to
                               the spatial pooler. There exists an entry in the array
                               for every input bit.
+
               @param  activeColumns  an int vector containing the indices of the columns that
                               survived inhibition.
                     */
@@ -1013,7 +1121,8 @@ namespace nta {
               radius. This function supports an arbitrary number of dimensions. If the
               number of column dimensions does not match the number of input dimensions,
               we treat the missing, or phantom dimensions as 'ones'.
-              @returns real number of the average number of columns per input,
+
+              @returns real number of the average number of columns per input.
           */
           Real avgColumnsPerInput_();
 
@@ -1021,10 +1130,9 @@ namespace nta {
               The range of connected synapses for column. This is used to
               calculate the inhibition radius. This variation of the function only
               supports a 1 dimensional column toplogy.
-
-              ----------------------------
+              
               @param column An int number identifying a column in the permanence, potential
-                              and connectivity matrices,
+                              and connectivity matrices.
           */
           Real avgConnectedSpanForColumn1D_(UInt column);
 
@@ -1033,9 +1141,8 @@ namespace nta {
               This vaule is used to calculate the inhibition radius. This variation of
               the  function only supports a 2 dimensional column topology.
 
-              ----------------------------
               @param column An int number identifying a column in the permanence, potential
-                              and connectivity matrices,
+                              and connectivity matrices.
           */          
           Real avgConnectedSpanForColumn2D_(UInt column);
 
@@ -1045,9 +1152,8 @@ namespace nta {
               This vaule is used to calculate the inhibition radius. This variation of
               the function supports arbitrary column dimensions.
 
-              ----------------------------
               @param column An int number identifying a column in the permanence, potential
-                              and connectivity matrices,
+                              and connectivity matrices.
           */                       
           Real avgConnectedSpanForColumnND_(UInt column);
 
@@ -1091,8 +1197,10 @@ namespace nta {
 
               ----------------------------
               @param dutyCycles     A real array containing one or more duty cycle values that need
-                              to be updated
-              @param newInput      A int vector used to update the duty cycle
+                              to be updated.
+
+              @param newInput      A int vector used to update the duty cycle.
+
               @param period         A int number indicating the period of the duty cycle
           */        
           static  void updateDutyCyclesHelper_(vector<Real>& dutyCycles,
@@ -1105,11 +1213,11 @@ namespace nta {
           ACTIVITY duty cycles is a moving average of the frequency of activation for
           each column.
 
-          ----------------------------
           @param overlaps       an int vector containing the overlap score for each column.
                           The overlap score for a column is defined as the number
                           of synapses in a "connected state" (connected synapses)
                           that are connected to input bits which are turned on.
+
           @param activeArra  An int array containing the indices of the active columns,
                           the sprase set of columns which survived inhibition
           */            
@@ -1145,8 +1253,6 @@ namespace nta {
           /**
           Updates counter instance variables each round.
 
-            Parameters:
-            ----------------------------
             @param learn          a boolean value indicating whether learning should be
                             performed. Learning entails updating the  permanence
                             values of the synapses, and hence modifying the 'state'
@@ -1156,8 +1262,6 @@ namespace nta {
           void updateBookeepingVars_(bool learn);
 
           /**
-          returns true if the enough rounds have passed to warrant updates of
-          duty cycles          
           @returns boolean value indicating whether enough rounds have passed to warrant updates of
           duty cycles          
           */
@@ -1165,6 +1269,7 @@ namespace nta {
 
           /**
           Initialize the random seed
+          
           @param seed 64bit int of random seed
           */
           void seed_(UInt64 seed);
