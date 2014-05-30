@@ -1190,11 +1190,14 @@ namespace nta {
               minPctDutyCycleBeforeInh, minPctDutyCycleAfterInh, etc. returns
               the updated duty cycle. Duty cycles are updated according to the following
               formula:
+              @verbatim
+
 
                             (period - 1)*dutyCycle + newValue
                 dutyCycle := ----------------------------------
                                         period
-
+              @endverbatim 
+              
               ----------------------------
               @param dutyCycles     A real array containing one or more duty cycle values that need
                               to be updated.
@@ -1236,6 +1239,7 @@ namespace nta {
               have been active. The more infrequent, the more they are boosted. The exact
               boost factor is linearly interpolated between the points (dutyCycle:0,
               boost:maxFiringBoost) and (dutyCycle:minDuty, boost:1.0).
+              @verbatim
 
                       boostFactor
                           ^
@@ -1247,6 +1251,7 @@ namespace nta {
                           +--------------------> activeDutyCycle
                              |
                       minActiveDutyCycle
+              @endverbatim 
             */
           void updateBoostFactors_();
 
