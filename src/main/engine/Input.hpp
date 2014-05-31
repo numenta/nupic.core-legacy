@@ -193,7 +193,7 @@ namespace nta
 
     /** 
      * 
-     * Tells whether the input is region level, i.e. TODO
+     * Tells whether the input is region level.
      * 
      * @returns
      *     Whether the input is region level, i.e. TODO
