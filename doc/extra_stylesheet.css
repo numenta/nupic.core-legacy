@@ -11,7 +11,7 @@ code {
   padding: 0;
 }
 
-code, pre.fragment {
+code, pre.fragment, em {
   font-family: Consolas, "Liberation Mono", Courier, monospace;
   font-size: 12px;
 }
