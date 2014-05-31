@@ -133,12 +133,28 @@ namespace nta
    * @}
    */
 
-  /** TODO: document */
+  /** 
+   * This enum represents the documented logging level of the debug logger. 
+   * 
+   * Use it like `LDEBUG(nta::LogLevel_XXX)`.
+   */
   enum LogLevel
   {
+    /**
+     * Log level: None.
+     */
     LogLevel_None = NTA_LogLevel_None,
+    /**
+     * Log level: Minimal.
+     */
     LogLevel_Minimal,
+    /**
+     * Log level: Normal.
+     */
     LogLevel_Normal,
+    /**
+     * Log level: Verbose.
+     */
     LogLevel_Verbose,
   };
 

@@ -335,20 +335,29 @@ typedef  unsigned long       NTA_UInt64;
 #define NTA_EXPORT
 #endif
 
-/** This enum represents the documented logging level
- * of the debug logger. Use @c LDEBUG(NTA_LogLevel_XXX)
+/** 
+ * This enum represents the documented logging level of the debug logger. 
+ * 
+ * Use it like `LDEBUG(NTA_LogLevel_XXX)`.
  */
 typedef enum NTA_LogLevel
   {
-    /** TODO: document */
+    /**
+     * Log level: None.
+     */
     NTA_LogLevel_None,
-    /** TODO: document */
+    /**
+     * Log level: Minimal.
+     */
     NTA_LogLevel_Minimal,
-    /** TODO: document */
+    /**
+     * Log level: Normal.
+     */
     NTA_LogLevel_Normal,
-    /** TODO: document */
+    /**
+     * Log level: Verbose.
+     */
     NTA_LogLevel_Verbose,
-    /** TODO: document */
   } NTA_LogLevel;
 
 #endif /* NTA_TYPES_H */
