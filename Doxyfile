@@ -309,7 +309,7 @@ AUTOLINK_SUPPORT       = YES
 # diagrams that involve STL classes more complete and accurate.
 # The default value is: NO.
 
-BUILTIN_STL_SUPPORT    = NO
+BUILTIN_STL_SUPPORT    = YES
 
 # If you use Microsoft's C++/CLI language, you should set this option to YES to
 # enable parsing support.
@@ -762,8 +762,8 @@ INPUT                  = doc \
                          src/main/engine/Output.hpp \
                          src/main/engine/Input.hpp \
                          src/main/ntypes/Dimensions.hpp \
-                         src/main/types/types.h \
-                         src/main/types/types.hpp
+                         src/main/types/Types.h \
+                         src/main/types/Types.hpp
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding. Doxygen uses
