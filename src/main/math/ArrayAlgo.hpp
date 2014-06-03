@@ -66,7 +66,7 @@ namespace nta {
 			SSE41=1<<19,
 			SSE42=1<<20;
 #ifdef NTA_ASM
-#ifdef NTA_PLATFORM_win32
+  #ifdef NTA_PLATFORM_win32
     unsigned int f = 1;
     __asm {
       mov eax, f
@@ -74,8 +74,8 @@ namespace nta {
         mov c, ecx
         mov d, edx
         }
-# TODO: enable ASM SSE check for 64bit and linux too           
-#elif defined(NTA_PLATFORM_darwin86)
+
+  #elif defined(NTA_PLATFORM_darwin86)
 
     unsigned int a = 0,b = 0, f = 1;
 
@@ -89,8 +89,25 @@ namespace nta {
                          : "a" (f)
                          : "cc"
                          );
-#endif
+
+#elif defined(NTA_PLATFORM_linux64) || defined(NTA_PLATFORM_darwin64)
+
+    __asm__ __volatile__ (
+                         "pushq  %%rbx\n\t"
+
+                         "movl   $1, %%eax\n\t"
+                         "cpuid\n\t"
+                         "movl   %%ecx, %0\n\t"
+                         "movl   %%edx, %1\n\t"
+
+                         "popq  %%rbx\n\t"
+                         : "=c" (c), "=d" (d)
+                         :
+                         :
+			 );
+  #endif //NTA_PLATFORM_win32
 #endif //NTA_ASM
+
     int ret = -1;
     if (d & SSE) ret = 1;
     if (d & SSE2) ret = 2;
@@ -202,7 +219,7 @@ namespace nta {
    * arrays.
    *
    * TODO: find 16 bytes aligned block that can be sent to SSE.
-   * TODO: support other platforms than just darwin86 for the fast path.
+   * TODO: support win32/win64 for the fast path.
    * TODO: can we go faster if working on ints rather than floats?
    */
   template <typename InputIterator>
@@ -218,7 +235,7 @@ namespace nta {
     // const int SSE_LEVEL. 
     if (SSE_LEVEL >= 41) { // ptest is a SSE 4.1 instruction
 
-  // On win32, the asm syntax is not correct.
+    // On win32, the asm syntax is not correct.
 #if defined(NTA_PLATFORM_darwin86) && defined(NTA_ASM)
 
       // n is the total number of floats to process.
@@ -232,7 +249,7 @@ namespace nta {
     
       if (n1 > 0) {
 
-        asm volatile(
+        __asm__ __volatile__(
                      "pusha\n\t" // save all registers
 
                      // fill xmm4 with all 1's,
@@ -285,7 +302,73 @@ namespace nta {
           return false;
       return true;
 
-#else // darwin
+#elif (defined(NTA_PLATFORM_linux64) || defined(NTA_PLATFORM_darwin64)) && defined(NTA_ASM)
+
+      // n is the total number of floats to process.
+      // n1 is the number of floats we can process in parallel using SSE.
+      // If x is not aligned on a 4 bytes boundary, we eschew all asm.
+      int result = 0;
+      int n = (int)(x_end - x);
+      int n1 = 0;
+
+      if (((long)x) % 16 == 0)
+        n1 = 8 * (n / 8); // we are going to process 2x4 floats at a time
+
+      if (n1 > 0) {
+
+        __asm__ __volatile__(
+                     // fill xmm4 with all 1's,
+                     // our mask to detect if there are on bits
+                     // in the vector or not
+                     "subq $16, %%rsp\n\t" // allocate 4 floats on the stack
+                     "movl $0xffffffff, (%%rsp)\n\t" // copy mask 4 times,
+                     "movl $0xffffffff, 4(%%rsp)\n\t" // then move 16 bytes at once
+                     "movl $0xffffffff, 8(%%rsp)\n\t" // using movaps
+                     "movl $0xffffffff, 12(%%rsp)\n\t"
+                     "movaps (%%rsp), %%xmm4\n\t"
+                     "addq $16, %%rsp\n\t" // deallocate 4 floats on the stack
+
+                     "0:\n\t"
+                     // rsi and rdi point to the same x, but staggered, so
+                     // that we can load 2x4 bytes into xmm0 and xmm1
+                     "movaps (%%rdi), %%xmm0\n\t" // move 4 floats from x
+                     "movaps (%%rsi), %%xmm1\n\t" // move another 4 floats from same x
+                     "ptest %%xmm4, %%xmm0\n\t"   // ptest first 4 floats, in xmm0
+                     "jne 1f\n\t" // jump if ZF = 0, some bit is not zero
+                     "ptest %%xmm4, %%xmm1\n\t"   // ptest second 4 floats, in xmm1
+                     "jne 1f\n\t" // jump if ZF = 0, some bit is not zero
+
+                     "addq $32, %%rdi\n\t"  // jump over 4 floats
+                     "addq $32, %%rsi\n\t"  // and another 4 floats here
+                     "subq $8, %%rcx\n\t" // processed 8 floats
+                     "ja 0b\n\t"
+
+                     "movl $0, %0\n\t" // didn't find anything, result = 0 (int)
+                     "jmp 2f\n\t" // exit
+
+                     "1:\n\t" // found something
+                     "movl $0x1, %0\n\t" // result = 1 (int)
+
+                     "2:\n\t" // exit
+
+                     : "=m" (result), "=D" (x)
+                     : "D" (x), "S" (x+4), "c" (n1)
+                     :
+                     );
+
+        if (result == 1)
+          return false;
+        else
+          return true;
+      } // n1>0 end
+
+      // Revert to slow c++ version if array is not on 16 byte boundary
+      for (; x != x_end; ++x)
+        if (*x > 0)
+          return false;
+      return true;
+
+#else
     for (; x != x_end; ++x)
       if (*x > 0)
         return false;
@@ -313,7 +396,6 @@ namespace nta {
 
     // On win32, the asm syntax is not correct.
 #if defined(NTA_ASM) && defined(NTA_PLATFORM_darwin86)
-
     // This test can be moved to compile time using a template with an int
     // parameter, and partial specializations that will match the static
     // const int SSE_LEVEL. 
@@ -330,7 +412,7 @@ namespace nta {
     
       if (n1 > 0) {
 
-        asm volatile(
+        __asm__ __volatile__(
                      "pusha\n\t" // save all registers
 
                      // fill xmm4 with all 1's,
@@ -382,15 +464,81 @@ namespace nta {
         if (*(x_beg+i) > 0)
           return false;
       return true;
-    
-    } else {
+
+#elif (defined(NTA_PLATFORM_linux64) || defined(NTA_PLATFORM_darwin64)) && defined(NTA_ASM)
+
+      // n is the total number of floats to process.
+      // n1 is the number of floats we can process in parallel using SSE.
+      // If x is not aligned on a 4 bytes boundary, we eschew all asm.
+      int result = 0;
+      int n = (int)(x_end - x_beg);
+      int n1 = 0;
+      if (((long)x_beg) % 16 == 0)
+        n1 = 32 * (n / 32); // we are going to process 32 bytes at a time
+
+      if (n1 > 0) {
+
+        __asm__ __volatile__(
+                     // fill xmm4 with all 1's,
+                     // our mask to detect if there are on bits
+                     // in the vector or not
+                     "subq $16, %%rsp\n\t" // allocate 4 floats on the stack
+                     "movq $0xffffffff, (%%rsp)\n\t" // copy mask 4 times,
+                     "movq $0xffffffff, 4(%%rsp)\n\t" // then move 16 bytes at once
+                     "movq $0xffffffff, 8(%%rsp)\n\t" // using movaps
+                     "movq $0xffffffff, 12(%%rsp)\n\t"
+                     "movaps (%%rsp), %%xmm4\n\t"
+                     "addq $16, %%rsp\n\t" // deallocate 4 floats on the stack
+
+                     "0:\n\t"
+                     // rsi and rdi point to the same x, but staggered, so
+                     // that we can load 2x4 bytes into xmm0 and xmm1
+                     "movaps (%%rdi), %%xmm0\n\t" // move 4 floats from x
+                     "movaps (%%rsi), %%xmm1\n\t" // move another 4 floats from same x
+                     "ptest %%xmm4, %%xmm0\n\t"   // ptest first 4 floats, in xmm0
+                     "jne 1f\n\t" // jump if ZF = 0, some bit is not zero
+                     "ptest %%xmm4, %%xmm1\n\t"   // ptest second 4 floats, in xmm1
+                     "jne 1f\n\t" // jump if ZF = 0, some bit is not zero
+
+                     "addq $32, %%rdi\n\t"  // jump 32 bytes (16 in xmm0 + 16 in xmm1)
+                     "addq $32, %%rsi\n\t"  // and another 32 bytes
+                     "subq $32, %%rcx\n\t" // processed 32 bytes
+                     "ja 0b\n\t"
+
+                     "movl $0, %0\n\t" // didn't find anything, result = 0 (int)
+                     "jmp 2f\n\t" // exit
+
+                     "1:\n\t" // found something
+                     "movl $0x1, %0\n\t" // result = 1 (int)
+
+                     "2:\n\t" // exit
+                     "popa\n\t" // restore all registers
+
+                     : "=m" (result), "=D" (x_beg)
+                     : "D" (x_beg), "S" (x_beg + 16), "c" (n1)
+                     :
+                     );
+
+        if (result == 1)
+          return false;
+        else
+          return true;
+      }
+
+      // if n1 is not on a 32 byte boundary then use slower code
+      for (; x_beg != x_end; ++x_beg)
+        if (*x_beg > 0)
+          return false;
+      return true;
+#else
+    } else {   // SSE 4.1
     
       for (; x_beg != x_end; ++x_beg)
         if (*x_beg > 0)
           return false;
       return true;
     }
-#else
+
     for (; x_beg != x_end; ++x_beg)
       if (*x_beg > 0)
         return false;
@@ -3594,7 +3742,7 @@ namespace nta {
    * of the elements in the range, and it requires passing in a Python arrays 
    * that are .astype(float32).
    * 
-   * Doesn't work for 64 bits platforms, doesn't work on win32.
+   * Doesn't work on win32.
    */
   inline nta::UInt32
   count_gt(nta::Real32* begin, nta::Real32* end, nta::Real32 threshold)
@@ -3603,8 +3751,6 @@ namespace nta {
 
     // Need this, because the asm syntax is not correct for win32, 
     // we simply can't compile the code as is on win32.
-    // this code does not pass the count_gt test with LLVM
-#ifdef NTA_PLATFORM_darwin86_disabled
 
     // Need this, because even on darwin86, some older machines might 
     // not have the right SSE instructions.
@@ -3622,17 +3768,19 @@ namespace nta {
       int n0 = (int)(start - begin);
       int n1 = 4 * ((end - start) / 4);
       int n2 = (int)(end - start - n1);
-    
-      asm volatile(
-                   // Prepare various xmm registers, storing the value of the 
-                   // threshold and the value 1: with xmm, we will operate on 
+
+
+#if defined(NTA_PLATFORM_darwin86_disabled)
+      __asm__ __volatile__(
+                   // Prepare various xmm registers, storing the value of the
+                   // threshold and the value 1: with xmm, we will operate on
                    // 4 floats at a time, so we replicate threshold 4 times in
                    // xmm1, and 4 times again in xmm2. The operations will be in
                    // parallel.
                    "subl $16, %%esp\n\t"            // allocate 4 floats on stack
 
                    "movl %%eax, (%%esp)\n\t"        // copy threshold to 4 locations
-                   "movl %%eax, 4(%%esp)\n\t"       // on stack: we want threshold 
+                   "movl %%eax, 4(%%esp)\n\t"       // on stack: we want threshold
                    "movl %%eax, 8(%%esp)\n\t"       // to be filling xmm1 and xmm2
                    "movl %%eax, 12(%%esp)\n\t"      // (operate on 4 floats at a time)
                    "movaps (%%esp), %%xmm1\n\t"     // move 4 thresholds into xmm1
@@ -3642,17 +3790,17 @@ namespace nta {
                    "movl $0x3f800000, 4(%%esp)\n\t" // we want to have that constant
                    "movl $0x3f800000, 8(%%esp)\n\t" // 8 times, in xmm3 and xmm4,
                    "movl $0x3f800000, 12(%%esp)\n\t"// since the xmm4 registers allow
-                   "movaps (%%esp), %%xmm3\n\t"     // us to operate on 4 floats at 
+                   "movaps (%%esp), %%xmm3\n\t"     // us to operate on 4 floats at
                    "movaps (%%esp), %%xmm4\n\t"     // a time
 
                    "addl $16, %%esp\n\t"            // deallocate 4 floats on stack
-                   
+
                    "xorps %%xmm5, %%xmm5\n\t"       // set xmm5 to 0
 
                    // Loop over individual floats till we reach the right alignment
                    // that was computed in n0. If we don't start handling 4 floats
                    // at a time with SSE on a 4 bytes boundary, we get a crash
-                   // in movaps (here, we use only movss, moving only 1 float at a 
+                   // in movaps (here, we use only movss, moving only 1 float at a
                    // time).
                    "0:\n\t"
                    "test %%ecx, %%ecx\n\t"          // if n0 == 0, jump to next loop
@@ -3662,12 +3810,12 @@ namespace nta {
                    "cmpss $1, %%xmm0, %%xmm1\n\t"   // compare to threshold
                    "andps %%xmm1, %%xmm3\n\t"       // and with all 1s
                    "addss %%xmm3, %%xmm5\n\t"       // add result to xmm5 (=count!)
-                   "movaps %%xmm2, %%xmm1\n\t"      // restore threshold in xmm1 
+                   "movaps %%xmm2, %%xmm1\n\t"      // restore threshold in xmm1
                    "movaps %%xmm4, %%xmm3\n\t"      // restore all 1s in xmm3
                    "addl $4, %%esi\n\t"             // move to next float (4 bytes)
                    "decl %%ecx\n\t"                 // decrement ecx, which started at n0
                    "ja 0b\n\t"                      // jump if not done yet
-                   
+
                    // Loop over 4 floats at a time: this time, we have reached
                    // the proper alignment for movaps, so we can operate in parallel
                    // on 4 floats at a time. The code is the same as the previous loop
@@ -3683,23 +3831,23 @@ namespace nta {
                    "movaps %%xmm2, %%xmm1\n\t"
                    "movaps %%xmm4, %%xmm3\n\t"
                    "addl $16, %%esi\n\t"            // jump over 4 floats
-                   "subl $4, %%edx\n\t"             // decrement edx (n1) by 4 
+                   "subl $4, %%edx\n\t"             // decrement edx (n1) by 4
                    "ja 1b\n\t"
-                   
-                   // Tally up count so far into last float of xmm5: we were 
-                   // doing operations in parallels on the 4 floats in the xmm 
+
+                   // Tally up count so far into last float of xmm5: we were
+                   // doing operations in parallels on the 4 floats in the xmm
                    // registers, resulting in 4 partial counts in xmm5.
                    "xorps %%xmm0, %%xmm0\n\t"
                    "haddps %%xmm0, %%xmm5\n\t"
                    "haddps %%xmm0, %%xmm5\n\t"
-                   
+
                    // Last loop, for stragglers in case the array is not evenly
                    // divisible by 4. We are back to operating on a single float
                    // at a time, using movss and addss.
                    "2:\n\t"
                    "test %%edi, %%edi\n\t"
                    "jz 3f\n\t"
-               
+
                    "movss (%%esi), %%xmm0\n\t"
                    "cmpss $1, %%xmm0, %%xmm1\n\t"
                    "andps %%xmm1, %%xmm3\n\t"
@@ -3709,24 +3857,136 @@ namespace nta {
                    "addl $4, %%esi\n\t"
                    "decl %%edi\n\t"
                    "ja 0b\n\t"
-  
+
                    // Push result from xmm5 to variable count in memory.
                    "3:\n\t"
                    "movss %%xmm5, %0\n\t"
 
                    : "=m" (count)
                    : "S" (begin), "a" (threshold), "c" (n0), "d" (n1), "D" (n2)
-                   : 
+                   :
                    );
-  
+
       return (int) count;
-    
+
+#elif defined(NTA_PLATFORM_darwin64) || defined(NTA_PLATFORM_linux64)
+
+    #if defined(NTA_PLATFORM_darwin64)
+
+      // DO NOT CHANGE THESE NEXT TWO LINES, OTHERWISE THE ASM CODE BELOW WILL BREAK.
+      // 'localThreshold' MUST BE STATIC!! Must always assign threshold to localThreshold also!
+      static float localThreshold;
+      localThreshold = threshold;
+    #endif
+
+      __asm__ __volatile__(
+
+    #if defined(NTA_PLATFORM_darwin64)
+		   // We need to access localThreshold by it's mangled name here because g++ and
+                   // clang++ do things differently on OS X. They clobber eax by the time they
+                   // get here and 'threshold' is not properly loaded into rax by the constraint
+                   // at the end of this asm snippet. This means we need to use 'rip relative'
+                   // addressing to access a 'static' variable (a global would also work) here
+                   // and then load it into eax manually. Then things work fine.
+                   "movq  __ZZN3nta8count_gtEPfS0_fE14localThreshold@GOTPCREL(%%rip), %%r11\n\t"
+                   "movl  (%%r11), %%eax\n\t"
+    #endif
+
+                   "subq $16, %%rsp\n\t"            // allocate 4 floats on stack
+                   "movl %%eax, (%%rsp)\n\t"        // copy threshold to 4 locations
+                   "movl %%eax, 4(%%rsp)\n\t"       // on stack: we want threshold
+                   "movl %%eax, 8(%%rsp)\n\t"       // to be filling xmm1 and xmm
+                   "movl %%eax, 12(%%rsp)\n\t"      // (operate on 4 floats at a time)
+                   "movaps (%%rsp), %%xmm1\n\t"     // move 4 thresholds into xmm1
+                   "movaps %%xmm1, %%xmm2\n\t"      // copy 4 thresholds to xmm2
+
+                   "movl $0x3f800000, (%%rsp)\n\t"  // $0x3f800000 = (float) 1.0
+                   "movl $0x3f800000, 4(%%rsp)\n\t" // we want to have that constant
+                   "movl $0x3f800000, 8(%%rsp)\n\t" // 8 times, in xmm3 and xmm4,
+                   "movl $0x3f800000, 12(%%rsp)\n\t"// since the xmm4 registers allow
+                   "movaps (%%rsp), %%xmm3\n\t"     // us to operate on 4 floats at
+                   "movaps (%%rsp), %%xmm4\n\t"     // a time
+
+                   "addq $16, %%rsp\n\t"            // deallocate 4 floats on stack
+
+                   "xorps %%xmm5, %%xmm5\n\t"       // set xmm5 to 0
+
+                   // Loop over individual floats till we reach the right alignment
+                   // that was computed in n0. If we don't start handling 4 floats
+                   // at a time with SSE on a 4 bytes boundary, we get a crash
+                   // in movaps (here, we use only movss, moving only 1 float at a
+                   // time).
+                   "0:\n\t"
+                   "test %%rcx, %%rcx\n\t"          // if n0 == 0, jump to next loop
+                   "jz 1f\n\t"
+
+                   "movss (%%rsi), %%xmm0\n\t"      // move a single float to xmm0
+                   "cmpss $1, %%xmm0, %%xmm1\n\t"   // compare to threshold
+                   "andps %%xmm1, %%xmm3\n\t"       // and with all 1s
+                   "addss %%xmm3, %%xmm5\n\t"       // add result to xmm5 (=count!)
+                   "movaps %%xmm2, %%xmm1\n\t"      // restore threshold in xmm1
+                   "movaps %%xmm4, %%xmm3\n\t"      // restore all 1s in xmm3
+                   "addq $4, %%rsi\n\t"             // move to next float (4 bytes)
+                   "decq %%rcx\n\t"                 // decrement rcx, which started at n0
+                   "ja 0b\n\t"                      // jump if not done yet
+
+                   // Loop over 4 floats at a time: this time, we have reached
+                   // the proper alignment for movaps, so we can operate in parallel
+                   // on 4 floats at a time. The code is the same as the previous loop
+                   // except that the "ss" instructions are now "ps" instructions.
+                   "1:\n\t"
+                   "test %%rdx, %%rdx\n\t"
+                   "jz 2f\n\t"
+
+                   "movaps (%%rsi), %%xmm0\n\t"     // note movaps, not movss
+                   "cmpps $1, %%xmm0, %%xmm1\n\t"
+                   "andps %%xmm1, %%xmm3\n\t"
+                   "addps %%xmm3, %%xmm5\n\t"       // addps, not addss
+                   "movaps %%xmm2, %%xmm1\n\t"
+                   "movaps %%xmm4, %%xmm3\n\t"
+                   "addq $16, %%rsi\n\t"            // jump over 4 floats
+                   "subq $4, %%rdx\n\t"             // decrement rdx (n1) by 4
+                   "ja 1b\n\t"
+
+                   // Tally up count so far into last float of xmm5: we were
+                   // doing operations in parallels on the 4 floats in the xmm
+                   // registers, resulting in 4 partial counts in xmm5.
+                   "xorps %%xmm0, %%xmm0\n\t"
+                   "haddps %%xmm0, %%xmm5\n\t"
+                   "haddps %%xmm0, %%xmm5\n\t"
+
+                   // Last loop, for stragglers in case the array is not evenly
+                   // divisible by 4. We are back to operating on a single float
+                   // at a time, using movss and addss.
+                   "2:\n\t"
+                   "test %%rdi, %%rdi\n\t"
+                   "jz 3f\n\t"
+
+                   "movss (%%rsi), %%xmm0\n\t"
+                   "cmpss $1, %%xmm0, %%xmm1\n\t"
+                   "andps %%xmm1, %%xmm3\n\t"
+                   "addss %%xmm3, %%xmm5\n\t"
+                   "movaps %%xmm2, %%xmm1\n\t"
+                   "movaps %%xmm4, %%xmm3\n\t"
+                   "addq $4, %%rsi\n\t"
+                   "decq %%rdi\n\t"
+                   "ja 0b\n\t"
+
+                   // Push result from xmm5 to variable count in memory.
+                   "3:\n\t"
+                   "movss %%xmm5, %0\n\t"
+
+                   : "=m" (count)
+                   : "S" (begin), "a" (threshold), "c" (n0), "d" (n1), "D" (n2)
+                   :
+                   );
+
+      return (int) count;
+
+#endif
     } else {
       return std::count_if(begin, end, std::bind2nd(std::greater<nta::Real32>(), threshold));
     }
-#else
-    return std::count_if(begin, end, std::bind2nd(std::greater<nta::Real32>(), threshold));
-#endif
   }
 
   //--------------------------------------------------------------------------------
@@ -4780,10 +5040,10 @@ namespace nta {
    * reverts to slow C++. This can happen when using it with slices of numpy
    * arrays.
    *
-   * Doesn't work on 64 bits platforms, doesn't work on win32.
+   * Doesn't work on win32/win64.
    *
    * TODO: find 16 bytes aligned block that can be sent to SSE.
-   * TODO: support other platforms than just darwin86 for the fast path.
+   * TODO: support win32/win64 for the fast path.
    */
   template <typename InputIterator, typename OutputIterator>
   inline void logical_and(InputIterator x, InputIterator x_end,
@@ -4797,7 +5057,7 @@ namespace nta {
 
     // See comments in count_gt. We need both conditional compilation and 
     // SSE_LEVEL check.
-#ifdef NTA_PLATFORM_darwin86
+#if defined(NTA_PLATFORM_darwin86) || defined(NTA_PLATFORM_darwin64) || defined(NTA_PLATFORM_linux64)
 
     if (SSE_LEVEL >= 3) {
 
@@ -4809,12 +5069,13 @@ namespace nta {
       int n1 = 0;
       if (((long)x) % 16 == 0 && ((long)y) % 16 == 0 && ((long)z) % 16 == 0)
         n1 = 16 * (n / 16);
-    
+
       // If we are not aligned on 4 bytes, n1 == 0, and we simply
       // skip the asm. 
       if (n1 > 0) { 
 
-        asm volatile(
+  #ifdef NTA_PLATFORM_darwin86
+        __asm__ __volatile__(
                      "pusha\n\t"                   // save all registers
                  
                      "0:\n\t"
@@ -4844,6 +5105,47 @@ namespace nta {
                      : "S" (x), "D" (y), "c" (z), "d" (n1)
                      : 
                      );
+
+  #elif defined(NTA_PLATFORM_darwin64) || defined(NTA_PLATFORM_linux64)
+        __asm__ __volatile__(
+                     "pushq %%rsi\n\t"             // save affected registers
+                     "pushq %%rdi\n\t"             // this 'shouldn't' be necessary
+                     "pushq %%rcx\n\t"             // but I was seeing some random
+                     "pushq %%rdx\n\t"             // crashes on OS X. Remove?
+
+                     "0:\n\t"
+                     "movaps (%%rsi), %%xmm0\n\t"  // move 4 floats of x to xmm0
+                     "andps (%%rdi), %%xmm0\n\t"   // parallel and with 4 floats of y
+                     "movaps 16(%%rsi), %%xmm1\n\t"// play again with next 4 floats
+                     "andps 16(%%rdi), %%xmm1\n\t"
+                     "movaps 32(%%rsi), %%xmm2\n\t"// and next 4 floats
+                     "andps 32(%%rdi), %%xmm2\n\t"
+                     "movaps 48(%%rsi), %%xmm3\n\t"// and next 4 floats: we've and'ed
+                     "andps 48(%%rdi), %%xmm3\n\t" // 16 floats of x and y at this point
+
+                     "movaps %%xmm0, (%%rcx)\n\t"  // simply move 4 floats at a time to z
+                     "movaps %%xmm1, 16(%%rcx)\n\t"// and next 4 floats
+                     "movaps %%xmm2, 32(%%rcx)\n\t"// and next 4 floats
+                     "movaps %%xmm3, 48(%%rcx)\n\t"// and next 4: moved 16 floats to z
+
+                     "addq $64, %%rsi\n\t"         // increment pointer into x by 16 floats
+                     "addq $64, %%rdi\n\t"         // increment pointer into y
+                     "addq $64, %%rcx\n\t"         // increment pointer into z
+                     "subq $16, %%rdx\n\t"         // we've processed 16 floats
+
+                     "ja 0b\n\t"                   // loop
+
+                     "popq %%rdx\n\t"              // restore saved registers
+                     "popq %%rcx\n\t"
+                     "popq %%rdi\n\t"
+                     "popq %%rsi\n\t"
+
+                     :
+                     : "S" (x), "D" (y), "c" (z), "d" (n1)
+                     :
+                     );
+
+  #endif
       }
 
       // Finish up for stragglers in case the array length was not 
@@ -4878,7 +5180,7 @@ namespace nta {
 
     // See comments in count_gt. We need conditional compilation
     // _AND_ SSE_LEVEL check.
-#ifdef NTA_PLATFORM_darwin86
+#if defined(NTA_PLATFORM_darwin86) || defined(NTA_PLATFORM_linux64) || defined(NTA_PLATFORM_darwin64)
 
     if (SSE_LEVEL >= 3) {
 
@@ -4890,7 +5192,8 @@ namespace nta {
     
       if (n1 > 0) {
 
-        asm volatile(
+  #if defined(NTA_PLATFORM_darwin86)
+        __asm__ __volatile__(
                      "pusha\n\t"
                  
                      "0:\n\t"
@@ -4919,6 +5222,44 @@ namespace nta {
                      : "S" (x), "D" (y), "d" (n1)
                      : 
                      );
+
+  #elif defined(NTA_PLATFORM_darwin64) || defined(NTA_PLATFORM_linux64)
+        __asm__ __volatile__(
+                     "pushq %%rsi\n\t"             // save affected registers
+                     "pushq %%rdi\n\t"
+                     "pushq %%rdx\n\t"
+
+                     "0:\n\t"
+                     "movaps (%%rsi), %%xmm0\n\t"
+                     "movaps 16(%%rsi), %%xmm1\n\t"
+                     "movaps 32(%%rsi), %%xmm2\n\t"
+                     "movaps 48(%%rsi), %%xmm3\n\t"
+
+                     "andps (%%rdi), %%xmm0\n\t"
+                     "andps 16(%%rdi), %%xmm1\n\t" // in place and
+                     "andps 32(%%rdi), %%xmm2\n\t"
+                     "andps 48(%%rdi), %%xmm3\n\t"
+
+                     "movaps %%xmm0, (%%rdi)\n\t"
+                     "movaps %%xmm1, 16(%%rdi)\n\t"
+                     "movaps %%xmm2, 32(%%rdi)\n\t"
+                     "movaps %%xmm3, 48(%%rdi)\n\t"
+
+                     "addq $64, %%rsi\n\t"         // increment pointer into x by 16 floats
+                     "addq $64, %%rdi\n\t"         // increment pointer into y
+                     "subq $16, %%rdx\n\t"         // we've processed 16 floats
+
+                     "ja 0b\n\t"                   // loop
+
+                     "popq %%rdx\n\t"              // restore saved registers
+                     "popq %%rdi\n\t"
+                     "popq %%rsi\n\t"
+
+                     :
+                     : "S" (x), "D" (y), "d" (n1)
+                     :
+                     );
+  #endif
       }
 
       for (int i = n1; i != n; ++i)
