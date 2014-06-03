@@ -119,7 +119,7 @@ namespace nta
     removeLink(Link* link);
 
     /**
-     * Tells whether the output has outgoing links, i.e. TODO
+     * Tells whether the output has outgoing links.
      * 
      * @note We cannot delete a region if there are any outgoing links
      * This allows us to check in Network.removeRegion() and Network.~Network().
@@ -144,7 +144,7 @@ namespace nta
 
     /** 
      * 
-     * Tells whether the output is region level, i.e. TODO
+     * Tells whether the output is region level.
      * 
      * @returns
      *     Whether the output is region level, i.e. TODO

@@ -21,7 +21,7 @@
  */
 
 /** @file
- * Basic C++ type definitions used throughout the app and rely on types.h
+ * Basic C++ type definitions used throughout `nupic.core` and rely on `Types.h`
  */
 
 #ifndef NTA_TYPES_HPP
@@ -33,45 +33,128 @@
 
 namespace nta 
 {
-  // Basic types
-  /** TODO: document */
+  /**
+   * @name Basic types
+   *
+   * @{
+   */
+
+  /**
+   * Represents a 8-bit byte.
+   */
   typedef NTA_Byte            Byte;
-  /** TODO: document */
+
+  /**
+   * Represents a 16-bit signed integer.
+   */
   typedef NTA_Int16           Int16;
-  /** TODO: document */
+
+  /**
+   * Represents a 16-bit unsigned integer.
+   */
   typedef NTA_UInt16          UInt16;
-  /** TODO: document */
+
+  /**
+   * Represents a 32-bit signed integer.
+   */
   typedef NTA_Int32           Int32;
-  /** TODO: document */
+
+  /**
+   * Represents a 32-bit unsigned integer.
+   */
   typedef NTA_UInt32          UInt32;
-  /** TODO: document */
+
+  /**
+   * Represents a 64-bit signed integer.
+   */
   typedef NTA_Int64           Int64;
-  /** TODO: document */
+
+  /**
+   * Represents a 64-bit unsigned integer.
+   */
   typedef NTA_UInt64          UInt64;
-  /** TODO: document */
+
+
+  /**
+   * Represents a 32-bit real number(a floating-point number).
+   */
   typedef NTA_Real32          Real32;
-  /** TODO: document */
+
+  /**
+   * Represents a 64-bit real number(a floating-point number).
+   */
   typedef NTA_Real64          Real64;
-  /** TODO: document */
+
+  /**
+   * Represents a opaque handle/pointer, same as `void *`
+   */
   typedef NTA_Handle          Handle;
 
-  // Flexible types (depending on NTA_DOUBLE_PROCESION and NTA_BIG_INTEGER)
-  /** TODO: document */
+  /**
+   * @}
+   */
+
+  /**
+   * @name Flexible types
+   * 
+   * The following are flexible types depending on `NTA_DOUBLE_PROCESION` and `NTA_BIG_INTEGER`.
+   *
+   * @{
+   * 
+   */
+  
+  /**
+   * Represents a real number(a floating-point number).
+   *
+   * Same as nta::Real64 if `NTA_DOUBLE_PROCESION` is defined, nta::Real32 otherwise.
+   */
   typedef NTA_Real Real;
-  /** TODO: document */
+
+  /**
+   * Represents a signed integer.
+   *
+   * Same as nta::Int64 if `NTA_BIG_INTEGER` is defined, nta::Int32 otherwise.
+   */
   typedef NTA_Int  Int;
-  /** TODO: document */
+
+  /**
+   * Represents a unsigned integer.
+   *
+   * Same as nta::UInt64 if `NTA_BIG_INTEGER` is defined, nta::UInt32 otherwise.
+   */
   typedef NTA_UInt UInt;
 
-  /** TODO: document */
+  /**
+   * Represents lengths of arrays, strings and so on.
+   */
   typedef NTA_Size            Size;
 
-  /** TODO: document */
+  /**
+   * @}
+   */
+
+  /** 
+   * This enum represents the documented logging level of the debug logger. 
+   * 
+   * Use it like `LDEBUG(nta::LogLevel_XXX)`.
+   */
   enum LogLevel
   {
+    /**
+     * Log level: None.
+     */
     LogLevel_None = NTA_LogLevel_None,
+    /**
+     * Log level: Minimal.
+     */
     LogLevel_Minimal,
+    /**
+     * Log level: Normal.
+     */
     LogLevel_Normal,
+    /**
+     * Log level: Verbose.
+     */
     LogLevel_Verbose,
   };
 
