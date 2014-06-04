@@ -311,6 +311,11 @@ message(STATUS "  LD flags: ${NTA_PLATFORM_LINKFLAGS}")
 message(STATUS "Checking software tools...")
 
 #
+# Gives the family of C++ compiler
+# 
+get_compiler_family(NTA_COMPILER_FAMILY)
+
+#
 # Gives the version of C++ compiler
 #
 execute_process(COMMAND ${CMAKE_CXX_COMPILER} -dumpversion
@@ -366,6 +371,7 @@ set(NTA_INCLUDEFLAGS "-I${PROJECT_BUILD_RELEASE_DIR}/include -isystem${REPOSITOR
 # NTA_INTERNAL tells us that the code is being built under the build system
 # and not as a separate program. Used for cppvision example.
 #
+# TODO: remove gcc/clang specific compiler options
 set(NTA_CXXFLAGS_BASE "${NTA_INCLUDEFLAGS} ${NTA_PLATFORM_CXXFLAGS} -DHAVE_CONFIG_H -DNTA_INTERNAL -DNTA_PLATFORM_${NTA_PLATFORM_OS} -DBOOST_NO_WREGEX -DNUPIC2 -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-unused-parameter")
 
 #
@@ -429,7 +435,7 @@ message(STATUS "  MPI Support: ${NTA_MPI_SUPPORT}")
 #
 # Compiler specific (clang, gcc, ..) flags can be set here
 #
-if(CMAKE_COMPILER_IS_GNUCXX)
+if(${NTA_COMPILER_FAMILY} EQUAL "gnu")
   set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -Wno-sign-compare -Wno-error=format=")
   set(NTA_CXXFLAGS_OPTIMIZATION "${NTA_CXXFLAGS_OPTIMIZATION} -falign-loops=16")
   # workaround for gcc 4.4 in Grok
@@ -438,7 +444,10 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -Wno-error=cpp -Werror")
   endif()
   set(NTA_LINKFLAGS_ARCHIVES "-Wl,-whole-archive")
+elseif(${NTA_COMPILER_FAMILY} EQUAL "vc")
+# TODO: add VC-specific compiler options
 else()
+# TODO: Was this for clang? Should it be more explicit?
   set(NTA_LINKFLAGS_ARCHIVES "-Wl,-force_load")
 endif()
 
