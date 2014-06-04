@@ -66,7 +66,10 @@ namespace nta {
 			SSE41=1<<19,
 			SSE42=1<<20;
 #ifdef NTA_ASM
-  #if defined(NTA_PLATFORM_win32)
+  #if defined(NTA_PLATFORM_win32) && defined(_MSC_VER)
+
+    // VC asm
+
     unsigned int f = 1;
     __asm {
       mov eax, f
@@ -74,6 +77,8 @@ namespace nta {
       mov c, ecx
       mov d, edx
     }
+
+  // TODO: add asm code for gcc/clang/... on Windows
 
   #elif defined(NTA_PLATFORM_darwin86)
 
@@ -90,7 +95,7 @@ namespace nta {
                          : "cc"
                          );
 
-#elif defined(NTA_PLATFORM_linux64) || defined(NTA_PLATFORM_darwin64)
+  #elif defined(NTA_PLATFORM_linux64) || defined(NTA_PLATFORM_darwin64)
 
     __asm__ __volatile__ (
                          "pushq  %%rbx\n\t"

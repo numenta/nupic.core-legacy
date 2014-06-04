@@ -730,8 +730,11 @@ inline float svm<traits>::rbf_function(float* x, float* x_end, float* y) const
 {
   float sum = 0;
 
-#if defined(NTA_ASM) && defined(NTA_PLATFORM_win32)
+#if defined(NTA_ASM) && defined(NTA_PLATFORM_win32) && defined(_MSC_VER)
+
   if (with_sse) {
+
+    // VC asm
 
     __asm {
         mov     esi, x
@@ -814,7 +817,7 @@ inline float svm<traits>::rbf_function(float* x, float* x_end, float* y) const
     }
   }
 
-#else // not NTA_PLATFORM_darwin86, not NTA_PLATFORM_win32; or not NTA_ASM
+#else // not NTA_PLATFORM_darwin86, not NTA_PLATFORM_win32 and VC; or not NTA_ASM
 
   while (x != x_end) {
     float d = *x - *y;
