@@ -326,6 +326,7 @@ execute_process(COMMAND ${CMAKE_CXX_COMPILER} -dumpversion
 #
 message(STATUS "C++ details:")
 message(STATUS "  Compiler: ${CMAKE_CXX_COMPILER}")
+message(STATUS "  Compiler Family: ${NTA_COMPILER_FAMILY}")
 message(STATUS "  Version: ${CXX_VERSION}")
 
 #
