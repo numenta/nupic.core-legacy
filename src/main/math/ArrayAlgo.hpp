@@ -66,14 +66,14 @@ namespace nta {
 			SSE41=1<<19,
 			SSE42=1<<20;
 #ifdef NTA_ASM
-  #ifdef NTA_PLATFORM_win32
+  #if defined(NTA_PLATFORM_win32)
     unsigned int f = 1;
     __asm {
       mov eax, f
-        cpuid
-        mov c, ecx
-        mov d, edx
-        }
+      cpuid
+      mov c, ecx
+      mov d, edx
+    }
 
   #elif defined(NTA_PLATFORM_darwin86)
 
