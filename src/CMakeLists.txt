@@ -176,7 +176,7 @@ endmacro()
 # Currently compiler_family can only be one of gnu/clang/vc/unknown, more can be added
 macro(get_compiler_family compiler_family)
     # TODO: how about c++?
-    if(${CMAKE_CXX_COMPILER} MATCHES "g\+\+")
+    if(${CMAKE_CXX_COMPILER} MATCHES "g\\+\\+")
       set(compiler_family "gnu")
     elseif(${CMAKE_CXX_COMPILER} MATCHES "clang")
       set(compiler_family "clang")
