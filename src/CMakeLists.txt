@@ -172,6 +172,21 @@ macro(merge_static_libraries new_lib output_dir libraries target)
   endif()
 endmacro()
 
+# This macro gets the compiler family being used.
+# Currently compiler_family can only be one of gnu/clang/vc/unknown, more can be added
+macro(get_compiler_family compiler_family)
+    # TODO: how about c++?
+    if(${CMAKE_CXX_COMPILER} MATCHES "g\+\+")
+      set(compiler_family "gnu")
+    elseif(${CMAKE_CXX_COMPILER} MATCHES "clang")
+      set(compiler_family "clang")
+    elseif(${CMAKE_CXX_COMPILER} MATCHES "cl")
+      set(compiler_family "vc")
+    else()
+      set(compiler_family "unknown")
+    endif()
+endmacro()
+
 
 ############################################################################################################################
 ###                                                                                                                      ###
