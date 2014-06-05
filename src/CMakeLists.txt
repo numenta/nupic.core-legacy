@@ -176,12 +176,18 @@ endmacro()
 # Currently compiler_family can only be one of gnu/clang/vc/unsupported, more can be added
 macro(get_compiler_family compiler_family)
     if(CMAKE_COMPILER_IS_GNUCXX)
+      # The compiler is a GNU g++ variant.
+      # This is also true for MinGW and Cygwin on Windows
       set(${compiler_family} "gnu")
     elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+      # The compiler is clang
       set(${compiler_family} "clang")
     elseif(MSVC)
+      # The compiler is vc
       set(${compiler_family} "vc")  
     else()
+      # TODO: support WATCOM, BORLAND etc.
+      # See http://www.cmake.org/Wiki/CMake_Useful_Variables
       set(${compiler_family} "unsupported")
     endif()
 endmacro()
