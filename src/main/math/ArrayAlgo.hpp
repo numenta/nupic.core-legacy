@@ -469,6 +469,14 @@ namespace nta {
         if (*(x_beg+i) > 0)
           return false;
       return true;
+      
+    } else {   // SSE 4.1
+    
+      for (; x_beg != x_end; ++x_beg)
+        if (*x_beg > 0)
+          return false;
+      return true;
+    }
 
 #elif (defined(NTA_PLATFORM_linux64) || defined(NTA_PLATFORM_darwin64)) && defined(NTA_ASM)
 
@@ -536,13 +544,6 @@ namespace nta {
           return false;
       return true;
 #else
-    } else {   // SSE 4.1
-    
-      for (; x_beg != x_end; ++x_beg)
-        if (*x_beg > 0)
-          return false;
-      return true;
-    }
 
     for (; x_beg != x_end; ++x_beg)
       if (*x_beg > 0)
