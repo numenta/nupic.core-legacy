@@ -379,7 +379,7 @@ set(NTA_INCLUDEFLAGS "-I${PROJECT_BUILD_RELEASE_DIR}/include")
 # and not as a separate program. Used for cppvision example.
 #
 # TODO: remove gcc/clang specific compiler options
-set(NTA_CXXFLAGS_BASE "${NTA_INCLUDEFLAGS} ${NTA_PLATFORM_CXXFLAGS} -DHAVE_CONFIG_H -DNTA_INTERNAL -DNTA_PLATFORM_${NTA_PLATFORM_OS} -DBOOST_NO_WREGEX -DNUPIC2 -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-unused-parameter")
+set(NTA_CXXFLAGS_BASE "${NTA_INCLUDEFLAGS} ${NTA_PLATFORM_CXXFLAGS} -DHAVE_CONFIG_H -DNTA_INTERNAL -DNTA_PLATFORM_${NTA_PLATFORM_OS} -DBOOST_NO_WREGEX -DNUPIC2")
 
 #
 # All executables and plugins are linked with these flags
@@ -443,7 +443,7 @@ message(STATUS "  MPI Support: ${NTA_MPI_SUPPORT}")
 # Compiler specific (clang, gcc, ..) flags can be set here
 #
 if(${NTA_COMPILER_FAMILY} EQUAL "gnu")
-  set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -Wno-sign-compare -Wno-error=format=")
+  set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-unused-parameter -Wno-sign-compare -Wno-error=format=")
   set(NTA_CXXFLAGS_OPTIMIZATION "${NTA_CXXFLAGS_OPTIMIZATION} -falign-loops=16")
   # workaround for gcc 4.4 in Grok
   execute_process(COMMAND ${CMAKE_C_COMPILER} -dumpversion OUTPUT_VARIABLE GCC_VERSION)
