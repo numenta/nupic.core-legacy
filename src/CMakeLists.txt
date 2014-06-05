@@ -371,7 +371,8 @@ set(USER_LINKFLAGS "" CACHE STRING "Extra Link flags")
 # Allows us to find includes for external libraries and enables
 # #include <nta/common/...>
 #
-set(NTA_INCLUDEFLAGS "-I${PROJECT_BUILD_RELEASE_DIR}/include -isystem${REPOSITORY_DIR}/external/common/include -isystem${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/include")
+include_directories(SYSTEM "${REPOSITORY_DIR}/external/common/include" "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/include")
+set(NTA_INCLUDEFLAGS "-I${PROJECT_BUILD_RELEASE_DIR}/include")
 
 #
 # NTA_INTERNAL tells us that the code is being built under the build system
