@@ -75,7 +75,7 @@ namespace nta {
         mov d, edx
         }
 
-  #elif defined(NTA_PLATFORM_darwin86)
+  #elif defined(NTA_PLATFORM_darwin86) || defined(NTA_PLATFORM_linux32)
 
     unsigned int a = 0,b = 0, f = 1;
 
@@ -90,7 +90,7 @@ namespace nta {
                          : "cc"
                          );
 
-#elif defined(NTA_PLATFORM_linux64) || defined(NTA_PLATFORM_darwin64)
+  #elif defined(NTA_PLATFORM_linux64) || defined(NTA_PLATFORM_darwin64)
 
     __asm__ __volatile__ (
                          "pushq  %%rbx\n\t"
@@ -236,7 +236,7 @@ namespace nta {
     if (SSE_LEVEL >= 41) { // ptest is a SSE 4.1 instruction
 
     // On win32, the asm syntax is not correct.
-#if defined(NTA_PLATFORM_darwin86) && defined(NTA_ASM)
+#if (defined(NTA_PLATFORM_linux32) || defined(NTA_PLATFORM_darwin86)) && defined(NTA_ASM)
 
       // n is the total number of floats to process.
       // n1 is the number of floats we can process in parallel using SSE.
@@ -395,11 +395,13 @@ namespace nta {
     const Byte* x_end = &x[end];
 
     // On win32, the asm syntax is not correct.
-#if defined(NTA_ASM) && defined(NTA_PLATFORM_darwin86)
+
     // This test can be moved to compile time using a template with an int
     // parameter, and partial specializations that will match the static
     // const int SSE_LEVEL. 
     if (SSE_LEVEL >= 41) { // ptest is a SSE 4.1 instruction
+
+#if (defined(NTA_PLATFORM_linux32) || defined(NTA_PLATFORM_darwin86)) && defined(NTA_ASM)
 
       // n is the total number of floats to process.
       // n1 is the number of floats we can process in parallel using SSE.
@@ -530,7 +532,7 @@ namespace nta {
         if (*x_beg > 0)
           return false;
       return true;
-#else
+#endif
     } else {   // SSE 4.1
     
       for (; x_beg != x_end; ++x_beg)
@@ -543,7 +545,7 @@ namespace nta {
       if (*x_beg > 0)
         return false;
     return true;
-#endif
+
   }
 
   //--------------------------------------------------------------------------------
@@ -3770,7 +3772,7 @@ namespace nta {
       int n2 = (int)(end - start - n1);
 
 
-#if defined(NTA_PLATFORM_darwin86_disabled)
+#if defined(NTA_PLATFORM_darwin86_disabled) || defined(NTA_PLATFORM_linux32_disabled)
       __asm__ __volatile__(
                    // Prepare various xmm registers, storing the value of the
                    // threshold and the value 1: with xmm, we will operate on
@@ -5057,7 +5059,7 @@ namespace nta {
 
     // See comments in count_gt. We need both conditional compilation and 
     // SSE_LEVEL check.
-#if defined(NTA_PLATFORM_darwin86) || defined(NTA_PLATFORM_darwin64) || defined(NTA_PLATFORM_linux64)
+#if defined(NTA_PLATFORM_darwin86) || defined(NTA_PLATFORM_darwin64) || defined(NTA_PLATFORM_linux64) || defined(NTA_PLATFORM_linux32)
 
     if (SSE_LEVEL >= 3) {
 
@@ -5074,7 +5076,7 @@ namespace nta {
       // skip the asm. 
       if (n1 > 0) { 
 
-  #ifdef NTA_PLATFORM_darwin86
+  #if defined (NTA_PLATFORM_darwin86) || defined(NTA_PLATFORM_linux32)
         __asm__ __volatile__(
                      "pusha\n\t"                   // save all registers
                  
@@ -5180,7 +5182,7 @@ namespace nta {
 
     // See comments in count_gt. We need conditional compilation
     // _AND_ SSE_LEVEL check.
-#if defined(NTA_PLATFORM_darwin86) || defined(NTA_PLATFORM_linux64) || defined(NTA_PLATFORM_darwin64)
+#if defined(NTA_PLATFORM_darwin86) || defined(NTA_PLATFORM_linux64) || defined(NTA_PLATFORM_darwin64) || defined(NTA_PLATFORM_linux32)
 
     if (SSE_LEVEL >= 3) {
 
@@ -5192,7 +5194,7 @@ namespace nta {
     
       if (n1 > 0) {
 
-  #if defined(NTA_PLATFORM_darwin86)
+  #if defined(NTA_PLATFORM_darwin86) || defined(NTA_PLATFORM_linux32)
         __asm__ __volatile__(
                      "pusha\n\t"
                  
