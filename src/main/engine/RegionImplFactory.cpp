@@ -249,7 +249,7 @@ static std::string exec(std::string command)
 static std::string getPackageDir(const std::string& rootDir, const std::string & package)
 {
   
-  std::string command = "python -c 'import sys;import os;import " + package + ";sys.stdout.write(os.path.abspath(" + package + ".__file__))'";
+  std::string command = "python -c 'import sys;import os;import " + package + ";sys.stdout.write(os.path.abspath(os.path.join(" + package + ".__file__, os.pardir)))'";
   std::string packageDir = exec(command);
 
   return packageDir;
