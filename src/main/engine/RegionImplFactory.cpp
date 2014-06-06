@@ -217,16 +217,42 @@ RegionImplFactory & RegionImplFactory::getInstance()
   return instance;
 }
 
+// This function executes a shell command and returns its output
+static std::string exec(std::string command)
+{
+#if defined(WIN32)
+  FILE* pipe = _popen(&command[0], "r");
+#else
+  FILE* pipe = popen(&command[0], "r");
+#endif
+  if (!pipe)
+  {
+    return "ERROR";
+  }
+  char buffer[128];
+  std::string result = "";
+  while(!feof(pipe))
+  {
+    if(fgets(buffer, 128, pipe) != NULL)
+    {
+      result += buffer;
+    }
+  }
+#if defined(WIN32)
+  _pclose(pipe);
+#else
+  pclose(pipe);
+#endif
+  return result;
+}
+
 static std::string getPackageDir(const std::string& rootDir, const std::string & package)
 {
   
-  std::string p(package);
-  p.replace(p.find("."), 1, "/");
-  size_t pos = p.find(".");
-  if (pos != std::string::npos)
-    p.replace(p.find("."), 1, "/");
+  std::string command = "python -c 'import sys;import os;import " + package + ";sys.stdout.write(os.path.abspath(" + package + ".__file__))'";
+  std::string packageDir = exec(command);
 
-  return Path::join(rootDir, "lib/python" expand_and_stringify(NTA_PYTHON_SUPPORT) "/site-packages", p);
+  return packageDir;
 }
 
 // This function creates either a NuPIC 2 or NuPIC 1 Python node 
