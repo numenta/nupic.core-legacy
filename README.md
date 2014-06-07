@@ -1,9 +1,5 @@
 # NuPIC Core [![Build Status](https://travis-ci.org/numenta/nupic.core.png?branch=master)](https://travis-ci.org/numenta/nupic.core)
 
-> This project is still in the process of being extracted from the [NuPIC](http://github.com/numenta/nupic) codebase as a part of our [core extraction plan](https://github.com/numenta/nupic/wiki/nupic.core-Extraction-Plan). 
-
-**This README is incomplete!**
-
 This repository contains the C++ source code for the Numenta Platform for Intelligent Computing ([NuPIC](http://numenta.org/nupic.html)). It will eventually contain all algorithms for NuPIC, but is currently in a transition period. For details on building NuPIC within the python environment, please see http://github.com/numenta/nupic.
 
 ## Build and test NuPIC Core:
@@ -22,10 +18,11 @@ Important notes:
 #### Build:
 
     cd $NUPIC_CORE/build/scripts
-    (optional) make clean / distclean    # starts a fresh build
+    # optionally start a fresh build
+    make clean # or 'make distclean' for a complete clean
     make -j3
     
-> **Note**: -j3 option specify '3' as the maximum number of parallel jobs/threads that Make will use during the build in order to gain speed. However, you can increase this number depending your CPU.
+> **Note**: The `-j3` option specifies '3' as the maximum number of parallel jobs/threads that Make will use during the build in order to gain speed. However, you can increase this number depending your CPU.
 
 #### Run the tests:
 
