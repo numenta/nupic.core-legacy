@@ -23,6 +23,16 @@ notifications:
 before_install:
   - "if [ $CC = 'gcc' ]; then export CXX=g++; fi"
   - "if [ $CC = 'clang' ]; then export CXX=clang++; fi"
+  - "sudo find / -name zlib.h"
+  - "sudo find / -name zconf.h"
+  # remove the `zlib.h` and `zconf.h` in system path to prevent implicit dependency 
+  # and to reproduce #48 and #106
+  - "sudo rm -f /usr/include/zlib.h"
+  - "sudo rm -f /usr/include/zconf.h"
+  - "sudo find / -name libz.a"
+  # remove the `libz.a` in system path to prevent implicit dependency
+  # and to reproduce #48
+  - "sudo rm -f /usr/lib/x86_64-linux-gnu/libz.a"
   - "if [ $TRAVIS_OS_NAME = 'osx' ]; then brew install cmake; fi"
 
 install:
