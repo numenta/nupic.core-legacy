@@ -157,3 +157,31 @@ void OS::getProcessMemoryUsage(size_t& realMem, size_t& virtualMem)
   virtualMem = 100;
 #endif
 }
+
+std::string OS::executeCommand(std::string command)
+{
+#if defined(NTA_PLATFORM_win32) && defined(_MSC_VER)
+  FILE* pipe = _popen(&command[0], "r");
+#else
+  FILE* pipe = popen(&command[0], "r");
+#endif
+  if (!pipe)
+  {
+    return "ERROR";
+  }
+  char buffer[128];
+  std::string result = "";
+  while(!feof(pipe))
+  {
+    if(fgets(buffer, 128, pipe) != NULL)
+    {
+      result += buffer;
+    }
+  }
+#if defined(NTA_PLATFORM_win32) && defined(_MSC_VER)
+  _pclose(pipe);
+#else
+  pclose(pipe);
+#endif
+  return result;
+}

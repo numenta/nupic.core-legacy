@@ -218,39 +218,17 @@ RegionImplFactory & RegionImplFactory::getInstance()
 }
 
 // This function executes a shell command and returns its output
+// @deprecated Use OS::executeCommand() instead.
 static std::string exec(std::string command)
 {
-#if defined(WIN32)
-  FILE* pipe = _popen(&command[0], "r");
-#else
-  FILE* pipe = popen(&command[0], "r");
-#endif
-  if (!pipe)
-  {
-    return "ERROR";
-  }
-  char buffer[128];
-  std::string result = "";
-  while(!feof(pipe))
-  {
-    if(fgets(buffer, 128, pipe) != NULL)
-    {
-      result += buffer;
-    }
-  }
-#if defined(WIN32)
-  _pclose(pipe);
-#else
-  pclose(pipe);
-#endif
-  return result;
+  return OS::executeCommand(command);
 }
 
 static std::string getPackageDir(const std::string& rootDir, const std::string & package)
 {
   
   std::string command = "python -c 'import sys;import os;import " + package + ";sys.stdout.write(os.path.abspath(" + package + ".__file__))'";
-  std::string packageDir = exec(command);
+  std::string packageDir = OS::executeCommand(command);
 
   return packageDir;
 }
