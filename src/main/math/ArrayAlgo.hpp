@@ -60,20 +60,25 @@ namespace nta {
   static int checkSSE()
   {
     unsigned int        c = 0, d = 0;
-    const unsigned int  SSE=  1<<25, 
-			SSE2= 1<<26,
-			SSE3= 1<<0,
-			SSE41=1<<19,
-			SSE42=1<<20;
+    const unsigned int SSE = 1<<25, 
+            SSE2  = 1<<26,
+            SSE3  = 1<<0,
+            SSE41 = 1<<19,
+            SSE42 = 1<<20;
 #ifdef NTA_ASM
-  #ifdef NTA_PLATFORM_win32
+  #if defined(NTA_PLATFORM_win32) && defined(_MSC_VER)
+
+    // VC asm
+
     unsigned int f = 1;
     __asm {
       mov eax, f
-        cpuid
-        mov c, ecx
-        mov d, edx
-        }
+      cpuid
+      mov c, ecx
+      mov d, edx
+    }
+
+  // TODO: add asm code for gcc/clang/... on Windows
 
   #elif defined(NTA_PLATFORM_darwin86) || defined(NTA_PLATFORM_linux32)
 
