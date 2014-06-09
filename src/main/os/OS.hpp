@@ -125,7 +125,17 @@ namespace nta
      */
     static void getProcessMemoryUsage(size_t& realMem, size_t& virtualMem);
 
+    /**
+     * Execute a command and and return its output.
+     *
+     * @param command
+     *        The command to execute
+     * @returns
+     *        The output of the command.
+     */
+     static std::string executeCommand(std::string command);
   };
 }
 
 #endif // NTA_OS_HPP
+

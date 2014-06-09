@@ -67,7 +67,8 @@ namespace nta
     {
       // To find the pynode plugin we need the nupic
       // installation directory.
-      bool found = Env::get("NTA", rootDir_);
+      std::string libDir;
+      bool found = Env::get("NTA", libDir);
       if (!found)
       {
         NTA_THROW << "Unable to find the pynode dynamic library because NTA is not set";
@@ -75,7 +76,7 @@ namespace nta
       else
       {
         found = false;
-        if (Path::exists(rootDir_) && Path::isDirectory(rootDir_))
+        if (Path::exists(libDir) && Path::isDirectory(libDir))
         {
           found = true;
         }
@@ -98,11 +99,16 @@ namespace nta
       const char * filename = "cpp_region.dll";
 #endif
 
-      std::string libName = Path::join(rootDir_, "lib", filename); 
+      std::string libName = Path::join(libDir, "lib", filename); 
 
       if (!Path::exists(libName))
         NTA_THROW << "Unable to find library " << filename 
-                  << " in NuPIC installation folder '" << rootDir_ << "'";
+                  << " in NuPIC installation folder '" << libDir << "'";
+
+      std::string command = "python -c 'import sys;import os;import nupic;sys.stdout.write(os.path.abspath(os.path.join(nupic.__file__, \"../..\")))'";
+      rootDir_ = OS::executeCommand(command);
+      if (!Path::exists(rootDir_))
+        NTA_THROW << "Unable to find NuPIC library path";
 
       std::string errorString;
       DynamicLibrary * p = 
@@ -217,42 +223,16 @@ RegionImplFactory & RegionImplFactory::getInstance()
   return instance;
 }
 
-// This function executes a shell command and returns its output
-static std::string exec(std::string command)
-{
-#if defined(WIN32)
-  FILE* pipe = _popen(&command[0], "r");
-#else
-  FILE* pipe = popen(&command[0], "r");
-#endif
-  if (!pipe)
-  {
-    return "ERROR";
-  }
-  char buffer[128];
-  std::string result = "";
-  while(!feof(pipe))
-  {
-    if(fgets(buffer, 128, pipe) != NULL)
-    {
-      result += buffer;
-    }
-  }
-#if defined(WIN32)
-  _pclose(pipe);
-#else
-  pclose(pipe);
-#endif
-  return result;
-}
-
 static std::string getPackageDir(const std::string& rootDir, const std::string & package)
 {
   
-  std::string command = "python -c 'import sys;import os;import " + package + ";sys.stdout.write(os.path.abspath(os.path.join(" + package + ".__file__, os.pardir)))'";
-  std::string packageDir = exec(command);
+  std::string p(package);
+  p.replace(p.find("."), 1, "/");
+  size_t pos = p.find(".");
+  if (pos != std::string::npos)
+    p.replace(p.find("."), 1, "/");
 
-  return packageDir;
+  return Path::join(rootDir, p);
 }
 
 // This function creates either a NuPIC 2 or NuPIC 1 Python node 
