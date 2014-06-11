@@ -20,6 +20,7 @@
 #
 # Contributor(s):
 #   David Ragazzi (@DavidRagazzi): Full conversion and adaptation from Autotools scripts
+#   Jim Bridgewater (jwbwater@gmail.com): Updated option help messages
 # --------------------------------------------------------------------------------------------------------------------------
  
 
