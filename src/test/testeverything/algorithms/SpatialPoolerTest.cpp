@@ -2328,19 +2328,14 @@ namespace nta {
     UInt numColumns = 12;
     setup(sp_orig, numInputs, numColumns);
 
-    ofstream outfile;
-    outfile.open (filename.c_str());
-    sp_orig.save(outfile);
-    outfile.close();
+    sp_orig.save(filename);
 
     SpatialPooler sp_dest;
-    ifstream infile (filename.c_str());
-    sp_dest.load(infile);
-    infile.close();
+    sp_dest.load(filename);
 
     check_spatial_eq(sp_orig, sp_dest);
 
-
+    // Delete the file
     string command = string("rm -f ") + filename;
     int ret = system(command.c_str());
     NTA_ASSERT(ret == 0); // "SpatialPoolerTest: execution of command " << command << " failed " << std::endl;

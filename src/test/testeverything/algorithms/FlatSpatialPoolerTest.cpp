@@ -313,15 +313,10 @@ namespace nta {
     fsp_orig.setRandomSP(true);
     fsp_orig.setMinDistance(0.3);
 
-    ofstream outfile;
-    outfile.open (filename.c_str());
-    fsp_orig.save(outfile);
-    outfile.close();
+    fsp_orig.save(filename);
 
     FlatSpatialPooler fsp_dest;
-    ifstream infile (filename.c_str());
-    fsp_dest.load(infile);
-    infile.close();
+    fsp_dest.load(filename);
 
     NTA_CHECK(fsp_orig.getMinDistance() == fsp_dest.getMinDistance());
     NTA_CHECK(fsp_orig.getRandomSP() == fsp_dest.getRandomSP());
