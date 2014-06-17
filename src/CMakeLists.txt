@@ -109,6 +109,7 @@ macro(get_source_groups src_dir)
     foreach(dir ${src_sub_dirs})
       file(GLOB src_files
         ${dir}/*.cpp
+        ${dir}/*.cc
         ${dir}/*.hpp
         ${dir}/*.h
       )
@@ -268,7 +269,7 @@ if(OSX)
   set(NTA_PLATFORM_CXXFLAGS "${NTA_PLATFORM_CXXFLAGS} -m64")
   set(NTA_PLATFORM_DEBUGFLAGS "-gfull")
   set(NTA_PLATFORM_LINKFLAGS "${NTA_PLATFORM_LINKFLAGS} -Wl,-u,_munmap")
-  set(NTA_PLATFORM_LIBS "${NTA_PLATFORM_LIBS} -stdlib=libstdc++ -lc++abi -liconv -lsqlite3 -framework CoreServices -framework Accelerate")
+  set(NTA_PLATFORM_LIBS "${NTA_PLATFORM_LIBS} -stdlib=libstdc++ -lc++abi -liconv -lsqlite3 -lprotobuf -framework CoreServices -framework Accelerate")
 elseif(LINUX)
   set(NTA_PLATFORM_DEBUGFLAGS "-g")
   set(NTA_PLATFORM_LINKFLAGS "${NTA_PLATFORM_LINKFLAGS} -Wl,--no-as-needed -static-libgcc")
