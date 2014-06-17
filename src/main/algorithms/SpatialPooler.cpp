@@ -96,7 +96,7 @@ class CoordinateConverterND {
 };
 
 SpatialPooler::SpatialPooler() {
-  // The current version number. 
+  // The current version number.
   version_ = 1;
 }
 
@@ -436,6 +436,10 @@ void SpatialPooler::initialize(vector<UInt> inputDimensions,
   Int seed,
   UInt spVerbosity)
 {
+
+  // Verify that the version of the library that we linked against is
+  // compatible with the version of the headers we compiled against.
+  GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   numInputs_ = 1;
   inputDimensions_.clear();
@@ -1235,258 +1239,304 @@ void SpatialPooler::seed_(UInt64 seed)
   rng_ = Random(seed);
 }
 
-
 UInt SpatialPooler::persistentSize()
 {
   // TODO: this won't scale!
   stringstream s;
   s.flags(ios::scientific);
   s.precision(numeric_limits<double>::digits10 + 1);
-  this->save(s);
+  this->save(s.str());
   return s.str().size();
 }
 
-void SpatialPooler::save(ostream& outStream)
-{
-  // Write a starting marker and version.
-  outStream << "SpatialPooler" << endl;
-  outStream << version_ << endl;
+void SpatialPooler::populateProtocolBuffer(SpatialPoolerProto* proto) {
+  // Store in the same order as the .proto file
+  proto->set_numinputs(numInputs_);
+  proto->set_numcolumns(numColumns_);
+  proto->set_potentialradius(potentialRadius_);
+  proto->set_potentialpct(potentialPct_);
+  proto->set_globalinhibition(globalInhibition_);
+  proto->set_numactivecolumnsperinharea(numActiveColumnsPerInhArea_);
+  proto->set_localareadensity(localAreaDensity_);
+  proto->set_stimulusthreshold(stimulusThreshold_);
 
-  // Store the simple variables first.
-  outStream << numInputs_ << " "
-            << numColumns_ << " " 
-            << potentialRadius_ << " "
-            << potentialPct_ << " "
-            << initConnectedPct_ << " "
-            << globalInhibition_ << " "
-            << numActiveColumnsPerInhArea_ << " "
-            << localAreaDensity_ << " "
-            << stimulusThreshold_ << " "
-            << inhibitionRadius_ << " "
-            << dutyCyclePeriod_ << " "
-            << maxBoost_ << " "
-            << iterationNum_ << " "
-            << iterationLearnNum_ << " "
-            << spVerbosity_ << " "
-            << updatePeriod_ << " " 
-            
-            << synPermMin_ << " "
-            << synPermMax_ << " "
-            << synPermTrimThreshold_ << " "
-            << synPermInactiveDec_ << " "
-            << synPermActiveInc_ << " "
-            << synPermBelowStimulusInc_ << " "
-            << synPermConnected_ << " "
-            << minPctOverlapDutyCycles_ << " "
-            << minPctActiveDutyCycles_ << " " 
-            << endl;
+  proto->set_synperminactivedec(synPermInactiveDec_);
+  proto->set_synpermactiveinc(synPermActiveInc_);
+  proto->set_synpermbelowstimulusinc(synPermBelowStimulusInc_);
+  proto->set_synpermconnected(synPermConnected_);
 
-  // Store vectors.
-  outStream << inputDimensions_.size() << " ";
-  for (UInt i = 0; i < inputDimensions_.size(); i++) {
-    outStream << inputDimensions_[i] << " ";
-  }
-  outStream << endl;
+  proto->set_minpctoverlapdutycycles(minPctOverlapDutyCycles_);
+  proto->set_minpctactivedutycycles(minPctActiveDutyCycles_);
 
-  outStream << columnDimensions_.size() << " ";
+  proto->set_dutycycleperiod(dutyCyclePeriod_);
+  proto->set_maxboost(maxBoost_);
+  proto->set_spverbosity(spVerbosity_);
+
+  proto->set_synpermmin(synPermMin_);
+  proto->set_synpermmax(synPermMax_);
+  proto->set_synpermtrimthreshold(synPermTrimThreshold_);
+
+  proto->set_updateperiod(updatePeriod_);
+  proto->set_version(version_);
+  proto->set_iterationnum(iterationNum_);
+  proto->set_iterationlearnnum(iterationLearnNum_);
+  proto->set_inhibitionradius(inhibitionRadius_);
+
+  // col dimensions
   for (UInt i = 0; i < columnDimensions_.size(); i++) {
-    outStream << columnDimensions_[i] << " ";
+    proto->add_columndimensions(columnDimensions_[i]);
   }
-  outStream << endl;
 
-  for (UInt i = 0; i < numColumns_; i++) {
-    outStream << boostFactors_[i] << " ";
+  // input dimensions
+  for (UInt i = 0; i < inputDimensions_.size(); i++) {
+    proto->add_inputdimensions(inputDimensions_[i]);
   }
-  outStream << endl;
 
-  for (UInt i = 0; i < numColumns_; i++) {
-    outStream << overlapDutyCycles_[i] << " ";
-  }
-  outStream << endl;
-
-  for (UInt i = 0; i < numColumns_; i++) {
-    outStream << activeDutyCycles_[i] << " ";
-  }
-  outStream << endl;
-
-  for (UInt i = 0; i < numColumns_; i++) {
-    outStream << minOverlapDutyCycles_[i] << " ";
-  }
-  outStream << endl;
-
-  for (UInt i = 0; i < numColumns_; i++) {
-    outStream << minActiveDutyCycles_[i] << " ";
-  }
-  outStream << endl;
-
-  for (UInt i = 0; i < numColumns_; i++) {
-    outStream << tieBreaker_[i] << " ";
-  }
-  outStream << endl;
-
-
-  // Store matrices.
+  // potentialpools
   for (UInt i = 0; i < numColumns_; i++) {
     vector<UInt> pot;
     pot.resize(potentialPools_.nNonZerosOnRow(i));
     pot = potentialPools_.getSparseRow(i);
-    outStream << pot.size() << endl;
+    SparseRow* row = proto->add_potentialpools();
     for (UInt j = 0; j < pot.size(); j++) {
-      outStream << pot[j] << " ";
+      row->add_rowelements(pot[j]);
     }
-    outStream << endl;
   }
-  outStream << endl;
-  
+
+  // permanences
   for (UInt i = 0; i < numColumns_; i++) {
     vector<pair<UInt, Real> > perm;
     perm.resize(permanences_.nNonZerosOnRow(i));
-    outStream << perm.size() << endl;
     permanences_.getRowToSparse(i, perm.begin());
+
+    SparseFloatRow* row = proto->add_permanences();
     for (UInt j = 0; j < perm.size(); j++) {
-      outStream << perm[j].first << " " << perm[j].second << " ";
+      row->add_index(perm[j].first);
+      row->add_value(perm[j].second);
     }
-    outStream << endl;
   }
-  outStream << endl;
 
-  outStream << rng_ << endl;
+  // tiebreaker
+  for (UInt i = 0; i < numColumns_; i++) {
+    proto->add_tiebreaker(tieBreaker_[i]);
+  }
 
-  outStream << "~SpatialPooler" << endl;
+  // connectedsynapses
+  // connectedcounts
 
+  // overlapDutyCycles
+  for (UInt i = 0; i < numColumns_; i++) {
+    proto->add_overlapdutycycles(overlapDutyCycles_[i]);
+  }
+
+  // activeDutyCycles
+  for (UInt i = 0; i < numColumns_; i++) {
+    proto->add_activedutycycles(activeDutyCycles_[i]);
+  }
+
+  // minOverlapDutyCycles
+  for (UInt i = 0; i < numColumns_; i++) {
+    proto->add_minoverlapdutycycles(minOverlapDutyCycles_[i]);
+  }
+
+  // minActiveDutyCycles
+  for (UInt i = 0; i < numColumns_; i++) {
+    proto->add_minactivedutycycles(minActiveDutyCycles_[i]);
+  }
+
+  // boostFactors
+  for (UInt i = 0; i < numColumns_; i++) {
+    proto->add_boostfactors(boostFactors_[i]);
+  }
 }
 
-// Implementation note: this method sets up the instance using data from
-// inStream. This method does not call initialize. As such we have to be careful
-// that everything in initialize is handled properly here.
-void SpatialPooler::load(istream& inStream)
+void SpatialPooler::writeProtocolBufferToFile(SpatialPoolerProto* proto, const std::string& outFileName) {
+  // Open the file to write the data (permissions: -rw-rw-rw-)
+  // Truncate the file if it already exists
+  umask(000);
+  int outFd = open(outFileName.c_str(), O_CREAT | O_WRONLY | O_TRUNC, 0666);
+
+  google::protobuf::io::ZeroCopyOutputStream* rawOutput = new google::protobuf::io::FileOutputStream(outFd);
+  google::protobuf::io::CodedOutputStream* output = new google::protobuf::io::CodedOutputStream(rawOutput);
+
+  // Write the size.
+  const int size = proto->ByteSize();
+  output->WriteVarint32(size);
+
+  uint8_t* buffer = output->GetDirectBufferForNBytesAndAdvance(size);
+  if (buffer != NULL) {
+    // Optimization:  The message fits in one buffer, so use the faster
+    // direct-to-array serialization path.
+    proto->SerializeWithCachedSizesToArray(buffer);
+  } else {
+    // Slightly-slower path when the message is multiple buffers.
+    proto->SerializeWithCachedSizes(output);
+    if (output->HadError()) {
+      // TODO should throw an error here
+    }
+  }
+
+  // Deleting the output streams forces them to finish writing whatever is still in the buffer
+  delete output;
+  delete rawOutput;
+  close(outFd);
+}
+
+void SpatialPooler::save(const std::string& outFileName)
 {
+  // Create the protocol buffers object and store our data to it.
+  SpatialPoolerProto proto;
+  populateProtocolBuffer(&proto);
+  writeProtocolBufferToFile(&proto, outFileName);
+}
 
-  // Check the marker
-  string marker;
-  inStream >> marker;
-  NTA_CHECK(marker == "SpatialPooler");
+SpatialPoolerProto SpatialPooler::loadProtocolBufferFromFile(const std::string& inFileName) {
+  SpatialPoolerProto proto;
+  int inFd = open(inFileName.c_str(), O_RDONLY);
+  google::protobuf::io::ZeroCopyInputStream* rawInput = new google::protobuf::io::FileInputStream(inFd);
+  google::protobuf::io::CodedInputStream input(rawInput);
 
-  // Check the version.
-  UInt version;
-  inStream >> version;
-  NTA_CHECK(version == 1);  
-
-
-  // Retrieve simple variables
-  inStream >> numInputs_
-           >> numColumns_
-           >> potentialRadius_ 
-           >> potentialPct_
-           >> initConnectedPct_
-           >> globalInhibition_ 
-           >> numActiveColumnsPerInhArea_
-           >> localAreaDensity_
-           >> stimulusThreshold_
-           >> inhibitionRadius_
-           >> dutyCyclePeriod_
-           >> maxBoost_
-           >> iterationNum_
-           >> iterationLearnNum_
-           >> spVerbosity_
-           >> updatePeriod_
-            
-           >> synPermMin_
-           >> synPermMax_
-           >> synPermTrimThreshold_
-           >> synPermInactiveDec_
-           >> synPermActiveInc_
-           >> synPermBelowStimulusInc_
-           >> synPermConnected_
-           >> minPctOverlapDutyCycles_
-           >> minPctActiveDutyCycles_;
-
-  // Store vectors.
-  UInt numInputDimensions;
-  inStream >> numInputDimensions;
-  inputDimensions_.resize(numInputDimensions);
-  for (UInt i = 0; i < numInputDimensions; i++) {
-    inStream >> inputDimensions_[i];
+  // Read the size
+  uint32_t size;
+  if (!input.ReadVarint32(&size)) {
+    // TODO should throw an error here
   }
 
-  UInt numColumnDimensions;
-  inStream >> numColumnDimensions;
-  columnDimensions_.resize(numColumnDimensions);
-  for (UInt i = 0; i < numColumnDimensions; i++) {
-    inStream >> columnDimensions_[i];
+  // Tell the stream not to read beyond that size
+  int limit = input.PushLimit(size);
+
+  // Parse the message.
+  if (!proto.MergePartialFromCodedStream(&input)) {
+    // TODO should throw an error here
+  }
+  if (!input.ConsumedEntireMessage()) {
+    // TODO should throw an error here
   }
 
-  boostFactors_.resize(numColumns_);
-  for (UInt i = 0; i < numColumns_; i++) {
-    inStream >> boostFactors_[i];
+  // Release the limit.
+  input.PopLimit(limit);
+
+  return proto;
+}
+
+void SpatialPooler::populateLocalVarsFromProto(SpatialPoolerProto* proto) {
+  numInputs_                  = proto->numinputs();
+  numColumns_                 = proto->numcolumns();
+  potentialRadius_            = proto->potentialradius();
+  potentialPct_               = proto->potentialpct();
+  //initConnectedPct_           = proto->initconnectedpct();
+  globalInhibition_           = proto->globalinhibition();
+  numActiveColumnsPerInhArea_ = proto->numactivecolumnsperinharea();
+  localAreaDensity_           = proto->localareadensity();
+  stimulusThreshold_          = proto->stimulusthreshold();
+
+  synPermInactiveDec_         = proto->synperminactivedec();
+  synPermActiveInc_           = proto->synpermactiveinc();
+  synPermBelowStimulusInc_    = proto->synpermbelowstimulusinc();
+  synPermConnected_           = proto->synpermconnected();
+
+  minPctOverlapDutyCycles_    = proto->minpctoverlapdutycycles();
+  minPctActiveDutyCycles_     = proto->minpctactivedutycycles();
+
+  dutyCyclePeriod_            = proto->dutycycleperiod();
+  maxBoost_                   = proto->maxboost();
+  spVerbosity_                = proto->spverbosity();
+
+  iterationNum_               = proto->iterationnum();
+  iterationLearnNum_          = proto->iterationlearnnum();
+  inhibitionRadius_           = proto->inhibitionradius();
+
+  synPermMin_                 = proto->synpermmin();
+  synPermMax_                 = proto->synpermmax();
+  synPermTrimThreshold_       = proto->synpermtrimthreshold();
+
+  updatePeriod_               = proto->updateperiod();
+  version_                    = proto->version();
+  iterationNum_               = proto->iterationnum();
+  iterationLearnNum_          = proto->iterationlearnnum();
+  inhibitionRadius_           = proto->inhibitionradius();
+
+  columnDimensions_.resize(proto->columndimensions_size());
+  for (UInt i = 0; i < proto->columndimensions_size(); i++) {
+    columnDimensions_[i] = proto->columndimensions(i);
   }
 
-  overlapDutyCycles_.resize(numColumns_);
-  for (UInt i = 0; i < numColumns_; i++) {
-    inStream >> overlapDutyCycles_[i];
+  inputDimensions_.resize(proto->inputdimensions_size());
+  for (UInt i = 0; i < proto->inputdimensions_size(); i++) {
+    inputDimensions_[i] = proto->inputdimensions(i);
   }
 
-  activeDutyCycles_.resize(numColumns_);
-  for (UInt i = 0; i < numColumns_; i++) {
-    inStream >> activeDutyCycles_[i];
-  }
-
-  minOverlapDutyCycles_.resize(numColumns_);
-  for (UInt i = 0; i < numColumns_; i++) {
-    inStream >> minOverlapDutyCycles_[i];
-  }
-
-  minActiveDutyCycles_.resize(numColumns_);
-  for (UInt i = 0; i < numColumns_; i++) {
-    inStream >> minActiveDutyCycles_[i];
-  }
-
-  tieBreaker_.resize(numColumns_);
-  for (UInt i = 0; i < numColumns_; i++) {
-    inStream >> tieBreaker_[i];
-  }
-
-
-  // Store matrices.
   potentialPools_.resize(numColumns_, numInputs_);
   for (UInt i = 0; i < numColumns_; i++) {
-    UInt nNonZerosOnRow;
-    inStream >> nNonZerosOnRow;
+    SparseRow row = proto->potentialpools(i);
+    UInt nNonZerosOnRow = row.rowelements_size();
     vector<UInt> pot(nNonZerosOnRow, 0);
     for (UInt j = 0; j < nNonZerosOnRow; j++) {
-      inStream >> pot[j];
+      pot[j] = row.rowelements(j);
     }
     potentialPools_.replaceSparseRow(i,pot.begin(), pot.end());
   }
-  
+
   permanences_.resize(numColumns_, numInputs_);
   connectedSynapses_.resize(numColumns_, numInputs_);
   connectedCounts_.resize(numColumns_);
   for (UInt i = 0; i < numColumns_; i++) {
-    UInt nNonZerosOnRow;
-    inStream >> nNonZerosOnRow;
-    vector<Real> perm(numInputs_, 0);
+    SparseFloatRow row = proto->permanences(i);
+    UInt nNonZerosOnRow = row.index_size();
 
+    vector<Real> perm(numInputs_, 0);
     for (UInt j = 0; j < nNonZerosOnRow; j++) {
-      UInt index;
-      Real value;
-      inStream >> index;
-      inStream >> value;
-      perm[index] = value;
+      perm[row.index(j)] = row.value(j);
     }
     updatePermanencesForColumn_(perm, i, false);
   }
 
-  inStream >> rng_;
+  // tiebreaker
+  tieBreaker_.resize(numColumns_);
+  for (UInt i = 0; i < numColumns_; i++) {
+    tieBreaker_[i] = proto->tiebreaker(i);
+  }
 
-  inStream >> marker;
-  NTA_CHECK(marker == "~SpatialPooler");
+  overlapDutyCycles_.resize(numColumns_);
+  for (UInt i = 0; i < numColumns_; i++) {
+    overlapDutyCycles_[i] = proto->overlapdutycycles(i);
+  }
+
+  activeDutyCycles_.resize(numColumns_);
+  for (UInt i = 0; i < numColumns_; i++) {
+    activeDutyCycles_[i] = proto->activedutycycles(i);
+  }
+
+  minOverlapDutyCycles_.resize(numColumns_);
+  for (UInt i = 0; i < numColumns_; i++) {
+    minOverlapDutyCycles_[i] = proto->minoverlapdutycycles(i);
+  }
+
+  minActiveDutyCycles_.resize(numColumns_);
+  for (UInt i = 0; i < numColumns_; i++) {
+    minActiveDutyCycles_[i] = proto->minactivedutycycles(i);
+  }
+
+  boostFactors_.resize(numColumns_);
+  for (UInt i = 0; i < numColumns_; i++) {
+    boostFactors_[i] = proto->boostfactors(i);
+  }
 
   // initialize ephemeral members
   overlaps_.resize(numColumns_);
   overlapsPct_.resize(numColumns_);
   boostedOverlaps_.resize(numColumns_);
+}
 
+// Implementation note: this method sets up the instance using data from
+// inStream. This method does not call initialize. As such we have to be careful
+// that everything in initialize is handled properly here.
+
+// Loads local variables from a protocol buffer
+void SpatialPooler::load(const std::string& inFileName)
+{
+  SpatialPoolerProto proto = loadProtocolBufferFromFile(inFileName);
+  populateLocalVarsFromProto(&proto);
 }
 
 //----------------------------------------------------------------------
