@@ -2361,10 +2361,6 @@ namespace nta {
 
         sp_orig.save(filename);
 
-        //SpatialPoolerProto proto;
-        //sp_orig.populateProtocolBuffer(&proto);
-        //sp_orig.writeProtocolBufferToFile(&proto, filename);
-
         saveTime = clock() - saveTime;
       } ////
 
@@ -2374,9 +2370,6 @@ namespace nta {
         loadTime = clock();
 
         sp_dest.load(filename);
-
-        //SpatialPoolerProto proto = sp_dest.loadProtocolBufferFromFile(filename);
-        //sp_dest.populateLocalVarsFromProto(&proto);
 
         loadTime = clock() - loadTime;
       } ////
@@ -2395,68 +2388,6 @@ namespace nta {
     cout << "tprof total total:        " << ((float)totalTime)/CLOCKS_PER_SEC << endl;
     cout << "tprof time spent saving:  " << ((float)totalSaveTime)/CLOCKS_PER_SEC << endl;
     cout << "tprof time spent loading: " << ((float)totalLoadTime)/CLOCKS_PER_SEC << endl;
-    cout << "tprof time spent other:   " << ((float)(totalTime - totalSaveTime - totalLoadTime))/CLOCKS_PER_SEC << "\n\n";
-
-    /*
-
-     cout << "tprof total total:        " << ((float)totalTime)/CLOCKS_PER_SEC << endl;
-    cout << "tprof time spent saving:          " << ((float)totalSaveTime)/CLOCKS_PER_SEC << endl;
-    cout << "tprof time spent loading:                 " << ((float)totalLoadTime)/CLOCKS_PER_SEC << endl;
-    cout << "tprof time spent other:                           " << ((float)(totalTime - totalSaveTime - totalLoadTime))/CLOCKS_PER_SEC << "\n\n";
-
-    totalSaveTime = 0;
-    totalLoadTime = 0;
-    totalTime = clock();
-
-    for (int i = 0; i < NUM_TESTS; i++) {
-      string filename = "SpatialPoolerSerialization.tmp";
-      SpatialPooler sp_orig;
-      UInt numInputs = 6;
-      UInt numColumns = 12;
-      setup(sp_orig, numInputs, numColumns);
-
-      { ////
-        saveTime = clock();
-
-        sp_orig.save(filename);
-        //SpatialPoolerProto proto;
-
-        //sp_orig.populateProtocolBuffer(&proto);
-        // s sp_orig.writeProtocolBufferToFile(&proto, filename);
-
-        saveTime = clock() - saveTime;
-      } ////
-
-      SpatialPooler sp_dest;
-
-      {////
-        loadTime = clock();
-        sp_dest.load(filename);
-        //SpatialPoolerProto proto = sp_dest.loadProtocolBufferFromFile(filename);
-        //sp_dest.populateLocalVarsFromProto(&proto);
-
-        loadTime = clock() - loadTime;
-      } ////
-
-      // Delete the file
-      string command = string("rm -f ") + filename;
-      int ret = system(command.c_str());
-      NTA_ASSERT(ret == 0);
-
-      totalSaveTime += saveTime;
-      totalLoadTime += loadTime;
-    }
-
-    totalTime = clock() - totalTime;
-
-    cout << "\n\n";
-    cout << "tprof total total:        " << ((float)totalTime)/CLOCKS_PER_SEC << endl;
-    cout << "tprof time spent saving:          " << ((float)totalSaveTime)/CLOCKS_PER_SEC << endl;
-    cout << "tprof time spent loading:                 " << ((float)totalLoadTime)/CLOCKS_PER_SEC << endl;
-    cout << "tprof time spent other:                           " << ((float)(totalTime - totalSaveTime - totalLoadTime))/CLOCKS_PER_SEC << endl;
-    */
+    cout << "tprof time spent other:   " << ((float)(totalTime - totalSaveTime - totalLoadTime))/CLOCKS_PER_SEC << endl;
   }
-
-
-
 } // end namespace nta
