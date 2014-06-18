@@ -20,6 +20,7 @@
 #
 # Contributor(s):
 #   David Ragazzi (@DavidRagazzi): Full conversion and adaptation from Autotools scripts
+#   Jim Bridgewater (jwbwater@gmail.com): Updated option help messages
 # --------------------------------------------------------------------------------------------------------------------------
  
 
@@ -389,7 +390,7 @@ message(STATUS "Options:")
 #
 # Optimization can be set at configure time
 #
-option(NTA_OPTIMIZATION_ENABLED "--optimization=[ON/OFF] turn on optimization [default=ON]" ON)
+option(NTA_OPTIMIZATION_ENABLED "-DNTA_OPTIMIZATION_ENABLED=[ON/OFF] turn on optimization [default=ON]" ON)
 if(NTA_OPTIMIZATION_ENABLED)
   # -ftree-vectorize conflicts with -no-tree-aliasing on leopard, so removed
   # flag NTA_ASM enables/disables our hand tuned assbembly code (SSE), but it's available only for some platform
@@ -403,7 +404,7 @@ message(STATUS "  Optimization: ${NTA_OPTIMIZATION_ENABLED}")
 # Enable/disable debugging symbols (-g). Enabled by default (stripped for release).
 # This is orthogonal to optimization
 #
-option(NTA_DEBUGSYMBOLS_ENABLED "--debugsymbols=[ON/OFF] turn on debug symbols [default=ON]" ON)
+option(NTA_DEBUGSYMBOLS_ENABLED "-DNTA_DEBUGSYMBOLS_ENABLED=[ON/OFF] turn on debug symbols [default=ON]" ON)
 if(NTA_DEBUGSYMBOLS_ENABLED)
   set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} ${NTA_PLATFORM_DEBUGFLAGS}")
 endif()
@@ -412,7 +413,7 @@ message(STATUS "  Debug Symbols: ${NTA_DEBUGSYMBOLS_ENABLED}")
 #
 # Enable/disable NTA_ASSERT.
 #
-option(NTA_ASSERTIONS_ENABLED "--assertions=[ON/OFF] turn on assertions [default=ON]" ON)
+option(NTA_ASSERTIONS_ENABLED "-DNTA_ASSERTIONS_ENABLED=[ON/OFF] turn on assertions [default=ON]" ON)
 if(NTA_ASSERTIONS_ENABLED)
   set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -DNTA_ASSERTIONS_ON")
 else()
@@ -423,7 +424,7 @@ message(STATUS "  Assertions: ${NTA_ASSERTIONS_ENABLED}")
 #
 # Enable/disable gprof profiling (this option is not frequently used/tested).
 #
-option(NTA_PROFILING_ENABLED "--profiling=[ON/OFF] turn on profiling [default=OFF]" OFF)
+option(NTA_PROFILING_ENABLED "-DNTA_PROFILING_ENABLED=[ON/OFF] turn on profiling [default=OFF]" OFF)
 if(NTA_PROFILING_ENABLED)
   set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -pg")
   set(NTA_LINKFLAGS "${NTA_LINKFLAGS} -pg")
@@ -434,7 +435,7 @@ message(STATUS "  Profiling: ${NTA_PROFILING_ENABLED}")
 # Build using MPI headers and library,
 # and enable features that depend on MPI.
 #
-option(NTA_MPI_SUPPORT "--mpi=[ON/OFF] turn on MPI support [default=ON]" ON)
+option(NTA_MPI_SUPPORT "-DNTA_MPI_SUPPORT=[ON/OFF] turn on MPI support [default=ON]" ON)
 message(STATUS "  MPI Support: ${NTA_MPI_SUPPORT}")
 
 #
