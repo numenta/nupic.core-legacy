@@ -2344,14 +2344,19 @@ namespace nta {
 
     int NUM_TESTS = 100;
 
-    clock_t saveTime, loadTime;
+    clock_t saveTime, loadTime, createTime, serializeTime, deserializeTime, copyTime;
     clock_t totalSaveTime = 0;
+    clock_t totalCreateTime = 0;
+    clock_t totalSerializeTime = 0;
     clock_t totalLoadTime = 0;
+    clock_t totalDeserializeTime = 0;
+    clock_t totalCopyTime = 0;
     clock_t totalTime = clock();
 
     for (int i = 0; i < NUM_TESTS; i++) {
       string filename = "SpatialPoolerSerialization.tmp";
       SpatialPooler sp_orig;
+      SpatialPooler sp_dest;
       UInt numInputs = 6;
       UInt numColumns = 12;
       setup(sp_orig, numInputs, numColumns);
@@ -2359,17 +2364,28 @@ namespace nta {
       { ////
         saveTime = clock();
 
-        sp_orig.save(filename);
+        createTime = saveTime;
+        SpatialPoolerProto proto;
+        sp_orig.populateProtocolBuffer(&proto);
+        createTime = clock() - createTime;
+
+        serializeTime = clock();
+        sp_orig.writeProtocolBufferToFile(&proto, filename);
+        serializeTime = clock() - serializeTime;
 
         saveTime = clock() - saveTime;
       } ////
 
-      SpatialPooler sp_dest;
-
-      {////
+      { ////
         loadTime = clock();
 
-        sp_dest.load(filename);
+        deserializeTime = loadTime;
+        SpatialPoolerProto proto = sp_dest.loadProtocolBufferFromFile(filename);
+        deserializeTime = clock() - deserializeTime;
+
+        copyTime = clock();
+        sp_dest.populateLocalVarsFromProto(&proto);
+        copyTime = clock() - copyTime;
 
         loadTime = clock() - loadTime;
       } ////
@@ -2380,14 +2396,25 @@ namespace nta {
       NTA_ASSERT(ret == 0);
 
       totalSaveTime += saveTime;
+      totalCreateTime += createTime;
+      totalSerializeTime += serializeTime;
       totalLoadTime += loadTime;
+      totalDeserializeTime += deserializeTime;
+      totalCopyTime += copyTime;
     }
 
     totalTime = clock() - totalTime;
 
-    cout << "tprof total total:        " << ((float)totalTime)/CLOCKS_PER_SEC << endl;
-    cout << "tprof time spent saving:  " << ((float)totalSaveTime)/CLOCKS_PER_SEC << endl;
-    cout << "tprof time spent loading: " << ((float)totalLoadTime)/CLOCKS_PER_SEC << endl;
-    cout << "tprof time spent other:   " << ((float)(totalTime - totalSaveTime - totalLoadTime))/CLOCKS_PER_SEC << endl;
+    cout << "tprof total:                       " << ((float)totalTime)/CLOCKS_PER_SEC << endl;
+
+    cout << "tprof total time spent saving:     " << ((float)totalSaveTime)/CLOCKS_PER_SEC << endl;
+    cout << "tprof time spent creating:         " << ((float)totalCreateTime)/CLOCKS_PER_SEC << endl;
+    cout << "tprof time spent serializing:      " << ((float)totalSerializeTime)/CLOCKS_PER_SEC << endl;
+
+    cout << "tprof total time spent loading:    " << ((float)totalLoadTime)/CLOCKS_PER_SEC << endl;
+    cout << "tprof time spent deserializing:    " << ((float)totalDeserializeTime)/CLOCKS_PER_SEC << endl;
+    cout << "tprof time spent copying locally:  " << ((float)totalCopyTime)/CLOCKS_PER_SEC << endl;
+
+    cout << "tprof time spent other:            " << ((float)(totalTime - totalSaveTime - totalLoadTime))/CLOCKS_PER_SEC << endl;
   }
 } // end namespace nta
