@@ -3990,6 +3990,8 @@ namespace nta {
 
       return (int) count;
 
+#else
+      return std::count_if(begin, end, std::bind2nd(std::greater<nta::Real32>(), threshold));
 #endif
     } else {
       return std::count_if(begin, end, std::bind2nd(std::greater<nta::Real32>(), threshold));
