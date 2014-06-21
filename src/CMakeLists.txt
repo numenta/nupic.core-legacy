@@ -174,20 +174,22 @@ macro(merge_static_libraries new_lib output_dir libraries target)
 endmacro()
 
 # This macro gets the compiler family being used.
-# Currently compiler_family can only be one of gnu/clang/vc/unsupported, more can be added
+# Currently compiler_family can only be one of GNU/CLANG/MSVC/unsupported, more can be added
 macro(get_compiler_family compiler_family)
     if(CMAKE_COMPILER_IS_GNUCXX)
       # The compiler is a GNU g++ variant.
       # This is also true for MinGW and Cygwin on Windows
-      set(${compiler_family} "gnu")
+      set(${compiler_family} "GNU")
     elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
       # The compiler is clang
-      set(${compiler_family} "clang")
+      set(${compiler_family} "CLANG")
     elseif(MSVC)
-      # The compiler is vc
-      set(${compiler_family} "vc")  
+      set(${compiler_family} "MSVC")
+    elseif(BORLAND)
+      set(${compiler_family} "BORLAND")
+    elseif(WATCOM)
+      set(${compiler_family} "WATCOM")    
     else()
-      # TODO: support WATCOM, BORLAND etc.
       # See http://www.cmake.org/Wiki/CMake_Useful_Variables
       set(${compiler_family} "unsupported")
     endif()
@@ -441,7 +443,7 @@ message(STATUS "  MPI Support: ${NTA_MPI_SUPPORT}")
 #
 # Compiler specific (clang, gcc, ..) flags can be set here
 #
-if(${NTA_COMPILER_FAMILY} EQUAL "gnu")
+if(${NTA_COMPILER_FAMILY} EQUAL "GNU")
   set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-unused-parameter -Wno-sign-compare -Wno-error=format=")
   set(NTA_CXXFLAGS_OPTIMIZATION "${NTA_CXXFLAGS_OPTIMIZATION} -falign-loops=16")
   # workaround for gcc 4.4 in Grok
@@ -450,7 +452,7 @@ if(${NTA_COMPILER_FAMILY} EQUAL "gnu")
     set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -Wno-error=cpp -Werror")
   endif()
   set(NTA_LINKFLAGS_ARCHIVES "-Wl,-whole-archive")
-elseif(${NTA_COMPILER_FAMILY} EQUAL "vc")
+elseif(${NTA_COMPILER_FAMILY} EQUAL "MSVC")
 # TODO: add VC-specific compiler options
 else()
 # TODO: Was this for clang? Should it be more explicit?
