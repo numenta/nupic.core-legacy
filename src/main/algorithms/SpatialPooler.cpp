@@ -511,7 +511,7 @@ void SpatialPooler::initialize(vector<UInt> inputDimensions,
 
   for (UInt i = 0; i < numColumns_; ++i)
   {
-    vector<UInt> potential = mapPotential1D_(i,true);
+    vector<UInt> potential = mapPotential_(i,true);
     vector<Real> perm = initPermanence_(potential, initConnectedPct_);
     potentialPools_.rowFromDense(i,potential.begin(),potential.end());
     updatePermanencesForColumn_(perm,i,true);
@@ -603,7 +603,7 @@ UInt SpatialPooler::mapColumn_(UInt column)
   return inputConv.toIndex(inputCoord);
 }
 
-vector<UInt> SpatialPooler::mapPotential1D_(UInt column, bool wrapAround)
+vector<UInt> SpatialPooler::mapPotential_(UInt column, bool wrapAround)
 {
   vector<UInt> potential(numInputs_,0);
   vector<UInt> indices;

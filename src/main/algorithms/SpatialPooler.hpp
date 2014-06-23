@@ -814,7 +814,7 @@ namespace nta {
             @param wrapAround     A boolean value indicating that boundaries should be
                             region boundaries ignored.
           */
-          vector<UInt> mapPotential1D_(UInt column, bool wrapAround);
+          vector<UInt> mapPotential_(UInt column, bool wrapAround);
 
           /**
           Returns a randomly generated permanence value for a synapses that is

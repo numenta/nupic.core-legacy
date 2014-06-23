@@ -2378,28 +2378,28 @@ namespace nta {
     sp.setPotentialPct(1.0);
 
     UInt expectedMask1[10] = {1, 1, 1, 0, 0, 0, 0, 0, 0, 0};
-    mask = sp.mapPotential1D_(0, false);
+    mask = sp.mapPotential_(0, false);
     NTA_CHECK(check_vector_eq(expectedMask1, mask));
 
     UInt expectedMask2[10] = {0, 0, 0, 0, 1, 1, 1, 1, 1, 0};
-    mask = sp.mapPotential1D_(2, false);
+    mask = sp.mapPotential_(2, false);
     NTA_CHECK(check_vector_eq(expectedMask2, mask));
 
     // Test with wrapAround and potentialPct = 1
     sp.setPotentialPct(1.0);
 
     UInt expectedMask3[10] = {1, 1, 1, 0, 0, 0, 0, 0, 1, 1};
-    mask = sp.mapPotential1D_(0, true);
+    mask = sp.mapPotential_(0, true);
     NTA_CHECK(check_vector_eq(expectedMask3, mask));
 
     UInt expectedMask4[10] = {1, 1, 0, 0, 0, 0, 0, 1, 1, 1};
-    mask = sp.mapPotential1D_(3, true);
+    mask = sp.mapPotential_(3, true);
     NTA_CHECK(check_vector_eq(expectedMask4, mask));
 
     // Test with potentialPct < 1
     sp.setPotentialPct(0.5);
     UInt supersetMask1[10] = {1, 1, 1, 0, 0, 0, 0, 0, 1, 1};
-    mask = sp.mapPotential1D_(0, true);
+    mask = sp.mapPotential_(0, true);
     NTA_ASSERT(sum(mask) == 3);
 
     UInt unionMask1[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -2435,7 +2435,7 @@ namespace nta {
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0
     };
-    mask = sp.mapPotential1D_(0, false);
+    mask = sp.mapPotential_(0, false);
     NTA_CHECK(check_vector_eq(expectedMask1, mask));
 
     UInt expectedMask2[50] = {
@@ -2445,7 +2445,7 @@ namespace nta {
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0
     };
-    mask = sp.mapPotential1D_(2, false);
+    mask = sp.mapPotential_(2, false);
     NTA_CHECK(check_vector_eq(expectedMask2, mask));
 
     // Test with wrapAround
@@ -2456,7 +2456,7 @@ namespace nta {
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
       1, 1, 0, 0, 0, 0, 0, 0, 0, 1
     };
-    mask = sp.mapPotential1D_(0, true);
+    mask = sp.mapPotential_(0, true);
     NTA_CHECK(check_vector_eq(expectedMask3, mask));
 
     UInt expectedMask4[50] = {
@@ -2466,7 +2466,7 @@ namespace nta {
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
       1, 0, 0, 0, 0, 0, 0, 0, 1, 1
     };
-    mask = sp.mapPotential1D_(3, true);
+    mask = sp.mapPotential_(3, true);
     NTA_CHECK(check_vector_eq(expectedMask4, mask));
   }
 
