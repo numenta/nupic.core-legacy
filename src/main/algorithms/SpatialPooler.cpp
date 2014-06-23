@@ -608,21 +608,12 @@ vector<UInt> SpatialPooler::mapPotential1D_(UInt column, bool wrapAround)
   column = UInt(numInputs_ - 1) * ratio;
 
   vector<UInt> potential(numInputs_,0);
-  vector<Int> indices;
-  for (Int i = -potentialRadius_ + column; i <= Int(potentialRadius_ + column);
-       i++)
-    {
-      if (wrapAround) {
-        indices.push_back((i + numInputs_) % numInputs_);
-      } else if (i >= 0 && i < Int(numInputs_)) {
-        indices.push_back(i);
-      }
-    }
+  vector<UInt> indices;
+  UInt index;
 
-  sort(indices.begin(), indices.end());
-  vector<Int>::iterator uniqueEnd;
-  uniqueEnd = unique(indices.begin(), indices.end());
-  indices.resize(distance(indices.begin(), uniqueEnd) );
+  index = mapColumn_(column);
+  getNeighborsND_(index, inputDimensions_, potentialRadius_, wrapAround, indices);
+  indices.push_back(index);
 
   random_shuffle(indices.begin(),indices.end(),rng_);
 

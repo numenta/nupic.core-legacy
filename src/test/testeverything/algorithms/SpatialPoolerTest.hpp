@@ -58,6 +58,7 @@ namespace nta {
     bool findVector(UInt needle[], UInt n, vector<vector<UInt> > haystack);
     void testMapColumn();
     void testMapPotential1D();
+    void testMapPotential2D();
     void testInitPermConnected();
     void testInitPermNonConnected();
     void testInitPermanence();
