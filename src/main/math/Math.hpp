@@ -284,6 +284,15 @@ namespace nta {
   {
     return nearlyZero((b-a), epsilon);
   }
+
+  //--------------------------------------------------------------------------------
+  /**
+   * Euclidean modulo function.
+   */
+  inline int emod(int x, int m) {
+    int r = x % m;
+    return r < 0 ? r + m : r;
+  }
   
   //--------------------------------------------------------------------------------
   /**

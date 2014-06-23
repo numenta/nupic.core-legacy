@@ -27,6 +27,7 @@
 #include <cstring>
 #include <iostream>
 #include <nta/algorithms/SpatialPooler.hpp>
+#include <nta/math/Math.hpp>
 #include <string>
 #include <vector>
 
@@ -1195,7 +1196,7 @@ void SpatialPooler::range_(Int start, Int end, UInt ubound, bool wrapAround,
   rangeVector.clear();
   for (Int i = start; i <= end; i++) {
     if (wrapAround) {
-      rangeVector.push_back(abs(i % (Int) ubound));
+      rangeVector.push_back(emod(i, (int)ubound));
     } else if (i >= 0 && i < (Int) ubound) {
       rangeVector.push_back(i);
     }
