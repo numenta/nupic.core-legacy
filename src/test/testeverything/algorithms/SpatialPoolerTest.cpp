@@ -1881,10 +1881,10 @@ namespace nta {
             Int yc = (y + k);
             Int xc = (x + m);
 
-            Int wc_ = (w + i + (Int) dimensions[0]) % dimensions[0];
-            Int zc_ = (z + j + (Int) dimensions[1]) % dimensions[1];
-            Int yc_ = (y + k + (Int) dimensions[2]) % dimensions[2];
-            Int xc_ = (x + m + (Int) dimensions[3]) % dimensions[3];
+            Int wc_ = (w + i) % dimensions[0];
+            Int zc_ = (z + j) % dimensions[1];
+            Int yc_ = (y + k) % dimensions[2];
+            Int xc_ = (x + m) % dimensions[3];
 
             if (i == 0 && j == 0 && k == 0 && m == 0) {
               continue;
@@ -2039,6 +2039,36 @@ namespace nta {
     }
 
     NTA_CHECK(check_vector_eq(trueNeighborsMap8, neighborsMap));
+
+    column = 0;
+    radius = 100;
+    wrapAround = false;
+    dimensions.clear();
+    dimensions.push_back(8);
+    UInt trueNeighborsMap9[8] = {1, 1, 1, 1, 1, 1, 1, 1};
+    sp.getNeighborsND_(column, dimensions, radius, wrapAround,
+                          neighbors);
+    neighborsMap.clear();
+    for (UInt i = 0; i < neighbors.size(); i++) {
+      neighborsMap[neighbors[i]] = 1;
+    }
+
+    NTA_CHECK(check_vector_eq(trueNeighborsMap9, neighborsMap));
+
+    column = 0;
+    radius = 100;
+    wrapAround = true;
+    dimensions.clear();
+    dimensions.push_back(8);
+    UInt trueNeighborsMap10[8] = {1, 1, 1, 1, 1, 1, 1, 1};
+    sp.getNeighborsND_(column, dimensions, radius, wrapAround,
+                          neighbors);
+    neighborsMap.clear();
+    for (UInt i = 0; i < neighbors.size(); i++) {
+      neighborsMap[neighbors[i]] = 1;
+    }
+
+    NTA_CHECK(check_vector_eq(trueNeighborsMap10, neighborsMap));
 
   }
 
