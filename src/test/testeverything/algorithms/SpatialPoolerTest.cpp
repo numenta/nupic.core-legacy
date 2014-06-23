@@ -244,6 +244,7 @@ namespace nta {
   void SpatialPoolerTest::RunTests()
   {
     testRaisePermanencesToThreshold();
+    testMapColumn();
     testMapPotential1D();
     testInitPermConnected();
     testInitPermNonConnected();
@@ -2269,6 +2270,64 @@ namespace nta {
       NTA_CHECK(permVal >= 0 &&
                 permVal <= synPermConnected);
     }
+  }
+
+  void SpatialPoolerTest::testMapColumn()
+  {
+    vector<UInt> inputDim, columnDim;
+    SpatialPooler sp;
+
+    // Test 1D
+    inputDim.push_back(10);
+    columnDim.push_back(4);
+    sp.initialize(inputDim, columnDim);
+
+    NTA_ASSERT(sp.mapColumn_(0) == 0);
+    NTA_ASSERT(sp.mapColumn_(1) == 3);
+    NTA_ASSERT(sp.mapColumn_(2) == 6);
+    NTA_ASSERT(sp.mapColumn_(3) == 9);
+
+    columnDim.clear();
+    inputDim.clear();
+
+    // Test 1D with same dimensions of columns and inputs
+    inputDim.push_back(4);
+    columnDim.push_back(4);
+    sp.initialize(inputDim, columnDim);
+
+    NTA_ASSERT(sp.mapColumn_(0) == 0);
+    NTA_ASSERT(sp.mapColumn_(1) == 1);
+    NTA_ASSERT(sp.mapColumn_(2) == 2);
+    NTA_ASSERT(sp.mapColumn_(3) == 3);
+
+    columnDim.clear();
+    inputDim.clear();
+
+    // Test 1D with dimensions of length 1
+    inputDim.push_back(1);
+    columnDim.push_back(1);
+    sp.initialize(inputDim, columnDim);
+
+    NTA_ASSERT(sp.mapColumn_(0) == 0);
+
+    columnDim.clear();
+    inputDim.clear();
+
+    // Test 2D
+    inputDim.push_back(20);
+    inputDim.push_back(10);
+    columnDim.push_back(12);
+    columnDim.push_back(4);
+    sp.initialize(inputDim, columnDim);
+
+    NTA_ASSERT(sp.mapColumn_(0) == 0);
+    NTA_ASSERT(sp.mapColumn_(4) == 10);
+    NTA_ASSERT(sp.mapColumn_(5) == 13);
+    NTA_ASSERT(sp.mapColumn_(7) == 19);
+    NTA_ASSERT(sp.mapColumn_(47) == 199);
+
+    columnDim.clear();
+    inputDim.clear();
   }
 
   void SpatialPoolerTest::testMapPotential1D()

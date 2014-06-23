@@ -583,6 +583,25 @@ void SpatialPooler::boostOverlaps_(vector<UInt>& overlaps,
   }
 }
 
+UInt SpatialPooler::mapColumn_(UInt column)
+{
+  CoordinateConverterND columnConv(columnDimensions_);
+  CoordinateConverterND inputConv(inputDimensions_);
+  vector<UInt> columnCoord, inputCoord;
+
+  columnConv.toCoord(column, columnCoord);
+
+  Real ratio;
+  UInt coord;
+  for (UInt i = 0; i < columnCoord.size(); i++) {
+    ratio = (Real)columnCoord[i] / max(columnDimensions_[i] - 1, UInt(1));
+    coord = (inputDimensions_[i] - 1) * ratio;
+    inputCoord.push_back(coord);
+  }
+
+  return inputConv.toIndex(inputCoord);
+}
+
 vector<UInt> SpatialPooler::mapPotential1D_(UInt column, bool wrapAround)
 {
   Real ratio = (Real)column / max(numColumns_ - 1, UInt(1));
