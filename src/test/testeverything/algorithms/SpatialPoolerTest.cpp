@@ -1872,10 +1872,10 @@ namespace nta {
             Int yc = (y + k);
             Int xc = (x + m);
 
-            Int wc_ = (w + i) % dimensions[0];
-            Int zc_ = (z + j) % dimensions[1];
-            Int yc_ = (y + k) % dimensions[2];
-            Int xc_ = (x + m) % dimensions[3];
+            Int wc_ = emod((w + i), dimensions[0]);
+            Int zc_ = emod((z + j), dimensions[1]);
+            Int yc_ = emod((y + k), dimensions[2]);
+            Int xc_ = emod((x + m), dimensions[3]);
 
             if (i == 0 && j == 0 && k == 0 && m == 0) {
               continue;
