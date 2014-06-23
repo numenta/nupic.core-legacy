@@ -605,9 +605,6 @@ UInt SpatialPooler::mapColumn_(UInt column)
 
 vector<UInt> SpatialPooler::mapPotential1D_(UInt column, bool wrapAround)
 {
-  Real ratio = (Real)column / max(numColumns_ - 1, UInt(1));
-  column = UInt(numInputs_ - 1) * ratio;
-
   vector<UInt> potential(numInputs_,0);
   vector<UInt> indices;
   UInt index;
