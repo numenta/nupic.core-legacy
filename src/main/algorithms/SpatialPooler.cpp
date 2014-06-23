@@ -1179,12 +1179,12 @@ void SpatialPooler::cartesianProduct_(vector<vector<UInt> >& vecs,
 }
 
 void SpatialPooler::range_(Int start, Int end, UInt ubound, bool wrapAround,
-                           vector<UInt>& rangeVector)
+                           vector<Int>& rangeVector)
 {
   rangeVector.clear();
   for (Int i = start; i <= end; i++) {
     if (wrapAround) {
-      rangeVector.push_back((i + (Int) ubound) % (Int) ubound);
+      rangeVector.push_back(abs(i % (Int) ubound));
     } else if (i >= 0 && i < (Int) ubound) {
       rangeVector.push_back(i);
     }
@@ -1203,13 +1203,20 @@ void SpatialPooler::getNeighborsND_(
   conv.toCoord(column,columnCoord);
 
   vector<vector<UInt> > rangeND;
+  vector<Int>::iterator uniqueEnd;
+  vector<Int> curRange;
 
   for (UInt i = 0; i < dimensions.size(); i++) {
-    vector<UInt> curRange;
     range_((Int) columnCoord[i] - (Int) radius,
            (Int) columnCoord[i] + (Int) radius,
            dimensions[i], wrapAround, curRange);
-    rangeND.insert(rangeND.begin(), curRange);
+
+    sort(curRange.begin(), curRange.end());
+    uniqueEnd = unique(curRange.begin(), curRange.end());
+    curRange.resize(distance(curRange.begin(), uniqueEnd) );
+
+    vector<UInt> curRangeUInt(curRange.begin(), curRange.end());
+    rangeND.insert(rangeND.begin(), curRangeUInt);
   }
 
   vector<vector<UInt> > neighborCoords;
