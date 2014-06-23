@@ -22,7 +22,7 @@ Important notes:
     make clean # or 'make distclean' for a complete clean
     make -j3
     
-> **Note**: The `-j3` option-some-conflicted-edits-for-testing dummydummy-specifies '3' as the maximum number of parallel jobs/threads that Make will use during the build in order to gain speed. However, you can increase this number depending your CPU.
+> **Note**: The `-j3` option-some-conflicted-edits-for-testing dummydummydummydummy-specifies '3' as the maximum number of parallel jobs/threads that Make will use during the build in order to gain speed. However, you can increase this number depending your CPU.
 
 #### Run the tests:
 
