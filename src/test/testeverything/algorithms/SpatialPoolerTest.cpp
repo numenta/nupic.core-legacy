@@ -2031,6 +2031,36 @@ namespace nta {
 
     NTA_CHECK(check_vector_eq(trueNeighborsMap8, neighborsMap));
 
+    column = 0;
+    radius = 100;
+    wrapAround = false;
+    dimensions.clear();
+    dimensions.push_back(8);
+    UInt trueNeighborsMap9[8] = {1, 1, 1, 1, 1, 1, 1, 1};
+    sp.getNeighborsND_(column, dimensions, radius, wrapAround,
+                          neighbors);
+    neighborsMap.clear();
+    for (UInt i = 0; i < neighbors.size(); i++) {
+      neighborsMap[neighbors[i]] = 1;
+    }
+
+    NTA_CHECK(check_vector_eq(trueNeighborsMap9, neighborsMap));
+
+    column = 0;
+    radius = 100;
+    wrapAround = true;
+    dimensions.clear();
+    dimensions.push_back(8);
+    UInt trueNeighborsMap10[8] = {1, 1, 1, 1, 1, 1, 1, 1};
+    sp.getNeighborsND_(column, dimensions, radius, wrapAround,
+                          neighbors);
+    neighborsMap.clear();
+    for (UInt i = 0; i < neighbors.size(); i++) {
+      neighborsMap[neighbors[i]] = 1;
+    }
+
+    NTA_CHECK(check_vector_eq(trueNeighborsMap10, neighborsMap));
+
   }
 
   void SpatialPoolerTest::testIsUpdateRound()
