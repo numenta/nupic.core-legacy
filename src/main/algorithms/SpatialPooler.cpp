@@ -455,6 +455,7 @@ void SpatialPooler::initialize(vector<UInt> inputDimensions,
 
   NTA_ASSERT(numColumns_ > 0);
   NTA_ASSERT(numInputs_ > 0);
+  NTA_ASSERT(inputDimensions_.size() == columnDimensions_.size());
   NTA_ASSERT(numActiveColumnsPerInhArea > 0 ||
             (localAreaDensity > 0 && localAreaDensity <= 0.5));
   NTA_ASSERT(potentialPct > 0 && potentialPct <= 1);

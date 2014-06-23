@@ -286,6 +286,8 @@ namespace nta {
     colDim.push_back(31);
     colDim.push_back(2);
     inputDim.push_back(1);
+    inputDim.push_back(1);
+    inputDim.push_back(1);
 
     sp.initialize(inputDim, colDim);
     sp.setGlobalInhibition(true);
@@ -731,6 +733,7 @@ namespace nta {
     inputDim.push_back(5);
     inputDim.push_back(4);
     colDim.push_back(10);
+    colDim.push_back(1);
     sp.initialize(inputDim, colDim);
 
     UInt trueAvgConnectedSpan1[7] = {3, 3, 4, 3, 2, 2, 0};
@@ -750,6 +753,7 @@ namespace nta {
     inputDim.push_back(numInputs);
     inputDim.push_back(1);
     colDim.push_back(numColumns);
+    colDim.push_back(1);
 
     sp.initialize(inputDim, colDim);
 
@@ -783,6 +787,9 @@ namespace nta {
     inputDim.push_back(2);
     inputDim.push_back(5);
     colDim.push_back(5);
+    colDim.push_back(1);
+    colDim.push_back(1);
+    colDim.push_back(1);
 
     sp.initialize(inputDim, colDim);
 
