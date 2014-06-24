@@ -291,7 +291,8 @@ namespace nta {
    */
   inline int emod(int x, int m) {
     int r = x % m;
-    return r < 0 ? r + m : r;
+    if (r < 0) return r + m;
+    else return r;
   }
   
   //--------------------------------------------------------------------------------

@@ -761,7 +761,7 @@ namespace nta {
           void boostOverlaps_(vector<UInt>& overlaps,
                               vector<Real>& boostedOverlaps);
           void range_(Int start, Int end, UInt ubound, bool wrapAround,
-                      vector<Int>& rangeVector);
+                      vector<UInt>& rangeVector);
 
           /**
             Maps a column to its respective input index, keeping to the topology of
