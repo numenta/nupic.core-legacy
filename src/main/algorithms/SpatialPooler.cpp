@@ -613,6 +613,9 @@ vector<UInt> SpatialPooler::mapPotential_(UInt column, bool wrapAround)
   getNeighborsND_(index, inputDimensions_, potentialRadius_, wrapAround, indices);
   indices.push_back(index);
 
+  // TODO: See https://github.com/numenta/nupic.core/issues/128
+  sort(indices.begin(), indices.end());
+
   random_shuffle(indices.begin(),indices.end(),rng_);
 
   Int numPotential = Int(round(indices.size() * potentialPct_));
