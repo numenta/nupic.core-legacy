@@ -29,17 +29,6 @@ addons:
 before_install:
   - "if [ $CC = 'gcc' ]; then export CXX=g++; fi"
   - "if [ $CC = 'clang' ]; then export CXX=clang++; fi"
-  - "if [ $TRAVIS_OS_NAME = 'osx' ]; then brew install cmake; fi"
-
-install:
-  - "mkdir -p $TRAVIS_BUILD_DIR/build/scripts"
-  - "cd $TRAVIS_BUILD_DIR/build/scripts"
-  - "if [ ${COVERITY_SCAN_BRANCH} != 1 ]; then cmake $TRAVIS_BUILD_DIR/src ; fi"
 
 script:
-  - "cd $TRAVIS_BUILD_DIR/build/scripts"
-  - "if [ ${COVERITY_SCAN_BRANCH} != 1 ]; then make -j3; fi"
-  # legacy binary tests
-  - "if [ ${COVERITY_SCAN_BRANCH} != 1 ]; then make tests_htm; fi"
-  # (not quite everything, really)
-  - "if [ ${COVERITY_SCAN_BRANCH} != 1 ]; then make tests_everything; fi"
+  - "eval $COVERITY_SCAN_BUILD"
