@@ -288,11 +288,14 @@ namespace nta {
   //--------------------------------------------------------------------------------
   /**
    * Euclidean modulo function.
+   *
+   * Returns x % m, but keeps the value positive
+   * (similar to Python's modulo function).
    */
   inline int emod(int x, int m) {
     int r = x % m;
     if (r < 0) return r + m;
-    else return r;
+    else       return r;
   }
   
   //--------------------------------------------------------------------------------
