@@ -14,11 +14,25 @@ matrix:
     - os: osx
       compiler: gcc
 
+env:
+  global:
+    # COVERITY_SCAN_TOKEN
+    secure: "hSLV4SYVFVGwrMDXdsFPKcjBReCiZS8910PkQqLScprIwyYLhFPH9f+rSw5qNHIUdZuXdSBov57FPX0Gc1EJjjIYE1jF3zCtO2leSJsID5CTJYIkQbGEYLj5v0f1p1/wEmNTr+bdof3kalqRYitK6NjgPR5gHGD4whHgkqAIvF4="
+
 notifications:
   irc:
     channels:
       - "irc.freenode.net#nupic-hackers"
   webhooks: http://issues.numenta.org:8081/travis
+
+addons:
+  coverity_scan:
+    project:
+      name: "numenta/nupic.core"
+    notification_email: matt@numenta.org
+    build_command_prepend: "mkdir -p $TRAVIS_BUILD_DIR/build/scripts; cd $TRAVIS_BUILD_DIR/build/scripts; cmake $TRAVIS_BUILD_DIR/src"
+    build_command: "cd $TRAVIS_BUILD_DIR/build/scripts; make -j3"
+    branch_pattern: "coverity"
 
 before_install:
   - "if [ $CC = 'gcc' ]; then export CXX=g++; fi"
