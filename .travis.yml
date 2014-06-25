@@ -32,7 +32,7 @@ addons:
     notification_email: matt@numenta.org
     build_command_prepend: "mkdir -p $TRAVIS_BUILD_DIR/build/scripts; cd $TRAVIS_BUILD_DIR/build/scripts; cmake $TRAVIS_BUILD_DIR/src"
     build_command: "cd $TRAVIS_BUILD_DIR/build/scripts; make -j3"
-    branch_pattern: *
+    branch_pattern: "coverity"
 
 before_install:
   - "if [ $CC = 'gcc' ]; then export CXX=g++; fi"
