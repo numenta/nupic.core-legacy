@@ -1196,6 +1196,7 @@ void SpatialPooler::range_(Int start, Int end, UInt ubound, bool wrapAround,
   vector<Int> range;
   vector<Int>::iterator uniqueEnd;
 
+  // Generate indices within range, wrapping around as necessary
   for (Int i = start; i <= end; i++) {
     if (wrapAround) {
       range.push_back(emod(i, (int) ubound));
@@ -1204,6 +1205,7 @@ void SpatialPooler::range_(Int start, Int end, UInt ubound, bool wrapAround,
     }
   }
 
+  // Add the unique range indices to rangeVector
   sort(range.begin(), range.end());
   uniqueEnd = unique(range.begin(), range.end());
   range.resize(distance(range.begin(), uniqueEnd) );

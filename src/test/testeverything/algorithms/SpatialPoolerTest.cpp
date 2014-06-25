@@ -2040,6 +2040,7 @@ namespace nta {
 
     NTA_CHECK(check_vector_eq(trueNeighborsMap8, neighborsMap));
 
+    // Test with radius larger than the dimension range
     column = 0;
     radius = 100;
     wrapAround = false;
@@ -2055,6 +2056,8 @@ namespace nta {
 
     NTA_CHECK(check_vector_eq(trueNeighborsMap9, neighborsMap));
 
+    // Test with radius larger than the dimension range,
+    // with wrapAround enabled
     column = 0;
     radius = 100;
     wrapAround = true;
