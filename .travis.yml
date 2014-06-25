@@ -9,7 +9,7 @@ compiler:
 env:
   global:
     # COVERITY_SCAN_TOKEN
-    secure: "hSLV4SYVFVGwrMDXdsFPKcjBReCiZS8910PkQqLScprIwyYLhFPH9f+rSw5qNHIUdZuXdSBov57FPX0Gc1EJjjIYE1jF3zCtO2leSJsID5CTJYIkQbGEYLj5v0f1p1/wEmNTr+bdof3kalqRYitK6NjgPR5gHGD4whHgkqAIvF4="
+    secure: "Q3ZZdtAKxeWw6liO/8rkqI22R5WyOAgxfjQDpOLadRxemtkTJaR+wqTy3cvYH04yNjKiuJzrzvv64+v4acmhbAZJGuwTe8WAbyKJWRFxka6Okc3bYTGyMEIuAQQIFJn8Os12PkKcru8F4Slg12X8F2YlB94Gz7hWXfLADbBstQA="
 
 notifications:
   irc:
