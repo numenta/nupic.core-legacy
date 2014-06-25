@@ -2,17 +2,9 @@ language: cpp
 
 os:
   - linux
-  - osx
 
 compiler:
-  - clang
   - gcc
-
-matrix:
-  # This excludes OSX builds from the build matrix for gcc
-  exclude:
-    - os: osx
-      compiler: gcc
 
 env:
   global:
@@ -42,12 +34,12 @@ before_install:
 install:
   - "mkdir -p $TRAVIS_BUILD_DIR/build/scripts"
   - "cd $TRAVIS_BUILD_DIR/build/scripts"
-  - "cmake $TRAVIS_BUILD_DIR/src"
+  - "if [ ${COVERITY_SCAN_BRANCH} != 1 ]; then cmake $TRAVIS_BUILD_DIR/src ; fi"
 
 script:
   - "cd $TRAVIS_BUILD_DIR/build/scripts"
-  - "make -j3"
+  - "if [ ${COVERITY_SCAN_BRANCH} != 1 ]; then make -j3; fi"
   # legacy binary tests
-  - "make tests_htm"
+  - "if [ ${COVERITY_SCAN_BRANCH} != 1 ]; then make tests_htm; fi"
   # (not quite everything, really)
-  - "make tests_everything"
+  - "if [ ${COVERITY_SCAN_BRANCH} != 1 ]; then make tests_everything; fi"
