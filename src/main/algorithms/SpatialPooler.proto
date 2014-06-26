@@ -1,0 +1,87 @@
+package nta.algorithms.spatial_pooler;
+
+option optimize_for = LITE_RUNTIME;
+
+message SpatialPoolerProto {
+  required uint32 seed = 1;
+  required uint32 numInputs = 2;
+  required uint32 potentialRadius = 3;
+  required float potentialPct = 4;
+  required bool globalInhibition = 5;
+  required uint32 numActiveColumnsPerInhArea = 6;
+  required float localAreaDensity = 7;
+  required uint32 stimulusThreshold = 8;
+
+  required float synPermInactiveDec = 9;
+  required float synPermActiveInc = 10;
+  required float synPermBelowStimulusInc = 11;
+  required float synPermConnected = 12;
+
+  required float minPctOverlapDutyCycles = 13;
+  required float minPctActiveDutyCycles = 14;
+
+  required uint32 dutyCyclePeriod = 15; // uint16
+  required float maxBoost = 16;
+  required uint32 spVerbosity = 17;
+
+  required float synPermMin = 18;
+  required float synPermMax = 19;
+  required float synPermTrimThreshold = 20;
+
+  required uint32 updatePeriod = 21; // uint16
+  required uint32 version = 22; // uint16
+  required uint32 iterationNum = 23;
+  required uint32 iterationLearnNum = 24;
+  required uint32 inhibitionRadius = 25;
+
+  repeated uint32 columnDimensions = 26 [packed = true];
+  repeated uint32 inputDimensions = 27 [packed = true];
+
+  // List length equals number of columns, elements are indices of input bits
+  // in potential pool
+  // For serialization only - sparse matrix is used during execution
+  repeated SparseRow potentialPools = 28;
+
+  // List length equals number of columns, elements are SparseFloat instances with
+  // an input bit index and the permanence value for all non-zero permanences.
+  // For serialization only - sparse matrix is used during execution
+  repeated SparseFloatRow permanences = 29;
+
+  // Tie break float values for each column to break ties
+  repeated float tieBreaker = 30 [packed = true];
+
+  // For serialization only - sparse matrix is used during execution
+  repeated SparseBool connectedSynapses = 31;
+  repeated uint32 connectedCounts = 32 [packed = true];
+
+  repeated float overlapDutyCycles = 33 [packed = true];
+  repeated float activeDutyCycles = 34 [packed = true];
+  repeated float minOverlapDutyCycles = 35 [packed = true];
+  repeated float minActiveDutyCycles = 36 [packed = true];
+  repeated float boostFactors = 37 [packed = true];
+
+  required uint32 numColumns = 38;
+
+  optional bool isFlatSpatialPooler = 39;
+  optional float minDistance = 40;
+  optional bool randomSP = 41;
+}
+
+message SparseFloat {
+    required uint32 index = 1;
+    required float value = 2;
+}
+
+message SparseBool {
+  required uint32 index = 1;
+  required bool value = 2;
+}
+
+message SparseRow {
+  repeated uint32 rowElements = 1 [packed = true];
+}
+
+message SparseFloatRow {
+  repeated uint32 index = 1 [packed = true];
+  repeated float value = 2 [packed = true];
+}

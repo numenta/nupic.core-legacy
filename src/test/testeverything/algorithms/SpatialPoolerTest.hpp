@@ -29,6 +29,10 @@
 #include <nta/test/Tester.hpp>
 #include <nta/algorithms/SpatialPooler.hpp>
 
+#include <unistd.h> /* POSIX flags */
+#include <time.h>   /* clock_gettime(), time() */
+#include <sys/time.h>   /* gethrtime(), gettimeofday() */
+
 #ifndef NTA_SPATIAL_POOLER_TEST
 #define NTA_SPATIAL_POOLER_TEST
 
@@ -89,6 +93,7 @@ namespace nta {
     void testGetNeighborsND();
     void testIsUpdateRound();
     void testSerialize();
+    void testPerformance();
 
     void print_vec(UInt arr[], UInt n);
     void print_vec(Real arr[], UInt n);

@@ -29,11 +29,20 @@
 
 #include <cstring>
 #include <iostream>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include <nta/math/SparseBinaryMatrix.hpp>
 #include <nta/math/SparseMatrix.hpp>
 #include <nta/types/Types.hpp>
 #include <string>
 #include <vector>
+
+#include <fstream>
+#include <iostream>
+#include <google/protobuf/message.h>
+#include <google/protobuf/io/coded_stream.h>
+#include <google/protobuf/io/zero_copy_stream_impl.h>
+#include "SpatialPooler.pb.h"
 
 using namespace std;
 
@@ -49,12 +58,12 @@ namespace nta {
        * representation of the input. Given an input it computes a set of sparse
        * active columns and simultaneously updates its permanences, duty cycles,
        * etc.
-       * 
+       *
        * The primary public interfaces to this function are the "initialize"
        * and "compute" methods.
        *
        * Example usage:
-       * 
+       *
        *     SpatialPooler sp;
        *     sp.initialize(inputDimensions, columnDimensions, <parameters>);
        *     while (true) {
@@ -62,7 +71,7 @@ namespace nta {
        *        sp.compute(inputVector, learn, activeColumns)
        *        <do something with output>
        *     }
-       *     
+       *
        */
       class SpatialPooler {
         public:
@@ -72,22 +81,22 @@ namespace nta {
 
           /**
           Initialize the spatial pooler using the given parameters.
-          
-          @param inputDimensions A list of integers representing the 
+
+          @param inputDimensions A list of integers representing the
                 dimensions of the input vector. Format is [height, width,
                 depth, ...], where each value represents the size of the
                 dimension. For a topology of one dimesion with 100 inputs
                 use [100]. For a two dimensional topology of 10x5
                 use [10,5].
-         
+
           @param columnDimensions A list of integers representing the
                 dimensions of the columns in the region. Format is [height,
                 width, depth, ...], where each value represents the size of
                 the dimension. For a topology of one dimesion with 2000
                 columns use 2000, or [2000]. For a three dimensional
-                topology of 32x64x16 use [32, 64, 16]. 
-             
-          @param potentialRadius This parameter deteremines the extent of the 
+                topology of 32x64x16 use [32, 64, 16].
+
+          @param potentialRadius This parameter deteremines the extent of the
                 input that each column can potentially be connected to. This
                 can be thought of as the input bits that are visible to each
                 column, or a 'receptive field' of the field of vision. A large
@@ -95,7 +104,7 @@ namespace nta {
                 that each column can potentially be connected to every input
                 bit. This parameter defines a square (or hyper square) area: a
                 column will have a max square potential pool with sides of
-                length (2 * potentialRadius + 1). 
+                length (2 * potentialRadius + 1).
 
           @param potentialPct The percent of the inputs, within a column's
                 potential radius, that a column can be connected to. If set to
@@ -106,14 +115,14 @@ namespace nta {
                 ((2*potentialRadius + 1)^(# inputDimensions) * potentialPct)
                 input bits to comprise the column's potential pool.
 
-          @param globalInhibition If true, then during inhibition phase the 
+          @param globalInhibition If true, then during inhibition phase the
                 winning columns are selected as the most active columns from the
                 region as a whole. Otherwise, the winning columns are selected
                 with resepct to their local neighborhoods. Global inhibition
                 boosts performance significantly but there is no topology at the
                 output.
-                
-          @param localAreaDensity The desired density of active columns within 
+
+          @param localAreaDensity The desired density of active columns within
                 a local inhibition area (the size of which is set by the
                 internally calculated inhibitionRadius, which is in turn
                 determined from the average size of the connected potential
@@ -121,11 +130,11 @@ namespace nta {
                 most N columns remain ON within a local inhibition area, where
                 N = localAreaDensity * (total number of columns in inhibition
                 area). If localAreaDensity is set to a negative value output
-                sparsity will be determined by the numActivePerInhArea. 
+                sparsity will be determined by the numActivePerInhArea.
 
-          @param numActiveColumnsPerInhArea An alternate way to control the sparsity of 
+          @param numActiveColumnsPerInhArea An alternate way to control the sparsity of
                 active columns. If numActivePerInhArea is specified then
-                localAreaDensity must be less than 0, and vice versa. When 
+                localAreaDensity must be less than 0, and vice versa. When
                 numActivePerInhArea > 0, the inhibition logic will insure that
                 at most 'numActivePerInhArea' columns remain ON within a local
                 inhibition area (the size of which is set by the internally
@@ -136,24 +145,24 @@ namespace nta {
                 localAreaDensity method, which keeps the density of active
                 columns the same regardless of the size of their receptive
                 fields.
-                
-          @param stimulusThreshold This is a number specifying the minimum 
+
+          @param stimulusThreshold This is a number specifying the minimum
                 number of synapses that must be active in order for a column to
                 turn ON. The purpose of this is to prevent noisy input from
-                activating columns. 
-                
-          @param synPermInactiveDec The amount by which the permanence of an 
-                inactive synapse is decremented in each learning step. 
+                activating columns.
 
-          @param synPermActiveInc The amount by which the permanence of an 
-                active synapse is incremented in each round. 
+          @param synPermInactiveDec The amount by which the permanence of an
+                inactive synapse is decremented in each learning step.
 
-          @param synPermConnected The default connected threshold. Any synapse 
+          @param synPermActiveInc The amount by which the permanence of an
+                active synapse is incremented in each round.
+
+          @param synPermConnected The default connected threshold. Any synapse
                 whose permanence value is above the connected threshold is
                 a "connected synapse", meaning it can contribute to
                 the cell's firing.
-                
-          @param minPctOverlapDutyCycles A number between 0 and 1.0, used to set 
+
+          @param minPctOverlapDutyCycles A number between 0 and 1.0, used to set
                 a floor on how often a column should have at least
                 stimulusThreshold active inputs. Periodically, each column looks
                 at the overlap duty cycle of all other column within its
@@ -167,23 +176,23 @@ namespace nta {
                 its previously learned inputs are no longer ever active, or when
                 the vast majority of them have been "hijacked" by other columns.
 
-          @param minPctActiveDutyCycles A number between 0 and 1.0, used to set 
+          @param minPctActiveDutyCycles A number between 0 and 1.0, used to set
                 a floor on how often a column should be activate. Periodically,
                 each column looks at the activity duty cycle of all other
                 columns within its inhibition radius and sets its own internal
                 minimal acceptable duty cycle to:
-                
+
                     minPctDutyCycleAfterInh * max(other columns' duty cycles).
 
                 On each iteration, any column whose duty cycle after inhibition
                 falls below this computed value will get its internal boost
                 factor increased.
 
-          @param dutyCyclePeriod The period used to calculate duty cycles. 
+          @param dutyCyclePeriod The period used to calculate duty cycles.
                 Higher values make it take longer to respond to changes in
                 boost. Shorter values make it potentially more unstable and
                 likely to oscillate.
-                
+
           @param maxBoost The maximum overlap boost factor. Each column's
                 overlap gets multiplied by a boost factor before it gets
                 considered for inhibition. The actual boost factor for a column
@@ -222,15 +231,15 @@ namespace nta {
           method takes an input vector and computes the set of output active
           columns. If 'learn' is set to True, this method also performs
           learning.
-    
+
           @param inputVector An array of integer 0's and 1's that comprises
-                the input to the spatial pooler. The length of the 
+                the input to the spatial pooler. The length of the
                 array must match the total number of input bits implied by
                 the constructor (also returned by the method getNumInputs). In
                 cases where the input is multi-dimensional, inputVector is a
                 flattened array of inputs.
-                
-          @param learn A boolean value indicating whether learning should be 
+
+          @param learn A boolean value indicating whether learning should be
                 performed. Learning entails updating the permanence values of
                 the synapses, duty cycles, etc. Learning is typically on but
                 setting learning to 'off' is useful for analyzing the current
@@ -239,7 +248,7 @@ namespace nta {
                 is off, boosting is turned off and columns that have never won
                 will be removed from activeVector.  TODO: we may want to keep
                 boosting on even when learning is off.
-                
+
           @param activeVector An array representing the winning columns after
                 inhinition. The size of the array is equal to the number of
                 columns (also returned by the method getNumColumns). This array
@@ -263,24 +272,32 @@ namespace nta {
           /**
           Save (serialize) the current state of the spatial pooler to the
           specified output stream.
-    
+
           @param outStream A valid ostream.
            */
-          virtual void save(ostream& outStream);
+          //virtual void save(ostream& outStream);
+
+          virtual void save(const std::string& outFileName);
+          void populateProtocolBuffer(SpatialPoolerProto* proto);
+          void writeProtocolBufferToFile(SpatialPoolerProto* proto, const std::string& outFileName);
 
           /**
           Load (deserialize) and initialize the spatial pooler from the
           specified input stream.
-    
+
           @param inStream A valid istream.
            */
-          virtual void load(istream& inStream);
+          //virtual void load(istream& inStream);
+
+          virtual void load(const std::string& inFileName);
+          SpatialPoolerProto loadProtocolBufferFromFile(const std::string& inFileName);
+          void populateLocalVarsFromProto(SpatialPoolerProto* proto);
 
           /**
           Returns the number of bytes that a save operation would result in.
           Note: this method is currently somewhat inefficient as it just does
           a full save into an ostream and counts the resulting size.
-    
+
           @returns Integer number of bytes
            */
           virtual UInt persistentSize();
@@ -295,41 +312,41 @@ namespace nta {
           Returns the dimensions of the input vector.
 
           @returns Integer vector of input dimension.
-          */          
+          */
           vector<UInt> getInputDimensions();
 
           /**
           Returns the total number of columns.
 
           @returns Integer number of column numbers.
-          */         
+          */
           UInt getNumColumns();
 
           /**
           Returns the total number of inputs.
 
           @returns Integer number of inputs.
-          */             
+          */
           UInt getNumInputs();
 
           /**
           Returns the potential radius.
 
           @returns Integer number of potential radius.
-          */             
+          */
           UInt getPotentialRadius();
 
           /**
           Sets the potential radius.
 
           @param potentialRadius integer number of potential raduis.
-          */                 
+          */
           void setPotentialRadius(UInt potentialRadius);
           /**
           Returns the potential percent.
 
           @returns real number of the potential percent.
-          */  
+          */
           Real getPotentialPct();
 
           /**
@@ -339,7 +356,7 @@ namespace nta {
           */
           void setPotentialPct(Real potentialPct);
 
-          /**          
+          /**
           @returns boolen value of whether global inhibition is enabled.
           */
           bool getGlobalInhibition();
@@ -352,7 +369,7 @@ namespace nta {
           void setGlobalInhibition(bool globalInhibition);
 
           /**
-          Returns the number of active columns per inhibition area. 
+          Returns the number of active columns per inhibition area.
 
           @returns integer number of active columns per inhbition area, Returns a
           value less than 0 if parameter is unuse.
@@ -558,7 +575,7 @@ namespace nta {
           Returns the permanence amount that qualifies a synapse as
           being connected.
 
-          @returns real number of the permanence amount 
+          @returns real number of the permanence amount
           that qualifies a synapse as being connected.
           */
           Real getSynPermConnected();
@@ -733,7 +750,7 @@ namespace nta {
           void getConnectedCounts(UInt connectedCounts[]);
 
           /**
-          Print the main SP creation parameters to stdout. 
+          Print the main SP creation parameters to stdout.
            */
           void printParameters();
 
@@ -748,7 +765,7 @@ namespace nta {
           active columns selected in the inhibition round. Such columns cannot
           represent learned pattern and are therefore meaningless if only inference
           is required.
-          
+
           @param activeArray  An int array containing the indices of the active columns.
           */
           void stripNeverLearned_(UInt activeArray[]);
@@ -764,7 +781,7 @@ namespace nta {
                       vector<UInt>& rangeVector);
 
         /**
-            Maps a column to its input bits. 
+            Maps a column to its input bits.
 
             This method encapsultes the topology of
             the region. It takes the index of the column as an argument and determines
@@ -796,14 +813,14 @@ namespace nta {
 
           /**
           Returns a randomly generated permanence value for a synapses that is
-          initialized in a connected state. 
+          initialized in a connected state.
 
           The basic idea here is to initialize
           permanence values very close to synPermConnected so that a small number of
           learning steps could make it disconnected or connected.
 
           Note: experimentation was done a long time ago on the best way to initialize
-          permanence values, but the history for this particular scheme has been lost.          
+          permanence values, but the history for this particular scheme has been lost.
 
           @returns real number of a randomly generated permanence value for a synapses that is
           initialized in a connected state.
@@ -825,21 +842,21 @@ namespace nta {
             array represents the initial permanence value between the input bit
             at the particular index in the array, and the column represented by
             the 'index' parameter.
-            
+
             @param potential      A int vector specifying the potential pool of the column.
                             Permanence values will only be generated for input bits
 
                             corresponding to indices for which the mask value is 1.
             @param connectedPct   A real value between 0 or 1 specifying the percent of the input
                             bits that will start off in a connected state.
-          */          
+          */
           vector<Real> initPermanence_(vector<UInt>& potential,
                                        Real connectedPct);
           void clip_(vector<Real>& perm, bool trim);
 
         /**
             This method updates the permanence matrix with a column's new permanence
-            values. 
+            values.
 
             The column is identified by its index, which reflects the row in
             the matrix, and the permanence is given in 'dense' form, i.e. a full
@@ -865,7 +882,7 @@ namespace nta {
                             should be raised until a minimum number are synapses are in
                             a connected state. Should be set to 'false' when a direct
                             assignment is required.
-        */          
+        */
           void updatePermanencesForColumn_(vector<Real>& perm, UInt column,
                                            bool raisePerm=true);
           UInt countConnected_(vector<Real>& perm);
@@ -874,7 +891,7 @@ namespace nta {
 
           /**
               This function determines each column's overlap with the current input
-              vector. 
+              vector.
 
               The overlap of a column is the number of synapses for that column
               that are connected (permance value is greater than '_synPermConnected')
@@ -920,13 +937,13 @@ namespace nta {
                                vector<UInt>& activeColumns);
 
           /**
-              Perform global inhibition. 
+              Perform global inhibition.
 
               Performing global inhibition entails picking the
               top 'numActive' columns with the highest overlap score in the entire
               region. At most half of the columns in a local neighborhood are allowed to
               be active.
-              
+
               @param overlaps       a real array containing the overlap score for each  column.
                               The overlap score for a column is defined as the number
                               of synapses in a "connected state" (connected synapses)
@@ -935,12 +952,12 @@ namespace nta {
               @param density        a real number of the fraction of columns to survive inhibition.
 
               @param activeColumns an int array containing the indices of the active columns.
-              */          
+              */
           void inhibitColumnsGlobal_(vector<Real>& overlaps, Real density,
                                      vector<UInt>& activeColumns);
 
           /**
-          Performs local inhibition. 
+          Performs local inhibition.
 
           Local inhibition is performed on a column by
           column basis. Each column observes the overlaps of its neighbors and is
@@ -1031,7 +1048,7 @@ namespace nta {
                               [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].
 
               @param neighbors An int array of indices corresponding to the neighbors of a given column.
-          */          
+          */
           void getNeighbors2D_(UInt column, vector<UInt>& dimensions,
                                UInt radius, bool wrapAround,
                                vector<UInt>& neighbors);
@@ -1040,7 +1057,7 @@ namespace nta {
 
           /**
               Similar to _getNeighbors1D and _getNeighbors2D, this function returns a
-              list of indices corresponding to the neighbors of a given column. 
+              list of indices corresponding to the neighbors of a given column.
 
               Since the
               permanence values are stored in such a way that information about toplogy
@@ -1069,14 +1086,14 @@ namespace nta {
                               [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].
 
               @param neighbors An int arrayof indices corresponding to the neighbors of a given column.
-          */          
+          */
           void getNeighborsND_(UInt column, vector<UInt>& dimensions,
                                UInt radius, bool wrapAround,
                                vector<UInt>& neighbors);
 
 
           /**
-              The primary method in charge of learning. 
+              The primary method in charge of learning.
 
               Adapts the permanence values of
               the synapses based on the input vector, and the chosen columns after
@@ -1130,7 +1147,7 @@ namespace nta {
               The range of connected synapses for column. This is used to
               calculate the inhibition radius. This variation of the function only
               supports a 1 dimensional column toplogy.
-              
+
               @param column An int number identifying a column in the permanence, potential
                               and connectivity matrices.
           */
@@ -1143,7 +1160,7 @@ namespace nta {
 
               @param column An int number identifying a column in the permanence, potential
                               and connectivity matrices.
-          */          
+          */
           Real avgConnectedSpanForColumn2D_(UInt column);
 
 
@@ -1154,7 +1171,7 @@ namespace nta {
 
               @param column An int number identifying a column in the permanence, potential
                               and connectivity matrices.
-          */                       
+          */
           Real avgConnectedSpanForColumnND_(UInt column);
 
           /**
@@ -1170,14 +1187,14 @@ namespace nta {
               minPctActiveDutyCycle respectively. Functionaly it is equivalent to
               _updateMinDutyCyclesLocal, but this function exploits the globalilty of the
               compuation to perform it in a straightforward, and more efficient manner.
-          */          
+          */
           void updateMinDutyCyclesGlobal_();
 
           /**
           Updates the minimum duty cycles. The minimum duty cycles are determined
           locally. Each column's minimum duty cycles are set to be a percent of the
           maximum duty cycles in the column's neighborhood. Unlike
-          _updateMinDutyCycles          
+          _updateMinDutyCycles
           */
           void updateMinDutyCyclesLocal_();
 
@@ -1196,8 +1213,8 @@ namespace nta {
                             (period - 1)*dutyCycle + newValue
                 dutyCycle := ----------------------------------
                                         period
-              @endverbatim 
-              
+              @endverbatim
+
               ----------------------------
               @param dutyCycles     A real array containing one or more duty cycle values that need
                               to be updated.
@@ -1205,7 +1222,7 @@ namespace nta {
               @param newValues      A int vector used to update the duty cycle.
 
               @param period         A int number indicating the period of the duty cycle
-          */        
+          */
           static  void updateDutyCyclesHelper_(vector<Real>& dutyCycles,
                                                vector<UInt>& newValues,
                                                UInt period);
@@ -1223,7 +1240,7 @@ namespace nta {
 
           @param activeArray  An int array containing the indices of the active columns,
                           the sprase set of columns which survived inhibition
-          */            
+          */
           void updateDutyCycles_(vector<UInt>& overlaps,
                                  UInt activeArray[]);
 
@@ -1251,7 +1268,7 @@ namespace nta {
                           +--------------------> activeDutyCycle
                              |
                       minActiveDutyCycle
-              @endverbatim 
+              @endverbatim
             */
           void updateBoostFactors_();
 
@@ -1268,13 +1285,13 @@ namespace nta {
 
           /**
           @returns boolean value indicating whether enough rounds have passed to warrant updates of
-          duty cycles          
+          duty cycles
           */
           bool isUpdateRound_();
 
           /**
           Initialize the random seed
-          
+
           @param seed 64bit int of random seed
           */
           void seed_(UInt64 seed);

@@ -71,7 +71,7 @@ void FlatSpatialPooler::compute(UInt inputArray[], bool learn,
 
   selectHighTierColumns_(overlapsPct_, highTier_);
   selectVirginColumns_(virgin_);
-  
+
   if (spVerbosity_ > 2) {
     std::cout << "---------CPP FlatSpatialPooler::compute() ------------\n";
     std::cout << "iterationNum_ = " << iterationNum_ << std::endl;
@@ -191,7 +191,7 @@ void FlatSpatialPooler::initializeFlat(
 
   activeDutyCycles_.assign(numColumns_, 1);
   boostFactors_.assign(numColumns_, maxBoost);
-  
+
   // For high tier to work we need to set the min duty cycles to be non-zero
   // This will ensure that columns with 0 active duty cycle get high boost
   // in the beginning.
@@ -205,37 +205,34 @@ void FlatSpatialPooler::initializeFlat(
 }
 
 
-void FlatSpatialPooler::save(ostream& outStream)
+void FlatSpatialPooler::save(const std::string& outFileName)
 {
+  SpatialPoolerProto proto;
 
-  SpatialPooler::save(outStream);
+  SpatialPooler::populateProtocolBuffer(&proto);
 
+  // Write FlatSpatialPooler specific variables
+  proto.set_isflatspatialpooler(true);
+  proto.set_mindistance(minDistance_);
+  proto.set_randomsp(randomSP_);
 
-  // Write a starting marker and version.
-  outStream << "FlatSpatialPooler" << endl;
-
-  outStream << minDistance_ << " "
-            << randomSP_ << endl;
-
-  outStream << "~FlatSpatialPooler" << endl;
-
+  SpatialPooler::writeProtocolBufferToFile(&proto, outFileName);
 }
 
-void FlatSpatialPooler::load(istream& inStream)
+void FlatSpatialPooler::load(const std::string& inFileName)
 {
+  SpatialPoolerProto proto = SpatialPooler::loadProtocolBufferFromFile(inFileName);
 
-  SpatialPooler::load(inStream);
+  // Make sure we're dealing with a FlatSpatialPooler file
+  bool isFlatSpatialPooler = proto.isflatspatialpooler();
+  NTA_CHECK(isFlatSpatialPooler == true);
 
-  // Check the marker
-  string marker;
-  inStream >> marker;
-  NTA_CHECK(marker == "FlatSpatialPooler");
+  // Load FlatSpatialPooler specific variables
+  minDistance_ = proto.mindistance();
+  randomSP_ = proto.randomsp();
 
-  inStream >> minDistance_
-           >> randomSP_;
-
-  inStream >> marker;
-  NTA_CHECK(marker == "~FlatSpatialPooler");
+  // Load the rest of the protocol buffer to local variables
+  SpatialPooler::populateLocalVarsFromProto(&proto);
 }
 
 

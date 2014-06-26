@@ -136,33 +136,31 @@ namespace nta {
 
     NTA_CHECK(sp1.getNumColumns() == sp2.getNumColumns());
     NTA_CHECK(sp1.getNumInputs() == sp2.getNumInputs());
-    NTA_CHECK(sp1.getPotentialRadius() == 
+    NTA_CHECK(sp1.getPotentialRadius() ==
               sp2.getPotentialRadius());
     NTA_CHECK(sp1.getPotentialPct() == sp2.getPotentialPct());
-    NTA_CHECK(sp1.getGlobalInhibition() == 
+    NTA_CHECK(sp1.getGlobalInhibition() ==
               sp2.getGlobalInhibition());
-    NTA_CHECK(sp1.getNumActiveColumnsPerInhArea() == 
+    NTA_CHECK(sp1.getNumActiveColumnsPerInhArea() ==
               sp2.getNumActiveColumnsPerInhArea());
     NTA_CHECK(almost_eq(sp1.getLocalAreaDensity(),
               sp2.getLocalAreaDensity()));
-    NTA_CHECK(sp1.getStimulusThreshold() == 
+    NTA_CHECK(sp1.getStimulusThreshold() ==
               sp2.getStimulusThreshold());
     NTA_CHECK(sp1.getDutyCyclePeriod() == sp2.getDutyCyclePeriod());
     NTA_CHECK(almost_eq(sp1.getMaxBoost(), sp2.getMaxBoost()));
     NTA_CHECK(sp1.getIterationNum() == sp2.getIterationNum());
-    NTA_CHECK(sp1.getIterationLearnNum() == 
+    NTA_CHECK(sp1.getIterationLearnNum() ==
               sp2.getIterationLearnNum());
     NTA_CHECK(sp1.getSpVerbosity() == sp2.getSpVerbosity());
     NTA_CHECK(sp1.getUpdatePeriod() == sp2.getUpdatePeriod());
-    NTA_CHECK(almost_eq(sp1.getSynPermTrimThreshold(), 
+    NTA_CHECK(almost_eq(sp1.getSynPermTrimThreshold(),
               sp2.getSynPermTrimThreshold()));
-    cout << "check: " << sp1.getSynPermActiveInc() << " " <<
-      sp2.getSynPermActiveInc() << endl;
     NTA_CHECK(almost_eq(sp1.getSynPermActiveInc(),
               sp2.getSynPermActiveInc()));
     NTA_CHECK(almost_eq(sp1.getSynPermInactiveDec(),
               sp2.getSynPermInactiveDec()));
-    NTA_CHECK(almost_eq(sp1.getSynPermBelowStimulusInc(), 
+    NTA_CHECK(almost_eq(sp1.getSynPermBelowStimulusInc(),
               sp2.getSynPermBelowStimulusInc()));
     NTA_CHECK(almost_eq(sp1.getSynPermConnected(),
               sp2.getSynPermConnected()));
@@ -231,7 +229,7 @@ namespace nta {
     NTA_CHECK(check_vector_eq(conCounts1, conCounts2, numColumns));
   }
 
-  void SpatialPoolerTest::setup(SpatialPooler& sp, UInt numInputs, 
+  void SpatialPoolerTest::setup(SpatialPooler& sp, UInt numInputs,
                                 UInt numColumns)
   {
     vector<UInt> inputDim;
@@ -276,7 +274,8 @@ namespace nta {
     testGetNeighborsND();
     testIsUpdateRound();
     testSerialize();
-	}  
+    testPerformance();
+	}
 
   void SpatialPoolerTest::testUpdateInhibitionRadius()
   {
@@ -2353,7 +2352,7 @@ namespace nta {
     NTA_CHECK(check_vector_eq(unionMask1, supersetMask1, 10));
   }
 
-  void SpatialPoolerTest::testSerialize() 
+  void SpatialPoolerTest::testSerialize()
   {
     string filename = "SpatialPoolerSerialization.tmp";
     SpatialPooler sp_orig;
@@ -2361,22 +2360,94 @@ namespace nta {
     UInt numColumns = 12;
     setup(sp_orig, numInputs, numColumns);
 
-    ofstream outfile;
-    outfile.open (filename.c_str());
-    sp_orig.save(outfile);
-    outfile.close();
+    sp_orig.save(filename);
 
     SpatialPooler sp_dest;
-    ifstream infile (filename.c_str());
-    sp_dest.load(infile);
-    infile.close();
+    sp_dest.load(filename);
 
     check_spatial_eq(sp_orig, sp_dest);
 
-
+    // Delete the file
     string command = string("rm -f ") + filename;
     int ret = system(command.c_str());
     NTA_ASSERT(ret == 0); // "SpatialPoolerTest: execution of command " << command << " failed " << std::endl;
   }
-    
+
+  void SpatialPoolerTest::testPerformance() {
+
+    int NUM_TESTS = 100;
+
+    clock_t saveTime, loadTime, createTime, serializeTime, deserializeTime, copyTime;
+    clock_t totalSaveTime = 0;
+    clock_t totalCreateTime = 0;
+    clock_t totalSerializeTime = 0;
+    clock_t totalLoadTime = 0;
+    clock_t totalDeserializeTime = 0;
+    clock_t totalCopyTime = 0;
+    clock_t totalTime = clock();
+
+    for (int i = 0; i < NUM_TESTS; i++) {
+      string filename = "SpatialPoolerSerialization.tmp";
+      SpatialPooler sp_orig;
+      SpatialPooler sp_dest;
+      UInt numInputs = 6;
+      UInt numColumns = 12;
+      setup(sp_orig, numInputs, numColumns);
+
+      { ////
+        saveTime = clock();
+
+        createTime = saveTime;
+        SpatialPoolerProto proto;
+        sp_orig.populateProtocolBuffer(&proto);
+        createTime = clock() - createTime;
+
+        serializeTime = clock();
+        sp_orig.writeProtocolBufferToFile(&proto, filename);
+        serializeTime = clock() - serializeTime;
+
+        saveTime = clock() - saveTime;
+      } ////
+
+      { ////
+        loadTime = clock();
+
+        deserializeTime = loadTime;
+        SpatialPoolerProto proto = sp_dest.loadProtocolBufferFromFile(filename);
+        deserializeTime = clock() - deserializeTime;
+
+        copyTime = clock();
+        sp_dest.populateLocalVarsFromProto(&proto);
+        copyTime = clock() - copyTime;
+
+        loadTime = clock() - loadTime;
+      } ////
+
+      // Delete the file
+      string command = string("rm -f ") + filename;
+      int ret = system(command.c_str());
+      NTA_ASSERT(ret == 0);
+
+      totalSaveTime += saveTime;
+      totalCreateTime += createTime;
+      totalSerializeTime += serializeTime;
+      totalLoadTime += loadTime;
+      totalDeserializeTime += deserializeTime;
+      totalCopyTime += copyTime;
+    }
+
+    totalTime = clock() - totalTime;
+
+    cout << "tprof total:                       " << ((float)totalTime)/CLOCKS_PER_SEC << endl;
+
+    cout << "tprof total time spent saving:     " << ((float)totalSaveTime)/CLOCKS_PER_SEC << endl;
+    cout << "tprof time spent creating:         " << ((float)totalCreateTime)/CLOCKS_PER_SEC << endl;
+    cout << "tprof time spent serializing:      " << ((float)totalSerializeTime)/CLOCKS_PER_SEC << endl;
+
+    cout << "tprof total time spent loading:    " << ((float)totalLoadTime)/CLOCKS_PER_SEC << endl;
+    cout << "tprof time spent deserializing:    " << ((float)totalDeserializeTime)/CLOCKS_PER_SEC << endl;
+    cout << "tprof time spent copying locally:  " << ((float)totalCopyTime)/CLOCKS_PER_SEC << endl;
+
+    cout << "tprof time spent other:            " << ((float)(totalTime - totalSaveTime - totalLoadTime))/CLOCKS_PER_SEC << endl;
+  }
 } // end namespace nta
