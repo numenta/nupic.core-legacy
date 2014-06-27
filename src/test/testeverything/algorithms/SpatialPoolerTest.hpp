@@ -56,7 +56,9 @@ namespace nta {
     void check_spatial_eq(SpatialPooler sp1, SpatialPooler sp2);
     bool almost_eq(Real a, Real b);
     bool findVector(UInt needle[], UInt n, vector<vector<UInt> > haystack);
+    void testMapColumn();
     void testMapPotential1D();
+    void testMapPotential2D();
     void testInitPermConnected();
     void testInitPermNonConnected();
     void testInitPermanence();
