@@ -27,6 +27,7 @@
 #include <cstring>
 #include <iostream>
 #include <nta/algorithms/SpatialPooler.hpp>
+#include <nta/math/Math.hpp>
 #include <string>
 #include <vector>
 
@@ -455,6 +456,7 @@ void SpatialPooler::initialize(vector<UInt> inputDimensions,
 
   NTA_ASSERT(numColumns_ > 0);
   NTA_ASSERT(numInputs_ > 0);
+  NTA_ASSERT(inputDimensions_.size() == columnDimensions_.size());
   NTA_ASSERT(numActiveColumnsPerInhArea > 0 ||
             (localAreaDensity > 0 && localAreaDensity <= 0.5));
   NTA_ASSERT(potentialPct > 0 && potentialPct <= 1);
@@ -1181,14 +1183,25 @@ void SpatialPooler::cartesianProduct_(vector<vector<UInt> >& vecs,
 void SpatialPooler::range_(Int start, Int end, UInt ubound, bool wrapAround,
                            vector<UInt>& rangeVector)
 {
-  rangeVector.clear();
+  vector<Int> range;
+  vector<Int>::iterator uniqueEnd;
+
+  // Generate indices within range, wrapping around as necessary
   for (Int i = start; i <= end; i++) {
     if (wrapAround) {
-      rangeVector.push_back((i + (Int) ubound) % (Int) ubound);
+      range.push_back(emod(i, (int) ubound));
     } else if (i >= 0 && i < (Int) ubound) {
-      rangeVector.push_back(i);
+      range.push_back(i);
     }
   }
+
+  // Add the unique range indices to rangeVector
+  sort(range.begin(), range.end());
+  uniqueEnd = unique(range.begin(), range.end());
+  range.resize(distance(range.begin(), uniqueEnd) );
+
+  rangeVector.clear();
+  rangeVector.insert(rangeVector.begin(), range.begin(), range.end());
 }
 
 void SpatialPooler::getNeighborsND_(
@@ -1203,12 +1216,13 @@ void SpatialPooler::getNeighborsND_(
   conv.toCoord(column,columnCoord);
 
   vector<vector<UInt> > rangeND;
+  vector<UInt> curRange;
 
   for (UInt i = 0; i < dimensions.size(); i++) {
-    vector<UInt> curRange;
     range_((Int) columnCoord[i] - (Int) radius,
            (Int) columnCoord[i] + (Int) radius,
            dimensions[i], wrapAround, curRange);
+
     rangeND.insert(rangeND.begin(), curRange);
   }
 

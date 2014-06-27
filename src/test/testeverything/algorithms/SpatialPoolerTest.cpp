@@ -286,6 +286,8 @@ namespace nta {
     colDim.push_back(31);
     colDim.push_back(2);
     inputDim.push_back(1);
+    inputDim.push_back(1);
+    inputDim.push_back(1);
 
     sp.initialize(inputDim, colDim);
     sp.setGlobalInhibition(true);
@@ -731,6 +733,7 @@ namespace nta {
     inputDim.push_back(5);
     inputDim.push_back(4);
     colDim.push_back(10);
+    colDim.push_back(1);
     sp.initialize(inputDim, colDim);
 
     UInt trueAvgConnectedSpan1[7] = {3, 3, 4, 3, 2, 2, 0};
@@ -750,6 +753,7 @@ namespace nta {
     inputDim.push_back(numInputs);
     inputDim.push_back(1);
     colDim.push_back(numColumns);
+    colDim.push_back(1);
 
     sp.initialize(inputDim, colDim);
 
@@ -783,6 +787,9 @@ namespace nta {
     inputDim.push_back(2);
     inputDim.push_back(5);
     colDim.push_back(5);
+    colDim.push_back(1);
+    colDim.push_back(1);
+    colDim.push_back(1);
 
     sp.initialize(inputDim, colDim);
 
@@ -1872,10 +1879,10 @@ namespace nta {
             Int yc = (y + k);
             Int xc = (x + m);
 
-            Int wc_ = (w + i + (Int) dimensions[0]) % dimensions[0];
-            Int zc_ = (z + j + (Int) dimensions[1]) % dimensions[1];
-            Int yc_ = (y + k + (Int) dimensions[2]) % dimensions[2];
-            Int xc_ = (x + m + (Int) dimensions[3]) % dimensions[3];
+            Int wc_ = emod((w + i), dimensions[0]);
+            Int zc_ = emod((z + j), dimensions[1]);
+            Int yc_ = emod((y + k), dimensions[2]);
+            Int xc_ = emod((x + m), dimensions[3]);
 
             if (i == 0 && j == 0 && k == 0 && m == 0) {
               continue;
@@ -2030,6 +2037,39 @@ namespace nta {
     }
 
     NTA_CHECK(check_vector_eq(trueNeighborsMap8, neighborsMap));
+
+    // Test with radius larger than the dimension range
+    column = 0;
+    radius = 100;
+    wrapAround = false;
+    dimensions.clear();
+    dimensions.push_back(8);
+    UInt trueNeighborsMap9[8] = {1, 1, 1, 1, 1, 1, 1, 1};
+    sp.getNeighborsND_(column, dimensions, radius, wrapAround,
+                          neighbors);
+    neighborsMap.clear();
+    for (UInt i = 0; i < neighbors.size(); i++) {
+      neighborsMap[neighbors[i]] = 1;
+    }
+
+    NTA_CHECK(check_vector_eq(trueNeighborsMap9, neighborsMap));
+
+    // Test with radius larger than the dimension range,
+    // with wrapAround enabled
+    column = 0;
+    radius = 100;
+    wrapAround = true;
+    dimensions.clear();
+    dimensions.push_back(8);
+    UInt trueNeighborsMap10[8] = {1, 1, 1, 1, 1, 1, 1, 1};
+    sp.getNeighborsND_(column, dimensions, radius, wrapAround,
+                          neighbors);
+    neighborsMap.clear();
+    for (UInt i = 0; i < neighbors.size(); i++) {
+      neighborsMap[neighbors[i]] = 1;
+    }
+
+    NTA_CHECK(check_vector_eq(trueNeighborsMap10, neighborsMap));
 
   }
 
