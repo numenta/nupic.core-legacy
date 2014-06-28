@@ -40,9 +40,10 @@ script:
   - "make tests_htm"
   # (not quite everything, really)
   - "make tests_everything"
+  # google tests (under construction)
+  - "make google_tests"
 
 after_success:
   - "cd $TRAVIS_BUILD_DIR"
   # Send test coverage report to http://coveralls.io under only linux
   - "if [ ${TRAVIS_OS_NAME:-'linux'} = 'linux' ]; then coveralls --exclude external --exclude doc --exclude src/test; fi"
-
