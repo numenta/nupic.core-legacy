@@ -511,7 +511,7 @@ void SpatialPooler::initialize(vector<UInt> inputDimensions,
 
   for (UInt i = 0; i < numColumns_; ++i)
   {
-    vector<UInt> potential = mapPotential1D_(i,true);
+    vector<UInt> potential = mapPotential_(i,true);
     vector<Real> perm = initPermanence_(potential, initConnectedPct_);
     potentialPools_.rowFromDense(i,potential.begin(),potential.end());
     updatePermanencesForColumn_(perm,i,true);
@@ -584,27 +584,37 @@ void SpatialPooler::boostOverlaps_(vector<UInt>& overlaps,
   }
 }
 
-vector<UInt> SpatialPooler::mapPotential1D_(UInt column, bool wrapAround)
+UInt SpatialPooler::mapColumn_(UInt column)
 {
-  Real ratio = (Real)column / max(numColumns_ - 1, UInt(1));
-  column = UInt(numInputs_ - 1) * ratio;
+  CoordinateConverterND columnConv(columnDimensions_);
+  CoordinateConverterND inputConv(inputDimensions_);
+  vector<UInt> columnCoord, inputCoord;
 
+  columnConv.toCoord(column, columnCoord);
+
+  Real ratio;
+  UInt coord;
+  for (UInt i = 0; i < columnCoord.size(); i++) {
+    ratio = (Real)columnCoord[i] / max(columnDimensions_[i] - 1, UInt(1));
+    coord = (inputDimensions_[i] - 1) * ratio;
+    inputCoord.push_back(coord);
+  }
+
+  return inputConv.toIndex(inputCoord);
+}
+
+vector<UInt> SpatialPooler::mapPotential_(UInt column, bool wrapAround)
+{
   vector<UInt> potential(numInputs_,0);
-  vector<Int> indices;
-  for (Int i = -potentialRadius_ + column; i <= Int(potentialRadius_ + column);
-       i++)
-    {
-      if (wrapAround) {
-        indices.push_back((i + numInputs_) % numInputs_);
-      } else if (i >= 0 && i < Int(numInputs_)) {
-        indices.push_back(i);
-      }
-    }
+  vector<UInt> indices;
+  UInt index;
 
+  index = mapColumn_(column);
+  getNeighborsND_(index, inputDimensions_, potentialRadius_, wrapAround, indices);
+  indices.push_back(index);
+
+  // TODO: See https://github.com/numenta/nupic.core/issues/128
   sort(indices.begin(), indices.end());
-  vector<Int>::iterator uniqueEnd;
-  uniqueEnd = unique(indices.begin(), indices.end());
-  indices.resize(distance(indices.begin(), uniqueEnd) );
 
   random_shuffle(indices.begin(),indices.end(),rng_);
 
