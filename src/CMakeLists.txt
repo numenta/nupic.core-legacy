@@ -22,7 +22,7 @@
 #   David Ragazzi (@DavidRagazzi): Full conversion and adaptation from Autotools scripts
 #   Jim Bridgewater (jwbwater@gmail.com): Updated option help messages
 # --------------------------------------------------------------------------------------------------------------------------
- 
+
 
 ############################################################################################################################
 ###                                                                                                                      ###
@@ -31,7 +31,7 @@
 ############################################################################################################################
 
 # These macros copy all source directories after the configuration is done
-macro (copy suffix src dst)  
+macro (copy suffix src dst)
   message(STATUS "Copying from '${src}' to '${dst}'")
   execute_process(COMMAND ${CMAKE_COMMAND} -E copy${suffix} ${src} ${dst})
 endmacro()
@@ -196,7 +196,7 @@ endif()
 
 #
 # Sets default locations.
-# 
+#
 # Default directories structure is:
 #
 # ~/../repository (root directory with repository downloaded from internet)
@@ -276,7 +276,7 @@ elseif(LINUX)
   if(${NTA_PLATFORM_ARCH} MATCHES "64")
     set(NTA_PLATFORM_OS "linux64")
     set(NTA_PLATFORM_CXXFLAGS "${NTA_PLATFORM_CXXFLAGS} -m64")
-  else()    
+  else()
     set(NTA_PLATFORM_OS "linux32")
     set(NTA_PLATFORM_CXXFLAGS "${NTA_PLATFORM_CXXFLAGS} -ffloat-store")
   endif()
@@ -460,6 +460,17 @@ set(LIB_STATIC_YAML yaml)
 add_library(${LIB_STATIC_YAML} STATIC IMPORTED)
 set_property(TARGET ${LIB_STATIC_YAML} PROPERTY IMPORTED_LOCATION "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib/libyaml.${STATIC_LIB_EXTENSION}")
 
+set(LIB_STATIC_GTEST gtest)
+add_library(${LIB_STATIC_GTEST} STATIC IMPORTED)
+set_property(TARGET ${LIB_STATIC_GTEST} PROPERTY IMPORTED_LOCATION "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib/libgtest.${STATIC_LIB_EXTENSION}")
+
+set(LIB_STATIC_GTEST_MAIN gtest_main)
+
+add_library(${LIB_STATIC_GTEST_MAIN} STATIC IMPORTED)
+
+set_property(TARGET ${LIB_STATIC_GTEST_MAIN} PROPERTY IMPORTED_LOCATION "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib/libgtest_main.${STATIC_LIB_EXTENSION}")
+
+
 if(WINDOWS)
   set(LIB_STATIC_PCRE pcre)
   add_library(${LIB_STATIC_PCRE} STATIC IMPORTED)
@@ -469,11 +480,16 @@ endif()
 #
 # Set list of external libraries to this project.
 #
-set(NTA_STANDARD_LIBS 
+set(NTA_STANDARD_LIBS
   ${LIB_STATIC_YAML}
   ${LIB_STATIC_APRUTIL1}
   ${LIB_STATIC_APR1}
   ${LIB_STATIC_Z}
+)
+
+set(NTA_TEST_LIBS
+  ${LIB_STATIC_GTEST_MAIN}
+  ${LIB_STATIC_GTEST}
 )
 
 message(STATUS "Configuring subprojects...")
@@ -503,6 +519,17 @@ set(LIBRARIES
   ${NTA_STANDARD_LIBS}
 )
 generate_executable(${EXECUTABLE_TESTEVERYTHING} "${PROJECT_SOURCE_DIR}/test/testeverything" "${PROJECT_BUILD_RELEASE_DIR}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
+
+#
+# GoogleTests
+#
+set(EXECUTABLE_GTESTS googletests)
+set(LIBRARIES
+  ${LIB_STATIC_NUPICCORE}
+  ${NTA_STANDARD_LIBS}
+  ${NTA_TEST_LIBS}
+)
+generate_executable(${EXECUTABLE_GTESTS} "${PROJECT_SOURCE_DIR}/test/googletests" "${PROJECT_BUILD_RELEASE_DIR}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
 
 # Merge nupic_core and all static libraries to a stand-alone library
 merge_static_libraries(${LIB_STATIC_NUPICCORE} "${PROJECT_BUILD_RELEASE_DIR}/lib" "${LIB_STATIC_NUPICCORE};${NTA_STANDARD_LIBS}" "${LIB_STATIC_NUPICCORE}")
@@ -560,14 +587,18 @@ file(WRITE "${PROJECT_SOURCE_DIR}/test/testeverything/EverythingHeaders.hpp" "${
 #
 add_custom_target(tests_htm
                   COMMAND ${PROJECT_BUILD_RELEASE_DIR}/bin/${EXECUTABLE_HTMTEST})
-                  
+
 add_custom_target(tests_everything
                   COMMAND ${PROJECT_BUILD_RELEASE_DIR}/bin/${EXECUTABLE_TESTEVERYTHING})
-                  
+
+add_custom_target(google_tests
+                  COMMAND ${PROJECT_BUILD_RELEASE_DIR}/bin/${EXECUTABLE_GTESTS})
+
 # tests_all just calls other targets
 add_custom_target(tests_all
                   DEPENDS tests_htm
                   DEPENDS tests_everything
+                  DEPENDS google_tests
                   COMMENT "Running all tests")
 
 #
