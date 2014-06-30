@@ -67,10 +67,22 @@ namespace nta
     {
       // To find the pynode plugin we need the nupic
       // installation directory.
-      std::string command = "python -c 'import sys;import os;import nupic;sys.stdout.write(os.path.abspath(os.path.join(nupic.__file__, \"../..\")))'";
-      rootDir_ = OS::executeCommand(command);
-      if (!Path::exists(rootDir_))
-        NTA_THROW << "Unable to find NuPIC library in '" << rootDir_ << "'";
+      std::string libDir;
+      bool found = Env::get("NTA", libDir);
+      if (!found)
+      {
+        NTA_THROW << "Unable to find the pynode dynamic library because NTA is not set";
+      }
+      else
+      {
+        found = false;
+        if (Path::exists(libDir) && Path::isDirectory(libDir))
+        {
+          found = true;
+        }
+      }
+      if (!found)
+        NTA_THROW << "Unable to find NuPIC installation dir from NTA";
       
       
 #if defined(NTA_PLATFORM_darwin64)
@@ -87,10 +99,16 @@ namespace nta
       const char * filename = "cpp_region.dll";
 #endif
 
-      std::string libName = Path::join(rootDir_, "nupic", filename);
+      std::string libName = Path::join(libDir, "lib", filename); 
 
       if (!Path::exists(libName))
-        NTA_THROW << "Unable to find library '" << libName << "'";
+        NTA_THROW << "Unable to find library " << filename 
+                  << " in NuPIC installation folder '" << libDir << "'";
+
+      std::string command = "python -c 'import sys;import os;import nupic;sys.stdout.write(os.path.abspath(os.path.join(nupic.__file__, \"../..\")))'";
+      rootDir_ = OS::executeCommand(command);
+      if (!Path::exists(rootDir_))
+        NTA_THROW << "Unable to find NuPIC library path";
 
       std::string errorString;
       DynamicLibrary * p = 
