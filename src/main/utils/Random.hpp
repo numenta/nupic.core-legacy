@@ -32,12 +32,6 @@
 #ifndef NTA_RANDOM_HPP
 #define NTA_RANDOM_HPP
 
-#if defined(NTA_COMPILER_MSVC)
-    // max and min are macros for MSVC, will confuse Random::max() and Random::min()
-    #undef min
-    #undef max
-#endif
-
 typedef NTA_UInt64 (*RandomSeedFuncPtr)();
 
 namespace nta {
