@@ -32,7 +32,7 @@
 #include "DirectoryTest.hpp"
 #include <apr-1/apr.h>
 
-#ifdef WIN32
+#ifdef NTA_PLATFORM_win32
   #include <windows.h>
 #else
   #include <unistd.h>
@@ -45,7 +45,7 @@ using namespace nta;
 static std::string getCurrDir()
 {
     char buff[APR_PATH_MAX+1];
-#ifdef WIN32
+#ifdef NTA_PLATFORM_win32
   DWORD res = ::GetCurrentDirectoryA(APR_PATH_MAX, (LPSTR)buff);
   NTA_CHECK(res > 0) << OS::getErrorMessage();
 

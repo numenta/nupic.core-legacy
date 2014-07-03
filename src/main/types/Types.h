@@ -321,7 +321,7 @@ typedef  unsigned long       NTA_UInt64;
  */
 
 #ifndef SWIG
-#ifdef WIN32
+#ifdef NTA_PLATFORM_win32
 #define NTA_EXPORT __declspec(dllexport)
 #define NTA_HIDDEN
 #else

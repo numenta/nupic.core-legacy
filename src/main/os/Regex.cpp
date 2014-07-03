@@ -25,7 +25,7 @@
 
 #include <nta/os/Regex.hpp>
 #include <nta/utils/Log.hpp>
-#ifdef WIN32
+#ifdef NTA_PLATFORM_win32
   #include <pcre/pcreposix.h>
 #else
   #include <regex.h>

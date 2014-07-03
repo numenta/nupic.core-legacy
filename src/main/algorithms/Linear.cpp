@@ -71,7 +71,7 @@ namespace nta {
   namespace algorithms {
     namespace linear {
 
-#ifdef WIN32
+#ifdef NTA_PLATFORM_win32
 #undef min
 #undef max
 #endif

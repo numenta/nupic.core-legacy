@@ -56,7 +56,7 @@
 
 namespace nta
 {
-#ifdef WIN32
+#ifdef NTA_PLATFORM_win32
   const char * Path::sep = "\\";
   const char * Path::pathSep = ";";
 #else
@@ -76,7 +76,7 @@ namespace nta
     apr_status_t res;
     apr_pool_t * pool = NULL;
     
-  #ifdef WIN32 
+  #ifdef NTA_PLATFORM_win32 
     res = ::apr_pool_create(&pool, NULL);
     if (res != APR_SUCCESS)
     {
@@ -86,7 +86,7 @@ namespace nta
     
     res = ::apr_stat(&info, path.c_str(), wanted, pool);
     
-  #ifdef WIN32
+  #ifdef NTA_PLATFORM_win32
     ::apr_pool_destroy(pool);
   #endif
     
@@ -134,7 +134,7 @@ namespace nta
   bool Path::isAbsolute(const std::string & path)
   {
     NTA_CHECK(!path.empty()) << "Empty path is invalid";
-  #ifdef WIN32
+  #ifdef NTA_PLATFORM_win32
     if (path.size() < 2)
       return false;
     else
@@ -302,7 +302,7 @@ namespace nta
     return "";
   }
  
-  #ifdef WIN32
+  #ifdef NTA_PLATFORM_win32
   std::string Path::unicodeToUtf8(const std::wstring& path)
   {
     // Assume the worst we can do is have 6 UTF-8 bytes per unicode
@@ -427,7 +427,7 @@ namespace nta
     while (curpos < path.size() && curpos != std::string::npos) 
     {
       // Be able to split on either separator including mixed separators on Windows
-    #ifdef WIN32
+    #ifdef NTA_PLATFORM_win32
       std::string::size_type p1 = path.find("\\", curpos);
       std::string::size_type p2 = path.find("/", curpos);
       newpos = p1 < p2 ? p1 : p2;
@@ -457,7 +457,7 @@ namespace nta
 
   bool Path::isPrefix(const std::string & s)
   {
-#ifdef WIN32
+#ifdef NTA_PLATFORM_win32
     size_t len = s.length();
     if (len < 2)
       return false;
@@ -492,7 +492,7 @@ namespace nta
       return std::string(*begin);
     
     std::string path(*begin);
-  #ifdef WIN32
+  #ifdef NTA_PLATFORM_win32
     if (path[path.length()-1] != Path::sep[0])
       path += Path::sep;
   #else
@@ -542,7 +542,7 @@ namespace nta
       target = Path::normalize(Path::join(destination, Path::getBasename(source)));
     
     bool success = true;
-  #ifdef WIN32
+  #ifdef NTA_PLATFORM_win32
 
     // Must remove read-only or hidden files before copy 
     // because they cannot be overwritten. For simplicity
@@ -658,7 +658,7 @@ namespace nta
       return;
     } 
 
-  #ifdef WIN32
+  #ifdef NTA_PLATFORM_win32
     std::wstring wpath(utf8ToUnicode(path));
     BOOL res = ::DeleteFileW(wpath.c_str());
     if (res == FALSE)
@@ -676,7 +676,7 @@ namespace nta
   {
     NTA_CHECK(!oldPath.empty() && !newPath.empty()) 
       << "Can't rename to/from empty path";
-  #ifdef WIN32
+  #ifdef NTA_PLATFORM_win32
     std::wstring wOldPath(utf8ToUnicode(oldPath));
     std::wstring wNewPath(utf8ToUnicode(newPath));
     BOOL res = ::MoveFileW(wOldPath.c_str(), wNewPath.c_str());

@@ -39,7 +39,7 @@ OSTest::~OSTest() {};
 
 void OSTest::RunTests()
 {
-#ifdef WIN32
+#ifdef NTA_PLATFORM_win32
 
 #else
   // save the parts of the environment we'll be changing
@@ -70,7 +70,7 @@ void OSTest::RunTests()
 
   // Test getUserName()
   {
-#ifdef WIN32
+#ifdef NTA_PLATFORM_win32
     Env::set("USERNAME", "123");
     TEST(OS::getUserName() == "123");    
 #else
@@ -95,7 +95,7 @@ void OSTest::RunTests()
 
   // Test getStackTrace()
   {
-#ifdef WIN32
+#ifdef NTA_PLATFORM_win32
 //    std::string stackTrace = OS::getStackTrace();
 //    TEST(!stackTrace.empty());  
 //
