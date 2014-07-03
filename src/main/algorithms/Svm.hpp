@@ -142,7 +142,7 @@ namespace nta {
 	{
 	  if (recover_)
 	    for (int i = 0; i != size(); ++i)
-#ifdef NTA_PLATFORM_win32
+#if defined(NTA_PLATFORM_win32) && defined(_MSC_VER)
               _aligned_free(x_[i]);
 #else
 	      delete [] x_[i];
@@ -168,7 +168,7 @@ namespace nta {
             NTA_ASSERT(-HUGE_VAL < x[i] && x [i] < HUGE_VAL);
 #endif
 
-#ifdef NTA_PLATFORM_win32
+#if defined(NTA_PLATFORM_win32) && defined(_MSC_VER)
           feature_type *new_x = (feature_type*) _aligned_malloc(4*n_dims(), 16);
 #else
 	  feature_type *new_x = new feature_type [n_dims()];
@@ -950,7 +950,7 @@ namespace nta {
 	  delete model_;
 	  model_ = NULL;
 
-#ifdef NTA_PLATFORM_win32
+#if defined(NTA_PLATFORM_win32) && defined(_MSC_VER)
           _aligned_free(x_tmp_);
 #else
 	  delete [] x_tmp_;

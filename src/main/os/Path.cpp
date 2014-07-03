@@ -553,8 +553,8 @@ namespace nta
     // This will quietly overwrite the destination file if it exists
     std::wstring wsource(utf8ToUnicode(source));
     std::wstring wtarget(utf8ToUnicode(target));
-    BOOL res = ::CopyFile(/*(LPCTSTR)*/wsource.c_str(), 
-                          /*(LPCTSTR)*/wtarget.c_str(), 
+    BOOL res = ::CopyFileW(wsource.c_str(), 
+                          wtarget.c_str(), 
                            FALSE);
 
     success = res != FALSE;
@@ -611,10 +611,10 @@ namespace nta
 #if WIN32
     int countFailure = 0;
     std::wstring wpath(utf8ToUnicode(path));
-    DWORD attr = GetFileAttributes(wpath.c_str());
+    DWORD attr = GetFileAttributesW(wpath.c_str());
     if(attr != INVALID_FILE_ATTRIBUTES) {
       if(userWrite) attr &= ~FILE_ATTRIBUTE_READONLY;
-      BOOL res = SetFileAttributes(wpath.c_str(), attr);
+      BOOL res = SetFileAttributesW(wpath.c_str(), attr);
       if(!res) {
         NTA_WARN << "Path::setPermissions: Failed to set attributes for " << path;
         ++countFailure;
@@ -660,7 +660,7 @@ namespace nta
 
   #ifdef WIN32
     std::wstring wpath(utf8ToUnicode(path));
-    BOOL res = ::DeleteFile(/*(LPCTSTR)*/wpath.c_str());
+    BOOL res = ::DeleteFileW(wpath.c_str());
     if (res == FALSE)
       NTA_THROW << "Path::remove() -- unable to delete '" << path
                 << "' error message: " << OS::getErrorMessage();
@@ -679,7 +679,7 @@ namespace nta
   #ifdef WIN32
     std::wstring wOldPath(utf8ToUnicode(oldPath));
     std::wstring wNewPath(utf8ToUnicode(newPath));
-    BOOL res = ::MoveFile(/*(LPCTSTR)*/wOldPath.c_str(), /*(LPCTSTR)*/wNewPath.c_str());
+    BOOL res = ::MoveFileW(wOldPath.c_str(), wNewPath.c_str());
     if (res == FALSE)
       NTA_THROW << "Path::rename() -- unable to rename '" 
                 << oldPath << "' to '" << newPath 
@@ -847,7 +847,7 @@ namespace nta
 #else
     // windows
     wchar_t *buf = new wchar_t[1000];
-    GetModuleFileName(NULL, buf, 1000);
+    GetModuleFileNameW(NULL, buf, 1000);
     // null-terminated string guaranteed unless length > 999
     buf[999] = '\0';
     std::wstring wpath(buf);
