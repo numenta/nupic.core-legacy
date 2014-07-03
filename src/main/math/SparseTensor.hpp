@@ -36,10 +36,6 @@
 
 //----------------------------------------------------------------------
 
-#ifdef NTA_PLATFORM_win32
-#undef min
-#undef max
-#endif
 
 /* FAST TENSOR */
 /*

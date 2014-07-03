@@ -40,11 +40,6 @@
 #include <nta/types/Types.hpp>
 #include <nta/math/Utils.hpp>
 
-#ifdef NTA_PLATFORM_win32
-#undef min
-#undef max
-#endif
-
 //--------------------------------------------------------------------------------
 /**
  * Macros to make it easier to work with Boost concept checks

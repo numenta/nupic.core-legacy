@@ -37,11 +37,6 @@
 #include <nta/math/Math.hpp>
 #include <nta/math/Types.hpp>
 
-#ifdef NTA_PLATFORM_win32
-#undef min
-#undef max
-#endif
-
 namespace nta {
 
   //--------------------------------------------------------------------------------

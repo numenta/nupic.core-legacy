@@ -71,11 +71,6 @@ namespace nta {
   namespace algorithms {
     namespace linear {
 
-#ifdef NTA_PLATFORM_win32
-#undef min
-#undef max
-#endif
-
       template <class T> inline void swap(T& x, T& y) { T t=x; x=y; y=t; }
 
 #define Malloc(type,n) (type *)malloc((n)*sizeof(type))
