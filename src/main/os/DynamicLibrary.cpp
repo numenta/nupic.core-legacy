@@ -40,10 +40,10 @@ namespace nta
 
   DynamicLibrary::~DynamicLibrary()
   {
-    #ifndef WIN32
-      ::dlclose(handle_);
-    #else
+    #ifdef WIN32
       ::FreeLibrary((HMODULE)handle_);
+    #else
+      ::dlclose(handle_);
     #endif
   }
 

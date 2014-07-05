@@ -244,7 +244,9 @@ namespace nta {
   void SpatialPoolerTest::RunTests()
   {
     testRaisePermanencesToThreshold();
+    testMapColumn();
     testMapPotential1D();
+    testMapPotential2D();
     testInitPermConnected();
     testInitPermNonConnected();
     testInitPermanence();
@@ -2304,6 +2306,64 @@ namespace nta {
     }
   }
 
+  void SpatialPoolerTest::testMapColumn()
+  {
+    vector<UInt> inputDim, columnDim;
+    SpatialPooler sp;
+
+    // Test 1D
+    inputDim.push_back(10);
+    columnDim.push_back(4);
+    sp.initialize(inputDim, columnDim);
+
+    NTA_ASSERT(sp.mapColumn_(0) == 0);
+    NTA_ASSERT(sp.mapColumn_(1) == 3);
+    NTA_ASSERT(sp.mapColumn_(2) == 6);
+    NTA_ASSERT(sp.mapColumn_(3) == 9);
+
+    columnDim.clear();
+    inputDim.clear();
+
+    // Test 1D with same dimensions of columns and inputs
+    inputDim.push_back(4);
+    columnDim.push_back(4);
+    sp.initialize(inputDim, columnDim);
+
+    NTA_ASSERT(sp.mapColumn_(0) == 0);
+    NTA_ASSERT(sp.mapColumn_(1) == 1);
+    NTA_ASSERT(sp.mapColumn_(2) == 2);
+    NTA_ASSERT(sp.mapColumn_(3) == 3);
+
+    columnDim.clear();
+    inputDim.clear();
+
+    // Test 1D with dimensions of length 1
+    inputDim.push_back(1);
+    columnDim.push_back(1);
+    sp.initialize(inputDim, columnDim);
+
+    NTA_ASSERT(sp.mapColumn_(0) == 0);
+
+    columnDim.clear();
+    inputDim.clear();
+
+    // Test 2D
+    inputDim.push_back(20);
+    inputDim.push_back(10);
+    columnDim.push_back(12);
+    columnDim.push_back(4);
+    sp.initialize(inputDim, columnDim);
+
+    NTA_ASSERT(sp.mapColumn_(0) == 0);
+    NTA_ASSERT(sp.mapColumn_(4) == 10);
+    NTA_ASSERT(sp.mapColumn_(5) == 13);
+    NTA_ASSERT(sp.mapColumn_(7) == 19);
+    NTA_ASSERT(sp.mapColumn_(47) == 199);
+
+    columnDim.clear();
+    inputDim.clear();
+  }
+
   void SpatialPoolerTest::testMapPotential1D()
   {
     vector<UInt> inputDim, columnDim;
@@ -2321,28 +2381,28 @@ namespace nta {
     sp.setPotentialPct(1.0);
 
     UInt expectedMask1[10] = {1, 1, 1, 0, 0, 0, 0, 0, 0, 0};
-    mask = sp.mapPotential1D_(0, false);
+    mask = sp.mapPotential_(0, false);
     NTA_CHECK(check_vector_eq(expectedMask1, mask));
 
     UInt expectedMask2[10] = {0, 0, 0, 0, 1, 1, 1, 1, 1, 0};
-    mask = sp.mapPotential1D_(2, false);
+    mask = sp.mapPotential_(2, false);
     NTA_CHECK(check_vector_eq(expectedMask2, mask));
 
     // Test with wrapAround and potentialPct = 1
     sp.setPotentialPct(1.0);
 
     UInt expectedMask3[10] = {1, 1, 1, 0, 0, 0, 0, 0, 1, 1};
-    mask = sp.mapPotential1D_(0, true);
+    mask = sp.mapPotential_(0, true);
     NTA_CHECK(check_vector_eq(expectedMask3, mask));
 
     UInt expectedMask4[10] = {1, 1, 0, 0, 0, 0, 0, 1, 1, 1};
-    mask = sp.mapPotential1D_(3, true);
+    mask = sp.mapPotential_(3, true);
     NTA_CHECK(check_vector_eq(expectedMask4, mask));
 
     // Test with potentialPct < 1
     sp.setPotentialPct(0.5);
     UInt supersetMask1[10] = {1, 1, 1, 0, 0, 0, 0, 0, 1, 1};
-    mask = sp.mapPotential1D_(0, true);
+    mask = sp.mapPotential_(0, true);
     NTA_ASSERT(sum(mask) == 3);
 
     UInt unionMask1[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -2351,6 +2411,66 @@ namespace nta {
     }
 
     NTA_CHECK(check_vector_eq(unionMask1, supersetMask1, 10));
+  }
+
+  void SpatialPoolerTest::testMapPotential2D()
+  {
+    vector<UInt> inputDim, columnDim;
+    inputDim.push_back(5);
+    inputDim.push_back(10);
+    columnDim.push_back(2);
+    columnDim.push_back(4);
+    UInt potentialRadius = 1;
+    Real potentialPct = 1.0;
+
+    SpatialPooler sp;
+    sp.initialize(inputDim, columnDim);
+    sp.setPotentialRadius(potentialRadius);
+    sp.setPotentialPct(potentialPct);
+
+    vector<UInt> mask;
+
+    // Test without wrapAround
+    UInt expectedMask1[50] = {
+      1, 1, 0, 0, 0, 0, 0, 0, 0, 0,
+      1, 1, 0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    };
+    mask = sp.mapPotential_(0, false);
+    NTA_CHECK(check_vector_eq(expectedMask1, mask));
+
+    UInt expectedMask2[50] = {
+      0, 0, 0, 0, 0, 1, 1, 1, 0, 0,
+      0, 0, 0, 0, 0, 1, 1, 1, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    };
+    mask = sp.mapPotential_(2, false);
+    NTA_CHECK(check_vector_eq(expectedMask2, mask));
+
+    // Test with wrapAround
+    UInt expectedMask3[50] = {
+      1, 1, 0, 0, 0, 0, 0, 0, 0, 1,
+      1, 1, 0, 0, 0, 0, 0, 0, 0, 1,
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      1, 1, 0, 0, 0, 0, 0, 0, 0, 1
+    };
+    mask = sp.mapPotential_(0, true);
+    NTA_CHECK(check_vector_eq(expectedMask3, mask));
+
+    UInt expectedMask4[50] = {
+      1, 0, 0, 0, 0, 0, 0, 0, 1, 1,
+      1, 0, 0, 0, 0, 0, 0, 0, 1, 1,
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      1, 0, 0, 0, 0, 0, 0, 0, 1, 1
+    };
+    mask = sp.mapPotential_(3, true);
+    NTA_CHECK(check_vector_eq(expectedMask4, mask));
   }
 
   void SpatialPoolerTest::testSerialize() 

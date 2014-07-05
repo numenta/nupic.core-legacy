@@ -53,7 +53,7 @@ namespace nta
     {
     #ifdef WIN32
       wchar_t wcwd[APR_PATH_MAX];
-      DWORD res = ::GetCurrentDirectory(APR_PATH_MAX, wcwd);
+      DWORD res = ::GetCurrentDirectoryW(APR_PATH_MAX, wcwd);
       NTA_CHECK(res > 0) << "Couldn't get current working directory. Error code: " 
         << OS::getErrorMessage();
       std::string cwd = Path::unicodeToUtf8(std::wstring(wcwd));
@@ -78,7 +78,7 @@ namespace nta
       int res = 0;
     #ifdef WIN32
       std::wstring wpath(Path::utf8ToUnicode(path));
-      res = ::SetCurrentDirectory(wpath.c_str()) ? 0 : -1;
+      res = ::SetCurrentDirectoryW(wpath.c_str()) ? 0 : -1;
     #else
       res = ::chdir(path.c_str());
     #endif
@@ -91,7 +91,7 @@ namespace nta
       int res = 0;
     #ifdef WIN32
       std::wstring wpath(Path::utf8ToUnicode(path));
-      res = ::RemoveDirectory(wpath.c_str()) != FALSE ? 0 : -1;
+      res = ::RemoveDirectoryW(wpath.c_str()) != FALSE ? 0 : -1;
     #else
       res = ::rmdir(path.c_str());
     #endif
