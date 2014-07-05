@@ -637,8 +637,7 @@ add_custom_target(tests_everything
                   COMMAND ${PROJECT_BUILD_RELEASE_DIR}/bin/${EXECUTABLE_TESTEVERYTHING})
 
 add_custom_target(tests_unit
-                  COMMAND ${PROJECT_BUILD_RELEASE_DIR}/bin/${EXECUTABLE_UNIT_TESTS})
- 
+                  COMMAND ${PROJECT_BUILD_RELEASE_DIR}/bin/${EXECUTABLE_UNIT_TESTS} "-s" "-r junit") 
                   
 # tests_all just calls other targets
 add_custom_target(tests_all
