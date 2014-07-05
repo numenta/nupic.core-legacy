@@ -23,6 +23,7 @@ SCENARIO( "creating a network should auto-initialize NuPIC", "[network]" ) {
 
 
     WHEN("creates a network") {
+      {
         Network net;
 
         THEN("NuPIC should be initialized") {
@@ -41,12 +42,16 @@ SCENARIO( "creating a network should auto-initialize NuPIC", "[network]" ) {
           // Network still exists, so this should fail. 
           CHECK_THROWS(NuPIC::shutdown());
         }
-    }
+      } // net destructor called
 
-    WHEN("No network exists") {
-      THEN("NuPIC can be shut down") {
-        // net destructor has been called so we should be able to shut down NuPIC now
-        CHECK_NOTHROW(NuPIC::shutdown());
+      WHEN("No network exists and NuPIC initialized") {
+
+        REQUIRE(NuPIC::isInitialized());
+
+        THEN("NuPIC can be shut down") {
+          // net destructor has been called so we should be able to shut down NuPIC now
+          CHECK_NOTHROW(NuPIC::shutdown());
+        }
       }
     }
   }
