@@ -173,6 +173,28 @@ macro(merge_static_libraries new_lib output_dir libraries target)
   endif()
 endmacro()
 
+# This macro gets the compiler family being used.
+# Currently compiler_family can only be one of GNU/CLANG/MSVC/unsupported, more can be added
+macro(get_compiler_family compiler_family)
+    if(CMAKE_COMPILER_IS_GNUCXX)
+      # The compiler is a GNU g++ variant.
+      # This is also true for MinGW and Cygwin on Windows
+      set(${compiler_family} "GNU")
+    elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+      # The compiler is clang
+      set(${compiler_family} "CLANG")
+    elseif(MSVC)
+      set(${compiler_family} "MSVC")
+    elseif(BORLAND)
+      set(${compiler_family} "BORLAND")
+    elseif(WATCOM)
+      set(${compiler_family} "WATCOM")    
+    else()
+      # See http://www.cmake.org/Wiki/CMake_Useful_Variables
+      set(${compiler_family} "unsupported")
+    endif()
+endmacro()
+
 
 ############################################################################################################################
 ###                                                                                                                      ###
@@ -297,6 +319,11 @@ message(STATUS "  LD flags: ${NTA_PLATFORM_LINKFLAGS}")
 message(STATUS "Checking software tools...")
 
 #
+# Gives the family of C++ compiler
+# 
+get_compiler_family(NTA_COMPILER_FAMILY)
+
+#
 # Gives the version of C++ compiler
 #
 execute_process(COMMAND ${CMAKE_CXX_COMPILER} -dumpversion
@@ -307,6 +334,7 @@ execute_process(COMMAND ${CMAKE_CXX_COMPILER} -dumpversion
 #
 message(STATUS "C++ details:")
 message(STATUS "  Compiler: ${CMAKE_CXX_COMPILER}")
+message(STATUS "  Compiler Family: ${NTA_COMPILER_FAMILY}")
 message(STATUS "  Version: ${CXX_VERSION}")
 
 #
@@ -346,13 +374,13 @@ set(USER_LINKFLAGS "" CACHE STRING "Extra Link flags")
 # Allows us to find includes for external libraries and enables
 # #include <nta/common/...>
 #
-set(NTA_INCLUDEFLAGS "-I${PROJECT_BUILD_RELEASE_DIR}/include -isystem${REPOSITORY_DIR}/external/common/include -isystem${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/include")
+include_directories(SYSTEM "${REPOSITORY_DIR}/external/common/include" "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/include")
+set(NTA_INCLUDEFLAGS "-I${PROJECT_BUILD_RELEASE_DIR}/include")
 
 #
 # NTA_INTERNAL tells us that the code is being built under the build system
 # and not as a separate program. Used for cppvision example.
-#
-set(NTA_CXXFLAGS_BASE "${NTA_INCLUDEFLAGS} ${NTA_PLATFORM_CXXFLAGS} -DHAVE_CONFIG_H -DNTA_INTERNAL -DNTA_PLATFORM_${NTA_PLATFORM_OS} -DBOOST_NO_WREGEX -DNUPIC2 -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-unused-parameter")
+set(NTA_CXXFLAGS_BASE "${NTA_INCLUDEFLAGS} ${NTA_PLATFORM_CXXFLAGS} -DHAVE_CONFIG_H -DNTA_INTERNAL -DNTA_PLATFORM_${NTA_PLATFORM_OS} -DNTA_COMPILER_${NTA_COMPILER_FAMILY} -DBOOST_NO_WREGEX -DNUPIC2")
 
 #
 # All executables and plugins are linked with these flags
@@ -415,8 +443,8 @@ message(STATUS "  MPI Support: ${NTA_MPI_SUPPORT}")
 #
 # Compiler specific (clang, gcc, ..) flags can be set here
 #
-if(CMAKE_COMPILER_IS_GNUCXX)
-  set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -Wno-sign-compare -Wno-error=format=")
+if(${NTA_COMPILER_FAMILY} EQUAL "GNU")
+  set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-unused-parameter -Wno-sign-compare -Wno-error=format=")
   set(NTA_CXXFLAGS_OPTIMIZATION "${NTA_CXXFLAGS_OPTIMIZATION} -falign-loops=16")
   # workaround for gcc 4.4 in Grok
   execute_process(COMMAND ${CMAKE_C_COMPILER} -dumpversion OUTPUT_VARIABLE GCC_VERSION)
@@ -424,7 +452,10 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -Wno-error=cpp -Werror")
   endif()
   set(NTA_LINKFLAGS_ARCHIVES "-Wl,-whole-archive")
+elseif(${NTA_COMPILER_FAMILY} EQUAL "MSVC")
+# TODO: add VC-specific compiler options
 else()
+# TODO: Was this for clang? Should it be more explicit?
   set(NTA_LINKFLAGS_ARCHIVES "-Wl,-force_load")
 endif()
 
