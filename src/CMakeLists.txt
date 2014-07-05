@@ -535,6 +535,19 @@ set(LIBRARIES
 )
 generate_executable(${EXECUTABLE_TESTEVERYTHING} "${PROJECT_SOURCE_DIR}/test/testeverything" "${PROJECT_BUILD_RELEASE_DIR}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
 
+#
+# Unit tests using Catch test framework, ported from and improved based on TestEverything
+# 
+# Catch stands for C++ Automated Test Cases in Headers, is a modern, C++-native, header-only, 
+# framework for unit-tests, TDD and BDD
+#
+set(EXECUTABLE_UNIT_TESTS unit_tests)
+set(LIBRARIES
+  ${LIB_STATIC_NUPICCORE}
+  ${NTA_STANDARD_LIBS}
+)
+generate_executable(${EXECUTABLE_UNIT_TESTS} "${PROJECT_SOURCE_DIR}/test/unit" "${PROJECT_BUILD_RELEASE_DIR}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
+
 # Merge nupic_core and all static libraries to a stand-alone library
 merge_static_libraries(${LIB_STATIC_NUPICCORE} "${PROJECT_BUILD_RELEASE_DIR}/lib" "${LIB_STATIC_NUPICCORE};${NTA_STANDARD_LIBS}" "${LIB_STATIC_NUPICCORE}")
 
@@ -594,11 +607,16 @@ add_custom_target(tests_htm
                   
 add_custom_target(tests_everything
                   COMMAND ${PROJECT_BUILD_RELEASE_DIR}/bin/${EXECUTABLE_TESTEVERYTHING})
+
+add_custom_target(tests_unit
+                  COMMAND ${PROJECT_BUILD_RELEASE_DIR}/bin/${EXECUTABLE_UNIT_TESTS})
+ 
                   
 # tests_all just calls other targets
 add_custom_target(tests_all
                   DEPENDS tests_htm
                   DEPENDS tests_everything
+                  DEPENDS tests_unit
                   COMMENT "Running all tests")
 
 #
