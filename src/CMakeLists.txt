@@ -437,13 +437,13 @@ message(STATUS "  Profiling: ${NTA_PROFILING_ENABLED}")
 # Enable/disable Coverage (this option is mainly used for generating test coverage reports).
 #
 option(NTA_COV_ENABLED "-DNTA_COV_ENABLED=[ON/OFF] turn on test coverage [default=OFF]" OFF)
-if(NTA_COV_ENABLED)
+if(NTA_COV_ENABLED)  
   if(${NTA_COMPILER_FAMILY} STREQUAL "GNU")
     set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -fprofile-arcs -ftest-coverage")
-    set(NTA_LINKFLAGS "${NTA_LINKFLAGS} -lgcov")
+    set(LIB_STATIC_GCOV gcov)
   elseif(${NTA_COMPILER_FAMILY} STREQUAL "CLANG")
     set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} --coverage")
-    set(NTA_LINKFLAGS "${NTA_LINKFLAGS} -lprofile_rt")
+    set(LIB_STATIC_GCOV gcov)
   else()
     # TODO
     message(STATUS "  Warning: Coverage can't be enabled yet unless the compiler is gcc or clang, ignoring...")
@@ -525,6 +525,13 @@ set(NTA_STANDARD_LIBS
   ${LIB_STATIC_Z}
 )
 
+#
+# Set list of external libraries to tests
+#
+set(NTA_TEST_LIBS
+  "${LIB_STATIC_GCOV}"
+)
+
 message(STATUS "Configuring subprojects...")
 
 #
@@ -540,6 +547,7 @@ set(EXECUTABLE_HTMTEST testcpphtm)
 set(LIBRARIES
   ${LIB_STATIC_NUPICCORE}
   ${NTA_STANDARD_LIBS}
+  ${NTA_TEST_LIBS}
 )
 generate_executable(${EXECUTABLE_HTMTEST} "${PROJECT_SOURCE_DIR}/test/htmtest" "${PROJECT_BUILD_RELEASE_DIR}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
 
@@ -550,6 +558,7 @@ set(EXECUTABLE_TESTEVERYTHING testeverything)
 set(LIBRARIES
   ${LIB_STATIC_NUPICCORE}
   ${NTA_STANDARD_LIBS}
+  ${NTA_TEST_LIBS}
 )
 generate_executable(${EXECUTABLE_TESTEVERYTHING} "${PROJECT_SOURCE_DIR}/test/testeverything" "${PROJECT_BUILD_RELEASE_DIR}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
 
@@ -563,6 +572,7 @@ set(EXECUTABLE_UNIT_TESTS unit_tests)
 set(LIBRARIES
   ${LIB_STATIC_NUPICCORE}
   ${NTA_STANDARD_LIBS}
+  ${NTA_TEST_LIBS}
 )
 generate_executable(${EXECUTABLE_UNIT_TESTS} "${PROJECT_SOURCE_DIR}/test/unit" "${PROJECT_BUILD_RELEASE_DIR}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
 
