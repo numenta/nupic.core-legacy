@@ -461,7 +461,7 @@ message(STATUS "  MPI Support: ${NTA_MPI_SUPPORT}")
 #
 # Compiler specific (clang, gcc, ..) flags can be set here
 #
-if(${NTA_COMPILER_FAMILY} EQUAL "GNU")
+if(${NTA_COMPILER_FAMILY} STREQUAL "GNU")
   set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-unused-parameter -Wno-sign-compare -Wno-error=format=")
   set(NTA_CXXFLAGS_OPTIMIZATION "${NTA_CXXFLAGS_OPTIMIZATION} -falign-loops=16")
   # workaround for gcc 4.4 in Grok
@@ -470,7 +470,7 @@ if(${NTA_COMPILER_FAMILY} EQUAL "GNU")
     set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -Wno-error=cpp -Werror")
   endif()
   set(NTA_LINKFLAGS_ARCHIVES "-Wl,-whole-archive")
-elseif(${NTA_COMPILER_FAMILY} EQUAL "MSVC")
+elseif(${NTA_COMPILER_FAMILY} STREQUAL "MSVC")
 # TODO: add VC-specific compiler options
 else()
 # TODO: Was this for clang? Should it be more explicit?
