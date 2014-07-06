@@ -2,17 +2,10 @@ language: cpp
 
 os:
   - linux
-  - osx
 
 compiler:
   - clang
   - gcc
-
-matrix:
-  # This excludes OSX builds from the build matrix for gcc
-  exclude:
-    - os: osx
-      compiler: gcc
 
 notifications:
   irc:
@@ -24,8 +17,7 @@ before_install:
   - "if [ $CC = 'gcc' ]; then export CXX=g++; fi"
   - "if [ $CC = 'clang' ]; then export CXX=clang++; fi"
   # https://github.com/eddyxu/cpp-coveralls
-  - "if [ $TRAVIS_OS_NAME = 'linux' ]; then sudo pip install cpp-coveralls; fi"
-  - "if [ $TRAVIS_OS_NAME = 'osx' ]; then brew install cmake; fi"
+  - "sudo pip install cpp-coveralls"
 
 install:
   - "mkdir -p $TRAVIS_BUILD_DIR/build/scripts"
@@ -44,4 +36,4 @@ script:
 after_success:
   - "cd $TRAVIS_BUILD_DIR/build/scripts"
   # send test coverage report to http://coveralls.io
-  - "if [ $TRAVIS_OS_NAME = 'linux' ]; then coveralls ; fi"
+  - "coveralls"
