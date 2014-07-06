@@ -434,6 +434,21 @@ endif()
 message(STATUS "  Profiling: ${NTA_PROFILING_ENABLED}")
 
 #
+# Enable/disable Coverage (this option is mainly used for generating test coverage reports).
+#
+option(NTA_COV_ENABLED "-DNTA_COV_ENABLED=[ON/OFF] turn on gcov [default=OFF]" OFF)
+if(NTA_COV_ENABLED)
+  if(${NTA_COMPILER_FAMILY} EQUAL "GNU" || ${NTA_COMPILER_FAMILY} EQUAL "CLANG")
+    set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -fprofile-arcs -ftest-coverage")
+    set(NTA_LINKFLAGS "${NTA_LINKFLAGS} -lgcov")
+  else()
+    # TODO
+    message(STATUS "Warning: Coverage can't be enabled yet unless the compiler is gcc or clang, ignoring...")
+  endif()
+endif()
+message(STATUS "  Coverage: ${NTA_COV_ENABLED}")
+
+#
 # Build using MPI headers and library,
 # and enable features that depend on MPI.
 #

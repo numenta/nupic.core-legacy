@@ -28,7 +28,7 @@ before_install:
 install:
   - "mkdir -p $TRAVIS_BUILD_DIR/build/scripts"
   - "cd $TRAVIS_BUILD_DIR/build/scripts"
-  - "cmake $TRAVIS_BUILD_DIR/src"
+  - "cmake $TRAVIS_BUILD_DIR/src -DNTA_COV_ENABLED=ON"
 
 script:
   - "cd $TRAVIS_BUILD_DIR/build/scripts"
