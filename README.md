@@ -1,4 +1,4 @@
-# NuPIC Core [![Build Status](https://travis-ci.org/numenta/nupic.core.png?branch=master)](https://travis-ci.org/numenta/nupic.core) [![Coverage Status](https://coveralls.io/repos/numenta/nupic.core/badge.png)](https://coveralls.io/r/numenta/nupic.core)
+# NuPIC Core [![Build Status](https://travis-ci.org/numenta/nupic.core.png?branch=master)](https://travis-ci.org/numenta/nupic.core) [![Coverage Status](https://coveralls.io/repos/numenta/nupic.core/badge.png?branch=master)](https://coveralls.io/r/numenta/nupic.core?branch=master)
 
 This repository contains the C++ source code for the Numenta Platform for Intelligent Computing ([NuPIC](http://numenta.org/nupic.html)). It will eventually contain all algorithms for NuPIC, but is currently in a transition period. For details on building NuPIC within the python environment, please see http://github.com/numenta/nupic.
 
