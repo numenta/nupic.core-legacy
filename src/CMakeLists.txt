@@ -443,7 +443,7 @@ if(NTA_COV_ENABLED)
     set(LIB_STATIC_COV gcov)
   elseif(${NTA_COMPILER_FAMILY} STREQUAL "CLANG")
     set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} --coverage")
-    set(LIB_STATIC_COV profile_rt)
+    set(NTA_LINKFLAGS "${NTA_LINKFLAGS} --coverage")
   else()
     # TODO
     message(STATUS "  Warning: Coverage can't be enabled yet unless the compiler is gcc or clang, ignoring...")
