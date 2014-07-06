@@ -23,7 +23,7 @@ install:
   - "mkdir -p $TRAVIS_BUILD_DIR/build/scripts"
   - "cd $TRAVIS_BUILD_DIR/build/scripts"
   - "cmake $TRAVIS_BUILD_DIR/src -DNTA_COV_ENABLED=ON"
-  - "locate gcov.a"
+  - "sudo find / -name libgcov.a"
 
 script:
   - "cd $TRAVIS_BUILD_DIR/build/scripts"
