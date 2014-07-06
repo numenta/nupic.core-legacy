@@ -436,7 +436,7 @@ message(STATUS "  Profiling: ${NTA_PROFILING_ENABLED}")
 #
 # Enable/disable Coverage (this option is mainly used for generating test coverage reports).
 #
-option(NTA_COV_ENABLED "-DNTA_COV_ENABLED=[ON/OFF] turn on gcov [default=OFF]" OFF)
+option(NTA_COV_ENABLED "-DNTA_COV_ENABLED=[ON/OFF] turn on test coverage [default=OFF]" OFF)
 if(NTA_COV_ENABLED)
   if(${NTA_COMPILER_FAMILY} EQUAL "GNU" || ${NTA_COMPILER_FAMILY} EQUAL "CLANG")
     set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -fprofile-arcs -ftest-coverage")
