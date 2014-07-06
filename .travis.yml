@@ -37,4 +37,4 @@ script:
 after_success:
   - "cd $TRAVIS_BUILD_DIR"
   # send test coverage report to http://coveralls.io
-  - "coveralls --exclude external --exclude doc"
+  - "coveralls --exclude external --exclude doc --exclude src/test"
