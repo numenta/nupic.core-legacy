@@ -34,6 +34,6 @@ script:
   # unit tests
   - "make tests_unit"
 after_success:
-  - "cd $TRAVIS_BUILD_DIR"
+  - "cd $TRAVIS_BUILD_DIR/build"
   # send test coverage report to http://coveralls.io
   - "coveralls"
