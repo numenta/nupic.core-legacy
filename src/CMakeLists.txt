@@ -440,10 +440,10 @@ option(NTA_COV_ENABLED "-DNTA_COV_ENABLED=[ON/OFF] turn on test coverage [defaul
 if(NTA_COV_ENABLED)  
   if(${NTA_COMPILER_FAMILY} STREQUAL "GNU")
     set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -fprofile-arcs -ftest-coverage")
-    set(LIB_STATIC_GCOV gcov)
+    set(LIB_STATIC_COV gcov)
   elseif(${NTA_COMPILER_FAMILY} STREQUAL "CLANG")
     set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} --coverage")
-    set(LIB_STATIC_GCOV gcov)
+    set(LIB_STATIC_COV profile_rt)
   else()
     # TODO
     message(STATUS "  Warning: Coverage can't be enabled yet unless the compiler is gcc or clang, ignoring...")
@@ -529,7 +529,7 @@ set(NTA_STANDARD_LIBS
 # Set list of external libraries to tests
 #
 set(NTA_TEST_LIBS
-  "${LIB_STATIC_GCOV}"
+  "${LIB_STATIC_COV}"
 )
 
 message(STATUS "Configuring subprojects...")
