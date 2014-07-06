@@ -434,6 +434,24 @@ endif()
 message(STATUS "  Profiling: ${NTA_PROFILING_ENABLED}")
 
 #
+# Enable/disable Coverage (this option is mainly used for generating test coverage reports).
+#
+option(NTA_COV_ENABLED "-DNTA_COV_ENABLED=[ON/OFF] turn on test coverage [default=OFF]" OFF)
+if(NTA_COV_ENABLED)  
+  if(${NTA_COMPILER_FAMILY} STREQUAL "GNU")
+    set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -fprofile-arcs -ftest-coverage")
+    set(LIB_STATIC_COV gcov)
+  elseif(${NTA_COMPILER_FAMILY} STREQUAL "CLANG")
+    set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} --coverage")
+    set(NTA_LINKFLAGS "${NTA_LINKFLAGS} --coverage")
+  else()
+    # TODO
+    message(STATUS "  Warning: Coverage can't be enabled yet unless the compiler is gcc or clang, ignoring...")
+  endif()
+endif()
+message(STATUS "  Coverage: ${NTA_COV_ENABLED}")
+
+#
 # Build using MPI headers and library,
 # and enable features that depend on MPI.
 #
@@ -443,7 +461,7 @@ message(STATUS "  MPI Support: ${NTA_MPI_SUPPORT}")
 #
 # Compiler specific (clang, gcc, ..) flags can be set here
 #
-if(${NTA_COMPILER_FAMILY} EQUAL "GNU")
+if(${NTA_COMPILER_FAMILY} STREQUAL "GNU")
   set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-unused-parameter -Wno-sign-compare -Wno-error=format=")
   set(NTA_CXXFLAGS_OPTIMIZATION "${NTA_CXXFLAGS_OPTIMIZATION} -falign-loops=16")
   # workaround for gcc 4.4 in Grok
@@ -452,7 +470,7 @@ if(${NTA_COMPILER_FAMILY} EQUAL "GNU")
     set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -Wno-error=cpp -Werror")
   endif()
   set(NTA_LINKFLAGS_ARCHIVES "-Wl,-whole-archive")
-elseif(${NTA_COMPILER_FAMILY} EQUAL "MSVC")
+elseif(${NTA_COMPILER_FAMILY} STREQUAL "MSVC")
 # TODO: add VC-specific compiler options
 else()
 # TODO: Was this for clang? Should it be more explicit?
@@ -507,6 +525,13 @@ set(NTA_STANDARD_LIBS
   ${LIB_STATIC_Z}
 )
 
+#
+# Set list of external libraries to tests
+#
+set(NTA_TEST_LIBS
+  "${LIB_STATIC_COV}"
+)
+
 message(STATUS "Configuring subprojects...")
 
 #
@@ -522,6 +547,7 @@ set(EXECUTABLE_HTMTEST testcpphtm)
 set(LIBRARIES
   ${LIB_STATIC_NUPICCORE}
   ${NTA_STANDARD_LIBS}
+  ${NTA_TEST_LIBS}
 )
 generate_executable(${EXECUTABLE_HTMTEST} "${PROJECT_SOURCE_DIR}/test/htmtest" "${PROJECT_BUILD_RELEASE_DIR}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
 
@@ -532,6 +558,7 @@ set(EXECUTABLE_TESTEVERYTHING testeverything)
 set(LIBRARIES
   ${LIB_STATIC_NUPICCORE}
   ${NTA_STANDARD_LIBS}
+  ${NTA_TEST_LIBS}
 )
 generate_executable(${EXECUTABLE_TESTEVERYTHING} "${PROJECT_SOURCE_DIR}/test/testeverything" "${PROJECT_BUILD_RELEASE_DIR}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
 
