@@ -23,6 +23,8 @@ notifications:
 before_install:
   - "if [ $CC = 'gcc' ]; then export CXX=g++; fi"
   - "if [ $CC = 'clang' ]; then export CXX=clang++; fi"
+  # https://github.com/eddyxu/cpp-coveralls
+  - "if [ $TRAVIS_OS_NAME = 'linux' ]; then sudo pip install cpp-coveralls; fi"
   - "if [ $TRAVIS_OS_NAME = 'osx' ]; then brew install cmake; fi"
 
 install:
@@ -39,3 +41,7 @@ script:
   - "make tests_everything"
   # unit tests
   - "make tests_unit"
+after_success:
+  - "cd $TRAVIS_BUILD_DIR/build/scripts"
+  # send test coverage report to http://coveralls.io
+  - "if [ $TRAVIS_OS_NAME = 'linux' ]; then coveralls ; fi"
