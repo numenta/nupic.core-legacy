@@ -40,6 +40,8 @@ script:
   - "make tests_htm"
   # (not quite everything, really)
   - "make tests_everything"
+  # unit tests
+  - "make tests_unit"
 
 after_success:
   - "cd $TRAVIS_BUILD_DIR"
