@@ -19,11 +19,12 @@ SCENARIO( "creating a network should auto-initialize NuPIC", "[network]" ) {
       NuPIC::shutdown();
     }
 
-    REQUIRE(!NuPIC::isInitialized());
-
+    THEN("NuPIC should be not initialized") {
+      REQUIRE(!NuPIC::isInitialized());
+    }
 
     WHEN("creates a network") {
-      {
+      { // net constructor called
         Network net;
 
         THEN("NuPIC should be initialized") {
@@ -36,12 +37,13 @@ SCENARIO( "creating a network should auto-initialize NuPIC", "[network]" ) {
           THEN("region name should be as specified") {
             CHECK("level1" == l1->getName());
           }
+
+          AND_THEN("NuPIC should fail to shutdown") {
+            // Network still exists, so this should fail. 
+            CHECK_THROWS(NuPIC::shutdown());
+          }
         }
 
-        AND_THEN("NuPIC should fail to shutdown") {
-          // Network still exists, so this should fail. 
-          CHECK_THROWS(NuPIC::shutdown());
-        }
       } // net destructor called
 
       WHEN("No network exists and NuPIC initialized") {
