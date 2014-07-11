@@ -80,7 +80,7 @@ SCENARIO( "a network can manipulate and access regions", "[network]" ) {
         CHECK(l1->getNetwork() == &net);
       }
 
-      THEN("the network can't find a region by incorrect name") {
+      THEN("the network can't find a region by incorrect names") {
 
         CHECK_THROWS(net.getRegions().getByName("nosuchregion"));
 
@@ -88,7 +88,7 @@ SCENARIO( "a network can manipulate and access regions", "[network]" ) {
         CHECK_THROWS(net.getRegions().getByName("level"));
       }
 
-      THEN("the network can find the region by correct name") {
+      THEN("the network can find the region by the correct name") {
         Region* l1a = net.getRegions().getByName("level1");
         CHECK(l1a == l1);
       }
