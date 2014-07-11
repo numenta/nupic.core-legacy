@@ -4,6 +4,7 @@
 #include <nta/engine/NuPIC.hpp>
 #include <nta/engine/Region.hpp>
 #include <nta/ntypes/Dimensions.hpp>
+#include <nta/utils/Log.hpp>
 
 using namespace nta;
 
