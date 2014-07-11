@@ -312,54 +312,72 @@ SCENARIO( "a network can be modified in various ways", "[network]" ) {
 
 }
 
-//   { 
-//     // unlinking tests
-//     NTA_DEBUG << "Running unlinking tests";
-//     Network net;
-//     net.addRegion("level1", "TestNode", "");
-//     net.addRegion("level2", "TestNode", "");
-//     Dimensions d;
-//     d.push_back(4);
-//     d.push_back(2);
-//     net.getRegions().getByName("level1")->setDimensions(d);
+SCENARIO( "a network can be unlinked in various ways", "[network]" ) {
+  { 
+    // unlinking tests
+    Network net;
+    net.addRegion("level1", "TestNode", "");
+    net.addRegion("level2", "TestNode", "");
+    Dimensions d;
+    d.push_back(4);
+    d.push_back(2);
+    net.getRegions().getByName("level1")->setDimensions(d);
 
-//     net.link("level1", "level2", "TestFanIn2", "");
-//     TEST(net.getRegions().getByName("level2")->getDimensions().isUnspecified());
+    net.link("level1", "level2", "TestFanIn2", "");
+    CHECK(net.getRegions().getByName("level2")->getDimensions().isUnspecified());
 
-//     SHOULDFAIL(net.removeLink("level1", "level2", "outputdoesnotexist", "bottomUpIn"));
-//     SHOULDFAIL(net.removeLink("level1", "level2", "bottomUpOut", "inputdoesnotexist"));
-//     SHOULDFAIL(net.removeLink("level1", "leveldoesnotexist"));
-//     SHOULDFAIL(net.removeLink("leveldoesnotexist", "level2"));
+    CHECK_THROWS(net.removeLink("level1", "level2", "outputdoesnotexist", "bottomUpIn"));
+    CHECK_THROWS(net.removeLink("level1", "level2", "bottomUpOut", "inputdoesnotexist"));
+    CHECK_THROWS(net.removeLink("level1", "leveldoesnotexist"));
+    CHECK_THROWS(net.removeLink("leveldoesnotexist", "level2"));
 
-//     // remove the link from the uninitialized network
-//     net.removeLink("level1", "level2");
-//     TEST(net.getRegions().getByName("level2")->getDimensions().isUnspecified());
+    // remove the link from the uninitialized network
+    net.removeLink("level1", "level2");
+    CHECK(net.getRegions().getByName("level2")->getDimensions().isUnspecified());
 
-//     SHOULDFAIL(net.removeLink("level1", "level2"));
+    CHECK_THROWS(net.removeLink("level1", "level2"));
 
-//     // remove, specifying output/input names
-//     net.link("level1", "level2", "TestFanIn2", "");
-//     net.removeLink("level1", "level2", "bottomUpOut", "bottomUpIn");
-//     SHOULDFAIL(net.removeLink("level1", "level2", "bottomUpOut", "bottomUpIn"));
+    // remove, specifying output/input names
+    net.link("level1", "level2", "TestFanIn2", "");
+    net.removeLink("level1", "level2", "bottomUpOut", "bottomUpIn");
+    CHECK_THROWS(net.removeLink("level1", "level2", "bottomUpOut", "bottomUpIn"));
 
-//     net.link("level1", "level2", "TestFanIn2", "");
-//     net.removeLink("level1", "level2", "bottomUpOut");
-//     SHOULDFAIL(net.removeLink("level1", "level2", "bottomUpOut"))
+    net.link("level1", "level2", "TestFanIn2", "");
+    net.removeLink("level1", "level2", "bottomUpOut");
+    CHECK_THROWS(net.removeLink("level1", "level2", "bottomUpOut"))
     
-//     // add the link back and initialize (inducing dimensions)
-//     net.link("level1", "level2", "TestFanIn2", "");
-//     net.initialize();
+    // add the link back and initialize (inducing dimensions)
+    net.link("level1", "level2", "TestFanIn2", "");
+    net.initialize();
 
-//     d = net.getRegions().getByName("level2")->getDimensions();
-//     TESTEQUAL((UInt32)2, d.size());
-//     TESTEQUAL((UInt32)2, d[0]);
-//     TESTEQUAL((UInt32)1, d[1]);
+    d = net.getRegions().getByName("level2")->getDimensions();
+    CHECK((UInt32)2 == d.size());
+    CHECK((UInt32)2 == d[0]);
+    CHECK((UInt32)1 == d[1]);
     
-//     // remove the link. This will fail because we can't 
-//     // remove a link to an initialized region
-//     SHOULDFAIL_WITH_MESSAGE(net.removeLink("level1", "level2"), 
-//                             "Cannot remove link [level1.bottomUpOut (region dims: [4 2])  to level2.bottomUpIn (region dims: [2 1])  type: TestFanIn2] because destination region level2 is initialized. Remove the region first.");
+    // remove the link. This will fail because we can't 
+    // remove a link to an initialized region
+    // 
     
-//   }
+    {
+      bool caughtException = false;
 
-// }
+      try
+      {
+        net.removeLink("level1", "level2");
+      }
+      catch(nta::LoggingException& e)
+      {
+        caughtException = true;
+        CHECK(e.getMessage() == 
+          "Cannot remove link [level1.bottomUpOut (region dims: [4 2])  to level2.bottomUpIn (region dims: [2 1])  type: TestFanIn2] because destination region level2 is initialized. Remove the region first.");
+      }
+
+      CHECK(caughtException == true);      
+    }
+           
+  }
+
+}
+
+
