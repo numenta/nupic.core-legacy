@@ -100,3 +100,69 @@ SCENARIO( "a network can manipulate and access regions", "[network]" ) {
   }
 
 }
+
+
+SCENARIO( "a network can initialize and run only if regions are assigned with dimensions", "[network]" ) {
+
+  GIVEN("an empty network") {
+
+    Network net;
+
+    WHEN("no regions are added") {
+
+      THEN("it can be initialized") {
+
+        net.initialize();
+
+      }
+    }
+
+    WHEN("add a region of no dimensions") {
+      // Should be able to add a region 
+      Region *l1 = net.addRegion("level1", "TestNode", "");
+
+      THEN("it should fail to initialize or run") {
+
+        // Region does not yet have dimensions -- prevents network initialization
+        CHECK_THROWS(net.initialize());
+        CHECK_THROWS(net.run(1));
+      }
+
+      WHEN("assign dimensions to the region") {
+
+        Dimensions d;
+        d.push_back(4);
+        d.push_back(4);
+        
+        l1->setDimensions(d);
+
+        THEN("it can initialize and run") {
+
+          // Should succeed since dimensions are now set
+          net.initialize();
+          net.run(1);
+
+        }
+
+        WHEN("add more regions") {
+
+          THEN("it can run only if regions are assigned with dimensions") {
+
+            Region *l2 = net.addRegion("level2", "TestNode", "");
+            CHECK_THROWS(net.initialize());
+            CHECK_THROWS(net.run(1));
+
+            Dimensions d;
+            d.push_back(4);
+            d.push_back(4);        
+            
+            l2->setDimensions(d);
+            net.run(1);
+          }
+        }
+      }
+    }
+
+  }
+}
+
