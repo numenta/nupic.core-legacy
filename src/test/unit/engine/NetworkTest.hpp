@@ -250,7 +250,7 @@ SCENARIO( "a network can be modified in various ways", "[network]" ) {
 
     // network requires initialization, but can't be initialized
     // because level3 is not initialized
-    CHECK(net.run(1));
+    CHECK_THROWS(net.run(1));
 
     net.link("level2", "level3", "TestFanIn2", "");
     net.initialize();
