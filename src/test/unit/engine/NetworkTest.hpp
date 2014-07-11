@@ -58,3 +58,45 @@ SCENARIO( "creating a network should auto-initialize NuPIC", "[network]" ) {
     }
   }
 }
+
+SCENARIO( "a network can manipulate and access regions", "[network]" ) {
+
+  GIVEN("an empty network") {
+    Network net;
+
+    WHEN("add a region of invalid node type") {
+      THEN("should fail") {
+        CHECK_THROWS(net.addRegion("level1", "nonexistent_nodetype", ""));
+      }
+    }
+
+    WHEN("add a region of valid node type") {
+      // Should be able to add a region 
+      Region *l1 = net.addRegion("level1", "TestNode", "");
+
+      THEN("the region should belong to the network") {
+        CHECK(l1 != NULL);
+
+        CHECK(l1->getNetwork() == &net);
+      }
+
+      THEN("the network can't find a region by incorrect name") {
+
+        CHECK_THROWS(net.getRegions().getByName("nosuchregion"));
+
+        // Make sure partial matches don't work
+        CHECK_THROWS(net.getRegions().getByName("level"));
+      }
+
+      THEN("the network can find the region by correct name") {
+        Region* l1a = net.getRegions().getByName("level1");
+        CHECK(l1a == l1);
+      }
+
+      THEN("should not be able to add a second region with the same name") {
+        CHECK_THROWS(net.addRegion("level1", "TestNode", ""));
+      }
+    }
+  }
+
+}
