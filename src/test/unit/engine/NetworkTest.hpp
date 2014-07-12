@@ -5,6 +5,7 @@
 #include <nta/engine/Region.hpp>
 #include <nta/ntypes/Dimensions.hpp>
 #include <nta/utils/Log.hpp>
+#include <string>
 
 using namespace nta;
 
@@ -371,7 +372,7 @@ SCENARIO( "a network can be unlinked in various ways", "[network]" ) {
       {
         caughtException = true;
         CHECK(e.getMessage() == 
-          "Cannot remove link [level1.bottomUpOut (region dims: [4 2])  to level2.bottomUpIn (region dims: [2 1])  type: TestFanIn2] because destination region level2 is initialized. Remove the region first.");
+          std::string("Cannot remove link [level1.bottomUpOut (region dims: [4 2])  to level2.bottomUpIn (region dims: [2 1])  type: TestFanIn2] because destination region level2 is initialized. Remove the region first."));
       }
 
       CHECK(caughtException == true);      
