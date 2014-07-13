@@ -382,4 +382,231 @@ SCENARIO( "a network can be unlinked in various ways", "[network]" ) {
 
 }
 
+namespace nta {
+  namespace network_test_helper {
+    typedef std::vector<std::string> callbackData;
+    callbackData mydata;
 
+    void testCallback(Network* net, UInt64 iteration, void* data)
+    {
+      callbackData& thedata = *(static_cast<callbackData*>(data));
+      // push region names onto callback data
+      const nta::Collection<Region*>& regions = net->getRegions();
+      for (size_t i = 0; i < regions.getCount(); i++)
+      {
+        thedata.push_back(regions.getByIndex(i).first);
+      }
+    }
+
+
+    std::vector<std::string> computeHistory;
+    void recordCompute(const std::string& name)
+    {
+      computeHistory.push_back(name);
+    }
+  }
+}
+
+SCENARIO( "network phases tests", "[network]" ) {
+
+  using namespace nta::network_test_helper;
+
+  {
+    Network net;
+  
+    // should auto-initialize with max phase
+    Region *l1 = net.addRegion("level1", "TestNode", "");
+    // Use l1 to avoid a compiler warning
+    CHECK("level1" == l1->getName());
+
+    std::set<UInt32> phaseSet = net.getPhases("level1");
+    CHECK((UInt32)1 == phaseSet.size());
+    CHECK(phaseSet.find(0) != phaseSet.end());
+
+
+    Region *l2 = net.addRegion("level2", "TestNode", "");
+    CHECK("level2" == l2->getName());
+    phaseSet = net.getPhases("level2");
+    CHECK(phaseSet.size() == 1);
+    CHECK(phaseSet.find(1) != phaseSet.end());
+
+    CHECK_THROWS(net.initialize());
+  
+    Dimensions d;
+    d.push_back(2);
+    d.push_back(2);
+
+    l1->setDimensions(d);
+    l2->setDimensions(d);
+    net.initialize();
+    l1->setParameterUInt64("computeCallback", (UInt64)recordCompute);
+    l2->setParameterUInt64("computeCallback", (UInt64)recordCompute);
+
+    computeHistory.clear();
+    net.run(2);
+    CHECK((UInt32)4 == computeHistory.size());
+    // use at() to throw an exception if out of range
+    CHECK("level1" == computeHistory.at(0));
+    CHECK("level2" == computeHistory.at(1));
+    CHECK("level1" == computeHistory.at(2));
+    CHECK("level2" == computeHistory.at(3));
+    computeHistory.clear();
+
+    phaseSet.clear();
+    phaseSet.insert(0);
+    phaseSet.insert(2);
+    net.setPhases("level1", phaseSet);
+    net.run(2);
+    CHECK((UInt32)6 == computeHistory.size());
+    if (computeHistory.size() == 6)
+    {
+      CHECK("level1" == computeHistory.at(0));
+      CHECK("level2" == computeHistory.at(1));
+      CHECK("level1" == computeHistory.at(2));
+      CHECK("level1" == computeHistory.at(3));
+      CHECK("level2" == computeHistory.at(4));
+      CHECK("level1" == computeHistory.at(5));
+    }
+    computeHistory.clear();
+  }
+  {
+    // tests for min/max phase
+    Network n;
+    UInt32 minPhase = n.getMinPhase();
+    UInt32 maxPhase = n.getMaxPhase();
+
+    CHECK((UInt32)0 == minPhase);
+    CHECK((UInt32)0 == maxPhase);
+    
+    CHECK_THROWS(n.setMinEnabledPhase(1));
+    CHECK_THROWS(n.setMaxEnabledPhase(1));
+    Region *l1 = n.addRegion("level1", "TestNode", "");
+    Region *l2 = n.addRegion("level2", "TestNode", "");
+    Region *l3 = n.addRegion("level3", "TestNode", "");
+    Dimensions d;
+    d.push_back(1);
+    l1->setDimensions(d);
+    l2->setDimensions(d);
+    l3->setDimensions(d);
+
+    n.initialize();
+
+    l1->setParameterUInt64("computeCallback", (UInt64)recordCompute);
+    l2->setParameterUInt64("computeCallback", (UInt64)recordCompute);
+    l3->setParameterUInt64("computeCallback", (UInt64)recordCompute);
+
+    minPhase = n.getMinEnabledPhase();
+    maxPhase = n.getMaxEnabledPhase();
+
+    CHECK((UInt32)0 == minPhase);
+    CHECK((UInt32)2 == maxPhase);
+
+    computeHistory.clear();
+    n.run(2);
+    CHECK((UInt32)6 == computeHistory.size());
+    CHECK("level1" == computeHistory.at(0));
+    CHECK("level2" == computeHistory.at(1));
+    CHECK("level3" == computeHistory.at(2));
+    CHECK("level1" == computeHistory.at(3));
+    CHECK("level2" == computeHistory.at(4));
+    CHECK("level3" == computeHistory.at(5));
+    
+    
+    n.setMinEnabledPhase(0);
+    n.setMaxEnabledPhase(1);
+    computeHistory.clear();
+    n.run(2);
+    CHECK((UInt32)4 == computeHistory.size());
+    CHECK("level1" == computeHistory.at(0));
+    CHECK("level2" == computeHistory.at(1));
+    CHECK("level1" == computeHistory.at(2));
+    CHECK("level2" == computeHistory.at(3));
+
+    n.setMinEnabledPhase(1);
+    n.setMaxEnabledPhase(1);
+    computeHistory.clear();
+    n.run(2);
+    CHECK((UInt32)2 == computeHistory.size());
+    CHECK("level2" == computeHistory.at(0));
+    CHECK("level2" == computeHistory.at(1));
+
+    // reset to full network
+    n.setMinEnabledPhase(0);
+    n.setMaxEnabledPhase(n.getMaxPhase());
+    computeHistory.clear();
+    n.run(2);
+    CHECK((UInt32)6 == computeHistory.size());
+    if (computeHistory.size() == 6)
+    {
+      CHECK("level1" == computeHistory.at(0));
+      CHECK("level2" == computeHistory.at(1));
+      CHECK("level3" == computeHistory.at(2));
+      CHECK("level1" == computeHistory.at(3));
+      CHECK("level2" == computeHistory.at(4));
+      CHECK("level3" == computeHistory.at(5));
+    }
+    // max < min; allowed, but network should not run
+    n.setMinEnabledPhase(1);
+    n.setMaxEnabledPhase(0);
+    computeHistory.clear();
+    n.run(2);
+    CHECK((UInt32)0 == computeHistory.size());
+
+    // max > network max
+    CHECK_THROWS(n.setMaxEnabledPhase(4));
+    
+    std::set<UInt32> phases;
+    phases.insert(4);
+    phases.insert(6);
+    n.setPhases("level2", phases);
+    n.removeRegion("level1");
+    // we now have: level2: 4, 6  level3: 2
+    
+    minPhase = n.getMinPhase();
+    maxPhase = n.getMaxPhase();
+
+    CHECK((UInt32)2 == minPhase);
+    CHECK((UInt32)6 == maxPhase);
+
+    computeHistory.clear();
+    n.run(2);
+
+    CHECK((UInt32)6 == computeHistory.size());
+    CHECK("level3" == computeHistory.at(0));
+    CHECK("level2" == computeHistory.at(1));
+    CHECK("level2" == computeHistory.at(2));
+    CHECK("level3" == computeHistory.at(3));
+    CHECK("level2" == computeHistory.at(4));
+    CHECK("level2" == computeHistory.at(5));
+    
+    
+  }
+
+  {
+    // callback test
+    Network n;
+    n.addRegion("level1", "TestNode", "");
+    n.addRegion("level2", "TestNode", "");
+    n.addRegion("level3", "TestNode", "");
+    Dimensions d;
+    d.push_back(1);
+    n.getRegions().getByName("level1")->setDimensions(d);
+    n.getRegions().getByName("level2")->setDimensions(d);
+    n.getRegions().getByName("level3")->setDimensions(d);
+
+
+    Collection<Network::callbackItem>& callbacks = n.getCallbacks();
+    Network::callbackItem callback(testCallback, (void*)(&mydata));
+    callbacks.add("Test Callback", callback);
+
+    n.run(2);
+    CHECK((UInt32)6 == mydata.size());
+    CHECK("level1" == mydata[0]);
+    CHECK("level2" == mydata[1]);
+    CHECK("level3" == mydata[2]);
+    CHECK("level1" == mydata[3]);
+    CHECK("level2" == mydata[4]);
+    CHECK("level3" == mydata[5]);
+
+  }
+}
