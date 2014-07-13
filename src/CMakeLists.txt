@@ -241,7 +241,10 @@ endif()
 if("${PROJECT_BUILD_TEMP_DIR}" STREQUAL "")
   set(PROJECT_BUILD_TEMP_DIR "${REPOSITORY_DIR}/build/temp")
 endif()
-
+# 'artifacts' is a subdirectory created on /build root.
+if("${PROJECT_BUILD_ARTIFACTS_DIR}" STREQUAL "")
+  set(PROJECT_BUILD_ARTIFACTS_DIR "${REPOSITORY_DIR}/build/artifacts")
+endif()
 
 #
 # Prepare directory structure
@@ -251,6 +254,7 @@ execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_RELEA
 execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_RELEASE_DIR}/bin)
 execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_TEMP_DIR}/lib)
 execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_TEMP_DIR}/obj)
+execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_ARTIFACTS_DIR}/)
 
 #
 # Set OS flags
@@ -637,7 +641,7 @@ add_custom_target(tests_everything
                   COMMAND ${PROJECT_BUILD_RELEASE_DIR}/bin/${EXECUTABLE_TESTEVERYTHING})
 
 add_custom_target(tests_unit
-                  COMMAND ${PROJECT_BUILD_RELEASE_DIR}/bin/${EXECUTABLE_UNIT_TESTS} "-s") 
+                  COMMAND ${PROJECT_BUILD_RELEASE_DIR}/bin/${EXECUTABLE_UNIT_TESTS} "-s" "-r junit" "-o ${PROJECT_BUILD_ARTIFACTS_DIR}/unit_tests_report.xml") 
                   
 # tests_all just calls other targets
 add_custom_target(tests_all
