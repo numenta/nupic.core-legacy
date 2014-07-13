@@ -43,16 +43,16 @@
     
                 
                 </style>
-                <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.min.js"/>
+                <script src="http://code.jquery.com/jquery-1.11.1.min.js" type="text/javascript"></script>
                 <script type="text/javascript">
                     $(document).ready(function() {
                         $(".filter").change(function(event) {
                             var self = $(this);
                             $('.filter option:selected').each(function() {
                                 $('.testcases div').show();
-                                if ( $(this).val() != 'all' ) {
-                                    $('.testcases div[class != "' + $(this).val() + '"][class!="error-message"]').each(function() {
-                                    $(this).hide();
+                                if ( self.val() != 'all' ) {
+                                    $('.testcases > div[class != "' + $(this).val() + '"][class!="error-message"]').each(function() {
+                                        $(this).hide();
                                     });
                                 }
                             });
@@ -96,7 +96,7 @@
         <div class="testcases">
         <xsl:for-each select="testcase">
             <xsl:choose>
-                <xsl:when test="not(*)">
+                <xsl:when test="not(error) and not(failure)">
                     <div class="passed">    
                         <pre><b>Class:</b> <xsl:value-of select="@classname"/></pre>
                         <pre><b>Test Name:</b> <xsl:value-of select="@name"/></pre>
@@ -119,9 +119,15 @@
                         <pre><b>Test Name:</b> <xsl:value-of select="@name"/></pre>
                         <pre><b>Running Time:</b> <xsl:value-of select="@time"/></pre>
                         <pre><b>State:</b><a>Failed</a></pre>
-                        <xsl:for-each select="*">
+                        <xsl:for-each select="error">
                             <div class="error-message">
                                 <pre><a>>>>Error Message</a></pre>
+                            <xsl:value-of select="@message"/>
+                            </div>
+                        </xsl:for-each>
+                        <xsl:for-each select="failure">
+                            <div class="failure-message">
+                                <pre><a>>>>Failure Message</a></pre>
                             <xsl:value-of select="@message"/>
                             </div>
                         </xsl:for-each>
@@ -131,6 +137,6 @@
             </xsl:choose>
         </xsl:for-each>
         </div>
-        
+
     </xsl:template>
 </xsl:stylesheet>
