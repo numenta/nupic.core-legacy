@@ -608,8 +608,5 @@ SCENARIO( "network phases tests", "[network]" ) {
     CHECK("level2" == mydata[4]);
     CHECK("level3" == mydata[5]);
 
-    // a dummy failure
-    CHECK("dummy failure" == mydata[5]);
-
   }
 }
