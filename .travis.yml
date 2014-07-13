@@ -42,14 +42,16 @@ script:
   - "make tests_everything"
   # unit tests
   - "make tests_unit"
-
-after_success:
-  - "cd $TRAVIS_BUILD_DIR"
-  # Send test coverage report to http://coveralls.io under only linux
-  - "if [ ${TRAVIS_OS_NAME:-'linux'} = 'linux' ]; then coveralls --exclude external --exclude doc --exclude src/test; fi"
+  # output unit tests report
   - "cd $TRAVIS_BUILD_DIR/build/artifacts/"
   - "cat unit_tests_report.xml"
   - "sudo apt-get install xsltproc"
   - "xsltproc $TRAVIS_BUILD_DIR/doc/xunit.xslt unit_tests_report.xml > unit_tests_report.html"
   - "cat unit_tests_report.html"
+
+after_success:
+  - "cd $TRAVIS_BUILD_DIR"
+  # Send test coverage report to http://coveralls.io under only linux
+  - "if [ ${TRAVIS_OS_NAME:-'linux'} = 'linux' ]; then coveralls --exclude external --exclude doc --exclude src/test; fi"
+
 
