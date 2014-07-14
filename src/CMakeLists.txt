@@ -470,6 +470,8 @@ if(${NTA_COMPILER_FAMILY} STREQUAL "GNU")
     set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -Wno-error=cpp -Werror")
   endif()
   set(NTA_LINKFLAGS_ARCHIVES "-Wl,-whole-archive")
+elseif(${NTA_COMPILER_FAMILY} STREQUAL "CLANG")
+  set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-unused-parameter")
 elseif(${NTA_COMPILER_FAMILY} STREQUAL "MSVC")
 # TODO: add VC-specific compiler options
 else()
