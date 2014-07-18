@@ -1,13 +1,76 @@
-#include "catch.hpp"
+/*
+ * ----------------------------------------------------------------
+ * Numenta Platform for Intelligent Computing (NuPIC)
+ * Copyright (C) 2014, Numenta, Inc.  Unless you have purchased from
+ * Numenta, Inc. a separate commercial license for this software code, the
+ * following terms and conditions apply:
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3 as
+ * published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see http://www.gnu.org/licenses.
+ *
+ * http://numenta.org/licenses/
+ * ----------------------------------------------------------------
+ */
+
+#ifndef NTA_NETWORK_TEST_HPP
+#define NTA_NETWORK_TEST_HPP
+
+#include <string>
+#include <catch.hpp>
 
 #include <nta/engine/Network.hpp>
 #include <nta/engine/NuPIC.hpp>
 #include <nta/engine/Region.hpp>
 #include <nta/ntypes/Dimensions.hpp>
 #include <nta/utils/Log.hpp>
-#include <string>
+
 
 using namespace nta;
+
+namespace nta {
+
+  /**
+   * Helpers used while testing Network
+   */
+  namespace network_test_helper {
+
+    typedef std::vector<std::string> callbackData;
+    callbackData mydata;
+
+    void testCallback(Network* net, UInt64 iteration, void* data)
+    {
+      callbackData& thedata = *(static_cast<callbackData*>(data));
+      // push region names onto callback data
+      const nta::Collection<Region*>& regions = net->getRegions();
+      for (size_t i = 0; i < regions.getCount(); i++)
+      {
+        thedata.push_back(regions.getByIndex(i).first);
+      }
+    }
+
+    std::vector<std::string> computeHistory;
+    void recordCompute(const std::string& name)
+    {
+      computeHistory.push_back(name);
+    }
+  }
+}
+
+//////////////////////////////////////////////////////////////////////////////
+///
+/// The following tests are written in BDD style
+/// 
+//////////////////////////////////////////////////////////////////////////////
+
 
 SCENARIO( "creating a network should auto-initialize NuPIC", "[network]" ) {
 
@@ -168,8 +231,20 @@ SCENARIO( "a network can initialize and run only if regions are assigned with di
   }
 }
 
-SCENARIO( "a network can be modified in various ways", "[network]" ) {
-  {
+//////////////////////////////////////////////////////////////////////////////
+///
+/// The following tests are written in plain TDD style
+/// 
+//////////////////////////////////////////////////////////////////////////////
+
+
+
+TEST_CASE( "a network can be modified in various ways", "[network]" ) {
+
+  using namespace nta::network_test_helper;
+  
+  SECTION( "network modification tests" ) {
+
     Network net;
     Region *l1 = net.addRegion("level1", "TestNode", "");
 
@@ -312,11 +387,8 @@ SCENARIO( "a network can be modified in various ways", "[network]" ) {
     
   }
 
-}
+  SECTION( "network unlinking tests" ) { 
 
-SCENARIO( "a network can be unlinked in various ways", "[network]" ) {
-  { 
-    // unlinking tests
     Network net;
     net.addRegion("level1", "TestNode", "");
     net.addRegion("level2", "TestNode", "");
@@ -380,38 +452,8 @@ SCENARIO( "a network can be unlinked in various ways", "[network]" ) {
            
   }
 
-}
+  SECTION( "network phases tests" ) {
 
-namespace nta {
-  namespace network_test_helper {
-    typedef std::vector<std::string> callbackData;
-    callbackData mydata;
-
-    void testCallback(Network* net, UInt64 iteration, void* data)
-    {
-      callbackData& thedata = *(static_cast<callbackData*>(data));
-      // push region names onto callback data
-      const nta::Collection<Region*>& regions = net->getRegions();
-      for (size_t i = 0; i < regions.getCount(); i++)
-      {
-        thedata.push_back(regions.getByIndex(i).first);
-      }
-    }
-
-
-    std::vector<std::string> computeHistory;
-    void recordCompute(const std::string& name)
-    {
-      computeHistory.push_back(name);
-    }
-  }
-}
-
-SCENARIO( "network phases tests", "[network]" ) {
-
-  using namespace nta::network_test_helper;
-
-  {
     Network net;
   
     // should auto-initialize with max phase
@@ -469,8 +511,9 @@ SCENARIO( "network phases tests", "[network]" ) {
     }
     computeHistory.clear();
   }
-  {
-    // tests for min/max phase
+
+  SECTION( "network min/max phase tests" ) {
+
     Network n;
     UInt32 minPhase = n.getMinPhase();
     UInt32 maxPhase = n.getMaxPhase();
@@ -582,8 +625,8 @@ SCENARIO( "network phases tests", "[network]" ) {
     
   }
 
-  {
-    // callback test
+  SECTION( "network callback tests" ) {
+
     Network n;
     n.addRegion("level1", "TestNode", "");
     n.addRegion("level2", "TestNode", "");
@@ -610,3 +653,6 @@ SCENARIO( "network phases tests", "[network]" ) {
 
   }
 }
+
+
+#endif // NTA_NETWORK_TEST_HPP
