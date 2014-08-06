@@ -20,6 +20,11 @@
  * ---------------------------------------------------------------------
  */
 
+#ifdef NTA_PLATFORM_sparc64 
+#include <string>
+#else
+#include <string.h>
+#endif
 #include <iostream>
 #include <iterator>
 #include <numeric> // std::accumulate
@@ -311,8 +316,6 @@ namespace nta
     return ns;
   }
 
-
-#include <string.h>
 
   Real64 TestNode::getParameterReal64(const std::string& name, Int64 index)
   {
