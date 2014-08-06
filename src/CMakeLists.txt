@@ -141,6 +141,7 @@ endmacro()
 macro(generate_static_library name src_dir output_dir cxx_flags)
   get_source_groups(${src_dir})
   add_library(${name}
+    STATIC 
     ${SOURCE_RETURNED}
   )
   set_target_properties(${name} PROPERTIES COMPILE_FLAGS "${cxx_flags}")
@@ -172,7 +173,6 @@ macro(merge_static_libraries new_lib output_dir libraries target)
                        WORKING_DIRECTORY ${PROJECT_BUILD_TEMP_DIR}/obj)
   endif()
 endmacro()
-
 
 ############################################################################################################################
 ###                                                                                                                      ###
@@ -242,6 +242,9 @@ if(UNIX)
   elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     set(LINUX ON)
     set(DYNAMIC_LIB_EXTENSION "so")
+  elseif(${CMAKE_SYSTEM_NAME} MATCHES "SunOS")
+    set(SOLARIS ON)
+    set(DYNAMIC_LIB_EXTENSION "so")
   endif()
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   set(WINDOWS ON)
@@ -283,6 +286,18 @@ elseif(LINUX)
 elseif(WINDOWS)
   set(NTA_PLATFORM_OS "win32")
   set(NTA_PLATFORM_CXXFLAGS "${NTA_PLATFORM_CXXFLAGS} -DWIN32")
+elseif(SOLARIS)
+  set(NTA_PLATFORM_DEBUGFLAGS "-g")
+  set(NTA_PLATFORM_LINKFLAGS "${NTA_PLATFORM_LINKFLAGS} -shared-libgcc -m64")
+  set(NTA_PLATFORM_LIBS "${NTA_PLATFORM_LIBS} -lm -lpthread -ldl -lnsl -lsocket")
+  execute_process(COMMAND isainfo -b OUTPUT_VARIABLE NTA_PLATFORM_ARCH)
+  if(${NTA_PLATFORM_ARCH} MATCHES "64")
+    set(NTA_PLATFORM_OS "sparc64")
+    set(NTA_PLATFORM_CXXFLAGS "${NTA_PLATFORM_CXXFLAGS} -m64")
+  else()
+    set(NTA_PLATFORM_OS "sparc32")
+    set(NTA_PLATFORM_CXXFLAGS "${NTA_PLATFORM_CXXFLAGS} -ffloat-store")
+  endif()
 else()
   message(FATAL_ERROR "${CMAKE_CURRENT_LIST_FILE}:${CMAKE_CURRENT_LIST_LINE}: error: ${CMAKE_SYSTEM_NAME} not supported yet.")
 endif()
@@ -346,7 +361,7 @@ set(USER_LINKFLAGS "" CACHE STRING "Extra Link flags")
 # Allows us to find includes for external libraries and enables
 # #include <nta/common/...>
 #
-set(NTA_INCLUDEFLAGS "-I${PROJECT_BUILD_RELEASE_DIR}/include -isystem${REPOSITORY_DIR}/external/common/include -isystem${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/include")
+set(NTA_INCLUDEFLAGS "-I${PROJECT_BUILD_RELEASE_DIR}/include -isystem${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/include -isystem${REPOSITORY_DIR}/external/common/include")
 
 #
 # NTA_INTERNAL tells us that the code is being built under the build system
@@ -460,6 +475,12 @@ set(LIB_STATIC_YAML yaml)
 add_library(${LIB_STATIC_YAML} STATIC IMPORTED)
 set_property(TARGET ${LIB_STATIC_YAML} PROPERTY IMPORTED_LOCATION "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib/libyaml.${STATIC_LIB_EXTENSION}")
 
+if(SOLARIS)
+  set(LIB_STATIC_YAML_CPP yaml-cpp)
+  add_library(${LIB_STATIC_YAML_CPP} STATIC IMPORTED)
+  set_property(TARGET ${LIB_STATIC_YAML_CPP} PROPERTY IMPORTED_LOCATION "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib/libyaml-cpp.${STATIC_LIB_EXTENSION}")
+endif()
+
 if(WINDOWS)
   set(LIB_STATIC_PCRE pcre)
   add_library(${LIB_STATIC_PCRE} STATIC IMPORTED)
@@ -469,12 +490,22 @@ endif()
 #
 # Set list of external libraries to this project.
 #
-set(NTA_STANDARD_LIBS 
-  ${LIB_STATIC_YAML}
-  ${LIB_STATIC_APRUTIL1}
-  ${LIB_STATIC_APR1}
-  ${LIB_STATIC_Z}
-)
+if(SOLARIS)
+  set(NTA_STANDARD_LIBS 
+    ${LIB_STATIC_YAML_CPP} 
+    ${LIB_STATIC_YAML}
+    ${LIB_STATIC_APR1}
+    ${LIB_STATIC_APRUTIL1}
+    ${LIB_STATIC_Z}
+  )
+else()
+  set(NTA_STANDARD_LIBS
+    ${LIB_STATIC_YAML}
+    ${LIB_STATIC_APR1}
+    ${LIB_STATIC_APRUTIL1}
+    ${LIB_STATIC_Z}
+  )
+endif()
 
 message(STATUS "Configuring subprojects...")
 
@@ -483,7 +514,6 @@ message(STATUS "Configuring subprojects...")
 #
 set(LIB_STATIC_NUPICCORE nupic_core)
 generate_static_library(${LIB_STATIC_NUPICCORE} "${PROJECT_SOURCE_DIR}/main" "${PROJECT_BUILD_TEMP_DIR}/lib" "${NTA_CXXFLAGS}")
-
 #
 # HtmTest
 #
@@ -507,6 +537,7 @@ generate_executable(${EXECUTABLE_TESTEVERYTHING} "${PROJECT_SOURCE_DIR}/test/tes
 # Merge nupic_core and all static libraries to a stand-alone library
 merge_static_libraries(${LIB_STATIC_NUPICCORE} "${PROJECT_BUILD_RELEASE_DIR}/lib" "${LIB_STATIC_NUPICCORE};${NTA_STANDARD_LIBS}" "${LIB_STATIC_NUPICCORE}")
 
+#generate_dynamic_lib(${LIB_STATIC_NUPICCORE} "${PROJECT_BUILD_RELEASE_DIR}/lib" "${LIB_STATIC_NUPICCORE};${NTA_STANDARD_LIBS}" "${LIB_STATIC_NUPICCORE}")
 
 ############################################################################################################################
 ###                                                                                                                      ###

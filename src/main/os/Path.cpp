@@ -832,12 +832,17 @@ namespace nta
     _NSGetExecutablePath(buf, &bufsize);
     if (bufsize < 1000)
       buf[bufsize] = '\0';
-  #else
+  #elif defined(NTA_PLATFORM_linux32) || defined(NTA_PLATFORM_linux64)
     int count = readlink("/proc/self/exe", buf, bufsize);
     if (count < 0)
       NTA_THROW << "Unable to read /proc/self/exe to get executable name";
     if (count < 1000)
       buf[count] = '\0';
+  #elif defined(NTA_PLATFORM_sparc64)
+    const char *tmp = getexecname(); 
+    if (!tmp)
+      NTA_THROW << "Unable to determine executable name"; 
+    strncpy(buf, tmp, bufsize); 
   #endif
 
     // make sure it's null-terminated

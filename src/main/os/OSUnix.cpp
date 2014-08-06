@@ -93,13 +93,14 @@ std::string OS::getErrorMessageFromErrorCode(int errorCode)
   std::stringstream errorMessage;
   char errorBuffer[1024];
   errorBuffer[0] = '\0';
-#ifdef __APPLE__
+  
+#if defined(__APPLE__) || defined(NTA_PLATFORM_sparc64)
   int result = ::strerror_r(errorCode, errorBuffer, 1024);
   if(result == 0) errorMessage << errorBuffer;
 #else
   char *result = ::strerror_r(errorCode, errorBuffer, 1024);
   if(result != 0) errorMessage << errorBuffer;
-#endif
+#endif 
   else errorMessage << "Error code " << errorCode;
   return errorMessage.str();
 }

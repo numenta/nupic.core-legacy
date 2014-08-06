@@ -85,6 +85,8 @@ namespace nta
       const char * filename = "libcpp_region.so";
 #elif defined(NTA_PLATFORM_win32)
       const char * filename = "cpp_region.dll";
+#elif defined(NTA_PLATFORM_sparc64)
+      const char * filename = "libcpp_region.so";
 #endif
 
       std::string libName = Path::join(rootDir_, "nupic", filename);
