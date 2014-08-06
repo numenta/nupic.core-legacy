@@ -1,9 +1,13 @@
 NuPIC Core external libraries
 =============================
 
-NuPIC Core depends on a number of pre-built external libraries which are normally distributed with the sourc.  However, since Solaris is not an officially supported platform, you will need to build the libraries yourself.  Use the following commands as a guide.
+NuPIC Core depends on a number of pre-built external libraries which are
+normally distributed with the source.  However, since Solaris is not an
+officially supported platform, you will need to build the libraries yourself.
+Use the following commands as a guide.
 
-*BEFOR YOU BEGIN* Obtain the source for apr, apr-util, yaml-cpp, yaml, and zlib and extract the source in $NUPIC_CORE/external/sparc64
+**BEFORE YOU BEGIN:** Obtain the source for apr, apr-util, yaml-cpp, yaml, and
+zlib and extract in $NUPIC_CORE/external/sparc64
 
 ```
 cd $NUPIC_CORE/external/sparc64/apr-1.5.1
