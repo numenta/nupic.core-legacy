@@ -103,5 +103,14 @@ void OSTest::RunTests()
 //    TEST(!stackTrace.empty());
 #endif  
   }
+
+  // Test executeCommand()
+  {
+    std::string output = OS::executeCommand("echo ABCDefg");
+
+    TEST(output == "ABCDefg\n");
+  }
+
+
 }
 

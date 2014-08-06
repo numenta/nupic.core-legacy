@@ -174,6 +174,29 @@ macro(merge_static_libraries new_lib output_dir libraries target)
   endif()
 endmacro()
 
+# This macro gets the compiler family being used.
+# Currently compiler_family can only be one of GNU/CLANG/MSVC/unsupported, more can be added
+macro(get_compiler_family compiler_family)
+    if(CMAKE_COMPILER_IS_GNUCXX)
+      # The compiler is a GNU g++ variant.
+      # This is also true for MinGW and Cygwin on Windows
+      set(${compiler_family} "GNU")
+    elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+      # The compiler is clang
+      set(${compiler_family} "CLANG")
+    elseif(MSVC)
+      set(${compiler_family} "MSVC")
+    elseif(BORLAND)
+      set(${compiler_family} "BORLAND")
+    elseif(WATCOM)
+      set(${compiler_family} "WATCOM")    
+    else()
+      # See http://www.cmake.org/Wiki/CMake_Useful_Variables
+      set(${compiler_family} "unsupported")
+    endif()
+endmacro()
+
+
 ############################################################################################################################
 ###                                                                                                                      ###
 ###  1st Part:                                                                                                           ###
@@ -312,6 +335,11 @@ message(STATUS "  LD flags: ${NTA_PLATFORM_LINKFLAGS}")
 message(STATUS "Checking software tools...")
 
 #
+# Gives the family of C++ compiler
+# 
+get_compiler_family(NTA_COMPILER_FAMILY)
+
+#
 # Gives the version of C++ compiler
 #
 execute_process(COMMAND ${CMAKE_CXX_COMPILER} -dumpversion
@@ -322,6 +350,7 @@ execute_process(COMMAND ${CMAKE_CXX_COMPILER} -dumpversion
 #
 message(STATUS "C++ details:")
 message(STATUS "  Compiler: ${CMAKE_CXX_COMPILER}")
+message(STATUS "  Compiler Family: ${NTA_COMPILER_FAMILY}")
 message(STATUS "  Version: ${CXX_VERSION}")
 
 #
@@ -361,13 +390,13 @@ set(USER_LINKFLAGS "" CACHE STRING "Extra Link flags")
 # Allows us to find includes for external libraries and enables
 # #include <nta/common/...>
 #
-set(NTA_INCLUDEFLAGS "-I${PROJECT_BUILD_RELEASE_DIR}/include -isystem${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/include -isystem${REPOSITORY_DIR}/external/common/include")
+include_directories(SYSTEM "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/include" "${REPOSITORY_DIR}/external/common/include")
+set(NTA_INCLUDEFLAGS "-I${PROJECT_BUILD_RELEASE_DIR}/include")
 
 #
 # NTA_INTERNAL tells us that the code is being built under the build system
 # and not as a separate program. Used for cppvision example.
-#
-set(NTA_CXXFLAGS_BASE "${NTA_INCLUDEFLAGS} ${NTA_PLATFORM_CXXFLAGS} -DHAVE_CONFIG_H -DNTA_INTERNAL -DNTA_PLATFORM_${NTA_PLATFORM_OS} -DBOOST_NO_WREGEX -DNUPIC2 -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-unused-parameter")
+set(NTA_CXXFLAGS_BASE "${NTA_INCLUDEFLAGS} ${NTA_PLATFORM_CXXFLAGS} -DHAVE_CONFIG_H -DNTA_INTERNAL -DNTA_PLATFORM_${NTA_PLATFORM_OS} -DNTA_COMPILER_${NTA_COMPILER_FAMILY} -DBOOST_NO_WREGEX -DNUPIC2")
 
 #
 # All executables and plugins are linked with these flags
@@ -421,6 +450,24 @@ endif()
 message(STATUS "  Profiling: ${NTA_PROFILING_ENABLED}")
 
 #
+# Enable/disable Coverage (this option is mainly used for generating test coverage reports).
+#
+option(NTA_COV_ENABLED "-DNTA_COV_ENABLED=[ON/OFF] turn on test coverage [default=OFF]" OFF)
+if(NTA_COV_ENABLED)  
+  if(${NTA_COMPILER_FAMILY} STREQUAL "GNU")
+    set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -fprofile-arcs -ftest-coverage")
+    set(LIB_STATIC_COV gcov)
+  elseif(${NTA_COMPILER_FAMILY} STREQUAL "CLANG")
+    set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} --coverage")
+    set(NTA_LINKFLAGS "${NTA_LINKFLAGS} --coverage")
+  else()
+    # TODO
+    message(STATUS "  Warning: Coverage can't be enabled yet unless the compiler is gcc or clang, ignoring...")
+  endif()
+endif()
+message(STATUS "  Coverage: ${NTA_COV_ENABLED}")
+
+#
 # Build using MPI headers and library,
 # and enable features that depend on MPI.
 #
@@ -430,8 +477,8 @@ message(STATUS "  MPI Support: ${NTA_MPI_SUPPORT}")
 #
 # Compiler specific (clang, gcc, ..) flags can be set here
 #
-if(CMAKE_COMPILER_IS_GNUCXX)
-  set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -Wno-sign-compare -Wno-error=format=")
+if(${NTA_COMPILER_FAMILY} STREQUAL "GNU")
+  set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-unused-parameter -Wno-sign-compare -Wno-error=format=")
   set(NTA_CXXFLAGS_OPTIMIZATION "${NTA_CXXFLAGS_OPTIMIZATION} -falign-loops=16")
   # workaround for gcc 4.4 in Grok
   execute_process(COMMAND ${CMAKE_C_COMPILER} -dumpversion OUTPUT_VARIABLE GCC_VERSION)
@@ -439,7 +486,12 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -Wno-error=cpp -Werror")
   endif()
   set(NTA_LINKFLAGS_ARCHIVES "-Wl,-whole-archive")
+elseif(${NTA_COMPILER_FAMILY} STREQUAL "CLANG")
+  set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-unused-parameter")
+elseif(${NTA_COMPILER_FAMILY} STREQUAL "MSVC")
+# TODO: add VC-specific compiler options
 else()
+# TODO: Was this for clang? Should it be more explicit?
   set(NTA_LINKFLAGS_ARCHIVES "-Wl,-force_load")
 endif()
 
@@ -507,6 +559,13 @@ else()
   )
 endif()
 
+#
+# Set list of external libraries to tests
+#
+set(NTA_TEST_LIBS
+  "${LIB_STATIC_COV}"
+)
+
 message(STATUS "Configuring subprojects...")
 
 #
@@ -521,6 +580,7 @@ set(EXECUTABLE_HTMTEST testcpphtm)
 set(LIBRARIES
   ${LIB_STATIC_NUPICCORE}
   ${NTA_STANDARD_LIBS}
+  ${NTA_TEST_LIBS}
 )
 generate_executable(${EXECUTABLE_HTMTEST} "${PROJECT_SOURCE_DIR}/test/htmtest" "${PROJECT_BUILD_RELEASE_DIR}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
 
@@ -531,13 +591,13 @@ set(EXECUTABLE_TESTEVERYTHING testeverything)
 set(LIBRARIES
   ${LIB_STATIC_NUPICCORE}
   ${NTA_STANDARD_LIBS}
+  ${NTA_TEST_LIBS}
 )
 generate_executable(${EXECUTABLE_TESTEVERYTHING} "${PROJECT_SOURCE_DIR}/test/testeverything" "${PROJECT_BUILD_RELEASE_DIR}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
 
 # Merge nupic_core and all static libraries to a stand-alone library
 merge_static_libraries(${LIB_STATIC_NUPICCORE} "${PROJECT_BUILD_RELEASE_DIR}/lib" "${LIB_STATIC_NUPICCORE};${NTA_STANDARD_LIBS}" "${LIB_STATIC_NUPICCORE}")
 
-#generate_dynamic_lib(${LIB_STATIC_NUPICCORE} "${PROJECT_BUILD_RELEASE_DIR}/lib" "${LIB_STATIC_NUPICCORE};${NTA_STANDARD_LIBS}" "${LIB_STATIC_NUPICCORE}")
 
 ############################################################################################################################
 ###                                                                                                                      ###

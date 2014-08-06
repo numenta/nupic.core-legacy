@@ -311,7 +311,7 @@ namespace nta
     ReadBuffer * r = const_cast<ReadBuffer *>(this);
     try
     {
-    #ifdef WIN32
+    #if defined(NTA_PLATFORM_win32) && defined(_MSC_VER)
       size = r->memStream_._Readsome_s(bytes, size, (std::streamsize)size);
     #else
       size = r->memStream_.readsome(bytes, size);
