@@ -65,179 +65,114 @@ namespace nta {
   }
 }
 
-//////////////////////////////////////////////////////////////////////////////
-///
-/// The following tests are written in BDD style
-/// 
-//////////////////////////////////////////////////////////////////////////////
+TEST_CASE( "creating a network should auto-initialize NuPIC", "[network]" ) {
 
-
-SCENARIO( "creating a network should auto-initialize NuPIC", "[network]" ) {
-
-  GIVEN( "uninitialized NuPIC" ) {
-
-    // Uninitialize NuPIC since this test checks auto-initialization
-    // If shutdown fails, there is probably a problem with another test which 
-    // is not cleaning up its networks. 
-    if (NuPIC::isInitialized())
-    {
-      NuPIC::shutdown();
-    }
-
-    THEN("NuPIC should be not initialized") {
-      REQUIRE(!NuPIC::isInitialized());
-    }
-
-    WHEN("creates a network") {
-      { // net constructor called
-        Network net;
-
-        THEN("NuPIC should be initialized") {
-          CHECK(NuPIC::isInitialized());
-        }
-
-        WHEN("adds a region to the network") {
-          Region *l1 = net.addRegion("level1", "TestNode", "");
-
-          THEN("region name should be as specified") {
-            CHECK("level1" == l1->getName());
-          }
-
-          AND_THEN("NuPIC should fail to shutdown") {
-            // Network still exists, so this should fail. 
-            CHECK_THROWS(NuPIC::shutdown());
-          }
-        }
-
-      } // net destructor called
-
-      WHEN("No network exists and NuPIC initialized") {
-
-        REQUIRE(NuPIC::isInitialized());
-
-        THEN("NuPIC can be shut down") {
-          // net destructor has been called so we should be able to shut down NuPIC now
-          CHECK_NOTHROW(NuPIC::shutdown());
-        }
-      }
-    }
+  // Uninitialize NuPIC since this test checks auto-initialization
+  // If shutdown fails, there is probably a problem with another test which 
+  // is not cleaning up its networks. 
+  if (NuPIC::isInitialized())
+  {
+    NuPIC::shutdown();
   }
-}
 
-SCENARIO( "a network can manipulate and access regions", "[network]" ) {
+  // NuPIC should be not initialized
+  REQUIRE(!NuPIC::isInitialized());
 
-  GIVEN("an empty network") {
+  { // net constructor called
     Network net;
 
-    WHEN("add a region of invalid node type") {
-      THEN("should fail") {
-        CHECK_THROWS(net.addRegion("level1", "nonexistent_nodetype", ""));
-      }
-    }
+    // NuPIC should be initialized
+    CHECK(NuPIC::isInitialized());
 
-    WHEN("add a region of valid node type") {
-      // Should be able to add a region 
-      Region *l1 = net.addRegion("level1", "TestNode", "");
+    Region *l1 = net.addRegion("level1", "TestNode", "");
 
-      THEN("the region should belong to the network") {
-        CHECK(l1 != NULL);
+    // region name should be as specified
+    CHECK("level1" == l1->getName());
 
-        CHECK(l1->getNetwork() == &net);
-      }
+    // Network still exists, so this should fail. 
+    CHECK_THROWS(NuPIC::shutdown());
 
-      THEN("the network can't find a region by incorrect names") {
+  } // net destructor called
 
-        CHECK_THROWS(net.getRegions().getByName("nosuchregion"));
+  // NuPIC should still be initialized
+  REQUIRE(NuPIC::isInitialized());
 
-        // Make sure partial matches don't work
-        CHECK_THROWS(net.getRegions().getByName("level"));
-      }
-
-      THEN("the network can find the region by the correct name") {
-        Region* l1a = net.getRegions().getByName("level1");
-        CHECK(l1a == l1);
-      }
-
-      THEN("should not be able to add a second region with the same name") {
-        CHECK_THROWS(net.addRegion("level1", "TestNode", ""));
-      }
-    }
-  }
-
+  // net destructor has been called so we should be able to shut down NuPIC now
+  CHECK_NOTHROW(NuPIC::shutdown());
 }
 
+TEST_CASE( "a network can manipulate and access regions", "[network]" ) {
 
-SCENARIO( "a network can initialize and run only if regions are assigned with dimensions", "[network]" ) {
+  // an empty network
+  Network net;
 
-  GIVEN("an empty network") {
+  // adding a region of invalid node type should fail
+  CHECK_THROWS(net.addRegion("level1", "nonexistent_nodetype", ""));
 
-    Network net;
+  // adding a region of valid node type should succeed
+  Region *l1 = net.addRegion("level1", "TestNode", "");
 
-    WHEN("no regions are added") {
+  // the region should belong to the network
+  CHECK(l1 != NULL);
+  CHECK(l1->getNetwork() == &net);
 
-      THEN("it can be initialized") {
+  // the network can't find a region by incorrect names
+  CHECK_THROWS(net.getRegions().getByName("nosuchregion"));
 
-        net.initialize();
+  // Make sure partial matches don't work
+  CHECK_THROWS(net.getRegions().getByName("level"));
 
-      }
-    }
+  // the network can find the region by the correct name
+  Region* l1a = net.getRegions().getByName("level1");
+  CHECK(l1a == l1);
 
-    WHEN("add a region of no dimensions") {
-      // Should be able to add a region 
-      Region *l1 = net.addRegion("level1", "TestNode", "");
-
-      THEN("it should fail to initialize or run") {
-
-        // Region does not yet have dimensions -- prevents network initialization
-        CHECK_THROWS(net.initialize());
-        CHECK_THROWS(net.run(1));
-      }
-
-      WHEN("assign dimensions to the region") {
-
-        Dimensions d;
-        d.push_back(4);
-        d.push_back(4);
-        
-        l1->setDimensions(d);
-
-        THEN("it can initialize and run") {
-
-          // Should succeed since dimensions are now set
-          net.initialize();
-          net.run(1);
-
-        }
-
-        WHEN("add more regions") {
-
-          THEN("it can run only if regions are assigned with dimensions") {
-
-            Region *l2 = net.addRegion("level2", "TestNode", "");
-            CHECK_THROWS(net.initialize());
-            CHECK_THROWS(net.run(1));
-
-            Dimensions d;
-            d.push_back(4);
-            d.push_back(4);        
-            
-            l2->setDimensions(d);
-            net.run(1);
-          }
-        }
-      }
-    }
-
-  }
+  // should not be able to add a second region with the same name
+  CHECK_THROWS(net.addRegion("level1", "TestNode", ""));
 }
 
-//////////////////////////////////////////////////////////////////////////////
-///
-/// The following tests are written in plain TDD style
-/// 
-//////////////////////////////////////////////////////////////////////////////
+TEST_CASE( "a network can initialize and run only if regions are assigned with dimensions", "[network]" ) {
 
+  Network net;
 
+  // when no regions are added", it can be initialized
+  CHECK_NOTHROW(net.initialize(););
+
+  // Should be able to add a region   
+  Region *l1 = net.addRegion("level1", "TestNode", "");
+
+  // added a region of no dimensions, it should fail to initialize or run"
+
+  // Region does not yet have dimensions -- prevents network initialization
+  CHECK_THROWS(net.initialize());
+  CHECK_THROWS(net.run(1));
+
+  // when assign dimensions to the region, it can initialize and run
+  {
+    Dimensions d;
+    d.push_back(4);
+    d.push_back(4);
+    
+    l1->setDimensions(d);
+
+    // Should succeed since dimensions are now set
+    net.initialize();
+    net.run(1);
+  }
+
+  // added more regions, it can run only if regions are assigned with dimensions
+  {
+    Region *l2 = net.addRegion("level2", "TestNode", "");
+    CHECK_THROWS(net.initialize());
+    CHECK_THROWS(net.run(1));
+
+    Dimensions d;
+    d.push_back(4);
+    d.push_back(4);        
+    
+    l2->setDimensions(d);
+    net.run(1);
+  }
+}
 
 TEST_CASE( "a network can be modified in various ways", "[network]" ) {
 
