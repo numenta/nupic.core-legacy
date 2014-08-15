@@ -141,6 +141,7 @@ endmacro()
 macro(generate_static_library name src_dir output_dir cxx_flags)
   get_source_groups(${src_dir})
   add_library(${name}
+    STATIC 
     ${SOURCE_RETURNED}
   )
   set_target_properties(${name} PROPERTIES COMPILE_FLAGS "${cxx_flags}")
@@ -264,6 +265,9 @@ if(UNIX)
   elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     set(LINUX ON)
     set(DYNAMIC_LIB_EXTENSION "so")
+  elseif(${CMAKE_SYSTEM_NAME} MATCHES "SunOS")
+    set(SOLARIS ON)
+    set(DYNAMIC_LIB_EXTENSION "so")
   endif()
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   set(WINDOWS ON)
@@ -305,6 +309,18 @@ elseif(LINUX)
 elseif(WINDOWS)
   set(NTA_PLATFORM_OS "win32")
   set(NTA_PLATFORM_CXXFLAGS "${NTA_PLATFORM_CXXFLAGS} -DWIN32")
+elseif(SOLARIS)
+  set(NTA_PLATFORM_DEBUGFLAGS "-g")
+  set(NTA_PLATFORM_LINKFLAGS "${NTA_PLATFORM_LINKFLAGS} -shared-libgcc -m64")
+  set(NTA_PLATFORM_LIBS "${NTA_PLATFORM_LIBS} -lm -lpthread -ldl -lnsl -lsocket")
+  execute_process(COMMAND isainfo -b OUTPUT_VARIABLE NTA_PLATFORM_ARCH)
+  if(${NTA_PLATFORM_ARCH} MATCHES "64")
+    set(NTA_PLATFORM_OS "sparc64")
+    set(NTA_PLATFORM_CXXFLAGS "${NTA_PLATFORM_CXXFLAGS} -m64")
+  else()
+    set(NTA_PLATFORM_OS "sparc32")
+    set(NTA_PLATFORM_CXXFLAGS "${NTA_PLATFORM_CXXFLAGS} -ffloat-store")
+  endif()
 else()
   message(FATAL_ERROR "${CMAKE_CURRENT_LIST_FILE}:${CMAKE_CURRENT_LIST_LINE}: error: ${CMAKE_SYSTEM_NAME} not supported yet.")
 endif()
@@ -374,7 +390,7 @@ set(USER_LINKFLAGS "" CACHE STRING "Extra Link flags")
 # Allows us to find includes for external libraries and enables
 # #include <nta/common/...>
 #
-include_directories(SYSTEM "${REPOSITORY_DIR}/external/common/include" "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/include")
+include_directories(SYSTEM "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/include" "${REPOSITORY_DIR}/external/common/include")
 set(NTA_INCLUDEFLAGS "-I${PROJECT_BUILD_RELEASE_DIR}/include")
 
 #
@@ -434,6 +450,24 @@ endif()
 message(STATUS "  Profiling: ${NTA_PROFILING_ENABLED}")
 
 #
+# Enable/disable Coverage (this option is mainly used for generating test coverage reports).
+#
+option(NTA_COV_ENABLED "-DNTA_COV_ENABLED=[ON/OFF] turn on test coverage [default=OFF]" OFF)
+if(NTA_COV_ENABLED)  
+  if(${NTA_COMPILER_FAMILY} STREQUAL "GNU")
+    set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -fprofile-arcs -ftest-coverage")
+    set(LIB_STATIC_COV gcov)
+  elseif(${NTA_COMPILER_FAMILY} STREQUAL "CLANG")
+    set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} --coverage")
+    set(NTA_LINKFLAGS "${NTA_LINKFLAGS} --coverage")
+  else()
+    # TODO
+    message(STATUS "  Warning: Coverage can't be enabled yet unless the compiler is gcc or clang, ignoring...")
+  endif()
+endif()
+message(STATUS "  Coverage: ${NTA_COV_ENABLED}")
+
+#
 # Build using MPI headers and library,
 # and enable features that depend on MPI.
 #
@@ -443,7 +477,7 @@ message(STATUS "  MPI Support: ${NTA_MPI_SUPPORT}")
 #
 # Compiler specific (clang, gcc, ..) flags can be set here
 #
-if(${NTA_COMPILER_FAMILY} EQUAL "GNU")
+if(${NTA_COMPILER_FAMILY} STREQUAL "GNU")
   set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-unused-parameter -Wno-sign-compare -Wno-error=format=")
   set(NTA_CXXFLAGS_OPTIMIZATION "${NTA_CXXFLAGS_OPTIMIZATION} -falign-loops=16")
   # workaround for gcc 4.4 in Grok
@@ -452,13 +486,15 @@ if(${NTA_COMPILER_FAMILY} EQUAL "GNU")
     set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -Wno-error=cpp -Werror")
   endif()
   set(NTA_LINKFLAGS_ARCHIVES "-Wl,-whole-archive")
+elseif(${NTA_COMPILER_FAMILY} STREQUAL "CLANG")
+  set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-unused-parameter")
 elseif(${NTA_COMPILER_FAMILY} EQUAL "MSVC")
   # TODO: add VC-specific compiler options
   # define NOMINMAX to avoid MSVC to define min() and max() as macros,
   # see http://support.microsoft.com/kb/143208 , http://msdn.microsoft.com/en-us/library/hhzbb5c8.aspx
   set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} /DNOMINMAX")
 else()
-# TODO: Was this for clang? Should it be more explicit?
+# TODO: What compilers is it for? Should it be more explicit?
   set(NTA_LINKFLAGS_ARCHIVES "-Wl,-force_load")
 endif()
 
@@ -494,6 +530,12 @@ set(LIB_STATIC_YAML yaml)
 add_library(${LIB_STATIC_YAML} STATIC IMPORTED)
 set_property(TARGET ${LIB_STATIC_YAML} PROPERTY IMPORTED_LOCATION "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib/libyaml.${STATIC_LIB_EXTENSION}")
 
+if(SOLARIS)
+  set(LIB_STATIC_YAML_CPP yaml-cpp)
+  add_library(${LIB_STATIC_YAML_CPP} STATIC IMPORTED)
+  set_property(TARGET ${LIB_STATIC_YAML_CPP} PROPERTY IMPORTED_LOCATION "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib/libyaml-cpp.${STATIC_LIB_EXTENSION}")
+endif()
+
 if(WINDOWS)
   set(LIB_STATIC_PCRE pcre)
   add_library(${LIB_STATIC_PCRE} STATIC IMPORTED)
@@ -503,11 +545,28 @@ endif()
 #
 # Set list of external libraries to this project.
 #
-set(NTA_STANDARD_LIBS 
-  ${LIB_STATIC_YAML}
-  ${LIB_STATIC_APRUTIL1}
-  ${LIB_STATIC_APR1}
-  ${LIB_STATIC_Z}
+if(SOLARIS)
+  set(NTA_STANDARD_LIBS 
+    ${LIB_STATIC_YAML_CPP} 
+    ${LIB_STATIC_YAML}
+    ${LIB_STATIC_APR1}
+    ${LIB_STATIC_APRUTIL1}
+    ${LIB_STATIC_Z}
+  )
+else()
+  set(NTA_STANDARD_LIBS
+    ${LIB_STATIC_YAML}
+    ${LIB_STATIC_APR1}
+    ${LIB_STATIC_APRUTIL1}
+    ${LIB_STATIC_Z}
+  )
+endif()
+
+#
+# Set list of external libraries to tests
+#
+set(NTA_TEST_LIBS
+  "${LIB_STATIC_COV}"
 )
 
 message(STATUS "Configuring subprojects...")
@@ -517,7 +576,6 @@ message(STATUS "Configuring subprojects...")
 #
 set(LIB_STATIC_NUPICCORE nupic_core)
 generate_static_library(${LIB_STATIC_NUPICCORE} "${PROJECT_SOURCE_DIR}/main" "${PROJECT_BUILD_TEMP_DIR}/lib" "${NTA_CXXFLAGS}")
-
 #
 # HtmTest
 #
@@ -525,6 +583,7 @@ set(EXECUTABLE_HTMTEST testcpphtm)
 set(LIBRARIES
   ${LIB_STATIC_NUPICCORE}
   ${NTA_STANDARD_LIBS}
+  ${NTA_TEST_LIBS}
 )
 generate_executable(${EXECUTABLE_HTMTEST} "${PROJECT_SOURCE_DIR}/test/htmtest" "${PROJECT_BUILD_RELEASE_DIR}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
 
@@ -535,6 +594,7 @@ set(EXECUTABLE_TESTEVERYTHING testeverything)
 set(LIBRARIES
   ${LIB_STATIC_NUPICCORE}
   ${NTA_STANDARD_LIBS}
+  ${NTA_TEST_LIBS}
 )
 generate_executable(${EXECUTABLE_TESTEVERYTHING} "${PROJECT_SOURCE_DIR}/test/testeverything" "${PROJECT_BUILD_RELEASE_DIR}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
 

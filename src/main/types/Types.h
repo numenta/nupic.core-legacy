@@ -253,6 +253,23 @@ typedef  long                NTA_Int64;
  * Represents a 64-bit unsigned integer.
  */
 typedef  unsigned long       NTA_UInt64;
+#elif defined(NTA_PLATFORM_sparc64)
+/**
+ * Represents a 32-bit signed integer.
+ */
+typedef  int                 NTA_Int32;
+/**
+ * Represents a 32-bit unsigned integer.
+ */
+typedef  unsigned int        NTA_UInt32;
+/**
+ * Represents a 64-bit signed integer.
+ */
+typedef  long                NTA_Int64;
+/**
+ * Represents a 64-bit unsigned integer.
+ */
+typedef  unsigned long       NTA_UInt64;
 #else
 #error "Unknown platform"
 #endif
