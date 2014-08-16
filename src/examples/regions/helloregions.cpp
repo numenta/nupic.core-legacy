@@ -25,7 +25,7 @@
 #include <nta/engine/Region.hpp>
 #include <nta/ntypes/Dimensions.hpp>
 #include <nta/ntypes/ArrayRef.hpp>
-#include <nta/OS/Path.hpp>
+#include <nta/os/Path.hpp>
 
 
 
