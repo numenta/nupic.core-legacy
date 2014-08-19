@@ -159,7 +159,7 @@ void UniformLinkPolicy::validateParameterDimensionality()
 
   for(std::map<std::string, size_t>::iterator i = dimensionalityMap.begin();
       i != dimensionalityMap.end();
-      i++)
+      ++i)
   {
     parameterDimensionalityMsg << i->first << ": ";
     i->second == 1 ? (parameterDimensionalityMsg << "*") :

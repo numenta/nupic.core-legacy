@@ -185,7 +185,7 @@ ValueMap::ValueMap()
 
 ValueMap::~ValueMap()
 {
-  for (iterator i = map_.begin(); i != map_.end(); i++)
+  for (iterator i = map_.begin(); i != map_.end(); ++i)
   {
     delete i->second;
     i->second = NULL;
@@ -195,14 +195,14 @@ ValueMap::~ValueMap()
 
 ValueMap::ValueMap(const ValueMap& rhs)
 {
-  for (iterator i = map_.begin(); i != map_.end(); i++)
+  for (iterator i = map_.begin(); i != map_.end(); ++i)
   {
     delete i->second;
     i->second = NULL;
   }
   map_.clear();
 
-  for( const_iterator i = rhs.begin(); i != rhs.end(); i++)
+  for( const_iterator i = rhs.begin(); i != rhs.end(); ++i)
   {
     Value* vp = new Value(*(i->second));
 
@@ -213,7 +213,7 @@ ValueMap::ValueMap(const ValueMap& rhs)
 void ValueMap::dump() const
 {
   NTA_DEBUG << "===== Value Map:";
-  for (ValueMap::const_iterator i = map_.begin(); i != map_.end(); i++)
+  for (ValueMap::const_iterator i = map_.begin(); i != map_.end(); ++i)
   {
     std::string key = i->first;
     Value* value = i->second;

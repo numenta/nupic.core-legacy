@@ -311,11 +311,11 @@ namespace nta
     ReadBuffer * r = const_cast<ReadBuffer *>(this);
     try
     {
-    #if defined(NTA_PLATFORM_win32) && defined(NTA_COMPILER_MSVC)
-      size = r->memStream_._Readsome_s(bytes, size, (std::streamsize)size);
-    #else
+//    #if defined(NTA_PLATFORM_win32) && defined(NTA_COMPILER_MSVC)
+//      size = r->memStream_._Readsome_s(bytes, size, (std::streamsize)size);
+//    #else
       size = r->memStream_.readsome(bytes, size);
-    #endif
+//    #endif
       return 0;
     }
     catch (...)

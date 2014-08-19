@@ -51,7 +51,7 @@ Input::~Input()
 {
   uninitialize();
   std::vector<Link*> linkscopy = links_;
-  for (std::vector<Link*>::iterator i = linkscopy.begin(); i != linkscopy.end(); i++)
+  for (std::vector<Link*>::iterator i = linkscopy.begin(); i != linkscopy.end(); ++i)
   {
     removeLink(*i);
   }
@@ -67,7 +67,7 @@ Input::addLink(const std::string& linkType, const std::string& linkParams, Outpu
 
   // Make sure we don't already have a link to the same output
   for (std::vector<Link*>::const_iterator link = links_.begin();
-       link != links_.end(); link++)
+       link != links_.end(); ++link)
   {
     if (srcOutput == &((*link)->getSrc()))
     {
@@ -93,7 +93,7 @@ Input::removeLink(Link*& link)
   // removeLink should only be called internally -- if it 
   // does not exist, it is a logic error
   std::vector<Link*>::iterator linkiter = links_.begin();
-  for(; linkiter!= links_.end(); linkiter++)
+  for(; linkiter!= links_.end(); ++linkiter)
   {
     if (*linkiter == link)
       break;
@@ -119,7 +119,7 @@ Link* Input::findLink(const std::string& srcRegionName,
                       const std::string& srcOutputName)
 {
   std::vector<Link*>::const_iterator linkiter = links_.begin();
-  for (; linkiter != links_.end(); linkiter++)
+  for (; linkiter != links_.end(); ++linkiter)
   {
     Output& output = (*linkiter)->getSrc();
     if (output.getName() == srcOutputName && 
@@ -137,7 +137,7 @@ Input::prepare()
 {
   // Each link copies data into its section of the overall input
   // TODO: initialization check?
-  for (std::vector<Link*>::iterator l = links_.begin(); l != links_.end(); l++)
+  for (std::vector<Link*>::iterator l = links_.begin(); l != links_.end(); ++l)
   {
     (*l)->compute();
   }
@@ -536,7 +536,7 @@ void Input::initialize()
 
   // Calculate our size and the offset of each link
   size_t count = 0;
-  for (std::vector<Link*>::const_iterator l = links_.begin(); l != links_.end(); l++)
+  for (std::vector<Link*>::const_iterator l = links_.begin(); l != links_.end(); ++l)
   {
     linkOffsets_.push_back(count);
     // Setting the destination offset makes the link usable. 
@@ -573,7 +573,7 @@ void Input::initialize()
 
 
   for (std::vector<Link *>::const_iterator link = links_.begin();
-       link != links_.end(); link++)
+       link != links_.end(); ++link)
   {
     (*link)->buildSplitterMap(splitterMap_);
   }

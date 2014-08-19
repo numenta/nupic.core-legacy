@@ -24,7 +24,9 @@
  * @file
  */
 
+#ifndef NTA_PLATFORM_win32
 #include <unistd.h>
+#endif
 #include "OSTest.hpp"
 #include <nta/os/Env.hpp>
 #include <nta/os/Path.hpp>

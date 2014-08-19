@@ -23,7 +23,11 @@
 /** @file 
 */
 
+#if defined(NTA_PLATFORM_win32)
+// !defined(NTA_COMPILER_MSVC)
+#else
 #include <unistd.h>
+#endif
 #include <string>
 #include <algorithm>
 #include <nta/os/Directory.hpp>
@@ -216,7 +220,7 @@ namespace nta
       }
 
       // non-recursive case
-      bool success = true;
+      bool success;
     #ifdef NTA_PLATFORM_win32
       std::wstring wPath = Path::utf8ToUnicode(path);
       success = ::CreateDirectoryW(wPath.c_str(), NULL) != FALSE;

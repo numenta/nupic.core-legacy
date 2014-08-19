@@ -131,7 +131,8 @@ namespace nta {
 
   void SpatialPoolerTest::check_spatial_eq(SpatialPooler sp1, SpatialPooler sp2)
   {
-    UInt numColumns = sp1.getNumColumns();
+#ifndef NTA_PLATFORM_win32
+	UInt numColumns = sp1.getNumColumns();
     UInt numInputs = sp2.getNumInputs();
 
     NTA_CHECK(sp1.getNumColumns() == sp2.getNumColumns());
@@ -229,6 +230,7 @@ namespace nta {
     sp1.getConnectedCounts(conCounts1);
     sp2.getConnectedCounts(conCounts2);
     NTA_CHECK(check_vector_eq(conCounts1, conCounts2, numColumns));
+#endif
   }
 
   void SpatialPoolerTest::setup(SpatialPooler& sp, UInt numInputs, 
@@ -851,6 +853,7 @@ namespace nta {
 
   void SpatialPoolerTest::testAdaptSynapses()
   {
+#ifndef NTA_PLATFORM_win32
     SpatialPooler sp;
     UInt numColumns = 4;
     UInt numInputs = 8;
@@ -941,7 +944,7 @@ namespace nta {
       sp.getPermanence(column, permArr);
       NTA_CHECK(check_vector_eq(truePermanences2[column], permArr, numInputs));
     }
-
+#endif
   }
 
   void SpatialPoolerTest::testBumpUpWeakColumns()
@@ -2171,6 +2174,7 @@ namespace nta {
 
   void SpatialPoolerTest::testUpdatePermanencesForColumn()
   {
+#ifndef NTA_PLATFORM_win32
     vector<UInt> inputDim;
     vector<UInt> columnDim;
 
@@ -2224,7 +2228,7 @@ namespace nta {
                                 numInputs));
       NTA_CHECK(trueConnectedCount[i] == connectedCountsArr[i]);
     }
-
+#endif
   }
 
   void SpatialPoolerTest::testInitPermanence()

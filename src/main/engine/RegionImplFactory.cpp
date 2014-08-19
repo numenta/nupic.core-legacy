@@ -445,7 +445,7 @@ void RegionImplFactory::cleanup()
 {
   std::map<std::string, Spec*>::iterator ns;
   // destroy all nodespecs
-  for (ns = nodespecCache_.begin(); ns != nodespecCache_.end(); ns++)
+  for (ns = nodespecCache_.begin(); ns != nodespecCache_.end(); ++ns)
   {
     assert(ns->second != NULL);
     // PyNode node specs are destroyed by the C++ PyNode

@@ -84,7 +84,8 @@ void OS::getProcessMemoryUsage(size_t& realMem, size_t& virtualMem)
     size = sizeof(PSAPI_WORKING_SET_INFORMATION) +
                   pageCount * sizeof(PSAPI_WORKING_SET_BLOCK);
 
-    pWSI = (PSAPI_WORKING_SET_INFORMATION *) realloc((void *) pWSI, size);
+	if (pWSI != NULL)	free((void *) pWSI);
+    pWSI = (PSAPI_WORKING_SET_INFORMATION *) malloc(size);
 
     if(::QueryWorkingSet(hProcess, pWSI, size))
     {
@@ -127,7 +128,7 @@ void OS::getProcessMemoryUsage(size_t& realMem, size_t& virtualMem)
   //subtract off memory allocated for our pWSI
   privateWorkingSet -= ((size / si.dwPageSize) + 1) * si.dwPageSize;
 
-  free((void *) pWSI);
+  if (pWSI != NULL)	free((void *) pWSI);
 
   PROCESS_MEMORY_COUNTERS_EX pmcEx;
 
