@@ -252,8 +252,10 @@ namespace nta {
               columns from the predictions if they have never learned. The
               default behavior is to strip unlearned columns but this should be
               disabled when using a random, unlearned spatial pooler. NOTE:
-              you should set this explicitly as the default will likely be
-              changed from true to false in the near future (by end of 2014).
+              if you rely on this behavior then you should additionally call
+              the stripNeverLearned method directly on the activeVector output
+              as we will be changing the default to false and then removing this
+              parameter entirely in the near future.
            */
           virtual void compute(UInt inputVector[], bool learn,
                                UInt activeVector[], bool stripUnlearnedColumns);
