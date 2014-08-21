@@ -265,6 +265,17 @@ namespace nta {
                                UInt activeVector[]);
 
           /**
+           Removes the set of columns who have never been active from the set
+           of active columns selected in the inhibition round. Such columns
+           cannot represent learned pattern and are therefore meaningless if
+           only inference is required.
+
+           @param activeArray  An int array containing the indices of the
+               active columns.
+          */
+          void stripNeverLearned(UInt activeArray[]);
+
+          /**
            * Get the version number of this spatial pooler.
 
            * @returns Integer version number.
@@ -755,17 +766,6 @@ namespace nta {
           //
           // Implementation methods. all methods below this line are
           // NOT part of the public API
-
-          /**
-          Removes the set of columns who have never been active from the set of
-          active columns selected in the inhibition round. Such columns cannot
-          represent learned pattern and are therefore meaningless if only inference
-          is required.
-          
-          @param activeArray  An int array containing the indices of the active columns.
-          */
-          void stripNeverLearned_(UInt activeArray[]);
-
 
           void toDense_(vector<UInt>& sparse,
                         UInt dense[],

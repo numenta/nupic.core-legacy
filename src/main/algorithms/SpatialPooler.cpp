@@ -551,7 +551,7 @@ void SpatialPooler::compute(UInt inputArray[], bool learn,
       updateMinDutyCycles_();
     }
   } else if (stripUnlearnedColumns) {
-    stripNeverLearned_(activeArray);
+    stripNeverLearned(activeArray);
   }
 }
 
@@ -560,7 +560,7 @@ void SpatialPooler::compute(UInt inputArray[], bool learn,
   compute(inputArray, learn, activeArray, true);
 }
 
-void SpatialPooler::stripNeverLearned_(UInt activeArray[])
+void SpatialPooler::stripNeverLearned(UInt activeArray[])
 {
   for (UInt i = 0; i < numColumns_; i++) {
     if (activeDutyCycles_[i] == 0) {
