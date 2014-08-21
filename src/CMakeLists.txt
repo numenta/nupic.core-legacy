@@ -478,7 +478,7 @@ message(STATUS "  MPI Support: ${NTA_MPI_SUPPORT}")
 # Compiler specific (clang, gcc, ..) flags can be set here
 #
 if(${NTA_COMPILER_FAMILY} STREQUAL "GNU")
-  set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-unused-parameter -Wno-sign-compare -Wno-error=format=")
+  set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-sign-compare -Wno-error=format=")
   set(NTA_CXXFLAGS_OPTIMIZATION "${NTA_CXXFLAGS_OPTIMIZATION} -falign-loops=16")
   # workaround for gcc 4.4 in Grok
   execute_process(COMMAND ${CMAKE_C_COMPILER} -dumpversion OUTPUT_VARIABLE GCC_VERSION)
@@ -487,7 +487,7 @@ if(${NTA_COMPILER_FAMILY} STREQUAL "GNU")
   endif()
   set(NTA_LINKFLAGS_ARCHIVES "-Wl,-whole-archive")
 elseif(${NTA_COMPILER_FAMILY} STREQUAL "CLANG")
-  set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-unused-parameter")
+  set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -fvisibility=hidden -Wall -Wreturn-type -Wunused")
 elseif(${NTA_COMPILER_FAMILY} STREQUAL "MSVC")
 # TODO: add VC-specific compiler options
 else()
@@ -594,6 +594,17 @@ set(LIBRARIES
   ${NTA_TEST_LIBS}
 )
 generate_executable(${EXECUTABLE_TESTEVERYTHING} "${PROJECT_SOURCE_DIR}/test/testeverything" "${PROJECT_BUILD_RELEASE_DIR}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
+
+#
+# HelloRegion
+#
+set(EXECUTABLE_HELLOREGION helloregion)
+set(LIBRARIES
+  ${LIB_STATIC_NUPICCORE}
+  ${NTA_STANDARD_LIBS}
+  ${NTA_TEST_LIBS}
+)
+generate_executable(${EXECUTABLE_HELLOREGION} "${PROJECT_SOURCE_DIR}/examples/regions" "${PROJECT_BUILD_RELEASE_DIR}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
 
 # Merge nupic_core and all static libraries to a stand-alone library
 merge_static_libraries(${LIB_STATIC_NUPICCORE} "${PROJECT_BUILD_RELEASE_DIR}/lib" "${LIB_STATIC_NUPICCORE};${NTA_STANDARD_LIBS}" "${LIB_STATIC_NUPICCORE}")
