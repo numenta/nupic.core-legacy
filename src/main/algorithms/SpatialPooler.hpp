@@ -198,6 +198,10 @@ namespace nta {
 
           @param spVerbosity spVerbosity level: 0, 1, 2, or 3
 
+          @param wrapAround boolean value that determines whether or not inputs
+                at the beginning and end of an input dimension are considered
+                neighbors for the purpose of mapping inputs to columns.
+
            */
           virtual void initialize(vector<UInt> inputDimensions,
                                   vector<UInt> columnDimensions,
@@ -215,7 +219,8 @@ namespace nta {
                                   UInt dutyCyclePeriod=1000,
                                   Real maxBoost=10.0,
                                   Int seed=1,
-                                  UInt spVerbosity=0);
+                                  UInt spVerbosity=0,
+                                  bool wrapAround=true);
 
           /**
           This is the main workshorse method of the SpatialPooler class. This
@@ -480,6 +485,22 @@ namespace nta {
           @param spVerbosity integer of verbosity level.
           */
           void setSpVerbosity(UInt spVerbosity);
+
+          /**
+          Returns boolean value of wrapAround which indicates if receptive
+          fields should wrap around from the beginning the input dimensions
+          to the end.
+
+          @returns the boolean value of wrapAround.
+          */
+          UInt getWrapAround();
+
+          /**
+          Sets wrapAround.
+
+          @param wrapAround boolean value
+          */
+          void setWrapAround(bool wrapAround);
 
           /**
           Returns the update period.
@@ -1332,6 +1353,7 @@ namespace nta {
           UInt iterationNum_;
           UInt iterationLearnNum_;
           UInt spVerbosity_;
+          bool wrapAround_;
           UInt updatePeriod_;
 
           Real synPermMin_;

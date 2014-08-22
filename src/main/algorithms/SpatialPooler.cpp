@@ -242,6 +242,16 @@ void SpatialPooler::setSpVerbosity(UInt spVerbosity)
   spVerbosity_ = spVerbosity;
 }
 
+UInt SpatialPooler::getWrapAround()
+{
+  return wrapAround_;
+}
+
+void SpatialPooler::setWrapAround(bool wrapAround)
+{
+  wrapAround_ = wrapAround;
+}
+
 UInt SpatialPooler::getUpdatePeriod()
 {
   return updatePeriod_;
@@ -435,7 +445,8 @@ void SpatialPooler::initialize(vector<UInt> inputDimensions,
   UInt dutyCyclePeriod,
   Real maxBoost,
   Int seed,
-  UInt spVerbosity)
+  UInt spVerbosity,
+  bool wrapAround)
 {
 
   numInputs_ = 1;
@@ -479,6 +490,7 @@ void SpatialPooler::initialize(vector<UInt> inputDimensions,
   dutyCyclePeriod_ = dutyCyclePeriod;
   maxBoost_ = maxBoost;
   spVerbosity_ = spVerbosity;
+  wrapAround_ = wrapAround;
   synPermMin_ = 0.0;
   synPermMax_ = 1.0;
   synPermTrimThreshold_ = synPermActiveInc / 2.0;
@@ -511,7 +523,7 @@ void SpatialPooler::initialize(vector<UInt> inputDimensions,
 
   for (UInt i = 0; i < numColumns_; ++i)
   {
-    vector<UInt> potential = mapPotential_(i,true);
+    vector<UInt> potential = mapPotential_(i, wrapAround_);
     vector<Real> perm = initPermanence_(potential, initConnectedPct_);
     potentialPools_.rowFromDense(i,potential.begin(),potential.end());
     updatePermanencesForColumn_(perm,i,true);
@@ -595,8 +607,9 @@ UInt SpatialPooler::mapColumn_(UInt column)
   Real ratio;
   UInt coord;
   for (UInt i = 0; i < columnCoord.size(); i++) {
-    ratio = (Real)columnCoord[i] / max(columnDimensions_[i] - 1, UInt(1));
-    coord = (inputDimensions_[i] - 1) * ratio;
+    ratio = (Real)columnCoord[i] / columnDimensions_[i];
+    coord = inputDimensions_[i] * ratio;
+    coord += 0.5 * inputDimensions_[i] / columnDimensions_[i];
     inputCoord.push_back(coord);
   }
 
@@ -1291,6 +1304,7 @@ void SpatialPooler::save(ostream& outStream)
             << iterationNum_ << " "
             << iterationLearnNum_ << " "
             << spVerbosity_ << " "
+            << wrapAround_ << " "
             << updatePeriod_ << " " 
             
             << synPermMin_ << " "
@@ -1412,6 +1426,7 @@ void SpatialPooler::load(istream& inStream)
            >> iterationNum_
            >> iterationLearnNum_
            >> spVerbosity_
+           >> wrapAround_
            >> updatePeriod_
             
            >> synPermMin_
@@ -1541,6 +1556,7 @@ void SpatialPooler::printParameters()
     << "dutyCyclePeriod             = " << getDutyCyclePeriod() << std::endl
     << "maxBoost                    = " << getMaxBoost() << std::endl
     << "spVerbosity                 = " << getSpVerbosity() << std::endl
+    << "wrapAround                  = " << getWrapAround() << std::endl
     << "version                     = " << version() << std::endl;
 }
 
