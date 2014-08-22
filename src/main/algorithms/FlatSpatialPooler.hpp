@@ -74,6 +74,8 @@ namespace nta {
           bool getRandomSP();
           void setRandomSP(bool randomSP);
 
+          virtual void compute(UInt inputVector[], bool learn,
+                               UInt activeVector[], bool stripUnlearnedColumns);
 
           virtual void compute(UInt inputVector[], bool learn,
                                UInt activeVector[]);
