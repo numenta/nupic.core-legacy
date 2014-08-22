@@ -248,7 +248,7 @@ namespace nta {
                 multi-dimensional, activeVector represents a flattened array
                 of outputs.
 
-          @param stripUnlearnColumns A boolean value indicating when to strip
+          @param stripNeverLearned A boolean value indicating when to strip
               columns from the predictions if they have never learned. The
               default behavior is to strip unlearned columns but this should be
               disabled when using a random, unlearned spatial pooler. NOTE:
@@ -258,7 +258,7 @@ namespace nta {
               parameter entirely in the near future.
            */
           virtual void compute(UInt inputVector[], bool learn,
-                               UInt activeVector[], bool stripUnlearnedColumns);
+                               UInt activeVector[], bool stripNeverLearned);
 
           /**
            Same as above but with stripUnlearnedColumns set to true.
@@ -275,7 +275,7 @@ namespace nta {
            @param activeArray  An int array containing the indices of the
                active columns.
           */
-          void stripNeverLearned(UInt activeArray[]);
+          void stripUnlearnedColumns(UInt activeArray[]);
 
           /**
            * Get the version number of this spatial pooler.

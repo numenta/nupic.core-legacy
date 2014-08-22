@@ -59,7 +59,7 @@ void FlatSpatialPooler::setRandomSP(bool randomSP)
 
 
 void FlatSpatialPooler::compute(UInt inputArray[], bool learn,
-                                UInt activeArray[], bool stripUnlearnedColumns)
+                                UInt activeArray[], bool stripNeverLearned)
 {
   if (randomSP_) {
     learn = false;
@@ -114,8 +114,8 @@ void FlatSpatialPooler::compute(UInt inputArray[], bool learn,
       updateInhibitionRadius_();
       updateMinDutyCycles_();
     }
-  } else if (stripUnlearnedColumns) {
-    stripNeverLearned(activeArray);
+  } else if (stripNeverLearned) {
+    stripUnlearnedColumns(activeArray);
   }
 }
 
