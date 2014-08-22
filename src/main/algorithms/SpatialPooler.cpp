@@ -242,7 +242,7 @@ void SpatialPooler::setSpVerbosity(UInt spVerbosity)
   spVerbosity_ = spVerbosity;
 }
 
-UInt SpatialPooler::getWrapAround()
+bool SpatialPooler::getWrapAround()
 {
   return wrapAround_;
 }

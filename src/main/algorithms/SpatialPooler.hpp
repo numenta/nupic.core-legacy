@@ -493,7 +493,7 @@ namespace nta {
 
           @returns the boolean value of wrapAround.
           */
-          UInt getWrapAround();
+          bool getWrapAround();
 
           /**
           Sets wrapAround.
