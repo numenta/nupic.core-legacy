@@ -278,7 +278,8 @@ namespace nta {
     testGetNeighborsND();
     testIsUpdateRound();
     testSerialize();
-	}  
+    testStripUnlearnedColumns();
+  }
 
   void SpatialPoolerTest::testUpdateInhibitionRadius()
   {
@@ -2498,5 +2499,62 @@ namespace nta {
     int ret = system(command.c_str());
     NTA_ASSERT(ret == 0); // "SpatialPoolerTest: execution of command " << command << " failed " << std::endl;
   }
-    
+
+  void SpatialPoolerTest::testStripUnlearnedColumns()
+  {
+    SpatialPooler sp;
+    vector<UInt> inputDim, columnDim;
+    inputDim.push_back(5);
+    columnDim.push_back(3);
+    sp.initialize(inputDim, columnDim);
+
+    // None learned, none active
+    {
+      Real activeDutyCycles[3] = {0, 0, 0};
+      UInt activeArray[3] = {0, 0, 0};
+      UInt expected[3] = {0, 0, 0};
+
+      sp.setActiveDutyCycles(activeDutyCycles);
+      sp.stripUnlearnedColumns(activeArray);
+
+      TEST(check_vector_eq(activeArray, expected, 3));
+    }
+
+    // None learned, some active
+    {
+      Real activeDutyCycles[3] = {0, 0, 0};
+      UInt activeArray[3] = {1, 0, 1};
+      UInt expected[3] = {0, 0, 0};
+
+      sp.setActiveDutyCycles(activeDutyCycles);
+      sp.stripUnlearnedColumns(activeArray);
+
+      TEST(check_vector_eq(activeArray, expected, 3));
+    }
+
+    // Some learned, none active
+    {
+      Real activeDutyCycles[3] = {1, 1, 0};
+      UInt activeArray[3] = {0, 0, 0};
+      UInt expected[3] = {0, 0, 0};
+
+      sp.setActiveDutyCycles(activeDutyCycles);
+      sp.stripUnlearnedColumns(activeArray);
+
+      TEST(check_vector_eq(activeArray, expected, 3));
+    }
+
+    // Some learned, some active
+    {
+      Real activeDutyCycles[3] = {1, 1, 0};
+      UInt activeArray[3] = {1, 0, 1};
+      UInt expected[3] = {1, 0, 0};
+
+      sp.setActiveDutyCycles(activeDutyCycles);
+      sp.stripUnlearnedColumns(activeArray);
+
+      TEST(check_vector_eq(activeArray, expected, 3));
+    }
+  }
+
 } // end namespace nta
