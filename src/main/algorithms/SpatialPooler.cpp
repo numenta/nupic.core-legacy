@@ -1407,7 +1407,7 @@ void SpatialPooler::load(istream& inStream)
   // Check the version.
   UInt version;
   inStream >> version;
-  NTA_CHECK(version == 1);  
+  NTA_CHECK(version <= 2);  
 
 
   // Retrieve simple variables
@@ -1441,7 +1441,7 @@ void SpatialPooler::load(istream& inStream)
     inStream >> wrapAround_;
   }
 
-  // Store vectors.
+  // Retrieve vectors.
   UInt numInputDimensions;
   inStream >> numInputDimensions;
   inputDimensions_.resize(numInputDimensions);
@@ -1487,7 +1487,7 @@ void SpatialPooler::load(istream& inStream)
   }
 
 
-  // Store matrices.
+  // Retrieve matrices.
   potentialPools_.resize(numColumns_, numInputs_);
   for (UInt i = 0; i < numColumns_; i++) {
     UInt nNonZerosOnRow;
