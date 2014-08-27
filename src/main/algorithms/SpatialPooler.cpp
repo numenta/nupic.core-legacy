@@ -98,7 +98,7 @@ class CoordinateConverterND {
 
 SpatialPooler::SpatialPooler() {
   // The current version number. 
-  version_ = 1;
+  version_ = 2;
 }
 
 vector<UInt> SpatialPooler::getColumnDimensions() {
@@ -1304,7 +1304,6 @@ void SpatialPooler::save(ostream& outStream)
             << iterationNum_ << " "
             << iterationLearnNum_ << " "
             << spVerbosity_ << " "
-            << wrapAround_ << " "
             << updatePeriod_ << " " 
             
             << synPermMin_ << " "
@@ -1316,6 +1315,7 @@ void SpatialPooler::save(ostream& outStream)
             << synPermConnected_ << " "
             << minPctOverlapDutyCycles_ << " "
             << minPctActiveDutyCycles_ << " " 
+            << wrapAround_ << " "
             << endl;
 
   // Store vectors.
@@ -1426,7 +1426,6 @@ void SpatialPooler::load(istream& inStream)
            >> iterationNum_
            >> iterationLearnNum_
            >> spVerbosity_
-           >> wrapAround_
            >> updatePeriod_
             
            >> synPermMin_
@@ -1438,6 +1437,9 @@ void SpatialPooler::load(istream& inStream)
            >> synPermConnected_
            >> minPctOverlapDutyCycles_
            >> minPctActiveDutyCycles_;
+  if (version > 1) {
+    inStream >> wrapAround_;
+  }
 
   // Store vectors.
   UInt numInputDimensions;
