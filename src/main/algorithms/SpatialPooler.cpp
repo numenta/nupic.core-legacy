@@ -1439,6 +1439,9 @@ void SpatialPooler::load(istream& inStream)
            >> minPctActiveDutyCycles_;
   if (version > 1) {
     inStream >> wrapAround_;
+  } else {
+    wrapAround_ = true;
+    version_ = 2;
   }
 
   // Retrieve vectors.
