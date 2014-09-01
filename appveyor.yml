@@ -31,12 +31,12 @@ hosts:
 matrix:
   - COMPILER_FAMILY: GNU
   - COMPILER_FAMILY: MSVC
-  fast_finish: true
-  allow_failures:
-    - platform: x86
-      configuration: Debug
-    - platform: x64
-      configuration: Debug
+#  fast_finish: true
+#  allow_failures:
+#    - platform: x86
+#      configuration: Debug
+#    - platform: x64
+#      configuration: Debug
 
 # enable service required for build/tests
 services:
