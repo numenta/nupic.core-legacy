@@ -15,10 +15,6 @@ branches:
     - master
     - gh-pages
 
-# scripts that are called at very beginning, before repo cloning
-init:
-  - git config --global core.autocrlf input
-
 # clone directory
 clone_folder: c:\projects\nupic-core
 
@@ -49,6 +45,10 @@ services:
   - iis                 # start IIS
   - msmq                # start Queuing services
 
+# scripts that are called at very beginning, before repo cloning
+init:
+  - git config --global core.autocrlf input
+
 # scripts that run after cloning repository
 install:
   echo "Compiler family: %COMPILER_FAMILY%"
@@ -56,6 +56,13 @@ install:
   C:\DevKit2\devkitvars.bat
   echo %PATH%
   cinst cmake
+  
+  mkdir C:\projects\nupic-core\build\
+  mkdir C:\projects\nupic-core\build\scripts
+  cd C:\projects\nupic-core\build\scripts
+
+  IF "%COMPILER_FAMILY%"=="GNU" cmake C:\projects\nupic-core\src -G "MSYS Makefiles"
+  IF "%COMPILER_FAMILY%"=="MSVC" cmake C:\projects\nupic-core\src
 
 # enable patching of AssemblyInfo.* files
 assembly_info:
@@ -92,17 +99,6 @@ build:
 
 # scripts to run before build
 before_build:
-  mkdir C:\projects\nupic-core\build\
-  mkdir C:\projects\nupic-core\build\scripts
-  cd C:\projects\nupic-core\build\scripts
-
-  IF "%COMPILER_FAMILY%"=="GNU" cmake C:\projects\nupic-core\src -G "MSYS Makefiles"
-  IF "%COMPILER_FAMILY%"=="MSVC" cmake C:\projects\nupic-core\src
-
-# scripts to run after build
-after_build:
-  cd C:\projects\nupic-core\build\release
-  DIR
 
 # to run your custom scripts instead of automatic MSBuild
 build_script:
@@ -110,6 +106,11 @@ build_script:
 
   IF "%COMPILER_FAMILY%"=="GNU" make
   IF "%COMPILER_FAMILY%"=="MSVC" msbuild nupic_core.vcxproj /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+
+# scripts to run after build
+after_build:
+  cd C:\projects\nupic-core\build\release
+  DIR
 
 # to disable automatic builds
 #build: off
