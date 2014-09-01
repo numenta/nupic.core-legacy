@@ -1,0 +1,116 @@
+# Operating system (build VM template)
+os: Windows Server 2012
+
+# version format
+version: 1.0.{build}
+
+# branches to build
+branches:
+  # whitelist
+  only:
+    - 103-windows-build
+
+  # blacklist
+  except:
+    - master
+    - gh-pages
+
+# scripts that are called at very beginning, before repo cloning
+init:
+  - git config --global core.autocrlf input
+
+# clone directory
+clone_folder: c:\projects\nupic-core
+
+# setting up etc\hosts file
+hosts:
+  queue-server: 127.0.0.1
+  db.server.com: 127.0.0.2
+
+# this is how to allow failing jobs in the matrix
+matrix:
+  - COMPILER_FAMILY: GNU
+  - COMPILER_FAMILY: MSVC
+  fast_finish: true
+  allow_failures:
+    - platform: x86
+      configuration: Debug
+    - platform: x64
+      configuration: Debug
+
+# enable service required for build/tests
+services:
+  - mssql2012sp1        # start SQL Server 2012 SP1 Express
+  - mssql2012sp1rs      # start SQL Server 2012 SP1 Express and Reporting Services
+  - mssql2008r2sp2      # start SQL Server 2008 R2 SP2 Express
+  - mssql2008r2sp2rs    # start SQL Server 2008 R2 SP2 Express and Reporting Services
+  - mysql               # start MySQL 5.6 service
+  - postgresql          # start PostgreSQL 9.3 service
+  - iis                 # start IIS
+  - msmq                # start Queuing services
+
+# scripts that run after cloning repository
+install:
+  echo "Compiler family: %COMPILER_FAMILY%"
+  cinst ruby2.devkit
+  C:\DevKit2\devkitvars.bat
+  echo %PATH%
+  cinst cmake
+
+# enable patching of AssemblyInfo.* files
+assembly_info:
+  patch: true
+  file: AssemblyInfo.*
+  assembly_version: "2.2.{build}"
+  assembly_file_version: "{version}"
+  assembly_informational_version: "{version}"
+
+#---------------------------------#
+#       build configuration       #
+#---------------------------------#
+
+# build platform, i.e. x86, x64, Any CPU. This setting is optional.
+platform:
+#  - x86
+  - x64
+
+# build Configuration, i.e. Debug, Release, etc.
+configuration:
+#  - Debug
+  - Release
+
+build:
+  project: NuPIC.core.sln          # path to Visual Studio solution or project
+#  publish_wap: true               # package Web Application Projects (WAP) for Web Deploy
+#  publish_wap_xcopy: true         # package Web Application Projects (WAP) for XCopy deployment
+#  publish_azure: true             # package Azure Cloud Service projects and push to artifacts
+#  publish_nuget: true             # package projects with .nuspec files and push to artifacts
+
+  # MSBuild verbosity level
+  verbosity: normal               #quiet|minimal|normal|detailed
+
+
+# scripts to run before build
+before_build:
+  mkdir C:\projects\nupic-core\build\
+  mkdir C:\projects\nupic-core\build\scripts
+  cd C:\projects\nupic-core\build\scripts
+
+  IF "%COMPILER_FAMILY%"=="GNU" cmake C:\projects\nupic-core\src -G "MSYS Makefiles"
+  IF "%COMPILER_FAMILY%"=="MSVC" cmake C:\projects\nupic-core\src
+
+# scripts to run after build
+after_build:
+  cd C:\projects\nupic-core\build\release
+  DIR
+
+# to run your custom scripts instead of automatic MSBuild
+build_script:
+  cd C:\projects\nupic-core\build\scripts
+
+  IF "%COMPILER_FAMILY%"=="GNU" make
+  IF "%COMPILER_FAMILY%"=="MSVC" msbuild nupic_core.vcxproj /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+
+# to disable automatic builds
+#build: off
+
