@@ -1,5 +1,6 @@
-# Operating system (build VM template)
-os: Windows Server 2012
+#---------------------------------#
+#      general configuration      #
+#---------------------------------#
 
 # version format
 version: 1.0.{build}
@@ -15,12 +16,25 @@ branches:
     - master
     - gh-pages
 
+#---------------------------------#
+#    environment configuration    #
+#---------------------------------#
+
+# Operating system (build VM template)
+os: Windows Server 2012
+
+# scripts that are called at very beginning, before repo cloning
+init:
+  - git config --global core.autocrlf input
+
 # clone directory
 clone_folder: c:\projects\nupic-core
 
 matrix:
   - COMPILER_FAMILY: GNU
+
   - COMPILER_FAMILY: MSVC
+
   fast_finish: true
 #  allow_failures:
 #    - platform: x86
@@ -28,21 +42,6 @@ matrix:
 #    - platform: x64
 #      configuration: Debug
 
-# enable service required for build/tests
-#services:
-#  - mssql2012sp1        # start SQL Server 2012 SP1 Express
-#  - mssql2012sp1rs      # start SQL Server 2012 SP1 Express and Reporting Services
-#  - mssql2008r2sp2      # start SQL Server 2008 R2 SP2 Express
-#  - mssql2008r2sp2rs    # start SQL Server 2008 R2 SP2 Express and Reporting Services
-#  - mysql               # start MySQL 5.6 service
-#  - postgresql          # start PostgreSQL 9.3 service
-#  - iis                 # start IIS
-#  - msmq                # start Queuing services
-
-
-# scripts that are called at very beginning, before repo cloning
-init:
-  - git config --global core.autocrlf input
 
 # scripts that run after cloning repository
 install:
