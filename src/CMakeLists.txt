@@ -176,6 +176,7 @@ endmacro()
 
 # This macro gets the compiler family being used.
 # Currently compiler_family can only be one of GNU/CLANG/MSVC/unsupported, more can be added
+# http://www.cmake.org/cmake/help/v2.8.10/cmake.html#variable:CMAKE_LANG_COMPILER_ID
 macro(get_compiler_family compiler_family)
     if(CMAKE_COMPILER_IS_GNUCXX)
       # The compiler is a GNU g++ variant.
@@ -186,10 +187,6 @@ macro(get_compiler_family compiler_family)
       set(${compiler_family} "CLANG")
     elseif(MSVC)
       set(${compiler_family} "MSVC")
-    elseif(BORLAND)
-      set(${compiler_family} "BORLAND")
-    elseif(WATCOM)
-      set(${compiler_family} "WATCOM")    
     else()
       # See http://www.cmake.org/Wiki/CMake_Useful_Variables
       set(${compiler_family} "unsupported")
@@ -285,7 +282,7 @@ if(${CMAKE_SIZEOF_VOID_P} MATCHES "8")
 else()
   set(NTA_PLATFORM_ARCH "32")
 endif()
-set(NTA_PLATFORM_CXXFLAGS "-fPIC -DPIC")
+set(NTA_PLATFORM_CXXFLAGS "")
 set(NTA_PLATFORM_LINKFLAGS "")
 set(NTA_PLATFORM_LIBS "-std=c++98")
 if(OSX)
@@ -307,8 +304,13 @@ elseif(LINUX)
     set(NTA_PLATFORM_CXXFLAGS "${NTA_PLATFORM_CXXFLAGS} -ffloat-store")
   endif()
 elseif(WINDOWS)
-  set(NTA_PLATFORM_OS "win32")
-  set(NTA_PLATFORM_CXXFLAGS "${NTA_PLATFORM_CXXFLAGS} -DWIN32")
+  if(${NTA_PLATFORM_ARCH} MATCHES "64")
+    set(NTA_PLATFORM_OS "win64")
+    set(NTA_PLATFORM_CXXFLAGS "${NTA_PLATFORM_CXXFLAGS} -DWIN32")
+  else()    
+    set(NTA_PLATFORM_OS "win32")
+    set(NTA_PLATFORM_CXXFLAGS "${NTA_PLATFORM_CXXFLAGS} -DWIN32")
+  endif()
 elseif(SOLARIS)
   set(NTA_PLATFORM_DEBUGFLAGS "-g")
   set(NTA_PLATFORM_LINKFLAGS "${NTA_PLATFORM_LINKFLAGS} -shared-libgcc -m64")
@@ -396,7 +398,7 @@ set(NTA_INCLUDEFLAGS "-I${PROJECT_BUILD_RELEASE_DIR}/include")
 #
 # NTA_INTERNAL tells us that the code is being built under the build system
 # and not as a separate program. Used for cppvision example.
-set(NTA_CXXFLAGS_BASE "${NTA_INCLUDEFLAGS} ${NTA_PLATFORM_CXXFLAGS} -DHAVE_CONFIG_H -DNTA_INTERNAL -DNTA_PLATFORM_${NTA_PLATFORM_OS} -DNTA_COMPILER_${NTA_COMPILER_FAMILY} -DBOOST_NO_WREGEX -DNUPIC2")
+set(NTA_CXXFLAGS_BASE "${NTA_INCLUDEFLAGS} ${NTA_PLATFORM_CXXFLAGS} -DNTA_INTERNAL -DNTA_PLATFORM_${NTA_PLATFORM_OS} -DNTA_COMPILER_${NTA_COMPILER_FAMILY} -DBOOST_NO_WREGEX -DNUPIC2")
 
 #
 # All executables and plugins are linked with these flags
@@ -478,7 +480,7 @@ message(STATUS "  MPI Support: ${NTA_MPI_SUPPORT}")
 # Compiler specific (clang, gcc, ..) flags can be set here
 #
 if(${NTA_COMPILER_FAMILY} STREQUAL "GNU")
-  set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-unused-parameter -Wno-sign-compare -Wno-error=format=")
+  set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -fPIC -DPIC -DHAVE_CONFIG_H -DHAVE_UNISTD_H -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-unused-parameter -Wno-sign-compare -Wno-error=format=")
   set(NTA_CXXFLAGS_OPTIMIZATION "${NTA_CXXFLAGS_OPTIMIZATION} -falign-loops=16")
   # workaround for gcc 4.4 in Grok
   execute_process(COMMAND ${CMAKE_C_COMPILER} -dumpversion OUTPUT_VARIABLE GCC_VERSION)
@@ -487,7 +489,7 @@ if(${NTA_COMPILER_FAMILY} STREQUAL "GNU")
   endif()
   set(NTA_LINKFLAGS_ARCHIVES "-Wl,-whole-archive")
 elseif(${NTA_COMPILER_FAMILY} STREQUAL "CLANG")
-  set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-unused-parameter")
+  set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -fPIC -DPIC -DHAVE_CONFIG_H -DHAVE_UNISTD_H -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-unused-parameter")
 elseif(${NTA_COMPILER_FAMILY} EQUAL "MSVC")
   # TODO: add VC-specific compiler options
   # define NOMINMAX to avoid MSVC to define min() and max() as macros,
@@ -553,6 +555,14 @@ if(SOLARIS)
     ${LIB_STATIC_APRUTIL1}
     ${LIB_STATIC_Z}
   )
+elseif(WINDOWS)
+  set(NTA_STANDARD_LIBS
+    ${LIB_STATIC_PCRE}
+    ${LIB_STATIC_YAML}
+    ${LIB_STATIC_APR1}
+    ${LIB_STATIC_APRUTIL1}
+    ${LIB_STATIC_Z}
+  )
 else()
   set(NTA_STANDARD_LIBS
     ${LIB_STATIC_YAML}
@@ -576,6 +586,7 @@ message(STATUS "Configuring subprojects...")
 #
 set(LIB_STATIC_NUPICCORE nupic_core)
 generate_static_library(${LIB_STATIC_NUPICCORE} "${PROJECT_SOURCE_DIR}/main" "${PROJECT_BUILD_TEMP_DIR}/lib" "${NTA_CXXFLAGS}")
+
 #
 # HtmTest
 #

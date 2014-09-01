@@ -18,14 +18,8 @@ branches:
 # clone directory
 clone_folder: c:\projects\nupic-core
 
-# setting up etc\hosts file
-hosts:
-  queue-server: 127.0.0.1
-  db.server.com: 127.0.0.2
-
-# this is how to allow failing jobs in the matrix
 matrix:
-  - COMPILER_FAMILY: GNU
+#  - COMPILER_FAMILY: GNU
   - COMPILER_FAMILY: MSVC
 #  fast_finish: true
 #  allow_failures:
@@ -35,15 +29,16 @@ matrix:
 #      configuration: Debug
 
 # enable service required for build/tests
-services:
-  - mssql2012sp1        # start SQL Server 2012 SP1 Express
-  - mssql2012sp1rs      # start SQL Server 2012 SP1 Express and Reporting Services
-  - mssql2008r2sp2      # start SQL Server 2008 R2 SP2 Express
-  - mssql2008r2sp2rs    # start SQL Server 2008 R2 SP2 Express and Reporting Services
-  - mysql               # start MySQL 5.6 service
-  - postgresql          # start PostgreSQL 9.3 service
-  - iis                 # start IIS
-  - msmq                # start Queuing services
+#services:
+#  - mssql2012sp1        # start SQL Server 2012 SP1 Express
+#  - mssql2012sp1rs      # start SQL Server 2012 SP1 Express and Reporting Services
+#  - mssql2008r2sp2      # start SQL Server 2008 R2 SP2 Express
+#  - mssql2008r2sp2rs    # start SQL Server 2008 R2 SP2 Express and Reporting Services
+#  - mysql               # start MySQL 5.6 service
+#  - postgresql          # start PostgreSQL 9.3 service
+#  - iis                 # start IIS
+#  - msmq                # start Queuing services
+
 
 # scripts that are called at very beginning, before repo cloning
 init:
@@ -86,19 +81,18 @@ configuration:
 #  - Debug
   - Release
 
-build:
-  project: NuPIC.core.sln          # path to Visual Studio solution or project
+# scripts to run before build
+before_build:
+
+#build:
+#  project: NuPIC.core.sln         # path to Visual Studio solution or project
 #  publish_wap: true               # package Web Application Projects (WAP) for Web Deploy
 #  publish_wap_xcopy: true         # package Web Application Projects (WAP) for XCopy deployment
 #  publish_azure: true             # package Azure Cloud Service projects and push to artifacts
 #  publish_nuget: true             # package projects with .nuspec files and push to artifacts
 
   # MSBuild verbosity level
-  verbosity: normal               #quiet|minimal|normal|detailed
-
-
-# scripts to run before build
-before_build:
+  #verbosity: normal               #quiet|minimal|normal|detailed
 
 # to run your custom scripts instead of automatic MSBuild
 build_script:

@@ -284,7 +284,8 @@ typedef uLong FAR uLongf;
    typedef Byte       *voidp;
 #endif
 
-#if 1           /* HAVE_UNISTD_H -- this line is updated by ./configure */
+/* https://mail-index.netbsd.org/tech-userlevel/1999/10/15/0000.html */
+#if defined(HAVE_UNISTD_H) || defined(__NetBSD__)
 #  include <sys/types.h> /* for off_t */
 #  include <unistd.h>    /* for SEEK_* and off_t */
 #  ifdef VMS
