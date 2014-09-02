@@ -22,7 +22,7 @@
 #   David Ragazzi (@DavidRagazzi): Full conversion and adaptation from Autotools scripts
 #   Jim Bridgewater (jwbwater@gmail.com): Updated option help messages
 # --------------------------------------------------------------------------------------------------------------------------
- 
+
 
 ############################################################################################################################
 ###                                                                                                                      ###
@@ -31,7 +31,7 @@
 ############################################################################################################################
 
 # These macros copy all source directories after the configuration is done
-macro (copy suffix src dst)  
+macro (copy suffix src dst)
   message(STATUS "Copying from '${src}' to '${dst}'")
   execute_process(COMMAND ${CMAKE_COMMAND} -E copy${suffix} ${src} ${dst})
 endmacro()
@@ -141,7 +141,7 @@ endmacro()
 macro(generate_static_library name src_dir output_dir cxx_flags)
   get_source_groups(${src_dir})
   add_library(${name}
-    STATIC 
+    STATIC
     ${SOURCE_RETURNED}
   )
   set_target_properties(${name} PROPERTIES COMPILE_FLAGS "${cxx_flags}")
@@ -189,7 +189,7 @@ macro(get_compiler_family compiler_family)
     elseif(BORLAND)
       set(${compiler_family} "BORLAND")
     elseif(WATCOM)
-      set(${compiler_family} "WATCOM")    
+      set(${compiler_family} "WATCOM")
     else()
       # See http://www.cmake.org/Wiki/CMake_Useful_Variables
       set(${compiler_family} "unsupported")
@@ -219,7 +219,7 @@ endif()
 
 #
 # Sets default locations.
-# 
+#
 # Default directories structure is:
 #
 # ~/../repository (root directory with repository downloaded from internet)
@@ -238,6 +238,7 @@ get_filename_component(REPOSITORY_DIR ${PROJECT_SOURCE_DIR} PATH)
 if("${PROJECT_BUILD_RELEASE_DIR}" STREQUAL "")
   set(PROJECT_BUILD_RELEASE_DIR "${REPOSITORY_DIR}/build/release")
 endif()
+set(CMAKE_INSTALL_PREFIX ${PROJECT_BUILD_RELEASE_DIR} CACHE STRING "NuPIC Core Target Installation Directory")
 # 'temp' is a subdirectory created on /build root.
 if("${PROJECT_BUILD_TEMP_DIR}" STREQUAL "")
   set(PROJECT_BUILD_TEMP_DIR "${REPOSITORY_DIR}/build/temp")
@@ -247,9 +248,9 @@ endif()
 #
 # Prepare directory structure
 #
-execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_RELEASE_DIR}/include)
-execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_RELEASE_DIR}/lib)
-execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_RELEASE_DIR}/bin)
+execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_INSTALL_PREFIX}/include)
+execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_INSTALL_PREFIX}/lib)
+execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_INSTALL_PREFIX}/bin)
 execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_TEMP_DIR}/lib)
 execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_TEMP_DIR}/obj)
 
@@ -302,7 +303,7 @@ elseif(LINUX)
   if(${NTA_PLATFORM_ARCH} MATCHES "64")
     set(NTA_PLATFORM_OS "linux64")
     set(NTA_PLATFORM_CXXFLAGS "${NTA_PLATFORM_CXXFLAGS} -m64")
-  else()    
+  else()
     set(NTA_PLATFORM_OS "linux32")
     set(NTA_PLATFORM_CXXFLAGS "${NTA_PLATFORM_CXXFLAGS} -ffloat-store")
   endif()
@@ -336,7 +337,7 @@ message(STATUS "Checking software tools...")
 
 #
 # Gives the family of C++ compiler
-# 
+#
 get_compiler_family(NTA_COMPILER_FAMILY)
 
 #
@@ -362,7 +363,7 @@ message(STATUS "Locations:")
 message(STATUS "  Source: ${PROJECT_SOURCE_DIR}")
 message(STATUS "  Build System: ${PROJECT_BINARY_DIR}")
 message(STATUS "  Build Directory: ${PROJECT_BUILD_TEMP_DIR}")
-message(STATUS "  Release: ${PROJECT_BUILD_RELEASE_DIR}")
+message(STATUS "  Release: ${CMAKE_INSTALL_PREFIX}")
 
 
 ############################################################################################################################
@@ -391,7 +392,7 @@ set(USER_LINKFLAGS "" CACHE STRING "Extra Link flags")
 # #include <nta/common/...>
 #
 include_directories(SYSTEM "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/include" "${REPOSITORY_DIR}/external/common/include")
-set(NTA_INCLUDEFLAGS "-I${PROJECT_BUILD_RELEASE_DIR}/include")
+set(NTA_INCLUDEFLAGS "-I${CMAKE_INSTALL_PREFIX}/include")
 
 #
 # NTA_INTERNAL tells us that the code is being built under the build system
@@ -453,7 +454,7 @@ message(STATUS "  Profiling: ${NTA_PROFILING_ENABLED}")
 # Enable/disable Coverage (this option is mainly used for generating test coverage reports).
 #
 option(NTA_COV_ENABLED "-DNTA_COV_ENABLED=[ON/OFF] turn on test coverage [default=OFF]" OFF)
-if(NTA_COV_ENABLED)  
+if(NTA_COV_ENABLED)
   if(${NTA_COMPILER_FAMILY} STREQUAL "GNU")
     set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -fprofile-arcs -ftest-coverage")
     set(LIB_STATIC_COV gcov)
@@ -543,8 +544,8 @@ endif()
 # Set list of external libraries to this project.
 #
 if(SOLARIS)
-  set(NTA_STANDARD_LIBS 
-    ${LIB_STATIC_YAML_CPP} 
+  set(NTA_STANDARD_LIBS
+    ${LIB_STATIC_YAML_CPP}
     ${LIB_STATIC_YAML}
     ${LIB_STATIC_APR1}
     ${LIB_STATIC_APRUTIL1}
@@ -582,7 +583,7 @@ set(LIBRARIES
   ${NTA_STANDARD_LIBS}
   ${NTA_TEST_LIBS}
 )
-generate_executable(${EXECUTABLE_HTMTEST} "${PROJECT_SOURCE_DIR}/test/htmtest" "${PROJECT_BUILD_RELEASE_DIR}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
+generate_executable(${EXECUTABLE_HTMTEST} "${PROJECT_SOURCE_DIR}/test/htmtest" "${CMAKE_INSTALL_PREFIX}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
 
 #
 # TestEverything
@@ -593,7 +594,7 @@ set(LIBRARIES
   ${NTA_STANDARD_LIBS}
   ${NTA_TEST_LIBS}
 )
-generate_executable(${EXECUTABLE_TESTEVERYTHING} "${PROJECT_SOURCE_DIR}/test/testeverything" "${PROJECT_BUILD_RELEASE_DIR}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
+generate_executable(${EXECUTABLE_TESTEVERYTHING} "${PROJECT_SOURCE_DIR}/test/testeverything" "${CMAKE_INSTALL_PREFIX}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
 
 #
 # HelloRegion
@@ -604,10 +605,10 @@ set(LIBRARIES
   ${NTA_STANDARD_LIBS}
   ${NTA_TEST_LIBS}
 )
-generate_executable(${EXECUTABLE_HELLOREGION} "${PROJECT_SOURCE_DIR}/examples/regions" "${PROJECT_BUILD_RELEASE_DIR}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
+generate_executable(${EXECUTABLE_HELLOREGION} "${PROJECT_SOURCE_DIR}/examples/regions" "${CMAKE_INSTALL_PREFIX}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
 
 # Merge nupic_core and all static libraries to a stand-alone library
-merge_static_libraries(${LIB_STATIC_NUPICCORE} "${PROJECT_BUILD_RELEASE_DIR}/lib" "${LIB_STATIC_NUPICCORE};${NTA_STANDARD_LIBS}" "${LIB_STATIC_NUPICCORE}")
+merge_static_libraries(${LIB_STATIC_NUPICCORE} "${CMAKE_INSTALL_PREFIX}/lib" "${LIB_STATIC_NUPICCORE};${NTA_STANDARD_LIBS}" "${LIB_STATIC_NUPICCORE}")
 
 
 ############################################################################################################################
@@ -616,6 +617,9 @@ merge_static_libraries(${LIB_STATIC_NUPICCORE} "${PROJECT_BUILD_RELEASE_DIR}/lib
 ###  Post configuration operations                                                                                       ###
 ###                                                                                                                      ###
 ############################################################################################################################
+
+install(TARGETS ${LIB_STATIC_NUPICCORE} DESTINATION lib)
+install(TARGETS testcpphtm testeverything helloregion DESTINATION bin)
 
 #
 # Copy all headers files to 'build/release/include'
@@ -626,10 +630,10 @@ set(files ${ITEMS_RETURNED})
 set(headers_file_content "")
 foreach(src_file ${files})
   get_filename_component(src_dir ${src_file} ABSOLUTE)
-  string(REPLACE "${PROJECT_SOURCE_DIR}/main" "${PROJECT_BUILD_RELEASE_DIR}/include/nta" dst_file ${src_file})
+  string(REPLACE "${PROJECT_SOURCE_DIR}/main" "${CMAKE_INSTALL_PREFIX}/include/nta" dst_file ${src_file})
   copy_file(${src_file} ${dst_file})
 endforeach()
-copy_file(${PROJECT_SOURCE_DIR}/main/ntypes/Collection.cpp ${PROJECT_BUILD_RELEASE_DIR}/include/nta/ntypes/Collection.cpp)
+copy_file(${PROJECT_SOURCE_DIR}/main/ntypes/Collection.cpp ${CMAKE_INSTALL_PREFIX}/include/nta/ntypes/Collection.cpp)
 
 #
 # Create file with unit tests used by TestEverything
@@ -661,11 +665,11 @@ file(WRITE "${PROJECT_SOURCE_DIR}/test/testeverything/EverythingHeaders.hpp" "${
 # Tests
 #
 add_custom_target(tests_htm
-                  COMMAND ${PROJECT_BUILD_RELEASE_DIR}/bin/${EXECUTABLE_HTMTEST})
-                  
+                  COMMAND ${CMAKE_INSTALL_PREFIX}/bin/${EXECUTABLE_HTMTEST})
+
 add_custom_target(tests_everything
-                  COMMAND ${PROJECT_BUILD_RELEASE_DIR}/bin/${EXECUTABLE_TESTEVERYTHING})
-                  
+                  COMMAND ${CMAKE_INSTALL_PREFIX}/bin/${EXECUTABLE_TESTEVERYTHING})
+
 # tests_all just calls other targets
 add_custom_target(tests_all
                   DEPENDS tests_htm
@@ -677,15 +681,18 @@ add_custom_target(tests_all
 #
 add_custom_target(distclean
 		# Clean '/build/release' and build/temp/
-		COMMAND ${CMAKE_COMMAND} -E remove_directory ${PROJECT_BUILD_RELEASE_DIR}
+		COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_INSTALL_PREFIX}
 		COMMAND ${CMAKE_COMMAND} -E remove_directory ${PROJECT_BUILD_TEMP_DIR}
 		# recreate dirs
-		COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_RELEASE_DIR}/include
-		COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_RELEASE_DIR}/lib
-		COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_RELEASE_DIR}/bin
+		COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_INSTALL_PREFIX}/include
+		COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_INSTALL_PREFIX}/lib
+		COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_INSTALL_PREFIX}/bin
 		COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_TEMP_DIR}/lib
 		COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_TEMP_DIR}/obj
 		COMMENT "Cleaning temporary build files")
 
 # Just to separate from result message
 message(STATUS "")
+
+message(STATUS "${CMAKE_INSTALL_PREFIX}")
+
