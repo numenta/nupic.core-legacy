@@ -1398,16 +1398,18 @@ void SpatialPooler::save(ostream& outStream)
 // that everything in initialize is handled properly here.
 void SpatialPooler::load(istream& inStream)
 {
+  // Current version
+  version_ = 2;
 
   // Check the marker
   string marker;
   inStream >> marker;
   NTA_CHECK(marker == "SpatialPooler");
 
-  // Check the version.
+  // Check the saved version.
   UInt version;
   inStream >> version;
-  NTA_CHECK(version <= 2);  
+  NTA_CHECK(version <= version_);  
 
 
   // Retrieve simple variables
@@ -1437,11 +1439,10 @@ void SpatialPooler::load(istream& inStream)
            >> synPermConnected_
            >> minPctOverlapDutyCycles_
            >> minPctActiveDutyCycles_;
-  if (version > 1) {
-    inStream >> wrapAround_;
-  } else {
+  if (version == 1) {
     wrapAround_ = true;
-    version_ = 2;
+  } else {
+    inStream >> wrapAround_;
   }
 
   // Retrieve vectors.
