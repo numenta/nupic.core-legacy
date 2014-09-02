@@ -235,10 +235,13 @@ endif()
 # This CMake file must be always on /repository/src subdirectory.
 get_filename_component(REPOSITORY_DIR ${PROJECT_SOURCE_DIR} PATH)
 # 'release' is a subdirectory created on /build root.
-if("${PROJECT_BUILD_RELEASE_DIR}" STREQUAL "")
-  set(PROJECT_BUILD_RELEASE_DIR "${REPOSITORY_DIR}/build/release")
+if (${CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT})
+  if ("${PROJECT_BUILD_RELEASE_DIR}" STREQUAL "")
+    set(CMAKE_INSTALL_PREFIX "${REPOSITORY_DIR}/build/release")
+  else()
+    set(CMAKE_INSTALL_PREFIX ${PROJECT_BUILD_RELEASE_DIR})
+  endif()
 endif()
-set(CMAKE_INSTALL_PREFIX ${PROJECT_BUILD_RELEASE_DIR} CACHE STRING "NuPIC Core Target Installation Directory")
 # 'temp' is a subdirectory created on /build root.
 if("${PROJECT_BUILD_TEMP_DIR}" STREQUAL "")
   set(PROJECT_BUILD_TEMP_DIR "${REPOSITORY_DIR}/build/temp")
