@@ -1,4 +1,4 @@
-# --------------------------------------------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Numenta Platform for Intelligent Computing (NuPIC)
 # Copyright (C) 2013, Numenta, Inc.  Unless you have purchased from
 # Numenta, Inc. a separate commercial license for this software code, the
@@ -19,16 +19,17 @@
 # http://numenta.org/licenses/
 #
 # Contributor(s):
-#   David Ragazzi (@DavidRagazzi): Full conversion and adaptation from Autotools scripts
+#   David Ragazzi (@DavidRagazzi): Full conversion and adaptation from Autotools
+#     scripts
 #   Jim Bridgewater (jwbwater@gmail.com): Updated option help messages
-# --------------------------------------------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
  
 
-############################################################################################################################
-###                                                                                                                      ###
-###  Macros                                                                                                              ###
-###                                                                                                                      ###
-############################################################################################################################
+################################################################################
+###                                                                          ###
+### Macros                                                                   ###
+###                                                                          ###
+################################################################################
 
 # These macros copy all source directories after the configuration is done
 macro (copy suffix src dst)  
@@ -197,12 +198,12 @@ macro(get_compiler_family compiler_family)
 endmacro()
 
 
-############################################################################################################################
-###                                                                                                                      ###
-###  1st Part:                                                                                                           ###
-###  Configuration of the environment                                                                                    ###
-###                                                                                                                      ###
-############################################################################################################################
+################################################################################
+###                                                                          ###
+###  1st Part:                                                               ###
+###  Configuration of the environment                                        ###
+###                                                                          ###
+################################################################################
 
 cmake_minimum_required(VERSION 2.8)
 project(nupic_core CXX)
@@ -365,18 +366,19 @@ message(STATUS "  Build Directory: ${PROJECT_BUILD_TEMP_DIR}")
 message(STATUS "  Release: ${PROJECT_BUILD_RELEASE_DIR}")
 
 
-############################################################################################################################
-###                                                                                                                      ###
-###  2nd Part:                                                                                                           ###
-###  Configuration of compiler flags                                                                                     ###
-###                                                                                                                      ###
-############################################################################################################################
+################################################################################
+###                                                                          ###
+###  2nd Part:                                                               ###
+###  Configuration of compiler flags                                         ###
+###                                                                          ###
+################################################################################
 
 #
 # Define custom preprocessor variables (#define XX in C++ code)
 #
-# The reason to use add_definitions() instead of appending flag -std=c++0x directly to CXXBASE_FLAGS is that
-# cmake deploys "internal smarts" for compatibility with different compilers (clang, gcc 4.6 vs 4.8)
+# The reason to use add_definitions() instead of appending flag -std=c++0x
+# directly to CXXBASE_FLAGS is that cmake deploys "internal smarts" for
+# compatibility with different compilers (clang, gcc 4.6 vs 4.8)
 add_definitions(-std=c++98) # smart flag setting for gcc/clang
 
 #
@@ -501,12 +503,12 @@ endif()
 set(NTA_CXXFLAGS "${USER_CXXFLAGS} ${NTA_CXXFLAGS_BASE} ${NTA_CXXFLAGS_OPTIMIZATION}")
 
 
-############################################################################################################################
-###                                                                                                                      ###
-###  3rd Part:                                                                                                           ###
-###  Generation of the project and its modules                                                                           ###
-###                                                                                                                      ###
-############################################################################################################################
+################################################################################
+###                                                                          ###
+###  3rd Part:                                                               ###
+###  Generation of the project and its modules                               ###
+###                                                                          ###
+################################################################################
 
 #
 # Apache's external libraries.
@@ -610,12 +612,12 @@ generate_executable(${EXECUTABLE_HELLOREGION} "${PROJECT_SOURCE_DIR}/examples/re
 merge_static_libraries(${LIB_STATIC_NUPICCORE} "${PROJECT_BUILD_RELEASE_DIR}/lib" "${LIB_STATIC_NUPICCORE};${NTA_STANDARD_LIBS}" "${LIB_STATIC_NUPICCORE}")
 
 
-############################################################################################################################
-###                                                                                                                      ###
-###  4th Part:                                                                                                           ###
-###  Post configuration operations                                                                                       ###
-###                                                                                                                      ###
-############################################################################################################################
+################################################################################
+###                                                                          ###
+###  4th Part:                                                               ###
+###  Post configuration operations                                           ###
+###                                                                          ###
+################################################################################
 
 #
 # Copy all headers files to 'build/release/include'
@@ -650,12 +652,12 @@ file(WRITE "${PROJECT_SOURCE_DIR}/test/testeverything/EverythingAddtests.hpp" "$
 file(WRITE "${PROJECT_SOURCE_DIR}/test/testeverything/EverythingHeaders.hpp" "${headers_file_content}")
 
 
-############################################################################################################################
-###                                                                                                                      ###
-###  5th Part:                                                                                                           ###
-###  Custom targets                                                                                                      ###
-###                                                                                                                      ###
-############################################################################################################################
+################################################################################
+###                                                                          ###
+###  5th Part:                                                               ###
+###  Custom targets                                                          ###
+###                                                                          ###
+################################################################################
 
 #
 # Tests

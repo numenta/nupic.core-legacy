@@ -98,7 +98,7 @@ class CoordinateConverterND {
 
 SpatialPooler::SpatialPooler() {
   // The current version number. 
-  version_ = 1;
+  version_ = 2;
 }
 
 vector<UInt> SpatialPooler::getColumnDimensions() {
@@ -240,6 +240,16 @@ UInt SpatialPooler::getSpVerbosity()
 void SpatialPooler::setSpVerbosity(UInt spVerbosity)
 {
   spVerbosity_ = spVerbosity;
+}
+
+bool SpatialPooler::getWrapAround()
+{
+  return wrapAround_;
+}
+
+void SpatialPooler::setWrapAround(bool wrapAround)
+{
+  wrapAround_ = wrapAround;
 }
 
 UInt SpatialPooler::getUpdatePeriod()
@@ -435,7 +445,8 @@ void SpatialPooler::initialize(vector<UInt> inputDimensions,
   UInt dutyCyclePeriod,
   Real maxBoost,
   Int seed,
-  UInt spVerbosity)
+  UInt spVerbosity,
+  bool wrapAround)
 {
 
   numInputs_ = 1;
@@ -479,6 +490,7 @@ void SpatialPooler::initialize(vector<UInt> inputDimensions,
   dutyCyclePeriod_ = dutyCyclePeriod;
   maxBoost_ = maxBoost;
   spVerbosity_ = spVerbosity;
+  wrapAround_ = wrapAround;
   synPermMin_ = 0.0;
   synPermMax_ = 1.0;
   synPermTrimThreshold_ = synPermActiveInc / 2.0;
@@ -511,7 +523,7 @@ void SpatialPooler::initialize(vector<UInt> inputDimensions,
 
   for (UInt i = 0; i < numColumns_; ++i)
   {
-    vector<UInt> potential = mapPotential_(i,true);
+    vector<UInt> potential = mapPotential_(i, wrapAround_);
     vector<Real> perm = initPermanence_(potential, initConnectedPct_);
     potentialPools_.rowFromDense(i,potential.begin(),potential.end());
     updatePermanencesForColumn_(perm,i,true);
@@ -600,8 +612,9 @@ UInt SpatialPooler::mapColumn_(UInt column)
   Real ratio;
   UInt coord;
   for (UInt i = 0; i < columnCoord.size(); i++) {
-    ratio = (Real)columnCoord[i] / max(columnDimensions_[i] - 1, UInt(1));
-    coord = (inputDimensions_[i] - 1) * ratio;
+    ratio = (Real)columnCoord[i] / columnDimensions_[i];
+    coord = inputDimensions_[i] * ratio;
+    coord += 0.5 * inputDimensions_[i] / columnDimensions_[i];
     inputCoord.push_back(coord);
   }
 
@@ -1307,6 +1320,7 @@ void SpatialPooler::save(ostream& outStream)
             << synPermConnected_ << " "
             << minPctOverlapDutyCycles_ << " "
             << minPctActiveDutyCycles_ << " " 
+            << wrapAround_ << " "
             << endl;
 
   // Store vectors.
@@ -1389,16 +1403,18 @@ void SpatialPooler::save(ostream& outStream)
 // that everything in initialize is handled properly here.
 void SpatialPooler::load(istream& inStream)
 {
+  // Current version
+  version_ = 2;
 
   // Check the marker
   string marker;
   inStream >> marker;
   NTA_CHECK(marker == "SpatialPooler");
 
-  // Check the version.
+  // Check the saved version.
   UInt version;
   inStream >> version;
-  NTA_CHECK(version == 1);  
+  NTA_CHECK(version <= version_);  
 
 
   // Retrieve simple variables
@@ -1428,8 +1444,13 @@ void SpatialPooler::load(istream& inStream)
            >> synPermConnected_
            >> minPctOverlapDutyCycles_
            >> minPctActiveDutyCycles_;
+  if (version == 1) {
+    wrapAround_ = true;
+  } else {
+    inStream >> wrapAround_;
+  }
 
-  // Store vectors.
+  // Retrieve vectors.
   UInt numInputDimensions;
   inStream >> numInputDimensions;
   inputDimensions_.resize(numInputDimensions);
@@ -1475,7 +1496,7 @@ void SpatialPooler::load(istream& inStream)
   }
 
 
-  // Store matrices.
+  // Retrieve matrices.
   potentialPools_.resize(numColumns_, numInputs_);
   for (UInt i = 0; i < numColumns_; i++) {
     UInt nNonZerosOnRow;
@@ -1546,6 +1567,7 @@ void SpatialPooler::printParameters()
     << "dutyCyclePeriod             = " << getDutyCyclePeriod() << std::endl
     << "maxBoost                    = " << getMaxBoost() << std::endl
     << "spVerbosity                 = " << getSpVerbosity() << std::endl
+    << "wrapAround                  = " << getWrapAround() << std::endl
     << "version                     = " << version() << std::endl;
 }
 
