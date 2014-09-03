@@ -190,7 +190,8 @@ void FlatSpatialPooler::initializeFlat(
     dutyCyclePeriod,
     maxBoost,
     seed,
-    spVerbosity);
+    spVerbosity,
+    true);  // Set wrapAround to true
 
   minDistance_ = minDistance;
   randomSP_ = randomSP;
