@@ -26,16 +26,17 @@ os: Windows Server 2012
 # scripts that are called at very beginning, before repo cloning
 init:
   - git config --global core.autocrlf input
+# - git submodule update --init --recursive
 
 # clone directory
 clone_folder: c:\projects\nupic-core
 
-matrix:
-  - COMPILER_FAMILY: GNU
+environment:
+  matrix:
+    - COMPILER_FAMILY: GNU
+    - COMPILER_FAMILY: MSVC
 
-  - COMPILER_FAMILY: MSVC
-
-  fast_finish: true
+#  fast_finish: true
 #  allow_failures:
 #    - platform: x86
 #      configuration: Debug
@@ -46,23 +47,20 @@ matrix:
 # scripts that run after cloning repository
 install:
   echo "Compiler family: %COMPILER_FAMILY%"
-  cinst ruby2.devkit
-  C:\DevKit2\devkitvars.bat
   echo %PATH%
-  cinst cmake
   
   mkdir C:\projects\nupic-core\build\
   mkdir C:\projects\nupic-core\build\scripts
   cd C:\projects\nupic-core\build\scripts
 
   IF "%COMPILER_FAMILY%"=="GNU" cmake C:\projects\nupic-core\src -G "MSYS Makefiles"
-  IF "%COMPILER_FAMILY%"=="MSVC" cmake C:\projects\nupic-core\src
+  IF "%COMPILER_FAMILY%"=="MSVC" cmake C:\projects\nupic-core\src -G "Visual Studio 12"
 
 # enable patching of AssemblyInfo.* files
 assembly_info:
   patch: true
   file: AssemblyInfo.*
-  assembly_version: "2.2.{build}"
+  assembly_version: "1.0.{build}"
   assembly_file_version: "{version}"
   assembly_informational_version: "{version}"
 
@@ -72,8 +70,8 @@ assembly_info:
 
 # build platform, i.e. x86, x64, Any CPU. This setting is optional.
 platform:
-#  - x86
-  - x64
+  - x86
+#  - x64
 
 # build Configuration, i.e. Debug, Release, etc.
 configuration:
@@ -84,9 +82,6 @@ configuration:
 before_build:
 
 #build:
-#  project: NuPIC.core.sln         # path to Visual Studio solution or project
-#  publish_wap: true               # package Web Application Projects (WAP) for Web Deploy
-#  publish_wap_xcopy: true         # package Web Application Projects (WAP) for XCopy deployment
 #  publish_azure: true             # package Azure Cloud Service projects and push to artifacts
 #  publish_nuget: true             # package projects with .nuspec files and push to artifacts
 
@@ -105,6 +100,7 @@ after_build:
   cd C:\projects\nupic-core\build\release
   DIR
 
-# to disable automatic builds
 #build: off
+test: off
+deploy: off
 
