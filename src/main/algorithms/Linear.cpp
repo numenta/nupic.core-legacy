@@ -743,11 +743,9 @@ namespace nta {
 		if(nr_class == max_nr_class)
 		  {
 		    max_nr_class *= 2;
-			free(label);
-			label = Malloc(int,max_nr_class);
-			free(count);
-			count = Malloc(int,max_nr_class);
-		}
+		    label = (int *)realloc(label,max_nr_class*sizeof(int));
+		    count = (int *)realloc(count,max_nr_class*sizeof(int));
+		  }
 		label[nr_class] = this_label;
 		count[nr_class] = 1;
 		++nr_class;

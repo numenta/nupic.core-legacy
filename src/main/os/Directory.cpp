@@ -23,9 +23,7 @@
 /** @file 
 */
 
-#if defined(NTA_PLATFORM_win32)
-// !defined(NTA_COMPILER_MSVC)
-#else
+#if !defined(NTA_PLATFORM_win32)
 #include <unistd.h>
 #endif
 #include <string>
