@@ -160,7 +160,7 @@ void OS::getProcessMemoryUsage(size_t& realMem, size_t& virtualMem)
 
 std::string OS::executeCommand(std::string command)
 {
-#if defined(NTA_PLATFORM_win32) && defined(_MSC_VER)
+#if defined(NTA_PLATFORM_win32) && defined(NTA_COMPILER_MSVC)
   FILE* pipe = _popen(&command[0], "r");
 #else
   FILE* pipe = popen(&command[0], "r");
@@ -178,7 +178,7 @@ std::string OS::executeCommand(std::string command)
       result += buffer;
     }
   }
-#if defined(NTA_PLATFORM_win32) && defined(_MSC_VER)
+#if defined(NTA_PLATFORM_win32) && defined(NTA_COMPILER_MSVC)
   _pclose(pipe);
 #else
   pclose(pipe);

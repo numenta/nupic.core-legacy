@@ -495,11 +495,14 @@ if(${NTA_COMPILER_FAMILY} STREQUAL "GNU")
   endif()
   set(NTA_LINKFLAGS_ARCHIVES "-Wl,-whole-archive")
 elseif(${NTA_COMPILER_FAMILY} STREQUAL "CLANG")
-  set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -fvisibility=hidden -Wall -Wreturn-type -Wunused")
-elseif(${NTA_COMPILER_FAMILY} STREQUAL "MSVC")
-# TODO: add VC-specific compiler options
+  set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-unused-parameter")
+elseif(${NTA_COMPILER_FAMILY} EQUAL "MSVC")
+  # TODO: add VC-specific compiler options
+  # define NOMINMAX to avoid MSVC to define min() and max() as macros,
+  # see http://support.microsoft.com/kb/143208 , http://msdn.microsoft.com/en-us/library/hhzbb5c8.aspx
+  set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} /DNOMINMAX")
 else()
-# TODO: Was this for clang? Should it be more explicit?
+# TODO: What compilers is it for? Should it be more explicit?
   set(NTA_LINKFLAGS_ARCHIVES "-Wl,-force_load")
 endif()
 

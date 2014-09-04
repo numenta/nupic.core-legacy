@@ -40,11 +40,6 @@
 #include <nta/types/Types.hpp>
 #include <nta/math/Utils.hpp>
 
-#ifdef WIN32
-#undef min
-#undef max
-#endif
-
 //--------------------------------------------------------------------------------
 /**
  * Macros to make it easier to work with Boost concept checks
@@ -678,7 +673,7 @@ namespace nta {
   {
     inline float operator()(const float& x) const 
     {
-#ifdef WIN32
+#ifdef NTA_PLATFORM_win32
       return (float) (log(x) / log(2.0));
 #else
       return log2f(x); 
@@ -691,7 +686,7 @@ namespace nta {
   {
     inline double operator()(const double& x) const 
     { 
-#ifdef WIN32
+#ifdef NTA_PLATFORM_win32
       return log(x) / log(2.0);
 #else
       return log2(x); 
@@ -704,7 +699,7 @@ namespace nta {
   {
     inline long double operator()(const long double& x) const 
     { 
-#ifdef WIN32
+#ifdef NTA_PLATFORM_win32
       return log(x) / log(2.0);
 #else
       return log2l(x); 
@@ -721,7 +716,7 @@ namespace nta {
   {
     inline float operator()(const float& x) const 
     {
-#ifdef WIN32
+#ifdef NTA_PLATFORM_win32
       return (float) (log(x) / log(10.0));
 #else
       return log10f(x); 
@@ -734,7 +729,7 @@ namespace nta {
   {
     inline double operator()(const double& x) const 
     { 
-#ifdef WIN32
+#ifdef NTA_PLATFORM_win32
       return log(x) / log(10.0);
 #else
       return log10(x); 
@@ -747,7 +742,7 @@ namespace nta {
   {
     inline long double operator()(const long double& x) const 
     { 
-#ifdef WIN32
+#ifdef NTA_PLATFORM_win32
       return log(x) / log(10.0);
 #else
       return log10l(x); 
@@ -764,7 +759,7 @@ namespace nta {
   {
     inline float operator()(const float& x) const 
     {
-#ifdef WIN32
+#ifdef NTA_PLATFORM_win32
       return (float) log(1.0 + x);
 #else
       return log1pf(x); 
@@ -777,7 +772,7 @@ namespace nta {
   {
     inline double operator()(const double& x) const 
     { 
-#ifdef WIN32
+#ifdef NTA_PLATFORM_win32
       return log(1.0 + x);
 #else
       return log1p(x); 
@@ -790,7 +785,7 @@ namespace nta {
   {
     inline long double operator()(const long double& x) const 
     { 
-#ifdef WIN32
+#ifdef NTA_PLATFORM_win32
       return log(1.0 + x);
 #else
       return log1pl(x); 

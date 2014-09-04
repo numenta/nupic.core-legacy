@@ -45,7 +45,7 @@
 
 // Visual C++ (Windows) does not come with roundf() in
 // the standard library
-#ifdef WIN32
+#ifdef NTA_PLATFORM_win32
 #define ROUND(x)     ((x-floor(x))>0.5 ? ceil(x) : floor(x))
 #else
 #define ROUND(x)     (roundf(x))

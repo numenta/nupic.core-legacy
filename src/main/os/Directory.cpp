@@ -33,7 +33,7 @@
 #include <apr-1/apr_file_io.h>
 #include <apr-1/apr_time.h>
 
-#ifdef WIN32
+#ifdef NTA_PLATFORM_win32
   #include <windows.h>
   #include <tchar.h>
 #else
@@ -51,7 +51,7 @@ namespace nta
     
     std::string getCWD()
     {
-    #ifdef WIN32
+    #ifdef NTA_PLATFORM_win32
       wchar_t wcwd[APR_PATH_MAX];
       DWORD res = ::GetCurrentDirectoryW(APR_PATH_MAX, wcwd);
       NTA_CHECK(res > 0) << "Couldn't get current working directory. Error code: " 
@@ -76,7 +76,7 @@ namespace nta
     void setCWD(const std::string & path)
     {
       int res = 0;
-    #ifdef WIN32
+    #ifdef NTA_PLATFORM_win32
       std::wstring wpath(Path::utf8ToUnicode(path));
       res = ::SetCurrentDirectoryW(wpath.c_str()) ? 0 : -1;
     #else
@@ -89,7 +89,7 @@ namespace nta
     static bool removeEmptyDir(const std::string & path, bool noThrow)
     {
       int res = 0;
-    #ifdef WIN32
+    #ifdef NTA_PLATFORM_win32
       std::wstring wpath(Path::utf8ToUnicode(path));
       res = ::RemoveDirectoryW(wpath.c_str()) != FALSE ? 0 : -1;
     #else
@@ -217,7 +217,7 @@ namespace nta
 
       // non-recursive case
       bool success = true;
-    #ifdef WIN32
+    #ifdef NTA_PLATFORM_win32
       std::wstring wPath = Path::utf8ToUnicode(path);
       success = ::CreateDirectoryW(wPath.c_str(), NULL) != FALSE;
 

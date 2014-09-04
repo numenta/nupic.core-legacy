@@ -37,11 +37,6 @@
 #include <nta/math/Math.hpp>
 #include <nta/math/Types.hpp>
 
-#ifdef WIN32
-#undef min
-#undef max
-#endif
-
 namespace nta {
 
   //--------------------------------------------------------------------------------
@@ -66,7 +61,7 @@ namespace nta {
             SSE41 = 1<<19,
             SSE42 = 1<<20;
 #ifdef NTA_ASM
-  #if defined(NTA_PLATFORM_win32) && defined(_MSC_VER)
+  #if defined(NTA_PLATFORM_win32) && defined(NTA_COMPILER_MSVC)
 
     // VC asm
 

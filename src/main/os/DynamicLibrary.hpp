@@ -28,7 +28,7 @@
 
 //----------------------------------------------------------------------
 
-#ifdef WIN32
+#ifdef NTA_PLATFORM_win32
   #include <Windows.h>
 #else
   #include <dlfcn.h>
@@ -78,7 +78,7 @@ namespace nta
   public:
     enum Mode
     {
-      #ifdef WIN32
+      #ifdef NTA_PLATFORM_win32
       LAZY,
       GLOBAL,
       LOCAL,
