@@ -81,9 +81,12 @@ configuration:
 # scripts to run before build
 before_build:
 
-#build:
+build:
+#  project: NuPIC.core.sln         # path to Visual Studio solution or project
+#  publish_wap: true               # package Web Application Projects (WAP) for Web Deploy
+#  publish_wap_xcopy: true         # package Web Application Projects (WAP) for XCopy deployment
 #  publish_azure: true             # package Azure Cloud Service projects and push to artifacts
-#  publish_nuget: true             # package projects with .nuspec files and push to artifacts
+  publish_nuget: true             # package projects with .nuspec files and push to artifacts
 
   # MSBuild verbosity level
   #verbosity: normal               #quiet|minimal|normal|detailed
@@ -93,14 +96,21 @@ build_script:
   cd C:\projects\nupic-core\build\scripts
 
   IF "%COMPILER_FAMILY%"=="GNU" make
-  IF "%COMPILER_FAMILY%"=="MSVC" msbuild nupic_core.vcxproj /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+  IF "%COMPILER_FAMILY%"=="MSVC" msbuild nupic_core.sln /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
 
 # scripts to run after build
 after_build:
   cd C:\projects\nupic-core\build\release
   DIR
+  cd C:\projects\nupic-core\build\temp
+  DIR
+  cd C:\projects\nupic-core
+  PWD
 
+#after_test:
+#  - ps: .\nuget\pack.ps1
+    
 #build: off
-test: off
+#test: off
 deploy: off
 
