@@ -33,7 +33,7 @@ namespace nta
 {
   struct BasicTypeTest : public Tester
   {
-    virtual void RunTests();        
+    virtual void RunTests() override;        
   };
 }
 
