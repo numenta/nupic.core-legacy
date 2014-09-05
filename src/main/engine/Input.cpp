@@ -41,6 +41,10 @@ Input::Input(Region& region, NTA_BasicType dataType, bool isRegionLevel) :
   region_(region), isRegionLevel_(isRegionLevel), 
   initialized_(false),  data_(dataType), name_("Unnamed")
 {
+  if (&region == NULL)
+  {
+    NTA_THROW << "Attempt to create Input with a null region";
+  }
 }
 
 Input::~Input()
