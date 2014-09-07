@@ -89,6 +89,8 @@ namespace nta {
 #define TESTEQUAL2(name, expected, actual) \
   EXPECT_EQ(expected, actual) << "assertion \"" << #name << "\" failed at " << __FILE__ << ":" << __LINE__ ;
 
+#undef TEST
+
 #define TEST(condition) 
   EXPECT_TRUE(condition) << "assertion \"" << #condition << "\" failed at " << __FILE__ << ":" << __LINE__ ;
 #define TEST2(name, condition)
@@ -130,7 +132,7 @@ namespace nta {
   }
 
 #define ADD_TEST(testname) \
-  TEST(#testname "Case", #testname) {
+   GTEST_TEST(#testname "Case", #testname) {
     #testname t;
 
     t.RunTests();
