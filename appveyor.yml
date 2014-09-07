@@ -33,7 +33,7 @@ clone_folder: c:\projects\nupic-core
 
 environment:
   matrix:
-    - COMPILER_FAMILY: GNU
+#    - COMPILER_FAMILY: GNU
     - COMPILER_FAMILY: MSVC
 
 #  fast_finish: true
@@ -53,8 +53,8 @@ install:
   mkdir C:\projects\nupic-core\build\scripts
   cd C:\projects\nupic-core\build\scripts
 
-  IF "%COMPILER_FAMILY%"=="GNU" cmake C:\projects\nupic-core\src -G "MSYS Makefiles"
-  IF "%COMPILER_FAMILY%"=="MSVC" cmake C:\projects\nupic-core\src -G "Visual Studio 12"
+  IF "%COMPILER_FAMILY%" == "GNU" cmake C:\projects\nupic-core\src -G "MSYS Makefiles"
+  IF "%COMPILER_FAMILY%" == "MSVC" cmake C:\projects\nupic-core\src -G "Visual Studio 12"
 
 # enable patching of AssemblyInfo.* files
 assembly_info:
@@ -95,8 +95,8 @@ build:
 build_script:
   cd C:\projects\nupic-core\build\scripts
 
-  IF "%COMPILER_FAMILY%"=="GNU" make
-  IF "%COMPILER_FAMILY%"=="MSVC" msbuild nupic_core.sln /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+  IF "%COMPILER_FAMILY%" == "GNU" make
+  IF "%COMPILER_FAMILY%" == "MSVC" msbuild nupic_core.sln /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
 
 # scripts to run after build
 after_build:
