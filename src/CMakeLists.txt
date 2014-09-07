@@ -657,6 +657,25 @@ endforeach()
 file(WRITE "${PROJECT_SOURCE_DIR}/test/testeverything/EverythingAddtests.hpp" "${tests_file_content}")
 file(WRITE "${PROJECT_SOURCE_DIR}/test/testeverything/EverythingHeaders.hpp" "${headers_file_content}")
 
+#
+# Create file with unit tests used by Google Test
+#
+set(ITEMS_RETURNED)
+get_files_list(${PROJECT_SOURCE_DIR}/test/googletests " " "Test.hpp")
+set(files ${ITEMS_RETURNED})
+set(tests_file_content "")
+set(headers_file_content "")
+foreach(file ${files})
+  get_filename_component(test ${file} NAME_WE)
+  if(NOT ${file} MATCHES "TesterTest")
+    set(tests_file_content "${tests_file_content}ADD_TEST(${test});\n")
+    set(headers_file_content "${headers_file_content}#include \"${file}\"\n")
+  endif()
+endforeach()
+file(WRITE "${PROJECT_SOURCE_DIR}/test/googletests/Addtests.hpp" "${tests_file_content}")
+file(WRITE "${PROJECT_SOURCE_DIR}/test/googletests/Headers.hpp" "${headers_file_content}")
+
+
 
 ############################################################################################################################
 ###                                                                                                                      ###
