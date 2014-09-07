@@ -665,11 +665,15 @@ add_custom_target(tests_htm
                   
 add_custom_target(tests_everything
                   COMMAND ${PROJECT_BUILD_RELEASE_DIR}/bin/${EXECUTABLE_TESTEVERYTHING})
-                  
+
+add_custom_target(google_tests
+                  COMMAND ${PROJECT_BUILD_RELEASE_DIR}/bin/${EXECUTABLE_GTESTS})
+
 # tests_all just calls other targets
 add_custom_target(tests_all
                   DEPENDS tests_htm
                   DEPENDS tests_everything
+                  DEPENDS google_tests
                   COMMENT "Running all tests")
 
 #
