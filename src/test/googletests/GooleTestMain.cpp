@@ -25,9 +25,27 @@ Google test main program
 */
 
 #include "gtest/gtest.h"
+
 #include "sample1.h"
 
+#include <nta/test/Tester.hpp>
+
+#include "AddTestHeaders.hpp"
+
+using namespace std;
+using namespace nta;
+
+#include "AddTests.hpp"
+
 int main(int argc, char** argv) {
+  // initialize APR
+  apr_status_t    result;
+  result = apr_app_initialize(&argc, &argv, 0 /*env*/);
+  if (result) 
+    NTA_THROW << "error initializing APR. Err code: " << result;
+
+  Tester::init();
+
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

@@ -35,32 +35,21 @@
 
 using namespace std;
 namespace nta {
-	
-  bool Tester::disableNegativeTests_ = false;
 
   /* static members */
   std::string Tester::testInputDir_;
   std::string Tester::testOutputDir_;
 
-  Tester::Tester():
-    testCount_(0),
-    hardFailCount_(0),
-    disabledCount_(0),
-    criticalFailureOccurred_(false),
-    name_("Name has not been set yet")
+  Tester::Tester()
   {
     
   }
 
   Tester::~Tester()
   {
-    // free up all of the testResult structures that have been allocated
-    for (unsigned int i = 0; i < allTestResults_.size(); i++) {
-      delete allTestResults_[i];
-    }
   }
 
-  void Tester::init(bool disableNegativeTests) {
+  void Tester::init() {
     /* the following functions implicitly set these options if not
      * already set. 
      */
@@ -74,75 +63,7 @@ namespace nta {
       // will throw if unsuccessful. 
       Directory::create(string(testOutputDir_));
     } 
-    disableNegativeTests_ = disableNegativeTests;
   }
-  
-  void Tester::runTestsWithExceptionHandling()
-  {
-    try 
-    {
-      RunTests();
-    }
-    catch (std::exception& e)
-    {
-      std::cout << "WARNING: Caught exception: " << e.what() << "\n";
-      failHard();
-      criticalFailureOccurred_ = true;
-      criticalFailureMsg_ = e.what();
-    }
-    catch (...)
-    {
-      std::cout << "WARNING: Caught unknown exception" << "\n";
-      failHard();
-      criticalFailureOccurred_ = true;
-      criticalFailureMsg_ = "Unknown exception";
-    }
-  }
-
-  void Tester::logTestResult(testResult* r) {
-    if (r->disabled)
-    {
-      std::cout << "DISABLED  ";
-    } else {
-      std::cout << (r->pass == true ? "PASS  " : "FAIL  ");
-    }
-    std::cout << r->name;
-    
-    if (!r->disabled) {
-      std::cout << "\n      Expected result: " << r->expectedValue << "\n";
-      std::cout << "      Actual result:   " << r->actualValue;
-    }
-    std::cout << "\n";
-
-  }
-  
-
-  void Tester::report(bool showall)
-  {	
-    std::cout << "======= Tests for " << name_ << " ==============\n";
-    std::cout << "Total tests: " << testCount() << 
-      ", Failures:      " << hardFailCount() <<
-      ", Disabled     : " << disabledCount() << "\n";
-  
-    if (criticalFailureOccurred())
-    {
-      std::cout << "WARNING: Critical failure ocurred\n";
-      showall = true;
-    }
-  
-    for(unsigned int i= 0; i < allTestResults_.size(); i++)
-    {
-      testResult* r = allTestResults_[i];
-      if (showall == true || r->pass == false || r->disabled == true) {
-        logTestResult(r);
-      }
-    }
-    if (!criticalFailureOccurred() && testCount() == passCount() && disabledCount() == 0) {
-      std::cout << "All tests passed\n";
-    }
-    std::cout << "======= Done with " << name_ << " tests ===========\n\n";
-  }
-
 
   std::string Tester::fromTestInputDir(const std::string& path) {
     
