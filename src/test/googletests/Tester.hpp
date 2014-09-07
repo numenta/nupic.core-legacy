@@ -84,17 +84,17 @@ namespace nta {
 #define TESTEQUAL(expected, actual) \
   EXPECT_EQ(expected, actual);
 #define TESTEQUAL_FLOAT(expected, actual) \
-  EXPECT_TRUE(::fabs(expected - actual) < 0.000001) << "assertion \"" << #expected " == " #actual << "\" failed at " << __FILE__ << ":" << __LINE__ ;
+  EXPECT_TRUE(::fabs(expected - actual) < 0.000001) << "assertion \"" #expected " == " #actual << "\" failed at " << __FILE__ << ":" << __LINE__ ;
 
 #define TESTEQUAL2(name, expected, actual) \
-  EXPECT_EQ(expected, actual) << "assertion \"" << #name << "\" failed at " << __FILE__ << ":" << __LINE__ ;
+  EXPECT_EQ(expected, actual) << "assertion \"" #name "\" failed at " << __FILE__ << ":" << __LINE__ ;
 
 #undef TEST
 
 #define TEST(condition) 
-  EXPECT_TRUE(condition) << "assertion \"" << #condition << "\" failed at " << __FILE__ << ":" << __LINE__ ;
+  EXPECT_TRUE(condition) << "assertion \"" #condition "\" failed at " << __FILE__ << ":" << __LINE__ ;
 #define TEST2(name, condition)
-  EXPECT_TRUE(condition) << "assertion \"" << #name << ": " << #condition << "\" failed at " << __FILE__ << ":" << __LINE__ ;
+  EXPECT_TRUE(condition) << "assertion \"" #name ": " #condition "\" failed at " << __FILE__ << ":" << __LINE__ ;
 
 // http://code.google.com/p/googletest/wiki/V1_7_AdvancedGuide#Exception_Assertions
 #define SHOULDFAIL(statement) \
