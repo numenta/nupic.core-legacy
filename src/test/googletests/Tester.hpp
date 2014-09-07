@@ -91,9 +91,9 @@ namespace nta {
 
 #undef TEST
 
-#define TEST(condition) 
+#define TEST(condition) \
   EXPECT_TRUE(condition) << "assertion \"" #condition "\" failed at " << __FILE__ << ":" << __LINE__ ;
-#define TEST2(name, condition)
+#define TEST2(name, condition) \
   EXPECT_TRUE(condition) << "assertion \"" #name ": " #condition "\" failed at " << __FILE__ << ":" << __LINE__ ;
 
 // http://code.google.com/p/googletest/wiki/V1_7_AdvancedGuide#Exception_Assertions
@@ -115,7 +115,7 @@ namespace nta {
 //   } \
 // }
 
-#define SHOULDFAIL_WITH_MESSAGE(statement, message)     \
+#define SHOULDFAIL_WITH_MESSAGE(statement, message) \
   { \
     bool caughtException = false; \
     try { \
