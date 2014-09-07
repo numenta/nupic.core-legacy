@@ -44,10 +44,10 @@ using namespace nta;
 
 #include "AddTests.hpp"
 
-int main(int argc, const char * const argv[]) {
+int main(int argc, char ** argv) {
   // initialize APR
   apr_status_t    result;
-  result = apr_app_initialize(&argc, &argv, 0 /*env*/);
+  result = apr_app_initialize(&argc, (char const *const **)&argv, 0 /*env*/);
   if (result) 
     NTA_THROW << "error initializing APR. Err code: " << result;
 
