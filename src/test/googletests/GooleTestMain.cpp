@@ -24,7 +24,14 @@
 Google test main program
 */
 
+#ifdef WIN32
+// Exclude rarely-used stuff from Windows headers
+#define WIN32_LEAN_AND_MEAN
+#endif
+
 #include "gtest/gtest.h"
+// APR must be explicit initialized
+#include <apr-1/apr_general.h>
 
 #include "sample1.h"
 
