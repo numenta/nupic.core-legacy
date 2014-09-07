@@ -38,8 +38,6 @@ script:
   - "make -j3"
   # legacy binary tests
   - "make tests_htm"
-  # (not quite everything, really)
-  - "make tests_everything"
   # google tests (under construction)
   - "make google_tests"
 
