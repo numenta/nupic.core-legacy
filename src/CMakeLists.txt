@@ -364,6 +364,11 @@ message(STATUS "  Build System: ${PROJECT_BINARY_DIR}")
 message(STATUS "  Build Directory: ${PROJECT_BUILD_TEMP_DIR}")
 message(STATUS "  Release: ${PROJECT_BUILD_RELEASE_DIR}")
 
+# 
+# Temporarily copying files to do gtest experiment
+# 
+copy_directory(${PROJECT_SOURCE_DIR}/test/testeverything/engine ${PROJECT_SOURCE_DIR}/test/googletests/engine)
+
 
 ############################################################################################################################
 ###                                                                                                                      ###
