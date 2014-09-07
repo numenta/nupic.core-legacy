@@ -130,11 +130,14 @@ namespace nta {
     EXPECT_EQ(true, caughtException) << "statement '" #statement "' should fail"; \
   }
 
-#define ADD_TEST(testname) \
-   GTEST_TEST(#testname "Case", #testname) { \
+#define ADDING_TEST(testname, postfix) \
+    GTEST_TEST(testname##postfix, testname) { \
     testname t; \
     t.RunTests(); \
-  } 
+  }  
+
+#define ADD_TEST(testname) \
+   ADDING_TEST(testname, Case)
 
 #endif // NTA_TESTER_HPP
 
