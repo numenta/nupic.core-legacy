@@ -631,6 +631,12 @@ foreach(src_file ${files})
 endforeach()
 copy_file(${PROJECT_SOURCE_DIR}/main/ntypes/Collection.cpp ${PROJECT_BUILD_RELEASE_DIR}/include/nta/ntypes/Collection.cpp)
 
+# 
+# Temporarily copy the Tester implemented with Google Test to:
+# 'build/release/include' and 'src/main/test'
+# 
+copy_file(${PROJECT_SOURCE_DIR}/test/googletests/Tester.hpp ${PROJECT_BUILD_RELEASE_DIR}/include/nta/test/Tester.hpp)
+copy_file(${PROJECT_SOURCE_DIR}/test/googletests/Tester.cpp "${PROJECT_SOURCE_DIR}/main/test/Tester.cpp")
 #
 # Create file with unit tests used by TestEverything
 #
