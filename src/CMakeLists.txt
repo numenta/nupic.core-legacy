@@ -672,8 +672,8 @@ foreach(file ${files})
     set(headers_file_content "${headers_file_content}#include \"${file}\"\n")
   endif()
 endforeach()
-file(WRITE "${PROJECT_SOURCE_DIR}/test/googletests/Addtests.hpp" "${tests_file_content}")
-file(WRITE "${PROJECT_SOURCE_DIR}/test/googletests/Headers.hpp" "${headers_file_content}")
+file(WRITE "${PROJECT_SOURCE_DIR}/test/googletests/AddTests.hpp" "${tests_file_content}")
+file(WRITE "${PROJECT_SOURCE_DIR}/test/googletests/AddTestHeaders.hpp" "${headers_file_content}")
 
 
 
