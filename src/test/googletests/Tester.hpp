@@ -100,20 +100,20 @@ namespace nta {
 #define SHOULDFAIL(statement) \
   EXPECT_THROW(statement, std::exception);
 
-  // { \
-  //   if (!disableNegativeTests_) \
-  //   { \
-  //     bool caughtException = false; \
-  //     try { \
-  //       statement; \
-  //     } catch(std::exception& ) { \
-  //       caughtException = true; \
-  //     } \
-  //     testEqual("statement '" #statement "' should fail", __FILE__, __LINE__, true, caughtException); \
-  //   } else { \
-  //     disable("statement '" #statement "' should fail", __FILE__, __LINE__); \
-  //   } \
-  // }
+// { \
+//   if (!disableNegativeTests_) \
+//   { \
+//     bool caughtException = false; \
+//     try { \
+//       statement; \
+//     } catch(std::exception& ) { \
+//       caughtException = true; \
+//     } \
+//     testEqual("statement '" #statement "' should fail", __FILE__, __LINE__, true, caughtException); \
+//   } else { \
+//     disable("statement '" #statement "' should fail", __FILE__, __LINE__); \
+//   } \
+// }
 
 #define SHOULDFAIL_WITH_MESSAGE(statement, message)     \
   { \
@@ -127,16 +127,14 @@ namespace nta {
     } catch(...) { \
       FAIL() << "statement '" #statement "' did not generate a logging exception"; \
     } \
-
     EXPECT_EQ(true, caughtException) << "statement '" #statement "' should fail"; \
   }
 
 #define ADD_TEST(testname) \
-   GTEST_TEST(#testname "Case", #testname) {
-    #testname t;
-
-    t.RunTests();
-  }
+   GTEST_TEST(#testname "Case", #testname) { \
+    testname t; \
+    t.RunTests(); \
+  } 
 
 #endif // NTA_TESTER_HPP
 
