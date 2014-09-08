@@ -49,5 +49,5 @@ script:
 after_success:
   - "cd $TRAVIS_BUILD_DIR"
   # Send test coverage report to http://coveralls.io under only linux
-  - "if [ ${TRAVIS_OS_NAME:-'linux'} = 'linux' ]; then coveralls --exclude external --exclude doc --exclude src/test; fi"
+  - "if [ ${TRAVIS_OS_NAME:-'linux'} = 'linux' ]; then ls /usr/bin/gcov* ; coveralls --gcov /usr/bin/gcov-4.6 --exclude external --exclude doc --exclude src/test; fi"
 
