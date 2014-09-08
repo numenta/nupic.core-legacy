@@ -608,7 +608,7 @@ set(LIBRARIES
   ${NTA_TEST_LIBS}
 )
 
-generate_executable(${EXECUTABLE_GTESTS} "${PROJECT_SOURCE_DIR}/test/unit" "${PROJECT_BUILD_RELEASE_DIR}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
+generate_executable(${EXECUTABLE_GTESTS} "${PROJECT_SOURCE_DIR}/test/unit" "${CMAKE_INSTALL_PREFIX}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
 
 #
 # HelloRegion
