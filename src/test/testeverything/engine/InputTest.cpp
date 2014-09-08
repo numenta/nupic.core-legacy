@@ -43,8 +43,6 @@ void InputTest::RunTests()
     //Test constructor
     Input x(*r1, NTA_BasicType_Int32, true);
     Input y(*r2, NTA_BasicType_Byte, false);
-    Region * rn = NULL;
-    SHOULDFAIL(Input z(*rn, NTA_BasicType_Int32, true));
     SHOULDFAIL(Input i(*r1, (NTA_BasicType)(NTA_BasicType_Last + 1), true));
 
     //test getRegion()
