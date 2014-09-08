@@ -84,7 +84,7 @@ namespace nta {
 #define TESTEQUAL(expected, actual) \
   EXPECT_EQ(expected, actual);
 #define TESTEQUAL_FLOAT(expected, actual) \
-  EXPECT_TRUE(::fabs(expected - actual) < 0.000001) << "assertion \"" #expected " == " #actual << "\" failed at " << __FILE__ << ":" << __LINE__ ;
+  EXPECT_DOUBLE_EQ(expected, actual) << "assertion \"" #expected " == " #actual << "\" failed at " << __FILE__ << ":" << __LINE__ ;
 
 #define TESTEQUAL2(name, expected, actual) \
   EXPECT_EQ(expected, actual) << "assertion \"" #name "\" failed at " << __FILE__ << ":" << __LINE__ ;
