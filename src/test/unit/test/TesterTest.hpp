@@ -30,22 +30,24 @@ Unit tester tester.
 #include <nta/test/Tester.hpp>
 
 namespace nta {
-	
+  
   /** Tests the unit tester interface.
    *
    */
   class TesterTest : public Tester  {
-		
-  public:
-    // Constructors and destructors
-    TesterTest();
-    virtual ~TesterTest();
-		
-    // Run all appropriate tests
-    virtual void RunTests();
-		
+    
+    public:
+      // Constructors and destructors
+      TesterTest();
+      virtual ~TesterTest();
+      
+      // Run all appropriate tests
+      virtual void RunTests();
+
+      // Run tests that should fail
+      void RunTestsShouldFail();
   };
-	
+  
 } // end namespace nta
 
 #endif // __TesterTest_hpp__

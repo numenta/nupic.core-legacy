@@ -27,69 +27,74 @@
 
 namespace nta {
 
-template <class T> const T& Max( const T& t1, const T& t2) { return (t1 > t2) ? t1 : t2; }
-template <class T> const T& Min( const T& t1, const T& t2) { return (t1 < t2) ? t1 : t2; }
-   
-TesterTest::TesterTest()
-{
-}
+  template <class T> const T& Max( const T& t1, const T& t2) { return (t1 > t2) ? t1 : t2; }
+  template <class T> const T& Min( const T& t1, const T& t2) { return (t1 < t2) ? t1 : t2; }
+     
+  TesterTest::TesterTest()
+  {
+  }
 
-TesterTest::~TesterTest()
-{
-}
+  TesterTest::~TesterTest()
+  {
+  }
 
-// Run all appropriate tests
-void TesterTest::RunTests()
-{
+  // Run all appropriate tests
+  void TesterTest::RunTests()
+  {
 
-  TESTEQUAL2("Integer test, should succeed",1,1);
-  TESTEQUAL2("Double test, should succeed",23.42,23.42);
-  TESTEQUAL2_STR("String test, should succeed","Numenta","Numenta");
+    TESTEQUAL2("Integer test, should succeed",1,1);
+    TESTEQUAL2("Double test, should succeed",23.42,23.42);
+    TESTEQUAL2_STR("String test, should succeed","Numenta","Numenta");
 
-  // Repeat the above for TESTEQUAL
-  TESTEQUAL(1,1);
-  TESTEQUAL(23.42,23.42);
-  TESTEQUAL_STR("Numenta","Numenta");
-  
-  // Test functions in Common
-  TESTEQUAL2("Max test", 23.3, Max(23.2, 23.3));
-  TESTEQUAL2("Min test", 23.2, Min(23.2, 23.3));
-  TESTEQUAL2("Max test", 'b', Max('a', 'b'));
-  TESTEQUAL2("Min test", 'a', Min('a', 'b'));
+    // Repeat the above for TESTEQUAL
+    TESTEQUAL(1,1);
+    TESTEQUAL(23.42,23.42);
+    TESTEQUAL_STR("Numenta","Numenta");
+    
+    // Test functions in Common
+    TESTEQUAL2("Max test", 23.3, Max(23.2, 23.3));
+    TESTEQUAL2("Min test", 23.2, Min(23.2, 23.3));
+    TESTEQUAL2("Max test", 'b', Max('a', 'b'));
+    TESTEQUAL2("Min test", 'a', Min('a', 'b'));
 
-  // Repeat the above for TESTEQUAL
-  TESTEQUAL(23.3, Max(23.2, 23.3));
-  TESTEQUAL(23.2, Min(23.2, 23.3));
-  TESTEQUAL('b', Max('a', 'b'));
-  TESTEQUAL('a', Min('a', 'b'));
+    // Repeat the above for TESTEQUAL
+    TESTEQUAL(23.3, Max(23.2, 23.3));
+    TESTEQUAL(23.2, Min(23.2, 23.3));
+    TESTEQUAL('b', Max('a', 'b'));
+    TESTEQUAL('a', Min('a', 'b'));
 
-  // TESTEQUAL_FLOAT allows error less than 0.000001
-  TESTEQUAL_FLOAT(23.42,23.4200009);
+    // TESTEQUAL_FLOAT allows error less than 0.000001
+    TESTEQUAL_FLOAT(23.42,23.4200009);
 
-  // Tests for TEST
-  TEST(true);  
-  TEST2("TEST2(true)", true);  
+    // Tests for TEST
+    TEST(true);  
+    TEST2("TEST2(true)", true);  
 
-  // Tests for throws  
-  nta::LoggingException e(__FILE__, __LINE__);
-  e << "This exception should be thrown.";
+    // Tests for throws  
+    nta::LoggingException e(__FILE__, __LINE__);
+    e << "This exception should be thrown.";
 
-  SHOULDFAIL(throw e);  
-  SHOULDFAIL_WITH_MESSAGE(
-    throw e,
-    "This exception should be thrown.");
+    SHOULDFAIL(throw e);  
+    SHOULDFAIL_WITH_MESSAGE(
+      throw e,
+      "This exception should be thrown.");
+  }
 
-  // These are probably the only tests in our test suite that should fail!
-  // Can't catch them so comment them out for now
-  // TESTEQUAL2("Integer test, should fail",1,0);
-  // TESTEQUAL2("Double test, should fail",23.42,23.421);
-  // TESTEQUAL2_STR("String test, should fail","Numenta","Numenta ");
-  // TESTEQUAL(1,0));
-  // TESTEQUAL(23.42,23.421);
-  // TESTEQUAL_STR("Numenta","Numenta ");
-  // TEST(false);
-  // TEST2("TEST2(false)", false);
-}
+  void TesterTest::RunTestsShouldFail()
+  {
+    // These are probably the only tests in our test suite that should fail.
+    // In gtest, there's currently no easy way to verify that these tests should fail
+    // without affecting the test result, so these tests are not run but only put together,
+    // waiting to see if there's a solution
+    TESTEQUAL2("Integer test, should fail",1,0);
+    TESTEQUAL2("Double test, should fail",23.42,23.421);
+    TESTEQUAL2_STR("String test, should fail","Numenta","Numenta ");
+    TESTEQUAL(1,0);
+    TESTEQUAL(23.42,23.421);
+    TESTEQUAL_STR("Numenta","Numenta ");
+    TEST(false);
+    TEST2("TEST2(false)", false);    
+  }
 
 } // end namespace nta
 
