@@ -242,7 +242,10 @@ endif()
 if("${PROJECT_BUILD_TEMP_DIR}" STREQUAL "")
   set(PROJECT_BUILD_TEMP_DIR "${REPOSITORY_DIR}/build/temp")
 endif()
-
+# 'artifacts' is a subdirectory created on /build root.
+if("${PROJECT_BUILD_ARTIFACTS_DIR}" STREQUAL "")
+  set(PROJECT_BUILD_ARTIFACTS_DIR "${REPOSITORY_DIR}/build/artifacts")
+endif()
 
 #
 # Prepare directory structure
@@ -252,6 +255,7 @@ execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_RELEA
 execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_RELEASE_DIR}/bin)
 execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_TEMP_DIR}/lib)
 execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_TEMP_DIR}/obj)
+execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_ARTIFACTS_DIR}/)
 
 #
 # Set OS flags
@@ -653,7 +657,7 @@ add_custom_target(tests_htm
                   COMMAND ${PROJECT_BUILD_RELEASE_DIR}/bin/${EXECUTABLE_HTMTEST})
                   
 add_custom_target(google_tests
-                  COMMAND ${PROJECT_BUILD_RELEASE_DIR}/bin/${EXECUTABLE_GTESTS})
+                  COMMAND ${PROJECT_BUILD_RELEASE_DIR}/bin/${EXECUTABLE_GTESTS} "--gtest_output=xml:${PROJECT_BUILD_ARTIFACTS_DIR}/unit_tests_report.xml")
 
 # tests_all just calls other targets
 add_custom_target(tests_all
