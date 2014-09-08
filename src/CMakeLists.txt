@@ -633,7 +633,7 @@ merge_static_libraries(${LIB_STATIC_NUPICCORE} "${CMAKE_INSTALL_PREFIX}/lib" "${
 ################################################################################
 
 install(TARGETS ${LIB_STATIC_NUPICCORE} DESTINATION lib)
-install(TARGETS testcpphtm testeverything helloregion DESTINATION bin)
+install(TARGETS testcpphtm unit_tests helloregion DESTINATION bin)
 
 #
 # Copy all headers files to 'build/release/include'
