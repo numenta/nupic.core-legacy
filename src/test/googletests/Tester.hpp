@@ -94,7 +94,7 @@ namespace nta {
   TESTEQUAL2(name, std::string(expected), std::string(actual));
 
 #define TESTEQUAL_FLOAT(expected, actual) \
-  EXPECT_DOUBLE_EQ(expected, actual) << "assertion \"" #expected " == " #actual << "\" failed at " << __FILE__ << ":" << __LINE__ ;
+  ASSERT_NEAR(expected, actual, 0.000001) << "assertion \"" #expected " == " #actual << "\" failed at " << __FILE__ << ":" << __LINE__ ;
 
 
 #undef TEST
