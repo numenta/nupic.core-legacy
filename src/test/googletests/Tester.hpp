@@ -83,11 +83,19 @@ namespace nta {
 
 #define TESTEQUAL(expected, actual) \
   EXPECT_EQ(expected, actual);
-#define TESTEQUAL_FLOAT(expected, actual) \
-  EXPECT_DOUBLE_EQ(expected, actual) << "assertion \"" #expected " == " #actual << "\" failed at " << __FILE__ << ":" << __LINE__ ;
 
 #define TESTEQUAL2(name, expected, actual) \
   EXPECT_EQ(expected, actual) << "assertion \"" #name "\" failed at " << __FILE__ << ":" << __LINE__ ;
+
+#define TESTEQUAL_STR(expected, actual) \
+  TESTEQUAL(std::string(expected), std::string(actual));
+
+#define TESTEQUAL2_STR(name, expected, actual) \
+  TESTEQUAL2(name, std::string(expected), std::string(actual));
+
+#define TESTEQUAL_FLOAT(expected, actual) \
+  EXPECT_DOUBLE_EQ(expected, actual) << "assertion \"" #expected " == " #actual << "\" failed at " << __FILE__ << ":" << __LINE__ ;
+
 
 #undef TEST
 
