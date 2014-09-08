@@ -116,10 +116,10 @@ void InputTest::RunTests()
     Input * in1 = region1->getInput("bottomUpIn");
     Input * in2 = region2->getInput("bottomUpIn");
 
-    TESTEQUAL("bottomUpIn", in1->getName());
-    TESTEQUAL("bottomUpIn", in2->getName());
+    TESTEQUAL_STR("bottomUpIn", in1->getName());
+    TESTEQUAL_STR("bottomUpIn", in2->getName());
     in1->setName("uselessName");
-    TESTEQUAL("uselessName", in1->getName());
+    TESTEQUAL_STR("uselessName", in1->getName());
     in1->setName("bottomUpIn");
 
     //test isInitialized()

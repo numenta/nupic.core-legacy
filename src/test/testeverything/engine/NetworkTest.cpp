@@ -62,7 +62,7 @@ void NetworkTest::test_nupic_auto_initialization()
     Region *l1 = net.addRegion("level1", "TestNode", "");
     
     // Use l1 to avoid a compiler warning
-    TESTEQUAL("level1", l1->getName());
+    TESTEQUAL_STR("level1", l1->getName());
     
     // Network still exists, so this should fail. 
     SHOULDFAIL(NuPIC::shutdown());
@@ -361,7 +361,7 @@ void NetworkTest::test_phases()
     // should auto-initialize with max phase
     Region *l1 = net.addRegion("level1", "TestNode", "");
     // Use l1 to avoid a compiler warning
-    TESTEQUAL("level1", l1->getName());
+    TESTEQUAL_STR("level1", l1->getName());
 
     std::set<UInt32> phaseSet = net.getPhases("level1");
     TESTEQUAL((UInt32)1, phaseSet.size());
@@ -369,7 +369,7 @@ void NetworkTest::test_phases()
 
 
     Region *l2 = net.addRegion("level2", "TestNode", "");
-    TESTEQUAL("level2", l2->getName());
+    TESTEQUAL_STR("level2", l2->getName());
     phaseSet = net.getPhases("level2");
     TEST(phaseSet.size() == 1);
     TEST(phaseSet.find(1) != phaseSet.end());
@@ -390,10 +390,10 @@ void NetworkTest::test_phases()
     net.run(2);
     TESTEQUAL((UInt32)4, computeHistory.size());
     // use at() to throw an exception if out of range
-    TESTEQUAL("level1", computeHistory.at(0));
-    TESTEQUAL("level2", computeHistory.at(1));
-    TESTEQUAL("level1", computeHistory.at(2));
-    TESTEQUAL("level2", computeHistory.at(3));
+    TESTEQUAL_STR("level1", computeHistory.at(0));
+    TESTEQUAL_STR("level2", computeHistory.at(1));
+    TESTEQUAL_STR("level1", computeHistory.at(2));
+    TESTEQUAL_STR("level2", computeHistory.at(3));
     computeHistory.clear();
 
     phaseSet.clear();
@@ -404,12 +404,12 @@ void NetworkTest::test_phases()
     TESTEQUAL((UInt32)6, computeHistory.size());
     if (computeHistory.size() == 6)
     {
-      TESTEQUAL("level1", computeHistory.at(0));
-      TESTEQUAL("level2", computeHistory.at(1));
-      TESTEQUAL("level1", computeHistory.at(2));
-      TESTEQUAL("level1", computeHistory.at(3));
-      TESTEQUAL("level2", computeHistory.at(4));
-      TESTEQUAL("level1", computeHistory.at(5));
+      TESTEQUAL_STR("level1", computeHistory.at(0));
+      TESTEQUAL_STR("level2", computeHistory.at(1));
+      TESTEQUAL_STR("level1", computeHistory.at(2));
+      TESTEQUAL_STR("level1", computeHistory.at(3));
+      TESTEQUAL_STR("level2", computeHistory.at(4));
+      TESTEQUAL_STR("level1", computeHistory.at(5));
     }
     computeHistory.clear();
   }
@@ -448,12 +448,12 @@ void NetworkTest::test_phases()
     computeHistory.clear();
     n.run(2);
     TESTEQUAL((UInt32)6, computeHistory.size());
-    TESTEQUAL("level1", computeHistory.at(0));
-    TESTEQUAL("level2", computeHistory.at(1));
-    TESTEQUAL("level3", computeHistory.at(2));
-    TESTEQUAL("level1", computeHistory.at(3));
-    TESTEQUAL("level2", computeHistory.at(4));
-    TESTEQUAL("level3", computeHistory.at(5));
+    TESTEQUAL_STR("level1", computeHistory.at(0));
+    TESTEQUAL_STR("level2", computeHistory.at(1));
+    TESTEQUAL_STR("level3", computeHistory.at(2));
+    TESTEQUAL_STR("level1", computeHistory.at(3));
+    TESTEQUAL_STR("level2", computeHistory.at(4));
+    TESTEQUAL_STR("level3", computeHistory.at(5));
     
     
     n.setMinEnabledPhase(0);
@@ -461,18 +461,18 @@ void NetworkTest::test_phases()
     computeHistory.clear();
     n.run(2);
     TESTEQUAL((UInt32)4, computeHistory.size());
-    TESTEQUAL("level1", computeHistory.at(0));
-    TESTEQUAL("level2", computeHistory.at(1));
-    TESTEQUAL("level1", computeHistory.at(2));
-    TESTEQUAL("level2", computeHistory.at(3));
+    TESTEQUAL_STR("level1", computeHistory.at(0));
+    TESTEQUAL_STR("level2", computeHistory.at(1));
+    TESTEQUAL_STR("level1", computeHistory.at(2));
+    TESTEQUAL_STR("level2", computeHistory.at(3));
 
     n.setMinEnabledPhase(1);
     n.setMaxEnabledPhase(1);
     computeHistory.clear();
     n.run(2);
     TESTEQUAL((UInt32)2, computeHistory.size());
-    TESTEQUAL("level2", computeHistory.at(0));
-    TESTEQUAL("level2", computeHistory.at(1));
+    TESTEQUAL_STR("level2", computeHistory.at(0));
+    TESTEQUAL_STR("level2", computeHistory.at(1));
 
     // reset to full network
     n.setMinEnabledPhase(0);
@@ -482,12 +482,12 @@ void NetworkTest::test_phases()
     TESTEQUAL((UInt32)6, computeHistory.size());
     if (computeHistory.size() == 6)
     {
-      TESTEQUAL("level1", computeHistory.at(0));
-      TESTEQUAL("level2", computeHistory.at(1));
-      TESTEQUAL("level3", computeHistory.at(2));
-      TESTEQUAL("level1", computeHistory.at(3));
-      TESTEQUAL("level2", computeHistory.at(4));
-      TESTEQUAL("level3", computeHistory.at(5));
+      TESTEQUAL_STR("level1", computeHistory.at(0));
+      TESTEQUAL_STR("level2", computeHistory.at(1));
+      TESTEQUAL_STR("level3", computeHistory.at(2));
+      TESTEQUAL_STR("level1", computeHistory.at(3));
+      TESTEQUAL_STR("level2", computeHistory.at(4));
+      TESTEQUAL_STR("level3", computeHistory.at(5));
     }
     // max < min; allowed, but network should not run
     n.setMinEnabledPhase(1);
@@ -516,12 +516,12 @@ void NetworkTest::test_phases()
     n.run(2);
 
     TESTEQUAL((UInt32)6, computeHistory.size());
-    TESTEQUAL("level3", computeHistory.at(0));
-    TESTEQUAL("level2", computeHistory.at(1));
-    TESTEQUAL("level2", computeHistory.at(2));
-    TESTEQUAL("level3", computeHistory.at(3));
-    TESTEQUAL("level2", computeHistory.at(4));
-    TESTEQUAL("level2", computeHistory.at(5));
+    TESTEQUAL_STR("level3", computeHistory.at(0));
+    TESTEQUAL_STR("level2", computeHistory.at(1));
+    TESTEQUAL_STR("level2", computeHistory.at(2));
+    TESTEQUAL_STR("level3", computeHistory.at(3));
+    TESTEQUAL_STR("level2", computeHistory.at(4));
+    TESTEQUAL_STR("level2", computeHistory.at(5));
     
     
   }
@@ -545,12 +545,12 @@ void NetworkTest::test_phases()
 
     n.run(2);
     TESTEQUAL((UInt32)6, mydata.size());
-    TESTEQUAL("level1", mydata[0]);
-    TESTEQUAL("level2", mydata[1]);
-    TESTEQUAL("level3", mydata[2]);
-    TESTEQUAL("level1", mydata[3]);
-    TESTEQUAL("level2", mydata[4]);
-    TESTEQUAL("level3", mydata[5]);
+    TESTEQUAL_STR("level1", mydata[0]);
+    TESTEQUAL_STR("level2", mydata[1]);
+    TESTEQUAL_STR("level3", mydata[2]);
+    TESTEQUAL_STR("level1", mydata[3]);
+    TESTEQUAL_STR("level2", mydata[4]);
+    TESTEQUAL_STR("level3", mydata[5]);
 
   }    
 }

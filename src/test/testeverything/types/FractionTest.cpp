@@ -283,37 +283,37 @@ void FractionTest::RunTests()
   //Test <<
   std::stringstream ss;
   ss << Fraction(3, 4);
-  TESTEQUAL("3/4", ss.str());
+  TESTEQUAL_STR("3/4", ss.str());
   ss.str("");
   ss << Fraction(-2, 4);
-  TESTEQUAL("-1/2", ss.str());
+  TESTEQUAL_STR("-1/2", ss.str());
   ss.str("");
   ss << Fraction(0, 1);
-  TESTEQUAL("0", ss.str());
+  TESTEQUAL_STR("0", ss.str());
   ss.str("");
   ss << Fraction(0, -1);
-  TESTEQUAL("0", ss.str());
+  TESTEQUAL_STR("0", ss.str());
   ss.str("");
   ss << Fraction(1, -2);
-  TESTEQUAL("-1/2", ss.str());
+  TESTEQUAL_STR("-1/2", ss.str());
   ss.str("");
   ss << Fraction(3, 1);
-  TESTEQUAL("3", ss.str());
+  TESTEQUAL_STR("3", ss.str());
   ss.str("");
   ss << Fraction(-3, 1);
-  TESTEQUAL("-3", ss.str());
+  TESTEQUAL_STR("-3", ss.str());
   ss.str("");
   ss << Fraction(6, 2);
-  TESTEQUAL("3", ss.str());
+  TESTEQUAL_STR("3", ss.str());
   ss.str("");
   ss << Fraction(6, -2);
-  TESTEQUAL("-3", ss.str());
+  TESTEQUAL_STR("-3", ss.str());
   ss.str("");
   ss << Fraction(-1, -1);
-  TESTEQUAL("1", ss.str());
+  TESTEQUAL_STR("1", ss.str());
   ss.str("");
   ss << Fraction(-2, -2);
-  TESTEQUAL("1", ss.str());
+  TESTEQUAL_STR("1", ss.str());
   ss.str("");
 
   //Test fromDouble()

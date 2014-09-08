@@ -66,7 +66,7 @@ namespace nta
       TEST(!d.isDontcare());
       SHOULDFAIL(d.getCount());
       SHOULDFAIL(d.getDimension(0));
-      TESTEQUAL("[unspecified]", d.toString());
+      TESTEQUAL_STR("[unspecified]", d.toString());
       SHOULDFAIL(d.getIndex(one_two));
       SHOULDFAIL(d.getCount());
       SHOULDFAIL(d.getDimension(0));
@@ -80,7 +80,7 @@ namespace nta
       TEST(!d.isUnspecified());
       TEST(d.isDontcare());
       TEST(d.isValid());
-      TESTEQUAL("[dontcare]", d.toString());
+      TESTEQUAL_STR("[dontcare]", d.toString());
       SHOULDFAIL(d.getIndex(zero));
       SHOULDFAIL(d.getCount());
       TESTEQUAL((unsigned int)0, d.getDimension(0));
@@ -96,7 +96,7 @@ namespace nta
       TEST(!d.isUnspecified());
       TEST(!d.isDontcare());
       TEST(!d.isValid());
-      TESTEQUAL("[1 0] (invalid)", d.toString());
+      TESTEQUAL_STR("[1 0] (invalid)", d.toString());
       SHOULDFAIL(d.getIndex(one_two));
       SHOULDFAIL(d.getCount());
       TESTEQUAL((unsigned int)1, d.getDimension(0));
@@ -114,7 +114,7 @@ namespace nta
       TEST(!d.isUnspecified());
       TEST(!d.isDontcare());
       TEST(d.isValid());
-      TESTEQUAL("[2 3]", d.toString());
+      TESTEQUAL_STR("[2 3]", d.toString());
       TESTEQUAL((unsigned int)2, d.getDimension(0));
       TESTEQUAL((unsigned int)3, d.getDimension(1));
       SHOULDFAIL(d.getDimension(2));

@@ -45,7 +45,7 @@ void TimerTest::RunTests()
   TEST(!t1.isStarted());
   TEST(t1.getElapsed() == 0.0);
   TEST(t1.getStartCount() == 0);
-  TESTEQUAL("[Elapsed: 0 Starts: 0]", t1.toString());
+  TESTEQUAL_STR("[Elapsed: 0 Starts: 0]", t1.toString());
 
   apr_sleep(SLEEP_MICROSECONDS);
 

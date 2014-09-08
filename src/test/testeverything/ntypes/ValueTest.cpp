@@ -48,7 +48,7 @@ void ValueTest::RunTests()
     SHOULDFAIL(v.getArray());
     SHOULDFAIL(v.getString());
       
-    TESTEQUAL("Scalar of type Int32", v.getDescription());
+    TESTEQUAL_STR("Scalar of type Int32", v.getDescription());
       
     
     Int32 x = v.getScalarT<Int32>();
@@ -76,7 +76,7 @@ void ValueTest::RunTests()
     SHOULDFAIL(v.getString());
     SHOULDFAIL(v.getScalarT<Int32>());
 
-    TESTEQUAL("Array of type Int32", v.getDescription());
+    TESTEQUAL_STR("Array of type Int32", v.getDescription());
   }
 
   // string
@@ -90,13 +90,13 @@ void ValueTest::RunTests()
     TESTEQUAL(NTA_BasicType_Byte, v.getType());
       
     boost::shared_ptr<std::string> s1 = v.getString();
-    TESTEQUAL("hello world", s1->c_str());
+    TESTEQUAL_STR("hello world", s1->c_str());
       
     SHOULDFAIL(v.getScalar());
     SHOULDFAIL(v.getArray());
     SHOULDFAIL(v.getScalarT<Int32>());
       
-    TESTEQUAL("string (hello world)", v.getDescription());
+    TESTEQUAL_STR("string (hello world)", v.getDescription());
   }
 
   // ValueMap

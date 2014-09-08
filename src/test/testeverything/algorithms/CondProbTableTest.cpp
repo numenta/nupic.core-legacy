@@ -61,7 +61,7 @@ namespace nta {
     stringstream s1, s2;
     s1 << v1;
     s2 << v2;
-    TESTEQUAL(s1.str(), s2.str());
+    TESTEQUAL_STR(s1.str(), s2.str());
   }
 
 

@@ -50,7 +50,7 @@ void OSTest::RunTests()
   Env::set("USER", "user1");
   Env::set("LOGNAME", "logname1");
   
-  TESTEQUAL2("OS::getHomeDir", "/home1/myhome", OS::getHomeDir());
+  TESTEQUAL2_STR("OS::getHomeDir", "/home1/myhome", OS::getHomeDir());
   bool caughtException = false;
   Env::unset("HOME");
   std::string dummy;
