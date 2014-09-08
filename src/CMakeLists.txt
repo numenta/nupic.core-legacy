@@ -364,18 +364,6 @@ message(STATUS "  Build System: ${PROJECT_BINARY_DIR}")
 message(STATUS "  Build Directory: ${PROJECT_BUILD_TEMP_DIR}")
 message(STATUS "  Release: ${PROJECT_BUILD_RELEASE_DIR}")
 
-# 
-# Temporarily copying files to do gtest experiment
-# 
-copy_directory(${PROJECT_SOURCE_DIR}/test/testeverything/algorithms ${PROJECT_SOURCE_DIR}/test/googletests/algorithms)
-copy_directory(${PROJECT_SOURCE_DIR}/test/testeverything/engine ${PROJECT_SOURCE_DIR}/test/googletests/engine)
-copy_directory(${PROJECT_SOURCE_DIR}/test/testeverything/math ${PROJECT_SOURCE_DIR}/test/googletests/math)
-copy_directory(${PROJECT_SOURCE_DIR}/test/testeverything/ntypes ${PROJECT_SOURCE_DIR}/test/googletests/ntypes)
-copy_directory(${PROJECT_SOURCE_DIR}/test/testeverything/os ${PROJECT_SOURCE_DIR}/test/googletests/os)
-copy_directory(${PROJECT_SOURCE_DIR}/test/testeverything/test ${PROJECT_SOURCE_DIR}/test/googletests/test)
-copy_directory(${PROJECT_SOURCE_DIR}/test/testeverything/types ${PROJECT_SOURCE_DIR}/test/googletests/types)
-copy_directory(${PROJECT_SOURCE_DIR}/test/testeverything/utils ${PROJECT_SOURCE_DIR}/test/googletests/utils)
-
 ############################################################################################################################
 ###                                                                                                                      ###
 ###  2nd Part:                                                                                                           ###
@@ -596,17 +584,6 @@ set(LIBRARIES
 generate_executable(${EXECUTABLE_HTMTEST} "${PROJECT_SOURCE_DIR}/test/htmtest" "${PROJECT_BUILD_RELEASE_DIR}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
 
 #
-# TestEverything
-#
-# set(EXECUTABLE_TESTEVERYTHING testeverything)
-# set(LIBRARIES
-#   ${LIB_STATIC_NUPICCORE}
-#   ${NTA_STANDARD_LIBS}
-#   ${NTA_TEST_LIBS}
-# )
-# generate_executable(${EXECUTABLE_TESTEVERYTHING} "${PROJECT_SOURCE_DIR}/test/testeverything" "${PROJECT_BUILD_RELEASE_DIR}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
-
-#
 # GoogleTests
 #
 set(EXECUTABLE_GTESTS googletests)
@@ -642,31 +619,6 @@ foreach(src_file ${files})
 endforeach()
 copy_file(${PROJECT_SOURCE_DIR}/main/ntypes/Collection.cpp ${PROJECT_BUILD_RELEASE_DIR}/include/nta/ntypes/Collection.cpp)
 
-# 
-# Temporarily copying files to do gtest experiment
-# 
-copy_file(${PROJECT_SOURCE_DIR}/test/googletests/Tester.hpp ${PROJECT_BUILD_RELEASE_DIR}/include/nta/test/Tester.hpp)
-copy_file(${PROJECT_SOURCE_DIR}/test/googletests/Tester.hpp ${PROJECT_SOURCE_DIR}/main/test/Tester.hpp)
-copy_file(${PROJECT_SOURCE_DIR}/test/googletests/Tester.cpp ${PROJECT_SOURCE_DIR}/main/test/Tester.cpp)
-
-#
-# Create file with unit tests used by TestEverything
-#
-set(ITEMS_RETURNED)
-get_files_list(${PROJECT_SOURCE_DIR}/test/testeverything " " "Test.hpp")
-set(files ${ITEMS_RETURNED})
-set(tests_file_content "")
-set(headers_file_content "")
-foreach(file ${files})
-  get_filename_component(test ${file} NAME_WE)
-  if(NOT ${file} MATCHES "TesterTest")
-    set(tests_file_content "${tests_file_content}ADD_TEST(${test});\n")
-    set(headers_file_content "${headers_file_content}#include \"${file}\"\n")
-  endif()
-endforeach()
-file(WRITE "${PROJECT_SOURCE_DIR}/test/testeverything/EverythingAddtests.hpp" "${tests_file_content}")
-file(WRITE "${PROJECT_SOURCE_DIR}/test/testeverything/EverythingHeaders.hpp" "${headers_file_content}")
-
 #
 # Create file with unit tests used by Google Test
 #
@@ -700,16 +652,12 @@ file(WRITE "${PROJECT_SOURCE_DIR}/test/googletests/AddTestHeaders.hpp" "${header
 add_custom_target(tests_htm
                   COMMAND ${PROJECT_BUILD_RELEASE_DIR}/bin/${EXECUTABLE_HTMTEST})
                   
-# add_custom_target(tests_everything
-#                   COMMAND ${PROJECT_BUILD_RELEASE_DIR}/bin/${EXECUTABLE_TESTEVERYTHING})
-
 add_custom_target(google_tests
                   COMMAND ${PROJECT_BUILD_RELEASE_DIR}/bin/${EXECUTABLE_GTESTS})
 
 # tests_all just calls other targets
 add_custom_target(tests_all
                   DEPENDS tests_htm
-                  # DEPENDS tests_everything
                   DEPENDS google_tests
                   COMMENT "Running all tests")
 
