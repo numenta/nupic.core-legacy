@@ -55,4 +55,4 @@ script:
 after_success:
   - "cd $TRAVIS_BUILD_DIR"
   # Send test coverage report to http://coveralls.io under only linux
-  - "if [ ${TRAVIS_OS_NAME:-'linux'} = 'linux' ]; then coveralls --exclude external --exclude doc --exclude src/test > /dev/null ; fi"
+  - "if [ ${TRAVIS_OS_NAME:-'linux'} = 'linux' ]; then coveralls --exclude external --exclude doc --exclude src/test > /dev/null 2>/dev/stdout|grep -v 'gcno:version'|grep -v 'gcda:version'; fi"
