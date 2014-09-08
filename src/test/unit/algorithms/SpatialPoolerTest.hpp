@@ -26,12 +26,11 @@
 
 //----------------------------------------------------------------------
 
-#include <nta/test/Tester.hpp>
-#include <nta/algorithms/SpatialPooler.hpp>
-
 #ifndef NTA_SPATIAL_POOLER_TEST
 #define NTA_SPATIAL_POOLER_TEST
 
+#include <nta/test/Tester.hpp>
+#include <nta/algorithms/SpatialPooler.hpp>
 
 using namespace nta::algorithms::spatial_pooler;
 
@@ -91,6 +90,7 @@ namespace nta {
     void testGetNeighborsND();
     void testIsUpdateRound();
     void testSerialize();
+    void testStripUnlearnedColumns();
 
     void print_vec(UInt arr[], UInt n);
     void print_vec(Real arr[], UInt n);

@@ -106,6 +106,7 @@ namespace nta {
     // for STL
     typedef UInt32 argument_type;
     typedef UInt32 result_type;
+
     result_type max() { return MAX32; }
     result_type min() { return 0; }
     

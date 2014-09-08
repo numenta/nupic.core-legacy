@@ -38,10 +38,6 @@
 
 //----------------------------------------------------------------------
 
-// Work around terrible Windows legacy issue - min and max global macros!!!
-#ifdef max
-#undef max
-#endif
 
 namespace nta {
 

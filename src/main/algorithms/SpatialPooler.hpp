@@ -198,6 +198,10 @@ namespace nta {
 
           @param spVerbosity spVerbosity level: 0, 1, 2, or 3
 
+          @param wrapAround boolean value that determines whether or not inputs
+                at the beginning and end of an input dimension are considered
+                neighbors for the purpose of mapping inputs to columns.
+
            */
           virtual void initialize(vector<UInt> inputDimensions,
                                   vector<UInt> columnDimensions,
@@ -215,22 +219,23 @@ namespace nta {
                                   UInt dutyCyclePeriod=1000,
                                   Real maxBoost=10.0,
                                   Int seed=1,
-                                  UInt spVerbosity=0);
+                                  UInt spVerbosity=0,
+                                  bool wrapAround=true);
 
           /**
           This is the main workshorse method of the SpatialPooler class. This
           method takes an input vector and computes the set of output active
           columns. If 'learn' is set to True, this method also performs
           learning.
-    
+
           @param inputVector An array of integer 0's and 1's that comprises
-                the input to the spatial pooler. The length of the 
+                the input to the spatial pooler. The length of the
                 array must match the total number of input bits implied by
                 the constructor (also returned by the method getNumInputs). In
                 cases where the input is multi-dimensional, inputVector is a
                 flattened array of inputs.
-                
-          @param learn A boolean value indicating whether learning should be 
+
+          @param learn A boolean value indicating whether learning should be
                 performed. Learning entails updating the permanence values of
                 the synapses, duty cycles, etc. Learning is typically on but
                 setting learning to 'off' is useful for analyzing the current
@@ -239,7 +244,7 @@ namespace nta {
                 is off, boosting is turned off and columns that have never won
                 will be removed from activeVector.  TODO: we may want to keep
                 boosting on even when learning is off.
-                
+
           @param activeVector An array representing the winning columns after
                 inhinition. The size of the array is equal to the number of
                 columns (also returned by the method getNumColumns). This array
@@ -247,9 +252,35 @@ namespace nta {
                 and 0's everywhere else. In the case where the output is
                 multi-dimensional, activeVector represents a flattened array
                 of outputs.
+
+          @param stripNeverLearned A boolean value indicating when to strip
+              columns from the predictions if they have never learned. The
+              default behavior is to strip unlearned columns but this should be
+              disabled when using a random, unlearned spatial pooler. NOTE:
+              if you rely on this behavior then you should additionally call
+              the stripNeverLearned method directly on the activeVector output
+              as we will be changing the default to false and then removing this
+              parameter entirely in the near future.
+           */
+          virtual void compute(UInt inputVector[], bool learn,
+                               UInt activeVector[], bool stripNeverLearned);
+
+          /**
+           Same as above but with stripUnlearnedColumns set to true.
            */
           virtual void compute(UInt inputVector[], bool learn,
                                UInt activeVector[]);
+
+          /**
+           Removes the set of columns who have never been active from the set
+           of active columns selected in the inhibition round. Such columns
+           cannot represent learned pattern and are therefore meaningless if
+           only inference is required.
+
+           @param activeArray  An int array containing the indices of the
+               active columns.
+          */
+          void stripUnlearnedColumns(UInt activeArray[]);
 
           /**
            * Get the version number of this spatial pooler.
@@ -480,6 +511,22 @@ namespace nta {
           @param spVerbosity integer of verbosity level.
           */
           void setSpVerbosity(UInt spVerbosity);
+
+          /**
+          Returns boolean value of wrapAround which indicates if receptive
+          fields should wrap around from the beginning the input dimensions
+          to the end.
+
+          @returns the boolean value of wrapAround.
+          */
+          bool getWrapAround();
+
+          /**
+          Sets wrapAround.
+
+          @param wrapAround boolean value
+          */
+          void setWrapAround(bool wrapAround);
 
           /**
           Returns the update period.
@@ -742,17 +789,6 @@ namespace nta {
           //
           // Implementation methods. all methods below this line are
           // NOT part of the public API
-
-          /**
-          Removes the set of columns who have never been active from the set of
-          active columns selected in the inhibition round. Such columns cannot
-          represent learned pattern and are therefore meaningless if only inference
-          is required.
-          
-          @param activeArray  An int array containing the indices of the active columns.
-          */
-          void stripNeverLearned_(UInt activeArray[]);
-
 
           void toDense_(vector<UInt>& sparse,
                         UInt dense[],
@@ -1332,6 +1368,7 @@ namespace nta {
           UInt iterationNum_;
           UInt iterationLearnNum_;
           UInt spVerbosity_;
+          bool wrapAround_;
           UInt updatePeriod_;
 
           Real synPermMin_;

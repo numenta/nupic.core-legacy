@@ -30,11 +30,6 @@
 
 using namespace std;
 
-// Work around terrible Windows legacy issue - min and max global macros!!!
-#ifdef max
-#undef max
-#endif
-
 namespace nta {    
 
 #define TEST_LOOP(M)                                  \

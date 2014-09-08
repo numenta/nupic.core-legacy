@@ -44,7 +44,7 @@ void PathTest::RunTests()
 
   // test static getParent()
   {
-#ifdef WIN32
+#ifdef NTA_PLATFORM_win32
 // no tests defined
 #else
     std::string g = "/a/b/c/g.ext";
@@ -100,7 +100,7 @@ void PathTest::RunTests()
 
   // test static getBasename()
   {
-#ifdef WIN32
+#ifdef NTA_PLATFORM_win32
 // no tests defined
 #else
     TESTEQUAL2_STR("basename1", "bar", Path::getBasename("/foo/bar"));
@@ -117,7 +117,7 @@ void PathTest::RunTests()
 
   // test static normalize()
   {
-#ifdef WIN32
+#ifdef NTA_PLATFORM_win32
 // no tests defined
 #else
     TESTEQUAL2_STR("normalize1", "/foo/bar", Path::normalize("//foo/quux/..//bar"));
@@ -135,7 +135,7 @@ void PathTest::RunTests()
 
   // test static split()
   {
-#ifdef WIN32
+#ifdef NTA_PLATFORM_win32
 // no tests defined
 #else
     Path::StringVec sv;
@@ -255,7 +255,7 @@ void PathTest::RunTests()
 
   //test static isAbsolute()
   {
-  #ifdef WIN32
+  #ifdef NTA_PLATFORM_win32
     TEST(Path::isAbsolute("c:"));
     TEST(Path::isAbsolute("c:\\"));
     TEST(Path::isAbsolute("c:\\foo\\"));

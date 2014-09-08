@@ -2717,7 +2717,7 @@ namespace nta {
       if (totalBytes < 0)
         totalBytes = 0;
 
-#ifdef WIN32 // On Windows, don't use MemParser, it's slow.
+#ifdef NTA_PLATFORM_win32 // On Windows, don't use MemParser, it's slow.
 
       size_type i, j, k, nrows, ncols, nnz, nnzr;
       i = j = k = nrows = ncols = nnz = nnzr = 0;

@@ -35,11 +35,6 @@
 #ifndef NTA_SPARSE_MATRIX01UNIT_TEST_HPP
 #define NTA_SPARSE_MATRIX01UNIT_TEST_HPP
 
-// Work around terrible Windows legacy issue - min and max global macros!!!
-#ifdef max
-#undef max
-#endif
-
 namespace nta {
   
   template <typename Int, typename Float>
