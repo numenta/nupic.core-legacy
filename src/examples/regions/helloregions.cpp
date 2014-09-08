@@ -27,7 +27,7 @@
 #include <nta/ntypes/ArrayRef.hpp>
 #include <nta/os/Path.hpp>
 
-
+char **environ = NULL;
 
 using namespace nta;
 
