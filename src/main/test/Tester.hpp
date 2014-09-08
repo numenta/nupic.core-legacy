@@ -82,31 +82,31 @@ namespace nta {
 } // end namespace nta
 
 #define TESTEQUAL(expected, actual) \
-  EXPECT_EQ(expected, actual);
+  EXPECT_EQ(expected, actual)
 
 #define TESTEQUAL2(name, expected, actual) \
-  EXPECT_EQ(expected, actual) << "assertion \"" #name "\" failed at " << __FILE__ << ":" << __LINE__ ;
+  EXPECT_EQ(expected, actual) << "assertion \"" #name "\" failed at " << __FILE__ << ":" << __LINE__ 
 
 #define TESTEQUAL_STR(expected, actual) \
-  TESTEQUAL(std::string(expected), std::string(actual));
+  TESTEQUAL(std::string(expected), std::string(actual))
 
 #define TESTEQUAL2_STR(name, expected, actual) \
-  TESTEQUAL2(name, std::string(expected), std::string(actual));
+  TESTEQUAL2(name, std::string(expected), std::string(actual))
 
 #define TESTEQUAL_FLOAT(expected, actual) \
-  ASSERT_NEAR(expected, actual, 0.000001) << "assertion \"" #expected " == " #actual << "\" failed at " << __FILE__ << ":" << __LINE__ ;
+  ASSERT_NEAR(expected, actual, 0.000001) << "assertion \"" #expected " == " #actual << "\" failed at " << __FILE__ << ":" << __LINE__ 
 
 
 #undef TEST
 
 #define TEST(condition) \
-  EXPECT_TRUE(condition) << "assertion \"" #condition "\" failed at " << __FILE__ << ":" << __LINE__ ;
+  EXPECT_TRUE(condition) << "assertion \"" #condition "\" failed at " << __FILE__ << ":" << __LINE__ 
 #define TEST2(name, condition) \
-  EXPECT_TRUE(condition) << "assertion \"" #name ": " #condition "\" failed at " << __FILE__ << ":" << __LINE__ ;
+  EXPECT_TRUE(condition) << "assertion \"" #name ": " #condition "\" failed at " << __FILE__ << ":" << __LINE__ 
 
 // http://code.google.com/p/googletest/wiki/V1_7_AdvancedGuide#Exception_Assertions
 #define SHOULDFAIL(statement) \
-  EXPECT_THROW(statement, std::exception);
+  EXPECT_THROW(statement, std::exception)
 
 // { \
 //   if (!disableNegativeTests_) \

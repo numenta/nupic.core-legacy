@@ -311,7 +311,7 @@ void NetworkTest::test_network_modification()
 
     net.link("level1", "level2", "TestFanIn2", "");
     net.removeLink("level1", "level2", "bottomUpOut");
-    SHOULDFAIL(net.removeLink("level1", "level2", "bottomUpOut"))
+    SHOULDFAIL(net.removeLink("level1", "level2", "bottomUpOut"));
     
     // add the link back and initialize (inducing dimensions)
     net.link("level1", "level2", "TestFanIn2", "");
