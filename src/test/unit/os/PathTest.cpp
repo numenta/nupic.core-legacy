@@ -290,9 +290,9 @@ void PathTest::RunTests()
 
     std::string basename = Path::getBasename(path);
 #ifdef NTA_PLATFORM_win32
-    TESTEQUAL2("basename should be googletests", basename, "googletests.exe");
+    TESTEQUAL2_STR("basename should be unit_tests", basename, "unit_tests.exe");
 #else
-    TESTEQUAL2("basename should be googletests", basename, "googletests");
+    TESTEQUAL2_STR("basename should be unit_tests", basename, "unit_tests");
 #endif
   }    
 

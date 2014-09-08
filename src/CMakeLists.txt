@@ -588,15 +588,15 @@ set(LIBRARIES
 generate_executable(${EXECUTABLE_HTMTEST} "${PROJECT_SOURCE_DIR}/test/htmtest" "${PROJECT_BUILD_RELEASE_DIR}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
 
 #
-# GoogleTests
+# unit
 #
-set(EXECUTABLE_GTESTS googletests)
+set(EXECUTABLE_GTESTS unit_tests)
 set(LIBRARIES
   ${LIB_STATIC_NUPICCORE}
   ${NTA_STANDARD_LIBS}
   ${NTA_TEST_LIBS}
 )
-generate_executable(${EXECUTABLE_GTESTS} "${PROJECT_SOURCE_DIR}/test/googletests" "${PROJECT_BUILD_RELEASE_DIR}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
+generate_executable(${EXECUTABLE_GTESTS} "${PROJECT_SOURCE_DIR}/test/unit" "${PROJECT_BUILD_RELEASE_DIR}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
 
 # Merge nupic_core and all static libraries to a stand-alone library
 merge_static_libraries(${LIB_STATIC_NUPICCORE} "${PROJECT_BUILD_RELEASE_DIR}/lib" "${LIB_STATIC_NUPICCORE};${NTA_STANDARD_LIBS}" "${LIB_STATIC_NUPICCORE}")
@@ -627,7 +627,7 @@ copy_file(${PROJECT_SOURCE_DIR}/main/ntypes/Collection.cpp ${PROJECT_BUILD_RELEA
 # Create file with unit tests used by Google Test
 #
 set(ITEMS_RETURNED)
-get_files_list(${PROJECT_SOURCE_DIR}/test/googletests " " "Test.hpp")
+get_files_list(${PROJECT_SOURCE_DIR}/test/unit " " "Test.hpp")
 set(files ${ITEMS_RETURNED})
 set(tests_file_content "")
 set(headers_file_content "")
@@ -638,8 +638,8 @@ foreach(file ${files})
     set(headers_file_content "${headers_file_content}#include \"${file}\"\n")
   endif()
 endforeach()
-file(WRITE "${PROJECT_SOURCE_DIR}/test/googletests/AddTests.hpp" "${tests_file_content}")
-file(WRITE "${PROJECT_SOURCE_DIR}/test/googletests/AddTestHeaders.hpp" "${headers_file_content}")
+file(WRITE "${PROJECT_SOURCE_DIR}/test/unit/AddTests.hpp" "${tests_file_content}")
+file(WRITE "${PROJECT_SOURCE_DIR}/test/unit/AddTestHeaders.hpp" "${headers_file_content}")
 
 
 
@@ -656,13 +656,13 @@ file(WRITE "${PROJECT_SOURCE_DIR}/test/googletests/AddTestHeaders.hpp" "${header
 add_custom_target(tests_htm
                   COMMAND ${PROJECT_BUILD_RELEASE_DIR}/bin/${EXECUTABLE_HTMTEST})
                   
-add_custom_target(google_tests
+add_custom_target(tests_unit
                   COMMAND ${PROJECT_BUILD_RELEASE_DIR}/bin/${EXECUTABLE_GTESTS} "--gtest_output=xml:${PROJECT_BUILD_ARTIFACTS_DIR}/unit_tests_report.xml")
 
 # tests_all just calls other targets
 add_custom_target(tests_all
                   DEPENDS tests_htm
-                  DEPENDS google_tests
+                  DEPENDS tests_unit
                   COMMENT "Running all tests")
 
 #
