@@ -367,8 +367,14 @@ message(STATUS "  Release: ${PROJECT_BUILD_RELEASE_DIR}")
 # 
 # Temporarily copying files to do gtest experiment
 # 
+copy_directory(${PROJECT_SOURCE_DIR}/test/testeverything/algorithms ${PROJECT_SOURCE_DIR}/test/googletests/algorithms)
 copy_directory(${PROJECT_SOURCE_DIR}/test/testeverything/engine ${PROJECT_SOURCE_DIR}/test/googletests/engine)
-
+copy_directory(${PROJECT_SOURCE_DIR}/test/testeverything/math ${PROJECT_SOURCE_DIR}/test/googletests/math)
+copy_directory(${PROJECT_SOURCE_DIR}/test/testeverything/ntypes ${PROJECT_SOURCE_DIR}/test/googletests/ntypes)
+copy_directory(${PROJECT_SOURCE_DIR}/test/testeverything/os ${PROJECT_SOURCE_DIR}/test/googletests/os)
+copy_directory(${PROJECT_SOURCE_DIR}/test/testeverything/test ${PROJECT_SOURCE_DIR}/test/googletests/test)
+copy_directory(${PROJECT_SOURCE_DIR}/test/testeverything/types ${PROJECT_SOURCE_DIR}/test/googletests/types)
+copy_directory(${PROJECT_SOURCE_DIR}/test/testeverything/utils ${PROJECT_SOURCE_DIR}/test/googletests/utils)
 
 ############################################################################################################################
 ###                                                                                                                      ###
@@ -642,7 +648,6 @@ copy_file(${PROJECT_SOURCE_DIR}/main/ntypes/Collection.cpp ${PROJECT_BUILD_RELEA
 copy_file(${PROJECT_SOURCE_DIR}/test/googletests/Tester.hpp ${PROJECT_BUILD_RELEASE_DIR}/include/nta/test/Tester.hpp)
 copy_file(${PROJECT_SOURCE_DIR}/test/googletests/Tester.hpp ${PROJECT_SOURCE_DIR}/main/test/Tester.hpp)
 copy_file(${PROJECT_SOURCE_DIR}/test/googletests/Tester.cpp ${PROJECT_SOURCE_DIR}/main/test/Tester.cpp)
-copy_directory(${PROJECT_SOURCE_DIR}/test/testeverything/engine ${PROJECT_SOURCE_DIR}/test/googletests/engine)
 
 #
 # Create file with unit tests used by TestEverything
