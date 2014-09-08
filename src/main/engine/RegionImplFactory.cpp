@@ -44,7 +44,6 @@
 #define expand_and_stringify(x) stringify(x)
 
 // Path from site-packages to packages that contain NuPIC Python regions
-const size_t packages_length = 2;
 const char * packages[] = { "nupic.regions", "nupic.regions.extra" };
 
 namespace nta
