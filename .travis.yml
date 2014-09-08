@@ -24,9 +24,9 @@ notifications:
         - https://webhooks.gitter.im/e/68f77bae61efa5c931f8
 
 before_install:
-  - "if [ $CC = 'gcc' ]; then export CXX=g++; fi"
-  # install gcc-4.8 for C++11 compatibility, remove when Travis has gcc>=4.8 
-  - "if [ $CC = 'gcc' ]; then sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test; sudo apt-get -qq update; sudo apt-get -qq install g++-4.8; export CC=gcc-4.8; export CXX=g++-4.8; fi"
+  # install gcc-4.8 for C++11 compatibility, remove when Travis has gcc>=4.8, (it's used for clang too, in coveralls)
+  - "sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test; sudo apt-get -qq update; sudo apt-get -qq install g++-4.8"
+  - "if [ $CC = 'gcc' ]; then export CC='gcc-4.8'; export CXX='g++-4.8'; fi"
   - "if [ $CC = 'clang' ]; then export CXX=clang++; fi"
   - "if [ ${TRAVIS_OS_NAME:-'linux'} = 'osx' ]; then brew install cmake; fi"
   # Install cpp-coveralls for reporting test coverage under only linux, see https://github.com/eddyxu/cpp-coveralls
@@ -49,5 +49,5 @@ script:
 after_success:
   - "cd $TRAVIS_BUILD_DIR"
   # Send test coverage report to http://coveralls.io under only linux
-  - "if [ ${TRAVIS_OS_NAME:-'linux'} = 'linux' ]; then ls /usr/bin/gcov* ; coveralls --gcov /usr/bin/gcov-4.6 --exclude external --exclude doc --exclude src/test; fi"
+  - "if [ ${TRAVIS_OS_NAME:-'linux'} = 'linux' ]; then coveralls --gcov /usr/bin/gcov-4.8 --exclude external --exclude doc --exclude src/test; fi"
 
