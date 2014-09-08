@@ -38,8 +38,8 @@ script:
   - "make -j3"
   # legacy binary tests
   - "make tests_htm"
-  # google tests (under construction)
-  - "make google_tests"
+  # unit tests
+  - "make tests_unit"
   # output unit tests report
   - "cd $TRAVIS_BUILD_DIR/build/artifacts/"
   - "cat unit_tests_report.xml"
