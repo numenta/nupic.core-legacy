@@ -139,11 +139,24 @@ namespace nta {
 #define TESTEQUAL2(name, expected, actual) \
   EXPECT_EQ(expected, actual) << "assertion \"" #name "\" failed at " << __FILE__ << ":" << __LINE__ 
 
-#define TESTEQUAL_STR(expected, actual) \
-  TESTEQUAL(std::string(expected), std::string(actual))
-
+/**
+ * A proxy macro to Google Test macro `EXPECT_STREQ`, also adds the test name, failed
+ * file, line etc. 
+ * 
+ * See https://code.google.com/p/googletest/wiki/V1_7_Primer#String_Comparison
+ * for documentation.
+ * 
+ * @param  expected
+ *         The expected value
+ * @param  actual
+ *         The actual value * 
+ *
+ * @deprecated This macro is preserved only for compatible reasons. You should
+ * not use it in new codes. use Google Test macro `EXPECT_STREQ` instead.
+ * 
+ */
 #define TESTEQUAL2_STR(name, expected, actual) \
-  TESTEQUAL2(name, std::string(expected), std::string(actual))
+  EXPECT_STREQ(expected, actual) << "assertion \"" #name "\" failed at " << __FILE__ << ":" << __LINE__ 
 
 /**
  * A proxy macro to Google Test macro `EXPECT_NEAR`. 
@@ -270,8 +283,6 @@ namespace nta {
  */
 #define ADD_TEST(testname) \
    ADDING_TEST(testname, Case)
-
-#undef ADDING_TEST
 
 #endif // NTA_TESTER_HPP
 

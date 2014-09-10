@@ -49,7 +49,7 @@ namespace nta {
     // Repeat the above for TESTEQUAL
     TESTEQUAL(1,1);
     TESTEQUAL(23.42,23.42);
-    TESTEQUAL_STR("Numenta","Numenta");
+    EXPECT_STREQ("Numenta","Numenta");
     
     // Test functions in Common
     TESTEQUAL2("Max test", 23.3, Max(23.2, 23.3));
@@ -88,7 +88,7 @@ namespace nta {
     TESTEQUAL2_STR("String test, should fail","Numenta","Numenta ");
     TESTEQUAL(1,0);
     TESTEQUAL(23.42,23.421);
-    TESTEQUAL_STR("Numenta","Numenta ");
+    EXPECT_STREQ("Numenta","Numenta ");
     TEST(false);
     TEST2("TEST2(false)", false);    
   }
