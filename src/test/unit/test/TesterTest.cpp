@@ -83,9 +83,6 @@ namespace nta {
   void TesterTest::RunTestsShouldFail()
   {
     // These are probably the only tests in our test suite that should fail.
-    // In gtest, there's currently no easy way to verify that these tests should fail
-    // without affecting the test result, so these tests are not run but only put together,
-    // waiting to see if there's a solution
     TESTEQUAL2("Integer test, should fail",1,0);
     TESTEQUAL2("Double test, should fail",23.42,23.421);
     TESTEQUAL2_STR("String test, should fail","Numenta","Numenta ");

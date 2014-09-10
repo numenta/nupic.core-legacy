@@ -31,20 +31,36 @@ Unit tester tester.
 
 namespace nta {
   
-  /** Tests the unit tester interface.
-   *
+  /** 
+   * Tests the unit tester interface.
+   * 
    */
   class TesterTest : public Tester  {
     
     public:
-      // Constructors and destructors
+
+      /**
+       * Constructor
+       */
       TesterTest();
+
+      /**
+       * Destructor
+       */
       virtual ~TesterTest();
       
-      // Run all appropriate tests
+      /** 
+       * Run all appropriate tests.
+       */
       virtual void RunTests();
 
-      // Run tests that should fail
+      /**
+       * Run tests that should fail.
+       *
+       * @todo In Google Test, there's currently no easy way to verify that these tests
+       *  should fail without affecting the test result, so these tests are not 
+       *  run but only put together, waiting to see if there's a solution
+       */
       void RunTestsShouldFail();
   };
   

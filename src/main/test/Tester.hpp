@@ -39,10 +39,16 @@
 
 namespace nta {
 
-  /** Abstract base class for unit testers.
+  /** 
+   * 
+   * Abstract base class for unit testers.
    *
    * This class specifies a simple interface for unit testing all Numenta classes.
    * A unit test is created by subclassing from Tester and implementing RunTests().
+   *
+   * @deprecated This class is preserved to ease the transition from old test framework
+   * to Google Test framework. Should be removed eventually and replaced by 
+   * Google Test macros eventually.
    * 
    */
   class Tester  {
@@ -53,10 +59,16 @@ namespace nta {
 
     virtual ~Tester();
     
-    /// This is the main method that subclasses should implement.
-    /// It is expected that this method will thoroughly test the target class by calling
-    /// each method and testing boundary conditions.
-    /// @todo change capitalization. Must be changed in all tests. 
+    /**
+     * This is the main method that subclasses should implement.
+     *
+     * It is expected that this method will thoroughly test the target class by calling
+     * each method and testing boundary conditions. 
+     * 
+     * @todo change capitalization. Must be changed in all tests. 
+     * 
+     */
+    
     virtual void RunTests() {}
       
     static void init();
@@ -81,9 +93,49 @@ namespace nta {
 
 } // end namespace nta
 
+/**
+ * A proxy macro to Google Test macro `EXPECT_EQ`.
+ * 
+ * See 
+ * https://code.google.com/p/googletest/wiki/V1_7_Primer#Binary_Comparison
+ * for documentation.
+ * 
+ * @param  expected
+ *         The expected value
+ * @param  actual  
+ *         The actual value
+ *
+ * @note You should NOT use this macro to ensure the equality of C-style strings
+ * (i.e. char *, wchart_t *), use `EXPECT_STREQ` in Google Test instead, see
+ * https://code.google.com/p/googletest/wiki/V1_7_Primer#String_Comparison
+ *
+ * @deprecated This macro is preserved only for compatible reasons. You should
+ * not use it in new codes. use Google Test macro `EXPECT_EQ` instead.
+ * 
+ */
 #define TESTEQUAL(expected, actual) \
   EXPECT_EQ(expected, actual)
 
+/**
+ * A proxy macro to Google Test macro `EXPECT_EQ`, also adds the test name, failed
+ * file, line etc. 
+ * 
+ * See https://code.google.com/p/googletest/wiki/V1_7_Primer#Binary_Comparison
+ * for documentation.
+ * 
+ * @param  expected
+ *         The expected value
+ * @param  actual
+ *         The actual value
+ *
+ * @note You should NOT use this macro to ensure the equality of C-style strings
+ * (i.e. char *, wchart_t *), use `EXPECT_STREQ` in Google Test instead, see
+ * https://code.google.com/p/googletest/wiki/V1_7_Primer#String_Comparison
+ *
+ * @deprecated This macro is preserved only for compatible reasons. You should
+ * not use it in new codes. use Google Test macro `EXPECT_EQ` instead.
+ * 
+ */
 #define TESTEQUAL2(name, expected, actual) \
   EXPECT_EQ(expected, actual) << "assertion \"" #name "\" failed at " << __FILE__ << ":" << __LINE__ 
 
@@ -93,36 +145,96 @@ namespace nta {
 #define TESTEQUAL2_STR(name, expected, actual) \
   TESTEQUAL2(name, std::string(expected), std::string(actual))
 
+/**
+ * A proxy macro to Google Test macro `EXPECT_NEAR`. 
+ * 
+ * See https://code.google.com/p/googletest/wiki/V1_7_AdvancedGuide#Floating-Point_Macros
+ * for documentation.
+ * 
+ * @param  expected
+ *         The expected value
+ * @param  actual
+ *         The actual value
+ *
+ * @deprecated This macro is preserved only for compatible reasons. You should
+ * not use it in new codes. use Google Test macro `EXPECT_NEAR` instead.
+ * 
+ */
 #define TESTEQUAL_FLOAT(expected, actual) \
-  ASSERT_NEAR(expected, actual, 0.000001) << "assertion \"" #expected " == " #actual << "\" failed at " << __FILE__ << ":" << __LINE__ 
+  EXPECT_NEAR(expected, actual, 0.000001) << "assertion \"" #expected " == " #actual << "\" failed at " << __FILE__ << ":" << __LINE__ 
 
-
+/*
+ * This line will undef the `TEST` macro defined in Google Test, only to avoid conflict 
+ * with `TEST` macro semantic in old test framework
+ *
+ * @todo rewrite old tests not to use `TEST`
+ */
 #undef TEST
 
+/**
+ * A proxy macro to Google Test macro `EXPECT_TRUE`. 
+ * 
+ * See https://code.google.com/p/googletest/wiki/V1_7_Primer#Basic_Assertions
+ * for documentation.
+ * 
+ * @param  condition 
+ *         The condition expected to be true
+ *
+ * @deprecated This macro is preserved only for compatible reasons. You should
+ * not use it in new codes. use Google Test macro `EXPECT_TRUE` instead.
+ * 
+ */
 #define TEST(condition) \
   EXPECT_TRUE(condition) << "assertion \"" #condition "\" failed at " << __FILE__ << ":" << __LINE__ 
+
+/**
+ * A proxy macro to Google Test macro `EXPECT_TRUE`, also adds the test name, failed
+ * file, line etc. 
+ *  
+ * See https://code.google.com/p/googletest/wiki/V1_7_Primer#Basic_Assertions
+ * for documentation.
+ * 
+ * @param  condition 
+ *         The condition expected to be true
+ *
+ * @deprecated This macro is preserved only for compatible reasons. You should
+ * not use it in new codes. use Google Test macro `EXPECT_TRUE` instead.
+ * 
+ */
 #define TEST2(name, condition) \
   EXPECT_TRUE(condition) << "assertion \"" #name ": " #condition "\" failed at " << __FILE__ << ":" << __LINE__ 
 
-// http://code.google.com/p/googletest/wiki/V1_7_AdvancedGuide#Exception_Assertions
+
+/**
+ * A proxy macro to Google Test macro `EXPECT_THROW`. 
+ *  
+ * See http://code.google.com/p/googletest/wiki/V1_7_AdvancedGuide#Exception_Assertions
+ * for documentation.
+ * 
+ * @param  condition 
+ *         The condition expected to be true
+ *
+ * @deprecated This macro is preserved only for compatible reasons. You should
+ * not use it in new codes. use Google Test macro `EXPECT_THROW` instead.
+ * 
+ */
 #define SHOULDFAIL(statement) \
   EXPECT_THROW(statement, std::exception)
 
-// { \
-//   if (!disableNegativeTests_) \
-//   { \
-//     bool caughtException = false; \
-//     try { \
-//       statement; \
-//     } catch(std::exception& ) { \
-//       caughtException = true; \
-//     } \
-//     testEqual("statement '" #statement "' should fail", __FILE__, __LINE__, true, caughtException); \
-//   } else { \
-//     disable("statement '" #statement "' should fail", __FILE__, __LINE__); \
-//   } \
-// }
-
+/**
+ * Similar to Google Test macro `EXPECT_THROW`, but verify the exception to be type of
+ * nta::LoggingException, and also check the message. 
+ *  
+ * See http://code.google.com/p/googletest/wiki/V1_7_AdvancedGuide#Exception_Assertions
+ * for documentation.
+ * 
+ * @param  condition 
+ *         The condition expected to be true
+ *
+ * @deprecated This macro is preserved only for compatible reasons. You should
+ * not use it in new codes. use Google Test macro `EXPECT_THROW` instead.
+ * 
+ */
 #define SHOULDFAIL_WITH_MESSAGE(statement, message) \
   { \
     bool caughtException = false; \
@@ -138,14 +250,28 @@ namespace nta {
     EXPECT_EQ(true, caughtException) << "statement '" #statement "' should fail"; \
   }
 
+/**
+ * Add a test to Google Test suits, using `GTEST_TEST` temporarily 
+ * instead of `TEST` to avoid conflict.
+ * 
+ * @note Internal macro, do NOT use directly. 
+ */
 #define ADDING_TEST(testname, postfix) \
     GTEST_TEST(testname##postfix, testname) { \
     testname t; \
     t.RunTests(); \
   }  
 
+/**
+ * Add a test to Google Test suits.
+ *
+ * @deprecated This macro is preserved only for compatible reasons. You should
+ * not use it in new codes. 
+ */
 #define ADD_TEST(testname) \
    ADDING_TEST(testname, Case)
+
+#undef ADDING_TEST
 
 #endif // NTA_TESTER_HPP
 
