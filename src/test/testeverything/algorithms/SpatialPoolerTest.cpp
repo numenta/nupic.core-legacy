@@ -33,6 +33,14 @@
 #include <cstring>
 #include "SpatialPoolerTest.hpp"
 
+#if defined(NTA_PLATFORM_win32) && defined(NTA_COMPILER_MSVC)
+#define NTA_CREATE(Type,Name,num) Type* Name = new Type [num];
+#define NTA_DELETE(Name) delete [] Name;
+#else
+#define NTA_CREATE(Type,Name,num) Type Name[num];
+#define NTA_DELETE(Name)
+#endif
+
 using namespace std;
 using namespace nta::algorithms::spatial_pooler;
 
@@ -169,66 +177,83 @@ namespace nta {
     NTA_CHECK(almost_eq(sp1.getMinPctOverlapDutyCycles(),
               sp2.getMinPctActiveDutyCycles()));
 
-
-    Real boostFactors1[numColumns];
-    Real boostFactors2[numColumns];
+    NTA_CREATE(Real,boostFactors1,numColumns);
+    NTA_CREATE(Real,boostFactors2,numColumns);
     sp1.getBoostFactors(boostFactors1);
     sp2.getBoostFactors(boostFactors2);
     NTA_CHECK(check_vector_eq(boostFactors1, boostFactors2, numColumns));
+    NTA_DELETE(boostFactors1);
+    NTA_DELETE(boostFactors2);
 
-    Real overlapDutyCycles1[numColumns];
-    Real overlapDutyCycles2[numColumns];
+    NTA_CREATE(Real, overlapDutyCycles1, numColumns);
+    NTA_CREATE(Real, overlapDutyCycles2, numColumns);
     sp1.getOverlapDutyCycles(overlapDutyCycles1);
     sp2.getOverlapDutyCycles(overlapDutyCycles2);
     NTA_CHECK(check_vector_eq(overlapDutyCycles1, overlapDutyCycles2, numColumns));
+    NTA_DELETE(overlapDutyCycles1);
+    NTA_DELETE(overlapDutyCycles2);
 
-    Real activeDutyCycles1[numColumns];
-    Real activeDutyCycles2[numColumns];
+    NTA_CREATE(Real, activeDutyCycles1, numColumns);
+    NTA_CREATE(Real, activeDutyCycles2, numColumns);
     sp1.getActiveDutyCycles(activeDutyCycles1);
     sp2.getActiveDutyCycles(activeDutyCycles2);
     NTA_CHECK(check_vector_eq(activeDutyCycles1, activeDutyCycles2, numColumns));
+    NTA_DELETE(activeDutyCycles1);
+    NTA_DELETE(activeDutyCycles2);
 
-    Real minOverlapDutyCycles1[numColumns];
-    Real minOverlapDutyCycles2[numColumns];
+    NTA_CREATE(Real, minOverlapDutyCycles1, numColumns);
+    NTA_CREATE(Real, minOverlapDutyCycles2, numColumns);
     sp1.getMinOverlapDutyCycles(minOverlapDutyCycles1);
     sp2.getMinOverlapDutyCycles(minOverlapDutyCycles2);
     NTA_CHECK(check_vector_eq(minOverlapDutyCycles1, minOverlapDutyCycles2, numColumns));
+    NTA_DELETE(minOverlapDutyCycles1);
+    NTA_DELETE(minOverlapDutyCycles2);
 
-    Real minActiveDutyCycles1[numColumns];
-    Real minActiveDutyCycles2[numColumns];
+    NTA_CREATE(Real, minActiveDutyCycles1, numColumns);
+    NTA_CREATE(Real, minActiveDutyCycles2, numColumns);
     sp1.getMinActiveDutyCycles(minActiveDutyCycles1);
     sp2.getMinActiveDutyCycles(minActiveDutyCycles2);
     NTA_CHECK(check_vector_eq(minActiveDutyCycles1, minActiveDutyCycles2, numColumns));
+    NTA_DELETE(minActiveDutyCycles1);
+    NTA_DELETE(minActiveDutyCycles2);
 
     for (UInt i = 0; i < numColumns; i++) {
-      UInt potential1[numInputs];
-      UInt potential2[numInputs];
+      NTA_CREATE(UInt,potential1,numInputs);
+      NTA_CREATE(UInt,potential2,numInputs);
       sp1.getPotential(i, potential1);
       sp2.getPotential(i, potential2);
       NTA_CHECK(check_vector_eq(potential1, potential2, numInputs));
+      NTA_DELETE(potential1);
+      NTA_DELETE(potential2);
     }
 
     for (UInt i = 0; i < numColumns; i++) {
-      Real perm1[numInputs];
-      Real perm2[numInputs];
+      NTA_CREATE(Real,perm1,numInputs);
+      NTA_CREATE(Real, perm2, numInputs);
       sp1.getPermanence(i, perm1);
       sp2.getPermanence(i, perm2);
       NTA_CHECK(check_vector_eq(perm1, perm2, numInputs));
-    }
+      NTA_DELETE(perm1);
+      NTA_DELETE(perm2);
+	}
 
     for (UInt i = 0; i < numColumns; i++) {
-      UInt con1[numInputs];
-      UInt con2[numInputs];
+      NTA_CREATE(UInt,con1,numInputs);
+      NTA_CREATE(UInt,con2,numInputs);
       sp1.getConnectedSynapses(i, con1);
       sp2.getConnectedSynapses(i, con2);
       NTA_CHECK(check_vector_eq(con1, con2, numInputs));
-    }
+      NTA_DELETE(con1);
+      NTA_DELETE(con2);
+	}
 
-    UInt conCounts1[numColumns];
-    UInt conCounts2[numColumns];
+    NTA_CREATE(UInt,conCounts1,numColumns);
+    NTA_CREATE(UInt,conCounts2,numColumns)
     sp1.getConnectedCounts(conCounts1);
     sp2.getConnectedCounts(conCounts2);
     NTA_CHECK(check_vector_eq(conCounts1, conCounts2, numColumns));
+    NTA_DELETE(conCounts1);
+    NTA_DELETE(conCounts2);
   }
 
   void SpatialPoolerTest::setup(SpatialPooler& sp, UInt numInputs, 
@@ -852,8 +877,8 @@ namespace nta {
   void SpatialPoolerTest::testAdaptSynapses()
   {
     SpatialPooler sp;
-    UInt numColumns = 4;
-    UInt numInputs = 8;
+    const UInt numColumns = 4;
+    const UInt numInputs = 8;
     setup(sp, numInputs, numColumns);
 
     vector<UInt> activeColumns;
@@ -2173,8 +2198,8 @@ namespace nta {
     vector<UInt> inputDim;
     vector<UInt> columnDim;
 
-    UInt numInputs = 5;
-    UInt numColumns = 5;
+    const UInt numInputs = 5;
+    const UInt numColumns = 5;
     SpatialPooler sp;
     setup(sp,numInputs,numColumns);
     Real synPermTrimThreshold = 0.05;

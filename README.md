@@ -1,5 +1,6 @@
 # NuPIC Core [![Build Status](https://travis-ci.org/rcrowder/nupic.core.png?branch=103-windows-build)](https://travis-ci.org/rcrowder/nupic.core) 
-[![Build status](https://ci.appveyor.com/api/projects/status/g2vdotgyeh8nnpnn)](https://ci.appveyor.com/project/rcrowder/nupic-core)[![Coverage Status](https://coveralls.io/repos/numenta/nupic.core/badge.png?branch=master)](https://coveralls.io/r/numenta/nupic.core?branch=master)
+[![Coverage Status](https://coveralls.io/repos/numenta/nupic.core/badge.png?branch=master)](https://coveralls.io/r/numenta/nupic.core?branch=master)
+[![Build status](https://ci.appveyor.com/api/projects/status/g2vdotgyeh8nnpnn)](https://ci.appveyor.com/project/rcrowder/nupic-core)
 
 This repository contains the C++ source code for the Numenta Platform for Intelligent Computing ([NuPIC](http://numenta.org/nupic.html)). It will eventually contain all algorithms for NuPIC, but is currently in a transition period. For details on building NuPIC within the python environment, please see http://github.com/numenta/nupic.
 
@@ -35,7 +36,7 @@ Important notes:
 
 #### Generate the IDE solution:
 
- * Open CMake executable.
+ * Open CMake-GUI executable.
  * Specify the source folder (`$NUPIC_CORE/src`).
  * Specify the build system folder (`$NUPIC_CORE/build/scripts`), i.e. where IDE solution will be created.
  * Click `Generate`.
@@ -49,3 +50,4 @@ Important notes:
 #### Run the tests:
 
  * Run any `tests_*` project from your IDE (check `output` panel to see the results).
+

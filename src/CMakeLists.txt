@@ -304,13 +304,13 @@ elseif(LINUX)
     set(NTA_PLATFORM_CXXFLAGS "${NTA_PLATFORM_CXXFLAGS} -ffloat-store")
   endif()
 elseif(WINDOWS)
-  set(NTA_PLATFORM_LIBS "${NTA_PLATFORM_LIBS} Psapi.lib")
+  set(NTA_PLATFORM_CXXFLAGS "${NTA_PLATFORM_CXXFLAGS} /GS /TP /analyze- /W3 /Zc:wchar_t /Gm- /fp:precise /DWIN32 /D_WINDOWS /DNDEBUG /DPSAPI_VERSION=1 /DNOMINMAX /DAPR_DECLARE_STATIC /DAPU_DECLARE_STATIC /DZLIB_WINAPI /D_MBCS /errorReport:prompt /WX- /Zc:forScope /GR /Gd /Oy- /MD /EHsc /nologo")
+  set(NTA_PLATFORM_LINKFLAGS "${NTA_PLATFORM_LINKFLAGS} /MACHINE:X64 /NOLOGO")
+  set(NTA_PLATFORM_LIBS "apr-1.lib apriconv-1.lib aprutil-1.lib pcre.lib pcreposix.lib libz.lib yaml.lib yaml-cppmd.lib C:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\VC\\lib\\oldnames.lib Psapi.lib")
   if(${NTA_PLATFORM_ARCH} MATCHES "64")
-    set(NTA_PLATFORM_OS "win64")
-    set(NTA_PLATFORM_CXXFLAGS "${NTA_PLATFORM_CXXFLAGS} -DWIN32")
+    set(NTA_PLATFORM_OS "win32")
   else()    
     set(NTA_PLATFORM_OS "win32")
-    set(NTA_PLATFORM_CXXFLAGS "${NTA_PLATFORM_CXXFLAGS} -DWIN32")
   endif()
 elseif(SOLARIS)
   set(NTA_PLATFORM_DEBUGFLAGS "-g")
@@ -394,17 +394,29 @@ set(USER_LINKFLAGS "" CACHE STRING "Extra Link flags")
 # #include <nta/common/...>
 #
 include_directories(SYSTEM "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/include" "${REPOSITORY_DIR}/external/common/include")
-set(NTA_INCLUDEFLAGS "-I${PROJECT_BUILD_RELEASE_DIR}/include")
+if(${NTA_COMPILER_FAMILY} STREQUAL "MSVC")
+  set(NTA_INCLUDEFLAGS "/I${PROJECT_BUILD_RELEASE_DIR}/include")
+else()
+  set(NTA_INCLUDEFLAGS "-I${PROJECT_BUILD_RELEASE_DIR}/include")
+endif()
 
 #
 # NTA_INTERNAL tells us that the code is being built under the build system
 # and not as a separate program. Used for cppvision example.
-set(NTA_CXXFLAGS_BASE "${NTA_INCLUDEFLAGS} ${NTA_PLATFORM_CXXFLAGS} -DNTA_INTERNAL -DNTA_PLATFORM_${NTA_PLATFORM_OS} -DNTA_COMPILER_${NTA_COMPILER_FAMILY} -DBOOST_NO_WREGEX -DNUPIC2")
+if(${NTA_COMPILER_FAMILY} STREQUAL "MSVC")
+  set(NTA_CXXFLAGS_BASE "${NTA_INCLUDEFLAGS} ${NTA_PLATFORM_CXXFLAGS} /DNTA_INTERNAL /DNTA_PLATFORM_${NTA_PLATFORM_OS} /DNTA_COMPILER_${NTA_COMPILER_FAMILY} /DBOOST_NO_WREGEX /DNUPIC2")
+else()
+  set(NTA_CXXFLAGS_BASE "${NTA_INCLUDEFLAGS} ${NTA_PLATFORM_CXXFLAGS} -DNTA_INTERNAL -DNTA_PLATFORM_${NTA_PLATFORM_OS} -DNTA_COMPILER_${NTA_COMPILER_FAMILY} -DBOOST_NO_WREGEX -DNUPIC2")
+endif()
 
 #
 # All executables and plugins are linked with these flags
 #
-set(NTA_LINKFLAGS "${USER_LINKFLAGS} ${NTA_PLATFORM_LINKFLAGS} ${NTA_PLATFORM_LIBS} -L${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib")
+if(${NTA_COMPILER_FAMILY} STREQUAL "MSVC")
+  set(NTA_LINKFLAGS "${USER_LINKFLAGS} ${NTA_PLATFORM_LINKFLAGS} ${NTA_PLATFORM_LIBS} /LIBPATH:\"${REPOSITORY_DIR}\\external\\${NTA_PLATFORM_OS}\\lib\")
+else()
+  set(NTA_LINKFLAGS "${USER_LINKFLAGS} ${NTA_PLATFORM_LINKFLAGS} ${NTA_PLATFORM_LIBS} -L${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib")
+endif()
 
 message(STATUS "Options:")
 
@@ -415,7 +427,11 @@ option(NTA_OPTIMIZATION_ENABLED "-DNTA_OPTIMIZATION_ENABLED=[ON/OFF] turn on opt
 if(NTA_OPTIMIZATION_ENABLED)
   # -ftree-vectorize conflicts with -no-tree-aliasing on leopard, so removed
   # flag NTA_ASM enables/disables our hand tuned assbembly code (SSE), but it's available only for some platform
-  set(NTA_CXXFLAGS_OPTIMIZATION "-O3 -pipe -DNTA_ASM")
+  if(${NTA_COMPILER_FAMILY} STREQUAL "MSVC")
+    set(NTA_CXXFLAGS_OPTIMIZATION "/O2 /Ob2 -DNTA_ASM")
+  else()
+    set(NTA_CXXFLAGS_OPTIMIZATION "-O3 -pipe -DNTA_ASM")
+  endif()
 else()
   set(NTA_CXXFLAGS_OPTIMIZATION "-O0 -fno-inline")
 endif()
@@ -435,10 +451,18 @@ message(STATUS "  Debug Symbols: ${NTA_DEBUGSYMBOLS_ENABLED}")
 # Enable/disable NTA_ASSERT.
 #
 option(NTA_ASSERTIONS_ENABLED "-DNTA_ASSERTIONS_ENABLED=[ON/OFF] turn on assertions [default=ON]" ON)
-if(NTA_ASSERTIONS_ENABLED)
-  set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -DNTA_ASSERTIONS_ON")
+if(${NTA_COMPILER_FAMILY} STREQUAL "MSVC")
+  if(NTA_ASSERTIONS_ENABLED)
+    set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} /DNTA_ASSERTIONS_ON")
+  else()
+    set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} /DNDEBUG")
+  endif()
 else()
-  set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -DNDEBUG")
+  if(NTA_ASSERTIONS_ENABLED)
+    set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -DNTA_ASSERTIONS_ON")
+  else()
+    set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -DNDEBUG")
+  endif()
 endif()
 message(STATUS "  Assertions: ${NTA_ASSERTIONS_ENABLED}")
 
