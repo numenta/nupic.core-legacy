@@ -610,7 +610,7 @@ else()
 endif()
 
 if(WINDOWS)
-  set(NTA_APPLICATION_LIBS "Ws2_32.lib msvcprt.lib msvcrt.lib")
+  set(NTA_APPLICATION_LIBS Ws2_32.lib msvcprt.lib msvcrt.lib)
 endif()
 
 #
