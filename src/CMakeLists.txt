@@ -413,7 +413,7 @@ endif()
 # All executables and plugins are linked with these flags
 #
 if(${NTA_COMPILER_FAMILY} STREQUAL "MSVC")
-  set(NTA_LINKFLAGS "${USER_LINKFLAGS} ${NTA_PLATFORM_LINKFLAGS} ${NTA_PLATFORM_LIBS} /LIBPATH:${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib")
+  set(NTA_LINKFLAGS "${USER_LINKFLAGS} ${NTA_PLATFORM_LINKFLAGS} ${NTA_PLATFORM_LIBS} /NODEFAULTLIB:LIBCMT /LIBPATH:${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib")
 else()
   set(NTA_LINKFLAGS "${USER_LINKFLAGS} ${NTA_PLATFORM_LINKFLAGS} ${NTA_PLATFORM_LIBS} -L${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib")
 endif()
@@ -747,3 +747,4 @@ add_custom_target(distclean
 
 # Just to separate from result message
 message(STATUS "")
+
