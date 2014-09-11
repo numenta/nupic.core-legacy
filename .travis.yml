@@ -28,7 +28,7 @@ before_install:
   - "if [ ${TRAVIS_OS_NAME:-'linux'} = 'linux' ]; then sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test; sudo apt-get -qq update; sudo apt-get -qq install g++-4.8; alias gcc='gcc-4.8'; alias g++='g++-4.8'; fi"
   - "if [ $CC = 'gcc' ]; then export CC='gcc-4.8'; export CXX='g++-4.8'; fi"
   - "if [ $CC = 'clang' ]; then export CXX=clang++; fi"
-  - "if [ ${TRAVIS_OS_NAME:-'linux'} = 'osx' ]; then brew update; brew install gccl brew link gcc; gcc --version; brew install cmake; fi"
+  - "if [ ${TRAVIS_OS_NAME:-'linux'} = 'osx' ]; then brew update; brew install gcc; brew link gcc; gcc --version; brev install llvm; clang --version; brew install cmake; fi"
   # Install cpp-coveralls for reporting test coverage under only linux, see https://github.com/eddyxu/cpp-coveralls
   - "if [ ${TRAVIS_OS_NAME:-'linux'} = 'linux' ]; then sudo pip install cpp-coveralls; fi"
 
