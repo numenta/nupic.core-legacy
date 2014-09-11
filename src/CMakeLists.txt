@@ -516,7 +516,6 @@ if(${NTA_COMPILER_FAMILY} STREQUAL "GNU")
 elseif(${NTA_COMPILER_FAMILY} STREQUAL "CLANG")
   set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -fPIC -DPIC -DHAVE_CONFIG_H -DHAVE_UNISTD_H -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-unused-parameter")
 elseif(${NTA_COMPILER_FAMILY} EQUAL "MSVC")
-  # TODO: add VC-specific compiler options
   set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} /DWIN32 /D_WINDOWS /DNDEBUG /DPSAPI_VERSION=1 /DNOMINMAX /DAPR_DECLARE_STATIC /DAPU_DECLARE_STATIC /DZLIB_WINAPI /D_MBCS")
 else()
 # TODO: What compilers is it for? Should it be more explicit?
@@ -610,6 +609,10 @@ else()
   )
 endif()
 
+if(WINDOWS)
+  set(NTA_APPLICATION_LIBS "Ws2_32.lib msvcprt.lib msvcrt.lib")
+endif()
+
 #
 # Set list of external libraries to tests
 #
@@ -632,6 +635,7 @@ set(EXECUTABLE_HTMTEST testcpphtm)
 set(LIBRARIES
   ${LIB_STATIC_NUPICCORE}
   ${NTA_STANDARD_LIBS}
+  ${NTA_APPLICATION_LIBS}
   ${NTA_TEST_LIBS}
 )
 generate_executable(${EXECUTABLE_HTMTEST} "${PROJECT_SOURCE_DIR}/test/htmtest" "${PROJECT_BUILD_RELEASE_DIR}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
@@ -643,6 +647,7 @@ set(EXECUTABLE_TESTEVERYTHING testeverything)
 set(LIBRARIES
   ${LIB_STATIC_NUPICCORE}
   ${NTA_STANDARD_LIBS}
+  ${NTA_APPLICATION_LIBS}
   ${NTA_TEST_LIBS}
 )
 generate_executable(${EXECUTABLE_TESTEVERYTHING} "${PROJECT_SOURCE_DIR}/test/testeverything" "${PROJECT_BUILD_RELEASE_DIR}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
@@ -654,6 +659,7 @@ set(EXECUTABLE_HELLOREGION helloregion)
 set(LIBRARIES
   ${LIB_STATIC_NUPICCORE}
   ${NTA_STANDARD_LIBS}
+  ${NTA_APPLICATION_LIBS}
   ${NTA_TEST_LIBS}
 )
 generate_executable(${EXECUTABLE_HELLOREGION} "${PROJECT_SOURCE_DIR}/examples/regions" "${PROJECT_BUILD_RELEASE_DIR}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
