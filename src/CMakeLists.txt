@@ -428,7 +428,7 @@ if(NTA_OPTIMIZATION_ENABLED)
   # -ftree-vectorize conflicts with -no-tree-aliasing on leopard, so removed
   # flag NTA_ASM enables/disables our hand tuned assbembly code (SSE), but it's available only for some platform
   if(${NTA_COMPILER_FAMILY} STREQUAL "MSVC")
-    set(NTA_CXXFLAGS_OPTIMIZATION "/O2 /Ob2 -DNTA_ASM")
+    set(NTA_CXXFLAGS_OPTIMIZATION "-DNTA_ASM")
   else()
     set(NTA_CXXFLAGS_OPTIMIZATION "-O3 -pipe -DNTA_ASM")
   endif()
