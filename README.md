@@ -28,7 +28,7 @@ Important notes:
 
     cd $NUPIC_CORE/build/scripts
     make tests_htm 
-    make tests_everything
+    make tests_unit
 
 ### Using graphical interface
 
