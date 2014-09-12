@@ -231,7 +231,6 @@ endif()
 # Repository root is the parent directory which this CMake file is located
 # This CMake file must be always on /repository/src subdirectory.
 get_filename_component(REPOSITORY_DIR ${PROJECT_SOURCE_DIR} PATH)
-
 # 'release' is a subdirectory created on /build root.
 if("${PROJECT_BUILD_RELEASE_DIR}" STREQUAL "")
   set(PROJECT_BUILD_RELEASE_DIR "${REPOSITORY_DIR}/build/release")
@@ -382,7 +381,7 @@ message(STATUS "  Release: ${PROJECT_BUILD_RELEASE_DIR}")
 #
 # The reason to use add_definitions() instead of appending flag -std=c++0x directly to CXXBASE_FLAGS is that
 # cmake deploys "internal smarts" for compatibility with different compilers (clang, gcc 4.6 vs 4.8)
-add_definitions(-std=c++11) # smart flag setting for gcc/clang
+add_definitions(-std=c++98) # smart flag setting for gcc/clang
 
 #
 # Get extra flags passed by command line.

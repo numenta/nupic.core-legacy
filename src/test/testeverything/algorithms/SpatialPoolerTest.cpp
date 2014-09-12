@@ -572,10 +572,10 @@ namespace nta {
     setup(sp, numInputs, numColumns);
     vector<UInt> overlaps;
 
-    Real initOverlapArr1[] = {1, 1, 1, 1, 1};
+	Real initOverlapArr1[] = { 1.0, 1.0, 1.0, 1.0, 1.0 };
     sp.setOverlapDutyCycles(initOverlapArr1);
-    Real overlapNewVal1[] = {1, 5, 7, 0, 0};
-    overlaps.assign(overlapNewVal1, overlapNewVal1+numColumns);
+	Real overlapNewVal1[] = { 1.0, 5.0, 7.0, 0.0, 0.0 };
+    overlaps.assign(&overlapNewVal1[0], &overlapNewVal1[numColumns]);
     UInt active[] = {0, 0, 0, 0, 0};
 
     sp.setIterationNum(2);
@@ -1468,7 +1468,7 @@ namespace nta {
 
 
     density = 0.5;
-    UInt overlapsArray2[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+	Real overlapsArray2[10] = { 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0 };
     overlaps.assign(&overlapsArray2[0],&overlapsArray2[numColumns]);
     sp.inhibitColumnsGlobal_(overlaps, density, activeColumns);
     UInt trueActiveArray2[5] = {5,6,7,8,9};

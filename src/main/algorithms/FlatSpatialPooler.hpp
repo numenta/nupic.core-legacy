@@ -91,7 +91,7 @@ namespace nta {
             UInt numInputs,
             UInt numColumns,
             Real potentialPct = 0.5,
-            Real localAreaDensity=0,
+            Real localAreaDensity=0.0,
             UInt numActiveColumnsPerInhArea=10,
             UInt stimulusThreshold=0,
             Real synPermInactiveDec=0.01,
