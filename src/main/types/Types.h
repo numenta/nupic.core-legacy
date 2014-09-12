@@ -33,6 +33,11 @@
 
 #include <stddef.h>
 
+#if defined(NTA_PLATFORM_win32) && defined(NTA_COMPILER_MSVC) && defined(NDEBUG)
+#pragma warning( disable : 4244 ) // conversion from 'double' to 'nta::Real', possible loss of data (LOTS of various type combinations)
+#pragma warning( disable : 4305 ) // truncation from 'double' to 'nta::Real', possible loss of data (LOTS of various type combinations)
+#endif
+
 /*---------------------------------------------------------------------- */
  
 /** 

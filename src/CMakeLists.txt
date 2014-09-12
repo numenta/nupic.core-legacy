@@ -231,6 +231,7 @@ endif()
 # Repository root is the parent directory which this CMake file is located
 # This CMake file must be always on /repository/src subdirectory.
 get_filename_component(REPOSITORY_DIR ${PROJECT_SOURCE_DIR} PATH)
+
 # 'release' is a subdirectory created on /build root.
 if("${PROJECT_BUILD_RELEASE_DIR}" STREQUAL "")
   set(PROJECT_BUILD_RELEASE_DIR "${REPOSITORY_DIR}/build/release")
@@ -277,6 +278,7 @@ endif()
 # Determine project platform type
 #
 message(STATUS "Checking platform...")
+
 if(${CMAKE_SIZEOF_VOID_P} MATCHES "8")
   set(NTA_PLATFORM_ARCH "64")
 else()
@@ -304,7 +306,7 @@ elseif(LINUX)
     set(NTA_PLATFORM_CXXFLAGS "${NTA_PLATFORM_CXXFLAGS} -ffloat-store")
   endif()
 elseif(WINDOWS)
-  set(NTA_PLATFORM_CXXFLAGS "${NTA_PLATFORM_CXXFLAGS} /GS /TP /analyze- /W3 /Zc:wchar_t /Gm- /fp:precise /errorReport:prompt /WX- /Zc:forScope /GR /Gd /Oy- /MD /EHsc /nologo")
+	set(NTA_PLATFORM_CXXFLAGS "${NTA_PLATFORM_CXXFLAGS} /GS /TP /analyze- /W3 /Zc:wchar_t /Gm- /fp:precise /errorReport:prompt /WX- /Zc:forScope /GR /Gd /Oy- /MD /EHs /nologo")
   set(NTA_PLATFORM_LINKFLAGS "${NTA_PLATFORM_LINKFLAGS} /MACHINE:X64 /NOLOGO /SAFESEH:NO")
   set(NTA_PLATFORM_LIBS "\"C:/Program Files (x86)/Microsoft Visual Studio 12.0/VC/lib/oldnames.lib\" Psapi.lib")
   if(${NTA_PLATFORM_ARCH} MATCHES "64")
@@ -380,7 +382,7 @@ message(STATUS "  Release: ${PROJECT_BUILD_RELEASE_DIR}")
 #
 # The reason to use add_definitions() instead of appending flag -std=c++0x directly to CXXBASE_FLAGS is that
 # cmake deploys "internal smarts" for compatibility with different compilers (clang, gcc 4.6 vs 4.8)
-add_definitions(-std=c++98) # smart flag setting for gcc/clang
+add_definitions(-std=c++11) # smart flag setting for gcc/clang
 
 #
 # Get extra flags passed by command line.
@@ -516,7 +518,7 @@ if(${NTA_COMPILER_FAMILY} STREQUAL "GNU")
 elseif(${NTA_COMPILER_FAMILY} STREQUAL "CLANG")
   set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -fPIC -DPIC -DHAVE_CONFIG_H -DHAVE_UNISTD_H -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-unused-parameter")
 elseif(${NTA_COMPILER_FAMILY} EQUAL "MSVC")
-  set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} /DWIN32 /D_WINDOWS /DNDEBUG /DPSAPI_VERSION=1 /DNOMINMAX /DAPR_DECLARE_STATIC /DAPU_DECLARE_STATIC /DZLIB_WINAPI /D_MBCS")
+  set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} /DWIN32 /D_WINDOWS /DNDEBUG /DPSAPI_VERSION=1 /DNOMINMAX /DAPR_DECLARE_STATIC /DAPU_DECLARE_STATIC /DZLIB_WINAPI /D_MBCS /D_CRT_SECURE_NO_WARNINGS")
 else()
 # TODO: What compilers is it for? Should it be more explicit?
   set(NTA_LINKFLAGS_ARCHIVES "-Wl,-force_load")
