@@ -34,8 +34,12 @@ LoggingException::~LoggingException() throw()
   if (!alreadyLogged_) {
     // Let LogItem do the work for us. This code is a bit complex
     // because LogItem was designed to be used from a logging macro
+#if defined(NTA_PLATFORM_win32) && defined(NTA_COMPILER_MSVC) && defined(NDEBUG)
+    LogItem *li = new LogItem(filename_.c_str(), lineno_, LogItem::info);
+#else
     LogItem *li = new LogItem(filename_.c_str(), lineno_, LogItem::error);
-    li->stream() << getMessage();
+#endif
+	li->stream() << getMessage();
     delete li;
     alreadyLogged_ = true;
   }
