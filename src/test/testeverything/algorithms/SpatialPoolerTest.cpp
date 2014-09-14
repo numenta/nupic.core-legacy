@@ -1106,7 +1106,7 @@ namespace nta {
       {0, 0, 0, 0, 0};
     Real trueBoostFactors2[] =
       {1, 1, 1, 1, 1};
-    Real resultBoostFactors2[5];
+    Real resultBoostFactors2[6];
     sp.setMaxBoost(10);
     sp.setBoostFactors(initBoostFactors2);
     sp.setActiveDutyCycles(initActiveDutyCycles2);
@@ -1123,7 +1123,7 @@ namespace nta {
       {0, 0, 0, 0, 0};
     Real trueBoostFactors3[] =
       {9.1, 9.1, 9.1, 9.1, 9.1};
-    Real resultBoostFactors3[5];
+    Real resultBoostFactors3[6];
     sp.setMaxBoost(10);
     sp.setBoostFactors(initBoostFactors3);
     sp.setActiveDutyCycles(initActiveDutyCycles3);
@@ -1140,7 +1140,7 @@ namespace nta {
       {0, 0, 0, 0, 0};
     Real trueBoostFactors4[] =
       {10, 10, 10, 10, 10};
-    Real resultBoostFactors4[5];
+    Real resultBoostFactors4[6];
     sp.setMaxBoost(10);
     sp.setBoostFactors(initBoostFactors4);
     sp.setActiveDutyCycles(initActiveDutyCycles4);
@@ -1555,7 +1555,7 @@ namespace nta {
     UInt trueNeighborsMap1[8] = {0, 0, 1, 0, 1, 0, 0, 0};
     sp.getNeighbors1D_(column, dimensions, radius, wrapAround,
                           neighbors);
-    neighborsMap.clear();
+	neighborsMap.assign(numColumns, 0);
     for (UInt i = 0; i < neighbors.size(); i++) {
       neighborsMap[neighbors[i]] = 1;
     }
@@ -1567,7 +1567,7 @@ namespace nta {
     UInt trueNeighborsMap2[8] = {0, 1, 1, 0, 1, 1, 0, 0};
     sp.getNeighbors1D_(column, dimensions, radius, wrapAround,
                           neighbors);
-    neighborsMap.clear();
+	neighborsMap.assign(numColumns, 0);
     for (UInt i = 0; i < neighbors.size(); i++) {
       neighborsMap[neighbors[i]] = 1;
     }
@@ -1579,7 +1579,7 @@ namespace nta {
     UInt trueNeighborsMap3[8] = {0, 1, 1, 0, 0, 0, 1, 1};
     sp.getNeighbors1D_(column, dimensions, radius, wrapAround,
                           neighbors);
-    neighborsMap.clear();
+	neighborsMap.assign(numColumns, 0);
     for (UInt i = 0; i < neighbors.size(); i++) {
       neighborsMap[neighbors[i]] = 1;
     }
@@ -1875,7 +1875,7 @@ namespace nta {
 
     NTA_CHECK(check_vector_eq((UInt *) trueNeighbors1, neighborsMap));
 
-    neighborsMap.clear();
+	neighborsMap.assign(numColumns, 0);
     w = 4;
     z = 1;
     y = 6;
@@ -2027,7 +2027,7 @@ namespace nta {
     UInt trueNeighborsMap6[8] = {0, 0, 1, 0, 1, 0, 0, 0};
     sp.getNeighborsND_(column, dimensions, radius, wrapAround,
                           neighbors);
-    neighborsMap.clear();
+	neighborsMap.assign(6, 0);
     for (UInt i = 0; i < neighbors.size(); i++) {
       neighborsMap[neighbors[i]] = 1;
     }
@@ -2042,7 +2042,7 @@ namespace nta {
     UInt trueNeighborsMap7[8] = {0, 1, 1, 0, 1, 1, 0, 0};
     sp.getNeighborsND_(column, dimensions, radius, wrapAround,
                           neighbors);
-    neighborsMap.clear();
+	neighborsMap.assign(8, 0);
     for (UInt i = 0; i < neighbors.size(); i++) {
       neighborsMap[neighbors[i]] = 1;
     }
@@ -2057,7 +2057,7 @@ namespace nta {
     UInt trueNeighborsMap8[8] = {0, 1, 1, 0, 0, 0, 1, 1};
     sp.getNeighborsND_(column, dimensions, radius, wrapAround,
                           neighbors);
-    neighborsMap.clear();
+	neighborsMap.assign(8, 0);
     for (UInt i = 0; i < neighbors.size(); i++) {
       neighborsMap[neighbors[i]] = 1;
     }
@@ -2070,10 +2070,10 @@ namespace nta {
     wrapAround = false;
     dimensions.clear();
     dimensions.push_back(8);
-    UInt trueNeighborsMap9[8] = {1, 1, 1, 1, 1, 1, 1, 1};
+    UInt trueNeighborsMap9[8] = {0, 1, 1, 1, 1, 1, 1, 1};
     sp.getNeighborsND_(column, dimensions, radius, wrapAround,
                           neighbors);
-    neighborsMap.clear();
+	neighborsMap.assign(8, 0);
     for (UInt i = 0; i < neighbors.size(); i++) {
       neighborsMap[neighbors[i]] = 1;
     }
@@ -2087,10 +2087,10 @@ namespace nta {
     wrapAround = true;
     dimensions.clear();
     dimensions.push_back(8);
-    UInt trueNeighborsMap10[8] = {1, 1, 1, 1, 1, 1, 1, 1};
+    UInt trueNeighborsMap10[8] = {0, 1, 1, 1, 1, 1, 1, 1};
     sp.getNeighborsND_(column, dimensions, radius, wrapAround,
                           neighbors);
-    neighborsMap.clear();
+	neighborsMap.assign(8, 0);
     for (UInt i = 0; i < neighbors.size(); i++) {
       neighborsMap[neighbors[i]] = 1;
     }

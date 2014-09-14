@@ -522,7 +522,8 @@ namespace nta
       allWatchData::iterator it;
       it = data_.watches.begin()+i;
       data_.watches.erase(it);
-      data_.watches.insert(it, watch);
+	  it = data_.watches.begin() + i;
+	  data_.watches.insert(it, watch);
     }
 
     (*data_.outStream) << "Data: watchID, iteration, paramValue" << "\n";
