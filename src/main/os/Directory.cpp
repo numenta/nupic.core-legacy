@@ -254,11 +254,8 @@ namespace nta
       else success = true;
     #endif
 
-      if (!success) 
-      {
-        NTA_THROW << "Directory::create -- failed to create directory \"" << path << "\".\n"
-                  << "OS Error: " << OS::getErrorMessage();
-      }
+      NTA_CHECK(success) << "Directory::create -- failed to create directory \"" << path << "\". "
+						 << "OS Error: " << OS::getErrorMessage();
     }
     
 
