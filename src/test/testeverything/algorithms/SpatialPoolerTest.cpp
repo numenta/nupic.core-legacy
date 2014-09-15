@@ -161,6 +161,7 @@ namespace nta {
     NTA_CHECK(sp1.getIterationLearnNum() == 
               sp2.getIterationLearnNum());
     NTA_CHECK(sp1.getSpVerbosity() == sp2.getSpVerbosity());
+    NTA_CHECK(sp1.getWrapAround() == sp2.getWrapAround());
     NTA_CHECK(sp1.getUpdatePeriod() == sp2.getUpdatePeriod());
     NTA_CHECK(almost_eq(sp1.getSynPermTrimThreshold(), 
               sp2.getSynPermTrimThreshold()));
@@ -303,7 +304,8 @@ namespace nta {
     testGetNeighborsND();
     testIsUpdateRound();
     testSerialize();
-	}  
+    testStripUnlearnedColumns();
+  }
 
   void SpatialPoolerTest::testUpdateInhibitionRadius()
   {
@@ -2335,14 +2337,14 @@ namespace nta {
     SpatialPooler sp;
 
     // Test 1D
-    inputDim.push_back(10);
+    inputDim.push_back(12);
     columnDim.push_back(4);
     sp.initialize(inputDim, columnDim);
 
-    NTA_ASSERT(sp.mapColumn_(0) == 0);
-    NTA_ASSERT(sp.mapColumn_(1) == 3);
-    NTA_ASSERT(sp.mapColumn_(2) == 6);
-    NTA_ASSERT(sp.mapColumn_(3) == 9);
+    NTA_ASSERT(sp.mapColumn_(0) == 1);
+    NTA_ASSERT(sp.mapColumn_(1) == 4);
+    NTA_ASSERT(sp.mapColumn_(2) == 7);
+    NTA_ASSERT(sp.mapColumn_(3) == 10);
 
     columnDim.clear();
     inputDim.clear();
@@ -2371,17 +2373,17 @@ namespace nta {
     inputDim.clear();
 
     // Test 2D
-    inputDim.push_back(20);
-    inputDim.push_back(10);
+    inputDim.push_back(36);
+    inputDim.push_back(12);
     columnDim.push_back(12);
     columnDim.push_back(4);
     sp.initialize(inputDim, columnDim);
 
-    NTA_ASSERT(sp.mapColumn_(0) == 0);
-    NTA_ASSERT(sp.mapColumn_(4) == 10);
-    NTA_ASSERT(sp.mapColumn_(5) == 13);
-    NTA_ASSERT(sp.mapColumn_(7) == 19);
-    NTA_ASSERT(sp.mapColumn_(47) == 199);
+    NTA_ASSERT(sp.mapColumn_(0) == 13);
+    NTA_ASSERT(sp.mapColumn_(4) == 49);
+    NTA_ASSERT(sp.mapColumn_(5) == 52);
+    NTA_ASSERT(sp.mapColumn_(7) == 58);
+    NTA_ASSERT(sp.mapColumn_(47) == 418);
 
     columnDim.clear();
     inputDim.clear();
@@ -2390,7 +2392,7 @@ namespace nta {
   void SpatialPoolerTest::testMapPotential1D()
   {
     vector<UInt> inputDim, columnDim;
-    inputDim.push_back(10);
+    inputDim.push_back(12);
     columnDim.push_back(4);
     UInt potentialRadius = 2;
 
@@ -2403,44 +2405,44 @@ namespace nta {
     // Test without wrapAround and potentialPct = 1
     sp.setPotentialPct(1.0);
 
-    UInt expectedMask1[10] = {1, 1, 1, 0, 0, 0, 0, 0, 0, 0};
+    UInt expectedMask1[12] = {1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0};
     mask = sp.mapPotential_(0, false);
     NTA_CHECK(check_vector_eq(expectedMask1, mask));
 
-    UInt expectedMask2[10] = {0, 0, 0, 0, 1, 1, 1, 1, 1, 0};
+    UInt expectedMask2[12] = {0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0};
     mask = sp.mapPotential_(2, false);
     NTA_CHECK(check_vector_eq(expectedMask2, mask));
 
     // Test with wrapAround and potentialPct = 1
     sp.setPotentialPct(1.0);
 
-    UInt expectedMask3[10] = {1, 1, 1, 0, 0, 0, 0, 0, 1, 1};
+    UInt expectedMask3[12] = {1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1};
     mask = sp.mapPotential_(0, true);
     NTA_CHECK(check_vector_eq(expectedMask3, mask));
 
-    UInt expectedMask4[10] = {1, 1, 0, 0, 0, 0, 0, 1, 1, 1};
+    UInt expectedMask4[12] = {1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1};
     mask = sp.mapPotential_(3, true);
     NTA_CHECK(check_vector_eq(expectedMask4, mask));
 
     // Test with potentialPct < 1
     sp.setPotentialPct(0.5);
-    UInt supersetMask1[10] = {1, 1, 1, 0, 0, 0, 0, 0, 1, 1};
+    UInt supersetMask1[12] = {1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1};
     mask = sp.mapPotential_(0, true);
     NTA_ASSERT(sum(mask) == 3);
 
-    UInt unionMask1[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    for (UInt i = 0; i < 10; i++) {
+    UInt unionMask1[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    for (UInt i = 0; i < 12; i++) {
       unionMask1[i] = supersetMask1[i] | mask.at(i);
     }
 
-    NTA_CHECK(check_vector_eq(unionMask1, supersetMask1, 10));
+    NTA_CHECK(check_vector_eq(unionMask1, supersetMask1, 12));
   }
 
   void SpatialPoolerTest::testMapPotential2D()
   {
     vector<UInt> inputDim, columnDim;
-    inputDim.push_back(5);
-    inputDim.push_back(10);
+    inputDim.push_back(6);
+    inputDim.push_back(12);
     columnDim.push_back(2);
     columnDim.push_back(4);
     UInt potentialRadius = 1;
@@ -2454,43 +2456,49 @@ namespace nta {
     vector<UInt> mask;
 
     // Test without wrapAround
-    UInt expectedMask1[50] = {
-      1, 1, 0, 0, 0, 0, 0, 0, 0, 0,
-      1, 1, 0, 0, 0, 0, 0, 0, 0, 0,
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    UInt expectedMask1[72] = {
+      1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
     };
     mask = sp.mapPotential_(0, false);
     NTA_CHECK(check_vector_eq(expectedMask1, mask));
 
-    UInt expectedMask2[50] = {
-      0, 0, 0, 0, 0, 1, 1, 1, 0, 0,
-      0, 0, 0, 0, 0, 1, 1, 1, 0, 0,
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    UInt expectedMask2[72] = {
+      0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
     };
     mask = sp.mapPotential_(2, false);
     NTA_CHECK(check_vector_eq(expectedMask2, mask));
 
     // Test with wrapAround
-    UInt expectedMask3[50] = {
-      1, 1, 0, 0, 0, 0, 0, 0, 0, 1,
-      1, 1, 0, 0, 0, 0, 0, 0, 0, 1,
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-      1, 1, 0, 0, 0, 0, 0, 0, 0, 1
+    potentialRadius = 2;
+    sp.setPotentialRadius(potentialRadius);
+    UInt expectedMask3[72] = {
+      1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1,
+      1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1,
+      1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1,
+      1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1,
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1
     };
     mask = sp.mapPotential_(0, true);
     NTA_CHECK(check_vector_eq(expectedMask3, mask));
 
-    UInt expectedMask4[50] = {
-      1, 0, 0, 0, 0, 0, 0, 0, 1, 1,
-      1, 0, 0, 0, 0, 0, 0, 0, 1, 1,
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-      1, 0, 0, 0, 0, 0, 0, 0, 1, 1
+    UInt expectedMask4[72] = {
+      1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1,
+      1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1,
+      1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1,
+      1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1,
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1
     };
     mask = sp.mapPotential_(3, true);
     NTA_CHECK(check_vector_eq(expectedMask4, mask));
@@ -2521,5 +2529,62 @@ namespace nta {
     int ret = system(command.c_str());
     NTA_ASSERT(ret == 0); // "SpatialPoolerTest: execution of command " << command << " failed " << std::endl;
   }
-    
+
+  void SpatialPoolerTest::testStripUnlearnedColumns()
+  {
+    SpatialPooler sp;
+    vector<UInt> inputDim, columnDim;
+    inputDim.push_back(5);
+    columnDim.push_back(3);
+    sp.initialize(inputDim, columnDim);
+
+    // None learned, none active
+    {
+      Real activeDutyCycles[3] = {0, 0, 0};
+      UInt activeArray[3] = {0, 0, 0};
+      UInt expected[3] = {0, 0, 0};
+
+      sp.setActiveDutyCycles(activeDutyCycles);
+      sp.stripUnlearnedColumns(activeArray);
+
+      TEST(check_vector_eq(activeArray, expected, 3));
+    }
+
+    // None learned, some active
+    {
+      Real activeDutyCycles[3] = {0, 0, 0};
+      UInt activeArray[3] = {1, 0, 1};
+      UInt expected[3] = {0, 0, 0};
+
+      sp.setActiveDutyCycles(activeDutyCycles);
+      sp.stripUnlearnedColumns(activeArray);
+
+      TEST(check_vector_eq(activeArray, expected, 3));
+    }
+
+    // Some learned, none active
+    {
+      Real activeDutyCycles[3] = {1, 1, 0};
+      UInt activeArray[3] = {0, 0, 0};
+      UInt expected[3] = {0, 0, 0};
+
+      sp.setActiveDutyCycles(activeDutyCycles);
+      sp.stripUnlearnedColumns(activeArray);
+
+      TEST(check_vector_eq(activeArray, expected, 3));
+    }
+
+    // Some learned, some active
+    {
+      Real activeDutyCycles[3] = {1, 1, 0};
+      UInt activeArray[3] = {1, 0, 1};
+      UInt expected[3] = {1, 0, 0};
+
+      sp.setActiveDutyCycles(activeDutyCycles);
+      sp.stripUnlearnedColumns(activeArray);
+
+      TEST(check_vector_eq(activeArray, expected, 3));
+    }
+  }
+
 } // end namespace nta

@@ -1,4 +1,4 @@
-# --------------------------------------------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Numenta Platform for Intelligent Computing (NuPIC)
 # Copyright (C) 2013, Numenta, Inc.  Unless you have purchased from
 # Numenta, Inc. a separate commercial license for this software code, the
@@ -21,14 +21,13 @@
 # Contributor(s):
 #   David Ragazzi (@DavidRagazzi): Full conversion and adaptation from Autotools scripts
 #   Jim Bridgewater (jwbwater@gmail.com): Updated option help messages
-# --------------------------------------------------------------------------------------------------------------------------
- 
+# ------------------------------------------------------------------------------
 
-############################################################################################################################
-###                                                                                                                      ###
-###  Macros                                                                                                              ###
-###                                                                                                                      ###
-############################################################################################################################
+################################################################################
+###                                                                          ###
+### Macros                                                                   ###
+###                                                                          ###
+################################################################################
 
 # These macros copy all source directories after the configuration is done
 macro (copy suffix src dst)  
@@ -194,12 +193,12 @@ macro(get_compiler_family compiler_family)
 endmacro()
 
 
-############################################################################################################################
-###                                                                                                                      ###
-###  1st Part:                                                                                                           ###
-###  Configuration of the environment                                                                                    ###
-###                                                                                                                      ###
-############################################################################################################################
+################################################################################
+###                                                                          ###
+###  1st Part:                                                               ###
+###  Configuration of the environment                                        ###
+###                                                                          ###
+################################################################################
 
 cmake_minimum_required(VERSION 2.8)
 project(nupic_core CXX)
@@ -232,8 +231,15 @@ endif()
 # This CMake file must be always on /repository/src subdirectory.
 get_filename_component(REPOSITORY_DIR ${PROJECT_SOURCE_DIR} PATH)
 # 'release' is a subdirectory created on /build root.
-if("${PROJECT_BUILD_RELEASE_DIR}" STREQUAL "")
-  set(PROJECT_BUILD_RELEASE_DIR "${REPOSITORY_DIR}/build/release")
+if (${CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT})
+  if ("${PROJECT_BUILD_RELEASE_DIR}" STREQUAL "")
+    set(CMAKE_INSTALL_PREFIX "${REPOSITORY_DIR}/build/release")
+  else()
+    # Set CMAKE_INSTALL_PREFIX to user-specified PROJECT_BUILD_RELEASE_DIR (deprecated)
+    # TODO: Remove this if...else...endif block re: https://github.com/numenta/nupic.core/issues/171
+    message(WARNING "PROJECT_BUILD_RELEASE_DIR is deprecated.  Please use CMAKE_INSTALL_PREFIX instead.")
+    set(CMAKE_INSTALL_PREFIX ${PROJECT_BUILD_RELEASE_DIR})
+  endif()
 endif()
 # 'temp' is a subdirectory created on /build root.
 if("${PROJECT_BUILD_TEMP_DIR}" STREQUAL "")
@@ -244,9 +250,9 @@ endif()
 #
 # Prepare directory structure
 #
-execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_RELEASE_DIR}/include)
-execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_RELEASE_DIR}/lib)
-execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_RELEASE_DIR}/bin)
+execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_INSTALL_PREFIX}/include)
+execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_INSTALL_PREFIX}/lib)
+execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_INSTALL_PREFIX}/bin)
 execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_TEMP_DIR}/lib)
 execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_TEMP_DIR}/obj)
 
@@ -366,21 +372,22 @@ message(STATUS "Locations:")
 message(STATUS "  Source: ${PROJECT_SOURCE_DIR}")
 message(STATUS "  Build System: ${PROJECT_BINARY_DIR}")
 message(STATUS "  Build Directory: ${PROJECT_BUILD_TEMP_DIR}")
-message(STATUS "  Release: ${PROJECT_BUILD_RELEASE_DIR}")
+message(STATUS "  Release: ${CMAKE_INSTALL_PREFIX}")
 
 
-############################################################################################################################
-###                                                                                                                      ###
-###  2nd Part:                                                                                                           ###
-###  Configuration of compiler flags                                                                                     ###
-###                                                                                                                      ###
-############################################################################################################################
+################################################################################
+###                                                                          ###
+###  2nd Part:                                                               ###
+###  Configuration of compiler flags                                         ###
+###                                                                          ###
+################################################################################
 
 #
 # Define custom preprocessor variables (#define XX in C++ code)
 #
-# The reason to use add_definitions() instead of appending flag -std=c++0x directly to CXXBASE_FLAGS is that
-# cmake deploys "internal smarts" for compatibility with different compilers (clang, gcc 4.6 vs 4.8)
+# The reason to use add_definitions() instead of appending flag -std=c++0x
+# directly to CXXBASE_FLAGS is that cmake deploys "internal smarts" for
+# compatibility with different compilers (clang, gcc 4.6 vs 4.8)
 add_definitions(-std=c++98) # smart flag setting for gcc/clang
 
 #
@@ -396,9 +403,9 @@ set(USER_LINKFLAGS "" CACHE STRING "Extra Link flags")
 #
 include_directories(SYSTEM "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/include" "${REPOSITORY_DIR}/external/common/include")
 if(${NTA_COMPILER_FAMILY} STREQUAL "MSVC")
-  set(NTA_INCLUDEFLAGS "/I${PROJECT_BUILD_RELEASE_DIR}/include")
+  set(NTA_INCLUDEFLAGS "/I${CMAKE_INSTALL_PREFIX}/include")
 else()
-  set(NTA_INCLUDEFLAGS "-I${PROJECT_BUILD_RELEASE_DIR}/include")
+  set(NTA_INCLUDEFLAGS "-I${CMAKE_INSTALL_PREFIX}/include")
 endif()
 
 #
@@ -529,12 +536,12 @@ endif()
 set(NTA_CXXFLAGS "${USER_CXXFLAGS} ${NTA_CXXFLAGS_BASE} ${NTA_CXXFLAGS_OPTIMIZATION}")
 
 
-############################################################################################################################
-###                                                                                                                      ###
-###  3rd Part:                                                                                                           ###
-###  Generation of the project and its modules                                                                           ###
-###                                                                                                                      ###
-############################################################################################################################
+################################################################################
+###                                                                          ###
+###  3rd Part:                                                               ###
+###  Generation of the project and its modules                               ###
+###                                                                          ###
+################################################################################
 
 #
 # Apache's external libraries.
@@ -583,8 +590,8 @@ endif()
 # Set list of external libraries to this project.
 #
 if(SOLARIS)
-  set(NTA_STANDARD_LIBS 
-    ${LIB_STATIC_YAML_CPP} 
+  set(NTA_STANDARD_LIBS
+    ${LIB_STATIC_YAML_CPP}
     ${LIB_STATIC_YAML}
     ${LIB_STATIC_APR1}
     ${LIB_STATIC_APRUTIL1}
@@ -639,7 +646,7 @@ set(LIBRARIES
   ${NTA_APPLICATION_LIBS}
   ${NTA_TEST_LIBS}
 )
-generate_executable(${EXECUTABLE_HTMTEST} "${PROJECT_SOURCE_DIR}/test/htmtest" "${PROJECT_BUILD_RELEASE_DIR}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
+generate_executable(${EXECUTABLE_HTMTEST} "${PROJECT_SOURCE_DIR}/test/htmtest" "${CMAKE_INSTALL_PREFIX}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
 
 #
 # TestEverything
@@ -651,7 +658,7 @@ set(LIBRARIES
   ${NTA_APPLICATION_LIBS}
   ${NTA_TEST_LIBS}
 )
-generate_executable(${EXECUTABLE_TESTEVERYTHING} "${PROJECT_SOURCE_DIR}/test/testeverything" "${PROJECT_BUILD_RELEASE_DIR}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
+generate_executable(${EXECUTABLE_TESTEVERYTHING} "${PROJECT_SOURCE_DIR}/test/testeverything" "${CMAKE_INSTALL_PREFIX}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
 
 #
 # HelloRegion
@@ -663,18 +670,21 @@ set(LIBRARIES
   ${NTA_APPLICATION_LIBS}
   ${NTA_TEST_LIBS}
 )
-generate_executable(${EXECUTABLE_HELLOREGION} "${PROJECT_SOURCE_DIR}/examples/regions" "${PROJECT_BUILD_RELEASE_DIR}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
+generate_executable(${EXECUTABLE_HELLOREGION} "${PROJECT_SOURCE_DIR}/examples/regions" "${CMAKE_INSTALL_PREFIX}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
 
 # Merge nupic_core and all static libraries to a stand-alone library
-merge_static_libraries(${LIB_STATIC_NUPICCORE} "${PROJECT_BUILD_RELEASE_DIR}/lib" "${LIB_STATIC_NUPICCORE};${NTA_STANDARD_LIBS}" "${LIB_STATIC_NUPICCORE}")
+merge_static_libraries(${LIB_STATIC_NUPICCORE} "${CMAKE_INSTALL_PREFIX}/lib" "${LIB_STATIC_NUPICCORE};${NTA_STANDARD_LIBS}" "${LIB_STATIC_NUPICCORE}")
 
 
-############################################################################################################################
-###                                                                                                                      ###
-###  4th Part:                                                                                                           ###
-###  Post configuration operations                                                                                       ###
-###                                                                                                                      ###
-############################################################################################################################
+################################################################################
+###                                                                          ###
+###  4th Part:                                                               ###
+###  Post configuration operations                                           ###
+###                                                                          ###
+################################################################################
+
+install(TARGETS ${LIB_STATIC_NUPICCORE} DESTINATION lib)
+install(TARGETS testcpphtm testeverything helloregion DESTINATION bin)
 
 #
 # Copy all headers files to 'build/release/include'
@@ -685,10 +695,10 @@ set(files ${ITEMS_RETURNED})
 set(headers_file_content "")
 foreach(src_file ${files})
   get_filename_component(src_dir ${src_file} ABSOLUTE)
-  string(REPLACE "${PROJECT_SOURCE_DIR}/main" "${PROJECT_BUILD_RELEASE_DIR}/include/nta" dst_file ${src_file})
+  string(REPLACE "${PROJECT_SOURCE_DIR}/main" "${CMAKE_INSTALL_PREFIX}/include/nta" dst_file ${src_file})
   copy_file(${src_file} ${dst_file})
 endforeach()
-copy_file(${PROJECT_SOURCE_DIR}/main/ntypes/Collection.cpp ${PROJECT_BUILD_RELEASE_DIR}/include/nta/ntypes/Collection.cpp)
+copy_file(${PROJECT_SOURCE_DIR}/main/ntypes/Collection.cpp ${CMAKE_INSTALL_PREFIX}/include/nta/ntypes/Collection.cpp)
 
 #
 # Create file with unit tests used by TestEverything
@@ -709,22 +719,22 @@ file(WRITE "${PROJECT_SOURCE_DIR}/test/testeverything/EverythingAddtests.hpp" "$
 file(WRITE "${PROJECT_SOURCE_DIR}/test/testeverything/EverythingHeaders.hpp" "${headers_file_content}")
 
 
-############################################################################################################################
-###                                                                                                                      ###
-###  5th Part:                                                                                                           ###
-###  Custom targets                                                                                                      ###
-###                                                                                                                      ###
-############################################################################################################################
+################################################################################
+###                                                                          ###
+###  5th Part:                                                               ###
+###  Custom targets                                                          ###
+###                                                                          ###
+################################################################################
 
 #
 # Tests
 #
 add_custom_target(tests_htm
-                  COMMAND ${PROJECT_BUILD_RELEASE_DIR}/bin/${EXECUTABLE_HTMTEST})
-                  
+                  COMMAND ${CMAKE_INSTALL_PREFIX}/bin/${EXECUTABLE_HTMTEST})
+
 add_custom_target(tests_everything
-                  COMMAND ${PROJECT_BUILD_RELEASE_DIR}/bin/${EXECUTABLE_TESTEVERYTHING})
-                  
+                  COMMAND ${CMAKE_INSTALL_PREFIX}/bin/${EXECUTABLE_TESTEVERYTHING})
+
 # tests_all just calls other targets
 add_custom_target(tests_all
                   DEPENDS tests_htm
@@ -736,16 +746,19 @@ add_custom_target(tests_all
 #
 add_custom_target(distclean
 		# Clean '/build/release' and build/temp/
-		COMMAND ${CMAKE_COMMAND} -E remove_directory ${PROJECT_BUILD_RELEASE_DIR}
+		COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_INSTALL_PREFIX}
 		COMMAND ${CMAKE_COMMAND} -E remove_directory ${PROJECT_BUILD_TEMP_DIR}
 		# recreate dirs
-		COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_RELEASE_DIR}/include
-		COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_RELEASE_DIR}/lib
-		COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_RELEASE_DIR}/bin
+		COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_INSTALL_PREFIX}/include
+		COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_INSTALL_PREFIX}/lib
+		COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_INSTALL_PREFIX}/bin
 		COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_TEMP_DIR}/lib
 		COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_TEMP_DIR}/obj
 		COMMENT "Cleaning temporary build files")
 
 # Just to separate from result message
 message(STATUS "")
+
+message(STATUS "${CMAKE_INSTALL_PREFIX}")
+
 
