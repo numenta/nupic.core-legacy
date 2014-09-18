@@ -292,9 +292,9 @@ if(${CMAKE_SIZEOF_VOID_P} MATCHES "8")
 else()
   set(NTA_PLATFORM_ARCH "32")
 endif()
-set(NTA_PLATFORM_CXXFLAGS "-fPIC -DPIC")
+set(NTA_PLATFORM_CXXFLAGS "-fPIC -DPIC -std=c++11")
 set(NTA_PLATFORM_LINKFLAGS "")
-set(NTA_PLATFORM_LIBS "-std=c++98")
+set(NTA_PLATFORM_LIBS "-std=c++11")
 if(OSX)
   set(CMAKE_OSX_DEPLOYMENT_TARGET "10.7")
   set(NTA_PLATFORM_OS "darwin64")
@@ -385,7 +385,7 @@ message(STATUS "  Release: ${CMAKE_INSTALL_PREFIX}")
 # The reason to use add_definitions() instead of appending flag -std=c++0x
 # directly to CXXBASE_FLAGS is that cmake deploys "internal smarts" for
 # compatibility with different compilers (clang, gcc 4.6 vs 4.8)
-add_definitions(-std=c++98) # smart flag setting for gcc/clang
+add_definitions(-std=c++11) # smart flag setting for gcc/clang
 
 #
 # Get extra flags passed by command line.
