@@ -539,10 +539,11 @@ set(LIB_STATIC_YAML yaml)
 add_library(${LIB_STATIC_YAML} STATIC IMPORTED)
 set_property(TARGET ${LIB_STATIC_YAML} PROPERTY IMPORTED_LOCATION "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib/libyaml.${STATIC_LIB_EXTENSION}")
 
-set(LIB_STATIC_YAML_CPP yaml-cpp)
-add_library(${LIB_STATIC_YAML_CPP} STATIC IMPORTED)
-set_property(TARGET ${LIB_STATIC_YAML_CPP} PROPERTY IMPORTED_LOCATION "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib/libyaml-cpp.${STATIC_LIB_EXTENSION}")
-
+if(SOLARIS OR OSX)
+  set(LIB_STATIC_YAML_CPP yaml-cpp)
+  add_library(${LIB_STATIC_YAML_CPP} STATIC IMPORTED)
+  set_property(TARGET ${LIB_STATIC_YAML_CPP} PROPERTY IMPORTED_LOCATION "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib/libyaml-cpp.${STATIC_LIB_EXTENSION}")
+endif()
 
 if(WINDOWS)
   set(LIB_STATIC_PCRE pcre)
@@ -553,13 +554,22 @@ endif()
 #
 # Set list of external libraries to this project.
 #
-set(NTA_STANDARD_LIBS
-  ${LIB_STATIC_YAML_CPP}
-  ${LIB_STATIC_YAML}
-  ${LIB_STATIC_APR1}
-  ${LIB_STATIC_APRUTIL1}
-  ${LIB_STATIC_Z}
-)
+if(SOLARIS OR OSX)
+  set(NTA_STANDARD_LIBS
+    ${LIB_STATIC_YAML_CPP}
+    ${LIB_STATIC_YAML}
+    ${LIB_STATIC_APR1}
+    ${LIB_STATIC_APRUTIL1}
+    ${LIB_STATIC_Z}
+  )
+else()
+  set(NTA_STANDARD_LIBS
+    ${LIB_STATIC_YAML}
+    ${LIB_STATIC_APR1}
+    ${LIB_STATIC_APRUTIL1}
+    ${LIB_STATIC_Z}
+  )
+endif()
 
 #
 # Set list of external libraries to tests
