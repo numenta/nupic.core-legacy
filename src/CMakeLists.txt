@@ -292,18 +292,17 @@ if(${CMAKE_SIZEOF_VOID_P} MATCHES "8")
 else()
   set(NTA_PLATFORM_ARCH "32")
 endif()
-set(NTA_PLATFORM_CXXFLAGS "-fPIC -DPIC -std=c++11")
+
+set(NTA_PLATFORM_CXXFLAGS "")
 set(NTA_PLATFORM_LINKFLAGS "")
-set(NTA_PLATFORM_LIBS "-std=c++11")
+set(NTA_PLATFORM_LIBS "")
 if(OSX)
-  set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9")
+  set(CMAKE_OSX_DEPLOYMENT_TARGET "10.7")
   set(NTA_PLATFORM_OS "darwin64")
-  set(NTA_PLATFORM_CXXFLAGS "${NTA_PLATFORM_CXXFLAGS} -m64 -stdlib=libc++")
+  set(NTA_PLATFORM_CXXFLAGS "${NTA_PLATFORM_CXXFLAGS} -m64 -stdlib=libc++ -fPIC -DPIC")
   set(NTA_PLATFORM_DEBUGFLAGS "-gfull")
-  set(NTA_PLATFORM_LINKFLAGS "${NTA_PLATFORM_LINKFLAGS} -Wl,-u,_munmap")
-  set(NTA_PLATFORM_LIBS "${NTA_PLATFORM_LIBS} -stdlib=libc++ -lc++abi -liconv -lsqlite3 -framework CoreServices -framework Accelerate")
-  # fix for OSX shipping old stdlibc++ 4.2
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++")
+  set(NTA_PLATFORM_LINKFLAGS "${NTA_PLATFORM_LINKFLAGS} -Wl,-u,_munmap -m64 -stdlib=libc++")
+  set(NTA_PLATFORM_LIBS "${NTA_PLATFORM_LIBS} -lc++abi -liconv -lsqlite3 -framework CoreServices -framework Accelerate")
 elseif(LINUX)
   set(NTA_PLATFORM_DEBUGFLAGS "-g")
   set(NTA_PLATFORM_LINKFLAGS "${NTA_PLATFORM_LINKFLAGS} -Wl,--no-as-needed -static-libgcc")
@@ -540,6 +539,12 @@ set(LIB_STATIC_YAML yaml)
 add_library(${LIB_STATIC_YAML} STATIC IMPORTED)
 set_property(TARGET ${LIB_STATIC_YAML} PROPERTY IMPORTED_LOCATION "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib/libyaml.${STATIC_LIB_EXTENSION}")
 
+if(OSX)
+  set(LIB_STATIC_YAML_CPP yaml-cpp)
+  add_library(${LIB_STATIC_YAML_CPP} STATIC IMPORTED)
+  set_property(TARGET ${LIB_STATIC_YAML_CPP} PROPERTY IMPORTED_LOCATION "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib/libyaml-cpp.${STATIC_LIB_EXTENSION}")
+endif()
+
 if(SOLARIS)
   set(LIB_STATIC_YAML_CPP yaml-cpp)
   add_library(${LIB_STATIC_YAML_CPP} STATIC IMPORTED)
@@ -555,7 +560,15 @@ endif()
 #
 # Set list of external libraries to this project.
 #
-if(SOLARIS)
+if(OSX)
+  set(NTA_STANDARD_LIBS
+    ${LIB_STATIC_YAML_CPP}
+    ${LIB_STATIC_YAML}
+    ${LIB_STATIC_APR1}
+    ${LIB_STATIC_APRUTIL1}
+    ${LIB_STATIC_Z}
+  )
+elseif(OSX)
   set(NTA_STANDARD_LIBS
     ${LIB_STATIC_YAML_CPP}
     ${LIB_STATIC_YAML}
