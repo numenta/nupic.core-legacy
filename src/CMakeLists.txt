@@ -292,8 +292,9 @@ if(${CMAKE_SIZEOF_VOID_P} MATCHES "8")
 else()
   set(NTA_PLATFORM_ARCH "32")
 endif()
-set(NTA_PLATFORM_CXXFLAGS "-std=c++11 -stdlib=libc++ -fPIC -DPIC")
-set(NTA_PLATFORM_LINKFLAGS "-std=c++11 -stdlib=libc++")
+
+set(NTA_PLATFORM_CXXFLAGS "-stdlib=libc++ -fPIC -DPIC")
+set(NTA_PLATFORM_LINKFLAGS "-stdlib=libc++")
 set(NTA_PLATFORM_LIBS "")
 if(OSX)
   set(CMAKE_OSX_DEPLOYMENT_TARGET "10.7")
@@ -538,11 +539,10 @@ set(LIB_STATIC_YAML yaml)
 add_library(${LIB_STATIC_YAML} STATIC IMPORTED)
 set_property(TARGET ${LIB_STATIC_YAML} PROPERTY IMPORTED_LOCATION "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib/libyaml.${STATIC_LIB_EXTENSION}")
 
-if(SOLARIS)
-  set(LIB_STATIC_YAML_CPP yaml-cpp)
-  add_library(${LIB_STATIC_YAML_CPP} STATIC IMPORTED)
-  set_property(TARGET ${LIB_STATIC_YAML_CPP} PROPERTY IMPORTED_LOCATION "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib/libyaml-cpp.${STATIC_LIB_EXTENSION}")
-endif()
+set(LIB_STATIC_YAML_CPP yaml-cpp)
+add_library(${LIB_STATIC_YAML_CPP} STATIC IMPORTED)
+set_property(TARGET ${LIB_STATIC_YAML_CPP} PROPERTY IMPORTED_LOCATION "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib/libyaml-cpp.${STATIC_LIB_EXTENSION}")
+
 
 if(WINDOWS)
   set(LIB_STATIC_PCRE pcre)
@@ -553,22 +553,13 @@ endif()
 #
 # Set list of external libraries to this project.
 #
-if(SOLARIS)
-  set(NTA_STANDARD_LIBS
-    ${LIB_STATIC_YAML_CPP}
-    ${LIB_STATIC_YAML}
-    ${LIB_STATIC_APR1}
-    ${LIB_STATIC_APRUTIL1}
-    ${LIB_STATIC_Z}
-  )
-else()
-  set(NTA_STANDARD_LIBS
-    ${LIB_STATIC_YAML}
-    ${LIB_STATIC_APR1}
-    ${LIB_STATIC_APRUTIL1}
-    ${LIB_STATIC_Z}
-  )
-endif()
+set(NTA_STANDARD_LIBS
+  ${LIB_STATIC_YAML_CPP}
+  ${LIB_STATIC_YAML}
+  ${LIB_STATIC_APR1}
+  ${LIB_STATIC_APRUTIL1}
+  ${LIB_STATIC_Z}
+)
 
 #
 # Set list of external libraries to tests
