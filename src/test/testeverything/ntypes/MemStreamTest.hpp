@@ -39,7 +39,7 @@ namespace nta {
 class MemStreamTest : public Tester
 {
 public:
-  virtual void RunTests();
+  virtual void RunTests() override;
 }; // end class MemStreamTest
 
     //----------------------------------------------------------------------

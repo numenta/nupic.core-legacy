@@ -43,7 +43,7 @@ namespace nta
     virtual ~FastCLAClassifierTest() {}
 
     // Run all appropriate tests.
-    virtual void RunTests();
+    virtual void RunTests() override;
 
   private:
     void testBasic();

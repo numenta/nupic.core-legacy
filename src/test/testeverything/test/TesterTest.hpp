@@ -42,7 +42,7 @@ namespace nta {
     virtual ~TesterTest();
 		
     // Run all appropriate tests
-    virtual void RunTests();
+    virtual void RunTests() override;
 		
   };
 	
