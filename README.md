@@ -38,9 +38,10 @@ Important notes:
  * Specify the source folder (`$NUPIC_CORE/src`).
  * Specify the build system folder (`$NUPIC_CORE/build/scripts`), i.e. where IDE solution will be created.
  * Click `Configure`.
- * Specify the CMake install prefix (`$NUPIC_CORE/build/release`) 
- * Click `Generate`.
  * Choose the IDE that interest you.
+ * Specify the CMake install prefix (`$NUPIC_CORE/build/release`) 
+ * Click `Configure`.
+ * Click `Generate`.
 
 Remember that IDE choice is limited to your OS, e.g. Visual Studio is available only on CMake for Windows. Express versions of Visual Studio may need Windows SDK v7.?
 
