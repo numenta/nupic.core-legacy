@@ -686,7 +686,7 @@ message(STATUS "Configuring subprojects...")
 #
 # LibNupicCore
 #
-set(LIB_STATIC_NUPICCORE ${STATIC_LIB_PREFIX}nupic_core)
+set(LIB_STATIC_NUPICCORE nupic_core)
 generate_static_library(${LIB_STATIC_NUPICCORE} "${PROJECT_SOURCE_DIR}/main" "${PROJECT_BUILD_TEMP_DIR}/lib" "${NTA_CXXFLAGS_STATIC}")
 
 if(${BUILD_SHARED_LIBS})
