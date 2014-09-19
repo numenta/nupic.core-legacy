@@ -84,7 +84,7 @@ cd C:\projects\nupic-core\build\scripts
 #  publish_wap_xcopy: true         # package Web Application Projects (WAP) for XCopy deployment
 #  publish_azure: true             # package Azure Cloud Service projects and push to artifacts
 #  publish_nuget: true             # package projects with .nuspec files and push to artifacts
-  verbosity: normal               #quiet|minimal|normal|detailed
+#  verbosity: normal               #quiet|minimal|normal|detailed
 
 # To run your custom scripts instead of automatic MSBuild
 build_script:
