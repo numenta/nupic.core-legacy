@@ -84,8 +84,8 @@ build_script:
 
 # scripts to run after build
 after_build:
-  cmd: cd C:\projects\nupic-core\build\release
-  cmd: dir/S
+  cd C:\projects\nupic-core\build\release
+  dir/S
 
 #after_test:
 #  - ps: .\nuget\pack.ps1
