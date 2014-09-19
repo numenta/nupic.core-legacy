@@ -67,29 +67,30 @@ assembly_info:
 
 # build platform, i.e. x86, x64, Any CPU. This setting is optional.
 platform:
-  - x64
-#  - x86
+  - x86
+#  - x64
 #  -Any CPU
 
 # build Configuration, i.e. Debug, Release, etc.
 configuration: Release
 
 # scripts to run before build
-#before_build:
+before_build:
+  - cd C:\projects\nupic-core\build\scripts
 
-#build:
-#  project: NuPIC.core.sln         # path to Visual Studio solution or project
+build:
+  project: nupic_core.sln         # path to Visual Studio solution or project
 #  publish_wap: true               # package Web Application Projects (WAP) for Web Deploy
 #  publish_wap_xcopy: true         # package Web Application Projects (WAP) for XCopy deployment
 #  publish_azure: true             # package Azure Cloud Service projects and push to artifacts
 #  publish_nuget: true             # package projects with .nuspec files and push to artifacts
-#  verbosity: normal               #quiet|minimal|normal|detailed
+  verbosity: normal               #quiet|minimal|normal|detailed
 
 # to run your custom scripts instead of automatic MSBuild
-build_script:
-  cd C:\projects\nupic-core\build\scripts
-  if "%COMPILER_FAMILY%" == "GNU" make
-  if "%COMPILER_FAMILY%" == "MSVC" msbuild nupic_core.sln /property:Configuration=Release /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+#build_script:
+#  cd C:\projects\nupic-core\build\scripts
+#  if "%COMPILER_FAMILY%" == "GNU" make
+#  if "%COMPILER_FAMILY%" == "MSVC" msbuild nupic_core.sln /property:Configuration=Release /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
 
 # scripts to run after build
 after_build:
