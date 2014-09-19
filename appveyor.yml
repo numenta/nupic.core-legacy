@@ -87,7 +87,7 @@ configuration: Release
 
 # to run your custom scripts instead of automatic MSBuild
 build_script:
-  - cd C:\projects\nupic-core\build\scripts
+  cd C:\projects\nupic-core\build\scripts
   if "%COMPILER_FAMILY%" == "GNU" make
   if "%COMPILER_FAMILY%" == "MSVC" msbuild nupic_core.sln /property:Configuration=Release /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
 
