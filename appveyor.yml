@@ -46,11 +46,11 @@ environment:
 
 # scripts that run after cloning repository
 install:
-  echo %PATH%
-  mkdir C:\projects\nupic-core\build\
-  mkdir C:\projects\nupic-core\build\scripts
-  cd C:\projects\nupic-core\build\scripts
-  cmake C:\projects\nupic-core\src -G "Visual Studio 12"
+  - echo %PATH%
+  - mkdir C:\projects\nupic-core\build\
+  - mkdir C:\projects\nupic-core\build\scripts
+  - cd C:\projects\nupic-core\build\scripts
+  - cmake C:\projects\nupic-core\src -G "Visual Studio 12"
 
 # enable patching of AssemblyInfo.* files
 assembly_info:
@@ -79,8 +79,8 @@ before_build:
 
 # To run your custom scripts instead of automatic MSBuild
 build_script:
-  cd C:\projects\nupic-core\build\scripts
-  msbuild "C:\projects\nupic-core\build\scripts\nupic_core.sln" /property:Configuration=Release /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+  - cd C:\projects\nupic-core\build\scripts
+  - msbuild "C:\projects\nupic-core\build\scripts\nupic_core.sln" /property:Configuration=Release /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
 
 # scripts to run after build
 after_build:
