@@ -53,8 +53,8 @@ install:
   mkdir C:\projects\nupic-core\build\scripts
   cd C:\projects\nupic-core\build\scripts
 
-  IF "%COMPILER_FAMILY%" == "GNU" cmake C:\projects\nupic-core\src -G "MSYS Makefiles"
-  IF "%COMPILER_FAMILY%" == "MSVC" cmake C:\projects\nupic-core\src -G "Visual Studio 12"
+  if "%COMPILER_FAMILY%" == "GNU" cmake C:\projects\nupic-core\src -G "MSYS Makefiles"
+  if "%COMPILER_FAMILY%" == "MSVC" cmake C:\projects\nupic-core\src -G "Visual Studio 12"
 
 # enable patching of AssemblyInfo.* files
 assembly_info:
@@ -70,13 +70,12 @@ assembly_info:
 
 # build platform, i.e. x86, x64, Any CPU. This setting is optional.
 platform:
-  - x86
-#  - x64
+  - x64
+#  - x86
+#  -Any CPU
 
 # build Configuration, i.e. Debug, Release, etc.
-configuration:
-#  - Debug
-  - Release
+configuration: Release
 
 # scripts to run before build
 before_build:
@@ -86,7 +85,7 @@ build:
 #  publish_wap: true               # package Web Application Projects (WAP) for Web Deploy
 #  publish_wap_xcopy: true         # package Web Application Projects (WAP) for XCopy deployment
 #  publish_azure: true             # package Azure Cloud Service projects and push to artifacts
-  publish_nuget: true             # package projects with .nuspec files and push to artifacts
+#  publish_nuget: true             # package projects with .nuspec files and push to artifacts
 
   # MSBuild verbosity level
   #verbosity: normal               #quiet|minimal|normal|detailed
@@ -95,22 +94,18 @@ build:
 build_script:
   cd C:\projects\nupic-core\build\scripts
 
-  IF "%COMPILER_FAMILY%" == "GNU" make
-  IF "%COMPILER_FAMILY%" == "MSVC" msbuild nupic_core.sln /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+  if "%COMPILER_FAMILY%" == "GNU" make
+  if "%COMPILER_FAMILY%" == "MSVC" msbuild nupic_core.sln /property:Configuration=Release /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
 
 # scripts to run after build
 after_build:
   cd C:\projects\nupic-core\build\release
-  DIR
-  cd C:\projects\nupic-core\build\temp
-  DIR
-  cd C:\projects\nupic-core
-  PWD
+  DIR/S
 
-#after_test:
+after_test:
 #  - ps: .\nuget\pack.ps1
     
-#build: off
-#test: off
+build: on
+test: off
 deploy: off
 
