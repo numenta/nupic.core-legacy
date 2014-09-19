@@ -46,9 +46,7 @@ environment:
 
 # scripts that run after cloning repository
 install:
-  echo "Compiler family: %COMPILER_FAMILY%"
   echo %PATH%
-  
   mkdir C:\projects\nupic-core\build\
   mkdir C:\projects\nupic-core\build\scripts
   cd C:\projects\nupic-core\build\scripts
