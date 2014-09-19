@@ -46,12 +46,12 @@ environment:
 
 # scripts that run after cloning repository
 install:
-  - echo %PATH%
-  - mkdir C:\projects\nupic-core\build\
-  - mkdir C:\projects\nupic-core\build\scripts
-  - cd C:\projects\nupic-core\build\scripts
-  - if "%COMPILER_FAMILY%" == "GNU" cmake C:\projects\nupic-core\src -G "MSYS Makefiles"
-  - if "%COMPILER_FAMILY%" == "MSVC" cmake C:\projects\nupic-core\src -G "Visual Studio 12"
+  echo %PATH%
+  mkdir C:\projects\nupic-core\build\
+  mkdir C:\projects\nupic-core\build\scripts
+  cd C:\projects\nupic-core\build\scripts
+  if "%COMPILER_FAMILY%" == "GNU" cmake C:\projects\nupic-core\src -G "MSYS Makefiles"
+  if "%COMPILER_FAMILY%" == "MSVC" cmake C:\projects\nupic-core\src -G "Visual Studio 12"
 
 # enable patching of AssemblyInfo.* files
 assembly_info:
@@ -76,22 +76,22 @@ configuration: Release
 
 # scripts to run before build
 before_build:
-cd C:\projects\nupic-core\build\scripts
+  cd C:\projects\nupic-core\build\scripts
 
 # To run your custom scripts instead of automatic MSBuild
 build_script:
-cd C:\projects\nupic-core\build\scripts
-if "%COMPILER_FAMILY%" == "GNU" make
-if "%COMPILER_FAMILY%" == "MSVC" msbuild nupic_core.sln /property:Configuration=Release /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+  cd C:\projects\nupic-core\build\scripts
+  if ("%COMPILER_FAMILY%" == "GNU") make
+  if ("%COMPILER_FAMILY%" == "MSVC") msbuild nupic_core.sln /property:Configuration=Release /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
 
 # scripts to run after build
 after_build:
-cd C:\projects\nupic-core\build\release
-dir/S
+  cd C:\projects\nupic-core\build\release
+  dir/S
 
 #after_test:
 #  - ps: .\nuget\pack.ps1
-    
+
 #build: on
 test: off
 deploy: off
