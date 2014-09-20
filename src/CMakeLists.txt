@@ -293,7 +293,7 @@ else()
   set(NTA_PLATFORM_ARCH "32")
 endif()
 
-set(NTA_PLATFORM_CXXFLAGS "-fPIC -DPIC -m64")
+set(NTA_PLATFORM_CXXFLAGS "-fPIC -DPIC -m64 -fvisibility=hidden")
 set(NTA_PLATFORM_LINKFLAGS "-fPIC -m64")
 set(NTA_PLATFORM_LIBS "")
 if(OSX)
