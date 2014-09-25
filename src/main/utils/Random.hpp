@@ -97,6 +97,25 @@ namespace nta {
     // return a double uniformly distributed on 0...1.0
     Real64 getReal64();
 
+    // populate choices with a random selection of num elements from population
+    // templated functions must be defined in header
+    template <typename T>
+    void sample(std::vector<T>& population, std::vector<T>& choices,
+                UInt32 num)
+    {
+      UInt32 remaining = population.size();
+      for (UInt32 i = 0; i < population.size(); ++i) {
+        if (getUInt32(remaining) < num) {
+          choices.push_back(population[i]);
+          num -= 1;
+          if (num == 0) {
+            break;
+          }
+        }
+        remaining -= 1;
+      }
+    }
+
     // for STL compatibility
     UInt32 operator()(UInt32 n = MAX32) { return getUInt32(n); }
 
