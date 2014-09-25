@@ -358,15 +358,15 @@ boost::shared_array<Byte> StringUtils::toByteArray(const std::string& s, Size bi
   std::vector<Int> list;
   StringUtils::toIntList(s, list, true /*allowAll*/);
   if (list.empty())
-    return boost::shared_array<Byte>(nullptr);
+    return boost::shared_array<Byte>(0);
           
   // Put this into the mask
   Size numBytes = (bitCount+7) / 8;
   boost::shared_array<Byte> mask(new Byte[numBytes]);
   Byte* maskP = mask.get();
   ::memset(maskP, 0, numBytes);
-  for (auto & elem : list) {
-    UInt  entry = elem;
+  for (UInt i=0; i<list.size(); i++) {
+    UInt  entry = list[i];
     if (entry >= bitCount)
       NTA_THROW << "StringUtils::toByteArray() - " << "The list " << s 
                 << " contains an entry greater than the max allowed of " << bitCount; 

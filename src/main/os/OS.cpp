@@ -173,7 +173,7 @@ std::string OS::executeCommand(std::string command)
   std::string result = "";
   while(!feof(pipe))
   {
-    if(fgets(buffer, 128, pipe) != nullptr)
+    if(fgets(buffer, 128, pipe) != NULL)
     {
       result += buffer;
     }

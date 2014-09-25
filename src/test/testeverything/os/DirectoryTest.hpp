@@ -38,7 +38,7 @@ namespace nta {
   struct DirectoryTest : public Tester
   {
     virtual ~DirectoryTest() {}
-    virtual void RunTests() override;
+    virtual void RunTests();
   };
 }
 

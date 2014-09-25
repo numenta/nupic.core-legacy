@@ -44,7 +44,7 @@ namespace nta {
     virtual ~IndexUnitTest() {}
 
     // Run all appropriate tests
-    virtual void RunTests() override;
+    virtual void RunTests();
 
   private:
     typedef Index<UInt, 1> I1;

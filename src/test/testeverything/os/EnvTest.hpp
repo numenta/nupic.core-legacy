@@ -38,7 +38,7 @@ public:
     EnvTest();
     virtual ~EnvTest();
     
-    virtual void RunTests() override;
+    virtual void RunTests();
   };
 } // namespace nta
 

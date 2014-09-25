@@ -32,7 +32,7 @@
 
 using namespace nta;
 
-std::ostream* LogItem::ostream_ = nullptr;
+std::ostream* LogItem::ostream_ = NULL;
 
 void LogItem::setOutputFile(std::ostream& ostream)
 {
@@ -66,7 +66,7 @@ LogItem::~LogItem()
   }
 
 
-  if (ostream_ == nullptr)
+  if (ostream_ == NULL)
     ostream_ = &(std::cout);
 
   (*ostream_) << slevel << "  " << msg_.str();

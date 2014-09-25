@@ -213,7 +213,7 @@ void
 Segment::addSynapses(const std::set<UInt>& srcCells, Real initStrength,
                      Real permConnected)
 {
-  auto srcCellIdx = srcCells.begin();
+  std::set<UInt>::const_iterator srcCellIdx = srcCells.begin();
 
   for (; srcCellIdx != srcCells.end(); ++srcCellIdx) {
     _synapses.push_back(InSynapse(*srcCellIdx, initStrength));
@@ -360,9 +360,9 @@ void Segment::freeNSynapses(UInt numToFree,
   if (verbosity >= 4) {
     std::cout << "\nIn CPP freeNSynapses with numToFree = " << numToFree
     << ", inactiveSynapses = ";
-    for (auto & inactiveSynapseIndice : inactiveSynapseIndices)
+    for (UInt i = 0; i<inactiveSynapseIndices.size(); i++)
     {
-      printSynapse(inactiveSynapseIndice, nCellsPerCol);
+      printSynapse(inactiveSynapseIndices[i], nCellsPerCol);
     }
     std::cout << "\n";
   }
@@ -408,9 +408,9 @@ void Segment::freeNSynapses(UInt numToFree,
   // Debug statements
   if (verbosity >= 4) {
     std::cout << "Removing these synapses: ";
-    for (auto & elem : removed)
+    for (UInt i = 0; i < removed.size(); i++)
     {
-      printSynapse(elem, nCellsPerCol);
+      printSynapse(removed[i], nCellsPerCol);
     }
     std::cout << "\n";
 

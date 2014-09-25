@@ -48,7 +48,7 @@ void NuPIC::init()
   int argc=1;
   const char *argv[1] = {"NuPIC"};
   // TODO: move to OS::initialize()?
-  int result = apr_app_initialize(&argc, (const char* const **)&argv, nullptr /*env*/);
+  int result = apr_app_initialize(&argc, (const char* const **)&argv, 0 /*env*/);
   if (result) 
     NTA_THROW << "Error initializing APR (code " << result << ")";
 
@@ -83,7 +83,7 @@ void NuPIC::registerNetwork(Network* net)
     NTA_THROW << "Attempt to create a network before NuPIC has been initialized -- call NuPIC::init() before creating any networks";
   }
 
-  auto n = networks_.find(net);
+  std::set<Network*>::iterator n = networks_.find(net);
   // This should not be possible
   NTA_CHECK(n == networks_.end()) << "Internal error -- double registration of network";
   networks_.insert(net);
@@ -92,7 +92,7 @@ void NuPIC::registerNetwork(Network* net)
 
 void NuPIC::unregisterNetwork(Network* net)
 {
-  auto n = networks_.find(net);
+  std::set<Network*>::iterator n = networks_.find(net);
   NTA_CHECK(n != networks_.end()) << "Internal error -- network not registered";
   networks_.erase(n);
 }

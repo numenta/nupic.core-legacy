@@ -44,7 +44,7 @@ namespace nta
      BufferTest() {}
     
     // Run all appropriate tests
-    virtual void RunTests() override;
+    virtual void RunTests();
 
   private:
     // Default copy ctor and assignment operator forbidden by default

@@ -33,7 +33,7 @@ namespace nta
 {
   struct DimensionsTest : public Tester
   {
-    virtual void RunTests() override;        
+    virtual void RunTests();        
   };
 }
 

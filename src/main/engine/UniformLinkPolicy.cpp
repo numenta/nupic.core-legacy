@@ -157,25 +157,27 @@ void UniformLinkPolicy::validateParameterDimensionality()
   std::stringstream parameterDimensionalityMsg;
   bool parametersAreInconsistent = false;
 
-  for(auto & elem : dimensionalityMap)
+  for(std::map<std::string, size_t>::iterator i = dimensionalityMap.begin();
+      i != dimensionalityMap.end();
+      i++)
   {
-    parameterDimensionalityMsg << elem.first << ": ";
-    elem.second == 1 ? (parameterDimensionalityMsg << "*") :
-      (parameterDimensionalityMsg << elem.second);
+    parameterDimensionalityMsg << i->first << ": ";
+    i->second == 1 ? (parameterDimensionalityMsg << "*") :
+      (parameterDimensionalityMsg << i->second);
 
-    if(elem.second != parameterDimensionality_)
+    if(i->second != parameterDimensionality_)
     {
       switch(parameterDimensionality_)
       {
       case 0:
       case 1:
       {
-        parameterDimensionality_ = elem.second;
+        parameterDimensionality_ = i->second;
         break;
       }
       default:
       {
-        if(elem.second != 1)
+        if(i->second != 1)
         {
           parametersAreInconsistent = true;
           parameterDimensionalityMsg << " <-- Inconsistent";
@@ -257,9 +259,9 @@ void UniformLinkPolicy::populateWorkingParameters()
 
   NTA_CHECK(workingParams_.overhangType.size() == 0);
 
-  for(auto & elem : overhangType_)
+  for(size_t i = 0; i < overhangType_.size(); i++)
   {
-    workingParams_.overhangType.push_back(elem);
+    workingParams_.overhangType.push_back(overhangType_[i]);
   }
 }
 
@@ -288,9 +290,9 @@ void UniformLinkPolicy::copyRealVecToFractionVec(
 {
   NTA_CHECK(destVec.size() == 0);
 
-  for(auto & elem : sourceVec)
+  for(size_t i = 0; i < sourceVec.size(); i++)
   {
-    destVec.push_back(Fraction::fromDouble(elem));
+    destVec.push_back(Fraction::fromDouble(sourceVec[i]));
   }
 }
 

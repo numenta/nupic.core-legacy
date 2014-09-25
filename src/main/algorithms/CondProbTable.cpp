@@ -37,8 +37,8 @@ namespace nta {
   CondProbTable::CondProbTable(const UInt hintNumCols, const UInt hintNumRows) 
     :  hintNumCols_(hintNumCols),
        hintNumRows_(hintNumRows),
-       tableP_(nullptr),
-       cleanTableP_(nullptr),
+       tableP_(NULL),
+       cleanTableP_(NULL),
        cleanTableValid_(false),
        rowSums_(), 
        colSums_()
@@ -118,7 +118,7 @@ namespace nta {
   
     // Update the row sums and column sums
     Real rowSum = 0;
-    auto colSumsIter = colSums_.begin();
+    vector<Real>::iterator colSumsIter = colSums_.begin();
     CONST_LOOP(vector<Real>, iter, distribution) {
       rowSum = rowSum + *iter;
       *colSumsIter = *colSumsIter + *iter;
@@ -160,7 +160,7 @@ namespace nta {
     const char* errPrefix = "CondProbTable::inferRow() - ";
   
     // Make sure we have a table
-    NTA_ASSERT(tableP_ != nullptr) 
+    NTA_ASSERT(tableP_ != NULL) 
       << errPrefix
       << "Must call updateRow at least once before doing inference";
     
@@ -295,7 +295,7 @@ namespace nta {
     // Delete the old table
     if (tableP_) {
       delete tableP_;
-      tableP_ = nullptr;
+      tableP_ = NULL;
     }
 
     cleanTableValid_ = false;
@@ -327,7 +327,7 @@ namespace nta {
       rowSums_.resize (tableP_->nRows());
       colSums_.resize (tableP_->nCols());
     
-      auto rowIter = rowSums_.begin();
+      vector<Real>::iterator rowIter = rowSums_.begin();
       vector<Real>  row;
       for (UInt r=0; r<tableP_->nRows(); ++r, ++rowIter) {
         getRow (r, row);

@@ -23,13 +23,12 @@
 
 #include <nta/utils/Log.hpp>
 #include <nta/ntypes/Dimensions.hpp>
-#include <utility>
 
 using namespace nta;
 
 Dimensions::Dimensions() {};
 
-Dimensions::Dimensions(std::vector<size_t> v) : std::vector<size_t>(std::move(v)) {};
+Dimensions::Dimensions(std::vector<size_t> v) : std::vector<size_t>(v) {};
 
 Dimensions::Dimensions(size_t x)
 {

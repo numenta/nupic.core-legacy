@@ -43,7 +43,7 @@ namespace nta {
     virtual ~SpatialPoolerTest() {}
 
     // Run all appropriate tests
-    virtual void RunTests() override;
+    virtual void RunTests();
 
   private:
     void setup(SpatialPooler& sp, UInt numInputs, UInt numColumns);

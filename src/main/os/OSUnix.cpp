@@ -99,7 +99,7 @@ std::string OS::getErrorMessageFromErrorCode(int errorCode)
   if(result == 0) errorMessage << errorBuffer;
 #else
   char *result = ::strerror_r(errorCode, errorBuffer, 1024);
-  if(result != nullptr) errorMessage << errorBuffer;
+  if(result != 0) errorMessage << errorBuffer;
 #endif 
   else errorMessage << "Error code " << errorCode;
   return errorMessage.str();

@@ -55,7 +55,7 @@ Region::Region(const std::string& name,
   name_(name), 
   type_(nodeType), 
   initialized_(false), 
-  enabledNodes_(nullptr),
+  enabledNodes_(NULL),
   network_(network)
 {
   // Set region info before creating the RegionImpl so that the 
@@ -84,7 +84,7 @@ Region::Region(const std::string& name,
   name_(name), 
   type_(nodeType), 
   initialized_(false), 
-  enabledNodes_(nullptr),
+  enabledNodes_(NULL),
   network_(network)
 {
   // Set region info before creating the RegionImpl so that the 
@@ -123,7 +123,7 @@ void Region::createInputsAndOutputs_()
     const std::pair<std::string, OutputSpec> & p = spec_->outputs.getByIndex(i);
     std::string outputName = p.first;
     const OutputSpec & os = p.second;
-    auto output = new Output(*this, os.dataType, os.regionLevel);
+    Output *output = new Output(*this, os.dataType, os.regionLevel);
     outputs_[outputName] = output;
     // keep track of name in the output also -- see note in Region.hpp
     output->setName(outputName);
@@ -136,7 +136,7 @@ void Region::createInputsAndOutputs_()
     std::string inputName = p.first;
     const InputSpec &is = p.second;
 
-    auto input = new Input(*this, is.dataType, is.regionLevel);
+    Input *input = new Input(*this, is.dataType, is.regionLevel);
     inputs_[inputName] = input;
     // keep track of name in the input also -- see note in Region.hpp
     input->setName(inputName);
@@ -146,9 +146,9 @@ void Region::createInputsAndOutputs_()
 
 bool Region::hasOutgoingLinks() const
 {
-  for (const auto & elem : outputs_)
+  for (OutputMap::const_iterator i = outputs_.begin(); i != outputs_.end(); i++)
   {
-    if (elem.second->hasOutgoingLinks())
+    if (i->second->hasOutgoingLinks())
     {
       return true;
     } 
@@ -162,16 +162,16 @@ Region::~Region()
   // We should catch this error in the Network class and give the 
   // user a good error message (regions may be removed either in 
   // Network::removeRegion or Network::~Network())
-  for (auto & elem : outputs_)
+  for (OutputMap::iterator i = outputs_.begin(); i != outputs_.end(); i++)
   {
-    delete elem.second;
-    elem.second = nullptr;
+    delete i->second;
+    i->second = NULL;
   }
 
-  for (auto & elem : inputs_)
+  for (InputMap::iterator i = inputs_.begin();  i != inputs_.end(); i++)
   {
-    delete elem.second;
-    elem.second = nullptr;
+    delete i->second;
+    i->second = NULL;
   }
 
   delete impl_;
@@ -292,9 +292,10 @@ size_t
 Region::evaluateLinks()
 {
   int nIncompleteLinks = 0;
-  for (auto & elem : inputs_)
+  for (InputMap::iterator i = inputs_.begin();
+       i != inputs_.end(); i++)
   {
-    nIncompleteLinks += (elem.second)->evaluateLinks();
+    nIncompleteLinks += (i->second)->evaluateLinks();
   }
   return nIncompleteLinks;
 }
@@ -304,15 +305,17 @@ Region::getLinkErrors() const
 {
 
   std::stringstream ss;
-  for (const auto & elem : inputs_)
+  for (InputMap::const_iterator i = inputs_.begin();
+       i != inputs_.end(); i++)
   {
-    const std::vector<Link*>& links = elem.second->getLinks();
-    for (const auto & link : links)
+    const std::vector<Link*>& links = i->second->getLinks();
+    for (std::vector<Link*>::const_iterator l = links.begin();
+         l != links.end(); l++)
     {
-      if ( (link)->getSrcDimensions().isUnspecified() ||
-           (link)->getDestDimensions().isUnspecified())
+      if ( (*l)->getSrcDimensions().isUnspecified() ||
+           (*l)->getDestDimensions().isUnspecified())
       {
-        ss << (link)->toString() << "\n";
+        ss << (*l)->toString() << "\n";
       }
     }
   }
@@ -347,9 +350,9 @@ void Region::initOutputs()
   // appear in the output map, but with an array size of 0. 
 
   
-  for (auto & elem : outputs_)
+  for (OutputMap::iterator o = outputs_.begin(); o != outputs_.end(); o++)
   {
-    const std::string& name = elem.first;
+    const std::string& name = o->first;
 
     size_t count = 0;
     try
@@ -359,13 +362,13 @@ void Region::initOutputs()
       NTA_THROW << "Internal error -- unable to get size of output " 
                 << name << " : " << e.what();
     }
-    elem.second->initialize(count);
+    o->second->initialize(count);
   }
 }
 
 void Region::initInputs() const
 {
-  auto i = inputs_.begin();
+  InputMap::const_iterator i = inputs_.begin();
   for (; i != inputs_.end(); i++)
   {
     i->second->initialize();
@@ -413,7 +416,7 @@ void Region::setupEnabledNodeSet()
 {
   NTA_CHECK(dims_.isValid());
 
-  if (enabledNodes_ != nullptr)
+  if (enabledNodes_ != NULL)
   {
     delete enabledNodes_;
   }
@@ -426,7 +429,7 @@ void Region::setupEnabledNodeSet()
 
 const NodeSet& Region::getEnabledNodes() const
 {
-  if (enabledNodes_ == nullptr)
+  if (enabledNodes_ == NULL)
   {
     NTA_THROW << "Attempt to access enabled nodes set before region has been initialized";
   }
@@ -453,9 +456,10 @@ Region::removeAllIncomingLinks()
   for (; i != inputs_.end(); i++)
   {
     std::vector<Link*> links = i->second->getLinks();
-    for (auto & links_link : links)
+    for (std::vector<Link*>::iterator link = links.begin();
+         link != links.end(); link++)
     {
-      i->second->removeLink(links_link);
+      i->second->removeLink(*link);
 
     }
   }

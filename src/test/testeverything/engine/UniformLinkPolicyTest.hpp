@@ -32,7 +32,6 @@
 #include <nta/test/Tester.hpp>
 #include <nta/ntypes/Dimensions.hpp>
 #include <nta/types/Fraction.hpp>
-#include <utility>
 
 //----------------------------------------------------------------------
 
@@ -41,7 +40,7 @@ namespace nta {
   struct UniformLinkPolicyTest : public Tester
   {
     virtual ~UniformLinkPolicyTest() {}
-    virtual void RunTests() override;
+    virtual void RunTests();
 
   private:
 
@@ -58,9 +57,9 @@ namespace nta {
       std::pair<Fraction, Fraction> bounds;
 
       CoordBounds(Coordinate c, size_t dim, std::pair<Fraction, Fraction> b) :
-        coord(std::move(c)),
+        coord(c),
         dimension(dim),
-        bounds(std::move(b))
+        bounds(b)
       {
       }
     };

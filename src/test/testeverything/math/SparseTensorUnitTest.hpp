@@ -297,7 +297,7 @@ namespace nta {
         NTA_ASSERT(ind.isSet());
       }
 
-      auto  buf = new Float[product(bounds_)];
+      Float* buf = new Float[product(bounds_)];
       Index idx = getNewZeroIndex(), perm = getNewIndex(), newBounds = getNewIndex();
       nta::permute(ind, bounds_, newBounds);
 
@@ -321,7 +321,7 @@ namespace nta {
         return;
 
       const UInt M = product(newBounds);
-      auto  buf = new Float[M];
+      Float* buf = new Float[M];
       memset(buf, 0, M * sizeof(Float));
       Index idx = getNewZeroIndex();
       
@@ -731,7 +731,7 @@ namespace nta {
     }
 
     // Run all appropriate tests
-    virtual void RunTests() override;
+    virtual void RunTests();
 
   private:    
     typedef Index<UInt, 1> I1;

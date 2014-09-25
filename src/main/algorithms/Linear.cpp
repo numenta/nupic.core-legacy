@@ -260,10 +260,10 @@ namespace nta {
 	float delta, snorm, one=1.0f;
 	float alpha, f, fnew, prered, actred, gs;
 	int search = 1, iter = 1, inc = 1;
-	auto s = new float[n];
-	auto r = new float[n];
-	auto w_new = new float[n];
-	auto g = new float[n];
+	float *s = new float[n];
+	float *r = new float[n];
+	float *w_new = new float[n];
+	float *g = new float[n];
 
 	for (i=0; i<n; i++)
 	  w[i] = 0;
@@ -352,8 +352,8 @@ namespace nta {
 	int i, inc = 1;
 	int n = fun_obj->get_nr_variable();
 	float one = 1.0f;
-	auto d = new float[n];
-	auto Hd = new float[n];
+	float *d = new float[n];
+	float *Hd = new float[n];
 	float rTr, rnewTrnew, alpha, beta, cgtol;
 
 	for (i=0; i<n; i++)
@@ -442,7 +442,7 @@ namespace nta {
 	  delete[] I;
 	}
 	
-	float fun(float *w) override
+	float fun(float *w)
 	{
 	  int i;
 	  float f=0.0f;
@@ -466,7 +466,7 @@ namespace nta {
 	  return(f);
 	}
 
-	void grad(float *w, float *g) override
+	void grad(float *w, float *g)
 	{
 	  int i;
 	  int *y=prob->y;
@@ -487,12 +487,12 @@ namespace nta {
 	    g[i] = w[i] + 2.0f*g[i];
 	}
 
-	void Hv(float *s, float *Hs) override
+	void Hv(float *s, float *Hs)
 	{
 	  int i;
 	  int l=prob->l;
 	  int n=prob->n;
-	  auto wa = new float[l];
+	  float *wa = new float[l];
 
 	  subXv(s, wa);
 	  for(i=0;i<sizeI;i++)
@@ -504,7 +504,7 @@ namespace nta {
 	  delete[] wa;
 	}
 
-	int get_nr_variable(void) override
+	int get_nr_variable(void)
 	{
 	  return prob->n;
 	}
@@ -598,7 +598,7 @@ namespace nta {
 	  delete[] C;
 	}
 	
-	float fun(float *w) override
+	float fun(float *w)
 	{
 	  float f=0.0f;
 	  int *y=prob->y;
@@ -622,7 +622,7 @@ namespace nta {
 	  return(f);
 	}
 
-	void grad(float *w, float *g) override
+	void grad(float *w, float *g)
 	{
 	  int *y=prob->y;
 	  int l=prob->l;
@@ -640,11 +640,11 @@ namespace nta {
 	    g[i] = w[i] + g[i];
 	}
 
-	void Hv(float *s, float *Hs) override
+	void Hv(float *s, float *Hs)
 	{
 	  int l=prob->l;
 	  int n=prob->n;
-	  auto wa = new float[l];
+	  float *wa = new float[l];
 
 	  Xv(s, wa);
 	  
@@ -659,7 +659,7 @@ namespace nta {
 	  delete[] wa;
 	}
 
-	int get_nr_variable(void) override
+	int get_nr_variable(void)
 	{
 	  return prob->n;
 	}
@@ -777,7 +777,7 @@ namespace nta {
       {
 	float eps=param->eps;
 
-	function *fun_obj=nullptr;
+	function *fun_obj=NULL;
 	switch(param->solver_type)
 	  {
 	  case L2_LR:
@@ -856,9 +856,9 @@ namespace nta {
 	model_->bias = prob->bias;
 
 	int nr_class;
-	int *label = nullptr;
-	int *start = nullptr;
-	int *count = nullptr;
+	int *label = NULL;
+	int *start = NULL;
+	int *count = NULL;
 	int *perm = Malloc(int,l);
 
 	// group training data of the same class
@@ -943,7 +943,7 @@ namespace nta {
       {
 	const char *solver_type_table[]=
 	{
-	  "L2_LR", "L1_LR", "L2LOSS_SVM", nullptr
+	  "L2_LR", "L1_LR", "L2LOSS_SVM", NULL
 	};
 
 	int i;
@@ -956,7 +956,7 @@ namespace nta {
 	else
 	  n=nr_feature;
 	FILE *fp = fopen(model_file_name,"w");
-	if(fp==nullptr) return -1;
+	if(fp==NULL) return -1;
 
 	int nr_classifier;
 	if(model_->nr_class==2)
@@ -993,11 +993,11 @@ namespace nta {
       {
 	const char *solver_type_table[]=
 	{
-	  "L2_LR", "L1_LR", "L2LOSS_SVM", nullptr
+	  "L2_LR", "L1_LR", "L2LOSS_SVM", NULL
 	};
 
 	FILE *fp = fopen(model_file_name,"r");
-	if(fp==nullptr) return nullptr;
+	if(fp==NULL) return NULL;
 
 	int i;
 	int nr_feature;
@@ -1007,7 +1007,7 @@ namespace nta {
 	model *model_ = Malloc(model,1);
 	parameter& param = model_->param;
 
-	model_->label = nullptr;
+	model_->label = NULL;
 
 	char cmd[81];
 	while(1)
@@ -1027,13 +1027,13 @@ namespace nta {
 			break;
 		      }
 		  }
-		if(solver_type_table[i] == nullptr)
+		if(solver_type_table[i] == NULL)
 		  {
 		    fprintf(stderr,"unknown solver type.\n");
 		    free(model_->label);
 		    free(model_);
 		    fclose(fp);
-		    return nullptr;
+		    return NULL;
 		  }
 	      }
 	    else if(strcmp(cmd,"nr_class")==0)
@@ -1072,7 +1072,7 @@ namespace nta {
 		fprintf(stderr,"unknown text in model file: [%s]\n",cmd);
 		free(model_);
 		fclose(fp);
-		return nullptr;
+		return NULL;
 	      }
 	  }
 
@@ -1101,7 +1101,7 @@ namespace nta {
 	  }
 	
 	if (ferror(fp) != 0 || fclose(fp) != 0) 
-	  return nullptr;
+	  return NULL;
 
 	return model_;
       }
