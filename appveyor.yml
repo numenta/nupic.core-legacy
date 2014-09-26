@@ -89,6 +89,12 @@ after_build:
 #after_test:
 #  - ps: .\nuget\pack.ps1
 
+#deploy:
+#  provider: NuGet
+#  api_key:
+#    secure: Dc1+eU2ANoApegIHNoJ3WcT2awiJQND5p+wzFbPzzxwCpocGLMHtEPv8eIt85LUU
+#  artifact: /.*\.nupkg/
+
 #build: on
 test: off
 deploy: off
