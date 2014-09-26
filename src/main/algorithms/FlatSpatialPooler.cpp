@@ -128,8 +128,8 @@ void FlatSpatialPooler::compute(UInt inputArray[], bool learn,
 void FlatSpatialPooler::addBonus_(
     vector<Real>& vec, Real bonus, vector<UInt>& indices, bool replace)
 {
-  for (auto & indice : indices) {
-    UInt index = indice;
+  for (UInt i = 0; i < indices.size(); i++) {
+    UInt index = indices[i];
     if (replace) {
       vec[index] = bonus;
     } else {

@@ -162,7 +162,7 @@ void *ZLib::fopen(const std::string &filename, const std::string &mode,
   }
 
 #else
-  gzFile fs = nullptr;
+  gzFile fs = 0;
   { // zlib may not be thread-safe in its current compiled state.
     int attempts = 0;
     const int maxAttempts = 1;

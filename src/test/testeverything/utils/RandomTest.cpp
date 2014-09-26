@@ -260,13 +260,13 @@ void RandomTest::RunTests()
 
   mysrandom(148);
   Random rWithSeed(148);
-  for (auto & elem : expected) 
+  for (int i = 0; i < 1000; i++) 
   {
     r2 = rWithSeed.getUInt32();
     r3 = myrandom();
     // Uncomment to generate expected values
     // NTA_DEBUG << "expected[" << i << "] = " << r1 << ";";
-    if ((r2 != r3) || (r3 != elem))
+    if ((r2 != r3) || (r3 != expected[i]))
     {
       // only create a test result if we get a failure. Otherwise we 
       // end up creating and saving a lot of unnecessary test results.

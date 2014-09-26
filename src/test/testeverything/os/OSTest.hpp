@@ -38,7 +38,7 @@ public:
     OSTest();
     virtual ~OSTest();
     
-    virtual void RunTests() override;
+    virtual void RunTests();
   };
 } // namespace nta
 

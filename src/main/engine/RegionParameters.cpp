@@ -120,7 +120,7 @@ Region::getParameterArray(const std::string& name, Array & array) const
 {
   size_t count = impl_->getParameterArrayCount(name, (Int64)(-1));
   // Make sure we have a buffer to put the data in
-  if (array.getBuffer() != nullptr) 
+  if (array.getBuffer() != NULL) 
   {
     // Buffer has already been allocated. Make sure it is big enough
     if (array.getCount() > count)

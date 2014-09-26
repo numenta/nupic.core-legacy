@@ -38,7 +38,7 @@ namespace nta {
   struct NetworkTest : public Tester
   {
     virtual ~NetworkTest() {}
-    virtual void RunTests() override;
+    virtual void RunTests();
     void test_nupic_auto_initialization();
     void test_region_access();
     void test_network_initialization();

@@ -156,7 +156,7 @@ namespace nta {
 	    delete [] x_[i];
 
 	y_.resize(s, 0);
-	x_.resize(s, nullptr);
+	x_.resize(s, 0);
 
 	inStream.ignore(1);
 	nta::binary_load(inStream, y_);
@@ -210,12 +210,12 @@ namespace nta {
 	inStream >> s >> n_dims_ >> threshold_;
   
 	if (recover_)
-	  for (auto & elem : x_)
-	    delete [] elem;
+	  for (size_t i = 0; i < x_.size(); ++i)
+	    delete [] x_[i];
 
 	y_.resize(s, 0);
 	nnz_.resize(s, 0);  
-	x_.resize(s, nullptr);
+	x_.resize(s, 0);
 	
 	inStream.ignore(1);
 	nta::binary_load(inStream, y_);
@@ -232,7 +232,7 @@ namespace nta {
       {
 	// in all cases, ownership of the mem for the sv is with svm_model
 
-        if (sv_mem == nullptr) {
+        if (sv_mem == NULL) {
           for (size_t i = 0; i != sv.size(); ++i)
 
 #if defined(NTA_PLATFORM_win32) && defined(NTA_COMPILER_MSVC)
@@ -249,7 +249,7 @@ namespace nta {
           delete [] sv_mem;
 #endif
 
-          sv_mem = nullptr;
+          sv_mem = NULL;
           sv.clear();
         }
           
@@ -312,9 +312,9 @@ namespace nta {
 	
 	{
 	  stringstream b2;
-	  for (auto & elem : sv_coef) {
+	  for (size_t i = 0; i < sv_coef.size(); ++i) {
 	    for (int j = 0; j < size(); ++j) 
-	      b2 << elem[j] << " ";
+	      b2 << sv_coef[i][j] << " ";
 	  }
 	  n += b2.str().size();
 	}
@@ -365,13 +365,13 @@ namespace nta {
 		  << size() << " " 
 		  << n_dims() << " ";
   
-	for (auto & elem : sv) 
-	  nta::binary_save(outStream, elem, elem + n_dims());
+	for (size_t i = 0; i < sv.size(); ++i) 
+	  nta::binary_save(outStream, sv[i], sv[i] + n_dims());
 	outStream << " ";
   
-	for (auto & elem : sv_coef) 
+	for (size_t i = 0; i < sv_coef.size(); ++i) 
 	  for (int j = 0; j < size(); ++j) 
-	    outStream << elem[j] << " ";
+	    outStream << sv_coef[i][j] << " ";
   
         outStream << rho << ' '
                   << label << ' '
@@ -387,15 +387,15 @@ namespace nta {
 	int n_class = 0, l = 0;
 	inStream >> n_class >> l >> n_dims_; 
 
-        if (sv_mem == nullptr) {
+        if (sv_mem == NULL) {
 
-          for (auto & elem : sv)
-            delete [] elem;
+          for (size_t i = 0; i < sv.size(); ++i)
+            delete [] sv[i];
 
         } else {
 
           delete [] sv_mem;
-          sv_mem = nullptr;
+          sv_mem = NULL;
         }
 
 #if defined(NTA_PLATFORM_win32) && defined(NTA_COMPILER_MSVC)
@@ -406,17 +406,17 @@ namespace nta {
 
         std::fill(sv_mem, sv_mem + l * n_dims(), (float)0);
 
-	sv.resize(l, nullptr);
+	sv.resize(l, 0);
 	inStream.ignore(1);
 	for (int i = 0; i < l; ++i) {
 	  sv[i] = sv_mem + i * n_dims();
 	  nta::binary_load(inStream, sv[i], sv[i] + n_dims());
 	}
 
-	for (auto & elem : sv_coef)
-	  delete [] elem;
+	for (size_t i = 0; i < sv_coef.size(); ++i)
+	  delete [] sv_coef[i];
   
-	sv_coef.resize(n_class-1, nullptr);
+	sv_coef.resize(n_class-1, 0);
 	for (int i = 0; i < n_class-1; ++i) {
 	  sv_coef[i] = new float [l];
 	  for (int j = 0; j < l; ++j) 

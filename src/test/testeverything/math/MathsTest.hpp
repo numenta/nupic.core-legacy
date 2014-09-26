@@ -48,7 +48,7 @@ namespace nta {
     }
 
     // Run all appropriate tests
-    virtual void RunTests() override;
+    virtual void RunTests();
 
   private:
     //void unitTestNearlyZero();

@@ -35,7 +35,7 @@ void NodeSetTest::RunTests()
   
   TEST(ns.begin() == ns.end());
   ns.allOn();
-  auto i = ns.begin();
+  NodeSet::const_iterator i = ns.begin();
   TEST(*i == 0);
   ++i;
   TEST(*i == 1);

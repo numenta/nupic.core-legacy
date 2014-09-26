@@ -38,7 +38,7 @@ namespace nta {
   struct YAMLUtilsTest : public Tester
   {
     virtual ~YAMLUtilsTest() {}
-    virtual void RunTests() override;
+    virtual void RunTests();
   };
 }
 

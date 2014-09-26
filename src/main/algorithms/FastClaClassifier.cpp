@@ -50,15 +50,16 @@ namespace nta
           learnIteration_(0), recordNumMinusLearnIteration_(0),
           maxBucketIdx_(0), version_(Version), verbosity_(verbosity)
       {
-        for (const auto & step : steps)
+        for (vector<UInt>::const_iterator it = steps.begin();
+             it != steps.end(); ++it)
         {
-          steps_.push_back(step);
+          steps_.push_back(*it);
         }
         recordNumMinusLearnIterationSet_ = false;
         maxSteps_ = 0;
-        for (auto & elem : steps_)
+        for (UInt i = 0; i < steps_.size(); ++i)
         {
-          UInt current = elem + 1;
+          UInt current = steps_.at(i) + 1;
           if (current > maxSteps_)
           {
             maxSteps_ = current;
@@ -106,10 +107,10 @@ namespace nta
         learnIteration_ = recordNum - recordNumMinusLearnIteration_;
 
         // Update the input pattern history.
-        auto  newPatternNZ = new vector<UInt>();
-        for (auto & elem : patternNZ)
+        vector<UInt>* newPatternNZ = new vector<UInt>();
+        for (UInt i = 0; i < patternNZ.size(); ++i)
         {
-          newPatternNZ->push_back(elem);
+          newPatternNZ->push_back(patternNZ[i]);
         }
         patternNZHistory_.push_front(newPatternNZ);
         iterationNumHistory_.push_front(learnIteration_);
@@ -163,15 +164,16 @@ namespace nta
                 *step, maxBucketIdx_ + 1, 0.0);
             vector<Real64> bitVotes(maxBucketIdx_ + 1, 0.0);
 
-            for (const auto & elem : patternNZ)
+            for (vector<UInt>::const_iterator bit = patternNZ.begin();
+                 bit != patternNZ.end(); ++bit)
             {
-              if (activeBitHistory_[*step]->find(elem) !=
+              if (activeBitHistory_[*step]->find(*bit) !=
                   activeBitHistory_[*step]->end())
               {
                 BitHistory* history =
-                    activeBitHistory_[*step]->find(elem)->second;
-                for (auto & bitVote : bitVotes) {
-                  bitVote = 0.0;
+                    activeBitHistory_[*step]->find(*bit)->second;
+                for (UInt i = 0; i < bitVotes.size(); ++i) {
+                  bitVotes[i] = 0.0;
                 }
                 history->infer(learnIteration_, &bitVotes);
                 for (UInt i = 0; i < bitVotes.size(); ++i) {
@@ -180,17 +182,17 @@ namespace nta
               }
             }
             Real64 total = 0.0;
-            for (auto & likelihood : *likelihoods)
+            for (UInt i = 0; i < likelihoods->size(); ++i)
             {
-              total += likelihood;
+              total += (*likelihoods)[i];
             }
-            for (auto & likelihood : *likelihoods)
+            for (UInt i = 0; i < likelihoods->size(); ++i)
             {
               if (total > 0.0)
               {
-                likelihood = likelihood / total;
+                (*likelihoods)[i] = (*likelihoods)[i] / total;
               } else {
-                likelihood = 1.0 / likelihoods->size();
+                (*likelihoods)[i] = 1.0 / likelihoods->size();
               }
             }
           }
@@ -219,9 +221,9 @@ namespace nta
                 (actValueAlpha_ * actValue);
           }
 
-          for (auto & elem : steps_)
+          for (UInt i = 0; i < steps_.size(); ++i)
           {
-            UInt step = elem;
+            UInt step = steps_[i];
 
             // Check if there is a pattern that should be assigned to this
             // classification in our history. If not, skip it.
@@ -247,9 +249,9 @@ namespace nta
             // Store classification info for each active bit from the pattern
             // that we got step time steps ago.
             const vector<UInt>* learnPatternNZ = *patternIteration;
-            for (auto & learnPatternNZ_j : *learnPatternNZ)
+            for (UInt j = 0; j < learnPatternNZ->size(); ++j)
             {
-              UInt bit = learnPatternNZ_j;
+              UInt bit = learnPatternNZ->at(j);
               if (activeBitHistory_.find(step) == activeBitHistory_.end())
               {
                 activeBitHistory_.insert(pair<UInt, map<UInt, BitHistory*>*>(
@@ -298,42 +300,45 @@ namespace nta
         outStream << recordNumMinusLearnIteration_ << " "
                   << recordNumMinusLearnIterationSet_ << " ";
         outStream << iterationNumHistory_.size() << " ";
-        for (const auto & elem : iterationNumHistory_)
+        for (deque<UInt>::const_iterator learnIteration =
+             iterationNumHistory_.begin(); learnIteration !=
+             iterationNumHistory_.end(); ++learnIteration)
         {
-          outStream << elem << " ";
+          outStream << *learnIteration << " ";
         }
         outStream << endl;
 
         // Store the different prediction steps.
         outStream << steps_.size() << " ";
-        for (auto & elem : steps_)
+        for (UInt i = 0; i < steps_.size(); ++i)
         {
-          outStream << elem << " ";
+          outStream << steps_[i] << " ";
         }
         outStream << endl;
 
         // Store the input pattern history.
         vector<UInt>* pattern;
         outStream << patternNZHistory_.size() << " ";
-        for (auto & elem : patternNZHistory_)
+        for (UInt i = 0; i < patternNZHistory_.size(); ++i)
         {
-          pattern = elem;
+          pattern = patternNZHistory_[i];
           outStream << pattern->size() << " ";
-          for (auto & pattern_j : *pattern)
+          for (UInt j = 0; j < pattern->size(); ++j)
           {
-            outStream << pattern_j << " ";
+            outStream << (*pattern)[j] << " ";
           }
         }
         outStream << endl;
 
         // Store the bucket duty cycles.
         outStream << activeBitHistory_.size() << " ";
-        for (const auto & elem : activeBitHistory_)
+        for (map<UInt, map<UInt, BitHistory*>*>::const_iterator it1 =
+             activeBitHistory_.begin(); it1 != activeBitHistory_.end(); ++it1)
         {
-          outStream << elem.first << " ";
-          outStream << elem.second->size() << " ";
+          outStream << it1->first << " ";
+          outStream << it1->second->size() << " ";
           for (map<UInt, BitHistory*>::const_iterator it2 =
-               elem.second->begin(); it2 != elem.second->end(); ++it2)
+               it1->second->begin(); it2 != it1->second->end(); ++it2)
           {
             outStream << it2->first << " ";
             it2->second->save(outStream);

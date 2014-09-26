@@ -292,40 +292,41 @@ if(${CMAKE_SIZEOF_VOID_P} MATCHES "8")
 else()
   set(NTA_PLATFORM_ARCH "32")
 endif()
-
-set(NTA_PLATFORM_CXXFLAGS "-fPIC -DPIC -m64 -fvisibility=hidden")
-set(NTA_PLATFORM_LINKFLAGS "-fPIC -m64")
-set(NTA_PLATFORM_LIBS "")
+set(NTA_PLATFORM_CXXFLAGS "-fPIC -DPIC")
+set(NTA_PLATFORM_LINKFLAGS "")
+set(NTA_PLATFORM_LIBS "-std=c++98")
 if(OSX)
   set(CMAKE_OSX_DEPLOYMENT_TARGET "10.7")
   set(NTA_PLATFORM_OS "darwin64")
-  set(NTA_PLATFORM_CXXFLAGS "${NTA_PLATFORM_CXXFLAGS} -stdlib=libc++")
+  set(NTA_PLATFORM_CXXFLAGS "${NTA_PLATFORM_CXXFLAGS} -m64")
   set(NTA_PLATFORM_DEBUGFLAGS "-gfull")
-  set(NTA_PLATFORM_LINKFLAGS "${NTA_PLATFORM_LINKFLAGS} -Wl,-u,_munmap -stdlib=libc++")
-  set(NTA_PLATFORM_LIBS "${NTA_PLATFORM_LIBS} -lc++abi -liconv -lsqlite3 -framework CoreServices -framework Accelerate")
+  set(NTA_PLATFORM_LINKFLAGS "${NTA_PLATFORM_LINKFLAGS} -Wl,-u,_munmap")
+  set(NTA_PLATFORM_LIBS "${NTA_PLATFORM_LIBS} -stdlib=libstdc++ -lc++abi -liconv -lsqlite3 -framework CoreServices -framework Accelerate")
 elseif(LINUX)
   set(NTA_PLATFORM_DEBUGFLAGS "-g")
   set(NTA_PLATFORM_LINKFLAGS "${NTA_PLATFORM_LINKFLAGS} -Wl,--no-as-needed -static-libgcc")
   set(NTA_PLATFORM_LIBS "${NTA_PLATFORM_LIBS} -lm -lpthread -ldl -lutil")
   if(${NTA_PLATFORM_ARCH} MATCHES "64")
     set(NTA_PLATFORM_OS "linux64")
+    set(NTA_PLATFORM_CXXFLAGS "${NTA_PLATFORM_CXXFLAGS} -m64")
   else()
     set(NTA_PLATFORM_OS "linux32")
-    set(NTA_PLATFORM_CXXFLAGS "${NTA_PLATFORM_CXXFLAGS} -ffloat-store -m32")
+    set(NTA_PLATFORM_CXXFLAGS "${NTA_PLATFORM_CXXFLAGS} -ffloat-store")
   endif()
 elseif(WINDOWS)
   set(NTA_PLATFORM_OS "win32")
-  set(NTA_PLATFORM_CXXFLAGS "${NTA_PLATFORM_CXXFLAGS} -DWIN32 -m32")
+  set(NTA_PLATFORM_CXXFLAGS "${NTA_PLATFORM_CXXFLAGS} -DWIN32")
 elseif(SOLARIS)
   set(NTA_PLATFORM_DEBUGFLAGS "-g")
-  set(NTA_PLATFORM_LINKFLAGS "${NTA_PLATFORM_LINKFLAGS} -shared-libgcc")
+  set(NTA_PLATFORM_LINKFLAGS "${NTA_PLATFORM_LINKFLAGS} -shared-libgcc -m64")
   set(NTA_PLATFORM_LIBS "${NTA_PLATFORM_LIBS} -lm -lpthread -ldl -lnsl -lsocket")
   execute_process(COMMAND isainfo -b OUTPUT_VARIABLE NTA_PLATFORM_ARCH)
   if(${NTA_PLATFORM_ARCH} MATCHES "64")
     set(NTA_PLATFORM_OS "sparc64")
+    set(NTA_PLATFORM_CXXFLAGS "${NTA_PLATFORM_CXXFLAGS} -m64")
   else()
     set(NTA_PLATFORM_OS "sparc32")
-    set(NTA_PLATFORM_CXXFLAGS "${NTA_PLATFORM_CXXFLAGS} -ffloat-store -m32")
+    set(NTA_PLATFORM_CXXFLAGS "${NTA_PLATFORM_CXXFLAGS} -ffloat-store")
   endif()
 else()
   message(FATAL_ERROR "${CMAKE_CURRENT_LIST_FILE}:${CMAKE_CURRENT_LIST_LINE}: error: ${CMAKE_SYSTEM_NAME} not supported yet.")
@@ -384,7 +385,7 @@ message(STATUS "  Release: ${CMAKE_INSTALL_PREFIX}")
 # The reason to use add_definitions() instead of appending flag -std=c++0x
 # directly to CXXBASE_FLAGS is that cmake deploys "internal smarts" for
 # compatibility with different compilers (clang, gcc 4.6 vs 4.8)
-add_definitions(-std=c++11) # smart flag setting for gcc/clang
+add_definitions(-std=c++98) # smart flag setting for gcc/clang
 
 #
 # Get extra flags passed by command line.
@@ -537,12 +538,6 @@ set(LIB_STATIC_YAML yaml)
 add_library(${LIB_STATIC_YAML} STATIC IMPORTED)
 set_property(TARGET ${LIB_STATIC_YAML} PROPERTY IMPORTED_LOCATION "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib/libyaml.${STATIC_LIB_EXTENSION}")
 
-if(OSX)
-  set(LIB_STATIC_YAML_CPP yaml-cpp)
-  add_library(${LIB_STATIC_YAML_CPP} STATIC IMPORTED)
-  set_property(TARGET ${LIB_STATIC_YAML_CPP} PROPERTY IMPORTED_LOCATION "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib/libyaml-cpp.${STATIC_LIB_EXTENSION}")
-endif()
-
 if(SOLARIS)
   set(LIB_STATIC_YAML_CPP yaml-cpp)
   add_library(${LIB_STATIC_YAML_CPP} STATIC IMPORTED)
@@ -558,15 +553,7 @@ endif()
 #
 # Set list of external libraries to this project.
 #
-if(OSX)
-  set(NTA_STANDARD_LIBS
-    ${LIB_STATIC_YAML_CPP}
-    ${LIB_STATIC_YAML}
-    ${LIB_STATIC_APR1}
-    ${LIB_STATIC_APRUTIL1}
-    ${LIB_STATIC_Z}
-  )
-elseif(OSX)
+if(SOLARIS)
   set(NTA_STANDARD_LIBS
     ${LIB_STATIC_YAML_CPP}
     ${LIB_STATIC_YAML}

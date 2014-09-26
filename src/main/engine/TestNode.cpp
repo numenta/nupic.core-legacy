@@ -62,7 +62,7 @@ namespace nta
   
     stringParam_ = *params.getString("stringParam");
 
-    computeCallback_ = nullptr;
+    computeCallback_ = NULL;
 
     real32ArrayParam_.resize(8);
     for (size_t i = 0; i < 8; i++)
@@ -109,7 +109,7 @@ namespace nta
   void
   TestNode::compute()
   {
-    if (computeCallback_ != nullptr)
+    if (computeCallback_ != NULL)
       computeCallback_(getName());
 
     const Array & outputArray = bottomUpOut_->getData();
@@ -142,7 +142,7 @@ namespace nta
   Spec*
   TestNode::createSpec()
   {
-    auto ns = new Spec;
+    Spec *ns = new Spec;
 
     /* ---- parameters ------ */
 
@@ -362,14 +362,14 @@ namespace nta
     } else if (name == "stringParam") {
       value.write(stringParam_.c_str(), stringParam_.size());
     } else if (name == "int64ArrayParam") {
-      for (auto & elem : int64ArrayParam_)
+      for (size_t i = 0; i < int64ArrayParam_.size(); i++)
       {
-        value.write(elem);
+        value.write(int64ArrayParam_[i]);
       }
     } else if (name == "real32ArrayParam") {
-      for (auto & elem : real32ArrayParam_)
+      for (size_t i = 0; i < real32ArrayParam_.size(); i++)
       {
-        value.write(elem);
+        value.write(real32ArrayParam_[i]);
       }
     } else if (name == "unclonedParam") {
       if (index < 0)
@@ -398,9 +398,9 @@ namespace nta
         NTA_THROW << "uncloned parameters cannot be accessed at region level";
       }
       UInt nodeIndex = (UInt)index;
-      for (auto & elem : unclonedInt64ArrayParam_[nodeIndex])
+      for (size_t i = 0; i <  unclonedInt64ArrayParam_[nodeIndex].size(); i++)
       {
-        value.write(elem);
+        value.write(unclonedInt64ArrayParam_[nodeIndex][i]);
       }
     } else {
       NTA_THROW << "TestNode::getParameter -- Unknown parameter " << name;
@@ -426,14 +426,14 @@ namespace nta
     } else if (name == "stringParam") {
       stringParam_ = std::string(value.getData(), value.getSize());
     } else if (name == "int64ArrayParam") {
-      for (auto & elem : int64ArrayParam_)
+      for (size_t i = 0; i < int64ArrayParam_.size(); i++)
       {
-        value.read(elem);
+        value.read(int64ArrayParam_[i]);
       }
     } else if (name == "real32ArrayParam") {
-      for (auto & elem : real32ArrayParam_)
+      for (size_t i = 0; i < real32ArrayParam_.size(); i++)
       {
-        value.read(elem);
+        value.read(real32ArrayParam_[i]);
       }
     } else if (name == "unclonedParam") {
       if (index < 0)
@@ -464,9 +464,9 @@ namespace nta
         NTA_THROW << "uncloned parameters cannot be accessed at region level";
       }
       UInt nodeIndex = (UInt)index;
-      for (auto & elem : unclonedInt64ArrayParam_[nodeIndex])
+      for (size_t i = 0; i <  unclonedInt64ArrayParam_[nodeIndex].size(); i++)
       {
-        value.read(elem);
+        value.read(unclonedInt64ArrayParam_[nodeIndex][i]);
       }
     } else if (name == "computeCallback") {
       UInt64 ival;
@@ -576,9 +576,9 @@ namespace nta
   {
     s << "ARRAY_" << name << " ";
     s << array.size() << " "; 
-    for (auto & elem : array)
+    for (size_t ix = 0; ix < array.size(); ix++)
     {
-      s << elem << " ";
+      s << array[ix] << " ";
     }
   }
 

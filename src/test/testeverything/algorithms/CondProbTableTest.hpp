@@ -44,7 +44,7 @@ namespace nta {
     virtual ~CondProbTableTest();
 
     // Run all appropriate tests
-    virtual void RunTests() override;
+    virtual void RunTests();
 
   private:
     // Compare 2 vectors using printed output, this works even for round-off errors

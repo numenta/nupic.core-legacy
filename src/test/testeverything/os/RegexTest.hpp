@@ -39,7 +39,7 @@ namespace nta
   struct RegexTest : public Tester
   {
     virtual ~RegexTest() {}
-    virtual void RunTests() override;
+    virtual void RunTests();
   };
 }
 

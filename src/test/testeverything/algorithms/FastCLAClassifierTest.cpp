@@ -68,7 +68,7 @@ namespace nta {
     {
       bool foundMinus1 = false;
       bool found1 = false;
-      for (auto it = result2.begin();
+      for (map<Int, vector<Real64>*>::const_iterator it = result2.begin();
            it != result2.end(); ++it)
       {
         if (it->first == -1)

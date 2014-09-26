@@ -84,7 +84,7 @@ void InputTest::RunTests()
     const ArrayBase * pa = &(y.getData());
     TESTEQUAL(0u, pa->getCount());
     Real64* buf = (Real64*)(pa->getBuffer());
-    TEST(buf != nullptr);
+    TEST(buf != NULL);
   }
 
   {
@@ -127,18 +127,18 @@ void InputTest::RunTests()
     //test getLinks()
     std::vector<Link*> links = in2->getLinks();
     TESTEQUAL(1u, links.size());
-    for(auto & link : links) {
+    for(unsigned int i=0; i<links.size(); i++) {
       //do something to make sure l[i] is a valid Link*
-      TEST(link != nullptr);
+      TEST(links[i] != NULL);
       //should fail because regions are initialized
-      SHOULDFAIL(in2->removeLink(link));
+      SHOULDFAIL(in2->removeLink(links[i]));
     }
 
     //test findLink()
     Link * l1 = in1->findLink("region1", "bottomUpOut");
-    TEST(l1 == nullptr);
+    TEST(l1 == NULL);
     Link * l2 = in2->findLink("region1", "bottomUpOut");
-    TEST(l2 != nullptr);
+    TEST(l2 != NULL);
 
 
     //test removeLink(), uninitialize()

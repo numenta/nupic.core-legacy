@@ -38,7 +38,7 @@ namespace nta {
 class MemParserTest : public Tester
 {
 public:
-  virtual void RunTests() override;
+  virtual void RunTests();
 }; // end class MemParserTest
 
 } // end namespace nta

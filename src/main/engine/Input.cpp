@@ -47,9 +47,9 @@ Input::~Input()
 {
   uninitialize();
   std::vector<Link*> linkscopy = links_;
-  for (auto & elem : linkscopy)
+  for (std::vector<Link*>::iterator i = linkscopy.begin(); i != linkscopy.end(); i++)
   {
-    removeLink(elem);
+    removeLink(*i);
   }
 }
 
@@ -73,7 +73,7 @@ Input::addLink(const std::string& linkType, const std::string& linkParams, Outpu
     }
   }
 
-  auto link = new Link(linkType, linkParams, srcOutput, this);
+  Link *link = new Link(linkType, linkParams, srcOutput, this);
   links_.push_back(link);
   
   srcOutput->addLink(link);
@@ -88,7 +88,7 @@ Input::removeLink(Link*& link)
 
   // removeLink should only be called internally -- if it 
   // does not exist, it is a logic error
-  auto linkiter = links_.begin();
+  std::vector<Link*>::iterator linkiter = links_.begin();
   for(; linkiter!= links_.end(); linkiter++)
   {
     if (*linkiter == link)
@@ -108,7 +108,7 @@ Input::removeLink(Link*& link)
   link->getSrc().removeLink(link);
   links_.erase(linkiter);
   delete link;
-  link = nullptr;
+  link = NULL;
 }
     
 Link* Input::findLink(const std::string& srcRegionName, 
@@ -125,7 +125,7 @@ Link* Input::findLink(const std::string& srcRegionName,
     }
   }
   // Link not found
-  return nullptr;
+  return NULL;
 }
 
 void
@@ -133,9 +133,9 @@ Input::prepare()
 {
   // Each link copies data into its section of the overall input
   // TODO: initialization check?
-  for (auto & elem : links_)
+  for (std::vector<Link*>::iterator l = links_.begin(); l != links_.end(); l++)
   {
-    (elem)->compute();
+    (*l)->compute();
   }
 }
     

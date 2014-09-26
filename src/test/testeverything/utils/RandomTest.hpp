@@ -38,7 +38,7 @@ public:
     RandomTest();
     virtual ~RandomTest();
     
-    virtual void RunTests() override;
+    virtual void RunTests();
   };
 } // namespace nta
 

@@ -192,9 +192,9 @@ void testCppLinking(std::string linkPolicy, std::string linkParams)
     if (verbose)
     {
       std::cout << "Node " << node << ": ";
-      for (auto & elem : r2NodeInput)
+      for (size_t i = 0; i < r2NodeInput.size(); i++)
       {
-        std::cout << elem << " ";
+        std::cout << r2NodeInput[i] << " ";
       }
       std::cout << "" << std::endl;
     }
