@@ -10,8 +10,8 @@ Obtain the source for the following libraries. These will be statically linked t
 | Library | Website | Filename |
 |:------- |:------- |:-------- |
 | apr-1.5.1 | https://apr.apache.org/ | apr-1.5.1-win32-src.zip |
-| apr-iconv-1.2.1 | https://apr.apache.org/ | apr-iconv-1.2.1-win32-src-r2.zip |
 | apr-util-1.5.4 | https://apr.apache.org/ | apr-util-1.5.4-win32-src.zip |
+| apr-iconv-1.2.1 | https://apr.apache.org/ | apr-iconv-1.2.1-win32-src-r2.zip |
 | yaml-0.1.5 | http://pyyaml.org/wiki/LibYAML | yaml-0.1.5.tar.gz |
 | yaml-cpp-0.3.0 | https://code.google.com/p/yaml-cpp/ | yaml-cpp-0.3.0.tar.gz |
 | zlib-1.2.8 | http://www.zlib.net/ | zlib-1.2.8.tar.gz |
@@ -22,20 +22,24 @@ Extract them into $NUPIC_CORE/external/win32/build The root .gitignore contains 
 Next, perform some housekeeping tasks on the Apr directories by renaming them  
 
 apr-1.5.1 to apr  
-apr-util-1.5.4 to apr-util  
 apr-iconv-1.2.1 to apr-iconv  
+apr-util-1.5.4 to apr-util  
 
 Make sure that all these sub-directories are correct. Depending on how you extract the gzip/zip files into the build/directory, you may end up with, for example, pcre-8.35/pcre-8.35/..  
 
 ## CMake building the external libraries
 
-Each one has a CMakeList.txt that allows for the use of the Windows version of CMake. The CMake-GUI application **must** be used for all these external projects. The Windows version of CMake is the only versions that supports Visual Studio generators. Plus it makes it easy to make tweaks to the build environments, e.g. changing 'CMAKE_INSTALL_PREFIX'
+All but one of these libraries has a CMakeList.txt, that allows for the use of the Windows version of CMake. The CMake-GUI application **must** be used for all these external projects. The Windows version of CMake is the only versions that supports Visual Studio generators. Plus it makes it easy to make tweaks to the build environments, e.g. changing 'CMAKE_INSTALL_PREFIX'
 
 Configure each one with the generator that matches your installed IDE.
 
-Open each solution file (.sln) in your VS IDE in alphabetical order of each external project. Using Rebuild Solution, followed by 'Build Only' on the INSTALL project for each solution. ***Remember** to set the solution configuration in the Configuration Manager to Release.
+Open each solution file (.sln) into your Visual Studio IDE, in alphabetical order of each external library. Using Rebuild Solution. ***Remember** to set the solution configuration in the Configuration Manager to Release.
 
-**Note**: The apr-iconv library gets used by the other libraries. So you won't find a .sln file in the app-iconv directory.
+Install scripts are placed inside a file called cmake_install.cmake The INSTALL project in each solution doesn't work, but tries to do the following;  
+
+cmake.exe -DBUILD_TYPE=Release -P cmake_install.cmake
+
+**Note**: The apr-iconv library has two project files to import into Visual Studio. We just need the static version called apriconv.dsp
 
 ### Example CMake build - Apache Portable Runtime (APR)
 
@@ -51,31 +55,27 @@ For example, the Apr (1.5.1) project;
     * Correct any Name/Value pairs that are still have a red background and press 'Configure'.
   - When all Name/Value pairs are valid press 'Generate'.
 
-Open APR.sln into you VS IDE and Rebuild the Solution. Once rebuilt, 'Build Only' the INSTALL project to get the library files into the right places. It makes an initial mess of the $NUPIC_CORE/include directory, but we need it like that for now.
+Open APR.sln with your Visual Studio IDE and Rebuild All on the the solution. Once rebuilt, 'Build Only' the INSTALL project to get the library files into the right places. It makes an initial mess of the $NUPIC_CORE/include directory, but we need it like that for now.
 
-Repeat all the above steps for APR-Util solution, but not apr-iconv. Apr-util requires a couple of other changes. 
+In the apr/ directory there will be a x64/ sub-directory. Copy the win64/build/apr/x64/LibR/apr-1.lib to win64/lib
+
+Now repeat all the above steps for the APR-Util solution. Apr-util requires a couple of other changes. 
 
   * Point APR_INCLUDE to $NUPIC_CORE/external/win64/build/apr
   * Point APR_LIBRARIES to $NUPIC_CORE/external/win64/build/apr
-  * Turn off APR_HAS_LDAP, APU_HAVE_ODBC. Unless required, but that needs further libraries.
+  * Turn off APR_HAS_LDAP and APU_HAVE_ODBC
   * And point CMAKE_INSTALL_PREFIX to $NUPIC_CORE/external/win64
+
+For the apr-iconv library, import apriconv.dsp into Visual Studio and Rebuild all. Copy the build\apriconv\x64\LibR\apriconv.lib into the win64/lib
+
+Time to tidy the $NUPIC_CORE/external/win64/include directory.  
+Make a new directory called apr-1 Move all the .h files into it.
+
+And that is APR built and ready to be statically linked to the NuPIC core library.
 
 ### Possible build issues  
 
-libapr-1  - Link errors in apr_atomic with VS2013  
-http://mail-archives.apache.org/mod_mbox/apr-dev/201311.mbox/%3C1383702562.18420.YahooMailNeo@web122303.mail.ne1.yahoo.com  
-Remove all "(apr_atomic_win32_ptr_fn)" unresolved external symbol Interlocked from apr_atomic.c in both apr-1 and libapr-1 libraries  
-
-Copy apr\include\arch to win32\include\apr-1\arch  
-
-Edit apr_arch_utf8.h and change the three #include from  
-  #include "apr.h"  
-  #include "apr_lib.h"  
-  #include "apr_errno.h"  
-to  
-  #include "apr-1/apr.h"  
-  #include "apr-1/apr_lib.h"  
-  #include "apr-1/apr_errno.h"  
+PCRE_SUPPORT_UTF is off by default.
 
 #### yaml-cpp  
 '#include <algorithm> in src\ostream_wrapper.cpp  
