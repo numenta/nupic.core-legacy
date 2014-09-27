@@ -1,7 +1,7 @@
 # NuPIC Core external libraries
 
 NuPIC Core depends on a number of pre-built external libraries which are
-normally distributed with the source.  Use the following commands as a guide.
+normally distributed with the source.  The following can be used as a guide if you require changes to the pre-built versions of them.
 
 ## Obtaining the library sources
 
@@ -75,9 +75,22 @@ And that is APR built and ready to be statically linked to the NuPIC core librar
 
 ### Possible build issues  
 
+#### APR
+
+Edit apr_arch_utf8.h and change the three #include from  
+'#include "apr.h"  
+'#include "apr_lib.h"  
+'#include "apr_errno.h"  
+
+to 
+
+'#include "apr-1/apr.h"  
+'#include "apr-1/apr_lib.h"  
+'#include "apr-1/apr_errno.h"  
+
 #### PCRE
 
-'PCRE_SUPPORT_UTF is off by default.
+PCRE_SUPPORT_UTF is off by default.
 
 #### Yaml
 
@@ -93,8 +106,16 @@ Look in zlib-1.2.8\contrib\vstudio for contributed solutions and projects for Vi
 
 
 For CMake assistance in copying the relevant binaries, headers, and library files 
-'nupic.core\external\win32\apr>cmake -DBUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=..\include -P cmake_install.cmake  
-'nupic.core\external\win32\pcre-8.35\cmake>cmake -DBUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=..\..\include\pcre -P cmake_install.cmake  
+'nupic.core\external\win32\apr>cmake -DBUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=..\include -P cmake_install.cmake'  
+'nupic.core\external\win32\pcre-8.35\cmake>cmake -DBUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=..\..\include\pcre -P cmake_install.cmake'  
 
 
 And, of course to build NuPIC Core itself:
+
+These options coulde be used with CMake  
+
+| Name | Value |
+|:---- |:----- |
+| Source code | $NUPIC_CORE/src |
+| Binaries | $NUPIC_CORE/build/scripts |
+| CMAKE_INSTALL_PREFIX | $NUPIC_CORE/build/release |
