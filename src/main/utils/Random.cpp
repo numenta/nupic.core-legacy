@@ -199,7 +199,7 @@ UInt64 Random::getUInt64(const UInt64 max)
 
 double Random::getReal64()
 {
-  const Int64 mantissaBits = 24;
+  const Int64 mantissaBits = 48;
   const UInt64 max = (UInt64)0x1U << (UInt64)mantissaBits;
   UInt64 value = getUInt64(max);
   Real64 dvalue = (Real64) value; // No loss because we only need the 48 mantissa bits.
