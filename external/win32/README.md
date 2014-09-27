@@ -12,10 +12,10 @@ Obtain the source for the following libraries. These will be statically linked t
 | apr-1.5.1 | https://apr.apache.org/ | apr-1.5.1-win32-src.zip |
 | apr-util-1.5.4 | https://apr.apache.org/ | apr-util-1.5.4-win32-src.zip |
 | apr-iconv-1.2.1 | https://apr.apache.org/ | apr-iconv-1.2.1-win32-src-r2.zip |
+| pcre-8.35 | http://www.pcre.org/ | pcre-8.35.zip |
 | yaml-0.1.5 | http://pyyaml.org/wiki/LibYAML | yaml-0.1.5.tar.gz |
 | yaml-cpp-0.3.0 | https://code.google.com/p/yaml-cpp/ | yaml-cpp-0.3.0.tar.gz |
 | zlib-1.2.8 | http://www.zlib.net/ | zlib-1.2.8.tar.gz |
-| pcre-8.35 | http://www.pcre.org/ | pcre-8.35.zip |
 
 Extract them into $NUPIC_CORE/external/win32/build The root .gitignore contains a rule to make any directory called build/ be ignored by Github.
 
@@ -75,14 +75,22 @@ And that is APR built and ready to be statically linked to the NuPIC core librar
 
 ### Possible build issues  
 
-PCRE_SUPPORT_UTF is off by default.
+#### PCRE
 
-#### yaml-cpp  
-'#include <algorithm> in src\ostream_wrapper.cpp  
+'PCRE_SUPPORT_UTF is off by default.
+
+#### Yaml
+
+Has a valid libyaml.sln solution file for importing. Found in directory yaml-0.1.5\win32\vs2008 A <New...> x64 platform solution can be added to it, once loaded into Visual Studio.
+
+#### Yaml-cpp  
+
+'#include <algorithm>' in src\ostream_wrapper.cpp  
 
 #### Z Lib  
-'contrib\vstudio\vc11\x86\ZlibStatRelease\zlibstat.lib  
-'zlib-1.2.8\contrib\vstudio\vc11 if needed for comparison to CMake version of ZLib projects  
+
+Look in zlib-1.2.8\contrib\vstudio for contributed solutions and projects for Visual Studio.
+
 
 For CMake assistance in copying the relevant binaries, headers, and library files 
 'nupic.core\external\win32\apr>cmake -DBUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=..\include -P cmake_install.cmake  
