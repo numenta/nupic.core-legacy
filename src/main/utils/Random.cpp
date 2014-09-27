@@ -190,7 +190,7 @@ UInt64 Random::getUInt64(const UInt64 max)
   do {
     lo = impl_->getUInt32();
     hi = impl_->getUInt32();
-    sample = lo | (hi << 32);
+	sample = (UInt64)lo | ((UInt64)hi << (UInt64)32);
   } while(sample > smax);
   // NTA_WARN << "Random64(" << max << ") -> " << sample % max << " smax = " << smax;
 
@@ -199,8 +199,8 @@ UInt64 Random::getUInt64(const UInt64 max)
 
 double Random::getReal64()
 {
-  const int mantissaBits = 48;
-  const UInt64 max = (UInt64)0x1U << mantissaBits;
+  const Int64 mantissaBits = 24;
+  const UInt64 max = (UInt64)0x1U << (UInt64)mantissaBits;
   UInt64 value = getUInt64(max);
   Real64 dvalue = (Real64) value; // No loss because we only need the 48 mantissa bits.
   Real64 returnval = ::ldexp(dvalue, -mantissaBits);

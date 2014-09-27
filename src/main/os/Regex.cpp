@@ -25,7 +25,7 @@
 
 #include <nta/os/Regex.hpp>
 #include <nta/utils/Log.hpp>
-#ifdef NTA_PLATFORM_win32
+#if defined(NTA_PLATFORM_win32) || defined(NTA_PLATFORM_win64)
   #define PCRE_STATIC
   #include <pcre/pcre.h>
   #include <pcre/pcreposix.h>

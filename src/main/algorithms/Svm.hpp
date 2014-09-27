@@ -67,7 +67,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <iostream> 
 #include <algorithm>
 
-#ifdef NTA_PLATFORM_win32 // to align support vectors for SSE
+#if defined(NTA_PLATFORM_win32) || defined(NTA_PLATFORM_win64)
+// to align support vectors for SSE
 #include <malloc.h>
 #endif
 
@@ -142,8 +143,8 @@ namespace nta {
 	{
 	  if (recover_)
 	    for (int i = 0; i != size(); ++i)
-#if defined(NTA_PLATFORM_win32) && defined(NTA_COMPILER_MSVC)
-              _aligned_free(x_[i]);
+#if (defined(NTA_PLATFORM_win32) || defined(NTA_PLATFORM_win64)) && defined(NTA_COMPILER_MSVC)
+          _aligned_free(x_[i]);
 #else
 	      delete [] x_[i];
 #endif
@@ -168,8 +169,8 @@ namespace nta {
             NTA_ASSERT(-HUGE_VAL < x[i] && x [i] < HUGE_VAL);
 #endif
 
-#if defined(NTA_PLATFORM_win32) && defined(NTA_COMPILER_MSVC)
-          feature_type *new_x = (feature_type*) _aligned_malloc(4*n_dims(), 16);
+#if (defined(NTA_PLATFORM_win32) || defined(NTA_PLATFORM_win64)) && defined(NTA_COMPILER_MSVC)
+      feature_type *new_x = (feature_type*) _aligned_malloc(4*n_dims(), 16);
 #else
 	  feature_type *new_x = new feature_type [n_dims()];
 #endif
@@ -950,8 +951,8 @@ namespace nta {
 	  delete model_;
 	  model_ = NULL;
 
-#if defined(NTA_PLATFORM_win32) && defined(NTA_COMPILER_MSVC)
-          _aligned_free(x_tmp_);
+#if (defined(NTA_PLATFORM_win32) || defined(NTA_PLATFORM_win64)) && defined(NTA_COMPILER_MSVC)
+      _aligned_free(x_tmp_);
 #else
 	  delete [] x_tmp_;
 #endif

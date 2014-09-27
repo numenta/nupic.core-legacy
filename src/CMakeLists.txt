@@ -21,6 +21,7 @@
 # Contributor(s):
 #   David Ragazzi (@DavidRagazzi): Full conversion and adaptation from Autotools scripts
 #   Jim Bridgewater (jwbwater@gmail.com): Updated option help messages
+#   Richard Crowder (@rcrowder): Addition of Windows configurations
 # ------------------------------------------------------------------------------
 
 ################################################################################
@@ -240,11 +241,11 @@ get_compiler_family(NTA_COMPILER_FAMILY)
 #
 # Overrides for compiler and link differences
 #
-set(D "-D")
-set(I "-I")
-set(L "-L")
+set(D "-D") # define
+set(I "-I") # include
+set(L "-L") # library
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+if(${NTA_COMPILER_FAMILY} MATCHES "MSVC")
   set(D "/D")
   set(I "-I")
   set(L "/LIBPATH:")
@@ -346,19 +347,17 @@ set(NTA_PLATFORM_CXXFLAGS "")
 set(NTA_PLATFORM_CXXFLAGS_DEBUG "")
 set(NTA_PLATFORM_LINKFLAGS "")
 
-set(NTA_PLATFORM_LIBS "-std=c++11")
-
 if(OSX)
   set(CMAKE_OSX_DEPLOYMENT_TARGET "10.7")
   set(NTA_PLATFORM_OS "darwin64")
   set(NTA_PLATFORM_CXXFLAGS "${NTA_PLATFORM_CXXFLAGS} -m64")
   set(NTA_PLATFORM_CXXFLAGS_DEBUG "-gfull")
   set(NTA_PLATFORM_LINKFLAGS "${NTA_PLATFORM_LINKFLAGS} -Wl,-u,_munmap")
-  set(NTA_PLATFORM_LIBS "${NTA_PLATFORM_LIBS} -stdlib=libstdc++ -lc++abi -liconv -lsqlite3 -framework CoreServices -framework Accelerate")
+  set(NTA_PLATFORM_LIBS "${NTA_PLATFORM_LIBS} -std=c++11 -stdlib=libstdc++ -lc++abi -liconv -lsqlite3 -framework CoreServices -framework Accelerate")
 elseif(LINUX)
   set(NTA_PLATFORM_CXXFLAGS_DEBUG "-g")
   set(NTA_PLATFORM_LINKFLAGS "${NTA_PLATFORM_LINKFLAGS} -Wl,--no-as-needed -static-libgcc")
-  set(NTA_PLATFORM_LIBS "${NTA_PLATFORM_LIBS} -lm -lpthread -ldl -lutil")
+  set(NTA_PLATFORM_LIBS "${NTA_PLATFORM_LIBS} -std=c++11 -lm -lpthread -ldl -lutil")
   if(${NTA_PLATFORM_ARCH} MATCHES "64")
     set(NTA_PLATFORM_OS "linux64")
     set(NTA_PLATFORM_CXXFLAGS "${NTA_PLATFORM_CXXFLAGS} -m64")
@@ -372,7 +371,7 @@ elseif(WINDOWS)
   set(NTA_PLATFORM_LIBS "oldnames.lib Psapi.lib")
   if(${NTA_PLATFORM_ARCH} MATCHES "64")
     set(NTA_PLATFORM_LINKFLAGS "${NTA_PLATFORM_LINKFLAGS} /MACHINE:X64 /NOLOGO /SAFESEH:NO")
-    set(NTA_PLATFORM_OS "win32")
+    set(NTA_PLATFORM_OS "win64")
   else()    
     set(NTA_PLATFORM_LINKFLAGS "${NTA_PLATFORM_LINKFLAGS} /MACHINE:X86 /NOLOGO /SAFESEH:NO")
     set(NTA_PLATFORM_OS "win32")
@@ -380,7 +379,7 @@ elseif(WINDOWS)
 elseif(SOLARIS)
   set(NTA_PLATFORM_CXXFLAGS_DEBUG "-g")
   set(NTA_PLATFORM_LINKFLAGS "${NTA_PLATFORM_LINKFLAGS} -shared-libgcc -m64")
-  set(NTA_PLATFORM_LIBS "${NTA_PLATFORM_LIBS} -lm -lpthread -ldl -lnsl -lsocket")
+  set(NTA_PLATFORM_LIBS "${NTA_PLATFORM_LIBS} -std=c++11 -lm -lpthread -ldl -lnsl -lsocket")
   execute_process(COMMAND isainfo -b OUTPUT_VARIABLE NTA_PLATFORM_ARCH)
   if(${NTA_PLATFORM_ARCH} MATCHES "64")
     set(NTA_PLATFORM_OS "sparc64")
@@ -586,7 +585,7 @@ set(NTA_CXXFLAGS_DYNAMIC "${NTA_CXXFLAGS}")
 
 if(${NTA_COMPILER_FAMILY} EQUAL "MSVC")
   set(NTA_CXXFLAGS_STATIC "${NTA_CXXFLAGS} /MD")
-  set(NTA_CXXFLAGS_DYNAMIC "${NTA_CXXFLAGS} /MT /LD ${D}_USRDLL ${D}WIN32PROJECT1_EXPORTS")
+  set(NTA_CXXFLAGS_DYNAMIC "${NTA_CXXFLAGS} /MT /DLL ${D}_USRDLL ${D}WIN32PROJECT1_EXPORTS")
 endif()
 
 ################################################################################
@@ -691,7 +690,7 @@ generate_static_library(${LIB_STATIC_NUPICCORE} "${PROJECT_SOURCE_DIR}/main" "${
 
 if(${BUILD_SHARED_LIBS})
   set(LIB_DYNAMIC_NUPICCORE ${DYNAMIC_LIB_PREFIX}nupic_core)
-  #generate_dynamic_library(${LIB_DYNAMIC_NUPICCORE} "${PROJECT_SOURCE_DIR}/main" "${PROJECT_BUILD_TEMP_DIR}" "${NTA_CXXFLAGS_DYNAMIC}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
+  generate_dynamic_library(${LIB_DYNAMIC_NUPICCORE} "${PROJECT_SOURCE_DIR}/main" "${PROJECT_BUILD_TEMP_DIR}" "${NTA_CXXFLAGS_DYNAMIC}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
 endif()
 
 # Merge nupic_core and all static libraries to a stand-alone library
