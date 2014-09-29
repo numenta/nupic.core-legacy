@@ -492,7 +492,6 @@ else()
 endif()
 if(${NTA_COMPILER_FAMILY} STREQUAL "MSVC")
   if(NTA_OPTIMIZATION_ENABLED)
-    set(NTA_CXXFLAGS_OPTIMIZATION "/O2 /Ob2 ${D}NTA_ASM")
   else()
     set(NTA_CXXFLAGS_OPTIMIZATION "/O0 /Ob0")
   endif()
@@ -558,6 +557,7 @@ message(STATUS "  MPI Support: ${NTA_MPI_SUPPORT}")
 #
 # Compiler specific (clang, gcc, ..) flags can be set here
 #
+
 if(${NTA_COMPILER_FAMILY} STREQUAL "GNU")
   set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -fPIC -DPIC -DHAVE_CONFIG_H -DHAVE_UNISTD_H -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-unused-parameter -Wno-sign-compare -Wno-error=format=")
   set(NTA_CXXFLAGS_OPTIMIZATION "${NTA_CXXFLAGS_OPTIMIZATION} -falign-loops=16")
@@ -570,7 +570,7 @@ if(${NTA_COMPILER_FAMILY} STREQUAL "GNU")
 elseif(${NTA_COMPILER_FAMILY} STREQUAL "CLANG")
   set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -fPIC -DPIC -DHAVE_CONFIG_H -DHAVE_UNISTD_H -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-unused-parameter")
 elseif(${NTA_COMPILER_FAMILY} EQUAL "MSVC")
-  set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} /DWIN32 /D_WINDOWS /DNDEBUG /DPSAPI_VERSION=1 /D_MBCS /D_CRT_SECURE_NO_WARNINGS")
+  set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} /DWIN32 /D_WINDOWS /DPSAPI_VERSION=1 /D_MBCS /D_CRT_SECURE_NO_WARNINGS")
 else()
   # TODO: What compilers is it for? Should it be more explicit?
   set(NTA_LINKFLAGS_ARCHIVES "-Wl,-force_load")
@@ -585,7 +585,9 @@ set(NTA_CXXFLAGS_STATIC "${NTA_CXXFLAGS}")
 set(NTA_CXXFLAGS_DYNAMIC "${NTA_CXXFLAGS}")
 
 if(${NTA_COMPILER_FAMILY} EQUAL "MSVC")
-  set(NTA_CXXFLAGS_STATIC "${NTA_CXXFLAGS} /MD")
+  set(CMAKE_CXX_FLAGS_DEBUG "${NTA_CXXFLAGS} /MTd /Od /D_DEBUG")
+  string (REPLACE "/MD" " " CMAKE_CXX_FLAGS_DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
+  string (REPLACE "/O3" " " CMAKE_CXX_FLAGS_DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
   set(NTA_CXXFLAGS_DYNAMIC "${NTA_CXXFLAGS} /MT /LD ${D}_USRDLL ${D}WIN32PROJECT1_EXPORTS")
 endif()
 
@@ -681,7 +683,7 @@ else()
 endif()
 
 if(WINDOWS)
-  set(NTA_APPLICATION_LIBS Ws2_32.lib msvcprt.lib msvcrt.lib)
+  set(NTA_APPLICATION_LIBS Ws2_32.lib)
 endif()
 
 #
