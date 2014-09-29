@@ -100,19 +100,25 @@ namespace nta {
     // populate choices with a random selection of num elements from population
     // templated functions must be defined in header
     template <typename T>
-    void sample(std::vector<T>& population, std::vector<T>& choices,
-                UInt32 num)
+    void sample(T population[], UInt32 nPopulation,
+                T sample[], UInt32 nSample)
     {
-      UInt32 remaining = population.size();
-      for (UInt32 i = 0; i < population.size(); ++i) {
-        if (getUInt32(remaining) < num) {
-          choices.push_back(population[i]);
-          num -= 1;
-          if (num == 0) {
+      if (nSample == 0)
+      {
+        return;
+      }
+      UInt32 nextChoice = 0;
+      for (UInt32 i = 0; i < nPopulation; ++i)
+      {
+        if (getUInt32(nPopulation - i) < (nSample - nextChoice))
+        {
+          sample[nextChoice] = population[i];
+          ++nextChoice;
+          if (nextChoice == nSample)
+          {
             break;
           }
         }
-        remaining -= 1;
       }
     }
 

@@ -404,28 +404,31 @@ void RandomTest::RunTests()
   }
 
   {
-    std::vector<UInt32> population = {1, 2, 3, 4};
-    std::vector<UInt32> choices;
+    UInt32 population[] = {1, 2, 3, 4};
     Random r(42);
 
-    // choose 0 elements
-    r.sample(population, choices, 0);
-    TESTEQUAL2("check 0 elements selected", 0, choices.size());
+    {
+      // choose 0 elements
+      UInt32 sample[0];
+      r.sample(population, 4, sample, 0);
+    }
 
-    // choose some elements
-    choices.clear();
-    r.sample(population, choices, 2);
-    TESTEQUAL2("check 2 elements selected", 2, choices.size());
-    TESTEQUAL2("check element 0", 1, choices[0]);
-    TESTEQUAL2("check element 1", 4, choices[1]);
+    {
+      // choose some elements
+      UInt32 sample[2];
+      r.sample(population, 4, sample, 2);
+      TESTEQUAL2("check element 0", 2, sample[0]);
+      TESTEQUAL2("check element 1", 4, sample[1]);
+    }
 
-    // choose all elements
-    choices.clear();
-    r.sample(population, choices, 4);
-    TESTEQUAL2("check 4 elements selected", 4, choices.size());
-    TESTEQUAL2("check element 0", 1, choices[0]);
-    TESTEQUAL2("check element 1", 2, choices[1]);
-    TESTEQUAL2("check element 2", 3, choices[2]);
-    TESTEQUAL2("check element 3", 4, choices[3]);
+    {
+      // choose all elements
+      UInt32 sample[4];
+      r.sample(population, 4, sample, 4);
+      TESTEQUAL2("check element 0", 1, sample[0]);
+      TESTEQUAL2("check element 1", 2, sample[1]);
+      TESTEQUAL2("check element 2", 3, sample[2]);
+      TESTEQUAL2("check element 3", 4, sample[3]);
+    }
   }
 }
