@@ -404,6 +404,8 @@ void RandomTest::RunTests()
   }
 
   {
+    // tests for sampling
+
     UInt32 population[] = {1, 2, 3, 4};
     Random r(42);
 
@@ -430,5 +432,20 @@ void RandomTest::RunTests()
       TESTEQUAL2("check element 2", 3, sample[2]);
       TESTEQUAL2("check element 3", 4, sample[3]);
     }
+  }
+
+  {
+    // tests for shuffling
+    Random r(42);
+    UInt32 arr[] = {1, 2, 3, 4};
+
+    UInt32* start = arr;
+    UInt32* end = start + 4;
+    r.shuffle(start, end);
+
+    TESTEQUAL2("check element 0", 3, arr[0]);
+    TESTEQUAL2("check element 1", 4, arr[1]);
+    TESTEQUAL2("check element 2", 2, arr[2]);
+    TESTEQUAL2("check element 3", 1, arr[3]);
   }
 }

@@ -122,6 +122,13 @@ namespace nta {
       }
     }
 
+    // randomly shuffle the elements
+    template <class RandomAccessIterator>
+    void shuffle(RandomAccessIterator first, RandomAccessIterator last)
+    {
+      std::random_shuffle(first, last, *this);
+    }
+
     // for STL compatibility
     UInt32 operator()(UInt32 n = MAX32) { return getUInt32(n); }
 
