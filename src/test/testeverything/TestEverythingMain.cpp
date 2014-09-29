@@ -24,7 +24,7 @@
 Uber test program
 */
 
-#ifdef NTA_PLATFORM_win32
+#if defined(NTA_PLATFORM_win32) || defined(NTA_PLATFORM_win64)
 // Exclude rarely-used stuff from Windows headers
 #define WIN32_LEAN_AND_MEAN
 #endif

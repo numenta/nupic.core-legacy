@@ -33,7 +33,7 @@
 #include <cstring>
 #include "SpatialPoolerTest.hpp"
 
-#if defined(NTA_PLATFORM_win32) && defined(NTA_COMPILER_MSVC)
+#if (defined(NTA_PLATFORM_win32) || defined(NTA_PLATFORM_win64)) && defined(NTA_COMPILER_MSVC)
 #define NTA_CREATE(Type,Name,num) Type* Name = new Type [num];
 #define NTA_DELETE(Name) delete [] Name;
 #else

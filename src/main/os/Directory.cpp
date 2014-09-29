@@ -23,7 +23,7 @@
 /** @file 
 */
 
-#if !defined(NTA_PLATFORM_win32)
+#if !defined(NTA_PLATFORM_win32) && !defined(NTA_PLATFORM_win64)
 #include <unistd.h>
 #endif
 #include <string>
@@ -35,7 +35,7 @@
 #include <apr-1/apr_file_io.h>
 #include <apr-1/apr_time.h>
 
-#ifdef NTA_PLATFORM_win32
+#if defined(NTA_PLATFORM_win32) || defined(NTA_PLATFORM_win64)
   #include <windows.h>
   #include <tchar.h>
 #else
@@ -53,7 +53,7 @@ namespace nta
     
     std::string getCWD()
     {
-    #ifdef NTA_PLATFORM_win32
+    #if defined(NTA_PLATFORM_win32) || defined(NTA_PLATFORM_win64)
       wchar_t wcwd[APR_PATH_MAX];
       DWORD res = ::GetCurrentDirectoryW(APR_PATH_MAX, wcwd);
       NTA_CHECK(res > 0) << "Couldn't get current working directory. Error code: " 
@@ -78,7 +78,7 @@ namespace nta
     void setCWD(const std::string & path)
     {
       int res = 0;
-    #ifdef NTA_PLATFORM_win32
+    #if defined(NTA_PLATFORM_win32) || defined(NTA_PLATFORM_win64)
       std::wstring wpath(Path::utf8ToUnicode(path));
       res = ::SetCurrentDirectoryW(wpath.c_str()) ? 0 : -1;
     #else
@@ -91,7 +91,7 @@ namespace nta
     static bool removeEmptyDir(const std::string & path, bool noThrow)
     {
       int res = 0;
-    #ifdef NTA_PLATFORM_win32
+    #if defined(NTA_PLATFORM_win32) || defined(NTA_PLATFORM_win64)
       std::wstring wpath(Path::utf8ToUnicode(path));
       res = ::RemoveDirectoryW(wpath.c_str()) != FALSE ? 0 : -1;
     #else
@@ -219,18 +219,18 @@ namespace nta
 
       // non-recursive case
       bool success;
-    #ifdef NTA_PLATFORM_win32
+    #if defined(NTA_PLATFORM_win32) || defined(NTA_PLATFORM_win64)
       std::wstring wPath = Path::utf8ToUnicode(path);
       success = ::CreateDirectoryW(wPath.c_str(), NULL) != FALSE;
-	  if (!success)
+      if (!success)
       {
-		  if (GetLastError() == ERROR_ALREADY_EXISTS) {
-			  // Not a hard error, due to potential race conditions.
-			  std::cerr << "Path '" << path << "' exists. "
-				  "Possible race condition." 
-				  << std::endl;
-			  success = Path::isDirectory(path);
-		  }
+        if (GetLastError() == ERROR_ALREADY_EXISTS) {
+          // Not a hard error, due to potential race conditions.
+          std::cerr << "Path '" << path << "' exists. "
+            "Possible race condition." 
+            << std::endl;
+          success = Path::isDirectory(path);
+        }
       }
 
     #else

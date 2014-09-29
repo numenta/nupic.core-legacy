@@ -75,13 +75,13 @@ namespace nta {
 /*
   the following code is known to cause -Wstrict-aliasing warning, so silence it here
 */
-#if !defined(NTA_PLATFORM_win32)
+#if !defined(NTA_PLATFORM_win32) && !defined(NTA_PLATFORM_win64)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wstrict-aliasing"
 #endif
   inline bool isSystemLittleEndian()
     { static const char test[2] = { 1, 0 }; return (*(short *) test) == 1; }
-#if !defined(NTA_PLATFORM_win32)
+#if !defined(NTA_PLATFORM_win32) && !defined(NTA_PLATFORM_win64)
 #pragma GCC diagnostic pop // return back to defaults
 #endif
 
