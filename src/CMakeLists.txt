@@ -587,7 +587,7 @@ if(${NTA_COMPILER_FAMILY} EQUAL "MSVC")
   set(CMAKE_CXX_FLAGS_DEBUG "${NTA_CXXFLAGS} /MTd /Od /D_DEBUG /Zi")
   string (REPLACE "/MD" " " CMAKE_CXX_FLAGS_DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
   string (REPLACE "/O3" " " CMAKE_CXX_FLAGS_DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
-  set(NTA_CXXFLAGS_DYNAMIC "${NTA_CXXFLAGS} /MT /DLL ${D}_USRDLL ${D}WIN32PROJECT1_EXPORTS")
+  set(NTA_CXXFLAGS_DYNAMIC "${NTA_CXXFLAGS} /MD /DLL ${D}_USRDLL ${D}WIN32PROJECT1_EXPORTS")
 endif()
 
 ################################################################################
@@ -683,6 +683,7 @@ endif()
 
 if(WINDOWS)
   set(NTA_APPLICATION_LIBS Ws2_32.lib)
+  set(BUILD_SHARED_LIBS ON)
 endif()
 
 #
@@ -701,8 +702,12 @@ set(LIB_STATIC_NUPICCORE nupic_core)
 generate_static_library(${LIB_STATIC_NUPICCORE} "${PROJECT_SOURCE_DIR}/main" "${PROJECT_BUILD_TEMP_DIR}/lib" "${NTA_CXXFLAGS_STATIC}")
 
 if(${BUILD_SHARED_LIBS})
+  set(LIBRARIES
+  ${NTA_STANDARD_LIBS}
+  ${NTA_APPLICATION_LIBS}
+)
   set(LIB_DYNAMIC_NUPICCORE ${DYNAMIC_LIB_PREFIX}nupic_core)
-  generate_dynamic_library(${LIB_DYNAMIC_NUPICCORE} "${PROJECT_SOURCE_DIR}/main" "${PROJECT_BUILD_TEMP_DIR}" "${NTA_CXXFLAGS_DYNAMIC}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
+  generate_dynamic_library(${LIB_DYNAMIC_NUPICCORE} "${PROJECT_SOURCE_DIR}/main" "${PROJECT_BUILD_TEMP_DIR}/lib" "${NTA_CXXFLAGS_DYNAMIC}" "${NTA_LINKFLAGS}" "" "${LIBRARIES}")
 endif()
 
 # Merge nupic_core and all static libraries to a stand-alone library
