@@ -171,10 +171,14 @@ macro(generate_dynamic_library name src_dir output_dir cxx_flags link_flags proj
   set_target_properties(${name} PROPERTIES COMPILE_FLAGS "${cxx_flags}")
   set_target_properties(${name} PROPERTIES LINKER_LANGUAGE "CXX")
   set_target_properties(${name} PROPERTIES LINK_FLAGS "${link_flags}")
-  set_target_properties(${name} PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${output_dir})
+  set_target_properties(${name} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${output_dir}/bin)
+  set_target_properties(${name} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${output_dir}/lib)
+  set_target_properties(${name} PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${output_dir}/lib)
   foreach(OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES})
     string(TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG)
-    set_target_properties(${name} PROPERTIES ARCHIVE_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${output_dir})
+    set_target_properties(${name} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${output_dir}/bin)
+    set_target_properties(${name} PROPERTIES LIBRARY_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${output_dir}/lib)
+    set_target_properties(${name} PROPERTIES ARCHIVE_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${output_dir}/lib)
   endforeach()
 endmacro()
 
@@ -587,7 +591,7 @@ if(${NTA_COMPILER_FAMILY} EQUAL "MSVC")
   set(CMAKE_CXX_FLAGS_DEBUG "${NTA_CXXFLAGS} /MTd /Od /D_DEBUG /Zi")
   string (REPLACE "/MD" " " CMAKE_CXX_FLAGS_DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
   string (REPLACE "/O3" " " CMAKE_CXX_FLAGS_DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
-  set(NTA_CXXFLAGS_DYNAMIC "${NTA_CXXFLAGS} /MD /DLL ${D}_USRDLL ${D}WIN32PROJECT1_EXPORTS")
+  set(NTA_CXXFLAGS_DYNAMIC "${NTA_CXXFLAGS} /DLL ${D}_USRDLL ${D}WIN32PROJECT1_EXPORTS")
 endif()
 
 ################################################################################
@@ -707,7 +711,7 @@ if(${BUILD_SHARED_LIBS})
   ${NTA_APPLICATION_LIBS}
 )
   set(LIB_DYNAMIC_NUPICCORE ${DYNAMIC_LIB_PREFIX}nupic_core)
-  generate_dynamic_library(${LIB_DYNAMIC_NUPICCORE} "${PROJECT_SOURCE_DIR}/main" "${PROJECT_BUILD_TEMP_DIR}/lib" "${NTA_CXXFLAGS_DYNAMIC}" "${NTA_LINKFLAGS}" "" "${LIBRARIES}")
+  generate_dynamic_library(${LIB_DYNAMIC_NUPICCORE} "${PROJECT_SOURCE_DIR}/main" "${CMAKE_INSTALL_PREFIX}" "${NTA_CXXFLAGS_DYNAMIC}" "${NTA_LINKFLAGS}" "" "${LIBRARIES}")
 endif()
 
 # Merge nupic_core and all static libraries to a stand-alone library
@@ -756,10 +760,13 @@ generate_executable(${EXECUTABLE_HELLOREGION} "${PROJECT_SOURCE_DIR}/examples/re
 ###  Post configuration operations                                           ###
 ###                                                                          ###
 ################################################################################
+set(NTA_TARGET_BINARIES testcpphtm testeverything helloregion)
+if(${BUILD_SHARED_LIBS})
+  set(NTA_TARGET_BINARIES ${NTA_TARGET_BINARIES} ${LIB_DYNAMIC_NUPICCORE})
+endif()
 
 install(TARGETS ${LIB_STATIC_NUPICCORE} DESTINATION lib)
-install(TARGETS testcpphtm testeverything helloregion DESTINATION bin)
-
+install(TARGETS ${NTA_TARGET_BINARIES} DESTINATION bin)
 #
 # Copy all headers files to 'build/release/include'
 #
