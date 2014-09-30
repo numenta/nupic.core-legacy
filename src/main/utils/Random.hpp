@@ -25,6 +25,7 @@
 */
 
 #include <nta/types/Types.hpp>
+#include <algorithm>
 #include <cstdlib>
 #include <string>
 #include <vector>
