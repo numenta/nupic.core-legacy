@@ -753,6 +753,7 @@ set(LIBRARIES
 )
 generate_executable(${EXECUTABLE_HELLOREGION} "${PROJECT_SOURCE_DIR}/examples/regions" "${CMAKE_INSTALL_PREFIX}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
 
+if(${BUILD_SHARED_LIBS})
 #
 # HelloRegion with shared lib
 #
@@ -764,7 +765,7 @@ set(LIBRARIES
   ${NTA_TEST_LIBS}
 )
 generate_executable(${EXECUTABLE_HELLOREGION_SHARED} "${PROJECT_SOURCE_DIR}/examples/regions" "${CMAKE_INSTALL_PREFIX}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
-
+endif()
 
 ################################################################################
 ###                                                                          ###
