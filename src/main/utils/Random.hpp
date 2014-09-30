@@ -102,20 +102,20 @@ namespace nta {
     // templated functions must be defined in header
     template <typename T>
     void sample(T population[], UInt32 nPopulation,
-                T sample[], UInt32 nSample)
+                T choices[], UInt32 nChoices)
     {
-      if (nSample == 0)
+      if (nChoices == 0)
       {
         return;
       }
       UInt32 nextChoice = 0;
       for (UInt32 i = 0; i < nPopulation; ++i)
       {
-        if (getUInt32(nPopulation - i) < (nSample - nextChoice))
+        if (getUInt32(nPopulation - i) < (nChoices - nextChoice))
         {
-          sample[nextChoice] = population[i];
+          choices[nextChoice] = population[i];
           ++nextChoice;
-          if (nextChoice == nSample)
+          if (nextChoice == nChoices)
           {
             break;
           }

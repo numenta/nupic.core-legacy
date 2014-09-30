@@ -411,26 +411,26 @@ void RandomTest::RunTests()
 
     {
       // choose 0 elements
-      UInt32 sample[0];
-      r.sample(population, 4, sample, 0);
+      UInt32 choices[0];
+      r.sample(population, 4, choices, 0);
     }
 
     {
       // choose some elements
-      UInt32 sample[2];
-      r.sample(population, 4, sample, 2);
-      TESTEQUAL2("check element 0", 2, sample[0]);
-      TESTEQUAL2("check element 1", 4, sample[1]);
+      UInt32 choices[2];
+      r.sample(population, 4, choices, 2);
+      TESTEQUAL2("check element 0", 2, choices[0]);
+      TESTEQUAL2("check element 1", 4, choices[1]);
     }
 
     {
       // choose all elements
-      UInt32 sample[4];
-      r.sample(population, 4, sample, 4);
-      TESTEQUAL2("check element 0", 1, sample[0]);
-      TESTEQUAL2("check element 1", 2, sample[1]);
-      TESTEQUAL2("check element 2", 3, sample[2]);
-      TESTEQUAL2("check element 3", 4, sample[3]);
+      UInt32 choices[4];
+      r.sample(population, 4, choices, 4);
+      TESTEQUAL2("check element 0", 1, choices[0]);
+      TESTEQUAL2("check element 1", 2, choices[1]);
+      TESTEQUAL2("check element 2", 3, choices[2]);
+      TESTEQUAL2("check element 3", 4, choices[3]);
     }
   }
 
