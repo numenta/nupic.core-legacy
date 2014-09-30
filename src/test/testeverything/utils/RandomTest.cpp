@@ -28,6 +28,7 @@
 #include "RandomTest.hpp"
 #include <nta/os/Env.hpp>
 #include <nta/ntypes/MemStream.hpp>
+#include <nta/utils/LoggingException.hpp>
 #include <stdlib.h>
 #include <sstream>
 
@@ -431,6 +432,21 @@ void RandomTest::RunTests()
       TESTEQUAL2("check element 1", 2, choices[1]);
       TESTEQUAL2("check element 2", 3, choices[2]);
       TESTEQUAL2("check element 3", 4, choices[3]);
+    }
+
+    {
+      // nChoices > nPopulation
+      UInt32 choices[5];
+      bool caught = false;
+      try
+      {
+        r.sample(population, 4, choices, 5);
+      }
+      catch (LoggingException& exc)
+      {
+        caught = true;
+      }
+      TEST2("checking for exception from population too small", caught);
     }
   }
 

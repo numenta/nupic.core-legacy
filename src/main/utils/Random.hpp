@@ -29,6 +29,7 @@
 #include <cstdlib>
 #include <string>
 #include <vector>
+#include <nta/utils/Log.hpp>
 
 #ifndef NTA_RANDOM_HPP
 #define NTA_RANDOM_HPP
@@ -107,6 +108,10 @@ namespace nta {
       if (nChoices == 0)
       {
         return;
+      }
+      if (nChoices > nPopulation)
+      {
+        NTA_THROW << "population size must be greater than number of choices";
       }
       UInt32 nextChoice = 0;
       for (UInt32 i = 0; i < nPopulation; ++i)
