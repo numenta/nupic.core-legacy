@@ -99,7 +99,8 @@ namespace nta {
     // return a double uniformly distributed on 0...1.0
     Real64 getReal64();
 
-    // populate choices with a random selection of num elements from population
+    // populate choices with a random selection of nChoices elements from
+    // population. throws exception when nPopulation < nChoices
     // templated functions must be defined in header
     template <typename T>
     void sample(T population[], UInt32 nPopulation,
