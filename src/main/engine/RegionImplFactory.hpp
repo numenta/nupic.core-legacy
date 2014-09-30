@@ -36,7 +36,6 @@
 #include <string>
 #include <map>
 #include <boost/shared_ptr.hpp>
-#include <nta/types/types.hpp>
 
 namespace nta
 {
@@ -47,7 +46,7 @@ namespace nta
   struct Spec;
   class BundleIO;
 
-  class NUPIC_EXPORTS RegionImplFactory
+  class RegionImplFactory
   {
   public:
     static RegionImplFactory & getInstance();
