@@ -85,6 +85,12 @@ build_script:
 after_build:
   - cd C:\projects\nupic-core\build\release
   - dir/S
+  -ps: $root = Resolve-Path .\nupic-core\build\release; [IO.Directory]::GetFiles($root.Path, '*.*', 'AllDirectories') | % { Push-AppveyorArtifact $_ -FileName $_.Substring($root.Path.Length + 1) -DeploymentName to-publish }
+
+#artifacts:
+#  - path: 'nupic-core\build\release\**'
+#    name: NuPIC SDK
+
 
 #after_test:
 #  - ps: .\nuget\pack.ps1
