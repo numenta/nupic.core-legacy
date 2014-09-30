@@ -32,6 +32,7 @@
 #include <nta/math/Math.hpp>
 #include <nta/math/StlIo.hpp>
 #include <nta/math/ArrayAlgo.hpp>
+#include <nta/types/Types.hpp>
 
 //--------------------------------------------------------------------------------
 namespace nta {
@@ -45,7 +46,7 @@ namespace nta {
    *
    */
   template <typename UI1 =nta::UInt32, typename UI2 =nta::UInt32>
-  class SparseBinaryMatrix
+  class NUPIC_EXPORTS SparseBinaryMatrix
   {
   public:
     typedef UI1 size_type;

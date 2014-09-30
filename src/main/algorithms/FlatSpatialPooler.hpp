@@ -55,7 +55,7 @@ namespace nta {
       /// Todo.
       ///
       /////////////////////////////////////////////////////////////////////////
-     class FlatSpatialPooler : public SpatialPooler {
+		class NUPIC_EXPORTS FlatSpatialPooler : public SpatialPooler {
         public:
           FlatSpatialPooler() {}
 

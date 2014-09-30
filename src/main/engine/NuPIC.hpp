@@ -26,6 +26,7 @@
  */
 
 #include <set>
+#include <nta/types/Types.hpp>
 
 /** @namespace nta
  *
@@ -38,7 +39,7 @@ namespace nta
   /**
    * Initialization and shutdown operations for NuPIC engine.
    */
-  class NuPIC 
+  class NUPIC_EXPORTS NuPIC
   {
   public:
     /** 

@@ -35,6 +35,7 @@
 
 // We use the ParameterSpec which is defined in the Spec header
 #include <nta/engine/Spec.hpp>
+#include <nta/types/Types.hpp>
 
 #include <boost/shared_ptr.hpp>
 
@@ -60,7 +61,7 @@ namespace nta
   // of more complex receptive field mappings as configured via parameters.
   // ---
 
-  class UniformLinkPolicy : public LinkPolicy
+  class NUPIC_EXPORTS UniformLinkPolicy : public LinkPolicy
   {
     // ---
     // We make our unit test class a friend so that we can test dimension

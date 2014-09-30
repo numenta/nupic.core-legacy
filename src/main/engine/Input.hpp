@@ -53,7 +53,7 @@ namespace nta
    * @todo identify methods that may be called by RegionImpl -- this
    * is the internal "public interface"
    */
-  class Input
+  class NUPIC_EXPORTS Input
   {
   public:
 

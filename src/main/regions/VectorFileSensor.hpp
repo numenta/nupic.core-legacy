@@ -97,7 +97,7 @@ namespace nta
    * 
    */
 
-  class VectorFileSensor : public RegionImpl
+  class NUPIC_EXPORTS VectorFileSensor : public RegionImpl
   {
   public:
     

@@ -32,7 +32,7 @@ namespace nta {
   namespace algorithms {
     namespace Cells4 {
 
-      class Cells4;
+		class Cells4;
 
       //------------------------------------------------------------------------
       //------------------------------------------------------------------------
@@ -43,7 +43,7 @@ namespace nta {
        * than the iteration they were created in. SegmentUpdates have a timeStamp,
        * and they are discarded without being applied if they become 'stale'.
        */
-      class SegmentUpdate
+	  class NUPIC_EXPORTS SegmentUpdate
       {
       public:
         typedef std::vector<UInt>::const_iterator const_iterator;

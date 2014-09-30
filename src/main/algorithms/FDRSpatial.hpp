@@ -144,7 +144,7 @@ namespace nta {
      * 
      * 2. Return only indices of the non-zeros from infer(), when integrating with FDR TP.
      */
-    class FDRSpatial
+	class NUPIC_EXPORTS FDRSpatial
     {
     public:
       typedef nta::UInt32 size_type;

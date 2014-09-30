@@ -30,6 +30,7 @@
 //----------------------------------------------------------------------
 
 #include <nta/math/Index.hpp>
+#include <nta/types/Types.hpp>
 
 //----------------------------------------------------------------------
 
@@ -43,7 +44,7 @@ namespace nta {
    * on the right.
    */
   template <typename UInt>      
-  class DimRange
+  class NUPIC_EXPORTS DimRange
   {
   public:
     inline DimRange()
@@ -143,7 +144,7 @@ namespace nta {
    * along several dimensions. 
    */
   template <typename UInt>
-  class Domain
+  class NUPIC_EXPORTS Domain
   {
   public:
     // Doesn't work on shona
@@ -401,7 +402,7 @@ namespace nta {
 
   //--------------------------------------------------------------------------------
   template <typename T>
-  class Domain2D : public Domain<T>
+  class NUPIC_EXPORTS Domain2D : public Domain<T>
   {
   public:
     inline Domain2D(T first_row, T row_end, T first_col, T col_end)

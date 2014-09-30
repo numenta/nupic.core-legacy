@@ -23,6 +23,7 @@
 #ifndef NTA_NODESET_HPP
 #define NTA_NODESET_HPP
 
+#include <nta/types/Types.hpp>
 #include <set>
 
 namespace nta
@@ -46,7 +47,7 @@ namespace nta
    * 
    * TODO: split into hpp/cpp
    */
-  class NodeSet
+  class NUPIC_EXPORTS NodeSet
   {
   public:
     NodeSet(size_t nnodes) : nnodes_(nnodes)

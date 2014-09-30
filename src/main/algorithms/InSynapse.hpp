@@ -44,7 +44,7 @@ namespace nta {
        * of the synapse, and a permanence value. The source cell index is between
        * 0 and nCols * nCellsPerCol.
        */
-      class InSynapse
+	  class NUPIC_EXPORTS InSynapse
       {
       private:
         UInt _srcCellIdx;

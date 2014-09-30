@@ -27,13 +27,14 @@
 #include <string>
 #include <nta/engine/Link.hpp>
 #include <nta/ntypes/Dimensions.hpp>
+#include <nta/types/Types.hpp>
 
 namespace nta
 {
 
   class Link;
 
-  class TestFanIn2LinkPolicy : public LinkPolicy
+  class NUPIC_EXPORTS TestFanIn2LinkPolicy : public LinkPolicy
   {
   public:
     TestFanIn2LinkPolicy(const std::string params, Link* link);

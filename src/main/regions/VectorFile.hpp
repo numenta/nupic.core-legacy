@@ -43,7 +43,7 @@ namespace nta
    *  interest are its ability to read in different text file formats and its
    *  ability to dynamically scale its outputs. 
    */
-  class VectorFile
+  class NUPIC_EXPORTS VectorFile
   {
   public:
     

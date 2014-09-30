@@ -34,7 +34,7 @@ Definition of Spec data structures
 
 namespace nta
 {
-  class InputSpec
+	class NUPIC_EXPORTS InputSpec
   {
   public:  
     InputSpec() {}
@@ -59,7 +59,7 @@ namespace nta
     bool requireSplitterMap; // 
   };
 
-  class OutputSpec
+  class NUPIC_EXPORTS OutputSpec
   {
   public:
     OutputSpec() {}
@@ -75,7 +75,7 @@ namespace nta
     bool isDefaultOutput;
   };
 
-  class CommandSpec
+  class NUPIC_EXPORTS CommandSpec
   {
   public:
     CommandSpec() {}
@@ -85,7 +85,7 @@ namespace nta
 
   };
 
-  class ParameterSpec
+  class NUPIC_EXPORTS ParameterSpec
   {
   public:
     typedef enum { CreateAccess, ReadOnlyAccess, ReadWriteAccess } AccessMode;

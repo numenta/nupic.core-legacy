@@ -36,7 +36,7 @@
 
 namespace nta
 {
-  class Array : public ArrayBase 
+  class NUPIC_EXPORTS Array : public ArrayBase
   {
   public:
     Array(NTA_BasicType type, void * buffer, size_t count) :

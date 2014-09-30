@@ -51,7 +51,7 @@ namespace nta
        * TODO: Support serialization and deserialization.
        *
        */
-      class BitHistory
+	  class NUPIC_EXPORTS BitHistory
       {
         public:
           /**

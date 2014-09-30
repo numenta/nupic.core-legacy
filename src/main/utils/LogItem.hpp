@@ -27,6 +27,7 @@
 #ifndef NTA_LOG_ITEM_HPP
 #define NTA_LOG_ITEM_HPP
 
+#include <nta/types/Types.h>
 #include <sstream>
 #include <iostream>
 
@@ -44,7 +45,7 @@ namespace nta {
    */
 
 
-  class LogItem {
+  class NUPIC_EXPORTS LogItem {
   public:
 
     typedef enum {debug, info, warn, error} LogLevel;

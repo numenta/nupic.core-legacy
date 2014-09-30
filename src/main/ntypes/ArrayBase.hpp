@@ -45,7 +45,7 @@ namespace nta
    * a client application and NuPIC, minimizing copying. It facilitates
    * both zero-copy and one-copy operations.
    */
-  class ArrayBase 
+  class NUPIC_EXPORTS ArrayBase
   {
   public:
     /**

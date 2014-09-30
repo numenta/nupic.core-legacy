@@ -88,7 +88,7 @@ namespace nta {
       /**
        * Encapsulate the arrays used to maintain per-cell state.
        */
-      class CState
+		class NUPIC_EXPORTS CState
       {
       public:
         static const UInt VERSION = 1;
@@ -194,7 +194,7 @@ namespace nta {
        * Add an index to CState so that we can find all On cells without
        * a sequential search of the entire array.
        */
-      class CStateIndexed : public CState
+	  class NUPIC_EXPORTS CStateIndexed : public CState
       {
       public:
         static const UInt VERSION = 1;
@@ -334,7 +334,7 @@ namespace nta {
 
 
       //-----------------------------------------------------------------------
-      class Segment
+	  class NUPIC_EXPORTS Segment
       {
       public:
         typedef std::vector< InSynapse > InSynapses;

@@ -22,6 +22,7 @@
 
 
 #include <nta/algorithms/OutSynapse.hpp>
+#include <nta/algorithms/Cell.hpp>
 #include <nta/algorithms/Cells4.hpp>
 using namespace nta::algorithms::Cells4;
 using namespace nta;

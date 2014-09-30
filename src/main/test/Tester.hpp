@@ -28,7 +28,7 @@
 #define NTA_TESTER_HPP
 
 //----------------------------------------------------------------------
-
+#include <nta/types/Types.hpp>
 #include <sstream>
 #include <vector>
 #include <cmath> // fabs
@@ -49,7 +49,7 @@ namespace nta {
    * followed by Report()
    * 
    */
-  class Tester  {
+  class NUPIC_EXPORTS Tester  {
   public:
 
     /**

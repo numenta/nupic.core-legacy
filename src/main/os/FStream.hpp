@@ -35,6 +35,7 @@
 #ifndef NTA_F_STREAM_HPP
 #define NTA_F_STREAM_HPP
 
+#include <nta/types/Types.hpp>
 #include <fstream>
 
 namespace nta {
@@ -52,7 +53,7 @@ namespace nta {
 /// handle utf-8 paths. 
 ///
 /////////////////////////////////////////////////////////////////////////////////////
-class IFStream : public std::ifstream
+class NUPIC_EXPORTS IFStream : public std::ifstream
 {
 
 public:
@@ -109,7 +110,7 @@ public:
 /// handle utf-8 paths. 
 /// 
 /////////////////////////////////////////////////////////////////////////////////////
-class OFStream : public std::ofstream
+class NUPIC_EXPORTS OFStream : public std::ofstream
 {
 
 public:
@@ -149,7 +150,7 @@ public:
   
 }; // end class OFStream
 
-class ZLib
+class NUPIC_EXPORTS ZLib
 {
 public:
   static void *fopen(const std::string &filename, const std::string &mode,

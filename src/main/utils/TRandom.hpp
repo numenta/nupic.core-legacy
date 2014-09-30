@@ -28,6 +28,7 @@
 #ifndef NTA_TRANDOM_HPP
 #define NTA_TRANDOM_HPP
 
+#include <nta/types/Types.hpp>
 #include <nta/utils/Random.hpp>
 #include <string>
 
@@ -62,7 +63,7 @@ namespace nta {
    * @todo Add ability to specify different rng algorithms. 
    */
 
-  class TRandom : public Random
+  class NUPIC_EXPORTS TRandom : public Random
   {
   public:
     TRandom(std::string name);

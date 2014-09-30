@@ -28,6 +28,7 @@
 
 //----------------------------------------------------------------------
 
+#include <nta/types/Types.hpp>
 #include <apr-1/apr.h>
 #include <apr-1/apr_file_info.h>
 #include <string>
@@ -78,7 +79,7 @@ namespace nta
       std::string path;
     };
 
-    class Iterator
+	class NUPIC_EXPORTS Iterator
     {
     public:
 

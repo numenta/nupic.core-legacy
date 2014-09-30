@@ -29,6 +29,7 @@
 
 #include <string>
 #include <nta/engine/Input.hpp> // SplitterMap definition
+#include <nta/types/Types.hpp>
 
 // LinkPolicy is an interface class subclassed by all link policies
 namespace nta 
@@ -37,7 +38,7 @@ namespace nta
 
   class Dimensions;
 
-  class LinkPolicy
+  class NUPIC_EXPORTS LinkPolicy
   {
     // Subclasses implement this constructor:
     //    LinkPolicy(const std::string params, const Dimensions& srcDimensions,

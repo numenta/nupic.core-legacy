@@ -591,7 +591,7 @@ if(${NTA_COMPILER_FAMILY} EQUAL "MSVC")
   set(CMAKE_CXX_FLAGS_DEBUG "${NTA_CXXFLAGS} /MTd /Od /D_DEBUG /Zi")
   string (REPLACE "/MD" " " CMAKE_CXX_FLAGS_DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
   string (REPLACE "/O3" " " CMAKE_CXX_FLAGS_DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
-  set(NTA_CXXFLAGS_DYNAMIC "${NTA_CXXFLAGS} /DLL ${D}_USRDLL ${D}WIN32PROJECT1_EXPORTS")
+  set(NTA_CXXFLAGS_DYNAMIC "${NTA_CXXFLAGS} ${D}DLL ${D}_USRDLL")
 endif()
 
 ################################################################################
@@ -752,6 +752,18 @@ set(LIBRARIES
   ${NTA_TEST_LIBS}
 )
 generate_executable(${EXECUTABLE_HELLOREGION} "${PROJECT_SOURCE_DIR}/examples/regions" "${CMAKE_INSTALL_PREFIX}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
+
+#
+# HelloRegion with shared lib
+#
+set(EXECUTABLE_HELLOREGION_SHARED helloregion_shared)
+set(LIBRARIES
+  ${LIB_DYNAMIC_NUPICCORE}
+  ${NTA_STANDARD_LIBS}
+  ${NTA_APPLICATION_LIBS}
+  ${NTA_TEST_LIBS}
+)
+generate_executable(${EXECUTABLE_HELLOREGION_SHARED} "${PROJECT_SOURCE_DIR}/examples/regions" "${CMAKE_INSTALL_PREFIX}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
 
 
 ################################################################################

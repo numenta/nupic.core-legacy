@@ -29,12 +29,13 @@
 
 #include <nta/math/SparseMatrix.hpp>
 #include <nta/math/ArrayAlgo.hpp>
+#include <nta/types/Types.hpp>
 
 //----------------------------------------------------------------------
 namespace nta {
 
   template <typename T>
-  class NearestNeighbor : public T
+  class NUPIC_EXPORTS NearestNeighbor : public T
   {
   public:     
     typedef T parent_type;

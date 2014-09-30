@@ -30,6 +30,7 @@
 
 #include <vector>
 #include <sstream>
+#include <nta/types/Types.hpp>
 
 namespace nta
 {
@@ -70,7 +71,7 @@ namespace nta
    * @nosubgrouping
    *
    */
-  class Dimensions : public std::vector<size_t>
+  class NUPIC_EXPORTS Dimensions : public std::vector<size_t>
   {
   public:
     /** 

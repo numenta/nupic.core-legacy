@@ -23,11 +23,12 @@
 #ifndef NTA_FRACTION_HPP
 #define NTA_FRACTION_HPP
 
+#include <nta/types/Types.hpp>
 #include <ostream>
 
 namespace nta
 {
-  class Fraction
+  class NUPIC_EXPORTS Fraction
   {
   private:
     int numerator_, denominator_;
