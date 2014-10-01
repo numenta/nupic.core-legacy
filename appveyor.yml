@@ -85,6 +85,10 @@ build_script:
 after_build:
   - cd C:\projects\nupic-core\build\release
   - dir/S
+  - mkdir examples
+  - xcopy ..\..\src\examples .\examples /a /y /s
+  - ps: (gc .\examples\regions\helloregions.cpp) -replace '../../../src/examples/regions/','' | sc .\examples\regions\helloregions.cpp
+  - copy C:\projects\nupic-core\Package.nuspec .
   - copy C:\projects\nupic-core\Package.nuspec .
   - nuget pack -version %APPVEYOR_BUILD_VERSION%
   - nuget push *.nupkg 30618afb-ecf6-4476-8e61-a5b823ad9892
