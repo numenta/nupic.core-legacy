@@ -28,6 +28,7 @@
 #include "RandomTest.hpp"
 #include <nta/os/Env.hpp>
 #include <nta/ntypes/MemStream.hpp>
+#include <nta/utils/LoggingException.hpp>
 #include <stdlib.h>
 #include <sstream>
 
@@ -401,5 +402,66 @@ void RandomTest::RunTests()
       Real64 r64 = r.getReal64();
       TEST2("Real64", r64 >= 0.0 && r64 < 1.0);
     }
+  }
+
+  {
+    // tests for sampling
+
+    UInt32 population[] = {1, 2, 3, 4};
+    Random r(42);
+
+    {
+      // choose 0 elements
+      UInt32 choices[0];
+      r.sample(population, 4, choices, 0);
+    }
+
+    {
+      // choose some elements
+      UInt32 choices[2];
+      r.sample(population, 4, choices, 2);
+      TESTEQUAL2("check element 0", 2, choices[0]);
+      TESTEQUAL2("check element 1", 4, choices[1]);
+    }
+
+    {
+      // choose all elements
+      UInt32 choices[4];
+      r.sample(population, 4, choices, 4);
+      TESTEQUAL2("check element 0", 1, choices[0]);
+      TESTEQUAL2("check element 1", 2, choices[1]);
+      TESTEQUAL2("check element 2", 3, choices[2]);
+      TESTEQUAL2("check element 3", 4, choices[3]);
+    }
+
+    {
+      // nChoices > nPopulation
+      UInt32 choices[5];
+      bool caught = false;
+      try
+      {
+        r.sample(population, 4, choices, 5);
+      }
+      catch (LoggingException& exc)
+      {
+        caught = true;
+      }
+      TEST2("checking for exception from population too small", caught);
+    }
+  }
+
+  {
+    // tests for shuffling
+    Random r(42);
+    UInt32 arr[] = {1, 2, 3, 4};
+
+    UInt32* start = arr;
+    UInt32* end = start + 4;
+    r.shuffle(start, end);
+
+    TESTEQUAL2("check element 0", 3, arr[0]);
+    TESTEQUAL2("check element 1", 4, arr[1]);
+    TESTEQUAL2("check element 2", 2, arr[2]);
+    TESTEQUAL2("check element 3", 1, arr[3]);
   }
 }
