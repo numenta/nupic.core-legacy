@@ -11,3 +11,15 @@ include_directories("../../include")
 set(LIBS ${LIBS} ${LIB_NUPIC_CORE_LIB}) 
 target_link_libraries(helloregions_shared ${LIBS})
 add_definitions(-DNTA_PLATFORM_win32)
+set(LIB_NUPIC_CORE_DLL_PATH "${PROJECT_SOURCE_DIR}/../../bin/libnupic_core.dll")
+string(REPLACE "/" "\\" LIB_NUPIC_CORE_DLL_PATH ${LIB_NUPIC_CORE_DLL_PATH})
+set(OUTPUT_PATH "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIGURATION>")
+string(REPLACE "/" "\\" OUTPUT_PATH ${OUTPUT_PATH})
+set(DATA_PATH "${PROJECT_SOURCE_DIR}/data.csv")
+string(REPLACE "/" "\\" DATA_PATH ${DATA_PATH})
+
+ADD_CUSTOM_COMMAND(
+    TARGET helloregions_shared
+    POST_BUILD COMMAND copy "${LIB_NUPIC_CORE_DLL_PATH}" "${OUTPUT_PATH}"
+    POST_BUILD COMMAND copy "${DATA_PATH}" "${OUTPUT_PATH}"
+)
