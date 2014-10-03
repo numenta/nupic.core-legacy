@@ -66,7 +66,7 @@ namespace nta
    * for Numenta apps. 
    */
 
-  class NUPIC_EXPORTS OS
+  class NTA_EXPORT OS
   {
   public:
     /**

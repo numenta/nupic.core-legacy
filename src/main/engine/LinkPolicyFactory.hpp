@@ -37,7 +37,7 @@ namespace nta
   class Link;
   class Region;
 
-  class NUPIC_EXPORTS LinkPolicyFactory
+  class NTA_EXPORT LinkPolicyFactory
   {
   public:
 

@@ -53,7 +53,7 @@ namespace nta {
 /// handle utf-8 paths. 
 ///
 /////////////////////////////////////////////////////////////////////////////////////
-class NUPIC_EXPORTS IFStream : public std::ifstream
+class NTA_EXPORT IFStream : public std::ifstream
 {
 
 public:
@@ -110,7 +110,7 @@ public:
 /// handle utf-8 paths. 
 /// 
 /////////////////////////////////////////////////////////////////////////////////////
-class NUPIC_EXPORTS OFStream : public std::ofstream
+class NTA_EXPORT OFStream : public std::ofstream
 {
 
 public:
@@ -150,7 +150,7 @@ public:
   
 }; // end class OFStream
 
-class NUPIC_EXPORTS ZLib
+class NTA_EXPORT ZLib
 {
 public:
   static void *fopen(const std::string &filename, const std::string &mode,

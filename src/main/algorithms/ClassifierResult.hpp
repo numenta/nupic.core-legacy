@@ -44,7 +44,7 @@ namespace nta
        * cleaning up the data when deleted.
        *
        */
-	  class NUPIC_EXPORTS ClassifierResult
+	  class NTA_EXPORT ClassifierResult
       {
         public:
 

@@ -87,7 +87,7 @@ namespace nta
    * 
    * @todo We do not support unicode filenames (yet)
    */
-  class NUPIC_EXPORTS Path
+  class NTA_EXPORT Path
   {
   public:
     typedef std::vector<std::string> StringVec;

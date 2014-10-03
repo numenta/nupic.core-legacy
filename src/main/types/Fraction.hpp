@@ -28,7 +28,7 @@
 
 namespace nta
 {
-  class NUPIC_EXPORTS Fraction
+  class NTA_EXPORT Fraction
   {
   private:
     int numerator_, denominator_;

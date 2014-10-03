@@ -47,7 +47,7 @@ namespace nta
    *
    * @nosubgrouping
    */
-  class NUPIC_EXPORTS Network
+  class NTA_EXPORT Network
   {
   public:
 

@@ -45,7 +45,7 @@ namespace nta {
    */
 
 
-  class NUPIC_EXPORTS LogItem {
+  class NTA_EXPORT LogItem {
   public:
 
     typedef enum {debug, info, warn, error} LogLevel;

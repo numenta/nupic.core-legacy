@@ -47,7 +47,7 @@ namespace nta
    * 
    * TODO: split into hpp/cpp
    */
-  class NUPIC_EXPORTS NodeSet
+  class NTA_EXPORT NodeSet
   {
   public:
     NodeSet(size_t nnodes) : nnodes_(nnodes)

@@ -35,7 +35,7 @@
 namespace nta {
 
   template <typename T>
-  class NUPIC_EXPORTS NearestNeighbor : public T
+  class NTA_EXPORT NearestNeighbor : public T
   {
   public:     
     typedef T parent_type;

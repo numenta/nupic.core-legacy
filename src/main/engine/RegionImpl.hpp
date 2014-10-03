@@ -52,7 +52,7 @@ namespace nta
   class NodeSet;
   class BundleIO;
 
-  class NUPIC_EXPORTS RegionImpl
+  class NTA_EXPORT RegionImpl
   {
   public:
 

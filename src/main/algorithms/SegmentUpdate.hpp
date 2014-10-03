@@ -43,7 +43,7 @@ namespace nta {
        * than the iteration they were created in. SegmentUpdates have a timeStamp,
        * and they are discarded without being applied if they become 'stale'.
        */
-	  class NUPIC_EXPORTS SegmentUpdate
+	  class NTA_EXPORT SegmentUpdate
       {
       public:
         typedef std::vector<UInt>::const_iterator const_iterator;

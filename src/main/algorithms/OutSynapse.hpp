@@ -41,7 +41,7 @@ namespace nta {
        * indices for the *destination* cell, and the *destination* segment on that cell.
        * The cell index is between 0 and nCols * nCellsPerCol.
        */
-	  class NUPIC_EXPORTS OutSynapse
+	  class NTA_EXPORT OutSynapse
       {
       public:
 

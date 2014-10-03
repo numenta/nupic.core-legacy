@@ -35,7 +35,7 @@ namespace nta
   // You can add items using the add() method.
   //
   template <typename T>
-  class NUPIC_EXPORTS Collection
+  class NTA_EXPORT Collection
   {
   public:
     Collection();

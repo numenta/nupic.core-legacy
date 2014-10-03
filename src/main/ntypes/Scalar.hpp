@@ -36,7 +36,7 @@
 
 namespace nta
 {
-  class NUPIC_EXPORTS Scalar
+  class NTA_EXPORT Scalar
   {
   public:
     Scalar(NTA_BasicType theTypeParam);

@@ -40,7 +40,7 @@ namespace nta
   /**
    * Represents a named output to a Region.
    */
-  class NUPIC_EXPORTS Output
+  class NTA_EXPORT Output
   {
   public:
 

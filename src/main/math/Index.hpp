@@ -56,7 +56,7 @@ namespace nta {
    *  NDims > 0 (that is, 0 is not allowed...)
    */
   template <typename UInt, const UInt NDims>
-  class NUPIC_EXPORTS Index
+  class NTA_EXPORT Index
   {
   public:
     typedef UInt value_type;

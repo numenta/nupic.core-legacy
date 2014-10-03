@@ -39,7 +39,7 @@ namespace nta
   /**
    * Initialization and shutdown operations for NuPIC engine.
    */
-  class NUPIC_EXPORTS NuPIC
+  class NTA_EXPORT NuPIC
   {
   public:
     /** 

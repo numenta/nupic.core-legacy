@@ -43,7 +43,7 @@ namespace nta {
    * made public in SparseMatrix. In the following methods, template parameter "SM"
    * stands for a SparseMatrix type.
    */
-  struct NUPIC_EXPORTS SparseMatrixAlgorithms
+  struct NTA_EXPORT SparseMatrixAlgorithms
   {
     //--------------------------------------------------------------------------------
     /**
@@ -1757,7 +1757,7 @@ namespace nta {
    *
    * TODO: use asymptotes to reduce the size of the table
    */
-  class NUPIC_EXPORTS LogSumApprox {
+  class NTA_EXPORT LogSumApprox {
     
   public:
     // the values are stored in float to save space (4 bytes per value)
@@ -2012,7 +2012,7 @@ namespace nta {
    * Diff of logs table: 20000000 1e-006 28 1.4e-006 76MB
    * abs=2.56909073832e-005 rel=0.000589275477819
   */
-  class NUPIC_EXPORTS LogDiffApprox {
+  class NTA_EXPORT LogDiffApprox {
     
   public:
     // The values are stored in float to save space (4 bytes per value)

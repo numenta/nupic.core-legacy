@@ -64,7 +64,7 @@ namespace nta {
        *     }
        *     
        */
-		class NUPIC_EXPORTS SpatialPooler {
+		class NTA_EXPORT SpatialPooler {
         public:
           SpatialPooler();
 

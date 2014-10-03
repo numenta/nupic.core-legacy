@@ -72,7 +72,7 @@ namespace nta {
    */
   class RandomImpl;
 
-  class NUPIC_EXPORTS Random
+  class NTA_EXPORT Random
   {
   public:
     /** 

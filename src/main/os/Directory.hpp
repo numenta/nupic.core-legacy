@@ -79,7 +79,7 @@ namespace nta
       std::string path;
     };
 
-	class NUPIC_EXPORTS Iterator
+	class NTA_EXPORT Iterator
     {
     public:
 

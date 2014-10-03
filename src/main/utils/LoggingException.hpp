@@ -34,7 +34,7 @@
 
 namespace nta
 {
-  class NUPIC_EXPORTS LoggingException : public Exception
+  class NTA_EXPORT LoggingException : public Exception
   {
   public:
     LoggingException(const std::string& filename, UInt32 lineno) :

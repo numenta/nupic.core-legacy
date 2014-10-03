@@ -38,11 +38,6 @@
 #pragma warning( disable : 4305 ) // truncation from 'double' to 'nta::Real', possible loss of data (LOTS of various type combinations)
 #endif
 
-#if defined(libnupic_core_EXPORTS)
-#define NUPIC_EXPORTS __declspec(dllexport)
-#else
-#define NUPIC_EXPORTS
-#endif
 /*---------------------------------------------------------------------- */
  
 /** 

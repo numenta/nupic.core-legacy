@@ -63,7 +63,7 @@ namespace nta {
    * @todo Add ability to specify different rng algorithms. 
    */
 
-  class NUPIC_EXPORTS TRandom : public Random
+  class NTA_EXPORT TRandom : public Random
   {
   public:
     TRandom(std::string name);
