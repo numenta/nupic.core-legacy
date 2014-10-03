@@ -71,7 +71,7 @@ namespace nta
    * @nosubgrouping
    *
    */
-  class NUPIC_EXPORTS Dimensions : public std::vector<size_t>
+  class NTA_EXPORT Dimensions : public std::vector<size_t>
   {
   public:
     /** 

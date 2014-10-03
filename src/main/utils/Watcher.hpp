@@ -93,7 +93,7 @@ namespace nta
    *
    * w.detachFromNetwork(net);
    */
-  class NUPIC_EXPORTS Watcher
+  class NTA_EXPORT Watcher
   {
   public:
     Watcher(const std::string fileName);

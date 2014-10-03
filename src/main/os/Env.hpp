@@ -32,7 +32,7 @@ Environment Interface
 
 namespace nta {
 
-  class NUPIC_EXPORTS Env {
+  class NTA_EXPORT Env {
   public:
 
     /**

@@ -56,7 +56,7 @@ namespace nta
 
   class BundleIO;
 
-  class NUPIC_EXPORTS TestNode : public RegionImpl
+  class NTA_EXPORT TestNode : public RegionImpl
   {
   public:
     typedef void (*computeCallbackFunc)(const std::string&);

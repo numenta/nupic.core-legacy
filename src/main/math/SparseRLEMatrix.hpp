@@ -49,7 +49,7 @@ namespace nta {
    * quantizing vector components. This could be another data structure.
    */
   template <typename Index, typename Value>
-  class NUPIC_EXPORTS SparseRLEMatrix
+  class NTA_EXPORT SparseRLEMatrix
   {
   public:
     typedef unsigned long ulong_size_type;

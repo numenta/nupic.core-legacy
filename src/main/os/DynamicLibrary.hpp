@@ -73,7 +73,7 @@ namespace nta
    *  strategy. It is also a common idiom to return NULL from a failed factory method.
    *  
    */
-  class NUPIC_EXPORTS DynamicLibrary
+  class NTA_EXPORT DynamicLibrary
   {
   public:
     enum Mode

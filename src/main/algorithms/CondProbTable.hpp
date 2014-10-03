@@ -45,7 +45,7 @@ namespace nta {
   /// matrix. Also maintains the row and column sumProp distributions. 
   ///
   //////////////////////////////////////////////////////////////////////////////
-  class NUPIC_EXPORTS CondProbTable
+  class NTA_EXPORT CondProbTable
   {
   public:
     typedef enum {inferViterbi, inferMarginal, inferMaxProd, inferRowEvidence} inferType;

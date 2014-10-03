@@ -65,7 +65,7 @@ namespace nta
    * Internally regions are created and owned by Network.
    * 
    */
-  class NUPIC_EXPORTS Region
+  class NTA_EXPORT Region
   {
   public:
 

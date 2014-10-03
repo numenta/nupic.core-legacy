@@ -190,7 +190,7 @@ namespace nta {
 	virtual ~function(void){}
       };
 
-	  class NUPIC_EXPORTS TRON
+	  class NTA_EXPORT TRON
       {
       public:
 	TRON(const function *fun_obj, float eps = 0.1, int max_iter = 1000);
@@ -207,7 +207,7 @@ namespace nta {
       };
 
       //--------------------------------------------------------------------------------
-	  class NUPIC_EXPORTS linear
+	  class NTA_EXPORT linear
       {
       public:
 	linear(int solver_type, float eps, float C, 

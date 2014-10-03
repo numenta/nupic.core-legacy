@@ -61,7 +61,7 @@ namespace nta
   // of more complex receptive field mappings as configured via parameters.
   // ---
 
-  class NUPIC_EXPORTS UniformLinkPolicy : public LinkPolicy
+  class NTA_EXPORT UniformLinkPolicy : public LinkPolicy
   {
     // ---
     // We make our unit test class a friend so that we can test dimension

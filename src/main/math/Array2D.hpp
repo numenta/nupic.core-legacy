@@ -42,7 +42,7 @@
  * A fixed size matrix, allocated as a single contiguous chunk of memory.
  */
 template <typename S, typename T>
-class NUPIC_EXPORTS array2D
+class NTA_EXPORT array2D
 {
 public:
   typedef S size_type;

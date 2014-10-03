@@ -34,7 +34,7 @@ namespace nta
 
   class Link;
 
-  class NUPIC_EXPORTS TestFanIn2LinkPolicy : public LinkPolicy
+  class NTA_EXPORT TestFanIn2LinkPolicy : public LinkPolicy
   {
   public:
     TestFanIn2LinkPolicy(const std::string params, Link* link);

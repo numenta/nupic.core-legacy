@@ -38,7 +38,7 @@ namespace nta
 
   class Dimensions;
 
-  class NUPIC_EXPORTS LinkPolicy
+  class NTA_EXPORT LinkPolicy
   {
     // Subclasses implement this constructor:
     //    LinkPolicy(const std::string params, const Dimensions& srcDimensions,

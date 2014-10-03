@@ -46,7 +46,7 @@ namespace nta {
    *
    */
   template <typename UI1 =nta::UInt32, typename UI2 =nta::UInt32>
-  class NUPIC_EXPORTS SparseBinaryMatrix
+  class NTA_EXPORT SparseBinaryMatrix
   {
   public:
     typedef UI1 size_type;

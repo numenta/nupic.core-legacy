@@ -29,7 +29,7 @@
 
 namespace nta
 {
-  class NUPIC_EXPORTS BundleIO
+  class NTA_EXPORT BundleIO
   {
   public:
     BundleIO(const std::string& bundlePath, const std::string& label, 

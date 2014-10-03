@@ -49,7 +49,7 @@ namespace nta {
    * followed by Report()
    * 
    */
-  class NUPIC_EXPORTS Tester  {
+  class NTA_EXPORT Tester  {
   public:
 
     /**

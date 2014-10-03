@@ -60,7 +60,7 @@ namespace nta
    * using the underlying objects, to avoid copying, and because
    * Array may not be copied. 
    */
-  class NUPIC_EXPORTS Value
+  class NTA_EXPORT Value
   {
   public:
     Value(boost::shared_ptr<Scalar>& s);
@@ -96,7 +96,7 @@ namespace nta
   };
 
 
-  class NUPIC_EXPORTS ValueMap
+  class NTA_EXPORT ValueMap
   {
   public:
     ValueMap();
