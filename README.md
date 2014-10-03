@@ -48,3 +48,4 @@ Important notes:
 #### Run the tests:
 
  * Run any `tests_*` project from your IDE (check `output` panel to see the results).
+
