@@ -573,13 +573,6 @@ else()
   )
 endif()
 
-#
-# Set list of external libraries to tests
-#
-set(NTA_TEST_LIBS
-  "${LIB_STATIC_COV}"
-)
-
 message(STATUS "Configuring subprojects...")
 
 #
@@ -587,6 +580,22 @@ message(STATUS "Configuring subprojects...")
 #
 set(LIB_STATIC_NUPICCORE nupic_core)
 generate_static_library(${LIB_STATIC_NUPICCORE} "${PROJECT_SOURCE_DIR}/main" "${PROJECT_BUILD_TEMP_DIR}/lib" "${NTA_CXXFLAGS}")
+
+
+#
+# Compile google test from source for linking with tests
+#
+set(LIB_STATIC_GTEST gtest)
+generate_static_library(${LIB_STATIC_GTEST} "${REPOSITORY_DIR}/external/common/src/gtest" "${PROJECT_BUILD_TEMP_DIR}/lib" "${NTA_CXXFLAGS}")
+
+#
+# Set list of external libraries to tests
+#
+set(NTA_TEST_LIBS
+  ${LIB_STATIC_COV}
+  ${LIB_STATIC_GTEST}
+)
+
 #
 # HtmTest
 #
@@ -599,7 +608,7 @@ set(LIBRARIES
 generate_executable(${EXECUTABLE_HTMTEST} "${PROJECT_SOURCE_DIR}/test/htmtest" "${CMAKE_INSTALL_PREFIX}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
 
 #
-# unit
+# Unit Tests
 #
 set(EXECUTABLE_GTESTS unit_tests)
 set(LIBRARIES
