@@ -631,7 +631,7 @@ UInt SpatialPooler::mapColumn_(UInt column)
 
 vector<UInt> SpatialPooler::mapPotential_(UInt column, bool wrapAround)
 {
-  vector<UInt> potential(numInputs_,0);
+  vector<UInt> potential(numInputs_, 0);
   vector<UInt> indices;
   UInt index;
 
@@ -642,11 +642,14 @@ vector<UInt> SpatialPooler::mapPotential_(UInt column, bool wrapAround)
   // TODO: See https://github.com/numenta/nupic.core/issues/128
   sort(indices.begin(), indices.end());
 
-  random_shuffle(indices.begin(),indices.end(),rng_);
+  UInt numPotential = round(indices.size() * potentialPct_);
 
-  Int numPotential = Int(round(indices.size() * potentialPct_));
-  for (Int i = 0; i < numPotential; i++) {
-    potential[indices[i]] = 1;
+  vector<UInt> selectedIndices(numPotential);
+  rng_.sample(&indices.front(), indices.size(),
+              &selectedIndices.front(), numPotential);
+
+  for (UInt i = 0; i < numPotential; i++) {
+    potential[selectedIndices[i]] = 1;
   }
 
   return potential;
