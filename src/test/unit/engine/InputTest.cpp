@@ -114,10 +114,10 @@ void InputTest::RunTests()
     Input * in1 = region1->getInput("bottomUpIn");
     Input * in2 = region2->getInput("bottomUpIn");
 
-    TESTEQUAL("bottomUpIn", in1->getName());
-    TESTEQUAL("bottomUpIn", in2->getName());
+    EXPECT_STREQ("bottomUpIn", in1->getName().c_str());
+    EXPECT_STREQ("bottomUpIn", in2->getName().c_str());
     in1->setName("uselessName");
-    TESTEQUAL("uselessName", in1->getName());
+    EXPECT_STREQ("uselessName", in1->getName().c_str());
     in1->setName("bottomUpIn");
 
     //test isInitialized()

@@ -68,7 +68,7 @@ void YAMLUtilsTest::RunTests()
     TEST(v.isString());
     TESTEQUAL(v.getType(), NTA_BasicType_Byte);
     std::string s = *v.getString();
-    TESTEQUAL(s1, s.c_str());
+    EXPECT_STREQ(s1, s.c_str());
   }
 
   {
@@ -181,7 +181,7 @@ void YAMLUtilsTest::RunTests()
     
     // disabled until we fix default string params
     // TEST(vm.contains("stringParam"));
-    // TESTEQUAL("default value", vm.getString("stringParam")->c_str());
+    // EXPECT_STREQ("default value", vm.getString("stringParam")->c_str());
 
     // Test error message in case of invalid parameter with and without nodeType and regionName    
     try

@@ -44,7 +44,7 @@ void EnvTest::RunTests()
   value = "DONTCHANGEME";
   result = Env::get("NOTDEFINED", value);
   TESTEQUAL2("get not set result", false, result);
-  TESTEQUAL2("get not set value", "DONTCHANGEME", value.c_str());
+  TESTEQUAL2_STR("get not set value", "DONTCHANGEME", value.c_str());
   
   // get value that should be set
   value = "";
@@ -61,7 +61,7 @@ void EnvTest::RunTests()
   value = "";
   result = Env::get(name, value);
   TESTEQUAL2("get value just set -- result", true, result);
-  TESTEQUAL2("get value just set -- value", "myvalue", value.c_str());
+  TESTEQUAL2_STR("get value just set -- value", "myvalue", value.c_str());
   
   // set it to something different
   value = "mynewvalue";
@@ -70,14 +70,14 @@ void EnvTest::RunTests()
   // retrieve the new value
   result = Env::get(name, value);
   TESTEQUAL2("get second value just set -- result", true, result);
-  TESTEQUAL2("get second value just set -- value", "mynewvalue", value.c_str());
+  TESTEQUAL2_STR("get second value just set -- value", "mynewvalue", value.c_str());
   
   // delete the value
   value = "DONTCHANGEME";
   Env::unset(name);
   result = Env::get(name, value);
   TESTEQUAL2("get after delete -- result", false, result);
-  TESTEQUAL2("get after delete -- value", "DONTCHANGEME", value.c_str());
+  TESTEQUAL2_STR("get after delete -- value", "DONTCHANGEME", value.c_str());
   
   // delete a value that is not set
   // APR response is not documented. Will see a warning if 
