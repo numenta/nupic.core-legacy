@@ -283,37 +283,37 @@ void FractionTest::RunTests()
   //Test <<
   std::stringstream ss;
   ss << Fraction(3, 4);
-  TESTEQUAL("3/4", ss.str());
+  EXPECT_STREQ("3/4", ss.str().c_str());
   ss.str("");
   ss << Fraction(-2, 4);
-  TESTEQUAL("-1/2", ss.str());
+  EXPECT_STREQ("-1/2", ss.str().c_str());
   ss.str("");
   ss << Fraction(0, 1);
-  TESTEQUAL("0", ss.str());
+  EXPECT_STREQ("0", ss.str().c_str());
   ss.str("");
   ss << Fraction(0, -1);
-  TESTEQUAL("0", ss.str());
+  EXPECT_STREQ("0", ss.str().c_str());
   ss.str("");
   ss << Fraction(1, -2);
-  TESTEQUAL("-1/2", ss.str());
+  EXPECT_STREQ("-1/2", ss.str().c_str());
   ss.str("");
   ss << Fraction(3, 1);
-  TESTEQUAL("3", ss.str());
+  EXPECT_STREQ("3", ss.str().c_str());
   ss.str("");
   ss << Fraction(-3, 1);
-  TESTEQUAL("-3", ss.str());
+  EXPECT_STREQ("-3", ss.str().c_str());
   ss.str("");
   ss << Fraction(6, 2);
-  TESTEQUAL("3", ss.str());
+  EXPECT_STREQ("3", ss.str().c_str());
   ss.str("");
   ss << Fraction(6, -2);
-  TESTEQUAL("-3", ss.str());
+  EXPECT_STREQ("-3", ss.str().c_str());
   ss.str("");
   ss << Fraction(-1, -1);
-  TESTEQUAL("1", ss.str());
+  EXPECT_STREQ("1", ss.str().c_str());
   ss.str("");
   ss << Fraction(-2, -2);
-  TESTEQUAL("1", ss.str());
+  EXPECT_STREQ("1", ss.str().c_str());
   ss.str("");
 
   //Test fromDouble()

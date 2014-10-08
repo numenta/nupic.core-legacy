@@ -20,32 +20,51 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file 
-Unit tester tester.
-*/
+/**
+ * @file
+ */
 
-#ifndef _H_TESTER_TEST_H
-#define _H_TESTER_TEST_H
+#define SLEEP_MICROSECONDS (100 * 1000)
 
-#include <nta/test/Tester.hpp>
+#include "TimerTest.hpp"
+#include <nta/utils/Log.hpp>
+#include <nta/os/Timer.hpp>
+#include <math.h> // fabs
+#include <apr-1/apr_time.h>
 
-namespace nta {
-	
-  /** Tests the unit tester interface.
-   *
-   */
-  class TesterTest : public Tester  {
-		
-  public:
-    // Constructors and destructors
-    TesterTest();
-    virtual ~TesterTest();
-		
-    // Run all appropriate tests
-    virtual void RunTests();
-		
-  };
-	
-} // end namespace nta
+using namespace nta;
 
-#endif // __TesterTest_hpp__
+void TimerTest::RunTests()
+{
+// Tests are minimal because we have no way to run performance-sensitive tests in a controlled
+// environment.
+
+  Timer t1;
+  Timer t2(/* startme= */ true);
+
+  TEST(!t1.isStarted());
+  TEST(t1.getElapsed() == 0.0);
+  TEST(t1.getStartCount() == 0);
+  EXPECT_STREQ("[Elapsed: 0 Starts: 0]", t1.toString().c_str());
+
+  apr_sleep(SLEEP_MICROSECONDS);
+
+  TEST(t2.isStarted());
+  TEST(t2.getStartCount() == 1);
+  TEST(t2.getElapsed() > 0);
+  Real64 t2elapsed = t2.getElapsed();
+
+  t1.start();
+  apr_sleep(SLEEP_MICROSECONDS);
+  t1.stop();
+
+  t2.stop();
+  TEST(t1.getStartCount() == 1);
+  TEST(t1.getElapsed() > 0);
+  TEST(t2.getElapsed() > t2elapsed);
+  TEST(t2.getElapsed() > t1.getElapsed());
+
+  t1.start();
+  t1.stop();
+  TEST(t1.getStartCount() == 2);
+}

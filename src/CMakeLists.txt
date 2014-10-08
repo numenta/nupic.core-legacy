@@ -296,7 +296,10 @@ endif()
 if("${PROJECT_BUILD_TEMP_DIR}" STREQUAL "")
   set(PROJECT_BUILD_TEMP_DIR "${REPOSITORY_DIR}/build/temp")
 endif()
-
+# 'artifacts' is a subdirectory created on /build root.
+if("${PROJECT_BUILD_ARTIFACTS_DIR}" STREQUAL "")
+  set(PROJECT_BUILD_ARTIFACTS_DIR "${REPOSITORY_DIR}/build/artifacts")
+endif()
 
 #
 # Prepare directory structure
@@ -306,6 +309,7 @@ execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_INSTALL_PREFI
 execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_INSTALL_PREFIX}/bin)
 execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_TEMP_DIR}/lib)
 execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_TEMP_DIR}/obj)
+execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_ARTIFACTS_DIR}/)
 
 #
 # Set OS flags
@@ -431,7 +435,6 @@ message(STATUS "  Source: ${PROJECT_SOURCE_DIR}")
 message(STATUS "  Build System: ${PROJECT_BINARY_DIR}")
 message(STATUS "  Build Directory: ${PROJECT_BUILD_TEMP_DIR}")
 message(STATUS "  Release: ${CMAKE_INSTALL_PREFIX}")
-
 
 ################################################################################
 ###                                                                          ###
@@ -717,6 +720,22 @@ endif()
 # Merge nupic_core and all static libraries to a stand-alone library
 merge_static_libraries(${LIB_STATIC_NUPICCORE} "${CMAKE_INSTALL_PREFIX}/lib" "${LIB_STATIC_NUPICCORE};${NTA_STANDARD_LIBS}" "${LIB_STATIC_NUPICCORE}")
 
+
+
+#
+# Compile google test from source for linking with tests
+#
+set(LIB_STATIC_GTEST gtest)
+generate_static_library(${LIB_STATIC_GTEST} "${REPOSITORY_DIR}/external/common/src/gtest" "${PROJECT_BUILD_TEMP_DIR}/lib" "${NTA_CXXFLAGS}")
+
+#
+# Set list of external libraries to tests
+#
+set(NTA_TEST_LIBS
+  ${LIB_STATIC_COV}
+  ${LIB_STATIC_GTEST}
+)
+
 #
 # HtmTest
 #
@@ -730,16 +749,17 @@ set(LIBRARIES
 generate_executable(${EXECUTABLE_HTMTEST} "${PROJECT_SOURCE_DIR}/test/htmtest" "${CMAKE_INSTALL_PREFIX}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
 
 #
-# TestEverything
+# Unit Tests
 #
-set(EXECUTABLE_TESTEVERYTHING testeverything)
+set(EXECUTABLE_GTESTS unit_tests)
 set(LIBRARIES
   ${LIB_STATIC_NUPICCORE}
   ${NTA_STANDARD_LIBS}
   ${NTA_APPLICATION_LIBS}
   ${NTA_TEST_LIBS}
 )
-generate_executable(${EXECUTABLE_TESTEVERYTHING} "${PROJECT_SOURCE_DIR}/test/testeverything" "${CMAKE_INSTALL_PREFIX}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
+
+generate_executable(${EXECUTABLE_GTESTS} "${PROJECT_SOURCE_DIR}/test/unit" "${CMAKE_INSTALL_PREFIX}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
 
 #
 # HelloRegion
@@ -779,7 +799,8 @@ if(${BUILD_SHARED_LIBS})
 endif()
 
 install(TARGETS ${LIB_STATIC_NUPICCORE} DESTINATION lib)
-install(TARGETS ${NTA_TARGET_BINARIES} DESTINATION bin)
+install(TARGETS testcpphtm unit_tests helloregion DESTINATION bin)
+
 #
 # Copy all headers files to 'build/release/include'
 #
@@ -795,22 +816,21 @@ endforeach()
 copy_file(${PROJECT_SOURCE_DIR}/main/ntypes/Collection.cpp ${CMAKE_INSTALL_PREFIX}/include/nta/ntypes/Collection.cpp)
 
 #
-# Create file with unit tests used by TestEverything
+# Create file with unit tests used by Google Test
 #
 set(ITEMS_RETURNED)
-get_files_list(${PROJECT_SOURCE_DIR}/test/testeverything " " "Test.hpp")
+get_files_list(${PROJECT_SOURCE_DIR}/test/unit " " "Test.hpp")
 set(files ${ITEMS_RETURNED})
 set(tests_file_content "")
 set(headers_file_content "")
 foreach(file ${files})
   get_filename_component(test ${file} NAME_WE)
-  if(NOT ${file} MATCHES "TesterTest")
-    set(tests_file_content "${tests_file_content}ADD_TEST(${test});\n")
-    set(headers_file_content "${headers_file_content}#include \"${file}\"\n")
-  endif()
+  set(tests_file_content "${tests_file_content}ADD_TEST(${test});\n")
+  set(headers_file_content "${headers_file_content}#include \"${file}\"\n")
 endforeach()
-file(WRITE "${PROJECT_SOURCE_DIR}/test/testeverything/EverythingAddtests.hpp" "${tests_file_content}")
-file(WRITE "${PROJECT_SOURCE_DIR}/test/testeverything/EverythingHeaders.hpp" "${headers_file_content}")
+file(WRITE "${PROJECT_SOURCE_DIR}/test/unit/AddTests.hpp" "${tests_file_content}")
+file(WRITE "${PROJECT_SOURCE_DIR}/test/unit/AddTestHeaders.hpp" "${headers_file_content}")
+
 
 
 ################################################################################
@@ -825,14 +845,14 @@ file(WRITE "${PROJECT_SOURCE_DIR}/test/testeverything/EverythingHeaders.hpp" "${
 #
 add_custom_target(tests_htm
                   COMMAND ${CMAKE_INSTALL_PREFIX}/bin/${EXECUTABLE_HTMTEST})
-
-add_custom_target(tests_everything
-                  COMMAND ${CMAKE_INSTALL_PREFIX}/bin/${EXECUTABLE_TESTEVERYTHING})
+                  
+add_custom_target(tests_unit
+                  COMMAND ${CMAKE_INSTALL_PREFIX}/bin/${EXECUTABLE_GTESTS} "--gtest_output=xml:${PROJECT_BUILD_ARTIFACTS_DIR}/unit_tests_report.xml")
 
 # tests_all just calls other targets
 add_custom_target(tests_all
                   DEPENDS tests_htm
-                  DEPENDS tests_everything
+                  DEPENDS tests_unit
                   COMMENT "Running all tests")
 
 #

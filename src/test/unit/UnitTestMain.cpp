@@ -20,51 +20,39 @@
  * ---------------------------------------------------------------------
  */
 
-/**
- * @file
- */
+/** @file 
+Google test main program
+*/
 
-#define SLEEP_MICROSECONDS (100 * 1000)
+#ifdef WIN32
+// Exclude rarely-used stuff from Windows headers
+#define WIN32_LEAN_AND_MEAN
+#endif
 
-#include "TimerTest.hpp"
-#include <nta/utils/Log.hpp>
-#include <nta/os/Timer.hpp>
-#include <math.h> // fabs
-#include <apr-1/apr_time.h>
+#include "gtest/gtest.h"
+// APR must be explicit initialized
+#include <apr-1/apr_general.h>
+#include <nta/test/Tester.hpp>
 
+using namespace std;
 using namespace nta;
 
-void TimerTest::RunTests()
-{
-// Tests are minimal because we have no way to run performance-sensitive tests in a controlled
-// environment.
+#include "AddTestHeaders.hpp"
+#include "AddTests.hpp"
 
-  Timer t1;
-  Timer t2(/* startme= */ true);
+int main(int argc, char ** argv) {
 
-  TEST(!t1.isStarted());
-  TEST(t1.getElapsed() == 0.0);
-  TEST(t1.getStartCount() == 0);
-  TESTEQUAL("[Elapsed: 0 Starts: 0]", t1.toString());
+  // initialize APR
+  apr_status_t    result;
+  result = apr_app_initialize(&argc, (char const *const **)&argv, 0 /*env*/);
+  if (result) 
+    NTA_THROW << "error initializing APR. Err code: " << result;
 
-  apr_sleep(SLEEP_MICROSECONDS);
+  // initialize Tester
+  Tester::init();
 
-  TEST(t2.isStarted());
-  TEST(t2.getStartCount() == 1);
-  TEST(t2.getElapsed() > 0);
-  Real64 t2elapsed = t2.getElapsed();
+  // initialize GoogleTest
+  ::testing::InitGoogleTest(&argc, argv);
 
-  t1.start();
-  apr_sleep(SLEEP_MICROSECONDS);
-  t1.stop();
-
-  t2.stop();
-  TEST(t1.getStartCount() == 1);
-  TEST(t1.getElapsed() > 0);
-  TEST(t2.getElapsed() > t2elapsed);
-  TEST(t2.getElapsed() > t1.getElapsed());
-
-  t1.start();
-  t1.stop();
-  TEST(t1.getStartCount() == 2);
+  return RUN_ALL_TESTS();
 }

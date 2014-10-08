@@ -20,7 +20,7 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file 
+/** @file
     Random Number Generator implementation
 */
 
@@ -48,10 +48,10 @@ static NTA_UInt64 badSeeder()
 /**
  * Using an Impl provides two things:
  * 1) ability to specify different algorithms (not yet implemented)
- * 2) constructors Random(long) and Random(string) without code duplication. 
+ * 2) constructors Random(long) and Random(string) without code duplication.
  */
 
-// Algorithm-level implementation of the random number generator. 
+// Algorithm-level implementation of the random number generator.
 // When we have different algorithms RandomImpl will become an interface
 // class and subclasses will implement specific algorithms
 
@@ -64,7 +64,7 @@ namespace nta
     ~RandomImpl() {};
     UInt32 getUInt32();
     // Note: copy constructor and operator= are needed
-    // The default is ok. 
+    // The default is ok.
   private:
     friend std::ostream& operator<<(std::ostream& outStream, const RandomImpl& r);
     friend std::istream& operator>>(std::istream& inStream, RandomImpl& r);
@@ -108,18 +108,18 @@ Random& Random::operator=(const Random& other)
 }
 
 Random::~Random()
-{ 
+{
   delete impl_;
 }
 
 
 Random::Random(UInt64 seed)
 {
-  // Get the seeder even if we don't need it, because 
-  // this will have the side effect of allocating the 
+  // Get the seeder even if we don't need it, because
+  // this will have the side effect of allocating the
   // singleton if necessary. The singleton will actuallly
   // be allocated in a recursive call to the Random
-  // constructor, with seed = 0 and 
+  // constructor, with seed = 0 and
   RandomSeedFuncPtr seeder = getSeeder();
   NTA_CHECK(seeder != NULL);
   if (seed == 0) {
@@ -132,7 +132,7 @@ Random::Random(UInt64 seed)
   } else {
     seed_ = seed;
   }
-  // if seed is zero at this point, there is a logic error. 
+  // if seed is zero at this point, there is a logic error.
   NTA_CHECK(seed_ != 0);
   impl_ = new RandomImpl(seed_);
 }
@@ -216,7 +216,7 @@ double Random::getReal64()
 
 UInt32 RandomImpl::getUInt32(void)
 {
-  long i;  
+  long i;
 #ifdef RANDOM_SUPERDEBUG
   printf("Random::get *fptr = %ld; *rptr = %ld fptr = %ld rptr = %ld\n", state_[fptr_], state_[rptr_], fptr_, rptr_);
 #endif
@@ -280,7 +280,7 @@ RandomImpl::RandomImpl(UInt64 seed)
 }
 
 
-namespace nta 
+namespace nta
 {
   std::ostream& operator<<(std::ostream& outStream, const Random& r)
   {
@@ -353,7 +353,7 @@ namespace nta
 
   // helper function for seeding RNGs across the plugin barrier
   // Unless there is a logic error, should not be called if
-  // the Random singleton has not been initialized. 
+  // the Random singleton has not been initialized.
   NTA_UInt64 GetRandomSeed()
   {
     Random* r = nta::Random::theInstanceP_;
