@@ -20,6 +20,6 @@
 # http://numenta.org/licenses/
 # ----------------------------------------------------------------------
 
-cd $NUPIC_CORE/build/scripts
+cd build/scripts
 make tests_htm 
 make tests_unit
