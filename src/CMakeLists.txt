@@ -192,7 +192,7 @@ macro(merge_static_libraries new_lib output_dir libraries target)
   if(WINDOWS)
     add_custom_command(TARGET ${target} POST BUILD
                        COMMAND lib.exe /OUT:${target} ${target} ${lib_files}
-		       WORKING_DIRECTORY  ${PROJECT_BUILD_TEMP_DIR}/lib)
+           WORKING_DIRECTORY  ${PROJECT_BUILD_TEMP_DIR}/lib)
   else()
     # Extract object files from the libraries
     foreach(lib_file ${lib_files})
@@ -480,7 +480,7 @@ endif()
 set(NTA_LINKFLAGS "${USER_LINKFLAGS} ${NTA_PLATFORM_LINKFLAGS} ${NTA_PLATFORM_LIBS} ${L}${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib")
 
 if(${NTA_COMPILER_FAMILY} STREQUAL "MSVC")
-	set(NTA_LINKFLAGS "${NTA_LINKFLAGS} /NODEFAULTLIB:LIBCMT")
+  set(NTA_LINKFLAGS "${NTA_LINKFLAGS} /NODEFAULTLIB:LIBCMT")
 endif()
 
 message(STATUS "Options:")
@@ -859,20 +859,19 @@ add_custom_target(tests_all
 # Clean
 #
 add_custom_target(distclean
-		# Clean '/build/release' and build/temp/
-		COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_INSTALL_PREFIX}
-		COMMAND ${CMAKE_COMMAND} -E remove_directory ${PROJECT_BUILD_TEMP_DIR}
-		# recreate dirs
-		COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_INSTALL_PREFIX}/include
-		COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_INSTALL_PREFIX}/lib
-		COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_INSTALL_PREFIX}/bin
-		COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_TEMP_DIR}/lib
-		COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_TEMP_DIR}/obj
-		COMMENT "Cleaning temporary build files")
+    # Clean '/build/release' and build/temp/
+    COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_INSTALL_PREFIX}
+    COMMAND ${CMAKE_COMMAND} -E remove_directory ${PROJECT_BUILD_TEMP_DIR}
+    # recreate dirs
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_INSTALL_PREFIX}/include
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_INSTALL_PREFIX}/lib
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_INSTALL_PREFIX}/bin
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_TEMP_DIR}/lib
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_TEMP_DIR}/obj
+    COMMENT "Cleaning temporary build files")
 
 # Just to separate from result message
 message(STATUS "")
 
 message(STATUS "${CMAKE_INSTALL_PREFIX}")
-
 
