@@ -54,7 +54,7 @@ namespace nta {
   class NTA_EXPORT Tester  {
   public:
 
-    /** Default constructor	 */
+    /** Default constructor     */
     Tester();
 
     virtual ~Tester();

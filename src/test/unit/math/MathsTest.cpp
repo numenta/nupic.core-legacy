@@ -107,7 +107,7 @@ namespace nta {
 //        normalize(empty1.begin(), empty1.end());
 //        Test("Normalize vector<Real>, empty", true, nearlyEqualVector(empty1, empty1));
 //      }
-//	  
+//      
 //      {
 //        v1[0] = Real(0.0); v1[1] = Real(0.0); v1[2] = Real(0.0);
 //        answer[0] = Real(0.0); answer[1] = Real(0.0); answer[2] = Real(0.0);
@@ -152,7 +152,7 @@ namespace nta {
 //        Test("Normalize vector<Real> 52", true, nearlyEqualVector(v1, answer));
 //      }
 //    }
-//	
+//    
 //    { // normalize
 //      std::vector<Real> v1(3), answer(3);
 //
@@ -246,7 +246,7 @@ namespace nta {
 //      bool comp = s.str() == answer.str();
 //      Test("vector<Real> quiet_NaN to stream", true, comp);
 //    }
-//	  
+//      
 //    {
 //      vector<Real> v1(3);
 //      v1[0] = 1.0; v1[1] = numeric_limits<Real>::signaling_NaN(); v1[2] = 3.0;

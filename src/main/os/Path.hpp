@@ -268,7 +268,7 @@ namespace nta
      * To test if they refer to the same file/directory, use areEquivalent
      */
     bool operator==(const Path & other);
-    	
+        
     Path & operator +=(const Path & path);
     bool exists() const;
     Path getParent() const;
@@ -290,11 +290,11 @@ namespace nta
     bool isAbsolute() const;
     bool isSymbolicLink() const;
     bool isEmpty() const;
-		
+        
   private:
     // on unix: == "/"; on windows: == "/" || == "C:" || == "C:/"
     static bool isPrefix(const std::string&);
-    Path();		
+    Path();        
     
   private:
     std::string path_;

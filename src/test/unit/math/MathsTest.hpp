@@ -63,7 +63,7 @@ namespace nta {
     //
     //// Use our own random number generator for reproducibility
     //TRandom *rng_;
-		
+        
     // Default copy ctor and assignment operator forbidden by default
     MathsTest(const MathsTest&);
     MathsTest& operator=(const MathsTest&);

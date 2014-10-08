@@ -96,7 +96,7 @@ namespace nta {
     */
 
     //--------------------------------------------------------------------------------
-	class NTA_EXPORT Inhibition
+    class NTA_EXPORT Inhibition
     {
     public:
       typedef nta::UInt32 size_type;
@@ -299,7 +299,7 @@ namespace nta {
      * construction parameter '_local_area_density'.
      *
      */
-	class NTA_EXPORT Inhibition2
+    class NTA_EXPORT Inhibition2
     {
     public:
       typedef nta::UInt32 size_type;
@@ -512,7 +512,7 @@ namespace nta {
 
     //--------------------------------------------------------------------------------
     //--------------------------------------------------------------------------------
-	class NTA_EXPORT FDRCSpatial
+    class NTA_EXPORT FDRCSpatial
     {
     public:
       typedef nta::UInt32 size_type;

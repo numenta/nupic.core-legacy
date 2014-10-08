@@ -71,14 +71,14 @@ public:
       *i = init_val;
   }
 
-	inline array2D(size_type m_, size_type n_, value_type* array)
-		: nrows_(m_), ncols_(n_),
-			d(new value_type[m_ * n_]), d_end(d + m_ * n_)
-	{
-		size_type n = size();
-		for (size_type i = 0; i != n; ++i)
-			*(d+i) = *(array + i);
-	}
+    inline array2D(size_type m_, size_type n_, value_type* array)
+        : nrows_(m_), ncols_(n_),
+            d(new value_type[m_ * n_]), d_end(d + m_ * n_)
+    {
+        size_type n = size();
+        for (size_type i = 0; i != n; ++i)
+            *(d+i) = *(array + i);
+    }
 
   inline array2D(const array2D& b)
     : nrows_(b.nrows_), ncols_(b.ncols_),
@@ -118,13 +118,13 @@ public:
       *this_it = *b_it;
   }
 
-	template <typename It>
-	inline void	copy(It array_it)
-	{
-		size_type n = size();
-		for (size_type i = 0; i != n; ++i, ++array_it)
-			*(d+i) = *array_it;
-	}
+    template <typename It>
+    inline void    copy(It array_it)
+    {
+        size_type n = size();
+        for (size_type i = 0; i != n; ++i, ++array_it)
+            *(d+i) = *array_it;
+    }
 
   inline size_type nrows() const { return nrows_; }
   inline size_type ncols() const { return ncols_; }

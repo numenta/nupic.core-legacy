@@ -190,7 +190,7 @@ UInt64 Random::getUInt64(const UInt64 max)
   do {
     lo = impl_->getUInt32();
     hi = impl_->getUInt32();
-	sample = (UInt64)lo | ((UInt64)hi << (UInt64)32);
+    sample = (UInt64)lo | ((UInt64)hi << (UInt64)32);
   } while(sample > smax);
   // NTA_WARN << "Random64(" << max << ") -> " << sample % max << " smax = " << smax;
 
@@ -222,7 +222,7 @@ UInt32 RandomImpl::getUInt32(void)
 #endif
   state_[fptr_] += state_[rptr_];
   i = state_[fptr_];
-  i = (i >> 1) & 0x7fffffff;	/* chucking least random bit */
+  i = (i >> 1) & 0x7fffffff;    /* chucking least random bit */
   if (++fptr_ >= stateSize_) {
     fptr_ = 0;
     ++rptr_;
@@ -251,9 +251,9 @@ RandomImpl::RandomImpl(UInt64 seed)
     /*
      * Implement the following, without overflowing 31 bits:
      *
-     *	state[i] = (16807 * state[i - 1]) % 2147483647;
+     *    state[i] = (16807 * state[i - 1]) % 2147483647;
      *
-     *	2^31-1 (prime) = 2147483647 = 127773*16807+2836
+     *    2^31-1 (prime) = 2147483647 = 127773*16807+2836
      */
     ldiv_t val = ldiv(state_[i-1], 127773);
     long test = 16807 * val.rem - 2836 * val.quot;

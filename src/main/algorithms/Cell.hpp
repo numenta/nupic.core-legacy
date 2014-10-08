@@ -44,7 +44,7 @@ namespace nta {
        * mismatches in unit testing when comparing the Python TP to the C++ down to the
        * segment level.
        */
-	  class Cell
+      class Cell
       {
       private:
         std::vector< Segment >   _segments;     // both 'active' and 'inactive' segments

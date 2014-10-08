@@ -87,7 +87,7 @@ namespace nta {
       return *(m.begin() + i*ncols + j);
     }
 
-	  template <typename InIter>
+      template <typename InIter>
     inline void deleteRows(InIter del, InIter del_end)
     {
       Int nrows_new = nrows - (del_end - del);
@@ -294,7 +294,7 @@ namespace nta {
 
     template <typename Int2, typename Float2>
     NTA_HIDDEN friend std::ostream& operator<<(std::ostream&, 
-					       const Dense01<Int2, Float2>&);
+                           const Dense01<Int2, Float2>&);
   };
 
   template <typename Int, typename Float>

@@ -46,23 +46,23 @@
  */
 
 // Assert that It obeys the STL forward iterator concept
-#define ASSERT_INPUT_ITERATOR(It)				\
+#define ASSERT_INPUT_ITERATOR(It)                \
   boost::function_requires<boost::InputIteratorConcept<It> >();
 
 // Assert that It obeys the STL forward iterator concept
-#define ASSERT_OUTPUT_ITERATOR(It, T)					\
+#define ASSERT_OUTPUT_ITERATOR(It, T)                    \
   boost::function_requires<boost::OutputIteratorConcept<It, T> >();
 
 // Assert that UnaryPredicate obeys the STL unary predicate concept
-#define ASSERT_UNARY_PREDICATE(UnaryPredicate, Arg1)			\
+#define ASSERT_UNARY_PREDICATE(UnaryPredicate, Arg1)            \
   boost::function_requires<boost::UnaryPredicateConcept<UnaryPredicate, Arg1> >(); 
 
 // Assert that UnaryFunction obeys the STL unary function concept
-#define ASSERT_UNARY_FUNCTION(UnaryFunction, Ret, Arg1)			\
+#define ASSERT_UNARY_FUNCTION(UnaryFunction, Ret, Arg1)            \
   boost::function_requires<boost::UnaryFunctionConcept<UnaryFunction, Ret, Arg1> >(); 
 
 // Assert that BinaryFunction obeys the STL binary function concept
-#define ASSERT_BINARY_FUNCTION(BinaryFunction, Ret, Arg1, Arg2)		\
+#define ASSERT_BINARY_FUNCTION(BinaryFunction, Ret, Arg1, Arg2)        \
   boost::function_requires<boost::BinaryFunctionConcept<BinaryFunction, Ret, Arg1, Arg2> >();
 
 //--------------------------------------------------------------------------------
@@ -221,7 +221,7 @@ namespace nta {
     inline IsNearlyZero& operator=(const IsNearlyZero& other)
     {
       if (this != &other) 
-	dist_ = other.dist_;
+    dist_ = other.dist_;
 
       return *this;
     }
@@ -1047,8 +1047,8 @@ namespace nta {
   template <typename O, typename S>
   struct predicate_compose  
     : public std::binary_function<typename S::argument_type, 
-				  typename S::argument_type, 
-				  bool>
+                  typename S::argument_type, 
+                  bool>
   {
     typedef bool result_type;
     typedef typename S::argument_type argument_type;
@@ -1146,7 +1146,7 @@ namespace nta {
     inline ClipAbove& operator=(const ClipAbove& c)
     {
       if (this != &c) 
-	val_ = c.val_;
+    val_ = c.val_;
       
       return *this;
     }
@@ -1177,7 +1177,7 @@ namespace nta {
     inline ClipBelow& operator=(const ClipBelow& c)
     {
       if (this != &c) 
-	val_ = c.val_;
+    val_ = c.val_;
       
       return *this;
     }

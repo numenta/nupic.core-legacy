@@ -224,11 +224,11 @@ namespace nta {
     inline void deallocate_()
     {
       if (!nzr_)
-	return;
-			
+    return;
+            
       if (!isCompact()) {
-	size_type **ind = ind_, **ind_end = ind_ + nRows();
-	while (ind != ind_end) 
+    size_type **ind = ind_, **ind_end = ind_ + nRows();
+    while (ind != ind_end) 
           delete [] *ind++;
       } else {
         delete [] ind_[0];
@@ -370,8 +370,8 @@ namespace nta {
      *  @li Not enough memory (error)
      */
     SparseMatrix01(const size_type& ncols, 
-		   const size_type& hint =16, 
-		   const size_type& nnzr =0)
+           const size_type& hint =16, 
+           const size_type& nnzr =0)
       
       : nrows_(0), nrows_max_(0), ncols_(0),
         nzr_(0), ind_(0), indb_(0), nzb_(0),
@@ -412,9 +412,9 @@ namespace nta {
      */
     template <typename InIter>
     SparseMatrix01(const size_type& nrows, 
-		   const size_type& ncols, 
-		   InIter mat, 
-		   const size_type& nnzr) 
+           const size_type& ncols, 
+           InIter mat, 
+           const size_type& nnzr) 
 
       : nrows_(0), nrows_max_(0), ncols_(0),
         nzr_(0), ind_(0), indb_(0), nzb_(0),
@@ -1189,7 +1189,7 @@ namespace nta {
      */
     template <typename InIter1, typename InIter2>
     inline size_type addMinHamming(InIter1 boundaries, InIter2 x, 
-				   const value_type& maxDistance)
+                   const value_type& maxDistance)
     {
       size_type row_index = 0;
       size_type hamming, min_hamming, *ind, *ind_end, *indb;
@@ -1203,27 +1203,27 @@ namespace nta {
       arg_it = it = counts_.begin(); it_end = counts_.end();
 
       while (it != it_end) {
-	hamming = 0;
-	ind = it->first; ind_end = ind + nnzr_; indb = indb_;
-	while (ind != ind_end && hamming < min_hamming) {
-	  hamming += *ind != *indb; // this works because nnzr_ = constant
-	  ++ind; ++indb;
-	}
-	if (hamming < min_hamming) {
-	  arg_it = it;
-	  min_hamming = hamming;
-	}
-	++it;
+    hamming = 0;
+    ind = it->first; ind_end = ind + nnzr_; indb = indb_;
+    while (ind != ind_end && hamming < min_hamming) {
+      hamming += *ind != *indb; // this works because nnzr_ = constant
+      ++ind; ++indb;
+    }
+    if (hamming < min_hamming) {
+      arg_it = it;
+      min_hamming = hamming;
+    }
+    ++it;
       }
 
       // So far, we have counted the mismatching segments
       // the Hamming distance is twice that number
       if (2*min_hamming <= maxDistance) {
-	++ (arg_it->second.second);
-	row_index = arg_it->second.first;
+    ++ (arg_it->second.second);
+    row_index = arg_it->second.first;
       } else {
-	row_index = addRow_(nnzr_, indb_);
-	counts_[ind_[row_index]] = std::make_pair(row_index, 1);
+    row_index = addRow_(nnzr_, indb_);
+    counts_[ind_[row_index]] = std::make_pair(row_index, 1);
       }
 
       return row_index;
@@ -1237,11 +1237,11 @@ namespace nta {
       size_type row_index = 0, *indb = indb_;
 
       for (InIter x_end = x + nCols(); x != x_end; ++x) {
-	value_type val = *x;
-	if (val > threshold) {
-	  *indb = val;
-	  ++indb;
-	}
+    value_type val = *x;
+    if (val > threshold) {
+      *indb = val;
+      ++indb;
+    }
       }
       
       typename Counts::iterator it = counts_.find(indb_);
@@ -1287,7 +1287,7 @@ namespace nta {
       // Here because pre-conditions will fail if nRows == 0
       if (n_del <= 0 || nRows() == 0)
         return;
-			
+            
       { // Pre-conditions
         if (n_del > 0) {
           
@@ -1341,14 +1341,14 @@ namespace nta {
       
       for (size_type i_old = 0; i_old < nrows_; ++i_old) {
         if (del_it != del_end && i_old == *del_it) {
-	  if (hasUniqueRows()) {
-	    counts_.erase(*ind_old);
-	  }
-	  // DON'T delete here: it would require updating nrows_max_
-	  // and we don't have the time anyway.
-	  //delete [] *ind_old++;
-	  ++ind_old;
-	  ++nzr_old;
+      if (hasUniqueRows()) {
+        counts_.erase(*ind_old);
+      }
+      // DON'T delete here: it would require updating nrows_max_
+      // and we don't have the time anyway.
+      //delete [] *ind_old++;
+      ++ind_old;
+      ++nzr_old;
           ++del_it;
         } else {
           *nzr_it++ = *nzr_old++;
@@ -1416,7 +1416,7 @@ namespace nta {
     inline void deleteColumns(InIter del_it, InIter del_end)
     {
       ptrdiff_t n_del = del_end - del_it;
-			
+            
       if (n_del <= 0 || nCols() == 0)
         return;
 
@@ -1696,7 +1696,7 @@ namespace nta {
       
       ITERATE_ON_ALL_ROWS {
         *y = s(*y);
-	++y;
+    ++y;
       }
     }
 
@@ -2173,7 +2173,7 @@ namespace nta {
   //--------------------------------------------------------------------------------
   template <typename I, typename F>
   inline std::ostream& operator<<(std::ostream& outStream, 
-				  const SparseMatrix01<I, F>& A)
+                  const SparseMatrix01<I, F>& A)
   {
     A.print(outStream);
     return outStream;

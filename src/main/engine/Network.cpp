@@ -859,7 +859,7 @@ void Network::loadFromBundle(const std::string& name)
           NTA_THROW << "Invalid network structure file -- region "
                     << name << " dimensions specified incorrectly";
 
-	for (YAML::Iterator valiter = (*node).begin(); valiter != (*node).end(); valiter++)
+    for (YAML::Iterator valiter = (*node).begin(); valiter != (*node).end(); valiter++)
         {
           size_t val;
           (*valiter) >> val;

@@ -255,7 +255,7 @@ namespace nta
     #endif
 
       NTA_CHECK(success) << "Directory::create -- failed to create directory \"" << path << "\". "
-						 << "OS Error: " << OS::getErrorMessage();
+                         << "OS Error: " << OS::getErrorMessage();
     }
     
 

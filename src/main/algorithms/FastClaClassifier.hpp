@@ -62,7 +62,7 @@ namespace nta
        * cycles are stored in BitHistory objects in activeBitHistory_.
        *
        */
-	  class NTA_EXPORT FastCLAClassifier
+      class NTA_EXPORT FastCLAClassifier
       {
         public:
 

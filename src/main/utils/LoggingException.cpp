@@ -39,7 +39,7 @@ LoggingException::~LoggingException() throw()
 #else
     LogItem *li = new LogItem(filename_.c_str(), lineno_, LogItem::error);
 #endif
-	li->stream() << getMessage();
+    li->stream() << getMessage();
     delete li;
     alreadyLogged_ = true;
   }

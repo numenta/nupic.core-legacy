@@ -58,8 +58,8 @@ struct SeparableConvolution2D
    * is the number of columns.
    */
   inline void init(size_type nrows, size_type ncols,
-		   size_type f1_size, size_type f2_size,
-		   T* f1, T* f2)
+           size_type f1_size, size_type f2_size,
+           T* f1, T* f2)
   /*
     : nrows_(nrows), ncols_(ncols),
       f1_size_(f1_size), f2_size_(f2_size),
@@ -105,22 +105,22 @@ struct SeparableConvolution2D
     for (size_type i = 0; i != nrows_; ++i) {
       T* b = buffer_ + i*ncols_ + f1_middle_, *d_row = data + i*ncols_;
       for (size_type j = 0; j != f1_end_j_; ++j) {
-	register T dot = 0, *f = f1_, *d = d_row + j;
-	while (f != f1_end_) 
-	  dot += *f++ * *d++;
-	*b++ = dot;
+    register T dot = 0, *f = f1_, *d = d_row + j;
+    while (f != f1_end_) 
+      dot += *f++ * *d++;
+    *b++ = dot;
       }
     }
 
     for (size_type i = 0; i != f2_end_i_; ++i) {
       T* c = convolved + (i + f2_middle_)*ncols_, *b_row = buffer_ + i*ncols_;
       for (size_type j = 0; j != ncols_; ++j) {
-	register T dot = 0, *f = f2_, *b = b_row + j;
-	while (f != f2_end_) {
-	  dot += *f++ * *b;
-	  b += ncols_;
-	}
-	*c++ = dot;
+    register T dot = 0, *f = f2_, *b = b_row + j;
+    while (f != f2_end_) {
+      dot += *f++ * *b;
+      b += ncols_;
+    }
+    *c++ = dot;
       }
     }
   }

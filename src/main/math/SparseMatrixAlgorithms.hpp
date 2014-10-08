@@ -283,12 +283,12 @@ namespace nta {
             ind = seg_end == sm.nCols() ? ind_end : sm.pos_(row, seg_end);
           }
         }
-	// On x86_64, there is a bug in glibc that makes expf very slow
-	// (more than it should be), so we continue using exp on that 
-	// platform as a workaround.
-	// https://bugzilla.redhat.com/show_bug.cgi?id=521190
-	// To force the compiler to use exp instead of expf, the return
-	// type (and not the argument type!) needs to be double.
+    // On x86_64, there is a bug in glibc that makes expf very slow
+    // (more than it should be), so we continue using exp on that 
+    // platform as a workaround.
+    // https://bugzilla.redhat.com/show_bug.cgi?id=521190
+    // To force the compiler to use exp instead of expf, the return
+    // type (and not the argument type!) needs to be double.
         *y = exp_f(sum / k);
         ++y;
       }
@@ -379,37 +379,37 @@ namespace nta {
      */
     template <typename SM, typename InputIterator, typename OutputIterator>
     static void smoothVecMaxProd(const SM& sm, 
-				 typename SM::value_type k,
-				 InputIterator x, InputIterator x_end,
-				 OutputIterator y, OutputIterator y_end)
+                 typename SM::value_type k,
+                 InputIterator x, InputIterator x_end,
+                 OutputIterator y, OutputIterator y_end)
     {
       typedef typename SM::size_type size_type;
       typedef typename SM::value_type value_type;
 
       { // Pre-conditions
-	NTA_ASSERT((size_type)(x_end - x) == sm.nCols());
-	NTA_ASSERT((size_type)(y_end - y) == sm.nRows());
+    NTA_ASSERT((size_type)(x_end - x) == sm.nCols());
+    NTA_ASSERT((size_type)(y_end - y) == sm.nRows());
       } // End pre-conditions
 
       // Compute k * x only once, and cache result in sm.nzb_
       for (size_type j = 0; j != sm.nCols(); ++j)
-	sm.nzb_[j] = k * x[j];
+    sm.nzb_[j] = k * x[j];
 
       for (size_type row = 0; row != sm.nRows(); ++row) {
 
         value_type max_v = - std::numeric_limits<value_type>::max();
-	size_type *ind = sm.ind_[row], *ind_end = ind + sm.nnzr_[row];
+    size_type *ind = sm.ind_[row], *ind_end = ind + sm.nnzr_[row];
         value_type *nz = sm.nz_[row];
 
-	for (size_type col = 0; col != sm.nCols(); ++col) {
+    for (size_type col = 0; col != sm.nCols(); ++col) {
 
-	  value_type p = sm.nzb_[col];
-	  if (ind != ind_end && col == *ind)
-	    p += *nz++ * x[*ind++];
+      value_type p = sm.nzb_[col];
+      if (ind != ind_end && col == *ind)
+        p += *nz++ * x[*ind++];
           if (p > max_v) 
             max_v = p; 
         }
-	
+    
         *y++ = max_v;
       }
     }
@@ -424,40 +424,40 @@ namespace nta {
      */
     template <typename SM, typename InputIterator, typename OutputIterator>
     static void smoothVecArgMaxProd(const SM& sm, 
-				    typename SM::value_type k,
-				    InputIterator x, InputIterator x_end,
-				    OutputIterator y, OutputIterator y_end)
+                    typename SM::value_type k,
+                    InputIterator x, InputIterator x_end,
+                    OutputIterator y, OutputIterator y_end)
     {
       typedef typename SM::size_type size_type;
       typedef typename SM::value_type value_type;
 
       { // Pre-conditions
-	NTA_ASSERT((size_type)(x_end - x) == sm.nCols());
-	NTA_ASSERT((size_type)(y_end - y) == sm.nRows());
+    NTA_ASSERT((size_type)(x_end - x) == sm.nCols());
+    NTA_ASSERT((size_type)(y_end - y) == sm.nRows());
       } // End pre-conditions
 
       // Compute k * x only once, and cache result in sm.nzb_
       for (size_type j = 0; j != sm.nCols(); ++j)
-	sm.nzb_[j] = k * x[j];
+    sm.nzb_[j] = k * x[j];
 
       for (size_type row = 0; row != sm.nRows(); ++row) {
 
-	size_type arg_max = 0;
+    size_type arg_max = 0;
         value_type max_v = - std::numeric_limits<value_type>::max();
-	size_type *ind = sm.ind_[row], *ind_end = ind + sm.nnzr_[row];
+    size_type *ind = sm.ind_[row], *ind_end = ind + sm.nnzr_[row];
         value_type *nz = sm.nz_[row];
 
-	for (size_type col = 0; col != sm.nCols(); ++col) {
+    for (size_type col = 0; col != sm.nCols(); ++col) {
 
-	  value_type p = sm.nzb_[col];
-	  if (ind != ind_end && col == *ind)
-	    p += *nz++ * x[*ind++];
+      value_type p = sm.nzb_[col];
+      if (ind != ind_end && col == *ind)
+        p += *nz++ * x[*ind++];
           if (p > max_v) {
             max_v = p; 
-	    arg_max = col;
-	  }
+        arg_max = col;
+      }
         }
-	
+    
         *y++ = arg_max;
       }
     }
@@ -823,8 +823,8 @@ namespace nta {
         size_type *ind_a = A.ind_begin_(row);
         typename SM01::Row::const_iterator ind_b = B.ind_begin_(row);
         typename SM01::Row::const_iterator ind_b_end = B.ind_end_(row);
-	value_type *nz_a = A.nz_begin_(row);
-	value_type *nz_a_end = A.nz_end_(row);
+    value_type *nz_a = A.nz_begin_(row);
+    value_type *nz_a_end = A.nz_end_(row);
 
         while (nz_a != nz_a_end && ind_b != ind_b_end)
           if (*ind_a == *ind_b) {
@@ -838,74 +838,74 @@ namespace nta {
           }
       }
     }
-	  //--------------------------------------------------------------------------------
-	  /**
-	   * Adds a constant value on nonzeros of one SparseMatrix(B) to another (A).
-	   */
-	  template <typename SM, typename SM01>
-	  static void addConstantOnNonZeros(SM& A, const  SM01& B,
-										typename SM::value_type cval)
-	  {
-		  { // Pre-conditions
-			  NTA_ASSERT(A.nRows() == B.nRows())
-			  << "add: Wrong number of rows: " << A.nRows()
-			  << " and " << B.nRows();
-			  NTA_ASSERT(A.nCols() == B.nCols())
-			  << "add: Wrong number of columns: " << A.nCols()
-			  << " and " << B.nCols();
-		  } // End pre-conditions
-		  
-		  typedef typename SM::size_type size_type;
-		  typedef typename SM::value_type value_type;
-		  
-		  const size_type nrows = A.nRows();                    
-		  for (size_type row = 0; row != nrows; ++row) {
-			  
-			  size_type *ind     = A.ind_begin_(row);
-			  size_type *ind_end = A.ind_end_(row);
-			  value_type *nz     = A.nz_begin_(row);
-			  
-			  typename SM01::Row::const_iterator ind_b = B.ind_begin_(row);
-			  typename SM01::Row::const_iterator ind_b_end = B.ind_end_(row);
-			  
-			  std::vector<size_type> indb_;
-			  std::vector<value_type> nzb_;
-			  
-			  while (ind != ind_end && ind_b != ind_b_end) {
-				  if (*ind == *ind_b) {
-					  value_type val = *nz++ + cval;
-					  if (!A.isZero_(val)) {
-						  indb_.push_back(*ind);
-						  nzb_.push_back(val);
-					  }
-					  ++ind; ++ind_b;
-				  } else if (*ind < *ind_b) {
-					  indb_.push_back(*ind++);
-					  nzb_.push_back(*nz++);
-				  } else if (*ind_b < *ind) {
-					  if (!A.isZero_(cval)) {
-						  indb_.push_back(*ind_b++);
-						  nzb_.push_back(cval);
-					  }
-				  }
-			  }
-			  
-			  while (ind != ind_end) {
-				  indb_.push_back(*ind++);
-				  nzb_.push_back(*nz++);
-			  }
-			  
-			  while (ind_b != ind_b_end) {
-				  if (!A.isZero_(cval)) {
-					  indb_.push_back(*ind_b++);
-					  nzb_.push_back(cval);
-				  }
-			  }
-			  
-			  A.setRowFromSparse(row, indb_.begin(), indb_.end(), nzb_.begin());
-		  }
-	  }
-	  
+      //--------------------------------------------------------------------------------
+      /**
+       * Adds a constant value on nonzeros of one SparseMatrix(B) to another (A).
+       */
+      template <typename SM, typename SM01>
+      static void addConstantOnNonZeros(SM& A, const  SM01& B,
+                                        typename SM::value_type cval)
+      {
+          { // Pre-conditions
+              NTA_ASSERT(A.nRows() == B.nRows())
+              << "add: Wrong number of rows: " << A.nRows()
+              << " and " << B.nRows();
+              NTA_ASSERT(A.nCols() == B.nCols())
+              << "add: Wrong number of columns: " << A.nCols()
+              << " and " << B.nCols();
+          } // End pre-conditions
+          
+          typedef typename SM::size_type size_type;
+          typedef typename SM::value_type value_type;
+          
+          const size_type nrows = A.nRows();                    
+          for (size_type row = 0; row != nrows; ++row) {
+              
+              size_type *ind     = A.ind_begin_(row);
+              size_type *ind_end = A.ind_end_(row);
+              value_type *nz     = A.nz_begin_(row);
+              
+              typename SM01::Row::const_iterator ind_b = B.ind_begin_(row);
+              typename SM01::Row::const_iterator ind_b_end = B.ind_end_(row);
+              
+              std::vector<size_type> indb_;
+              std::vector<value_type> nzb_;
+              
+              while (ind != ind_end && ind_b != ind_b_end) {
+                  if (*ind == *ind_b) {
+                      value_type val = *nz++ + cval;
+                      if (!A.isZero_(val)) {
+                          indb_.push_back(*ind);
+                          nzb_.push_back(val);
+                      }
+                      ++ind; ++ind_b;
+                  } else if (*ind < *ind_b) {
+                      indb_.push_back(*ind++);
+                      nzb_.push_back(*nz++);
+                  } else if (*ind_b < *ind) {
+                      if (!A.isZero_(cval)) {
+                          indb_.push_back(*ind_b++);
+                          nzb_.push_back(cval);
+                      }
+                  }
+              }
+              
+              while (ind != ind_end) {
+                  indb_.push_back(*ind++);
+                  nzb_.push_back(*nz++);
+              }
+              
+              while (ind_b != ind_b_end) {
+                  if (!A.isZero_(cval)) {
+                      indb_.push_back(*ind_b++);
+                      nzb_.push_back(cval);
+                  }
+              }
+              
+              A.setRowFromSparse(row, indb_.begin(), indb_.end(), nzb_.begin());
+          }
+      }
+      
     //--------------------------------------------------------------------------------
     /**
      * Computes the sum of two SMs that are in log space.
@@ -1226,7 +1226,7 @@ namespace nta {
      */
     template <typename SM, typename STR3F>
     static void logSumNoAlloc(STR3F& A, typename SM::size_type s, 
-			      const SM& B, typename SM::value_type minFloor =0)
+                  const SM& B, typename SM::value_type minFloor =0)
     {
       {
         NTA_ASSERT(A.nRows() == B.nRows());
@@ -1326,7 +1326,7 @@ namespace nta {
      */
     template <typename SM, typename STR3F>
     static void logDiffNoAlloc(STR3F& A, typename SM::size_type s, 
-			       const SM& B, typename SM::value_type minFloor =0)
+                   const SM& B, typename SM::value_type minFloor =0)
     {
       {
         NTA_ASSERT(A.nRows() == B.nRows());
@@ -1432,7 +1432,7 @@ namespace nta {
      */
     template <typename STR3F>
     static void assignNoAlloc(STR3F& A, typename STR3F::size_type slice_a,
-			      const STR3F& B, typename STR3F::size_type slice_b)
+                  const STR3F& B, typename STR3F::size_type slice_b)
     {
       {
         NTA_ASSERT(A.nRows() == B.nRows());
@@ -1479,8 +1479,8 @@ namespace nta {
      */
     template <typename STR3F>
     static void logSumNoAlloc(STR3F& A, typename STR3F::size_type slice_a, 
-			      const STR3F& B, typename STR3F::size_type slice_b,
-			      typename STR3F::value_type minFloor =0)
+                  const STR3F& B, typename STR3F::size_type slice_b,
+                  typename STR3F::value_type minFloor =0)
     {
       {
         NTA_ASSERT(A.nRows() == B.nRows());
@@ -1547,8 +1547,8 @@ namespace nta {
      */
     template <typename STR3F>
     static void logDiffNoAlloc(STR3F& A, typename STR3F::size_type slice_a, 
-			       const STR3F& B, typename STR3F::size_type slice_b,
-			       typename STR3F::value_type minFloor =0)
+                   const STR3F& B, typename STR3F::size_type slice_b,
+                   typename STR3F::value_type minFloor =0)
     {
       {
         NTA_ASSERT(A.nRows() == B.nRows());
@@ -2241,7 +2241,7 @@ namespace nta {
 
 
 
-	
+    
 
 }; // End namespace nta
 
