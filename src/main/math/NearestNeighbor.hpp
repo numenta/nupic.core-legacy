@@ -136,14 +136,14 @@ namespace nta {
       Sp_x = (value_type) 0;
       
       for (; x != end1; x += 4, p_x += 4) {
-    *p_x = f(Sp_x, *x);
-    *(p_x+1) = f(Sp_x, *(x+1));
-    *(p_x+2) = f(Sp_x, *(x+2));
-    *(p_x+3) = f(Sp_x, *(x+3));
+	*p_x = f(Sp_x, *x);
+	*(p_x+1) = f(Sp_x, *(x+1));
+	*(p_x+2) = f(Sp_x, *(x+2));
+	*(p_x+3) = f(Sp_x, *(x+3));
       }
 
       for (; x != end2; ++x)
-    *p_x++ = f(Sp_x, *x);
+	*p_x++ = f(Sp_x, *x);
     }
 
     //--------------------------------------------------------------------------------
@@ -155,7 +155,7 @@ namespace nta {
     template <typename InputIterator, typename F>
     inline value_type
     sum_of_p_diff_(size_type row, InputIterator x, value_type Sp_x, value_type *p_x, 
-           F f) const
+		   F f) const
     {
       size_type nnzr = this->nnzr_[row], j, *ind = this->ind_[row];
       value_type *nz = this->nz_[row];
@@ -163,35 +163,35 @@ namespace nta {
       size_type *end1 = ind + 4*(nnzr/4), *end2 = ind + nnzr;
       
       while (ind != end1) {
-    j = *ind++;
-    val1 = *nz++ - x[j];
-    f(val, val1);
-    val -= p_x[j];
-    j = *ind++;
-    val2 = *nz++ - x[j];
-    f(val, val2);
-    val -= p_x[j];
-    j = *ind++;
-    val1 = *nz++ - x[j];
-    f(val, val1);
-    val -= p_x[j];
-    j = *ind++;
-    val2 = *nz++ - x[j];
-    f(val, val2);
-    val -= p_x[j];
+	j = *ind++;
+	val1 = *nz++ - x[j];
+	f(val, val1);
+	val -= p_x[j];
+	j = *ind++;
+	val2 = *nz++ - x[j];
+	f(val, val2);
+	val -= p_x[j];
+	j = *ind++;
+	val1 = *nz++ - x[j];
+	f(val, val1);
+	val -= p_x[j];
+	j = *ind++;
+	val2 = *nz++ - x[j];
+	f(val, val2);
+	val -= p_x[j];
       }
       
       while (ind != end2) {
-    j = *ind++;
-    val1 = *nz++ - x[j];
-    f(val, val1);
-    val -= p_x[j];
+	j = *ind++;
+	val1 = *nz++ - x[j];
+	f(val, val1);
+	val -= p_x[j];
       }
 
       // Accuracy issues because of the subtractions,
       // could return negative values
       if (val <= (value_type) 0)
-    val = (value_type) 0;
+	val = (value_type) 0;
 
       return val;
     }
@@ -213,15 +213,15 @@ namespace nta {
       value_type *nz = this->nz_[row], d = (value_type) 0.0;
 
       while (ind != ind_end) { 
-    size_type j_end = *ind++;
-    while (j != j_end)
-      f(d, x[j++]);
-    f(d, x[j++] - *nz++);
+	size_type j_end = *ind++;
+	while (j != j_end)
+	  f(d, x[j++]);
+	f(d, x[j++] - *nz++);
       }
       
       if (j < ncols) 
-    while (j != ncols) 
-      f(d, x[j++]);
+	while (j != ncols) 
+	  f(d, x[j++]);
 
       return d;
     }
@@ -238,7 +238,7 @@ namespace nta {
     template <typename InputIterator, typename F>
     inline value_type 
     one_row_dist_2(size_type row, InputIterator x, F f, 
-           bool take_root =false) const
+		   bool take_root =false) const
     {
       value_type Sp_x = 0.0;
 
@@ -246,7 +246,7 @@ namespace nta {
       value_type val = sum_of_p_diff_(row, x, Sp_x, this->nzb_, f);
 
       if (take_root)
-    val = f.root(val);
+	val = f.root(val);
 
       return val;
     }
@@ -264,12 +264,12 @@ namespace nta {
     template <typename InputIterator, typename OutputIterator, typename F>
     inline void 
     all_rows_dist_(InputIterator x, OutputIterator y, F f, 
-           bool take_root =false) const
+		   bool take_root =false) const
     {
       { // Pre-conditions
-    NTA_ASSERT(this->nRows() > 0)
-      << "NearestNeighbor::all_rows_dist_(): "
-      << "No vector stored yet";
+	NTA_ASSERT(this->nRows() > 0)
+	  << "NearestNeighbor::all_rows_dist_(): "
+	  << "No vector stored yet";
       } // End pre-conditions
 
       const size_type nrows = this->nRows();
@@ -279,11 +279,11 @@ namespace nta {
       const_cast<self_type*>(this)->compute_powers_(Sp_x, this->nzb_, x, f);
 
       for (size_type i = 0; i != nrows; ++i, ++y) 
-    *y = sum_of_p_diff_(i, x, Sp_x, this->nzb_, f);
+	*y = sum_of_p_diff_(i, x, Sp_x, this->nzb_, f);
       
       if (take_root)
-    for (y = y_begin; y != y_end; ++y)
-      *y = f.root(*y);
+	for (y = y_begin; y != y_end; ++y)
+	  *y = f.root(*y);
     }
 
     //--------------------------------------------------------------------------------
@@ -294,17 +294,17 @@ namespace nta {
     template <typename InputIterator, typename OutputIterator, typename F>
     inline void
     k_nearest_(InputIterator x, OutputIterator nn, F f, 
-           size_type k =1, bool take_root =false) const
+	       size_type k =1, bool take_root =false) const
     {
       { // Pre-conditions
-    NTA_ASSERT(k >= 1)
-      << "NearestNeighbor::k_nearest_(): "
-      << "Invalid number of nearest rows: " << k
-      << " - Should be >= 1, default value is 1";
+	NTA_ASSERT(k >= 1)
+	  << "NearestNeighbor::k_nearest_(): "
+	  << "Invalid number of nearest rows: " << k
+	  << " - Should be >= 1, default value is 1";
 
-    NTA_ASSERT(this->nRows() > 0)
-      << "NearestNeighbor::k_nearest_(): "
-      << "No vector stored yet";
+	NTA_ASSERT(this->nRows() > 0)
+	  << "NearestNeighbor::k_nearest_(): "
+	  << "No vector stored yet";
       }
 
       std::vector<value_type> b(this->nRows());
@@ -335,14 +335,14 @@ namespace nta {
     inline value_type rowL0Dist(size_type row, InputIterator x) const
     {
       { // Pre-conditions
-    NTA_ASSERT(this->nRows() > 0)
-      << "NearestNeighbor::rowL0Dist(): "
-      << "No vector stored yet";
+	NTA_ASSERT(this->nRows() > 0)
+	  << "NearestNeighbor::rowL0Dist(): "
+	  << "No vector stored yet";
 
-    NTA_ASSERT(row >= 0 && row < this->nRows())
-      << "NearestNeighbor::rowL0Dist(): "
-      << "Invalid row index: " << row
-      << " - Should be >= 0 and < nrows = " << this->nRows();
+	NTA_ASSERT(row >= 0 && row < this->nRows())
+	  << "NearestNeighbor::rowL0Dist(): "
+	  << "Invalid row index: " << row
+	  << " - Should be >= 0 and < nrows = " << this->nRows();
       }
 
       return one_row_dist_1(row, x, Lp0<value_type>());
@@ -370,14 +370,14 @@ namespace nta {
     inline value_type rowL1Dist(size_type row, InputIterator x) const
     {
       { // Pre-conditions
-    NTA_ASSERT(this->nRows() > 0)
-      << "NearestNeighbor::rowL1Dist(): "
-      << "No vector stored yet";
+	NTA_ASSERT(this->nRows() > 0)
+	  << "NearestNeighbor::rowL1Dist(): "
+	  << "No vector stored yet";
 
-    NTA_ASSERT(row >= 0 && row < this->nRows())
-      << "NearestNeighbor::rowL1Dist(): "
-      << "Invalid row index: " << row
-      << " - Should be >= 0 and < nrows = " << this->nRows();
+	NTA_ASSERT(row >= 0 && row < this->nRows())
+	  << "NearestNeighbor::rowL1Dist(): "
+	  << "Invalid row index: " << row
+	  << " - Should be >= 0 and < nrows = " << this->nRows();
       }
 
       return one_row_dist_1(row, x, Lp1<value_type>());
@@ -410,14 +410,14 @@ namespace nta {
     rowL2Dist(size_type row, InputIterator x, bool take_root =false) const
     {
       { // Pre-conditions
-    NTA_ASSERT(this->nRows() > 0)
-      << "NearestNeighbor::rowL2Dist(): "
-      << "No vector stored yet";
+	NTA_ASSERT(this->nRows() > 0)
+	  << "NearestNeighbor::rowL2Dist(): "
+	  << "No vector stored yet";
 
-    NTA_ASSERT(row >= 0 && row < this->nRows())
-      << "NearestNeighbor::rowL2Dist(): "
-      << "Invalid row index: " << row
-      << " - Should be >= 0 and < nrows = " << this->nRows();
+	NTA_ASSERT(row >= 0 && row < this->nRows())
+	  << "NearestNeighbor::rowL2Dist(): "
+	  << "Invalid row index: " << row
+	  << " - Should be >= 0 and < nrows = " << this->nRows();
       }
 
       return one_row_dist_2(row, x, Lp2<value_type>(), take_root);
@@ -445,11 +445,11 @@ namespace nta {
     inline value_type rowLMaxDist(size_type row, InputIterator x) const
     {
       { // Pre-conditions
-    NTA_ASSERT(this->nRows() > 0)
-      << "NearestNeighbor::rowLMaxDist(): "
-      << "No vector stored yet";
+	NTA_ASSERT(this->nRows() > 0)
+	  << "NearestNeighbor::rowLMaxDist(): "
+	  << "No vector stored yet";
 
-    assert_valid_row_(row, "rowLMaxDist");
+	assert_valid_row_(row, "rowLMaxDist");
       } // End pre-conditions
 
       return one_row_dist_1(row, x, LpMax<value_type>());
@@ -480,29 +480,29 @@ namespace nta {
     template <typename InputIterator>
     inline value_type 
     rowLpDist(value_type p, size_type row, InputIterator x, 
-          bool take_root =false) const
+	      bool take_root =false) const
     {
       { // Pre-conditions
-    NTA_ASSERT(this->nRows() > 0)
-      << "NearestNeighbor::rowLpDist(): "
-      << "No vector stored yet";
+	NTA_ASSERT(this->nRows() > 0)
+	  << "NearestNeighbor::rowLpDist(): "
+	  << "No vector stored yet";
 
-    assert_valid_row_(row, "rowLpDist");
+	assert_valid_row_(row, "rowLpDist");
 
-    NTA_ASSERT(p >= (value_type)0.0)
-      << "NearestNeighbor::rowLpDist():"
-      << "Invalid value for parameter p: " << p
-      << " - Only positive values (p >= 0) are supported";
+	NTA_ASSERT(p >= (value_type)0.0)
+	  << "NearestNeighbor::rowLpDist():"
+	  << "Invalid value for parameter p: " << p
+	  << " - Only positive values (p >= 0) are supported";
       } // End pre-conditions
 
       if (p == (value_type)0.0)
-    return rowL0Dist(row, x);
+	return rowL0Dist(row, x);
 
       if (p == (value_type)1.0)
-    return rowL1Dist(row, x);
+	return rowL1Dist(row, x);
 
       if (p == (value_type)2.0)
-    return rowL2Dist(row, x, take_root);
+	return rowL2Dist(row, x, take_root);
 
       return one_row_dist_2(row, x, Lp<value_type>(p), take_root);
     }
@@ -528,16 +528,16 @@ namespace nta {
     inline void L0Dist(InputIterator x, OutputIterator y) const
     {
       { // Pre-conditions
-    NTA_ASSERT(this->nRows() > 0)
-      << "NearestNeighbor::L0Dist(): "
-      << "No vector stored yet";
+	NTA_ASSERT(this->nRows() > 0)
+	  << "NearestNeighbor::L0Dist(): "
+	  << "No vector stored yet";
       }
 
       const size_type nrows = this->nRows();
       Lp0<value_type> f;
 
       for (size_type i = 0; i != nrows; ++i, ++y) 
-    *y = one_row_dist_1(i, x, f);
+	*y = one_row_dist_1(i, x, f);
     }
 
     //--------------------------------------------------------------------------------
@@ -561,9 +561,9 @@ namespace nta {
     inline void L1Dist(InputIterator x, OutputIterator y) const
     {
       { // Pre-conditions
-    NTA_ASSERT(this->nRows() > 0)
-      << "NearestNeighbor::L1Dist(): "
-      << "No vector stored yet";
+	NTA_ASSERT(this->nRows() > 0)
+	  << "NearestNeighbor::L1Dist(): "
+	  << "No vector stored yet";
       }
 
       const size_type nrows = this->nRows(), ncols = this->nCols();
@@ -572,19 +572,19 @@ namespace nta {
 
       InputIterator x_ptr = x;
       for (size_type j = 0; j != ncols; ++j, ++x_ptr) 
-    this->nzb_[j] = f(s, *x_ptr); 
+	this->nzb_[j] = f(s, *x_ptr); 
 
       for (size_type i = 0; i != nrows; ++i, ++y) {
-    size_type *ind = this->ind_[i], *ind_end = ind + this->nnzr_[i];
-    value_type *nz = this->nz_[i], d = s;
-    for (; ind != ind_end; ++ind, ++nz) {
-      size_type j = *ind;
-      f(d, x[j] - *nz);
-      d -= this->nzb_[j];
-    }
+	size_type *ind = this->ind_[i], *ind_end = ind + this->nnzr_[i];
+	value_type *nz = this->nz_[i], d = s;
+	for (; ind != ind_end; ++ind, ++nz) {
+	  size_type j = *ind;
+	  f(d, x[j] - *nz);
+	  d -= this->nzb_[j];
+	}
         if (d <= (value_type) 0)
           d = (value_type) 0;
-    *y = d;
+	*y = d;
       }
     }
 
@@ -610,9 +610,9 @@ namespace nta {
     inline void L2Dist(InputIterator x, OutputIterator y, bool take_root =false) const
     {
       { // Pre-conditions
-    NTA_ASSERT(this->nRows() > 0)
-      << "NearestNeighbor::L2Dist(): "
-      << "No vector stored yet";
+	NTA_ASSERT(this->nRows() > 0)
+	  << "NearestNeighbor::L2Dist(): "
+	  << "No vector stored yet";
       }
 
       all_rows_dist_(x, y, Lp2<value_type>(), take_root);
@@ -634,16 +634,16 @@ namespace nta {
     inline void LMaxDist(InputIterator x, OutputIterator y) const
     {
       { // Pre-conditions
-    NTA_ASSERT(this->nRows() > 0)
-      << "NearestNeighbor::LMaxDist(): "
-      << "No vector stored yet";
+	NTA_ASSERT(this->nRows() > 0)
+	  << "NearestNeighbor::LMaxDist(): "
+	  << "No vector stored yet";
       }
 
       const size_type nrows = this->nRows();
       LpMax<value_type> f;
       
       for (size_type i = 0; i != nrows; ++i, ++y) 
-    *y = one_row_dist_1(i, x, f);
+	*y = one_row_dist_1(i, x, f);
     }
 
     //--------------------------------------------------------------------------------
@@ -667,32 +667,32 @@ namespace nta {
     template <typename InputIterator, typename OutputIterator>
     inline void 
     LpDist(value_type p, 
-       InputIterator x, OutputIterator y, bool take_root=false) const
+	   InputIterator x, OutputIterator y, bool take_root=false) const
     {
       { // Pre-conditions
-    NTA_ASSERT(this->nRows() > 0)
-      << "NearestNeighbor::LpDist(): "
-      << "No vector stored yet";
-    
-    NTA_ASSERT(p >= (value_type)0.0)
-      << "NearestNeighbor::LpDist():"
-      << "Invalid value for parameter p: " << p
-      << " - Only positive values (p >= 0) are supported";
+	NTA_ASSERT(this->nRows() > 0)
+	  << "NearestNeighbor::LpDist(): "
+	  << "No vector stored yet";
+	
+	NTA_ASSERT(p >= (value_type)0.0)
+	  << "NearestNeighbor::LpDist():"
+	  << "Invalid value for parameter p: " << p
+	  << " - Only positive values (p >= 0) are supported";
       }
       
       if (p == (value_type)0.0) {
-    L0Dist(x, y);
-    return;
+	L0Dist(x, y);
+	return;
       }
 
       if (p == (value_type)1.0) {
-    L1Dist(x, y);
-    return;
+	L1Dist(x, y);
+	return;
       }
 
       if (p == (value_type)2.0) {
-    L2Dist(x, y, take_root);
-    return;
+	L2Dist(x, y, take_root);
+	return;
       }
 
       all_rows_dist_(x, y, Lp<value_type>(p), take_root);
@@ -717,14 +717,14 @@ namespace nta {
     L0Nearest(InputIterator x, OutputIterator nn, size_type k =1) const
     {
       { // Pre-conditions
-    NTA_ASSERT(this->nRows() > 0)
-      << "NearestNeighbor::L0Nearest(): "
-      << "No vector stored yet";
+	NTA_ASSERT(this->nRows() > 0)
+	  << "NearestNeighbor::L0Nearest(): "
+	  << "No vector stored yet";
 
-    NTA_ASSERT(k >= 1)
-      << "NearestNeighbor::L0Nearest():"
-      << "Invalid number of nearest rows: " << k
-      << " - Should be >= 1, default is 1";
+	NTA_ASSERT(k >= 1)
+	  << "NearestNeighbor::L0Nearest():"
+	  << "Invalid number of nearest rows: " << k
+	  << " - Should be >= 1, default is 1";
       }
 
       k_nearest_(x, nn, Lp0<value_type>(), k);
@@ -749,14 +749,14 @@ namespace nta {
     L1Nearest(InputIterator x, OutputIterator nn, size_type k =1) const
     {
       { // Pre-conditions
-    NTA_ASSERT(this->nRows() > 0)
-      << "NearestNeighbor::L1Nearest(): "
-      << "No vector stored yet";
+	NTA_ASSERT(this->nRows() > 0)
+	  << "NearestNeighbor::L1Nearest(): "
+	  << "No vector stored yet";
 
-    NTA_ASSERT(k >= 1)
-      << "NearestNeighbor::L1Nearest():"
-      << "Invalid number of nearest rows: " << k
-      << " - Should be >= 1, default is 1";
+	NTA_ASSERT(k >= 1)
+	  << "NearestNeighbor::L1Nearest():"
+	  << "Invalid number of nearest rows: " << k
+	  << " - Should be >= 1, default is 1";
       }
 
       k_nearest_(x, nn, Lp1<value_type>(), k);
@@ -782,17 +782,17 @@ namespace nta {
     template <typename InputIterator, typename OutputIterator>
     inline void
     L2Nearest(InputIterator x, OutputIterator nn, size_type k =1, 
-          bool take_root =false) const
+	      bool take_root =false) const
     {
       { // Pre-conditions
-    NTA_ASSERT(this->nRows() > 0)
-      << "NearestNeighbor::L2Nearest(): "
-      << "No vector stored yet";
+	NTA_ASSERT(this->nRows() > 0)
+	  << "NearestNeighbor::L2Nearest(): "
+	  << "No vector stored yet";
 
-    NTA_ASSERT(k >= 1)
-      << "NearestNeighbor::L2Nearest():"
-      << "Invalid number of nearest rows: " << k
-      << " - Should be >= 1, default is 1";
+	NTA_ASSERT(k >= 1)
+	  << "NearestNeighbor::L2Nearest():"
+	  << "Invalid number of nearest rows: " << k
+	  << " - Should be >= 1, default is 1";
       }
 
       k_nearest_(x, nn, Lp2<value_type>(), k, take_root);
@@ -817,14 +817,14 @@ namespace nta {
     LMaxNearest(InputIterator x, OutputIterator nn, size_type k =1) const
     {
       { // Pre-conditions
-    NTA_ASSERT(this->nRows() > 0)
-      << "NearestNeighbor::LMaxNearest(): "
-      << "No vector stored yet";
+	NTA_ASSERT(this->nRows() > 0)
+	  << "NearestNeighbor::LMaxNearest(): "
+	  << "No vector stored yet";
 
-    NTA_ASSERT(k >= 1)
-      << "NearestNeighbor::LMaxNearest():"
-      << "Invalid number of nearest rows: " << k
-      << " - Should be >= 1, default is 1";
+	NTA_ASSERT(k >= 1)
+	  << "NearestNeighbor::LMaxNearest():"
+	  << "Invalid number of nearest rows: " << k
+	  << " - Should be >= 1, default is 1";
       }
       
       std::vector<value_type> b(this->nRows());
@@ -853,37 +853,37 @@ namespace nta {
     template <typename InputIterator, typename OutputIterator>
     inline void
     LpNearest(value_type p, InputIterator x, OutputIterator nn, 
-          size_type k =1, bool take_root =false) const
+	      size_type k =1, bool take_root =false) const
     {
       { // Pre-conditions
-    NTA_ASSERT(this->nRows() > 0)
-      << "NearestNeighbor::LpNearest(): "
-      << "No vector stored yet";
+	NTA_ASSERT(this->nRows() > 0)
+	  << "NearestNeighbor::LpNearest(): "
+	  << "No vector stored yet";
 
-    NTA_ASSERT(p >= (value_type)0.0)
-      << "NearestNeighbor::LpNearest():"
-      << "Invalid value for parameter p: " << p
-      << " - Only positive values (p >= 0) are supported";
+	NTA_ASSERT(p >= (value_type)0.0)
+	  << "NearestNeighbor::LpNearest():"
+	  << "Invalid value for parameter p: " << p
+	  << " - Only positive values (p >= 0) are supported";
 
-    NTA_ASSERT(k >= 1)
-      << "NearestNeighbor::LpNearest():"
-      << "Invalid number of nearest rows: " << k
-      << " - Should be >= 1, default is 1";
+	NTA_ASSERT(k >= 1)
+	  << "NearestNeighbor::LpNearest():"
+	  << "Invalid number of nearest rows: " << k
+	  << " - Should be >= 1, default is 1";
       }
 
       if (p == (value_type)0.0) {
-    L0Nearest(x, nn, k);
-    return;
+	L0Nearest(x, nn, k);
+	return;
       }
 
       if (p == (value_type)1.0) {
-    L1Nearest(x, nn, k);
-    return;
+	L1Nearest(x, nn, k);
+	return;
       }
 
       if (p == (value_type)2.0) {
-    L2Nearest(x, nn, k, take_root);
-    return;
+	L2Nearest(x, nn, k, take_root);
+	return;
       }
 
       k_nearest_(x, nn, Lp<value_type>(p), k, take_root);
@@ -891,12 +891,12 @@ namespace nta {
 
     //--------------------------------------------------------------------------------
     template <typename InputIterator1, 
-          typename InputIterator2, 
-          typename OutputIterator>
+	      typename InputIterator2, 
+	      typename OutputIterator>
     inline void 
     LpNearest(value_type p, InputIterator1 ind, InputIterator1 ind_end,
-          InputIterator2 nz, OutputIterator nn,
-          size_type k =1, bool take_root =false) const
+	      InputIterator2 nz, OutputIterator nn,
+	      size_type k =1, bool take_root =false) const
     {
       std::vector<value_type> x(this->nCols());
       to_dense(ind, ind_end, nz, nz + (ind_end - ind), x.begin(), x.end());
@@ -926,9 +926,9 @@ namespace nta {
     inline std::pair<size_type, value_type> dotNearest(InputIterator x) const
     {
       {
-    NTA_ASSERT(this->nRows() > 0)
-      << "NearestNeighbor::dotNearest(): "
-      << "No vector stored yet";
+	NTA_ASSERT(this->nRows() > 0)
+	  << "NearestNeighbor::dotNearest(): "
+	  << "No vector stored yet";
       }
 
       size_type i, k, nnzr, *ind, end, nrows = this->nRows();
@@ -939,23 +939,23 @@ namespace nta {
 
       for (i = 0; i != nrows; ++i) {
 
-    val = 0;
-    nnzr = this->nnzr_[i];
-    ind = this->ind_[i];
-    nz = this->nz_[i];
-    end = 4 * (nnzr / 4);
+	val = 0;
+	nnzr = this->nnzr_[i];
+	ind = this->ind_[i];
+	nz = this->nz_[i];
+	end = 4 * (nnzr / 4);
 
-    for (k = 0; k != end; k += 4) 
-      val += nz[k] * x[ind[k]] + nz[k+1] * x[ind[k+1]]
-        + nz[k+2] * x[ind[k+2]] + nz[k+3] * x[ind[k+3]];
+	for (k = 0; k != end; k += 4) 
+	  val += nz[k] * x[ind[k]] + nz[k+1] * x[ind[k+1]]
+	    + nz[k+2] * x[ind[k+2]] + nz[k+3] * x[ind[k+3]];
 
-    for (k = end; k != nnzr; ++k)
-      val += nz[k] * x[ind[k]];
+	for (k = end; k != nnzr; ++k)
+	  val += nz[k] * x[ind[k]];
 
-    if (val > max_v) {
-      arg_i = i;
-      max_v = val;
-    }
+	if (val > max_v) {
+	  arg_i = i;
+	  max_v = val;
+	}
       }
 
       return std::make_pair(arg_i, max_v);
@@ -973,18 +973,18 @@ namespace nta {
     template <typename InputIterator, typename OutputIterator>
     inline void
     LpNearest_w(value_type p, InputIterator x, OutputIterator nn,
-        size_type k =1, bool take_root =false)
+		size_type k =1, bool take_root =false)
     {
       { // Pre-conditions
-    NTA_ASSERT(p >= (value_type)0.0)
-      << "NearestNeighbor::LpNearest_w():"
-      << "Invalid value for parameter p: " << p
-      << " - Only positive values (p >= 0) are supported";
+	NTA_ASSERT(p >= (value_type)0.0)
+	  << "NearestNeighbor::LpNearest_w():"
+	  << "Invalid value for parameter p: " << p
+	  << " - Only positive values (p >= 0) are supported";
 
-    NTA_ASSERT(k >= 1)
-      << "NearestNeighbor::LpNearest_w():"
-      << "Invalid number of nearest rows: " << k
-      << " - Should be >= 1, default is 1";
+	NTA_ASSERT(k >= 1)
+	  << "NearestNeighbor::LpNearest_w():"
+	  << "Invalid number of nearest rows: " << k
+	  << " - Should be >= 1, default is 1";
       }
 
       const size_type nrows = this->nRows(), ncols = this->nCols();
@@ -992,43 +992,43 @@ namespace nta {
 
       if (stddev_.empty()) {
 
-    stddev_.resize(ncols, 0);
-    
-    for (size_type i = 0; i != nrows; ++i) {
-      size_type *ind = this->ind_[i], *ind_end = ind + this->nnzr_[i];
-      value_type *nz = this->nz_[i];
-      while (ind != ind_end) {
-        size_type idx = *ind++;
-        value_type val = *nz++;
-        e[idx] += val;
-        e2[idx] += val * val;
-      }
-    }
+	stddev_.resize(ncols, 0);
+	
+	for (size_type i = 0; i != nrows; ++i) {
+	  size_type *ind = this->ind_[i], *ind_end = ind + this->nnzr_[i];
+	  value_type *nz = this->nz_[i];
+	  while (ind != ind_end) {
+	    size_type idx = *ind++;
+	    value_type val = *nz++;
+	    e[idx] += val;
+	    e2[idx] += val * val;
+	  }
+	}
 
-    nta::Sqrt<value_type> sf;
+	nta::Sqrt<value_type> sf;
 
-    for (size_type j = 0; j != ncols; ++j) 
-      stddev_[j] = sf((e2[j] - e[j]*e[j]/nrows) / (nrows-1));
+	for (size_type j = 0; j != ncols; ++j) 
+	  stddev_[j] = sf((e2[j] - e[j]*e[j]/nrows) / (nrows-1));
       }
-    
+	
       Lp<value_type> f(p);
       value_type Sp_x = 0;
       for (size_type j = 0; j != ncols; ++j) 
-    this->nzb_[j] = f(Sp_x, x[j]/stddev_[j]);
+	this->nzb_[j] = f(Sp_x, x[j]/stddev_[j]);
 
       std::vector<value_type> b(nrows);
       
       for (size_type i = 0; i != nrows; ++i) {
-    size_type *ind = this->ind_[i], *ind_end = ind + this->nnzr_[i];
-    value_type *nz = this->nz_[i], d = Sp_x;
-    while (ind != ind_end) {
-      size_type j = *ind++;
-      f(d, (*nz++ - x[j])/stddev_[j]);
-      d -= this->nzb_[j];
-    }
-    if (d <= (value_type) 0)
-      d = (value_type) 0;
-    b[i] = d;
+	size_type *ind = this->ind_[i], *ind_end = ind + this->nnzr_[i];
+	value_type *nz = this->nz_[i], d = Sp_x;
+	while (ind != ind_end) {
+	  size_type j = *ind++;
+	  f(d, (*nz++ - x[j])/stddev_[j]);
+	  d -= this->nzb_[j];
+	}
+	if (d <= (value_type) 0)
+	  d = (value_type) 0;
+	b[i] = d;
       }
 
       partial_sort_2nd(k, b, nn, std::less<value_type>());
@@ -1039,17 +1039,17 @@ namespace nta {
     //--------------------------------------------------------------------------------
     template <typename InputIterator, typename OutputIterator>
     inline void rbf(value_type p, value_type k, 
-            InputIterator in_begin, OutputIterator out_begin) const
+		    InputIterator in_begin, OutputIterator out_begin) const
     {
      { // Pre-conditions
-    NTA_ASSERT(this->nRows() > 0)
-      << "NearestNeighbor::rbf(): "
-      << "No vector stored yet";
+	NTA_ASSERT(this->nRows() > 0)
+	  << "NearestNeighbor::rbf(): "
+	  << "No vector stored yet";
 
-    NTA_ASSERT(p >= (value_type)0.0)
-      << "NearestNeighbor::rbf():"
-      << "Invalid value for parameter p: " << p
-      << " - Only positive values (p >= 0) are supported";
+	NTA_ASSERT(p >= (value_type)0.0)
+	  << "NearestNeighbor::rbf():"
+	  << "Invalid value for parameter p: " << p
+	  << " - Only positive values (p >= 0) are supported";
       } // End pre-conditions
 
      LpDist(p, in_begin, out_begin, false);
@@ -1064,23 +1064,23 @@ namespace nta {
     template <typename InputIterator, typename OutputIterator, typename F>
     inline void
     proj_all_rows_dist_(InputIterator x, OutputIterator y, F f, 
-            bool take_root =false) const
+			bool take_root =false) const
     {
       const size_type nrows = this->nRows();
       OutputIterator y_begin = y, y_end = y_begin + nrows;
       
       for (size_type row = 0; row != nrows; ++row, ++y) {
-    size_type *ind = this->ind_[row];
-    size_type *ind_end = ind + this->nNonZerosOnRow(row);
-    value_type *nz = this->nz_[row], val = 0;
-    for (; ind != ind_end; ++ind, ++nz) 
-      f(val, *nz - *(x + *ind));
-    *y = val;
+	size_type *ind = this->ind_[row];
+	size_type *ind_end = ind + this->nNonZerosOnRow(row);
+	value_type *nz = this->nz_[row], val = 0;
+	for (; ind != ind_end; ++ind, ++nz) 
+	  f(val, *nz - *(x + *ind));
+	*y = val;
       }
 
       if (take_root) {
-    for (y = y_begin; y != y_end; ++y)
-      *y = f.root(*y);
+	for (y = y_begin; y != y_end; ++y)
+	  *y = f.root(*y);
       }
     }
 
@@ -1089,30 +1089,30 @@ namespace nta {
     template <typename InputIterator, typename OutputIterator>
     inline void 
     projLpDist(value_type p, InputIterator x, OutputIterator y, 
-           bool take_root =false) const
+	       bool take_root =false) const
     {
        { // Pre-conditions
-    NTA_ASSERT(this->nRows() > 0)
-      << "NearestNeighbor::projLpDist(): "
-      << "No vector stored yet";
+	NTA_ASSERT(this->nRows() > 0)
+	  << "NearestNeighbor::projLpDist(): "
+	  << "No vector stored yet";
 
-    NTA_ASSERT(p >= (value_type)0.0)
-      << "NearestNeighbor::projLpDist():"
-      << "Invalid value for parameter p: " << p
-      << " - Only positive values (p >= 0) are supported";
+	NTA_ASSERT(p >= (value_type)0.0)
+	  << "NearestNeighbor::projLpDist():"
+	  << "Invalid value for parameter p: " << p
+	  << " - Only positive values (p >= 0) are supported";
       } // End pre-conditions
        
        if (p == (value_type) 0.0) {
-     proj_all_rows_dist_(x, y, Lp0<value_type>(), take_root);
-     
+	 proj_all_rows_dist_(x, y, Lp0<value_type>(), take_root);
+	 
        } else if (p == (value_type) 1.0) {
-     proj_all_rows_dist_(x, y, Lp1<value_type>(), take_root);
-     
+	 proj_all_rows_dist_(x, y, Lp1<value_type>(), take_root);
+	 
        } else if (p == (value_type) 2.0) {
-     proj_all_rows_dist_(x, y, Lp2<value_type>(), take_root);
+	 proj_all_rows_dist_(x, y, Lp2<value_type>(), take_root);
 
        } else {
-     proj_all_rows_dist_(x, y, Lp<value_type>(p), take_root);
+	 proj_all_rows_dist_(x, y, Lp<value_type>(p), take_root);
        }
     }
     
@@ -1124,22 +1124,22 @@ namespace nta {
     template <typename InputIterator, typename OutputIterator>
     inline void 
     projLpNearest(value_type p, InputIterator x, OutputIterator nn,
-          size_type k =1, bool take_root =false) const
+		  size_type k =1, bool take_root =false) const
     {
       { // Pre-conditions
-    NTA_ASSERT(this->nRows() > 0)
-      << "NearestNeighbor::projLpNearest(): "
-      << "No vector stored yet";
+	NTA_ASSERT(this->nRows() > 0)
+	  << "NearestNeighbor::projLpNearest(): "
+	  << "No vector stored yet";
 
-    NTA_ASSERT(p >= (value_type)0.0)
-      << "NearestNeighbor::projLpNearest():"
-      << "Invalid value for parameter p: " << p
-      << " - Only positive values (p >= 0) are supported";
+	NTA_ASSERT(p >= (value_type)0.0)
+	  << "NearestNeighbor::projLpNearest():"
+	  << "Invalid value for parameter p: " << p
+	  << " - Only positive values (p >= 0) are supported";
 
-    NTA_ASSERT(k >= 1)
-      << "NearestNeighbor::projLpNearest():"
-      << "Invalid number of nearest rows: " << k
-      << " - Should be >= 1, default is 1";
+	NTA_ASSERT(k >= 1)
+	  << "NearestNeighbor::projLpNearest():"
+	  << "Invalid number of nearest rows: " << k
+	  << " - Should be >= 1, default is 1";
       } // End pre-conditions
 
       std::vector<value_type> b(this->nRows());
@@ -1149,12 +1149,12 @@ namespace nta {
 
     //--------------------------------------------------------------------------------
     template <typename InputIterator1, 
-          typename InputIterator2, 
-          typename OutputIterator>
+	      typename InputIterator2, 
+	      typename OutputIterator>
     inline void 
     projLpNearest(value_type p, InputIterator1 ind, InputIterator1 ind_end,
-          InputIterator2 nz, OutputIterator nn,
-          size_type k =1, bool take_root =false) const
+		  InputIterator2 nz, OutputIterator nn,
+		  size_type k =1, bool take_root =false) const
     {
       std::vector<value_type> x(this->nCols());
       to_dense(ind, ind_end, nz, nz + (ind_end - ind), x.begin(), x.end());
@@ -1164,17 +1164,17 @@ namespace nta {
     //--------------------------------------------------------------------------------
     template <typename InputIterator, typename OutputIterator>
     inline void projRbf(value_type p, value_type k, 
-            InputIterator in_begin, OutputIterator out_begin) const
+			InputIterator in_begin, OutputIterator out_begin) const
     {
       { // Pre-conditions
-    NTA_ASSERT(this->nRows() > 0)
-      << "NearestNeighbor::projRbf(): "
-      << "No vector stored yet";
+	NTA_ASSERT(this->nRows() > 0)
+	  << "NearestNeighbor::projRbf(): "
+	  << "No vector stored yet";
 
-    NTA_ASSERT(p >= (value_type)0.0)
-      << "NearestNeighbor::projRbf():"
-      << "Invalid value for parameter p: " << p
-      << " - Only positive values (p >= 0) are supported";
+	NTA_ASSERT(p >= (value_type)0.0)
+	  << "NearestNeighbor::projRbf():"
+	  << "Invalid value for parameter p: " << p
+	  << " - Only positive values (p >= 0) are supported";
       } // End pre-conditions
 
       projLpDist(p, in_begin, out_begin, false);

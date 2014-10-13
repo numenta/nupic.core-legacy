@@ -80,10 +80,10 @@ namespace nta {
 
   #elif defined(NTA_PLATFORM_win64) && defined(NTA_COMPILER_MSVC)
 
-    std::array<int, 4> cpui; 
-    __cpuid(cpui.data(), 1);
-    c = cpui[2];
-    d = cpui[3];
+	std::array<int, 4> cpui; 
+	__cpuid(cpui.data(), 1);
+	c = cpui[2];
+	d = cpui[3];
 
   // TODO: add asm code for gcc/clang/... on Windows
 
@@ -116,7 +116,7 @@ namespace nta {
                          : "=c" (c), "=d" (d)
                          :
                          :
-             );
+			 );
   #endif
 #endif //NTA_ASM
 
@@ -3896,7 +3896,7 @@ namespace nta {
       __asm__ __volatile__(
 
     #if defined(NTA_PLATFORM_darwin64)
-           // We need to access localThreshold by it's mangled name here because g++ and
+		   // We need to access localThreshold by it's mangled name here because g++ and
                    // clang++ do things differently on OS X. They clobber eax by the time they
                    // get here and 'threshold' is not properly loaded into rax by the constraint
                    // at the end of this asm snippet. This means we need to use 'rip relative'
@@ -4130,12 +4130,12 @@ namespace nta {
   /**
    * Computes the sum of the elements in a range.
    * 
-     * Note: a previous version used veclib on Mac's and vDSP. vDSP is much faster
-     * than C++, even optimized by gcc, but for now this works
-     * only with float (rather than double), and only on darwin86. With these
-     * restrictions the speed-up is usually better than 5X over optimized C++.
-     * vDSP also handles unaligned vectors correctly, and has good performance
-     * also when the vectors are small, not just when they are big. 
+	 * Note: a previous version used veclib on Mac's and vDSP. vDSP is much faster
+	 * than C++, even optimized by gcc, but for now this works
+	 * only with float (rather than double), and only on darwin86. With these
+	 * restrictions the speed-up is usually better than 5X over optimized C++.
+	 * vDSP also handles unaligned vectors correctly, and has good performance
+	 * also when the vectors are small, not just when they are big. 
    */
   inline nta::Real32 sum(nta::Real32* begin, nta::Real32* end)
   {

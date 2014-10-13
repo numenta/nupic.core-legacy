@@ -164,7 +164,7 @@ namespace nta {
    */
   template <typename T>
   inline void utilsPrintArray_(std::ostream& out, const void* theBeginP, 
-                   const void* theEndP)
+			       const void* theEndP)
   {
     const T* beginP = (T*)theBeginP;
     const T* endP = (T*)theEndP;
@@ -286,7 +286,7 @@ namespace nta {
    * X2 is the inner index
    */
 #define ITER2(X1, X2, Y1, Y2, Z1, Z2)                         \
-  UInt X1##minXX = (Y1),    X1##maxXX = (Z1),                   \
+  UInt X1##minXX = (Y1),	X1##maxXX = (Z1),                   \
     X2##minXX = (Y2), X2##maxXX = (Z2);                       \
     for (Size X1 = X1##minXX; X1 < X1##maxXX; ++X1)           \
       for (Size X2 = X2##minXX; X2 < X2##maxXX; ++X2)

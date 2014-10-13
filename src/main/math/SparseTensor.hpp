@@ -1298,9 +1298,9 @@ namespace nta {
     inline void toList(OutputIterator1 indices, OutputIterator2 values) const
     {
       for (const_iterator it = begin(); it != end(); ++it) {
-    *indices = it->first;
-    *values = it->second;
-    ++indices; ++values;
+	*indices = it->first;
+	*values = it->second;
+	++indices; ++values;
       }
     }
 
@@ -1635,7 +1635,7 @@ namespace nta {
      * IndexA and IndexB will have different sizes.
      */
     template <typename IndexA, typename IndexB>
-    class NTA_EXPORT Elt
+	class NTA_EXPORT Elt
     {
     public:
       inline Elt(const IndexA& ia, const Float a, const IndexB& ib, const Float b)
@@ -2901,8 +2901,8 @@ namespace nta {
 
       const_iterator min_it = 
         std::max_element(begin(), end(), 
-             predicate_compose<std::less<Float>, 
-             nta::select2nd<std::pair<Index, Float> > >());
+			 predicate_compose<std::less<Float>, 
+			 nta::select2nd<std::pair<Index, Float> > >());
       
       return std::make_pair(min_it->first, min_it->second);
     }
@@ -2941,9 +2941,9 @@ namespace nta {
       srcIndex[which] = src;
 
       do {
-    TensorIndex dstIndex(srcIndex);
-    dstIndex[which] = dst;
-    set(dstIndex, get(dstIndex) + get(srcIndex));
+	TensorIndex dstIndex(srcIndex);
+	dstIndex[which] = dst;
+	set(dstIndex, get(dstIndex) + get(srcIndex));
       } while (increment(lb, ub, srcIndex));
     }
 

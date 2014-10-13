@@ -71,7 +71,7 @@ namespace nta {
   template <typename SM>
   inline void 
   EnumerateSequences(typename SM::value_type th, const SM& g, Sequences& sequences,
-             int rowsOrCols=0, int noSubsequences=0)
+		     int rowsOrCols=0, int noSubsequences=0)
   {
     using namespace std;
 
@@ -282,7 +282,7 @@ namespace nta {
       const size_type* ind = sm.row_nz_index_begin(i);
       const size_type* ind_end = sm.row_nz_index_end(i);
       for (; ind != ind_end; ++ind)
-    add_edge(i, *ind, G);
+	add_edge(i, *ind, G);
     }
 
     graph_traits<Graph>::vertex_iterator ui, ui_end;
@@ -307,27 +307,27 @@ namespace nta {
 
       //reverse cuthill_mckee_ordering
       cuthill_mckee_ordering(G, s, inv_perm.rbegin(), get(vertex_color, G), 
-                 get(vertex_degree, G));
+			     get(vertex_degree, G));
       /*
       cout << "  ";    
       for (std::vector<Vertex>::const_iterator i = inv_perm.begin();
-       i != inv_perm.end(); ++i)
-    cout << index_map[*i] << " ";
+	   i != inv_perm.end(); ++i)
+	cout << index_map[*i] << " ";
       */
 
       for (size_type c = 0; c != inv_perm.size(); ++c)
-    perm[index_map[inv_perm[c]]] = c;
+	perm[index_map[inv_perm[c]]] = c;
 
       size_type bw = 
-    bandwidth(G, make_iterator_property_map(&perm[0], index_map, perm[0]));
+	bandwidth(G, make_iterator_property_map(&perm[0], index_map, perm[0]));
 
       if (bw < best) {
-    best = bw;
-    std::cout << "bandwidth: " 
-          << bw
-          << std::endl;
-    std::copy(perm.begin(), perm.end(), p);
-    std::copy(inv_perm.begin(), inv_perm.end(), rp);
+	best = bw;
+	std::cout << "bandwidth: " 
+		  << bw
+		  << std::endl;
+	std::copy(perm.begin(), perm.end(), p);
+	std::copy(inv_perm.begin(), inv_perm.end(), rp);
       }
     }
   }

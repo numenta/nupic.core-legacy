@@ -79,7 +79,7 @@ namespace nta {
       init = false;
       a[0] = 1.0;
       for (size_t i = 1; i != 171; ++i)
-    a[i] = i * a[i-1];
+	a[i] = i * a[i-1];
     }
     
     if (n < 171)
@@ -96,7 +96,7 @@ namespace nta {
     
     if (init) {
       for (size_t i = 0; i != 2000; ++i)
-    a[i] = lgamma(i+1.0);
+	a[i] = lgamma(i+1.0);
     }
 
     if (n < 2000)
@@ -110,7 +110,7 @@ namespace nta {
   {
     {
       NTA_ASSERT(k <= n)
-    << "binomial: Wrong arguments: n= " << n << " k= " << k;
+	<< "binomial: Wrong arguments: n= " << n << " k= " << k;
     }
 
     if (n < 171)

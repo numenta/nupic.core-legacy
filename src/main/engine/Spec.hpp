@@ -34,7 +34,7 @@ Definition of Spec data structures
 
 namespace nta
 {
-    class NTA_EXPORT InputSpec
+	class NTA_EXPORT InputSpec
   {
   public:  
     InputSpec() {}

@@ -236,7 +236,7 @@ namespace nta {
       NTA_CHECK(check_vector_eq(perm1, perm2, numInputs));
       NTA_DELETE(perm1);
       NTA_DELETE(perm2);
-    }
+	}
 
     for (UInt i = 0; i < numColumns; i++) {
       NTA_CREATE(UInt,con1,numInputs);
@@ -246,7 +246,7 @@ namespace nta {
       NTA_CHECK(check_vector_eq(con1, con2, numInputs));
       NTA_DELETE(con1);
       NTA_DELETE(con2);
-    }
+	}
 
     NTA_CREATE(UInt,conCounts1,numColumns);
     NTA_CREATE(UInt,conCounts2,numColumns)
@@ -574,9 +574,9 @@ namespace nta {
     setup(sp, numInputs, numColumns);
     vector<UInt> overlaps;
 
-    Real initOverlapArr1[] = { 1.0, 1.0, 1.0, 1.0, 1.0 };
+	Real initOverlapArr1[] = { 1.0, 1.0, 1.0, 1.0, 1.0 };
     sp.setOverlapDutyCycles(initOverlapArr1);
-    Real overlapNewVal1[] = { 1.0, 5.0, 7.0, 0.0, 0.0 };
+	Real overlapNewVal1[] = { 1.0, 5.0, 7.0, 0.0, 0.0 };
     overlaps.assign(&overlapNewVal1[0], &overlapNewVal1[numColumns]);
     UInt active[] = {0, 0, 0, 0, 0};
 
@@ -1470,7 +1470,7 @@ namespace nta {
 
 
     density = 0.5;
-    Real overlapsArray2[10] = { 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0 };
+	Real overlapsArray2[10] = { 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0 };
     overlaps.assign(&overlapsArray2[0],&overlapsArray2[numColumns]);
     sp.inhibitColumnsGlobal_(overlaps, density, activeColumns);
     UInt trueActiveArray2[5] = {5,6,7,8,9};
@@ -1557,7 +1557,7 @@ namespace nta {
     UInt trueNeighborsMap1[8] = {0, 0, 1, 0, 1, 0, 0, 0};
     sp.getNeighbors1D_(column, dimensions, radius, wrapAround,
                           neighbors);
-    neighborsMap.assign(numColumns, 0);
+	neighborsMap.assign(numColumns, 0);
     for (UInt i = 0; i < neighbors.size(); i++) {
       neighborsMap[neighbors[i]] = 1;
     }
@@ -1569,7 +1569,7 @@ namespace nta {
     UInt trueNeighborsMap2[8] = {0, 1, 1, 0, 1, 1, 0, 0};
     sp.getNeighbors1D_(column, dimensions, radius, wrapAround,
                           neighbors);
-    neighborsMap.assign(numColumns, 0);
+	neighborsMap.assign(numColumns, 0);
     for (UInt i = 0; i < neighbors.size(); i++) {
       neighborsMap[neighbors[i]] = 1;
     }
@@ -1581,7 +1581,7 @@ namespace nta {
     UInt trueNeighborsMap3[8] = {0, 1, 1, 0, 0, 0, 1, 1};
     sp.getNeighbors1D_(column, dimensions, radius, wrapAround,
                           neighbors);
-    neighborsMap.assign(numColumns, 0);
+	neighborsMap.assign(numColumns, 0);
     for (UInt i = 0; i < neighbors.size(); i++) {
       neighborsMap[neighbors[i]] = 1;
     }
@@ -1877,7 +1877,7 @@ namespace nta {
 
     NTA_CHECK(check_vector_eq((UInt *) trueNeighbors1, neighborsMap));
 
-    neighborsMap.assign(numColumns, 0);
+	neighborsMap.assign(numColumns, 0);
     w = 4;
     z = 1;
     y = 6;
@@ -2029,7 +2029,7 @@ namespace nta {
     UInt trueNeighborsMap6[8] = {0, 0, 1, 0, 1, 0, 0, 0};
     sp.getNeighborsND_(column, dimensions, radius, wrapAround,
                           neighbors);
-    neighborsMap.assign(6, 0);
+	neighborsMap.assign(6, 0);
     for (UInt i = 0; i < neighbors.size(); i++) {
       neighborsMap[neighbors[i]] = 1;
     }
@@ -2044,7 +2044,7 @@ namespace nta {
     UInt trueNeighborsMap7[8] = {0, 1, 1, 0, 1, 1, 0, 0};
     sp.getNeighborsND_(column, dimensions, radius, wrapAround,
                           neighbors);
-    neighborsMap.assign(8, 0);
+	neighborsMap.assign(8, 0);
     for (UInt i = 0; i < neighbors.size(); i++) {
       neighborsMap[neighbors[i]] = 1;
     }
@@ -2059,7 +2059,7 @@ namespace nta {
     UInt trueNeighborsMap8[8] = {0, 1, 1, 0, 0, 0, 1, 1};
     sp.getNeighborsND_(column, dimensions, radius, wrapAround,
                           neighbors);
-    neighborsMap.assign(8, 0);
+	neighborsMap.assign(8, 0);
     for (UInt i = 0; i < neighbors.size(); i++) {
       neighborsMap[neighbors[i]] = 1;
     }
@@ -2075,7 +2075,7 @@ namespace nta {
     UInt trueNeighborsMap9[8] = {0, 1, 1, 1, 1, 1, 1, 1};
     sp.getNeighborsND_(column, dimensions, radius, wrapAround,
                           neighbors);
-    neighborsMap.assign(8, 0);
+	neighborsMap.assign(8, 0);
     for (UInt i = 0; i < neighbors.size(); i++) {
       neighborsMap[neighbors[i]] = 1;
     }
@@ -2092,7 +2092,7 @@ namespace nta {
     UInt trueNeighborsMap10[8] = {0, 1, 1, 1, 1, 1, 1, 1};
     sp.getNeighborsND_(column, dimensions, radius, wrapAround,
                           neighbors);
-    neighborsMap.assign(8, 0);
+	neighborsMap.assign(8, 0);
     for (UInt i = 0; i < neighbors.size(); i++) {
       neighborsMap[neighbors[i]] = 1;
     }

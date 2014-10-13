@@ -2719,7 +2719,7 @@ namespace nta {
         totalBytes = 0;
 
     #if defined(NTA_PLATFORM_win32) || defined(NTA_PLATFORM_win64)
-      // On Windows, don't use MemParser, it's slow.
+	  // On Windows, don't use MemParser, it's slow.
 
       size_type i, j, k, nrows, ncols, nnz, nnzr;
       i = j = k = nrows = ncols = nnz = nnzr = 0;

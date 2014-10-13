@@ -189,7 +189,7 @@ namespace nta {
 //      nrows = 10; ncols = 10;
 //      DenseMat dense(nrows, ncols, 2, true, true, rng_);
 //      for (UInt i = 0; i < ncols; ++i)
-//    dense.at(0, i) = 0;
+//	dense.at(0, i) = 0;
 //      SparseMat sm(0, ncols);
 //      for (UInt i = 0; i < nrows; ++i)
 //        sm.addRow(dense.begin(i));
@@ -264,7 +264,7 @@ namespace nta {
 //        DenseMat dense(nrows, ncols, zr);
 //        SparseMat sm(nrows, ncols, dense.begin());
 //
-//    sm.decompact();
+//	sm.decompact();
 //      
 //        {
 //          std::stringstream str;
@@ -520,9 +520,9 @@ namespace nta {
 //      // ... are read correctly
 //      std::stringstream buf1;
 //      buf1 << "csr -1 3 4 6 "
-//       << "2 0 " << nta::Epsilon/2 << " 1 1 "
-//       << "2 0 " << nta::Epsilon/2 << " 1 " << nta::Epsilon/2 << " "
-//       << "2 0 1 1 1";
+//	   << "2 0 " << nta::Epsilon/2 << " 1 1 "
+//	   << "2 0 " << nta::Epsilon/2 << " 1 " << nta::Epsilon/2 << " "
+//	   << "2 0 1 1 1";
 //      SparseMat sm2(4, 4);
 //      sm2.fromCSR(buf1);
 //    }
@@ -942,8 +942,8 @@ namespace nta {
 //    {
 //      DenseMat dense(nrows, ncols, zr);
 //      for (UInt i = 0; i < nrows; ++i)
-//    for (UInt j = 0; j < ncols; ++j)
-//      dense.at(i,j) = rng_->getReal64();
+//	for (UInt j = 0; j < ncols; ++j)
+//	  dense.at(i,j) = rng_->getReal64();
 //
 //      SparseMat sm4c(nrows, ncols, dense.begin());
 //      
@@ -964,7 +964,7 @@ namespace nta {
 //        DenseMat dense(nrows, ncols, zr);
 //        SparseMat sm(nrows, ncols, dense.begin());
 //
-//    sm.decompact();
+//	sm.decompact();
 //        dense.threshold(Real(.8));                     
 //        sm.threshold(Real(.8));
 //      
@@ -976,7 +976,7 @@ namespace nta {
 //        }  
 //      
 //        sm.compact();
-//    dense.threshold(Real(.7));                     
+//	dense.threshold(Real(.7));                     
 //        sm.threshold(Real(.7));
 //   
 //        {
@@ -999,9 +999,9 @@ namespace nta {
 //      SparseMat sparse(nrows, ncols, dense.begin());
 //      cout << sparse << endl;
 //      for (i = 0; i != nrows; ++i) {
-//    std::vector<Real> dense_row(ncols);
-//    sparse.getRowToDense(i, dense_row.begin());
-//    cout << dense_row << endl;
+//	std::vector<Real> dense_row(ncols);
+//	sparse.getRowToDense(i, dense_row.begin());
+//	cout << dense_row << endl;
 //      }
 //    }
 //
@@ -1040,9 +1040,9 @@ namespace nta {
 //      SparseMat sparse(nrows, ncols, dense.begin());
 //      cout << sparse << endl;
 //      for (i = 0; i != ncols; ++i) {
-//    std::vector<Real> dense_col(nrows);
-//    sparse.getColToDense(i, dense_col.begin());
-//    cout << dense_col << endl;
+//	std::vector<Real> dense_col(nrows);
+//	sparse.getColToDense(i, dense_col.begin());
+//	cout << dense_col << endl;
 //      }
 //    }
 //
@@ -1129,59 +1129,59 @@ namespace nta {
 //    if (0) { // Visual, keep
 //      
 //      { // Add dense row
-//    DenseMat dense(nrows, ncols, zr);
-//    SparseMat sparse(nrows, ncols, dense.begin());
-//    
-//    for (UInt i = 0; i != nrows; ++i) {
-//      std::vector<Real> nz;
-//      dense.getRowToDense(i, back_inserter(nz));
-//      sparse.addRow(nz.begin());
-//    }
-//       
-//    cout << sparse << endl;
+//	DenseMat dense(nrows, ncols, zr);
+//	SparseMat sparse(nrows, ncols, dense.begin());
+//	
+//	for (UInt i = 0; i != nrows; ++i) {
+//	  std::vector<Real> nz;
+//	  dense.getRowToDense(i, back_inserter(nz));
+//	  sparse.addRow(nz.begin());
+//	}
+//	   
+//	cout << sparse << endl;
 //      }
 //
 //      { // Add sparse row
-//    DenseMat dense(nrows, ncols, zr);
-//    SparseMat sparse(nrows, ncols, dense.begin());
-//    
-//    for (UInt i = 0; i != nrows; ++i) {
-//      std::vector<UInt> ind;   
-//      std::vector<Real> nz;
-//      dense.getRowToSparse(i, back_inserter(ind), back_inserter(nz));
-//      sparse.addRow(ind.begin(), ind.end(), nz.begin());
-//    }
-//    
-//    cout << sparse << endl;
+//	DenseMat dense(nrows, ncols, zr);
+//	SparseMat sparse(nrows, ncols, dense.begin());
+//	
+//	for (UInt i = 0; i != nrows; ++i) {
+//	  std::vector<UInt> ind;   
+//	  std::vector<Real> nz;
+//	  dense.getRowToSparse(i, back_inserter(ind), back_inserter(nz));
+//	  sparse.addRow(ind.begin(), ind.end(), nz.begin());
+//	}
+//	
+//	cout << sparse << endl;
 //      }
 //
 //      { // Add dense col
-//    DenseMat dense(nrows, ncols, zr);
-//    SparseMat sparse(nrows, ncols, dense.begin());
-//    
-//    for (UInt i = 0; i != ncols; ++i) {
-//      std::vector<Real> nz;
-//      dense.getColToDense(i, back_inserter(nz));
-//      cout << "Adding: " << nz << endl;
-//      sparse.addCol(nz.begin());
-//    }
-//    
-//    cout << "After adding columns:" << endl;
-//    cout << sparse << endl;
+//	DenseMat dense(nrows, ncols, zr);
+//	SparseMat sparse(nrows, ncols, dense.begin());
+//	
+//	for (UInt i = 0; i != ncols; ++i) {
+//	  std::vector<Real> nz;
+//	  dense.getColToDense(i, back_inserter(nz));
+//	  cout << "Adding: " << nz << endl;
+//	  sparse.addCol(nz.begin());
+//	}
+//	
+//	cout << "After adding columns:" << endl;
+//	cout << sparse << endl;
 //      }
 //
 //      { // Add sparse col
-//    DenseMat dense(nrows, ncols, zr);
-//    SparseMat sparse(nrows, ncols, dense.begin());
-//    
-//    for (UInt i = 0; i != ncols; ++i) {
-//      std::vector<UInt> ind; 
-//      std::vector<Real> nz;
-//      dense.getColToSparse(i, back_inserter(ind), back_inserter(nz));
-//      sparse.addCol(ind.begin(), ind.end(), nz.begin());
-//    }
-//    
-//    cout << sparse << endl;
+//	DenseMat dense(nrows, ncols, zr);
+//	SparseMat sparse(nrows, ncols, dense.begin());
+//	
+//	for (UInt i = 0; i != ncols; ++i) {
+//	  std::vector<UInt> ind; 
+//	  std::vector<Real> nz;
+//	  dense.getColToSparse(i, back_inserter(ind), back_inserter(nz));
+//	  sparse.addCol(ind.begin(), ind.end(), nz.begin());
+//	}
+//	
+//	cout << sparse << endl;
 //      }
 //    }
 //
@@ -1189,16 +1189,16 @@ namespace nta {
 //    TEST_LOOP(M) {
 //    
 //      { // Add dense row
-//    DenseMat dense(nrows, ncols, zr);
-//    SparseMat sparse(nrows, ncols, dense.begin());
-//    
-//    for (UInt i = 0; i != nrows; ++i) {
-//      std::vector<Real> nz;
-//      dense.getRowToDense(i, back_inserter(nz));
-//      sparse.addRow(nz.begin());
-//    }
-//       
-//    {
+//	DenseMat dense(nrows, ncols, zr);
+//	SparseMat sparse(nrows, ncols, dense.begin());
+//	
+//	for (UInt i = 0; i != nrows; ++i) {
+//	  std::vector<Real> nz;
+//	  dense.getRowToDense(i, back_inserter(nz));
+//	  sparse.addRow(nz.begin());
+//	}
+//	   
+//	{
 //          std::stringstream str;
 //          str << "addRow A " << nrows << "X" << ncols << "/" << zr;
 //          Compare(dense, sparse, str.str().c_str());
@@ -1206,17 +1206,17 @@ namespace nta {
 //      }
 //
 //      { // Add sparse row
-//    DenseMat dense(nrows, ncols, zr);
-//    SparseMat sparse(nrows, ncols, dense.begin());
-//    
-//    for (UInt i = 0; i != nrows; ++i) {
-//      std::vector<UInt> ind;   
-//      std::vector<Real> nz;
-//      dense.getRowToSparse(i, back_inserter(ind), back_inserter(nz));
-//      sparse.addRow(ind.begin(), ind.end(), nz.begin());
-//    }
-//    
-//    {
+//	DenseMat dense(nrows, ncols, zr);
+//	SparseMat sparse(nrows, ncols, dense.begin());
+//	
+//	for (UInt i = 0; i != nrows; ++i) {
+//	  std::vector<UInt> ind;   
+//	  std::vector<Real> nz;
+//	  dense.getRowToSparse(i, back_inserter(ind), back_inserter(nz));
+//	  sparse.addRow(ind.begin(), ind.end(), nz.begin());
+//	}
+//	
+//	{
 //          std::stringstream str;
 //          str << "addRow B " << nrows << "X" << ncols << "/" << zr;
 //          Compare(dense, sparse, str.str().c_str());
@@ -1224,16 +1224,16 @@ namespace nta {
 //      }
 //
 //      { // Add dense col
-//    DenseMat dense(nrows, ncols, zr);
-//    SparseMat sparse(nrows, ncols, dense.begin());
-//    
-//    for (UInt i = 0; i != ncols; ++i) {
-//      std::vector<Real> nz;
-//      dense.getColToDense(i, back_inserter(nz));
-//      sparse.addCol(nz.begin());
-//    }
-//    
-//    {
+//	DenseMat dense(nrows, ncols, zr);
+//	SparseMat sparse(nrows, ncols, dense.begin());
+//	
+//	for (UInt i = 0; i != ncols; ++i) {
+//	  std::vector<Real> nz;
+//	  dense.getColToDense(i, back_inserter(nz));
+//	  sparse.addCol(nz.begin());
+//	}
+//	
+//	{
 //          std::stringstream str;
 //          str << "addCol A " << nrows << "X" << ncols << "/" << zr;
 //          Compare(dense, sparse, str.str().c_str());
@@ -1241,17 +1241,17 @@ namespace nta {
 //      }
 //
 //      { // Add sparse col
-//    DenseMat dense(nrows, ncols, zr);
-//    SparseMat sparse(nrows, ncols, dense.begin());
-//    
-//    for (UInt i = 0; i != ncols; ++i) {
-//      std::vector<UInt> ind; 
-//      std::vector<Real> nz;
-//      dense.getColToSparse(i, back_inserter(ind), back_inserter(nz));
-//      sparse.addCol(ind.begin(), ind.end(), nz.begin());
-//    }
+//	DenseMat dense(nrows, ncols, zr);
+//	SparseMat sparse(nrows, ncols, dense.begin());
+//	
+//	for (UInt i = 0; i != ncols; ++i) {
+//	  std::vector<UInt> ind; 
+//	  std::vector<Real> nz;
+//	  dense.getColToSparse(i, back_inserter(ind), back_inserter(nz));
+//	  sparse.addCol(ind.begin(), ind.end(), nz.begin());
+//	}
 //
-//    {
+//	{
 //          std::stringstream str;
 //          str << "addCol B " << nrows << "X" << ncols << "/" << zr;
 //          Compare(dense, sparse, str.str().c_str());
@@ -1441,13 +1441,13 @@ namespace nta {
 //    // Stress test to see the interaction with deleteRows and deleteCols
 //    for (UInt i = 0; i < 20; ++i) {
 //      sm.resize(rng_->getUInt32(256), rng_->getUInt32(256));
-//      vector<UInt> del_r;    
+//      vector<UInt> del_r;	
 //      for (UInt ii = 0; ii < sm.nRows()/4; ++ii)
-//    del_r.push_back(2*ii);
+//	del_r.push_back(2*ii);
 //      sm.deleteRows(del_r.begin(), del_r.end());
-//      vector<UInt> del_c;    
+//      vector<UInt> del_c;	
 //      for (UInt ii = 0; ii < sm.nCols()/4; ++ii)
-//    del_c.push_back(2*ii);
+//	del_c.push_back(2*ii);
 //      sm.deleteCols(del_c.begin(), del_c.end());
 //    }
 //  }
@@ -1496,39 +1496,39 @@ namespace nta {
 //
 //    { // matrix with only 1 row
 //      { // 1 row, 1 del
-//    SparseMat sm(0, 3);
-//    vector<UInt> del(1); del[0] = 0;
-//    std::vector<Real> v(3); v[0] = 1.5; v[1] = 2.5; v[2] = 3.5;
+//	SparseMat sm(0, 3);
+//	vector<UInt> del(1); del[0] = 0;
+//	std::vector<Real> v(3); v[0] = 1.5; v[1] = 2.5; v[2] = 3.5;
 //
-//    sm.addRow(v.begin());
-//    sm.deleteRows(del.begin(), del.end());
-//    Test("SparseMatrix::deleteRows() 1 row A", sm.nRows(), UInt(0));
+//	sm.addRow(v.begin());
+//	sm.deleteRows(del.begin(), del.end());
+//	Test("SparseMatrix::deleteRows() 1 row A", sm.nRows(), UInt(0));
 //
-//    // Test that it is harmless to delete an empty matrix
-//    sm.deleteRows(del.begin(), del.end());
-//    Test("SparseMatrix::deleteRows() 1 row B", sm.nRows(), UInt(0));
+//	// Test that it is harmless to delete an empty matrix
+//	sm.deleteRows(del.begin(), del.end());
+//	Test("SparseMatrix::deleteRows() 1 row B", sm.nRows(), UInt(0));
 //
-//    sm.addRow(v.begin());
-//    sm.deleteRows(del.begin(), del.end());
-//    Test("SparseMatrix::deleteRows() 1 row C", sm.nRows(), UInt(0));
+//	sm.addRow(v.begin());
+//	sm.deleteRows(del.begin(), del.end());
+//	Test("SparseMatrix::deleteRows() 1 row C", sm.nRows(), UInt(0));
 //
-//    // Again, test that it is harmless to delete an empty matrix
-//    sm.deleteRows(del.begin(), del.end());
-//    Test("SparseMatrix::deleteRows() 1 row D", sm.nRows(), UInt(0));
+//	// Again, test that it is harmless to delete an empty matrix
+//	sm.deleteRows(del.begin(), del.end());
+//	Test("SparseMatrix::deleteRows() 1 row D", sm.nRows(), UInt(0));
 //      }
 //
 //      { // PLG-68: was failing when adding again because 
-//    // deleteRows was not updating nrows_max_ properly
-//    SparseMatrix<size_t, double> tam;
-//    vector<double> x(4), del(1, 0);    
-//    x[0] = .5; x[1] = .75; x[2] = 1.0; x[3] = 1.25;
-//    
-//    tam.resize(1, 4);
-//    tam.elementRowApply(0, std::plus<double>(), x.begin());
-//    tam.deleteRows(del.begin(), del.end());
-//    
-//    tam.resize(1, 4);
-//    tam.elementRowApply(0, std::plus<double>(), x.begin());
+//	// deleteRows was not updating nrows_max_ properly
+//	SparseMatrix<size_t, double> tam;
+//	vector<double> x(4), del(1, 0);    
+//	x[0] = .5; x[1] = .75; x[2] = 1.0; x[3] = 1.25;
+//	
+//	tam.resize(1, 4);
+//	tam.elementRowApply(0, std::plus<double>(), x.begin());
+//	tam.deleteRows(del.begin(), del.end());
+//	
+//	tam.resize(1, 4);
+//	tam.elementRowApply(0, std::plus<double>(), x.begin());
 //      }
 //    }
 //
@@ -1602,13 +1602,13 @@ namespace nta {
 //            SparseMat sm(nrows, ncols, dense.begin());
 //            DenseMat dense2(nrows, ncols, zr);
 //            UInt* del = new UInt[nrows-1];
-//              for (UInt i = 0; i < nrows-1; ++i)    
+//	          for (UInt i = 0; i < nrows-1; ++i)    
 //              del[i] = i + 1;
-//              sm.deleteRows(del, del + nrows-2);
-//              dense2.deleteRows(del, del + nrows-2);
-//              Compare(dense2, sm, "SparseMatrix::deleteRows() 6E");
+//	          sm.deleteRows(del, del + nrows-2);
+//	          dense2.deleteRows(del, del + nrows-2);
+//	          Compare(dense2, sm, "SparseMatrix::deleteRows() 6E");
 //            delete [] del;
-//            }
+//	        }
 //        }
 //
 //        { // Many dels discontiguous
@@ -1631,7 +1631,7 @@ namespace nta {
 //          Test("SparseMatrix::deleteRows() 8", sm.nRows(), UInt(0));
 //        }
 //
-//    /*
+//	/*
 //        { // More than all rows => exception in assert mode
 //          SparseMat sm(nrows, ncols, dense.begin());
 //          vector<UInt> del; 
@@ -1640,7 +1640,7 @@ namespace nta {
 //          sm.deleteRows(del.begin(), del.end());
 //          Test("SparseMatrix::deleteRows() 9", sm.nRows(), UInt(0));
 //        }
-//    */
+//	*/
 //
 //        { // Several dels in a row till empty
 //          SparseMat sm(nrows, ncols, dense.begin());
@@ -1706,7 +1706,7 @@ namespace nta {
 //      SparseMat sm(7, 3);
 //      vector<Real> row(3, 0);
 //      for (UInt i = 0; i < 7; ++i)
-//    sm.addRow(row.begin());
+//	sm.addRow(row.begin());
 //      //cout << sm << endl << endl;
 //      vector<UInt> del(1, 0);
 //      sm.deleteCols(del.begin(), del.end());
@@ -1808,24 +1808,24 @@ namespace nta {
 //      
 //      cout << endl << "Setting all elements to zero one by one" << endl;
 //      ITER_2(nrows, ncols) 
-//    sparse.setZero(i, j);
+//	sparse.setZero(i, j);
 //      cout << "After:" << endl << sparse << endl;
 //
 //      // setNonZero
 //      cout << endl << "Setting all elements one by one to:" << endl;
 //      cout << dense << endl;
 //      ITER_2(nrows, ncols) {
-//    sparse.setNonZero(i, j, dense.at(i,j)+1);
-//    dense.at(i,j) = dense.at(i,j) + 1;
+//	sparse.setNonZero(i, j, dense.at(i,j)+1);
+//	dense.at(i,j) = dense.at(i,j) + 1;
 //      }
 //      cout << "After:" << endl << sparse << endl;
 //
 //      // set
 //      cout << endl << "Setting all elements" << endl;
 //      ITER_2(nrows, ncols) {
-//    Real val = (Real) ((i+j) % 5); 
-//    sparse.set(i, j, val);
-//    dense.at(i,j) = val;
+//	Real val = (Real) ((i+j) % 5); 
+//	sparse.set(i, j, val);
+//	dense.at(i,j) = val;
 //      }
 //      cout << "After:" << endl << sparse << endl;
 //      cout << "Should be:" << endl << dense << endl;
@@ -1841,16 +1841,16 @@ namespace nta {
 //          DenseMat dense(nrows, ncols);   
 //
 //          ITER_2(nrows, ncols) {
-//        Real val = Real((i*ncols+j+1)%5);
+//	    Real val = Real((i*ncols+j+1)%5);
 //            sm.set(i, j, val);
 //            dense.at(i, j) = val;
 //          }
 //          bool correct = true;
 //          ITER_2(nrows, ncols) {  
-//        Real val = Real((i*ncols+j+1)%5);
+//	    Real val = Real((i*ncols+j+1)%5);
 //            if (sm.get(i, j) != val)
 //              correct = false;
-//      }
+//	  }
 //          Test("SparseMatrix set/get 1", correct, true);
 //
 //          ITER_1(nrows) {
@@ -1899,106 +1899,106 @@ namespace nta {
 //      
 //      cout << endl << "Setting all rows to zero" << endl;
 //      for (UInt i = 0; i != nrows; ++i) {
-//    cout << "isRowZero(" << i << ")= "
-//         << (sparse.isRowZero(i) ? "YES" : "NO") 
-//         << endl;
-//    sparse.setRowToZero(i);
-//    cout << "Zeroing row " << i << ":" << endl 
-//         << sparse << endl;
-//    cout << "isRowZero(" << i << ")= "
-//         << (sparse.isRowZero(i) ? "YES" : "NO") 
-//         << endl;
-//    cout << endl;
+//	cout << "isRowZero(" << i << ")= "
+//	     << (sparse.isRowZero(i) ? "YES" : "NO") 
+//	     << endl;
+//	sparse.setRowToZero(i);
+//	cout << "Zeroing row " << i << ":" << endl 
+//	     << sparse << endl;
+//	cout << "isRowZero(" << i << ")= "
+//	     << (sparse.isRowZero(i) ? "YES" : "NO") 
+//	     << endl;
+//	cout << endl;
 //      }
 //
 //      // setColToZero
 //      cout << endl << "Setting all columns to zero - 1" << endl;
 //      ITER_2(nrows, ncols) 
-//    sparse.set(i, j, dense.at(i,j));
+//	sparse.set(i, j, dense.at(i,j));
 //      cout << "Initially: " << endl << sparse << endl;
 //      for (UInt j = 0; j != ncols; ++j) {
-//    cout << "isColZero(" << j << ")= "
-//         << (sparse.isColZero(j) ? "YES" : "NO") 
-//         << endl;
-//    sparse.setColToZero(j);
-//    cout << "Zeroing column " << j << ":" << endl 
-//         << sparse << endl;
-//    cout << "isColZero(" << j << ")= "
-//         << (sparse.isColZero(j) ? "YES" : "NO") 
-//         << endl;
-//    cout << endl;   
+//	cout << "isColZero(" << j << ")= "
+//	     << (sparse.isColZero(j) ? "YES" : "NO") 
+//	     << endl;
+//	sparse.setColToZero(j);
+//	cout << "Zeroing column " << j << ":" << endl 
+//	     << sparse << endl;
+//	cout << "isColZero(" << j << ")= "
+//	     << (sparse.isColZero(j) ? "YES" : "NO") 
+//	     << endl;
+//	cout << endl;   
 //      }
 //      
 //      // Again, with a dense matrix, so we can see what happens 
 //      // to the first and last columns
 //      cout << endl << "Setting all columns to zero - 2" << endl;
 //      ITER_2(nrows, ncols)
-//    sparse.set(i,j,(Real)(i+j));
+//	sparse.set(i,j,(Real)(i+j));
 //      cout << "Initially: " << endl << sparse << endl;
 //      for (UInt j = 0; j != ncols; ++j) {
-//    cout << "isColZero(" << j << ")= "
-//         << (sparse.isColZero(j) ? "YES" : "NO") 
-//         << endl;
-//    sparse.setColToZero(j);
-//    cout << "Zeroing column " << j << ":" << endl 
-//         << sparse << endl;
-//    cout << "isColZero(" << j << ")= "
-//         << (sparse.isColZero(j) ? "YES" : "NO") 
-//         << endl;
-//    cout << endl;
+//	cout << "isColZero(" << j << ")= "
+//	     << (sparse.isColZero(j) ? "YES" : "NO") 
+//	     << endl;
+//	sparse.setColToZero(j);
+//	cout << "Zeroing column " << j << ":" << endl 
+//	     << sparse << endl;
+//	cout << "isColZero(" << j << ")= "
+//	     << (sparse.isColZero(j) ? "YES" : "NO") 
+//	     << endl;
+//	cout << endl;
 //      }
 //    } // End visual tests
 //    
 //    // Automated tests
 //    for (nrows = 0; nrows < 16; nrows += 3)
 //      for (ncols = 0; ncols < 16; ncols += 3)
-//    for (zr = 0; zr < 16; zr += 3) 
-//      {
-//        { // compact - remove rows
-//          DenseMat dense(nrows, ncols, zr);
-//          SparseMat sparse(nrows, ncols, dense.begin());
-//    
-//          for (UInt i = 0; i != nrows; ++i) {
-//        sparse.setRowToZero(i);
-//        dense.setRowToZero(i);
-//        Compare(dense, sparse, "SparseMatrix setRowToZero 1");
-//          }
-//        }
+//	for (zr = 0; zr < 16; zr += 3) 
+//	  {
+//	    { // compact - remove rows
+//	      DenseMat dense(nrows, ncols, zr);
+//	      SparseMat sparse(nrows, ncols, dense.begin());
+//	
+//	      for (UInt i = 0; i != nrows; ++i) {
+//		sparse.setRowToZero(i);
+//		dense.setRowToZero(i);
+//		Compare(dense, sparse, "SparseMatrix setRowToZero 1");
+//	      }
+//	    }
 //      
-//        { // decompact - remove rows
-//          DenseMat dense(nrows, ncols, zr);
-//          SparseMat sparse(nrows, ncols, dense.begin());
-//          sparse.decompact();
+//	    { // decompact - remove rows
+//	      DenseMat dense(nrows, ncols, zr);
+//	      SparseMat sparse(nrows, ncols, dense.begin());
+//	      sparse.decompact();
 //
-//          for (UInt i = 0; i != nrows; ++i) {
-//        sparse.setRowToZero(i);
-//        dense.setRowToZero(i);
-//        Compare(dense, sparse, "SparseMatrix setRowToZero 2");
-//          }
-//        }
+//	      for (UInt i = 0; i != nrows; ++i) {
+//		sparse.setRowToZero(i);
+//		dense.setRowToZero(i);
+//		Compare(dense, sparse, "SparseMatrix setRowToZero 2");
+//	      }
+//	    }
 //
-//        { // compact - remove columns
-//          DenseMat dense(nrows, ncols, zr);
-//          SparseMat sparse(nrows, ncols, dense.begin());
+//	    { // compact - remove columns
+//	      DenseMat dense(nrows, ncols, zr);
+//	      SparseMat sparse(nrows, ncols, dense.begin());
 //
-//          for (UInt j = 0; j != ncols; ++j) {
-//        sparse.setColToZero(j);
-//        dense.setColToZero(j);
-//        Compare(dense, sparse, "SparseMatrix setColToZero 1");
-//          }
-//        }
+//	      for (UInt j = 0; j != ncols; ++j) {
+//		sparse.setColToZero(j);
+//		dense.setColToZero(j);
+//		Compare(dense, sparse, "SparseMatrix setColToZero 1");
+//	      }
+//	    }
 //        
-//        { // decompact - remove columns
-//          DenseMat dense(nrows, ncols, zr);
-//          SparseMat sparse(nrows, ncols, dense.begin());
+//	    { // decompact - remove columns
+//	      DenseMat dense(nrows, ncols, zr);
+//	      SparseMat sparse(nrows, ncols, dense.begin());
 // 
-//          for (UInt j = 0; j != ncols; ++j) {
-//        sparse.setColToZero(j);
-//        dense.setColToZero(j);
-//        Compare(dense, sparse, "SparseMatrix setColToZero 2");
-//          }
-//        }
-//      }
+//	      for (UInt j = 0; j != ncols; ++j) {
+//		sparse.setColToZero(j);
+//		dense.setColToZero(j);
+//		Compare(dense, sparse, "SparseMatrix setColToZero 2");
+//	      }
+//	    }
+//	  }
 //  }
 // 
 //  //--------------------------------------------------------------------------------
@@ -2733,32 +2733,32 @@ namespace nta {
 //        DenseMat dense(nrows, ncols, zr);
 //        SparseMat sparse(nrows, ncols, dense.begin());
 //
-//    dense.max(m_i_dense, m_j_dense, m_val_dense);
+//	dense.max(m_i_dense, m_j_dense, m_val_dense);
 //
 //        sparse.decompact();
-//    sparse.max(m_i_sparse, m_j_sparse, m_val_sparse);
+//	sparse.max(m_i_sparse, m_j_sparse, m_val_sparse);
 //      
 //        {
 //          std::stringstream str;
 //          str << "argMax A " << nrows << "X" << ncols << "/" << zr
 //              << " - non compact";
-//      if (m_i_sparse != m_i_dense
-//          || m_j_sparse != m_j_dense
-//          || !nta::nearlyEqual(m_val_sparse, m_val_dense))
-//        Test(str.str().c_str(), 0, 1);
+//	  if (m_i_sparse != m_i_dense
+//	      || m_j_sparse != m_j_dense
+//	      || !nta::nearlyEqual(m_val_sparse, m_val_dense))
+//	    Test(str.str().c_str(), 0, 1);
 //        }      
 //               
 //        sparse.compact();
-//    sparse.max(m_i_sparse, m_j_sparse, m_val_sparse);
+//	sparse.max(m_i_sparse, m_j_sparse, m_val_sparse);
 //
 //        {
 //          std::stringstream str;
 //          str << "argMax B " << nrows << "X" << ncols << "/" << zr
 //              << " - non compact";
-//      if (m_i_sparse != m_i_dense
-//          || m_j_sparse != m_j_dense
-//          || !nta::nearlyEqual(m_val_sparse, m_val_dense))
-//        Test(str.str().c_str(), 0, 1);
+//	  if (m_i_sparse != m_i_dense
+//	      || m_j_sparse != m_j_dense
+//	      || !nta::nearlyEqual(m_val_sparse, m_val_dense))
+//	    Test(str.str().c_str(), 0, 1);
 //        }
 //      }
 //    }
@@ -2777,33 +2777,33 @@ namespace nta {
 //        DenseMat dense(nrows, ncols, zr);
 //        SparseMat sparse(nrows, ncols, dense.begin());
 //
-//    dense.min(m_i_dense, m_j_dense, m_val_dense);
+//	dense.min(m_i_dense, m_j_dense, m_val_dense);
 //
 //        sparse.decompact();
-//    sparse.min(m_i_sparse, m_j_sparse, m_val_sparse);
+//	sparse.min(m_i_sparse, m_j_sparse, m_val_sparse);
 //      
 //        {
 //          std::stringstream str;
 //          str << "argMin A " << nrows << "X" << ncols << "/" << zr
 //              << " - non compact";
-//      if (m_i_sparse != m_i_dense
-//          || m_j_sparse != m_j_dense
-//          || !nta::nearlyEqual(m_val_sparse, m_val_dense)) {
-//        Test(str.str().c_str(), 0, 1);
-//      }
+//	  if (m_i_sparse != m_i_dense
+//	      || m_j_sparse != m_j_dense
+//	      || !nta::nearlyEqual(m_val_sparse, m_val_dense)) {
+//	    Test(str.str().c_str(), 0, 1);
+//	  }
 //        }      
 //               
 //        sparse.compact();
-//    sparse.min(m_i_sparse, m_j_sparse, m_val_sparse);
+//	sparse.min(m_i_sparse, m_j_sparse, m_val_sparse);
 //
 //        {
 //          std::stringstream str;
 //          str << "argMin B " << nrows << "X" << ncols << "/" << zr
 //              << " - non compact";
-//      if (m_i_sparse != m_i_dense
-//          || m_j_sparse != m_j_dense
-//          || !nta::nearlyEqual(m_val_sparse, m_val_dense))
-//        Test(str.str().c_str(), 0, 1);
+//	  if (m_i_sparse != m_i_dense
+//	      || m_j_sparse != m_j_dense
+//	      || !nta::nearlyEqual(m_val_sparse, m_val_dense))
+//	    Test(str.str().c_str(), 0, 1);
 //        }
 //      }
 //    }
@@ -2819,64 +2819,64 @@ namespace nta {
 //   
 //        DenseMat dense(nrows, ncols, zr);
 //        SparseMat sparse(nrows, ncols, dense.begin());
-//    std::vector<std::pair<UInt, Real> > optima_sparse(nrows), optima_dense(nrows);
+//	std::vector<std::pair<UInt, Real> > optima_sparse(nrows), optima_dense(nrows);
 //
-//    dense.rowMax(optima_dense.begin());
+//	dense.rowMax(optima_dense.begin());
 //
 //        sparse.decompact();
 //
-//    for (UInt i = 0; i != nrows; ++i) {
+//	for (UInt i = 0; i != nrows; ++i) {
 //
-//      std::pair<UInt,Real> res_sparse;
-//      sparse.rowMax(i, res_sparse.first, res_sparse.second);
+//	  std::pair<UInt,Real> res_sparse;
+//	  sparse.rowMax(i, res_sparse.first, res_sparse.second);
 //
-//      std::stringstream str;
+//	  std::stringstream str;
 //          str << "rowMax 2 A " << nrows << "X" << ncols << "/" << zr
 //              << " - non compact";
-//      if (optima_dense[i].first != res_sparse.first
-//          || !nearlyEqual(optima_dense[i].second, res_sparse.second))
-//        Test(str.str().c_str(), 0, 1);   
-//    }
+//	  if (optima_dense[i].first != res_sparse.first
+//	      || !nearlyEqual(optima_dense[i].second, res_sparse.second))
+//	    Test(str.str().c_str(), 0, 1);   
+//	}
 //
-//    sparse.rowMax(optima_sparse.begin());
+//	sparse.rowMax(optima_sparse.begin());
 //      
 //        {
 //          std::stringstream str;
 //          str << "rowMax 2 B " << nrows << "X" << ncols << "/" << zr
 //              << " - non compact";
-//      for (UInt i = 0; i != nrows; ++i) {
-//        if (optima_dense[i].first != optima_sparse[i].first
-//        || !nta::nearlyEqual(optima_dense[i].second, optima_sparse[i].second))
-//          Test(str.str().c_str(), 0, 1);
-//      }
+//	  for (UInt i = 0; i != nrows; ++i) {
+//	    if (optima_dense[i].first != optima_sparse[i].first
+//		|| !nta::nearlyEqual(optima_dense[i].second, optima_sparse[i].second))
+//	      Test(str.str().c_str(), 0, 1);
+//	  }
 //        }      
 //               
 //        sparse.compact();
 //
-//    for (UInt i = 0; i != nrows; ++i) {
+//	for (UInt i = 0; i != nrows; ++i) {
 //
-//      std::pair<UInt,Real> res_sparse;
-//      sparse.rowMax(i, res_sparse.first, res_sparse.second);
+//	  std::pair<UInt,Real> res_sparse;
+//	  sparse.rowMax(i, res_sparse.first, res_sparse.second);
 //
-//      std::stringstream str;
+//	  std::stringstream str;
 //          str << "rowMax 2 C " << nrows << "X" << ncols << "/" << zr
 //              << " - non compact";
-//      if (optima_dense[i].first != res_sparse.first
-//          || !nearlyEqual(optima_dense[i].second, res_sparse.second))
-//          Test(str.str().c_str(), 0, 1);
-//    }
+//	  if (optima_dense[i].first != res_sparse.first
+//	      || !nearlyEqual(optima_dense[i].second, res_sparse.second))
+//	      Test(str.str().c_str(), 0, 1);
+//	}
 //
-//    sparse.rowMax(optima_sparse.begin());
+//	sparse.rowMax(optima_sparse.begin());
 //
 //        {
 //          std::stringstream str;
 //          str << "rowMax 2 D " << nrows << "X" << ncols << "/" << zr
 //              << " - non compact";
-//      for (UInt i = 0; i != nrows; ++i) {
-//        if (optima_dense[i].first != optima_sparse[i].first
-//        || !nta::nearlyEqual(optima_dense[i].second, optima_sparse[i].second))
-//          Test(str.str().c_str(), 0, 1);
-//      }
+//	  for (UInt i = 0; i != nrows; ++i) {
+//	    if (optima_dense[i].first != optima_sparse[i].first
+//		|| !nta::nearlyEqual(optima_dense[i].second, optima_sparse[i].second))
+//	      Test(str.str().c_str(), 0, 1);
+//	  }
 //        }
 //      }
 //    }
@@ -2892,64 +2892,64 @@ namespace nta {
 //   
 //        DenseMat dense(nrows, ncols, zr);
 //        SparseMat sparse(nrows, ncols, dense.begin());
-//    std::vector<std::pair<UInt, Real> > optima_sparse(nrows), optima_dense(nrows);
+//	std::vector<std::pair<UInt, Real> > optima_sparse(nrows), optima_dense(nrows);
 //
-//    dense.rowMin(optima_dense.begin());
+//	dense.rowMin(optima_dense.begin());
 //
 //        sparse.decompact();
 //
-//    for (UInt i = 0; i != nrows; ++i) {
+//	for (UInt i = 0; i != nrows; ++i) {
 //
-//      std::pair<UInt,Real> res_sparse;
-//      sparse.rowMin(i, res_sparse.first, res_sparse.second);
+//	  std::pair<UInt,Real> res_sparse;
+//	  sparse.rowMin(i, res_sparse.first, res_sparse.second);
 //
-//      std::stringstream str;
+//	  std::stringstream str;
 //          str << "rowMin A " << nrows << "X" << ncols << "/" << zr
 //              << " - non compact";
-//      if (optima_dense[i].first != res_sparse.first
-//          || !nearlyEqual(optima_dense[i].second, res_sparse.second))
-//          Test(str.str().c_str(), 0, 1);
-//    }
+//	  if (optima_dense[i].first != res_sparse.first
+//	      || !nearlyEqual(optima_dense[i].second, res_sparse.second))
+//	      Test(str.str().c_str(), 0, 1);
+//	}
 //
-//    sparse.rowMin(optima_sparse.begin());
+//	sparse.rowMin(optima_sparse.begin());
 //      
 //        {
 //          std::stringstream str;
 //          str << "rowMin B " << nrows << "X" << ncols << "/" << zr
 //              << " - non compact";
-//      for (UInt i = 0; i != nrows; ++i) {
-//        if (optima_dense[i].first != optima_sparse[i].first
-//        || !nta::nearlyEqual(optima_dense[i].second, optima_sparse[i].second))
-//          Test(str.str().c_str(), 0, 1);
-//      }
+//	  for (UInt i = 0; i != nrows; ++i) {
+//	    if (optima_dense[i].first != optima_sparse[i].first
+//		|| !nta::nearlyEqual(optima_dense[i].second, optima_sparse[i].second))
+//	      Test(str.str().c_str(), 0, 1);
+//	  }
 //        }      
 //               
 //        sparse.compact();
 //
-//    for (UInt i = 0; i != nrows; ++i) {
+//	for (UInt i = 0; i != nrows; ++i) {
 //
-//      std::pair<UInt,Real> res_sparse;
-//      sparse.rowMin(i, res_sparse.first, res_sparse.second);
+//	  std::pair<UInt,Real> res_sparse;
+//	  sparse.rowMin(i, res_sparse.first, res_sparse.second);
 //
-//      std::stringstream str;
+//	  std::stringstream str;
 //          str << "rowMin C " << nrows << "X" << ncols << "/" << zr
 //              << " - non compact";
-//      if (optima_dense[i].first != res_sparse.first
-//          || !nearlyEqual(optima_dense[i].second, res_sparse.second))
-//          Test(str.str().c_str(), 0, 1);
-//    }
+//	  if (optima_dense[i].first != res_sparse.first
+//	      || !nearlyEqual(optima_dense[i].second, res_sparse.second))
+//	      Test(str.str().c_str(), 0, 1);
+//	}
 //
-//    sparse.rowMin(optima_sparse.begin());
+//	sparse.rowMin(optima_sparse.begin());
 //
 //        {
 //          std::stringstream str;
 //          str << "rowMin D " << nrows << "X" << ncols << "/" << zr
 //              << " - non compact";
-//      for (UInt i = 0; i != nrows; ++i) {
-//        if (optima_dense[i].first != optima_sparse[i].first
-//        || !nta::nearlyEqual(optima_dense[i].second, optima_sparse[i].second))
-//          Test(str.str().c_str(), 0, 1);
-//      }
+//	  for (UInt i = 0; i != nrows; ++i) {
+//	    if (optima_dense[i].first != optima_sparse[i].first
+//		|| !nta::nearlyEqual(optima_dense[i].second, optima_sparse[i].second))
+//	      Test(str.str().c_str(), 0, 1);
+//	  }
 //        }
 //      }
 //    }
@@ -2965,10 +2965,10 @@ namespace nta {
 //      SparseMat sparse(nrows, ncols, dense.begin());
 //      cout << sparse << endl;
 //      for (UInt j = 0; j != ncols; ++j) {
-//    UInt col_max_i;
-//    Real col_max;
-//    sparse.colMax(j, col_max_i, col_max);
-//    cout << j << " " << col_max_i << " " << col_max << endl;
+//	UInt col_max_i;
+//	Real col_max;
+//	sparse.colMax(j, col_max_i, col_max);
+//	cout << j << " " << col_max_i << " " << col_max << endl;
 //      }
 //    }
 //
@@ -2977,64 +2977,64 @@ namespace nta {
 //   
 //        DenseMat dense(nrows, ncols, zr);
 //        SparseMat sparse(nrows, ncols, dense.begin());
-//    std::vector<std::pair<UInt, Real> > optima_sparse(ncols), optima_dense(ncols);
+//	std::vector<std::pair<UInt, Real> > optima_sparse(ncols), optima_dense(ncols);
 //
-//    dense.colMax(optima_dense.begin());
+//	dense.colMax(optima_dense.begin());
 //
 //        sparse.decompact();
 //
-//    for (UInt j = 0; j != ncols; ++j) {
+//	for (UInt j = 0; j != ncols; ++j) {
 //
-//      std::pair<UInt,Real> res_sparse;
-//      sparse.colMax(j, res_sparse.first, res_sparse.second);
+//	  std::pair<UInt,Real> res_sparse;
+//	  sparse.colMax(j, res_sparse.first, res_sparse.second);
 //
-//      std::stringstream str;
+//	  std::stringstream str;
 //          str << "colMax A " << nrows << "X" << ncols << "/" << zr
 //              << " - non compact";
-//      if (optima_dense[j].first != res_sparse.first
-//          || !nearlyEqual(optima_dense[j].second, res_sparse.second))
-//        Test(str.str().c_str(), 0, 1);      
-//    }
+//	  if (optima_dense[j].first != res_sparse.first
+//	      || !nearlyEqual(optima_dense[j].second, res_sparse.second))
+//	    Test(str.str().c_str(), 0, 1);	  
+//	}
 //
-//    sparse.colMax(optima_sparse.begin());
+//	sparse.colMax(optima_sparse.begin());
 //      
 //        {
 //          std::stringstream str;
 //          str << "colMax B " << nrows << "X" << ncols << "/" << zr
 //              << " - non compact";
-//      for (UInt j = 0; j != ncols; ++j) {
-//        if (optima_dense[j].first != optima_sparse[j].first
-//        || !nta::nearlyEqual(optima_dense[j].second, optima_sparse[j].second))
-//          Test(str.str().c_str(), 0, 1);
-//      }
+//	  for (UInt j = 0; j != ncols; ++j) {
+//	    if (optima_dense[j].first != optima_sparse[j].first
+//		|| !nta::nearlyEqual(optima_dense[j].second, optima_sparse[j].second))
+//	      Test(str.str().c_str(), 0, 1);
+//	  }
 //        }      
 //               
 //        sparse.compact();
 //
-//    for (UInt i = 0; i != ncols; ++i) {
+//	for (UInt i = 0; i != ncols; ++i) {
 //
-//      std::pair<UInt,Real> res_sparse;
-//      sparse.colMax(i, res_sparse.first, res_sparse.second);
+//	  std::pair<UInt,Real> res_sparse;
+//	  sparse.colMax(i, res_sparse.first, res_sparse.second);
 //
-//      std::stringstream str;
+//	  std::stringstream str;
 //          str << "colMax C " << nrows << "X" << ncols << "/" << zr
 //              << " - non compact";
-//      if (optima_dense[i].first != res_sparse.first
-//          || !nearlyEqual(optima_dense[i].second, res_sparse.second))
-//        Test(str.str().c_str(), 0, 1);
-//    }
+//	  if (optima_dense[i].first != res_sparse.first
+//	      || !nearlyEqual(optima_dense[i].second, res_sparse.second))
+//	    Test(str.str().c_str(), 0, 1);
+//	}
 //
-//    sparse.colMax(optima_sparse.begin());
+//	sparse.colMax(optima_sparse.begin());
 //
 //        {
 //          std::stringstream str;
 //          str << "colMax D " << nrows << "X" << ncols << "/" << zr
 //              << " - non compact";
-//      for (UInt i = 0; i != ncols; ++i) {
-//        if (optima_dense[i].first != optima_sparse[i].first
-//        || !nta::nearlyEqual(optima_dense[i].second, optima_sparse[i].second))
-//          Test(str.str().c_str(), 0, 1);
-//      }
+//	  for (UInt i = 0; i != ncols; ++i) {
+//	    if (optima_dense[i].first != optima_sparse[i].first
+//		|| !nta::nearlyEqual(optima_dense[i].second, optima_sparse[i].second))
+//	      Test(str.str().c_str(), 0, 1);
+//	  }
 //        }
 //      }
 //    }
@@ -3050,64 +3050,64 @@ namespace nta {
 //   
 //        DenseMat dense(nrows, ncols, zr);
 //        SparseMat sparse(nrows, ncols, dense.begin());
-//    std::vector<std::pair<UInt, Real> > optima_sparse(ncols), optima_dense(ncols);
+//	std::vector<std::pair<UInt, Real> > optima_sparse(ncols), optima_dense(ncols);
 //
-//    dense.colMin(optima_dense.begin());
+//	dense.colMin(optima_dense.begin());
 //
 //        sparse.decompact();
 //
-//    for (UInt i = 0; i != ncols; ++i) {
+//	for (UInt i = 0; i != ncols; ++i) {
 //
-//      std::pair<UInt,Real> res_sparse;
-//      sparse.colMin(i, res_sparse.first, res_sparse.second);
+//	  std::pair<UInt,Real> res_sparse;
+//	  sparse.colMin(i, res_sparse.first, res_sparse.second);
 //
-//      std::stringstream str;
+//	  std::stringstream str;
 //          str << "rowMax 2 A " << nrows << "X" << ncols << "/" << zr
 //              << " - non compact";
-//      if (optima_dense[i].first != res_sparse.first
-//          || !nearlyEqual(optima_dense[i].second, res_sparse.second))
-//        Test(str.str().c_str(), 0, 1);
-//    }
+//	  if (optima_dense[i].first != res_sparse.first
+//	      || !nearlyEqual(optima_dense[i].second, res_sparse.second))
+//	    Test(str.str().c_str(), 0, 1);
+//	}
 //
-//    sparse.colMin(optima_sparse.begin());
+//	sparse.colMin(optima_sparse.begin());
 //      
 //        {
 //          std::stringstream str;
 //          str << "rowMax 2 B " << nrows << "X" << ncols << "/" << zr
 //              << " - non compact";
-//      for (UInt i = 0; i != ncols; ++i) {
-//        if (optima_dense[i].first != optima_sparse[i].first
-//        || !nta::nearlyEqual(optima_dense[i].second, optima_sparse[i].second))
-//          Test(str.str().c_str(), 0, 1);
-//      }
+//	  for (UInt i = 0; i != ncols; ++i) {
+//	    if (optima_dense[i].first != optima_sparse[i].first
+//		|| !nta::nearlyEqual(optima_dense[i].second, optima_sparse[i].second))
+//	      Test(str.str().c_str(), 0, 1);
+//	  }
 //        }      
 //               
 //        sparse.compact();
 //
-//    for (UInt i = 0; i != ncols; ++i) {
+//	for (UInt i = 0; i != ncols; ++i) {
 //
-//      std::pair<UInt,Real> res_sparse;
-//      sparse.colMin(i, res_sparse.first, res_sparse.second);
+//	  std::pair<UInt,Real> res_sparse;
+//	  sparse.colMin(i, res_sparse.first, res_sparse.second);
 //
-//      std::stringstream str;
+//	  std::stringstream str;
 //          str << "rowMax 2 C " << nrows << "X" << ncols << "/" << zr
 //              << " - non compact";
-//      if (optima_dense[i].first != res_sparse.first
-//          || !nearlyEqual(optima_dense[i].second, res_sparse.second))
-//        Test(str.str().c_str(), 0, 1);
-//    }
+//	  if (optima_dense[i].first != res_sparse.first
+//	      || !nearlyEqual(optima_dense[i].second, res_sparse.second))
+//	    Test(str.str().c_str(), 0, 1);
+//	}
 //
-//    sparse.colMin(optima_sparse.begin());
+//	sparse.colMin(optima_sparse.begin());
 //
 //        {
 //          std::stringstream str;
 //          str << "rowMax 2 D " << nrows << "X" << ncols << "/" << zr
 //              << " - non compact";
-//      for (UInt i = 0; i != ncols; ++i) {
-//        if (optima_dense[i].first != optima_sparse[i].first
-//        || !nta::nearlyEqual(optima_dense[i].second, optima_sparse[i].second))
-//          Test(str.str().c_str(), 0, 1);
-//      }
+//	  for (UInt i = 0; i != ncols; ++i) {
+//	    if (optima_dense[i].first != optima_sparse[i].first
+//		|| !nta::nearlyEqual(optima_dense[i].second, optima_sparse[i].second))
+//	      Test(str.str().c_str(), 0, 1);
+//	  }
 //        }
 //      }
 //    }
@@ -3126,134 +3126,134 @@ namespace nta {
 //      UInt n_s, n_d;
 //
 //      {
-//    std::vector<UInt> nrows_s(nrows), nrows_d(nrows);
-//    std::vector<UInt> ncols_s(ncols), ncols_d(ncols);
+//	std::vector<UInt> nrows_s(nrows), nrows_d(nrows);
+//	std::vector<UInt> ncols_s(ncols), ncols_d(ncols);
 //
-//    sparse.decompact();
+//	sparse.decompact();
 //      
-//    n_d = dense.nNonZeros();
-//    n_s = sparse.nNonZeros();
+//	n_d = dense.nNonZeros();
+//	n_s = sparse.nNonZeros();
 //
-//    {
-//      std::stringstream str;
-//      str << "nNonZeros A1 " << nrows << "X" << ncols << "/" << zr
-//          << " - non compact";
-//      if (n_d != n_s)
-//        Test(str.str().c_str(), 0, 1);
-//    }
+//	{
+//	  std::stringstream str;
+//	  str << "nNonZeros A1 " << nrows << "X" << ncols << "/" << zr
+//	      << " - non compact";
+//	  if (n_d != n_s)
+//	    Test(str.str().c_str(), 0, 1);
+//	}
 //
-//    for (UInt i = 0; i != nrows; ++i) {
+//	for (UInt i = 0; i != nrows; ++i) {
 //
-//      n_d = dense.nNonZerosOnRow(i);
-//      n_s = sparse.nNonZerosOnRow(i);
+//	  n_d = dense.nNonZerosOnRow(i);
+//	  n_s = sparse.nNonZerosOnRow(i);
 //
-//      {
-//        std::stringstream str;
-//        str << "nNonZeros B1 " << nrows << "X" << ncols << "/" << zr
-//        << " - non compact";
-//        if (n_d != n_s)
-//          Test(str.str().c_str(), 0, 1);
-//      }    
-//    }
+//	  {
+//	    std::stringstream str;
+//	    str << "nNonZeros B1 " << nrows << "X" << ncols << "/" << zr
+//		<< " - non compact";
+//	    if (n_d != n_s)
+//	      Test(str.str().c_str(), 0, 1);
+//	  }    
+//	}
 //
-//    for (UInt i = 0; i != ncols; ++i) {
+//	for (UInt i = 0; i != ncols; ++i) {
 //
-//      n_d = dense.nNonZerosOnCol(i);
-//      n_s = sparse.nNonZerosOnCol(i);
+//	  n_d = dense.nNonZerosOnCol(i);
+//	  n_s = sparse.nNonZerosOnCol(i);
 //
-//      {
-//        std::stringstream str;
-//        str << "nNonZeros C1 " << nrows << "X" << ncols << "/" << zr
-//        << " - non compact";
-//        if (n_d != n_s) 
-//          Test(str.str().c_str(), 0, 1);
-//      }
-//    }
+//	  {
+//	    std::stringstream str;
+//	    str << "nNonZeros C1 " << nrows << "X" << ncols << "/" << zr
+//		<< " - non compact";
+//	    if (n_d != n_s) 
+//	      Test(str.str().c_str(), 0, 1);
+//	  }
+//	}
 //
-//    dense.nNonZerosPerRow(nrows_d.begin());
-//    sparse.nNonZerosPerRow(nrows_s.begin());
+//	dense.nNonZerosPerRow(nrows_d.begin());
+//	sparse.nNonZerosPerRow(nrows_s.begin());
 //
-//    {
-//      std::stringstream str;
-//      str << "nNonZeros D1 " << nrows << "X" << ncols << "/" << zr
-//          << " - non compact";
-//      CompareVectors(nrows, nrows_d.begin(), nrows_s.begin(), str.str().c_str());
-//    }
+//	{
+//	  std::stringstream str;
+//	  str << "nNonZeros D1 " << nrows << "X" << ncols << "/" << zr
+//	      << " - non compact";
+//	  CompareVectors(nrows, nrows_d.begin(), nrows_s.begin(), str.str().c_str());
+//	}
 //
-//    dense.nNonZerosPerCol(ncols_d.begin());
-//    sparse.nNonZerosPerCol(ncols_s.begin());
+//	dense.nNonZerosPerCol(ncols_d.begin());
+//	sparse.nNonZerosPerCol(ncols_s.begin());
 //
-//    {
-//      std::stringstream str;
-//      str << "nNonZeros E1 " << nrows << "X" << ncols << "/" << zr
-//          << " - non compact";
-//      CompareVectors(ncols, ncols_d.begin(), ncols_s.begin(), str.str().c_str());
-//    }
+//	{
+//	  std::stringstream str;
+//	  str << "nNonZeros E1 " << nrows << "X" << ncols << "/" << zr
+//	      << " - non compact";
+//	  CompareVectors(ncols, ncols_d.begin(), ncols_s.begin(), str.str().c_str());
+//	}
 //      }
 //      
 //      {
-//    std::vector<UInt> nrows_s(nrows), nrows_d(nrows);
-//    std::vector<UInt> ncols_s(ncols), ncols_d(ncols);
-//    sparse.compact();
+//	std::vector<UInt> nrows_s(nrows), nrows_d(nrows);
+//	std::vector<UInt> ncols_s(ncols), ncols_d(ncols);
+//	sparse.compact();
 //      
-//    n_d = dense.nNonZeros();
-//    n_s = sparse.nNonZeros();
+//	n_d = dense.nNonZeros();
+//	n_s = sparse.nNonZeros();
 //
-//    {
-//      std::stringstream str;
-//      str << "nNonZeros A2 " << nrows << "X" << ncols << "/" << zr
-//          << " - compact";
-//      if (n_d != n_s)
-//        Test(str.str().c_str(), 0, 1);
-//    }
+//	{
+//	  std::stringstream str;
+//	  str << "nNonZeros A2 " << nrows << "X" << ncols << "/" << zr
+//	      << " - compact";
+//	  if (n_d != n_s)
+//	    Test(str.str().c_str(), 0, 1);
+//	}
 //
-//    for (UInt i = 0; i != nrows; ++i) {
+//	for (UInt i = 0; i != nrows; ++i) {
 //
-//      n_d = dense.nNonZerosOnRow(i);
-//      n_s = sparse.nNonZerosOnRow(i);
+//	  n_d = dense.nNonZerosOnRow(i);
+//	  n_s = sparse.nNonZerosOnRow(i);
 //
-//      {
-//        std::stringstream str;
-//        str << "nNonZeros B2 " << nrows << "X" << ncols << "/" << zr
-//        << " - compact";
-//        if (n_d != n_s)
-//          Test(str.str().c_str(), 0, 1);
-//      }
-//    }
+//	  {
+//	    std::stringstream str;
+//	    str << "nNonZeros B2 " << nrows << "X" << ncols << "/" << zr
+//		<< " - compact";
+//	    if (n_d != n_s)
+//	      Test(str.str().c_str(), 0, 1);
+//	  }
+//	}
 //
-//    for (UInt i = 0; i != ncols; ++i) {
+//	for (UInt i = 0; i != ncols; ++i) {
 //
-//      n_d = dense.nNonZerosOnCol(i);
-//      n_s = sparse.nNonZerosOnCol(i);
+//	  n_d = dense.nNonZerosOnCol(i);
+//	  n_s = sparse.nNonZerosOnCol(i);
 //
-//      {
-//        std::stringstream str;
-//        str << "nNonZeros C2 " << nrows << "X" << ncols << "/" << zr
-//        << " - compact";
-//        if (n_d != n_s)
-//          Test(str.str().c_str(), 0, 1);
-//      }     
-//    }
+//	  {
+//	    std::stringstream str;
+//	    str << "nNonZeros C2 " << nrows << "X" << ncols << "/" << zr
+//		<< " - compact";
+//	    if (n_d != n_s)
+//	      Test(str.str().c_str(), 0, 1);
+//	  }     
+//	}
 //
-//    dense.nNonZerosPerRow(nrows_d.begin());
-//    sparse.nNonZerosPerRow(nrows_s.begin());
+//	dense.nNonZerosPerRow(nrows_d.begin());
+//	sparse.nNonZerosPerRow(nrows_s.begin());
 //
-//    {
-//      std::stringstream str;
-//      str << "nNonZeros D2 " << nrows << "X" << ncols << "/" << zr
-//          << " - compact";
-//      CompareVectors(nrows, nrows_d.begin(), nrows_s.begin(), str.str().c_str());
-//    }
+//	{
+//	  std::stringstream str;
+//	  str << "nNonZeros D2 " << nrows << "X" << ncols << "/" << zr
+//	      << " - compact";
+//	  CompareVectors(nrows, nrows_d.begin(), nrows_s.begin(), str.str().c_str());
+//	}
 //
-//    dense.nNonZerosPerCol(ncols_d.begin());
-//    sparse.nNonZerosPerCol(ncols_s.begin());
+//	dense.nNonZerosPerCol(ncols_d.begin());
+//	sparse.nNonZerosPerCol(ncols_s.begin());
 //
-//    {
-//      std::stringstream str;
-//      str << "nNonZeros E2 " << nrows << "X" << ncols << "/" << zr
-//          << " - compact";
-//      CompareVectors(ncols, ncols_d.begin(), ncols_s.begin(), str.str().c_str());
-//    }
+//	{
+//	  std::stringstream str;
+//	  str << "nNonZeros E2 " << nrows << "X" << ncols << "/" << zr
+//	      << " - compact";
+//	  CompareVectors(ncols, ncols_d.begin(), ncols_s.begin(), str.str().c_str());
+//	}
 //      }
 //    }
 //  }
@@ -3270,10 +3270,10 @@ namespace nta {
 //      cout << "Sparse:" << endl << sparse << endl;
 //
 //      { // Extract domain    
-//    Domain2D dom(0,4,0,4);
-//    SparseMatrix<UInt,UInt> extracted(4,4);
-//    sparse.get(dom, extracted);
-//    cout << extracted << endl;
+//	Domain2D dom(0,4,0,4);
+//	SparseMatrix<UInt,UInt> extracted(4,4);
+//	sparse.get(dom, extracted);
+//	cout << extracted << endl;
 //      }         
 //      */
 //    }
@@ -3334,488 +3334,488 @@ namespace nta {
 //    SM* sparse = new SM(nrows, ncols, dense->begin());
 //
 //    for (long int a = 0; a < 10000; ++a) {
-//      
+//	  
 //      // Rectify to stop propagation of small errors
 //      ITER_2(sparse->nRows(), sparse->nCols())
-//    if (::fabs(dense->at(i,j) - sparse->get(i,j)) < 1e-6)
-//      dense->at(i,j) = sparse->get(i,j);
+//	if (::fabs(dense->at(i,j) - sparse->get(i,j)) < 1e-6)
+//	  dense->at(i,j) = sparse->get(i,j);
 //
 //      size_type r = rng_->getUInt32(37);
 //
 //      if (r == 0) {
-//    
-//    sparse->compact();
-//    // no compact for Dense
+//	
+//	sparse->compact();
+//	// no compact for Dense
 //
 //      } else if (r == 1) {
 //
-//    sparse->decompact();
-//    // no decompact for Dense
+//	sparse->decompact();
+//	// no decompact for Dense
 //
 //      } else if (r == 2) {
 //
-//    if (rng_->getReal64() < 0.90) {
-//      size_type nrows = sparse->nRows() + rng_->getUInt32(4);
-//      size_type ncols = sparse->nCols() + rng_->getUInt32(4);
-//      sparse->resize(nrows, ncols);
-//      dense->resize(nrows, ncols);
-//      Compare(*dense, *sparse, "resize, bigger");
-//    
-//    } else {
-//      if (sparse->nRows() > 2 && sparse->nCols() > 2) {
-//        size_type nrows = rng_->getUInt32(sparse->nRows());
-//        size_type ncols = rng_->getUInt32(sparse->nCols());
-//        sparse->resize(nrows, ncols);
-//        dense->resize(nrows, ncols);
-//        Compare(*dense, *sparse, "resize, smaller");
-//      }
-//    }
-//    
+//	if (rng_->getReal64() < 0.90) {
+//	  size_type nrows = sparse->nRows() + rng_->getUInt32(4);
+//	  size_type ncols = sparse->nCols() + rng_->getUInt32(4);
+//	  sparse->resize(nrows, ncols);
+//	  dense->resize(nrows, ncols);
+//	  Compare(*dense, *sparse, "resize, bigger");
+//	
+//	} else {
+//	  if (sparse->nRows() > 2 && sparse->nCols() > 2) {
+//	    size_type nrows = rng_->getUInt32(sparse->nRows());
+//	    size_type ncols = rng_->getUInt32(sparse->nCols());
+//	    sparse->resize(nrows, ncols);
+//	    dense->resize(nrows, ncols);
+//	    Compare(*dense, *sparse, "resize, smaller");
+//	  }
+//	}
+//	
 //      } else if (r == 3) {
-//    
-//    vector<size_type> del;
-//    
-//    if (rng_->getReal64() < 0.90) {
-//      for (size_type ii = 0; ii < sparse->nRows() / 4; ++ii)
-//        del.push_back(2*ii);
-//      sparse->deleteRows(del.begin(), del.end());
-//      dense->deleteRows(del.begin(), del.end());
-//    } else {
-//      for (size_type ii = 0; ii < sparse->nRows(); ++ii)
-//        del.push_back(ii);
-//      sparse->deleteRows(del.begin(), del.end());
-//      dense->deleteRows(del.begin(), del.end());
-//    }
+//	
+//	vector<size_type> del;
+//	
+//	if (rng_->getReal64() < 0.90) {
+//	  for (size_type ii = 0; ii < sparse->nRows() / 4; ++ii)
+//	    del.push_back(2*ii);
+//	  sparse->deleteRows(del.begin(), del.end());
+//	  dense->deleteRows(del.begin(), del.end());
+//	} else {
+//	  for (size_type ii = 0; ii < sparse->nRows(); ++ii)
+//	    del.push_back(ii);
+//	  sparse->deleteRows(del.begin(), del.end());
+//	  dense->deleteRows(del.begin(), del.end());
+//	}
 //
-//    Compare(*dense, *sparse, "deleteRows");
+//	Compare(*dense, *sparse, "deleteRows");
 //
 //      } else if (r == 4) {    
-//    
-//    vector<size_type> del;
-//    if (rng_->getReal64() < 0.90) {
-//      for (size_type ii = 0; ii < sparse->nCols() / 4; ++ii)
-//        del.push_back(2*ii);
-//      sparse->deleteCols(del.begin(), del.end());
-//      dense->deleteCols(del.begin(), del.end());
-//    } else {
-//      for (size_type ii = 0; ii < sparse->nCols(); ++ii)
-//        del.push_back(ii);
-//      sparse->deleteCols(del.begin(), del.end());
-//      dense->deleteCols(del.begin(), del.end());
-//    }
-//    Compare(*dense, *sparse, "deleteCols");
+//	
+//	vector<size_type> del;
+//	if (rng_->getReal64() < 0.90) {
+//	  for (size_type ii = 0; ii < sparse->nCols() / 4; ++ii)
+//	    del.push_back(2*ii);
+//	  sparse->deleteCols(del.begin(), del.end());
+//	  dense->deleteCols(del.begin(), del.end());
+//	} else {
+//	  for (size_type ii = 0; ii < sparse->nCols(); ++ii)
+//	    del.push_back(ii);
+//	  sparse->deleteCols(del.begin(), del.end());
+//	  dense->deleteCols(del.begin(), del.end());
+//	}
+//	Compare(*dense, *sparse, "deleteCols");
 //
 //      } else if (r == 5) {
 //
-//    SM sparse2(1, 1);
-//    DM sm2Dense(1, 1);
-//    Compare(sm2Dense,sparse2, "constructor(1, 1)");
-//    
-//    sparse2.copy(*sparse);
-//    sparse->copy(sparse2);
-//    
-//    sm2Dense.copy(*dense);
-//    dense->copy(sm2Dense);
-//    Compare(*dense, *sparse, "copy");
+//	SM sparse2(1, 1);
+//	DM sm2Dense(1, 1);
+//	Compare(sm2Dense,sparse2, "constructor(1, 1)");
+//	
+//	sparse2.copy(*sparse);
+//	sparse->copy(sparse2);
+//	
+//	sm2Dense.copy(*dense);
+//	dense->copy(sm2Dense);
+//	Compare(*dense, *sparse, "copy");
 //
 //      } else if (r == 6) {
 //
-//    vector<value_type> row(sparse->nCols());
-//    size_type n = rng_->getUInt32(16);
-//    for (size_type z = 0; z < n; ++z) {            
-//      if (rng_->getReal64() < 0.90) 
-//        generate(row.begin(), row.end(), rand_init<value_type>(rng_, 70));
-//      sparse->addRow(row.begin());
-//      dense->addRow(row.begin());
-//      Compare(*dense, *sparse, "addRow");
-//    }
+//	vector<value_type> row(sparse->nCols());
+//	size_type n = rng_->getUInt32(16);
+//	for (size_type z = 0; z < n; ++z) {			
+//	  if (rng_->getReal64() < 0.90) 
+//	    generate(row.begin(), row.end(), rand_init<value_type>(rng_, 70));
+//	  sparse->addRow(row.begin());
+//	  dense->addRow(row.begin());
+//	  Compare(*dense, *sparse, "addRow");
+//	}
 //
 //      } else if (r == 7) {
 //
-//    if (sparse->nRows() > 0 && sparse->nCols() > 0) {
-//      size_type m = sparse->nRows() * sparse->nCols() / 2;
-//      for (size_type z = 0; z < m; ++z) {
-//        size_type i = rng_->getUInt32(sparse->nRows());
-//        size_type j = rng_->getUInt32(sparse->nCols());
-//        value_type v = 1+value_type(rng_->getReal64());
-//        sparse->setNonZero(i, j, v);
-//        dense->setNonZero(i, j, v);
-//        Compare(*dense, *sparse, "setNonZero");
-//      }
-//    }
+//	if (sparse->nRows() > 0 && sparse->nCols() > 0) {
+//	  size_type m = sparse->nRows() * sparse->nCols() / 2;
+//	  for (size_type z = 0; z < m; ++z) {
+//	    size_type i = rng_->getUInt32(sparse->nRows());
+//	    size_type j = rng_->getUInt32(sparse->nCols());
+//	    value_type v = 1+value_type(rng_->getReal64());
+//	    sparse->setNonZero(i, j, v);
+//	    dense->setNonZero(i, j, v);
+//	    Compare(*dense, *sparse, "setNonZero");
+//	  }
+//	}
 //
 //      } else if (r == 8) {
 //    
-//    value_type v = value_type(128 + rng_->getUInt32(128));
-//    sparse->threshold(v);
-//    dense->threshold(v);
-//    Compare(*dense, *sparse, "threshold");
+//	value_type v = value_type(128 + rng_->getUInt32(128));
+//	sparse->threshold(v);
+//	dense->threshold(v);
+//	Compare(*dense, *sparse, "threshold");
 //
 //      } else if (r == 9) {
 //
-//    if (sparse->nCols() > 0 && sparse->nRows() > 0) {
-//      
-//      SM B(0, sparse->nCols());
-//      DM BDense(0, dense->ncols);
-//      
-//      vector<value_type> row(sparse->nCols());
+//	if (sparse->nCols() > 0 && sparse->nRows() > 0) {
+//	  
+//	  SM B(0, sparse->nCols());
+//	  DM BDense(0, dense->ncols);
+//	  
+//	  vector<value_type> row(sparse->nCols());
 //
-//      for (size_type iii = 0; iii < sparse->nRows(); ++iii) {
+//	  for (size_type iii = 0; iii < sparse->nRows(); ++iii) {
 //
-//        if (rng_->getUInt32(100) < 90) 
-//          generate(row.begin(), row.end(), rand_init<value_type>(rng_, 70));
-//        else
-//          fill(row.begin(), row.end(), value_type(0));
+//	    if (rng_->getUInt32(100) < 90) 
+//	      generate(row.begin(), row.end(), rand_init<value_type>(rng_, 70));
+//	    else
+//	      fill(row.begin(), row.end(), value_type(0));
 //
-//        B.addRow(row.begin());
-//        BDense.addRow(row.begin());
-//      }
-//      
-//      value_type r1=value_type(rng_->getUInt32(5)), r2=value_type(rng_->getUInt32(5));
-//      
-//      sparse->lerp(r1, r2, B);
-//      dense->lerp(r1, r2, BDense);
-//      Compare(*dense, *sparse, "lerp", 1e-4);
-//    }
-//    
+//	    B.addRow(row.begin());
+//	    BDense.addRow(row.begin());
+//	  }
+//	  
+//	  value_type r1=value_type(rng_->getUInt32(5)), r2=value_type(rng_->getUInt32(5));
+//	  
+//	  sparse->lerp(r1, r2, B);
+//	  dense->lerp(r1, r2, BDense);
+//	  Compare(*dense, *sparse, "lerp", 1e-4);
+//	}
+//	
 //      } else if (r == 10) {
 //
-//    delete sparse;
-//    delete dense;
-//    size_type nrows = rng_->getUInt32(maxMatrixSize), ncols = rng_->getUInt32(maxMatrixSize);
-//    sparse = new SM(ncols, nrows);
-//    dense = new DM(ncols, nrows);
-//    Compare(*dense, *sparse, "constructor(rng_->get() % 32, rng_->get() % 32)");
+//	delete sparse;
+//	delete dense;
+//	size_type nrows = rng_->getUInt32(maxMatrixSize), ncols = rng_->getUInt32(maxMatrixSize);
+//	sparse = new SM(ncols, nrows);
+//	dense = new DM(ncols, nrows);
+//	Compare(*dense, *sparse, "constructor(rng_->get() % 32, rng_->get() % 32)");
 //
 //      } else if (r == 11) {
 //
-//    delete sparse;
-//    delete dense;
-//    sparse = new SM();
-//    dense = new DM();
-//    Compare(*dense, *sparse, "constructor()");
-//    
+//	delete sparse;
+//	delete dense;
+//	sparse = new SM();
+//	dense = new DM();
+//	Compare(*dense, *sparse, "constructor()");
+//	
 //      } else if (r == 12) {
-//    
-//    delete sparse;
-//    delete dense;
-//    sparse = new SM(0,0);
-//    dense = new DM(0,0);
-//    Compare(*dense, *sparse, "constructor(0,0)");
-//    
+//	
+//	delete sparse;
+//	delete dense;
+//	sparse = new SM(0,0);
+//	dense = new DM(0,0);
+//	Compare(*dense, *sparse, "constructor(0,0)");
+//	
 //      } else if (r == 13) {
-//    
-//    SM sm2(sparse->nRows(), sparse->nCols());
-//    DM sm2Dense(dense->nrows, dense->ncols);
-//    Compare(sm2Dense, sm2, "constructor(dense->nRows(), dense->nCols())");
-//    
-//    ITER_2(sm2.nRows(), sm2.nCols()) {
-//      value_type r = 1+rng_->getUInt32(256);
-//      sm2.setNonZero(i,j, r);
-//      sm2Dense.setNonZero(i,j, r);
-//    }
-//    sparse->elementApply(sm2, std::plus<value_type>());
-//    dense->add(sm2Dense);
-//    Compare(*dense, *sparse, "add");
+//	
+//	SM sm2(sparse->nRows(), sparse->nCols());
+//	DM sm2Dense(dense->nrows, dense->ncols);
+//	Compare(sm2Dense, sm2, "constructor(dense->nRows(), dense->nCols())");
+//	
+//	ITER_2(sm2.nRows(), sm2.nCols()) {
+//	  value_type r = 1+rng_->getUInt32(256);
+//	  sm2.setNonZero(i,j, r);
+//	  sm2Dense.setNonZero(i,j, r);
+//	}
+//	sparse->elementApply(sm2, std::plus<value_type>());
+//	dense->add(sm2Dense);
+//	Compare(*dense, *sparse, "add");
 //
 //      } else if (r == 14) {
 //
-//    if (sparse->nRows() > 0) {
-//      vector<value_type> row(sparse->nCols());    
-//      generate(row.begin(), row.end(), rand_init<value_type>(rng_, 70));
-//      size_type r = rng_->getUInt32(sparse->nRows());
-//      sparse->elementRowApply(r, std::plus<value_type>(), row.begin());
-//      dense->add(r, row.begin());
-//      Compare(*dense, *sparse, "add(randomR, row.begin())");
-//    }    
-//    
+//	if (sparse->nRows() > 0) {
+//	  vector<value_type> row(sparse->nCols());	
+//	  generate(row.begin(), row.end(), rand_init<value_type>(rng_, 70));
+//	  size_type r = rng_->getUInt32(sparse->nRows());
+//	  sparse->elementRowApply(r, std::plus<value_type>(), row.begin());
+//	  dense->add(r, row.begin());
+//	  Compare(*dense, *sparse, "add(randomR, row.begin())");
+//	}	
+//	
 //      } else if (r == 15) {
-//      
-//    SM B(sparse->nCols(), sparse->nRows());
-//    DM BDense(dense->ncols, dense->nrows);
-//    Compare(BDense, B, "constructor(sm->nCols(), sm->nRows())");
-//    sparse->transpose(B);
-//    dense->transpose(BDense);
-//    Compare(*dense, *sparse, "transpose");
-//      
-//      } else if (r == 16) {    
+//	  
+//	SM B(sparse->nCols(), sparse->nRows());
+//	DM BDense(dense->ncols, dense->nrows);
+//	Compare(BDense, B, "constructor(sm->nCols(), sm->nRows())");
+//	sparse->transpose(B);
+//	dense->transpose(BDense);
+//	Compare(*dense, *sparse, "transpose");
+//	  
+//      } else if (r == 16) {	
 //
-//    /*
-//    vector<value_type> x(sparse->nCols()), y(sparse->nRows());
-//    generate(x.begin(), x.end(), rand_init<value_type>(rng_, 50));
-//    sparse->L2Dist(x.begin(), y.begin());
-//    dense->L2Dist(x.begin(), y.begin());
-//    Compare(*dense, *sparse, "L2Dist", 1e-4);
-//    */
+//	/*
+//	vector<value_type> x(sparse->nCols()), y(sparse->nRows());
+//	generate(x.begin(), x.end(), rand_init<value_type>(rng_, 50));
+//	sparse->L2Dist(x.begin(), y.begin());
+//	dense->L2Dist(x.begin(), y.begin());
+//	Compare(*dense, *sparse, "L2Dist", 1e-4);
+//	*/
 //
 //      } else if (r == 17) {
 //
-//    /*
-//    vector<value_type> x(sparse->nCols());
-//    pair<size_type, value_type> closest;
-//    generate(x.begin(), x.end(), rand_init<value_type>(rng_, 50));
-//    sparse->L2Nearest(x.begin(), closest);
-//    dense->L2Nearest(x.begin(), closest);
-//    Compare(*dense, *sparse, "L2Nearest", 1e-4);
-//    */
+//	/*
+//	vector<value_type> x(sparse->nCols());
+//	pair<size_type, value_type> closest;
+//	generate(x.begin(), x.end(), rand_init<value_type>(rng_, 50));
+//	sparse->L2Nearest(x.begin(), closest);
+//	dense->L2Nearest(x.begin(), closest);
+//	Compare(*dense, *sparse, "L2Nearest", 1e-4);
+//	*/
 //
 //      } else if (r == 18) {
-//      
-//    /*
-//    vector<value_type> x(sparse->nCols()), y(sparse->nRows());
-//    generate(x.begin(), x.end(), rand_init<value_type>(rng_, 50));
-//    sparse->vecDist(x.begin(), y.begin());
-//    dense->vecDist(x.begin(), y.begin());
-//    Compare(*dense, *sparse, "vecDist", 1e-4);
-//    */
+//	  
+//	/*
+//	vector<value_type> x(sparse->nCols()), y(sparse->nRows());
+//	generate(x.begin(), x.end(), rand_init<value_type>(rng_, 50));
+//	sparse->vecDist(x.begin(), y.begin());
+//	dense->vecDist(x.begin(), y.begin());
+//	Compare(*dense, *sparse, "vecDist", 1e-4);
+//	*/
 //
 //      } else if(r == 19) {
 //
-//    /*
-//    if(sparse->nRows() > 0) {
-//      vector<value_type> x(sparse->nCols());
-//      generate(x.begin(), x.end(), rand_init<value_type>(rng_, 50));
-//      size_type randInt=rng_->get() % sparse->nRows();
-//      sparse->rowDistSquared(randInt, x.begin());
-//      dense->rowDistSquared(randInt, x.begin());
-//      Compare(*dense, *sparse, "rowDistSquared", 1e-4);
-//    }
-//    */
-//      
+//	/*
+//	if(sparse->nRows() > 0) {
+//	  vector<value_type> x(sparse->nCols());
+//	  generate(x.begin(), x.end(), rand_init<value_type>(rng_, 50));
+//	  size_type randInt=rng_->get() % sparse->nRows();
+//	  sparse->rowDistSquared(randInt, x.begin());
+//	  dense->rowDistSquared(randInt, x.begin());
+//	  Compare(*dense, *sparse, "rowDistSquared", 1e-4);
+//	}
+//	*/
+//	  
 //      } else if (r == 20) {
-//      
-//    /*
-//    vector<value_type> x(sparse->nCols());
-//    generate(x.begin(), x.end(), rand_init<value_type>(rng_, 50));
-//    sparse->closestEuclidean(x.begin());
-//    dense->closestEuclidean(x.begin());
-//    Compare(*dense, *sparse, "closestEuclidean", 1e-4);
-//    */
+//	  
+//	/*
+//	vector<value_type> x(sparse->nCols());
+//	generate(x.begin(), x.end(), rand_init<value_type>(rng_, 50));
+//	sparse->closestEuclidean(x.begin());
+//	dense->closestEuclidean(x.begin());
+//	Compare(*dense, *sparse, "closestEuclidean", 1e-4);
+//	*/
 //
 //      } else if (r== 21) {
 //
-//    /*
-//    vector<value_type> x(sparse->nCols());
-//    generate(x.begin(), x.end(), rand_init<value_type>(rng_, 50));
-//    for (size_type n = 0; n < sparse->nCols(); ++n)    
-//      x.push_back(value_type(rng_->get() % 256));
-//    sparse->dotNearest(x.begin());
-//    dense->dotNearest(x.begin());
-//    Compare(*dense, *sparse, "dotNearest", 1e-4);
-//    */
+//	/*
+//	vector<value_type> x(sparse->nCols());
+//	generate(x.begin(), x.end(), rand_init<value_type>(rng_, 50));
+//	for (size_type n = 0; n < sparse->nCols(); ++n)	
+//	  x.push_back(value_type(rng_->get() % 256));
+//	sparse->dotNearest(x.begin());
+//	dense->dotNearest(x.begin());
+//	Compare(*dense, *sparse, "dotNearest", 1e-4);
+//	*/
 //
 //      } else if (r == 22) {
 //
-//    vector<value_type> x(sparse->nCols()), y(sparse->nRows());
-//    generate(x.begin(), x.end(), rand_init<value_type>(rng_, 50));
-//    sparse->rightVecProd(x.begin(), y.begin());
-//    dense->rightVecProd(x.begin(), y.begin());
-//    Compare(*dense, *sparse, "rightVecProd", 1e-4);
+//	vector<value_type> x(sparse->nCols()), y(sparse->nRows());
+//	generate(x.begin(), x.end(), rand_init<value_type>(rng_, 50));
+//	sparse->rightVecProd(x.begin(), y.begin());
+//	dense->rightVecProd(x.begin(), y.begin());
+//	Compare(*dense, *sparse, "rightVecProd", 1e-4);
 //
 //      } else if (r == 23) {
-//      
-//    vector<value_type> x(sparse->nCols()), y(sparse->nRows());
-//    generate(x.begin(), x.end(), rand_init<value_type>(rng_, 50));
-//    sparse->vecMaxProd(x.begin(), y.begin());
-//    dense->vecMaxProd(x.begin(), y.begin());
-//    Compare(*dense, *sparse, "vecMaxProd", 1e-4);
-//      
+//	  
+//	vector<value_type> x(sparse->nCols()), y(sparse->nRows());
+//	generate(x.begin(), x.end(), rand_init<value_type>(rng_, 50));
+//	sparse->vecMaxProd(x.begin(), y.begin());
+//	dense->vecMaxProd(x.begin(), y.begin());
+//	Compare(*dense, *sparse, "vecMaxProd", 1e-4);
+//	  
 //      } else if (r == 24) {
 //
-//    vector<value_type> x(sparse->nCols()), y(sparse->nRows());
-//    generate(x.begin(), x.end(), rand_init<value_type>(rng_, 50));
-//    sparse->vecMaxAtNZ(x.begin(), y.begin());
-//    dense->vecMaxAtNZ(x.begin(), y.begin());
-//    Compare(*dense, *sparse, "vecMaxAtNZ", 1e-4);
-//      
+//	vector<value_type> x(sparse->nCols()), y(sparse->nRows());
+//	generate(x.begin(), x.end(), rand_init<value_type>(rng_, 50));
+//	sparse->vecMaxAtNZ(x.begin(), y.begin());
+//	dense->vecMaxAtNZ(x.begin(), y.begin());
+//	Compare(*dense, *sparse, "vecMaxAtNZ", 1e-4);
+//	  
 //      } else if (r == 25) {
 //
-//    if (sparse->nRows() > 0) {
-//      vector<value_type> x(sparse->nCols());
-//      generate(x.begin(), x.end(), rand_init<value_type>(rng_, 50));
-//      size_type row = rng_->getUInt32(sparse->nRows());
-//      value_type r1=value_type(rng_->getUInt32(256)), r2=value_type(rng_->getUInt32(256));
-//      sparse->axby(row, r1, r2, x.begin());
-//      dense->axby(row, r1, r2, x.begin());
-//      Compare(*dense, *sparse, "axby", 1e-4);
-//    }
+//	if (sparse->nRows() > 0) {
+//	  vector<value_type> x(sparse->nCols());
+//	  generate(x.begin(), x.end(), rand_init<value_type>(rng_, 50));
+//	  size_type row = rng_->getUInt32(sparse->nRows());
+//	  value_type r1=value_type(rng_->getUInt32(256)), r2=value_type(rng_->getUInt32(256));
+//	  sparse->axby(row, r1, r2, x.begin());
+//	  dense->axby(row, r1, r2, x.begin());
+//	  Compare(*dense, *sparse, "axby", 1e-4);
+//	}
 //
 //      } else if (r == 26) {
 //
-//    vector<value_type> x(sparse->nCols());
-//    generate(x.begin(), x.end(), rand_init<value_type>(rng_, 50));
-//    value_type r1=value_type(rng_->getUInt32(256)), r2=value_type(rng_->getUInt32(256));
-//    sparse->axby(r1, r2, x.begin());
-//    dense->axby(r1, r2, x.begin());
-//    Compare(*dense, *sparse, "axby 2", 1e-4);
+//	vector<value_type> x(sparse->nCols());
+//	generate(x.begin(), x.end(), rand_init<value_type>(rng_, 50));
+//	value_type r1=value_type(rng_->getUInt32(256)), r2=value_type(rng_->getUInt32(256));
+//	sparse->axby(r1, r2, x.begin());
+//	dense->axby(r1, r2, x.begin());
+//	Compare(*dense, *sparse, "axby 2", 1e-4);
 //
 //      } else if (r == 27) {
-//      
-//    /*
-//    vector<value_type> x(sparse->nCols()), y(sparse->nRows());
-//    generate(x.begin(), x.end(), rand_init<value_type>(rng_, 50));
-//    sparse->rowMax(x.begin(), y.begin()); 
-//    dense->rowMax(x.begin(), y.begin()); 
-//    Compare(*dense, *sparse, "rowMax");
-//    */
+//	  
+//	/*
+//	vector<value_type> x(sparse->nCols()), y(sparse->nRows());
+//	generate(x.begin(), x.end(), rand_init<value_type>(rng_, 50));
+//	sparse->rowMax(x.begin(), y.begin()); 
+//	dense->rowMax(x.begin(), y.begin()); 
+//	Compare(*dense, *sparse, "rowMax");
+//	*/
 //    
 //      } else if (r == 28) {
-//         
-//    vector< pair<size_type, value_type> > y(sparse->nRows());
-//    sparse->rowMax(y.begin());  
-//    dense->rowMax(y.begin());  
-//    Compare(*dense, *sparse, "rowMax 2");
-//      
+//	     
+//	vector< pair<size_type, value_type> > y(sparse->nRows());
+//	sparse->rowMax(y.begin());  
+//	dense->rowMax(y.begin());  
+//	Compare(*dense, *sparse, "rowMax 2");
+//	  
 //      } else if (r == 29) {
-//      
-//    vector< pair<size_type, value_type> > y(sparse->nCols());
-//    sparse->colMax(y.begin());
-//    dense->colMax(y.begin());
-//    Compare(*dense, *sparse, "colMax");
-//      
+//	  
+//	vector< pair<size_type, value_type> > y(sparse->nCols());
+//	sparse->colMax(y.begin());
+//	dense->colMax(y.begin());
+//	Compare(*dense, *sparse, "colMax");
+//	  
 //      } else if (r == 30) {
-//      
-//    bool exact = true;
-//    sparse->normalizeRows(exact);
-//    dense->normalizeRows(exact);
-//    Compare(*dense, *sparse, "normalizeRows", 1e-4);
+//	  
+//	bool exact = true;
+//	sparse->normalizeRows(exact);
+//	dense->normalizeRows(exact);
+//	Compare(*dense, *sparse, "normalizeRows", 1e-4);
 //
 //      } else if (r == 31) {
-//      
-//    vector<value_type> x(sparse->nCols()), y(sparse->nRows());
-//    generate(x.begin(), x.end(), rand_init<value_type>(rng_, 50));
-//    sparse->rightVecProdAtNZ(x.begin(), y.begin()); 
-//    dense->rowProd(x.begin(), y.begin()); 
-//    Compare(*dense, *sparse, "rowProd", 1e-4);
-//      
+//	  
+//	vector<value_type> x(sparse->nCols()), y(sparse->nRows());
+//	generate(x.begin(), x.end(), rand_init<value_type>(rng_, 50));
+//	sparse->rightVecProdAtNZ(x.begin(), y.begin()); 
+//	dense->rowProd(x.begin(), y.begin()); 
+//	Compare(*dense, *sparse, "rowProd", 1e-4);
+//	  
 //      } else if (r == 32) {
-//      
-//    vector<value_type> x(sparse->nCols()), y(sparse->nRows());
-//    generate(x.begin(), x.end(), rand_init<value_type>(rng_, 50));
-//    value_type theRandom=value_type(rng_->getUInt32(256));
-//    sparse->rightVecProdAtNZ(x.begin(), y.begin(), theRandom);
-//    dense->rowProd(x.begin(), y.begin(), theRandom);
-//    Compare(*dense, *sparse, "rowProd 2", 1e-4);
+//	  
+//	vector<value_type> x(sparse->nCols()), y(sparse->nRows());
+//	generate(x.begin(), x.end(), rand_init<value_type>(rng_, 50));
+//	value_type theRandom=value_type(rng_->getUInt32(256));
+//	sparse->rightVecProdAtNZ(x.begin(), y.begin(), theRandom);
+//	dense->rowProd(x.begin(), y.begin(), theRandom);
+//	Compare(*dense, *sparse, "rowProd 2", 1e-4);
 //
 //      } else if (r == 33) {
-//      
-//    //size_type row;
-//    //value_type init;
-//    
-//    if (sparse->nRows() != 0) {
+//	  
+//	//size_type row;
+//	//value_type init;
+//	
+//	if (sparse->nRows() != 0) {
 //
-//      /*
-//      row = rng_->get() % sparse->nRows();
-//      init = (rng_->get() % 32768)/32768.0 + .001;
-//      
-//      size_type switcher = rng_->get() % 4;
+//	  /*
+//	  row = rng_->get() % sparse->nRows();
+//	  init = (rng_->get() % 32768)/32768.0 + .001;
+//	  
+//	  size_type switcher = rng_->get() % 4;
 //
-//      if (switcher == 0) {
-//        sparse->accumulateRowNZ(row, multiplies<value_type>(), init);
-//        dense->accumulateRowNZ(row, multiplies<value_type>(), init);
-//        Compare(*dense, *sparse, "accumulateRowNZ with multiplies", 1e-4);
-//      } else if (switcher == 1) {
-//        sparse->accumulateRowNZ(row, plus<value_type>(), init);
-//        dense->accumulateRowNZ(row, plus<value_type>(), init);
-//        Compare(*dense, *sparse, "accumulateRowNZ with plus", 1e-4);
-//      } else if (switcher == 2) {
-//        sparse->accumulateRowNZ(row, minus<value_type>(), init);
-//        dense->accumulateRowNZ(row, minus<value_type>(), init);
-//        Compare(*dense, *sparse, "accumulateRowNZ with minus", 1e-4);
-//      } else if (switcher == 3) {
-//        sparse->accumulateRowNZ(row, nta::Max<value_type>, init);
-//        dense->accumulateRowNZ(row, nta::Max<value_type>, init);
-//        Compare(*dense, *sparse, "accumulateRowNZ with Max", 1e-4);
-//      }
-//      */
-//    }
+//	  if (switcher == 0) {
+//	    sparse->accumulateRowNZ(row, multiplies<value_type>(), init);
+//	    dense->accumulateRowNZ(row, multiplies<value_type>(), init);
+//	    Compare(*dense, *sparse, "accumulateRowNZ with multiplies", 1e-4);
+//	  } else if (switcher == 1) {
+//	    sparse->accumulateRowNZ(row, plus<value_type>(), init);
+//	    dense->accumulateRowNZ(row, plus<value_type>(), init);
+//	    Compare(*dense, *sparse, "accumulateRowNZ with plus", 1e-4);
+//	  } else if (switcher == 2) {
+//	    sparse->accumulateRowNZ(row, minus<value_type>(), init);
+//	    dense->accumulateRowNZ(row, minus<value_type>(), init);
+//	    Compare(*dense, *sparse, "accumulateRowNZ with minus", 1e-4);
+//	  } else if (switcher == 3) {
+//	    sparse->accumulateRowNZ(row, nta::Max<value_type>, init);
+//	    dense->accumulateRowNZ(row, nta::Max<value_type>, init);
+//	    Compare(*dense, *sparse, "accumulateRowNZ with Max", 1e-4);
+//	  }
+//	  */
+//	}
 //
 //      } else if (r == 34) {
-//      
-//    //size_type row;
-//    //value_type init;
+//	  
+//	//size_type row;
+//	//value_type init;
 //
-//    if (sparse->nRows() != 0) {
-//      /*
-//      row = rng_->get() % sparse->nRows();
-//      init = (rng_->get() % 32768)/32768.0 + .001;
-//      
-//      size_type switcher = rng_->get() % 4;
+//	if (sparse->nRows() != 0) {
+//	  /*
+//	  row = rng_->get() % sparse->nRows();
+//	  init = (rng_->get() % 32768)/32768.0 + .001;
+//	  
+//	  size_type switcher = rng_->get() % 4;
 //
-//      if (switcher == 0) {
-//        sparse->accumulate(row, multiplies<value_type>(), init);
-//        dense->accumulate(row, multiplies<value_type>(), init);
-//        Compare(*dense, *sparse, "accumulateRowNZ with multiplies", 1e-4);
-//      } else if (switcher == 1) {
-//        sparse->accumulate(row, plus<value_type>(), init);
-//        dense->accumulate(row, plus<value_type>(), init);
-//        Compare(*dense, *sparse, "accumulateRowNZ with plus", 1e-4);
-//      } else if (switcher == 2) {
-//        sparse->accumulate(row, minus<value_type>(), init);
-//        dense->accumulate(row, minus<value_type>(), init);
-//        Compare(*dense, *sparse, "accumulateRowNZ with minus", 1e-4);
-//      } else if (switcher == 3) {
-//        sparse->accumulate(row, nta::Max<value_type>, init);
-//        dense->accumulate(row, nta::Max<value_type>, init);
-//        Compare(*dense, *sparse, "accumulateRowNZ with Max", 1e-4);
-//      }
-//      */
-//    }
-//    
+//	  if (switcher == 0) {
+//	    sparse->accumulate(row, multiplies<value_type>(), init);
+//	    dense->accumulate(row, multiplies<value_type>(), init);
+//	    Compare(*dense, *sparse, "accumulateRowNZ with multiplies", 1e-4);
+//	  } else if (switcher == 1) {
+//	    sparse->accumulate(row, plus<value_type>(), init);
+//	    dense->accumulate(row, plus<value_type>(), init);
+//	    Compare(*dense, *sparse, "accumulateRowNZ with plus", 1e-4);
+//	  } else if (switcher == 2) {
+//	    sparse->accumulate(row, minus<value_type>(), init);
+//	    dense->accumulate(row, minus<value_type>(), init);
+//	    Compare(*dense, *sparse, "accumulateRowNZ with minus", 1e-4);
+//	  } else if (switcher == 3) {
+//	    sparse->accumulate(row, nta::Max<value_type>, init);
+//	    dense->accumulate(row, nta::Max<value_type>, init);
+//	    Compare(*dense, *sparse, "accumulateRowNZ with Max", 1e-4);
+//	  }
+//	  */
+//	}
+//	
 //      } else if (r == 35) {
-//     
-//    if(dense->ncols > 0 && dense->nrows > 0) {
+//	 
+//	if(dense->ncols > 0 && dense->nrows > 0) {
 //  
-//      size_type randomTemp = rng_->getUInt32(maxMatrixSize);
-//      SM B(0, randomTemp);    
-//      SM C(sparse->nRows(), randomTemp);
-//      DM BDense(0, randomTemp);
-//      DM CDense(dense->nrows, randomTemp);
-//          
-//      vector<value_type> x(randomTemp);
-//      
-//      for (size_type n=0; n < sparse->nCols(); n++) {    
-//        generate(x.begin(), x.end(), rand_init<value_type>(rng_, 50));
-//        B.addRow(x.begin());
-//        BDense.addRow(x.begin());
-//      }
-//      
-//      sparse->multiply( B, C);
-//      dense->multiply( BDense, CDense);
-//      Compare(*dense, *sparse, "multiply", 1e-4);
-//    }
-//    
+//	  size_type randomTemp = rng_->getUInt32(maxMatrixSize);
+//	  SM B(0, randomTemp);	
+//	  SM C(sparse->nRows(), randomTemp);
+//	  DM BDense(0, randomTemp);
+//	  DM CDense(dense->nrows, randomTemp);
+//		  
+//	  vector<value_type> x(randomTemp);
+//	  
+//	  for (size_type n=0; n < sparse->nCols(); n++) {	
+//	    generate(x.begin(), x.end(), rand_init<value_type>(rng_, 50));
+//	    B.addRow(x.begin());
+//	    BDense.addRow(x.begin());
+//	  }
+//	  
+//	  sparse->multiply( B, C);
+//	  dense->multiply( BDense, CDense);
+//	  Compare(*dense, *sparse, "multiply", 1e-4);
+//	}
+//	
 //      } else if (r == 36) {
-//        
-//    if (sparse->nRows() > 0 && sparse->nCols() > 0) {
-//      
-//      vector<size_type> indices, indicesDense;
-//      vector<value_type> values, valuesDense;
-//      
-//      size_type r = rng_->getUInt32(sparse->nRows());
+//	    
+//	if (sparse->nRows() > 0 && sparse->nCols() > 0) {
+//	  
+//	  vector<size_type> indices, indicesDense;
+//	  vector<value_type> values, valuesDense;
+//	  
+//	  size_type r = rng_->getUInt32(sparse->nRows());
 //
-//      sparse->getRowToSparse(r, back_inserter(indices), 
-//                 back_inserter(values));
-//      
-//      dense->getRowToSparse(r, back_inserter(indicesDense),
-//                back_inserter(valuesDense));
-//      
-//      sparse->findRow((size_type)indices.size(), 
-//              indices.begin(), 
-//              values.begin());
+//	  sparse->getRowToSparse(r, back_inserter(indices), 
+//				 back_inserter(values));
+//	  
+//	  dense->getRowToSparse(r, back_inserter(indicesDense),
+//				back_inserter(valuesDense));
+//	  
+//	  sparse->findRow((size_type)indices.size(), 
+//			  indices.begin(), 
+//			  values.begin());
 //
-//      dense->findRow((size_type)indicesDense.size(), 
-//             indicesDense.begin(), 
-//             valuesDense.begin());
+//	  dense->findRow((size_type)indicesDense.size(), 
+//			 indicesDense.begin(), 
+//			 valuesDense.begin());
 //
-//      CompareVectors((size_type)indices.size(), indices.begin(), 
-//             indicesDense.begin(),
-//             "findRow indices");
+//	  CompareVectors((size_type)indices.size(), indices.begin(), 
+//			 indicesDense.begin(),
+//			 "findRow indices");
 //
-//      CompareVectors((size_type)values.size(), values.begin(), 
-//             valuesDense.begin(),
-//             "findRow values");
-//    }
+//	  CompareVectors((size_type)values.size(), values.begin(), 
+//			 valuesDense.begin(),
+//			 "findRow values");
+//	}
 //      }    
 //    }
 //    

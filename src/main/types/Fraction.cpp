@@ -48,8 +48,8 @@ namespace nta
        (denominator_ > overflowCutoff) || (denominator_ < -overflowCutoff))
     {
       throw Exception(__FILE__,
-              __LINE__,
-              "Fraction - integer overflow.");
+		      __LINE__,
+		      "Fraction - integer overflow.");
     }
   }
 
@@ -61,8 +61,8 @@ namespace nta
     if ((numerator_ > overflowCutoff) || (numerator_ < -overflowCutoff))
     {
       throw Exception(__FILE__,
-              __LINE__,
-              "Fraction - integer overflow.");
+		      __LINE__,
+		      "Fraction - integer overflow.");
     }
   }
 
@@ -285,13 +285,13 @@ namespace nta
   bool Fraction::operator<=(const Fraction& rhs)
   {
     return ((Fraction(numerator_, denominator_) < rhs) ||
-        (Fraction(numerator_, denominator_) == rhs));
+	    (Fraction(numerator_, denominator_) == rhs));
   }
 
   bool Fraction::operator>=(const Fraction& rhs)
   {
     return ((Fraction(numerator_, denominator_) > rhs) ||
-        (Fraction(numerator_, denominator_) == rhs));
+	    (Fraction(numerator_, denominator_) == rhs));
   }
 
   bool operator==(Fraction lhs, Fraction rhs)
@@ -344,14 +344,14 @@ namespace nta
     if(std::abs(value) > overflowCutoff)
     {
       throw Exception(__FILE__,
-              __LINE__,
-              "Fraction - integer overflow for abritrary cutoff.");
+		      __LINE__,
+		      "Fraction - integer overflow for abritrary cutoff.");
     }
     else if((std::fabs(value) < 1.0/overflowCutoff) && (std::fabs(value) > 0))
     {
       throw Exception(__FILE__,
-              __LINE__,
-              "Fraction - integer underflow for arbitrary cutoff.");
+		      __LINE__,
+		      "Fraction - integer underflow for arbitrary cutoff.");
     }
   
     do {

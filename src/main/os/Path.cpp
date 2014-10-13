@@ -92,7 +92,7 @@ namespace nta
     
     return res;
   } 
-    
+	
   bool Path::exists(const std::string & path)
   {
     if (path.empty())
@@ -107,11 +107,11 @@ namespace nta
   {
     apr_finfo_t st;
     apr_status_t res = getInfo(path, APR_FINFO_TYPE, st);
-    if (check)
-    {
-        NTA_CHECK(res == APR_SUCCESS) 
-          << "Can't get info for '" << path << "', " << OS::getErrorMessage();
-    }
+	if (check)
+	{
+		NTA_CHECK(res == APR_SUCCESS) 
+		  << "Can't get info for '" << path << "', " << OS::getErrorMessage();
+	}
     
     return st.filetype;
   }
@@ -725,12 +725,12 @@ namespace nta
   Path Path::getExtension() const
   {
     return Path::getExtension(path_); 
-    }
+	}
 
   Size Path::getFileSize() const
   {
     return Path::getFileSize(path_); 
-    }
+	}
     
   Path & Path::normalize()
   {
@@ -750,7 +750,7 @@ namespace nta
     return Path::split(path_);
   }
   
-    void Path::remove() const
+	void Path::remove() const
   {
     Path::remove(path_);
   }

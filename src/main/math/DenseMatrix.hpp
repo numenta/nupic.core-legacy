@@ -55,15 +55,15 @@ namespace nta {
     {}
 
     Dense(Int nr, Int nc, Int nzr, bool small =false, bool emptyRows =false, 
-      TRandom* r = 0)
+	  TRandom* r = 0)
       : nrows(nr), ncols(nc),
         m(nr*nc, 0)
     {
       if (small)
       {
         NTA_CHECK(r != 0) 
-      << "Random number generator required for Dense() constructor"
-      << " when small is true";
+	  << "Random number generator required for Dense() constructor"
+	  << " when small is true";
       }
       ITER_2(nrows, ncols)
         if (!small) {
@@ -119,11 +119,11 @@ namespace nta {
       Int nrows_new = nrows + 1;
       std::vector<Float> new_m(nrows_new * ncols);
       for (Int i = 0; i < nrows; ++i) 
-    for (Int j = 0; j < ncols; ++j) 
-      new_m[i*ncols+j] = at(i,j);
+	for (Int j = 0; j < ncols; ++j) 
+	  new_m[i*ncols+j] = at(i,j);
       Int k = nrows*ncols;
       for (Int j = 0; j < ncols; ++j, ++begin)
-    new_m[k+j] = *begin;
+	new_m[k+j] = *begin;
       std::swap(m, new_m);
       nrows = nrows_new;
     }
@@ -170,7 +170,7 @@ namespace nta {
       Int row_m = std::min(new_nrows, nrows);
       Int col_m = std::min(new_ncols, ncols);
       ITER_2(row_m, col_m)
-    new_m[i*new_ncols + j] = at(i,j);
+	new_m[i*new_ncols + j] = at(i,j);
       std::swap(m, new_m);
       nrows = new_nrows;
       ncols = new_ncols;
@@ -179,13 +179,13 @@ namespace nta {
     inline void setRowToZero(Int row)
     {
       for (Int j = 0; j != ncols; ++j)
-    at(row,j) = 0;
+	at(row,j) = 0;
     }
 
     inline void setColToZero(Int col)
     {
       for (Int i = 0; i != nrows; ++i)
-    at(i,col) = 0;
+	at(i,col) = 0;
     }
 
     void fromCSR(std::stringstream& stream)
@@ -244,8 +244,8 @@ namespace nta {
     {
       Int n = 0;
       ITER_2(nrows, ncols)
-    if (!nta::nearlyZero(at(i,j)) && j == col)
-      ++n;
+	if (!nta::nearlyZero(at(i,j)) && j == col)
+	  ++n;
       return n;
     }
 
@@ -263,7 +263,7 @@ namespace nta {
     {
       Int n = 0;
       ITER_1(nrows)
-    n += nNonZerosOnRow(i);
+	n += nNonZerosOnRow(i);
       return n;
     }
 
@@ -271,7 +271,7 @@ namespace nta {
     void nNonZerosPerRow(OutIter it) const
     {
       ITER_1(nrows) 
-    *it++ = nNonZerosOnRow(i);
+	*it++ = nNonZerosOnRow(i);
     }
 
     template <typename OutIter>
@@ -280,8 +280,8 @@ namespace nta {
       std::fill(it, it + ncols, 0);
 
       ITER_2(nrows, ncols) 
-    if (!nta::nearlyZero(at(i,j)))
-      *(it + j) += 1;
+	if (!nta::nearlyZero(at(i,j)))
+	  *(it + j) += 1;
     }
 
     //--------------------------------------------------------------------------------
@@ -321,13 +321,13 @@ namespace nta {
     Float rowLpDist(Float p, Int row, InIter x, bool take_root =false) const
     {
       if (p == 0.0) 
-    return rowL0Dist(row, x);
+	return rowL0Dist(row, x);
 
       Float val = 0;
       for (Int j = 0; j != ncols; ++j) 
         val += ::pow(::fabs(x[j] - at(row,j)), p);
       if (take_root)
-    val = ::pow(val, 1.0/p);
+	val = ::pow(val, 1.0/p);
       return val;
     }  
 
@@ -353,8 +353,8 @@ namespace nta {
     void LpDist(Float p, InIter x, OutIter y, bool take_root =false) const
     {
       if (p == 0.0) {
-    L0Dist(x, y);
-    return;
+	L0Dist(x, y);
+	return;
       }
 
       for (Int i = 0; i != nrows; ++i) {
@@ -382,7 +382,7 @@ namespace nta {
       for (Int i = 0; i != nrows; ++i) {
         Float val = 0;
         for (Int j = 0; j != ncols; ++j) 
-      val = std::max(val, ::fabs(x[j] - at(i,j)));
+	  val = std::max(val, ::fabs(x[j] - at(i,j)));
         y[i] = val;
       }
     }
@@ -392,15 +392,15 @@ namespace nta {
     LpNearest(Float p, InIter x, OutIter nn, Int k =1, bool take_root =false) const
     {
       if (p == 0.0) {
-    L0Nearest(x, nn, k);
-    return;
+	L0Nearest(x, nn, k);
+	return;
       }
 
       std::vector<std::pair<Int, Float> > dists(nrows);
 
       for (Int i = 0; i != nrows; ++i) {
-    dists[i].first = i;
-    dists[i].second = 0;
+	dists[i].first = i;
+	dists[i].second = 0;
       }
 
       for (Int i = 0; i < nrows; ++i) {
@@ -411,11 +411,11 @@ namespace nta {
       }
 
       std::partial_sort(dists.begin(), dists.begin() + k, dists.end(), 
-            predicate_compose<std::less<Float>, nta::select2nd<std::pair<Int, Float> > >());
+			predicate_compose<std::less<Float>, nta::select2nd<std::pair<Int, Float> > >());
 
       for (Int i = 0; i != nrows; ++i, ++nn) {
-    nn->first = dists[i].first;
-    nn->second = dists[i].second;
+	nn->first = dists[i].first;
+	nn->second = dists[i].second;
       }
     }
 
@@ -426,8 +426,8 @@ namespace nta {
       std::vector<std::pair<Int, Float> > dists(nrows);
 
       for (Int i = 0; i != nrows; ++i) {
-    dists[i].first = i;
-    dists[i].second = 0;
+	dists[i].first = i;
+	dists[i].second = 0;
       }
 
       for (Int i = 0; i < nrows; ++i) {
@@ -440,8 +440,8 @@ namespace nta {
       std::partial_sort(dists.begin(), dists.begin() + k, dists.end(),  predicate_compose<std::less<Float>, nta::select2nd<std::pair<Int, Float> > >());
 
       for (Int i = 0; i != nrows; ++i, ++nn) {
-    nn->first = dists[i].first;
-    nn->second = dists[i].second;
+	nn->first = dists[i].first;
+	nn->second = dists[i].second;
       }
     }
 
@@ -452,8 +452,8 @@ namespace nta {
       std::vector<std::pair<Int, Float> > dists(nrows);
 
       for (Int i = 0; i != nrows; ++i) {
-    dists[i].first = i;
-    dists[i].second = 0;
+	dists[i].first = i;
+	dists[i].second = 0;
       }
 
       for (Int i = 0; i < nrows; ++i) {
@@ -464,11 +464,11 @@ namespace nta {
       }
 
       std::partial_sort(dists.begin(), dists.begin() + k, dists.end(), 
-            predicate_compose<std::less<Float>, nta::select2nd<std::pair<Int, Float> > >());
+			predicate_compose<std::less<Float>, nta::select2nd<std::pair<Int, Float> > >());
 
       for (Int i = 0; i != nrows; ++i, ++nn) {
-    nn->first = dists[i].first;
-    nn->second = dists[i].second;
+	nn->first = dists[i].first;
+	nn->second = dists[i].second;
       }
     }
 
@@ -527,7 +527,7 @@ namespace nta {
     void normalizeRows(bool exact =false)
     {
       for (Int i = 0; i != nrows; ++i) {
-    
+	
         Float val = 0;
         bool oneMore = false;
 
@@ -560,7 +560,7 @@ namespace nta {
     void normalizeCols(bool exact =false)
     {
       for (Int j = 0; j != ncols; ++j) {
-    
+	
         Float val = 0;
         bool oneMore = false;
 
@@ -571,9 +571,9 @@ namespace nta {
           for (Int i = 0; i != nrows; ++i) {
             at(i,j) /= val;
             if (nta::nearlyZero(at(i,j))) {
-          at(i,j) = 0;
+	      at(i,j) = 0;
               oneMore = true;
-        }
+	    }
           }
 
         if (oneMore && exact) {
@@ -618,7 +618,7 @@ namespace nta {
     void lerp(Float a, Float b, const Dense<Int, Float>& B)
     {
       ITER_2(nrows, ncols)
-    at(i,j) = a * at(i,j) + b * B.at(i,j);
+	at(i,j) = a * at(i,j) + b * B.at(i,j);
       
       threshold(nta::Epsilon);
     }
@@ -643,7 +643,7 @@ namespace nta {
       Float r = init;
       for (Int j = 0; j < ncols; ++j)
         if (!nta::nearlyZero(at(row,j)))
-      r = f(r, at(row,j));
+	  r = f(r, at(row,j));
       return r;
     }
 
@@ -655,14 +655,14 @@ namespace nta {
         r = f(r, at(row,j));
       return r;
     }
-    
+	
     void multiply(const Dense& B, Dense& C)
     {
       ITER_2(C.nrows, C.ncols) {
-    C.at(i,j) = 0;
-    for(Int k=0; k<ncols; k++) {
-      C.at(i,j) += at(i,k) * B.at(k,j);
-    }
+	C.at(i,j) = 0;
+	for(Int k=0; k<ncols; k++) {
+	  C.at(i,j) += at(i,k) * B.at(k,j);
+	}
       }
     }
 
@@ -685,14 +685,14 @@ namespace nta {
     inline void add(Int row, InIter x)
     {
       for (Int j = 0; j < ncols; ++j)
-    at(row, j) += *x++;
+	at(row, j) += *x++;
     }
   
     inline void add(const Dense& B)
     {
       for(Int i=0; i<nrows; i++)
-    for(Int j=0; j<ncols; j++)
-      at(i,j) += B.at(i,j);
+	for(Int j=0; j<ncols; j++)
+	  at(i,j) += B.at(i,j);
     }
 
     template <typename InIter, typename OutIter>
@@ -701,12 +701,12 @@ namespace nta {
       Float currentMax;
       
       for(Int i=0; i<nrows; i++) {
-    currentMax=0;
-    for(Int j=0; j<ncols; j++) {
-      if (at(i,j) > currentMax) 
-        currentMax = at(i,j);
-    }
-    *y = currentMax;
+	currentMax=0;
+	for(Int j=0; j<ncols; j++) {
+	  if (at(i,j) > currentMax) 
+	    currentMax = at(i,j);
+	}
+	*y = currentMax;
       }
     }
   
@@ -718,19 +718,19 @@ namespace nta {
       
       for(Int i=0; i<nrows; i++) {
         curProduct=1;
-    x = x_begin;
-    for(Int j=0; j<ncols; j++) {
-      if (at(i,j) != 0)
-        curProduct *= *x;
-      x++;
-    }
-    
-    if(curProduct<lb) {
-      *y = curProduct;
-    } else {
-      *y = lb;
-    }
-    y++;
+	x = x_begin;
+	for(Int j=0; j<ncols; j++) {
+	  if (at(i,j) != 0)
+	    curProduct *= *x;
+	  x++;
+	}
+	
+	if(curProduct<lb) {
+	  *y = curProduct;
+	} else {
+	  *y = lb;
+	}
+	y++;
       }
     }
 
@@ -738,24 +738,24 @@ namespace nta {
     inline void getRowToDense(Int r, OutIter dense) const
     {
       for (Int j = 0; j != ncols; ++j)
-    *dense++ = at(r,j);     
+	*dense++ = at(r,j);     
     }
     
     template <typename OutIter>
     inline void getColToDense(Int c, OutIter dense) const
     {
       for (Int i = 0; i != nrows; ++i)
-    *dense++ = at(i,c);
+	*dense++ = at(i,c);
     }
 
     template <typename OutIter1, typename OutIter2>
     inline void getRowToSparse(Int r, OutIter1 indIt, OutIter2 nzIt) const
     {
       for(Int j=0; j<ncols; j++) {
-    if (at(r,j) != 0) {
-      *indIt++ = j;
-      *nzIt++ = at(r,j);
-    }
+	if (at(r,j) != 0) {
+	  *indIt++ = j;
+	  *nzIt++ = at(r,j);
+	}
       }
     }
 
@@ -763,10 +763,10 @@ namespace nta {
     inline void getColToSparse(Int c, OutIter1 indIt, OutIter2 nzIt) const
     {
       for(Int j=0; j<nrows; j++) {
-    if (at(j,c) != 0) {
-      *indIt++ = j;
-      *nzIt++ = at(j,c);
-    }
+	if (at(j,c) != 0) {
+	  *indIt++ = j;
+	  *nzIt++ = at(j,c);
+	}
       }
     }
     
@@ -777,16 +777,16 @@ namespace nta {
       NzIt nz_it_begin = nz_it;
       
       for (Int i=0; i<nrows; ++i) {
-    ind_it = ind_it_begin;
-    nz_it = nz_it_begin;
-    while (ind_it != ind_it_end) {
-      if (at(i, *ind_it) != *nz_it)
-        break;
-      ++ind_it;
-      ++nz_it;
-    }
-    if (ind_it == ind_it_end)
-      return i;
+	ind_it = ind_it_begin;
+	nz_it = nz_it_begin;
+	while (ind_it != ind_it_end) {
+	  if (at(i, *ind_it) != *nz_it)
+	    break;
+	  ++ind_it;
+	  ++nz_it;
+	}
+	if (ind_it == ind_it_end)
+	  return i;
       }
       
       return nrows;
@@ -798,14 +798,14 @@ namespace nta {
       max_val = - std::numeric_limits<Float>::max();
 
       ITER_2(nrows, ncols)
-    if (!nta::nearlyZero(at(i,j)) && at(i,j) > max_val) {
-      max_val = at(i,j);
-      max_i = i;
-      max_j = j;
-    }
+	if (!nta::nearlyZero(at(i,j)) && at(i,j) > max_val) {
+	  max_val = at(i,j);
+	  max_i = i;
+	  max_j = j;
+	}
       
       if (max_val == -std::numeric_limits<Float>::max())
-    max_val = 0;
+	max_val = 0;
     }
 
     inline void min(Int& min_i, Int& min_j, Float& min_val) const
@@ -814,28 +814,28 @@ namespace nta {
       min_val = std::numeric_limits<Float>::max();
 
       ITER_2(nrows, ncols)
-    if (!nta::nearlyZero(at(i,j)) && at(i,j) < min_val) {
-      min_val = at(i,j);
-      min_i = i;
-      min_j = j;
-    }
+	if (!nta::nearlyZero(at(i,j)) && at(i,j) < min_val) {
+	  min_val = at(i,j);
+	  min_i = i;
+	  min_j = j;
+	}
 
       if (min_val == std::numeric_limits<Float>::max())
-    min_val = 0;
+	min_val = 0;
     }
 
     template <typename Maxima>
     inline void rowMax(Maxima maxima) const
     {
       for (Int i = 0; i != nrows; ++i) {
-    maxima[i].first = 0;
-    maxima[i].second = - std::numeric_limits<Float>::max();
-    for (Int j = 0; j != ncols; ++j) {
-      if (!nta::nearlyZero(at(i,j)) && at(i,j) > maxima[i].second) {
-          maxima[i].first = j;
-          maxima[i].second = at(i,j);
-      }
-    }
+	maxima[i].first = 0;
+	maxima[i].second = - std::numeric_limits<Float>::max();
+	for (Int j = 0; j != ncols; ++j) {
+	  if (!nta::nearlyZero(at(i,j)) && at(i,j) > maxima[i].second) {
+	      maxima[i].first = j;
+	      maxima[i].second = at(i,j);
+	  }
+	}
       }
     }
 
@@ -843,14 +843,14 @@ namespace nta {
     inline void rowMin(Minima minima) const
     {
       for (Int i = 0; i != nrows; ++i) {
-    minima[i].first = 0;
-    minima[i].second = std::numeric_limits<Float>::max();
-    for (Int j = 0; j != ncols; ++j) {
-      if (!nta::nearlyZero(at(i,j)) && at(i,j) < minima[i].second) {
-        minima[i].first = j;
-        minima[i].second = at(i,j);
-      }
-    }
+	minima[i].first = 0;
+	minima[i].second = std::numeric_limits<Float>::max();
+	for (Int j = 0; j != ncols; ++j) {
+	  if (!nta::nearlyZero(at(i,j)) && at(i,j) < minima[i].second) {
+	    minima[i].first = j;
+	    minima[i].second = at(i,j);
+	  }
+	}
       }
     }
 
@@ -858,16 +858,16 @@ namespace nta {
     inline void colMax(Maxima maxima) const
     {
       for (Int j = 0; j != ncols; ++j) {
-    maxima[j].first = 0;
-    maxima[j].second = - std::numeric_limits<Float>::max();
-    for (Int i = 0; i != nrows; ++i) {
-      if (!nta::nearlyZero(at(i,j)) && at(i,j) > maxima[j].second) {
-        maxima[j].first = i;
-        maxima[j].second = at(i,j);
-      }
-    }
-    if (maxima[j].second == - std::numeric_limits<Float>::max())
-      maxima[j].second = 0;
+	maxima[j].first = 0;
+	maxima[j].second = - std::numeric_limits<Float>::max();
+	for (Int i = 0; i != nrows; ++i) {
+	  if (!nta::nearlyZero(at(i,j)) && at(i,j) > maxima[j].second) {
+	    maxima[j].first = i;
+	    maxima[j].second = at(i,j);
+	  }
+	}
+	if (maxima[j].second == - std::numeric_limits<Float>::max())
+	  maxima[j].second = 0;
       }
     }
 
@@ -875,16 +875,16 @@ namespace nta {
     inline void colMin(Minima minima) const
     {
       for (Int j = 0; j != ncols; ++j) {
-    minima[j].first = 0;
-    minima[j].second = std::numeric_limits<Float>::max();
-    for (Int i = 0; i != nrows; ++i) {
-      if (!nta::nearlyZero(at(i,j)) && at(i,j) < minima[j].second) {
-        minima[j].first = i;
-        minima[j].second = at(i,j);
-      }
-    }
-    if (minima[j].second == std::numeric_limits<Float>::max())
-      minima[j].second = 0;
+	minima[j].first = 0;
+	minima[j].second = std::numeric_limits<Float>::max();
+	for (Int i = 0; i != nrows; ++i) {
+	  if (!nta::nearlyZero(at(i,j)) && at(i,j) < minima[j].second) {
+	    minima[j].first = i;
+	    minima[j].second = at(i,j);
+	  }
+	}
+	if (minima[j].second == std::numeric_limits<Float>::max())
+	  minima[j].second = 0;
       }
     }
   };

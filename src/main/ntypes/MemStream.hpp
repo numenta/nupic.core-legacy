@@ -136,7 +136,7 @@ template<typename charT, typename traitsT, typename allocT>
 class NTA_EXPORT BasicOMemStreamBuf : public std::basic_streambuf<charT, traitsT>
 {
 public: 
-  typedef std::basic_string<charT, traitsT, allocT>     stringType_;
+  typedef std::basic_string<charT, traitsT, allocT> 	stringType_;
   typedef typename traitsT::int_type                    int_type;
   
 private:
@@ -236,7 +236,7 @@ template<typename charT, typename traitsT, typename allocT>
 class NTA_EXPORT BasicIMemStream : public std::basic_istream<charT, traitsT>
 {
 public: 
-  typedef BasicIMemStreamBuf<charT, traitsT, allocT>     memStreamBufType_;
+  typedef BasicIMemStreamBuf<charT, traitsT, allocT> 	memStreamBufType_;
   
 private:
   memStreamBufType_   streamBuf_;
@@ -295,7 +295,7 @@ template<typename charT, typename traitsT, typename allocT>
 class NTA_EXPORT BasicOMemStream : public std::basic_ostream<charT, traitsT>
 {
 public: 
-  typedef BasicOMemStreamBuf<charT, traitsT, allocT>     memStreamBufType_;
+  typedef BasicOMemStreamBuf<charT, traitsT, allocT> 	memStreamBufType_;
   
 private:
   memStreamBufType_   streamBuf_;

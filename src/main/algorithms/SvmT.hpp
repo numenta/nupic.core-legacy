@@ -61,7 +61,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //--------------------------------------------------------------------------------
 template <typename TQ>
 float Solver<TQ>::solve(int l, TQ& Q, const signed char *y_,
-            float *alpha_, float C, float eps, int shrinking)
+			float *alpha_, float C, float eps, int shrinking)
 {
   this->l = l;
   this->Q = &Q;
@@ -100,20 +100,20 @@ float Solver<TQ>::solve(int l, TQ& Q, const signed char *y_,
     G_bar = new float[l];
     for(int i=0;i<l;i++)
       {
-    G[i] = p[i];
-    G_bar[i] = 0;
+	G[i] = p[i];
+	G_bar[i] = 0;
       }
     for(int i=0;i<l;i++)
       if(!is_lower_bound(i))
-    {
-      const float *Q_i = Q.get_Q(i,l);
-      float alpha_i = alpha[i];
-      for(int j=0;j<l;j++)
-        G[j] += alpha_i*Q_i[j];
-      if(is_upper_bound(i))
-        for(int j=0;j<l;j++)
-          G_bar[j] += get_C(i) * Q_i[j];
-    }
+	{
+	  const float *Q_i = Q.get_Q(i,l);
+	  float alpha_i = alpha[i];
+	  for(int j=0;j<l;j++)
+	    G[j] += alpha_i*Q_i[j];
+	  if(is_upper_bound(i))
+	    for(int j=0;j<l;j++)
+	      G_bar[j] += get_C(i) * Q_i[j];
+	}
   }
 
   // optimization step
@@ -126,26 +126,26 @@ float Solver<TQ>::solve(int l, TQ& Q, const signed char *y_,
       // show progress and do shrinking
 
       if(--counter == 0)
-    {
-      counter = std::min(l,1000);
-      if(shrinking) 
-        do_shrinking();
-    }
+	{
+	  counter = std::min(l,1000);
+	  if(shrinking) 
+	    do_shrinking();
+	}
 
       int i,j;
       
       if (select_working_set(i, j) != 0)
-    {
-      // reconstruct the whole gradient
-      reconstruct_gradient();
-      // reset active set size and check
-      active_size = l;
-      if (select_working_set(i, j) != 0)
-        break;
-      else
-        counter = 1;    // do shrinking next iteration
-    }
-        
+	{
+	  // reconstruct the whole gradient
+	  reconstruct_gradient();
+	  // reset active set size and check
+	  active_size = l;
+	  if (select_working_set(i, j) != 0)
+	    break;
+	  else
+	    counter = 1;	// do shrinking next iteration
+	}
+		
       ++iter;
 
       // update alpha[i] and alpha[j], handle bounds carefully
@@ -162,131 +162,131 @@ float Solver<TQ>::solve(int l, TQ& Q, const signed char *y_,
       float old_alpha_j = alpha[j];
 
       if (y[i]!=y[j])
-    {
-      float quad_coef = Q_i[i]+Q_j[j]+2*Q_i[j];
-      if (quad_coef <= 0)
-        quad_coef = TAU;
-      NTA_ASSERT(quad_coef > 0);
-      float delta = (-G[i]-G[j])/quad_coef;
-      float diff = alpha[i] - alpha[j];
-      alpha[i] += delta;
-      alpha[j] += delta;
-            
-      if(diff > 0)
-        {
-          if(alpha[j] < 0)
-        {
-          alpha[j] = 0;
-          alpha[i] = diff;
-        }
-        }
+	{
+	  float quad_coef = Q_i[i]+Q_j[j]+2*Q_i[j];
+	  if (quad_coef <= 0)
+	    quad_coef = TAU;
+	  NTA_ASSERT(quad_coef > 0);
+	  float delta = (-G[i]-G[j])/quad_coef;
+	  float diff = alpha[i] - alpha[j];
+	  alpha[i] += delta;
+	  alpha[j] += delta;
+			
+	  if(diff > 0)
+	    {
+	      if(alpha[j] < 0)
+		{
+		  alpha[j] = 0;
+		  alpha[i] = diff;
+		}
+	    }
+	  else
+	    {
+	      if(alpha[i] < 0)
+		{
+		  alpha[i] = 0;
+		  alpha[j] = -diff;
+		}
+	    }
+	  if(diff > C_i - C_j)
+	    {
+	      if(alpha[i] > C_i)
+		{
+		  alpha[i] = C_i;
+		  alpha[j] = C_i - diff;
+		}
+	    }
+	  else
+	    {
+	      if(alpha[j] > C_j)
+		{
+		  alpha[j] = C_j;
+		  alpha[i] = C_j + diff;
+		}
+	    }
+	}
       else
-        {
-          if(alpha[i] < 0)
-        {
-          alpha[i] = 0;
-          alpha[j] = -diff;
-        }
-        }
-      if(diff > C_i - C_j)
-        {
-          if(alpha[i] > C_i)
-        {
-          alpha[i] = C_i;
-          alpha[j] = C_i - diff;
-        }
-        }
-      else
-        {
-          if(alpha[j] > C_j)
-        {
-          alpha[j] = C_j;
-          alpha[i] = C_j + diff;
-        }
-        }
-    }
-      else
-    {
-      float quad_coef = Q_i[i]+Q_j[j]-2*Q_i[j];
-      if (quad_coef <= 0)
-        quad_coef = TAU;
-      NTA_ASSERT(quad_coef > 0);
-      float delta = (G[i]-G[j])/quad_coef;
-      float sum = alpha[i] + alpha[j];
-      alpha[i] -= delta;
-      alpha[j] += delta;
+	{
+	  float quad_coef = Q_i[i]+Q_j[j]-2*Q_i[j];
+	  if (quad_coef <= 0)
+	    quad_coef = TAU;
+	  NTA_ASSERT(quad_coef > 0);
+	  float delta = (G[i]-G[j])/quad_coef;
+	  float sum = alpha[i] + alpha[j];
+	  alpha[i] -= delta;
+	  alpha[j] += delta;
 
-      if(sum > C_i)
-        {
-          if(alpha[i] > C_i)
-        {
-          alpha[i] = C_i;
-          alpha[j] = sum - C_i;
-        }
-        }
-      else
-        {
-          if(alpha[j] < 0)
-        {
-          alpha[j] = 0;
-          alpha[i] = sum;
-        }
-        }
-      if(sum > C_j)
-        {
-          if(alpha[j] > C_j)
-        {
-          alpha[j] = C_j;
-          alpha[i] = sum - C_j;
-        }
-        }
-      else
-        {
-          if(alpha[i] < 0)
-        {
-          alpha[i] = 0;
-          alpha[j] = sum;
-        }
-        }
-    }
+	  if(sum > C_i)
+	    {
+	      if(alpha[i] > C_i)
+		{
+		  alpha[i] = C_i;
+		  alpha[j] = sum - C_i;
+		}
+	    }
+	  else
+	    {
+	      if(alpha[j] < 0)
+		{
+		  alpha[j] = 0;
+		  alpha[i] = sum;
+		}
+	    }
+	  if(sum > C_j)
+	    {
+	      if(alpha[j] > C_j)
+		{
+		  alpha[j] = C_j;
+		  alpha[i] = sum - C_j;
+		}
+	    }
+	  else
+	    {
+	      if(alpha[i] < 0)
+		{
+		  alpha[i] = 0;
+		  alpha[j] = sum;
+		}
+	    }
+	}
 
       // update G
       float delta_alpha_i = alpha[i] - old_alpha_i;
       float delta_alpha_j = alpha[j] - old_alpha_j;
-        
+		
       for(int k=0;k<active_size;k++) {
-    G[k] += Q_i[k]*delta_alpha_i + Q_j[k]*delta_alpha_j;
-    NTA_ASSERT(-HUGE_VAL <= G[k] && G[k] <= HUGE_VAL);
+	G[k] += Q_i[k]*delta_alpha_i + Q_j[k]*delta_alpha_j;
+	NTA_ASSERT(-HUGE_VAL <= G[k] && G[k] <= HUGE_VAL);
       }
 
       // update alpha_status and G_bar
       {
-    bool ui = is_upper_bound(i);
-    bool uj = is_upper_bound(j);
-    update_alpha_status(i);
-    update_alpha_status(j);
+	bool ui = is_upper_bound(i);
+	bool uj = is_upper_bound(j);
+	update_alpha_status(i);
+	update_alpha_status(j);
 
-    if(ui != is_upper_bound(i))
-      {
-        Q_i = Q.get_Q(i,l);
-        if(ui)
-          for(int k=0;k<l;k++)
-        G_bar[k] -= C_i * Q_i[k];
-        else
-          for(int k=0;k<l;k++)
-        G_bar[k] += C_i * Q_i[k];
-      }
+	if(ui != is_upper_bound(i))
+	  {
+	    Q_i = Q.get_Q(i,l);
+	    if(ui)
+	      for(int k=0;k<l;k++)
+		G_bar[k] -= C_i * Q_i[k];
+	    else
+	      for(int k=0;k<l;k++)
+		G_bar[k] += C_i * Q_i[k];
+	  }
 
-    if(uj != is_upper_bound(j))
-      {
-        Q_j = Q.get_Q(j,l);
-        if(uj)
-          for(int k=0;k<l;k++)
-        G_bar[k] -= C_j * Q_j[k];
-        else
-          for(int k=0;k<l;k++)
-        G_bar[k] += C_j * Q_j[k];
-      }
+	if(uj != is_upper_bound(j))
+	  {
+	    Q_j = Q.get_Q(j,l);
+	    if(uj)
+	      for(int k=0;k<l;k++)
+		G_bar[k] -= C_j * Q_j[k];
+	    else
+	      for(int k=0;k<l;k++)
+		G_bar[k] += C_j * Q_j[k];
+	  }
       }
     }
   
@@ -331,14 +331,14 @@ void Solver<TQ>::reconstruct_gradient()
 
   for(int i=active_size;i<l;i++)
     G[i] = G_bar[i] + p[i];
-    
+	
   for(int i=0;i<active_size;i++)
     if(is_free(i))
       {
-    const float *Q_i = Q->get_Q(i,l);
-    float alpha_i = alpha[i];
-    for(int j=active_size;j<l;j++)
-      G[j] += alpha_i * Q_i[j];
+	const float *Q_i = Q->get_Q(i,l);
+	float alpha_i = alpha[i];
+	for(int j=active_size;j<l;j++)
+	  G[j] += alpha_i * Q_i[j];
       }
 }
 
@@ -352,7 +352,7 @@ int Solver<TQ>::select_working_set(int &out_i, int &out_j)
   // j: minimizes the decrease of obj value
   //    (if quadratic coefficeint <= 0, replace it with tau)
   //    -y_j*grad(f)_j < -y_i*grad(f)_i, j in I_low(\alpha)
-    
+	
   float Gmax = -HUGE_VAL; //std::numeric_limits<float>::max();
   float Gmax2 = -HUGE_VAL; //std::numeric_limits<float>::max();
   int Gmax_idx = -1;
@@ -361,23 +361,23 @@ int Solver<TQ>::select_working_set(int &out_i, int &out_j)
 
   for (int t=0;t<active_size;t++) {
 
-    if (y[t] == +1)    
+    if (y[t] == +1)	
       {
-    if (!is_upper_bound(t))
-      if (-G[t] >= Gmax)
-        {
-          Gmax = -G[t];
-          Gmax_idx = t;
-        }
+	if (!is_upper_bound(t))
+	  if (-G[t] >= Gmax)
+	    {
+	      Gmax = -G[t];
+	      Gmax_idx = t;
+	    }
       }
     else
       {
-    if (!is_lower_bound(t))
-      if (G[t] >= Gmax)
-        {
-          Gmax = G[t];
-          Gmax_idx = t;
-        }
+	if (!is_lower_bound(t))
+	  if (G[t] >= Gmax)
+	    {
+	      Gmax = G[t];
+	      Gmax_idx = t;
+	    }
       }
   }
 
@@ -392,59 +392,59 @@ int Solver<TQ>::select_working_set(int &out_i, int &out_j)
   for(int j=0;j<active_size;j++)
     {
       if (y[j] == +1)
-    {
-      if (!is_lower_bound(j))
-        {
-          float grad_diff=Gmax+G[j];
+	{
+	  if (!is_lower_bound(j))
+	    {
+	      float grad_diff=Gmax+G[j];
 
-          if (G[j] >= Gmax2)
-        Gmax2 = G[j];
+	      if (G[j] >= Gmax2)
+		Gmax2 = G[j];
 
-          if (grad_diff > 0)
-        {
-          float obj_diff; 
-          float quad_coef=Q_i[i]+QD[j]-2*y[i]*Q_i[j];
+	      if (grad_diff > 0)
+		{
+		  float obj_diff; 
+		  float quad_coef=Q_i[i]+QD[j]-2*y[i]*Q_i[j];
 
-          if (quad_coef > 0)
-            obj_diff = -(grad_diff*grad_diff)/quad_coef;
-          else
-            obj_diff = -(grad_diff*grad_diff)/TAU;
+		  if (quad_coef > 0)
+		    obj_diff = -(grad_diff*grad_diff)/quad_coef;
+		  else
+		    obj_diff = -(grad_diff*grad_diff)/TAU;
 
-          if (obj_diff <= obj_diff_min)
-            {
-              Gmin_idx=j;
-              obj_diff_min = obj_diff;
-            }
-        }
-        }
-    }
+		  if (obj_diff <= obj_diff_min)
+		    {
+		      Gmin_idx=j;
+		      obj_diff_min = obj_diff;
+		    }
+		}
+	    }
+	}
       else
-    {
-      if (!is_upper_bound(j))
-        {
-          float grad_diff= Gmax - G[j];
+	{
+	  if (!is_upper_bound(j))
+	    {
+	      float grad_diff= Gmax - G[j];
 
-          if (-G[j] >= Gmax2)
-        Gmax2 = -G[j];
+	      if (-G[j] >= Gmax2)
+		Gmax2 = -G[j];
 
-          if (grad_diff > 0)
-        {
-          float obj_diff; 
-          float quad_coef = Q_i[i]+QD[j]+2*y[i]*Q_i[j];
+	      if (grad_diff > 0)
+		{
+		  float obj_diff; 
+		  float quad_coef = Q_i[i]+QD[j]+2*y[i]*Q_i[j];
 
-          if (quad_coef > 0)
-            obj_diff = -(grad_diff*grad_diff)/quad_coef;
-          else
-            obj_diff = -(grad_diff*grad_diff)/TAU;
+		  if (quad_coef > 0)
+		    obj_diff = -(grad_diff*grad_diff)/quad_coef;
+		  else
+		    obj_diff = -(grad_diff*grad_diff)/TAU;
 
-          if (obj_diff <= obj_diff_min)
-            {
-              Gmin_idx = j;
-              obj_diff_min = obj_diff;
-            }
-        }
-        } 
-    }
+		  if (obj_diff <= obj_diff_min)
+		    {
+		      Gmin_idx = j;
+		      obj_diff_min = obj_diff;
+		    }
+		}
+	    } 
+	}
     }
 
   if (Gmax + Gmax2 < eps)
@@ -466,16 +466,16 @@ bool Solver<TQ>::be_shrunken(int i, float Gmax1, float Gmax2)
   if(is_upper_bound(i))
     {
       if(y[i]==+1)
-    return(-G[i] > Gmax1);
+	return(-G[i] > Gmax1);
       else
-    return(-G[i] > Gmax2);
+	return(-G[i] > Gmax2);
     }
   else if(is_lower_bound(i))
     {
       if(y[i]==+1)
-    return(G[i] > Gmax2);
-      else    
-    return(G[i] > Gmax1);
+	return(G[i] > Gmax2);
+      else	
+	return(G[i] > Gmax1);
     }
   else
     return(false); 
@@ -485,38 +485,38 @@ bool Solver<TQ>::be_shrunken(int i, float Gmax1, float Gmax2)
 template <typename TQ>
 void Solver<TQ>::do_shrinking()
 {
-  float Gmax1 = -INF;        // max { -y_i * grad(f)_i | i in I_up(\alpha) }
-  float Gmax2 = -INF;        // max { y_i * grad(f)_i | i in I_low(\alpha) }
+  float Gmax1 = -INF;		// max { -y_i * grad(f)_i | i in I_up(\alpha) }
+  float Gmax2 = -INF;		// max { y_i * grad(f)_i | i in I_low(\alpha) }
 
   // find maximal violating pair first
   for(int i=0;i<active_size;i++)
     {
-      if(y[i]==+1)    
-    {
-      if(!is_upper_bound(i))    
-        {
-          if(-G[i] >= Gmax1)
-        Gmax1 = -G[i];
-        }
-      if(!is_lower_bound(i))    
-        {
-          if(G[i] >= Gmax2)
-        Gmax2 = G[i];
-        }
-    }
-      else    
-    {
-      if(!is_upper_bound(i))    
-        {
-          if(-G[i] >= Gmax2)
-        Gmax2 = -G[i];
-        }
-      if(!is_lower_bound(i))    
-        {
-          if(G[i] >= Gmax1)
-        Gmax1 = G[i];
-        }
-    }
+      if(y[i]==+1)	
+	{
+	  if(!is_upper_bound(i))	
+	    {
+	      if(-G[i] >= Gmax1)
+		Gmax1 = -G[i];
+	    }
+	  if(!is_lower_bound(i))	
+	    {
+	      if(G[i] >= Gmax2)
+		Gmax2 = G[i];
+	    }
+	}
+      else	
+	{
+	  if(!is_upper_bound(i))	
+	    {
+	      if(-G[i] >= Gmax2)
+		Gmax2 = -G[i];
+	    }
+	  if(!is_lower_bound(i))	
+	    {
+	      if(G[i] >= Gmax1)
+		Gmax1 = G[i];
+	    }
+	}
     }
 
   // shrink
@@ -524,38 +524,38 @@ void Solver<TQ>::do_shrinking()
   for(int i=0;i<active_size;i++)
     if (be_shrunken(i, Gmax1, Gmax2))
       {
-    active_size--;
-    while (active_size > i)
-      {
-        if (!be_shrunken(active_size, Gmax1, Gmax2))
-          {
-        swap_index(i,active_size);
-        break;
-          }
-        active_size--;
-      }
+	active_size--;
+	while (active_size > i)
+	  {
+	    if (!be_shrunken(active_size, Gmax1, Gmax2))
+	      {
+		swap_index(i,active_size);
+		break;
+	      }
+	    active_size--;
+	  }
       }
 
   // unshrink, check all variables again before final iterations
 
   if(unshrinked || Gmax1 + Gmax2 > eps*10) return;
-    
+	
   unshrinked = true;
   reconstruct_gradient();
 
   for(int i=l-1;i>=active_size;i--)
     if (!be_shrunken(i, Gmax1, Gmax2))
       {
-    while (active_size < i)
-      {
-        if (be_shrunken(active_size, Gmax1, Gmax2))
-          {
-        swap_index(i,active_size);
-        break;
-          }
-        active_size++;
-      }
-    active_size++;
+	while (active_size < i)
+	  {
+	    if (be_shrunken(active_size, Gmax1, Gmax2))
+	      {
+		swap_index(i,active_size);
+		break;
+	      }
+	    active_size++;
+	  }
+	active_size++;
       }
 }
 
@@ -571,24 +571,24 @@ float Solver<TQ>::calculate_rho()
       float yG = y[i]*G[i];
 
       if(is_upper_bound(i))
-    {
-      if(y[i]==-1)
-        ub = std::min(ub,yG);
-      else
-        lb = std::max(lb,yG);
-    }
+	{
+	  if(y[i]==-1)
+	    ub = std::min(ub,yG);
+	  else
+	    lb = std::max(lb,yG);
+	}
       else if(is_lower_bound(i))
-    {
-      if(y[i]==+1)
-        ub = std::min(ub,yG);
+	{
+	  if(y[i]==+1)
+	    ub = std::min(ub,yG);
+	  else
+	    lb = std::max(lb,yG);
+	}
       else
-        lb = std::max(lb,yG);
-    }
-      else
-    {
-      ++nr_free;
-      sum_free += yG;
-    }
+	{
+	  ++nr_free;
+	  sum_free += yG;
+	}
     }
 
   if(nr_free>0)
@@ -605,9 +605,9 @@ float Solver<TQ>::calculate_rho()
 // Platt's binary SVM Probablistic Output: an improvement from Lin et al.
 template <typename traits>
 void svm<traits>::sigmoid_train(int l, 
-                const Vector& dec_values, 
-                const Vector& labels, 
-                float& A, float& B)
+				const Vector& dec_values, 
+				const Vector& labels, 
+				float& A, float& B)
 {
   float prior1=0, prior0 = 0;
 
@@ -616,17 +616,17 @@ void svm<traits>::sigmoid_train(int l,
       prior1+=1;
     else 
       prior0+=1;
-    
-  int max_iter=100;     // Maximal number of iterations
-  float min_step=float(1e-10);    // Minimal step taken in line search
-  float sigma=float(1e-3);    // For numerically strict PD of Hessian
+	
+  int max_iter=100; 	// Maximal number of iterations
+  float min_step=float(1e-10);	// Minimal step taken in line search
+  float sigma=float(1e-3);	// For numerically strict PD of Hessian
   float eps=float(1e-5);
   float hiTarget=(prior1+float(1.0))/(prior1+float(2.0));
   float loTarget=float(1.0)/(prior0+float(2.0));
   Vector t(l);
   float fApB,p,q,h11,h22,h21,g1,g2,det,dA,dB,gd,stepsize;
   float newA,newB,newf,d1,d2;
-    
+	
   // Initial Point and Initial Fun Value
   A=0.0; B=log((prior0+float(1.0))/(prior1+float(1.0)));
   float fval = 0.0;
@@ -637,9 +637,9 @@ void svm<traits>::sigmoid_train(int l,
       else t[i]=loTarget;
       fApB = dec_values[i]*A+B;
       if (fApB>=0)
-    fval += t[i]*fApB + log(float(1.0)+exp(-fApB));
+	fval += t[i]*fApB + log(float(1.0)+exp(-fApB));
       else
-    fval += (t[i] - float(1.0))*fApB +log(float(1.0)+exp(fApB));
+	fval += (t[i] - float(1.0))*fApB +log(float(1.0)+exp(fApB));
     }
   
   for (int iter=0;iter<max_iter;iter++)
@@ -649,30 +649,30 @@ void svm<traits>::sigmoid_train(int l,
       h22=sigma;
       h21=0.0f;g1=0.0f;g2=0.0f;
       for (int i=0;i<l;i++)
-    {
-      fApB = dec_values[i]*A+B;
-      if (fApB >= 0)
-        {
-          p=exp(-fApB)/(1.0f+exp(-fApB));
-          q=1.0f/(1.0f+exp(-fApB));
-        }
-      else
-        {
-          p=1.0f/(1.0f+exp(fApB));
-          q=exp(fApB)/(1.0f+exp(fApB));
-        }
-      d2=p*q;
-      h11+=dec_values[i]*dec_values[i]*d2;
-      h22+=d2;
-      h21+=dec_values[i]*d2;
-      d1=t[i]-p;
-      g1+=dec_values[i]*d1;
-      g2+=d1;
-    }
+	{
+	  fApB = dec_values[i]*A+B;
+	  if (fApB >= 0)
+	    {
+	      p=exp(-fApB)/(1.0f+exp(-fApB));
+	      q=1.0f/(1.0f+exp(-fApB));
+	    }
+	  else
+	    {
+	      p=1.0f/(1.0f+exp(fApB));
+	      q=exp(fApB)/(1.0f+exp(fApB));
+	    }
+	  d2=p*q;
+	  h11+=dec_values[i]*dec_values[i]*d2;
+	  h22+=d2;
+	  h21+=dec_values[i]*d2;
+	  d1=t[i]-p;
+	  g1+=dec_values[i]*d1;
+	  g2+=d1;
+	}
 
       // Stopping Criteria
       if (fabs(g1)<eps && fabs(g2)<eps)
-    break;
+	break;
 
       // Finding Newton direction: -inv(H') * g
       det=h11*h22-h21*h21;
@@ -680,36 +680,36 @@ void svm<traits>::sigmoid_train(int l,
       dB=-(-h21*g1+ h11 * g2) / det;
       gd=g1*dA+g2*dB;
 
-      stepsize = 1;         // Line Search
+      stepsize = 1; 		// Line Search
       while (stepsize >= min_step)
-    {
-      newA = A + stepsize * dA;
-      newB = B + stepsize * dB;
+	{
+	  newA = A + stepsize * dA;
+	  newB = B + stepsize * dB;
 
-      // New function value
-      newf = 0.0;
-      for (int i=0;i<l;i++)
-        {
-          fApB = dec_values[i]*newA+newB;
-          if (fApB >= 0)
-        newf += t[i]*fApB + log(1.0f+exp(-fApB));
-          else
-        newf += (t[i] - 1.0f)*fApB +log(1.0f+exp(fApB));
-        }
-      // Check sufficient decrease
-      if (newf<fval+0.0001f*stepsize*gd)
-        {
-          A=newA;B=newB;fval=newf;
-          break;
-        }
-      else
-        stepsize = stepsize / 2.0f;
-    }
+	  // New function value
+	  newf = 0.0;
+	  for (int i=0;i<l;i++)
+	    {
+	      fApB = dec_values[i]*newA+newB;
+	      if (fApB >= 0)
+		newf += t[i]*fApB + log(1.0f+exp(-fApB));
+	      else
+		newf += (t[i] - 1.0f)*fApB +log(1.0f+exp(fApB));
+	    }
+	  // Check sufficient decrease
+	  if (newf<fval+0.0001f*stepsize*gd)
+	    {
+	      A=newA;B=newB;fval=newf;
+	      break;
+	    }
+	  else
+	    stepsize = stepsize / 2.0f;
+	}
 
       if (stepsize < min_step)
-    {
-      break;
-    }
+	{
+	  break;
+	}
     }
 }
 
@@ -876,26 +876,26 @@ svm<traits>::multiclass_probability(Matrix& pairwise_proba, Vector& prob_estimat
     for (int t=0;t<n_class;t++) {
       Qp[t]=0;
       for (int j=0;j<n_class;j++)
-    Qp[t]+=Q(t,j)*prob_estimates[j];
+	Qp[t]+=Q(t,j)*prob_estimates[j];
       pQp+=prob_estimates[t]*Qp[t];
     }
     float max_error=0;
     for (int t=0;t<n_class;t++) {
       float error=fabs(Qp[t]-pQp);
       if (error>max_error)
-    max_error=error;
+	max_error=error;
     }
 
     if (max_error<eps) 
       break;
-        
+		
     for (int t=0;t<n_class;t++) {
       float diff=(-Qp[t]+pQp)/Q(t,t);
       prob_estimates[t]+=diff;
       pQp=(pQp+diff*(diff*Q(t,t)+2*Qp[t]))/(1+diff)/(1+diff);
       for (int j=0;j<n_class;j++) {
-    Qp[j]=(Qp[j]+diff*Q(t,j))/(1+diff);
-    prob_estimates[j]/=(1+diff);
+	Qp[j]=(Qp[j]+diff*Q(t,j))/(1+diff);
+	prob_estimates[j]/=(1+diff);
       }
     }
   }
@@ -928,7 +928,7 @@ svm<traits>::binary_probability(const problem_type& prob, float& probA, float& p
     problem_type sub_prob(n_dims, false);
     int sub_prob_size = l-(end-begin);
     sub_prob.resize(sub_prob_size);
-            
+			
     int k=0;
     for (int j = 0; j < begin; ++j, ++k)
       sub_prob.set_sample(k, prob.get_sample(perm[j]));
@@ -938,29 +938,29 @@ svm<traits>::binary_probability(const problem_type& prob, float& probA, float& p
 
     int p_count=0,n_count=0;
     for(int j=0;j<k;j++)
-    if(sub_prob.y_[j]>0)
-      p_count++;
-    else
-      n_count++;
+      if(sub_prob.y_[j]>0)
+	p_count++;
+      else
+	n_count++;
 
     if(p_count==0 && n_count==0)
       for(int j=begin;j<end;j++)
-    dec_values[perm[j]] = 0;
+	dec_values[perm[j]] = 0;
     else if(p_count > 0 && n_count == 0)
       for(int j=begin;j<end;j++)
-    dec_values[perm[j]] = 1;
+	dec_values[perm[j]] = 1;
     else if(p_count == 0 && n_count > 0)
       for(int j=begin;j<end;j++)
-    dec_values[perm[j]] = -1;
+	dec_values[perm[j]] = -1;
     else {
 
       svm_parameter sub_param(param_.kernel,
-                  false, 
-                  param_.gamma,
-                  1.0, //param_.C, HERE 
-                  param_.eps,
-                  param_.cache_size,
-                  param_.shrinking);
+			      false, 
+			      param_.gamma,
+			      1.0, //param_.C, HERE 
+			      param_.eps,
+			      param_.cache_size,
+			      param_.shrinking);
 
       sub_param.weight_label.resize(2);
       sub_param.weight.resize(2);
@@ -978,12 +978,12 @@ svm<traits>::binary_probability(const problem_type& prob, float& probA, float& p
 #endif
 
       for(int j=begin;j<end;j++) {
-    prob.dense(perm[j], x_tmp);
-    float val;
-    predict_values(*sub_model, x_tmp, &val); 
-    // ensure +1 -1 order; reason not using CV subroutine
-    dec_values[perm[j]] = val * sub_model->label[0];
-      }        
+	prob.dense(perm[j], x_tmp);
+	float val;
+	predict_values(*sub_model, x_tmp, &val); 
+	// ensure +1 -1 order; reason not using CV subroutine
+	dec_values[perm[j]] = val * sub_model->label[0];
+      }		
 
 #if (defined(NTA_PLATFORM_win32) || defined(NTA_PLATFORM_win64)) && defined(NTA_COMPILER_MSVC)
       _aligned_free(x_tmp);
@@ -993,7 +993,7 @@ svm<traits>::binary_probability(const problem_type& prob, float& probA, float& p
 
       delete sub_model;
     }
-  }        
+  }		
   
   sigmoid_train(l, dec_values, prob.y_, probA, probB);
 }
@@ -1001,10 +1001,10 @@ svm<traits>::binary_probability(const problem_type& prob, float& probA, float& p
 //--------------------------------------------------------------------------------
 template <typename traits>
 void svm<traits>::group_classes(const problem_type& prob, 
-                std::vector<int>& label,
-                std::vector<int>& start,
-                std::vector<int>& count,
-                std::vector<int>& perm)
+				std::vector<int>& label,
+				std::vector<int>& start,
+				std::vector<int>& count,
+				std::vector<int>& perm)
 {
   int l = prob.size(), n_class = 0;
   std::vector<int> data_label(l);
@@ -1016,8 +1016,8 @@ void svm<traits>::group_classes(const problem_type& prob,
 
     for (j = 0; j < n_class; ++j)
       if (this_label == label[j]) {
-    ++count[j];
-    break;
+	++count[j];
+	break;
       }
     
     data_label[i] = j;
@@ -1079,18 +1079,18 @@ svm_model* svm<traits>::train(const problem_type& prob, const svm_parameter& par
       problem_type sub_prob(n_dims, sub_prob_size, false);
 
       for (int k = 0; k < ci; ++k) {
-    sub_prob.set_sample(k, prob.get_sample(perm[si+k]));
-    sub_prob.y_[k] = +1;
+	sub_prob.set_sample(k, prob.get_sample(perm[si+k]));
+	sub_prob.y_[k] = +1;
       }
-    
+	
       for (int k = 0; k < cj; ++k) {
-    sub_prob.set_sample(ci+k, prob.get_sample(perm[sj+k]));
-    sub_prob.y_[ci+k] = -1;
+	sub_prob.set_sample(ci+k, prob.get_sample(perm[sj+k]));
+	sub_prob.y_[ci+k] = -1;
       }
 
       // binary svc probability
       if (param.probability)
-    binary_probability(sub_prob, model->probA[p], model->probB[p]);
+	binary_probability(sub_prob, model->probA[p], model->probB[p]);
 
       // solve_c_svc
       float *alpha = new float [sub_prob_size];
@@ -1098,30 +1098,30 @@ svm_model* svm<traits>::train(const problem_type& prob, const svm_parameter& par
 
       signed char *y = new signed char[l];
       for (int k = 0; k < sub_prob_size; ++k) 
-    y[k] = sub_prob.y_[k] > 0 ? +1 : -1;
+	y[k] = sub_prob.y_[k] > 0 ? +1 : -1;
 
-      q_matrix_type q(sub_prob, param.gamma, param.kernel, param.cache_size);    
+      q_matrix_type q(sub_prob, param.gamma, param.kernel, param.cache_size);	
       Solver<q_matrix_type> s;
 
       //param.print();
       //sub_prob.print();
       
       float rho = 
-    s.solve(sub_prob_size, q, y, alpha, param.C, param.eps, param.shrinking);
-    
+	s.solve(sub_prob_size, q, y, alpha, param.C, param.eps, param.shrinking);
+	
       for (int k = 0; k < sub_prob_size; ++k)
-    alpha[k] *= y[k];
-    
+	alpha[k] *= y[k];
+	
       f[p].alpha = alpha;
       f[p].rho = rho;
      
       for (int k = 0; k < ci; ++k)
-    if(!nonzero[si+k] && fabs(f[p].alpha[k]) > 0)
-      nonzero[si+k] = true;
-    
+	if(!nonzero[si+k] && fabs(f[p].alpha[k]) > 0)
+	  nonzero[si+k] = true;
+	
       for (int k = 0; k < cj; ++k)
-    if(!nonzero[sj+k] && fabs(f[p].alpha[ci+k]) > 0)
-      nonzero[sj+k] = true;
+	if(!nonzero[sj+k] && fabs(f[p].alpha[ci+k]) > 0)
+	  nonzero[sj+k] = true;
 
       delete [] y;
     } 
@@ -1131,7 +1131,7 @@ svm_model* svm<traits>::train(const problem_type& prob, const svm_parameter& par
   model->label.resize(n_class);
   for (int i = 0; i < n_class; ++i)
     model->label[i] = label[i];
-        
+		
   model->rho.resize(m);
   for (size_t i = 0; i < m; ++i)
     model->rho[i] = f[i].rho;
@@ -1144,13 +1144,13 @@ svm_model* svm<traits>::train(const problem_type& prob, const svm_parameter& par
     int n_sv = 0;
     for(int j=0;j<count[i];j++)
       if(nonzero[start[i]+j]) {
-    ++n_sv;
-    ++total_sv;
+	++n_sv;
+	++total_sv;
       }
     model->n_sv[i] = n_sv;
     nz_count[i] = n_sv;
   }
-        
+		
   model->n_dims_ = n_dims;
 
   for (int i = 0; i != l; ++i)
@@ -1185,16 +1185,16 @@ svm_model* svm<traits>::train(const problem_type& prob, const svm_parameter& par
 
       int si = start[i], sj = start[j];
       int ci = count[i], cj = count[j];
-                
+				
       int q = nz_start[i];
       for (int k = 0; k < ci; ++k)
-    if (nonzero[si+k])
-      model->sv_coef[j-1][q++] = f[p].alpha[k];
+	if (nonzero[si+k])
+	  model->sv_coef[j-1][q++] = f[p].alpha[k];
 
       q = nz_start[j];
       for (int k = 0; k < cj; ++k)
-    if (nonzero[sj+k])
-      model->sv_coef[i][q++] = f[p].alpha[ci+k];
+	if (nonzero[sj+k])
+	  model->sv_coef[i][q++] = f[p].alpha[ci+k];
     }
   }
 
@@ -1213,23 +1213,23 @@ svm_model* svm<traits>::train(const problem_type& prob, const svm_parameter& par
     for (int i = 0; i < n_class; ++i) {
       for(int j = i+1; j < n_class; ++j, ++p) {
       
-    int si = nz_start[i], sj = nz_start[j];
-    int ci = model->n_sv[i], cj = model->n_sv[j];
-    float *coef1 = model->sv_coef[j-1], *coef2 = model->sv_coef[i];
+	int si = nz_start[i], sj = nz_start[j];
+	int ci = model->n_sv[i], cj = model->n_sv[j];
+	float *coef1 = model->sv_coef[j-1], *coef2 = model->sv_coef[i];
 
-    for (int dim = 0; dim != n_dims; ++dim) {
+	for (int dim = 0; dim != n_dims; ++dim) {
 
-      float sum = 0;
-      for (int k = 0; k < ci; ++k) {
-        sum += coef1[si+k] * (model->sv[si+k])[dim];
-      }
+	  float sum = 0;
+	  for (int k = 0; k < ci; ++k) {
+	    sum += coef1[si+k] * (model->sv[si+k])[dim];
+	  }
 
-      for (int k = 0; k < cj; ++k) {
-        sum += coef2[sj+k] * (model->sv[sj+k])[dim];
-      }
+	  for (int k = 0; k < cj; ++k) {
+	    sum += coef2[sj+k] * (model->sv[sj+k])[dim];
+	  }
 
-      model->w[p][dim] = sum;
-    }
+	  model->w[p][dim] = sum;
+	}
       }
     }
   }
@@ -1272,10 +1272,10 @@ void svm<traits>::predict_values(const svm_model& model, float* x, float* dec_va
       float *coef1 = model.sv_coef[j-1], *coef2 = model.sv_coef[i];
       
       for(int k=0;k<ci;k++)
-    sum += coef1[si+k] * kvalue[si+k];
+	sum += coef1[si+k] * kvalue[si+k];
 
       for(int k=0;k<cj;k++)
-    sum += coef2[sj+k] * kvalue[sj+k];
+	sum += coef2[sj+k] * kvalue[sj+k];
 
       sum -= model.rho[p];
       
@@ -1311,10 +1311,10 @@ float svm<traits>::predict(const svm_model& model, InIter x)
   for(int i=0;i<n_class;i++)
     for(int j=i+1;j<n_class;j++)
       {
-    if(dec_values_[pos++] > 0)
-      ++vote[i];
-    else
-      ++vote[j];
+	if(dec_values_[pos++] > 0)
+	  ++vote[i];
+	else
+	  ++vote[j];
       }
   
   int vote_max_idx = 0;
@@ -1357,9 +1357,9 @@ float svm<traits>::predict_probability(const svm_model& model, InIter x, OutIter
     for (int i = 0; i < n_class; ++i) {
       pairwise_proba(i,i) = 0;
       for (int j = i+1; j < n_class; ++j, ++k) {
-    float v = sigmoid_predict(dec_values_[k], model.probA[k], model.probB[k]);
-    pairwise_proba(i,j) = std::min(std::max(v, min_prob), 1-min_prob);
-    pairwise_proba(j,i) = 1-pairwise_proba(i,j);
+	float v = sigmoid_predict(dec_values_[k], model.probA[k], model.probB[k]);
+	pairwise_proba(i,j) = std::min(std::max(v, min_prob), 1-min_prob);
+	pairwise_proba(j,i) = 1-pairwise_proba(i,j);
       }
     }
 
@@ -1370,7 +1370,7 @@ float svm<traits>::predict_probability(const svm_model& model, InIter x, OutIter
     int prob_max_idx = 0;
     for (int i = 0; i < n_class; ++i)
       if (proba_estimates[i] > proba_estimates[prob_max_idx])
-    prob_max_idx = i;
+	prob_max_idx = i;
     
     return (float) model.label[prob_max_idx];
     
@@ -1401,30 +1401,30 @@ float svm<traits>::cross_validation(int nr_fold)
       index[i]=perm[i];
     for (int c=0; c<n_class; c++) 
       for(int i=0;i<count[c];i++)
-    {
-      int j = i+rng_.getUInt32()%(count[c]-i);
-      std::swap(index[start[c]+j],index[start[c]+i]);
-    }
+	{
+	  int j = i+rng_.getUInt32()%(count[c]-i);
+	  std::swap(index[start[c]+j],index[start[c]+i]);
+	}
     for(int i=0;i<nr_fold;i++)
       {
-    fold_count[i] = 0;
-    for (int c=0; c<n_class;c++)
-      fold_count[i]+=(i+1)*count[c]/nr_fold-i*count[c]/nr_fold;
+	fold_count[i] = 0;
+	for (int c=0; c<n_class;c++)
+	  fold_count[i]+=(i+1)*count[c]/nr_fold-i*count[c]/nr_fold;
       }
     fold_start[0]=0;
     for (int i=1;i<=nr_fold;i++)
       fold_start[i] = fold_start[i-1]+fold_count[i-1];
     for (int c=0; c<n_class;c++)
       for(int i=0;i<nr_fold;i++)
-    {
-      int begin = start[c]+i*count[c]/nr_fold;
-      int end = start[c]+(i+1)*count[c]/nr_fold;
-      for(int j=begin;j<end;j++)
-        {
-          perm[fold_start[i]] = index[j];
-          fold_start[i]++;
-        }
-    }
+	{
+	  int begin = start[c]+i*count[c]/nr_fold;
+	  int end = start[c]+(i+1)*count[c]/nr_fold;
+	  for(int j=begin;j<end;j++)
+	    {
+	      perm[fold_start[i]] = index[j];
+	      fold_start[i]++;
+	    }
+	}
     fold_start[0]=0;
     for (int i=1;i<=nr_fold;i++)
       fold_start[i] = fold_start[i-1]+fold_count[i-1];
@@ -1435,8 +1435,8 @@ float svm<traits>::cross_validation(int nr_fold)
       perm[i]=i;
     for(int i=0;i<l;i++)
       {
-    int j = i+rng_.getUInt32()%(l-i);
-    std::swap(perm[i],perm[j]);
+	int j = i+rng_.getUInt32()%(l-i);
+	std::swap(perm[i],perm[j]);
       }
     for(int i=0;i<=nr_fold;i++)
       fold_start[i]=i*l/nr_fold;
@@ -1455,10 +1455,10 @@ float svm<traits>::cross_validation(int nr_fold)
       
       int k=0;
       for(int j=0;j<begin;j++, ++k)
-    sub_prob.set_sample(k, problem_->get_sample(perm[j]));
+	sub_prob.set_sample(k, problem_->get_sample(perm[j]));
       
       for(int j=end;j<l;j++, ++k)
-    sub_prob.set_sample(k, problem_->get_sample(perm[j]));
+	sub_prob.set_sample(k, problem_->get_sample(perm[j]));
       
     } else {
 
@@ -1467,7 +1467,7 @@ float svm<traits>::cross_validation(int nr_fold)
       // In the case where this only one fold, the sub problem
       // becomes the whole problem
       for (int j = 0; j < l; ++j)
-    sub_prob.set_sample(j, problem_->get_sample(perm[j]));
+	sub_prob.set_sample(j, problem_->get_sample(perm[j]));
     }
     
     svm_model *sub_model = train(sub_prob, param_);
@@ -1478,25 +1478,25 @@ float svm<traits>::cross_validation(int nr_fold)
       std::vector<float> proba_estimates(sub_model->n_class());
 
       for(int j=begin;j<end;j++) {
-    problem_->dense(perm[j], x_tmp);
-    float p = predict_probability(*sub_model, x_tmp, proba_estimates.begin());
-    if (p == problem_->y_[perm[j]])
-      success += 1.0;
+	problem_->dense(perm[j], x_tmp);
+	float p = predict_probability(*sub_model, x_tmp, proba_estimates.begin());
+	if (p == problem_->y_[perm[j]])
+	  success += 1.0;
       }
       
     } else {
 
       for(int j=begin;j<end;j++) {
-    problem_->dense(perm[j], x_tmp);
-    float p = predict(*sub_model, x_tmp);
-    if (p == problem_->y_[perm[j]])
-      success += 1.0;
+	problem_->dense(perm[j], x_tmp);
+	float p = predict(*sub_model, x_tmp);
+	if (p == problem_->y_[perm[j]])
+	  success += 1.0;
       }
     }
     
     delete [] x_tmp;
     delete sub_model;
-  }        
+  }		
 
   return success / float(problem_->size());
 }

@@ -198,8 +198,8 @@ void DirectoryTest::RunTests()
       e = di.next(entry);
       TEST(e != NULL);
       TEST(e->type == Directory::Entry::DIRECTORY);
-      TEST(e->path == first);        
-    }      
+      TEST(e->path == first);		
+    }  	
 
     // Cleanup test dirs
     TEST(Path::exists("A"));
