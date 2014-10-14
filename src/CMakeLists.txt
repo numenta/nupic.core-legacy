@@ -292,18 +292,21 @@ if (${CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT})
     set(CMAKE_INSTALL_PREFIX ${PROJECT_BUILD_RELEASE_DIR})
   endif()
 endif()
+
+#
+# Prepare directory structure
+#
+
 # 'temp' is a subdirectory created on /build root.
 if("${PROJECT_BUILD_TEMP_DIR}" STREQUAL "")
   set(PROJECT_BUILD_TEMP_DIR "${REPOSITORY_DIR}/build/temp")
 endif()
+
 # 'artifacts' is a subdirectory created on /build root.
 if("${PROJECT_BUILD_ARTIFACTS_DIR}" STREQUAL "")
   set(PROJECT_BUILD_ARTIFACTS_DIR "${REPOSITORY_DIR}/build/artifacts")
 endif()
 
-#
-# Prepare directory structure
-#
 execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_INSTALL_PREFIX}/include)
 execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_INSTALL_PREFIX}/lib)
 execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_INSTALL_PREFIX}/bin)
@@ -351,6 +354,7 @@ if(${CMAKE_SIZEOF_VOID_P} MATCHES "8")
 else()
   set(NTA_PLATFORM_ARCH "32")
 endif()
+
 set(NTA_PLATFORM_CXXFLAGS "")
 set(NTA_PLATFORM_CXXFLAGS_DEBUG "")
 set(NTA_PLATFORM_LINKFLAGS "")
@@ -374,7 +378,8 @@ elseif(LINUX)
     set(NTA_PLATFORM_CXXFLAGS "${NTA_PLATFORM_CXXFLAGS} -ffloat-store")
   endif()
 elseif(WINDOWS)
-  set(NTA_PLATFORM_CXXFLAGS "${NTA_PLATFORM_CXXFLAGS} /TP /analyze- /Zc:wchar_t /Gm- /fp:precise /errorReport:prompt /W3 /WX- /Zc:forScope /GR /Gd /GS /Oy- /EHs /nologo")
+  set(NTA_PLATFORM_CXXFLAGS "${NTA_PLATFORM_CXXFLAGS} /TP /Zc:wchar_t /Gm- /fp:precise /errorReport:prompt")
+  set(NTA_PLATFORM_CXXFLAGS "${NTA_PLATFORM_CXXFLAGS} /W3 /WX- /GR /Gd /GS /Oy- /EHs /analyze- /nologo")
   set(NTA_PLATFORM_CXXFLAGS_DEBUG "")
   set(NTA_PLATFORM_LIBS "oldnames.lib Psapi.lib")
   if(${NTA_PLATFORM_ARCH} MATCHES "64")
@@ -407,6 +412,9 @@ message(STATUS "  CXX flags: ${NTA_PLATFORM_CXXFLAGS}")
 message(STATUS "    Debug  : ${NTA_PLATFORM_CXXFLAGS_DEBUG}")
 message(STATUS "  LD flags : ${NTA_PLATFORM_LINKFLAGS}")
 
+#
+# Components details
+#
 message(STATUS "Checking software tools...")
 
 #
@@ -417,24 +425,23 @@ if(NOT ${NTA_COMPILER_FAMILY} STREQUAL "MSVC")
                   OUTPUT_VARIABLE CXX_VERSION)
 endif()
 
-#
-# Shows components details.
-#
-message(STATUS "C++ details:")
-message(STATUS "  Compiler: ${CMAKE_CXX_COMPILER}")
-message(STATUS "  Compiler Family: ${NTA_COMPILER_FAMILY}")
-message(STATUS "  Version: ${CXX_VERSION}")
+message(STATUS "Compiler details:")
+message(STATUS "  Compiler : ${CMAKE_CXX_COMPILER}")
+message(STATUS "  Family   : ${NTA_COMPILER_FAMILY}")
+message(STATUS "  Version  : ${CXX_VERSION}")
 
 #
 # Project details
 #
 message(STATUS "Checking project...")
+
 message(STATUS "Project: ${PROJECT_NAME}")
 message(STATUS "Locations:")
-message(STATUS "  Source: ${PROJECT_SOURCE_DIR}")
-message(STATUS "  Build System: ${PROJECT_BINARY_DIR}")
-message(STATUS "  Build Directory: ${PROJECT_BUILD_TEMP_DIR}")
-message(STATUS "  Release: ${CMAKE_INSTALL_PREFIX}")
+message(STATUS "  Source          : ${PROJECT_SOURCE_DIR}")
+message(STATUS "  Build System    : ${PROJECT_BINARY_DIR}")
+message(STATUS "  Build Directory : ${PROJECT_BUILD_TEMP_DIR}")
+message(STATUS "  Release         : ${CMAKE_INSTALL_PREFIX}")
+
 
 ################################################################################
 ###                                                                          ###
@@ -449,8 +456,9 @@ message(STATUS "  Release: ${CMAKE_INSTALL_PREFIX}")
 # The reason to use add_definitions() instead of appending flag -std=c++0x
 # directly to CXXBASE_FLAGS is that cmake deploys "internal smarts" for
 # compatibility with different compilers (clang, gcc 4.6 vs 4.8)
-add_definitions(-std=c++98) # smart flag setting for gcc/clang
-
+if(NOT ${NTA_COMPILER_FAMILY} STREQUAL "MSVC")
+  add_definitions(-std=c++98) # smart flag setting for gcc/clang
+endif()
 #
 # Get extra flags passed by command line.
 #
@@ -463,12 +471,14 @@ set(USER_LINKFLAGS "" CACHE STRING "Extra Link flags")
 # #include <nta/common/...>
 #
 include_directories(SYSTEM "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/include" "${REPOSITORY_DIR}/external/common/include")
+
 set(NTA_INCLUDEFLAGS "${I}${CMAKE_INSTALL_PREFIX}/include")
 
 #
-# NTA_INTERNAL tells us that the code is being built under the build system
-# and not as a separate program. Used for cppvision example.
-set(NTA_CXXFLAGS_BASE "${NTA_INCLUDEFLAGS} ${NTA_PLATFORM_CXXFLAGS} ${D}NTA_INTERNAL ${D}NTA_PLATFORM_${NTA_PLATFORM_OS} ${D}NTA_COMPILER_${NTA_COMPILER_FAMILY} ${D}BOOST_NO_WREGEX ${D}NUPIC2")
+# NTA_INTERNAL tells us that the code is being built under the build
+# system and not as a separate program. Used for cppvision example.
+set(NTA_CXXFLAGS_BASE "${NTA_INCLUDEFLAGS} ${NTA_PLATFORM_CXXFLAGS} ${D}NTA_INTERNAL ${D}BOOST_NO_WREGEX ${D}NUPIC2")
+set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} ${D}NTA_PLATFORM_${NTA_PLATFORM_OS} ${D}NTA_COMPILER_${NTA_COMPILER_FAMILY}")
 
 if(${NTA_COMPILER_FAMILY} STREQUAL "MSVC")
   set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} ${D}NOMINMAX ${D}APR_DECLARE_STATIC ${D}APU_DECLARE_STATIC ${D}ZLIB_WINAPI")
@@ -497,7 +507,8 @@ else()
   set(NTA_CXXFLAGS_OPTIMIZATION "-O0 -fno-inline")
 endif()
 if(${NTA_COMPILER_FAMILY} STREQUAL "MSVC")
-  if(NTA_OPTIMIZATION_ENABLED)
+  if(NTA_OPTIMIZATION_ENABLED AND NOT ${CMAKE_BUILD_TYPE} EQUAL "Debug")
+    set(NTA_CXXFLAGS_OPTIMIZATION "/O2 /Ob2 ${D}NTA_ASM")
   else()
     set(NTA_CXXFLAGS_OPTIMIZATION "/O0 /Ob0")
   endif()
@@ -523,7 +534,7 @@ if(NTA_ASSERTIONS_ENABLED)
 else()
   set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} ${D}NDEBUG")
 endif()
-message(STATUS "  Assertions: ${NTA_ASSERTIONS_ENABLED}")
+message(STATUS "  Assertions   : ${NTA_ASSERTIONS_ENABLED}")
 
 #
 # Enable/disable gprof profiling (this option is not frequently used/tested).
@@ -533,7 +544,7 @@ if(NTA_PROFILING_ENABLED)
   set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -pg")
   set(NTA_LINKFLAGS "${NTA_LINKFLAGS} -pg")
 endif()
-message(STATUS "  Profiling: ${NTA_PROFILING_ENABLED}")
+message(STATUS "  Profiling    : ${NTA_PROFILING_ENABLED}")
 
 #
 # Enable/disable Coverage (this option is mainly used for generating test coverage reports).
@@ -551,14 +562,14 @@ if(NTA_COV_ENABLED)
     message(STATUS "  Warning: Coverage can't be enabled yet unless the compiler is gcc or clang, ignoring...")
   endif()
 endif()
-message(STATUS "  Coverage: ${NTA_COV_ENABLED}")
+message(STATUS "  Coverage     : ${NTA_COV_ENABLED}")
 
 #
 # Build using MPI headers and library,
 # and enable features that depend on MPI.
 #
 option(NTA_MPI_SUPPORT "-DNTA_MPI_SUPPORT=[ON/OFF] turn on MPI support [default=ON]" ON)
-message(STATUS "  MPI Support: ${NTA_MPI_SUPPORT}")
+message(STATUS "  MPI Support  : ${NTA_MPI_SUPPORT}")
 
 #
 # Compiler specific (clang, gcc, ..) flags can be set here
@@ -576,7 +587,7 @@ if(${NTA_COMPILER_FAMILY} STREQUAL "GNU")
 elseif(${NTA_COMPILER_FAMILY} STREQUAL "CLANG")
   set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -fPIC -DPIC -DHAVE_CONFIG_H -DHAVE_UNISTD_H -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-unused-parameter")
 elseif(${NTA_COMPILER_FAMILY} EQUAL "MSVC")
-  set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} /DWIN32 /D_WINDOWS /DPSAPI_VERSION=1 /D_MBCS /D_CRT_SECURE_NO_WARNINGS")
+  set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} /DWIN32 /D_WINDOWS /DNDEBUG /DPSAPI_VERSION=1 /D_MBCS /D_CRT_SECURE_NO_WARNINGS")
 else()
   # TODO: What compilers is it for? Should it be more explicit?
   set(NTA_LINKFLAGS_ARCHIVES "-Wl,-force_load")
@@ -592,6 +603,7 @@ set(NTA_CXXFLAGS_DYNAMIC "${NTA_CXXFLAGS}")
 
 if(${NTA_COMPILER_FAMILY} EQUAL "MSVC")
   set(CMAKE_CXX_FLAGS_DEBUG "${NTA_CXXFLAGS} /MTd /Od /D_DEBUG /Zi")
+  string (REPLACE "/DNDEBUG" " " CMAKE_CXX_FLAGS_DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
   string (REPLACE "/MD" " " CMAKE_CXX_FLAGS_DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
   string (REPLACE "/O3" " " CMAKE_CXX_FLAGS_DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
   set(NTA_CXXFLAGS_DYNAMIC "${NTA_CXXFLAGS} ${D}DLL ${D}_USRDLL")
@@ -648,9 +660,9 @@ if(WINDOWS)
   
   # define debug libraries
   set_property(TARGET ${LIB_STATIC_APR1} PROPERTY IMPORTED_LOCATION_DEBUG "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib/${STATIC_LIB_PREFIX}apr-1d.${STATIC_LIB_EXTENSION}")  
-  set_property(TARGET ${LIB_STATIC_Z} PROPERTY IMPORTED_LOCATION_DEBUG "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib/libzd.${STATIC_LIB_EXTENSION}")
-  set_property(TARGET ${LIB_STATIC_APRUTIL1} PROPERTY IMPORTED_LOCATION_DEBUG "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib/${STATIC_LIB_PREFIX}aprutil-1d.${STATIC_LIB_EXTENSION}")
   set_property(TARGET ${LIB_STATIC_APRICONV1} PROPERTY IMPORTED_LOCATION_DEBUG "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib/${STATIC_LIB_PREFIX}apriconv-1d.${STATIC_LIB_EXTENSION}")
+  set_property(TARGET ${LIB_STATIC_APRUTIL1} PROPERTY IMPORTED_LOCATION_DEBUG "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib/${STATIC_LIB_PREFIX}aprutil-1d.${STATIC_LIB_EXTENSION}")
+  set_property(TARGET ${LIB_STATIC_Z} PROPERTY IMPORTED_LOCATION_DEBUG "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib/libzd.${STATIC_LIB_EXTENSION}")
   set_property(TARGET ${LIB_STATIC_PCRE} PROPERTY IMPORTED_LOCATION_DEBUG "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib/${STATIC_LIB_PREFIX}pcred.${STATIC_LIB_EXTENSION}")
   set_property(TARGET ${LIB_STATIC_PCREPOSIX} PROPERTY IMPORTED_LOCATION_DEBUG "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib/${STATIC_LIB_PREFIX}pcreposixd.${STATIC_LIB_EXTENSION}")
   set_property(TARGET ${LIB_STATIC_YAML_CPP} PROPERTY IMPORTED_LOCATION_DEBUG "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib/${STATIC_LIB_PREFIX}yaml-cppmdd.${STATIC_LIB_EXTENSION}")
@@ -670,14 +682,14 @@ if(SOLARIS)
   )
 elseif(WINDOWS)
   set(NTA_STANDARD_LIBS
+    ${LIB_STATIC_APR1}
+    ${LIB_STATIC_APRICONV1}
+    ${LIB_STATIC_APRUTIL1}
+    ${LIB_STATIC_Z}
     ${LIB_STATIC_PCRE}
     ${LIB_STATIC_PCREPOSIX}
     ${LIB_STATIC_YAML}
     ${LIB_STATIC_YAML_CPP}
-    ${LIB_STATIC_APR1}
-    ${LIB_STATIC_APRUTIL1}
-    ${LIB_STATIC_APRICONV1}
-    ${LIB_STATIC_Z}
   )
 else()
   set(NTA_STANDARD_LIBS
@@ -690,7 +702,6 @@ endif()
 
 if(WINDOWS)
   set(NTA_APPLICATION_LIBS Ws2_32.lib)
-  set(BUILD_SHARED_LIBS ON)
 endif()
 
 #
@@ -708,18 +719,18 @@ message(STATUS "Configuring subprojects...")
 set(LIB_STATIC_NUPICCORE nupic_core)
 generate_static_library(${LIB_STATIC_NUPICCORE} "${PROJECT_SOURCE_DIR}/main" "${PROJECT_BUILD_TEMP_DIR}/lib" "${NTA_CXXFLAGS_STATIC}")
 
-if(${BUILD_SHARED_LIBS})
-  set(LIBRARIES
-  ${NTA_STANDARD_LIBS}
-  ${NTA_APPLICATION_LIBS}
-)
-  set(LIB_DYNAMIC_NUPICCORE ${DYNAMIC_LIB_PREFIX}nupic_core)
-  generate_dynamic_library(${LIB_DYNAMIC_NUPICCORE} "${PROJECT_SOURCE_DIR}/main" "${CMAKE_INSTALL_PREFIX}" "${NTA_CXXFLAGS_DYNAMIC}" "${NTA_LINKFLAGS}" "" "${LIBRARIES}")
-endif()
-
 # Merge nupic_core and all static libraries to a stand-alone library
 merge_static_libraries(${LIB_STATIC_NUPICCORE} "${CMAKE_INSTALL_PREFIX}/lib" "${LIB_STATIC_NUPICCORE};${NTA_STANDARD_LIBS}" "${LIB_STATIC_NUPICCORE}")
 
+if(WINDOWS)
+  set(LIB_DYNAMIC_NUPICCORE ${DYNAMIC_LIB_PREFIX}nupic_core)
+  set(LIBRARIES
+    ${NTA_STANDARD_LIBS}
+    ${NTA_APPLICATION_LIBS}
+    )
+  
+  generate_dynamic_library(${LIB_DYNAMIC_NUPICCORE} "${PROJECT_SOURCE_DIR}/main" "${CMAKE_INSTALL_PREFIX}" "${NTA_CXXFLAGS_DYNAMIC}" "${NTA_LINKFLAGS}" "" "${LIBRARIES}")
+endif()
 
 
 #
@@ -773,19 +784,20 @@ set(LIBRARIES
 )
 generate_executable(${EXECUTABLE_HELLOREGION} "${PROJECT_SOURCE_DIR}/examples/regions" "${CMAKE_INSTALL_PREFIX}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
 
-if(${BUILD_SHARED_LIBS})
-#
-# HelloRegion with shared lib
-#
-set(EXECUTABLE_HELLOREGION_SHARED helloregion_shared)
-set(LIBRARIES
-  ${LIB_DYNAMIC_NUPICCORE}
-  ${NTA_STANDARD_LIBS}
-  ${NTA_APPLICATION_LIBS}
-  ${NTA_TEST_LIBS}
-)
-generate_executable(${EXECUTABLE_HELLOREGION_SHARED} "${PROJECT_SOURCE_DIR}/examples/regions" "${CMAKE_INSTALL_PREFIX}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
+if(WINDOWS)
+  #
+  # HelloRegion with shared lib
+  #
+  set(EXECUTABLE_HELLOREGION_SHARED helloregion_shared)
+  set(LIBRARIES
+    ${LIB_DYNAMIC_NUPICCORE}
+    ${NTA_STANDARD_LIBS}
+    ${NTA_APPLICATION_LIBS}
+    ${NTA_TEST_LIBS}
+    )
+  generate_executable(${EXECUTABLE_HELLOREGION_SHARED} "${PROJECT_SOURCE_DIR}/examples/regions" "${CMAKE_INSTALL_PREFIX}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
 endif()
+
 
 ################################################################################
 ###                                                                          ###
@@ -794,7 +806,8 @@ endif()
 ###                                                                          ###
 ################################################################################
 set(NTA_TARGET_BINARIES testcpphtm testeverything helloregion)
-if(${BUILD_SHARED_LIBS})
+
+if(WINDOWS)
   set(NTA_TARGET_BINARIES ${NTA_TARGET_BINARIES} ${LIB_DYNAMIC_NUPICCORE})
 endif()
 
@@ -859,16 +872,18 @@ add_custom_target(tests_all
 # Clean
 #
 add_custom_target(distclean
+    COMMENT "Cleaning temporary build files")
     # Clean '/build/release' and build/temp/
     COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_INSTALL_PREFIX}
     COMMAND ${CMAKE_COMMAND} -E remove_directory ${PROJECT_BUILD_TEMP_DIR}
-    # recreate dirs
+    COMMAND ${CMAKE_COMMAND} -E remove_directory ${PROJECT_BUILD_ARTIFACTS_DIR}
+    # recreate dirs, why?
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_INSTALL_PREFIX}/include
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_INSTALL_PREFIX}/lib
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_INSTALL_PREFIX}/bin
     COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_TEMP_DIR}/lib
     COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_TEMP_DIR}/obj
-    COMMENT "Cleaning temporary build files")
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_ARTIFACTS_DIR}/
 
 # Just to separate from result message
 message(STATUS "")
