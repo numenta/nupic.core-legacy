@@ -27,11 +27,12 @@ Environment Interface
 #ifndef NTA_ENV_HPP
 #define NTA_ENV_HPP
 
+#include <nta/types/Types.hpp>
 #include <string>
 
 namespace nta {
 
-  class Env {
+  class NTA_EXPORT Env {
   public:
 
     /**

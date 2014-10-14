@@ -45,7 +45,7 @@ namespace nta {
 
   //--------------------------------------------------------------------------------
   template <typename Int>
-  struct RowCompare
+  struct NTA_EXPORT RowCompare
   {
     RowCompare(Int rowSize_) 
       : rowSize(rowSize_) 
@@ -85,7 +85,7 @@ namespace nta {
    *   rows or non-zeros.
    */
   template <typename Int, typename Float>
-  class SparseMatrix01
+  class NTA_EXPORT SparseMatrix01
   {
   public:
     typedef Int size_type;

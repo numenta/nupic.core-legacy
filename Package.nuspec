@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>nupic.core</id>
+    <version>0.0.1</version>
+    <authors>nupic core</authors>
+    <owners>numenta community</owners>
+    <licenseUrl>http://www.gnu.org/licenses/gpl.html</licenseUrl>
+    <projectUrl>https://github.com/numenta/nupic.core</projectUrl>
+    <iconUrl>http://numenta.org/</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>nupic core is an intelligence library that allow you to do predictions</description>
+    <releaseNotes>Pre-release for Windows</releaseNotes>
+    <copyright>Copyright Numenta community 2014</copyright>
+    <tags>AI Intelligence Numenta nupic nupic.core</tags>
+    <dependencies>
+    </dependencies>
+  </metadata>
+</package>
+

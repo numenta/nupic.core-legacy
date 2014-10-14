@@ -2594,10 +2594,14 @@ Cells4::chooseCellsToLearnFrom(UInt cellIdx, UInt segIdx,
     srcCells.push_back(vecPruned[_rng.getUInt32(nbrCells)]);
   }
   else {
-    // choose a random subset of the cells found, and append them to the caller's array
-    std::random_shuffle(vecPruned.begin(), vecPruned.end(), _rng);
-    srcCells.insert( srcCells.end(), vecPruned.begin(), vecPruned.begin() + nSynToAdd);
-    fSortNeeded = true;                     // will need to sort
+    // choose a random subset of the cells found, and append them to the
+    // caller's array
+    UInt start = srcCells.size();
+    srcCells.resize(srcCells.size() + nSynToAdd);
+    _rng.sample(&vecPruned.front(), vecPruned.size(),
+                &srcCells[start], nSynToAdd);
+
+    fSortNeeded = true;
   }
 
   // sort the new additions with any prior elements

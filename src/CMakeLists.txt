@@ -171,10 +171,14 @@ macro(generate_dynamic_library name src_dir output_dir cxx_flags link_flags proj
   set_target_properties(${name} PROPERTIES COMPILE_FLAGS "${cxx_flags}")
   set_target_properties(${name} PROPERTIES LINKER_LANGUAGE "CXX")
   set_target_properties(${name} PROPERTIES LINK_FLAGS "${link_flags}")
-  set_target_properties(${name} PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${output_dir})
+  set_target_properties(${name} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${output_dir}/bin)
+  set_target_properties(${name} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${output_dir}/lib)
+  set_target_properties(${name} PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${output_dir}/lib)
   foreach(OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES})
     string(TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG)
-    set_target_properties(${name} PROPERTIES ARCHIVE_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${output_dir})
+    set_target_properties(${name} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${output_dir}/bin)
+    set_target_properties(${name} PROPERTIES LIBRARY_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${output_dir}/lib)
+    set_target_properties(${name} PROPERTIES ARCHIVE_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${output_dir}/lib)
   endforeach()
 endmacro()
 
@@ -188,7 +192,7 @@ macro(merge_static_libraries new_lib output_dir libraries target)
   if(WINDOWS)
     add_custom_command(TARGET ${target} POST BUILD
                        COMMAND lib.exe /OUT:${target} ${target} ${lib_files}
-		       WORKING_DIRECTORY  ${PROJECT_BUILD_TEMP_DIR}/lib)
+           WORKING_DIRECTORY  ${PROJECT_BUILD_TEMP_DIR}/lib)
   else()
     # Extract object files from the libraries
     foreach(lib_file ${lib_files})
@@ -292,7 +296,10 @@ endif()
 if("${PROJECT_BUILD_TEMP_DIR}" STREQUAL "")
   set(PROJECT_BUILD_TEMP_DIR "${REPOSITORY_DIR}/build/temp")
 endif()
-
+# 'artifacts' is a subdirectory created on /build root.
+if("${PROJECT_BUILD_ARTIFACTS_DIR}" STREQUAL "")
+  set(PROJECT_BUILD_ARTIFACTS_DIR "${REPOSITORY_DIR}/build/artifacts")
+endif()
 
 #
 # Prepare directory structure
@@ -302,6 +309,7 @@ execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_INSTALL_PREFI
 execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_INSTALL_PREFIX}/bin)
 execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_TEMP_DIR}/lib)
 execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_TEMP_DIR}/obj)
+execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_ARTIFACTS_DIR}/)
 
 #
 # Set OS flags
@@ -428,7 +436,6 @@ message(STATUS "  Build System: ${PROJECT_BINARY_DIR}")
 message(STATUS "  Build Directory: ${PROJECT_BUILD_TEMP_DIR}")
 message(STATUS "  Release: ${CMAKE_INSTALL_PREFIX}")
 
-
 ################################################################################
 ###                                                                          ###
 ###  2nd Part:                                                               ###
@@ -473,7 +480,7 @@ endif()
 set(NTA_LINKFLAGS "${USER_LINKFLAGS} ${NTA_PLATFORM_LINKFLAGS} ${NTA_PLATFORM_LIBS} ${L}${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib")
 
 if(${NTA_COMPILER_FAMILY} STREQUAL "MSVC")
-	set(NTA_LINKFLAGS "${NTA_LINKFLAGS} /NODEFAULTLIB:LIBCMT")
+  set(NTA_LINKFLAGS "${NTA_LINKFLAGS} /NODEFAULTLIB:LIBCMT")
 endif()
 
 message(STATUS "Options:")
@@ -491,7 +498,6 @@ else()
 endif()
 if(${NTA_COMPILER_FAMILY} STREQUAL "MSVC")
   if(NTA_OPTIMIZATION_ENABLED)
-    set(NTA_CXXFLAGS_OPTIMIZATION "/O2 /Ob2 ${D}NTA_ASM")
   else()
     set(NTA_CXXFLAGS_OPTIMIZATION "/O0 /Ob0")
   endif()
@@ -557,6 +563,7 @@ message(STATUS "  MPI Support: ${NTA_MPI_SUPPORT}")
 #
 # Compiler specific (clang, gcc, ..) flags can be set here
 #
+
 if(${NTA_COMPILER_FAMILY} STREQUAL "GNU")
   set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -fPIC -DPIC -DHAVE_CONFIG_H -DHAVE_UNISTD_H -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-unused-parameter -Wno-sign-compare -Wno-error=format=")
   set(NTA_CXXFLAGS_OPTIMIZATION "${NTA_CXXFLAGS_OPTIMIZATION} -falign-loops=16")
@@ -569,7 +576,7 @@ if(${NTA_COMPILER_FAMILY} STREQUAL "GNU")
 elseif(${NTA_COMPILER_FAMILY} STREQUAL "CLANG")
   set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -fPIC -DPIC -DHAVE_CONFIG_H -DHAVE_UNISTD_H -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-unused-parameter")
 elseif(${NTA_COMPILER_FAMILY} EQUAL "MSVC")
-  set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} /DWIN32 /D_WINDOWS /DNDEBUG /DPSAPI_VERSION=1 /D_MBCS /D_CRT_SECURE_NO_WARNINGS")
+  set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} /DWIN32 /D_WINDOWS /DPSAPI_VERSION=1 /D_MBCS /D_CRT_SECURE_NO_WARNINGS")
 else()
   # TODO: What compilers is it for? Should it be more explicit?
   set(NTA_LINKFLAGS_ARCHIVES "-Wl,-force_load")
@@ -584,8 +591,10 @@ set(NTA_CXXFLAGS_STATIC "${NTA_CXXFLAGS}")
 set(NTA_CXXFLAGS_DYNAMIC "${NTA_CXXFLAGS}")
 
 if(${NTA_COMPILER_FAMILY} EQUAL "MSVC")
-  set(NTA_CXXFLAGS_STATIC "${NTA_CXXFLAGS} /MD")
-  set(NTA_CXXFLAGS_DYNAMIC "${NTA_CXXFLAGS} /MT /DLL ${D}_USRDLL ${D}WIN32PROJECT1_EXPORTS")
+  set(CMAKE_CXX_FLAGS_DEBUG "${NTA_CXXFLAGS} /MTd /Od /D_DEBUG /Zi")
+  string (REPLACE "/MD" " " CMAKE_CXX_FLAGS_DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
+  string (REPLACE "/O3" " " CMAKE_CXX_FLAGS_DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
+  set(NTA_CXXFLAGS_DYNAMIC "${NTA_CXXFLAGS} ${D}DLL ${D}_USRDLL")
 endif()
 
 ################################################################################
@@ -636,6 +645,16 @@ if(WINDOWS)
   set(LIB_STATIC_YAML_CPP yaml-cppmd)
   add_library(${LIB_STATIC_YAML_CPP} STATIC IMPORTED)
   set_property(TARGET ${LIB_STATIC_YAML_CPP} PROPERTY IMPORTED_LOCATION "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib/${STATIC_LIB_PREFIX}yaml-cppmd.${STATIC_LIB_EXTENSION}")
+  
+  # define debug libraries
+  set_property(TARGET ${LIB_STATIC_APR1} PROPERTY IMPORTED_LOCATION_DEBUG "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib/${STATIC_LIB_PREFIX}apr-1d.${STATIC_LIB_EXTENSION}")  
+  set_property(TARGET ${LIB_STATIC_Z} PROPERTY IMPORTED_LOCATION_DEBUG "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib/libzd.${STATIC_LIB_EXTENSION}")
+  set_property(TARGET ${LIB_STATIC_APRUTIL1} PROPERTY IMPORTED_LOCATION_DEBUG "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib/${STATIC_LIB_PREFIX}aprutil-1d.${STATIC_LIB_EXTENSION}")
+  set_property(TARGET ${LIB_STATIC_APRICONV1} PROPERTY IMPORTED_LOCATION_DEBUG "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib/${STATIC_LIB_PREFIX}apriconv-1d.${STATIC_LIB_EXTENSION}")
+  set_property(TARGET ${LIB_STATIC_PCRE} PROPERTY IMPORTED_LOCATION_DEBUG "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib/${STATIC_LIB_PREFIX}pcred.${STATIC_LIB_EXTENSION}")
+  set_property(TARGET ${LIB_STATIC_PCREPOSIX} PROPERTY IMPORTED_LOCATION_DEBUG "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib/${STATIC_LIB_PREFIX}pcreposixd.${STATIC_LIB_EXTENSION}")
+  set_property(TARGET ${LIB_STATIC_YAML_CPP} PROPERTY IMPORTED_LOCATION_DEBUG "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib/${STATIC_LIB_PREFIX}yaml-cppmdd.${STATIC_LIB_EXTENSION}")
+  set_property(TARGET ${LIB_STATIC_YAML} PROPERTY IMPORTED_LOCATION_DEBUG "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib/${STATIC_LIB_PREFIX}yamld.${STATIC_LIB_EXTENSION}")
 endif()
 
 #
@@ -670,7 +689,8 @@ else()
 endif()
 
 if(WINDOWS)
-  set(NTA_APPLICATION_LIBS Ws2_32.lib msvcprt.lib msvcrt.lib)
+  set(NTA_APPLICATION_LIBS Ws2_32.lib)
+  set(BUILD_SHARED_LIBS ON)
 endif()
 
 #
@@ -689,12 +709,32 @@ set(LIB_STATIC_NUPICCORE nupic_core)
 generate_static_library(${LIB_STATIC_NUPICCORE} "${PROJECT_SOURCE_DIR}/main" "${PROJECT_BUILD_TEMP_DIR}/lib" "${NTA_CXXFLAGS_STATIC}")
 
 if(${BUILD_SHARED_LIBS})
+  set(LIBRARIES
+  ${NTA_STANDARD_LIBS}
+  ${NTA_APPLICATION_LIBS}
+)
   set(LIB_DYNAMIC_NUPICCORE ${DYNAMIC_LIB_PREFIX}nupic_core)
-  generate_dynamic_library(${LIB_DYNAMIC_NUPICCORE} "${PROJECT_SOURCE_DIR}/main" "${PROJECT_BUILD_TEMP_DIR}" "${NTA_CXXFLAGS_DYNAMIC}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
+  generate_dynamic_library(${LIB_DYNAMIC_NUPICCORE} "${PROJECT_SOURCE_DIR}/main" "${CMAKE_INSTALL_PREFIX}" "${NTA_CXXFLAGS_DYNAMIC}" "${NTA_LINKFLAGS}" "" "${LIBRARIES}")
 endif()
 
 # Merge nupic_core and all static libraries to a stand-alone library
 merge_static_libraries(${LIB_STATIC_NUPICCORE} "${CMAKE_INSTALL_PREFIX}/lib" "${LIB_STATIC_NUPICCORE};${NTA_STANDARD_LIBS}" "${LIB_STATIC_NUPICCORE}")
+
+
+
+#
+# Compile google test from source for linking with tests
+#
+set(LIB_STATIC_GTEST gtest)
+generate_static_library(${LIB_STATIC_GTEST} "${REPOSITORY_DIR}/external/common/src/gtest" "${PROJECT_BUILD_TEMP_DIR}/lib" "${NTA_CXXFLAGS}")
+
+#
+# Set list of external libraries to tests
+#
+set(NTA_TEST_LIBS
+  ${LIB_STATIC_COV}
+  ${LIB_STATIC_GTEST}
+)
 
 #
 # HtmTest
@@ -709,16 +749,17 @@ set(LIBRARIES
 generate_executable(${EXECUTABLE_HTMTEST} "${PROJECT_SOURCE_DIR}/test/htmtest" "${CMAKE_INSTALL_PREFIX}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
 
 #
-# TestEverything
+# Unit Tests
 #
-set(EXECUTABLE_TESTEVERYTHING testeverything)
+set(EXECUTABLE_GTESTS unit_tests)
 set(LIBRARIES
   ${LIB_STATIC_NUPICCORE}
   ${NTA_STANDARD_LIBS}
   ${NTA_APPLICATION_LIBS}
   ${NTA_TEST_LIBS}
 )
-generate_executable(${EXECUTABLE_TESTEVERYTHING} "${PROJECT_SOURCE_DIR}/test/testeverything" "${CMAKE_INSTALL_PREFIX}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
+
+generate_executable(${EXECUTABLE_GTESTS} "${PROJECT_SOURCE_DIR}/test/unit" "${CMAKE_INSTALL_PREFIX}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
 
 #
 # HelloRegion
@@ -732,6 +773,19 @@ set(LIBRARIES
 )
 generate_executable(${EXECUTABLE_HELLOREGION} "${PROJECT_SOURCE_DIR}/examples/regions" "${CMAKE_INSTALL_PREFIX}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
 
+if(${BUILD_SHARED_LIBS})
+#
+# HelloRegion with shared lib
+#
+set(EXECUTABLE_HELLOREGION_SHARED helloregion_shared)
+set(LIBRARIES
+  ${LIB_DYNAMIC_NUPICCORE}
+  ${NTA_STANDARD_LIBS}
+  ${NTA_APPLICATION_LIBS}
+  ${NTA_TEST_LIBS}
+)
+generate_executable(${EXECUTABLE_HELLOREGION_SHARED} "${PROJECT_SOURCE_DIR}/examples/regions" "${CMAKE_INSTALL_PREFIX}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
+endif()
 
 ################################################################################
 ###                                                                          ###
@@ -739,9 +793,13 @@ generate_executable(${EXECUTABLE_HELLOREGION} "${PROJECT_SOURCE_DIR}/examples/re
 ###  Post configuration operations                                           ###
 ###                                                                          ###
 ################################################################################
+set(NTA_TARGET_BINARIES testcpphtm testeverything helloregion)
+if(${BUILD_SHARED_LIBS})
+  set(NTA_TARGET_BINARIES ${NTA_TARGET_BINARIES} ${LIB_DYNAMIC_NUPICCORE})
+endif()
 
 install(TARGETS ${LIB_STATIC_NUPICCORE} DESTINATION lib)
-install(TARGETS testcpphtm testeverything helloregion DESTINATION bin)
+install(TARGETS testcpphtm unit_tests helloregion DESTINATION bin)
 
 #
 # Copy all headers files to 'build/release/include'
@@ -758,22 +816,21 @@ endforeach()
 copy_file(${PROJECT_SOURCE_DIR}/main/ntypes/Collection.cpp ${CMAKE_INSTALL_PREFIX}/include/nta/ntypes/Collection.cpp)
 
 #
-# Create file with unit tests used by TestEverything
+# Create file with unit tests used by Google Test
 #
 set(ITEMS_RETURNED)
-get_files_list(${PROJECT_SOURCE_DIR}/test/testeverything " " "Test.hpp")
+get_files_list(${PROJECT_SOURCE_DIR}/test/unit " " "Test.hpp")
 set(files ${ITEMS_RETURNED})
 set(tests_file_content "")
 set(headers_file_content "")
 foreach(file ${files})
   get_filename_component(test ${file} NAME_WE)
-  if(NOT ${file} MATCHES "TesterTest")
-    set(tests_file_content "${tests_file_content}ADD_TEST(${test});\n")
-    set(headers_file_content "${headers_file_content}#include \"${file}\"\n")
-  endif()
+  set(tests_file_content "${tests_file_content}ADD_TEST(${test});\n")
+  set(headers_file_content "${headers_file_content}#include \"${file}\"\n")
 endforeach()
-file(WRITE "${PROJECT_SOURCE_DIR}/test/testeverything/EverythingAddtests.hpp" "${tests_file_content}")
-file(WRITE "${PROJECT_SOURCE_DIR}/test/testeverything/EverythingHeaders.hpp" "${headers_file_content}")
+file(WRITE "${PROJECT_SOURCE_DIR}/test/unit/AddTests.hpp" "${tests_file_content}")
+file(WRITE "${PROJECT_SOURCE_DIR}/test/unit/AddTestHeaders.hpp" "${headers_file_content}")
+
 
 
 ################################################################################
@@ -788,34 +845,33 @@ file(WRITE "${PROJECT_SOURCE_DIR}/test/testeverything/EverythingHeaders.hpp" "${
 #
 add_custom_target(tests_htm
                   COMMAND ${CMAKE_INSTALL_PREFIX}/bin/${EXECUTABLE_HTMTEST})
-
-add_custom_target(tests_everything
-                  COMMAND ${CMAKE_INSTALL_PREFIX}/bin/${EXECUTABLE_TESTEVERYTHING})
+                  
+add_custom_target(tests_unit
+                  COMMAND ${CMAKE_INSTALL_PREFIX}/bin/${EXECUTABLE_GTESTS} "--gtest_output=xml:${PROJECT_BUILD_ARTIFACTS_DIR}/unit_tests_report.xml")
 
 # tests_all just calls other targets
 add_custom_target(tests_all
                   DEPENDS tests_htm
-                  DEPENDS tests_everything
+                  DEPENDS tests_unit
                   COMMENT "Running all tests")
 
 #
 # Clean
 #
 add_custom_target(distclean
-		# Clean '/build/release' and build/temp/
-		COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_INSTALL_PREFIX}
-		COMMAND ${CMAKE_COMMAND} -E remove_directory ${PROJECT_BUILD_TEMP_DIR}
-		# recreate dirs
-		COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_INSTALL_PREFIX}/include
-		COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_INSTALL_PREFIX}/lib
-		COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_INSTALL_PREFIX}/bin
-		COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_TEMP_DIR}/lib
-		COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_TEMP_DIR}/obj
-		COMMENT "Cleaning temporary build files")
+    # Clean '/build/release' and build/temp/
+    COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_INSTALL_PREFIX}
+    COMMAND ${CMAKE_COMMAND} -E remove_directory ${PROJECT_BUILD_TEMP_DIR}
+    # recreate dirs
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_INSTALL_PREFIX}/include
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_INSTALL_PREFIX}/lib
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_INSTALL_PREFIX}/bin
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_TEMP_DIR}/lib
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_TEMP_DIR}/obj
+    COMMENT "Cleaning temporary build files")
 
 # Just to separate from result message
 message(STATUS "")
 
 message(STATUS "${CMAKE_INSTALL_PREFIX}")
-
 

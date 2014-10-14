@@ -23,6 +23,7 @@
 #include <nta/utils/Log.hpp>
 #include <nta/algorithms/SegmentUpdate.hpp>
 #include <nta/algorithms/Cells4.hpp>
+#include <nta/types/Types.hpp>
 
 using namespace nta::algorithms::Cells4;
 

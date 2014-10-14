@@ -25,6 +25,7 @@
 
 #include <string>
 #include <vector>
+#include <nta/types/Types.hpp>
 
 namespace nta
 {
@@ -34,7 +35,7 @@ namespace nta
   // You can add items using the add() method.
   //
   template <typename T>
-  class Collection
+  class NTA_EXPORT Collection
   {
   public:
     Collection();

@@ -29,7 +29,7 @@
 
 #include <string>
 #include <vector>
-
+#include <nta/types/Types.hpp>
 #include <nta/engine/Output.hpp>
 
 namespace nta
@@ -93,7 +93,7 @@ namespace nta
    *
    * w.detachFromNetwork(net);
    */
-  class Watcher
+  class NTA_EXPORT Watcher
   {
   public:
     Watcher(const std::string fileName);

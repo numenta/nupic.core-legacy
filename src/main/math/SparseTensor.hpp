@@ -32,7 +32,7 @@
 #include <nta/math/ArrayAlgo.hpp>
 #include <nta/math/StlIo.hpp>
 #include <nta/math/Domain.hpp>
-
+#include <nta/types/Types.hpp>
 
 //----------------------------------------------------------------------
 
@@ -116,7 +116,7 @@ namespace nta {
    * 
    */
   template <typename Index, typename Float>
-  class SparseTensor
+  class NTA_EXPORT SparseTensor
   {
   public:
     typedef Index TensorIndex;
@@ -1635,7 +1635,7 @@ namespace nta {
      * IndexA and IndexB will have different sizes.
      */
     template <typename IndexA, typename IndexB>
-    class Elt
+	class NTA_EXPORT Elt
     {
     public:
       inline Elt(const IndexA& ia, const Float a, const IndexB& ib, const Float b)

@@ -27,13 +27,14 @@
 #ifndef NTA_LOGGING_EXCEPTION_HPP
 #define NTA_LOGGING_EXCEPTION_HPP
 
+#include <nta/types/Types.h>
 #include <nta/types/Exception.hpp>
 #include <sstream>
 #include <vector> 
 
 namespace nta
 {
-  class LoggingException : public Exception
+  class NTA_EXPORT LoggingException : public Exception
   {
   public:
     LoggingException(const std::string& filename, UInt32 lineno) :

@@ -85,6 +85,19 @@ build_script:
 after_build:
   - cd C:\projects\nupic-core\build\release
   - dir/S
+  - mkdir examples
+  - xcopy ..\..\src\examples .\examples /a /y /s
+  - ps: (gc .\examples\regions\helloregions.cpp) -replace '../../../src/examples/regions/','' | sc .\examples\regions\helloregions.cpp
+  - copy C:\projects\nupic-core\Package.nuspec .
+  - copy C:\projects\nupic-core\Package.nuspec .
+  - nuget pack -version %APPVEYOR_BUILD_VERSION%
+  - nuget push *.nupkg 30618afb-ecf6-4476-8e61-a5b823ad9892
+  - ps: $root = Resolve-Path .; [IO.Directory]::GetFiles($root.Path, '*.*', 'AllDirectories') | % { Push-AppveyorArtifact $_ -FileName $_.Substring($root.Path.Length + 1) -DeploymentName to-publish }
+
+#artifacts:
+#  - path: 'nupic-core\build\release\**'
+#    name: NuPIC SDK
+
 
 #after_test:
 #  - ps: .\nuget\pack.ps1

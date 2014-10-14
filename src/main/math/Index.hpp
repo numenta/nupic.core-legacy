@@ -35,6 +35,7 @@
 #include <nta/math/Utils.hpp>
 #include <nta/math/Math.hpp>
 #include <nta/math/StlIo.hpp>
+#include <nta/types/Types.hpp>
 
 //----------------------------------------------------------------------
 
@@ -55,7 +56,7 @@ namespace nta {
    *  NDims > 0 (that is, 0 is not allowed...)
    */
   template <typename UInt, const UInt NDims>
-  class Index
+  class NTA_EXPORT Index
   {
   public:
     typedef UInt value_type;

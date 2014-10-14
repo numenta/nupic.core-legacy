@@ -40,6 +40,7 @@
 #include <nta/math/Math.hpp>
 #include <nta/math/ArrayAlgo.hpp>
 #include <nta/math/StlIo.hpp>
+#include <nta/types/Types.hpp>
 
 //--------------------------------------------------------------------------------
 
@@ -114,7 +115,7 @@ namespace nta {
             typename I         =nta::Int32,
             typename Real_prec =nta::Real64,
             typename DTZ       =nta::DistanceToZero<Real_stor> >
-  class SparseMatrix
+  class NTA_EXPORT SparseMatrix
   {
     // TODO find boost config flag to enable ullong as UnsignedInteger
     //BOOST_CLASS_REQUIRE(UI, boost, UnsignedIntegerConcept);

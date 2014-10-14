@@ -77,6 +77,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <nta/math/StlIo.hpp>
 #include <nta/math/Array2D.hpp>
 #include <nta/math/ArrayAlgo.hpp> // for int checkSSE()
+#include <nta/types/Types.hpp>
 
 namespace nta {
   namespace algorithms {
@@ -111,7 +112,7 @@ namespace nta {
       };
     
       //--------------------------------------------------------------------------------
-      class svm_problem
+	  class NTA_EXPORT svm_problem
       {
       public:
 	typedef float label_type;
@@ -220,7 +221,7 @@ namespace nta {
       };
 
       //--------------------------------------------------------------------------------
-      struct svm_problem01
+	  struct NTA_EXPORT svm_problem01
       {
 	typedef float label_type;
 	typedef int feature_type;
@@ -364,7 +365,7 @@ namespace nta {
        * n_sv = n_sv[n_class], number of SVs for each class
        * probA, probB = [n_class*(n_class-1)/2]
        */
-      class svm_model
+	  class NTA_EXPORT svm_model
       {
       public:
 	int n_dims_;
@@ -400,7 +401,7 @@ namespace nta {
 
       //--------------------------------------------------------------------------------
       template <typename TQ>
-      class Solver 
+	  class NTA_EXPORT Solver
       {
       public:
 	Solver() 
@@ -836,7 +837,7 @@ namespace nta {
       };
 
       //--------------------------------------------------------------------------------
-      struct svm_parameter 
+	  struct NTA_EXPORT svm_parameter
       {
 	svm_parameter(int k, bool p, float g, float c, float e, int cs, int s)
 	  : kernel(k), probability(p), gamma(g), C(c), eps(e), cache_size(cs),

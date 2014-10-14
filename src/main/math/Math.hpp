@@ -469,7 +469,7 @@ namespace nta {
    * This class doesn't implement any algorithm, it just stores i,j and v.
    */
   template <typename T1, typename T2>
-  class ijv
+  class NTA_EXPORT ijv
   {
     typedef T1 size_type;
     typedef T2 value_type;
