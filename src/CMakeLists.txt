@@ -873,7 +873,6 @@ add_custom_target(tests_all
 # Clean
 #
 add_custom_target(distclean
-    COMMENT "Cleaning temporary build files")
     # Clean '/build/release' and build/temp/
     COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_INSTALL_PREFIX}
     COMMAND ${CMAKE_COMMAND} -E remove_directory ${PROJECT_BUILD_TEMP_DIR}
@@ -885,6 +884,7 @@ add_custom_target(distclean
     COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_TEMP_DIR}/lib
     COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_TEMP_DIR}/obj
     COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_ARTIFACTS_DIR}/
+    COMMENT "Cleaning temporary build files")
 
 # Just to separate from result message
 message(STATUS "")
