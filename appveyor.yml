@@ -55,7 +55,7 @@ install:
   - mkdir C:\projects\nupic-core\build\
   - mkdir C:\projects\nupic-core\build\scripts
   - cd C:\projects\nupic-core\build\scripts
-  - if "%COMPILER_FAMILY%" == "GNU" cmake C:\projects\nupic-core\src -G "MinGW Makefiles"
+  - if "%COMPILER_FAMILY%" == "GNU" cmake C:\projects\nupic-core\src -G "MSYS Makefiles"
   - if "%COMPILER_FAMILY%" == "MSVC" cmake C:\projects\nupic-core\src -G "Visual Studio 12"
 
 # enable patching of AssemblyInfo.* files
@@ -89,7 +89,7 @@ build_script:
   - cd C:\projects\nupic-core\build\scripts
   - set MSBUILD_PLATFORM=%platform%
   - if "%MSBUILD_PLATFORM%" == "x86" set MSBUILD_PLATFORM=Win32
-  - if "%COMPILER_FAMILY%" == "GNU" mingw32-make
+  - if "%COMPILER_FAMILY%" == "GNU" make
   - if "%COMPILER_FAMILY%" == "MSVC" msbuild nupic_core.sln /p:Configuration=%configuration%;Platform=%MSBUILD_PLATFORM% /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
 
 # scripts to run after build
