@@ -55,8 +55,6 @@ install:
   - mkdir C:\projects\nupic-core\build\
   - mkdir C:\projects\nupic-core\build\scripts
   - cd C:\projects\nupic-core\build\scripts
-  - if "%COMPILER_FAMILY%" == "GNU" cmake C:\projects\nupic-core\src -G "MSYS Makefiles"
-  - if "%COMPILER_FAMILY%" == "MSVC" cmake C:\projects\nupic-core\src -G "Visual Studio 12"
 
 # enable patching of AssemblyInfo.* files
 assembly_info:
@@ -71,7 +69,7 @@ assembly_info:
 #---------------------------------#
 
 # build platform, optional.
-platform: x64
+#platform:
 #  - x86
 #  - x64
 
@@ -83,6 +81,8 @@ configuration: Release
 # scripts to run before build
 before_build:
   - cd C:\projects\nupic-core\build\scripts
+  - if "%COMPILER_FAMILY%" == "GNU" cmake C:\projects\nupic-core\src -G "MSYS Makefiles"
+  - if "%COMPILER_FAMILY%" == "MSVC" cmake C:\projects\nupic-core\src -G "Visual Studio 12"
 
 # To run your custom scripts instead of automatic MSBuild
 build_script:
