@@ -37,7 +37,7 @@ environment:
   # common_var2: value2
 
   matrix:
-    - COMPILER_FAMILY: GNU
+#    - COMPILER_FAMILY: GNU
     - COMPILER_FAMILY: MSVC
 
 matrix:
