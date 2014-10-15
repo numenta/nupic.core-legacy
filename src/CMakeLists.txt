@@ -514,7 +514,7 @@ if(${NTA_COMPILER_FAMILY} STREQUAL "MSVC")
     set(NTA_CXXFLAGS_OPTIMIZATION "/O0 /Ob0")
   endif()
 endif()
-message(STATUS "  Optimization: ${NTA_OPTIMIZATION_ENABLED}")
+message(STATUS "  Optimization : ${NTA_OPTIMIZATION_ENABLED}")
 
 #
 # Enable/disable debugging symbols (-g). Enabled by default (stripped for release).

@@ -82,15 +82,14 @@ configuration: Release
 
 # scripts to run before build
 before_build:
-  cd C:\projects\nupic-core\build\scripts
+  - cd C:\projects\nupic-core\build\scripts
 
 # To run your custom scripts instead of automatic MSBuild
 build_script:
-  - cd C:\projects\nupic-core\build\scripts
-  - set MSBUILD_PLATFORM=%platform%
-  - if "%MSBUILD_PLATFORM%" == "x86" set MSBUILD_PLATFORM=Win32
+#  - set MSBUILD_PLATFORM=%platform%
+#  - if "%MSBUILD_PLATFORM%" == "x86" set MSBUILD_PLATFORM=Win32
   - if "%COMPILER_FAMILY%" == "GNU" make
-  - if "%COMPILER_FAMILY%" == "MSVC" msbuild nupic_core.sln /p:Configuration=%configuration%;Platform=%MSBUILD_PLATFORM% /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+  - if "%COMPILER_FAMILY%" == "MSVC" msbuild "C:\projects\nupic-core\build\scripts\nupic_core.sln" /p:Configuration=%configuration% /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
 
 # scripts to run after build
 after_build:
