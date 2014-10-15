@@ -32,11 +32,16 @@ init:
 clone_folder: c:\projects\nupic-core
 
 environment:
+  # these variables are common to all jobs
+  # common_var1: value1
+  # common_var2: value2
+
   matrix:
-#    - COMPILER_FAMILY: GNU
+    - COMPILER_FAMILY: GNU
     - COMPILER_FAMILY: MSVC
 
-#  fast_finish: true
+matrix:
+  fast_finish: true
 #  allow_failures:
 #    - platform: x86
 #      configuration: Debug
@@ -50,7 +55,8 @@ install:
   - mkdir C:\projects\nupic-core\build\
   - mkdir C:\projects\nupic-core\build\scripts
   - cd C:\projects\nupic-core\build\scripts
-  - cmake C:\projects\nupic-core\src -G "Visual Studio 12"
+  - if "%COMPILER_FAMILY%" == "GNU" cmake C:\projects\nupic-core\src -G "MinGW Makefiles"
+  - if "%COMPILER_FAMILY%" == "MSVC" cmake C:\projects\nupic-core\src -G "Visual Studio 12"
 
 # enable patching of AssemblyInfo.* files
 assembly_info:
@@ -64,13 +70,15 @@ assembly_info:
 #       build configuration       #
 #---------------------------------#
 
-# build platform, i.e. x86, x64, Any CPU. This setting is optional.
-#platform: x64
+# build platform, optional.
+platform: x64
 #  - x86
-#  -Any CPU
+#  - x64
 
 # build Configuration, i.e. Debug, Release, etc.
 configuration: Release
+#  - Debug
+#  - Release
 
 # scripts to run before build
 before_build:
@@ -79,7 +87,10 @@ before_build:
 # To run your custom scripts instead of automatic MSBuild
 build_script:
   - cd C:\projects\nupic-core\build\scripts
-  - msbuild "C:\projects\nupic-core\build\scripts\nupic_core.sln" /property:Configuration=Release /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+  - set MSBUILD_PLATFORM=%platform%
+  - if "%MSBUILD_PLATFORM%" == "x86" set MSBUILD_PLATFORM=Win32
+  - if "%COMPILER_FAMILY%" == "GNU" mingw32-make
+  - if "%COMPILER_FAMILY%" == "MSVC" msbuild nupic_core.sln /p:Configuration=%configuration%;Platform=%MSBUILD_PLATFORM% /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
 
 # scripts to run after build
 after_build:
@@ -89,7 +100,6 @@ after_build:
   - xcopy ..\..\src\examples .\examples /a /y /s
   - ps: (gc .\examples\regions\helloregions.cpp) -replace '../../../src/examples/regions/','' | sc .\examples\regions\helloregions.cpp
   - copy C:\projects\nupic-core\Package.nuspec .
-  - copy C:\projects\nupic-core\Package.nuspec .
   - nuget pack -version %APPVEYOR_BUILD_VERSION%
   - nuget push *.nupkg 30618afb-ecf6-4476-8e61-a5b823ad9892
   - ps: $root = Resolve-Path .; [IO.Directory]::GetFiles($root.Path, '*.*', 'AllDirectories') | % { Push-AppveyorArtifact $_ -FileName $_.Substring($root.Path.Length + 1) -DeploymentName to-publish }
@@ -97,7 +107,6 @@ after_build:
 #artifacts:
 #  - path: 'nupic-core\build\release\**'
 #    name: NuPIC SDK
-
 
 #after_test:
 #  - ps: .\nuget\pack.ps1
