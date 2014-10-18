@@ -44,7 +44,7 @@ namespace nta
 
     virtual ~LoggingException() throw();
 
-    const char * getMessage() const
+    const char * getMessage() const override
     {
       // Make sure we use a persistent string. Otherwise the pointer may
       // become invalid. 
@@ -63,8 +63,8 @@ namespace nta
     {
       lmessageValid_ = false;
       ss_ << "[";
-      for(int i=0; i<v.size(); i++)
-        ss_ << v[i] << " ";
+      for(auto & elem : v)
+        ss_ << elem << " ";
       ss_ << "]";
       return *this;
     } 

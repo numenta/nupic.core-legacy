@@ -321,7 +321,7 @@ namespace nta {
     }
 
     // Run all appropriate tests
-    virtual void RunTests();
+    virtual void RunTests() override;
 
   private:
 

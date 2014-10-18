@@ -39,7 +39,7 @@ namespace nta
     void testCollectionWith_137_Items();
     void testCollectionAddRemove();
 
-    virtual void RunTests();        
+    virtual void RunTests() override;        
   };
 }
 
