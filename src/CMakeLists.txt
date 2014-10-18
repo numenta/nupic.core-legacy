@@ -563,20 +563,18 @@ endif()
 #
 # Set list of external libraries to this project.
 #
-if(SOLARIS)
+set(NTA_STANDARD_LIBS
+    ${NTA_STANDARD_LIBS}
+    ${LIB_STATIC_YAML}
+    ${LIB_STATIC_APR1}
+    ${LIB_STATIC_APRUTIL1}
+    ${LIB_STATIC_Z}
+   )
+
+if(SOLARIS OR OSX)
   set(NTA_STANDARD_LIBS
+    ${NTA_STANDARD_LIBS}
     ${LIB_STATIC_YAML_CPP}
-    ${LIB_STATIC_YAML}
-    ${LIB_STATIC_APR1}
-    ${LIB_STATIC_APRUTIL1}
-    ${LIB_STATIC_Z}
-  )
-else()
-  set(NTA_STANDARD_LIBS
-    ${LIB_STATIC_YAML}
-    ${LIB_STATIC_APR1}
-    ${LIB_STATIC_APRUTIL1}
-    ${LIB_STATIC_Z}
   )
 endif()
 
