@@ -643,7 +643,7 @@ vector<UInt> SpatialPooler::mapPotential_(UInt column, bool wrapAround)
 
   UInt numPotential = round(indices.size() * potentialPct_);
 
-  vector<UInt> selectedIndices(numPotential);
+  vector<UInt> selectedIndices(numPotential, 0);
   rng_.sample(&indices.front(), indices.size(),
               &selectedIndices.front(), numPotential);
 
