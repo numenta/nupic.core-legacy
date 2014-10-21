@@ -2408,9 +2408,14 @@ namespace nta {
     mask = sp.mapPotential_(0, true);
     NTA_ASSERT(mask.size() == 3);
 
-    // join the 2 vectors
+    // join the 2 vectors: supersetMask1 + mask
     vector<UInt>  unionMask1 = supersetMask1;
-    unionMask1.insert(unionMask1.end(), mask.begin(), mask.end());
+    for(UInt i=0; i<mask.size(); i++) {
+      UInt val = mask.at(i);
+      if(std::find(unionMask1.begin(), unionMask1.end(), val)==unionMask1.end()) { // check if: not contains val
+        unionMask1.push_back(val);
+      }
+    }
 
     NTA_CHECK(check_vector_eq(unionMask1, supersetMask1))
     << unionMask1 << " vs. " << supersetMask1;
