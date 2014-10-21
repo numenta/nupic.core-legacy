@@ -2412,7 +2412,8 @@ namespace nta {
     vector<UInt>  unionMask1 = supersetMask1;
     unionMask1.insert(unionMask1.end(), mask.begin(), mask.end());
 
-    NTA_CHECK(check_vector_eq(unionMask1, supersetMask1));
+    NTA_CHECK(check_vector_eq(unionMask1, supersetMask1))
+    << unionMask1 << " vs. " << supersetMask1;
   }
 
   void SpatialPoolerTest::testMapPotential2D()
