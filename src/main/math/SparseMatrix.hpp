@@ -2792,7 +2792,8 @@ namespace nta {
       }
 
 #endif
-#ifndef WIN32 // On Unix, MemParser is faster.
+
+#if !defined(NTA_PLATFORM_win32) && !defined(NTA_PLATFORM_win64) // On Unix, MemParser is faster.
 
       MemParser inStream(inStreamParam, totalBytes);
 

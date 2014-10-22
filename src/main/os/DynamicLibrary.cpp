@@ -110,7 +110,7 @@ namespace nta
   void * DynamicLibrary::getSymbol(const std::string & symbol)
   {    
     #if defined(NTA_PLATFORM_win32) || defined(NTA_PLATFORM_win64)
-      return ::GetProcAddress((HMODULE)handle_, symbol.c_str());
+      return (void*)::GetProcAddress((HMODULE)handle_, symbol.c_str());
     #else
       return ::dlsym(handle_, symbol.c_str());
     #endif
