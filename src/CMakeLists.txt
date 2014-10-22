@@ -235,6 +235,16 @@ endmacro()
 ################################################################################
 
 cmake_minimum_required(VERSION 2.8)
+
+#
+# Set C++ compiler.
+# According to CMake documentation, this must be done before any language is set (ie before any project() or enable_language() command).
+#
+set(USER_CXX_COMPILER "" CACHE STRING "Default C++ compiler to be used (GCC / CLANG) [default=system compiler]")
+if(NOT "${USER_CXX_COMPILER}" STREQUAL "")
+  set(CMAKE_CXX_COMPILER "${USER_CXX_COMPILER}")
+endif()
+
 project(nupic_core CXX)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
@@ -254,15 +264,6 @@ if(${NTA_COMPILER_FAMILY} MATCHES "MSVC")
   set(D "/D")
   set(I "-I")
   set(L "/LIBPATH:")
-endif()
-
-#
-# Set C++ compiler.
-# According to CMake documentation, this must be done before any language is set (ie before any project() or enable_language() command).
-#
-set(USER_CXX_COMPILER "" CACHE STRING "Default C++ compiler to be used (GCC / CLANG) [default=system compiler]")
-if(NOT "${USER_CXX_COMPILER}" STREQUAL "")
-  set(CMAKE_CXX_COMPILER "${USER_CXX_COMPILER}")
 endif()
 
 #
@@ -323,18 +324,18 @@ execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_ARTIF
 #set(DYNAMIC_LIB_PREFIX "${CMAKE_SHARED_LIBRARY_PREFIX}")
 #set(DYNAMIC_LIB_EXTENSION "${CMAKE_SHARED_LIBRARY_SUFFIX}")
 
-if(UNIX)
+if(UNIX OR (WIN32 AND NOT MSVC))
   set(STATIC_LIB_PREFIX "lib")
   set(STATIC_LIB_EXTENSION "a")
   set(DYNAMIC_LIB_PREFIX "")
   if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set(OSX ON)
     set(DYNAMIC_LIB_EXTENSION "dylib")
-  elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    set(LINUX ON)
-    set(DYNAMIC_LIB_EXTENSION "so")
   elseif(${CMAKE_SYSTEM_NAME} MATCHES "SunOS")
     set(SOLARIS ON)
+    set(DYNAMIC_LIB_EXTENSION "so")
+  else()
+    set(LINUX ON)
     set(DYNAMIC_LIB_EXTENSION "so")
   endif()
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -378,18 +379,6 @@ elseif(LINUX)
     set(NTA_PLATFORM_OS "linux32")
     set(NTA_PLATFORM_CXXFLAGS "${NTA_PLATFORM_CXXFLAGS} -ffloat-store")
   endif()
-elseif(WINDOWS)
-  set(NTA_PLATFORM_CXXFLAGS "${NTA_PLATFORM_CXXFLAGS} /TP /Zc:wchar_t /Gm- /fp:precise /errorReport:prompt")
-  set(NTA_PLATFORM_CXXFLAGS "${NTA_PLATFORM_CXXFLAGS} /W3 /WX- /GR /Gd /GS /Oy- /EHs /analyze- /nologo")
-  set(NTA_PLATFORM_CXXFLAGS_DEBUG "")
-  set(NTA_PLATFORM_LIBS "oldnames.lib Psapi.lib")
-  if(${NTA_PLATFORM_ARCH} MATCHES "64")
-    set(NTA_PLATFORM_LINKFLAGS "${NTA_PLATFORM_LINKFLAGS} /MACHINE:X64 /NOLOGO /SAFESEH:NO")
-    set(NTA_PLATFORM_OS "win64")
-  else()    
-    set(NTA_PLATFORM_LINKFLAGS "${NTA_PLATFORM_LINKFLAGS} /MACHINE:X86 /NOLOGO /SAFESEH:NO")
-    set(NTA_PLATFORM_OS "win32")
-  endif()
 elseif(SOLARIS)
   set(NTA_PLATFORM_CXXFLAGS_DEBUG "-g")
   set(NTA_PLATFORM_LINKFLAGS "${NTA_PLATFORM_LINKFLAGS} -shared-libgcc -m64")
@@ -401,6 +390,18 @@ elseif(SOLARIS)
   else()
     set(NTA_PLATFORM_OS "sparc32")
     set(NTA_PLATFORM_CXXFLAGS "${NTA_PLATFORM_CXXFLAGS} -ffloat-store")
+  endif()
+elseif(WINDOWS)
+  set(NTA_PLATFORM_CXXFLAGS "${NTA_PLATFORM_CXXFLAGS} /TP /Zc:wchar_t /Gm- /fp:precise /errorReport:prompt")
+  set(NTA_PLATFORM_CXXFLAGS "${NTA_PLATFORM_CXXFLAGS} /W3 /WX- /GR /Gd /GS /Oy- /EHs /analyze- /nologo")
+  set(NTA_PLATFORM_CXXFLAGS_DEBUG "")
+  set(NTA_PLATFORM_LIBS "oldnames.lib Psapi.lib")
+  if(${NTA_PLATFORM_ARCH} MATCHES "64")
+    set(NTA_PLATFORM_LINKFLAGS "${NTA_PLATFORM_LINKFLAGS} /MACHINE:X64 /NOLOGO /SAFESEH:NO")
+    set(NTA_PLATFORM_OS "win64")
+  else()    
+    set(NTA_PLATFORM_LINKFLAGS "${NTA_PLATFORM_LINKFLAGS} /MACHINE:X86 /NOLOGO /SAFESEH:NO")
+    set(NTA_PLATFORM_OS "win32")
   endif()
 else()
   message(FATAL_ERROR "${CMAKE_CURRENT_LIST_FILE}:${CMAKE_CURRENT_LIST_LINE}: error: ${CMAKE_SYSTEM_NAME} not supported yet.")
@@ -717,7 +718,7 @@ message(STATUS "Configuring subprojects...")
 #
 # LibNupicCore
 #
-set(LIB_STATIC_NUPICCORE nupic_core)
+set(LIB_STATIC_NUPICCORE ${STATIC_LIB_PREFIX}nupic_core)
 generate_static_library(${LIB_STATIC_NUPICCORE} "${PROJECT_SOURCE_DIR}/main" "${PROJECT_BUILD_TEMP_DIR}/lib" "${NTA_CXXFLAGS_STATIC}")
 
 # Merge nupic_core and all static libraries to a stand-alone library
@@ -738,7 +739,7 @@ endif()
 # Compile google test from source for linking with tests
 #
 set(LIB_STATIC_GTEST gtest)
-generate_static_library(${LIB_STATIC_GTEST} "${REPOSITORY_DIR}/external/common/src/gtest" "${PROJECT_BUILD_TEMP_DIR}/lib" "${NTA_CXXFLAGS}")
+generate_static_library(${STATIC_LIB_PREFIX}${LIB_STATIC_GTEST} "${REPOSITORY_DIR}/external/common/src/gtest" "${PROJECT_BUILD_TEMP_DIR}/lib" "${NTA_CXXFLAGS_STATIC}")
 
 #
 # Set list of external libraries to tests
