@@ -738,8 +738,8 @@ endif()
 #
 # Compile google test from source for linking with tests
 #
-set(LIB_STATIC_GTEST gtest)
-generate_static_library(${STATIC_LIB_PREFIX}${LIB_STATIC_GTEST} "${REPOSITORY_DIR}/external/common/src/gtest" "${PROJECT_BUILD_TEMP_DIR}/lib" "${NTA_CXXFLAGS_STATIC}")
+set(LIB_STATIC_GTEST ${STATIC_LIB_PREFIX}gtest)
+generate_static_library(${LIB_STATIC_GTEST} "${REPOSITORY_DIR}/external/common/src/gtest" "${PROJECT_BUILD_TEMP_DIR}/lib" "${NTA_CXXFLAGS_STATIC}")
 
 #
 # Set list of external libraries to tests
