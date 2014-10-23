@@ -34,7 +34,7 @@ install:
   - "mkdir -p $TRAVIS_BUILD_DIR/build/scripts"
   - "cd $TRAVIS_BUILD_DIR/build/scripts"
   # Enable test coverage for travis-ci build
-  # "cmake -DCMAKE_TOOLCHAIN_FILE=$TRAVIS_BUILD_DIR/src/travis-mingw64.cmake $TRAVIS_BUILD_DIR/src -DNTA_COV_ENABLED=ON"
+  # "cmake --no-warn-unused-cli -DCMAKE_TOOLCHAIN_FILE=../../src/travis-mingw64.cmake -DCMAKE_INSTALL_PREFIX=../release -DCMAKE_BUILD_TYPE=Release ../../src -DNTA_COVERAGE=ON"
   - "cmake $TRAVIS_BUILD_DIR/src -DNTA_COV_ENABLED=ON"
 
 script:
