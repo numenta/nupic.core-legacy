@@ -8,9 +8,20 @@
 
 # IDE project files
 /nbproject/
+*.sln
+*.dsw
+*.vcxproj
+*.vcproj
+*.dsp
+*.dir/
 
 # Build files
 build/
+*.obj
+*.log
+*.tlog
+*.vcxproj.filters
+*.in
 
 src/test/testeverything/EverythingAddtests.hpp
 src/test/testeverything/EverythingHeaders.hpp

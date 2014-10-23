@@ -38,7 +38,7 @@
 namespace nta 
 {
   // TODO: Should this be a namespace instead of a class?
-  class StringUtils
+  class NTA_EXPORT StringUtils
   {
   public:
     //--------------------------------------------------------------------------------

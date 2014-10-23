@@ -40,6 +40,7 @@
 #include <nta/math/Math.hpp>
 #include <nta/math/ArrayAlgo.hpp>
 #include <nta/math/StlIo.hpp>
+#include <nta/types/Types.hpp>
 
 //--------------------------------------------------------------------------------
 
@@ -114,7 +115,7 @@ namespace nta {
             typename I         =nta::Int32,
             typename Real_prec =nta::Real64,
             typename DTZ       =nta::DistanceToZero<Real_stor> >
-  class SparseMatrix
+  class NTA_EXPORT SparseMatrix
   {
     // TODO find boost config flag to enable ullong as UnsignedInteger
     //BOOST_CLASS_REQUIRE(UI, boost, UnsignedIntegerConcept);
@@ -2717,7 +2718,8 @@ namespace nta {
       if (totalBytes < 0)
         totalBytes = 0;
 
-#ifdef NTA_PLATFORM_win32 // On Windows, don't use MemParser, it's slow.
+    #if defined(NTA_PLATFORM_win32) || defined(NTA_PLATFORM_win64)
+	  // On Windows, don't use MemParser, it's slow.
 
       size_type i, j, k, nrows, ncols, nnz, nnzr;
       i = j = k = nrows = ncols = nnz = nnzr = 0;
@@ -2790,7 +2792,8 @@ namespace nta {
       }
 
 #endif
-#ifndef WIN32 // On Unix, MemParser is faster.
+
+#if !defined(NTA_PLATFORM_win32) && !defined(NTA_PLATFORM_win64) // On Unix, MemParser is faster.
 
       MemParser inStream(inStreamParam, totalBytes);
 
@@ -2935,8 +2938,8 @@ namespace nta {
      */
     inline void fromBinary(std::istream& inStream)
     {
-#ifdef NTA_PLATFORM_win32
-      std::cout << "fromBinary not supported on win32" << std::endl;
+#if defined(NTA_PLATFORM_win32) || defined(NTA_PLATFORM_win64)
+      std::cout << "fromBinary not supported on windows" << std::endl;
       exit(-1);
 #endif
 
@@ -3037,8 +3040,8 @@ namespace nta {
      */
     inline void toBinary(std::ostream& outStream)
     {
-#ifdef NTA_PLATFORM_win32
-      std::cout << "toBinary not supported on win32" << std::endl;
+#if defined(NTA_PLATFORM_win32) || defined(NTA_PLATFORM_win64)
+      std::cout << "toBinary not supported on windows" << std::endl;
       exit(-1);
 #endif
 

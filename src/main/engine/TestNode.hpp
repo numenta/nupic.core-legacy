@@ -27,6 +27,7 @@
 
 #include <nta/engine/RegionImpl.hpp>
 #include <nta/ntypes/Value.hpp>
+#include <nta/types/Types.hpp>
 #include <string>
 #include <vector>
 
@@ -55,7 +56,7 @@ namespace nta
 
   class BundleIO;
 
-  class TestNode : public RegionImpl 
+  class NTA_EXPORT TestNode : public RegionImpl
   {
   public:
     typedef void (*computeCallbackFunc)(const std::string&);

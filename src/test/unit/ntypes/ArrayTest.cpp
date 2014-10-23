@@ -405,8 +405,10 @@ void nta::ArrayTest::RunTests()
     ArrayTestParameters(NTA_BasicType_Int32, 4, 0, "Int32", false);
   testCases_["NTA_BasicType_Int32, size UINT_MAX"] =
     ArrayTestParameters(NTA_BasicType_Int32, 4, UINT_MAX, "Int32", true);
+#if !defined(NTA_COMPILER_MSVC)
   testCases_["NTA_BasicType_Int32, size -10"] =
     ArrayTestParameters(NTA_BasicType_Int32, 4, -10, "Int32", true);
+#endif
   testCases_["NTA_BasicType_Int32, size 10"] =
     ArrayTestParameters(NTA_BasicType_Int32, 4, 10, "Int32", false);
   

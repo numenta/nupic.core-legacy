@@ -27,8 +27,6 @@
 #include <nta/ntypes/ArrayRef.hpp>
 #include <nta/os/Path.hpp>
 
-
-
 using namespace nta;
 
 int main(int argc, const char * argv[])

@@ -53,7 +53,7 @@ namespace nta {
 ///  MemParser::get() will extract numbers/strings from the internal buffer. 
 ///
 //////////////////////////////////////////////////////////////////////////////
-class MemParser
+class NTA_EXPORT MemParser
 {
 public:
 

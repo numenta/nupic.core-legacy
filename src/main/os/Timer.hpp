@@ -45,7 +45,7 @@ namespace nta
    * Uses the most precise and lowest overhead timer available on a given system.
    *
    */
-  class Timer 
+  class NTA_EXPORT Timer
   {
   public:
 

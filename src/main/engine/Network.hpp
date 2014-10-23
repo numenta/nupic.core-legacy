@@ -47,7 +47,7 @@ namespace nta
    *
    * @nosubgrouping
    */
-  class Network
+  class NTA_EXPORT Network
   {
   public:
 

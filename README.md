@@ -1,4 +1,4 @@
-# NuPIC Core [![Build Status](https://travis-ci.org/numenta/nupic.core.png?branch=master)](https://travis-ci.org/numenta/nupic.core) [![Coverage Status](https://coveralls.io/repos/numenta/nupic.core/badge.png?branch=master)](https://coveralls.io/r/numenta/nupic.core?branch=master)
+# NuPIC Core [![Build Status](https://travis-ci.org/rcrowder/nupic.core.png?branch=103-windows-build)](https://travis-ci.org/rcrowder/nupic.core) [![Build status](https://ci.appveyor.com/api/projects/status/g2vdotgyeh8nnpnn)](https://ci.appveyor.com/project/rcrowder/nupic-core) [![Coverage Status](https://coveralls.io/repos/numenta/nupic.core/badge.png?branch=103-windows-build)](https://coveralls.io/r/numenta/nupic.core?branch=103-windows-build)
 
 This repository contains the C++ source code for the Numenta Platform for Intelligent Computing ([NuPIC](http://numenta.org/nupic.html)). It will eventually contain all algorithms for NuPIC, but is currently in a transition period. For details on building NuPIC within the python environment, please see http://github.com/numenta/nupic.
 
@@ -34,18 +34,27 @@ Important notes:
 
 #### Generate the IDE solution:
 
- * Open CMake executable.
+ * Open CMake-GUI executable.
  * Specify the source folder (`$NUPIC_CORE/src`).
  * Specify the build system folder (`$NUPIC_CORE/build/scripts`), i.e. where IDE solution will be created.
+ * Click `Configure`.
+ * Choose the IDE that interest you.
+ * Specify the CMake install prefix (`$NUPIC_CORE/build/release`) 
+ * Click `Configure`.
  * Click `Generate`.
- * Choose the IDE that interest you (remember that IDE choice is limited to your OS, i.e. Visual Studio is available only on CMake for Windows).
+
+Remember that IDE choice is limited to your OS, e.g. Visual Studio is available only on CMake for Windows. Express versions of Visual Studio may need Windows SDK v7.?
 
 #### Build:
 
- * Open `nupic_core.*proj` solution file generated on `$NUPIC_CORE/build/scripts`.
- * Run `ALL_BUILD` project from your IDE.
+ * Open `nupic_core.sln' solution file generated on `$NUPIC_CORE/build/scripts`.
+ * Rebuild `ALL_BUILD` project from your IDE.
 
-#### Run the tests:
+This will build a static Release version of the NuPIC core library. This is then used in the test programs that are built and run. Watch the Output Window for build issues and test results.
 
- * Run any `tests_*` project from your IDE (check `output` panel to see the results).
+The library also contains all external libraries that the core depends upon. The ALL_BUILD project will skip building the distclean and INSTALL projects. So the library can be found in '$NUPIC_CORE/build/temp/lib', with the header files in the usual install and external sub-directories.
 
+The latest automated build can be seen here -
+https://ci.appveyor.com/project/rcrowder/nupic-core
+
+An example helloregion.exe and the two test executables can be found in `$NUPIC_CORE/build/release/bin`

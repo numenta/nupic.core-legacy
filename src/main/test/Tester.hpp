@@ -28,7 +28,7 @@
 #define NTA_TESTER_HPP
 
 //----------------------------------------------------------------------
-
+#include <nta/types/Types.hpp>
 #include "gtest/gtest.h"
 #include <sstream>
 #include <vector>
@@ -51,7 +51,7 @@ namespace nta {
    * Google Test macros eventually.
    * 
    */
-  class Tester  {
+  class NTA_EXPORT Tester  {
   public:
 
     /** Default constructor	 */

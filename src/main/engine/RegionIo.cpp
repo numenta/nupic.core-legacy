@@ -123,7 +123,7 @@ Region::prepareInputs()
 {
   // Ask each input to prepare itself
   for (InputMap::const_iterator i = inputs_.begin();
-       i != inputs_.end(); i++)
+       i != inputs_.end(); ++i)
   {
     i->second->prepare();
   }

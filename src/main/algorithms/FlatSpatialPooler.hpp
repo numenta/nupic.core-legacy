@@ -55,7 +55,7 @@ namespace nta {
       /// Todo.
       ///
       /////////////////////////////////////////////////////////////////////////
-     class FlatSpatialPooler : public SpatialPooler {
+		class NTA_EXPORT FlatSpatialPooler : public SpatialPooler {
         public:
           FlatSpatialPooler() {}
 
@@ -93,7 +93,7 @@ namespace nta {
             UInt numInputs,
             UInt numColumns,
             Real potentialPct = 0.5,
-            Real localAreaDensity=0,
+            Real localAreaDensity=0.0,
             UInt numActiveColumnsPerInhArea=10,
             UInt stimulusThreshold=0,
             Real synPermInactiveDec=0.01,

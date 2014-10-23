@@ -32,6 +32,7 @@
 #include <zlib.h>
 
 #include <nta/math/Math.hpp>
+#include <nta/types/Types.hpp>
 
 //--------------------------------------------------------------------------------
 namespace nta {
@@ -48,7 +49,7 @@ namespace nta {
    * quantizing vector components. This could be another data structure.
    */
   template <typename Index, typename Value>
-  class SparseRLEMatrix
+  class NTA_EXPORT SparseRLEMatrix
   {
   public:
     typedef unsigned long ulong_size_type;

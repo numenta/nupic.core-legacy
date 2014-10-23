@@ -33,6 +33,11 @@
 #include <iterator>
 #include <algorithm>
 
+#if defined(NTA_PLATFORM_win64) && defined(NTA_COMPILER_MSVC)
+#include <array>
+#include <intrin.h>
+#endif
+
 #include <nta/utils/Random.hpp> // For the official Numenta RNG
 #include <nta/math/Math.hpp>
 #include <nta/math/Types.hpp>
@@ -73,6 +78,13 @@ namespace nta {
       mov d, edx
     }
 
+  #elif defined(NTA_PLATFORM_win64) && defined(NTA_COMPILER_MSVC)
+
+	std::array<int, 4> cpui; 
+	__cpuid(cpui.data(), 1);
+	c = cpui[2];
+	d = cpui[3];
+
   // TODO: add asm code for gcc/clang/... on Windows
 
   #elif defined(NTA_PLATFORM_darwin86) || defined(NTA_PLATFORM_linux32)
@@ -105,7 +117,7 @@ namespace nta {
                          :
                          :
 			 );
-  #endif //NTA_PLATFORM_win32
+  #endif
 #endif //NTA_ASM
 
     int ret = -1;
