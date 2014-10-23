@@ -712,14 +712,14 @@ message(STATUS "    Debug      : ${NTA_PLATFORM_CXXFLAGS_DEBUG}")
 #
 # LibNupicCore
 #
-set(LIB_STATIC_NUPICCORE ${STATIC_LIB_PREFIX}nupic_core)
+set(LIB_STATIC_NUPICCORE nupic_core)
 generate_static_library(${LIB_STATIC_NUPICCORE} "${PROJECT_SOURCE_DIR}/main" "${PROJECT_BUILD_TEMP_DIR}/lib" "${NTA_CXXFLAGS_STATIC}")
 
 # Merge nupic_core and all static libraries to a stand-alone library
 merge_static_libraries(${LIB_STATIC_NUPICCORE} "${CMAKE_INSTALL_PREFIX}/lib" "${LIB_STATIC_NUPICCORE};${NTA_STANDARD_LIBS}" "${LIB_STATIC_NUPICCORE}")
 
 if(WINDOWS)
-  set(LIB_DYNAMIC_NUPICCORE ${DYNAMIC_LIB_PREFIX}nupic_core)
+  set(LIB_DYNAMIC_NUPICCORE nupic_core)
   set(LIBRARIES ${NTA_STANDARD_LIBS})
   generate_dynamic_library(${LIB_DYNAMIC_NUPICCORE} "${PROJECT_SOURCE_DIR}/main" "${CMAKE_INSTALL_PREFIX}" "${NTA_CXXFLAGS_DYNAMIC}" "${NTA_LINKFLAGS}" "" "${LIBRARIES}")
 endif()
@@ -727,7 +727,7 @@ endif()
 #
 # Compile google test from source for linking with tests
 #
-set(LIB_STATIC_GTEST ${STATIC_LIB_PREFIX}gtest)
+set(LIB_STATIC_GTEST gtest)
 generate_static_library(${LIB_STATIC_GTEST} "${REPOSITORY_DIR}/external/common/src/gtest" "${PROJECT_BUILD_TEMP_DIR}/lib" "${NTA_CXXFLAGS_STATIC}")
 
 #

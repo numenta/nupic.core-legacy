@@ -15,10 +15,8 @@
 For more information, see http://numenta.org or the https://github.com/numenta/nupic/wiki
 
 For information specific to `NuPIC Core`, please refer to:
-
-* https://github.com/numenta/nupic/blob/master/README.md nupic.core
-* https://github.com/numenta/nupic/wiki/NuPIC-API
-* https://github.com/numenta/nupic/wiki/NuPIC-Architecture
+https://github.com/numenta/nupic.core
+https://github.com/numenta/nupic/wiki/NuPIC-Architecture
       </description>
       <summary>Core algorithms for NuPIC</summary>
     <releaseNotes>Pre-Alpha release for Windows</releaseNotes>
