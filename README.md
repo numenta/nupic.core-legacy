@@ -28,7 +28,7 @@ Important notes:
 
     cd $NUPIC_CORE/build/scripts
     make tests_htm 
-    make tests_everything
+    make tests_unit
 
 ### Using graphical interface
 
@@ -48,3 +48,4 @@ Important notes:
 #### Run the tests:
 
  * Run any `tests_*` project from your IDE (check `output` panel to see the results).
+

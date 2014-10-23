@@ -163,7 +163,7 @@ namespace nta {
 	
 	for (int i = 0; i < size(); ++i) {
 
-#if defined(NTA_PLATFORM_win32) && defined(_MSC_VER)
+#if defined(NTA_PLATFORM_win32) && defined(NTA_COMPILER_MSVC)
           x_[i] = (float*) _aligned_malloc(4*n_dims(), 16);
 #else
 	  x_[i] = new feature_type[n_dims()];
@@ -235,7 +235,7 @@ namespace nta {
         if (sv_mem == NULL) {
           for (size_t i = 0; i != sv.size(); ++i)
 
-#if defined(NTA_PLATFORM_win32) && defined(_MSC_VER)
+#if defined(NTA_PLATFORM_win32) && defined(NTA_COMPILER_MSVC)
             _aligned_free(sv[i]);
 #else
             delete [] sv[i];
@@ -243,7 +243,7 @@ namespace nta {
 
         } else {
 
-#if defined(NTA_PLATFORM_win32) && defined(_MSC_VER)
+#if defined(NTA_PLATFORM_win32) && defined(NTA_COMPILER_MSVC)
           _aligned_free(sv_mem);
 #else
           delete [] sv_mem;
@@ -398,7 +398,7 @@ namespace nta {
           sv_mem = NULL;
         }
 
-#if defined(NTA_PLATFORM_win32) && defined(_MSC_VER)
+#if defined(NTA_PLATFORM_win32) && defined(NTA_COMPILER_MSVC)
         sv_mem = (float*) _aligned_malloc(4 * l * n_dims(), 16);
 #else
         sv_mem = new float [l * n_dims()];
