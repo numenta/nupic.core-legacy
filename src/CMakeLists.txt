@@ -21,7 +21,6 @@
 # Contributor(s):
 #   David Ragazzi (@DavidRagazzi): Full conversion and adaptation from Autotools scripts
 #   Jim Bridgewater (jwbwater@gmail.com): Updated option help messages
-#   Richard Crowder (@rcrowder): Addition of Windows configurations
 # ------------------------------------------------------------------------------
 
 ################################################################################
@@ -373,18 +372,10 @@ elseif(LINUX)
   set(NTA_PLATFORM_LINKFLAGS "${NTA_PLATFORM_LINKFLAGS} -Wl,--no-as-needed -static-libgcc")
   set(NTA_PLATFORM_LIBS "${NTA_PLATFORM_LIBS} -std=c++11 -lm -lpthread -ldl -lutil")
   if(${NTA_PLATFORM_ARCH} MATCHES "64")
-    if(WIN32)
-      set(NTA_PLATFORM_OS "win64")
-    else()
-      set(NTA_PLATFORM_OS "linux64")
-    endif()
+    set(NTA_PLATFORM_OS "linux64")
     set(NTA_PLATFORM_CXXFLAGS "${NTA_PLATFORM_CXXFLAGS} -m64")
   else()    
-    if(WIN32)
-      set(NTA_PLATFORM_OS "win32")
-    else()
-      set(NTA_PLATFORM_OS "linux32")
-    endif()
+    set(NTA_PLATFORM_OS "linux32")
     set(NTA_PLATFORM_CXXFLAGS "${NTA_PLATFORM_CXXFLAGS} -ffloat-store")
   endif()
 elseif(SOLARIS)
@@ -417,10 +408,10 @@ endif()
 
 message(STATUS "Platform: ${NTA_PLATFORM_OS}")
 message(STATUS "Platform-specific flags:")
-message(STATUS "  Libraries: ${NTA_PLATFORM_LIBS}")
-message(STATUS "  CXX flags: ${NTA_PLATFORM_CXXFLAGS}")
-message(STATUS "    Debug  : ${NTA_PLATFORM_CXXFLAGS_DEBUG}")
-message(STATUS "  LD flags : ${NTA_PLATFORM_LINKFLAGS}")
+message(STATUS "  LD flags     : ${NTA_PLATFORM_LINKFLAGS}")
+message(STATUS "  Libraries    : ${NTA_PLATFORM_LIBS}")
+message(STATUS "  CXX flags    : ${NTA_PLATFORM_CXXFLAGS}")
+message(STATUS "    Debug      : ${NTA_PLATFORM_CXXFLAGS_DEBUG}")
 
 #
 # Components details
@@ -436,9 +427,9 @@ if(NOT ${NTA_COMPILER_FAMILY} STREQUAL "MSVC")
 endif()
 
 message(STATUS "Compiler details:")
-message(STATUS "  Compiler : ${CMAKE_CXX_COMPILER}")
-message(STATUS "  Family   : ${NTA_COMPILER_FAMILY}")
-message(STATUS "  Version  : ${CXX_VERSION}")
+message(STATUS "  Compiler     : ${CMAKE_CXX_COMPILER}")
+message(STATUS "  Family       : ${NTA_COMPILER_FAMILY}")
+message(STATUS "  Version      : ${CXX_VERSION}")
 
 #
 # Project details
@@ -447,10 +438,10 @@ message(STATUS "Checking project...")
 
 message(STATUS "Project: ${PROJECT_NAME}")
 message(STATUS "Locations:")
-message(STATUS "  Source          : ${PROJECT_SOURCE_DIR}")
-message(STATUS "  Build System    : ${PROJECT_BINARY_DIR}")
-message(STATUS "  Build Directory : ${PROJECT_BUILD_TEMP_DIR}")
-message(STATUS "  Release         : ${CMAKE_INSTALL_PREFIX}")
+message(STATUS "  Source       : ${PROJECT_SOURCE_DIR}")
+message(STATUS "  Build Dir    : ${PROJECT_BINARY_DIR}")
+message(STATUS "  Temp Dir     : ${PROJECT_BUILD_TEMP_DIR}")
+message(STATUS "  Install      : ${CMAKE_INSTALL_PREFIX}")
 
 
 ################################################################################
@@ -500,7 +491,8 @@ endif()
 set(NTA_LINKFLAGS "${USER_LINKFLAGS} ${NTA_PLATFORM_LINKFLAGS} ${NTA_PLATFORM_LIBS} ${L}${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib")
 
 if(${NTA_COMPILER_FAMILY} STREQUAL "MSVC")
-  set(NTA_LINKFLAGS "${NTA_LINKFLAGS} /NODEFAULTLIB:LIBCMT")
+  # Need Winsock2
+  set(NTA_LINKFLAGS "${NTA_LINKFLAGS} /NODEFAULTLIB:LIBCMT Ws2_32.lib")
 endif()
 
 message(STATUS "Options:")
@@ -593,9 +585,6 @@ if(${NTA_COMPILER_FAMILY} STREQUAL "GNU")
   if((GCC_VERSION VERSION_GREATER 4.6 OR GCC_VERSION VERSION_EQUAL 4.6) AND NOT WIN32)
     set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -Wno-error=cpp -Werror")
   endif()
-  if(WIN32)
-    set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -D_WIN32")
-  endif()
   set(NTA_LINKFLAGS_ARCHIVES "-Wl,-whole-archive")
 elseif(${NTA_COMPILER_FAMILY} STREQUAL "CLANG")
   set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -fPIC -DPIC -DHAVE_CONFIG_H -DHAVE_UNISTD_H -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-unused-parameter")
@@ -687,34 +676,23 @@ endif()
 #
 if(SOLARIS)
   set(NTA_STANDARD_LIBS
-    ${LIB_STATIC_YAML_CPP}
-    ${LIB_STATIC_YAML}
-    ${LIB_STATIC_APR1}
-    ${LIB_STATIC_APRUTIL1}
+    ${LIB_STATIC_YAML} ${LIB_STATIC_YAML_CPP}
+    ${LIB_STATIC_APR1} ${LIB_STATIC_APRUTIL1}
     ${LIB_STATIC_Z}
   )
 elseif(WINDOWS)
   set(NTA_STANDARD_LIBS
-    ${LIB_STATIC_APR1}
-    ${LIB_STATIC_APRICONV1}
-    ${LIB_STATIC_APRUTIL1}
+    ${LIB_STATIC_YAML} ${LIB_STATIC_YAML_CPP}
+    ${LIB_STATIC_APR1} ${LIB_STATIC_APRUTIL1}
     ${LIB_STATIC_Z}
-    ${LIB_STATIC_PCRE}
-    ${LIB_STATIC_PCREPOSIX}
-    ${LIB_STATIC_YAML}
-    ${LIB_STATIC_YAML_CPP}
+    ${LIB_STATIC_PCRE} ${LIB_STATIC_PCREPOSIX}
   )
 else()
   set(NTA_STANDARD_LIBS
     ${LIB_STATIC_YAML}
-    ${LIB_STATIC_APR1}
-    ${LIB_STATIC_APRUTIL1}
+    ${LIB_STATIC_APR1} ${LIB_STATIC_APRUTIL1}
     ${LIB_STATIC_Z}
   )
-endif()
-
-if(WINDOWS)
-  set(NTA_APPLICATION_LIBS Ws2_32.lib)
 endif()
 
 #
@@ -725,6 +703,11 @@ set(NTA_TEST_LIBS
 )
 
 message(STATUS "Configuring subprojects...")
+message(STATUS "  Libraries    : ${NTA_PLATFORM_LIBS}")
+message(STATUS "  LD flags     : ${NTA_PLATFORM_LINKFLAGS}")
+message(STATUS "  CXX flags    : ${NTA_PLATFORM_CXXFLAGS}")
+message(STATUS "    Base       : ${NTA_CXXFLAGS_BASE}")
+message(STATUS "    Debug      : ${NTA_PLATFORM_CXXFLAGS_DEBUG}")
 
 #
 # LibNupicCore
@@ -737,14 +720,9 @@ merge_static_libraries(${LIB_STATIC_NUPICCORE} "${CMAKE_INSTALL_PREFIX}/lib" "${
 
 if(WINDOWS)
   set(LIB_DYNAMIC_NUPICCORE ${DYNAMIC_LIB_PREFIX}nupic_core)
-  set(LIBRARIES
-    ${NTA_STANDARD_LIBS}
-    ${NTA_APPLICATION_LIBS}
-    )
-  
+  set(LIBRARIES ${NTA_STANDARD_LIBS})
   generate_dynamic_library(${LIB_DYNAMIC_NUPICCORE} "${PROJECT_SOURCE_DIR}/main" "${CMAKE_INSTALL_PREFIX}" "${NTA_CXXFLAGS_DYNAMIC}" "${NTA_LINKFLAGS}" "" "${LIBRARIES}")
 endif()
-
 
 #
 # Compile google test from source for linking with tests
@@ -767,7 +745,6 @@ set(EXECUTABLE_HTMTEST testcpphtm)
 set(LIBRARIES
   ${LIB_STATIC_NUPICCORE}
   ${NTA_STANDARD_LIBS}
-  ${NTA_APPLICATION_LIBS}
   ${NTA_TEST_LIBS}
 )
 generate_executable(${EXECUTABLE_HTMTEST} "${PROJECT_SOURCE_DIR}/test/htmtest" "${CMAKE_INSTALL_PREFIX}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
@@ -779,7 +756,6 @@ set(EXECUTABLE_GTESTS unit_tests)
 set(LIBRARIES
   ${LIB_STATIC_NUPICCORE}
   ${NTA_STANDARD_LIBS}
-  ${NTA_APPLICATION_LIBS}
   ${NTA_TEST_LIBS}
 )
 
@@ -792,7 +768,6 @@ set(EXECUTABLE_HELLOREGION helloregion)
 set(LIBRARIES
   ${LIB_STATIC_NUPICCORE}
   ${NTA_STANDARD_LIBS}
-  ${NTA_APPLICATION_LIBS}
   ${NTA_TEST_LIBS}
 )
 generate_executable(${EXECUTABLE_HELLOREGION} "${PROJECT_SOURCE_DIR}/examples/regions" "${CMAKE_INSTALL_PREFIX}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
@@ -805,7 +780,6 @@ if(WINDOWS)
   set(LIBRARIES
     ${LIB_DYNAMIC_NUPICCORE}
     ${NTA_STANDARD_LIBS}
-    ${NTA_APPLICATION_LIBS}
     ${NTA_TEST_LIBS}
     )
   generate_executable(${EXECUTABLE_HELLOREGION_SHARED} "${PROJECT_SOURCE_DIR}/examples/regions" "${CMAKE_INSTALL_PREFIX}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
