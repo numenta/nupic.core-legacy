@@ -39,3 +39,10 @@ UInt Connections::createSegment(UInt cell)
 {
   return 0;
 }
+
+bool Connections::computeActivity(UInt input[],
+                                  Real permanenceThreshold,
+                                  UInt synapseThreshold)
+{
+  return true;
+}

@@ -27,6 +27,7 @@
 #ifndef NTA_CONNECTIONS_HPP
 #define NTA_CONNECTIONS_HPP
 
+#include <vector>
 #include <nta/types/Types.hpp>
 
 namespace nta
@@ -63,6 +64,18 @@ namespace nta
          @retval Segment index.
         */
         UInt createSegment(UInt cell);
+
+        /**
+         Forward-propagates input to synapses, dendrites, and cells, to
+         compute their activity.
+
+         @param input Indices of active bits in the input.
+
+         @retval Segment index.
+        */
+        bool computeActivity(UInt input[],
+                             Real permanenceThreshold,
+                             UInt synapseThreshold);
 
       }; // end class Connections
 

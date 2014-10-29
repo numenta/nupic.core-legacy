@@ -35,6 +35,7 @@ namespace nta {
   void ConnectionsTest::RunTests()
   {
     testCreateSegment();
+    testComputeActivity();
   }
 
   Connections ConnectionsTest::setup()
@@ -47,6 +48,14 @@ namespace nta {
   {
     Connections connections = setup();
     NTA_ASSERT(connections.createSegment(10) == 0);
+  }
+
+  void ConnectionsTest::testComputeActivity()
+  {
+    Connections connections = setup();
+    UInt input[2] = {10, 20};
+
+    NTA_ASSERT(connections.computeActivity(input, 0.10, 5) == true);
   }
 
 } // end namespace nta
