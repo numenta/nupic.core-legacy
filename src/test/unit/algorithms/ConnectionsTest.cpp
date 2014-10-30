@@ -55,7 +55,8 @@ namespace nta {
     Connections connections = setup();
     UInt input[2] = {10, 20};
 
-    NTA_ASSERT(connections.computeActivity(input, 0.10, 5) == true);
+    Activity activity = connections.computeActivity(input, 0.10, 5);
+    // TODO: Add assertion
   }
 
 } // end namespace nta
