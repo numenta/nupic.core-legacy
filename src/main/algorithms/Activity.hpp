@@ -40,6 +40,8 @@ namespace nta
     {
 
       /**
+       * Activity implementation used in Connections class.
+       *
        * @b Description
        * The Activity class is a data structure that represents the
        * activity of cells in the Connections class, after propagating
