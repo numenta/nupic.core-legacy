@@ -21,30 +21,16 @@
  */
 
 /** @file
- * Implementation of Connections
+ * Implementation of Activity
  */
 
 #include <iostream>
-#include <nta/algorithms/Connections.hpp>
+#include <nta/algorithms/Activity.hpp>
 
 using namespace std;
 using namespace nta;
 using namespace nta::algorithms::activity;
-using namespace nta::algorithms::connections;
 
-Connections::Connections()
+Activity::Activity()
 {
-}
-
-UInt Connections::createSegment(UInt cell)
-{
-  return 0;
-}
-
-Activity Connections::computeActivity(UInt input[],
-                                      Real permanenceThreshold,
-                                      UInt synapseThreshold)
-{
-  Activity activity;
-  return activity;
 }

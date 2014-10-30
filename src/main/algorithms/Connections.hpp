@@ -29,6 +29,9 @@
 
 #include <vector>
 #include <nta/types/Types.hpp>
+#include <nta/algorithms/Activity.hpp>
+
+using namespace nta::algorithms::activity;
 
 namespace nta
 {
@@ -73,9 +76,9 @@ namespace nta
 
          @retval Segment index.
         */
-        bool computeActivity(UInt input[],
-                             Real permanenceThreshold,
-                             UInt synapseThreshold);
+        Activity computeActivity(UInt input[],
+                                 Real permanenceThreshold,
+                                 UInt synapseThreshold);
 
       }; // end class Connections
 

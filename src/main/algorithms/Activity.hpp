@@ -21,30 +21,44 @@
  */
 
 /** @file
- * Implementation of Connections
+ * Definitions for the Activity class in C++
  */
 
-#include <iostream>
-#include <nta/algorithms/Connections.hpp>
+#ifndef NTA_ACTIVITY_HPP
+#define NTA_ACTIVITY_HPP
 
-using namespace std;
-using namespace nta;
-using namespace nta::algorithms::activity;
-using namespace nta::algorithms::connections;
+#include <vector>
+#include <nta/types/Types.hpp>
 
-Connections::Connections()
+namespace nta
 {
-}
 
-UInt Connections::createSegment(UInt cell)
-{
-  return 0;
-}
+  namespace algorithms
+  {
 
-Activity Connections::computeActivity(UInt input[],
-                                      Real permanenceThreshold,
-                                      UInt synapseThreshold)
-{
-  Activity activity;
-  return activity;
-}
+    namespace activity
+    {
+
+      /**
+       * @b Description
+       * The Activity class is a data structure that represents the
+       * activity of cells in the Connections class, after propagating
+       * an input through the connections.
+       * 
+       */
+      class Activity
+      {
+      public:
+        Activity();
+
+        virtual ~Activity() {}
+
+      }; // end class Activity
+
+    } // end namespace activity
+
+  } // end namespace algorithms
+
+} // end namespace nta
+
+#endif // NTA_ACTIVITY_HPP

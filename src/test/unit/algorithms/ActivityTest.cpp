@@ -1,6 +1,6 @@
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2014, Numenta, Inc.  Unless you have an agreement
+ * Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
  * with Numenta, Inc., for a separate license for this software code, the
  * following terms and conditions apply:
  *
@@ -17,34 +17,29 @@
  * along with this program.  If not, see http://www.gnu.org/licenses.
  *
  * http://numenta.org/licenses/
- * ----------------------------------------------------------------------
+ * ---------------------------------------------------------------------
  */
 
 /** @file
- * Implementation of Connections
+ * Implementation of unit tests for Activity
  */
 
 #include <iostream>
-#include <nta/algorithms/Connections.hpp>
+#include "ActivityTest.hpp"
 
 using namespace std;
-using namespace nta;
 using namespace nta::algorithms::activity;
-using namespace nta::algorithms::connections;
 
-Connections::Connections()
-{
-}
+namespace nta {
 
-UInt Connections::createSegment(UInt cell)
-{
-  return 0;
-}
+  void ActivityTest::RunTests()
+  {
+  }
 
-Activity Connections::computeActivity(UInt input[],
-                                      Real permanenceThreshold,
-                                      UInt synapseThreshold)
-{
-  Activity activity;
-  return activity;
-}
+  Activity ActivityTest::setup()
+  {
+    Activity activity;
+    return activity;
+  }
+
+} // end namespace nta
