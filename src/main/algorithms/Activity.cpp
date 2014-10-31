@@ -31,6 +31,6 @@ using namespace std;
 using namespace nta;
 using namespace nta::algorithms::activity;
 
-Activity::Activity()
+Activity::Activity(Connections& connections) : connections_(connections)
 {
 }

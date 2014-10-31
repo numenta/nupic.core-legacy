@@ -25,21 +25,32 @@
  */
 
 #include <iostream>
+#include "ConnectionsTest.hpp"
 #include "ActivityTest.hpp"
 
 using namespace std;
 using namespace nta::algorithms::activity;
+using namespace nta::algorithms::connections;
 
 namespace nta {
 
   void ActivityTest::RunTests()
   {
+    testInitialize();
   }
 
   Activity ActivityTest::setup()
   {
-    Activity activity;
+    Connections connections;
+    Activity activity(connections);
+
     return activity;
+  }
+
+  void ActivityTest::testInitialize()
+  {
+    Activity activity = setup();
+    // TODO: Add assertions
   }
 
 } // end namespace nta

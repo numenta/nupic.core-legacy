@@ -48,6 +48,7 @@ namespace nta
 
   private:
     Activity setup();
+    void testInitialize();
 
   }; // end class ActivityTest
 

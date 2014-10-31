@@ -45,6 +45,6 @@ Activity Connections::computeActivity(UInt input[],
                                       Real permanenceThreshold,
                                       UInt synapseThreshold)
 {
-  Activity activity;
+  Activity activity(*this);
   return activity;
 }

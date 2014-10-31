@@ -36,9 +36,16 @@ namespace nta
   namespace algorithms
   {
 
+    // Forward declaration
+    namespace connections
+    {
+      class Connections;
+    }
+
+    using namespace connections;
+
     namespace activity
     {
-
       /**
        * Activity implementation used in Connections class.
        *
@@ -51,9 +58,12 @@ namespace nta
       class Activity
       {
       public:
-        Activity();
+        Activity(Connections& connections);
 
         virtual ~Activity() {}
+
+      private:
+        Connections& connections_;
 
       }; // end class Activity
 
