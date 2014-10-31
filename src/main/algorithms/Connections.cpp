@@ -29,7 +29,6 @@
 
 using namespace std;
 using namespace nta;
-using namespace nta::algorithms::activity;
 using namespace nta::algorithms::connections;
 
 Connections::Connections()
@@ -41,10 +40,13 @@ UInt Connections::createSegment(UInt cell)
   return 0;
 }
 
-Activity Connections::computeActivity(UInt input[],
-                                      Real permanenceThreshold,
-                                      UInt synapseThreshold)
+pair<Activity,Activity>
+Connections::computeActivity(UInt input[],
+                             Real permanenceThreshold,
+                             UInt synapseThreshold)
 {
-  Activity activity(*this);
-  return activity;
+  Activity allActivity;
+  Activity connectedActivity;
+  cout << "yee";
+  return make_pair(allActivity, connectedActivity);
 }

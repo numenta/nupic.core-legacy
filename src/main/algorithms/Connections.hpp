@@ -27,11 +27,8 @@
 #ifndef NTA_CONNECTIONS_HPP
 #define NTA_CONNECTIONS_HPP
 
-#include <vector>
+#include <utility>
 #include <nta/types/Types.hpp>
-#include <nta/algorithms/Activity.hpp>
-
-using namespace nta::algorithms::activity;
 
 namespace nta
 {
@@ -41,6 +38,19 @@ namespace nta
 
     namespace connections
     {
+
+      /**
+       * Activity class used in Connections.
+       *
+       * @b Description
+       * The Activity class is a data structure that represents the
+       * activity of a collection of cells, as computed by propagating
+       * input through connections.
+       * 
+       */
+      struct Activity
+      {
+      };
 
       /**
        * Connections implementation in C++.
@@ -76,9 +86,9 @@ namespace nta
 
          @retval Segment index.
         */
-        Activity computeActivity(UInt input[],
-                                 Real permanenceThreshold,
-                                 UInt synapseThreshold);
+        std::pair<Activity,Activity> computeActivity(UInt input[],
+                                                     Real permanenceThreshold,
+                                                     UInt synapseThreshold);
 
       }; // end class Connections
 
