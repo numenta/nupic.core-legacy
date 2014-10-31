@@ -26,9 +26,11 @@
 
 #include <iostream>
 #include <nta/algorithms/Activity.hpp>
+#include <nta/algorithms/Connections.hpp>
 
 using namespace std;
 using namespace nta;
+using namespace nta::algorithms::connections;
 using namespace nta::algorithms::activity;
 
 Activity::Activity(Connections& connections) : connections_(connections)
