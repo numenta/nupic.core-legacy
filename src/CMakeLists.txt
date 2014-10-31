@@ -573,8 +573,8 @@ set(NTA_STANDARD_LIBS
 
 if(SOLARIS OR OSX)
   set(NTA_STANDARD_LIBS
-    ${NTA_STANDARD_LIBS}
     ${LIB_STATIC_YAML_CPP}
+    ${NTA_STANDARD_LIBS}
   )
 endif()
 
@@ -693,7 +693,7 @@ file(WRITE "${PROJECT_SOURCE_DIR}/test/unit/AddTestHeaders.hpp" "${headers_file_
 #
 add_custom_target(tests_htm
                   COMMAND ${CMAKE_INSTALL_PREFIX}/bin/${EXECUTABLE_HTMTEST})
-                  
+
 add_custom_target(tests_unit
                   COMMAND ${CMAKE_INSTALL_PREFIX}/bin/${EXECUTABLE_GTESTS} "--gtest_output=xml:${PROJECT_BUILD_ARTIFACTS_DIR}/unit_tests_report.xml")
 
