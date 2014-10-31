@@ -40,13 +40,13 @@ UInt Connections::createSegment(UInt cell)
   return 0;
 }
 
-pair<Activity,Activity>
-Connections::computeActivity(UInt input[],
-                             Real permanenceThreshold,
-                             UInt synapseThreshold)
+ActivityContainer Connections::computeActivity(UInt input[],
+                                               Real permanenceThreshold,
+                                               UInt synapseThreshold)
 {
   Activity allActivity;
   Activity connectedActivity;
-  cout << "yee";
-  return make_pair(allActivity, connectedActivity);
+  ActivityContainer activityContainer = {allActivity, connectedActivity};
+
+  return activityContainer;
 }

@@ -27,7 +27,6 @@
 #ifndef NTA_CONNECTIONS_HPP
 #define NTA_CONNECTIONS_HPP
 
-#include <utility>
 #include <nta/types/Types.hpp>
 
 namespace nta
@@ -50,6 +49,20 @@ namespace nta
        */
       struct Activity
       {
+      };
+
+      /**
+       * ActivityContainer class used in Connections.
+       *
+       * @b Description
+       * The ActivityContainer class is a data structure that contains
+       * two types of activity: all activity, and connected activity.
+       * 
+       */
+      struct ActivityContainer
+      {
+        Activity allActivity;
+        Activity connectedActivity;
       };
 
       /**
@@ -86,9 +99,9 @@ namespace nta
 
          @retval Segment index.
         */
-        std::pair<Activity,Activity> computeActivity(UInt input[],
-                                                     Real permanenceThreshold,
-                                                     UInt synapseThreshold);
+        ActivityContainer computeActivity(UInt input[],
+                                          Real permanenceThreshold,
+                                          UInt synapseThreshold);
 
       }; // end class Connections
 
