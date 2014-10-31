@@ -52,20 +52,6 @@ namespace nta
       };
 
       /**
-       * ActivityContainer class used in Connections.
-       *
-       * @b Description
-       * The ActivityContainer class is a data structure that contains
-       * two types of activity: all activity, and connected activity.
-       * 
-       */
-      struct ActivityContainer
-      {
-        Activity allActivity;
-        Activity connectedActivity;
-      };
-
-      /**
        * Connections implementation in C++.
        *
        * @b Description
@@ -97,11 +83,11 @@ namespace nta
 
          @param input Indices of active bits in the input.
 
-         @retval Segment index.
+         @retval Activity due to connected synapses.
         */
-        ActivityContainer computeActivity(UInt input[],
-                                          Real permanenceThreshold,
-                                          UInt synapseThreshold);
+        Activity computeActivity(UInt input[],
+                                 Real permanenceThreshold,
+                                 UInt synapseThreshold);
 
       }; // end class Connections
 
