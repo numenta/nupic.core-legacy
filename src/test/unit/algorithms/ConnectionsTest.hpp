@@ -47,7 +47,7 @@ namespace nta
     virtual void RunTests();
 
   private:
-    Connections setup();
+    void setup(Connections& connections);
     void testCreateSegment();
     void testComputeActivity();
 

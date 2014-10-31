@@ -38,21 +38,22 @@ namespace nta {
     testComputeActivity();
   }
 
-  Connections ConnectionsTest::setup()
+  void ConnectionsTest::setup(Connections& connections)
   {
-    Connections connections;
-    return connections;
   }
 
   void ConnectionsTest::testCreateSegment()
   {
-    Connections connections = setup();
+    Connections connections;
+    setup(connections);
+
     NTA_ASSERT(connections.createSegment(10) == 0);
   }
 
   void ConnectionsTest::testComputeActivity()
   {
-    Connections connections = setup();
+    Connections connections;
+    setup(connections);
     UInt input[2] = {10, 20};
 
     Activity connectedActivity = connections.computeActivity(input, 0.10, 5);
