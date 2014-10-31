@@ -460,8 +460,8 @@ void RandomTest::RunTests()
     r.shuffle(start, end);
 
     TESTEQUAL2("check element 0", 3, arr[0]);
-    TESTEQUAL2("check element 1", 2, arr[1]);
-    TESTEQUAL2("check element 2", 4, arr[2]);
+    TESTEQUAL2("check element 1", 4, arr[1]);
+    TESTEQUAL2("check element 2", 2, arr[2]);
     TESTEQUAL2("check element 3", 1, arr[3]);
   }
 }
