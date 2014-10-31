@@ -765,7 +765,6 @@ INPUT                  = doc \
                          src/main/types/Types.h \
                          src/main/types/Types.hpp \
                          src/main/algorithms/SpatialPooler.hpp \
-                         src/main/algorithms/Activity.hpp \
                          src/main/algorithms/Connections.hpp
 
 # This tag can be used to specify the character encoding of the source files
