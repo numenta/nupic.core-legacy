@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>nupic.core</id>
+    <version>$version$</version>
+    <authors>nupic core</authors>
+    <owners>numenta community</owners>
+    <licenseUrl>https://github.com/numenta/nupic.core/blob/master/LICENSE.txt</licenseUrl>
+    <projectUrl>https://github.com/numenta/nupic.core</projectUrl>
+    <iconUrl>http://numenta.org/</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>
+`NuPIC Core` contains core algorithms for NuPIC (the Numenta Platform for Intelligent Computing), implemented in C++. The source of this project is available at https://github.com/numenta/nupic
+
+For more information, see http://numenta.org or the https://github.com/numenta/nupic/wiki
+
+For information specific to `NuPIC Core`, please refer to:
+https://github.com/numenta/nupic.core
+https://github.com/numenta/nupic/wiki/NuPIC-Architecture
+      </description>
+      <summary>Core algorithms for NuPIC</summary>
+    <releaseNotes>Pre-Alpha release for Windows</releaseNotes>
+    <copyright>Copyright Numenta community 2014</copyright>
+    <tags>AI Intelligence Numenta nupic nupic.core</tags>
+    <dependencies></dependencies>
+  </metadata>
+</package>
+

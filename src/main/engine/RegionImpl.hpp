@@ -37,6 +37,7 @@
 #include <string>
 #include <vector>
 #include <nta/ntypes/ObjectModel.hpp> // IWriteBuffer
+#include <nta/types/Types.hpp>
 
 namespace nta
 {
@@ -51,7 +52,7 @@ namespace nta
   class NodeSet;
   class BundleIO;
 
-  class RegionImpl
+  class NTA_EXPORT RegionImpl
   {
   public:
 

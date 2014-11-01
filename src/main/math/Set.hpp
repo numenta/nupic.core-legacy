@@ -30,6 +30,7 @@
 #define NTA_MATH_SET_HPP
 
 #include <vector>
+#include <nta/types/Types.hpp>
 
 namespace nta {
 
@@ -52,7 +53,7 @@ namespace nta {
   // m = 50000, n1 = 5000, n2 = 10000: 0.256726026535 0.0143656730652 17.8707969595
   //--------------------------------------------------------------------------------
   template <typename T =size_t, typename T_byte =unsigned char>
-  class Set
+  class NTA_EXPORT Set
   {
   private:
     T m; // max value of non-zero indices

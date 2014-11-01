@@ -68,7 +68,7 @@ namespace nta
    *  see IReadBuffer documentation in nta/plugin/object_model.hpp for
    * further details
    */
-  class ReadBuffer : 
+  class NTA_EXPORT ReadBuffer :
     public IReadBuffer,
     public NTA_ReadBuffer
   {  
@@ -143,7 +143,7 @@ namespace nta
     mutable IMemStream memStream_;
   };
 
-  class ReadBufferIterator :
+  class NTA_EXPORT ReadBufferIterator :
     public IReadBufferIterator,
     public NTA_ReadBufferIterator
   {  
@@ -184,7 +184,7 @@ namespace nta
    *  see IWriteBuffer documentation in nta/plugin/object_model.hpp for
    * further details
    */
-  class WriteBuffer : 
+  class NTA_EXPORT WriteBuffer :
     public IWriteBuffer,
     public NTA_WriteBuffer,
     private OMemStream

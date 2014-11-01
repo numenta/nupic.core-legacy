@@ -46,7 +46,7 @@ namespace nta
    * @nosubgrouping
    * 
    */
-  class Link
+  class NTA_EXPORT Link
   {
   public:
 

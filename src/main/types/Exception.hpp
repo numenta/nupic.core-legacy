@@ -67,7 +67,7 @@ namespace nta
    *  only if you have access to the source code. It is not recommended
    *  to display this information to users most of the time.    
    */
-  class Exception : public std::runtime_error
+  class NTA_EXPORT Exception : public std::runtime_error
   {
   public:
     /**

@@ -125,7 +125,7 @@ namespace nta {
       typedef unsigned char UChar;          // custom type, since NTA_Byte = Byte is signed
 
       template <typename It>
-      class CBasicActivity
+	  class NTA_EXPORT CBasicActivity
       {
       public:
         CBasicActivity()
@@ -232,7 +232,7 @@ namespace nta {
       };
 
       template <typename It>
-      class CCellSegActivity
+	  class NTA_EXPORT CCellSegActivity
       {
       public:
         CCellSegActivity()
@@ -262,7 +262,7 @@ namespace nta {
         CBasicActivity<It> _seg;
       };
 
-      class Cells4
+	  class Cells4
       {
       public:
 

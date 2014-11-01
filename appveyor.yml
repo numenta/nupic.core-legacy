@@ -1,0 +1,122 @@
+#---------------------------------#
+#      general configuration      #
+#---------------------------------#
+
+# version format
+version: 1.0.{build}
+
+# branches to build
+branches:
+  # whitelist
+  only:
+    - 103-windows-build
+
+  # blacklist
+  except:
+    - master
+    - gh-pages
+
+#---------------------------------#
+#    environment configuration    #
+#---------------------------------#
+
+# Operating system (build VM template)
+os: Windows Server 2012
+
+# scripts that are called at very beginning, before repo cloning
+init:
+  - git config --global core.autocrlf input
+# - git submodule update --init --recursive
+
+# clone directory
+clone_folder: c:\projects\nupic-core
+
+environment:
+  # these variables are common to all jobs
+  # common_var1: value1
+  # common_var2: value2
+
+  matrix:
+#    - COMPILER_FAMILY: GNU
+    - COMPILER_FAMILY: MSVC
+
+matrix:
+  fast_finish: true
+#  allow_failures:
+#    - platform: x86
+#      configuration: Debug
+#    - platform: x64
+#      configuration: Debug
+
+
+# scripts that run after cloning repository
+install:
+  - echo %PATH%
+  - mkdir C:\projects\nupic-core\build\
+  - mkdir C:\projects\nupic-core\build\scripts
+  - cd C:\projects\nupic-core\build\scripts
+
+# enable patching of AssemblyInfo.* files
+assembly_info:
+  patch: true
+  file: AssemblyInfo.*
+  assembly_version: "1.0.{build}"
+  assembly_file_version: "{version}"
+  assembly_informational_version: "{version}"
+
+#---------------------------------#
+#       build configuration       #
+#---------------------------------#
+
+# build platform, optional.
+#platform:
+#  - x86
+#  - x64
+
+# build Configuration, i.e. Debug, Release, etc.
+configuration: Release
+#  - Debug
+#  - Release
+
+# scripts to run before build
+before_build:
+  - cd C:\projects\nupic-core\build\scripts
+  - if "%COMPILER_FAMILY%" == "GNU" cmake C:\projects\nupic-core\src -G "MSYS Makefiles"
+  - if "%COMPILER_FAMILY%" == "MSVC" cmake C:\projects\nupic-core\src -G "Visual Studio 12"
+
+# To run your custom scripts instead of automatic MSBuild
+build_script:
+#  - set MSBUILD_PLATFORM=%platform%
+#  - if "%MSBUILD_PLATFORM%" == "x86" set MSBUILD_PLATFORM=Win32
+  - if "%COMPILER_FAMILY%" == "GNU" make
+  - if "%COMPILER_FAMILY%" == "MSVC" msbuild "C:\projects\nupic-core\build\scripts\nupic_core.sln" /p:Configuration=%configuration% /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+
+# scripts to run after build
+after_build:
+  - cd C:\projects\nupic-core\build\release
+  - dir/S
+  - mkdir examples
+  - xcopy ..\..\src\examples .\examples /a /y /s
+  - ps: (gc .\examples\regions\helloregions.cpp) -replace '../../../src/examples/regions/','' | sc .\examples\regions\helloregions.cpp
+  - copy C:\projects\nupic-core\Package.nuspec .
+  - nuget pack -version %APPVEYOR_BUILD_VERSION%
+  - nuget push *.nupkg 30618afb-ecf6-4476-8e61-a5b823ad9892
+  - ps: $root = Resolve-Path .; [IO.Directory]::GetFiles($root.Path, '*.*', 'AllDirectories') | % { Push-AppveyorArtifact $_ -FileName $_.Substring($root.Path.Length + 1) -DeploymentName to-publish }
+
+#artifacts:
+#  - path: 'nupic-core\build\release\**'
+#    name: NuPIC SDK
+
+#after_test:
+#  - ps: .\nuget\pack.ps1
+
+#deploy:
+#  provider: NuGet
+#  api_key:
+#    secure: Dc1+eU2ANoApegIHNoJ3WcT2awiJQND5p+wzFbPzzxwCpocGLMHtEPv8eIt85LUU
+#  artifact: /.*\.nupkg/
+
+#build: on
+test: off
+deploy: off
+

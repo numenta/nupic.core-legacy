@@ -35,7 +35,7 @@ namespace nta
   // - getName()
   // - getSize() and parse().
   //
-  class BasicType
+  class NTA_EXPORT BasicType
   {    
   public:
     // Check if the provided basic type os in the proper range.

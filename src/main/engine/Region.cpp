@@ -146,7 +146,7 @@ void Region::createInputsAndOutputs_()
 
 bool Region::hasOutgoingLinks() const
 {
-  for (OutputMap::const_iterator i = outputs_.begin(); i != outputs_.end(); i++)
+  for (OutputMap::const_iterator i = outputs_.begin(); i != outputs_.end(); ++i)
   {
     if (i->second->hasOutgoingLinks())
     {
@@ -162,13 +162,13 @@ Region::~Region()
   // We should catch this error in the Network class and give the 
   // user a good error message (regions may be removed either in 
   // Network::removeRegion or Network::~Network())
-  for (OutputMap::iterator i = outputs_.begin(); i != outputs_.end(); i++)
+  for (OutputMap::iterator i = outputs_.begin(); i != outputs_.end(); ++i)
   {
     delete i->second;
     i->second = NULL;
   }
 
-  for (InputMap::iterator i = inputs_.begin();  i != inputs_.end(); i++)
+  for (InputMap::iterator i = inputs_.begin();  i != inputs_.end(); ++i)
   {
     delete i->second;
     i->second = NULL;
@@ -293,7 +293,7 @@ Region::evaluateLinks()
 {
   int nIncompleteLinks = 0;
   for (InputMap::iterator i = inputs_.begin();
-       i != inputs_.end(); i++)
+       i != inputs_.end(); ++i)
   {
     nIncompleteLinks += (i->second)->evaluateLinks();
   }
@@ -306,11 +306,11 @@ Region::getLinkErrors() const
 
   std::stringstream ss;
   for (InputMap::const_iterator i = inputs_.begin();
-       i != inputs_.end(); i++)
+       i != inputs_.end(); ++i)
   {
     const std::vector<Link*>& links = i->second->getLinks();
     for (std::vector<Link*>::const_iterator l = links.begin();
-         l != links.end(); l++)
+         l != links.end(); ++l)
     {
       if ( (*l)->getSrcDimensions().isUnspecified() ||
            (*l)->getDestDimensions().isUnspecified())
@@ -350,7 +350,7 @@ void Region::initOutputs()
   // appear in the output map, but with an array size of 0. 
 
   
-  for (OutputMap::iterator o = outputs_.begin(); o != outputs_.end(); o++)
+  for (OutputMap::iterator o = outputs_.begin(); o != outputs_.end(); ++o)
   {
     const std::string& name = o->first;
 
@@ -369,7 +369,7 @@ void Region::initOutputs()
 void Region::initInputs() const
 {
   InputMap::const_iterator i = inputs_.begin();
-  for (; i != inputs_.end(); i++)
+  for (; i != inputs_.end(); ++i)
   {
     i->second->initialize();
   }
@@ -453,11 +453,11 @@ void
 Region::removeAllIncomingLinks()
 {
   InputMap::const_iterator i = inputs_.begin();
-  for (; i != inputs_.end(); i++)
+  for (; i != inputs_.end(); ++i)
   {
     std::vector<Link*> links = i->second->getLinks();
     for (std::vector<Link*>::iterator link = links.begin();
-         link != links.end(); link++)
+         link != links.end(); ++link)
     {
       i->second->removeLink(*link);
 

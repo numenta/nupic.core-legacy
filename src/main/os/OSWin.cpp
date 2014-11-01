@@ -25,7 +25,7 @@
  * Win32 Implementations for the OS class
  */
 
-#ifdef NTA_PLATFORM_win32
+#if defined(NTA_PLATFORM_win32) || defined(NTA_PLATFORM_win64)
 #include <windows.h>
 #include <shlobj.h>
 
@@ -101,5 +101,5 @@ std::string OS::getErrorMessage()
 }
 
 
-#endif //#ifdef NTA_PLATFORM_win32
+#endif //#if defined(NTA_PLATFORM_win32) || defined(NTA_PLATFORM_win64)
 

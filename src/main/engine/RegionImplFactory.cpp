@@ -83,7 +83,7 @@ namespace nta
       const char * filename = "libcpp_region.so";
 #elif defined(NTA_PLATFORM_linux32arm) || defined(NTA_PLATFORM_linux32armv7)
       const char * filename = "libcpp_region.so";
-#elif defined(NTA_PLATFORM_win32)
+#elif defined(NTA_PLATFORM_win32) || defined(NTA_PLATFORM_win64)
       const char * filename = "cpp_region.dll";
 #elif defined(NTA_PLATFORM_sparc64)
       const char * filename = "libcpp_region.so";
@@ -445,7 +445,7 @@ void RegionImplFactory::cleanup()
 {
   std::map<std::string, Spec*>::iterator ns;
   // destroy all nodespecs
-  for (ns = nodespecCache_.begin(); ns != nodespecCache_.end(); ns++)
+  for (ns = nodespecCache_.begin(); ns != nodespecCache_.end(); ++ns)
   {
     assert(ns->second != NULL);
     // PyNode node specs are destroyed by the C++ PyNode

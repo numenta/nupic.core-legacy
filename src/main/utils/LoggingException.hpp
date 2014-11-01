@@ -27,13 +27,14 @@
 #ifndef NTA_LOGGING_EXCEPTION_HPP
 #define NTA_LOGGING_EXCEPTION_HPP
 
+#include <nta/types/Types.h>
 #include <nta/types/Exception.hpp>
 #include <sstream>
 #include <vector> 
 
 namespace nta
 {
-  class LoggingException : public Exception
+  class NTA_EXPORT LoggingException : public Exception
   {
   public:
     LoggingException(const std::string& filename, UInt32 lineno) :
@@ -63,7 +64,7 @@ namespace nta
     {
       lmessageValid_ = false;
       ss_ << "[";
-      for(int i=0; i<v.size(); i++)
+      for(size_t i=0; i<v.size(); i++)
         ss_ << v[i] << " ";
       ss_ << "]";
       return *this;

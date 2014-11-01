@@ -126,6 +126,8 @@ char ** Env::environ_ = NULL;
 
 #if defined(NTA_PLATFORM_darwin64) || defined(NTA_PLATFORM_darwin86)
 #include <crt_externs.h>
+#elif defined(NTA_PLATFORM_win64) || defined(NTA_PLATFORM_win32)
+_CRTIMP extern char **_environ;
 #else
 extern char **environ;
 #endif

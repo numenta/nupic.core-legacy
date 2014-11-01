@@ -28,6 +28,7 @@
 #define NTA_LINKPOLICY_FACTORY_HPP
 
 #include <string>
+#include <nta/types/Types.hpp>
 
 namespace nta
 {
@@ -36,7 +37,7 @@ namespace nta
   class Link;
   class Region;
 
-  class LinkPolicyFactory
+  class NTA_EXPORT LinkPolicyFactory
   {
   public:
 
