@@ -30,6 +30,7 @@
 #include <string>
 #include <vector>
 #include <nta/utils/Log.hpp>
+#include <utility>
 
 #ifndef NTA_RANDOM_HPP
 #define NTA_RANDOM_HPP
@@ -133,7 +134,19 @@ namespace nta {
     template <class RandomAccessIterator>
     void shuffle(RandomAccessIterator first, RandomAccessIterator last)
     {
-      std::random_shuffle(first, last, *this);
+      UInt n = last - first;
+      while (first != last)
+      {
+        // Pick a random position between the current and the end to swap the
+        // current element with.
+        UInt i = getUInt32(n);
+        std::swap(*first, *(first + i));
+
+        // Move to the next element and decrement the number of possible
+        // positions remaining.
+        first++;
+        n--;
+      }
     }
 
     // for STL compatibility
