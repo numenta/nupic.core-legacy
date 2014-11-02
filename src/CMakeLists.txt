@@ -716,7 +716,7 @@ generate_static_library(${LIB_STATIC_NUPICCORE} "${PROJECT_SOURCE_DIR}/main" "${
 # Merge nupic_core and all static libraries to a stand-alone library
 merge_static_libraries(${LIB_STATIC_NUPICCORE} "${CMAKE_INSTALL_PREFIX}/lib" "${LIB_STATIC_NUPICCORE};${NTA_STANDARD_LIBS}" "${LIB_STATIC_NUPICCORE}")
 
-if(${BUILD_SHARED_LIBS} EQUAL "true" OR ${BUILD_SHARED_LIBS} EQUAL "True" OR ${BUILD_SHARED_LIBS} EQUAL "TRUE")
+if(${BUILD_SHARED_LIBS})
   set(BUILD_SHARED_LIBS ON)
   set(LIB_DYNAMIC_NUPICCORE ${DYNAMIC_LIB_PREFIX}nupic_core)
   set(LIBRARIES ${NTA_STANDARD_LIBS})
