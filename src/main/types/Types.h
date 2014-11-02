@@ -363,7 +363,7 @@ typedef  unsigned long       NTA_UInt64;
  */
 
 #ifndef SWIG
-#if (defined(NTA_PLATFORM_win32) || defined(NTA_PLATFORM_win64)) || defined(NTA_PLATFORM_win64)
+#if defined(NTA_PLATFORM_win32) || defined(NTA_PLATFORM_win64)
 #define NTA_EXPORT __declspec(dllexport)
 #define NTA_HIDDEN
 #else

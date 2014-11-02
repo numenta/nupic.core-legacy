@@ -30,13 +30,12 @@
 ################################################################################
 
 # These macros copy all source directories after the configuration is done
-macro (copy suffix src dst)  
+macro (copy suffix src dst)
   message(STATUS "Copying from '${src}' to '${dst}'")
   execute_process(COMMAND ${CMAKE_COMMAND} -E copy${suffix} ${src} ${dst})
 endmacro()
 macro (copy_file src dst)
-  # use `copy_if_different` to prevent triggering a full `make` everytime
-  copy("_if_different" ${src} ${dst})
+  copy("" ${src} ${dst})
 endmacro()
 macro (copy_directory src dst)
   copy("_directory" ${src} ${dst})
@@ -424,6 +423,9 @@ message(STATUS "Checking software tools...")
 if(NOT ${NTA_COMPILER_FAMILY} STREQUAL "MSVC")
   execute_process(COMMAND ${CMAKE_CXX_COMPILER} -dumpversion
                   OUTPUT_VARIABLE CXX_VERSION)
+else()
+  execute_process(COMMAND ${CMAKE_CXX_COMPILER}
+                  OUTPUT_VARIABLE CXX_VERSION)
 endif()
 
 message(STATUS "Compiler details:")
@@ -459,6 +461,7 @@ message(STATUS "  Install      : ${CMAKE_INSTALL_PREFIX}")
 # compatibility with different compilers (clang, gcc 4.6 vs 4.8)
 if(NOT ${NTA_COMPILER_FAMILY} STREQUAL "MSVC")
   add_definitions(-std=c++98) # smart flag setting for gcc/clang
+#  add_definitions(-std=gnu++0x) # smart flag setting for gcc/clang
 endif()
 #
 # Get extra flags passed by command line.
@@ -713,7 +716,8 @@ generate_static_library(${LIB_STATIC_NUPICCORE} "${PROJECT_SOURCE_DIR}/main" "${
 # Merge nupic_core and all static libraries to a stand-alone library
 merge_static_libraries(${LIB_STATIC_NUPICCORE} "${CMAKE_INSTALL_PREFIX}/lib" "${LIB_STATIC_NUPICCORE};${NTA_STANDARD_LIBS}" "${LIB_STATIC_NUPICCORE}")
 
-if(WINDOWS)
+if(${BUILD_SHARED_LIBS} EQUAL "true" OR ${BUILD_SHARED_LIBS} EQUAL "True" OR ${BUILD_SHARED_LIBS} EQUAL "TRUE")
+  set(BUILD_SHARED_LIBS ON)
   set(LIB_DYNAMIC_NUPICCORE ${DYNAMIC_LIB_PREFIX}nupic_core)
   set(LIBRARIES ${NTA_STANDARD_LIBS})
   generate_dynamic_library(${LIB_DYNAMIC_NUPICCORE} "${PROJECT_SOURCE_DIR}/main" "${CMAKE_INSTALL_PREFIX}" "${NTA_CXXFLAGS_DYNAMIC}" "${NTA_LINKFLAGS}" "" "${LIBRARIES}")
@@ -767,19 +771,6 @@ set(LIBRARIES
 )
 generate_executable(${EXECUTABLE_HELLOREGION} "${PROJECT_SOURCE_DIR}/examples/regions" "${CMAKE_INSTALL_PREFIX}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
 
-if(WINDOWS)
-  #
-  # HelloRegion with shared lib
-  #
-  set(EXECUTABLE_HELLOREGION_SHARED helloregion_shared)
-  set(LIBRARIES
-    ${LIB_DYNAMIC_NUPICCORE}
-    ${NTA_STANDARD_LIBS}
-    ${NTA_TEST_LIBS}
-    )
-  generate_executable(${EXECUTABLE_HELLOREGION_SHARED} "${PROJECT_SOURCE_DIR}/examples/regions" "${CMAKE_INSTALL_PREFIX}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
-endif()
-
 
 ################################################################################
 ###                                                                          ###
@@ -789,7 +780,7 @@ endif()
 ################################################################################
 set(NTA_TARGET_BINARIES testcpphtm testeverything helloregion)
 
-if(WINDOWS)
+if(BUILD_SHARED_LIBS)
   set(NTA_TARGET_BINARIES ${NTA_TARGET_BINARIES} ${LIB_DYNAMIC_NUPICCORE})
 endif()
 

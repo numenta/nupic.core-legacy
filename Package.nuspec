@@ -8,7 +8,7 @@
     <licenseUrl>https://github.com/numenta/nupic.core/blob/master/LICENSE.txt</licenseUrl>
     <projectUrl>https://github.com/numenta/nupic.core</projectUrl>
     <iconUrl>http://numenta.org/</iconUrl>
-    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <description>
 `NuPIC Core` contains core algorithms for NuPIC (the Numenta Platform for Intelligent Computing), implemented in C++. The source of this project is available at https://github.com/numenta/nupic
 

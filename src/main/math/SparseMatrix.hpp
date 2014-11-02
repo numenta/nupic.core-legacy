@@ -2939,7 +2939,7 @@ namespace nta {
     inline void fromBinary(std::istream& inStream)
     {
 #if defined(NTA_PLATFORM_win32) || defined(NTA_PLATFORM_win64)
-      std::cout << "fromBinary not supported on windows" << std::endl;
+      std::cout << "fromBinary not supported on Windows" << std::endl;
       exit(-1);
 #endif
 
@@ -3041,7 +3041,7 @@ namespace nta {
     inline void toBinary(std::ostream& outStream)
     {
 #if defined(NTA_PLATFORM_win32) || defined(NTA_PLATFORM_win64)
-      std::cout << "toBinary not supported on windows" << std::endl;
+      std::cout << "toBinary not supported on Windows" << std::endl;
       exit(-1);
 #endif
 
