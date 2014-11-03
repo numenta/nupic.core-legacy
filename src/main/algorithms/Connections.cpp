@@ -40,10 +40,10 @@ UInt Connections::createSegment(UInt cell)
   return 0;
 }
 
-Activity Connections::computeActivity(vector<UInt> input,
-                                      Real permanenceThreshold,
-                                      UInt synapseThreshold)
+CellActivity Connections::computeActivity(vector<UInt> input,
+                                          Real permanenceThreshold,
+                                          UInt synapseThreshold)
 {
-  Activity connectedActivity;
+  CellActivity connectedActivity;
   return connectedActivity;
 }

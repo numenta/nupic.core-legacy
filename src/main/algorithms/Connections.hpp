@@ -40,15 +40,15 @@ namespace nta
     {
 
       /**
-       * Activity class used in Connections.
+       * CellActivity class used in Connections.
        *
        * @b Description
-       * The Activity class is a data structure that represents the
+       * The CellActivity class is a data structure that represents the
        * activity of a collection of cells, as computed by propagating
        * input through connections.
        * 
        */
-      struct Activity
+      struct CellActivity
       {
       };
 
@@ -84,11 +84,11 @@ namespace nta
 
          @param input Indices of active bits in the input.
 
-         @retval Activity due to connected synapses.
+         @retval CellActivity due to connected synapses.
         */
-        Activity computeActivity(std::vector<UInt> input,
-                                 Real permanenceThreshold,
-                                 UInt synapseThreshold);
+        CellActivity computeActivity(std::vector<UInt> input,
+                                     Real permanenceThreshold,
+                                     UInt synapseThreshold);
 
       }; // end class Connections
 
