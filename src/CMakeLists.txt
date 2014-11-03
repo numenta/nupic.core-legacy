@@ -424,7 +424,7 @@ if(NOT ${NTA_COMPILER_FAMILY} STREQUAL "MSVC")
   execute_process(COMMAND ${CMAKE_CXX_COMPILER} -dumpversion
                   OUTPUT_VARIABLE CXX_VERSION)
 else()
-  set(CXX_VERSION ${CMAKE_CXX_COMPILER})
+  set(CXX_VERSION ${CMAKE_CXX_COMPILER_VERSION})
 endif()
 
 message(STATUS "Compiler details:")
