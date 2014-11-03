@@ -713,7 +713,7 @@ generate_static_library(${LIB_STATIC_NUPICCORE} "${PROJECT_SOURCE_DIR}/main" "${
 # Merge nupic_core and all static libraries to a stand-alone library
 merge_static_libraries(${LIB_STATIC_NUPICCORE} "${CMAKE_INSTALL_PREFIX}/lib" "${LIB_STATIC_NUPICCORE};${NTA_STANDARD_LIBS}" "${LIB_STATIC_NUPICCORE}")
 
-if(${BUILD_DYNAMIC_LIBS})
+if(BUILD_SHARED_LIBS)
   set(LIB_DYNAMIC_NUPICCORE ${DYNAMIC_LIB_PREFIX}nupic_core)
   set(LIBRARIES ${NTA_STANDARD_LIBS})
   generate_dynamic_library(${LIB_DYNAMIC_NUPICCORE} "${PROJECT_SOURCE_DIR}/main" "${CMAKE_INSTALL_PREFIX}" "${NTA_CXXFLAGS_DYNAMIC}" "${NTA_LINKFLAGS}" "" "${LIBRARIES}")
@@ -776,7 +776,7 @@ generate_executable(${EXECUTABLE_HELLOREGION} "${PROJECT_SOURCE_DIR}/examples/re
 ################################################################################
 set(NTA_TARGET_BINARIES testcpphtm testeverything helloregion)
 
-if(${BUILD_DYNAMIC_LIBS})
+if(BUILD_SHARED_LIBS)
   set(NTA_TARGET_BINARIES ${NTA_TARGET_BINARIES} ${LIB_DYNAMIC_NUPICCORE})
 endif()
 
