@@ -424,8 +424,7 @@ if(NOT ${NTA_COMPILER_FAMILY} STREQUAL "MSVC")
   execute_process(COMMAND ${CMAKE_CXX_COMPILER} -dumpversion
                   OUTPUT_VARIABLE CXX_VERSION)
 else()
-  execute_process(COMMAND ${CMAKE_CXX_COMPILER}
-                  OUTPUT_VARIABLE CXX_VERSION)
+  set(CXX_VERSION ${CMAKE_CXX_COMPILER})
 endif()
 
 message(STATUS "Compiler details:")
@@ -515,7 +514,7 @@ if(${NTA_COMPILER_FAMILY} STREQUAL "MSVC")
   if(NTA_OPTIMIZATION_ENABLED AND NOT ${CMAKE_BUILD_TYPE} EQUAL "Debug")
     set(NTA_CXXFLAGS_OPTIMIZATION "/O2 /Ob2 ${D}NTA_ASM")
   else()
-    set(NTA_CXXFLAGS_OPTIMIZATION "/O0 /Ob0")
+    set(NTA_CXXFLAGS_OPTIMIZATION "/Od")
   endif()
 endif()
 message(STATUS "  Optimization : ${NTA_OPTIMIZATION_ENABLED}")
@@ -608,11 +607,9 @@ set(NTA_CXXFLAGS_DYNAMIC "${NTA_CXXFLAGS}")
 
 if(${NTA_COMPILER_FAMILY} EQUAL "MSVC")
   set(CMAKE_CXX_FLAGS_DEBUG "${NTA_CXXFLAGS} /MTd /Od /D_DEBUG /Zi")
-  string (REPLACE "/DNDEBUG" " " CMAKE_CXX_FLAGS_DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
-  string (REPLACE "/MD" " " CMAKE_CXX_FLAGS_DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
-  string (REPLACE "/O3" " " CMAKE_CXX_FLAGS_DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
   set(NTA_CXXFLAGS_DYNAMIC "${NTA_CXXFLAGS} ${D}DLL ${D}_USRDLL")
 endif()
+
 
 ################################################################################
 ###                                                                          ###
@@ -716,8 +713,7 @@ generate_static_library(${LIB_STATIC_NUPICCORE} "${PROJECT_SOURCE_DIR}/main" "${
 # Merge nupic_core and all static libraries to a stand-alone library
 merge_static_libraries(${LIB_STATIC_NUPICCORE} "${CMAKE_INSTALL_PREFIX}/lib" "${LIB_STATIC_NUPICCORE};${NTA_STANDARD_LIBS}" "${LIB_STATIC_NUPICCORE}")
 
-if(${BUILD_SHARED_LIBS})
-  set(BUILD_SHARED_LIBS ON)
+if(${BUILD_DYNAMIC_LIBS})
   set(LIB_DYNAMIC_NUPICCORE ${DYNAMIC_LIB_PREFIX}nupic_core)
   set(LIBRARIES ${NTA_STANDARD_LIBS})
   generate_dynamic_library(${LIB_DYNAMIC_NUPICCORE} "${PROJECT_SOURCE_DIR}/main" "${CMAKE_INSTALL_PREFIX}" "${NTA_CXXFLAGS_DYNAMIC}" "${NTA_LINKFLAGS}" "" "${LIBRARIES}")
@@ -780,7 +776,7 @@ generate_executable(${EXECUTABLE_HELLOREGION} "${PROJECT_SOURCE_DIR}/examples/re
 ################################################################################
 set(NTA_TARGET_BINARIES testcpphtm testeverything helloregion)
 
-if(BUILD_SHARED_LIBS)
+if(${BUILD_DYNAMIC_LIBS})
   set(NTA_TARGET_BINARIES ${NTA_TARGET_BINARIES} ${LIB_DYNAMIC_NUPICCORE})
 endif()
 
@@ -816,7 +812,6 @@ foreach(file ${files})
 endforeach()
 file(WRITE "${PROJECT_SOURCE_DIR}/test/unit/AddTests.hpp" "${tests_file_content}")
 file(WRITE "${PROJECT_SOURCE_DIR}/test/unit/AddTestHeaders.hpp" "${headers_file_content}")
-
 
 
 ################################################################################

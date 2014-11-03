@@ -5,6 +5,7 @@
 # version format
 version: 1.0.{build}
 
+# TODO: Back to master before merge
 # branches to build
 branches:
   # whitelist
