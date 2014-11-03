@@ -27,6 +27,7 @@
 #ifndef NTA_CONNECTIONS_HPP
 #define NTA_CONNECTIONS_HPP
 
+#include <vector>
 #include <nta/types/Types.hpp>
 
 namespace nta
@@ -85,7 +86,7 @@ namespace nta
 
          @retval Activity due to connected synapses.
         */
-        Activity computeActivity(UInt input[],
+        Activity computeActivity(std::vector<UInt> input,
                                  Real permanenceThreshold,
                                  UInt synapseThreshold);
 

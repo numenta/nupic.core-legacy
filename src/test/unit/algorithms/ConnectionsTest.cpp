@@ -54,7 +54,9 @@ namespace nta {
   {
     Connections connections;
     setup(connections);
-    UInt input[2] = {10, 20};
+    vector<UInt> input;
+    input.push_back(20);
+    input.push_back(10);
 
     Activity connectedActivity = connections.computeActivity(input, 0.10, 5);
     // TODO: Add assertion
