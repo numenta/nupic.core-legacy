@@ -149,8 +149,8 @@ namespace nta
 
          @retval Segment found?
         */
-        bool getMostActiveSegmentForCells(std::vector<UInt> cells,
-                                          std::vector<UInt> input,
+        bool getMostActiveSegmentForCells(std::vector<UInt>& cells,
+                                          std::vector<UInt>& input,
                                           UInt synapseThreshold,
                                           Segment& segment);
 
@@ -163,7 +163,7 @@ namespace nta
          @param synapseThreshold    Only consider segments with number of active synapses greater than this threshold.
          @param activity            Activity to return.
         */
-        void computeActivity(std::vector<UInt> input,
+        void computeActivity(std::vector<UInt>& input,
                              Real permanenceThreshold,
                              UInt synapseThreshold,
                              CellActivity& activity);
