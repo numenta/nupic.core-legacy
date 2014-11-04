@@ -84,7 +84,8 @@ namespace nta {
     input.push_back(10);
     input.push_back(20);
 
-    CellActivity connectedActivity = connections.computeActivity(input, 0.10, 5);
+    CellActivity activity;
+    connections.computeActivity(input, 0.10, 5, activity);
     // TODO: Add assertion
   }
 

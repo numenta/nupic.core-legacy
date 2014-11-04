@@ -138,9 +138,10 @@ namespace nta
 
          @retval CellActivity due to connected synapses.
         */
-        CellActivity computeActivity(std::vector<UInt> input,
-                                     Real permanenceThreshold,
-                                     UInt synapseThreshold);
+        void computeActivity(std::vector<UInt> input,
+                             Real permanenceThreshold,
+                             UInt synapseThreshold,
+                             CellActivity& activity);
 
       }; // end class Connections
 

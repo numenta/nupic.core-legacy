@@ -55,10 +55,9 @@ void Connections::createSynapse(Segment& segment,
   segment.synapses.push_back(&synapse);
 }
 
-CellActivity Connections::computeActivity(vector<UInt> input,
-                                          Real permanenceThreshold,
-                                          UInt synapseThreshold)
+void Connections::computeActivity(vector<UInt> input,
+                                  Real permanenceThreshold,
+                                  UInt synapseThreshold,
+                                  CellActivity& activity)
 {
-  CellActivity connectedActivity;
-  return connectedActivity;
 }
