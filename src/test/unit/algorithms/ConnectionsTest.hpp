@@ -49,6 +49,7 @@ namespace nta
   private:
     void setup(Connections& connections);
     void testCreateSegment();
+    void testCreateSynapse();
     void testComputeActivity();
 
   }; // end class ConnectionsTest
