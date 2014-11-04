@@ -29,6 +29,7 @@
 
 #include <vector>
 #include <nta/types/Types.hpp>
+#include <nta/math/Math.hpp>
 
 namespace nta
 {
@@ -50,6 +51,45 @@ namespace nta
        */
       struct CellActivity
       {
+      };
+
+      // Forward declaration
+      struct Synapse;
+
+      /**
+       * Segment class used in Connections.
+       *
+       * @b Description
+       * The Segment class is a data structure that represents a segment
+       * on a cell.
+       *
+       * @param cell     Index of cell this segment belongs to.
+       * @param synapses List of synapses that this segment contains.
+       * 
+       */
+      struct Segment
+      {
+        UInt cell;
+        std::vector<Synapse*> synapses;
+      };
+
+      /**
+       * Synapse class used in Connections.
+       *
+       * @b Description
+       * The Synapse class is a data structure that represents a synapse
+       * on a segment.
+       *
+       * @param segment         Segment that this synapse belongs to.
+       * @param presynapticCell Cell that this synapse gets input from.
+       * @param permanence      Permanence of synapse.
+       * 
+       */
+      struct Synapse
+      {
+        Segment& segment;
+        UInt presynapticCell;
+        Real permanence;
       };
 
       /**
@@ -74,9 +114,22 @@ namespace nta
 
          @param cell Index of cell to create segment on.
 
-         @retval Segment index.
+         @retval Segment.
         */
-        UInt createSegment(UInt cell);
+        Segment createSegment(UInt cell);
+
+        /**
+         Creates a synapse on the specified segment.
+
+         @param segment         Segment to create synapse on.
+         @param presynapticCell Cell to synapse on.
+         @param permanence      Initial permanence of new synapse.
+
+         @retval Synapse.
+        */
+        Synapse createSynapse(Segment& segment,
+                              UInt presynapticCell,
+                              Real permanence);
 
         /**
          Forward-propagates input to synapses, dendrites, and cells, to

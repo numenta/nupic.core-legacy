@@ -35,9 +35,22 @@ Connections::Connections()
 {
 }
 
-UInt Connections::createSegment(UInt cell)
+Segment Connections::createSegment(UInt cell)
 {
-  return 0;
+  vector<Synapse*> synapses;
+  Segment segment = {cell, synapses};
+
+  return segment;
+}
+
+Synapse Connections::createSynapse(Segment& segment,
+                                   UInt presynapticCell,
+                                   Real permanence)
+{
+  Synapse synapse = {segment, presynapticCell, permanence};
+  segment.synapses.push_back(&synapse);
+
+  return synapse;
 }
 
 CellActivity Connections::computeActivity(vector<UInt> input,

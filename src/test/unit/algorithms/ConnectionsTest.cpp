@@ -25,9 +25,11 @@
  */
 
 #include <iostream>
+#include <nta/math/Math.hpp>
 #include "ConnectionsTest.hpp"
 
 using namespace std;
+using namespace nta;
 using namespace nta::algorithms::connections;
 
 namespace nta {
@@ -35,6 +37,7 @@ namespace nta {
   void ConnectionsTest::RunTests()
   {
     testCreateSegment();
+    testCreateSynapse();
     testComputeActivity();
   }
 
@@ -47,7 +50,25 @@ namespace nta {
     Connections connections;
     setup(connections);
 
-    NTA_ASSERT(connections.createSegment(10) == 0);
+    Segment segment = connections.createSegment(10);
+    NTA_ASSERT(segment.cell == 10);
+    NTA_ASSERT(segment.synapses.size() == 0);
+  }
+
+  void ConnectionsTest::testCreateSynapse()
+  {
+    Connections connections;
+    setup(connections);
+
+    Segment segment = connections.createSegment(10);
+
+    Synapse synapse = connections.createSynapse(segment, 50, 0.34);
+    // NTA_ASSERT(&synapse.segment == &segment);  // TODO: Fix
+    NTA_ASSERT(synapse.presynapticCell == 50);
+    NTA_ASSERT(nearlyEqual(synapse.permanence, (Real)0.34));
+
+    NTA_ASSERT(segment.synapses.size() == 1);
+    // NTA_ASSERT(*segment.synapses.front() == synapse);  // TODO: Fix
   }
 
   void ConnectionsTest::testComputeActivity()
@@ -55,8 +76,8 @@ namespace nta {
     Connections connections;
     setup(connections);
     vector<UInt> input;
-    input.push_back(20);
     input.push_back(10);
+    input.push_back(20);
 
     CellActivity connectedActivity = connections.computeActivity(input, 0.10, 5);
     // TODO: Add assertion
