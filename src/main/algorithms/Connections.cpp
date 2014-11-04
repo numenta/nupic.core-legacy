@@ -60,6 +60,14 @@ void Connections::updateSynapsePermanence(Synapse& synapse, Real permanence)
   synapse.permanence = permanence;
 }
 
+bool Connections::getMostActiveSegmentForCells(std::vector<UInt> cells,
+                                               std::vector<UInt> input,
+                                               UInt synapseThreshold,
+                                               Segment& segment)
+{
+  return false;
+}
+
 void Connections::computeActivity(vector<UInt> input,
                                   Real permanenceThreshold,
                                   UInt synapseThreshold,

@@ -51,6 +51,7 @@ namespace nta
     void testCreateSegment();
     void testCreateSynapse();
     void testUpdateSynapsePermanence();
+    void testGetMostActiveSegmentForCells();
     void testComputeActivity();
 
   }; // end class ConnectionsTest

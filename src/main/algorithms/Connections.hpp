@@ -139,12 +139,29 @@ namespace nta
         void updateSynapsePermanence(Synapse& synapse, Real permanence);
 
         /**
+         Gets the segment with the most active synapses due to given input,
+         from among all the segments on all the given cells.
+
+         @param cells            Indices of cells to look among.
+         @param input            Indices of active bits in the input.
+         @param synapseThreshold Only consider segments with number of active synapses greater than this threshold.
+         @param segment          Segment to return.
+
+         @retval Segment found?
+        */
+        bool getMostActiveSegmentForCells(std::vector<UInt> cells,
+                                          std::vector<UInt> input,
+                                          UInt synapseThreshold,
+                                          Segment& segment);
+
+        /**
          Forward-propagates input to synapses, dendrites, and cells, to
          compute their activity.
 
-         @param input Indices of active bits in the input.
-
-         @retval CellActivity due to connected synapses.
+         @param input               Indices of active bits in the input.
+         @param permanenceThreshold Only consider synapses with permanences greater than this threshold.
+         @param synapseThreshold    Only consider segments with number of active synapses greater than this threshold.
+         @param activity            Activity to return.
         */
         void computeActivity(std::vector<UInt> input,
                              Real permanenceThreshold,
