@@ -50,7 +50,9 @@ namespace nta {
     Connections connections;
     setup(connections);
 
-    Segment segment = connections.createSegment(10);
+    Segment segment;
+    connections.createSegment(10, segment);
+
     NTA_ASSERT(segment.cell == 10);
     NTA_ASSERT(segment.synapses.size() == 0);
   }
@@ -60,15 +62,18 @@ namespace nta {
     Connections connections;
     setup(connections);
 
-    Segment segment = connections.createSegment(10);
+    Segment segment;
+    connections.createSegment(10, segment);
 
-    Synapse synapse = connections.createSynapse(segment, 50, 0.34);
-    // NTA_ASSERT(&synapse.segment == &segment);  // TODO: Fix
+    Synapse synapse;
+    connections.createSynapse(segment, 50, 0.34, synapse);
+
+    NTA_ASSERT(synapse.segment == &segment);
     NTA_ASSERT(synapse.presynapticCell == 50);
     NTA_ASSERT(nearlyEqual(synapse.permanence, (Real)0.34));
 
     NTA_ASSERT(segment.synapses.size() == 1);
-    // NTA_ASSERT(*segment.synapses.front() == synapse);  // TODO: Fix
+    NTA_ASSERT(segment.synapses.front() == &synapse);
   }
 
   void ConnectionsTest::testComputeActivity()

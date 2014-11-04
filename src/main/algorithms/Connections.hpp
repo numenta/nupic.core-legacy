@@ -87,7 +87,7 @@ namespace nta
        */
       struct Synapse
       {
-        Segment& segment;
+        Segment* segment;
         UInt presynapticCell;
         Real permanence;
       };
@@ -112,11 +112,10 @@ namespace nta
         /**
          Creates a segment on the specified cell.
 
-         @param cell Index of cell to create segment on.
-
-         @retval Segment.
+         @param cell    Index of cell to create segment on.
+         @param segment Segment to return.
         */
-        Segment createSegment(UInt cell);
+        void createSegment(UInt cell, Segment& segment);
 
         /**
          Creates a synapse on the specified segment.
@@ -124,12 +123,12 @@ namespace nta
          @param segment         Segment to create synapse on.
          @param presynapticCell Cell to synapse on.
          @param permanence      Initial permanence of new synapse.
-
-         @retval Synapse.
+         @param synapse         Synapse to return.
         */
-        Synapse createSynapse(Segment& segment,
-                              UInt presynapticCell,
-                              Real permanence);
+        void createSynapse(Segment& segment,
+                           UInt presynapticCell,
+                           Real permanence,
+                           Synapse &synapse);
 
         /**
          Forward-propagates input to synapses, dendrites, and cells, to
