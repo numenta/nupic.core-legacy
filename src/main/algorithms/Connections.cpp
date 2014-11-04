@@ -55,6 +55,11 @@ void Connections::createSynapse(Segment& segment,
   segment.synapses.push_back(&synapse);
 }
 
+void Connections::updateSynapsePermanence(Synapse& synapse, Real permanence)
+{
+  synapse.permanence = permanence;
+}
+
 void Connections::computeActivity(vector<UInt> input,
                                   Real permanenceThreshold,
                                   UInt synapseThreshold,

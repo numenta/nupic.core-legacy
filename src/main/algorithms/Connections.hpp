@@ -131,6 +131,14 @@ namespace nta
                            Synapse &synapse);
 
         /**
+         Updates a synapse's permanence.
+
+         @param synapse    Synapse to update.
+         @param permanence New permanence.
+        */
+        void updateSynapsePermanence(Synapse& synapse, Real permanence);
+
+        /**
          Forward-propagates input to synapses, dendrites, and cells, to
          compute their activity.
 

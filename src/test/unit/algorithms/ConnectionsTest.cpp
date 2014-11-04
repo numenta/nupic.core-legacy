@@ -38,6 +38,7 @@ namespace nta {
   {
     testCreateSegment();
     testCreateSynapse();
+    testUpdateSynapsePermanence();
     testComputeActivity();
   }
 
@@ -74,6 +75,21 @@ namespace nta {
 
     NTA_ASSERT(segment.synapses.size() == 1);
     NTA_ASSERT(segment.synapses.front() == &synapse);
+  }
+
+  void ConnectionsTest::testUpdateSynapsePermanence()
+  {
+    Connections connections;
+    setup(connections);
+
+    Segment segment;
+    connections.createSegment(10, segment);
+
+    Synapse synapse;
+    connections.createSynapse(segment, 50, 0.34, synapse);
+
+    connections.updateSynapsePermanence(synapse, 0.21);
+    NTA_ASSERT(nearlyEqual(synapse.permanence, (Real)0.21));
   }
 
   void ConnectionsTest::testComputeActivity()
