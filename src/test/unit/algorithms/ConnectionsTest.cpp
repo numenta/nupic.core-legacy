@@ -36,11 +36,116 @@ namespace nta {
 
   void ConnectionsTest::RunTests()
   {
-    // testCreateSegment();
-    // testCreateSynapse();
-    // testUpdateSynapsePermanence();
-    // testGetMostActiveSegmentForCells();
-    // testComputeActivity();
+    testCreateSegment();
+    testCreateSynapse();
+    testUpdateSynapsePermanence();
+    testGetMostActiveSegmentForCells();
+    testComputeActivity();
+  }
+
+  void ConnectionsTest::setup(Connections& connections)
+  {
+  }
+
+  void ConnectionsTest::testCreateSegment()
+  {
+    Connections connections(1024);
+    setup(connections);
+
+    Segment segment;
+    Cell cell = {10};
+
+    segment = connections.createSegment(cell);
+    NTA_ASSERT(segment.idx == 0);
+    NTA_ASSERT(segment.cellIdx == 10);
+
+    segment = connections.createSegment(cell);
+    NTA_ASSERT(segment.idx == 1);
+    NTA_ASSERT(segment.cellIdx == 10);
+
+    // TODO: Add assertions on segments for cell
+  }
+
+  void ConnectionsTest::testCreateSynapse()
+  {
+    Connections connections(1024);
+    setup(connections);
+
+    Cell cell = {10}, presynapticCell = {50};
+    Segment segment = connections.createSegment(cell);
+    Synapse synapse;
+
+    synapse = connections.createSynapse(segment, presynapticCell, 0.34);
+    NTA_ASSERT(synapse.idx == 0);
+    NTA_ASSERT(synapse.segmentIdx == segment.idx);
+
+    presynapticCell.idx = 150;
+    synapse = connections.createSynapse(segment, presynapticCell, 0.48);
+    NTA_ASSERT(synapse.idx == 1);
+    NTA_ASSERT(synapse.segmentIdx == segment.idx);
+
+    // TODO: Add assertions on synapses for segment, syanpse data
+  }
+
+  void ConnectionsTest::testUpdateSynapsePermanence()
+  {
+    Connections connections(1024);
+    setup(connections);
+
+    Cell cell = {10}, presynapticCell = {50};
+    Segment segment = connections.createSegment(cell);
+    Synapse synapse = connections.createSynapse(segment, presynapticCell, 0.34);
+
+    connections.updateSynapsePermanence(synapse, 0.21);
+
+    // TODO: Add assertions on synapse data
+    // NTA_ASSERT(nearlyEqual(synapse.permanence, (Real)0.21));
+  }
+
+  void ConnectionsTest::testGetMostActiveSegmentForCells()
+  {
+    Connections connections(1024);
+    setup(connections);
+    Segment segment;
+    Synapse synapse;
+    Cell cell, presynapticCell;
+    vector<Cell> cells;
+    vector<Cell> input;
+
+    cell.idx = 10; presynapticCell.idx = 50;
+    segment = connections.createSegment(cell);
+    synapse = connections.createSynapse(segment, presynapticCell, 0.34);
+
+    cell.idx = 20; presynapticCell.idx = 150;
+    segment = connections.createSegment(cell);
+    synapse = connections.createSynapse(segment, presynapticCell, 0.85);
+
+    // TODO: Enable test
+    // cells.push_back(10);
+    // cells.push_back(20);
+
+    // input.push_back(50);
+
+    bool result = connections.getMostActiveSegmentForCells(
+      cells, input, 0, segment);
+
+    NTA_ASSERT(result == false);
+  }
+
+  void ConnectionsTest::testComputeActivity()
+  {
+    Connections connections(1024);
+    setup(connections);
+    vector<Cell> input;
+    Cell cell;
+
+    for (CellIdx i = 10; i <= 20; i += 10) {
+      cell.idx = i;
+      input.push_back(cell);
+    }
+
+    Activity activity = connections.computeActivity(input, 0.10, 5);
+    // TODO: Add assertion
   }
 
 } // end namespace nta

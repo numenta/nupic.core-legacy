@@ -59,6 +59,7 @@ namespace nta
        */
       struct Synapse
       {
+        // TODO: Store Segment instead of SegmentIdx and CellIdx
         SynapseIdx idx;
         SegmentIdx segmentIdx;
         CellIdx cellIdx;
@@ -77,6 +78,7 @@ namespace nta
        */
       struct Segment
       {
+        // TODO: Store Cell instead of CellIdx
         SegmentIdx idx;
         CellIdx cellIdx;
       };
@@ -102,13 +104,13 @@ namespace nta
        * The SynapseData class is a data structure that contains the data for a
        * synapse on a segment.
        *
-       * @param presynapticCellIdx Cell that this synapse gets input from.
-       * @param permanence         Permanence of synapse.
+       * @param presynapticCell Cell that this synapse gets input from.
+       * @param permanence      Permanence of synapse.
        * 
        */
       struct SynapseData
       {
-        CellIdx presynapticCellIdx;
+        Cell presynapticCell;
         Permanence permanence;
       };
 
@@ -172,6 +174,67 @@ namespace nta
         Connections(CellIdx numCells);
 
         virtual ~Connections() {}
+
+        /**
+         Creates a segment on the specified cell.
+
+         @param cell Cell to create segment on.
+
+         @retval Segment to return.
+        */
+        Segment createSegment(const Cell& cell);
+
+        /**
+         Creates a synapse on the specified segment.
+
+         @param segment         Segment to create synapse on.
+         @param presynapticCell Cell to synapse on.
+         @param permanence      Initial permanence of new synapse.
+
+         @reval Synapse to return.
+        */
+        Synapse createSynapse(const Segment& segment,
+                              const Cell& presynapticCell,
+                              Permanence permanence);
+
+        /**
+         Updates a synapse's permanence.
+
+         @param synapse    Synapse to update.
+         @param permanence New permanence.
+        */
+        void updateSynapsePermanence(const Synapse& synapse,
+                                     Permanence permanence);
+
+        /**
+         Gets the segment with the most active synapses due to given input,
+         from among all the segments on all the given cells.
+
+         @param cells            Cells to look among.
+         @param input            Active cells in the input.
+         @param synapseThreshold Only consider segments with number of active synapses greater than this threshold.
+         @param segment          Segment to return.
+
+         @retval Segment found?
+        */
+        bool getMostActiveSegmentForCells(const std::vector<Cell>& cells,
+                                          const std::vector<Cell>& input,
+                                          UInt synapseThreshold,
+                                          Segment& segment) const;
+
+        /**
+         Forward-propagates input to synapses, dendrites, and cells, to
+         compute their activity.
+
+         @param input               Active cells in the input.
+         @param permanenceThreshold Only consider synapses with permanences greater than this threshold.
+         @param synapseThreshold    Only consider segments with number of active synapses greater than this threshold.
+
+         @retval Activity to return.
+        */
+        Activity computeActivity(const std::vector<Cell>& input,
+                                 Permanence permanenceThreshold,
+                                 UInt synapseThreshold) const;
 
       private:
         std::vector<CellData> cells_;

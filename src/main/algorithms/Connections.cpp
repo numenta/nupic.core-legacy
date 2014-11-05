@@ -31,6 +31,51 @@ using namespace std;
 using namespace nta;
 using namespace nta::algorithms::connections;
 
-Connections::Connections(CellIdx numCells)
+Connections::Connections(CellIdx numCells) : cells_(numCells)
 {
+}
+
+Segment Connections::createSegment(const Cell& cell)
+{
+  vector<SegmentData>& segments = cells_[cell.idx].segments;
+  Segment segment = {segments.size(), cell.idx};
+
+  SegmentData segmentData;
+  segments.push_back(segmentData);
+
+  return segment;
+}
+
+Synapse Connections::createSynapse(const Segment& segment,
+                                   const Cell& presynapticCell,
+                                   Permanence permanence)
+{
+  vector<SynapseData>& synapses = cells_[segment.cellIdx].segments[segment.idx].synapses;
+  Synapse synapse = {synapses.size(), segment.idx, segment.cellIdx};
+
+  SynapseData synapseData;
+  synapses.push_back(synapseData);
+
+  return synapse;
+}
+
+void Connections::updateSynapsePermanence(const Synapse& synapse,
+                                          Permanence permanence)
+{
+}
+
+bool Connections::getMostActiveSegmentForCells(const std::vector<Cell>& cells,
+                                               const std::vector<Cell>& input,
+                                               UInt synapseThreshold,
+                                               Segment& segment) const
+{
+  return false;
+}
+
+Activity Connections::computeActivity(const std::vector<Cell>& input,
+                                      Permanence permanenceThreshold,
+                                      UInt synapseThreshold) const
+{
+  Activity activity;
+  return activity;
 }
