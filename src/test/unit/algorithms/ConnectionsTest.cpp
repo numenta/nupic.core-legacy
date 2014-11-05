@@ -25,7 +25,6 @@
  */
 
 #include <iostream>
-#include <nta/math/Math.hpp>
 #include "ConnectionsTest.hpp"
 
 using namespace std;
@@ -56,19 +55,19 @@ namespace nta {
     Cell cell = {10};
 
     segment = connections.createSegment(cell);
-    NTA_ASSERT(segment.idx == 0);
-    NTA_ASSERT(segment.cell.idx == cell.idx);
+    TESTEQUAL(segment.idx, 0);
+    TESTEQUAL(segment.cell.idx, cell.idx);
 
     segment = connections.createSegment(cell);
-    NTA_ASSERT(segment.idx == 1);
-    NTA_ASSERT(segment.cell.idx == cell.idx);
+    TESTEQUAL(segment.idx, 1);
+    TESTEQUAL(segment.cell.idx, cell.idx);
 
     vector<Segment> segments = connections.getSegmentsForCell(cell);
-    NTA_ASSERT(segments.size() == 2);
+    TESTEQUAL(segments.size(), 2);
 
     for (SegmentIdx i = 0; i < segments.size(); i++) {
-      NTA_ASSERT(segments[i].idx == i);
-      NTA_ASSERT(segments[i].cell.idx == cell.idx);
+      TESTEQUAL(segments[i].idx, i);
+      TESTEQUAL(segments[i].cell.idx, cell.idx);
     }
   }
 
@@ -83,32 +82,32 @@ namespace nta {
 
     presynapticCell.idx = 50;
     synapse = connections.createSynapse(segment, presynapticCell, 0.34);
-    NTA_ASSERT(synapse.idx == 0);
-    NTA_ASSERT(synapse.segment.idx == segment.idx);
+    TESTEQUAL(synapse.idx, 0);
+    TESTEQUAL(synapse.segment.idx, segment.idx);
 
     presynapticCell.idx = 150;
     synapse = connections.createSynapse(segment, presynapticCell, 0.48);
-    NTA_ASSERT(synapse.idx == 1);
-    NTA_ASSERT(synapse.segment.idx == segment.idx);
+    TESTEQUAL(synapse.idx, 1);
+    TESTEQUAL(synapse.segment.idx, segment.idx);
 
     vector<Synapse> synapses = connections.getSynapsesForSegment(segment);
-    NTA_ASSERT(synapses.size() == 2);
+    TESTEQUAL(synapses.size(), 2);
 
     for (SynapseIdx i = 0; i < synapses.size(); i++) {
-      NTA_ASSERT(synapses[i].idx == i);
-      NTA_ASSERT(synapses[i].segment.idx == segment.idx);
-      NTA_ASSERT(synapses[i].segment.cell.idx == cell.idx);
+      TESTEQUAL(synapses[i].idx, i);
+      TESTEQUAL(synapses[i].segment.idx, segment.idx);
+      TESTEQUAL(synapses[i].segment.cell.idx, cell.idx);
     }
 
     SynapseData synapseData;
 
     synapseData = connections.getDataForSynapse(synapses[0]);
-    NTA_ASSERT(synapseData.presynapticCell.idx == 50);
-    NTA_ASSERT(nearlyEqual(synapseData.permanence, (Permanence)0.34));
+    TESTEQUAL(synapseData.presynapticCell.idx, 50);
+    TESTEQUAL_FLOAT(synapseData.permanence, (Permanence)0.34);
 
     synapseData = connections.getDataForSynapse(synapses[1]);
-    NTA_ASSERT(synapseData.presynapticCell.idx == 150);
-    NTA_ASSERT(nearlyEqual(synapseData.permanence, (Permanence)0.48));
+    TESTEQUAL(synapseData.presynapticCell.idx, 150);
+    TESTEQUAL_FLOAT(synapseData.permanence, (Permanence)0.48);
   }
 
   void ConnectionsTest::testUpdateSynapsePermanence()
@@ -123,7 +122,7 @@ namespace nta {
     connections.updateSynapsePermanence(synapse, 0.21);
 
     SynapseData synapseData = connections.getDataForSynapse(synapse);
-    NTA_ASSERT(nearlyEqual(synapseData.permanence, (Real)0.21));
+    TESTEQUAL_FLOAT(synapseData.permanence, (Real)0.21);
   }
 
   void ConnectionsTest::testGetMostActiveSegmentForCells()
@@ -153,7 +152,7 @@ namespace nta {
     bool result = connections.getMostActiveSegmentForCells(
       cells, input, 0, segment);
 
-    NTA_ASSERT(result == false);
+    TESTEQUAL(result, false);
   }
 
   void ConnectionsTest::testComputeActivity()
