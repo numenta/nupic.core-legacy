@@ -99,7 +99,7 @@ vector<Synapse> Connections::getSynapsesForSegment(const Segment& segment)
   return synapses;
 }
 
-SynapseData Connections::getDataForSynapse(const Synapse& synapse)
+SynapseData Connections::getDataForSynapse(const Synapse& synapse) const
 {
   const Segment& segment = synapse.segment;
   const Cell& cell = segment.cell;
@@ -120,5 +120,25 @@ Activity Connections::computeActivity(const std::vector<Cell>& input,
                                       UInt synapseThreshold) const
 {
   Activity activity;
+  // vector<Synapse> synapses;
+  // SynapseData synapseData;
+  // Synapse synapse;
+
+  // for (vector<Cell>::const_iterator c = input.begin(); c != input.end(); c++) {
+  //   synapses = synapsesForPresynapticCell_[*c];
+
+  //   for (vector<Synapse>::const_iterator s = synapses.begin(); s != synapses.end(); s++) {
+  //     synapseData = getDataForSynapse(*s);
+
+  //     if (synapseData.permanence >= permanenceThreshold) {
+  //       activity.numActiveSynapsesForSegment[synapse.segment] += 1;
+  //     }
+
+  //     if (activity.numActiveSynapsesForSegment[synapse.segment]) {
+  //       activity.numActiveSegmentsForCell[*c] += 1;
+  //     }
+  //   }
+  // }
+
   return activity;
 }

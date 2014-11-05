@@ -153,6 +153,7 @@ namespace nta
       struct Activity
       {
         std::map<Cell, UInt> numActiveSegmentsForCell;
+        std::map<Segment, UInt> numActiveSynapsesForSegment;
       };
 
       /**
@@ -228,7 +229,7 @@ namespace nta
 
          @retval Synapse data.
         */
-        SynapseData getDataForSynapse(const Synapse& synapse);
+        SynapseData getDataForSynapse(const Synapse& synapse) const;
 
         /**
          Gets the segment with the most active synapses due to given input,
