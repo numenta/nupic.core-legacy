@@ -175,6 +175,7 @@ namespace nta
 
       private:
         std::vector<CellData> cells_;
+        // Mapping (presynaptic cell => synapses) used in forward propagation
         std::map< Cell, std::vector<Synapse> > synapsesForPresynapticCell_;
       }; // end class Connections
 
