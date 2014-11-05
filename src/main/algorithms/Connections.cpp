@@ -64,6 +64,35 @@ void Connections::updateSynapsePermanence(const Synapse& synapse,
 {
 }
 
+vector<Segment> Connections::getSegmentsForCell(const Cell& cell)
+{
+  vector<Segment> segments;
+  Segment segment;
+
+  for(SegmentIdx i = 0; i < cells_[cell.idx].segments.size(); i++) {
+    segment.idx = i;
+    segment.cellIdx = cell.idx;
+    segments.push_back(segment);
+  }
+
+  return segments;
+}
+
+vector<Synapse> Connections::getSynapsesForSegment(const Segment& segment)
+{
+  vector<Synapse> synapses;
+  Synapse synapse;
+
+  for(SynapseIdx i = 0; i < cells_[segment.cellIdx].segments[segment.idx].synapses.size(); i++) {
+    synapse.idx = i;
+    synapse.segmentIdx = segment.idx;
+    synapse.cellIdx = segment.cellIdx;
+    synapses.push_back(synapse);
+  }
+
+  return synapses;
+}
+
 bool Connections::getMostActiveSegmentForCells(const std::vector<Cell>& cells,
                                                const std::vector<Cell>& input,
                                                UInt synapseThreshold,

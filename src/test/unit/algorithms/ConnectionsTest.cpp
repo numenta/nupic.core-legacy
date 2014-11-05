@@ -57,13 +57,19 @@ namespace nta {
 
     segment = connections.createSegment(cell);
     NTA_ASSERT(segment.idx == 0);
-    NTA_ASSERT(segment.cellIdx == 10);
+    NTA_ASSERT(segment.cellIdx == cell.idx);
 
     segment = connections.createSegment(cell);
     NTA_ASSERT(segment.idx == 1);
-    NTA_ASSERT(segment.cellIdx == 10);
+    NTA_ASSERT(segment.cellIdx == cell.idx);
 
-    // TODO: Add assertions on segments for cell
+    vector<Segment> segments = connections.getSegmentsForCell(cell);
+    NTA_ASSERT(segments.size() == 2);
+
+    for (SegmentIdx i = 0; i < segments.size(); i++) {
+      NTA_ASSERT(segments[i].idx == i);
+      NTA_ASSERT(segments[i].cellIdx == cell.idx);
+    }
   }
 
   void ConnectionsTest::testCreateSynapse()
@@ -84,7 +90,14 @@ namespace nta {
     NTA_ASSERT(synapse.idx == 1);
     NTA_ASSERT(synapse.segmentIdx == segment.idx);
 
-    // TODO: Add assertions on synapses for segment, syanpse data
+    vector<Synapse> synapses = connections.getSynapsesForSegment(segment);
+    NTA_ASSERT(synapses.size() == 2);
+
+    for (SynapseIdx i = 0; i < synapses.size(); i++) {
+      NTA_ASSERT(synapses[i].idx == i);
+      NTA_ASSERT(synapses[i].segmentIdx == segment.idx);
+      NTA_ASSERT(synapses[i].cellIdx == cell.idx);
+    }
   }
 
   void ConnectionsTest::testUpdateSynapsePermanence()

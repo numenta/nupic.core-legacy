@@ -180,7 +180,7 @@ namespace nta
 
          @param cell Cell to create segment on.
 
-         @retval Segment to return.
+         @retval Created segment.
         */
         Segment createSegment(const Cell& cell);
 
@@ -191,7 +191,7 @@ namespace nta
          @param presynapticCell Cell to synapse on.
          @param permanence      Initial permanence of new synapse.
 
-         @reval Synapse to return.
+         @reval Created synapse.
         */
         Synapse createSynapse(const Segment& segment,
                               const Cell& presynapticCell,
@@ -205,6 +205,24 @@ namespace nta
         */
         void updateSynapsePermanence(const Synapse& synapse,
                                      Permanence permanence);
+
+        /**
+         Gets the segments for a cell.
+
+         @param cell Cell to get segments for.
+
+         @retval Segments on cell.
+        */
+        std::vector<Segment> getSegmentsForCell(const Cell& cell);
+
+        /**
+         Gets the synapses for a segment.
+
+         @param segment Segment to get synapses for.
+
+         @retval Synapses on segment.
+        */
+        std::vector<Synapse> getSynapsesForSegment(const Segment& segment);
 
         /**
          Gets the segment with the most active synapses due to given input,
