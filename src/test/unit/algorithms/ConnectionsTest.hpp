@@ -47,12 +47,12 @@ namespace nta
     virtual void RunTests();
 
   private:
-    void setup(Connections& connections);
-    void testCreateSegment();
-    void testCreateSynapse();
-    void testUpdateSynapsePermanence();
-    void testGetMostActiveSegmentForCells();
-    void testComputeActivity();
+    // void setup(Connections& connections);
+    // void testCreateSegment();
+    // void testCreateSynapse();
+    // void testUpdateSynapsePermanence();
+    // void testGetMostActiveSegmentForCells();
+    // void testComputeActivity();
 
   }; // end class ConnectionsTest
 

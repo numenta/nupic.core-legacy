@@ -28,6 +28,7 @@
 #define NTA_CONNECTIONS_HPP
 
 #include <vector>
+#include <utility>
 #include <nta/types/Types.hpp>
 #include <nta/math/Math.hpp>
 
@@ -39,57 +40,120 @@ namespace nta
 
     namespace connections
     {
-
-      /**
-       * CellActivity class used in Connections.
-       *
-       * @b Description
-       * The CellActivity class is a data structure that represents the
-       * activity of a collection of cells, as computed by propagating
-       * input through connections.
-       * 
-       */
-      struct CellActivity
-      {
-      };
-
-      // Forward declaration
-      struct Synapse;
-
-      /**
-       * Segment class used in Connections.
-       *
-       * @b Description
-       * The Segment class is a data structure that represents a segment
-       * on a cell.
-       *
-       * @param cell     Index of cell this segment belongs to.
-       * @param synapses List of synapses that this segment contains.
-       * 
-       */
-      struct Segment
-      {
-        UInt cell;
-        std::vector<Synapse*> synapses;
-      };
+      typedef UInt32 CellIdx;
+      typedef Byte SegmentIdx;
+      typedef Byte SynapseIdx;
+      typedef Real32 Permanence;
 
       /**
        * Synapse class used in Connections.
        *
        * @b Description
-       * The Synapse class is a data structure that represents a synapse
-       * on a segment.
+       * The Synapse class is a data structure that points to a particular
+       * synapse on a particular segment on a particular cell.
        *
-       * @param segment         Segment that this synapse belongs to.
-       * @param presynapticCell Cell that this synapse gets input from.
-       * @param permanence      Permanence of synapse.
+       * @param idx        Index of synapse in segment.
+       * @param segmentIdx Index of segment in cell.
+       * @param cellIdx    Index of cell.
        * 
        */
       struct Synapse
       {
-        Segment* segment;
-        UInt presynapticCell;
-        Real permanence;
+        SynapseIdx idx;
+        SegmentIdx segmentIdx;
+        CellIdx cellIdx;
+      };
+
+      /**
+       * Segment class used in Connections.
+       *
+       * @b Description
+       * The Segment class is a data structure that points to a particular
+       * segment on a particular cell.
+       *
+       * @param idx     Index of segment.
+       * @param cellIdx Index of cell.
+       * 
+       */
+      struct Segment
+      {
+        SegmentIdx idx;
+        CellIdx cellIdx;
+      };
+
+      /**
+       * Cell class used in Connections.
+       *
+       * @b Description
+       * The Cell class is a data structure that points to a particular cell.
+       *
+       * @param idx Index of cell.
+       * 
+       */
+      struct Cell
+      {
+        CellIdx idx;
+      };
+
+      /**
+       * SynapseData class used in Connections.
+       *
+       * @b Description
+       * The SynapseData class is a data structure that contains the data for a
+       * synapse on a segment.
+       *
+       * @param presynapticCellIdx Cell that this synapse gets input from.
+       * @param permanence         Permanence of synapse.
+       * 
+       */
+      struct SynapseData
+      {
+        CellIdx presynapticCellIdx;
+        Permanence permanence;
+      };
+
+      /**
+       * SegmentData class used in Connections.
+       *
+       * @b Description
+       * The SegmentData class is a data structure that contains the data for a
+       * segment on a cell.
+       *
+       * @param synapses Data for synapses that this segment contains.
+       * 
+       */
+      struct SegmentData
+      {
+        std::vector<SynapseData> synapses;
+      };
+
+      /**
+       * CellData class used in Connections.
+       *
+       * @b Description
+       * The CellData class is a data structure that contains the data for a
+       * cell.
+       *
+       * @param segments Data for segments that this cell contains.
+       * 
+       */
+      struct CellData
+      {
+        std::vector<SegmentData> segments;
+      };
+
+      /**
+       * Activity class used in Connections.
+       *
+       * @b Description
+       * The Activity class is a data structure that represents the
+       * activity of a collection of cells, as computed by propagating
+       * input through connections.
+       * 
+       */
+      struct Activity
+      {
+        std::map<Cell, UInt> numActiveSegmentsForCell;
       };
 
       /**
@@ -105,69 +169,13 @@ namespace nta
       class Connections
       {
       public:
-        Connections();
+        Connections(CellIdx numCells);
 
         virtual ~Connections() {}
 
-        /**
-         Creates a segment on the specified cell.
-
-         @param cell    Index of cell to create segment on.
-         @param segment Segment to return.
-        */
-        void createSegment(UInt cell, Segment& segment);
-
-        /**
-         Creates a synapse on the specified segment.
-
-         @param segment         Segment to create synapse on.
-         @param presynapticCell Cell to synapse on.
-         @param permanence      Initial permanence of new synapse.
-         @param synapse         Synapse to return.
-        */
-        void createSynapse(Segment& segment,
-                           UInt presynapticCell,
-                           Real permanence,
-                           Synapse &synapse);
-
-        /**
-         Updates a synapse's permanence.
-
-         @param synapse    Synapse to update.
-         @param permanence New permanence.
-        */
-        void updateSynapsePermanence(Synapse& synapse, Real permanence);
-
-        /**
-         Gets the segment with the most active synapses due to given input,
-         from among all the segments on all the given cells.
-
-         @param cells            Indices of cells to look among.
-         @param input            Indices of active bits in the input.
-         @param synapseThreshold Only consider segments with number of active synapses greater than this threshold.
-         @param segment          Segment to return.
-
-         @retval Segment found?
-        */
-        bool getMostActiveSegmentForCells(std::vector<UInt>& cells,
-                                          std::vector<UInt>& input,
-                                          UInt synapseThreshold,
-                                          Segment& segment);
-
-        /**
-         Forward-propagates input to synapses, dendrites, and cells, to
-         compute their activity.
-
-         @param input               Indices of active bits in the input.
-         @param permanenceThreshold Only consider synapses with permanences greater than this threshold.
-         @param synapseThreshold    Only consider segments with number of active synapses greater than this threshold.
-         @param activity            Activity to return.
-        */
-        void computeActivity(std::vector<UInt>& input,
-                             Real permanenceThreshold,
-                             UInt synapseThreshold,
-                             CellActivity& activity);
-
+      private:
+        std::vector<CellData> cells_;
+        std::map< Cell, std::vector<Synapse> > synapsesForPresynapticCell_;
       }; // end class Connections
 
     } // end namespace connections

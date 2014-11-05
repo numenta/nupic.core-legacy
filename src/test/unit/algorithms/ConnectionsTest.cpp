@@ -36,100 +36,11 @@ namespace nta {
 
   void ConnectionsTest::RunTests()
   {
-    testCreateSegment();
-    testCreateSynapse();
-    testUpdateSynapsePermanence();
-    testGetMostActiveSegmentForCells();
-    testComputeActivity();
-  }
-
-  void ConnectionsTest::setup(Connections& connections)
-  {
-  }
-
-  void ConnectionsTest::testCreateSegment()
-  {
-    Connections connections;
-    setup(connections);
-
-    Segment segment;
-    connections.createSegment(10, segment);
-
-    NTA_ASSERT(segment.cell == 10);
-    NTA_ASSERT(segment.synapses.size() == 0);
-  }
-
-  void ConnectionsTest::testCreateSynapse()
-  {
-    Connections connections;
-    setup(connections);
-
-    Segment segment;
-    connections.createSegment(10, segment);
-
-    Synapse synapse;
-    connections.createSynapse(segment, 50, 0.34, synapse);
-
-    NTA_ASSERT(synapse.segment == &segment);
-    NTA_ASSERT(synapse.presynapticCell == 50);
-    NTA_ASSERT(nearlyEqual(synapse.permanence, (Real)0.34));
-
-    NTA_ASSERT(segment.synapses.size() == 1);
-    NTA_ASSERT(segment.synapses.front() == &synapse);
-  }
-
-  void ConnectionsTest::testUpdateSynapsePermanence()
-  {
-    Connections connections;
-    setup(connections);
-
-    Segment segment;
-    connections.createSegment(10, segment);
-
-    Synapse synapse;
-    connections.createSynapse(segment, 50, 0.34, synapse);
-
-    connections.updateSynapsePermanence(synapse, 0.21);
-    NTA_ASSERT(nearlyEqual(synapse.permanence, (Real)0.21));
-  }
-
-  void ConnectionsTest::testGetMostActiveSegmentForCells()
-  {
-    Connections connections;
-    setup(connections);
-    Segment segment;
-    Synapse synapse;
-    vector<UInt> cells;
-    vector<UInt> input;
-
-    connections.createSegment(10, segment);
-    connections.createSynapse(segment, 50, 0.34, synapse);
-
-    connections.createSegment(20, segment);
-    connections.createSynapse(segment, 150, 0.85, synapse);
-
-    // cells.push_back(10);
-    // cells.push_back(20);
-
-    // input.push_back(50);
-
-    bool result = connections.getMostActiveSegmentForCells(
-      cells, input, 0, segment);
-
-    NTA_ASSERT(result == false);
-  }
-
-  void ConnectionsTest::testComputeActivity()
-  {
-    Connections connections;
-    setup(connections);
-    vector<UInt> input;
-    input.push_back(10);
-    input.push_back(20);
-
-    CellActivity activity;
-    connections.computeActivity(input, 0.10, 5, activity);
-    // TODO: Add assertion
+    // testCreateSegment();
+    // testCreateSynapse();
+    // testUpdateSynapsePermanence();
+    // testGetMostActiveSegmentForCells();
+    // testComputeActivity();
   }
 
 } // end namespace nta
