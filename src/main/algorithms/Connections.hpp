@@ -46,23 +46,17 @@ namespace nta
       typedef Real32 Permanence;
 
       /**
-       * Synapse class used in Connections.
+       * Cell class used in Connections.
        *
        * @b Description
-       * The Synapse class is a data structure that points to a particular
-       * synapse on a particular segment on a particular cell.
+       * The Cell class is a data structure that points to a particular cell.
        *
-       * @param idx        Index of synapse in segment.
-       * @param segmentIdx Index of segment in cell.
-       * @param cellIdx    Index of cell.
+       * @param idx Index of cell.
        * 
        */
-      struct Synapse
+      struct Cell
       {
-        // TODO: Store Segment instead of SegmentIdx and CellIdx
-        SynapseIdx idx;
-        SegmentIdx segmentIdx;
-        CellIdx cellIdx;
+        CellIdx idx;
       };
 
       /**
@@ -78,23 +72,26 @@ namespace nta
        */
       struct Segment
       {
-        // TODO: Store Cell instead of CellIdx
         SegmentIdx idx;
-        CellIdx cellIdx;
+        Cell cell;
       };
 
       /**
-       * Cell class used in Connections.
+       * Synapse class used in Connections.
        *
        * @b Description
-       * The Cell class is a data structure that points to a particular cell.
+       * The Synapse class is a data structure that points to a particular
+       * synapse on a particular segment on a particular cell.
        *
-       * @param idx Index of cell.
+       * @param idx        Index of synapse in segment.
+       * @param segmentIdx Index of segment in cell.
+       * @param cellIdx    Index of cell.
        * 
        */
-      struct Cell
+      struct Synapse
       {
-        CellIdx idx;
+        SynapseIdx idx;
+        Segment segment;
       };
 
       /**

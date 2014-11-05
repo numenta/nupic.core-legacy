@@ -38,7 +38,7 @@ Connections::Connections(CellIdx numCells) : cells_(numCells)
 Segment Connections::createSegment(const Cell& cell)
 {
   vector<SegmentData>& segments = cells_[cell.idx].segments;
-  Segment segment = {segments.size(), cell.idx};
+  Segment segment = {segments.size(), cell};
 
   SegmentData segmentData;
   segments.push_back(segmentData);
@@ -50,8 +50,10 @@ Synapse Connections::createSynapse(const Segment& segment,
                                    const Cell& presynapticCell,
                                    Permanence permanence)
 {
-  vector<SynapseData>& synapses = cells_[segment.cellIdx].segments[segment.idx].synapses;
-  Synapse synapse = {synapses.size(), segment.idx, segment.cellIdx};
+  const Cell& cell = segment.cell;
+
+  vector<SynapseData>& synapses = cells_[cell.idx].segments[segment.idx].synapses;
+  Synapse synapse = {synapses.size(), segment};
 
   SynapseData synapseData = {presynapticCell, permanence};  // TODO: Does this copy presynapticCell?
   synapses.push_back(synapseData);
@@ -62,7 +64,10 @@ Synapse Connections::createSynapse(const Segment& segment,
 void Connections::updateSynapsePermanence(const Synapse& synapse,
                                           Permanence permanence)
 {
-  cells_[synapse.cellIdx].segments[synapse.segmentIdx].synapses[synapse.idx].permanence = permanence;
+  const Segment& segment = synapse.segment;
+  const Cell& cell = segment.cell;
+
+  cells_[cell.idx].segments[segment.idx].synapses[synapse.idx].permanence = permanence;
 }
 
 vector<Segment> Connections::getSegmentsForCell(const Cell& cell)
@@ -72,7 +77,7 @@ vector<Segment> Connections::getSegmentsForCell(const Cell& cell)
 
   for(SegmentIdx i = 0; i < cells_[cell.idx].segments.size(); i++) {
     segment.idx = i;
-    segment.cellIdx = cell.idx;
+    segment.cell = cell;
     segments.push_back(segment);
   }
 
@@ -81,13 +86,13 @@ vector<Segment> Connections::getSegmentsForCell(const Cell& cell)
 
 vector<Synapse> Connections::getSynapsesForSegment(const Segment& segment)
 {
+  const Cell& cell = segment.cell;
   vector<Synapse> synapses;
   Synapse synapse;
 
-  for(SynapseIdx i = 0; i < cells_[segment.cellIdx].segments[segment.idx].synapses.size(); i++) {
+  for(SynapseIdx i = 0; i < cells_[cell.idx].segments[segment.idx].synapses.size(); i++) {
     synapse.idx = i;
-    synapse.segmentIdx = segment.idx;
-    synapse.cellIdx = segment.cellIdx;
+    synapse.segment = segment;
     synapses.push_back(synapse);
   }
 
@@ -96,7 +101,10 @@ vector<Synapse> Connections::getSynapsesForSegment(const Segment& segment)
 
 SynapseData Connections::getDataForSynapse(const Synapse& synapse)
 {
-  return cells_[synapse.cellIdx].segments[synapse.segmentIdx].synapses[synapse.idx];
+  const Segment& segment = synapse.segment;
+  const Cell& cell = segment.cell;
+
+  return cells_[cell.idx].segments[segment.idx].synapses[synapse.idx];
 }
 
 bool Connections::getMostActiveSegmentForCells(const std::vector<Cell>& cells,

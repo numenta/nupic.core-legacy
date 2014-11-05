@@ -57,18 +57,18 @@ namespace nta {
 
     segment = connections.createSegment(cell);
     NTA_ASSERT(segment.idx == 0);
-    NTA_ASSERT(segment.cellIdx == cell.idx);
+    NTA_ASSERT(segment.cell.idx == cell.idx);
 
     segment = connections.createSegment(cell);
     NTA_ASSERT(segment.idx == 1);
-    NTA_ASSERT(segment.cellIdx == cell.idx);
+    NTA_ASSERT(segment.cell.idx == cell.idx);
 
     vector<Segment> segments = connections.getSegmentsForCell(cell);
     NTA_ASSERT(segments.size() == 2);
 
     for (SegmentIdx i = 0; i < segments.size(); i++) {
       NTA_ASSERT(segments[i].idx == i);
-      NTA_ASSERT(segments[i].cellIdx == cell.idx);
+      NTA_ASSERT(segments[i].cell.idx == cell.idx);
     }
   }
 
@@ -84,20 +84,20 @@ namespace nta {
     presynapticCell.idx = 50;
     synapse = connections.createSynapse(segment, presynapticCell, 0.34);
     NTA_ASSERT(synapse.idx == 0);
-    NTA_ASSERT(synapse.segmentIdx == segment.idx);
+    NTA_ASSERT(synapse.segment.idx == segment.idx);
 
     presynapticCell.idx = 150;
     synapse = connections.createSynapse(segment, presynapticCell, 0.48);
     NTA_ASSERT(synapse.idx == 1);
-    NTA_ASSERT(synapse.segmentIdx == segment.idx);
+    NTA_ASSERT(synapse.segment.idx == segment.idx);
 
     vector<Synapse> synapses = connections.getSynapsesForSegment(segment);
     NTA_ASSERT(synapses.size() == 2);
 
     for (SynapseIdx i = 0; i < synapses.size(); i++) {
       NTA_ASSERT(synapses[i].idx == i);
-      NTA_ASSERT(synapses[i].segmentIdx == segment.idx);
-      NTA_ASSERT(synapses[i].cellIdx == cell.idx);
+      NTA_ASSERT(synapses[i].segment.idx == segment.idx);
+      NTA_ASSERT(synapses[i].segment.cell.idx == cell.idx);
     }
 
     SynapseData synapseData;
