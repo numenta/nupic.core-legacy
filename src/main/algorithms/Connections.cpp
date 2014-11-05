@@ -112,7 +112,34 @@ bool Connections::getMostActiveSegmentForCells(const std::vector<Cell>& cells,
                                                UInt synapseThreshold,
                                                Segment& segment) const
 {
-  return false;
+  // UInt numSynapses, maxSynapses = synapseThreshold;
+  // vector<SegmentData> segments;
+  // vector<SynapseData> synapses;
+  bool found = false;
+
+  // for (vector<Cell>::const_iterator c = cells.begin(); c != cells.end(); c++) {
+  //   segments = cells_[c->idx].segments;
+
+  //   for (vector<SegmentData>::const_iterator s = segments.begin(); s != segments.end(); s++) {
+  //     synapses = s->synapses;
+  //     numSynapses = 0;
+
+  //     for (vector<SynapseData>::const_iterator syn = synapses.begin(); syn != synapses.end(); syn++) {
+  //       if (find(input.begin(), input.end(), syn->presynapticCell) != input.end()) {  // TODO: Optimize this
+  //         numSynapses++;
+  //       }
+  //     }
+
+  //     if (numSynapses >= maxSynapses) {
+  //       maxSynapses = numSynapses;
+  //       segment.idx = s - segments.begin();
+  //       segment.cell = *c;
+  //       found = true;
+  //     }
+  //   }
+  // }
+
+  return found;
 }
 
 Activity Connections::computeActivity(const std::vector<Cell>& input,
