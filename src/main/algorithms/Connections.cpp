@@ -55,7 +55,7 @@ Synapse Connections::createSynapse(const Segment& segment,
   vector<SynapseData>& synapses = cells_[cell.idx].segments[segment.idx].synapses;
   Synapse synapse = {synapses.size(), segment};
 
-  SynapseData synapseData = {presynapticCell, permanence};  // TODO: Does this copy presynapticCell?
+  SynapseData synapseData = {presynapticCell, permanence};
   synapses.push_back(synapseData);
 
   return synapse;
