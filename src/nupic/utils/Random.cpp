@@ -32,11 +32,11 @@
 #include <capnp/message.h>
 #include <capnp/serialize.h>
 
+#include <nupic/utils/Log.hpp>
 #include <nupic/utils/ProtoUtils.hpp>
 #include <nupic/utils/Random.hpp>
-#include <nupic/utils/Log.hpp>
-#include <nupic/utils/StringUtils.hpp>
 #include <nupic/utils/RandomProto.capnp.h>
+#include <nupic/utils/StringUtils.hpp>
 
 using namespace nupic;
 Random* Random::theInstanceP_ = nullptr;

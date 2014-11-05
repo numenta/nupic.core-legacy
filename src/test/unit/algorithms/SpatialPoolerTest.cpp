@@ -24,13 +24,14 @@
  * Implementation of unit tests for SpatialPooler
  */
 
-#include <iostream>
+#include <cstring>
 #include <fstream>
+#include <stdio.h>
+
 #include <nupic/algorithms/SpatialPooler.hpp>
 #include <nupic/math/StlIo.hpp>
 #include <nupic/types/Types.hpp>
 #include <nupic/utils/Log.hpp>
-#include <cstring>
 #include "SpatialPoolerTest.hpp"
 
 using namespace std;
@@ -278,8 +279,9 @@ namespace nupic {
     testCartesianProduct();
     testGetNeighborsND();
     testIsUpdateRound();
-    testSerialize();
     testStripUnlearnedColumns();
+    testSaveLoad();
+    testWriteRead();
   }
 
   void SpatialPoolerTest::testUpdateInhibitionRadius()
@@ -2481,32 +2483,6 @@ namespace nupic {
     NTA_CHECK(check_vector_eq(expectedMask4, mask));
   }
 
-  void SpatialPoolerTest::testSerialize() 
-  {
-    string filename = "SpatialPoolerSerialization.tmp";
-    SpatialPooler sp_orig;
-    UInt numInputs = 6;
-    UInt numColumns = 12;
-    setup(sp_orig, numInputs, numColumns);
-
-    ofstream outfile;
-    outfile.open (filename.c_str());
-    sp_orig.save(outfile);
-    outfile.close();
-
-    SpatialPooler sp_dest;
-    ifstream infile (filename.c_str());
-    sp_dest.load(infile);
-    infile.close();
-
-    check_spatial_eq(sp_orig, sp_dest);
-
-
-    string command = string("rm -f ") + filename;
-    int ret = system(command.c_str());
-    NTA_ASSERT(ret == 0); // "SpatialPoolerTest: execution of command " << command << " failed " << std::endl;
-  }
-
   void SpatialPoolerTest::testStripUnlearnedColumns()
   {
     SpatialPooler sp;
@@ -2562,6 +2538,51 @@ namespace nupic {
 
       TEST(check_vector_eq(activeArray, expected, 3));
     }
+  }
+
+  void SpatialPoolerTest::testSaveLoad()
+  {
+    const char* filename = "SpatialPoolerSerialization.tmp";
+    SpatialPooler sp1, sp2;
+    UInt numInputs = 6;
+    UInt numColumns = 12;
+    setup(sp1, numInputs, numColumns);
+
+    ofstream outfile;
+    outfile.open(filename);
+    sp1.save(outfile);
+    outfile.close();
+
+    ifstream infile (filename);
+    sp2.load(infile);
+    infile.close();
+
+    check_spatial_eq(sp1, sp2);
+
+    int ret = ::remove(filename);
+    NTA_CHECK(ret == 0) << "Failed to delete " << filename;
+  }
+
+  void SpatialPoolerTest::testWriteRead()
+  {
+    const char* filename = "SpatialPoolerSerialization.tmp";
+    SpatialPooler sp1, sp2;
+    UInt numInputs = 6;
+    UInt numColumns = 12;
+    setup(sp1, numInputs, numColumns);
+
+    ofstream os(filename);
+    sp1.write(os);
+    os.close();
+
+    ifstream is(filename);
+    sp2.read(is);
+    is.close();
+
+    check_spatial_eq(sp1, sp2);
+
+    int ret = ::remove(filename);
+    NTA_CHECK(ret == 0) << "Failed to delete " << filename;
   }
 
 } // end namespace nupic

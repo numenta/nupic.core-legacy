@@ -26,10 +26,16 @@
 
 #include <cstring>
 #include <iostream>
-#include <nupic/algorithms/SpatialPooler.hpp>
-#include <nupic/math/Math.hpp>
 #include <string>
 #include <vector>
+
+#include <capnp/message.h>
+#include <capnp/serialize.h>
+
+#include <nupic/algorithms/SpatialPooler.hpp>
+#include <nupic/algorithms/SpatialPoolerProto.capnp.h>
+#include <nupic/math/Math.hpp>
+#include <nupic/utils/ProtoUtils.hpp>
 
 using namespace std;
 using namespace nupic;
@@ -631,7 +637,7 @@ UInt SpatialPooler::mapColumn_(UInt column)
 
 vector<UInt> SpatialPooler::mapPotential_(UInt column, bool wrapAround)
 {
-  vector<UInt> potential(numInputs_, 0);
+  vector<UInt> potential(numInputs_,0);
   vector<UInt> indices;
   UInt index;
 
@@ -1287,17 +1293,6 @@ void SpatialPooler::seed_(UInt64 seed)
   rng_ = Random(seed);
 }
 
-
-UInt SpatialPooler::persistentSize()
-{
-  // TODO: this won't scale!
-  stringstream s;
-  s.flags(ios::scientific);
-  s.precision(numeric_limits<double>::digits10 + 1);
-  this->save(s);
-  return s.str().size();
-}
-
 void SpatialPooler::save(ostream& outStream)
 {
   // Write a starting marker and version.
@@ -1406,7 +1401,6 @@ void SpatialPooler::save(ostream& outStream)
   outStream << rng_ << endl;
 
   outStream << "~SpatialPooler" << endl;
-
 }
 
 // Implementation note: this method sets up the instance using data from
@@ -1543,6 +1537,245 @@ void SpatialPooler::load(istream& inStream)
   NTA_CHECK(marker == "~SpatialPooler");
 
   // initialize ephemeral members
+  overlaps_.resize(numColumns_);
+  overlapsPct_.resize(numColumns_);
+  boostedOverlaps_.resize(numColumns_);
+}
+
+void SpatialPooler::write(SpatialPoolerProto::Builder& proto)
+{
+  auto random = proto.initRandom();
+  rng_.write(random);
+  proto.setNumInputs(numInputs_);
+  proto.setNumColumns(numColumns_);
+
+  auto columnDims = proto.initColumnDimensions(columnDimensions_.size());
+  for (int i = 0; i < columnDimensions_.size(); ++i)
+  {
+    columnDims.set(i, columnDimensions_[i]);
+  }
+
+  auto inputDims = proto.initInputDimensions(inputDimensions_.size());
+  for (int i = 0; i < inputDimensions_.size(); ++i)
+  {
+    inputDims.set(i, inputDimensions_[i]);
+  }
+
+  proto.setPotentialRadius(potentialRadius_);
+  proto.setPotentialPct(potentialPct_);
+  proto.setInhibitionRadius(inhibitionRadius_);
+  proto.setGlobalInhibition(globalInhibition_);
+  proto.setNumActiveColumnsPerInhArea(numActiveColumnsPerInhArea_);
+  proto.setLocalAreaDensity(localAreaDensity_);
+  proto.setStimulusThreshold(stimulusThreshold_);
+  proto.setSynPermInactiveDec(synPermInactiveDec_);
+  proto.setSynPermActiveInc(synPermActiveInc_);
+  proto.setSynPermBelowStimulusInc(synPermBelowStimulusInc_);
+  proto.setSynPermConnected(synPermConnected_);
+  proto.setMinPctOverlapDutyCycles(minPctOverlapDutyCycles_);
+  proto.setMinPctActiveDutyCycles(minPctActiveDutyCycles_);
+  proto.setDutyCyclePeriod(dutyCyclePeriod_);
+  proto.setMaxBoost(maxBoost_);
+  proto.setWrapAround(wrapAround_);
+  proto.setSpVerbosity(spVerbosity_);
+
+  proto.setSynPermMin(synPermMin_);
+  proto.setSynPermMax(synPermMax_);
+  proto.setSynPermTrimThreshold(synPermTrimThreshold_);
+  proto.setUpdatePeriod(updatePeriod_);
+
+  proto.setVersion(version_);
+  proto.setIterationNum(iterationNum_);
+  proto.setIterationLearnNum(iterationLearnNum_);
+
+  auto potentialPools = proto.initPotentialPools(numColumns_);
+  for (UInt i = 0; i < numColumns_; ++i)
+  {
+    auto & pot = potentialPools_.getSparseRow(i);
+    auto pool = potentialPools.init(i, pot.size());
+    for (UInt j = 0; j < pot.size(); ++j)
+    {
+      pool.set(j, pot[j]);
+    }
+  }
+
+  auto permanences = proto.initPermanences(numColumns_);
+  for (UInt i = 0; i < numColumns_; ++i)
+  {
+    // TODO: Get a reference to the vector rather than building a new one?
+    vector<pair<UInt, Real> > perm;
+    perm.resize(permanences_.nNonZerosOnRow(i));
+    permanences_.getRowToSparse(i, perm.begin());
+
+    auto pool = permanences.init(i, perm.size());
+
+    for (UInt j = 0; j < perm.size(); ++j)
+    {
+      auto sf = pool[j];
+      sf.setIndex(perm[j].first);
+      sf.setValue(perm[j].second);
+    }
+  }
+
+  auto tieBreaker = proto.initTieBreaker(numColumns_);
+  for (UInt i = 0; i < numColumns_; ++i)
+  {
+    tieBreaker.set(i, tieBreaker_[i]);
+  }
+
+  auto overlapDutyCycles = proto.initOverlapDutyCycles(numColumns_);
+  for (UInt i = 0; i < numColumns_; ++i)
+  {
+    overlapDutyCycles.set(i, overlapDutyCycles_[i]);
+  }
+
+  auto activeDutyCycles = proto.initActiveDutyCycles(numColumns_);
+  for (UInt i = 0; i < numColumns_; ++i)
+  {
+    activeDutyCycles.set(i, activeDutyCycles_[i]);
+  }
+
+  auto minOverlapDutyCycles = proto.initMinOverlapDutyCycles(numColumns_);
+  for (UInt i = 0; i < numColumns_; ++i)
+  {
+    minOverlapDutyCycles.set(i, minOverlapDutyCycles_[i]);
+  }
+
+  auto minActiveDutyCycles = proto.initMinActiveDutyCycles(numColumns_);
+  for (UInt i = 0; i < numColumns_; ++i)
+  {
+    minActiveDutyCycles.set(i, minActiveDutyCycles_[i]);
+  }
+
+  auto boostFactors = proto.initBoostFactors(numColumns_);
+  for (UInt i = 0; i < numColumns_; ++i)
+  {
+    boostFactors.set(i, boostFactors_[i]);
+  }
+}
+
+void SpatialPooler::write(ostream& stream)
+{
+  capnp::MallocMessageBuilder message;
+  SpatialPoolerProto::Builder proto = message.initRoot<SpatialPoolerProto>();
+  write(proto);
+
+  proto::StdOutputStream out(stream);
+  capnp::writeMessage(out, message);
+}
+
+// Implementation note: this method sets up the instance using data from
+// inStream. This method does not call initialize. As such we have to be careful
+// that everything in initialize is handled properly here.
+void SpatialPooler::read(istream& stream)
+{
+  proto::StdInputStream in(stream);
+
+  capnp::InputStreamMessageReader message(in);
+  SpatialPoolerProto::Reader proto = message.getRoot<SpatialPoolerProto>();
+  read(proto);
+}
+
+void SpatialPooler::read(SpatialPoolerProto::Reader& proto)
+{
+  auto randomProto = proto.getRandom();
+  rng_.read(randomProto);
+  numInputs_ = proto.getNumInputs();
+  numColumns_ = proto.getNumColumns();
+
+  columnDimensions_.clear();
+  for (UInt dimension : proto.getColumnDimensions())
+  {
+    columnDimensions_.push_back(dimension);
+  }
+
+  inputDimensions_.clear();
+  for (UInt dimension : proto.getInputDimensions())
+  {
+    inputDimensions_.push_back(dimension);
+  }
+
+  potentialRadius_ = proto.getPotentialRadius();
+
+  potentialPct_ = proto.getPotentialPct();
+  inhibitionRadius_ = proto.getInhibitionRadius();
+  globalInhibition_ = proto.getGlobalInhibition();
+  numActiveColumnsPerInhArea_ = proto.getNumActiveColumnsPerInhArea();
+  localAreaDensity_ = proto.getLocalAreaDensity();
+  stimulusThreshold_ = proto.getStimulusThreshold();
+  synPermInactiveDec_ = proto.getSynPermInactiveDec();
+  synPermActiveInc_ = proto.getSynPermActiveInc();
+  synPermBelowStimulusInc_ = proto.getSynPermBelowStimulusInc();
+  synPermConnected_ = proto.getSynPermConnected();
+  minPctOverlapDutyCycles_ = proto.getMinPctOverlapDutyCycles();
+  minPctActiveDutyCycles_ = proto.getMinPctActiveDutyCycles();
+  dutyCyclePeriod_ = proto.getDutyCyclePeriod();
+  maxBoost_ = proto.getMaxBoost();
+  wrapAround_ = proto.getWrapAround();
+  spVerbosity_ = proto.getSpVerbosity();
+
+  synPermMin_ = proto.getSynPermMin();
+  synPermMax_ = proto.getSynPermMax();
+  synPermTrimThreshold_ = proto.getSynPermTrimThreshold();
+  updatePeriod_ = proto.getUpdatePeriod();
+
+  version_ = proto.getVersion();
+  iterationNum_ = proto.getIterationNum();
+  iterationLearnNum_ = proto.getIterationLearnNum();
+
+  potentialPools_.resize(numColumns_, numInputs_);
+  auto potentialPools = proto.getPotentialPools();
+  for (UInt i = 0; i < numColumns_; ++i)
+  {
+    potentialPools_.replaceSparseRow(
+        i, potentialPools[i].begin(), potentialPools[i].end());
+  }
+
+  permanences_.resize(numColumns_, numInputs_);
+  connectedSynapses_.resize(numColumns_, numInputs_);
+  connectedCounts_.resize(numColumns_);
+  auto permanences = proto.getPermanences();
+  for (UInt i = 0; i < numColumns_; ++i)
+  {
+    vector<Real> colPerms(numInputs_, 0);
+    for (auto perm : permanences[i])
+    {
+      colPerms[perm.getIndex()] = perm.getValue();
+    }
+    updatePermanencesForColumn_(colPerms, i, false);
+  }
+
+  for (auto value : proto.getTieBreaker())
+  {
+    tieBreaker_.push_back(value);
+  }
+
+  for (auto value : proto.getOverlapDutyCycles())
+  {
+    overlapDutyCycles_.push_back(value);
+  }
+
+  for (auto value : proto.getActiveDutyCycles())
+  {
+    activeDutyCycles_.push_back(value);
+  }
+
+  for (auto value : proto.getMinOverlapDutyCycles())
+  {
+    minOverlapDutyCycles_.push_back(value);
+  }
+
+  for (auto value : proto.getMinActiveDutyCycles())
+  {
+    minActiveDutyCycles_.push_back(value);
+  }
+
+  for (auto value : proto.getBoostFactors())
+  {
+    boostFactors_.push_back(value);
+  }
+
+  // Initialize ephemerals
   overlaps_.resize(numColumns_);
   overlapsPct_.resize(numColumns_);
   boostedOverlaps_.resize(numColumns_);

@@ -192,6 +192,7 @@ include_directories(${CAPNP_INCLUDE_DIRS})
 # List all .capnp files here. The C++ files will be generated and included
 # when compiling later on.
 set(CAPNP_SPECS
+    nupic/algorithms/SpatialPoolerProto.capnp
     nupic/utils/RandomProto.capnp
 )
 capnp_generate_cpp(CAPNP_SRCS CAPNP_HDRS ${CAPNP_SPECS})
