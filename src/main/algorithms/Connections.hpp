@@ -104,8 +104,8 @@ namespace nta
        * The SynapseData class is a data structure that contains the data for a
        * synapse on a segment.
        *
-       * @param presynapticCell Cell that this synapse gets input from.
-       * @param permanence      Permanence of synapse.
+       * @param presynapticCellIdx Cell that this synapse gets input from.
+       * @param permanence         Permanence of synapse.
        * 
        */
       struct SynapseData
@@ -223,6 +223,15 @@ namespace nta
          @retval Synapses on segment.
         */
         std::vector<Synapse> getSynapsesForSegment(const Segment& segment);
+
+        /**
+         Gets the data for a synapse.
+
+         @param synapse Synapse to get data for.
+
+         @retval Synapse data.
+        */
+        SynapseData getDataForSynapse(const Synapse& synapse);
 
         /**
          Gets the segment with the most active synapses due to given input,

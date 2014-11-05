@@ -77,10 +77,11 @@ namespace nta {
     Connections connections(1024);
     setup(connections);
 
-    Cell cell = {10}, presynapticCell = {50};
+    Cell cell = {10}, presynapticCell;
     Segment segment = connections.createSegment(cell);
     Synapse synapse;
 
+    presynapticCell.idx = 50;
     synapse = connections.createSynapse(segment, presynapticCell, 0.34);
     NTA_ASSERT(synapse.idx == 0);
     NTA_ASSERT(synapse.segmentIdx == segment.idx);
@@ -98,6 +99,16 @@ namespace nta {
       NTA_ASSERT(synapses[i].segmentIdx == segment.idx);
       NTA_ASSERT(synapses[i].cellIdx == cell.idx);
     }
+
+    SynapseData synapseData;
+
+    synapseData = connections.getDataForSynapse(synapses[0]);
+    NTA_ASSERT(synapseData.presynapticCell.idx == 50);
+    NTA_ASSERT(nearlyEqual(synapseData.permanence, (Permanence)0.34));
+
+    synapseData = connections.getDataForSynapse(synapses[1]);
+    NTA_ASSERT(synapseData.presynapticCell.idx == 150);
+    NTA_ASSERT(nearlyEqual(synapseData.permanence, (Permanence)0.48));
   }
 
   void ConnectionsTest::testUpdateSynapsePermanence()
@@ -111,8 +122,8 @@ namespace nta {
 
     connections.updateSynapsePermanence(synapse, 0.21);
 
-    // TODO: Add assertions on synapse data
-    // NTA_ASSERT(nearlyEqual(synapse.permanence, (Real)0.21));
+    SynapseData synapseData = connections.getDataForSynapse(synapse);
+    NTA_ASSERT(nearlyEqual(synapseData.permanence, (Real)0.21));
   }
 
   void ConnectionsTest::testGetMostActiveSegmentForCells()

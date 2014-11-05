@@ -53,7 +53,7 @@ Synapse Connections::createSynapse(const Segment& segment,
   vector<SynapseData>& synapses = cells_[segment.cellIdx].segments[segment.idx].synapses;
   Synapse synapse = {synapses.size(), segment.idx, segment.cellIdx};
 
-  SynapseData synapseData;
+  SynapseData synapseData = {presynapticCell, permanence};  // TODO: Does this copy presynapticCell?
   synapses.push_back(synapseData);
 
   return synapse;
@@ -62,6 +62,7 @@ Synapse Connections::createSynapse(const Segment& segment,
 void Connections::updateSynapsePermanence(const Synapse& synapse,
                                           Permanence permanence)
 {
+  cells_[synapse.cellIdx].segments[synapse.segmentIdx].synapses[synapse.idx].permanence = permanence;
 }
 
 vector<Segment> Connections::getSegmentsForCell(const Cell& cell)
@@ -91,6 +92,11 @@ vector<Synapse> Connections::getSynapsesForSegment(const Segment& segment)
   }
 
   return synapses;
+}
+
+SynapseData Connections::getDataForSynapse(const Synapse& synapse)
+{
+  return cells_[synapse.cellIdx].segments[synapse.segmentIdx].synapses[synapse.idx];
 }
 
 bool Connections::getMostActiveSegmentForCells(const std::vector<Cell>& cells,
