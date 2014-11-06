@@ -58,6 +58,9 @@ namespace nta
       {
         CellIdx idx;
 
+        Cell(CellIdx idx) : idx(idx) {}
+        Cell() {}
+
         bool operator==(const Cell &other) const;
         bool operator<=(const Cell &other) const;
         bool operator<(const Cell &other) const;
@@ -80,6 +83,9 @@ namespace nta
       {
         SegmentIdx idx;
         Cell cell;
+
+        Segment(SegmentIdx idx, Cell cell) : idx(idx), cell(cell) {}
+        Segment() {}
 
         bool operator==(const Segment &other) const;
         bool operator<=(const Segment &other) const;
@@ -104,6 +110,9 @@ namespace nta
       {
         SynapseIdx idx;
         Segment segment;
+
+        Synapse(SynapseIdx idx, Segment segment) : idx(idx), segment(segment) {}
+        Synapse() {}
 
         bool operator==(const Synapse &other) const;
       };

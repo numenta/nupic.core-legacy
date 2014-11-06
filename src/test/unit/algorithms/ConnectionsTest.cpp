@@ -53,7 +53,7 @@ namespace nta {
     setup(connections);
 
     Segment segment;
-    Cell cell = {10};
+    Cell cell(10);
 
     segment = connections.createSegment(cell);
     TESTEQUAL(segment.idx, 0);
@@ -77,7 +77,7 @@ namespace nta {
     Connections connections(1024);
     setup(connections);
 
-    Cell cell = {10}, presynapticCell;
+    Cell cell(10), presynapticCell;
     Segment segment = connections.createSegment(cell);
     Synapse synapse;
 
@@ -116,7 +116,7 @@ namespace nta {
     Connections connections(1024);
     setup(connections);
 
-    Cell cell = {10}, presynapticCell = {50};
+    Cell cell(10), presynapticCell(50);
     Segment segment = connections.createSegment(cell);
     Synapse synapse = connections.createSynapse(segment, presynapticCell, 0.34);
 
@@ -144,11 +144,11 @@ namespace nta {
     segment = connections.createSegment(cell);
     synapse = connections.createSynapse(segment, presynapticCell, 0.85);
 
-    Cell cell1 = {10}, cell2 = {20};
+    Cell cell1(10), cell2(20);
     cells.push_back(cell1);
     cells.push_back(cell2);
 
-    Cell input1 = {50};
+    Cell input1(50);
     input.push_back(input1);
 
     bool result = connections.getMostActiveSegmentForCells(
@@ -178,11 +178,11 @@ namespace nta {
     segment = connections.createSegment(cell);
     synapse = connections.createSynapse(segment, presynapticCell, 0.85);
 
-    Cell cell1 = {10}, cell2 = {20};
+    Cell cell1(10), cell2(20);
     cells.push_back(cell1);
     cells.push_back(cell2);
 
-    Cell input1 = {150};
+    Cell input1(150);
     input.push_back(input1);
 
     bool result = connections.getMostActiveSegmentForCells(

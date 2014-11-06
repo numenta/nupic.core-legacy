@@ -38,7 +38,7 @@ Connections::Connections(CellIdx numCells) : cells_(numCells)
 Segment Connections::createSegment(const Cell& cell)
 {
   vector<SegmentData>& segments = cells_[cell.idx].segments;
-  Segment segment = {segments.size(), cell};
+  Segment segment(segments.size(), cell);
 
   SegmentData segmentData;
   segments.push_back(segmentData);
@@ -53,7 +53,7 @@ Synapse Connections::createSynapse(const Segment& segment,
   const Cell& cell = segment.cell;
 
   vector<SynapseData>& synapses = cells_[cell.idx].segments[segment.idx].synapses;
-  Synapse synapse = {synapses.size(), segment};
+  Synapse synapse(synapses.size(), segment);
 
   SynapseData synapseData = {presynapticCell, permanence};
   synapses.push_back(synapseData);
