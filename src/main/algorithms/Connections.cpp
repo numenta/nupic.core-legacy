@@ -58,6 +58,8 @@ Synapse Connections::createSynapse(const Segment& segment,
   SynapseData synapseData = {presynapticCell, permanence};
   synapses.push_back(synapseData);
 
+  synapsesForPresynapticCell_[presynapticCell].push_back(synapse);
+
   return synapse;
 }
 
@@ -149,25 +151,25 @@ Activity Connections::computeActivity(const vector<Cell>& input,
                                       UInt synapseThreshold) const
 {
   Activity activity;
-  // vector<Synapse> synapses;
-  // SynapseData synapseData;
-  // Synapse synapse;
+  vector<Synapse> synapses;
+  SynapseData synapseData;
 
-  // for (vector<Cell>::const_iterator c = input.begin(); c != input.end(); c++) {
-  //   synapses = synapsesForPresynapticCell_[*c];
+  for (vector<Cell>::const_iterator cell = input.begin(); cell != input.end(); cell++) {
+    if (!synapsesForPresynapticCell_.count(*cell)) continue;
+    synapses = synapsesForPresynapticCell_.at(*cell);
 
-  //   for (vector<Synapse>::const_iterator s = synapses.begin(); s != synapses.end(); s++) {
-  //     synapseData = getDataForSynapse(*s);
+    for (vector<Synapse>::const_iterator synapse = synapses.begin(); synapse != synapses.end(); synapse++) {
+      synapseData = getDataForSynapse(*synapse);
 
-  //     if (synapseData.permanence >= permanenceThreshold) {
-  //       activity.numActiveSynapsesForSegment[synapse.segment] += 1;
-  //     }
+      if (synapseData.permanence >= permanenceThreshold) {
+        activity.numActiveSynapsesForSegment[synapse->segment] += 1;
 
-  //     if (activity.numActiveSynapsesForSegment[synapse.segment]) {
-  //       activity.numActiveSegmentsForCell[*c] += 1;
-  //     }
-  //   }
-  // }
+        if (activity.numActiveSynapsesForSegment[synapse->segment] == synapseThreshold) {
+          activity.numActiveSegmentsForCell[synapse->segment.cell] += 1;
+        }
+      }
+    }
+  }
 
   return activity;
 }
@@ -196,8 +198,29 @@ bool Cell::operator>(const Cell &other) const
   return idx > other.idx;
 }
 
-bool Segment::operator==(const Segment &other) const {
+bool Segment::operator==(const Segment &other) const
+{
   return idx == other.idx && cell == other.cell;
+}
+
+bool Segment::operator<=(const Segment &other) const
+{
+  return idx == other.idx ? cell <= other.cell : idx <= other.idx;
+}
+
+bool Segment::operator<(const Segment &other) const
+{
+  return idx == other.idx ? cell < other.cell : idx < other.idx;
+}
+
+bool Segment::operator>=(const Segment &other) const
+{
+  return idx == other.idx ? cell >= other.cell : idx >= other.idx;
+}
+
+bool Segment::operator>(const Segment &other) const
+{
+  return idx == other.idx ? cell > other.cell : idx > other.idx;
 }
 
 bool Synapse::operator==(const Synapse &other) const {

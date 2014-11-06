@@ -82,6 +82,10 @@ namespace nta
         Cell cell;
 
         bool operator==(const Segment &other) const;
+        bool operator<=(const Segment &other) const;
+        bool operator<(const Segment &other) const;
+        bool operator>=(const Segment &other) const;
+        bool operator>(const Segment &other) const;
       };
 
       /**

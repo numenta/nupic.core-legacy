@@ -196,15 +196,58 @@ namespace nta {
     Connections connections(1024);
     setup(connections);
     vector<Cell> input;
-    Cell cell;
+    Segment segment;
+    Synapse synapse;
+    Cell cell, presynapticCell;
 
-    for (CellIdx i = 10; i <= 20; i += 10) {
-      cell.idx = i;
-      input.push_back(cell);
-    }
+    cell.idx = 10;
+    segment = connections.createSegment(cell);
 
-    Activity activity = connections.computeActivity(input, 0.10, 5);
-    // TODO: Add assertion
+    presynapticCell.idx = 150;
+    synapse = connections.createSynapse(segment, presynapticCell, 0.85);
+    presynapticCell.idx = 151;
+    synapse = connections.createSynapse(segment, presynapticCell, 0.15);
+
+    cell.idx = 20;
+    segment = connections.createSegment(cell);
+
+    presynapticCell.idx = 50;
+    synapse = connections.createSynapse(segment, presynapticCell, 0.85);
+    presynapticCell.idx = 51;
+    synapse = connections.createSynapse(segment, presynapticCell, 0.85);
+    presynapticCell.idx = 52;
+    synapse = connections.createSynapse(segment, presynapticCell, 0.15);
+
+    segment = connections.createSegment(cell);
+
+    presynapticCell.idx = 80;
+    synapse = connections.createSynapse(segment, presynapticCell, 0.85);
+    presynapticCell.idx = 81;
+    synapse = connections.createSynapse(segment, presynapticCell, 0.85);
+    presynapticCell.idx = 82;
+    synapse = connections.createSynapse(segment, presynapticCell, 0.15);
+
+    cell.idx = 150; input.push_back(cell);
+    cell.idx = 151; input.push_back(cell);
+    cell.idx = 50; input.push_back(cell);
+    cell.idx = 52; input.push_back(cell);
+    cell.idx = 80; input.push_back(cell);
+    cell.idx = 81; input.push_back(cell);
+    cell.idx = 82; input.push_back(cell);
+
+    Activity activity = connections.computeActivity(input, 0.50, 2);
+
+    TESTEQUAL(activity.numActiveSegmentsForCell.size(), 1);
+    cell.idx = 20;
+    TESTEQUAL(activity.numActiveSegmentsForCell[cell], 1);
+
+    TESTEQUAL(activity.numActiveSynapsesForSegment.size(), 3);
+    segment.cell.idx = 10; segment.idx = 0;
+    TESTEQUAL(activity.numActiveSynapsesForSegment[segment], 1);
+    segment.cell.idx = 20; segment.idx = 0;
+    TESTEQUAL(activity.numActiveSynapsesForSegment[segment], 1);
+    segment.cell.idx = 20; segment.idx = 1;
+    TESTEQUAL(activity.numActiveSynapsesForSegment[segment], 2);
   }
 
 } // end namespace nta
