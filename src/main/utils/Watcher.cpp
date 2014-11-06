@@ -101,9 +101,9 @@ namespace nta
   {
     allData& data = *(static_cast<allData*>(dataIn));
     //iterate through each watch
-    for (UInt i = 0; i < data.watches.size(); i++)
+    for (auto & elem : data.watches)
     {
-      watchData watch = data.watches.at(i);
+      watchData watch = elem;
       std::string value;
       std::stringstream out;
       if (watch.wType == parameter)
