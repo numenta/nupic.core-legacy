@@ -30,13 +30,12 @@
 ################################################################################
 
 # These macros copy all source directories after the configuration is done
-macro (copy suffix src dst)  
+macro (copy suffix src dst)
   message(STATUS "Copying from '${src}' to '${dst}'")
   execute_process(COMMAND ${CMAKE_COMMAND} -E copy${suffix} ${src} ${dst})
 endmacro()
 macro (copy_file src dst)
-  # use `copy_if_different` to prevent triggering a full `make` everytime
-  copy("_if_different" ${src} ${dst})
+  copy("" ${src} ${dst})
 endmacro()
 macro (copy_directory src dst)
   copy("_directory" ${src} ${dst})
@@ -363,10 +362,10 @@ set(NTA_PLATFORM_LINKFLAGS "")
 if(OSX)
   set(CMAKE_OSX_DEPLOYMENT_TARGET "10.7")
   set(NTA_PLATFORM_OS "darwin64")
-  set(NTA_PLATFORM_CXXFLAGS "${NTA_PLATFORM_CXXFLAGS} -m64")
+  set(NTA_PLATFORM_CXXFLAGS "${NTA_PLATFORM_CXXFLAGS} -m64 -stdlib=libc++")
   set(NTA_PLATFORM_CXXFLAGS_DEBUG "-gfull")
-  set(NTA_PLATFORM_LINKFLAGS "${NTA_PLATFORM_LINKFLAGS} -Wl,-u,_munmap")
-  set(NTA_PLATFORM_LIBS "${NTA_PLATFORM_LIBS} -std=c++11 -stdlib=libstdc++ -lc++abi -liconv -lsqlite3 -framework CoreServices -framework Accelerate")
+  set(NTA_PLATFORM_LINKFLAGS "${NTA_PLATFORM_LINKFLAGS} -Wl,-u,_munmap -m64 -stdlib=libc++")
+  set(NTA_PLATFORM_LIBS "${NTA_PLATFORM_LIBS} -lc++abi -liconv -lsqlite3 -framework CoreServices -framework Accelerate")
 elseif(LINUX)
   set(NTA_PLATFORM_CXXFLAGS_DEBUG "-g")
   set(NTA_PLATFORM_LINKFLAGS "${NTA_PLATFORM_LINKFLAGS} -Wl,--no-as-needed -static-libgcc")
@@ -424,6 +423,8 @@ message(STATUS "Checking software tools...")
 if(NOT ${NTA_COMPILER_FAMILY} STREQUAL "MSVC")
   execute_process(COMMAND ${CMAKE_CXX_COMPILER} -dumpversion
                   OUTPUT_VARIABLE CXX_VERSION)
+else()
+  set(CXX_VERSION ${CMAKE_CXX_COMPILER_VERSION})
 endif()
 
 message(STATUS "Compiler details:")
@@ -458,8 +459,10 @@ message(STATUS "  Install      : ${CMAKE_INSTALL_PREFIX}")
 # directly to CXXBASE_FLAGS is that cmake deploys "internal smarts" for
 # compatibility with different compilers (clang, gcc 4.6 vs 4.8)
 if(NOT ${NTA_COMPILER_FAMILY} STREQUAL "MSVC")
-  add_definitions(-std=c++98) # smart flag setting for gcc/clang
+  add_definitions(-std=c++11) # smart flag setting for gcc/clang
+#  add_definitions(-std=gnu++0x) # smart flag setting for gcc/clang
 endif()
+
 #
 # Get extra flags passed by command line.
 #
@@ -512,7 +515,7 @@ if(${NTA_COMPILER_FAMILY} STREQUAL "MSVC")
   if(NTA_OPTIMIZATION_ENABLED AND NOT ${CMAKE_BUILD_TYPE} EQUAL "Debug")
     set(NTA_CXXFLAGS_OPTIMIZATION "/O2 /Ob2 ${D}NTA_ASM")
   else()
-    set(NTA_CXXFLAGS_OPTIMIZATION "/O0 /Ob0")
+    set(NTA_CXXFLAGS_OPTIMIZATION "/Od")
   endif()
 endif()
 message(STATUS "  Optimization : ${NTA_OPTIMIZATION_ENABLED}")
@@ -589,7 +592,7 @@ if(${NTA_COMPILER_FAMILY} STREQUAL "GNU")
 elseif(${NTA_COMPILER_FAMILY} STREQUAL "CLANG")
   set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -fPIC -DPIC -DHAVE_CONFIG_H -DHAVE_UNISTD_H -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-unused-parameter")
 elseif(${NTA_COMPILER_FAMILY} EQUAL "MSVC")
-  set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} /DWIN32 /D_WINDOWS /DNDEBUG /DPSAPI_VERSION=1 /D_MBCS /D_CRT_SECURE_NO_WARNINGS")
+  set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} /DWIN32 /D_WINDOWS /DPSAPI_VERSION=1 /D_MBCS /D_CRT_SECURE_NO_WARNINGS")
 else()
   # TODO: What compilers is it for? Should it be more explicit?
   set(NTA_LINKFLAGS_ARCHIVES "-Wl,-force_load")
@@ -604,12 +607,11 @@ set(NTA_CXXFLAGS_STATIC "${NTA_CXXFLAGS}")
 set(NTA_CXXFLAGS_DYNAMIC "${NTA_CXXFLAGS}")
 
 if(${NTA_COMPILER_FAMILY} EQUAL "MSVC")
-  set(CMAKE_CXX_FLAGS_DEBUG "${NTA_CXXFLAGS} /MTd /Od /D_DEBUG /Zi")
-  string (REPLACE "/DNDEBUG" " " CMAKE_CXX_FLAGS_DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
+  set(CMAKE_CXX_FLAGS_DEBUG "${NTA_CXXFLAGS} /MTd /D_DEBUG /Zi")
   string (REPLACE "/MD" " " CMAKE_CXX_FLAGS_DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
-  string (REPLACE "/O3" " " CMAKE_CXX_FLAGS_DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
   set(NTA_CXXFLAGS_DYNAMIC "${NTA_CXXFLAGS} ${D}DLL ${D}_USRDLL")
 endif()
+
 
 ################################################################################
 ###                                                                          ###
@@ -637,6 +639,12 @@ set(LIB_STATIC_YAML yaml)
 add_library(${LIB_STATIC_YAML} STATIC IMPORTED)
 set_property(TARGET ${LIB_STATIC_YAML} PROPERTY IMPORTED_LOCATION "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib/${STATIC_LIB_PREFIX}yaml.${STATIC_LIB_EXTENSION}")
 
+if(OSX)
+  set(LIB_STATIC_YAML_CPP yaml-cpp)
+  add_library(${LIB_STATIC_YAML_CPP} STATIC IMPORTED)
+  set_property(TARGET ${LIB_STATIC_YAML_CPP} PROPERTY IMPORTED_LOCATION "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib/libyaml-cpp.${STATIC_LIB_EXTENSION}")
+endif()
+
 if(SOLARIS)
   set(LIB_STATIC_YAML_CPP yaml-cpp)
   add_library(${LIB_STATIC_YAML_CPP} STATIC IMPORTED)
@@ -644,10 +652,6 @@ if(SOLARIS)
 endif()
 
 if(WINDOWS)
-  set(LIB_STATIC_APRICONV1 apriconv-1)
-  add_library(${LIB_STATIC_APRICONV1} STATIC IMPORTED)
-  set_property(TARGET ${LIB_STATIC_APRICONV1} PROPERTY IMPORTED_LOCATION "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib/${STATIC_LIB_PREFIX}apriconv-1.${STATIC_LIB_EXTENSION}")
-
   set(LIB_STATIC_PCRE pcre)
   add_library(${LIB_STATIC_PCRE} STATIC IMPORTED)
   set_property(TARGET ${LIB_STATIC_PCRE} PROPERTY IMPORTED_LOCATION "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib/${STATIC_LIB_PREFIX}pcre.${STATIC_LIB_EXTENSION}")
@@ -662,7 +666,6 @@ if(WINDOWS)
   
   # define debug libraries
   set_property(TARGET ${LIB_STATIC_APR1} PROPERTY IMPORTED_LOCATION_DEBUG "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib/${STATIC_LIB_PREFIX}apr-1d.${STATIC_LIB_EXTENSION}")  
-  set_property(TARGET ${LIB_STATIC_APRICONV1} PROPERTY IMPORTED_LOCATION_DEBUG "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib/${STATIC_LIB_PREFIX}apriconv-1d.${STATIC_LIB_EXTENSION}")
   set_property(TARGET ${LIB_STATIC_APRUTIL1} PROPERTY IMPORTED_LOCATION_DEBUG "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib/${STATIC_LIB_PREFIX}aprutil-1d.${STATIC_LIB_EXTENSION}")
   set_property(TARGET ${LIB_STATIC_Z} PROPERTY IMPORTED_LOCATION_DEBUG "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib/libzd.${STATIC_LIB_EXTENSION}")
   set_property(TARGET ${LIB_STATIC_PCRE} PROPERTY IMPORTED_LOCATION_DEBUG "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib/${STATIC_LIB_PREFIX}pcred.${STATIC_LIB_EXTENSION}")
@@ -674,7 +677,7 @@ endif()
 #
 # Set list of external libraries to this project.
 #
-if(SOLARIS)
+if(SOLARIS OR OSX)
   set(NTA_STANDARD_LIBS
     ${LIB_STATIC_YAML} ${LIB_STATIC_YAML_CPP}
     ${LIB_STATIC_APR1} ${LIB_STATIC_APRUTIL1}
@@ -718,8 +721,8 @@ generate_static_library(${LIB_STATIC_NUPICCORE} "${PROJECT_SOURCE_DIR}/main" "${
 # Merge nupic_core and all static libraries to a stand-alone library
 merge_static_libraries(${LIB_STATIC_NUPICCORE} "${CMAKE_INSTALL_PREFIX}/lib" "${LIB_STATIC_NUPICCORE};${NTA_STANDARD_LIBS}" "${LIB_STATIC_NUPICCORE}")
 
-if(WINDOWS)
-  set(LIB_DYNAMIC_NUPICCORE nupic_core)
+if(BUILD_SHARED_LIBS)
+  set(LIB_DYNAMIC_NUPICCORE ${DYNAMIC_LIB_PREFIX}nupic_core)
   set(LIBRARIES ${NTA_STANDARD_LIBS})
   generate_dynamic_library(${LIB_DYNAMIC_NUPICCORE} "${PROJECT_SOURCE_DIR}/main" "${CMAKE_INSTALL_PREFIX}" "${NTA_CXXFLAGS_DYNAMIC}" "${NTA_LINKFLAGS}" "" "${LIBRARIES}")
 endif()
@@ -772,19 +775,6 @@ set(LIBRARIES
 )
 generate_executable(${EXECUTABLE_HELLOREGION} "${PROJECT_SOURCE_DIR}/examples/regions" "${CMAKE_INSTALL_PREFIX}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
 
-if(WINDOWS)
-  #
-  # HelloRegion with shared lib
-  #
-  set(EXECUTABLE_HELLOREGION_SHARED helloregion_shared)
-  set(LIBRARIES
-    ${LIB_DYNAMIC_NUPICCORE}
-    ${NTA_STANDARD_LIBS}
-    ${NTA_TEST_LIBS}
-    )
-  generate_executable(${EXECUTABLE_HELLOREGION_SHARED} "${PROJECT_SOURCE_DIR}/examples/regions" "${CMAKE_INSTALL_PREFIX}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
-endif()
-
 
 ################################################################################
 ###                                                                          ###
@@ -794,7 +784,7 @@ endif()
 ################################################################################
 set(NTA_TARGET_BINARIES testcpphtm testeverything helloregion)
 
-if(WINDOWS)
+if(BUILD_SHARED_LIBS)
   set(NTA_TARGET_BINARIES ${NTA_TARGET_BINARIES} ${LIB_DYNAMIC_NUPICCORE})
 endif()
 
@@ -832,7 +822,6 @@ file(WRITE "${PROJECT_SOURCE_DIR}/test/unit/AddTests.hpp" "${tests_file_content}
 file(WRITE "${PROJECT_SOURCE_DIR}/test/unit/AddTestHeaders.hpp" "${headers_file_content}")
 
 
-
 ################################################################################
 ###                                                                          ###
 ###  5th Part:                                                               ###
@@ -845,7 +834,7 @@ file(WRITE "${PROJECT_SOURCE_DIR}/test/unit/AddTestHeaders.hpp" "${headers_file_
 #
 add_custom_target(tests_htm
                   COMMAND ${CMAKE_INSTALL_PREFIX}/bin/${EXECUTABLE_HTMTEST})
-                  
+
 add_custom_target(tests_unit
                   COMMAND ${CMAKE_INSTALL_PREFIX}/bin/${EXECUTABLE_GTESTS} "--gtest_output=xml:${PROJECT_BUILD_ARTIFACTS_DIR}/unit_tests_report.xml")
 

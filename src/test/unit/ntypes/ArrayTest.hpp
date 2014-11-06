@@ -59,14 +59,14 @@ namespace nta
       dataType(dataTypeParam),
       dataTypeSize(dataTypeSizeParam),
       allocationSize(allocationSizeParam),
-      dataTypeText(dataTypeTextParam),
+      dataTypeText(std::move(dataTypeTextParam)),
       testUsesInvalidParameters(testUsesInvalidParametersParam) { }
   };
 
   struct ArrayTest : public Tester
   {
     virtual ~ArrayTest() {}
-    virtual void RunTests();
+    virtual void RunTests() override;
         
 private:
     std::map<std::string,ArrayTestParameters> testCases_;

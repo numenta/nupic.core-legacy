@@ -38,23 +38,19 @@ Important notes:
  * Specify the source folder (`$NUPIC_CORE/src`).
  * Specify the build system folder (`$NUPIC_CORE/build/scripts`), i.e. where IDE solution will be created.
  * Click `Configure`.
- * Choose the IDE that interest you.
+ * Choose the IDE that interest you (remember that IDE choice is limited to your OS).
  * Specify the CMake install prefix (`$NUPIC_CORE/build/release`) 
  * Click `Configure`.
  * Click `Generate`.
 
-Remember that IDE choice is limited to your OS, e.g. Visual Studio is available only on CMake for Windows. Express versions of Visual Studio may need Windows SDK v7.?
+Visual Studio is available only via CMake for Windows. Express versions of Visual Studio will need Windows SDK.
 
 #### Build:
 
- * Open `nupic_core.sln' solution file generated on `$NUPIC_CORE/build/scripts`.
+ * Open `nupic_core.sln' solution file found in `$NUPIC_CORE/build/scripts`.
  * Rebuild `ALL_BUILD` project from your IDE.
 
 This will build a static Release version of the NuPIC core library. This is then used in the test programs that are built and run. Watch the Output Window for build issues and test results.
 
-The library also contains all external libraries that the core depends upon. The ALL_BUILD project will skip building the distclean and INSTALL projects. So the library can be found in '$NUPIC_CORE/build/temp/lib', with the header files in the usual install and external sub-directories.
+The library also contains all external libraries that the core depends upon. The ALL_BUILD project will skip building the distclean and INSTALL projects. The library can be found in '$CMAKE_INSTALL_PREFIX/lib', with the header files in the usual install and external sub-directories.
 
-The latest automated build can be seen here -
-https://ci.appveyor.com/project/rcrowder/nupic-core
-
-An example helloregion.exe and the two test executables can be found in `$NUPIC_CORE/build/release/bin`

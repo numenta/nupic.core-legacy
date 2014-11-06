@@ -95,11 +95,13 @@ std::string OS::getErrorMessageFromErrorCode(int errorCode)
   errorBuffer[0] = '\0';
   
 #if defined(__APPLE__) || defined(NTA_PLATFORM_sparc64)
+  // POSIX version
   int result = ::strerror_r(errorCode, errorBuffer, 1024);
   if(result == 0) errorMessage << errorBuffer;
 #else
+  // glibc version
   char *result = ::strerror_r(errorCode, errorBuffer, 1024);
-  if(result != 0) errorMessage << errorBuffer;
+  if(result != nullptr) errorMessage << errorBuffer;
 #endif 
   else errorMessage << "Error code " << errorCode;
   return errorMessage.str();

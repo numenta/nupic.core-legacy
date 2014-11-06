@@ -176,7 +176,7 @@ void nta::ArrayTest::testArrayCreation()
               testCase->first +
               " - When not passed a size, a newly created ArrayBase should "
               "have a NULL buffer",
-            buf == NULL);
+            buf == nullptr);
       TESTEQUAL2("Test case: " +
                   testCase->first +
                   " - When not passed a size, a newly created ArrayBase should "
@@ -328,7 +328,7 @@ void nta::ArrayTest::testBufferRelease()
             testCase->first +
             " - ArrayBase should no longer hold a reference to a locally allocated "
             "buffer after calling releaseBuffer",
-          NULL == a.getBuffer());
+          nullptr == a.getBuffer());
   }    
 }
 
@@ -405,10 +405,8 @@ void nta::ArrayTest::RunTests()
     ArrayTestParameters(NTA_BasicType_Int32, 4, 0, "Int32", false);
   testCases_["NTA_BasicType_Int32, size UINT_MAX"] =
     ArrayTestParameters(NTA_BasicType_Int32, 4, UINT_MAX, "Int32", true);
-#if !defined(NTA_COMPILER_MSVC)
   testCases_["NTA_BasicType_Int32, size -10"] =
     ArrayTestParameters(NTA_BasicType_Int32, 4, -10, "Int32", true);
-#endif
   testCases_["NTA_BasicType_Int32, size 10"] =
     ArrayTestParameters(NTA_BasicType_Int32, 4, 10, "Int32", false);
   
