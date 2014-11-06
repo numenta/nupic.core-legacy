@@ -44,7 +44,7 @@ namespace nta {
     virtual ~DomainUnitTest() {}
 
     // Run all appropriate tests
-    virtual void RunTests();
+    virtual void RunTests() override;
 
   private:
 
