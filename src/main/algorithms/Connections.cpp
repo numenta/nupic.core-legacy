@@ -163,7 +163,7 @@ Activity Connections::computeActivity(const vector<Cell>& input,
         activity.numActiveSynapsesForSegment[synapse->segment] += 1;
 
         if (activity.numActiveSynapsesForSegment[synapse->segment] == synapseThreshold) {
-          activity.numActiveSegmentsForCell[synapse->segment.cell] += 1;
+          activity.activeSegmentsForCell[synapse->segment.cell].push_back(synapse->segment);
         }
       }
     }

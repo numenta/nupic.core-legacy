@@ -187,9 +187,12 @@ namespace nta {
     Segment segment;
     Activity activity = computeActivity(connections);
 
-    TESTEQUAL(activity.numActiveSegmentsForCell.size(), 1);
+    TESTEQUAL(activity.activeSegmentsForCell.size(), 1);
     cell.idx = 20;
-    TESTEQUAL(activity.numActiveSegmentsForCell[cell], 1);
+    TESTEQUAL(activity.activeSegmentsForCell[cell].size(), 1);
+    segment = activity.activeSegmentsForCell[cell][0];
+    TESTEQUAL(segment.idx, 1);
+    TESTEQUAL(segment.cell.idx, 20);
 
     TESTEQUAL(activity.numActiveSynapsesForSegment.size(), 3);
     segment.cell.idx = 10; segment.idx = 0;

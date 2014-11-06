@@ -175,7 +175,7 @@ namespace nta
        */
       struct Activity
       {
-        std::map<Cell, UInt> numActiveSegmentsForCell;
+        std::map< Cell, std::vector<Segment> > activeSegmentsForCell;
         std::map<Segment, UInt> numActiveSynapsesForSegment;
       };
 
