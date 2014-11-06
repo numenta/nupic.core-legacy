@@ -107,8 +107,8 @@ SynapseData Connections::getDataForSynapse(const Synapse& synapse) const
   return cells_[cell.idx].segments[segment.idx].synapses[synapse.idx];
 }
 
-bool Connections::getMostActiveSegmentForCells(const std::vector<Cell>& cells,
-                                               const std::vector<Cell>& input,
+bool Connections::getMostActiveSegmentForCells(const vector<Cell>& cells,
+                                               vector<Cell> input,
                                                UInt synapseThreshold,
                                                Segment& retSegment) const
 {
@@ -116,6 +116,8 @@ bool Connections::getMostActiveSegmentForCells(const std::vector<Cell>& cells,
   vector<SegmentData> segments;
   vector<SynapseData> synapses;
   bool found = false;
+
+  sort(input.begin(), input.end());  // for binary search
 
   for (vector<Cell>::const_iterator cell = cells.begin(); cell != cells.end(); cell++) {
     segments = cells_[cell->idx].segments;
@@ -125,7 +127,7 @@ bool Connections::getMostActiveSegmentForCells(const std::vector<Cell>& cells,
       numSynapses = 0;
 
       for (vector<SynapseData>::const_iterator synapse = synapses.begin(); synapse != synapses.end(); synapse++) {
-        if (find(input.begin(), input.end(), synapse->presynapticCell) != input.end()) {  // TODO: Optimize this
+        if (binary_search(input.begin(), input.end(), synapse->presynapticCell)) {
           numSynapses++;
         }
       }
@@ -142,7 +144,7 @@ bool Connections::getMostActiveSegmentForCells(const std::vector<Cell>& cells,
   return found;
 }
 
-Activity Connections::computeActivity(const std::vector<Cell>& input,
+Activity Connections::computeActivity(const vector<Cell>& input,
                                       Permanence permanenceThreshold,
                                       UInt synapseThreshold) const
 {
@@ -172,6 +174,26 @@ Activity Connections::computeActivity(const std::vector<Cell>& input,
 
 bool Cell::operator==(const Cell &other) const {
   return idx == other.idx;
+}
+
+bool Cell::operator<=(const Cell &other) const
+{
+  return idx <= other.idx;
+}
+
+bool Cell::operator<(const Cell &other) const
+{
+  return idx < other.idx;
+}
+
+bool Cell::operator>=(const Cell &other) const
+{
+  return idx >= other.idx;
+}
+
+bool Cell::operator>(const Cell &other) const
+{
+  return idx > other.idx;
 }
 
 bool Segment::operator==(const Segment &other) const {

@@ -59,6 +59,10 @@ namespace nta
         CellIdx idx;
 
         bool operator==(const Cell &other) const;
+        bool operator<=(const Cell &other) const;
+        bool operator<(const Cell &other) const;
+        bool operator>=(const Cell &other) const;
+        bool operator>(const Cell &other) const;
       };
 
       /**
@@ -249,7 +253,7 @@ namespace nta
          @retval Segment found?
         */
         bool getMostActiveSegmentForCells(const std::vector<Cell>& cells,
-                                          const std::vector<Cell>& input,
+                                          std::vector<Cell> input,
                                           UInt synapseThreshold,
                                           Segment& retSegment) const;
 
