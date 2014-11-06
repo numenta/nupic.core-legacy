@@ -50,11 +50,11 @@ namespace nta
     void testCreateSegment();
     void testCreateSynapse();
     void testUpdateSynapsePermanence();
-    void testGetMostActiveSegmentForCells();
-    void testGetMostActiveSegmentForCellsNone();
+    void testMostActiveSegmentForCells();
+    void testMostActiveSegmentForCellsNone();
     void testComputeActivity();
-    void testGetActiveSegments();
-    void testGetActiveCells();
+    void testActiveSegments();
+    void testActiveCells();
 
     void setupSampleConnections(Connections &connections);
     Activity computeSampleActivity(Connections &connections);

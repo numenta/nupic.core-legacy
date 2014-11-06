@@ -234,7 +234,7 @@ namespace nta
 
          @retval Segments on cell.
         */
-        std::vector<Segment> getSegmentsForCell(const Cell& cell);
+        std::vector<Segment> segmentsForCell(const Cell& cell);
 
         /**
          Gets the synapses for a segment.
@@ -243,7 +243,7 @@ namespace nta
 
          @retval Synapses on segment.
         */
-        std::vector<Synapse> getSynapsesForSegment(const Segment& segment);
+        std::vector<Synapse> synapsesForSegment(const Segment& segment);
 
         /**
          Gets the data for a synapse.
@@ -252,7 +252,7 @@ namespace nta
 
          @retval Synapse data.
         */
-        SynapseData getDataForSynapse(const Synapse& synapse) const;
+        SynapseData dataForSynapse(const Synapse& synapse) const;
 
         /**
          Gets the segment with the most active synapses due to given input,
@@ -265,10 +265,10 @@ namespace nta
 
          @retval Segment found?
         */
-        bool getMostActiveSegmentForCells(const std::vector<Cell>& cells,
-                                          std::vector<Cell> input,
-                                          UInt synapseThreshold,
-                                          Segment& retSegment) const;
+        bool mostActiveSegmentForCells(const std::vector<Cell>& cells,
+                                       std::vector<Cell> input,
+                                       UInt synapseThreshold,
+                                       Segment& retSegment) const;
 
         /**
          Forward-propagates input to synapses, dendrites, and cells, to
@@ -291,7 +291,7 @@ namespace nta
 
          @retval Active segments.
         */
-        std::vector<Segment> getActiveSegments(const Activity& activity);
+        std::vector<Segment> activeSegments(const Activity& activity);
 
         /**
          Gets the active cells from activity.
@@ -300,7 +300,7 @@ namespace nta
 
          @retval Active cells.
         */
-        std::vector<Cell> getActiveCells(const Activity& activity);
+        std::vector<Cell> activeCells(const Activity& activity);
 
       private:
         std::vector<CellData> cells_;

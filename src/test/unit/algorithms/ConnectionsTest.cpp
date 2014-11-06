@@ -38,10 +38,10 @@ namespace nta {
     testCreateSegment();
     testCreateSynapse();
     testUpdateSynapsePermanence();
-    testGetMostActiveSegmentForCells();
-    testGetMostActiveSegmentForCellsNone();
+    testMostActiveSegmentForCells();
+    testMostActiveSegmentForCellsNone();
     testComputeActivity();
-    testGetActiveSegments();
+    testActiveSegments();
   }
 
   void ConnectionsTest::testCreateSegment()
@@ -58,7 +58,7 @@ namespace nta {
     TESTEQUAL(segment.idx, 1);
     TESTEQUAL(segment.cell.idx, cell.idx);
 
-    vector<Segment> segments = connections.getSegmentsForCell(cell);
+    vector<Segment> segments = connections.segmentsForCell(cell);
     TESTEQUAL(segments.size(), 2);
 
     for (SegmentIdx i = 0; i < segments.size(); i++) {
@@ -84,7 +84,7 @@ namespace nta {
     TESTEQUAL(synapse.idx, 1);
     TESTEQUAL(synapse.segment.idx, segment.idx);
 
-    vector<Synapse> synapses = connections.getSynapsesForSegment(segment);
+    vector<Synapse> synapses = connections.synapsesForSegment(segment);
     TESTEQUAL(synapses.size(), 2);
 
     for (SynapseIdx i = 0; i < synapses.size(); i++) {
@@ -95,11 +95,11 @@ namespace nta {
 
     SynapseData synapseData;
 
-    synapseData = connections.getDataForSynapse(synapses[0]);
+    synapseData = connections.dataForSynapse(synapses[0]);
     TESTEQUAL(synapseData.presynapticCell.idx, 50);
     TESTEQUAL_FLOAT(synapseData.permanence, (Permanence)0.34);
 
-    synapseData = connections.getDataForSynapse(synapses[1]);
+    synapseData = connections.dataForSynapse(synapses[1]);
     TESTEQUAL(synapseData.presynapticCell.idx, 150);
     TESTEQUAL_FLOAT(synapseData.permanence, (Permanence)0.48);
   }
@@ -113,11 +113,11 @@ namespace nta {
 
     connections.updateSynapsePermanence(synapse, 0.21);
 
-    SynapseData synapseData = connections.getDataForSynapse(synapse);
+    SynapseData synapseData = connections.dataForSynapse(synapse);
     TESTEQUAL_FLOAT(synapseData.permanence, (Real)0.21);
   }
 
-  void ConnectionsTest::testGetMostActiveSegmentForCells()
+  void ConnectionsTest::testMostActiveSegmentForCells()
   {
     Connections connections(1024);
     Segment segment;
@@ -141,7 +141,7 @@ namespace nta {
     Cell input1(50);
     input.push_back(input1);
 
-    bool result = connections.getMostActiveSegmentForCells(
+    bool result = connections.mostActiveSegmentForCells(
       cells, input, 0, segment);
 
     TESTEQUAL(result, true);
@@ -150,7 +150,7 @@ namespace nta {
     TESTEQUAL(segment.idx, 0);
   }
 
-  void ConnectionsTest::testGetMostActiveSegmentForCellsNone()
+  void ConnectionsTest::testMostActiveSegmentForCellsNone()
   {
     Connections connections(1024);
     Segment segment;
@@ -174,7 +174,7 @@ namespace nta {
     Cell input1(150);
     input.push_back(input1);
 
-    bool result = connections.getMostActiveSegmentForCells(
+    bool result = connections.mostActiveSegmentForCells(
       cells, input, 2, segment);
 
     TESTEQUAL(result, false);
@@ -205,7 +205,7 @@ namespace nta {
     TESTEQUAL(activity.numActiveSynapsesForSegment[segment], 2);
   }
 
-  void ConnectionsTest::testGetActiveSegments()
+  void ConnectionsTest::testActiveSegments()
   {
     Connections connections(1024);
     Cell cell;
@@ -214,7 +214,7 @@ namespace nta {
     setupSampleConnections(connections);
     Activity activity = computeSampleActivity(connections);
 
-    vector<Segment> activeSegments = connections.getActiveSegments(activity);
+    vector<Segment> activeSegments = connections.activeSegments(activity);
 
     TESTEQUAL(activeSegments.size(), 1);
     segment = activeSegments[0];
@@ -222,7 +222,7 @@ namespace nta {
     TESTEQUAL(segment.cell.idx, 20);
   }
 
-  void ConnectionsTest::testGetActiveCells()
+  void ConnectionsTest::testActiveCells()
   {
     Connections connections(1024);
     Cell cell;
@@ -231,7 +231,7 @@ namespace nta {
     setupSampleConnections(connections);
     Activity activity = computeSampleActivity(connections);
 
-    vector<Cell> activeCells = connections.getActiveCells(activity);
+    vector<Cell> activeCells = connections.activeCells(activity);
 
     TESTEQUAL(activeCells.size(), 1);
     TESTEQUAL(activeCells[0].idx, 20);
