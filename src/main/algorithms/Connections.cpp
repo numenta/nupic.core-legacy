@@ -185,6 +185,19 @@ vector<Segment> Connections::getActiveSegments(const Activity& activity)
   return segments;
 }
 
+vector<Cell> Connections::getActiveCells(const Activity& activity)
+{
+  vector<Cell> cells;
+
+  for (map< Cell, std::vector<Segment> >::const_iterator i = activity.activeSegmentsForCell.begin();
+       i != activity.activeSegmentsForCell.end();
+       i++) {
+    cells.push_back(i->first);
+  }
+
+  return cells;
+}
+
 bool Cell::operator==(const Cell &other) const {
   return idx == other.idx;
 }

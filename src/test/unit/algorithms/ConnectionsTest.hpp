@@ -54,6 +54,7 @@ namespace nta
     void testGetMostActiveSegmentForCellsNone();
     void testComputeActivity();
     void testGetActiveSegments();
+    void testGetActiveCells();
 
     void setupSampleConnections(Connections &connections);
     Activity computeSampleActivity(Connections &connections);

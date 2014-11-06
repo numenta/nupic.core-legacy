@@ -293,6 +293,15 @@ namespace nta
         */
         std::vector<Segment> getActiveSegments(const Activity& activity);
 
+        /**
+         Gets the active cells from activity.
+
+         @param activity Activity.
+
+         @retval Active cells.
+        */
+        std::vector<Cell> getActiveCells(const Activity& activity);
+
       private:
         std::vector<CellData> cells_;
         // Mapping (presynaptic cell => synapses) used in forward propagation

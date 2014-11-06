@@ -222,6 +222,21 @@ namespace nta {
     TESTEQUAL(segment.cell.idx, 20);
   }
 
+  void ConnectionsTest::testGetActiveCells()
+  {
+    Connections connections(1024);
+    Cell cell;
+    Segment segment;
+
+    setupSampleConnections(connections);
+    Activity activity = computeSampleActivity(connections);
+
+    vector<Cell> activeCells = connections.getActiveCells(activity);
+
+    TESTEQUAL(activeCells.size(), 1);
+    TESTEQUAL(activeCells[0].idx, 20);
+  }
+
   void ConnectionsTest::setupSampleConnections(Connections &connections)
   {
     Segment segment;
