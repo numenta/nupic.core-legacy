@@ -176,6 +176,12 @@ vector<Segment> Connections::getActiveSegments(const Activity& activity)
 {
   vector<Segment> segments;
 
+  for (map< Cell, std::vector<Segment> >::const_iterator i = activity.activeSegmentsForCell.begin();
+       i != activity.activeSegmentsForCell.end();
+       i++) {
+    segments.insert(segments.end(), i->second.begin(), i->second.end());
+  }
+
   return segments;
 }
 

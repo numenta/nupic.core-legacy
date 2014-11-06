@@ -185,6 +185,8 @@ namespace nta {
     Connections connections(1024);
     Cell cell;
     Segment segment;
+
+    setupSampleConnections(connections);
     Activity activity = computeActivity(connections);
 
     TESTEQUAL(activity.activeSegmentsForCell.size(), 1);
@@ -208,16 +210,20 @@ namespace nta {
     Connections connections(1024);
     Cell cell;
     Segment segment;
+
+    setupSampleConnections(connections);
     Activity activity = computeActivity(connections);
+
     vector<Segment> activeSegments = connections.getActiveSegments(activity);
 
-    // TODO: enable test
-    // TESTEQUAL(activeSegments.size(), 1);
+    TESTEQUAL(activeSegments.size(), 1);
+    segment = activeSegments[0];
+    TESTEQUAL(segment.idx, 1);
+    TESTEQUAL(segment.cell.idx, 20);
   }
 
-  Activity ConnectionsTest::computeActivity(Connections &connections)
+  void ConnectionsTest::setupSampleConnections(Connections &connections)
   {
-    vector<Cell> input;
     Segment segment;
     Synapse synapse;
     Cell cell, presynapticCell;
@@ -249,6 +255,12 @@ namespace nta {
     presynapticCell.idx = 82;
     synapse = connections.createSynapse(segment, presynapticCell, 0.85);
     connections.updateSynapsePermanence(synapse, 0.15);
+  }
+
+  Activity ConnectionsTest::computeActivity(Connections &connections)
+  {
+    Cell cell;
+    vector<Cell> input;
 
     cell.idx = 150; input.push_back(cell);
     cell.idx = 151; input.push_back(cell);
