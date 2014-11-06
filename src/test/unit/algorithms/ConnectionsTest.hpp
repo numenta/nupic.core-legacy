@@ -56,7 +56,7 @@ namespace nta
     void testGetActiveSegments();
 
     void setupSampleConnections(Connections &connections);
-    Activity computeActivity(Connections &connections);
+    Activity computeSampleActivity(Connections &connections);
 
   }; // end class ConnectionsTest
 
