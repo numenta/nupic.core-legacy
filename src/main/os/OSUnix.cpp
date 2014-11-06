@@ -101,7 +101,7 @@ std::string OS::getErrorMessageFromErrorCode(int errorCode)
 #else
   // glibc version
   char *result = ::strerror_r(errorCode, errorBuffer, 1024);
-  if(result != 0) errorMessage << errorBuffer;
+  if(result != nullptr) errorMessage << errorBuffer;
 #endif 
   else errorMessage << "Error code " << errorCode;
   return errorMessage.str();

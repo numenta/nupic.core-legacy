@@ -36,9 +36,9 @@ LoggingException::~LoggingException() throw()
     // because LogItem was designed to be used from a logging macro
 #if (defined(NTA_PLATFORM_win32) || defined(NTA_PLATFORM_win64)) && defined(NTA_COMPILER_MSVC) && defined(NDEBUG)
     // Special case to overcome test failures stopping AppVeyor builds
-    LogItem *li = new LogItem(filename_.c_str(), lineno_, LogItem::info);		
+    auto li = new LogItem(filename_.c_str(), lineno_, LogItem::info);
 #else		
-    LogItem *li = new LogItem(filename_.c_str(), lineno_, LogItem::error);
+    auto li = new LogItem(filename_.c_str(), lineno_, LogItem::error);
 #endif
     li->stream() << getMessage();
     delete li;

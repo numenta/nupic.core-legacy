@@ -74,7 +74,7 @@ namespace nta
     NTA_CHECK(!path.empty()) << "Can't get the info of an empty path";
 
     apr_status_t res;
-    apr_pool_t * pool = NULL;
+    apr_pool_t * pool = nullptr;
     
 #if defined(NTA_PLATFORM_win32) || defined(NTA_PLATFORM_win64)
     res = ::apr_pool_create(&pool, NULL);
@@ -828,7 +828,7 @@ namespace nta
     char *buf = new char[1000];
     UInt32 bufsize = 1000;
     // sets bufsize to actual length. 
-#if defined(NTA_PLATFORM_darwin86) || defined(NTA_PLATFORM_darwin64)
+  #if defined(NTA_PLATFORM_darwin86) || defined(NTA_PLATFORM_darwin64)
     _NSGetExecutablePath(buf, &bufsize);
     if (bufsize < 1000)
       buf[bufsize] = '\0';
