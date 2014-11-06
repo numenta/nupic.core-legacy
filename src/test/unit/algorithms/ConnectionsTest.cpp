@@ -225,7 +225,8 @@ namespace nta {
     presynapticCell.idx = 81;
     synapse = connections.createSynapse(segment, presynapticCell, 0.85);
     presynapticCell.idx = 82;
-    synapse = connections.createSynapse(segment, presynapticCell, 0.15);
+    synapse = connections.createSynapse(segment, presynapticCell, 0.85);
+    connections.updateSynapsePermanence(synapse, 0.15);
 
     cell.idx = 150; input.push_back(cell);
     cell.idx = 151; input.push_back(cell);
