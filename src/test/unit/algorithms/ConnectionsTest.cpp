@@ -135,24 +135,28 @@ namespace nta {
     vector<Cell> cells;
     vector<Cell> input;
 
-    cell.idx = 10; presynapticCell.idx = 50;
+    cell.idx = 10; presynapticCell.idx = 150;
     segment = connections.createSegment(cell);
     synapse = connections.createSynapse(segment, presynapticCell, 0.34);
 
-    cell.idx = 20; presynapticCell.idx = 150;
+    cell.idx = 20; presynapticCell.idx = 50;
     segment = connections.createSegment(cell);
     synapse = connections.createSynapse(segment, presynapticCell, 0.85);
 
-    // TODO: Enable test
-    // cells.push_back(10);
-    // cells.push_back(20);
+    Cell cell1 = {10}, cell2 = {20};
+    cells.push_back(cell1);
+    cells.push_back(cell2);
 
-    // input.push_back(50);
+    Cell input1 = {50};
+    input.push_back(input1);
 
     bool result = connections.getMostActiveSegmentForCells(
       cells, input, 0, segment);
 
-    TESTEQUAL(result, false);
+    TESTEQUAL(result, true);
+
+    TESTEQUAL(segment.cell.idx, 20);
+    TESTEQUAL(segment.idx, 0);
   }
 
   void ConnectionsTest::testComputeActivity()

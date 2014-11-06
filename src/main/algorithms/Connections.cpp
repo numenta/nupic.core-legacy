@@ -110,34 +110,34 @@ SynapseData Connections::getDataForSynapse(const Synapse& synapse) const
 bool Connections::getMostActiveSegmentForCells(const std::vector<Cell>& cells,
                                                const std::vector<Cell>& input,
                                                UInt synapseThreshold,
-                                               Segment& segment) const
+                                               Segment& retSegment) const
 {
-  // UInt numSynapses, maxSynapses = synapseThreshold;
-  // vector<SegmentData> segments;
-  // vector<SynapseData> synapses;
+  UInt numSynapses, maxSynapses = synapseThreshold;
+  vector<SegmentData> segments;
+  vector<SynapseData> synapses;
   bool found = false;
 
-  // for (vector<Cell>::const_iterator c = cells.begin(); c != cells.end(); c++) {
-  //   segments = cells_[c->idx].segments;
+  for (vector<Cell>::const_iterator cell = cells.begin(); cell != cells.end(); cell++) {
+    segments = cells_[cell->idx].segments;
 
-  //   for (vector<SegmentData>::const_iterator s = segments.begin(); s != segments.end(); s++) {
-  //     synapses = s->synapses;
-  //     numSynapses = 0;
+    for (vector<SegmentData>::const_iterator segment = segments.begin(); segment != segments.end(); segment++) {
+      synapses = segment->synapses;
+      numSynapses = 0;
 
-  //     for (vector<SynapseData>::const_iterator syn = synapses.begin(); syn != synapses.end(); syn++) {
-  //       if (find(input.begin(), input.end(), syn->presynapticCell) != input.end()) {  // TODO: Optimize this
-  //         numSynapses++;
-  //       }
-  //     }
+      for (vector<SynapseData>::const_iterator synapse = synapses.begin(); synapse != synapses.end(); synapse++) {
+        if (find(input.begin(), input.end(), synapse->presynapticCell) != input.end()) {  // TODO: Optimize this
+          numSynapses++;
+        }
+      }
 
-  //     if (numSynapses >= maxSynapses) {
-  //       maxSynapses = numSynapses;
-  //       segment.idx = s - segments.begin();
-  //       segment.cell = *c;
-  //       found = true;
-  //     }
-  //   }
-  // }
+      if (numSynapses >= maxSynapses) {
+        maxSynapses = numSynapses;
+        retSegment.idx = segment - segments.begin();
+        retSegment.cell = *cell;
+        found = true;
+      }
+    }
+  }
 
   return found;
 }
@@ -168,4 +168,16 @@ Activity Connections::computeActivity(const std::vector<Cell>& input,
   // }
 
   return activity;
+}
+
+bool Cell::operator==(const Cell &other) const {
+  return idx == other.idx;
+}
+
+bool Segment::operator==(const Segment &other) const {
+  return idx == other.idx && cell == other.cell;
+}
+
+bool Synapse::operator==(const Synapse &other) const {
+  return idx == other.idx && segment == other.segment;
 }

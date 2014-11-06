@@ -57,6 +57,8 @@ namespace nta
       struct Cell
       {
         CellIdx idx;
+
+        bool operator==(const Cell &other) const;
       };
 
       /**
@@ -74,6 +76,8 @@ namespace nta
       {
         SegmentIdx idx;
         Cell cell;
+
+        bool operator==(const Segment &other) const;
       };
 
       /**
@@ -92,6 +96,8 @@ namespace nta
       {
         SynapseIdx idx;
         Segment segment;
+
+        bool operator==(const Synapse &other) const;
       };
 
       /**
@@ -245,7 +251,7 @@ namespace nta
         bool getMostActiveSegmentForCells(const std::vector<Cell>& cells,
                                           const std::vector<Cell>& input,
                                           UInt synapseThreshold,
-                                          Segment& segment) const;
+                                          Segment& retSegment) const;
 
         /**
          Forward-propagates input to synapses, dendrites, and cells, to
