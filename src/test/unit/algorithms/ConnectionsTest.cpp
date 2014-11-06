@@ -39,6 +39,7 @@ namespace nta {
     testCreateSynapse();
     testUpdateSynapsePermanence();
     testGetMostActiveSegmentForCells();
+    testGetMostActiveSegmentForCellsNone();
     testComputeActivity();
   }
 
@@ -157,6 +158,37 @@ namespace nta {
 
     TESTEQUAL(segment.cell.idx, 20);
     TESTEQUAL(segment.idx, 0);
+  }
+
+  void ConnectionsTest::testGetMostActiveSegmentForCellsNone()
+  {
+    Connections connections(1024);
+    setup(connections);
+    Segment segment;
+    Synapse synapse;
+    Cell cell, presynapticCell;
+    vector<Cell> cells;
+    vector<Cell> input;
+
+    cell.idx = 10; presynapticCell.idx = 150;
+    segment = connections.createSegment(cell);
+    synapse = connections.createSynapse(segment, presynapticCell, 0.34);
+
+    cell.idx = 20; presynapticCell.idx = 50;
+    segment = connections.createSegment(cell);
+    synapse = connections.createSynapse(segment, presynapticCell, 0.85);
+
+    Cell cell1 = {10}, cell2 = {20};
+    cells.push_back(cell1);
+    cells.push_back(cell2);
+
+    Cell input1 = {150};
+    input.push_back(input1);
+
+    bool result = connections.getMostActiveSegmentForCells(
+      cells, input, 2, segment);
+
+    TESTEQUAL(result, false);
   }
 
   void ConnectionsTest::testComputeActivity()
