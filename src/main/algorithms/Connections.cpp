@@ -31,9 +31,7 @@ using namespace std;
 using namespace nta;
 using namespace nta::algorithms::connections;
 
-Connections::Connections(CellIdx numCells) : cells_(numCells)
-{
-}
+Connections::Connections(CellIdx numCells) : cells_(numCells) {}
 
 Segment Connections::createSegment(const Cell& cell)
 {
@@ -172,6 +170,13 @@ Activity Connections::computeActivity(const vector<Cell>& input,
   }
 
   return activity;
+}
+
+vector<Segment> Connections::getActiveSegments(const Activity& activity)
+{
+  vector<Segment> segments;
+
+  return segments;
 }
 
 bool Cell::operator==(const Cell &other) const {

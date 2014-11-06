@@ -41,17 +41,12 @@ namespace nta {
     testGetMostActiveSegmentForCells();
     testGetMostActiveSegmentForCellsNone();
     testComputeActivity();
-  }
-
-  void ConnectionsTest::setup(Connections& connections)
-  {
+    testGetActiveSegments();
   }
 
   void ConnectionsTest::testCreateSegment()
   {
     Connections connections(1024);
-    setup(connections);
-
     Segment segment;
     Cell cell(10);
 
@@ -75,8 +70,6 @@ namespace nta {
   void ConnectionsTest::testCreateSynapse()
   {
     Connections connections(1024);
-    setup(connections);
-
     Cell cell(10), presynapticCell;
     Segment segment = connections.createSegment(cell);
     Synapse synapse;
@@ -114,8 +107,6 @@ namespace nta {
   void ConnectionsTest::testUpdateSynapsePermanence()
   {
     Connections connections(1024);
-    setup(connections);
-
     Cell cell(10), presynapticCell(50);
     Segment segment = connections.createSegment(cell);
     Synapse synapse = connections.createSynapse(segment, presynapticCell, 0.34);
@@ -129,7 +120,6 @@ namespace nta {
   void ConnectionsTest::testGetMostActiveSegmentForCells()
   {
     Connections connections(1024);
-    setup(connections);
     Segment segment;
     Synapse synapse;
     Cell cell, presynapticCell;
@@ -163,7 +153,6 @@ namespace nta {
   void ConnectionsTest::testGetMostActiveSegmentForCellsNone()
   {
     Connections connections(1024);
-    setup(connections);
     Segment segment;
     Synapse synapse;
     Cell cell, presynapticCell;
@@ -194,7 +183,37 @@ namespace nta {
   void ConnectionsTest::testComputeActivity()
   {
     Connections connections(1024);
-    setup(connections);
+    Cell cell;
+    Segment segment;
+    Activity activity = computeActivity(connections);
+
+    TESTEQUAL(activity.numActiveSegmentsForCell.size(), 1);
+    cell.idx = 20;
+    TESTEQUAL(activity.numActiveSegmentsForCell[cell], 1);
+
+    TESTEQUAL(activity.numActiveSynapsesForSegment.size(), 3);
+    segment.cell.idx = 10; segment.idx = 0;
+    TESTEQUAL(activity.numActiveSynapsesForSegment[segment], 1);
+    segment.cell.idx = 20; segment.idx = 0;
+    TESTEQUAL(activity.numActiveSynapsesForSegment[segment], 1);
+    segment.cell.idx = 20; segment.idx = 1;
+    TESTEQUAL(activity.numActiveSynapsesForSegment[segment], 2);
+  }
+
+  void ConnectionsTest::testGetActiveSegments()
+  {
+    Connections connections(1024);
+    Cell cell;
+    Segment segment;
+    Activity activity = computeActivity(connections);
+    vector<Segment> activeSegments = connections.getActiveSegments(activity);
+
+    // TODO: enable test
+    // TESTEQUAL(activeSegments.size(), 1);
+  }
+
+  Activity ConnectionsTest::computeActivity(Connections &connections)
+  {
     vector<Cell> input;
     Segment segment;
     Synapse synapse;
@@ -237,18 +256,7 @@ namespace nta {
     cell.idx = 82; input.push_back(cell);
 
     Activity activity = connections.computeActivity(input, 0.50, 2);
-
-    TESTEQUAL(activity.numActiveSegmentsForCell.size(), 1);
-    cell.idx = 20;
-    TESTEQUAL(activity.numActiveSegmentsForCell[cell], 1);
-
-    TESTEQUAL(activity.numActiveSynapsesForSegment.size(), 3);
-    segment.cell.idx = 10; segment.idx = 0;
-    TESTEQUAL(activity.numActiveSynapsesForSegment[segment], 1);
-    segment.cell.idx = 20; segment.idx = 0;
-    TESTEQUAL(activity.numActiveSynapsesForSegment[segment], 1);
-    segment.cell.idx = 20; segment.idx = 1;
-    TESTEQUAL(activity.numActiveSynapsesForSegment[segment], 2);
+    return activity;
   }
 
 } // end namespace nta

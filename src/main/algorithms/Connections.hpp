@@ -284,6 +284,15 @@ namespace nta
                                  Permanence permanenceThreshold,
                                  UInt synapseThreshold) const;
 
+        /**
+         Gets the active segments from activity.
+
+         @param activity Activity.
+
+         @retval Active segments.
+        */
+        std::vector<Segment> getActiveSegments(const Activity& activity);
+
       private:
         std::vector<CellData> cells_;
         // Mapping (presynaptic cell => synapses) used in forward propagation
