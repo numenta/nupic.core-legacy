@@ -47,7 +47,7 @@ Visual Studio is available only via CMake for Windows. Express versions of Visua
 
 #### Build:
 
- * Open `nupic_core.sln' solution file found in `$NUPIC_CORE/build/scripts`.
+ * Open `nupic_core.*' solution file found in `$NUPIC_CORE/build/scripts`.
  * Rebuild `ALL_BUILD` project from your IDE.
 
 This will build a static Release version of the NuPIC core library. This is then used in the test programs that are built and run. Watch the Output Window for build issues and test results.

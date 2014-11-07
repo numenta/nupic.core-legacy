@@ -18,8 +18,12 @@
 #
 # http://numenta.org/licenses/
 #
+#
+# https://github.com/numenta/nupic.core/graphs/contributors
+#
 # Contributor(s):
-#   David Ragazzi (@DavidRagazzi): Full conversion and adaptation from Autotools scripts
+#   David Ragazzi (@DavidRagazzi): Full conversion and adaptation from
+#                                  Autotools scripts
 #   Jim Bridgewater (jwbwater@gmail.com): Updated option help messages
 # ------------------------------------------------------------------------------
 
