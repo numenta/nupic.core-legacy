@@ -56,16 +56,16 @@ namespace nta {
 
   void SpatialPoolerTest::print_vec(vector<UInt> vec)
   {
-    for (UInt i = 0; i < vec.size(); i++) {
-      cout << vec[i] << " ";
+    for (auto & elem : vec) {
+      cout << elem << " ";
     }
     cout << endl;
   }
 
   void SpatialPoolerTest::print_vec(vector<Real> vec)
   {
-    for (UInt i = 0; i < vec.size(); i++) {
-      cout << vec[i] << " ";
+    for (auto & elem : vec) {
+      cout << elem << " ";
     }
     cout << endl;
   }
@@ -1434,12 +1434,12 @@ namespace nta {
     trueActive.assign(numColumns, 0);
     active.assign(numColumns, 0);
 
-    for (UInt i = 0; i < 3; i++) {
-      trueActive[trueActiveArray1[i]] = 1;
+    for (auto & elem : trueActiveArray1) {
+      trueActive[elem] = 1;
     }
 
-    for (UInt i = 0; i < activeColumns.size(); i++) {
-      active[activeColumns[i]] = 1;
+    for (auto & activeColumn : activeColumns) {
+      active[activeColumn] = 1;
     }
 
     NTA_CHECK(check_vector_eq(trueActive,active));
@@ -1451,12 +1451,12 @@ namespace nta {
     sp.inhibitColumnsGlobal_(overlaps, density, activeColumns);
     UInt trueActiveArray2[5] = {5,6,7,8,9};
 
-    for (UInt i = 0; i < 5; i++) {
-      trueActive[trueActiveArray2[i]] = 1;
+    for (auto & elem : trueActiveArray2) {
+      trueActive[elem] = 1;
     }
 
-    for (UInt i = 0; i < activeColumns.size(); i++) {
-      active[activeColumns[i]] = 1;
+    for (auto & activeColumn : activeColumns) {
+      active[activeColumn] = 1;
     }
 
     NTA_CHECK(check_vector_eq(trueActive,active));
@@ -1534,8 +1534,8 @@ namespace nta {
     sp.getNeighbors1D_(column, dimensions, radius, wrapAround,
                           neighbors);
     neighborsMap.clear();
-    for (UInt i = 0; i < neighbors.size(); i++) {
-      neighborsMap[neighbors[i]] = 1;
+    for (auto & neighbor : neighbors) {
+      neighborsMap[neighbor] = 1;
     }
     NTA_CHECK(check_vector_eq(trueNeighborsMap1, neighborsMap));
 
@@ -1546,8 +1546,8 @@ namespace nta {
     sp.getNeighbors1D_(column, dimensions, radius, wrapAround,
                           neighbors);
     neighborsMap.clear();
-    for (UInt i = 0; i < neighbors.size(); i++) {
-      neighborsMap[neighbors[i]] = 1;
+    for (auto & neighbor : neighbors) {
+      neighborsMap[neighbor] = 1;
     }
     NTA_CHECK(check_vector_eq(trueNeighborsMap2, neighborsMap));
 
@@ -1558,8 +1558,8 @@ namespace nta {
     sp.getNeighbors1D_(column, dimensions, radius, wrapAround,
                           neighbors);
     neighborsMap.clear();
-    for (UInt i = 0; i < neighbors.size(); i++) {
-      neighborsMap[neighbors[i]] = 1;
+    for (auto & neighbor : neighbors) {
+      neighborsMap[neighbor] = 1;
     }
     NTA_CHECK(check_vector_eq(trueNeighborsMap3, neighborsMap));
   }
@@ -1590,8 +1590,8 @@ namespace nta {
     wrapAround = false;
     sp.getNeighbors2D_(column, dimensions, radius, wrapAround, neighbors);
     neighborsMap.assign(numColumns, 0);
-    for (UInt i = 0; i < neighbors.size(); i++) {
-      neighborsMap[neighbors[i]] = 1;
+    for (auto & neighbor : neighbors) {
+      neighborsMap[neighbor] = 1;
     }
     NTA_CHECK(check_vector_eq(trueNeighborsMap1, neighborsMap));
 
@@ -1608,8 +1608,8 @@ namespace nta {
     wrapAround = false;
     sp.getNeighbors2D_(column, dimensions, radius, wrapAround, neighbors);
     neighborsMap.assign(numColumns, 0);
-    for (UInt i = 0; i < neighbors.size(); i++) {
-      neighborsMap[neighbors[i]] = 1;
+    for (auto & neighbor : neighbors) {
+      neighborsMap[neighbor] = 1;
     }
     NTA_CHECK(check_vector_eq(trueNeighborsMap2, neighborsMap));
 
@@ -1626,8 +1626,8 @@ namespace nta {
     wrapAround = false;
     sp.getNeighbors2D_(column, dimensions, radius, wrapAround, neighbors);
     neighborsMap.assign(numColumns, 0);
-    for (UInt i = 0; i < neighbors.size(); i++) {
-      neighborsMap[neighbors[i]] = 1;
+    for (auto & neighbor : neighbors) {
+      neighborsMap[neighbor] = 1;
     }
     NTA_CHECK(check_vector_eq(trueNeighborsMap3, neighborsMap));
 
@@ -1644,8 +1644,8 @@ namespace nta {
     wrapAround = true;
     sp.getNeighbors2D_(column, dimensions, radius, wrapAround, neighbors);
     neighborsMap.assign(numColumns, 0);
-    for (UInt i = 0; i < neighbors.size(); i++) {
-      neighborsMap[neighbors[i]] = 1;
+    for (auto & neighbor : neighbors) {
+      neighborsMap[neighbor] = 1;
     }
     NTA_CHECK(check_vector_eq(trueNeighborsMap4, neighborsMap));
   }
@@ -1653,8 +1653,8 @@ namespace nta {
   bool SpatialPoolerTest::findVector(UInt needle[], UInt n,
                                      vector<vector<UInt> > haystack)
   {
-    for (UInt i = 0; i < haystack.size(); i++) {
-      vector<UInt> hay = haystack[i];
+    for (auto & elem : haystack) {
+      vector<UInt> hay = elem;
       if (hay.size() != n) {
         continue;
       }
@@ -1820,10 +1820,10 @@ namespace nta {
     x = 5;
     numColumns = (4 * 5 * 7);
 
-    for (UInt i = 0; i < 4; i++) {
+    for (auto & elem : trueNeighbors1) {
       for (UInt j = 0; j < 5; j++) {
         for (UInt k = 0; k < 7; k++) {
-          trueNeighbors1[i][j][k] = 0;
+          elem[j][k] = 0;
         }
       }
     }
@@ -1847,8 +1847,8 @@ namespace nta {
                        neighbors);
 
     neighborsMap.assign(numColumns, 0);
-    for (UInt i = 0; i < neighbors.size(); i++) {
-      neighborsMap[neighbors[i]] = 1;
+    for (auto & neighbor : neighbors) {
+      neighborsMap[neighbor] = 1;
     }
 
     NTA_CHECK(check_vector_eq((UInt *) trueNeighbors1, neighborsMap));
@@ -1920,8 +1920,8 @@ namespace nta {
                        neighbors);
 
     neighborsMap.assign(numColumns, 0);
-    for (UInt i = 0; i < neighbors.size(); i++) {
-      neighborsMap[neighbors[i]] = 1;
+    for (auto & neighbor : neighbors) {
+      neighborsMap[neighbor] = 1;
     }
 
     NTA_CHECK(check_vector_eq((UInt *) trueNeighbors2, neighborsMap));
@@ -1930,8 +1930,8 @@ namespace nta {
                        neighbors);
 
     neighborsMap.assign(numColumns, 0);
-    for (UInt i = 0; i < neighbors.size(); i++) {
-      neighborsMap[neighbors[i]] = 1;
+    for (auto & neighbor : neighbors) {
+      neighborsMap[neighbor] = 1;
     }
 
     NTA_CHECK(check_vector_eq((UInt *) trueNeighbors2Wrap, neighborsMap));
@@ -1955,8 +1955,8 @@ namespace nta {
     wrapAround = false;
     sp.getNeighborsND_(column, dimensions, radius, wrapAround, neighbors);
     neighborsMap.assign(numColumns, 0);
-    for (UInt i = 0; i < neighbors.size(); i++) {
-      neighborsMap[neighbors[i]] = 1;
+    for (auto & neighbor : neighbors) {
+      neighborsMap[neighbor] = 1;
     }
     NTA_CHECK(check_vector_eq(trueNeighborsMap3, neighborsMap));
 
@@ -1973,8 +1973,8 @@ namespace nta {
     wrapAround = false;
     sp.getNeighborsND_(column, dimensions, radius, wrapAround, neighbors);
     neighborsMap.assign(numColumns, 0);
-    for (UInt i = 0; i < neighbors.size(); i++) {
-      neighborsMap[neighbors[i]] = 1;
+    for (auto & neighbor : neighbors) {
+      neighborsMap[neighbor] = 1;
     }
     NTA_CHECK(check_vector_eq(trueNeighborsMap4, neighborsMap));
 
@@ -1991,8 +1991,8 @@ namespace nta {
     wrapAround = true;
     sp.getNeighborsND_(column, dimensions, radius, wrapAround, neighbors);
     neighborsMap.assign(numColumns, 0);
-    for (UInt i = 0; i < neighbors.size(); i++) {
-      neighborsMap[neighbors[i]] = 1;
+    for (auto & neighbor : neighbors) {
+      neighborsMap[neighbor] = 1;
     }
     NTA_CHECK(check_vector_eq(trueNeighborsMap5, neighborsMap));
 
@@ -2006,8 +2006,8 @@ namespace nta {
     sp.getNeighborsND_(column, dimensions, radius, wrapAround,
                           neighbors);
     neighborsMap.clear();
-    for (UInt i = 0; i < neighbors.size(); i++) {
-      neighborsMap[neighbors[i]] = 1;
+    for (auto & neighbor : neighbors) {
+      neighborsMap[neighbor] = 1;
     }
 
     NTA_CHECK(check_vector_eq(trueNeighborsMap6, neighborsMap));
@@ -2021,8 +2021,8 @@ namespace nta {
     sp.getNeighborsND_(column, dimensions, radius, wrapAround,
                           neighbors);
     neighborsMap.clear();
-    for (UInt i = 0; i < neighbors.size(); i++) {
-      neighborsMap[neighbors[i]] = 1;
+    for (auto & neighbor : neighbors) {
+      neighborsMap[neighbor] = 1;
     }
 
     NTA_CHECK(check_vector_eq(trueNeighborsMap7, neighborsMap));
@@ -2036,8 +2036,8 @@ namespace nta {
     sp.getNeighborsND_(column, dimensions, radius, wrapAround,
                           neighbors);
     neighborsMap.clear();
-    for (UInt i = 0; i < neighbors.size(); i++) {
-      neighborsMap[neighbors[i]] = 1;
+    for (auto & neighbor : neighbors) {
+      neighborsMap[neighbor] = 1;
     }
 
     NTA_CHECK(check_vector_eq(trueNeighborsMap8, neighborsMap));
@@ -2052,8 +2052,8 @@ namespace nta {
     sp.getNeighborsND_(column, dimensions, radius, wrapAround,
                           neighbors);
     neighborsMap.clear();
-    for (UInt i = 0; i < neighbors.size(); i++) {
-      neighborsMap[neighbors[i]] = 1;
+    for (auto & neighbor : neighbors) {
+      neighborsMap[neighbor] = 1;
     }
 
     NTA_CHECK(check_vector_eq(trueNeighborsMap9, neighborsMap));
@@ -2069,8 +2069,8 @@ namespace nta {
     sp.getNeighborsND_(column, dimensions, radius, wrapAround,
                           neighbors);
     neighborsMap.clear();
-    for (UInt i = 0; i < neighbors.size(); i++) {
-      neighborsMap[neighbors[i]] = 1;
+    for (auto & neighbor : neighbors) {
+      neighborsMap[neighbor] = 1;
     }
 
     NTA_CHECK(check_vector_eq(trueNeighborsMap10, neighborsMap));

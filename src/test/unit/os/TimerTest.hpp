@@ -40,7 +40,7 @@ public:
     TimerTest() {};
     virtual ~TimerTest() {};
     
-    virtual void RunTests();
+    virtual void RunTests() override;
   };
 } // namespace nta
 
