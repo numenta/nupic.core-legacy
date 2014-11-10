@@ -44,6 +44,9 @@ namespace nta {
     testActiveSegments();
   }
 
+  /**
+   * Creates a segment, and makes sure that it got created on the correct cell.
+   */
   void ConnectionsTest::testCreateSegment()
   {
     Connections connections(1024);
@@ -67,6 +70,10 @@ namespace nta {
     }
   }
 
+  /**
+   * Creates a synapse, and makes sure that it got created on the correct
+   * segment, and that its data was correctly stored.
+   */
   void ConnectionsTest::testCreateSynapse()
   {
     Connections connections(1024);
@@ -104,6 +111,10 @@ namespace nta {
     TESTEQUAL_FLOAT(synapseData.permanence, (Permanence)0.48);
   }
 
+  /**
+   * Creates a synapse and updates its permanence, and makes sure that its
+   * data was correctly updated.
+   */
   void ConnectionsTest::testUpdateSynapsePermanence()
   {
     Connections connections(1024);
@@ -117,6 +128,10 @@ namespace nta {
     TESTEQUAL_FLOAT(synapseData.permanence, (Real)0.21);
   }
 
+  /**
+   * Creates a sample set of connections, and makes sure that getting the most
+   * active segment for a collection of cells returns the right segment.
+   */
   void ConnectionsTest::testMostActiveSegmentForCells()
   {
     Connections connections(1024);
@@ -150,6 +165,11 @@ namespace nta {
     TESTEQUAL(segment.idx, 0);
   }
 
+  /**
+   * Creates a sample set of connections, and makes sure that getting the most
+   * active segment for a collection of cells with no activity returns
+   * no segment.
+   */
   void ConnectionsTest::testMostActiveSegmentForCellsNone()
   {
     Connections connections(1024);
@@ -180,6 +200,11 @@ namespace nta {
     TESTEQUAL(result, false);
   }
 
+  /**
+   * Creates a sample set of connections, and makes sure that computing the
+   * activity for a collection of cells with no activity returns the right
+   * activity data.
+   */
   void ConnectionsTest::testComputeActivity()
   {
     Connections connections(1024);
@@ -205,6 +230,10 @@ namespace nta {
     TESTEQUAL(activity.numActiveSynapsesForSegment[segment], 2);
   }
 
+  /**
+   * Creates a sample set of connections, and makes sure that we can get the
+   * active segments from the computed activity.
+   */
   void ConnectionsTest::testActiveSegments()
   {
     Connections connections(1024);
@@ -222,6 +251,10 @@ namespace nta {
     TESTEQUAL(segment.cell.idx, 20);
   }
 
+  /**
+   * Creates a sample set of connections, and makes sure that we can get the
+   * active cells from the computed activity.
+   */
   void ConnectionsTest::testActiveCells()
   {
     Connections connections(1024);
