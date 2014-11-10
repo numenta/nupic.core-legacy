@@ -187,6 +187,19 @@ namespace nta
        * connections of a collection of cells. It is used in the HTM
        * learning algorithms to store and access data related to the
        * connectivity of cells.
+       *
+       * It's main utility is to provide a common, optimized data structure
+       * that all HTM learning algorithms can use. It is flexible enough to
+       * support any learning algorithm that operates on a collection of cells.
+       *
+       * Each type of connection (proximal, distal, apical) should be
+       * represented by a different instantiation of this class. This class
+       * will help compute the activity along those connections due to active
+       * input cells. The responsibility for what effect that activity has on
+       * the cells and connections lies in the user of this class.
+       *
+       * This class is optimized to store connections between cells, and
+       * compute the activity of cells due to input over the connections.
        * 
        */
       class Connections
