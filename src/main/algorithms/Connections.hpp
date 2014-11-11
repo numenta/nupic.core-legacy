@@ -315,6 +315,22 @@ namespace nta
         */
         std::vector<Cell> activeCells(const Activity& activity);
 
+        // Debugging
+
+        /**
+         Gets the number of segments.
+
+         @retval Number of segments.
+        */
+        UInt numSegments() const;
+
+        /**
+         Gets the number of synapses.
+
+         @retval Number of synapses.
+        */
+        UInt numSynapses() const;
+
       private:
         std::vector<CellData> cells_;
         // Mapping (presynaptic cell => synapses) used in forward propagation

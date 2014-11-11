@@ -55,6 +55,8 @@ namespace nta
     void testComputeActivity();
     void testActiveSegments();
     void testActiveCells();
+    void testNumSegments();
+    void testNumSynapses();
 
     void setupSampleConnections(Connections &connections);
     Activity computeSampleActivity(Connections &connections);

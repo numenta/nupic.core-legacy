@@ -198,6 +198,30 @@ vector<Cell> Connections::activeCells(const Activity& activity)
   return cells;
 }
 
+UInt Connections::numSegments() const
+{
+  UInt num = 0;
+
+  for (vector<CellData>::const_iterator cell = cells_.begin(); cell != cells_.end(); cell++) {
+    num += cell->segments.size();
+  }
+
+  return num;
+}
+
+UInt Connections::numSynapses() const
+{
+  UInt num = 0;
+
+  for (vector<CellData>::const_iterator cell = cells_.begin(); cell != cells_.end(); cell++) {
+    for (vector<SegmentData>::const_iterator segment = cell->segments.begin(); segment != cell->segments.end(); segment++) {
+      num += segment->synapses.size();
+    }
+  }
+
+  return num;
+}
+
 bool Cell::operator==(const Cell &other) const {
   return idx == other.idx;
 }

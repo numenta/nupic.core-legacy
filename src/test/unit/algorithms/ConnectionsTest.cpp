@@ -42,6 +42,8 @@ namespace nta {
     testMostActiveSegmentForCellsNone();
     testComputeActivity();
     testActiveSegments();
+    testNumSegments();
+    testNumSynapses();
   }
 
   /**
@@ -268,6 +270,30 @@ namespace nta {
 
     TESTEQUAL(activeCells.size(), 1);
     TESTEQUAL(activeCells[0].idx, 20);
+  }
+
+  /**
+   * Creates a sample set of connections, and makes sure that we can get the
+   * correct number of segments.
+   */
+  void ConnectionsTest::testNumSegments()
+  {
+    Connections connections(1024);
+    setupSampleConnections(connections);
+
+    TESTEQUAL(connections.numSegments(), 3);
+  }
+
+  /**
+   * Creates a sample set of connections, and makes sure that we can get the
+   * correct number of synapses.
+   */
+  void ConnectionsTest::testNumSynapses()
+  {
+    Connections connections(1024);
+    setupSampleConnections(connections);
+
+    TESTEQUAL(connections.numSynapses(), 8);
   }
 
   void ConnectionsTest::setupSampleConnections(Connections &connections)
