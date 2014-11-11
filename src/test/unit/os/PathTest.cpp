@@ -288,7 +288,7 @@ void PathTest::RunTests()
     std::cout << "Executable path: '" << path << "'\n";
     TEST(Path::exists(path));
     std::string basename = Path::getBasename(path);
-#ifdef NTA_PLATFORM_win32
+#if defined(NTA_PLATFORM_win32) || defined(NTA_PLATFORM_win64)
     TESTEQUAL2_STR("basename should be unit_tests", basename.c_str(), "unit_tests.exe");
 #else
     TESTEQUAL2_STR("basename should be unit_tests", basename.c_str(), "unit_tests");
