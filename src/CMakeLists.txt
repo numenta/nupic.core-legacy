@@ -462,9 +462,13 @@ message(STATUS "  Install      : ${CMAKE_INSTALL_PREFIX}")
 # The reason to use add_definitions() instead of appending flag -std=c++0x
 # directly to CXXBASE_FLAGS is that cmake deploys "internal smarts" for
 # compatibility with different compilers (clang, gcc 4.6 vs 4.8)
+
 if(NOT ${NTA_COMPILER_FAMILY} STREQUAL "MSVC")
   add_definitions(-std=c++11) # smart flag setting for gcc/clang
 #  add_definitions(-std=gnu++0x) # smart flag setting for gcc/clang
+else()
+  # VS2012 doesn't support tuples correctly
+  add_definitions( /D _VARIADIC_MAX=10 )
 endif()
 
 #
