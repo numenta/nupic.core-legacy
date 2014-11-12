@@ -25,13 +25,7 @@
 
 #include <nta/os/Regex.hpp>
 #include <nta/utils/Log.hpp>
-#if defined(NTA_PLATFORM_win32) || defined(NTA_PLATFORM_win64)
-  #define PCRE_STATIC
-  #include <pcre/pcre.h>
-  #include <pcre/pcreposix.h>
-#else
-  #include <regex.h>
-#endif
+#include <regex>
 
 namespace nta
 {
@@ -49,15 +43,11 @@ namespace nta
       if (re[re.length()-1] != '$') 
         exactRegExp += '$';
       
-      regex_t r;
-      int res = ::regcomp(&r, exactRegExp.c_str(), REG_EXTENDED|REG_NOSUB);
-      NTA_CHECK(res == 0) 
-        << "regcomp() failed to compile the regular expression: "
-        << re << " . The error code is: " << res;
-        
-      res = regexec(&r, text.c_str(), (size_t) 0, nullptr, 0);
-      ::regfree(&r);
-      return res == 0; 
+	  std::regex r(exactRegExp, std::regex::nosubs);
+	  if (std::regex_match(text, r))
+		  return true;
+
+	  return false;
     }
   }
 }
