@@ -41,8 +41,8 @@ namespace nta
     namespace connections
     {
       typedef UInt32 CellIdx;
-      typedef Byte SegmentIdx;
-      typedef Byte SynapseIdx;
+      typedef signed char SegmentIdx;
+      typedef signed char SynapseIdx;
       typedef Real32 Permanence;
 
       /**
