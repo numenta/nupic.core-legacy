@@ -99,6 +99,7 @@ after_build:
   - cd C:\projects\nupic-core\build\release
   - dir/S
   - mkdir examples
+  - xcopy ..\temp\lib .\lib /a /y /s
   - xcopy ..\..\src\examples .\examples /a /y /s
   - copy C:\projects\nupic-core\Package.nuspec .
   - nuget pack -version %APPVEYOR_BUILD_VERSION%
