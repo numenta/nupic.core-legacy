@@ -74,7 +74,7 @@ vector<Segment> Connections::segmentsForCell(const Cell& cell)
 {
   vector<Segment> segments;
 
-  for(SegmentIdx i = 0; i < cells_[cell.idx].segments.size(); i++) {
+  for (SegmentIdx i = 0; i < cells_[cell.idx].segments.size(); i++) {
     Segment segment = {i, cell};
     segments.push_back(segment);
   }
@@ -87,7 +87,7 @@ vector<Synapse> Connections::synapsesForSegment(const Segment& segment)
   const Cell& cell = segment.cell;
   vector<Synapse> synapses;
 
-  for(SynapseIdx i = 0; i < cells_[cell.idx].segments[segment.idx].synapses.size(); i++) {
+  for (SynapseIdx i = 0; i < cells_[cell.idx].segments[segment.idx].synapses.size(); i++) {
     Synapse synapse = {i, segment};
     synapses.push_back(synapse);
   }
@@ -198,8 +198,7 @@ UInt Connections::numSegments() const
 {
   UInt num = 0;
 
-  for (auto cell : cells_)
-  {
+  for (auto cell : cells_) {
     num += cell.segments.size();
   }
 
