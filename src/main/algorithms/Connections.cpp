@@ -49,9 +49,7 @@ Synapse Connections::createSynapse(const Segment& segment,
                                    const Cell& presynapticCell,
                                    Permanence permanence)
 {
-  const Cell& cell = segment.cell;
-
-  vector<SynapseData>& synapses = cells_[cell.idx].segments[segment.idx].synapses;
+  vector<SynapseData>& synapses = cells_[segment.cell.idx].segments[segment.idx].synapses;
   // TODO: Assert that index will be smaller than max size
   Synapse synapse(synapses.size(), segment);
 
@@ -80,6 +78,7 @@ vector<Segment> Connections::segmentsForCell(const Cell& cell)
   for(SegmentIdx i = 0; i < cells_[cell.idx].segments.size(); i++) {
     segment.idx = i;
     segment.cell = cell;
+    // TODO: Could be dangerous to reuse the same segment here
     segments.push_back(segment);
   }
 
@@ -95,6 +94,7 @@ vector<Synapse> Connections::synapsesForSegment(const Segment& segment)
   for(SynapseIdx i = 0; i < cells_[cell.idx].segments[segment.idx].synapses.size(); i++) {
     synapse.idx = i;
     synapse.segment = segment;
+    // TODO: Could be dangerous to reuse the same synapse here
     synapses.push_back(synapse);
   }
 
@@ -117,29 +117,33 @@ bool Connections::mostActiveSegmentForCells(const vector<Cell>& cells,
   UInt numSynapses, maxSynapses = synapseThreshold;
   vector<SegmentData> segments;
   vector<SynapseData> synapses;
+  SegmentIdx segmentIdx = 0;
   bool found = false;
 
   sort(input.begin(), input.end());  // for binary search
 
-  for (vector<Cell>::const_iterator cell = cells.begin(); cell != cells.end(); cell++) {
-    segments = cells_[cell->idx].segments;
+  for (auto cell : cells) {
+    segments = cells_[cell.idx].segments;
+    segmentIdx = 0;
 
-    for (vector<SegmentData>::const_iterator segment = segments.begin(); segment != segments.end(); segment++) {
-      synapses = segment->synapses;
+    for (auto segment : segments) {
+      synapses = segment.synapses;
       numSynapses = 0;
 
-      for (vector<SynapseData>::const_iterator synapse = synapses.begin(); synapse != synapses.end(); synapse++) {
-        if (binary_search(input.begin(), input.end(), synapse->presynapticCell)) {
+      for (auto synapse : synapses) {
+        if (binary_search(input.begin(), input.end(), synapse.presynapticCell)) {
           numSynapses++;
         }
       }
 
       if (numSynapses >= maxSynapses) {
         maxSynapses = numSynapses;
-        retSegment.idx = segment - segments.begin();
-        retSegment.cell = *cell;
+        retSegment.idx = segmentIdx;
+        retSegment.cell = cell;
         found = true;
       }
+
+      segmentIdx++;
     }
   }
 
@@ -154,18 +158,18 @@ Activity Connections::computeActivity(const vector<Cell>& input,
   vector<Synapse> synapses;
   SynapseData synapseData;
 
-  for (vector<Cell>::const_iterator cell = input.begin(); cell != input.end(); cell++) {
-    if (!synapsesForPresynapticCell_.count(*cell)) continue;
-    synapses = synapsesForPresynapticCell_.at(*cell);
+  for (auto cell : input) {
+    if (!synapsesForPresynapticCell_.count(cell)) continue;
+    synapses = synapsesForPresynapticCell_.at(cell);
 
-    for (vector<Synapse>::const_iterator synapse = synapses.begin(); synapse != synapses.end(); synapse++) {
-      synapseData = dataForSynapse(*synapse);
+    for (auto synapse : synapses) {
+      synapseData = dataForSynapse(synapse);
 
       if (synapseData.permanence >= permanenceThreshold) {
-        activity.numActiveSynapsesForSegment[synapse->segment] += 1;
+        activity.numActiveSynapsesForSegment[synapse.segment] += 1;
 
-        if (activity.numActiveSynapsesForSegment[synapse->segment] == synapseThreshold) {
-          activity.activeSegmentsForCell[synapse->segment.cell].push_back(synapse->segment);
+        if (activity.numActiveSynapsesForSegment[synapse.segment] == synapseThreshold) {
+          activity.activeSegmentsForCell[synapse.segment.cell].push_back(synapse.segment);
         }
       }
     }
@@ -204,8 +208,9 @@ UInt Connections::numSegments() const
 {
   UInt num = 0;
 
-  for (vector<CellData>::const_iterator cell = cells_.begin(); cell != cells_.end(); cell++) {
-    num += cell->segments.size();
+  for (auto cell : cells_)
+  {
+    num += cell.segments.size();
   }
 
   return num;
@@ -215,9 +220,9 @@ UInt Connections::numSynapses() const
 {
   UInt num = 0;
 
-  for (vector<CellData>::const_iterator cell = cells_.begin(); cell != cells_.end(); cell++) {
-    for (vector<SegmentData>::const_iterator segment = cell->segments.begin(); segment != cell->segments.end(); segment++) {
-      num += segment->synapses.size();
+  for (auto cell : cells_) {
+    for (auto segment : cell.segments) {
+      num += segment.synapses.size();
     }
   }
 
