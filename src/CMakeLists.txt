@@ -147,7 +147,7 @@ add_library(${LIB_STATIC_Z} STATIC IMPORTED GLOBAL)
 #
 # Setup libnupic_core
 #
-set(LIB_STATIC_NUPICCORE nupic_core)
+set(LIB_STATIC_NUPICCORE nupic_core_solo)
 
 set(COMMON_LIBS ${LIB_STATIC_NUPICCORE})
 if("${PLATFORM}" STREQUAL "linux")
