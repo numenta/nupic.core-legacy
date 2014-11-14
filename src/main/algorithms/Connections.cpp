@@ -176,10 +176,8 @@ vector<Segment> Connections::activeSegments(const Activity& activity)
 {
   vector<Segment> segments;
 
-  for (map< Cell, std::vector<Segment> >::const_iterator i = activity.activeSegmentsForCell.begin();
-       i != activity.activeSegmentsForCell.end();
-       i++) {
-    segments.insert(segments.end(), i->second.begin(), i->second.end());
+  for (auto i : activity.activeSegmentsForCell) {
+    segments.insert(segments.end(), i.second.begin(), i.second.end());
   }
 
   return segments;
@@ -189,10 +187,8 @@ vector<Cell> Connections::activeCells(const Activity& activity)
 {
   vector<Cell> cells;
 
-  for (map< Cell, std::vector<Segment> >::const_iterator i = activity.activeSegmentsForCell.begin();
-       i != activity.activeSegmentsForCell.end();
-       i++) {
-    cells.push_back(i->first);
+  for (auto i : activity.activeSegmentsForCell) {
+    cells.push_back(i.first);
   }
 
   return cells;
