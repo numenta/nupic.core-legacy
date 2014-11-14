@@ -405,3 +405,6 @@ install(DIRECTORY "${REPOSITORY_DIR}/external/common/include/"
         DESTINATION include)
 install(DIRECTORY "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/include/"
         DESTINATION include)
+install(FILES "${PROJECT_BINARY_DIR}/libnupic_core.a"
+        DESTINATION lib)
+
