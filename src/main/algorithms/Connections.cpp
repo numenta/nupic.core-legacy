@@ -24,7 +24,7 @@
  * Implementation of Connections
  */
 
-#include <iostream>
+#include <climits>
 #include <nta/algorithms/Connections.hpp>
 
 using namespace std;
@@ -36,7 +36,7 @@ Connections::Connections(CellIdx numCells) : cells_(numCells) {}
 Segment Connections::createSegment(const Cell& cell)
 {
   vector<SegmentData>& segments = cells_[cell.idx].segments;
-  // TODO: Assert that index will be smaller than max size
+  assert(segments.size() < UCHAR_MAX);
   Segment segment(segments.size(), cell);
 
   SegmentData segmentData;
@@ -50,7 +50,7 @@ Synapse Connections::createSynapse(const Segment& segment,
                                    Permanence permanence)
 {
   vector<SynapseData>& synapses = cells_[segment.cell.idx].segments[segment.idx].synapses;
-  // TODO: Assert that index will be smaller than max size
+  assert(synapses.size() < UCHAR_MAX);
   Synapse synapse(synapses.size(), segment);
 
   SynapseData synapseData = {presynapticCell, permanence};
