@@ -36,7 +36,9 @@ Connections::Connections(CellIdx numCells) : cells_(numCells) {}
 Segment Connections::createSegment(const Cell& cell)
 {
   vector<SegmentData>& segments = cells_[cell.idx].segments;
-  assert(segments.size() < UCHAR_MAX);
+  if (segments.size() == UCHAR_MAX) {
+    throw runtime_error("Cannot create segment: cell has reached maximum number of segments.");
+  }
   Segment segment(segments.size(), cell);
 
   SegmentData segmentData;
@@ -50,7 +52,9 @@ Synapse Connections::createSynapse(const Segment& segment,
                                    Permanence permanence)
 {
   vector<SynapseData>& synapses = cells_[segment.cell.idx].segments[segment.idx].synapses;
-  assert(synapses.size() < UCHAR_MAX);
+  if (synapses.size() == UCHAR_MAX) {
+    throw runtime_error("Cannot create synapse: segment has reached maximum number of synapses.");
+  }
   Synapse synapse(synapses.size(), segment);
 
   SynapseData synapseData = {presynapticCell, permanence};
