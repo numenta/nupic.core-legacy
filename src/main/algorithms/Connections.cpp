@@ -73,9 +73,11 @@ void Connections::updateSynapsePermanence(const Synapse& synapse,
 vector<Segment> Connections::segmentsForCell(const Cell& cell)
 {
   vector<Segment> segments;
+  Segment segment;
 
   for (SegmentIdx i = 0; i < cells_[cell.idx].segments.size(); i++) {
-    Segment segment = {i, cell};
+    segment.idx = i;
+    segment.cell = cell;
     segments.push_back(segment);
   }
 
@@ -86,9 +88,11 @@ vector<Synapse> Connections::synapsesForSegment(const Segment& segment)
 {
   const Cell& cell = segment.cell;
   vector<Synapse> synapses;
+  Synapse synapse;
 
   for (SynapseIdx i = 0; i < cells_[cell.idx].segments[segment.idx].synapses.size(); i++) {
-    Synapse synapse = {i, segment};
+    synapse.idx = i;
+    synapse.segment = segment;
     synapses.push_back(synapse);
   }
 
