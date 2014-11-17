@@ -236,7 +236,7 @@ endmacro()
 ###                                                                          ###
 ################################################################################
 
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8.11)
 
 #
 # Set C++ compiler.
@@ -254,19 +254,6 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 # Gives the family of C++ compiler
 # 
 get_compiler_family(NTA_COMPILER_FAMILY)
-
-#
-# Overrides for compiler and link differences
-#
-set(D "-D") # define
-set(I "-I") # include
-set(L "-L") # library
-
-if(${NTA_COMPILER_FAMILY} MATCHES "MSVC")
-  set(D "/D")
-  set(I "-I")
-  set(L "/LIBPATH:")
-endif()
 
 #
 # Sets default locations.
@@ -483,22 +470,22 @@ set(USER_LINKFLAGS "" CACHE STRING "Extra Link flags")
 #
 include_directories(SYSTEM "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/include" "${REPOSITORY_DIR}/external/common/include")
 
-set(NTA_INCLUDEFLAGS "${I}${CMAKE_INSTALL_PREFIX}/include")
+set(NTA_INCLUDEFLAGS "-I${CMAKE_INSTALL_PREFIX}/include")
 
 #
 # NTA_INTERNAL tells us that the code is being built under the build
 # system and not as a separate program. Used for cppvision example.
-set(NTA_CXXFLAGS_BASE "${NTA_INCLUDEFLAGS} ${NTA_PLATFORM_CXXFLAGS} ${D}NTA_INTERNAL ${D}BOOST_NO_WREGEX ${D}NUPIC2")
-set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} ${D}NTA_PLATFORM_${NTA_PLATFORM_OS} ${D}NTA_COMPILER_${NTA_COMPILER_FAMILY}")
+set(NTA_CXXFLAGS_BASE "${NTA_INCLUDEFLAGS} ${NTA_PLATFORM_CXXFLAGS} -DNTA_INTERNAL -DBOOST_NO_WREGEX -DNUPIC2")
+set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -DNTA_PLATFORM_${NTA_PLATFORM_OS} -DNTA_COMPILER_${NTA_COMPILER_FAMILY}")
 
 if(${NTA_COMPILER_FAMILY} STREQUAL "MSVC")
-  set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} ${D}NOMINMAX ${D}APR_DECLARE_STATIC ${D}APU_DECLARE_STATIC ${D}ZLIB_WINAPI")
+  set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -DNOMINMAX -DAPR_DECLARE_STATIC -DAPU_DECLARE_STATIC -DZLIB_WINAPI")
 endif()
 
 #
 # All executables and plugins are linked with these flags
 #
-set(NTA_LINKFLAGS "${USER_LINKFLAGS} ${NTA_PLATFORM_LINKFLAGS} ${NTA_PLATFORM_LIBS} ${L}${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib")
+set(NTA_LINKFLAGS "${USER_LINKFLAGS} ${NTA_PLATFORM_LINKFLAGS} ${NTA_PLATFORM_LIBS} -L${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib")
 
 if(${NTA_COMPILER_FAMILY} STREQUAL "MSVC")
   # Need Winsock2
@@ -514,13 +501,13 @@ option(NTA_OPTIMIZATION_ENABLED "-DNTA_OPTIMIZATION_ENABLED=[ON/OFF] turn on opt
 if(NTA_OPTIMIZATION_ENABLED)
   # -ftree-vectorize conflicts with -no-tree-aliasing on leopard, so removed
   # flag NTA_ASM enables/disables our hand tuned assbembly code (SSE), but it's available only for some platform
-  set(NTA_CXXFLAGS_OPTIMIZATION "-O3 -pipe ${D}NTA_ASM")
+  set(NTA_CXXFLAGS_OPTIMIZATION "-O3 -pipe -DNTA_ASM")
 else()
   set(NTA_CXXFLAGS_OPTIMIZATION "-O0 -fno-inline")
 endif()
 if(${NTA_COMPILER_FAMILY} STREQUAL "MSVC")
   if(NTA_OPTIMIZATION_ENABLED AND NOT ${CMAKE_BUILD_TYPE} EQUAL "Debug")
-    set(NTA_CXXFLAGS_OPTIMIZATION "/O2 /Ob2 ${D}NTA_ASM")
+    set(NTA_CXXFLAGS_OPTIMIZATION "/O2 /Ob2 -DNTA_ASM")
   else()
     set(NTA_CXXFLAGS_OPTIMIZATION "/Od")
   endif()
@@ -542,9 +529,9 @@ message(STATUS "  Debug Symbols: ${NTA_DEBUGSYMBOLS_ENABLED}")
 #
 option(NTA_ASSERTIONS_ENABLED "-DNTA_ASSERTIONS_ENABLED=[ON/OFF] turn on assertions [default=ON]" ON)
 if(NTA_ASSERTIONS_ENABLED)
-  set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} ${D}NTA_ASSERTIONS_ON")
+  set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -DNTA_ASSERTIONS_ON")
 else()
-  set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} ${D}NDEBUG")
+  set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -DNDEBUG")
 endif()
 message(STATUS "  Assertions   : ${NTA_ASSERTIONS_ENABLED}")
 
@@ -610,12 +597,22 @@ endif()
 #
 set(NTA_CXXFLAGS "${USER_CXXFLAGS} ${NTA_CXXFLAGS_BASE} ${NTA_CXXFLAGS_OPTIMIZATION}")
 
+
+#
+# Overrides for compiler and link differences
+#
+if(${NTA_COMPILER_FAMILY} MATCHES "MSVC")
+  string(REGEX REPLACE "-D" "/D" NTA_CXXFLAGS ${NTA_CXXFLAGS})
+  string(REGEX REPLACE "-I" "/I" NTA_CXXFLAGS ${NTA_CXXFLAGS})
+  string(REGEX REPLACE "-L" "/LIBPATH:" NTA_CXXFLAGS ${NTA_CXXFLAGS})
+endif()
+
 set(NTA_CXXFLAGS_STATIC "${NTA_CXXFLAGS}")
 set(NTA_CXXFLAGS_DYNAMIC "${NTA_CXXFLAGS}")
 
 if(${NTA_COMPILER_FAMILY} EQUAL "MSVC")
   set(CMAKE_CXX_FLAGS_DEBUG "${NTA_CXXFLAGS} /MTd /Od /D_DEBUG /Zi")
-  set(NTA_CXXFLAGS_DYNAMIC "${NTA_CXXFLAGS} ${D}DLL ${D}_USRDLL")
+  set(NTA_CXXFLAGS_DYNAMIC "${NTA_CXXFLAGS} /DDLL /D_USRDLL")
 endif()
 
 
