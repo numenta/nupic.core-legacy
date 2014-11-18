@@ -326,9 +326,11 @@ namespace nta {
     NTA_CHECK(fsp_orig.getMinDistance() == fsp_dest.getMinDistance());
     NTA_CHECK(fsp_orig.getRandomSP() == fsp_dest.getRandomSP());
 
-    string command = string("rm -f ") + filename;
+#if !defined(NTA_PLATFORM_win32) && !defined(NTA_PLATFORM_win64)
+	string command = string("rm -f ") + filename;
     int ret = system(command.c_str());
     NTA_ASSERT(ret == 0); // << " FlatSpatialPooler.serialization failed. " << std::endl;
+#endif
   }
     
 } // end namespace nta

@@ -2516,10 +2516,11 @@ namespace nta {
 
     check_spatial_eq(sp_orig, sp_dest);
 
-
+#if !defined(NTA_PLATFORM_win32) && !defined(NTA_PLATFORM_win64)
     string command = string("rm -f ") + filename;
     int ret = system(command.c_str());
     NTA_ASSERT(ret == 0); // "SpatialPoolerTest: execution of command " << command << " failed " << std::endl;
+#endif
   }
 
   void SpatialPoolerTest::testStripUnlearnedColumns()

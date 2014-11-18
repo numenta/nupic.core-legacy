@@ -26,7 +26,8 @@
 #include <nta/os/Regex.hpp>
 #include <nta/utils/Log.hpp>
 
-#if defined(NTA_PLATFORM_win32) || defined(NTA_PLATFORM_win64) || defined(NTA_PLATFORM_darwin64)
+#if defined(NTA_PLATFORM_win32) || defined(NTA_PLATFORM_win64)
+//|| defined(NTA_PLATFORM_darwin64)
   #include <regex>		
 #else		
   //https://gcc.gnu.org/bugzilla/show_bug.cgi?id=53631
@@ -49,8 +50,9 @@ namespace nta
       if (re[re.length()-1] != '$') 
         exactRegExp += '$';
       
-#if defined(NTA_PLATFORM_win32) || defined(NTA_PLATFORM_win64) || defined(NTA_PLATFORM_darwin64)
-      std::regex r(exactRegExp, std::regex::nosubs);
+#if defined(NTA_PLATFORM_win32) || defined(NTA_PLATFORM_win64)
+//|| defined(NTA_PLATFORM_darwin64)
+      std::regex r(exactRegExp, std::regex::extended|std::regex::nosubs);
       if (std::regex_match(text, r))
         return true;
 

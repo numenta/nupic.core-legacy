@@ -27,7 +27,6 @@ os: Windows Server 2012
 # scripts that are called at very beginning, before repo cloning
 init:
   - git config --global core.autocrlf input
-# - git submodule update --init --recursive
 
 # clone directory
 clone_folder: c:\projects\nupic-core
@@ -57,6 +56,7 @@ install:
   - echo %PATH%
   - mkdir C:\projects\nupic-core\build\
   - mkdir C:\projects\nupic-core\build\scripts
+  - mkdir C:\projects\nupic-core\build\release
   - cd C:\projects\nupic-core\build\scripts
 
 # enable patching of AssemblyInfo.* files
@@ -85,21 +85,21 @@ configuration: Release
 before_build:
   - cd C:\projects\nupic-core\build\scripts
   - if "%COMPILER_FAMILY%" == "GNU" cmake C:\projects\nupic-core\src -G "MSYS Makefiles"
-  - if "%COMPILER_FAMILY%" == "MSVC" cmake C:\projects\nupic-core\src -G "Visual Studio 12"
+  - if "%COMPILER_FAMILY%" == "MSVC" cmake C:\projects\nupic-core\src -G "Visual Studio 11 Win64" -DCMAKE_INSTALL_PREFIX=..\Release
 
 # To run your custom scripts instead of automatic MSBuild
 build_script:
-#  - set MSBUILD_PLATFORM=%platform%
-#  - if "%MSBUILD_PLATFORM%" == "x86" set MSBUILD_PLATFORM=Win32
   - if "%COMPILER_FAMILY%" == "GNU" make
   - if "%COMPILER_FAMILY%" == "MSVC" msbuild "C:\projects\nupic-core\build\scripts\nupic_core.sln" /p:Configuration=%configuration% /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+
+  - if "%COMPILER_FAMILY%" == "GNU" make install
+  - if "%COMPILER_FAMILY%" == "MSVC" msbuild "C:\projects\nupic-core\build\scripts\Install.vcxproj" /p:Configuration=%configuration% /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
 
 # scripts to run after build
 after_build:
   - cd C:\projects\nupic-core\build\release
   - dir/S
   - mkdir examples
-  - xcopy ..\temp\lib .\lib /a /y /s
   - xcopy ..\..\src\examples .\examples /a /y /s
   - copy C:\projects\nupic-core\Package.nuspec .
   - nuget pack -version %APPVEYOR_BUILD_VERSION%
