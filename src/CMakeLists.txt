@@ -411,3 +411,12 @@ install(DIRECTORY "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/include/"
 install(FILES "${PROJECT_BINARY_DIR}/libnupic_core.a"
         DESTINATION lib)
 
+#
+# `make package` results in
+# nupic_core-${NUPIC_CORE_VERSION}-${PLATFORM}${BITNESS}.tar.gz binary release
+#
+
+set(CPACK_GENERATOR "TGZ")
+set(CPACK_PACKAGE_FILE_NAME "nupic_core-${NUPIC_CORE_VERSION}-${PLATFORM}${BITNESS}")
+include(CPack)
+
