@@ -41,8 +41,8 @@ namespace nta
     namespace connections
     {
       typedef UInt32 CellIdx;
-      typedef Byte SegmentIdx;
-      typedef Byte SynapseIdx;
+      typedef unsigned char SegmentIdx;
+      typedef unsigned char SynapseIdx;
       typedef Real32 Permanence;
 
       /**
@@ -210,110 +210,126 @@ namespace nta
         virtual ~Connections() {}
 
         /**
-         Creates a segment on the specified cell.
-
-         @param cell Cell to create segment on.
-
-         @retval Created segment.
-        */
+         * Creates a segment on the specified cell.
+         *
+         * @param cell Cell to create segment on.
+         *
+         * @retval Created segment.
+         */
         Segment createSegment(const Cell& cell);
 
         /**
-         Creates a synapse on the specified segment.
-
-         @param segment         Segment to create synapse on.
-         @param presynapticCell Cell to synapse on.
-         @param permanence      Initial permanence of new synapse.
-
-         @reval Created synapse.
-        */
+         * Creates a synapse on the specified segment.
+         *
+         * @param segment         Segment to create synapse on.
+         * @param presynapticCell Cell to synapse on.
+         * @param permanence      Initial permanence of new synapse.
+         *
+         * @reval Created synapse.
+         */
         Synapse createSynapse(const Segment& segment,
                               const Cell& presynapticCell,
                               Permanence permanence);
 
         /**
-         Updates a synapse's permanence.
-
-         @param synapse    Synapse to update.
-         @param permanence New permanence.
-        */
+         * Updates a synapse's permanence.
+         *
+         * @param synapse    Synapse to update.
+         * @param permanence New permanence.
+         */
         void updateSynapsePermanence(const Synapse& synapse,
                                      Permanence permanence);
 
         /**
-         Gets the segments for a cell.
-
-         @param cell Cell to get segments for.
-
-         @retval Segments on cell.
-        */
+         * Gets the segments for a cell.
+         *
+         * @param cell Cell to get segments for.
+         *
+         * @retval Segments on cell.
+         */
         std::vector<Segment> segmentsForCell(const Cell& cell);
 
         /**
-         Gets the synapses for a segment.
-
-         @param segment Segment to get synapses for.
-
-         @retval Synapses on segment.
-        */
+         * Gets the synapses for a segment.
+         *
+         * @param segment Segment to get synapses for.
+         *
+         * @retval Synapses on segment.
+         */
         std::vector<Synapse> synapsesForSegment(const Segment& segment);
 
         /**
-         Gets the data for a synapse.
-
-         @param synapse Synapse to get data for.
-
-         @retval Synapse data.
-        */
+         * Gets the data for a synapse.
+         *
+         * @param synapse Synapse to get data for.
+         *
+         * @retval Synapse data.
+         */
         SynapseData dataForSynapse(const Synapse& synapse) const;
 
         /**
-         Gets the segment with the most active synapses due to given input,
-         from among all the segments on all the given cells.
-
-         @param cells            Cells to look among.
-         @param input            Active cells in the input.
-         @param synapseThreshold Only consider segments with number of active synapses greater than this threshold.
-         @param segment          Segment to return.
-
-         @retval Segment found?
-        */
+         * Gets the segment with the most active synapses due to given input,
+         * from among all the segments on all the given cells.
+         *
+         * @param cells            Cells to look among.
+         * @param input            Active cells in the input.
+         * @param synapseThreshold Only consider segments with number of active synapses greater than this threshold.
+         * @param segment          Segment to return.
+         *
+         * @retval Segment found?
+         */
         bool mostActiveSegmentForCells(const std::vector<Cell>& cells,
                                        std::vector<Cell> input,
                                        UInt synapseThreshold,
                                        Segment& retSegment) const;
 
         /**
-         Forward-propagates input to synapses, dendrites, and cells, to
-         compute their activity.
-
-         @param input               Active cells in the input.
-         @param permanenceThreshold Only consider synapses with permanences greater than this threshold.
-         @param synapseThreshold    Only consider segments with number of active synapses greater than this threshold.
-
-         @retval Activity to return.
-        */
+         * Forward-propagates input to synapses, dendrites, and cells, to
+         * compute their activity.
+         *
+         * @param input               Active cells in the input.
+         * @param permanenceThreshold Only consider synapses with permanences greater than this threshold.
+         * @param synapseThreshold    Only consider segments with number of active synapses greater than this threshold.
+         *
+         * @retval Activity to return.
+         */
         Activity computeActivity(const std::vector<Cell>& input,
                                  Permanence permanenceThreshold,
                                  UInt synapseThreshold) const;
 
         /**
-         Gets the active segments from activity.
-
-         @param activity Activity.
-
-         @retval Active segments.
-        */
+         * Gets the active segments from activity.
+         *
+         * @param activity Activity.
+         *
+         * @retval Active segments.
+         */
         std::vector<Segment> activeSegments(const Activity& activity);
 
         /**
-         Gets the active cells from activity.
-
-         @param activity Activity.
-
-         @retval Active cells.
-        */
+         * Gets the active cells from activity.
+         *
+         * @param activity Activity.
+         *
+         * @retval Active cells.
+         */
         std::vector<Cell> activeCells(const Activity& activity);
+
+        // Debugging
+
+        /**
+         * Gets the number of segments.
+         *
+         * @retval Number of segments.
+         */
+        UInt numSegments() const;
+
+        /**
+         * Gets the number of synapses.
+         *
+         * @retval Number of synapses.
+         */
+        UInt numSynapses() const;
 
       private:
         std::vector<CellData> cells_;

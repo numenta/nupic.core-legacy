@@ -24,7 +24,7 @@
  * Implementation of Connections
  */
 
-#include <iostream>
+#include <climits>
 #include <nta/algorithms/Connections.hpp>
 
 using namespace std;
@@ -36,6 +36,10 @@ Connections::Connections(CellIdx numCells) : cells_(numCells) {}
 Segment Connections::createSegment(const Cell& cell)
 {
   vector<SegmentData>& segments = cells_[cell.idx].segments;
+  if (segments.size() == UCHAR_MAX)
+  {
+    throw runtime_error("Cannot create segment: cell has reached maximum number of segments.");
+  }
   Segment segment(segments.size(), cell);
 
   SegmentData segmentData;
@@ -48,9 +52,11 @@ Synapse Connections::createSynapse(const Segment& segment,
                                    const Cell& presynapticCell,
                                    Permanence permanence)
 {
-  const Cell& cell = segment.cell;
-
-  vector<SynapseData>& synapses = cells_[cell.idx].segments[segment.idx].synapses;
+  vector<SynapseData>& synapses = cells_[segment.cell.idx].segments[segment.idx].synapses;
+  if (synapses.size() == UCHAR_MAX)
+  {
+    throw runtime_error("Cannot create synapse: segment has reached maximum number of synapses.");
+  }
   Synapse synapse(synapses.size(), segment);
 
   SynapseData synapseData = {presynapticCell, permanence};
@@ -75,7 +81,8 @@ vector<Segment> Connections::segmentsForCell(const Cell& cell)
   vector<Segment> segments;
   Segment segment;
 
-  for(SegmentIdx i = 0; i < cells_[cell.idx].segments.size(); i++) {
+  for (SegmentIdx i = 0; i < cells_[cell.idx].segments.size(); i++)
+  {
     segment.idx = i;
     segment.cell = cell;
     segments.push_back(segment);
@@ -90,7 +97,8 @@ vector<Synapse> Connections::synapsesForSegment(const Segment& segment)
   vector<Synapse> synapses;
   Synapse synapse;
 
-  for(SynapseIdx i = 0; i < cells_[cell.idx].segments[segment.idx].synapses.size(); i++) {
+  for (SynapseIdx i = 0; i < cells_[cell.idx].segments[segment.idx].synapses.size(); i++)
+  {
     synapse.idx = i;
     synapse.segment = segment;
     synapses.push_back(synapse);
@@ -115,29 +123,38 @@ bool Connections::mostActiveSegmentForCells(const vector<Cell>& cells,
   UInt numSynapses, maxSynapses = synapseThreshold;
   vector<SegmentData> segments;
   vector<SynapseData> synapses;
+  SegmentIdx segmentIdx = 0;
   bool found = false;
 
   sort(input.begin(), input.end());  // for binary search
 
-  for (vector<Cell>::const_iterator cell = cells.begin(); cell != cells.end(); cell++) {
-    segments = cells_[cell->idx].segments;
+  for (auto cell : cells)
+  {
+    segments = cells_[cell.idx].segments;
+    segmentIdx = 0;
 
-    for (vector<SegmentData>::const_iterator segment = segments.begin(); segment != segments.end(); segment++) {
-      synapses = segment->synapses;
+    for (auto segment : segments)
+    {
+      synapses = segment.synapses;
       numSynapses = 0;
 
-      for (vector<SynapseData>::const_iterator synapse = synapses.begin(); synapse != synapses.end(); synapse++) {
-        if (binary_search(input.begin(), input.end(), synapse->presynapticCell)) {
+      for (auto synapse : synapses)
+      {
+        if (binary_search(input.begin(), input.end(), synapse.presynapticCell))
+        {
           numSynapses++;
         }
       }
 
-      if (numSynapses >= maxSynapses) {
+      if (numSynapses >= maxSynapses)
+      {
         maxSynapses = numSynapses;
-        retSegment.idx = segment - segments.begin();
-        retSegment.cell = *cell;
+        retSegment.idx = segmentIdx;
+        retSegment.cell = cell;
         found = true;
       }
+
+      segmentIdx++;
     }
   }
 
@@ -152,18 +169,22 @@ Activity Connections::computeActivity(const vector<Cell>& input,
   vector<Synapse> synapses;
   SynapseData synapseData;
 
-  for (vector<Cell>::const_iterator cell = input.begin(); cell != input.end(); cell++) {
-    if (!synapsesForPresynapticCell_.count(*cell)) continue;
-    synapses = synapsesForPresynapticCell_.at(*cell);
+  for (auto cell : input)
+  {
+    if (!synapsesForPresynapticCell_.count(cell)) continue;
+    synapses = synapsesForPresynapticCell_.at(cell);
 
-    for (vector<Synapse>::const_iterator synapse = synapses.begin(); synapse != synapses.end(); synapse++) {
-      synapseData = dataForSynapse(*synapse);
+    for (auto synapse : synapses)
+    {
+      synapseData = dataForSynapse(synapse);
 
-      if (synapseData.permanence >= permanenceThreshold) {
-        activity.numActiveSynapsesForSegment[synapse->segment] += 1;
+      if (synapseData.permanence >= permanenceThreshold)
+      {
+        activity.numActiveSynapsesForSegment[synapse.segment] += 1;
 
-        if (activity.numActiveSynapsesForSegment[synapse->segment] == synapseThreshold) {
-          activity.activeSegmentsForCell[synapse->segment.cell].push_back(synapse->segment);
+        if (activity.numActiveSynapsesForSegment[synapse.segment] == synapseThreshold)
+        {
+          activity.activeSegmentsForCell[synapse.segment.cell].push_back(synapse.segment);
         }
       }
     }
@@ -176,10 +197,9 @@ vector<Segment> Connections::activeSegments(const Activity& activity)
 {
   vector<Segment> segments;
 
-  for (map< Cell, std::vector<Segment> >::const_iterator i = activity.activeSegmentsForCell.begin();
-       i != activity.activeSegmentsForCell.end();
-       i++) {
-    segments.insert(segments.end(), i->second.begin(), i->second.end());
+  for (auto i : activity.activeSegmentsForCell)
+  {
+    segments.insert(segments.end(), i.second.begin(), i.second.end());
   }
 
   return segments;
@@ -189,16 +209,43 @@ vector<Cell> Connections::activeCells(const Activity& activity)
 {
   vector<Cell> cells;
 
-  for (map< Cell, std::vector<Segment> >::const_iterator i = activity.activeSegmentsForCell.begin();
-       i != activity.activeSegmentsForCell.end();
-       i++) {
-    cells.push_back(i->first);
+  for (auto i : activity.activeSegmentsForCell)
+  {
+    cells.push_back(i.first);
   }
 
   return cells;
 }
 
-bool Cell::operator==(const Cell &other) const {
+UInt Connections::numSegments() const
+{
+  UInt num = 0;
+
+  for (auto cell : cells_)
+  {
+    num += cell.segments.size();
+  }
+
+  return num;
+}
+
+UInt Connections::numSynapses() const
+{
+  UInt num = 0;
+
+  for (auto cell : cells_)
+  {
+    for (auto segment : cell.segments)
+    {
+      num += segment.synapses.size();
+    }
+  }
+
+  return num;
+}
+
+bool Cell::operator==(const Cell &other) const
+{
   return idx == other.idx;
 }
 
@@ -247,6 +294,7 @@ bool Segment::operator>(const Segment &other) const
   return idx == other.idx ? cell > other.cell : idx > other.idx;
 }
 
-bool Synapse::operator==(const Synapse &other) const {
+bool Synapse::operator==(const Synapse &other) const
+{
   return idx == other.idx && segment == other.segment;
 }
