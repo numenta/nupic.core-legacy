@@ -164,6 +164,7 @@ ADD_LIBRARY(${LIB_STATIC_NUPICCORE}
             nta/algorithms/Cells4.cpp
             nta/algorithms/ClassifierResult.cpp
             nta/algorithms/CondProbTable.cpp
+            nta/algorithms/Connections.cpp
             nta/algorithms/FastClaClassifier.cpp
             nta/algorithms/FlatSpatialPooler.cpp
             nta/algorithms/GaborNode.cpp
@@ -263,6 +264,7 @@ add_dependencies(${EXECUTABLE_HELLOREGION} ${COMMON_LIBS})
 set(EXECUTABLE_GTESTS unit_tests)
 add_executable(${EXECUTABLE_GTESTS}
                test/unit/algorithms/CondProbTableTest.cpp
+               test/unit/algorithms/ConnectionsTest.cpp
                test/unit/algorithms/FastCLAClassifierTest.cpp
                test/unit/algorithms/FlatSpatialPoolerTest.cpp
                test/unit/algorithms/NearestNeighborUnitTest.cpp
@@ -309,6 +311,7 @@ add_custom_target(tests_unit
                   COMMAND ${EXECUTABLE_GTESTS} "--gtest_output=xml:${PROJECT_BUILD_ARTIFACTS_DIR}/unit_tests_report.xml")
 set(TEST_HEADERS
     test/unit/algorithms/CondProbTableTest.hpp
+    test/unit/algorithms/ConnectionsTest.hpp
     test/unit/algorithms/FastCLAClassifierTest.hpp
     test/unit/algorithms/FlatSpatialPoolerTest.hpp
     test/unit/algorithms/NearestNeighborUnitTest.hpp
