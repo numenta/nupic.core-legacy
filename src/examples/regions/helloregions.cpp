@@ -46,8 +46,7 @@ int main(int argc, const char * argv[])
     region->setDimensions(dims);
 
     // Load data
-    std::string path = Path::makeAbsolute("./data.csv");
-
+    std::string path = Path::makeAbsolute("data.csv");
     std::cout << "Loading data from " << path << std::endl;
 
     std::vector<std::string> loadFileArgs;
