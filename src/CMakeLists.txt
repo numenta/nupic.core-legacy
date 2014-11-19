@@ -90,7 +90,7 @@ if("${PLATFORM}" STREQUAL "win")
   add_definitions( -D _VARIADIC_MAX=10  # VS2012 doesn't support tuples correctly
                    -DNOMINMAX -DAPR_DECLARE_STATIC -DAPU_DECLARE_STATIC -DZLIB_WINAPI
                    -DWIN32 -D_WINDOWS -DPSAPI_VERSION=1 -D_MBCS -D_CRT_SECURE_NO_WARNINGS)
- else()
+else()
   add_definitions(-DHAVE_CONFIG_H)
 endif()
 
