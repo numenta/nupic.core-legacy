@@ -86,15 +86,14 @@ include_directories(SYSTEM
 set(COMPILE_FLAGS "-fPIC -std=c++11 -m${BITNESS} ${STDLIB} -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-unused-parameter")
 set(LINK_FLAGS "-m${BITNESS} ${STDLIB}")
 
-# Alternatives for Windows
-if("${PLATFORM}" STREQUAL "win")
+if(UNIX) # or UNIX like (i.e. APPLE and CYGWIN)
+  add_definitions(-DHAVE_UNISTD_H)
+elseif(WIN32) # incl. win64
   set(COMPILE_FLAGS "/TP /Zc:wchar_t /Gm- /fp:precise /errorReport:prompt /W3 /WX- /GR /Gd /GS /Oy- /EHs /analyze- /nologo")
   set(LINK_FLAGS "/MACHINE:X${BITNESS} /NOLOGO /SAFESEH:NO /NODEFAULTLIB:LIBCMT")
   add_definitions( -D _VARIADIC_MAX=10  # VS2012 doesn't support tuples correctly
-                   -DNOMINMAX -DAPR_DECLARE_STATIC -DAPU_DECLARE_STATIC -DZLIB_WINAPI
-                   -DWIN32 -D_WINDOWS -DPSAPI_VERSION=1 -D_MBCS -D_CRT_SECURE_NO_WARNINGS)
-else()
-  add_definitions(-DHAVE_UNISTD_H)
+                   -DPSAPI_VERSION=1 -DNOMINMAX -DAPR_DECLARE_STATIC -DAPU_DECLARE_STATIC -DZLIB_WINAPI
+                   -DWIN32 -D_WINDOWS -D_MBCS -D_CRT_SECURE_NO_WARNINGS -DNDEBUG)
 endif()
 
 #
@@ -153,9 +152,6 @@ add_library(${LIB_STATIC_YAML} STATIC IMPORTED GLOBAL)
 # Find and add libyaml-cpp
 #
 set(LIB_STATIC_YAML_CPP yaml-cpp)
-if("${PLATFORM}" STREQUAL "win")
-  set(LIB_STATIC_YAML_CPP yaml-cppmd)
-endif()
 find_library(LIB_STATIC_YAML_CPP_LOC
              ${LIB_STATIC_YAML_CPP}
              "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/lib/"
@@ -166,9 +162,6 @@ add_library(${LIB_STATIC_YAML_CPP} STATIC IMPORTED GLOBAL)
 # Find and add libz
 #
 set(LIB_STATIC_Z z)
-if("${PLATFORM}" STREQUAL "win")
-  set(LIB_STATIC_Z libz)
-endif()
 find_library(LIB_STATIC_Z_LOC
              ${LIB_STATIC_Z}
              "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/lib/"
@@ -188,7 +181,7 @@ elseif("${PLATFORM}" STREQUAL "darwin")
   set(COMPILE_FLAGS "${COMPILE_FLAGS} -O3")
 elseif("${PLATFORM}" STREQUAL "win")
   list(APPEND COMMON_LIBS oldnames.lib psapi.lib ws2_32.lib)
-  set(COMPILE_FLAGS "${COMPILE_FLAGS} -O2 -Ob2 -DNDEBUG")
+  set(COMPILE_FLAGS "${COMPILE_FLAGS} -O2 -Ob2")
 endif()
 
 ADD_LIBRARY(${LIB_STATIC_NUPICCORE}
@@ -456,6 +449,7 @@ install(DIRECTORY "${REPOSITORY_DIR}/external/common/include/"
         DESTINATION include)
 install(DIRECTORY "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/include/"
         DESTINATION include)
+
 if(NOT "${PLATFORM}" STREQUAL "win")
   install(FILES "${PROJECT_BINARY_DIR}/libnupic_core.a"
           DESTINATION lib)
