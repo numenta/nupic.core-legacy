@@ -28,7 +28,7 @@
 #
 # -----------------------------------------------------------------------------
 
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8.1)
 project(nupic_core CXX)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
@@ -57,8 +57,11 @@ if(CMAKE_SIZEOF_VOID_P EQUAL 8)
   set(BITNESS 64)
 endif()
 
+#
 # Compiler `-D*` definitions
+#
 add_definitions(-DNTA_PLATFORM_${PLATFORM}${BITNESS}
+                -DHAVE_CONFIG_H
                 -DNTA_INTERNAL
                 -DBOOST_NO_WREGEX
                 -DNUPIC2
@@ -91,7 +94,7 @@ if("${PLATFORM}" STREQUAL "win")
                    -DNOMINMAX -DAPR_DECLARE_STATIC -DAPU_DECLARE_STATIC -DZLIB_WINAPI
                    -DWIN32 -D_WINDOWS -DPSAPI_VERSION=1 -D_MBCS -D_CRT_SECURE_NO_WARNINGS)
 else()
-  add_definitions(-DHAVE_CONFIG_H)
+  add_definitions(-DHAVE_UNISTD_H)
 endif()
 
 #
