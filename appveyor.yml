@@ -40,7 +40,7 @@ environment:
 #    - COMPILER_FAMILY: GNU
 #      DEPLOY_BUILD: 0
     - COMPILER_FAMILY: MSVC
-      DEPLOY_BUILD: 1
+      DEPLOY_BUILD: 0
 
 matrix:
   fast_finish: true
@@ -71,15 +71,7 @@ assembly_info:
 #       build configuration       #
 #---------------------------------#
 
-# build platform, optional.
-#platform:
-#  - x86
-#  - x64
-
-# build Configuration, i.e. Debug, Release, etc.
 configuration: Release
-#  - Debug
-#  - Release
 
 # scripts to run before build
 before_build:
@@ -98,13 +90,10 @@ build_script:
 # scripts to run after build
 after_build:
   - cd C:\projects\nupic-core\build\release
-  - dir/S
-  - mkdir examples
-  - xcopy ..\..\src\examples .\examples /a /y /s
   - copy C:\projects\nupic-core\Package.nuspec .
   - nuget pack -version %APPVEYOR_BUILD_VERSION%
   - ps: if($env:DEPLOY_BUILD -eq 1) { nuget push *.nupkg 30618afb-ecf6-4476-8e61-a5b823ad9892 }
-  - ps: if($env:DEPLOY_BUILD -eq 1) { $root = Resolve-Path .; [IO.Directory]::GetFiles($root.Path, '*.*', 'AllDirectories') | % { Push-AppveyorArtifact $_ -FileName $_.Substring($root.Path.Length + 1) -DeploymentName to-publish } }
+#  - ps: if($env:DEPLOY_BUILD -eq 1) { $root = Resolve-Path .; [IO.Directory]::GetFiles($root.Path, '*.*', 'AllDirectories') | % { Push-AppveyorArtifact $_ -FileName $_.Substring($root.Path.Length + 1) -DeploymentName to-publish } }
 
 #artifacts:
 #  - path: 'nupic-core\build\release\**'
