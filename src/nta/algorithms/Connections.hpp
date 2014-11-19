@@ -335,6 +335,8 @@ namespace nta
         std::vector<CellData> cells_;
         // Mapping (presynaptic cell => synapses) used in forward propagation
         std::map< Cell, std::vector<Synapse> > synapsesForPresynapticCell_;
+        UInt numSegments_;
+        UInt numSynapses_;
       }; // end class Connections
 
     } // end namespace connections
