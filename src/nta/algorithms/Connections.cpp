@@ -31,7 +31,10 @@ using namespace std;
 using namespace nta;
 using namespace nta::algorithms::connections;
 
-Connections::Connections(CellIdx numCells) : cells_(numCells) {}
+Connections::Connections(CellIdx numCells) : cells_(numCells) {
+  numSegments_ = 0;
+  numSynapses_ = 0;
+}
 
 Segment Connections::createSegment(const Cell& cell)
 {
@@ -44,6 +47,7 @@ Segment Connections::createSegment(const Cell& cell)
 
   SegmentData segmentData;
   segments.push_back(segmentData);
+  numSegments_++;
 
   return segment;
 }
@@ -61,6 +65,7 @@ Synapse Connections::createSynapse(const Segment& segment,
 
   SynapseData synapseData = {presynapticCell, permanence};
   synapses.push_back(synapseData);
+  numSynapses_++;
 
   synapsesForPresynapticCell_[presynapticCell].push_back(synapse);
 
@@ -219,29 +224,12 @@ vector<Cell> Connections::activeCells(const Activity& activity)
 
 UInt Connections::numSegments() const
 {
-  UInt num = 0;
-
-  for (auto cell : cells_)
-  {
-    num += cell.segments.size();
-  }
-
-  return num;
+  return numSegments_;
 }
 
 UInt Connections::numSynapses() const
 {
-  UInt num = 0;
-
-  for (auto cell : cells_)
-  {
-    for (auto segment : cell.segments)
-    {
-      num += segment.synapses.size();
-    }
-  }
-
-  return num;
+  return numSynapses_;
 }
 
 bool Cell::operator==(const Cell &other) const
