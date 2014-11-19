@@ -21,7 +21,10 @@ build/
 *.log
 *.tlog
 *.vcxproj.filters
+
+# Don't ignore Version.hpp.in
 *.in
+!Version.hpp.in
 
 src/test/testeverything/EverythingAddtests.hpp
 src/test/testeverything/EverythingHeaders.hpp
