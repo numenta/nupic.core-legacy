@@ -19,7 +19,7 @@ matrix:
 
 # Successful builds are archived and uploaded to S3 for nupic builds.
 before_deploy:
-  - "if [ ${TRAVIS_OS_NAME:-'linux'} = 'linux' ]; then PLATFORM='darwin'; fi"
+  - "if [ ${TRAVIS_OS_NAME:-'osx'} = 'osx' ]; then PLATFORM='darwin'; fi"
   - cd $TRAVIS_BUILD_DIR/build/scripts
   - make package
   - mkdir ../release
