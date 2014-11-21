@@ -24,7 +24,6 @@ before_deploy:
   - make package
   - mkdir $TRAVIS_BUILD_DIR/release
   - mv nupic_core-${TRAVIS_COMMIT}-${PLATFORM}64.tar.gz $TRAVIS_BUILD_DIR/release/.
-  - ls -la $TRAVIS_BUILD_DIR/release
 
 deploy:
   provider: s3
