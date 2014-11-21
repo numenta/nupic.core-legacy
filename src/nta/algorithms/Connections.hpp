@@ -143,12 +143,14 @@ namespace nta
        * The SegmentData class is a data structure that contains the data for a
        * segment on a cell.
        *
-       * @param synapses Data for synapses that this segment contains.
+       * @param synapses  Data for synapses that this segment contains.
+       * @param destroyed Whether this segment has been destroyed.
        *
        */
       struct SegmentData
       {
         std::vector<SynapseData> synapses;
+        bool destroyed;
       };
 
       /**

@@ -124,9 +124,20 @@ namespace nta {
     Connections connections(1024);
     Cell cell;
     Segment segment;
-    Synapse synapse;
 
     setupSampleConnections(connections);
+
+    cell.idx = 20;
+    segment.cell = cell;
+    segment.idx = 1;
+    connections.destroySegment(segment);
+
+    ASSERT_THROW(connections.synapsesForSegment(segment);, runtime_error);
+
+    Activity activity = computeSampleActivity(connections);
+
+    TESTEQUAL(activity.activeSegmentsForCell.size(), 0);
+    TESTEQUAL(activity.numActiveSynapsesForSegment.size(), 2);
   }
 
   /**

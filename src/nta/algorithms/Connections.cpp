@@ -45,7 +45,7 @@ Segment Connections::createSegment(const Cell& cell)
   }
   Segment segment(segments.size(), cell);
 
-  SegmentData segmentData;
+  SegmentData segmentData = {};
   segments.push_back(segmentData);
   numSegments_++;
 
@@ -74,6 +74,15 @@ Synapse Connections::createSynapse(const Segment& segment,
 
 void Connections::destroySegment(const Segment& segment)
 {
+  const Cell& cell = segment.cell;
+  SegmentData& segmentData = cells_[cell.idx].segments[segment.idx];
+
+  for (auto synapse : synapsesForSegment(segment))
+  {
+    destroySynapse(synapse);
+  }
+
+  segmentData.destroyed = true;
 }
 
 void Connections::destroySynapse(const Synapse& synapse)
@@ -123,11 +132,17 @@ vector<Segment> Connections::segmentsForCell(const Cell& cell)
 vector<Synapse> Connections::synapsesForSegment(const Segment& segment)
 {
   const Cell& cell = segment.cell;
+  SegmentData segmentData = cells_[cell.idx].segments[segment.idx];
   vector<Synapse> synapses;
   Synapse synapse;
   SynapseData synapseData;
 
-  for (SynapseIdx i = 0; i < cells_[cell.idx].segments[segment.idx].synapses.size(); i++)
+  if (segmentData.destroyed)
+  {
+    throw runtime_error("Attempting to access destroyed segment's synapses.");
+  }
+
+  for (SynapseIdx i = 0; i < segmentData.synapses.size(); i++)
   {
     synapse.idx = i;
     synapse.segment = segment;
