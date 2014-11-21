@@ -226,7 +226,6 @@ Activity Connections::computeActivity(const vector<Cell>& input,
 
     for (auto synapse : synapses)
     {
-      // TODO: Potential optimization - store synapse datas in synapsesForPresynapticCell_
       synapseData = dataForSynapse(synapse);
 
       if (synapseData.permanence >= permanenceThreshold)
