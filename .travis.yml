@@ -30,7 +30,7 @@ deploy:
   provider: s3
   access_key_id: AKIAIGHYSEHV3WFKOWNQ
   secret_access_key:
-    secure: "OfrASSymhnVwdx3VlLW9CAqhUDB3iB/OGv7kfqpnPUnzmjjdirh09tvyHhWamLfdsfsPl/12Dx6p94fT0mkqsb/43BkdPIh8rlNh8kHpOkUDUqo4E/tCUcZV2NUj6JYmXloCip5yiZUY8o2onufrhAH6w4Mcbb/3Fq+HSbcP7GA="
+    secure: YhyY/6r2LNya8OZEmVOj+fv0lY5bBPqvy8MnsdLlptXa2uqwvezkCMNKiQ+wA+tOu+BS7VRRp86DhUqCpTZ3jUM2Mwdhud/Smq7D2X8vtZBiTVcOKfQcaypDE6Zu9Zp0SjMOSf6yiq6Ruu7D5QtZ4rtaq+5uPlvbgUXRZoZm0Po=
   bucket: artifacts.numenta.org
   region: us-west-2
   local-dir: "$TRAVIS_BUILD_DIR/release"
