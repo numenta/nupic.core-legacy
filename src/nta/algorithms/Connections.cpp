@@ -72,6 +72,30 @@ Synapse Connections::createSynapse(const Segment& segment,
   return synapse;
 }
 
+void Connections::destroySegment(const Segment& segment)
+{
+}
+
+void Connections::destroySynapse(const Synapse& synapse)
+{
+  const Segment& segment = synapse.segment;
+  const Cell& cell = segment.cell;
+  SynapseData& synapseData = cells_[cell.idx].segments[segment.idx].synapses[synapse.idx];
+
+  synapseData.destroyed = true;
+
+  vector<Synapse>& synapses = synapsesForPresynapticCell_[synapseData.presynapticCell];
+
+  for (auto s = synapses.begin(); s != synapses.end(); s++)
+  {
+    if (*s == synapse)
+    {
+      synapses.erase(s);
+      break;
+    }
+  }
+}
+
 void Connections::updateSynapsePermanence(const Synapse& synapse,
                                           Permanence permanence)
 {
@@ -101,12 +125,18 @@ vector<Synapse> Connections::synapsesForSegment(const Segment& segment)
   const Cell& cell = segment.cell;
   vector<Synapse> synapses;
   Synapse synapse;
+  SynapseData synapseData;
 
   for (SynapseIdx i = 0; i < cells_[cell.idx].segments[segment.idx].synapses.size(); i++)
   {
     synapse.idx = i;
     synapse.segment = segment;
-    synapses.push_back(synapse);
+    synapseData = dataForSynapse(synapse);
+
+    if (!synapseData.destroyed && synapseData.permanence > 0)
+    {
+      synapses.push_back(synapse);
+    }
   }
 
   return synapses;
@@ -181,6 +211,7 @@ Activity Connections::computeActivity(const vector<Cell>& input,
 
     for (auto synapse : synapses)
     {
+      // TODO: Potential optimization - store synapse datas in synapsesForPresynapticCell_
       synapseData = dataForSynapse(synapse);
 
       if (synapseData.permanence >= permanenceThreshold)

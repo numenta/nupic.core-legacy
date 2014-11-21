@@ -37,6 +37,8 @@ namespace nta {
   {
     testCreateSegment();
     testCreateSynapse();
+    testDestroySegment();
+    testDestroySynapse();
     testUpdateSynapsePermanence();
     testMostActiveSegmentForCells();
     testMostActiveSegmentForCellsNone();
@@ -111,6 +113,51 @@ namespace nta {
     synapseData = connections.dataForSynapse(synapses[1]);
     TESTEQUAL(synapseData.presynapticCell.idx, 150);
     TESTEQUAL_FLOAT(synapseData.permanence, (Permanence)0.48);
+  }
+
+  /**
+   * Creates a segment, destroys it, and makes sure it got destroyed along with
+   * all of its synapses.
+   */
+  void ConnectionsTest::testDestroySegment()
+  {
+    Connections connections(1024);
+    Cell cell;
+    Segment segment;
+    Synapse synapse;
+
+    setupSampleConnections(connections);
+  }
+
+  /**
+   * Creates a segment, creates a number of synapses on it, destroys a synapse,
+   * and makes sure it got destroyed.
+   */
+  void ConnectionsTest::testDestroySynapse()
+  {
+    Connections connections(1024);
+    Cell cell;
+    Segment segment;
+    Synapse synapse;
+
+    setupSampleConnections(connections);
+
+    cell.idx = 20;
+    segment.cell = cell;
+    segment.idx = 1;
+    synapse.segment = segment;
+    synapse.idx = 0;
+    connections.destroySynapse(synapse);
+
+    vector<Synapse> synapses = connections.synapsesForSegment(segment);
+    TESTEQUAL(synapses.size(), 2);
+
+    Activity activity = computeSampleActivity(connections);
+
+    TESTEQUAL(activity.activeSegmentsForCell.size(), 0);
+
+    segment.cell.idx = 20; segment.idx = 1;
+    TESTEQUAL(activity.numActiveSynapsesForSegment[segment], 1);
   }
 
   /**

@@ -52,7 +52,7 @@ namespace nta
        * The Cell class is a data structure that points to a particular cell.
        *
        * @param idx Index of cell.
-       * 
+       *
        */
       struct Cell
       {
@@ -77,7 +77,7 @@ namespace nta
        *
        * @param idx     Index of segment.
        * @param cellIdx Index of cell.
-       * 
+       *
        */
       struct Segment
       {
@@ -104,7 +104,7 @@ namespace nta
        * @param idx        Index of synapse in segment.
        * @param segmentIdx Index of segment in cell.
        * @param cellIdx    Index of cell.
-       * 
+       *
        */
       struct Synapse
       {
@@ -126,12 +126,14 @@ namespace nta
        *
        * @param presynapticCellIdx Cell that this synapse gets input from.
        * @param permanence         Permanence of synapse.
-       * 
+       * @param destroyed          Whether this synapse has been destroyed.
+       *
        */
       struct SynapseData
       {
         Cell presynapticCell;
         Permanence permanence;
+        bool destroyed;
       };
 
       /**
@@ -142,7 +144,7 @@ namespace nta
        * segment on a cell.
        *
        * @param synapses Data for synapses that this segment contains.
-       * 
+       *
        */
       struct SegmentData
       {
@@ -157,7 +159,7 @@ namespace nta
        * cell.
        *
        * @param segments Data for segments that this cell contains.
-       * 
+       *
        */
       struct CellData
       {
@@ -171,7 +173,7 @@ namespace nta
        * The Activity class is a data structure that represents the
        * activity of a collection of cells, as computed by propagating
        * input through connections.
-       * 
+       *
        */
       struct Activity
       {
@@ -200,7 +202,7 @@ namespace nta
        *
        * This class is optimized to store connections between cells, and
        * compute the activity of cells due to input over the connections.
-       * 
+       *
        */
       class Connections
       {
@@ -230,6 +232,20 @@ namespace nta
         Synapse createSynapse(const Segment& segment,
                               const Cell& presynapticCell,
                               Permanence permanence);
+
+        /**
+         * Destroys segment.
+         *
+         * @param segment Segment to destroy.
+         */
+        void destroySegment(const Segment& segment);
+
+        /**
+         * Destroys synapse.
+         *
+         * @param synapse Synapse to destroy.
+         */
+        void destroySynapse(const Synapse& synapse);
 
         /**
          * Updates a synapse's permanence.

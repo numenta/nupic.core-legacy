@@ -49,6 +49,8 @@ namespace nta
   private:
     void testCreateSegment();
     void testCreateSynapse();
+    void testDestroySegment();
+    void testDestroySynapse();
     void testUpdateSynapsePermanence();
     void testMostActiveSegmentForCells();
     void testMostActiveSegmentForCellsNone();
