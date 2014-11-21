@@ -22,9 +22,9 @@ before_deploy:
   - "if [ ${TRAVIS_OS_NAME:-'osx'} = 'osx' ]; then PLATFORM='darwin'; fi"
   - cd $TRAVIS_BUILD_DIR/build/scripts
   - make package
-  - mkdir $TRAVIS_BUILD_DIR/build/release
-  - mv nupic_core-${TRAVIS_COMMIT}-${PLATFORM}64.tar.gz $TRAVIS_BUILD_DIR/build/release/.
-  - ls -la $TRAVIS_BUILD_DIR/build/release
+  - mkdir $TRAVIS_BUILD_DIR/release
+  - mv nupic_core-${TRAVIS_COMMIT}-${PLATFORM}64.tar.gz $TRAVIS_BUILD_DIR/release/.
+  - ls -la $TRAVIS_BUILD_DIR/release
 
 deploy:
   provider: s3
@@ -33,7 +33,7 @@ deploy:
     secure: "OfrASSymhnVwdx3VlLW9CAqhUDB3iB/OGv7kfqpnPUnzmjjdirh09tvyHhWamLfdsfsPl/12Dx6p94fT0mkqsb/43BkdPIh8rlNh8kHpOkUDUqo4E/tCUcZV2NUj6JYmXloCip5yiZUY8o2onufrhAH6w4Mcbb/3Fq+HSbcP7GA="
   bucket: artifacts.numenta.org
   region: us-west-2
-  local-dir: "build/release/"
+  local-dir: "release"
   upload-dir: "numenta/nupic.core"
   skip_cleanup: true
   # Only deploy on master from clang build jobs
