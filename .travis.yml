@@ -33,7 +33,7 @@ deploy:
     secure: "OfrASSymhnVwdx3VlLW9CAqhUDB3iB/OGv7kfqpnPUnzmjjdirh09tvyHhWamLfdsfsPl/12Dx6p94fT0mkqsb/43BkdPIh8rlNh8kHpOkUDUqo4E/tCUcZV2NUj6JYmXloCip5yiZUY8o2onufrhAH6w4Mcbb/3Fq+HSbcP7GA="
   bucket: artifacts.numenta.org
   region: us-west-2
-  local-dir: "release"
+  local-dir: "$TRAVIS_BUILD_DIR/release"
   upload-dir: "numenta/nupic.core"
   skip_cleanup: true
   # Only deploy on master from clang build jobs
