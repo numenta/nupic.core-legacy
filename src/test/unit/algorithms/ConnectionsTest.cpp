@@ -31,6 +31,8 @@ using namespace std;
 using namespace nta;
 using namespace nta::algorithms::connections;
 
+#define EPSILON 0.0000001
+
 namespace nta {
 
   void ConnectionsTest::RunTests()
@@ -58,19 +60,19 @@ namespace nta {
     Cell cell(10);
 
     segment = connections.createSegment(cell);
-    TESTEQUAL(segment.idx, 0);
-    TESTEQUAL(segment.cell.idx, cell.idx);
+    ASSERT_EQ(segment.idx, 0);
+    ASSERT_EQ(segment.cell.idx, cell.idx);
 
     segment = connections.createSegment(cell);
-    TESTEQUAL(segment.idx, 1);
-    TESTEQUAL(segment.cell.idx, cell.idx);
+    ASSERT_EQ(segment.idx, 1);
+    ASSERT_EQ(segment.cell.idx, cell.idx);
 
     vector<Segment> segments = connections.segmentsForCell(cell);
-    TESTEQUAL(segments.size(), 2);
+    ASSERT_EQ(segments.size(), 2);
 
     for (SegmentIdx i = 0; i < segments.size(); i++) {
-      TESTEQUAL(segments[i].idx, i);
-      TESTEQUAL(segments[i].cell.idx, cell.idx);
+      ASSERT_EQ(segments[i].idx, i);
+      ASSERT_EQ(segments[i].cell.idx, cell.idx);
     }
   }
 
@@ -87,32 +89,32 @@ namespace nta {
 
     presynapticCell.idx = 50;
     synapse = connections.createSynapse(segment, presynapticCell, 0.34);
-    TESTEQUAL(synapse.idx, 0);
-    TESTEQUAL(synapse.segment.idx, segment.idx);
+    ASSERT_EQ(synapse.idx, 0);
+    ASSERT_EQ(synapse.segment.idx, segment.idx);
 
     presynapticCell.idx = 150;
     synapse = connections.createSynapse(segment, presynapticCell, 0.48);
-    TESTEQUAL(synapse.idx, 1);
-    TESTEQUAL(synapse.segment.idx, segment.idx);
+    ASSERT_EQ(synapse.idx, 1);
+    ASSERT_EQ(synapse.segment.idx, segment.idx);
 
     vector<Synapse> synapses = connections.synapsesForSegment(segment);
-    TESTEQUAL(synapses.size(), 2);
+    ASSERT_EQ(synapses.size(), 2);
 
     for (SynapseIdx i = 0; i < synapses.size(); i++) {
-      TESTEQUAL(synapses[i].idx, i);
-      TESTEQUAL(synapses[i].segment.idx, segment.idx);
-      TESTEQUAL(synapses[i].segment.cell.idx, cell.idx);
+      ASSERT_EQ(synapses[i].idx, i);
+      ASSERT_EQ(synapses[i].segment.idx, segment.idx);
+      ASSERT_EQ(synapses[i].segment.cell.idx, cell.idx);
     }
 
     SynapseData synapseData;
 
     synapseData = connections.dataForSynapse(synapses[0]);
-    TESTEQUAL(synapseData.presynapticCell.idx, 50);
-    TESTEQUAL_FLOAT(synapseData.permanence, (Permanence)0.34);
+    ASSERT_EQ(synapseData.presynapticCell.idx, 50);
+    ASSERT_NEAR(synapseData.permanence, (Permanence)0.34, EPSILON);
 
     synapseData = connections.dataForSynapse(synapses[1]);
-    TESTEQUAL(synapseData.presynapticCell.idx, 150);
-    TESTEQUAL_FLOAT(synapseData.permanence, (Permanence)0.48);
+    ASSERT_EQ(synapseData.presynapticCell.idx, 150);
+    ASSERT_NEAR(synapseData.permanence, (Permanence)0.48, EPSILON);
   }
 
   /**
@@ -136,8 +138,8 @@ namespace nta {
 
     Activity activity = computeSampleActivity(connections);
 
-    TESTEQUAL(activity.activeSegmentsForCell.size(), 0);
-    TESTEQUAL(activity.numActiveSynapsesForSegment.size(), 2);
+    ASSERT_EQ(activity.activeSegmentsForCell.size(), 0);
+    ASSERT_EQ(activity.numActiveSynapsesForSegment.size(), 2);
   }
 
   /**
@@ -161,14 +163,14 @@ namespace nta {
     connections.destroySynapse(synapse);
 
     vector<Synapse> synapses = connections.synapsesForSegment(segment);
-    TESTEQUAL(synapses.size(), 2);
+    ASSERT_EQ(synapses.size(), 2);
 
     Activity activity = computeSampleActivity(connections);
 
-    TESTEQUAL(activity.activeSegmentsForCell.size(), 0);
+    ASSERT_EQ(activity.activeSegmentsForCell.size(), 0);
 
     segment.cell.idx = 20; segment.idx = 1;
-    TESTEQUAL(activity.numActiveSynapsesForSegment[segment], 1);
+    ASSERT_EQ(activity.numActiveSynapsesForSegment[segment], 1);
   }
 
   /**
@@ -185,7 +187,7 @@ namespace nta {
     connections.updateSynapsePermanence(synapse, 0.21);
 
     SynapseData synapseData = connections.dataForSynapse(synapse);
-    TESTEQUAL_FLOAT(synapseData.permanence, (Real)0.21);
+    ASSERT_NEAR(synapseData.permanence, (Real)0.21, EPSILON);
   }
 
   /**
@@ -219,10 +221,10 @@ namespace nta {
     bool result = connections.mostActiveSegmentForCells(
       cells, input, 0, segment);
 
-    TESTEQUAL(result, true);
+    ASSERT_EQ(result, true);
 
-    TESTEQUAL(segment.cell.idx, 20);
-    TESTEQUAL(segment.idx, 0);
+    ASSERT_EQ(segment.cell.idx, 20);
+    ASSERT_EQ(segment.idx, 0);
   }
 
   /**
@@ -257,7 +259,7 @@ namespace nta {
     bool result = connections.mostActiveSegmentForCells(
       cells, input, 2, segment);
 
-    TESTEQUAL(result, false);
+    ASSERT_EQ(result, false);
   }
 
   /**
@@ -274,20 +276,20 @@ namespace nta {
     setupSampleConnections(connections);
     Activity activity = computeSampleActivity(connections);
 
-    TESTEQUAL(activity.activeSegmentsForCell.size(), 1);
+    ASSERT_EQ(activity.activeSegmentsForCell.size(), 1);
     cell.idx = 20;
-    TESTEQUAL(activity.activeSegmentsForCell[cell].size(), 1);
+    ASSERT_EQ(activity.activeSegmentsForCell[cell].size(), 1);
     segment = activity.activeSegmentsForCell[cell][0];
-    TESTEQUAL(segment.idx, 1);
-    TESTEQUAL(segment.cell.idx, 20);
+    ASSERT_EQ(segment.idx, 1);
+    ASSERT_EQ(segment.cell.idx, 20);
 
-    TESTEQUAL(activity.numActiveSynapsesForSegment.size(), 3);
+    ASSERT_EQ(activity.numActiveSynapsesForSegment.size(), 3);
     segment.cell.idx = 10; segment.idx = 0;
-    TESTEQUAL(activity.numActiveSynapsesForSegment[segment], 1);
+    ASSERT_EQ(activity.numActiveSynapsesForSegment[segment], 1);
     segment.cell.idx = 20; segment.idx = 0;
-    TESTEQUAL(activity.numActiveSynapsesForSegment[segment], 1);
+    ASSERT_EQ(activity.numActiveSynapsesForSegment[segment], 1);
     segment.cell.idx = 20; segment.idx = 1;
-    TESTEQUAL(activity.numActiveSynapsesForSegment[segment], 2);
+    ASSERT_EQ(activity.numActiveSynapsesForSegment[segment], 2);
   }
 
   /**
@@ -305,10 +307,10 @@ namespace nta {
 
     vector<Segment> activeSegments = connections.activeSegments(activity);
 
-    TESTEQUAL(activeSegments.size(), 1);
+    ASSERT_EQ(activeSegments.size(), 1);
     segment = activeSegments[0];
-    TESTEQUAL(segment.idx, 1);
-    TESTEQUAL(segment.cell.idx, 20);
+    ASSERT_EQ(segment.idx, 1);
+    ASSERT_EQ(segment.cell.idx, 20);
   }
 
   /**
@@ -326,8 +328,8 @@ namespace nta {
 
     vector<Cell> activeCells = connections.activeCells(activity);
 
-    TESTEQUAL(activeCells.size(), 1);
-    TESTEQUAL(activeCells[0].idx, 20);
+    ASSERT_EQ(activeCells.size(), 1);
+    ASSERT_EQ(activeCells[0].idx, 20);
   }
 
   /**
@@ -339,7 +341,7 @@ namespace nta {
     Connections connections(1024);
     setupSampleConnections(connections);
 
-    TESTEQUAL(connections.numSegments(), 3);
+    ASSERT_EQ(connections.numSegments(), 3);
   }
 
   /**
@@ -351,7 +353,7 @@ namespace nta {
     Connections connections(1024);
     setupSampleConnections(connections);
 
-    TESTEQUAL(connections.numSynapses(), 8);
+    ASSERT_EQ(connections.numSynapses(), 8);
   }
 
   void ConnectionsTest::setupSampleConnections(Connections &connections)
