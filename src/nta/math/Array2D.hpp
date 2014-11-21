@@ -27,6 +27,7 @@
 #ifndef NTA_ARRAY2D_HPP
 #define NTA_ARRAY2D_HPP
 
+#include <nta/types/Types.hpp>
 /*
  * This is only used in svm. Including it in NuPIC2 for the time being.
  */
@@ -41,7 +42,7 @@
  * A fixed size matrix, allocated as a single contiguous chunk of memory.
  */
 template <typename S, typename T>
-class array2D
+class NTA_EXPORT array2D
 {
 public:
   typedef S size_type;

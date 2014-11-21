@@ -8,15 +8,33 @@
 
 # IDE project files
 /nbproject/
+*.sln
+*.dsw
+*.vcxproj
+*.vcproj
+*.dsp
+*.dir/
 
 # Build files
 build/
+*.obj
+*.log
+*.tlog
+*.vcxproj.filters
+
+# Don't ignore Version.hpp.in
+*.in
+!Version.hpp.in
 
 src/test/testeverything/EverythingAddtests.hpp
 src/test/testeverything/EverythingHeaders.hpp
+
+src/test/unit/AddTestHeaders.hpp
+src/test/unit/AddTests.hpp
 
 # /
 /.gdb_history
 
 # Doxygen generated doc
 html/
+

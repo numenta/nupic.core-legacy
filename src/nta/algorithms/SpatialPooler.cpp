@@ -1086,7 +1086,7 @@ void SpatialPooler::addToWinners_(UInt index, Real score,
 {
   pair<UInt, Real> val = make_pair(index, score);
   for (auto it = winners.begin();
-       it != winners.end(); it++) {
+       it != winners.end(); ++it) {
     if (score > it->second) {
       winners.insert(it, val);
       return;

@@ -61,7 +61,7 @@ namespace nta
    *  nodeSpec.
    *
    */
-  class VectorFileEffector : public RegionImpl
+  class NTA_EXPORT VectorFileEffector : public RegionImpl
   {
   public:
     

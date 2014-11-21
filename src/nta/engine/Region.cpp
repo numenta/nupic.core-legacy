@@ -366,7 +366,7 @@ void Region::initOutputs()
 void Region::initInputs() const
 {
   auto i = inputs_.begin();
-  for (; i != inputs_.end(); i++)
+  for (; i != inputs_.end(); ++i)
   {
     i->second->initialize();
   }
@@ -450,7 +450,7 @@ void
 Region::removeAllIncomingLinks()
 {
   InputMap::const_iterator i = inputs_.begin();
-  for (; i != inputs_.end(); i++)
+  for (; i != inputs_.end(); ++i)
   {
     std::vector<Link*> links = i->second->getLinks();
     for (auto & links_link : links)

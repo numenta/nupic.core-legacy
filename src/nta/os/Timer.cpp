@@ -32,8 +32,7 @@ using namespace nta;
 
 // Define a couple of platform-specific helper functions
 
-#if defined(NTA_PLATFORM_win32)
-
+#if  defined(NTA_PLATFORM_win32) || defined(NTA_PLATFORM_win64)
 #include <windows.h>
 static nta::UInt64 ticksPerSec_ = 0;
 static nta::UInt64 initialTicks_ = 0;

@@ -366,7 +366,7 @@ namespace nta
 
     while(components.size())
     {
-      std::swap<int>(numerator_, denominator_);
+      std::swap(numerator_, denominator_);
       numerator_ += denominator_ * components.back();
       components.pop_back();
     }

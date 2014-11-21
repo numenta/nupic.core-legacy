@@ -23,12 +23,13 @@
 #ifndef NTA_BUNDLEIO_HPP
 #define NTA_BUNDLEIO_HPP
 
+#include <nta/types/Types.hpp>
 #include <nta/os/Path.hpp>
 #include <nta/os/FStream.hpp>
 
 namespace nta
 {
-  class BundleIO
+  class NTA_EXPORT BundleIO
   {
   public:
     BundleIO(const std::string& bundlePath, const std::string& label, 

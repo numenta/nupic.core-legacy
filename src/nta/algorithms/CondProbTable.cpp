@@ -122,7 +122,7 @@ namespace nta {
     CONST_LOOP(vector<Real>, iter, distribution) {
       rowSum = rowSum + *iter;
       *colSumsIter = *colSumsIter + *iter;
-      colSumsIter++;
+      ++colSumsIter;
     }
     rowSums_[row] += rowSum;
   }

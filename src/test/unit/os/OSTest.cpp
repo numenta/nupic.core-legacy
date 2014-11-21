@@ -24,7 +24,9 @@
  * @file
  */
 
+#if !defined(NTA_PLATFORM_win32) && !defined(NTA_PLATFORM_win64)
 #include <unistd.h>
+#endif
 #include "OSTest.hpp"
 #include <nta/os/Env.hpp>
 #include <nta/os/Path.hpp>
@@ -39,7 +41,7 @@ OSTest::~OSTest() {};
 
 void OSTest::RunTests()
 {
-#ifdef NTA_PLATFORM_win32
+#if defined(NTA_PLATFORM_win32) || defined(NTA_PLATFORM_win64)
 
 #else
   // save the parts of the environment we'll be changing
@@ -70,7 +72,7 @@ void OSTest::RunTests()
 
   // Test getUserName()
   {
-#ifdef NTA_PLATFORM_win32
+#if defined(NTA_PLATFORM_win32) || defined(NTA_PLATFORM_win64)
     Env::set("USERNAME", "123");
     TEST(OS::getUserName() == "123");    
 #else
@@ -95,7 +97,7 @@ void OSTest::RunTests()
 
   // Test getStackTrace()
   {
-#ifdef NTA_PLATFORM_win32
+#if defined(NTA_PLATFORM_win32) || defined(NTA_PLATFORM_win64)
 //    std::string stackTrace = OS::getStackTrace();
 //    TEST(!stackTrace.empty());  
 //

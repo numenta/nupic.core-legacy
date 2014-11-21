@@ -40,18 +40,15 @@ extern "C" {
 #include <mach/task.h>
 #include <mach/mach_init.h>
 }
-#elif NTA_PLATFORM_win32
+#elif defined(NTA_PLATFORM_win32) || defined(NTA_PLATFORM_win64)
 //We only run on XP/2003 and above
 #undef _WIN32_WINNT
 #define _WIN32_WINNT 0x0501
+
 #include <psapi.h>
 #endif
 
-
-
 using namespace nta;
-
-
 
 
 void OS::getProcessMemoryUsage(size_t& realMem, size_t& virtualMem)
@@ -67,7 +64,7 @@ void OS::getProcessMemoryUsage(size_t& realMem, size_t& virtualMem)
   }
   realMem = t_info.resident_size;
   virtualMem = t_info.virtual_size;
-#elif NTA_PLATFORM_win32
+#elif  defined(NTA_PLATFORM_win32) || defined(NTA_PLATFORM_win64)
   HANDLE hProcess = ::GetCurrentProcess();
   BOOL rc;
   SYSTEM_INFO si;
@@ -84,7 +81,8 @@ void OS::getProcessMemoryUsage(size_t& realMem, size_t& virtualMem)
     size = sizeof(PSAPI_WORKING_SET_INFORMATION) +
                   pageCount * sizeof(PSAPI_WORKING_SET_BLOCK);
 
-    pWSI = (PSAPI_WORKING_SET_INFORMATION *) realloc((void *) pWSI, size);
+    free((void *) pWSI);
+    pWSI = (PSAPI_WORKING_SET_INFORMATION *) malloc(size);
 
     if(::QueryWorkingSet(hProcess, pWSI, size))
     {
@@ -160,7 +158,7 @@ void OS::getProcessMemoryUsage(size_t& realMem, size_t& virtualMem)
 
 std::string OS::executeCommand(std::string command)
 {
-#if defined(NTA_PLATFORM_win32) && defined(NTA_COMPILER_MSVC)
+#if (defined(NTA_PLATFORM_win32) || defined(NTA_PLATFORM_win64)) && defined(NTA_COMPILER_MSVC)
   FILE* pipe = _popen(&command[0], "r");
 #else
   FILE* pipe = popen(&command[0], "r");
@@ -178,7 +176,7 @@ std::string OS::executeCommand(std::string command)
       result += buffer;
     }
   }
-#if defined(NTA_PLATFORM_win32) && defined(NTA_COMPILER_MSVC)
+#if (defined(NTA_PLATFORM_win32) || defined(NTA_PLATFORM_win64)) && defined(NTA_COMPILER_MSVC)
   _pclose(pipe);
 #else
   pclose(pipe);

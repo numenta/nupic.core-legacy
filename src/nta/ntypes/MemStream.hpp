@@ -37,6 +37,7 @@
 #ifndef NTA_MEM_STREAM_HPP
 #define NTA_MEM_STREAM_HPP
 
+#include <nta/types/Types.hpp>
 #include <sstream>
 #include <cstdio> //EOF
 #include <stdexcept>
@@ -64,7 +65,7 @@ void dbgbreak();
 ///
 /////////////////////////////////////////////////////////////////////////////////////
 template<typename charT, typename traitsT, typename allocT>
-class BasicIMemStreamBuf : public std::basic_streambuf<charT, traitsT>
+class NTA_EXPORT BasicIMemStreamBuf : public std::basic_streambuf<charT, traitsT>
 {
 
 public:
@@ -132,7 +133,7 @@ private:
 ///
 /////////////////////////////////////////////////////////////////////////////////////
 template<typename charT, typename traitsT, typename allocT>
-class BasicOMemStreamBuf : public std::basic_streambuf<charT, traitsT>
+class NTA_EXPORT BasicOMemStreamBuf : public std::basic_streambuf<charT, traitsT>
 {
 public: 
   typedef std::basic_string<charT, traitsT, allocT> 	stringType_;
@@ -232,7 +233,7 @@ public:
 ///
 /////////////////////////////////////////////////////////////////////////////////////
 template<typename charT, typename traitsT, typename allocT>
-class BasicIMemStream : public std::basic_istream<charT, traitsT>
+class NTA_EXPORT BasicIMemStream : public std::basic_istream<charT, traitsT>
 {
 public: 
   typedef BasicIMemStreamBuf<charT, traitsT, allocT> 	memStreamBufType_;
@@ -291,7 +292,7 @@ public:
 ///
 /////////////////////////////////////////////////////////////////////////////////////
 template<typename charT, typename traitsT, typename allocT>
-class BasicOMemStream : public std::basic_ostream<charT, traitsT>
+class NTA_EXPORT BasicOMemStream : public std::basic_ostream<charT, traitsT>
 {
 public: 
   typedef BasicOMemStreamBuf<charT, traitsT, allocT> 	memStreamBufType_;

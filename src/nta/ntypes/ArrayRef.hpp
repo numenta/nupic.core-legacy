@@ -33,10 +33,11 @@
 
 #include <nta/ntypes/ArrayBase.hpp>
 #include <nta/utils/Log.hpp>
+#include <nta/types/Types.hpp>
 
 namespace nta
 {
-  class ArrayRef : public ArrayBase
+  class NTA_EXPORT ArrayRef : public ArrayBase
   {
   public:
     ArrayRef(NTA_BasicType type, void * buffer, size_t count) : ArrayBase(type)

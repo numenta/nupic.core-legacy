@@ -469,7 +469,7 @@ namespace nta {
    * This class doesn't implement any algorithm, it just stores i,j and v.
    */
   template <typename T1, typename T2>
-  class ijv
+  class NTA_EXPORT ijv
   {
     typedef T1 size_type;
     typedef T2 value_type;
@@ -611,7 +611,7 @@ namespace nta {
   template <>
   struct Sqrt<long double> : public std::unary_function<long double,long double>
   {
-    inline long double operator()(const long double& x) const { return sqrtl(x); }
+    inline long double operator()(const long double& x) const { return sqrt(x); }
   };
 
   template <typename T>
@@ -639,7 +639,7 @@ namespace nta {
   template <>
   struct Exp<long double> : public std::unary_function<long double,long double>
   {
-    inline long double operator()(const long double& x) const { return expl(x); }
+    inline long double operator()(const long double& x) const { return exp(x); }
   };
 
   template <typename T>
@@ -661,7 +661,7 @@ namespace nta {
   template <>
   struct Log<long double> : public std::unary_function<long double,long double>
   {
-    inline long double operator()(const long double& x) const { return logl(x); }
+    inline long double operator()(const long double& x) const { return log(x); }
   };
 
   template <typename T>
@@ -673,7 +673,7 @@ namespace nta {
   {
     inline float operator()(const float& x) const 
     {
-#ifdef NTA_PLATFORM_win32
+#if defined(NTA_PLATFORM_win32) || defined(NTA_PLATFORM_win64)
       return (float) (log(x) / log(2.0));
 #else
       return log2f(x); 
@@ -686,7 +686,7 @@ namespace nta {
   {
     inline double operator()(const double& x) const 
     { 
-#ifdef NTA_PLATFORM_win32
+#if defined(NTA_PLATFORM_win32) || defined(NTA_PLATFORM_win64)
       return log(x) / log(2.0);
 #else
       return log2(x); 
@@ -699,10 +699,10 @@ namespace nta {
   {
     inline long double operator()(const long double& x) const 
     { 
-#ifdef NTA_PLATFORM_win32
+#if defined(NTA_PLATFORM_win32) || defined(NTA_PLATFORM_win64)
       return log(x) / log(2.0);
 #else
-      return log2l(x); 
+      return log2(x); 
 #endif
     }
   };
@@ -716,7 +716,7 @@ namespace nta {
   {
     inline float operator()(const float& x) const 
     {
-#ifdef NTA_PLATFORM_win32
+#if defined(NTA_PLATFORM_win32) || defined(NTA_PLATFORM_win64)
       return (float) (log(x) / log(10.0));
 #else
       return log10f(x); 
@@ -729,7 +729,7 @@ namespace nta {
   {
     inline double operator()(const double& x) const 
     { 
-#ifdef NTA_PLATFORM_win32
+#if defined(NTA_PLATFORM_win32) || defined(NTA_PLATFORM_win64)
       return log(x) / log(10.0);
 #else
       return log10(x); 
@@ -742,10 +742,10 @@ namespace nta {
   {
     inline long double operator()(const long double& x) const 
     { 
-#ifdef NTA_PLATFORM_win32
+#if defined(NTA_PLATFORM_win32) || defined(NTA_PLATFORM_win64)
       return log(x) / log(10.0);
 #else
-      return log10l(x); 
+      return log10(x); 
 #endif
     }
   };
@@ -759,7 +759,7 @@ namespace nta {
   {
     inline float operator()(const float& x) const 
     {
-#ifdef NTA_PLATFORM_win32
+#if defined(NTA_PLATFORM_win32) || defined(NTA_PLATFORM_win64)
       return (float) log(1.0 + x);
 #else
       return log1pf(x); 
@@ -772,7 +772,7 @@ namespace nta {
   {
     inline double operator()(const double& x) const 
     { 
-#ifdef NTA_PLATFORM_win32
+#if defined(NTA_PLATFORM_win32) || defined(NTA_PLATFORM_win64)
       return log(1.0 + x);
 #else
       return log1p(x); 
@@ -785,10 +785,10 @@ namespace nta {
   {
     inline long double operator()(const long double& x) const 
     { 
-#ifdef NTA_PLATFORM_win32
+#if defined(NTA_PLATFORM_win32) || defined(NTA_PLATFORM_win64)
       return log(1.0 + x);
 #else
-      return log1pl(x); 
+      return log1p(x); 
 #endif
     }
   };
@@ -875,7 +875,7 @@ namespace nta {
   {
     inline long double operator()(const long double& x, const long double& y) const
     { 
-      return powl(x,y); 
+      return pow(x,y); 
     }
   };
 
@@ -907,7 +907,7 @@ namespace nta {
   {
     inline long double operator()(const long double& x, const long double& y) const
     { 
-      return logl(x)/logl(y); 
+      return log(x)/log(y); 
     }
   };
 

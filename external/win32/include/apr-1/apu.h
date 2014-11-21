@@ -15,7 +15,7 @@
  */
 
 /* 
- * apu.h is duplicated from apu.hw at build time -- do not edit apu.h
+ * apu.h is duplicated from apu.hwc at build time -- do not edit apu.h
  */
 /* @file apu.h
  * @brief APR-Utility main file
@@ -41,6 +41,12 @@
  * the dynamic APR-UTIL library and assure appropriate indirection and calling
  * conventions at compile time.
  */
+
+/* Make sure we have our platform identifier macro defined we ask for later.
+ */
+#if defined(_WIN32) && !defined(WIN32)
+#define WIN32 1
+#endif
 
 #if defined(DOXYGEN) || !defined(WIN32)
 /**
@@ -132,7 +138,7 @@
 #define APU_HAVE_NSS            0
 #endif
 
-#define APU_HAVE_APR_ICONV      1
+#define APU_HAVE_APR_ICONV      0
 #define APU_HAVE_ICONV          0
 #define APR_HAS_XLATE           (APU_HAVE_APR_ICONV || APU_HAVE_ICONV)
 

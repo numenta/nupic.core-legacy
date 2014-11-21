@@ -75,7 +75,7 @@ namespace nta {
    */
   class RandomImpl;
 
-  class Random
+  class NTA_EXPORT Random
   {
   public:
     /**
