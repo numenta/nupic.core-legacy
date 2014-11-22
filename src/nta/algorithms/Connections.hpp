@@ -212,6 +212,8 @@ namespace nta
       class Connections
       {
       public:
+        // TODO: Using CellIdx below limits numCells to 1 less than its true
+        // upper limit. Fix this.
         Connections(CellIdx numCells);
 
         virtual ~Connections() {}
