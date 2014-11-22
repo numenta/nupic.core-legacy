@@ -36,7 +36,7 @@ Connections::Connections(CellIdx numCells) : cells_(numCells) {
   numSynapses_ = 0;
 }
 
-Segment Connections::createSegment(const Cell cell)
+Segment Connections::createSegment(const Cell& cell)
 {
   vector<SegmentData>& segments = cells_[cell.idx].segments;
   if (segments.size() == UCHAR_MAX)
@@ -52,8 +52,8 @@ Segment Connections::createSegment(const Cell cell)
   return segment;
 }
 
-Synapse Connections::createSynapse(const Segment segment,
-                                   const Cell presynapticCell,
+Synapse Connections::createSynapse(const Segment& segment,
+                                   const Cell& presynapticCell,
                                    Permanence permanence)
 {
   vector<SynapseData>& synapses = cells_[segment.cell.idx].segments[segment.idx].synapses;
@@ -72,9 +72,9 @@ Synapse Connections::createSynapse(const Segment segment,
   return synapse;
 }
 
-void Connections::destroySegment(const Segment segment)
+void Connections::destroySegment(const Segment& segment)
 {
-  const Cell cell = segment.cell;
+  const Cell& cell = segment.cell;
   SegmentData& segmentData = cells_[cell.idx].segments[segment.idx];
 
   for (auto synapse : synapsesForSegment(segment))
@@ -85,10 +85,10 @@ void Connections::destroySegment(const Segment segment)
   segmentData.destroyed = true;
 }
 
-void Connections::destroySynapse(const Synapse synapse)
+void Connections::destroySynapse(const Synapse& synapse)
 {
-  const Segment segment = synapse.segment;
-  const Cell cell = segment.cell;
+  const Segment& segment = synapse.segment;
+  const Cell& cell = segment.cell;
   SynapseData& synapseData = cells_[cell.idx].segments[segment.idx].synapses[synapse.idx];
 
   synapseData.destroyed = true;
@@ -105,16 +105,16 @@ void Connections::destroySynapse(const Synapse synapse)
   }
 }
 
-void Connections::updateSynapsePermanence(const Synapse synapse,
+void Connections::updateSynapsePermanence(const Synapse& synapse,
                                           Permanence permanence)
 {
-  const Segment segment = synapse.segment;
-  const Cell cell = segment.cell;
+  const Segment& segment = synapse.segment;
+  const Cell& cell = segment.cell;
 
   cells_[cell.idx].segments[segment.idx].synapses[synapse.idx].permanence = permanence;
 }
 
-vector<Segment> Connections::segmentsForCell(const Cell cell)
+vector<Segment> Connections::segmentsForCell(const Cell& cell)
 {
   vector<Segment> segments;
   Segment segment;
@@ -129,9 +129,9 @@ vector<Segment> Connections::segmentsForCell(const Cell cell)
   return segments;
 }
 
-vector<Synapse> Connections::synapsesForSegment(const Segment segment)
+vector<Synapse> Connections::synapsesForSegment(const Segment& segment)
 {
-  const Cell cell = segment.cell;
+  const Cell& cell = segment.cell;
   SegmentData segmentData = cells_[cell.idx].segments[segment.idx];
   vector<Synapse> synapses;
   Synapse synapse;
@@ -157,15 +157,15 @@ vector<Synapse> Connections::synapsesForSegment(const Segment segment)
   return synapses;
 }
 
-SynapseData Connections::dataForSynapse(const Synapse synapse) const
+SynapseData Connections::dataForSynapse(const Synapse& synapse) const
 {
-  const Segment segment = synapse.segment;
-  const Cell cell = segment.cell;
+  const Segment& segment = synapse.segment;
+  const Cell& cell = segment.cell;
 
   return cells_[cell.idx].segments[segment.idx].synapses[synapse.idx];
 }
 
-bool Connections::mostActiveSegmentForCells(const vector<Cell> cells,
+bool Connections::mostActiveSegmentForCells(const vector<Cell>& cells,
                                             vector<Cell> input,
                                             UInt synapseThreshold,
                                             Segment& retSegment) const
@@ -211,7 +211,7 @@ bool Connections::mostActiveSegmentForCells(const vector<Cell> cells,
   return found;
 }
 
-Activity Connections::computeActivity(const vector<Cell> input,
+Activity Connections::computeActivity(const vector<Cell>& input,
                                       Permanence permanenceThreshold,
                                       UInt synapseThreshold) const
 {
@@ -243,7 +243,7 @@ Activity Connections::computeActivity(const vector<Cell> input,
   return activity;
 }
 
-vector<Segment> Connections::activeSegments(const Activity activity)
+vector<Segment> Connections::activeSegments(const Activity& activity)
 {
   vector<Segment> segments;
 
@@ -255,7 +255,7 @@ vector<Segment> Connections::activeSegments(const Activity activity)
   return segments;
 }
 
-vector<Cell> Connections::activeCells(const Activity activity)
+vector<Cell> Connections::activeCells(const Activity& activity)
 {
   vector<Cell> cells;
 

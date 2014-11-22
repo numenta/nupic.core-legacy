@@ -220,7 +220,7 @@ namespace nta
          *
          * @retval Created segment.
          */
-        Segment createSegment(const Cell cell);
+        Segment createSegment(const Cell& cell);
 
         /**
          * Creates a synapse on the specified segment.
@@ -231,8 +231,8 @@ namespace nta
          *
          * @reval Created synapse.
          */
-        Synapse createSynapse(const Segment segment,
-                              const Cell presynapticCell,
+        Synapse createSynapse(const Segment& segment,
+                              const Cell& presynapticCell,
                               Permanence permanence);
 
         /**
@@ -240,14 +240,14 @@ namespace nta
          *
          * @param segment Segment to destroy.
          */
-        void destroySegment(const Segment segment);
+        void destroySegment(const Segment& segment);
 
         /**
          * Destroys synapse.
          *
          * @param synapse Synapse to destroy.
          */
-        void destroySynapse(const Synapse synapse);
+        void destroySynapse(const Synapse& synapse);
 
         /**
          * Updates a synapse's permanence.
@@ -255,7 +255,7 @@ namespace nta
          * @param synapse    Synapse to update.
          * @param permanence New permanence.
          */
-        void updateSynapsePermanence(const Synapse synapse,
+        void updateSynapsePermanence(const Synapse& synapse,
                                      Permanence permanence);
 
         /**
@@ -265,7 +265,7 @@ namespace nta
          *
          * @retval Segments on cell.
          */
-        std::vector<Segment> segmentsForCell(const Cell cell);
+        std::vector<Segment> segmentsForCell(const Cell& cell);
 
         /**
          * Gets the synapses for a segment.
@@ -274,7 +274,7 @@ namespace nta
          *
          * @retval Synapses on segment.
          */
-        std::vector<Synapse> synapsesForSegment(const Segment segment);
+        std::vector<Synapse> synapsesForSegment(const Segment& segment);
 
         /**
          * Gets the data for a synapse.
@@ -283,7 +283,7 @@ namespace nta
          *
          * @retval Synapse data.
          */
-        SynapseData dataForSynapse(const Synapse synapse) const;
+        SynapseData dataForSynapse(const Synapse& synapse) const;
 
         /**
          * Gets the segment with the most active synapses due to given input,
@@ -296,7 +296,7 @@ namespace nta
          *
          * @retval Segment found?
          */
-        bool mostActiveSegmentForCells(const std::vector<Cell> cells,
+        bool mostActiveSegmentForCells(const std::vector<Cell>& cells,
                                        std::vector<Cell> input,
                                        UInt synapseThreshold,
                                        Segment& retSegment) const;
@@ -311,7 +311,7 @@ namespace nta
          *
          * @retval Activity to return.
          */
-        Activity computeActivity(const std::vector<Cell> input,
+        Activity computeActivity(const std::vector<Cell>& input,
                                  Permanence permanenceThreshold,
                                  UInt synapseThreshold) const;
 
@@ -322,7 +322,7 @@ namespace nta
          *
          * @retval Active segments.
          */
-        std::vector<Segment> activeSegments(const Activity activity);
+        std::vector<Segment> activeSegments(const Activity& activity);
 
         /**
          * Gets the active cells from activity.
@@ -331,7 +331,7 @@ namespace nta
          *
          * @retval Active cells.
          */
-        std::vector<Cell> activeCells(const Activity activity);
+        std::vector<Cell> activeCells(const Activity& activity);
 
         // Debugging
 
