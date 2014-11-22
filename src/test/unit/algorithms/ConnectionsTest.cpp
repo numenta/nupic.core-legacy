@@ -37,6 +37,7 @@ namespace nta {
 
   void ConnectionsTest::RunTests()
   {
+    testConstructor();
     testCreateSegment();
     testCreateSynapse();
     testDestroySegment();
@@ -49,6 +50,18 @@ namespace nta {
     testActiveSegments();
     testNumSegments();
     testNumSynapses();
+  }
+
+  /**
+   * Tests boundary cases of parameters for constructor.
+   */
+  void ConnectionsTest::testConstructor()
+  {
+    ASSERT_NO_THROW(Connections connections(CELL_MAX););
+    ASSERT_THROW(Connections connections(CELL_MAX+1);, runtime_error);
+
+    ASSERT_NO_THROW(Connections connections(100, SEGMENT_MAX););
+    ASSERT_THROW(Connections connections(100, SEGMENT_MAX+1);, runtime_error);
   }
 
   /**

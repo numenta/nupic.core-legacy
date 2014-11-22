@@ -27,8 +27,10 @@
 #ifndef NTA_CONNECTIONS_HPP
 #define NTA_CONNECTIONS_HPP
 
-#include <vector>
+#include <climits>
 #include <utility>
+#include <vector>
+
 #include <nta/types/Types.hpp>
 #include <nta/math/Math.hpp>
 
@@ -45,6 +47,10 @@ namespace nta
       typedef unsigned char SynapseIdx;
       typedef Real32 Permanence;
       typedef UInt64 Iteration;
+
+      #define CELL_MAX (USHRT_MAX-1)
+      #define SEGMENT_MAX (UCHAR_MAX-1)
+      #define SYNAPSE_MAX (UCHAR_MAX-1)
 
       /**
        * Cell class used in Connections.
@@ -183,7 +189,7 @@ namespace nta
       struct Activity
       {
         std::map< Cell, std::vector<Segment> > activeSegmentsForCell;
-        std::map<Segment, UInt> numActiveSynapsesForSegment;
+        std::map<Segment, SynapseIdx> numActiveSynapsesForSegment;
       };
 
       /**
@@ -212,9 +218,16 @@ namespace nta
       class Connections
       {
       public:
-        // TODO: Using CellIdx below limits numCells to 1 less than its true
-        // upper limit. Fix this.
-        Connections(CellIdx numCells);
+        /**
+         * Connections constructor.
+         *
+         * @param numCells           Number of cells. Must be <= CELL_MAX.
+         * @param maxSegmentsPerCell Maximum number of segments per cell. Must be <= SEGMENT_MAX.
+         *
+         * @retval Created segment.
+         */
+        Connections(CellIdx numCells,
+                    SegmentIdx maxSegmentsPerCell=SEGMENT_MAX);
 
         virtual ~Connections() {}
 
@@ -312,7 +325,7 @@ namespace nta
          */
         bool mostActiveSegmentForCells(const std::vector<Cell>& cells,
                                        std::vector<Cell> input,
-                                       UInt synapseThreshold,
+                                       SynapseIdx synapseThreshold,
                                        Segment& retSegment) const;
 
         /**
@@ -339,7 +352,7 @@ namespace nta
          */
         Activity computeActivity(const std::vector<Cell>& input,
                                  Permanence permanenceThreshold,
-                                 UInt synapseThreshold,
+                                 SynapseIdx synapseThreshold,
                                  bool recordIteration=true);
 
         /**
@@ -367,21 +380,22 @@ namespace nta
          *
          * @retval Number of segments.
          */
-        UInt numSegments() const;
+        SegmentIdx numSegments() const;
 
         /**
          * Gets the number of synapses.
          *
          * @retval Number of synapses.
          */
-        UInt numSynapses() const;
+        SynapseIdx numSynapses() const;
 
       private:
         std::vector<CellData> cells_;
         // Mapping (presynaptic cell => synapses) used in forward propagation
         std::map< Cell, std::vector<Synapse> > synapsesForPresynapticCell_;
-        UInt numSegments_;
-        UInt numSynapses_;
+        SegmentIdx numSegments_;
+        SynapseIdx numSynapses_;
+        SegmentIdx maxSegmentsPerCell_;
         Iteration iteration_;
       }; // end class Connections
 

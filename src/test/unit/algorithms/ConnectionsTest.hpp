@@ -47,6 +47,7 @@ namespace nta
     virtual void RunTests();
 
   private:
+    void testConstructor();
     void testCreateSegment();
     void testCreateSynapse();
     void testDestroySegment();

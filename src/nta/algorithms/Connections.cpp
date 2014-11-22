@@ -24,23 +24,32 @@
  * Implementation of Connections
  */
 
-#include <climits>
 #include <nta/algorithms/Connections.hpp>
 
 using namespace std;
 using namespace nta;
 using namespace nta::algorithms::connections;
 
-Connections::Connections(CellIdx numCells) : cells_(numCells) {
+Connections::Connections(CellIdx numCells,
+                         SegmentIdx maxSegmentsPerCell) : cells_(numCells)
+{
+  if (numCells > CELL_MAX) {
+    NTA_THROW << "Attemped to create Connections with numCells > CELL_MAX";
+  }
+  if (maxSegmentsPerCell > SEGMENT_MAX) {
+    NTA_THROW << "Attemped to create Connections with maxSegmentsPerCell > SEGMENT_MAX";
+  }
+
   numSegments_ = 0;
   numSynapses_ = 0;
+  maxSegmentsPerCell_ = maxSegmentsPerCell;
   iteration_ = 0;
 }
 
 Segment Connections::createSegment(const Cell& cell)
 {
   vector<SegmentData>& segments = cells_[cell.idx].segments;
-  if (segments.size() == UCHAR_MAX)
+  if (segments.size() == maxSegmentsPerCell_)
   {
     throw runtime_error("Cannot create segment: cell has reached maximum number of segments.");
   }
@@ -59,7 +68,7 @@ Synapse Connections::createSynapse(const Segment& segment,
                                    Permanence permanence)
 {
   vector<SynapseData>& synapses = cells_[segment.cell.idx].segments[segment.idx].synapses;
-  if (synapses.size() == UCHAR_MAX)
+  if (synapses.size() == SYNAPSE_MAX)
   {
     throw runtime_error("Cannot create synapse: segment has reached maximum number of synapses.");
   }
@@ -176,10 +185,10 @@ SynapseData Connections::dataForSynapse(const Synapse& synapse) const
 
 bool Connections::mostActiveSegmentForCells(const vector<Cell>& cells,
                                             vector<Cell> input,
-                                            UInt synapseThreshold,
+                                            SynapseIdx synapseThreshold,
                                             Segment& retSegment) const
 {
-  UInt numSynapses, maxSynapses = synapseThreshold;
+  SynapseIdx numSynapses, maxSynapses = synapseThreshold;
   vector<SegmentData> segments;
   vector<SynapseData> synapses;
   SegmentIdx segmentIdx = 0;
@@ -245,7 +254,7 @@ bool Connections::leastRecentlyUsedSegment(const Cell& cell,
 
 Activity Connections::computeActivity(const vector<Cell>& input,
                                       Permanence permanenceThreshold,
-                                      UInt synapseThreshold,
+                                      SynapseIdx synapseThreshold,
                                       bool recordIteration)
 {
   Activity activity;
@@ -310,12 +319,12 @@ vector<Cell> Connections::activeCells(const Activity& activity)
   return cells;
 }
 
-UInt Connections::numSegments() const
+SegmentIdx Connections::numSegments() const
 {
   return numSegments_;
 }
 
-UInt Connections::numSynapses() const
+SynapseIdx Connections::numSynapses() const
 {
   return numSynapses_;
 }
