@@ -34,6 +34,7 @@ using namespace nta::algorithms::connections;
 Connections::Connections(CellIdx numCells) : cells_(numCells) {
   numSegments_ = 0;
   numSynapses_ = 0;
+  iteration_ = 0;
 }
 
 Segment Connections::createSegment(const Cell& cell)
@@ -46,6 +47,7 @@ Segment Connections::createSegment(const Cell& cell)
   Segment segment(segments.size(), cell);
 
   SegmentData segmentData = {};
+  segmentData.lastUsedIteration = iteration_;
   segments.push_back(segmentData);
   numSegments_++;
 
@@ -114,7 +116,7 @@ void Connections::updateSynapsePermanence(const Synapse& synapse,
   cells_[cell.idx].segments[segment.idx].synapses[synapse.idx].permanence = permanence;
 }
 
-vector<Segment> Connections::segmentsForCell(const Cell& cell)
+vector<Segment> Connections::segmentsForCell(const Cell& cell) const
 {
   vector<Segment> segments;
   Segment segment;
@@ -155,6 +157,13 @@ vector<Synapse> Connections::synapsesForSegment(const Segment& segment)
   }
 
   return synapses;
+}
+
+SegmentData Connections::dataForSegment(const Segment& segment) const
+{
+  const Cell& cell = segment.cell;
+
+  return cells_[cell.idx].segments[segment.idx];
 }
 
 SynapseData Connections::dataForSynapse(const Synapse& synapse) const
@@ -211,9 +220,33 @@ bool Connections::mostActiveSegmentForCells(const vector<Cell>& cells,
   return found;
 }
 
+bool Connections::leastRecentlyUsedSegment(const Cell& cell,
+                                           Segment& retSegment) const
+{
+  bool found = false;
+  Iteration minIteration = ULLONG_MAX;
+  SegmentData segmentData;
+
+  for (auto segment : segmentsForCell(cell))
+  {
+    // TODO: Possible optimization - define constant variable here?
+    segmentData = dataForSegment(segment);
+
+    if (segmentData.lastUsedIteration < minIteration && !segmentData.destroyed)
+    {
+      retSegment = segment;
+      found = true;
+      minIteration = segmentData.lastUsedIteration;
+    }
+  }
+
+  return found;
+}
+
 Activity Connections::computeActivity(const vector<Cell>& input,
                                       Permanence permanenceThreshold,
-                                      UInt synapseThreshold) const
+                                      UInt synapseThreshold,
+                                      bool recordIteration)
 {
   Activity activity;
   vector<Synapse> synapses;
@@ -226,6 +259,7 @@ Activity Connections::computeActivity(const vector<Cell>& input,
 
     for (auto synapse : synapses)
     {
+      // TODO: Possible optimization - define constant variable here?
       synapseData = dataForSynapse(synapse);
 
       if (synapseData.permanence >= permanenceThreshold)
@@ -235,9 +269,18 @@ Activity Connections::computeActivity(const vector<Cell>& input,
         if (activity.numActiveSynapsesForSegment[synapse.segment] == synapseThreshold)
         {
           activity.activeSegmentsForCell[synapse.segment.cell].push_back(synapse.segment);
+
+          if (recordIteration) {
+            cells_[synapse.segment.cell.idx].segments[synapse.segment.idx].lastUsedIteration++;
+          }
         }
       }
     }
+  }
+
+  if (recordIteration)
+  {
+    iteration_++;
   }
 
   return activity;

@@ -54,6 +54,7 @@ namespace nta
     void testUpdateSynapsePermanence();
     void testMostActiveSegmentForCells();
     void testMostActiveSegmentForCellsNone();
+    void testLeastRecentlyUsedSegment();
     void testComputeActivity();
     void testActiveSegments();
     void testActiveCells();

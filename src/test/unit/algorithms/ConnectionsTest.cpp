@@ -44,6 +44,7 @@ namespace nta {
     testUpdateSynapsePermanence();
     testMostActiveSegmentForCells();
     testMostActiveSegmentForCellsNone();
+    testLeastRecentlyUsedSegment();
     testComputeActivity();
     testActiveSegments();
     testNumSegments();
@@ -131,7 +132,7 @@ namespace nta {
 
     cell.idx = 20;
     segment.cell = cell;
-    segment.idx = 1;
+    segment.idx = 0;
     connections.destroySegment(segment);
 
     ASSERT_THROW(connections.synapsesForSegment(segment);, runtime_error);
@@ -157,7 +158,7 @@ namespace nta {
 
     cell.idx = 20;
     segment.cell = cell;
-    segment.idx = 1;
+    segment.idx = 0;
     synapse.segment = segment;
     synapse.idx = 0;
     connections.destroySynapse(synapse);
@@ -169,7 +170,7 @@ namespace nta {
 
     ASSERT_EQ(activity.activeSegmentsForCell.size(), 0);
 
-    segment.cell.idx = 20; segment.idx = 1;
+    segment.cell.idx = 20; segment.idx = 0;
     ASSERT_EQ(activity.numActiveSynapsesForSegment[segment], 1);
   }
 
@@ -263,6 +264,49 @@ namespace nta {
   }
 
   /**
+   * Creates a sample set of connections, computes some activity for it,
+   * and checks that we can get the correct least recently used segment
+   * for a number of cells.
+   *
+   * Then, destroys the least recently used segment, computes more activity,
+   * creates another segment, and checks that the least recently used segment
+   * is not the newly created one.
+   */
+  void ConnectionsTest::testLeastRecentlyUsedSegment()
+  {
+    Connections connections(1024);
+    Cell cell;
+    Segment segment;
+
+    setupSampleConnections(connections);
+
+    cell.idx = 5;
+    ASSERT_EQ(connections.leastRecentlyUsedSegment(cell, segment), false);
+
+    cell.idx = 20;
+
+    ASSERT_EQ(connections.leastRecentlyUsedSegment(cell, segment), true);
+    ASSERT_EQ(segment.idx, 0);
+
+    computeSampleActivity(connections);
+
+    ASSERT_EQ(connections.leastRecentlyUsedSegment(cell, segment), true);
+    ASSERT_EQ(segment.idx, 1);
+
+    connections.destroySegment(segment);
+
+    ASSERT_EQ(connections.leastRecentlyUsedSegment(cell, segment), true);
+    ASSERT_EQ(segment.idx, 0);
+
+    computeSampleActivity(connections);
+
+    segment = connections.createSegment(cell);
+
+    ASSERT_EQ(connections.leastRecentlyUsedSegment(cell, segment), true);
+    ASSERT_EQ(segment.idx, 0);
+  }
+
+  /**
    * Creates a sample set of connections, and makes sure that computing the
    * activity for a collection of cells with no activity returns the right
    * activity data.
@@ -280,16 +324,16 @@ namespace nta {
     cell.idx = 20;
     ASSERT_EQ(activity.activeSegmentsForCell[cell].size(), 1);
     segment = activity.activeSegmentsForCell[cell][0];
-    ASSERT_EQ(segment.idx, 1);
+    ASSERT_EQ(segment.idx, 0);
     ASSERT_EQ(segment.cell.idx, 20);
 
     ASSERT_EQ(activity.numActiveSynapsesForSegment.size(), 3);
     segment.cell.idx = 10; segment.idx = 0;
     ASSERT_EQ(activity.numActiveSynapsesForSegment[segment], 1);
     segment.cell.idx = 20; segment.idx = 0;
-    ASSERT_EQ(activity.numActiveSynapsesForSegment[segment], 1);
-    segment.cell.idx = 20; segment.idx = 1;
     ASSERT_EQ(activity.numActiveSynapsesForSegment[segment], 2);
+    segment.cell.idx = 20; segment.idx = 1;
+    ASSERT_EQ(activity.numActiveSynapsesForSegment[segment], 1);
   }
 
   /**
@@ -309,7 +353,7 @@ namespace nta {
 
     ASSERT_EQ(activeSegments.size(), 1);
     segment = activeSegments[0];
-    ASSERT_EQ(segment.idx, 1);
+    ASSERT_EQ(segment.idx, 0);
     ASSERT_EQ(segment.cell.idx, 20);
   }
 
@@ -373,15 +417,6 @@ namespace nta {
     cell.idx = 20;
     segment = connections.createSegment(cell);
 
-    presynapticCell.idx = 50;
-    synapse = connections.createSynapse(segment, presynapticCell, 0.85);
-    presynapticCell.idx = 51;
-    synapse = connections.createSynapse(segment, presynapticCell, 0.85);
-    presynapticCell.idx = 52;
-    synapse = connections.createSynapse(segment, presynapticCell, 0.15);
-
-    segment = connections.createSegment(cell);
-
     presynapticCell.idx = 80;
     synapse = connections.createSynapse(segment, presynapticCell, 0.85);
     presynapticCell.idx = 81;
@@ -389,6 +424,15 @@ namespace nta {
     presynapticCell.idx = 82;
     synapse = connections.createSynapse(segment, presynapticCell, 0.85);
     connections.updateSynapsePermanence(synapse, 0.15);
+
+    segment = connections.createSegment(cell);
+
+    presynapticCell.idx = 50;
+    synapse = connections.createSynapse(segment, presynapticCell, 0.85);
+    presynapticCell.idx = 51;
+    synapse = connections.createSynapse(segment, presynapticCell, 0.85);
+    presynapticCell.idx = 52;
+    synapse = connections.createSynapse(segment, presynapticCell, 0.15);
   }
 
   Activity ConnectionsTest::computeSampleActivity(Connections &connections)

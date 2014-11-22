@@ -44,6 +44,7 @@ namespace nta
       typedef unsigned char SegmentIdx;
       typedef unsigned char SynapseIdx;
       typedef Real32 Permanence;
+      typedef UInt64 Iteration;
 
       /**
        * Cell class used in Connections.
@@ -143,14 +144,16 @@ namespace nta
        * The SegmentData class is a data structure that contains the data for a
        * segment on a cell.
        *
-       * @param synapses  Data for synapses that this segment contains.
-       * @param destroyed Whether this segment has been destroyed.
+       * @param synapses          Data for synapses that this segment contains.
+       * @param destroyed         Whether this segment has been destroyed.
+       * @param lastUsedIteration The iteration that this segment was last used at.
        *
        */
       struct SegmentData
       {
         std::vector<SynapseData> synapses;
         bool destroyed;
+        Iteration lastUsedIteration;
       };
 
       /**
@@ -265,7 +268,7 @@ namespace nta
          *
          * @retval Segments on cell.
          */
-        std::vector<Segment> segmentsForCell(const Cell& cell);
+        std::vector<Segment> segmentsForCell(const Cell& cell) const;
 
         /**
          * Gets the synapses for a segment.
@@ -275,6 +278,15 @@ namespace nta
          * @retval Synapses on segment.
          */
         std::vector<Synapse> synapsesForSegment(const Segment& segment);
+
+        /**
+         * Gets the data for a segment.
+         *
+         * @param segment Segment to get data for.
+         *
+         * @retval Segment data.
+         */
+        SegmentData dataForSegment(const Segment& segment) const;
 
         /**
          * Gets the data for a synapse.
@@ -292,7 +304,7 @@ namespace nta
          * @param cells            Cells to look among.
          * @param input            Active cells in the input.
          * @param synapseThreshold Only consider segments with number of active synapses greater than this threshold.
-         * @param segment          Segment to return.
+         * @param retSegment       Segment to return.
          *
          * @retval Segment found?
          */
@@ -300,6 +312,18 @@ namespace nta
                                        std::vector<Cell> input,
                                        UInt synapseThreshold,
                                        Segment& retSegment) const;
+
+        /**
+         * Gets the segment that was least recently used from among all the
+         * segments on the given cell.
+         *
+         * @param cell       Cell whose segments to consider.
+         * @param retSegment Segment to return.
+         *
+         * @retval False if cell has no segments.
+         */
+        bool leastRecentlyUsedSegment(const Cell& cell,
+                                      Segment& retSegment) const;
 
         /**
          * Forward-propagates input to synapses, dendrites, and cells, to
@@ -313,7 +337,8 @@ namespace nta
          */
         Activity computeActivity(const std::vector<Cell>& input,
                                  Permanence permanenceThreshold,
-                                 UInt synapseThreshold) const;
+                                 UInt synapseThreshold,
+                                 bool recordIteration=true);
 
         /**
          * Gets the active segments from activity.
@@ -355,6 +380,7 @@ namespace nta
         std::map< Cell, std::vector<Synapse> > synapsesForPresynapticCell_;
         UInt numSegments_;
         UInt numSynapses_;
+        Iteration iteration_;
       }; // end class Connections
 
     } // end namespace connections
