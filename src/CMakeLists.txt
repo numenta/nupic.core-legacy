@@ -145,6 +145,26 @@ find_library(LIB_STATIC_Z_LOC
 add_library(${LIB_STATIC_Z} STATIC IMPORTED GLOBAL)
 
 #
+# Find and add libkj
+#
+set(LIB_STATIC_KJ kj)
+find_library(LIB_STATIC_KJ_LOC
+             ${LIB_STATIC_KJ}
+             "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/lib/"
+             NO_DEFAULT_PATH)
+add_library(${LIB_STATIC_KJ} STATIC IMPORTED GLOBAL)
+
+#
+# Find and add libcapnp
+#
+set(LIB_STATIC_CAPNP capnp)
+find_library(LIB_STATIC_CAPNP_LOC
+             ${LIB_STATIC_CAPNP}
+             "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/lib/"
+             NO_DEFAULT_PATH)
+add_library(${LIB_STATIC_CAPNP} STATIC IMPORTED GLOBAL)
+
+#
 # Setup libnupic_core
 #
 set(LIB_STATIC_NUPICCORE nupic_core_solo)
@@ -230,7 +250,9 @@ target_link_libraries(${LIB_STATIC_NUPICCORE}
                       ${LIB_STATIC_YAML_LOC}
                       ${LIB_STATIC_APR1_LOC}
                       ${LIB_STATIC_APRUTIL1_LOC}
-                      ${LIB_STATIC_Z_LOC})
+                      ${LIB_STATIC_Z_LOC}
+                      ${LIB_STATIC_KJ_LOC}
+                      ${LIB_STATIC_CAPNP_LOC})
 set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES COMPILE_FLAGS ${COMPILE_FLAGS})
 set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES LINK_FLAGS "-m${BITNESS} ${STDLIB} -static")
 
@@ -373,10 +395,13 @@ add_custom_target(combined ALL
                   COMMAND ${CMAKE_AR} -x ${LIB_STATIC_APRUTIL1_LOC}
                   COMMAND ${CMAKE_AR} -x ${LIB_STATIC_APR1_LOC}
                   COMMAND ${CMAKE_AR} -x ${LIB_STATIC_Z_LOC}
+                  COMMAND ${CMAKE_AR} -x ${LIB_STATIC_KJ_LOC}
+                  COMMAND ${CMAKE_AR} -x ${LIB_STATIC_CAPNP_LOC}
                   COMMAND ${CMAKE_AR} rcs libnupic_core.a *.o
                   DEPENDS ${LIB_STATIC_NUPICCORE}
                           ${LIB_STATIC_GTEST}
                           ${EXECUTABLE_HELLOREGION}
+                          ${EXECUTABLE_PROTOTEST}
                           ${EXECUTABLE_HTMTEST}
                           ${EXECUTABLE_GTESTS})
 
@@ -387,6 +412,7 @@ install(TARGETS
         ${LIB_STATIC_NUPICCORE}
         ${LIB_STATIC_GTEST}
         ${EXECUTABLE_HELLOREGION}
+        ${EXECUTABLE_PROTOTEST}
         ${EXECUTABLE_HTMTEST}
         ${EXECUTABLE_GTESTS}
         RUNTIME DESTINATION bin
