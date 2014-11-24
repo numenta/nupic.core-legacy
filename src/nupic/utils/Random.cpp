@@ -24,12 +24,19 @@
     Random Number Generator implementation
 */
 
-#include <nupic/utils/Random.hpp>
-#include <nupic/utils/Log.hpp>
-#include <nupic/utils/StringUtils.hpp>
 #include <cstdlib>
 #include <ctime>
 #include <cmath> // For ldexp.
+#include <iostream> // for istream, ostream
+
+#include <capnp/message.h>
+#include <capnp/serialize.h>
+
+#include <nupic/utils/ProtoUtils.hpp>
+#include <nupic/utils/Random.hpp>
+#include <nupic/utils/Log.hpp>
+#include <nupic/utils/StringUtils.hpp>
+#include <nupic/utils/RandomProto.capnp.h>
 
 using namespace nupic;
 Random* Random::theInstanceP_ = nullptr;
@@ -62,6 +69,8 @@ namespace nupic
   public:
     RandomImpl(UInt64 seed);
     ~RandomImpl() {};
+    void write(RandomImplProto::Builder& proto) const;
+    void read(RandomImplProto::Reader& proto);
     UInt32 getUInt32();
     // Note: copy constructor and operator= are needed
     // The default is ok.
@@ -83,6 +92,44 @@ Random::Random(const Random& r)
   NTA_CHECK(r.impl_ != nullptr);
   seed_ = r.seed_;
   impl_ = new RandomImpl(*r.impl_);
+}
+
+void Random::write(std::ostream& stream) const
+{
+  capnp::MallocMessageBuilder message;
+  auto proto = message.initRoot<RandomProto>();
+  write(proto);
+
+  proto::StdOutputStream out(stream);
+  capnp::writeMessage(out, message);
+}
+
+void Random::write(RandomProto::Builder& proto) const
+{
+  // save Random state
+  proto.setSeed(seed_);
+
+  // save RandomImpl state
+  auto implProto = proto.initImpl();
+  impl_->write(implProto);
+}
+
+void Random::read(std::istream& stream)
+{
+  proto::StdInputStream in(stream);
+  capnp::InputStreamMessageReader message(in);
+  RandomProto::Reader proto = message.getRoot<RandomProto>();
+  read(proto);
+}
+
+void Random::read(RandomProto::Reader& proto)
+{
+  // load Random state
+  seed_ = proto.getSeed();
+
+  // load RandomImpl state
+  auto implProto = proto.getImpl();
+  impl_->read(implProto);
 }
 
 void Random::reseed(UInt64 seed)
@@ -277,6 +324,30 @@ RandomImpl::RandomImpl(UInt64 seed)
     printf("Random: %d  %ld\n", i, state_[i]);
   }
 #endif
+}
+
+
+void RandomImpl::write(RandomImplProto::Builder& proto) const
+{
+  auto state = proto.initState(stateSize_);
+  for (UInt i = 0; i < stateSize_; ++i)
+  {
+    state.set(i, state_[i]);
+  }
+  proto.setRptr(rptr_);
+  proto.setFptr(fptr_);
+}
+
+
+void RandomImpl::read(RandomImplProto::Reader& proto)
+{
+  auto state = proto.getState();
+  for (UInt i = 0; i < state.size(); ++i)
+  {
+    state_[i] = state[i];
+  }
+  rptr_ = proto.getRptr();
+  fptr_ = proto.getFptr();
 }
 
 

@@ -246,6 +246,7 @@ ADD_LIBRARY(${LIB_STATIC_NUPICCORE}
             nupic/utils/LoggingException.cpp
             nupic/utils/LogItem.cpp
             nupic/utils/Random.cpp
+            nupic/utils/RandomProto.capnp.c++
             nupic/utils/StringUtils.cpp
             nupic/utils/TRandom.cpp
             nupic/utils/Watcher.cpp)
@@ -283,6 +284,17 @@ set_target_properties(${EXECUTABLE_HELLOREGION} PROPERTIES COMPILE_FLAGS ${COMPI
 set_target_properties(${EXECUTABLE_HELLOREGION}
                       PROPERTIES LINK_FLAGS "-m${BITNESS} ${STDLIB}")
 add_dependencies(${EXECUTABLE_HELLOREGION} ${COMMON_LIBS})
+
+#
+# Setup prototest example
+#
+set(EXECUTABLE_PROTOTEST prototest)
+add_executable(${EXECUTABLE_PROTOTEST} examples/prototest.cpp)
+target_link_libraries(${EXECUTABLE_PROTOTEST} ${COMMON_LIBS})
+set_target_properties(${EXECUTABLE_PROTOTEST} PROPERTIES COMPILE_FLAGS ${COMPILE_FLAGS})
+set_target_properties(${EXECUTABLE_PROTOTEST}
+                      PROPERTIES LINK_FLAGS "-m${BITNESS} ${STDLIB}")
+add_dependencies(${EXECUTABLE_PROTOTEST} ${COMMON_LIBS})
 
 #
 # Setup gtests
