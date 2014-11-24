@@ -400,8 +400,6 @@ install(DIRECTORY "${REPOSITORY_DIR}/external/common/include/gtest"
         FILES_MATCHING PATTERN "*.h*")
 install(FILES "${PROJECT_BINARY_DIR}/Version.hpp"
         DESTINATION include/nta/)
-install(FILES nta/ntypes/Collection.cpp
-        DESTINATION include/nta/ntypes/Collection.cpp)
 install(DIRECTORY "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/lib/"
         DESTINATION lib)
 install(DIRECTORY "${REPOSITORY_DIR}/external/common/include/"
