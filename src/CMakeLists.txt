@@ -41,6 +41,10 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   set(STDLIB "")
 endif()
 
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+   set(STDLIB "${STDLIB} -static-libgcc -static-libstdc++")
+endif()
+
 set(BITNESS 32)
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
   set(BITNESS 64)
