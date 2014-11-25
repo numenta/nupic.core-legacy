@@ -24,9 +24,9 @@
     Random Number Generator implementation
 */
 
-#include <nta/utils/Random.hpp>
-#include <nta/utils/Log.hpp>
-#include <nta/utils/StringUtils.hpp>
+#include <nupic/utils/Random.hpp>
+#include <nupic/utils/Log.hpp>
+#include <nupic/utils/StringUtils.hpp>
 #include <cstdlib>
 #include <ctime>
 #include <cmath> // For ldexp.

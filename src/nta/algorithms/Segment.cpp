@@ -28,14 +28,14 @@
 #include <sstream>
 #include <algorithm> // sort
 
-#include <nta/utils/Random.hpp>
-#include <nta/utils/Log.hpp>
+#include <nupic/utils/Random.hpp>
+#include <nupic/utils/Log.hpp>
 #include <assert.h>
 #include <map>
-#include <nta/math/ArrayAlgo.hpp> // is_in
-#include <nta/math/StlIo.hpp> // binary_save
+#include <nupic/math/ArrayAlgo.hpp> // is_in
+#include <nupic/math/StlIo.hpp> // binary_save
 
-#include <nta/algorithms/Segment.hpp>
+#include <nupic/algorithms/Segment.hpp>
 
 using namespace nta::algorithms::Cells4;
 

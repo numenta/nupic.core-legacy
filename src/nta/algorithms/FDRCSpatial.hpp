@@ -23,7 +23,7 @@
 #ifndef NTA_FDR_C_SPATIAL_HPP
 #define NTA_FDR_C_SPATIAL_HPP
 
-#include <nta/math/StlIo.hpp>
+#include <nupic/math/StlIo.hpp>
 
 #ifdef NTA_PLATFORM_linux64
 #define P_INC 4

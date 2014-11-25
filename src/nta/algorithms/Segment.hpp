@@ -31,9 +31,9 @@
 #include <set>
 #include <vector>
 
-#include <nta/math/ArrayAlgo.hpp> // is_sorted
-#include <nta/math/StlIo.hpp> // binary_save
-#include <nta/algorithms/InSynapse.hpp>
+#include <nupic/math/ArrayAlgo.hpp> // is_sorted
+#include <nupic/math/StlIo.hpp> // binary_save
+#include <nupic/algorithms/InSynapse.hpp>
 
 
 //-----------------------------------------------------------------------

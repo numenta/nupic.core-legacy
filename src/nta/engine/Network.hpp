@@ -32,8 +32,8 @@
 #include <string>
 #include <vector>
 #include <set>
-#include <nta/types/Types.hpp>
-#include <nta/ntypes/Collection.hpp>
+#include <nupic/types/Types.hpp>
+#include <nupic/ntypes/Collection.hpp>
 
 namespace nta
 {

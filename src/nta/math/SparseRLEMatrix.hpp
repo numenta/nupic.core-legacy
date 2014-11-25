@@ -31,7 +31,7 @@
 #include <cstdio>
 #include <zlib.h>
 
-#include <nta/math/Math.hpp>
+#include <nupic/math/Math.hpp>
 
 //--------------------------------------------------------------------------------
 namespace nta {

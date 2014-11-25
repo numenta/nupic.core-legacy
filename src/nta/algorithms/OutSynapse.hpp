@@ -23,8 +23,8 @@
 #ifndef NTA_OUTSYNAPSE_HPP
 #define NTA_OUTSYNAPSE_HPP
 
-#include <nta/types/Types.hpp>
-#include <nta/utils/Log.hpp> // NTA_ASSERT
+#include <nupic/types/Types.hpp>
+#include <nupic/utils/Log.hpp> // NTA_ASSERT
 
 using namespace nta;
 

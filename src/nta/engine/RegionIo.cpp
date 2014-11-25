@@ -24,14 +24,14 @@
  * Implementation of Region methods related to inputs and outputs
  */
 
-#include <nta/engine/Region.hpp>
-#include <nta/engine/RegionImpl.hpp>
-#include <nta/engine/Output.hpp>
-#include <nta/engine/Input.hpp>
-#include <nta/utils/Log.hpp>
-#include <nta/ntypes/Array.hpp>
-#include <nta/ntypes/ArrayRef.hpp>
-#include <nta/types/BasicType.hpp>
+#include <nupic/engine/Region.hpp>
+#include <nupic/engine/RegionImpl.hpp>
+#include <nupic/engine/Output.hpp>
+#include <nupic/engine/Input.hpp>
+#include <nupic/utils/Log.hpp>
+#include <nupic/ntypes/Array.hpp>
+#include <nupic/ntypes/ArrayRef.hpp>
+#include <nupic/types/BasicType.hpp>
 
 namespace nta
 {

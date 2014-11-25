@@ -24,8 +24,8 @@
 
 //----------------------------------------------------------------------
 
-#include <nta/os/DynamicLibrary.hpp>
-#include <nta/os/Path.hpp>
+#include <nupic/os/DynamicLibrary.hpp>
+#include <nupic/os/Path.hpp>
 #include <sstream>
 #include <iostream>
 

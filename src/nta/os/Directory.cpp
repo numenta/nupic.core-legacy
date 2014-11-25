@@ -26,10 +26,10 @@
 #include <unistd.h>
 #include <string>
 #include <algorithm>
-#include <nta/os/Directory.hpp>
-#include <nta/os/Path.hpp>
-#include <nta/os/OS.hpp>
-#include <nta/utils/Log.hpp>
+#include <nupic/os/Directory.hpp>
+#include <nupic/os/Path.hpp>
+#include <nupic/os/OS.hpp>
+#include <nupic/utils/Log.hpp>
 #include <apr-1/apr_file_io.h>
 #include <apr-1/apr_time.h>
 

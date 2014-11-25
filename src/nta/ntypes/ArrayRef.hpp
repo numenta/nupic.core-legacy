@@ -31,8 +31,8 @@
 #ifndef NTA_ARRAY_REF_HPP
 #define NTA_ARRAY_REF_HPP
 
-#include <nta/ntypes/ArrayBase.hpp>
-#include <nta/utils/Log.hpp>
+#include <nupic/ntypes/ArrayBase.hpp>
+#include <nupic/utils/Log.hpp>
 
 namespace nta
 {

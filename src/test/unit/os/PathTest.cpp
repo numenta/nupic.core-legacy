@@ -24,10 +24,10 @@
  * Implementation for Path test
  */
 
-#include <nta/os/Path.hpp>
-#include <nta/os/OS.hpp>
-#include <nta/os/FStream.hpp>
-#include <nta/utils/Log.hpp>
+#include <nupic/os/Path.hpp>
+#include <nupic/os/OS.hpp>
+#include <nupic/os/FStream.hpp>
+#include <nupic/utils/Log.hpp>
 
 #include "PathTest.hpp"
 

@@ -29,13 +29,13 @@
 #include <windows.h>
 #include <shlobj.h>
 
-#include <nta/os/OS.hpp>
-#include <nta/os/Directory.hpp>
-#include <nta/os/Path.hpp>
-#include <nta/os/Directory.hpp>
-#include <nta/os/Env.hpp>
-#include <nta/utils/Log.hpp>
-#include <nta/os/DynamicLibrary.hpp>
+#include <nupic/os/OS.hpp>
+#include <nupic/os/Directory.hpp>
+#include <nupic/os/Path.hpp>
+#include <nupic/os/Directory.hpp>
+#include <nupic/os/Env.hpp>
+#include <nupic/utils/Log.hpp>
+#include <nupic/os/DynamicLibrary.hpp>
 #include <boost/shared_ptr.hpp>
 
 

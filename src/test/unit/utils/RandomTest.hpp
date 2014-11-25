@@ -28,8 +28,8 @@
 #ifndef NTA_RANDOM_TEST_HPP
 #define NTA_RANDOM_TEST_HPP
 
-#include <nta/utils/Random.hpp>
-#include <nta/test/Tester.hpp>
+#include <nupic/utils/Random.hpp>
+#include <nupic/test/Tester.hpp>
 
 namespace nta {
   

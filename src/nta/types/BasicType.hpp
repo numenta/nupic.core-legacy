@@ -23,7 +23,7 @@
 #ifndef NTA_BASIC_TYPE_HPP
 #define NTA_BASIC_TYPE_HPP
 
-#include <nta/types/Types.h>
+#include <nupic/types/Types.h>
 #include <string>
 
 namespace nta

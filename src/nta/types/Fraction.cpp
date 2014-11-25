@@ -26,8 +26,8 @@
 #include <cmath>
 #include <cstdlib> //abs!
 
-#include <nta/types/Fraction.hpp>
-#include <nta/types/Exception.hpp>
+#include <nupic/types/Fraction.hpp>
+#include <nupic/types/Exception.hpp>
 
 namespace nta
 {

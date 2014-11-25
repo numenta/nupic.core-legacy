@@ -24,8 +24,8 @@
 Environment Implementation
 */
 
-#include <nta/os/Env.hpp>
-#include <nta/utils/Log.hpp>
+#include <nupic/os/Env.hpp>
+#include <nupic/utils/Log.hpp>
 #include <apr-1/apr_general.h>
 #include <apr-1/apr_env.h>
 #include <cctype> // toupper

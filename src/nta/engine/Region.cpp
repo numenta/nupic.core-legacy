@@ -32,16 +32,16 @@ Methods related to inputs and outputs are in Region_io.cpp
 #include <stdexcept>
 #include <set>
 #include <string>
-#include <nta/engine/Region.hpp>
-#include <nta/engine/RegionImpl.hpp>
-#include <nta/engine/RegionImplFactory.hpp>
-#include <nta/engine/Spec.hpp>
-#include <nta/utils/Log.hpp>
-#include <nta/engine/Input.hpp>
-#include <nta/engine/Output.hpp>
-#include <nta/engine/Link.hpp>
-#include <nta/ntypes/NodeSet.hpp>
-#include <nta/os/Timer.hpp>
+#include <nupic/engine/Region.hpp>
+#include <nupic/engine/RegionImpl.hpp>
+#include <nupic/engine/RegionImplFactory.hpp>
+#include <nupic/engine/Spec.hpp>
+#include <nupic/utils/Log.hpp>
+#include <nupic/engine/Input.hpp>
+#include <nupic/engine/Output.hpp>
+#include <nupic/engine/Link.hpp>
+#include <nupic/ntypes/NodeSet.hpp>
+#include <nupic/os/Timer.hpp>
 
 namespace nta
 {

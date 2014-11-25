@@ -24,8 +24,8 @@
  * 
  */ 
 
-#include "nta/utils/Log.hpp"
-#include "nta/algorithms/CondProbTable.hpp"
+#include "nupic/utils/Log.hpp"
+#include "nupic/algorithms/CondProbTable.hpp"
 
 using namespace std;
 

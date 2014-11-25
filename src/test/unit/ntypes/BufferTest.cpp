@@ -25,13 +25,13 @@
  */
 
 #include "BufferTest.hpp"
-#include <nta/math/Math.hpp>
-#include <nta/utils/Log.hpp>
+#include <nupic/math/Math.hpp>
+#include <nupic/utils/Log.hpp>
 #include <cstring> // strlen
 
 // This test accesses private methods. 
 #define private public
-#include <nta/ntypes/Buffer.hpp>
+#include <nupic/ntypes/Buffer.hpp>
 #undef private
 
 #include <algorithm>

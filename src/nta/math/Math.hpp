@@ -37,8 +37,8 @@
 
 #include <boost/concept_check.hpp>
 
-#include <nta/types/Types.hpp>
-#include <nta/math/Utils.hpp>
+#include <nupic/types/Types.hpp>
+#include <nupic/math/Utils.hpp>
 
 //--------------------------------------------------------------------------------
 /**

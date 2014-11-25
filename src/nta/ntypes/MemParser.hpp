@@ -28,7 +28,7 @@
 #include <vector>
 #include <sstream>
 
-#include "nta/types/Types.hpp"
+#include "nupic/types/Types.hpp"
 
 
 namespace nta {

@@ -28,8 +28,8 @@
 #ifndef NTA_OS_TEST_HPP
 #define NTA_OS_TEST_HPP
 
-#include <nta/os/OS.hpp>
-#include <nta/test/Tester.hpp>
+#include <nupic/os/OS.hpp>
+#include <nupic/test/Tester.hpp>
 
 namespace nta {
   

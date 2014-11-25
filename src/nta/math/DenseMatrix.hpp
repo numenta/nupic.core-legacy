@@ -31,8 +31,8 @@
 
 #include <vector>
 
-#include <nta/utils/TRandom.hpp>
-#include <nta/math/SparseMatrix.hpp>
+#include <nupic/utils/TRandom.hpp>
+#include <nupic/math/SparseMatrix.hpp>
 
 
 namespace nta {

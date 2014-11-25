@@ -27,11 +27,11 @@
 #ifndef NTA_SPARSE_TENSOR_HPP
 #define NTA_SPARSE_TENSOR_HPP
 
-#include <nta/math/Utils.hpp>
-#include <nta/math/Math.hpp>
-#include <nta/math/ArrayAlgo.hpp>
-#include <nta/math/StlIo.hpp>
-#include <nta/math/Domain.hpp>
+#include <nupic/math/Utils.hpp>
+#include <nupic/math/Math.hpp>
+#include <nupic/math/ArrayAlgo.hpp>
+#include <nupic/math/StlIo.hpp>
+#include <nupic/math/Domain.hpp>
 
 
 //----------------------------------------------------------------------
@@ -40,7 +40,7 @@
 /* FAST TENSOR */
 /*
 #include <ext/hash_map>
-#include <nta/math/GPL_Hash2.hpp>
+#include <nupic/math/GPL_Hash2.hpp>
 
 template <typename Index>
 struct HashIndex

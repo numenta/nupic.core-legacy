@@ -27,10 +27,10 @@
 #define NTA_BUFFER_HPP
 
 #include <boost/shared_array.hpp>
-#include <nta/ntypes/MemStream.hpp>
-#include <nta/ntypes/ObjectModel.h>
-#include <nta/ntypes/ObjectModel.hpp>
-#include <nta/types/Types.hpp>
+#include <nupic/ntypes/MemStream.hpp>
+#include <nupic/ntypes/ObjectModel.h>
+#include <nupic/ntypes/ObjectModel.hpp>
+#include <nupic/types/Types.hpp>
 
 #include <string>
 #include <vector>
@@ -65,7 +65,7 @@ namespace nta
    * When the buffer is empty it should be 0.
    * 
    * @b Notes:
-   *  see IReadBuffer documentation in nta/plugin/object_model.hpp for
+   *  see IReadBuffer documentation in nupic/plugin/object_model.hpp for
    * further details
    */
   class ReadBuffer : 
@@ -181,7 +181,7 @@ namespace nta
    * When the buffer is empty it should be 0.
    * 
    * @b Notes:
-   *  see IWriteBuffer documentation in nta/plugin/object_model.hpp for
+   *  see IWriteBuffer documentation in nupic/plugin/object_model.hpp for
    * further details
    */
   class WriteBuffer : 

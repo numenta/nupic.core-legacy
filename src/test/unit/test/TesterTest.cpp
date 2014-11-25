@@ -22,7 +22,7 @@
 
 #include <iostream>
 #include <stdexcept>
-#include <nta/test/Tester.hpp>
+#include <nupic/test/Tester.hpp>
 #include "TesterTest.hpp"
 
 namespace nta {

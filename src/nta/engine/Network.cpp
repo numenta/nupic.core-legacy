@@ -28,18 +28,18 @@ Implementation of the Network class
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
-#include <nta/engine/Network.hpp>
-#include <nta/engine/Region.hpp>
-#include <nta/engine/Spec.hpp>
-#include <nta/engine/Link.hpp>
-#include <nta/engine/Input.hpp>
-#include <nta/utils/Log.hpp>
-#include <nta/utils/StringUtils.hpp>
-#include <nta/engine/NuPIC.hpp> // for register/unregister
-#include <nta/os/FStream.hpp>
-#include <nta/os/Path.hpp>
-#include <nta/os/Directory.hpp>
-#include <nta/ntypes/BundleIO.hpp>
+#include <nupic/engine/Network.hpp>
+#include <nupic/engine/Region.hpp>
+#include <nupic/engine/Spec.hpp>
+#include <nupic/engine/Link.hpp>
+#include <nupic/engine/Input.hpp>
+#include <nupic/utils/Log.hpp>
+#include <nupic/utils/StringUtils.hpp>
+#include <nupic/engine/NuPIC.hpp> // for register/unregister
+#include <nupic/os/FStream.hpp>
+#include <nupic/os/Path.hpp>
+#include <nupic/os/Directory.hpp>
+#include <nupic/ntypes/BundleIO.hpp>
 #include <yaml-cpp/yaml.h>
 
 

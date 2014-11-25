@@ -36,7 +36,7 @@
 
 #include <string>
 #include <vector>
-#include <nta/ntypes/ObjectModel.hpp> // IWriteBuffer
+#include <nupic/ntypes/ObjectModel.hpp> // IWriteBuffer
 
 namespace nta
 {

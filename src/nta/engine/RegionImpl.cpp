@@ -23,15 +23,15 @@
 
 #include <iostream>
 
-#include <nta/engine/RegionImpl.hpp>
-#include <nta/ntypes/Buffer.hpp>
-#include <nta/ntypes/Array.hpp>
-#include <nta/types/BasicType.hpp>
-#include <nta/engine/Region.hpp>
-#include <nta/engine/Spec.hpp>
-#include <nta/ntypes/Dimensions.hpp>
-#include <nta/ntypes/BundleIO.hpp>
-#include <nta/os/FStream.hpp>
+#include <nupic/engine/RegionImpl.hpp>
+#include <nupic/ntypes/Buffer.hpp>
+#include <nupic/ntypes/Array.hpp>
+#include <nupic/types/BasicType.hpp>
+#include <nupic/engine/Region.hpp>
+#include <nupic/engine/Spec.hpp>
+#include <nupic/ntypes/Dimensions.hpp>
+#include <nupic/ntypes/BundleIO.hpp>
+#include <nupic/os/FStream.hpp>
 
 namespace nta
 {

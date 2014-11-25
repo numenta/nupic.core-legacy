@@ -26,13 +26,13 @@
  */
 
 #include <cstring> // memset
-#include <nta/ntypes/Dimensions.hpp>
-#include <nta/ntypes/Array.hpp>
-#include <nta/engine/Input.hpp>
-#include <nta/engine/Output.hpp>
-#include <nta/engine/Link.hpp>
-#include <nta/engine/Region.hpp>
-#include <nta/types/BasicType.hpp>
+#include <nupic/ntypes/Dimensions.hpp>
+#include <nupic/ntypes/Array.hpp>
+#include <nupic/engine/Input.hpp>
+#include <nupic/engine/Output.hpp>
+#include <nupic/engine/Link.hpp>
+#include <nupic/engine/Region.hpp>
+#include <nupic/types/BasicType.hpp>
 
 namespace nta
 {

@@ -28,9 +28,15 @@
 #define NTA_OUTPUT_HPP
 
 #include <set>
+<<<<<<< HEAD
 #include <nta/types/Types.hpp>
 #include <nta/utils/Log.hpp> // temporary, while impl is in this file
 namespace nta
+=======
+#include <nupic/types/Types.hpp>
+#include <nupic/utils/Log.hpp> // temporary, while impl is in this file
+namespace nupic
+>>>>>>> 1678b80... folder: "nta" replaced by "nupic"
 {
 
   class Link;

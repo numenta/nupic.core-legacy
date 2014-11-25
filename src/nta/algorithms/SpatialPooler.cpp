@@ -26,8 +26,8 @@
 
 #include <cstring>
 #include <iostream>
-#include <nta/algorithms/SpatialPooler.hpp>
-#include <nta/math/Math.hpp>
+#include <nupic/algorithms/SpatialPooler.hpp>
+#include <nupic/math/Math.hpp>
 #include <string>
 #include <vector>
 

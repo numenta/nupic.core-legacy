@@ -20,9 +20,9 @@
  * ---------------------------------------------------------------------
  */
 
-#include <nta/ntypes/BundleIO.hpp>
-#include <nta/os/Path.hpp>
-#include <nta/utils/Log.hpp>
+#include <nupic/ntypes/BundleIO.hpp>
+#include <nupic/os/Path.hpp>
+#include <nupic/utils/Log.hpp>
 
 namespace nta
 {

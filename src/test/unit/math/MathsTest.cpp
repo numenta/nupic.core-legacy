@@ -24,12 +24,12 @@
  * Implementation for maths unit tests
  */
 
-//#include <nta/common/utils.hpp>
-#include <nta/math/ArrayAlgo.hpp>
+//#include <nupic/common/utils.hpp>
+#include <nupic/math/ArrayAlgo.hpp>
 
 #include "MathsTest.hpp"
 
-#include <nta/math/Math.hpp>
+#include <nupic/math/Math.hpp>
 
 using namespace std;
 

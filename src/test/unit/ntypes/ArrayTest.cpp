@@ -26,8 +26,8 @@
 
 #include "ArrayTest.hpp"
 
-#include <nta/ntypes/ArrayBase.hpp>
-#include <nta/types/BasicType.hpp>
+#include <nupic/ntypes/ArrayBase.hpp>
+#include <nupic/types/BasicType.hpp>
 
 #include <boost/scoped_ptr.hpp>
 #include <boost/scoped_array.hpp>

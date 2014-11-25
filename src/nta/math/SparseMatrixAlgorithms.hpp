@@ -28,7 +28,7 @@
 #define NTA_SM_ALGORITHMS_HPP
 
 #include <vector>
-#include <nta/utils/Random.hpp>
+#include <nupic/utils/Random.hpp>
 
 //--------------------------------------------------------------------------------
 namespace nta {
@@ -300,7 +300,7 @@ namespace nta {
      * Computes the product of a sparse matrix and a sparse vector on the right. 
      * [x_begin, x_end) is the range of x that contains the non-zeros for x.
      * This function skips multiplying by zeros out of [x_begin, x_end).
-     * This is used only in nta/math_research/shmm.cpp and direct unit testing 
+     * This is used only in nupic/math_research/shmm.cpp and direct unit testing
      * is missing.
      *
      * TODO: check if we can't remove that and replace by incrementOuterWithNZ

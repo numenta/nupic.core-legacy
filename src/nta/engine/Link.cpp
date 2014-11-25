@@ -25,16 +25,16 @@
  */
 
 #include <cstring> // memcpy
-#include <nta/engine/Link.hpp>
-#include <nta/utils/Log.hpp>
-#include <nta/engine/LinkPolicyFactory.hpp>
-#include <nta/engine/LinkPolicy.hpp>
-#include <nta/engine/Region.hpp>
-#include <nta/engine/Input.hpp>
-#include <nta/engine/Output.hpp>
-#include <nta/ntypes/Array.hpp>
-#include <nta/ntypes/ArrayRef.hpp>
-#include <nta/types/BasicType.hpp>
+#include <nupic/engine/Link.hpp>
+#include <nupic/utils/Log.hpp>
+#include <nupic/engine/LinkPolicyFactory.hpp>
+#include <nupic/engine/LinkPolicy.hpp>
+#include <nupic/engine/Region.hpp>
+#include <nupic/engine/Input.hpp>
+#include <nupic/engine/Output.hpp>
+#include <nupic/ntypes/Array.hpp>
+#include <nupic/ntypes/ArrayRef.hpp>
+#include <nupic/types/BasicType.hpp>
 
 namespace nta
 {

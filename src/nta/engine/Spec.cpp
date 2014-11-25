@@ -24,9 +24,9 @@
 Implementation of Spec API
 */
 
-#include <nta/engine/Spec.hpp>
-#include <nta/utils/Log.hpp>
-#include <nta/types/BasicType.hpp>
+#include <nupic/engine/Spec.hpp>
+#include <nupic/utils/Log.hpp>
+#include <nupic/types/BasicType.hpp>
 
 namespace nta
 {

@@ -27,11 +27,11 @@
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
-#include <nta/test/Tester.hpp>
-#include <nta/utils/Log.hpp>
+#include <nupic/test/Tester.hpp>
+#include <nupic/utils/Log.hpp>
 
-#include <nta/os/Directory.hpp>
-#include <nta/os/Path.hpp>
+#include <nupic/os/Directory.hpp>
+#include <nupic/os/Path.hpp>
 
 using namespace std;
 namespace nta {

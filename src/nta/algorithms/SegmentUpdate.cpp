@@ -20,9 +20,9 @@
  * ---------------------------------------------------------------------
  */
 
-#include <nta/utils/Log.hpp>
-#include <nta/algorithms/SegmentUpdate.hpp>
-#include <nta/algorithms/Cells4.hpp>
+#include <nupic/utils/Log.hpp>
+#include <nupic/algorithms/SegmentUpdate.hpp>
+#include <nupic/algorithms/Cells4.hpp>
 
 using namespace nta::algorithms::Cells4;
 

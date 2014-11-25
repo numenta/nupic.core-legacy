@@ -28,13 +28,13 @@
 #ifndef NTA_VIDEO_SENSOR_NODE_HPP
 #define NTA_VIDEO_SENSOR_NODE_HPP
 
-#include <nta/utils/Log.hpp>
+#include <nupic/utils/Log.hpp>
 
 #ifdef __cplusplus
 extern "C" {
 #endif  // __cplusplus
 
-#include <nta/types/Types.h>
+#include <nupic/types/Types.h>
 #include "ArrayBuffer.hpp"
 
 

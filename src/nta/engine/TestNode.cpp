@@ -30,17 +30,17 @@
 #include <numeric> // std::accumulate
 #include <fstream>
 #include <sstream>
-#include <nta/engine/TestNode.hpp>
-#include <nta/engine/Spec.hpp>
-#include <nta/engine/Region.hpp>
-#include <nta/utils/Log.hpp>
-#include <nta/ntypes/ObjectModel.hpp> // IWrite/ReadBuffer
-#include <nta/ntypes/Array.hpp>
-#include <nta/ntypes/Value.hpp>
-#include <nta/ntypes/BundleIO.hpp>
-#include <nta/utils/Log.hpp>
-#include <nta/engine/Output.hpp>
-#include <nta/engine/Input.hpp>
+#include <nupic/engine/TestNode.hpp>
+#include <nupic/engine/Spec.hpp>
+#include <nupic/engine/Region.hpp>
+#include <nupic/utils/Log.hpp>
+#include <nupic/ntypes/ObjectModel.hpp> // IWrite/ReadBuffer
+#include <nupic/ntypes/Array.hpp>
+#include <nupic/ntypes/Value.hpp>
+#include <nupic/ntypes/BundleIO.hpp>
+#include <nupic/utils/Log.hpp>
+#include <nupic/engine/Output.hpp>
+#include <nupic/engine/Input.hpp>
 
 
 

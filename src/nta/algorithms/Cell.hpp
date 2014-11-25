@@ -24,8 +24,8 @@
 #define NTA_CELL_HPP
 
 #include <vector>
-#include <nta/types/Types.hpp>
-#include <nta/algorithms/Segment.hpp>
+#include <nupic/types/Types.hpp>
+#include <nupic/algorithms/Segment.hpp>
 
 namespace nta {
   namespace algorithms {

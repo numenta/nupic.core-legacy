@@ -27,8 +27,8 @@
  * It is used internally in the conversion of YAML strings to C++ objects. 
  */
 
-#include <nta/ntypes/Scalar.hpp>
-#include <nta/utils/Log.hpp> 
+#include <nupic/ntypes/Scalar.hpp>
+#include <nupic/utils/Log.hpp>
 
 using namespace nta;
 

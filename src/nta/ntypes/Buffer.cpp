@@ -23,8 +23,8 @@
 /** @file 
 */
 
-#include <nta/ntypes/Buffer.hpp>
-#include <nta/utils/Log.hpp>
+#include <nupic/ntypes/Buffer.hpp>
+#include <nupic/utils/Log.hpp>
 #include <string>
 #include <algorithm>
 #include <cstring>

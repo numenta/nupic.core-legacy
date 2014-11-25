@@ -23,8 +23,8 @@
 #ifndef NTA_BUNDLEIO_HPP
 #define NTA_BUNDLEIO_HPP
 
-#include <nta/os/Path.hpp>
-#include <nta/os/FStream.hpp>
+#include <nupic/os/Path.hpp>
+#include <nupic/os/FStream.hpp>
 
 namespace nta
 {

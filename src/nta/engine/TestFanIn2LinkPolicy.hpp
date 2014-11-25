@@ -25,8 +25,8 @@
 #define NTA_TESTFANIN2LINKPOLICY_HPP
 
 #include <string>
-#include <nta/engine/Link.hpp>
-#include <nta/ntypes/Dimensions.hpp>
+#include <nupic/engine/Link.hpp>
+#include <nupic/ntypes/Dimensions.hpp>
 
 namespace nta
 {

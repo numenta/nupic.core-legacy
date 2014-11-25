@@ -30,8 +30,8 @@
 #ifndef NTA_SCALAR_HPP
 #define NTA_SCALAR_HPP
 
-#include <nta/types/Types.h>
-#include <nta/utils/Log.hpp> // temporary, while implementation is in hpp
+#include <nupic/types/Types.h>
+#include <nupic/utils/Log.hpp> // temporary, while implementation is in hpp
 #include <string>
 
 namespace nta

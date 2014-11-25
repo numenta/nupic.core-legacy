@@ -41,7 +41,7 @@
 
 // Includes the correct Python.h. Must be the first header. 
 
-#include <nta/utils/Log.hpp>
+#include <nupic/utils/Log.hpp>
 #include <stdio.h>
 #include <math.h>
 

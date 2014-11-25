@@ -28,7 +28,7 @@
 #define NTA_LINKPOLICY_HPP
 
 #include <string>
-#include <nta/engine/Input.hpp> // SplitterMap definition
+#include <nupic/engine/Input.hpp> // SplitterMap definition
 
 // LinkPolicy is an interface class subclassed by all link policies
 namespace nta 

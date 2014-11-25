@@ -29,8 +29,8 @@
 #ifndef NTA_SPATIAL_POOLER_TEST
 #define NTA_SPATIAL_POOLER_TEST
 
-#include <nta/test/Tester.hpp>
-#include <nta/algorithms/SpatialPooler.hpp>
+#include <nupic/test/Tester.hpp>
+#include <nupic/algorithms/SpatialPooler.hpp>
 
 using namespace nta::algorithms::spatial_pooler;
 

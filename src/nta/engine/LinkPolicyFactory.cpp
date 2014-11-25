@@ -21,11 +21,11 @@
  */
 
 
-#include <nta/engine/LinkPolicy.hpp>
-#include <nta/engine/LinkPolicyFactory.hpp>
-#include <nta/engine/TestFanIn2LinkPolicy.hpp>
-#include <nta/engine/UniformLinkPolicy.hpp>
-#include <nta/utils/Log.hpp>
+#include <nupic/engine/LinkPolicy.hpp>
+#include <nupic/engine/LinkPolicyFactory.hpp>
+#include <nupic/engine/TestFanIn2LinkPolicy.hpp>
+#include <nupic/engine/UniformLinkPolicy.hpp>
+#include <nupic/utils/Log.hpp>
 
 namespace nta
 {

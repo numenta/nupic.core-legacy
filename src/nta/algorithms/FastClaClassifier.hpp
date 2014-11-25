@@ -33,7 +33,7 @@
 #include <string>
 #include <vector>
 
-#include <nta/types/Types.hpp>
+#include <nupic/types/Types.hpp>
 
 using namespace std;
 

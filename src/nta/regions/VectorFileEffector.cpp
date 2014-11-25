@@ -24,12 +24,12 @@
  * Implementation for VectorFileEffector class
  */
 
-#include <nta/engine/Region.hpp>
-#include <nta/engine/Spec.hpp>
-#include <nta/regions/VectorFileEffector.hpp>
-#include <nta/utils/Log.hpp>
-#include <nta/os/FStream.hpp>
-#include <nta/ntypes/Value.hpp>
+#include <nupic/engine/Region.hpp>
+#include <nupic/engine/Spec.hpp>
+#include <nupic/regions/VectorFileEffector.hpp>
+#include <nupic/utils/Log.hpp>
+#include <nupic/os/FStream.hpp>
+#include <nupic/ntypes/Value.hpp>
 #include <stdexcept>
 #include <string>
 #include <iostream>

@@ -29,12 +29,17 @@
 
 //----------------------------------------------------------------------
 
-#include <nta/test/Tester.hpp>
+#include <nupic/test/Tester.hpp>
 
 //----------------------------------------------------------------------
 
+<<<<<<< HEAD
 #include <nta/types/Types.hpp>
 namespace nta 
+=======
+#include <nupic/types/Types.hpp>
+namespace nupic
+>>>>>>> 1678b80... folder: "nta" replaced by "nupic"
 {
   //----------------------------------------------------------------------
   class BufferTest : public Tester

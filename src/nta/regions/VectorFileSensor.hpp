@@ -32,12 +32,12 @@
 //----------------------------------------------------------------------
 
 #include <vector>
-#include <nta/types/Types.h>
-#include <nta/os/FStream.hpp>
-#include <nta/engine/RegionImpl.hpp>
-#include <nta/ntypes/Array.hpp>
-#include <nta/ntypes/ArrayRef.hpp>
-#include <nta/regions/VectorFile.hpp>
+#include <nupic/types/Types.h>
+#include <nupic/os/FStream.hpp>
+#include <nupic/engine/RegionImpl.hpp>
+#include <nupic/ntypes/Array.hpp>
+#include <nupic/ntypes/ArrayRef.hpp>
+#include <nupic/regions/VectorFile.hpp>
 
 namespace nta
 {

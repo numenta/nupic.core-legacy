@@ -24,8 +24,8 @@
  * External algorithms for operating on a sparse matrix.
  */
 
-#include <nta/math/SparseMatrix.hpp>
-#include <nta/math/SparseMatrixAlgorithms.hpp>
+#include <nupic/math/SparseMatrix.hpp>
+#include <nupic/math/SparseMatrixAlgorithms.hpp>
 
 /**
  * This file contains the declarations for the two static tables that we compute

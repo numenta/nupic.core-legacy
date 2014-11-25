@@ -21,7 +21,7 @@
  */
 
 #include <iomanip>
-#include <nta/algorithms/InSynapse.hpp>
+#include <nupic/algorithms/InSynapse.hpp>
 
 using namespace nta::algorithms::Cells4;
 

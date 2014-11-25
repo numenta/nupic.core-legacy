@@ -30,7 +30,7 @@
 #ifndef NTA_FAST_CLA_CLASSIFIER_TEST
 #define NTA_FAST_CLA_CLASSIFIER_TEST
 
-#include <nta/test/Tester.hpp>
+#include <nupic/test/Tester.hpp>
 
 namespace nta
 {

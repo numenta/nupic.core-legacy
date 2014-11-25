@@ -71,11 +71,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <malloc.h>
 #endif
 
-#include <nta/utils/Random.hpp>
-#include <nta/math/Math.hpp>
-#include <nta/math/StlIo.hpp>
-#include <nta/math/Array2D.hpp>
-#include <nta/math/ArrayAlgo.hpp> // for int checkSSE()
+#include <nupic/utils/Random.hpp>
+#include <nupic/math/Math.hpp>
+#include <nupic/math/StlIo.hpp>
+#include <nupic/math/Array2D.hpp>
+#include <nupic/math/ArrayAlgo.hpp> // for int checkSSE()
 
 namespace nta {
   namespace algorithms {
@@ -939,8 +939,13 @@ namespace nta {
         //       it needs to be 4 bytes (floats) for sse/xmm registers.
         static inline bool checkSSE()
         {
+<<<<<<< HEAD
          // use int checkSSE() from nta/math/array_algo.hpp, if ret==-1 -> no SSE 
           return nta::checkSSE()!=-1;
+=======
+         // use int checkSSE() from nupic/math/array_algo.hpp, if ret==-1 -> no SSE
+          return nupic::checkSSE()!=-1;
+>>>>>>> 1678b80... folder: "nta" replaced by "nupic"
         }
 
 	inline ~svm()
@@ -1167,7 +1172,7 @@ namespace nta {
 	}
       };
 
-#include <nta/algorithms/SvmT.hpp>
+#include <nupic/algorithms/SvmT.hpp>
 
     } // end namespace svm
   } // end namespace algorithms

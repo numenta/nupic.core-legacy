@@ -23,10 +23,10 @@
 
 #include <string>
 
-#include <nta/engine/TestFanIn2LinkPolicy.hpp>
-#include <nta/engine/Link.hpp>
-#include <nta/ntypes/Dimensions.hpp>
-#include <nta/utils/Log.hpp>
+#include <nupic/engine/TestFanIn2LinkPolicy.hpp>
+#include <nupic/engine/Link.hpp>
+#include <nupic/ntypes/Dimensions.hpp>
+#include <nupic/utils/Log.hpp>
 
 namespace nta
 {

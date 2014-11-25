@@ -29,10 +29,10 @@
 
 //----------------------------------------------------------------------
 
-#include <nta/types/Types.hpp>
-#include <nta/ntypes/MemParser.hpp>
-#include <nta/ntypes/MemStream.hpp>
-#include <nta/math/Math.hpp>
+#include <nupic/types/Types.hpp>
+#include <nupic/ntypes/MemParser.hpp>
+#include <nupic/ntypes/MemStream.hpp>
+#include <nupic/math/Math.hpp>
 
 #include <string.h> // for memset in gcc 4.4
 #include <set>

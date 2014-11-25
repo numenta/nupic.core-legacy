@@ -27,7 +27,7 @@
 #ifndef NTA_LOGGING_EXCEPTION_HPP
 #define NTA_LOGGING_EXCEPTION_HPP
 
-#include <nta/types/Exception.hpp>
+#include <nupic/types/Exception.hpp>
 #include <sstream>
 #include <vector> 
 

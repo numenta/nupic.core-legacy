@@ -28,7 +28,7 @@
 #ifndef NTA_TRANDOM_HPP
 #define NTA_TRANDOM_HPP
 
-#include <nta/utils/Random.hpp>
+#include <nupic/utils/Random.hpp>
 #include <string>
 
 namespace nta {

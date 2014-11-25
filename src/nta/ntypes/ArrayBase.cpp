@@ -24,10 +24,10 @@
  * Implementation of the ArrayBase class
  */
 
-#include <nta/types/Types.hpp>
-#include <nta/types/BasicType.hpp>
-#include <nta/ntypes/ArrayBase.hpp>
-#include <nta/utils/Log.hpp>
+#include <nupic/types/Types.hpp>
+#include <nupic/types/BasicType.hpp>
+#include <nupic/ntypes/ArrayBase.hpp>
+#include <nupic/utils/Log.hpp>
 
 using namespace nta;
 

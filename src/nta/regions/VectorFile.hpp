@@ -32,8 +32,8 @@
 //----------------------------------------------------------------------
 
 #include <vector>
-#include <nta/types/Types.hpp>
-#include <nta/os/FStream.hpp>
+#include <nupic/types/Types.hpp>
+#include <nupic/os/FStream.hpp>
 
 namespace nta 
 {
