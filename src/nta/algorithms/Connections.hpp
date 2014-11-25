@@ -380,21 +380,21 @@ namespace nta
          *
          * @retval Number of segments.
          */
-        SegmentIdx numSegments() const;
+        UInt numSegments() const;
 
         /**
          * Gets the number of synapses.
          *
          * @retval Number of synapses.
          */
-        SynapseIdx numSynapses() const;
+        UInt numSynapses() const;
 
       private:
         std::vector<CellData> cells_;
         // Mapping (presynaptic cell => synapses) used in forward propagation
         std::map< Cell, std::vector<Synapse> > synapsesForPresynapticCell_;
-        SegmentIdx numSegments_;
-        SynapseIdx numSynapses_;
+        UInt numSegments_;
+        UInt numSynapses_;
         SegmentIdx maxSegmentsPerCell_;
         Iteration iteration_;
       }; // end class Connections

@@ -327,12 +327,12 @@ vector<Cell> Connections::activeCells(const Activity& activity)
   return cells;
 }
 
-SegmentIdx Connections::numSegments() const
+UInt Connections::numSegments() const
 {
   return numSegments_;
 }
 
-SynapseIdx Connections::numSynapses() const
+UInt Connections::numSynapses() const
 {
   return numSynapses_;
 }
