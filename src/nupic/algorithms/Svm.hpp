@@ -939,13 +939,8 @@ namespace nta {
         //       it needs to be 4 bytes (floats) for sse/xmm registers.
         static inline bool checkSSE()
         {
-<<<<<<< HEAD
-         // use int checkSSE() from nta/math/array_algo.hpp, if ret==-1 -> no SSE 
-          return nta::checkSSE()!=-1;
-=======
          // use int checkSSE() from nupic/math/array_algo.hpp, if ret==-1 -> no SSE
-          return nupic::checkSSE()!=-1;
->>>>>>> 1678b80... folder: "nta" replaced by "nupic"
+          return nta::checkSSE()!=-1;
         }
 
 	inline ~svm()

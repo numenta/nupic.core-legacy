@@ -21,17 +21,10 @@
  */
 
 
-<<<<<<< HEAD
-#include <nta/algorithms/OutSynapse.hpp>
-#include <nta/algorithms/Cells4.hpp>
-using namespace nta::algorithms::Cells4;
-using namespace nta;
-=======
 #include <nupic/algorithms/OutSynapse.hpp>
 #include <nupic/algorithms/Cells4.hpp>
-using namespace nupic::algorithms::Cells4;
-using namespace nupic;
->>>>>>> 1678b80... folder: "nta" replaced by "nupic"
+using namespace nta::algorithms::Cells4;
+using namespace nta;
 
 bool OutSynapse::invariants(Cells4* cells) const
 {

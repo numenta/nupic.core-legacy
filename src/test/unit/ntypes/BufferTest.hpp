@@ -33,13 +33,8 @@
 
 //----------------------------------------------------------------------
 
-<<<<<<< HEAD
-#include <nta/types/Types.hpp>
-namespace nta 
-=======
 #include <nupic/types/Types.hpp>
-namespace nupic
->>>>>>> 1678b80... folder: "nta" replaced by "nupic"
+namespace nta
 {
   //----------------------------------------------------------------------
   class BufferTest : public Tester
