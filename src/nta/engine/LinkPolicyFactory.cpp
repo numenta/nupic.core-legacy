@@ -27,7 +27,7 @@
 #include <nta/engine/UniformLinkPolicy.hpp>
 #include <nta/utils/Log.hpp>
 
-namespace nta
+namespace nupic
 {
 
 

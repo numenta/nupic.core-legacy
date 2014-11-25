@@ -31,7 +31,7 @@
 #include <nta/engine/Input.hpp> // SplitterMap definition
 
 // LinkPolicy is an interface class subclassed by all link policies
-namespace nta 
+namespace nupic
 {
 
 
@@ -66,6 +66,6 @@ namespace nta
   };
 
 
-} // namespace nta
+} // namespace nupic
 
 #endif // NTA_LINKPOLICY_HPP

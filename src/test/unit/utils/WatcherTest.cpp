@@ -41,7 +41,7 @@
 
 #include "WatcherTest.hpp"
 
-using namespace nta;
+using namespace nupic;
 
 
 void WatcherTest::RunTests()

@@ -34,9 +34,9 @@
 #include "SpatialPoolerTest.hpp"
 
 using namespace std;
-using namespace nta::algorithms::spatial_pooler;
+using namespace nupic::algorithms::spatial_pooler;
 
-namespace nta {
+namespace nupic {
 
   void SpatialPoolerTest::print_vec(UInt arr[], UInt n)
   {
@@ -2564,4 +2564,4 @@ namespace nta {
     }
   }
 
-} // end namespace nta
+} // end namespace nupic

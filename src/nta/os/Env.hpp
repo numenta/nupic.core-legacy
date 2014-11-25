@@ -29,7 +29,7 @@ Environment Interface
 
 #include <string>
 
-namespace nta {
+namespace nupic {
 
   class Env {
   public:

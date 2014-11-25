@@ -35,7 +35,7 @@
 #ifndef NTA_SPARSE_MATRIX01UNIT_TEST_HPP
 #define NTA_SPARSE_MATRIX01UNIT_TEST_HPP
 
-namespace nta {
+namespace nupic {
   
   template <typename Int, typename Float>
   struct Dense01
@@ -168,7 +168,7 @@ namespace nta {
     bool isZero() const
     {
       ITER_1(nrows*ncols)
-        if (!nta::nearlyZero(m[i]))
+        if (!nupic::nearlyZero(m[i]))
           return false;
       return true;
     }
@@ -339,7 +339,7 @@ namespace nta {
     void CompareVectors(UInt n, InIter1 y1, InIter2 y2, const char* str)
     {
       for (UInt i = 0; i < n; ++i, ++y1, ++y2) {
-        if (!nta::nearlyZero(::fabs(*y2 - *y1)))
+        if (!nupic::nearlyZero(::fabs(*y2 - *y1)))
           Test(str, *y1, *y2);
       }
     }
@@ -389,7 +389,7 @@ namespace nta {
         }
 
       ITER_2(nrows, ncols) 
-        if (!nta::nearlyZero(::fabs(densified.at(i,j) - dense.at(i,j))))
+        if (!nupic::nearlyZero(::fabs(densified.at(i,j) - dense.at(i,j))))
           Test(str, densified.at(i,j), dense.at(i,j));
     }
 
@@ -430,7 +430,7 @@ namespace nta {
   }; // end class SparseMatrix01UnitTest
     
   //----------------------------------------------------------------------
-} // end namespace nta
+} // end namespace nupic
 
 #endif // NTA_SPARSE_MATRIX01UNIT_TEST_HPP
 

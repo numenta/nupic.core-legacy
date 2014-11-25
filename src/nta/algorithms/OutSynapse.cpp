@@ -23,8 +23,8 @@
 
 #include <nta/algorithms/OutSynapse.hpp>
 #include <nta/algorithms/Cells4.hpp>
-using namespace nta::algorithms::Cells4;
-using namespace nta;
+using namespace nupic::algorithms::Cells4;
+using namespace nupic;
 
 bool OutSynapse::invariants(Cells4* cells) const
 {
@@ -36,7 +36,7 @@ bool OutSynapse::invariants(Cells4* cells) const
   return ok;
 }
 
-namespace nta {
+namespace nupic {
   namespace algorithms {
     namespace Cells4 {
       bool operator==(const OutSynapse& a, const OutSynapse& b)

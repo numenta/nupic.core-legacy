@@ -40,7 +40,7 @@
 #include <nta/ntypes/Array.hpp>
 #include <nta/types/Types.h>
 
-namespace nta
+namespace nupic
 {
 
   Watcher::Watcher(std::string fileName)

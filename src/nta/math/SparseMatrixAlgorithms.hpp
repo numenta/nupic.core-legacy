@@ -31,7 +31,7 @@
 #include <nta/utils/Random.hpp>
 
 //--------------------------------------------------------------------------------
-namespace nta {
+namespace nupic {
 
   /**
    * A collection of algorithms that operate on SparseMatrix. They are put here 
@@ -83,7 +83,7 @@ namespace nta {
       std::vector<value_type> s(m.nRows());
       
       m.rowSums(s);
-      nta::normalize(s);
+      nupic::normalize(s);
       m.normalizeRows();
       
       value_type e = 0;
@@ -477,7 +477,7 @@ namespace nta {
     static void addToNZOnly(SM& A, double val, typename SM::value_type minFloor =0)
     {
       {
-        NTA_ASSERT(minFloor == 0 || nta::Epsilon < minFloor);
+        NTA_ASSERT(minFloor == 0 || nupic::Epsilon < minFloor);
       }
 
       typedef typename SM::size_type size_type;
@@ -505,7 +505,7 @@ namespace nta {
 
       } else { // if minFloor != 0
         
-        nta::Abs<value_type> abs_f;
+        nupic::Abs<value_type> abs_f;
         
         // Doesn't change the number of non-zeros
         for (size_type row = 0; row != M; ++row) {
@@ -537,7 +537,7 @@ namespace nta {
 
       {
         NTA_ASSERT((size_type)(end - begin) == A.nCols());
-        NTA_ASSERT(minFloor == 0 || nta::Epsilon < minFloor);
+        NTA_ASSERT(minFloor == 0 || nupic::Epsilon < minFloor);
       }
 
       if (minFloor == 0) {
@@ -556,7 +556,7 @@ namespace nta {
 
       } else { // if minFloor != 0
 
-        nta::Abs<value_type> abs_f;
+        nupic::Abs<value_type> abs_f;
 
         for (size_type row = 0; row != A.nRows(); ++row) {
           size_type *ind = A.ind_begin_(row);
@@ -585,7 +585,7 @@ namespace nta {
 
       {
         NTA_ASSERT((size_type)(end - begin) == A.nRows());
-        NTA_ASSERT(minFloor == 0 || nta::Epsilon < minFloor);
+        NTA_ASSERT(minFloor == 0 || nupic::Epsilon < minFloor);
       }
 
       if (minFloor == 0) {
@@ -606,7 +606,7 @@ namespace nta {
 
       } else { // if minFloor != 0
 
-        nta::Abs<value_type> abs_f;
+        nupic::Abs<value_type> abs_f;
 
         // Doesn't change the number of non-zeros
         for (size_type row = 0; row != A.nRows(); ++row) {
@@ -665,13 +665,13 @@ namespace nta {
         NTA_ASSERT(A.nRows() == B.nRows());
         NTA_ASSERT(A.nCols() == B.nCols());
         NTA_ASSERT(B.nonZeroIndicesIncluded(A));
-        NTA_ASSERT(minFloor == 0 || nta::Epsilon < minFloor);
+        NTA_ASSERT(minFloor == 0 || nupic::Epsilon < minFloor);
       }
 
       typedef typename SM::size_type size_type;
       typedef typename SM::value_type value_type;
 
-      nta::Abs<value_type> abs_f;
+      nupic::Abs<value_type> abs_f;
 
       size_type M = A.nRows();
 
@@ -717,13 +717,13 @@ namespace nta {
         NTA_ASSERT(A.nRows() == B.nRows());
         NTA_ASSERT(A.nCols() == B.nCols());
         NTA_ASSERT(B.nonZeroIndicesIncluded(A));
-        NTA_ASSERT(minFloor == 0 || nta::Epsilon < minFloor);
+        NTA_ASSERT(minFloor == 0 || nupic::Epsilon < minFloor);
       }
 
       typedef typename SM::size_type size_type;
       typedef typename SM::value_type value_type;
 
-      nta::Abs<value_type> abs_f;
+      nupic::Abs<value_type> abs_f;
 
       size_type M = A.nRows();
 
@@ -923,16 +923,16 @@ namespace nta {
         NTA_ASSERT(A.nRows() == B.nRows());
         NTA_ASSERT(A.nCols() == B.nCols());
         NTA_ASSERT(B.nonZeroIndicesIncluded(A));
-        NTA_ASSERT(minFloor == 0 || nta::Epsilon < minFloor);
+        NTA_ASSERT(minFloor == 0 || nupic::Epsilon < minFloor);
       }
 
       typedef typename SM::size_type size_type;
       typedef typename SM::value_type value_type;
 
-      nta::Exp<value_type> exp_f;
-      nta::Log<value_type> log_f;
-      nta::Log1p<value_type> log1p_f;
-      nta::Abs<value_type> abs_f;
+      nupic::Exp<value_type> exp_f;
+      nupic::Log<value_type> log_f;
+      nupic::Log1p<value_type> log1p_f;
+      nupic::Abs<value_type> abs_f;
 
       size_type M = A.nRows();
       value_type minExp = log_f(std::numeric_limits<value_type>::epsilon());
@@ -981,16 +981,16 @@ namespace nta {
                      typename SM::value_type val, typename SM::value_type minFloor =0)
     {
       {
-        NTA_ASSERT(minFloor == 0 || nta::Epsilon < minFloor);
+        NTA_ASSERT(minFloor == 0 || nupic::Epsilon < minFloor);
       }
 
       typedef typename SM::size_type size_type;
       typedef typename SM::value_type value_type;
 
-      nta::Exp<value_type> exp_f;
-      nta::Log<value_type> log_f;
-      nta::Log1p<value_type> log1p_f;
-      nta::Abs<value_type> abs_f;
+      nupic::Exp<value_type> exp_f;
+      nupic::Log<value_type> log_f;
+      nupic::Log1p<value_type> log1p_f;
+      nupic::Abs<value_type> abs_f;
 
       size_type M = A.nRows();
       value_type minExp = log_f(std::numeric_limits<value_type>::epsilon());
@@ -1045,7 +1045,7 @@ namespace nta {
         NTA_ASSERT(A.nRows() == B.nRows());
         NTA_ASSERT(A.nCols() == B.nCols());
         NTA_ASSERT(B.nonZeroIndicesIncluded(A));
-        NTA_ASSERT(minFloor == 0 || nta::Epsilon < minFloor);
+        NTA_ASSERT(minFloor == 0 || nupic::Epsilon < minFloor);
       }
 
       typedef typename SM::size_type size_type;
@@ -1053,10 +1053,10 @@ namespace nta {
 
       // Important to use double here, because in float, there can be 
       // cancelation in log(1 - exp(b-a)), when a is very close to b.
-      nta::Exp<double> exp_f;
-      nta::Log<value_type> log_f;
-      nta::Log1p<double> log1p_f;
-      nta::Abs<double> abs_f;
+      nupic::Exp<double> exp_f;
+      nupic::Log<value_type> log_f;
+      nupic::Log1p<double> log1p_f;
+      nupic::Abs<double> abs_f;
 
       size_type M = A.nRows();
       value_type minExp = log_f(std::numeric_limits<value_type>::epsilon());
@@ -1128,7 +1128,7 @@ namespace nta {
       size_type M = mat.nRows();
       size_type N = mat.nCols();
 
-      nta::Abs<value_type> abs_f;
+      nupic::Abs<value_type> abs_f;
 
       std::fill(mat.nzb_, mat.nzb_ + N, (value_type) 0);
 
@@ -1230,22 +1230,22 @@ namespace nta {
       {
         NTA_ASSERT(A.nRows() == B.nRows());
         NTA_ASSERT(A.nCols() == B.nCols());
-        NTA_ASSERT(minFloor == 0 || nta::Epsilon < minFloor);
+        NTA_ASSERT(minFloor == 0 || nupic::Epsilon < minFloor);
       }
 
       typedef typename STR3F::col_index_type col_index_type;
       typedef typename SM::size_type size_type;
       typedef typename SM::value_type value_type;
 
-      nta::Exp<value_type> exp_f;
-      nta::Log<value_type> log_f;
-      nta::Log1p<value_type> log1p_f;
-      nta::Abs<value_type> abs_f;
+      nupic::Exp<value_type> exp_f;
+      nupic::Log<value_type> log_f;
+      nupic::Log1p<value_type> log1p_f;
+      nupic::Abs<value_type> abs_f;
 
       size_type M = (size_type) A.nRows();
       value_type minExp = log_f(std::numeric_limits<value_type>::epsilon());
 
-      if (nta::Epsilon < minFloor) {
+      if (nupic::Epsilon < minFloor) {
       
         for (size_type row = 0; row != M; ++row) {
 
@@ -1278,7 +1278,7 @@ namespace nta {
           }
         }
 
-      } else { // minFloor <= nta::Epsilon, i.e. essentially minFloor == 0
+      } else { // minFloor <= nupic::Epsilon, i.e. essentially minFloor == 0
 
         for (size_type row = 0; row != M; ++row) {
 
@@ -1330,7 +1330,7 @@ namespace nta {
       {
         NTA_ASSERT(A.nRows() == B.nRows());
         NTA_ASSERT(A.nCols() == B.nCols());
-        NTA_ASSERT(minFloor == 0 || nta::Epsilon < minFloor);
+        NTA_ASSERT(minFloor == 0 || nupic::Epsilon < minFloor);
       }
 
       typedef typename STR3F::col_index_type col_index_type;
@@ -1339,10 +1339,10 @@ namespace nta {
 
       // Important to use double here, because in float, there can be 
       // cancelation in log(1 - exp(b-a)), when a is very close to b.
-      nta::Exp<double> exp_f;
-      nta::Log<value_type> log_f;
-      nta::Log1p<double> log1p_f;
-      nta::Abs<double> abs_f;
+      nupic::Exp<double> exp_f;
+      nupic::Log<value_type> log_f;
+      nupic::Log1p<double> log1p_f;
+      nupic::Abs<double> abs_f;
 
       size_type M = (size_type) A.nRows();
       value_type minExp = log_f(std::numeric_limits<value_type>::epsilon());
@@ -1352,7 +1352,7 @@ namespace nta {
       double minDiff = -std::numeric_limits<double>::epsilon();
       value_type logOfZero = ((value_type)-1.0)/std::numeric_limits<value_type>::epsilon();
 
-      if (nta::Epsilon < minFloor) {
+      if (nupic::Epsilon < minFloor) {
 
         for (size_type row = 0; row != M; ++row) {
 
@@ -1388,7 +1388,7 @@ namespace nta {
           }
         }
 
-      } else { // minFloor <= nta::Epsilon, i.e. essentially minFloor == 0
+      } else { // minFloor <= nupic::Epsilon, i.e. essentially minFloor == 0
 
         for (size_type row = 0; row != M; ++row) {
 
@@ -1484,17 +1484,17 @@ namespace nta {
       {
         NTA_ASSERT(A.nRows() == B.nRows());
         NTA_ASSERT(A.nCols() == B.nCols());
-        NTA_ASSERT(minFloor == 0 || nta::Epsilon < minFloor);
+        NTA_ASSERT(minFloor == 0 || nupic::Epsilon < minFloor);
       }
 
       typedef typename STR3F::col_index_type col_index_type;
       typedef typename STR3F::size_type size_type;
       typedef typename STR3F::value_type value_type;
 
-      nta::Exp<value_type> exp_f;
-      nta::Log<value_type> log_f;
-      nta::Log1p<value_type> log1p_f;
-      nta::Abs<value_type> abs_f;
+      nupic::Exp<value_type> exp_f;
+      nupic::Log<value_type> log_f;
+      nupic::Log1p<value_type> log1p_f;
+      nupic::Abs<value_type> abs_f;
 
       size_type M = (size_type) A.nRows();
       value_type minExp = log_f(std::numeric_limits<value_type>::epsilon());
@@ -1552,7 +1552,7 @@ namespace nta {
       {
         NTA_ASSERT(A.nRows() == B.nRows());
         NTA_ASSERT(A.nCols() == B.nCols());
-        NTA_ASSERT(minFloor == 0 || nta::Epsilon < minFloor);
+        NTA_ASSERT(minFloor == 0 || nupic::Epsilon < minFloor);
       }
 
       typedef typename STR3F::col_index_type col_index_type;
@@ -1561,10 +1561,10 @@ namespace nta {
 
       // Important to use double here, because in float, there can be 
       // cancelation in log(1 - exp(b-a)), when a is very close to b.
-      nta::Exp<double> exp_f;
-      nta::Log<value_type> log_f;
-      nta::Log1p<double> log1p_f;
-      nta::Abs<double> abs_f;
+      nupic::Exp<double> exp_f;
+      nupic::Log<value_type> log_f;
+      nupic::Log1p<double> log1p_f;
+      nupic::Abs<double> abs_f;
 
       size_type M = (size_type) A.nRows();
       value_type minExp = log_f(std::numeric_limits<value_type>::epsilon());
@@ -1776,8 +1776,8 @@ namespace nta {
     LogSumApprox& operator=(const LogSumApprox&);
 
     // Portable exp and log functions
-    nta::Exp<double> exp_f;
-    nta::Log1p<double> log1p_f;
+    nupic::Exp<double> exp_f;
+    nupic::Log1p<double> log1p_f;
 
   public:
     //--------------------------------------------------------------------------------
@@ -1928,7 +1928,7 @@ namespace nta {
       {
         NTA_ASSERT(A.nRows() == B.nRows());
         NTA_ASSERT(A.nCols() == B.nCols());
-        NTA_ASSERT(nta::Epsilon < minFloor);
+        NTA_ASSERT(nupic::Epsilon < minFloor);
       }
 
       typedef typename STR3F::col_index_type col_index_type;
@@ -1967,7 +1967,7 @@ namespace nta {
       {
         NTA_ASSERT(A.nRows() == B.nRows());
         NTA_ASSERT(A.nCols() == B.nCols());
-        NTA_ASSERT(nta::Epsilon < minFloor);
+        NTA_ASSERT(nupic::Epsilon < minFloor);
       }
 
       typedef typename STR3F::col_index_type col_index_type;
@@ -2030,8 +2030,8 @@ namespace nta {
     LogDiffApprox(const LogDiffApprox&);
     LogDiffApprox& operator=(const LogDiffApprox&);
 
-    nta::Exp<double> exp_f;
-    nta::Log1p<double> log1p_f;
+    nupic::Exp<double> exp_f;
+    nupic::Log1p<double> log1p_f;
 
   public:
     //--------------------------------------------------------------------------------
@@ -2170,7 +2170,7 @@ namespace nta {
       {
         NTA_ASSERT(A.nRows() == B.nRows());
         NTA_ASSERT(A.nCols() == B.nCols());
-        NTA_ASSERT(nta::Epsilon < minFloor);
+        NTA_ASSERT(nupic::Epsilon < minFloor);
       }
 
       typedef typename STR3F::col_index_type col_index_type;
@@ -2209,7 +2209,7 @@ namespace nta {
       {
         NTA_ASSERT(A.nRows() == B.nRows());
         NTA_ASSERT(A.nCols() == B.nCols());
-        NTA_ASSERT(nta::Epsilon < minFloor);
+        NTA_ASSERT(nupic::Epsilon < minFloor);
       }
 
       typedef typename STR3F::col_index_type col_index_type;
@@ -2242,6 +2242,6 @@ namespace nta {
 
 	
 
-}; // End namespace nta
+}; // End namespace nupic
 
 #endif // NTA_SM_ALGORITHMS_HPP

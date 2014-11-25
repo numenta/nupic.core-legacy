@@ -37,7 +37,7 @@
 #include <nta/ntypes/Array.hpp>
 #include <nta/ntypes/ArrayRef.hpp>
 
-namespace nta
+namespace nupic
 {
 
   class ValueMap;
@@ -106,7 +106,7 @@ namespace nta
 
     ArrayRef dataIn_;
     std::string filename_;          // Name of the output file
-    nta::OFStream *outFile_;        // Handle to current file
+    nupic::OFStream *outFile_;        // Handle to current file
     
     /// Disable unsupported default constructors
     VectorFileEffector(const VectorFileEffector&);
@@ -121,5 +121,5 @@ namespace nta
 
 
 
-} // namespace nta
+} // namespace nupic
 

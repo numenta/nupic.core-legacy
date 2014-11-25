@@ -29,7 +29,7 @@
 #include <algorithm>
 #include <cstring>
 
-namespace nta
+namespace nupic
 {
 
   // -----------------------------------------

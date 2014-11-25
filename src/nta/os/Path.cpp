@@ -54,7 +54,7 @@
   #endif
 #endif
 
-namespace nta
+namespace nupic
 {
 #ifdef NTA_PLATFORM_win32
   const char * Path::sep = "\\";
@@ -863,4 +863,4 @@ namespace nta
     return epath;
   }
 
-} // namespace nta
+} // namespace nupic

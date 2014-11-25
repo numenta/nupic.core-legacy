@@ -35,7 +35,7 @@
 #include <boost/math/special_functions/beta.hpp>
 #include <boost/math/special_functions/erf.hpp>
 
-namespace nta {
+namespace nupic {
 
   // TODO: replace other functions by boost/math
 

@@ -33,7 +33,7 @@
 #ifndef NTA_COND_PROB_TABLE_TEST_HPP
 #define NTA_COND_PROB_TABLE_TEST_HPP
 
-namespace nta {
+namespace nupic {
   class CondProbTable;
 
   //----------------------------------------------------------------------
@@ -66,7 +66,7 @@ namespace nta {
   }; // end class OnlineKMeansCDTest
     
   //----------------------------------------------------------------------
-} // end namespace nta
+} // end namespace nupic
 
 #endif // NTA_COND_PROB_TABLE_TEST_HPP
 

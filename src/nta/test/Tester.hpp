@@ -37,7 +37,7 @@
 
 //----------------------------------------------------------------------
 
-namespace nta {
+namespace nupic {
 
   /** 
    * 
@@ -91,7 +91,7 @@ namespace nta {
   }; // end class Tester
   
 
-} // end namespace nta
+} // end namespace nupic
 
 /**
  * A proxy macro to Google Test macro `EXPECT_EQ`.
@@ -236,7 +236,7 @@ namespace nta {
 
 /**
  * Similar to Google Test macro `EXPECT_THROW`, but verify the exception to be type of
- * nta::LoggingException, and also check the message. 
+ * nupic::LoggingException, and also check the message.
  *  
  * See http://code.google.com/p/googletest/wiki/V1_7_AdvancedGuide#Exception_Assertions
  * for documentation.
@@ -253,7 +253,7 @@ namespace nta {
     bool caughtException = false; \
     try { \
       statement; \
-    } catch(nta::LoggingException& e) { \
+    } catch(nupic::LoggingException& e) { \
       caughtException = true; \
       EXPECT_STREQ(message, e.getMessage()) << "statement '" #statement "' should fail with message \"" \
       << message << "\", but failed with message \"" << e.getMessage() << "\""; \

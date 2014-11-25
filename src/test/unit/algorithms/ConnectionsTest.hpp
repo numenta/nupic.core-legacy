@@ -32,9 +32,9 @@
 #include <nta/test/Tester.hpp>
 #include <nta/algorithms/Connections.hpp>
 
-using namespace nta::algorithms::connections;
+using namespace nupic::algorithms::connections;
 
-namespace nta
+namespace nupic
 {
 
   class ConnectionsTest : public Tester
@@ -63,6 +63,6 @@ namespace nta
 
   }; // end class ConnectionsTest
 
-} // end namespace nta
+} // end namespace nupic
 
 #endif // NTA_CONNECTIONS_TEST

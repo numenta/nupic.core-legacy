@@ -43,7 +43,7 @@ Implementation of the Network class
 #include <yaml-cpp/yaml.h>
 
 
-namespace nta
+namespace nupic
 {
 
 Network::Network()
@@ -982,4 +982,4 @@ void Network::resetProfiling()
 
 
 
-} // namespace nta
+} // namespace nupic

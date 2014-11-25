@@ -27,7 +27,7 @@
 #include "LoggingException.hpp"
 #include "LogItem.hpp"
 #include <iostream>
-using namespace nta;
+using namespace nupic;
 
 LoggingException::~LoggingException() throw()
 {

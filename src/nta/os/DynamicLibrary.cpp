@@ -31,7 +31,7 @@
 
 //----------------------------------------------------------------------
 
-namespace nta 
+namespace nupic
 {
 
   DynamicLibrary::DynamicLibrary(void * handle) : handle_(handle)

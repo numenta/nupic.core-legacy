@@ -34,7 +34,7 @@
 #include <nta/engine/Region.hpp>
 #include <nta/types/BasicType.hpp>
 
-namespace nta
+namespace nupic
 {
 
 Input::Input(Region& region, NTA_BasicType dataType, bool isRegionLevel) :

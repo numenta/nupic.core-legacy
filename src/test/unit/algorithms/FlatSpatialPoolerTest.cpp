@@ -34,9 +34,9 @@
 #include "FlatSpatialPoolerTest.hpp"
 
 using namespace std;
-using namespace nta::algorithms::spatial_pooler;
+using namespace nupic::algorithms::spatial_pooler;
 
-namespace nta {
+namespace nupic {
 
   void FlatSpatialPoolerTest::print_vec(UInt arr[], UInt n)
   {
@@ -331,4 +331,4 @@ namespace nta {
     NTA_ASSERT(ret == 0); // << " FlatSpatialPooler.serialization failed. " << std::endl;
   }
     
-} // end namespace nta
+} // end namespace nupic

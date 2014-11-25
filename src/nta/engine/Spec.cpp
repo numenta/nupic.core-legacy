@@ -28,7 +28,7 @@ Implementation of Spec API
 #include <nta/utils/Log.hpp>
 #include <nta/types/BasicType.hpp>
 
-namespace nta
+namespace nupic
 {
 
 

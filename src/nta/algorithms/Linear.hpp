@@ -60,7 +60,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef NTA_LIBLINEAR_H
 #define NTA_LIBLINEAR_H
 
-namespace nta {
+namespace nupic {
   namespace algorithms {
     namespace linear {
 

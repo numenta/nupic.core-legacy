@@ -25,7 +25,7 @@
 
 #include <set>
 
-namespace nta
+namespace nupic
 {
   /**
    * A NodeSet represents the set of currently-enabled nodes in a Region
@@ -103,7 +103,7 @@ namespace nta
     std::set<size_t> set_;
   };
     
-} // namespace nta
+} // namespace nupic
 
 
 

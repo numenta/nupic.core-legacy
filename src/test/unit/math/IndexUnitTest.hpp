@@ -34,7 +34,7 @@
 #ifndef NTA_INDEX_UNIT_TEST_HPP
 #define NTA_INDEX_UNIT_TEST_HPP
 
-namespace nta {
+namespace nupic {
 
   //----------------------------------------------------------------------
   class IndexUnitTest : public Tester
@@ -64,7 +64,7 @@ namespace nta {
   }; // end class IndexUnitTest
     
   //----------------------------------------------------------------------
-} // end namespace nta
+} // end namespace nupic
 
 #endif // NTA_INDEX_UNIT_TEST_HPP
 

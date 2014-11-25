@@ -33,7 +33,7 @@
 #include <nta/ntypes/ArrayRef.hpp>
 #include <nta/types/BasicType.hpp>
 
-namespace nta
+namespace nupic
 {
 
 

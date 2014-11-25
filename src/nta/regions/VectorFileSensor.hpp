@@ -39,7 +39,7 @@
 #include <nta/ntypes/ArrayRef.hpp>
 #include <nta/regions/VectorFile.hpp>
 
-namespace nta
+namespace nupic
 {
   class ValueMap;
 
@@ -138,7 +138,7 @@ namespace nta
 //;
 //
 //
-//      nta::SpecBuilder nsb("VectorFileSensor", description, 0 /* flags */);
+//      nupic::SpecBuilder nsb("VectorFileSensor", description, 0 /* flags */);
 //
 //      // ------ OUTPUTS
 //      nsb.addOutput("dataOut", "real", "This is VectorFileSensor's only output. "
@@ -308,7 +308,7 @@ namespace nta
     NTA_UInt32 activeOutputCount_; // The number of elements in each input vector
     bool       hasCategoryOut_;    // determine if a category output is needed
     bool       hasResetOut_;       // determine if a reset output is needed
-    nta::VectorFile vectorFile_;   // Container class for the vectors
+    nupic::VectorFile vectorFile_;   // Container class for the vectors
     
     ArrayRef dataOut_;
     ArrayRef categoryOut_;
@@ -328,7 +328,7 @@ namespace nta
   
   //----------------------------------------------------------------------
   
-} // end namespace nta
+} // end namespace nupic
 
 #endif // NTA_VECTOR_FILE_SENSOR_HPP
 

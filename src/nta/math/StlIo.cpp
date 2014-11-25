@@ -26,8 +26,8 @@
 
 #include <nta/math/StlIo.hpp>
 
-namespace nta {
+namespace nupic {
 
   IOControl io_control;
 
-} // end namespace nta
+} // end namespace nupic

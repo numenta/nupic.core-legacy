@@ -31,7 +31,7 @@
 
 //----------------------------------------------------------------------
 
-namespace nta 
+namespace nupic
 {
   /**
    * @name Basic types
@@ -106,21 +106,21 @@ namespace nta
   /**
    * Represents a real number(a floating-point number).
    *
-   * Same as nta::Real64 if `NTA_DOUBLE_PROCESION` is defined, nta::Real32 otherwise.
+   * Same as nupic::Real64 if `NTA_DOUBLE_PROCESION` is defined, nupic::Real32 otherwise.
    */
   typedef NTA_Real Real;
 
   /**
    * Represents a signed integer.
    *
-   * Same as nta::Int64 if `NTA_BIG_INTEGER` is defined, nta::Int32 otherwise.
+   * Same as nupic::Int64 if `NTA_BIG_INTEGER` is defined, nupic::Int32 otherwise.
    */
   typedef NTA_Int  Int;
 
   /**
    * Represents a unsigned integer.
    *
-   * Same as nta::UInt64 if `NTA_BIG_INTEGER` is defined, nta::UInt32 otherwise.
+   * Same as nupic::UInt64 if `NTA_BIG_INTEGER` is defined, nupic::UInt32 otherwise.
    */
   typedef NTA_UInt UInt;
 
@@ -136,7 +136,7 @@ namespace nta
   /** 
    * This enum represents the documented logging level of the debug logger. 
    * 
-   * Use it like `LDEBUG(nta::LogLevel_XXX)`.
+   * Use it like `LDEBUG(nupic::LogLevel_XXX)`.
    */
   enum LogLevel
   {
@@ -158,7 +158,7 @@ namespace nta
     LogLevel_Verbose,
   };
 
-} // end namespace nta
+} // end namespace nupic
 
 #ifdef SWIG
 #undef NTA_INTERNAL

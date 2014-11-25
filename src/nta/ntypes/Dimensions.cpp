@@ -25,7 +25,7 @@
 #include <nta/ntypes/Dimensions.hpp>
 #include <utility>
 
-using namespace nta;
+using namespace nupic;
 
 Dimensions::Dimensions() {};
 
@@ -251,7 +251,7 @@ Dimensions::operator != (const Dimensions& dims2) const
 }
 
 
-namespace nta
+namespace nupic
 {
   std::ostream& operator<<(std::ostream& f, const Dimensions& d)
   {

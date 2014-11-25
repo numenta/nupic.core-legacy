@@ -38,7 +38,7 @@
 #include <string>
 #include <stdexcept>
 
-namespace nta 
+namespace nupic
 {
   //--------------------------------------------------------------------------- 
   //
@@ -1286,7 +1286,7 @@ inline std::string ReadStringFromBuffer(const IReadBuffer &buf)
 
 
   
-} // end namespace nta
+} // end namespace nupic
 
 #endif // NTA_OBJECT_MODEL_HPP
 

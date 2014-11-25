@@ -33,7 +33,7 @@
 #include <nta/engine/LinkPolicy.hpp>
 #include <nta/engine/Input.hpp> // needed for splitter map 
 
-namespace nta
+namespace nupic
 {
 
   class Output;
@@ -469,7 +469,7 @@ namespace nta
   };
 
 
-} // namespace nta
+} // namespace nupic
 
 
 #endif // NTA_LINK_HPP

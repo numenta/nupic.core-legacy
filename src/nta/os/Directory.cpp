@@ -40,7 +40,7 @@
   #include <sys/stat.h>
 #endif
 
-namespace nta
+namespace nupic
 {
   namespace Directory
   {

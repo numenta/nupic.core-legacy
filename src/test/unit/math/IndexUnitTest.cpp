@@ -33,7 +33,7 @@
    
 using namespace std;  
 
-namespace nta {
+namespace nupic {
 //
 //  //--------------------------------------------------------------------------------
 //  void IndexUnitTest::unitTestFixedIndex()
@@ -520,7 +520,7 @@ namespace nta {
 //      Idx i5(5); i5[0] = 1; i5[1] = 2; i5[2] = 3; i5[3] = 4; i5[4] = 5;
 //      Idx ind(5); ind[0] = 1; ind[1] = 2; ind[2] = 3; ind[3] = 4; ind[4] = 0;
 //      Idx perm(5); 
-//      nta::permute(ind, i5, perm);
+//      nupic::permute(ind, i5, perm);
 //      Test("Dynamic Index permutation 1", Compare(perm, I5(2, 3, 4, 5, 1)), true);
 //    }
 //
@@ -563,6 +563,6 @@ namespace nta {
 
   //--------------------------------------------------------------------------------
   
-} // namespace nta
+} // namespace nupic
 
 

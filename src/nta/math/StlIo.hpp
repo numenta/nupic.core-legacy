@@ -40,7 +40,7 @@
 
 #include <nta/math/ArrayAlgo.hpp>
 
-namespace nta {
+namespace nupic {
 
   //--------------------------------------------------------------------------------
   // IO CONTROL AND MANIPULATORS
@@ -332,14 +332,14 @@ namespace nta {
   template <typename T>
   inline void binary_save(std::ostream& out_stream, const std::vector<T>& v)
   {
-    nta::binary_save(out_stream, v.begin(), v.end());
+    nupic::binary_save(out_stream, v.begin(), v.end());
   }
 
   //--------------------------------------------------------------------------------
   template <typename T>
   inline void binary_load(std::istream& in_stream, std::vector<T>& v)
   {
-    nta::binary_load(in_stream, v.begin(), v.end());
+    nupic::binary_load(in_stream, v.begin(), v.end());
   }
 
   //--------------------------------------------------------------------------------
@@ -655,5 +655,5 @@ namespace nta {
   }
 
   //--------------------------------------------------------------------------------
-} // end namespace nta
+} // end namespace nupic
 #endif // NTA_STL_IO_HPP

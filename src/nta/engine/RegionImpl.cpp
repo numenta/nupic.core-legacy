@@ -33,7 +33,7 @@
 #include <nta/ntypes/BundleIO.hpp>
 #include <nta/os/FStream.hpp>
 
-namespace nta
+namespace nupic
 {
 
 RegionImpl::RegionImpl(Region *region) : 

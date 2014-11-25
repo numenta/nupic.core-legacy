@@ -32,21 +32,21 @@
 #include <nta/utils/LogItem.hpp>
 
 
-#define NTA_DEBUG nta::LogItem(__FILE__, __LINE__, nta::LogItem::debug).stream()
+#define NTA_DEBUG nupic::LogItem(__FILE__, __LINE__, nupic::LogItem::debug).stream()
 
 // Can be used in Loggable classes
 #define NTA_LDEBUG(level) if (logLevel_ < (level)) {}        \
-  else nta::LogItem(__FILE__, __LINE__, nta::LogItem::debug).stream()
+  else nupic::LogItem(__FILE__, __LINE__, nupic::LogItem::debug).stream()
 
 // For informational messages that report status but do not indicate that anything is wrong
-#define NTA_INFO nta::LogItem(__FILE__, __LINE__, nta::LogItem::info).stream()
+#define NTA_INFO nupic::LogItem(__FILE__, __LINE__, nupic::LogItem::info).stream()
 
 // For messages that indicate a recoverable error or something else that it may be 
 // important for the end user to know about. 
-#define NTA_WARN nta::LogItem(__FILE__, __LINE__, nta::LogItem::warn).stream()
+#define NTA_WARN nupic::LogItem(__FILE__, __LINE__, nupic::LogItem::warn).stream()
 
 // To throw an exception and make sure the exception message is logged appropriately 
-#define NTA_THROW throw nta::LoggingException(__FILE__, __LINE__)
+#define NTA_THROW throw nupic::LoggingException(__FILE__, __LINE__)
 
 // The difference between CHECK and ASSERT is that ASSERT is for
 // performance critical code and can be disabled in a release
@@ -66,7 +66,7 @@ else NTA_THROW << "ASSERTION FAILED: \"" << #condition << "\" "
 // The second line should never be executed, or even compiled, but we 
 // need something that is syntactically compatible with NTA_ASSERT
 #define NTA_ASSERT(condition) if (1) {} \
-  else nta::LogItem(__FILE__, __LINE__, nta::LogItem::debug).stream()
+  else nupic::LogItem(__FILE__, __LINE__, nupic::LogItem::debug).stream()
 
 #endif  // NTA_ASSERTIONS_ON
 

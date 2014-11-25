@@ -38,7 +38,7 @@
 #include <vector>
 #include <nta/ntypes/ObjectModel.hpp> // IWriteBuffer
 
-namespace nta
+namespace nupic
 {
 
   struct Spec;

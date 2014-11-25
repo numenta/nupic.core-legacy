@@ -40,7 +40,7 @@
 
 #include <algorithm> // sort
 using namespace std;
-using namespace nta;
+using namespace nupic;
 
 static std::string getCurrDir()
 {

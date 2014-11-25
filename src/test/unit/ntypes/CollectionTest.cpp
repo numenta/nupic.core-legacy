@@ -32,7 +32,7 @@
 // Collection implementation needed for explicit instantiation
 #include <nta/ntypes/Collection.cpp>
 
-namespace nta
+namespace nupic
 {
   struct Item
   {

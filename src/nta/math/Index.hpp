@@ -39,7 +39,7 @@
 //----------------------------------------------------------------------
 
 
-namespace nta {
+namespace nupic {
 
   /**
    * @b Responsibility
@@ -1023,6 +1023,6 @@ namespace nta {
 
   //--------------------------------------------------------------------------------
 
-} // end namespace nta
+} // end namespace nupic
 
 #endif // NTA_INDEX_HPP

@@ -34,7 +34,7 @@
 #include <nta/math/ArrayAlgo.hpp>
 
 //--------------------------------------------------------------------------------
-namespace nta {
+namespace nupic {
 
   //--------------------------------------------------------------------------------
   /**
@@ -44,7 +44,7 @@ namespace nta {
    * of the matrix, such as total number of non-zeros.
    *
    */
-  template <typename UI1 =nta::UInt32, typename UI2 =nta::UInt32>
+  template <typename UI1 =nupic::UInt32, typename UI2 =nupic::UInt32>
   class SparseBinaryMatrix
   {
   public:
@@ -148,7 +148,7 @@ namespace nta {
       NTA_ASSERT(nCols());
       NTA_ASSERT(nnz);
 
-      nta::Random rng(seed);
+      nupic::Random rng(seed);
 
       for (size_type i = 0; i != nCols(); ++i)
         buffer_[i] = i;
@@ -675,7 +675,7 @@ namespace nta {
       typename Row::iterator it;
       it = std::lower_bound(ind_[row].begin(), ind_[row].end(), col);
 
-      if (nta::nearlyZero(val)) {
+      if (nupic::nearlyZero(val)) {
 
 	if (it != ind_[row].end() && *it == col)
 	  ind_[row].erase(it);
@@ -768,7 +768,7 @@ namespace nta {
       ind_.resize(nRows()+1);
       Row& row = ind_[ind_.size()-1];
       for (nz_index_type j = 0; j != nCols(); ++j, ++begin)
-	if (!nta::nearlyZero(*begin))
+	if (!nupic::nearlyZero(*begin))
 	  row.push_back(j);
     }
 
@@ -851,7 +851,7 @@ namespace nta {
       Row& buffer = const_cast<Row&>(buffer_);
       size_type k = 0;
       for (nz_index_type j = 0; j != nCols(); ++j)
-	if (!nta::nearlyZero(*(begin + j)))
+	if (!nupic::nearlyZero(*(begin + j)))
 	  buffer[k++] = j;
 
       return findRowSparse(buffer_.begin(), buffer_.begin() + k);
@@ -1205,13 +1205,13 @@ namespace nta {
      */
     template <typename InputIterator>
     inline bool 
-    maxAllowedOverlap(nta::Real32 maxDistance, InputIterator x, InputIterator x_end) const
+    maxAllowedOverlap(nupic::Real32 maxDistance, InputIterator x, InputIterator x_end) const
     {
        {
          NTA_ASSERT((size_type)(x_end - x) == nCols());
        }
 
-       nta::Real32 k = 1.0 - maxDistance;
+       nupic::Real32 k = 1.0 - maxDistance;
 
        // Compute the number of 1's in x, same as the sum of x
        size_type c_sum = 0;
@@ -1224,7 +1224,7 @@ namespace nta {
 
          // Compute max allowed overlap
          size_type ls = std::max(nNonZerosOnRow(i), c_sum);
-         nta::Real32 max_ov = k * ls;
+         nupic::Real32 max_ov = k * ls;
          
          // Compute overlap between row i and vector x,
          // but exit early, as soon as we determine that 
@@ -1432,7 +1432,7 @@ namespace nta {
 	// << where << "Invalid row size: " << n;
 	ind_[row].resize(n);
 	inStream.ignore(1);
-	nta::binary_load(inStream, ind_[row].begin(), ind_[row].end());
+	nupic::binary_load(inStream, ind_[row].begin(), ind_[row].end());
       }
     }
 
@@ -1450,7 +1450,7 @@ namespace nta {
 
       for (size_type row = 0; row != nRows(); ++row) {
 	outStream << ind_[row].size() << " ";
-	nta::binary_save(outStream, ind_[row].begin(), ind_[row].end());
+	nupic::binary_save(outStream, ind_[row].begin(), ind_[row].end());
       }
     }
 
@@ -2071,6 +2071,6 @@ namespace nta {
   }
 
   //--------------------------------------------------------------------------------
-}; // end namespace nta
+}; // end namespace nupic
 
 #endif //NTA_SPARSE_BINARY_MATRIX_HPP

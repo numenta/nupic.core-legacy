@@ -32,7 +32,7 @@
 #include <math.h> // fabs
 #include <apr-1/apr_time.h>
 
-using namespace nta;
+using namespace nupic;
 
 void TimerTest::RunTests()
 {

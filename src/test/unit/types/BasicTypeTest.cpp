@@ -27,7 +27,7 @@
 #include "BasicTypeTest.hpp"
 #include <nta/types/BasicType.hpp>
 
-namespace nta
+namespace nupic
 {
   void BasicTypeTest::RunTests()
   {

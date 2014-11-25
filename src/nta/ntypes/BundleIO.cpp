@@ -24,7 +24,7 @@
 #include <nta/os/Path.hpp>
 #include <nta/utils/Log.hpp>
 
-namespace nta
+namespace nupic
 {
   BundleIO::BundleIO(const std::string& bundlePath, const std::string& label, 
                      const std::string& regionName, bool isInput) :
@@ -111,5 +111,5 @@ namespace nta
       NTA_THROW << "Internal Error: ostream_ has not been closed";
   }
 
-} // namespace nta
+} // namespace nupic
 

@@ -38,7 +38,7 @@
 
 #include <boost/shared_ptr.hpp>
 
-namespace nta
+namespace nupic
 {
   class Link;
   class ValueMap;
@@ -236,7 +236,7 @@ namespace nta
     Collection<ParameterSpec> parameters_;
   }; // UniformLinkPolicy
 
-} // namespace nta
+} // namespace nupic
 
 
 #endif // NTA_UNIFORMLINKPOLICY_HPP

@@ -32,11 +32,11 @@
  * to speed-up log sum and log diff.
  */
 
-namespace nta {
+namespace nupic {
 
   // The two tables used when approximating logSum and logDiff.
   std::vector<LogSumApprox::value_type> LogSumApprox::table;
   std::vector<LogDiffApprox::value_type> LogDiffApprox::table;
 
-} // end namespace nta
+} // end namespace nupic
 

@@ -29,7 +29,7 @@
 #include <nta/types/Fraction.hpp>
 #include <nta/types/Exception.hpp>
 
-namespace nta
+namespace nupic
 {
   Fraction::Fraction(int _numerator, int _denominator) :
     numerator_(_numerator),

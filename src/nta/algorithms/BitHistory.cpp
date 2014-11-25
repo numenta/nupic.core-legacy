@@ -30,7 +30,7 @@
 #include <nta/types/Types.hpp>
 #include <nta/utils/Log.hpp>
 
-namespace nta
+namespace nupic
 {
   namespace algorithms
   {
@@ -175,4 +175,4 @@ namespace nta
 
     } // end namespace cla_classifier
   } // end namespace algorithms
-} // end namespace nta
+} // end namespace nupic

@@ -32,7 +32,7 @@ Definition of Spec data structures
 #include <string>
 #include <map>
 
-namespace nta
+namespace nupic
 {
   class InputSpec
   {
@@ -150,6 +150,6 @@ namespace nta
 
   };
 
-} // namespace nta
+} // namespace nupic
 
 #endif // NTA_SPEC_HPP

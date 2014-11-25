@@ -29,7 +29,7 @@
 #include <sstream>
 #include <limits>
 
-using namespace nta;
+using namespace nupic;
 
 void FractionTest::RunTests()
 {

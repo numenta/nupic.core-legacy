@@ -66,7 +66,7 @@
   boost::function_requires<boost::BinaryFunctionConcept<BinaryFunction, Ret, Arg1, Arg2> >();
 
 //--------------------------------------------------------------------------------
-namespace nta {
+namespace nupic {
 
   //--------------------------------------------------------------------------------
   // ASSERTIONS
@@ -108,7 +108,7 @@ namespace nta {
    *   numeric_limits<float>::epsilon() == 1.19209e-7
    *   numeric_limits<double>::epsilon() == 2.22045e-16
    */
-  static const nta::Real Epsilon = nta::Real(1e-6);
+  static const nupic::Real Epsilon = nupic::Real(1e-6);
 
   //--------------------------------------------------------------------------------
   /**
@@ -117,28 +117,28 @@ namespace nta {
   template <typename T>
   inline bool strictlyNegative(const T& a)
   {
-    return a < -nta::Epsilon;
+    return a < -nupic::Epsilon;
   }
 
   //--------------------------------------------------------------------------------
   template <typename T>
   inline bool strictlyPositive(const T& a)
   {
-    return a > nta::Epsilon;
+    return a > nupic::Epsilon;
   }
 
   //--------------------------------------------------------------------------------
   template <typename T>
   inline bool negative(const T& a)
   {
-    return a <= nta::Epsilon;
+    return a <= nupic::Epsilon;
   }
 
   //--------------------------------------------------------------------------------
   template <typename T>
   inline bool positive(const T& a)
   {
-    return a >= -nta::Epsilon;
+    return a >= -nupic::Epsilon;
   }
 
   //--------------------------------------------------------------------------------
@@ -199,7 +199,7 @@ namespace nta {
   //--------------------------------------------------------------------------------
   /**
    * This functor decides whether a number is almost zero or not, using the 
-   * platform-wide nta::Epsilon.
+   * platform-wide nupic::Epsilon.
    */
   template <typename D>
   struct IsNearlyZero
@@ -209,7 +209,7 @@ namespace nta {
     D dist_;
 
     // In the case where D::result_type is integral
-    // we convert nta::Epsilon to zero!
+    // we convert nupic::Epsilon to zero!
     inline IsNearlyZero()
       : dist_()
     {}
@@ -228,7 +228,7 @@ namespace nta {
 
     inline bool operator()(const typename D::argument_type& x) const
     {
-      return dist_(x) <= nta::Epsilon;
+      return dist_(x) <= nupic::Epsilon;
     }
   };
 
@@ -268,14 +268,14 @@ namespace nta {
    *  a "good, ugly" reason to do it this way that he can't remember. - WCS 0206
    */
   template <typename T>
-  inline bool nearlyZero(const T& a, const T& epsilon =T(nta::Epsilon))
+  inline bool nearlyZero(const T& a, const T& epsilon =T(nupic::Epsilon))
   {
     return a >= -epsilon && a <= epsilon;
   }
 
   //--------------------------------------------------------------------------------
   template <typename T>
-  inline bool nearlyEqual(const T& a, const T& b, const T& epsilon =nta::Epsilon)
+  inline bool nearlyEqual(const T& a, const T& b, const T& epsilon =nupic::Epsilon)
   {
     return nearlyZero((b-a), epsilon);
   }
@@ -809,7 +809,7 @@ namespace nta {
      */
     inline const Float operator()(const Float& x) const
     {
-      const Float h = nta::Epsilon;
+      const Float h = nupic::Epsilon;
       return (-f_(x+2*h)+8*f_(x+h)-8*f_(x-h)+f_(x-2*h))/(12*h);
     }
   };
@@ -1070,49 +1070,49 @@ namespace nta {
    * the hairy STL type names.
    */
   template <typename T>
-  inline std::binder2nd<nta::Assign<T> > AssignVal(const T& v)
+  inline std::binder2nd<nupic::Assign<T> > AssignVal(const T& v)
   {
-    return std::bind2nd(nta::Assign<T>(), v);
+    return std::bind2nd(nupic::Assign<T>(), v);
   }
 
   template <typename T>
-  inline std::binder2nd<nta::Plus<T> > PlusVal(const T& v) 
+  inline std::binder2nd<nupic::Plus<T> > PlusVal(const T& v)
   {
-    return std::bind2nd(nta::Plus<T>(), v);
+    return std::bind2nd(nupic::Plus<T>(), v);
   }
 
   template <typename T>
-  inline std::binder2nd<nta::Minus<T> > MinusVal(const T& v) 
+  inline std::binder2nd<nupic::Minus<T> > MinusVal(const T& v)
   {
-    return std::bind2nd(nta::Minus<T>(), v);
+    return std::bind2nd(nupic::Minus<T>(), v);
   }
 
   template <typename T>
-  inline std::binder2nd<nta::Multiplies<T> > MultipliesByVal(const T& v) 
+  inline std::binder2nd<nupic::Multiplies<T> > MultipliesByVal(const T& v)
   {
-    return std::bind2nd(nta::Multiplies<T>(), v);
+    return std::bind2nd(nupic::Multiplies<T>(), v);
   }
 
   template <typename T>
-  inline std::binder2nd<nta::Divides<T> > DividesByVal(const T& v)
+  inline std::binder2nd<nupic::Divides<T> > DividesByVal(const T& v)
   {
-    NTA_ASSERT(!nta::nearlyZero(v))
+    NTA_ASSERT(!nupic::nearlyZero(v))
       << "dividesByVal: "
       << "Division by zero";
 
-    return std::bind2nd(nta::Divides<T>(), v);
+    return std::bind2nd(nupic::Divides<T>(), v);
   }
 
   template <typename T>
-  inline std::binder2nd<nta::Pow<T> > PowVal(const T& v) 
+  inline std::binder2nd<nupic::Pow<T> > PowVal(const T& v)
   {
-    return std::bind2nd(nta::Pow<T>(), v);
+    return std::bind2nd(nupic::Pow<T>(), v);
   }
 
   template <typename T>
-  inline std::binder2nd<nta::Logk<T> > LogkVal(const T& v) 
+  inline std::binder2nd<nupic::Logk<T> > LogkVal(const T& v)
   {
-    return std::bind2nd(nta::Logk<T>(), v);
+    return std::bind2nd(nupic::Logk<T>(), v);
   }
 
   //--------------------------------------------------------------------------------
@@ -1192,6 +1192,6 @@ namespace nta {
 
   //--------------------------------------------------------------------------------
 
-}; // namespace nta
+}; // namespace nupic
 
 #endif // NTA_MATH_HPP

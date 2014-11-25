@@ -32,7 +32,7 @@
 
 #include <nta/engine/Output.hpp>
 
-namespace nta
+namespace nupic
 {
   class ArrayBase;
   class Network;
@@ -142,6 +142,6 @@ namespace nta
     allData data_;
   };
 
-} //namespace nta
+} //namespace nupic
 
 #endif // NTA_WATCHER_HPP

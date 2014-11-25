@@ -29,7 +29,7 @@
 
 using namespace std;
 
-namespace nta { 
+namespace nupic {
  
   ////////////////////////////////////////////////////////////////////////////
   // Constructor
@@ -351,4 +351,4 @@ namespace nta {
     // Restore exceptions mask
     state.exceptions(excMask);
   }
-} // namespace nta
+} // namespace nupic

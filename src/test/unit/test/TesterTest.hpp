@@ -29,7 +29,7 @@ Unit tester tester.
 
 #include <nta/test/Tester.hpp>
 
-namespace nta {
+namespace nupic {
   
   /** 
    * Tests the unit tester interface.
@@ -64,6 +64,6 @@ namespace nta {
       void RunTestsShouldFail();
   };
   
-} // end namespace nta
+} // end namespace nupic
 
 #endif // __TesterTest_hpp__

@@ -32,7 +32,7 @@
 #include "PathTest.hpp"
 
 using namespace std;
-using namespace nta;
+using namespace nupic;
 
 void PathTest::RunTests()
 {

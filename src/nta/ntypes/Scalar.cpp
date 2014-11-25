@@ -30,7 +30,7 @@
 #include <nta/ntypes/Scalar.hpp>
 #include <nta/utils/Log.hpp> 
 
-using namespace nta;
+using namespace nupic;
 
 Scalar::Scalar(NTA_BasicType theTypeParam)
 {
@@ -46,7 +46,7 @@ Scalar::getType()
 
 // gcc 4.2 complains about the template specializations 
 // in a different namespace if we don't include this
-namespace nta {
+namespace nupic {
   
   template <> Handle Scalar::getValue<Handle>() const
   {

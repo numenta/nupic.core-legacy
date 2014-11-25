@@ -36,7 +36,7 @@
 
 using namespace std;
 
-namespace nta {
+namespace nupic {
   namespace algorithms {
     namespace spatial_pooler {
 
@@ -126,5 +126,5 @@ namespace nta {
       };
     } // end namespace spatial_pooler
   } // end namespace algorithms
-} // end namespace nta
+} // end namespace nupic
 #endif // NTA_flat_spatial_pooler_HPP

@@ -25,7 +25,7 @@
 
 #include <ostream>
 
-namespace nta
+namespace nupic
 {
   class Fraction
   {

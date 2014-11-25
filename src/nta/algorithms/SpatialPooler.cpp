@@ -32,8 +32,8 @@
 #include <vector>
 
 using namespace std;
-using namespace nta;
-using namespace nta::algorithms::spatial_pooler;
+using namespace nupic;
+using namespace nupic::algorithms::spatial_pooler;
 
 // MSVC doesn't provide round() which only became standard in C99 or C++11
 #if defined(NTA_COMPILER_MSVC)

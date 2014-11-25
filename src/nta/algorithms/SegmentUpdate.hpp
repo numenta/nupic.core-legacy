@@ -25,10 +25,10 @@
 
 #include <nta/types/Types.hpp>
 #include <vector>
-using namespace nta;
+using namespace nupic;
 
 
-namespace nta {
+namespace nupic {
   namespace algorithms {
     namespace Cells4 {
 

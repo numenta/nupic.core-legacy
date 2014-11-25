@@ -34,7 +34,7 @@
 #ifndef NTA_MATHS_TEST_HPP
 #define NTA_MATHS_TEST_HPP
 
-namespace nta {
+namespace nupic {
 
   //----------------------------------------------------------------------
   class MathsTest : public Tester
@@ -71,7 +71,7 @@ namespace nta {
   }; // end class MathsTest
     
   //----------------------------------------------------------------------
-} // end namespace nta
+} // end namespace nupic
 
 #endif // NTA_MATHS_TEST_HPP
 

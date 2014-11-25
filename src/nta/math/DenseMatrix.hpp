@@ -35,7 +35,7 @@
 #include <nta/math/SparseMatrix.hpp>
 
 
-namespace nta {
+namespace nupic {
 
   //--------------------------------------------------------------------------------
   /**
@@ -69,8 +69,8 @@ namespace nta {
         if (!small) {
           at(i,j) = Real(10*i+j+1); // none zero, positive
         } else {
-          at(i,j) = 5 * nta::Epsilon * r->getReal64();
-          if (nta::nearlyZero(at(i,j)))
+          at(i,j) = 5 * nupic::Epsilon * r->getReal64();
+          if (nupic::nearlyZero(at(i,j)))
             at(i,j) = 0.0;
         }
       
@@ -203,7 +203,7 @@ namespace nta {
         stream >> nnzr;
         for (Int k = 0; k < nnzr; ++k) {
           stream >> j >> val;
-          if (!nta::nearlyZero(val))
+          if (!nupic::nearlyZero(val))
             at(i,j) = val;
           else
             at(i,j) = 0;
@@ -223,7 +223,7 @@ namespace nta {
     bool isZero() const
     {
       ITER_1(nrows*ncols)
-        if (!nta::nearlyZero(m[i]))
+        if (!nupic::nearlyZero(m[i]))
           return false;
       return true;
     }
@@ -235,7 +235,7 @@ namespace nta {
     {
       Int n = 0;
       ITER_1(ncols)
-        if (!nta::nearlyZero(at(row,i)))
+        if (!nupic::nearlyZero(at(row,i)))
           ++n;
       return n;
     }
@@ -244,7 +244,7 @@ namespace nta {
     {
       Int n = 0;
       ITER_2(nrows, ncols)
-	if (!nta::nearlyZero(at(i,j)) && j == col)
+	if (!nupic::nearlyZero(at(i,j)) && j == col)
 	  ++n;
       return n;
     }
@@ -280,7 +280,7 @@ namespace nta {
       std::fill(it, it + ncols, 0);
 
       ITER_2(nrows, ncols) 
-	if (!nta::nearlyZero(at(i,j)))
+	if (!nupic::nearlyZero(at(i,j)))
 	  *(it + j) += 1;
     }
 
@@ -336,7 +336,7 @@ namespace nta {
     {
       Float val = 0;
       for (Int j = 0; j != ncols; ++j) 
-        val += ::fabs(x[j] - at(row,j)) > nta::Epsilon;
+        val += ::fabs(x[j] - at(row,j)) > nupic::Epsilon;
       return val;
     }
 
@@ -371,7 +371,7 @@ namespace nta {
       for (Int i = 0; i != nrows; ++i) {
         Float val = 0;
         for (Int j = 0; j != ncols; ++j) 
-          val += ::fabs(x[j] - at(i,j)) > nta::Epsilon;
+          val += ::fabs(x[j] - at(i,j)) > nupic::Epsilon;
         y[i] = val;
       }
     }
@@ -411,7 +411,7 @@ namespace nta {
       }
 
       std::partial_sort(dists.begin(), dists.begin() + k, dists.end(), 
-			predicate_compose<std::less<Float>, nta::select2nd<std::pair<Int, Float> > >());
+			predicate_compose<std::less<Float>, nupic::select2nd<std::pair<Int, Float> > >());
 
       for (Int i = 0; i != nrows; ++i, ++nn) {
 	nn->first = dists[i].first;
@@ -433,11 +433,11 @@ namespace nta {
       for (Int i = 0; i < nrows; ++i) {
         Float val = 0;
         for (Int j = 0; j < ncols; ++j) 
-          val += ::fabs(x[j] - at(i,j)) > nta::Epsilon;
+          val += ::fabs(x[j] - at(i,j)) > nupic::Epsilon;
         dists[i].second = val;
       }
 
-      std::partial_sort(dists.begin(), dists.begin() + k, dists.end(),  predicate_compose<std::less<Float>, nta::select2nd<std::pair<Int, Float> > >());
+      std::partial_sort(dists.begin(), dists.begin() + k, dists.end(),  predicate_compose<std::less<Float>, nupic::select2nd<std::pair<Int, Float> > >());
 
       for (Int i = 0; i != nrows; ++i, ++nn) {
 	nn->first = dists[i].first;
@@ -464,7 +464,7 @@ namespace nta {
       }
 
       std::partial_sort(dists.begin(), dists.begin() + k, dists.end(), 
-			predicate_compose<std::less<Float>, nta::select2nd<std::pair<Int, Float> > >());
+			predicate_compose<std::less<Float>, nupic::select2nd<std::pair<Int, Float> > >());
 
       for (Int i = 0; i != nrows; ++i, ++nn) {
 	nn->first = dists[i].first;
@@ -497,7 +497,7 @@ namespace nta {
       for (Int j = 0; j < ncols; ++j)
         at(r,j) = a * at(r,j)  + b * x[j];
 
-      threshold(r, nta::Epsilon);
+      threshold(r, nupic::Epsilon);
     }  
 
     template <typename InIter>
@@ -506,7 +506,7 @@ namespace nta {
       ITER_2(nrows, ncols)
         at(i,j) = a * at(i,j)  + b * x[j];
 
-      threshold(nta::Epsilon);
+      threshold(nupic::Epsilon);
     }  
 
     template <typename InIter, typename OutIter>
@@ -534,23 +534,23 @@ namespace nta {
         for (Int j = 0; j != ncols; ++j) 
           val += at(i,j);
 
-        if (!nta::nearlyZero(val))
+        if (!nupic::nearlyZero(val))
           for (Int j = 0; j != ncols; ++j) {
             at(i,j) /= val;
-            if (nta::nearlyZero(at(i,j)))
+            if (nupic::nearlyZero(at(i,j)))
               oneMore = true;
           }
 
         if (oneMore && exact) {
 
-          threshold(i, nta::Epsilon);
+          threshold(i, nupic::Epsilon);
 
           val = 0;
 
           for (Int j = 0; j != ncols; ++j) 
             val += at(i,j);
 
-          if (!nta::nearlyZero(val))
+          if (!nupic::nearlyZero(val))
             for (Int j = 0; j != ncols; ++j) 
               at(i,j) /= val;
         }
@@ -567,10 +567,10 @@ namespace nta {
         for (Int i = 0; i != nrows; ++i) 
           val += at(i,j);
 
-        if (!nta::nearlyZero(val))
+        if (!nupic::nearlyZero(val))
           for (Int i = 0; i != nrows; ++i) {
             at(i,j) /= val;
-            if (nta::nearlyZero(at(i,j))) {
+            if (nupic::nearlyZero(at(i,j))) {
 	      at(i,j) = 0;
               oneMore = true;
 	    }
@@ -583,7 +583,7 @@ namespace nta {
           for (Int i = 0; i != nrows; ++i) 
             val += at(i,j);
 
-          if (!nta::nearlyZero(val))
+          if (!nupic::nearlyZero(val))
             for (Int i = 0; i != nrows; ++i) 
               at(i,j) /= val;
         }
@@ -620,7 +620,7 @@ namespace nta {
       ITER_2(nrows, ncols)
 	at(i,j) = a * at(i,j) + b * B.at(i,j);
       
-      threshold(nta::Epsilon);
+      threshold(nupic::Epsilon);
     }
    
     template <typename InIter, typename binary_functor>
@@ -642,7 +642,7 @@ namespace nta {
     {
       Float r = init;
       for (Int j = 0; j < ncols; ++j)
-        if (!nta::nearlyZero(at(row,j)))
+        if (!nupic::nearlyZero(at(row,j)))
 	  r = f(r, at(row,j));
       return r;
     }
@@ -798,7 +798,7 @@ namespace nta {
       max_val = - std::numeric_limits<Float>::max();
 
       ITER_2(nrows, ncols)
-	if (!nta::nearlyZero(at(i,j)) && at(i,j) > max_val) {
+	if (!nupic::nearlyZero(at(i,j)) && at(i,j) > max_val) {
 	  max_val = at(i,j);
 	  max_i = i;
 	  max_j = j;
@@ -814,7 +814,7 @@ namespace nta {
       min_val = std::numeric_limits<Float>::max();
 
       ITER_2(nrows, ncols)
-	if (!nta::nearlyZero(at(i,j)) && at(i,j) < min_val) {
+	if (!nupic::nearlyZero(at(i,j)) && at(i,j) < min_val) {
 	  min_val = at(i,j);
 	  min_i = i;
 	  min_j = j;
@@ -831,7 +831,7 @@ namespace nta {
 	maxima[i].first = 0;
 	maxima[i].second = - std::numeric_limits<Float>::max();
 	for (Int j = 0; j != ncols; ++j) {
-	  if (!nta::nearlyZero(at(i,j)) && at(i,j) > maxima[i].second) {
+	  if (!nupic::nearlyZero(at(i,j)) && at(i,j) > maxima[i].second) {
 	      maxima[i].first = j;
 	      maxima[i].second = at(i,j);
 	  }
@@ -846,7 +846,7 @@ namespace nta {
 	minima[i].first = 0;
 	minima[i].second = std::numeric_limits<Float>::max();
 	for (Int j = 0; j != ncols; ++j) {
-	  if (!nta::nearlyZero(at(i,j)) && at(i,j) < minima[i].second) {
+	  if (!nupic::nearlyZero(at(i,j)) && at(i,j) < minima[i].second) {
 	    minima[i].first = j;
 	    minima[i].second = at(i,j);
 	  }
@@ -861,7 +861,7 @@ namespace nta {
 	maxima[j].first = 0;
 	maxima[j].second = - std::numeric_limits<Float>::max();
 	for (Int i = 0; i != nrows; ++i) {
-	  if (!nta::nearlyZero(at(i,j)) && at(i,j) > maxima[j].second) {
+	  if (!nupic::nearlyZero(at(i,j)) && at(i,j) > maxima[j].second) {
 	    maxima[j].first = i;
 	    maxima[j].second = at(i,j);
 	  }
@@ -878,7 +878,7 @@ namespace nta {
 	minima[j].first = 0;
 	minima[j].second = std::numeric_limits<Float>::max();
 	for (Int i = 0; i != nrows; ++i) {
-	  if (!nta::nearlyZero(at(i,j)) && at(i,j) < minima[j].second) {
+	  if (!nupic::nearlyZero(at(i,j)) && at(i,j) < minima[j].second) {
 	    minima[j].first = i;
 	    minima[j].second = at(i,j);
 	  }
@@ -903,6 +903,6 @@ namespace nta {
   }
 
   //--------------------------------------------------------------------------------
-} // end namespace nta
+} // end namespace nupic
 
 #endif // NTA_DENSE_MATRIX_HPP

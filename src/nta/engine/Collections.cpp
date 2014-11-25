@@ -33,14 +33,14 @@
 #include <nta/engine/Region.hpp>
 #include <nta/engine/Network.hpp>
 
-using namespace nta;
+using namespace nupic;
 
 
 // Explicit instantiations of the collection classes used by Spec
-template class nta::Collection<OutputSpec>;
-template class nta::Collection<InputSpec>;
-template class nta::Collection<ParameterSpec>;
-template class nta::Collection<CommandSpec>;
-template class nta::Collection<Region*>;
-template class nta::Collection<Network::callbackItem>;
+template class nupic::Collection<OutputSpec>;
+template class nupic::Collection<InputSpec>;
+template class nupic::Collection<ParameterSpec>;
+template class nupic::Collection<CommandSpec>;
+template class nupic::Collection<Region*>;
+template class nupic::Collection<Network::callbackItem>;
 

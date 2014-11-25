@@ -31,7 +31,7 @@
   #include <regex.h>
 #endif
 
-namespace nta
+namespace nupic
 {
   namespace regex
   {

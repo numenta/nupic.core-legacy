@@ -49,7 +49,7 @@ extern "C" {
 
 
 
-using namespace nta;
+using namespace nupic;
 
 
 

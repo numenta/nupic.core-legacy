@@ -31,7 +31,7 @@
 
 #include <map>
 
-namespace nta
+namespace nupic
 {
   struct ArrayTestParameters
   {

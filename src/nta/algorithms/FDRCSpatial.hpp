@@ -31,7 +31,7 @@
 #define P_INC 2
 #endif
 
-namespace nta {
+namespace nupic {
   namespace algorithms {
 
     //--------------------------------------------------------------------------------
@@ -99,8 +99,8 @@ namespace nta {
     class Inhibition
     {
     public:
-      typedef nta::UInt32 size_type;
-      typedef nta::Real32 value_type;
+      typedef nupic::UInt32 size_type;
+      typedef nupic::Real32 value_type;
 
     private:
       size_type small;
@@ -166,7 +166,7 @@ namespace nta {
       inline size_type getInhibitionRadius() const { return inhibition_radius; }
       inline size_type getHeight() const { return c_height; }
       inline size_type getWidth() const { return c_width; }
-      inline size_type n_bytes() const { return nta::n_bytes(inhibition_area); }
+      inline size_type n_bytes() const { return nupic::n_bytes(inhibition_area); }
 
       //--------------------------------------------------------------------------------
       inline size_type estimate_max_size_bytes() const
@@ -274,7 +274,7 @@ namespace nta {
     template <typename It>
     struct CMySort
     {
-      typedef nta::UInt32 size_type;
+      typedef nupic::UInt32 size_type;
       It _x;
       CMySort(It& x) : _x(x) {}
       bool operator()(size_type A, size_type B) const {
@@ -302,8 +302,8 @@ namespace nta {
     class Inhibition2
     {
     public:
-      typedef nta::UInt32 size_type;
-      typedef nta::Real32 value_type;
+      typedef nupic::UInt32 size_type;
+      typedef nupic::Real32 value_type;
 
     private:
       size_type c_height, c_width, c_field_size;
@@ -515,8 +515,8 @@ namespace nta {
     class FDRCSpatial
     {
     public:
-      typedef nta::UInt32 size_type;
-      typedef nta::Real32 value_type;
+      typedef nupic::UInt32 size_type;
+      typedef nupic::Real32 value_type;
       typedef std::pair<size_type, value_type*> IndNZ;
 
     public:
@@ -890,14 +890,14 @@ namespace nta {
       inline size_t n_bytes() const
       {
         size_t n = 64 * sizeof(size_type);
-        n += nta::n_bytes(ind_nz) + nta::n_bytes(hists);
-        n += nta::n_bytes(cl_map) + nta::n_bytes(inv_cl_map);
+        n += nupic::n_bytes(ind_nz) + nupic::n_bytes(hists);
+        n += nupic::n_bytes(cl_map) + nupic::n_bytes(inv_cl_map);
         n += inhibition.n_bytes();
-        n += nta::n_bytes(int_buffer);
-        n += nta::n_bytes(d_output);
-        n += nta::n_bytes(yy);
-        n += nta::n_bytes(t_ind);
-        n += nta::n_bytes(rfs);
+        n += nupic::n_bytes(int_buffer);
+        n += nupic::n_bytes(d_output);
+        n += nupic::n_bytes(yy);
+        n += nupic::n_bytes(t_ind);
+        n += nupic::n_bytes(rfs);
         return n;
       }
 
@@ -923,20 +923,20 @@ namespace nta {
         } else {
 
           size_type n = 64 * sizeof(size_type);
-          n += nta::n_bytes(d_output);
-          n += nta::n_bytes(yy);
+          n += nupic::n_bytes(d_output);
+          n += nupic::n_bytes(yy);
 
           cout <<
             " nc           =", c_field_size, endl,
             "pool          =", c_pool_size, endl,
             "small         =", (small ? "yes" : "no"), endl,
-            "ind_nz        =", nta::n_bytes(ind_nz), endl,
-            "hists         =", nta::n_bytes(hists), endl,
-            "maps          =", (nta::n_bytes(cl_map) + nta::n_bytes(inv_cl_map)), endl,
+            "ind_nz        =", nupic::n_bytes(ind_nz), endl,
+            "hists         =", nupic::n_bytes(hists), endl,
+            "maps          =", (nupic::n_bytes(cl_map) + nupic::n_bytes(inv_cl_map)), endl,
             "inhib         =", inhibition.n_bytes(), endl,
-            "rfs           =", nta::n_bytes(rfs), endl,
-            "t_ind         =", nta::n_bytes(t_ind), endl,
-            "int buffer    =", nta::n_bytes(int_buffer), endl,
+            "rfs           =", nupic::n_bytes(rfs), endl,
+            "t_ind         =", nupic::n_bytes(t_ind), endl,
+            "int buffer    =", nupic::n_bytes(int_buffer), endl,
             "other         =", n, endl,
             "total         =", n_bytes(), endl;
         }
@@ -1758,7 +1758,7 @@ namespace nta {
       }
 
       //--------------------------------------------------------------------------------
-      nta::Random rng;
+      nupic::Random rng;
 
       size_type input_size, input_height, input_width;
       size_type c_height, c_width, c_field_size, c_rf_radius, c_pool_size, c_nnz;
@@ -1791,6 +1791,6 @@ namespace nta {
 
     //--------------------------------------------------------------------------------
   } // end namespace algorithms
-} // end namespace nta
+} // end namespace nupic
 
 #endif // NTA_FDR_C_SPATIAL_HPP

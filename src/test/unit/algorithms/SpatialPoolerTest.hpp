@@ -32,9 +32,9 @@
 #include <nta/test/Tester.hpp>
 #include <nta/algorithms/SpatialPooler.hpp>
 
-using namespace nta::algorithms::spatial_pooler;
+using namespace nupic::algorithms::spatial_pooler;
 
-namespace nta {
+namespace nupic {
 
   class SpatialPoolerTest : public Tester
   {
@@ -99,6 +99,6 @@ namespace nta {
 
   }; // end class SpatialPoolerTest
 
-} // end namespace nta
+} // end namespace nupic
 
 #endif // NTA_SPATIAL_POOLER_TEST

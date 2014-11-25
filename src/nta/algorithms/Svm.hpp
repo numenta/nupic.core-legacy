@@ -77,7 +77,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <nta/math/Array2D.hpp>
 #include <nta/math/ArrayAlgo.hpp> // for int checkSSE()
 
-namespace nta {
+namespace nupic {
   namespace algorithms {
     namespace svm {
 
@@ -894,7 +894,7 @@ namespace nta {
 	svm_parameter param_;
 	problem_type* problem_;
 	svm_model* model_;
-	nta::Random rng_;
+	nupic::Random rng_;
   
 	inline svm(int kernel =0, // 0 = linear, 1 = rbf
 		   int n_dims =0,
@@ -940,7 +940,7 @@ namespace nta {
         static inline bool checkSSE()
         {
          // use int checkSSE() from nta/math/array_algo.hpp, if ret==-1 -> no SSE 
-          return nta::checkSSE()!=-1;
+          return nupic::checkSSE()!=-1;
         }
 
 	inline ~svm()
@@ -1171,7 +1171,7 @@ namespace nta {
 
     } // end namespace svm
   } // end namespace algorithms
-} // end namespace nta
+} // end namespace nupic
 
   //--------------------------------------------------------------------------------
 #endif /* NTA_SVM_HPP */

@@ -34,7 +34,7 @@
 #include <nta/math/Math.hpp>
 
 //--------------------------------------------------------------------------------
-namespace nta {
+namespace nupic {
   
   //--------------------------------------------------------------------------------
   /**
@@ -283,11 +283,11 @@ namespace nta {
       
       // Find positions and values of non-zeros
       while (it != end) {
-	while (it != end && nta::nearlyZero(*it))
+	while (it != end && nupic::nearlyZero(*it))
 	  ++it;
 	if (it != end) {
 	  *indb++ = (size_type)(it - begin);
-	  while (it != end && !nta::nearlyZero(*it))
+	  while (it != end && !nupic::nearlyZero(*it))
 	    *nzb++ = (value_type) *it++;
 	  *indb++ = (size_type)(it - begin);
 	}
@@ -352,13 +352,13 @@ namespace nta {
      */
     template <typename InputIterator>
     inline ulong_size_type 
-    firstRowCloserThan(InputIterator begin, InputIterator end, nta::Real32 distance) const
+    firstRowCloserThan(InputIterator begin, InputIterator end, nupic::Real32 distance) const
     {
       {
 	NTA_ASSERT(begin <= end);
       }
       
-      nta::Real32 d2 = distance * distance;
+      nupic::Real32 d2 = distance * distance;
 
       for (ulong_size_type r = 0; r != nRows(); ++r) {
 
@@ -374,13 +374,13 @@ namespace nta {
 	  nz = data_[r].second.begin();
 	}
 
-	nta::Real32 d = 0;
+	nupic::Real32 d = 0;
 	size_type j = 0;
 	for (size_type i = 0; i+1 < n && d < d2; i += 2) {
 	  for (; j != ind[i]; ++j)
 	    d += *(begin + j) * *(begin + j);
 	  for (; j != ind[i+1] && d < d2; ++j) {
-	    nta::Real32 v = *(begin + j) - *nz++;
+	    nupic::Real32 v = *(begin + j) - *nz++;
 	    d += v * v;
 	  }
 	}
@@ -663,6 +663,6 @@ namespace nta {
   }; // end class SparseRLEMatrix
 
   //--------------------------------------------------------------------------------
-} // end namespace nta
+} // end namespace nupic
 
 #endif // NTA_SPARSE_RLE_MATRIX_HPP

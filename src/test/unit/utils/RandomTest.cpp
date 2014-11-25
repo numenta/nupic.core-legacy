@@ -32,7 +32,7 @@
 #include <stdlib.h>
 #include <sstream>
 
-using namespace nta;
+using namespace nupic;
 
 RandomTest::RandomTest() {};
 

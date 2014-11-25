@@ -33,7 +33,7 @@
 
 using namespace std;
 using namespace boost;
-namespace nta {
+namespace nupic {
 
   static vector<Real> makeRow(Real a, Real b, Real c)
   { 
@@ -292,6 +292,6 @@ namespace nta {
   }
   
   //----------------------------------------------------------------------
-} // end namespace nta
+} // end namespace nupic
 
 

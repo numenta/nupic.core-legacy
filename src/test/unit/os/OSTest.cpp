@@ -30,7 +30,7 @@
 #include <nta/os/Path.hpp>
 #include <nta/os/Directory.hpp>
 
-using namespace nta;
+using namespace nupic;
 
 OSTest::OSTest() {};
 

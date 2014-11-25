@@ -29,7 +29,7 @@
 
 using namespace std;  
 
-namespace nta {
+namespace nupic {
 
   //--------------------------------------------------------------------------------
   void DomainUnitTest::RunTests()
@@ -259,6 +259,6 @@ namespace nta {
 
   //--------------------------------------------------------------------------------
   
-} // namespace nta
+} // namespace nupic
 
 

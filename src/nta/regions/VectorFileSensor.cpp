@@ -40,7 +40,7 @@
 #include <cstring> // strlen
 
 using namespace std;
-namespace nta
+namespace nupic
 {
 
 //----------------------------------------------------------------------------
@@ -145,18 +145,18 @@ void VectorFileSensor::compute()
   if (hasCategoryOut_)
   {
     Real * categoryOut = (Real32 *) categoryOut_.getBuffer();
-    vectorFile_.getRawVector((nta::UInt)curVector_, categoryOut, offset, 1);
+    vectorFile_.getRawVector((nupic::UInt)curVector_, categoryOut, offset, 1);
     offset++;
   }
   
   if (hasResetOut_)
   {
     Real * resetOut = (Real32 *)resetOut_.getBuffer();
-    vectorFile_.getRawVector((nta::UInt)curVector_, resetOut, offset, 1);
+    vectorFile_.getRawVector((nupic::UInt)curVector_, resetOut, offset, 1);
     offset++;
   }
   
-  vectorFile_.getScaledVector((nta::UInt)curVector_, out, offset, count);
+  vectorFile_.getScaledVector((nupic::UInt)curVector_, out, offset, count);
   iterations_++;
 }
 
@@ -246,7 +246,7 @@ std::string VectorFileSensor::executeCommand(const std::vector<std::string>& arg
 
   else if (command == "dump") 
   {
-    nta::Byte message[256];
+    nupic::Byte message[256];
     Size n = ::sprintf(message,
       "VectorFileSensor isLabeled = %d repeatCount = %d vectorCount = %d iterations = %d\n",
       vectorFile_.isLabeled(), (int) repeatCount_, (int) vectorFile_.vectorCount(), (int) iterations_);
@@ -796,5 +796,5 @@ size_t VectorFileSensor::getParameterArrayCount(const std::string& name, Int64 i
 }
 
 
-} // end namespace nta
+} // end namespace nupic
 

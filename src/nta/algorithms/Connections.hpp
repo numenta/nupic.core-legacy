@@ -32,7 +32,7 @@
 #include <nta/types/Types.hpp>
 #include <nta/math/Math.hpp>
 
-namespace nta
+namespace nupic
 {
 
   namespace algorithms
@@ -343,6 +343,6 @@ namespace nta
 
   } // end namespace algorithms
 
-} // end namespace nta
+} // end namespace nupic
 
 #endif // NTA_CONNECTIONS_HPP

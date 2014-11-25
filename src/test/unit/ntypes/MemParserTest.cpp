@@ -31,7 +31,7 @@
 #include <string>
 #include <iostream>
 
-namespace nta {
+namespace nupic {
 
 void MemParserTest::RunTests() 
 {
@@ -192,4 +192,4 @@ void MemParserTest::RunTests()
 
 
 
-} // namespace nta
+} // namespace nupic

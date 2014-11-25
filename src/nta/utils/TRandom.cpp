@@ -31,7 +31,7 @@
 #include <cstdlib>
 #include <ctime>
 
-using namespace nta;
+using namespace nupic;
 
 TRandom::TRandom(std::string name)
 {

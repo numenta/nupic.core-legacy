@@ -32,7 +32,7 @@
 
 //----------------------------------------------------------------------
 
-namespace nta 
+namespace nupic
 {
   namespace regex
   {

@@ -35,7 +35,7 @@
 #include <set>
 #include <cmath>
 
-namespace nta 
+namespace nupic
 {
   // TODO: Should this be a namespace instead of a class?
   class StringUtils

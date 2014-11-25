@@ -42,7 +42,7 @@
 #include <stdexcept>
 #include <nta/utils/Log.hpp>
 
-namespace nta {
+namespace nupic {
 
 void dbgbreak();
 
@@ -346,7 +346,7 @@ typedef BasicOMemStream<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t
         WOMemStream;
 
 
-} // end namespace nta
+} // end namespace nupic
 
 
 

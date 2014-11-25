@@ -28,8 +28,8 @@
 #include <nta/algorithms/Connections.hpp>
 
 using namespace std;
-using namespace nta;
-using namespace nta::algorithms::connections;
+using namespace nupic;
+using namespace nupic::algorithms::connections;
 
 Connections::Connections(CellIdx numCells) : cells_(numCells) {
   numSegments_ = 0;

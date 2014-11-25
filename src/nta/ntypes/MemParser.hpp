@@ -31,7 +31,7 @@
 #include "nta/types/Types.hpp"
 
 
-namespace nta {
+namespace nupic {
   
 ////////////////////////////////////////////////////////////////////////////
 /// Class for parsing numbers and strings out of a memory buffer. 
@@ -194,6 +194,6 @@ private:
 
 
 
-} // namespace nta
+} // namespace nupic
 
 #endif // NTA_MEM_PARSER2_HPP

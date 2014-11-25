@@ -31,7 +31,7 @@
 
 #include <sstream>
 
-namespace nta
+namespace nupic
 {
 namespace YAMLUtils
 {

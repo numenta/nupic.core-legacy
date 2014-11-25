@@ -33,7 +33,7 @@
 #include <nta/engine/Link.hpp> // temporary
 
 
-namespace nta
+namespace nupic
 {
 
 Output::Output(Region& region, NTA_BasicType type, bool isRegionLevel) :

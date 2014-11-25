@@ -37,7 +37,7 @@
 #include <nta/math/Math.hpp>
 #include <nta/math/Types.hpp>
 
-namespace nta {
+namespace nupic {
 
   //--------------------------------------------------------------------------------
   // Checks whether the SSE supports the operations we need, i.e. SSE3 and SSE4. 
@@ -135,7 +135,7 @@ namespace nta {
   template <typename It>
   inline bool
   nearlyZeroRange(It begin, It end,
-                  const typename std::iterator_traits<It>::value_type epsilon =nta::Epsilon)
+                  const typename std::iterator_traits<It>::value_type epsilon =nupic::Epsilon)
   {
     {
       NTA_ASSERT(begin <= end)
@@ -152,7 +152,7 @@ namespace nta {
   template <typename It1, typename It2>
   inline bool
   nearlyEqualRange(It1 begin1, It1 end1, It2 begin2, It2 end2,
-                   const typename std::iterator_traits<It1>::value_type epsilon =nta::Epsilon)
+                   const typename std::iterator_traits<It1>::value_type epsilon =nupic::Epsilon)
   {
     {
       NTA_ASSERT(begin1 <= end1)
@@ -173,7 +173,7 @@ namespace nta {
   template <typename Container1, typename Container2>
   inline bool
   nearlyEqualVector(const Container1& c1, const Container2& c2,
-                    const typename Container1::value_type& epsilon =nta::Epsilon)
+                    const typename Container1::value_type& epsilon =nupic::Epsilon)
   {
     if (c1.size() != c2.size())
       return false;
@@ -730,7 +730,7 @@ namespace nta {
     // Often useful for histograms, where V is an integral type
     inline void increment(const K& key, const V& init =1)
     {
-      nta::increment(*this, key, init);
+      nupic::increment(*this, key, init);
     }
 
     // Inserts once in the map, or return false if already inserted
@@ -1253,7 +1253,7 @@ namespace nta {
   template <typename It1, typename It2, typename It3>
   inline void
   from_dense(It1 begin, It1 end, It2 ind, It3 nz,
-             typename std::iterator_traits<It1>::value_type eps = nta::Epsilon)
+             typename std::iterator_traits<It1>::value_type eps = nupic::Epsilon)
   {
     {
       NTA_ASSERT(begin <= end)
@@ -1437,7 +1437,7 @@ namespace nta {
         del.push_back(x[i]);
       }
 
-    nta::remove(del, x);
+    nupic::remove(del, x);
   }
 
   //--------------------------------------------------------------------------------
@@ -1757,7 +1757,7 @@ namespace nta {
                          const typename std::iterator_traits<It>::value_type& min_,
                          const typename std::iterator_traits<It>::value_type& max_)
   {
-    nta::Random rng;
+    nupic::Random rng;
     rand_range(begin, end, min_, max_, rng);
   }
 
@@ -1846,7 +1846,7 @@ namespace nta {
   template <typename It>
   inline void rand_range_01(It begin, It end, double pct =.5)
   {
-    nta::Random rng;
+    nupic::Random rng;
     rand_range_01(begin, end, pct, rng);
   }
 
@@ -1867,7 +1867,7 @@ namespace nta {
   template <typename T>
   inline void rand_range_01(T& a, double pct =.5)
   {
-    nta::Random rng;
+    nupic::Random rng;
     rand_range_01(a.begin(), a.end(), pct, rng);
   }
 
@@ -1973,7 +1973,7 @@ namespace nta {
         << "rand_enum_range: Invalid enum range";
     }
 
-    nta::Random rng;
+    nupic::Random rng;
     rand_enum_range(begin, end, enum_begin, enum_end, replace, rng);
   }
 
@@ -2043,7 +2043,7 @@ namespace nta {
         << "random_perm_interval 2: Invalid input range";
     }
 
-    nta::Random rng;
+    nupic::Random rng;
     random_perm_interval(begin, end, start, step, rng);
   }
 
@@ -2122,7 +2122,7 @@ namespace nta {
         << "random_sample 2: Invalid output range";
     }
 
-    nta::Random rng;
+    nupic::Random rng;
     random_sample(begin1, end1, begin2, end2, rng);
   }
 
@@ -2175,7 +2175,7 @@ namespace nta {
                             size_t start =0,
                             size_t step =1)
   {
-    nta::Random rng;
+    nupic::Random rng;
     random_sample(c, size, start, step, rng);
   }
 
@@ -2243,9 +2243,9 @@ namespace nta {
     a.resize(nrows * nnzpr);
 
 #ifdef NTA_PLATFORM_darwin86
-    nta::Random rng(seed == -1 ? arc4random() : seed);
+    nupic::Random rng(seed == -1 ? arc4random() : seed);
 #else
-    nta::Random rng(seed == -1 ? rand() : seed);
+    nupic::Random rng(seed == -1 ? rand() : seed);
 #endif
 
     std::vector<size_t> x(ncols); 
@@ -2296,9 +2296,9 @@ namespace nta {
     a.resize(nrows * nnzpr);
 
 #ifdef NTA_PLATFORM_darwin86
-    nta::Random rng(seed == -1 ? arc4random() : seed);
+    nupic::Random rng(seed == -1 ? arc4random() : seed);
 #else
-    nta::Random rng(seed == -1 ? rand() : seed);
+    nupic::Random rng(seed == -1 ? rand() : seed);
 #endif
 
     size_t rf_y = ncols / rf_x;
@@ -2512,8 +2512,8 @@ namespace nta {
    * of 1's.
    */
   template <typename InputIterator, typename OutputIterator>
-  inline nta::UInt32 
-  binarize_with_threshold(nta::Real32 threshold, 
+  inline nupic::UInt32
+  binarize_with_threshold(nupic::Real32 threshold,
                           InputIterator x, InputIterator x_end,
                           OutputIterator y, OutputIterator y_end)
   {
@@ -2521,7 +2521,7 @@ namespace nta {
       NTA_ASSERT(x_end - x == y_end - y);
     }
 
-    nta::UInt32 count = 0;
+    nupic::UInt32 count = 0;
 
     for (; x != x_end; ++x, ++y)
       if (*x > threshold) {
@@ -2546,28 +2546,28 @@ namespace nta {
    */
   template <typename InputIterator, typename OutputIterator>
   inline void
-  nonZeroRowsIndicator_01(nta::UInt32 nrows, nta::UInt32 ncols,
+  nonZeroRowsIndicator_01(nupic::UInt32 nrows, nupic::UInt32 ncols,
                           InputIterator x, InputIterator x_end,
                           OutputIterator y, OutputIterator y_end)
   {
     {
       NTA_ASSERT(0 < nrows);
       NTA_ASSERT(0 < ncols);
-      NTA_ASSERT((nta::UInt32)(x_end - x) == nrows * ncols);
-      NTA_ASSERT((nta::UInt32)(y_end - y) == nrows);
+      NTA_ASSERT((nupic::UInt32)(x_end - x) == nrows * ncols);
+      NTA_ASSERT((nupic::UInt32)(y_end - y) == nrows);
 #ifdef NTA_ASSERTION_ON
-      for (nta::UInt32 i = 0; i != nrows * ncols; ++i)
+      for (nupic::UInt32 i = 0; i != nrows * ncols; ++i)
         NTA_ASSERT(x[i] == 0 || x[i] == 1);
 #endif
     }
     
-    for (nta::UInt32 r = 0; r != nrows; ++r, ++y) {
+    for (nupic::UInt32 r = 0; r != nrows; ++r, ++y) {
       
       InputIterator it = x + r * ncols, it_end = it + ncols;
-      nta::UInt32 found = 0;
+      nupic::UInt32 found = 0;
 
       while (it != it_end && found == 0) 
-        found = nta::UInt32(*it++);
+        found = nupic::UInt32(*it++);
       
       *y = found;
     }
@@ -2580,29 +2580,29 @@ namespace nta {
    * necessary, i.e. stops as soon as a 1 is found on the row.
    */
   template <typename InputIterator>
-  inline nta::UInt32 
-  nNonZeroRows_01(nta::UInt32 nrows, nta::UInt32 ncols,
+  inline nupic::UInt32
+  nNonZeroRows_01(nupic::UInt32 nrows, nupic::UInt32 ncols,
                   InputIterator x, InputIterator x_end)
   {
     {
       NTA_ASSERT(0 < nrows);
       NTA_ASSERT(0 < ncols);
-      NTA_ASSERT((nta::UInt32)(x_end - x) == nrows * ncols);
+      NTA_ASSERT((nupic::UInt32)(x_end - x) == nrows * ncols);
 #ifdef NTA_ASSERTION_ON
-      for (nta::UInt32 i = 0; i != nrows * ncols; ++i)
+      for (nupic::UInt32 i = 0; i != nrows * ncols; ++i)
         NTA_ASSERT(x[i] == 0 || x[i] == 1);
 #endif
     }
     
-    nta::UInt32 count = 0;
+    nupic::UInt32 count = 0;
     
-    for (nta::UInt32 r = 0; r != nrows; ++r) {
+    for (nupic::UInt32 r = 0; r != nrows; ++r) {
       
       InputIterator it = x + r * ncols, it_end = it + ncols;
-      nta::UInt32 found = 0;
+      nupic::UInt32 found = 0;
 
       while (it != it_end && found == 0) 
-        found = nta::UInt32(*it++);
+        found = nupic::UInt32(*it++);
       
       count += found;
     }
@@ -2619,30 +2619,30 @@ namespace nta {
    */
   template <typename InputIterator, typename OutputIterator>
   inline void
-  nonZeroColsIndicator_01(nta::UInt32 nrows, nta::UInt32 ncols,
+  nonZeroColsIndicator_01(nupic::UInt32 nrows, nupic::UInt32 ncols,
                           InputIterator x, InputIterator x_end,
                           OutputIterator y, OutputIterator y_end)
   {
     {
       NTA_ASSERT(0 < nrows);
       NTA_ASSERT(0 < ncols);
-      NTA_ASSERT((nta::UInt32)(x_end - x) == nrows * ncols);
-      NTA_ASSERT((nta::UInt32)(y_end - y) == ncols);
+      NTA_ASSERT((nupic::UInt32)(x_end - x) == nrows * ncols);
+      NTA_ASSERT((nupic::UInt32)(y_end - y) == ncols);
 #ifdef NTA_ASSERTION_ON
-      for (nta::UInt32 i = 0; i != nrows * ncols; ++i)
+      for (nupic::UInt32 i = 0; i != nrows * ncols; ++i)
         NTA_ASSERT(x[i] == 0 || x[i] == 1);
 #endif
     }
     
-    nta::UInt32 N = nrows*ncols;
+    nupic::UInt32 N = nrows*ncols;
     
-    for (nta::UInt32 c = 0; c != ncols; ++c, ++y) {
+    for (nupic::UInt32 c = 0; c != ncols; ++c, ++y) {
       
       InputIterator it = x + c, it_end = it + N;
-      nta::UInt32 found = 0;
+      nupic::UInt32 found = 0;
 
       while (it != it_end && found == 0) {
-        found = nta::UInt32(*it);
+        found = nupic::UInt32(*it);
         it += ncols;
       }
       
@@ -2658,30 +2658,30 @@ namespace nta {
    * a 1 is found on the col.
    */
   template <typename InputIterator>
-  inline nta::UInt32 
-  nNonZeroCols_01(nta::UInt32 nrows, nta::UInt32 ncols,
+  inline nupic::UInt32
+  nNonZeroCols_01(nupic::UInt32 nrows, nupic::UInt32 ncols,
                   InputIterator x, InputIterator x_end)
   {
     {
       NTA_ASSERT(0 < nrows);
       NTA_ASSERT(0 < ncols);
-      NTA_ASSERT((nta::UInt32)(x_end - x) == nrows * ncols);
+      NTA_ASSERT((nupic::UInt32)(x_end - x) == nrows * ncols);
 #ifdef NTA_ASSERTION_ON
-      for (nta::UInt32 i = 0; i != nrows * ncols; ++i)
+      for (nupic::UInt32 i = 0; i != nrows * ncols; ++i)
         NTA_ASSERT(x[i] == 0 || x[i] == 1);
 #endif
     }
     
-    nta::UInt32 count = 0;
-    nta::UInt32 N = nrows*ncols;
+    nupic::UInt32 count = 0;
+    nupic::UInt32 N = nrows*ncols;
     
-    for (nta::UInt32 c = 0; c != ncols; ++c) {
+    for (nupic::UInt32 c = 0; c != ncols; ++c) {
       
       InputIterator it = x + c, it_end = it + N;
-      nta::UInt32 found = 0;
+      nupic::UInt32 found = 0;
 
       while (it != it_end && found == 0) {
-        found = nta::UInt32(*it);
+        found = nupic::UInt32(*it);
         it += ncols;
       }
       
@@ -2739,7 +2739,7 @@ namespace nta {
   //--------------------------------------------------------------------------------
   template <typename value_type1, typename value_type2>
   inline void mask(std::vector<value_type1>& x, const std::vector<value_type2>& mask,
-                   bool multiplyYesNo =false, value_type2 eps =(value_type2)nta::Epsilon)
+                   bool multiplyYesNo =false, value_type2 eps =(value_type2)nupic::Epsilon)
   {
     { // Pre-conditions
       NTA_ASSERT(x.size() == mask.size())
@@ -2776,7 +2776,7 @@ namespace nta {
 
     inline value_type operator()(value_type& a, value_type b) const
     {
-      value_type inc = value_type(b < -nta::Epsilon || b > nta::Epsilon);
+      value_type inc = value_type(b < -nupic::Epsilon || b > nupic::Epsilon);
       a += inc;
       return inc;
     }
@@ -2814,7 +2814,7 @@ namespace nta {
   {
     typedef T value_type;
 
-    nta::Sqrt<value_type> s;
+    nupic::Sqrt<value_type> s;
 
     inline value_type operator()(value_type& a, value_type b) const
     {
@@ -2839,7 +2839,7 @@ namespace nta {
   {
     typedef T value_type;
 
-    nta::Pow<value_type> pf;
+    nupic::Pow<value_type> pf;
 
     Lp(value_type p_)
       : p(p_), inv_p((value_type)1.0)
@@ -2882,7 +2882,7 @@ namespace nta {
   {
     typedef T value_type;
 
-    nta::Max<value_type> m;
+    nupic::Max<value_type> m;
 
     inline value_type operator()(value_type& a, value_type b) const
     {
@@ -3683,7 +3683,7 @@ namespace nta {
   template <typename It>
   inline size_t
   count_zeros(It begin, It end,
-              const typename std::iterator_traits<It>::value_type& eps =nta::Epsilon)
+              const typename std::iterator_traits<It>::value_type& eps =nupic::Epsilon)
   {
     {
       NTA_ASSERT(begin <= end)
@@ -3699,7 +3699,7 @@ namespace nta {
    * Counts the number of zeros in the container passed in.
    */
   template <typename C>
-  inline size_t count_zeros(const C& c, const typename C::value_type& eps =nta::Epsilon)
+  inline size_t count_zeros(const C& c, const typename C::value_type& eps =nupic::Epsilon)
   {
     return count_zeros(c.begin, c.end(), eps);
   }
@@ -3711,7 +3711,7 @@ namespace nta {
   template <typename It>
   inline size_t
   count_ones(It begin, It end,
-             const typename std::iterator_traits<It>::value_type& eps =nta::Epsilon)
+             const typename std::iterator_traits<It>::value_type& eps =nupic::Epsilon)
   {
     {
       NTA_ASSERT(begin <= end)
@@ -3727,7 +3727,7 @@ namespace nta {
    * Count the number of ones in the container passed in.
    */
   template <typename C>
-  inline size_t count_ones(const C& c, const typename C::value_type& eps =nta::Epsilon)
+  inline size_t count_ones(const C& c, const typename C::value_type& eps =nupic::Epsilon)
   {
     return count_ones(c.begin(), c.end(), eps);
   }
@@ -3746,8 +3746,8 @@ namespace nta {
    * 
    * Doesn't work on win32.
    */
-  inline nta::UInt32
-  count_gt(nta::Real32* begin, nta::Real32* end, nta::Real32 threshold)
+  inline nupic::UInt32
+  count_gt(nupic::Real32* begin, nupic::Real32* end, nupic::Real32 threshold)
   {
     NTA_ASSERT(begin <= end);
 
@@ -3764,9 +3764,9 @@ namespace nta {
       //  xmm operations
       // n1 is the number floats we can process in parallel with xmm
       // n2 is the number of "stragglers" what we will have to do one by one ( < 4)
-      nta::Real32 count = 0;
+      nupic::Real32 count = 0;
       long x_addr = (long) begin; // 8 bytes on 64 bits platforms
-      nta::Real32* start = (x_addr % 16 == 0) ? begin : (nta::Real32*) (16*(x_addr/16+1));
+      nupic::Real32* start = (x_addr % 16 == 0) ? begin : (nupic::Real32*) (16*(x_addr/16+1));
       int n0 = (int)(start - begin);
       int n1 = 4 * ((end - start) / 4);
       int n2 = (int)(end - start - n1);
@@ -3986,10 +3986,10 @@ namespace nta {
       return (int) count;
 
 #else
-      return std::count_if(begin, end, std::bind2nd(std::greater<nta::Real32>(), threshold));
+      return std::count_if(begin, end, std::bind2nd(std::greater<nupic::Real32>(), threshold));
 #endif
     } else {
-      return std::count_if(begin, end, std::bind2nd(std::greater<nta::Real32>(), threshold));
+      return std::count_if(begin, end, std::bind2nd(std::greater<nupic::Real32>(), threshold));
     }
   }
 
@@ -4003,13 +4003,13 @@ namespace nta {
    * that are .astype(float32).
    * 
    */
-  inline nta::UInt32
-  count_gte(nta::Real32* begin, nta::Real32* end, nta::Real32 threshold)
+  inline nupic::UInt32
+  count_gte(nupic::Real32* begin, nupic::Real32* end, nupic::Real32 threshold)
   {
     NTA_ASSERT(begin <= end);
 
     return std::count_if(begin, end, 
-                         std::bind2nd(std::greater_equal<nta::Real32>(), 
+                         std::bind2nd(std::greater_equal<nupic::Real32>(),
                          threshold));
   }
 
@@ -4018,7 +4018,7 @@ namespace nta {
   /**
    * Counts the number of non-zeros in a vector.
    */
-  inline size_t count_non_zeros(nta::Real32* begin, nta::Real32* end)
+  inline size_t count_non_zeros(nupic::Real32* begin, nupic::Real32* end)
   {
     NTA_ASSERT(begin <= end);
     return count_gt(begin, end, 0);
@@ -4033,8 +4033,8 @@ namespace nta {
   inline size_t count_non_zeros(const std::vector<T>& x)
   {
     NTA_ASSERT(sizeof(T) == 4);
-    nta::Real32* begin = (nta::Real32*) &x[0];
-    nta::Real32* end = begin + x.size();
+    nupic::Real32* begin = (nupic::Real32*) &x[0];
+    nupic::Real32* end = begin + x.size();
     return count_gt(begin, end, 0);
   }
 
@@ -4125,14 +4125,14 @@ namespace nta {
 	 * vDSP also handles unaligned vectors correctly, and has good performance
 	 * also when the vectors are small, not just when they are big. 
    */
-  inline nta::Real32 sum(nta::Real32* begin, nta::Real32* end)
+  inline nupic::Real32 sum(nupic::Real32* begin, nupic::Real32* end)
   {
     {
       NTA_ASSERT(begin <= end)
         << "sum: Invalid range";
     }
 
-    nta::Real32 result = 0;
+    nupic::Real32 result = 0;
     for (; begin != end; ++begin)
       result += *begin;
     return result;
@@ -4467,7 +4467,7 @@ namespace nta {
     typename std::iterator_traits<It1>::value_type max_val =
       *(std::max_element(begin, end));
 
-    if (!nta::nearlyZero(max_val))
+    if (!nupic::nearlyZero(max_val))
       for (It1 it = begin; it != end; ++it)
         *it /= max_val;
   }
@@ -4520,9 +4520,9 @@ namespace nta {
    * If 'fIsNearlyZero' returns true, computes uses the output of
    * 'fHandleZero(element value)' as the result for that element.
    *
-   * Usage: nta::inverseNZ(input, output,
-   *            nta::IsNearlyZero< DistanceToZero<double> >(),
-   *            nta::Identity<double>());
+   * Usage: nupic::inverseNZ(input, output,
+   *            nupic::IsNearlyZero< DistanceToZero<double> >(),
+   *            nupic::Identity<double>());
    */
   template <typename T1, typename T2, typename TFuncIsNearlyZero, typename TFuncHandleZero>
   inline void inverseNZ(const T1& x, T2 &out,
@@ -5005,7 +5005,7 @@ namespace nta {
         << "sample: Invalid range for pdf";
     }
 
-    nta::Random rng;
+    nupic::Random rng;
     sample(n, pdf_begin, pdf_end, output, rng);
   }
 
@@ -5662,7 +5662,7 @@ namespace nta {
   //--------------------------------------------------------------------------------
   // A partial argsort that can use an already allocated buffer to avoid creating 
   // a data structure each time it's called. Assumes that the elements to be sorted
-  // are nta::Real32, or at least that they have the same size.
+  // are nupic::Real32, or at least that they have the same size.
   //
   // A partial sort is much faster than a full sort. The elements after the k first
   // in the result are not sorted, except that they are greater (or lesser) than
@@ -5768,12 +5768,12 @@ namespace nta {
   //--------------------------------------------------------------------------------
   template <typename It1>
   inline void 
-  update_with_indices_of_non_zeros(nta::UInt32 segment_size,
+  update_with_indices_of_non_zeros(nupic::UInt32 segment_size,
                                    It1 input_begin, It1 input_end,
                                    It1 prev_begin, It1 prev_end, 
                                    It1 curr_begin, It1 curr_end)
   {
-    typedef nta::UInt32 size_type;
+    typedef nupic::UInt32 size_type;
     
     size_type input_size = (size_type)(input_end - input_begin);
 
@@ -5940,7 +5940,7 @@ namespace nta {
   winnerTakesAll3(I k, I seg_size, InIter begin, InIter end,
                   OutIter1 ind, OutIter2 nz)
   {
-    nta::Random rng;
+    nupic::Random rng;
     winnerTakesAll3(k, seg_size, begin, end, ind, nz, rng);
   }
 
@@ -6093,6 +6093,6 @@ namespace nta {
 */
   
   //--------------------------------------------------------------------------------
-} // end namespace nta
+} // end namespace nupic
 
 #endif // NTA_ARRAY_ALGO_HPP

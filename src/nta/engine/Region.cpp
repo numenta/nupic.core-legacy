@@ -43,7 +43,7 @@ Methods related to inputs and outputs are in Region_io.cpp
 #include <nta/ntypes/NodeSet.hpp>
 #include <nta/os/Timer.hpp>
 
-namespace nta
+namespace nupic
 {
 
 
@@ -355,7 +355,7 @@ void Region::initOutputs()
     try
     {
       count = getNodeOutputElementCount(name);
-    } catch (nta::Exception& e) {
+    } catch (nupic::Exception& e) {
       NTA_THROW << "Internal error -- unable to get size of output " 
                 << name << " : " << e.what();
     }

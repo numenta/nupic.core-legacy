@@ -27,7 +27,7 @@
 
 #include <nta/os/Timer.hpp>
 #include <sstream>
-using namespace nta;
+using namespace nupic;
 
 
 // Define a couple of platform-specific helper functions
@@ -35,8 +35,8 @@ using namespace nta;
 #if defined(NTA_PLATFORM_win32)
 
 #include <windows.h>
-static nta::UInt64 ticksPerSec_ = 0;
-static nta::UInt64 initialTicks_ = 0;
+static nupic::UInt64 ticksPerSec_ = 0;
+static nupic::UInt64 initialTicks_ = 0;
 
 // initTime is called by the constructor, so it will always
 // have been called by the time we call getTicksPerSec or getCurrentTime
@@ -68,7 +68,7 @@ static UInt64 getCurrentTime()
 
 #elif defined(NTA_PLATFORM_darwin)
 
-// This include defines a UInt64 type that conflicts with the nta::UInt64 type. 
+// This include defines a UInt64 type that conflicts with the nupic::UInt64 type.
 // Because of this, all UInt64 is explicitly qualified in the interface. 
 #include <CoreServices/CoreServices.h>
 #include <mach/mach.h>
@@ -85,16 +85,16 @@ static inline void initTime()
     initialT_ = UnsignedWideToUint64(AbsoluteToNanoseconds(mach_absolute_time()));
 }
 
-static inline nta::UInt64 getCurrentTime()
+static inline nupic::UInt64 getCurrentTime()
 {
   uint64_t t = mach_absolute_time();
-  nta::UInt64 ticks = UnsignedWideToUInt64(AbsoluteToNanoseconds(t));
+  nupic::UInt64 ticks = UnsignedWideToUInt64(AbsoluteToNanoseconds(t));
   return ticks - initialTicks_;
 }
 
-static inline nta::UInt64 getTicksPerSec()
+static inline nupic::UInt64 getTicksPerSec()
 {
-  return (nta::UInt64)(1e9);
+  return (nupic::UInt64)(1e9);
 }
 
 
@@ -102,7 +102,7 @@ static inline nta::UInt64 getTicksPerSec()
 // linux
 #include <sys/time.h>
 
-static nta::UInt64 initialTicks_ = 0;
+static nupic::UInt64 initialTicks_ = 0;
 
 static inline void initTime()
 {
@@ -110,23 +110,23 @@ static inline void initTime()
   {
     struct timeval t;
     ::gettimeofday(&t, nullptr);
-    initialTicks_ = nta::UInt64((t.tv_sec * 1e6) + t.tv_usec);
+    initialTicks_ = nupic::UInt64((t.tv_sec * 1e6) + t.tv_usec);
   }
 }
 
-static inline nta::UInt64 getCurrentTime()
+static inline nupic::UInt64 getCurrentTime()
 {
   struct timeval t;
   ::gettimeofday(&t, nullptr);
-  nta::UInt64 ticks = nta::UInt64((t.tv_sec * 1e6) + t.tv_usec);
+  nupic::UInt64 ticks = nupic::UInt64((t.tv_sec * 1e6) + t.tv_usec);
   return ticks - initialTicks_;
 }
 
 
 
-static inline nta::UInt64 getTicksPerSec()
+static inline nupic::UInt64 getTicksPerSec()
 {
-  return (nta::UInt64)(1e6);
+  return (nupic::UInt64)(1e6);
 }
 
 #endif
@@ -166,7 +166,7 @@ void Timer::stop()
 
 Real64 Timer::getElapsed() const
 {   
-  nta::UInt64 elapsed = prevElapsed_;
+  nupic::UInt64 elapsed = prevElapsed_;
   if (started_) 
   {
     elapsed += (getCurrentTime() - start_);

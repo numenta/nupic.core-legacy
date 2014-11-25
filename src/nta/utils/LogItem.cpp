@@ -30,7 +30,7 @@
 #include <iostream>  // cout
 #include <stdexcept> // runtime_error
 
-using namespace nta;
+using namespace nupic;
 
 std::ostream* LogItem::ostream_ = nullptr;
 

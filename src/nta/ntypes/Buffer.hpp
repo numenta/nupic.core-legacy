@@ -35,9 +35,9 @@
 #include <string>
 #include <vector>
 
-namespace nta 
+namespace nupic
 {
-  typedef std::vector<nta::IReadBuffer *> ReadBufferVec;
+  typedef std::vector<nupic::IReadBuffer *> ReadBufferVec;
 
   /**
    * ReadBuffer is a class that stores arbitrary binary data in memory. 

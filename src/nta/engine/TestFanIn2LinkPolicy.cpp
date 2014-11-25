@@ -28,7 +28,7 @@
 #include <nta/ntypes/Dimensions.hpp>
 #include <nta/utils/Log.hpp>
 
-namespace nta
+namespace nupic
 {
   TestFanIn2LinkPolicy::TestFanIn2LinkPolicy(const std::string params, Link* link) : link_(link), initialized_(false)
   {
@@ -150,7 +150,7 @@ namespace nta
     return initialized_;
   }
 
-} // namespace nta
+} // namespace nupic
 
 
 

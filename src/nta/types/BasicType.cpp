@@ -24,7 +24,7 @@
 #include <nta/types/BasicType.hpp>
 #include <nta/types/Exception.hpp>
 
-using namespace nta;
+using namespace nupic;
 
 bool BasicType::isValid(NTA_BasicType t)
 {
@@ -55,7 +55,7 @@ const char * BasicType::getName(NTA_BasicType t)
 
 
 // gcc 4.2 requires (incorrectly) these to be defined inside a namespace
-namespace nta 
+namespace nupic
 {
   // getName<T>
   template <> const char* BasicType::getName<Byte>()

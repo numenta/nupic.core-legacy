@@ -29,7 +29,7 @@
 #include <nta/utils/Log.hpp>
 
 
-using namespace nta;
+using namespace nupic;
 
 
 
@@ -165,7 +165,7 @@ ValueMap::const_iterator ValueMap::end() const
 
 // specializations of getValue()
 // gcc 4.2 complains if they are not inside the namespace declaration
-namespace nta 
+namespace nupic
 {
   template Byte Value::getScalarT<Byte>() const;
   template Int16 Value::getScalarT<Int16>() const;
@@ -307,7 +307,7 @@ boost::shared_ptr<std::string> ValueMap::getString(const std::string& key) const
 }
 
 // explicit instantiations of getScalarT
-namespace nta
+namespace nupic
 {
   template Byte ValueMap::getScalarT(const std::string& key, Byte defaultValue) const;
   template UInt16 ValueMap::getScalarT(const std::string& key, UInt16 defaultValue) const;

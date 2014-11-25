@@ -34,7 +34,7 @@
 #ifndef NTA_DOMAIN_UNIT_TEST_HPP
 #define NTA_DOMAIN_UNIT_TEST_HPP
 
-namespace nta {
+namespace nupic {
 
   //----------------------------------------------------------------------
   class DomainUnitTest : public Tester
@@ -55,7 +55,7 @@ namespace nta {
   }; // end class DomainUnitTest
     
   //----------------------------------------------------------------------
-} // end namespace nta
+} // end namespace nupic
 
 #endif // NTA_DOMAIN_UNIT_TEST_HPP
 

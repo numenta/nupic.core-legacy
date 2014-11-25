@@ -47,7 +47,7 @@
 #include <nta/types/Types.hpp>
 #include <nta/utils/Log.hpp>
 
-namespace nta {
+namespace nupic {
     
   //--------------------------------------------------------------------------------
   /**

@@ -38,13 +38,13 @@
 #include <boost/graph/bandwidth.hpp>
 #include <boost/graph/connected_components.hpp>
 
-namespace nta {
+namespace nupic {
 
   //--------------------------------------------------------------------------------
   // GRAPH ALGORITHMS
   //--------------------------------------------------------------------------------
 
-  typedef std::vector<nta::UInt32> Sequence;
+  typedef std::vector<nupic::UInt32> Sequence;
   typedef std::list<Sequence> Sequences;
 
   //--------------------------------------------------------------------------------
@@ -333,5 +333,5 @@ namespace nta {
   }
 
   //--------------------------------------------------------------------------------
-} // end namespace nta
+} // end namespace nupic
 #endif //GRAPH_ALGORITHMS

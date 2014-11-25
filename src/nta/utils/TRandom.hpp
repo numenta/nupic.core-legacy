@@ -31,7 +31,7 @@
 #include <nta/utils/Random.hpp>
 #include <string>
 
-namespace nta {
+namespace nupic {
   /**
    * @b Responsibility
    * Provides standard random number generation for testing. 

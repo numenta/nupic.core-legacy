@@ -33,7 +33,7 @@
 
 
 using namespace std;
-namespace nta { 
+namespace nupic {
  
 ////////////////////////////////////////////////////////////////////////////
 // MemParser constructor
@@ -221,4 +221,4 @@ void MemParser::get(std::string& val)
 
 
   
-} // namespace nta
+} // namespace nupic

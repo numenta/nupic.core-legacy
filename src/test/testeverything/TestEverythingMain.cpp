@@ -48,7 +48,7 @@ Uber test program
 #include "EverythingHeaders.hpp"
 
 using namespace std;
-using namespace nta;
+using namespace nupic;
 
 typedef std::pair<std::string, Tester*> TestInfo;
 typedef std::vector<TestInfo> Testers;

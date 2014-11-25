@@ -31,7 +31,7 @@
 
 #include <vector>
 
-namespace nta {
+namespace nupic {
 
   //--------------------------------------------------------------------------------
   // SET
@@ -117,7 +117,7 @@ namespace nta {
     {
       /*
       if (n < n2) {
-        std::cout << "Calling nta::Set::intersection "
+        std::cout << "Calling nupic::Set::intersection "
                   << "with small set: for best performance, "
                   << "call with smaller set as argument"
                   << std::endl;
@@ -133,7 +133,7 @@ namespace nta {
     }
   };
 
-} // end namespace nta
+} // end namespace nupic
 
 //--------------------------------------------------------------------------------
 #endif //NTA_MATH_SET_HPP

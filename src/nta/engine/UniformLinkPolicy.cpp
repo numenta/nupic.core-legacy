@@ -33,7 +33,7 @@
 
 #include <boost/shared_ptr.hpp>
 
-namespace nta
+namespace nupic
 {
 
 
@@ -1710,8 +1710,8 @@ T& UniformLinkPolicy::DefaultValuedVector<T>::at(const size_type index)
   }
 }
 
-template struct nta::UniformLinkPolicy::DefaultValuedVector<Fraction>;
-template struct nta::UniformLinkPolicy::DefaultValuedVector<nta::UniformLinkPolicy::OverhangType>;
+template struct nupic::UniformLinkPolicy::DefaultValuedVector<Fraction>;
+template struct nupic::UniformLinkPolicy::DefaultValuedVector<nupic::UniformLinkPolicy::OverhangType>;
 
 }
 

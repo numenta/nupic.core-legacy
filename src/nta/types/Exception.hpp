@@ -33,7 +33,7 @@
 
 //----------------------------------------------------------------------
 
-namespace nta
+namespace nupic
 {
   /**
    * @b Responsibility
@@ -188,7 +188,7 @@ namespace nta
 
     
   }; // end class Exception 
-} // end namespace nta
+} // end namespace nupic
 
 #endif // NTA_EXCEPTION_HPP
 

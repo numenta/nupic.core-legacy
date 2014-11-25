@@ -33,7 +33,7 @@
     
 using namespace std;     
 
-namespace nta {
+namespace nupic {
        
 #define TEST_LOOP(M)                                  \
   for (nrows = 0, ncols = M, zr = 15;                 \
@@ -2425,6 +2425,6 @@ namespace nta {
 
   //--------------------------------------------------------------------------------
   
-} // namespace nta
+} // namespace nupic
 
 

@@ -80,7 +80,7 @@
 
 //-----------------------------------------------------------------------
 
-namespace nta {
+namespace nupic {
   namespace algorithms {
     namespace Cells4 {
 
@@ -868,7 +868,7 @@ namespace nta {
       //-----------------------------------------------------------------------
     } // end namespace Cells4
   } // end namespace algorithms
-} // end namespace nta
+} // end namespace nupic
 
   //-----------------------------------------------------------------------
 #endif // NTA_SEGMENT_HPP

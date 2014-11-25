@@ -44,7 +44,7 @@
 
 
 
-namespace nta
+namespace nupic
 {
 
   TestNode::TestNode(const ValueMap& params, Region *region) : RegionImpl(region),
@@ -126,7 +126,7 @@ namespace nta
       bottomUpIn_->getInputForNode(node, nodeInput);
 
       // output[0] = number of inputs to this baby node + current iteration number
-      nodeOutputBuffer[0] = nta::Real64(nodeInput.size() + iter_);
+      nodeOutputBuffer[0] = nupic::Real64(nodeInput.size() + iter_);
 
       // output[n] = node + sum(inputs) + (n-1) * delta
       Real64 sum = std::accumulate(nodeInput.begin(), nodeInput.end(), 0.0);

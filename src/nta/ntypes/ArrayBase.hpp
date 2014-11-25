@@ -38,7 +38,7 @@
 #include <nta/types/Types.h>
 #include <string>
 
-namespace nta
+namespace nupic
 {
   /**
    * An ArrayBase is used for passing arrays of data back and forth between 

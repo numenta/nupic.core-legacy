@@ -35,7 +35,7 @@ Google test main program
 #include <nta/test/Tester.hpp>
 
 using namespace std;
-using namespace nta;
+using namespace nupic;
 
 #include "AddTestHeaders.hpp"
 #include "AddTests.hpp"

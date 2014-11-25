@@ -36,7 +36,7 @@
 
 //----------------------------------------------------------------------
 
-namespace nta {
+namespace nupic {
 
   struct UniformLinkPolicyTest : public Tester
   {

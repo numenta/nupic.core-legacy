@@ -26,7 +26,7 @@
 #include <nta/types/Types.h>
 #include <string>
 
-namespace nta
+namespace nupic
 {
   // The BasicType class provides operations on NTA_BasicType as static methods.
   //

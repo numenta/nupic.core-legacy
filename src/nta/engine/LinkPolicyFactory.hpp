@@ -29,7 +29,7 @@
 
 #include <string>
 
-namespace nta
+namespace nupic
 {
 
   class LinkPolicy; 
@@ -54,7 +54,7 @@ namespace nta
 
   };
 
-} // namespace nta
+} // namespace nupic
 
 
 #endif // NTA_LINKPOLICY_FACTORY_HPP

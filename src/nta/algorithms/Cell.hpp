@@ -27,7 +27,7 @@
 #include <nta/types/Types.hpp>
 #include <nta/algorithms/Segment.hpp>
 
-namespace nta {
+namespace nupic {
   namespace algorithms {
     namespace Cells4 {
 

@@ -29,7 +29,7 @@
 #include <nta/ntypes/ArrayBase.hpp>
 #include <nta/utils/Log.hpp>
 
-using namespace nta;
+using namespace nupic;
 
 /**
  * Caller provides a buffer to use. 

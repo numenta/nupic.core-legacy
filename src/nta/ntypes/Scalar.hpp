@@ -34,7 +34,7 @@
 #include <nta/utils/Log.hpp> // temporary, while implementation is in hpp
 #include <string>
 
-namespace nta
+namespace nupic
 {
   class Scalar
   {

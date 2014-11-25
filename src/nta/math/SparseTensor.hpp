@@ -54,14 +54,14 @@ struct HashIndex
 
 //----------------------------------------------------------------------
 
-namespace nta {
+namespace nupic {
 
   /**
    * @b Description
    * SparseTensor models a multi-dimensional array, with an arbitrary
    * number of dimensions, and arbitrary size for each dimension,
    * where only certain elements are not zero. "Not zero" is defined as 
-   * being outside the closed ball [-nta::Epsilon..nta::Epsilon].
+   * being outside the closed ball [-nupic::Epsilon..nupic::Epsilon].
    * Zero elements are not stored. Non-zero elements are stored in
    * a data structure that provides logarithmic insertion and retrieval.
    * A number of operations on tensors are implemented as efficiently as 
@@ -557,7 +557,7 @@ namespace nta {
 
     /**
      * Returns whether this sparse tensor is positive or not, that is,
-     * whether all its coefficients are > nta::Epsilon (there are no
+     * whether all its coefficients are > nupic::Epsilon (there are no
      * zeros in this tensor, and all the elements have positive values).
      *
      * Complexity: O(number of non-zeros)
@@ -576,7 +576,7 @@ namespace nta {
 
     /**
      * Returns whether this sparse tensor is non-negative or not,
-     * that is, whether all its coefficients are >= -nta::Epsilon
+     * that is, whether all its coefficients are >= -nupic::Epsilon
      * (there can be zeros in this tensor, but all the non-zeros
      * have positive values).
      *
@@ -702,14 +702,14 @@ namespace nta {
       
       Index idx2 = getNewZeroIndex();
       
-      nta::permute(perm, bounds_, idx2);
+      nupic::permute(perm, bounds_, idx2);
       if (bounds_ != idx2)
         return false;
 
       const_iterator it, e;
 
       for (it = begin(), e = end(); it != e; ++it) {
-        nta::permute(perm, it->first, idx2);
+        nupic::permute(perm, it->first, idx2);
         if (!nearlyZero_(it->second - get(idx2)))
           return false;
       }
@@ -742,14 +742,14 @@ namespace nta {
 
       Index idx2 = getNewZeroIndex();
       
-      nta::permute(perm, bounds_, idx2);
+      nupic::permute(perm, bounds_, idx2);
       if (bounds_ != idx2)
         return false;
 
       const_iterator it, e;
 
       for (it = begin(), e = end(); it != e; ++it) {
-        nta::permute(perm, it->first, idx2);
+        nupic::permute(perm, it->first, idx2);
         if (!nearlyZero_(it->second + get(idx2)))
           return false;
       }
@@ -881,10 +881,10 @@ namespace nta {
     }
 
     /**
-     * Sets element at idx to val, where |val| > nta::Epsilon.
+     * Sets element at idx to val, where |val| > nupic::Epsilon.
      * 
      * Use if you know what you do: even f(non-zero, non-zero)
-     * can be "zero", if it falls below nta::Epsilon. 
+     * can be "zero", if it falls below nupic::Epsilon.
      *
      * Complexity: O(log(number of non-zeros))
      *
@@ -903,7 +903,7 @@ namespace nta {
           << "SparseTensor::setNonZero(idx, val): "
           << "Invalid zero value: " << val
           << " at index: " << idx
-          << " - Should be non-zero (> " << nta::Epsilon << ")";
+          << " - Should be non-zero (> " << nupic::Epsilon << ")";
       }
     
       nz_[idx] = val;
@@ -911,7 +911,7 @@ namespace nta {
 
     /**
      * Sets all the values inside dom to val.
-     * Works only if |val| > nta::Epsilon. 
+     * Works only if |val| > nupic::Epsilon.
      * 
      * @param dom [Domain<UInt>] the domain inside which to set values
      * @param val [Float] the value to set inside dom
@@ -981,10 +981,10 @@ namespace nta {
 
     /**
      * Sets all the values in this tensor to val. 
-     * Makes this sparse tensor dense if |val| > nta::Epsilon.
+     * Makes this sparse tensor dense if |val| > nupic::Epsilon.
      * Otherwise, removes all the values in this sparse tensor
      *
-     * Complexity: O(product of bounds) (worst case, if |val| > nta::Epsilon)
+     * Complexity: O(product of bounds) (worst case, if |val| > nupic::Epsilon)
      */
     inline void setAll(const Float& val)
     {
@@ -1544,13 +1544,13 @@ namespace nta {
       }
 
       Index idx = getNewIndex(), newBounds = getNewIndex();
-      nta::permute(ind, bounds_, newBounds);
+      nupic::permute(ind, bounds_, newBounds);
 
       NZ newMap;
       
       const_iterator it, e;
       for (it = begin(), e = end(); it != e; ++it) {
-        nta::permute(ind, it->first, idx);
+        nupic::permute(ind, it->first, idx);
         newMap[idx] = it->second;
       }
 
@@ -2078,7 +2078,7 @@ namespace nta {
       // We have to call set instead of setNonZero, because
       // even the multiplication of two non-zeros can result
       // in a "zero" from the point of view of SparseMatrix
-      // that is, a value such that |value| <= nta::Epsilon
+      // that is, a value such that |value| <= nupic::Epsilon
       typename NonZeros<Index, IndexB>::const_iterator it, e;
       for (it = inter.begin(), e = inter.end(); it != e; ++it)
         set(it->getIndexA(), f(it->getValA(), it->getValB()));
@@ -2120,7 +2120,7 @@ namespace nta {
       NonZeros<Index, IndexB> u;
       nz_union(dims, B, u);
 
-      // Calling set because f(a, b) can fall below nta::Epsilon
+      // Calling set because f(a, b) can fall below nupic::Epsilon
       typename NonZeros<Index, IndexB>::const_iterator it, e;
       for (it = u.begin(), e = u.end(); it != e; ++it) 
         set(it->getIndexA(), f(it->getValA(), it->getValB()));
@@ -2172,7 +2172,7 @@ namespace nta {
       NonZeros<Index, IndexB> inter;
       nz_intersection(dims, B, inter);
       
-      // Calling set because f(a, b) can fall below nta::Epsilon
+      // Calling set because f(a, b) can fall below nupic::Epsilon
       typename NonZeros<Index, IndexB>::const_iterator it, e;
       for (it = inter.begin(), e = inter.end(); it != e; ++it) 
         C.set(it->getIndexA(), f(it->getValA(), it->getValB()));
@@ -2228,7 +2228,7 @@ namespace nta {
       NonZeros<Index, IndexB> u;
       nz_union(dims, B, u);
 
-      // Calling set because f(a, b) can fall below nta::Epsilon
+      // Calling set because f(a, b) can fall below nupic::Epsilon
       typename NonZeros<Index, IndexB>::const_iterator it, e;
       for (it = u.begin(), e = u.end(); it != e; ++it) 
         C.set(it->getIndexA(), f(it->getValA(), it->getValB()));
@@ -2270,7 +2270,7 @@ namespace nta {
       Index idx = getNewZeroIndex();
       IndexB idxB = B.getNewIndex();
 
-      // Calling set because f(a, b) can fall below nta::Epsilon
+      // Calling set because f(a, b) can fall below nupic::Epsilon
       do {
         project(dims, idx, idxB);
         C.set(idx, f(get(idx), B.get(idxB)));
@@ -2812,7 +2812,7 @@ namespace nta {
      * Whether two sparse tensors are equal or not.
      * To be equal, they need to have the same number of dimensions,
      * the same size along each dimensions, and the same non-zeros.
-     * Equality of floating point numbers is controlled by nta::Epsilon.
+     * Equality of floating point numbers is controlled by nupic::Epsilon.
      */
     template <typename I, typename F>
     NTA_HIDDEN friend bool operator==(const SparseTensor<I, F>&, const SparseTensor<I, F>&);
@@ -2885,7 +2885,7 @@ namespace nta {
     template <typename Index2, typename IndexB>
     inline void max(const Index2& dims, SparseTensor<IndexB, Float>& B) const
     {
-      accumulate_nz(dims, B, nta::Max<Float>(), 0);
+      accumulate_nz(dims, B, nupic::Max<Float>(), 0);
     }
 
     /**
@@ -2902,7 +2902,7 @@ namespace nta {
       const_iterator min_it = 
         std::max_element(begin(), end(), 
 			 predicate_compose<std::less<Float>, 
-			 nta::select2nd<std::pair<Index, Float> > >());
+			 nupic::select2nd<std::pair<Index, Float> > >());
       
       return std::make_pair(min_it->first, min_it->second);
     }
@@ -3044,7 +3044,7 @@ namespace nta {
      * Doesn't do anything if the sum of the tensor non-zeros adds up
      * to 0. 
      */
-    inline void normalize(const Float& tolerance =nta::Epsilon)
+    inline void normalize(const Float& tolerance =nupic::Epsilon)
     {
       Float s = sum();
       
@@ -3103,7 +3103,7 @@ namespace nta {
 
   //--------------------------------------------------------------------------------
 
-} // end namespace nta
+} // end namespace nupic
 
 #endif // NTA_SPARSE_TENSOR_HPP
 

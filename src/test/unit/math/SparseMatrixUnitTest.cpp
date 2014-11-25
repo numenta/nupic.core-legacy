@@ -30,7 +30,7 @@
     
 using namespace std;  
 
-namespace nta {         
+namespace nupic {
    
 #define TEST_LOOP(M)                                  \
   for (nrows = 0, ncols = M, zr = 15;                 \
@@ -512,7 +512,7 @@ namespace nta {
 //        UInt j; Real val;
 //        ITER_1(nnz) {
 //          buf >> j >> val;
-//          if (nta::nearlyZero(val))
+//          if (nupic::nearlyZero(val))
 //            Test("SparseMatrix::toCSR/small values", true, false);
 //        }
 //      }
@@ -520,8 +520,8 @@ namespace nta {
 //      // ... are read correctly
 //      std::stringstream buf1;
 //      buf1 << "csr -1 3 4 6 "
-//	   << "2 0 " << nta::Epsilon/2 << " 1 1 "
-//	   << "2 0 " << nta::Epsilon/2 << " 1 " << nta::Epsilon/2 << " "
+//	   << "2 0 " << nupic::Epsilon/2 << " 1 1 "
+//	   << "2 0 " << nupic::Epsilon/2 << " 1 " << nupic::Epsilon/2 << " "
 //	   << "2 0 1 1 1";
 //      SparseMat sm2(4, 4);
 //      sm2.fromCSR(buf1);
@@ -2566,11 +2566,11 @@ namespace nta {
 //      nrows = 200; ncols = 100; zr = ncols - 64;
 //      Dense<UInt, double> dense(nrows, ncols, zr, true, true, rng_);
 //      SparseMatrix<UInt, double> sm(nrows, ncols, dense.begin());
-//      sm.threshold(4 * nta::Epsilon);
-//      dense.threshold(4 * nta::Epsilon);
+//      sm.threshold(4 * nupic::Epsilon);
+//      dense.threshold(4 * nupic::Epsilon);
 //      Compare(dense, sm, "threshold, small values 1");
-//      sm.threshold(2 * nta::Epsilon);
-//      dense.threshold(2 * nta::Epsilon);
+//      sm.threshold(2 * nupic::Epsilon);
+//      dense.threshold(2 * nupic::Epsilon);
 //      Compare(dense, sm, "threshold, small values 2");
 //    }
 //
@@ -2655,16 +2655,16 @@ namespace nta {
 //        }
 //
 //        {     
-//          double r1 = denseA.accumulate(r, nta::Max<double>, 0);
-//          double r2 = smA.accumulateRowNZ(r, nta::Max<double>, 0);
+//          double r1 = denseA.accumulate(r, nupic::Max<double>, 0);
+//          double r2 = smA.accumulateRowNZ(r, nupic::Max<double>, 0);
 //          std::stringstream str;
 //          str << "accumulateRowNZ max " << nrows << "X" << ncols << "/" << zr;
 //          Test(str.str().c_str(), r1, r2);
 //        }
 //
 //        {
-//          double r1 = denseA.accumulate(r, nta::Max<double>, 0);
-//          double r2 = smA.accumulate(r, nta::Max<double>, 0);
+//          double r1 = denseA.accumulate(r, nupic::Max<double>, 0);
+//          double r2 = smA.accumulate(r, nupic::Max<double>, 0);
 //          std::stringstream str;
 //          str << "accumulate max " << nrows << "X" << ncols << "/" << zr;
 //          Test(str.str().c_str(), r1, r2);
@@ -2744,7 +2744,7 @@ namespace nta {
 //              << " - non compact";
 //	  if (m_i_sparse != m_i_dense
 //	      || m_j_sparse != m_j_dense
-//	      || !nta::nearlyEqual(m_val_sparse, m_val_dense))
+//	      || !nupic::nearlyEqual(m_val_sparse, m_val_dense))
 //	    Test(str.str().c_str(), 0, 1);
 //        }      
 //               
@@ -2757,7 +2757,7 @@ namespace nta {
 //              << " - non compact";
 //	  if (m_i_sparse != m_i_dense
 //	      || m_j_sparse != m_j_dense
-//	      || !nta::nearlyEqual(m_val_sparse, m_val_dense))
+//	      || !nupic::nearlyEqual(m_val_sparse, m_val_dense))
 //	    Test(str.str().c_str(), 0, 1);
 //        }
 //      }
@@ -2788,7 +2788,7 @@ namespace nta {
 //              << " - non compact";
 //	  if (m_i_sparse != m_i_dense
 //	      || m_j_sparse != m_j_dense
-//	      || !nta::nearlyEqual(m_val_sparse, m_val_dense)) {
+//	      || !nupic::nearlyEqual(m_val_sparse, m_val_dense)) {
 //	    Test(str.str().c_str(), 0, 1);
 //	  }
 //        }      
@@ -2802,7 +2802,7 @@ namespace nta {
 //              << " - non compact";
 //	  if (m_i_sparse != m_i_dense
 //	      || m_j_sparse != m_j_dense
-//	      || !nta::nearlyEqual(m_val_sparse, m_val_dense))
+//	      || !nupic::nearlyEqual(m_val_sparse, m_val_dense))
 //	    Test(str.str().c_str(), 0, 1);
 //        }
 //      }
@@ -2846,7 +2846,7 @@ namespace nta {
 //              << " - non compact";
 //	  for (UInt i = 0; i != nrows; ++i) {
 //	    if (optima_dense[i].first != optima_sparse[i].first
-//		|| !nta::nearlyEqual(optima_dense[i].second, optima_sparse[i].second))
+//		|| !nupic::nearlyEqual(optima_dense[i].second, optima_sparse[i].second))
 //	      Test(str.str().c_str(), 0, 1);
 //	  }
 //        }      
@@ -2874,7 +2874,7 @@ namespace nta {
 //              << " - non compact";
 //	  for (UInt i = 0; i != nrows; ++i) {
 //	    if (optima_dense[i].first != optima_sparse[i].first
-//		|| !nta::nearlyEqual(optima_dense[i].second, optima_sparse[i].second))
+//		|| !nupic::nearlyEqual(optima_dense[i].second, optima_sparse[i].second))
 //	      Test(str.str().c_str(), 0, 1);
 //	  }
 //        }
@@ -2919,7 +2919,7 @@ namespace nta {
 //              << " - non compact";
 //	  for (UInt i = 0; i != nrows; ++i) {
 //	    if (optima_dense[i].first != optima_sparse[i].first
-//		|| !nta::nearlyEqual(optima_dense[i].second, optima_sparse[i].second))
+//		|| !nupic::nearlyEqual(optima_dense[i].second, optima_sparse[i].second))
 //	      Test(str.str().c_str(), 0, 1);
 //	  }
 //        }      
@@ -2947,7 +2947,7 @@ namespace nta {
 //              << " - non compact";
 //	  for (UInt i = 0; i != nrows; ++i) {
 //	    if (optima_dense[i].first != optima_sparse[i].first
-//		|| !nta::nearlyEqual(optima_dense[i].second, optima_sparse[i].second))
+//		|| !nupic::nearlyEqual(optima_dense[i].second, optima_sparse[i].second))
 //	      Test(str.str().c_str(), 0, 1);
 //	  }
 //        }
@@ -3004,7 +3004,7 @@ namespace nta {
 //              << " - non compact";
 //	  for (UInt j = 0; j != ncols; ++j) {
 //	    if (optima_dense[j].first != optima_sparse[j].first
-//		|| !nta::nearlyEqual(optima_dense[j].second, optima_sparse[j].second))
+//		|| !nupic::nearlyEqual(optima_dense[j].second, optima_sparse[j].second))
 //	      Test(str.str().c_str(), 0, 1);
 //	  }
 //        }      
@@ -3032,7 +3032,7 @@ namespace nta {
 //              << " - non compact";
 //	  for (UInt i = 0; i != ncols; ++i) {
 //	    if (optima_dense[i].first != optima_sparse[i].first
-//		|| !nta::nearlyEqual(optima_dense[i].second, optima_sparse[i].second))
+//		|| !nupic::nearlyEqual(optima_dense[i].second, optima_sparse[i].second))
 //	      Test(str.str().c_str(), 0, 1);
 //	  }
 //        }
@@ -3077,7 +3077,7 @@ namespace nta {
 //              << " - non compact";
 //	  for (UInt i = 0; i != ncols; ++i) {
 //	    if (optima_dense[i].first != optima_sparse[i].first
-//		|| !nta::nearlyEqual(optima_dense[i].second, optima_sparse[i].second))
+//		|| !nupic::nearlyEqual(optima_dense[i].second, optima_sparse[i].second))
 //	      Test(str.str().c_str(), 0, 1);
 //	  }
 //        }      
@@ -3105,7 +3105,7 @@ namespace nta {
 //              << " - non compact";
 //	  for (UInt i = 0; i != ncols; ++i) {
 //	    if (optima_dense[i].first != optima_sparse[i].first
-//		|| !nta::nearlyEqual(optima_dense[i].second, optima_sparse[i].second))
+//		|| !nupic::nearlyEqual(optima_dense[i].second, optima_sparse[i].second))
 //	      Test(str.str().c_str(), 0, 1);
 //	  }
 //        }
@@ -3723,8 +3723,8 @@ namespace nta {
 //	    dense->accumulateRowNZ(row, minus<value_type>(), init);
 //	    Compare(*dense, *sparse, "accumulateRowNZ with minus", 1e-4);
 //	  } else if (switcher == 3) {
-//	    sparse->accumulateRowNZ(row, nta::Max<value_type>, init);
-//	    dense->accumulateRowNZ(row, nta::Max<value_type>, init);
+//	    sparse->accumulateRowNZ(row, nupic::Max<value_type>, init);
+//	    dense->accumulateRowNZ(row, nupic::Max<value_type>, init);
 //	    Compare(*dense, *sparse, "accumulateRowNZ with Max", 1e-4);
 //	  }
 //	  */
@@ -3755,8 +3755,8 @@ namespace nta {
 //	    dense->accumulate(row, minus<value_type>(), init);
 //	    Compare(*dense, *sparse, "accumulateRowNZ with minus", 1e-4);
 //	  } else if (switcher == 3) {
-//	    sparse->accumulate(row, nta::Max<value_type>, init);
-//	    dense->accumulate(row, nta::Max<value_type>, init);
+//	    sparse->accumulate(row, nupic::Max<value_type>, init);
+//	    dense->accumulate(row, nupic::Max<value_type>, init);
 //	    Compare(*dense, *sparse, "accumulateRowNZ with Max", 1e-4);
 //	  }
 //	  */
@@ -3868,6 +3868,6 @@ namespace nta {
 
   //--------------------------------------------------------------------------------
   
-} // namespace nta
+} // namespace nupic
 
 

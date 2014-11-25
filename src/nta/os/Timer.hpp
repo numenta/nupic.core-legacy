@@ -30,7 +30,7 @@
 #include <string>
 #include <nta/types/Types.hpp>
 
-namespace nta 
+namespace nupic
 {
 
   /**
@@ -109,7 +109,7 @@ namespace nta
 
   }; // class Timer  
   
-} // namespace nta
+} // namespace nupic
 
 #endif // NTA_TIMER2_HPP
 

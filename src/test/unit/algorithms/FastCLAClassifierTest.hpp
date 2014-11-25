@@ -32,7 +32,7 @@
 
 #include <nta/test/Tester.hpp>
 
-namespace nta
+namespace nupic
 {
 
   class FastCLAClassifierTest : public Tester
@@ -50,6 +50,6 @@ namespace nta
 
   }; // end class FastCLAClassifierTest
 
-} // end namespace nta
+} // end namespace nupic
 
 #endif // NTA_FAST_CLA_CLASSIFIER_TEST

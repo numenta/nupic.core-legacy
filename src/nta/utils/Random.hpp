@@ -37,7 +37,7 @@
 
 typedef NTA_UInt64 (*RandomSeedFuncPtr)();
 
-namespace nta {
+namespace nupic {
   /**
    * @b Responsibility
    * Provides standardized random number generation for the NuPIC Runtime Engine.
@@ -207,7 +207,7 @@ namespace nta {
   NTA_UInt64 GetRandomSeed();
 
 
-} // namespace nta
+} // namespace nupic
 
 
 

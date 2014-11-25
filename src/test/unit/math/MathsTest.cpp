@@ -33,7 +33,7 @@
 
 using namespace std;
 
-namespace nta {    
+namespace nupic {
 
 //  //--------------------------------------------------------------------------------
 //  void MathsTest::unitTestNearlyZero()
@@ -579,6 +579,6 @@ namespace nta {
   }
   
   //----------------------------------------------------------------------
-} // end namespace nta
+} // end namespace nupic
 
 

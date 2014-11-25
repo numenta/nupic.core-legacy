@@ -65,7 +65,7 @@
  * pointers to numpy array buffers, avoiding a copy step.
  */
 
-namespace nta {
+namespace nupic {
   namespace algorithms {
     namespace Cells4 {
 
@@ -272,7 +272,7 @@ namespace nta {
         static const UInt VERSION = 2;
 
       private:
-        nta::Random _rng;
+        nupic::Random _rng;
 
         //-----------------------------------------------------------------------
         /**
@@ -1135,7 +1135,7 @@ namespace nta {
       //-----------------------------------------------------------------------
     } // end namespace Cells4
   } // end namespace algorithms
-} // end namespace nta
+} // end namespace nupic
 
   //-----------------------------------------------------------------------
 #endif // NTA_Cells4_HPP

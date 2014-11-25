@@ -36,7 +36,7 @@
 #include <nta/ntypes/ArrayRef.hpp>
 #include <nta/types/BasicType.hpp>
 
-namespace nta
+namespace nupic
 {
 
 
@@ -333,7 +333,7 @@ Link::compute()
 
 
 
-namespace nta
+namespace nupic
 {
   std::ostream& operator<<(std::ostream& f, const Link& link)
   {

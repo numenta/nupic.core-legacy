@@ -41,7 +41,7 @@
 #include <apr-1/apr_network_io.h>
 
 
-using namespace nta;
+using namespace nupic;
 
 std::string OS::getErrorMessage()
 {

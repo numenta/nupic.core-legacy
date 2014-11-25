@@ -41,7 +41,7 @@
 //----------------------------------------------------------------------
 
 
-namespace nta {
+namespace nupic {
 
   //--------------------------------------------------------------------------------
   template <typename Int>
@@ -144,27 +144,27 @@ namespace nta {
     //--------------------------------------------------------------------------------
     /**
      * Decides whether val is not zero or not, by testing if val is
-     * outside closed ball [-nta::Epsilon .. +nta::Epsilon].
+     * outside closed ball [-nupic::Epsilon .. +nupic::Epsilon].
      *
      * @param val [value_type] the value to test
      * @retval [bool] whether val is different from zero or not
      */
     inline bool isNotZero_(const value_type& val) const 
     { 
-      return !nta::nearlyZero(val);
+      return !nupic::nearlyZero(val);
     }
 
     //--------------------------------------------------------------------------------
     /**
      * Decides whether val is zero or not, by testing if val is
-     * inside open ball (-nta::Epsilon .. +nta::Epsilon).
+     * inside open ball (-nupic::Epsilon .. +nupic::Epsilon).
      *
      * @param val [value_type] the value to test
      * @retval [bool] whether val is zero or not
      */
     inline bool isZero_(const value_type& val) const 
     { 
-      return nta::nearlyZero(val);
+      return nupic::nearlyZero(val);
     }
 
     //--------------------------------------------------------------------------------
@@ -1660,7 +1660,7 @@ namespace nta {
 
         // Accuracy issues because of the subtractions,
         // could return negative values
-        if (val <= nta::Epsilon)
+        if (val <= nupic::Epsilon)
           val = 0;
         
         { // Post-condition
@@ -1690,7 +1690,7 @@ namespace nta {
     template <typename InIter, typename OutIter>
     inline void vecDist(InIter x, OutIter y) const
     {
-      nta::Sqrt<value_type> s;
+      nupic::Sqrt<value_type> s;
 
       vecDistSquared(x, y);
       
@@ -1743,7 +1743,7 @@ namespace nta {
 
       // Accuracy issues because of the subtractions,
       // could return negative values
-      if (val <= nta::Epsilon)
+      if (val <= nupic::Epsilon)
         val = 0;
       
       { // Post-condition
@@ -1809,7 +1809,7 @@ namespace nta {
 
       // Accuracy issues because of the subtractions,
       // could return negative values
-      if (min_v <= nta::Epsilon)
+      if (min_v <= nupic::Epsilon)
         min_v = 0;
 
       { // Post-condition
@@ -1818,7 +1818,7 @@ namespace nta {
           << "Negative value in post-condition";
       }
 
-      nta::Sqrt<value_type> s;
+      nupic::Sqrt<value_type> s;
       return std::make_pair(arg_i, s(min_v));
     }
 
@@ -1864,7 +1864,7 @@ namespace nta {
           << "Negative value in post-condition";
       }
 
-      nta::Sqrt<value_type> s;
+      nupic::Sqrt<value_type> s;
       return std::make_pair(arg_i, s(min_v));
     }
 
@@ -2181,7 +2181,7 @@ namespace nta {
 
   //--------------------------------------------------------------------------------
 
-} // end namespace nta
+} // end namespace nupic
 
 #endif // NTA_SPARSE_MATRIX01_HPP
 

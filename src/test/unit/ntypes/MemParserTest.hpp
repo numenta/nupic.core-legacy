@@ -33,7 +33,7 @@
 #ifndef NTA_MEM_PARSER_TEST_HPP
 #define NTA_MEM_PARSER_TEST_HPP
 
-namespace nta {
+namespace nupic {
 
 class MemParserTest : public Tester
 {
@@ -41,7 +41,7 @@ public:
   virtual void RunTests() override;
 }; // end class MemParserTest
 
-} // end namespace nta
+} // end namespace nupic
 
 #endif // NTA_MEM_PARSER_TEST_HPP
 

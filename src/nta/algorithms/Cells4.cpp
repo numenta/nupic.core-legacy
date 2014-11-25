@@ -43,7 +43,7 @@
 
 #include <nta/os/Timer.hpp>
 
-using namespace nta::algorithms::Cells4;
+using namespace nupic::algorithms::Cells4;
 
 // Comment or uncomment to turn on timing
 //#define CELLS4_TIMING
@@ -53,12 +53,12 @@ using namespace nta::algorithms::Cells4;
 
 #define TIMER(code) (code)
 
-static nta::Timer computeTimer, inferenceTimer, learningTimer;
-static nta::Timer learnPhase1Timer, learnPhase2Timer, learnBacktrackTimer;
-static nta::Timer infPhase1Timer, infPhase2Timer, infBacktrackTimer;
-static nta::Timer forwardLearnPropTimer, forwardInfPropTimer;
-static nta::Timer getNewCellTimer, adaptSegmentTimer;
-static nta::Timer chooseCellsTimer;
+static nupic::Timer computeTimer, inferenceTimer, learningTimer;
+static nupic::Timer learnPhase1Timer, learnPhase2Timer, learnBacktrackTimer;
+static nupic::Timer infPhase1Timer, infPhase2Timer, infBacktrackTimer;
+static nupic::Timer forwardLearnPropTimer, forwardInfPropTimer;
+static nupic::Timer getNewCellTimer, adaptSegmentTimer;
+static nupic::Timer chooseCellsTimer;
 
 #else
 
@@ -245,15 +245,15 @@ void Cells4::addOutSynapses(UInt dstCellIdx, UInt dstSegIdx,
 }
 
 // explicit instantiations for the method above
-namespace nta {
+namespace nupic {
   namespace algorithms {
     namespace Cells4 {
-      template void Cells4::addOutSynapses(nta::UInt, nta::UInt,
-                       std::set<nta::UInt>::const_iterator,
-                       std::set<nta::UInt>::const_iterator);
-      template void Cells4::addOutSynapses(nta::UInt, nta::UInt,
-                       std::vector<nta::UInt>::const_iterator,
-                       std::vector<nta::UInt>::const_iterator);
+      template void Cells4::addOutSynapses(nupic::UInt, nupic::UInt,
+                       std::set<nupic::UInt>::const_iterator,
+                       std::set<nupic::UInt>::const_iterator);
+      template void Cells4::addOutSynapses(nupic::UInt, nupic::UInt,
+                       std::vector<nupic::UInt>::const_iterator,
+                       std::vector<nupic::UInt>::const_iterator);
 
     }
   }

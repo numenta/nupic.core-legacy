@@ -31,7 +31,7 @@
 #include <nta/os/Env.hpp>
 #include <nta/test/Tester.hpp>
 
-namespace nta {
+namespace nupic {
   
   class EnvTest : public Tester {
 public:
@@ -40,7 +40,7 @@ public:
     
     virtual void RunTests() override;
   };
-} // namespace nta
+} // namespace nupic
 
 
 #endif // NTA_ENV_TEST_HPP

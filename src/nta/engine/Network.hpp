@@ -35,7 +35,7 @@
 #include <nta/types/Types.hpp>
 #include <nta/ntypes/Collection.hpp>
 
-namespace nta
+namespace nupic
 {
 
   class Region;
@@ -414,6 +414,6 @@ namespace nta
     UInt64 iteration_;
   };
 
-} // namespace nta
+} // namespace nupic
 
 #endif // NTA_NETWORK_HPP

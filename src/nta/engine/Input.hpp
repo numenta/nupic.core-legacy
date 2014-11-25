@@ -38,7 +38,7 @@
 #include <nta/types/Types.hpp>
 #include <nta/ntypes/Array.hpp>
 
-namespace nta
+namespace nupic
 {
   class Link;
   class Region;

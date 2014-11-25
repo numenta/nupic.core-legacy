@@ -22,8 +22,8 @@
 
 #include <nta/algorithms/Cell.hpp>
 
-using namespace nta::algorithms::Cells4;
-using namespace nta;
+using namespace nupic::algorithms::Cells4;
+using namespace nupic;
 
 
 Cell::Cell()

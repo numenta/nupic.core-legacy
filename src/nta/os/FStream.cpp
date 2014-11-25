@@ -46,7 +46,7 @@
 #include <zlib.h>
 
 
-using namespace nta;
+using namespace nupic;
 
 //////////////////////////////////////////////////////////////////////////
 /// Print out diagnostic information when a file open fails

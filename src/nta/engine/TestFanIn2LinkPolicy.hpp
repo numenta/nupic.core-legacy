@@ -28,7 +28,7 @@
 #include <nta/engine/Link.hpp>
 #include <nta/ntypes/Dimensions.hpp>
 
-namespace nta
+namespace nupic
 {
 
   class Link;
@@ -69,7 +69,7 @@ private:
 
   }; // TestFanIn2
 
-} // namespace nta
+} // namespace nupic
 
 
 #endif // NTA_TESTFANIN2LINKPOLICY_HPP

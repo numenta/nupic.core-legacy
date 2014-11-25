@@ -43,7 +43,7 @@
 
 //--------------------------------------------------------------------------------
 
-namespace nta {
+namespace nupic {
 
   struct SparseMatrixAlgorithms;
 
@@ -66,7 +66,7 @@ namespace nta {
    *  This class manages its own memory.
    *
    * @b Invariants:
-   *  1. Values of non-zeros are > nta::Epsilon.
+   *  1. Values of non-zeros are > nupic::Epsilon.
    *  2. Indices of non-zeros in any row are unique.
    *  3. Indices of non-zeros in any row are sorted in increasing order.
    *
@@ -109,11 +109,11 @@ namespace nta {
    * product between a row stored in float and a vector in float, and store
    * the final result in float rather than double to save space.
    */
-  template <typename UI        =nta::UInt32,
-            typename Real_stor =nta::Real32,
-            typename I         =nta::Int32,
-            typename Real_prec =nta::Real64,
-            typename DTZ       =nta::DistanceToZero<Real_stor> >
+  template <typename UI        =nupic::UInt32,
+            typename Real_stor =nupic::Real32,
+            typename I         =nupic::Int32,
+            typename Real_prec =nupic::Real64,
+            typename DTZ       =nupic::DistanceToZero<Real_stor> >
   class SparseMatrix
   {
     // TODO find boost config flag to enable ullong as UnsignedInteger
@@ -399,7 +399,7 @@ namespace nta {
             << where
             << "Near zero value: " << *nz
             << " at (" << row << ", " << *ind << ") "
-            << "nta::Epsilon= " << nta::Epsilon;
+            << "nupic::Epsilon= " << nupic::Epsilon;
           NTA_ASSERT(row < nRows())
             << where
             << "Invalid row index: " << row
@@ -745,7 +745,7 @@ namespace nta {
      * storage. Also allows to do more tests, in case the arguments would be out
      * of range. Better to not use them unless you really know what you are doing
      * and are sure that you are not violating the assumptions SparseMatrix relies on
-     * (non-zeros are > nta::Epsilon, unique, and sorted always).
+     * (non-zeros are > nupic::Epsilon, unique, and sorted always).
      */
     inline size_type* ind_begin_(size_type row) const
     {
@@ -1239,7 +1239,7 @@ namespace nta {
         NTA_ASSERT(nnzr <= nCols());
       }
 
-      nta::Random rng(seed);
+      nupic::Random rng(seed);
 
       size_type nrows = nRows(), ncols = nCols();
 
@@ -2721,7 +2721,7 @@ namespace nta {
 
       size_type i, j, k, nrows, ncols, nnz, nnzr;
       i = j = k = nrows = ncols = nnz = nnzr = 0;
-      nta::Real64 val = 0;
+      nupic::Real64 val = 0;
 
       inStreamParam >> nrows >> ncols >> nnz;
 
@@ -2795,7 +2795,7 @@ namespace nta {
       MemParser inStream(inStreamParam, totalBytes);
 
       size_type i, j, k, nrows, ncols, nnz, nnzr;
-      nta::Real64 val; // always largest possible type, then cast
+      nupic::Real64 val; // always largest possible type, then cast
 
       inStream >> nrows >> ncols >> nnz;
 
@@ -3003,9 +3003,9 @@ namespace nta {
 
       char separator;
       inStream.read(&separator, 1);
-      nta::binary_load(inStream, nnzr_, nnzr_ + nrows_max_);
-      nta::binary_load(inStream, ind_mem_, ind_mem_ + nnz);
-      nta::binary_load(inStream, nz_mem_, nz_mem_ + nnz);
+      nupic::binary_load(inStream, nnzr_, nnzr_ + nrows_max_);
+      nupic::binary_load(inStream, ind_mem_, ind_mem_ + nnz);
+      nupic::binary_load(inStream, nz_mem_, nz_mem_ + nnz);
 
       bool littleEndian_bool = littleEndian == 1;
 
@@ -3063,9 +3063,9 @@ namespace nta {
                 << ncols_ << ' '
                 << nnz << ' ';
 
-      nta::binary_save(outStream, nnzr_, nnzr_ + nrows_max_);
-      nta::binary_save(outStream, ind_mem_, ind_mem_ + nnz);
-      nta::binary_save(outStream, nz_mem_, nz_mem_ + nnz);
+      nupic::binary_save(outStream, nnzr_, nnzr_ + nrows_max_);
+      nupic::binary_save(outStream, ind_mem_, ind_mem_ + nnz);
+      nupic::binary_save(outStream, nz_mem_, nz_mem_ + nnz);
     }
 
     //--------------------------------------------------------------------------------
@@ -4244,7 +4244,7 @@ namespace nta {
           NTA_ASSERT(!isZero_(*nz))
             << "SparseMatrix::getAllNonZeros (ijv): "
             << "Zero at " << row << ", " << *ind << ": " << *nz
-            << " epsilon= " << nta::Epsilon;
+            << " epsilon= " << nupic::Epsilon;
           ijv_iterator->v(*nz);
           ++ijv_iterator;
         }
@@ -4270,7 +4270,7 @@ namespace nta {
               NTA_ASSERT(!isZero_(*nz))
                 << "SparseMatrix::getAllNonZeros (rect): "
                 << "Zero at " << row << ", " << *ind << ": " << *nz
-                << " epsilon= " << nta::Epsilon;
+                << " epsilon= " << nupic::Epsilon;
               ijv_iterator->v(*nz);
               ++ijv_iterator;
             }
@@ -4301,7 +4301,7 @@ namespace nta {
           NTA_ASSERT(!isZero_(*nz))
             << "SparseMatrix::getAllNonZeros (3 lists): "
             << "Zero at " << row << ", " << *ind << ": " << *nz
-            << " epsilon= " << nta::Epsilon;
+            << " epsilon= " << nupic::Epsilon;
           *nz_val = *nz;
           ++nz_i; ++nz_j;
           ++nz_val;
@@ -4363,7 +4363,7 @@ namespace nta {
           for (InputIterator2 it_v = v_begin; it_v != v_end; ++it_v)
             NTA_ASSERT(!isZero_(*it_v))
               << where << "Passed in zero: " << *it_v
-              << " epsilon= " << nta::Epsilon;
+              << " epsilon= " << nupic::Epsilon;
 
           if (i_begin != i_end) {
             InputIterator1 ii = i_begin, jj = j_begin, iip = ii, jjp = jj;
@@ -4483,7 +4483,7 @@ namespace nta {
           NTA_ASSERT(!isZero_(*nz))
             << "SparseMatrix::getNonZerosInBox: "
             << "Zero at " << row << ", " << *col << ": " << *nz
-            << " epsilon= " << nta::Epsilon;
+            << " epsilon= " << nupic::Epsilon;
           *nz_v++ = *nz++;
         }
       }
@@ -5919,7 +5919,7 @@ namespace nta {
      * @b Exceptions:
      *  @li If row < 0 || row >= nrows
      *
-     * TODO test speed of nta::apply/std::transform
+     * TODO test speed of nupic::apply/std::transform
      * TODO threshold and apply in the same loop by assining to new position
      * with an offset
      */
@@ -7007,7 +7007,7 @@ namespace nta {
      *  @li If row < 0 || row >= nrows
      */
     inline void
-    thresholdRow(size_type row, const value_type& threshold =nta::Epsilon)
+    thresholdRow(size_type row, const value_type& threshold =nupic::Epsilon)
     {
       { // Pre-conditions
         assert_valid_row_(row, "thresholdRow");
@@ -7046,7 +7046,7 @@ namespace nta {
      *  @li If col < 0 || col >= ncols
      */
     inline
-    void thresholdCol(size_type col, const value_type& threshold =nta::Epsilon)
+    void thresholdCol(size_type col, const value_type& threshold =nupic::Epsilon)
     {
       { // Pre-conditions
         assert_valid_col_(col, "thresholdCol");
@@ -7067,7 +7067,7 @@ namespace nta {
      * @b Exceptions:
      *  @li None.
      */
-    inline void threshold(const value_type& threshold =nta::Epsilon)
+    inline void threshold(const value_type& threshold =nupic::Epsilon)
     {
       filter(std::bind2nd(std::greater_equal<value_type>(),threshold));
     }
@@ -8199,7 +8199,7 @@ namespace nta {
       if (isZero_(sum))
         return sum;
 
-      elementRowNZApply(row, nta::MultipliesByVal<value_type>(val / sum));
+      elementRowNZApply(row, nupic::MultipliesByVal<value_type>(val / sum));
 
       if (exact)
         normalizeRow(row, val, false);
@@ -8238,7 +8238,7 @@ namespace nta {
       if (isZero_(sum))
         return sum;
 
-      elementColNZApply(col, nta::MultipliesByVal<value_type>(val / sum));
+      elementColNZApply(col, nupic::MultipliesByVal<value_type>(val / sum));
 
       if (exact)
         normalizeCol(col, val, false);
@@ -8308,7 +8308,7 @@ namespace nta {
         ITERATE_ON_ROW {
           *nz *= nzb_[*ind];
         }
-        thresholdRow(row, nta::Epsilon);
+        thresholdRow(row, nupic::Epsilon);
       }
 
       if (exact)
@@ -8344,7 +8344,7 @@ namespace nta {
         ITERATE_ON_ROW {
           *nz *= k;
         }
-        thresholdRow(row, nta::Epsilon);
+        thresholdRow(row, nupic::Epsilon);
       }
 
       if (exact)
@@ -8379,7 +8379,7 @@ namespace nta {
         ITERATE_ON_ROW {
           *nz *= k;
         }
-        thresholdRow(row, nta::Epsilon);
+        thresholdRow(row, nupic::Epsilon);
       }
     }
 
@@ -10429,7 +10429,7 @@ namespace nta {
         ASSERT_INPUT_ITERATOR(InputIterator);
       } // End pre-conditions
 
-      this->applyOuter(row_begin, row_end, col_begin, col_end, nta::PlusVal(val));
+      this->applyOuter(row_begin, row_end, col_begin, col_end, nupic::PlusVal(val));
     }
 
     //--------------------------------------------------------------------------------
@@ -10467,7 +10467,7 @@ namespace nta {
       } // End pre-conditions
 
       this->applyOuter(row_begin, row_end, col_begin, col_end,
-                       nta::Plus<value_type>(), other);
+                       nupic::Plus<value_type>(), other);
     }
 
     //--------------------------------------------------------------------------------
@@ -10556,7 +10556,7 @@ namespace nta {
      */
     inline void replaceNZ(const value_type& val =1.0)
     {
-      elementNZApply(nta::AssignVal(val));
+      elementNZApply(nupic::AssignVal(val));
     }
 
     /**
@@ -10592,7 +10592,7 @@ namespace nta {
      */
     inline value_type diagNZLogSum() const
     {
-      nta::Log<value_type> nta_log;
+      nupic::Log<value_type> nta_log;
       value_type res = 0.0;
       ITERATE_ON_ALL_ROWS {
         difference_type offset = col_(row, row);
@@ -10614,7 +10614,7 @@ namespace nta {
           << "SparseMatrix::logRowSums: Invalid size for output vector";
       }
 
-      nta::Log<value_type> log_f;
+      nupic::Log<value_type> log_f;
 
       ITERATE_ON_ALL_ROWS {
         value_type s = 0;
@@ -10637,9 +10637,9 @@ namespace nta {
           << "SparseMatrix::logColSums: Invalid size for output vector";
       }
 
-      nta::Log<value_type> log_f;
+      nupic::Log<value_type> log_f;
 
-      nta::zero(out, out_end);
+      nupic::zero(out, out_end);
 
       ITERATE_ON_ALL_ROWS {
         ITERATE_ON_ROW {
@@ -10654,128 +10654,128 @@ namespace nta {
 
     inline void rowNegate(size_type idx)
     {
-      elementRowNZApply(idx, nta::Negate<value_type>());
+      elementRowNZApply(idx, nupic::Negate<value_type>());
     }
 
     inline void colNegate(size_type idx)
     {
-      elementColNZApply(idx, nta::Negate<value_type>());
+      elementColNZApply(idx, nupic::Negate<value_type>());
     }
 
     inline void negate()
     {
-      elementNZApply(nta::Negate<value_type>());
+      elementNZApply(nupic::Negate<value_type>());
     }
 
     inline void rowAbs(size_type idx)
     {
-      elementRowNZApply(idx, nta::Abs<value_type>());
+      elementRowNZApply(idx, nupic::Abs<value_type>());
     }
 
     inline void colAbs(size_type idx)
     {
-      elementColNZApply(idx, nta::Abs<value_type>());
+      elementColNZApply(idx, nupic::Abs<value_type>());
     }
 
     inline void abs()
     {
-      elementNZApply(nta::Abs<value_type>());
+      elementNZApply(nupic::Abs<value_type>());
     }
 
     inline void elementRowSquare(size_type idx)
     {
-      elementRowNZApply(idx, nta::Square<value_type>());
+      elementRowNZApply(idx, nupic::Square<value_type>());
     }
 
     inline void elementColSquare(size_type idx)
     {
-      elementColNZApply(idx, nta::Square<value_type>());
+      elementColNZApply(idx, nupic::Square<value_type>());
     }
 
     inline void elementSquare()
     {
-      elementNZApply(nta::Square<value_type>());
+      elementNZApply(nupic::Square<value_type>());
     }
 
     inline void elementRowCube(size_type idx)
     {
-      elementRowNZApply(idx, nta::Cube<value_type>());
+      elementRowNZApply(idx, nupic::Cube<value_type>());
     }
 
     inline void elementColCube(size_type idx)
     {
-      elementColNZApply(idx, nta::Cube<value_type>());
+      elementColNZApply(idx, nupic::Cube<value_type>());
     }
 
     inline void elementCube()
     {
-      elementNZApply(nta::Cube<value_type>());
+      elementNZApply(nupic::Cube<value_type>());
     }
 
     inline void elementRowNZInverse(size_type idx)
     {
-      elementRowNZApply(idx, nta::Inverse<value_type>());
+      elementRowNZApply(idx, nupic::Inverse<value_type>());
     }
 
     inline void elementColNZInverse(size_type idx)
     {
-      elementColNZApply(idx, nta::Inverse<value_type>());
+      elementColNZApply(idx, nupic::Inverse<value_type>());
     }
 
     inline void elementNZInverse()
     {
-      elementNZApply(nta::Inverse<value_type>());
+      elementNZApply(nupic::Inverse<value_type>());
     }
 
     inline void elementRowSqrt(size_type idx)
     {
-      elementRowNZApply(idx, nta::Sqrt<value_type>());
+      elementRowNZApply(idx, nupic::Sqrt<value_type>());
     }
 
     inline void elementColSqrt(size_type idx)
     {
-      elementColNZApply(idx, nta::Sqrt<value_type>());
+      elementColNZApply(idx, nupic::Sqrt<value_type>());
     }
 
     inline void elementSqrt()
     {
-      elementNZApply(nta::Sqrt<value_type>());
+      elementNZApply(nupic::Sqrt<value_type>());
     }
 
     inline void elementRowNZLog(size_type idx)
     {
-      elementRowNZApply(idx, nta::Log<value_type>());
+      elementRowNZApply(idx, nupic::Log<value_type>());
     }
 
     inline void elementColNZLog(size_type idx)
     {
-      elementColNZApply(idx, nta::Log<value_type>());
+      elementColNZApply(idx, nupic::Log<value_type>());
     }
 
     inline void elementNZLog()
     {
-      elementNZApply(nta::Log<value_type>());
+      elementNZApply(nupic::Log<value_type>());
     }
 
     inline void elementRowNZExp(size_type idx)
     {
-      elementRowNZApply(idx, nta::Exp<value_type>());
+      elementRowNZApply(idx, nupic::Exp<value_type>());
     }
 
     inline void elementColNZExp(size_type idx)
     {
-      elementColNZApply(idx, nta::Exp<value_type>());
+      elementColNZApply(idx, nupic::Exp<value_type>());
     }
 
     inline void elementNZExp()
     {
-      elementNZApply(nta::Exp<value_type>());
+      elementNZApply(nupic::Exp<value_type>());
     }
 
     //--------------------------------------------------------------------------------
     inline void elementRowMultiply(size_type row, const value_type& val)
     {
-      elementRowNZApply(row, nta::MultipliesByVal(val));
+      elementRowNZApply(row, nupic::MultipliesByVal(val));
     }
 
     template <typename InputIterator>
@@ -10802,7 +10802,7 @@ namespace nta {
 
     inline void elementColMultiply(size_type col, const value_type& val)
     {
-      elementColNZApply(col, nta::MultipliesByVal(val));
+      elementColNZApply(col, nupic::MultipliesByVal(val));
     }
 
     template <typename InputIterator>
@@ -10829,17 +10829,17 @@ namespace nta {
 
     inline void multiply(const value_type& val)
     {
-      elementNZApply(nta::MultipliesByVal(val));
+      elementNZApply(nupic::MultipliesByVal(val));
     }
 
     inline void elementRowDivide(size_type idx, const value_type& val)
     {
-      elementRowNZApply(idx, nta::DividesByVal(val));
+      elementRowNZApply(idx, nupic::DividesByVal(val));
     }
 
     inline void elementColDivide(size_type idx, const value_type& val)
     {
-      elementColNZApply(idx, nta::DividesByVal(val));
+      elementColNZApply(idx, nupic::DividesByVal(val));
     }
 
     inline void divide(const value_type& val)
@@ -10849,37 +10849,37 @@ namespace nta {
           << "divide: Division by zero";
       } // End pre-conditions
 
-      elementNZApply(nta::DividesByVal(val));
+      elementNZApply(nupic::DividesByVal(val));
     }
 
     inline void elementRowNZPow(size_type idx, const value_type& val)
     {
-      elementRowNZApply(idx, nta::PowVal(val));
+      elementRowNZApply(idx, nupic::PowVal(val));
     }
 
     inline void elementColNZPow(size_type idx, const value_type& val)
     {
-      elementColNZApply(idx, nta::PowVal(val));
+      elementColNZApply(idx, nupic::PowVal(val));
     }
 
     inline void elementNZPow(const value_type& val)
     {
-      elementNZApply(nta::PowVal(val));
+      elementNZApply(nupic::PowVal(val));
     }
 
     inline void elementRowNZLogk(size_type idx, const value_type& val)
     {
-      elementRowNZApply(idx, nta::LogkVal(val));
+      elementRowNZApply(idx, nupic::LogkVal(val));
     }
 
     inline void elementColNZLogk(size_type idx, const value_type& val)
     {
-      elementColNZApply(idx, nta::LogkVal(val));
+      elementColNZApply(idx, nupic::LogkVal(val));
     }
 
     inline void elementNZLogk(const value_type& val)
     {
-      elementNZApply(nta::LogkVal(val));
+      elementNZApply(nupic::LogkVal(val));
     }
 
     template <typename InputIterator>
@@ -10920,37 +10920,37 @@ namespace nta {
 
     inline void rowAdd(size_type idx, const value_type& val)
     {
-      elementRowApply(idx, nta::PlusVal(val));
+      elementRowApply(idx, nupic::PlusVal(val));
     }
 
     inline void colAdd(size_type idx, const value_type& val)
     {
-      elementColApply(idx, nta::PlusVal(val));
+      elementColApply(idx, nupic::PlusVal(val));
     }
 
     inline void add(const value_type& val)
     {
-      elementApply(nta::PlusVal(val));
+      elementApply(nupic::PlusVal(val));
     }
 
     inline void elementNZAdd(const value_type& val)
     {
-      elementNZApply(nta::PlusVal(val));
+      elementNZApply(nupic::PlusVal(val));
     }
 
     inline void rowSubtract(size_type idx, const value_type& val)
     {
-      elementRowApply(idx, nta::MinusVal(val));
+      elementRowApply(idx, nupic::MinusVal(val));
     }
 
     inline void colSubtract(size_type idx, const value_type& val)
     {
-      elementColApply(idx, nta::MinusVal(val));
+      elementColApply(idx, nupic::MinusVal(val));
     }
 
     inline void subtract(const value_type& val)
     {
-      elementApply(nta::MinusVal(val));
+      elementApply(nupic::MinusVal(val));
     }
 
     inline void elementNZMultiply(const SparseMatrix& other)
@@ -10960,12 +10960,12 @@ namespace nta {
 
     inline void elementNZDivide(const SparseMatrix& other)
     {
-      elementNZApply(other, nta::Divides<value_type>());
+      elementNZApply(other, nupic::Divides<value_type>());
     }
 
     inline void subtract(const SparseMatrix& other)
     {
-      elementApply(other, nta::Minus<value_type>());
+      elementApply(other, nupic::Minus<value_type>());
     }
 
     //--------------------------------------------------------------------------------
@@ -11047,7 +11047,7 @@ namespace nta {
 
   //--------------------------------------------------------------------------------
 
-} // end namespace nta
+} // end namespace nupic
 
 #endif // NTA_SPARSE_MATRIX_HPP
 

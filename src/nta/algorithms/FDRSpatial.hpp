@@ -25,7 +25,7 @@
 
 #include <nta/math/StlIo.hpp>
 
-namespace nta {
+namespace nupic {
   namespace algorithms {
 
     //--------------------------------------------------------------------------------
@@ -47,7 +47,7 @@ namespace nta {
       std::set<std::pair<I, float>, Order> to_visit;
       std::vector<std::pair<int, float> > visited(n_c, std::make_pair(-1,-1));
 
-      std::fill(afterInhibition, afterInhibition_end, (nta::Real32)0);
+      std::fill(afterInhibition, afterInhibition_end, (nupic::Real32)0);
 
       for (I i = 0; i != n_c; ++i)
         if (denseOutput[i] > stimulusThreshold) {
@@ -147,8 +147,8 @@ namespace nta {
     class FDRSpatial
     {
     public:
-      typedef nta::UInt32 size_type;
-      typedef nta::Real32 value_type;
+      typedef nupic::UInt32 size_type;
+      typedef nupic::Real32 value_type;
       typedef std::pair<size_type, value_type> IndNZ;
 
       typedef enum { uniform, gaussian } CoincidenceType;
@@ -995,6 +995,6 @@ namespace nta {
 
     //--------------------------------------------------------------------------------
   } // end namespace algorithms
-} // end namespace nta
+} // end namespace nupic
 
 #endif // NTA_FDR_SPATIAL_HPP

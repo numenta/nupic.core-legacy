@@ -23,7 +23,7 @@
 #include <iomanip>
 #include <nta/algorithms/InSynapse.hpp>
 
-using namespace nta::algorithms::Cells4;
+using namespace nupic::algorithms::Cells4;
 
 inline void InSynapse::print(std::ostream& outStream) const
 {
@@ -32,7 +32,7 @@ inline void InSynapse::print(std::ostream& outStream) const
 
 //--------------------------------------------------------------------------------
 
-namespace nta {
+namespace nupic {
   namespace algorithms {
     namespace Cells4 {
 

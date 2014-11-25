@@ -36,7 +36,7 @@
 #include <sstream>
 #include <list>
 
-namespace nta
+namespace nupic
 {
   
 VectorFileEffector::VectorFileEffector(const ValueMap& params, Region* region) :

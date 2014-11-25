@@ -33,7 +33,7 @@
 
 //----------------------------------------------------------------------
 
-namespace nta {
+namespace nupic {
 
   /**
    * A class that models a range along a given dimension.
@@ -418,6 +418,6 @@ namespace nta {
   };
 
   //--------------------------------------------------------------------------------
-} // end namespace nta
+} // end namespace nupic
 
 #endif // NTA_DOMAIN_HPP

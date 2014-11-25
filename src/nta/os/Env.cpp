@@ -31,7 +31,7 @@ Environment Implementation
 #include <cctype> // toupper
 #include <algorithm> // std::transform
 
-using namespace nta;
+using namespace nupic;
 
 bool Env::get(const std::string& name, std::string& value)
 {

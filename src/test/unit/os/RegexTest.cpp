@@ -29,7 +29,7 @@
 #include "RegexTest.hpp"
 
 using namespace std;
-using namespace nta;
+using namespace nupic;
 
 
 void RegexTest::RunTests()

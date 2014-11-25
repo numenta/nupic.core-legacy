@@ -26,7 +26,7 @@
 #include <string>
 #include <vector>
 
-namespace nta
+namespace nupic
 {
   // A collection is a templated class that contains items of type t.
   // It supports lookup by name and by index. The items are stored in a map

@@ -31,7 +31,7 @@
 #include <nta/engine/Region.hpp>
 #include <nta/engine/Output.hpp>
 
-using namespace nta;
+using namespace nupic;
 
 void InputTest::RunTests()
 {

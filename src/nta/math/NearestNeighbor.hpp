@@ -31,7 +31,7 @@
 #include <nta/math/ArrayAlgo.hpp>
 
 //----------------------------------------------------------------------
-namespace nta {
+namespace nupic {
 
   template <typename T>
   class NearestNeighbor : public T
@@ -1004,7 +1004,7 @@ namespace nta {
 	  }
 	}
 
-	nta::Sqrt<value_type> sf;
+	nupic::Sqrt<value_type> sf;
 
 	for (size_type j = 0; j != ncols; ++j) 
 	  stddev_[j] = sf((e2[j] - e[j]*e[j]/nrows) / (nrows-1));
@@ -1185,7 +1185,7 @@ namespace nta {
 
   //--------------------------------------------------------------------------------
 
-} // end namespace nta
+} // end namespace nupic
 
 #endif // NTA_NEAREST_NEIGHBOR_HPP
 

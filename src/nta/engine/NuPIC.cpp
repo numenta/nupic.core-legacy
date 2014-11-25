@@ -30,7 +30,7 @@
 #include <nta/utils/Log.hpp>
 #include <apr-1/apr_general.h>
 
-namespace nta
+namespace nupic
 {
 
 std::set<Network*> NuPIC::networks_;

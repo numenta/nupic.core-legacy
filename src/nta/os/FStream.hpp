@@ -37,7 +37,7 @@
 
 #include <fstream>
 
-namespace nta {
+namespace nupic {
 
 ///////////////////////////////////////////////////////////////////////////////////////
 /// IFStream
@@ -158,7 +158,7 @@ public:
 
 
 
-} // end namespace nta
+} // end namespace nupic
 
 
 

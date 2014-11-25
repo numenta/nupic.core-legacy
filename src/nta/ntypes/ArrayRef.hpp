@@ -34,7 +34,7 @@
 #include <nta/ntypes/ArrayBase.hpp>
 #include <nta/utils/Log.hpp>
 
-namespace nta
+namespace nupic
 {
   class ArrayRef : public ArrayBase
   {

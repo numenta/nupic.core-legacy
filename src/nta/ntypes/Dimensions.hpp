@@ -31,7 +31,7 @@
 #include <vector>
 #include <sstream>
 
-namespace nta
+namespace nupic
 {
   /**
    * @typedef Coordinate

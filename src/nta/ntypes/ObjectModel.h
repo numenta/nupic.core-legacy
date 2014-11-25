@@ -71,7 +71,7 @@ extern "C" {
  * Having a 1-1 mapping between the interfaces allows reusing the same implementation
  * with minimal forwarding inside each runtime object. 
  *
- *  The naming convention of mapped interfaces is that the C++ nta::I<interface name> corresponds to the 
+ *  The naming convention of mapped interfaces is that the C++ nupic::I<interface name> corresponds to the
  *  NTA_<interface name>. The nta namespace is translated to an NTA_ prefix and the I is dropped.
  *  
  * @b Invariants:

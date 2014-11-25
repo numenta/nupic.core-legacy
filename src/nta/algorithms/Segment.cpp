@@ -37,7 +37,7 @@
 
 #include <nta/algorithms/Segment.hpp>
 
-using namespace nta::algorithms::Cells4;
+using namespace nupic::algorithms::Cells4;
 
 //----------------------------------------------------------------------
 /**
@@ -459,7 +459,7 @@ void Segment::print(std::ostream& outStream, UInt nCellsPerCol) const
   }
 }
 
-namespace nta{
+namespace nupic{
   namespace algorithms {
     namespace Cells4 {
 

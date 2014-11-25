@@ -28,7 +28,7 @@
 #include <nta/math/SparseMatrix.hpp>
 #include <nta/math/SparseMatrix01.hpp>
 
-namespace nta {
+namespace nupic {
   
   ////////////////////////////////////////////////////////////////////////////
   /// Conditional Probablity Table 
@@ -41,7 +41,7 @@ namespace nta {
   ///
   /// @b Notes:
   /// Binning is not performed automatically by this class. Bin updates msut be done 
-  /// one row at a time. This class uses nta::SparseMatrix which is a compressed sparse row
+  /// one row at a time. This class uses nupic::SparseMatrix which is a compressed sparse row
   /// matrix. Also maintains the row and column sumProp distributions. 
   ///
   //////////////////////////////////////////////////////////////////////////////
@@ -209,6 +209,6 @@ namespace nta {
     std::vector<Real>   colSums_;
   };
 
-} // namespace nta
+} // namespace nupic
 
 #endif // NTA_COND_PROB_TABLE_HPP

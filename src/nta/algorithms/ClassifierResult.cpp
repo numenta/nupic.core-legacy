@@ -28,7 +28,7 @@
 
 using namespace std;
 
-namespace nta
+namespace nupic
 {
   namespace algorithms
   {
@@ -61,4 +61,4 @@ namespace nta
 
     } // end namespace cla_classifier
   } // end namespace algorithms
-} // end namespace nta
+} // end namespace nupic

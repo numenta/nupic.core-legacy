@@ -28,7 +28,7 @@
 #include <nta/ntypes/Collection.hpp>
 #include <nta/engine/Spec.hpp>
 
-namespace nta
+namespace nupic
 {
 
   namespace YAMLUtils
@@ -50,7 +50,7 @@ namespace nta
 
 
   } // namespace YAMLUtils
-} // namespace nta
+} // namespace nupic
 
 #endif //  NTA_YAML_HPP
 

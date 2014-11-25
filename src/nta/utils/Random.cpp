@@ -31,7 +31,7 @@
 #include <ctime>
 #include <cmath> // For ldexp.
 
-using namespace nta;
+using namespace nupic;
 Random* Random::theInstanceP_ = nullptr;
 RandomSeedFuncPtr Random::seeder_ = nullptr;
 
@@ -55,7 +55,7 @@ static NTA_UInt64 badSeeder()
 // When we have different algorithms RandomImpl will become an interface
 // class and subclasses will implement specific algorithms
 
-namespace nta
+namespace nupic
 {
   class RandomImpl
   {
@@ -280,7 +280,7 @@ RandomImpl::RandomImpl(UInt64 seed)
 }
 
 
-namespace nta
+namespace nupic
 {
   std::ostream& operator<<(std::ostream& outStream, const Random& r)
   {
@@ -356,7 +356,7 @@ namespace nta
   // the Random singleton has not been initialized.
   NTA_UInt64 GetRandomSeed()
   {
-    Random* r = nta::Random::theInstanceP_;
+    Random* r = nupic::Random::theInstanceP_;
     NTA_CHECK(r != nullptr);
     NTA_UInt64 result = r->getUInt64();
     return result;
@@ -364,7 +364,7 @@ namespace nta
 
 
 
-} // namespace nta
+} // namespace nupic
 
 
 

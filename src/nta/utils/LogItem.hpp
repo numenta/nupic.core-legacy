@@ -30,7 +30,7 @@
 #include <sstream>
 #include <iostream>
 
-namespace nta {
+namespace nupic {
 
   /**
    * @b Description

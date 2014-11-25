@@ -33,7 +33,7 @@
 
 //----------------------------------------------------------------------
 
-namespace nta {
+namespace nupic {
 
   struct NetworkTest : public Tester
   {

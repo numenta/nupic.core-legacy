@@ -37,7 +37,7 @@
   // conformant name: _getpid.
 #endif
 
-namespace nta  
+namespace nupic
 {
   /* 
    * removed for NuPIC 2:

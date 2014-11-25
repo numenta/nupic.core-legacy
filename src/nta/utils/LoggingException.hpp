@@ -31,7 +31,7 @@
 #include <sstream>
 #include <vector> 
 
-namespace nta
+namespace nupic
 {
   class LoggingException : public Exception
   {

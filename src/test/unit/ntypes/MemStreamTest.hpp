@@ -33,7 +33,7 @@
 #ifndef NTA_MEM_STREAM_TEST_HPP
 #define NTA_MEM_STREAM_TEST_HPP
 
-namespace nta {
+namespace nupic {
 
 //----------------------------------------------------------------------
 class MemStreamTest : public Tester
@@ -43,7 +43,7 @@ public:
 }; // end class MemStreamTest
 
     //----------------------------------------------------------------------
-} // end namespace nta
+} // end namespace nupic
 
 #endif // NTA_MEM_STREAM_TEST_HPP
 

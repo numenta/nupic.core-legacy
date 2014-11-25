@@ -27,11 +27,11 @@
 
 #include <set>
 
-/** @namespace nta
+/** @namespace nupic
  *
  * Contains the primary NuPIC API.
  */
-namespace nta
+namespace nupic
 {
   class Network;
 
@@ -76,5 +76,5 @@ namespace nta
     static std::set<Network*> networks_;
     static bool initialized_;
   };
-} // namespace nta
+} // namespace nupic
 

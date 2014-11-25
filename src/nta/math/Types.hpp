@@ -37,7 +37,7 @@
 
 /* This file is used by array_algo.hpp */
 
-namespace nta {
+namespace nupic {
 
   //--------------------------------------------------------------------------------
   // BYTE VECTOR
@@ -47,10 +47,10 @@ namespace nta {
    * Going to a real vector of bits is slower when accessing the individual bits,
    * but this vector of bytes can still be fed to the SSE with good results.
    */
-  struct ByteVector : public std::vector<nta::Byte> 
+  struct ByteVector : public std::vector<nupic::Byte>
   {
     inline ByteVector(size_t n =0)
-      : std::vector<nta::Byte>(n, (nta::Byte)0)
+      : std::vector<nupic::Byte>(n, (nupic::Byte)0)
     {}
 
     /**
@@ -60,7 +60,7 @@ namespace nta {
      */
     template <typename It>
     inline ByteVector(It begin, size_t n)
-      : std::vector<nta::Byte>(n, 0)
+      : std::vector<nupic::Byte>(n, 0)
     {
       for (size_t i = 0; i != this->size(); ++i)
         (*this)[i] = *begin++ != 0;
@@ -356,6 +356,6 @@ namespace nta {
   };
 
   //--------------------------------------------------------------------------------
-}; // end namespace nta
+}; // end namespace nupic
 
 #endif // NTA_MATH_TYPES_HPP

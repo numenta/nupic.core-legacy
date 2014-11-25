@@ -35,7 +35,7 @@
 #include <nta/types/Types.hpp>
 #include <nta/os/FStream.hpp>
 
-namespace nta 
+namespace nupic
 {
   /**
    *  VectorFile is a simple container class for lists of numerical vectors. Its only

@@ -34,7 +34,7 @@
 #include <nta/os/Path.hpp>
 
 using namespace std;
-namespace nta {
+namespace nupic {
 
   /* static members */
   std::string Tester::testInputDir_;
@@ -83,5 +83,5 @@ namespace nta {
     return std::string(testoutputpath);
   }
 
-} // end namespace nta
+} // end namespace nupic
 

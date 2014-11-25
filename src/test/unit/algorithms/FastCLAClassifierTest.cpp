@@ -34,9 +34,9 @@
 #include "FastCLAClassifierTest.hpp"
 
 using namespace std;
-using namespace nta::algorithms::cla_classifier;
+using namespace nupic::algorithms::cla_classifier;
 
-namespace nta {
+namespace nupic {
 
   void FastCLAClassifierTest::RunTests()
   {
@@ -103,4 +103,4 @@ namespace nta {
     }
   }
 
-} // end namespace nta
+} // end namespace nupic

@@ -30,7 +30,7 @@
 #include <string>
 #include <vector>
 
-namespace nta 
+namespace nupic
 {
   
   /*

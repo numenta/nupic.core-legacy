@@ -58,7 +58,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <nta/algorithms/Svm.hpp>
 
-namespace nta {
+namespace nupic {
   namespace algorithms {
     namespace svm {
       
@@ -138,10 +138,10 @@ namespace nta {
       {
 	outStream << size() << " " << n_dims() << " ";
   
-	nta::binary_save(outStream, y_);
+	nupic::binary_save(outStream, y_);
 
 	for (int i = 0; i < size(); ++i)
-	  nta::binary_save(outStream, x_[i], x_[i] + n_dims());
+	  nupic::binary_save(outStream, x_[i], x_[i] + n_dims());
 	outStream << " ";
       }
 
@@ -159,7 +159,7 @@ namespace nta {
 	x_.resize(s, nullptr);
 
 	inStream.ignore(1);
-	nta::binary_load(inStream, y_);
+	nupic::binary_load(inStream, y_);
 	
 	for (int i = 0; i < size(); ++i) {
 
@@ -170,7 +170,7 @@ namespace nta {
 #endif
 
           std::fill(x_[i], x_[i] + n_dims(), (float) 0);
-	  nta::binary_load(inStream, x_[i], x_[i] + n_dims());
+	  nupic::binary_load(inStream, x_[i], x_[i] + n_dims());
 	}
       }
 
@@ -195,11 +195,11 @@ namespace nta {
       {
 	outStream << size() << " " << n_dims() << " " << threshold_ << " ";
   
-	nta::binary_save(outStream, y_);
-	nta::binary_save(outStream, nnz_);
+	nupic::binary_save(outStream, y_);
+	nupic::binary_save(outStream, nnz_);
 	
 	for (int i = 0; i < size(); ++i) 
-	  nta::binary_save(outStream, x_[i], x_[i] + nnz_[i]);
+	  nupic::binary_save(outStream, x_[i], x_[i] + nnz_[i]);
 	outStream << " ";
       }
 
@@ -218,12 +218,12 @@ namespace nta {
 	x_.resize(s, nullptr);
 	
 	inStream.ignore(1);
-	nta::binary_load(inStream, y_);
-	nta::binary_load(inStream, nnz_);
+	nupic::binary_load(inStream, y_);
+	nupic::binary_load(inStream, nnz_);
 
 	for (int i = 0; i < s; ++i) {
 	  x_[i] = new feature_type[nnz_[i]];
-	  nta::binary_load(inStream, x_[i], x_[i] + nnz_[i]);
+	  nupic::binary_load(inStream, x_[i], x_[i] + nnz_[i]);
 	}
       }
 
@@ -366,7 +366,7 @@ namespace nta {
 		  << n_dims() << " ";
   
 	for (auto & elem : sv) 
-	  nta::binary_save(outStream, elem, elem + n_dims());
+	  nupic::binary_save(outStream, elem, elem + n_dims());
 	outStream << " ";
   
 	for (auto & elem : sv_coef) 
@@ -410,7 +410,7 @@ namespace nta {
 	inStream.ignore(1);
 	for (int i = 0; i < l; ++i) {
 	  sv[i] = sv_mem + i * n_dims();
-	  nta::binary_load(inStream, sv[i], sv[i] + n_dims());
+	  nupic::binary_load(inStream, sv[i], sv[i] + n_dims());
 	}
 
 	for (auto & elem : sv_coef)

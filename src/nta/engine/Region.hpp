@@ -41,7 +41,7 @@
 #include <nta/ntypes/Dimensions.hpp>
 #include <nta/os/Timer.hpp>
 
-namespace nta
+namespace nupic
 {
   class RegionImpl;
   class Output; 
@@ -753,6 +753,6 @@ namespace nta
     Timer executeTimer_;
   };
 
-} // namespace nta
+} // namespace nupic
 
 #endif // NTA_REGION_HPP

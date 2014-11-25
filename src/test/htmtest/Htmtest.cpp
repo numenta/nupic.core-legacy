@@ -62,7 +62,7 @@ bool ignore_negative_tests = false;
     } \
   }
 
-using namespace nta;
+using namespace nupic;
 
 bool verbose = false;
 
@@ -438,7 +438,7 @@ int main(int argc, char *argv[])
       }
     }
 
-  } catch (nta::Exception& e) {
+  } catch (nupic::Exception& e) {
     std::cout 
       << "Exception: " << e.getMessage() 
       << " at: " << e.getFilename() << ":" << e.getLineNumber()

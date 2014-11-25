@@ -46,7 +46,7 @@
 // Path from site-packages to packages that contain NuPIC Python regions
 const char * packages[] = { "nupic.regions", "nupic.regions.extra" };
 
-namespace nta
+namespace nupic
 {
   class DynamicPythonLibrary
   {
@@ -245,8 +245,8 @@ static RegionImpl * createPyNode(DynamicPythonLibrary * pyLib,
 
     if (exception)
     {
-      nta::Exception * e = (nta::Exception *)exception;
-      throw nta::Exception(*e);
+      nupic::Exception * e = (nupic::Exception *)exception;
+      throw nupic::Exception(*e);
       delete e;
     }
   }
@@ -285,8 +285,8 @@ static RegionImpl * deserializePyNode(DynamicPythonLibrary * pyLib,
     
     if (exception)
     {
-      nta::Exception * e = (nta::Exception *)exception;
-      throw nta::Exception(*e);
+      nupic::Exception * e = (nupic::Exception *)exception;
+      throw nupic::Exception(*e);
       delete e;
     }
   }
@@ -389,7 +389,7 @@ static Spec * getPySpec(DynamicPythonLibrary * pyLib,
 
     if (exception)
     {
-      nta::Exception * e = (nta::Exception *)exception;
+      nupic::Exception * e = (nupic::Exception *)exception;
       delete e;
       NTA_THROW << "Could not get valid spec for Region: " << nodeType;
     }

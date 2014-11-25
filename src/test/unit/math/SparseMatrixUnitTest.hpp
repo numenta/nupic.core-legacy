@@ -40,7 +40,7 @@
 #ifndef NTA_SPARSE_MATRIX_UNIT_TEST_HPP
 #define NTA_SPARSE_MATRIX_UNIT_TEST_HPP
 
-namespace nta {
+namespace nupic {
                 
   using namespace std;
 
@@ -76,7 +76,7 @@ namespace nta {
       {
         std::stringstream msg;
         msg << str << " values: " << p1.second << " and " << p2.second;
-        TEST(nta::nearlyEqual(p1.second, p2.second));
+        TEST(nupic::nearlyEqual(p1.second, p2.second));
       }
     }
 
@@ -88,7 +88,7 @@ namespace nta {
       InIter2 y2_begin = y2;
 
       ITER_1(n) {
-        if (!nta::nearlyZero(::fabs((double)(*y2 - *y1)))) 
+        if (!nupic::nearlyZero(::fabs((double)(*y2 - *y1))))
           TEST(*y1 == *y2);
         ++y1; ++y2;
       }
@@ -113,7 +113,7 @@ namespace nta {
           msg << str << " indices are different at: " << i 
               << " " << v1[i].first << " and " << v2[i].first;
         }
-        if (!nta::nearlyEqual(v1[i].second, v2[i].second)) {
+        if (!nupic::nearlyEqual(v1[i].second, v2[i].second)) {
           std::stringstream msg;
           msg << str << " values are different at: " << i 
               << " " << v1[i].second << " and " << v2[i].second;
@@ -129,7 +129,7 @@ namespace nta {
     template <typename I, typename F, typename I2, typename F2, typename Z>
     inline void Compare(const Dense<I,F>& dense, 
                         const SparseMatrix<I,F,I2,F2,Z>& sparse, 
-                        const char* str, F eps =nta::Epsilon)
+                        const char* str, F eps =nupic::Epsilon)
     {
       I nrows, ncols;
       nrows = sparse.nRows();
@@ -265,7 +265,7 @@ namespace nta {
   }; // end class SparseMatrixUnitTest
     
   //----------------------------------------------------------------------
-} // end namespace nta
+} // end namespace nupic
 
 #endif // NTA_SPARSE_MATRIX_UNIT_TEST_HPP
 

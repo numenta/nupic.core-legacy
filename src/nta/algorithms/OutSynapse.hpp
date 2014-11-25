@@ -26,9 +26,9 @@
 #include <nta/types/Types.hpp>
 #include <nta/utils/Log.hpp> // NTA_ASSERT
 
-using namespace nta;
+using namespace nupic;
 
-namespace nta {
+namespace nupic {
   namespace algorithms {
     namespace Cells4 {
 

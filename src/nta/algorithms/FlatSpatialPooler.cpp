@@ -33,8 +33,8 @@
 #include <nta/algorithms/FlatSpatialPooler.hpp>
 
 using namespace std;
-using namespace nta;
-using namespace nta::algorithms::spatial_pooler;
+using namespace nupic;
+using namespace nupic::algorithms::spatial_pooler;
 
 
 Real FlatSpatialPooler::getMinDistance()

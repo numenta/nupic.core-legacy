@@ -28,7 +28,7 @@
 #include <nta/utils/Log.hpp>
 #include <apr-1/apr_base64.h>
 
-using namespace nta;
+using namespace nupic;
 
 bool StringUtils::toBool(const std::string& s, bool throwOnError, bool * fail)
 {

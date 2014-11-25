@@ -39,7 +39,7 @@
 #include <boost/shared_ptr.hpp>
 
 
-using namespace nta;
+using namespace nupic;
 
 std::string OS::getHomeDir()
 {

@@ -39,7 +39,7 @@
 #include <zlib.h>
 
 using namespace std;
-using namespace nta;
+using namespace nupic;
 
 //----------------------------------------------------------------------------
 VectorFile::VectorFile() 
@@ -337,7 +337,7 @@ void VectorFile::saveVectors(ostream &out, Size nColumns, UInt32 fileFormat,
       if(end <= begin) return;
       const Size rowBytes = nColumns * sizeof(Real32);
       const bool bigEndian = (fileFormat == 5);
-      const bool needSwap = (nta::isSystemLittleEndian() == bigEndian);
+      const bool needSwap = (nupic::isSystemLittleEndian() == bigEndian);
       const bool needConversion = (sizeof(Real32) == sizeof(Real));
       
       if(needSwap || needConversion) {
@@ -348,7 +348,7 @@ void VectorFile::saveVectors(ostream &out, Size nColumns, UInt32 fileFormat,
               const Real *p = *i;
               for(Size j=0; j<nColumns; ++j) buffer[j] = *(p++);
             }
-            if(needSwap) nta::swapBytesInPlace(buffer, nColumns);
+            if(needSwap) nupic::swapBytesInPlace(buffer, nColumns);
             out.write((char *) buffer, streamsize(rowBytes));
           }
         }
@@ -393,7 +393,7 @@ public:
 void VectorFile::appendFloat32File(const string &filename, 
   Size expectedElements, bool bigEndian)
 {
-  const bool needSwap = (nta::isSystemLittleEndian() == bigEndian);
+  const bool needSwap = (nupic::isSystemLittleEndian() == bigEndian);
   AutoReleaseFile file(filename);
 
   Size totalBytes = Path::getFileSize(filename);
@@ -442,7 +442,7 @@ void VectorFile::appendFloat32File(const string &filename,
   
     file.read(block, int(totalBytes));
 
-    if(needSwap) nta::swapBytesInPlace(block, totalElements);
+    if(needSwap) nupic::swapBytesInPlace(block, totalElements);
     if(needConversion) {
       Real32 *pRead = reinterpret_cast<Real32 *>(block) + (totalElements - 1);
       Real *pWrite = block + (totalElements - 1);
@@ -547,7 +547,7 @@ void convert(T2 *pOut, const T1 *pIn, TSize n, TSize fill)
 void VectorFile::appendIDXFile(const string &filename,
   int expectedElements, bool bigEndian)
 {
-  const bool needSwap = (nta::isSystemLittleEndian() == bigEndian);
+  const bool needSwap = (nupic::isSystemLittleEndian() == bigEndian);
   AutoReleaseFile file(filename);
 
   char header[4];
@@ -557,7 +557,7 @@ void VectorFile::appendIDXFile(const string &filename,
   if(nDims < 1) throw runtime_error("Invalid number of dimensions.");
   int dims[256];
   file.read(dims, nDims * sizeof(int));
-  if(needSwap) nta::swapBytesInPlace(dims, nDims);
+  if(needSwap) nupic::swapBytesInPlace(dims, nDims);
 
   int vectorSize = 1;
   for(int i=1; i<nDims; ++i) vectorSize *= dims[i];
@@ -626,7 +626,7 @@ void VectorFile::appendIDXFile(const string &filename,
         short *pRead = reinterpret_cast<short *>(readBuffer);
         for(int row=0; row<nRows; ++row) {
           file.read(pRead, readRow);
-          if(needSwap) nta::swapBytesInPlace(pRead, copy);
+          if(needSwap) nupic::swapBytesInPlace(pRead, copy);
           convert(pBlock, pRead, copy, fill);
           pBlock += expectedElements;
         }
@@ -637,7 +637,7 @@ void VectorFile::appendIDXFile(const string &filename,
         int *pRead = reinterpret_cast<int *>(readBuffer);
         for(int row=0; row<nRows; ++row) {
           file.read(pRead, readRow);
-          if(needSwap) nta::swapBytesInPlace(pRead, copy);
+          if(needSwap) nupic::swapBytesInPlace(pRead, copy);
           convert(pBlock, pRead, copy, fill);
           pBlock += expectedElements;
         }
@@ -648,7 +648,7 @@ void VectorFile::appendIDXFile(const string &filename,
         float *pRead = reinterpret_cast<float *>(readBuffer);
         for(int row=0; row<nRows; ++row) {
           file.read(pRead, readRow);
-          if(needSwap) nta::swapBytesInPlace(pRead, copy);
+          if(needSwap) nupic::swapBytesInPlace(pRead, copy);
           convert(pBlock, pRead, copy, fill);
           pBlock += expectedElements;
         }
@@ -659,7 +659,7 @@ void VectorFile::appendIDXFile(const string &filename,
         double *pRead = reinterpret_cast<double *>(readBuffer);
         for(int row=0; row<nRows; ++row) {
           file.read(pRead, readRow);
-          if(needSwap) nta::swapBytesInPlace(pRead, copy);
+          if(needSwap) nupic::swapBytesInPlace(pRead, copy);
           convert(pBlock, pRead, copy, fill);
           pBlock += expectedElements;
         }

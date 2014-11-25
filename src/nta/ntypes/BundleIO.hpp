@@ -26,7 +26,7 @@
 #include <nta/os/Path.hpp>
 #include <nta/os/FStream.hpp>
 
-namespace nta
+namespace nupic
 {
   class BundleIO
   {
@@ -72,6 +72,6 @@ namespace nta
     mutable std::ifstream *istream_;
 
   }; // class BundleIO
-} // namespace nta
+} // namespace nupic
 
 #endif // NTA_BUNDLEIO_HPP

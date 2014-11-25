@@ -29,7 +29,7 @@
 
 
 
-using namespace nta;
+using namespace nupic;
 
 int main(int argc, const char * argv[])
 {

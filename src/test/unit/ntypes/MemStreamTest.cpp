@@ -32,7 +32,7 @@
 #include <string>
 #include <iostream>
 
-namespace nta {
+namespace nupic {
 
   static size_t memLimitsTest(size_t max)
   {
@@ -177,4 +177,4 @@ namespace nta {
 
 
 
-} // namespace nta
+} // namespace nupic
