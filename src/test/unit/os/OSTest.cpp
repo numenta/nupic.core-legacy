@@ -26,9 +26,9 @@
 
 #include <unistd.h>
 #include "OSTest.hpp"
-#include <nta/os/Env.hpp>
-#include <nta/os/Path.hpp>
-#include <nta/os/Directory.hpp>
+#include <nupic/os/Env.hpp>
+#include <nupic/os/Path.hpp>
+#include <nupic/os/Directory.hpp>
 
 using namespace nta;
 

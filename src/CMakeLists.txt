@@ -77,13 +77,13 @@ include_directories(SYSTEM
 set(COMPILE_FLAGS "-fPIC -std=c++11 -m${BITNESS} ${STDLIB} -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-unused-parameter")
 
 #
-# Extract current git sha and record in nta/Version.hpp
+# Extract current git sha and record in nupic/Version.hpp
 #
 execute_process(COMMAND git rev-parse HEAD
                 OUTPUT_VARIABLE NUPIC_CORE_VERSION
                 OUTPUT_STRIP_TRAILING_WHITESPACE)
 configure_file(
-  "${PROJECT_SOURCE_DIR}/nta/Version.hpp.in"
+  "${PROJECT_SOURCE_DIR}/nupic/Version.hpp.in"
   "${PROJECT_BINARY_DIR}/Version.hpp")
 
 #
@@ -163,72 +163,72 @@ endif()
 
 ADD_LIBRARY(${LIB_STATIC_NUPICCORE}
             STATIC
-            nta/algorithms/BitHistory.cpp
-            nta/algorithms/Cell.cpp
-            nta/algorithms/Cells4.cpp
-            nta/algorithms/ClassifierResult.cpp
-            nta/algorithms/CondProbTable.cpp
-            nta/algorithms/Connections.cpp
-            nta/algorithms/FastClaClassifier.cpp
-            nta/algorithms/FlatSpatialPooler.cpp
-            nta/algorithms/GaborNode.cpp
-            nta/algorithms/ImageSensorLite.cpp
-            nta/algorithms/InSynapse.cpp
-            nta/algorithms/Linear.cpp
-            nta/algorithms/OutSynapse.cpp
-            nta/algorithms/Segment.cpp
-            nta/algorithms/SegmentUpdate.cpp
-            nta/algorithms/SpatialPooler.cpp
-            nta/algorithms/Svm.cpp
-            nta/engine/Collections.cpp
-            nta/engine/Input.cpp
-            nta/engine/Link.cpp
-            nta/engine/LinkPolicyFactory.cpp
-            nta/engine/Network.cpp
-            nta/engine/NuPIC.cpp
-            nta/engine/Output.cpp
-            nta/engine/Region.cpp
-            nta/engine/RegionImpl.cpp
-            nta/engine/RegionImplFactory.cpp
-            nta/engine/RegionIo.cpp
-            nta/engine/RegionParameters.cpp
-            nta/engine/Spec.cpp
-            nta/engine/TestFanIn2LinkPolicy.cpp
-            nta/engine/TestNode.cpp
-            nta/engine/UniformLinkPolicy.cpp
-            nta/engine/YAMLUtils.cpp
-            nta/math/SparseMatrixAlgorithms.cpp
-            nta/math/StlIo.cpp
-            nta/ntypes/ArrayBase.cpp
-            nta/ntypes/Buffer.cpp
-            nta/ntypes/BundleIO.cpp
-            nta/ntypes/Collection.cpp
-            nta/ntypes/Dimensions.cpp
-            nta/ntypes/MemParser.cpp
-            nta/ntypes/Scalar.cpp
-            nta/ntypes/Value.cpp
-            nta/os/Directory.cpp
-            nta/os/DynamicLibrary.cpp
-            nta/os/Env.cpp
-            nta/os/FStream.cpp
-            nta/os/OS.cpp
-            nta/os/OSUnix.cpp
-            nta/os/OSWin.cpp
-            nta/os/Path.cpp
-            nta/os/Regex.cpp
-            nta/os/Timer.cpp
-            nta/regions/VectorFile.cpp
-            nta/regions/VectorFileEffector.cpp
-            nta/regions/VectorFileSensor.cpp
-            nta/test/Tester.cpp
-            nta/types/BasicType.cpp
-            nta/types/Fraction.cpp
-            nta/utils/LoggingException.cpp
-            nta/utils/LogItem.cpp
-            nta/utils/Random.cpp
-            nta/utils/StringUtils.cpp
-            nta/utils/TRandom.cpp
-            nta/utils/Watcher.cpp)
+            nupic/algorithms/BitHistory.cpp
+            nupic/algorithms/Cell.cpp
+            nupic/algorithms/Cells4.cpp
+            nupic/algorithms/ClassifierResult.cpp
+            nupic/algorithms/CondProbTable.cpp
+            nupic/algorithms/Connections.cpp
+            nupic/algorithms/FastClaClassifier.cpp
+            nupic/algorithms/FlatSpatialPooler.cpp
+            nupic/algorithms/GaborNode.cpp
+            nupic/algorithms/ImageSensorLite.cpp
+            nupic/algorithms/InSynapse.cpp
+            nupic/algorithms/Linear.cpp
+            nupic/algorithms/OutSynapse.cpp
+            nupic/algorithms/Segment.cpp
+            nupic/algorithms/SegmentUpdate.cpp
+            nupic/algorithms/SpatialPooler.cpp
+            nupic/algorithms/Svm.cpp
+            nupic/engine/Collections.cpp
+            nupic/engine/Input.cpp
+            nupic/engine/Link.cpp
+            nupic/engine/LinkPolicyFactory.cpp
+            nupic/engine/Network.cpp
+            nupic/engine/NuPIC.cpp
+            nupic/engine/Output.cpp
+            nupic/engine/Region.cpp
+            nupic/engine/RegionImpl.cpp
+            nupic/engine/RegionImplFactory.cpp
+            nupic/engine/RegionIo.cpp
+            nupic/engine/RegionParameters.cpp
+            nupic/engine/Spec.cpp
+            nupic/engine/TestFanIn2LinkPolicy.cpp
+            nupic/engine/TestNode.cpp
+            nupic/engine/UniformLinkPolicy.cpp
+            nupic/engine/YAMLUtils.cpp
+            nupic/math/SparseMatrixAlgorithms.cpp
+            nupic/math/StlIo.cpp
+            nupic/ntypes/ArrayBase.cpp
+            nupic/ntypes/Buffer.cpp
+            nupic/ntypes/BundleIO.cpp
+            nupic/ntypes/Collection.cpp
+            nupic/ntypes/Dimensions.cpp
+            nupic/ntypes/MemParser.cpp
+            nupic/ntypes/Scalar.cpp
+            nupic/ntypes/Value.cpp
+            nupic/os/Directory.cpp
+            nupic/os/DynamicLibrary.cpp
+            nupic/os/Env.cpp
+            nupic/os/FStream.cpp
+            nupic/os/OS.cpp
+            nupic/os/OSUnix.cpp
+            nupic/os/OSWin.cpp
+            nupic/os/Path.cpp
+            nupic/os/Regex.cpp
+            nupic/os/Timer.cpp
+            nupic/regions/VectorFile.cpp
+            nupic/regions/VectorFileEffector.cpp
+            nupic/regions/VectorFileSensor.cpp
+            nupic/test/Tester.cpp
+            nupic/types/BasicType.cpp
+            nupic/types/Fraction.cpp
+            nupic/utils/LoggingException.cpp
+            nupic/utils/LogItem.cpp
+            nupic/utils/Random.cpp
+            nupic/utils/StringUtils.cpp
+            nupic/utils/TRandom.cpp
+            nupic/utils/Watcher.cpp)
 target_link_libraries(${LIB_STATIC_NUPICCORE}
                       ${LIB_STATIC_YAML_CPP_LOC}
                       ${LIB_STATIC_YAML_LOC}
@@ -396,14 +396,14 @@ install(TARGETS
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)
-install(DIRECTORY nta/ DESTINATION include/nta
+install(DIRECTORY nupic/ DESTINATION include/nupic
         FILES_MATCHING PATTERN "*.h*"
         PATTERN "*.hpp.in" EXCLUDE)
 install(DIRECTORY "${REPOSITORY_DIR}/external/common/include/gtest"
         DESTINATION include/gtest
         FILES_MATCHING PATTERN "*.h*")
 install(FILES "${PROJECT_BINARY_DIR}/Version.hpp"
-        DESTINATION include/nta/)
+        DESTINATION include/nupic/)
 install(DIRECTORY "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/lib/"
         DESTINATION lib)
 install(DIRECTORY "${REPOSITORY_DIR}/external/common/include/"

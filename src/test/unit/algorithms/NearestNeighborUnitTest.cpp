@@ -24,8 +24,8 @@
  * Implementation of unit tests for NearestNeighbor
  */     
 
-#include <nta/math/StlIo.hpp>
-#include <nta/math/NearestNeighbor.hpp>
+#include <nupic/math/StlIo.hpp>
+#include <nupic/math/NearestNeighbor.hpp>
 #include "NearestNeighborUnitTest.hpp"
 
 using namespace std;

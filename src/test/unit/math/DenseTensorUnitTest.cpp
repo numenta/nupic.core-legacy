@@ -24,8 +24,8 @@
  * Implementation of unit testing for class DenseTensor
  */  
               
-//#include <nta/common/version.hpp>
-#include <nta/math/StlIo.hpp>
+//#include <nupic/common/version.hpp>
+#include <nupic/math/StlIo.hpp>
 #include "DenseTensorUnitTest.hpp"
 
 using namespace std;  

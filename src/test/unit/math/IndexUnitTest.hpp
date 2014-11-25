@@ -26,8 +26,8 @@
 
 //----------------------------------------------------------------------
 
-#include <nta/test/Tester.hpp>
-#include <nta/math/Index.hpp>
+#include <nupic/test/Tester.hpp>
+#include <nupic/math/Index.hpp>
 
 //----------------------------------------------------------------------
 

@@ -24,8 +24,8 @@
  * Implementation of unit testing for class Index
  */     
               
-//#include <nta/common/version.hpp>
-#include <nta/math/ArrayAlgo.hpp>
+//#include <nupic/common/version.hpp>
+#include <nupic/math/ArrayAlgo.hpp>
 
 #include "IndexUnitTest.hpp"
 

@@ -26,10 +26,10 @@
 
 #include "NetworkTest.hpp"
 
-#include <nta/engine/Network.hpp>
-#include <nta/engine/NuPIC.hpp>
-#include <nta/engine/Region.hpp>
-#include <nta/ntypes/Dimensions.hpp>
+#include <nupic/engine/Network.hpp>
+#include <nupic/engine/NuPIC.hpp>
+#include <nupic/engine/Region.hpp>
+#include <nupic/ntypes/Dimensions.hpp>
 
 using namespace nta;
 

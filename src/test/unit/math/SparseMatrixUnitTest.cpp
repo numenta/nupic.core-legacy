@@ -24,8 +24,8 @@
  * Implementation of unit testing for class SparseMatrix
  */  
               
-//#include <nta/common/version.hpp>
-#include <nta/math/StlIo.hpp>
+//#include <nupic/common/version.hpp>
+#include <nupic/math/StlIo.hpp>
 #include "SparseMatrixUnitTest.hpp"
     
 using namespace std;  

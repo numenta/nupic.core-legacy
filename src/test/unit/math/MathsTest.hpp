@@ -26,8 +26,8 @@
 
 //----------------------------------------------------------------------
 
-#include <nta/test/Tester.hpp>
-//#include <nta/foundation/TRandom.hpp>
+#include <nupic/test/Tester.hpp>
+//#include <nupic/foundation/TRandom.hpp>
 
 //----------------------------------------------------------------------
 
