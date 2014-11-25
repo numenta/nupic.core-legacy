@@ -74,7 +74,7 @@ include_directories(SYSTEM
                     "${PROJECT_SOURCE_DIR}"
                     "${PROJECT_BINARY_DIR}")
 
-set(COMPILE_FLAGS "-fPIC -std=c++11 ${STDLIB} -m${BITNESS} ${STDLIB} -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-unused-parameter")
+set(COMPILE_FLAGS "-fPIC -std=c++11 -m${BITNESS} ${STDLIB} -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-unused-parameter")
 
 #
 # Extract current git sha and record in nta/Version.hpp
