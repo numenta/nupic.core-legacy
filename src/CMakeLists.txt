@@ -41,6 +41,10 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   set(STDLIB "")
 endif()
 
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+   set(STDLIB "${STDLIB} -static-libgcc -static-libstdc++")
+endif()
+
 set(BITNESS 32)
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
   set(BITNESS 64)
@@ -70,7 +74,7 @@ include_directories(SYSTEM
                     "${PROJECT_SOURCE_DIR}"
                     "${PROJECT_BINARY_DIR}")
 
-set(COMPILE_FLAGS "-fPIC -std=c++11 -static-libgcc -static-libstdc++ -m${BITNESS} ${STDLIB} -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-unused-parameter")
+set(COMPILE_FLAGS "-fPIC -std=c++11 ${STDLIB} -m${BITNESS} ${STDLIB} -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-unused-parameter")
 
 #
 # Extract current git sha and record in nta/Version.hpp
