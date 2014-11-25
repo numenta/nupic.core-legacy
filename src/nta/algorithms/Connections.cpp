@@ -49,17 +49,23 @@ Connections::Connections(CellIdx numCells,
 Segment Connections::createSegment(const Cell& cell)
 {
   vector<SegmentData>& segments = cells_[cell.idx].segments;
-  if (segments.size() == maxSegmentsPerCell_)
-  {
-    throw runtime_error("Cannot create segment: cell has reached maximum number of segments.");
-  }
-  Segment segment(segments.size(), cell);
-
   SegmentData segmentData = {};
   segmentData.lastUsedIteration = iteration_;
-  segments.push_back(segmentData);
-  numSegments_++;
+  Segment segment(segments.size(), cell);
 
+  if (segments.size() == maxSegmentsPerCell_)
+  {
+    bool found = leastRecentlyUsedSegment(cell, segment);
+    if (!found) { NTA_THROW << "Unable to find segment to reuse."; }
+    destroySegment(segment);
+    segments[segment.idx] = segmentData;
+  }
+  else
+  {
+    segments.push_back(segmentData);
+  }
+
+  numSegments_++;
   return segment;
 }
 
@@ -70,7 +76,7 @@ Synapse Connections::createSynapse(const Segment& segment,
   vector<SynapseData>& synapses = cells_[segment.cell.idx].segments[segment.idx].synapses;
   if (synapses.size() == SYNAPSE_MAX)
   {
-    throw runtime_error("Cannot create synapse: segment has reached maximum number of synapses.");
+    NTA_THROW << "Cannot create synapse: segment has reached maximum number of synapses.";
   }
   Synapse synapse(synapses.size(), segment);
 
@@ -94,6 +100,7 @@ void Connections::destroySegment(const Segment& segment)
   }
 
   segmentData.destroyed = true;
+  numSegments_--;
 }
 
 void Connections::destroySynapse(const Synapse& synapse)
@@ -103,6 +110,7 @@ void Connections::destroySynapse(const Synapse& synapse)
   SynapseData& synapseData = cells_[cell.idx].segments[segment.idx].synapses[synapse.idx];
 
   synapseData.destroyed = true;
+  numSynapses_--;
 
   vector<Synapse>& synapses = synapsesForPresynapticCell_[synapseData.presynapticCell];
 

@@ -49,6 +49,7 @@ namespace nta
   private:
     void testConstructor();
     void testCreateSegment();
+    void testCreateSegmentReuse();
     void testCreateSynapse();
     void testDestroySegment();
     void testDestroySynapse();

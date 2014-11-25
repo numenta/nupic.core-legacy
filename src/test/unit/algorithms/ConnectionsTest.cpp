@@ -39,6 +39,7 @@ namespace nta {
   {
     testConstructor();
     testCreateSegment();
+    testCreateSegmentReuse();
     testCreateSynapse();
     testDestroySegment();
     testDestroySynapse();
@@ -88,6 +89,44 @@ namespace nta {
       ASSERT_EQ(segments[i].idx, i);
       ASSERT_EQ(segments[i].cell.idx, cell.idx);
     }
+  }
+
+  /**
+   * Creates many segments on a cell, until hits segment limit. Then creates
+   * another segment, and checks that it destroyed the least recently used
+   * segment and created a new one in its place.
+   */
+  void ConnectionsTest::testCreateSegmentReuse()
+  {
+    Connections connections(1024, 2);
+    Cell cell;
+    Segment segment;
+    vector<Segment> segments;
+
+    setupSampleConnections(connections);
+
+    auto numSegments = connections.numSegments();
+    Activity activity = computeSampleActivity(connections);
+
+    cell.idx = 20;
+
+    segment = connections.createSegment(cell);
+    // Should have reused segment with index 1
+    ASSERT_EQ(segment.idx, 1);
+
+    segments = connections.segmentsForCell(cell);
+    ASSERT_EQ(segments.size(), 2);
+
+    ASSERT_EQ(numSegments, connections.numSegments());
+
+    segment = connections.createSegment(cell);
+    // Should have reused segment with index 0
+    ASSERT_EQ(segment.idx, 0);
+
+    segments = connections.segmentsForCell(cell);
+    ASSERT_EQ(segments.size(), 2);
+
+    ASSERT_EQ(numSegments, connections.numSegments());
   }
 
   /**
@@ -142,12 +181,14 @@ namespace nta {
     Segment segment;
 
     setupSampleConnections(connections);
+    auto numSegments = connections.numSegments();
 
     cell.idx = 20;
     segment.cell = cell;
     segment.idx = 0;
     connections.destroySegment(segment);
 
+    ASSERT_EQ(connections.numSegments(), numSegments-1);
     ASSERT_THROW(connections.synapsesForSegment(segment);, runtime_error);
 
     Activity activity = computeSampleActivity(connections);
@@ -168,6 +209,7 @@ namespace nta {
     Synapse synapse;
 
     setupSampleConnections(connections);
+    auto numSynapses = connections.numSynapses();
 
     cell.idx = 20;
     segment.cell = cell;
@@ -176,6 +218,7 @@ namespace nta {
     synapse.idx = 0;
     connections.destroySynapse(synapse);
 
+    ASSERT_EQ(connections.numSynapses(), numSynapses-1);
     vector<Synapse> synapses = connections.synapsesForSegment(segment);
     ASSERT_EQ(synapses.size(), 2);
 
