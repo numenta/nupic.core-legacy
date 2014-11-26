@@ -33,7 +33,7 @@
 #include <sstream>
 #include <vector>
 #include <cmath> // fabs
-#include <nta/utils/Log.hpp>
+#include <nupic/utils/Log.hpp>
 
 //----------------------------------------------------------------------
 

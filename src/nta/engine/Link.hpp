@@ -28,10 +28,10 @@
 #define NTA_LINK_HPP
 
 #include <string>
-#include <nta/types/Types.hpp>
-#include <nta/ntypes/Dimensions.hpp>
-#include <nta/engine/LinkPolicy.hpp>
-#include <nta/engine/Input.hpp> // needed for splitter map 
+#include <nupic/types/Types.hpp>
+#include <nupic/ntypes/Dimensions.hpp>
+#include <nupic/engine/LinkPolicy.hpp>
+#include <nupic/engine/Input.hpp> // needed for splitter map
 
 namespace nupic
 {

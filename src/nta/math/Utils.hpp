@@ -44,8 +44,8 @@
 
 #include <boost/shared_array.hpp>
 
-#include <nta/types/Types.hpp>
-#include <nta/utils/Log.hpp>
+#include <nupic/types/Types.hpp>
+#include <nupic/utils/Log.hpp>
 
 namespace nupic {
     
@@ -110,7 +110,7 @@ namespace nupic {
   }
 
   /**
-   * Calculates sizeof() types named by string names of types in nta/types/types.
+   * Calculates sizeof() types named by string names of types in nupic/types/types.
    * Throws if the requested type cannot be found.
    * 
    * Supported type names include:
@@ -129,7 +129,7 @@ namespace nupic {
   extern size_t GetTypeSize(const std::string &name, bool& isNumeric);
 
   /**
-   * Calculates sizeof() types named by string names of types in nta/types/types.
+   * Calculates sizeof() types named by string names of types in nupic/types/types.
    * Throws if the requested type cannot be found.
    * 
    * Supported type names include:

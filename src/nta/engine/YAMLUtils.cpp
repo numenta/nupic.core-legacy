@@ -20,12 +20,12 @@
  * ---------------------------------------------------------------------
  */
 
-#include <nta/types/BasicType.hpp>
-#include <nta/engine/YAMLUtils.hpp>
-#include <nta/ntypes/Value.hpp>
-#include <nta/ntypes/Collection.hpp>
-#include <nta/ntypes/MemStream.hpp>
-#include <nta/engine/Spec.hpp>
+#include <nupic/types/BasicType.hpp>
+#include <nupic/engine/YAMLUtils.hpp>
+#include <nupic/ntypes/Value.hpp>
+#include <nupic/ntypes/Collection.hpp>
+#include <nupic/ntypes/MemStream.hpp>
+#include <nupic/engine/Spec.hpp>
 #include <string.h> // strlen
 #include <yaml-cpp/yaml.h>
 

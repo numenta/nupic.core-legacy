@@ -39,7 +39,7 @@
 extern "C" {
 #endif
 
-#include <nta/types/Types.h>
+#include <nupic/types/Types.h>
 
 /*----------------------------------------------------------------------
  */
@@ -58,7 +58,7 @@ extern "C" {
  * @b General API information
  * 
  *  An important goal of the C object model is to immitate the C++ object model 
- *  (nta/plugin/object_model.hpp). The C++ object model is implemented as a set of 
+ *  (nupic/plugin/object_model.hpp). The C++ object model is implemented as a set of
  *  interfaces (pure abstract classes). The C object model has a one to one mapping
  *  to each interface. Each C interface consists of a struct with function 
  *  pointers that correspond to the virtual table of the C++ interface. 

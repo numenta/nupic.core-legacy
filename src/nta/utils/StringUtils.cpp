@@ -24,8 +24,8 @@
  * Implementation of utility functions for string conversion
  */
 
-#include <nta/utils/StringUtils.hpp>
-#include <nta/utils/Log.hpp>
+#include <nupic/utils/StringUtils.hpp>
+#include <nupic/utils/Log.hpp>
 #include <apr-1/apr_base64.h>
 
 using namespace nupic;

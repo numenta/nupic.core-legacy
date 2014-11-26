@@ -26,10 +26,10 @@
 
 //----------------------------------------------------------------------
 
-#include <nta/test/Tester.hpp>
-#include <nta/math/DenseMatrix.hpp>
-#include <nta/math/SparseMatrix.hpp>
-#include <nta/utils/TRandom.hpp>
+#include <nupic/test/Tester.hpp>
+#include <nupic/math/DenseMatrix.hpp>
+#include <nupic/math/SparseMatrix.hpp>
+#include <nupic/utils/TRandom.hpp>
 #include <set>
 #include <limits>
 #include <vector>

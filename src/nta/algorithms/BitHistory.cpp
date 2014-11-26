@@ -26,9 +26,9 @@
 #include <string>
 #include <vector>
 
-#include <nta/algorithms/BitHistory.hpp>
-#include <nta/types/Types.hpp>
-#include <nta/utils/Log.hpp>
+#include <nupic/algorithms/BitHistory.hpp>
+#include <nupic/types/Types.hpp>
+#include <nupic/utils/Log.hpp>
 
 namespace nupic
 {

@@ -33,8 +33,8 @@
 #ifndef NTA_OBJECT_MODEL_HPP
 #define NTA_OBJECT_MODEL_HPP
 
-#include <nta/types/Types.hpp>
-#include <nta/ntypes/ObjectModel.h>
+#include <nupic/types/Types.hpp>
+#include <nupic/ntypes/ObjectModel.h>
 #include <string>
 #include <stdexcept>
 

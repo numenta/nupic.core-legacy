@@ -25,7 +25,7 @@
  * Generic OS Implementations for the OS class
  */
 
-#include <nta/os/Timer.hpp>
+#include <nupic/os/Timer.hpp>
 #include <sstream>
 using namespace nupic;
 

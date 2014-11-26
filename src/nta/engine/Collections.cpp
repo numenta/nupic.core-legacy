@@ -21,17 +21,17 @@
  */
 
 
-#include <nta/engine/Spec.hpp>
+#include <nupic/engine/Spec.hpp>
 
 /*
  * We need to import the code from Collection.cpp 
  * in order to instantiate all the methods in the classes
  * instantiated below. 
  */
-#include <nta/ntypes/Collection.hpp>
-#include <nta/ntypes/Collection.cpp>
-#include <nta/engine/Region.hpp>
-#include <nta/engine/Network.hpp>
+#include <nupic/ntypes/Collection.hpp>
+#include <nupic/ntypes/Collection.cpp>
+#include <nupic/engine/Region.hpp>
+#include <nupic/engine/Network.hpp>
 
 using namespace nupic;
 

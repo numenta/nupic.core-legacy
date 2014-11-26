@@ -27,8 +27,8 @@
 #ifndef NTA_NEAREST_NEIGHBOR_HPP
 #define NTA_NEAREST_NEIGHBOR_HPP
 
-#include <nta/math/SparseMatrix.hpp>
-#include <nta/math/ArrayAlgo.hpp>
+#include <nupic/math/SparseMatrix.hpp>
+#include <nupic/math/ArrayAlgo.hpp>
 
 //----------------------------------------------------------------------
 namespace nupic {

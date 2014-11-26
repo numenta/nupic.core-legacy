@@ -24,8 +24,8 @@
 * Notes
 */
 
-#include <nta/algorithms/CondProbTable.hpp>
-#include <nta/math/StlIo.hpp>
+#include <nupic/algorithms/CondProbTable.hpp>
+#include <nupic/math/StlIo.hpp>
 #include "CondProbTableTest.hpp"
 #include <fstream>
 #include <boost/numeric/ublas/storage.hpp>

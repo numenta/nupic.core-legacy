@@ -27,14 +27,14 @@
 #include <string>
 #include <vector>
 
-#include <nta/engine/Link.hpp>
-#include <nta/ntypes/Dimensions.hpp>
-#include <nta/ntypes/Collection.hpp>
-#include <nta/utils/Log.hpp>
-#include <nta/types/Fraction.hpp>
+#include <nupic/engine/Link.hpp>
+#include <nupic/ntypes/Dimensions.hpp>
+#include <nupic/ntypes/Collection.hpp>
+#include <nupic/utils/Log.hpp>
+#include <nupic/types/Fraction.hpp>
 
 // We use the ParameterSpec which is defined in the Spec header
-#include <nta/engine/Spec.hpp>
+#include <nupic/engine/Spec.hpp>
 
 #include <boost/shared_ptr.hpp>
 

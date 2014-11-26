@@ -25,8 +25,8 @@
  */
 
 #include "MemStreamTest.hpp"
-#include <nta/ntypes/MemStream.hpp>
-#include <nta/utils/Log.hpp>
+#include <nupic/ntypes/MemStream.hpp>
+#include <nupic/utils/Log.hpp>
 
 #include <stdexcept>
 #include <string>

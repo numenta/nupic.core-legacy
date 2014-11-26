@@ -33,10 +33,10 @@
 #ifndef NTA_VALUE_HPP
 #define NTA_VALUE_HPP
 
-#include <nta/types/Types.h>
-#include <nta/types/BasicType.hpp>
-#include <nta/ntypes/Scalar.hpp>
-#include <nta/ntypes/Array.hpp>
+#include <nupic/types/Types.h>
+#include <nupic/types/BasicType.hpp>
+#include <nupic/ntypes/Scalar.hpp>
+#include <nupic/ntypes/Array.hpp>
 #include <string>
 #include <map>
 #include <boost/shared_ptr.hpp>

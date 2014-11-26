@@ -25,7 +25,7 @@
  */
 
 #include "DimensionsTest.hpp"
-#include <nta/ntypes/Dimensions.hpp>
+#include <nupic/ntypes/Dimensions.hpp>
 
 namespace nupic
 {

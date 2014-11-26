@@ -21,8 +21,8 @@
  * ---------------------------------------------------------------------
  */
 
-#include <nta/utils/Log.hpp>
-#include <nta/ntypes/Dimensions.hpp>
+#include <nupic/utils/Log.hpp>
+#include <nupic/ntypes/Dimensions.hpp>
 #include <utility>
 
 using namespace nupic;

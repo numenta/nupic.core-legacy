@@ -25,8 +25,8 @@
  */
 
 
-#include <nta/ntypes/Value.hpp>
-#include <nta/utils/Log.hpp>
+#include <nupic/ntypes/Value.hpp>
+#include <nupic/utils/Log.hpp>
 
 
 using namespace nupic;

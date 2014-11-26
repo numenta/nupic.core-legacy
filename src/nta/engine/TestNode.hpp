@@ -25,8 +25,8 @@
 #define NTA_TESTNODE_HPP
 
 
-#include <nta/engine/RegionImpl.hpp>
-#include <nta/ntypes/Value.hpp>
+#include <nupic/engine/RegionImpl.hpp>
+#include <nupic/ntypes/Value.hpp>
 #include <string>
 #include <vector>
 

@@ -32,9 +32,9 @@
 #include <cstdarg>
 #include <string.h> // for memcpy in gcc 4.4
 
-#include <nta/math/Utils.hpp>
-#include <nta/math/Math.hpp>
-#include <nta/math/StlIo.hpp>
+#include <nupic/math/Utils.hpp>
+#include <nupic/math/Math.hpp>
+#include <nupic/math/StlIo.hpp>
 
 //----------------------------------------------------------------------
 

@@ -27,7 +27,7 @@
 #ifndef NTA_MATH_FUNCTIONS_HPP
 #define NTA_MATH_FUNCTIONS_HPP
 
-#include <nta/utils/Log.hpp> // For NTA_ASSERT
+#include <nupic/utils/Log.hpp> // For NTA_ASSERT
 
 #include <cmath>
 #include <boost/math/special_functions/gamma.hpp>

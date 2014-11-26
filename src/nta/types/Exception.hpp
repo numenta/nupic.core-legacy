@@ -27,7 +27,7 @@
 #ifndef NTA_EXCEPTION_HPP
 #define NTA_EXCEPTION_HPP
 
-#include <nta/types/Types.hpp>
+#include <nupic/types/Types.hpp>
 #include <stdexcept>
 #include <string>
 
@@ -54,7 +54,7 @@ namespace nupic
    *  that makes it much simpler by automatically retreiving the __FILE__
    *  and __LINE__ for you and also using a wrapping LogItem that allows 
    *  you to construct the exception message conveniently using the <<
-   *  streame operator (see nta/utils/Log.hpp for further details).
+   *  streame operator (see nupic/utils/Log.hpp for further details).
    *
    * @b Notes:
    *  1. Exception is a subclass of the standard std::runtime_error. 

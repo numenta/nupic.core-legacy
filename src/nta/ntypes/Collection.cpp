@@ -20,8 +20,8 @@
  * ---------------------------------------------------------------------
  */
 
-#include <nta/ntypes/Collection.hpp>
-#include <nta/utils/Log.hpp>
+#include <nupic/ntypes/Collection.hpp>
+#include <nupic/utils/Log.hpp>
 #include <string>
 #include <vector>
 
@@ -36,7 +36,7 @@ namespace nupic
  * we instantiate for classes outside of the types library. 
  * For example, Collection<OutputSpec> is built in the 
  * net library where OutputSpec is defined. 
- * See nta/engine/Collections.cpp, which is where the 
+ * See nupic/engine/Collections.cpp, which is where the
  * Collection classes are instantiated.
  */
 

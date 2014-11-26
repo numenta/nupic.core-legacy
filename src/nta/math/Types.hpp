@@ -21,7 +21,7 @@
  */
 
 /** @file
- * A few types used in nta/math and nta/algorithms.
+ * A few types used in nupic/math and nupic/algorithms.
  */
 
 #ifndef NTA_MATH_TYPES_HPP
@@ -32,8 +32,8 @@
 #include <set>
 #include <algorithm> // sort
 
-#include <nta/types/Types.hpp>
-#include <nta/utils/Log.hpp> 
+#include <nupic/types/Types.hpp>
+#include <nupic/utils/Log.hpp>
 
 /* This file is used by array_algo.hpp */
 

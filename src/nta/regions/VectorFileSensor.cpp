@@ -24,14 +24,14 @@
 * Implementation for VectorFileSensor class
 */
 
-#include <nta/engine/Region.hpp>
-#include <nta/engine/Spec.hpp>
-#include <nta/regions/VectorFileSensor.hpp>
-#include <nta/utils/Log.hpp>
-#include <nta/utils/StringUtils.hpp>
-//#include <nta/os/FStream.hpp>
-#include <nta/ntypes/Value.hpp>
-#include <nta/ntypes/BundleIO.hpp>
+#include <nupic/engine/Region.hpp>
+#include <nupic/engine/Spec.hpp>
+#include <nupic/regions/VectorFileSensor.hpp>
+#include <nupic/utils/Log.hpp>
+#include <nupic/utils/StringUtils.hpp>
+//#include <nupic/os/FStream.hpp>
+#include <nupic/ntypes/Value.hpp>
+#include <nupic/ntypes/BundleIO.hpp>
 #include <stdexcept>
 #include <string>
 #include <iostream>

@@ -29,9 +29,9 @@
 #ifndef NTA_SPARSE_TENSOR_UNIT_TEST_HPP
 #define NTA_SPARSE_TENSOR_UNIT_TEST_HPP
 
-#include <nta/test/Tester.hpp>
-#include <nta/math/SparseTensor.hpp>
-//#include <nta/foundation/TRandom.hpp>
+#include <nupic/test/Tester.hpp>
+#include <nupic/math/SparseTensor.hpp>
+//#include <nupic/foundation/TRandom.hpp>
 
 namespace nupic {
 

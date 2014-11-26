@@ -21,8 +21,8 @@
  */
 
 
-#include <nta/algorithms/OutSynapse.hpp>
-#include <nta/algorithms/Cells4.hpp>
+#include <nupic/algorithms/OutSynapse.hpp>
+#include <nupic/algorithms/Cells4.hpp>
 using namespace nupic::algorithms::Cells4;
 using namespace nupic;
 

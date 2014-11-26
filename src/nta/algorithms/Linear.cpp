@@ -65,7 +65,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <algorithm>
 
-#include <nta/algorithms/Linear.hpp>
+#include <nupic/algorithms/Linear.hpp>
 
 namespace nupic {
   namespace algorithms {

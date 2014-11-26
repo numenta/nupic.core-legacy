@@ -28,8 +28,8 @@
 #define NTA_OUTPUT_HPP
 
 #include <set>
-#include <nta/types/Types.hpp>
-#include <nta/utils/Log.hpp> // temporary, while impl is in this file
+#include <nupic/types/Types.hpp>
+#include <nupic/utils/Log.hpp> // temporary, while impl is in this file
 namespace nupic
 {
 

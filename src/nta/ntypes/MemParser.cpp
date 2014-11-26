@@ -24,9 +24,9 @@
  * 
  */ 
 
-#include "nta/utils/Log.hpp"
-#include "nta/ntypes/MemParser.hpp"
-#include "nta/ntypes/MemStream.hpp"
+#include "nupic/utils/Log.hpp"
+#include "nupic/ntypes/MemParser.hpp"
+#include "nupic/ntypes/MemStream.hpp"
 #include <cstring>
 #include <cstdlib>
 

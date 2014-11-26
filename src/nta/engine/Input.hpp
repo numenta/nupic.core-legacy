@@ -35,8 +35,8 @@
 
 
 #include <vector>
-#include <nta/types/Types.hpp>
-#include <nta/ntypes/Array.hpp>
+#include <nupic/types/Types.hpp>
+#include <nupic/ntypes/Array.hpp>
 
 namespace nupic
 {

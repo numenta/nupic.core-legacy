@@ -33,9 +33,9 @@
 #include <iterator>
 #include <algorithm>
 
-#include <nta/utils/Random.hpp> // For the official Numenta RNG
-#include <nta/math/Math.hpp>
-#include <nta/math/Types.hpp>
+#include <nupic/utils/Random.hpp> // For the official Numenta RNG
+#include <nupic/math/Math.hpp>
+#include <nupic/math/Types.hpp>
 
 namespace nupic {
 

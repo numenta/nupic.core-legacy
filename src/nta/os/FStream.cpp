@@ -32,11 +32,11 @@
  */
 
 
-#include "nta/utils/Log.hpp"
-#include "nta/os/Path.hpp"
-#include "nta/os/FStream.hpp"
-#include "nta/os/Directory.hpp"
-#include "nta/os/Env.hpp"
+#include "nupic/utils/Log.hpp"
+#include "nupic/os/Path.hpp"
+#include "nupic/os/FStream.hpp"
+#include "nupic/os/Directory.hpp"
+#include "nupic/os/Env.hpp"
 #include <fstream>
 #include <cstdlib>
 #ifdef NTA_PLATFORM_win32

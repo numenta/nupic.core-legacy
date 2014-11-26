@@ -29,16 +29,16 @@
 #include <vector>
 #include <exception>
 
-#include <nta/utils/Watcher.hpp>
-#include <nta/engine/Region.hpp>
-#include <nta/engine/Output.hpp>
-#include <nta/engine/Network.hpp>
-#include <nta/os/FStream.hpp>
-#include <nta/engine/Spec.hpp>
-#include <nta/utils/Log.hpp>
-#include <nta/types/BasicType.hpp>
-#include <nta/ntypes/Array.hpp>
-#include <nta/types/Types.h>
+#include <nupic/utils/Watcher.hpp>
+#include <nupic/engine/Region.hpp>
+#include <nupic/engine/Output.hpp>
+#include <nupic/engine/Network.hpp>
+#include <nupic/os/FStream.hpp>
+#include <nupic/engine/Spec.hpp>
+#include <nupic/utils/Log.hpp>
+#include <nupic/types/BasicType.hpp>
+#include <nupic/ntypes/Array.hpp>
+#include <nupic/types/Types.h>
 
 namespace nupic
 {

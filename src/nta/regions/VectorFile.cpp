@@ -30,11 +30,11 @@
 #include <iostream>
 #include <sstream>
 #include <math.h>
-#include <nta/regions/VectorFile.hpp>
-#include <nta/utils/Log.hpp>
-#include <nta/math/Utils.hpp> // For isSystemLittleEndian and utils::swapBytesInPlace.
-#include <nta/os/FStream.hpp>
-#include <nta/os/Path.hpp>
+#include <nupic/regions/VectorFile.hpp>
+#include <nupic/utils/Log.hpp>
+#include <nupic/math/Utils.hpp> // For isSystemLittleEndian and utils::swapBytesInPlace.
+#include <nupic/os/FStream.hpp>
+#include <nupic/os/Path.hpp>
 #include <stdexcept>
 #include <zlib.h>
 

@@ -27,7 +27,7 @@
 #ifndef NTA_DIMENSIONS_TEST_HPP
 #define NTA_DIMENSIONS_TEST_HPP
 
-#include <nta/test/Tester.hpp>
+#include <nupic/test/Tester.hpp>
 
 namespace nupic
 {

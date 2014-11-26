@@ -27,7 +27,7 @@ Unit tester tester.
 #ifndef _H_TESTER_TEST_H
 #define _H_TESTER_TEST_H
 
-#include <nta/test/Tester.hpp>
+#include <nupic/test/Tester.hpp>
 
 namespace nupic {
   

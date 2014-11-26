@@ -26,11 +26,11 @@
 
 #include <iostream>
 
-#include <nta/algorithms/ClassifierResult.hpp>
-#include <nta/algorithms/FastClaClassifier.hpp>
-#include <nta/math/StlIo.hpp>
-#include <nta/types/Types.hpp>
-#include <nta/utils/Log.hpp>
+#include <nupic/algorithms/ClassifierResult.hpp>
+#include <nupic/algorithms/FastClaClassifier.hpp>
+#include <nupic/math/StlIo.hpp>
+#include <nupic/types/Types.hpp>
+#include <nupic/utils/Log.hpp>
 #include "FastCLAClassifierTest.hpp"
 
 using namespace std;

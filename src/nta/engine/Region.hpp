@@ -35,11 +35,11 @@
 #include <map>
 #include <set>
 
-#include <nta/types/Types.hpp>
+#include <nupic/types/Types.hpp>
 // We need the full definitions because these
 // objects are returned by value.
-#include <nta/ntypes/Dimensions.hpp>
-#include <nta/os/Timer.hpp>
+#include <nupic/ntypes/Dimensions.hpp>
+#include <nupic/os/Timer.hpp>
 
 namespace nupic
 {

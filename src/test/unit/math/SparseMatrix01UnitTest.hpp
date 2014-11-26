@@ -27,8 +27,8 @@
 //----------------------------------------------------------------------
 
 #include "SparseMatrixUnitTest.hpp"
-#include <nta/math/SparseMatrix01.hpp>
-#include <nta/utils/TRandom.hpp>
+#include <nupic/math/SparseMatrix01.hpp>
+#include <nupic/utils/TRandom.hpp>
 
 //----------------------------------------------------------------------
 

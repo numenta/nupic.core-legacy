@@ -40,7 +40,7 @@
 #include <sstream>
 #include <cstdio> //EOF
 #include <stdexcept>
-#include <nta/utils/Log.hpp>
+#include <nupic/utils/Log.hpp>
 
 namespace nupic {
 

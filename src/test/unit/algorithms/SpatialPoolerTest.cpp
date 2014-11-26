@@ -26,10 +26,10 @@
 
 #include <iostream>
 #include <fstream>
-#include <nta/algorithms/SpatialPooler.hpp>
-#include <nta/math/StlIo.hpp>
-#include <nta/types/Types.hpp>
-#include <nta/utils/Log.hpp>
+#include <nupic/algorithms/SpatialPooler.hpp>
+#include <nupic/math/StlIo.hpp>
+#include <nupic/types/Types.hpp>
+#include <nupic/utils/Log.hpp>
 #include <cstring>
 #include "SpatialPoolerTest.hpp"
 

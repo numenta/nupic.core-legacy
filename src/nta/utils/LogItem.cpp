@@ -25,8 +25,8 @@
 */
 
 
-#include <nta/utils/LogItem.hpp>
-#include <nta/types/Exception.hpp>
+#include <nupic/utils/LogItem.hpp>
+#include <nupic/types/Exception.hpp>
 #include <iostream>  // cout
 #include <stdexcept> // runtime_error
 

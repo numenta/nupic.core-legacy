@@ -25,7 +25,7 @@
  */
 
 #include "ExceptionTest.hpp"
-#include <nta/types/Exception.hpp>
+#include <nupic/types/Exception.hpp>
 
 using namespace nupic;
 

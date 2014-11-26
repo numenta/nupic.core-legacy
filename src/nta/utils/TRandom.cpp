@@ -24,10 +24,10 @@
     Random Number Generator implementation
 */
 
-#include <nta/utils/TRandom.hpp>
-#include <nta/utils/Log.hpp>
-#include <nta/utils/StringUtils.hpp>
-#include <nta/os/Env.hpp>
+#include <nupic/utils/TRandom.hpp>
+#include <nupic/utils/Log.hpp>
+#include <nupic/utils/StringUtils.hpp>
+#include <nupic/os/Env.hpp>
 #include <cstdlib>
 #include <ctime>
 

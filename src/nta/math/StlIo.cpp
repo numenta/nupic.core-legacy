@@ -24,7 +24,7 @@
  * This file contains functions to print out and save/load various STL data structures.
  */
 
-#include <nta/math/StlIo.hpp>
+#include <nupic/math/StlIo.hpp>
 
 namespace nupic {
 

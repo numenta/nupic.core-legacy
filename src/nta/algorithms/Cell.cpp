@@ -20,7 +20,7 @@
  * ---------------------------------------------------------------------
  */
 
-#include <nta/algorithms/Cell.hpp>
+#include <nupic/algorithms/Cell.hpp>
 
 using namespace nupic::algorithms::Cells4;
 using namespace nupic;

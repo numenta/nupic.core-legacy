@@ -26,11 +26,11 @@
 */
 
 #include <cstring> // memset
-#include <nta/types/BasicType.hpp>
-#include <nta/ntypes/Array.hpp>
-#include <nta/engine/Output.hpp>
-#include <nta/engine/Region.hpp>
-#include <nta/engine/Link.hpp> // temporary
+#include <nupic/types/BasicType.hpp>
+#include <nupic/ntypes/Array.hpp>
+#include <nupic/engine/Output.hpp>
+#include <nupic/engine/Region.hpp>
+#include <nupic/engine/Link.hpp> // temporary
 
 
 namespace nupic

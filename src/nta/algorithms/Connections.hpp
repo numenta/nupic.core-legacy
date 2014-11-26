@@ -29,8 +29,8 @@
 
 #include <vector>
 #include <utility>
-#include <nta/types/Types.hpp>
-#include <nta/math/Math.hpp>
+#include <nupic/types/Types.hpp>
+#include <nupic/math/Math.hpp>
 
 namespace nupic
 {

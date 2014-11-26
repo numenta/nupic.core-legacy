@@ -22,22 +22,22 @@
 
 
 #include <stdexcept>
-#include <nta/engine/RegionImplFactory.hpp>
-#include <nta/engine/RegionImpl.hpp>
-#include <nta/engine/Region.hpp>
-#include <nta/engine/Spec.hpp>
-#include <nta/os/DynamicLibrary.hpp>
-#include <nta/os/Path.hpp>
-#include <nta/os/OS.hpp>
-#include <nta/os/Env.hpp>
-#include <nta/ntypes/Value.hpp>
-#include <nta/ntypes/BundleIO.hpp>
-#include <nta/engine/YAMLUtils.hpp>
-#include <nta/engine/TestNode.hpp>
-#include <nta/regions/VectorFileEffector.hpp>
-#include <nta/regions/VectorFileSensor.hpp>
-#include <nta/utils/Log.hpp>
-#include <nta/utils/StringUtils.hpp>
+#include <nupic/engine/RegionImplFactory.hpp>
+#include <nupic/engine/RegionImpl.hpp>
+#include <nupic/engine/Region.hpp>
+#include <nupic/engine/Spec.hpp>
+#include <nupic/os/DynamicLibrary.hpp>
+#include <nupic/os/Path.hpp>
+#include <nupic/os/OS.hpp>
+#include <nupic/os/Env.hpp>
+#include <nupic/ntypes/Value.hpp>
+#include <nupic/ntypes/BundleIO.hpp>
+#include <nupic/engine/YAMLUtils.hpp>
+#include <nupic/engine/TestNode.hpp>
+#include <nupic/regions/VectorFileEffector.hpp>
+#include <nupic/regions/VectorFileSensor.hpp>
+#include <nupic/utils/Log.hpp>
+#include <nupic/utils/StringUtils.hpp>
 
 // from http://stackoverflow.com/a/9096509/1781435
 #define stringify(x)  #x

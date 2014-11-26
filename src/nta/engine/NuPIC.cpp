@@ -25,9 +25,9 @@
 // TODO -- thread safety
 // TODO -- add license check
 
-#include <nta/engine/NuPIC.hpp>
-#include <nta/engine/RegionImplFactory.hpp>
-#include <nta/utils/Log.hpp>
+#include <nupic/engine/NuPIC.hpp>
+#include <nupic/engine/RegionImplFactory.hpp>
+#include <nupic/utils/Log.hpp>
 #include <apr-1/apr_general.h>
 
 namespace nupic

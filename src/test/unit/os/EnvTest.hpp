@@ -28,8 +28,8 @@
 #ifndef NTA_ENV_TEST_HPP
 #define NTA_ENV_TEST_HPP
 
-#include <nta/os/Env.hpp>
-#include <nta/test/Tester.hpp>
+#include <nupic/os/Env.hpp>
+#include <nupic/test/Tester.hpp>
 
 namespace nupic {
   

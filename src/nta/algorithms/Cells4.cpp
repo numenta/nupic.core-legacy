@@ -29,19 +29,19 @@
 #include <sstream>
 
 #include "cycle_counter.hpp"
-#include <nta/utils/Random.hpp>
-#include <nta/utils/Log.hpp>
+#include <nupic/utils/Random.hpp>
+#include <nupic/utils/Log.hpp>
 #include <assert.h>
 #include <cstring>
 #include <map>
-#include <nta/math/ArrayAlgo.hpp> // is_in
-#include <nta/math/StlIo.hpp> // binary_save
-#include <nta/algorithms/Cells4.hpp>
-#include <nta/algorithms/SegmentUpdate.hpp>
-#include <nta/algorithms/Cell.hpp>
-#include <nta/os/FStream.hpp>
+#include <nupic/math/ArrayAlgo.hpp> // is_in
+#include <nupic/math/StlIo.hpp> // binary_save
+#include <nupic/algorithms/Cells4.hpp>
+#include <nupic/algorithms/SegmentUpdate.hpp>
+#include <nupic/algorithms/Cell.hpp>
+#include <nupic/os/FStream.hpp>
 
-#include <nta/os/Timer.hpp>
+#include <nupic/os/Timer.hpp>
 
 using namespace nupic::algorithms::Cells4;
 

@@ -25,8 +25,8 @@
 #ifndef NTA_COND_PROB_TABLE_HPP
 #define NTA_COND_PROB_TABLE_HPP
 
-#include <nta/math/SparseMatrix.hpp>
-#include <nta/math/SparseMatrix01.hpp>
+#include <nupic/math/SparseMatrix.hpp>
+#include <nupic/math/SparseMatrix01.hpp>
 
 namespace nupic {
   

@@ -24,12 +24,12 @@
     Random Number Generator interface
 */
 
-#include <nta/types/Types.hpp>
+#include <nupic/types/Types.hpp>
 #include <algorithm>
 #include <cstdlib>
 #include <string>
 #include <vector>
-#include <nta/utils/Log.hpp>
+#include <nupic/utils/Log.hpp>
 #include <utility>
 
 #ifndef NTA_RANDOM_HPP

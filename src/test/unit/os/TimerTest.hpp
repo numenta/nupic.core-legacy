@@ -27,7 +27,7 @@
 #ifndef NTA_TIMER_TEST_HPP
 #define NTA_TIMER_TEST_HPP
 
-#include <nta/test/Tester.hpp>
+#include <nupic/test/Tester.hpp>
 
 /**
  * @todo This is the original Timer test before Timer and ProfilingTimer

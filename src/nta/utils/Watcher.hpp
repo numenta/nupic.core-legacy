@@ -30,7 +30,7 @@
 #include <string>
 #include <vector>
 
-#include <nta/engine/Output.hpp>
+#include <nupic/engine/Output.hpp>
 
 namespace nupic
 {

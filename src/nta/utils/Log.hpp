@@ -28,8 +28,8 @@
 #ifndef NTA_LOG2_HPP
 #define NTA_LOG2_HPP
 
-#include <nta/utils/LoggingException.hpp>
-#include <nta/utils/LogItem.hpp>
+#include <nupic/utils/LoggingException.hpp>
+#include <nupic/utils/LogItem.hpp>
 
 
 #define NTA_DEBUG nupic::LogItem(__FILE__, __LINE__, nupic::LogItem::debug).stream()

@@ -24,9 +24,9 @@
  * Implementation of unit testing for class SparseMatrix01
  */         
               
-//#include <nta/common/version.hpp>
+//#include <nupic/common/version.hpp>
 
-#include <nta/math/ArrayAlgo.hpp>
+#include <nupic/math/ArrayAlgo.hpp>
 #include "SparseMatrix01UnitTest.hpp"
 
 #include <boost/timer.hpp>

@@ -33,13 +33,13 @@
 #include <cstdio> // sprintf
 #include <boost/unordered_set.hpp>
 
-#include <nta/math/Utils.hpp>
-#include <nta/ntypes/MemParser.hpp>
-#include <nta/ntypes/MemStream.hpp>
+#include <nupic/math/Utils.hpp>
+#include <nupic/ntypes/MemParser.hpp>
+#include <nupic/ntypes/MemStream.hpp>
 
-#include <nta/math/Math.hpp>
-#include <nta/math/ArrayAlgo.hpp>
-#include <nta/math/StlIo.hpp>
+#include <nupic/math/Math.hpp>
+#include <nupic/math/ArrayAlgo.hpp>
+#include <nupic/math/StlIo.hpp>
 
 //--------------------------------------------------------------------------------
 

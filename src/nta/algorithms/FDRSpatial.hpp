@@ -23,7 +23,7 @@
 #ifndef NTA_FDR_SPATIAL_HPP
 #define NTA_FDR_SPATIAL_HPP
 
-#include <nta/math/StlIo.hpp>
+#include <nupic/math/StlIo.hpp>
 
 namespace nupic {
   namespace algorithms {

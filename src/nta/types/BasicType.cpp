@@ -21,8 +21,8 @@
  */
 
 
-#include <nta/types/BasicType.hpp>
-#include <nta/types/Exception.hpp>
+#include <nupic/types/BasicType.hpp>
+#include <nupic/types/Exception.hpp>
 
 using namespace nupic;
 

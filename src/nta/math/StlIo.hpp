@@ -36,9 +36,9 @@
 #include <iomanip>
 #include <boost/type_traits.hpp>
 
-#include <nta/types/Types.hpp>
+#include <nupic/types/Types.hpp>
 
-#include <nta/math/ArrayAlgo.hpp>
+#include <nupic/math/ArrayAlgo.hpp>
 
 namespace nupic {
 

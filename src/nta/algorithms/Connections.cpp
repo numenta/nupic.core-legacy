@@ -25,7 +25,7 @@
  */
 
 #include <climits>
-#include <nta/algorithms/Connections.hpp>
+#include <nupic/algorithms/Connections.hpp>
 
 using namespace std;
 using namespace nupic;

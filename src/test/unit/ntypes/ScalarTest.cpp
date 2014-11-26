@@ -25,7 +25,7 @@
  */
 
 #include "../ntypes/ScalarTest.hpp"
-#include <nta/ntypes/Scalar.hpp>
+#include <nupic/ntypes/Scalar.hpp>
 
 using namespace nupic;
 

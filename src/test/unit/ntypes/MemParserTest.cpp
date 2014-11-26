@@ -25,7 +25,7 @@
  */ 
 
 #include "MemParserTest.hpp"
-#include <nta/ntypes/MemParser.hpp>
+#include <nupic/ntypes/MemParser.hpp>
 
 #include <stdexcept>
 #include <string>

@@ -24,12 +24,12 @@
  * Implementation of Region methods related to parameters
  */
 
-#include <nta/engine/Region.hpp>
-#include <nta/engine/RegionImpl.hpp>
-#include <nta/engine/Spec.hpp>
-#include <nta/utils/Log.hpp>
-#include <nta/ntypes/Array.hpp>
-#include <nta/types/Types.h>
+#include <nupic/engine/Region.hpp>
+#include <nupic/engine/RegionImpl.hpp>
+#include <nupic/engine/Spec.hpp>
+#include <nupic/utils/Log.hpp>
+#include <nupic/ntypes/Array.hpp>
+#include <nupic/types/Types.h>
 
 namespace nupic
 {

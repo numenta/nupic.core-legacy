@@ -26,9 +26,9 @@
 
 
 #include "RandomTest.hpp"
-#include <nta/os/Env.hpp>
-#include <nta/ntypes/MemStream.hpp>
-#include <nta/utils/LoggingException.hpp>
+#include <nupic/os/Env.hpp>
+#include <nupic/ntypes/MemStream.hpp>
+#include <nupic/utils/LoggingException.hpp>
 #include <stdlib.h>
 #include <sstream>
 

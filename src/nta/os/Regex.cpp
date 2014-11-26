@@ -23,8 +23,8 @@
 /** @file 
 */
 
-#include <nta/os/Regex.hpp>
-#include <nta/utils/Log.hpp>
+#include <nupic/os/Regex.hpp>
+#include <nupic/utils/Log.hpp>
 #ifdef NTA_PLATFORM_win32
   #include <pcre/pcreposix.h>
 #else

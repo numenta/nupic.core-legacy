@@ -25,9 +25,9 @@
  */
 
 #include "YAMLUtilsTest.hpp"
-#include <nta/engine/Network.hpp>
-#include <nta/engine/YAMLUtils.hpp>
-#include <nta/engine/Spec.hpp>
+#include <nupic/engine/Network.hpp>
+#include <nupic/engine/YAMLUtils.hpp>
+#include <nupic/engine/Spec.hpp>
 
 #include "NetworkTest.hpp"
 

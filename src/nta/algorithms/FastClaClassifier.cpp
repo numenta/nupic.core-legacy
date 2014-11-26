@@ -29,11 +29,11 @@
 #include <vector>
 #include <stdio.h>
 
-#include <nta/algorithms/BitHistory.hpp>
-#include <nta/algorithms/ClassifierResult.hpp>
-#include <nta/algorithms/FastClaClassifier.hpp>
-#include <nta/types/Types.hpp>
-#include <nta/utils/Log.hpp>
+#include <nupic/algorithms/BitHistory.hpp>
+#include <nupic/algorithms/ClassifierResult.hpp>
+#include <nupic/algorithms/FastClaClassifier.hpp>
+#include <nupic/types/Types.hpp>
+#include <nupic/utils/Log.hpp>
 
 using namespace std;
 

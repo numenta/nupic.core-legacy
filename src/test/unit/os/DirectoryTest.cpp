@@ -25,10 +25,10 @@
  */
 
 
-#include <nta/os/Directory.hpp>
-#include <nta/os/Path.hpp>
-#include <nta/os/OS.hpp>
-#include <nta/os/FStream.hpp>
+#include <nupic/os/Directory.hpp>
+#include <nupic/os/Path.hpp>
+#include <nupic/os/OS.hpp>
+#include <nupic/os/FStream.hpp>
 #include "DirectoryTest.hpp"
 #include <apr-1/apr.h>
 

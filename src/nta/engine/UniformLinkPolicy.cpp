@@ -24,12 +24,12 @@
 #include <string>
 #include <limits>
 
-#include <nta/engine/UniformLinkPolicy.hpp>
-#include <nta/engine/Link.hpp>
-#include <nta/engine/YAMLUtils.hpp>
-#include <nta/ntypes/Dimensions.hpp>
-#include <nta/utils/Log.hpp>
-#include <nta/types/Fraction.hpp>
+#include <nupic/engine/UniformLinkPolicy.hpp>
+#include <nupic/engine/Link.hpp>
+#include <nupic/engine/YAMLUtils.hpp>
+#include <nupic/ntypes/Dimensions.hpp>
+#include <nupic/utils/Log.hpp>
+#include <nupic/types/Fraction.hpp>
 
 #include <boost/shared_ptr.hpp>
 

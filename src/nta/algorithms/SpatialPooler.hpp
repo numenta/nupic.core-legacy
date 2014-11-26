@@ -29,9 +29,9 @@
 
 #include <cstring>
 #include <iostream>
-#include <nta/math/SparseBinaryMatrix.hpp>
-#include <nta/math/SparseMatrix.hpp>
-#include <nta/types/Types.hpp>
+#include <nupic/math/SparseBinaryMatrix.hpp>
+#include <nupic/math/SparseMatrix.hpp>
+#include <nupic/types/Types.hpp>
 #include <string>
 #include <vector>
 
