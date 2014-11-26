@@ -112,7 +112,7 @@ namespace nupic {
 
   //--------------------------------------------------------------------------------
   /**
-   * Functions that test for positivity or negativity based on nta:Epsilon.
+   * Functions that test for positivity or negativity based on nupic::Epsilon.
    */
   template <typename T>
   inline bool strictlyNegative(const T& a)
@@ -264,7 +264,7 @@ namespace nupic {
    *  In our application, we are anticipating numbers mostly between 0 and 1, 
    *  because they represent probabilities.
    * 
-   *  Not clear why this is namespace std instead of nta , but FA says there was 
+   *  Not clear why this is namespace std instead of nupic , but FA says there was
    *  a "good, ugly" reason to do it this way that he can't remember. - WCS 0206
    */
   template <typename T>

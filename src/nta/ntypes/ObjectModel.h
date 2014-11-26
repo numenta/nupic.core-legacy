@@ -72,7 +72,7 @@ extern "C" {
  * with minimal forwarding inside each runtime object. 
  *
  *  The naming convention of mapped interfaces is that the C++ nupic::I<interface name> corresponds to the
- *  NTA_<interface name>. The nta namespace is translated to an NTA_ prefix and the I is dropped.
+ *  NTA_<interface name>. The nupic namespace is translated to an NTA_ prefix and the I is dropped.
  *  
  * @b Invariants:
  *  

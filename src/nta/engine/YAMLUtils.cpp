@@ -340,5 +340,5 @@ ValueMap toValueMap(const char* yamlstring,
 
 } // end of YAMLUtils namespace
 
-} // end of nta namespace
+} // end of namespace nupic
 
