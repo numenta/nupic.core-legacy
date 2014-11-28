@@ -401,7 +401,6 @@ add_custom_target(combined ALL
                   DEPENDS ${LIB_STATIC_NUPICCORE}
                           ${LIB_STATIC_GTEST}
                           ${EXECUTABLE_HELLOREGION}
-                          ${EXECUTABLE_PROTOTEST}
                           ${EXECUTABLE_HTMTEST}
                           ${EXECUTABLE_GTESTS})
 
@@ -412,7 +411,6 @@ install(TARGETS
         ${LIB_STATIC_NUPICCORE}
         ${LIB_STATIC_GTEST}
         ${EXECUTABLE_HELLOREGION}
-        ${EXECUTABLE_PROTOTEST}
         ${EXECUTABLE_HTMTEST}
         ${EXECUTABLE_GTESTS}
         RUNTIME DESTINATION bin
