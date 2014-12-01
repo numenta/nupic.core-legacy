@@ -29,14 +29,14 @@
 
 //----------------------------------------------------------------------
 
-#include <nta/test/Tester.hpp>
-#include <nta/ntypes/Dimensions.hpp>
-#include <nta/types/Fraction.hpp>
+#include <nupic/test/Tester.hpp>
+#include <nupic/ntypes/Dimensions.hpp>
+#include <nupic/types/Fraction.hpp>
 #include <utility>
 
 //----------------------------------------------------------------------
 
-namespace nta {
+namespace nupic {
 
   struct UniformLinkPolicyTest : public Tester
   {

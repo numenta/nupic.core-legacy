@@ -25,11 +25,11 @@
  */
 
 #include "FractionTest.hpp"
-#include <nta/types/Fraction.hpp>
+#include <nupic/types/Fraction.hpp>
 #include <sstream>
 #include <limits>
 
-using namespace nta;
+using namespace nupic;
 
 void FractionTest::RunTests()
 {

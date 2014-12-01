@@ -33,7 +33,7 @@
 #ifndef NTA_NEAREST_NEIGHBOR
 #define NTA_NEAREST_NEIGHBOR
 
-namespace nta {
+namespace nupic {
 
   //----------------------------------------------------------------------
   class NearestNeighborUnitTest : public SparseMatrixUnitTest
@@ -62,7 +62,7 @@ namespace nta {
   }; // end class NearestNeighborUnitTest
     
   //----------------------------------------------------------------------
-} // end namespace nta
+} // end namespace nupic
 
 #endif // NTA_NEAREST_NEIGHBOR
 

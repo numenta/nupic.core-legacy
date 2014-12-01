@@ -25,14 +25,14 @@
  */
 
 #include "MemStreamTest.hpp"
-#include <nta/ntypes/MemStream.hpp>
-#include <nta/utils/Log.hpp>
+#include <nupic/ntypes/MemStream.hpp>
+#include <nupic/utils/Log.hpp>
 
 #include <stdexcept>
 #include <string>
 #include <iostream>
 
-namespace nta {
+namespace nupic {
 
   static size_t memLimitsTest(size_t max)
   {
@@ -177,4 +177,4 @@ namespace nta {
 
 
 
-} // namespace nta
+} // namespace nupic

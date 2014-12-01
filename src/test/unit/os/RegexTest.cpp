@@ -25,11 +25,11 @@
  */
 
 
-#include <nta/os/Regex.hpp>
+#include <nupic/os/Regex.hpp>
 #include "RegexTest.hpp"
 
 using namespace std;
-using namespace nta;
+using namespace nupic;
 
 
 void RegexTest::RunTests()

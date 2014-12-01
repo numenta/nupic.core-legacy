@@ -24,16 +24,16 @@
  * Implementation of unit testing for class SparseMatrix01
  */         
               
-//#include <nta/common/version.hpp>
+//#include <nupic/common/version.hpp>
 
-#include <nta/math/ArrayAlgo.hpp>
+#include <nupic/math/ArrayAlgo.hpp>
 #include "SparseMatrix01UnitTest.hpp"
 
 #include <boost/timer.hpp>
     
 using namespace std;     
 
-namespace nta {
+namespace nupic {
        
 #define TEST_LOOP(M)                                  \
   for (nrows = 0, ncols = M, zr = 15;                 \
@@ -2425,6 +2425,6 @@ namespace nta {
 
   //--------------------------------------------------------------------------------
   
-} // namespace nta
+} // namespace nupic
 
 

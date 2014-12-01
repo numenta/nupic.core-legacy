@@ -25,9 +25,9 @@
  */
 
 #include "../ntypes/ScalarTest.hpp"
-#include <nta/ntypes/Scalar.hpp>
+#include <nupic/ntypes/Scalar.hpp>
 
-using namespace nta;
+using namespace nupic;
 
 void ScalarTest::RunTests()
 {

@@ -21,15 +21,15 @@
  */
 
 #include <iostream>
-#include <nta/engine/Network.hpp>
-#include <nta/engine/Region.hpp>
-#include <nta/ntypes/Dimensions.hpp>
-#include <nta/ntypes/ArrayRef.hpp>
-#include <nta/os/Path.hpp>
+#include <nupic/engine/Network.hpp>
+#include <nupic/engine/Region.hpp>
+#include <nupic/ntypes/Dimensions.hpp>
+#include <nupic/ntypes/ArrayRef.hpp>
+#include <nupic/os/Path.hpp>
 
 
 
-using namespace nta;
+using namespace nupic;
 
 int main(int argc, const char * argv[])
 {

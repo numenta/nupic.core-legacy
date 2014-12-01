@@ -29,9 +29,9 @@ Uber test program
 #define WIN32_LEAN_AND_MEAN
 #endif
 
-#include <nta/utils/Log.hpp>
-#include <nta/test/Tester.hpp>
-#include <nta/os/Regex.hpp>
+#include <nupic/utils/Log.hpp>
+#include <nupic/test/Tester.hpp>
+#include <nupic/os/Regex.hpp>
 #include <iostream>
 
 // APR must be explicit initialized
@@ -48,7 +48,7 @@ Uber test program
 #include "EverythingHeaders.hpp"
 
 using namespace std;
-using namespace nta;
+using namespace nupic;
 
 typedef std::pair<std::string, Tester*> TestInfo;
 typedef std::vector<TestInfo> Testers;
