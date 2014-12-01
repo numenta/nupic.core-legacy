@@ -3890,7 +3890,7 @@ namespace nupic {
                    // at the end of this asm snippet. This means we need to use 'rip relative'
                    // addressing to access a 'static' variable (a global would also work) here
                    // and then load it into eax manually. Then things work fine.
-                   "movq  __ZZN3nta8count_gtEPfS0_fE14localThreshold@GOTPCREL(%%rip), %%r11\n\t"
+                   "movq  __ZZN3nupic8count_gtEPfS0_fE14localThreshold@GOTPCREL(%%rip), %%r11\n\t"
                    "movl  (%%r11), %%eax\n\t"
     #endif
 
