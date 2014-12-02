@@ -90,7 +90,11 @@ if(UNIX) # or UNIX like (i.e. APPLE and CYGWIN)
   add_definitions(-DHAVE_UNISTD_H)
 elseif(WIN32) # incl. win64
   set(COMPILE_FLAGS "/TP /Zc:wchar_t /Gm- /fp:precise /errorReport:prompt /W3 /WX- /GR /Gd /GS /Oy- /EHs /analyze- /nologo")
-  set(LINK_FLAGS "/MACHINE:X${BITNESS} /NOLOGO /SAFESEH:NO /NODEFAULTLIB:LIBCMT")
+  if("${BITNESS}" STREQUAL "32")
+    set(LINK_FLAGS "/MACHINE:X86 /NOLOGO /SAFESEH:NO /NODEFAULTLIB:LIBCMT")
+  else()
+    set(LINK_FLAGS "/MACHINE:X${BITNESS} /NOLOGO /SAFESEH:NO /NODEFAULTLIB:LIBCMT")
+  endif()
   add_definitions( -D _VARIADIC_MAX=10  # VS2012 doesn't support tuples correctly
                    -DPSAPI_VERSION=1 -DNOMINMAX -DAPR_DECLARE_STATIC -DAPU_DECLARE_STATIC -DZLIB_WINAPI
                    -DWIN32 -D_WINDOWS -D_MBCS -D_CRT_SECURE_NO_WARNINGS -DNDEBUG)
