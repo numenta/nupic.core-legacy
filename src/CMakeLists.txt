@@ -30,6 +30,12 @@ project(nupic_core CXX)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 #
+# Include extra cmake files
+#
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
+                      "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
+
+#
 # Identify platform
 #
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
@@ -75,6 +81,16 @@ include_directories(SYSTEM
                     "${PROJECT_BINARY_DIR}")
 
 set(COMPILE_FLAGS "-fPIC -std=c++11 -m${BITNESS} ${STDLIB} -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-unused-parameter")
+
+#
+# Let CMake know where all of the external files are.
+#
+set(CMAKE_PREFIX_PATH ${REPOSITORY_DIR}/external/common/
+                      ${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/)
+#
+# Make sure the Cap'n Proto generation scripts are on the PATH.
+#
+set(ENV{PATH} "$ENV{PATH}:${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/bin")
 
 #
 # Extract current git sha and record in nupic/Version.hpp
@@ -169,6 +185,18 @@ find_library(LIB_STATIC_CAPNP_LOC
 add_library(${LIB_STATIC_CAPNP} STATIC IMPORTED GLOBAL)
 
 #
+# Generate Cap'n Proto C++ files
+#
+find_package(CapnProto REQUIRED)
+include_directories(${CAPNP_INCLUDE_DIRS})
+capnp_generate_cpp(
+  CAPNP_SRCS CAPNP_HDRS
+  # List all .capnp files here. The C++ files will be generated and included
+  # When compiling later on.
+  nupic/utils/RandomProto.capnp
+)
+
+#
 # Setup libnupic_core
 #
 set(LIB_STATIC_NUPICCORE nupic_core_solo)
@@ -183,6 +211,7 @@ endif()
 
 ADD_LIBRARY(${LIB_STATIC_NUPICCORE}
             STATIC
+            ${CAPNP_SRCS}
             nupic/algorithms/BitHistory.cpp
             nupic/algorithms/Cell.cpp
             nupic/algorithms/Cells4.cpp
@@ -246,7 +275,6 @@ ADD_LIBRARY(${LIB_STATIC_NUPICCORE}
             nupic/utils/LoggingException.cpp
             nupic/utils/LogItem.cpp
             nupic/utils/Random.cpp
-            nupic/utils/RandomProto.capnp.c++
             nupic/utils/StringUtils.cpp
             nupic/utils/TRandom.cpp
             nupic/utils/Watcher.cpp)
@@ -428,6 +456,7 @@ install(TARGETS
         ${LIB_STATIC_GTEST}
         ${EXECUTABLE_HELLOREGION}
         ${EXECUTABLE_HTMTEST}
+        ${EXECUTABLE_PROTOTEST}
         ${EXECUTABLE_GTESTS}
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib

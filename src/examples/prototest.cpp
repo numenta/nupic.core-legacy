@@ -40,14 +40,14 @@ long diff(timeval & start, timeval & end)
   );
 }
 
-void testRandomIOStream()
+void testRandomIOStream(UInt n)
 {
   Random r1(7);
   Random r2;
 
   time_t startStream, endStream;
   time(&startStream);
-  for (UInt i = 0; i < 50000; ++i)
+  for (UInt i = 0; i < n; ++i)
   {
     r1.getUInt32();
 
@@ -73,14 +73,14 @@ void testRandomIOStream()
   cout << "Stream time: " << (endStream - startStream) << endl;
 }
 
-void testRandomManual()
+void testRandomManual(UInt n)
 {
   Random r1(7);
   Random r2;
 
   time_t startManual, endManual;
   time(&startManual);
-  for (UInt i = 0; i < 50000; ++i)
+  for (UInt i = 0; i < n; ++i)
   {
     r1.getUInt32();
 
@@ -108,8 +108,9 @@ void testRandomManual()
 
 int main(int argc, const char * argv[])
 {
-  testRandomIOStream();
-  testRandomManual();
+  UInt n = 1000;
+  testRandomIOStream(n);
+  testRandomManual(n);
 
   return 0;
 }
