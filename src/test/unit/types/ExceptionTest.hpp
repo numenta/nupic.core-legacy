@@ -27,9 +27,9 @@
 #ifndef NTA_EXCEPTION_TEST_HPP
 #define NTA_EXCEPTION_TEST_HPP
 
-#include <nta/test/Tester.hpp>
+#include <nupic/test/Tester.hpp>
 
-namespace nta
+namespace nupic
 {
   struct ExceptionTest : public Tester
   {

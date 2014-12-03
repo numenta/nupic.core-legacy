@@ -29,11 +29,11 @@
 
 //----------------------------------------------------------------------
 
-#include <nta/test/Tester.hpp>
+#include <nupic/test/Tester.hpp>
 
 //----------------------------------------------------------------------
 
-namespace nta 
+namespace nupic
 {
 
   struct RegexTest : public Tester

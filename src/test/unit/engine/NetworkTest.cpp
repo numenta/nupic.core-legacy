@@ -26,12 +26,12 @@
 
 #include "NetworkTest.hpp"
 
-#include <nta/engine/Network.hpp>
-#include <nta/engine/NuPIC.hpp>
-#include <nta/engine/Region.hpp>
-#include <nta/ntypes/Dimensions.hpp>
+#include <nupic/engine/Network.hpp>
+#include <nupic/engine/NuPIC.hpp>
+#include <nupic/engine/Region.hpp>
+#include <nupic/ntypes/Dimensions.hpp>
 
-using namespace nta;
+using namespace nupic;
 
 
 void NetworkTest::RunTests()
@@ -338,7 +338,7 @@ void testCallback(Network* net, UInt64 iteration, void* data)
 {
   callbackData& thedata = *(static_cast<callbackData*>(data));
   // push region names onto callback data
-  const nta::Collection<Region*>& regions = net->getRegions();
+  const nupic::Collection<Region*>& regions = net->getRegions();
   for (size_t i = 0; i < regions.getCount(); i++)
   {
     thedata.push_back(regions.getByIndex(i).first);

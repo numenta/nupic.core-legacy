@@ -25,13 +25,13 @@
  */
 
 #include "YAMLUtilsTest.hpp"
-#include <nta/engine/Network.hpp>
-#include <nta/engine/YAMLUtils.hpp>
-#include <nta/engine/Spec.hpp>
+#include <nupic/engine/Network.hpp>
+#include <nupic/engine/YAMLUtils.hpp>
+#include <nupic/engine/Spec.hpp>
 
 #include "NetworkTest.hpp"
 
-using namespace nta;
+using namespace nupic;
 
 void YAMLUtilsTest::RunTests()
 {
@@ -188,7 +188,7 @@ void YAMLUtilsTest::RunTests()
     {
       YAMLUtils::toValueMap("{ blah: True }", ps, "nodeType", "regionName");
     }
-    catch (nta::Exception & e)
+    catch (nupic::Exception & e)
     {
       std::string s("Unknown parameter 'blah' for region 'regionName'");
       TEST(std::string(e.getMessage()).find(s) == 0);
@@ -198,7 +198,7 @@ void YAMLUtilsTest::RunTests()
     {
       YAMLUtils::toValueMap("{ blah: True }", ps);
     }
-    catch (nta::Exception & e)
+    catch (nupic::Exception & e)
     {
       std::string s("Unknown parameter 'blah'\nValid");
       TEST(std::string(e.getMessage()).find(s) == 0);

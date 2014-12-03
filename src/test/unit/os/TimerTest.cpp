@@ -27,12 +27,12 @@
 #define SLEEP_MICROSECONDS (100 * 1000)
 
 #include "TimerTest.hpp"
-#include <nta/utils/Log.hpp>
-#include <nta/os/Timer.hpp>
+#include <nupic/utils/Log.hpp>
+#include <nupic/os/Timer.hpp>
 #include <math.h> // fabs
 #include <apr-1/apr_time.h>
 
-using namespace nta;
+using namespace nupic;
 
 void TimerTest::RunTests()
 {

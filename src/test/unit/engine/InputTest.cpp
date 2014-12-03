@@ -25,13 +25,13 @@
  */
 
 #include "../engine/InputTest.hpp"
-#include <nta/engine/Input.hpp>
-#include <nta/engine/Network.hpp>
-#include <nta/ntypes/Dimensions.hpp>
-#include <nta/engine/Region.hpp>
-#include <nta/engine/Output.hpp>
+#include <nupic/engine/Input.hpp>
+#include <nupic/engine/Network.hpp>
+#include <nupic/ntypes/Dimensions.hpp>
+#include <nupic/engine/Region.hpp>
+#include <nupic/engine/Output.hpp>
 
-using namespace nta;
+using namespace nupic;
 
 void InputTest::RunTests()
 {

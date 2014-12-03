@@ -24,13 +24,13 @@
  * Implementation of unit testing for class DenseTensor
  */  
               
-//#include <nta/common/version.hpp>
-#include <nta/math/StlIo.hpp>
+//#include <nupic/common/version.hpp>
+#include <nupic/math/StlIo.hpp>
 #include "DenseTensorUnitTest.hpp"
 
 using namespace std;  
 
-namespace nta {
+namespace nupic {
 //
 //  //--------------------------------------------------------------------------------
 //  void DenseTensorUnitTest::unitTestConstructor()
@@ -408,7 +408,7 @@ namespace nta {
 //      dref.set(idx, dA.get(idx) * dB.get(idx));
 //    }      
 //      
-//    dA.element_apply(dB, dC, nta::Multiplies<Real>());
+//    dA.element_apply(dB, dC, nupic::Multiplies<Real>());
 //    Test("DenseTensor element_apply 3", (dC == dref), true);
 //
 //    ITER_4(ub4[0], ub4[1], ub4[2], ub4[3]) {
@@ -416,7 +416,7 @@ namespace nta {
 //      dref.set(idx, dA.get(idx) * dB.get(idx));
 //    }
 //    
-//    dA.element_apply(dB, dA, nta::Multiplies<Real>());
+//    dA.element_apply(dB, dA, nupic::Multiplies<Real>());
 //    Test("DenseTensor element_apply 4", (dA == dref), true);   
 //
 //    ITER_4(ub4[0], ub4[1], ub4[2], ub4[3]) {
@@ -436,14 +436,14 @@ namespace nta {
 //      {    
 //        ITER_2(3, 4) ref.set(I2(i, j), Real((i*4+j+1) * (j+2)));
 //        D1 d1(4); ITER_1(4) d1.set(I1((UInt)i), Real(i+2));
-//        d2.factor_apply(I1(1), d1, c, nta::Multiplies<Real>());
+//        d2.factor_apply(I1(1), d1, c, nupic::Multiplies<Real>());
 //        Test("DenseTensor factor_apply 1", c, ref);
 //      }
 //
 //      {
 //        ITER_2(3, 4) ref.set(I2(i, j), Real((i*4+j+1) * (i+2)));
 //        D1 d1(3); ITER_1(3) d1.set(I1((UInt)i), Real(i+2));
-//        d2.factor_apply(I1((UInt)0), d1, c, nta::Multiplies<Real>());
+//        d2.factor_apply(I1((UInt)0), d1, c, nupic::Multiplies<Real>());
 //        Test("DenseTensor factor_apply 2", c, ref);
 //      }
 //    }    
@@ -459,7 +459,7 @@ namespace nta {
 //        D1 d1(ub[0]); ITER_1(ub[0]) d1.set(I1((UInt)i), Real(i+2));
 //        ITER_3(ub[0], ub[1], ub[2]) 
 //          { I3 i3(i, j, k); ref.set(i3, Real(i3.ordinal(ub)*(i+2))); }
-//        d3.factor_apply(I1((UInt)0), d1, c, nta::Multiplies<Real>());
+//        d3.factor_apply(I1((UInt)0), d1, c, nupic::Multiplies<Real>());
 //        Test("DenseTensor factor_apply 3", c, ref);
 //      }
 //
@@ -467,7 +467,7 @@ namespace nta {
 //        D1 d1(ub[1]); ITER_1(ub[1]) d1.set(I1((UInt)i), Real(i+2));
 //        ITER_3(ub[0], ub[1], ub[2]) 
 //          { I3 i3(i, j, k); ref.set(i3, Real(i3.ordinal(ub)*(j+2))); }
-//        d3.factor_apply(I1((UInt)1), d1, c, nta::Multiplies<Real>());
+//        d3.factor_apply(I1((UInt)1), d1, c, nupic::Multiplies<Real>());
 //        Test("DenseTensor factor_apply 4", c, ref);
 //      }
 //
@@ -475,7 +475,7 @@ namespace nta {
 //        D1 d1(ub[2]); ITER_1(ub[2]) d1.set(I1((UInt)i), Real(i+2));
 //        ITER_3(ub[0], ub[1], ub[2]) 
 //        { I3 i3(i, j, k); ref.set(i3, Real(i3.ordinal(ub)*(k+2))); }
-//        d3.factor_apply(I1((UInt)2), d1, c, nta::Multiplies<Real>());
+//        d3.factor_apply(I1((UInt)2), d1, c, nupic::Multiplies<Real>());
 //        Test("DenseTensor factor_apply 5", c, ref);
 //      }    
 //
@@ -484,7 +484,7 @@ namespace nta {
 //        ITER_2(ub[1], ub[2]) d2.set(I2(i, j), Real(i*ub[2]+j+2));
 //        ITER_3(ub[0], ub[1], ub[2]) 
 //          { I3 i3(i, j, k); ref.set(i3, Real(i3.ordinal(ub)*(j*ub[2]+k+2))); }
-//        d3.factor_apply(I2(1, 2), d2, c, nta::Multiplies<Real>());
+//        d3.factor_apply(I2(1, 2), d2, c, nupic::Multiplies<Real>());
 //        Test("DenseTensor factor_apply 6", c, ref);
 //      }
 //
@@ -493,7 +493,7 @@ namespace nta {
 //        ITER_2(ub[0], ub[2]) d2.set(I2(i, j), Real(i*ub[2]+j+2));
 //        ITER_3(ub[0], ub[1], ub[2]) 
 //          { I3 i3(i, j, k); ref.set(i3, Real(i3.ordinal(ub)*(i*ub[2]+k+2))); }
-//        d3.factor_apply(I2(0, 2), d2, c, nta::Multiplies<Real>());
+//        d3.factor_apply(I2(0, 2), d2, c, nupic::Multiplies<Real>());
 //        Test("DenseTensor factor_apply 7", c, ref);
 //      }
 //
@@ -502,7 +502,7 @@ namespace nta {
 //        ITER_2(ub[0], ub[1]) d2.set(I2(i, j), Real(i*ub[1]+j+2));
 //        ITER_3(ub[0], ub[1], ub[2]) 
 //          { I3 i3(i, j, k); ref.set(i3, Real(i3.ordinal(ub)*(i*ub[1]+j+2))); }
-//        d3.factor_apply(I2(0, 1), d2, c, nta::Multiplies<Real>());
+//        d3.factor_apply(I2(0, 1), d2, c, nupic::Multiplies<Real>());
 //        Test("DenseTensor factor_apply 8", c, ref);
 //      }   
 //      
@@ -513,7 +513,7 @@ namespace nta {
 //          d32.set(i3, Real(i3.ordinal(ub)+1)); 
 //          ref.set(i3, Real(i3.ordinal(ub) * (i3.ordinal(ub)+1)));
 //        }
-//        d3.factor_apply(I3(0, 1, 2), d32, c, nta::Multiplies<Real>());
+//        d3.factor_apply(I3(0, 1, 2), d32, c, nupic::Multiplies<Real>());
 //        Test("DenseTensor factor_apply 9", c, ref);
 //      }
 //    }
@@ -594,7 +594,7 @@ namespace nta {
 //        ref.set(I1((UInt)0), 4);
 //        ref.set(I1((UInt)1), 8);
 //        ref.set(I1((UInt)2), 12);
-//        d2.accumulate(I1((UInt)1), d1, nta::Max<Real>());
+//        d2.accumulate(I1((UInt)1), d1, nupic::Max<Real>());
 //        Test("DenseTensor max 1", d1, ref);
 //      }
 //    
@@ -604,7 +604,7 @@ namespace nta {
 //        ref.set(I1((UInt)1), 10);
 //        ref.set(I1((UInt)2), 11);
 //        ref.set(I1((UInt)3), 12);
-//        d2.accumulate(I1((UInt)0), d1, nta::Max<Real>());
+//        d2.accumulate(I1((UInt)0), d1, nupic::Max<Real>());
 //        Test("DenseTensor max 2", d1, ref);
 //      }
 //    }
@@ -615,7 +615,7 @@ namespace nta {
 //      D1 d1(3), ref(3);
 //      ref.setAll(1);
 //      ITER_2(3, 4) ref.set(i, d2(i, j) * ref(i));
-//      d2.accumulate(I1((UInt)1), d1, nta::Multiplies<Real>(), 1);
+//      d2.accumulate(I1((UInt)1), d1, nupic::Multiplies<Real>(), 1);
 //      Test("DenseTensor accumulate 9", d1, ref);
 //    }
 //  }  
@@ -629,12 +629,12 @@ namespace nta {
 //
 //    D2 m(4, 3), ref(4, 3);
 //    ITER_2(4, 3) ref.set(i, j, v1(i) * v2(j));
-//    v1.outer_product(v2, m, nta::Multiplies<Real>());
+//    v1.outer_product(v2, m, nupic::Multiplies<Real>());
 //    Test("DenseTensor outer_product 1", m, ref);
 //
 //    D3 d3(4, 3, 4), ref3(4, 3, 4);
 //    ITER_3(4, 3, 4) ref3.set(i, j, k, m(i, j) * v1(k));
-//    m.outer_product(v1, d3, nta::Multiplies<Real>());
+//    m.outer_product(v1, d3, nupic::Multiplies<Real>());
 //    Test("DenseTensor outer_product 2", d3, ref3);
 //
 //    D4 d4(4, 3, 4, 3), ref4(4, 3, 4, 3);
@@ -660,7 +660,7 @@ namespace nta {
 //      D1 d1(4), ref(4);
 //      ref.setAll(1);
 //      ITER_2(4, 3) ref.set(i, (Real)(ref(i) * d3(i, j, j)));
-//      d3.contract(1, 2, d1, nta::Multiplies<Real>(), 1);
+//      d3.contract(1, 2, d1, nupic::Multiplies<Real>(), 1);
 //      Test("DenseTensor contract 1", d1, ref);
 //    }
 //  }
@@ -676,11 +676,11 @@ namespace nta {
 //    ITER_3(3, 4, 3)
 //      d2ref(i, k) += d2A(i, j) * d2B(j, k);
 //                  
-//    d2A.inner_product(1, 0, d2B, d2C, nta::Multiplies<Real>(), std::plus<Real>(), 0);
+//    d2A.inner_product(1, 0, d2B, d2C, nupic::Multiplies<Real>(), std::plus<Real>(), 0);
 //    Test("DenseTensor inner product 1", d2C, d2ref);
 //
 //    D4 o(3, 4, 4, 3); 
-//    d2A.outer_product(d2B, o, nta::Multiplies<Real>());
+//    d2A.outer_product(d2B, o, nupic::Multiplies<Real>());
 //
 //    D2 d2D(3, 3);
 //    o.contract(1, 2, d2D, std::plus<Real>());
@@ -688,10 +688,10 @@ namespace nta {
 //
 //    D3 d3A(3, 4, 5), d3B(3, 3, 5);
 //    ITER_3(3, 4, 5) d3A.set(i, j, k, (Real)(I3(i, j, k).ordinal(I3(3, 4, 5)) + 1));
-//    d2A.inner_product(1, 1, d3A, d3B, nta::Multiplies<Real>(), std::plus<Real>());
+//    d2A.inner_product(1, 1, d3A, d3B, nupic::Multiplies<Real>(), std::plus<Real>());
 //
 //    D5 o2(3, 4, 3, 4, 5);
-//    d2A.outer_product(d3A, o2, nta::Multiplies<Real>());
+//    d2A.outer_product(d3A, o2, nupic::Multiplies<Real>());
 //    
 //    D3 d3D(3, 3, 5);
 //    o2.contract(1, 3, d3D, std::plus<Real>());
@@ -719,6 +719,6 @@ namespace nta {
 
   //--------------------------------------------------------------------------------
   
-} // namespace nta
+} // namespace nupic
 
 

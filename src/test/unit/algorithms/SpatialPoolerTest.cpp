@@ -26,17 +26,17 @@
 
 #include <iostream>
 #include <fstream>
-#include <nta/algorithms/SpatialPooler.hpp>
-#include <nta/math/StlIo.hpp>
-#include <nta/types/Types.hpp>
-#include <nta/utils/Log.hpp>
+#include <nupic/algorithms/SpatialPooler.hpp>
+#include <nupic/math/StlIo.hpp>
+#include <nupic/types/Types.hpp>
+#include <nupic/utils/Log.hpp>
 #include <cstring>
 #include "SpatialPoolerTest.hpp"
 
 using namespace std;
-using namespace nta::algorithms::spatial_pooler;
+using namespace nupic::algorithms::spatial_pooler;
 
-namespace nta {
+namespace nupic {
 
   void SpatialPoolerTest::print_vec(UInt arr[], UInt n)
   {
@@ -2564,4 +2564,4 @@ namespace nta {
     }
   }
 
-} // end namespace nta
+} // end namespace nupic

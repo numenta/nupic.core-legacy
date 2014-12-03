@@ -25,14 +25,14 @@
  */
 
 #include "CollectionTest.hpp"
-#include <nta/ntypes/Collection.hpp>
+#include <nupic/ntypes/Collection.hpp>
 #include <sstream>
 #include <algorithm>
 
 // Collection implementation needed for explicit instantiation
-#include <nta/ntypes/Collection.cpp>
+#include <nupic/ntypes/Collection.cpp>
 
-namespace nta
+namespace nupic
 {
   struct Item
   {

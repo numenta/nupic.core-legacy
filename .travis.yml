@@ -8,11 +8,38 @@ compiler:
   - clang
   - gcc
 
+env:
+  - PLATFORM=${TRAVIS_OS_NAME}
+
 matrix:
   # This excludes OSX builds from the build matrix for gcc
   exclude:
     - os: osx
       compiler: gcc
+
+# Successful builds are archived and uploaded to S3 for nupic builds.
+before_deploy:
+  - "if [ ${TRAVIS_OS_NAME:-'osx'} = 'osx' ]; then PLATFORM='darwin'; fi"
+  - cd $TRAVIS_BUILD_DIR/build/scripts
+  - make package
+  - mkdir $TRAVIS_BUILD_DIR/release
+  - mv nupic_core-${TRAVIS_COMMIT}-${PLATFORM}64.tar.gz $TRAVIS_BUILD_DIR/release/.
+
+deploy:
+  provider: s3
+  access_key_id: AKIAIGHYSEHV3WFKOWNQ
+  secret_access_key:
+    secure: YhyY/6r2LNya8OZEmVOj+fv0lY5bBPqvy8MnsdLlptXa2uqwvezkCMNKiQ+wA+tOu+BS7VRRp86DhUqCpTZ3jUM2Mwdhud/Smq7D2X8vtZBiTVcOKfQcaypDE6Zu9Zp0SjMOSf6yiq6Ruu7D5QtZ4rtaq+5uPlvbgUXRZoZm0Po=
+  bucket: artifacts.numenta.org
+  region: us-west-2
+  local-dir: "$TRAVIS_BUILD_DIR/release"
+  upload-dir: "numenta/nupic.core"
+  skip_cleanup: true
+  # Only deploy on master from clang build jobs
+  on:
+    branch: master
+    condition:
+      - "$CC == clang"
 
 notifications:
   irc:

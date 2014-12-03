@@ -24,8 +24,8 @@
 * Notes
 */
 
-#include <nta/algorithms/CondProbTable.hpp>
-#include <nta/math/StlIo.hpp>
+#include <nupic/algorithms/CondProbTable.hpp>
+#include <nupic/math/StlIo.hpp>
 #include "CondProbTableTest.hpp"
 #include <fstream>
 #include <boost/numeric/ublas/storage.hpp>
@@ -33,7 +33,7 @@
 
 using namespace std;
 using namespace boost;
-namespace nta {
+namespace nupic {
 
   static vector<Real> makeRow(Real a, Real b, Real c)
   { 
@@ -292,6 +292,6 @@ namespace nta {
   }
   
   //----------------------------------------------------------------------
-} // end namespace nta
+} // end namespace nupic
 
 

@@ -32,10 +32,10 @@ Google test main program
 #include "gtest/gtest.h"
 // APR must be explicit initialized
 #include <apr-1/apr_general.h>
-#include <nta/test/Tester.hpp>
+#include <nupic/test/Tester.hpp>
 
 using namespace std;
-using namespace nta;
+using namespace nupic;
 
 #include "AddTestHeaders.hpp"
 #include "AddTests.hpp"

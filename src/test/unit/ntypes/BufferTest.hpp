@@ -29,12 +29,12 @@
 
 //----------------------------------------------------------------------
 
-#include <nta/test/Tester.hpp>
+#include <nupic/test/Tester.hpp>
 
 //----------------------------------------------------------------------
 
-#include <nta/types/Types.hpp>
-namespace nta 
+#include <nupic/types/Types.hpp>
+namespace nupic
 {
   //----------------------------------------------------------------------
   class BufferTest : public Tester
@@ -61,6 +61,6 @@ namespace nta
   }; // end class BufferTest
     
     //----------------------------------------------------------------------
-} // end namespace nta
+} // end namespace nupic
 
 #endif // NTA_BUFFER_TEST_HPP

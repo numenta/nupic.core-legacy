@@ -28,20 +28,20 @@
 #include <sstream>
 #include <exception>
 
-#include <nta/engine/Network.hpp>
-#include <nta/engine/NuPIC.hpp>
-#include <nta/engine/Region.hpp>
-#include <nta/ntypes/Dimensions.hpp>
-#include <nta/os/FStream.hpp>
-#include <nta/os/Path.hpp>
+#include <nupic/engine/Network.hpp>
+#include <nupic/engine/NuPIC.hpp>
+#include <nupic/engine/Region.hpp>
+#include <nupic/ntypes/Dimensions.hpp>
+#include <nupic/os/FStream.hpp>
+#include <nupic/os/Path.hpp>
 
-#include <nta/ntypes/ArrayBase.hpp>
+#include <nupic/ntypes/ArrayBase.hpp>
 
-#include <nta/utils/Watcher.hpp>
+#include <nupic/utils/Watcher.hpp>
 
 #include "WatcherTest.hpp"
 
-using namespace nta;
+using namespace nupic;
 
 
 void WatcherTest::RunTests()

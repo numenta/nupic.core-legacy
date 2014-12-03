@@ -28,12 +28,12 @@
 #include "ConnectionsTest.hpp"
 
 using namespace std;
-using namespace nta;
-using namespace nta::algorithms::connections;
+using namespace nupic;
+using namespace nupic::algorithms::connections;
 
 #define EPSILON 0.0000001
 
-namespace nta {
+namespace nupic {
 
   void ConnectionsTest::RunTests()
   {
@@ -508,4 +508,4 @@ namespace nta {
     return activity;
   }
 
-} // end namespace nta
+} // end namespace nupic

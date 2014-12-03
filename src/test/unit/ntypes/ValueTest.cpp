@@ -25,9 +25,9 @@
  */
 
 #include "../ntypes/ValueTest.hpp"
-#include <nta/ntypes/Value.hpp>
+#include <nupic/ntypes/Value.hpp>
 
-using namespace nta;
+using namespace nupic;
 
 void ValueTest::RunTests()
 {
