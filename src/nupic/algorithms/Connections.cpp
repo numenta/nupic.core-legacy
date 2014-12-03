@@ -34,10 +34,12 @@ using namespace nupic::algorithms::connections;
 Connections::Connections(CellIdx numCells,
                          SegmentIdx maxSegmentsPerCell) : cells_(numCells)
 {
-  if (numCells > CELL_MAX) {
+  if (numCells > CELL_MAX)
+  {
     NTA_THROW << "Attemped to create Connections with numCells > CELL_MAX";
   }
-  if (maxSegmentsPerCell > SEGMENT_MAX) {
+  if (maxSegmentsPerCell > SEGMENT_MAX)
+  {
     NTA_THROW << "Attemped to create Connections with maxSegmentsPerCell > SEGMENT_MAX";
   }
 
