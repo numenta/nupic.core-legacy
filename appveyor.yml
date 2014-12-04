@@ -77,7 +77,7 @@ configuration: Release
 before_build:
   - cd C:\projects\nupic-core\build\scripts
   - if "%COMPILER_FAMILY%" == "GNU" cmake C:\projects\nupic-core\src -G "MSYS Makefiles"
-  - if "%COMPILER_FAMILY%" == "MSVC" cmake C:\projects\nupic-core\src -G "Visual Studio 11 Win64" -DCMAKE_INSTALL_PREFIX=..\Release
+  - if "%COMPILER_FAMILY%" == "MSVC" cmake C:\projects\nupic-core\src -G "Visual Studio 11" -DCMAKE_INSTALL_PREFIX=..\Release
 
 # To run your custom scripts instead of automatic MSBuild
 build_script:
