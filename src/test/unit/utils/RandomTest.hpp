@@ -32,12 +32,12 @@
 #include <nupic/test/Tester.hpp>
 
 namespace nupic {
-  
+
   class RandomTest : public Tester {
 public:
     RandomTest();
     virtual ~RandomTest();
-    
+
     virtual void RunTests() override;
   };
 } // namespace nupic
