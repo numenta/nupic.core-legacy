@@ -29,6 +29,8 @@
 #include <nupic/os/Env.hpp>
 #include <nupic/ntypes/MemStream.hpp>
 #include <nupic/utils/LoggingException.hpp>
+#include <fstream>
+#include <stdio.h>
 #include <stdlib.h>
 #include <sstream>
 
@@ -463,6 +465,45 @@ void RandomTest::RunTests()
     TESTEQUAL2("check element 1", 2, arr[1]);
     TESTEQUAL2("check element 2", 4, arr[2]);
     TESTEQUAL2("check element 3", 1, arr[3]);
+  }
+
+  {
+    // tests for Cap'n Proto serialization
+    Random r1, r2;
+    UInt32 v1, v2;
+
+    const char* outputPath = "RandomTest1.temp";
+
+    {
+      std::ofstream out(outputPath);
+      r1.write(out);
+      out.close();
+    }
+    {
+      std::ifstream in(outputPath);
+      r2.read(in);
+      in.close();
+    }
+    v1 = r1.getUInt32();
+    v2 = r2.getUInt32();
+    TESTEQUAL2("check serialization for unused Random object", v1, v2);
+
+    {
+      std::ofstream out(outputPath);
+      r1.write(out);
+      out.close();
+    }
+    {
+      std::ifstream in(outputPath);
+      r2.read(in);
+      in.close();
+    }
+    v1 = r1.getUInt32();
+    v2 = r2.getUInt32();
+    TESTEQUAL2("check serialization for used Random object", v1, v2);
+
+    // clean up
+    remove(outputPath);
   }
 
 }
