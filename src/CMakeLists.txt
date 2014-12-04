@@ -187,6 +187,7 @@ add_library(${LIB_STATIC_CAPNP} STATIC IMPORTED GLOBAL)
 #
 # Generate Cap'n Proto C++ files
 #
+set(CAPNPC_OUTPUT_DIR ${CMAKE_BINARY_DIR})
 find_package(CapnProto REQUIRED)
 include_directories(${CAPNP_INCLUDE_DIRS})
 capnp_generate_cpp(
