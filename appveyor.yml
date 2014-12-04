@@ -40,7 +40,7 @@ environment:
 #    - COMPILER_FAMILY: GNU
 #      DEPLOY_BUILD: 0
     - COMPILER_FAMILY: MSVC
-      DEPLOY_BUILD: 0
+      DEPLOY_BUILD: 1
 
 matrix:
   fast_finish: true
@@ -82,7 +82,7 @@ before_build:
 # To run your custom scripts instead of automatic MSBuild
 build_script:
   - if "%COMPILER_FAMILY%" == "GNU" make
-  - if "%COMPILER_FAMILY%" == "MSVC" msbuild "C:\projects\nupic-core\build\scripts\nupic_core.sln" /p:Configuration=%configuration% /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+  - if "%COMPILER_FAMILY%" == "MSVC" msbuild "C:\projects\nupic-core\build\scripts\nupic_core.sln" /p:Configuration=%configuration% /clp:PerformanceSummary;NoSummary;ShowTimestamp;Verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
 
   - if "%COMPILER_FAMILY%" == "GNU" make install
   - if "%COMPILER_FAMILY%" == "MSVC" msbuild "C:\projects\nupic-core\build\scripts\Install.vcxproj" /p:Configuration=%configuration% /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
