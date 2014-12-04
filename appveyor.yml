@@ -40,7 +40,7 @@ environment:
 #    - COMPILER_FAMILY: GNU
 #      DEPLOY_BUILD: 0
     - COMPILER_FAMILY: MSVC
-      DEPLOY_BUILD: 1
+      DEPLOY_BUILD: 0
 
 matrix:
   fast_finish: true
