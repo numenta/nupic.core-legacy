@@ -179,11 +179,12 @@ vector<Synapse> Connections::synapsesForSegment(const Segment& segment)
   return synapses;
 }
 
-SegmentData Connections::dataForSegment(const Segment& segment) const
+void Connections::dataForSegment(const Segment& segment,
+                                 SegmentData& segmentData) const
 {
   const Cell& cell = segment.cell;
 
-  return cells_[cell.idx].segments[segment.idx];
+  segmentData = cells_[cell.idx].segments[segment.idx];
 }
 
 SynapseData Connections::dataForSynapse(const Synapse& synapse) const
@@ -249,8 +250,7 @@ bool Connections::leastRecentlyUsedSegment(const Cell& cell,
 
   for (auto segment : segmentsForCell(cell))
   {
-    // TODO: Possible optimization - define constant variable here?
-    segmentData = dataForSegment(segment);
+    dataForSegment(segment, segmentData);
 
     if (segmentData.lastUsedIteration < minIteration && !segmentData.destroyed)
     {
@@ -290,7 +290,8 @@ Activity Connections::computeActivity(const vector<Cell>& input,
         {
           activity.activeSegmentsForCell[synapse.segment.cell].push_back(synapse.segment);
 
-          if (recordIteration) {
+          if (recordIteration)
+          {
             cells_[synapse.segment.cell.idx].segments[synapse.segment.idx].lastUsedIteration++;
           }
         }
