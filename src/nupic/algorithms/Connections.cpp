@@ -290,7 +290,8 @@ Activity Connections::computeActivity(const vector<Cell>& input,
         {
           activity.activeSegmentsForCell[synapse.segment.cell].push_back(synapse.segment);
 
-          if (recordIteration) {
+          if (recordIteration)
+          {
             cells_[synapse.segment.cell.idx].segments[synapse.segment.idx].lastUsedIteration++;
           }
         }
