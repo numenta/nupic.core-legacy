@@ -301,7 +301,7 @@ namespace nupic
          * @retval Segment data.
          */
         void dataForSegment(const Segment& segment,
-                            SegmentData& segmentData) const;
+                            SegmentData &segmentData) const;
 
         /**
          * Gets the data for a synapse.
@@ -310,8 +310,7 @@ namespace nupic
          *
          * @retval Synapse data.
          */
-        void dataForSynapse(const Synapse& synapse,
-                            SynapseData& synapseData) const;
+        SynapseData dataForSynapse(const Synapse& synapse) const;
 
         /**
          * Gets the segment with the most active synapses due to given input,

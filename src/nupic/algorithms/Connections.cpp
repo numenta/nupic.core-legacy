@@ -168,7 +168,7 @@ vector<Synapse> Connections::synapsesForSegment(const Segment& segment)
   {
     synapse.idx = i;
     synapse.segment = segment;
-    dataForSynapse(synapse, synapseData);
+    synapseData = dataForSynapse(synapse);
 
     if (!synapseData.destroyed && synapseData.permanence > 0)
     {
@@ -187,13 +187,12 @@ void Connections::dataForSegment(const Segment& segment,
   segmentData = cells_[cell.idx].segments[segment.idx];
 }
 
-void Connections::dataForSynapse(const Synapse& synapse,
-                                 SynapseData& synapseData) const
+SynapseData Connections::dataForSynapse(const Synapse& synapse) const
 {
   const Segment& segment = synapse.segment;
   const Cell& cell = segment.cell;
 
-  synapseData = cells_[cell.idx].segments[segment.idx].synapses[synapse.idx];
+  return cells_[cell.idx].segments[segment.idx].synapses[synapse.idx];
 }
 
 bool Connections::mostActiveSegmentForCells(const vector<Cell>& cells,
@@ -280,7 +279,8 @@ Activity Connections::computeActivity(const vector<Cell>& input,
 
     for (auto synapse : synapses)
     {
-      dataForSynapse(synapse, synapseData);
+      // TODO: Possible optimization - define constant variable here?
+      synapseData = dataForSynapse(synapse);
 
       if (synapseData.permanence >= permanenceThreshold)
       {
