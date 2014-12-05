@@ -30,6 +30,12 @@ project(nupic_core CXX)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 #
+# Include extra cmake files
+#
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
+                      "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
+
+#
 # Identify platform
 #
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
@@ -75,6 +81,16 @@ include_directories(SYSTEM
                     "${PROJECT_BINARY_DIR}")
 
 set(COMPILE_FLAGS "-fPIC -std=c++11 -m${BITNESS} ${STDLIB} -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-unused-parameter")
+
+#
+# Let CMake know where all of the external files are.
+#
+set(CMAKE_PREFIX_PATH ${REPOSITORY_DIR}/external/common/
+                      ${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/)
+#
+# Make sure the Cap'n Proto generation scripts are on the PATH.
+#
+set(ENV{PATH} "$ENV{PATH}:${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/bin")
 
 #
 # Extract current git sha and record in nupic/Version.hpp
@@ -169,11 +185,26 @@ find_library(LIB_STATIC_CAPNP_LOC
 add_library(${LIB_STATIC_CAPNP} STATIC IMPORTED GLOBAL)
 
 #
+# Generate Cap'n Proto C++ files
+#
+set(CAPNPC_OUTPUT_DIR ${CMAKE_BINARY_DIR})
+find_package(CapnProto REQUIRED)
+include_directories(${CAPNP_INCLUDE_DIRS})
+capnp_generate_cpp(
+  CAPNP_SRCS CAPNP_HDRS
+  # List all .capnp files here. The C++ files will be generated and included
+  # When compiling later on.
+  nupic/utils/RandomProto.capnp
+)
+
+#
 # Setup libnupic_core
 #
 set(LIB_STATIC_NUPICCORE nupic_core_solo)
 
-set(COMMON_LIBS ${LIB_STATIC_NUPICCORE})
+set(COMMON_LIBS ${LIB_STATIC_NUPICCORE}
+                ${LIB_STATIC_KJ_LOC}
+                ${LIB_STATIC_CAPNP_LOC})
 if("${PLATFORM}" STREQUAL "linux")
   list(APPEND COMMON_LIBS pthread dl)
 elseif("${PLATFORM}" STREQUAL "darwin")
@@ -183,6 +214,7 @@ endif()
 
 ADD_LIBRARY(${LIB_STATIC_NUPICCORE}
             STATIC
+            ${CAPNP_SRCS}
             nupic/algorithms/BitHistory.cpp
             nupic/algorithms/Cell.cpp
             nupic/algorithms/Cells4.cpp
@@ -285,6 +317,18 @@ set_target_properties(${EXECUTABLE_HELLOREGION}
 add_dependencies(${EXECUTABLE_HELLOREGION} ${COMMON_LIBS})
 
 #
+# Setup prototest example
+#
+set(EXECUTABLE_PROTOTEST prototest)
+add_executable(${EXECUTABLE_PROTOTEST} examples/prototest.cpp)
+target_link_libraries(${EXECUTABLE_PROTOTEST}
+                      ${COMMON_LIBS})
+set_target_properties(${EXECUTABLE_PROTOTEST} PROPERTIES COMPILE_FLAGS ${COMPILE_FLAGS})
+set_target_properties(${EXECUTABLE_PROTOTEST}
+                      PROPERTIES LINK_FLAGS "-m${BITNESS} ${STDLIB}")
+add_dependencies(${EXECUTABLE_PROTOTEST} ${COMMON_LIBS})
+
+#
 # Setup gtests
 #
 set(EXECUTABLE_GTESTS unit_tests)
@@ -328,7 +372,9 @@ add_executable(${EXECUTABLE_GTESTS}
                test/unit/UnitTestMain.cpp
                test/unit/utils/RandomTest.cpp
                test/unit/utils/WatcherTest.cpp)
-target_link_libraries(${EXECUTABLE_GTESTS} ${COMMON_LIBS} ${LIB_STATIC_GTEST})
+target_link_libraries(${EXECUTABLE_GTESTS}
+                      ${COMMON_LIBS}
+                      ${LIB_STATIC_GTEST})
 set_target_properties(${EXECUTABLE_GTESTS}
                       PROPERTIES COMPILE_FLAGS ${COMPILE_FLAGS}
                                  LINK_FLAGS "-m${BITNESS} ${STDLIB}")
@@ -416,6 +462,7 @@ install(TARGETS
         ${LIB_STATIC_GTEST}
         ${EXECUTABLE_HELLOREGION}
         ${EXECUTABLE_HTMTEST}
+        ${EXECUTABLE_PROTOTEST}
         ${EXECUTABLE_GTESTS}
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
