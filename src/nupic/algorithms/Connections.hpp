@@ -300,8 +300,7 @@ namespace nupic
          *
          * @retval Segment data.
          */
-        void dataForSegment(const Segment& segment,
-                            SegmentData &segmentData) const;
+        SegmentData dataForSegment(const Segment& segment) const;
 
         /**
          * Gets the data for a synapse.
