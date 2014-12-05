@@ -202,7 +202,9 @@ capnp_generate_cpp(
 #
 set(LIB_STATIC_NUPICCORE nupic_core_solo)
 
-set(COMMON_LIBS ${LIB_STATIC_NUPICCORE})
+set(COMMON_LIBS ${LIB_STATIC_NUPICCORE}
+                ${LIB_STATIC_KJ_LOC}
+                ${LIB_STATIC_CAPNP_LOC})
 if("${PLATFORM}" STREQUAL "linux")
   list(APPEND COMMON_LIBS pthread dl)
 elseif("${PLATFORM}" STREQUAL "darwin")
@@ -319,7 +321,8 @@ add_dependencies(${EXECUTABLE_HELLOREGION} ${COMMON_LIBS})
 #
 set(EXECUTABLE_PROTOTEST prototest)
 add_executable(${EXECUTABLE_PROTOTEST} examples/prototest.cpp)
-target_link_libraries(${EXECUTABLE_PROTOTEST} ${COMMON_LIBS})
+target_link_libraries(${EXECUTABLE_PROTOTEST}
+                      ${COMMON_LIBS})
 set_target_properties(${EXECUTABLE_PROTOTEST} PROPERTIES COMPILE_FLAGS ${COMPILE_FLAGS})
 set_target_properties(${EXECUTABLE_PROTOTEST}
                       PROPERTIES LINK_FLAGS "-m${BITNESS} ${STDLIB}")
@@ -369,7 +372,9 @@ add_executable(${EXECUTABLE_GTESTS}
                test/unit/UnitTestMain.cpp
                test/unit/utils/RandomTest.cpp
                test/unit/utils/WatcherTest.cpp)
-target_link_libraries(${EXECUTABLE_GTESTS} ${COMMON_LIBS} ${LIB_STATIC_GTEST})
+target_link_libraries(${EXECUTABLE_GTESTS}
+                      ${COMMON_LIBS}
+                      ${LIB_STATIC_GTEST})
 set_target_properties(${EXECUTABLE_GTESTS}
                       PROPERTIES COMPILE_FLAGS ${COMPILE_FLAGS}
                                  LINK_FLAGS "-m${BITNESS} ${STDLIB}")
