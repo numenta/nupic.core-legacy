@@ -161,11 +161,11 @@ namespace nupic {
 
     SynapseData synapseData;
 
-    synapseData = connections.dataForSynapse(synapses[0]);
+    connections.dataForSynapse(synapses[0], synapseData);
     ASSERT_EQ(synapseData.presynapticCell.idx, 50);
     ASSERT_NEAR(synapseData.permanence, (Permanence)0.34, EPSILON);
 
-    synapseData = connections.dataForSynapse(synapses[1]);
+    connections.dataForSynapse(synapses[1], synapseData);
     ASSERT_EQ(synapseData.presynapticCell.idx, 150);
     ASSERT_NEAR(synapseData.permanence, (Permanence)0.48, EPSILON);
   }
@@ -243,7 +243,8 @@ namespace nupic {
 
     connections.updateSynapsePermanence(synapse, 0.21);
 
-    SynapseData synapseData = connections.dataForSynapse(synapse);
+    SynapseData synapseData;
+    connections.dataForSynapse(synapse, synapseData);
     ASSERT_NEAR(synapseData.permanence, (Real)0.21, EPSILON);
   }
 
