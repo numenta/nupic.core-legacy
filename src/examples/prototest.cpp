@@ -27,7 +27,13 @@
 #include <sys/time.h>
 #include <vector>
 
+#include <capnp/message.h>
+#include <capnp/serialize.h>
+
 #include <nupic/algorithms/SpatialPooler.hpp>
+#include <nupic/math/SparseMatrix.hpp>
+#include <nupic/math/SparseMatrixProto.capnp.h>
+#include <nupic/utils/ProtoUtils.hpp>
 #include <nupic/utils/Random.hpp>
 
 using namespace std;

@@ -29,17 +29,20 @@
 
 //----------------------------------------------------------------------
 
-#include <iomanip>
 #include <cstdio> // sprintf
+#include <iomanip>
+#include <vector>
+
 #include <boost/unordered_set.hpp>
 
+#include <nupic/math/ArrayAlgo.hpp>
+#include <nupic/math/Math.hpp>
+#include <nupic/math/SparseMatrixProto.capnp.h>
+#include <nupic/math/StlIo.hpp>
 #include <nupic/math/Utils.hpp>
 #include <nupic/ntypes/MemParser.hpp>
 #include <nupic/ntypes/MemStream.hpp>
 
-#include <nupic/math/Math.hpp>
-#include <nupic/math/ArrayAlgo.hpp>
-#include <nupic/math/StlIo.hpp>
 
 //--------------------------------------------------------------------------------
 
@@ -2922,6 +2925,57 @@ namespace nupic {
       out << buf.pcount() << ' ';
       out.write(buf.str(), UInt(buf.pcount()));
       return out;
+    }
+
+    /**
+     * Write to a Cap'n Proto object.
+     */
+    inline void write(SparseMatrixProto::Builder& proto) const
+    {
+      proto.setNumRows(nrows_);
+      proto.setNumColumns(ncols_);
+
+      auto protoRows = proto.initRows(nrows_);
+      for (UInt i = 0; i < nrows_; ++i)
+      {
+        std::vector<std::pair<UInt32, Real32> > row(nNonZerosOnRow(i));
+        getRowToSparse(i, row.begin());
+
+        auto protoRow = protoRows[i].initValues(row.size());
+
+        for (UInt j = 0; j < row.size(); ++j)
+        {
+          auto pair = protoRow[j];
+          pair.setIndex(row[j].first);
+          pair.setValue(row[j].second);
+        }
+      }
+    }
+
+    /**
+     * Read from a Cap'n Proto object.
+     */
+    inline void read(SparseMatrixProto::Reader& proto)
+    {
+      auto nrows = proto.getNumRows();
+      auto ncols = proto.getNumColumns();
+      resize(nrows, ncols);
+
+      auto rows = proto.getRows();
+      for (UInt i = 0; i < nrows; ++i)
+      {
+        auto row = rows[i].getValues();
+        std::vector<UInt32> rowIndices(row.size());
+        std::vector<Real32> rowValues(row.size());
+        for (UInt j = 0; j < row.size(); ++j)
+        {
+          auto sparseFloat = row[j];
+          rowIndices[j] = sparseFloat.getIndex();
+          rowValues[j] = sparseFloat.getValue();
+        }
+        setRowFromSparse(i, rowIndices.begin(), rowIndices.end(),
+                         rowValues.begin());
+      }
     }
 
     //--------------------------------------------------------------------------------

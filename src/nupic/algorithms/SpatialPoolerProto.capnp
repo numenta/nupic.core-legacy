@@ -1,9 +1,8 @@
 @0xaf55f2dcb92e4304;
 
-using Cxx = import "/capnp/c++.capnp";
-$Cxx.namespace("nupic::algorithms::spatial_pooler");
-
 # TODO: Use absolute path
+using import "../math/SparseBinaryMatrixProto.capnp".SparseBinaryMatrixProto;
+using import "../math/SparseMatrixProto.capnp".SparseMatrixProto;
 using import "../utils/RandomProto.capnp".RandomProto;
 
 # Next ID: 37
@@ -42,11 +41,11 @@ struct SpatialPoolerProto {
 
   # List length equals number of columns, elements are indices of input bits
   # in potential pool
-  potentialPools @27 :List(List(UInt32));
+  potentialPools @27 :SparseBinaryMatrixProto;
 
   # List length equals number of columns, elements are SparseFloat instances with
   # an input bit index and the permanence value for all non-zero permanences.
-  permanences @28 :List(List(SparseFloat));
+  permanences @28 :SparseMatrixProto;
 
   # Tie break float values for each column to break ties
   tieBreaker @29 :List(Float32);
@@ -56,15 +55,4 @@ struct SpatialPoolerProto {
   minOverlapDutyCycles @32 :List(Float32);
   minActiveDutyCycles @33 :List(Float32);
   boostFactors @34 :List(Float32);
-}
-
-# TODO: Move these to sparse matrix
-struct SparseFloat {
-  index @0 :UInt32;
-  value @1 :Float32;
-}
-
-struct SparseBool {
-  index @0 :UInt32;
-  value @1 :Bool;
 }

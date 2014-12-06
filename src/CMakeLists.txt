@@ -193,6 +193,8 @@ include_directories(${CAPNP_INCLUDE_DIRS})
 # when compiling later on.
 set(CAPNP_SPECS
     nupic/algorithms/SpatialPoolerProto.capnp
+    nupic/math/SparseBinaryMatrixProto.capnp
+    nupic/math/SparseMatrixProto.capnp
     nupic/utils/RandomProto.capnp
 )
 capnp_generate_cpp(CAPNP_SRCS CAPNP_HDRS ${CAPNP_SPECS})
@@ -347,7 +349,9 @@ add_executable(${EXECUTABLE_GTESTS}
                test/unit/math/DomainUnitTest.cpp
                test/unit/math/IndexUnitTest.cpp
                test/unit/math/MathsTest.cpp
+               test/unit/math/SparseBinaryMatrixTest.cpp
                test/unit/math/SparseMatrix01UnitTest.cpp
+               test/unit/math/SparseMatrixTest.cpp
                test/unit/math/SparseMatrixUnitTest.cpp
                test/unit/math/SparseTensorUnitTest.cpp
                test/unit/ntypes/ArrayTest.cpp

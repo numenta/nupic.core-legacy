@@ -728,8 +728,9 @@ void SpatialPooler::updatePermanencesForColumn_(vector<Real>& perm,
   }
 
   clip_(perm, true);
-  connectedSynapses_.replaceSparseRow(column,connectedSparse.begin(),
+  connectedSynapses_.replaceSparseRow(column, connectedSparse.begin(),
                                       connectedSparse.end());
+  // TODO: Remove?
   permanences_.setRowFromDense(column, perm);
   connectedCounts_[column] = numConnected;
 }
@@ -1293,6 +1294,16 @@ void SpatialPooler::seed_(UInt64 seed)
   rng_ = Random(seed);
 }
 
+UInt SpatialPooler::persistentSize()
+{
+  // TODO: this won't scale!
+  stringstream s;
+  s.flags(ios::scientific);
+  s.precision(numeric_limits<double>::digits10 + 1);
+  this->save(s);
+  return s.str().size();
+}
+
 void SpatialPooler::save(ostream& outStream)
 {
   // Write a starting marker and version.
@@ -1588,34 +1599,22 @@ void SpatialPooler::write(SpatialPoolerProto::Builder& proto)
   proto.setIterationNum(iterationNum_);
   proto.setIterationLearnNum(iterationLearnNum_);
 
-  auto potentialPools = proto.initPotentialPools(numColumns_);
+  auto potentialPools = proto.initPotentialPools();
+  potentialPools.setNumRows(numColumns_);
+  potentialPools.setNumColumns(numInputs_);
+  auto potentialPoolIndices = potentialPools.initIndices(numColumns_);
   for (UInt i = 0; i < numColumns_; ++i)
   {
     auto & pot = potentialPools_.getSparseRow(i);
-    auto pool = potentialPools.init(i, pot.size());
+    auto indices = potentialPoolIndices.init(i, pot.size());
     for (UInt j = 0; j < pot.size(); ++j)
     {
-      pool.set(j, pot[j]);
+      indices.set(j, pot[j]);
     }
   }
 
-  auto permanences = proto.initPermanences(numColumns_);
-  for (UInt i = 0; i < numColumns_; ++i)
-  {
-    // TODO: Get a reference to the vector rather than building a new one?
-    vector<pair<UInt, Real> > perm;
-    perm.resize(permanences_.nNonZerosOnRow(i));
-    permanences_.getRowToSparse(i, perm.begin());
-
-    auto pool = permanences.init(i, perm.size());
-
-    for (UInt j = 0; j < perm.size(); ++j)
-    {
-      auto sf = pool[j];
-      sf.setIndex(perm[j].first);
-      sf.setValue(perm[j].second);
-    }
-  }
+  auto permanences = proto.initPermanences();
+  permanences_.write(permanences);
 
   auto tieBreaker = proto.initTieBreaker(numColumns_);
   for (UInt i = 0; i < numColumns_; ++i)
@@ -1723,22 +1722,19 @@ void SpatialPooler::read(SpatialPoolerProto::Reader& proto)
   iterationNum_ = proto.getIterationNum();
   iterationLearnNum_ = proto.getIterationLearnNum();
 
-  potentialPools_.resize(numColumns_, numInputs_);
-  auto potentialPools = proto.getPotentialPools();
-  for (UInt i = 0; i < numColumns_; ++i)
-  {
-    potentialPools_.replaceSparseRow(
-        i, potentialPools[i].begin(), potentialPools[i].end());
-  }
+  auto potentialPoolsProto = proto.getPotentialPools();
+  potentialPools_.read(potentialPoolsProto);
 
-  permanences_.resize(numColumns_, numInputs_);
   connectedSynapses_.resize(numColumns_, numInputs_);
   connectedCounts_.resize(numColumns_);
   auto permanences = proto.getPermanences();
+  permanences_.read(permanences);
+  // additional initialization using permanence values
+  auto permanenceValues = permanences.getRows();
   for (UInt i = 0; i < numColumns_; ++i)
   {
     vector<Real> colPerms(numInputs_, 0);
-    for (auto perm : permanences[i])
+    for (auto perm : permanenceValues[i].getValues())
     {
       colPerms[perm.getIndex()] = perm.getValue();
     }
