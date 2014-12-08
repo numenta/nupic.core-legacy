@@ -450,7 +450,7 @@ int main(int argc, char *argv[])
     return 1;
   }
   catch (...) {
-    std::cout << "\nhtmtest is exiting because an exception was thrown" << std::endl;
+    std::cout << "\nHtmTest is exiting because an exception was thrown" << std::endl;
     return 1;
   }
   if (count > 20)
