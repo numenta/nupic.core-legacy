@@ -470,6 +470,8 @@ install(TARGETS
 install(DIRECTORY nupic/ DESTINATION include/nupic
         FILES_MATCHING PATTERN "*.h*"
         PATTERN "*.hpp.in" EXCLUDE)
+install(DIRECTORY ${CMAKE_BINARY_DIR}/nupic/ DESTINATION include/nupic
+        FILES_MATCHING PATTERN "*.capnp.h")
 install(DIRECTORY "${REPOSITORY_DIR}/external/common/include/gtest"
         DESTINATION include/gtest
         FILES_MATCHING PATTERN "*.h*")
@@ -479,6 +481,8 @@ install(DIRECTORY "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/bin/"
         DESTINATION bin USE_SOURCE_PERMISSIONS)
 install(DIRECTORY "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/lib/"
         DESTINATION lib)
+install(DIRECTORY "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/bin/"
+        DESTINATION bin USE_SOURCE_PERMISSIONS)
 install(DIRECTORY "${REPOSITORY_DIR}/external/common/include/"
         DESTINATION include)
 install(DIRECTORY "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/include/"
