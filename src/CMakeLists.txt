@@ -296,7 +296,7 @@ set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES LINK_FLAGS "-m${BITNESS
 # Setup testcpphtm
 #
 set(EXECUTABLE_HTMTEST testcpphtm)
-add_executable(${EXECUTABLE_HTMTEST} test/htmtest/Htmtest.cpp)
+add_executable(${EXECUTABLE_HTMTEST} test/htm_test/HtmTest.cpp)
 target_link_libraries(${EXECUTABLE_HTMTEST} ${COMMON_LIBS})
 set_target_properties(${EXECUTABLE_HTMTEST} PROPERTIES COMPILE_FLAGS ${COMPILE_FLAGS})
 set_target_properties(${EXECUTABLE_HTMTEST}
@@ -309,7 +309,7 @@ add_custom_target(tests_htm
 # Setup helloregion example
 #
 set(EXECUTABLE_HELLOREGION helloregion)
-add_executable(${EXECUTABLE_HELLOREGION} examples/regions/helloregions.cpp)
+add_executable(${EXECUTABLE_HELLOREGION} examples/regions/HelloRegions.cpp)
 target_link_libraries(${EXECUTABLE_HELLOREGION} ${COMMON_LIBS})
 set_target_properties(${EXECUTABLE_HELLOREGION} PROPERTIES COMPILE_FLAGS ${COMPILE_FLAGS})
 set_target_properties(${EXECUTABLE_HELLOREGION}

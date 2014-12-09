@@ -55,11 +55,11 @@ namespace nupic {
      */
     // TODO -- fix me! needed for finding test data
     testInputDir_ = "/does/not/exist";
-    testOutputDir_ = Path::makeAbsolute("testeverything.out");
+    testOutputDir_ = Path::makeAbsolute("TestEverything.out");
 
     // Create if it doesn't exist
     if (!Path::exists(testOutputDir_)) {
-      std::cout << "Tester -- creating testoutput directory " << std::string(testOutputDir_) << "\n";
+      std::cout << "Tester -- creating output directory " << std::string(testOutputDir_) << "\n";
       // will throw if unsuccessful. 
       Directory::create(string(testOutputDir_));
     } 
