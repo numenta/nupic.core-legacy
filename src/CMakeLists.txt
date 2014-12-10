@@ -41,7 +41,6 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   set(PLATFORM "darwin")
   set(STDLIB "-stdlib=libc++")
-  set(CMAKE_OSX_DEPLOYMENT_TARGET "10.7")
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   set(PLATFORM "linux")
   set(STDLIB "")
