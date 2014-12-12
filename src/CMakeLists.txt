@@ -197,6 +197,58 @@ capnp_generate_cpp(
 )
 
 #
+# Checks if Python is installed and gets its variables.
+# Minimum version of Python is 2.6 -- earlier versions *will* fail.
+#
+# Please don't use 'find_package' for finding Python (System version), it has presented several conflicting results.
+# Instead we just use a shell command to execute a simple python command, if exit code is 0 ('success') then we have python installed.
+#
+
+#
+# Check for user-defined PYTHON env variable
+#
+if(NOT "$ENV{PYTHON}" STREQUAL "")
+  set(PYTHON "$ENV{PYTHON}")
+else()
+  set(PYTHON "python")
+endif()
+
+#
+# Gives the version of Python necessary to get installation directories
+# for use with ${PYTHON_VERSION}, etc.
+#
+execute_process(COMMAND ${PYTHON} -c "import sys;sys.stdout.write(str(sys.version_info[0]) + '.' + str(sys.version_info[1]))"
+                OUTPUT_VARIABLE PYTHON_VERSION
+                RESULT_VARIABLE EXIT_CODE)
+if(NOT EXIT_CODE EQUAL 0)
+  message(FATAL_ERROR "System Python not found. You do not have a system version of Python or it is not set on environment path.")
+endif()
+if(NOT(${PYTHON_VERSION} EQUAL "2.6" OR ${PYTHON_VERSION} EQUAL "2.7"))
+  message(FATAL_ERROR "Only these versions of Python are accepted: 2.6, 2.7")
+endif()
+
+#
+# Find out where system installation of python is.
+#
+execute_process(COMMAND ${PYTHON} -c "import sys;sys.stdout.write(sys.prefix)"
+                OUTPUT_VARIABLE PYTHON_PREFIX)
+string(REGEX REPLACE "\\\\" "/" PYTHON_PREFIX ${PYTHON_PREFIX})
+set(PYTHON_INCLUDE_DIR "${PYTHON_PREFIX}/include/python${PYTHON_VERSION}")
+
+#
+# Setup libpython_support
+#
+set(LIB_STATIC_PYTHONSUPPORT python_support)
+include_directories(${PYTHON_INCLUDE_DIR})
+add_library(${LIB_STATIC_PYTHONSUPPORT}
+            python_support/NumpyVector.cpp
+            python_support/PyArray.cpp
+            python_support/PyHelpers.cpp
+            python_support/PythonStream.cpp)
+set_target_properties(${LIB_STATIC_PYTHONSUPPORT} PROPERTIES COMPILE_FLAGS ${COMPILE_FLAGS})
+set_target_properties(${LIB_STATIC_PYTHONSUPPORT} PROPERTIES LINK_FLAGS "-m${BITNESS} ${STDLIB} -static")
+
+#
 # Setup libnupic_core
 #
 set(LIB_STATIC_NUPICCORE nupic_core_solo)
@@ -211,7 +263,7 @@ elseif("${PLATFORM}" STREQUAL "darwin")
   set(COMPILE_FLAGS "${COMPILE_FLAGS} -O3")
 endif()
 
-ADD_LIBRARY(${LIB_STATIC_NUPICCORE}
+add_library(${LIB_STATIC_NUPICCORE}
             STATIC
             ${CAPNP_SRCS}
             nupic/algorithms/BitHistory.cpp
