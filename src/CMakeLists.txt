@@ -189,12 +189,12 @@ add_library(${LIB_STATIC_CAPNP} STATIC IMPORTED GLOBAL)
 set(CAPNPC_OUTPUT_DIR ${CMAKE_BINARY_DIR})
 find_package(CapnProto REQUIRED)
 include_directories(${CAPNP_INCLUDE_DIRS})
-capnp_generate_cpp(
-  CAPNP_SRCS CAPNP_HDRS
-  # List all .capnp files here. The C++ files will be generated and included
-  # When compiling later on.
-  nupic/utils/RandomProto.capnp
+# List all .capnp files here. The C++ files will be generated and included
+# when compiling later on.
+set(CAPNP_SPECS
+    nupic/utils/RandomProto.capnp
 )
+capnp_generate_cpp(CAPNP_SRCS CAPNP_HDRS ${CAPNP_SPECS})
 
 #
 # Setup libnupic_core
@@ -469,6 +469,8 @@ install(TARGETS
 install(DIRECTORY nupic/ DESTINATION include/nupic
         FILES_MATCHING PATTERN "*.h*"
         PATTERN "*.hpp.in" EXCLUDE)
+install(DIRECTORY nupic/ DESTINATION include/nupic
+        FILES_MATCHING PATTERN "*.capnp")
 install(DIRECTORY ${CMAKE_BINARY_DIR}/nupic/ DESTINATION include/nupic
         FILES_MATCHING PATTERN "*.capnp.h")
 install(DIRECTORY "${REPOSITORY_DIR}/external/common/include/gtest"
