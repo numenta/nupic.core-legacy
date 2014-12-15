@@ -31,24 +31,44 @@ using namespace std;
 using namespace nupic;
 using namespace nupic::algorithms::connections;
 
-Connections::Connections(CellIdx numCells) : cells_(numCells) {
+Connections::Connections(CellIdx numCells,
+                         SegmentIdx maxSegmentsPerCell) : cells_(numCells)
+{
+  if (numCells > CELL_MAX)
+  {
+    NTA_THROW << "Attemped to create Connections with numCells > CELL_MAX";
+  }
+  if (maxSegmentsPerCell > SEGMENT_MAX)
+  {
+    NTA_THROW << "Attemped to create Connections with maxSegmentsPerCell > SEGMENT_MAX";
+  }
+
   numSegments_ = 0;
   numSynapses_ = 0;
+  maxSegmentsPerCell_ = maxSegmentsPerCell;
+  iteration_ = 0;
 }
 
 Segment Connections::createSegment(const Cell& cell)
 {
   vector<SegmentData>& segments = cells_[cell.idx].segments;
-  if (segments.size() == UCHAR_MAX)
-  {
-    throw runtime_error("Cannot create segment: cell has reached maximum number of segments.");
-  }
+  SegmentData segmentData = {};
+  segmentData.lastUsedIteration = iteration_;
   Segment segment(segments.size(), cell);
 
-  SegmentData segmentData;
-  segments.push_back(segmentData);
-  numSegments_++;
+  if (segments.size() == maxSegmentsPerCell_)
+  {
+    bool found = leastRecentlyUsedSegment(cell, segment);
+    if (!found) { NTA_THROW << "Unable to find segment to reuse."; }
+    destroySegment(segment);
+    segments[segment.idx] = segmentData;
+  }
+  else
+  {
+    segments.push_back(segmentData);
+  }
 
+  numSegments_++;
   return segment;
 }
 
@@ -57,9 +77,9 @@ Synapse Connections::createSynapse(const Segment& segment,
                                    Permanence permanence)
 {
   vector<SynapseData>& synapses = cells_[segment.cell.idx].segments[segment.idx].synapses;
-  if (synapses.size() == UCHAR_MAX)
+  if (synapses.size() == SYNAPSE_MAX)
   {
-    throw runtime_error("Cannot create synapse: segment has reached maximum number of synapses.");
+    NTA_THROW << "Cannot create synapse: segment has reached maximum number of synapses.";
   }
   Synapse synapse(synapses.size(), segment);
 
@@ -72,6 +92,41 @@ Synapse Connections::createSynapse(const Segment& segment,
   return synapse;
 }
 
+void Connections::destroySegment(const Segment& segment)
+{
+  const Cell& cell = segment.cell;
+  SegmentData& segmentData = cells_[cell.idx].segments[segment.idx];
+
+  for (auto synapse : synapsesForSegment(segment))
+  {
+    destroySynapse(synapse);
+  }
+
+  segmentData.destroyed = true;
+  numSegments_--;
+}
+
+void Connections::destroySynapse(const Synapse& synapse)
+{
+  const Segment& segment = synapse.segment;
+  const Cell& cell = segment.cell;
+  SynapseData& synapseData = cells_[cell.idx].segments[segment.idx].synapses[synapse.idx];
+
+  synapseData.destroyed = true;
+  numSynapses_--;
+
+  vector<Synapse>& synapses = synapsesForPresynapticCell_[synapseData.presynapticCell];
+
+  for (auto s = synapses.begin(); s != synapses.end(); s++)
+  {
+    if (*s == synapse)
+    {
+      synapses.erase(s);
+      break;
+    }
+  }
+}
+
 void Connections::updateSynapsePermanence(const Synapse& synapse,
                                           Permanence permanence)
 {
@@ -81,7 +136,7 @@ void Connections::updateSynapsePermanence(const Synapse& synapse,
   cells_[cell.idx].segments[segment.idx].synapses[synapse.idx].permanence = permanence;
 }
 
-vector<Segment> Connections::segmentsForCell(const Cell& cell)
+vector<Segment> Connections::segmentsForCell(const Cell& cell) const
 {
   vector<Segment> segments;
   Segment segment;
@@ -99,17 +154,36 @@ vector<Segment> Connections::segmentsForCell(const Cell& cell)
 vector<Synapse> Connections::synapsesForSegment(const Segment& segment)
 {
   const Cell& cell = segment.cell;
+  SegmentData segmentData = cells_[cell.idx].segments[segment.idx];
   vector<Synapse> synapses;
   Synapse synapse;
+  SynapseData synapseData;
 
-  for (SynapseIdx i = 0; i < cells_[cell.idx].segments[segment.idx].synapses.size(); i++)
+  if (segmentData.destroyed)
+  {
+    throw runtime_error("Attempting to access destroyed segment's synapses.");
+  }
+
+  for (SynapseIdx i = 0; i < segmentData.synapses.size(); i++)
   {
     synapse.idx = i;
     synapse.segment = segment;
-    synapses.push_back(synapse);
+    synapseData = dataForSynapse(synapse);
+
+    if (!synapseData.destroyed && synapseData.permanence > 0)
+    {
+      synapses.push_back(synapse);
+    }
   }
 
   return synapses;
+}
+
+SegmentData Connections::dataForSegment(const Segment& segment) const
+{
+  const Cell& cell = segment.cell;
+
+  return cells_[cell.idx].segments[segment.idx];
 }
 
 SynapseData Connections::dataForSynapse(const Synapse& synapse) const
@@ -122,10 +196,10 @@ SynapseData Connections::dataForSynapse(const Synapse& synapse) const
 
 bool Connections::mostActiveSegmentForCells(const vector<Cell>& cells,
                                             vector<Cell> input,
-                                            UInt synapseThreshold,
+                                            SynapseIdx synapseThreshold,
                                             Segment& retSegment) const
 {
-  UInt numSynapses, maxSynapses = synapseThreshold;
+  SynapseIdx numSynapses, maxSynapses = synapseThreshold;
   vector<SegmentData> segments;
   vector<SynapseData> synapses;
   SegmentIdx segmentIdx = 0;
@@ -166,9 +240,33 @@ bool Connections::mostActiveSegmentForCells(const vector<Cell>& cells,
   return found;
 }
 
+bool Connections::leastRecentlyUsedSegment(const Cell& cell,
+                                           Segment& retSegment) const
+{
+  bool found = false;
+  Iteration minIteration = ULLONG_MAX;
+  SegmentData segmentData;
+
+  for (auto segment : segmentsForCell(cell))
+  {
+    // TODO: Possible optimization - define constant variable here?
+    segmentData = dataForSegment(segment);
+
+    if (segmentData.lastUsedIteration < minIteration && !segmentData.destroyed)
+    {
+      retSegment = segment;
+      found = true;
+      minIteration = segmentData.lastUsedIteration;
+    }
+  }
+
+  return found;
+}
+
 Activity Connections::computeActivity(const vector<Cell>& input,
                                       Permanence permanenceThreshold,
-                                      UInt synapseThreshold) const
+                                      SynapseIdx synapseThreshold,
+                                      bool recordIteration)
 {
   Activity activity;
   vector<Synapse> synapses;
@@ -181,6 +279,7 @@ Activity Connections::computeActivity(const vector<Cell>& input,
 
     for (auto synapse : synapses)
     {
+      // TODO: Possible optimization - define constant variable here?
       synapseData = dataForSynapse(synapse);
 
       if (synapseData.permanence >= permanenceThreshold)
@@ -190,9 +289,19 @@ Activity Connections::computeActivity(const vector<Cell>& input,
         if (activity.numActiveSynapsesForSegment[synapse.segment] == synapseThreshold)
         {
           activity.activeSegmentsForCell[synapse.segment.cell].push_back(synapse.segment);
+
+          if (recordIteration)
+          {
+            cells_[synapse.segment.cell.idx].segments[synapse.segment.idx].lastUsedIteration++;
+          }
         }
       }
     }
+  }
+
+  if (recordIteration)
+  {
+    iteration_++;
   }
 
   return activity;

@@ -47,11 +47,16 @@ namespace nupic
     virtual void RunTests();
 
   private:
+    void testConstructor();
     void testCreateSegment();
+    void testCreateSegmentReuse();
     void testCreateSynapse();
+    void testDestroySegment();
+    void testDestroySynapse();
     void testUpdateSynapsePermanence();
     void testMostActiveSegmentForCells();
     void testMostActiveSegmentForCellsNone();
+    void testLeastRecentlyUsedSegment();
     void testComputeActivity();
     void testActiveSegments();
     void testActiveCells();
