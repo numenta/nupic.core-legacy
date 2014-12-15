@@ -1,25 +1,23 @@
-// Copyright (c) 2013, Kenton Varda <temporal@gmail.com>
-// All rights reserved.
+// Copyright (c) 2013-2014 Sandstorm Development Group, Inc. and contributors
+// Licensed under the MIT License:
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
 //
-// 1. Redistributions of source code must retain the above copyright notice, this
-//    list of conditions and the following disclaimer.
-// 2. Redistributions in binary form must reproduce the above copyright notice,
-//    this list of conditions and the following disclaimer in the documentation
-//    and/or other materials provided with the distribution.
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
 //
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-// DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
-// ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-// ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
 
 // This file is NOT intended for use by clients, except in generated code.
 //
@@ -31,15 +29,40 @@
 #ifndef CAPNP_LAYOUT_H_
 #define CAPNP_LAYOUT_H_
 
+#if defined(__GNUC__) && !CAPNP_HEADER_WARNINGS
+#pragma GCC system_header
+#endif
+
 #include <kj/common.h>
 #include <kj/memory.h>
 #include "common.h"
 #include "blob.h"
 #include "endian.h"
 
+#if __mips__ && !defined(CAPNP_CANONICALIZE_NAN)
+#define CAPNP_CANONICALIZE_NAN 1
+// Explicitly detect NaNs and canonicalize them to the quiet NaN value as would be returned by
+// __builtin_nan("") on systems implementing the IEEE-754 recommended (but not required) NaN
+// signalling/quiet differentiation (such as x86).  Unfortunately, some architectures -- in
+// particular, MIPS -- represent quiet vs. signalling nans differently than the rest of the world.
+// Canonicalizing them makes output consistent (which is important!), but hurts performance
+// slightly.
+//
+// Note that trying to convert MIPS NaNs to standard NaNs without losing data doesn't work.
+// Signaling vs. quiet is indicated by a bit, with the meaning being the opposite on MIPS vs.
+// everyone else.  It would be great if we could just flip that bit, but we can't, because if the
+// significand is all-zero, then the value is infinity rather than NaN.  This means that on most
+// machines, where the bit indicates quietness, there is one more quiet NaN value than signalling
+// NaN value, whereas on MIPS there is one more sNaN than qNaN, and thus there is no isomorphic
+// mapping that properly preserves quietness.  Instead of doing something hacky, we just give up
+// and blow away NaN payloads, because no one uses them anyway.
+#endif
+
 namespace capnp {
 
+#if !CAPNP_LITE
 class ClientHook;
+#endif  // !CAPNP_LITE
 
 namespace _ {  // private
 
@@ -59,52 +82,6 @@ class BuilderArena;
 
 // =============================================================================
 
-enum class FieldSize: uint8_t {
-  // TODO(cleanup):  Rename to FieldLayout or maybe ValueLayout.
-
-  // Notice that each member of this enum, when representing a list element size, represents a
-  // size that is greater than or equal to the previous members, since INLINE_COMPOSITE is used
-  // only for multi-word structs.  This is important because it allows us to compare FieldSize
-  // values for the purpose of deciding when we need to upgrade a list.
-
-  VOID = 0,
-  BIT = 1,
-  BYTE = 2,
-  TWO_BYTES = 3,
-  FOUR_BYTES = 4,
-  EIGHT_BYTES = 5,
-
-  POINTER = 6,  // Indicates that the field lives in the pointer section, not the data section.
-
-  INLINE_COMPOSITE = 7
-  // A composite type of fixed width.  This serves two purposes:
-  // 1) For lists of composite types where all the elements would have the exact same width,
-  //    allocating a list of pointers which in turn point at the elements would waste space.  We
-  //    can avoid a layer of indirection by placing all the elements in a flat sequence, and only
-  //    indicating the element properties (e.g. field count for structs) once.
-  //
-  //    Specifically, a list pointer indicating INLINE_COMPOSITE element size actually points to
-  //    a "tag" describing one element.  This tag is formatted like a wire pointer, but the
-  //    "offset" instead stores the element count of the list.  The flat list of elements appears
-  //    immediately after the tag.  In the list pointer itself, the element count is replaced with
-  //    a word count for the whole list (excluding tag).  This allows the tag and elements to be
-  //    precached in a single step rather than two sequential steps.
-  //
-  //    It is NOT intended to be possible to substitute an INLINE_COMPOSITE list for a POINTER
-  //    list or vice-versa without breaking recipients.  Recipients expect one or the other
-  //    depending on the message definition.
-  //
-  //    However, it IS allowed to substitute an INLINE_COMPOSITE list -- specifically, of structs --
-  //    when a list was expected, or vice versa, with the assumption that the first field of the
-  //    struct (field number zero) correspond to the element type.  This allows a list of
-  //    primitives to be upgraded to a list of structs, avoiding the need to use parallel arrays
-  //    when you realize that you need to attach some extra information to each element of some
-  //    primitive list.
-  //
-  // 2) At one point there was a notion of "inline" struct fields, but it was deemed too much of
-  //    an implementation burden for too little gain, and so was deleted.
-};
-
 typedef decltype(BITS / ELEMENTS) BitsPerElement;
 typedef decltype(POINTERS / ELEMENTS) PointersPerElement;
 
@@ -119,48 +96,48 @@ static constexpr BitsPerElement BITS_PER_ELEMENT_TABLE[8] = {
     0 * BITS / ELEMENTS
 };
 
-inline constexpr BitsPerElement dataBitsPerElement(FieldSize size) {
+inline KJ_CONSTEXPR() BitsPerElement dataBitsPerElement(ElementSize size) {
   return _::BITS_PER_ELEMENT_TABLE[static_cast<int>(size)];
 }
 
-inline constexpr PointersPerElement pointersPerElement(FieldSize size) {
-  return size == FieldSize::POINTER ? 1 * POINTERS / ELEMENTS : 0 * POINTERS / ELEMENTS;
+inline constexpr PointersPerElement pointersPerElement(ElementSize size) {
+  return size == ElementSize::POINTER ? 1 * POINTERS / ELEMENTS : 0 * POINTERS / ELEMENTS;
 }
 
 template <size_t size> struct ElementSizeForByteSize;
-template <> struct ElementSizeForByteSize<1> { static constexpr FieldSize value = FieldSize::BYTE; };
-template <> struct ElementSizeForByteSize<2> { static constexpr FieldSize value = FieldSize::TWO_BYTES; };
-template <> struct ElementSizeForByteSize<4> { static constexpr FieldSize value = FieldSize::FOUR_BYTES; };
-template <> struct ElementSizeForByteSize<8> { static constexpr FieldSize value = FieldSize::EIGHT_BYTES; };
+template <> struct ElementSizeForByteSize<1> { static constexpr ElementSize value = ElementSize::BYTE; };
+template <> struct ElementSizeForByteSize<2> { static constexpr ElementSize value = ElementSize::TWO_BYTES; };
+template <> struct ElementSizeForByteSize<4> { static constexpr ElementSize value = ElementSize::FOUR_BYTES; };
+template <> struct ElementSizeForByteSize<8> { static constexpr ElementSize value = ElementSize::EIGHT_BYTES; };
 
 template <typename T> struct ElementSizeForType {
-  static constexpr FieldSize value =
+  static constexpr ElementSize value =
       // Primitive types that aren't special-cased below can be determined from sizeof().
-      kind<T>() == Kind::PRIMITIVE ? ElementSizeForByteSize<sizeof(T)>::value :
-      kind<T>() == Kind::ENUM ? FieldSize::TWO_BYTES :
-      kind<T>() == Kind::STRUCT ? FieldSize::INLINE_COMPOSITE :
+      CAPNP_KIND(T) == Kind::PRIMITIVE ? ElementSizeForByteSize<sizeof(T)>::value :
+      CAPNP_KIND(T) == Kind::ENUM ? ElementSize::TWO_BYTES :
+      CAPNP_KIND(T) == Kind::STRUCT ? ElementSize::INLINE_COMPOSITE :
 
       // Everything else is a pointer.
-      FieldSize::POINTER;
+      ElementSize::POINTER;
 };
 
 // Void and bool are special.
-template <> struct ElementSizeForType<Void> { static constexpr FieldSize value = FieldSize::VOID; };
-template <> struct ElementSizeForType<bool> { static constexpr FieldSize value = FieldSize::BIT; };
+template <> struct ElementSizeForType<Void> { static constexpr ElementSize value = ElementSize::VOID; };
+template <> struct ElementSizeForType<bool> { static constexpr ElementSize value = ElementSize::BIT; };
 
 // Lists and blobs are pointers, not structs.
 template <typename T, bool b> struct ElementSizeForType<List<T, b>> {
-  static constexpr FieldSize value = FieldSize::POINTER;
+  static constexpr ElementSize value = ElementSize::POINTER;
 };
 template <> struct ElementSizeForType<Text> {
-  static constexpr FieldSize value = FieldSize::POINTER;
+  static constexpr ElementSize value = ElementSize::POINTER;
 };
 template <> struct ElementSizeForType<Data> {
-  static constexpr FieldSize value = FieldSize::POINTER;
+  static constexpr ElementSize value = ElementSize::POINTER;
 };
 
 template <typename T>
-inline constexpr FieldSize elementSizeForType() {
+inline constexpr ElementSize elementSizeForType() {
   return ElementSizeForType<T>::value;
 }
 
@@ -194,37 +171,28 @@ struct StructSize {
   WordCount16 data;
   WirePointerCount16 pointers;
 
-  FieldSize preferredListEncoding;
-  // Preferred size to use when encoding a list of this struct.  This is INLINE_COMPOSITE if and
-  // only if the struct is larger than one word; otherwise the struct list can be encoded more
-  // efficiently by encoding it as if it were some primitive type.
-
   inline constexpr WordCount total() const { return data + pointers * WORDS_PER_POINTER; }
 
   StructSize() = default;
-  inline constexpr StructSize(WordCount data, WirePointerCount pointers,
-                              FieldSize preferredListEncoding)
-      : data(data), pointers(pointers), preferredListEncoding(preferredListEncoding) {}
+  inline constexpr StructSize(WordCount data, WirePointerCount pointers)
+      : data(data), pointers(pointers) {}
 };
 
-template <typename T> struct StructSize_;
-// Specialized for every struct type with member:  static constexpr StructSize value"
-
-template <typename T>
+template <typename T, typename CapnpPrivate = typename T::_capnpPrivate>
 inline constexpr StructSize structSize() {
-  return StructSize_<T>::value;
+  return StructSize(CapnpPrivate::dataWordSize * WORDS, CapnpPrivate::pointerCount * POINTERS);
 }
 
 // -------------------------------------------------------------------
 // Masking of default values
 
-template <typename T, Kind kind = kind<T>()> struct Mask_;
+template <typename T, Kind kind = CAPNP_KIND(T)> struct Mask_;
 template <typename T> struct Mask_<T, Kind::PRIMITIVE> { typedef T Type; };
 template <typename T> struct Mask_<T, Kind::ENUM> { typedef uint16_t Type; };
 template <> struct Mask_<float, Kind::PRIMITIVE> { typedef uint32_t Type; };
 template <> struct Mask_<double, Kind::PRIMITIVE> { typedef uint64_t Type; };
 
-template <typename T> struct Mask_<T, Kind::UNKNOWN> {
+template <typename T> struct Mask_<T, Kind::OTHER> {
   // Union discriminants end up here.
   static_assert(sizeof(T) == 2, "Don't know how to mask this type.");
   typedef uint16_t Type;
@@ -245,6 +213,12 @@ inline Mask<T> mask(T value, Mask<T> mask) {
 
 template <>
 inline uint32_t mask<float>(float value, uint32_t mask) {
+#if CAPNP_CANONICALIZE_NAN
+  if (value != value) {
+    return 0x7fc00000u ^ mask;
+  }
+#endif
+
   uint32_t i;
   static_assert(sizeof(i) == sizeof(value), "float is not 32 bits?");
   memcpy(&i, &value, sizeof(value));
@@ -253,6 +227,12 @@ inline uint32_t mask<float>(float value, uint32_t mask) {
 
 template <>
 inline uint64_t mask<double>(double value, uint64_t mask) {
+#if CAPNP_CANONICALIZE_NAN
+  if (value != value) {
+    return 0x7ff8000000000000ull ^ mask;
+  }
+#endif
+
   uint64_t i;
   static_assert(sizeof(i) == sizeof(value), "double is not 64 bits?");
   memcpy(&i, &value, sizeof(value));
@@ -295,18 +275,23 @@ public:
   // location.
 
   bool isNull();
+  bool isStruct();
+  bool isList();
 
   StructBuilder getStruct(StructSize size, const word* defaultValue);
-  ListBuilder getList(FieldSize elementSize, const word* defaultValzue);
+  ListBuilder getList(ElementSize elementSize, const word* defaultValue);
   ListBuilder getStructList(StructSize elementSize, const word* defaultValue);
+  ListBuilder getListAnySize(const word* defaultValue);
   template <typename T> typename T::Builder getBlob(const void* defaultValue,ByteCount defaultSize);
+#if !CAPNP_LITE
   kj::Own<ClientHook> getCapability();
+#endif  // !CAPNP_LITE
   // Get methods:  Get the value.  If it is null, initialize it to a copy of the default value.
   // The default value is encoded as an "unchecked message" for structs, lists, and objects, or a
   // simple byte array for blobs.
 
   StructBuilder initStruct(StructSize size);
-  ListBuilder initList(FieldSize elementSize, ElementCount elementCount);
+  ListBuilder initList(ElementSize elementSize, ElementCount elementCount);
   ListBuilder initStructList(ElementCount elementCount, StructSize size);
   template <typename T> typename T::Builder initBlob(ByteCount size);
   // Init methods:  Initialize the pointer to a newly-allocated object, discarding the existing
@@ -315,7 +300,9 @@ public:
   void setStruct(const StructReader& value);
   void setList(const ListReader& value);
   template <typename T> void setBlob(typename T::Reader value);
+#if !CAPNP_LITE
   void setCapability(kj::Own<ClientHook>&& cap);
+#endif  // !CAPNP_LITE
   // Set methods:  Initialize the pointer to a newly-allocated copy of the given value, discarding
   // the existing object.
 
@@ -369,12 +356,17 @@ public:
   // exception if it overruns.
 
   bool isNull() const;
+  bool isStruct() const;
+  bool isList() const;
 
   StructReader getStruct(const word* defaultValue) const;
-  ListReader getList(FieldSize expectedElementSize, const word* defaultValue) const;
+  ListReader getList(ElementSize expectedElementSize, const word* defaultValue) const;
+  ListReader getListAnySize(const word* defaultValue) const;
   template <typename T>
   typename T::Reader getBlob(const void* defaultValue, ByteCount defaultSize) const;
+#if !CAPNP_LITE
   kj::Own<ClientHook> getCapability() const;
+#endif  // !CAPNP_LITE
   // Get methods:  Get the value.  If it is null, return the default value instead.
   // The default value is encoded as an "unchecked message" for structs, lists, and objects, or a
   // simple byte array for blobs.
@@ -408,7 +400,7 @@ private:
 
 class StructBuilder: public kj::DisallowConstCopy {
 public:
-  inline StructBuilder(): segment(nullptr), data(nullptr), pointers(nullptr), bit0Offset(0) {}
+  inline StructBuilder(): segment(nullptr), data(nullptr), pointers(nullptr) {}
 
   inline word* getLocation() { return reinterpret_cast<word*>(data); }
   // Get the object's location.  Only valid for independently-allocated objects (i.e. not list
@@ -417,6 +409,7 @@ public:
   inline BitCount getDataSectionSize() const { return dataSize; }
   inline WirePointerCount getPointerSectionSize() const { return pointerCount; }
   inline Data::Builder getDataSectionAsBlob();
+  inline _::ListBuilder getPointerSectionAsList();
 
   template <typename T>
   KJ_ALWAYS_INLINE(bool hasDataField(ElementCount offset));
@@ -476,15 +469,10 @@ private:
 
   WirePointerCount16 pointerCount;  // Size of the pointer section.
 
-  BitCount8 bit0Offset;
-  // A special hack:  If dataSize == 1 bit, then bit0Offset is the offset of that bit within the
-  // byte pointed to by `data`.  In all other cases, this is zero.  This is needed to implement
-  // struct lists where each struct is one bit.
-
   inline StructBuilder(SegmentBuilder* segment, void* data, WirePointer* pointers,
-                       BitCount dataSize, WirePointerCount pointerCount, BitCount8 bit0Offset)
+                       BitCount dataSize, WirePointerCount pointerCount)
       : segment(segment), data(data), pointers(pointers),
-        dataSize(dataSize), pointerCount(pointerCount), bit0Offset(bit0Offset) {}
+        dataSize(dataSize), pointerCount(pointerCount) {}
 
   friend class ListBuilder;
   friend struct WireHelpers;
@@ -495,13 +483,14 @@ class StructReader {
 public:
   inline StructReader()
       : segment(nullptr), data(nullptr), pointers(nullptr), dataSize(0),
-        pointerCount(0), bit0Offset(0), nestingLimit(0x7fffffff) {}
+        pointerCount(0), nestingLimit(0x7fffffff) {}
 
   const void* getLocation() const { return data; }
 
   inline BitCount getDataSectionSize() const { return dataSize; }
   inline WirePointerCount getPointerSectionSize() const { return pointerCount; }
   inline Data::Reader getDataSectionAsBlob();
+  inline _::ListReader getPointerSectionAsList();
 
   template <typename T>
   KJ_ALWAYS_INLINE(bool hasDataField(ElementCount offset) const);
@@ -542,26 +531,15 @@ private:
 
   WirePointerCount16 pointerCount;  // Size of the pointer section.
 
-  BitCount8 bit0Offset;
-  // A special hack:  If dataSize == 1 bit, then bit0Offset is the offset of that bit within the
-  // byte pointed to by `data`.  In all other cases, this is zero.  This is needed to implement
-  // struct lists where each struct is one bit.
-  //
-  // TODO(someday):  Consider packing this together with dataSize, since we have 10 extra bits
-  //   there doing nothing -- or arguably 12 bits, if you consider that 2-bit and 4-bit sizes
-  //   aren't allowed.  Consider that we could have a method like getDataSizeIn<T>() which is
-  //   specialized to perform the correct shifts for each size.
-
   int nestingLimit;
   // Limits the depth of message structures to guard against stack-overflow-based DoS attacks.
   // Once this reaches zero, further pointers will be pruned.
-  // TODO(perf):  Limit to 8 bits for better alignment?
+  // TODO(perf):  Limit to 16 bits for better packing?
 
   inline StructReader(SegmentReader* segment, const void* data, const WirePointer* pointers,
-                      BitCount dataSize, WirePointerCount pointerCount, BitCount8 bit0Offset,
-                      int nestingLimit)
+                      BitCount dataSize, WirePointerCount pointerCount, int nestingLimit)
       : segment(segment), data(data), pointers(pointers),
-        dataSize(dataSize), pointerCount(pointerCount), bit0Offset(bit0Offset),
+        dataSize(dataSize), pointerCount(pointerCount),
         nestingLimit(nestingLimit) {}
 
   friend class ListReader;
@@ -571,22 +549,37 @@ private:
 
 // -------------------------------------------------------------------
 
+#if _MSC_VER
+  // TODO(msvc): MSVC insists List{Reader,Builder}::operator= are deleted unless we
+  //   define them explicitly. Don't know why, especially for the readers.
+#define MSVC_DEFAULT_ASSIGNMENT_WORKAROUND(const_, type) \
+  inline type& operator=(const_ type& other) { \
+    memcpy(this, &other, sizeof(*this)); \
+    return *this; \
+  }
+#else
+#define MSVC_DEFAULT_ASSIGNMENT_WORKAROUND(const_, type)
+#endif
+
 class ListBuilder: public kj::DisallowConstCopy {
 public:
   inline ListBuilder()
       : segment(nullptr), ptr(nullptr), elementCount(0 * ELEMENTS),
-        step(0 * BITS / ELEMENTS) {}
+        step(0 * BITS / ELEMENTS), elementSize(ElementSize::VOID) {}
+
+  MSVC_DEFAULT_ASSIGNMENT_WORKAROUND(, ListBuilder)
 
   inline word* getLocation() {
-    // Get the object's location.  Only valid for independently-allocated objects (i.e. not list
-    // elements).
+    // Get the object's location.
 
-    if (step * ELEMENTS <= BITS_PER_WORD * WORDS) {
-      return reinterpret_cast<word*>(ptr);
-    } else {
+    if (elementSize == ElementSize::INLINE_COMPOSITE) {
       return reinterpret_cast<word*>(ptr) - POINTER_SIZE_IN_WORDS;
+    } else {
+      return reinterpret_cast<word*>(ptr);
     }
   }
+
+  inline ElementSize getElementSize() const { return elementSize; }
 
   inline ElementCount size() const;
   // The number of elements in the list.
@@ -629,12 +622,17 @@ private:
   // The struct properties to use when interpreting the elements as structs.  All lists can be
   // interpreted as struct lists, so these are always filled in.
 
+  ElementSize elementSize;
+  // The element size as a ElementSize. This is only really needed to disambiguate INLINE_COMPOSITE
+  // from other types when the overall size is exactly zero or one words.
+
   inline ListBuilder(SegmentBuilder* segment, void* ptr,
                      decltype(BITS / ELEMENTS) step, ElementCount size,
-                     BitCount structDataSize, WirePointerCount structPointerCount)
+                     BitCount structDataSize, WirePointerCount structPointerCount,
+                     ElementSize elementSize)
       : segment(segment), ptr(reinterpret_cast<byte*>(ptr)),
         elementCount(size), step(step), structDataSize(structDataSize),
-        structPointerCount(structPointerCount) {}
+        structPointerCount(structPointerCount), elementSize(elementSize) {}
 
   friend class StructBuilder;
   friend struct WireHelpers;
@@ -647,8 +645,12 @@ public:
       : segment(nullptr), ptr(nullptr), elementCount(0), step(0 * BITS / ELEMENTS),
         structDataSize(0), structPointerCount(0), nestingLimit(0x7fffffff) {}
 
+  MSVC_DEFAULT_ASSIGNMENT_WORKAROUND(const, ListReader)
+
   inline ElementCount size() const;
   // The number of elements in the list.
+
+  inline ElementSize getElementSize() const { return elementSize; }
 
   Text::Reader asText();
   Data::Reader asData();
@@ -677,6 +679,10 @@ private:
   // The struct properties to use when interpreting the elements as structs.  All lists can be
   // interpreted as struct lists, so these are always filled in.
 
+  ElementSize elementSize;
+  // The element size as a ElementSize. This is only really needed to disambiguate INLINE_COMPOSITE
+  // from other types when the overall size is exactly zero or one words.
+
   int nestingLimit;
   // Limits the depth of message structures to guard against stack-overflow-based DoS attacks.
   // Once this reaches zero, further pointers will be pruned.
@@ -684,10 +690,11 @@ private:
   inline ListReader(SegmentReader* segment, const void* ptr,
                     ElementCount elementCount, decltype(BITS / ELEMENTS) step,
                     BitCount structDataSize, WirePointerCount structPointerCount,
-                    int nestingLimit)
+                    ElementSize elementSize, int nestingLimit)
       : segment(segment), ptr(reinterpret_cast<const byte*>(ptr)), elementCount(elementCount),
         step(step), structDataSize(structDataSize),
-        structPointerCount(structPointerCount), nestingLimit(nestingLimit) {}
+        structPointerCount(structPointerCount), elementSize(elementSize),
+        nestingLimit(nestingLimit) {}
 
   friend class StructReader;
   friend class ListBuilder;
@@ -706,7 +713,7 @@ public:
 
   static OrphanBuilder initStruct(BuilderArena* arena, StructSize size);
   static OrphanBuilder initList(BuilderArena* arena, ElementCount elementCount,
-                                FieldSize elementSize);
+                                ElementSize elementSize);
   static OrphanBuilder initStructList(BuilderArena* arena, ElementCount elementCount,
                                       StructSize elementSize);
   static OrphanBuilder initText(BuilderArena* arena, ByteCount size);
@@ -717,7 +724,11 @@ public:
   static OrphanBuilder copy(BuilderArena* arena, PointerReader copyFrom);
   static OrphanBuilder copy(BuilderArena* arena, Text::Reader copyFrom);
   static OrphanBuilder copy(BuilderArena* arena, Data::Reader copyFrom);
+#if !CAPNP_LITE
   static OrphanBuilder copy(BuilderArena* arena, kj::Own<ClientHook> copyFrom);
+#endif  // !CAPNP_LITE
+
+  static OrphanBuilder referenceExternalData(BuilderArena* arena, Data::Reader data);
 
   OrphanBuilder& operator=(const OrphanBuilder& other) = delete;
   inline OrphanBuilder& operator=(OrphanBuilder&& other);
@@ -728,7 +739,7 @@ public:
   StructBuilder asStruct(StructSize size);
   // Interpret as a struct, or throw an exception if not a struct.
 
-  ListBuilder asList(FieldSize elementSize);
+  ListBuilder asList(ElementSize elementSize);
   // Interpret as a list, or throw an exception if not a list.  elementSize cannot be
   // INLINE_COMPOSITE -- use asStructList() instead.
 
@@ -740,10 +751,14 @@ public:
   // Interpret as a blob, or throw an exception if not a blob.
 
   StructReader asStructReader(StructSize size) const;
-  ListReader asListReader(FieldSize elementSize) const;
+  ListReader asListReader(ElementSize elementSize) const;
+#if !CAPNP_LITE
   kj::Own<ClientHook> asCapability() const;
+#endif  // !CAPNP_LITE
   Text::Reader asTextReader() const;
   Data::Reader asDataReader() const;
+
+  void truncate(ElementCount size, bool isText);
 
 private:
   static_assert(1 * POINTERS * WORDS_PER_POINTER == 1 * WORDS,
@@ -752,14 +767,16 @@ private:
   // Contains an encoded WirePointer representing this object.  WirePointer is defined in
   // layout.c++, but fits in a word.
   //
-  // If the pointer is a FAR pointer, then the tag is a complete pointer, `location` is null, and
-  // `segment` is any arbitrary segment in the message.  Otherwise, the tag's offset is garbage,
-  // `location` points at the actual object, and `segment` points at the segment where `location`
-  // resides.
+  // This may be a FAR pointer.  Even in that case, `location` points to the eventual destination
+  // of that far pointer.  The reason we keep the far pointer around rather than just making `tag`
+  // represent the final destination is because if the eventual adopter of the pointer is not in
+  // the target's segment then it may be useful to reuse the far pointer landing pad.
+  //
+  // If `tag` is not a far pointer, its offset is garbage; only `location` points to the actual
+  // target.
 
   SegmentBuilder* segment;
-  // Segment in which the object resides, or an arbitrary segment in the message if the tag is a
-  // FAR pointer.
+  // Segment in which the object resides.
 
   word* location;
   // Pointer to the object, or nullptr if the pointer is null.  For capabilities, we make this
@@ -808,6 +825,12 @@ inline Data::Builder StructBuilder::getDataSectionAsBlob() {
   return Data::Builder(reinterpret_cast<byte*>(data), dataSize / BITS_PER_BYTE / BYTES);
 }
 
+inline _::ListBuilder StructBuilder::getPointerSectionAsList() {
+  return _::ListBuilder(segment, pointers, pointerCount * BITS_PER_POINTER / ELEMENTS,
+                        pointerCount * (1 * ELEMENTS / POINTERS),
+                        0 * BITS, 1 * POINTERS, ElementSize::POINTER);
+}
+
 template <typename T>
 inline bool StructBuilder::hasDataField(ElementCount offset) {
   return getDataField<Mask<T>>(offset) != 0;
@@ -825,9 +848,7 @@ inline T StructBuilder::getDataField(ElementCount offset) {
 
 template <>
 inline bool StructBuilder::getDataField<bool>(ElementCount offset) {
-  // This branch should be compiled out whenever this is inlined with a constant offset.
-  BitCount boffset = (offset == 0 * ELEMENTS) ?
-      BitCount(bit0Offset) : offset * (1 * BITS / ELEMENTS);
+  BitCount boffset = offset * (1 * BITS / ELEMENTS);
   byte* b = reinterpret_cast<byte*>(data) + boffset / BITS_PER_BYTE;
   return (*reinterpret_cast<uint8_t*>(b) & (1 << (boffset % BITS_PER_BYTE / BITS))) != 0;
 }
@@ -847,11 +868,21 @@ inline void StructBuilder::setDataField(ElementCount offset, kj::NoInfer<T> valu
   reinterpret_cast<WireValue<T>*>(data)[offset / ELEMENTS].set(value);
 }
 
+#if CAPNP_CANONICALIZE_NAN
+// Use mask() on floats and doubles to make sure we canonicalize NaNs.
+template <>
+inline void StructBuilder::setDataField<float>(ElementCount offset, float value) {
+  setDataField<uint32_t>(offset, mask<float>(value, 0));
+}
+template <>
+inline void StructBuilder::setDataField<double>(ElementCount offset, double value) {
+  setDataField<uint64_t>(offset, mask<double>(value, 0));
+}
+#endif
+
 template <>
 inline void StructBuilder::setDataField<bool>(ElementCount offset, bool value) {
-  // This branch should be compiled out whenever this is inlined with a constant offset.
-  BitCount boffset = (offset == 0 * ELEMENTS) ?
-      BitCount(bit0Offset) : offset * (1 * BITS / ELEMENTS);
+  BitCount boffset = offset * (1 * BITS / ELEMENTS);
   byte* b = reinterpret_cast<byte*>(data) + boffset / BITS_PER_BYTE;
   uint bitnum = boffset % BITS_PER_BYTE / BITS;
   *reinterpret_cast<uint8_t*>(b) = (*reinterpret_cast<uint8_t*>(b) & ~(1 << bitnum))
@@ -878,6 +909,12 @@ inline Data::Reader StructReader::getDataSectionAsBlob() {
   return Data::Reader(reinterpret_cast<const byte*>(data), dataSize / BITS_PER_BYTE / BYTES);
 }
 
+inline _::ListReader StructReader::getPointerSectionAsList() {
+  return _::ListReader(segment, pointers, pointerCount * (1 * ELEMENTS / POINTERS),
+                       pointerCount * BITS_PER_POINTER / ELEMENTS,
+                       0 * BITS, 1 * POINTERS, ElementSize::POINTER, nestingLimit);
+}
+
 template <typename T>
 inline bool StructReader::hasDataField(ElementCount offset) const {
   return getDataField<Mask<T>>(offset) != 0;
@@ -901,10 +938,6 @@ template <>
 inline bool StructReader::getDataField<bool>(ElementCount offset) const {
   BitCount boffset = offset * (1 * BITS / ELEMENTS);
   if (boffset < dataSize) {
-    // This branch should be compiled out whenever this is inlined with a constant offset.
-    if (offset == 0 * ELEMENTS) {
-      boffset = bit0Offset;
-    }
     const byte* b = reinterpret_cast<const byte*>(data) + boffset / BITS_PER_BYTE;
     return (*reinterpret_cast<const uint8_t*>(b) & (1 << (boffset % BITS_PER_BYTE / BITS))) != 0;
   } else {
@@ -950,8 +983,8 @@ inline T ListBuilder::getDataElement(ElementCount index) {
 
 template <>
 inline bool ListBuilder::getDataElement<bool>(ElementCount index) {
-  // Ignore stepBytes for bit lists because bit lists cannot be upgraded to struct lists.
-  BitCount bindex = index * step;
+  // Ignore step for bit lists because bit lists cannot be upgraded to struct lists.
+  BitCount bindex = index * (1 * BITS / ELEMENTS);
   byte* b = ptr + bindex / BITS_PER_BYTE;
   return (*reinterpret_cast<uint8_t*>(b) & (1 << (bindex % BITS_PER_BYTE / BITS))) != 0;
 }
@@ -965,6 +998,18 @@ template <typename T>
 inline void ListBuilder::setDataElement(ElementCount index, kj::NoInfer<T> value) {
   reinterpret_cast<WireValue<T>*>(ptr + index * step / BITS_PER_BYTE)->set(value);
 }
+
+#if CAPNP_CANONICALIZE_NAN
+// Use mask() on floats and doubles to make sure we canonicalize NaNs.
+template <>
+inline void ListBuilder::setDataElement<float>(ElementCount index, float value) {
+  setDataElement<uint32_t>(index, mask<float>(value, 0));
+}
+template <>
+inline void ListBuilder::setDataElement<double>(ElementCount index, double value) {
+  setDataElement<uint64_t>(index, mask<double>(value, 0));
+}
+#endif
 
 template <>
 inline void ListBuilder::setDataElement<bool>(ElementCount index, bool value) {
@@ -995,8 +1040,8 @@ inline T ListReader::getDataElement(ElementCount index) const {
 
 template <>
 inline bool ListReader::getDataElement<bool>(ElementCount index) const {
-  // Ignore stepBytes for bit lists because bit lists cannot be upgraded to struct lists.
-  BitCount bindex = index * step;
+  // Ignore step for bit lists because bit lists cannot be upgraded to struct lists.
+  BitCount bindex = index * (1 * BITS / ELEMENTS);
   const byte* b = ptr + bindex / BITS_PER_BYTE;
   return (*reinterpret_cast<const uint8_t*>(b) & (1 << (bindex % BITS_PER_BYTE / BITS))) != 0;
 }

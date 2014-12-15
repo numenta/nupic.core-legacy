@@ -1,30 +1,35 @@
-// Copyright (c) 2013, Kenton Varda <temporal@gmail.com>
-// All rights reserved.
+// Copyright (c) 2013-2014 Sandstorm Development Group, Inc. and contributors
+// Licensed under the MIT License:
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
 //
-// 1. Redistributions of source code must retain the above copyright notice, this
-//    list of conditions and the following disclaimer.
-// 2. Redistributions in binary form must reproduce the above copyright notice,
-//    this list of conditions and the following disclaimer in the documentation
-//    and/or other materials provided with the distribution.
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
 //
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-// DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
-// ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-// ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
 
 #ifndef CAPNP_EZ_RPC_H_
 #define CAPNP_EZ_RPC_H_
 
+#if defined(__GNUC__) && !CAPNP_HEADER_WARNINGS
+#pragma GCC system_header
+#endif
+
 #include "rpc.h"
+#include "message.h"
+
+struct sockaddr;
 
 namespace kj { class AsyncIoProvider; class LowLevelAsyncIoProvider; }
 
@@ -43,7 +48,7 @@ class EzRpcClient {
   //     // C++ client
   //     int main() {
   //       capnp::EzRpcClient client("localhost:3456");
-  //       Adder::Client adder = client.importCap<Adder>("adder");
+  //       Adder::Client adder = client.getMain<Adder>();
   //       auto request = adder.addRequest();
   //       request.setLeft(12);
   //       request.setRight(34);
@@ -63,8 +68,7 @@ class EzRpcClient {
   //     };
   //
   //     int main() {
-  //       capnp::EzRpcServer server("*:3456");
-  //       server.exportCap("adder", kj::heap<AdderImpl>());
+  //       capnp::EzRpcServer server(kj::heap<AdderImpl>(), "*:3456");
   //       kj::NEVER_DONE.wait(server.getWaitScope());
   //     }
   //
@@ -91,7 +95,8 @@ class EzRpcClient {
   // - `TwoPartyVatNetwork` in `capnp/rpc-twoparty.h`.
 
 public:
-  explicit EzRpcClient(kj::StringPtr serverAddress, uint defaultPort = 0);
+  explicit EzRpcClient(kj::StringPtr serverAddress, uint defaultPort = 0,
+                       ReaderOptions readerOpts = ReaderOptions());
   // Construct a new EzRpcClient and connect to the given address.  The connection is formed in
   // the background -- if it fails, calls to capabilities returned by importCap() will fail with an
   // appropriate exception.
@@ -101,21 +106,41 @@ public:
   //
   // The address is parsed by `kj::Network` in `kj/async-io.h`.  See that interface for more info
   // on the address format, but basically it's what you'd expect.
+  //
+  // `readerOpts` is the ReaderOptions structure used to read each incoming message on the
+  // connection. Setting this may be necessary if you need to receive very large individual
+  // messages or messages. However, it is recommended that you instead think about how to change
+  // your protocol to send large data blobs in multiple small chunks -- this is much better for
+  // both security and performance. See `ReaderOptions` in `message.h` for more details.
 
-  EzRpcClient(struct sockaddr* serverAddress, uint addrSize);
+  EzRpcClient(const struct sockaddr* serverAddress, uint addrSize,
+              ReaderOptions readerOpts = ReaderOptions());
   // Like the above constructor, but connects to an already-resolved socket address.  Any address
   // format supported by `kj::Network` in `kj/async-io.h` is accepted.
 
-  explicit EzRpcClient(int socketFd);
+  explicit EzRpcClient(int socketFd, ReaderOptions readerOpts = ReaderOptions());
   // Create a client on top of an already-connected socket.
+  // `readerOpts` acts as in the first constructor.
 
   ~EzRpcClient() noexcept(false);
 
   template <typename Type>
-  typename Type::Client importCap(kj::StringPtr name);
-  Capability::Client importCap(kj::StringPtr name);
+  typename Type::Client getMain();
+  Capability::Client getMain();
+  // Get the server's main (aka "bootstrap") interface.
+
+  template <typename Type>
+  typename Type::Client importCap(kj::StringPtr name)
+      KJ_DEPRECATED("Change your server to export a main interface, then use getMain() instead.");
+  Capability::Client importCap(kj::StringPtr name)
+      KJ_DEPRECATED("Change your server to export a main interface, then use getMain() instead.");
+  // ** DEPRECATED **
+  //
   // Ask the sever for the capability with the given name.  You may specify a type to automatically
   // down-cast to that type.  It is up to you to specify the correct expected type.
+  //
+  // Named interfaces are deprecated. The new preferred usage pattern is for the server to export
+  // a "main" interface which itself has methods for getting any other interfaces.
 
   kj::WaitScope& getWaitScope();
   // Get the `WaitScope` for the client's `EventLoop`, which allows you to synchronously wait on
@@ -138,7 +163,8 @@ class EzRpcServer {
   // The server counterpart to `EzRpcClient`.  See `EzRpcClient` for an example.
 
 public:
-  explicit EzRpcServer(kj::StringPtr bindAddress, uint deafultPort = 0);
+  explicit EzRpcServer(Capability::Client mainInterface, kj::StringPtr bindAddress,
+                       uint defaultPort = 0, ReaderOptions readerOpts = ReaderOptions());
   // Construct a new `EzRpcServer` that binds to the given address.  An address of "*" means to
   // bind to all local addresses.
   //
@@ -152,14 +178,32 @@ public:
   // The server might not begin listening immediately, especially if `bindAddress` needs to be
   // resolved.  If you need to wait until the server is definitely up, wait on the promise returned
   // by `getPort()`.
+  //
+  // `readerOpts` is the ReaderOptions structure used to read each incoming message on the
+  // connection. Setting this may be necessary if you need to receive very large individual
+  // messages or messages. However, it is recommended that you instead think about how to change
+  // your protocol to send large data blobs in multiple small chunks -- this is much better for
+  // both security and performance. See `ReaderOptions` in `message.h` for more details.
 
-  EzRpcServer(struct sockaddr* bindAddress, uint addrSize);
+  EzRpcServer(Capability::Client mainInterface, struct sockaddr* bindAddress, uint addrSize,
+              ReaderOptions readerOpts = ReaderOptions());
   // Like the above constructor, but binds to an already-resolved socket address.  Any address
   // format supported by `kj::Network` in `kj/async-io.h` is accepted.
 
-  EzRpcServer(int socketFd, uint port);
+  EzRpcServer(Capability::Client mainInterface, int socketFd, uint port,
+              ReaderOptions readerOpts = ReaderOptions());
   // Create a server on top of an already-listening socket (i.e. one on which accept() may be
   // called).  `port` is returned by `getPort()` -- it serves no other purpose.
+  // `readerOpts` acts as in the other two above constructors.
+
+  explicit EzRpcServer(kj::StringPtr bindAddress, uint defaultPort = 0,
+                       ReaderOptions readerOpts = ReaderOptions())
+      KJ_DEPRECATED("Please specify a main interface for your server.");
+  EzRpcServer(struct sockaddr* bindAddress, uint addrSize,
+              ReaderOptions readerOpts = ReaderOptions())
+      KJ_DEPRECATED("Please specify a main interface for your server.");
+  EzRpcServer(int socketFd, uint port, ReaderOptions readerOpts = ReaderOptions())
+      KJ_DEPRECATED("Please specify a main interface for your server.");
 
   ~EzRpcServer() noexcept(false);
 
@@ -167,7 +211,7 @@ public:
   // Export a capability publicly under the given name, so that clients can import it.
   //
   // Keep in mind that you can implicitly convert `kj::Own<MyType::Server>&&` to
-  // `Capability::Client`, so it's typicall to pass something like
+  // `Capability::Client`, so it's typical to pass something like
   // `kj::heap<MyImplementation>(<constructor params>)` as the second parameter.
 
   kj::Promise<uint> getPort();
@@ -194,6 +238,11 @@ private:
 
 // =======================================================================================
 // inline implementation details
+
+template <typename Type>
+inline typename Type::Client EzRpcClient::getMain() {
+  return getMain().castAs<Type>();
+}
 
 template <typename Type>
 inline typename Type::Client EzRpcClient::importCap(kj::StringPtr name) {

@@ -1,25 +1,23 @@
-// Copyright (c) 2013, Kenton Varda <temporal@gmail.com>
-// All rights reserved.
+// Copyright (c) 2013-2014 Sandstorm Development Group, Inc. and contributors
+// Licensed under the MIT License:
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
 //
-// 1. Redistributions of source code must retain the above copyright notice, this
-//    list of conditions and the following disclaimer.
-// 2. Redistributions in binary form must reproduce the above copyright notice,
-//    this list of conditions and the following disclaimer in the documentation
-//    and/or other materials provided with the distribution.
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
 //
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-// DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
-// ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-// ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
 
 // This file defines classes that can be used to manipulate messages based on schemas that are not
 // known until runtime.  This is also useful for writing generic code that uses schemas to handle
@@ -34,6 +32,10 @@
 
 #ifndef CAPNP_DYNAMIC_H_
 #define CAPNP_DYNAMIC_H_
+
+#if defined(__GNUC__) && !CAPNP_HEADER_WARNINGS
+#pragma GCC system_header
+#endif
 
 #include "schema.h"
 #include "layout.h"
@@ -109,6 +111,16 @@ template <typename T>
 DynamicTypeFor<TypeIfEnum<T>> toDynamic(T&& value);
 template <typename T>
 typename DynamicTypeFor<FromServer<T>>::Client toDynamic(kj::Own<T>&& value);
+
+namespace _ {  // private
+
+template <> struct Kind_<DynamicValue     > { static constexpr Kind kind = Kind::OTHER; };
+template <> struct Kind_<DynamicEnum      > { static constexpr Kind kind = Kind::OTHER; };
+template <> struct Kind_<DynamicStruct    > { static constexpr Kind kind = Kind::OTHER; };
+template <> struct Kind_<DynamicList      > { static constexpr Kind kind = Kind::OTHER; };
+template <> struct Kind_<DynamicCapability> { static constexpr Kind kind = Kind::OTHER; };
+
+}  // namespace _ (private)
 
 // -------------------------------------------------------------------
 
@@ -210,7 +222,7 @@ private:
   template <typename T, ::capnp::Kind k>
   friend struct ::capnp::ToDynamic_;
   friend kj::StringTree _::structString(
-      _::StructReader reader, const _::RawSchema& schema);
+      _::StructReader reader, const _::RawBrandedSchema& schema);
   friend class Orphanage;
   friend class Orphan<DynamicStruct>;
   friend class Orphan<DynamicValue>;
@@ -553,15 +565,15 @@ private:
 // Make sure ReaderFor<T> and BuilderFor<T> work for DynamicEnum, DynamicStruct, and
 // DynamicList, so that we can define DynamicValue::as().
 
-template <> struct ReaderFor_ <DynamicEnum, Kind::UNKNOWN> { typedef DynamicEnum Type; };
-template <> struct BuilderFor_<DynamicEnum, Kind::UNKNOWN> { typedef DynamicEnum Type; };
-template <> struct ReaderFor_ <DynamicStruct, Kind::UNKNOWN> { typedef DynamicStruct::Reader Type; };
-template <> struct BuilderFor_<DynamicStruct, Kind::UNKNOWN> { typedef DynamicStruct::Builder Type; };
-template <> struct ReaderFor_ <DynamicList, Kind::UNKNOWN> { typedef DynamicList::Reader Type; };
-template <> struct BuilderFor_<DynamicList, Kind::UNKNOWN> { typedef DynamicList::Builder Type; };
-template <> struct ReaderFor_ <DynamicCapability, Kind::UNKNOWN> { typedef DynamicCapability::Client Type; };
-template <> struct BuilderFor_<DynamicCapability, Kind::UNKNOWN> { typedef DynamicCapability::Client Type; };
-template <> struct PipelineFor_<DynamicCapability, Kind::UNKNOWN> { typedef DynamicCapability::Client Type; };
+template <> struct ReaderFor_ <DynamicEnum, Kind::OTHER> { typedef DynamicEnum Type; };
+template <> struct BuilderFor_<DynamicEnum, Kind::OTHER> { typedef DynamicEnum Type; };
+template <> struct ReaderFor_ <DynamicStruct, Kind::OTHER> { typedef DynamicStruct::Reader Type; };
+template <> struct BuilderFor_<DynamicStruct, Kind::OTHER> { typedef DynamicStruct::Builder Type; };
+template <> struct ReaderFor_ <DynamicList, Kind::OTHER> { typedef DynamicList::Reader Type; };
+template <> struct BuilderFor_<DynamicList, Kind::OTHER> { typedef DynamicList::Builder Type; };
+template <> struct ReaderFor_ <DynamicCapability, Kind::OTHER> { typedef DynamicCapability::Client Type; };
+template <> struct BuilderFor_<DynamicCapability, Kind::OTHER> { typedef DynamicCapability::Client Type; };
+template <> struct PipelineFor_<DynamicCapability, Kind::OTHER> { typedef DynamicCapability::Client Type; };
 
 class DynamicValue::Reader {
 public:
@@ -1013,14 +1025,14 @@ template <>
 Orphan<DynamicCapability> Orphan<DynamicValue>::releaseAs<DynamicCapability>();
 
 template <>
-struct Orphanage::GetInnerBuilder<DynamicStruct, Kind::UNKNOWN> {
+struct Orphanage::GetInnerBuilder<DynamicStruct, Kind::OTHER> {
   static inline _::StructBuilder apply(DynamicStruct::Builder& t) {
     return t.builder;
   }
 };
 
 template <>
-struct Orphanage::GetInnerBuilder<DynamicList, Kind::UNKNOWN> {
+struct Orphanage::GetInnerBuilder<DynamicList, Kind::OTHER> {
   static inline _::ListBuilder apply(DynamicList::Builder& t) {
     return t.builder;
   }
@@ -1053,7 +1065,7 @@ Orphan<DynamicValue> Orphanage::newOrphanCopy<DynamicValue::Reader>(
 namespace _ {  // private
 
 template <>
-struct PointerHelpers<DynamicStruct, Kind::UNKNOWN> {
+struct PointerHelpers<DynamicStruct, Kind::OTHER> {
   // getDynamic() is used when an AnyPointer's get() accessor is passed arguments, because for
   // non-dynamic types PointerHelpers::get() takes a default value as the third argument, and we
   // don't want people to accidentally be able to provide their own default value.
@@ -1070,7 +1082,7 @@ struct PointerHelpers<DynamicStruct, Kind::UNKNOWN> {
 };
 
 template <>
-struct PointerHelpers<DynamicList, Kind::UNKNOWN> {
+struct PointerHelpers<DynamicList, Kind::OTHER> {
   // getDynamic() is used when an AnyPointer's get() accessor is passed arguments, because for
   // non-dynamic types PointerHelpers::get() takes a default value as the third argument, and we
   // don't want people to accidentally be able to provide their own default value.
@@ -1087,7 +1099,7 @@ struct PointerHelpers<DynamicList, Kind::UNKNOWN> {
 };
 
 template <>
-struct PointerHelpers<DynamicCapability, Kind::UNKNOWN> {
+struct PointerHelpers<DynamicCapability, Kind::OTHER> {
   // getDynamic() is used when an AnyPointer's get() accessor is passed arguments, because for
   // non-dynamic types PointerHelpers::get() takes a default value as the third argument, and we
   // don't want people to accidentally be able to provide their own default value.
@@ -1406,11 +1418,11 @@ struct DynamicValue::Pipeline::AsImpl<T, Kind::INTERFACE> {
   }
 };
 template <>
-struct DynamicValue::Pipeline::AsImpl<DynamicStruct, Kind::UNKNOWN> {
+struct DynamicValue::Pipeline::AsImpl<DynamicStruct, Kind::OTHER> {
   static PipelineFor<DynamicStruct> apply(Pipeline& pipeline);
 };
 template <>
-struct DynamicValue::Pipeline::AsImpl<DynamicCapability, Kind::UNKNOWN> {
+struct DynamicValue::Pipeline::AsImpl<DynamicCapability, Kind::OTHER> {
   static PipelineFor<DynamicCapability> apply(Pipeline& pipeline);
 };
 

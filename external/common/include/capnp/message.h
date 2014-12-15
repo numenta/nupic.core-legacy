@@ -1,25 +1,23 @@
-// Copyright (c) 2013, Kenton Varda <temporal@gmail.com>
-// All rights reserved.
+// Copyright (c) 2013-2014 Sandstorm Development Group, Inc. and contributors
+// Licensed under the MIT License:
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
 //
-// 1. Redistributions of source code must retain the above copyright notice, this
-//    list of conditions and the following disclaimer.
-// 2. Redistributions in binary form must reproduce the above copyright notice,
-//    this list of conditions and the following disclaimer in the documentation
-//    and/or other materials provided with the distribution.
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
 //
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-// DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
-// ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-// ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
 
 #include <kj/common.h>
 #include <kj/memory.h>
@@ -30,6 +28,10 @@
 
 #ifndef CAPNP_MESSAGE_H_
 #define CAPNP_MESSAGE_H_
+
+#if defined(__GNUC__) && !CAPNP_HEADER_WARNINGS
+#pragma GCC system_header
+#endif
 
 namespace capnp {
 
@@ -118,6 +120,7 @@ public:
   // RootType in this case must be DynamicStruct, and you must #include <capnp/dynamic.h> to
   // use this.
 
+#if !CAPNP_LITE
   void initCapTable(kj::Array<kj::Maybe<kj::Own<ClientHook>>> capTable);
   // Sets the table of capabilities embedded in this message.  Capability pointers found in the
   // message content contain indexes into this table.  You must call this before attempting to
@@ -127,6 +130,7 @@ public:
   //
   // You must link against libcapnp-rpc to call this method (the rest of MessageBuilder is in
   // regular libcapnp).
+#endif  // !CAPNP_LITE
 
 private:
   ReaderOptions options;
@@ -158,6 +162,35 @@ public:
   MessageBuilder();
   virtual ~MessageBuilder() noexcept(false);
   KJ_DISALLOW_COPY(MessageBuilder);
+
+  struct SegmentInit {
+    kj::ArrayPtr<word> space;
+
+    size_t wordsUsed;
+    // Number of words in `space` which are used; the rest are free space in which additional
+    // objects may be allocated.
+  };
+
+  explicit MessageBuilder(kj::ArrayPtr<SegmentInit> segments);
+  // Create a MessageBuilder backed by existing memory. This is an advanced interface that most
+  // people should not use. THIS METHOD IS INSECURE; see below.
+  //
+  // This allows a MessageBuilder to be constructed to modify an in-memory message without first
+  // making a copy of the content. This is especially useful in conjunction with mmap().
+  //
+  // The contents of each segment must outlive the MessageBuilder, but the SegmentInit array itself
+  // only need outlive the constructor.
+  //
+  // SECURITY: Do not use this in conjunction with untrusted data. This constructor assumes that
+  //   the input message is valid. This constructor is designed to be used with data you control,
+  //   e.g. an mmap'd file which is owned and accessed by only one program. When reading data you
+  //   do not trust, you *must* load it into a Reader and then copy into a Builder as a means of
+  //   validating the content.
+  //
+  // WARNING: It is NOT safe to initialize a MessageBuilder in this way from memory that is
+  //   currently in use by another MessageBuilder or MessageReader. Other readers/builders will
+  //   not observe changes to the segment sizes nor newly-allocated segments caused by allocating
+  //   new objects in this message.
 
   virtual kj::ArrayPtr<word> allocateSegment(uint minimumSize) = 0;
   // Allocates an array of at least the given number of words, throwing an exception or crashing if
@@ -199,16 +232,18 @@ public:
   kj::ArrayPtr<const kj::ArrayPtr<const word>> getSegmentsForOutput();
   // Get the raw data that makes up the message.
 
+#if !CAPNP_LITE
   kj::ArrayPtr<kj::Maybe<kj::Own<ClientHook>>> getCapTable();
   // Get the table of capabilities (interface pointers) that have been added to this message.
   // When you later parse this message, you must call `initCapTable()` on the `MessageReader` and
   // give it an equivalent set of capabilities, otherwise cap pointers in the message will be
   // unusable.
+#endif  // !CAPNP_LITE
 
   Orphanage getOrphanage();
 
 private:
-  void* arenaSpace[18];
+  void* arenaSpace[20];
   // Space in which we can construct a BuilderArena.  We don't use BuilderArena directly here
   // because we don't want clients to have to #include arena.h, which itself includes a bunch of
   // big STL headers.  We don't use a pointer to a BuilderArena because that would require an

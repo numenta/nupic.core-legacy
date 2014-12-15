@@ -1,36 +1,39 @@
-// Copyright (c) 2013, Kenton Varda <temporal@gmail.com>
-// All rights reserved.
+// Copyright (c) 2013-2014 Sandstorm Development Group, Inc. and contributors
+// Licensed under the MIT License:
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
 //
-// 1. Redistributions of source code must retain the above copyright notice, this
-//    list of conditions and the following disclaimer.
-// 2. Redistributions in binary form must reproduce the above copyright notice,
-//    this list of conditions and the following disclaimer in the documentation
-//    and/or other materials provided with the distribution.
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
 //
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-// DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
-// ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-// ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
 
 #ifndef KJ_MUTEX_H_
 #define KJ_MUTEX_H_
 
+#if defined(__GNUC__) && !KJ_HEADER_WARNINGS
+#pragma GCC system_header
+#endif
+
 #include "memory.h"
+#include <inttypes.h>
 
 #if __linux__ && !defined(KJ_USE_FUTEX)
 #define KJ_USE_FUTEX 1
 #endif
 
-#if !KJ_USE_FUTEX
+#if !KJ_USE_FUTEX && !_WIN32
 // On Linux we use futex.  On other platforms we wrap pthreads.
 // TODO(someday):  Write efficient low-level locking primitives for other platforms.
 #include <pthread.h>
@@ -77,6 +80,9 @@ private:
   static constexpr uint EXCLUSIVE_REQUESTED = 1u << 30;
   static constexpr uint SHARED_COUNT_MASK = EXCLUSIVE_REQUESTED - 1;
 
+#elif _WIN32
+  uintptr_t srwLock;  // Actually an SRWLOCK, but don't want to #include <windows.h> in header.
+
 #else
   mutable pthread_rwlock_t mutex;
 #endif
@@ -102,6 +108,10 @@ public:
 
   void runOnce(Initializer& init);
 
+#if _WIN32  // TODO(perf): Can we make this inline on win32 somehow?
+  bool isInitialized() noexcept;
+
+#else
   inline bool isInitialized() noexcept {
     // Fast path check to see if runOnce() would simply return immediately.
 #if KJ_USE_FUTEX
@@ -110,25 +120,12 @@ public:
     return __atomic_load_n(&state, __ATOMIC_ACQUIRE) == INITIALIZED;
 #endif
   }
+#endif
 
   void reset();
   // Returns the state from initialized to uninitialized.  It is an error to call this when
   // not already initialized, or when runOnce() or isInitialized() might be called concurrently in
   // another thread.
-
-  void disable() noexcept;
-  // Prevent future calls to runOnce() and reset() from having any effect, and make isInitialized()
-  // return false forever.  If an initializer is currently running, block until it completes.
-
-  bool isDisabled() noexcept {
-    // Returns true if `disable()` has been called.
-
-#if KJ_USE_FUTEX
-    return __atomic_load_n(&futex, __ATOMIC_ACQUIRE) == DISABLED;
-#else
-    return __atomic_load_n(&state, __ATOMIC_ACQUIRE) == DISABLED;
-#endif
-  }
 
 private:
 #if KJ_USE_FUTEX
@@ -138,15 +135,16 @@ private:
     UNINITIALIZED,
     INITIALIZING,
     INITIALIZING_WITH_WAITERS,
-    INITIALIZED,
-    DISABLED
+    INITIALIZED
   };
+
+#elif _WIN32
+  uintptr_t initOnce;  // Actually an INIT_ONCE, but don't want to #include <windows.h> in header.
 
 #else
   enum State {
     UNINITIALIZED,
-    INITIALIZED,
-    DISABLED
+    INITIALIZED
   };
   State state;
   pthread_mutex_t mutex;

@@ -1,25 +1,23 @@
-// Copyright (c) 2013, Kenton Varda <temporal@gmail.com>
-// All rights reserved.
+// Copyright (c) 2013-2014 Sandstorm Development Group, Inc. and contributors
+// Licensed under the MIT License:
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
 //
-// 1. Redistributions of source code must retain the above copyright notice, this
-//    list of conditions and the following disclaimer.
-// 2. Redistributions in binary form must reproduce the above copyright notice,
-//    this list of conditions and the following disclaimer in the documentation
-//    and/or other materials provided with the distribution.
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
 //
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-// DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
-// ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-// ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
 
 // This file implements a simple serialization format for Cap'n Proto messages.  The format
 // is as follows:
@@ -42,6 +40,10 @@
 
 #ifndef CAPNP_SERIALIZE_H_
 #define CAPNP_SERIALIZE_H_
+
+#if defined(__GNUC__) && !CAPNP_HEADER_WARNINGS
+#pragma GCC system_header
+#endif
 
 #include "message.h"
 #include <kj/io.h>
@@ -71,15 +73,47 @@ private:
   const word* end;
 };
 
+kj::ArrayPtr<const word> initMessageBuilderFromFlatArrayCopy(
+    kj::ArrayPtr<const word> array, MessageBuilder& target,
+    ReaderOptions options = ReaderOptions());
+// Convenience function which reads a message using `FlatArrayMessageReader` then copies the
+// content into the target `MessageBuilder`, verifying that the message structure is valid
+// (although not necessarily that it matches the desired schema).
+//
+// Returns an ArrayPtr containing any words left over in the array after consuming the whole
+// message. This is useful when reading multiple messages that have been concatenated. See also
+// FlatArrayMessageReader::getEnd().
+//
+// (Note that it's also possible to initialize a `MessageBuilder` directly without a copy using one
+// of `MessageBuilder`'s constructors. However, this approach skips the validation step and is not
+// safe to use on untrusted input. Therefore, we do not provide a convenience method for it.)
+
 kj::Array<word> messageToFlatArray(MessageBuilder& builder);
 // Constructs a flat array containing the entire content of the given message.
+//
+// To output the message as bytes, use `.asBytes()` on the returned word array. Keep in mind that
+// `asBytes()` returns an ArrayPtr, so you have to save the Array as well to prevent it from being
+// deleted. For example:
+//
+//     kj::Array<capnp::word> words = messageToFlatArray(myMessage);
+//     kj::ArrayPtr<kj::byte> bytes = words.asBytes();
+//     write(fd, bytes.begin(), bytes.size());
 
 kj::Array<word> messageToFlatArray(kj::ArrayPtr<const kj::ArrayPtr<const word>> segments);
 // Version of messageToFlatArray that takes a raw segment array.
 
+size_t computeSerializedSizeInWords(MessageBuilder& builder);
+// Returns the size, in words, that will be needed to serialize the message, including the header.
+
+size_t computeSerializedSizeInWords(kj::ArrayPtr<const kj::ArrayPtr<const word>> segments);
+// Version of computeSerializedSizeInWords that takes a raw segment array.
+
 // =======================================================================================
 
 class InputStreamMessageReader: public MessageReader {
+  // A MessageReader that reads from an abstract kj::InputStream. See also StreamFdMessageReader
+  // for a subclass specific to file descriptors.
+
 public:
   InputStreamMessageReader(kj::InputStream& inputStream,
                            ReaderOptions options = ReaderOptions(),
@@ -103,6 +137,17 @@ private:
   kj::UnwindDetector unwindDetector;
 };
 
+void readMessageCopy(kj::InputStream& input, MessageBuilder& target,
+                     ReaderOptions options = ReaderOptions(),
+                     kj::ArrayPtr<word> scratchSpace = nullptr);
+// Convenience function which reads a message using `InputStreamMessageReader` then copies the
+// content into the target `MessageBuilder`, verifying that the message structure is valid
+// (although not necessarily that it matches the desired schema).
+//
+// (Note that it's also possible to initialize a `MessageBuilder` directly without a copy using one
+// of `MessageBuilder`'s constructors. However, this approach skips the validation step and is not
+// safe to use on untrusted input. Therefore, we do not provide a convenience method for it.)
+
 void writeMessage(kj::OutputStream& output, MessageBuilder& builder);
 // Write the message to the given output stream.
 
@@ -113,8 +158,7 @@ void writeMessage(kj::OutputStream& output, kj::ArrayPtr<const kj::ArrayPtr<cons
 // Specializations for reading from / writing to file descriptors.
 
 class StreamFdMessageReader: private kj::FdInputStream, public InputStreamMessageReader {
-  // A MessageReader that reads from a steam-based file descriptor.  For seekable file descriptors
-  // (e.g. actual disk files), FdFileMessageReader is better, but this will still work.
+  // A MessageReader that reads from a steam-based file descriptor.
 
 public:
   StreamFdMessageReader(int fd, ReaderOptions options = ReaderOptions(),
@@ -129,6 +173,17 @@ public:
 
   ~StreamFdMessageReader() noexcept(false);
 };
+
+void readMessageCopyFromFd(int fd, MessageBuilder& target,
+                           ReaderOptions options = ReaderOptions(),
+                           kj::ArrayPtr<word> scratchSpace = nullptr);
+// Convenience function which reads a message using `StreamFdMessageReader` then copies the
+// content into the target `MessageBuilder`, verifying that the message structure is valid
+// (although not necessarily that it matches the desired schema).
+//
+// (Note that it's also possible to initialize a `MessageBuilder` directly without a copy using one
+// of `MessageBuilder`'s constructors. However, this approach skips the validation step and is not
+// safe to use on untrusted input. Therefore, we do not provide a convenience method for it.)
 
 void writeMessageToFd(int fd, MessageBuilder& builder);
 // Write the message to the given file descriptor.
@@ -149,6 +204,10 @@ void writeMessageToFd(int fd, kj::ArrayPtr<const kj::ArrayPtr<const word>> segme
 
 inline kj::Array<word> messageToFlatArray(MessageBuilder& builder) {
   return messageToFlatArray(builder.getSegmentsForOutput());
+}
+
+inline size_t computeSerializedSizeInWords(MessageBuilder& builder) {
+  return computeSerializedSizeInWords(builder.getSegmentsForOutput());
 }
 
 inline void writeMessage(kj::OutputStream& output, MessageBuilder& builder) {

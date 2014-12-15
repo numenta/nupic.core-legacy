@@ -1,28 +1,30 @@
-// Copyright (c) 2013, Kenton Varda <temporal@gmail.com>
-// All rights reserved.
+// Copyright (c) 2013-2014 Sandstorm Development Group, Inc. and contributors
+// Licensed under the MIT License:
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
 //
-// 1. Redistributions of source code must retain the above copyright notice, this
-//    list of conditions and the following disclaimer.
-// 2. Redistributions in binary form must reproduce the above copyright notice,
-//    this list of conditions and the following disclaimer in the documentation
-//    and/or other materials provided with the distribution.
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
 //
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-// DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
-// ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-// ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
 
 #ifndef KJ_ASYNC_H_
 #define KJ_ASYNC_H_
+
+#if defined(__GNUC__) && !KJ_HEADER_WARNINGS
+#pragma GCC system_header
+#endif
 
 #include "async-prelude.h"
 #include "exception.h"
@@ -511,7 +513,7 @@ class EventPort {
   // framework, allowing the two to coexist in a single thread.
 
 public:
-  virtual void wait() = 0;
+  virtual bool wait() = 0;
   // Wait for an external event to arrive, sleeping if necessary.  Once at least one event has
   // arrived, queue it to the event loop (e.g. by fulfilling a promise) and return.
   //
@@ -521,21 +523,37 @@ public:
   // It is safe to return even if nothing has actually been queued, so long as calling `wait()` in
   // a loop will eventually sleep.  (That is to say, false positives are fine.)
   //
-  // If the implementation knows that no event will ever arrive, it should throw an exception
-  // rather than deadlock.
+  // Returns true if wake() has been called from another thread. (Precisely, returns true if
+  // no previous call to wait `wait()` nor `poll()` has returned true since `wake()` was last
+  // called.)
 
-  virtual void poll() = 0;
+  virtual bool poll() = 0;
   // Check if any external events have arrived, but do not sleep.  If any events have arrived,
   // add them to the event queue (e.g. by fulfilling promises) before returning.
   //
   // This may be called during `Promise::wait()` when the EventLoop has been executing for a while
   // without a break but is still non-empty.
+  //
+  // Returns true if wake() has been called from another thread. (Precisely, returns true if
+  // no previous call to wait `wait()` nor `poll()` has returned true since `wake()` was last
+  // called.)
 
   virtual void setRunnable(bool runnable);
   // Called to notify the `EventPort` when the `EventLoop` has work to do; specifically when it
   // transitions from empty -> runnable or runnable -> empty.  This is typically useful when
   // integrating with an external event loop; if the loop is currently runnable then you should
   // arrange to call run() on it soon.  The default implementation does nothing.
+
+  virtual void wake() const;
+  // Wake up the EventPort's thread from another thread.
+  //
+  // Unlike all other methods on this interface, `wake()` may be called from another thread, hence
+  // it is `const`.
+  //
+  // Technically speaking, `wake()` causes the target thread to cease sleeping and not to sleep
+  // again until `wait()` or `poll()` has returned true at least once.
+  //
+  // The default implementation throws an UNIMPLEMENTED exception.
 };
 
 class EventLoop {
