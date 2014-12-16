@@ -1,25 +1,23 @@
-// Copyright (c) 2013, Kenton Varda <temporal@gmail.com>
-// All rights reserved.
+// Copyright (c) 2013-2014 Sandstorm Development Group, Inc. and contributors
+// Licensed under the MIT License:
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
 //
-// 1. Redistributions of source code must retain the above copyright notice, this
-//    list of conditions and the following disclaimer.
-// 2. Redistributions in binary form must reproduce the above copyright notice,
-//    this list of conditions and the following disclaimer in the documentation
-//    and/or other materials provided with the distribution.
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
 //
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-// DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
-// ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-// ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
 
 // This file contains a bunch of internal declarations that must appear before rpc.h can start.
 // We don't define these directly in rpc.h because it makes the file hard to read.
@@ -27,7 +25,12 @@
 #ifndef CAPNP_RPC_PRELUDE_H_
 #define CAPNP_RPC_PRELUDE_H_
 
+#if defined(__GNUC__) && !CAPNP_HEADER_WARNINGS
+#pragma GCC system_header
+#endif
+
 #include "capability.h"
+#include "persistent.capnp.h"
 
 namespace capnp {
 
@@ -55,13 +58,10 @@ public:
   public:
     virtual kj::Own<OutgoingRpcMessage> newOutgoingMessage(uint firstSegmentWordSize) = 0;
     virtual kj::Promise<kj::Maybe<kj::Own<IncomingRpcMessage>>> receiveIncomingMessage() = 0;
-    virtual void baseIntroduceTo(Connection& recipient,
-        AnyPointer::Builder sendToRecipient, AnyPointer::Builder sendToTarget) = 0;
-    virtual ConnectionAndProvisionId baseConnectToIntroduced(AnyPointer::Reader capId) = 0;
-    virtual kj::Own<Connection> baseAcceptIntroducedConnection(AnyPointer::Reader recipientId) = 0;
+    virtual kj::Promise<void> shutdown() = 0;
   };
-  virtual kj::Maybe<kj::Own<Connection>> baseConnectToRefHost(_::StructReader hostId) = 0;
-  virtual kj::Promise<kj::Own<Connection>> baseAcceptConnectionAsRefHost() = 0;
+  virtual kj::Maybe<kj::Own<Connection>> baseConnect(_::StructReader vatId) = 0;
+  virtual kj::Promise<kj::Own<Connection>> baseAccept() = 0;
 };
 
 class SturdyRefRestorerBase {
@@ -71,7 +71,9 @@ public:
 
 class RpcSystemBase {
 public:
-  RpcSystemBase(VatNetworkBase& network, kj::Maybe<SturdyRefRestorerBase&> restorer);
+  RpcSystemBase(VatNetworkBase& network, kj::Maybe<Capability::Client> bootstrapInterface,
+                kj::Maybe<RealmGateway<>::Client> gateway);
+  RpcSystemBase(VatNetworkBase& network, SturdyRefRestorerBase& restorer);
   RpcSystemBase(RpcSystemBase&& other) noexcept;
   ~RpcSystemBase() noexcept(false);
 
@@ -79,13 +81,34 @@ private:
   class Impl;
   kj::Own<Impl> impl;
 
-  Capability::Client baseRestore(_::StructReader hostId, AnyPointer::Reader objectId);
+  Capability::Client baseBootstrap(_::StructReader vatId);
+  Capability::Client baseRestore(_::StructReader vatId, AnyPointer::Reader objectId);
   // TODO(someday):  Maybe define a public API called `TypelessStruct` so we don't have to rely
   // on `_::StructReader` here?
 
   template <typename>
   friend class capnp::RpcSystem;
 };
+
+template <typename T> struct InternalRefFromRealmGateway_;
+template <typename InternalRef, typename ExternalRef>
+struct InternalRefFromRealmGateway_<RealmGateway<InternalRef, ExternalRef>> {
+  typedef InternalRef Type;
+};
+template <typename T>
+using InternalRefFromRealmGateway = typename InternalRefFromRealmGateway_<T>::Type;
+template <typename T>
+using InternalRefFromRealmGatewayClient = InternalRefFromRealmGateway<typename T::Calls>;
+
+template <typename T> struct ExternalRefFromRealmGateway_;
+template <typename InternalRef, typename ExternalRef>
+struct ExternalRefFromRealmGateway_<RealmGateway<InternalRef, ExternalRef>> {
+  typedef ExternalRef Type;
+};
+template <typename T>
+using ExternalRefFromRealmGateway = typename ExternalRefFromRealmGateway_<T>::Type;
+template <typename T>
+using ExternalRefFromRealmGatewayClient = ExternalRefFromRealmGateway<typename T::Calls>;
 
 }  // namespace _ (private)
 }  // namespace capnp

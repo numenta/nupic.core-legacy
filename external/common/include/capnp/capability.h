@@ -1,28 +1,34 @@
-// Copyright (c) 2013, Kenton Varda <temporal@gmail.com>
-// All rights reserved.
+// Copyright (c) 2013-2014 Sandstorm Development Group, Inc. and contributors
+// Licensed under the MIT License:
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
 //
-// 1. Redistributions of source code must retain the above copyright notice, this
-//    list of conditions and the following disclaimer.
-// 2. Redistributions in binary form must reproduce the above copyright notice,
-//    this list of conditions and the following disclaimer in the documentation
-//    and/or other materials provided with the distribution.
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
 //
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-// DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
-// ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-// ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
 
 #ifndef CAPNP_CAPABILITY_H_
 #define CAPNP_CAPABILITY_H_
+
+#if defined(__GNUC__) && !CAPNP_HEADER_WARNINGS
+#pragma GCC system_header
+#endif
+
+#if CAPNP_LITE
+#error "RPC APIs, including this header, are not available in lite mode."
+#endif
 
 #include <kj/async.h>
 #include "any.h"
@@ -53,6 +59,33 @@ public:
   KJ_DISALLOW_COPY(RemotePromise);
   RemotePromise(RemotePromise&& other) = default;
   RemotePromise& operator=(RemotePromise&& other) = default;
+};
+
+namespace _ { // private
+struct RawSchema;
+struct RawBrandedSchema;
+extern const RawSchema NULL_INTERFACE_SCHEMA;  // defined in schema.c++
+}  // namespace _ (private)
+
+struct Capability {
+  // A capability without type-safe methods.  Typed capability clients wrap `Client` and typed
+  // capability servers subclass `Server` to dispatch to the regular, typed methods.
+
+  class Client;
+  class Server;
+
+  struct _capnpPrivate {
+    struct IsInterface;
+    static constexpr uint64_t typeId = 0x3;
+    static constexpr Kind kind = Kind::INTERFACE;
+    static constexpr _::RawSchema const* schema = &_::NULL_INTERFACE_SCHEMA;
+
+    static const _::RawBrandedSchema* const brand;
+    // Can't quite declare this one inline without including generated-header-support.h. Avoiding
+    // for now by declaring out-of-line.
+    // TODO(cleanup): Split RawSchema stuff into its own header that can be included here, or
+    //   something.
+  };
 };
 
 // =======================================================================================
@@ -146,7 +179,7 @@ public:
   // fail.  It's up to the application to decide how indicate that additional interfaces are
   // supported.
   //
-  // TODO(kenton):  GCC 4.8 / Clang 3.3:  rvalue-qualified version for better performance.
+  // TODO(perf):  GCC 4.8 / Clang 3.3:  rvalue-qualified version for better performance.
 
   template <typename T>
   typename T::Client castAs(InterfaceSchema schema);
@@ -158,6 +191,12 @@ public:
   // the capability promise is rejected).  This is mainly useful for error-checking in the case
   // where no calls are being made.  There is no reason to wait for this before making calls; if
   // the capability does not resolve, the call results will propagate the error.
+
+  Request<AnyPointer, AnyPointer> typelessRequest(
+      uint64_t interfaceId, uint16_t methodId,
+      kj::Maybe<MessageSize> sizeHint);
+  // Make a request without knowing the types of the params or results. You specify the type ID
+  // and method number manually.
 
   // TODO(someday):  method(s) for Join
 
@@ -529,14 +568,14 @@ struct List<T, Kind::INTERFACE> {
 
 private:
   inline static _::ListBuilder initPointer(_::PointerBuilder builder, uint size) {
-    return builder.initList(_::FieldSize::POINTER, size * ELEMENTS);
+    return builder.initList(ElementSize::POINTER, size * ELEMENTS);
   }
   inline static _::ListBuilder getFromPointer(_::PointerBuilder builder, const word* defaultValue) {
-    return builder.getList(_::FieldSize::POINTER, defaultValue);
+    return builder.getList(ElementSize::POINTER, defaultValue);
   }
   inline static _::ListReader getFromPointer(
       const _::PointerReader& reader, const word* defaultValue) {
-    return reader.getList(_::FieldSize::POINTER, defaultValue);
+    return reader.getList(ElementSize::POINTER, defaultValue);
   }
 
   template <typename U, Kind k>
@@ -586,6 +625,11 @@ inline typename T::Client Capability::Client::castAs() {
 inline kj::Promise<void> Capability::Client::whenResolved() {
   return hook->whenResolved();
 }
+inline Request<AnyPointer, AnyPointer> Capability::Client::typelessRequest(
+    uint64_t interfaceId, uint16_t methodId,
+    kj::Maybe<MessageSize> sizeHint) {
+  return newCall<AnyPointer, AnyPointer>(interfaceId, methodId, sizeHint);
+}
 template <typename Params, typename Results>
 inline Request<Params, Results> Capability::Client::newCall(
     uint64_t interfaceId, uint16_t methodId, kj::Maybe<MessageSize> sizeHint) {
@@ -617,7 +661,7 @@ inline typename Results::Builder CallContext<Params, Results>::initResults(
 }
 template <typename Params, typename Results>
 inline void CallContext<Params, Results>::setResults(typename Results::Reader value) {
-  hook->getResults(value.totalSize()).set(value);
+  hook->getResults(value.totalSize()).template setAs<Results>(value);
 }
 template <typename Params, typename Results>
 inline void CallContext<Params, Results>::adoptResults(Orphan<Results>&& value) {

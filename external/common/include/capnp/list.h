@@ -1,32 +1,37 @@
-// Copyright (c) 2013, Kenton Varda <temporal@gmail.com>
-// All rights reserved.
+// Copyright (c) 2013-2014 Sandstorm Development Group, Inc. and contributors
+// Licensed under the MIT License:
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
 //
-// 1. Redistributions of source code must retain the above copyright notice, this
-//    list of conditions and the following disclaimer.
-// 2. Redistributions in binary form must reproduce the above copyright notice,
-//    this list of conditions and the following disclaimer in the documentation
-//    and/or other materials provided with the distribution.
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
 //
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-// DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
-// ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-// ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
 
 #ifndef CAPNP_LIST_H_
 #define CAPNP_LIST_H_
 
+#if defined(__GNUC__) && !CAPNP_HEADER_WARNINGS
+#pragma GCC system_header
+#endif
+
 #include "layout.h"
 #include "orphan.h"
 #include <initializer_list>
+#ifdef KJ_STD_COMPAT
+#include <iterator>
+#endif  // KJ_STD_COMPAT
 
 namespace capnp {
 namespace _ {  // private
@@ -162,10 +167,14 @@ struct List<T, Kind::PRIMITIVE> {
 
   private:
     _::ListBuilder builder;
+    template <typename U, Kind K>
+    friend struct _::PointerHelpers;
     friend class Orphanage;
     template <typename U, Kind K>
     friend struct ToDynamic_;
   };
+
+  class Pipeline {};
 
 private:
   inline static _::ListBuilder initPointer(_::PointerBuilder builder, uint size) {
@@ -255,8 +264,7 @@ struct List<T, Kind::STRUCT> {
       // expanded under any circumstances.  We're just going to throw it away anyway, and
       // transferContentFrom() already carefully compares the struct sizes before transferring.
       builder.getStructElement(index * ELEMENTS).transferContentFrom(
-          orphan.builder.asStruct(_::StructSize(
-              0 * WORDS, 0 * POINTERS, _::FieldSize::VOID)));
+          orphan.builder.asStruct(_::StructSize(0 * WORDS, 0 * POINTERS)));
     }
     inline void setWithCaveats(uint index, const typename T::Reader& reader) {
       // Mostly behaves like you'd expect `set` to behave, but with a caveat originating from
@@ -280,10 +288,14 @@ struct List<T, Kind::STRUCT> {
 
   private:
     _::ListBuilder builder;
+    template <typename U, Kind K>
+    friend struct _::PointerHelpers;
     friend class Orphanage;
     template <typename U, Kind K>
     friend struct ToDynamic_;
   };
+
+  class Pipeline {};
 
 private:
   inline static _::ListBuilder initPointer(_::PointerBuilder builder, uint size) {
@@ -294,7 +306,7 @@ private:
   }
   inline static _::ListReader getFromPointer(
       const _::PointerReader& reader, const word* defaultValue) {
-    return reader.getList(_::FieldSize::INLINE_COMPOSITE, defaultValue);
+    return reader.getList(ElementSize::INLINE_COMPOSITE, defaultValue);
   }
 
   template <typename U, Kind k>
@@ -387,21 +399,25 @@ struct List<List<T>, Kind::LIST> {
 
   private:
     _::ListBuilder builder;
+    template <typename U, Kind K>
+    friend struct _::PointerHelpers;
     friend class Orphanage;
     template <typename U, Kind K>
     friend struct ToDynamic_;
   };
 
+  class Pipeline {};
+
 private:
   inline static _::ListBuilder initPointer(_::PointerBuilder builder, uint size) {
-    return builder.initList(_::FieldSize::POINTER, size * ELEMENTS);
+    return builder.initList(ElementSize::POINTER, size * ELEMENTS);
   }
   inline static _::ListBuilder getFromPointer(_::PointerBuilder builder, const word* defaultValue) {
-    return builder.getList(_::FieldSize::POINTER, defaultValue);
+    return builder.getList(ElementSize::POINTER, defaultValue);
   }
   inline static _::ListReader getFromPointer(
       const _::PointerReader& reader, const word* defaultValue) {
-    return reader.getList(_::FieldSize::POINTER, defaultValue);
+    return reader.getList(ElementSize::POINTER, defaultValue);
   }
 
   template <typename U, Kind k>
@@ -481,21 +497,25 @@ struct List<T, Kind::BLOB> {
 
   private:
     _::ListBuilder builder;
+    template <typename U, Kind K>
+    friend struct _::PointerHelpers;
     friend class Orphanage;
     template <typename U, Kind K>
     friend struct ToDynamic_;
   };
 
+  class Pipeline {};
+
 private:
   inline static _::ListBuilder initPointer(_::PointerBuilder builder, uint size) {
-    return builder.initList(_::FieldSize::POINTER, size * ELEMENTS);
+    return builder.initList(ElementSize::POINTER, size * ELEMENTS);
   }
   inline static _::ListBuilder getFromPointer(_::PointerBuilder builder, const word* defaultValue) {
-    return builder.getList(_::FieldSize::POINTER, defaultValue);
+    return builder.getList(ElementSize::POINTER, defaultValue);
   }
   inline static _::ListReader getFromPointer(
       const _::PointerReader& reader, const word* defaultValue) {
-    return reader.getList(_::FieldSize::POINTER, defaultValue);
+    return reader.getList(ElementSize::POINTER, defaultValue);
   }
 
   template <typename U, Kind k>
@@ -505,5 +525,15 @@ private:
 };
 
 }  // namespace capnp
+
+#ifdef KJ_STD_COMPAT
+namespace std {
+
+template <typename Container, typename Element>
+struct iterator_traits<capnp::_::IndexingIterator<Container, Element>>
+      : public std::iterator<std::random_access_iterator_tag, Element, int> {};
+
+}  // namespace std
+#endif  // KJ_STD_COMPAT
 
 #endif  // CAPNP_LIST_H_

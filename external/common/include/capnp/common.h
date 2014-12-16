@@ -1,25 +1,23 @@
-// Copyright (c) 2013, Kenton Varda <temporal@gmail.com>
-// All rights reserved.
+// Copyright (c) 2013-2014 Sandstorm Development Group, Inc. and contributors
+// Licensed under the MIT License:
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
 //
-// 1. Redistributions of source code must retain the above copyright notice, this
-//    list of conditions and the following disclaimer.
-// 2. Redistributions in binary form must reproduce the above copyright notice,
-//    this list of conditions and the following disclaimer in the documentation
-//    and/or other materials provided with the distribution.
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
 //
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-// DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
-// ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-// ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
 
 // This file contains types which are intended to help detect incorrect usage at compile
 // time, but should then be optimized down to basic primitives (usually, integers) by the
@@ -28,17 +26,30 @@
 #ifndef CAPNP_COMMON_H_
 #define CAPNP_COMMON_H_
 
+#if defined(__GNUC__) && !CAPNP_HEADER_WARNINGS
+#pragma GCC system_header
+#endif
+
 #include <kj/units.h>
 #include <inttypes.h>
 
 namespace capnp {
 
 #define CAPNP_VERSION_MAJOR 0
-#define CAPNP_VERSION_MINOR 4
-#define CAPNP_VERSION_MICRO 1
+#define CAPNP_VERSION_MINOR 5
+#define CAPNP_VERSION_MICRO 0
 
 #define CAPNP_VERSION \
   (CAPNP_VERSION_MAJOR * 1000000 + CAPNP_VERSION_MINOR * 1000 + CAPNP_VERSION_MICRO)
+
+#ifdef _MSC_VER
+#define CAPNP_LITE 1
+// MSVC only supports "lite" mode for now, due to missing C++11 features.
+#endif
+
+#ifndef CAPNP_LITE
+#define CAPNP_LITE 0
+#endif
 
 typedef unsigned int uint;
 
@@ -50,7 +61,7 @@ struct Void {
   inline constexpr bool operator!=(Void other) const { return false; }
 };
 
-static constexpr Void VOID = Void();
+static KJ_CONSTEXPR(const) Void VOID = Void();
 // Constant value for `Void`,  which is an empty struct.
 
 template <typename T>
@@ -67,12 +78,48 @@ enum class Kind: uint8_t {
   UNION,
   INTERFACE,
   LIST,
-  UNKNOWN
+
+  OTHER
+  // Some other type which is often a type parameter to Cap'n Proto templates, but which needs
+  // special handling. This includes types like AnyPointer, Dynamic*, etc.
 };
+
+enum class ElementSize: uint8_t {
+  // Size of a list element.
+
+  VOID = 0,
+  BIT = 1,
+  BYTE = 2,
+  TWO_BYTES = 3,
+  FOUR_BYTES = 4,
+  EIGHT_BYTES = 5,
+
+  POINTER = 6,
+
+  INLINE_COMPOSITE = 7
+};
+
+namespace schemas {
+
+template <typename T>
+struct EnumInfo;
+
+}  // namespace schemas
 
 namespace _ {  // private
 
-template <typename T> struct Kind_ { static constexpr Kind kind = Kind::UNKNOWN; };
+template <typename T, typename = typename T::_capnpPrivate::IsStruct> uint8_t kindSfinae(int);
+template <typename T, typename = typename T::_capnpPrivate::IsInterface> uint16_t kindSfinae(int);
+template <typename T, typename = typename schemas::EnumInfo<T>::IsEnum> uint32_t kindSfinae(int);
+template <typename T> uint64_t kindSfinae(...);
+
+template <typename T>
+struct MsvcWorkaround {
+  // TODO(msvc): Remove this once MSVC supports expression SFINAE.
+  enum { value = sizeof(kindSfinae<T>(0)) };
+};
+
+template <typename T, size_t s = MsvcWorkaround<T>::value> struct Kind_;
 
 template <> struct Kind_<Void> { static constexpr Kind kind = Kind::PRIMITIVE; };
 template <> struct Kind_<bool> { static constexpr Kind kind = Kind::PRIMITIVE; };
@@ -89,57 +136,74 @@ template <> struct Kind_<double> { static constexpr Kind kind = Kind::PRIMITIVE;
 template <> struct Kind_<Text> { static constexpr Kind kind = Kind::BLOB; };
 template <> struct Kind_<Data> { static constexpr Kind kind = Kind::BLOB; };
 
+template <typename T> struct Kind_<T, sizeof(uint8_t)> { static constexpr Kind kind = Kind::STRUCT; };
+template <typename T> struct Kind_<T, sizeof(uint16_t)> { static constexpr Kind kind = Kind::INTERFACE; };
+template <typename T> struct Kind_<T, sizeof(uint32_t)> { static constexpr Kind kind = Kind::ENUM; };
+
 }  // namespace _ (private)
 
-template <typename T>
+#if CAPNP_LITE
+
+#define CAPNP_KIND(T) ::capnp::_::Kind_<T>::kind
+// Avoid constexpr methods in lite mode (MSVC is bad at constexpr).
+
+#else  // CAPNP_LITE
+
+template <typename T, Kind k = _::Kind_<T>::kind>
 inline constexpr Kind kind() {
-  return _::Kind_<T>::kind;
+  // This overload of kind() matches types which have a Kind_ specialization.
+
+  return k;
 }
 
-template <typename T, Kind k = kind<T>()>
+#define CAPNP_KIND(T) ::capnp::kind<T>()
+// Use this macro rather than kind<T>() in any code which must work in lite mode.
+
+#endif  // CAPNP_LITE, else
+
+template <typename T, Kind k = CAPNP_KIND(T)>
 struct List;
+
+#if _MSC_VER
+
+template <typename T, Kind k>
+struct List {};
+// For some reason, without this declaration, MSVC will error out on some uses of List
+// claiming that "T" -- as used in the default initializer for the second template param, "k" --
+// is not defined. I do not understand this error, but adding this empty default declaration fixes
+// it.
+
+#endif
 
 template <typename T> struct ListElementType_;
 template <typename T> struct ListElementType_<List<T>> { typedef T Type; };
 template <typename T> using ListElementType = typename ListElementType_<T>::Type;
 
 namespace _ {  // private
-template <typename T, Kind k> struct Kind_<List<T, k>> { static constexpr Kind kind = Kind::LIST; };
-}  // namespace _ (private)
-
-struct Capability {
-  // A capability without type-safe methods.  Typed capability clients wrap `Client` and typed
-  // capability servers subclass `Server` to dispatch to the regular, typed methods.
-  //
-  // Contents defined in capability.h.  Declared here just so we can specialize Kind_.
-
-  class Client;
-  class Server;
+template <typename T, Kind k> struct Kind_<List<T, k>, sizeof(uint64_t)> {
+  static constexpr Kind kind = Kind::LIST;
 };
-
-namespace _ {  // private
-template <> struct Kind_<Capability> { static constexpr Kind kind = Kind::INTERFACE; };
 }  // namespace _ (private)
 
-template <typename T, Kind k = kind<T>()> struct ReaderFor_ { typedef typename T::Reader Type; };
+template <typename T, Kind k = CAPNP_KIND(T)> struct ReaderFor_ { typedef typename T::Reader Type; };
 template <typename T> struct ReaderFor_<T, Kind::PRIMITIVE> { typedef T Type; };
 template <typename T> struct ReaderFor_<T, Kind::ENUM> { typedef T Type; };
 template <typename T> struct ReaderFor_<T, Kind::INTERFACE> { typedef typename T::Client Type; };
 template <typename T> using ReaderFor = typename ReaderFor_<T>::Type;
 // The type returned by List<T>::Reader::operator[].
 
-template <typename T, Kind k = kind<T>()> struct BuilderFor_ { typedef typename T::Builder Type; };
+template <typename T, Kind k = CAPNP_KIND(T)> struct BuilderFor_ { typedef typename T::Builder Type; };
 template <typename T> struct BuilderFor_<T, Kind::PRIMITIVE> { typedef T Type; };
 template <typename T> struct BuilderFor_<T, Kind::ENUM> { typedef T Type; };
 template <typename T> struct BuilderFor_<T, Kind::INTERFACE> { typedef typename T::Client Type; };
 template <typename T> using BuilderFor = typename BuilderFor_<T>::Type;
 // The type returned by List<T>::Builder::operator[].
 
-template <typename T, Kind k = kind<T>()> struct PipelineFor_ { typedef typename T::Pipeline Type;};
+template <typename T, Kind k = CAPNP_KIND(T)> struct PipelineFor_ { typedef typename T::Pipeline Type;};
 template <typename T> struct PipelineFor_<T, Kind::INTERFACE> { typedef typename T::Client Type; };
 template <typename T> using PipelineFor = typename PipelineFor_<T>::Type;
 
-template <typename T, Kind k = kind<T>()> struct TypeIfEnum_;
+template <typename T, Kind k = CAPNP_KIND(T)> struct TypeIfEnum_;
 template <typename T> struct TypeIfEnum_<T, Kind::ENUM> { typedef T Type; };
 
 template <typename T>
@@ -154,6 +218,10 @@ using FromBuilder = typename kj::Decay<T>::Builds;
 // FromBuilder<MyType::Builder> = MyType (for any Cap'n Proto type).
 
 template <typename T>
+using FromPipeline = typename kj::Decay<T>::Pipelines;
+// FromBuilder<MyType::Pipeline> = MyType (for any Cap'n Proto type).
+
+template <typename T>
 using FromClient = typename kj::Decay<T>::Calls;
 // FromReader<MyType::Client> = MyType (for any Cap'n Proto interface type).
 
@@ -162,8 +230,21 @@ using FromServer = typename kj::Decay<T>::Serves;
 // FromBuilder<MyType::Server> = MyType (for any Cap'n Proto interface type).
 
 namespace _ {  // private
-template <typename T, Kind k = kind<T>()>
+
+template <typename T, Kind k = CAPNP_KIND(T)>
 struct PointerHelpers;
+
+#if _MSC_VER
+
+template <typename T, Kind k>
+struct PointerHelpers {};
+// For some reason, without this declaration, MSVC will error out on some uses of PointerHelpers
+// claiming that "T" -- as used in the default initializer for the second template param, "k" --
+// is not defined. I do not understand this error, but adding this empty default declaration fixes
+// it.
+
+#endif
+
 }  // namespace _ (private)
 
 struct MessageSize {
@@ -319,12 +400,12 @@ constexpr auto WORDS_PER_POINTER KJ_UNUSED = 1 * WORDS / POINTERS;
 constexpr WordCount POINTER_SIZE_IN_WORDS = 1 * POINTERS * WORDS_PER_POINTER;
 
 template <typename T>
-inline constexpr decltype(BYTES / ELEMENTS) bytesPerElement() {
+inline KJ_CONSTEXPR() decltype(BYTES / ELEMENTS) bytesPerElement() {
   return sizeof(T) * BYTES / ELEMENTS;
 }
 
 template <typename T>
-inline constexpr decltype(BITS / ELEMENTS) bitsPerElement() {
+inline KJ_CONSTEXPR() decltype(BITS / ELEMENTS) bitsPerElement() {
   return sizeof(T) * 8 * BITS / ELEMENTS;
 }
 

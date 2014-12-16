@@ -1,25 +1,23 @@
-// Copyright (c) 2013, Kenton Varda <temporal@gmail.com>
-// All rights reserved.
+// Copyright (c) 2013-2014 Sandstorm Development Group, Inc. and contributors
+// Licensed under the MIT License:
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
 //
-// 1. Redistributions of source code must retain the above copyright notice, this
-//    list of conditions and the following disclaimer.
-// 2. Redistributions in binary form must reproduce the above copyright notice,
-//    this list of conditions and the following disclaimer in the documentation
-//    and/or other materials provided with the distribution.
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
 //
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-// DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
-// ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-// ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
 
 // This file contains types which are intended to help detect incorrect usage at compile
 // time, but should then be optimized down to basic primitives (usually, integers) by the
@@ -27,6 +25,10 @@
 
 #ifndef KJ_UNITS_H_
 #define KJ_UNITS_H_
+
+#if defined(__GNUC__) && !KJ_HEADER_WARNINGS
+#pragma GCC system_header
+#endif
 
 #include "common.h"
 
@@ -64,6 +66,10 @@ struct Id {
 
 // =======================================================================================
 // Quantity and UnitRatio -- implement unit analysis via the type system
+
+#if !_MSC_VER
+// TODO(msvc): MSVC has trouble with this intense templating. Luckily Cap'n Proto can deal with
+//   using regular integers in place of Quantity, so we can just skip all this.
 
 template <typename T> constexpr bool isIntegral() { return false; }
 template <> constexpr bool isIntegral<char>() { return true; }
@@ -219,6 +225,10 @@ class Quantity {
 public:
   inline constexpr Quantity() {}
 
+  inline constexpr Quantity(decltype(maxValue)): value(maxValue) {}
+  inline constexpr Quantity(decltype(minValue)): value(minValue) {}
+  // Allow initialization from maxValue and minValue.
+
   inline explicit constexpr Quantity(Number value): value(value) {}
   // This constructor was intended to be private, but GCC complains about it being private in a
   // bunch of places that don't appear to even call it, so I made it public.  Oh well.
@@ -344,10 +354,14 @@ private:
   friend inline constexpr T unit();
 };
 
+#endif  // !_MSC_VER
+
 template <typename T>
 inline constexpr T unit() { return T(1); }
 // unit<Quantity<T, U>>() returns a Quantity of value 1.  It also, intentionally, works on basic
 // numeric types.
+
+#if !_MSC_VER
 
 template <typename Number1, typename Number2, typename Unit>
 inline constexpr auto operator*(Number1 a, Quantity<Number2, Unit> b)
@@ -361,6 +375,65 @@ inline constexpr auto operator*(UnitRatio<Number1, Unit2, Unit> ratio,
     -> decltype(measure * ratio) {
   return measure * ratio;
 }
+
+// =======================================================================================
+// Absolute measures
+
+template <typename T, typename Label>
+class Absolute {
+  // Wraps some other value -- typically a Quantity -- but represents a value measured based on
+  // some absolute origin.  For exmaple, if `Duration` is a type representing a time duration,
+  // Absolute<Duration, UnixEpoch> might be a calendar date.
+  //
+  // Since Absolute represents measurements relative to some arbitrary origin, the only sensible
+  // arithmetic to perform on them is addition and subtraction.
+
+  // TODO(someday):  Do the same automatic expansion of integer width that Quantity does?  Doesn't
+  //   matter for our time use case, where we always use 64-bit anyway.  Note that fixing this
+  //   would implicitly allow things like multiplying an Absolute by a UnitRatio to change its
+  //   units, which is actually totally logical and kind of neat.
+
+public:
+  inline constexpr Absolute operator+(const T& other) const { return Absolute(value + other); }
+  inline constexpr Absolute operator-(const T& other) const { return Absolute(value - other); }
+  inline constexpr T operator-(const Absolute& other) const { return value - other.value; }
+
+  inline Absolute& operator+=(const T& other) { value += other; return *this; }
+  inline Absolute& operator-=(const T& other) { value -= other; return *this; }
+
+  inline constexpr bool operator==(const Absolute& other) const { return value == other.value; }
+  inline constexpr bool operator!=(const Absolute& other) const { return value != other.value; }
+  inline constexpr bool operator<=(const Absolute& other) const { return value <= other.value; }
+  inline constexpr bool operator>=(const Absolute& other) const { return value >= other.value; }
+  inline constexpr bool operator< (const Absolute& other) const { return value <  other.value; }
+  inline constexpr bool operator> (const Absolute& other) const { return value >  other.value; }
+
+private:
+  T value;
+
+  explicit constexpr Absolute(T value): value(value) {}
+
+  template <typename U>
+  friend inline constexpr U origin();
+};
+
+template <typename T, typename Label>
+inline constexpr Absolute<T, Label> operator+(const T& a, const Absolute<T, Label>& b) {
+  return b + a;
+}
+
+template <typename T> struct UnitOf_ { typedef T Type; };
+template <typename T, typename Label> struct UnitOf_<Absolute<T, Label>> { typedef T Type; };
+template <typename T>
+using UnitOf = typename UnitOf_<T>::Type;
+// UnitOf<Absolute<T, U>> is T.  UnitOf<AnythingElse> is AnythingElse.
+
+template <typename T>
+inline constexpr T origin() { return T(0 * unit<UnitOf<T>>()); }
+// origin<Absolute<T, U>>() returns an Absolute of value 0.  It also, intentionally, works on basic
+// numeric types.
+
+#endif  // !_MSC_VER
 
 }  // namespace kj
 

@@ -6,35 +6,24 @@
 
 #include <capnp/generated-header-support.h>
 
-#if CAPNP_VERSION != 4001
+#if CAPNP_VERSION != 5000
 #error "Version mismatch between generated code and library headers.  You must use the same version of the Cap'n Proto compiler and library."
 #endif
 
 
 namespace capnp {
-namespace annotations {
-
-}  // namespace
-}  // namespace
-
-// =======================================================================================
-
-namespace capnp {
 namespace schemas {
 
-extern const ::capnp::_::RawSchema s_b9c6f99ebf805f2c;
+CAPNP_DECLARE_SCHEMA(b9c6f99ebf805f2c);
+CAPNP_DECLARE_SCHEMA(f264a779fef191ce);
 
 }  // namespace schemas
-namespace _ {  // private
-
-
-}  // namespace _ (private)
 }  // namespace capnp
-
-// =======================================================================================
 
 namespace capnp {
 namespace annotations {
+
+// =======================================================================================
 
 // =======================================================================================
 

@@ -1,31 +1,33 @@
-// Copyright (c) 2013, Kenton Varda <temporal@gmail.com>
-// All rights reserved.
+// Copyright (c) 2013-2014 Sandstorm Development Group, Inc. and contributors
+// Licensed under the MIT License:
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
 //
-// 1. Redistributions of source code must retain the above copyright notice, this
-//    list of conditions and the following disclaimer.
-// 2. Redistributions in binary form must reproduce the above copyright notice,
-//    this list of conditions and the following disclaimer in the documentation
-//    and/or other materials provided with the distribution.
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
 //
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-// DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
-// ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-// ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
 
 // This file contains parsers useful for character stream inputs, including parsers to parse
 // common kinds of tokens like identifiers, numbers, and quoted strings.
 
 #ifndef KJ_PARSE_CHAR_H_
 #define KJ_PARSE_CHAR_H_
+
+#if defined(__GNUC__) && !KJ_HEADER_WARNINGS
+#pragma GCC system_header
+#endif
 
 #include "common.h"
 #include "../string.h"
@@ -240,7 +242,7 @@ struct ParseInteger {
 
 constexpr auto integer = sequence(
     oneOf(
-      transform(sequence(exactChar<'0'>(), exactChar<'x'>(), many(hexDigit)), _::ParseInteger<16>()),
+      transform(sequence(exactChar<'0'>(), exactChar<'x'>(), oneOrMore(hexDigit)), _::ParseInteger<16>()),
       transform(sequence(exactChar<'0'>(), many(octDigit)), _::ParseInteger<8>()),
       transform(sequence(charRange('1', '9'), many(digit)), _::ParseInteger<10>())),
     notLookingAt(alpha.orAny("_.")));
@@ -292,6 +294,12 @@ struct ParseHexEscape {
   }
 };
 
+struct ParseHexByte {
+  inline byte operator()(char first, char second) const {
+    return (parseDigit(first) << 4) | parseDigit(second);
+  }
+};
+
 struct ParseOctEscape {
   inline char operator()(char first, Maybe<char> second, Maybe<char> third) const {
     char result = first - '0';
@@ -327,6 +335,13 @@ constexpr auto singleQuotedString = charsToString(sequence(
     many(oneOf(anyOfChars("\\\n\'").invert(), escapeSequence)),
     exactChar<'\''>()));
 // Parses a C-style single-quoted string.
+
+constexpr auto doubleQuotedHexBinary = sequence(
+    exactChar<'0'>(), exactChar<'x'>(), exactChar<'\"'>(),
+    oneOrMore(transform(sequence(discardWhitespace, hexDigit, hexDigit), _::ParseHexByte())),
+    discardWhitespace,
+    exactChar<'\"'>());
+// Parses a double-quoted hex binary literal. Returns Array<byte>.
 
 }  // namespace parse
 }  // namespace kj
