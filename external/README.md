@@ -1,6 +1,6 @@
 # External Dependencies
 
-## Cap'n Proto v0.4.1
+## Cap'n Proto v0.5.0
 
 We install everything the user will need, including the capnp command-line
 tool. As such, the `--disable-shared` option to `./configure` must be used
@@ -9,9 +9,9 @@ to ensure that the binaries are statically compiled. Additionally, the
 commands thus look similar to this:
 
 ```
-wget https://capnproto.org/capnproto-c++-0.4.1.tar.gz
-tar zxf capnproto-c++-0.4.1.tar.gz
-cd capnproto-c++-0.4.1
+wget https://capnproto.org/capnproto-c++-0.5.0.tar.gz
+tar zxf capnproto-c++-0.5.0.tar.gz
+cd capnproto-c++-0.5.0
 CXXFLAGS="-fPIC -std=c++11 -m64 -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-unused-parameter" ./configure --prefix=$HOME/nta/nupic.core/external/common --disable-shared
 make -j6 check
 make install
