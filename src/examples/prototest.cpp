@@ -208,6 +208,9 @@ void testRandomIOStream(UInt n)
     NTA_ASSERT(r1.getUInt32() == r2.getUInt32());
   }
   gettimeofday(&end, nullptr);
+
+  remove("random2.proto");
+
   cout << "Stream time: " << ((Real)diff(start, end) / 1000.0) << endl;
 }
 
@@ -241,6 +244,9 @@ void testRandomManual(UInt n)
     NTA_ASSERT(r1.getUInt32() == r2.getUInt32());
   }
   gettimeofday(&end, nullptr);
+
+  remove("random3.proto");
+
   cout << "Manual time: " << ((Real)diff(start, end) / 1000.0) << endl;
 }
 
