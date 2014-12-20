@@ -167,7 +167,6 @@ void testSP()
       NTA_ASSERT(outputBaseline[i] == outputA[i]);
       NTA_ASSERT(outputBaseline[i] == outputC[i]);
     }
-
   }
 
   remove("outA.proto");
@@ -175,7 +174,6 @@ void testSP()
 
   cout << "Time for iostream capnp: " << ((Real)timeA / 1000.0) << endl;
   cout << "Time for old method: " << ((Real)timeC / 1000.0) << endl;
-
 }
 
 void testRandomIOStream(UInt n)

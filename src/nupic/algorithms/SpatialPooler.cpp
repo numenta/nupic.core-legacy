@@ -637,7 +637,7 @@ UInt SpatialPooler::mapColumn_(UInt column)
 
 vector<UInt> SpatialPooler::mapPotential_(UInt column, bool wrapAround)
 {
-  vector<UInt> potential(numInputs_,0);
+  vector<UInt> potential(numInputs_, 0);
   vector<UInt> indices;
   UInt index;
 
@@ -1775,7 +1775,6 @@ void SpatialPooler::read(SpatialPoolerProto::Reader& proto)
   overlaps_.resize(numColumns_);
   overlapsPct_.resize(numColumns_);
   boostedOverlaps_.resize(numColumns_);
-
 }
 
 //----------------------------------------------------------------------
