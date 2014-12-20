@@ -730,7 +730,6 @@ void SpatialPooler::updatePermanencesForColumn_(vector<Real>& perm,
   clip_(perm, true);
   connectedSynapses_.replaceSparseRow(column, connectedSparse.begin(),
                                       connectedSparse.end());
-  // TODO: Remove?
   permanences_.setRowFromDense(column, perm);
   connectedCounts_[column] = numConnected;
 }
@@ -1523,7 +1522,7 @@ void SpatialPooler::load(istream& inStream)
     }
     potentialPools_.replaceSparseRow(i,pot.begin(), pot.end());
   }
-  
+
   permanences_.resize(numColumns_, numInputs_);
   connectedSynapses_.resize(numColumns_, numInputs_);
   connectedCounts_.resize(numColumns_);
@@ -1727,9 +1726,12 @@ void SpatialPooler::read(SpatialPoolerProto::Reader& proto)
 
   connectedSynapses_.resize(numColumns_, numInputs_);
   connectedCounts_.resize(numColumns_);
+
+  // since updatePermanencesForColumn_, used below for initialization, is
+  // used elsewhere and necessarily updates permanences_, there is no need
+  // to additionally call the read function on permanences_
   auto permanences = proto.getPermanences();
-  permanences_.read(permanences);
-  // additional initialization using permanence values
+  permanences_.resize(permanences.getNumRows(), permanences.getNumColumns());
   auto permanenceValues = permanences.getRows();
   for (UInt i = 0; i < numColumns_; ++i)
   {
