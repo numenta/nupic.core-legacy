@@ -103,7 +103,7 @@ void testSP()
 
   SpatialPooler sp2;
 
-  long timeA, timeB, timeC = 0;
+  long timeA, timeC = 0;
 
   for (UInt i = 0; i < 100; ++i)
   {
