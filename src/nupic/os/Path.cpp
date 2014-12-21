@@ -46,7 +46,7 @@
   #include <sys/stat.h>
   #include <fstream>
 
-#if defined(NTA_PLATFORM_darwin86) || defined(NTA_PLATFORM_darwin64)
+#if defined(NTA_PLATFORM_darwin64)
     #include <mach-o/dyld.h> // _NSGetExecutablePath
   #else
   // linux
@@ -828,11 +828,11 @@ namespace nupic
     auto buf = new char[1000];
     UInt32 bufsize = 1000;
     // sets bufsize to actual length. 
-#if defined(NTA_PLATFORM_darwin86) || defined(NTA_PLATFORM_darwin64)
+#if defined(NTA_PLATFORM_darwin64)
     _NSGetExecutablePath(buf, &bufsize);
     if (bufsize < 1000)
       buf[bufsize] = '\0';
-  #elif defined(NTA_PLATFORM_linux32) || defined(NTA_PLATFORM_linux64)
+  #elif defined(NTA_PLATFORM_linux64)
     int count = readlink("/proc/self/exe", buf, bufsize);
     if (count < 0)
       NTA_THROW << "Unable to read /proc/self/exe to get executable name";

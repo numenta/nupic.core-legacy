@@ -774,49 +774,6 @@ inline float svm<traits>::rbf_function(float* x, float* x_end, float* y) const
     }
   }
 
-#elif defined(NTA_ASM) && defined(NTA_PLATFORM_darwin86) 
-
-  if (with_sse) {
-    
-  asm(
-      "xorps %%xmm4,%%xmm4\n\t" // only contains zeros on purpose
-      "xorps %%xmm1,%%xmm1\n\t"
-      "xorps %%xmm3,%%xmm3\n\t"
-
-      "0:\t\n"
-      "movaps   (%%esi), %%xmm0\n\t"
-      "movaps 16(%%esi), %%xmm2\n\t"
-      "subps    (%%edi), %%xmm0\n\t"
-      "subps  16(%%edi), %%xmm2\n\t"
-      "mulps  %%xmm0, %%xmm0\n\t"
-      "mulps  %%xmm2, %%xmm2\n\t"
-      "addps  %%xmm0, %%xmm1\n\t"
-      "addps  %%xmm2, %%xmm3\n\t"
-
-      "addl $32, %%esi\n\t"
-      "addl $32, %%edi\n\t"
-      "cmpl %1, %%esi\n\t"
-      "jne 0b\n\t"
-
-      "addps %%xmm3, %%xmm1\n\t"
-      "haddps %%xmm4, %%xmm1\n\t"
-      "haddps %%xmm4, %%xmm1\n\t"
-      "movss  %%xmm1, %0\n\t"
-
-      : "=m" (sum)
-      : "m" (x_end), "S" (x), "D" (y)
-      : 
-      );
-
-  } else { // no sse
-
-    while (x != x_end) {
-      float d = *x - *y;
-      sum += d * d;
-      ++x; ++y;
-    }
-  }
-
 #else // not NTA_PLATFORM_darwin86, not NTA_PLATFORM_win32 and VC; or not NTA_ASM
 
   while (x != x_end) {

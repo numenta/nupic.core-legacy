@@ -75,21 +75,6 @@ namespace nupic {
 
   // TODO: add asm code for gcc/clang/... on Windows
 
-  #elif defined(NTA_PLATFORM_darwin86) || defined(NTA_PLATFORM_linux32)
-
-    unsigned int a = 0,b = 0, f = 1;
-
-    // PIC-compliant asm
-    __asm__ __volatile__(
-                         "pushl %%ebx\n\t"
-                         "cpuid\n\t"
-                         "movl %%ebx, %1\n\t"
-                         "popl %%ebx\n\t"
-                         : "=a" (a), "=r" (b), "=c" (c), "=d" (d)
-                         : "a" (f)
-                         : "cc"
-                         );
-
   #elif defined(NTA_PLATFORM_linux64) || defined(NTA_PLATFORM_darwin64)
 
     __asm__ __volatile__ (
@@ -236,73 +221,7 @@ namespace nupic {
     if (SSE_LEVEL >= 41) { // ptest is a SSE 4.1 instruction
 
     // On win32, the asm syntax is not correct.
-#if (defined(NTA_PLATFORM_linux32) || defined(NTA_PLATFORM_darwin86)) && defined(NTA_ASM)
-
-      // n is the total number of floats to process.
-      // n1 is the number of floats we can process in parallel using SSE.
-      // If x is not aligned on a 4 bytes boundary, we eschew all asm. 
-      int result = 0;
-      int n = (int)(x_end - x);
-      int n1 = 0;
-      if (((long)x) % 16 == 0)
-        n1 = 8 * (n / 8); // we are going to process 2x4 floats at a time
-    
-      if (n1 > 0) {
-
-        __asm__ __volatile__(
-                     "pusha\n\t" // save all registers
-
-                     // fill xmm4 with all 1's,
-                     // our mask to detect if there are on bits
-                     // in the vector or not
-                     "subl $16, %%esp\n\t" // allocate 4 floats on the stack
-                     "movl $0xffffffff, (%%esp)\n\t" // copy mask 4 times,
-                     "movl $0xffffffff, 4(%%esp)\n\t" // then move 16 bytes at once
-                     "movl $0xffffffff, 8(%%esp)\n\t" // using movaps
-                     "movl $0xffffffff, 12(%%esp)\n\t"
-                     "movaps (%%esp), %%xmm4\n\t"
-                     "addl $16, %%esp\n\t" // deallocate 4 floats on the stack
-
-                     "0:\n\t"
-                     // esi and edi point to the same x, but staggered, so 
-                     // that we can load 2x4 bytes into xmm0 and xmm1
-                     "movaps (%%edi), %%xmm0\n\t" // move 4 floats from x
-                     "movaps (%%esi), %%xmm1\n\t" // move another 4 floats from same x
-                     "ptest %%xmm4, %%xmm0\n\t"   // ptest first 4 floats, in xmm0
-                     "jne 1f\n\t" // jump if ZF = 0, some bit is not zero
-                     "ptest %%xmm4, %%xmm1\n\t"   // ptest second 4 floats, in xmm1
-                     "jne 1f\n\t" // jump if ZF = 0, some bit is not zero
-                   
-                     "addl $32, %%edi\n\t"  // jump over 4 floats
-                     "addl $32, %%esi\n\t"  // and another 4 floats here
-                     "subl $8, %%ecx\n\t" // processed 8 floats
-                     "ja 0b\n\t"
-                   
-                     "movl $0, %0\n\t" // didn't find anything, result = 0 (int)
-                     "jmp 2f\n\t" // exit
-                   
-                     "1:\n\t" // found something
-                     "movl $0x1, %0\n\t" // result = 1 (int)
-                   
-                     "2:\n\t" // exit
-                     "popa\n\t" // restore all registers
-                   
-                     : "=m" (result), "=D" (x)
-                     : "D" (x), "S" (x + 4), "c" (n1)
-                     :
-                     );
-      
-        if (result == 1)
-          return false;
-      } // n1>0 end
-      
-      // Complete computation by iterating over "stragglers" one by one.
-      for (int i = n1; i != n; ++i)
-        if (*(x+i) > 0)
-          return false;
-      return true;
-
-#elif (defined(NTA_PLATFORM_linux64) || defined(NTA_PLATFORM_darwin64)) && defined(NTA_ASM)
+#if (defined(NTA_PLATFORM_linux64) || defined(NTA_PLATFORM_darwin64)) && defined(NTA_ASM)
 
       // n is the total number of floats to process.
       // n1 is the number of floats we can process in parallel using SSE.
@@ -401,73 +320,7 @@ namespace nupic {
     // const int SSE_LEVEL. 
     if (SSE_LEVEL >= 41) { // ptest is a SSE 4.1 instruction
 
-#if (defined(NTA_PLATFORM_linux32) || defined(NTA_PLATFORM_darwin86)) && defined(NTA_ASM)
-
-      // n is the total number of floats to process.
-      // n1 is the number of floats we can process in parallel using SSE.
-      // If x is not aligned on a 4 bytes boundary, we eschew all asm. 
-      int result = 0;
-      int n = (int)(x_end - x_beg);
-      int n1 = 0;
-      if (((long)x_beg) % 16 == 0)
-        n1 = 32 * (n / 32); // we are going to process 32 bytes at a time
-    
-      if (n1 > 0) {
-
-        __asm__ __volatile__(
-                     "pusha\n\t" // save all registers
-
-                     // fill xmm4 with all 1's,
-                     // our mask to detect if there are on bits
-                     // in the vector or not
-                     "subl $16, %%esp\n\t" // allocate 4 floats on the stack
-                     "movl $0xffffffff, (%%esp)\n\t" // copy mask 4 times,
-                     "movl $0xffffffff, 4(%%esp)\n\t" // then move 16 bytes at once
-                     "movl $0xffffffff, 8(%%esp)\n\t" // using movaps
-                     "movl $0xffffffff, 12(%%esp)\n\t"
-                     "movaps (%%esp), %%xmm4\n\t"
-                     "addl $16, %%esp\n\t" // deallocate 4 floats on the stack
-
-                     "0:\n\t"
-                     // esi and edi point to the same x, but staggered, so 
-                     // that we can load 2x4 bytes into xmm0 and xmm1
-                     "movaps (%%edi), %%xmm0\n\t" // move 4 floats from x
-                     "movaps (%%esi), %%xmm1\n\t" // move another 4 floats from same x
-                     "ptest %%xmm4, %%xmm0\n\t"   // ptest first 4 floats, in xmm0
-                     "jne 1f\n\t" // jump if ZF = 0, some bit is not zero
-                     "ptest %%xmm4, %%xmm1\n\t"   // ptest second 4 floats, in xmm1
-                     "jne 1f\n\t" // jump if ZF = 0, some bit is not zero
-                   
-                     "addl $32, %%edi\n\t"  // jump 32 bytes (16 in xmm0 + 16 in xmm1)
-                     "addl $32, %%esi\n\t"  // and another 32 bytes
-                     "subl $32, %%ecx\n\t" // processed 32 bytes
-                     "ja 0b\n\t"
-                   
-                     "movl $0, %0\n\t" // didn't find anything, result = 0 (int)
-                     "jmp 2f\n\t" // exit
-                   
-                     "1:\n\t" // found something
-                     "movl $0x1, %0\n\t" // result = 1 (int)
-                   
-                     "2:\n\t" // exit
-                     "popa\n\t" // restore all registers
-                   
-                     : "=m" (result), "=D" (x_beg)
-                     : "D" (x_beg), "S" (x_beg + 16), "c" (n1)
-                     :
-                     );
-      
-        if (result == 1)
-          return false;
-      }
-      
-      // Complete computation by iterating over "stragglers" one by one.
-      for (int i = n1; i != n; ++i)
-        if (*(x_beg+i) > 0)
-          return false;
-      return true;
-
-#elif (defined(NTA_PLATFORM_linux64) || defined(NTA_PLATFORM_darwin64)) && defined(NTA_ASM)
+#if (defined(NTA_PLATFORM_linux64) || defined(NTA_PLATFORM_darwin64)) && defined(NTA_ASM)
 
       // n is the total number of floats to process.
       // n1 is the number of floats we can process in parallel using SSE.
@@ -2242,11 +2095,7 @@ namespace nupic {
 
     a.resize(nrows * nnzpr);
 
-#ifdef NTA_PLATFORM_darwin86
-    nupic::Random rng(seed == -1 ? arc4random() : seed);
-#else
     nupic::Random rng(seed == -1 ? rand() : seed);
-#endif
 
     std::vector<size_t> x(ncols); 
     for (size_t i = 0; i != ncols; ++i)
@@ -2295,11 +2144,7 @@ namespace nupic {
 
     a.resize(nrows * nnzpr);
 
-#ifdef NTA_PLATFORM_darwin86
-    nupic::Random rng(seed == -1 ? arc4random() : seed);
-#else
     nupic::Random rng(seed == -1 ? rand() : seed);
-#endif
 
     size_t rf_y = ncols / rf_x;
     T2 c_x = float(rf_x - 1.0) / 2.0, c_y = float(rf_y - 1.0) / 2.0;
@@ -3772,7 +3617,6 @@ namespace nupic {
       int n2 = (int)(end - start - n1);
 
 
-#if defined(NTA_PLATFORM_darwin86_disabled) || defined(NTA_PLATFORM_linux32_disabled)
       __asm__ __volatile__(
                    // Prepare various xmm registers, storing the value of the
                    // threshold and the value 1: with xmm, we will operate on
@@ -3871,7 +3715,7 @@ namespace nupic {
 
       return (int) count;
 
-#elif defined(NTA_PLATFORM_darwin64) || defined(NTA_PLATFORM_linux64)
+#if defined(NTA_PLATFORM_darwin64) || defined(NTA_PLATFORM_linux64)
 
     #if defined(NTA_PLATFORM_darwin64)
 
@@ -5061,7 +4905,7 @@ namespace nupic {
 
     // See comments in count_gt. We need both conditional compilation and 
     // SSE_LEVEL check.
-#if defined(NTA_PLATFORM_darwin86) || defined(NTA_PLATFORM_darwin64) || defined(NTA_PLATFORM_linux64) || defined(NTA_PLATFORM_linux32)
+#if defined(NTA_PLATFORM_darwin64) || defined(NTA_PLATFORM_linux64)
 
     if (SSE_LEVEL >= 3) {
 
@@ -5078,39 +4922,7 @@ namespace nupic {
       // skip the asm. 
       if (n1 > 0) { 
 
-  #if defined (NTA_PLATFORM_darwin86) || defined(NTA_PLATFORM_linux32)
-        __asm__ __volatile__(
-                     "pusha\n\t"                   // save all registers
-                 
-                     "0:\n\t"
-                     "movaps (%%esi), %%xmm0\n\t"  // move 4 floats of x to xmm0
-                     "andps (%%edi), %%xmm0\n\t"   // parallel and with 4 floats of y
-                     "movaps 16(%%esi), %%xmm1\n\t"// play again with next 4 floats
-                     "andps 16(%%edi), %%xmm1\n\t"
-                     "movaps 32(%%esi), %%xmm2\n\t"// and next 4 floats
-                     "andps 32(%%edi), %%xmm2\n\t"
-                     "movaps 48(%%esi), %%xmm3\n\t"// and next 4 floats: we've and'ed
-                     "andps 48(%%edi), %%xmm3\n\t" // 16 floats of x and y at this point
-
-                     "movaps %%xmm0, (%%ecx)\n\t"  // simply move 4 floats at a time to z
-                     "movaps %%xmm1, 16(%%ecx)\n\t"// and next 4 floats
-                     "movaps %%xmm2, 32(%%ecx)\n\t"// and next 4 floats
-                     "movaps %%xmm3, 48(%%ecx)\n\t"// and next 4: moved 16 floats to z
-                 
-                     "addl $64, %%esi\n\t"         // increment pointer into x by 16 floats
-                     "addl $64, %%edi\n\t"         // increment pointer into y
-                     "addl $64, %%ecx\n\t"         // increment pointer into z
-                     "subl $16, %%edx\n\t"         // we've processed 16 floats
-                     "ja 0b\n\t"                   // loop
-                 
-                     "popa\n\t"                    // restore registers
-               
-                     : 
-                     : "S" (x), "D" (y), "c" (z), "d" (n1)
-                     : 
-                     );
-
-  #elif defined(NTA_PLATFORM_darwin64) || defined(NTA_PLATFORM_linux64)
+#if defined(NTA_PLATFORM_darwin64) || defined(NTA_PLATFORM_linux64)
         __asm__ __volatile__(
                      "pushq %%rsi\n\t"             // save affected registers
                      "pushq %%rdi\n\t"             // this 'shouldn't' be necessary
@@ -5184,7 +4996,7 @@ namespace nupic {
 
     // See comments in count_gt. We need conditional compilation
     // _AND_ SSE_LEVEL check.
-#if defined(NTA_PLATFORM_darwin86) || defined(NTA_PLATFORM_linux64) || defined(NTA_PLATFORM_darwin64) || defined(NTA_PLATFORM_linux32)
+#if defined(NTA_PLATFORM_linux64) || defined(NTA_PLATFORM_darwin64)
 
     if (SSE_LEVEL >= 3) {
 
@@ -5196,38 +5008,7 @@ namespace nupic {
     
       if (n1 > 0) {
 
-  #if defined(NTA_PLATFORM_darwin86) || defined(NTA_PLATFORM_linux32)
-        __asm__ __volatile__(
-                     "pusha\n\t"
-                 
-                     "0:\n\t"
-                     "movaps (%%esi), %%xmm0\n\t"
-                     "movaps 16(%%esi), %%xmm1\n\t"
-                     "movaps 32(%%esi), %%xmm2\n\t"
-                     "movaps 48(%%esi), %%xmm3\n\t"
-                     "andps (%%edi), %%xmm0\n\t"
-                     "andps 16(%%edi), %%xmm1\n\t"
-                     "andps 32(%%edi), %%xmm2\n\t"
-                     "andps 48(%%edi), %%xmm3\n\t"
-                     "movaps %%xmm0, (%%edi)\n\t"
-                     "movaps %%xmm1, 16(%%edi)\n\t"
-                     "movaps %%xmm2, 32(%%edi)\n\t"
-                     "movaps %%xmm3, 48(%%edi)\n\t"
-
-                     "addl $64, %%esi\n\t"
-                     "addl $64, %%edi\n\t"
-                     "subl $16, %%edx\n\t"
-                     "prefetch (%%esi)\n\t"                 
-                     "ja 0b\n\t"
-                 
-                     "popa\n\t"
-               
-                     : 
-                     : "S" (x), "D" (y), "d" (n1)
-                     : 
-                     );
-
-  #elif defined(NTA_PLATFORM_darwin64) || defined(NTA_PLATFORM_linux64)
+  #if defined(NTA_PLATFORM_darwin64) || defined(NTA_PLATFORM_linux64)
         __asm__ __volatile__(
                      "pushq %%rsi\n\t"             // save affected registers
                      "pushq %%rdi\n\t"
