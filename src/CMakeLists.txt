@@ -134,16 +134,6 @@ find_library(LIB_STATIC_APRUTIL1_LOC
 add_library(${LIB_STATIC_APRUTIL1} STATIC IMPORTED GLOBAL)
 
 #
-# Find and add libyaml
-#
-set(LIB_STATIC_YAML yaml)
-find_library(LIB_STATIC_YAML_LOC
-             ${LIB_STATIC_YAML}
-             "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/lib/"
-             NO_DEFAULT_PATH)
-add_library(${LIB_STATIC_YAML} STATIC IMPORTED GLOBAL)
-
-#
 # Find and add libyaml-cpp
 #
 set(LIB_STATIC_YAML_CPP yaml-cpp)
@@ -282,7 +272,6 @@ ADD_LIBRARY(${LIB_STATIC_NUPICCORE}
             nupic/utils/Watcher.cpp)
 target_link_libraries(${LIB_STATIC_NUPICCORE}
                       ${LIB_STATIC_YAML_CPP_LOC}
-                      ${LIB_STATIC_YAML_LOC}
                       ${LIB_STATIC_APR1_LOC}
                       ${LIB_STATIC_APRUTIL1_LOC}
                       ${LIB_STATIC_Z_LOC}
@@ -440,7 +429,6 @@ add_custom_target(tests_all
 add_custom_target(combined ALL
                   COMMAND ${CMAKE_AR} -x $<TARGET_FILE:${LIB_STATIC_NUPICCORE}>
                   COMMAND ${CMAKE_AR} -x ${LIB_STATIC_YAML_CPP_LOC}
-                  COMMAND ${CMAKE_AR} -x ${LIB_STATIC_YAML_LOC}
                   COMMAND ${CMAKE_AR} -x ${LIB_STATIC_APRUTIL1_LOC}
                   COMMAND ${CMAKE_AR} -x ${LIB_STATIC_APR1_LOC}
                   COMMAND ${CMAKE_AR} -x ${LIB_STATIC_Z_LOC}
