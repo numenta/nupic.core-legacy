@@ -29,11 +29,13 @@
 
 #include <cstring>
 #include <iostream>
+#include <string>
+#include <vector>
+#include <capnp/message.h>
+#include <nupic/algorithms/SpatialPoolerProto.capnp.h>
 #include <nupic/math/SparseBinaryMatrix.hpp>
 #include <nupic/math/SparseMatrix.hpp>
 #include <nupic/types/Types.hpp>
-#include <string>
-#include <vector>
 
 using namespace std;
 
@@ -293,11 +295,14 @@ namespace nupic {
 
           /**
           Save (serialize) the current state of the spatial pooler to the
-          specified output stream.
+          specified file.
     
-          @param outStream A valid ostream.
+          @param fd A valid file descriptor.
            */
           virtual void save(ostream& outStream);
+
+          virtual void write(ostream& stream);
+          virtual void write(SpatialPoolerProto::Builder& proto);
 
           /**
           Load (deserialize) and initialize the spatial pooler from the
@@ -307,14 +312,18 @@ namespace nupic {
            */
           virtual void load(istream& inStream);
 
+          virtual void read(istream& stream);
+          virtual void read(SpatialPoolerProto::Reader& proto);
+
           /**
           Returns the number of bytes that a save operation would result in.
           Note: this method is currently somewhat inefficient as it just does
           a full save into an ostream and counts the resulting size.
-    
+
           @returns Integer number of bytes
            */
           virtual UInt persistentSize();
+
           /**
           Returns the dimensions of the columns in the region.
 
@@ -1389,7 +1398,7 @@ namespace nupic {
           Real minPctActiveDutyCycles_;
 
           SparseMatrix<UInt,Real,Int,Real64> permanences_;
-          SparseBinaryMatrix<UInt,UInt> potentialPools_;
+          SparseBinaryMatrix<UInt, UInt> potentialPools_;
           SparseBinaryMatrix<UInt, UInt> connectedSynapses_;
           vector<UInt> connectedCounts_;
 

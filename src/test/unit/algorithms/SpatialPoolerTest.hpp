@@ -89,8 +89,9 @@ namespace nupic {
     void testCartesianProduct();
     void testGetNeighborsND();
     void testIsUpdateRound();
-    void testSerialize();
     void testStripUnlearnedColumns();
+    void testSaveLoad();
+    void testWriteRead();
 
     void print_vec(UInt arr[], UInt n);
     void print_vec(Real arr[], UInt n);
