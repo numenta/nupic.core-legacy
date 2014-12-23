@@ -111,7 +111,7 @@ add_library(${LIB_STATIC_GTEST}
             ${REPOSITORY_DIR}/external/common/src/gtest/gtest-all.cpp)
 set_target_properties(${LIB_STATIC_GTEST}
                       PROPERTIES COMPILE_FLAGS "${COMPILE_FLAGS}"
-                      LINK_FLAGS "-m${BITNESS} ${STDLIB}")
+                      LINK_FLAGS ${COMMON_LINK_FLAGS})
 
 
 #
