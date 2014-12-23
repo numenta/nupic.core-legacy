@@ -79,7 +79,8 @@ include_directories(SYSTEM
                     "${PROJECT_SOURCE_DIR}"
                     "${PROJECT_BINARY_DIR}")
 
-set(COMPILE_FLAGS "-fPIC -std=c++11 -m${BITNESS} ${STDLIB} -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-unused-parameter")
+set(COMMON_LINK_FLAGS "-m${BITNESS} ${STDLIB}")
+set(COMPILE_FLAGS "-fPIC -std=c++11 ${COMMON_LINK_FLAGS} -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-unused-parameter")
 
 #
 # Let CMake know where all of the external files are.
@@ -208,7 +209,6 @@ set(COMMON_LIBS ${LIB_STATIC_NUPICCORE}
                 ${LIB_STATIC_KJ_LOC}
                 ${LIB_STATIC_CAPNP_LOC})
 
-set(COMMON_LINK_FLAGS "-m${BITNESS} ${STDLIB}")
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} -static-libstdc++")
 endif()
@@ -298,7 +298,7 @@ target_link_libraries(${LIB_STATIC_NUPICCORE}
                       ${LIB_STATIC_KJ_LOC}
                       ${LIB_STATIC_CAPNP_LOC})
 set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES COMPILE_FLAGS ${COMPILE_FLAGS})
-set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES LINK_FLAGS "-m${BITNESS} ${STDLIB} -static")
+set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS} -static")
 
 #
 # Setup testcpphtm
@@ -308,7 +308,7 @@ add_executable(${EXECUTABLE_HTMTEST} test/htm_test/HtmTest.cpp)
 target_link_libraries(${EXECUTABLE_HTMTEST} ${COMMON_LIBS})
 set_target_properties(${EXECUTABLE_HTMTEST} PROPERTIES COMPILE_FLAGS ${COMPILE_FLAGS})
 set_target_properties(${EXECUTABLE_HTMTEST}
-                      PROPERTIES LINK_FLAGS "-m${BITNESS} ${STDLIB}")
+                      PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
 add_custom_target(tests_htm
                   COMMAND ${EXECUTABLE_HTMTEST}
                   DEPENDS ${EXECUTABLE_HTMTEST})
@@ -333,7 +333,7 @@ target_link_libraries(${EXECUTABLE_PROTOTEST}
                       ${COMMON_LIBS})
 set_target_properties(${EXECUTABLE_PROTOTEST} PROPERTIES COMPILE_FLAGS ${COMPILE_FLAGS})
 set_target_properties(${EXECUTABLE_PROTOTEST}
-                      PROPERTIES LINK_FLAGS "-m${BITNESS} ${STDLIB}")
+                      PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
 add_dependencies(${EXECUTABLE_PROTOTEST} ${COMMON_LIBS})
 
 #
@@ -387,7 +387,7 @@ target_link_libraries(${EXECUTABLE_GTESTS}
                       ${LIB_STATIC_GTEST})
 set_target_properties(${EXECUTABLE_GTESTS}
                       PROPERTIES COMPILE_FLAGS ${COMPILE_FLAGS}
-                                 LINK_FLAGS "-m${BITNESS} ${STDLIB}")
+                                 LINK_FLAGS "${COMMON_LINK_FLAGS}")
 add_dependencies(${EXECUTABLE_GTESTS} ${LIB_STATIC_GTEST} ${COMMON_LIBS})
 add_custom_target(tests_unit
                   COMMAND ${EXECUTABLE_GTESTS} "--gtest_output=xml:${PROJECT_BUILD_ARTIFACTS_DIR}/unit_tests_report.xml")
