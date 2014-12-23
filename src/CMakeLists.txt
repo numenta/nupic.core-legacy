@@ -207,6 +207,11 @@ set(LIB_STATIC_NUPICCORE nupic_core_solo)
 set(COMMON_LIBS ${LIB_STATIC_NUPICCORE}
                 ${LIB_STATIC_KJ_LOC}
                 ${LIB_STATIC_CAPNP_LOC})
+
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+  set(COMMON_LINK_FLAGS "-static-libstdc++")
+endif()
+
 if("${PLATFORM}" STREQUAL "linux")
   list(APPEND COMMON_LIBS pthread dl)
 elseif("${PLATFORM}" STREQUAL "darwin")
