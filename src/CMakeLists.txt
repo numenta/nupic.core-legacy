@@ -80,7 +80,11 @@ include_directories(SYSTEM
                     "${PROJECT_BINARY_DIR}")
 
 set(COMMON_LINK_FLAGS "-m${BITNESS} ${STDLIB}")
-set(COMPILE_FLAGS "-fPIC -std=c++11 ${COMMON_LINK_FLAGS} -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-unused-parameter")
+set(COMPILE_FLAGS "-fPIC -std=c++11 -m${BITNESS} ${STDLIB} -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-unused-parameter")
+
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+  set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} -static-libstdc++")
+endif()
 
 #
 # Let CMake know where all of the external files are.
@@ -209,9 +213,6 @@ set(COMMON_LIBS ${LIB_STATIC_NUPICCORE}
                 ${LIB_STATIC_KJ_LOC}
                 ${LIB_STATIC_CAPNP_LOC})
 
-if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-  set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} -static-libstdc++")
-endif()
 
 if("${PLATFORM}" STREQUAL "linux")
   list(APPEND COMMON_LIBS pthread dl)
