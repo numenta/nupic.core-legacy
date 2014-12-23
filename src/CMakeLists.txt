@@ -115,7 +115,7 @@ add_library(${LIB_STATIC_GTEST}
             ${REPOSITORY_DIR}/external/common/src/gtest/gtest-all.cpp)
 set_target_properties(${LIB_STATIC_GTEST}
                       PROPERTIES COMPILE_FLAGS "${COMPILE_FLAGS}"
-                      LINK_FLAGS ${COMMON_LINK_FLAGS})
+                      LINK_FLAGS "${COMMON_LINK_FLAGS}")
 
 
 #
@@ -322,7 +322,7 @@ add_executable(${EXECUTABLE_HELLOREGION} examples/regions/HelloRegions.cpp)
 target_link_libraries(${EXECUTABLE_HELLOREGION} ${COMMON_LIBS})
 set_target_properties(${EXECUTABLE_HELLOREGION} PROPERTIES COMPILE_FLAGS ${COMPILE_FLAGS})
 set_target_properties(${EXECUTABLE_HELLOREGION}
-                      PROPERTIES LINK_FLAGS ${COMMON_LINK_FLAGS})
+                      PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
 add_dependencies(${EXECUTABLE_HELLOREGION} ${COMMON_LIBS})
 
 #
