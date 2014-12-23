@@ -209,7 +209,7 @@ set(COMMON_LIBS ${LIB_STATIC_NUPICCORE}
                 ${LIB_STATIC_CAPNP_LOC})
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-  set(COMMON_LINK_FLAGS "-static-libstdc++")
+  set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} -static-libstdc++")
 endif()
 
 if("${PLATFORM}" STREQUAL "linux")
