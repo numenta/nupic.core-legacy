@@ -188,7 +188,7 @@ void BufferTest::testEvenMoreComplicatedSerialization()
   // Read number of Xs
   rb.read(size);
   // Allocate array of Xs
-  auto  xo = new X[size];
+  auto   xo = new X[size];
   for (Size i = 0; i < size; ++i)
   {
     rb.read(xo[i].a);
@@ -279,7 +279,7 @@ void BufferTest::testComplicatedSerialization()
   // Read number of Xs
   rb.read(size);
   // Allocate array of Xs
-  auto  xo = new X[size];
+  auto   xo = new X[size];
   for (Size i = 0; i < size; ++i)
   {
     rb.read(xo[i].a);

@@ -235,13 +235,13 @@ namespace nupic {
       }
 
       delete [] ind_;
-      ind_ = NULL;
+      ind_ = nullptr;
       delete [] nzr_;
-      nzr_ = NULL;
+      nzr_ = nullptr;
       delete [] indb_;
-      indb_ = NULL;
+      indb_ = nullptr;
       delete [] nzb_;
-      nzb_ = NULL;
+      nzb_ = nullptr;
 
       nrows_ = ncols_ = nrows_max_ = 0;
     }
@@ -276,7 +276,7 @@ namespace nupic {
       // even if nnzr == 0 (identically zero row)
       if (row_num == nrows_max_-1) {
         
-        size_type *nzr_new = NULL, **ind_new = NULL;
+        size_type *nzr_new = nullptr, **ind_new = nullptr;
         nrows_max_ *= 2;
         nzr_new = new size_type[nrows_max_];
         ind_new = new size_type*[nrows_max_];
@@ -374,7 +374,7 @@ namespace nupic {
 		   const size_type& nnzr =0)
       
       : nrows_(0), nrows_max_(0), ncols_(0),
-        nzr_(0), ind_(0), indb_(0), nzb_(0),
+        nzr_(nullptr), ind_(nullptr), indb_(nullptr), nzb_(nullptr),
         compact_(false),
         nnzr_(nnzr),
         counts_(RowCompare<size_type>(nnzr))
@@ -889,7 +889,7 @@ namespace nupic {
       for (i = 0; i < nrows; ++i) {
         
         nnzr = nzr_[i];
-        size_type* ind = new size_type[nnzr];
+        auto  ind = new size_type[nnzr];
         memcpy(ind, ind_[i], nnzr*sizeof(size_type));
 
         if (nnzr_ > 0) {
@@ -1003,7 +1003,7 @@ namespace nupic {
       } else { // unique, counted rows
         
         // TODO: speed up by inserting and looking at returned iterator?
-        typename Counts::iterator it = counts_.find(&*x_begin);
+        auto it = counts_.find(&*x_begin);
         
         if (it != counts_.end()) {
           ++(it->second.second);

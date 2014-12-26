@@ -207,7 +207,7 @@ std::string VectorFileEffector::executeCommand(const std::vector<std::string>& a
 Spec* VectorFileEffector::createSpec()
 {
 
-  auto ns = new Spec;
+  auto  ns = new Spec;
   ns->description = 
         "VectorFileEffector is a node that simply writes its\n"
         "input vectors to a text file. The target filename is specified\n"

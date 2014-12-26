@@ -1823,9 +1823,9 @@ namespace nupic {
     numColumns = (4 * 5 * 7);
 
     for (auto & elem : trueNeighbors1) {
-      for (UInt j = 0; j < 5; j++) {
+      for (auto & elem_j : elem) {
         for (UInt k = 0; k < 7; k++) {
-          elem[j][k] = 0;
+          elem_j[k] = 0;
         }
       }
     }

@@ -492,8 +492,8 @@ namespace nupic {
       nz_ = new value_type* [nrows_max_];
 
       std::fill(nnzr_, nnzr_ + nrows_max_, (size_type)0);
-      std::fill(ind_, ind_ + nrows_max_, (size_type*)0);
-      std::fill(nz_, nz_ + nrows_max_, (value_type*)0);
+      std::fill(ind_, ind_ + nrows_max_, (size_type*)nullptr);
+      std::fill(nz_, nz_ + nrows_max_, (value_type*)nullptr);
 
       indb_ = new size_type [ncols];
       nzb_ = new value_type [ncols];
@@ -524,8 +524,8 @@ namespace nupic {
         delete [] ind_mem_;
         delete [] nz_mem_;
 
-        ind_mem_ = 0;
-        nz_mem_ = 0;
+        ind_mem_ = nullptr;
+        nz_mem_ = nullptr;
 
       } else {
 
@@ -534,21 +534,21 @@ namespace nupic {
           delete [] ind_[row];  // when not compact, we deallocate
           delete [] nz_[row];   // each row separately
 
-          ind_[row] = 0;
-          nz_[row] = 0;
+          ind_[row] = nullptr;
+          nz_[row] = nullptr;
         }
       }
 
       delete [] ind_;
-      ind_ = 0;
+      ind_ = nullptr;
       delete [] nz_;
-      nz_ = 0;
+      nz_ = nullptr;
       delete [] nnzr_;
-      nnzr_ = 0;
+      nnzr_ = nullptr;
       delete [] indb_;
-      indb_ = 0;
+      indb_ = nullptr;
       delete [] nzb_;
-      nzb_ = 0;
+      nzb_ = nullptr;
 
       nrows_ = ncols_ = nrows_max_ = 0;
     }
@@ -577,17 +577,17 @@ namespace nupic {
 
         nrows_max_ = std::max<size_type>(2 * nrows_max_, new_nrow);
 
-        size_type *nnzr_new = new size_type[nrows_max_];
-        size_type **ind_new = new size_type*[nrows_max_];
-        value_type **nz_new = new value_type*[nrows_max_];
+        auto nnzr_new = new size_type[nrows_max_];
+        auto ind_new = new size_type*[nrows_max_];
+        auto nz_new = new value_type*[nrows_max_];
 
         std::copy(nnzr_, nnzr_ + nrows_, nnzr_new);
         std::copy(ind_, ind_ + nrows_, ind_new);
         std::copy(nz_, nz_ + nrows_, nz_new);
 
         std::fill(nnzr_new + nrows_, nnzr_new + nrows_max_, (size_type)0);
-        std::fill(ind_new + nrows_, ind_new + nrows_max_, (size_type*)0);
-        std::fill(nz_new + nrows_, nz_new + nrows_max_, (value_type*)0);
+        std::fill(ind_new + nrows_, ind_new + nrows_max_, (size_type*)nullptr);
+        std::fill(nz_new + nrows_, nz_new + nrows_max_, (value_type*)nullptr);
 
         delete [] nnzr_;
         delete [] ind_;
@@ -984,9 +984,9 @@ namespace nupic {
      */
     inline SparseMatrix()
       : nrows_(0), nrows_max_(0), ncols_(0),
-        nnzr_(0), ind_mem_(0), nz_mem_(0),
-        ind_(0), nz_(0),
-        indb_(0), nzb_(0),
+        nnzr_(nullptr), ind_mem_(nullptr), nz_mem_(nullptr),
+        ind_(nullptr), nz_(nullptr),
+        indb_(nullptr), nzb_(nullptr),
         isZero_()
     {
       allocate_(0,0);
@@ -1007,9 +1007,9 @@ namespace nupic {
      */
     inline SparseMatrix(size_type nrows, size_type ncols)
       : nrows_(0), nrows_max_(0), ncols_(0),
-        nnzr_(0), ind_mem_(0), nz_mem_(0),
-        ind_(0), nz_(0),
-        indb_(0), nzb_(0),
+        nnzr_(nullptr), ind_mem_(nullptr), nz_mem_(nullptr),
+        ind_(nullptr), nz_(nullptr),
+        indb_(nullptr), nzb_(nullptr),
         isZero_()
     {
       { // Pre-conditions
@@ -1112,9 +1112,9 @@ namespace nupic {
      */
     inline SparseMatrix(const SparseMatrix& other)
       : nrows_(0), nrows_max_(0), ncols_(0),
-        nnzr_(0), ind_mem_(0), nz_mem_(0),
-        ind_(0), nz_(0),
-        indb_(0), nzb_(0),
+        nnzr_(nullptr), ind_mem_(nullptr), nz_mem_(nullptr),
+        ind_(nullptr), nz_(nullptr),
+        indb_(nullptr), nzb_(nullptr),
         isZero_()
     {
       copy(other);
@@ -1397,7 +1397,7 @@ namespace nupic {
      * @b Exceptions:
      *  @li None.
      */
-    inline bool isCompact() const { return ind_mem_ != 0; }
+    inline bool isCompact() const { return ind_mem_ != nullptr; }
 
     //--------------------------------------------------------------------------------
     /**
@@ -2539,22 +2539,22 @@ namespace nupic {
       ITERATE_ON_ALL_ROWS {
         size_type nnzr = nnzr_[row];
         if (nnzr > 0) {
-          size_type* new_ind = new size_type[nnzr];
-          value_type* new_nz = new value_type[nnzr];
+          auto  new_ind = new size_type[nnzr];
+          auto  new_nz = new value_type[nnzr];
           std::copy(ind_[row], ind_[row] + nnzr, new_ind);
           std::copy(nz_[row], nz_[row] + nnzr, new_nz);
           ind_[row] = new_ind;
           nz_[row] = new_nz;
         } else {
-          ind_[row] = 0;
-          nz_[row] = 0;
+          ind_[row] = nullptr;
+          nz_[row] = nullptr;
         }
       }
 
       delete [] ind_mem_;
       delete [] nz_mem_;
-      ind_mem_ = 0;
-      nz_mem_ = 0;
+      ind_mem_ = nullptr;
+      nz_mem_ = nullptr;
     }
 
     //--------------------------------------------------------------------------------
@@ -3165,8 +3165,8 @@ namespace nupic {
         for (size_type row = new_nrows; row != nrows; ++row) {
           delete [] ind_[row];
           delete [] nz_[row];
-          ind_[row] = 0;
-          nz_[row] = 0;
+          ind_[row] = nullptr;
+          nz_[row] = nullptr;
           nnzr_[row] = 0;
         }
       }
@@ -3231,7 +3231,7 @@ namespace nupic {
       value_type *nz_it = nz_mem_;
       size_type count = 0, last_row = 0;
 
-      size_type *old_nnzr = new size_type [old_nrows];
+      auto old_nnzr = new size_type [old_nrows];
       std::copy(nnzr_, nnzr_ + old_nrows, old_nnzr);
 
       nrows_max_ = std::max<size_type>(8, new_nrows);
@@ -3680,8 +3680,8 @@ namespace nupic {
 
       } else {
 
-        ind_[row_num] = 0;
-        nz_[row_num] = 0;
+        ind_[row_num] = nullptr;
+        nz_[row_num] = nullptr;
       }
 
       ++nrows_;
@@ -3761,8 +3761,8 @@ namespace nupic {
         size_type row = *ind_it;
         size_type old_nnzr = nnzr_[row];
         size_type new_nnzr = old_nnzr + 1;
-        size_type *new_ind = new size_type [new_nnzr];
-        value_type * new_nz = new value_type [new_nnzr];
+        auto new_ind = new size_type [new_nnzr];
+        auto  new_nz = new value_type [new_nnzr];
         std::copy(ind_[row], ind_[row] + old_nnzr, new_ind);
         std::copy(nz_[row], nz_[row] + old_nnzr, new_nz);
         delete [] ind_[row];
@@ -3811,8 +3811,8 @@ namespace nupic {
           new_non_zeros = true;
           size_type old_nnzr = nnzr_[row];
           size_type new_nnzr = old_nnzr + 1;
-          size_type *new_ind = new size_type [new_nnzr];
-          value_type * new_nz = new value_type [new_nnzr];
+          auto new_ind = new size_type [new_nnzr];
+          auto  new_nz = new value_type [new_nnzr];
           std::copy(ind_[row], ind_[row] + old_nnzr, new_ind);
           std::copy(nz_[row], nz_[row] + old_nnzr, new_nz);
           delete [] ind_[row];
@@ -4965,8 +4965,8 @@ namespace nupic {
       ITERATE_ON_ALL_ROWS {
         delete [] ind_[row];
         delete [] nz_[row];
-        ind_[row] = 0;
-        nz_[row] = 0;
+        ind_[row] = nullptr;
+        nz_[row] = nullptr;
         nnzr_[row] = 0;
       }
     }
@@ -5303,7 +5303,7 @@ namespace nupic {
         assert_valid_row_(row, "getRowToDense");
       } // End pre-conditions
 
-      typename std::vector<value_type>::iterator it = dense.begin();
+      auto it = dense.begin();
 
       std::fill(it, it + nCols(), (value_type)0);
 

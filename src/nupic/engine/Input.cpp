@@ -73,7 +73,7 @@ Input::addLink(const std::string& linkType, const std::string& linkParams, Outpu
     }
   }
 
-  auto link = new Link(linkType, linkParams, srcOutput, this);
+  auto  link = new Link(linkType, linkParams, srcOutput, this);
   links_.push_back(link);
   
   srcOutput->addLink(link);

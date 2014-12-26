@@ -61,10 +61,10 @@ namespace nupic {
 
           virtual ~FlatSpatialPooler() {}
 
-          virtual void save(ostream& outStream);
-          virtual void load(istream& inStream);
+          virtual void save(ostream& outStream) override;
+          virtual void load(istream& inStream) override;
           
-          virtual UInt version() const {
+          virtual UInt version() const override {
             return version_;
           };
 
@@ -75,10 +75,10 @@ namespace nupic {
           void setRandomSP(bool randomSP);
 
           virtual void compute(UInt inputVector[], bool learn,
-                               UInt activeVector[], bool stripNeverLearned);
+                               UInt activeVector[], bool stripNeverLearned) override;
 
           virtual void compute(UInt inputVector[], bool learn,
-                               UInt activeVector[]);
+                               UInt activeVector[]) override;
 
           void addBonus_(vector<Real>& vec, Real bonus,
                          vector<UInt>& indices, bool replace);

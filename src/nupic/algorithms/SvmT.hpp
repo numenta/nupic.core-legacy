@@ -152,8 +152,8 @@ float Solver<TQ>::solve(int l, TQ& Q, const signed char *y_,
       const float *Q_i = Q.get_Q(i, active_size);
       const float *Q_j = Q.get_Q(j, active_size);
 
-      NTA_ASSERT(Q_i != NULL);
-      NTA_ASSERT(Q_j != NULL);
+      NTA_ASSERT(Q_i != nullptr);
+      NTA_ASSERT(Q_j != nullptr);
 
       float C_i = get_C(i);
       float C_j = get_C(j);
@@ -382,7 +382,7 @@ int Solver<TQ>::select_working_set(int &out_i, int &out_j)
   }
 
   int i = Gmax_idx;
-  const float *Q_i = NULL;
+  const float *Q_i = nullptr;
 
   if (i != -1) // NULL Q_i not accessed: Gmax=-INF if i=-1
     Q_i = Q->get_Q(i,active_size);
@@ -974,7 +974,7 @@ svm<traits>::binary_probability(const problem_type& prob, float& probA, float& p
 #if defined(NTA_PLATFORM_win32) && defined(NTA_COMPILER_MSVC)
       float* x_tmp = (float*) _aligned_malloc(4*prob.n_dims(), 16);
 #else
-      float* x_tmp = new float[prob.n_dims()];
+      auto  x_tmp = new float[prob.n_dims()];
 #endif
 
       for(int j=begin;j<end;j++) {
@@ -1061,7 +1061,7 @@ svm_model* svm<traits>::train(const problem_type& prob, const svm_parameter& par
   std::vector<bool> nonzero(l, false);
   std::vector<decision_function> f(m);
 
-  svm_model* model = new svm_model;
+  auto  model = new svm_model;
 
   if (param.probability) {
     model->probA.resize(m);
@@ -1093,10 +1093,10 @@ svm_model* svm<traits>::train(const problem_type& prob, const svm_parameter& par
 	binary_probability(sub_prob, model->probA[p], model->probB[p]);
 
       // solve_c_svc
-      float *alpha = new float [sub_prob_size];
+      auto alpha = new float [sub_prob_size];
       std::fill(alpha, alpha + sub_prob_size, float(0));
 
-      signed char *y = new signed char[l];
+      auto y = new signed char[l];
       for (int k = 0; k < sub_prob_size; ++k) 
 	y[k] = sub_prob.y_[k] > 0 ? +1 : -1;
 
@@ -1159,7 +1159,7 @@ svm_model* svm<traits>::train(const problem_type& prob, const svm_parameter& par
 #if defined(NTA_PLATFORM_win32) && defined(NTA_COMPILER_MSVC)
       float* new_sv = (float*) _aligned_malloc(4*n_dims, 16);
 #else
-      float *new_sv = new float[n_dims];
+      auto new_sv = new float[n_dims];
 #endif
 
       prob.dense(perm[i], new_sv);
@@ -1289,7 +1289,7 @@ float svm<traits>::predict(const svm_model& model, InIter x)
 {
   int n_class = model.n_class(), n_dims = model.n_dims();
 
-  if (dec_values_ == NULL) {
+  if (dec_values_ == nullptr) {
 
     dec_values_ = new float [n_class*(n_class-1)/2];
 
@@ -1333,7 +1333,7 @@ float svm<traits>::predict_probability(const svm_model& model, InIter x, OutIter
 {
   int n_class = model.n_class(), n_dims = model.n_dims();
 
-  if (dec_values_ == NULL) {
+  if (dec_values_ == nullptr) {
     dec_values_ = new float [n_class*(n_class-1)/2];
 
 #if defined(NTA_PLATFORM_win32) && defined(NTA_COMPILER_MSVC)
@@ -1471,7 +1471,7 @@ float svm<traits>::cross_validation(int nr_fold)
     }
     
     svm_model *sub_model = train(sub_prob, param_);
-    float* x_tmp = new float[problem_->n_dims()];
+    auto  x_tmp = new float[problem_->n_dims()];
 
     if (param_.probability) {
       

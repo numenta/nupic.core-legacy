@@ -161,7 +161,7 @@ void VectorFile::appendFile(const string &fileName,
             inFile >> vectorLabel;
           }
   
-          auto b = new NTA_Real[elementCount];
+          auto  b = new NTA_Real[elementCount];
           for (Size i= 0; i < elementCount; ++i) {
             inFile >> b[i];
           }
@@ -341,7 +341,7 @@ void VectorFile::saveVectors(ostream &out, Size nColumns, UInt32 fileFormat,
       const bool needConversion = (sizeof(Real32) == sizeof(Real));
       
       if(needSwap || needConversion) {
-        auto buffer = new Real32[nColumns];
+        auto  buffer = new Real32[nColumns];
         try {
           for(; i!=iend; ++i) {
             if(needConversion) {
@@ -484,7 +484,7 @@ void VectorFile::appendCSVFile(IFStream &inFile, Size expectedElements)
     while (!inFile.eof())
     {
       Size elementsFound = 0;
-      auto b = new Real[expectedElements];
+      auto  b = new Real[expectedElements];
       // Read and parse a single line
       string sLine;            // We'll use string for robust line parsing
       stringstream converted;  // We'll use stringstream for robust ascii text to Real conversion
@@ -589,9 +589,9 @@ void VectorFile::appendIDXFile(const string &filename,
   // is only one of many possible configurations.
 
   int readRow = vectorSize * elSize;
-  auto readBuffer = new char[readRow];
+  auto  readBuffer = new char[readRow];
 
-  auto block = new Real[nRows * expectedElements];
+  auto  block = new Real[nRows * expectedElements];
   Real *pBlock = block;
   
   int copy = (expectedElements < vectorSize) ? expectedElements : vectorSize;

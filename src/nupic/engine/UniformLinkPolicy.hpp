@@ -75,14 +75,14 @@ namespace nupic
     ~UniformLinkPolicy();
 
     // LinkPolicy Interface
-    void setSrcDimensions(Dimensions& dims);
-    void setDestDimensions(Dimensions& dims);
-    const Dimensions& getSrcDimensions() const;
-    const Dimensions& getDestDimensions() const;
-    void setNodeOutputElementCount(size_t elementCount);
-    void buildProtoSplitterMap(Input::SplitterMap& splitter) const;
-    void initialize();
-    bool isInitialized() const;
+    void setSrcDimensions(Dimensions& dims) override;
+    void setDestDimensions(Dimensions& dims) override;
+    const Dimensions& getSrcDimensions() const override;
+    const Dimensions& getDestDimensions() const override;
+    void setNodeOutputElementCount(size_t elementCount) override;
+    void buildProtoSplitterMap(Input::SplitterMap& splitter) const override;
+    void initialize() override;
+    bool isInitialized() const override;
 
   private:
 

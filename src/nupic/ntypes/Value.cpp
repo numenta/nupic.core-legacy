@@ -136,7 +136,7 @@ void ValueMap::add(const std::string& key, const Value& value)
   {
     NTA_THROW << "Key '" << key << "' specified twice";
   }
-  auto  vp = new Value(value);
+  auto   vp = new Value(value);
 
   map_.insert(std::make_pair(key, vp));
 }
@@ -204,7 +204,7 @@ ValueMap::ValueMap(const ValueMap& rhs)
 
   for(const auto & rh : rhs)
   {
-    auto  vp = new Value(*(rh.second));
+    auto   vp = new Value(*(rh.second));
 
     map_.insert(std::make_pair(rh.first, vp));
   }

@@ -89,7 +89,7 @@ public:
   inline ~array2D()
   {
     delete [] d;
-    d = d_end = 0;
+    d = d_end = nullptr;
   }
 
   inline array2D& operator=(const array2D& b)

@@ -47,7 +47,7 @@ MemParser::MemParser(std::istream& in, UInt32 bytes)
     // -----------------------------------------------------------------------------
     std::string  data;
     const int  chunkSize = 0x10000;
-    auto  chunkP = new char[chunkSize];
+    auto   chunkP = new char[chunkSize];
     while (!in.eof()) {
       in.read(chunkP, chunkSize);
       NTA_CHECK (in.good() || in.eof()) 

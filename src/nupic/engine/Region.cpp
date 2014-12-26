@@ -48,11 +48,11 @@ namespace nupic
 
 
 // Create region from parameter spec
-Region::Region(const std::string& name, 
+Region::Region(std::string  name, 
                const std::string& nodeType, 
                const std::string& nodeParams,
                Network * network) :
-  name_(name), 
+  name_(std::move(name)), 
   type_(nodeType), 
   initialized_(false), 
   enabledNodes_(nullptr),
@@ -76,12 +76,12 @@ Region::Region(const std::string& name,
 }
 
 // Deserialize region
-Region::Region(const std::string& name, 
+Region::Region(std::string  name, 
                const std::string& nodeType,
                const Dimensions& dimensions,
                BundleIO& bundle,
                Network * network) :
-  name_(name), 
+  name_(std::move(name)), 
   type_(nodeType), 
   initialized_(false), 
   enabledNodes_(nullptr),
@@ -123,7 +123,7 @@ void Region::createInputsAndOutputs_()
     const std::pair<std::string, OutputSpec> & p = spec_->outputs.getByIndex(i);
     std::string outputName = p.first;
     const OutputSpec & os = p.second;
-    auto output = new Output(*this, os.dataType, os.regionLevel);
+    auto  output = new Output(*this, os.dataType, os.regionLevel);
     outputs_[outputName] = output;
     // keep track of name in the output also -- see note in Region.hpp
     output->setName(outputName);
@@ -136,7 +136,7 @@ void Region::createInputsAndOutputs_()
     std::string inputName = p.first;
     const InputSpec &is = p.second;
 
-    auto input = new Input(*this, is.dataType, is.regionLevel);
+    auto  input = new Input(*this, is.dataType, is.regionLevel);
     inputs_[inputName] = input;
     // keep track of name in the input also -- see note in Region.hpp
     input->setName(inputName);

@@ -493,7 +493,7 @@ void VectorFileSensor::deserialize(BundleIO& bundle)
 
 Spec* VectorFileSensor::createSpec()
 {
-  auto  ns = new Spec;
+  auto   ns = new Spec;
   ns->description = 
   "VectorFileSensor is a basic sensor for reading files containing vectors.\n"
   "\n"
