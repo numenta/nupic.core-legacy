@@ -80,7 +80,15 @@ include_directories(SYSTEM
                     "${PROJECT_BINARY_DIR}")
 
 set(COMMON_LINK_FLAGS "-m${BITNESS} ${STDLIB}")
-set(COMPILE_FLAGS "-fPIC -std=c++11 -m${BITNESS} ${STDLIB} -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-unused-parameter")
+
+#
+# Enable Optimization flags here
+# these are quite aggresive flags, if your code misbehaves for strange reasons, try 
+# compiling without them.
+#
+set(OPTIMIZATION_FLAGS "-Ofast -march=native -pipe")
+
+set(COMPILE_FLAGS "-fPIC -std=c++11 -m${BITNESS} ${STDLIB} -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-unused-parameter ${OPTIMIZATION_FLAGS}")
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} -static-libstdc++")
