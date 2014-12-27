@@ -292,7 +292,7 @@ namespace nupic {
 	    ++x_it; 
 	  }
     
-	  auto  new_x = new feature_type[nnz];
+	  auto new_x = new feature_type[nnz];
 	  std::copy(buf_.begin(), buf_.begin() + nnz, new_x);
 
 	  nnz_.push_back(nnz);

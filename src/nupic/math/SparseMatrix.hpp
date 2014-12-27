@@ -2539,8 +2539,8 @@ namespace nupic {
       ITERATE_ON_ALL_ROWS {
         size_type nnzr = nnzr_[row];
         if (nnzr > 0) {
-          auto  new_ind = new size_type[nnzr];
-          auto  new_nz = new value_type[nnzr];
+          auto new_ind = new size_type[nnzr];
+          auto new_nz = new value_type[nnzr];
           std::copy(ind_[row], ind_[row] + nnzr, new_ind);
           std::copy(nz_[row], nz_[row] + nnzr, new_nz);
           ind_[row] = new_ind;
@@ -3762,7 +3762,7 @@ namespace nupic {
         size_type old_nnzr = nnzr_[row];
         size_type new_nnzr = old_nnzr + 1;
         auto new_ind = new size_type [new_nnzr];
-        auto  new_nz = new value_type [new_nnzr];
+        auto new_nz = new value_type [new_nnzr];
         std::copy(ind_[row], ind_[row] + old_nnzr, new_ind);
         std::copy(nz_[row], nz_[row] + old_nnzr, new_nz);
         delete [] ind_[row];
@@ -3812,7 +3812,7 @@ namespace nupic {
           size_type old_nnzr = nnzr_[row];
           size_type new_nnzr = old_nnzr + 1;
           auto new_ind = new size_type [new_nnzr];
-          auto  new_nz = new value_type [new_nnzr];
+          auto new_nz = new value_type [new_nnzr];
           std::copy(ind_[row], ind_[row] + old_nnzr, new_ind);
           std::copy(nz_[row], nz_[row] + old_nnzr, new_nz);
           delete [] ind_[row];

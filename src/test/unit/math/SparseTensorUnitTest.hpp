@@ -297,7 +297,7 @@ namespace nupic {
         NTA_ASSERT(ind.isSet());
       }
 
-      auto  buf = new Float[product(bounds_)];
+      auto buf = new Float[product(bounds_)];
       Index idx = getNewZeroIndex(), perm = getNewIndex(), newBounds = getNewIndex();
       nupic::permute(ind, bounds_, newBounds);
 
@@ -321,7 +321,7 @@ namespace nupic {
         return;
 
       const UInt M = product(newBounds);
-      auto  buf = new Float[M];
+      auto buf = new Float[M];
       memset(buf, 0, M * sizeof(Float));
       Index idx = getNewZeroIndex();
       

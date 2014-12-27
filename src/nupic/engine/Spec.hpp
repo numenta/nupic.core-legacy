@@ -39,7 +39,7 @@ namespace nupic
   public:  
     InputSpec() {}
     InputSpec(
-      std::string  description, 
+      std::string description, 
       NTA_BasicType dataType, 
       UInt32 count, 
       bool required, 
@@ -63,7 +63,7 @@ namespace nupic
   {
   public:
     OutputSpec() {}
-    OutputSpec(std::string  description, const 
+    OutputSpec(std::string description, const 
                NTA_BasicType dataType, size_t count, bool regionLevel, bool isDefaultOutput);
 
     std::string description;
@@ -79,7 +79,7 @@ namespace nupic
   {
   public:
     CommandSpec() {}
-    CommandSpec(std::string  description);
+    CommandSpec(std::string description);
 
     std::string description;
 
@@ -94,9 +94,9 @@ namespace nupic
     /**
      * @param defaultValue -- a JSON-encoded value
      */
-    ParameterSpec(std::string  description, 
+    ParameterSpec(std::string description, 
                   NTA_BasicType dataType, size_t count, 
-                  std::string  constraints, std::string  defaultValue, 
+                  std::string constraints, std::string defaultValue, 
                   AccessMode accessMode);
 
 

@@ -28,7 +28,7 @@
 namespace nupic
 {
   BundleIO::BundleIO(const std::string& bundlePath, const std::string& label, 
-                     std::string  regionName, bool isInput) :
+                     std::string regionName, bool isInput) :
     isInput_(isInput),
     bundlePath_(bundlePath), 
     regionName_(std::move(regionName)),

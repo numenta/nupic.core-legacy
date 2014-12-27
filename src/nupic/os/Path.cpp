@@ -65,7 +65,7 @@ namespace nupic
 #endif
   const char * Path::parDir = "..";
 
-  Path::Path(std::string  path) : path_(std::move(path))
+  Path::Path(std::string path) : path_(std::move(path))
   {
   }
 
@@ -825,7 +825,7 @@ namespace nupic
 
     std::string epath = "UnknownExecutablePath";
 #ifndef NTA_PLATFORM_win32
-    auto  buf = new char[1000];
+    auto buf = new char[1000];
     UInt32 bufsize = 1000;
     // sets bufsize to actual length. 
 #if defined(NTA_PLATFORM_darwin86) || defined(NTA_PLATFORM_darwin64)

@@ -142,7 +142,7 @@ namespace nupic
   Spec*
   TestNode::createSpec()
   {
-    auto  ns = new Spec;
+    auto ns = new Spec;
 
     /* ---- parameters ------ */
 

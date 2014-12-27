@@ -84,10 +84,10 @@ namespace nupic
      *
      * @param message [const std::string &] the description of exception
      */
-    Exception(std::string  filename, 
+    Exception(std::string filename, 
               UInt32 lineno, 
-              std::string  message,
-              std::string  stacktrace = "") :
+              std::string message,
+              std::string stacktrace = "") :
       std::runtime_error(""),
       filename_(std::move(filename)),
       lineno_(lineno),

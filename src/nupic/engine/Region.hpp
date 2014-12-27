@@ -609,13 +609,13 @@ namespace nupic
     // Internal methods.
 
     // New region from parameter spec
-    Region(std::string  name,
+    Region(std::string name,
            const std::string& type,
            const std::string& nodeParams,
            Network * network = nullptr);
 
     // New region from serialized state
-    Region(std::string  name, 
+    Region(std::string name, 
            const std::string& type, 
            const Dimensions& dimensions, 
            BundleIO& bundle,

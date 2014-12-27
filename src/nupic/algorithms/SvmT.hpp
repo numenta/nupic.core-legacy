@@ -974,7 +974,7 @@ svm<traits>::binary_probability(const problem_type& prob, float& probA, float& p
 #if defined(NTA_PLATFORM_win32) && defined(NTA_COMPILER_MSVC)
       float* x_tmp = (float*) _aligned_malloc(4*prob.n_dims(), 16);
 #else
-      auto  x_tmp = new float[prob.n_dims()];
+      auto x_tmp = new float[prob.n_dims()];
 #endif
 
       for(int j=begin;j<end;j++) {
@@ -1061,7 +1061,7 @@ svm_model* svm<traits>::train(const problem_type& prob, const svm_parameter& par
   std::vector<bool> nonzero(l, false);
   std::vector<decision_function> f(m);
 
-  auto  model = new svm_model;
+  auto model = new svm_model;
 
   if (param.probability) {
     model->probA.resize(m);
@@ -1471,7 +1471,7 @@ float svm<traits>::cross_validation(int nr_fold)
     }
     
     svm_model *sub_model = train(sub_prob, param_);
-    auto  x_tmp = new float[problem_->n_dims()];
+    auto x_tmp = new float[problem_->n_dims()];
 
     if (param_.probability) {
       

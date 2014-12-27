@@ -260,10 +260,10 @@ namespace nupic {
 	float delta, snorm, one=1.0f;
 	float alpha, f, fnew, prered, actred, gs;
 	int search = 1, iter = 1, inc = 1;
-	auto  s = new float[n];
-	auto  r = new float[n];
-	auto  w_new = new float[n];
-	auto  g = new float[n];
+	auto s = new float[n];
+	auto r = new float[n];
+	auto w_new = new float[n];
+	auto g = new float[n];
 
 	for (i=0; i<n; i++)
 	  w[i] = 0;
@@ -352,8 +352,8 @@ namespace nupic {
 	int i, inc = 1;
 	int n = fun_obj->get_nr_variable();
 	float one = 1.0f;
-	auto  d = new float[n];
-	auto  Hd = new float[n];
+	auto d = new float[n];
+	auto Hd = new float[n];
 	float rTr, rnewTrnew, alpha, beta, cgtol;
 
 	for (i=0; i<n; i++)
@@ -492,7 +492,7 @@ namespace nupic {
 	  int i;
 	  int l=prob->l;
 	  int n=prob->n;
-	  auto  wa = new float[l];
+	  auto wa = new float[l];
 
 	  subXv(s, wa);
 	  for(i=0;i<sizeI;i++)
@@ -644,7 +644,7 @@ namespace nupic {
 	{
 	  int l=prob->l;
 	  int n=prob->n;
-	  auto  wa = new float[l];
+	  auto wa = new float[l];
 
 	  Xv(s, wa);
 	  

@@ -106,7 +106,7 @@ namespace nupic
         learnIteration_ = recordNum - recordNumMinusLearnIteration_;
 
         // Update the input pattern history.
-        auto   newPatternNZ = new vector<UInt>();
+        auto newPatternNZ = new vector<UInt>();
         for (auto & elem : patternNZ)
         {
           newPatternNZ->push_back(elem);

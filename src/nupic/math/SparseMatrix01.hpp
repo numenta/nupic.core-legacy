@@ -889,7 +889,7 @@ namespace nupic {
       for (i = 0; i < nrows; ++i) {
         
         nnzr = nzr_[i];
-        auto  ind = new size_type[nnzr];
+        auto ind = new size_type[nnzr];
         memcpy(ind, ind_[i], nnzr*sizeof(size_type));
 
         if (nnzr_ > 0) {

@@ -90,7 +90,7 @@ std::string Spec::getDefaultOutputName() const
 }
 
 
-InputSpec::InputSpec(std::string  description, 
+InputSpec::InputSpec(std::string description, 
                      NTA_BasicType  dataType, 
                      UInt32 count,
                      bool required, 
@@ -107,7 +107,7 @@ InputSpec::InputSpec(std::string  description,
 { 
 }
 
-OutputSpec::OutputSpec(std::string  description, 
+OutputSpec::OutputSpec(std::string description, 
                        NTA_BasicType dataType, 
                        size_t count,
                        bool regionLevel, 
@@ -118,17 +118,17 @@ OutputSpec::OutputSpec(std::string  description,
 }
 
 
-CommandSpec::CommandSpec(std::string  description) :
+CommandSpec::CommandSpec(std::string description) :
   description(std::move(description))
 {
 }
 
 
-ParameterSpec::ParameterSpec(std::string  description,
+ParameterSpec::ParameterSpec(std::string description,
                              NTA_BasicType dataType, 
                              size_t count, 
-                             std::string  constraints, 
-                             std::string  defaultValue, 
+                             std::string constraints, 
+                             std::string defaultValue, 
                              AccessMode accessMode) :
   description(std::move(description)), dataType(dataType), count(count),
   constraints(std::move(constraints)), defaultValue(std::move(defaultValue)), 
