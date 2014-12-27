@@ -226,7 +226,6 @@ if("${PLATFORM}" STREQUAL "linux")
   list(APPEND COMMON_LIBS pthread dl)
 elseif("${PLATFORM}" STREQUAL "darwin")
   list(APPEND COMMON_LIBS c++abi)
-  set(COMPILE_FLAGS "${COMPILE_FLAGS} -O3")
 endif()
 
 ADD_LIBRARY(${LIB_STATIC_NUPICCORE}
