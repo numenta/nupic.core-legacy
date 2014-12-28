@@ -1038,9 +1038,8 @@ void Cells4::updateInferenceState(const std::vector<UInt> & activeColumns)
   memcpy(_cellConfidenceT1, _cellConfidenceT, _nCells * sizeof(_cellConfidenceT[0]));
 
   // Copy over previous column confidences and zero out current confidence
-  for (UInt i = 0; i != _nColumns; ++i) {
-    _colConfidenceT1[i] = _colConfidenceT[i];
-  }
+  memcpy(_colConfidenceT1, _colConfidenceT, _nColumns * sizeof(_colConfidenceT[0]));
+
 
   //---------------------------------------------------------------------------
   // Update our inference input history
