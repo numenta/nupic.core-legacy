@@ -67,10 +67,10 @@ namespace nupic {
         //----------------------------------------------------------------------
         SegmentUpdate(UInt cellIdx, UInt segIdx,
                       bool sequenceSegment, UInt timeStamp,
-                      const std::vector<UInt>& synapses = std::vector<UInt>(),
+                      std::vector<UInt>  synapses = std::vector<UInt>(),
                       bool phase1Flag = false,
                       bool weaklyPredicting = false,
-                      Cells4* cells =NULL);
+                      Cells4* cells =nullptr);
 
         //----------------------------------------------------------------------
         SegmentUpdate(const SegmentUpdate& o);
@@ -108,7 +108,7 @@ namespace nupic {
           * Checks that all indices are in range, and that the synapse src cell indices
           * are unique and sorted.
           */
-         bool invariants(Cells4* cells =NULL) const;
+         bool invariants(Cells4* cells =nullptr) const;
 
          //---------------------------------------------------------------------
          void save(std::ostream& outStream) const
@@ -120,9 +120,9 @@ namespace nupic {
                      << _weaklyPredicting << " "
                      << _timeStamp << std::endl;
            outStream << _synapses.size() << " ";
-           for (UInt i = 0; i < _synapses.size(); ++i)
+           for (auto & elem : _synapses)
            {
-             outStream << _synapses[i] << " ";
+             outStream << elem << " ";
            }
          }
 

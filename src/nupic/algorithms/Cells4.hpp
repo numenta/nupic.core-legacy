@@ -130,23 +130,23 @@ namespace nupic {
       public:
         CBasicActivity()
         {
-          _counter = NULL;
-          _nonzero = NULL;
+          _counter = nullptr;
+          _nonzero = nullptr;
           _size = 0;
           _dimension = 0;
         }
         ~CBasicActivity()
         {
-          if (_counter != NULL)
+          if (_counter != nullptr)
             delete [] _counter;
-          if (_nonzero != NULL)
+          if (_nonzero != nullptr)
             delete [] _nonzero;
         }
         void initialize(UInt n)
         {
-          if (_counter != NULL)
+          if (_counter != nullptr)
             delete [] _counter;
-          if (_nonzero != NULL)
+          if (_nonzero != nullptr)
             delete [] _nonzero;
           _counter = new It[n];                       // use typename here
           memset(_counter, 0, n * sizeof(_counter[0]));

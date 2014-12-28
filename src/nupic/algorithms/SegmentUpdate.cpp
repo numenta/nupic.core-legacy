@@ -39,7 +39,7 @@ SegmentUpdate::SegmentUpdate()
 
 SegmentUpdate::SegmentUpdate(UInt cellIdx, UInt segIdx,
                              bool sequenceSegment, UInt timeStamp,
-                             const std::vector<UInt>& synapses,
+                             std::vector<UInt>  synapses,
                              bool phase1Flag,
                              bool weaklyPredicting,
                              Cells4* cells)
@@ -47,7 +47,7 @@ SegmentUpdate::SegmentUpdate(UInt cellIdx, UInt segIdx,
     _cellIdx(cellIdx),
     _segIdx(segIdx),
     _timeStamp(timeStamp),
-    _synapses(synapses),
+    _synapses(std::move(synapses)),
     _phase1Flag(phase1Flag),
     _weaklyPredicting(weaklyPredicting)
 {

@@ -77,30 +77,30 @@ namespace nupic
     ReadBuffer(const ReadBuffer &);
     ReadBuffer & operator=(const ReadBuffer &);
     void assign(const ReadBuffer &);
-    void reset() const;
-    Size getSize() const;
-    const Byte * getData() const;
+    void reset() const override;
+    Size getSize() const override;
+    const Byte * getData() const override;
     
-    Int32 read(Byte & value) const;
-    Int32 read(Byte * value, Size & size) const;
-    Int32 read(Int32 & value) const;
-    Int32 read(Int32 * value, Size size) const;
-    Int32 read(UInt32 & value) const;
-    Int32 read(UInt32 * value, Size size) const;
-    Int32 read(Int64 & value) const;
-    Int32 read(Int64 * value, Size size) const;
-    Int32 read(UInt64 & value) const;
-    Int32 read(UInt64 * value, Size size) const;
-    Int32 read(Real32 & value) const;
-    Int32 read(Real32 * value, Size size) const;
-    Int32 read(Real64 & value) const;
-    Int32 read(Real64 * value, Size size) const;
+    Int32 read(Byte & value) const override;
+    Int32 read(Byte * value, Size & size) const override;
+    Int32 read(Int32 & value) const override;
+    Int32 read(Int32 * value, Size size) const override;
+    Int32 read(UInt32 & value) const override;
+    Int32 read(UInt32 * value, Size size) const override;
+    Int32 read(Int64 & value) const override;
+    Int32 read(Int64 * value, Size size) const override;
+    Int32 read(UInt64 & value) const override;
+    Int32 read(UInt64 * value, Size size) const override;
+    Int32 read(Real32 & value) const override;
+    Int32 read(Real32 * value, Size size) const override;
+    Int32 read(Real64 & value) const override;
+    Int32 read(Real64 * value, Size size) const override;
     Int32 readString(
         NTA_Byte * &value, 
         NTA_UInt32 &size,
-        NTA_Byte *(*fAlloc)(NTA_UInt32 size)=0,
-        void (*fDealloc)(NTA_Byte *)=0
-      ) const;
+        NTA_Byte *(*fAlloc)(NTA_UInt32 size)=nullptr,
+        void (*fDealloc)(NTA_Byte *)=nullptr
+      ) const override;
     
     template <typename T>
     Int32 readT(T & value)  const
@@ -149,8 +149,8 @@ namespace nupic
   {  
   public:
     ReadBufferIterator(ReadBufferVec & rbv);
-    const IReadBuffer * next();
-    void reset();
+    const IReadBuffer * next() override;
+    void reset() override;
   private:
     ReadBufferVec & readBufferVec_;
     Size index_;
@@ -191,24 +191,24 @@ namespace nupic
   {  
   public:
     WriteBuffer();
-    Int32 write(Byte value);
-    Int32 write(const Byte * value, Size size);
-    Int32 write(Int32 value);
-    Int32 write(const Int32 * value, Size size);
-    Int32 write(UInt32 value);
-    Int32 write(const UInt32 * value, Size size);
-    Int32 write(Int64 value);
-    Int32 write(const Int64 * value, Size size);
-    Int32 write(UInt64 value);
-    Int32 write(const UInt64 * value, Size size);
-    Int32 write(Real32 value);  
-    Int32 write(const Real32 * value, Size size);
-    Int32 write(Real64 value);  
-    Int32 write(const Real64 * value, Size size);
-    Int32 writeString(const Byte * value, Size size);
+    Int32 write(Byte value) override;
+    Int32 write(const Byte * value, Size size) override;
+    Int32 write(Int32 value) override;
+    Int32 write(const Int32 * value, Size size) override;
+    Int32 write(UInt32 value) override;
+    Int32 write(const UInt32 * value, Size size) override;
+    Int32 write(Int64 value) override;
+    Int32 write(const Int64 * value, Size size) override;
+    Int32 write(UInt64 value) override;
+    Int32 write(const UInt64 * value, Size size) override;
+    Int32 write(Real32 value) override;  
+    Int32 write(const Real32 * value, Size size) override;
+    Int32 write(Real64 value) override;  
+    Int32 write(const Real64 * value, Size size) override;
+    Int32 writeString(const Byte * value, Size size) override;
     
-    Size getSize();
-    const Byte * getData();
+    Size getSize() override;
+    const Byte * getData() override;
   
     template <typename T>
     Int32 writeT(T value, const char *sep=" ")

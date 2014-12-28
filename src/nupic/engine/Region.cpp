@@ -48,11 +48,11 @@ namespace nupic
 
 
 // Create region from parameter spec
-Region::Region(const std::string& name, 
+Region::Region(std::string name, 
                const std::string& nodeType, 
                const std::string& nodeParams,
                Network * network) :
-  name_(name), 
+  name_(std::move(name)), 
   type_(nodeType), 
   initialized_(false), 
   enabledNodes_(nullptr),
@@ -76,12 +76,12 @@ Region::Region(const std::string& name,
 }
 
 // Deserialize region
-Region::Region(const std::string& name, 
+Region::Region(std::string name, 
                const std::string& nodeType,
                const Dimensions& dimensions,
                BundleIO& bundle,
                Network * network) :
-  name_(name), 
+  name_(std::move(name)), 
   type_(nodeType), 
   initialized_(false), 
   enabledNodes_(nullptr),

@@ -23,14 +23,15 @@
 #include <nupic/ntypes/BundleIO.hpp>
 #include <nupic/os/Path.hpp>
 #include <nupic/utils/Log.hpp>
+#include <utility>
 
 namespace nupic
 {
   BundleIO::BundleIO(const std::string& bundlePath, const std::string& label, 
-                     const std::string& regionName, bool isInput) :
+                     std::string regionName, bool isInput) :
     isInput_(isInput),
     bundlePath_(bundlePath), 
-    regionName_(regionName),
+    regionName_(std::move(regionName)),
     ostream_(nullptr), 
     istream_(nullptr)
   {

@@ -70,31 +70,31 @@ namespace nupic
     static Spec* createSpec();
 
     std::string getNodeType() { return "TestNode"; };
-    void compute();
-    std::string executeCommand(const std::vector<std::string>& args, Int64 index);
+    void compute() override;
+    std::string executeCommand(const std::vector<std::string>& args, Int64 index) override;
 
-    size_t getNodeOutputElementCount(const std::string& outputName);
-    void getParameterFromBuffer(const std::string& name, Int64 index, IWriteBuffer& value);
-    void setParameterFromBuffer(const std::string& name, Int64 index, IReadBuffer& value);
+    size_t getNodeOutputElementCount(const std::string& outputName) override;
+    void getParameterFromBuffer(const std::string& name, Int64 index, IWriteBuffer& value) override;
+    void setParameterFromBuffer(const std::string& name, Int64 index, IReadBuffer& value) override;
 
-    void initialize();
+    void initialize() override;
 
-    void serialize(BundleIO& bundle);
-    void deserialize(BundleIO& bundle);
+    void serialize(BundleIO& bundle) override;
+    void deserialize(BundleIO& bundle) override;
 
 
     /* -----------  Optional RegionImpl Interface methods ------- */
 
-    size_t getParameterArrayCount(const std::string& name, Int64 index);
+    size_t getParameterArrayCount(const std::string& name, Int64 index) override;
 
     // Override for Real64 only
     // We choose Real64 in the test node to preserve precision. All other type
     // go through read/write buffer serialization, and floating point values may get
     // truncated in the conversion to/from ascii. 
-    Real64 getParameterReal64(const std::string& name, Int64 index);
-    void setParameterReal64(const std::string& name, Int64 index, Real64 value);
+    Real64 getParameterReal64(const std::string& name, Int64 index) override;
+    void setParameterReal64(const std::string& name, Int64 index, Real64 value) override;
 
-    bool isParameterShared(const std::string& name);
+    bool isParameterShared(const std::string& name) override;
 
   private:
     TestNode();
