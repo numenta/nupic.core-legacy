@@ -28,6 +28,7 @@
 cmake_minimum_required(VERSION 2.8)
 project(nupic_core CXX)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+set(CMAKE_VERBOSE_MAKEFILE OFF) # toggle for cmake debug
 
 #
 # Include extra cmake files
@@ -86,11 +87,13 @@ set(COMMON_LINK_FLAGS "-m${BITNESS} ${STDLIB}")
 # these are quite aggresive flags, if your code misbehaves for strange reasons, try 
 # compiling without them.
 #
-set(OPTIMIZATION_FLAGS "-O3 -march=native -pipe") #TODO use -Ofast instead of -O3
+set(OPTIMIZATION_FLAGS_CC "-O3 -march=native -pipe -flto -fuse-linker-plugin -flto-report -fuse-ld=gold") #TODO use -Ofast instead of -O3
 # for even better performance, buggy on TravisCI now.
+set(OPTIMIZATION_FLAGS_LT "-flto -O3")
 
-set(COMPILE_FLAGS "-fPIC -std=c++11 -m${BITNESS} ${STDLIB} -fvisibility=hidden 
-  -Wall -Wreturn-type -Wunused -Wno-unused-parameter ${OPTIMIZATION_FLAGS}")
+
+set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} ${OPTIMIZATION_FLAGS_LT}")
+set(COMPILE_FLAGS "-fPIC -std=c++11 -m${BITNESS} ${STDLIB} -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-unused-parameter ${OPTIMIZATION_FLAGS_CC}")
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} -static-libstdc++")
