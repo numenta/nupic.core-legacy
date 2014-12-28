@@ -86,7 +86,7 @@ set(COMMON_LINK_FLAGS "-m${BITNESS} ${STDLIB}")
 # these are quite aggresive flags, if your code misbehaves for strange reasons, try 
 # compiling without them.
 #
-set(OPTIMIZATION_FLAGS "-Ofast -march=native -pipe")
+set(OPTIMIZATION_FLAGS "-O3 -march=native -pipe")
 
 set(COMPILE_FLAGS "-fPIC -std=c++11 -m${BITNESS} ${STDLIB} -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-unused-parameter ${OPTIMIZATION_FLAGS}")
 
