@@ -82,22 +82,28 @@ include_directories(SYSTEM
 
 set(COMMON_LINK_FLAGS "-m${BITNESS} ${STDLIB}")
 
+
+#
+# compiler specific settings here (clang/gcc)
+#
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+  set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} -static-libstdc++")
+  set(OPTIMIZATION_FLAGS_CC "${OPTIMIZATION_FLAGS_CC} -fuse-linker-plugin -flto-report")
+endif()
+
+
 #
 # Enable Optimization flags here
 # these are quite aggresive flags, if your code misbehaves for strange reasons, try 
 # compiling without them.
 #
-set(OPTIMIZATION_FLAGS_CC "-O3 -march=native -pipe -flto -fuse-linker-plugin -flto-report -fuse-ld=gold") #TODO use -Ofast instead of -O3
+set(OPTIMIZATION_FLAGS_CC "-O3 -march=native -pipe -flto -fuse-ld=gold ${OPTIMIZATION_PLUGINS_CC}") #TODO use -Ofast instead of -O3
 # for even better performance, buggy on TravisCI now.
-set(OPTIMIZATION_FLAGS_LT "-flto -O3")
+set(OPTIMIZATION_FLAGS_LT "-flto -O3 -Wl,-plugin -v")
 
 
 set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} ${OPTIMIZATION_FLAGS_LT}")
 set(COMPILE_FLAGS "-fPIC -std=c++11 -m${BITNESS} ${STDLIB} -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-unused-parameter ${OPTIMIZATION_FLAGS_CC}")
-
-if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-  set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} -static-libstdc++")
-endif()
 
 #
 # Let CMake know where all of the external files are.
