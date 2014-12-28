@@ -44,10 +44,12 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   set(PLATFORM "linux")
   set(STDLIB "")
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+  set(PLATFORM "windows")
+  set(STDLIB "")
 endif()
-
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-   set(STDLIB "${STDLIB} -static-libgcc -static-libstdc++")
+if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
+  set(STDLIB "${STDLIB} -static-libgcc -static-libstdc++")
 endif()
 
 set(BITNESS 32)
@@ -63,6 +65,19 @@ add_definitions(-DNTA_PLATFORM_${PLATFORM}${BITNESS}
                 -DNUPIC2
                 -DNTA_ASSERTIONS_ON
                 -DNTA_ASM)
+if(UNIX) # or UNIX like (i.e. APPLE and CYGWIN)
+  add_definitions(-DHAVE_UNISTD_H)
+elseif(WIN32) # incl. win64
+  add_definitions(-D_VARIADIC_MAX=10  # VS2012 doesn't support tuples correctly
+                  -DPSAPI_VERSION=1 -DNOMINMAX -DAPR_DECLARE_STATIC -DAPU_DECLARE_STATIC -DZLIB_WINAPI
+                  -DWIN32 -D_WINDOWS -D_MBCS -D_CRT_SECURE_NO_WARNINGS -DNDEBUG)
+endif()
+if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
+  add_definitions(-DNTA_COMPILER_GNU)
+elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
+  add_definitions(-DNTA_COMPILER_MSVC)
+  add_definitions(-DCAPNP_LITE=1)
+endif()
 
 #
 # Setup include paths
@@ -79,7 +94,22 @@ include_directories(SYSTEM
                     "${PROJECT_SOURCE_DIR}"
                     "${PROJECT_BINARY_DIR}")
 
-set(COMPILE_FLAGS "-fPIC -std=c++11 -m${BITNESS} ${STDLIB} -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-unused-parameter")
+if(UNIX) # or UNIX like (i.e. APPLE and CYGWIN)
+  set(COMPILE_FLAGS "-fPIC -std=c++11 -m${BITNESS} ${STDLIB} -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-unused-parameter")
+elseif(WIN32) # incl. win64
+  set(COMPILE_FLAGS "/TP /Zc:wchar_t /Gm- /fp:precise /errorReport:prompt /W3 /WX- /GR /Gd /GS /Oy- /EHs /analyze- /nologo")
+endif()
+
+if(UNIX) # or UNIX like (i.e. APPLE and CYGWIN)
+  set(LINK_FLAGS "-m${BITNESS} ${STDLIB}")
+elseif(WIN32) # incl. win64
+  set(LINK_FLAGS "/NOLOGO /SAFESEH:NO /NODEFAULTLIB:LIBCMT")
+  if("${BITNESS}" STREQUAL "32")
+    set(LINK_FLAGS "${LINK_FLAGS} /MACHINE:X86")
+  else()
+    set(LINK_FLAGS "${LINK_FLAGS} /MACHINE:X${BITNESS}")
+  endif()
+endif()
 
 #
 # Let CMake know where all of the external files are.
@@ -110,7 +140,7 @@ add_library(${LIB_STATIC_GTEST}
             ${REPOSITORY_DIR}/external/common/src/gtest/gtest-all.cpp)
 set_target_properties(${LIB_STATIC_GTEST}
                       PROPERTIES COMPILE_FLAGS "${COMPILE_FLAGS}"
-                      LINK_FLAGS "-m${BITNESS} ${STDLIB}")
+                      LINK_FLAGS "${LINK_FLAGS}")
 
 
 #
@@ -212,6 +242,9 @@ if("${PLATFORM}" STREQUAL "linux")
 elseif("${PLATFORM}" STREQUAL "darwin")
   list(APPEND COMMON_LIBS c++abi)
   set(COMPILE_FLAGS "${COMPILE_FLAGS} -O3")
+elseif("${PLATFORM}" STREQUAL "windows")
+  list(APPEND COMMON_LIBS oldnames.lib psapi.lib ws2_32.lib)
+  set(COMPILE_FLAGS "${COMPILE_FLAGS} -O2 -Ob2")
 endif()
 
 ADD_LIBRARY(${LIB_STATIC_NUPICCORE}
@@ -292,7 +325,7 @@ target_link_libraries(${LIB_STATIC_NUPICCORE}
                       ${LIB_STATIC_KJ_LOC}
                       ${LIB_STATIC_CAPNP_LOC})
 set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES COMPILE_FLAGS ${COMPILE_FLAGS})
-set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES LINK_FLAGS "-m${BITNESS} ${STDLIB} -static")
+set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES LINK_FLAGS "${LINK_FLAGS} -static")
 
 #
 # Setup testcpphtm
@@ -302,7 +335,7 @@ add_executable(${EXECUTABLE_HTMTEST} test/htm_test/HtmTest.cpp)
 target_link_libraries(${EXECUTABLE_HTMTEST} ${COMMON_LIBS})
 set_target_properties(${EXECUTABLE_HTMTEST} PROPERTIES COMPILE_FLAGS ${COMPILE_FLAGS})
 set_target_properties(${EXECUTABLE_HTMTEST}
-                      PROPERTIES LINK_FLAGS "-m${BITNESS} ${STDLIB}")
+                      PROPERTIES LINK_FLAGS "${LINK_FLAGS}")
 add_custom_target(tests_htm
                   COMMAND ${EXECUTABLE_HTMTEST}
                   DEPENDS ${EXECUTABLE_HTMTEST})
@@ -315,8 +348,7 @@ add_executable(${EXECUTABLE_HELLOREGION} examples/regions/HelloRegions.cpp)
 target_link_libraries(${EXECUTABLE_HELLOREGION} ${COMMON_LIBS})
 set_target_properties(${EXECUTABLE_HELLOREGION} PROPERTIES COMPILE_FLAGS ${COMPILE_FLAGS})
 set_target_properties(${EXECUTABLE_HELLOREGION}
-                      PROPERTIES LINK_FLAGS "-m${BITNESS} ${STDLIB}")
-add_dependencies(${EXECUTABLE_HELLOREGION} ${COMMON_LIBS})
+                      PROPERTIES LINK_FLAGS "${LINK_FLAGS}")
 
 #
 # Setup prototest example
@@ -327,8 +359,7 @@ target_link_libraries(${EXECUTABLE_PROTOTEST}
                       ${COMMON_LIBS})
 set_target_properties(${EXECUTABLE_PROTOTEST} PROPERTIES COMPILE_FLAGS ${COMPILE_FLAGS})
 set_target_properties(${EXECUTABLE_PROTOTEST}
-                      PROPERTIES LINK_FLAGS "-m${BITNESS} ${STDLIB}")
-add_dependencies(${EXECUTABLE_PROTOTEST} ${COMMON_LIBS})
+                      PROPERTIES LINK_FLAGS "${LINK_FLAGS}")
 
 #
 # Setup gtests
@@ -381,8 +412,7 @@ target_link_libraries(${EXECUTABLE_GTESTS}
                       ${LIB_STATIC_GTEST})
 set_target_properties(${EXECUTABLE_GTESTS}
                       PROPERTIES COMPILE_FLAGS ${COMPILE_FLAGS}
-                                 LINK_FLAGS "-m${BITNESS} ${STDLIB}")
-add_dependencies(${EXECUTABLE_GTESTS} ${LIB_STATIC_GTEST} ${COMMON_LIBS})
+                                 LINK_FLAGS "${LINK_FLAGS}")
 add_custom_target(tests_unit
                   COMMAND ${EXECUTABLE_GTESTS} "--gtest_output=xml:${PROJECT_BUILD_ARTIFACTS_DIR}/unit_tests_report.xml")
 set(TEST_HEADERS
@@ -442,21 +472,37 @@ add_custom_target(tests_all
                   DEPENDS tests_unit
                   COMMENT "Running all tests")
 
-add_custom_target(combined ALL
-                  COMMAND ${CMAKE_AR} -x $<TARGET_FILE:${LIB_STATIC_NUPICCORE}>
-                  COMMAND ${CMAKE_AR} -x ${LIB_STATIC_YAML_CPP_LOC}
-                  COMMAND ${CMAKE_AR} -x ${LIB_STATIC_YAML_LOC}
-                  COMMAND ${CMAKE_AR} -x ${LIB_STATIC_APRUTIL1_LOC}
-                  COMMAND ${CMAKE_AR} -x ${LIB_STATIC_APR1_LOC}
-                  COMMAND ${CMAKE_AR} -x ${LIB_STATIC_Z_LOC}
-                  COMMAND ${CMAKE_AR} -x ${LIB_STATIC_KJ_LOC}
-                  COMMAND ${CMAKE_AR} -x ${LIB_STATIC_CAPNP_LOC}
-                  COMMAND ${CMAKE_AR} rcs libnupic_core.a *.o
-                  DEPENDS ${LIB_STATIC_NUPICCORE}
-                          ${LIB_STATIC_GTEST}
-                          ${EXECUTABLE_HELLOREGION}
-                          ${EXECUTABLE_HTMTEST}
-                          ${EXECUTABLE_GTESTS})
+if(UNIX)
+  add_custom_target(combined ALL
+                    COMMAND ${CMAKE_AR} -x $<TARGET_FILE:${LIB_STATIC_NUPICCORE}>
+                    COMMAND ${CMAKE_AR} -x ${LIB_STATIC_YAML_CPP_LOC}
+                    COMMAND ${CMAKE_AR} -x ${LIB_STATIC_YAML_LOC}
+                    COMMAND ${CMAKE_AR} -x ${LIB_STATIC_APRUTIL1_LOC}
+                    COMMAND ${CMAKE_AR} -x ${LIB_STATIC_APR1_LOC}
+                    COMMAND ${CMAKE_AR} -x ${LIB_STATIC_Z_LOC}
+                    COMMAND ${CMAKE_AR} -x ${LIB_STATIC_KJ_LOC}
+                    COMMAND ${CMAKE_AR} -x ${LIB_STATIC_CAPNP_LOC}
+                    COMMAND ${CMAKE_AR} rcs libnupic_core.a *.o
+                    DEPENDS ${LIB_STATIC_NUPICCORE}
+                            ${LIB_STATIC_GTEST}
+                            ${EXECUTABLE_HELLOREGION}
+                            ${EXECUTABLE_HTMTEST}
+                            ${EXECUTABLE_GTESTS})
+else()
+  add_custom_target(combined ALL
+                    COMMAND lib.exe /OUT:nupic_core.lib 
+                              $<TARGET_FILE:${LIB_STATIC_NUPICCORE}> 
+                              ${LIB_STATIC_YAML_CPP_LOC}
+                              ${LIB_STATIC_YAML_LOC}
+                              ${LIB_STATIC_APRUTIL1_LOC}
+                              ${LIB_STATIC_APR1_LOC}
+                              ${LIB_STATIC_Z_LOC}
+                    DEPENDS ${LIB_STATIC_NUPICCORE}
+                            ${LIB_STATIC_GTEST}
+                            ${EXECUTABLE_HELLOREGION}
+                            ${EXECUTABLE_HTMTEST}
+                            ${EXECUTABLE_GTESTS})
+endif()
 
 #
 # Install targets into CMAKE_INSTALL_PREFIX
@@ -493,8 +539,13 @@ install(DIRECTORY "${REPOSITORY_DIR}/external/common/include/"
         DESTINATION include)
 install(DIRECTORY "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/include/"
         DESTINATION include)
-install(FILES "${PROJECT_BINARY_DIR}/libnupic_core.a"
-        DESTINATION lib)
+if(UNIX)
+  install(FILES "${PROJECT_BINARY_DIR}/libnupic_core.a"
+          DESTINATION lib)
+else()
+  install(FILES "${PROJECT_BINARY_DIR}/nupic_core.lib"
+          DESTINATION lib)
+endif()
 
 #
 # `make package` results in
