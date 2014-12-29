@@ -1560,13 +1560,13 @@ void SpatialPooler::write(SpatialPoolerProto::Builder& proto)
   proto.setNumColumns(numColumns_);
 
   auto columnDims = proto.initColumnDimensions(columnDimensions_.size());
-  for (int i = 0; i < columnDimensions_.size(); ++i)
+  for (UInt i = 0; i < columnDimensions_.size(); ++i)
   {
     columnDims.set(i, columnDimensions_[i]);
   }
 
   auto inputDims = proto.initInputDimensions(inputDimensions_.size());
-  for (int i = 0; i < inputDimensions_.size(); ++i)
+  for (UInt i = 0; i < inputDimensions_.size(); ++i)
   {
     inputDims.set(i, inputDimensions_[i]);
   }
