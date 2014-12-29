@@ -32,7 +32,7 @@ namespace nupic
   {
   public:
     BundleIO(const std::string& bundlePath, const std::string& label, 
-             const std::string& regionName, bool isInput);
+             std::string  regionName, bool isInput);
 
     ~BundleIO();
 

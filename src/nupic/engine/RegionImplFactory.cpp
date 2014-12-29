@@ -72,19 +72,9 @@ namespace nupic
         NTA_THROW << "Unable to find NuPIC library in '" << rootDir_ << "'";
       
       
-#if defined(NTA_PLATFORM_darwin64)
-      const char * filename = "libcpp_region.dylib";
-#elif defined(NTA_PLATFORM_darwin86)
-      const char * filename = "libcpp_region.dylib";
-#elif defined(NTA_PLATFORM_linux64)
-      const char * filename = "libcpp_region.so";
-#elif defined(NTA_PLATFORM_linux32)
-      const char * filename = "libcpp_region.so";
-#elif defined(NTA_PLATFORM_linux32arm) || defined(NTA_PLATFORM_linux32armv7)
-      const char * filename = "libcpp_region.so";
-#elif defined(NTA_PLATFORM_win32)
+#if defined(NTA_PLATFORM_win32)
       const char * filename = "cpp_region.dll";
-#elif defined(NTA_PLATFORM_sparc64)
+#else
       const char * filename = "libcpp_region.so";
 #endif
 

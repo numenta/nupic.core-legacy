@@ -263,20 +263,20 @@ namespace nupic
 //    }
     
     static Spec* createSpec();
-    size_t getNodeOutputElementCount(const std::string& outputName);
-    void getParameterFromBuffer(const std::string& name, Int64 index, IWriteBuffer& value);
+    size_t getNodeOutputElementCount(const std::string& outputName) override;
+    void getParameterFromBuffer(const std::string& name, Int64 index, IWriteBuffer& value) override;
 
-    void setParameterFromBuffer(const std::string& name, Int64 index, IReadBuffer& value);
+    void setParameterFromBuffer(const std::string& name, Int64 index, IReadBuffer& value) override;
 
-    size_t getParameterArrayCount(const std::string& name, Int64 index);
+    size_t getParameterArrayCount(const std::string& name, Int64 index) override;
 
-    virtual void getParameterArray(const std::string& name, Int64 index, Array & array);
-    virtual void setParameterArray(const std::string& name, Int64 index, const Array & array);
+    virtual void getParameterArray(const std::string& name, Int64 index, Array & array) override;
+    virtual void setParameterArray(const std::string& name, Int64 index, const Array & array) override;
 
     //void setParameterString(const std::string& name, Int64 index, const std::string& s);
     //std::string getParameterString(const std::string& name, Int64 index);
 
-    void initialize();
+    void initialize() override;
   
     VectorFileSensor(const ValueMap & params, Region *region);
   
@@ -288,14 +288,14 @@ namespace nupic
     // ---
     /// Serialize state to bundle
     // ---
-    virtual void serialize(BundleIO& bundle);
+    virtual void serialize(BundleIO& bundle) override;
 
     // ---
     /// De-serialize state from bundle
     // ---
-    virtual void deserialize(BundleIO& bundle);
-    void compute();
-    virtual std::string executeCommand(const std::vector<std::string>& args, Int64 index);
+    virtual void deserialize(BundleIO& bundle) override;
+    void compute() override;
+    virtual std::string executeCommand(const std::vector<std::string>& args, Int64 index) override;
 
   private:    
     void closeFile();
