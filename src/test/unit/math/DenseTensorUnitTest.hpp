@@ -33,7 +33,7 @@
 #ifndef NTA_DENSE_TENSOR_UNIT_TEST_HPP
 #define NTA_DENSE_TENSOR_UNIT_TEST_HPP
 
-namespace nta {
+namespace nupic {
 
   //----------------------------------------------------------------------
   class DenseTensorUnitTest : public Tester
@@ -43,7 +43,7 @@ namespace nta {
     virtual ~DenseTensorUnitTest() {}
 
     // Run all appropriate tests
-    virtual void RunTests();
+    virtual void RunTests() override;
 
   private:
     typedef Index<UInt, 1> I1;
@@ -80,7 +80,7 @@ namespace nta {
   }; // end class DenseTensorUnitTest
     
   //----------------------------------------------------------------------
-} // end namespace nta
+} // end namespace nupic
 
 #endif // NTA_DENSE_TENSOR_UNIT_TEST_HPP
 

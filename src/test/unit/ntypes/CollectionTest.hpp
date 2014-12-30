@@ -27,9 +27,9 @@
 #ifndef NTA_COLLECTION_TEST_HPP
 #define NTA_COLLECTION_TEST_HPP
 
-#include <nta/test/Tester.hpp>
+#include <nupic/test/Tester.hpp>
 
-namespace nta
+namespace nupic
 {
   struct CollectionTest : public Tester
   {
@@ -39,7 +39,7 @@ namespace nta
     void testCollectionWith_137_Items();
     void testCollectionAddRemove();
 
-    virtual void RunTests();        
+    virtual void RunTests() override;        
   };
 }
 

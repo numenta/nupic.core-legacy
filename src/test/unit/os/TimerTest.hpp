@@ -27,22 +27,22 @@
 #ifndef NTA_TIMER_TEST_HPP
 #define NTA_TIMER_TEST_HPP
 
-#include <nta/test/Tester.hpp>
+#include <nupic/test/Tester.hpp>
 
 /**
  * @todo This is the original Timer test before Timer and ProfilingTimer
  * were split. Need to split the unit test as well. 
  */
-namespace nta {
+namespace nupic {
   
   class TimerTest : public Tester {
 public:
     TimerTest() {};
     virtual ~TimerTest() {};
     
-    virtual void RunTests();
+    virtual void RunTests() override;
   };
-} // namespace nta
+} // namespace nupic
 
 
 #endif // NTA_TIMER_TEST_HPP

@@ -27,13 +27,13 @@
 #ifndef NTA_NODE_SET_TEST_HPP
 #define NTA_NODE_SET_TEST_HPP
 
-#include <nta/test/Tester.hpp>
+#include <nupic/test/Tester.hpp>
 
-namespace nta
+namespace nupic
 {
   struct NodeSetTest : public Tester
   {
-    virtual void RunTests();        
+    virtual void RunTests() override;        
   };
 }
 

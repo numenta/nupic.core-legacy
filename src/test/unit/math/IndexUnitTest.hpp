@@ -26,15 +26,15 @@
 
 //----------------------------------------------------------------------
 
-#include <nta/test/Tester.hpp>
-#include <nta/math/Index.hpp>
+#include <nupic/test/Tester.hpp>
+#include <nupic/math/Index.hpp>
 
 //----------------------------------------------------------------------
 
 #ifndef NTA_INDEX_UNIT_TEST_HPP
 #define NTA_INDEX_UNIT_TEST_HPP
 
-namespace nta {
+namespace nupic {
 
   //----------------------------------------------------------------------
   class IndexUnitTest : public Tester
@@ -44,7 +44,7 @@ namespace nta {
     virtual ~IndexUnitTest() {}
 
     // Run all appropriate tests
-    virtual void RunTests();
+    virtual void RunTests() override;
 
   private:
     typedef Index<UInt, 1> I1;
@@ -64,7 +64,7 @@ namespace nta {
   }; // end class IndexUnitTest
     
   //----------------------------------------------------------------------
-} // end namespace nta
+} // end namespace nupic
 
 #endif // NTA_INDEX_UNIT_TEST_HPP
 

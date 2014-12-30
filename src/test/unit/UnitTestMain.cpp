@@ -32,10 +32,10 @@ Google test main program
 #include "gtest/gtest.h"
 // APR must be explicit initialized
 #include <apr-1/apr_general.h>
-#include <nta/test/Tester.hpp>
+#include <nupic/test/Tester.hpp>
 
 using namespace std;
-using namespace nta;
+using namespace nupic;
 
 #include "AddTestHeaders.hpp"
 #include "AddTests.hpp"
@@ -44,7 +44,7 @@ int main(int argc, char ** argv) {
 
   // initialize APR
   apr_status_t    result;
-  result = apr_app_initialize(&argc, (char const *const **)&argv, 0 /*env*/);
+  result = apr_app_initialize(&argc, (char const *const **)&argv, nullptr /*env*/);
   if (result) 
     NTA_THROW << "error initializing APR. Err code: " << result;
 

@@ -27,12 +27,12 @@
 #ifndef NTA_FLAT_SPATIAL_POOLER_TEST
 #define NTA_FLAT_SPATIAL_POOLER_TEST
 
-#include <nta/algorithms/FlatSpatialPooler.hpp>
-#include <nta/test/Tester.hpp>
+#include <nupic/algorithms/FlatSpatialPooler.hpp>
+#include <nupic/test/Tester.hpp>
 
-using namespace nta::algorithms::spatial_pooler;
+using namespace nupic::algorithms::spatial_pooler;
 
-namespace nta {
+namespace nupic {
 
   class FlatSpatialPoolerTest : public Tester
   {
@@ -41,7 +41,7 @@ namespace nta {
     virtual ~FlatSpatialPoolerTest() {}
 
     // Run all appropriate tests
-    virtual void RunTests();
+    virtual void RunTests() override;
 
   private:
     void setup(SpatialPooler& sp, UInt numInputs, UInt numColumns);
@@ -64,6 +64,6 @@ namespace nta {
 
   }; // end class SpatialPoolerTest
 
-} // end namespace nta
+} // end namespace nupic
 
 #endif // NTA_FLAT_SPATIAL_POOLER_TEST

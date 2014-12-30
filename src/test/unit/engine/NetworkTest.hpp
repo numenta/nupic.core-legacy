@@ -29,16 +29,16 @@
 
 //----------------------------------------------------------------------
 
-#include <nta/test/Tester.hpp>
+#include <nupic/test/Tester.hpp>
 
 //----------------------------------------------------------------------
 
-namespace nta {
+namespace nupic {
 
   struct NetworkTest : public Tester
   {
     virtual ~NetworkTest() {}
-    virtual void RunTests();
+    virtual void RunTests() override;
     void test_nupic_auto_initialization();
     void test_region_access();
     void test_network_initialization();

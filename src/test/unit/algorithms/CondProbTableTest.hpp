@@ -26,14 +26,14 @@
 
 //----------------------------------------------------------------------
 
-#include <nta/test/Tester.hpp>
+#include <nupic/test/Tester.hpp>
 
 //----------------------------------------------------------------------
 
 #ifndef NTA_COND_PROB_TABLE_TEST_HPP
 #define NTA_COND_PROB_TABLE_TEST_HPP
 
-namespace nta {
+namespace nupic {
   class CondProbTable;
 
   //----------------------------------------------------------------------
@@ -44,7 +44,7 @@ namespace nta {
     virtual ~CondProbTableTest();
 
     // Run all appropriate tests
-    virtual void RunTests();
+    virtual void RunTests() override;
 
   private:
     // Compare 2 vectors using printed output, this works even for round-off errors
@@ -66,7 +66,7 @@ namespace nta {
   }; // end class OnlineKMeansCDTest
     
   //----------------------------------------------------------------------
-} // end namespace nta
+} // end namespace nupic
 
 #endif // NTA_COND_PROB_TABLE_TEST_HPP
 

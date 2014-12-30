@@ -26,15 +26,15 @@
 
 //----------------------------------------------------------------------
 
-#include <nta/test/Tester.hpp>
-//#include <nta/foundation/TRandom.hpp>
+#include <nupic/test/Tester.hpp>
+//#include <nupic/foundation/TRandom.hpp>
 
 //----------------------------------------------------------------------
 
 #ifndef NTA_MATHS_TEST_HPP
 #define NTA_MATHS_TEST_HPP
 
-namespace nta {
+namespace nupic {
 
   //----------------------------------------------------------------------
   class MathsTest : public Tester
@@ -48,7 +48,7 @@ namespace nta {
     }
 
     // Run all appropriate tests
-    virtual void RunTests();
+    virtual void RunTests() override;
 
   private:
     //void unitTestNearlyZero();
@@ -71,7 +71,7 @@ namespace nta {
   }; // end class MathsTest
     
   //----------------------------------------------------------------------
-} // end namespace nta
+} // end namespace nupic
 
 #endif // NTA_MATHS_TEST_HPP
 

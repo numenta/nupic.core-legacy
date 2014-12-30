@@ -29,11 +29,11 @@
 #ifndef NTA_SPARSE_TENSOR_UNIT_TEST_HPP
 #define NTA_SPARSE_TENSOR_UNIT_TEST_HPP
 
-#include <nta/test/Tester.hpp>
-#include <nta/math/SparseTensor.hpp>
-//#include <nta/foundation/TRandom.hpp>
+#include <nupic/test/Tester.hpp>
+#include <nupic/math/SparseTensor.hpp>
+//#include <nupic/foundation/TRandom.hpp>
 
-namespace nta {
+namespace nupic {
 
   //--------------------------------------------------------------------------------
   /**
@@ -123,7 +123,7 @@ namespace nta {
       UInt n = 0;
       UInt M = product(bounds_);
       for (UInt i = 0; i < M; ++i)
-        if (!nta::nearlyZero(vals_[i]))
+        if (!nupic::nearlyZero(vals_[i]))
           ++n;
       return n;
     }
@@ -151,13 +151,13 @@ namespace nta {
     {
       Index idx = getNewZeroIndex(), idx2 = getNewZeroIndex();
       
-      nta::permute(perm, bounds_, idx2);
+      nupic::permute(perm, bounds_, idx2);
       if (bounds_ != idx2)
         return false;
 
       do {
-        nta::permute(perm, idx, idx2);
-        if (!nta::nearlyZero(get(idx) - get(idx2)))
+        nupic::permute(perm, idx, idx2);
+        if (!nupic::nearlyZero(get(idx) - get(idx2)))
           return false;
       } while (increment(bounds_, idx));
       
@@ -168,13 +168,13 @@ namespace nta {
     {
       Index idx = getNewZeroIndex(), idx2 = getNewZeroIndex();
       
-      nta::permute(perm, bounds_, idx2);
+      nupic::permute(perm, bounds_, idx2);
       if (bounds_ != idx2)
         return false;
 
       do {
-        nta::permute(perm, idx, idx2);
-        if (!nta::nearlyZero(get(idx) - get(idx2)))
+        nupic::permute(perm, idx, idx2);
+        if (!nupic::nearlyZero(get(idx) - get(idx2)))
           return false;
       } while (increment(bounds_, idx));
 
@@ -297,12 +297,12 @@ namespace nta {
         NTA_ASSERT(ind.isSet());
       }
 
-      Float* buf = new Float[product(bounds_)];
+      auto buf = new Float[product(bounds_)];
       Index idx = getNewZeroIndex(), perm = getNewIndex(), newBounds = getNewIndex();
-      nta::permute(ind, bounds_, newBounds);
+      nupic::permute(ind, bounds_, newBounds);
 
       do {
-        nta::permute(ind, idx, perm);
+        nupic::permute(ind, idx, perm);
         buf[ordinal(newBounds, perm)] = vals_[ordinal(bounds_, idx)];
       } while (increment(bounds_, idx));
 
@@ -321,7 +321,7 @@ namespace nta {
         return;
 
       const UInt M = product(newBounds);
-      Float* buf = new Float[M];
+      auto buf = new Float[M];
       memset(buf, 0, M * sizeof(Float));
       Index idx = getNewZeroIndex();
       
@@ -504,7 +504,7 @@ namespace nta {
       
       do {
         Float val = get(idx);
-        if (!nta::nearlyZero(val)) {
+        if (!nupic::nearlyZero(val)) {
           project(compDims, idx, idx2);
           B.update(idx2, val, f);
         }
@@ -707,7 +707,7 @@ namespace nta {
     const UI M = A.getBounds().product();
     
     for (UI i = 0; i < M; ++i)
-      if (!nta::nearlyZero(A.vals_[i] - B.vals_[i]))
+      if (!nupic::nearlyZero(A.vals_[i] - B.vals_[i]))
         return false;
 
     return true;
@@ -731,7 +731,7 @@ namespace nta {
     }
 
     // Run all appropriate tests
-    virtual void RunTests();
+    virtual void RunTests() override;
 
   private:    
     typedef Index<UInt, 1> I1;
@@ -793,7 +793,7 @@ namespace nta {
   }; // end class SparseTensorUnitTest
     
   //----------------------------------------------------------------------
-} // end namespace nta
+} // end namespace nupic
 
 #endif // NTA_SPARSE_TENSOR_UNIT_TEST_HPP
 

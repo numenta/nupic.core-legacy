@@ -29,18 +29,19 @@
 
 //----------------------------------------------------------------------
 
-#include <nta/test/Tester.hpp>
-#include <nta/ntypes/Dimensions.hpp>
-#include <nta/types/Fraction.hpp>
+#include <nupic/test/Tester.hpp>
+#include <nupic/ntypes/Dimensions.hpp>
+#include <nupic/types/Fraction.hpp>
+#include <utility>
 
 //----------------------------------------------------------------------
 
-namespace nta {
+namespace nupic {
 
   struct UniformLinkPolicyTest : public Tester
   {
     virtual ~UniformLinkPolicyTest() {}
-    virtual void RunTests();
+    virtual void RunTests() override;
 
   private:
 
@@ -57,9 +58,9 @@ namespace nta {
       std::pair<Fraction, Fraction> bounds;
 
       CoordBounds(Coordinate c, size_t dim, std::pair<Fraction, Fraction> b) :
-        coord(c),
+        coord(std::move(c)),
         dimension(dim),
-        bounds(b)
+        bounds(std::move(b))
       {
       }
     };

@@ -26,8 +26,8 @@
 
 #include "ArrayTest.hpp"
 
-#include <nta/ntypes/ArrayBase.hpp>
-#include <nta/types/BasicType.hpp>
+#include <nupic/ntypes/ArrayBase.hpp>
+#include <nupic/types/BasicType.hpp>
 
 #include <boost/scoped_ptr.hpp>
 #include <boost/scoped_array.hpp>
@@ -57,7 +57,7 @@ void AccessViolationHandler(int signal)
 
 typedef void (*AccessViolationHandlerPointer)(int);
 
-void nta::ArrayTest::testMemoryOperations()
+void nupic::ArrayTest::testMemoryOperations()
 {
   //Temporarily swap out the the segv and bus handlers.
   AccessViolationHandlerPointer existingSigsegvHandler;
@@ -139,7 +139,7 @@ void nta::ArrayTest::testMemoryOperations()
 
 #endif
 
-void nta::ArrayTest::testArrayCreation()
+void nupic::ArrayTest::testArrayCreation()
 {
   boost::scoped_ptr<ArrayBase> arrayP;
 
@@ -157,7 +157,7 @@ void nta::ArrayTest::testArrayCreation()
       {
         arrayP.reset(new ArrayBase(testCase->second.dataType));
       }
-      catch(nta::Exception)
+      catch(nupic::Exception)
       {
         caughtException = true;
       }
@@ -176,7 +176,7 @@ void nta::ArrayTest::testArrayCreation()
               testCase->first +
               " - When not passed a size, a newly created ArrayBase should "
               "have a NULL buffer",
-            buf == NULL);
+            buf == nullptr);
       TESTEQUAL2("Test case: " +
                   testCase->first +
                   " - When not passed a size, a newly created ArrayBase should "
@@ -207,7 +207,7 @@ void nta::ArrayTest::testArrayCreation()
   }
 }
 
-void nta::ArrayTest::testBufferAllocation()
+void nupic::ArrayTest::testBufferAllocation()
 {
   bool caughtException;
 
@@ -251,7 +251,7 @@ void nta::ArrayTest::testBufferAllocation()
       {
         a.allocateBuffer(10);
       }
-      catch(nta::Exception)
+      catch(nupic::Exception)
       {
         caughtException = true;
       }
@@ -271,7 +271,7 @@ void nta::ArrayTest::testBufferAllocation()
   }
 }
 
-void nta::ArrayTest::testBufferAssignment()
+void nupic::ArrayTest::testBufferAssignment()
 {
   TestCaseIterator testCase;
   
@@ -298,7 +298,7 @@ void nta::ArrayTest::testBufferAssignment()
     {
       a.setBuffer(buf2.get(), testCase->second.allocationSize);
     }
-    catch(nta::Exception)
+    catch(nupic::Exception)
     {
       caughtException = true;
     }
@@ -311,7 +311,7 @@ void nta::ArrayTest::testBufferAssignment()
   }    
 }
 
-void nta::ArrayTest::testBufferRelease()
+void nupic::ArrayTest::testBufferRelease()
 {
   TestCaseIterator testCase;
   
@@ -328,11 +328,11 @@ void nta::ArrayTest::testBufferRelease()
             testCase->first +
             " - ArrayBase should no longer hold a reference to a locally allocated "
             "buffer after calling releaseBuffer",
-          NULL == a.getBuffer());
+          nullptr == a.getBuffer());
   }    
 }
 
-void nta::ArrayTest::testArrayTyping()
+void nupic::ArrayTest::testArrayTyping()
 {
   TestCaseIterator testCase;
 
@@ -363,7 +363,7 @@ void nta::ArrayTest::testArrayTyping()
   }    
 }
 
-void nta::ArrayTest::RunTests()
+void nupic::ArrayTest::RunTests()
 {
   //we're going to test using all types that can be stored in the ArrayBase...
   //the NTA_BasicType enum overrides the default incrementing values for

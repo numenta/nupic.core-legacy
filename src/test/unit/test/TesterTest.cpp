@@ -22,10 +22,10 @@
 
 #include <iostream>
 #include <stdexcept>
-#include <nta/test/Tester.hpp>
+#include <nupic/test/Tester.hpp>
 #include "TesterTest.hpp"
 
-namespace nta {
+namespace nupic {
 
   template <class T> const T& Max( const T& t1, const T& t2) { return (t1 > t2) ? t1 : t2; }
   template <class T> const T& Min( const T& t1, const T& t2) { return (t1 < t2) ? t1 : t2; }
@@ -71,7 +71,7 @@ namespace nta {
     TEST2("TEST2(true)", true);  
 
     // Tests for throws  
-    nta::LoggingException e(__FILE__, __LINE__);
+    nupic::LoggingException e(__FILE__, __LINE__);
     e << "This exception should be thrown.";
 
     SHOULDFAIL(throw e);  
@@ -93,5 +93,5 @@ namespace nta {
     TEST2("TEST2(false)", false);    
   }
 
-} // end namespace nta
+} // end namespace nupic
 

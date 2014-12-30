@@ -27,16 +27,16 @@
 #include <cstring>
 #include <iostream>
 #include <fstream>
-#include <nta/algorithms/FlatSpatialPooler.hpp>
-#include <nta/math/StlIo.hpp>
-#include <nta/types/Types.hpp>
-#include <nta/utils/Log.hpp>
+#include <nupic/algorithms/FlatSpatialPooler.hpp>
+#include <nupic/math/StlIo.hpp>
+#include <nupic/types/Types.hpp>
+#include <nupic/utils/Log.hpp>
 #include "FlatSpatialPoolerTest.hpp"
 
 using namespace std;
-using namespace nta::algorithms::spatial_pooler;
+using namespace nupic::algorithms::spatial_pooler;
 
-namespace nta {
+namespace nupic {
 
   void FlatSpatialPoolerTest::print_vec(UInt arr[], UInt n)
   {
@@ -56,16 +56,16 @@ namespace nta {
 
   void FlatSpatialPoolerTest::print_vec(vector<UInt> vec)
   {
-    for (UInt i = 0; i < vec.size(); i++) {
-      cout << vec[i] << " ";
+    for (auto & elem : vec) {
+      cout << elem << " ";
     }
     cout << endl;
   }
 
   void FlatSpatialPoolerTest::print_vec(vector<Real> vec)
   {
-    for (UInt i = 0; i < vec.size(); i++) {
-      cout << vec[i] << " ";
+    for (auto & elem : vec) {
+      cout << elem << " ";
     }
     cout << endl;
   }
@@ -228,8 +228,8 @@ namespace nta {
 
     fsp.selectHighTierColumns_(overlapsPct, highTier);
     highTierDense.assign(numColumns, 0);
-    for (UInt i = 0; i < highTier.size(); i++) {
-      highTierDense[highTier[i]] = 1;
+    for (auto & elem : highTier) {
+      highTierDense[elem] = 1;
     }
     NTA_CHECK(check_vector_eq(trueHighTier1, highTierDense));
 
@@ -241,8 +241,8 @@ namespace nta {
 
     fsp.selectHighTierColumns_(overlapsPct, highTier);
     highTierDense.assign(numColumns, 0);
-    for (UInt i = 0; i < highTier.size(); i++) {
-      highTierDense[highTier[i]] = 1;
+    for (auto & elem : highTier) {
+      highTierDense[elem] = 1;
     }
     NTA_CHECK(check_vector_eq(trueHighTier2, highTierDense));
 
@@ -254,8 +254,8 @@ namespace nta {
 
     fsp.selectHighTierColumns_(overlapsPct, highTier);
     highTierDense.assign(numColumns, 0);
-    for (UInt i = 0; i < highTier.size(); i++) {
-      highTierDense[highTier[i]] = 1;
+    for (auto & elem : highTier) {
+      highTierDense[elem] = 1;
     }
     NTA_CHECK(check_vector_eq(trueHighTier3, highTierDense));
 
@@ -267,8 +267,8 @@ namespace nta {
 
     fsp.selectHighTierColumns_(overlapsPct, highTier);
     highTierDense.assign(numColumns, 0);
-    for (UInt i = 0; i < highTier.size(); i++) {
-      highTierDense[highTier[i]] = 1;
+    for (auto & elem : highTier) {
+      highTierDense[elem] = 1;
     }
     NTA_CHECK(check_vector_eq(trueHighTier4, highTierDense));
   }
@@ -331,4 +331,4 @@ namespace nta {
     NTA_ASSERT(ret == 0); // << " FlatSpatialPooler.serialization failed. " << std::endl;
   }
     
-} // end namespace nta
+} // end namespace nupic

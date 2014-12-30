@@ -29,16 +29,16 @@
 
 //----------------------------------------------------------------------
 
-#include <nta/test/Tester.hpp>
+#include <nupic/test/Tester.hpp>
 
 //----------------------------------------------------------------------
 
-namespace nta {
+namespace nupic {
 
   struct DirectoryTest : public Tester
   {
     virtual ~DirectoryTest() {}
-    virtual void RunTests();
+    virtual void RunTests() override;
   };
 }
 

@@ -27,13 +27,13 @@
 #ifndef NTA_SCALAR_TEST_HPP
 #define NTA_SCALAR_TEST_HPP
 
-#include <nta/test/Tester.hpp>
+#include <nupic/test/Tester.hpp>
 
-namespace nta
+namespace nupic
 {
   struct ScalarTest : public Tester
   {
-    virtual void RunTests();
+    virtual void RunTests() override;
   };
 }
 

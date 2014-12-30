@@ -24,12 +24,12 @@
  * Implementation of unit testing for class Domain
  */  
               
-//#include <nta/common/version.hpp>
+//#include <nupic/common/version.hpp>
 #include "DomainUnitTest.hpp"
 
 using namespace std;  
 
-namespace nta {
+namespace nupic {
 
   //--------------------------------------------------------------------------------
   void DomainUnitTest::RunTests()
@@ -259,6 +259,6 @@ namespace nta {
 
   //--------------------------------------------------------------------------------
   
-} // namespace nta
+} // namespace nupic
 
 

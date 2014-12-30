@@ -28,19 +28,19 @@
 #ifndef NTA_OS_TEST_HPP
 #define NTA_OS_TEST_HPP
 
-#include <nta/os/OS.hpp>
-#include <nta/test/Tester.hpp>
+#include <nupic/os/OS.hpp>
+#include <nupic/test/Tester.hpp>
 
-namespace nta {
+namespace nupic {
   
   class OSTest : public Tester {
 public:
     OSTest();
     virtual ~OSTest();
     
-    virtual void RunTests();
+    virtual void RunTests() override;
   };
-} // namespace nta
+} // namespace nupic
 
 
 #endif // NTA_OS_TEST_HPP

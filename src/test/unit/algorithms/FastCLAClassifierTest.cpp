@@ -26,17 +26,17 @@
 
 #include <iostream>
 
-#include <nta/algorithms/ClassifierResult.hpp>
-#include <nta/algorithms/FastClaClassifier.hpp>
-#include <nta/math/StlIo.hpp>
-#include <nta/types/Types.hpp>
-#include <nta/utils/Log.hpp>
+#include <nupic/algorithms/ClassifierResult.hpp>
+#include <nupic/algorithms/FastClaClassifier.hpp>
+#include <nupic/math/StlIo.hpp>
+#include <nupic/types/Types.hpp>
+#include <nupic/utils/Log.hpp>
 #include "FastCLAClassifierTest.hpp"
 
 using namespace std;
-using namespace nta::algorithms::cla_classifier;
+using namespace nupic::algorithms::cla_classifier;
 
-namespace nta {
+namespace nupic {
 
   void FastCLAClassifierTest::RunTests()
   {
@@ -68,7 +68,7 @@ namespace nta {
     {
       bool foundMinus1 = false;
       bool found1 = false;
-      for (map<Int, vector<Real64>*>::const_iterator it = result2.begin();
+      for (auto it = result2.begin();
            it != result2.end(); ++it)
       {
         if (it->first == -1)
@@ -103,4 +103,4 @@ namespace nta {
     }
   }
 
-} // end namespace nta
+} // end namespace nupic

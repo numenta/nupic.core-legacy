@@ -29,17 +29,17 @@
 
 //----------------------------------------------------------------------
 
-#include <nta/test/Tester.hpp>
+#include <nupic/test/Tester.hpp>
 
 //----------------------------------------------------------------------
 
-namespace nta 
+namespace nupic
 {
 
   struct RegexTest : public Tester
   {
     virtual ~RegexTest() {}
-    virtual void RunTests();
+    virtual void RunTests() override;
   };
 }
 

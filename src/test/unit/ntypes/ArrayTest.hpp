@@ -27,11 +27,11 @@
 #ifndef NTA_ARRAY_TEST_HPP
 #define NTA_ARRAY_TEST_HPP
 
-#include <nta/test/Tester.hpp>
+#include <nupic/test/Tester.hpp>
 
 #include <map>
 
-namespace nta
+namespace nupic
 {
   struct ArrayTestParameters
   {
@@ -59,14 +59,14 @@ namespace nta
       dataType(dataTypeParam),
       dataTypeSize(dataTypeSizeParam),
       allocationSize(allocationSizeParam),
-      dataTypeText(dataTypeTextParam),
+      dataTypeText(std::move(dataTypeTextParam)),
       testUsesInvalidParameters(testUsesInvalidParametersParam) { }
   };
 
   struct ArrayTest : public Tester
   {
     virtual ~ArrayTest() {}
-    virtual void RunTests();
+    virtual void RunTests() override;
         
 private:
     std::map<std::string,ArrayTestParameters> testCases_;

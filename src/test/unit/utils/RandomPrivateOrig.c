@@ -31,8 +31,7 @@
  * We retain the code here for unit testing.
  * 
  * Build system note: this code is #included into RandomTest.cpp -- it does 
- * not appear in build system files (Makefile.am, testeverything.vcproj)
- * because the filename contains _private_
+ * not appear in build system files because the filename contains _private_
  * 
  */
 
@@ -234,8 +233,8 @@ static long *end_ptr = &randtbl[DEG_3 + 1];
 void
 mysrandom(unsigned long x)
 {
-	register long int test;
-	register int i;
+	long int test;
+	int i;
 	ldiv_t val;
 
 	if (rand_type == TYPE_0)
@@ -302,7 +301,7 @@ myinitstate(unsigned long seed, char *arg_state, int n)
 //	int n;				/* # bytes of state info */
 //
 {
-	register char *ostate = (char *)(&state[-1]);
+	char *ostate = (char *)(&state[-1]);
 
 	if (rand_type == TYPE_0)
 		state[-1] = rand_type;
@@ -311,7 +310,7 @@ myinitstate(unsigned long seed, char *arg_state, int n)
 	if (n < BREAK_0) {
 		(void)fprintf(stderr,
 		    "random: not enough state (%d bytes); ignored.\n", n);
-		return(0);
+		return(nullptr);
 	}
 	if (n < BREAK_1) {
 		rand_type = TYPE_0;
@@ -362,9 +361,9 @@ myinitstate(unsigned long seed, char *arg_state, int n)
 char *
 mysetstate(char *arg_state)
 {
-	register long *new_state = (long *)arg_state;
-	register int type = new_state[0] % MAX_TYPES;
-	register int rear = new_state[0] / MAX_TYPES;
+	long *new_state = (long *)arg_state;
+	int type = new_state[0] % MAX_TYPES;
+	int rear = new_state[0] / MAX_TYPES;
 	char *ostate = (char *)(&state[-1]);
 
 	if (rand_type == TYPE_0)

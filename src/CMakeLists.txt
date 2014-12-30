@@ -1,6 +1,6 @@
-# ------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Numenta Platform for Intelligent Computing (NuPIC)
-# Copyright (C) 2013, Numenta, Inc.  Unless you have purchased from
+# Copyright (C) 2013-2014, Numenta, Inc.  Unless you have purchased from
 # Numenta, Inc. a separate commercial license for this software code, the
 # following terms and conditions apply:
 #
@@ -19,702 +19,496 @@
 # http://numenta.org/licenses/
 #
 # Contributor(s):
-#   David Ragazzi (@DavidRagazzi): Full conversion and adaptation from Autotools
-#     scripts
+#   David Ragazzi (@DavidRagazzi): Full conversion and adaptation from
+#     Autotools scripts
 #   Jim Bridgewater (jwbwater@gmail.com): Updated option help messages
-# ------------------------------------------------------------------------------
-
-################################################################################
-###                                                                          ###
-### Macros                                                                   ###
-###                                                                          ###
-################################################################################
-
-# These macros copy all source directories after the configuration is done
-macro (copy suffix src dst)
-  message(STATUS "Copying from '${src}' to '${dst}'")
-  execute_process(COMMAND ${CMAKE_COMMAND} -E copy${suffix} ${src} ${dst})
-endmacro()
-macro (copy_file src dst)
-  copy("" ${src} ${dst})
-endmacro()
-macro (copy_directory src dst)
-  copy("_directory" ${src} ${dst})
-endmacro()
-
-# This macro get all subdirectories from a directory.
-macro (get_directories_list current_dir dir_mask)
-  file(GLOB children RELATIVE ${current_dir} ${current_dir}/*)
-  foreach(child ${children})
-    if(IS_DIRECTORY ${current_dir}/${child})
-      get_directories_list(${current_dir}/${child} ${dir_mask})
-      set(can_return_item ON)
-      if(NOT "${dir_mask}" STREQUAL " ")
-        if(NOT ${current_dir} MATCHES ${dir_mask})
-          set(can_return_item OFF)
-        endif()
-      endif()
-      if(can_return_item)
-        set(ITEMS_RETURNED ${ITEMS_RETURNED} ${current_dir}/${child})
-      endif()
-    endif()
-  endforeach()
-endmacro()
-
-# This macro get all files from a directory and its subdirectories.
-macro (get_files_list current_dir dir_mask file_mask)
-  file(GLOB children RELATIVE ${current_dir} ${current_dir}/*)
-  foreach(child ${children})
-    if(IS_DIRECTORY ${current_dir}/${child})
-      get_files_list(${current_dir}/${child} ${dir_mask} ${file_mask})
-    else()
-      set(can_return_item ON)
-      if(NOT "${dir_mask}" STREQUAL " ")
-        if(NOT ${current_dir} MATCHES ${dir_mask})
-          set(can_return_item OFF)
-        endif()
-      endif()
-      if(NOT "${file_mask}" STREQUAL " ")
-        if(NOT ${child} MATCHES ${file_mask})
-          set(can_return_item OFF)
-        endif()
-      endif()
-      if(can_return_item)
-        set(ITEMS_RETURNED ${ITEMS_RETURNED} ${current_dir}/${child})
-      endif()
-    endif()
-  endforeach()
-endmacro()
-
-# This macro get all source files from a directory and its subdirectories.
-macro(get_source_groups src_dir)
-  set(SOURCE_RETURNED)
-  set(ITEMS_RETURNED)
-
-  # Add root files as a blank source group
-  file(GLOB src_files
-    ${src_dir}/*.cpp
-    ${src_dir}/*.hpp
-    ${src_dir}/*.h
-  )
-  if(src_files)
-    set(SOURCE_RETURNED ${SOURCE_RETURNED} ${src_files})
-    source_group("" FILES ${src_files})
-  endif()
-
-  # Add every subdir as a source group
-  get_directories_list(${src_dir} " ")
-  set(src_sub_dirs ${ITEMS_RETURNED})
-  if(src_sub_dirs)
-    foreach(dir ${src_sub_dirs})
-      file(GLOB src_files
-        ${dir}/*.cpp
-        ${dir}/*.hpp
-        ${dir}/*.h
-      )
-      get_filename_component(src_group ${dir} NAME)
-      set(SOURCE_RETURNED ${SOURCE_RETURNED} ${src_files})
-      source_group(${src_group} FILES ${src_files})
-    endforeach()
-  endif()
-endmacro()
-
-# This macro generates a executable
-macro(generate_executable name src_dir output_dir cxx_flags link_flags libraries)
-  get_source_groups(${src_dir})
-  add_executable(${name}
-    ${SOURCE_RETURNED}
-  )
-  target_link_libraries(${name}
-    ${libraries}
-  )
-  set_target_properties(${name} PROPERTIES COMPILE_FLAGS "${cxx_flags}")
-  set_target_properties(${name} PROPERTIES LINK_FLAGS "${link_flags}")
-  set_target_properties(${name} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${output_dir})
-  foreach(OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES})
-    string(TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG)
-    set_target_properties(${name} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${output_dir})
-  endforeach()
-endmacro()
-
-# This macro generates a static library
-macro(generate_static_library name src_dir output_dir cxx_flags)
-  get_source_groups(${src_dir})
-  add_library(${name}
-    STATIC
-    ${SOURCE_RETURNED}
-  )
-  set_target_properties(${name} PROPERTIES COMPILE_FLAGS "${cxx_flags}")
-  set_target_properties(${name} PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${output_dir})
-  foreach(OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES})
-    string(TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG)
-    set_target_properties(${name} PROPERTIES ARCHIVE_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${output_dir})
-  endforeach()
-endmacro()
-
-# This macro generates a static library by merging another ones
-macro(merge_static_libraries new_lib output_dir libraries target)
-  set(lib_files)
-  foreach(lib ${libraries})
-    get_target_property(lib_file ${lib} RELEASE_LOCATION)
-    set(lib_files ${lib_files} ${lib_file})
-  endforeach()
-  if(WINDOWS)
-    # TODO: Use "lib.exe" as equivalent of "ar"
-  else()
-    # Extract object files from the libraries
-    foreach(lib_file ${lib_files})
-      add_custom_command(TARGET ${target} POST_BUILD
-                         COMMAND ${CMAKE_AR} -x ${lib_file}
-                         WORKING_DIRECTORY ${PROJECT_BUILD_TEMP_DIR}/obj)
-    endforeach()
-    add_custom_command(TARGET ${target} POST_BUILD
-                       COMMAND ${CMAKE_AR} -rc ${output_dir}/${LIB_PREFIX}${new_lib}.${STATIC_LIB_EXTENSION} *.o
-                       WORKING_DIRECTORY ${PROJECT_BUILD_TEMP_DIR}/obj)
-  endif()
-endmacro()
-
-# This macro gets the compiler family being used.
-# Currently compiler_family can only be one of GNU/CLANG/MSVC/unsupported, more can be added
-macro(get_compiler_family compiler_family)
-    if(CMAKE_COMPILER_IS_GNUCXX)
-      # The compiler is a GNU g++ variant.
-      # This is also true for MinGW and Cygwin on Windows
-      set(${compiler_family} "GNU")
-    elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
-      # The compiler is clang
-      set(${compiler_family} "CLANG")
-    elseif(MSVC)
-      set(${compiler_family} "MSVC")
-    elseif(BORLAND)
-      set(${compiler_family} "BORLAND")
-    elseif(WATCOM)
-      set(${compiler_family} "WATCOM")
-    else()
-      # See http://www.cmake.org/Wiki/CMake_Useful_Variables
-      set(${compiler_family} "unsupported")
-    endif()
-endmacro()
-
-
-################################################################################
-###                                                                          ###
-###  1st Part:                                                               ###
-###  Configuration of the environment                                        ###
-###                                                                          ###
-################################################################################
+#   Austin Marshall (amarshall@numenta.com): On-going maintenance
+# -----------------------------------------------------------------------------
 
 cmake_minimum_required(VERSION 2.8)
 project(nupic_core CXX)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 #
-# Set C++ compiler.
-# According to CMake documentation, this must be done before any language is set (ie before any project() or enable_language() command).
+# Include extra cmake files
 #
-set(USER_CXX_COMPILER "" CACHE STRING "Default C++ compiler to be used (GCC / CLANG) [default=system compiler]")
-if(NOT "${USER_CXX_COMPILER}" STREQUAL "")
-  set(CMAKE_CXX_COMPILER "${USER_CXX_COMPILER}")
-endif()
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
+                      "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
 
 #
-# Sets default locations.
+# Identify platform
 #
-# Default directories structure is:
-#
-# ~/../repository (root directory with repository downloaded from internet)
-#         /docs (subdirectory with support documentation)
-#         /src (subdirectory with all source code)
-#         /build/scripts ([suggested] subdirectory with build process [makefiles or IDE solution] generated by CMake)
-#         /build/release (subdirectory with executables and libraries generated by build proccess)
-#         /build/temp (directory with temporary files generated by build proccess)
-#         Readme.md
-#         Licence.txt
-#
-# Repository root is the parent directory which this CMake file is located
-# This CMake file must be always on /repository/src subdirectory.
-get_filename_component(REPOSITORY_DIR ${PROJECT_SOURCE_DIR} PATH)
-# 'release' is a subdirectory created on /build root.
-if (${CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT})
-  if ("${PROJECT_BUILD_RELEASE_DIR}" STREQUAL "")
-    set(CMAKE_INSTALL_PREFIX "${REPOSITORY_DIR}/build/release")
-  else()
-    # Set CMAKE_INSTALL_PREFIX to user-specified PROJECT_BUILD_RELEASE_DIR (deprecated)
-    # TODO: Remove this if...else...endif block re: https://github.com/numenta/nupic.core/issues/171
-    message(WARNING "PROJECT_BUILD_RELEASE_DIR is deprecated.  Please use CMAKE_INSTALL_PREFIX instead.")
-    set(CMAKE_INSTALL_PREFIX ${PROJECT_BUILD_RELEASE_DIR})
-  endif()
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+  set(PLATFORM "darwin")
+  set(STDLIB "-stdlib=libc++")
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+  set(PLATFORM "linux")
+  set(STDLIB "")
 endif()
-# 'temp' is a subdirectory created on /build root.
-if("${PROJECT_BUILD_TEMP_DIR}" STREQUAL "")
-  set(PROJECT_BUILD_TEMP_DIR "${REPOSITORY_DIR}/build/temp")
+
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+   set(STDLIB "${STDLIB} -static-libgcc -static-libstdc++")
 endif()
-# 'artifacts' is a subdirectory created on /build root.
+
+set(BITNESS 32)
+if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+  set(BITNESS 64)
+endif()
+
+# Compiler `-D*` definitions
+add_definitions(-DNTA_PLATFORM_${PLATFORM}${BITNESS}
+                -DHAVE_CONFIG_H
+                -DNTA_INTERNAL
+                -DBOOST_NO_WREGEX
+                -DNUPIC2
+                -DNTA_ASSERTIONS_ON
+                -DNTA_ASM)
+
+#
+# Setup include paths
+#
+get_filename_component(REPOSITORY_DIR ${PROJECT_SOURCE_DIR}/.. ABSOLUTE)
+
 if("${PROJECT_BUILD_ARTIFACTS_DIR}" STREQUAL "")
   set(PROJECT_BUILD_ARTIFACTS_DIR "${REPOSITORY_DIR}/build/artifacts")
 endif()
 
-#
-# Prepare directory structure
-#
-execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_INSTALL_PREFIX}/include)
-execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_INSTALL_PREFIX}/lib)
-execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_INSTALL_PREFIX}/bin)
-execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_TEMP_DIR}/lib)
-execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_TEMP_DIR}/obj)
-execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_ARTIFACTS_DIR}/)
+include_directories(SYSTEM
+                    "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/include"
+                    "${REPOSITORY_DIR}/external/common/include"
+                    "${PROJECT_SOURCE_DIR}"
+                    "${PROJECT_BINARY_DIR}")
 
-#
-# Set OS flags
-#
-if(UNIX)
-  set(LIB_PREFIX "lib")
-  set(STATIC_LIB_EXTENSION "a")
-  if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    set(OSX ON)
-    set(DYNAMIC_LIB_EXTENSION "dylib")
-  elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    set(LINUX ON)
-    set(DYNAMIC_LIB_EXTENSION "so")
-  elseif(${CMAKE_SYSTEM_NAME} MATCHES "SunOS")
-    set(SOLARIS ON)
-    set(DYNAMIC_LIB_EXTENSION "so")
-  endif()
-elseif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-  set(WINDOWS ON)
-  set(LIB_PREFIX "")
-  set(STATIC_LIB_EXTENSION "lib")
-  set(DYNAMIC_LIB_EXTENSION "dll")
+set(COMMON_LINK_FLAGS "-m${BITNESS} ${STDLIB}")
+set(COMPILE_FLAGS "-fPIC -std=c++11 -m${BITNESS} ${STDLIB} -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-unused-parameter")
+
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+  set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} -static-libstdc++")
 endif()
 
 #
-# Determine project platform type
+# Let CMake know where all of the external files are.
 #
-message(STATUS "Checking platform...")
-if(${CMAKE_SIZEOF_VOID_P} MATCHES "8")
-  set(NTA_PLATFORM_ARCH "64")
-else()
-  set(NTA_PLATFORM_ARCH "32")
-endif()
-set(NTA_PLATFORM_CXXFLAGS "-fPIC -DPIC")
-set(NTA_PLATFORM_LINKFLAGS "")
-set(NTA_PLATFORM_LIBS "-std=c++98")
-if(OSX)
-  set(CMAKE_OSX_DEPLOYMENT_TARGET "10.7")
-  set(NTA_PLATFORM_OS "darwin64")
-  set(NTA_PLATFORM_CXXFLAGS "${NTA_PLATFORM_CXXFLAGS} -m64")
-  set(NTA_PLATFORM_DEBUGFLAGS "-gfull")
-  set(NTA_PLATFORM_LINKFLAGS "${NTA_PLATFORM_LINKFLAGS} -Wl,-u,_munmap")
-  set(NTA_PLATFORM_LIBS "${NTA_PLATFORM_LIBS} -stdlib=libstdc++ -lc++abi -liconv -lsqlite3 -framework CoreServices -framework Accelerate")
-elseif(LINUX)
-  set(NTA_PLATFORM_DEBUGFLAGS "-g")
-  set(NTA_PLATFORM_LINKFLAGS "${NTA_PLATFORM_LINKFLAGS} -Wl,--no-as-needed -static-libgcc")
-  set(NTA_PLATFORM_LIBS "${NTA_PLATFORM_LIBS} -lm -lpthread -ldl -lutil")
-  if(${NTA_PLATFORM_ARCH} MATCHES "64")
-    set(NTA_PLATFORM_OS "linux64")
-    set(NTA_PLATFORM_CXXFLAGS "${NTA_PLATFORM_CXXFLAGS} -m64")
-  else()
-    set(NTA_PLATFORM_OS "linux32")
-    set(NTA_PLATFORM_CXXFLAGS "${NTA_PLATFORM_CXXFLAGS} -ffloat-store")
-  endif()
-elseif(WINDOWS)
-  set(NTA_PLATFORM_OS "win32")
-  set(NTA_PLATFORM_CXXFLAGS "${NTA_PLATFORM_CXXFLAGS} -DWIN32")
-elseif(SOLARIS)
-  set(NTA_PLATFORM_DEBUGFLAGS "-g")
-  set(NTA_PLATFORM_LINKFLAGS "${NTA_PLATFORM_LINKFLAGS} -shared-libgcc -m64")
-  set(NTA_PLATFORM_LIBS "${NTA_PLATFORM_LIBS} -lm -lpthread -ldl -lnsl -lsocket")
-  execute_process(COMMAND isainfo -b OUTPUT_VARIABLE NTA_PLATFORM_ARCH)
-  if(${NTA_PLATFORM_ARCH} MATCHES "64")
-    set(NTA_PLATFORM_OS "sparc64")
-    set(NTA_PLATFORM_CXXFLAGS "${NTA_PLATFORM_CXXFLAGS} -m64")
-  else()
-    set(NTA_PLATFORM_OS "sparc32")
-    set(NTA_PLATFORM_CXXFLAGS "${NTA_PLATFORM_CXXFLAGS} -ffloat-store")
-  endif()
-else()
-  message(FATAL_ERROR "${CMAKE_CURRENT_LIST_FILE}:${CMAKE_CURRENT_LIST_LINE}: error: ${CMAKE_SYSTEM_NAME} not supported yet.")
-endif()
-
-message(STATUS "Platform: ${NTA_PLATFORM_OS}")
-message(STATUS "Platform-specific flags:")
-message(STATUS "  Libraries: ${NTA_PLATFORM_LIBS}")
-message(STATUS "  CXX flags: ${NTA_PLATFORM_CXXFLAGS}")
-message(STATUS "  Debug flags: ${NTA_PLATFORM_DEBUGFLAGS}")
-message(STATUS "  LD flags: ${NTA_PLATFORM_LINKFLAGS}")
-
-message(STATUS "Checking software tools...")
+set(CMAKE_PREFIX_PATH ${REPOSITORY_DIR}/external/common/
+                      ${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/)
+#
+# Make sure the Cap'n Proto generation scripts are on the PATH.
+#
+set(ENV{PATH} "$ENV{PATH}:${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/bin")
 
 #
-# Gives the family of C++ compiler
+# Extract current git sha and record in nupic/Version.hpp
 #
-get_compiler_family(NTA_COMPILER_FAMILY)
+execute_process(COMMAND git rev-parse HEAD
+                OUTPUT_VARIABLE NUPIC_CORE_VERSION
+                OUTPUT_STRIP_TRAILING_WHITESPACE)
+configure_file(
+  "${PROJECT_SOURCE_DIR}/nupic/Version.hpp.in"
+  "${PROJECT_BINARY_DIR}/Version.hpp")
 
 #
-# Gives the version of C++ compiler
-#
-execute_process(COMMAND ${CMAKE_CXX_COMPILER} -dumpversion
-                OUTPUT_VARIABLE CXX_VERSION)
-
-#
-# Shows components details.
-#
-message(STATUS "C++ details:")
-message(STATUS "  Compiler: ${CMAKE_CXX_COMPILER}")
-message(STATUS "  Compiler Family: ${NTA_COMPILER_FAMILY}")
-message(STATUS "  Version: ${CXX_VERSION}")
-
-#
-# Project details
-#
-message(STATUS "Checking project...")
-message(STATUS "Project: ${PROJECT_NAME}")
-message(STATUS "Locations:")
-message(STATUS "  Source: ${PROJECT_SOURCE_DIR}")
-message(STATUS "  Build System: ${PROJECT_BINARY_DIR}")
-message(STATUS "  Build Directory: ${PROJECT_BUILD_TEMP_DIR}")
-message(STATUS "  Release: ${CMAKE_INSTALL_PREFIX}")
-
-################################################################################
-###                                                                          ###
-###  2nd Part:                                                               ###
-###  Configuration of compiler flags                                         ###
-###                                                                          ###
-################################################################################
-
-#
-# Define custom preprocessor variables (#define XX in C++ code)
-#
-# The reason to use add_definitions() instead of appending flag -std=c++0x
-# directly to CXXBASE_FLAGS is that cmake deploys "internal smarts" for
-# compatibility with different compilers (clang, gcc 4.6 vs 4.8)
-add_definitions(-std=c++98) # smart flag setting for gcc/clang
-
-#
-# Get extra flags passed by command line.
-#
-set(USER_CXXFLAGS "" CACHE STRING "Extra CXX flags")
-set(USER_LINKFLAGS "" CACHE STRING "Extra Link flags")
-
-#
-# Include directories of headers
-# Allows us to find includes for external libraries and enables
-# #include <nta/common/...>
-#
-include_directories(SYSTEM "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/include" "${REPOSITORY_DIR}/external/common/include")
-set(NTA_INCLUDEFLAGS "-I${CMAKE_INSTALL_PREFIX}/include")
-
-#
-# NTA_INTERNAL tells us that the code is being built under the build system
-# and not as a separate program. Used for cppvision example.
-set(NTA_CXXFLAGS_BASE "${NTA_INCLUDEFLAGS} ${NTA_PLATFORM_CXXFLAGS} -DHAVE_CONFIG_H -DNTA_INTERNAL -DNTA_PLATFORM_${NTA_PLATFORM_OS} -DNTA_COMPILER_${NTA_COMPILER_FAMILY} -DBOOST_NO_WREGEX -DNUPIC2")
-
-#
-# All executables and plugins are linked with these flags
-#
-set(NTA_LINKFLAGS "${USER_LINKFLAGS} ${NTA_PLATFORM_LINKFLAGS} ${NTA_PLATFORM_LIBS} -L${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib")
-
-message(STATUS "Options:")
-
-#
-# Optimization can be set at configure time
-#
-option(NTA_OPTIMIZATION_ENABLED "-DNTA_OPTIMIZATION_ENABLED=[ON/OFF] turn on optimization [default=ON]" ON)
-if(NTA_OPTIMIZATION_ENABLED)
-  # -ftree-vectorize conflicts with -no-tree-aliasing on leopard, so removed
-  # flag NTA_ASM enables/disables our hand tuned assbembly code (SSE), but it's available only for some platform
-  set(NTA_CXXFLAGS_OPTIMIZATION "-O3 -pipe -DNTA_ASM")
-else()
-  set(NTA_CXXFLAGS_OPTIMIZATION "-O0 -fno-inline")
-endif()
-message(STATUS "  Optimization: ${NTA_OPTIMIZATION_ENABLED}")
-
-#
-# Enable/disable debugging symbols (-g). Enabled by default (stripped for release).
-# This is orthogonal to optimization
-#
-option(NTA_DEBUGSYMBOLS_ENABLED "-DNTA_DEBUGSYMBOLS_ENABLED=[ON/OFF] turn on debug symbols [default=ON]" ON)
-if(NTA_DEBUGSYMBOLS_ENABLED)
-  set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} ${NTA_PLATFORM_DEBUGFLAGS}")
-endif()
-message(STATUS "  Debug Symbols: ${NTA_DEBUGSYMBOLS_ENABLED}")
-
-#
-# Enable/disable NTA_ASSERT.
-#
-option(NTA_ASSERTIONS_ENABLED "-DNTA_ASSERTIONS_ENABLED=[ON/OFF] turn on assertions [default=ON]" ON)
-if(NTA_ASSERTIONS_ENABLED)
-  set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -DNTA_ASSERTIONS_ON")
-else()
-  set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -DNDEBUG")
-endif()
-message(STATUS "  Assertions: ${NTA_ASSERTIONS_ENABLED}")
-
-#
-# Enable/disable gprof profiling (this option is not frequently used/tested).
-#
-option(NTA_PROFILING_ENABLED "-DNTA_PROFILING_ENABLED=[ON/OFF] turn on profiling [default=OFF]" OFF)
-if(NTA_PROFILING_ENABLED)
-  set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -pg")
-  set(NTA_LINKFLAGS "${NTA_LINKFLAGS} -pg")
-endif()
-message(STATUS "  Profiling: ${NTA_PROFILING_ENABLED}")
-
-#
-# Enable/disable Coverage (this option is mainly used for generating test coverage reports).
-#
-option(NTA_COV_ENABLED "-DNTA_COV_ENABLED=[ON/OFF] turn on test coverage [default=OFF]" OFF)
-if(NTA_COV_ENABLED)
-  if(${NTA_COMPILER_FAMILY} STREQUAL "GNU")
-    set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -fprofile-arcs -ftest-coverage")
-    set(LIB_STATIC_COV gcov)
-  elseif(${NTA_COMPILER_FAMILY} STREQUAL "CLANG")
-    set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} --coverage")
-    set(NTA_LINKFLAGS "${NTA_LINKFLAGS} --coverage")
-  else()
-    # TODO
-    message(STATUS "  Warning: Coverage can't be enabled yet unless the compiler is gcc or clang, ignoring...")
-  endif()
-endif()
-message(STATUS "  Coverage: ${NTA_COV_ENABLED}")
-
-#
-# Build using MPI headers and library,
-# and enable features that depend on MPI.
-#
-option(NTA_MPI_SUPPORT "-DNTA_MPI_SUPPORT=[ON/OFF] turn on MPI support [default=ON]" ON)
-message(STATUS "  MPI Support: ${NTA_MPI_SUPPORT}")
-
-#
-# Compiler specific (clang, gcc, ..) flags can be set here
-#
-if(${NTA_COMPILER_FAMILY} STREQUAL "GNU")
-  set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-sign-compare -Wno-error=format=")
-  set(NTA_CXXFLAGS_OPTIMIZATION "${NTA_CXXFLAGS_OPTIMIZATION} -falign-loops=16")
-  # workaround for gcc 4.4 in Grok
-  execute_process(COMMAND ${CMAKE_C_COMPILER} -dumpversion OUTPUT_VARIABLE GCC_VERSION)
-  if (GCC_VERSION VERSION_GREATER 4.6 OR GCC_VERSION VERSION_EQUAL 4.6)
-    set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -Wno-error=cpp -Werror")
-  endif()
-  set(NTA_LINKFLAGS_ARCHIVES "-Wl,-whole-archive")
-elseif(${NTA_COMPILER_FAMILY} STREQUAL "CLANG")
-  set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-unused-parameter")
-elseif(${NTA_COMPILER_FAMILY} EQUAL "MSVC")
-  # TODO: add VC-specific compiler options
-  # define NOMINMAX to avoid MSVC to define min() and max() as macros,
-  # see http://support.microsoft.com/kb/143208 , http://msdn.microsoft.com/en-us/library/hhzbb5c8.aspx
-  set(NTA_CXXFLAGS_BASE "${NTA_CXXFLAGS_BASE} /DNOMINMAX")
-else()
-# TODO: What compilers is it for? Should it be more explicit?
-  set(NTA_LINKFLAGS_ARCHIVES "-Wl,-force_load")
-endif()
-
-#
-# NTA_CXXFLAGS are used everywhere.
-#
-set(NTA_CXXFLAGS "${USER_CXXFLAGS} ${NTA_CXXFLAGS_BASE} ${NTA_CXXFLAGS_OPTIMIZATION}")
-
-
-################################################################################
-###                                                                          ###
-###  3rd Part:                                                               ###
-###  Generation of the project and its modules                               ###
-###                                                                          ###
-################################################################################
-
-#
-# Apache's external libraries.
-#
-set(LIB_STATIC_APR1 apr-1)
-add_library(${LIB_STATIC_APR1} STATIC IMPORTED)
-set_property(TARGET ${LIB_STATIC_APR1} PROPERTY IMPORTED_LOCATION "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib/libapr-1.${STATIC_LIB_EXTENSION}")
-
-set(LIB_STATIC_APRUTIL1 aprutil-1)
-add_library(${LIB_STATIC_APRUTIL1} STATIC IMPORTED)
-set_property(TARGET ${LIB_STATIC_APRUTIL1} PROPERTY IMPORTED_LOCATION "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib/libaprutil-1.${STATIC_LIB_EXTENSION}")
-
-set(LIB_STATIC_Z z)
-add_library(${LIB_STATIC_Z} STATIC IMPORTED)
-set_property(TARGET ${LIB_STATIC_Z} PROPERTY IMPORTED_LOCATION "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib/libz.${STATIC_LIB_EXTENSION}")
-
-set(LIB_STATIC_YAML yaml)
-add_library(${LIB_STATIC_YAML} STATIC IMPORTED)
-set_property(TARGET ${LIB_STATIC_YAML} PROPERTY IMPORTED_LOCATION "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib/libyaml.${STATIC_LIB_EXTENSION}")
-
-if(SOLARIS)
-  set(LIB_STATIC_YAML_CPP yaml-cpp)
-  add_library(${LIB_STATIC_YAML_CPP} STATIC IMPORTED)
-  set_property(TARGET ${LIB_STATIC_YAML_CPP} PROPERTY IMPORTED_LOCATION "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib/libyaml-cpp.${STATIC_LIB_EXTENSION}")
-endif()
-
-if(WINDOWS)
-  set(LIB_STATIC_PCRE pcre)
-  add_library(${LIB_STATIC_PCRE} STATIC IMPORTED)
-  set_property(TARGET ${LIB_STATIC_PCRE} PROPERTY IMPORTED_LOCATION "${REPOSITORY_DIR}/external/${NTA_PLATFORM_OS}/lib/libpcre.${STATIC_LIB_EXTENSION}")
-endif()
-
-#
-# Set list of external libraries to this project.
-#
-if(SOLARIS)
-  set(NTA_STANDARD_LIBS
-    ${LIB_STATIC_YAML_CPP}
-    ${LIB_STATIC_YAML}
-    ${LIB_STATIC_APR1}
-    ${LIB_STATIC_APRUTIL1}
-    ${LIB_STATIC_Z}
-  )
-else()
-  set(NTA_STANDARD_LIBS
-    ${LIB_STATIC_YAML}
-    ${LIB_STATIC_APR1}
-    ${LIB_STATIC_APRUTIL1}
-    ${LIB_STATIC_Z}
-  )
-endif()
-
-message(STATUS "Configuring subprojects...")
-
-#
-# LibNupicCore
-#
-set(LIB_STATIC_NUPICCORE nupic_core)
-generate_static_library(${LIB_STATIC_NUPICCORE} "${PROJECT_SOURCE_DIR}/main" "${PROJECT_BUILD_TEMP_DIR}/lib" "${NTA_CXXFLAGS}")
-
-
-#
-# Compile google test from source for linking with tests
+# build gtest
 #
 set(LIB_STATIC_GTEST gtest)
-generate_static_library(${LIB_STATIC_GTEST} "${REPOSITORY_DIR}/external/common/src/gtest" "${PROJECT_BUILD_TEMP_DIR}/lib" "${NTA_CXXFLAGS}")
+add_library(${LIB_STATIC_GTEST}
+            STATIC
+            ${REPOSITORY_DIR}/external/common/src/gtest/gtest-all.cpp)
+set_target_properties(${LIB_STATIC_GTEST}
+                      PROPERTIES COMPILE_FLAGS "${COMPILE_FLAGS}"
+                      LINK_FLAGS "${COMMON_LINK_FLAGS}")
+
 
 #
-# Set list of external libraries to tests
+# Find and add libapr1
 #
-set(NTA_TEST_LIBS
-  ${LIB_STATIC_COV}
-  ${LIB_STATIC_GTEST}
+set(LIB_STATIC_APR1 apr-1)
+find_library(LIB_STATIC_APR1_LOC
+             ${LIB_STATIC_APR1}
+             "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/lib/"
+             NO_DEFAULT_PATH)
+add_library(${LIB_STATIC_APR1} STATIC IMPORTED GLOBAL)
+
+#
+# Find and add libaprutil-1
+#
+set(LIB_STATIC_APRUTIL1 aprutil-1)
+find_library(LIB_STATIC_APRUTIL1_LOC
+             ${LIB_STATIC_APRUTIL1}
+             "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/lib/"
+             NO_DEFAULT_PATH)
+add_library(${LIB_STATIC_APRUTIL1} STATIC IMPORTED GLOBAL)
+
+#
+# Find and add libyaml
+#
+set(LIB_STATIC_YAML yaml)
+find_library(LIB_STATIC_YAML_LOC
+             ${LIB_STATIC_YAML}
+             "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/lib/"
+             NO_DEFAULT_PATH)
+add_library(${LIB_STATIC_YAML} STATIC IMPORTED GLOBAL)
+
+#
+# Find and add libyaml-cpp
+#
+set(LIB_STATIC_YAML_CPP yaml-cpp)
+find_library(LIB_STATIC_YAML_CPP_LOC
+             ${LIB_STATIC_YAML_CPP}
+             "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/lib/"
+             NO_DEFAULT_PATH)
+add_library(${LIB_STATIC_YAML_CPP} STATIC IMPORTED GLOBAL)
+
+#
+# Find and add libz
+#
+set(LIB_STATIC_Z z)
+find_library(LIB_STATIC_Z_LOC
+             ${LIB_STATIC_Z}
+             "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/lib/"
+             NO_DEFAULT_PATH)
+add_library(${LIB_STATIC_Z} STATIC IMPORTED GLOBAL)
+
+#
+# Find and add libkj
+#
+set(LIB_STATIC_KJ kj)
+find_library(LIB_STATIC_KJ_LOC
+             ${LIB_STATIC_KJ}
+             "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/lib/"
+             NO_DEFAULT_PATH)
+add_library(${LIB_STATIC_KJ} STATIC IMPORTED GLOBAL)
+
+#
+# Find and add libcapnp
+#
+set(LIB_STATIC_CAPNP capnp)
+find_library(LIB_STATIC_CAPNP_LOC
+             ${LIB_STATIC_CAPNP}
+             "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/lib/"
+             NO_DEFAULT_PATH)
+add_library(${LIB_STATIC_CAPNP} STATIC IMPORTED GLOBAL)
+
+#
+# Generate Cap'n Proto C++ files
+#
+set(CAPNPC_OUTPUT_DIR ${CMAKE_BINARY_DIR})
+find_package(CapnProto REQUIRED)
+include_directories(${CAPNP_INCLUDE_DIRS})
+# List all .capnp files here. The C++ files will be generated and included
+# when compiling later on.
+set(CAPNP_SPECS
+    nupic/algorithms/SpatialPoolerProto.capnp
+    nupic/math/SparseBinaryMatrixProto.capnp
+    nupic/math/SparseMatrixProto.capnp
+    nupic/utils/RandomProto.capnp
 )
+capnp_generate_cpp(CAPNP_SRCS CAPNP_HDRS ${CAPNP_SPECS})
 
 #
-# HtmTest
+# Setup libnupic_core
+#
+set(LIB_STATIC_NUPICCORE nupic_core_solo)
+
+set(COMMON_LIBS ${LIB_STATIC_NUPICCORE}
+                ${LIB_STATIC_KJ_LOC}
+                ${LIB_STATIC_CAPNP_LOC})
+
+
+if("${PLATFORM}" STREQUAL "linux")
+  list(APPEND COMMON_LIBS pthread dl)
+elseif("${PLATFORM}" STREQUAL "darwin")
+  list(APPEND COMMON_LIBS c++abi)
+  set(COMPILE_FLAGS "${COMPILE_FLAGS} -O3")
+endif()
+
+ADD_LIBRARY(${LIB_STATIC_NUPICCORE}
+            STATIC
+            ${CAPNP_SRCS}
+            nupic/algorithms/BitHistory.cpp
+            nupic/algorithms/Cell.cpp
+            nupic/algorithms/Cells4.cpp
+            nupic/algorithms/ClassifierResult.cpp
+            nupic/algorithms/CondProbTable.cpp
+            nupic/algorithms/Connections.cpp
+            nupic/algorithms/FastClaClassifier.cpp
+            nupic/algorithms/FlatSpatialPooler.cpp
+            nupic/algorithms/GaborNode.cpp
+            nupic/algorithms/ImageSensorLite.cpp
+            nupic/algorithms/InSynapse.cpp
+            nupic/algorithms/Linear.cpp
+            nupic/algorithms/OutSynapse.cpp
+            nupic/algorithms/Segment.cpp
+            nupic/algorithms/SegmentUpdate.cpp
+            nupic/algorithms/SpatialPooler.cpp
+            nupic/algorithms/Svm.cpp
+            nupic/engine/Collections.cpp
+            nupic/engine/Input.cpp
+            nupic/engine/Link.cpp
+            nupic/engine/LinkPolicyFactory.cpp
+            nupic/engine/Network.cpp
+            nupic/engine/NuPIC.cpp
+            nupic/engine/Output.cpp
+            nupic/engine/Region.cpp
+            nupic/engine/RegionImpl.cpp
+            nupic/engine/RegionImplFactory.cpp
+            nupic/engine/RegionIo.cpp
+            nupic/engine/RegionParameters.cpp
+            nupic/engine/Spec.cpp
+            nupic/engine/TestFanIn2LinkPolicy.cpp
+            nupic/engine/TestNode.cpp
+            nupic/engine/UniformLinkPolicy.cpp
+            nupic/engine/YAMLUtils.cpp
+            nupic/math/SparseMatrixAlgorithms.cpp
+            nupic/math/StlIo.cpp
+            nupic/ntypes/ArrayBase.cpp
+            nupic/ntypes/Buffer.cpp
+            nupic/ntypes/BundleIO.cpp
+            nupic/ntypes/Collection.cpp
+            nupic/ntypes/Dimensions.cpp
+            nupic/ntypes/MemParser.cpp
+            nupic/ntypes/Scalar.cpp
+            nupic/ntypes/Value.cpp
+            nupic/os/Directory.cpp
+            nupic/os/DynamicLibrary.cpp
+            nupic/os/Env.cpp
+            nupic/os/FStream.cpp
+            nupic/os/OS.cpp
+            nupic/os/OSUnix.cpp
+            nupic/os/OSWin.cpp
+            nupic/os/Path.cpp
+            nupic/os/Regex.cpp
+            nupic/os/Timer.cpp
+            nupic/regions/VectorFile.cpp
+            nupic/regions/VectorFileEffector.cpp
+            nupic/regions/VectorFileSensor.cpp
+            nupic/test/Tester.cpp
+            nupic/types/BasicType.cpp
+            nupic/types/Fraction.cpp
+            nupic/utils/LoggingException.cpp
+            nupic/utils/LogItem.cpp
+            nupic/utils/Random.cpp
+            nupic/utils/StringUtils.cpp
+            nupic/utils/TRandom.cpp
+            nupic/utils/Watcher.cpp)
+target_link_libraries(${LIB_STATIC_NUPICCORE}
+                      ${LIB_STATIC_YAML_CPP_LOC}
+                      ${LIB_STATIC_YAML_LOC}
+                      ${LIB_STATIC_APR1_LOC}
+                      ${LIB_STATIC_APRUTIL1_LOC}
+                      ${LIB_STATIC_Z_LOC}
+                      ${LIB_STATIC_KJ_LOC}
+                      ${LIB_STATIC_CAPNP_LOC})
+set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES COMPILE_FLAGS ${COMPILE_FLAGS})
+set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS} -static")
+
+#
+# Setup testcpphtm
 #
 set(EXECUTABLE_HTMTEST testcpphtm)
-set(LIBRARIES
-  ${LIB_STATIC_NUPICCORE}
-  ${NTA_STANDARD_LIBS}
-  ${NTA_TEST_LIBS}
-)
-generate_executable(${EXECUTABLE_HTMTEST} "${PROJECT_SOURCE_DIR}/test/htmtest" "${CMAKE_INSTALL_PREFIX}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
+add_executable(${EXECUTABLE_HTMTEST} test/htm_test/HtmTest.cpp)
+target_link_libraries(${EXECUTABLE_HTMTEST} ${COMMON_LIBS})
+set_target_properties(${EXECUTABLE_HTMTEST} PROPERTIES COMPILE_FLAGS ${COMPILE_FLAGS})
+set_target_properties(${EXECUTABLE_HTMTEST}
+                      PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
+add_custom_target(tests_htm
+                  COMMAND ${EXECUTABLE_HTMTEST}
+                  DEPENDS ${EXECUTABLE_HTMTEST})
 
 #
-# Unit Tests
-#
-set(EXECUTABLE_GTESTS unit_tests)
-set(LIBRARIES
-  ${LIB_STATIC_NUPICCORE}
-  ${NTA_STANDARD_LIBS}
-  ${NTA_TEST_LIBS}
-)
-
-generate_executable(${EXECUTABLE_GTESTS} "${PROJECT_SOURCE_DIR}/test/unit" "${CMAKE_INSTALL_PREFIX}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
-
-#
-# HelloRegion
+# Setup helloregion example
 #
 set(EXECUTABLE_HELLOREGION helloregion)
-set(LIBRARIES
-  ${LIB_STATIC_NUPICCORE}
-  ${NTA_STANDARD_LIBS}
-  ${NTA_TEST_LIBS}
-)
-generate_executable(${EXECUTABLE_HELLOREGION} "${PROJECT_SOURCE_DIR}/examples/regions" "${CMAKE_INSTALL_PREFIX}/bin" "${NTA_CXXFLAGS}" "${NTA_LINKFLAGS}" "${LIBRARIES}")
-
-# Merge nupic_core and all static libraries to a stand-alone library
-merge_static_libraries(${LIB_STATIC_NUPICCORE} "${CMAKE_INSTALL_PREFIX}/lib" "${LIB_STATIC_NUPICCORE};${NTA_STANDARD_LIBS}" "${LIB_STATIC_NUPICCORE}")
-
-
-################################################################################
-###                                                                          ###
-###  4th Part:                                                               ###
-###  Post configuration operations                                           ###
-###                                                                          ###
-################################################################################
-
-install(TARGETS ${LIB_STATIC_NUPICCORE} DESTINATION lib)
-install(TARGETS testcpphtm unit_tests helloregion DESTINATION bin)
+add_executable(${EXECUTABLE_HELLOREGION} examples/regions/HelloRegions.cpp)
+target_link_libraries(${EXECUTABLE_HELLOREGION} ${COMMON_LIBS})
+set_target_properties(${EXECUTABLE_HELLOREGION} PROPERTIES COMPILE_FLAGS ${COMPILE_FLAGS})
+set_target_properties(${EXECUTABLE_HELLOREGION}
+                      PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
+add_dependencies(${EXECUTABLE_HELLOREGION} ${COMMON_LIBS})
 
 #
-# Copy all headers files to 'build/release/include'
+# Setup prototest example
 #
-set(ITEMS_RETURNED)
-get_files_list(${PROJECT_SOURCE_DIR}/main " " ".h")
-set(files ${ITEMS_RETURNED})
-set(headers_file_content "")
-foreach(src_file ${files})
-  get_filename_component(src_dir ${src_file} ABSOLUTE)
-  string(REPLACE "${PROJECT_SOURCE_DIR}/main" "${CMAKE_INSTALL_PREFIX}/include/nta" dst_file ${src_file})
-  copy_file(${src_file} ${dst_file})
-endforeach()
-copy_file(${PROJECT_SOURCE_DIR}/main/ntypes/Collection.cpp ${CMAKE_INSTALL_PREFIX}/include/nta/ntypes/Collection.cpp)
+set(EXECUTABLE_PROTOTEST prototest)
+add_executable(${EXECUTABLE_PROTOTEST} examples/prototest.cpp)
+target_link_libraries(${EXECUTABLE_PROTOTEST}
+                      ${COMMON_LIBS})
+set_target_properties(${EXECUTABLE_PROTOTEST} PROPERTIES COMPILE_FLAGS ${COMPILE_FLAGS})
+set_target_properties(${EXECUTABLE_PROTOTEST}
+                      PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
+add_dependencies(${EXECUTABLE_PROTOTEST} ${COMMON_LIBS})
 
 #
-# Create file with unit tests used by Google Test
+# Setup gtests
 #
-set(ITEMS_RETURNED)
-get_files_list(${PROJECT_SOURCE_DIR}/test/unit " " "Test.hpp")
-set(files ${ITEMS_RETURNED})
+set(EXECUTABLE_GTESTS unit_tests)
+add_executable(${EXECUTABLE_GTESTS}
+               test/unit/algorithms/CondProbTableTest.cpp
+               test/unit/algorithms/ConnectionsTest.cpp
+               test/unit/algorithms/FastCLAClassifierTest.cpp
+               test/unit/algorithms/FlatSpatialPoolerTest.cpp
+               test/unit/algorithms/NearestNeighborUnitTest.cpp
+               test/unit/algorithms/SpatialPoolerTest.cpp
+               test/unit/engine/InputTest.cpp
+               test/unit/engine/NetworkTest.cpp
+               test/unit/engine/UniformLinkPolicyTest.cpp
+               test/unit/engine/YAMLUtilsTest.cpp
+               test/unit/math/DenseTensorUnitTest.cpp
+               test/unit/math/DomainUnitTest.cpp
+               test/unit/math/IndexUnitTest.cpp
+               test/unit/math/MathsTest.cpp
+               test/unit/math/SparseBinaryMatrixTest.cpp
+               test/unit/math/SparseMatrix01UnitTest.cpp
+               test/unit/math/SparseMatrixTest.cpp
+               test/unit/math/SparseMatrixUnitTest.cpp
+               test/unit/math/SparseTensorUnitTest.cpp
+               test/unit/ntypes/ArrayTest.cpp
+               test/unit/ntypes/BufferTest.cpp
+               test/unit/ntypes/CollectionTest.cpp
+               test/unit/ntypes/DimensionsTest.cpp
+               test/unit/ntypes/MemParserTest.cpp
+               test/unit/ntypes/MemStreamTest.cpp
+               test/unit/ntypes/NodeSetTest.cpp
+               test/unit/ntypes/ScalarTest.cpp
+               test/unit/ntypes/ValueTest.cpp
+               test/unit/os/DirectoryTest.cpp
+               test/unit/os/EnvTest.cpp
+               test/unit/os/OSTest.cpp
+               test/unit/os/PathTest.cpp
+               test/unit/os/RegexTest.cpp
+               test/unit/os/TimerTest.cpp
+               test/unit/test/TesterTest.cpp
+               test/unit/types/BasicTypeTest.cpp
+               test/unit/types/ExceptionTest.cpp
+               test/unit/types/FractionTest.cpp
+               test/unit/UnitTestMain.cpp
+               test/unit/utils/RandomTest.cpp
+               test/unit/utils/WatcherTest.cpp)
+target_link_libraries(${EXECUTABLE_GTESTS}
+                      ${COMMON_LIBS}
+                      ${LIB_STATIC_GTEST})
+set_target_properties(${EXECUTABLE_GTESTS}
+                      PROPERTIES COMPILE_FLAGS ${COMPILE_FLAGS}
+                                 LINK_FLAGS "${COMMON_LINK_FLAGS}")
+add_dependencies(${EXECUTABLE_GTESTS} ${LIB_STATIC_GTEST} ${COMMON_LIBS})
+add_custom_target(tests_unit
+                  COMMAND ${EXECUTABLE_GTESTS} "--gtest_output=xml:${PROJECT_BUILD_ARTIFACTS_DIR}/unit_tests_report.xml")
+set(TEST_HEADERS
+    test/unit/algorithms/CondProbTableTest.hpp
+    test/unit/algorithms/ConnectionsTest.hpp
+    test/unit/algorithms/FastCLAClassifierTest.hpp
+    test/unit/algorithms/FlatSpatialPoolerTest.hpp
+    test/unit/algorithms/NearestNeighborUnitTest.hpp
+    test/unit/algorithms/SpatialPoolerTest.hpp
+    test/unit/engine/InputTest.hpp
+    test/unit/engine/NetworkTest.hpp
+    test/unit/engine/UniformLinkPolicyTest.hpp
+    test/unit/engine/YAMLUtilsTest.hpp
+    test/unit/math/DenseTensorUnitTest.hpp
+    test/unit/math/DomainUnitTest.hpp
+    test/unit/math/IndexUnitTest.hpp
+    test/unit/math/MathsTest.hpp
+    test/unit/math/SparseMatrix01UnitTest.hpp
+    test/unit/math/SparseMatrixUnitTest.hpp
+    test/unit/math/SparseTensorUnitTest.hpp
+    test/unit/ntypes/ArrayTest.hpp
+    test/unit/ntypes/BufferTest.hpp
+    test/unit/ntypes/CollectionTest.hpp
+    test/unit/ntypes/DimensionsTest.hpp
+    test/unit/ntypes/MemParserTest.hpp
+    test/unit/ntypes/MemStreamTest.hpp
+    test/unit/ntypes/NodeSetTest.hpp
+    test/unit/ntypes/ScalarTest.hpp
+    test/unit/ntypes/ValueTest.hpp
+    test/unit/os/DirectoryTest.hpp
+    test/unit/os/EnvTest.hpp
+    test/unit/os/OSTest.hpp
+    test/unit/os/PathTest.hpp
+    test/unit/os/RegexTest.hpp
+    test/unit/os/TimerTest.hpp
+    test/unit/test/TesterTest.hpp
+    test/unit/types/BasicTypeTest.hpp
+    test/unit/types/ExceptionTest.hpp
+    test/unit/types/FractionTest.hpp
+    test/unit/utils/RandomTest.hpp
+    test/unit/utils/WatcherTest.hpp)
 set(tests_file_content "")
 set(headers_file_content "")
-foreach(file ${files})
+foreach(file ${TEST_HEADERS})
   get_filename_component(test ${file} NAME_WE)
   set(tests_file_content "${tests_file_content}ADD_TEST(${test});\n")
   set(headers_file_content "${headers_file_content}#include \"${file}\"\n")
 endforeach()
-file(WRITE "${PROJECT_SOURCE_DIR}/test/unit/AddTests.hpp" "${tests_file_content}")
-file(WRITE "${PROJECT_SOURCE_DIR}/test/unit/AddTestHeaders.hpp" "${headers_file_content}")
-
-
-
-################################################################################
-###                                                                          ###
-###  5th Part:                                                               ###
-###  Custom targets                                                          ###
-###                                                                          ###
-################################################################################
+file(WRITE "${PROJECT_BINARY_DIR}/AddTests.hpp" "${tests_file_content}")
+file(WRITE "${PROJECT_BINARY_DIR}/AddTestHeaders.hpp" "${headers_file_content}")
 
 #
-# Tests
-#
-add_custom_target(tests_htm
-                  COMMAND ${CMAKE_INSTALL_PREFIX}/bin/${EXECUTABLE_HTMTEST})
-                  
-add_custom_target(tests_unit
-                  COMMAND ${CMAKE_INSTALL_PREFIX}/bin/${EXECUTABLE_GTESTS} "--gtest_output=xml:${PROJECT_BUILD_ARTIFACTS_DIR}/unit_tests_report.xml")
-
 # tests_all just calls other targets
+#
 add_custom_target(tests_all
                   DEPENDS tests_htm
                   DEPENDS tests_unit
                   COMMENT "Running all tests")
 
-#
-# Clean
-#
-add_custom_target(distclean
-		# Clean '/build/release' and build/temp/
-		COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_INSTALL_PREFIX}
-		COMMAND ${CMAKE_COMMAND} -E remove_directory ${PROJECT_BUILD_TEMP_DIR}
-		# recreate dirs
-		COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_INSTALL_PREFIX}/include
-		COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_INSTALL_PREFIX}/lib
-		COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_INSTALL_PREFIX}/bin
-		COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_TEMP_DIR}/lib
-		COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BUILD_TEMP_DIR}/obj
-		COMMENT "Cleaning temporary build files")
+add_custom_target(combined ALL
+                  COMMAND ${CMAKE_AR} -x $<TARGET_FILE:${LIB_STATIC_NUPICCORE}>
+                  COMMAND ${CMAKE_AR} -x ${LIB_STATIC_YAML_CPP_LOC}
+                  COMMAND ${CMAKE_AR} -x ${LIB_STATIC_YAML_LOC}
+                  COMMAND ${CMAKE_AR} -x ${LIB_STATIC_APRUTIL1_LOC}
+                  COMMAND ${CMAKE_AR} -x ${LIB_STATIC_APR1_LOC}
+                  COMMAND ${CMAKE_AR} -x ${LIB_STATIC_Z_LOC}
+                  COMMAND ${CMAKE_AR} -x ${LIB_STATIC_KJ_LOC}
+                  COMMAND ${CMAKE_AR} -x ${LIB_STATIC_CAPNP_LOC}
+                  COMMAND ${CMAKE_AR} rcs libnupic_core.a *.o
+                  DEPENDS ${LIB_STATIC_NUPICCORE}
+                          ${LIB_STATIC_GTEST}
+                          ${EXECUTABLE_HELLOREGION}
+                          ${EXECUTABLE_HTMTEST}
+                          ${EXECUTABLE_GTESTS})
 
-# Just to separate from result message
-message(STATUS "")
+#
+# Install targets into CMAKE_INSTALL_PREFIX
+#
+install(TARGETS
+        ${LIB_STATIC_NUPICCORE}
+        ${LIB_STATIC_GTEST}
+        ${EXECUTABLE_HELLOREGION}
+        ${EXECUTABLE_HTMTEST}
+        ${EXECUTABLE_PROTOTEST}
+        ${EXECUTABLE_GTESTS}
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib)
+install(DIRECTORY nupic/ DESTINATION include/nupic
+        FILES_MATCHING PATTERN "*.h*"
+        PATTERN "*.hpp.in" EXCLUDE)
+install(DIRECTORY nupic/ DESTINATION include/nupic
+        FILES_MATCHING PATTERN "*.capnp")
+install(DIRECTORY ${CMAKE_BINARY_DIR}/nupic/ DESTINATION include/nupic
+        FILES_MATCHING PATTERN "*.capnp.h")
+install(DIRECTORY "${REPOSITORY_DIR}/external/common/include/gtest"
+        DESTINATION include/gtest
+        FILES_MATCHING PATTERN "*.h*")
+install(FILES "${PROJECT_BINARY_DIR}/Version.hpp"
+        DESTINATION include/nupic/)
+install(DIRECTORY "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/bin/"
+        DESTINATION bin USE_SOURCE_PERMISSIONS)
+install(DIRECTORY "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/lib/"
+        DESTINATION lib)
+install(DIRECTORY "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/bin/"
+        DESTINATION bin USE_SOURCE_PERMISSIONS)
+install(DIRECTORY "${REPOSITORY_DIR}/external/common/include/"
+        DESTINATION include)
+install(DIRECTORY "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/include/"
+        DESTINATION include)
+install(FILES "${PROJECT_BINARY_DIR}/libnupic_core.a"
+        DESTINATION lib)
 
-message(STATUS "${CMAKE_INSTALL_PREFIX}")
+#
+# `make package` results in
+# nupic_core-${NUPIC_CORE_VERSION}-${PLATFORM}${BITNESS}.tar.gz binary release
+#
+
+set(CPACK_GENERATOR "TGZ")
+set(CPACK_PACKAGE_FILE_NAME "nupic_core-${NUPIC_CORE_VERSION}-${PLATFORM}${BITNESS}")
+include(CPack)
 

@@ -29,16 +29,16 @@
 
 //----------------------------------------------------------------------
 
-#include <nta/test/Tester.hpp>
+#include <nupic/test/Tester.hpp>
 
 //----------------------------------------------------------------------
 
-namespace nta {
+namespace nupic {
 
   struct YAMLUtilsTest : public Tester
   {
     virtual ~YAMLUtilsTest() {}
-    virtual void RunTests();
+    virtual void RunTests() override;
   };
 }
 
