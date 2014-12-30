@@ -1036,9 +1036,11 @@ void Cells4::updateInferenceState(const std::vector<UInt> & activeColumns)
   _infActiveStateT1 = _infActiveStateT;
   _infPredictedStateT1 = _infPredictedStateT;
   memcpy(_cellConfidenceT1, _cellConfidenceT, _nCells * sizeof(_cellConfidenceT[0]));
+  memset(_cellConfidenceT, 0, _nCells * sizeof(_cellConfidenceT[0]));
 
   // Copy over previous column confidences and zero out current confidence
   memcpy(_colConfidenceT1, _colConfidenceT, _nColumns * sizeof(_colConfidenceT[0]));
+  memset(_colConfidenceT, 0, _nColumns * sizeof(_colConfidenceT[0]));
 
 
   //---------------------------------------------------------------------------
