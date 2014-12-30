@@ -28,7 +28,7 @@
 cmake_minimum_required(VERSION 2.8)
 project(nupic_core CXX)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-set(CMAKE_VERBOSE_MAKEFILE OFF) # toggle for cmake debug
+set(CMAKE_VERBOSE_MAKEFILE ON) # toggle for cmake debug
 
 #
 # Include extra cmake files
@@ -82,6 +82,17 @@ include_directories(SYSTEM
 
 set(COMMON_LINK_FLAGS "-m${BITNESS} ${STDLIB}")
 
+
+#
+# Set linker (ld) 
+# use ld.gold if available
+#
+execute_process(COMMAND ld.gold --version
+                RESULT_VARIABLE EXIT_CODE)
+if(EXIT_CODE EQUAL 0)
+  message("Using ld.gold as LINKER.")
+  set(CMAKE_LINKER "ld.gold")
+endif()
 
 #
 # compiler specific settings here (clang/gcc)
