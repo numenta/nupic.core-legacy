@@ -188,16 +188,14 @@ bool Cells4::computeUpdate(UInt cellIdx, UInt segIdx, CStateIndexed& activeState
       highWaterSize = segment.size();
       newSynapses.reserve(highWaterSize);
     }
-    for (UInt i = 0; i != segment.size(); ++i)
+    for (UInt i=0; i<segment.size(); ++i) //FIXME why we skip segment[0] here?
       if (activeState.isSet(segment[i].srcCellIdx())) {
         newSynapses.push_back(segment[i].srcCellIdx());
       }
   }
 
   if (newSynapsesFlag) {
-
     int nSynToAdd = (int) _newSynapseCount - (int) newSynapses.size();
-
     if (nSynToAdd > 0) {
       chooseCellsToLearnFrom(cellIdx, segIdx, nSynToAdd, activeState, newSynapses);
     }
@@ -270,8 +268,7 @@ void Cells4::eraseOutSynapses(UInt dstCellIdx, UInt dstSegIdx,
   NTA_ASSERT(dstCellIdx < nCells());
   NTA_ASSERT(dstSegIdx < _cells[dstCellIdx].size());
 
-  for (UInt i = 0; i != srcCells.size(); ++i) {
-    UInt srcCellIdx = srcCells[i];
+  for (auto & srcCellIdx : srcCells) {
     OutSynapses& outSyns = _outSynapses[srcCellIdx];
     // TODO: binary search or faster
     for (UInt j = 0; j != outSyns.size(); ++j)
@@ -1166,7 +1163,7 @@ bool Cells4::inferPhase2()
   //---------------------------------------------------------------------------
   // Initialize to 0 to start
   _infPredictedStateT.resetAll();
-  memset(_cellConfidenceT, 0, _nCells * sizeof(_cellConfidenceT[0])); #TODO already zeroed above, can remove?
+  memset(_cellConfidenceT, 0, _nCells * sizeof(_cellConfidenceT[0])); //TODO already zeroed above, can remove?
   memset(_colConfidenceT, 0, _nColumns * sizeof(_colConfidenceT[0]));
 
   //---------------------------------------------------------------------------
