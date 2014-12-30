@@ -90,7 +90,7 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} -static-libstdc++")
   set(OPTIMIZATION_FLAGS_CC "${OPTIMIZATION_FLAGS_CC} -fuse-linker-plugin -flto-report")
   set(OPTIMIZATION_FLAGS_CC "${OPTIMIZATION_FLAGS_CC} -flto -fuse-ld=gold") #TODO fix LTO for clang
-  set(OPTIMIZATION_FLAGS_LT "${OPTIMIZATION_FLAGS_LT}") #FIXME LTO for clang too
+  set(OPTIMIZATION_FLAGS_LT "${OPTIMIZATION_FLAGS_LT} -flto") #FIXME LTO for clang too
 endif()
 
 
@@ -99,9 +99,9 @@ endif()
 # these are quite aggresive flags, if your code misbehaves for strange reasons, try 
 # compiling without them.
 #
-set(OPTIMIZATION_FLAGS_CC "-O3 -march=native -pipe ${OPTIMIZATION_PLUGINS_CC}") #TODO use -Ofast instead of -O3
+set(OPTIMIZATION_FLAGS_CC "-O3 -march=native -pipe ${OPTIMIZATION_FLAGS_CC}") #TODO use -Ofast instead of -O3
 # for even better performance, buggy on TravisCI now.
-set(OPTIMIZATION_FLAGS_LT "-flto -O3 ${OPTIMIZATION_FLAGS_LT}")
+set(OPTIMIZATION_FLAGS_LT "-O3 ${OPTIMIZATION_FLAGS_LT}")
 
 
 set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} ${OPTIMIZATION_FLAGS_LT}")
