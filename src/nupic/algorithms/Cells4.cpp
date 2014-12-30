@@ -844,11 +844,7 @@ bool Cells4::learnPhase1(const std::vector<UInt> & activeColumns, bool readOnly)
   //----------------------------------------------------------------------
   // Determine if we are out of sequence or not and reset our PAM counter
   // if we are in sequence
-  if (numUnpredictedColumns < activeColumns.size()/2) {
-    return true;
-  } else {
-    return false;
-  }
+  return numUnpredictedColumns < activeColumns.size()/2;
 }
 
 //--------------------------------------------------------------------------------
@@ -1140,10 +1136,7 @@ bool Cells4::inferPhase1(const std::vector<UInt> & activeColumns,
 
   TIMER(infPhase1Timer.stop());
   // Did we predict this input well enough?
-  if (useStartCells || (numPredictedColumns >= 0.50 * activeColumns.size()) )
-    return true;
-  else
-    return false;
+  return (useStartCells || (numPredictedColumns >= 0.50 * activeColumns.size()) );
 }
 
 //------------------------------------------------------------------------------
@@ -1229,10 +1222,7 @@ bool Cells4::inferPhase2()
 
   //---------------------------------------------------------------------------
   // Are we predicting the required minimum number of columns?
-  if (numPredictedCols >= (0.5*_avgInputDensity))
-    return true;
-  else
-    return false;
+  return (numPredictedCols >= (0.5*_avgInputDensity));
 }
 
 
@@ -1279,7 +1269,7 @@ void Cells4::compute(Real* input, Real* output, bool doInference, bool doLearnin
   // Update segment duty cycles if we are crossing a "tier"
 
   if (doLearning && Segment::atDutyCycleTier(_nLrnIterations)) {
-    for (auto cell : _cells) {
+    for (auto & cell : _cells) {
       cell.updateDutyCycle(_nLrnIterations);
     }
   }
@@ -1714,9 +1704,9 @@ void Cells4::_rebalance()
   std::cout << "Rebalancing\n";
   _nIterationsSinceRebalance = _nLrnIterations;
 
-  for (UInt cellIdx = 0; cellIdx != _nCells; ++cellIdx) {
-    if (!_cells[cellIdx].empty()) {
-      _cells[cellIdx].rebalanceSegments();
+  for (auto & cell : _cells) {
+    if (!cell.empty()) {
+      cell.rebalanceSegments();
     }
   }
 
