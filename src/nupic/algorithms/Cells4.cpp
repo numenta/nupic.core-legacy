@@ -553,7 +553,7 @@ UInt Cells4::learnBacktrack()
   // How much input history have we accumulated?
   // The current input is always at the end of self._prevInfPatterns (at
   // index -1), and is not a valid startingOffset to evaluate.
-  Int numPrevPatterns = _prevLrnPatterns.size() - 1;
+  UInt numPrevPatterns = (_prevLrnPatterns.size() == 0 ? 0 : _prevLrnPatterns.size() - 1);
   if (numPrevPatterns <= 0) {
     if (_verbosity >= 3) {
       std::cout << "lrnBacktrack: No available history to backtrack from\n";
@@ -574,7 +574,7 @@ UInt Cells4::learnBacktrack()
   // description is in TP.py
   bool inSequence = false;
   UInt startOffset = 0;
-  for (; startOffset < (UInt) numPrevPatterns; startOffset++) {
+  for (; startOffset < numPrevPatterns; startOffset++) {
     // Can we backtrack from startOffset?
     inSequence = learnBacktrackFrom(startOffset, true);
 
