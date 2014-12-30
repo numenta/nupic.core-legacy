@@ -65,7 +65,7 @@ namespace nupic
 #endif
   const char * Path::parDir = "..";
 
-  Path::Path(const std::string & path) : path_(path)
+  Path::Path(std::string path) : path_(std::move(path))
   {
   }
 

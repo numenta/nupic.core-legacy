@@ -66,15 +66,15 @@ namespace nupic
   public:
     
     static Spec* createSpec();
-    size_t getNodeOutputElementCount(const std::string& outputName);
-    void getParameterFromBuffer(const std::string& name, Int64 index, IWriteBuffer& value);
+    size_t getNodeOutputElementCount(const std::string& outputName) override;
+    void getParameterFromBuffer(const std::string& name, Int64 index, IWriteBuffer& value) override;
 
-    void setParameterFromBuffer(const std::string& name, Int64 index, IReadBuffer& value);
+    void setParameterFromBuffer(const std::string& name, Int64 index, IReadBuffer& value) override;
 
-    void setParameterString(const std::string& name, Int64 index, const std::string& s);
-    std::string getParameterString(const std::string& name, Int64 index);
+    void setParameterString(const std::string& name, Int64 index, const std::string& s) override;
+    std::string getParameterString(const std::string& name, Int64 index) override;
 
-    void initialize();
+    void initialize() override;
   
     VectorFileEffector(const ValueMap& params, Region *region);
   
@@ -86,16 +86,16 @@ namespace nupic
     // ---
     /// Serialize state to bundle
     // ---
-    virtual void serialize(BundleIO& bundle);
+    virtual void serialize(BundleIO& bundle) override;
 
     // ---
     /// De-serialize state from bundle
     // ---
-    virtual void deserialize(BundleIO& bundle);
+    virtual void deserialize(BundleIO& bundle) override;
 
-    void compute();
+    void compute() override;
 
-    virtual std::string executeCommand(const std::vector<std::string>& args, Int64 index);
+    virtual std::string executeCommand(const std::vector<std::string>& args, Int64 index) override;
 
     
     

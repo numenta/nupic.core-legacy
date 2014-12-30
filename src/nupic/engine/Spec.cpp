@@ -90,14 +90,14 @@ std::string Spec::getDefaultOutputName() const
 }
 
 
-InputSpec::InputSpec(const std::string& description, 
+InputSpec::InputSpec(std::string description, 
                      NTA_BasicType  dataType, 
                      UInt32 count,
                      bool required, 
                      bool regionLevel, 
                      bool isDefaultInput,
                      bool requireSplitterMap) :
-  description(description), 
+  description(std::move(description)), 
   dataType(dataType), 
   count(count), 
   required(required), 
@@ -107,31 +107,31 @@ InputSpec::InputSpec(const std::string& description,
 { 
 }
 
-OutputSpec::OutputSpec(const std::string& description, 
+OutputSpec::OutputSpec(std::string description, 
                        NTA_BasicType dataType, 
                        size_t count,
                        bool regionLevel, 
                        bool isDefaultOutput) :
-  description(description), dataType(dataType), count(count), 
+  description(std::move(description)), dataType(dataType), count(count), 
   regionLevel(regionLevel), isDefaultOutput(isDefaultOutput)
 {
 }
 
 
-CommandSpec::CommandSpec(const std::string& description) :
-  description(description)
+CommandSpec::CommandSpec(std::string description) :
+  description(std::move(description))
 {
 }
 
 
-ParameterSpec::ParameterSpec(const std::string& description,
+ParameterSpec::ParameterSpec(std::string description,
                              NTA_BasicType dataType, 
                              size_t count, 
-                             const std::string& constraints, 
-                             const std::string& defaultValue, 
+                             std::string constraints, 
+                             std::string defaultValue, 
                              AccessMode accessMode) :
-  description(description), dataType(dataType), count(count),
-  constraints(constraints), defaultValue(defaultValue), 
+  description(std::move(description)), dataType(dataType), count(count),
+  constraints(std::move(constraints)), defaultValue(std::move(defaultValue)), 
   accessMode(accessMode)
 {
   // Parameter of type byte is not supported;

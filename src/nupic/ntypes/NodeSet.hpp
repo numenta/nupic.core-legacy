@@ -90,7 +90,7 @@ namespace nupic
 
     void remove(size_t index)
     {
-      iterator f = set_.find(index);
+      auto f = set_.find(index);
       if (f == set_.end())
         return;
       set_.erase(f);

@@ -260,7 +260,7 @@ namespace nupic
       );
     
           
-    Path(const std::string & path);
+    Path(std::string path);
     operator const char*() const;
 
     /**

@@ -90,7 +90,7 @@ namespace nupic
         SegmentIdx idx;
         Cell cell;
 
-        Segment(SegmentIdx idx, Cell cell) : idx(idx), cell(cell) {}
+        Segment(SegmentIdx idx, Cell cell) : idx(idx), cell(std::move(cell)) {}
         Segment() {}
 
         bool operator==(const Segment &other) const;
@@ -117,7 +117,7 @@ namespace nupic
         SynapseIdx idx;
         Segment segment;
 
-        Synapse(SynapseIdx idx, Segment segment) : idx(idx), segment(segment) {}
+        Synapse(SynapseIdx idx, Segment segment) : idx(idx), segment(std::move(segment)) {}
         Synapse() {}
 
         bool operator==(const Synapse &other) const;

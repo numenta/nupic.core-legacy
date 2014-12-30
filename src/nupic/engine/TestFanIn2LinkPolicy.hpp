@@ -40,21 +40,21 @@ namespace nupic
 
     ~TestFanIn2LinkPolicy();
 
-    void setSrcDimensions(Dimensions& dims);
+    void setSrcDimensions(Dimensions& dims) override;
 
-    void setDestDimensions(Dimensions& dims);
+    void setDestDimensions(Dimensions& dims) override;
   
-    const Dimensions& getSrcDimensions() const;
+    const Dimensions& getSrcDimensions() const override;
 
-    const Dimensions& getDestDimensions() const;
+    const Dimensions& getDestDimensions() const override;
 
-    void buildProtoSplitterMap(Input::SplitterMap& splitter) const;
+    void buildProtoSplitterMap(Input::SplitterMap& splitter) const override;
 
-    void setNodeOutputElementCount(size_t elementCount);
+    void setNodeOutputElementCount(size_t elementCount) override;
 
-    void initialize();
+    void initialize() override;
 
-    bool isInitialized() const;
+    bool isInitialized() const override;
 
 private:
     Link* link_;

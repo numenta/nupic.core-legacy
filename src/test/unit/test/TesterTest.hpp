@@ -52,7 +52,7 @@ namespace nupic {
       /** 
        * Run all appropriate tests.
        */
-      virtual void RunTests();
+      virtual void RunTests() override;
 
       /**
        * Run tests that should fail.

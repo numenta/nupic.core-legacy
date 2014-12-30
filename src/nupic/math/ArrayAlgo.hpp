@@ -2334,7 +2334,7 @@ namespace nupic {
       }
 
       size_t offset = i*nnzpr;
-      std::set<size_t>::const_iterator it = b.begin();
+      auto it = b.begin();
       for (size_t j = 0; j != nnzpr; ++j, ++it)
         a[offset + j] = std::pair<T1,T2>(*it, init_nz_val);
     }

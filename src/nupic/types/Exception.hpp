@@ -30,6 +30,7 @@
 #include <nupic/types/Types.hpp>
 #include <stdexcept>
 #include <string>
+#include <utility>
 
 //----------------------------------------------------------------------
 
@@ -83,15 +84,15 @@ namespace nupic
      *
      * @param message [const std::string &] the description of exception
      */
-    Exception(const std::string & filename, 
+    Exception(std::string filename, 
               UInt32 lineno, 
-              const std::string & message,
-              const std::string & stacktrace = "") :
+              std::string message,
+              std::string stacktrace = "") :
       std::runtime_error(""),
-      filename_(filename),
+      filename_(std::move(filename)),
       lineno_(lineno),
-      message_(message),
-      stackTrace_(stacktrace)
+      message_(std::move(message)),
+      stackTrace_(std::move(stacktrace))
     {
     }
     
@@ -119,7 +120,7 @@ namespace nupic
      *
      * @retval [const Byte *] the exception message
      */ 
-    virtual const char * what() const throw()
+    virtual const char * what() const throw() override
     {
       try
       {
