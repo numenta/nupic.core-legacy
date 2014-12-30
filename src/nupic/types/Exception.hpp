@@ -120,7 +120,7 @@ namespace nupic
      *
      * @retval [const Byte *] the exception message
      */ 
-    virtual const char * what() const throw() override
+    virtual const char * what() const throw()
     {
       try
       {
