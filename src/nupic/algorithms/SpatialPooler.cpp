@@ -539,7 +539,7 @@ void SpatialPooler::initialize(vector<UInt> inputDimensions,
   {
     vector<UInt> potential = mapPotential_(i, wrapAround_);
     vector<Real> perm = initPermanence_(potential, initConnectedPct_);
-    potentialPools_.rowFromSparse(i,potential.begin(),potential.end());
+    potentialPools_.rowFromDense(i,potential.begin(),potential.end());
     updatePermanencesForColumn_(perm,i,true);
   }
 
