@@ -637,7 +637,6 @@ UInt SpatialPooler::mapColumn_(UInt column)
 
 vector<UInt> SpatialPooler::mapPotential_(UInt column, bool wrapAround)
 {
-  vector<UInt> potential(numInputs_, 0);
   vector<UInt> indices;
   UInt index;
 
@@ -654,11 +653,7 @@ vector<UInt> SpatialPooler::mapPotential_(UInt column, bool wrapAround)
   rng_.sample(&indices.front(), indices.size(),
               &selectedIndices.front(), numPotential);
 
-  for (UInt i = 0; i < numPotential; i++) {
-    potential[selectedIndices[i]] = 1;
-  }
-
-  return potential;
+  return selectedIndices;
 }
 
 Real SpatialPooler::initPermConnected_()
