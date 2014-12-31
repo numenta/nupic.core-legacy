@@ -1567,7 +1567,9 @@ namespace nupic {
 	  << "Invalid row index: " << row;
 	NTA_ASSERT((size_type)(end - begin) == nCols())
 	  << "SparseBinaryMatrix::rowFromDense: "
-	  << "Invalid vector size";
+	  << "Invalid vector size " 
+          << (size_type)(end - begin) << " vs. "
+          << nCols();
       } // End pre-conditions
 
       ind_[row].clear();
