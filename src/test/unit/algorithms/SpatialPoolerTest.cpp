@@ -2384,43 +2384,37 @@ namespace nupic {
     // Test without wrapAround and potentialPct = 1
     sp.setPotentialPct(1.0);
 
-    UInt expectedMask1[12] = {0, 1, 2, 3};
+    UInt expectedMask1[12] = {1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0};
     mask = sp.mapPotential_(0, false);
     NTA_CHECK(check_vector_eq(expectedMask1, mask));
 
-    UInt expectedMask2[12] = {5, 6, 7, 8, 9};
+    UInt expectedMask2[12] = {0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0};
     mask = sp.mapPotential_(2, false);
     NTA_CHECK(check_vector_eq(expectedMask2, mask));
 
     // Test with wrapAround and potentialPct = 1
     sp.setPotentialPct(1.0);
 
-    UInt expectedMask3[12] = {0, 1, 2, 3, 11}; //{1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1};
+    UInt expectedMask3[12] = {1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1};
     mask = sp.mapPotential_(0, true);
     NTA_CHECK(check_vector_eq(expectedMask3, mask));
 
-    UInt expectedMask4[12] = {0, 8, 9, 10, 11};
+    UInt expectedMask4[12] = {1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1};
     mask = sp.mapPotential_(3, true);
     NTA_CHECK(check_vector_eq(expectedMask4, mask));
 
     // Test with potentialPct < 1
     sp.setPotentialPct(0.5);
-    UInt tmp[5] =  {0, 1, 2, 3, 11};
-    vector<UInt> supersetMask1(&tmp[0], &tmp[0]+5);
+    UInt supersetMask1[12] = {1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1};
     mask = sp.mapPotential_(0, true);
-    NTA_ASSERT(mask.size() == 3);
+    NTA_ASSERT(sum(mask) == 3);
 
-    // join the 2 vectors: supersetMask1 + mask
-    vector<UInt>  unionMask1 = supersetMask1;
-    for(UInt i=0; i<mask.size(); i++) {
-      UInt val = mask.at(i);
-      if(std::find(unionMask1.begin(), unionMask1.end(), val)==unionMask1.end()) { // check if: not contains val
-        unionMask1.push_back(val);
-      }
+    UInt unionMask1[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    for (UInt i = 0; i < 12; i++) {
+      unionMask1[i] = supersetMask1[i] | mask.at(i);
     }
 
-    NTA_CHECK(check_vector_eq(unionMask1, supersetMask1))
-    << unionMask1 << " vs. " << supersetMask1;
+    NTA_CHECK(check_vector_eq(unionMask1, supersetMask1, 12));
   }
 
   void SpatialPoolerTest::testMapPotential2D()
@@ -2441,53 +2435,50 @@ namespace nupic {
     vector<UInt> mask;
 
     // Test without wrapAround
-    /*UInt expectedMask1[72] = {
+    UInt expectedMask1[72] = {
       1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
       1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
       1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-    };*/
-    UInt expectedMask1[] = {0, 1, 2, 12, 13, 14, 24, 25, 26}; // see above ^^
+    };
     mask = sp.mapPotential_(0, false);
     NTA_CHECK(check_vector_eq(expectedMask1, mask));
 
-    UInt expectedMask2[] = {6, 7, 8, 18, 19, 20, 30, 31, 32};
+    UInt expectedMask2[72] = {
+      0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    };
     mask = sp.mapPotential_(2, false);
     NTA_CHECK(check_vector_eq(expectedMask2, mask));
 
     // Test with wrapAround
     potentialRadius = 2;
     sp.setPotentialRadius(potentialRadius);
-    UInt expectedMask3[] = {
-      0, 1, 2, 3, 11, 
-      12, 13, 14, 15, 23, 
-      24, 25, 26, 27, 35,
-      36, 37, 38, 39, 47, 
-      60, 61, 62, 63, 71};
-
-    /*1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1,
+    UInt expectedMask3[72] = {
+      1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1,
       1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1,
       1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1,
       1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1,
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-      1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1*/
+      1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1
+    };
     mask = sp.mapPotential_(0, true);
     NTA_CHECK(check_vector_eq(expectedMask3, mask));
 
-    UInt expectedMask4[] = {
-      0, 8, 9, 10, 11,
-      12, 20, 21, 22, 23,
-      24, 32, 33, 34, 35,
-      36, 44, 45, 46, 47,
-      60, 68, 69, 70, 71 };
-    /*1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1,
+    UInt expectedMask4[72] = {
+      1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1,
       1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1,
       1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1,
       1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1,
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-      1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1*/
+      1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1
+    };
     mask = sp.mapPotential_(3, true);
     NTA_CHECK(check_vector_eq(expectedMask4, mask));
   }
