@@ -64,6 +64,19 @@ add_definitions(-DNTA_PLATFORM_${PLATFORM}${BITNESS}
                 -DNTA_ASSERTIONS_ON
                 -DNTA_ASM)
 
+
+
+#
+# Identify build type - local or deployment (Travis)
+# the variable NUPIC_DEPLOYMENT_BUILD must be set in travis CI scripts
+#
+if($ENV{NUPIC_DEPLOYMENT_BUILD})
+  message("doing deployment build in TravisCI")
+else()
+  message("doing local build")
+endif()
+
+
 #
 # Setup include paths
 #
