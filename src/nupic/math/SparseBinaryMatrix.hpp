@@ -1567,7 +1567,9 @@ namespace nupic {
 	  << "Invalid row index: " << row;
 	NTA_ASSERT((size_type)(end - begin) == nCols())
 	  << "SparseBinaryMatrix::rowFromDense: "
-	  << "Invalid vector size";
+	  << "Invalid vector size " 
+          << (size_type)(end - begin) << " vs. "
+          << nCols();
       } // End pre-conditions
 
       ind_[row].clear();
@@ -1575,6 +1577,24 @@ namespace nupic {
 	if (!nearlyZero(*it))
 	  ind_[row].push_back((size_type)(it - begin));
     }
+
+    //--------------------------------------------------------------------------------
+    template <typename InputIterator>
+    inline void
+    rowFromSparse(size_type row, InputIterator begin, InputIterator end)
+    {
+      { // Pre-conditions
+        NTA_ASSERT(row < nRows())
+          << "SparseBinaryMatrix::rowFromDense: "
+          << "Invalid row index: " << row;
+      } // End pre-conditions
+
+      ind_[row].clear();
+      for (InputIterator it = begin; it != end; ++it)
+        if (!nearlyZero(*it))
+          ind_[row].push_back(*it);
+    }
+
 
     //--------------------------------------------------------------------------------
     template <typename OutputIterator>
