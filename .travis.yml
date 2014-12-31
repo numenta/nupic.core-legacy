@@ -9,8 +9,8 @@ compiler:
   - gcc
 
 env:
-  - PLATFORM=${TRAVIS_OS_NAME}
   global:
+    - PLATFORM=${TRAVIS_OS_NAME}
     - NUPIC_DEPLOYMENT_BUILD=true
 
 
