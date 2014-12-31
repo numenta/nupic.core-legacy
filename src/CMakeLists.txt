@@ -28,6 +28,7 @@
 cmake_minimum_required(VERSION 2.8)
 project(nupic_core CXX)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+set(CMAKE_VERBOSE_MAKEFILE OFF) # toggle for cmake debug
 
 #
 # Include extra cmake files
@@ -93,11 +94,55 @@ include_directories(SYSTEM
                     "${PROJECT_BINARY_DIR}")
 
 set(COMMON_LINK_FLAGS "-m${BITNESS} ${STDLIB}")
-set(COMPILE_FLAGS "-fPIC -std=c++11 -m${BITNESS} ${STDLIB} -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-unused-parameter")
 
+
+#
+# Set linker (ld) 
+# use ld.gold if available
+#
+execute_process(COMMAND ld.gold --version
+                RESULT_VARIABLE EXIT_CODE)
+if(EXIT_CODE EQUAL 0)
+  message("Using ld.gold as LINKER.")
+  set(CMAKE_LINKER "ld.gold")
+endif()
+
+
+#
+# Identify build type - local or deployment (Travis)
+# the variable NUPIC_DEPLOYMENT_BUILD must be set in travis CI scripts
+#
+if($ENV{NUPIC_DEPLOYMENT_BUILD})
+  message("doing deployment build in TravisCI")
+  set(OPTIMIZATION_FLAGS_CC "${OPTIMIZATION_FLAGS_CC} -mtune=generic")
+else()
+  message("doing local build")
+  set(OPTIMIZATION_FLAGS_CC "${OPTIMIZATION_FLAGS_CC} -march=native")
+endif()
+
+
+#
+# compiler specific settings here (clang/gcc)
+#
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} -static-libstdc++")
+  set(OPTIMIZATION_FLAGS_CC "${OPTIMIZATION_FLAGS_CC} -fuse-linker-plugin -flto-report -Ofast")
+  set(OPTIMIZATION_FLAGS_CC "${OPTIMIZATION_FLAGS_CC} -flto -fuse-ld=gold") #TODO fix LTO for clang
+  set(OPTIMIZATION_FLAGS_LT "${OPTIMIZATION_FLAGS_LT} -flto") #TODO LTO for clang too
 endif()
+
+
+#
+# Enable Optimization flags here
+# these are quite aggresive flags, if your code misbehaves for strange reasons, try 
+# compiling without them.
+#
+set(OPTIMIZATION_FLAGS_CC "-O3 -pipe ${OPTIMIZATION_FLAGS_CC}") #TODO use -Ofast instead of -O3
+set(OPTIMIZATION_FLAGS_LT "-O3 ${OPTIMIZATION_FLAGS_LT}")
+
+
+set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} ${OPTIMIZATION_FLAGS_LT}")
+set(COMPILE_FLAGS "-fPIC -std=c++11 -m${BITNESS} ${STDLIB} -fvisibility=hidden -Werror -Wall -Wextra -Wreturn-type -Wunused -Wno-unused-parameter -Wno-missing-field-initializers  ${OPTIMIZATION_FLAGS_CC}")
 
 #
 # Let CMake know where all of the external files are.
@@ -231,7 +276,6 @@ if("${PLATFORM}" STREQUAL "linux")
   list(APPEND COMMON_LIBS pthread dl)
 elseif("${PLATFORM}" STREQUAL "darwin")
   list(APPEND COMMON_LIBS c++abi)
-  set(COMPILE_FLAGS "${COMPILE_FLAGS} -O3")
 endif()
 
 ADD_LIBRARY(${LIB_STATIC_NUPICCORE}
