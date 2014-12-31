@@ -20,6 +20,12 @@
  * ---------------------------------------------------------------------
  */
 
+/*
+ This file is similar to CppRegionTest except that it also tests Python nodes.
+ It is build in nupic.core but tested in nupic. So its execution and README instructions
+ remains in nupic.
+*/
+
 
 #include <nupic/engine/NuPIC.hpp>
 #include <nupic/engine/Network.hpp>
