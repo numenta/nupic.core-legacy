@@ -28,7 +28,7 @@
 cmake_minimum_required(VERSION 2.8)
 project(nupic_core CXX)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-set(CMAKE_VERBOSE_MAKEFILE ON) # toggle for cmake debug
+set(CMAKE_VERBOSE_MAKEFILE OFF) # toggle for cmake debug
 
 #
 # Include extra cmake files
@@ -116,7 +116,7 @@ set(OPTIMIZATION_FLAGS_LT "-O3 ${OPTIMIZATION_FLAGS_LT}")
 
 
 set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} ${OPTIMIZATION_FLAGS_LT}")
-set(COMPILE_FLAGS "-fPIC -std=c++11 -m${BITNESS} ${STDLIB} -fvisibility=hidden -Werror -Wreturn-type -Wunused -Wno-unused-parameter ${OPTIMIZATION_FLAGS_CC}")
+set(COMPILE_FLAGS "-fPIC -std=c++11 -m${BITNESS} ${STDLIB} -fvisibility=hidden -Werror -Wall -Wextra -Wreturn-type -Wunused -Wno-unused-parameter ${OPTIMIZATION_FLAGS_CC}")
 
 #
 # Let CMake know where all of the external files are.
