@@ -10,6 +10,9 @@ compiler:
 
 env:
   - PLATFORM=${TRAVIS_OS_NAME}
+  global:
+    - NUPIC_DEPLOYMENT_BUILD=true
+
 
 matrix:
   # This excludes OSX builds from the build matrix for gcc
