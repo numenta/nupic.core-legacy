@@ -32,7 +32,7 @@
 
 #include <nupic/algorithms/SpatialPooler.hpp>
 #include <nupic/math/SparseMatrix.hpp>
-#include <nupic/math/SparseMatrixProto.capnp.h>
+#include <nupic/proto/SparseMatrixProto.capnp.h>
 #include <nupic/utils/ProtoUtils.hpp>
 #include <nupic/utils/Random.hpp>
 

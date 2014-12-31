@@ -29,7 +29,7 @@
 #include <gtest/gtest.h>
 
 #include <nupic/math/SparseMatrix.hpp>
-#include <nupic/math/SparseMatrixProto.capnp.h>
+#include <nupic/proto/SparseMatrixProto.capnp.h>
 #include <nupic/types/Types.h>
 #include <nupic/utils/ProtoUtils.hpp>
 

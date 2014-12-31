@@ -33,8 +33,8 @@
 #include <capnp/serialize.h>
 
 #include <nupic/algorithms/SpatialPooler.hpp>
-#include <nupic/algorithms/SpatialPoolerProto.capnp.h>
 #include <nupic/math/Math.hpp>
+#include <nupic/proto/SpatialPoolerProto.capnp.h>
 #include <nupic/utils/ProtoUtils.hpp>
 
 using namespace std;
