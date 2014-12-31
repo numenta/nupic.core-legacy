@@ -302,17 +302,27 @@ set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES COMPILE_FLAGS ${COMPILE
 set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS} -static")
 
 #
-# Setup testcpphtm
+# Setup test_cpp_region
 #
-set(EXECUTABLE_HTMTEST testcpphtm)
-add_executable(${EXECUTABLE_HTMTEST} test/htm_test/HtmTest.cpp)
-target_link_libraries(${EXECUTABLE_HTMTEST} ${COMMON_LIBS})
-set_target_properties(${EXECUTABLE_HTMTEST} PROPERTIES COMPILE_FLAGS ${COMPILE_FLAGS})
-set_target_properties(${EXECUTABLE_HTMTEST}
+set(EXECUTABLE_CPPREGIONTEST cpp_region_test)
+add_executable(${EXECUTABLE_CPPREGIONTEST} test/integration/CppRegionTest.cpp)
+target_link_libraries(${EXECUTABLE_CPPREGIONTEST} ${COMMON_LIBS})
+set_target_properties(${EXECUTABLE_CPPREGIONTEST} PROPERTIES COMPILE_FLAGS ${COMPILE_FLAGS})
+set_target_properties(${EXECUTABLE_CPPREGIONTEST}
                       PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
-add_custom_target(tests_htm
-                  COMMAND ${EXECUTABLE_HTMTEST}
-                  DEPENDS ${EXECUTABLE_HTMTEST})
+add_custom_target(tests_cpp_region
+                  COMMAND ${EXECUTABLE_CPPREGIONTEST}
+                  DEPENDS ${EXECUTABLE_CPPREGIONTEST})
+
+#
+# Setup test_py_region
+#
+set(EXECUTABLE_PYREGIONTEST py_region_test)
+add_executable(${EXECUTABLE_PYREGIONTEST} test/integration/PyRegionTest.cpp)
+target_link_libraries(${EXECUTABLE_PYREGIONTEST} ${COMMON_LIBS})
+set_target_properties(${EXECUTABLE_PYREGIONTEST} PROPERTIES COMPILE_FLAGS ${COMPILE_FLAGS})
+set_target_properties(${EXECUTABLE_PYREGIONTEST}
+                      PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
 
 #
 # Setup helloregion example
@@ -445,7 +455,7 @@ file(WRITE "${PROJECT_BINARY_DIR}/AddTestHeaders.hpp" "${headers_file_content}")
 # tests_all just calls other targets
 #
 add_custom_target(tests_all
-                  DEPENDS tests_htm
+                  DEPENDS tests_cpp_region
                   DEPENDS tests_unit
                   COMMENT "Running all tests")
 
@@ -462,7 +472,7 @@ add_custom_target(combined ALL
                   DEPENDS ${LIB_STATIC_NUPICCORE}
                           ${LIB_STATIC_GTEST}
                           ${EXECUTABLE_HELLOREGION}
-                          ${EXECUTABLE_HTMTEST}
+                          ${EXECUTABLE_CPPREGIONTEST}
                           ${EXECUTABLE_GTESTS})
 
 #
@@ -472,7 +482,7 @@ install(TARGETS
         ${LIB_STATIC_NUPICCORE}
         ${LIB_STATIC_GTEST}
         ${EXECUTABLE_HELLOREGION}
-        ${EXECUTABLE_HTMTEST}
+        ${EXECUTABLE_CPPREGIONTEST}
         ${EXECUTABLE_PROTOTEST}
         ${EXECUTABLE_GTESTS}
         RUNTIME DESTINATION bin

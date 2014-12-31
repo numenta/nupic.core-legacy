@@ -68,7 +68,7 @@ script:
   - "cd $TRAVIS_BUILD_DIR/build/scripts"
   - "make -j3"
   # legacy binary tests
-  - "make tests_htm"
+  - "make tests_cpp_region"
   # unit tests
   - "make tests_unit"
   # output unit tests report
