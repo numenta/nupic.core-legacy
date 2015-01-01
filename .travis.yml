@@ -42,7 +42,7 @@ deploy:
   on:
     branch: master
     condition:
-      - "( \"$TRAVIS_OS_NAME\" = 'linux' && \"$CC\" = 'gcc' ) || ( \"$TRAVIS_OS_NAME\" = 'osx' && \"$CC\" = 'clang' )"
+      - "( \"$TRAVIS_OS_NAME\" = 'linux' && \"$CC\" = 'gcc-4.8' ) || ( \"$TRAVIS_OS_NAME\" = 'osx' && \"$CC\" = 'clang' )"
 
 notifications:
   irc:
