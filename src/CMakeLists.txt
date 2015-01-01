@@ -28,6 +28,7 @@
 cmake_minimum_required(VERSION 2.8)
 project(nupic_core CXX)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+set(CMAKE_VERBOSE_MAKEFILE OFF) # toggle for cmake debug
 
 #
 # Include extra cmake files
@@ -64,6 +65,19 @@ add_definitions(-DNTA_PLATFORM_${PLATFORM}${BITNESS}
                 -DNTA_ASSERTIONS_ON
                 -DNTA_ASM)
 
+
+
+#
+# Identify build type - local or deployment (Travis)
+# the variable NUPIC_DEPLOYMENT_BUILD must be set in travis CI scripts
+#
+if($ENV{NUPIC_DEPLOYMENT_BUILD})
+  message("doing deployment build in TravisCI")
+else()
+  message("doing local build")
+endif()
+
+
 #
 # Setup include paths
 #
@@ -80,11 +94,55 @@ include_directories(SYSTEM
                     "${PROJECT_BINARY_DIR}")
 
 set(COMMON_LINK_FLAGS "-m${BITNESS} ${STDLIB}")
-set(COMPILE_FLAGS "-fPIC -std=c++11 -m${BITNESS} ${STDLIB} -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-unused-parameter")
 
+
+#
+# Set linker (ld) 
+# use ld.gold if available
+#
+execute_process(COMMAND ld.gold --version
+                RESULT_VARIABLE EXIT_CODE)
+if(EXIT_CODE EQUAL 0)
+  message("Using ld.gold as LINKER.")
+  set(CMAKE_LINKER "ld.gold")
+endif()
+
+
+#
+# Identify build type - local or deployment (Travis)
+# the variable NUPIC_DEPLOYMENT_BUILD must be set in travis CI scripts
+#
+if($ENV{NUPIC_DEPLOYMENT_BUILD})
+  message("doing deployment build in TravisCI")
+  set(OPTIMIZATION_FLAGS_CC "${OPTIMIZATION_FLAGS_CC} -mtune=generic")
+else()
+  message("doing local build")
+  set(OPTIMIZATION_FLAGS_CC "${OPTIMIZATION_FLAGS_CC} -march=native")
+endif()
+
+
+#
+# compiler specific settings here (clang/gcc)
+#
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} -static-libstdc++")
+  set(OPTIMIZATION_FLAGS_CC "${OPTIMIZATION_FLAGS_CC} -fuse-linker-plugin -flto-report -Ofast")
+  set(OPTIMIZATION_FLAGS_CC "${OPTIMIZATION_FLAGS_CC} -flto -fuse-ld=gold") #TODO fix LTO for clang
+  set(OPTIMIZATION_FLAGS_LT "${OPTIMIZATION_FLAGS_LT} -flto") #TODO LTO for clang too
 endif()
+
+
+#
+# Enable Optimization flags here
+# these are quite aggresive flags, if your code misbehaves for strange reasons, try 
+# compiling without them.
+#
+set(OPTIMIZATION_FLAGS_CC "-O3 -pipe ${OPTIMIZATION_FLAGS_CC}") #TODO use -Ofast instead of -O3
+set(OPTIMIZATION_FLAGS_LT "-O3 ${OPTIMIZATION_FLAGS_LT}")
+
+
+set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} ${OPTIMIZATION_FLAGS_LT}")
+set(COMPILE_FLAGS "-fPIC -std=c++11 -m${BITNESS} ${STDLIB} -fvisibility=hidden -Werror -Wall -Wextra -Wreturn-type -Wunused -Wno-unused-parameter -Wno-missing-field-initializers  ${OPTIMIZATION_FLAGS_CC}")
 
 #
 # Let CMake know where all of the external files are.
@@ -218,7 +276,6 @@ if("${PLATFORM}" STREQUAL "linux")
   list(APPEND COMMON_LIBS pthread dl)
 elseif("${PLATFORM}" STREQUAL "darwin")
   list(APPEND COMMON_LIBS c++abi)
-  set(COMPILE_FLAGS "${COMPILE_FLAGS} -O3")
 endif()
 
 ADD_LIBRARY(${LIB_STATIC_NUPICCORE}
@@ -302,17 +359,27 @@ set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES COMPILE_FLAGS ${COMPILE
 set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS} -static")
 
 #
-# Setup testcpphtm
+# Setup test_cpp_region
 #
-set(EXECUTABLE_HTMTEST testcpphtm)
-add_executable(${EXECUTABLE_HTMTEST} test/htm_test/HtmTest.cpp)
-target_link_libraries(${EXECUTABLE_HTMTEST} ${COMMON_LIBS})
-set_target_properties(${EXECUTABLE_HTMTEST} PROPERTIES COMPILE_FLAGS ${COMPILE_FLAGS})
-set_target_properties(${EXECUTABLE_HTMTEST}
+set(EXECUTABLE_CPPREGIONTEST cpp_region_test)
+add_executable(${EXECUTABLE_CPPREGIONTEST} test/integration/CppRegionTest.cpp)
+target_link_libraries(${EXECUTABLE_CPPREGIONTEST} ${COMMON_LIBS})
+set_target_properties(${EXECUTABLE_CPPREGIONTEST} PROPERTIES COMPILE_FLAGS ${COMPILE_FLAGS})
+set_target_properties(${EXECUTABLE_CPPREGIONTEST}
                       PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
-add_custom_target(tests_htm
-                  COMMAND ${EXECUTABLE_HTMTEST}
-                  DEPENDS ${EXECUTABLE_HTMTEST})
+add_custom_target(tests_cpp_region
+                  COMMAND ${EXECUTABLE_CPPREGIONTEST}
+                  DEPENDS ${EXECUTABLE_CPPREGIONTEST})
+
+#
+# Setup test_py_region
+#
+set(EXECUTABLE_PYREGIONTEST py_region_test)
+add_executable(${EXECUTABLE_PYREGIONTEST} test/integration/PyRegionTest.cpp)
+target_link_libraries(${EXECUTABLE_PYREGIONTEST} ${COMMON_LIBS})
+set_target_properties(${EXECUTABLE_PYREGIONTEST} PROPERTIES COMPILE_FLAGS ${COMPILE_FLAGS})
+set_target_properties(${EXECUTABLE_PYREGIONTEST}
+                      PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
 
 #
 # Setup helloregion example
@@ -445,7 +512,7 @@ file(WRITE "${PROJECT_BINARY_DIR}/AddTestHeaders.hpp" "${headers_file_content}")
 # tests_all just calls other targets
 #
 add_custom_target(tests_all
-                  DEPENDS tests_htm
+                  DEPENDS tests_cpp_region
                   DEPENDS tests_unit
                   COMMENT "Running all tests")
 
@@ -462,7 +529,7 @@ add_custom_target(combined ALL
                   DEPENDS ${LIB_STATIC_NUPICCORE}
                           ${LIB_STATIC_GTEST}
                           ${EXECUTABLE_HELLOREGION}
-                          ${EXECUTABLE_HTMTEST}
+                          ${EXECUTABLE_CPPREGIONTEST}
                           ${EXECUTABLE_GTESTS})
 
 #
@@ -472,7 +539,8 @@ install(TARGETS
         ${LIB_STATIC_NUPICCORE}
         ${LIB_STATIC_GTEST}
         ${EXECUTABLE_HELLOREGION}
-        ${EXECUTABLE_HTMTEST}
+        ${EXECUTABLE_CPPREGIONTEST}
+        ${EXECUTABLE_PYREGIONTEST}
         ${EXECUTABLE_PROTOTEST}
         ${EXECUTABLE_GTESTS}
         RUNTIME DESTINATION bin

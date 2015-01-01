@@ -34,7 +34,7 @@ Important notes:
 #### Run the tests:
 
     cd $NUPIC_CORE/build/scripts
-    make tests_htm 
+    make tests_cpp_region
     make tests_unit
 
 ### Using graphical interface

@@ -9,7 +9,10 @@ compiler:
   - gcc
 
 env:
-  - PLATFORM=${TRAVIS_OS_NAME}
+  global:
+    - PLATFORM=${TRAVIS_OS_NAME}
+    - NUPIC_DEPLOYMENT_BUILD=true
+
 
 matrix:
   # This excludes OSX builds from the build matrix for gcc
@@ -35,11 +38,11 @@ deploy:
   local-dir: "$TRAVIS_BUILD_DIR/release"
   upload-dir: "numenta/nupic.core"
   skip_cleanup: true
-  # Only deploy on master from clang build jobs
+  # Deploying on master branch from linux/gcc and osx/clang
   on:
     branch: master
     condition:
-      - "$CC == clang"
+      - "($TRAVIS_OS_NAME == linux && $CC == gcc) || ($TRAVIS_OS_NAME == osx && $CC == clang)"
 
 notifications:
   irc:
@@ -68,7 +71,7 @@ script:
   - "cd $TRAVIS_BUILD_DIR/build/scripts"
   - "make -j3"
   # legacy binary tests
-  - "make tests_htm"
+  - "make tests_cpp_region"
   # unit tests
   - "make tests_unit"
   # output unit tests report
