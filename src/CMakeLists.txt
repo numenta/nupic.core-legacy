@@ -103,10 +103,12 @@ endif()
 #
 if($ENV{NUPIC_DEPLOYMENT_BUILD})
   message("doing deployment build in TravisCI")
-  set(OPTIMIZATION_FLAGS_CC "${OPTIMIZATION_FLAGS_CC} -mtune=generic")
+  set(OPTIMIZATION_FLAGS_CC "${OPTIMIZATION_FLAGS_CC} -mtune=generic -O2")
+  set(OPTIMIZATION_FLAGS_LT "-O2 ${OPTIMIZATION_FLAGS_LT}")
 else()
   message("doing local build")
-  set(OPTIMIZATION_FLAGS_CC "${OPTIMIZATION_FLAGS_CC} -march=native")
+  set(OPTIMIZATION_FLAGS_CC "${OPTIMIZATION_FLAGS_CC} -march=native -O3")
+  set(OPTIMIZATION_FLAGS_LT "-O3 ${OPTIMIZATION_FLAGS_LT}")
 endif()
 
 
@@ -115,7 +117,7 @@ endif()
 #
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} -static-libstdc++")
-  set(OPTIMIZATION_FLAGS_CC "${OPTIMIZATION_FLAGS_CC} -fuse-linker-plugin -flto-report -Ofast")
+  set(OPTIMIZATION_FLAGS_CC "${OPTIMIZATION_FLAGS_CC} -fuse-linker-plugin -flto-report")
   set(OPTIMIZATION_FLAGS_CC "${OPTIMIZATION_FLAGS_CC} -flto -fuse-ld=gold") #TODO fix LTO for clang
   set(OPTIMIZATION_FLAGS_LT "${OPTIMIZATION_FLAGS_LT} -flto") #TODO LTO for clang too
 endif()
@@ -126,8 +128,7 @@ endif()
 # these are quite aggresive flags, if your code misbehaves for strange reasons, try 
 # compiling without them.
 #
-set(OPTIMIZATION_FLAGS_CC "-O3 -pipe ${OPTIMIZATION_FLAGS_CC}") #TODO use -Ofast instead of -O3
-set(OPTIMIZATION_FLAGS_LT "-O3 ${OPTIMIZATION_FLAGS_LT}")
+set(OPTIMIZATION_FLAGS_CC "-pipe ${OPTIMIZATION_FLAGS_CC}") #TODO use -Ofast instead of -O3
 
 
 set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} ${OPTIMIZATION_FLAGS_LT}")
