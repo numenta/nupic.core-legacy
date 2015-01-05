@@ -33,7 +33,6 @@
 #include <nupic/algorithms/SpatialPooler.hpp>
 #include <nupic/math/SparseMatrix.hpp>
 #include <nupic/proto/SparseMatrixProto.capnp.h>
-#include <nupic/utils/ProtoUtils.hpp>
 #include <nupic/utils/Random.hpp>
 
 using namespace std;
@@ -103,7 +102,7 @@ void testSP()
 
   SpatialPooler sp2;
 
-  long timeA, timeC = 0;
+  long timeA = 0, timeC = 0;
 
   for (UInt i = 0; i < 100; ++i)
   {

@@ -31,11 +31,11 @@
 
 #include <capnp/message.h>
 #include <capnp/serialize.h>
+#include <kj/std/iostream.h>
 
 #include <nupic/algorithms/SpatialPooler.hpp>
 #include <nupic/math/Math.hpp>
 #include <nupic/proto/SpatialPoolerProto.capnp.h>
-#include <nupic/utils/ProtoUtils.hpp>
 
 using namespace std;
 using namespace nupic;
@@ -1658,7 +1658,7 @@ void SpatialPooler::write(ostream& stream)
   SpatialPoolerProto::Builder proto = message.initRoot<SpatialPoolerProto>();
   write(proto);
 
-  proto::StdOutputStream out(stream);
+  kj::std::StdOutputStream out(stream);
   capnp::writeMessage(out, message);
 }
 
@@ -1667,7 +1667,7 @@ void SpatialPooler::write(ostream& stream)
 // that everything in initialize is handled properly here.
 void SpatialPooler::read(istream& stream)
 {
-  proto::StdInputStream in(stream);
+  kj::std::StdInputStream in(stream);
 
   capnp::InputStreamMessageReader message(in);
   SpatialPoolerProto::Reader proto = message.getRoot<SpatialPoolerProto>();

@@ -26,12 +26,12 @@
 
 #include <capnp/message.h>
 #include <capnp/serialize.h>
+#include <kj/std/iostream.h>
 #include <gtest/gtest.h>
 
 #include <nupic/math/SparseMatrix.hpp>
 #include <nupic/proto/SparseMatrixProto.capnp.h>
 #include <nupic/types/Types.h>
-#include <nupic/utils/ProtoUtils.hpp>
 
 namespace nupic
 {
@@ -50,11 +50,11 @@ namespace nupic
       capnp::MallocMessageBuilder message1;
       SparseMatrixProto::Builder protoBuilder = message1.initRoot<SparseMatrixProto>();
       m1.write(protoBuilder);
-      proto::StdOutputStream out(ss);
+      kj::std::StdOutputStream out(ss);
       capnp::writeMessage(out, message1);
 
       // read
-      proto::StdInputStream in(ss);
+      kj::std::StdInputStream in(ss);
       capnp::InputStreamMessageReader message2(in);
       SparseMatrixProto::Reader protoReader = message2.getRoot<SparseMatrixProto>();
       m2.read(protoReader);
@@ -77,11 +77,11 @@ namespace nupic
       capnp::MallocMessageBuilder message1;
       SparseMatrixProto::Builder protoBuilder = message1.initRoot<SparseMatrixProto>();
       m1.write(protoBuilder);
-      proto::StdOutputStream out(ss);
+      kj::std::StdOutputStream out(ss);
       capnp::writeMessage(out, message1);
 
       // read
-      proto::StdInputStream in(ss);
+      kj::std::StdInputStream in(ss);
       capnp::InputStreamMessageReader message2(in);
       SparseMatrixProto::Reader protoReader = message2.getRoot<SparseMatrixProto>();
       m2.read(protoReader);

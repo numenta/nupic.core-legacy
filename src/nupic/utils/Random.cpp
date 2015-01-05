@@ -31,10 +31,10 @@
 
 #include <capnp/message.h>
 #include <capnp/serialize.h>
+#include <kj/std/iostream.h>
 
 #include <nupic/proto/RandomProto.capnp.h>
 #include <nupic/utils/Log.hpp>
-#include <nupic/utils/ProtoUtils.hpp>
 #include <nupic/utils/Random.hpp>
 #include <nupic/utils/StringUtils.hpp>
 
@@ -100,7 +100,7 @@ void Random::write(std::ostream& stream) const
   auto proto = message.initRoot<RandomProto>();
   write(proto);
 
-  proto::StdOutputStream out(stream);
+  kj::std::StdOutputStream out(stream);
   capnp::writeMessage(out, message);
 }
 
@@ -116,7 +116,7 @@ void Random::write(RandomProto::Builder& proto) const
 
 void Random::read(std::istream& stream)
 {
-  proto::StdInputStream in(stream);
+  kj::std::StdInputStream in(stream);
   capnp::InputStreamMessageReader message(in);
   RandomProto::Reader proto = message.getRoot<RandomProto>();
   read(proto);
