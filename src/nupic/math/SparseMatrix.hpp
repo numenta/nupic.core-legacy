@@ -37,11 +37,11 @@
 
 #include <nupic/math/ArrayAlgo.hpp>
 #include <nupic/math/Math.hpp>
-#include <nupic/math/SparseMatrixProto.capnp.h>
 #include <nupic/math/StlIo.hpp>
 #include <nupic/math/Utils.hpp>
 #include <nupic/ntypes/MemParser.hpp>
 #include <nupic/ntypes/MemStream.hpp>
+#include <nupic/proto/SparseMatrixProto.capnp.h>
 
 
 //--------------------------------------------------------------------------------

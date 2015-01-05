@@ -33,9 +33,9 @@
 #include <capnp/serialize.h>
 #include <kj/std/iostream.h>
 
+#include <nupic/proto/RandomProto.capnp.h>
 #include <nupic/utils/Log.hpp>
 #include <nupic/utils/Random.hpp>
-#include <nupic/utils/RandomProto.capnp.h>
 #include <nupic/utils/StringUtils.hpp>
 
 using namespace nupic;
