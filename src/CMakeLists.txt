@@ -255,7 +255,12 @@ find_package(CapnProto REQUIRED)
 include_directories(${CAPNP_INCLUDE_DIRS})
 # List all .capnp files here. The C++ files will be generated and included
 # when compiling later on.
-file(GLOB CAPNP_SPECS nupic/proto/*.capnp)
+set(CAPNP_SPECS
+    nupic/proto/RandomProto.capnp
+    nupic/proto/SparseBinaryMatrixProto.capnp
+    nupic/proto/SparseMatrixProto.capnp
+    nupic/proto/SpatialPoolerProto.capnp
+)
 capnp_generate_cpp(CAPNP_SRCS CAPNP_HDRS ${CAPNP_SPECS})
 
 #
