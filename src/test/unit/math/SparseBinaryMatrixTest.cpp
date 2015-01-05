@@ -30,7 +30,7 @@
 #include <gtest/gtest.h>
 
 #include <nupic/math/SparseBinaryMatrix.hpp>
-#include <nupic/math/SparseBinaryMatrixProto.capnp.h>
+#include <nupic/proto/SparseBinaryMatrixProto.capnp.h>
 #include <nupic/types/Types.h>
 
 namespace nupic
