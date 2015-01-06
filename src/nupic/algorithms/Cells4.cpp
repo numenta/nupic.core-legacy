@@ -188,10 +188,11 @@ bool Cells4::computeUpdate(UInt cellIdx, UInt segIdx, CStateIndexed& activeState
       highWaterSize = segment.size();
       newSynapses.reserve(highWaterSize);
     }
-    for (UInt i=0; i<segment.size(); ++i) //FIXME why we skip segment[0] here?
+    for (UInt i = 0; i < segment.size(); ++i) {
       if (activeState.isSet(segment[i].srcCellIdx())) {
         newSynapses.push_back(segment[i].srcCellIdx());
       }
+    }
   }
 
   if (newSynapsesFlag) {
@@ -1156,7 +1157,7 @@ bool Cells4::inferPhase2()
   //---------------------------------------------------------------------------
   // Initialize to 0 to start
   _infPredictedStateT.resetAll();
-  memset(_cellConfidenceT, 0, _nCells * sizeof(_cellConfidenceT[0])); //TODO already zeroed above, can remove?
+  memset(_cellConfidenceT, 0, _nCells * sizeof(_cellConfidenceT[0])); // TODO already zeroed above, can remove?
   memset(_colConfidenceT, 0, _nColumns * sizeof(_colConfidenceT[0]));
 
   //---------------------------------------------------------------------------
@@ -1279,7 +1280,7 @@ void Cells4::compute(Real* input, Real* output, bool doInference, bool doLearnin
   if (_avgInputDensity == 0.0) {
     _avgInputDensity = (Real) activeColumns.size();
   } else {
-    //TODO remove magic constants. should this be swarmed-over?
+    // TODO remove magic constants. should this be swarmed-over?
     const auto COOL_DOWN = (Real)0.99;
     _avgInputDensity = COOL_DOWN*_avgInputDensity + (1-COOL_DOWN)*(Real)activeColumns.size();
   }
