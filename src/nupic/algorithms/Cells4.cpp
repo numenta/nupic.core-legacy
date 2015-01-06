@@ -2787,7 +2787,8 @@ void Cells4::computeForwardPropagation(CState& state)
 {
   // Zero out previous values
   // Using memset is quite a bit faster on laptops, but has almost no effect
-  // on Neo15!
+  // on Neo15! // TODO shouldn't we optimize for generic (laptop) CPUs rather than
+  // a cellphone CPU
   _inferActivity.reset();
 
   // Compute cell and segment activity by following forward propagation
