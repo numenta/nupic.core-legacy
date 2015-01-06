@@ -42,7 +42,7 @@ deploy:
   on:
     branch: master
     condition:
-      - "( ${TRAVIS_OS_NAME}--${CC} = 'linux--gcc-4.8' ) || ( ${TRAVIS_OS_NAME}--${CC} = 'osx--clang' ) && echo \"published nupic_core-${TRAVIS_COMMIT}-${PLATFORM}64.tar.gz\" "
+      - "( ${TRAVIS_OS_NAME}--${CC} = 'linux--gcc-4.8' ) || ( ${TRAVIS_OS_NAME}--${CC} = 'linux--gcc' ) || ( ${TRAVIS_OS_NAME}--${CC} = 'osx--clang' )"
 
 notifications:
   irc:
