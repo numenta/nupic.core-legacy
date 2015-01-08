@@ -58,6 +58,7 @@ endif()
 
 # Compiler `-D*` definitions
 add_definitions(-DNTA_PLATFORM_${PLATFORM}${BITNESS}
+                -DNTA_ARCH_${BITNESS}
                 -DHAVE_CONFIG_H
                 -DNTA_INTERNAL
                 -DBOOST_NO_WREGEX
