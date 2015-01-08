@@ -146,7 +146,7 @@ typedef double         NTA_Real64;
  */
 typedef void *         NTA_Handle;
 
-#if defined(NTA_PLATFORM_darwin86)
+#if defined(NTA_ARCH_32)
 /**
  * Represents a 32-bit signed integer.
  */
@@ -164,7 +164,7 @@ typedef  long long            NTA_Int64;
  */
 typedef  unsigned long long   NTA_UInt64;
 
-#elif defined(NTA_PLATFORM_darwin64)
+#else // 64bit (linux64, darwin64, sparc64, ..)
 /**
  * Represents a 32-bit signed integer.
  */
@@ -181,44 +181,9 @@ typedef  long                 NTA_Int64;
  * Represents a 64-bit unsigned integer.
  */
 typedef  unsigned long        NTA_UInt64;
-
-#elif defined(NTA_PLATFORM_linux32)
-/**
- * Represents a 32-bit signed integer.
- */
-typedef  int                  NTA_Int32;
-/**
- * Represents a 32-bit unsigned integer.
- */
-typedef  unsigned int         NTA_UInt32;
-/**
- * Represents a 64-bit signed integer.
- */
-typedef  long long            NTA_Int64;
-/**
- * Represents a 64-bit unsigned integer.
- */
-typedef  unsigned long long   NTA_UInt64;
-
-#elif defined(NTA_PLATFORM_linux32arm) || defined(NTA_PLATFORM_linux32armv7)
-/**
- * Represents a 32-bit signed integer.
- */
-typedef  int                  NTA_Int32;
-/**
- * Represents a 32-bit unsigned integer.
- */
-typedef  unsigned int         NTA_UInt32;
-/**
- * Represents a 64-bit signed integer.
- */
-typedef  long long            NTA_Int64;
-/**
- * Represents a 64-bit unsigned integer.
- */
-typedef  unsigned long long   NTA_UInt64;
-
-#elif defined(NTA_PLATFORM_win32)
+#endif
+// win specific
+#if defined(NTA_PLATFORM_win32)
 /**
  * Represents a 32-bit signed integer.
  */
@@ -227,53 +192,7 @@ typedef  long                NTA_Int32;
  * Represents a 32-bit unsigned integer.
  */
 typedef  unsigned long       NTA_UInt32;
-/**
- * Represents a 64-bit signed integer.
- */
-typedef  long long           NTA_Int64;
-/**
- * Represents a 64-bit unsigned integer.
- */
-typedef  unsigned long long  NTA_UInt64;
-
-#elif defined(NTA_PLATFORM_linux64)
-/**
- * Represents a 32-bit signed integer.
- */
-typedef  int                 NTA_Int32;
-/**
- * Represents a 32-bit unsigned integer.
- */
-typedef  unsigned int        NTA_UInt32;
-/**
- * Represents a 64-bit signed integer.
- */
-typedef  long                NTA_Int64;
-/**
- * Represents a 64-bit unsigned integer.
- */
-typedef  unsigned long       NTA_UInt64;
-#elif defined(NTA_PLATFORM_sparc64)
-/**
- * Represents a 32-bit signed integer.
- */
-typedef  int                 NTA_Int32;
-/**
- * Represents a 32-bit unsigned integer.
- */
-typedef  unsigned int        NTA_UInt32;
-/**
- * Represents a 64-bit signed integer.
- */
-typedef  long                NTA_Int64;
-/**
- * Represents a 64-bit unsigned integer.
- */
-typedef  unsigned long       NTA_UInt64;
-#else
-#error "Unknown platform"
 #endif
-
 /**
  * @}
  */
