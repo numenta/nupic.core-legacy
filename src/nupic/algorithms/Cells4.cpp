@@ -1024,17 +1024,15 @@ void Cells4::updateLearningState(const std::vector<UInt> & activeColumns,
 void Cells4::updateInferenceState(const std::vector<UInt> & activeColumns)
 {
   //---------------------------------------------------------------------------
-  // Copy over inference related states to t-1 and reset state at t to 0
+  // Copy over inference related states to t-1 
   // We need to do a copy here in case the buffers are numpy allocated
   // A possible optimization here is to do a swap if Cells4 owns its memory.
   _infActiveStateT1 = _infActiveStateT;
   _infPredictedStateT1 = _infPredictedStateT;
   memcpy(_cellConfidenceT1, _cellConfidenceT, _nCells * sizeof(_cellConfidenceT[0]));
-  memset(_cellConfidenceT, 0, _nCells * sizeof(_cellConfidenceT[0]));
 
-  // Copy over previous column confidences and zero out current confidence
+  // Copy over previous column confidences
   memcpy(_colConfidenceT1, _colConfidenceT, _nColumns * sizeof(_colConfidenceT[0]));
-  memset(_colConfidenceT, 0, _nColumns * sizeof(_colConfidenceT[0]));
 
 
   //---------------------------------------------------------------------------
@@ -1157,7 +1155,7 @@ bool Cells4::inferPhase2()
   //---------------------------------------------------------------------------
   // Initialize to 0 to start
   _infPredictedStateT.resetAll();
-  memset(_cellConfidenceT, 0, _nCells * sizeof(_cellConfidenceT[0])); // TODO already zeroed above, can remove?
+  memset(_cellConfidenceT, 0, _nCells * sizeof(_cellConfidenceT[0]));
   memset(_colConfidenceT, 0, _nColumns * sizeof(_colConfidenceT[0]));
 
   //---------------------------------------------------------------------------
