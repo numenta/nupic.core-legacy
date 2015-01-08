@@ -774,7 +774,7 @@ inline float svm<traits>::rbf_function(float* x, float* x_end, float* y) const
     }
   }
 
-#elif defined(NTA_ASM) && defined(NTA_PLATFORM_darwin86) 
+#elif defined(NTA_ASM) && defined(NTA_PLATFORM_darwin32) 
 
   if (with_sse) {
     

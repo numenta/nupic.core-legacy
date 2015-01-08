@@ -75,7 +75,7 @@ namespace nupic {
 
   // TODO: add asm code for gcc/clang/... on Windows
 
-  #elif defined(NTA_PLATFORM_darwin86) || defined(NTA_PLATFORM_linux32)
+  #elif defined(NTA_PLATFORM_darwin32) || defined(NTA_PLATFORM_linux32)
 
     unsigned int a = 0,b = 0, f = 1;
 
@@ -236,7 +236,7 @@ namespace nupic {
     if (SSE_LEVEL >= 41) { // ptest is a SSE 4.1 instruction
 
     // On win32, the asm syntax is not correct.
-#if (defined(NTA_PLATFORM_linux32) || defined(NTA_PLATFORM_darwin86)) && defined(NTA_ASM)
+#if (defined(NTA_PLATFORM_linux32) || defined(NTA_PLATFORM_darwin32)) && defined(NTA_ASM)
 
       // n is the total number of floats to process.
       // n1 is the number of floats we can process in parallel using SSE.
@@ -401,7 +401,7 @@ namespace nupic {
     // const int SSE_LEVEL. 
     if (SSE_LEVEL >= 41) { // ptest is a SSE 4.1 instruction
 
-#if (defined(NTA_PLATFORM_linux32) || defined(NTA_PLATFORM_darwin86)) && defined(NTA_ASM)
+#if (defined(NTA_PLATFORM_linux32) || defined(NTA_PLATFORM_darwin32)) && defined(NTA_ASM)
 
       // n is the total number of floats to process.
       // n1 is the number of floats we can process in parallel using SSE.
@@ -599,12 +599,12 @@ namespace nupic {
 
   //--------------------------------------------------------------------------------
   /**
-   * For more bytes for alignment on x86 with darwin: darwin86 always allocates on 
+   * For more bytes for alignment on x86 with darwin: darwin32 always allocates on 
    * 16 bytes boundaries, so the three pointers in the STL vectors (of 32 bits each
    * in -m32), become: 3 * 4 + 4 = 16 bytes. The capacity similarly needs to be 
    * adjusted for aligment. On other platforms, the alignment might be different.
    *
-   * NOTE/WARNING: this is really "accurate" only on darwin86. And even, it's probably
+   * NOTE/WARNING: this is really "accurate" only on darwin32. And even, it's probably
    * only approximate.
    */
   template <typename T>
@@ -2242,7 +2242,7 @@ namespace nupic {
 
     a.resize(nrows * nnzpr);
 
-#ifdef NTA_PLATFORM_darwin86
+#ifdef NTA_PLATFORM_darwin32
     nupic::Random rng(seed == -1 ? arc4random() : seed);
 #else
     nupic::Random rng(seed == -1 ? rand() : seed);
@@ -2295,7 +2295,7 @@ namespace nupic {
 
     a.resize(nrows * nnzpr);
 
-#ifdef NTA_PLATFORM_darwin86
+#ifdef NTA_PLATFORM_darwin32
     nupic::Random rng(seed == -1 ? arc4random() : seed);
 #else
     nupic::Random rng(seed == -1 ? rand() : seed);
@@ -3754,7 +3754,7 @@ namespace nupic {
     // Need this, because the asm syntax is not correct for win32, 
     // we simply can't compile the code as is on win32.
 
-    // Need this, because even on darwin86, some older machines might 
+    // Need this, because even on darwin32 (which is darwin86), some older machines might 
     // not have the right SSE instructions.
     if (SSE_LEVEL >= 3) {
 
@@ -5061,7 +5061,7 @@ namespace nupic {
 
     // See comments in count_gt. We need both conditional compilation and 
     // SSE_LEVEL check.
-#if defined(NTA_PLATFORM_darwin86) || defined(NTA_PLATFORM_darwin64) || defined(NTA_PLATFORM_linux64) || defined(NTA_PLATFORM_linux32)
+#if defined(NTA_PLATFORM_darwin32) || defined(NTA_PLATFORM_darwin64) || defined(NTA_PLATFORM_linux64) || defined(NTA_PLATFORM_linux32)
 
     if (SSE_LEVEL >= 3) {
 
@@ -5078,7 +5078,7 @@ namespace nupic {
       // skip the asm. 
       if (n1 > 0) { 
 
-  #if defined (NTA_PLATFORM_darwin86) || defined(NTA_PLATFORM_linux32)
+  #if defined (NTA_PLATFORM_darwin32) || defined(NTA_PLATFORM_linux32)
         __asm__ __volatile__(
                      "pusha\n\t"                   // save all registers
                  
@@ -5184,7 +5184,7 @@ namespace nupic {
 
     // See comments in count_gt. We need conditional compilation
     // _AND_ SSE_LEVEL check.
-#if defined(NTA_PLATFORM_darwin86) || defined(NTA_PLATFORM_linux64) || defined(NTA_PLATFORM_darwin64) || defined(NTA_PLATFORM_linux32)
+#if defined(NTA_PLATFORM_darwin32) || defined(NTA_PLATFORM_linux64) || defined(NTA_PLATFORM_darwin64) || defined(NTA_PLATFORM_linux32)
 
     if (SSE_LEVEL >= 3) {
 
@@ -5196,7 +5196,7 @@ namespace nupic {
     
       if (n1 > 0) {
 
-  #if defined(NTA_PLATFORM_darwin86) || defined(NTA_PLATFORM_linux32)
+  #if defined(NTA_PLATFORM_darwin32) || defined(NTA_PLATFORM_linux32)
         __asm__ __volatile__(
                      "pusha\n\t"
                  

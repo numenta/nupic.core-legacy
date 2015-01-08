@@ -1325,7 +1325,7 @@ void Cells4::compute(Real* input, Real* output, bool doInference, bool doLearnin
   // invalidating our indexes.
   memset(output, 0, _nCells * sizeof(output[0])); // most output is zero
 #if SOME_STATES_NOT_INDEXED
-#ifdef NTA_PLATFORM_darwin86
+#ifdef NTA_PLATFORM_darwin32
   const UInt multipleOf4 = 4 * (_nCells/4);
   UInt i;
   for (i = 0; i < multipleOf4; i += 4) {
@@ -2823,7 +2823,7 @@ void Cells4::computeForwardPropagation(CState& state)
   // Compute cell and segment activity by following forward propagation
   // links from each source cell.  _cellActivity will be set to the total
   // activity coming into a cell.
-#ifdef NTA_PLATFORM_darwin86
+#ifdef NTA_PLATFORM_darwin32
   const UInt multipleOf8 = 8 * (_nCells/8);
   UInt i;
   for (i = 0; i < multipleOf8; i += 8) {

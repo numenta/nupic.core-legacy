@@ -35,7 +35,7 @@
 #include <apr-1/apr_network_io.h>
 
 
-#if defined(NTA_PLATFORM_darwin86) || defined(NTA_PLATFORM_darwin64)
+#if defined(NTA_PLATFORM_darwin32) || defined(NTA_PLATFORM_darwin64)
 extern "C" {
 #include <mach/task.h>
 #include <mach/mach_init.h>
@@ -56,7 +56,7 @@ using namespace nupic;
 
 void OS::getProcessMemoryUsage(size_t& realMem, size_t& virtualMem)
 {
-#if defined(NTA_PLATFORM_darwin86) || defined(NTA_PLATFORM_darwin64)
+#if defined(NTA_PLATFORM_darwin32) || defined(NTA_PLATFORM_darwin64)
   struct task_basic_info t_info;
   mach_msg_type_number_t t_info_count = TASK_BASIC_INFO_COUNT;
   
