@@ -1325,7 +1325,37 @@ void Cells4::compute(Real* input, Real* output, bool doInference, bool doLearnin
   // invalidating our indexes.
   memset(output, 0, _nCells * sizeof(output[0])); // most output is zero
 #if SOME_STATES_NOT_INDEXED
-  const UInt multipleOf8 = 8 * (_nCells/8); //TODO this code can be removed, for small speed penalty (see "tail")
+#ifdef NTA_PLATFORM_darwin86
+  const UInt multipleOf4 = 4 * (_nCells/4);
+  UInt i;
+  for (i = 0; i < multipleOf4; i += 4) {
+    UInt32 fourStates = * (UInt32 *)(_infPredictedStateT.arrayPtr() + i);
+    if (fourStates != 0) {
+      if ((fourStates & 0x000000ff) != 0) output[i + 0] = 1.0;
+      if ((fourStates & 0x0000ff00) != 0) output[i + 1] = 1.0;
+      if ((fourStates & 0x00ff0000) != 0) output[i + 2] = 1.0;
+      if ((fourStates & 0xff000000) != 0) output[i + 3] = 1.0;
+    }
+    fourStates = * (UInt32 *)(_infActiveStateT.arrayPtr() + i);
+    if (fourStates != 0) {
+      if ((fourStates & 0x000000ff) != 0) output[i + 0] = 1.0;
+      if ((fourStates & 0x0000ff00) != 0) output[i + 1] = 1.0;
+      if ((fourStates & 0x00ff0000) != 0) output[i + 2] = 1.0;
+      if ((fourStates & 0xff000000) != 0) output[i + 3] = 1.0;
+    }
+  }
+
+  // process the tail if (_nCells % 4) != 0
+  for (i = multipleOf4; i < _nCells; i++) {
+    if (_infPredictedStateT.isSet(i)) {
+      output[i] = 1.0;
+    }
+    else if (_infActiveStateT.isSet(i)) {
+      output[i] = 1.0;
+    }
+  }
+#else
+  const UInt multipleOf8 = 8 * (_nCells/8);
   UInt i;
   for (i = 0; i < multipleOf8; i += 8) {
     UInt64 eightStates = * (UInt64 *)(_infPredictedStateT.arrayPtr() + i);
@@ -1361,6 +1391,7 @@ void Cells4::compute(Real* input, Real* output, bool doInference, bool doLearnin
       output[i] = 1.0;
     }
   }
+#endif // NTA_PLATFORM_darwin86
 #else
   static std::vector<UInt> cellsOn;
   std::vector<UInt>::iterator iterOn;
@@ -2792,8 +2823,36 @@ void Cells4::computeForwardPropagation(CState& state)
   // Compute cell and segment activity by following forward propagation
   // links from each source cell.  _cellActivity will be set to the total
   // activity coming into a cell.
-  //TODO above was multipleOf8 for NON-darwin, here is multipleOf4 !
-  const UInt multipleOf4 = 4 * (_nCells/4); //TODO remove for small penalty, see "tail"
+#ifdef NTA_PLATFORM_darwin86
+  const UInt multipleOf8 = 8 * (_nCells/8);
+  UInt i;
+  for (i = 0; i < multipleOf8; i += 8) {
+    UInt64 eightStates = * (UInt64 *)(state.arrayPtr() + i);
+    for (int k = 0; eightStates != 0  &&  k < 8; eightStates >>= 8, k++) {
+      if ((eightStates & 0xff) != 0) {
+        std::vector< OutSynapse >& os = _outSynapses[i + k];
+        for (UInt j = 0; j != os.size(); ++j) {
+          UInt dstCellIdx = os[j].dstCellIdx();
+          UInt dstSegIdx = os[j].dstSegIdx();
+          _inferActivity.increment(dstCellIdx, dstSegIdx);
+        }
+      }
+    }
+  }
+
+  // process the tail if (_nCells % 8) != 0
+  for (i = multipleOf8; i < _nCells; i++) {
+    if (state.isSet(i)) {
+      std::vector< OutSynapse >& os = _outSynapses[i];
+      for (UInt j = 0; j != os.size(); ++j) {
+        UInt dstCellIdx = os[j].dstCellIdx();
+        UInt dstSegIdx = os[j].dstSegIdx();
+        _inferActivity.increment(dstCellIdx, dstSegIdx);
+      }
+    }
+  }
+#else
+  const UInt multipleOf4 = 4 * (_nCells/4);
   UInt i;
   for (i = 0; i < multipleOf4; i += 4) {
     UInt32 fourStates = * (UInt32 *)(state.arrayPtr() + i);
@@ -2820,6 +2879,7 @@ void Cells4::computeForwardPropagation(CState& state)
       }
     }
   }
+#endif // NTA_PLATFORM_darwin86
 }
 #endif  // SOME_STATES_NOT_INDEXED
 
