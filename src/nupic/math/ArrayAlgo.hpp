@@ -75,7 +75,7 @@ namespace nupic {
 
   // TODO: add asm code for gcc/clang/... on Windows
 
-  #elif defined(NTA_PLATFORM_darwin32) || defined(NTA_PLATFORM_linux32)
+  #elif defined(NTA_ARCH_32)
 
     unsigned int a = 0,b = 0, f = 1;
 
@@ -90,7 +90,7 @@ namespace nupic {
                          : "cc"
                          );
 
-  #elif defined(NTA_PLATFORM_linux64) || defined(NTA_PLATFORM_darwin64)
+  #else // 64bit
 
     __asm__ __volatile__ (
                          "pushq  %%rbx\n\t"
@@ -236,7 +236,7 @@ namespace nupic {
     if (SSE_LEVEL >= 41) { // ptest is a SSE 4.1 instruction
 
     // On win32, the asm syntax is not correct.
-#if (defined(NTA_PLATFORM_linux32) || defined(NTA_PLATFORM_darwin32)) && defined(NTA_ASM)
+#if defined(NTA_ARCH_32) && defined(NTA_ASM) && not defined(NTA_PLATFORM_win32)
 
       // n is the total number of floats to process.
       // n1 is the number of floats we can process in parallel using SSE.
@@ -302,7 +302,7 @@ namespace nupic {
           return false;
       return true;
 
-#elif (defined(NTA_PLATFORM_linux64) || defined(NTA_PLATFORM_darwin64)) && defined(NTA_ASM)
+#elif defined(NTA_ARCH_64) && defined(NTA_ASM)
 
       // n is the total number of floats to process.
       // n1 is the number of floats we can process in parallel using SSE.
@@ -401,7 +401,7 @@ namespace nupic {
     // const int SSE_LEVEL. 
     if (SSE_LEVEL >= 41) { // ptest is a SSE 4.1 instruction
 
-#if (defined(NTA_PLATFORM_linux32) || defined(NTA_PLATFORM_darwin32)) && defined(NTA_ASM)
+#if defined(NTA_ARCH_32) && defined(NTA_ASM)
 
       // n is the total number of floats to process.
       // n1 is the number of floats we can process in parallel using SSE.
@@ -467,7 +467,7 @@ namespace nupic {
           return false;
       return true;
 
-#elif (defined(NTA_PLATFORM_linux64) || defined(NTA_PLATFORM_darwin64)) && defined(NTA_ASM)
+#elif defined(NTA_ASM)
 
       // n is the total number of floats to process.
       // n1 is the number of floats we can process in parallel using SSE.
@@ -3772,7 +3772,7 @@ namespace nupic {
       int n2 = (int)(end - start - n1);
 
 
-#if defined(NTA_PLATFORM_darwin64) || defined(NTA_PLATFORM_linux64)
+#if defined(NTA_ARCH_64)
 
     #if defined(NTA_PLATFORM_darwin64)
 
@@ -4979,7 +4979,7 @@ namespace nupic {
       // skip the asm. 
       if (n1 > 0) { 
 
-  #if defined (NTA_PLATFORM_darwin32) || defined(NTA_PLATFORM_linux32)
+  #if defined(NTA_ARCH_32)
         __asm__ __volatile__(
                      "pusha\n\t"                   // save all registers
                  
@@ -5011,7 +5011,7 @@ namespace nupic {
                      : 
                      );
 
-  #elif defined(NTA_PLATFORM_darwin64) || defined(NTA_PLATFORM_linux64)
+  #else
         __asm__ __volatile__(
                      "pushq %%rsi\n\t"             // save affected registers
                      "pushq %%rdi\n\t"             // this 'shouldn't' be necessary
@@ -5097,7 +5097,7 @@ namespace nupic {
     
       if (n1 > 0) {
 
-  #if defined(NTA_PLATFORM_darwin32) || defined(NTA_PLATFORM_linux32)
+  #if defined(NTA_ARCH_32)
         __asm__ __volatile__(
                      "pusha\n\t"
                  
@@ -5128,7 +5128,7 @@ namespace nupic {
                      : 
                      );
 
-  #elif defined(NTA_PLATFORM_darwin64) || defined(NTA_PLATFORM_linux64)
+  #else //64bit
         __asm__ __volatile__(
                      "pushq %%rsi\n\t"             // save affected registers
                      "pushq %%rdi\n\t"
