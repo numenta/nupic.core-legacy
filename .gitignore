@@ -1,0 +1,19 @@
+.metadata
+.idea
+*.manifest
+*.cache
+*~
+*.DS_Store
+*.swp
+
+# IDE project files
+/nbproject/
+
+# Build files
+build/
+
+# /
+/.gdb_history
+
+# Doxygen generated doc
+html/
