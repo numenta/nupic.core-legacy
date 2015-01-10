@@ -24,14 +24,15 @@
     Random Number Generator interface
 */
 
-#include <nupic/types/Types.hpp>
 #include <algorithm>
 #include <cstdlib>
 #include <string>
 #include <vector>
-#include <nupic/utils/Log.hpp>
-#include <nupic/utils/RandomProto.capnp.h>
 #include <utility>
+
+#include <nupic/proto/RandomProto.capnp.h>
+#include <nupic/types/Types.hpp>
+#include <nupic/utils/Log.hpp>
 
 #ifndef NTA_RANDOM_HPP
 #define NTA_RANDOM_HPP

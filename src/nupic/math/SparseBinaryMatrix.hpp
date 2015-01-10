@@ -33,7 +33,7 @@
 #include <nupic/math/Math.hpp>
 #include <nupic/math/StlIo.hpp>
 #include <nupic/math/ArrayAlgo.hpp>
-#include <nupic/math/SparseBinaryMatrixProto.capnp.h>
+#include <nupic/proto/SparseBinaryMatrixProto.capnp.h>
 
 //--------------------------------------------------------------------------------
 namespace nupic {

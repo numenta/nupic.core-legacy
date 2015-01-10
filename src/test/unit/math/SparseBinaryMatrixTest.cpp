@@ -26,12 +26,12 @@
 
 #include <capnp/message.h>
 #include <capnp/serialize.h>
+#include <kj/std/iostream.h>
 #include <gtest/gtest.h>
 
 #include <nupic/math/SparseBinaryMatrix.hpp>
-#include <nupic/math/SparseBinaryMatrixProto.capnp.h>
+#include <nupic/proto/SparseBinaryMatrixProto.capnp.h>
 #include <nupic/types/Types.h>
-#include <nupic/utils/ProtoUtils.hpp>
 
 namespace nupic
 {
@@ -50,11 +50,11 @@ namespace nupic
       capnp::MallocMessageBuilder message1;
       SparseBinaryMatrixProto::Builder protoBuilder = message1.initRoot<SparseBinaryMatrixProto>();
       m1.write(protoBuilder);
-      proto::StdOutputStream out(ss);
+      kj::std::StdOutputStream out(ss);
       capnp::writeMessage(out, message1);
 
       // read
-      proto::StdInputStream in(ss);
+      kj::std::StdInputStream in(ss);
       capnp::InputStreamMessageReader message2(in);
       SparseBinaryMatrixProto::Reader protoReader = message2.getRoot<SparseBinaryMatrixProto>();
       m2.read(protoReader);
@@ -77,11 +77,11 @@ namespace nupic
       capnp::MallocMessageBuilder message1;
       SparseBinaryMatrixProto::Builder protoBuilder = message1.initRoot<SparseBinaryMatrixProto>();
       m1.write(protoBuilder);
-      proto::StdOutputStream out(ss);
+      kj::std::StdOutputStream out(ss);
       capnp::writeMessage(out, message1);
 
       // read
-      proto::StdInputStream in(ss);
+      kj::std::StdInputStream in(ss);
       capnp::InputStreamMessageReader message2(in);
       SparseBinaryMatrixProto::Reader protoReader = message2.getRoot<SparseBinaryMatrixProto>();
       m2.read(protoReader);
