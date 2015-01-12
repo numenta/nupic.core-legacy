@@ -2722,7 +2722,7 @@ namespace nupic {
       if (totalBytes < 0)
         totalBytes = 0;
 
-#ifdef NTA_PLATFORM_win32 // On Windows, don't use MemParser, it's slow.
+#if defined(NTA_OS_WINDOWS) // On Windows, don't use MemParser, it's slow.
 
       size_type i, j, k, nrows, ncols, nnz, nnzr;
       i = j = k = nrows = ncols = nnz = nnzr = 0;
@@ -2993,8 +2993,8 @@ namespace nupic {
      */
     inline void fromBinary(std::istream& inStream)
     {
-#ifdef NTA_PLATFORM_win32
-      std::cout << "fromBinary not supported on win32" << std::endl;
+#if defined(NTA_OS_WINDOWS)
+      std::cout << "fromBinary not supported on Windows" << std::endl;
       exit(-1);
 #endif
 
@@ -3095,8 +3095,8 @@ namespace nupic {
      */
     inline void toBinary(std::ostream& outStream)
     {
-#ifdef NTA_PLATFORM_win32
-      std::cout << "toBinary not supported on win32" << std::endl;
+#if defined(NTA_OS_WINDOWS)
+      std::cout << "toBinary not supported on Windows" << std::endl;
       exit(-1);
 #endif
 

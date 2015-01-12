@@ -20,7 +20,7 @@
  * ---------------------------------------------------------------------
  */
 
-#ifdef NTA_PLATFORM_sparc64 
+#if defined(NTA_ARCH_64) && defined(NTA_OS_SPARC)
 #include <string>
 #else
 #include <string.h>

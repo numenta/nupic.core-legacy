@@ -46,18 +46,21 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   set(PLATFORM "linux")
   set(STDLIB "")
 endif()
+string(TOUPPER ${PLATFORM} PLATFORM_UPPERCASE)
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
    set(STDLIB "${STDLIB} -static-libgcc -static-libstdc++")
 endif()
 
-set(BITNESS 32)
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
   set(BITNESS 64)
+else()
+  set(BITNESS 32)
 endif()
 
 # Compiler `-D*` definitions
-add_definitions(-DNTA_PLATFORM_${PLATFORM}${BITNESS}
+add_definitions(-DNTA_OS_${PLATFORM_UPPERCASE}
+                -DNTA_ARCH_${BITNESS}
                 -DHAVE_CONFIG_H
                 -DNTA_INTERNAL
                 -DBOOST_NO_WREGEX

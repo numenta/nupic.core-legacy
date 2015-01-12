@@ -32,7 +32,7 @@ using namespace nupic;
 
 // Define a couple of platform-specific helper functions
 
-#if defined(NTA_PLATFORM_win32)
+#if defined(NTA_OS_WINDOWS)
 
 #include <windows.h>
 static nupic::UInt64 ticksPerSec_ = 0;
@@ -65,38 +65,6 @@ static UInt64 getCurrentTime()
   QueryPerformanceCounter(&v);
   return (UInt64)(v.QuadPart) - initialTicks_;
 }
-
-#elif defined(NTA_PLATFORM_darwin)
-
-// This include defines a UInt64 type that conflicts with the nupic::UInt64 type.
-// Because of this, all UInt64 is explicitly qualified in the interface. 
-#include <CoreServices/CoreServices.h>
-#include <mach/mach.h>
-#include <mach/mach_time.h>
-#include <unistd.h>
-
-// must be linked with -framework CoreServices
-
-static uint64_t  initialTicks_ = 0;
-
-static inline void initTime()
-{
-  if (initialT_ == 0)
-    initialT_ = UnsignedWideToUint64(AbsoluteToNanoseconds(mach_absolute_time()));
-}
-
-static inline nupic::UInt64 getCurrentTime()
-{
-  uint64_t t = mach_absolute_time();
-  nupic::UInt64 ticks = UnsignedWideToUInt64(AbsoluteToNanoseconds(t));
-  return ticks - initialTicks_;
-}
-
-static inline nupic::UInt64 getTicksPerSec()
-{
-  return (nupic::UInt64)(1e9);
-}
-
 
 #else
 // linux
