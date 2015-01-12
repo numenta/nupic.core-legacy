@@ -25,7 +25,7 @@
 
 #include <nupic/os/Regex.hpp>
 #include <nupic/utils/Log.hpp>
-#ifdef NTA_PLATFORM_win32
+#if defined(NTA_OS_WINDOWS)
   #include <pcre/pcreposix.h>
 #else
   #include <regex.h>

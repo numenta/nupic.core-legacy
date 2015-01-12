@@ -72,7 +72,7 @@ namespace nupic
         NTA_THROW << "Unable to find NuPIC library in '" << rootDir_ << "'";
       
       
-#if defined(NTA_PLATFORM_win32)
+#if defined(NTA_OS_WINDOWS)
       const char * filename = "cpp_region.dll";
 #else
       const char * filename = "libcpp_region.so";

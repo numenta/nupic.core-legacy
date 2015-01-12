@@ -28,7 +28,7 @@
 
 //----------------------------------------------------------------------
 
-#ifdef NTA_PLATFORM_win32
+#if defined(NTA_OS_WINDOWS)
   #include <Windows.h>
 #else
   #include <dlfcn.h>
@@ -78,7 +78,7 @@ namespace nupic
   public:
     enum Mode
     {
-      #ifdef NTA_PLATFORM_win32
+      #if defined(NTA_OS_WINDOWS)
       LAZY,
       GLOBAL,
       LOCAL,
