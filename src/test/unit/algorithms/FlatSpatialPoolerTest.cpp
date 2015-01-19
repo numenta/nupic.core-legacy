@@ -134,7 +134,9 @@ namespace nupic {
     testSelectVirgin();
     testSelectHighTierColumns();
     testAddBonus();
+#if defined(NTA_SERIALIZATION_ON)
     testSerialize();
+#endif
   }
 
   void FlatSpatialPoolerTest::testAddBonus()
@@ -302,6 +304,7 @@ namespace nupic {
     NTA_CHECK(virgin.size() == 0);
   }
 
+#if defined(NTA_SERIALIZATION_ON)
   void FlatSpatialPoolerTest::testSerialize()
   {
     string filename = "FlatSpatialPoolerSerialization.tmp";
@@ -330,5 +333,6 @@ namespace nupic {
     int ret = system(command.c_str());
     NTA_ASSERT(ret == 0); // << " FlatSpatialPooler.serialization failed. " << std::endl;
   }
+#endif
     
 } // end namespace nupic

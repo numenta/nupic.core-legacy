@@ -41,7 +41,9 @@
 #include <nupic/math/Utils.hpp>
 #include <nupic/ntypes/MemParser.hpp>
 #include <nupic/ntypes/MemStream.hpp>
+#if defined(NTA_SERIALIZATION_ON)
 #include <nupic/proto/SparseMatrixProto.capnp.h>
+#endif
 
 
 //--------------------------------------------------------------------------------
@@ -2927,6 +2929,7 @@ namespace nupic {
       return out;
     }
 
+#if defined(NTA_SERIALIZATION_ON)
     /**
      * Write to a Cap'n Proto object.
      */
@@ -2977,6 +2980,7 @@ namespace nupic {
                          rowValues.begin());
       }
     }
+#endif
 
     //--------------------------------------------------------------------------------
     /**

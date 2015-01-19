@@ -29,11 +29,13 @@
 #include <cmath> // For ldexp.
 #include <iostream> // for istream, ostream
 
+#if defined(NTA_SERIALIZATION_ON)
 #include <capnp/message.h>
 #include <capnp/serialize.h>
 #include <kj/std/iostream.h>
-
 #include <nupic/proto/RandomProto.capnp.h>
+#endif
+
 #include <nupic/utils/Log.hpp>
 #include <nupic/utils/Random.hpp>
 #include <nupic/utils/StringUtils.hpp>
@@ -69,8 +71,10 @@ namespace nupic
   public:
     RandomImpl(UInt64 seed);
     ~RandomImpl() {};
+#if defined(NTA_SERIALIZATION_ON)
     void write(RandomImplProto::Builder& proto) const;
     void read(RandomImplProto::Reader& proto);
+#endif
     UInt32 getUInt32();
     // Note: copy constructor and operator= are needed
     // The default is ok.
@@ -94,6 +98,7 @@ Random::Random(const Random& r)
   impl_ = new RandomImpl(*r.impl_);
 }
 
+#if defined(NTA_SERIALIZATION_ON)
 void Random::write(std::ostream& stream) const
 {
   capnp::MallocMessageBuilder message;
@@ -131,6 +136,7 @@ void Random::read(RandomProto::Reader& proto)
   auto implProto = proto.getImpl();
   impl_->read(implProto);
 }
+#endif
 
 void Random::reseed(UInt64 seed)
 {
@@ -327,6 +333,7 @@ RandomImpl::RandomImpl(UInt64 seed)
 }
 
 
+#if defined(NTA_SERIALIZATION_ON)
 void RandomImpl::write(RandomImplProto::Builder& proto) const
 {
   auto state = proto.initState(stateSize_);
@@ -349,6 +356,7 @@ void RandomImpl::read(RandomImplProto::Reader& proto)
   rptr_ = proto.getRptr();
   fptr_ = proto.getFptr();
 }
+#endif
 
 
 namespace nupic

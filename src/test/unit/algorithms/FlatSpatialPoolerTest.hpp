@@ -55,7 +55,9 @@ namespace nupic {
     void testSelectVirgin();
     void testSelectHighTierColumns();
     void testAddBonus();
+#if defined(NTA_SERIALIZATION_ON)
     void testSerialize();
+#endif
 
     void print_vec(UInt arr[], UInt n);
     void print_vec(Real arr[], UInt n);
