@@ -61,8 +61,10 @@ namespace nupic {
 
           virtual ~FlatSpatialPooler() {}
 
+#if defined(NTA_SERIALIZATION_ON)
           virtual void save(ostream& outStream) override;
           virtual void load(istream& inStream) override;
+#endif
           
           virtual UInt version() const override {
             return version_;

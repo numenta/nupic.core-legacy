@@ -467,6 +467,7 @@ void RandomTest::RunTests()
     TESTEQUAL2("check element 3", 1, arr[3]);
   }
 
+#if defined(NTA_SERIALIZATION_ON)
   {
     // tests for Cap'n Proto serialization
     Random r1, r2;
@@ -505,5 +506,6 @@ void RandomTest::RunTests()
     // clean up
     remove(outputPath);
   }
+#endif
 
 }

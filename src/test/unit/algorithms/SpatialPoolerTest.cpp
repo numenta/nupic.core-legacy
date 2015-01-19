@@ -280,8 +280,10 @@ namespace nupic {
     testGetNeighborsND();
     testIsUpdateRound();
     testStripUnlearnedColumns();
+#if defined(NTA_SERIALIZATION_ON)
     testSaveLoad();
     testWriteRead();
+#endif
   }
 
   void SpatialPoolerTest::testUpdateInhibitionRadius()
@@ -2540,6 +2542,7 @@ namespace nupic {
     }
   }
 
+#if defined(NTA_SERIALIZATION_ON)
   void SpatialPoolerTest::testSaveLoad()
   {
     const char* filename = "SpatialPoolerSerialization.tmp";
@@ -2584,5 +2587,6 @@ namespace nupic {
     int ret = ::remove(filename);
     NTA_CHECK(ret == 0) << "Failed to delete " << filename;
   }
+#endif
 
 } // end namespace nupic
