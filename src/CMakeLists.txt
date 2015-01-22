@@ -45,6 +45,9 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   set(PLATFORM "linux")
   set(STDLIB "")
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+  set(PLATFORM "windows")
+  set(STDLIB "")
 endif()
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
@@ -64,6 +67,46 @@ add_definitions(-DNTA_PLATFORM_${PLATFORM}${BITNESS}
                 -DNUPIC2
                 -DNTA_ASSERTIONS_ON
                 -DNTA_ASM)
+if(UNIX) # or UNIX like (i.e. APPLE and CYGWIN)
+  add_definitions(-DHAVE_UNISTD_H)
+elseif(WIN32) # incl. win64
+  add_definitions(-DPSAPI_VERSION=1
+                  -DAPR_DECLARE_STATIC
+                  -DAPU_DECLARE_STATIC
+                  -DZLIB_WINAPI
+                  -DWIN32
+                  -D_WINDOWS
+                  -D_MBCS
+                  -D_CRT_SECURE_NO_WARNINGS
+                  -DNDEBUG)
+endif()
+if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
+  add_definitions(-DNTA_COMPILER_GNU
+                  -DNTA_SERIALIZATION_ON)
+  set(SERIALIZATION ON)
+elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
+  add_definitions(-DNTA_COMPILER_CLANG
+                  -DNTA_SERIALIZATION_ON)
+  set(SERIALIZATION ON)
+elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
+  add_definitions(-DNTA_COMPILER_MSVC
+                  -DCAPNP_LITE=1
+                  -D_VARIADIC_MAX=10
+                  -DNOMINMAX)
+  set(SERIALIZATION OFF)
+endif()
+
+
+#
+# Identify build type - local or deployment (Travis)
+# the variable NUPIC_DEPLOYMENT_BUILD must be set in travis CI scripts
+#
+if($ENV{NUPIC_DEPLOYMENT_BUILD})
+  message("doing deployment build in TravisCI")
+else()
+  message("doing local build")
+endif()
+
 
 
 
@@ -93,9 +136,6 @@ include_directories(SYSTEM
                     "${PROJECT_SOURCE_DIR}"
                     "${PROJECT_BINARY_DIR}")
 
-set(COMMON_LINK_FLAGS "-m${BITNESS} ${STDLIB}")
-
-
 #
 # Set linker (ld) 
 # use ld.gold if available
@@ -114,23 +154,18 @@ endif()
 #
 if($ENV{NUPIC_DEPLOYMENT_BUILD})
   message("doing deployment build in TravisCI")
-  set(OPTIMIZATION_FLAGS_CC "${OPTIMIZATION_FLAGS_CC} -mtune=generic -O2")
-  set(OPTIMIZATION_FLAGS_LT "-O2 ${OPTIMIZATION_FLAGS_LT}")
+  if(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
+  else()
+    set(OPTIMIZATION_FLAGS_CC "${OPTIMIZATION_FLAGS_CC} -mtune=generic -O2")
+    set(OPTIMIZATION_FLAGS_LT "-O2 ${OPTIMIZATION_FLAGS_LT}")
+  endif()
 else()
   message("doing local build")
-  set(OPTIMIZATION_FLAGS_CC "${OPTIMIZATION_FLAGS_CC} -march=native -O3")
-  set(OPTIMIZATION_FLAGS_LT "-O3 ${OPTIMIZATION_FLAGS_LT}")
-endif()
-
-
-#
-# compiler specific settings here (clang/gcc)
-#
-if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-  set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} -static-libstdc++")
-  set(OPTIMIZATION_FLAGS_CC "${OPTIMIZATION_FLAGS_CC} -fuse-linker-plugin -flto-report")
-  set(OPTIMIZATION_FLAGS_CC "${OPTIMIZATION_FLAGS_CC} -flto -fuse-ld=gold") #TODO fix LTO for clang
-  set(OPTIMIZATION_FLAGS_LT "${OPTIMIZATION_FLAGS_LT} -flto") #TODO LTO for clang too
+  if(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
+  else()
+    set(OPTIMIZATION_FLAGS_CC "${OPTIMIZATION_FLAGS_CC} -march=native -O3")
+    set(OPTIMIZATION_FLAGS_LT "-O3 ${OPTIMIZATION_FLAGS_LT}")
+  endif()
 endif()
 
 
@@ -139,11 +174,39 @@ endif()
 # these are quite aggresive flags, if your code misbehaves for strange reasons, try 
 # compiling without them.
 #
-set(OPTIMIZATION_FLAGS_CC "-pipe ${OPTIMIZATION_FLAGS_CC}") #TODO use -Ofast instead of -O3
+if(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
+else()
+  set(OPTIMIZATION_FLAGS_CC "-pipe ${OPTIMIZATION_FLAGS_CC}") #TODO use -Ofast instead of -O3
+  if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+    set(OPTIMIZATION_FLAGS_CC "${OPTIMIZATION_FLAGS_CC} -fuse-linker-plugin -flto-report")
+    set(OPTIMIZATION_FLAGS_CC "${OPTIMIZATION_FLAGS_CC} -flto -fuse-ld=gold") #TODO fix LTO for clang
+    set(OPTIMIZATION_FLAGS_LT "${OPTIMIZATION_FLAGS_LT} -flto") #TODO LTO for clang too
+  endif()
+endif()
 
 
+#
+# compiler specific settings here
+#
+if(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
+  set(COMMON_COMPILE_FLAGS "/TP /Zc:wchar_t /Gm- /fp:precise /errorReport:prompt /W3 /WX- /GR /Gd /GS /Oy- /EHs /analyze- /nologo")
+  set(COMMON_LINK_FLAGS "/NOLOGO /SAFESEH:NO /NODEFAULTLIB:LIBCMT")
+  if("${BITNESS}" STREQUAL "32")
+    set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} /MACHINE:X86")
+  else()
+    set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} /MACHINE:X${BITNESS}")
+  endif()
+else()
+  # clang/gcc
+  set(COMMON_COMPILE_FLAGS "-fPIC -std=c++11 -m${BITNESS} ${STDLIB} -fvisibility=hidden -Werror -Wall -Wextra -Wreturn-type -Wunused -Wno-unused-parameter -Wno-missing-field-initializers")
+  set(COMMON_LINK_FLAGS "-m${BITNESS} ${STDLIB}")
+  if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+    set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} -static-libstdc++")
+  endif()
+endif()
+set(COMMON_COMPILE_FLAGS "${COMMON_COMPILE_FLAGS} ${OPTIMIZATION_FLAGS_CC}")
 set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} ${OPTIMIZATION_FLAGS_LT}")
-set(COMPILE_FLAGS "-fPIC -std=c++11 -m${BITNESS} ${STDLIB} -fvisibility=hidden -Werror -Wall -Wextra -Wreturn-type -Wunused -Wno-unused-parameter -Wno-missing-field-initializers  ${OPTIMIZATION_FLAGS_CC}")
+
 
 #
 # Let CMake know where all of the external files are.
@@ -166,14 +229,14 @@ configure_file(
   "${PROJECT_BINARY_DIR}/Version.hpp")
 
 #
-# build gtest
+# Setup gtest
 #
 set(LIB_STATIC_GTEST gtest)
 add_library(${LIB_STATIC_GTEST}
             STATIC
             ${REPOSITORY_DIR}/external/common/src/gtest/gtest-all.cpp)
 set_target_properties(${LIB_STATIC_GTEST}
-                      PROPERTIES COMPILE_FLAGS "${COMPILE_FLAGS}"
+                      PROPERTIES COMPILE_FLAGS "${COMMON_COMPILE_FLAGS}"
                       LINK_FLAGS "${COMMON_LINK_FLAGS}")
 
 
@@ -227,41 +290,43 @@ find_library(LIB_STATIC_Z_LOC
              NO_DEFAULT_PATH)
 add_library(${LIB_STATIC_Z} STATIC IMPORTED GLOBAL)
 
-#
-# Find and add libkj
-#
-set(LIB_STATIC_KJ kj)
-find_library(LIB_STATIC_KJ_LOC
-             ${LIB_STATIC_KJ}
-             "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/lib/"
-             NO_DEFAULT_PATH)
-add_library(${LIB_STATIC_KJ} STATIC IMPORTED GLOBAL)
+if(SERIALIZATION)
+  #
+  # Find and add libkj
+  #
+  set(LIB_STATIC_KJ kj)
+  find_library(LIB_STATIC_KJ_LOC
+               ${LIB_STATIC_KJ}
+               "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/lib/"
+               NO_DEFAULT_PATH)
+  add_library(${LIB_STATIC_KJ} STATIC IMPORTED GLOBAL)
 
-#
-# Find and add libcapnp
-#
-set(LIB_STATIC_CAPNP capnp)
-find_library(LIB_STATIC_CAPNP_LOC
-             ${LIB_STATIC_CAPNP}
-             "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/lib/"
-             NO_DEFAULT_PATH)
-add_library(${LIB_STATIC_CAPNP} STATIC IMPORTED GLOBAL)
+  #
+  # Find and add libcapnp
+  #
+  set(LIB_STATIC_CAPNP capnp)
+  find_library(LIB_STATIC_CAPNP_LOC
+               ${LIB_STATIC_CAPNP}
+               "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/lib/"
+               NO_DEFAULT_PATH)
+  add_library(${LIB_STATIC_CAPNP} STATIC IMPORTED GLOBAL)
 
-#
-# Generate Cap'n Proto C++ files
-#
-set(CAPNPC_OUTPUT_DIR ${CMAKE_BINARY_DIR})
-find_package(CapnProto REQUIRED)
-include_directories(${CAPNP_INCLUDE_DIRS})
-# List all .capnp files here. The C++ files will be generated and included
-# when compiling later on.
-set(CAPNP_SPECS
-    nupic/proto/RandomProto.capnp
-    nupic/proto/SparseBinaryMatrixProto.capnp
-    nupic/proto/SparseMatrixProto.capnp
-    nupic/proto/SpatialPoolerProto.capnp
-)
-capnp_generate_cpp(CAPNP_SRCS CAPNP_HDRS ${CAPNP_SPECS})
+  #
+  # Generate Cap'n Proto C++ files
+  #
+  set(CAPNPC_OUTPUT_DIR ${CMAKE_BINARY_DIR})
+  find_package(CapnProto REQUIRED)
+  include_directories(${CAPNP_INCLUDE_DIRS})
+  # List all .capnp files here. The C++ files will be generated and included
+  # when compiling later on.
+  set(CAPNP_SPECS
+      nupic/proto/RandomProto.capnp
+      nupic/proto/SparseBinaryMatrixProto.capnp
+      nupic/proto/SparseMatrixProto.capnp
+      nupic/proto/SpatialPoolerProto.capnp
+  )
+  capnp_generate_cpp(CAPNP_SRCS CAPNP_HDRS ${CAPNP_SPECS})
+endif()
 
 #
 # Setup libnupic_core
@@ -277,6 +342,8 @@ if("${PLATFORM}" STREQUAL "linux")
   list(APPEND COMMON_LIBS pthread dl)
 elseif("${PLATFORM}" STREQUAL "darwin")
   list(APPEND COMMON_LIBS c++abi)
+elseif("${PLATFORM}" STREQUAL "windows")
+  list(APPEND COMMON_LIBS oldnames.lib psapi.lib ws2_32.lib)
 endif()
 
 ADD_LIBRARY(${LIB_STATIC_NUPICCORE}
@@ -356,7 +423,7 @@ target_link_libraries(${LIB_STATIC_NUPICCORE}
                       ${LIB_STATIC_Z_LOC}
                       ${LIB_STATIC_KJ_LOC}
                       ${LIB_STATIC_CAPNP_LOC})
-set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES COMPILE_FLAGS ${COMPILE_FLAGS})
+set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
 set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS} -static")
 
 #
@@ -365,12 +432,13 @@ set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES LINK_FLAGS "${COMMON_LI
 set(EXECUTABLE_CPPREGIONTEST cpp_region_test)
 add_executable(${EXECUTABLE_CPPREGIONTEST} test/integration/CppRegionTest.cpp)
 target_link_libraries(${EXECUTABLE_CPPREGIONTEST} ${COMMON_LIBS})
-set_target_properties(${EXECUTABLE_CPPREGIONTEST} PROPERTIES COMPILE_FLAGS ${COMPILE_FLAGS})
+set_target_properties(${EXECUTABLE_CPPREGIONTEST} PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
 set_target_properties(${EXECUTABLE_CPPREGIONTEST}
                       PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
 add_custom_target(tests_cpp_region
                   COMMAND ${EXECUTABLE_CPPREGIONTEST}
                   DEPENDS ${EXECUTABLE_CPPREGIONTEST})
+set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS} -static")
 
 #
 # Setup test_py_region
@@ -378,7 +446,7 @@ add_custom_target(tests_cpp_region
 set(EXECUTABLE_PYREGIONTEST py_region_test)
 add_executable(${EXECUTABLE_PYREGIONTEST} test/integration/PyRegionTest.cpp)
 target_link_libraries(${EXECUTABLE_PYREGIONTEST} ${COMMON_LIBS})
-set_target_properties(${EXECUTABLE_PYREGIONTEST} PROPERTIES COMPILE_FLAGS ${COMPILE_FLAGS})
+set_target_properties(${EXECUTABLE_PYREGIONTEST} PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
 set_target_properties(${EXECUTABLE_PYREGIONTEST}
                       PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
 
@@ -388,7 +456,7 @@ set_target_properties(${EXECUTABLE_PYREGIONTEST}
 set(EXECUTABLE_HELLOREGION helloregion)
 add_executable(${EXECUTABLE_HELLOREGION} examples/regions/HelloRegions.cpp)
 target_link_libraries(${EXECUTABLE_HELLOREGION} ${COMMON_LIBS})
-set_target_properties(${EXECUTABLE_HELLOREGION} PROPERTIES COMPILE_FLAGS ${COMPILE_FLAGS})
+set_target_properties(${EXECUTABLE_HELLOREGION} PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
 set_target_properties(${EXECUTABLE_HELLOREGION}
                       PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
 add_dependencies(${EXECUTABLE_HELLOREGION} ${COMMON_LIBS})
@@ -396,14 +464,16 @@ add_dependencies(${EXECUTABLE_HELLOREGION} ${COMMON_LIBS})
 #
 # Setup prototest example
 #
-set(EXECUTABLE_PROTOTEST prototest)
-add_executable(${EXECUTABLE_PROTOTEST} examples/prototest.cpp)
-target_link_libraries(${EXECUTABLE_PROTOTEST}
-                      ${COMMON_LIBS})
-set_target_properties(${EXECUTABLE_PROTOTEST} PROPERTIES COMPILE_FLAGS ${COMPILE_FLAGS})
-set_target_properties(${EXECUTABLE_PROTOTEST}
-                      PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
-add_dependencies(${EXECUTABLE_PROTOTEST} ${COMMON_LIBS})
+if(SERIALIZATION)
+  set(EXECUTABLE_PROTOTEST prototest)
+  add_executable(${EXECUTABLE_PROTOTEST} examples/prototest.cpp)
+  target_link_libraries(${EXECUTABLE_PROTOTEST}
+                        ${COMMON_LIBS})
+  set_target_properties(${EXECUTABLE_PROTOTEST} PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
+  set_target_properties(${EXECUTABLE_PROTOTEST}
+                        PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
+  add_dependencies(${EXECUTABLE_PROTOTEST} ${COMMON_LIBS})
+endif()
 
 #
 # Setup gtests
@@ -455,7 +525,7 @@ target_link_libraries(${EXECUTABLE_GTESTS}
                       ${COMMON_LIBS}
                       ${LIB_STATIC_GTEST})
 set_target_properties(${EXECUTABLE_GTESTS}
-                      PROPERTIES COMPILE_FLAGS ${COMPILE_FLAGS}
+                      PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS}
                                  LINK_FLAGS "${COMMON_LINK_FLAGS}")
 add_dependencies(${EXECUTABLE_GTESTS} ${LIB_STATIC_GTEST} ${COMMON_LIBS})
 add_custom_target(tests_unit
@@ -517,21 +587,37 @@ add_custom_target(tests_all
                   DEPENDS tests_unit
                   COMMENT "Running all tests")
 
-add_custom_target(combined ALL
-                  COMMAND ${CMAKE_AR} -x $<TARGET_FILE:${LIB_STATIC_NUPICCORE}>
-                  COMMAND ${CMAKE_AR} -x ${LIB_STATIC_YAML_CPP_LOC}
-                  COMMAND ${CMAKE_AR} -x ${LIB_STATIC_YAML_LOC}
-                  COMMAND ${CMAKE_AR} -x ${LIB_STATIC_APRUTIL1_LOC}
-                  COMMAND ${CMAKE_AR} -x ${LIB_STATIC_APR1_LOC}
-                  COMMAND ${CMAKE_AR} -x ${LIB_STATIC_Z_LOC}
-                  COMMAND ${CMAKE_AR} -x ${LIB_STATIC_KJ_LOC}
-                  COMMAND ${CMAKE_AR} -x ${LIB_STATIC_CAPNP_LOC}
-                  COMMAND ${CMAKE_AR} rcs libnupic_core.a *.o
-                  DEPENDS ${LIB_STATIC_NUPICCORE}
-                          ${LIB_STATIC_GTEST}
-                          ${EXECUTABLE_HELLOREGION}
-                          ${EXECUTABLE_CPPREGIONTEST}
-                          ${EXECUTABLE_GTESTS})
+if(UNIX)
+  add_custom_target(combined ALL
+                    COMMAND ${CMAKE_AR} -x $<TARGET_FILE:${LIB_STATIC_NUPICCORE}>
+                    COMMAND ${CMAKE_AR} -x ${LIB_STATIC_YAML_CPP_LOC}
+                    COMMAND ${CMAKE_AR} -x ${LIB_STATIC_YAML_LOC}
+                    COMMAND ${CMAKE_AR} -x ${LIB_STATIC_APRUTIL1_LOC}
+                    COMMAND ${CMAKE_AR} -x ${LIB_STATIC_APR1_LOC}
+                    COMMAND ${CMAKE_AR} -x ${LIB_STATIC_Z_LOC}
+                    COMMAND ${CMAKE_AR} -x ${LIB_STATIC_KJ_LOC}
+                    COMMAND ${CMAKE_AR} -x ${LIB_STATIC_CAPNP_LOC}
+                    COMMAND ${CMAKE_AR} rcs libnupic_core.a *.o
+                    DEPENDS ${LIB_STATIC_NUPICCORE}
+                            ${LIB_STATIC_GTEST}
+                            ${EXECUTABLE_HELLOREGION}
+                            ${EXECUTABLE_CPPREGIONTEST}
+                            ${EXECUTABLE_GTESTS})
+else()
+  add_custom_target(combined ALL
+                    COMMAND lib.exe /OUT:nupic_core.lib 
+                            $<TARGET_FILE:${LIB_STATIC_NUPICCORE}> 
+                            ${LIB_STATIC_YAML_CPP_LOC}
+                            ${LIB_STATIC_YAML_LOC}
+                            ${LIB_STATIC_APRUTIL1_LOC}
+                            ${LIB_STATIC_APR1_LOC}
+                            ${LIB_STATIC_Z_LOC}
+                    DEPENDS ${LIB_STATIC_NUPICCORE}
+                            ${LIB_STATIC_GTEST}
+                            ${EXECUTABLE_HELLOREGION}
+                            ${EXECUTABLE_CPPREGIONTEST}
+                            ${EXECUTABLE_GTESTS})
+endif()
 
 #
 # Install targets into CMAKE_INSTALL_PREFIX
@@ -569,8 +655,13 @@ install(DIRECTORY "${REPOSITORY_DIR}/external/common/include/"
         DESTINATION include)
 install(DIRECTORY "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/include/"
         DESTINATION include)
-install(FILES "${PROJECT_BINARY_DIR}/libnupic_core.a"
-        DESTINATION lib)
+if(UNIX)
+  install(FILES "${PROJECT_BINARY_DIR}/libnupic_core.a"
+          DESTINATION lib)
+else()
+  install(FILES "${PROJECT_BINARY_DIR}/nupic_core.lib"
+          DESTINATION lib)
+endif()
 
 #
 # `make package` results in
