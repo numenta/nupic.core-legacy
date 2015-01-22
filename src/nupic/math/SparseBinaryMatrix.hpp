@@ -2006,7 +2006,7 @@ namespace nupic {
 	  << "Invalid index: " << *it
 	  << " - Should be >= 0 and < number of columns:" << nCols();
       
-      for (size_type i = 1; i < (size_type)(end - begin); ++i)
+      for (auto i = 1; i < (end - begin); ++i)
 	NTA_ASSERT(*(begin + i - 1) < *(begin + i))
 	  << "SparseBinaryMatrix::" << where << ": "
 	  << "Invalid indices: " << *(begin + i - 1)

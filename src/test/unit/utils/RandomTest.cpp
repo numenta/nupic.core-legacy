@@ -414,7 +414,7 @@ void RandomTest::RunTests()
 
     {
       // choose 0 elements
-      UInt32 choices[0];
+      UInt32 choices[1];
       r.sample(population, 4, choices, 0);
     }
 

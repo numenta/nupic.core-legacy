@@ -373,14 +373,7 @@ namespace nupic
     if (path.size() == 0)
       return parts;
 
-#ifndef WIN32
-    // only possible prefix is "/"
-    if (path[0] == '/') 
-    {
-      parts.push_back("/");
-      curpos++;
-    }
-#else
+#if defined(NTA_OS_WINDOWS)
     // prefix may be 1) "\", 2) "\\", 3) "[a-z]:", 4) "[a-z]:\"
     if (path.size() == 1) 
     {
@@ -419,7 +412,14 @@ namespace nupic
           curpos = 2;
         }
       }
-    }          
+    }
+#else
+	// only possible prefix is "/"
+	if (path[0] == '/')
+	{
+		parts.push_back("/");
+		curpos++;
+	}
 #endif
 
     // simple tokenization based on separator. Note that "foo//bar" -> "foo", "", "bar"
@@ -608,7 +608,7 @@ namespace nupic
       }
     }
 
-#if WIN32
+#if defined(NTA_OS_WINDOWS)
     int countFailure = 0;
     std::wstring wpath(utf8ToUnicode(path));
     DWORD attr = GetFileAttributesW(wpath.c_str());
@@ -828,7 +828,7 @@ namespace nupic
     auto buf = new char[1000];
     UInt32 bufsize = 1000;
     // sets bufsize to actual length. 
-#if defined(NTA_OS_DARWIN)
+   #if defined(NTA_OS_DARWIN)
     _NSGetExecutablePath(buf, &bufsize);
     if (bufsize < 1000)
       buf[bufsize] = '\0';
@@ -851,7 +851,7 @@ namespace nupic
     delete[] buf;
 #else
     // windows
-    wchar_t *buf = new wchar_t[1000];
+    auto buf = new wchar_t[1000];
     GetModuleFileNameW(NULL, buf, 1000);
     // null-terminated string guaranteed unless length > 999
     buf[999] = '\0';

@@ -25,10 +25,12 @@
 
 #include <nupic/os/Regex.hpp>
 #include <nupic/utils/Log.hpp>
+
 #if defined(NTA_OS_WINDOWS)
-  #include <pcre/pcreposix.h>
+#include <regex>
 #else
-  #include <regex.h>
+//https://gcc.gnu.org/bugzilla/show_bug.cgi?id=53631
+#include <regex.h>
 #endif
 
 namespace nupic
@@ -46,16 +48,25 @@ namespace nupic
       exactRegExp += re;
       if (re[re.length()-1] != '$') 
         exactRegExp += '$';
-      
+
+#if defined(NTA_OS_WINDOWS)
+      std::regex r(exactRegExp, std::regex::extended | std::regex::nosubs);
+      if (std::regex_match(text, r))
+        return true;
+
+      return false;
+#else
       regex_t r;
-      int res = ::regcomp(&r, exactRegExp.c_str(), REG_EXTENDED|REG_NOSUB);
-      NTA_CHECK(res == 0) 
+      int res = ::regcomp(&r, exactRegExp.c_str(), REG_EXTENDED | REG_NOSUB);
+      NTA_CHECK(res == 0)
         << "regcomp() failed to compile the regular expression: "
         << re << " . The error code is: " << res;
-        
-      res = regexec(&r, text.c_str(), (size_t) 0, nullptr, 0);
+
+      res = regexec(&r, text.c_str(), (size_t)0, nullptr, 0);
       ::regfree(&r);
-      return res == 0; 
+
+      return res == 0;
+#endif
     }
   }
 }

@@ -24,7 +24,9 @@
  * @file
  */
 
-#include <unistd.h>
+#if !defined(NTA_OS_WINDOWS)
+  #include <unistd.h>
+#endif
 #include "OSTest.hpp"
 #include <nupic/os/Env.hpp>
 #include <nupic/os/Path.hpp>

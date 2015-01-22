@@ -2794,8 +2794,7 @@ namespace nupic {
         addRow(indb_, indb_it, nzb_, zero_permissive);
       }
 
-#endif
-#ifndef WIN32 // On Unix, MemParser is faster.
+#else // On Unix, MemParser is faster.
 
       MemParser inStream(inStreamParam, totalBytes);
 

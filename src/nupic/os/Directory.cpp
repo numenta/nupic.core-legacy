@@ -23,7 +23,9 @@
 /** @file 
 */
 
-#include <unistd.h>
+#if !defined(NTA_OS_WINDOWS)
+  #include <unistd.h>
+#endif
 #include <string>
 #include <algorithm>
 #include <nupic/os/Directory.hpp>
@@ -220,6 +222,16 @@ namespace nupic
     #if defined(NTA_OS_WINDOWS)
       std::wstring wPath = Path::utf8ToUnicode(path);
       success = ::CreateDirectoryW(wPath.c_str(), NULL) != FALSE;
+      if (!success)
+      {
+        if (GetLastError() == ERROR_ALREADY_EXISTS) {
+          // Not a hard error, due to potential race conditions.
+          std::cerr << "Path '" << path << "' exists. "
+                       "Possible race condition."
+                    << std::endl;
+          success = Path::isDirectory(path);
+        }
+      }
 
     #else
       int permissions = S_IRWXU;

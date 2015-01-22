@@ -33,6 +33,11 @@
 #include <iterator>
 #include <algorithm>
 
+#if defined(NTA_OS_WINDOWS) && defined(NTA_COMPILER_MSVC) 
+  #include <array>
+  #include <intrin.h>
+#endif
+
 #include <nupic/utils/Random.hpp> // For the official Numenta RNG
 #include <nupic/math/Math.hpp>
 #include <nupic/math/Types.hpp>
@@ -94,19 +99,25 @@ namespace nupic {
   #elif defined(NTA_ARCH_64)
     #if defined(NTA_OS_LINUX) || defined(NTA_OS_DARWIN)
 
-    __asm__ __volatile__ (
-                         "pushq  %%rbx\n\t"
+      __asm__ __volatile__ (
+                           "pushq  %%rbx\n\t"
 
-                         "movl   $1, %%eax\n\t"
-                         "cpuid\n\t"
-                         "movl   %%ecx, %0\n\t"
-                         "movl   %%edx, %1\n\t"
+                           "movl   $1, %%eax\n\t"
+                           "cpuid\n\t"
+                           "movl   %%ecx, %0\n\t"
+                           "movl   %%edx, %1\n\t"
 
-                         "popq  %%rbx\n\t"
-                         : "=c" (c), "=d" (d)
-                         :
-                         :
+                           "popq  %%rbx\n\t"
+                           : "=c" (c), "=d" (d)
+                           :
+                           :
 			 );
+	#elif defined(NTA_OS_WINDOWS) && defined(NTA_COMPILER_MSVC)
+
+      std::array<int, 4> cpui;
+       __cpuid(cpui.data(), 1);
+       c = cpui[2];
+       d = cpui[3];
     #endif
   #endif
 #endif //NTA_ASM
