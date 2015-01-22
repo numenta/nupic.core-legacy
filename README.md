@@ -12,9 +12,11 @@ Important notes:
 
 #### Configure and generate build files:
 
+The commands below assume that `CXX` is the C++ compiler. It should be the name of the C++ compiler you wish to use to compile NuPIC Core, like `g++` or `clang++`.
+
     mkdir -p $NUPIC_CORE/build/scripts
     cd $NUPIC_CORE/build/scripts
-    cmake $NUPIC_CORE/src [-DCMAKE_INSTALL_PREFIX=../release]
+    cmake $NUPIC_CORE/src -DCMAKE_CXX_COMPILER="${CXX}" [-DCMAKE_INSTALL_PREFIX=../release]
 
 > **Note**: The `-DCMAKE_INSTALL_PREFIX=../release` option shown above is optional, and specifies the location where `nupic.core` should be installed. If omitted, `nupic.core` will be installed in a system location. Using this option is useful when testing versions of `nupic.core` with `nupic` (see [NuPIC's Dependency on nupic.core](https://github.com/numenta/nupic/wiki/NuPIC's-Dependency-on-nupic.core)).
 
