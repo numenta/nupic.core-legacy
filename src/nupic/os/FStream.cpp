@@ -24,9 +24,9 @@
  * Definitions for the FStream classes
  * 
  * These classes are versions of ifstream and ofstream that accept platform independent
- * (i.e. win32 or unix) utf-8 path specifiers for their constructor and open() methods.
+ * (i.e. windows or unix) utf-8 path specifiers for their constructor and open() methods.
  *
- * The native ifstream and ofstream classes on unix already accept UTF-8, but on win32,
+ * The native ifstream and ofstream classes on unix already accept UTF-8, but on windows,
  * we must convert the utf-8 path to unicode and then pass it to the 'w' version of
  * ifstream or ofstream
  */
@@ -39,9 +39,11 @@
 #include "nupic/os/Env.hpp"
 #include <fstream>
 #include <cstdlib>
-#ifdef NTA_PLATFORM_win32
+#if defined(NTA_OS_WINDOWS)
 #include <fcntl.h>
 #include <sys/stat.h>
+#else
+#include <unistd.h>
 #endif
 #include <zlib.h>
 
@@ -88,7 +90,7 @@ void IFStream::diagnostics(const char* filename)
 /////////////////////////////////////////////////////////////////////////
 void IFStream::open(const char * filename, ios_base::openmode mode)
 {
-#ifdef NTA_PLATFORM_win32
+#if defined(NTA_OS_WINDOWS)
   std::wstring pathW = Path::utf8ToUnicode(filename);
   std::ifstream::open(pathW.c_str(), mode);
 #else
@@ -100,7 +102,7 @@ void IFStream::open(const char * filename, ios_base::openmode mode)
     IFStream::diagnostics(filename);
     // On unix, running nfs, we occasionally get errors opening a file on an nfs drive
     // and it seems that simply doing a retry makes it successful
-    #ifndef WIN32
+    #if !defined(NTA_OS_WINDOWS)
       std::ifstream::clear();
       std::ifstream::open(filename, mode);
     #endif
@@ -113,7 +115,7 @@ void IFStream::open(const char * filename, ios_base::openmode mode)
 /////////////////////////////////////////////////////////////////////////
 void OFStream::open(const char * filename, ios_base::openmode mode)
 {
-#ifdef NTA_PLATFORM_win32
+#if defined(NTA_OS_WINDOWS)
   std::wstring pathW = Path::utf8ToUnicode(filename);
   std::ofstream::open(pathW.c_str(), mode);
 #else
@@ -125,7 +127,7 @@ void OFStream::open(const char * filename, ios_base::openmode mode)
     IFStream::diagnostics(filename);
     // On unix, running nfs, we occasionally get errors opening a file on an nfs drive
     // and it seems that simply doing a retry makes it successful
-    #ifndef WIN32
+    #if !defined(NTA_OS_WINDOWS)
       std::ofstream::clear();
       std::ofstream::open(filename, mode);
     #endif
@@ -137,7 +139,7 @@ void *ZLib::fopen(const std::string &filename, const std::string &mode,
 {
   if(mode.empty()) throw std::invalid_argument("Mode may not be empty.");
 
-#ifdef NTA_PLATFORM_win32
+#if defined(NTA_OS_WINDOWS)
   std::wstring wfilename(Path::utf8ToUnicode(filename));
   int cflags = _O_BINARY;
   int pflags = 0;

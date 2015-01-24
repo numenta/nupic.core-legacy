@@ -90,8 +90,10 @@ namespace nupic {
     void testGetNeighborsND();
     void testIsUpdateRound();
     void testStripUnlearnedColumns();
+#if defined(NTA_SERIALIZATION_ON)
     void testSaveLoad();
     void testWriteRead();
+#endif
 
     void print_vec(UInt arr[], UInt n);
     void print_vec(Real arr[], UInt n);

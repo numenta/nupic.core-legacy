@@ -41,7 +41,9 @@
 #include <nupic/math/Utils.hpp>
 #include <nupic/ntypes/MemParser.hpp>
 #include <nupic/ntypes/MemStream.hpp>
+#if defined(NTA_SERIALIZATION_ON)
 #include <nupic/proto/SparseMatrixProto.capnp.h>
+#endif
 
 
 //--------------------------------------------------------------------------------
@@ -2720,7 +2722,7 @@ namespace nupic {
       if (totalBytes < 0)
         totalBytes = 0;
 
-#ifdef NTA_PLATFORM_win32 // On Windows, don't use MemParser, it's slow.
+#if defined(NTA_OS_WINDOWS) // On Windows, don't use MemParser, it's slow.
 
       size_type i, j, k, nrows, ncols, nnz, nnzr;
       i = j = k = nrows = ncols = nnz = nnzr = 0;
@@ -2792,8 +2794,7 @@ namespace nupic {
         addRow(indb_, indb_it, nzb_, zero_permissive);
       }
 
-#endif
-#ifndef WIN32 // On Unix, MemParser is faster.
+#else // On Unix, MemParser is faster.
 
       MemParser inStream(inStreamParam, totalBytes);
 
@@ -2927,6 +2928,7 @@ namespace nupic {
       return out;
     }
 
+#if defined(NTA_SERIALIZATION_ON)
     /**
      * Write to a Cap'n Proto object.
      */
@@ -2977,6 +2979,7 @@ namespace nupic {
                          rowValues.begin());
       }
     }
+#endif
 
     //--------------------------------------------------------------------------------
     /**
@@ -2989,8 +2992,8 @@ namespace nupic {
      */
     inline void fromBinary(std::istream& inStream)
     {
-#ifdef NTA_PLATFORM_win32
-      std::cout << "fromBinary not supported on win32" << std::endl;
+#if defined(NTA_OS_WINDOWS)
+      std::cout << "fromBinary not supported on Windows" << std::endl;
       exit(-1);
 #endif
 
@@ -3091,8 +3094,8 @@ namespace nupic {
      */
     inline void toBinary(std::ostream& outStream)
     {
-#ifdef NTA_PLATFORM_win32
-      std::cout << "toBinary not supported on win32" << std::endl;
+#if defined(NTA_OS_WINDOWS)
+      std::cout << "toBinary not supported on Windows" << std::endl;
       exit(-1);
 #endif
 

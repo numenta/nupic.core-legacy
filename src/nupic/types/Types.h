@@ -33,6 +33,13 @@
 
 #include <stddef.h>
 
+#if defined(NTA_OS_WINDOWS) && defined(NTA_COMPILER_MSVC) && defined(NDEBUG)
+#pragma warning( disable : 4244 ) // conversion from 'double' to 'nta::Real', possible loss of data (LOTS of various type combinations)
+#pragma warning( disable : 4305 ) // truncation from 'double' to 'nta::Real', possible loss of data (LOTS of various type combinations)
+#pragma warning( disable : 4251 ) // needs to have dll-interface to be used by clients of class 
+#pragma warning( disable : 4275 ) // non dll-interface struct used as base for dll-interface class
+#endif
+
 /*---------------------------------------------------------------------- */
  
 /** 
@@ -146,7 +153,7 @@ typedef double         NTA_Real64;
  */
 typedef void *         NTA_Handle;
 
-#if defined(NTA_PLATFORM_darwin86)
+#if defined(NTA_ARCH_32) && defined(NTA_OS_DARWIN)
 /**
  * Represents a 32-bit signed integer.
  */
@@ -164,7 +171,7 @@ typedef  long long            NTA_Int64;
  */
 typedef  unsigned long long   NTA_UInt64;
 
-#elif defined(NTA_PLATFORM_darwin64)
+#elif defined(NTA_ARCH_64) && defined(NTA_OS_DARWIN)
 /**
  * Represents a 32-bit signed integer.
  */
@@ -182,7 +189,7 @@ typedef  long                 NTA_Int64;
  */
 typedef  unsigned long        NTA_UInt64;
 
-#elif defined(NTA_PLATFORM_linux32)
+#elif defined(NTA_ARCH_32) && defined(NTA_OS_LINUX)
 /**
  * Represents a 32-bit signed integer.
  */
@@ -200,25 +207,7 @@ typedef  long long            NTA_Int64;
  */
 typedef  unsigned long long   NTA_UInt64;
 
-#elif defined(NTA_PLATFORM_linux32arm) || defined(NTA_PLATFORM_linux32armv7)
-/**
- * Represents a 32-bit signed integer.
- */
-typedef  int                  NTA_Int32;
-/**
- * Represents a 32-bit unsigned integer.
- */
-typedef  unsigned int         NTA_UInt32;
-/**
- * Represents a 64-bit signed integer.
- */
-typedef  long long            NTA_Int64;
-/**
- * Represents a 64-bit unsigned integer.
- */
-typedef  unsigned long long   NTA_UInt64;
-
-#elif defined(NTA_PLATFORM_win32)
+#elif defined(NTA_ARCH_32) && defined(NTA_OS_WINDOWS)
 /**
  * Represents a 32-bit signed integer.
  */
@@ -236,7 +225,25 @@ typedef  long long           NTA_Int64;
  */
 typedef  unsigned long long  NTA_UInt64;
 
-#elif defined(NTA_PLATFORM_linux64)
+#elif defined(NTA_ARCH_64) && defined(NTA_OS_WINDOWS)
+/**
+ * Represents a 32-bit signed integer.
+ */
+typedef  long                NTA_Int32;
+/**
+ * Represents a 32-bit unsigned integer.
+ */
+typedef  unsigned long       NTA_UInt32;
+/**
+ * Represents a 64-bit signed integer.
+ */
+typedef  __int64             NTA_Int64;
+/**
+ * Represents a 64-bit unsigned integer.
+ */
+typedef  unsigned __int64    NTA_UInt64;
+
+#elif defined(NTA_ARCH_64) && defined(NTA_OS_LINUX)
 /**
  * Represents a 32-bit signed integer.
  */
@@ -253,7 +260,7 @@ typedef  long                NTA_Int64;
  * Represents a 64-bit unsigned integer.
  */
 typedef  unsigned long       NTA_UInt64;
-#elif defined(NTA_PLATFORM_sparc64)
+#elif defined(NTA_ARCH_64) && defined(NTA_OS_SPARC)
 /**
  * Represents a 32-bit signed integer.
  */
@@ -338,7 +345,7 @@ typedef  unsigned long       NTA_UInt64;
  */
 
 #ifndef SWIG
-#ifdef NTA_PLATFORM_win32
+#if defined(NTA_OS_WINDOWS)
 #define NTA_EXPORT __declspec(dllexport)
 #define NTA_HIDDEN
 #else

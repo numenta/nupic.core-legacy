@@ -36,7 +36,7 @@
 #include <apr-1/apr.h>
 
 
-#ifdef NTA_PLATFORM_win32
+#if defined(NTA_OS_WINDOWS)
   extern "C" {
     #include <apr-1/arch/win32/apr_arch_utf8.h>
   }
@@ -46,7 +46,7 @@
   #include <sys/stat.h>
   #include <fstream>
 
-#if defined(NTA_PLATFORM_darwin86) || defined(NTA_PLATFORM_darwin64)
+#if defined(NTA_OS_DARWIN)
     #include <mach-o/dyld.h> // _NSGetExecutablePath
   #else
   // linux
@@ -56,7 +56,7 @@
 
 namespace nupic
 {
-#ifdef NTA_PLATFORM_win32
+#if defined(NTA_OS_WINDOWS)
   const char * Path::sep = "\\";
   const char * Path::pathSep = ";";
 #else
@@ -76,7 +76,7 @@ namespace nupic
     apr_status_t res;
     apr_pool_t * pool = nullptr;
     
-  #ifdef NTA_PLATFORM_win32 
+  #if defined(NTA_OS_WINDOWS)
     res = ::apr_pool_create(&pool, NULL);
     if (res != APR_SUCCESS)
     {
@@ -86,7 +86,7 @@ namespace nupic
     
     res = ::apr_stat(&info, path.c_str(), wanted, pool);
     
-  #ifdef NTA_PLATFORM_win32
+  #if defined(NTA_OS_WINDOWS)
     ::apr_pool_destroy(pool);
   #endif
     
@@ -134,7 +134,7 @@ namespace nupic
   bool Path::isAbsolute(const std::string & path)
   {
     NTA_CHECK(!path.empty()) << "Empty path is invalid";
-  #ifdef NTA_PLATFORM_win32
+  #if defined(NTA_OS_WINDOWS)
     if (path.size() < 2)
       return false;
     else
@@ -302,7 +302,7 @@ namespace nupic
     return "";
   }
  
-  #ifdef NTA_PLATFORM_win32
+  #if defined(NTA_OS_WINDOWS)
   std::string Path::unicodeToUtf8(const std::wstring& path)
   {
     // Assume the worst we can do is have 6 UTF-8 bytes per unicode
@@ -373,14 +373,7 @@ namespace nupic
     if (path.size() == 0)
       return parts;
 
-#ifndef WIN32
-    // only possible prefix is "/"
-    if (path[0] == '/') 
-    {
-      parts.push_back("/");
-      curpos++;
-    }
-#else
+#if defined(NTA_OS_WINDOWS)
     // prefix may be 1) "\", 2) "\\", 3) "[a-z]:", 4) "[a-z]:\"
     if (path.size() == 1) 
     {
@@ -419,7 +412,14 @@ namespace nupic
           curpos = 2;
         }
       }
-    }          
+    }
+#else
+	// only possible prefix is "/"
+	if (path[0] == '/')
+	{
+		parts.push_back("/");
+		curpos++;
+	}
 #endif
 
     // simple tokenization based on separator. Note that "foo//bar" -> "foo", "", "bar"
@@ -427,7 +427,7 @@ namespace nupic
     while (curpos < path.size() && curpos != std::string::npos) 
     {
       // Be able to split on either separator including mixed separators on Windows
-    #ifdef NTA_PLATFORM_win32
+    #if defined(NTA_OS_WINDOWS)
       std::string::size_type p1 = path.find("\\", curpos);
       std::string::size_type p2 = path.find("/", curpos);
       newpos = p1 < p2 ? p1 : p2;
@@ -457,7 +457,7 @@ namespace nupic
 
   bool Path::isPrefix(const std::string & s)
   {
-#ifdef NTA_PLATFORM_win32
+#if defined(NTA_OS_WINDOWS)
     size_t len = s.length();
     if (len < 2)
       return false;
@@ -492,7 +492,7 @@ namespace nupic
       return std::string(*begin);
     
     std::string path(*begin);
-  #ifdef NTA_PLATFORM_win32
+  #if defined(NTA_OS_WINDOWS)
     if (path[path.length()-1] != Path::sep[0])
       path += Path::sep;
   #else
@@ -542,7 +542,7 @@ namespace nupic
       target = Path::normalize(Path::join(destination, Path::getBasename(source)));
     
     bool success = true;
-  #ifdef NTA_PLATFORM_win32
+  #if defined(NTA_OS_WINDOWS)
 
     // Must remove read-only or hidden files before copy 
     // because they cannot be overwritten. For simplicity
@@ -608,7 +608,7 @@ namespace nupic
       }
     }
 
-#if WIN32
+#if defined(NTA_OS_WINDOWS)
     int countFailure = 0;
     std::wstring wpath(utf8ToUnicode(path));
     DWORD attr = GetFileAttributesW(wpath.c_str());
@@ -658,7 +658,7 @@ namespace nupic
       return;
     } 
 
-  #ifdef NTA_PLATFORM_win32
+  #if defined(NTA_OS_WINDOWS)
     std::wstring wpath(utf8ToUnicode(path));
     BOOL res = ::DeleteFileW(wpath.c_str());
     if (res == FALSE)
@@ -676,7 +676,7 @@ namespace nupic
   {
     NTA_CHECK(!oldPath.empty() && !newPath.empty()) 
       << "Can't rename to/from empty path";
-  #ifdef NTA_PLATFORM_win32
+  #if defined(NTA_OS_WINDOWS)
     std::wstring wOldPath(utf8ToUnicode(oldPath));
     std::wstring wNewPath(utf8ToUnicode(newPath));
     BOOL res = ::MoveFileW(wOldPath.c_str(), wNewPath.c_str());
@@ -824,21 +824,21 @@ namespace nupic
   {
 
     std::string epath = "UnknownExecutablePath";
-#ifndef NTA_PLATFORM_win32
+#if !defined(NTA_OS_WINDOWS)
     auto buf = new char[1000];
     UInt32 bufsize = 1000;
     // sets bufsize to actual length. 
-#if defined(NTA_PLATFORM_darwin86) || defined(NTA_PLATFORM_darwin64)
+   #if defined(NTA_OS_DARWIN)
     _NSGetExecutablePath(buf, &bufsize);
     if (bufsize < 1000)
       buf[bufsize] = '\0';
-  #elif defined(NTA_PLATFORM_linux32) || defined(NTA_PLATFORM_linux64)
+  #elif defined(NTA_OS_LINUX)
     int count = readlink("/proc/self/exe", buf, bufsize);
     if (count < 0)
       NTA_THROW << "Unable to read /proc/self/exe to get executable name";
     if (count < 1000)
       buf[count] = '\0';
-  #elif defined(NTA_PLATFORM_sparc64)
+  #elif defined(NTA_ARCH_64) && defined(NTA_OS_SPARC)
     const char *tmp = getexecname(); 
     if (!tmp)
       NTA_THROW << "Unable to determine executable name"; 
@@ -851,7 +851,7 @@ namespace nupic
     delete[] buf;
 #else
     // windows
-    wchar_t *buf = new wchar_t[1000];
+    auto buf = new wchar_t[1000];
     GetModuleFileNameW(NULL, buf, 1000);
     // null-terminated string guaranteed unless length > 999
     buf[999] = '\0';

@@ -33,7 +33,9 @@
 #include <nupic/math/Math.hpp>
 #include <nupic/math/StlIo.hpp>
 #include <nupic/math/ArrayAlgo.hpp>
+#if defined(NTA_SERIALIZATION_ON)
 #include <nupic/proto/SparseBinaryMatrixProto.capnp.h>
+#endif
 
 //--------------------------------------------------------------------------------
 namespace nupic {
@@ -1456,6 +1458,7 @@ namespace nupic {
       }
     }
 
+#if defined(NTA_SERIALIZATION_ON)
     //--------------------------------------------------------------------------------
     inline void write(SparseBinaryMatrixProto::Builder& proto) const
     {
@@ -1485,6 +1488,7 @@ namespace nupic {
         replaceSparseRow(i, indices[i].begin(), indices[i].end());
       }
     }
+#endif
 
     //--------------------------------------------------------------------------------
     template <typename InputIterator>
@@ -2002,7 +2006,7 @@ namespace nupic {
 	  << "Invalid index: " << *it
 	  << " - Should be >= 0 and < number of columns:" << nCols();
       
-      for (size_type i = 1; i < (size_type)(end - begin); ++i)
+      for (auto i = 1; i < (end - begin); ++i)
 	NTA_ASSERT(*(begin + i - 1) < *(begin + i))
 	  << "SparseBinaryMatrix::" << where << ": "
 	  << "Invalid indices: " << *(begin + i - 1)

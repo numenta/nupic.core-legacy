@@ -30,7 +30,9 @@
 #include <vector>
 #include <utility>
 
+#if defined(NTA_SERIALIZATION_ON)
 #include <nupic/proto/RandomProto.capnp.h>
+#endif
 #include <nupic/types/Types.hpp>
 #include <nupic/utils/Log.hpp>
 
@@ -96,6 +98,7 @@ namespace nupic {
     Random& operator=(const Random&);
     ~Random();
 
+#if defined(NTA_SERIALIZATION_ON)
     // write serialized data
     void write(std::ostream& stream) const;
     void write(RandomProto::Builder& proto) const;
@@ -103,6 +106,7 @@ namespace nupic {
     // read and deserialize data
     void read(std::istream& stream);
     void read(RandomProto::Reader& proto);
+#endif
 
     // return a value uniformly distributed between 0 and max-1
     UInt32 getUInt32(UInt32 max = MAX32);

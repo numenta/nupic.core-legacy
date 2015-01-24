@@ -25,7 +25,7 @@
  * Unix Implementations for the OS class
  */
 
-#ifndef WIN32
+#if !defined(NTA_OS_WINDOWS)
 
 #include <nupic/os/OS.hpp>
 #include <nupic/os/Path.hpp>
@@ -94,7 +94,7 @@ std::string OS::getErrorMessageFromErrorCode(int errorCode)
   char errorBuffer[1024];
   errorBuffer[0] = '\0';
   
-#if defined(__APPLE__) || defined(NTA_PLATFORM_sparc64)
+#if defined(__APPLE__) || (defined(NTA_ARCH_64) && defined(NTA_OS_SPARC))
   int result = ::strerror_r(errorCode, errorBuffer, 1024);
   if(result == 0) errorMessage << errorBuffer;
 #else
@@ -105,6 +105,6 @@ std::string OS::getErrorMessageFromErrorCode(int errorCode)
   return errorMessage.str();
 }
 
-#endif // #ifndef WIN32
+#endif
 
 

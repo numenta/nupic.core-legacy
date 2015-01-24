@@ -233,7 +233,13 @@ INLINE_ELAPSED(__inline__)
 #endif
 
 /* Visual C++ (FIXME: how to detect compilation for x86-64?) */
+/* Ref: Pre-defined C/C++ Compiler Macros http://sourceforge.net/p/predef/wiki/Home/ */
+// MSVC++ 8.0 _MSC_VER = 1400
 #if _MSC_VER >= 1400 && !defined(HAVE_TICK_COUNTER)
+#if defined(__amd64__) || defined(__x86_64__) || \
+defined(_M_X64) || defined(_M_AMD64) // GNU C and Visual Studio
+typedef unsigned __int64 ULONG64;
+#endif
 typedef ULONG64 ticks;
 
 #define getticks __rdtsc

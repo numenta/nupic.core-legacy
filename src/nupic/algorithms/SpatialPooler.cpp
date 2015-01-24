@@ -29,13 +29,15 @@
 #include <string>
 #include <vector>
 
+#if defined(NTA_SERIALIZATION_ON)
 #include <capnp/message.h>
 #include <capnp/serialize.h>
 #include <kj/std/iostream.h>
+#include <nupic/proto/SpatialPoolerProto.capnp.h>
+#endif
 
 #include <nupic/algorithms/SpatialPooler.hpp>
 #include <nupic/math/Math.hpp>
-#include <nupic/proto/SpatialPoolerProto.capnp.h>
 
 using namespace std;
 using namespace nupic;
@@ -1293,6 +1295,7 @@ void SpatialPooler::seed_(UInt64 seed)
   rng_ = Random(seed);
 }
 
+#if defined(NTA_SERIALIZATION_ON)
 UInt SpatialPooler::persistentSize()
 {
   // TODO: this won't scale!
@@ -1778,6 +1781,7 @@ void SpatialPooler::read(SpatialPoolerProto::Reader& proto)
   overlapsPct_.resize(numColumns_);
   boostedOverlaps_.resize(numColumns_);
 }
+#endif
 
 //----------------------------------------------------------------------
 // Debugging helpers

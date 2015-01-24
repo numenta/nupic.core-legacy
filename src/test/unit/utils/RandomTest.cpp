@@ -414,7 +414,7 @@ void RandomTest::RunTests()
 
     {
       // choose 0 elements
-      UInt32 choices[0];
+      UInt32 choices[1];
       r.sample(population, 4, choices, 0);
     }
 
@@ -467,6 +467,7 @@ void RandomTest::RunTests()
     TESTEQUAL2("check element 3", 1, arr[3]);
   }
 
+#if defined(NTA_SERIALIZATION_ON)
   {
     // tests for Cap'n Proto serialization
     Random r1, r2;
@@ -505,5 +506,6 @@ void RandomTest::RunTests()
     // clean up
     remove(outputPath);
   }
+#endif
 
 }

@@ -374,7 +374,7 @@ int main(int argc, char *argv[])
     ss >> count;
   }
   // Start checking memory usage after this many iterations. 
-#ifdef NTA_PLATFORM_win32
+#if defined(NTA_OS_WINDOWS)
   // takes longer to settle down on win32
   size_t memoryLeakStartIter = 6000;
 #else
