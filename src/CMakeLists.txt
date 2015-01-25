@@ -64,6 +64,13 @@ add_definitions(-DNTA_PLATFORM_${PLATFORM}${BITNESS}
                 -DNUPIC2
                 -DNTA_ASSERTIONS_ON
                 -DNTA_ASM)
+if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
+  add_definitions(-DNTA_SERIALIZATION_ON)
+  set(SERIALIZATION ON)
+elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
+  add_definitions(-DNTA_SERIALIZATION_ON)
+  set(SERIALIZATION ON)
+  endif()
 
 
 
@@ -227,41 +234,43 @@ find_library(LIB_STATIC_Z_LOC
              NO_DEFAULT_PATH)
 add_library(${LIB_STATIC_Z} STATIC IMPORTED GLOBAL)
 
-#
-# Find and add libkj
-#
-set(LIB_STATIC_KJ kj)
-find_library(LIB_STATIC_KJ_LOC
-             ${LIB_STATIC_KJ}
-             "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/lib/"
-             NO_DEFAULT_PATH)
-add_library(${LIB_STATIC_KJ} STATIC IMPORTED GLOBAL)
+if(SERIALIZATION)
+  #
+  # Find and add libkj
+  #
+  set(LIB_STATIC_KJ kj)
+  find_library(LIB_STATIC_KJ_LOC
+               ${LIB_STATIC_KJ}
+               "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/lib/"
+               NO_DEFAULT_PATH)
+  add_library(${LIB_STATIC_KJ} STATIC IMPORTED GLOBAL)
 
-#
-# Find and add libcapnp
-#
-set(LIB_STATIC_CAPNP capnp)
-find_library(LIB_STATIC_CAPNP_LOC
-             ${LIB_STATIC_CAPNP}
-             "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/lib/"
-             NO_DEFAULT_PATH)
-add_library(${LIB_STATIC_CAPNP} STATIC IMPORTED GLOBAL)
+  #
+  # Find and add libcapnp
+  #
+  set(LIB_STATIC_CAPNP capnp)
+  find_library(LIB_STATIC_CAPNP_LOC
+               ${LIB_STATIC_CAPNP}
+               "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/lib/"
+               NO_DEFAULT_PATH)
+  add_library(${LIB_STATIC_CAPNP} STATIC IMPORTED GLOBAL)
 
-#
-# Generate Cap'n Proto C++ files
-#
-set(CAPNPC_OUTPUT_DIR ${CMAKE_BINARY_DIR})
-find_package(CapnProto REQUIRED)
-include_directories(${CAPNP_INCLUDE_DIRS})
-# List all .capnp files here. The C++ files will be generated and included
-# when compiling later on.
-set(CAPNP_SPECS
-    nupic/proto/RandomProto.capnp
-    nupic/proto/SparseBinaryMatrixProto.capnp
-    nupic/proto/SparseMatrixProto.capnp
-    nupic/proto/SpatialPoolerProto.capnp
-)
-capnp_generate_cpp(CAPNP_SRCS CAPNP_HDRS ${CAPNP_SPECS})
+  #
+  # Generate Cap'n Proto C++ files
+  #
+  set(CAPNPC_OUTPUT_DIR ${CMAKE_BINARY_DIR})
+  find_package(CapnProto REQUIRED)
+  include_directories(${CAPNP_INCLUDE_DIRS})
+  # List all .capnp files here. The C++ files will be generated and included
+  # when compiling later on.
+  set(CAPNP_SPECS
+      nupic/proto/RandomProto.capnp
+      nupic/proto/SparseBinaryMatrixProto.capnp
+      nupic/proto/SparseMatrixProto.capnp
+      nupic/proto/SpatialPoolerProto.capnp
+  )
+  capnp_generate_cpp(CAPNP_SRCS CAPNP_HDRS ${CAPNP_SPECS})
+endif()
 
 #
 # Setup libnupic_core
@@ -396,14 +405,16 @@ add_dependencies(${EXECUTABLE_HELLOREGION} ${COMMON_LIBS})
 #
 # Setup prototest example
 #
-set(EXECUTABLE_PROTOTEST prototest)
-add_executable(${EXECUTABLE_PROTOTEST} examples/prototest.cpp)
-target_link_libraries(${EXECUTABLE_PROTOTEST}
-                      ${COMMON_LIBS})
-set_target_properties(${EXECUTABLE_PROTOTEST} PROPERTIES COMPILE_FLAGS ${COMPILE_FLAGS})
-set_target_properties(${EXECUTABLE_PROTOTEST}
-                      PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
-add_dependencies(${EXECUTABLE_PROTOTEST} ${COMMON_LIBS})
+if(SERIALIZATION)
+  set(EXECUTABLE_PROTOTEST prototest)
+  add_executable(${EXECUTABLE_PROTOTEST} examples/prototest.cpp)
+  target_link_libraries(${EXECUTABLE_PROTOTEST}
+                        ${COMMON_LIBS})
+  set_target_properties(${EXECUTABLE_PROTOTEST} PROPERTIES COMPILE_FLAGS ${COMPILE_FLAGS})
+  set_target_properties(${EXECUTABLE_PROTOTEST}
+                        PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
+  add_dependencies(${EXECUTABLE_PROTOTEST} ${COMMON_LIBS})
+endif()
 
 #
 # Setup gtests
