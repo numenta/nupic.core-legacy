@@ -20,6 +20,7 @@
  * ---------------------------------------------------------------------
  */
 
+#if defined(NTA_SERIALIZATION_ON)
 #include <iostream>
 #include <fstream>
 #include <stdio.h>
@@ -257,3 +258,4 @@ int main(int argc, const char * argv[])
 
   return 0;
 }
+#endif

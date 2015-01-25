@@ -212,6 +212,7 @@ void FlatSpatialPooler::initializeFlat(
 }
 
 
+#if defined(NTA_SERIALIZATION_ON)
 void FlatSpatialPooler::save(ostream& outStream)
 {
 
@@ -244,6 +245,7 @@ void FlatSpatialPooler::load(istream& inStream)
   inStream >> marker;
   NTA_CHECK(marker == "~FlatSpatialPooler");
 }
+#endif
 
 
 //----------------------------------------------------------------------

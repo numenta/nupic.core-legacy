@@ -24,13 +24,15 @@
 #include <utility>
 #include <vector>
 
+#include <gtest/gtest.h>
+#if defined(NTA_SERIALIZATION_ON)
 #include <capnp/message.h>
 #include <capnp/serialize.h>
 #include <kj/std/iostream.h>
-#include <gtest/gtest.h>
+#include <nupic/proto/SparseMatrixProto.capnp.h>
+#endif
 
 #include <nupic/math/SparseMatrix.hpp>
-#include <nupic/proto/SparseMatrixProto.capnp.h>
 #include <nupic/types/Types.h>
 
 namespace nupic
@@ -38,6 +40,7 @@ namespace nupic
   namespace
   {
 
+#if defined(NTA_SERIALIZATION_ON)
     TEST(SparseMatrixReadWrite, EmptyMatrix)
     {
       SparseMatrix<UInt, Real> m1, m2;
@@ -102,6 +105,7 @@ namespace nupic
       ASSERT_EQ(m1r1[0].second, 3.0) << "Invalid value in original matrix";
       ASSERT_EQ(m1r1[0].second, m2r1[0].second) << "Invalid value in copied matrix";
     }
+#endif
 
   }  // namespace
 }  // namespace nupic

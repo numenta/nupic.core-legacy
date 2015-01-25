@@ -31,10 +31,12 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#if defined(NTA_SERIALIZATION_ON)
 #include <capnp/message.h>
+#include <nupic/proto/SpatialPoolerProto.capnp.h>
+#endif
 #include <nupic/math/SparseBinaryMatrix.hpp>
 #include <nupic/math/SparseMatrix.hpp>
-#include <nupic/proto/SpatialPoolerProto.capnp.h>
 #include <nupic/types/Types.hpp>
 
 using namespace std;
@@ -293,6 +295,7 @@ namespace nupic {
             return version_;
           };
 
+#if defined(NTA_SERIALIZATION_ON)
           /**
           Save (serialize) the current state of the spatial pooler to the
           specified file.
@@ -323,6 +326,7 @@ namespace nupic {
           @returns Integer number of bytes
            */
           virtual UInt persistentSize();
+#endif
 
           /**
           Returns the dimensions of the columns in the region.
