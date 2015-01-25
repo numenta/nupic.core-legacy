@@ -154,15 +154,13 @@ endif()
 #
 if($ENV{NUPIC_DEPLOYMENT_BUILD})
   message("doing deployment build in TravisCI")
-  if(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
-  else()
+  if(NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
     set(OPTIMIZATION_FLAGS_CC "${OPTIMIZATION_FLAGS_CC} -mtune=generic -O2")
     set(OPTIMIZATION_FLAGS_LT "-O2 ${OPTIMIZATION_FLAGS_LT}")
   endif()
 else()
   message("doing local build")
-  if(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
-  else()
+  if(NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
     set(OPTIMIZATION_FLAGS_CC "${OPTIMIZATION_FLAGS_CC} -march=native -O3")
     set(OPTIMIZATION_FLAGS_LT "-O3 ${OPTIMIZATION_FLAGS_LT}")
   endif()
@@ -174,8 +172,7 @@ endif()
 # these are quite aggresive flags, if your code misbehaves for strange reasons, try 
 # compiling without them.
 #
-if(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
-else()
+if(NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
   set(OPTIMIZATION_FLAGS_CC "-pipe ${OPTIMIZATION_FLAGS_CC}") #TODO use -Ofast instead of -O3
   if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     set(OPTIMIZATION_FLAGS_CC "${OPTIMIZATION_FLAGS_CC} -fuse-linker-plugin -flto-report")
