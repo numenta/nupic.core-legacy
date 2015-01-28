@@ -27,7 +27,6 @@
 
 #include <nupic/os/Timer.hpp>
 #include <sstream>
-using namespace nupic;
 
 
 // Define a couple of platform-specific helper functions
@@ -66,7 +65,7 @@ static UInt64 getCurrentTime()
   return (UInt64)(v.QuadPart) - initialTicks_;
 }
 
-#elif defined(NTA_PLATFORM_darwin)
+#elif defined(NTA_PLATFORM_darwin86) || defined(NTA_PLATFORM_darwin64)
 
 // This include defines a UInt64 type that conflicts with the nupic::UInt64 type.
 // Because of this, all UInt64 is explicitly qualified in the interface. 
@@ -77,24 +76,30 @@ static UInt64 getCurrentTime()
 
 // must be linked with -framework CoreServices
 
-static uint64_t  initialTicks_ = 0;
+static uint64_t initialTicks_ = 0;
+static nupic::UInt64 ticksPerSec_ = 0;
 
 static inline void initTime()
 {
-  if (initialT_ == 0)
-    initialT_ = UnsignedWideToUint64(AbsoluteToNanoseconds(mach_absolute_time()));
+  if (initialTicks_ == 0)
+    initialTicks_ = mach_absolute_time();
+  if (ticksPerSec_ == 0)
+  {
+    mach_timebase_info_data_t sTimebaseInfo;
+    mach_timebase_info(&sTimebaseInfo);
+    ticksPerSec_ = (nupic::UInt64)(1e9 * (uint64_t)sTimebaseInfo.denom /
+        (uint64_t)sTimebaseInfo.numer);
+  }
 }
 
 static inline nupic::UInt64 getCurrentTime()
 {
-  uint64_t t = mach_absolute_time();
-  nupic::UInt64 ticks = UnsignedWideToUInt64(AbsoluteToNanoseconds(t));
-  return ticks - initialTicks_;
+  return (nupic::UInt64)(mach_absolute_time() - initialTicks_);
 }
 
 static inline nupic::UInt64 getTicksPerSec()
 {
-  return (nupic::UInt64)(1e9);
+  return ticksPerSec_;
 }
 
 
@@ -131,76 +136,80 @@ static inline nupic::UInt64 getTicksPerSec()
 
 #endif
 
-Timer::Timer(bool startme)  
+namespace nupic
 {
-  initTime();
-  reset();
-  if (startme)
-    start();
-}
 
-
-void Timer::start() 
-{ 
-  if (started_ == false) 
+  Timer::Timer(bool startme)  
   {
-    start_ = getCurrentTime();
-    nstarts_++;
-    started_ = true;
+    initTime();
+    reset();
+    if (startme)
+      start();
   }
-}
-
-/**
-* Stop the stopwatch. When restarted, time will accumulate
-*/
-
-void Timer::stop() 
-{  // stop the stopwatch
-  if (started_ == true) 
+  
+  
+  void Timer::start() 
+  { 
+    if (started_ == false) 
+    {
+      start_ = getCurrentTime();
+      nstarts_++;
+      started_ = true;
+    }
+  }
+  
+  /**
+  * Stop the stopwatch. When restarted, time will accumulate
+  */
+  
+  void Timer::stop() 
+  {  // stop the stopwatch
+    if (started_ == true) 
+    {
+      prevElapsed_ += (getCurrentTime() - start_);
+      start_ = 0;
+      started_ = false;
+    }
+  }
+  
+  Real64 Timer::getElapsed() const
+  {   
+    nupic::UInt64 elapsed = prevElapsed_;
+    if (started_) 
+    {
+      elapsed += (getCurrentTime() - start_);
+    }   
+  
+    return (Real64)(elapsed) / (Real64)getTicksPerSec();
+  }
+  
+  void Timer::reset() 
   {
-    prevElapsed_ += (getCurrentTime() - start_);
+    prevElapsed_ = 0;
     start_ = 0;
+    nstarts_ = 0;
     started_ = false;
   }
-}
-
-Real64 Timer::getElapsed() const
-{   
-  nupic::UInt64 elapsed = prevElapsed_;
-  if (started_) 
+  
+  UInt64 Timer::getStartCount() const
+  { 
+    return nstarts_; 
+  }
+  
+  bool Timer::isStarted() const
+  { 
+    return started_; 
+  }
+  
+  
+  std::string Timer::toString() const
   {
-    elapsed += (getCurrentTime() - start_);
-  }   
+    std::stringstream ss;
+    ss << "[Elapsed: " << getElapsed() << " Starts: " << getStartCount();
+    if (isStarted())
+      ss << " (running)";
+    ss << "]";
+    return ss.str();
+  }
 
-  return (Real64)(elapsed) / (Real64)getTicksPerSec();
-}
-
-void Timer::reset() 
-{
-  prevElapsed_ = 0;
-  start_ = 0;
-  nstarts_ = 0;
-  started_ = false;
-}
-
-UInt64 Timer::getStartCount() const
-{ 
-  return nstarts_; 
-}
-
-bool Timer::isStarted() const
-{ 
-  return started_; 
-}
-
-
-std::string Timer::toString() const
-{
-  std::stringstream ss;
-  ss << "[Elapsed: " << getElapsed() << " Starts: " << getStartCount();
-  if (isStarted())
-    ss << " (running)";
-  ss << "]";
-  return ss.str();
-}
-
+}  // namespace nupic
