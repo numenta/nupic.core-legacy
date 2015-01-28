@@ -31,7 +31,7 @@
 
 // Define a couple of platform-specific helper functions
 
-#if defined(NTA_PLATFORM_win32)
+#if defined(NTA_OS_WINDOWS)
 
 #include <windows.h>
 static nupic::UInt64 ticksPerSec_ = 0;
@@ -65,7 +65,7 @@ static UInt64 getCurrentTime()
   return (UInt64)(v.QuadPart) - initialTicks_;
 }
 
-#elif defined(NTA_PLATFORM_darwin86) || defined(NTA_PLATFORM_darwin64)
+#elif defined(NTA_OS_DARWIN)
 
 // This include defines a UInt64 type that conflicts with the nupic::UInt64 type.
 // Because of this, all UInt64 is explicitly qualified in the interface. 

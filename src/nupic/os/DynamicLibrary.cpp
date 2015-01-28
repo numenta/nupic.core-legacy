@@ -40,7 +40,7 @@ namespace nupic
 
   DynamicLibrary::~DynamicLibrary()
   {
-    #ifdef NTA_PLATFORM_win32
+    #if defined(NTA_OS_WINDOWS)
       ::FreeLibrary((HMODULE)handle_);
     #else
       ::dlclose(handle_);
@@ -49,7 +49,7 @@ namespace nupic
 
   DynamicLibrary * DynamicLibrary::load(const std::string & name, std::string &errorString)
   {
-    #ifdef NTA_PLATFORM_win32
+    #if defined(NTA_OS_WINDOWS)
       return load(name, 0, errorString);
     #else
       // LOCAL/NOW make more sense. In NuPIC 2 we currently need GLOBAL/LAZY
@@ -75,7 +75,7 @@ namespace nupic
     
     void * handle = nullptr;
   
-    #ifdef NTA_PLATFORM_win32
+    #if defined(NTA_OS_WINDOWS)
       mode; // ignore on Windows
       handle = ::LoadLibraryA(name.c_str());
       if (handle == NULL)
@@ -109,7 +109,7 @@ namespace nupic
 
   void * DynamicLibrary::getSymbol(const std::string & symbol)
   {    
-    #ifdef NTA_PLATFORM_win32
+    #if defined(NTA_OS_WINDOWS)
       return ::GetProcAddress((HMODULE)handle_, symbol.c_str());
     #else
       return ::dlsym(handle_, symbol.c_str());

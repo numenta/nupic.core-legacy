@@ -39,7 +39,7 @@
 #include "nupic/os/Env.hpp"
 #include <fstream>
 #include <cstdlib>
-#ifdef NTA_PLATFORM_win32
+#if defined(NTA_OS_WINDOWS)
 #include <fcntl.h>
 #include <sys/stat.h>
 #endif
@@ -88,7 +88,7 @@ void IFStream::diagnostics(const char* filename)
 /////////////////////////////////////////////////////////////////////////
 void IFStream::open(const char * filename, ios_base::openmode mode)
 {
-#ifdef NTA_PLATFORM_win32
+#if defined(NTA_OS_WINDOWS)
   std::wstring pathW = Path::utf8ToUnicode(filename);
   std::ifstream::open(pathW.c_str(), mode);
 #else
@@ -113,7 +113,7 @@ void IFStream::open(const char * filename, ios_base::openmode mode)
 /////////////////////////////////////////////////////////////////////////
 void OFStream::open(const char * filename, ios_base::openmode mode)
 {
-#ifdef NTA_PLATFORM_win32
+#if defined(NTA_OS_WINDOWS)
   std::wstring pathW = Path::utf8ToUnicode(filename);
   std::ofstream::open(pathW.c_str(), mode);
 #else
@@ -137,7 +137,7 @@ void *ZLib::fopen(const std::string &filename, const std::string &mode,
 {
   if(mode.empty()) throw std::invalid_argument("Mode may not be empty.");
 
-#ifdef NTA_PLATFORM_win32
+#if defined(NTA_OS_WINDOWS)
   std::wstring wfilename(Path::utf8ToUnicode(filename));
   int cflags = _O_BINARY;
   int pflags = 0;
