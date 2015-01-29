@@ -51,12 +51,12 @@ namespace nupic {
        * representation of the input. Given an input it computes a set of sparse
        * active columns and simultaneously updates its permanences, duty cycles,
        * etc.
-       * 
+       *
        * The primary public interfaces to this function are the "initialize"
        * and "compute" methods.
        *
        * Example usage:
-       * 
+       *
        *     SpatialPooler sp;
        *     sp.initialize(inputDimensions, columnDimensions, <parameters>);
        *     while (true) {
@@ -64,7 +64,7 @@ namespace nupic {
        *        sp.compute(inputVector, learn, activeColumns)
        *        <do something with output>
        *     }
-       *     
+       *
        */
       class SpatialPooler {
         public:
@@ -74,22 +74,22 @@ namespace nupic {
 
           /**
           Initialize the spatial pooler using the given parameters.
-          
-          @param inputDimensions A list of integers representing the 
+
+          @param inputDimensions A list of integers representing the
                 dimensions of the input vector. Format is [height, width,
                 depth, ...], where each value represents the size of the
                 dimension. For a topology of one dimesion with 100 inputs
                 use [100]. For a two dimensional topology of 10x5
                 use [10,5].
-         
+
           @param columnDimensions A list of integers representing the
                 dimensions of the columns in the region. Format is [height,
                 width, depth, ...], where each value represents the size of
                 the dimension. For a topology of one dimesion with 2000
                 columns use 2000, or [2000]. For a three dimensional
-                topology of 32x64x16 use [32, 64, 16]. 
-             
-          @param potentialRadius This parameter deteremines the extent of the 
+                topology of 32x64x16 use [32, 64, 16].
+
+          @param potentialRadius This parameter deteremines the extent of the
                 input that each column can potentially be connected to. This
                 can be thought of as the input bits that are visible to each
                 column, or a 'receptive field' of the field of vision. A large
@@ -97,7 +97,7 @@ namespace nupic {
                 that each column can potentially be connected to every input
                 bit. This parameter defines a square (or hyper square) area: a
                 column will have a max square potential pool with sides of
-                length (2 * potentialRadius + 1). 
+                length (2 * potentialRadius + 1).
 
           @param potentialPct The percent of the inputs, within a column's
                 potential radius, that a column can be connected to. If set to
@@ -108,14 +108,14 @@ namespace nupic {
                 ((2*potentialRadius + 1)^(# inputDimensions) * potentialPct)
                 input bits to comprise the column's potential pool.
 
-          @param globalInhibition If true, then during inhibition phase the 
+          @param globalInhibition If true, then during inhibition phase the
                 winning columns are selected as the most active columns from the
                 region as a whole. Otherwise, the winning columns are selected
                 with resepct to their local neighborhoods. Global inhibition
                 boosts performance significantly but there is no topology at the
                 output.
-                
-          @param localAreaDensity The desired density of active columns within 
+
+          @param localAreaDensity The desired density of active columns within
                 a local inhibition area (the size of which is set by the
                 internally calculated inhibitionRadius, which is in turn
                 determined from the average size of the connected potential
@@ -123,11 +123,11 @@ namespace nupic {
                 most N columns remain ON within a local inhibition area, where
                 N = localAreaDensity * (total number of columns in inhibition
                 area). If localAreaDensity is set to a negative value output
-                sparsity will be determined by the numActivePerInhArea. 
+                sparsity will be determined by the numActivePerInhArea.
 
-          @param numActiveColumnsPerInhArea An alternate way to control the sparsity of 
+          @param numActiveColumnsPerInhArea An alternate way to control the sparsity of
                 active columns. If numActivePerInhArea is specified then
-                localAreaDensity must be less than 0, and vice versa. When 
+                localAreaDensity must be less than 0, and vice versa. When
                 numActivePerInhArea > 0, the inhibition logic will insure that
                 at most 'numActivePerInhArea' columns remain ON within a local
                 inhibition area (the size of which is set by the internally
@@ -138,24 +138,24 @@ namespace nupic {
                 localAreaDensity method, which keeps the density of active
                 columns the same regardless of the size of their receptive
                 fields.
-                
-          @param stimulusThreshold This is a number specifying the minimum 
+
+          @param stimulusThreshold This is a number specifying the minimum
                 number of synapses that must be active in order for a column to
                 turn ON. The purpose of this is to prevent noisy input from
-                activating columns. 
-                
-          @param synPermInactiveDec The amount by which the permanence of an 
-                inactive synapse is decremented in each learning step. 
+                activating columns.
 
-          @param synPermActiveInc The amount by which the permanence of an 
-                active synapse is incremented in each round. 
+          @param synPermInactiveDec The amount by which the permanence of an
+                inactive synapse is decremented in each learning step.
 
-          @param synPermConnected The default connected threshold. Any synapse 
+          @param synPermActiveInc The amount by which the permanence of an
+                active synapse is incremented in each round.
+
+          @param synPermConnected The default connected threshold. Any synapse
                 whose permanence value is above the connected threshold is
                 a "connected synapse", meaning it can contribute to
                 the cell's firing.
-                
-          @param minPctOverlapDutyCycles A number between 0 and 1.0, used to set 
+
+          @param minPctOverlapDutyCycles A number between 0 and 1.0, used to set
                 a floor on how often a column should have at least
                 stimulusThreshold active inputs. Periodically, each column looks
                 at the overlap duty cycle of all other column within its
@@ -169,23 +169,23 @@ namespace nupic {
                 its previously learned inputs are no longer ever active, or when
                 the vast majority of them have been "hijacked" by other columns.
 
-          @param minPctActiveDutyCycles A number between 0 and 1.0, used to set 
+          @param minPctActiveDutyCycles A number between 0 and 1.0, used to set
                 a floor on how often a column should be activate. Periodically,
                 each column looks at the activity duty cycle of all other
                 columns within its inhibition radius and sets its own internal
                 minimal acceptable duty cycle to:
-                
+
                     minPctDutyCycleAfterInh * max(other columns' duty cycles).
 
                 On each iteration, any column whose duty cycle after inhibition
                 falls below this computed value will get its internal boost
                 factor increased.
 
-          @param dutyCyclePeriod The period used to calculate duty cycles. 
+          @param dutyCyclePeriod The period used to calculate duty cycles.
                 Higher values make it take longer to respond to changes in
                 boost. Shorter values make it potentially more unstable and
                 likely to oscillate.
-                
+
           @param maxBoost The maximum overlap boost factor. Each column's
                 overlap gets multiplied by a boost factor before it gets
                 considered for inhibition. The actual boost factor for a column
@@ -282,7 +282,7 @@ namespace nupic {
            @param activeArray  An int array containing the indices of the
                active columns.
           */
-          void stripUnlearnedColumns(UInt activeArray[]);
+          void stripUnlearnedColumns(UInt activeArray[]) const;
 
           /**
            * Get the version number of this spatial pooler.
@@ -296,7 +296,7 @@ namespace nupic {
           /**
           Save (serialize) the current state of the spatial pooler to the
           specified file.
-    
+
           @param fd A valid file descriptor.
            */
           virtual void save(ostream& outStream) const;
@@ -307,7 +307,7 @@ namespace nupic {
           /**
           Load (deserialize) and initialize the spatial pooler from the
           specified input stream.
-    
+
           @param inStream A valid istream.
            */
           virtual void load(istream& inStream);
@@ -329,48 +329,48 @@ namespace nupic {
 
           @returns Integer number of column dimension.
           */
-          vector<UInt> getColumnDimensions();
+          vector<UInt> getColumnDimensions() const;
 
           /**
           Returns the dimensions of the input vector.
 
           @returns Integer vector of input dimension.
-          */          
-          vector<UInt> getInputDimensions();
+          */
+          vector<UInt> getInputDimensions() const;
 
           /**
           Returns the total number of columns.
 
           @returns Integer number of column numbers.
-          */         
-          UInt getNumColumns();
+          */
+          UInt getNumColumns() const;
 
           /**
           Returns the total number of inputs.
 
           @returns Integer number of inputs.
-          */             
-          UInt getNumInputs();
+          */
+          UInt getNumInputs() const;
 
           /**
           Returns the potential radius.
 
           @returns Integer number of potential radius.
-          */             
-          UInt getPotentialRadius();
+          */
+          UInt getPotentialRadius() const;
 
           /**
           Sets the potential radius.
 
           @param potentialRadius integer number of potential raduis.
-          */                 
+          */
           void setPotentialRadius(UInt potentialRadius);
           /**
           Returns the potential percent.
 
           @returns real number of the potential percent.
-          */  
-          Real getPotentialPct();
+          */
+          Real getPotentialPct() const;
 
           /**
           Sets the potential percent.
@@ -379,10 +379,10 @@ namespace nupic {
           */
           void setPotentialPct(Real potentialPct);
 
-          /**          
+          /**
           @returns boolen value of whether global inhibition is enabled.
           */
-          bool getGlobalInhibition();
+          bool getGlobalInhibition() const;
 
           /**
           Sets global inhibition.
@@ -392,12 +392,12 @@ namespace nupic {
           void setGlobalInhibition(bool globalInhibition);
 
           /**
-          Returns the number of active columns per inhibition area. 
+          Returns the number of active columns per inhibition area.
 
           @returns integer number of active columns per inhbition area, Returns a
           value less than 0 if parameter is unuse.
           */
-          Int getNumActiveColumnsPerInhArea();
+          Int getNumActiveColumnsPerInhArea() const;
 
 
           /**
@@ -414,7 +414,7 @@ namespace nupic {
 
           @returns real number of local area density.
           */
-          Real getLocalAreaDensity();
+          Real getLocalAreaDensity() const;
 
           /**
           Sets the local area density. Invalidates the 'numActivePerInhArea'
@@ -429,7 +429,7 @@ namespace nupic {
 
           @returns integer number of stimulus threshold.
           */
-          UInt getStimulusThreshold();
+          UInt getStimulusThreshold() const;
 
           /**
           Sets the stimulus threshold.
@@ -443,7 +443,7 @@ namespace nupic {
 
           @returns (positive) integer of inhibition radius/
           */
-          UInt getInhibitionRadius();
+          UInt getInhibitionRadius() const;
           /**
           Sets the inhibition radius.
 
@@ -456,7 +456,7 @@ namespace nupic {
 
           @returns integer of duty cycle period.
           */
-          UInt getDutyCyclePeriod();
+          UInt getDutyCyclePeriod() const;
 
           /**
           Sets the duty cycle period.
@@ -470,7 +470,7 @@ namespace nupic {
 
           @returns real number of the maximum boost value.
           */
-          Real getMaxBoost();
+          Real getMaxBoost() const;
 
           /**
           Sets the maximum boost value.
@@ -484,7 +484,7 @@ namespace nupic {
 
           @returns integer number of iteration number.
           */
-          UInt getIterationNum();
+          UInt getIterationNum() const;
 
           /**
           Sets the iteration number.
@@ -498,7 +498,7 @@ namespace nupic {
 
           @returns integer of the learning iteration number.
           */
-          UInt getIterationLearnNum();
+          UInt getIterationLearnNum() const;
 
           /**
           Sets the learning iteration number.
@@ -512,7 +512,7 @@ namespace nupic {
 
           @returns integer of the verbosity level.
           */
-          UInt getSpVerbosity();
+          UInt getSpVerbosity() const;
 
           /**
           Sets the verbosity level.
@@ -528,7 +528,7 @@ namespace nupic {
 
           @returns the boolean value of wrapAround.
           */
-          bool getWrapAround();
+          bool getWrapAround() const;
 
           /**
           Sets wrapAround.
@@ -542,7 +542,7 @@ namespace nupic {
 
           @returns integer of update period.
           */
-          UInt getUpdatePeriod();
+          UInt getUpdatePeriod() const;
           /**
           Sets the update period.
 
@@ -555,7 +555,7 @@ namespace nupic {
 
           @returns real number of the permanence trim threshold.
           */
-          Real getSynPermTrimThreshold();
+          Real getSynPermTrimThreshold() const;
           /**
           Sets the permanence trim threshold.
 
@@ -570,7 +570,7 @@ namespace nupic {
           @returns real number of the permanence increment amount for active synapses
           inputs.
           */
-          Real getSynPermActiveInc();
+          Real getSynPermActiveInc() const;
           /**
           Sets the permanence increment amount for active synapses
           inputs.
@@ -585,7 +585,7 @@ namespace nupic {
 
           @returns real number of the permanence decrement amount for inactive synapses.
           */
-          Real getSynPermInactiveDec();
+          Real getSynPermInactiveDec() const;
           /**
           Returns the permanence decrement amount for inactive synapses.
 
@@ -600,7 +600,7 @@ namespace nupic {
           @returns positive real number of the permanence increment amount for columns that have not been
           recently active.
           */
-          Real getSynPermBelowStimulusInc();
+          Real getSynPermBelowStimulusInc() const;
           /**
           Sets the permanence increment amount for columns that have not been
           recently active.
@@ -614,10 +614,10 @@ namespace nupic {
           Returns the permanence amount that qualifies a synapse as
           being connected.
 
-          @returns real number of the permanence amount 
+          @returns real number of the permanence amount
           that qualifies a synapse as being connected.
           */
-          Real getSynPermConnected();
+          Real getSynPermConnected() const;
           /**
           Sets the permanence amount that qualifies a synapse as
           being connected.
@@ -633,7 +633,7 @@ namespace nupic {
 
           @returns real number of the minimum tolerated overlaps.
           */
-          Real getMinPctOverlapDutyCycles();
+          Real getMinPctOverlapDutyCycles() const;
           /**
           Sets the minimum tolerated overlaps, given as percent of
           neighbors overlap score.
@@ -648,7 +648,7 @@ namespace nupic {
 
           @returns minPctOverlapDutyCycles real number of the minimum tolerated activity duty cycle.
           */
-          Real getMinPctActiveDutyCycles();
+          Real getMinPctActiveDutyCycles() const;
           /**
           Sets the minimum tolerated activity duty cycle, given as percent of
           neighbors' activity duty cycle.
@@ -663,7 +663,7 @@ namespace nupic {
 
           @param boostFactors real array to store boost factors of all columns.
           */
-          void getBoostFactors(Real boostFactors[]);
+          void getBoostFactors(Real boostFactors[]) const;
           /**
           Sets the boost factors for all columns. 'boostFactors' size must
           match the number of columns.
@@ -678,7 +678,7 @@ namespace nupic {
 
           @param overlapDutyCycles real array to store overlap duty cycles for all columns.
           */
-          void getOverlapDutyCycles(Real overlapDutyCycles[]);
+          void getOverlapDutyCycles(Real overlapDutyCycles[]) const;
           /**
           Sets the overlap duty cycles for all columns. 'overlapDutyCycles'
           size must match the number of columns.
@@ -693,7 +693,7 @@ namespace nupic {
 
           @param activeDutyCycles real array to store activity duty cycles for all columns.
           */
-          void getActiveDutyCycles(Real activeDutyCycles[]);
+          void getActiveDutyCycles(Real activeDutyCycles[]) const;
           /**
           Sets the activity duty cycles for all columns. 'activeDutyCycles'
           size must match the number of columns.
@@ -708,7 +708,7 @@ namespace nupic {
           @param minOverlapDutyCycles real arry to store mininum overlap duty cycles for all columns.
           'minOverlapDutyCycles' size must match the number of columns.
           */
-          void getMinOverlapDutyCycles(Real minOverlapDutyCycles[]);
+          void getMinOverlapDutyCycles(Real minOverlapDutyCycles[]) const;
           /**
           Sets the minimum overlap duty cycles for all columns.
           '_minOverlapDutyCycles' size must match the number of columns.
@@ -723,7 +723,7 @@ namespace nupic {
 
           @param minActiveDutyCycles real array to store the minimum activity duty cycles for all columns.
           */
-          void getMinActiveDutyCycles(Real minActiveDutyCycles[]);
+          void getMinActiveDutyCycles(Real minActiveDutyCycles[]) const;
           /**
           Sets the minimum activity duty cycles for all columns.
           '_minActiveDutyCycles' size must match the number of columns.
@@ -740,7 +740,7 @@ namespace nupic {
 
           @param potential integer array of potential mapping for the selected column.
           */
-          void getPotential(UInt column, UInt potential[]);
+          void getPotential(UInt column, UInt potential[]) const;
           /**
           Sets the potential mapping for a given column. 'potential' size
           must match the number of inputs.
@@ -759,7 +759,7 @@ namespace nupic {
 
           @param permanence real array to store permanence values for the selected column.
           */
-          void getPermanence(UInt column, Real permanence[]);
+          void getPermanence(UInt column, Real permanence[]) const;
           /**
           Sets the permanence values for a given column. 'permanence' size
           must match the number of inputs.
@@ -778,7 +778,7 @@ namespace nupic {
 
           @param connectedSynapses integer array to store the connected synapses for a given column.
           */
-          void getConnectedSynapses(UInt column, UInt connectedSynapses[]);
+          void getConnectedSynapses(UInt column, UInt connectedSynapses[]) const;
 
           /**
           Returns the number of connected synapses for all columns.
@@ -786,12 +786,12 @@ namespace nupic {
 
           @param connectedCounts integer array to store the connected synapses for all columns.
           */
-          void getConnectedCounts(UInt connectedCounts[]);
+          void getConnectedCounts(UInt connectedCounts[]) const;
 
           /**
-          Print the main SP creation parameters to stdout. 
+          Print the main SP creation parameters to stdout.
            */
-          void printParameters();
+          void printParameters() const;
 
 
           ///////////////////////////////////////////////////////////
@@ -831,7 +831,7 @@ namespace nupic {
           UInt mapColumn_(UInt column);
 
           /**
-            Maps a column to its input bits. 
+            Maps a column to its input bits.
 
             This method encapsultes the topology of
             the region. It takes the index of the column as an argument and determines
@@ -863,14 +863,14 @@ namespace nupic {
 
           /**
           Returns a randomly generated permanence value for a synapses that is
-          initialized in a connected state. 
+          initialized in a connected state.
 
           The basic idea here is to initialize
           permanence values very close to synPermConnected so that a small number of
           learning steps could make it disconnected or connected.
 
           Note: experimentation was done a long time ago on the best way to initialize
-          permanence values, but the history for this particular scheme has been lost.          
+          permanence values, but the history for this particular scheme has been lost.
 
           @returns real number of a randomly generated permanence value for a synapses that is
           initialized in a connected state.
@@ -892,21 +892,21 @@ namespace nupic {
             array represents the initial permanence value between the input bit
             at the particular index in the array, and the column represented by
             the 'index' parameter.
-            
+
             @param potential      A int vector specifying the potential pool of the column.
                             Permanence values will only be generated for input bits
 
                             corresponding to indices for which the mask value is 1.
             @param connectedPct   A real value between 0 or 1 specifying the percent of the input
                             bits that will start off in a connected state.
-          */          
+          */
           vector<Real> initPermanence_(vector<UInt>& potential,
                                        Real connectedPct);
           void clip_(vector<Real>& perm, bool trim);
 
         /**
             This method updates the permanence matrix with a column's new permanence
-            values. 
+            values.
 
             The column is identified by its index, which reflects the row in
             the matrix, and the permanence is given in 'dense' form, i.e. a full
@@ -932,7 +932,7 @@ namespace nupic {
                             should be raised until a minimum number are synapses are in
                             a connected state. Should be set to 'false' when a direct
                             assignment is required.
-        */          
+        */
           void updatePermanencesForColumn_(vector<Real>& perm, UInt column,
                                            bool raisePerm=true);
           UInt countConnected_(vector<Real>& perm);
@@ -941,7 +941,7 @@ namespace nupic {
 
           /**
               This function determines each column's overlap with the current input
-              vector. 
+              vector.
 
               The overlap of a column is the number of synapses for that column
               that are connected (permance value is greater than '_synPermConnected')
@@ -987,13 +987,13 @@ namespace nupic {
                                vector<UInt>& activeColumns);
 
           /**
-              Perform global inhibition. 
+              Perform global inhibition.
 
               Performing global inhibition entails picking the
               top 'numActive' columns with the highest overlap score in the entire
               region. At most half of the columns in a local neighborhood are allowed to
               be active.
-              
+
               @param overlaps       a real array containing the overlap score for each  column.
                               The overlap score for a column is defined as the number
                               of synapses in a "connected state" (connected synapses)
@@ -1002,12 +1002,12 @@ namespace nupic {
               @param density        a real number of the fraction of columns to survive inhibition.
 
               @param activeColumns an int array containing the indices of the active columns.
-              */          
+              */
           void inhibitColumnsGlobal_(vector<Real>& overlaps, Real density,
                                      vector<UInt>& activeColumns);
 
           /**
-          Performs local inhibition. 
+          Performs local inhibition.
 
           Local inhibition is performed on a column by
           column basis. Each column observes the overlaps of its neighbors and is
@@ -1098,7 +1098,7 @@ namespace nupic {
                               [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].
 
               @param neighbors An int array of indices corresponding to the neighbors of a given column.
-          */          
+          */
           void getNeighbors2D_(UInt column, vector<UInt>& dimensions,
                                UInt radius, bool wrapAround,
                                vector<UInt>& neighbors);
@@ -1107,7 +1107,7 @@ namespace nupic {
 
           /**
               Similar to _getNeighbors1D and _getNeighbors2D, this function returns a
-              list of indices corresponding to the neighbors of a given column. 
+              list of indices corresponding to the neighbors of a given column.
 
               Since the
               permanence values are stored in such a way that information about toplogy
@@ -1136,14 +1136,14 @@ namespace nupic {
                               [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].
 
               @param neighbors An int arrayof indices corresponding to the neighbors of a given column.
-          */          
+          */
           void getNeighborsND_(UInt column, vector<UInt>& dimensions,
                                UInt radius, bool wrapAround,
                                vector<UInt>& neighbors);
 
 
           /**
-              The primary method in charge of learning. 
+              The primary method in charge of learning.
 
               Adapts the permanence values of
               the synapses based on the input vector, and the chosen columns after
@@ -1197,7 +1197,7 @@ namespace nupic {
               The range of connected synapses for column. This is used to
               calculate the inhibition radius. This variation of the function only
               supports a 1 dimensional column toplogy.
-              
+
               @param column An int number identifying a column in the permanence, potential
                               and connectivity matrices.
           */
@@ -1210,7 +1210,7 @@ namespace nupic {
 
               @param column An int number identifying a column in the permanence, potential
                               and connectivity matrices.
-          */          
+          */
           Real avgConnectedSpanForColumn2D_(UInt column);
 
 
@@ -1221,7 +1221,7 @@ namespace nupic {
 
               @param column An int number identifying a column in the permanence, potential
                               and connectivity matrices.
-          */                       
+          */
           Real avgConnectedSpanForColumnND_(UInt column);
 
           /**
@@ -1237,14 +1237,14 @@ namespace nupic {
               minPctActiveDutyCycle respectively. Functionaly it is equivalent to
               _updateMinDutyCyclesLocal, but this function exploits the globalilty of the
               compuation to perform it in a straightforward, and more efficient manner.
-          */          
+          */
           void updateMinDutyCyclesGlobal_();
 
           /**
           Updates the minimum duty cycles. The minimum duty cycles are determined
           locally. Each column's minimum duty cycles are set to be a percent of the
           maximum duty cycles in the column's neighborhood. Unlike
-          _updateMinDutyCycles          
+          _updateMinDutyCycles
           */
           void updateMinDutyCyclesLocal_();
 
@@ -1263,8 +1263,8 @@ namespace nupic {
                             (period - 1)*dutyCycle + newValue
                 dutyCycle := ----------------------------------
                                         period
-              @endverbatim 
-              
+              @endverbatim
+
               ----------------------------
               @param dutyCycles     A real array containing one or more duty cycle values that need
                               to be updated.
@@ -1272,7 +1272,7 @@ namespace nupic {
               @param newValues      A int vector used to update the duty cycle.
 
               @param period         A int number indicating the period of the duty cycle
-          */        
+          */
           static  void updateDutyCyclesHelper_(vector<Real>& dutyCycles,
                                                vector<UInt>& newValues,
                                                UInt period);
@@ -1290,7 +1290,7 @@ namespace nupic {
 
           @param activeArray  An int array containing the indices of the active columns,
                           the sprase set of columns which survived inhibition
-          */            
+          */
           void updateDutyCycles_(vector<UInt>& overlaps,
                                  UInt activeArray[]);
 
@@ -1318,7 +1318,7 @@ namespace nupic {
                           +--------------------> activeDutyCycle
                              |
                       minActiveDutyCycle
-              @endverbatim 
+              @endverbatim
             */
           void updateBoostFactors_();
 
@@ -1335,13 +1335,13 @@ namespace nupic {
 
           /**
           @returns boolean value indicating whether enough rounds have passed to warrant updates of
-          duty cycles          
+          duty cycles
           */
           bool isUpdateRound_();
 
           /**
           Initialize the random seed
-          
+
           @param seed 64bit int of random seed
           */
           void seed_(UInt64 seed);
