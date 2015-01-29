@@ -1293,7 +1293,7 @@ void SpatialPooler::seed_(UInt64 seed)
   rng_ = Random(seed);
 }
 
-UInt SpatialPooler::persistentSize()
+UInt SpatialPooler::persistentSize() const
 {
   // TODO: this won't scale!
   stringstream s;
@@ -1303,7 +1303,7 @@ UInt SpatialPooler::persistentSize()
   return s.str().size();
 }
 
-void SpatialPooler::save(ostream& outStream)
+void SpatialPooler::save(ostream& outStream) const
 {
   // Write a starting marker and version.
   outStream << "SpatialPooler" << endl;
@@ -1552,7 +1552,7 @@ void SpatialPooler::load(istream& inStream)
   boostedOverlaps_.resize(numColumns_);
 }
 
-void SpatialPooler::write(SpatialPoolerProto::Builder& proto)
+void SpatialPooler::write(SpatialPoolerProto::Builder& proto) const
 {
   auto random = proto.initRandom();
   rng_.write(random);
@@ -1652,7 +1652,7 @@ void SpatialPooler::write(SpatialPoolerProto::Builder& proto)
   }
 }
 
-void SpatialPooler::write(ostream& stream)
+void SpatialPooler::write(ostream& stream) const
 {
   capnp::MallocMessageBuilder message;
   SpatialPoolerProto::Builder proto = message.initRoot<SpatialPoolerProto>();

@@ -299,10 +299,10 @@ namespace nupic {
     
           @param fd A valid file descriptor.
            */
-          virtual void save(ostream& outStream);
+          virtual void save(ostream& outStream) const;
 
-          virtual void write(ostream& stream);
-          virtual void write(SpatialPoolerProto::Builder& proto);
+          virtual void write(ostream& stream) const;
+          virtual void write(SpatialPoolerProto::Builder& proto) const;
 
           /**
           Load (deserialize) and initialize the spatial pooler from the
@@ -322,7 +322,7 @@ namespace nupic {
 
           @returns Integer number of bytes
            */
-          virtual UInt persistentSize();
+          virtual UInt persistentSize() const;
 
           /**
           Returns the dimensions of the columns in the region.
