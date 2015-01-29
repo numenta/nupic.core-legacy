@@ -5,6 +5,7 @@ This repository contains the C++ source code for the Numenta Platform for Intell
 ## Build and test NuPIC Core:
 
 Important notes:
+ * For developers (contributing to NuPIC Core) please follow the [C++ Development Workflow steps](https://github.com/numenta/nupic.core/wiki/C++-Development-Workflow).
  * `$NUPIC_CORE` is the current location of the repository that you downloaded from GitHub.
 
 ### Using command line
@@ -13,21 +14,27 @@ Important notes:
 
     mkdir -p $NUPIC_CORE/build/scripts
     cd $NUPIC_CORE/build/scripts
-    cmake $NUPIC_CORE/src
+    cmake $NUPIC_CORE/src [-DCMAKE_INSTALL_PREFIX=../release]
+
+> **Note**: The `-DCMAKE_INSTALL_PREFIX=../release` option shown above is optional, and specifies the location where `nupic.core` should be installed. If omitted, `nupic.core` will be installed in a system location. Using this option is useful when testing versions of `nupic.core` with `nupic` (see [NuPIC's Dependency on nupic.core](https://github.com/numenta/nupic/wiki/NuPIC's-Dependency-on-nupic.core)).
 
 #### Build:
 
     cd $NUPIC_CORE/build/scripts
     # optionally start a fresh build
-    make clean # or 'make distclean' for a complete clean
+    make clean
     make -j3
     
 > **Note**: The `-j3` option specifies '3' as the maximum number of parallel jobs/threads that Make will use during the build in order to gain speed. However, you can increase this number depending your CPU.
 
+#### Install:
+
+    make install
+
 #### Run the tests:
 
     cd $NUPIC_CORE/build/scripts
-    make tests_htm 
+    make tests_cpp_region
     make tests_unit
 
 ### Using graphical interface

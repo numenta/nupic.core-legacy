@@ -26,11 +26,11 @@
 
 #include <unistd.h>
 #include "OSTest.hpp"
-#include <nta/os/Env.hpp>
-#include <nta/os/Path.hpp>
-#include <nta/os/Directory.hpp>
+#include <nupic/os/Env.hpp>
+#include <nupic/os/Path.hpp>
+#include <nupic/os/Directory.hpp>
 
-using namespace nta;
+using namespace nupic;
 
 OSTest::OSTest() {};
 
@@ -39,7 +39,7 @@ OSTest::~OSTest() {};
 
 void OSTest::RunTests()
 {
-#ifdef NTA_PLATFORM_win32
+#if defined(NTA_OS_WINDOWS)
 
 #else
   // save the parts of the environment we'll be changing
@@ -70,7 +70,7 @@ void OSTest::RunTests()
 
   // Test getUserName()
   {
-#ifdef NTA_PLATFORM_win32
+#if defined(NTA_OS_WINDOWS)
     Env::set("USERNAME", "123");
     TEST(OS::getUserName() == "123");    
 #else
@@ -95,7 +95,7 @@ void OSTest::RunTests()
 
   // Test getStackTrace()
   {
-#ifdef NTA_PLATFORM_win32
+#if defined(NTA_OS_WINDOWS)
 //    std::string stackTrace = OS::getStackTrace();
 //    TEST(!stackTrace.empty());  
 //

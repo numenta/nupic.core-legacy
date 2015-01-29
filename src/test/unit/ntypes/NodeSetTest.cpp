@@ -25,9 +25,9 @@
  */
 
 #include "NodeSetTest.hpp"
-#include <nta/ntypes/NodeSet.hpp>
+#include <nupic/ntypes/NodeSet.hpp>
 
-using namespace nta;
+using namespace nupic;
 
 void NodeSetTest::RunTests()
 {

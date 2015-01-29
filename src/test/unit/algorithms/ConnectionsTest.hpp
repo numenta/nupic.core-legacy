@@ -29,12 +29,12 @@
 #ifndef NTA_CONNECTIONS_TEST
 #define NTA_CONNECTIONS_TEST
 
-#include <nta/test/Tester.hpp>
-#include <nta/algorithms/Connections.hpp>
+#include <nupic/test/Tester.hpp>
+#include <nupic/algorithms/Connections.hpp>
 
-using namespace nta::algorithms::connections;
+using namespace nupic::algorithms::connections;
 
-namespace nta
+namespace nupic
 {
 
   class ConnectionsTest : public Tester
@@ -44,14 +44,19 @@ namespace nta
     virtual ~ConnectionsTest() {}
 
     // Run all appropriate tests
-    virtual void RunTests();
+    virtual void RunTests() override;
 
   private:
+    void testConstructor();
     void testCreateSegment();
+    void testCreateSegmentReuse();
     void testCreateSynapse();
+    void testDestroySegment();
+    void testDestroySynapse();
     void testUpdateSynapsePermanence();
     void testMostActiveSegmentForCells();
     void testMostActiveSegmentForCellsNone();
+    void testLeastRecentlyUsedSegment();
     void testComputeActivity();
     void testActiveSegments();
     void testActiveCells();
@@ -63,6 +68,6 @@ namespace nta
 
   }; // end class ConnectionsTest
 
-} // end namespace nta
+} // end namespace nupic
 
 #endif // NTA_CONNECTIONS_TEST

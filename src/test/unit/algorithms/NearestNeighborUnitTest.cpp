@@ -24,13 +24,13 @@
  * Implementation of unit tests for NearestNeighbor
  */     
 
-#include <nta/math/StlIo.hpp>
-#include <nta/math/NearestNeighbor.hpp>
+#include <nupic/math/StlIo.hpp>
+#include <nupic/math/NearestNeighbor.hpp>
 #include "NearestNeighborUnitTest.hpp"
 
 using namespace std;
 
-namespace nta {    
+namespace nupic {
 
 #define TEST_LOOP(M)                                  \
   for (nrows = 1, ncols = M, zr = 15;                 \
@@ -122,7 +122,7 @@ namespace nta {
 //            std::stringstream str;
 //            str << "rowLpDist A " << nrows << "X" << ncols << "/" << zr
 //                << " - non compact";
-//            TEST(nta::nearlyEqual(d1, d2));
+//            TEST(nupic::nearlyEqual(d1, d2));
 //          }
 //
 //          sparse.compact();
@@ -131,7 +131,7 @@ namespace nta {
 //            std::stringstream str;
 //            str << "rowLpDist B " << nrows << "X" << ncols << "/" << zr
 //                << " - compact";
-//            TEST(nta::nearlyEqual(d1, d2));
+//            TEST(nupic::nearlyEqual(d1, d2));
 //
 //          }
 //        }
@@ -145,7 +145,7 @@ namespace nta {
 //          std::stringstream str;
 //          str << "rowLMaxDist A " << nrows << "X" << ncols << "/" << zr
 //              << " - non compact";
-//            TEST(nta::nearlyEqual(d1, d2));
+//            TEST(nupic::nearlyEqual(d1, d2));
 //        }
 //        
 //        sparse.compact();
@@ -154,7 +154,7 @@ namespace nta {
 //          std::stringstream str;
 //          str << "rowLMaxDist B " << nrows << "X" << ncols << "/" << zr
 //              << " - compact";
-//          TEST(nta::nearlyEqual(d1, d2));
+//          TEST(nupic::nearlyEqual(d1, d2));
 //        }
 //      }
 //    } // End automated tests
@@ -505,7 +505,7 @@ namespace nta {
   }
     
   //--------------------------------------------------------------------------------
-} // end namespace nta
+} // end namespace nupic
 
 
    

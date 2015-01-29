@@ -27,9 +27,9 @@ Unit tester tester.
 #ifndef _H_TESTER_TEST_H
 #define _H_TESTER_TEST_H
 
-#include <nta/test/Tester.hpp>
+#include <nupic/test/Tester.hpp>
 
-namespace nta {
+namespace nupic {
   
   /** 
    * Tests the unit tester interface.
@@ -52,7 +52,7 @@ namespace nta {
       /** 
        * Run all appropriate tests.
        */
-      virtual void RunTests();
+      virtual void RunTests() override;
 
       /**
        * Run tests that should fail.
@@ -64,6 +64,6 @@ namespace nta {
       void RunTestsShouldFail();
   };
   
-} // end namespace nta
+} // end namespace nupic
 
 #endif // __TesterTest_hpp__

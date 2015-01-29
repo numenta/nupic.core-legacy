@@ -28,10 +28,10 @@
 #ifndef NTA_ENV_TEST_HPP
 #define NTA_ENV_TEST_HPP
 
-#include <nta/os/Env.hpp>
-#include <nta/test/Tester.hpp>
+#include <nupic/os/Env.hpp>
+#include <nupic/test/Tester.hpp>
 
-namespace nta {
+namespace nupic {
   
   class EnvTest : public Tester {
 public:
@@ -40,7 +40,7 @@ public:
     
     virtual void RunTests() override;
   };
-} // namespace nta
+} // namespace nupic
 
 
 #endif // NTA_ENV_TEST_HPP

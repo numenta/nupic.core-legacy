@@ -28,19 +28,19 @@
 #ifndef NTA_RANDOM_TEST_HPP
 #define NTA_RANDOM_TEST_HPP
 
-#include <nta/utils/Random.hpp>
-#include <nta/test/Tester.hpp>
+#include <nupic/utils/Random.hpp>
+#include <nupic/test/Tester.hpp>
 
-namespace nta {
-  
+namespace nupic {
+
   class RandomTest : public Tester {
 public:
     RandomTest();
     virtual ~RandomTest();
-    
+
     virtual void RunTests() override;
   };
-} // namespace nta
+} // namespace nupic
 
 
 #endif // NTA_RANDOM_TEST_HPP

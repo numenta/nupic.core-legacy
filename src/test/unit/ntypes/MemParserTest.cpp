@@ -25,13 +25,13 @@
  */ 
 
 #include "MemParserTest.hpp"
-#include <nta/ntypes/MemParser.hpp>
+#include <nupic/ntypes/MemParser.hpp>
 
 #include <stdexcept>
 #include <string>
 #include <iostream>
 
-namespace nta {
+namespace nupic {
 
 void MemParserTest::RunTests() 
 {
@@ -192,4 +192,4 @@ void MemParserTest::RunTests()
 
 
 
-} // namespace nta
+} // namespace nupic

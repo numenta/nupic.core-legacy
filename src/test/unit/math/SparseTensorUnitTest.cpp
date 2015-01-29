@@ -34,7 +34,7 @@ using namespace std;
 using namespace boost; 
 using namespace boost::lambda;    
 
-namespace nta {
+namespace nupic {
 //
 //  //--------------------------------------------------------------------------------
 //  template <typename I, typename I2, typename F>
@@ -82,7 +82,7 @@ namespace nta {
 //    do {
 //      F val_A = A.get(idx);
 //      F val_B = B.get(idxB);
-//      if (!nta::nearlyZero(val_A - val_B)) 
+//      if (!nupic::nearlyZero(val_A - val_B))
 //        diffs.push_back(make_tuple(idx, val_A, val_B));
 //      increment(B.getBounds(), idxB);
 //    } while (increment(A.getBounds(), idx));
@@ -458,7 +458,7 @@ namespace nta {
 //      Test("SparseTensor update 01", Compare(s2, d2), true);
 //
 //      ITER_2(4, 5) {
-//        s2.update(I2(i, j), Real(s2.get(i, j)), nta::Multiplies<Real>());
+//        s2.update(I2(i, j), Real(s2.get(i, j)), nupic::Multiplies<Real>());
 //        d2.set(i, j, Real(d2.get(i, j) * d2.get(i, j)));
 //      }
 //
@@ -484,7 +484,7 @@ namespace nta {
 //      Test("SparseTensor update 2", Compare(s3, d3), true);
 //    
 //      ITER_3(ub[0], ub[1], ub[2]) {    
-//        s3.update(I3(i, j, k), s3.get(i, j, k), nta::Multiplies<Real>());
+//        s3.update(I3(i, j, k), s3.get(i, j, k), nupic::Multiplies<Real>());
 //        d3.set(i, j, k, (Real)(d3.get(i, j, k) * d3.get(i, j, k)));
 //      }   
 //
@@ -519,21 +519,21 @@ namespace nta {
 //      Test("SparseTensor setAll 2A", s4.isZero(), true);
 //      Test("SparseTensor setAll 2B", s4.getNNonZeros(), (UInt)0);
 //
-//      s4.setAll(nta::Epsilon/2);
+//      s4.setAll(nupic::Epsilon/2);
 //      Test("SparseTensor setAll 3A", s4.isZero(), true);
 //      Test("SparseTensor setAll 3B", s4.getNNonZeros(), (UInt)0);
 //
-//      s4.setAll(nta::Epsilon);
+//      s4.setAll(nupic::Epsilon);
 //      Test("SparseTensor setAll 4A", s4.isZero(), true);
 //      Test("SparseTensor setAll 4B", s4.getNNonZeros(), (UInt)0);
 //
-//      s4.setAll(2*nta::Epsilon);
+//      s4.setAll(2*nupic::Epsilon);
 //      Test("SparseTensor setAll 4A", s4.isZero(), false);
 //      Test("SparseTensor setAll 4B", s4.getNNonZeros(), (UInt)ub4.product());
 //
 //      I4 i4;
 //      do {
-//        Test("SparseTensor setAll 4C", s4.get(i4), 2*nta::Epsilon);
+//        Test("SparseTensor setAll 4C", s4.get(i4), 2*nupic::Epsilon);
 //      } while (i4.increment(ub4));
 //
 //      s4.setAll(1.5);
@@ -1595,9 +1595,9 @@ namespace nta {
 //
 //    { // Test with functor that introduces new zeros
 //      // (to exercise deletion in map/set and iterator invalidation)
-//      s3A.element_apply(bind2nd(nta::Multiplies<Real>(), 0));
+//      s3A.element_apply(bind2nd(nupic::Multiplies<Real>(), 0));
 //      Test("SparseTensor unary element_apply 5", s3A.isZero(), true);
-//      d3A.element_apply(bind2nd(nta::Multiplies<Real>(), 0));
+//      d3A.element_apply(bind2nd(nupic::Multiplies<Real>(), 0));
 //    }
 //
 //    { // unary element_apply
@@ -1624,8 +1624,8 @@ namespace nta {
 //    }
 //
 //    { // element_apply_fast
-//      d3A.element_apply(d3B, d3C, nta::Multiplies<Real>());
-//      s3A.element_apply_fast(s3B, s3C, nta::Multiplies<Real>());
+//      d3A.element_apply(d3B, d3C, nupic::Multiplies<Real>());
+//      s3A.element_apply_fast(s3B, s3C, nupic::Multiplies<Real>());
 //      Test("SparseTensor element_apply_fast 1", Compare(s3C, d3C), true);
 //
 //      /*
@@ -1643,8 +1643,8 @@ namespace nta {
 //      s3A.element_apply_nz(s3B, s3C, std::plus<Real>());
 //      Test("SparseTensor element_apply_nz 1", Compare(s3C, d3C), true);
 //
-//      d3A.element_apply(d3B, d3C, nta::Multiplies<Real>());
-//      s3A.element_apply_nz(s3B, s3C, nta::Multiplies<Real>());
+//      d3A.element_apply(d3B, d3C, nupic::Multiplies<Real>());
+//      s3A.element_apply_nz(s3B, s3C, nupic::Multiplies<Real>());
 //      Test("SparseTensor element_apply_nz 2", Compare(s3C, d3C), true);
 //
 //      /*
@@ -1666,12 +1666,12 @@ namespace nta {
 //      s3A.element_apply(s3B, s3A, std::plus<Real>());
 //      Test("SparseTensor element_apply 2", Compare(s3A, d3A), true);
 //
-//      d3A.element_apply(d3B, d3C, nta::Multiplies<Real>());
-//      s3A.element_apply(s3B, s3C, nta::Multiplies<Real>());
+//      d3A.element_apply(d3B, d3C, nupic::Multiplies<Real>());
+//      s3A.element_apply(s3B, s3C, nupic::Multiplies<Real>());
 //      Test("SparseTensor element_apply 3", Compare(s3C, d3C), true);
 //
-//      d3A.element_apply(d3B, d3A, nta::Multiplies<Real>());
-//      s3A.element_apply(s3B, s3A, nta::Multiplies<Real>());
+//      d3A.element_apply(d3B, d3A, nupic::Multiplies<Real>());
+//      s3A.element_apply(s3B, s3A, nupic::Multiplies<Real>());
 //      Test("SparseTensor element_apply 4", Compare(s3A, d3A), true);
 //      
 //      s3A.element_apply(s3B, s3C, BinaryPlus3());
@@ -1691,17 +1691,17 @@ namespace nta {
 //      S2 s2B(ub); s2B.set(I2(2, 2), (Real)1);
 //      D2 d2B(ub); d2B.set(I2(2, 2), (Real)1);
 //
-//      d2.element_apply(d2B, dc2, nta::Multiplies<Real>());
-//      s2.element_apply_fast(s2B, sc2, nta::Multiplies<Real>());
+//      d2.element_apply(d2B, dc2, nupic::Multiplies<Real>());
+//      s2.element_apply_fast(s2B, sc2, nupic::Multiplies<Real>());
 //      Test("SparseTensor element_apply 5A1", Compare(sc2, dc2), true);
 //      Test("SparseTensor element_apply 5A2", sc2.isZero(), true);
 //      Test("SparseTensor element_apply 5A3", dc2.isZero(), true);
 //   
-//      s2.element_apply_nz(s2B, sc2, nta::Multiplies<Real>());
+//      s2.element_apply_nz(s2B, sc2, nupic::Multiplies<Real>());
 //      Test("SparseTensor element_apply 6A1", Compare(sc2, dc2), true);
 //      Test("SparseTensor element_apply 6A2", sc2.isZero(), true);
 //
-//      s2.element_apply(s2B, sc2, nta::Multiplies<Real>());
+//      s2.element_apply(s2B, sc2, nupic::Multiplies<Real>());
 //      Test("SparseTensor element_apply 7A1", Compare(sc2, dc2), true);
 //      Test("SparseTensor element_apply 7A2", sc2.isZero(), true);
 //
@@ -1745,20 +1745,20 @@ namespace nta {
 //          }
 //        }
 //
-//        d2.factor_apply(I1(n), d1, dc2, nta::Multiplies<Real>());
-//        s2.factor_apply_fast(I1(n), s1, sc2, nta::Multiplies<Real>());
+//        d2.factor_apply(I1(n), d1, dc2, nupic::Multiplies<Real>());
+//        s2.factor_apply_fast(I1(n), s1, sc2, nupic::Multiplies<Real>());
 //        Test("SparseTensor factor_apply 1A", Compare(sc2, dc2), true);
 //
-//        d2.factor_apply(I1(n), d1, dc2, nta::Multiplies<Real>());
-//        s2.factor_apply_nz(I1(n), s1, sc2, nta::Multiplies<Real>());
+//        d2.factor_apply(I1(n), d1, dc2, nupic::Multiplies<Real>());
+//        s2.factor_apply_nz(I1(n), s1, sc2, nupic::Multiplies<Real>());
 //        Test("SparseTensor factor_apply 1B", Compare(sc2, dc2), true);
 //
-//        d2.factor_apply(I1(n), d1, dc2, nta::Multiplies<Real>());
-//        s2.factor_apply(I1(n), s1, sc2, nta::Multiplies<Real>());
+//        d2.factor_apply(I1(n), d1, dc2, nupic::Multiplies<Real>());
+//        s2.factor_apply(I1(n), s1, sc2, nupic::Multiplies<Real>());
 //        Test("SparseTensor factor_apply 1C", Compare(sc2, dc2), true);
 //        
-//        d2.factor_apply(I1(n), d1, d2, nta::Multiplies<Real>());
-//        s2.factor_apply(I1(n), s1, s2, nta::Multiplies<Real>());
+//        d2.factor_apply(I1(n), d1, d2, nupic::Multiplies<Real>());
+//        s2.factor_apply(I1(n), s1, s2, nupic::Multiplies<Real>());
 //        Test("SparseTensor factor_apply 2A", Compare(s2, d2), true);
 //
 //        d2.factor_apply(I1(n), d1, dc2, std::plus<Real>());
@@ -1783,17 +1783,17 @@ namespace nta {
 //        S1 s1(ub[1]); s1.set(2, (Real)1);
 //        D1 d1(ub[1]); d1.set(2, (Real)1);
 //
-//        d2.factor_apply(I1(1), d1, dc2, nta::Multiplies<Real>());
-//        s2.factor_apply_fast(I1(1), s1, sc2, nta::Multiplies<Real>());
+//        d2.factor_apply(I1(1), d1, dc2, nupic::Multiplies<Real>());
+//        s2.factor_apply_fast(I1(1), s1, sc2, nupic::Multiplies<Real>());
 //        Test("SparseTensor factor_apply 5A1", Compare(sc2, dc2), true);
 //        Test("SparseTensor factor_apply 5A2", sc2.isZero(), true);
 //        Test("SparseTensor factor_apply 5A3", dc2.isZero(), true);
 //
-//        s2.factor_apply_nz(I1(1), s1, sc2, nta::Multiplies<Real>());
+//        s2.factor_apply_nz(I1(1), s1, sc2, nupic::Multiplies<Real>());
 //        Test("SparseTensor factor_apply 6A1", Compare(sc2, dc2), true);
 //        Test("SparseTensor factor_apply 6A2", sc2.isZero(), true);
 //
-//        s2.factor_apply(I1(1), s1, sc2, nta::Multiplies<Real>());
+//        s2.factor_apply(I1(1), s1, sc2, nupic::Multiplies<Real>());
 //        Test("SparseTensor factor_apply 7A1", Compare(sc2, dc2), true);
 //        Test("SparseTensor factor_apply 7A2", sc2.isZero(), true);
 //
@@ -1833,20 +1833,20 @@ namespace nta {
 //          }
 //        }
 //        
-//        d3.factor_apply(I1((UInt)n), d1, dc3, nta::Multiplies<Real>());
-//        s3.factor_apply_fast(I1((UInt)n), s1, sc3, nta::Multiplies<Real>());
+//        d3.factor_apply(I1((UInt)n), d1, dc3, nupic::Multiplies<Real>());
+//        s3.factor_apply_fast(I1((UInt)n), s1, sc3, nupic::Multiplies<Real>());
 //        Test("SparseTensor factor_apply 10A", Compare(sc3, dc3), true);
 //
-//        d3.factor_apply(I1((UInt)n), d1, dc3, nta::Multiplies<Real>());
-//        s3.factor_apply_nz(I1((UInt)n), s1, sc3, nta::Multiplies<Real>());
+//        d3.factor_apply(I1((UInt)n), d1, dc3, nupic::Multiplies<Real>());
+//        s3.factor_apply_nz(I1((UInt)n), s1, sc3, nupic::Multiplies<Real>());
 //        Test("SparseTensor factor_apply 10B", Compare(sc3, dc3), true);
 //
-//        d3.factor_apply(I1((UInt)n), d1, dc3, nta::Multiplies<Real>());
-//        s3.factor_apply(I1((UInt)n), s1, sc3, nta::Multiplies<Real>());
+//        d3.factor_apply(I1((UInt)n), d1, dc3, nupic::Multiplies<Real>());
+//        s3.factor_apply(I1((UInt)n), s1, sc3, nupic::Multiplies<Real>());
 //        Test("SparseTensor factor_apply 10C", Compare(sc3, dc3), true);
 //
-//        d3.factor_apply(I1((UInt)n), d1, d3, nta::Multiplies<Real>());
-//        s3.factor_apply(I1((UInt)n), s1, s3, nta::Multiplies<Real>());
+//        d3.factor_apply(I1((UInt)n), d1, d3, nupic::Multiplies<Real>());
+//        s3.factor_apply(I1((UInt)n), s1, s3, nupic::Multiplies<Real>());
 //        Test("SparseTensor factor_apply 11A", Compare(s3, d3), true);
 //
 //        d3.factor_apply(I1((UInt)n), d1, dc3, std::plus<Real>());
@@ -1874,20 +1874,20 @@ namespace nta {
 //          }
 //        }
 //        
-//        d3.factor_apply(I2(1, 2), d2, dc3, nta::Multiplies<Real>());
-//        s3.factor_apply_fast(I2(1, 2), s2, sc3, nta::Multiplies<Real>());
+//        d3.factor_apply(I2(1, 2), d2, dc3, nupic::Multiplies<Real>());
+//        s3.factor_apply_fast(I2(1, 2), s2, sc3, nupic::Multiplies<Real>());
 //        Test("SparseTensor factor_apply 14A", Compare(sc3, dc3), true);
 //
-//        d3.factor_apply(I2(1, 2), d2, dc3, nta::Multiplies<Real>());
-//        s3.factor_apply_nz(I2(1, 2), s2, sc3, nta::Multiplies<Real>());
+//        d3.factor_apply(I2(1, 2), d2, dc3, nupic::Multiplies<Real>());
+//        s3.factor_apply_nz(I2(1, 2), s2, sc3, nupic::Multiplies<Real>());
 //        Test("SparseTensor factor_apply 14B", Compare(sc3, dc3), true);
 //        
-//        d3.factor_apply(I2(1, 2), d2, dc3, nta::Multiplies<Real>());
-//        s3.factor_apply(I2(1, 2), s2, sc3, nta::Multiplies<Real>());
+//        d3.factor_apply(I2(1, 2), d2, dc3, nupic::Multiplies<Real>());
+//        s3.factor_apply(I2(1, 2), s2, sc3, nupic::Multiplies<Real>());
 //        Test("SparseTensor factor_apply 14C", Compare(sc3, dc3), true);
 //
-//        d3.factor_apply(I2(1, 2), d2, d3, nta::Multiplies<Real>());
-//        s3.factor_apply(I2(1, 2), s2, s3, nta::Multiplies<Real>());
+//        d3.factor_apply(I2(1, 2), d2, d3, nupic::Multiplies<Real>());
+//        s3.factor_apply(I2(1, 2), s2, s3, nupic::Multiplies<Real>());
 //        Test("SparseTensor factor_apply 15A", Compare(s3, d3), true);
 //
 //        d3.factor_apply(I2(1, 2), d2, dc3, std::plus<Real>());
@@ -1915,12 +1915,12 @@ namespace nta {
 //          }
 //        }
 //        
-//        d3.factor_apply(I2(0, 2), d2, dc3, nta::Multiplies<Real>());
-//        s3.factor_apply(I2(0, 2), s2, sc3, nta::Multiplies<Real>());
+//        d3.factor_apply(I2(0, 2), d2, dc3, nupic::Multiplies<Real>());
+//        s3.factor_apply(I2(0, 2), s2, sc3, nupic::Multiplies<Real>());
 //        Test("SparseTensor factor_apply 18", Compare(sc3, dc3), true);
 //
-//        d3.factor_apply(I2(0, 2), d2, d3, nta::Multiplies<Real>());
-//        s3.factor_apply(I2(0, 2), s2, s3, nta::Multiplies<Real>());
+//        d3.factor_apply(I2(0, 2), d2, d3, nupic::Multiplies<Real>());
+//        s3.factor_apply(I2(0, 2), s2, s3, nupic::Multiplies<Real>());
 //        Test("SparseTensor factor_apply 19", Compare(s3, d3), true);
 //
 //        d3.factor_apply(I2(0, 2), d2, dc3, std::plus<Real>());
@@ -1944,12 +1944,12 @@ namespace nta {
 //          }
 //        }
 //        
-//        d3.factor_apply(I2(0, 1), d2, dc3, nta::Multiplies<Real>());
-//        s3.factor_apply(I2(0, 1), s2, sc3, nta::Multiplies<Real>());
+//        d3.factor_apply(I2(0, 1), d2, dc3, nupic::Multiplies<Real>());
+//        s3.factor_apply(I2(0, 1), s2, sc3, nupic::Multiplies<Real>());
 //        Test("SparseTensor factor_apply 22", Compare(sc3, dc3), true);
 //
-//        d3.factor_apply(I2(0, 1), d2, d3, nta::Multiplies<Real>());
-//        s3.factor_apply(I2(0, 1), s2, s3, nta::Multiplies<Real>());
+//        d3.factor_apply(I2(0, 1), d2, d3, nupic::Multiplies<Real>());
+//        s3.factor_apply(I2(0, 1), s2, s3, nupic::Multiplies<Real>());
 //        Test("SparseTensor factor_apply 23", Compare(s3, d3), true);
 //
 //        d3.factor_apply(I2(0, 1), d2, dc3, std::plus<Real>());
@@ -1973,20 +1973,20 @@ namespace nta {
 //          }
 //        }
 //
-//        d3.factor_apply(I3(0, 1, 2), d32, dc3, nta::Multiplies<Real>());
-//        s3.factor_apply_fast(I3(0, 1, 2), s32, sc3, nta::Multiplies<Real>());
+//        d3.factor_apply(I3(0, 1, 2), d32, dc3, nupic::Multiplies<Real>());
+//        s3.factor_apply_fast(I3(0, 1, 2), s32, sc3, nupic::Multiplies<Real>());
 //        Test("SparseTensor factor_apply 26A", Compare(sc3, dc3), true);
 //
-//        d3.factor_apply(I3(0, 1, 2), d32, dc3, nta::Multiplies<Real>());
-//        s3.factor_apply_nz(I3(0, 1, 2), s32, sc3, nta::Multiplies<Real>());
+//        d3.factor_apply(I3(0, 1, 2), d32, dc3, nupic::Multiplies<Real>());
+//        s3.factor_apply_nz(I3(0, 1, 2), s32, sc3, nupic::Multiplies<Real>());
 //        Test("SparseTensor factor_apply 26B", Compare(sc3, dc3), true);
 //        
-//        d3.factor_apply(I3(0, 1, 2), d32, dc3, nta::Multiplies<Real>());
-//        s3.factor_apply(I3(0, 1, 2), s32, sc3, nta::Multiplies<Real>());
+//        d3.factor_apply(I3(0, 1, 2), d32, dc3, nupic::Multiplies<Real>());
+//        s3.factor_apply(I3(0, 1, 2), s32, sc3, nupic::Multiplies<Real>());
 //        Test("SparseTensor factor_apply 26C", Compare(sc3, dc3), true);
 //
-//        d3.factor_apply(I3(0, 1, 2), d32, d3, nta::Multiplies<Real>());
-//        s3.factor_apply(I3(0, 1, 2), s32, s3, nta::Multiplies<Real>());
+//        d3.factor_apply(I3(0, 1, 2), d32, d3, nupic::Multiplies<Real>());
+//        s3.factor_apply(I3(0, 1, 2), s32, s3, nupic::Multiplies<Real>());
 //        Test("SparseTensor factor_apply 27A", Compare(s3, d3), true);
 //
 //        d3.factor_apply(I3(0, 1, 2), d32, dc3, std::plus<Real>());
@@ -2032,16 +2032,16 @@ namespace nta {
 //        }
 //
 //        I3 dim3(1, 2, 3);
-//        d4A.factor_apply(dim3, d3B, d4C, nta::Multiplies<Real>());
-//        s4A.factor_apply_fast(dim3, s3B, s4C, nta::Multiplies<Real>());
+//        d4A.factor_apply(dim3, d3B, d4C, nupic::Multiplies<Real>());
+//        s4A.factor_apply_fast(dim3, s3B, s4C, nupic::Multiplies<Real>());
 //        Test("SparseTensor factor_apply 30A", Compare(s4C, d4C), true);
 //
 //        s4C.clear();
 //
-//        s4A.factor_apply_nz(dim3, s3B, s4C, nta::Multiplies<Real>());
+//        s4A.factor_apply_nz(dim3, s3B, s4C, nupic::Multiplies<Real>());
 //        Test("SparseTensor factor_apply 30B", Compare(s4C, d4C), true);
 //
-//        s4A.factor_apply(dim3, s3B, s4C, nta::Multiplies<Real>());
+//        s4A.factor_apply(dim3, s3B, s4C, nupic::Multiplies<Real>());
 //        Test("SparseTensor factor_apply 30C", Compare(s4C, d4C), true);
 //      }
 //    }
@@ -2075,8 +2075,8 @@ namespace nta {
 //        }  
 //
 //        I1 dim1(1);
-//        d2A.factor_apply(dim1, d1B, nta::Multiplies<Real>());
-//        s2A.factor_apply_fast(dim1, s1B, nta::Multiplies<Real>());
+//        d2A.factor_apply(dim1, d1B, nupic::Multiplies<Real>());
+//        s2A.factor_apply_fast(dim1, s1B, nupic::Multiplies<Real>());
 //        Test("SparseTensor factor_apply (in place) 31A", Compare(s2A, d2A), true);
 //      }
 //
@@ -2110,8 +2110,8 @@ namespace nta {
 //        }
 //
 //        I2 dim2(1, 2);
-//        d4A.factor_apply(dim2, d2B, nta::Multiplies<Real>());
-//        s4A.factor_apply_fast(dim2, s2B, nta::Multiplies<Real>());
+//        d4A.factor_apply(dim2, d2B, nupic::Multiplies<Real>());
+//        s4A.factor_apply_fast(dim2, s2B, nupic::Multiplies<Real>());
 //        Test("SparseTensor factor_apply (in place) 31A", Compare(s4A, d4A), true);
 //      }
 //    }
@@ -2127,11 +2127,11 @@ namespace nta {
 //        B.setAll(Real(1));
 //      
 //        I2 dims(0, 1);
-//        A.factor_apply_fast(dims, B, C, nta::Multiplies<Real>());
+//        A.factor_apply_fast(dims, B, C, nupic::Multiplies<Real>());
 //        Test("SparseTensor factor_apply_fast K11", C == Aref, true);
 //
 //        C.clear();
-//        A.factor_apply_nz(dims, B, C, nta::Multiplies<Real>());
+//        A.factor_apply_nz(dims, B, C, nupic::Multiplies<Real>());
 //        Test("SparseTensor factor_apply_nz K12", C == Aref, true);
 //      }
 //    }
@@ -2149,11 +2149,11 @@ namespace nta {
 //        GenerateRandRand01(rng_, C); // noise in C
 //
 //        I2 dims(1, 2);
-//        A.factor_apply_fast(dims, B, C, nta::Multiplies<Real>());
+//        A.factor_apply_fast(dims, B, C, nupic::Multiplies<Real>());
 //        Test("SparseTensor factor_apply_fast K21", C == Aref, true);
 //
 //        C.clear();
-//        A.factor_apply_nz(dims, B, C, nta::Multiplies<Real>());
+//        A.factor_apply_nz(dims, B, C, nupic::Multiplies<Real>());
 //        Test("SparseTensor factor_apply_nz K22", C == Aref, true);
 //      }
 //    }
@@ -2237,15 +2237,15 @@ namespace nta {
 //
 //      {
 //        D1 d1(3); S1 s1(3);
-//        d2.accumulate(I1((UInt)1), d1, nta::Max<Real>());
-//        s2.accumulate(I1((UInt)1), s1, nta::Max<Real>());
+//        d2.accumulate(I1((UInt)1), d1, nupic::Max<Real>());
+//        s2.accumulate(I1((UInt)1), s1, nupic::Max<Real>());
 //        Test("SparseTensor max 1", Compare(s1, d1), true);
 //      }   
 //
 //      {
 //        D1 d1(4); S1 s1(4);
-//        d2.accumulate(I1((UInt)0), d1, nta::Max<Real>());
-//        s2.accumulate(I1((UInt)0), s1, nta::Max<Real>());
+//        d2.accumulate(I1((UInt)0), d1, nupic::Max<Real>());
+//        s2.accumulate(I1((UInt)0), s1, nupic::Max<Real>());
 //        Test("SparseTensor max 2", Compare(s1, d1), true);
 //      }
 //    }
@@ -2263,14 +2263,14 @@ namespace nta {
 //      
 //      D1 d1(ub2[0]); S1 s1(ub2[0]);
 //
-//      d2.accumulate_nz(I1((UInt)1), d1, nta::Multiplies<Real>(), 1);
-//      s2.accumulate_nz(I1((UInt)1), s1, nta::Multiplies<Real>(), 1);
+//      d2.accumulate_nz(I1((UInt)1), d1, nupic::Multiplies<Real>(), 1);
+//      s2.accumulate_nz(I1((UInt)1), s1, nupic::Multiplies<Real>(), 1);
 //      Test("SparseTensor accumulate 9A", Compare(s1, d1), true);
 //
 //      d1.clear(); s1.clear();
 //
-//      d2.accumulate(I1((UInt)1), d1, nta::Multiplies<Real>(), 1);
-//      s2.accumulate(I1((UInt)1), s1, nta::Multiplies<Real>(), 1);
+//      d2.accumulate(I1((UInt)1), d1, nupic::Multiplies<Real>(), 1);
+//      s2.accumulate(I1((UInt)1), s1, nupic::Multiplies<Real>(), 1);
 //      Test("SparseTensor accumulate 9B", Compare(s1, d1), true);
 //    }
 //
@@ -2295,8 +2295,8 @@ namespace nta {
 //          I1 compDims; dims1.complement(compDims);
 //          S1 s1C(ub1); D1 d1C(ub1);
 //        
-//          s2A.accumulate_nz(compDims, s1C, nta::Multiplies<Real>(), 1);
-//          d2A.accumulate_nz(compDims, d1C, nta::Multiplies<Real>(), 1);
+//          s2A.accumulate_nz(compDims, s1C, nupic::Multiplies<Real>(), 1);
+//          d2A.accumulate_nz(compDims, d1C, nupic::Multiplies<Real>(), 1);
 //          Test("SparseTensor accumulate 10A", Compare(s1C, d1C), true);
 //        }
 //      }
@@ -2330,21 +2330,21 @@ namespace nta {
 //          Test("SparseTensor accumulate 11B", Compare(s2C, d2C), true);
 //
 //          s2C.clear();
-//          s4A.accumulate_nz(compDims, s2C, nta::Multiplies<Real>(), 1);
-//          d4A.accumulate_nz(compDims, d2C, nta::Multiplies<Real>(), 1);
+//          s4A.accumulate_nz(compDims, s2C, nupic::Multiplies<Real>(), 1);
+//          d4A.accumulate_nz(compDims, d2C, nupic::Multiplies<Real>(), 1);
 //          Test("SparseTensor accumulate 11C", Compare(s2C, d2C), true);
 //
 //          s2C.clear();
-//          s4A.accumulate_nz(compDims, s2C, nta::Multiplies<Real>(), 1);
+//          s4A.accumulate_nz(compDims, s2C, nupic::Multiplies<Real>(), 1);
 //          Test("SparseTensor accumulate 11D", Compare(s2C, d2C), true);
 //        
 //          s2C.clear();
-//          s4A.accumulate_nz(compDims, s2C, nta::Max<Real>());
-//          d4A.accumulate(compDims, d2C, nta::Max<Real>());
+//          s4A.accumulate_nz(compDims, s2C, nupic::Max<Real>());
+//          d4A.accumulate(compDims, d2C, nupic::Max<Real>());
 //          Test("SparseTensor accumulate 11E", Compare(s2C, d2C), true);
 //
 //          s2C.clear();
-//          s4A.accumulate(compDims, s2C, nta::Max<Real>());
+//          s4A.accumulate(compDims, s2C, nupic::Max<Real>());
 //          Test("SparseTensor accumulate 11F", Compare(s2C, d2C), true);
 //        }
 //      }
@@ -2385,23 +2385,23 @@ namespace nta {
 //    }
 //    
 //    //1X1
-//    d1A.outer_product(d1B, d2, nta::Multiplies<Real>());
-//    s1A.outer_product_nz(s1B, s2, nta::Multiplies<Real>());
+//    d1A.outer_product(d1B, d2, nupic::Multiplies<Real>());
+//    s1A.outer_product_nz(s1B, s2, nupic::Multiplies<Real>());
 //    Test("SparseTensor outer_product 1A", Compare(s2, d2), true);
 //
-//    d1A.outer_product(d1B, d2, nta::Multiplies<Real>());
-//    s1A.outer_product(s1B, s2, nta::Multiplies<Real>());
+//    d1A.outer_product(d1B, d2, nupic::Multiplies<Real>());
+//    s1A.outer_product(s1B, s2, nupic::Multiplies<Real>());
 //    Test("SparseTensor outer_product 1B", Compare(s2, d2), true);
 //
 //    // 2X1
 //    D3 d3(ub1A[0], ub1B[0], ub1A[0]); S3 s3(ub1A[0], ub1B[0], ub1A[0]);
 //
-//    d2.outer_product(d1A, d3, nta::Multiplies<Real>());
-//    s2.outer_product_nz(s1A, s3, nta::Multiplies<Real>());
+//    d2.outer_product(d1A, d3, nupic::Multiplies<Real>());
+//    s2.outer_product_nz(s1A, s3, nupic::Multiplies<Real>());
 //    Test("SparseTensor outer_product 2A", Compare(s3, d3), true);
 //
-//    d2.outer_product(d1A, d3, nta::Multiplies<Real>());
-//    s2.outer_product(s1A, s3, nta::Multiplies<Real>());
+//    d2.outer_product(d1A, d3, nupic::Multiplies<Real>());
+//    s2.outer_product(s1A, s3, nupic::Multiplies<Real>());
 //    Test("SparseTensor outer_product 2B", Compare(s3, d3), true);
 //
 //    // 2X2
@@ -2430,12 +2430,12 @@ namespace nta {
 //    {
 //      D1 d1(ub3[0]); S1 s1(ub3[0]);
 //
-//      d3.contract(1, 2, d1, nta::Multiplies<Real>(), 1);
-//      s3.contract_nz(1, 2, s1, nta::Multiplies<Real>(), 1);
+//      d3.contract(1, 2, d1, nupic::Multiplies<Real>(), 1);
+//      s3.contract_nz(1, 2, s1, nupic::Multiplies<Real>(), 1);
 //      Test("SparseTensor contract 1A", Compare(s1, d1), true);
 //
-//      d3.contract(1, 2, d1, nta::Multiplies<Real>(), 1);
-//      s3.contract(1, 2, s1, nta::Multiplies<Real>(), 1);
+//      d3.contract(1, 2, d1, nupic::Multiplies<Real>(), 1);
+//      s3.contract(1, 2, s1, nupic::Multiplies<Real>(), 1);
 //      Test("SparseTensor contract 1B", Compare(s1, d1), true);
 //    }
 //
@@ -2462,16 +2462,16 @@ namespace nta {
 //      }    
 //    }
 //    
-//    d2A.inner_product(1, 0, d2B, d2C, nta::Multiplies<Real>(), std::plus<Real>(), 0);
-//    s2A.inner_product_nz(1, 0, s2B, s2C, nta::Multiplies<Real>(), std::plus<Real>(), 0);
+//    d2A.inner_product(1, 0, d2B, d2C, nupic::Multiplies<Real>(), std::plus<Real>(), 0);
+//    s2A.inner_product_nz(1, 0, s2B, s2C, nupic::Multiplies<Real>(), std::plus<Real>(), 0);
 //    Test("SparseTensor inner product 1A", Compare(s2C, d2C), true);
 //
-//    d2A.inner_product(1, 0, d2B, d2C, nta::Multiplies<Real>(), std::plus<Real>(), 0);
-//    s2A.inner_product(1, 0, s2B, s2C, nta::Multiplies<Real>(), std::plus<Real>(), 0);
+//    d2A.inner_product(1, 0, d2B, d2C, nupic::Multiplies<Real>(), std::plus<Real>(), 0);
+//    s2A.inner_product(1, 0, s2B, s2C, nupic::Multiplies<Real>(), std::plus<Real>(), 0);
 //    Test("SparseTensor inner product 1B", Compare(s2C, d2C), true);
 //
 //    S4 o(3, 4, 4, 3); 
-//    s2A.outer_product(s2B, o, nta::Multiplies<Real>());
+//    s2A.outer_product(s2B, o, nupic::Multiplies<Real>());
 //
 //    S2 s2D(3, 3);
 //    o.contract(1, 2, s2D, std::plus<Real>());
@@ -2479,10 +2479,10 @@ namespace nta {
 //
 //    S3 s3A(3, 4, 5), s3B(3, 3, 5);
 //    ITER_3(3, 4, 5) s3A.set(I3(i, j, k), (Real)(I3(i, j, k).ordinal(I3(3, 4, 5)) + 1));
-//    s2A.inner_product(1, 1, s3A, s3B, nta::Multiplies<Real>(), std::plus<Real>());
+//    s2A.inner_product(1, 1, s3A, s3B, nupic::Multiplies<Real>(), std::plus<Real>());
 //
 //    S5 o2(3, 4, 3, 4, 5);
-//    s2A.outer_product(s3A, o2, nta::Multiplies<Real>());
+//    s2A.outer_product(s3A, o2, nupic::Multiplies<Real>());
 //    
 //    S3 s3D(3, 3, 5);
 //    o2.contract(1, 3, s3D, std::plus<Real>());
@@ -3133,8 +3133,8 @@ namespace nta {
 //        UInt o = i2.ordinal(ub2);
 //        if (o % 2 == 0) {
 //          s2.set(i2, Real(o));
-//          s1_max_row.update(I1((UInt)i), Real(o), nta::Max<Real>());
-//          s1_max_col.update(I1((UInt)j), Real(o), nta::Max<Real>());
+//          s1_max_row.update(I1((UInt)i), Real(o), nupic::Max<Real>());
+//          s1_max_col.update(I1((UInt)j), Real(o), nupic::Max<Real>());
 //          if (o > M) { M = Real(o); idxmax = i2; }
 //          S += o;
 //        }      
@@ -3297,6 +3297,6 @@ namespace nta {
 
   //--------------------------------------------------------------------------------
   
-} // namespace nta
+} // namespace nupic
 
 

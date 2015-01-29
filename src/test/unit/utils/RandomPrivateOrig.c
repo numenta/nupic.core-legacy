@@ -31,8 +31,7 @@
  * We retain the code here for unit testing.
  * 
  * Build system note: this code is #included into RandomTest.cpp -- it does 
- * not appear in build system files (Makefile.am, testeverything.vcproj)
- * because the filename contains _private_
+ * not appear in build system files because the filename contains _private_
  * 
  */
 

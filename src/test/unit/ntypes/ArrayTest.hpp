@@ -27,11 +27,11 @@
 #ifndef NTA_ARRAY_TEST_HPP
 #define NTA_ARRAY_TEST_HPP
 
-#include <nta/test/Tester.hpp>
+#include <nupic/test/Tester.hpp>
 
 #include <map>
 
-namespace nta
+namespace nupic
 {
   struct ArrayTestParameters
   {

@@ -12,9 +12,6 @@
 # Build files
 build/
 
-src/test/testeverything/EverythingAddtests.hpp
-src/test/testeverything/EverythingHeaders.hpp
-
 # /
 /.gdb_history
 

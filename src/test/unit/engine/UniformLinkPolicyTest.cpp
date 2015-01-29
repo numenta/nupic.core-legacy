@@ -25,9 +25,9 @@
  */
 
 #include "UniformLinkPolicyTest.hpp"
-#include <nta/engine/UniformLinkPolicy.hpp>
+#include <nupic/engine/UniformLinkPolicy.hpp>
 
-using namespace nta;
+using namespace nupic;
 
 bool UniformLinkPolicyTest::setAndCheckDimensions(LinkSide setLinkSide,
                                                   Dimensions setDimensions,

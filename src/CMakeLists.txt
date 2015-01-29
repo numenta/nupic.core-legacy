@@ -28,6 +28,13 @@
 cmake_minimum_required(VERSION 2.8)
 project(nupic_core CXX)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+set(CMAKE_VERBOSE_MAKEFILE OFF) # toggle for cmake debug
+
+#
+# Include extra cmake files
+#
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
+                      "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
 
 #
 # Identify platform
@@ -35,25 +42,44 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   set(PLATFORM "darwin")
   set(STDLIB "-stdlib=libc++")
-  set(CMAKE_OSX_DEPLOYMENT_TARGET "10.7")
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   set(PLATFORM "linux")
   set(STDLIB "")
 endif()
+string(TOUPPER ${PLATFORM} PLATFORM_UPPERCASE)
 
-set(BITNESS 32)
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+   set(STDLIB "${STDLIB} -static-libgcc -static-libstdc++")
+endif()
+
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
   set(BITNESS 64)
+else()
+  set(BITNESS 32)
 endif()
 
 # Compiler `-D*` definitions
-add_definitions(-DNTA_PLATFORM_${PLATFORM}${BITNESS}
+add_definitions(-DNTA_OS_${PLATFORM_UPPERCASE}
+                -DNTA_ARCH_${BITNESS}
                 -DHAVE_CONFIG_H
                 -DNTA_INTERNAL
                 -DBOOST_NO_WREGEX
                 -DNUPIC2
                 -DNTA_ASSERTIONS_ON
                 -DNTA_ASM)
+
+
+
+#
+# Identify build type - local or deployment (Travis)
+# the variable NUPIC_DEPLOYMENT_BUILD must be set in travis CI scripts
+#
+if($ENV{NUPIC_DEPLOYMENT_BUILD})
+  message("doing deployment build in TravisCI")
+else()
+  message("doing local build")
+endif()
+
 
 #
 # Setup include paths
@@ -70,16 +96,76 @@ include_directories(SYSTEM
                     "${PROJECT_SOURCE_DIR}"
                     "${PROJECT_BINARY_DIR}")
 
-set(COMPILE_FLAGS "-fPIC -std=c++11 -m${BITNESS} ${STDLIB} -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-unused-parameter")
+set(COMMON_LINK_FLAGS "-m${BITNESS} ${STDLIB}")
+
 
 #
-# Extract current git sha and record in nta/Version.hpp
+# Set linker (ld) 
+# use ld.gold if available
+#
+execute_process(COMMAND ld.gold --version
+                RESULT_VARIABLE EXIT_CODE)
+if(EXIT_CODE EQUAL 0)
+  message("Using ld.gold as LINKER.")
+  set(CMAKE_LINKER "ld.gold")
+endif()
+
+
+#
+# Identify build type - local or deployment (Travis)
+# the variable NUPIC_DEPLOYMENT_BUILD must be set in travis CI scripts
+#
+if($ENV{NUPIC_DEPLOYMENT_BUILD})
+  message("doing deployment build in TravisCI")
+  set(OPTIMIZATION_FLAGS_CC "${OPTIMIZATION_FLAGS_CC} -mtune=generic -O2")
+  set(OPTIMIZATION_FLAGS_LT "-O2 ${OPTIMIZATION_FLAGS_LT}")
+else()
+  message("doing local build")
+  set(OPTIMIZATION_FLAGS_CC "${OPTIMIZATION_FLAGS_CC} -march=native -O3")
+  set(OPTIMIZATION_FLAGS_LT "-O3 ${OPTIMIZATION_FLAGS_LT}")
+endif()
+
+
+#
+# compiler specific settings here (clang/gcc)
+#
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+  set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} -static-libstdc++")
+  set(OPTIMIZATION_FLAGS_CC "${OPTIMIZATION_FLAGS_CC} -fuse-linker-plugin -flto-report")
+  set(OPTIMIZATION_FLAGS_CC "${OPTIMIZATION_FLAGS_CC} -flto -fuse-ld=gold") #TODO fix LTO for clang
+  set(OPTIMIZATION_FLAGS_LT "${OPTIMIZATION_FLAGS_LT} -flto") #TODO LTO for clang too
+endif()
+
+
+#
+# Enable Optimization flags here
+# these are quite aggresive flags, if your code misbehaves for strange reasons, try 
+# compiling without them.
+#
+set(OPTIMIZATION_FLAGS_CC "-pipe ${OPTIMIZATION_FLAGS_CC}") #TODO use -Ofast instead of -O3
+
+
+set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} ${OPTIMIZATION_FLAGS_LT}")
+set(COMPILE_FLAGS "-fPIC -std=c++11 -m${BITNESS} ${STDLIB} -fvisibility=hidden -Werror -Wall -Wextra -Wreturn-type -Wunused -Wno-unused-parameter -Wno-missing-field-initializers  ${OPTIMIZATION_FLAGS_CC}")
+
+#
+# Let CMake know where all of the external files are.
+#
+set(CMAKE_PREFIX_PATH ${REPOSITORY_DIR}/external/common/
+                      ${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/)
+#
+# Make sure the Cap'n Proto generation scripts are on the PATH.
+#
+set(ENV{PATH} "$ENV{PATH}:${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/bin")
+
+#
+# Extract current git sha and record in nupic/Version.hpp
 #
 execute_process(COMMAND git rev-parse HEAD
                 OUTPUT_VARIABLE NUPIC_CORE_VERSION
                 OUTPUT_STRIP_TRAILING_WHITESPACE)
 configure_file(
-  "${PROJECT_SOURCE_DIR}/nta/Version.hpp.in"
+  "${PROJECT_SOURCE_DIR}/nupic/Version.hpp.in"
   "${PROJECT_BINARY_DIR}/Version.hpp")
 
 #
@@ -91,7 +177,7 @@ add_library(${LIB_STATIC_GTEST}
             ${REPOSITORY_DIR}/external/common/src/gtest/gtest-all.cpp)
 set_target_properties(${LIB_STATIC_GTEST}
                       PROPERTIES COMPILE_FLAGS "${COMPILE_FLAGS}"
-                      LINK_FLAGS "-m${BITNESS} ${STDLIB}")
+                      LINK_FLAGS "${COMMON_LINK_FLAGS}")
 
 
 #
@@ -145,118 +231,182 @@ find_library(LIB_STATIC_Z_LOC
 add_library(${LIB_STATIC_Z} STATIC IMPORTED GLOBAL)
 
 #
+# Find and add libkj
+#
+set(LIB_STATIC_KJ kj)
+find_library(LIB_STATIC_KJ_LOC
+             ${LIB_STATIC_KJ}
+             "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/lib/"
+             NO_DEFAULT_PATH)
+add_library(${LIB_STATIC_KJ} STATIC IMPORTED GLOBAL)
+
+#
+# Find and add libcapnp
+#
+set(LIB_STATIC_CAPNP capnp)
+find_library(LIB_STATIC_CAPNP_LOC
+             ${LIB_STATIC_CAPNP}
+             "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/lib/"
+             NO_DEFAULT_PATH)
+add_library(${LIB_STATIC_CAPNP} STATIC IMPORTED GLOBAL)
+
+#
+# Generate Cap'n Proto C++ files
+#
+set(CAPNPC_OUTPUT_DIR ${CMAKE_BINARY_DIR})
+find_package(CapnProto REQUIRED)
+include_directories(${CAPNP_INCLUDE_DIRS})
+# List all .capnp files here. The C++ files will be generated and included
+# when compiling later on.
+set(CAPNP_SPECS
+    nupic/proto/RandomProto.capnp
+    nupic/proto/SparseBinaryMatrixProto.capnp
+    nupic/proto/SparseMatrixProto.capnp
+    nupic/proto/SpatialPoolerProto.capnp
+)
+capnp_generate_cpp(CAPNP_SRCS CAPNP_HDRS ${CAPNP_SPECS})
+
+#
 # Setup libnupic_core
 #
 set(LIB_STATIC_NUPICCORE nupic_core_solo)
 
-set(COMMON_LIBS ${LIB_STATIC_NUPICCORE})
+set(COMMON_LIBS ${LIB_STATIC_NUPICCORE}
+                ${LIB_STATIC_KJ_LOC}
+                ${LIB_STATIC_CAPNP_LOC})
+
+
 if("${PLATFORM}" STREQUAL "linux")
   list(APPEND COMMON_LIBS pthread dl)
 elseif("${PLATFORM}" STREQUAL "darwin")
   list(APPEND COMMON_LIBS c++abi)
-  set(COMPILE_FLAGS "${COMPILE_FLAGS} -O3")
 endif()
 
 ADD_LIBRARY(${LIB_STATIC_NUPICCORE}
             STATIC
-            nta/algorithms/BitHistory.cpp
-            nta/algorithms/Cell.cpp
-            nta/algorithms/Cells4.cpp
-            nta/algorithms/ClassifierResult.cpp
-            nta/algorithms/CondProbTable.cpp
-            nta/algorithms/Connections.cpp
-            nta/algorithms/FastClaClassifier.cpp
-            nta/algorithms/FlatSpatialPooler.cpp
-            nta/algorithms/GaborNode.cpp
-            nta/algorithms/ImageSensorLite.cpp
-            nta/algorithms/InSynapse.cpp
-            nta/algorithms/Linear.cpp
-            nta/algorithms/OutSynapse.cpp
-            nta/algorithms/Segment.cpp
-            nta/algorithms/SegmentUpdate.cpp
-            nta/algorithms/SpatialPooler.cpp
-            nta/algorithms/Svm.cpp
-            nta/engine/Collections.cpp
-            nta/engine/Input.cpp
-            nta/engine/Link.cpp
-            nta/engine/LinkPolicyFactory.cpp
-            nta/engine/Network.cpp
-            nta/engine/NuPIC.cpp
-            nta/engine/Output.cpp
-            nta/engine/Region.cpp
-            nta/engine/RegionImpl.cpp
-            nta/engine/RegionImplFactory.cpp
-            nta/engine/RegionIo.cpp
-            nta/engine/RegionParameters.cpp
-            nta/engine/Spec.cpp
-            nta/engine/TestFanIn2LinkPolicy.cpp
-            nta/engine/TestNode.cpp
-            nta/engine/UniformLinkPolicy.cpp
-            nta/engine/YAMLUtils.cpp
-            nta/math/SparseMatrixAlgorithms.cpp
-            nta/math/StlIo.cpp
-            nta/ntypes/ArrayBase.cpp
-            nta/ntypes/Buffer.cpp
-            nta/ntypes/BundleIO.cpp
-            nta/ntypes/Collection.cpp
-            nta/ntypes/Dimensions.cpp
-            nta/ntypes/MemParser.cpp
-            nta/ntypes/Scalar.cpp
-            nta/ntypes/Value.cpp
-            nta/os/Directory.cpp
-            nta/os/DynamicLibrary.cpp
-            nta/os/Env.cpp
-            nta/os/FStream.cpp
-            nta/os/OS.cpp
-            nta/os/OSUnix.cpp
-            nta/os/OSWin.cpp
-            nta/os/Path.cpp
-            nta/os/Regex.cpp
-            nta/os/Timer.cpp
-            nta/regions/VectorFile.cpp
-            nta/regions/VectorFileEffector.cpp
-            nta/regions/VectorFileSensor.cpp
-            nta/test/Tester.cpp
-            nta/types/BasicType.cpp
-            nta/types/Fraction.cpp
-            nta/utils/LoggingException.cpp
-            nta/utils/LogItem.cpp
-            nta/utils/Random.cpp
-            nta/utils/StringUtils.cpp
-            nta/utils/TRandom.cpp
-            nta/utils/Watcher.cpp)
+            ${CAPNP_SRCS}
+            nupic/algorithms/BitHistory.cpp
+            nupic/algorithms/Cell.cpp
+            nupic/algorithms/Cells4.cpp
+            nupic/algorithms/ClassifierResult.cpp
+            nupic/algorithms/CondProbTable.cpp
+            nupic/algorithms/Connections.cpp
+            nupic/algorithms/FastClaClassifier.cpp
+            nupic/algorithms/FlatSpatialPooler.cpp
+            nupic/algorithms/GaborNode.cpp
+            nupic/algorithms/ImageSensorLite.cpp
+            nupic/algorithms/InSynapse.cpp
+            nupic/algorithms/Linear.cpp
+            nupic/algorithms/OutSynapse.cpp
+            nupic/algorithms/Segment.cpp
+            nupic/algorithms/SegmentUpdate.cpp
+            nupic/algorithms/SpatialPooler.cpp
+            nupic/algorithms/Svm.cpp
+            nupic/engine/Collections.cpp
+            nupic/engine/Input.cpp
+            nupic/engine/Link.cpp
+            nupic/engine/LinkPolicyFactory.cpp
+            nupic/engine/Network.cpp
+            nupic/engine/NuPIC.cpp
+            nupic/engine/Output.cpp
+            nupic/engine/Region.cpp
+            nupic/engine/RegionImpl.cpp
+            nupic/engine/RegionImplFactory.cpp
+            nupic/engine/RegionIo.cpp
+            nupic/engine/RegionParameters.cpp
+            nupic/engine/Spec.cpp
+            nupic/engine/TestFanIn2LinkPolicy.cpp
+            nupic/engine/TestNode.cpp
+            nupic/engine/UniformLinkPolicy.cpp
+            nupic/engine/YAMLUtils.cpp
+            nupic/math/SparseMatrixAlgorithms.cpp
+            nupic/math/StlIo.cpp
+            nupic/ntypes/ArrayBase.cpp
+            nupic/ntypes/Buffer.cpp
+            nupic/ntypes/BundleIO.cpp
+            nupic/ntypes/Collection.cpp
+            nupic/ntypes/Dimensions.cpp
+            nupic/ntypes/MemParser.cpp
+            nupic/ntypes/Scalar.cpp
+            nupic/ntypes/Value.cpp
+            nupic/os/Directory.cpp
+            nupic/os/DynamicLibrary.cpp
+            nupic/os/Env.cpp
+            nupic/os/FStream.cpp
+            nupic/os/OS.cpp
+            nupic/os/OSUnix.cpp
+            nupic/os/OSWin.cpp
+            nupic/os/Path.cpp
+            nupic/os/Regex.cpp
+            nupic/os/Timer.cpp
+            nupic/regions/VectorFile.cpp
+            nupic/regions/VectorFileEffector.cpp
+            nupic/regions/VectorFileSensor.cpp
+            nupic/test/Tester.cpp
+            nupic/types/BasicType.cpp
+            nupic/types/Fraction.cpp
+            nupic/utils/LoggingException.cpp
+            nupic/utils/LogItem.cpp
+            nupic/utils/Random.cpp
+            nupic/utils/StringUtils.cpp
+            nupic/utils/TRandom.cpp
+            nupic/utils/Watcher.cpp)
 target_link_libraries(${LIB_STATIC_NUPICCORE}
                       ${LIB_STATIC_YAML_CPP_LOC}
                       ${LIB_STATIC_YAML_LOC}
                       ${LIB_STATIC_APR1_LOC}
                       ${LIB_STATIC_APRUTIL1_LOC}
-                      ${LIB_STATIC_Z_LOC})
+                      ${LIB_STATIC_Z_LOC}
+                      ${LIB_STATIC_KJ_LOC}
+                      ${LIB_STATIC_CAPNP_LOC})
 set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES COMPILE_FLAGS ${COMPILE_FLAGS})
-set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES LINK_FLAGS "-m${BITNESS} ${STDLIB} -static")
+set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS} -static")
 
 #
-# Setup testcpphtm
+# Setup test_cpp_region
 #
-set(EXECUTABLE_HTMTEST testcpphtm)
-add_executable(${EXECUTABLE_HTMTEST} test/htmtest/Htmtest.cpp)
-target_link_libraries(${EXECUTABLE_HTMTEST} ${COMMON_LIBS})
-set_target_properties(${EXECUTABLE_HTMTEST} PROPERTIES COMPILE_FLAGS ${COMPILE_FLAGS})
-set_target_properties(${EXECUTABLE_HTMTEST}
-                      PROPERTIES LINK_FLAGS "-m${BITNESS} ${STDLIB}")
-add_custom_target(tests_htm
-                  COMMAND ${EXECUTABLE_HTMTEST}
-                  DEPENDS ${EXECUTABLE_HTMTEST})
+set(EXECUTABLE_CPPREGIONTEST cpp_region_test)
+add_executable(${EXECUTABLE_CPPREGIONTEST} test/integration/CppRegionTest.cpp)
+target_link_libraries(${EXECUTABLE_CPPREGIONTEST} ${COMMON_LIBS})
+set_target_properties(${EXECUTABLE_CPPREGIONTEST} PROPERTIES COMPILE_FLAGS ${COMPILE_FLAGS})
+set_target_properties(${EXECUTABLE_CPPREGIONTEST}
+                      PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
+add_custom_target(tests_cpp_region
+                  COMMAND ${EXECUTABLE_CPPREGIONTEST}
+                  DEPENDS ${EXECUTABLE_CPPREGIONTEST})
+
+#
+# Setup test_py_region
+#
+set(EXECUTABLE_PYREGIONTEST py_region_test)
+add_executable(${EXECUTABLE_PYREGIONTEST} test/integration/PyRegionTest.cpp)
+target_link_libraries(${EXECUTABLE_PYREGIONTEST} ${COMMON_LIBS})
+set_target_properties(${EXECUTABLE_PYREGIONTEST} PROPERTIES COMPILE_FLAGS ${COMPILE_FLAGS})
+set_target_properties(${EXECUTABLE_PYREGIONTEST}
+                      PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
 
 #
 # Setup helloregion example
 #
 set(EXECUTABLE_HELLOREGION helloregion)
-add_executable(${EXECUTABLE_HELLOREGION} examples/regions/helloregions.cpp)
+add_executable(${EXECUTABLE_HELLOREGION} examples/regions/HelloRegions.cpp)
 target_link_libraries(${EXECUTABLE_HELLOREGION} ${COMMON_LIBS})
 set_target_properties(${EXECUTABLE_HELLOREGION} PROPERTIES COMPILE_FLAGS ${COMPILE_FLAGS})
 set_target_properties(${EXECUTABLE_HELLOREGION}
-                      PROPERTIES LINK_FLAGS "-m${BITNESS} ${STDLIB}")
+                      PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
 add_dependencies(${EXECUTABLE_HELLOREGION} ${COMMON_LIBS})
+
+#
+# Setup prototest example
+#
+set(EXECUTABLE_PROTOTEST prototest)
+add_executable(${EXECUTABLE_PROTOTEST} examples/prototest.cpp)
+target_link_libraries(${EXECUTABLE_PROTOTEST}
+                      ${COMMON_LIBS})
+set_target_properties(${EXECUTABLE_PROTOTEST} PROPERTIES COMPILE_FLAGS ${COMPILE_FLAGS})
+set_target_properties(${EXECUTABLE_PROTOTEST}
+                      PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
+add_dependencies(${EXECUTABLE_PROTOTEST} ${COMMON_LIBS})
 
 #
 # Setup gtests
@@ -277,7 +427,9 @@ add_executable(${EXECUTABLE_GTESTS}
                test/unit/math/DomainUnitTest.cpp
                test/unit/math/IndexUnitTest.cpp
                test/unit/math/MathsTest.cpp
+               test/unit/math/SparseBinaryMatrixTest.cpp
                test/unit/math/SparseMatrix01UnitTest.cpp
+               test/unit/math/SparseMatrixTest.cpp
                test/unit/math/SparseMatrixUnitTest.cpp
                test/unit/math/SparseTensorUnitTest.cpp
                test/unit/ntypes/ArrayTest.cpp
@@ -302,10 +454,12 @@ add_executable(${EXECUTABLE_GTESTS}
                test/unit/UnitTestMain.cpp
                test/unit/utils/RandomTest.cpp
                test/unit/utils/WatcherTest.cpp)
-target_link_libraries(${EXECUTABLE_GTESTS} ${COMMON_LIBS} ${LIB_STATIC_GTEST})
+target_link_libraries(${EXECUTABLE_GTESTS}
+                      ${COMMON_LIBS}
+                      ${LIB_STATIC_GTEST})
 set_target_properties(${EXECUTABLE_GTESTS}
                       PROPERTIES COMPILE_FLAGS ${COMPILE_FLAGS}
-                                 LINK_FLAGS "-m${BITNESS} ${STDLIB}")
+                                 LINK_FLAGS "${COMMON_LINK_FLAGS}")
 add_dependencies(${EXECUTABLE_GTESTS} ${LIB_STATIC_GTEST} ${COMMON_LIBS})
 add_custom_target(tests_unit
                   COMMAND ${EXECUTABLE_GTESTS} "--gtest_output=xml:${PROJECT_BUILD_ARTIFACTS_DIR}/unit_tests_report.xml")
@@ -362,7 +516,7 @@ file(WRITE "${PROJECT_BINARY_DIR}/AddTestHeaders.hpp" "${headers_file_content}")
 # tests_all just calls other targets
 #
 add_custom_target(tests_all
-                  DEPENDS tests_htm
+                  DEPENDS tests_cpp_region
                   DEPENDS tests_unit
                   COMMENT "Running all tests")
 
@@ -373,11 +527,13 @@ add_custom_target(combined ALL
                   COMMAND ${CMAKE_AR} -x ${LIB_STATIC_APRUTIL1_LOC}
                   COMMAND ${CMAKE_AR} -x ${LIB_STATIC_APR1_LOC}
                   COMMAND ${CMAKE_AR} -x ${LIB_STATIC_Z_LOC}
+                  COMMAND ${CMAKE_AR} -x ${LIB_STATIC_KJ_LOC}
+                  COMMAND ${CMAKE_AR} -x ${LIB_STATIC_CAPNP_LOC}
                   COMMAND ${CMAKE_AR} rcs libnupic_core.a *.o
                   DEPENDS ${LIB_STATIC_NUPICCORE}
                           ${LIB_STATIC_GTEST}
                           ${EXECUTABLE_HELLOREGION}
-                          ${EXECUTABLE_HTMTEST}
+                          ${EXECUTABLE_CPPREGIONTEST}
                           ${EXECUTABLE_GTESTS})
 
 #
@@ -387,23 +543,31 @@ install(TARGETS
         ${LIB_STATIC_NUPICCORE}
         ${LIB_STATIC_GTEST}
         ${EXECUTABLE_HELLOREGION}
-        ${EXECUTABLE_HTMTEST}
+        ${EXECUTABLE_CPPREGIONTEST}
+        ${EXECUTABLE_PYREGIONTEST}
+        ${EXECUTABLE_PROTOTEST}
         ${EXECUTABLE_GTESTS}
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)
-install(DIRECTORY nta/ DESTINATION include/nta
+install(DIRECTORY nupic/ DESTINATION include/nupic
         FILES_MATCHING PATTERN "*.h*"
         PATTERN "*.hpp.in" EXCLUDE)
+install(DIRECTORY nupic/ DESTINATION include/nupic
+        FILES_MATCHING PATTERN "*.capnp")
+install(DIRECTORY ${CMAKE_BINARY_DIR}/nupic/ DESTINATION include/nupic
+        FILES_MATCHING PATTERN "*.capnp.h")
 install(DIRECTORY "${REPOSITORY_DIR}/external/common/include/gtest"
         DESTINATION include/gtest
         FILES_MATCHING PATTERN "*.h*")
 install(FILES "${PROJECT_BINARY_DIR}/Version.hpp"
-        DESTINATION include/nta/)
-install(FILES nta/ntypes/Collection.cpp
-        DESTINATION include/nta/ntypes/Collection.cpp)
+        DESTINATION include/nupic/)
+install(DIRECTORY "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/bin/"
+        DESTINATION bin USE_SOURCE_PERMISSIONS)
 install(DIRECTORY "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/lib/"
         DESTINATION lib)
+install(DIRECTORY "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/bin/"
+        DESTINATION bin USE_SOURCE_PERMISSIONS)
 install(DIRECTORY "${REPOSITORY_DIR}/external/common/include/"
         DESTINATION include)
 install(DIRECTORY "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/include/"

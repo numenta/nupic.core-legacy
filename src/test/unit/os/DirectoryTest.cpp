@@ -25,14 +25,14 @@
  */
 
 
-#include <nta/os/Directory.hpp>
-#include <nta/os/Path.hpp>
-#include <nta/os/OS.hpp>
-#include <nta/os/FStream.hpp>
+#include <nupic/os/Directory.hpp>
+#include <nupic/os/Path.hpp>
+#include <nupic/os/OS.hpp>
+#include <nupic/os/FStream.hpp>
 #include "DirectoryTest.hpp"
 #include <apr-1/apr.h>
 
-#ifdef NTA_PLATFORM_win32
+#if defined(NTA_OS_WINDOWS)
   #include <windows.h>
 #else
   #include <unistd.h>
@@ -40,12 +40,12 @@
 
 #include <algorithm> // sort
 using namespace std;
-using namespace nta;
+using namespace nupic;
 
 static std::string getCurrDir()
 {
     char buff[APR_PATH_MAX+1];
-#ifdef NTA_PLATFORM_win32
+#if defined(NTA_OS_WINDOWS)
   DWORD res = ::GetCurrentDirectoryA(APR_PATH_MAX, (LPSTR)buff);
   NTA_CHECK(res > 0) << OS::getErrorMessage();
 

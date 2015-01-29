@@ -24,16 +24,16 @@
  * Implementation for maths unit tests
  */
 
-//#include <nta/common/utils.hpp>
-#include <nta/math/ArrayAlgo.hpp>
+//#include <nupic/common/utils.hpp>
+#include <nupic/math/ArrayAlgo.hpp>
 
 #include "MathsTest.hpp"
 
-#include <nta/math/Math.hpp>
+#include <nupic/math/Math.hpp>
 
 using namespace std;
 
-namespace nta {    
+namespace nupic {
 
 //  //--------------------------------------------------------------------------------
 //  void MathsTest::unitTestNearlyZero()
@@ -223,7 +223,7 @@ namespace nta {
 //      vector<Real> v1(3);
 //      v1[0] = 1.0; v1[1] = numeric_limits<Real>::infinity(); v1[2] = 3.0;
 //      stringstream s, answer;
-//#ifdef NTA_PLATFORM_win32
+//#if defined(NTA_OS_WINDOWS)
 //      answer << "3 1 1.#INF 3 ";
 //#else
 //      answer << "3 1 inf 3 ";
@@ -237,7 +237,7 @@ namespace nta {
 //      vector<Real> v1(3);
 //      v1[0] = 1.0; v1[1] = numeric_limits<Real>::quiet_NaN(); v1[2] = 3.0;
 //      stringstream s, answer;
-//#ifdef NTA_PLATFORM_win32
+//#if defined(NTA_OS_WINDOWS)
 //      answer << "3 1 1.#QNAN 3 ";
 //#else
 //      answer << "3 1 nan 3 ";
@@ -251,7 +251,7 @@ namespace nta {
 //      vector<Real> v1(3);
 //      v1[0] = 1.0; v1[1] = numeric_limits<Real>::signaling_NaN(); v1[2] = 3.0;
 //      stringstream s, answer;
-//#ifdef NTA_PLATFORM_win32
+//#if defined(NTA_OS_WINDOWS)
 //      answer << "3 1 1.#QNAN 3 ";
 //#else
 //      answer << "3 1 nan 3 ";
@@ -579,6 +579,6 @@ namespace nta {
   }
   
   //----------------------------------------------------------------------
-} // end namespace nta
+} // end namespace nupic
 
 

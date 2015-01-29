@@ -25,9 +25,9 @@
  */
 
 #include "DimensionsTest.hpp"
-#include <nta/ntypes/Dimensions.hpp>
+#include <nupic/ntypes/Dimensions.hpp>
 
-namespace nta
+namespace nupic
 {
   //internal helper method
   static std::string vecToString(std::vector<size_t> vec)
@@ -200,5 +200,5 @@ namespace nta
 
 
 
-} // namespace nta
+} // namespace nupic
 

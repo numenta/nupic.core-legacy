@@ -25,15 +25,15 @@
  */
 
 #include "ExceptionTest.hpp"
-#include <nta/types/Exception.hpp>
+#include <nupic/types/Exception.hpp>
 
-using namespace nta;
+using namespace nupic;
 
 void ExceptionTest::RunTests()
 {
   try
   {
-    throw nta::Exception("FFF", 123, "MMM");
+    throw nupic::Exception("FFF", 123, "MMM");
   }
   catch (const Exception & e)
   {
@@ -45,7 +45,7 @@ void ExceptionTest::RunTests()
 
   try
   {
-    throw nta::Exception("FFF", 123, "MMM", "TB");
+    throw nupic::Exception("FFF", 123, "MMM", "TB");
   }
   catch (const Exception & e)
   {

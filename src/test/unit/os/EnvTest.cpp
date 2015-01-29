@@ -27,7 +27,7 @@
 
 #include "EnvTest.hpp"
 
-using namespace nta;
+using namespace nupic;
 
 EnvTest::EnvTest() {};
 
