@@ -570,7 +570,7 @@ void SpatialPooler::compute(UInt inputArray[], bool learn,
     boostOverlaps_(overlaps_, boostedOverlaps_);
   } else {
     boostedOverlaps_.assign(overlaps_.begin(), overlaps_.end());
-  }i
+  }
 
   inhibitColumns_(boostedOverlaps_, activeColumns_);
   toDense_(activeColumns_, activeArray, numColumns_);
