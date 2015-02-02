@@ -53,6 +53,7 @@ namespace nupic {
         TemporalMemory::TemporalMemory() {
           // The current version number. 
           version_ = 1;
+          connections_ = Connections(numberOfCells());
         }
 
         virtual ~TemporalMemory() {};
@@ -104,14 +105,14 @@ namespace nupic {
         Int seed_;
         Random _random;
 
-        set<Cell> activeCells_;
-        set<Cell> winnerCells_;
+        vector<Cell> activeCells_;
+        vector<Cell> winnerCells_;
 
-        set<Segment> activeSegments_;
+        vector<Segment> activeSegments_;
         vector<Segment> learningSegments_;
 
-        set<Cell> predictiveCells_;
-        set<Int> predictedColumns_;
+        vector<Cell> predictiveCells_;
+        vector<Int> predictedColumns_;
 
         Connections connections_;
 
@@ -126,7 +127,7 @@ namespace nupic {
          * @param activeColumns   Indices of active columns in `t`
          * @param learn           Whether or not learning is enabled
          */
-        void compute(set<Int>& activeColumns, bool learn = true);
+        void compute(vector<Int>& activeColumns, bool learn = true);
 
         /*
          * 'Functional' version of compute.
@@ -146,13 +147,13 @@ namespace nupic {
          *  `activeSegments`  (set),
          *  `predictiveCells` (set)
          */
-        tuple<set<Cell>, set<Cell>, set<Segment>, set<Cell>>
+        tuple<vector<Cell>, vector<Cell>, vector<Segment>, vector<Cell>>
           computeFn(
-            set<Int>& activeColumns,
-            set<Int>& prevPredictiveCells,
-            set<Int>& prevActiveSegments,
-            set<Int>& prevActiveCells,
-            set<Int>& prevWinnerCells,
+			      vector<Int>& activeColumns,
+      			vector<Cell>& prevPredictiveCells,
+			      vector<Segment>& prevActiveSegments,
+			      vector<Cell>& prevActiveCells,
+			      vector<Cell>& prevWinnerCells,
             Connections& connections,
             bool learn = true);
 
@@ -185,10 +186,10 @@ namespace nupic {
          *  `winnerCells`      (set),
          *  `predictedColumns` (set)
          */
-        tuple<set<Cell>, set<Cell>, set<Int>>
+        virtual tuple<vector<Cell>, vector<Cell>, vector<Int>>
           activateCorrectlyPredictiveCells(
-            set<Cell>& prevPredictiveCells, 
-            set<Int>& activeColumns);
+			      vector<Cell>& prevPredictiveCells,
+			      vector<Int>& activeColumns);
 
         /*
         * Phase 2 : Burst unpredicted columns.
@@ -215,12 +216,12 @@ namespace nupic {
         *  `winnerCells`      (set),
         *  `learningSegments` (set)
         */
-        tuple<vector<Cell>, vector<Cell>, vector<Segment>>
+        virtual tuple<vector<Cell>, vector<Cell>, vector<Segment>>
           burstColumns(
-            set<Int>& activeColumns, 
-            set<Int>& predictedColumns, 
-            set<Cell>& prevActiveCells, 
-            set<Cell>& prevWinnerCells, 
+			      vector<Int>& activeColumns,
+			      vector<Int>& predictedColumns,
+			      vector<Cell>& prevActiveCells,
+			      vector<Cell>& prevWinnerCells,
             Connections& connections);
 
         /*
@@ -243,12 +244,12 @@ namespace nupic {
         * @param prevWinnerCells(set)      Indices of winner cells in `t-1`
         * @param connections(Connections)  Connectivity of layer
         */
-        void learnOnSegments(
-          set<Segment>& prevActiveSegments, 
-          set<Segment>& learningSegments, 
-          set<Cell>& prevActiveCells, 
-          set<Cell>& winnerCells, 
-          set<Cell>& prevWinnerCells, 
+        virtual void learnOnSegments(
+		    	vector<Segment>& prevActiveSegments,
+			    vector<Segment>& learningSegments,
+			    vector<Cell>& prevActiveCells,
+			    vector<Cell>& winnerCells,
+			    vector<Cell>& prevWinnerCells,
           Connections& connections);
 
         /*
@@ -269,9 +270,9 @@ namespace nupic {
         *   `activeSegments`  (set),
         *   `predictiveCells` (set)
         */
-        tuple<vector<Int>, set<Cell>>
+        virtual tuple<vector<Segment>, vector<Cell>>
           computePredictiveCells(
-            set<Cell>& activeCells, 
+            vector<Cell>& activeCells, 
             Connections& connections);
 
 
@@ -294,10 +295,10 @@ namespace nupic {
          *   `cell`        (int),
          *   `bestSegment` (int)
          */
-        tuple<CellIdx, SegmentIdx>
+        tuple<Cell, Segment>
           bestMatchingCell(
-            set<Cell>& cells, 
-            set<Cell>& activeCells, 
+            vector<Cell>& cells, 
+            vector<Cell>& activeCells, 
             Connections& connections);
 
         /*
@@ -315,7 +316,7 @@ namespace nupic {
         tuple<Segment, Int>
           bestMatchingSegment(
             Cell& cell,
-            set<Cell>& activeCells,
+            vector<Cell>& activeCells,
             Connections& connections);
 
         /*
@@ -328,7 +329,7 @@ namespace nupic {
          * @return (int) Cell index
          */
         Cell leastUsedCell(
-          set<Cell>& cells, 
+          vector<Cell>& cells, 
           Connections& connections);
 
         /*
@@ -341,9 +342,9 @@ namespace nupic {
          *
          * @return (set) Indices of active synapses on segment
          */
-        set<Int> activeSynapsesForSegment(
+        vector<Synapse> activeSynapsesForSegment(
           Segment& segment, 
-          set<Cell>& activeCells, 
+          vector<Cell>& activeCells, 
           Connections& connections);
 
         /*
@@ -356,7 +357,7 @@ namespace nupic {
         */
         void adaptSegment(
           Segment& segment, 
-          set<Int>& activeSynapses, 
+          vector<Synapse>& activeSynapses, 
           Connections& connections);
 
         /*
@@ -371,10 +372,10 @@ namespace nupic {
          *
          *	   @return (set) Indices of cells picked
          */
-        set<Cell> pickCellsToLearnOn(
+        vector<Cell> pickCellsToLearnOn(
           Int n, 
           Segment& segment, 
-          set<Cell>& winnerCells, 
+          vector<Cell>& winnerCells, 
           Connections& connections);
 
         /*
@@ -416,7 +417,7 @@ namespace nupic {
          *
          * @return (dict) Mapping from columns to their cells in `cells`
          */
-        map<Int, vector<Cell>> mapCellsToColumns(set<Cell>& cells);
+        map<Int, vector<Cell>> mapCellsToColumns(vector<Cell>& cells);
 
         /*
          * Raises an error if column index is invalid.

@@ -217,6 +217,8 @@ namespace nupic
       class Connections
       {
       public:
+        Connections() {}
+
         /**
          * Connections constructor.
          *

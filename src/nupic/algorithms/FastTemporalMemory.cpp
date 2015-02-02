@@ -35,7 +35,7 @@
 using namespace std;
 using namespace nupic;
 using namespace nupic::algorithms::connections;
-using namespace nupic::algorithms::temporal_memory;
+//using namespace nupic::algorithms::temporal_memory;
 using namespace nupic::algorithms::fast_temporal_memory;
 
 void FastTemporalMemory::initialize()
@@ -71,11 +71,12 @@ void FastTemporalMemory::initialize()
     `learningSegments` (set)
 */
 tuple<vector<Cell>, vector<Cell>, vector<Segment>>
-  FastTemporalMemory::burstColumns(set<Int>& activeColumns,
-                                   set<Int>& predictedColumns,
-                                   vector<Cell>& prevActiveCells,
-                                   vector<Cell>& prevWinnerCells,
-                                   Connections &connections)
+  FastTemporalMemory::burstColumns(
+    vector<Int>& activeColumns,
+    vector<Int>& predictedColumns,
+    vector<Cell>& prevActiveCells,
+    vector<Cell>& prevWinnerCells,
+    Connections& connections)
 {
   vector<Cell> activeCells;
   vector<Cell> winnerCells;
