@@ -35,7 +35,7 @@
 using namespace std;
 using namespace nupic;
 using namespace nupic::algorithms::connections;
-//using namespace nupic::algorithms::temporal_memory;
+using namespace nupic::algorithms::temporal_memory;
 using namespace nupic::algorithms::fast_temporal_memory;
 
 void FastTemporalMemory::initialize()
@@ -70,18 +70,13 @@ void FastTemporalMemory::initialize()
     `winnerCells`      (set),
     `learningSegments` (set)
 */
-tuple<vector<Cell>, vector<Cell>, vector<Segment>>
-  FastTemporalMemory::burstColumns(
-    vector<Int>& activeColumns,
-    vector<Int>& predictedColumns,
-    vector<Cell>& prevActiveCells,
-    vector<Cell>& prevWinnerCells,
-    Connections& connections)
+//tuple<vector<Cell>, vector<Cell>, vector<Segment>>
+void FastTemporalMemory::burstColumns(vector<Int>& activeColumns,
+                                      vector<Int>& predictedColumns,
+                                      vector<Cell>& prevActiveCells,
+                                      vector<Cell>& prevWinnerCells,
+                                      Connections &connections)
 {
-  vector<Cell> activeCells;
-  vector<Cell> winnerCells;
-  vector<Segment> learningSegments;
-
   vector<Int> unpredictedColumns;
 
   // Resize to the worst case usage
@@ -99,7 +94,7 @@ tuple<vector<Cell>, vector<Cell>, vector<Segment>>
   for (auto column : unpredictedColumns)
   {
     vector<Cell> cells = cellsForColumn(column);
-    activeCells.insert(activeCells.end(), cells.begin(), cells.end());
+    activeCells_.insert(activeCells_.end(), cells.begin(), cells.end());
 
     Segment bestSegment;
     Cell bestCell;
@@ -111,7 +106,7 @@ tuple<vector<Cell>, vector<Cell>, vector<Segment>>
       if (prevWinnerCells.size())
       {
         bestSegment = connections.createSegment(bestCell);
-        learningSegments.push_back(bestSegment);
+        learningSegments_.push_back(bestSegment);
       }
     }
     else
@@ -122,13 +117,11 @@ tuple<vector<Cell>, vector<Cell>, vector<Segment>>
       bestCell = Cell(bestSegment.cell.idx);
     }
 
-    winnerCells.push_back(bestCell);
+    winnerCells_.push_back(bestCell);
   }
 
-  return tuple<vector<Cell>, vector<Cell>, vector<Segment>>
-    (activeCells, winnerCells, learningSegments);
+  return;// make_tuple(activeCells, winnerCells, learningSegments);
 }
-
 
 /*
   Phase 4 : Compute predictive cells due to lateral input
@@ -150,9 +143,9 @@ tuple<vector<Cell>, vector<Cell>, vector<Segment>>
     `activeSegments`  (set),
     `predictiveCells` (set)
 */
-tuple<vector<Segment>, vector<Cell>>
-  FastTemporalMemory::computePredictiveCells(vector<Cell>& activeCells,
-                                             Connections& connections)
+//tuple<vector<Segment>, vector<Cell>>
+void FastTemporalMemory::computePredictiveCells(vector<Cell>& activeCells,
+                                                Connections& connections)
 {
   Activity activity = 
     connections.computeActivity(activeCells, 
@@ -162,6 +155,5 @@ tuple<vector<Segment>, vector<Cell>>
   vector<Segment> activeSegments = connections.activeSegments(activity);
   vector<Cell> predictiveCells = connections.activeCells(activity);
 
-  return tuple<vector<Segment>, vector<Cell>>
-    (activeSegments, predictiveCells);
+  return;// make_tuple(activeSegments, predictiveCells);
 }

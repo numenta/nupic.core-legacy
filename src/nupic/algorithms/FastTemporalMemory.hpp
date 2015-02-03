@@ -24,8 +24,8 @@
   * Definitions for the Temporal Memory in C++
   */
 
-#ifndef NTA_FAST_TEMPORAL_MEMORY_HPP
-#define NTA_FAST_TEMPORAL_MEMORY_HPP
+#ifndef NTA_fast_temporal_memory_HPP
+#define NTA_fast_temporal_memory_HPP
 
 #include <nupic/algorithms/TemporalMemory.hpp>
 
@@ -75,12 +75,12 @@ namespace nupic {
            `winnerCells`      (set),
            `learningSegments` (set)
         */
-        virtual tuple<vector<Cell>, vector<Cell>, vector<Segment>> 
-          burstColumns(vector<Int>& activeColumns, 
-                       vector<Int>& predictedColumns, 
-                       vector<Cell>& prevActiveCells, 
-                       vector<Cell>& prevWinnerCells, 
-                       Connections &connections);
+        //tuple<vector<Cell>, vector<Cell>, vector<Segment>> 
+        void burstColumns(vector<Int>& activeColumns, 
+                          vector<Int>& predictedColumns,
+                          vector<Cell>& prevActiveCells, 
+                          vector<Cell>& prevWinnerCells, 
+                          Connections &connections);
 
         /*
          Phase 4 : Compute predictive cells due to lateral input
@@ -102,9 +102,9 @@ namespace nupic {
            `activeSegments`  (set),
            `predictiveCells` (set)
         */
-        virtual tuple<vector<Segment>, vector<Cell>>
-          computePredictiveCells(vector<Cell>& activeCells, 
-                                 Connections& connections);
+        //tuple<vector<Segment>, vector<Cell>>
+        void computePredictiveCells(vector<Cell>& activeCells, 
+                                    Connections& connections);
 
       };
 
@@ -112,4 +112,4 @@ namespace nupic {
   } // end namespace algorithms
 } // end namespace nta
 
-#endif // NTA_FAST_TEMPORAL_MEMORY_HPP
+#endif // NTA_fast_temporal_memory_HPP

@@ -50,10 +50,9 @@ namespace nupic {
        */
       class TemporalMemory {
       public:
-        TemporalMemory::TemporalMemory() {
+        TemporalMemory() {
           // The current version number. 
           version_ = 1;
-          connections_ = Connections(numberOfCells());
         }
 
         virtual ~TemporalMemory() {};
@@ -85,6 +84,12 @@ namespace nupic {
           Permanence permanenceIncrement = 0.10,
           Permanence permanenceDecrement = 0.10,
           Int seed = 42);
+
+        // Implementation note: this method sets up the instance using data from
+        // inStream. This method does not call initialize. As such we have to be careful
+        // that everything in initialize is handled properly here.
+        void load(istream& inStream);
+        void save(ostream& outStream);
 
       protected:
         Int version_;
@@ -147,15 +152,15 @@ namespace nupic {
          *  `activeSegments`  (set),
          *  `predictiveCells` (set)
          */
-        tuple<vector<Cell>, vector<Cell>, vector<Segment>, vector<Cell>>
-          computeFn(
-			      vector<Int>& activeColumns,
-      			vector<Cell>& prevPredictiveCells,
-			      vector<Segment>& prevActiveSegments,
-			      vector<Cell>& prevActiveCells,
-			      vector<Cell>& prevWinnerCells,
-            Connections& connections,
-            bool learn = true);
+        //tuple<vector<Cell>, vector<Cell>, vector<Segment>, vector<Cell>>
+        void computeFn(
+          vector<Int>& activeColumns,
+          vector<Cell>& prevPredictiveCells,
+          vector<Segment>& prevActiveSegments,
+          vector<Cell>& prevActiveCells,
+          vector<Cell>& prevWinnerCells,
+          Connections& connections,
+          bool learn = true);
 
         /*
          * Indicates the start of a new sequence.Resets sequence state of the TM.
@@ -186,10 +191,10 @@ namespace nupic {
          *  `winnerCells`      (set),
          *  `predictedColumns` (set)
          */
-        virtual tuple<vector<Cell>, vector<Cell>, vector<Int>>
-          activateCorrectlyPredictiveCells(
-			      vector<Cell>& prevPredictiveCells,
-			      vector<Int>& activeColumns);
+        //tuple<set<Cell>, vector<Cell>, vector<Int>>
+        virtual void activateCorrectlyPredictiveCells(
+          vector<Cell>& prevPredictiveCells,
+          vector<Int>& activeColumns);
 
         /*
         * Phase 2 : Burst unpredicted columns.
@@ -216,13 +221,13 @@ namespace nupic {
         *  `winnerCells`      (set),
         *  `learningSegments` (set)
         */
-        virtual tuple<vector<Cell>, vector<Cell>, vector<Segment>>
-          burstColumns(
-			      vector<Int>& activeColumns,
-			      vector<Int>& predictedColumns,
-			      vector<Cell>& prevActiveCells,
-			      vector<Cell>& prevWinnerCells,
-            Connections& connections);
+        //tuple<vector<Cell>, vector<Cell>, vector<Segment>>
+        virtual void burstColumns(
+          vector<Int>& activeColumns,
+          vector<Int>& predictedColumns,
+          vector<Cell>& prevActiveCells,
+          vector<Cell>& prevWinnerCells,
+          Connections& connections);
 
         /*
         * Phase 3 : Perform learning by adapting segments.
@@ -245,11 +250,11 @@ namespace nupic {
         * @param connections(Connections)  Connectivity of layer
         */
         virtual void learnOnSegments(
-		    	vector<Segment>& prevActiveSegments,
-			    vector<Segment>& learningSegments,
-			    vector<Cell>& prevActiveCells,
-			    vector<Cell>& winnerCells,
-			    vector<Cell>& prevWinnerCells,
+          vector<Segment>& prevActiveSegments,
+          vector<Segment>& learningSegments,
+          vector<Cell>& prevActiveCells,
+          vector<Cell>& winnerCells,
+          vector<Cell>& prevWinnerCells,
           Connections& connections);
 
         /*
@@ -270,10 +275,10 @@ namespace nupic {
         *   `activeSegments`  (set),
         *   `predictiveCells` (set)
         */
-        virtual tuple<vector<Segment>, vector<Cell>>
-          computePredictiveCells(
-            vector<Cell>& activeCells, 
-            Connections& connections);
+        //tuple<vector<Int>, vector<Cell>>
+        virtual void computePredictiveCells(
+          vector<Cell>& activeCells,
+          Connections& connections);
 
 
         // ==============================
@@ -297,8 +302,8 @@ namespace nupic {
          */
         tuple<Cell, Segment>
           bestMatchingCell(
-            vector<Cell>& cells, 
-            vector<Cell>& activeCells, 
+            vector<Cell>& cells,
+            vector<Cell>& activeCells,
             Connections& connections);
 
         /*
@@ -329,7 +334,7 @@ namespace nupic {
          * @return (int) Cell index
          */
         Cell leastUsedCell(
-          vector<Cell>& cells, 
+          vector<Cell>& cells,
           Connections& connections);
 
         /*
@@ -344,7 +349,7 @@ namespace nupic {
          */
         vector<Synapse> activeSynapsesForSegment(
           Segment& segment, 
-          vector<Cell>& activeCells, 
+          vector<Cell>& activeCells,
           Connections& connections);
 
         /*
@@ -357,7 +362,7 @@ namespace nupic {
         */
         void adaptSegment(
           Segment& segment, 
-          vector<Synapse>& activeSynapses, 
+          vector<Synapse>& activeSynapses,
           Connections& connections);
 
         /*
@@ -375,7 +380,7 @@ namespace nupic {
         vector<Cell> pickCellsToLearnOn(
           Int n, 
           Segment& segment, 
-          vector<Cell>& winnerCells, 
+          vector<Cell>& winnerCells,
           Connections& connections);
 
         /*
@@ -447,12 +452,6 @@ namespace nupic {
          */
         bool _validatePermanence(Real permanence);
 
-        // Implementation note: this method sets up the instance using data from
-        // inStream. This method does not call initialize. As such we have to be careful
-        // that everything in initialize is handled properly here.
-        void load(istream& inStream);
-        void save(ostream& outStream);
-
         UInt persistentSize();
 
         //----------------------------------------------------------------------
@@ -460,13 +459,7 @@ namespace nupic {
         //----------------------------------------------------------------------
 
         // Print the main TM creation parameters
-        void printParameters()
-        {
-          std::cout << "------------CPP TemporalMemory Parameters ------------------\n";
-          std::cout
-            << "version                     = " << version_ << std::endl
-            << "numColumns                  = " << numColumns_ << std::endl;
-        }
+        void printParameters();
 
         /**
          Print the given UInt array in a nice format
