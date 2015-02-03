@@ -367,11 +367,11 @@ void TemporalMemory::computePredictiveCells(
   vector<Cell>& activeCells,
   Connections& connections)
 {
+/*
 	map<Segment, Int> numActiveConnectedSynapsesForSegment;
 
 	for (Cell cell : activeCells)
 	{
-/*
     for (Synapse synapse : connections.synapsesForPresynapticCell(cell).values())
 		{
 			Segment segment = synapse.segment;
@@ -388,8 +388,8 @@ void TemporalMemory::computePredictiveCells(
 				}
 			}
 		}
-*/
 	}
+*/
 
   return;// make_tuple(activeSegments, predictiveCells);
 }
@@ -747,7 +747,7 @@ bool TemporalMemory::_validateColumn(Int column)
  */
 bool TemporalMemory::_validateCell(Cell& cell)
 {
-  if (cell.idx >= (UInt32)numberOfCells() || cell.idx < 0)
+  if (cell.idx >= (UInt32)numberOfCells())
   {
     NTA_THROW << "Invalid cell " << cell.idx;
     return false;
