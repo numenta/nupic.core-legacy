@@ -18,9 +18,9 @@ Obtain the source for the following libraries. These will be statically linked t
 | yaml-cpp-0.3.0 | https://code.google.com/p/yaml-cpp/ | yaml-cpp-0.3.0.tar.gz |
 | zlib-1.2.8 | http://www.zlib.net/ | zlib-1.2.8.tar.gz |
 
-Extract them into $NUPIC_CORE/external/win32/build
+Extract them into %NUPIC_CORE%/external/win32/build
 
-.gitignore contains a rule to make any directory called build/ be ignored by Git.
+%NUPIC_CORE%/.gitignore contains a rule that makes any directory called build/ to be ignored by Git.
 
 Next, perform some housekeeping tasks on the Apr directories by renaming them. This is an expected step for the Apr build system.
 
@@ -31,15 +31,17 @@ apr-util-1.5.4 to apr-util
 
 ## CMake building the external libraries
 
-Most of these libraries have a CMakeList.txt file. That allows for the use of the Windows version of CMake, the only versions that support Visual Studio generators. The CMake-GUI application also makes it easy to make tweak the build environment, e.g. changing 'CMAKE_INSTALL_PREFIX'.
+Most of these libraries have a CMakeList.txt file. That allows for the use of the Windows version of CMake. The CMake-GUI application makes it easy to make tweak the build environment, e.g. the required update of 'CMAKE_INSTALL_PREFIX' for each library. Building the Apr-iconv library is not required and can be skipped. 
 
-Open each solution file (.sln) into your Visual Studio IDE in alphabetical order of each external library. Building Apr-iconv library is not required and can be skipped. **Remember** to set the solution configuration in the Configuration Manager to Release. And if required setup a clone configuration for **x64**.
+**Remember** to set the solution configuration in the Configuration Manager to Release. And if required setup a clone configuration of Win32 for **x64**.
 
-Install scripts are placed inside a file called cmake_install.cmake The INSTALL project in each solution tries to do the following;  
+If a solution contains an Install project, the install scripts are placed inside a file called cmake_install.cmake An INSTALL project in a solution tries to do the following;  
 
 cmake.exe -DBUILD_TYPE=Release -P cmake_install.cmake
 
-### Example CMake build - Apache Portable Runtime (APR)
+This implies that your %PATH% environment variable has a directory to the cmake.exe (typically "C:\Program Files (x86)\CMake\bin").
+
+### Example CMake build - Apr Apache Portable Runtime
 
 - Run CMake-GUI application
 - Setup the following options -
@@ -60,53 +62,43 @@ Now repeat all the above steps for the APR-Util solution. Apr-util requires a co
 
   * Point APR_INCLUDE to $NUPIC_CORE/external/win64/build/apr
   * Point APR_LIBRARIES to $NUPIC_CORE/external/win64/build/apr
-  * Turn off APR_HAS_LDAP and APU_HAVE_ODBC
+  * Turn off APR_HAS_LDAP and APU_HAVE_ODBC (for now..)
   * And point CMAKE_INSTALL_PREFIX to $NUPIC_CORE/external/win64
 
 Time to tidy the $NUPIC_CORE/external/win64/include directory. Make a new directory called apr-1 and move all the .h files into it.
 
-That is APR built and ready to be statically linked to the main NuPIC core library.
-
-### Possible build issues  
-
-#### APR
-
-Edit apr_arch_utf8.h and change the three #include from  
-'#include "apr.h"  
-'#include "apr_lib.h"  
-'#include "apr_errno.h"  
+You may need to edit apr_arch_utf8.h Changing three #include files; 
+'#include "apr.h" 
+'#include "apr_lib.h" 
+'#include "apr_errno.h" 
 
 to  
 
-'#include "apr-1/apr.h"  
-'#include "apr-1/apr_lib.h"  
-'#include "apr-1/apr_errno.h"  
+'#include "apr-1/apr.h" 
+'#include "apr-1/apr_lib.h" 
+'#include "apr-1/apr_errno.h" 
 
 #### Yaml
 
-Has a valid libyaml.sln solution file for importing. Found in directory yaml-0.1.5\win32\vs2008 A <New...> x64 platform solution can be added to it, once loaded into Visual Studio.
+This has a valid libyaml.sln solution file for importing. Found in directory yaml-0.1.5\win32\vs2008 A <New...> x64 platform solution can be added to it, once loaded into Visual Studio.
 
 #### Yaml-cpp  
 
-'#include <algorithm>' in src\ostream_wrapper.cpp  
+Using $NUPIC_CORE/build/yaml-cpp/ for Source and Build directoreis, make sure MSVC_SHARED_RT **is** ticked. And BUILD_SHARED_LIBS and MSVC_STHREADED_RT are both **not** ticked. When building the solution your may need to '#include <algorithm>' in src\ostream_wrapper.cpp 
 
 #### Z Lib  
 
-Look in zlib-1.2.8\contrib\vstudio for contributed solutions and projects for Visual Studio.
+In zlib-1.2.8\contrib\vstudio there are solutions and projects for Visual Studio 9, 10, and 11. The vc11 can be used with Visual Studio 2015.  A <New...> x64 platform solution can be added to the solution, once loaded into Visual Studio. The zlibstat is the library we need to copy to %NUPIC_CORE%/external/windows64/lib and overwrite z.lib (or zd.lib for debug version).
 
-#### Installation
+#### Misc
 
 For CMake assistance in copying the relevant binaries, headers, and library files 
 'nupic.core\external\win32\apr>cmake -DBUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=..\include -P cmake_install.cmake'  
-'nupic.core\external\win32\pcre-8.35\cmake>cmake -DBUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=..\..\include\pcre -P cmake_install.cmake'  
 
-
-To rebuild NuPIC Core itself using CMake-GUI application, the following settings can be used.
+To rebuild NuPIC Core itself using the CMake-GUI application, the following settings can be used.
 
 | Name | Value |
 |:---- |:----- |
-| Source code | $NUPIC_CORE/src |
-| Binaries | $NUPIC_CORE/build/scripts |
-| CMAKE_INSTALL_PREFIX | $NUPIC_CORE/build/release |
-
-
+| Source code | %NUPIC_CORE%/src |
+| Binaries | %NUPIC_CORE%/build/scripts |
+| CMAKE_INSTALL_PREFIX | %NUPIC_CORE%/build/release |
