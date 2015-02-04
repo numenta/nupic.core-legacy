@@ -1,13 +1,10 @@
-# NuPIC Core external libraries
+# NuPIC Core ExternaL Libraries
 
-NuPIC Core depends on a number of pre-built external libraries which are
-normally distributed with the source.  
-
-The following can be used as a guide if you require changes to the pre-built libraries.
+NuPIC Core depends on a number of pre-built external libraries which are normally distributed with the source. The following can be used as a guide if you require changes to these pre-built libraries.
 
 ## Obtaining the library sources
 
-Obtain the source for the following libraries. These will be statically linked to the NuPIC core libraries.
+These libraries will be statically linked to the NuPIC core library.
 
 | Library | Website | Filename |
 |:------- |:------- |:-------- |
@@ -18,20 +15,16 @@ Obtain the source for the following libraries. These will be statically linked t
 | yaml-cpp-0.3.0 | https://code.google.com/p/yaml-cpp/ | yaml-cpp-0.3.0.tar.gz |
 | zlib-1.2.8 | http://www.zlib.net/ | zlib-1.2.8.tar.gz |
 
-Extract them into %NUPIC_CORE%/external/win32/build
+Extract them into %NUPIC_CORE%/external/win32/build The %NUPIC_CORE%/.gitignore file has a rule that makes any directory called build/ to be ignored by Git.
 
-%NUPIC_CORE%/.gitignore contains a rule that makes any directory called build/ to be ignored by Git.
-
-Next, perform some housekeeping tasks on the Apr directories by renaming them. This is an expected step for the Apr build system.
-
-apr-1.5.1 to apr  
-apr-iconv-1.2.1 to apr-iconv  
-apr-util-1.5.4 to apr-util  
-
+Perform some housekeeping tasks on the Apr directories by renaming them. This is an expected step for the Apr build system. 
+apr-1.5.1 to apr 
+apr-iconv-1.2.1 to apr-iconv 
+apr-util-1.5.4 to apr-util 
 
 ## CMake building the external libraries
 
-Most of these libraries have a CMakeList.txt file. That allows for the use of the Windows version of CMake. The CMake-GUI application makes it easy to make tweak the build environment, e.g. the required update of 'CMAKE_INSTALL_PREFIX' for each library. Building the Apr-iconv library is not required and can be skipped. 
+Most of these libraries have a CMakeList.txt file. That allows for the use of the Windows version of CMake. The CMake-GUI application makes it easy to tweak build variables, e.g. the required update of 'CMAKE_INSTALL_PREFIX' for each library. Building the Apr-iconv library is not required and can be skipped. 
 
 **Remember** to set the solution configuration in the Configuration Manager to Release. And if required setup a clone configuration of Win32 for **x64**.
 
@@ -39,7 +32,7 @@ If a solution contains an Install project, the install scripts are placed inside
 
 cmake.exe -DBUILD_TYPE=Release -P cmake_install.cmake
 
-This implies that your %PATH% environment variable has a directory to the cmake.exe (typically "C:\Program Files (x86)\CMake\bin").
+This implies that your %PATH% environment variable has a directory to the cmake.exe (typically "C:\Program Files (x86)\CMake\bin"). Restart Visual Studio _and_ VS Command Prompt when this changes.
 
 ### Example CMake build - Apr Apache Portable Runtime
 
@@ -49,16 +42,15 @@ This implies that your %PATH% environment variable has a directory to the cmake.
   * Where to build the binaries: $NUPIC_CORE/external/win64/build/apr  
 - Press the 'Configure' button
 - Change CMAKE_INSTALL_PREFIX to $NUPIC_CORE/external/win64  
-- Press 'Configure' button again.
+- Press 'Configure' button
   * Red backgrounds on Name/Value pairs should go back to white.
-  * Any Name/Value pairs that are still have a red background **must** be resolved, before pressing the 'Configure' button again.
-- When all Name/Value pairs are valid press 'Generate'.
+  * Any Name/Value pairs that are still have a red background **must** be resolved
+- Press 'Configure' button, until all pairs resolved
+- Press 'Generate'
 
-Open APR.sln with your Visual Studio IDE and 'Rebuild All' on the solution. Once rebuilt 'Build Only' the INSTALL project to get the library files into the right places.
+Open APR.sln with your Visual Studio IDE and 'Rebuild All' on the solution. Then 'Build Only' the INSTALL project. In the apr/ directory there will be a x64/ sub-directory. Copy the apr/x64/LibR/apr-1.lib to $NUPIC_CORE/external/win64/lib/apr-1.lib 
 
-In the apr/ directory there will be a x64/ sub-directory. Copy the win64/build/apr/x64/LibR/apr-1.lib to win64/lib
-
-Now repeat all the above steps for the APR-Util solution. Apr-util requires a couple of other changes. 
+Repeat the above steps for the APR-Util solution. Apr-util requires a couple of other changes in CMake-GUI - 
 
   * Point APR_INCLUDE to $NUPIC_CORE/external/win64/build/apr
   * Point APR_LIBRARIES to $NUPIC_CORE/external/win64/build/apr
@@ -71,9 +63,7 @@ You may need to edit apr_arch_utf8.h Changing three #include files;
 '#include "apr.h" 
 '#include "apr_lib.h" 
 '#include "apr_errno.h" 
-
 to  
-
 '#include "apr-1/apr.h" 
 '#include "apr-1/apr_lib.h" 
 '#include "apr-1/apr_errno.h" 
