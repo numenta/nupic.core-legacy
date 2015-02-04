@@ -2001,13 +2001,18 @@ namespace nupic {
 	  << "SparseBinaryMatrix::" << where << ": "
 	  << "Invalid index: " << *it
 	  << " - Should be >= 0 and < number of columns:" << nCols();
-      
-      for (size_type i = 1; i < (size_type)(end - begin); ++i)
-	NTA_ASSERT(*(begin + i - 1) < *(begin + i))
-	  << "SparseBinaryMatrix::" << where << ": "
-	  << "Invalid indices: " << *(begin + i - 1)
-	  << " and: " << *(begin + i)
-	  << " - Indices need to be in strictly increasing order";
+
+      InputIterator last = begin;
+      for (InputIterator it = begin; it != end; ++it)
+      {
+        if (last != begin)
+          NTA_ASSERT(*last < *it)
+            << "SparseBinaryMatrix::" << where << ": "
+            << "Invalid indices: " << *last
+            << " and: " << *it
+            << " - Indices need to be in strictly increasing order";
+        last = it;
+      }
     }
 
     //--------------------------------------------------------------------------------

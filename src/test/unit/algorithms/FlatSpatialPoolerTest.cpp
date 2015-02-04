@@ -25,6 +25,7 @@
  */
 
 #include <cstring>
+#include <cstdio>
 #include <iostream>
 #include <fstream>
 #include <nupic/algorithms/FlatSpatialPooler.hpp>
@@ -326,8 +327,7 @@ namespace nupic {
     NTA_CHECK(fsp_orig.getMinDistance() == fsp_dest.getMinDistance());
     NTA_CHECK(fsp_orig.getRandomSP() == fsp_dest.getRandomSP());
 
-    string command = string("rm -f ") + filename;
-    int ret = system(command.c_str());
+    int ret = std::remove(filename.c_str());
     NTA_ASSERT(ret == 0); // << " FlatSpatialPooler.serialization failed. " << std::endl;
   }
     
