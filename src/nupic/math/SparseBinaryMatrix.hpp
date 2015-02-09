@@ -2005,7 +2005,7 @@ namespace nupic {
       InputIterator last = begin;
       for (InputIterator it = begin; it != end; ++it)
       {
-        if (last != begin)
+        if (it != begin)
           NTA_ASSERT(*last < *it)
             << "SparseBinaryMatrix::" << where << ": "
             << "Invalid indices: " << *last
