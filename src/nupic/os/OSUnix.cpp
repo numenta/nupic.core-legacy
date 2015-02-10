@@ -25,7 +25,7 @@
  * Unix Implementations for the OS class
  */
 
-#ifndef WIN32
+#if !defined(NTA_OS_WINDOWS)
 
 #include <nupic/os/OS.hpp>
 #include <nupic/os/Path.hpp>
@@ -105,6 +105,6 @@ std::string OS::getErrorMessageFromErrorCode(int errorCode)
   return errorMessage.str();
 }
 
-#endif // #ifndef WIN32
+#endif
 
 

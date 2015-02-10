@@ -49,7 +49,7 @@
 #define ROUND(x)     ((x-floor(x))>0.5 ? ceil(x) : floor(x))
 #else
 #define ROUND(x)     (roundf(x))
-#endif // !WIN32
+#endif
 
 
 // if INIT_FROM_PYTHON is defined, this module can initialize
