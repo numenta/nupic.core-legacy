@@ -234,6 +234,7 @@ INLINE_ELAPSED(__inline__)
 
 /* Visual C++ (FIXME: how to detect compilation for x86-64?) */
 #if _MSC_VER >= 1400 && !defined(HAVE_TICK_COUNTER)
+#include <windows.h>
 typedef ULONG64 ticks;
 
 #define getticks __rdtsc

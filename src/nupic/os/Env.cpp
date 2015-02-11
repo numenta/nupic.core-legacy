@@ -125,9 +125,9 @@ void Env::unset(const std::string& name)
 char ** Env::environ_ = nullptr;
 
 #if defined(NTA_OS_DARWIN)
-#include <crt_externs.h>
+  #include <crt_externs.h>
 #else
-extern char **environ;
+  extern char **environ;
 #endif
 
 

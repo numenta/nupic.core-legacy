@@ -66,7 +66,11 @@ namespace nupic
     {
       // To find the pynode plugin we need the nupic
       // installation directory.
+#if defined(NTA_OS_WINDOWS)
+      std::string command = "python -c \"import sys;import os;import nupic;sys.stdout.write(os.path.abspath(os.path.join(nupic.__file__, \"\"../..\"\")))\"";
+#else
       std::string command = "python -c 'import sys;import os;import nupic;sys.stdout.write(os.path.abspath(os.path.join(nupic.__file__, \"../..\")))'";
+#endif
       rootDir_ = OS::executeCommand(command);
       if (!Path::exists(rootDir_))
         NTA_THROW << "Unable to find NuPIC library in '" << rootDir_ << "'";

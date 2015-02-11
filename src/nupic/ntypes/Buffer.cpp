@@ -311,11 +311,7 @@ namespace nupic
     ReadBuffer * r = const_cast<ReadBuffer *>(this);
     try
     {
-    #if defined(NTA_OS_WINDOWS) && defined(NTA_COMPILER_MSVC)
-      size = r->memStream_._Readsome_s(bytes, size, (std::streamsize)size);
-    #else
       size = r->memStream_.readsome(bytes, size);
-    #endif
       return 0;
     }
     catch (...)

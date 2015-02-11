@@ -28,7 +28,6 @@
 #include <nupic/os/Timer.hpp>
 #include <sstream>
 
-
 // Define a couple of platform-specific helper functions
 
 #if defined(NTA_OS_WINDOWS)
@@ -45,24 +44,24 @@ static inline void initTime()
   {
     LARGE_INTEGER f;
     QueryPerformanceCounter(&f);
-    initialTicks_ = (UInt64)(f.QuadPart);
+    initialTicks_ = (nupic::UInt64)(f.QuadPart);
 
     QueryPerformanceFrequency(&f);
-    ticksPerSec_ = (UInt64)(f.QuadPart);
+    ticksPerSec_ = (nupic::UInt64)(f.QuadPart);
   }
 }
 
-static inline UInt64 getTicksPerSec()
+static inline nupic::UInt64 getTicksPerSec()
 {
   return ticksPerSec_;
 }
 
 
-static UInt64 getCurrentTime()
+static nupic::UInt64 getCurrentTime()
 {
   LARGE_INTEGER v;
   QueryPerformanceCounter(&v);
-  return (UInt64)(v.QuadPart) - initialTicks_;
+  return (nupic::UInt64)(v.QuadPart) - initialTicks_;
 }
 
 #elif defined(NTA_OS_DARWIN)

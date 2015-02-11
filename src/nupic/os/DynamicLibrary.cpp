@@ -110,7 +110,7 @@ namespace nupic
   void * DynamicLibrary::getSymbol(const std::string & symbol)
   {    
     #if defined(NTA_OS_WINDOWS)
-      return ::GetProcAddress((HMODULE)handle_, symbol.c_str());
+      return (void*)::GetProcAddress((HMODULE)handle_, symbol.c_str());
     #else
       return ::dlsym(handle_, symbol.c_str());
     #endif
