@@ -37,6 +37,11 @@ Google test main program
 using namespace std;
 using namespace nupic;
 
+#if defined(NTA_OS_WINDOWS)
+// winnt.h defines VOID and clashes with capnp::VOID
+#undef VOID
+#endif
+
 #include "AddTestHeaders.hpp"
 #include "AddTests.hpp"
 

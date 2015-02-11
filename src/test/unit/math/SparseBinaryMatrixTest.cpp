@@ -30,6 +30,12 @@
 #include <gtest/gtest.h>
 
 #include <nupic/math/SparseBinaryMatrix.hpp>
+
+#if defined(NTA_OS_WINDOWS)
+// winnt.h defines VOID and clashes with capnp::VOID
+#undef VOID
+#endif
+
 #include <nupic/proto/SparseBinaryMatrixProto.capnp.h>
 #include <nupic/types/Types.h>
 
