@@ -84,14 +84,11 @@ elseif(WIN32) # incl. win64
                   -DNDEBUG)
 endif()
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
-  add_definitions(-DNTA_COMPILER_GNU
-                  -DNTA_SERIALIZATION_ON)
+  add_definitions(-DNTA_COMPILER_GNU)
 elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
-  add_definitions(-DNTA_COMPILER_CLANG
-                  -DNTA_SERIALIZATION_ON)
+  add_definitions(-DNTA_COMPILER_CLANG)
 elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
   add_definitions(-DNTA_COMPILER_MSVC
-                  -DNTA_SERIALIZATION_ON
                   -DCAPNP_LITE=1
                   -D_VARIADIC_MAX=10
                   -DNOMINMAX)
@@ -293,9 +290,9 @@ add_library(${LIB_STATIC_Z} STATIC IMPORTED GLOBAL)
 #
 set(LIB_STATIC_KJ kj)
 find_library(LIB_STATIC_KJ_LOC
-            ${LIB_STATIC_KJ}
-            "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/lib/"
-            NO_DEFAULT_PATH)
+             ${LIB_STATIC_KJ}
+             "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/lib/"
+             NO_DEFAULT_PATH)
 add_library(${LIB_STATIC_KJ} STATIC IMPORTED GLOBAL)
 
 #
@@ -303,9 +300,9 @@ add_library(${LIB_STATIC_KJ} STATIC IMPORTED GLOBAL)
 #
 set(LIB_STATIC_CAPNP capnp)
 find_library(LIB_STATIC_CAPNP_LOC
-            ${LIB_STATIC_CAPNP}
-            "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/lib/"
-            NO_DEFAULT_PATH)
+             ${LIB_STATIC_CAPNP}
+             "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/lib/"
+             NO_DEFAULT_PATH)
 add_library(${LIB_STATIC_CAPNP} STATIC IMPORTED GLOBAL)
 
 #
@@ -431,11 +428,9 @@ target_link_libraries(${EXECUTABLE_CPPREGIONTEST} ${COMMON_LIBS})
 set_target_properties(${EXECUTABLE_CPPREGIONTEST} PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
 set_target_properties(${EXECUTABLE_CPPREGIONTEST}
                       PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
-if(UNIX) # or UNIX like (i.e. APPLE and CYGWIN)
 add_custom_target(tests_cpp_region
                   COMMAND ${EXECUTABLE_CPPREGIONTEST}
                   DEPENDS ${EXECUTABLE_CPPREGIONTEST})
-endif()
 set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS} -static")
 
 #
@@ -465,10 +460,10 @@ add_dependencies(${EXECUTABLE_HELLOREGION} ${COMMON_LIBS})
 set(EXECUTABLE_PROTOTEST prototest)
 add_executable(${EXECUTABLE_PROTOTEST} examples/prototest.cpp)
 target_link_libraries(${EXECUTABLE_PROTOTEST}
-                    ${COMMON_LIBS})
+                      ${COMMON_LIBS})
 set_target_properties(${EXECUTABLE_PROTOTEST} PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
 set_target_properties(${EXECUTABLE_PROTOTEST}
-                    PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
+                      PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
 add_dependencies(${EXECUTABLE_PROTOTEST} ${COMMON_LIBS})
 
 #
@@ -524,10 +519,8 @@ set_target_properties(${EXECUTABLE_GTESTS}
                       PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS}
                                  LINK_FLAGS "${COMMON_LINK_FLAGS}")
 add_dependencies(${EXECUTABLE_GTESTS} ${LIB_STATIC_GTEST} ${COMMON_LIBS})
-if(UNIX) # or UNIX like (i.e. APPLE and CYGWIN)
 add_custom_target(tests_unit
                   COMMAND ${EXECUTABLE_GTESTS} "--gtest_output=xml:${PROJECT_BUILD_ARTIFACTS_DIR}/unit_tests_report.xml")
-endif()
 set(TEST_HEADERS
     test/unit/algorithms/CondProbTableTest.hpp
     test/unit/algorithms/ConnectionsTest.hpp
