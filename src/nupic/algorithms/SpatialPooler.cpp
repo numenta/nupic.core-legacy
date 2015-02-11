@@ -35,12 +35,6 @@
 
 #include <nupic/algorithms/SpatialPooler.hpp>
 #include <nupic/math/Math.hpp>
-
-#if defined(NTA_OS_WINDOWS)
-// winnt.h defines VOID and clashes with capnp::VOID
-#undef VOID
-#endif
-
 #include <nupic/proto/SpatialPoolerProto.capnp.h>
 
 using namespace std;
