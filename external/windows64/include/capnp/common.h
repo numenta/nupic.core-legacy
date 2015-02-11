@@ -37,7 +37,7 @@ namespace capnp {
 
 #define CAPNP_VERSION_MAJOR 0
 #define CAPNP_VERSION_MINOR 5
-#define CAPNP_VERSION_MICRO 0
+#define CAPNP_VERSION_MICRO 1
 
 #define CAPNP_VERSION \
   (CAPNP_VERSION_MAJOR * 1000000 + CAPNP_VERSION_MINOR * 1000 + CAPNP_VERSION_MICRO)
@@ -57,8 +57,8 @@ struct Void {
   // Type used for Void fields.  Using C++'s "void" type creates a bunch of issues since it behaves
   // differently from other types.
 
-  inline bool operator==(Void other) { return true; }
-  inline bool operator!=(Void other) { return false; }
+  inline bool operator==(Void other) const { return true; }
+  inline bool operator!=(Void other) const { return false; }
 };
 
 static const Void _VOID = Void();
