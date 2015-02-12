@@ -30,11 +30,7 @@
 #include <vector>
 #include <utility>
 
-#if defined(NTA_OS_WINDOWS)
-// winnt.h defines VOID clashing with capnp::VOID
 #undef VOID
-#endif
-
 #include <nupic/proto/RandomProto.capnp.h>
 #include <nupic/types/Types.hpp>
 #include <nupic/utils/Log.hpp>
