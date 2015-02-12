@@ -33,13 +33,7 @@
 #include <capnp/serialize.h>
 #include <kj/std/iostream.h>
 
-#if defined(NTA_OS_WINDOWS)
-// winnt.h defines VOID and clashes with capnp::VOID
-#undef VOID
-#endif
-
 #include <nupic/proto/RandomProto.capnp.h>
-
 #include <nupic/utils/Log.hpp>
 #include <nupic/utils/Random.hpp>
 #include <nupic/utils/StringUtils.hpp>

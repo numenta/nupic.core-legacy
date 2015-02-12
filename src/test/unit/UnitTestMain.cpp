@@ -33,14 +33,10 @@ Google test main program
 // APR must be explicit initialized
 #include <apr-1/apr_general.h>
 #include <nupic/test/Tester.hpp>
+#undef VOID
 
 using namespace std;
 using namespace nupic;
-
-#if defined(NTA_OS_WINDOWS)
-// winnt.h defines VOID and clashes with capnp::VOID
-#undef VOID
-#endif
 
 #include "AddTestHeaders.hpp"
 #include "AddTests.hpp"
