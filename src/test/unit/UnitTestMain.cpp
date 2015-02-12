@@ -33,6 +33,7 @@ Google test main program
 // APR must be explicit initialized
 #include <apr-1/apr_general.h>
 #include <nupic/test/Tester.hpp>
+#undef VOID
 
 using namespace std;
 using namespace nupic;
