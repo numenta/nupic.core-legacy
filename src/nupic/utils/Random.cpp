@@ -33,13 +33,13 @@
 #include <capnp/serialize.h>
 #include <kj/std/iostream.h>
 
-using namespace capnp;
 #include <nupic/proto/RandomProto.capnp.h>
 #include <nupic/utils/Log.hpp>
 #include <nupic/utils/Random.hpp>
 #include <nupic/utils/StringUtils.hpp>
 
 using namespace nupic;
+using namespace capnp;
 Random* Random::theInstanceP_ = nullptr;
 RandomSeedFuncPtr Random::seeder_ = nullptr;
 
