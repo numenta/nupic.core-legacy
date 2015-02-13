@@ -33,8 +33,6 @@
 #include <nupic/proto/SparseBinaryMatrixProto.capnp.h>
 #include <nupic/types/Types.h>
 
-using namespace capnp;
-
 namespace nupic
 {
   namespace

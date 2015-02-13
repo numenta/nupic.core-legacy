@@ -39,7 +39,6 @@
 #include <nupic/utils/StringUtils.hpp>
 
 using namespace nupic;
-using namespace capnp;
 Random* Random::theInstanceP_ = nullptr;
 RandomSeedFuncPtr Random::seeder_ = nullptr;
 
