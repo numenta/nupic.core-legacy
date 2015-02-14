@@ -20,7 +20,8 @@
  * ---------------------------------------------------------------------
  */
 
-// #include <iostream>
+#include <nupic/utils/Random.hpp>
+ 
 #include <iomanip>
 #include <vector>
 #include <iostream>
@@ -29,7 +30,6 @@
 #include <sstream>
 
 #include "cycle_counter.hpp"
-#include <nupic/utils/Random.hpp>
 #include <nupic/utils/Log.hpp>
 #include <assert.h>
 #include <cstring>
