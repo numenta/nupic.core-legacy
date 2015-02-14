@@ -413,12 +413,6 @@ void RandomTest::RunTests()
     Random r(42);
 
     {
-      // choose 0 elements
-      UInt32 choices[0];
-      r.sample(population, 4, choices, 0);
-    }
-
-    {
       // choose some elements
       UInt32 choices[2];
       r.sample(population, 4, choices, 2);

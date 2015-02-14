@@ -24,7 +24,6 @@
  * @file
  */
 
-#include <unistd.h>
 #include "OSTest.hpp"
 #include <nupic/os/Env.hpp>
 #include <nupic/os/Path.hpp>

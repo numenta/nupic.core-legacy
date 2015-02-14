@@ -212,7 +212,7 @@ void FlatSpatialPooler::initializeFlat(
 }
 
 
-void FlatSpatialPooler::save(ostream& outStream)
+void FlatSpatialPooler::save(ostream& outStream) const
 {
 
   SpatialPooler::save(outStream);
