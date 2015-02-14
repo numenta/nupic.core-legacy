@@ -223,7 +223,7 @@ void BufferTest::testEvenMoreComplicatedSerialization()
   TEST2("BufferTest::testComplicatedSerialization(), xo[1].b == 6", xo[1].b == 6);
   TEST2("BufferTest::testComplicatedSerialization(), xo[1].c == 't'", xo[1].c == 't');
   TEST2("BufferTest::testComplicatedSerialization(), xo[1].d == XBCD", std::string(xo[1].d, 4) == std::string("XBCD"));
-  TEST2("BufferTest::testComplicatedSerialization(), xo[1].e == 3.14", xo[1].e == nupic::Real(3.14));
+  TEST2("BufferTest::testComplicatedSerialization(), xo[1].e == 3.14", nearlyEqual(xo[1].e, nupic::Real(3.14)));
   TEST2("BufferTest::testComplicatedSerialization(), xo[1].f[0] == -999", xo[1].f[0] == -999);
   TEST2("BufferTest::testComplicatedSerialization(), xo[1].f[1] == 101", xo[1].f[1] == 101);
   TEST2("BufferTest::testComplicatedSerialization(), xo[1].f[2] == 102", xo[1].f[2] == 102);
@@ -308,7 +308,7 @@ void BufferTest::testComplicatedSerialization()
   TEST2("BufferTest::testComplicatedSerialization(), xo[1].b == 6", xo[1].b == 6);
   TEST2("BufferTest::testComplicatedSerialization(), xo[1].c == 't'", xo[1].c == 't');
   TEST2("BufferTest::testComplicatedSerialization(), xo[1].d == XBCD", std::string(xo[1].d, 4) == std::string("XBCD"));
-  TEST2("BufferTest::testComplicatedSerialization(), xo[1].e == 3.14", xo[1].e == nupic::Real(3.14));
+  TEST2("BufferTest::testComplicatedSerialization(), xo[1].e == 3.14", nearlyEqual(xo[1].e, nupic::Real(3.14)));
 }
 
 void BufferTest::testArrayMethods()
