@@ -426,11 +426,12 @@ set(EXECUTABLE_CPPREGIONTEST cpp_region_test)
 add_executable(${EXECUTABLE_CPPREGIONTEST} test/integration/CppRegionTest.cpp)
 target_link_libraries(${EXECUTABLE_CPPREGIONTEST} ${COMMON_LIBS})
 set_target_properties(${EXECUTABLE_CPPREGIONTEST} PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
-set_target_properties(${EXECUTABLE_CPPREGIONTEST}
-                      PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
+set_target_properties(${EXECUTABLE_CPPREGIONTEST} PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
 add_custom_target(tests_cpp_region
                   COMMAND ${EXECUTABLE_CPPREGIONTEST}
-                  DEPENDS ${EXECUTABLE_CPPREGIONTEST})
+                  DEPENDS ${EXECUTABLE_CPPREGIONTEST}
+                  VERBATIM)
+
 set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS} -static")
 
 #
@@ -520,7 +521,9 @@ set_target_properties(${EXECUTABLE_GTESTS}
                                  LINK_FLAGS "${COMMON_LINK_FLAGS}")
 add_dependencies(${EXECUTABLE_GTESTS} ${LIB_STATIC_GTEST} ${COMMON_LIBS})
 add_custom_target(tests_unit
-                  COMMAND ${EXECUTABLE_GTESTS} "--gtest_output=xml:${PROJECT_BUILD_ARTIFACTS_DIR}/unit_tests_report.xml")
+                  COMMAND ${EXECUTABLE_GTESTS} "--gtest_output=xml:${PROJECT_BUILD_ARTIFACTS_DIR}/unit_tests_report.xml"
+                  DEPENDS ${EXECUTABLE_GTESTS}
+                  VERBATIM)
 set(TEST_HEADERS
     test/unit/algorithms/CondProbTableTest.hpp
     test/unit/algorithms/ConnectionsTest.hpp
@@ -576,7 +579,8 @@ file(WRITE "${PROJECT_BINARY_DIR}/AddTestHeaders.hpp" "${headers_file_content}")
 add_custom_target(tests_all
                   DEPENDS tests_cpp_region
                   DEPENDS tests_unit
-                  COMMENT "Running all tests")
+                  COMMENT "Running all tests"
+                  VERBATIM)
 
 if(UNIX)
   add_custom_target(combined ALL
@@ -607,7 +611,8 @@ else()
                             ${LIB_STATIC_GTEST}
                             ${EXECUTABLE_HELLOREGION}
                             ${EXECUTABLE_CPPREGIONTEST}
-                            ${EXECUTABLE_GTESTS})
+                            ${EXECUTABLE_GTESTS}
+                    VERBATIM)
 endif()
 
 #

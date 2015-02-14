@@ -1082,14 +1082,14 @@ namespace nupic {
     setup(sp, 6, 6);
 
     Real initMinActiveDutyCycles1[] =
-      {1e-6, 1e-6, 1e-6, 1e-6, 1e-6};
+      {1e-6, 1e-6, 1e-6, 1e-6, 1e-6, 1e-6 };
     Real initActiveDutyCycles1[] =
       {0.1, 0.3, 0.02, 0.04, 0.7, 0.12};
     Real initBoostFactors1[] =
       {0, 0, 0, 0, 0};
     Real trueBoostFactors1[] =
       {1, 1, 1, 1, 1};
-    Real resultBoostFactors1[5];
+    Real resultBoostFactors1[6];
     sp.setMaxBoost(10);
     sp.setBoostFactors(initBoostFactors1);
     sp.setActiveDutyCycles(initActiveDutyCycles1);
@@ -1106,7 +1106,7 @@ namespace nupic {
       {0, 0, 0, 0, 0};
     Real trueBoostFactors2[] =
       {1, 1, 1, 1, 1};
-    Real resultBoostFactors2[5];
+    Real resultBoostFactors2[6];
     sp.setMaxBoost(10);
     sp.setBoostFactors(initBoostFactors2);
     sp.setActiveDutyCycles(initActiveDutyCycles2);
@@ -1123,7 +1123,7 @@ namespace nupic {
       {0, 0, 0, 0, 0};
     Real trueBoostFactors3[] =
       {9.1, 9.1, 9.1, 9.1, 9.1};
-    Real resultBoostFactors3[5];
+    Real resultBoostFactors3[6];
     sp.setMaxBoost(10);
     sp.setBoostFactors(initBoostFactors3);
     sp.setActiveDutyCycles(initActiveDutyCycles3);
@@ -1140,7 +1140,7 @@ namespace nupic {
       {0, 0, 0, 0, 0};
     Real trueBoostFactors4[] =
       {10, 10, 10, 10, 10};
-    Real resultBoostFactors4[5];
+    Real resultBoostFactors4[6];
     sp.setMaxBoost(10);
     sp.setBoostFactors(initBoostFactors4);
     sp.setActiveDutyCycles(initActiveDutyCycles4);
@@ -1555,7 +1555,7 @@ namespace nupic {
     UInt trueNeighborsMap1[8] = {0, 0, 1, 0, 1, 0, 0, 0};
     sp.getNeighbors1D_(column, dimensions, radius, wrapAround,
                           neighbors);
-    neighborsMap.clear();
+    neighborsMap.assign(numColumns, 0);
     for (auto & neighbor : neighbors) {
       neighborsMap[neighbor] = 1;
     }
@@ -1567,7 +1567,7 @@ namespace nupic {
     UInt trueNeighborsMap2[8] = {0, 1, 1, 0, 1, 1, 0, 0};
     sp.getNeighbors1D_(column, dimensions, radius, wrapAround,
                           neighbors);
-    neighborsMap.clear();
+    neighborsMap.assign(numColumns, 0);
     for (auto & neighbor : neighbors) {
       neighborsMap[neighbor] = 1;
     }
@@ -1579,7 +1579,7 @@ namespace nupic {
     UInt trueNeighborsMap3[8] = {0, 1, 1, 0, 0, 0, 1, 1};
     sp.getNeighbors1D_(column, dimensions, radius, wrapAround,
                           neighbors);
-    neighborsMap.clear();
+    neighborsMap.assign(numColumns, 0);
     for (auto & neighbor : neighbors) {
       neighborsMap[neighbor] = 1;
     }
@@ -1873,7 +1873,7 @@ namespace nupic {
       neighborsMap[neighbor] = 1;
     }
 
-    NTA_CHECK(check_vector_eq((UInt *) trueNeighbors1, neighborsMap));
+    NTA_CHECK(check_vector_eq((UInt*) trueNeighbors1, neighborsMap));
 
     neighborsMap.clear();
     w = 4;
@@ -1963,6 +1963,7 @@ namespace nupic {
     dimensions.clear();
     dimensions.push_back(6);
     dimensions.push_back(5);
+
     numColumns = 30;
     UInt trueNeighborsMap3[30] =
       {0, 0, 0, 0, 0,
@@ -2018,6 +2019,7 @@ namespace nupic {
     }
     NTA_CHECK(check_vector_eq(trueNeighborsMap5, neighborsMap));
 
+    numColumns = 8;
 
     column = 3;
     radius = 1;
@@ -2027,7 +2029,7 @@ namespace nupic {
     UInt trueNeighborsMap6[8] = {0, 0, 1, 0, 1, 0, 0, 0};
     sp.getNeighborsND_(column, dimensions, radius, wrapAround,
                           neighbors);
-    neighborsMap.clear();
+    neighborsMap.assign(numColumns, 0);
     for (auto & neighbor : neighbors) {
       neighborsMap[neighbor] = 1;
     }
@@ -2042,7 +2044,7 @@ namespace nupic {
     UInt trueNeighborsMap7[8] = {0, 1, 1, 0, 1, 1, 0, 0};
     sp.getNeighborsND_(column, dimensions, radius, wrapAround,
                           neighbors);
-    neighborsMap.clear();
+    neighborsMap.assign(numColumns, 0);
     for (auto & neighbor : neighbors) {
       neighborsMap[neighbor] = 1;
     }
@@ -2057,7 +2059,7 @@ namespace nupic {
     UInt trueNeighborsMap8[8] = {0, 1, 1, 0, 0, 0, 1, 1};
     sp.getNeighborsND_(column, dimensions, radius, wrapAround,
                           neighbors);
-    neighborsMap.clear();
+    neighborsMap.assign(numColumns, 0);
     for (auto & neighbor : neighbors) {
       neighborsMap[neighbor] = 1;
     }
@@ -2070,10 +2072,10 @@ namespace nupic {
     wrapAround = false;
     dimensions.clear();
     dimensions.push_back(8);
-    UInt trueNeighborsMap9[8] = {1, 1, 1, 1, 1, 1, 1, 1};
+    UInt trueNeighborsMap9[8] = {0, 1, 1, 1, 1, 1, 1, 1};
     sp.getNeighborsND_(column, dimensions, radius, wrapAround,
                           neighbors);
-    neighborsMap.clear();
+    neighborsMap.assign(numColumns, 0);
     for (auto & neighbor : neighbors) {
       neighborsMap[neighbor] = 1;
     }
@@ -2087,10 +2089,10 @@ namespace nupic {
     wrapAround = true;
     dimensions.clear();
     dimensions.push_back(8);
-    UInt trueNeighborsMap10[8] = {1, 1, 1, 1, 1, 1, 1, 1};
+    UInt trueNeighborsMap10[8] = {0, 1, 1, 1, 1, 1, 1, 1};
     sp.getNeighborsND_(column, dimensions, radius, wrapAround,
                           neighbors);
-    neighborsMap.clear();
+    neighborsMap.assign(numColumns, 0);
     for (auto & neighbor : neighbors) {
       neighborsMap[neighbor] = 1;
     }

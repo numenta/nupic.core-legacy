@@ -520,9 +520,9 @@ namespace nupic
 
       //add the modified watch struct to data_.watches
       allWatchData::iterator it;
-      it = data_.watches.begin()+i;
-      data_.watches.erase(it);
+      it = data_.watches.begin() + i;
       data_.watches.insert(it, watch);
+      data_.watches.erase(data_.watches.begin() + i + 1);
     }
 
     (*data_.outStream) << "Data: watchID, iteration, paramValue" << "\n";
