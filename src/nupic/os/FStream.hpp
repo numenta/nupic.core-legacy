@@ -24,9 +24,9 @@
  * Definitions for the FStream classes
  * 
  * These classes are versions of ifstream and ofstream that accept platform independent
- * (i.e. win32 or unix) utf-8 path specifiers for their constructor and open() methods.
+ * (i.e. windows or unix) utf-8 path specifiers for their constructor and open() methods.
  *
- * The native ifstream and ofstream classes on unix already accept UTF-8, but on win32,
+ * The native ifstream and ofstream classes on unix already accept UTF-8, but on windows,
  * we must convert the utf-8 path to unicode and then pass it to the 'w' version of
  * ifstream or ofstream
  */
