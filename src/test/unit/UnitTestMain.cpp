@@ -29,9 +29,6 @@ Google test main program
 #define WIN32_LEAN_AND_MEAN
 #endif
 
-#include "gtest/gtest.h"
-// APR must be explicit initialized
-#include <apr-1/apr_general.h>
 #include <nupic/test/Tester.hpp>
 #undef VOID
 
@@ -40,6 +37,10 @@ using namespace nupic;
 
 #include "AddTestHeaders.hpp"
 #include "AddTests.hpp"
+
+#include "gtest/gtest.h"
+// APR must be explicit initialized
+#include <apr-1/apr_general.h>
 
 int main(int argc, char ** argv) {
 

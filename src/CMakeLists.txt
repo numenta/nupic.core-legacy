@@ -184,7 +184,7 @@ endif()
 # compiler specific settings here
 #
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
-  set(COMMON_COMPILE_FLAGS "/TP /Zc:wchar_t /Gm- /fp:precise /errorReport:prompt /W3 /WX- /GR /Gd /GS /Oy- /EHs /analyze- /nologo")
+  set(COMMON_COMPILE_FLAGS "/TP /Zc:wchar_t /Gm- /fp:precise /errorReport:prompt /W2 /WX- /GR /Gd /GS /Oy- /EHs /analyze- /nologo")
   set(COMMON_LINK_FLAGS "/NOLOGO /SAFESEH:NO /NODEFAULTLIB:LIBCMT")
   if("${BITNESS}" STREQUAL "32")
     set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} /MACHINE:X86")
@@ -461,10 +461,10 @@ add_dependencies(${EXECUTABLE_HELLOREGION} ${COMMON_LIBS})
 set(EXECUTABLE_PROTOTEST prototest)
 add_executable(${EXECUTABLE_PROTOTEST} examples/prototest.cpp)
 target_link_libraries(${EXECUTABLE_PROTOTEST}
-                        ${COMMON_LIBS})
+                      ${COMMON_LIBS})
 set_target_properties(${EXECUTABLE_PROTOTEST} PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
 set_target_properties(${EXECUTABLE_PROTOTEST}
-                        PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
+                      PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
 add_dependencies(${EXECUTABLE_PROTOTEST} ${COMMON_LIBS})
 
 #
