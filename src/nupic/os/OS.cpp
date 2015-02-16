@@ -35,12 +35,12 @@
 #include <apr-1/apr_network_io.h>
 
 
-#if defined(NTA_PLATFORM_darwin32) || defined(NTA_PLATFORM_darwin64)
+#if defined(NTA_OS_DARWIN)
 extern "C" {
 #include <mach/task.h>
 #include <mach/mach_init.h>
 }
-#elif NTA_PLATFORM_win32
+#elif defined(NTA_OS_WINDOWS)
 //We only run on XP/2003 and above
 #undef _WIN32_WINNT
 #define _WIN32_WINNT 0x0501
@@ -56,7 +56,7 @@ using namespace nupic;
 
 void OS::getProcessMemoryUsage(size_t& realMem, size_t& virtualMem)
 {
-#if defined(NTA_PLATFORM_darwin32) || defined(NTA_PLATFORM_darwin64)
+#if defined(NTA_OS_DARWIN)
   struct task_basic_info t_info;
   mach_msg_type_number_t t_info_count = TASK_BASIC_INFO_COUNT;
   
@@ -67,7 +67,7 @@ void OS::getProcessMemoryUsage(size_t& realMem, size_t& virtualMem)
   }
   realMem = t_info.resident_size;
   virtualMem = t_info.virtual_size;
-#elif NTA_PLATFORM_win32
+#elif defined(NTA_OS_WINDOWS)
   HANDLE hProcess = ::GetCurrentProcess();
   BOOL rc;
   SYSTEM_INFO si;
@@ -160,7 +160,7 @@ void OS::getProcessMemoryUsage(size_t& realMem, size_t& virtualMem)
 
 std::string OS::executeCommand(std::string command)
 {
-#if defined(NTA_PLATFORM_win32) && defined(NTA_COMPILER_MSVC)
+#if defined(NTA_OS_WINDOWS) && defined(NTA_COMPILER_MSVC)
   FILE* pipe = _popen(&command[0], "r");
 #else
   FILE* pipe = popen(&command[0], "r");
@@ -178,7 +178,7 @@ std::string OS::executeCommand(std::string command)
       result += buffer;
     }
   }
-#if defined(NTA_PLATFORM_win32) && defined(NTA_COMPILER_MSVC)
+#if defined(NTA_OS_WINDOWS) && defined(NTA_COMPILER_MSVC)
   _pclose(pipe);
 #else
   pclose(pipe);

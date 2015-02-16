@@ -673,7 +673,7 @@ namespace nupic {
   {
     inline float operator()(const float& x) const 
     {
-#ifdef NTA_PLATFORM_win32
+#if defined(NTA_OS_WINDOWS)
       return (float) (log(x) / log(2.0));
 #else
       return log2f(x); 
@@ -686,7 +686,7 @@ namespace nupic {
   {
     inline double operator()(const double& x) const 
     { 
-#ifdef NTA_PLATFORM_win32
+#if defined(NTA_OS_WINDOWS)
       return log(x) / log(2.0);
 #else
       return log2(x); 
@@ -699,7 +699,7 @@ namespace nupic {
   {
     inline long double operator()(const long double& x) const 
     { 
-#ifdef NTA_PLATFORM_win32
+#if defined(NTA_OS_WINDOWS)
       return log(x) / log(2.0);
 #else
       return log2l(x); 
@@ -716,7 +716,7 @@ namespace nupic {
   {
     inline float operator()(const float& x) const 
     {
-#ifdef NTA_PLATFORM_win32
+#if defined(NTA_OS_WINDOWS)
       return (float) (log(x) / log(10.0));
 #else
       return log10f(x); 
@@ -729,7 +729,7 @@ namespace nupic {
   {
     inline double operator()(const double& x) const 
     { 
-#ifdef NTA_PLATFORM_win32
+#if defined(NTA_OS_WINDOWS)
       return log(x) / log(10.0);
 #else
       return log10(x); 
@@ -742,7 +742,7 @@ namespace nupic {
   {
     inline long double operator()(const long double& x) const 
     { 
-#ifdef NTA_PLATFORM_win32
+#if defined(NTA_OS_WINDOWS)
       return log(x) / log(10.0);
 #else
       return log10l(x); 
@@ -759,7 +759,7 @@ namespace nupic {
   {
     inline float operator()(const float& x) const 
     {
-#ifdef NTA_PLATFORM_win32
+#if defined(NTA_OS_WINDOWS)
       return (float) log(1.0 + x);
 #else
       return log1pf(x); 
@@ -772,7 +772,7 @@ namespace nupic {
   {
     inline double operator()(const double& x) const 
     { 
-#ifdef NTA_PLATFORM_win32
+#if defined(NTA_OS_WINDOWS)
       return log(1.0 + x);
 #else
       return log1p(x); 
@@ -785,7 +785,7 @@ namespace nupic {
   {
     inline long double operator()(const long double& x) const 
     { 
-#ifdef NTA_PLATFORM_win32
+#if defined(NTA_OS_WINDOWS)
       return log(1.0 + x);
 #else
       return log1pl(x); 

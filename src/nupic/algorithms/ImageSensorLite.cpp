@@ -45,11 +45,11 @@
 
 // Visual C++ (Windows) does not come with roundf() in
 // the standard library
-#ifdef NTA_PLATFORM_win32
+#if defined(NTA_OS_WINDOWS)
 #define ROUND(x)     ((x-floor(x))>0.5 ? ceil(x) : floor(x))
 #else
 #define ROUND(x)     (roundf(x))
-#endif // !WIN32
+#endif
 
 
 // if INIT_FROM_PYTHON is defined, this module can initialize

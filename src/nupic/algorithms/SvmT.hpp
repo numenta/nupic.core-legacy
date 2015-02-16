@@ -730,7 +730,7 @@ inline float svm<traits>::rbf_function(float* x, float* x_end, float* y) const
 {
   float sum = 0;
 
-#if defined(NTA_ASM) && defined(NTA_PLATFORM_win32) && defined(NTA_COMPILER_MSVC)
+#if defined(NTA_ASM) && defined(NTA_ARCH_32) && defined(NTA_OS_WINDOWS) && defined(NTA_COMPILER_MSVC)
 
   if (with_sse) {
 
@@ -774,7 +774,7 @@ inline float svm<traits>::rbf_function(float* x, float* x_end, float* y) const
     }
   }
 
-#elif defined(NTA_ASM) && defined(NTA_PLATFORM_darwin32) 
+#elif defined(NTA_ASM) && defined(NTA_ARCH_32) && defined(NTA_OS_DARWIN)
 
   if (with_sse) {
     
@@ -817,7 +817,7 @@ inline float svm<traits>::rbf_function(float* x, float* x_end, float* y) const
     }
   }
 
-#else // not NTA_PLATFORM_darwin86, not NTA_PLATFORM_win32 and VC; or not NTA_ASM
+#else // not darwin86, not win32 and VC; or not NTA_ASM
 
   while (x != x_end) {
     float d = *x - *y;
@@ -971,7 +971,7 @@ svm<traits>::binary_probability(const problem_type& prob, float& probA, float& p
 
       svm_model *sub_model = train(sub_prob, sub_param);
 
-#if defined(NTA_PLATFORM_win32) && defined(NTA_COMPILER_MSVC)
+#if defined(NTA_OS_WINDOWS) && defined(NTA_COMPILER_MSVC)
       float* x_tmp = (float*) _aligned_malloc(4*prob.n_dims(), 16);
 #else
       auto x_tmp = new float[prob.n_dims()];
@@ -985,7 +985,7 @@ svm<traits>::binary_probability(const problem_type& prob, float& probA, float& p
 	dec_values[perm[j]] = val * sub_model->label[0];
       }		
 
-#if defined(NTA_PLATFORM_win32) && defined(NTA_COMPILER_MSVC)
+#if defined(NTA_OS_WINDOWS) && defined(NTA_COMPILER_MSVC)
       _aligned_free(x_tmp);
 #else
       delete [] x_tmp;
@@ -1156,7 +1156,7 @@ svm_model* svm<traits>::train(const problem_type& prob, const svm_parameter& par
   for (int i = 0; i != l; ++i)
     if (nonzero[i]) {
 
-#if defined(NTA_PLATFORM_win32) && defined(NTA_COMPILER_MSVC)
+#if defined(NTA_OS_WINDOWS) && defined(NTA_COMPILER_MSVC)
       float* new_sv = (float*) _aligned_malloc(4*n_dims, 16);
 #else
       auto new_sv = new float[n_dims];
@@ -1293,7 +1293,7 @@ float svm<traits>::predict(const svm_model& model, InIter x)
 
     dec_values_ = new float [n_class*(n_class-1)/2];
 
-#if defined(NTA_PLATFORM_win32) && defined(NTA_COMPILER_MSVC)
+#if defined(NTA_OS_WINDOWS) && defined(NTA_COMPILER_MSVC)
     x_tmp_ = (float*) _aligned_malloc(4*n_dims, 16);
 #else
     x_tmp_ = new float [n_dims];
@@ -1336,7 +1336,7 @@ float svm<traits>::predict_probability(const svm_model& model, InIter x, OutIter
   if (dec_values_ == nullptr) {
     dec_values_ = new float [n_class*(n_class-1)/2];
 
-#if defined(NTA_PLATFORM_win32) && defined(NTA_COMPILER_MSVC)
+#if defined(NTA_OS_WINDOWS) && defined(NTA_COMPILER_MSVC)
     x_tmp_ = (float*) _aligned_malloc(4*n_dims, 16);
 #else
     x_tmp_ = new float [n_dims];

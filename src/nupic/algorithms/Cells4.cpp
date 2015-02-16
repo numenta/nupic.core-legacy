@@ -20,7 +20,8 @@
  * ---------------------------------------------------------------------
  */
 
-// #include <iostream>
+#include <nupic/utils/Random.hpp>
+ 
 #include <iomanip>
 #include <vector>
 #include <iostream>
@@ -29,7 +30,6 @@
 #include <sstream>
 
 #include "cycle_counter.hpp"
-#include <nupic/utils/Random.hpp>
 #include <nupic/utils/Log.hpp>
 #include <assert.h>
 #include <cstring>
@@ -1325,7 +1325,7 @@ void Cells4::compute(Real* input, Real* output, bool doInference, bool doLearnin
   // invalidating our indexes.
   memset(output, 0, _nCells * sizeof(output[0])); // most output is zero
 #if SOME_STATES_NOT_INDEXED
-#ifdef NTA_ARCH_32
+#if defined(NTA_ARCH_32)
   const UInt multipleOf4 = 4 * (_nCells/4);
   UInt i;
   for (i = 0; i < multipleOf4; i += 4) {
@@ -1392,7 +1392,7 @@ void Cells4::compute(Real* input, Real* output, bool doInference, bool doLearnin
     }
   }
 #endif // NTA_ARCH_32/64
-#else
+#else  // some states indexed
   static std::vector<UInt> cellsOn;
   std::vector<UInt>::iterator iterOn;
   cellsOn = _infPredictedStateT.cellsOn();

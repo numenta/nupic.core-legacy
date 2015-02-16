@@ -33,6 +33,13 @@
 
 #include <stddef.h>
 
+#if defined(NTA_OS_WINDOWS) && defined(NTA_COMPILER_MSVC) && defined(NDEBUG)
+#pragma warning( disable : 4244 ) // conversion from 'double' to 'nta::Real', possible loss of data (LOTS of various type combinations)
+#pragma warning( disable : 4305 ) // truncation from 'double' to 'nta::Real', possible loss of data (LOTS of various type combinations)
+#pragma warning( disable : 4251 ) // needs to have dll-interface to be used by clients of class 
+#pragma warning( disable : 4275 ) // non dll-interface struct used as base for dll-interface class
+#endif
+
 /*---------------------------------------------------------------------- */
  
 /** 
@@ -183,7 +190,7 @@ typedef  long                 NTA_Int64;
 typedef  unsigned long        NTA_UInt64;
 #endif
 // win specific
-#if defined(NTA_PLATFORM_win32)
+#if defined(NTA_OS_WINDOWS)
 /**
  * Represents a 32-bit signed integer.
  */
@@ -257,7 +264,7 @@ typedef  unsigned long       NTA_UInt32;
  */
 
 #ifndef SWIG
-#ifdef NTA_PLATFORM_win32
+#if defined(NTA_OS_WINDOWS)
 #define NTA_EXPORT __declspec(dllexport)
 #define NTA_HIDDEN
 #else

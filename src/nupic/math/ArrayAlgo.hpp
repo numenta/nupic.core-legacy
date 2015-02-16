@@ -33,6 +33,11 @@
 #include <iterator>
 #include <algorithm>
 
+#if defined(NTA_OS_WINDOWS) && defined(NTA_COMPILER_MSVC) 
+  #include <array>
+  #include <intrin.h>
+#endif
+
 #include <nupic/utils/Random.hpp> // For the official Numenta RNG
 #include <nupic/math/Math.hpp>
 #include <nupic/math/Types.hpp>
@@ -61,51 +66,60 @@ namespace nupic {
             SSE41 = 1<<19,
             SSE42 = 1<<20;
 #ifdef NTA_ASM
-  #if defined(NTA_PLATFORM_win32) && defined(NTA_COMPILER_MSVC)
+  #if defined(NTA_ARCH_32)
+    #if defined(NTA_OS_WINDOWS) && defined(NTA_COMPILER_MSVC)
 
-    // VC asm
+      // VC asm
 
-    unsigned int f = 1;
-    __asm {
-      mov eax, f
-      cpuid
-      mov c, ecx
-      mov d, edx
-    }
+      unsigned int f = 1;
+      __asm {
+        mov eax, f
+        cpuid
+        mov c, ecx
+        mov d, edx
+      }
 
-  // TODO: add asm code for gcc/clang/... on Windows
+    // TODO: add asm code for gcc/clang/... on Windows
 
-  #elif defined(NTA_ARCH_32)
+    #elif defined(NTA_OS_LINUX) || defined(NTA_OS_DARWIN)
 
-    unsigned int a = 0,b = 0, f = 1;
+      unsigned int a = 0,b = 0, f = 1;
 
-    // PIC-compliant asm
-    __asm__ __volatile__(
-                         "pushl %%ebx\n\t"
-                         "cpuid\n\t"
-                         "movl %%ebx, %1\n\t"
-                         "popl %%ebx\n\t"
-                         : "=a" (a), "=r" (b), "=c" (c), "=d" (d)
-                         : "a" (f)
-                         : "cc"
-                         );
+      // PIC-compliant asm
+      __asm__ __volatile__(
+                           "pushl %%ebx\n\t"
+                           "cpuid\n\t"
+                           "movl %%ebx, %1\n\t"
+                           "popl %%ebx\n\t"
+                           : "=a" (a), "=r" (b), "=c" (c), "=d" (d)
+                           : "a" (f)
+                           : "cc"
+                           );
+    #endif
+  #elif defined(NTA_ARCH_64)
+    #if defined(NTA_OS_LINUX) || defined(NTA_OS_DARWIN)
 
-  #else // 64bit
+      __asm__ __volatile__ (
+                            "pushq  %%rbx\n\t"
 
-    __asm__ __volatile__ (
-                         "pushq  %%rbx\n\t"
+                            "movl   $1, %%eax\n\t"
+                            "cpuid\n\t"
+                            "movl   %%ecx, %0\n\t"
+                            "movl   %%edx, %1\n\t"
 
-                         "movl   $1, %%eax\n\t"
-                         "cpuid\n\t"
-                         "movl   %%ecx, %0\n\t"
-                         "movl   %%edx, %1\n\t"
+                            "popq  %%rbx\n\t"
+                            : "=c" (c), "=d" (d)
+                            :
+                            :
+                            );
+   #elif defined(NTA_OS_WINDOWS) && defined(NTA_COMPILER_MSVC)
 
-                         "popq  %%rbx\n\t"
-                         : "=c" (c), "=d" (d)
-                         :
-                         :
-			 );
-  #endif //NTA_PLATFORM_win32
+      std::array<int, 4> cpui;
+       __cpuid(cpui.data(), 1);
+       c = cpui[2];
+       d = cpui[3];
+    #endif
+  #endif
 #endif //NTA_ASM
 
     int ret = -1;
@@ -236,7 +250,7 @@ namespace nupic {
     if (SSE_LEVEL >= 41) { // ptest is a SSE 4.1 instruction
 
     // On win32, the asm syntax is not correct.
-#if defined(NTA_ARCH_32) && defined(NTA_ASM) && not defined(NTA_PLATFORM_win32)
+#if defined(NTA_ASM) && defined(NTA_ARCH_32) && not defined(NTA_OS_WINDOWS)
 
       // n is the total number of floats to process.
       // n1 is the number of floats we can process in parallel using SSE.
@@ -302,7 +316,7 @@ namespace nupic {
           return false;
       return true;
 
-#elif defined(NTA_ARCH_64) && defined(NTA_ASM)
+#elif defined(NTA_ASM) && defined(NTA_ARCH_64) && not defined(NTA_OS_WINDOWS)
 
       // n is the total number of floats to process.
       // n1 is the number of floats we can process in parallel using SSE.
@@ -401,7 +415,7 @@ namespace nupic {
     // const int SSE_LEVEL. 
     if (SSE_LEVEL >= 41) { // ptest is a SSE 4.1 instruction
 
-#if defined(NTA_ARCH_32) && defined(NTA_ASM)
+#if defined(NTA_ASM) && defined(NTA_ARCH_32) && not defined(NTA_OS_WINDOWS)
 
       // n is the total number of floats to process.
       // n1 is the number of floats we can process in parallel using SSE.
@@ -467,7 +481,7 @@ namespace nupic {
           return false;
       return true;
 
-#elif defined(NTA_ASM)
+#elif defined(NTA_ASM) && not defined(NTA_OS_WINDOWS)
 
       // n is the total number of floats to process.
       // n1 is the number of floats we can process in parallel using SSE.
@@ -2242,7 +2256,7 @@ namespace nupic {
 
     a.resize(nrows * nnzpr);
 
-#ifdef NTA_PLATFORM_darwin32
+#if defined(NTA_ARCH_32) && defined(NTA_OS_DARWIN)
     nupic::Random rng(seed == -1 ? arc4random() : seed);
 #else
     nupic::Random rng(seed == -1 ? rand() : seed);
@@ -2295,7 +2309,7 @@ namespace nupic {
 
     a.resize(nrows * nnzpr);
 
-#ifdef NTA_PLATFORM_darwin32
+#if defined(NTA_ARCH_32) && defined(NTA_OS_DARWIN)
     nupic::Random rng(seed == -1 ? arc4random() : seed);
 #else
     nupic::Random rng(seed == -1 ? rand() : seed);
@@ -3772,9 +3786,9 @@ namespace nupic {
       int n2 = (int)(end - start - n1);
 
 
-#if defined(NTA_ARCH_64)
+#if defined(NTA_ARCH_64) && not defined(NTA_OS_WINDOWS)
 
-    #if defined(NTA_PLATFORM_darwin64)
+    #if defined(NTA_OS_DARWIN)
 
       // DO NOT CHANGE THESE NEXT TWO LINES, OTHERWISE THE ASM CODE BELOW WILL BREAK.
       // 'localThreshold' MUST BE STATIC!! Must always assign threshold to localThreshold also!
@@ -3784,7 +3798,7 @@ namespace nupic {
 
       __asm__ __volatile__(
 
-    #if defined(NTA_PLATFORM_darwin64)
+    #if defined(NTA_OS_DARWIN)
 		   // We need to access localThreshold by it's mangled name here because g++ and
                    // clang++ do things differently on OS X. They clobber eax by the time they
                    // get here and 'threshold' is not properly loaded into rax by the constraint
@@ -4962,7 +4976,7 @@ namespace nupic {
 
     // See comments in count_gt. We need both conditional compilation and 
     // SSE_LEVEL check.
-#if defined(NTA_PLATFORM_darwin32) || defined(NTA_PLATFORM_darwin64) || defined(NTA_PLATFORM_linux64) || defined(NTA_PLATFORM_linux32)
+#if not defined(NTA_OS_WINDOWS)
 
     if (SSE_LEVEL >= 3) {
 
@@ -5085,7 +5099,7 @@ namespace nupic {
 
     // See comments in count_gt. We need conditional compilation
     // _AND_ SSE_LEVEL check.
-#if defined(NTA_PLATFORM_darwin32) || defined(NTA_PLATFORM_linux64) || defined(NTA_PLATFORM_darwin64) || defined(NTA_PLATFORM_linux32)
+#if defined(NTA_OS_LINUX) || defined(NTA_OS_DARWIN)
 
     if (SSE_LEVEL >= 3) {
 

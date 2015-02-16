@@ -124,10 +124,10 @@ void Env::unset(const std::string& name)
 
 char ** Env::environ_ = nullptr;
 
-#if defined(NTA_PLATFORM_darwin64) || defined(NTA_PLATFORM_darwin32)
-#include <crt_externs.h>
+#if defined(NTA_OS_DARWIN)
+  #include <crt_externs.h>
 #else
-extern char **environ;
+  extern char **environ;
 #endif
 
 
@@ -136,7 +136,7 @@ char **Env::getenv()
   if (environ_ != nullptr)
     return environ_;
 
-#if defined(NTA_PLATFORM_darwin64) || defined(NTA_PLATFORM_darwin32)
+#if defined(NTA_OS_DARWIN)
   environ_ = *_NSGetEnviron();
 #else 
   environ_ = environ;
