@@ -16,9 +16,9 @@ These libraries are embedded into the %NUPIC_CORE%/lib/nupic_core library.
 | Yaml Cpp | 0.3.0 | https://code.google.com/p/yaml-cpp/ | yaml-cpp-0.3.0.tar.gz |
 | Z lib | 1.2.8 | http://www.zlib.net/ | zlib-1.2.8.tar.gz |
 
-Extract them all into %NUPIC_CORE_SOURCE%/build (the %NUPIC_CORE_SOURCE%/.gitignore file has a rule that ignores any directory called build/).
+Extract them all into %NUPIC_CORE_SOURCE%/build directory. The %NUPIC_CORE_SOURCE%/.gitignore file has a rule that ignores any directory called build/ You may need to un-nest some of the directories, e.g. apr-1.5.1/apr-1.5.1/... to apr-1.5.1/...
 
-Perform some housekeeping tasks on the Apr directories by renaming them -
+Perform some housekeeping tasks on the Apr directories by renaming them -  
 apr-1.5.1 to apr  
 apr-iconv-1.2.1 to apr-iconv  
 apr-util-1.5.4 to apr-util  
@@ -37,8 +37,9 @@ This implies that your %PATH% environment variable has a directory to the cmake.
 
 ## Cap'n Proto
 
-Download version 0.5.0 from https://capnproto.org/capnproto-c++-win32-0.5.0.zip The three executables found in  %NUPIC_CORE_SOURCE%\build\capnproto-tools-win32-0.5.0 should match the %NUPIC_CORE_SOURCE%\external\windows64\bin executables. 
-Install instructions can be found at https://capnproto.org/install.html Here is an example Visual Studio Command Prompt line to invoke cmake and generator a solution and project files for Cap'n Proto.
+Download version 0.5.0 from https://capnproto.org/capnproto-c++-win32-0.5.0.zip 
+
+The three executables found in  %NUPIC_CORE_SOURCE%\build\capnproto-tools-win32-0.5.0 should match the %NUPIC_CORE_SOURCE%\external\windows64\bin executables. Install instructions can be found at https://capnproto.org/install.html Here is an example Visual Studio Command Prompt line to invoke cmake and generator a solution and project files for Cap'n Proto.
 
 > %NUPIC_CORE_SOURCE%\build\capnproto-c++-0.5.0>cmake -G "Visual Studio 14 2015 Win64" -DCAPNP_LITE=1 -DEXTERNAL_CAPNP=1 -DCAPNP_INCLUDE_DIRS=..\..\external\common\include -DCAPNP_LIB_KJ=.\ -DCAPNP_LIB_CAPNP=.\ -DCAPNP_EXECUTABLE="..\capnproto-tools-win32-0.5.0\capnpc-c++.exe"
  
@@ -48,7 +49,7 @@ This has a valid libyaml.sln solution file for importing. Found in directory yam
 
 ## Yaml-cpp  
 
-Using %NUPIC_CORE_SOURCE%/build/yaml-cpp/ for Source and Build directoreis, make sure MSVC_SHARED_RT **is** ticked. And BUILD_SHARED_LIBS and MSVC_STHREADED_RT are both **not** ticked. When building the solution your may need to '#include <algorithm>' in src\ostream_wrapper.cpp 
+Using %NUPIC_CORE_SOURCE%/build/yaml-cpp/ for Source and Build directoreis in Cmake-GUI Make sure MSVC_SHARED_RT **is** ticked, and BUILD_SHARED_LIBS and MSVC_STHREADED_RT are both **not** ticked. When building the solution your may need to '#include <algorithm>' in src\ostream_wrapper.cpp 
 
 ## Z Lib  
 
