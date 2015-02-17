@@ -3779,7 +3779,7 @@ namespace nupic {
       // n1 is the number floats we can process in parallel with xmm
       // n2 is the number of "stragglers" what we will have to do one by one ( < 4)
       nupic::Real32 count = 0;
-      long x_addr = (long) begin; // 8 bytes on 64 bits platforms
+      long long x_addr = (long long) begin; // 8 bytes on 64 bits platforms
       nupic::Real32* start = (x_addr % 16 == 0) ? begin : (nupic::Real32*) (16*(x_addr/16+1));
       int n0 = (int)(start - begin);
       int n1 = 4 * ((end - start) / 4);

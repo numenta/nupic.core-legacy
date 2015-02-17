@@ -30,7 +30,6 @@ Google test main program
 #endif
 
 #include <nupic/test/Tester.hpp>
-#undef VOID
 
 using namespace std;
 using namespace nupic;
