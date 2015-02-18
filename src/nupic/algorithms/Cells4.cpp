@@ -188,16 +188,16 @@ bool Cells4::computeUpdate(UInt cellIdx, UInt segIdx, CStateIndexed& activeState
       highWaterSize = segment.size();
       newSynapses.reserve(highWaterSize);
     }
-    for (UInt i = 0; i != segment.size(); ++i)
+    for (UInt i = 0; i < segment.size(); ++i) 
+    {
       if (activeState.isSet(segment[i].srcCellIdx())) {
         newSynapses.push_back(segment[i].srcCellIdx());
       }
+    }
   }
 
   if (newSynapsesFlag) {
-
     int nSynToAdd = (int) _newSynapseCount - (int) newSynapses.size();
-
     if (nSynToAdd > 0) {
       chooseCellsToLearnFrom(cellIdx, segIdx, nSynToAdd, activeState, newSynapses);
     }
@@ -270,8 +270,7 @@ void Cells4::eraseOutSynapses(UInt dstCellIdx, UInt dstSegIdx,
   NTA_ASSERT(dstCellIdx < nCells());
   NTA_ASSERT(dstSegIdx < _cells[dstCellIdx].size());
 
-  for (UInt i = 0; i != srcCells.size(); ++i) {
-    UInt srcCellIdx = srcCells[i];
+  for (auto & srcCellIdx : srcCells) {
     OutSynapses& outSyns = _outSynapses[srcCellIdx];
     // TODO: binary search or faster
     for (UInt j = 0; j != outSyns.size(); ++j)
@@ -556,7 +555,7 @@ UInt Cells4::learnBacktrack()
   // How much input history have we accumulated?
   // The current input is always at the end of self._prevInfPatterns (at
   // index -1), and is not a valid startingOffset to evaluate.
-  Int numPrevPatterns = _prevLrnPatterns.size() - 1;
+  UInt numPrevPatterns = (_prevLrnPatterns.size() == 0 ? 0 : _prevLrnPatterns.size() - 1);
   if (numPrevPatterns <= 0) {
     if (_verbosity >= 3) {
       std::cout << "lrnBacktrack: No available history to backtrack from\n";
@@ -577,7 +576,7 @@ UInt Cells4::learnBacktrack()
   // description is in TP.py
   bool inSequence = false;
   UInt startOffset = 0;
-  for (; startOffset < (UInt) numPrevPatterns; startOffset++) {
+  for (; startOffset < numPrevPatterns; startOffset++) {
     // Can we backtrack from startOffset?
     inSequence = learnBacktrackFrom(startOffset, true);
 
@@ -847,11 +846,7 @@ bool Cells4::learnPhase1(const std::vector<UInt> & activeColumns, bool readOnly)
   //----------------------------------------------------------------------
   // Determine if we are out of sequence or not and reset our PAM counter
   // if we are in sequence
-  if (numUnpredictedColumns < activeColumns.size()/2) {
-    return true;
-  } else {
-    return false;
-  }
+  return numUnpredictedColumns < activeColumns.size()/2;
 }
 
 //--------------------------------------------------------------------------------
@@ -1030,17 +1025,16 @@ void Cells4::updateLearningState(const std::vector<UInt> & activeColumns,
 void Cells4::updateInferenceState(const std::vector<UInt> & activeColumns)
 {
   //---------------------------------------------------------------------------
-  // Copy over inference related states to t-1 and reset state at t to 0
+  // Copy over inference related states to t-1 
   // We need to do a copy here in case the buffers are numpy allocated
   // A possible optimization here is to do a swap if Cells4 owns its memory.
   _infActiveStateT1 = _infActiveStateT;
   _infPredictedStateT1 = _infPredictedStateT;
   memcpy(_cellConfidenceT1, _cellConfidenceT, _nCells * sizeof(_cellConfidenceT[0]));
 
-  // Copy over previous column confidences and zero out current confidence
-  for (UInt i = 0; i != _nColumns; ++i) {
-    _colConfidenceT1[i] = _colConfidenceT[i];
-  }
+  // Copy over previous column confidences
+  memcpy(_colConfidenceT1, _colConfidenceT, _nColumns * sizeof(_colConfidenceT[0]));
+
 
   //---------------------------------------------------------------------------
   // Update our inference input history
@@ -1142,10 +1136,7 @@ bool Cells4::inferPhase1(const std::vector<UInt> & activeColumns,
 
   TIMER(infPhase1Timer.stop());
   // Did we predict this input well enough?
-  if (useStartCells || (numPredictedColumns >= 0.50 * activeColumns.size()) )
-    return true;
-  else
-    return false;
+  return (useStartCells || (numPredictedColumns >= 0.50 * activeColumns.size()) );
 }
 
 //------------------------------------------------------------------------------
@@ -1231,10 +1222,7 @@ bool Cells4::inferPhase2()
 
   //---------------------------------------------------------------------------
   // Are we predicting the required minimum number of columns?
-  if (numPredictedCols >= (0.5*_avgInputDensity))
-    return true;
-  else
-    return false;
+  return (numPredictedCols >= (0.5*_avgInputDensity));
 }
 
 
@@ -1281,8 +1269,8 @@ void Cells4::compute(Real* input, Real* output, bool doInference, bool doLearnin
   // Update segment duty cycles if we are crossing a "tier"
 
   if (doLearning && Segment::atDutyCycleTier(_nLrnIterations)) {
-    for (UInt i = 0; i < _nCells; i++) {
-      _cells[i].updateDutyCycle(_nLrnIterations);
+    for (auto & cell : _cells) {
+      cell.updateDutyCycle(_nLrnIterations);
     }
   }
 
@@ -1291,7 +1279,9 @@ void Cells4::compute(Real* input, Real* output, bool doInference, bool doLearnin
   if (_avgInputDensity == 0.0) {
     _avgInputDensity = (Real) activeColumns.size();
   } else {
-    _avgInputDensity = 0.99*_avgInputDensity + 0.01 * (Real) activeColumns.size();
+    // TODO remove magic constants. should this be swarmed-over?
+    const auto COOL_DOWN = (Real)0.99;
+    _avgInputDensity = COOL_DOWN*_avgInputDensity + (1-COOL_DOWN)*(Real)activeColumns.size();
   }
 
   //---------------------------------------------------------------------------
@@ -1336,7 +1326,7 @@ void Cells4::compute(Real* input, Real* output, bool doInference, bool doLearnin
   // invalidating our indexes.
   memset(output, 0, _nCells * sizeof(output[0])); // most output is zero
 #if SOME_STATES_NOT_INDEXED
-#if defined(NTA_ARCH_32) && defined(NTA_OS_DARWIN)
+#if defined(NTA_ARCH_32)
   const UInt multipleOf4 = 4 * (_nCells/4);
   UInt i;
   for (i = 0; i < multipleOf4; i += 4) {
@@ -1402,8 +1392,8 @@ void Cells4::compute(Real* input, Real* output, bool doInference, bool doLearnin
       output[i] = 1.0;
     }
   }
-#endif // defined(NTA_ARCH_32) && defined(NTA_OS_DARWIN)
-#else
+#endif // NTA_ARCH_32/64
+#else  // some states indexed
   static std::vector<UInt> cellsOn;
   std::vector<UInt>::iterator iterOn;
   cellsOn = _infPredictedStateT.cellsOn();
@@ -1745,9 +1735,9 @@ void Cells4::_rebalance()
   std::cout << "Rebalancing\n";
   _nIterationsSinceRebalance = _nLrnIterations;
 
-  for (UInt cellIdx = 0; cellIdx != _nCells; ++cellIdx) {
-    if (!_cells[cellIdx].empty()) {
-      _cells[cellIdx].rebalanceSegments();
+  for (auto & cell : _cells) {
+    if (!cell.empty()) {
+      cell.rebalanceSegments();
     }
   }
 
@@ -2827,13 +2817,13 @@ void Cells4::computeForwardPropagation(CState& state)
 {
   // Zero out previous values
   // Using memset is quite a bit faster on laptops, but has almost no effect
-  // on Neo15!
+  // on Neo15! 
   _inferActivity.reset();
 
   // Compute cell and segment activity by following forward propagation
   // links from each source cell.  _cellActivity will be set to the total
   // activity coming into a cell.
-#if defined(NTA_ARCH_32) && defined(NTA_OS_DARWIN)
+#ifdef NTA_ARCH_64
   const UInt multipleOf8 = 8 * (_nCells/8);
   UInt i;
   for (i = 0; i < multipleOf8; i += 8) {
@@ -2889,7 +2879,7 @@ void Cells4::computeForwardPropagation(CState& state)
       }
     }
   }
-#endif // defined(NTA_ARCH_32) && defined(NTA_OS_DARWIN)
+#endif // NTA_ARCH_32/64
 }
 #endif  // SOME_STATES_NOT_INDEXED
 
