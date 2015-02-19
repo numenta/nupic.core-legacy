@@ -129,16 +129,7 @@ namespace nupic {
 
   void TemporalMemoryTest::check_spatial_eq(TemporalMemory tm1, TemporalMemory tm2)
   {
-  /*
-    UInt numColumns = tm1.getNumColumns();
-
     NTA_CHECK(tm1.getNumColumns() == tm2.getNumColumns());
-    NTA_CHECK(tm1.getNumInputs() == tm2.getNumInputs());
-    NTA_CHECK(tm1.getPotentialRadius() == tm2.getPotentialRadius());
-    NTA_CHECK(tm1.getPotentialPct() == tm2.getPotentialPct());
-    NTA_CHECK(tm1.getGlobalInhibition() == tm2.getGlobalInhibition());
-    NTA_CHECK(tm1.getNumActiveColumnsPerInhArea() == tm2.getNumActiveColumnsPerInhArea());
-  */
   }
 
   void TemporalMemoryTest::setup(TemporalMemory& tm, UInt numColumns)
@@ -150,8 +141,34 @@ namespace nupic {
 
   void TemporalMemoryTest::RunTests()
   {
-    //testSaveLoad();
-    //testWriteRead();
+    testInitInvalidParams();
+    testActivateCorrectlyPredictiveCells();
+    testActivateCorrectlyPredictiveCellsEmpty();
+    testBurstColumns();
+    testBurstColumnsEmpty();
+    testLearnOnSegments();
+    testComputePredictiveCells();
+    testBestMatchingCell();
+    testBestMatchingCellFewestSegments();
+    testBestMatchingSegment();
+    testLeastUsedCell();
+    testAdaptSegment();
+    testAdaptSegmentToMax();
+    testAdaptSegmentToMin();
+    testPickCellsToLearnOn();
+    testPickCellsToLearnOnAvoidDuplicates();
+    testColumnForCell1D();
+    testColumnForCell2D();
+    testColumnForCellInvalidCell();
+    testCellsForColumn1D();
+    testCellsForColumn2D();
+    testCellsForColumnInvalidColumn();
+    testNumberOfColumns();
+    testNumberOfCells();
+    testMapCellsToColumns();
+    
+    testSaveLoad();
+    testWriteRead();
   }
 
   void TemporalMemoryTest::testSaveLoad()
@@ -183,13 +200,23 @@ namespace nupic {
     UInt numColumns = 12;
     setup(tm1, numColumns);
 
+    ofstream os(filename, ios::binary);
+    tm1.write(os);
+    os.close();
+
+    ifstream is(filename, ios::binary);
+    tm2.read(is);
+    is.close();
+
+    check_spatial_eq(tm1, tm2);
+
     int ret = ::remove(filename);
-    NTA_CHECK(ret == 0) << "Failed to delete " << filename;
+    //NTA_CHECK(ret == 0) << "Failed to delete " << filename;
   }
-/*
+
   void TemporalMemoryTest::testInitInvalidParams()
   {
-    # Invalid columnDimensions
+/*    # Invalid columnDimensions
       kwargs = { "columnDimensions": [], "cellsPerColumn" : 32 }
       self.assertRaises(ValueError, TemporalMemory, **kwargs)
 
@@ -198,10 +225,12 @@ namespace nupic {
       self.assertRaises(ValueError, TemporalMemory, **kwargs)
       kwargs = { "columnDimensions": [2048], "cellsPerColumn" : -10 }
       self.assertRaises(ValueError, TemporalMemory, **kwargs)
+*/
   }
 
   void TemporalMemoryTest::testActivateCorrectlyPredictiveCells()
   {
+    /*
     tm = self.tm
 
       prevPredictiveCells = set([0, 237, 1026, 26337, 26339, 55536])
@@ -215,10 +244,12 @@ namespace nupic {
       self.assertEqual(activeCells, set([1026, 26337, 26339]))
       self.assertEqual(winnerCells, set([1026, 26337, 26339]))
       self.assertEqual(predictedColumns, set([32, 823]))
+      */
   }
 
   void TemporalMemoryTest::testActivateCorrectlyPredictiveCellsEmpty()
   {
+    /*
     tm = self.tm
 
       prevPredictiveCells = set()
@@ -260,10 +291,12 @@ namespace nupic {
       self.assertEqual(activeCells, set())
       self.assertEqual(winnerCells, set())
       self.assertEqual(predictedColumns, set())
+      */
   }
 
   void TemporalMemoryTest::testBurstColumns()
   {
+    /*
     tm = TemporalMemory(
       cellsPerColumn = 4,
       connectedPermanence = 0.50,
@@ -306,10 +339,12 @@ namespace nupic {
 
       # Check that new segment was added to winner cell(6) in column 1
       self.assertEqual(connections.segmentsForCell(6), set([4]))
+      */
   }
 
   void TemporalMemoryTest::testBurstColumnsEmpty()
   {
+    /*
     tm = self.tm
 
       activeColumns = set()
@@ -329,10 +364,12 @@ namespace nupic {
       self.assertEqual(activeCells, set())
       self.assertEqual(winnerCells, set())
       self.assertEqual(learningSegments, set())
+      */
   }
 
   void TemporalMemoryTest::testLearnOnSegments()
   {
+    /*
     tm = TemporalMemory(maxNewSynapseCount = 2)
 
       connections = tm.connections
@@ -386,10 +423,12 @@ namespace nupic {
 
       # Check segment 3
       self.assertEqual(len(connections.synapsesForSegment(3)), 2)
+      */
   }
 
   void TemporalMemoryTest::testComputePredictiveCells()
   {
+    /*
     tm = TemporalMemory(activationThreshold = 2)
 
       connections = tm.connections
@@ -416,10 +455,12 @@ namespace nupic {
       predictiveCells) = tm.computePredictiveCells(activeCells, connections)
       self.assertEqual(activeSegments, set([0]))
       self.assertEqual(predictiveCells, set([0]))
+      */
   }
 
   void TemporalMemoryTest::testBestMatchingCell()
   {
+    /*
     tm = TemporalMemory(
       connectedPermanence = 0.50,
       minThreshold = 1,
@@ -458,10 +499,12 @@ namespace nupic {
       activeCells,
       connections),
       (31972, None))  # Random cell from column
+      */
   }
 
   void TemporalMemoryTest::testBestMatchingCellFewestSegments()
   {
+    /*
     tm = TemporalMemory(
       columnDimensions = [2],
       cellsPerColumn = 2,
@@ -482,10 +525,12 @@ namespace nupic {
         activeSynapsesForSegment,
         connections)
         self.assertEqual(cell, 1)
+        */
   }
 
   void TemporalMemoryTest::testBestMatchingSegment()
   {
+    /*
     tm = TemporalMemory(
       connectedPermanence = 0.50,
       minThreshold = 1
@@ -528,10 +573,12 @@ namespace nupic {
       activeCells,
       connections),
       (None, None))
+      */
   }
 
   void TemporalMemoryTest::testLeastUsedCell()
   {
+    /*
     tm = TemporalMemory(
       columnDimensions = [2],
       cellsPerColumn = 2,
@@ -547,10 +594,12 @@ namespace nupic {
         self.assertEqual(tm.leastUsedCell(tm.cellsForColumn(0),
         connections),
         1)
+        */
   }
 
   void TemporalMemoryTest::testAdaptSegment()
   {
+    /*
     tm = self.tm
 
       connections = tm.connections
@@ -569,10 +618,12 @@ namespace nupic {
 
       (_, _, permanence) = connections.dataForSynapse(2)
       self.assertAlmostEqual(permanence, 0.8)
+      */
   }
 
   void TemporalMemoryTest::testAdaptSegmentToMax()
   {
+    /*
     tm = self.tm
 
       connections = tm.connections
@@ -587,10 +638,12 @@ namespace nupic {
       tm.adaptSegment(0, set([0]), connections)
       (_, _, permanence) = connections.dataForSynapse(0)
       self.assertAlmostEqual(permanence, 1.0)
+      */
   }
 
   void TemporalMemoryTest::testAdaptSegmentToMin()
   {
+    /*
     tm = self.tm
 
       connections = tm.connections
@@ -605,10 +658,12 @@ namespace nupic {
       tm.adaptSegment(0, set(), connections)
       (_, _, permanence) = connections.dataForSynapse(0)
       self.assertAlmostEqual(permanence, 0.0)
+      */
   }
 
   void TemporalMemoryTest::testPickCellsToLearnOn()
   {
+    /*
     tm = TemporalMemory(seed = 42)
 
       connections = tm.connections
@@ -624,10 +679,12 @@ namespace nupic {
 
       self.assertEqual(tm.pickCellsToLearnOn(0, 0, winnerCells, connections),
       set())
+      */
   }
 
   void TemporalMemoryTest::testPickCellsToLearnOnAvoidDuplicates()
   {
+    /*
     tm = TemporalMemory(seed = 42)
 
       connections = tm.connections
@@ -639,10 +696,12 @@ namespace nupic {
       # Ensure that no additional(duplicate) cells were picked
       self.assertEqual(tm.pickCellsToLearnOn(2, 0, winnerCells, connections),
       set())
+      */
   }
 
   void TemporalMemoryTest::testColumnForCell1D()
   {
+    /*
     tm = TemporalMemory(
       columnDimensions = [2048],
       cellsPerColumn = 5
@@ -651,10 +710,12 @@ namespace nupic {
       self.assertEqual(tm.columnForCell(4), 0)
       self.assertEqual(tm.columnForCell(5), 1)
       self.assertEqual(tm.columnForCell(10239), 2047)
+      */
   }
 
   void TemporalMemoryTest::testColumnForCell2D()
   {
+    /*
     tm = TemporalMemory(
       columnDimensions = [64, 64],
       cellsPerColumn = 4
@@ -663,10 +724,12 @@ namespace nupic {
       self.assertEqual(tm.columnForCell(3), 0)
       self.assertEqual(tm.columnForCell(4), 1)
       self.assertEqual(tm.columnForCell(16383), 4095)
+      */
   }
 
   void TemporalMemoryTest::testColumnForCellInvalidCell()
   {
+    /*
     tm = TemporalMemory(
       columnDimensions = [64, 64],
       cellsPerColumn = 4
@@ -682,30 +745,36 @@ namespace nupic {
 
       args = [-1]
       self.assertRaises(IndexError, tm.columnForCell, *args)
+      */
   }
 
   void TemporalMemoryTest::testCellsForColumn1D()
   {
+    /*
     tm = TemporalMemory(
       columnDimensions = [2048],
       cellsPerColumn = 5
       )
       expectedCells = set([5, 6, 7, 8, 9])
       self.assertEqual(tm.cellsForColumn(1), expectedCells)
+      */
   }
   
   void TemporalMemoryTest::testCellsForColumn2D()
   {
+    /*
     tm = TemporalMemory(
       columnDimensions = [64, 64],
       cellsPerColumn = 4
       )
       expectedCells = set([256, 257, 258, 259])
       self.assertEqual(tm.cellsForColumn(64), expectedCells)
+      */
   }
 
   void TemporalMemoryTest::testCellsForColumnInvalidColumn()
   {
+    /*
     tm = TemporalMemory(
       columnDimensions = [64, 64],
       cellsPerColumn = 4
@@ -721,28 +790,34 @@ namespace nupic {
 
       args = [-1]
       self.assertRaises(IndexError, tm.cellsForColumn, *args)
+      */
   }
 
   void TemporalMemoryTest::testNumberOfColumns()
   {
+    /*
     tm = TemporalMemory(
       columnDimensions = [64, 64],
       cellsPerColumn = 32
       )
       self.assertEqual(tm.numberOfColumns(), 64 * 64)
+      */
   }
 
   void TemporalMemoryTest::testNumberOfCells()
   {
+    /*
     tm = TemporalMemory(
       columnDimensions = [64, 64],
       cellsPerColumn = 32
       )
       self.assertEqual(tm.numberOfCells(), 64 * 64 * 32)
+      */
   }
 
   void TemporalMemoryTest::testMapCellsToColumns()
   {
+    /*
     tm = TemporalMemory(
       columnDimensions = [100],
       cellsPerColumn = 4
@@ -751,6 +826,6 @@ namespace nupic {
       self.assertEqual(columnsForCells[0], set([0, 1, 2]))
       self.assertEqual(columnsForCells[1], set([5]))
       self.assertEqual(columnsForCells[99], set([399]))
+      */
   }
-*/
 } // end namespace nupic

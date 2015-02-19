@@ -228,7 +228,7 @@ namespace nupic
          * @retval Created segment.
          */
         Connections(CellIdx numCells,
-                    SegmentIdx maxSegmentsPerCell=SEGMENT_MAX);
+                    SegmentIdx maxSegmentsPerCell = SEGMENT_MAX);
 
         virtual ~Connections() {}
 

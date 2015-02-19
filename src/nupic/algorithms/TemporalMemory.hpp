@@ -50,10 +50,7 @@ namespace nupic {
        */
       class TemporalMemory {
       public:
-        TemporalMemory() {
-          // The current version number. 
-          version_ = 1;
-        }
+        TemporalMemory();
 
         virtual ~TemporalMemory() {};
 
@@ -84,6 +81,83 @@ namespace nupic {
           Permanence permanenceIncrement = 0.10,
           Permanence permanenceDecrement = 0.10,
           Int seed = 42);
+
+        /**
+        Returns the dimensions of the columns in the region.
+
+        @returns Integer number of column dimension.
+        */
+        vector<UInt> getColumnDimensions() const;
+
+        /**
+        Returns the total number of columns.
+
+        @returns Integer number of column numbers.
+        */
+        UInt getNumColumns() const;
+
+        /**
+        Returns the number of cells per column.
+
+        @returns Integer number of cells per column.
+        */
+        UInt getCellsPerColumn() const;
+
+        /**
+        Returns the activation threshold.
+
+        @returns Integer number of the activation threshold.
+        */
+        Int getActivationThreshold() const;
+
+        /**
+        Returns the learning radius.
+
+        @returns Integer number of learning radius.
+        */
+        Int getLearningRadius() const;
+
+        /**
+        Returns the initial permanence.
+
+        @returns Initial permanence.
+        */
+        Permanence getInitialPermanence() const;
+
+        /**
+        Returns the connected permanance.
+
+        @returns Returns the connected permanance.
+        */
+        Permanence getConnectedPermanence() const;
+
+        /**
+        Returns the minimum threshold.
+
+        @returns Integer number of minimum threshold.
+        */
+        Int getMinThreshold() const;
+
+        /**
+        Returns the maximum new synapse count.
+
+        @returns Integer number of maximum new synapse count.
+        */
+        Int getMaxNewSynapseCount() const;
+
+        /**
+        Returns the permanence increment.
+
+        @returns Returns the Permanence increment.
+        */
+        Permanence getPermanenceIncrement() const;
+
+        /**
+        Returns the permanence decrement.
+
+        @returns Returns the Permanence decrement.
+        */
+        Permanence getPermanenceDecrement() const;
 
         // Implementation note: this method sets up the instance using data from
         // inStream. This method does not call initialize. As such we have to be careful
@@ -152,7 +226,7 @@ namespace nupic {
          *  `activeSegments`  (set),
          *  `predictiveCells` (set)
          */
-        //tuple<vector<Cell>, vector<Cell>, vector<Segment>, vector<Cell>>
+         //tuple<vector<Cell>, vector<Cell>, vector<Segment>, vector<Cell>>
         void computeFn(
           vector<Int>& activeColumns,
           vector<Cell>& prevPredictiveCells,
@@ -191,7 +265,7 @@ namespace nupic {
          *  `winnerCells`      (set),
          *  `predictedColumns` (set)
          */
-        //tuple<set<Cell>, vector<Cell>, vector<Int>>
+         //tuple<set<Cell>, vector<Cell>, vector<Int>>
         virtual void activateCorrectlyPredictiveCells(
           vector<Cell>& prevPredictiveCells,
           vector<Int>& activeColumns);
@@ -302,9 +376,9 @@ namespace nupic {
          */
         tuple<Cell, Segment>
           bestMatchingCell(
-            vector<Cell>& cells,
-            vector<Cell>& activeCells,
-            Connections& connections);
+          vector<Cell>& cells,
+          vector<Cell>& activeCells,
+          Connections& connections);
 
         /*
          * Gets the segment on a cell with the largest number of activate synapses,
@@ -320,9 +394,9 @@ namespace nupic {
          */
         tuple<Segment, Int>
           bestMatchingSegment(
-            Cell& cell,
-            vector<Cell>& activeCells,
-            Connections& connections);
+          Cell& cell,
+          vector<Cell>& activeCells,
+          Connections& connections);
 
         /*
          * Gets the cell with the smallest number of segments.
@@ -348,7 +422,7 @@ namespace nupic {
          * @return (set) Indices of active synapses on segment
          */
         vector<Synapse> activeSynapsesForSegment(
-          Segment& segment, 
+          Segment& segment,
           vector<Cell>& activeCells,
           Connections& connections);
 
@@ -361,7 +435,7 @@ namespace nupic {
         * @param connections    Connectivity of layer
         */
         void adaptSegment(
-          Segment& segment, 
+          Segment& segment,
           vector<Synapse>& activeSynapses,
           Connections& connections);
 
@@ -369,7 +443,7 @@ namespace nupic {
          * Pick cells to form distal connections to.
          *
          * TODO : Respect topology and learningRadius
-         * 
+         *
          *	   @param n             Number of cells to pick
          *	   @param segment       Segment index
          *	   @param winnerCells   Indices of winner cells in `t`
@@ -378,8 +452,8 @@ namespace nupic {
          *	   @return (set) Indices of cells picked
          */
         vector<Cell> pickCellsToLearnOn(
-          Int n, 
-          Segment& segment, 
+          Int n,
+          Segment& segment,
           vector<Cell>& winnerCells,
           Connections& connections);
 

@@ -57,6 +57,31 @@ namespace nupic {
     bool almost_eq(Real a, Real b);
     bool findVector(UInt needle[], UInt n, vector<vector<UInt> > haystack);
 
+    void testInitInvalidParams();
+    void testActivateCorrectlyPredictiveCells();
+    void testActivateCorrectlyPredictiveCellsEmpty();
+    void testBurstColumns();
+    void testBurstColumnsEmpty();
+    void testLearnOnSegments();
+    void testComputePredictiveCells();
+    void testBestMatchingCell();
+    void testBestMatchingCellFewestSegments();
+    void testBestMatchingSegment();
+    void testLeastUsedCell();
+    void testAdaptSegment();
+    void testAdaptSegmentToMax();
+    void testAdaptSegmentToMin();
+    void testPickCellsToLearnOn();
+    void testPickCellsToLearnOnAvoidDuplicates();
+    void testColumnForCell1D();
+    void testColumnForCell2D();
+    void testColumnForCellInvalidCell();
+    void testCellsForColumn1D();
+    void testCellsForColumn2D();
+    void testCellsForColumnInvalidColumn();
+    void testNumberOfColumns();
+    void testNumberOfCells();
+    void testMapCellsToColumns();
 
     void testSaveLoad();
     void testWriteRead();

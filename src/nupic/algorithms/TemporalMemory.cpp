@@ -38,6 +38,11 @@ using namespace nupic;
 using namespace nupic::algorithms::connections;
 using namespace nupic::algorithms::temporal_memory;
 
+TemporalMemory::TemporalMemory()
+{
+	version_ = 1;
+}
+
 /**
  Initialize the temporal memory using the given parameters.
 
@@ -367,29 +372,32 @@ void TemporalMemory::computePredictiveCells(
   vector<Cell>& activeCells,
   Connections& connections)
 {
-/*
+
 	map<Segment, Int> numActiveConnectedSynapsesForSegment;
 
 	for (Cell cell : activeCells)
 	{
-    for (Synapse synapse : connections.synapsesForPresynapticCell(cell).values())
-		{
-			Segment segment = synapse.segment;
-			Real permanence = connections.dataForSynapse(synapse).permanence;
+    vector<Segment> segmentsForCell = connections.segmentsForCell(cell);
+    for (Segment segment : segmentsForCell)
+    {
+      for (Synapse synapse : connections.synapsesForSegment(segment))
+      {
+        //Segment segment = synapse.segment;
+        Real permanence = connections.dataForSynapse(synapse).permanence;
 
-			if (permanence >= connectedPermanence_)
-			{
-				numActiveConnectedSynapsesForSegment[segment] += 1;
+        if (permanence >= connectedPermanence_)
+        {
+          numActiveConnectedSynapsesForSegment[segment] += 1;
 
-				if (numActiveConnectedSynapsesForSegment[segment] >= activationThreshold_)
-				{
-					activeSegments_.push_back(segment);
-					predictiveCells_.push_back(connections.cellForSegment(segment));
-				}
-			}
-		}
+          if (numActiveConnectedSynapsesForSegment[segment] >= activationThreshold_)
+          {
+            activeSegments_.push_back(segment);
+            predictiveCells_.push_back(cell);
+          }
+        }
+      }
+    }
 	}
-*/
 
   return;// make_tuple(activeSegments, predictiveCells);
 }
@@ -851,6 +859,61 @@ void TemporalMemory::load(istream& inStream)
 
 }
 
+vector<UInt> TemporalMemory::getColumnDimensions() const
+{
+	return columnDimensions_;
+}
+
+UInt TemporalMemory::getNumColumns() const
+{
+	return numColumns_;
+}
+
+UInt TemporalMemory::getCellsPerColumn() const
+{
+	return cellsPerColumn_;
+}
+
+Int TemporalMemory::getActivationThreshold() const
+{
+	return activationThreshold_;
+}
+
+Int TemporalMemory::getLearningRadius() const
+{
+	return learningRadius_;
+}
+
+Permanence TemporalMemory::getInitialPermanence() const
+{
+	return initialPermanence_;
+}
+
+Permanence TemporalMemory::getConnectedPermanence() const
+{
+	return connectedPermanence_;
+}
+
+Int TemporalMemory::getMinThreshold() const
+{
+	return minThreshold_;
+}
+
+Int TemporalMemory::getMaxNewSynapseCount() const
+{
+	return maxNewSynapseCount_;
+}
+
+Permanence TemporalMemory::getPermanenceIncrement() const
+{
+	return permanenceIncrement_;
+}
+
+Permanence TemporalMemory::getPermanenceDecrement() const
+{
+	return permanenceDecrement_;
+}
+
 //----------------------------------------------------------------------
 // Debugging helpers
 //----------------------------------------------------------------------
@@ -859,9 +922,18 @@ void TemporalMemory::load(istream& inStream)
 void TemporalMemory::printParameters()
 {
 	std::cout << "------------CPP TemporalMemory Parameters ------------------\n";
-//  std::cout
-//    << "version                     = " << version() << std::endl
-//    << "numColumns                  = " << getNumColumns() << std::endl;
+	std::cout
+		<< "version                     = " << version_ << std::endl
+		<< "numColumns                  = " << getNumColumns() << std::endl
+		<< "cellsPerColumn              = " << getCellsPerColumn() << std::endl
+		<< "activationThreshold         = " << getActivationThreshold() << std::endl
+		<< "learningRadius              = " << getLearningRadius() << std::endl
+		<< "initialPermanence           = " << getInitialPermanence() << std::endl
+		<< "connectedPermanence         = " << getConnectedPermanence() << std::endl
+		<< "minThreshold                = " << getMinThreshold() << std::endl
+		<< "maxNewSynapseCount          = " << getMaxNewSynapseCount() << std::endl
+		<< "permanenceIncrement         = " << getPermanenceIncrement() << std::endl
+		<< "permanenceDecrement         = " << getPermanenceDecrement() << std::endl;
 }
 
 void TemporalMemory::printState(vector<UInt> &state)
