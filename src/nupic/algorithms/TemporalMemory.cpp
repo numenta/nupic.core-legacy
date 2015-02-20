@@ -811,11 +811,10 @@ void TemporalMemory::save(ostream& outStream)
 	outStream << version_ << endl;
 
 	// Store the simple variables first.
-	outStream << numColumns_ << " "
-		<< endl;
+	outStream << numColumns_ << " " << endl;
 
 	outStream << columnDimensions_.size() << " ";
-	for (auto & elem : columnDimensions_) {
+	for (UInt & elem : columnDimensions_) {
 		outStream << elem << " ";
 	}
 	outStream << endl;
@@ -849,7 +848,8 @@ void TemporalMemory::load(istream& inStream)
 	// Retrieve vectors.
 	UInt numColumnDimensions;
 	inStream >> numColumnDimensions;
-	columnDimensions_.resize(numColumnDimensions);
+
+  columnDimensions_.resize(numColumnDimensions);
 	for (UInt i = 0; i < numColumnDimensions; i++) {
 		inStream >> columnDimensions_[i];
 	}

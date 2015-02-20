@@ -127,9 +127,18 @@ namespace nupic {
     return true;
   }
 
-  void TemporalMemoryTest::check_spatial_eq(TemporalMemory tm1, TemporalMemory tm2)
+  void TemporalMemoryTest::check_spatial_eq(const TemporalMemory& tm1, const TemporalMemory& tm2)
   {
     NTA_CHECK(tm1.getNumColumns() == tm2.getNumColumns());
+//    NTA_CHECK(tm1.getCellsPerColumn() == tm2.getCellsPerColumn());
+//    NTA_CHECK(tm1.getActivationThreshold() == tm2.getActivationThreshold());
+//    NTA_CHECK(tm1.getLearningRadius() == tm2.getLearningRadius());
+//    NTA_CHECK(tm1.getMinThreshold() == tm2.getMinThreshold());
+//    NTA_CHECK(tm1.getMaxNewSynapseCount() == tm2.getMaxNewSynapseCount());
+//    TEST(nupic::nearlyEqual(tm1.getInitialPermanence(), tm2.getInitialPermanence()));
+//    TEST(nupic::nearlyEqual(tm1.getConnectedPermanence(), tm2.getConnectedPermanence()));
+//    TEST(nupic::nearlyEqual(tm1.getPermanenceIncrement(), tm2.getPermanenceIncrement()));
+//    TEST(nupic::nearlyEqual(tm1.getPermanenceDecrement(), tm2.getPermanenceDecrement()));
   }
 
   void TemporalMemoryTest::setup(TemporalMemory& tm, UInt numColumns)
@@ -166,66 +175,22 @@ namespace nupic {
     testNumberOfColumns();
     testNumberOfCells();
     testMapCellsToColumns();
-    
+
     testSaveLoad();
-    testWriteRead();
-  }
-
-  void TemporalMemoryTest::testSaveLoad()
-  {
-    const char* filename = "TemporalMemorySerialization.tmp";
-    TemporalMemory tm1, tm2;
-    UInt numColumns = 12;
-    setup(tm1, numColumns);
-
-    ofstream outfile;
-    outfile.open(filename);
-    tm1.save(outfile);
-    outfile.close();
-
-    ifstream infile (filename);
-    tm2.load(infile);
-    infile.close();
-
-    check_spatial_eq(tm1, tm2);
-
-    int ret = ::remove(filename);
-    NTA_CHECK(ret == 0) << "Failed to delete " << filename;
-  }
-
-  void TemporalMemoryTest::testWriteRead()
-  {
-    const char* filename = "TemporalMemorySerialization.tmp";
-    TemporalMemory tm1, tm2;
-    UInt numColumns = 12;
-    setup(tm1, numColumns);
-
-    ofstream os(filename, ios::binary);
-    tm1.write(os);
-    os.close();
-
-    ifstream is(filename, ios::binary);
-    tm2.read(is);
-    is.close();
-
-    check_spatial_eq(tm1, tm2);
-
-    int ret = ::remove(filename);
-    //NTA_CHECK(ret == 0) << "Failed to delete " << filename;
   }
 
   void TemporalMemoryTest::testInitInvalidParams()
   {
-/*    # Invalid columnDimensions
-      kwargs = { "columnDimensions": [], "cellsPerColumn" : 32 }
-      self.assertRaises(ValueError, TemporalMemory, **kwargs)
+    TemporalMemory tm;
 
-      # Invalid cellsPerColumn
-      kwargs = { "columnDimensions": [2048], "cellsPerColumn" : 0 }
-      self.assertRaises(ValueError, TemporalMemory, **kwargs)
-      kwargs = { "columnDimensions": [2048], "cellsPerColumn" : -10 }
-      self.assertRaises(ValueError, TemporalMemory, **kwargs)
-*/
+    // Invalid columnDimensions
+    vector<UInt> columnDim;
+    SHOULDFAIL(tm.initialize(columnDim, 32));
+
+    // Invalid cellsPerColumn
+    columnDim.push_back(2048);
+    SHOULDFAIL(tm.initialize(columnDim, 0));
+    SHOULDFAIL(tm.initialize(columnDim, -10));
   }
 
   void TemporalMemoryTest::testActivateCorrectlyPredictiveCells()
@@ -828,4 +793,30 @@ namespace nupic {
       self.assertEqual(columnsForCells[99], set([399]))
       */
   }
+
+  void TemporalMemoryTest::testSaveLoad()
+  {
+    const char* filename = "TemporalMemorySerialization.tmp";
+    TemporalMemory tm1, tm2;
+    vector<UInt> columnDim;
+    UInt numColumns = 12;
+
+    columnDim.push_back(numColumns);
+    tm1.initialize(columnDim);
+
+    ofstream outfile;
+    outfile.open(filename);
+    tm1.save(outfile);
+    outfile.close();
+
+    ifstream infile(filename);
+    tm2.load(infile);
+    infile.close();
+
+    check_spatial_eq(tm1, tm2);
+
+    int ret = ::remove(filename);
+    NTA_CHECK(ret == 0) << "Failed to delete " << filename;
+  }
+
 } // end namespace nupic

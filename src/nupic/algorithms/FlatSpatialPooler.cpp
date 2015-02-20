@@ -88,7 +88,10 @@ void FlatSpatialPooler::compute(UInt inputArray[], bool learn,
   if (learn) {
     boostOverlaps_(overlaps_, boostedOverlaps_);
   } else {
-    boostedOverlaps_.assign(overlaps_.begin(), overlaps_.end());
+    for each (UInt overlap_ in overlaps_)
+    {
+      boostedOverlaps_.push_back(Real(overlap_));
+    }
   }
 
   Real bonus = *max_element(boostedOverlaps_.begin(),

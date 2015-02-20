@@ -230,8 +230,8 @@ set(LIB_STATIC_GTEST gtest)
 add_library(${LIB_STATIC_GTEST}
             STATIC
             ${REPOSITORY_DIR}/external/common/src/gtest/gtest-all.cpp)
-set_target_properties(${LIB_STATIC_GTEST}
-                      PROPERTIES COMPILE_FLAGS "${COMMON_COMPILE_FLAGS}"
+set_target_properties(${LIB_STATIC_GTEST} PROPERTIES
+                      COMPILE_FLAGS "${COMMON_COMPILE_FLAGS}"
                       LINK_FLAGS "${COMMON_LINK_FLAGS}")
 
 
@@ -418,8 +418,9 @@ target_link_libraries(${LIB_STATIC_NUPICCORE}
                       ${LIB_STATIC_Z_LOC}
                       ${LIB_STATIC_KJ_LOC}
                       ${LIB_STATIC_CAPNP_LOC})
-set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
-set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS} -static")
+set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES
+                      COMPILE_FLAGS ${COMMON_COMPILE_FLAGS}
+                      LINK_FLAGS "${COMMON_LINK_FLAGS} -static")
 
 #
 # Setup test_cpp_region
@@ -427,9 +428,9 @@ set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES LINK_FLAGS "${COMMON_LI
 set(EXECUTABLE_CPPREGIONTEST cpp_region_test)
 add_executable(${EXECUTABLE_CPPREGIONTEST} test/integration/CppRegionTest.cpp)
 target_link_libraries(${EXECUTABLE_CPPREGIONTEST} ${COMMON_LIBS})
-set_target_properties(${EXECUTABLE_CPPREGIONTEST} PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
-set_target_properties(${EXECUTABLE_CPPREGIONTEST}
-                      PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
+set_target_properties(${EXECUTABLE_CPPREGIONTEST} PROPERTIES
+                      COMPILE_FLAGS ${COMMON_COMPILE_FLAGS}
+                      LINK_FLAGS "${COMMON_LINK_FLAGS}")
 add_custom_target(tests_cpp_region
                   COMMAND ${EXECUTABLE_CPPREGIONTEST}
                   DEPENDS ${EXECUTABLE_CPPREGIONTEST})
@@ -441,9 +442,9 @@ set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES LINK_FLAGS "${COMMON_LI
 set(EXECUTABLE_PYREGIONTEST py_region_test)
 add_executable(${EXECUTABLE_PYREGIONTEST} test/integration/PyRegionTest.cpp)
 target_link_libraries(${EXECUTABLE_PYREGIONTEST} ${COMMON_LIBS})
-set_target_properties(${EXECUTABLE_PYREGIONTEST} PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
-set_target_properties(${EXECUTABLE_PYREGIONTEST}
-                      PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
+set_target_properties(${EXECUTABLE_PYREGIONTEST} PROPERTIES
+                      COMPILE_FLAGS ${COMMON_COMPILE_FLAGS}
+                      LINK_FLAGS "${COMMON_LINK_FLAGS}")
 
 #
 # Setup helloregion example
@@ -451,9 +452,9 @@ set_target_properties(${EXECUTABLE_PYREGIONTEST}
 set(EXECUTABLE_HELLOREGION helloregion)
 add_executable(${EXECUTABLE_HELLOREGION} examples/regions/HelloRegions.cpp)
 target_link_libraries(${EXECUTABLE_HELLOREGION} ${COMMON_LIBS})
-set_target_properties(${EXECUTABLE_HELLOREGION} PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
-set_target_properties(${EXECUTABLE_HELLOREGION}
-                      PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
+set_target_properties(${EXECUTABLE_HELLOREGION} PROPERTIES
+                      COMPILE_FLAGS ${COMMON_COMPILE_FLAGS}
+                      LINK_FLAGS "${COMMON_LINK_FLAGS}")
 add_dependencies(${EXECUTABLE_HELLOREGION} ${COMMON_LIBS})
 
 #
@@ -463,9 +464,9 @@ set(EXECUTABLE_PROTOTEST prototest)
 add_executable(${EXECUTABLE_PROTOTEST} examples/prototest.cpp)
 target_link_libraries(${EXECUTABLE_PROTOTEST}
                         ${COMMON_LIBS})
-set_target_properties(${EXECUTABLE_PROTOTEST} PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
-set_target_properties(${EXECUTABLE_PROTOTEST}
-                        PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
+set_target_properties(${EXECUTABLE_PROTOTEST} PROPERTIES
+                      COMPILE_FLAGS ${COMMON_COMPILE_FLAGS}
+                      LINK_FLAGS "${COMMON_LINK_FLAGS}")
 add_dependencies(${EXECUTABLE_PROTOTEST} ${COMMON_LIBS})
 
 #
@@ -518,9 +519,9 @@ add_executable(${EXECUTABLE_GTESTS}
 target_link_libraries(${EXECUTABLE_GTESTS}
                       ${COMMON_LIBS}
                       ${LIB_STATIC_GTEST})
-set_target_properties(${EXECUTABLE_GTESTS}
-                      PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS}
-                                 LINK_FLAGS "${COMMON_LINK_FLAGS}")
+set_target_properties(${EXECUTABLE_GTESTS} PROPERTIES
+                      COMPILE_FLAGS ${COMMON_COMPILE_FLAGS}
+                      LINK_FLAGS "${COMMON_LINK_FLAGS}")
 add_dependencies(${EXECUTABLE_GTESTS} ${LIB_STATIC_GTEST} ${COMMON_LIBS})
 add_custom_target(tests_unit
                   COMMAND ${EXECUTABLE_GTESTS} "--gtest_output=xml:${PROJECT_BUILD_ARTIFACTS_DIR}/unit_tests_report.xml")
