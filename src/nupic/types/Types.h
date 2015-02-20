@@ -189,17 +189,6 @@ typedef  long                 NTA_Int64;
  */
 typedef  unsigned long        NTA_UInt64;
 #endif
-// win specific
-#if defined(NTA_OS_WINDOWS)
-/**
- * Represents a 32-bit signed integer.
- */
-typedef  long                NTA_Int32;
-/**
- * Represents a 32-bit unsigned integer.
- */
-typedef  unsigned long       NTA_UInt32;
-#endif
 /**
  * @}
  */
