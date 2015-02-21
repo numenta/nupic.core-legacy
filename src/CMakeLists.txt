@@ -81,17 +81,18 @@ elseif(WIN32) # incl. win64
                   -D_WINDOWS
                   -D_MBCS
                   -D_CRT_SECURE_NO_WARNINGS
-                  -DNDEBUG)
+                  -D_SCL_SECURE_NO_WARNINGS
+                  -DNDEBUG
+                  -DCAPNP_LITE=1
+                  -DVARIADIC_MAX=10
+                  -DNOMINMAX)
 endif()
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
   add_definitions(-DNTA_COMPILER_GNU)
 elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
   add_definitions(-DNTA_COMPILER_CLANG)
 elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
-  add_definitions(-DNTA_COMPILER_MSVC
-                  -DCAPNP_LITE=1
-                  -D_VARIADIC_MAX=10
-                  -DNOMINMAX)
+  add_definitions(-DNTA_COMPILER_MSVC)
 endif()
 
 
@@ -184,7 +185,7 @@ endif()
 # compiler specific settings here
 #
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
-  set(COMMON_COMPILE_FLAGS "/TP /Zc:wchar_t /Gm- /fp:precise /errorReport:prompt /W3 /WX- /GR /Gd /GS /Oy- /EHs /analyze- /nologo")
+  set(COMMON_COMPILE_FLAGS "/TP /Zc:wchar_t /Gm- /fp:precise /errorReport:prompt /W2 /WX- /GR /Gd /GS /Oy- /EHs /analyze- /nologo")
   set(COMMON_LINK_FLAGS "/NOLOGO /SAFESEH:NO /NODEFAULTLIB:LIBCMT")
   if("${BITNESS}" STREQUAL "32")
     set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} /MACHINE:X86")

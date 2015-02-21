@@ -584,7 +584,11 @@ void TemporalMemory::adaptSegment(
 			permanence -= permanenceDecrement_;
 
 		// Keep permanence within min / max bounds
-		permanence = max((Real)0.0, min((Real)1.0, permanence));
+    //permanence = max(0.0, min(1.0, permanence));
+    if (permanence > 1.0)
+      permanence = 1.0;
+    if (permanence < 0.0)
+      permanence = 0.0;
 
 		connections.updateSynapsePermanence(synapse, permanence);
 	}
