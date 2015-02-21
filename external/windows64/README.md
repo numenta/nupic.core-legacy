@@ -1,6 +1,13 @@
 # NuPIC Core
 
-The core library of NuPIC uses a CMake based system to define build characteristics. The [CMake-GUI](http://www.cmake.org/) application can be used to generator Visual Studio 2015 (Win64) solution and project files. The following table shows the CMake-GUI settings for the core library -
+The core library of NuPIC uses a CMake based system to define build characteristics. The [CMake-GUI](http://www.cmake.org/) application can be used to generator a Visual Studio 2015 (Win64) solution and project files. 
+
+Two environment variables must be setup before building the core; 
+
+- NUPIC_CORE_SOURCE points to the root of the core directories, and
+- NUPIC_CORE points to an installation directory.
+
+The following table shows the CMake-GUI settings for the core library. Using these table settings the %NUPIC_CORE% directory could equal the CMAKE_INSTALL_PREFIX directory.
 
 | Name | Value |
 |:---- |:----- |
@@ -8,31 +15,38 @@ The core library of NuPIC uses a CMake based system to define build characterist
 | Binaries | %NUPIC_CORE_SOURCE%/build/scripts |
 | CMAKE_INSTALL_PREFIX | %NUPIC_CORE_SOURCE%/build/release |
 
-The %NUPIC_CORE_SOURCE%/build/scripts/nupic_core.sln solution (v140 platform toolset) has an ALL_BUILD project that can rebuild the x64 Release version of the core library and test programs. As well as running the cpp_region test and unit tests. The INSTALL project has to be built seperately. External libraries (x64 release) are stored in the Git repository, and packaged into the deployed version.
+Note: The %NUPIC_CORE_SOURCE%/.gitignore file has a rule that ignores any directory called build/ from Git. Making it a convienient place to store build dependencies.
+
+The %NUPIC_CORE_SOURCE%/build/scripts/nupic_core.sln solution (v140 platform toolset) has an ALL_BUILD project that can rebuild the x64 Release version of the core library and test programs. As well as running the cpp_region test and unit tests.
+
+> At the time of writing; Two of the 12 projects fail when building the solution via Visual Studio or msbuild. The tests_cpp_region and tests_unit Utility projects both fail. Even though full debugging of the contained test projects all pass. The %NUPIC_CORE_SOURCE%/appveyor.yml file outlines script to unwrap the solution into individual msbuild steps, and which test programs to execute.
+
+The INSTALL project has to be built seperately. External libraries (x64 release) are stored in the Git repository, and packaged into the deployed version. When the ALL_BUILD project completes, a separate run of the INSTALL project copies the binarys, header, and library files into the %NUPIC_CORE% directory.
+
+The NuPIC core library file is split into two files;
+
+- %NUPIC_CORE%/lib/nupic_core_solo.lib contains _only_ the core library
+- %NUPIC_CORE%/lib/nupic_core.lib contains the core and support libraries
 
 ## External libraries
 
-The Core library depends on a handful of external libraries that are distributed within the download package. The Windows x64 version of these libraries can be found in %NUPIC_CORE_SOURCE%\external\windows64\lib
-
-The following can be used as a guide if you require changes to these pre-built libraries. To use any rebuilt external library, you need to link against the %NUPIC_CORE%/lib/nupic_core_solo library.
+The Core library depends on a handful of external libraries that are distributed within the download package. The Windows x64 version of these libraries can be found in %NUPIC_CORE_SOURCE%\external\windows64\lib The following can be used as a guide if you require changes to these pre-built libraries, such as creating Debug versions.
 
 ### Obtaining the library sources
 
-These libraries are embedded into the %NUPIC_CORE%/lib/nupic_core library.
+The following libraries are embedded into the %NUPIC_CORE%/lib/nupic_core library.
 
-| Library | Version | Website | Filename |
-|:------- |:------- |:------- |:-------- |
-| APR | 1.5.1 | https://apr.apache.org/ | apr-1.5.1-win32-src.zip |
-| Apr Util | 1.5.4 | https://apr.apache.org/ | apr-util-1.5.4-win32-src.zip |
-| Apr Iconv | 1.2.1 | https://apr.apache.org/ | apr-iconv-1.2.1-win32-src-r2.zip |
-| Cap'n Proto | 0.5.0 | https://capnproto.org | capnproto-c++-win32-0.5.0.zip |
-| Yaml | 0.1.5 | http://pyyaml.org/wiki/LibYAML | yaml-0.1.5.tar.gz |
-| Yaml Cpp | 0.3.0 | https://code.google.com/p/yaml-cpp/ | yaml-cpp-0.3.0.tar.gz |
-| Z Lib | 1.2.8 | http://www.zlib.net/ | zlib-1.2.8.tar.gz |
+| Library | Version | Filename |  Website |
+|:------- |:------- |:-------- | :------- |
+| APR | **1.5.1** | apr-1.5.1-win32-src.zip | https://apr.apache.org/ |
+| Apr Util | **1.5.4** | apr-util-1.5.4-win32-src.zip | https://apr.apache.org/ |
+| Apr Iconv | **1.2.1** | apr-iconv-1.2.1-win32-src-r2.zip | https://apr.apache.org/ |
+| Cap'n Proto | **0.5.0** | capnproto-c++-win32-0.5.0.zip | https://capnproto.org |
+| Yaml | **0.1.5** | yaml-0.1.5.tar.gz | http://pyyaml.org/wiki/LibYAML |
+| Yaml Cpp | **0.3.0** | yaml-cpp-0.3.0.tar.gz | https://code.google.com/p/yaml-cpp/ |
+| Z Lib | **1.2.8** | zlib-1.2.8.tar.gz | http://www.zlib.net/ |
 
-Extract them all into %NUPIC_CORE_SOURCE%/build directory. The %NUPIC_CORE_SOURCE%/.gitignore file has a rule that ignores any directory called build/ You may need to un-nest some of the directories, e.g. apr-1.5.1/apr-1.5.1/... to apr-1.5.1/...
-
-Perform some housekeeping tasks on the Apr directories by renaming them -  
+Extract them all into %NUPIC_CORE_SOURCE%/build directory. You may need to un-nest some of the directories, e.g. apr-1.5.1/apr-1.5.1/... to apr-1.5.1/... APR expects ceratin directory names, rename the following directories;  
 
 apr-1.5.1 to apr  
 apr-iconv-1.2.1 to apr-iconv  
@@ -54,7 +68,7 @@ apr.dsw and aprutil.dsw workspace files can be imported into Visual Studio 2015.
 
 ### Cap'n Proto
 
-Download version 0.5.0 from https://capnproto.org/capnproto-c++-win32-0.5.0.zip 
+Download version **0.5.0** from https://capnproto.org/capnproto-c++-win32-0.5.0.zip 
 
 The three executables found in %NUPIC_CORE_SOURCE%\build\capnproto-tools-win32-0.5.0 should match the %NUPIC_CORE_SOURCE%\external\windows64\bin executables, and tie in with the external capnp and kj common include directories. 
 
@@ -64,13 +78,15 @@ Install instructions can be found at https://capnproto.org/install.html This is 
 > vcvarsall.bat  
 > cmake -G "Visual Studio 14 2015 Win64" -DCAPNP_LITE=1 -DEXTERNAL_CAPNP=1 -DCAPNP_INCLUDE_DIRS=..\\..\external\common\include -DCAPNP_LIB_KJ=.\ -DCAPNP_LIB_CAPNP=.\ -DCAPNP_EXECUTABLE="..\capnproto-tools-win32-0.5.0\capnpc-c++.exe"  
  
+Building the test programs may halt a full build. But enough will be built for an Install, and finally copy out the new capnp.lib and kj.lib libraries.
+
 ### Yaml
 
-A valid libyaml.sln solution file can be found in directory yaml-0.1.5\win32\vs2008 A new x64 platform solution can be added to it once imported into Visual Studio 2015.
+A valid libyaml.sln solution file can be found in directory yaml-0.1.5\win32\vs2008 A new x64 platform solution can be added to it once imported into Visual Studio 2015. We only need to build the yaml project from this solution.
 
 ### Yaml-cpp  
 
-In CMake-GUI %NUPIC_CORE_SOURCE%/build/yaml-cpp/ can be used for Source and Build directoreis. Make sure that MSVC_SHARED_RT is **ticked**, and BUILD_SHARED_LIBS and MSVC_STHREADED_RT are both **not ticked**. When building the solution you may need to '#include <algorithm>' in src\ostream_wrapper.cpp 
+In CMake-GUI %NUPIC_CORE_SOURCE%/build/yaml-cpp/ can be used for Source and Build directoreis. Make sure that MSVC_SHARED_RT is **ticked**, and BUILD_SHARED_LIBS and MSVC_STHREADED_RT are both **not ticked**. When building the solution you may need to `#include <algorithm>` in src\ostream_wrapper.cpp 
 
 ### Z Lib  
 
