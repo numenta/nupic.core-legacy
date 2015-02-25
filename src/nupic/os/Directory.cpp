@@ -23,7 +23,6 @@
 /** @file 
 */
 
-#include <unistd.h>
 #include <string>
 #include <algorithm>
 #include <nupic/os/Directory.hpp>
@@ -33,10 +32,11 @@
 #include <apr-1/apr_file_io.h>
 #include <apr-1/apr_time.h>
 
-#ifdef NTA_PLATFORM_win32
+#if defined(NTA_OS_WINDOWS)
   #include <windows.h>
   #include <tchar.h>
 #else
+  #include <unistd.h>
   #include <sys/stat.h>
 #endif
 
@@ -51,7 +51,7 @@ namespace nupic
     
     std::string getCWD()
     {
-    #ifdef NTA_PLATFORM_win32
+    #if defined(NTA_OS_WINDOWS)
       wchar_t wcwd[APR_PATH_MAX];
       DWORD res = ::GetCurrentDirectoryW(APR_PATH_MAX, wcwd);
       NTA_CHECK(res > 0) << "Couldn't get current working directory. Error code: " 
@@ -76,7 +76,7 @@ namespace nupic
     void setCWD(const std::string & path)
     {
       int res = 0;
-    #ifdef NTA_PLATFORM_win32
+    #if defined(NTA_OS_WINDOWS)
       std::wstring wpath(Path::utf8ToUnicode(path));
       res = ::SetCurrentDirectoryW(wpath.c_str()) ? 0 : -1;
     #else
@@ -89,7 +89,7 @@ namespace nupic
     static bool removeEmptyDir(const std::string & path, bool noThrow)
     {
       int res = 0;
-    #ifdef NTA_PLATFORM_win32
+    #if defined(NTA_OS_WINDOWS)
       std::wstring wpath(Path::utf8ToUnicode(path));
       res = ::RemoveDirectoryW(wpath.c_str()) != FALSE ? 0 : -1;
     #else
@@ -217,9 +217,19 @@ namespace nupic
 
       // non-recursive case
       bool success = true;
-    #ifdef NTA_PLATFORM_win32
+    #if defined(NTA_OS_WINDOWS)
       std::wstring wPath = Path::utf8ToUnicode(path);
       success = ::CreateDirectoryW(wPath.c_str(), NULL) != FALSE;
+      if (!success)
+      {
+        if (GetLastError() == ERROR_ALREADY_EXISTS) {
+          // Not a hard error, due to potential race conditions.
+          std::cerr << "Path '" << path << "' exists. "
+                       "Possible race condition."
+                    << std::endl;
+          success = Path::isDirectory(path);
+        }
+      }
 
     #else
       int permissions = S_IRWXU;

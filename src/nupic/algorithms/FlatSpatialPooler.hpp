@@ -61,7 +61,7 @@ namespace nupic {
 
           virtual ~FlatSpatialPooler() {}
 
-          virtual void save(ostream& outStream) override;
+          virtual void save(ostream& outStream) const override;
           virtual void load(istream& inStream) override;
           
           virtual UInt version() const override {

@@ -25,8 +25,8 @@
 
 #include <nupic/math/StlIo.hpp>
 
-#ifdef NTA_PLATFORM_linux64
-#define P_INC 4
+#if defined(NTA_ARCH_64) && defined(NTA_OS_LINUX)
+#define P_INC 4 // TODO: set for other 64bits too? Or set to sizeof(int*) instead?
 #else
 #define P_INC 2
 #endif

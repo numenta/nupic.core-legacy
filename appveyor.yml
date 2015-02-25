@@ -1,0 +1,93 @@
+#---------------------------------#
+#      general configuration      #
+#---------------------------------#
+
+# version format
+version: 1.0.{build}
+
+# TODO: Back to master before merge
+# branches to build
+branches:
+  # whitelist
+  only:
+    - master
+    - update_build_to_windows
+
+  # blacklist
+  except:
+    - master
+    - gh-pages
+
+#---------------------------------#
+#    environment configuration    #
+#---------------------------------#
+
+# Operating system (build VM template)
+os: Visual Studio 2015 CTP
+
+# scripts that are called at very beginning, before repo cloning
+init:
+  - git config --global core.autocrlf input
+
+# clone directory
+clone_folder: c:\projects\nupic-core
+
+environment:
+  # these variables are common to all jobs
+  # common_var1: value1
+  # common_var2: value2
+
+  matrix:
+    - COMPILER_FAMILY: MSVC
+      DEPLOY_BUILD: 0
+
+# scripts that run after cloning repository
+install:
+  - mkdir C:\projects\nupic-core\build\
+  - mkdir C:\projects\nupic-core\build\scripts
+  - mkdir C:\projects\nupic-core\build\release
+  - cd C:\projects\nupic-core\build\scripts
+  - ps: Start-FileDownload 'http://www.cmake.org/files/v3.1/cmake-3.1.0-win32-x86.zip'
+  - ps: Write-Host '7z x cmake-3.1.0-win32-x86.zip'
+  - ps: Start-Process -FilePath "7z" -ArgumentList "x -y cmake-3.1.0-win32-x86.zip" -Wait -Passthru
+  - set PATH="C:\projects\nupic-core\build\scripts\cmake-3.1.0-win32-x86\bin";%PATH%
+  - set PATH="C:\Program Files (x86)\MSBuild\14.0\Bin";%PATH%
+  - echo %PATH%
+
+# enable patching of AssemblyInfo.* files
+assembly_info:
+  patch: true
+  file: AssemblyInfo.*
+  assembly_version: "1.0.{build}"
+  assembly_file_version: "{version}"
+  assembly_informational_version: "{version}"
+
+#---------------------------------#
+#       build configuration       #
+#---------------------------------#
+
+configuration: Release
+
+# scripts to run before build
+before_build:
+  - cd C:\projects\nupic-core\build\scripts
+  - cmake C:\projects\nupic-core\src -G "Visual Studio 14 2015 Win64" -DCMAKE_INSTALL_PREFIX=..\Release -DLIB_STATIC_APR1_LOC=..\..\external\windows64\lib\apr-1.lib -DLIB_STATIC_APRUTIL1_LOC=..\..\external\windows64\lib\aprutil-1.lib -DLIB_STATIC_YAML_CPP_LOC=..\..\external\windows64\lib\yaml-cpp.lib -DLIB_STATIC_YAML_LOC=..\..\external\windows64\lib\yaml.lib -DLIB_STATIC_Z_LOC=..\..\external\windows64\lib\z.lib  -DLIB_STATIC_CAPNP_LOC=..\..\external\windows64\lib\capnp.lib  -DLIB_STATIC_KJ_LOC=..\..\external\windows64\lib\kj.lib
+
+# To run your custom scripts instead of automatic MSBuild
+build_script:
+  - msbuild "C:\projects\nupic-core\build\scripts\ALL_BUILD.vcxproj" /p:Configuration=Release /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+
+# scripts to run after build
+after_build:
+  - cd C:\projects\nupic-core\build\scripts\Release
+  - prototest 2>&1
+  - cpp_region_test 1 2>&1
+  - unit_tests --gtest_output=xml:${PROJECT_BUILD_ARTIFACTS_DIR}/unit_tests_report.xml 2>&1
+  - cd C:\projects\nupic-core\build\release\
+  - copy C:\projects\nupic-core\Package.nuspec .
+  - nuget pack -version %APPVEYOR_BUILD_VERSION%
+  - ps: if($env:DEPLOY_BUILD -eq 1) { nuget push *.nupkg 30618afb-ecf6-4476-8e61-a5b823ad9892 }
+
+build: on
+test: off
+deploy: off

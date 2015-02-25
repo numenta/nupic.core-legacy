@@ -413,12 +413,6 @@ void RandomTest::RunTests()
     Random r(42);
 
     {
-      // choose 0 elements
-      UInt32 choices[0];
-      r.sample(population, 4, choices, 0);
-    }
-
-    {
       // choose some elements
       UInt32 choices[2];
       r.sample(population, 4, choices, 2);
@@ -475,12 +469,12 @@ void RandomTest::RunTests()
     const char* outputPath = "RandomTest1.temp";
 
     {
-      std::ofstream out(outputPath);
+      std::ofstream out(outputPath, std::ios::binary);
       r1.write(out);
       out.close();
     }
     {
-      std::ifstream in(outputPath);
+      std::ifstream in(outputPath, std::ios::binary);
       r2.read(in);
       in.close();
     }
@@ -489,12 +483,12 @@ void RandomTest::RunTests()
     TESTEQUAL2("check serialization for unused Random object", v1, v2);
 
     {
-      std::ofstream out(outputPath);
+      std::ofstream out(outputPath, std::ios::binary);
       r1.write(out);
       out.close();
     }
     {
-      std::ifstream in(outputPath);
+      std::ifstream in(outputPath, std::ios::binary);
       r2.read(in);
       in.close();
     }
