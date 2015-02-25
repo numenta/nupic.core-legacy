@@ -1086,9 +1086,9 @@ namespace nupic {
     Real initActiveDutyCycles1[] =
       {0.1, 0.3, 0.02, 0.04, 0.7, 0.12};
     Real initBoostFactors1[] =
-      {0, 0, 0, 0, 0};
+      {0, 0, 0, 0, 0, 0};
     Real trueBoostFactors1[] =
-      {1, 1, 1, 1, 1};
+      {1, 1, 1, 1, 1, 1};
     Real resultBoostFactors1[6];
     sp.setMaxBoost(10);
     sp.setBoostFactors(initBoostFactors1);
@@ -1096,16 +1096,16 @@ namespace nupic {
     sp.setMinActiveDutyCycles(initMinActiveDutyCycles1);
     sp.updateBoostFactors_();
     sp.getBoostFactors(resultBoostFactors1);
-    NTA_CHECK(check_vector_eq(trueBoostFactors1, resultBoostFactors1, 5));
+    NTA_CHECK(check_vector_eq(trueBoostFactors1, resultBoostFactors1, 6));
 
     Real initMinActiveDutyCycles2[] =
       {0.1, 0.3, 0.02, 0.04, 0.7, 0.12};
     Real initActiveDutyCycles2[] =
       {0.1 ,0.3, 0.02, 0.04, 0.7, 0.12};
     Real initBoostFactors2[] =
-      {0, 0, 0, 0, 0};
+      {0, 0, 0, 0, 0, 0};
     Real trueBoostFactors2[] =
-      {1, 1, 1, 1, 1};
+      {1, 1, 1, 1, 1, 1};
     Real resultBoostFactors2[6];
     sp.setMaxBoost(10);
     sp.setBoostFactors(initBoostFactors2);
@@ -1113,16 +1113,16 @@ namespace nupic {
     sp.setMinActiveDutyCycles(initMinActiveDutyCycles2);
     sp.updateBoostFactors_();
     sp.getBoostFactors(resultBoostFactors2);
-    NTA_CHECK(check_vector_eq(trueBoostFactors2, resultBoostFactors2, 5));
+    NTA_CHECK(check_vector_eq(trueBoostFactors2, resultBoostFactors2, 6));
 
      Real initMinActiveDutyCycles3[] =
       {0.1, 0.3, 0.02, 0.04, 0.7, 0.12};
     Real initActiveDutyCycles3[] =
       {0.01 ,0.03, 0.002, 0.004, 0.07, 0.012};
     Real initBoostFactors3[] =
-      {0, 0, 0, 0, 0};
+      {0, 0, 0, 0, 0, 0};
     Real trueBoostFactors3[] =
-      {9.1, 9.1, 9.1, 9.1, 9.1};
+      {9.1, 9.1, 9.1, 9.1, 9.1, 9.1};
     Real resultBoostFactors3[6];
     sp.setMaxBoost(10);
     sp.setBoostFactors(initBoostFactors3);
@@ -1130,16 +1130,16 @@ namespace nupic {
     sp.setMinActiveDutyCycles(initMinActiveDutyCycles3);
     sp.updateBoostFactors_();
     sp.getBoostFactors(resultBoostFactors3);
-    NTA_CHECK(check_vector_eq(trueBoostFactors3, resultBoostFactors3, 5));
+    NTA_CHECK(check_vector_eq(trueBoostFactors3, resultBoostFactors3, 6));
 
      Real initMinActiveDutyCycles4[] =
       {0.1, 0.3, 0.02, 0.04, 0.7, 0.12};
     Real initActiveDutyCycles4[] =
       {0 ,0, 0, 0, 0, 0};
     Real initBoostFactors4[] =
-      {0, 0, 0, 0, 0};
+      {0, 0, 0, 0, 0, 0};
     Real trueBoostFactors4[] =
-      {10, 10, 10, 10, 10};
+      {10, 10, 10, 10, 10, 10};
     Real resultBoostFactors4[6];
     sp.setMaxBoost(10);
     sp.setBoostFactors(initBoostFactors4);
@@ -1147,7 +1147,7 @@ namespace nupic {
     sp.setMinActiveDutyCycles(initMinActiveDutyCycles4);
     sp.updateBoostFactors_();
     sp.getBoostFactors(resultBoostFactors4);
-    NTA_CHECK(check_vector_eq(trueBoostFactors4, resultBoostFactors4, 5));
+    NTA_CHECK(check_vector_eq(trueBoostFactors4, resultBoostFactors4, 6));
   }
 
   void SpatialPoolerTest::testUpdateBookeepingVars()
@@ -1872,7 +1872,6 @@ namespace nupic {
     for (auto & neighbor : neighbors) {
       neighborsMap[neighbor] = 1;
     }
-
     NTA_CHECK(check_vector_eq((UInt*) trueNeighbors1, neighborsMap));
 
     neighborsMap.clear();
@@ -1955,7 +1954,6 @@ namespace nupic {
     for (auto & neighbor : neighbors) {
       neighborsMap[neighbor] = 1;
     }
-
     NTA_CHECK(check_vector_eq((UInt *) trueNeighbors2Wrap, neighborsMap));
 
 
@@ -2019,84 +2017,71 @@ namespace nupic {
     }
     NTA_CHECK(check_vector_eq(trueNeighborsMap5, neighborsMap));
 
+    dimensions.clear();
+    dimensions.push_back(8);
     numColumns = 8;
 
+    UInt trueNeighborsMap6[8] = { 0, 0, 1, 0, 1, 0, 0, 0 };
     column = 3;
     radius = 1;
     wrapAround = true;
-    dimensions.clear();
-    dimensions.push_back(8);
-    UInt trueNeighborsMap6[8] = {0, 0, 1, 0, 1, 0, 0, 0};
     sp.getNeighborsND_(column, dimensions, radius, wrapAround,
                           neighbors);
     neighborsMap.assign(numColumns, 0);
     for (auto & neighbor : neighbors) {
       neighborsMap[neighbor] = 1;
     }
-
     NTA_CHECK(check_vector_eq(trueNeighborsMap6, neighborsMap));
 
+    UInt trueNeighborsMap7[8] = { 0, 1, 1, 0, 1, 1, 0, 0 };
     column = 3;
     radius = 2;
     wrapAround = false;
-    dimensions.clear();
-    dimensions.push_back(8);
-    UInt trueNeighborsMap7[8] = {0, 1, 1, 0, 1, 1, 0, 0};
     sp.getNeighborsND_(column, dimensions, radius, wrapAround,
                           neighbors);
     neighborsMap.assign(numColumns, 0);
     for (auto & neighbor : neighbors) {
       neighborsMap[neighbor] = 1;
     }
-
     NTA_CHECK(check_vector_eq(trueNeighborsMap7, neighborsMap));
 
+    UInt trueNeighborsMap8[8] = { 0, 1, 1, 0, 0, 0, 1, 1 };
     column = 0;
     radius = 2;
     wrapAround = true;
-    dimensions.clear();
-    dimensions.push_back(8);
-    UInt trueNeighborsMap8[8] = {0, 1, 1, 0, 0, 0, 1, 1};
     sp.getNeighborsND_(column, dimensions, radius, wrapAround,
                           neighbors);
     neighborsMap.assign(numColumns, 0);
     for (auto & neighbor : neighbors) {
       neighborsMap[neighbor] = 1;
     }
-
     NTA_CHECK(check_vector_eq(trueNeighborsMap8, neighborsMap));
 
     // Test with radius larger than the dimension range
+    UInt trueNeighborsMap9[8] = { 0, 1, 1, 1, 1, 1, 1, 1 };
     column = 0;
     radius = 100;
     wrapAround = false;
-    dimensions.clear();
-    dimensions.push_back(8);
-    UInt trueNeighborsMap9[8] = {0, 1, 1, 1, 1, 1, 1, 1};
     sp.getNeighborsND_(column, dimensions, radius, wrapAround,
                           neighbors);
     neighborsMap.assign(numColumns, 0);
     for (auto & neighbor : neighbors) {
       neighborsMap[neighbor] = 1;
     }
-
     NTA_CHECK(check_vector_eq(trueNeighborsMap9, neighborsMap));
 
     // Test with radius larger than the dimension range,
     // with wrapAround enabled
+    UInt trueNeighborsMap10[8] = { 0, 1, 1, 1, 1, 1, 1, 1 };
     column = 0;
     radius = 100;
     wrapAround = true;
-    dimensions.clear();
-    dimensions.push_back(8);
-    UInt trueNeighborsMap10[8] = {0, 1, 1, 1, 1, 1, 1, 1};
     sp.getNeighborsND_(column, dimensions, radius, wrapAround,
                           neighbors);
     neighborsMap.assign(numColumns, 0);
     for (auto & neighbor : neighbors) {
       neighborsMap[neighbor] = 1;
     }
-
     NTA_CHECK(check_vector_eq(trueNeighborsMap10, neighborsMap));
 
   }

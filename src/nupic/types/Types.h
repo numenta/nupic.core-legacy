@@ -32,6 +32,7 @@
 #define NTA_TYPES_H
 
 #include <stddef.h>
+#include <stdint.h>
 
 #if defined(NTA_OS_WINDOWS) && defined(NTA_COMPILER_MSVC) && defined(NDEBUG)
 #pragma warning( disable : 4244 ) // conversion from 'double' to 'nta::Real', possible loss of data (LOTS of various type combinations)
@@ -149,9 +150,14 @@ typedef float          NTA_Real32;
 typedef double         NTA_Real64;
 
 /**
- * Represents a opaque handle/pointer, same as `void *`
+ * Represents an opaque handle/pointer, same as `void *`
  */
 typedef void *         NTA_Handle;
+
+/**
+* Represents an opaque pointer, same as `uintptr_t`
+*/
+typedef uintptr_t      NTA_UIntPtr;
 
 #if defined(NTA_ARCH_32) && defined(NTA_OS_DARWIN)
 /**
