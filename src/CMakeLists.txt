@@ -110,17 +110,6 @@ endif()
 
 
 #
-# Identify build type - local or deployment (Travis)
-# the variable NUPIC_DEPLOYMENT_BUILD must be set in travis CI scripts
-#
-if($ENV{NUPIC_DEPLOYMENT_BUILD})
-  message("doing deployment build in TravisCI")
-else()
-  message("doing local build")
-endif()
-
-
-#
 # Setup include paths
 #
 get_filename_component(REPOSITORY_DIR ${PROJECT_SOURCE_DIR}/.. ABSOLUTE)
@@ -434,7 +423,9 @@ set_target_properties(${EXECUTABLE_CPPREGIONTEST} PROPERTIES
                       LINK_FLAGS "${COMMON_LINK_FLAGS}")
 add_custom_target(tests_cpp_region
                   COMMAND ${EXECUTABLE_CPPREGIONTEST}
-                  DEPENDS ${EXECUTABLE_CPPREGIONTEST})
+                  DEPENDS ${EXECUTABLE_CPPREGIONTEST}
+                  VERBATIM)
+
 set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS} -static")
 
 #
@@ -463,8 +454,7 @@ add_dependencies(${EXECUTABLE_HELLOREGION} ${COMMON_LIBS})
 #
 set(EXECUTABLE_PROTOTEST prototest)
 add_executable(${EXECUTABLE_PROTOTEST} examples/prototest.cpp)
-target_link_libraries(${EXECUTABLE_PROTOTEST}
-                        ${COMMON_LIBS})
+target_link_libraries(${EXECUTABLE_PROTOTEST} ${COMMON_LIBS})
 set_target_properties(${EXECUTABLE_PROTOTEST} PROPERTIES
                       COMPILE_FLAGS ${COMMON_COMPILE_FLAGS}
                       LINK_FLAGS "${COMMON_LINK_FLAGS}")
@@ -525,7 +515,9 @@ set_target_properties(${EXECUTABLE_GTESTS} PROPERTIES
                       LINK_FLAGS "${COMMON_LINK_FLAGS}")
 add_dependencies(${EXECUTABLE_GTESTS} ${LIB_STATIC_GTEST} ${COMMON_LIBS})
 add_custom_target(tests_unit
-                  COMMAND ${EXECUTABLE_GTESTS} "--gtest_output=xml:${PROJECT_BUILD_ARTIFACTS_DIR}/unit_tests_report.xml")
+                  COMMAND ${EXECUTABLE_GTESTS} "--gtest_output=xml:${PROJECT_BUILD_ARTIFACTS_DIR}/unit_tests_report.xml"
+                  DEPENDS ${EXECUTABLE_GTESTS}
+                  VERBATIM)
 set(TEST_HEADERS
     test/unit/algorithms/CondProbTableTest.hpp
     test/unit/algorithms/ConnectionsTest.hpp
@@ -582,7 +574,8 @@ file(WRITE "${PROJECT_BINARY_DIR}/AddTestHeaders.hpp" "${headers_file_content}")
 add_custom_target(tests_all
                   DEPENDS tests_cpp_region
                   DEPENDS tests_unit
-                  COMMENT "Running all tests")
+                  COMMENT "Running all tests"
+                  VERBATIM)
 
 if(UNIX)
   add_custom_target(combined ALL
@@ -613,7 +606,8 @@ else()
                             ${LIB_STATIC_GTEST}
                             ${EXECUTABLE_HELLOREGION}
                             ${EXECUTABLE_CPPREGIONTEST}
-                            ${EXECUTABLE_GTESTS})
+                            ${EXECUTABLE_GTESTS}
+                    VERBATIM)
 endif()
 
 #

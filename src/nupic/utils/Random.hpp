@@ -24,6 +24,9 @@
     Random Number Generator interface
 */
 
+#ifndef NTA_RANDOM_HPP
+#define NTA_RANDOM_HPP
+
 #include <algorithm>
 #include <cstdlib>
 #include <string>
@@ -33,9 +36,6 @@
 #include <nupic/proto/RandomProto.capnp.h>
 #include <nupic/types/Types.hpp>
 #include <nupic/utils/Log.hpp>
-
-#ifndef NTA_RANDOM_HPP
-#define NTA_RANDOM_HPP
 
 typedef NTA_UInt64 (*RandomSeedFuncPtr)();
 

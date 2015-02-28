@@ -1872,8 +1872,7 @@ namespace nupic {
     for (auto & neighbor : neighbors) {
       neighborsMap[neighbor] = 1;
     }
-
-    NTA_CHECK(check_vector_eq((UInt *) trueNeighbors1, neighborsMap));
+    NTA_CHECK(check_vector_eq((UInt*) trueNeighbors1, neighborsMap));
 
     neighborsMap.clear();
     w = 4;
@@ -1955,7 +1954,6 @@ namespace nupic {
     for (auto & neighbor : neighbors) {
       neighborsMap[neighbor] = 1;
     }
-
     NTA_CHECK(check_vector_eq((UInt *) trueNeighbors2Wrap, neighborsMap));
 
 
@@ -1963,6 +1961,7 @@ namespace nupic {
     dimensions.clear();
     dimensions.push_back(6);
     dimensions.push_back(5);
+
     numColumns = 30;
     UInt trueNeighborsMap3[30] =
       {0, 0, 0, 0, 0,
@@ -2018,83 +2017,71 @@ namespace nupic {
     }
     NTA_CHECK(check_vector_eq(trueNeighborsMap5, neighborsMap));
 
+    dimensions.clear();
+    dimensions.push_back(8);
     numColumns = 8;
+
+    UInt trueNeighborsMap6[8] = { 0, 0, 1, 0, 1, 0, 0, 0 };
     column = 3;
     radius = 1;
     wrapAround = true;
-    dimensions.clear();
-    dimensions.push_back(8);
-    UInt trueNeighborsMap6[8] = {0, 0, 1, 0, 1, 0, 0, 0};
     sp.getNeighborsND_(column, dimensions, radius, wrapAround,
                           neighbors);
     neighborsMap.assign(numColumns, 0);
     for (auto & neighbor : neighbors) {
       neighborsMap[neighbor] = 1;
     }
-
     NTA_CHECK(check_vector_eq(trueNeighborsMap6, neighborsMap));
 
+    UInt trueNeighborsMap7[8] = { 0, 1, 1, 0, 1, 1, 0, 0 };
     column = 3;
     radius = 2;
     wrapAround = false;
-    dimensions.clear();
-    dimensions.push_back(8);
-    UInt trueNeighborsMap7[8] = {0, 1, 1, 0, 1, 1, 0, 0};
     sp.getNeighborsND_(column, dimensions, radius, wrapAround,
                           neighbors);
     neighborsMap.assign(numColumns, 0);
     for (auto & neighbor : neighbors) {
       neighborsMap[neighbor] = 1;
     }
-
     NTA_CHECK(check_vector_eq(trueNeighborsMap7, neighborsMap));
 
+    UInt trueNeighborsMap8[8] = { 0, 1, 1, 0, 0, 0, 1, 1 };
     column = 0;
     radius = 2;
     wrapAround = true;
-    dimensions.clear();
-    dimensions.push_back(8);
-    UInt trueNeighborsMap8[8] = {0, 1, 1, 0, 0, 0, 1, 1};
     sp.getNeighborsND_(column, dimensions, radius, wrapAround,
                           neighbors);
     neighborsMap.assign(numColumns, 0);
     for (auto & neighbor : neighbors) {
       neighborsMap[neighbor] = 1;
     }
-
     NTA_CHECK(check_vector_eq(trueNeighborsMap8, neighborsMap));
 
     // Test with radius larger than the dimension range
+    UInt trueNeighborsMap9[8] = { 0, 1, 1, 1, 1, 1, 1, 1 };
     column = 0;
     radius = 100;
     wrapAround = false;
-    dimensions.clear();
-    dimensions.push_back(8);
-    UInt trueNeighborsMap9[8] = {0, 1, 1, 1, 1, 1, 1, 1};
     sp.getNeighborsND_(column, dimensions, radius, wrapAround,
                           neighbors);
     neighborsMap.assign(numColumns, 0);
     for (auto & neighbor : neighbors) {
       neighborsMap[neighbor] = 1;
     }
-
     NTA_CHECK(check_vector_eq(trueNeighborsMap9, neighborsMap));
 
     // Test with radius larger than the dimension range,
     // with wrapAround enabled
+    UInt trueNeighborsMap10[8] = { 0, 1, 1, 1, 1, 1, 1, 1 };
     column = 0;
     radius = 100;
     wrapAround = true;
-    dimensions.clear();
-    dimensions.push_back(8);
-    UInt trueNeighborsMap10[8] = {0, 1, 1, 1, 1, 1, 1, 1};
     sp.getNeighborsND_(column, dimensions, radius, wrapAround,
                           neighbors);
     neighborsMap.assign(numColumns, 0);
     for (auto & neighbor : neighbors) {
       neighborsMap[neighbor] = 1;
     }
-
     NTA_CHECK(check_vector_eq(trueNeighborsMap10, neighborsMap));
 
   }

@@ -86,9 +86,14 @@ namespace nupic
   typedef NTA_Real64          Real64;
 
   /**
-   * Represents a opaque handle/pointer, same as `void *`
+   * Represents an opaque handle/pointer, same as `void *`
    */
   typedef NTA_Handle          Handle;
+
+  /**
+  * Represents an opaque pointer, same as `uintptr_t`
+  */
+  typedef NTA_UIntPtr         UIntPtr;
 
   /**
    * @}
@@ -127,7 +132,7 @@ namespace nupic
   /**
    * Represents lengths of arrays, strings and so on.
    */
-  typedef NTA_Size            Size;
+  typedef NTA_Size Size;
 
   /**
    * @}
