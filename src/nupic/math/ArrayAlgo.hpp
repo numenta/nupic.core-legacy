@@ -250,7 +250,7 @@ namespace nupic {
     if (SSE_LEVEL >= 41) { // ptest is a SSE 4.1 instruction
 
     // On win32, the asm syntax is not correct.
-#if defined(NTA_ASM) && defined(NTA_ARCH_32) && not defined(NTA_OS_WINDOWS)
+#if defined(NTA_ASM) && defined(NTA_ARCH_32) && !defined(NTA_OS_WINDOWS)
 
       // n is the total number of floats to process.
       // n1 is the number of floats we can process in parallel using SSE.
@@ -316,7 +316,7 @@ namespace nupic {
           return false;
       return true;
 
-#elif defined(NTA_ASM) && defined(NTA_ARCH_64) && not defined(NTA_OS_WINDOWS)
+#elif defined(NTA_ASM) && defined(NTA_ARCH_64) && !defined(NTA_OS_WINDOWS)
 
       // n is the total number of floats to process.
       // n1 is the number of floats we can process in parallel using SSE.
@@ -415,7 +415,7 @@ namespace nupic {
     // const int SSE_LEVEL. 
     if (SSE_LEVEL >= 41) { // ptest is a SSE 4.1 instruction
 
-#if defined(NTA_ASM) && defined(NTA_ARCH_32) && not defined(NTA_OS_WINDOWS)
+#if defined(NTA_ASM) && defined(NTA_ARCH_32) && !defined(NTA_OS_WINDOWS)
 
       // n is the total number of floats to process.
       // n1 is the number of floats we can process in parallel using SSE.
@@ -481,7 +481,7 @@ namespace nupic {
           return false;
       return true;
 
-#elif defined(NTA_ASM) && not defined(NTA_OS_WINDOWS)
+#elif defined(NTA_ASM) && !defined(NTA_OS_WINDOWS)
 
       // n is the total number of floats to process.
       // n1 is the number of floats we can process in parallel using SSE.
@@ -3779,14 +3779,14 @@ namespace nupic {
       // n1 is the number floats we can process in parallel with xmm
       // n2 is the number of "stragglers" what we will have to do one by one ( < 4)
       nupic::Real32 count = 0;
-      long x_addr = (long) begin; // 8 bytes on 64 bits platforms
+      NTA_UIntPtr x_addr = (NTA_UIntPtr) begin; // 8 bytes on 64 bits platforms
       nupic::Real32* start = (x_addr % 16 == 0) ? begin : (nupic::Real32*) (16*(x_addr/16+1));
       int n0 = (int)(start - begin);
       int n1 = 4 * ((end - start) / 4);
       int n2 = (int)(end - start - n1);
 
 
-#if defined(NTA_ARCH_64) && not defined(NTA_OS_WINDOWS)
+#if defined(NTA_ARCH_64) && !defined(NTA_OS_WINDOWS)
 
     #if defined(NTA_OS_DARWIN)
 
@@ -4976,7 +4976,7 @@ namespace nupic {
 
     // See comments in count_gt. We need both conditional compilation and 
     // SSE_LEVEL check.
-#if not defined(NTA_OS_WINDOWS)
+#if !defined(NTA_OS_WINDOWS)
 
     if (SSE_LEVEL >= 3) {
 
