@@ -59,7 +59,8 @@ const int DIM_INPUT = 10000;
 //    cout << "input=" << input << endl;
  
     SpatialPooler sp(inputDim, colDim);
-    Cells4 tp(DIM);
+    Cells4 tp;
+    tp.initialize(DIM);
 
     //run
     fill(outSP.begin(), outSP.end(), 0);
@@ -69,8 +70,6 @@ const int DIM_INPUT = 10000;
     fill(outTP.begin(), outTP.end(), 0);
     Real rIn[DIM] = {};
     Real rOut[DIM] = {};
-    //memset(rIn, 0, DIM * 4);
-    //memset(rOut, 0, DIM * 4);
 
     cout << "TP:" << endl;
 
