@@ -899,7 +899,7 @@ void Cells4::learnPhase2(bool readOnly)
  * Update the learning state. Called from compute()
  */
 void Cells4::updateLearningState(const std::vector<UInt> & activeColumns,
-                                 UInt* input)
+                                 Real* input)
 {
   // =========================================================================
   // Copy over learning states to t-1 and reset state at t to 0
@@ -1230,7 +1230,7 @@ bool Cells4::inferPhase2()
 /**
  * Main compute routine, called for both learning and inference.
  */
-void Cells4::compute(UInt* input, UInt* output, bool doInference, bool doLearning)
+void Cells4::compute(Real* input, Real* output, bool doInference, bool doLearning)
 {
   TIMER(computeTimer.start());
   NTA_CHECK(doInference || doLearning);
@@ -1436,7 +1436,7 @@ void Cells4::_updateAvgLearnedSeqLength(UInt prevSeqLength)
 /**
  * Go through the list of accumulated segment updates and process them.
  */
-void Cells4::processSegmentUpdates(UInt* input, const CState& predictedState)
+void Cells4::processSegmentUpdates(Real* input, const CState& predictedState)
 {
   static std::vector<UInt> delUpdates;
   delUpdates.clear();                       // purge residual data
