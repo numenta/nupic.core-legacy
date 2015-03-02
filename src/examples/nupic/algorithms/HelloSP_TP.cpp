@@ -68,11 +68,19 @@ const int DIM_INPUT = 10000;
     cout << "SP=" << outSP << endl;
 
     fill(outTP.begin(), outTP.end(), 0);
-    Real rIn[DIM];
-    Real rOut[DIM];
+    Real rIn[DIM] = {};
+    Real rOut[DIM] = {};
+    //memset(rIn, 0, DIM * 4);
+    //memset(rOut, 0, DIM * 4);
+
+    cout << "TP:" << endl;
+
     for (int i=0; i< DIM; i++) {
       rIn[i] = (Real)(outSP[i]);
+      cout << rIn[i];
+      cout << rOut[i];
     }
+    cout << "OK" << endl;
 
     tp.compute(rIn, rOut, true, true);
     cout << "TP=" << rOut << endl;
