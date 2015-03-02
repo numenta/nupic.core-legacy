@@ -58,8 +58,7 @@ const int DIM_INPUT = 10000;
 
 //    cout << "input=" << input << endl;
  
-    SpatialPooler sp; //! (inputDim, colDim);
-    sp.initialize(inputDim, colDim); //! fix to use constructor above
+    SpatialPooler sp(inputDim, colDim);
     Cells4 tp(DIM);
 
     //run
