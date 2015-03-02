@@ -356,7 +356,7 @@ namespace nupic {
 
         Real* _cellConfidenceCandidate;
         Real* _colConfidenceCandidate;
-        Real* _tmpInputBuffer;
+        UInt* _tmpInputBuffer;
 #if SOME_STATES_NOT_INDEXED
         CState _infActiveStateCandidate;
         CState _infPredictedStateCandidate;
@@ -635,7 +635,7 @@ namespace nupic {
          * doInference:     if true, inference output will be computed
          * doLearning:      if true, learning will occur
          */
-        void compute(Real* input, Real* output, bool doInference, bool doLearning);
+        void compute(UInt* input, UInt* output, bool doInference, bool doLearning);
 
         //-----------------------------------------------------------------------
         /**
@@ -771,7 +771,7 @@ namespace nupic {
          * activeColumns:   Indices of active columns
          */
         void updateLearningState(const std::vector<UInt> & activeColumns,
-                                 Real* input);
+                                 UInt* input);
 
         //-----------------------------------------------------------------------
         /**
@@ -946,7 +946,7 @@ namespace nupic {
          *                  cell
          *
          */
-        void processSegmentUpdates(Real* input, const CState& predictedState);
+        void processSegmentUpdates(UInt* input, const CState& predictedState);
 
         //----------------------------------------------------------------------
         /**
