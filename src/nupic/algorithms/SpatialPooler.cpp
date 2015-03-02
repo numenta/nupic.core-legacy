@@ -118,6 +118,47 @@ SpatialPooler::SpatialPooler()
   version_ = 2;
 }
 
+SpatialPooler::SpatialPooler(vector<UInt> inputDimensions,
+                                  vector<UInt> columnDimensions,
+                                  UInt potentialRadius,
+                                  Real potentialPct,
+                                  bool globalInhibition,
+                                  Real localAreaDensity,
+                                  UInt numActiveColumnsPerInhArea,
+                                  UInt stimulusThreshold,
+                                  Real synPermInactiveDec,
+                                  Real synPermActiveInc,
+                                  Real synPermConnected,
+                                  Real minPctOverlapDutyCycles,
+                                  Real minPctActiveDutyCycles,
+                                  UInt dutyCyclePeriod,
+                                  Real maxBoost,
+                                  Int seed,
+                                  UInt spVerbosity,
+                                  bool wrapAround)
+{
+  SpatialPooler sp;
+  sp.initialize(inputDimensions,
+                                  columnDimensions,
+                                  potentialRadius,
+                                  potentialPct,
+                                  globalInhibition,
+                                  localAreaDensity,
+                                  numActiveColumnsPerInhArea,
+                                  stimulusThreshold,
+                                  synPermInactiveDec,
+                                  synPermActiveInc,
+                                  synPermConnected,
+                                  minPctOverlapDutyCycles,
+                                  minPctActiveDutyCycles,
+                                  dutyCyclePeriod,
+                                  maxBoost,
+                                  seed,
+                                  spVerbosity,
+                                  wrapAround);
+}
+
+
 vector<UInt> SpatialPooler::getColumnDimensions() const
 {
   return columnDimensions_;
