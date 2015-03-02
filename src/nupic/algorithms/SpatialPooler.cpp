@@ -137,8 +137,7 @@ SpatialPooler::SpatialPooler(vector<UInt> inputDimensions,
                                   UInt spVerbosity,
                                   bool wrapAround)
 {
-  SpatialPooler sp;
-  sp.initialize(inputDimensions,
+  initialize(			  inputDimensions,
                                   columnDimensions,
                                   potentialRadius,
                                   potentialPct,
