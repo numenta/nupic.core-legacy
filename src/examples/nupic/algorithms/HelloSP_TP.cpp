@@ -68,8 +68,9 @@ const int DIM_INPUT = 10000;
     cout << "SP=" << outSP << endl;
 
     fill(outTP.begin(), outTP.end(), 0);
-    Real rIn[DIM] = {};
-    Real rOut[DIM] = {};
+    Real rIn[DIM] = {}; // default size from constructor
+    const UInt CELLS = DIM*10;
+    Real rOut[CELLS] = {};
 
     cout << "TP:" << endl;
 
