@@ -8,6 +8,7 @@ version: 1.0.{build}
 branches:
   # whitelist
   only:
+    - master
     - 311-appveyor-s3-support
 
   # blacklist
