@@ -9,6 +9,7 @@ branches:
   # whitelist
   only:
     - master
+    - 311-appveyor-s3-support
 
   # blacklist
   except:
