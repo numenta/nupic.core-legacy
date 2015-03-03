@@ -5,8 +5,6 @@
 # version format
 version: 1.0.{build}
 
-# TODO: Back to master before merge
-# branches to build
 branches:
   # whitelist
   only:
@@ -30,24 +28,16 @@ init:
 clone_folder: c:\projects\nupic-core
 
 environment:
-
   matrix:
-#    - COMPILER_FAMILY: GNU
-#      DEPLOY_BUILD: 0
+    # Must add either GCC or CLang here
+    # ie. COMPILER_FAMILY: GNU
     - COMPILER_FAMILY: MSVC
       DEPLOY_BUILD: 1
 
-install:
-  - mkdir C:\projects\nupic-core\build\
-  - mkdir C:\projects\nupic-core\build\scripts
-  - mkdir C:\projects\nupic-core\build\release
-  - cd C:\projects\nupic-core\build\scripts
-  - ps: Start-FileDownload 'http://www.cmake.org/files/v3.1/cmake-3.1.0-win32-x86.zip'
-  - ps: Write-Host '7z x cmake-3.1.0-win32-x86.zip'
-  - ps: Start-Process -FilePath "7z" -ArgumentList "x -y cmake-3.1.0-win32-x86.zip" -Wait -Passthru
-  - set PATH="C:\projects\nupic-core\build\scripts\cmake-3.1.0-win32-x86\bin";%PATH%
-  - set PATH="C:\Program Files (x86)\MSBuild\14.0\Bin";%PATH%
-  - echo %PATH%
+skip_commits:
+  # Add [av skip] to commit messages to skip AppVeyor building
+  # Add [ci skip] to skip Travis and AppVeyor building
+  message: /\[av skip\]/ 
 
 #---------------------------------#
 #       build configuration       #
@@ -62,6 +52,18 @@ assembly_info:
   assembly_informational_version: "{version}"
 
 configuration: Release
+
+install:
+  - mkdir C:\projects\nupic-core\build\
+  - mkdir C:\projects\nupic-core\build\release
+  - mkdir C:\projects\nupic-core\build\scripts
+  - cd C:\projects\nupic-core\build\scripts
+  - ps: Start-FileDownload 'http://www.cmake.org/files/v3.1/cmake-3.1.0-win32-x86.zip'
+  - ps: Write-Host '7z x cmake-3.1.0-win32-x86.zip'
+  - ps: Start-Process -FilePath "7z" -ArgumentList "x -y cmake-3.1.0-win32-x86.zip" -Wait -Passthru
+  - set PATH="C:\projects\nupic-core\build\scripts\cmake-3.1.0-win32-x86\bin";%PATH%
+  - set PATH="C:\Program Files (x86)\MSBuild\14.0\Bin";%PATH%
+  - echo %PATH%
 
 before_build:
   - cd C:\projects\nupic-core\build\scripts
@@ -78,17 +80,31 @@ build_script:
   - msbuild "C:\projects\nupic-core\build\scripts\Install.vcxproj" /p:Configuration=Release /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
 
 after_build:
+  # Run the tests
   - cd C:\projects\nupic-core\build\release\bin
   - prototest 2>&1
   - cpp_region_test 1 2>&1
   - unit_tests --gtest_output=xml:${PROJECT_BUILD_ARTIFACTS_DIR}/unit_tests_report.xml 2>&1
-  - ps: if($env:DEPLOY_BUILD -eq 1) { cd C:\projects\nupic-core\build\release\ }
-  - ps: if($env:DEPLOY_BUILD -eq 1) { copy C:\projects\nupic-core\Package.nuspec . }
-  - ps: if($env:DEPLOY_BUILD -eq 1) { nuget pack -version $env:APPVEYOR_BUILD_VERSION }
-  - ps: if($env:DEPLOY_BUILD -eq 1) { nuget push *.nupkg 30618afb-ecf6-4476-8e61-a5b823ad9892 }
+
+  - cd C:\projects\nupic-core\build\release
+  - ps: >-
+      if($env:DEPLOY_BUILD -eq 1) {
+        copy C:\projects\nupic-core\Package.nuspec .
+        nuget pack -version $env:APPVEYOR_BUILD_VERSION
+        nuget push *.nupkg 30618afb-ecf6-4476-8e61-a5b823ad9892
+
+        Write-Host '7z a -ttar nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar .'
+        Start-Process -FilePath "7z" -ArgumentList "a -ttar  nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar ." -Wait -Passthru
+        Write-Host '7z a -tgzip nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar.gz nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar'
+        Start-Process -FilePath "7z" -ArgumentList "a -tgzip nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar.gz nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar" -Wait -Passthru
+      }
+
+  - cd C:\projects\nupic-core\build\release
+  - copy *.nupkg ${PROJECT_BUILD_ARTIFACTS_DIR}
+  - copy nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar.gz ${PROJECT_BUILD_ARTIFACTS_DIR}
 
 artifacts:
-  - path: nupic-core\build\release
+  - path: build\artifacts
 
 test: off
 deploy: off
