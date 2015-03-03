@@ -64,7 +64,7 @@ const int DIM_INPUT = 10000;
 
     //run
     fill(outSP.begin(), outSP.end(), 0);
-    sp.compute(&input[0], true, &outSP[0]);
+    sp.compute(input.data(), true, outSP.data());
     cout << "SP=" << outSP << endl;
 
     fill(outTP.begin(), outTP.end(), 0);
