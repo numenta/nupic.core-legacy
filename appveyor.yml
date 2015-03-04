@@ -5,17 +5,6 @@
 # version format
 version: 1.0.{build}
 
-# TODO: Back to master before merge
-# branches to build
-branches:
-  # whitelist
-  only:
-	- 314-port-python-tm
-
-  # blacklist
-  except:
-    - gh-pages
-
 #---------------------------------#
 #    environment configuration    #
 #---------------------------------#
