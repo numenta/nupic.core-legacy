@@ -10,7 +10,7 @@ version: 1.0.{build}
 branches:
   # whitelist
   only:
-    - master
+	- 314-port-python-tm
 
   # blacklist
   except:
@@ -35,7 +35,7 @@ environment:
 #    - COMPILER_FAMILY: GNU
 #      DEPLOY_BUILD: 0
     - COMPILER_FAMILY: MSVC
-      DEPLOY_BUILD: 1
+      DEPLOY_BUILD: 0
 
 install:
   - mkdir C:\projects\nupic-core\build\
