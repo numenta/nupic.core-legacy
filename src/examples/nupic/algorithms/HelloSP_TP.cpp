@@ -25,6 +25,7 @@
 #include <algorithm>    // std::generate
 #include <ctime>        // std::time
 #include <cstdlib>      // std::rand, std::srand
+#include <cmath> 	// pow
 
 #include "nupic/algorithms/SpatialPooler.hpp"
 #include "nupic/algorithms/Cells4.hpp"
@@ -35,54 +36,52 @@ using namespace nupic::algorithms::spatial_pooler;
 using namespace nupic::algorithms::Cells4;
 
 // function generator:
-int RandomNumber01 () { return (rand()%2); }
+int RandomNumber01 () { return (rand()%2); } // returns random (binary) numbers from {0,1}
 
 int main(int argc, const char * argv[])
 {
-const int DIM = 2048;
+const int DIM = 2048; // number of columns in SP, TP
 const int DIM_INPUT = 10000;
+const int TP_CELLS_PER_COL = 10; // cells per column in TP
+const int EPOCHS = pow(10, 4); // number of iterations (calls to SP/TP compute() )
 
-    vector<UInt> inputDim;
-    inputDim.push_back(DIM_INPUT);
-    inputDim.push_back(1);
+  vector<UInt> inputDim = {DIM_INPUT};
+  vector<UInt> colDim = {DIM};
 
-    vector<UInt> colDim;
-    colDim.push_back(DIM);
-    colDim.push_back(1);
+  // generate random input
+  vector<UInt> input(DIM_INPUT);
+  vector<UInt> outSP(DIM); // active array, output of SP/TP
+  const int _CELLS = DIM * TP_CELLS_PER_COL;
+  vector<UInt> outTP(_CELLS);   
+  Real rIn[DIM] = {}; // input for TP (must be Reals)
+  Real rOut[_CELLS] = {};
 
-    // generate random input
-    vector<UInt> input(DIM_INPUT);
+  // initialize SP, TP
+  SpatialPooler sp(inputDim, colDim);
+  Cells4 tp(DIM, TP_CELLS_PER_COL, 12, 8, 15, 5, .5, .8, 1.0, .1, .1, 0.0, false, 42, true, false);
+
+  //run
+  for (int e=0; e< EPOCHS; e++) {
     generate(input.begin(), input.end(), RandomNumber01);
-    vector<UInt> outSP(DIM); // active array, output of SP/TP
-    vector<UInt> outTP(DIM);   
-
-//    cout << "input=" << input << endl;
- 
-    SpatialPooler sp(inputDim, colDim);
-    Cells4 tp;
-    tp.initialize(DIM);
-
-    //run
     fill(outSP.begin(), outSP.end(), 0);
     sp.compute(input.data(), true, outSP.data());
-    cout << "SP=" << outSP << endl;
-
-    fill(outTP.begin(), outTP.end(), 0);
-    Real rIn[DIM] = {}; // default size from constructor
-    const UInt CELLS = DIM*10;
-    Real rOut[CELLS] = {};
-
-    cout << "TP:" << endl;
 
     for (int i=0; i< DIM; i++) {
       rIn[i] = (Real)(outSP[i]);
-      cout << rIn[i];
-      cout << rOut[i];
     }
-    cout << "OK" << endl;
 
     tp.compute(rIn, rOut, true, true);
-    cout << "TP=" << rOut << endl;
 
-    return 0;
+    for (int i=0; i< _CELLS; i++) {
+      outTP[i] = (UInt)rOut[i];
+    }
+
+    // print
+    if (e == EPOCHS-1) {
+      cout << "Epoch = " << e << endl;
+      cout << "SP=" << outSP << endl;
+      cout << "TP=" << outTP << endl;
+    }
+  }
+  return 0;
 }
