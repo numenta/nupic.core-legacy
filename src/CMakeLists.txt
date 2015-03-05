@@ -465,7 +465,7 @@ add_dependencies(${EXECUTABLE_PROTOTEST} ${COMMON_LIBS})
 # Setup HelloSP_TP example
 #
 set(EXECUTABLE_HELLOSPTP hello_sp_tp)
-add_executable(${EXECUTABLE_HELLOSPTP} examples/nupic/algorithms/HelloSP_TP.cpp)
+add_executable(${EXECUTABLE_HELLOSPTP} examples/algorithms/HelloSP_TP.cpp)
 target_link_libraries(${EXECUTABLE_HELLOSPTP} ${COMMON_LIBS})
 set_target_properties(${EXECUTABLE_HELLOSPTP} PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
 set_target_properties(${EXECUTABLE_HELLOSPTP} PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
