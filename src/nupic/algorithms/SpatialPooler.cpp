@@ -135,7 +135,7 @@ SpatialPooler::SpatialPooler(vector<UInt> inputDimensions,
                                   Real maxBoost,
                                   Int seed,
                                   UInt spVerbosity,
-                                  bool wrapAround)
+                                  bool wrapAround) : SpatialPooler::SpatialPooler() 
 {
   initialize(			  inputDimensions,
                                   columnDimensions,
