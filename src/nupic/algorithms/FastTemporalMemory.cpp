@@ -40,7 +40,7 @@ using namespace nupic::algorithms::fast_temporal_memory;
 
 void FastTemporalMemory::initialize()
 {
-  //TemporalMemory::initialize();
+  TemporalMemory::initialize();
   connections_ = Connections(numberOfCells());
 }
 
@@ -70,7 +70,7 @@ void FastTemporalMemory::initialize()
     `winnerCells`      (set),
     `learningSegments` (set)
 */
-//tuple<vector<Cell>, vector<Cell>, vector<Segment>>
+
 void FastTemporalMemory::burstColumns(vector<Int>& activeColumns,
                                       vector<Int>& predictedColumns,
                                       vector<Cell>& prevActiveCells,
@@ -79,7 +79,7 @@ void FastTemporalMemory::burstColumns(vector<Int>& activeColumns,
 {
   vector<Int> unpredictedColumns;
 
-  // Resize to the worst case usage
+  // Resize to the largest size
   unpredictedColumns.resize(activeColumns.size() + predictedColumns.size());
 
   // Remove the predicted columns from the currently active columns
@@ -120,8 +120,8 @@ void FastTemporalMemory::burstColumns(vector<Int>& activeColumns,
     winnerCells_.push_back(bestCell);
   }
 
-  return;// make_tuple(activeCells, winnerCells, learningSegments);
 }
+
 
 /*
   Phase 4 : Compute predictive cells due to lateral input
@@ -143,7 +143,7 @@ void FastTemporalMemory::burstColumns(vector<Int>& activeColumns,
     `activeSegments`  (set),
     `predictiveCells` (set)
 */
-//tuple<vector<Segment>, vector<Cell>>
+
 void FastTemporalMemory::computePredictiveCells(vector<Cell>& activeCells,
                                                 Connections& connections)
 {
@@ -152,8 +152,7 @@ void FastTemporalMemory::computePredictiveCells(vector<Cell>& activeCells,
                                 connectedPermanence_, 
                                 activationThreshold_);
 
-  vector<Segment> activeSegments = connections.activeSegments(activity);
-  vector<Cell> predictiveCells = connections.activeCells(activity);
+  activeSegments_ = connections.activeSegments(activity);
+  predictiveCells_ = connections.activeCells(activity);
 
-  return;// make_tuple(activeSegments, predictiveCells);
 }

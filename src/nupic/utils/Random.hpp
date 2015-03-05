@@ -164,6 +164,7 @@ namespace nupic {
 
     // normally used for debugging only
     UInt64 getSeed() {return seed_;}
+    void reseed(UInt64 seed);
 
     // for STL
     typedef UInt32 argument_type;
@@ -191,8 +192,6 @@ namespace nupic {
     // and seeder_ is set to a function that uses our singleton
     // initFromPlatformServices can also be used to initialize the seeder_
     static RandomSeedFuncPtr seeder_;
-
-    void reseed(UInt64 seed);
 
     RandomImpl *impl_;
     UInt64 seed_;

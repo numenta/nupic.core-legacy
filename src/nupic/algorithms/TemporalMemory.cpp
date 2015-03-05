@@ -774,7 +774,7 @@ bool TemporalMemory::_validateColumn(Int column)
  */
 bool TemporalMemory::_validateCell(Cell& cell)
 {
-  if (cell.idx >= (UInt32)numberOfCells())
+  if (cell.idx >= numberOfCells())
   {
     NTA_THROW << "Invalid cell " << cell.idx;
     return false;
@@ -829,7 +829,6 @@ void TemporalMemory::save(ostream& outStream)
 	outStream << "TemporalMemory" << endl;
 	outStream << version_ << endl;
 
-	// Store the simple variables first.
 	outStream << numColumns_ << " " << endl;
 
 	outStream << columnDimensions_.size() << " ";
@@ -837,6 +836,17 @@ void TemporalMemory::save(ostream& outStream)
 		outStream << elem << " ";
 	}
 	outStream << endl;
+
+  outStream << cellsPerColumn_ << " "
+            << activationThreshold_ << " "
+            << learningRadius_ << " "
+            << initialPermanence_ << " "
+            << connectedPermanence_ << " "
+            << minThreshold_ << " "
+            << maxNewSynapseCount_ << " "
+            << permanenceIncrement_ << " "
+            << permanenceDecrement_ << " "
+            << seed_ << " " << endl;
 
 	outStream << endl;
 	outStream << "~TemporalMemory" << endl;
@@ -872,6 +882,19 @@ void TemporalMemory::load(istream& inStream)
 	for (UInt i = 0; i < numColumnDimensions; i++) {
 		inStream >> columnDimensions_[i];
 	}
+
+  inStream >> cellsPerColumn_;
+  inStream >> activationThreshold_;
+  inStream >> learningRadius_;
+  inStream >> initialPermanence_;
+  inStream >> connectedPermanence_;
+  inStream >> minThreshold_;
+  inStream >> maxNewSynapseCount_;
+  inStream >> permanenceIncrement_;
+  inStream >> permanenceDecrement_;
+
+  inStream >> seed_;
+  _random.reseed(seed_);
 
 	inStream >> marker;
 	NTA_CHECK(marker == "~TemporalMemory");

@@ -165,7 +165,7 @@ namespace nupic {
         void load(istream& inStream);
         void save(ostream& outStream);
 
-      protected:
+      //protected:
         Int version_;
 
         UInt numColumns_;
@@ -198,6 +198,11 @@ namespace nupic {
         // ==============================
         //  Main functions
         // ==============================
+
+        /*
+        * Indicates the start of a new sequence.Resets sequence state of the TM.
+        */
+        void reset(void);
 
         /*
          * Feeds input record through TM, performing inference and learning.
@@ -235,11 +240,6 @@ namespace nupic {
           vector<Cell>& prevWinnerCells,
           Connections& connections,
           bool learn = true);
-
-        /*
-         * Indicates the start of a new sequence.Resets sequence state of the TM.
-         */
-        void reset(void);
 
 
         // ==============================

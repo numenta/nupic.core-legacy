@@ -46,15 +46,19 @@ namespace nupic {
     virtual void RunTests() override;
 
   private:
+    TemporalMemory tm;
+
     void setup(TemporalMemory& tm, UInt numColumns);
+    
     bool check_vector_eq(UInt arr[], vector<UInt> vec);
     bool check_vector_eq(Real arr[], vector<Real> vec);
     bool check_vector_eq(UInt arr1[], UInt arr2[], UInt n);
     bool check_vector_eq(Real arr1[], Real arr2[], UInt n);
     bool check_vector_eq(vector<UInt> vec1, vector<UInt> vec2);
+    bool check_vector_eq(vector<Cell>& vec1, vector<Cell>& vec2);
     void check_spatial_eq(const TemporalMemory& tm1, const TemporalMemory& tm2);
     bool almost_eq(Real a, Real b);
-    bool findVector(UInt needle[], UInt n, vector<vector<UInt> > haystack);
+    
     void testInitInvalidParams();
     void testActivateCorrectlyPredictiveCells();
     void testActivateCorrectlyPredictiveCellsEmpty();
@@ -80,7 +84,9 @@ namespace nupic {
     void testNumberOfColumns();
     void testNumberOfCells();
     void testMapCellsToColumns();
+    
     void testSaveLoad();
+    
     void print_vec(UInt arr[], UInt n);
     void print_vec(Real arr[], UInt n);
     void print_vec(vector<UInt> vec);

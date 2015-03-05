@@ -127,31 +127,45 @@ namespace nupic {
     return true;
   }
 
+  bool TemporalMemoryTest::check_vector_eq(vector<Cell>& vec1, vector<Cell>& vec2)
+  {
+    if (vec1.size() != vec2.size()) {
+      return false;
+    }
+    for (UInt i = 0; i < vec1.size(); i++) {
+      if (vec1[i].idx != vec2[i].idx) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   void TemporalMemoryTest::check_spatial_eq(const TemporalMemory& tm1, const TemporalMemory& tm2)
   {
     NTA_CHECK(tm1.getNumColumns() == tm2.getNumColumns());
-//    NTA_CHECK(tm1.getCellsPerColumn() == tm2.getCellsPerColumn());
-//    NTA_CHECK(tm1.getActivationThreshold() == tm2.getActivationThreshold());
-//    NTA_CHECK(tm1.getLearningRadius() == tm2.getLearningRadius());
-//    NTA_CHECK(tm1.getMinThreshold() == tm2.getMinThreshold());
-//    NTA_CHECK(tm1.getMaxNewSynapseCount() == tm2.getMaxNewSynapseCount());
-//    TEST(nupic::nearlyEqual(tm1.getInitialPermanence(), tm2.getInitialPermanence()));
-//    TEST(nupic::nearlyEqual(tm1.getConnectedPermanence(), tm2.getConnectedPermanence()));
-//    TEST(nupic::nearlyEqual(tm1.getPermanenceIncrement(), tm2.getPermanenceIncrement()));
-//    TEST(nupic::nearlyEqual(tm1.getPermanenceDecrement(), tm2.getPermanenceDecrement()));
+    NTA_CHECK(tm1.getCellsPerColumn() == tm2.getCellsPerColumn());
+    NTA_CHECK(tm1.getActivationThreshold() == tm2.getActivationThreshold());
+    NTA_CHECK(tm1.getLearningRadius() == tm2.getLearningRadius());
+    NTA_CHECK(tm1.getMinThreshold() == tm2.getMinThreshold());
+    NTA_CHECK(tm1.getMaxNewSynapseCount() == tm2.getMaxNewSynapseCount());
+    TEST(nupic::nearlyEqual(tm1.getInitialPermanence(), tm2.getInitialPermanence()));
+    TEST(nupic::nearlyEqual(tm1.getConnectedPermanence(), tm2.getConnectedPermanence()));
+    TEST(nupic::nearlyEqual(tm1.getPermanenceIncrement(), tm2.getPermanenceIncrement()));
+    TEST(nupic::nearlyEqual(tm1.getPermanenceDecrement(), tm2.getPermanenceDecrement()));
   }
 
   void TemporalMemoryTest::setup(TemporalMemory& tm, UInt numColumns)
   {
     vector<UInt> columnDim;
     columnDim.push_back(numColumns);
-    tm.initialize(columnDim);
+    tm.initialize(columnDim, 8);
   }
 
   void TemporalMemoryTest::RunTests()
   {
-//    testInitInvalidParams();
-/*
+    setup(tm, 2048);
+
+    testInitInvalidParams();
     testActivateCorrectlyPredictiveCells();
     testActivateCorrectlyPredictiveCellsEmpty();
     testBurstColumns();
@@ -176,8 +190,8 @@ namespace nupic {
     testNumberOfColumns();
     testNumberOfCells();
     testMapCellsToColumns();
-    testSaveLoad();
-*/
+    //testSaveLoad();
+
   }
 
   void TemporalMemoryTest::testInitInvalidParams()
@@ -196,21 +210,19 @@ namespace nupic {
 
   void TemporalMemoryTest::testActivateCorrectlyPredictiveCells()
   {
-    /*
-    tm = self.tm
+    TemporalMemory tm;
+    setup(tm, 2048);
 
-      prevPredictiveCells = set([0, 237, 1026, 26337, 26339, 55536])
-      activeColumns = set([32, 47, 823])
+    vector<Cell> prevPredictiveCells = { Cell(0), Cell(237), Cell(1026), Cell(26337), Cell(26339), Cell(55536) };
+    vector<Int> activeColumns = { 32, 47, 823 };
 
-      (activeCells,
-      winnerCells,
-      predictedColumns) = tm.activateCorrectlyPredictiveCells(prevPredictiveCells,
-      activeColumns)
+    tm.activateCorrectlyPredictiveCells(prevPredictiveCells, activeColumns);
 
-      self.assertEqual(activeCells, set([1026, 26337, 26339]))
-      self.assertEqual(winnerCells, set([1026, 26337, 26339]))
-      self.assertEqual(predictedColumns, set([32, 823]))
-      */
+    vector<Cell> expectedCells = { Cell(1026), Cell(26337), Cell(26339) };
+    vector<Int> expectedCols = { 32, 823 };
+//    NTA_CHECK(!check_vector_eq(tm.activeCells_, expectedCells, 3));
+ //   NTA_CHECK(!check_vector_eq(tm.winnerCells_, expectedCells, 3));
+  //  NTA_CHECK(!check_vector_eq(tm.predictedColumns_, expectedCols, 2));
   }
 
   void TemporalMemoryTest::testActivateCorrectlyPredictiveCellsEmpty()
