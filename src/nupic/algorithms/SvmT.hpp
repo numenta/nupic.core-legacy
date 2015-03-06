@@ -730,7 +730,6 @@ inline float svm<traits>::rbf_function(float* x, float* x_end, float* y) const
 {
   float sum = 0;
 
-  //TODO was ASM code, performance?
   while (x != x_end) {
     float d = *x - *y;
     sum += d * d;
