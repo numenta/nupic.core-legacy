@@ -188,7 +188,6 @@ namespace nupic {
     }
 
 
-   //TODO here was ASM code, performance point?  
       for (; x != x_end; ++x)
         if (*x > 0)
           return false;
@@ -206,7 +205,6 @@ namespace nupic {
     const Byte* x_beg = &x[begin];
     const Byte* x_end = &x[end];
 
-    //TODO here was ASM code, performance?
     for (; x_beg != x_end; ++x_beg)
       if (*x_beg > 0)
         return false;
@@ -3420,7 +3418,6 @@ namespace nupic {
     // Need this, because the asm syntax is not correct for win32, 
     // we simply can't compile the code as is on win32.
 
-    // was ASM here, performance?
     return std::count_if(begin, end, std::bind2nd(std::greater<nupic::Real32>(), threshold));
   }
 
@@ -4490,7 +4487,6 @@ namespace nupic {
       NTA_ASSERT(x_end - x == z_end - z);
     }
     
-    //TODO was ASM here, performance?
     for (; x != x_end; ++x, ++y, ++z)
       *z = (*x) && (*y);
   }
@@ -4508,7 +4504,6 @@ namespace nupic {
       NTA_ASSERT(x_end - x == y_end - y);
     }
 
-    //TODO was ASM here, performance?
     for (; x != x_end; ++x, ++y)
       *y = (*x) && *(y);
   }
