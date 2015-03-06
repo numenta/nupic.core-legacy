@@ -61,18 +61,18 @@ const UInt EPOCHS = pow(10, 4); // number of iterations (calls to SP/TP compute(
   Cells4 tp(DIM, TP_CELLS_PER_COL, 12, 8, 15, 5, .5, .8, 1.0, .1, .1, 0.0, false, 42, true, false);
 
   //run
-  for (int e=0; e< EPOCHS; e++) {
+  for (UInt e=0; e< EPOCHS; e++) {
     generate(input.begin(), input.end(), RandomNumber01);
     fill(outSP.begin(), outSP.end(), 0);
     sp.compute(input.data(), true, outSP.data());
 
-    for (int i=0; i< DIM; i++) {
+    for (UInt i=0; i< DIM; i++) {
       rIn[i] = (Real)(outSP[i]);
     }
 
     tp.compute(rIn, rOut, true, true);
 
-    for (int i=0; i< _CELLS; i++) {
+    for (UInt i=0; i< _CELLS; i++) {
       outTP[i] = (UInt)rOut[i];
     }
 
