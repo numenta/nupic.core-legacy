@@ -40,10 +40,10 @@ int RandomNumber01 () { return (rand()%2); } // returns random (binary) numbers 
 
 int main(int argc, const char * argv[])
 {
-const int DIM = 2048; // number of columns in SP, TP
-const int DIM_INPUT = 10000;
-const int TP_CELLS_PER_COL = 10; // cells per column in TP
-const int EPOCHS = pow(10, 4); // number of iterations (calls to SP/TP compute() )
+const UInt DIM = 2048; // number of columns in SP, TP
+const UInt DIM_INPUT = 10000;
+const UInt TP_CELLS_PER_COL = 10; // cells per column in TP
+const UInt EPOCHS = pow(10, 4); // number of iterations (calls to SP/TP compute() )
 
   vector<UInt> inputDim = {DIM_INPUT};
   vector<UInt> colDim = {DIM};
