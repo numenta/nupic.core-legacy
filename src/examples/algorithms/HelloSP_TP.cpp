@@ -86,9 +86,10 @@ const UInt EPOCHS = pow(10, 4); // number of iterations (calls to SP/TP compute(
       cout << "SP=" << outSP << endl;
       cout << "TP=" << outTP << endl;
     }
+  }
 
   stopwatch.stop();
   cout << "Total elapsed time = " << stopwatch.getElapsed() << " seconds" << endl;
-  }
+
   return 0;
 }
