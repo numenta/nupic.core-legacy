@@ -24,20 +24,19 @@
 #include <vector>
 #include <algorithm>    // std::generate
 #include <ctime>        // std::time
-#include <cstdlib>      // std::rand, std::srand
 #include <cmath> 	// pow
 
 #include "nupic/algorithms/SpatialPooler.hpp"
 #include "nupic/algorithms/Cells4.hpp"
 #include "nupic/os/Timer.hpp"
+#include "nupic/utils/Random.hpp"
+
 
 using namespace std;
 using namespace nupic;
 using nupic::algorithms::spatial_pooler::SpatialPooler;
 using nupic::algorithms::Cells4::Cells4;
 
-// function generator:
-int RandomNumber01 () { return (rand()%2); } // returns random (binary) numbers from {0,1}
 
 int main(int argc, const char * argv[])
 {
@@ -49,13 +48,13 @@ const UInt EPOCHS = pow(10, 4); // number of iterations (calls to SP/TP compute(
   vector<UInt> inputDim = {DIM_INPUT};
   vector<UInt> colDim = {DIM};
 
-  // generate random input
   vector<UInt> input(DIM_INPUT);
   vector<UInt> outSP(DIM); // active array, output of SP/TP
   const int _CELLS = DIM * TP_CELLS_PER_COL;
   vector<UInt> outTP(_CELLS);   
   Real rIn[DIM] = {}; // input for TP (must be Reals)
   Real rOut[_CELLS] = {};
+  Random rand01;
 
   // initialize SP, TP
   SpatialPooler sp(inputDim, colDim);
@@ -66,14 +65,17 @@ const UInt EPOCHS = pow(10, 4); // number of iterations (calls to SP/TP compute(
 
   //run
   for (UInt e=0; e< EPOCHS; e++) {
-    generate(input.begin(), input.end(), RandomNumber01);
+    // generate random input
+    generate(input.begin(), input.end(), rand01()); // populate with rand 0/1
+    cout << "rnd " << rand01() << endl;
     fill(outSP.begin(), outSP.end(), 0);
+    // Spatial pooler compute
     sp.compute(input.data(), true, outSP.data());
 
     for (UInt i=0; i< DIM; i++) {
       rIn[i] = (Real)(outSP[i]);
     }
-
+    // Temporal pooler compute
     tp.compute(rIn, rOut, true, true);
 
     for (UInt i=0; i< _CELLS; i++) {
