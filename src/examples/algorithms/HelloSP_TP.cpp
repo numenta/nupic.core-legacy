@@ -29,6 +29,7 @@
 
 #include "nupic/algorithms/SpatialPooler.hpp"
 #include "nupic/algorithms/Cells4.hpp"
+#include "nupic/os/Timer.hpp"
 
 using namespace std;
 using namespace nupic;
@@ -60,6 +61,9 @@ const UInt EPOCHS = pow(10, 4); // number of iterations (calls to SP/TP compute(
   SpatialPooler sp(inputDim, colDim);
   Cells4 tp(DIM, TP_CELLS_PER_COL, 12, 8, 15, 5, .5, .8, 1.0, .1, .1, 0.0, false, 42, true, false);
 
+  // Start a stopwatch timer
+  Timer stopwatch(true);
+
   //run
   for (UInt e=0; e< EPOCHS; e++) {
     generate(input.begin(), input.end(), RandomNumber01);
@@ -82,6 +86,9 @@ const UInt EPOCHS = pow(10, 4); // number of iterations (calls to SP/TP compute(
       cout << "SP=" << outSP << endl;
       cout << "TP=" << outTP << endl;
     }
+
+  stopwatch.stop();
+  cout << "Total elapsed time = " << stopwatch.getElapsed() << " seconds" << endl;
   }
   return 0;
 }
