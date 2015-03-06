@@ -70,23 +70,23 @@ namespace nupic {
         public:
           SpatialPooler();
           SpatialPooler(vector<UInt> inputDimensions,
-                                  vector<UInt> columnDimensions,
-                                  UInt potentialRadius=16,
-                                  Real potentialPct=0.5,
-                                  bool globalInhibition=true,
-                                  Real localAreaDensity=-1.0,
-                                  UInt numActiveColumnsPerInhArea=10,
-                                  UInt stimulusThreshold=0,
-                                  Real synPermInactiveDec=0.01,
-                                  Real synPermActiveInc=0.1,
-                                  Real synPermConnected=0.1,
-                                  Real minPctOverlapDutyCycles=0.001,
-                                  Real minPctActiveDutyCycles=0.001,
-                                  UInt dutyCyclePeriod=1000,
-                                  Real maxBoost=10.0,
-                                  Int seed=1,
-                                  UInt spVerbosity=0,
-                                  bool wrapAround=true);
+                        vector<UInt> columnDimensions,
+                        UInt potentialRadius=16,
+                        Real potentialPct=0.5,
+                        bool globalInhibition=true,
+                        Real localAreaDensity=-1.0,
+                        UInt numActiveColumnsPerInhArea=10,
+                        UInt stimulusThreshold=0,
+                        Real synPermInactiveDec=0.01,
+                        Real synPermActiveInc=0.1,
+                        Real synPermConnected=0.1,
+                        Real minPctOverlapDutyCycles=0.001,
+                        Real minPctActiveDutyCycles=0.001,
+                        UInt dutyCyclePeriod=1000,
+                        Real maxBoost=10.0,
+                        Int seed=1,
+                        UInt spVerbosity=0,
+                        bool wrapAround=true);
 
 
           virtual ~SpatialPooler() {}
