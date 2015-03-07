@@ -3,7 +3,7 @@
 #---------------------------------#
 
 # version format
-version: 0.3.0.%APPVEYOR_REPO_COMMIT%
+version: 0.3.0.{build}
 
 #---------------------------------#
 #    environment configuration    #
@@ -39,9 +39,9 @@ skip_commits:
 assembly_info:
   patch: true
   file: '**\AssemblyInfo.*'
-  assembly_version: "{version}"
-  assembly_file_version: "{version}"
-  assembly_informational_version: "{version}"
+  assembly_version: "%APPVEYOR_REPO_COMMIT%"
+  assembly_file_version: "%APPVEYOR_REPO_COMMIT%"
+  assembly_informational_version: "%APPVEYOR_REPO_COMMIT%"
 
 nuget:
   account_feed: true
@@ -52,7 +52,7 @@ nuget:
 configuration: Release
 
 install:
-  - set REPO_DIR="c:\projects\nupic-core"
+  - set REPO_DIR=c:\projects\nupic-core
   - mkdir %REPO_DIR%\build\
   - mkdir %REPO_DIR%\build\release
   - mkdir %REPO_DIR%\build\scripts
@@ -65,7 +65,7 @@ install:
   - set PATH="C:\Program Files (x86)\MSBuild\14.0\Bin";%PATH%
   - echo %PATH%
   - cd %REPO_DIR%\build\scripts
-  - set EXT_LIBS="%REPO_DIR%\external\windows64\lib"
+  - set EXT_LIBS=%REPO_DIR%\external\windows64\lib
   - cmake %REPO_DIR%\src \
      -G "Visual Studio 14 2015 Win64" -Wno-dev \
      -DCMAKE_INSTALL_PREFIX=..\Release -DCMAKE_BUILD_TYPE=Release \
@@ -92,15 +92,15 @@ build_script:
 
 after_build:
   # Run the tests
-  - cd C:\projects\nupic-core\build\release\bin
+  - cd %REPO_DIR%\build\release\bin
   - prototest 2>&1
   - cpp_region_test 1 2>&1
   - unit_tests --gtest_output=xml:unit_tests_report.xml 2>&1
 
-  - cd C:\projects\nupic-core\build\release
+  - cd %REPO_DIR%\build\release
   - ps: >-
       if($env:DEPLOY_TO_NUGET -eq 1) {
-        copy C:\projects\nupic-core\Package.nuspec .
+        copy $env:REPO_DIR\Package.nuspec .
         nuget pack -version $env:APPVEYOR_REPO_COMMIT
         nuget push *.nupkg 30618afb-ecf6-4476-8e61-a5b823ad9892
         move *.nupkg $env:PROJECT_BUILD_ARTIFACTS_DIR
