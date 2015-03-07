@@ -106,17 +106,19 @@ after_build:
         nuget pack -version $env:APPVEYOR_REPO_COMMIT
         nuget push *.nupkg 30618afb-ecf6-4476-8e61-a5b823ad9892
         move *.nupkg $env:PROJECT_BUILD_ARTIFACTS_DIR
+		# set BUILD_ARTIFACTS=$env:PROJECT_BUILD_ARTIFACTS_DIR\nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar.gz
       }
       if($env:DEPLOY_TO_S3 -eq 1) {
         7z a -ttar -y -bd nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar .
         7z a -tgzip -y -bd nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar.gz nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar
         move nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar.gz $env:PROJECT_BUILD_ARTIFACTS_DIR
+		set BUILD_ARTIFACTS=$env:PROJECT_BUILD_ARTIFACTS_DIR\nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar.gz
       }
 
 test: off
 
 artifacts:
-  - path: build\artifacts
+  - path: %BUILD_ARTIFACTS%
 
 # to disable deployment
 deploy: off
