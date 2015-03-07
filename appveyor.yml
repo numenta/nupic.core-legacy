@@ -3,17 +3,7 @@
 #---------------------------------#
 
 # version format
-version: 1.0.{build}
-
-branches:
-  # whitelist
-  only:
-    - master
-    - 311-appveyor-s3-support
-
-  # blacklist
-  except:
-    - gh-pages
+version: 0.3.0.%APPVEYOR_REPO_COMMIT%
 
 #---------------------------------#
 #    environment configuration    #
@@ -31,9 +21,10 @@ clone_folder: c:\projects\nupic-core
 environment:
   matrix:
     # Must add either GCC or CLang here
-    # ie. COMPILER_FAMILY: GNU
+    # i.e. - COMPILER_FAMILY: GNU
     - COMPILER_FAMILY: MSVC
-      DEPLOY_BUILD: 1
+      DEPLOY_TO_S3: 1
+      DEPLOY_TO_NUGET: 0
 
 skip_commits:
   # Add [av skip] to commit messages to skip AppVeyor building
@@ -47,65 +38,97 @@ skip_commits:
 # enable patching of AssemblyInfo.* files
 assembly_info:
   patch: true
-  file: AssemblyInfo.*
-  assembly_version: "1.0.{build}"
+  file: '**\AssemblyInfo.*'
+  assembly_version: "{version}"
   assembly_file_version: "{version}"
   assembly_informational_version: "{version}"
+
+nuget:
+  account_feed: true
+  project_feed: true
+  disable_publish_on_pr: true     # disable publishing of .nupkg artifacts to
+                                  # account/project feeds for pull request builds
 
 configuration: Release
 
 install:
-  - mkdir C:\projects\nupic-core\build\
-  - mkdir C:\projects\nupic-core\build\release
-  - mkdir C:\projects\nupic-core\build\scripts
-  - cd C:\projects\nupic-core\build\scripts
+  - set REPO_DIR="c:\projects\nupic-core"
+  - mkdir %REPO_DIR%\build\
+  - mkdir %REPO_DIR%\build\release
+  - mkdir %REPO_DIR%\build\scripts
+  - cd %REPO_DIR%\build\scripts
+  # Need at least version 3.1.0 for the VS 2015 generator
   - ps: Start-FileDownload 'http://www.cmake.org/files/v3.1/cmake-3.1.0-win32-x86.zip'
   - ps: Write-Host '7z x cmake-3.1.0-win32-x86.zip'
   - ps: Start-Process -FilePath "7z" -ArgumentList "x -y cmake-3.1.0-win32-x86.zip" -Wait -Passthru
-  - set PATH="C:\projects\nupic-core\build\scripts\cmake-3.1.0-win32-x86\bin";%PATH%
+  - set PATH="%REPO_DIR%\build\scripts\cmake-3.1.0-win32-x86\bin";%PATH%
   - set PATH="C:\Program Files (x86)\MSBuild\14.0\Bin";%PATH%
   - echo %PATH%
-
-before_build:
-  - cd C:\projects\nupic-core\build\scripts
-  - cmake C:\projects\nupic-core\src -G "Visual Studio 14 2015 Win64" -DCMAKE_INSTALL_PREFIX=..\Release -DLIB_STATIC_APR1_LOC=..\..\external\windows64\lib\apr-1.lib -DLIB_STATIC_APRUTIL1_LOC=..\..\external\windows64\lib\aprutil-1.lib -DLIB_STATIC_YAML_CPP_LOC=..\..\external\windows64\lib\yaml-cpp.lib -DLIB_STATIC_YAML_LOC=..\..\external\windows64\lib\yaml.lib -DLIB_STATIC_Z_LOC=..\..\external\windows64\lib\z.lib  -DLIB_STATIC_CAPNP_LOC=..\..\external\windows64\lib\capnp.lib  -DLIB_STATIC_KJ_LOC=..\..\external\windows64\lib\kj.lib
+  - cd %REPO_DIR%\build\scripts
+  - set EXT_LIBS="%REPO_DIR%\external\windows64\lib"
+  - cmake %REPO_DIR%\src \
+     -G "Visual Studio 14 2015 Win64" -Wno-dev \
+     -DCMAKE_INSTALL_PREFIX=..\Release -DCMAKE_BUILD_TYPE=Release \
+     -DLIB_STATIC_APR1_LOC=%EXT_LIBS%\apr-1.lib \
+     -DLIB_STATIC_APRUTIL1_LOC=%EXT_LIBS%\aprutil-1.lib \
+     -DLIB_STATIC_YAML_CPP_LOC=%EXT_LIBS%\yaml-cpp.lib \
+     -DLIB_STATIC_YAML_LOC=%EXT_LIBS%\yaml.lib \
+     -DLIB_STATIC_Z_LOC=%EXT_LIBS%\z.lib \
+     -DLIB_STATIC_CAPNP_LOC=%EXT_LIBS%\capnp.lib \
+     -DLIB_STATIC_KJ_LOC=%EXT_LIBS%\kj.lib
 
 build_script:
-  - msbuild "C:\projects\nupic-core\build\scripts\gtest.vcxproj" /p:Configuration=Release /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
-  - msbuild "C:\projects\nupic-core\build\scripts\nupic_core_solo.vcxproj" /p:Configuration=Release /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
-  - msbuild "C:\projects\nupic-core\build\scripts\helloregion.vcxproj" /p:Configuration=Release /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
-  - msbuild "C:\projects\nupic-core\build\scripts\prototest.vcxproj" /p:Configuration=Release /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
-  - msbuild "C:\projects\nupic-core\build\scripts\py_region_test.vcxproj" /p:Configuration=Release /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
-  - msbuild "C:\projects\nupic-core\build\scripts\cpp_region_test.vcxproj" /p:Configuration=Release /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
-  - msbuild "C:\projects\nupic-core\build\scripts\unit_tests.vcxproj" /p:Configuration=Release /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
-  - msbuild "C:\projects\nupic-core\build\scripts\Install.vcxproj" /p:Configuration=Release /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+  - cd %REPO_DIR%\build\scripts
+  - set MSBuildLogger="C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+  - set MSBuildOptions="/verbosity:minimal /p:Configuration=Release /logger:MSBuildLogger"
+  - msbuild gtest.vcxproj
+  - msbuild nupic_core_solo.vcxproj %MSBuildOptions%
+  - msbuild helloregion.vcxproj %MSBuildOptions%
+  - msbuild prototest.vcxproj %MSBuildOptions%
+  - msbuild py_region_test.vcxproj %MSBuildOptions%
+  - msbuild cpp_region_test.vcxproj %MSBuildOptions%
+  - msbuild unit_tests.vcxproj %MSBuildOptions%
+  - msbuild Install.vcxproj %MSBuildOptions%
 
 after_build:
   # Run the tests
   - cd C:\projects\nupic-core\build\release\bin
   - prototest 2>&1
   - cpp_region_test 1 2>&1
-  - unit_tests --gtest_output=xml:${PROJECT_BUILD_ARTIFACTS_DIR}/unit_tests_report.xml 2>&1
+  - unit_tests --gtest_output=xml:unit_tests_report.xml 2>&1
 
   - cd C:\projects\nupic-core\build\release
   - ps: >-
-      if($env:DEPLOY_BUILD -eq 1) {
+      if($env:DEPLOY_TO_NUGET -eq 1) {
         copy C:\projects\nupic-core\Package.nuspec .
-        nuget pack -version $env:APPVEYOR_BUILD_VERSION
+        nuget pack -version $env:APPVEYOR_REPO_COMMIT
         nuget push *.nupkg 30618afb-ecf6-4476-8e61-a5b823ad9892
-
+        move *.nupkg $env:PROJECT_BUILD_ARTIFACTS_DIR
+      }
+      if($env:DEPLOY_TO_S3 -eq 1) {
         Write-Host '7z a -ttar nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar .'
-        Start-Process -FilePath "7z" -ArgumentList "a -ttar  nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar ." -Wait -Passthru
+        Start-Process -FilePath "7z" -ArgumentList "a -ttar -y -bd nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar ." -Wait -Passthru
         Write-Host '7z a -tgzip nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar.gz nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar'
-        Start-Process -FilePath "7z" -ArgumentList "a -tgzip nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar.gz nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar" -Wait -Passthru
+        Start-Process -FilePath "7z" -ArgumentList "a -tgzip -y -bd nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar.gz nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar" -Wait -Passthru
+        move nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar.gz $env:PROJECT_BUILD_ARTIFACTS_DIR
       }
 
-  - cd C:\projects\nupic-core\build\release
-  - copy *.nupkg ${PROJECT_BUILD_ARTIFACTS_DIR}
-  - copy nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar.gz ${PROJECT_BUILD_ARTIFACTS_DIR}
+test: off
 
 artifacts:
   - path: build\artifacts
 
-test: off
+# to disable deployment
 deploy: off
+
+#deploy:
+  # Amazon S3 deployment provider settings
+  #- provider: S3
+  #  access_key_id:
+  #    secure: AKIAIGHYSEHV3WFKOWNQ
+  #  secret_access_key:
+  #    secure: "pYsMDbNp8k2i0d9p5mf/9TlDzxt2FiiR1QJV7QUn+S2/r372VYdZaplL+s9ItVGCGFpAyKk7HXcwm//DKw/ZKb6UlDJm3Fph9m+3aDDIiVFNB7g1uro+Yg8nIGuV8qZEtIaHRtR1zOt1EufoR9dg1Mq8ryRggN9rrB0FvCxUZAQ="
+  #  bucket: "artifacts.numenta.org"
+  #  folder: %PROJECT_BUILD_ARTIFACTS_DIR%
+  #  artifact:
+  #  set_public: false
