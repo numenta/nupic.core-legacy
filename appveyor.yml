@@ -80,15 +80,15 @@ install:
 build_script:
   - cd %REPO_DIR%\build\scripts
   - set MSBuildLogger="C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
-  - set MSBuildOptions="/verbosity:minimal /p:Configuration=Release /logger:MSBuildLogger"
-  - msbuild gtest.vcxproj
-  - msbuild nupic_core_solo.vcxproj %MSBuildOptions%
-  - msbuild helloregion.vcxproj %MSBuildOptions%
-  - msbuild prototest.vcxproj %MSBuildOptions%
-  - msbuild py_region_test.vcxproj %MSBuildOptions%
-  - msbuild cpp_region_test.vcxproj %MSBuildOptions%
-  - msbuild unit_tests.vcxproj %MSBuildOptions%
-  - msbuild Install.vcxproj %MSBuildOptions%
+  - set MSBuildOptions=/v:m /p:Configuration=Release /logger:%MSBuildLogger%
+  - msbuild %MSBuildOptions% gtest.vcxproj
+  - msbuild %MSBuildOptions% nupic_core_solo.vcxproj
+  - msbuild %MSBuildOptions% helloregion.vcxproj
+  - msbuild %MSBuildOptions% prototest.vcxproj
+  - msbuild %MSBuildOptions% py_region_test.vcxproj
+  - msbuild %MSBuildOptions% cpp_region_test.vcxproj
+  - msbuild %MSBuildOptions% unit_tests.vcxproj
+  - msbuild %MSBuildOptions% Install.vcxproj
 
 after_build:
   # Run the tests
