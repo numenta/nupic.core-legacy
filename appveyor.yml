@@ -99,6 +99,7 @@ after_build:
   - unit_tests --gtest_output=xml:unit_tests_report.xml 2>&1
 
   - cd %REPO_DIR%\build\release
+  - set PROJECT_BUILD_ARTIFACTS_DIR=%REPO_DIR%\build\artifacts
   - ps: >-
       if($env:DEPLOY_TO_NUGET -eq 1) {
         copy $env:REPO_DIR\Package.nuspec .
