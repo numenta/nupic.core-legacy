@@ -118,7 +118,8 @@ after_build:
 test: off
 
 artifacts:
-  - path: $env:BUILD_ARTIFACTS
+  - path: %BUILD_ARTIFACTS%
+  - path: nupic_core-%APPVEYOR_REPO_COMMIT%-Windows64.tar.gz
 
 # to disable deployment
 deploy: off
