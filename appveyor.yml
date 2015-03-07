@@ -88,6 +88,7 @@ build_script:
   - msbuild %MSBuildOptions% py_region_test.vcxproj
   - msbuild %MSBuildOptions% cpp_region_test.vcxproj
   - msbuild %MSBuildOptions% unit_tests.vcxproj
+  - set MSBuildOptions=/v:q /p:Configuration=Release /logger:%MSBuildLogger%
   - msbuild %MSBuildOptions% Install.vcxproj
 
 after_build:
@@ -110,7 +111,8 @@ after_build:
         Start-Process -FilePath "7z" -ArgumentList "a -ttar -y -bd nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar ." -Wait -Passthru
         Write-Host '7z a -tgzip nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar.gz nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar'
         Start-Process -FilePath "7z" -ArgumentList "a -tgzip -y -bd nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar.gz nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar" -Wait -Passthru
-        move nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar.gz $env:PROJECT_BUILD_ARTIFACTS_DIR
+        Write-Host 'move nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar.gz $env:PROJECT_BUILD_ARTIFACTS_DIR'
+        Start-Process -FilePath "move" -ArgumentList "nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar.gz $env:PROJECT_BUILD_ARTIFACTS_DIR" -Wait -Passthru
       }
 
 test: off
