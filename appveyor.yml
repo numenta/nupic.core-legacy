@@ -100,7 +100,6 @@ after_build:
         copy $env:REPO_DIR\Package.nuspec .
         nuget pack -version $env:APPVEYOR_REPO_COMMIT
         nuget push *.nupkg 30618afb-ecf6-4476-8e61-a5b823ad9892
-        Get-ChildItem .\*.nupkg | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
       }
       if($env:DEPLOY_TO_S3 -eq 1) {
         # This packages via CMakeList CPack settings (Tar.Gzip for SW upload)
@@ -108,10 +107,12 @@ after_build:
         # Calling 7z twice acheives the same result
         7z a -ttar -y -bd nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar .
         7z a -tgzip -y -bd nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar.gz nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar
-        Get-ChildItem .\*.tar.gz | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
       }
 
 test: off
+ 
+# to disable deployment
+#deploy: off
 
 artifacts:
   - path: '**\*.nupkg' # find all NuGet packages recursively
@@ -121,17 +122,18 @@ artifacts:
     name: S3 package
 
 deploy:
+
   # Amazon S3 deployment provider settings
-  provider: S3
-  access_key_id: AKIAIGHYSEHV3WFKOWNQ
-  secret_access_key:
-    secure: YhyY/6r2LNya8OZEmVOj+fv0lY5bBPqvy8MnsdLlptXa2uqwvezkCMNKiQ+wA+tOu+BS7VRRp86DhUqCpTZ3jUM2Mwdhud/Smq7D2X8vtZBiTVcOKfQcaypDE6Zu9Zp0SjMOSf6yiq6Ruu7D5QtZ4rtaq+5uPlvbgUXRZoZm0Po=
-  bucket: "artifacts.numenta.org"
-  region: us-west-2
-  local-dir: "%PROJECT_BUILD_ARTIFACTS_DIR%"
-  upload-dir: "numenta/nupic.core"
-  skip_cleanup: true
-  # Deploying on master branch
-  on:
-    #branch: master
-    branch: 311-appveyor-s3-support
+  - provider: S3
+    access_key_id: AKIAIGHYSEHV3WFKOWNQ
+    secret_access_key:
+      secure: YhyY/6r2LNya8OZEmVOj+fv0lY5bBPqvy8MnsdLlptXa2uqwvezkCMNKiQ+wA+tOu+BS7VRRp86DhUqCpTZ3jUM2Mwdhud/Smq7D2X8vtZBiTVcOKfQcaypDE6Zu9Zp0SjMOSf6yiq6Ruu7D5QtZ4rtaq+5uPlvbgUXRZoZm0Po=
+    bucket: "artifacts.numenta.org"
+    region: us-west-2
+    local-dir: "%PROJECT_BUILD_ARTIFACTS_DIR%"
+    upload-dir: "numenta/nupic.core"
+    skip_cleanup: true
+	# Deploying on master branch
+    on:
+      #branch: master
+      branch: 311-appveyor-s3-support

@@ -9,7 +9,7 @@
     <projectUrl>https://github.com/numenta/nupic.core</projectUrl>
     <iconUrl>http://numenta.org/images/numenta-icon32.png</iconUrl>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
-    </description>
+    <description>
 `NuPIC Core` contains C++ source code for the Numenta Platform for Intelligent Computing (NuPIC).
 For more information on Numenta and NuPIC, see http://numenta.org and https://github.com/numenta/nupic/wiki
 The main NuPIC project is available at https://github.com/numenta/nupic 
