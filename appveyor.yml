@@ -133,7 +133,7 @@ deploy:
     local-dir: "%PROJECT_BUILD_ARTIFACTS_DIR%"
     upload-dir: "numenta/nupic.core"
     skip_cleanup: true
-	# Deploying on master branch
+    # Deploying on master branch
     on:
       #branch: master
       branch: 311-appveyor-s3-support
