@@ -24,7 +24,7 @@ environment:
     # i.e. - COMPILER_FAMILY: GNU
     - COMPILER_FAMILY: MSVC
       DEPLOY_TO_S3: 1
-      DEPLOY_TO_NUGET: 0
+      DEPLOY_TO_NUGET: 1
 
 skip_commits:
   # Add [av skip] to commit messages to skip AppVeyor building
@@ -34,14 +34,6 @@ skip_commits:
 #---------------------------------#
 #       build configuration       #
 #---------------------------------#
-
-# enable patching of AssemblyInfo.* files
-assembly_info:
-  patch: true
-  file: '**\AssemblyInfo.*'
-  assembly_version: "%APPVEYOR_REPO_COMMIT%"
-  assembly_file_version: "%APPVEYOR_REPO_COMMIT%"
-  assembly_informational_version: "%APPVEYOR_REPO_COMMIT%"
 
 nuget:
   account_feed: true
@@ -102,13 +94,12 @@ after_build:
   - cd %REPO_DIR%\build\release
   - set PROJECT_BUILD_ARTIFACTS_DIR=%REPO_DIR%\build\artifacts
 
-  # NOTE: S3 deployment takes precendence when setting BUILD_ARTIFACTS
+  # NOTE: S3 deployment takes precedence when setting BUILD_ARTIFACTS
   - ps: >-
       if($env:DEPLOY_TO_NUGET -eq 1) {
         copy $env:REPO_DIR\Package.nuspec .
         nuget pack -version $env:APPVEYOR_REPO_COMMIT
         nuget push *.nupkg 30618afb-ecf6-4476-8e61-a5b823ad9892
-        copy *.nupkg $env:PROJECT_BUILD_ARTIFACTS_DIR
         Get-ChildItem .\*.nupkg | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
       }
       if($env:DEPLOY_TO_S3 -eq 1) {
@@ -117,7 +108,6 @@ after_build:
         # Calling 7z twice acheives the same result
         7z a -ttar -y -bd nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar .
         7z a -tgzip -y -bd nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar.gz nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar
-        copy nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar.gz $env:PROJECT_BUILD_ARTIFACTS_DIR
         Get-ChildItem .\*.tar.gz | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
       }
 
@@ -143,4 +133,5 @@ deploy:
   skip_cleanup: true
   # Deploying on master branch
   on:
-    branch: master
+    #branch: master
+    branch: 311-appveyor-s3-support
