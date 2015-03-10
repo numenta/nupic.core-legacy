@@ -113,10 +113,10 @@ after_build:
       }
       if($env:DEPLOY_TO_S3 -eq 1) {
         # This packages via CMakeList CPack settings (Tar.Gzip for SW upload)
+        # msbuild $env:MSBuildOptions PACKAGE.vcxproj
         # Calling 7z twice acheives the same result
-        #  7z a -ttar -y -bd nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar .
-        #  7z a -tgzip -y -bd nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar.gz nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar
-        msbuild $env:MSBuildOptions PACKAGE.vcxproj
+        7z a -ttar -y -bd nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar .
+        7z a -tgzip -y -bd nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar.gz nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar
         copy nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar.gz $env:PROJECT_BUILD_ARTIFACTS_DIR
         Get-ChildItem .\*.tar.gz | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
       }
