@@ -100,6 +100,7 @@ after_build:
         copy $env:REPO_DIR\Package.nuspec .
         nuget pack -version $env:APPVEYOR_BUILD_VERSION
         nuget push *.nupkg 30618afb-ecf6-4476-8e61-a5b823ad9892
+        # NOTE: Push to nuget is here, rather than normal AV deployment
       }
       if($env:DEPLOY_TO_S3 -eq 1) {
         # This packages via CMakeList CPack settings (Tar.Gzip for SW upload)
@@ -115,9 +116,6 @@ test: off
 #deploy: off
 
 artifacts:
-  - path: '**\*.nupkg' # find all NuGet packages recursively
-    name: Nuget package
-
   - path: '**\*.tar.gz' # find all Gz(ip) packages recursively
     name: S3 package
 
