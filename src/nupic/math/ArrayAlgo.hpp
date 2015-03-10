@@ -42,6 +42,11 @@
 #include <nupic/math/Math.hpp>
 #include <nupic/math/Types.hpp>
 
+// remove after debug
+#include <iostream>
+#include "nupic/os/Timer.hpp"
+
+using namespace std;
 namespace nupic {
 
   //--------------------------------------------------------------------------------
@@ -2986,12 +2991,18 @@ namespace nupic {
   inline nupic::UInt32
   count_gt(nupic::Real32* begin, nupic::Real32* end, nupic::Real32 threshold)
   {
+    nupic::Timer asmTimer(true);
+
     NTA_ASSERT(begin <= end);
 
     // Need this, because the asm syntax is not correct for win32, 
     // we simply can't compile the code as is on win32.
 
-    return std::count_if(begin, end, std::bind2nd(std::greater<nupic::Real32>(), threshold));
+    nupic::UInt32 ret = std::count_if(begin, end, std::bind2nd(std::greater<nupic::Real32>(), threshold));
+    asmTimer.stop();
+    cout << "ASM time= " << asmTimer.getElapsed() << endl;
+    return ret;
+
   }
 
 
