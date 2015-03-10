@@ -122,11 +122,29 @@ namespace nupic {
   //--------------------------------------------------------------------------------
   // IS ZERO
   //--------------------------------------------------------------------------------
+  template <typename T>
+  inline bool is_zero(const T& x)
+  {
+    return x == 0;
+  }
+
+
   template <typename T1, typename T2>
   inline bool is_zero(const std::pair<T1,T2>& x)
   {
     return x.first == 0 && x.second == 0;
   }
+
+
+  template <typename T>
+  inline bool is_zero(const std::vector<T>& x)
+  {
+    for (size_t i = 0; i != x.size(); ++i)
+      if (!is_zero(x[i]))
+        return false;
+    return true;
+  }
+
 
   //--------------------------------------------------------------------------------
   // N BYTES
@@ -2659,91 +2677,7 @@ namespace nupic {
   }
 
   //--------------------------------------------------------------------------------
-  /**
-   * Initializes a range with the uniform distribution.
-   *
-   * @param begin beginning of the range
-   * @param end one past the end of the range
-   * @param val the value to which the sum of the range will be equal to
-   */
-  template <typename It>
-  inline void
-  uniform_range(It begin, It end,
-                typename std::iterator_traits<It>::value_type val =1)
-  {
-    {
-      NTA_ASSERT(begin <= end)
-        << "uniform_range: Invalid input range";
-    }
-
-    typedef typename std::iterator_traits<It>::value_type value_type;
-
-    std::fill(begin, end, (value_type) 1);
-    normalize(begin, end, val);
-  }
-
-  //--------------------------------------------------------------------------------
-  /**
-   * Initializes a container with the uniform distribution.
-   *
-   * @param a the container
-   * @param val the value for normalization
-   */
-  template <typename C>
-  inline void uniform_range(C& a, typename C::value_type val =1)
-  {
-    uniform_range(a.begin(), a.end(), val);
-  }
-
-  //--------------------------------------------------------------------------------
   // DISTANCES
-  //--------------------------------------------------------------------------------
-  /**
-   * Returns the max of the absolute values of the differences.
-   *
-   * @param begin1
-   * @param end1
-   * @param begin2
-   */
-  template <typename It1, typename It2>
-  inline typename std::iterator_traits<It1>::value_type
-  max_abs_diff(It1 begin1, It1 end1, It2 begin2, It2 end2)
-  {
-    {
-      NTA_ASSERT(begin1 <= end1)
-        << "max_abs_diff: Invalid range 1";
-      NTA_ASSERT(begin2 <= end2)
-        << "max_abs_diff: Invalid range 2";
-      NTA_ASSERT(end1 - begin1 == end2 - begin2)
-        << "max_abs_diff: Ranges of different sizes";
-    }
-
-    typename std::iterator_traits<It1>::value_type d(0), val(0);
-
-    while (begin1 != end1) {
-      val = *begin1 - *begin2;
-      val = val > 0 ? val : -val;
-      if (val > d)
-        d = val;
-      ++begin1; ++begin2;
-    }
-
-    return d;
-  }
-
-  //--------------------------------------------------------------------------------
-  /**
-   * Returns the max of the absolute values of the differences.
-   *
-   * @param a first container
-   * @param b second container
-   */
-  template <typename T1, typename T2>
-  inline typename T1::value_type max_abs_diff(const T1& a, const T2& b)
-  {
-    return max_abs_diff(a.begin(), a.end(), b.begin(), b.end());
-  }
-
   //--------------------------------------------------------------------------------
   /**
    * Returns the Hamming distance of the two ranges.
@@ -2985,52 +2919,6 @@ namespace nupic {
 
   //--------------------------------------------------------------------------------
   /**
-   * Returns the Lmax distance of the two ranges.
-   *
-   * @param begin1
-   * @param end1
-   * @param begin2
-   */
-  template <typename It1, typename It2>
-  inline typename std::iterator_traits<It1>::value_type
-  lmax_distance(It1 begin1, It1 end1, It2 begin2, It2 end2, bool =true)
-  {
-    {
-      NTA_ASSERT(begin1 <= end1)
-        << "lmax_distance: Invalid range 1";
-      NTA_ASSERT(begin2 <= end2)
-        << "lmax_distance: Invalid range 2";
-      NTA_ASSERT(end1 - begin1 == end2 - begin2)
-        << "lmax_distance: Ranges of different sizes";
-    }
-
-    typedef typename std::iterator_traits<It1>::value_type value_type;
-
-    value_type d = (value_type) 0;
-    LpMax<value_type> lmax;
-
-    for (; begin1 != end1; ++begin1, ++begin2)
-      lmax(d, *begin1 - *begin2);
-
-    return d;
-  }
-
-  //--------------------------------------------------------------------------------
-  /**
-   * Returns the Lmax distance of the two containers.
-   *
-   * @param a first container
-   * @param b second container
-   */
-  template <typename T1, typename T2>
-  inline typename T1::value_type
-  lmax_distance(const T1& a, const T2& b, bool =true)
-  {
-    return lmax_distance(a.begin(), a.end(), b.begin(), b.end());
-  }
-
-  //--------------------------------------------------------------------------------
-  /**
    * Returns the distance of the two ranges.
    *
    * @param begin1
@@ -3083,72 +2971,6 @@ namespace nupic {
   // Counting
   //--------------------------------------------------------------------------------
   /**
-   * Counts the elements which satisfy the passed predicate in the given range.
-   */
-  template <typename C, typename Predicate>
-  inline size_t count_if(const C& c, Predicate pred)
-  {
-    return std::count_if(c.begin(), c.end(), pred);
-  }
-
-  //--------------------------------------------------------------------------------
-  /**
-   * Counts the number of zeros in the given range.
-   */
-  template <typename It>
-  inline size_t
-  count_zeros(It begin, It end,
-              const typename std::iterator_traits<It>::value_type& eps =nupic::Epsilon)
-  {
-    {
-      NTA_ASSERT(begin <= end)
-        << "count_zeros: Invalid range";
-    }
-
-    typedef typename std::iterator_traits<It>::value_type value_type;
-    return std::count_if(begin, end, IsNearlyZero<DistanceToZero<value_type> >(eps));
-  }
-
-  //--------------------------------------------------------------------------------
-  /**
-   * Counts the number of zeros in the container passed in.
-   */
-  template <typename C>
-  inline size_t count_zeros(const C& c, const typename C::value_type& eps =nupic::Epsilon)
-  {
-    return count_zeros(c.begin, c.end(), eps);
-  }
-
-  //--------------------------------------------------------------------------------
-  /**
-   * Count the number of ones in the given range.
-   */
-  template <typename It>
-  inline size_t
-  count_ones(It begin, It end,
-             const typename std::iterator_traits<It>::value_type& eps =nupic::Epsilon)
-  {
-    {
-      NTA_ASSERT(begin <= end)
-        << "count_ones: Invalid range";
-    }
-
-    typedef typename std::iterator_traits<It>::value_type value_type;
-    return std::count_if(begin, end, IsNearlyZero<DistanceToOne<value_type> >(eps));
-  }
-
-  //--------------------------------------------------------------------------------
-  /**
-   * Count the number of ones in the container passed in.
-   */
-  template <typename C>
-  inline size_t count_ones(const C& c, const typename C::value_type& eps =nupic::Epsilon)
-  {
-    return count_ones(c.begin(), c.end(), eps);
-  }
-
-  //--------------------------------------------------------------------------------
-  /**
    * Counts the number of values greater than a given threshold in a given range.
    *
    * Asm SSE is many times faster than C++ (almost 10X), and C++ is 10X faster than
@@ -3170,26 +2992,6 @@ namespace nupic {
     // we simply can't compile the code as is on win32.
 
     return std::count_if(begin, end, std::bind2nd(std::greater<nupic::Real32>(), threshold));
-  }
-
-  //--------------------------------------------------------------------------------
-  /**
-   * Counts the number of values greater than or equal to a given threshold in a 
-   *  given range.
-   *
-   * This is not as general as a count_gt that would be parameterized on the type
-   * of the elements in the range, and it requires passing in a Python arrays 
-   * that are .astype(float32).
-   * 
-   */
-  inline nupic::UInt32
-  count_gte(nupic::Real32* begin, nupic::Real32* end, nupic::Real32 threshold)
-  {
-    NTA_ASSERT(begin <= end);
-
-    return std::count_if(begin, end, 
-                         std::bind2nd(std::greater_equal<nupic::Real32>(),
-                         threshold));
   }
 
 
@@ -3242,55 +3044,6 @@ namespace nupic {
     return count;
   }
   
-  //--------------------------------------------------------------------------------
-  /**
-   * Counts the number of values less than a given threshold in a given range.
-   */
-  template <typename It>
-  inline size_t 
-  count_lt(It begin, It end, const typename std::iterator_traits<It>::value_type& thres)
-  {
-    typedef typename std::iterator_traits<It>::value_type value_type;
-    return std::count_if(begin, end, std::bind2nd(std::less<value_type>(), thres));
-  }
-
-  //--------------------------------------------------------------------------------
-  // Rounding
-  //--------------------------------------------------------------------------------
-  /**
-   */
-  template <typename It>
-  inline void
-  round_01(It begin, It end,
-           const typename std::iterator_traits<It>::value_type& threshold =.5)
-  {
-    {
-      NTA_ASSERT(begin <= end)
-        << "round_01: Invalid range";
-    }
-
-    typename std::iterator_traits<It>::value_type val;
-
-    while (begin != end) {
-      val = *begin;
-      if (val >= threshold)
-        val = 1;
-      else
-        val = 0;
-      *begin = val;
-      ++begin;
-    }
-  }
-
-  //--------------------------------------------------------------------------------
-  /**
-   */
-  template <typename T>
-  inline void round_01(T& a, const typename T::value_type& threshold =.5)
-  {
-    round_01(a.begin(), a.end(), threshold);
-  }
-
   //--------------------------------------------------------------------------------
   // Addition...
   //--------------------------------------------------------------------------------
@@ -3406,25 +3159,6 @@ namespace nupic {
   /**
    */
   template <typename It>
-  inline void subtract_val(It begin, It end,
-                           const typename std::iterator_traits<It>::value_type& val)
-  {
-    add_val(begin, end, -val);
-  }
-
-  //--------------------------------------------------------------------------------
-  /**
-   */
-  template <typename T>
-  inline void subtract_val(T& x, const typename T::value_type& val)
-  {
-    subtract_val(x.begin(), x.end(), val);
-  }
-
-  //--------------------------------------------------------------------------------
-  /**
-   */
-  template <typename It>
   inline void negate(It begin, It end)
   {
     {
@@ -3443,34 +3177,6 @@ namespace nupic {
   inline void negate(T& x)
   {
     negate(x.begin(), x.end());
-  }
-
-  //--------------------------------------------------------------------------------
-  /**
-   */
-  template <typename It>
-  inline void
-  divide_val(It begin, It end,
-             const typename std::iterator_traits<It>::value_type& val)
-  {
-    {
-      NTA_ASSERT(begin <= end)
-        << "divide_val: Invalid range";
-      NTA_ASSERT(val != 0)
-        << "divide_val: Division by zero";
-    }
-
-    multiply_val(begin, end, 1.0f/val);
-  }
-
-  //--------------------------------------------------------------------------------
-  // TODO: what if val == 0?
-  /**
-   */
-  template <typename T>
-  inline void divide_val(T& x, const typename T::value_type& val)
-  {
-    divide_val(x.begin(), x.end(), val);
   }
 
   //--------------------------------------------------------------------------------
@@ -3634,29 +3340,6 @@ namespace nupic {
     divide(x.begin(), x.end(), y.begin(), y.end(), fuzz);
   }
 
-  //--------------------------------------------------------------------------------
-  template <typename It1>
-  inline void divide_by_max(It1 begin, It1 end)
-  {
-    {
-      NTA_ASSERT(begin <= end)
-        << "divide_by_max: Invalid range";
-    }
-
-    typename std::iterator_traits<It1>::value_type max_val =
-      *(std::max_element(begin, end));
-
-    if (!nupic::nearlyZero(max_val))
-      for (It1 it = begin; it != end; ++it)
-        *it /= max_val;
-  }
-
-  //--------------------------------------------------------------------------------
-  template <typename T1>
-  inline void divide_by_max(T1& v)
-  {
-    divide_by_max(v.begin(), v.end());
-  }
 
   //--------------------------------------------------------------------------------
   /**
@@ -3736,86 +3419,7 @@ namespace nupic {
   }
 
   //--------------------------------------------------------------------------------
-  /**
-   * x += k y
-   */
-  template <typename It1, typename It2>
-  inline void add_ky(const typename std::iterator_traits<It1>::value_type& k,
-                     It1 y, It1 y_end, It2 x, It2 x_end)
-  {
-    {
-      NTA_ASSERT(y <= y_end)
-        << "add_ky: Invalid y range";
-      NTA_ASSERT(x <= x_end)
-        << "add_ky: Invalid x range";
-      NTA_ASSERT(y_end - y <= x - x_end)
-        << "add_ky: Result range too small";
-    }
-
-    while (y != y_end) {
-      *x += k * *y;
-      ++x; ++y;
-    }
-  }
-
-  //--------------------------------------------------------------------------------
-  /**
-   */
-  template <typename T1, typename T2>
-  inline void add_ky(const typename T1::value_type& k, const T2& y, T1& x)
-  {
-    add_ky(k, y.begin(), y.end(), x.begin(), x.end());
-  }
-
-  //--------------------------------------------------------------------------------
-  /**
-   * x2 = x1 + k y
-   */
-  template <typename It1, typename It2, typename It3>
-  inline void add_ky(It1 x1, It1 x1_end,
-                     const typename std::iterator_traits<It1>::value_type& k,
-                     It2 y, It3 x2)
-  {
-    while (x1 != x1_end) {
-      *x2 = *x1 + k * *y;
-      ++x2; ++x1; ++y;
-    }
-  }
-
-  //--------------------------------------------------------------------------------
-  /**
-   */
-  template <typename T1, typename T2, typename T3>
-  inline void add_ky(const T1& x1,
-                     const typename T1::value_type& k, const T2& y,
-                     T3& x2)
-  {
-    ////assert(y.size() >= x.size());
-
-    add_ky(x1.begin(), x1.end(), k, y.begin(), x2.begin());
-  }
-
   // TODO: write binary operations x = y + z ...
-
-  //--------------------------------------------------------------------------------
-  /**
-   * x = a * x + y
-   *
-   * TODO: write the rest of BLAS level 1
-   */
-  template <typename T1, typename T2>
-  inline void axpy(T1& x, const typename T1::value_type& a, const T2& y)
-  {
-    ////assert(y.size() >= x.size());
-
-    typename T1::iterator it_x = x.begin(), it_x_end = x.end();
-    typename T2::const_iterator it_y = y.begin();
-
-    while (it_x != it_x_end) {
-      *it_x = a * *it_x + *it_y;
-      ++it_x; ++it_y;
-    }
-  }
 
   //--------------------------------------------------------------------------------
   /**
@@ -4189,27 +3793,6 @@ namespace nupic {
   }
 
   //--------------------------------------------------------------------------------
-  /**
-   * Sample one time from a given pdf.
-   */
-  template <typename C1>
-  inline size_t sample_one(const C1& pdf)
-  {
-    size_t c = 0;
-    sample(1, pdf.begin(), pdf.end(), &c);
-    return c;
-  }
-
-  //--------------------------------------------------------------------------------
-  template <typename C1, typename RNG>
-  inline size_t sample_one(const C1& pdf, RNG& rng)
-  {
-    size_t c = 0;
-    sample(1, pdf.begin(), pdf.end(), &c, rng);
-    return c;
-  }
-
-  //--------------------------------------------------------------------------------
   // SPARSE OR/AND
   //--------------------------------------------------------------------------------
   template <typename InputIterator1, typename InputIterator2, typename OutputIterator>
@@ -4285,73 +3868,6 @@ namespace nupic {
   }
 
   //--------------------------------------------------------------------------------
-  template <typename InputIterator1, typename InputIterator2, typename OutputIterator>
-  inline size_t sparseAnd(size_t n,
-                          InputIterator1 begin1, InputIterator1 end1,
-                          InputIterator2 begin2, InputIterator2 end2,
-                          OutputIterator out, OutputIterator out_end)
-  {
-    { // Pre-conditions
-      NTA_ASSERT(0 <= end1 - begin1)
-        << "sparseAnd: Mismatched iterators for first vector";
-      NTA_ASSERT(0 <= end2 - begin2)
-        << "sparseAnd: Mismatched iterators for second vector";
-      NTA_ASSERT(0 <= out_end - out)
-        << "sparseAnd: Mismatched iterators for output vector";
-      NTA_ASSERT(0 <= n)
-        << "sparseAnd: Invalid max size: " << n;
-      NTA_ASSERT((size_t)(end1 - begin1) <= n)
-        << "sparseAnd: Invalid first vector size";
-      NTA_ASSERT((size_t)(end2 - begin2) <= n)
-        << "sparseAnd: Invalid second vector size";
-      //NTA_ASSERT(n <= (size_t)(out_end - out))
-      //<< "sparseAnd: Insufficient memory for result";
-      for (int i = 0; i < (int)(end1 - begin1); ++i)
-        NTA_ASSERT(/*0 <= *(begin1 + i) &&*/ *(begin1 + i) < n)
-          << "sparseAnd: Invalid index in first vector: " << *(begin1 + i);
-      for (int i = 1; i < (int)(end1 - begin1); ++i)
-        NTA_ASSERT(*(begin1 + i - 1) < *(begin1 + i))
-          << "sparseAnd: Indices need to be in strictly increasing order"
-          << " (first vector)";
-      for (int i = 0; i < (int)(end2 - begin2); ++i)
-        NTA_ASSERT(/*0 <= *(begin2 + i) &&*/ *(begin2 + i) < n)
-          << "sparseAnd: Invalid index in second vector: " << *(begin2 + i);
-      for (int i = 1; i < (int)(end2 - begin2); ++i)
-        NTA_ASSERT(*(begin2 + i - 1) < *(begin2 + i))
-          << "sparseAnd: Indices need to be in strictly increasing order"
-          << " (second vector)";
-    } // End pre-conditions
-
-    typedef typename std::iterator_traits<OutputIterator>::value_type value_type;
-
-    OutputIterator out_begin = out;
-
-    while (begin1 != end1 && begin2 != end2) {
-
-      if (*begin1 < *begin2) {
-        ++begin1;
-      } else if (*begin2 < *begin1) {
-        ++begin2;
-      } else {
-        *out++ = (value_type) *begin1++;
-        ++begin2;
-      }
-    }
-
-    return (size_t)(out - out_begin);
-  }
-
-  //--------------------------------------------------------------------------------
-  template <typename U>
-  inline size_t sparseAnd(size_t n,
-                          const std::vector<U>& x1, const std::vector<U>& x2,
-                          std::vector<U>& out)
-  {
-    return sparseAnd(n, x1.begin(), x1.end(), x2.begin(), x2.end(),
-                     out.begin(), out.end());
-  }
-
-  //--------------------------------------------------------------------------------
   // SORTING
   //--------------------------------------------------------------------------------
 
@@ -4367,45 +3883,6 @@ namespace nupic {
   inline void sort(C& c, F f)
   {
     std::sort(c.begin(), c.end(), f);
-  }
-
-  //--------------------------------------------------------------------------------
-  template <typename It>
-  inline void sort_on_first(It x_begin, It x_end, int direction =1)
-  {
-    typedef typename std::iterator_traits<It>::value_type P;
-    typedef typename P::first_type I;
-    typedef typename P::second_type F;
-
-    typedef select1st<std::pair<I,F> > sel1st;
-    
-    if (direction == -1) {
-      std::sort(x_begin, x_end, predicate_compose<std::greater<I>, sel1st>());
-    } else {
-      std::sort(x_begin, x_end, predicate_compose<std::less<I>, sel1st>());
-    }
-  }
-
-  //--------------------------------------------------------------------------------
-  template <typename I, typename F>
-  inline void sort_on_first(size_t n, std::vector<std::pair<I,F> >& x, 
-                            int direction =1)
-  {
-    sort_on_first(x.begin(), x.begin() + n, direction);
-  }
-
-  //--------------------------------------------------------------------------------
-  template <typename I, typename F>
-  inline void sort_on_first(std::vector<std::pair<I,F> >& x, int direction =1)
-  {
-    sort_on_first(x.begin(), x.end(), direction);
-  }
-
-  //--------------------------------------------------------------------------------
-  template <typename I, typename F>
-  inline void sort_on_first(SparseVector<I,F>& x, int direction =1)
-  {
-    sort_on_first(x.begin(), x.begin() + x.nnz, direction);
   }
 
   //--------------------------------------------------------------------------------
@@ -4589,94 +4066,6 @@ namespace nupic {
       sorted[i] = buff[i].first;
   }
 
-  //--------------------------------------------------------------------------------
-  /**
-   * Specialized partial argsort with selective random noise for breaking ties, to 
-   * speed-up FDR C SP.
-   */
-  template <typename InIter, typename OutIter>
-  inline void 
-  partial_argsort_rnd_tie_break(size_t k, 
-                                InIter begin, InIter end,
-                                OutIter sorted, OutIter sorted_end,
-                                Random& rng,
-                                bool real_random =false)
-  {
-    {
-      NTA_ASSERT(0 < k);
-      NTA_ASSERT(0 < end - begin);
-      NTA_ASSERT(k <= (size_t)(end - begin));
-      NTA_ASSERT(k <= (size_t)(sorted_end - sorted));
-    }
-
-    typedef size_t size_type;
-    typedef float value_type;
-
-    SparseVector<size_type, value_type>& buff = partial_argsort_buffer;
-
-    size_type n = (size_type)(end - begin);
-
-    // Need to clean up, lest the next sort, with a possibly smaller range,
-    // picks up values that are not in the current [begin,end).
-    buff.resize(n);
-    buff.nnz = n;
-
-    InIter it = begin;
-
-    for (size_type i = 0; i != n; ++i, ++it) {
-      buff[i].first = i;
-      buff[i].second = *it;
-    }
-
-    if (!real_random) {
-      greater_2nd<size_type, value_type> order;
-      std::partial_sort(buff.begin(), buff.begin() + k, buff.begin() + buff.nnz, order);
-    } else {
-      greater_2nd_rnd_ties<size_type, value_type, Random> order(rng);
-      std::partial_sort(buff.begin(), buff.begin() + k, buff.begin() + buff.nnz, order);      
-    }
-    
-    for (size_type i = 0; i != k; ++i) 
-      sorted[i] = buff[i].first;
-  }
-
-  //--------------------------------------------------------------------------------
-  // QUANTIZE
-  //--------------------------------------------------------------------------------
-  template <typename It1>
-  inline void 
-  update_with_indices_of_non_zeros(nupic::UInt32 segment_size,
-                                   It1 input_begin, It1 input_end,
-                                   It1 prev_begin, It1 prev_end, 
-                                   It1 curr_begin, It1 curr_end)
-  {
-    typedef nupic::UInt32 size_type;
-    
-    size_type input_size = (size_type)(input_end - input_begin);
-
-    std::fill(curr_begin, curr_end, 0);
-
-    for (size_type i = 0; i != input_size; ++i) {
-
-      if (*(input_begin + i) == 0)
-        continue;
-
-      size_type begin = i*segment_size;
-      size_type end = begin + segment_size;
-      bool all_zero = true;
-
-      for (size_type j = begin; j != end; ++j) {
-
-        if (*(prev_begin + j) > 0) {
-          all_zero = false;
-          *(curr_begin + j) = 1;
-        }
-      }
-
-      if (all_zero) 
-        std::fill(curr_begin + begin, curr_begin + end, 1);
-    }
-  }
 
   //--------------------------------------------------------------------------------
   // Winner takes all
