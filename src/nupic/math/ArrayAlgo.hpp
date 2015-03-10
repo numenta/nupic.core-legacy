@@ -86,26 +86,6 @@ namespace nupic {
 
   //--------------------------------------------------------------------------------
   // TESTS
-  //
-  // TODO: nearly zero for positive numbers
-  // TODO: is C++ trying to use that for all types??
-  //--------------------------------------------------------------------------------
-  template <typename It>
-  inline bool
-  nearlyZeroRange(It begin, It end,
-                  const typename std::iterator_traits<It>::value_type epsilon =nupic::Epsilon)
-  {
-    {
-      NTA_ASSERT(begin <= end)
-        << "nearlyZeroRange: Invalid input range";
-    }
-
-    while (begin != end)
-      if (!nearlyZero(*begin++, epsilon))
-        return false;
-    return true;
-  }
-
   //--------------------------------------------------------------------------------
   template <typename It1, typename It2>
   inline bool
@@ -142,105 +122,12 @@ namespace nupic {
   //--------------------------------------------------------------------------------
   // IS ZERO
   //--------------------------------------------------------------------------------
-  template <typename T>
-  inline bool is_zero(const T& x)
-  {
-    return x == 0;
-  }
-
-  //--------------------------------------------------------------------------------
   template <typename T1, typename T2>
   inline bool is_zero(const std::pair<T1,T2>& x)
   {
     return x.first == 0 && x.second == 0;
   }
 
-  //--------------------------------------------------------------------------------
-  template <typename T>
-  inline bool is_zero(const std::vector<T>& x)
-  {
-    for (size_t i = 0; i != x.size(); ++i)
-      if (!is_zero(x[i]))
-        return false;
-    return true;
-  }
-
-  //--------------------------------------------------------------------------------
-  // DENSE isZero
-  //--------------------------------------------------------------------------------
-  /**
-   * Scans a binary 0/1 vector to decide whether it is uniformly zero, 
-   * or if it contains non-zeros (4X faster than C++ loop).
-   *
-   * If vector x is not aligned on a 16 bytes boundary, the function
-   * reverts to slow C++. This can happen when using it with slices of numpy
-   * arrays.
-   *
-   * TODO: find 16 bytes aligned block that can be sent to SSE.
-   * TODO: support win32/win64 for the fast path.
-   * TODO: can we go faster if working on ints rather than floats?
-   */
-  template <typename InputIterator>
-  inline bool isZero_01(InputIterator x, InputIterator x_end)
-  {
-    {
-      NTA_ASSERT(x <= x_end);
-    }
-
-
-      for (; x != x_end; ++x)
-        if (*x > 0)
-          return false;
-      return true;
- 
-  } //end method
-
-  //--------------------------------------------------------------------------------
-  /**
-   * 10X faster than function just above.
-   */
-  inline bool 
-  is_zero_01(const ByteVector& x, size_t begin, size_t end)
-  {
-    const Byte* x_beg = &x[begin];
-    const Byte* x_end = &x[end];
-
-    for (; x_beg != x_end; ++x_beg)
-      if (*x_beg > 0)
-        return false;
-    return true;
-
-  }
-
-  //--------------------------------------------------------------------------------
-  template <typename InIter>
-  inline bool
-  positive_less_than(InIter begin, InIter end,
-                     const typename std::iterator_traits<InIter>::value_type threshold)
-  {
-    {
-      NTA_ASSERT(begin <= end)
-        << "positive_less_than: Invalid input range";
-    }
-
-    for (; begin != end; ++begin)
-      if (*begin > threshold)
-        return false;
-    return true;
-  }
-
-  //--------------------------------------------------------------------------------
-  template <typename T>
-  inline void print_bits(const T& x)
-  {
-    for (int i = sizeof(T) - 1; 0 <= i; --i) {
-      unsigned char* b = (unsigned char*)(&x) + i;
-      for (int j = 7; 0 <= j; --j)
-        std::cout << ((*b & (1 << j)) / (1 << j));
-      std::cout << ' ';
-    }
-  }
-  
   //--------------------------------------------------------------------------------
   // N BYTES
   //--------------------------------------------------------------------------------
@@ -297,28 +184,6 @@ namespace nupic {
       n += n_bytes(a[i]);
 
     return n;
-  }
-
-  //--------------------------------------------------------------------------------
-  template <typename T>
-  inline float load_factor(const std::vector<T>& x)
-  {
-    return (float) x.size() / (float) x.capacity();
-  }
-
-  //--------------------------------------------------------------------------------
-  template <typename T>
-  inline void adjust_load_factor(std::vector<T>& x, float target)
-  {
-    NTA_ASSERT(0.0 <= target && target <= 1.0);
-
-    size_t new_capacity = (size_t)((float)x.size() / target);
-
-    std::vector<T> y;
-    y.reserve(new_capacity);
-    y.resize(x.size());
-    std::copy(x.begin(), x.end(), y.begin());
-    x.swap(y);
   }
 
   //--------------------------------------------------------------------------------
@@ -422,66 +287,6 @@ namespace nupic {
     }
     */
   };
-
-  //--------------------------------------------------------------------------------
-  // INIT LIST
-  //--------------------------------------------------------------------------------
-  template <typename T>
-  struct vector_init_list
-  {
-    std::vector<T>& v;
-    
-    inline vector_init_list(std::vector<T>& v_ref) : v(v_ref) {}
-    inline vector_init_list(const vector_init_list& o) : v(o.v) {}
-
-    inline vector_init_list& operator=(const vector_init_list& o) 
-    { v(o.v); return *this; }
-
-    template <typename T2>
-    inline vector_init_list<T>& operator,(const T2& x)
-    {
-      v.push_back((T)x);
-      return *this;
-    }
-  };
-  
-  //--------------------------------------------------------------------------------
-  template <typename T, typename T2>
-  inline vector_init_list<T> operator+=(std::vector<T>& v, const T2& x)
-  {
-    v.push_back((T)x);
-    return vector_init_list<T>(v);
-  }
-
-  //--------------------------------------------------------------------------------
-  // TODO: merge with preceding by changing parametrization?
-  //--------------------------------------------------------------------------------
-  template <typename T>
-  struct set_init_list
-  {
-    std::set<T>& v;
-    
-    inline set_init_list(std::set<T>& v_ref) : v(v_ref) {}
-    inline set_init_list(const set_init_list& o) : v(o.v) {}
-
-    inline set_init_list& operator=(const set_init_list& o) 
-    { v(o.v); return *this; }
-
-    template <typename T2>
-    inline set_init_list<T>& operator,(const T2& x)
-    {
-      v.insert((T)x);
-      return *this;
-    }
-  };
-  
-  //--------------------------------------------------------------------------------
-  template <typename T, typename T2>
-  inline set_init_list<T> operator+=(std::set<T>& v, const T2& x)
-  {
-    v.insert((T)x);
-    return set_init_list<T>(v);
-  }
 
   //--------------------------------------------------------------------------------
   // FIND IN VECTOR
@@ -622,60 +427,6 @@ namespace nupic {
   inline bool operator!=(const std::map<T1,T2>& a, const std::map<T1,T2>& b)
   {
     return !(a == b);
-  }
-
-  //--------------------------------------------------------------------------------
-  /**
-   * Proxy for an insert iterator that allows inserting at the second element
-   * when iterating over a container of pairs.
-   */
-  template <typename Iterator>
-  struct inserter_second
-  {
-    typedef typename std::iterator_traits<Iterator>::value_type pair_type;
-    typedef typename pair_type::second_type second_type;
-    typedef second_type value_type;
-
-    Iterator it;
-
-    inline inserter_second(Iterator _it) : it(_it) {}
-    inline second_type& operator*() { return it->second; }
-    inline void operator++() { ++it; }
-  };
-
-  template <typename Iterator>
-  inserter_second<Iterator> insert_2nd(Iterator it)
-  {
-    return inserter_second<Iterator>(it);
-  }
-
-  //--------------------------------------------------------------------------------
-  /**
-   * Proxy for an insert iterator that allows inserting at the second element when
-   * iterating over a container of pairs, while setting the first element to the 
-   * current index value (watch out if iterator passed to constructor is not 
-   * pointing to the beginning of the container!)
-   */
-  template <typename Iterator>
-  struct inserter_second_incrementer_first
-  {
-    typedef typename std::iterator_traits<Iterator>::value_type pair_type;
-    typedef typename pair_type::second_type second_type;
-    typedef second_type value_type;
-
-    Iterator it;
-    size_t i;
-
-    inline inserter_second_incrementer_first(Iterator _it) 
-      : it(_it), i(0) {}
-    inline second_type& operator*() { return it->second; }
-    inline void operator++() { it->first = i++; ++it; }
-  };
-
-  template <typename Iterator>
-  inserter_second_incrementer_first<Iterator> insert_2nd_inc(Iterator it)
-  {
-    return inserter_second_incrementer_first<Iterator>(it);
   }
 
   //--------------------------------------------------------------------------------
@@ -4459,108 +4210,6 @@ namespace nupic {
   }
 
   //--------------------------------------------------------------------------------
-  // DENSE LOGICAL AND/OR
-  //-------------------------------------------------------------------------------- 
-  /**
-   * For each corresponding elements of x and y, put the logical and of those two
-   * elements at the corresponding position in z. This is faster than the numpy
-   * logical_and, which doesn't seem to be using SSE.
-   *
-   * x, y and z are arrays of floats, but with 0/1 values.
-   *
-   * If any of the vectors is not aligned on a 16 bytes boundary, the function
-   * reverts to slow C++. This can happen when using it with slices of numpy
-   * arrays.
-   *
-   * Doesn't work on win32/win64.
-   *
-   * TODO: find 16 bytes aligned block that can be sent to SSE.
-   * TODO: support win32/win64 for the fast path.
-   */
-  template <typename InputIterator, typename OutputIterator>
-  inline void logical_and(InputIterator x, InputIterator x_end,
-                          InputIterator y, InputIterator y_end,
-                          OutputIterator z, OutputIterator z_end)
-  {
-    {
-      NTA_ASSERT(x_end - x == y_end - y);
-      NTA_ASSERT(x_end - x == z_end - z);
-    }
-    
-    for (; x != x_end; ++x, ++y, ++z)
-      *z = (*x) && (*y);
-  }
-
-  //--------------------------------------------------------------------------------
-  /**
-   * Same as previous logical_and, but puts the result back into y.
-   * Same comments.
-   */
-  template <typename Iterator>
-  inline void in_place_logical_and(Iterator x, Iterator x_end,
-                                   Iterator y, Iterator y_end)
-  {
-    {
-      NTA_ASSERT(x_end - x == y_end - y);
-    }
-
-    for (; x != x_end; ++x, ++y)
-      *y = (*x) && *(y);
-  }
-
-  //--------------------------------------------------------------------------------
-  /**
-   * A specialization tuned for unsigned char. 
-   * TODO: keep only one code that computes the right offsets based on 
-   * the iterator value type?
-   * TODO: vectorize, but watch out for alignments
-   */
-  inline void in_place_logical_and(const ByteVector& x, ByteVector& y,
-                                   int begin =-1, int end =-1)
-  {
-    if (begin == -1)
-      begin = 0;
-
-    if (end == -1)
-      end = (int) x.size();
-
-    for (int i = begin; i != end; ++i)
-      y[i] &= x[i];
-  }
-
-  //--------------------------------------------------------------------------------
-  /**
-   * TODO: write with SSE for big enough vectors.
-   */
-  inline void in_place_logical_or(const ByteVector& x, ByteVector& y,
-                                  int begin =-1, int end =-1)
-  {
-    if (begin == -1)
-      begin = 0;
-
-    if (end == -1)
-      end = (int) x.size();
-
-    for (int i = begin; i != end; ++i)
-      y[i] |= x[i];
-  }
-
-  //--------------------------------------------------------------------------------
-  inline void 
-  logical_or(size_t n, const ByteVector& x, const ByteVector& y, ByteVector& z)
-  {
-    for (size_t i = 0; i != n; ++i)
-      z[i] = x[i] || y[i];
-  }
-
-  //--------------------------------------------------------------------------------
-  inline void in_place_logical_or(size_t n, const ByteVector& x, ByteVector& y)
-  {
-    for (size_t i = 0; i != n; ++i)
-      y[i] |= x[i];
-  }
-
-  //--------------------------------------------------------------------------------
   // SPARSE OR/AND
   //--------------------------------------------------------------------------------
   template <typename InputIterator1, typename InputIterator2, typename OutputIterator>
@@ -5060,116 +4709,6 @@ namespace nupic {
       *begin2 = (value_type) max_i;
       ++begin2;
     }
-  }
-
-  //--------------------------------------------------------------------------------
-  /**
-   * Winner takes all 2.
-   */
-  template <typename I, typename InIter, typename OutIter>
-  std::pair<I, typename std::iterator_traits<InIter>::value_type>
-  winnerTakesAll2(const std::vector<I>& boundaries, InIter begin1, OutIter begin2)
-  {
-    I max_i = 0;
-    typedef typename std::iterator_traits<InIter>::value_type value_type;
-    value_type max_v = 0;
-
-    for (I i = 0, k = 0; i < boundaries.size(); ++i) {
-      max_v = 0;
-      max_i = i == 0 ? 0 : boundaries[i-1];
-      while (k < boundaries[i]) {
-        if (begin1[k] > max_v) {
-          begin2[max_i] = 0;
-          max_i = k;
-          max_v = (value_type) (begin1[k]);
-        } else {
-          begin2[k] = 0;
-        }
-        ++k;
-      }
-      begin2[max_i] = 1;
-    }
-    return std::make_pair(max_i, max_v);
-  }
-
-  //--------------------------------------------------------------------------------
-  /**
-   * Keeps the values of k winners per segment, where each segment in [begin..end)
-   * has length seg_size, and zeroes-out all the other elements.
-   * Returns the indices and the values of the winners.
-   * For zero segments, we randomly pick a winner, and output its index, with the
-   * value zero.
-   * If a segment has only zeros, randomly picks a winner.
-   */
-  template <typename I, typename InIter, typename OutIter1, typename OutIter2,
-            typename RNG>
-  inline void
-  winnerTakesAll3(I k, I seg_size, InIter begin, InIter end,
-                  OutIter1 ind, OutIter2 nz, RNG& rng)
-  {
-    typedef I size_type;
-    typedef typename std::iterator_traits<InIter>::value_type value_type;
-
-    { // Pre-conditions
-      NTA_ASSERT(k > 0)
-        << "winnerTakesAll3: Invalid k: " << k
-        << " - Needs to be > 0";
-
-      NTA_ASSERT(seg_size > 0)
-        << "winnerTakesAll3: Invalid segment size: " << seg_size
-        << " - Needs to be  > 0";
-
-      NTA_ASSERT(k <= seg_size)
-        << "winnerTakesAll3: Invalid k (" << k << ") or "
-        << "segment size (" << seg_size << ")"
-        << " - k needs to be <= seg_size";
-
-      NTA_ASSERT((size_type) (end - begin) % seg_size == 0)
-        << "winnerTakesAll3: Invalid input range of size: "
-        << (size_type) (end - begin)
-        << " - Needs to be integer multiple of segment size: "
-        << seg_size;
-    } // End pre-conditions
-
-    typedef select2nd<std::pair<size_type, value_type> > sel2nd;
-
-    InIter seg_begin = begin;
-    size_type offset = (size_type) 0;
-
-    for (; seg_begin != end; seg_begin += seg_size, offset += seg_size) {
-
-      InIter seg_end = seg_begin + seg_size;
-      size_type offset = (size_type) (seg_begin - begin);
-
-      if (nearlyZeroRange(seg_begin, seg_end)) {
-
-        std::vector<size_type> indices(seg_size);
-        random_perm_interval(indices, offset, 1, rng);
-
-        sort(indices.begin(), indices.begin() + k, std::less<size_type>());
-
-        for (size_type i = 0; i != k ; ++i, ++ind, ++nz) {
-          *ind = indices[i];
-          *nz = (value_type) 0;
-        }
-
-      } else {
-
-        partial_sort(k, seg_begin, seg_end, ind, nz,
-                     predicate_compose<std::greater<value_type>, sel2nd>(),
-                     offset, true);
-      }
-    }
-  }
-
-  //--------------------------------------------------------------------------------
-  template <typename I, typename InIter, typename OutIter1, typename OutIter2>
-  inline void
-  winnerTakesAll3(I k, I seg_size, InIter begin, InIter end,
-                  OutIter1 ind, OutIter2 nz)
-  {
-    nupic::Random rng;
-    winnerTakesAll3(k, seg_size, begin, end, ind, nz, rng);
   }
 
   //--------------------------------------------------------------------------------
