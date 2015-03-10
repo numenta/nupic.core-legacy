@@ -98,15 +98,15 @@ after_build:
   - ps: >-
       if($env:DEPLOY_TO_NUGET -eq 1) {
         copy $env:REPO_DIR\Package.nuspec .
-        nuget pack -version $env:APPVEYOR_REPO_COMMIT
+        nuget pack -version $env:APPVEYOR_BUILD_VERSION
         nuget push *.nupkg 30618afb-ecf6-4476-8e61-a5b823ad9892
       }
       if($env:DEPLOY_TO_S3 -eq 1) {
         # This packages via CMakeList CPack settings (Tar.Gzip for SW upload)
         # msbuild $env:MSBuildOptions PACKAGE.vcxproj
-        # Calling 7z twice acheives the same result
+        # Calling 7z twice achieves the same result
         7z a -ttar -y -bd nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar .
-        7z a -tgzip -y -bd nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar.gz nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar
+        7z a -tgzip -y -bd ..\..\nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar.gz nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar
       }
 
 test: off
@@ -125,7 +125,8 @@ deploy:
 
   # Amazon S3 deployment provider settings
   - provider: S3
-    access_key_id: AKIAIGHYSEHV3WFKOWNQ
+    access_key_id:
+      secure: AKIAIGHYSEHV3WFKOWNQ
     secret_access_key:
       secure: YhyY/6r2LNya8OZEmVOj+fv0lY5bBPqvy8MnsdLlptXa2uqwvezkCMNKiQ+wA+tOu+BS7VRRp86DhUqCpTZ3jUM2Mwdhud/Smq7D2X8vtZBiTVcOKfQcaypDE6Zu9Zp0SjMOSf6yiq6Ruu7D5QtZ4rtaq+5uPlvbgUXRZoZm0Po=
     bucket: "artifacts.numenta.org"
