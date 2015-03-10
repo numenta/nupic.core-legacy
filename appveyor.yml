@@ -68,7 +68,8 @@ install:
   - set EXT_LIBS=%REPO_DIR%\external\windows64\lib
   - cmake %REPO_DIR%\src
      -G "Visual Studio 14 2015 Win64" -Wno-dev
-     -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=..\Release
+     -DCMAKE_BUILD_TYPE=Release 
+     -DCMAKE_INSTALL_PREFIX=..\Release
      -DLIB_STATIC_APR1_LOC=%EXT_LIBS%\apr-1.lib
      -DLIB_STATIC_APRUTIL1_LOC=%EXT_LIBS%\aprutil-1.lib
      -DLIB_STATIC_YAML_CPP_LOC=%EXT_LIBS%\yaml-cpp.lib
@@ -89,7 +90,7 @@ build_script:
   - msbuild %MSBuildOptions% cpp_region_test.vcxproj
   - msbuild %MSBuildOptions% unit_tests.vcxproj
   - set MSBuildOptions=/v:q /p:Configuration=Release /logger:%MSBuildLogger%
-  - msbuild %MSBuildOptions% Install.vcxproj
+  - msbuild %MSBuildOptions% INSTALL.vcxproj
 
 after_build:
   # Run the tests
@@ -100,38 +101,46 @@ after_build:
 
   - cd %REPO_DIR%\build\release
   - set PROJECT_BUILD_ARTIFACTS_DIR=%REPO_DIR%\build\artifacts
+
+  # NOTE: S3 deployment takes precendence when setting BUILD_ARTIFACTS
   - ps: >-
       if($env:DEPLOY_TO_NUGET -eq 1) {
         copy $env:REPO_DIR\Package.nuspec .
         nuget pack -version $env:APPVEYOR_REPO_COMMIT
         nuget push *.nupkg 30618afb-ecf6-4476-8e61-a5b823ad9892
-        move *.nupkg $env:PROJECT_BUILD_ARTIFACTS_DIR
-        set BUILD_ARTIFACTS=$env:PROJECT_BUILD_ARTIFACTS_DIR\*.nupkg
+        copy *.nupkg $env:PROJECT_BUILD_ARTIFACTS_DIR
+        Get-ChildItem .\*.nupkg | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
       }
       if($env:DEPLOY_TO_S3 -eq 1) {
-        7z a -ttar -y -bd nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar .
-        7z a -tgzip -y -bd nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar.gz nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar
-        move nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar.gz $env:PROJECT_BUILD_ARTIFACTS_DIR
-        set BUILD_ARTIFACTS=$env:PROJECT_BUILD_ARTIFACTS_DIR\nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar.gz
+        # This packages via CMakeList CPack settings (Tar.Gzip for SW upload)
+        # Calling 7z twice acheives the same result
+        #  7z a -ttar -y -bd nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar .
+        #  7z a -tgzip -y -bd nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar.gz nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar
+        msbuild %MSBuildOptions% PACKAGE.vcxproj
+        copy nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar.gz $env:PROJECT_BUILD_ARTIFACTS_DIR
+        Get-ChildItem .\*.tar.gz | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
       }
 
 test: off
 
 artifacts:
-  - path: build\artifacts\*.nupkg
-  - path: build\artifacts\*.tar.gz
+  - path: '**\*.nupkg' # find all NuGet packages recursively
+    name: Nuget package
 
-# to disable deployment
-deploy: off
+  - path: '**\*.tar.gz' # find all Gz(ip) packages recursively
+    name: S3 package
 
-#deploy:
+deploy:
   # Amazon S3 deployment provider settings
-  #- provider: S3
-  #  access_key_id:
-  #    secure: AKIAIGHYSEHV3WFKOWNQ
-  #  secret_access_key:
-  #    secure: "pYsMDbNp8k2i0d9p5mf/9TlDzxt2FiiR1QJV7QUn+S2/r372VYdZaplL+s9ItVGCGFpAyKk7HXcwm//DKw/ZKb6UlDJm3Fph9m+3aDDIiVFNB7g1uro+Yg8nIGuV8qZEtIaHRtR1zOt1EufoR9dg1Mq8ryRggN9rrB0FvCxUZAQ="
-  #  bucket: "artifacts.numenta.org"
-  #  folder: %PROJECT_BUILD_ARTIFACTS_DIR%
-  #  artifact:
-  #  set_public: false
+  provider: S3
+  access_key_id: AKIAIGHYSEHV3WFKOWNQ
+  secret_access_key:
+    secure: YhyY/6r2LNya8OZEmVOj+fv0lY5bBPqvy8MnsdLlptXa2uqwvezkCMNKiQ+wA+tOu+BS7VRRp86DhUqCpTZ3jUM2Mwdhud/Smq7D2X8vtZBiTVcOKfQcaypDE6Zu9Zp0SjMOSf6yiq6Ruu7D5QtZ4rtaq+5uPlvbgUXRZoZm0Po=
+  bucket: "artifacts.numenta.org"
+  region: us-west-2
+  local-dir: "%PROJECT_BUILD_ARTIFACTS_DIR%"
+  upload-dir: "numenta/nupic.core"
+  skip_cleanup: true
+  # Deploying on master branch
+  on:
+    branch: master
