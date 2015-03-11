@@ -16,8 +16,8 @@ environment:
     # Must add CLang, or GCC
     # i.e. - COMPILER_FAMILY: GNU
     - COMPILER_FAMILY: MSVC
-      DEPLOY_TO_S3: 0
-      DEPLOY_TO_NUGET: 0
+      DEPLOY_TO_S3: 1
+      DEPLOY_TO_NUGET: 1
 
 skip_commits:
   # Add [av skip] to commit messages to skip AppVeyor building
@@ -107,10 +107,6 @@ build_script:
 after_build:
   - cd %REPO_DIR%\build\release\bin
 
-  # Run the tests
-  - prototest
-  - cpp_region_test 1
-  - unit_tests --gtest_output=xml:unit_tests_report.xml
   # transform the JUnit-style xml report to html
   #- xsltproc %REPO_DIR%\doc\xunit.xslt unit_tests_report.xml > unit_tests_report.html
 
@@ -161,3 +157,4 @@ deploy:
     # Deploying on master branch
     on:
       branch: master
+      branch: 311-appveyor-s3-support
