@@ -100,13 +100,7 @@ build_script:
   - set MSBuildLogger="C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
   - set MSBuildOptions=/v:m /p:Configuration=Release /logger:%MSBuildLogger%
 
-  - msbuild %MSBuildOptions% gtest.vcxproj
-  - msbuild %MSBuildOptions% nupic_core_solo.vcxproj
-  - msbuild %MSBuildOptions% helloregion.vcxproj
-  - msbuild %MSBuildOptions% prototest.vcxproj
-  - msbuild %MSBuildOptions% py_region_test.vcxproj
-  - msbuild %MSBuildOptions% cpp_region_test.vcxproj
-  - msbuild %MSBuildOptions% unit_tests.vcxproj
+  - msbuild %MSBuildOptions% nupic_core.sln
   - set MSBuildOptions=/v:q /p:Configuration=Release /logger:%MSBuildLogger%
   - msbuild %MSBuildOptions% INSTALL.vcxproj
 
