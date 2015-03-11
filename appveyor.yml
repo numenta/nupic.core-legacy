@@ -156,5 +156,5 @@ deploy:
     skip_cleanup: true
     # Deploying on master branch
     on:
-      branch: master
+      #branch: master
       branch: 311-appveyor-s3-support
