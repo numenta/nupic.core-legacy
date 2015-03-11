@@ -255,7 +255,7 @@ namespace nupic
       if (!success) 
       {
         NTA_THROW << "Directory::create -- failed to create directory \"" << path << "\".\n"
-                  << "OS Error: " << OS::getErrorMessage();
+                  << "Msg: " << OS::getErrorMessage();
       }
     }
     

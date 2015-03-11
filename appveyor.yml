@@ -5,6 +5,25 @@
 # version format
 version: 0.3.0.{build}
 
+#branches:
+#  only:
+#    - master
+#  except:
+#    - gh-pages
+
+environment:
+  matrix:
+    # Must add CLang, or GCC
+    # i.e. - COMPILER_FAMILY: GNU
+    - COMPILER_FAMILY: MSVC
+      DEPLOY_TO_S3: 0
+      DEPLOY_TO_NUGET: 0
+
+skip_commits:
+  # Add [av skip] to commit messages to skip AppVeyor building
+  # Add [ci skip] to skip Travis and AppVeyor building
+  message: /\[av skip\]/ 
+
 #---------------------------------#
 #    environment configuration    #
 #---------------------------------#
@@ -17,19 +36,6 @@ init:
 
 # clone directory
 clone_folder: c:\projects\nupic-core
-
-environment:
-  matrix:
-    # Must add either GCC or CLang here
-    # i.e. - COMPILER_FAMILY: GNU
-    - COMPILER_FAMILY: MSVC
-      DEPLOY_TO_S3: 1
-      DEPLOY_TO_NUGET: 1
-
-skip_commits:
-  # Add [av skip] to commit messages to skip AppVeyor building
-  # Add [ci skip] to skip Travis and AppVeyor building
-  message: /\[av skip\]/ 
 
 #---------------------------------#
 #       build configuration       #
@@ -45,17 +51,20 @@ configuration: Release
 
 install:
   - set REPO_DIR=c:\projects\nupic-core
+  - set NUPIC_DEPLOYMENT_BUILD=1
+
   - mkdir %REPO_DIR%\build\
   - mkdir %REPO_DIR%\build\release
   - mkdir %REPO_DIR%\build\scripts
   - cd %REPO_DIR%\build\scripts
+
   # Need at least version 3.1.0 for the VS 2015 generator
   - ps: Start-FileDownload 'http://www.cmake.org/files/v3.1/cmake-3.1.0-win32-x86.zip'
   - ps: Write-Host '7z x cmake-3.1.0-win32-x86.zip'
   - ps: Start-Process -FilePath "7z" -ArgumentList "x -y cmake-3.1.0-win32-x86.zip" -Wait -Passthru
   - set PATH="%REPO_DIR%\build\scripts\cmake-3.1.0-win32-x86\bin";%PATH%
   - set PATH="C:\Program Files (x86)\MSBuild\14.0\Bin";%PATH%
-  - echo %PATH%
+
   - cd %REPO_DIR%\build\scripts
   - set EXT_LIBS=%REPO_DIR%\external\windows64\lib
   - cmake %REPO_DIR%\src
@@ -72,8 +81,19 @@ install:
 
 build_script:
   - cd %REPO_DIR%\build\scripts
+
+  - ps: >-
+      $root = $env:APPVEYOR_BUILD_FOLDER
+      $versionStr = $env:APPVEYOR_BUILD_VERSION
+      Write-Host $root
+      Write-Host "Setting Package.nuspec version tag to $versionStr"
+      $content = (Get-Content $root\Package.nuspec) 
+      $content = $content -replace '\$version\$',$versionStr
+      $content | Out-File $root\Package.nuspec
+
   - set MSBuildLogger="C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
   - set MSBuildOptions=/v:m /p:Configuration=Release /logger:%MSBuildLogger%
+
   - msbuild %MSBuildOptions% gtest.vcxproj
   - msbuild %MSBuildOptions% nupic_core_solo.vcxproj
   - msbuild %MSBuildOptions% helloregion.vcxproj
@@ -85,39 +105,45 @@ build_script:
   - msbuild %MSBuildOptions% INSTALL.vcxproj
 
 after_build:
-  # Run the tests
   - cd %REPO_DIR%\build\release\bin
-  - prototest 2>&1
-  - cpp_region_test 1 2>&1
-  - unit_tests --gtest_output=xml:unit_tests_report.xml 2>&1
+
+  # Run the tests
+  - prototest
+  - cpp_region_test 1
+  - unit_tests --gtest_output=xml:unit_tests_report.xml
+  # transform the JUnit-style xml report to html
+  #- xsltproc %REPO_DIR%\doc\xunit.xslt unit_tests_report.xml > unit_tests_report.html
 
   - cd %REPO_DIR%\build\release
   - set PROJECT_BUILD_ARTIFACTS_DIR=%REPO_DIR%\build\artifacts
 
-  # NOTE: S3 deployment takes precedence when setting BUILD_ARTIFACTS
   - ps: >-
       if($env:DEPLOY_TO_NUGET -eq 1) {
         copy $env:REPO_DIR\Package.nuspec .
+
         nuget pack -version $env:APPVEYOR_BUILD_VERSION
+
         nuget push *.nupkg 30618afb-ecf6-4476-8e61-a5b823ad9892
         # NOTE: Push to nuget is here, rather than normal AV deployment
+
       }
+
       if($env:DEPLOY_TO_S3 -eq 1) {
         # This packages via CMakeList CPack settings (Tar.Gzip for SW upload)
         # msbuild $env:MSBuildOptions PACKAGE.vcxproj
-        # Calling 7z twice achieves the same result
-        7z a -ttar -y -bd nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar .
-        7z a -tgzip -y -bd ..\..\nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar.gz nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar
-      }
 
-test: off
- 
-# to disable deployment
-#deploy: off
+        7z a -ttar -y -bd nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar .
+
+        7z a -tgzip -y -bd ..\..\nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar.gz nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar
+
+      }
 
 artifacts:
   - path: '**\*.tar.gz' # find all Gz(ip) packages recursively
-    name: S3 package
+
+# To disable the deploy step uncomment the line below
+#deploy: off
+test: off
 
 deploy:
 
@@ -134,5 +160,4 @@ deploy:
     skip_cleanup: true
     # Deploying on master branch
     on:
-      #branch: master
-      branch: 311-appveyor-s3-support
+      branch: master

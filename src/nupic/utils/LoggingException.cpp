@@ -34,9 +34,16 @@ LoggingException::~LoggingException() throw()
   if (!alreadyLogged_) {
     // Let LogItem do the work for us. This code is a bit complex
     // because LogItem was designed to be used from a logging macro
-    auto li = new LogItem(filename_.c_str(), lineno_, LogItem::error);
+    LogItem *li;
+
+    if (::getenv("NUPIC_DEPLOYMENT_BUILD"))
+      li = new LogItem(filename_.c_str(), lineno_, LogItem::LogLevel::ci);
+    else
+      li = new LogItem(filename_.c_str(), lineno_, LogItem::error);
+
     li->stream() << getMessage();
     delete li;
+
     alreadyLogged_ = true;
   }
 }

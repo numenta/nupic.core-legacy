@@ -47,7 +47,7 @@ namespace nupic {
   class LogItem {
   public:
 
-    typedef enum {debug, info, warn, error} LogLevel;
+    typedef enum {debug, ci, info, warn, error} LogLevel;
     /**
      * Record information to be logged
      */
