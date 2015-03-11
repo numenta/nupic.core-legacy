@@ -16,7 +16,7 @@ environment:
     # Must add CLang, or GCC
     # i.e. - COMPILER_FAMILY: GNU
     - COMPILER_FAMILY: MSVC
-      DEPLOY_TO_S3: 1
+      DEPLOY_TO_S3: 0
       DEPLOY_TO_NUGET: 1
 
 skip_commits:
@@ -154,7 +154,5 @@ deploy:
     local-dir: "%PROJECT_BUILD_ARTIFACTS_DIR%"
     upload-dir: "numenta/nupic.core"
     skip_cleanup: true
-    # Deploying on master branch
     on:
-      #branch: master
-      branch: 311-appveyor-s3-support
+      branch: master
