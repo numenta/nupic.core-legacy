@@ -85,7 +85,7 @@ namespace nupic {
     vector<Segment> segments = connections.segmentsForCell(cell);
     ASSERT_EQ(segments.size(), 2);
 
-    for (SegmentIdx i = 0; i < segments.size(); i++) {
+    for (SegmentIdx i = 0; i < (SegmentIdx)segments.size(); i++) {
       ASSERT_EQ(segments[i].idx, i);
       ASSERT_EQ(segments[i].cell.idx, cell.idx);
     }
