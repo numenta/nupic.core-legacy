@@ -87,7 +87,7 @@ std::string OS::getErrorMessageFromErrorCode(int errorCode)
     errMessage.write((LPSTR) lpMsgBuf, msgLen);
   }
   else {
-    errMessage << "Code: " << errorCode;
+    errMessage << "code: " << errorCode;
   }
 
   LocalFree(lpMsgBuf);

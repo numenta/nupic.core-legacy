@@ -58,12 +58,7 @@ LogItem::~LogItem()
     slevel = "INFO: ";
     break;
   case error:
-    slevel = "ERROR:";
-    break;
-  case ci:
-    // Continuous Integration services e.g. Travis, AppVeyor
-    // The use of the word "error" in stdout can fail builds
-    slevel = "CI: ";
+    slevel = "ERR:";
     break;
   default:
     slevel = "Unknown: ";
@@ -75,7 +70,7 @@ LogItem::~LogItem()
 
   (*ostream_) << slevel << "  " << msg_.str();
 
-  if (level_ == error || level_ == ci)
+  if (level_ == error)
     (*ostream_) << " [" << filename_ << " line " << lineno_ << "]";
 
   (*ostream_) << std::endl;
