@@ -16,7 +16,6 @@ environment:
     # Must add CLang, or GCC
     # i.e. - COMPILER_FAMILY: GNU
     - COMPILER_FAMILY: MSVC
-      DEPLOY_TO_S3: 0
       DEPLOY_TO_NUGET: 0
 
 skip_commits:
@@ -106,11 +105,6 @@ build_script:
   - msbuild %MSBuildOptions% INSTALL.vcxproj
 
 after_build:
-  - cd %REPO_DIR%\build\release\bin
-
-  # transform the JUnit-style xml report to html
-  #- xsltproc %REPO_DIR%\doc\xunit.xslt unit_tests_report.xml > unit_tests_report.html
-
   - cd %REPO_DIR%\build\release
   - set PROJECT_BUILD_ARTIFACTS_DIR=%REPO_DIR%\build\artifacts
 
@@ -125,15 +119,12 @@ after_build:
 
       }
 
-      if($env:DEPLOY_TO_S3 -eq 1) {
-        # This packages via CMakeList CPack settings (Tar.Gzip for SW upload)
-        # msbuild $env:MSBuildOptions PACKAGE.vcxproj
+      # This packages via CMakeList CPack settings (Tar.Gzip for SW upload)
+      # msbuild $env:MSBuildOptions PACKAGE.vcxproj
 
-        7z a -ttar -y -bd nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar .
+      7z a -ttar -y -bd nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar .
 
-        7z a -tgzip -y -bd ..\..\nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar.gz nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar
-
-      }
+      7z a -tgzip -y -bd ..\..\nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar.gz nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar
 
 artifacts:
   - path: '**\*.tar.gz' # find all Gz(ip) packages recursively
