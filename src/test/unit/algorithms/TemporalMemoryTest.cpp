@@ -367,7 +367,9 @@ namespace nupic {
     NTA_CHECK(check_set_eq(tm.learningSegments_, expectedLearningSegments));
 
     // Check that new segment was added to winner cell(6) in column 1
-    NTA_CHECK(check_vector_eq(connections.segmentsForCell(6), vector<Segment>{ Segment(0, Cell(6)) }));
+    vector<Segment> segments = connections.segmentsForCell(6);
+    vector<Segment> expectedSegments = { Segment(0, Cell(6)) };
+    NTA_CHECK(check_vector_eq(segments, expectedSegments));
   }
 
   void TemporalMemoryTest::testBurstColumnsEmpty()
