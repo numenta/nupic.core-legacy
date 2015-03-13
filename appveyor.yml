@@ -17,7 +17,7 @@ environment:
     # i.e. - COMPILER_FAMILY: GNU
     - COMPILER_FAMILY: MSVC
       DEPLOY_TO_S3: 0
-      DEPLOY_TO_NUGET: 1
+      DEPLOY_TO_NUGET: 0
 
 skip_commits:
   # Add [av skip] to commit messages to skip AppVeyor building
@@ -34,8 +34,9 @@ os: Visual Studio 2015 CTP
 init:
   - git config --global core.autocrlf input
 
-# clone directory
 clone_folder: c:\projects\nupic-core
+clone_depth: 50
+shallow_clone: true
 
 #---------------------------------#
 #       build configuration       #
