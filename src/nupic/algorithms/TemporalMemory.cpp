@@ -41,6 +41,17 @@ using namespace nupic::algorithms::temporal_memory;
 TemporalMemory::TemporalMemory()
 {
 	version_ = 1;
+
+  connections_ = nullptr;
+  random_ = nullptr;
+}
+
+TemporalMemory::~TemporalMemory()
+{
+  if (connections_)
+    delete connections_;
+  if (random_)
+    delete random_;
 }
 
 /**
@@ -60,7 +71,7 @@ TemporalMemory::TemporalMemory()
  */
 void TemporalMemory::initialize(
 	vector<UInt> columnDimensions, 
-	UInt cellsPerColumn, 
+	Int cellsPerColumn, 
 	Int activationThreshold, 
 	Int learningRadius, 
 	Permanence initialPermanence,
@@ -102,15 +113,7 @@ void TemporalMemory::initialize(
 
   // Initialize member variables
   
-  connections_ = Connections(numberOfCells());
-	
-  _random = Random(seed);
-
-	activeCells_.clear();
-	predictiveCells_.clear();
-	activeSegments_.clear();
-	winnerCells_.clear();
-
+  reset();
 }
 
 
@@ -123,6 +126,16 @@ void TemporalMemory::initialize(
 */
 void TemporalMemory::reset(void)
 {
+  if (connections_)
+    delete connections_;
+
+  connections_ = new Connections(numberOfCells());
+
+  if (random_)
+    delete random_;
+
+  random_ = new Random(seed_);
+
   activeCells_.clear();
   predictiveCells_.clear();
   activeSegments_.clear();
@@ -136,14 +149,14 @@ void TemporalMemory::reset(void)
  * @param activeColumns   Indices of active columns in `t`
  * @param learn           Whether or not learning is enabled
  */
-void TemporalMemory::compute(vector<Int>& activeColumns, bool learn)
+void TemporalMemory::compute(set<UInt>& activeColumns, bool learn)
 {
   computeFn(activeColumns,
             predictiveCells_,
             activeSegments_,
             activeCells_,
             winnerCells_,
-            connections_,
+            *connections_,
             learn);
 
 }
@@ -168,11 +181,11 @@ void TemporalMemory::compute(vector<Int>& activeColumns, bool learn)
  */
 
 void TemporalMemory::computeFn(
-  vector<Int>& activeColumns,
-  vector<Cell>& prevPredictiveCells,
-  vector<Segment>& prevActiveSegments,
-  vector<Cell>& prevActiveCells,
-  vector<Cell>& prevWinnerCells,
+  set<UInt>& activeColumns,
+  set<Cell>& prevPredictiveCells,
+  set<Segment>& prevActiveSegments,
+  set<Cell>& prevActiveCells,
+  set<Cell>& prevWinnerCells,
   Connections& connections,
   bool learn)
 {
@@ -213,18 +226,18 @@ void TemporalMemory::computeFn(
  *  `predictedColumns` (set)
  */
 void TemporalMemory::activateCorrectlyPredictiveCells(
-  vector<Cell>& prevPredictiveCells,
-  vector<Int>& activeColumns)
+  set<Cell>& prevPredictiveCells,
+  set<UInt>& activeColumns)
 {
 	for (Cell cell : prevPredictiveCells)
 	{
-		Int column = columnForCell(cell);
+		UInt column = columnForCell(cell);
 
-    if (find(activeColumns.begin(), activeColumns.end(), column) != activeColumns.end())
+    if (activeColumns.find(column) != activeColumns.end())
     {
-      activeCells_.push_back(cell);
-      winnerCells_.push_back(cell);
-      predictedColumns_.push_back(column);
+      activeCells_.insert(cell);
+      winnerCells_.insert(cell);
+      predictedColumns_.insert(column);
     }
 	}
 
@@ -258,19 +271,19 @@ void TemporalMemory::activateCorrectlyPredictiveCells(
  */
 
 void TemporalMemory::burstColumns(
-  vector<Int>& activeColumns,
-  vector<Int>& predictedColumns,
-  vector<Cell>& prevActiveCells,
-  vector<Cell>& prevWinnerCells,
+  set<UInt>& activeColumns,
+  set<UInt>& predictedColumns,
+  set<Cell>& prevActiveCells,
+  set<Cell>& prevWinnerCells,
   Connections& connections)
 {
-  vector<Int> unpredictedColumns;
+  vector<UInt> unpredictedColumns;
 
   // Resize to the worst case usage
   unpredictedColumns.resize(activeColumns.size() + predictedColumns.size());
 
   // Remove the predicted columns from the currently active columns
-  vector<Int>::iterator it = set_difference(
+  vector<UInt>::iterator it = set_difference(
     activeColumns.begin(), activeColumns.end(),
     predictedColumns.begin(), predictedColumns.end(),
     unpredictedColumns.begin());
@@ -281,7 +294,7 @@ void TemporalMemory::burstColumns(
   for (auto column : unpredictedColumns)
   {
     vector<Cell> cells = cellsForColumn(column);
-    activeCells_.insert(activeCells_.end(), cells.begin(), cells.end());
+    activeCells_.insert(cells.begin(), cells.end());
 
     Segment bestSegment;
     Cell bestCell;
@@ -289,14 +302,15 @@ void TemporalMemory::burstColumns(
     tie(bestCell, bestSegment) = 
       bestMatchingCell(cells, prevActiveCells, connections);
 
-		winnerCells_.push_back(bestCell);
-
-    if (prevWinnerCells.size())
-    {
+    if (bestSegment.idx < 0 && prevWinnerCells.size())
       bestSegment = connections.createSegment(bestCell);
-      learningSegments_.push_back(bestSegment);
-    }
-	}
+
+    if (bestSegment.idx >= 0)
+      winnerCells_.insert(bestCell);
+
+    if (bestSegment.idx >= 0)
+      learningSegments_.insert(bestSegment);
+  }
 
 }
 
@@ -323,27 +337,23 @@ void TemporalMemory::burstColumns(
  */
 
 void TemporalMemory::learnOnSegments(
-  vector<Segment>& prevActiveSegments,
-  vector<Segment>& learningSegments,
-  vector<Cell>& prevActiveCells,
-  vector<Cell>& winnerCells,
-  vector<Cell>& prevWinnerCells,
+  set<Segment>& prevActiveSegments,
+  set<Segment>& learningSegments,
+  set<Cell>& prevActiveCells,
+  set<Cell>& winnerCells,
+  set<Cell>& prevWinnerCells,
   Connections& connections)
 {
-  vector<Segment> allSegments;
-  std::copy(prevActiveSegments.begin(), prevActiveSegments.end(), allSegments.end());
-  std::copy(learningSegments.begin(), learningSegments.end(), allSegments.end());
+  set<Segment> allSegments;
+  allSegments.insert(prevActiveSegments.begin(), prevActiveSegments.end());
+  allSegments.insert(learningSegments.begin(), learningSegments.end());
 
   for (Segment segment : allSegments)
   {
-    bool isLearningSegment = (find(learningSegments.begin(), learningSegments.end(), segment)
-                                != learningSegments.end());
+    bool isLearningSegment = (learningSegments.find(segment) != learningSegments.end());
+    bool isFromWinnerCell  = (winnerCells_.find(segment.cell) != winnerCells.end());
 
-    Cell presynapticCell = connections.dataForSegment(segment).synapses[0].presynapticCell;
-    bool isFromWinnerCell = (find(winnerCells_.begin(), winnerCells_.end(), presynapticCell)
-                                != winnerCells.end());
-
-    vector<Synapse> activeSynapses = activeSynapsesForSegment(segment, prevActiveCells, connections);
+    vector<Synapse> activeSynapses(activeSynapsesForSegment(segment, prevActiveCells, connections));
 
     if (isLearningSegment || isFromWinnerCell)
       adaptSegment(segment, activeSynapses, connections);
@@ -352,7 +362,7 @@ void TemporalMemory::learnOnSegments(
     {
       Int n = maxNewSynapseCount_ - Int(activeSynapses.size());
 
-      vector<Cell> learningCells = pickCellsToLearnOn(n, segment, prevWinnerCells, connections);
+      set<Cell> learningCells = pickCellsToLearnOn(n, segment, prevWinnerCells, connections);
       for (Cell presynapticCell : learningCells)
       {
         connections.createSynapse(segment, presynapticCell, initialPermanence_);
@@ -383,7 +393,7 @@ void TemporalMemory::learnOnSegments(
  */
 
 void TemporalMemory::computePredictiveCells(
-  vector<Cell>& activeCells,
+  set<Cell>& activeCells,
   Connections& connections)
 {
 
@@ -405,8 +415,8 @@ void TemporalMemory::computePredictiveCells(
 
           if (numActiveConnectedSynapsesForSegment[segment] >= activationThreshold_)
           {
-            activeSegments_.push_back(segment);
-            predictiveCells_.push_back(cell);
+            activeSegments_.insert(segment);
+            predictiveCells_.insert(cell);
           }
         }
       }
@@ -438,12 +448,12 @@ void TemporalMemory::computePredictiveCells(
 tuple<Cell, Segment>
   TemporalMemory::bestMatchingCell(
     vector<Cell>& cells,
-    vector<Cell>& activeCells,
+    set<Cell>& activeCells,
     Connections& connections)
 {
 	Int maxSynapses = 0;
-	Cell bestCell(-1);
-	Segment bestSegment(-1,bestCell);
+	Cell bestCell;
+	Segment bestSegment(-1, Cell(0));
 
 	for(Cell cell : cells)
 	{
@@ -452,7 +462,7 @@ tuple<Cell, Segment>
 
 		tie(segment, numActiveSynapses) = bestMatchingSegment(cell, activeCells, connections);
 
-		if (_validateSegment(segment) && numActiveSynapses > maxSynapses)
+		if (numActiveSynapses > maxSynapses)
 		{
 			maxSynapses = numActiveSynapses;
 			bestCell = cell;
@@ -460,8 +470,8 @@ tuple<Cell, Segment>
 		}
 	}
 
-	if (_validateCell(bestCell))
-		bestCell = leastUsedCell(cells, connections);
+  if (maxSynapses == 0)
+    bestCell = leastUsedCell(cells, connections);
 
 	return make_tuple(bestCell, bestSegment);
 }
@@ -481,12 +491,12 @@ tuple<Cell, Segment>
 tuple<Segment, Int>
   TemporalMemory::bestMatchingSegment(
     Cell& cell,
-    vector<Cell>& activeCells,
+    set<Cell>& activeCells,
     Connections& connections)
 {
 	Int maxSynapses = minThreshold_;
-  Segment bestSegment(-1,Cell(-1));
-	Int bestNumActiveSynapses;
+  Segment bestSegment(-1, Cell(0));
+	Int bestNumActiveSynapses = 0;
 
 	for (Segment segment : connections.segmentsForCell(cell))
 	{
@@ -496,7 +506,7 @@ tuple<Segment, Int>
 		{
 			SynapseData synapseData = connections.dataForSynapse(synapse);
 
-			if (find(activeCells.begin(), activeCells.end(), synapseData.presynapticCell) != activeCells.end())
+			if (activeCells.find(synapseData.presynapticCell) != activeCells.end())
 				numActiveSynapses += 1;
 		}
 
@@ -524,7 +534,7 @@ Cell TemporalMemory::leastUsedCell(
   vector<Cell>& cells,
   Connections& connections)
 {
-	vector<Cell> leastUsedCells;
+  vector<Cell> leastUsedCells;
   Int minNumSegments = INT_MAX;
 
 	for (Cell cell : cells)
@@ -541,7 +551,7 @@ Cell TemporalMemory::leastUsedCell(
 			leastUsedCells.push_back(cell);
 	}
 
-  Int i = _random.getUInt32((UInt32)leastUsedCells.size());
+  Int i = random_->getUInt32((UInt32)leastUsedCells.size());
   return leastUsedCells[i];
 }
 
@@ -557,10 +567,10 @@ Cell TemporalMemory::leastUsedCell(
  */
 vector<Synapse> TemporalMemory::activeSynapsesForSegment(
   Segment& segment,
-  vector<Cell>& activeCells,
+  set<Cell>& activeCells,
   Connections& connections)
 {
-	vector<Synapse> synapses;
+  vector<Synapse> synapses;
 
 	for (Synapse synapse : connections.synapsesForSegment(segment))
 	{
@@ -620,13 +630,13 @@ void TemporalMemory::adaptSegment(
  *
  *	   @return (set) Indices of cells picked
  */
-vector<Cell> TemporalMemory::pickCellsToLearnOn(
+set<Cell> TemporalMemory::pickCellsToLearnOn(
   Int iN,
   Segment& segment,
-  vector<Cell>& winnerCells,
+  set<Cell>& winnerCells,
   Connections& connections)
 {
-  vector<Cell> candidates(winnerCells);
+  vector<Cell> candidates(winnerCells.begin(), winnerCells.end());
 
 	// Remove cells that are already synapsed on by this segment
 	for (auto synapse : connections.synapsesForSegment(segment))
@@ -642,14 +652,14 @@ vector<Cell> TemporalMemory::pickCellsToLearnOn(
 
   sort(candidates.begin(), candidates.end());
 	
-  vector<Cell> cells;
+  set<Cell> cells;
 
 	// Pick n cells randomly
   for (int c = 0; c < n; c++)
 	{
-		Int i = _random.getUInt32((UInt32)candidates.size());
+		Int i = random_->getUInt32((UInt32)candidates.size());
 		
-    cells.push_back(candidates[i]);
+    cells.insert(candidates[i]);
 
     candidates.erase(find(candidates.begin(), candidates.end(), candidates[i]));
   }
@@ -668,7 +678,7 @@ Int TemporalMemory::columnForCell(Cell& cell)
 {
   _validateCell(cell);
 
-  return Int(cell.idx / cellsPerColumn_);
+  return cell.idx / cellsPerColumn_;
 }
 
 /*
@@ -692,11 +702,10 @@ vector<Cell> TemporalMemory::cellsForColumn(Int column)
 
   Int start = cellsPerColumn_ * column;
   Int end = start + cellsPerColumn_;
-
+  
+  _cell_number_iterator intIter(start);
   vector<Cell> cellsInColumn;
   cellsInColumn.resize(end - start);
-
-  _cell_number_iterator intIter(start);
   std::generate(cellsInColumn.begin(), cellsInColumn.end(), intIter);
 
   return cellsInColumn;
@@ -726,7 +735,7 @@ Int TemporalMemory::numberOfColumns(void)
 	*
 	* @return (int)Number of cells
 	*/
-Int TemporalMemory::numberOfCells(void)
+UInt TemporalMemory::numberOfCells(void)
 {
 	return numberOfColumns() * cellsPerColumn_;
 }
@@ -739,7 +748,7 @@ Int TemporalMemory::numberOfCells(void)
  *
  * @return (dict)Mapping from columns to their cells in `cells`
  */
-map<Int, vector<Cell>> TemporalMemory::mapCellsToColumns(vector<Cell>& cells)
+map<Int, vector<Cell>> TemporalMemory::mapCellsToColumns(set<Cell>& cells)
 {
 	map<Int, vector<Cell>> cellsForColumns;
 
@@ -759,12 +768,11 @@ map<Int, vector<Cell>> TemporalMemory::mapCellsToColumns(vector<Cell>& cells)
  */
 bool TemporalMemory::_validateColumn(Int column)
 {
-	if (column >= numberOfColumns() || column < 0)
-	{
-		NTA_THROW << "Invalid column " << column;
-		return false;
-	}
-	return true;
+  if (column >= 0 && column < numberOfColumns())
+    return true;
+
+  NTA_THROW << "Invalid column " << column;
+	return false;
 }
 
 /*
@@ -774,21 +782,24 @@ bool TemporalMemory::_validateColumn(Int column)
  */
 bool TemporalMemory::_validateCell(Cell& cell)
 {
-  if (cell.idx >= numberOfCells())
-  {
-    NTA_THROW << "Invalid cell " << cell.idx;
-    return false;
-  }
-  return true;
+  if (cell.idx < numberOfCells())
+    return true;
+
+  NTA_THROW << "Invalid cell " << cell.idx;
+  return false;
 }
 
 /*
  * Raises an error if segment is invalid.
  *
+ * \note { Relies on activeSegments_ being iteratable }
+ *
  * @param segment segment index
  */
 bool TemporalMemory::_validateSegment(Segment& segment)
 {
+  if (activeSegments_.size() == 0 && segment.idx <= SEGMENT_MAX && _validateCell(segment.cell))
+    return true;
   if (find(activeSegments_.begin(), activeSegments_.end(), segment) != activeSegments_.end())
     return true;
 
@@ -797,7 +808,7 @@ bool TemporalMemory::_validateSegment(Segment& segment)
 }
 
 /*
- * Raises an error if segment is invalid.
+ * Raises an error if permanence is invalid.
  *
  * @param permanence (float) Permanence
  */
@@ -894,10 +905,19 @@ void TemporalMemory::load(istream& inStream)
   inStream >> permanenceDecrement_;
 
   inStream >> seed_;
-  _random.reseed(seed_);
+  random_->reseed(seed_);
 
 	inStream >> marker;
 	NTA_CHECK(marker == "~TemporalMemory");
+
+}
+
+void TemporalMemory::reSeed(Int seed)
+{
+  if (random_)
+    random_->reseed(seed);
+  else
+    random_ = new Random(seed);
 
 }
 
@@ -906,14 +926,20 @@ vector<UInt> TemporalMemory::getColumnDimensions() const
 	return columnDimensions_;
 }
 
-UInt TemporalMemory::getNumColumns() const
+Int TemporalMemory::getNumColumns() const
 {
 	return numColumns_;
 }
 
-UInt TemporalMemory::getCellsPerColumn() const
+Int TemporalMemory::getCellsPerColumn() const
 {
 	return cellsPerColumn_;
+}
+
+void TemporalMemory::setCellsPerColumn(Int cellsPerColumn)
+{
+  cellsPerColumn_ = cellsPerColumn;
+  reset();
 }
 
 Int TemporalMemory::getActivationThreshold() const
@@ -921,9 +947,21 @@ Int TemporalMemory::getActivationThreshold() const
 	return activationThreshold_;
 }
 
+void TemporalMemory::setActivationThreshold(Int activationThreshold)
+{
+  activationThreshold_ = activationThreshold;
+  reset();
+}
+
 Int TemporalMemory::getLearningRadius() const
 {
 	return learningRadius_;
+}
+
+void TemporalMemory::setLearningRadius(Int learningRadius)
+{
+  learningRadius_ = learningRadius;
+  reset();
 }
 
 Permanence TemporalMemory::getInitialPermanence() const
@@ -931,9 +969,21 @@ Permanence TemporalMemory::getInitialPermanence() const
 	return initialPermanence_;
 }
 
+void TemporalMemory::setInitialPermanence(Permanence initialPermanence)
+{
+  initialPermanence_ = initialPermanence;
+  reset();
+}
+
 Permanence TemporalMemory::getConnectedPermanence() const
 {
 	return connectedPermanence_;
+}
+
+void TemporalMemory::setConnectedPermanence(Permanence connectedPermanence)
+{
+  connectedPermanence_ = connectedPermanence;
+  reset();
 }
 
 Int TemporalMemory::getMinThreshold() const
@@ -941,9 +991,21 @@ Int TemporalMemory::getMinThreshold() const
 	return minThreshold_;
 }
 
+void TemporalMemory::setMinThreshold(Int minThreshold)
+{
+  minThreshold_ = minThreshold;
+  reset();
+}
+
 Int TemporalMemory::getMaxNewSynapseCount() const
 {
 	return maxNewSynapseCount_;
+}
+
+void TemporalMemory::setMaxNewSynapseCount(Int maxNewSynapseCount)
+{
+  maxNewSynapseCount_ = maxNewSynapseCount;
+  reset();
 }
 
 Permanence TemporalMemory::getPermanenceIncrement() const
@@ -951,9 +1013,21 @@ Permanence TemporalMemory::getPermanenceIncrement() const
 	return permanenceIncrement_;
 }
 
+void TemporalMemory::setPermanenceIncrement(Permanence permanenceIncrement)
+{
+  permanenceIncrement_ = permanenceIncrement;
+  reset();
+}
+
 Permanence TemporalMemory::getPermanenceDecrement() const
 {
 	return permanenceDecrement_;
+}
+
+void TemporalMemory::setPermanenceDecrement(Permanence permanenceDecrement)
+{
+  permanenceDecrement_ = permanenceDecrement;
+  reset();
 }
 
 //----------------------------------------------------------------------

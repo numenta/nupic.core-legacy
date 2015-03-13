@@ -76,10 +76,10 @@ namespace nupic {
            `learningSegments` (set)
         */
         //tuple<vector<Cell>, vector<Cell>, vector<Segment>> 
-        void burstColumns(vector<Int>& activeColumns, 
-                          vector<Int>& predictedColumns,
-                          vector<Cell>& prevActiveCells, 
-                          vector<Cell>& prevWinnerCells, 
+        void burstColumns(set<Int>& activeColumns, 
+                          set<Int>& predictedColumns,
+                          set<Cell>& prevActiveCells,
+                          set<Cell>& prevWinnerCells,
                           Connections &connections);
 
         /*
@@ -103,7 +103,7 @@ namespace nupic {
            `predictiveCells` (set)
         */
         //tuple<vector<Segment>, vector<Cell>>
-        void computePredictiveCells(vector<Cell>& activeCells, 
+        void computePredictiveCells(set<Cell>& activeCells,
                                     Connections& connections);
 
       };

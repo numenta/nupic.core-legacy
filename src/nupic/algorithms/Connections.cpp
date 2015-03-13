@@ -194,7 +194,7 @@ SynapseData Connections::dataForSynapse(const Synapse& synapse) const
 }
 
 bool Connections::mostActiveSegmentForCells(const vector<Cell>& cells,
-                                            vector<Cell> input,
+                                            set<Cell> input,
                                             SynapseIdx synapseThreshold,
                                             Segment& retSegment) const
 {
@@ -204,7 +204,7 @@ bool Connections::mostActiveSegmentForCells(const vector<Cell>& cells,
   SegmentIdx segmentIdx = 0;
   bool found = false;
 
-  sort(input.begin(), input.end());  // for binary search
+//  sort(input.begin(), input.end());  // for binary search
 
   for (auto cell : cells)
   {
@@ -224,7 +224,7 @@ bool Connections::mostActiveSegmentForCells(const vector<Cell>& cells,
         }
       }
 
-      if (numSynapses >= maxSynapses)
+      if (numSynapses > maxSynapses)
       {
         maxSynapses = numSynapses;
         retSegment.idx = segmentIdx;
@@ -262,7 +262,7 @@ bool Connections::leastRecentlyUsedSegment(const Cell& cell,
   return found;
 }
 
-Activity Connections::computeActivity(const vector<Cell>& input,
+Activity Connections::computeActivity(const set<Cell>& input,
                                       Permanence permanenceThreshold,
                                       SynapseIdx synapseThreshold,
                                       bool recordIteration)

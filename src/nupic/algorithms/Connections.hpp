@@ -41,15 +41,15 @@ namespace nupic
 
     namespace connections
     {
-      typedef UInt32 CellIdx;
-      typedef unsigned char SegmentIdx;
-      typedef unsigned char SynapseIdx;
+      typedef UInt CellIdx;
+      typedef short SegmentIdx;
+      typedef unsigned short SynapseIdx;
       typedef Real32 Permanence;
       typedef UInt64 Iteration;
 
-      #define CELL_MAX (USHRT_MAX-1)
-      #define SEGMENT_MAX (UCHAR_MAX-1)
-      #define SYNAPSE_MAX (UCHAR_MAX-1)
+      #define CELL_MAX ((USHRT_MAX*32)-1)
+      #define SEGMENT_MAX (SHRT_MAX-1)
+      #define SYNAPSE_MAX (USHRT_MAX-1)
 
       /**
        * Cell class used in Connections.
@@ -325,7 +325,7 @@ namespace nupic
          * @retval Segment found?
          */
         bool mostActiveSegmentForCells(const std::vector<Cell>& cells,
-                                       std::vector<Cell> input,
+                                       std::set<Cell> input,
                                        SynapseIdx synapseThreshold,
                                        Segment& retSegment) const;
 
@@ -351,7 +351,7 @@ namespace nupic
          *
          * @retval Activity to return.
          */
-        Activity computeActivity(const std::vector<Cell>& input,
+        Activity computeActivity(const std::set<Cell>& input,
                                  Permanence permanenceThreshold,
                                  SynapseIdx synapseThreshold,
                                  bool recordIteration=true);

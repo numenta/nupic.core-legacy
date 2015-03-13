@@ -56,6 +56,10 @@ namespace nupic {
     bool check_vector_eq(Real arr1[], Real arr2[], UInt n);
     bool check_vector_eq(vector<UInt> vec1, vector<UInt> vec2);
     bool check_vector_eq(vector<Cell>& vec1, vector<Cell>& vec2);
+    bool check_vector_eq(vector<Segment>& vec1, vector<Segment>& vec2);
+    bool check_set_eq(set<UInt>& vec1, set<UInt>& vec2);
+    bool check_set_eq(set<Cell>& vec1, set<Cell>& vec2);
+    bool check_set_eq(set<Segment>& vec1, set<Segment>& vec2);
     void check_spatial_eq(const TemporalMemory& tm1, const TemporalMemory& tm2);
     bool almost_eq(Real a, Real b);
     

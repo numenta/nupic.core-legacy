@@ -41,7 +41,7 @@ using namespace nupic::algorithms::fast_temporal_memory;
 void FastTemporalMemory::initialize()
 {
   TemporalMemory::initialize();
-  connections_ = Connections(numberOfCells());
+  connections_ = new Connections(numberOfCells());
 }
 
 
@@ -71,10 +71,10 @@ void FastTemporalMemory::initialize()
     `learningSegments` (set)
 */
 
-void FastTemporalMemory::burstColumns(vector<Int>& activeColumns,
-                                      vector<Int>& predictedColumns,
-                                      vector<Cell>& prevActiveCells,
-                                      vector<Cell>& prevWinnerCells,
+void FastTemporalMemory::burstColumns(set<Int>& activeColumns,
+                                      set<Int>& predictedColumns,
+                                      set<Cell>& prevActiveCells,
+                                      set<Cell>& prevWinnerCells,
                                       Connections &connections)
 {
   vector<Int> unpredictedColumns;
@@ -94,7 +94,7 @@ void FastTemporalMemory::burstColumns(vector<Int>& activeColumns,
   for (auto column : unpredictedColumns)
   {
     vector<Cell> cells = cellsForColumn(column);
-    activeCells_.insert(activeCells_.end(), cells.begin(), cells.end());
+    activeCells_.insert(cells.begin(), cells.end());
 
     Segment bestSegment;
     Cell bestCell;
@@ -106,7 +106,7 @@ void FastTemporalMemory::burstColumns(vector<Int>& activeColumns,
       if (prevWinnerCells.size())
       {
         bestSegment = connections.createSegment(bestCell);
-        learningSegments_.push_back(bestSegment);
+        learningSegments_.insert(bestSegment);
       }
     }
     else
@@ -117,7 +117,7 @@ void FastTemporalMemory::burstColumns(vector<Int>& activeColumns,
       bestCell = Cell(bestSegment.cell.idx);
     }
 
-    winnerCells_.push_back(bestCell);
+    winnerCells_.insert(bestCell);
   }
 
 }
@@ -144,7 +144,7 @@ void FastTemporalMemory::burstColumns(vector<Int>& activeColumns,
     `predictiveCells` (set)
 */
 
-void FastTemporalMemory::computePredictiveCells(vector<Cell>& activeCells,
+void FastTemporalMemory::computePredictiveCells(set<Cell>& activeCells,
                                                 Connections& connections)
 {
   Activity activity = 
@@ -152,7 +152,12 @@ void FastTemporalMemory::computePredictiveCells(vector<Cell>& activeCells,
                                 connectedPermanence_, 
                                 activationThreshold_);
 
-  activeSegments_ = connections.activeSegments(activity);
-  predictiveCells_ = connections.activeCells(activity);
+  vector<Segment> segments = connections.activeSegments(activity);
+  activeSegments_.clear();
+  activeSegments_.insert(segments.begin(), segments.end());
+
+  vector<Cell> cells = connections.activeCells(activity);
+  predictiveCells_.clear();
+  predictiveCells_.insert(cells.begin(), cells.end());;
 
 }

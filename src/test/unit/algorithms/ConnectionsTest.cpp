@@ -258,7 +258,7 @@ namespace nupic {
     Synapse synapse;
     Cell cell, presynapticCell;
     vector<Cell> cells;
-    vector<Cell> input;
+    set<Cell> input;
 
     cell.idx = 10; presynapticCell.idx = 150;
     segment = connections.createSegment(cell);
@@ -273,7 +273,7 @@ namespace nupic {
     cells.push_back(cell2);
 
     Cell input1(50);
-    input.push_back(input1);
+    input.insert(input1);
 
     bool result = connections.mostActiveSegmentForCells(
       cells, input, 0, segment);
@@ -296,7 +296,7 @@ namespace nupic {
     Synapse synapse;
     Cell cell, presynapticCell;
     vector<Cell> cells;
-    vector<Cell> input;
+    set<Cell> input;
 
     cell.idx = 10; presynapticCell.idx = 150;
     segment = connections.createSegment(cell);
@@ -311,7 +311,7 @@ namespace nupic {
     cells.push_back(cell2);
 
     Cell input1(150);
-    input.push_back(input1);
+    input.insert(input1);
 
     bool result = connections.mostActiveSegmentForCells(
       cells, input, 2, segment);
@@ -494,15 +494,15 @@ namespace nupic {
   Activity ConnectionsTest::computeSampleActivity(Connections &connections)
   {
     Cell cell;
-    vector<Cell> input;
+    set<Cell> input;
 
-    cell.idx = 150; input.push_back(cell);
-    cell.idx = 151; input.push_back(cell);
-    cell.idx = 50; input.push_back(cell);
-    cell.idx = 52; input.push_back(cell);
-    cell.idx = 80; input.push_back(cell);
-    cell.idx = 81; input.push_back(cell);
-    cell.idx = 82; input.push_back(cell);
+    cell.idx = 150; input.insert(cell);
+    cell.idx = 151; input.insert(cell);
+    cell.idx = 50; input.insert(cell);
+    cell.idx = 52; input.insert(cell);
+    cell.idx = 80; input.insert(cell);
+    cell.idx = 81; input.insert(cell);
+    cell.idx = 82; input.insert(cell);
 
     Activity activity = connections.computeActivity(input, 0.50, 2);
     return activity;
