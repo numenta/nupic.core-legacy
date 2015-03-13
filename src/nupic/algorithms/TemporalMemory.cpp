@@ -689,10 +689,10 @@ Int TemporalMemory::columnForCell(Cell& cell)
  * @return (set)Cell indices
  */
 
-// Cell number index generator:
-struct _cell_number_iterator {
+// Cell generator:
+struct _cell_iterator {
   CellIdx current;
-  _cell_number_iterator(Int start) { current = start; }
+  _cell_iterator(Int start) { current = start; }
   Cell operator()() { return Cell(current++); }
 };
 
@@ -703,10 +703,11 @@ vector<Cell> TemporalMemory::cellsForColumn(Int column)
   Int start = cellsPerColumn_ * column;
   Int end = start + cellsPerColumn_;
   
-  _cell_number_iterator intIter(start);
   vector<Cell> cellsInColumn;
   cellsInColumn.resize(end - start);
-  std::generate(cellsInColumn.begin(), cellsInColumn.end(), intIter);
+
+  _cell_iterator cell_iterator(start);
+  std::generate(cellsInColumn.begin(), cellsInColumn.end(), cell_iterator);
 
   return cellsInColumn;
 }
