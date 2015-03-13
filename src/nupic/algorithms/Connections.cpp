@@ -55,7 +55,7 @@ Segment Connections::createSegment(const Cell& cell)
   SegmentData segmentData = {vector<SynapseData>(), false, iteration_};
   Segment segment(segments.size(), cell);
 
-  if (segments.size() == maxSegmentsPerCell_)
+  if (segments.size() == (size_t)maxSegmentsPerCell_)
   {
     bool found = leastRecentlyUsedSegment(cell, segment);
     if (!found) { NTA_THROW << "Unable to find segment to reuse."; }
@@ -140,7 +140,7 @@ vector<Segment> Connections::segmentsForCell(const Cell& cell) const
   vector<Segment> segments;
   Segment segment;
 
-  for (SegmentIdx i = 0; i < cells_[cell.idx].segments.size(); i++)
+  for (SegmentIdx i = 0; i < (SegmentIdx)cells_[cell.idx].segments.size(); i++)
   {
     segment.idx = i;
     segment.cell = cell;
