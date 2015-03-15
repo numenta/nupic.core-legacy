@@ -754,10 +754,16 @@ namespace nupic {
     TemporalMemory tm;
     tm.initialize(vector<UInt>{2048}, 5);
 
-    TEST(tm.columnForCell(Cell(0)) == 0);
-    TEST(tm.columnForCell(Cell(4)) == 0);
-    TEST(tm.columnForCell(Cell(5)) == 1);
-    TEST(tm.columnForCell(Cell(10239)) == 2047);
+    Cell cell;
+
+    cell.idx = 0;
+    TEST(tm.columnForCell(cell) == 0);
+    cell.idx = 4;
+    TEST(tm.columnForCell(cell) == 0);
+    cell.idx = 5;
+    TEST(tm.columnForCell(cell) == 1);
+    cell.idx = 10239;
+    TEST(tm.columnForCell(cell) == 2047);
   }
 
   void TemporalMemoryTest::testColumnForCell2D()
@@ -765,10 +771,16 @@ namespace nupic {
     TemporalMemory tm;
     tm.initialize(vector<UInt>{64, 64}, 4);
 
-    TEST(tm.columnForCell(Cell(0)) == 0);
-    TEST(tm.columnForCell(Cell(3)) == 0);
-    TEST(tm.columnForCell(Cell(4)) == 1);
-    TEST(tm.columnForCell(Cell(16383)) == 4095);
+    Cell cell;
+
+    cell.idx = 0;
+    TEST(tm.columnForCell(cell) == 0);
+    cell.idx = 3;
+    TEST(tm.columnForCell(cell) == 0);
+    cell.idx = 4;
+    TEST(tm.columnForCell(cell) == 1);
+    cell.idx = 16383;
+    TEST(tm.columnForCell(cell) == 4095);
   }
 
   void TemporalMemoryTest::testColumnForCellInvalidCell()
