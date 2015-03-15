@@ -324,7 +324,7 @@ namespace nupic
          *
          * @retval Segment found?
          */
-        bool mostActiveSegmentForCells(const std::vector<Cell>& cells,
+        bool mostActiveSegmentForCells(const std::set<Cell>& cells,
                                        std::set<Cell> input,
                                        SynapseIdx synapseThreshold,
                                        Segment& retSegment) const;

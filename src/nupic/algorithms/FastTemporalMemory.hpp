@@ -75,12 +75,12 @@ namespace nupic {
            `winnerCells`      (set),
            `learningSegments` (set)
         */
-        //tuple<vector<Cell>, vector<Cell>, vector<Segment>> 
-        void burstColumns(set<Int>& activeColumns, 
-                          set<Int>& predictedColumns,
-                          set<Cell>& prevActiveCells,
-                          set<Cell>& prevWinnerCells,
-                          Connections &connections);
+        tuple<set<Cell>, set<Cell>, set<Segment>> burstColumns(
+          set<Int>& activeColumns,
+          set<Int>& predictedColumns,
+          set<Cell>& prevActiveCells,
+          set<Cell>& prevWinnerCells,
+          Connections &connections);
 
         /*
          Phase 4 : Compute predictive cells due to lateral input
@@ -102,9 +102,9 @@ namespace nupic {
            `activeSegments`  (set),
            `predictiveCells` (set)
         */
-        //tuple<vector<Segment>, vector<Cell>>
-        void computePredictiveCells(set<Cell>& activeCells,
-                                    Connections& connections);
+        tuple<set<Segment>, set<Cell>> computePredictiveCells(
+          set<Cell>& activeCells,
+          Connections& connections);
 
       };
 

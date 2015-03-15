@@ -86,11 +86,9 @@ namespace nupic {
         // ==============================
 
         /*
-        * Indicates the start of a new sequence.Resets sequence state of the TM.
-        */
+         * Indicates the start of a new sequence.Resets sequence state of the TM.
+         */
         void reset(void);
-
-        void reSeed(Int seed);
 
         /*
          * Feeds input record through TM, performing inference and learning.
@@ -99,7 +97,7 @@ namespace nupic {
          * @param activeColumns   Indices of active columns in `t`
          * @param learn           Whether or not learning is enabled
          */
-        void compute(set<UInt>& activeColumns, bool learn = true);
+        void compute(set<Int>& activeColumns, bool learn = true);
 
         /*
          * 'Functional' version of compute.
@@ -114,14 +112,14 @@ namespace nupic {
          * @param learn                 Whether or not learning is enabled
          *
          * @return (tuple)Contains:
-         *  `activeCells`     (set),
-         *  `winnerCells`     (set),
-         *  `activeSegments`  (set),
-         *  `predictiveCells` (set)
+         *  `activeCells`       (set),
+         *  `winnerCells`       (set),
+         *  `activeSegments`    (set),
+         *  `predictiveCells`   (set),
+         *  'predictedColumns'  (set)
          */
-         //tuple<vector<Cell>, vector<Cell>, vector<Segment>, vector<Cell>>
-        void computeFn(
-          set<UInt>& activeColumns,
+        tuple<set<Cell>, set<Cell>, set<Segment>, set<Cell>, set<Int>> computeFn(
+          set<Int>& activeColumns,
           set<Cell>& prevPredictiveCells,
           set<Segment>& prevActiveSegments,
           set<Cell>& prevActiveCells,
@@ -153,64 +151,63 @@ namespace nupic {
          *  `winnerCells`      (set),
          *  `predictedColumns` (set)
          */
-         //tuple<set<Cell>, vector<Cell>, vector<Int>>
-        virtual void activateCorrectlyPredictiveCells(
+        virtual tuple<set<Cell>, set<Cell>, set<Int>>
+          activateCorrectlyPredictiveCells(
           set<Cell>& prevPredictiveCells,
-          set<UInt>& activeColumns);
+          set<Int>& activeColumns);
 
         /*
-        * Phase 2 : Burst unpredicted columns.
-        *
-        * Pseudocode :
-        *
-        * - for each unpredicted active column
-        *  - mark all cells as active
-        *  - mark the best matching cell as winner cell
-        *   - (learning)
-        *    - if it has no matching segment
-        *     - (optimization) if there are prev winner cells
-        *      - add a segment to it
-        *    - mark the segment as learning
-        *
-        * @param activeColumns(set)       Indices of active columns in `t`
-        * @param predictedColumns(set)    Indices of predicted columns in `t`
-        * @param prevActiveCells(set)     Indices of active cells in `t-1`
-        * @param prevWinnerCells(set)     Indices of winner cells in `t-1`
-        * @param connections(Connections) Connectivity of layer
-        *
-        * @return (tuple)Contains:
-        *  `activeCells`      (set),
-        *  `winnerCells`      (set),
-        *  `learningSegments` (set)
-        */
-        //tuple<vector<Cell>, vector<Cell>, vector<Segment>>
-        virtual void burstColumns(
-          set<UInt>& activeColumns,
-          set<UInt>& predictedColumns,
+         * Phase 2 : Burst unpredicted columns.
+         *
+         * Pseudocode :
+         *
+         * - for each unpredicted active column
+         *  - mark all cells as active
+         *  - mark the best matching cell as winner cell
+         *   - (learning)
+         *    - if it has no matching segment
+         *     - (optimization) if there are prev winner cells
+         *      - add a segment to it
+         *    - mark the segment as learning
+         *
+         * @param activeColumns(set)       Indices of active columns in `t`
+         * @param predictedColumns(set)    Indices of predicted columns in `t`
+         * @param prevActiveCells(set)     Indices of active cells in `t-1`
+         * @param prevWinnerCells(set)     Indices of winner cells in `t-1`
+         * @param connections(Connections) Connectivity of layer
+         *
+         * @return (tuple)Contains:
+         *  `activeCells`      (set),
+         *  `winnerCells`      (set),
+         *  `learningSegments` (set)
+         */
+        virtual tuple<set<Cell>, set<Cell>, set<Segment>> burstColumns(
+          set<Int>& activeColumns,
+          set<Int>& predictedColumns,
           set<Cell>& prevActiveCells,
           set<Cell>& prevWinnerCells,
           Connections& connections);
 
         /*
-        * Phase 3 : Perform learning by adapting segments.
-        *
-        * Pseudocode :
-        *
-        *		-(learning) for each prev active or learning segment
-        * 		 - if learning segment or from winner cell
-        *		  - strengthen active synapses
-        *		  - weaken inactive synapses
-        *		 - if learning segment
-        *		  - add some synapses to the segment
-        *		    - subsample from prev winner cells
-        *
-        * @param prevActiveSegments(set)   Indices of active segments in `t-1`
-        * @param learningSegments(set)     Indices of learning segments in `t`
-        * @param prevActiveCells(set)      Indices of active cells in `t-1`
-        * @param winnerCells(set)          Indices of winner cells in `t`
-        * @param prevWinnerCells(set)      Indices of winner cells in `t-1`
-        * @param connections(Connections)  Connectivity of layer
-        */
+         * Phase 3 : Perform learning by adapting segments.
+         *
+         * Pseudocode :
+         *
+         *		-(learning) for each prev active or learning segment
+         * 		 - if learning segment or from winner cell
+         *		  - strengthen active synapses
+         *		  - weaken inactive synapses
+         *		 - if learning segment
+         *		  - add some synapses to the segment
+         *		    - subsample from prev winner cells
+         *
+         * @param prevActiveSegments(set)   Indices of active segments in `t-1`
+         * @param learningSegments(set)     Indices of learning segments in `t`
+         * @param prevActiveCells(set)      Indices of active cells in `t-1`
+         * @param winnerCells(set)          Indices of winner cells in `t`
+         * @param prevWinnerCells(set)      Indices of winner cells in `t-1`
+         * @param connections(Connections)  Connectivity of layer
+         */
         virtual void learnOnSegments(
           set<Segment>& prevActiveSegments,
           set<Segment>& learningSegments,
@@ -220,25 +217,24 @@ namespace nupic {
           Connections& connections);
 
         /*
-        * Phase 4 : Compute predictive cells due to lateral input on distal dendrites.
-        *
-        * Pseudocode :
-        *		- for each distal dendrite segment with activity >= activationThreshold
-        *		- mark the segment as active
-        *		- mark the cell as predictive
-        *
-        *		Forward propagates activity from active cells to the synapses that touch
-        *		them, to determine which synapses are active.
-        *
-        *	@param activeCells(set)         Indices of active cells in `t`
-        *	@param connections(Connections) Connectivity of layer
-        *
-        *	@return (tuple)Contains:
-        *   `activeSegments`  (set),
-        *   `predictiveCells` (set)
-        */
-        //tuple<vector<Int>, vector<Cell>>
-        virtual void computePredictiveCells(
+         * Phase 4 : Compute predictive cells due to lateral input on distal dendrites.
+         *
+         * Pseudocode :
+         *		- for each distal dendrite segment with activity >= activationThreshold
+         *		- mark the segment as active
+         *		- mark the cell as predictive
+         *
+         *		Forward propagates activity from active cells to the synapses that touch
+         *		them, to determine which synapses are active.
+         *
+         *	@param activeCells(set)         Indices of active cells in `t`
+         *	@param connections(Connections) Connectivity of layer
+         *
+         *	@return (tuple)Contains:
+         *   `activeSegments`  (set),
+         *   `predictiveCells` (set)
+         */
+        virtual tuple<set<Segment>, set<Cell>> computePredictiveCells(
           set<Cell>& activeCells,
           Connections& connections);
 
@@ -262,11 +258,10 @@ namespace nupic {
          *   `cell`        (int),
          *   `bestSegment` (int)
          */
-        tuple<Cell, Segment>
-          bestMatchingCell(
-            vector<Cell>& cells,
-            set<Cell>& activeCells,
-            Connections& connections);
+        tuple<Cell, Segment> bestMatchingCell(
+          set<Cell>& cells,
+          set<Cell>& activeCells,
+          Connections& connections);
 
         /*
          * Gets the segment on a cell with the largest number of activate synapses,
@@ -280,11 +275,10 @@ namespace nupic {
          *  `segment`                 (int),
          *  `connectedActiveSynapses` (set)
          */
-        tuple<Segment, Int>
-          bestMatchingSegment(
-            Cell& cell,
-            set<Cell>& activeCells,
-            Connections& connections);
+        tuple<Segment, Int> bestMatchingSegment(
+          Cell& cell,
+          set<Cell>& activeCells,
+          Connections& connections);
 
         /*
          * Gets the cell with the smallest number of segments.
@@ -296,7 +290,7 @@ namespace nupic {
          * @return (int) Cell index
          */
         Cell leastUsedCell(
-          vector<Cell>& cells,
+          set<Cell>& cells,
           Connections& connections);
 
         /*
@@ -361,7 +355,7 @@ namespace nupic {
          *
          * @return (set) Cell indices
          */
-        vector<Cell> cellsForColumn(Int column);
+        set<Cell> cellsForColumn(Int column);
 
         /*
          * Returns the number of columns in this layer.
@@ -406,7 +400,6 @@ namespace nupic {
         @returns Integer number of cells per column.
         */
         Int getCellsPerColumn() const;
-        void setCellsPerColumn(Int);
 
         /**
         Returns the activation threshold.
@@ -500,8 +493,6 @@ namespace nupic {
         */
         bool _validatePermanence(Real permanence);
 
-        UInt persistentSize();
-
         //----------------------------------------------------------------------
         // Debugging helpers
         //----------------------------------------------------------------------
@@ -547,7 +538,6 @@ namespace nupic {
         set<Segment> learningSegments_;
 
         set<Cell> predictiveCells_;
-        set<UInt> predictedColumns_;
 
         Connections* connections_;
 

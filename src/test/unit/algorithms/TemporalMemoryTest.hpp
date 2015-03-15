@@ -57,6 +57,7 @@ namespace nupic {
     bool check_vector_eq(vector<UInt> vec1, vector<UInt> vec2);
     bool check_vector_eq(vector<Cell>& vec1, vector<Cell>& vec2);
     bool check_vector_eq(vector<Segment>& vec1, vector<Segment>& vec2);
+    bool check_set_eq(set<Int>& vec1, set<Int>& vec2);
     bool check_set_eq(set<UInt>& vec1, set<UInt>& vec2);
     bool check_set_eq(set<Cell>& vec1, set<Cell>& vec2);
     bool check_set_eq(set<Segment>& vec1, set<Segment>& vec2);

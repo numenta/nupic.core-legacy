@@ -193,7 +193,7 @@ SynapseData Connections::dataForSynapse(const Synapse& synapse) const
   return cells_[cell.idx].segments[segment.idx].synapses[synapse.idx];
 }
 
-bool Connections::mostActiveSegmentForCells(const vector<Cell>& cells,
+bool Connections::mostActiveSegmentForCells(const set<Cell>& cells,
                                             set<Cell> input,
                                             SynapseIdx synapseThreshold,
                                             Segment& retSegment) const

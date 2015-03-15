@@ -257,7 +257,7 @@ namespace nupic {
     Segment segment;
     Synapse synapse;
     Cell cell, presynapticCell;
-    vector<Cell> cells;
+    set<Cell> cells;
     set<Cell> input;
 
     cell.idx = 10; presynapticCell.idx = 150;
@@ -269,8 +269,8 @@ namespace nupic {
     synapse = connections.createSynapse(segment, presynapticCell, 0.85);
 
     Cell cell1(10), cell2(20);
-    cells.push_back(cell1);
-    cells.push_back(cell2);
+    cells.insert(cell1);
+    cells.insert(cell2);
 
     Cell input1(50);
     input.insert(input1);
@@ -295,7 +295,7 @@ namespace nupic {
     Segment segment;
     Synapse synapse;
     Cell cell, presynapticCell;
-    vector<Cell> cells;
+    set<Cell> cells;
     set<Cell> input;
 
     cell.idx = 10; presynapticCell.idx = 150;
@@ -307,8 +307,8 @@ namespace nupic {
     synapse = connections.createSynapse(segment, presynapticCell, 0.85);
 
     Cell cell1(10), cell2(20);
-    cells.push_back(cell1);
-    cells.push_back(cell2);
+    cells.insert(cell1);
+    cells.insert(cell2);
 
     Cell input1(150);
     input.insert(input1);

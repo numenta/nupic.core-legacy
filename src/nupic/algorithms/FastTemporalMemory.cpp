@@ -70,13 +70,18 @@ void FastTemporalMemory::initialize()
     `winnerCells`      (set),
     `learningSegments` (set)
 */
-
-void FastTemporalMemory::burstColumns(set<Int>& activeColumns,
-                                      set<Int>& predictedColumns,
-                                      set<Cell>& prevActiveCells,
-                                      set<Cell>& prevWinnerCells,
-                                      Connections &connections)
+tuple<set<Cell>, set<Cell>, set<Segment>> FastTemporalMemory::burstColumns(
+  set<Int>& activeColumns,
+  set<Int>& predictedColumns,
+  set<Cell>& prevActiveCells,
+  set<Cell>& prevWinnerCells,
+  Connections &connections)
 {
+  set<Cell> activeCells;
+  set<Cell> winnerCells;
+
+  set<Segment> learningSegments;
+
   vector<Int> unpredictedColumns;
 
   // Resize to the largest size
@@ -93,21 +98,20 @@ void FastTemporalMemory::burstColumns(set<Int>& activeColumns,
 
   for (auto column : unpredictedColumns)
   {
-    vector<Cell> cells = cellsForColumn(column);
-    activeCells_.insert(cells.begin(), cells.end());
-
     Segment bestSegment;
     Cell bestCell;
+
+    set<Cell> cells = cellsForColumn(column);
+
+    activeCells_.insert(cells.begin(), cells.end());
+
     if (connections.mostActiveSegmentForCells(
           cells, prevActiveCells, minThreshold_, bestSegment))
     {
       bestCell = leastUsedCell(cells, connections);
 
       if (prevWinnerCells.size())
-      {
         bestSegment = connections.createSegment(bestCell);
-        learningSegments_.insert(bestSegment);
-      }
     }
     else
     {
@@ -118,8 +122,12 @@ void FastTemporalMemory::burstColumns(set<Int>& activeColumns,
     }
 
     winnerCells_.insert(bestCell);
+
+    if (bestSegment.idx >= 0)
+      learningSegments.insert(bestSegment);
   }
 
+  return make_tuple(activeCells, winnerCells, learningSegments);
 }
 
 
@@ -144,8 +152,9 @@ void FastTemporalMemory::burstColumns(set<Int>& activeColumns,
     `predictiveCells` (set)
 */
 
-void FastTemporalMemory::computePredictiveCells(set<Cell>& activeCells,
-                                                Connections& connections)
+tuple<set<Segment>, set<Cell>> FastTemporalMemory::computePredictiveCells(
+  set<Cell>& activeCells,
+  Connections& connections)
 {
   Activity activity = 
     connections.computeActivity(activeCells, 
@@ -153,11 +162,12 @@ void FastTemporalMemory::computePredictiveCells(set<Cell>& activeCells,
                                 activationThreshold_);
 
   vector<Segment> segments = connections.activeSegments(activity);
-  activeSegments_.clear();
-  activeSegments_.insert(segments.begin(), segments.end());
+  set<Segment> activeSegments;
+  activeSegments.insert(segments.begin(), segments.end());
 
   vector<Cell> cells = connections.activeCells(activity);
-  predictiveCells_.clear();
-  predictiveCells_.insert(cells.begin(), cells.end());;
+  set<Cell> predictiveCells;
+  predictiveCells.insert(cells.begin(), cells.end());;
 
+  return make_tuple(activeSegments, predictiveCells);
 }
