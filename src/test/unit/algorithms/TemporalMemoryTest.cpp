@@ -522,15 +522,19 @@ namespace nupic {
     connections.createSynapse(segment, Cell(486), 0.9);
 
     set<Cell> activeCells = { Cell(23), Cell(37), Cell(49), Cell(733) };
+    vector<Cell> cellsForColumn;
 
-    tie(bestCell, bestSegment) = tm.bestMatchingCell(tm.cellsForColumn(0), activeCells, connections);
+    cellsForColumn = tm.cellsForColumn(0);
+    tie(bestCell, bestSegment) = tm.bestMatchingCell(cellsForColumn, activeCells, connections);
     ASSERT_EQ(bestCell, Cell(0));
     ASSERT_EQ(bestSegment, Segment(0, Cell(0)));
 
-    tie(bestCell, bestSegment) = tm.bestMatchingCell(tm.cellsForColumn(3), activeCells, connections);
+    cellsForColumn = tm.cellsForColumn(3);
+    tie(bestCell, bestSegment) = tm.bestMatchingCell(cellsForColumn, activeCells, connections);
     ASSERT_EQ(bestCell, Cell(96)); // Random cell from column
 
-    tie(bestCell, bestSegment) = tm.bestMatchingCell(tm.cellsForColumn(999), activeCells, connections);
+    cellsForColumn = tm.cellsForColumn(999);
+    tie(bestCell, bestSegment) = tm.bestMatchingCell(cellsForColumn, activeCells, connections);
     ASSERT_EQ(bestCell, Cell(31972)); // Random cell from column
   }
 
@@ -551,7 +555,9 @@ namespace nupic {
     for (int i = 0; i < 100; i++)
     {
       // Never pick cell 0, always pick cell 1
-      tie(cell, segment) = tm.bestMatchingCell(tm.cellsForColumn(0),
+      vector<Cell> cellsForColumn = tm.cellsForColumn(0);
+      tie(cell, segment) = tm.bestMatchingCell(
+        cellsForColumn,
         activeSynapsesForSegment,
         connections);
       ASSERT_EQ(cell, Cell(1));
@@ -620,7 +626,8 @@ namespace nupic {
     for (int i = 0; i < 100; i++)
     {
       // Never pick cell 0, always pick cell 1
-      tie(cell, segment) = tm.bestMatchingCell(tm.cellsForColumn(0), cells, connections);
+      vector<Cell> cellsForColumn = tm.cellsForColumn(0);
+      tie(cell, segment) = tm.bestMatchingCell(cellsForColumn, cells, connections);
       ASSERT_EQ(cell, Cell(1));
     }
   }
@@ -704,16 +711,19 @@ namespace nupic {
     Segment segment = connections.createSegment(Cell(0));
 
     set<Cell> winnerCells = { Cell(4), Cell(47), Cell(58), Cell(93) };
-    set<Cell> expectedCells;
+    set<Cell> learningCells, expectedCells;
 
     expectedCells = set<Cell> { Cell(4), Cell(47) }; // Randomly picked
-    NTA_CHECK(check_set_eq(tm.pickCellsToLearnOn(2, segment, winnerCells, connections), expectedCells));
+    learningCells = tm.pickCellsToLearnOn(2, segment, winnerCells, connections);
+    NTA_CHECK(check_set_eq(learningCells, expectedCells));
 
     expectedCells = set<Cell> { Cell(4), Cell(47), Cell(58), Cell(93) };
-    NTA_CHECK(check_set_eq(tm.pickCellsToLearnOn(100, segment, winnerCells, connections), expectedCells));
+    learningCells = tm.pickCellsToLearnOn(100, segment, winnerCells, connections);
+    NTA_CHECK(check_set_eq(learningCells, expectedCells));
 
     expectedCells = set<Cell> { };
-    NTA_CHECK(check_set_eq(tm.pickCellsToLearnOn(0, segment, winnerCells, connections), expectedCells));
+    learningCells = tm.pickCellsToLearnOn(0, segment, winnerCells, connections);
+    NTA_CHECK(check_set_eq(learningCells, expectedCells));
   }
 
   void TemporalMemoryTest::testPickCellsToLearnOnAvoidDuplicates()
@@ -730,7 +740,8 @@ namespace nupic {
 
     // Ensure that no additional(duplicate) cells were picked
     set<Cell> expectedCells = {};
-    NTA_CHECK(check_set_eq(tm.pickCellsToLearnOn(2, segment, winnerCells, connections), expectedCells));
+    set<Cell> learningCells = tm.pickCellsToLearnOn(2, segment, winnerCells, connections);
+    NTA_CHECK(check_set_eq(learningCells, expectedCells));
   }
 
   void TemporalMemoryTest::testColumnForCell1D()
@@ -771,7 +782,8 @@ namespace nupic {
     tm.initialize(vector<UInt>{2048}, 5);
 
     vector<Cell> expectedCells = { Cell(5), Cell(6), Cell(7), Cell(8), Cell(9) };
-    NTA_CHECK(check_vector_eq(tm.cellsForColumn(1), expectedCells));
+    vector<Cell> cellsForColumn = tm.cellsForColumn(1);
+    NTA_CHECK(check_vector_eq(cellsForColumn, expectedCells));
   }
   
   void TemporalMemoryTest::testCellsForColumn2D()
@@ -780,7 +792,8 @@ namespace nupic {
     tm.initialize(vector<UInt>{64, 64}, 4);
 
     vector<Cell> expectedCells = { Cell(256), Cell(257), Cell(258), Cell(259) };
-    NTA_CHECK(check_vector_eq(tm.cellsForColumn(64), expectedCells));
+    vector<Cell> cellsForColumn = tm.cellsForColumn(64);
+    NTA_CHECK(check_vector_eq(cellsForColumn, expectedCells));
   }
 
   void TemporalMemoryTest::testCellsForColumnInvalidColumn()
@@ -788,8 +801,15 @@ namespace nupic {
     TemporalMemory tm;
     tm.initialize(vector<UInt>{64, 64}, 4);
 
+    vector<Cell> cellsForColumn;
+
+    cellsForColumn = tm.cellsForColumn(4095);
     EXPECT_NO_THROW(tm.cellsForColumn(4095));
+
+    cellsForColumn = tm.cellsForColumn(4096);
     EXPECT_THROW(tm.cellsForColumn(4096), std::exception);
+
+    cellsForColumn = tm.cellsForColumn(-1);
     EXPECT_THROW(tm.cellsForColumn(-1), std::exception);
   }
 
@@ -798,7 +818,8 @@ namespace nupic {
     TemporalMemory tm;
     tm.initialize(vector<UInt>{64, 64}, 32);
 
-    ASSERT_EQ(tm.numberOfColumns(), 64 * 64);
+    int numOfColumns = tm.numberOfColumns();
+    ASSERT_EQ(numOfColumns, 64 * 64);
   }
 
   void TemporalMemoryTest::testNumberOfCells()
@@ -806,7 +827,8 @@ namespace nupic {
     TemporalMemory tm;
     tm.initialize(vector<UInt>{64,64}, 32);
 
-    ASSERT_EQ(tm.numberOfCells(), 64 * 64 * 32);
+    Int numberOfCells = tm.numberOfCells();
+    ASSERT_EQ(numberOfCells, 64 * 64 * 32);
   }
 
   void TemporalMemoryTest::testMapCellsToColumns()
@@ -818,9 +840,11 @@ namespace nupic {
     map<Int, vector<Cell>> columnsForCells = tm.mapCellsToColumns(cells);
 
     vector<Cell> expectedCells = { Cell(0), Cell(1), Cell(2) };
-    ASSERT_EQ(columnsForCells[0], expectedCells);
-    ASSERT_EQ(columnsForCells[1], vector<Cell>{Cell(5)});
-    ASSERT_EQ(columnsForCells[99], vector<Cell>{Cell(399)});
+    NTA_CHECK(check_vector_eq(columnsForCells[0], expectedCells));
+    expectedCells = { Cell(5) };
+    NTA_CHECK(check_vector_eq(columnsForCells[1], expectedCells));
+    expectedCells = { Cell(399) };
+    NTA_CHECK(check_vector_eq(columnsForCells[99], expectedCells));
   }
 
   void TemporalMemoryTest::testSaveLoad()
