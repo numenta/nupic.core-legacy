@@ -592,20 +592,25 @@ namespace nupic {
     connections.createSynapse(segment, Cell(486), 0.9);
 
     set<Cell> activeCells = { Cell(23), Cell(37), Cell(49), Cell(733) };
+    Cell cell;
 
-    tie(bestSegment, numActiveSynapses) = tm.bestMatchingSegment(Cell(0), activeCells, connections);
+    cell.idx = 0;
+    tie(bestSegment, numActiveSynapses) = tm.bestMatchingSegment(cell, activeCells, connections);
     ASSERT_EQ(bestSegment, Segment(0, Cell(0)));
     ASSERT_EQ(numActiveSynapses, 2);
 
-    tie(bestSegment, numActiveSynapses) = tm.bestMatchingSegment(Cell(1), activeCells, connections);
+    cell.idx = 1;
+    tie(bestSegment, numActiveSynapses) = tm.bestMatchingSegment(cell, activeCells, connections);
     ASSERT_EQ(bestSegment, Segment(0, Cell(1)));
     ASSERT_EQ(numActiveSynapses, 1);
 
-    tie(bestSegment, numActiveSynapses) = tm.bestMatchingSegment(Cell(8), activeCells, connections);
+    cell.idx = 8;
+    tie(bestSegment, numActiveSynapses) = tm.bestMatchingSegment(cell, activeCells, connections);
     ASSERT_EQ(bestSegment, Segment(-1, Cell(0)));
     ASSERT_EQ(numActiveSynapses, 0);
 
-    tie(bestSegment, numActiveSynapses) = tm.bestMatchingSegment(Cell(100), activeCells, connections);
+    cell.idx = 100;
+    tie(bestSegment, numActiveSynapses) = tm.bestMatchingSegment(cell, activeCells, connections);
     ASSERT_EQ(bestSegment, Segment(-1, Cell(0)));
     ASSERT_EQ(numActiveSynapses, 0);
   }
@@ -801,15 +806,8 @@ namespace nupic {
     TemporalMemory tm;
     tm.initialize(vector<UInt>{64, 64}, 4);
 
-    vector<Cell> cellsForColumn;
-
-    cellsForColumn = tm.cellsForColumn(4095);
     EXPECT_NO_THROW(tm.cellsForColumn(4095));
-
-    cellsForColumn = tm.cellsForColumn(4096);
     EXPECT_THROW(tm.cellsForColumn(4096), std::exception);
-
-    cellsForColumn = tm.cellsForColumn(-1);
     EXPECT_THROW(tm.cellsForColumn(-1), std::exception);
   }
 
