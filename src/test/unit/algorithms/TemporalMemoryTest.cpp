@@ -20,9 +20,9 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
- * Implementation of unit tests for TemporalMemory
- */
+ /** @file
+  * Implementation of unit tests for TemporalMemory
+  */
 
 #include <cstring>
 #include <fstream>
@@ -87,7 +87,7 @@ namespace nupic {
   bool TemporalMemoryTest::check_vector_eq(Real arr[], vector<Real> vec)
   {
     for (UInt i = 0; i < vec.size(); i++) {
-      if (!almost_eq(arr[i],vec[i])) {
+      if (!almost_eq(arr[i], vec[i])) {
         return false;
       }
     }
@@ -279,7 +279,7 @@ namespace nupic {
     set<Cell> activeCells;
     set<Cell> winnerCells;
     set<Int> predictedColumns;
-      
+
     tie(activeCells, winnerCells, predictedColumns) =
       tm.activateCorrectlyPredictiveCells(prevPredictiveCells, activeColumns);
 
@@ -334,7 +334,7 @@ namespace nupic {
 
     {
       set<Cell> prevPredictiveCells = { Cell(0), Cell(237), Cell(1026), Cell(26337), Cell(26339), Cell(55536) };
-      set<Int> activeColumns = { };
+      set<Int> activeColumns = {};
 
       set<Cell> activeCells;
       set<Cell> winnerCells;
@@ -401,10 +401,10 @@ namespace nupic {
 
   void TemporalMemoryTest::testBurstColumnsEmpty()
   {
-    set<Int> activeColumns = { };
-    set<Int> predictiveCols = { };
-    set<Cell> prevActiveCells = { };
-    set<Cell> prevWinnerCells = { };
+    set<Int> activeColumns = {};
+    set<Int> predictiveCols = {};
+    set<Cell> prevActiveCells = {};
+    set<Cell> prevWinnerCells = {};
     Connections connections = *tm.connections_;
 
     set<Cell> activeCells;
@@ -414,9 +414,9 @@ namespace nupic {
     tie(activeCells, winnerCells, learningSegments) =
       tm.burstColumns(activeColumns, predictiveCols, prevActiveCells, prevWinnerCells, connections);
 
-    set<Cell> expectedActiveCells = { };
-    set<Cell> expectedWinnerCells = { };
-    set<Segment> expectedLearningSegments = { };
+    set<Cell> expectedActiveCells = {};
+    set<Cell> expectedWinnerCells = {};
+    set<Segment> expectedLearningSegments = {};
     NTA_CHECK(check_set_eq(activeCells, expectedActiveCells));
     NTA_CHECK(check_set_eq(winnerCells, expectedWinnerCells));
     NTA_CHECK(check_set_eq(learningSegments, expectedLearningSegments));
@@ -512,8 +512,8 @@ namespace nupic {
 
     tm.computePredictiveCells(activeCells, connections);
 
-    set<Segment> expectedActiveSegments = { };
-    set<Cell> expectedPredictiveCells = { };
+    set<Segment> expectedActiveSegments = {};
+    set<Cell> expectedPredictiveCells = {};
     NTA_CHECK(check_set_eq(tm.activeSegments_, expectedActiveSegments));
     NTA_CHECK(check_set_eq(tm.predictiveCells_, expectedPredictiveCells));
   }
@@ -575,7 +575,7 @@ namespace nupic {
     segment = connections.createSegment(cell);
     connections.createSynapse(segment, 3, 0.3);
 
-    set<Cell> activeSynapsesForSegment = { };
+    set<Cell> activeSynapsesForSegment = {};
 
     for (int i = 0; i < 100; i++)
     {
@@ -674,7 +674,7 @@ namespace nupic {
 
     synapses = vector<Synapse>{ Synapse(0, segment), Synapse(1, segment) };
     tm.adaptSegment(segment, synapses, connections);
-    
+
     eq = nupic::nearlyEqual(connections.dataForSynapse(Synapse(0, segment)).permanence, Real(0.7));
     EXPECT_TRUE(eq);
     eq = nupic::nearlyEqual(connections.dataForSynapse(Synapse(1, segment)).permanence, Real(0.5));
@@ -820,7 +820,7 @@ namespace nupic {
     set<Cell> cellsForColumn = tm.cellsForColumn(1);
     NTA_CHECK(check_set_eq(cellsForColumn, expectedCells));
   }
-  
+
   void TemporalMemoryTest::testCellsForColumn2D()
   {
     TemporalMemory tm;
@@ -853,7 +853,7 @@ namespace nupic {
   void TemporalMemoryTest::testNumberOfCells()
   {
     TemporalMemory tm;
-    tm.initialize(vector<UInt>{64,64}, 32);
+    tm.initialize(vector<UInt>{64, 64}, 32);
 
     Int numberOfCells = tm.numberOfCells();
     ASSERT_EQ(numberOfCells, 64 * 64 * 32);

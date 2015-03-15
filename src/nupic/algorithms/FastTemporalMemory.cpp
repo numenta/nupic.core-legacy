@@ -106,7 +106,7 @@ tuple<set<Cell>, set<Cell>, set<Segment>> FastTemporalMemory::burstColumns(
     activeCells_.insert(cells.begin(), cells.end());
 
     if (connections.mostActiveSegmentForCells(
-          cells, prevActiveCells, minThreshold_, bestSegment))
+      cells, prevActiveCells, minThreshold_, bestSegment))
     {
       bestCell = leastUsedCell(cells, connections);
 
@@ -156,10 +156,11 @@ tuple<set<Segment>, set<Cell>> FastTemporalMemory::computePredictiveCells(
   set<Cell>& activeCells,
   Connections& connections)
 {
-  Activity activity = 
-    connections.computeActivity(activeCells, 
-                                connectedPermanence_, 
-                                activationThreshold_);
+  Activity activity =
+    connections.computeActivity(
+    activeCells,
+    connectedPermanence_,
+    activationThreshold_);
 
   vector<Segment> segments = connections.activeSegments(activity);
   set<Segment> activeSegments;
