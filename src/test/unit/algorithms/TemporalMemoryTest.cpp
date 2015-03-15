@@ -788,9 +788,14 @@ namespace nupic {
     TemporalMemory tm;
     tm.initialize(vector<UInt>{64, 64}, 4);
 
-    EXPECT_NO_THROW(tm.columnForCell(Cell(16383)));
-    EXPECT_THROW(tm.columnForCell(Cell(16384)), std::exception);
-    EXPECT_THROW(tm.columnForCell(Cell(-1)), std::exception);
+    Cell cell;
+
+    cell.idx = 16383;
+    EXPECT_NO_THROW(tm.columnForCell(cell));
+    cell.idx = 16384;
+    EXPECT_THROW(tm.columnForCell(cell), std::exception);
+    cell.idx = -1;
+    EXPECT_THROW(tm.columnForCell(cell), std::exception);
   }
 
   void TemporalMemoryTest::testCellsForColumn1D()
