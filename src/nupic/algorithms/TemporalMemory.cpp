@@ -347,11 +347,14 @@ void TemporalMemory::learnOnSegments(
   set<Segment> allSegments;
   allSegments.insert(prevActiveSegments.begin(), prevActiveSegments.end());
   allSegments.insert(learningSegments.begin(), learningSegments.end());
+  //vector<Segment> allSegments;
+  //std::copy(prevActiveSegments.begin(), prevActiveSegments.end(), std::back_inserter(allSegments));
+  //std::copy(learningSegments.begin(), learningSegments.end(), std::back_inserter(allSegments));
 
   for (Segment segment : allSegments)
   {
     bool isLearningSegment = (learningSegments.find(segment) != learningSegments.end());
-    bool isFromWinnerCell  = (winnerCells_.find(segment.cell) != winnerCells.end());
+    bool isFromWinnerCell  = (winnerCells.find(segment.cell) != winnerCells.end());
 
     vector<Synapse> activeSynapses(activeSynapsesForSegment(segment, prevActiveCells, connections));
 
@@ -637,7 +640,7 @@ set<Cell> TemporalMemory::pickCellsToLearnOn(
   Connections& connections)
 {
   vector<Cell> candidates(winnerCells.begin(), winnerCells.end());
-
+  
 	// Remove cells that are already synapsed on by this segment
 	for (auto synapse : connections.synapsesForSegment(segment))
 	{
@@ -648,13 +651,10 @@ set<Cell> TemporalMemory::pickCellsToLearnOn(
 			candidates.erase(find(candidates.begin(), candidates.end(),presynapticCell));
 	}
 
-	Int n = min(iN, (Int)candidates.size());
-
-  sort(candidates.begin(), candidates.end());
-	
+  // Pick n cells randomly
+  Int n = min(iN, (Int)candidates.size());
   set<Cell> cells;
 
-	// Pick n cells randomly
   for (int c = 0; c < n; c++)
 	{
 		Int i = random_->getUInt32((UInt32)candidates.size());
@@ -940,7 +940,6 @@ Int TemporalMemory::getCellsPerColumn() const
 void TemporalMemory::setCellsPerColumn(Int cellsPerColumn)
 {
   cellsPerColumn_ = cellsPerColumn;
-  reset();
 }
 
 Int TemporalMemory::getActivationThreshold() const
@@ -951,7 +950,6 @@ Int TemporalMemory::getActivationThreshold() const
 void TemporalMemory::setActivationThreshold(Int activationThreshold)
 {
   activationThreshold_ = activationThreshold;
-  reset();
 }
 
 Int TemporalMemory::getLearningRadius() const
@@ -962,7 +960,6 @@ Int TemporalMemory::getLearningRadius() const
 void TemporalMemory::setLearningRadius(Int learningRadius)
 {
   learningRadius_ = learningRadius;
-  reset();
 }
 
 Permanence TemporalMemory::getInitialPermanence() const
@@ -973,7 +970,6 @@ Permanence TemporalMemory::getInitialPermanence() const
 void TemporalMemory::setInitialPermanence(Permanence initialPermanence)
 {
   initialPermanence_ = initialPermanence;
-  reset();
 }
 
 Permanence TemporalMemory::getConnectedPermanence() const
@@ -984,7 +980,6 @@ Permanence TemporalMemory::getConnectedPermanence() const
 void TemporalMemory::setConnectedPermanence(Permanence connectedPermanence)
 {
   connectedPermanence_ = connectedPermanence;
-  reset();
 }
 
 Int TemporalMemory::getMinThreshold() const
@@ -995,7 +990,6 @@ Int TemporalMemory::getMinThreshold() const
 void TemporalMemory::setMinThreshold(Int minThreshold)
 {
   minThreshold_ = minThreshold;
-  reset();
 }
 
 Int TemporalMemory::getMaxNewSynapseCount() const
@@ -1006,7 +1000,6 @@ Int TemporalMemory::getMaxNewSynapseCount() const
 void TemporalMemory::setMaxNewSynapseCount(Int maxNewSynapseCount)
 {
   maxNewSynapseCount_ = maxNewSynapseCount;
-  reset();
 }
 
 Permanence TemporalMemory::getPermanenceIncrement() const
@@ -1017,7 +1010,6 @@ Permanence TemporalMemory::getPermanenceIncrement() const
 void TemporalMemory::setPermanenceIncrement(Permanence permanenceIncrement)
 {
   permanenceIncrement_ = permanenceIncrement;
-  reset();
 }
 
 Permanence TemporalMemory::getPermanenceDecrement() const
@@ -1028,7 +1020,6 @@ Permanence TemporalMemory::getPermanenceDecrement() const
 void TemporalMemory::setPermanenceDecrement(Permanence permanenceDecrement)
 {
   permanenceDecrement_ = permanenceDecrement;
-  reset();
 }
 
 //----------------------------------------------------------------------

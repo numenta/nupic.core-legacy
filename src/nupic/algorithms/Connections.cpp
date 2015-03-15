@@ -224,7 +224,7 @@ bool Connections::mostActiveSegmentForCells(const vector<Cell>& cells,
         }
       }
 
-      if (numSynapses > maxSynapses)
+      if (numSynapses >= maxSynapses)
       {
         maxSynapses = numSynapses;
         retSegment.idx = segmentIdx;
