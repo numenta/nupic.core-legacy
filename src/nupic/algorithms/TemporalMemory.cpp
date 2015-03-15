@@ -952,7 +952,6 @@ void TemporalMemory::load(istream& inStream)
   inStream >> permanenceDecrement_;
 
   inStream >> seed_;
-  random_->reseed(seed_);
 
   inStream >> marker;
   NTA_CHECK(marker == "~TemporalMemory");
