@@ -79,7 +79,7 @@ Cells4::Cells4(UInt nColumns, UInt nCellsPerCol,
                      Real globalDecay,
                      bool doPooling,
                      int seed,
-                     bool doItAll,
+                     bool initFromCpp,
                      bool checkSynapseConsistency)
   : _rng(seed < 0 ? rand() : seed)
 {
@@ -97,7 +97,7 @@ Cells4::Cells4(UInt nColumns, UInt nCellsPerCol,
              permInc,
              globalDecay,
              doPooling,
-             doItAll,
+             initFromCpp,
              checkSynapseConsistency);
 }
 
@@ -2235,7 +2235,7 @@ Cells4::initialize(UInt nColumns,
                    Real permInc,
                    Real globalDecay,
                    bool doPooling,
-                   bool doItAll,
+                   bool initFromCpp,
                    bool checkSynapseConsistency)
 {
   _nColumns                   = nColumns;
@@ -2282,7 +2282,7 @@ Cells4::initialize(UInt nColumns,
   // Python allocate numpy arrays and pass them to C++, or C++
   // allocate memory here (then Python gets pointers via
   // getStatePointers).
-  if (doItAll) {
+  if (initFromCpp) {
     _ownsMemory = true;
     _infActiveStateT.initialize(_nCells);
     _infActiveStateT1.initialize(_nCells);
