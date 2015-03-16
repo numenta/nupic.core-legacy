@@ -42,6 +42,13 @@ namespace nupic {
      * If false, then value parameter is not set
      **/
     static bool get(const std::string& name, std::string& value);
+
+    /**
+     * convenience method as get() above,
+     * @param variableName - name of OS environment variable to read
+     * @retval value of the variable, or null if it does not exist
+     **/
+    static std::string get(std::string variableName);
     
     /**
      * Set the named environment variable. 

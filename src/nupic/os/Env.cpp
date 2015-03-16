@@ -66,6 +66,13 @@ bool Env::get(const std::string& name, std::string& value)
   
 }
 
+std::string Env::get(std::string variableName)
+{
+  std::string content;
+  Env::get(variableName, content);
+  return content;
+}
+
 void Env::set(const std::string& name, const std::string& value)
 {
   // @todo remove apr initialization when we have global initialization
