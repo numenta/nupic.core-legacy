@@ -460,7 +460,6 @@ set_target_properties(${EXECUTABLE_PROTOTEST}
                       PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
 add_dependencies(${EXECUTABLE_PROTOTEST} ${COMMON_LIBS})
 
-# TODO better way to build examples?
 #
 # Setup HelloSP_TP example
 #

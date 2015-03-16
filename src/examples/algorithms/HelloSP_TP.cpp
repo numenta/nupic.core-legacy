@@ -65,12 +65,12 @@ const UInt EPOCHS = pow(10, 4); // number of iterations (calls to SP/TP compute(
   Timer stopwatch(true);
 
   //run
-  for (UInt e=0; e< EPOCHS; e++) {
+  for (UInt e = 0; e < EPOCHS; e++) {
     generate(input.begin(), input.end(), RandomNumber01);
     fill(outSP.begin(), outSP.end(), 0);
     sp.compute(input.data(), true, outSP.data());
 
-    for (UInt i=0; i< DIM; i++) {
+    for (UInt i = 0; i < DIM; i++) {
       rIn[i] = (Real)(outSP[i]);
     }
 
