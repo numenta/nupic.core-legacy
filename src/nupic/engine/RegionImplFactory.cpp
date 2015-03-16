@@ -50,7 +50,7 @@
 using namespace std;
 
 // Path from site-packages to packages that contain NuPIC Python regions
-const char *  packages[] = {"nupic.regions", "nupic.regions.extra", getenv("NUPIC_REGIONS_PATH"), getenv("NUPIC_REGIONS_PATH")+*"/extra", "/home/mmm/nupic/projects/nupic-community/nupic.vision/nupicvision/regions/" };
+const char *  packages[] = {"nupic.regions", "nupic.regions.extra", nupic::Env::get("NUPIC_REGIONS_PATH").c_str(), nupic::Env::get("NUPIC_REGIONS_PATH").c_str()+*"/extra"};
 vector<string> paths;
 
 namespace nupic
