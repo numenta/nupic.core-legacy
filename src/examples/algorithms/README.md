@@ -29,4 +29,3 @@ valgrind --tool=callgrind ./hello_sp_tp
 ```
 it will generate file `callgrind.out.<pid>` which can be viewed in a graphical tool (eg. `KCacheGrind` for Ubuntu and others) or proccessed on 
 command line: `callgrind_annotate callgrind.out.<pid>`
-
