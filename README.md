@@ -5,8 +5,10 @@ This repository contains the C++ source code for the Numenta Platform for Intell
 ## Build and test NuPIC Core:
 
 Important notes:
- * For developers (contributing to NuPIC Core) please follow the [C++ Development Workflow steps](https://github.com/numenta/nupic.core/wiki/C++-Development-Workflow).
+ * For developers (contributing to NuPIC Core) please follow the [Development Workflow](https://github.com/numenta/nupic.core/wiki/Development-Workflow) steps.
  * `$NUPIC_CORE` is the current location of the repository that you downloaded from GitHub.
+ * Platform specific Readme.md text files exist in some `external/` subdirectories
+ * See the main [wiki](https://github.com/numenta/nupic.core/wiki) for more build notes
 
 ### Using command line
 
