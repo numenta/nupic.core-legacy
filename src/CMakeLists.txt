@@ -339,7 +339,6 @@ ADD_LIBRARY(${LIB_STATIC_NUPICCORE}
             nupic/algorithms/CondProbTable.cpp
             nupic/algorithms/Connections.cpp
             nupic/algorithms/FastClaClassifier.cpp
-            nupic/algorithms/FastTemporalMemory.cpp
             nupic/algorithms/FlatSpatialPooler.cpp
             nupic/algorithms/GaborNode.cpp
             nupic/algorithms/ImageSensorLite.cpp
@@ -396,7 +395,9 @@ ADD_LIBRARY(${LIB_STATIC_NUPICCORE}
             nupic/types/Fraction.cpp
             nupic/utils/LoggingException.cpp
             nupic/utils/LogItem.cpp
+            nupic/utils/PatternMachine.cpp
             nupic/utils/Random.cpp
+            nupic/utils/SequenceMachine.cpp
             nupic/utils/StringUtils.cpp
             nupic/utils/TRandom.cpp
             nupic/utils/Watcher.cpp)
@@ -472,6 +473,10 @@ add_executable(${EXECUTABLE_GTESTS}
                test/unit/algorithms/NearestNeighborUnitTest.cpp
                test/unit/algorithms/SpatialPoolerTest.cpp
                test/unit/algorithms/TemporalMemoryTest.cpp
+               test/unit/algorithms/TemporalMemoryAbstractTest.cpp
+               test/unit/algorithms/TemporalMemoryExtensiveTest.cpp
+               test/unit/algorithms/TemporalMemoryPerformanceTest.cpp
+               test/unit/algorithms/TemporalMemoryTutorialTest.cpp
                test/unit/engine/InputTest.cpp
                test/unit/engine/NetworkTest.cpp
                test/unit/engine/UniformLinkPolicyTest.cpp
@@ -505,7 +510,9 @@ add_executable(${EXECUTABLE_GTESTS}
                test/unit/types/ExceptionTest.cpp
                test/unit/types/FractionTest.cpp
                test/unit/UnitTestMain.cpp
+               test/unit/utils/PatternMachineTest.cpp
                test/unit/utils/RandomTest.cpp
+               test/unit/utils/SequenceMachineTest.cpp
                test/unit/utils/WatcherTest.cpp)
 target_link_libraries(${EXECUTABLE_GTESTS}
                       ${COMMON_LIBS}

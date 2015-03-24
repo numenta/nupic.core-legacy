@@ -58,7 +58,9 @@ LogItem::~LogItem()
     slevel = "INFO: ";
     break;
   case error:
-    slevel = "ERROR:";
+    // The use of the keyword 'error' 
+    // in stdout is discouraged
+    slevel = "FAIL:";
     break;
   default:
     slevel = "Unknown: ";
