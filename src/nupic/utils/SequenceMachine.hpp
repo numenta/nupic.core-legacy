@@ -53,7 +53,8 @@ namespace nupic {
 
     public:
 
-      SequenceMachine(const PatternMachine& patternMachine, int seed = 42);
+      SequenceMachine::SequenceMachine();
+      SequenceMachine(PatternMachine& patternMachine, int seed = 42);
 
 
       // @param numSequences(int)   Number of sequences to return, separated by None
@@ -66,19 +67,19 @@ namespace nupic {
       // Note : Any `None` in the list of numbers is considered a reset.
       //  @param numbers(list) List of numbers
       //  @return (list)Generated sequence
-      vector<int> generateFromNumbers(vector<int> numbers);
+      vector<int> generateFromNumbers(vector<int>& numbers);
 
       // Add spatial noise to each pattern in the sequence.
       //  @param sequence(list)  Sequence
       //  @param amount(float) Amount of spatial noise
       //  @return (list)Sequence with spatial noise
-      vector<int> addSpatialNoise(vector<int> sequence, Real amount);
+      vector<int> addSpatialNoise(vector<int>& sequence, Real amount);
 
       // Pretty print a sequence.
       //  @param sequence(list) Sequence
       //  @param verbosity(int)  Verbosity level
       //  @return (string)Pretty - printed text
-      string prettyPrintSequence(vector<int> sequence, int verbosity = 1);
+      string prettyPrintSequence(vector<int>& sequence, int verbosity = 1);
     };
 
   } // of namespace utils

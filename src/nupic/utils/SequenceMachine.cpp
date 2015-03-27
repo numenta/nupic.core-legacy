@@ -34,7 +34,11 @@ using namespace std;
 using namespace nupic;
 using namespace nupic::utils;
 
-SequenceMachine::SequenceMachine(const PatternMachine& patternMachine, int seed)
+SequenceMachine::SequenceMachine()
+{
+}
+
+SequenceMachine::SequenceMachine(PatternMachine& patternMachine, int seed)
 {
   // Save member variables
   _patternMachine = patternMachine;
@@ -85,7 +89,7 @@ vector<int> SequenceMachine::generateNumbers(int numSequences, int sequenceLengt
 // Note : Any `None` in the list of numbers is considered a reset.
 //  @param numbers(list) List of numbers
 //  @return (list)Generated sequence
-vector<int> SequenceMachine::generateFromNumbers(vector<int> numbers)
+vector<int> SequenceMachine::generateFromNumbers(vector<int>& numbers)
 {
   vector<int> sequence;
 
@@ -95,7 +99,7 @@ vector<int> SequenceMachine::generateFromNumbers(vector<int> numbers)
       sequence.push_back(number);
     else
     {
-      const set<int>& pattern = _patternMachine.get(number);
+      Pattern& pattern = _patternMachine.get(number);
       sequence.insert(sequence.end(), pattern.begin(), pattern.end());
     }
   }
@@ -107,7 +111,7 @@ vector<int> SequenceMachine::generateFromNumbers(vector<int> numbers)
 //  @param sequence(list)  Sequence
 //  @param amount(float) Amount of spatial noise
 //  @return (list)Sequence with spatial noise
-vector<int> SequenceMachine::addSpatialNoise(vector<int> sequence, Real amount)
+vector<int> SequenceMachine::addSpatialNoise(vector<int>& sequence, Real amount)
 {
   vector<int> newSequence;
 /*
@@ -126,7 +130,7 @@ vector<int> SequenceMachine::addSpatialNoise(vector<int> sequence, Real amount)
 //  @param sequence(list) Sequence
 //  @param verbosity(int)  Verbosity level
 //  @return (string)Pretty - printed text
-string SequenceMachine::prettyPrintSequence(vector<int> sequence, int verbosity)
+string SequenceMachine::prettyPrintSequence(vector<int>& sequence, int verbosity)
 {
   string text = "";
 /*

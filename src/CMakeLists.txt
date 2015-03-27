@@ -427,8 +427,6 @@ add_custom_target(tests_cpp_region
                   DEPENDS ${EXECUTABLE_CPPREGIONTEST}
                   VERBATIM)
 
-set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS} -static")
-
 #
 # Setup test_py_region
 #
@@ -563,7 +561,9 @@ set(TEST_HEADERS
     test/unit/types/BasicTypeTest.hpp
     test/unit/types/ExceptionTest.hpp
     test/unit/types/FractionTest.hpp
+    test/unit/utils/PatternMachineTest.hpp
     test/unit/utils/RandomTest.hpp
+    test/unit/utils/SequenceMachineTest.hpp
     test/unit/utils/WatcherTest.hpp)
 set(tests_file_content "")
 set(headers_file_content "")

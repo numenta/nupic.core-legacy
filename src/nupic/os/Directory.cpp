@@ -291,9 +291,8 @@ namespace nupic
     void Iterator::reset()
     {
       apr_status_t res = ::apr_dir_rewind(handle_);
-      NTA_CHECK(res == 0) 
-        << "Couldn't reset directory iterator." 
-        << " Code: " << APR_TO_OS_ERROR(res);
+      NTA_CHECK(res == 0) << "Couldn't reset directory iterator." 
+                          << " Code: " << APR_TO_OS_ERROR(res);
     }
     
     Entry * Iterator::next(Entry & e)
@@ -328,4 +327,3 @@ namespace nupic
     }
   }
 }
-

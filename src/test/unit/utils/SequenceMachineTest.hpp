@@ -21,20 +21,39 @@
  */
 
 /** @file
- * Watcher unit tests
+ * Sequence Machine unit tests
  */
 
-#ifndef NTA_WATCHER_TEST_HPP
-#define NTA_WATCHER_TEST_HPP
+#ifndef NTA_SEQUENCE_MACHINE_TEST_HPP
+#define NTA_SEQUENCE_MACHINE_TEST_HPP
 
 #include <nupic/test/Tester.hpp>
 
+#include <nupic/utils/PatternMachine.hpp>
+#include <nupic/utils/SequenceMachine.hpp>
+
+using namespace nupic::utils;
+
 namespace nupic
 {
-  struct WatcherTest : public Tester
+  class SequenceMachineTest : public Tester
   {
+  public:
+    SequenceMachineTest();
+    virtual ~SequenceMachineTest() {};
     virtual void RunTests() override;
+
+    PatternMachine _patternMachine;
+    SequenceMachine _sequenceMachine;
+
+    bool check_pattern_eq(Pattern& p1, Pattern& p2);
+
+    void testGenerateFromNumbers();
+    void testAddSpatialNoise();
+    void testGenerateNumbers();
+    void testGenerateNumbersMultipleSequences();
+    void testGenerateNumbersWithShared();
   };
 }
 
-#endif // NTA_WATCHER_TEST_HPP
+#endif // NTA_SEQUENCE_MACHINE_TEST_HPP

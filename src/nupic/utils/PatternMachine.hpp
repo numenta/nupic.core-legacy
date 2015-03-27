@@ -27,8 +27,8 @@
 #ifndef NTA_PATTERN_MACHINE_HPP
 #define NTA_PATTERN_MACHINE_HPP
 
-#include <set>
 #include <string>
+#include <map>
 #include <vector>
 #include <nupic/types/Types.hpp>
 #include <nupic/utils/Log.hpp>
@@ -38,6 +38,12 @@ using namespace std;
 
 namespace nupic {
   namespace utils {
+
+    typedef std::vector<int> Pattern;
+
+    extern Pattern range(int start, int stop, int step);
+    extern Pattern range(int start, int stop);
+    extern Pattern range(int stop);
 
     class PatternMachine
     {
@@ -55,42 +61,43 @@ namespace nupic {
 
       // Number of available patterns#
       int _num;
-      vector<set<int>> _patterns;
+      vector<Pattern> _patterns;
 
       Random _random;
 
+      // Create initial patterns
       void initialize(int n, vector<int>& w, int num = 100, int seed = 42);
+
+      // Generates set of random patterns.
+      virtual void _generate();
 
       // Return a pattern for a number.
       //  @param number(int) Number of pattern
       //  @return (set)Indices of on bits
-      const set<int>& get(int number);
+      Pattern get(int number);
+
+      // Gets a value of `w` for use in generating a pattern.
+      int _getW();
 
       // Add noise to pattern.
       //  @param bits(set)   Indices of on bits
       //  @param amount(float) Probability of switching an on bit with a random bit
       //  @return (set)Indices of on bits in noisy pattern
-      set<int> addNoise(set<int> bits, Real amount);
+      Pattern addNoise(Pattern& bits, Real amount);
 
       // Return the set of pattern numbers that match a bit.
       //  @param bit(int) Index of bit
       //  @return (set)Indices of numbers
-      set<int> numbersForBit(int bit);
+      Pattern numbersForBit(int bit);
 
       // Return a map from number to matching on bits,
       // for all numbers that match a set of bits.
       //   @param bits(set) Indices of bits
       //   @return (dict)Mapping from number = > on bits.
-      vector<set<int>> numberMapForBits(set<int> bits);
+      map<int, Pattern> numberMapForBits(Pattern& bits);
 
+      string prettyPrintPattern(Pattern& bits, int verbosity = 1);
 
-      string prettyPrintPattern(set<int> bits, int verbosity = 1);
-
-      // Generates set of random patterns.
-      virtual void _generate();
-
-      // Gets a value of `w` for use in generating a pattern.
-      int _getW();
     };
 
     class ConsecutivePatternMachine : public PatternMachine
@@ -99,6 +106,7 @@ namespace nupic {
       // Pattern machine class that generates patterns with 
       // non-overlapping, consecutive on bits.
       void _generate();
+
     };
 
   } // end namespace utils

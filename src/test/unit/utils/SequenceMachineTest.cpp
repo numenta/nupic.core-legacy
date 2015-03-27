@@ -21,256 +21,105 @@
  */
 
 /** @file
- * Implementation of Watcher test
+ * Implementation of Sequence Machine test
  */
 
 #include <string>
 #include <sstream>
 #include <exception>
-
-#include <nupic/engine/Network.hpp>
-#include <nupic/engine/NuPIC.hpp>
-#include <nupic/engine/Region.hpp>
-#include <nupic/ntypes/Dimensions.hpp>
-#include <nupic/os/FStream.hpp>
-#include <nupic/os/Path.hpp>
-
-#include <nupic/ntypes/ArrayBase.hpp>
-
-#include <nupic/utils/SequenceMachine.hpp>
+#include <vector>
+#include <iterator>
+#include <functional>
 
 #include "SequenceMachineTest.hpp"
 
 using namespace nupic;
 
-/*
-void WatcherTest::RunTests()
+SequenceMachineTest::SequenceMachineTest()
 {
-  //generate sample network
-  Network n;
-  n.addRegion("level1", "TestNode", "");
-  n.addRegion("level2", "TestNode", "");
-  n.addRegion("level3", "TestNode", "");
-  Dimensions d;
-  d.push_back(8);
-  d.push_back(4);
-  n.getRegions().getByName("level1")->setDimensions(d);
-  n.link("level1", "level2", "TestFanIn2", "");
-  n.link("level2", "level3", "TestFanIn2", "");
-  n.initialize();
+  _patternMachine = ConsecutivePatternMachine();
+  _patternMachine.initialize(100, vector<int>{ 5 });
 
-  //erase any previous contents of testfile
-  OFStream o("testfile");
-  o.close();
-  
-  //test creation
-  Watcher w("testfile");
+  _sequenceMachine = SequenceMachine(_patternMachine);
 
-  //test uint32Params
-  unsigned int id1 = w.watchParam("level1", "uint32Param");
-  TESTEQUAL(id1, (unsigned int)1);
-  //test uint64Params
-  unsigned int id2 = w.watchParam("level1", "uint64Param");
-  TESTEQUAL(id2, (unsigned int)2);
-  //test int32Params
-  w.watchParam("level1", "int32Param");
-  //test int64Params
-  w.watchParam("level1", "int64Param");
-  //test real32Params
-  w.watchParam("level1", "real32Param");
-  //test real64Params
-  w.watchParam("level1", "real64Param");
-  //test stringParams
-  w.watchParam("level1", "stringParam");
-  //test unclonedParams
-  w.watchParam("level1", "unclonedParam", 0);
-  w.watchParam("level1", "unclonedParam", 1);
-  
-  //test attachToNetwork()
-  w.attachToNetwork(n);
-
-  //test two simultaneous Watchers on the same network with different files
-  Watcher* w2 = new Watcher("testfile2");
-
-  //test int64ArrayParam
-  w2->watchParam("level1", "int64ArrayParam");
-  //test real32ArrayParam
-  w2->watchParam("level1", "real32ArrayParam");
-  //test output
-  w2->watchOutput("level1", "bottomUpOut");
-  //test int64ArrayParam, sparse = false
-  w2->watchParam("level1", "int64ArrayParam", -1, false);
-
-  w2->attachToNetwork(n);
-
-  //set one of the uncloned parameters to 1 instead of 0
-  //n.getRegions().getByName("level1")->getNodeAtIndex(1).setParameterUInt32("unclonedParam", (UInt32)1);
-  //n.run(3);
-  //see if Watcher notices change in parameter values after 3 iterations
-  n.getRegions().getByName("level1")->setParameterUInt64("uint64Param", (UInt64)66);
-  n.run(3);
-
-  //test flushFile() - this should produce output
-  w.flushFile();
-
-  //test closeFile()
-  w.closeFile();
-
-  //test to make sure data is flushed when Watcher is deleted
-  delete w2;
-  
-  //test file output
-  IFStream inStream("testfile");
-  std::string tempString;
-  if (inStream.is_open())
-  {
-    getline(inStream, tempString);
-    TESTEQUAL("Info: watchID, regionName, nodeType, nodeIndex, varName", tempString);
-    getline(inStream, tempString);
-    TESTEQUAL("1, level1, TestNode, -1, uint32Param", tempString);
-    getline(inStream, tempString);
-    TESTEQUAL("2, level1, TestNode, -1, uint64Param", tempString);
-    getline(inStream, tempString);
-    TESTEQUAL("3, level1, TestNode, -1, int32Param", tempString);
-    getline(inStream, tempString);
-    TESTEQUAL("4, level1, TestNode, -1, int64Param", tempString);
-    getline(inStream, tempString);
-    TESTEQUAL("5, level1, TestNode, -1, real32Param", tempString);
-    getline(inStream, tempString);
-    TESTEQUAL("6, level1, TestNode, -1, real64Param", tempString);
-    getline(inStream, tempString);
-    TESTEQUAL("7, level1, TestNode, -1, stringParam", tempString);
-    getline(inStream, tempString);
-    TESTEQUAL("8, level1, TestNode, 0, unclonedParam", tempString);
-    getline(inStream, tempString);
-    TESTEQUAL("9, level1, TestNode, 1, unclonedParam", tempString);
-    getline(inStream, tempString);
-    TESTEQUAL("Data: watchID, iteration, paramValue", tempString);
-    
-    unsigned int i = 1;
-    while (! inStream.eof() )
-    {
-      std::stringstream stream;
-      std::string value;
-      getline(inStream, tempString);
-      if (tempString.size() == 0)
-      {
-        break;
-      }
-      switch (tempString.at(0))
-      {
-      case '1':
-        stream << "1, " << i << ", 33";
-        break;
-      case '2':
-        stream << "2, " << i;
-        if (i < 4)
-        {
-          stream << ", 66";
-        }
-        else
-        {
-          stream << ", 65";
-        }
-        break;
-      case '3':
-        stream << "3, " << i << ", 32";
-        break;
-      case '4':
-        stream << "4, " << i << ", 64";
-        break;
-      case '5':
-        stream << "5, " << i << ", 32.1";
-        break;
-      case '6':
-        stream << "6, " << i << ", 64.1";
-        break;
-      case '7':
-        stream << "7, " << i << ", nodespec value";
-        break;
-      case '8':
-        stream << "8, " << i << ", ";
-        break;
-      case '9':
-        stream << "9, " << i << ", ";
-        i++;
-        break;
-      }
-    
-      value = stream.str();
-      TESTEQUAL(value, tempString);
-    }
-    inStream.close();
-  }
-
-  
-  
-  Path::remove("testfile");
-
-  IFStream inStream2("testfile2");
-  if (inStream2.is_open())
-  {
-    getline(inStream2, tempString);
-    TESTEQUAL("Info: watchID, regionName, nodeType, nodeIndex, varName", tempString);
-    getline(inStream2, tempString);
-    TESTEQUAL("1, level1, TestNode, -1, int64ArrayParam", tempString);
-    getline(inStream2, tempString);
-    TESTEQUAL("2, level1, TestNode, -1, real32ArrayParam", tempString);
-    getline(inStream2, tempString);
-    TESTEQUAL("3, level1, TestNode, -1, bottomUpOut", tempString);
-    getline(inStream2, tempString);
-    TESTEQUAL("4, level1, TestNode, -1, int64ArrayParam", tempString);
-    getline(inStream2, tempString);
-    TESTEQUAL("Data: watchID, iteration, paramValue", tempString);
-    
-    unsigned int i = 1;
-    while (! inStream2.eof() )
-    {
-      std::stringstream stream;
-      std::string value;
-      getline(inStream2, tempString);
-      if (tempString.size() == 0)
-      {
-        break;
-      }
-      switch (tempString.at(0))
-      {
-      case '1':
-        stream << "1, " << i << ", 4 1 2 3";
-        break;
-      case '2':
-        stream << "2, " << i << ", 8 1 2 3 4 5 6 7";
-        break;
-      case '3':
-        stream << "3, " << i << ", 64";
-        if (i == 1)
-        {
-          for (unsigned int j = 3; j < 64; j+=2)
-          {
-            stream << " " << j;
-          }
-        }
-        else
-        {
-          stream << " 0";
-          for (unsigned int j = 2; j < 64; j++)
-          {
-            stream << " " << j;
-          }
-        }
-        break;
-      case '4':
-        stream << "4, " << i << ", 4 0 64 128 192";
-        i++;
-        break;
-      }
-      
-      value = stream.str();
-      TESTEQUAL(value, tempString);
-    }
-  }
-  inStream2.close();
-        
-  Path::remove("testfile2");
 }
-*/
+
+void SequenceMachineTest::RunTests()
+{
+  testGenerateFromNumbers();
+  testAddSpatialNoise();
+  testGenerateNumbers();
+  testGenerateNumbersMultipleSequences();
+  testGenerateNumbersWithShared();
+}
+
+void SequenceMachineTest::testGenerateFromNumbers()
+{
+  vector<int> numbers, range0, range1, range2;
+  range0 = range(0, 10);
+  range1 = vector<int>{ -1 };
+  range2 = range(10, 19);
+  
+  numbers.insert(numbers.end(), range0.begin(), range0.end());
+  numbers.insert(numbers.end(), range1.begin(), range1.end());
+  numbers.insert(numbers.end(), range2.begin(), range2.end());
+
+  vector<int> sequence = _sequenceMachine.generateFromNumbers(numbers);
+
+//  self.assertEqual(len(sequence), 20)
+//  self.assertEqual(sequence[0], self.patternMachine.get(0))
+//  self.assertEqual(sequence[10], None)
+//  self.assertEqual(sequence[11], self.patternMachine.get(10))
+}
+
+void SequenceMachineTest::testAddSpatialNoise()
+{
+  /*
+    patternMachine = PatternMachine(10000, 1000, num = 100)
+    sequenceMachine = SequenceMachine(patternMachine)
+    numbers = range(0, 100)
+    numbers.append(None)
+
+    sequence = sequenceMachine.generateFromNumbers(numbers)
+    noisy = sequenceMachine.addSpatialNoise(sequence, 0.5)
+
+    overlap = len(noisy[0] & patternMachine.get(0))
+    self.assertTrue(400 < overlap < 600)
+
+    sequence = sequenceMachine.generateFromNumbers(numbers)
+    noisy = sequenceMachine.addSpatialNoise(sequence, 0.0)
+
+    overlap = len(noisy[0] & patternMachine.get(0))
+    self.assertEqual(overlap, 1000)
+  */
+}
+
+void SequenceMachineTest::testGenerateNumbers()
+{
+//  numbers = self.sequenceMachine.generateNumbers(1, 100)
+//  self.assertEqual(numbers[-1], None)
+//  self.assertEqual(len(numbers), 101)
+//  self.assertFalse(numbers[:-1] == range(0, 100))
+//  self.assertEqual(sorted(numbers[:-1]), range(0, 100))
+}
+
+void SequenceMachineTest::testGenerateNumbersMultipleSequences()
+{
+  //  numbers = self.sequenceMachine.generateNumbers(3, 100)
+  //  self.assertEqual(len(numbers), 303)
+
+  //  self.assertEqual(sorted(numbers[0:100]), range(0, 100))
+  //  self.assertEqual(sorted(numbers[101:201]), range(100, 200))
+  //  self.assertEqual(sorted(numbers[202:302]), range(200, 300))
+}
+
+void SequenceMachineTest::testGenerateNumbersWithShared()
+{
+  //  numbers = self.sequenceMachine.generateNumbers(3, 100, (20, 35))
+  //  self.assertEqual(len(numbers), 303)
+
+  //  shared = range(300, 315)
+  //  self.assertEqual(numbers[20:35], shared)
+  //  self.assertEqual(numbers[20 + 101:35 + 101], shared)
+  //  self.assertEqual(numbers[20 + 202:35 + 202], shared)
+}
