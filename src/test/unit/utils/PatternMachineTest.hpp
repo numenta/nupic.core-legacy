@@ -46,6 +46,7 @@ namespace nupic
     bool check_pattern_eq(Pattern& p1, Pattern& p2);
     Pattern get_pattern_diffs(Pattern& p1, Pattern& p2);
     Pattern get_pattern_union(Pattern& p1, Pattern& p2);
+    Pattern get_pattern_intersections(Pattern& p1, Pattern& p2);
 
     void testRange();
     void testGet();

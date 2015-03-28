@@ -109,7 +109,6 @@ void DirectoryTest::RunTests()
     TEST(!Path::exists(p));
   }
 
-
   // Test copyTree
   {
     std::string p = Path::makeAbsolute(std::string("someDir"));
@@ -122,8 +121,6 @@ void DirectoryTest::RunTests()
 
     Directory::create(a, false, true /* recursive */);
     TEST(Path::exists(a));
-
-
 
     Directory::create(b);
     TEST(Path::exists(b));

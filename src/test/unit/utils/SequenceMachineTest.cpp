@@ -35,6 +35,62 @@
 
 using namespace nupic;
 
+bool SequenceMachineTest::check_pattern_eq(Pattern& p1, Pattern& p2)
+{
+  for (UInt i = 0; i < p1.size(); i++) {
+    if (p1[i] != p2[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+Pattern SequenceMachineTest::get_pattern_diffs(Pattern& p1, Pattern& p2)
+{
+  vector<int> s1 = p1, s2 = p2;
+  vector<int> diffs;
+
+  // For the set_symmetric_difference algorithm to work, the source ranges must be ordered!    
+  sort(s1.begin(), s1.end());
+  sort(s2.begin(), s2.end());
+
+  // Now that we have sorted ranges (i.e., containers), find the differences    
+  set_symmetric_difference(s1.begin(), s1.end(), s2.begin(), s2.end(), back_inserter(diffs));
+
+  return diffs;
+}
+
+Pattern SequenceMachineTest::get_pattern_intersections(Pattern& p1, Pattern& p2)
+{
+  vector<int> s1 = p1, s2 = p2;
+  vector<int> diffs;
+
+  // For the set_symmetric_difference algorithm to work, the source ranges must be ordered!    
+  sort(s1.begin(), s1.end());
+  sort(s2.begin(), s2.end());
+
+  // Now that we have sorted ranges (i.e., containers), find the differences    
+  set_intersection(s1.begin(), s1.end(), s2.begin(), s2.end(), back_inserter(diffs));
+
+  return diffs;
+}
+
+Pattern SequenceMachineTest::get_pattern_union(Pattern& p1, Pattern& p2)
+{
+  vector<int> s1(p1), s2(p2);
+  vector<int> combined;
+  std::vector<int>::iterator it;
+
+  sort(s1.begin(), s1.end());
+  sort(s2.begin(), s2.end());
+
+  combined.resize(s1.size()+s2.size());
+  it = std::set_union(s1.begin(), s1.end(), s2.begin(), s2.end(), combined.begin());
+  combined.resize(it - combined.begin());
+
+  return combined;
+}
+
 SequenceMachineTest::SequenceMachineTest()
 {
   _patternMachine = ConsecutivePatternMachine();
@@ -51,6 +107,7 @@ void SequenceMachineTest::RunTests()
   testGenerateNumbers();
   testGenerateNumbersMultipleSequences();
   testGenerateNumbersWithShared();
+
 }
 
 void SequenceMachineTest::testGenerateFromNumbers()
@@ -64,62 +121,70 @@ void SequenceMachineTest::testGenerateFromNumbers()
   numbers.insert(numbers.end(), range1.begin(), range1.end());
   numbers.insert(numbers.end(), range2.begin(), range2.end());
 
-  vector<int> sequence = _sequenceMachine.generateFromNumbers(numbers);
+  Sequence sequence = _sequenceMachine.generateFromNumbers(numbers);
 
-//  self.assertEqual(len(sequence), 20)
-//  self.assertEqual(sequence[0], self.patternMachine.get(0))
-//  self.assertEqual(sequence[10], None)
-//  self.assertEqual(sequence[11], self.patternMachine.get(10))
+  NTA_CHECK(sequence.size() == 20);
+  NTA_CHECK(check_pattern_eq(sequence[0], _patternMachine.get(0)));
+  NTA_CHECK(check_pattern_eq(sequence[10], Pattern{ -1 }));
+  NTA_CHECK(check_pattern_eq(sequence[11], _patternMachine.get(10)));
+
 }
 
 void SequenceMachineTest::testAddSpatialNoise()
 {
-  /*
-    patternMachine = PatternMachine(10000, 1000, num = 100)
-    sequenceMachine = SequenceMachine(patternMachine)
-    numbers = range(0, 100)
-    numbers.append(None)
+  PatternMachine patternMachine;
+  patternMachine.initialize(10000, vector<int>{ 1000 });
 
-    sequence = sequenceMachine.generateFromNumbers(numbers)
-    noisy = sequenceMachine.addSpatialNoise(sequence, 0.5)
+  SequenceMachine sequenceMachine = SequenceMachine(patternMachine);
 
-    overlap = len(noisy[0] & patternMachine.get(0))
-    self.assertTrue(400 < overlap < 600)
+  Pattern overlap, numbers = range(0, 100);
 
-    sequence = sequenceMachine.generateFromNumbers(numbers)
-    noisy = sequenceMachine.addSpatialNoise(sequence, 0.0)
+  Sequence sequence = sequenceMachine.generateFromNumbers(numbers);
+  Sequence noisy = sequenceMachine.addSpatialNoise(sequence, 0.5);
 
-    overlap = len(noisy[0] & patternMachine.get(0))
-    self.assertEqual(overlap, 1000)
-  */
+  overlap = get_pattern_intersections(noisy[0], patternMachine.get(0));
+  NTA_CHECK((400 < overlap.size()) && (overlap.size() < 600));
+
+  sequence = sequenceMachine.generateFromNumbers(numbers);
+  noisy = sequenceMachine.addSpatialNoise(sequence, 0.0);
+
+  overlap = get_pattern_intersections(noisy[0], patternMachine.get(0));
+  NTA_CHECK((overlap.size() == 1000));
+
 }
 
 void SequenceMachineTest::testGenerateNumbers()
 {
-//  numbers = self.sequenceMachine.generateNumbers(1, 100)
-//  self.assertEqual(numbers[-1], None)
-//  self.assertEqual(len(numbers), 101)
-//  self.assertFalse(numbers[:-1] == range(0, 100))
-//  self.assertEqual(sorted(numbers[:-1]), range(0, 100))
+  Sequence numbers = _sequenceMachine.generateNumbers(1, 100);
+  Pattern p = range(0, 100);
+  NTA_CHECK(check_pattern_eq(numbers[0], p) == false);
+  sort(numbers[0].begin(), numbers[0].end());
+  NTA_CHECK(check_pattern_eq(numbers[0], p));
 }
 
 void SequenceMachineTest::testGenerateNumbersMultipleSequences()
 {
-  //  numbers = self.sequenceMachine.generateNumbers(3, 100)
-  //  self.assertEqual(len(numbers), 303)
+  Sequence numbers = _sequenceMachine.generateNumbers(3, 100);
+  Pattern p;
 
-  //  self.assertEqual(sorted(numbers[0:100]), range(0, 100))
-  //  self.assertEqual(sorted(numbers[101:201]), range(100, 200))
-  //  self.assertEqual(sorted(numbers[202:302]), range(200, 300))
+  p = range(0, 100);
+  sort(numbers[0].begin(), numbers[0].end());
+  NTA_CHECK(check_pattern_eq(numbers[0], p));
+
+  p = range(100, 200);
+  sort(numbers[1].begin(), numbers[1].end());
+  NTA_CHECK(check_pattern_eq(numbers[1], p));
+
+  p = range(200, 300);
+  sort(numbers[2].begin(), numbers[2].end());
+  NTA_CHECK(check_pattern_eq(numbers[2], p));
 }
 
 void SequenceMachineTest::testGenerateNumbersWithShared()
 {
-  //  numbers = self.sequenceMachine.generateNumbers(3, 100, (20, 35))
-  //  self.assertEqual(len(numbers), 303)
-
-  //  shared = range(300, 315)
-  //  self.assertEqual(numbers[20:35], shared)
-  //  self.assertEqual(numbers[20 + 101:35 + 101], shared)
-  //  self.assertEqual(numbers[20 + 202:35 + 202], shared)
+  Sequence numbers = _sequenceMachine.generateNumbers(3, 100, { 20, 35 });
+  Pattern shared = range(300, 315);
+  NTA_CHECK(check_pattern_eq(Pattern(numbers[0].begin() + 20, numbers[0].begin() + 35), shared));
+  NTA_CHECK(check_pattern_eq(Pattern(numbers[1].begin() + 20, numbers[1].begin() + 35), shared));
+  NTA_CHECK(check_pattern_eq(Pattern(numbers[2].begin() + 20, numbers[2].begin() + 35), shared));
 }

@@ -52,56 +52,49 @@ SequenceMachine::SequenceMachine(PatternMachine& patternMachine, int seed)
 // @param sequenceLength(int)   Length of each sequence
 // @param sharedRange(tuple) (start index, end index) indicating range of shared subsequence in each sequence(None if no shared subsequences)
 // @return (list)Numbers representing sequences
-vector<int> SequenceMachine::generateNumbers(int numSequences, int sequenceLength, pair<int, int>sharedRange)
+Sequence SequenceMachine::generateNumbers(int numSequences, int sequenceLength, pair<int, int>sharedRange)
 {
-  vector<int> numbers, sharedNumbers;
-/*
+  Sequence numbers;
+  Pattern sharedNumbers;
+
   if (sharedRange.first >= 0)
   {
     int sharedLength = sharedRange.second - sharedRange.first;
-    //sharedNumbers = range(numSequences * sequenceLength, numSequences * sequenceLength + sharedLength);
-    boost::copy(
-      boost::counting_range(numSequences * sequenceLength, numSequences * sequenceLength + sharedLength),
-      sharedNumbers);
+    sharedNumbers = range(numSequences * sequenceLength, numSequences * sequenceLength + sharedLength);
   }
 
-  for (int i : xrange(numSequences))
+  Pattern sequenceRange = range(numSequences);
+  for (int i : sequenceRange)
   {
     int start = i * sequenceLength;
 
-    vector<int> newNumbers;
-    boost::copy(boost::counting_range(start, start + sequenceLength), newNumbers.end());
+    Pattern newNumbers = range(start, start + sequenceLength);
 
-    _random.shuffle(newNumbers);
+    _random.shuffle(newNumbers.begin(), newNumbers.end());
 
-    if (sharedRange.size() > 0)
-      //newNumbers[sharedStart:sharedEnd] = sharedNumbers;
-      boost::copy(newNumbers.begin() + sharedStart, sharedNumbers);
+    if (sharedRange.first >= 0)
+      newNumbers.insert(newNumbers.begin() + sharedRange.first, sharedNumbers.begin(), sharedNumbers.end());
 
-    numbers += newNumbers;
-    numbers.push_back(-1);
+    numbers.push_back(newNumbers);
   }
-*/
+
   return numbers;
 }
 
 // Generate a sequence from a list of numbers.
-// Note : Any `None` in the list of numbers is considered a reset.
+// Note : Any -1 in the list of numbers is considered a reset.
 //  @param numbers(list) List of numbers
 //  @return (list)Generated sequence
-vector<int> SequenceMachine::generateFromNumbers(vector<int>& numbers)
+Sequence SequenceMachine::generateFromNumbers(vector<int>& numbers)
 {
-  vector<int> sequence;
+  Sequence sequence;
 
   for (int number : numbers)
   {
     if (number < 0)
-      sequence.push_back(number);
+      sequence.push_back( { -1 } );
     else
-    {
-      Pattern& pattern = _patternMachine.get(number);
-      sequence.insert(sequence.end(), pattern.begin(), pattern.end());
-    }
+      sequence.push_back(_patternMachine.get(number));
   }
 
   return sequence;
@@ -111,18 +104,17 @@ vector<int> SequenceMachine::generateFromNumbers(vector<int>& numbers)
 //  @param sequence(list)  Sequence
 //  @param amount(float) Amount of spatial noise
 //  @return (list)Sequence with spatial noise
-vector<int> SequenceMachine::addSpatialNoise(vector<int>& sequence, Real amount)
+Sequence SequenceMachine::addSpatialNoise(Sequence& sequence, Real amount)
 {
-  vector<int> newSequence;
-/*
+  Sequence newSequence;
+
   for (auto pattern : sequence)
   {
-    if (pattern is not None)
-      pattern = _patternMachine.addNoise(pattern, amount);
+    Pattern noise = _patternMachine.addNoise(pattern, amount);
 
-    newSequence.append(pattern);
+    newSequence.push_back(noise);
   }
-*/
+
   return newSequence;
 }
 
@@ -130,7 +122,7 @@ vector<int> SequenceMachine::addSpatialNoise(vector<int>& sequence, Real amount)
 //  @param sequence(list) Sequence
 //  @param verbosity(int)  Verbosity level
 //  @return (string)Pretty - printed text
-string SequenceMachine::prettyPrintSequence(vector<int>& sequence, int verbosity)
+string SequenceMachine::prettyPrintSequence(Sequence& sequence, int verbosity)
 {
   string text = "";
 /*

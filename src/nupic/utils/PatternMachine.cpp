@@ -36,15 +36,11 @@ using namespace nupic;
 using namespace nupic::utils;
 
 // Return a pattern for a given integer range.
-//range(stop)
-//range(start, stop[, step])
-//This is a versatile function to create lists containing arithmetic progressions.
-// It is most often used in for loops. The arguments must be plain integers.
 // If the step argument is omitted, it defaults to 1. 
 // If the start argument is omitted, it defaults to 0. 
 // The full form returns a list of plain integers [start, start + step, start + 2 * step, ...].
 // If step is positive, the last element is the largest start + i * step less than stop; 
-//  if step is negative, the last element is the smallest start + i * step greater than stop.
+// if step is negative, the last element is the smallest start + i * step greater than stop.
 // step must not be zero (or else ValueError is raised).
 Pattern nupic::utils::range(int start, int stop, int step)
 {
@@ -80,7 +76,6 @@ Pattern nupic::utils::range(int stop)
   return utils::range(0, stop, 1);
 }
 
-
 void PatternMachine::initialize(int n, vector<int>& w, int num, int seed)
 {
   // Save member variables
@@ -106,6 +101,42 @@ Pattern PatternMachine::get(int number)
   return _patterns[number];
 }
 
+// Generates set of random patterns.
+void PatternMachine::_generate()
+{
+  Pattern candidates = range(0, _n, 1);
+
+  _patterns.resize(_num);
+
+  Pattern xrange = range(_num);
+  for (int i : xrange)
+  {
+    _random.shuffle(candidates.begin(), candidates.end());
+
+    Pattern pattern;
+    int w = _getW();
+
+    pattern.resize(w);
+    std::copy(candidates.begin(), candidates.begin() + w, pattern.begin());
+
+    _patterns[i] = pattern;
+  }
+}
+
+// Gets a value of `w` for use in generating a pattern.
+int PatternMachine::_getW()
+{
+  vector<int> w = _w;
+
+  if (w.size() > 1)
+    return w[_random.getUInt32(w.size())];
+  else
+    if (w.size() == 1)
+      return w[0];
+
+  return -1;
+}
+
 // Add noise to pattern.
 //  @param bits(set)   Indices of on bits
 //  @param amount(float) Probability of switching an on bit with a random bit
@@ -124,7 +155,6 @@ Pattern PatternMachine::addNoise(Pattern& bits, Real amount)
 
   return newBits;
 }
-
 
 // Return the set of pattern numbers that match a bit.
 //  @param bit(int) Index of bit
@@ -170,7 +200,6 @@ std::map<int, Pattern> PatternMachine::numberMapForBits(Pattern& bits)
   return numberMap;
 }
 
-
 string PatternMachine::prettyPrintPattern(Pattern& bits, int verbosity)
 {
   string text = "";
@@ -205,42 +234,6 @@ string PatternMachine::prettyPrintPattern(Pattern& bits, int verbosity)
 
   */
   return text;
-}
-
-// Generates set of random patterns.
-void PatternMachine::_generate()
-{
-  Pattern candidates = range(0, _n, 1);
-
-  _patterns.resize(_num);
-
-  Pattern xrange = range(_num);
-  for (int i : xrange)
-  {
-    _random.shuffle(candidates.begin(), candidates.end());
-    
-    Pattern pattern;
-    int w = _getW();
-
-    pattern.resize(w);
-    std::copy(candidates.begin(), candidates.begin()+w, pattern.begin());
-    
-    _patterns[i] = pattern;
-  }
-}
-
-// Gets a value of `w` for use in generating a pattern.
-int PatternMachine::_getW()
-{
-  vector<int> w = _w;
-
-  if (w.size() > 1)
-    return w[_random.getUInt32(w.size())];
-  else
-    if (w.size() == 1)
-      return w[0];
-
-  return -1;
 }
 
 // Pattern machine class that generates patterns with 

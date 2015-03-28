@@ -66,15 +66,27 @@ bool PatternMachineTest::check_pattern_eq(Pattern& p1, Pattern& p2)
 
 Pattern PatternMachineTest::get_pattern_diffs(Pattern& p1, Pattern& p2)
 {
-  set<int> s1, s2;
+  vector<int> s1 = p1, s2 = p2;
   vector<int> diffs;
 
-  s1.insert(p1.begin(), p1.end());
-  s2.insert(p2.begin(), p2.end());
+  // For the set_symmetric_difference algorithm to work, the source ranges must be ordered!    
+  sort(s1.begin(), s1.end());
+  sort(s2.begin(), s2.end());
+
+  // Now that we have sorted ranges (i.e., containers), find the differences    
+  set_symmetric_difference(s1.begin(), s1.end(), s2.begin(), s2.end(), back_inserter(diffs));
+
+  return diffs;
+}
+
+Pattern PatternMachineTest::get_pattern_intersections(Pattern& p1, Pattern& p2)
+{
+  vector<int> s1 = p1, s2 = p2;
+  vector<int> diffs;
 
   // For the set_symmetric_difference algorithm to work, the source ranges must be ordered!    
-  //sort(s1.begin(), s1.end());
-  //sort(s2.begin(), s2.end());
+  sort(s1.begin(), s1.end());
+  sort(s2.begin(), s2.end());
 
   // Now that we have sorted ranges (i.e., containers), find the differences    
   set_symmetric_difference(s1.begin(), s1.end(), s2.begin(), s2.end(), back_inserter(diffs));
@@ -90,8 +102,8 @@ Pattern PatternMachineTest::get_pattern_union(Pattern& p1, Pattern& p2)
 
   sort(s1.begin(), s1.end());
   sort(s2.begin(), s2.end());
-  combined.resize(s1.size());
 
+  combined.resize(s1.size() + s2.size());
   it = std::set_union(s1.begin(), s1.end(), s2.begin(), s2.end(), combined.begin());
   combined.resize(it - combined.begin());
 
@@ -152,19 +164,21 @@ void PatternMachineTest::testAddNoise()
   PatternMachine patternMachine = PatternMachine();
   patternMachine.initialize(10000, vector<int>{ 1000 }, 1);
 
-  Pattern diffs, noisy, pattern = patternMachine.get(0);
+  Pattern diffs, noisy, pattern;
+
+  pattern = patternMachine.get(0);
 
   noisy = patternMachine.addNoise(pattern, 0.0);
-  diffs = get_pattern_diffs(pattern, noisy);
+  diffs = get_pattern_intersections(pattern, noisy);
   NTA_CHECK((diffs.size() == 0));
 
   noisy = patternMachine.addNoise(pattern, 0.5);
-  diffs = get_pattern_diffs(pattern, noisy);
-//  NTA_CHECK((400 < diffs.size()) && (diffs.size() < 600));
+  diffs = get_pattern_intersections(pattern, noisy);
+  NTA_CHECK(diffs.size() > 500);
 
   noisy = patternMachine.addNoise(pattern, 1.0);
-  diffs = get_pattern_diffs(pattern, noisy);
-//  NTA_CHECK((50 < diffs.size()) && (diffs.size() < 150));
+  diffs = get_pattern_intersections(pattern, noisy);
+  NTA_CHECK(diffs.size() > 750);
 }
 
 void PatternMachineTest::testNumbersForBit()
