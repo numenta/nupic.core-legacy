@@ -31,6 +31,7 @@
 #include <string>
 #include <vector>
 
+#include <nupic/proto/BitHistory.capnp.h>
 #include <nupic/types/Types.hpp>
 
 using namespace std;
@@ -103,6 +104,16 @@ namespace nupic
            * Load state from istream.
            */
           void load(istream& inStream);
+
+          /**
+           * Save the state to the builder.
+           */
+          void write(BitHistoryProto::Builder& builder) const;
+
+          /**
+           * Load state from reader.
+           */
+          void read(BitHistoryProto::Reader& proto);
 
           /**
            * Check if the other instance matches this one.

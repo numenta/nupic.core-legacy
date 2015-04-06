@@ -34,6 +34,7 @@
 #include <vector>
 
 #include <nupic/algorithms/BitHistory.hpp>
+#include <nupic/proto/ClaClassifier.capnp.h>
 #include <nupic/types/Types.hpp>
 
 using namespace std;
@@ -131,6 +132,16 @@ namespace nupic
            * Load state from istream.
            */
           void load(istream& inStream);
+
+          /**
+           * Save the state to the builder.
+           */
+          void write(ClaClassifierProto::Builder& proto) const;
+
+          /**
+           * Load state from reader.
+           */
+          void read(ClaClassifierProto::Reader& proto);
 
           /**
            * Compare the other instance to this one.

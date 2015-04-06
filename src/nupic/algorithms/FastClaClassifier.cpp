@@ -32,6 +32,7 @@
 #include <nupic/algorithms/BitHistory.hpp>
 #include <nupic/algorithms/ClassifierResult.hpp>
 #include <nupic/algorithms/FastClaClassifier.hpp>
+#include <nupic/proto/ClaClassifier.capnp.h>
 #include <nupic/types/Types.hpp>
 #include <nupic/utils/Log.hpp>
 
@@ -435,6 +436,168 @@ namespace nupic
 
         // Update the version number.
         version_ = Version;
+      }
+
+      void FastCLAClassifier::write(ClaClassifierProto::Builder& proto) const
+      {
+        auto stepsProto = proto.initSteps(steps_.size());
+        for (UInt i = 0; i < steps_.size(); i++)
+        {
+          stepsProto.set(i, steps_[i]);
+        }
+
+        proto.setAlpha(alpha_);
+        proto.setActValueAlpha(actValueAlpha_);
+        proto.setLearnIteration(learnIteration_);
+        proto.setRecordNumMinusLearnIteration(recordNumMinusLearnIteration_);
+        proto.setRecordNumMinusLearnIterationSet(
+            recordNumMinusLearnIterationSet_);
+        proto.setMaxSteps(maxSteps_);
+
+        auto patternNZHistoryProto =
+          proto.initPatternNZHistory(patternNZHistory_.size());
+        for (UInt i = 0; i < patternNZHistory_.size(); i++)
+        {
+          const auto & pattern = *patternNZHistory_[i];
+          auto patternProto = patternNZHistoryProto.init(i, pattern.size());
+          for (UInt j = 0; j < pattern.size(); j++)
+          {
+            patternProto.set(j, pattern[j]);
+          }
+        }
+
+        auto iterationNumHistoryProto =
+          proto.initIterationNumHistory(iterationNumHistory_.size());
+        for (UInt i = 0; i < iterationNumHistory_.size(); i++)
+        {
+          iterationNumHistoryProto.set(i, iterationNumHistory_[i]);
+        }
+
+        auto activeBitHistoryProtos =
+          proto.initActiveBitHistory(activeBitHistory_.size());
+        UInt i = 0;
+        for (const auto & stepBitHistory : activeBitHistory_)
+        {
+          auto stepBitHistoryProto = activeBitHistoryProtos[i];
+          stepBitHistoryProto.setSteps(stepBitHistory.first);
+          auto indexBitHistoryListProto =
+            stepBitHistoryProto.initBitHistories(stepBitHistory.second->size());
+          UInt j = 0;
+          for (const auto & indexBitHistory : *stepBitHistory.second)
+          {
+            auto indexBitHistoryProto = indexBitHistoryListProto[j];
+            indexBitHistoryProto.setIndex(indexBitHistory.first);
+            auto bitHistoryProto = indexBitHistoryProto.initHistory();
+            indexBitHistory.second->write(bitHistoryProto);
+            j++;
+          }
+          i++;
+        }
+
+        proto.setMaxBucketIdx(maxBucketIdx_);
+
+        auto actualValuesProto = proto.initActualValues(actualValues_.size());
+        for (UInt i = 0; i < actualValues_.size(); i++)
+        {
+          actualValuesProto.set(i, actualValues_[i]);
+        }
+
+        auto actualValuesSetProto =
+          proto.initActualValuesSet(actualValuesSet_.size());
+        for (UInt i = 0; i < actualValuesSet_.size(); i++)
+        {
+          actualValuesSetProto.set(i, actualValuesSet_[i]);
+        }
+
+        proto.setVersion(version_);
+        proto.setVerbosity(verbosity_);
+      }
+
+      void FastCLAClassifier::read(ClaClassifierProto::Reader& proto)
+      {
+        // Clear previous steps
+        steps_.clear();
+        for (auto step : proto.getSteps())
+        {
+          steps_.push_back(step);
+        }
+
+        alpha_ = proto.getAlpha();
+        actValueAlpha_ = proto.getActValueAlpha();
+        learnIteration_ = proto.getLearnIteration();
+        recordNumMinusLearnIteration_ = proto.getRecordNumMinusLearnIteration();
+        recordNumMinusLearnIterationSet_ =
+          proto.getRecordNumMinusLearnIterationSet();
+        maxSteps_ = proto.getMaxSteps();
+
+        // Clear old history
+        for (auto innerVector : patternNZHistory_)
+        {
+          delete innerVector;
+        }
+        patternNZHistory_.clear();
+        auto patternNZHistoryProto = proto.getPatternNZHistory();
+        for (UInt i = 0; i < patternNZHistoryProto.size(); i++)
+        {
+          vector<UInt>* history =
+            new vector<UInt>(patternNZHistoryProto[i].size());
+          for (UInt j = 0; j < patternNZHistoryProto[i].size(); j++)
+          {
+            (*history)[j] = patternNZHistoryProto[i][j];
+          }
+          patternNZHistory_.push_back(history);
+        }
+
+        iterationNumHistory_.clear();
+        auto iterationNumHistoryProto = proto.getIterationNumHistory();
+        for (UInt i = 0; i < iterationNumHistoryProto.size(); i++)
+        {
+          iterationNumHistory_.push_back(iterationNumHistoryProto[i]);
+        }
+
+        auto activeBitHistoryProto = proto.getActiveBitHistory();
+        for (UInt i = 0; i < activeBitHistoryProto.size(); i++)
+        {
+          d
+        }
+        // auto activeBitHistoryProtos =
+        //   proto.initActiveBitHistory(activeBitHistory_.size());
+        // UInt i = 0;
+        // for (const auto & stepBitHistory : activeBitHistory_)
+        // {
+        //   auto stepBitHistoryProto = activeBitHistoryProtos[i];
+        //   stepBitHistoryProto.setSteps(stepBitHistory.first);
+        //   auto indexBitHistoryListProto =
+        //     stepBitHistoryProto.initBitHistories(stepBitHistory.second->size());
+        //   UInt j = 0;
+        //   for (const auto & indexBitHistory : *stepBitHistory.second)
+        //   {
+        //     auto indexBitHistoryProto = indexBitHistoryListProto[j];
+        //     indexBitHistoryProto.setIndex(indexBitHistory.first);
+        //     auto bitHistoryProto = indexBitHistoryProto.initHistory();
+        //     indexBitHistory.second->write(bitHistoryProto);
+        //     j++;
+        //   }
+        //   i++;
+        // }
+
+        // proto.setMaxBucketIdx(maxBucketIdx_);
+
+        // auto actualValuesProto = proto.initActualValues(actualValues_.size());
+        // for (UInt i = 0; i < actualValues_.size(); i++)
+        // {
+        //   actualValuesProto.set(i, actualValues_[i]);
+        // }
+
+        // auto actualValuesSetProto =
+        //   proto.initActualValuesSet(actualValuesSet_.size());
+        // for (UInt i = 0; i < actualValuesSet_.size(); i++)
+        // {
+        //   actualValuesSetProto.set(i, actualValuesSet_[i]);
+        // }
+
+        // proto.setVersion(version_);
+        // proto.setVerbosity(verbosity_);
       }
 
       bool FastCLAClassifier::operator==(const FastCLAClassifier& other) const

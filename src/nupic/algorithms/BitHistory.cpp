@@ -27,6 +27,7 @@
 #include <vector>
 
 #include <nupic/algorithms/BitHistory.hpp>
+#include <nupic/proto/BitHistory.capnp.h>
 #include <nupic/types/Types.hpp>
 #include <nupic/utils/Log.hpp>
 
@@ -171,6 +172,41 @@ namespace nupic
         // Check the termination marker.
         inStream >> marker;
         NTA_CHECK(marker == "~BitHistory");
+      }
+      void BitHistory::write(BitHistoryProto::Builder& proto) const
+      {
+        proto.setId(id_);
+
+        auto statsList = proto.initStats(stats_.size());
+        UInt i = 0;
+        for (const auto & elem : stats_)
+        {
+          auto stat = statsList[i];
+          stat.setIndex(elem.first);
+          stat.setDutyCycle(elem.second);
+          i++;
+        }
+
+        proto.setLastTotalUpdate(lastTotalUpdate_);
+        proto.setLearnIteration(learnIteration_);
+        proto.setAlpha(alpha_);
+        proto.setVerbosity(verbosity_);
+      }
+
+      void BitHistory::read(BitHistoryProto::Reader& proto)
+      {
+        id_ = proto.getId();
+
+        stats_.clear();
+        for (auto stat : proto.getStats())
+        {
+          stats_[stat.getIndex()] = stat.getDutyCycle();
+        }
+
+        lastTotalUpdate_ = proto.getLastTotalUpdate();
+        learnIteration_ = proto.getLearnIteration();
+        alpha_ = proto.getAlpha();
+        verbosity_ = proto.getVerbosity();
       }
 
       bool BitHistory::operator==(const BitHistory& other) const
