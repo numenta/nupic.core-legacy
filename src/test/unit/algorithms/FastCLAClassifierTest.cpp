@@ -24,26 +24,22 @@
  * Implementation of unit tests for NearestNeighbor
  */
 
-#include <iostream>
+#include <gtest/gtest.h>
 
 #include <nupic/algorithms/ClassifierResult.hpp>
 #include <nupic/algorithms/FastClaClassifier.hpp>
 #include <nupic/math/StlIo.hpp>
 #include <nupic/types/Types.hpp>
 #include <nupic/utils/Log.hpp>
-#include "FastCLAClassifierTest.hpp"
 
 using namespace std;
+using namespace nupic;
 using namespace nupic::algorithms::cla_classifier;
 
-namespace nupic {
+namespace
+{
 
-  void FastCLAClassifierTest::RunTests()
-  {
-    testBasic();
-  }
-
-  void FastCLAClassifierTest::testBasic()
+  TEST(FastCLAClassifierTest, Basic)
   {
     vector<UInt> steps;
     steps.push_back(1);
@@ -74,33 +70,36 @@ namespace nupic {
         if (it->first == -1)
         {
           // The -1 key is used for the actual values
-          TESTEQUAL2("already found key -1 in classifier result",
-                     false, foundMinus1);
+          ASSERT_EQ(false, foundMinus1)
+            << "already found key -1 in classifier result";
           foundMinus1 = true;
-          TESTEQUAL2("Expected five buckets since it has only seen bucket 4 "
-                     "(so it has buckets 0-4).", (long unsigned int)5, it->second->size());
-          TEST2("Incorrect actual value for bucket 4",
-                fabs(it->second->at(4) - 34.7) < 0.000001);
+          ASSERT_EQ((long unsigned int)5, it->second->size())
+            << "Expected five buckets since it has only seen bucket 4 (so it "
+            << "has buckets 0-4).";
+          ASSERT_TRUE(fabs(it->second->at(4) - 34.7) < 0.000001)
+            << "Incorrect actual value for bucket 4";
         } else if (it->first == 1) {
           // Check the one-step prediction
-          TESTEQUAL2("already found key 1 in classifier result", false, found1);
+          ASSERT_EQ(false, found1)
+            << "already found key 1 in classifier result";
           found1 = true;
-          TESTEQUAL2("expected five bucket predictions", (long unsigned int)5, it->second->size());
-          TEST2("incorrect prediction for bucket 0",
-                fabs(it->second->at(0) - 0.2) < 0.000001);
-          TEST2("incorrect prediction for bucket 1",
-                fabs(it->second->at(1) - 0.2) < 0.000001);
-          TEST2("incorrect prediction for bucket 2",
-                fabs(it->second->at(2) - 0.2) < 0.000001);
-          TEST2("incorrect prediction for bucket 3",
-                fabs(it->second->at(3) - 0.2) < 0.000001);
-          TEST2("incorrect prediction for bucket 4",
-                fabs(it->second->at(4) - 0.2) < 0.000001);
+          ASSERT_EQ((long unsigned int)5, it->second->size())
+            << "expected five bucket predictions";
+          ASSERT_LT(fabs(it->second->at(0) - 0.2), 0.000001)
+            << "incorrect prediction for bucket 0";
+          ASSERT_LT(fabs(it->second->at(1) - 0.2), 0.000001)
+            << "incorrect prediction for bucket 1";
+          ASSERT_LT(fabs(it->second->at(2) - 0.2), 0.000001)
+            << "incorrect prediction for bucket 2";
+          ASSERT_LT(fabs(it->second->at(3) - 0.2), 0.000001)
+            << "incorrect prediction for bucket 3";
+          ASSERT_LT(fabs(it->second->at(4) - 0.2), 0.000001)
+            << "incorrect prediction for bucket 4";
         }
       }
-      TESTEQUAL2("key -1 not found in classifier result", true, foundMinus1);
-      TESTEQUAL2("key 1 not found in classifier result", true, found1);
+      ASSERT_TRUE(foundMinus1) << "key -1 not found in classifier result";
+      ASSERT_TRUE(found1) << "key 1 not found in classifier result";
     }
   }
 
-} // end namespace nupic
+} // end namespace
