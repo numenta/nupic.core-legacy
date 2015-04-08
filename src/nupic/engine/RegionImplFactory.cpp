@@ -22,6 +22,10 @@
 
 
 #include <stdexcept>
+#include <vector>
+#include <string>
+#include <stdlib.h>
+
 #include <nupic/engine/RegionImplFactory.hpp>
 #include <nupic/engine/RegionImpl.hpp>
 #include <nupic/engine/Region.hpp>
@@ -43,8 +47,11 @@
 #define stringify(x)  #x
 #define expand_and_stringify(x) stringify(x)
 
+using namespace std;
+
 // Path from site-packages to packages that contain NuPIC Python regions
-const char * packages[] = { "nupic.regions", "nupic.regions.extra" };
+const char *  packages[] = {"nupic.regions", "nupic.regions.extra", nupic::Env::get("NUPIC_REGIONS_PATH").c_str(), nupic::Env::get("NUPIC_REGIONS_PATH").c_str()+*"/extra"};
+vector<string> paths;
 
 namespace nupic
 {
@@ -202,7 +209,7 @@ RegionImplFactory & RegionImplFactory::getInstance()
 
 static std::string getPackageDir(const std::string& rootDir, const std::string & package)
 {
-  
+  //this is a dummy method, remove?
   std::string p(package);
   p.replace(p.find("."), 1, "/");
   size_t pos = p.find(".");
@@ -212,25 +219,48 @@ static std::string getPackageDir(const std::string& rootDir, const std::string &
   return Path::join(rootDir, p);
 }
 
+
+static void _initRegionPaths(string rootDir) {
+  // make package strings into absolute paths
+  vector<string> v;
+  for(auto path : packages) {
+    
+    //NUPIC_REGIONS_PATH is set && is not absolute path
+    if(path != nullptr and path[0]!='/')
+      v.push_back(getPackageDir(rootDir, string(path)));
+    else if(path != nullptr and path[0]=='/')
+      v.push_back(string(path));
+  }
+  paths.clear();
+  paths.insert(paths.end(), v.begin(), v.end());
+  for(auto p : paths) {
+  cout << p << endl;
+  }
+}
+
+
 // This function creates either a NuPIC 2 or NuPIC 1 Python node 
 static RegionImpl * createPyNode(DynamicPythonLibrary * pyLib, 
                                  const std::string & nodeType,
                                  ValueMap * nodeParams,
                                  Region * region)
 {
-  for (auto package : packages)
+  _initRegionPaths(pyLib->getRootDir());
+
+  for (auto package : paths)
   {
     
     // Construct the full module path to the requested node
-    std::string fullNodeType = std::string(package) + std::string(".") +
-                               std::string(nodeType.c_str() + 3);
+    string fullNodeType = string(package) + string(".") + string(nodeType.c_str() + 3);
 
     // Check if node exists and continue if not
-    std::string nodePath = Path::join(getPackageDir(pyLib->getRootDir(), package), 
-      std::string(nodeType.c_str() + 3) + std::string(".py"));
+    string nodePath = Path::join(package, string(nodeType.c_str() + 3) + string(".py"));
 
-      if (!Path::exists(nodePath))
-        continue;
+    if (!Path::exists(nodePath)) {
+      NTA_DEBUG << "REgion path does not exist: " << nodePath;
+      continue;
+    }
+    NTA_INFO << "creating region " << nodePath << fullNodeType;
 
     void * exception = nullptr;
     void * node = pyLib->createPyNode(fullNodeType, nodeParams, region, &exception);
@@ -255,8 +285,11 @@ static RegionImpl * deserializePyNode(DynamicPythonLibrary * pyLib,
                                       BundleIO & bundle,
                                       Region * region)
 {
+  _initRegionPaths(pyLib->getRootDir());
+
+
   // We need to find the module so that we know if it is NuPIC 1 or NuPIC 2
-  for (auto package : packages)
+  for (auto package : paths)
   {
     
     // Construct the full module path to the requested node
@@ -269,7 +302,6 @@ static RegionImpl * deserializePyNode(DynamicPythonLibrary * pyLib,
 
     if (!Path::exists(nodePath))
       continue;
-
 
 
     void *exception = nullptr;
@@ -361,20 +393,20 @@ RegionImpl* RegionImplFactory::deserializeRegionImpl(const std::string nodeType,
 static Spec * getPySpec(DynamicPythonLibrary * pyLib,
                                 const std::string & nodeType)
 {
-  for (auto package : packages)
+  _initRegionPaths(pyLib->getRootDir());
+
+  for (auto package : paths)
   {
     
-
     // Construct the full module path to the requested node
     std::string fullNodeType = std::string(package) + std::string(".") + 
                                std::string(nodeType.c_str() + 3);
 
     // Check if node exists and continue if not
-    std::string nodePath = Path::join(getPackageDir(pyLib->getRootDir(), package), 
-      std::string(nodeType.c_str() + 3) + std::string(".py"));
+    std::string nodePath = Path::join(package, string(nodeType.c_str() + 3) + string(".py"));
 
-      if (!Path::exists(nodePath))
-        continue;
+    if (!Path::exists(nodePath))
+      continue;
     void * exception = nullptr;
     void * ns = pyLib->createSpec(fullNodeType, &exception);
     if (ns) {

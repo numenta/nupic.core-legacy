@@ -343,8 +343,6 @@ ADD_LIBRARY(${LIB_STATIC_NUPICCORE}
             nupic/algorithms/Connections.cpp
             nupic/algorithms/FastClaClassifier.cpp
             nupic/algorithms/FlatSpatialPooler.cpp
-            nupic/algorithms/GaborNode.cpp
-            nupic/algorithms/ImageSensorLite.cpp
             nupic/algorithms/InSynapse.cpp
             nupic/algorithms/Linear.cpp
             nupic/algorithms/OutSynapse.cpp
