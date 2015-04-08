@@ -188,9 +188,13 @@ else()
     set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} -static-libstdc++")
   endif()
 endif()
-set(COMMON_COMPILE_FLAGS "${COMMON_COMPILE_FLAGS} ${OPTIMIZATION_FLAGS_CC}")
-set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} ${OPTIMIZATION_FLAGS_LT}")
-
+if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+  set(COMMON_COMPILE_FLAGS "${COMMON_COMPILE_FLAGS} -Og -g")
+  set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} -O0")
+else()
+  set(COMMON_COMPILE_FLAGS "${COMMON_COMPILE_FLAGS} ${OPTIMIZATION_FLAGS_CC}")
+  set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} ${OPTIMIZATION_FLAGS_LT}")
+endif()
 
 #
 # Let CMake know where all of the external files are.
@@ -457,6 +461,17 @@ set_target_properties(${EXECUTABLE_PROTOTEST}
 add_dependencies(${EXECUTABLE_PROTOTEST} ${COMMON_LIBS})
 
 #
+# Setup HelloSP_TP example
+#
+set(EXECUTABLE_HELLOSPTP hello_sp_tp)
+add_executable(${EXECUTABLE_HELLOSPTP} examples/algorithms/HelloSP_TP.cpp)
+target_link_libraries(${EXECUTABLE_HELLOSPTP} ${COMMON_LIBS})
+set_target_properties(${EXECUTABLE_HELLOSPTP} PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
+set_target_properties(${EXECUTABLE_HELLOSPTP} PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
+add_dependencies(${EXECUTABLE_HELLOSPTP} ${COMMON_LIBS})
+
+
+#
 # Setup gtests
 #
 set(EXECUTABLE_GTESTS unit_tests)
@@ -586,7 +601,8 @@ if(UNIX)
                             ${LIB_STATIC_GTEST}
                             ${EXECUTABLE_HELLOREGION}
                             ${EXECUTABLE_CPPREGIONTEST}
-                            ${EXECUTABLE_GTESTS})
+                            ${EXECUTABLE_GTESTS}
+                            ${EXECUTABLE_HELLOSPTP})
 else()
   add_custom_target(combined ALL
                     COMMAND lib.exe /OUT:nupic_core.lib 
@@ -601,6 +617,7 @@ else()
                             ${EXECUTABLE_HELLOREGION}
                             ${EXECUTABLE_CPPREGIONTEST}
                             ${EXECUTABLE_GTESTS}
+                            ${EXECUTABLE_HELLOSPTP}
                     VERBATIM)
 endif()
 
@@ -613,6 +630,7 @@ install(TARGETS
         ${EXECUTABLE_HELLOREGION}
         ${EXECUTABLE_CPPREGIONTEST}
         ${EXECUTABLE_PYREGIONTEST}
+        ${EXECUTABLE_HELLOSPTP}
         ${EXECUTABLE_PROTOTEST}
         ${EXECUTABLE_GTESTS}
         RUNTIME DESTINATION bin

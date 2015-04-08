@@ -18,6 +18,7 @@ environment:
     # i.e. - COMPILER_FAMILY: GNU
     - COMPILER_FAMILY: MSVC
       DEPLOY_TO_NUGET: 0
+      DEPLOY_BUILD: 0
 
 skip_commits:
   # Add [av skip] to commit messages to skip AppVeyor building
