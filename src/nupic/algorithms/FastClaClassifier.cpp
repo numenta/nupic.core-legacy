@@ -94,7 +94,6 @@ namespace nupic
         iterationNumHistory_.push_front(learnIteration_);
         if (patternNZHistory_.size() > maxSteps_)
         {
-          //delete patternNZHistory_.back();
           patternNZHistory_.pop_back();
           iterationNumHistory_.pop_back();
         }
