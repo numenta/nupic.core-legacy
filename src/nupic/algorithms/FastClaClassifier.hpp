@@ -1,6 +1,6 @@
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
+ * Copyright (C) 2013-2015, Numenta, Inc.  Unless you have an agreement
  * with Numenta, Inc., for a separate license for this software code, the
  * following terms and conditions apply:
  *
@@ -131,6 +131,14 @@ namespace nupic
            */
           void load(istream& inStream);
 
+          /**
+           * Compare the other instance to this one.
+           *
+           * @param other Another instance of FastCLAClassifier to compare to.
+           * @returns true iff other is identical to this instance.
+           */
+          virtual bool operator==(const FastCLAClassifier& other) const;
+
         private:
           // The list of prediction steps to learn and infer.
           vector<UInt> steps_;
@@ -149,7 +157,7 @@ namespace nupic
           UInt maxSteps_;
           // Stores the input pattern history, starting with the previous input
           // and containing _maxSteps total input patterns.
-          deque<vector<UInt>*> patternNZHistory_;
+          deque< vector<UInt> > patternNZHistory_;
           deque<UInt> iterationNumHistory_;
           // Mapping from the number of steps in the future to predict to the
           // input bit index to a BitHistory that contains the duty cycles for
