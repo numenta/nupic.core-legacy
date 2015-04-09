@@ -173,6 +173,37 @@ namespace nupic
         NTA_CHECK(marker == "~BitHistory");
       }
 
+      bool BitHistory::operator==(const BitHistory& other) const
+      {
+        if (this->id_ != other.id_ ||
+            this->lastTotalUpdate_ != other.lastTotalUpdate_ ||
+            this->learnIteration_ != other.learnIteration_ ||
+            this->alpha_ != other.alpha_ ||
+            this->verbosity_ != other.verbosity_)
+        {
+          return false;
+        }
+
+        if (this->stats_.size() != other.stats_.size())
+        {
+          return false;
+        }
+        for (auto it = this->stats_.begin(); it != this->stats_.end(); it++)
+        {
+          if (it->second != other.stats_.at(it->first))
+          {
+            return false;
+          }
+        }
+
+        return true;
+      }
+
+      bool BitHistory::operator!=(const BitHistory& other) const
+      {
+        return !operator==(other);
+      }
+
     } // end namespace cla_classifier
   } // end namespace algorithms
 } // end namespace nupic

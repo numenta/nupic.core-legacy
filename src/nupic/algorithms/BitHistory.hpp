@@ -104,6 +104,22 @@ namespace nupic
            */
           void load(istream& inStream);
 
+          /**
+           * Check if the other instance matches this one.
+           *
+           * @param other an instance to compare to
+           * @returns true iff the other instance matches this one
+           */
+          bool operator==(const BitHistory& other) const;
+
+          /**
+           * Check if the other instance doesn't match this one.
+           *
+           * @param other an instance to compare to
+           * @returns true iff the other instance matches doesn't match this one
+           */
+          bool operator!=(const BitHistory& other) const;
+
         private:
 
           string id_;
