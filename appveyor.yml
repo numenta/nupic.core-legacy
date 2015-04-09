@@ -111,6 +111,8 @@ test: off
 after_build:
   - cd %REPO_DIR%\build\release
   - set PROJECT_BUILD_ARTIFACTS_DIR=%REPO_DIR%\build\artifacts
+  # debug: remove this line
+  - dir %PROJECT_BUILD_ARTIFACTS_DIR$
 
   - ps: >-
       if($env:DEPLOY_TO_NUGET -eq 1) {
@@ -134,17 +136,16 @@ artifacts:
   - path: '**\*.tar.gz' # find all Gz(ip) packages recursively
 
 deploy:
-
   # Amazon S3 deployment provider settings
   - provider: S3
     access_key_id:
       secure: AKIAIGHYSEHV3WFKOWNQ
     secret_access_key:
-      secure: YhyY/6r2LNya8OZEmVOj+fv0lY5bBPqvy8MnsdLlptXa2uqwvezkCMNKiQ+wA+tOu+BS7VRRp86DhUqCpTZ3jUM2Mwdhud/Smq7D2X8vtZBiTVcOKfQcaypDE6Zu9Zp0SjMOSf6yiq6Ruu7D5QtZ4rtaq+5uPlvbgUXRZoZm0Po=
+      secure: qBtFVXdym4SmRUkpLSe7ISd2txresJXSdhQnlqFN/uOdzxrRTeL8FKUD1vgQDa1S9jhiyHXMVFiA65Q7JpSvNA==
     bucket: "artifacts.numenta.org"
-    region: us-west-2
-    local-dir: "%PROJECT_BUILD_ARTIFACTS_DIR%"
-    upload-dir: "numenta/nupic.core"
-    skip_cleanup: true
+    # region: us-west-2
+    set_public: true
+    artifact: "%PROJECT_BUILD_ARTIFACTS_DIR%"
+    folder: "numenta/nupic.core/windows"
     on:
       branch: master
