@@ -402,17 +402,17 @@ namespace nupic
         UInt numSteps;
         UInt numInputBits;
         UInt inputBit;
-        map<UInt, BitHistory>* bitHistoryMap;
         inStream >> numSteps;
         for (UInt i = 0; i < numSteps; ++i)
         {
           inStream >> step;
-          bitHistoryMap = &activeBitHistory_[step];
+          // Insert the step to initialize the BitHistory
+          activeBitHistory_[step];
           inStream >> numInputBits;
           for (UInt j = 0; j < numInputBits; ++j)
           {
             inStream >> inputBit;
-            bitHistoryMap->at(inputBit).load(inStream);
+            activeBitHistory_[step][inputBit].load(inStream);
           }
         }
 
