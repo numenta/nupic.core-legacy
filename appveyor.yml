@@ -141,9 +141,9 @@ deploy:
     secret_access_key:
       secure: qBtFVXdym4SmRUkpLSe7ISd2txresJXSdhQnlqFN/uOdzxrRTeL8FKUD1vgQDa1S9jhiyHXMVFiA65Q7JpSvNA==
     bucket: "artifacts.numenta.org"
-    # region: us-west-2
+    region: us-west-2
     set_public: true
     artifact: "%PROJECT_BUILD_ARTIFACTS_DIR%"
-    folder: "numenta/nupic.core/windows"
+    folder: "numenta/nupic.core"
     on:
       branch: master
