@@ -59,6 +59,27 @@ namespace nupic
         return v;
       }
 
+      bool ClassifierResult::operator==(const ClassifierResult& other) const
+      {
+        for (auto it = result_.begin(); it != result_.end(); it++)
+        {
+          auto thisVec = it->second;
+          auto otherVec = other.result_.at(it->first);
+          if (otherVec == nullptr || thisVec->size() != otherVec->size())
+          {
+            return false;
+          }
+          for (UInt i = 0; i < thisVec->size(); i++)
+          {
+            if (thisVec->at(i) != otherVec->at(i))
+            {
+              return false;
+            }
+          }
+        }
+        return true;
+      }
+
     } // end namespace cla_classifier
   } // end namespace algorithms
 } // end namespace nupic

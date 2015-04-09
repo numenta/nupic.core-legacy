@@ -76,6 +76,14 @@ namespace nupic
           virtual vector<Real64>* createVector(Int step, UInt size, Real64 value);
 
           /**
+           * Checks if the other instance has the exact same values.
+           *
+           * @param other The other instance to compare to.
+           * @returns True iff the other instance has the same values.
+           */
+          virtual bool operator==(const ClassifierResult& other) const;
+
+          /**
            * Iterator method begin.
            */
           virtual map<Int, vector<Real64>*>::const_iterator begin()
