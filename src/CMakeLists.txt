@@ -173,7 +173,7 @@ endif()
 # compiler specific settings here
 #
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
-  set(COMMON_COMPILE_FLAGS "/TP /Zc:wchar_t /Gm- /fp:precise /errorReport:prompt /W2 /WX- /GR /Gd /GS /Oy- /EHs /analyze- /nologo")
+  set(COMMON_COMPILE_FLAGS "/TP /Zc:wchar_t /Gm- /fp:precise /errorReport:prompt /W1 /WX- /GR /Gd /GS /Oy- /EHs /analyze- /nologo")
   set(COMMON_LINK_FLAGS "/NOLOGO /SAFESEH:NO /NODEFAULTLIB:LIBCMT")
   if("${BITNESS}" STREQUAL "32")
     set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} /MACHINE:X86")

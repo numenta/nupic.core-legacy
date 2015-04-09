@@ -58,20 +58,21 @@ LogItem::~LogItem()
     slevel = "INFO: ";
     break;
   case error:
-    slevel = "ERROR:";
+    slevel = "ERR:";
     break;
   default:
     slevel = "Unknown: ";
     break;
   }
 
-
   if (ostream_ == nullptr)
     ostream_ = &(std::cout);
 
   (*ostream_) << slevel << "  " << msg_.str();
+
   if (level_ == error)
     (*ostream_) << " [" << filename_ << " line " << lineno_ << "]";
+
   (*ostream_) << std::endl;
 
 }
