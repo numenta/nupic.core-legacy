@@ -70,16 +70,6 @@ namespace nupic
 
       FastCLAClassifier::~FastCLAClassifier()
       {
-        // Clean up activeBitHistory_.
-        for (auto it = activeBitHistory_.begin();
-             it != activeBitHistory_.end(); ++it)
-        {
-          for (auto it2 = it->second->begin(); it2 != it->second->end(); ++it2)
-          {
-            delete it2->second;
-          }
-          delete it->second;
-        }
       }
 
       void FastCLAClassifier::fastCompute(
@@ -136,8 +126,7 @@ namespace nupic
           }
 
           // Generate the predictions for each steps-ahead value
-          for (vector<UInt>::const_iterator step = steps_.begin();
-               step != steps_.end(); ++step)
+          for (auto step = steps_.begin(); step != steps_.end(); ++step)
           {
             // Skip if we don't have data yet.
             if (activeBitHistory_.find(*step) == activeBitHistory_.end())
@@ -154,15 +143,15 @@ namespace nupic
 
             for (const auto & elem : patternNZ)
             {
-              if (activeBitHistory_[*step]->find(elem) !=
-                  activeBitHistory_[*step]->end())
+              if (activeBitHistory_[*step].find(elem) !=
+                  activeBitHistory_[*step].end())
               {
-                BitHistory* history =
-                    activeBitHistory_[*step]->find(elem)->second;
+                BitHistory& history =
+                    activeBitHistory_[*step].find(elem)->second;
                 for (auto & bitVote : bitVotes) {
                   bitVote = 0.0;
                 }
-                history->infer(learnIteration_, &bitVotes);
+                history.infer(learnIteration_, &bitVotes);
                 for (UInt i = 0; i < bitVotes.size(); ++i) {
                   (*likelihoods)[i] += bitVotes[i];
                 }
@@ -239,19 +228,15 @@ namespace nupic
             for (auto & learnPatternNZ_j : learnPatternNZ)
             {
               UInt bit = learnPatternNZ_j;
-              if (activeBitHistory_.find(step) == activeBitHistory_.end())
+              // This will implicitly insert the key "step" into the map if it
+              // doesn't exist yet.
+              auto it = activeBitHistory_[step].find(bit);
+              if (it == activeBitHistory_[step].end())
               {
-                activeBitHistory_.insert(pair<UInt, map<UInt, BitHistory*>*>(
-                      step, new map<UInt, BitHistory*>()));
+                activeBitHistory_[step][bit] =
+                    BitHistory(bit, step, alpha_, verbosity_);
               }
-              map<UInt, BitHistory*>::const_iterator it =
-                  activeBitHistory_[step]->find(bit);
-              if (it == activeBitHistory_[step]->end())
-              {
-                (*activeBitHistory_[step])[bit] =
-                    new BitHistory(bit, step, alpha_, verbosity_);
-              }
-              (*activeBitHistory_[step])[bit]->store(learnIteration_, bucketIdx);
+              activeBitHistory_[step][bit].store(learnIteration_, bucketIdx);
             }
           }
         }
@@ -318,12 +303,11 @@ namespace nupic
         for (const auto & elem : activeBitHistory_)
         {
           outStream << elem.first << " ";
-          outStream << elem.second->size() << " ";
-          for (map<UInt, BitHistory*>::const_iterator it2 =
-               elem.second->begin(); it2 != elem.second->end(); ++it2)
+          outStream << elem.second.size() << " ";
+          for (auto it2 = elem.second.begin(); it2 != elem.second.end(); ++it2)
           {
             outStream << it2->first << " ";
-            it2->second->save(outStream);
+            it2->second.save(outStream);
           }
         }
 
@@ -349,18 +333,6 @@ namespace nupic
         patternNZHistory_.clear();
         actualValues_.clear();
         actualValuesSet_.clear();
-        // Clear activeBitHistory_
-        for (auto it1 = activeBitHistory_.begin();
-             it1 != activeBitHistory_.end(); it1++)
-        {
-          for (auto it2 = it1->second->begin(); it2 != it1->second->end();
-               it2++)
-          {
-            delete it2->second;
-          }
-          it1->second->clear();
-          delete it1->second;
-        }
         activeBitHistory_.clear();
 
         // Check the starting marker.
@@ -431,24 +403,18 @@ namespace nupic
         UInt numSteps;
         UInt numInputBits;
         UInt inputBit;
-        BitHistory* bitHistory;
-        map<UInt, BitHistory*>* bitHistoryMap;
+        map<UInt, BitHistory>* bitHistoryMap;
         inStream >> numSteps;
         for (UInt i = 0; i < numSteps; ++i)
         {
           inStream >> step;
+          bitHistoryMap = &activeBitHistory_[step];
           inStream >> numInputBits;
-          bitHistoryMap = new map<UInt, BitHistory*>();
           for (UInt j = 0; j < numInputBits; ++j)
           {
             inStream >> inputBit;
-            bitHistory = new BitHistory();
-            bitHistory->load(inStream);
-            bitHistoryMap->insert(
-                pair<UInt, BitHistory*>(inputBit, bitHistory));
+            bitHistoryMap->at(inputBit).load(inStream);
           }
-          activeBitHistory_.insert(
-              pair<UInt, map<UInt, BitHistory*>*>(step, bitHistoryMap));
         }
 
         // Load the actual values for each bucket.
@@ -542,16 +508,16 @@ namespace nupic
         {
           auto thisInnerMap = it1->second;
           auto otherInnerMap = other.activeBitHistory_.at(it1->first);
-          if (thisInnerMap->size() != otherInnerMap->size())
+          if (thisInnerMap.size() != otherInnerMap.size())
           {
             return false;
           }
-          for (auto it2 = thisInnerMap->begin(); it2 != thisInnerMap->end();
-              it2++)
+          for (auto it2 = thisInnerMap.begin(); it2 != thisInnerMap.end();
+               it2++)
           {
             auto thisBitHistory = it2->second;
-            auto otherBitHistory = otherInnerMap->at(it2->first);
-            if (*thisBitHistory != *otherBitHistory)
+            auto otherBitHistory = otherInnerMap.at(it2->first);
+            if (thisBitHistory != otherBitHistory)
             {
               return false;
             }

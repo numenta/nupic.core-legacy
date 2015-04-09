@@ -33,6 +33,7 @@
 #include <string>
 #include <vector>
 
+#include <nupic/algorithms/BitHistory.hpp>
 #include <nupic/types/Types.hpp>
 
 using namespace std;
@@ -162,7 +163,7 @@ namespace nupic
           // Mapping from the number of steps in the future to predict to the
           // input bit index to a BitHistory that contains the duty cycles for
           // each bucket.
-          map<UInt, map<UInt, BitHistory*>* > activeBitHistory_;
+          map< UInt, map<UInt, BitHistory> > activeBitHistory_;
           // The highest bucket index that has been seen so far.
           UInt maxBucketIdx_;
           // The current actual values used for each bucket index. The index of
