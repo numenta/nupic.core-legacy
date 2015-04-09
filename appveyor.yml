@@ -111,8 +111,6 @@ test: off
 after_build:
   - cd %REPO_DIR%\build\release
   - set PROJECT_BUILD_ARTIFACTS_DIR=%REPO_DIR%\build\artifacts
-  # debug: remove this line
-  - dir %PROJECT_BUILD_ARTIFACTS_DIR$
 
   - ps: >-
       if($env:DEPLOY_TO_NUGET -eq 1) {
