@@ -135,4 +135,34 @@ namespace
     ASSERT_TRUE(result1 == result2);
   }
 
+  TEST(FastCLAClassifierTest, WriteRead)
+  {
+    vector<UInt> steps;
+    steps.push_back(1);
+    FastCLAClassifier c1 = FastCLAClassifier(steps, 0.1, 0.1, 0);
+    FastCLAClassifier c2 = FastCLAClassifier(steps, 0.1, 0.1, 0);
+
+    // Create a vector of input bit indices
+    vector<UInt> input1;
+    input1.push_back(1);
+    input1.push_back(5);
+    input1.push_back(9);
+    ClassifierResult result;
+    c1.fastCompute(0, input1, 4, 34.7, false, true, true, &result);
+
+    {
+      stringstream ss;
+      c1.write(ss);
+      c2.read(ss);
+    }
+
+    ASSERT_TRUE(c1 == c2);
+
+    ClassifierResult result1, result2;
+    c1.fastCompute(1, input1, 4, 35.7, false, true, true, &result1);
+    c2.fastCompute(1, input1, 4, 35.7, false, true, true, &result2);
+
+    ASSERT_TRUE(result1 == result2);
+  }
+
 } // end namespace

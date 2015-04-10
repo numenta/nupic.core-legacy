@@ -20,6 +20,7 @@
  * ---------------------------------------------------------------------
  */
 
+#include <cmath>
 #include <map>
 #include <math.h>
 #include <sstream>
@@ -211,22 +212,22 @@ namespace nupic
 
       bool BitHistory::operator==(const BitHistory& other) const
       {
-        if (this->id_ != other.id_ ||
-            this->lastTotalUpdate_ != other.lastTotalUpdate_ ||
-            this->learnIteration_ != other.learnIteration_ ||
-            this->alpha_ != other.alpha_ ||
-            this->verbosity_ != other.verbosity_)
+        if (id_ != other.id_ ||
+            lastTotalUpdate_ != other.lastTotalUpdate_ ||
+            learnIteration_ != other.learnIteration_ ||
+            fabs(alpha_ - other.alpha_) > 0.000001 ||
+            verbosity_ != other.verbosity_)
         {
           return false;
         }
 
-        if (this->stats_.size() != other.stats_.size())
+        if (stats_.size() != other.stats_.size())
         {
           return false;
         }
-        for (auto it = this->stats_.begin(); it != this->stats_.end(); it++)
+        for (auto it = stats_.begin(); it != stats_.end(); it++)
         {
-          if (it->second != other.stats_.at(it->first))
+          if (fabs(it->second - other.stats_.at(it->first)) > 0.000001)
           {
             return false;
           }

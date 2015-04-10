@@ -139,9 +139,19 @@ namespace nupic
           void write(ClaClassifierProto::Builder& proto) const;
 
           /**
+           * Save the state to the stream.
+           */
+          void write(ostream& proto) const;
+
+          /**
            * Load state from reader.
            */
           void read(ClaClassifierProto::Reader& proto);
+
+          /**
+           * Load state from stream.
+           */
+          void read(istream& stream);
 
           /**
            * Compare the other instance to this one.
