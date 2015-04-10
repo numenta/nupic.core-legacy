@@ -1,6 +1,6 @@
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
+ * Copyright (C) 2013-2015, Numenta, Inc.  Unless you have an agreement
  * with Numenta, Inc., for a separate license for this software code, the
  * following terms and conditions apply:
  *
@@ -70,23 +70,6 @@ namespace nupic
 
       FastCLAClassifier::~FastCLAClassifier()
       {
-        // Clean up patternNZHistory_.
-        for (deque<vector<UInt>*>::const_iterator it =
-             patternNZHistory_.begin(); it != patternNZHistory_.end(); ++it)
-        {
-          delete *it;
-        }
-        // Clean up activeBitHistory_.
-        for (map<UInt, map<UInt, BitHistory*>*>::const_iterator it =
-             activeBitHistory_.begin(); it != activeBitHistory_.end(); ++it)
-        {
-          for (map<UInt, BitHistory*>::const_iterator it2 =
-               it->second->begin(); it2 != it->second->end(); ++it2)
-          {
-            delete it2->second;
-          }
-          delete it->second;
-        }
       }
 
       void FastCLAClassifier::fastCompute(
@@ -106,16 +89,11 @@ namespace nupic
         learnIteration_ = recordNum - recordNumMinusLearnIteration_;
 
         // Update the input pattern history.
-        auto newPatternNZ = new vector<UInt>();
-        for (auto & elem : patternNZ)
-        {
-          newPatternNZ->push_back(elem);
-        }
-        patternNZHistory_.push_front(newPatternNZ);
+        patternNZHistory_.emplace_front(patternNZ.begin(), patternNZ.end());
+
         iterationNumHistory_.push_front(learnIteration_);
         if (patternNZHistory_.size() > maxSteps_)
         {
-          delete patternNZHistory_.back();
           patternNZHistory_.pop_back();
           iterationNumHistory_.pop_back();
         }
@@ -147,8 +125,7 @@ namespace nupic
           }
 
           // Generate the predictions for each steps-ahead value
-          for (vector<UInt>::const_iterator step = steps_.begin();
-               step != steps_.end(); ++step)
+          for (auto step = steps_.begin(); step != steps_.end(); ++step)
           {
             // Skip if we don't have data yet.
             if (activeBitHistory_.find(*step) == activeBitHistory_.end())
@@ -165,15 +142,15 @@ namespace nupic
 
             for (const auto & elem : patternNZ)
             {
-              if (activeBitHistory_[*step]->find(elem) !=
-                  activeBitHistory_[*step]->end())
+              if (activeBitHistory_[*step].find(elem) !=
+                  activeBitHistory_[*step].end())
               {
-                BitHistory* history =
-                    activeBitHistory_[*step]->find(elem)->second;
+                BitHistory& history =
+                    activeBitHistory_[*step].find(elem)->second;
                 for (auto & bitVote : bitVotes) {
                   bitVote = 0.0;
                 }
-                history->infer(learnIteration_, &bitVotes);
+                history.infer(learnIteration_, &bitVotes);
                 for (UInt i = 0; i < bitVotes.size(); ++i) {
                   (*likelihoods)[i] += bitVotes[i];
                 }
@@ -226,8 +203,8 @@ namespace nupic
             // Check if there is a pattern that should be assigned to this
             // classification in our history. If not, skip it.
             bool found = false;
-            deque<vector<UInt>*>::const_iterator patternIteration =
-                                                  patternNZHistory_.begin();
+            deque<vector<UInt>>::const_iterator patternIteration =
+                patternNZHistory_.begin();
             for (deque<UInt>::const_iterator learnIteration =
                  iterationNumHistory_.begin();
                  learnIteration !=iterationNumHistory_.end();
@@ -246,23 +223,19 @@ namespace nupic
 
             // Store classification info for each active bit from the pattern
             // that we got step time steps ago.
-            const vector<UInt>* learnPatternNZ = *patternIteration;
-            for (auto & learnPatternNZ_j : *learnPatternNZ)
+            const vector<UInt> learnPatternNZ = *patternIteration;
+            for (auto & learnPatternNZ_j : learnPatternNZ)
             {
               UInt bit = learnPatternNZ_j;
-              if (activeBitHistory_.find(step) == activeBitHistory_.end())
+              // This will implicitly insert the key "step" into the map if it
+              // doesn't exist yet.
+              auto it = activeBitHistory_[step].find(bit);
+              if (it == activeBitHistory_[step].end())
               {
-                activeBitHistory_.insert(pair<UInt, map<UInt, BitHistory*>*>(
-                      step, new map<UInt, BitHistory*>()));
+                activeBitHistory_[step][bit] =
+                    BitHistory(bit, step, alpha_, verbosity_);
               }
-              map<UInt, BitHistory*>::const_iterator it =
-                  activeBitHistory_[step]->find(bit);
-              if (it == activeBitHistory_[step]->end())
-              {
-                (*activeBitHistory_[step])[bit] =
-                    new BitHistory(bit, step, alpha_, verbosity_);
-              }
-              (*activeBitHistory_[step])[bit]->store(learnIteration_, bucketIdx);
+              activeBitHistory_[step][bit].store(learnIteration_, bucketIdx);
             }
           }
         }
@@ -274,7 +247,7 @@ namespace nupic
         stringstream s;
         s.flags(ios::scientific);
         s.precision(numeric_limits<double>::digits10 + 1);
-        this->save(s);
+        save(s);
         return s.str().size();
       }
 
@@ -313,13 +286,11 @@ namespace nupic
         outStream << endl;
 
         // Store the input pattern history.
-        vector<UInt>* pattern;
         outStream << patternNZHistory_.size() << " ";
-        for (auto & elem : patternNZHistory_)
+        for (auto & pattern : patternNZHistory_)
         {
-          pattern = elem;
-          outStream << pattern->size() << " ";
-          for (auto & pattern_j : *pattern)
+          outStream << pattern.size() << " ";
+          for (auto & pattern_j : pattern)
           {
             outStream << pattern_j << " ";
           }
@@ -331,12 +302,11 @@ namespace nupic
         for (const auto & elem : activeBitHistory_)
         {
           outStream << elem.first << " ";
-          outStream << elem.second->size() << " ";
-          for (map<UInt, BitHistory*>::const_iterator it2 =
-               elem.second->begin(); it2 != elem.second->end(); ++it2)
+          outStream << elem.second.size() << " ";
+          for (auto it2 = elem.second.begin(); it2 != elem.second.end(); ++it2)
           {
             outStream << it2->first << " ";
-            it2->second->save(outStream);
+            it2->second.save(outStream);
           }
         }
 
@@ -356,6 +326,14 @@ namespace nupic
 
       void FastCLAClassifier::load(istream& inStream)
       {
+        // Clean up the existing data structures before loading
+        steps_.clear();
+        iterationNumHistory_.clear();
+        patternNZHistory_.clear();
+        actualValues_.clear();
+        actualValuesSet_.clear();
+        activeBitHistory_.clear();
+
         // Check the starting marker.
         string marker;
         inStream >> marker;
@@ -393,7 +371,6 @@ namespace nupic
         }
 
         // Load the prediction steps.
-        steps_.clear();
         UInt size;
         UInt step;
         inStream >> size;
@@ -409,12 +386,11 @@ namespace nupic
         for (UInt i = 0; i < size; ++i)
         {
           inStream >> vSize;
-          vector<UInt>* v = new vector<UInt>(vSize);
+          patternNZHistory_.emplace_back(vSize);
           for (UInt j = 0; j < vSize; ++j)
           {
-            inStream >> (*v)[j];
+            inStream >> patternNZHistory_[i][j];
           }
-          patternNZHistory_.push_back(v);
           if (version == 0)
           {
             iterationNumHistory_.push_back(
@@ -426,24 +402,18 @@ namespace nupic
         UInt numSteps;
         UInt numInputBits;
         UInt inputBit;
-        BitHistory* bitHistory;
-        map<UInt, BitHistory*>* bitHistoryMap;
         inStream >> numSteps;
         for (UInt i = 0; i < numSteps; ++i)
         {
           inStream >> step;
+          // Insert the step to initialize the BitHistory
+          activeBitHistory_[step];
           inStream >> numInputBits;
-          bitHistoryMap = new map<UInt, BitHistory*>();
           for (UInt j = 0; j < numInputBits; ++j)
           {
             inStream >> inputBit;
-            bitHistory = new BitHistory();
-            bitHistory->load(inStream);
-            bitHistoryMap->insert(
-                pair<UInt, BitHistory*>(inputBit, bitHistory));
+            activeBitHistory_[step][inputBit].load(inStream);
           }
-          activeBitHistory_.insert(
-              pair<UInt, map<UInt, BitHistory*>*>(step, bitHistoryMap));
         }
 
         // Load the actual values for each bucket.
@@ -465,6 +435,120 @@ namespace nupic
 
         // Update the version number.
         version_ = Version;
+      }
+
+      bool FastCLAClassifier::operator==(const FastCLAClassifier& other) const
+      {
+        if (steps_.size() != other.steps_.size())
+        {
+          return false;
+        }
+        for (UInt i = 0; i < steps_.size(); i++)
+        {
+          if (steps_.at(i) != other.steps_.at(i))
+          {
+            return false;
+          }
+        }
+
+        if (alpha_ != other.alpha_ ||
+            actValueAlpha_ != other.actValueAlpha_ ||
+            learnIteration_ != other.learnIteration_ ||
+            recordNumMinusLearnIteration_ !=
+                other.recordNumMinusLearnIteration_  ||
+            recordNumMinusLearnIterationSet_ !=
+                other.recordNumMinusLearnIterationSet_  ||
+            maxSteps_ != other.maxSteps_)
+        {
+          return false;
+        }
+
+        if (patternNZHistory_.size() != other.patternNZHistory_.size())
+        {
+          return false;
+        }
+        for (UInt i = 0; i < patternNZHistory_.size(); i++)
+        {
+          if (patternNZHistory_.at(i).size() !=
+              other.patternNZHistory_.at(i).size())
+          {
+            return false;
+          }
+          for (UInt j = 0; j < patternNZHistory_.at(i).size(); j++)
+          {
+            if (patternNZHistory_.at(i).at(j) !=
+                other.patternNZHistory_.at(i).at(j))
+            {
+              return false;
+            }
+          }
+        }
+
+        if (iterationNumHistory_.size() !=
+            other.iterationNumHistory_.size())
+        {
+          return false;
+        }
+        for (UInt i = 0; i < iterationNumHistory_.size(); i++)
+        {
+          if (iterationNumHistory_.at(i) !=
+              other.iterationNumHistory_.at(i))
+          {
+            return false;
+          }
+        }
+
+        if (activeBitHistory_.size() != other.activeBitHistory_.size())
+        {
+          return false;
+        }
+        for (auto it1 = activeBitHistory_.begin();
+             it1 != activeBitHistory_.end(); it1++)
+        {
+          auto thisInnerMap = it1->second;
+          auto otherInnerMap = other.activeBitHistory_.at(it1->first);
+          if (thisInnerMap.size() != otherInnerMap.size())
+          {
+            return false;
+          }
+          for (auto it2 = thisInnerMap.begin(); it2 != thisInnerMap.end();
+               it2++)
+          {
+            auto thisBitHistory = it2->second;
+            auto otherBitHistory = otherInnerMap.at(it2->first);
+            if (thisBitHistory != otherBitHistory)
+            {
+              return false;
+            }
+          }
+        }
+
+        if (maxBucketIdx_ != other.maxBucketIdx_)
+        {
+          return false;
+        }
+
+        if (actualValues_.size() != other.actualValues_.size() ||
+            actualValuesSet_.size() != other.actualValuesSet_.size())
+        {
+          return false;
+        }
+        for (UInt i = 0; i < actualValues_.size(); i++)
+        {
+          if (actualValues_.at(i) != other.actualValues_.at(i) ||
+              actualValuesSet_.at(i) != other.actualValuesSet_.at(i))
+          {
+            return false;
+          }
+        }
+
+        if (version_ != other.version_ ||
+            verbosity_ != other.verbosity_)
+        {
+          return false;
+        }
+
+        return true;
       }
 
     } // end namespace cla_classifier

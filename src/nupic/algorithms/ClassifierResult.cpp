@@ -1,6 +1,6 @@
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
+ * Copyright (C) 2013-2015, Numenta, Inc.  Unless you have an agreement
  * with Numenta, Inc., for a separate license for this software code, the
  * following terms and conditions apply:
  *
@@ -57,6 +57,27 @@ namespace nupic
           result_.insert(pair<Int, vector<Real64>*>(step, v));
         }
         return v;
+      }
+
+      bool ClassifierResult::operator==(const ClassifierResult& other) const
+      {
+        for (auto it = result_.begin(); it != result_.end(); it++)
+        {
+          auto thisVec = it->second;
+          auto otherVec = other.result_.at(it->first);
+          if (otherVec == nullptr || thisVec->size() != otherVec->size())
+          {
+            return false;
+          }
+          for (UInt i = 0; i < thisVec->size(); i++)
+          {
+            if (thisVec->at(i) != otherVec->at(i))
+            {
+              return false;
+            }
+          }
+        }
+        return true;
       }
 
     } // end namespace cla_classifier

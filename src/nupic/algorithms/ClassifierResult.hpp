@@ -1,6 +1,6 @@
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
+ * Copyright (C) 2013-2015, Numenta, Inc.  Unless you have an agreement
  * with Numenta, Inc., for a separate license for this software code, the
  * following terms and conditions apply:
  *
@@ -74,6 +74,14 @@ namespace nupic
            * @returns The specified vector.
            */
           virtual vector<Real64>* createVector(Int step, UInt size, Real64 value);
+
+          /**
+           * Checks if the other instance has the exact same values.
+           *
+           * @param other The other instance to compare to.
+           * @returns True iff the other instance has the same values.
+           */
+          virtual bool operator==(const ClassifierResult& other) const;
 
           /**
            * Iterator method begin.

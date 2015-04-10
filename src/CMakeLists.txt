@@ -531,7 +531,6 @@ add_custom_target(tests_unit
 set(TEST_HEADERS
     test/unit/algorithms/CondProbTableTest.hpp
     test/unit/algorithms/ConnectionsTest.hpp
-    test/unit/algorithms/FastCLAClassifierTest.hpp
     test/unit/algorithms/FlatSpatialPoolerTest.hpp
     test/unit/algorithms/NearestNeighborUnitTest.hpp
     test/unit/algorithms/SpatialPoolerTest.hpp

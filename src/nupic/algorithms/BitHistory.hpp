@@ -1,6 +1,6 @@
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
+ * Copyright (C) 2013-2015, Numenta, Inc.  Unless you have an agreement
  * with Numenta, Inc., for a separate license for this software code, the
  * following terms and conditions apply:
  *
@@ -103,6 +103,22 @@ namespace nupic
            * Load state from istream.
            */
           void load(istream& inStream);
+
+          /**
+           * Check if the other instance matches this one.
+           *
+           * @param other an instance to compare to
+           * @returns true iff the other instance matches this one
+           */
+          bool operator==(const BitHistory& other) const;
+
+          /**
+           * Check if the other instance doesn't match this one.
+           *
+           * @param other an instance to compare to
+           * @returns true iff the other instance matches doesn't match this one
+           */
+          bool operator!=(const BitHistory& other) const;
 
         private:
 
