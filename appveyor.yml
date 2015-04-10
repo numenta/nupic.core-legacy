@@ -143,7 +143,7 @@ deploy:
     bucket: "artifacts.numenta.org"
     region: us-west-2
     set_public: true
-    artifact: "nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar.gz"
+    artifact: "nupic_core-$(APPVEYOR_REPO_COMMIT)-Windows64.tar.gz"
     folder: "numenta/nupic.core"
     on:
       branch: master
