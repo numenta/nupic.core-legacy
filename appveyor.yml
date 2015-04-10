@@ -126,9 +126,9 @@ after_build:
       # This packages via CMakeList CPack settings (Tar.Gzip for SW upload)
       # msbuild $env:MSBuildOptions PACKAGE.vcxproj
 
-      7z a -ttar -y -bd nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar .
+      7z a -ttar -y -bd nupic_core-$env:APPVEYOR_REPO_COMMIT-windows64.tar .
 
-      7z a -tgzip -y -bd ..\..\nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar.gz nupic_core-$env:APPVEYOR_REPO_COMMIT-Windows64.tar
+      7z a -tgzip -y -bd ..\..\nupic_core-$env:APPVEYOR_REPO_COMMIT-windows64.tar.gz nupic_core-$env:APPVEYOR_REPO_COMMIT-windows64.tar
 
 artifacts:
   - path: '**\*.tar.gz' # find all Gz(ip) packages recursively
@@ -143,7 +143,7 @@ deploy:
     bucket: "artifacts.numenta.org"
     region: us-west-2
     set_public: true
-    artifact: "nupic_core-$(APPVEYOR_REPO_COMMIT)-Windows64.tar.gz"
+    artifact: "nupic_core-$(APPVEYOR_REPO_COMMIT)-windows64.tar.gz"
     folder: "numenta/nupic.core"
     on:
       branch: master
