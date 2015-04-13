@@ -37,7 +37,7 @@ init:
 
 clone_folder: c:\projects\nupic-core
 clone_depth: 50
-shallow_clone: true
+shallow_clone: false
 
 #---------------------------------#
 #       build configuration       #
