@@ -69,6 +69,9 @@ install:
 
   - cd %REPO_DIR%\build\scripts
   - set EXT_LIBS=%REPO_DIR%\external\windows64\lib
+  # Debugging
+  - "echo \"git rev-parse HEAD:\""
+  - git rev-parse HEAD
   - cmake %REPO_DIR%\src
      -G "Visual Studio 14 2015 Win64" -Wno-dev
      -DCMAKE_BUILD_TYPE=Release 
