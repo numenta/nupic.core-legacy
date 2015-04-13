@@ -212,6 +212,8 @@ set(ENV{PATH} "$ENV{PATH}:${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/bin")
 execute_process(COMMAND git rev-parse HEAD
                 OUTPUT_VARIABLE NUPIC_CORE_VERSION
                 OUTPUT_STRIP_TRAILING_WHITESPACE)
+# Debugging
+message("Found SHA version: ${NUPIC_CORE_VERSION}")
 configure_file(
   "${PROJECT_SOURCE_DIR}/nupic/Version.hpp.in"
   "${PROJECT_BINARY_DIR}/Version.hpp")

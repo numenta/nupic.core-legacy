@@ -37,7 +37,7 @@ init:
 
 clone_folder: c:\projects\nupic-core
 clone_depth: 50
-shallow_clone: true
+shallow_clone: false
 
 #---------------------------------#
 #       build configuration       #
@@ -66,6 +66,12 @@ install:
   - ps: Start-Process -FilePath "7z" -ArgumentList "x -y cmake-3.1.0-win32-x86.zip" -Wait -Passthru
   - set PATH="%REPO_DIR%\build\scripts\cmake-3.1.0-win32-x86\bin";%PATH%
   - set PATH="C:\Program Files (x86)\MSBuild\14.0\Bin";%PATH%
+
+  # Debugging
+  - cd %REPO_DIR%
+  - dir /ah
+  - git status
+  - git rev-parse HEAD
 
   - cd %REPO_DIR%\build\scripts
   - set EXT_LIBS=%REPO_DIR%\external\windows64\lib
