@@ -176,7 +176,7 @@ namespace nupic
       }
       void BitHistory::write(BitHistoryProto::Builder& proto) const
       {
-        proto.setId(id_);
+        proto.setId(id_.c_str());
 
         auto statsList = proto.initStats(stats_.size());
         UInt i = 0;
@@ -196,7 +196,7 @@ namespace nupic
 
       void BitHistory::read(BitHistoryProto::Reader& proto)
       {
-        id_ = proto.getId();
+        id_ = proto.getId().cStr();
 
         stats_.clear();
         for (auto stat : proto.getStats())
