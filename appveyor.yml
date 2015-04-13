@@ -69,6 +69,7 @@ install:
 
   # Debugging
   - cd %REPO_DIR%
+  - dir /ah
   - git status
   - git rev-parse HEAD
 
