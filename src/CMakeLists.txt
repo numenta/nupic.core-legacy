@@ -307,6 +307,8 @@ include_directories(${CAPNP_INCLUDE_DIRS})
 # List all .capnp files here. The C++ files will be generated and included
 # when compiling later on.
 set(CAPNP_SPECS
+    nupic/proto/BitHistory.capnp
+    nupic/proto/ClaClassifier.capnp
     nupic/proto/RandomProto.capnp
     nupic/proto/SparseBinaryMatrixProto.capnp
     nupic/proto/SparseMatrixProto.capnp

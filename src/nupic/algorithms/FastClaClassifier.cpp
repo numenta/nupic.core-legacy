@@ -20,6 +20,7 @@
  * ---------------------------------------------------------------------
  */
 
+#include <cmath>
 #include <deque>
 #include <iostream>
 #include <limits>
@@ -29,9 +30,14 @@
 #include <vector>
 #include <stdio.h>
 
+#include <capnp/message.h>
+#include <capnp/serialize.h>
+#include <kj/std/iostream.h>
+
 #include <nupic/algorithms/BitHistory.hpp>
 #include <nupic/algorithms/ClassifierResult.hpp>
 #include <nupic/algorithms/FastClaClassifier.hpp>
+#include <nupic/proto/ClaClassifier.capnp.h>
 #include <nupic/types/Types.hpp>
 #include <nupic/utils/Log.hpp>
 
@@ -437,6 +443,169 @@ namespace nupic
         version_ = Version;
       }
 
+      void FastCLAClassifier::write(ClaClassifierProto::Builder& proto) const
+      {
+        auto stepsProto = proto.initSteps(steps_.size());
+        for (UInt i = 0; i < steps_.size(); i++)
+        {
+          stepsProto.set(i, steps_[i]);
+        }
+
+        proto.setAlpha(alpha_);
+        proto.setActValueAlpha(actValueAlpha_);
+        proto.setLearnIteration(learnIteration_);
+        proto.setRecordNumMinusLearnIteration(recordNumMinusLearnIteration_);
+        proto.setRecordNumMinusLearnIterationSet(
+            recordNumMinusLearnIterationSet_);
+        proto.setMaxSteps(maxSteps_);
+
+        auto patternNZHistoryProto =
+          proto.initPatternNZHistory(patternNZHistory_.size());
+        for (UInt i = 0; i < patternNZHistory_.size(); i++)
+        {
+          const auto & pattern = patternNZHistory_[i];
+          auto patternProto = patternNZHistoryProto.init(i, pattern.size());
+          for (UInt j = 0; j < pattern.size(); j++)
+          {
+            patternProto.set(j, pattern[j]);
+          }
+        }
+
+        auto iterationNumHistoryProto =
+          proto.initIterationNumHistory(iterationNumHistory_.size());
+        for (UInt i = 0; i < iterationNumHistory_.size(); i++)
+        {
+          iterationNumHistoryProto.set(i, iterationNumHistory_[i]);
+        }
+
+        auto activeBitHistoryProtos =
+          proto.initActiveBitHistory(activeBitHistory_.size());
+        UInt i = 0;
+        for (const auto & stepBitHistory : activeBitHistory_)
+        {
+          auto stepBitHistoryProto = activeBitHistoryProtos[i];
+          stepBitHistoryProto.setSteps(stepBitHistory.first);
+          auto indexBitHistoryListProto =
+            stepBitHistoryProto.initBitHistories(stepBitHistory.second.size());
+          UInt j = 0;
+          for (const auto & indexBitHistory : stepBitHistory.second)
+          {
+            auto indexBitHistoryProto = indexBitHistoryListProto[j];
+            indexBitHistoryProto.setIndex(indexBitHistory.first);
+            auto bitHistoryProto = indexBitHistoryProto.initHistory();
+            indexBitHistory.second.write(bitHistoryProto);
+            j++;
+          }
+          i++;
+        }
+
+        proto.setMaxBucketIdx(maxBucketIdx_);
+
+        auto actualValuesProto = proto.initActualValues(actualValues_.size());
+        for (UInt i = 0; i < actualValues_.size(); i++)
+        {
+          actualValuesProto.set(i, actualValues_[i]);
+        }
+
+        auto actualValuesSetProto =
+          proto.initActualValuesSet(actualValuesSet_.size());
+        for (UInt i = 0; i < actualValuesSet_.size(); i++)
+        {
+          actualValuesSetProto.set(i, actualValuesSet_[i]);
+        }
+
+        proto.setVersion(version_);
+        proto.setVerbosity(verbosity_);
+      }
+
+      void FastCLAClassifier::write(ostream& stream) const
+      {
+        capnp::MallocMessageBuilder message;
+        auto proto = message.initRoot<ClaClassifierProto>();
+        write(proto);
+
+        kj::std::StdOutputStream out(stream);
+        capnp::writeMessage(out, message);
+      }
+
+      void FastCLAClassifier::read(ClaClassifierProto::Reader& proto)
+      {
+        // Clean up the existing data structures before loading
+        steps_.clear();
+        iterationNumHistory_.clear();
+        patternNZHistory_.clear();
+        actualValues_.clear();
+        actualValuesSet_.clear();
+        activeBitHistory_.clear();
+
+        for (auto step : proto.getSteps())
+        {
+          steps_.push_back(step);
+        }
+
+        alpha_ = proto.getAlpha();
+        actValueAlpha_ = proto.getActValueAlpha();
+        learnIteration_ = proto.getLearnIteration();
+        recordNumMinusLearnIteration_ = proto.getRecordNumMinusLearnIteration();
+        recordNumMinusLearnIterationSet_ =
+          proto.getRecordNumMinusLearnIterationSet();
+        maxSteps_ = proto.getMaxSteps();
+
+        auto patternNZHistoryProto = proto.getPatternNZHistory();
+        for (UInt i = 0; i < patternNZHistoryProto.size(); i++)
+        {
+          patternNZHistory_.emplace_back(patternNZHistoryProto[i].size());
+          for (UInt j = 0; j < patternNZHistoryProto[i].size(); j++)
+          {
+            patternNZHistory_[i][j] = patternNZHistoryProto[i][j];
+          }
+        }
+
+        auto iterationNumHistoryProto = proto.getIterationNumHistory();
+        for (UInt i = 0; i < iterationNumHistoryProto.size(); i++)
+        {
+          iterationNumHistory_.push_back(iterationNumHistoryProto[i]);
+        }
+
+        auto activeBitHistoryProto = proto.getActiveBitHistory();
+        for (UInt i = 0; i < activeBitHistoryProto.size(); i++)
+        {
+          auto stepBitHistories = activeBitHistoryProto[i];
+          UInt steps = stepBitHistories.getSteps();
+          for (auto indexBitHistoryProto : stepBitHistories.getBitHistories())
+          {
+            BitHistory& bitHistory =
+              activeBitHistory_[steps][indexBitHistoryProto.getIndex()];
+            auto bitHistoryProto = indexBitHistoryProto.getHistory();
+            bitHistory.read(bitHistoryProto);
+          }
+        }
+
+        maxBucketIdx_ = proto.getMaxBucketIdx();
+
+        for (auto actValue : proto.getActualValues())
+        {
+          actualValues_.push_back(actValue);
+        }
+
+        for (auto actValueSet : proto.getActualValuesSet())
+        {
+          actualValuesSet_.push_back(actValueSet);
+        }
+
+        version_ = proto.getVersion();
+        verbosity_ = proto.getVerbosity();
+      }
+
+      void FastCLAClassifier::read(istream& stream)
+      {
+        kj::std::StdInputStream in(stream);
+
+        capnp::InputStreamMessageReader message(in);
+        auto proto = message.getRoot<ClaClassifierProto>();
+        read(proto);
+      }
+
       bool FastCLAClassifier::operator==(const FastCLAClassifier& other) const
       {
         if (steps_.size() != other.steps_.size())
@@ -451,8 +620,8 @@ namespace nupic
           }
         }
 
-        if (alpha_ != other.alpha_ ||
-            actValueAlpha_ != other.actValueAlpha_ ||
+        if (fabs(alpha_ - other.alpha_) > 0.000001 ||
+            fabs(actValueAlpha_ - other.actValueAlpha_) > 0.000001 ||
             learnIteration_ != other.learnIteration_ ||
             recordNumMinusLearnIteration_ !=
                 other.recordNumMinusLearnIteration_  ||
@@ -535,8 +704,8 @@ namespace nupic
         }
         for (UInt i = 0; i < actualValues_.size(); i++)
         {
-          if (actualValues_.at(i) != other.actualValues_.at(i) ||
-              actualValuesSet_.at(i) != other.actualValuesSet_.at(i))
+          if (fabs(actualValues_[i] - other.actualValues_[i]) > 0.000001 ||
+              fabs(actualValuesSet_[i] - other.actualValuesSet_[i]) > 0.00001)
           {
             return false;
           }

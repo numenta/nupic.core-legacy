@@ -20,6 +20,7 @@
  * ---------------------------------------------------------------------
  */
 
+#include <cmath>
 #include <map>
 #include <vector>
 
@@ -71,7 +72,7 @@ namespace nupic
           }
           for (UInt i = 0; i < thisVec->size(); i++)
           {
-            if (thisVec->at(i) != otherVec->at(i))
+            if (fabs(thisVec->at(i) - otherVec->at(i)) > 0.000001)
             {
               return false;
             }
