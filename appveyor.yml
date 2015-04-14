@@ -37,7 +37,9 @@ init:
 
 clone_folder: c:\projects\nupic-core
 clone_depth: 50
-shallow_clone: true
+# Can't have a shallow clone because the CMake process will be calling into
+# git to write the current SHA into the binaries.
+shallow_clone: false
 
 #---------------------------------#
 #       build configuration       #
