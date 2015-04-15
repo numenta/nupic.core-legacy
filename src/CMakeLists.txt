@@ -471,6 +471,12 @@ add_executable(${EXECUTABLE_GTESTS}
                test/unit/algorithms/NearestNeighborUnitTest.cpp
                test/unit/algorithms/SpatialPoolerTest.cpp
                test/unit/algorithms/TemporalMemoryTest.cpp
+               test/unit/algorithms/monitor_mixin/Metric.cpp
+               test/unit/algorithms/monitor_mixin/MetricTest.cpp
+               test/unit/algorithms/monitor_mixin/MonitorMixin.cpp
+               test/unit/algorithms/monitor_mixin/MonitorMixinTest.cpp
+               test/unit/algorithms/monitor_mixin/Trace.cpp
+               test/unit/algorithms/monitor_mixin/TraceTest.cpp
                test/unit/algorithms/TemporalMemoryAbstractTest.cpp
                test/unit/algorithms/TemporalMemoryExtensiveTest.cpp
                test/unit/algorithms/TemporalMemoryPerformanceTest.cpp
@@ -530,7 +536,14 @@ set(TEST_HEADERS
     test/unit/algorithms/FlatSpatialPoolerTest.hpp
     test/unit/algorithms/NearestNeighborUnitTest.hpp
     test/unit/algorithms/SpatialPoolerTest.hpp
+    test/unit/algorithms/TemporalMemoryAbstractTest.hpp
     test/unit/algorithms/TemporalMemoryTest.hpp
+    test/unit/algorithms/monitor_mixin/Metric.hpp
+    test/unit/algorithms/monitor_mixin/MetricTest.hpp
+    test/unit/algorithms/monitor_mixin/MonitorMixin.hpp
+    test/unit/algorithms/monitor_mixin/MonitorMixinTest.hpp
+    test/unit/algorithms/monitor_mixin/Trace.hpp
+    test/unit/algorithms/monitor_mixin/TraceTest.hpp
     test/unit/engine/InputTest.hpp
     test/unit/engine/NetworkTest.hpp
     test/unit/engine/UniformLinkPolicyTest.hpp

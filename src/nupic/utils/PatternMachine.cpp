@@ -42,9 +42,9 @@ using namespace nupic::utils;
 // If step is positive, the last element is the largest start + i * step less than stop; 
 // if step is negative, the last element is the smallest start + i * step greater than stop.
 // step must not be zero (or else ValueError is raised).
-Pattern nupic::utils::range(int start, int stop, int step)
+vector<UInt> nupic::utils::range(int start, int stop, int step)
 {
-  Pattern x;
+  vector<UInt> x;
   int numEntries = ceil((Real)(stop - start) / (Real)step);
 
   if (numEntries <= 0)
@@ -66,17 +66,17 @@ Pattern nupic::utils::range(int start, int stop, int step)
   return x;
 }
 
-Pattern nupic::utils::range(int start, int stop)
+vector<UInt> nupic::utils::range(int start, int stop)
 {
   return utils::range(start, stop, 1);
 }
 
-Pattern nupic::utils::range(int stop)
+vector<UInt> nupic::utils::range(int stop)
 {
   return utils::range(0, stop, 1);
 }
 
-void PatternMachine::initialize(int n, vector<int>& w, int num, int seed)
+void PatternMachine::initialize(int n, vector<UInt>& w, int num, int seed)
 {
   // Save member variables
   _n = n;
@@ -93,7 +93,7 @@ void PatternMachine::initialize(int n, vector<int>& w, int num, int seed)
 // Return a pattern for a number.
 //  @param number(int) Number of pattern
 //  @return (set)Indices of on bits
-Pattern PatternMachine::get(int number)
+vector<UInt> PatternMachine::get(int number)
 {
   if (number < 0 || number >= _patterns.size())
     throw runtime_error("Invalid index");
@@ -104,20 +104,19 @@ Pattern PatternMachine::get(int number)
 // Generates set of random patterns.
 void PatternMachine::_generate()
 {
-  Pattern candidates = range(0, _n, 1);
+  vector<UInt> candidates = range(0, _n, 1);
 
   _patterns.resize(_num);
 
-  Pattern xrange = range(_num);
+  vector<UInt> xrange = range(_num);
   for (int i : xrange)
   {
     _random.shuffle(candidates.begin(), candidates.end());
 
-    Pattern pattern;
-    int w = _getW();
+    vector<UInt> pattern;
+    Int w = _getW();
 
-    pattern.resize(w);
-    std::copy(candidates.begin(), candidates.begin() + w, pattern.begin());
+    _Copy_n(candidates.begin(), w, pattern.begin());
 
     _patterns[i] = pattern;
   }
@@ -126,7 +125,7 @@ void PatternMachine::_generate()
 // Gets a value of `w` for use in generating a pattern.
 int PatternMachine::_getW()
 {
-  vector<int> w = _w;
+  vector<UInt> w = _w;
 
   if (w.size() > 1)
     return w[_random.getUInt32(w.size())];
@@ -141,9 +140,9 @@ int PatternMachine::_getW()
 //  @param bits(set)   Indices of on bits
 //  @param amount(float) Probability of switching an on bit with a random bit
 //  @return (set)Indices of on bits in noisy pattern
-Pattern PatternMachine::addNoise(Pattern& bits, Real amount)
+vector<UInt> PatternMachine::addNoise(vector<UInt>& bits, Real amount)
 {
-  Pattern newBits;
+  vector<UInt> newBits;
 
   for (int bit : bits)
   {
@@ -159,15 +158,15 @@ Pattern PatternMachine::addNoise(Pattern& bits, Real amount)
 // Return the set of pattern numbers that match a bit.
 //  @param bit(int) Index of bit
 //  @return (set)Indices of numbers
-Pattern PatternMachine::numbersForBit(int bit)
+vector<UInt> PatternMachine::numbersForBit(int bit)
 {
   if (bit < 0 || bit >= _n)
     throw runtime_error("Invalid bit");
 
-  Pattern numbers;
+  vector<UInt> numbers;
 
   UInt index = 0;
-  for (Pattern pattern : _patterns)
+  for (vector<UInt> pattern : _patterns)
   {
     if (std::find(pattern.begin(), pattern.end(), bit) != pattern.end())
       numbers.push_back(index);
@@ -182,25 +181,22 @@ Pattern PatternMachine::numbersForBit(int bit)
 // for all numbers that match a set of bits.
 //   @param bits(set) Indices of bits
 //   @return (dict)Mapping from number = > on bits.
-std::map<int, Pattern> PatternMachine::numberMapForBits(Pattern& bits)
+std::map<UInt, vector<UInt>> PatternMachine::numberMapForBits(vector<UInt>& bits)
 {
-  std::map<int, Pattern> numberMap;
+  std::map<UInt, vector<UInt>> numberMap;
 
   for (int bit : bits)
   {
-    Pattern numbers = numbersForBit(bit);
+    vector<UInt> numbers = numbersForBit(bit);
 
-    for (int number : numbers)
-    {
-      if (number >= 0)
-        numberMap[number].push_back(bit);
-    }
+    for (UInt number : numbers)
+      numberMap[number].push_back(bit);
   }
 
   return numberMap;
 }
 
-string PatternMachine::prettyPrintPattern(Pattern& bits, int verbosity)
+string PatternMachine::prettyPrintPattern(vector<UInt>& bits, int verbosity)
 {
   string text = "";
   /*
@@ -236,23 +232,23 @@ string PatternMachine::prettyPrintPattern(Pattern& bits, int verbosity)
   return text;
 }
 
-// Pattern machine class that generates patterns with 
+// vector<UInt> machine class that generates patterns with 
 // non-overlapping, consecutive on bits.
 void ConsecutivePatternMachine::_generate()
 {
   // Generates set of consecutive patterns.
   int n = _n;
-  Pattern w = _w;
+  vector<UInt> w = _w;
 
   if (w.size() != 1 && w[0] != 0)
     throw runtime_error("List for w not supported");
 
-  Pattern xrange = range(n / w[0]);
+  vector<UInt> xrange = range(n / w[0]);
   _patterns.resize(xrange.size());
 
   for (int i : xrange)
   {
-    Pattern pattern = range(i * w[0], (i + 1)*w[0], 1);
+    vector<UInt> pattern = range(i * w[0], (i + 1)*w[0], 1);
     _patterns[i] = pattern;
   }
 }

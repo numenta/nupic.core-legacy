@@ -23,7 +23,7 @@
 /** @file
 * Implementation of unit tests for SpatialPooler
 */
-/*
+
 #include <cstring>
 #include <fstream>
 #include <stdio.h>
@@ -34,111 +34,141 @@
 
 //import time
 //import unittest
-//mport numpy
+//import numpy
 
 #include <nupic/utils/PatternMachine.hpp>
 #include <nupic/utils/SequenceMachine.hpp>
 
-#include <nupic/algorithms/SpatialPooler.hpp>   // SP
-#include <nupic/algorithms/Cells4.hpp>          // TP
-#include <nupic/algorithms/TemporalMemory.hpp>  // TM
+#include <nupic/algorithms/SpatialPooler.hpp>
+#include <nupic/algorithms/Cells4.hpp>
+#include <nupic/algorithms/TemporalMemory.hpp>
 
-#define Cells4 TemporalPooler
+#include <nupic/os/Timer.hpp>
 
 using namespace std;
 using namespace nupic::utils;
-using namespace nupic::algorithms;
+using namespace nupic::algorithms::spatial_pooler;
+using namespace nupic::algorithms::Cells4;
+using namespace nupic::algorithms::temporal_memory;
 
 namespace nupic {
+
+  class SpatialPoolerInstance : public Instance, public SpatialPooler
+  {
+  public:
+    void compute(vector<UInt> pattern, bool learn) { };
+    void compute(vector<UInt> pattern, bool learn, bool learn2) { };
+  };
+
+  class Cells4Instance : public Instance, public Cells4
+  {
+  public:
+    void compute(vector<UInt> pattern, bool learn) { };
+    void compute(vector<UInt> pattern, bool learn, bool learn2) { };
+  };
+
+  class TemporalMemoryInstance : public Instance, public TemporalMemory
+  {
+  public:
+    void compute(vector<UInt> pattern, bool learn) { };
+    void compute(vector<UInt> pattern, bool learn, bool learn2) { };
+  };
+
+  static void tmComputeFn(vector<UInt>& pattern, Instance& instance)
+  {
+    instance.compute(pattern, instance._learn);
+  }
+
+  static void tpComputeFn(vector<UInt>& pattern, Instance& instance)
+  {
+    instance.compute(pattern, instance._learn, true);
+  }
 
   // ==============================
   //  Tests
   // ==============================
 
-class TemporalMemoryPerformanceTest : public Tester
-{
-  SpatialPooler   sp;
-  TemporalPooler  tp;
-  TemporalMemory  tm;
-  PatternMachine  _patternMachine;
-  SequenceMachine _sequenceMachine;
+  class TemporalMemoryPerformanceTest : public Tester
+  {
+    SpatialPoolerInstance sp;
+    Cells4Instance tp;
+    TemporalMemoryInstance tm;
+    PatternMachine  _patternMachine;
+    SequenceMachine _sequenceMachine;
+    bool _learn;
 
-  void setUp()
-  {  
-    tm.initialize({2048}, 32, 15, 2048L, .5, .8, 15, 12, .1, .05);
+    void setUp()
+    {
+      tm.initialize({ 2048 }, 32, 15, 2048L, .5, .8, 15, 12, .1, .05);
 
-    _patternMachine = PatternMachine(2048, 40, 100);
-    _sequenceMachine = SequenceMachine(_patternMachine);
+      _patternMachine = PatternMachine();
+      _patternMachine.initialize(2048, vector<UInt>{ 40 }, 100);
+      _sequenceMachine = SequenceMachine(_patternMachine);
+    }
 
+    // Run all appropriate tests
+    virtual void RunTests() override
+    {
+      testSingleSequence();
+    }
 
-  def testSingleSequence(self):
-    print "Test: Single sequence"
-    sequence = self.sequenceMachine.generateFromNumbers(range(50))
-    times = self._feedAll(sequence)
+    void testSingleSequence()
+    {
+      // "Test: Single sequence"
+      Sequence sequence = _sequenceMachine.generateFromNumbers(vector<vector<UInt>>{ range(50) });
+      vector<Real64> times = _feedAll(sequence);
 
-    self.assertTrue(times[0] < times[1])
-    self.assertTrue(times[2] < times[1])
-    self.assertTrue(times[2] < times[0])
+      NTA_CHECK(times[0] < times[1]);
+      NTA_CHECK(times[2] < times[1]);
+      NTA_CHECK(times[2] < times[0]);
+    }
 
+    // ==============================
+    // Helper functions
+    // ==============================
 
-  # ==============================
-  # Helper functions
-  # ==============================
+    Real64 _feedOne(Sequence& sequence, Instance& instance, ComputeFunction& computeFn)
+    {
+      Timer timer(true); // auto start enabled
 
-  def _feedAll(self, sequence, learn=True, num=1):
-    repeatedSequence = sequence * num
-    times = []
+      for (vector<UInt> pattern : sequence)
+      {
+        if (pattern.size() == 0)
+          instance.reset();
+        else
+          computeFn(pattern, instance);
+      }
 
-    def tmComputeFn(pattern, instance):
-      instance.compute(pattern, learn)
+      timer.stop();
 
-    def tpComputeFn(pattern, instance):
-      array = self._patternToNumpyArray(pattern)
-      instance.compute(array, enableLearn=learn, computeInfOutput=True)
+      return timer.getElapsed();
+    }
 
-    elapsed = self._feedOne(repeatedSequence, self.tm, tmComputeFn)
-    times.append(elapsed)
-    print "TM:\t{0}s".format(elapsed)
+    vector<Real64> _feedAll(Sequence& sequence, bool learn = true, int num = 1)
+    {
+      vector<Real64> times;
+      Real64 elapsed;
+      Sequence repeatedSequence;
 
-    elapsed = self._feedOne(repeatedSequence, self.tp, tpComputeFn)
-    times.append(elapsed)
-    print "TP:\t{0}s".format(elapsed)
+      for (int i = 0; i < num; i++)
+      {
+        for (auto seq : sequence)
+          repeatedSequence.push_back(seq);
+      }
 
-    elapsed = self._feedOne(repeatedSequence, self.tp10x2, tpComputeFn)
-    times.append(elapsed)
-    print "TP10X2:\t{0}s".format(elapsed)
+      elapsed = _feedOne(repeatedSequence, tm, tmComputeFn);
+      times.push_back(elapsed);
+      cout << "TM:\t" << elapsed << " s";
 
-    return times
+      elapsed = _feedOne(repeatedSequence, tp, tpComputeFn);
+      times.push_back(elapsed);
+      cout << "TP:\t" << elapsed << " s";
 
+      elapsed = _feedOne(repeatedSequence, sp, tpComputeFn);
+      times.push_back(elapsed);
+      cout << "SP:\t" << elapsed << " s";
 
-  @staticmethod
-  def _feedOne(sequence, instance, computeFn):
-    start = time.clock()
-
-    for pattern in sequence:
-      if pattern == None:
-        instance.reset()
-      else:
-        computeFn(pattern, instance)
-
-    elapsed = time.clock() - start
-
-    return elapsed
-
-
-  @staticmethod
-  def _patternToNumpyArray(pattern):
-    array = numpy.zeros(2048, dtype='int32')
-    array[list(pattern)] = 1
-
-    return array
-
-
-
-# ==============================
-# Main
-# ==============================
-
-if __name__ == "__main__":
-  unittest.main()
-*/
+      return times;
+    }
+  };
+};

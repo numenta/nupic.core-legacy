@@ -46,10 +46,10 @@ namespace nupic
     PatternMachine _patternMachine;
     SequenceMachine _sequenceMachine;
 
-    bool check_pattern_eq(Pattern& p1, Pattern& p2);
-    Pattern get_pattern_diffs(Pattern& p1, Pattern& p2);
-    Pattern get_pattern_union(Pattern& p1, Pattern& p2);
-    Pattern get_pattern_intersections(Pattern& p1, Pattern& p2);
+    bool check_pattern_eq(vector<UInt>& p1, vector<UInt>& p2);
+    vector<UInt> get_pattern_diffs(vector<UInt>& p1, vector<UInt>& p2);
+    vector<UInt> get_pattern_union(vector<UInt>& p1, vector<UInt>& p2);
+    vector<UInt> get_pattern_intersections(vector<UInt>& p1, vector<UInt>& p2);
 
     void testGenerateFromNumbers();
     void testAddSpatialNoise();

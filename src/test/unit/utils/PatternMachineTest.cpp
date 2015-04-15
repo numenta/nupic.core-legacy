@@ -38,7 +38,7 @@ using namespace nupic;
 void PatternMachineTest::RunTests()
 {
   _patternMachine = PatternMachine();
-  _patternMachine.initialize(10000, vector<int>{ 5 }, 50);
+  _patternMachine.initialize(10000, vector<UInt>{ 5 }, 50);
 
   testRange();
   testGet();
@@ -54,7 +54,7 @@ void PatternMachineTest::RunTests()
   ConsecutivePatternMachineTest_testGetOutOfBounds();
 }
 
-bool PatternMachineTest::check_pattern_eq(Pattern& p1, Pattern& p2)
+bool PatternMachineTest::check_pattern_eq(vector<UInt>& p1, vector<UInt>& p2)
 {
   for (UInt i = 0; i < p1.size(); i++) {
     if (p1[i] != p2[i]) {
@@ -64,10 +64,10 @@ bool PatternMachineTest::check_pattern_eq(Pattern& p1, Pattern& p2)
   return true;
 }
 
-Pattern PatternMachineTest::get_pattern_diffs(Pattern& p1, Pattern& p2)
+vector<UInt> PatternMachineTest::get_pattern_diffs(vector<UInt>& p1, vector<UInt>& p2)
 {
-  vector<int> s1 = p1, s2 = p2;
-  vector<int> diffs;
+  vector<UInt> s1 = p1, s2 = p2;
+  vector<UInt> diffs;
 
   // For the set_symmetric_difference algorithm to work, the source ranges must be ordered!    
   sort(s1.begin(), s1.end());
@@ -79,10 +79,10 @@ Pattern PatternMachineTest::get_pattern_diffs(Pattern& p1, Pattern& p2)
   return diffs;
 }
 
-Pattern PatternMachineTest::get_pattern_intersections(Pattern& p1, Pattern& p2)
+vector<UInt> PatternMachineTest::get_pattern_intersections(vector<UInt>& p1, vector<UInt>& p2)
 {
-  vector<int> s1 = p1, s2 = p2;
-  vector<int> diffs;
+  vector<UInt> s1 = p1, s2 = p2;
+  vector<UInt> diffs;
 
   // For the set_symmetric_difference algorithm to work, the source ranges must be ordered!    
   sort(s1.begin(), s1.end());
@@ -94,11 +94,11 @@ Pattern PatternMachineTest::get_pattern_intersections(Pattern& p1, Pattern& p2)
   return diffs;
 }
 
-Pattern PatternMachineTest::get_pattern_union(Pattern& p1, Pattern& p2)
+vector<UInt> PatternMachineTest::get_pattern_union(vector<UInt>& p1, vector<UInt>& p2)
 {
-  vector<int> s1(p1), s2(p2);
-  vector<int> combined;
-  std::vector<int>::iterator it;
+  vector<UInt> s1(p1), s2(p2);
+  vector<UInt> combined;
+  std::vector<UInt>::iterator it;
 
   sort(s1.begin(), s1.end());
   sort(s2.begin(), s2.end());
@@ -112,27 +112,29 @@ Pattern PatternMachineTest::get_pattern_union(Pattern& p1, Pattern& p2)
 
 void PatternMachineTest::testRange()
 {
-  Pattern t, r;
+  vector<UInt> t, r;
 
   t = nupic::utils::range(10);
-  r = Pattern{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+  r = vector<UInt>{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
   NTA_CHECK(check_pattern_eq(t, r));
 
   t = nupic::utils::range(1, 11);
-  r = Pattern{ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+  r = vector<UInt>{ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
   NTA_CHECK(check_pattern_eq(t, r));
 
   t = nupic::utils::range(0, 30, 5);
-  r = Pattern{ 0, 5, 10, 15, 20, 25 };
+  r = vector<UInt>{ 0, 5, 10, 15, 20, 25 };
   NTA_CHECK(check_pattern_eq(t, r));
 
   t = nupic::utils::range(0, 10, 3);
-  r = Pattern{ 0, 3, 6, 9 };
+  r = vector<UInt>{ 0, 3, 6, 9 };
   NTA_CHECK(check_pattern_eq(t, r));
 
+  // This is a valid range
   t = nupic::utils::range(0, -10, -1);
-  r = Pattern{ 0, -1, -2, -3, -4, -5, -6, -7, -8, -9 };
-  NTA_CHECK(check_pattern_eq(t, r));
+  // An invalid range for patterns
+  //r = vector<UInt>{ 0, -1, -2, -3, -4, -5, -6, -7, -8, -9 };
+  //NTA_CHECK(check_pattern_eq(t, r));
 
   t = nupic::utils::range(0);
   NTA_CHECK((t.size() == 0));
@@ -144,13 +146,13 @@ void PatternMachineTest::testRange()
 
 void PatternMachineTest::testGet()
 {
-  Pattern patternA = _patternMachine.get(48);
+  vector<UInt> patternA = _patternMachine.get(48);
   NTA_CHECK((patternA.size() == 5));
 
-  Pattern patternB = _patternMachine.get(49);
+  vector<UInt> patternB = _patternMachine.get(49);
   NTA_CHECK((patternB.size() == 5));
 
-  Pattern diffs = get_pattern_diffs(patternA, patternB);
+  vector<UInt> diffs = get_pattern_diffs(patternA, patternB);
   NTA_CHECK((diffs.size() > 0));
 }
 
@@ -162,9 +164,9 @@ void PatternMachineTest::testGetOutOfBounds()
 void PatternMachineTest::testAddNoise()
 {
   PatternMachine patternMachine = PatternMachine();
-  patternMachine.initialize(10000, vector<int>{ 1000 }, 1);
+  patternMachine.initialize(10000, vector<UInt>{ 1000 }, 1);
 
-  Pattern diffs, noisy, pattern;
+  vector<UInt> diffs, noisy, pattern;
 
   pattern = patternMachine.get(0);
 
@@ -183,11 +185,11 @@ void PatternMachineTest::testAddNoise()
 
 void PatternMachineTest::testNumbersForBit()
 {
-  Pattern pattern = _patternMachine.get(49);
+  vector<UInt> pattern = _patternMachine.get(49);
 
   for (int bit : pattern)
   {
-    NTA_CHECK(_patternMachine.numbersForBit(bit) == Pattern{ 49 });
+    NTA_CHECK(_patternMachine.numbersForBit(bit) == vector<UInt>{ 49 });
   }
 }
 
@@ -198,8 +200,8 @@ void PatternMachineTest::testNumbersForBitOutOfBounds()
 
 void PatternMachineTest::testNumberMapForBits()
 {
-  Pattern pattern = _patternMachine.get(49);
-  map<int, Pattern> numberMap = _patternMachine.numberMapForBits(pattern);
+  vector<UInt> pattern = _patternMachine.get(49);
+  map<int, vector<UInt>> numberMap = _patternMachine.numberMapForBits(pattern);
 
   NTA_CHECK(numberMap[49].size() > 0);
   NTA_CHECK(check_pattern_eq(numberMap[49], pattern));
@@ -207,17 +209,17 @@ void PatternMachineTest::testNumberMapForBits()
 
 void PatternMachineTest::testWList()
 {
-  vector<int> w = { 4, 7, 11 };
+  vector<UInt> w = { 4, 7, 11 };
 
   PatternMachine _patternMachine;
   _patternMachine.initialize(100, w, 50);
 
   map<int, int> widths;
 
-  Pattern r = nupic::utils::range(50);
+  vector<UInt> r = nupic::utils::range(50);
   for (auto i : r)
   {
-    Pattern pattern = _patternMachine.get(i);
+    vector<UInt> pattern = _patternMachine.get(i);
     int width = pattern.size();
     NTA_CHECK(find(w.begin(), w.end(), width) != w.end());
     widths[pattern.size()] += 1;
@@ -231,25 +233,25 @@ void PatternMachineTest::testWList()
 void PatternMachineTest::ConsecutivePatternMachineTest_setUp()
 {
   ConsecutivePatternMachine patternMachine = ConsecutivePatternMachine();
-  patternMachine.initialize(100, vector<int>{ 5 });
+  patternMachine.initialize(100, vector<UInt>{ 5 });
 
   _patternMachine = patternMachine;
 }
 
 void PatternMachineTest::ConsecutivePatternMachineTest_testGet()
 {
-  Pattern pattern = _patternMachine.get(18);
+  vector<UInt> pattern = _patternMachine.get(18);
   NTA_CHECK(pattern.size() == 5);
 
-  Pattern t, r;
+  vector<UInt> t, r;
 
-  r = Pattern{ 90, 91, 92, 93, 94 };
+  r = vector<UInt>{ 90, 91, 92, 93, 94 };
   NTA_CHECK(check_pattern_eq(pattern, r));
 
   pattern = _patternMachine.get(19);
   NTA_CHECK(pattern.size() == 5);
 
-  r = Pattern{ 95, 96, 97, 98, 99 };
+  r = vector<UInt>{ 95, 96, 97, 98, 99 };
   NTA_CHECK(check_pattern_eq(pattern, r));
 }
 

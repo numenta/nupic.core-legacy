@@ -23,7 +23,7 @@
 /** @file
 * Implementation of unit tests for SpatialPooler
 */
-/*
+
 #include <cstring>
 #include <fstream>
 #include <stdio.h>
@@ -37,10 +37,11 @@
 #include <nupic/utils/SequenceMachine.hpp>
 
 using namespace std;
+using namespace nupic::utils;
 using namespace nupic::algorithms::temporal_memory;
 
 namespace nupic {
-  //class MonitoredTemporalMemory(TemporalMemoryMonitorMixin, TemporalMemory) : pass
+  //class MonitoredTemporalMemory : public TemporalMemoryMonitorMixin, TemporalMemory;
 
   class AbstractTemporalMemoryTest : Tester
   {
@@ -71,41 +72,28 @@ namespace nupic {
       //params = self._computeTMParams(overrides);
       _tm = TemporalMemory();// **params);
 
-      patternMachine = PatternMachine();
-      sequenceMachine = SequenceMachine(patternMachine);
+      _patternMachine = PatternMachine();
+      _sequenceMachine = SequenceMachine(_patternMachine);
     }
 
-    void feedTM(set<int> sequence, bool learn = true, int num = 1)
+    void feedTM(Sequence sequence, bool learn = true, int num = 1)
     {
-      vector<set<int>> repeatedSequence;
+      Sequence repeatedSequence;
       
       for (int i = 0; i < num; i++)
       {
         repeatedSequence.push_back(sequence[i]);
       }
 
-      tm.mmClearHistory();
+      _tm.mmClearHistory();
 
-      for (set<int> pattern : repeatedSequence)
+      for (vector<UInt> pattern : repeatedSequence)
       {
         if (pattern[0] < 0)
-          tm.reset();
+          _tm.reset();
         else
-          tm.compute(pattern, learn);
+          _tm.compute(&pattern[0], learn);
       }
     }
-
-    // ==============================
-    // Helper functions
-    // ==============================
-
-    paramsType _computeTMParams(overrides)
-    {
-      params = dict(self.DEFAULT_TM_PARAMS);
-      params.update(overrides or {});
-      return params;
-    }
-
   } // of class AbstractTemporalMemoryTest
 }; // of namespace nupic
-*/

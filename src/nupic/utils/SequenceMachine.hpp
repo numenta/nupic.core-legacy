@@ -44,7 +44,7 @@ namespace nupic {
 
     // Base sequence machine class.
 
-    typedef std::vector<Pattern> Sequence;
+    typedef std::vector<vector<UInt>> Sequence;
 
     class SequenceMachine
     {
@@ -62,13 +62,13 @@ namespace nupic {
       // @param sequenceLength(int)   Length of each sequence
       // @param sharedRange(tuple) (start index, end index) indicating range of shared subsequence in each sequence(None if no shared subsequences)
       // @return (list)Numbers representing sequences
-      Sequence generateNumbers(int numSequences, int sequenceLength, pair<int, int>sharedRange = { -1,-1 });
+      Sequence generateNumbers(int numSequences, int sequenceLength, pair<int, int> sharedRange = { -1,-1 });
 
       // Generate a sequence from a list of numbers.
       // Note : Any `None` in the list of numbers is considered a reset.
       //  @param numbers(list) List of numbers
       //  @return (list)Generated sequence
-      Sequence generateFromNumbers(vector<int>& numbers);
+      Sequence generateFromNumbers(vector<vector<UInt>>& numbers);
 
       // Add spatial noise to each pattern in the sequence.
       //  @param sequence(list)  Sequence

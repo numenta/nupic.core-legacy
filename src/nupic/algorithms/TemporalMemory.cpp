@@ -28,8 +28,11 @@
 #include <climits>
 #include <iostream>
 #include <string>
+#include <iterator>
 #include <vector>
+
 #include <boost/tuple/tuple.hpp>
+
 #include <nupic/algorithms/Connections.hpp>
 #include <nupic/algorithms/TemporalMemory.hpp>
 
@@ -43,16 +46,12 @@ TemporalMemory::TemporalMemory()
   version_ = 1;
 
   connections_ = nullptr;
-  random_ = nullptr;
 }
 
 TemporalMemory::~TemporalMemory()
 {
   if (connections_)
     delete connections_;
-
-  if (random_)
-    delete random_;
 }
 
 /**
@@ -111,7 +110,6 @@ void TemporalMemory::initialize(
   maxNewSynapseCount_ = maxNewSynapseCount;
   permanenceIncrement_ = permanenceIncrement;
   permanenceDecrement_ = permanenceDecrement;
-  seed_ = seed;
 
   // Initialize member variables
 
@@ -121,9 +119,9 @@ void TemporalMemory::initialize(
   activeSegments_.clear();
   learningSegments_.clear();
 
-  connections_ = new Connections(numberOfCells());
+  seed_((UInt64)(seed < 0 ? rand() : seed));
 
-  random_ = new Random(seed_);
+  connections_ = new Connections(numberOfCells());
 }
 
 
@@ -144,13 +142,13 @@ void TemporalMemory::reset(void)
 }
 
 /*
- * Feeds input record through TM, performing inference and learning.
- * Updates member variables with new state.
- *
- * @param activeColumns   Indices of active columns in `t`
- * @param learn           Whether or not learning is enabled
- */
-void TemporalMemory::compute(set<Int>& activeColumns, bool learn)
+* Feeds input record through TM, performing inference and learning.
+* Updates member variables with new state.
+*
+* @param activeColumns   Indices of active columns in `t`
+* @param learn           Whether or not learning is enabled
+*/
+void TemporalMemory::compute(UInt activeColumns[], bool learn)
 {
   set<Cell> activeCells;
   set<Cell> winnerCells;
@@ -158,7 +156,7 @@ void TemporalMemory::compute(set<Int>& activeColumns, bool learn)
   set<Segment> activeSegments;
 
   set<Cell> predictiveCells;
-  set<Int> predictedColumns;
+  set<UInt> predictedColumns;
 
   tie(activeCells, winnerCells, activeSegments, predictiveCells, predictedColumns)
     = computeFn(
@@ -175,6 +173,100 @@ void TemporalMemory::compute(set<Int>& activeColumns, bool learn)
   activeSegments_ = activeSegments;
   predictiveCells_ = predictiveCells;
 
+}
+
+UInt TemporalMemory::persistentSize() const
+{
+  // TODO: this won't scale!
+  stringstream s;
+  s.flags(ios::scientific);
+  s.precision(numeric_limits<double>::digits10 + 1);
+  this->save(s);
+  return s.str().size();
+}
+
+void TemporalMemory::save(ostream& outStream) const
+{
+  // Write a starting marker and version.
+  outStream << "TemporalMemory" << endl;
+  outStream << version_ << endl;
+
+  outStream << numColumns_ << " " << endl;
+
+  outStream << columnDimensions_.size() << " ";
+  for (const UInt & elem : columnDimensions_) {
+    outStream << elem << " ";
+  }
+  outStream << endl;
+
+  outStream << cellsPerColumn_ << " "
+    << activationThreshold_ << " "
+    << learningRadius_ << " "
+    << initialPermanence_ << " "
+    << connectedPermanence_ << " "
+    << minThreshold_ << " "
+    << maxNewSynapseCount_ << " "
+    << permanenceIncrement_ << " "
+    << permanenceDecrement_ << " " << endl;
+
+  outStream << random_ << " " << endl;
+
+  outStream << endl;
+  outStream << "~TemporalMemory" << endl;
+
+}
+
+// Implementation note: this method sets up the instance using data from
+// inStream. This method does not call initialize. As such we have to be careful
+// that everything in initialize is handled properly here.
+void TemporalMemory::load(istream& inStream)
+{
+  // Current version
+  version_ = 1;
+
+  // Check the marker
+  string marker;
+  inStream >> marker;
+  NTA_CHECK(marker == "TemporalMemory");
+
+  // Check the saved version.
+  Int version;
+  inStream >> version;
+  NTA_CHECK(version <= version_);
+
+  // Retrieve simple variables
+  inStream >> numColumns_;
+
+  // Retrieve vectors.
+  UInt numColumnDimensions;
+  inStream >> numColumnDimensions;
+
+  columnDimensions_.resize(numColumnDimensions);
+  for (UInt i = 0; i < numColumnDimensions; i++) {
+    inStream >> columnDimensions_[i];
+  }
+
+  inStream >> cellsPerColumn_;
+  inStream >> activationThreshold_;
+  inStream >> learningRadius_;
+  inStream >> initialPermanence_;
+  inStream >> connectedPermanence_;
+  inStream >> minThreshold_;
+  inStream >> maxNewSynapseCount_;
+  inStream >> permanenceIncrement_;
+  inStream >> permanenceDecrement_;
+
+  inStream >> random_;
+
+  inStream >> marker;
+  NTA_CHECK(marker == "~TemporalMemory");
+
+}
+
+/* create a RNG with given seed */
+void TemporalMemory::seed_(UInt64 seed)
+{
+  random_ = Random(seed);
 }
 
 /*
@@ -196,9 +288,9 @@ void TemporalMemory::compute(set<Int>& activeColumns, bool learn)
  *  `predictiveCells` (set)
  */
 
-tuple<set<Cell>, set<Cell>, set<Segment>, set<Cell>, set<Int>>
+tuple<set<Cell>, set<Cell>, set<Segment>, set<Cell>, set<UInt>>
 TemporalMemory::computeFn(
-set<Int>& activeColumns,
+UInt activeColumns[],
 set<Cell>& prevPredictiveCells,
 set<Segment>& prevActiveSegments,
 set<Cell>& prevActiveCells,
@@ -206,13 +298,15 @@ set<Cell>& prevWinnerCells,
 Connections& connections,
 bool learn)
 {
-  set<Int> predictedColumns;
+  set<UInt> _activeColumns(activeColumns, activeColumns + sizeof activeColumns / sizeof activeColumns[0]);
+  set<UInt> predictedColumns;
 
   set<Cell> activeCells;
   set<Cell> winnerCells;
 
-  tie(activeCells, winnerCells, predictedColumns) =
-    activateCorrectlyPredictiveCells(prevPredictiveCells, activeColumns);
+  tie(activeCells, winnerCells, predictedColumns) = activateCorrectlyPredictiveCells(
+      prevPredictiveCells, 
+      _activeColumns);
 
   activeCells.insert(activeCells_.begin(), activeCells_.end());
   winnerCells.insert(winnerCells_.begin(), winnerCells_.end());
@@ -220,7 +314,11 @@ bool learn)
   set<Segment> learningSegments;
 
   tie(activeCells, winnerCells, learningSegments) = burstColumns(
-    activeColumns, predictedColumns, prevActiveCells, prevWinnerCells, connections);
+    _activeColumns, 
+    predictedColumns, 
+    prevActiveCells, 
+    prevWinnerCells, 
+    connections);
 
   activeCells.insert(activeCells_.begin(), activeCells_.end());
   winnerCells.insert(winnerCells_.begin(), winnerCells_.end());
@@ -274,15 +372,15 @@ bool learn)
  *  `winnerCells`      (set),
  *  `predictedColumns` (set)
  */
-tuple<set<Cell>, set<Cell>, set<Int>>
+tuple<set<Cell>, set<Cell>, set<UInt>>
 TemporalMemory::activateCorrectlyPredictiveCells(
 set<Cell>& prevPredictiveCells,
-set<Int>& activeColumns)
+set<UInt>& activeColumns)
 {
   set<Cell> activeCells;
   set<Cell> winnerCells;
 
-  set<Int> predictedColumns;
+  set<UInt> predictedColumns;
 
   for (Cell cell : prevPredictiveCells)
   {
@@ -326,8 +424,8 @@ set<Int>& activeColumns)
  *  `learningSegments` (set)
  */
 tuple<set<Cell>, set<Cell>, set<Segment>> TemporalMemory::burstColumns(
-  set<Int>& activeColumns,
-  set<Int>& predictedColumns,
+  set<UInt>& activeColumns,
+  set<UInt>& predictedColumns,
   set<Cell>& prevActiveCells,
   set<Cell>& prevWinnerCells,
   Connections& connections)
@@ -337,13 +435,13 @@ tuple<set<Cell>, set<Cell>, set<Segment>> TemporalMemory::burstColumns(
 
   set<Segment> learningSegments;
 
-  vector<Int> unpredictedColumns;
+  vector<UInt> unpredictedColumns;
 
   // Resize to the worst case usage
   unpredictedColumns.resize(activeColumns.size() + predictedColumns.size());
 
   // Remove the predicted columns from the currently active columns
-  vector<Int>::iterator it = set_difference(
+  vector<UInt>::iterator it = set_difference(
     activeColumns.begin(), activeColumns.end(),
     predictedColumns.begin(), predictedColumns.end(),
     unpredictedColumns.begin());
@@ -617,7 +715,7 @@ Cell TemporalMemory::leastUsedCell(
       leastUsedCells.push_back(cell);
   }
 
-  Int i = random_->getUInt32((UInt32)leastUsedCells.size());
+  Int i = random_.getUInt32((UInt32)leastUsedCells.size());
   Cell leastUsedCell = leastUsedCells[i];
 
   return leastUsedCell;
@@ -722,7 +820,7 @@ set<Cell> TemporalMemory::pickCellsToLearnOn(
 
   for (int c = 0; c < n; c++)
   {
-    Int i = random_->getUInt32((UInt32)candidates.size());
+    Int i = random_.getUInt32((UInt32)candidates.size());
 
     cells.insert(candidates[i]);
 
@@ -879,83 +977,6 @@ bool TemporalMemory::_validatePermanence(Real permanence)
     return false;
   }
   return true;
-}
-
-void TemporalMemory::save(ostream& outStream)
-{
-  // Write a starting marker and version.
-  outStream << "TemporalMemory" << endl;
-  outStream << version_ << endl;
-
-  outStream << numColumns_ << " " << endl;
-
-  outStream << columnDimensions_.size() << " ";
-  for (UInt & elem : columnDimensions_) {
-    outStream << elem << " ";
-  }
-  outStream << endl;
-
-  outStream << cellsPerColumn_ << " "
-    << activationThreshold_ << " "
-    << learningRadius_ << " "
-    << initialPermanence_ << " "
-    << connectedPermanence_ << " "
-    << minThreshold_ << " "
-    << maxNewSynapseCount_ << " "
-    << permanenceIncrement_ << " "
-    << permanenceDecrement_ << " "
-    << seed_ << " " << endl;
-
-  outStream << endl;
-  outStream << "~TemporalMemory" << endl;
-
-}
-
-// Implementation note: this method sets up the instance using data from
-// inStream. This method does not call initialize. As such we have to be careful
-// that everything in initialize is handled properly here.
-void TemporalMemory::load(istream& inStream)
-{
-  // Current version
-  version_ = 1;
-
-  // Check the marker
-  string marker;
-  inStream >> marker;
-  NTA_CHECK(marker == "TemporalMemory");
-
-  // Check the saved version.
-  Int version;
-  inStream >> version;
-  NTA_CHECK(version <= version_);
-
-  // Retrieve simple variables
-  inStream >> numColumns_;
-
-  // Retrieve vectors.
-  UInt numColumnDimensions;
-  inStream >> numColumnDimensions;
-
-  columnDimensions_.resize(numColumnDimensions);
-  for (UInt i = 0; i < numColumnDimensions; i++) {
-    inStream >> columnDimensions_[i];
-  }
-
-  inStream >> cellsPerColumn_;
-  inStream >> activationThreshold_;
-  inStream >> learningRadius_;
-  inStream >> initialPermanence_;
-  inStream >> connectedPermanence_;
-  inStream >> minThreshold_;
-  inStream >> maxNewSynapseCount_;
-  inStream >> permanenceIncrement_;
-  inStream >> permanenceDecrement_;
-
-  inStream >> seed_;
-
-  inStream >> marker;
-  NTA_CHECK(marker == "~TemporalMemory");
-
 }
 
 vector<UInt> TemporalMemory::getColumnDimensions() const

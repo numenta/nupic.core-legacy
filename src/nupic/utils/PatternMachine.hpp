@@ -30,6 +30,7 @@
 #include <string>
 #include <map>
 #include <vector>
+
 #include <nupic/types/Types.hpp>
 #include <nupic/utils/Log.hpp>
 #include <nupic/utils/Random.hpp>
@@ -39,11 +40,9 @@ using namespace std;
 namespace nupic {
   namespace utils {
 
-    typedef std::vector<int> Pattern;
-
-    extern Pattern range(int start, int stop, int step);
-    extern Pattern range(int start, int stop);
-    extern Pattern range(int stop);
+    extern vector<UInt> range(int start, int stop, int step);
+    extern vector<UInt> range(int start, int stop);
+    extern vector<UInt> range(int stop);
 
     class PatternMachine
     {
@@ -52,21 +51,8 @@ namespace nupic {
 
       virtual ~PatternMachine() {}
 
-      // Number of available bits in pattern
-      int _n;
-
-      // Number of on bits in pattern. If list, each pattern will have 
-      // a `w` randomly selected from the list.
-      vector<int> _w;
-
-      // Number of available patterns#
-      int _num;
-      vector<Pattern> _patterns;
-
-      Random _random;
-
       // Create initial patterns
-      void initialize(int n, vector<int>& w, int num = 100, int seed = 42);
+      void initialize(int n, vector<UInt>& w, int num = 100, int seed = 42);
 
       // Generates set of random patterns.
       virtual void _generate();
@@ -74,7 +60,7 @@ namespace nupic {
       // Return a pattern for a number.
       //  @param number(int) Number of pattern
       //  @return (set)Indices of on bits
-      Pattern get(int number);
+      vector<UInt> get(int number);
 
       // Gets a value of `w` for use in generating a pattern.
       int _getW();
@@ -83,27 +69,40 @@ namespace nupic {
       //  @param bits(set)   Indices of on bits
       //  @param amount(float) Probability of switching an on bit with a random bit
       //  @return (set)Indices of on bits in noisy pattern
-      Pattern addNoise(Pattern& bits, Real amount);
+      vector<UInt> addNoise(vector<UInt>& bits, Real amount);
 
       // Return the set of pattern numbers that match a bit.
       //  @param bit(int) Index of bit
       //  @return (set)Indices of numbers
-      Pattern numbersForBit(int bit);
+      vector<UInt> numbersForBit(int bit);
 
       // Return a map from number to matching on bits,
       // for all numbers that match a set of bits.
       //   @param bits(set) Indices of bits
       //   @return (dict)Mapping from number = > on bits.
-      map<int, Pattern> numberMapForBits(Pattern& bits);
+      map<UInt, vector<UInt>> numberMapForBits(vector<UInt>& bits);
 
-      string prettyPrintPattern(Pattern& bits, int verbosity = 1);
+      string prettyPrintPattern(vector<UInt>& bits, int verbosity = 1);
+
+      // Number of available bits in pattern
+      int _n;
+
+      // Number of on bits in pattern. If list, each pattern will have 
+      // a `w` randomly selected from the list.
+      vector<UInt> _w;
+
+      // Number of available patterns
+      int _num;
+      vector<vector<UInt>> _patterns;
+
+      Random _random;
 
     };
 
     class ConsecutivePatternMachine : public PatternMachine
     {
     public:
-      // Pattern machine class that generates patterns with 
+      // vector<UInt> machine class that generates patterns with 
       // non-overlapping, consecutive on bits.
       void _generate();
 
@@ -111,5 +110,4 @@ namespace nupic {
 
   } // end namespace utils
 } // end namespace nupic
-
 #endif // NTA_PATTERN_MACHINE_HPP

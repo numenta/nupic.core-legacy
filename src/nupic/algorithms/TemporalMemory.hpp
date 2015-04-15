@@ -28,7 +28,6 @@
 #define NTA_TEMPORAL_MEMORY_HPP
 
 #include <vector>
-
 #include <nupic/types/Types.hpp>
 #include <nupic/utils/Random.hpp>
 #include <nupic/algorithms/Connections.hpp>
@@ -51,6 +50,7 @@ namespace nupic {
       class TemporalMemory {
       public:
         TemporalMemory();
+        
         virtual ~TemporalMemory();
 
         /**
@@ -79,7 +79,7 @@ namespace nupic {
           Int maxNewSynapseCount = 20,
           Permanence permanenceIncrement = 0.10,
           Permanence permanenceDecrement = 0.10,
-          Int seed = 42);
+          Int seed = 1);
 
         // ==============================
         //  Main functions
@@ -97,7 +97,26 @@ namespace nupic {
          * @param activeColumns   Indices of active columns in `t`
          * @param learn           Whether or not learning is enabled
          */
-        void compute(set<Int>& activeColumns, bool learn = true);
+        void compute(UInt activeColumns[], bool learn = true);
+
+        // Implementation note: this method sets up the instance using data from
+        // inStream. This method does not call initialize. As such we have to be careful
+        // that everything in initialize is handled properly here.
+        
+        void load(istream& inStream);
+
+        void save(ostream& outStream) const;
+
+        /**
+        Returns the number of bytes that a save operation would result in.
+        Note: this method is currently somewhat inefficient as it just does
+        a full save into an ostream and counts the resulting size.
+
+        @returns Integer number of bytes
+        */
+        virtual UInt persistentSize() const;
+
+        void seed_(UInt64 seed);
 
         /*
          * 'Functional' version of compute.
@@ -118,8 +137,8 @@ namespace nupic {
          *  `predictiveCells`   (set),
          *  'predictedColumns'  (set)
          */
-        tuple<set<Cell>, set<Cell>, set<Segment>, set<Cell>, set<Int>> computeFn(
-          set<Int>& activeColumns,
+        tuple<set<Cell>, set<Cell>, set<Segment>, set<Cell>, set<UInt>> computeFn(
+          UInt activeColumns[],
           set<Cell>& prevPredictiveCells,
           set<Segment>& prevActiveSegments,
           set<Cell>& prevActiveCells,
@@ -151,10 +170,10 @@ namespace nupic {
          *  `winnerCells`      (set),
          *  `predictedColumns` (set)
          */
-        virtual tuple<set<Cell>, set<Cell>, set<Int>>
+        virtual tuple<set<Cell>, set<Cell>, set<UInt>>
           activateCorrectlyPredictiveCells(
           set<Cell>& prevPredictiveCells,
-          set<Int>& activeColumns);
+          set<UInt>& activeColumns);
 
         /*
          * Phase 2 : Burst unpredicted columns.
@@ -182,8 +201,8 @@ namespace nupic {
          *  `learningSegments` (set)
          */
         virtual tuple<set<Cell>, set<Cell>, set<Segment>> burstColumns(
-          set<Int>& activeColumns,
-          set<Int>& predictedColumns,
+          set<UInt>& activeColumns,
+          set<UInt>& predictedColumns,
           set<Cell>& prevActiveCells,
           set<Cell>& prevWinnerCells,
           Connections& connections);
@@ -492,7 +511,7 @@ namespace nupic {
         * @param permanence (float) Permanence
         */
         bool _validatePermanence(Real permanence);
-
+          
         //----------------------------------------------------------------------
         // Debugging helpers
         //----------------------------------------------------------------------
@@ -509,14 +528,6 @@ namespace nupic {
         Print the given Real array in a nice format
         */
         void printState(vector<Real> &state);
-
-        // Implementation note: this method sets up the instance using data from
-        // inStream. This method does not call initialize. As such we have to be careful
-        // that everything in initialize is handled properly here.
-        void load(istream& inStream);
-        void save(ostream& outStream);
-
-        Int version_;
 
         UInt numColumns_;
         vector<UInt> columnDimensions_;
@@ -539,15 +550,13 @@ namespace nupic {
 
         set<Cell> predictiveCells_;
 
+        Int version_;
+        Random random_;
+
         Connections* connections_;
 
-        Int seed_;
-        Random* random_;
-
       };
-
     } // end namespace temporal_memory
   } // end namespace algorithms
 } // end namespace nta
-
 #endif // NTA_TEMPORAL_MEMORY_HPP

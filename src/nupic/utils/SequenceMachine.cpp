@@ -55,7 +55,7 @@ SequenceMachine::SequenceMachine(PatternMachine& patternMachine, int seed)
 Sequence SequenceMachine::generateNumbers(int numSequences, int sequenceLength, pair<int, int>sharedRange)
 {
   Sequence numbers;
-  Pattern sharedNumbers;
+  vector<UInt> sharedNumbers;
 
   if (sharedRange.first >= 0)
   {
@@ -63,12 +63,12 @@ Sequence SequenceMachine::generateNumbers(int numSequences, int sequenceLength, 
     sharedNumbers = range(numSequences * sequenceLength, numSequences * sequenceLength + sharedLength);
   }
 
-  Pattern sequenceRange = range(numSequences);
+  vector<UInt> sequenceRange = range(numSequences);
   for (int i : sequenceRange)
   {
     int start = i * sequenceLength;
 
-    Pattern newNumbers = range(start, start + sequenceLength);
+    vector<UInt> newNumbers = range(start, start + sequenceLength);
 
     _random.shuffle(newNumbers.begin(), newNumbers.end());
 
@@ -82,19 +82,22 @@ Sequence SequenceMachine::generateNumbers(int numSequences, int sequenceLength, 
 }
 
 // Generate a sequence from a list of numbers.
-// Note : Any -1 in the list of numbers is considered a reset.
+// Note : Any 'None' in the list of numbers is considered a reset.
 //  @param numbers(list) List of numbers
 //  @return (list)Generated sequence
-Sequence SequenceMachine::generateFromNumbers(vector<int>& numbers)
+Sequence SequenceMachine::generateFromNumbers(vector<vector<UInt>>& numbers)
 {
   Sequence sequence;
 
-  for (int number : numbers)
+  for (vector<UInt> numberSequence : numbers)
   {
-    if (number < 0)
-      sequence.push_back( { -1 } );
+    if (numberSequence.size() == 0)
+      sequence.push_back(numberSequence);
     else
-      sequence.push_back(_patternMachine.get(number));
+    {
+      for (Int number : numberSequence)
+        sequence.push_back(_patternMachine.get(number));
+    }
   }
 
   return sequence;
@@ -110,7 +113,7 @@ Sequence SequenceMachine::addSpatialNoise(Sequence& sequence, Real amount)
 
   for (auto pattern : sequence)
   {
-    Pattern noise = _patternMachine.addNoise(pattern, amount);
+    vector<UInt> noise = _patternMachine.addNoise(pattern, amount);
 
     newSequence.push_back(noise);
   }
@@ -128,7 +131,7 @@ string SequenceMachine::prettyPrintSequence(Sequence& sequence, int verbosity)
 /*
   for (auto i : xrange(len(sequence)))
   {
-    Pattern pattern = sequence[i];
+    vector<UInt> pattern = sequence[i];
 
     if (pattern == None)
       text += "<reset>";

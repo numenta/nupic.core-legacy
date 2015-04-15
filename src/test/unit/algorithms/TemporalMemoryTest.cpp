@@ -274,17 +274,17 @@ namespace nupic {
   void TemporalMemoryTest::testActivateCorrectlyPredictiveCells()
   {
     set<Cell> prevPredictiveCells = { Cell(0), Cell(237), Cell(1026), Cell(26337), Cell(26339), Cell(55536) };
-    set<Int> activeColumns = { 32, 47, 823 };
+    set<UInt> activeColumns = { 32, 47, 823 };
 
     set<Cell> activeCells;
     set<Cell> winnerCells;
-    set<Int> predictedColumns;
+    set<UInt> predictedColumns;
 
     tie(activeCells, winnerCells, predictedColumns) =
       tm.activateCorrectlyPredictiveCells(prevPredictiveCells, activeColumns);
 
     set<Cell> expectedCells = { Cell(1026), Cell(26337), Cell(26339) };
-    set<Int> expectedCols = { 32, 823 };
+    set<UInt> expectedCols = { 32, 823 };
     NTA_CHECK(check_set_eq(activeCells, expectedCells));
     NTA_CHECK(check_set_eq(winnerCells, expectedCells));
     NTA_CHECK(check_set_eq(predictedColumns, expectedCols));
@@ -294,17 +294,17 @@ namespace nupic {
   {
     {
       set<Cell> prevPredictiveCells = {};
-      set<Int> activeColumns = {};
+      set<UInt> activeColumns = {};
 
       set<Cell> activeCells;
       set<Cell> winnerCells;
-      set<Int> predictedColumns;
+      set<UInt> predictedColumns;
 
       tie(activeCells, winnerCells, predictedColumns) =
         tm.activateCorrectlyPredictiveCells(prevPredictiveCells, activeColumns);
 
       set<Cell> expectedCells = {};
-      set<Int> expectedCols = {};
+      set<UInt> expectedCols = {};
       NTA_CHECK(check_set_eq(activeCells, expectedCells));
       NTA_CHECK(check_set_eq(winnerCells, expectedCells));
       NTA_CHECK(check_set_eq(predictedColumns, expectedCols));
@@ -314,17 +314,17 @@ namespace nupic {
 
     {
       set<Cell> prevPredictiveCells = {};
-      set<Int> activeColumns = { 32, 47, 823 };
+      set<UInt> activeColumns = { 32, 47, 823 };
 
       set<Cell> activeCells;
       set<Cell> winnerCells;
-      set<Int> predictedColumns;
+      set<UInt> predictedColumns;
 
       tie(activeCells, winnerCells, predictedColumns) =
         tm.activateCorrectlyPredictiveCells(prevPredictiveCells, activeColumns);
 
       set<Cell> expectedCells = {};
-      set<Int> expectedCols = {};
+      set<UInt> expectedCols = {};
       NTA_CHECK(check_set_eq(activeCells, expectedCells));
       NTA_CHECK(check_set_eq(winnerCells, expectedCells));
       NTA_CHECK(check_set_eq(predictedColumns, expectedCols));
@@ -334,17 +334,17 @@ namespace nupic {
 
     {
       set<Cell> prevPredictiveCells = { Cell(0), Cell(237), Cell(1026), Cell(26337), Cell(26339), Cell(55536) };
-      set<Int> activeColumns = {};
+      set<UInt> activeColumns = {};
 
       set<Cell> activeCells;
       set<Cell> winnerCells;
-      set<Int> predictedColumns;
+      set<UInt> predictedColumns;
 
       tie(activeCells, winnerCells, predictedColumns) =
         tm.activateCorrectlyPredictiveCells(prevPredictiveCells, activeColumns);
 
       set<Cell> expectedCells = {};
-      set<Int> expectedCols = {};
+      set<UInt> expectedCols = {};
       NTA_CHECK(check_set_eq(activeCells, expectedCells));
       NTA_CHECK(check_set_eq(winnerCells, expectedCells));
       NTA_CHECK(check_set_eq(predictedColumns, expectedCols));
@@ -374,8 +374,8 @@ namespace nupic {
     segment = connections.createSegment(Cell(108));
     connections.createSynapse(segment, Cell(486), 0.9);
 
-    set<Int> activeColumns = { 0, 1, 26 };
-    set<Int> predictiveCols = { 26 };
+    set<UInt> activeColumns = { 0, 1, 26 };
+    set<UInt> predictiveCols = { 26 };
     set<Cell> prevActiveCells = { Cell(23), Cell(37), Cell(49), Cell(733) };
     set<Cell> prevWinnerCells = { Cell(23), Cell(37), Cell(49), Cell(733) };
 
@@ -401,8 +401,8 @@ namespace nupic {
 
   void TemporalMemoryTest::testBurstColumnsEmpty()
   {
-    set<Int> activeColumns = {};
-    set<Int> predictiveCols = {};
+    set<UInt> activeColumns = {};
+    set<UInt> predictiveCols = {};
     set<Cell> prevActiveCells = {};
     set<Cell> prevWinnerCells = {};
     Connections connections = *tm.connections_;
