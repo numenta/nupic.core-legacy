@@ -60,7 +60,7 @@ LogItem::~LogItem()
   case error:
     // The use of the keyword 'error' 
     // in stdout is discouraged
-    slevel = "FAIL:";
+    slevel = "ERR0R:";
     break;
   default:
     slevel = "Unknown: ";

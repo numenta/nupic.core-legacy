@@ -38,19 +38,25 @@ using namespace nupic;
 template<typename TraceType>
 class Trace
 {
-protected:
-  Instance* _monitor;
+public:
+  Instance& _monitor;
   string _title;
 
   TraceType& _data;
 
 public:
-  Trace(Instance* monitor, string& title);
+  Trace(Instance& monitor, string& title);
 
   virtual string prettyPrintTitle();
   virtual string prettyPrintDatum(TraceType& datum);
 
 };
+
+class CountsTrace : public Trace<vector<int>>
+{
+  // Each entry contains counts(for example # of predicted = > active cells).
+};
+
 
 class IndicesTrace : public Trace<vector<int>>
 {
@@ -58,8 +64,10 @@ private:
   int accumulate(Trace<vector<int>>& iterator);
 
 public:
-  Trace<vector<int>> makeCountsTrace();
-  Trace<vector<int>> makeCumCountsTrace();
+  template<typename TraceType>
+  Trace<TraceType> makeCountsTrace();
+  template<typename TraceType>
+  Trace<TraceType> makeCumCountsTrace();
 
   string prettyPrintDatum(vector<int>& datum);
 
@@ -70,12 +78,6 @@ class BoolsTrace : public Trace<vector<bool>>
 {
   // Each entry contains bools(for example resets).
 
-};
-
-
-class CountsTrace : public Trace<vector<CountsTrace>>
-{
-  // Each entry contains counts(for example # of predicted = > active cells).
 };
 
 

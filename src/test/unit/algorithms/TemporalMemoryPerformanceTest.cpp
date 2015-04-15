@@ -28,14 +28,6 @@
 #include <fstream>
 #include <stdio.h>
 
-#include <nupic/test/Tester.hpp>
-#include <nupic/types/Types.hpp>
-#include <nupic/utils/Log.hpp>
-
-//import time
-//import unittest
-//import numpy
-
 #include <nupic/utils/PatternMachine.hpp>
 #include <nupic/utils/SequenceMachine.hpp>
 
@@ -44,6 +36,16 @@
 #include <nupic/algorithms/TemporalMemory.hpp>
 
 #include <nupic/os/Timer.hpp>
+
+#include <nupic/test/Tester.hpp>
+#include <nupic/types/Types.hpp>
+#include <nupic/utils/Log.hpp>
+
+#include "monitor_mixin\Instance.hpp"
+
+//import time
+//import unittest
+//import numpy
 
 using namespace std;
 using namespace nupic::utils;

@@ -36,8 +36,11 @@ using namespace nupic;
 class Instance
 {
 public:
+  string mmName;
   bool _learn;
-  void reset();
+  
+  virtual void reset() {};
+
   virtual void compute(vector<UInt> pattern, bool learn) = 0;
   virtual void compute(vector<UInt> pattern, bool learn, bool learn2) = 0;
 };
