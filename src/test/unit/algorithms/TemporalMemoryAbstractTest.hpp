@@ -1,3 +1,4 @@
+/*
 # ----------------------------------------------------------------------
 # Numenta Platform for Intelligent Computing (NuPIC)
 # Copyright (C) 2014, Numenta, Inc.  Unless you have an agreement
@@ -82,3 +83,4 @@ class AbstractTemporalMemoryTest(unittest.TestCase):
     params.update(overrides or {})
     return params
 
+*/

@@ -1,3 +1,4 @@
+/*
 #!/usr/bin/env python
 # ----------------------------------------------------------------------
 # Numenta Platform for Intelligent Computing (NuPIC)
@@ -173,3 +174,4 @@ class TemporalMemoryMonitorMixinTest(unittest.TestCase):
 
 if __name__ == "__main__":
   unittest.main()
+*/

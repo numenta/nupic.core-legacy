@@ -85,7 +85,7 @@ namespace nupic {
         repeatedSequence.push_back(sequence[i]);
       }
 
-      _tm.mmClearHistory();
+      //_tm.mmClearHistory();
 
       for (vector<UInt> pattern : repeatedSequence)
       {
@@ -95,5 +95,6 @@ namespace nupic {
           _tm.compute(&pattern[0], learn);
       }
     }
-  } // of class AbstractTemporalMemoryTest
+  }; // of class AbstractTemporalMemoryTest
+
 }; // of namespace nupic

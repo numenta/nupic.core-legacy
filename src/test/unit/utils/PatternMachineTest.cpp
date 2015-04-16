@@ -201,7 +201,7 @@ void PatternMachineTest::testNumbersForBitOutOfBounds()
 void PatternMachineTest::testNumberMapForBits()
 {
   vector<UInt> pattern = _patternMachine.get(49);
-  map<int, vector<UInt>> numberMap = _patternMachine.numberMapForBits(pattern);
+  map<UInt, vector<UInt>> numberMap = _patternMachine.numberMapForBits(pattern);
 
   NTA_CHECK(numberMap[49].size() > 0);
   NTA_CHECK(check_pattern_eq(numberMap[49], pattern));

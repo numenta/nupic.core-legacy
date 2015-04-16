@@ -1,3 +1,4 @@
+/*
 # ----------------------------------------------------------------------
 # Numenta Platform for Intelligent Computing (NuPIC)
 # Copyright (C) 2014, Numenta, Inc.  Unless you have an agreement
@@ -390,3 +391,4 @@ class TemporalMemoryMonitorMixin(MonitorMixinBase):
     self._mmTraces["resets"] = BoolsTrace(self, "resets")
 
     self._mmTransitionTracesStale = True
+*/

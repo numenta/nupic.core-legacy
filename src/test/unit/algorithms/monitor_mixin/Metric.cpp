@@ -50,7 +50,7 @@ Metric<TraceType>::Metric(Instance* monitor, string& title, vector<TraceType>& d
 }
 
 template<typename TraceType>
-Metric<TraceType> createFromTrace(Trace<TraceType>& trace, bool excludeResets = false)
+Metric<TraceType> Metric<TraceType>::createFromTrace(Trace<TraceType>& trace, bool excludeResets = false)
 {
   vector<TraceType> data = list(trace.data);
   if (excludeResets)

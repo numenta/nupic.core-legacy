@@ -37,7 +37,9 @@
 template<typename TraceType>
 class Metric
 {
-  // A metric computed over a set of data(usually from a `CountsTrace`).
+public:
+  // A metric computed over a set of data (usually from a `CountsTrace`).
+
   Instance* _monitor;
   string& _title;
 
@@ -47,7 +49,8 @@ class Metric
 
   Metric(Instance* monitor, string& title, vector<TraceType>& data);
 
-  Metric<TraceType> copy(const Trace<TraceType>& rhs);
+  static Metric<TraceType> createFromTrace(Trace<TraceType>& trace, bool excludeResets = false);
+  static Metric<TraceType> copy(const Trace<TraceType>& rhs);
 
   string prettyPrintTitle();
 

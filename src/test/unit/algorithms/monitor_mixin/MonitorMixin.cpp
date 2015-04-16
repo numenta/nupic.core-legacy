@@ -21,7 +21,8 @@
 */
 
 /** @file
-* Implementation of TM mixin that enables detailed monitoring of history.
+* Implementation of MonitorMixinBase class used in 
+* monitor mixin framework.
 */
 
 #include <map>
@@ -29,19 +30,14 @@
 
 #include <nupic\types\Types.hpp>
 
-//from collections import defaultdict
-//from prettytable import PrettyTable
-
 #include "Trace.hpp"
 #include "Metric.hpp"
 
-// MonitorMixinBase class used in monitor mixin framework.
-//import abc
-//from prettytable import PrettyTable
 
 class MonitorMixinBase
 {
-  // Base class for MonitorMixin.Each subclass will be a mixin for a particular algorithm.
+  // Base class for MonitorMixin.
+  // Each subclass will be a mixin for a particular algorithm.
   // 
   // All arguments, variables, and methods in monitor mixin classes should be
   // prefixed with "mm" (to avoid collision with the classes they mix in to).
@@ -49,17 +45,19 @@ class MonitorMixinBase
 public:
   string _mmName;
 
-  map<string, Trace<vector<int>>&> _mmTraces;
+  map<string, Trace<vector<int>>> _mmTraces;
 
-  //__metaclass__ = abc.ABCMeta
+
+  MonitorMixinBase()
+  {
+    _mmName = "";
+  }
 
   MonitorMixinBase(string& title)
   {
     // Note : If you set the kwarg "mmName", then pretty - printing of traces and
     //        metrics will include the name you specify as a tag before every title.
     _mmName = title;
-
-    //super(MonitorMixinBase, self).__init__(*args, **kwargs)
 
     // Mapping from key(string) = > trace(Trace)
     _mmTraces.clear();
@@ -121,7 +119,7 @@ public:
   }
 
 
-  void/*vector<Trace<vector<int>>>*/ mmGetDefaultTraces(bool verbosity = true)
+  void/*vector<Trace<vector<int>>>*/ mmGetDefaultTraces(int verbosity = 1)
   {
     //Returns list of default traces. (To be overridden.)
     //@param verbosity(int) Verbosity level
@@ -130,7 +128,7 @@ public:
   }
 
 
-  void/*vector<Trace<vector<int>>>*/ mmGetDefaultMetrics(bool verbosity = true)
+  void/*vector<Trace<vector<int>>>*/ mmGetDefaultMetrics(int verbosity = 1)
   {
     //Returns list of default metrics. (To be overridden.)
     //@param verbosity(int) Verbosity level
@@ -147,103 +145,102 @@ public:
 
   // Mixin for TemporalMemory that stores a detailed history, for inspection and debugging.
 
-  TemporalMemoryMonitorMixin(std::string& title)
+  TemporalMemoryMonitorMixin(string& title)
   {
-    MonitorMixinBase(title);
-
+    _mmName = title;
     _mmResetActive = true; // First iteration is always a reset
   }
 
 
-  Trace<vector<int>>& mmGetTraceActiveColumns() const
+  Trace<vector<int>> mmGetTraceActiveColumns()
   {
     //@return (Trace) Trace of active columns
-    return _mmTraces["activeColumns"];
+    return _mmTraces.find("activeColumns")->second;
   }
 
 
-  Trace<vector<int>>& mmGetTracePredictiveCells() const
+  Trace<vector<int>>& mmGetTracePredictiveCells()
   {
     //@return (Trace) Trace of predictive cells
-    return _mmTraces["predictiveCells"];
+    return _mmTraces.find("predictiveCells")->second;
   }
 
 
-  Trace<vector<int>>& mmGetTraceNumSegments() const
+  Trace<vector<int>>& mmGetTraceNumSegments()
   {
     //@return (Trace) Trace of # segments
-    return _mmTraces["numSegments"];
+    return _mmTraces.find("numSegments")->second;
   }
 
 
-  Trace<vector<int>>& mmGetTraceNumSynapses() const
+  Trace<vector<int>>& mmGetTraceNumSynapses()
   {
     //@return (Trace) Trace of # synapses
-    return _mmTraces["numSynapses"];
+    return _mmTraces.find("numSynapses")->second;
   }
 
 
-  Trace<vector<int>>& mmGetTraceSequenceLabels() const
+  Trace<vector<int>>& mmGetTraceSequenceLabels()
   {
     //@return (Trace) Trace of sequence labels
-    return _mmTraces["sequenceLabels"];
+    return _mmTraces.find("sequenceLabels")->second;
   }
 
 
-  Trace<vector<int>>& mmGetTraceResets() const
+  Trace<vector<int>>& mmGetTraceResets()
   {
     //@return (Trace) Trace of resets
-    return _mmTraces["resets"];
+    return _mmTraces.find("resets")->second;
   }
 
 
-  Trace<vector<int>>& mmGetTracePredictedActiveCells() const
+  Trace<vector<int>>& mmGetTracePredictedActiveCells()
   {
     //@return (Trace) Trace of predicted => active cells
     _mmComputeTransitionTraces();
-    return _mmTraces["predictedActiveCells"];
+    return _mmTraces.find("predictedActiveCells")->second;
   }
 
 
-  Trace<vector<int>>& mmGetTracePredictedInactiveCells() const
+  Trace<vector<int>>& mmGetTracePredictedInactiveCells()
   {
     //@return (Trace) Trace of predicted => inactive cells
     _mmComputeTransitionTraces();
-    return _mmTraces["predictedInactiveCells"];
+    return _mmTraces.find("predictedInactiveCells")->second;
   }
 
 
-  Trace<vector<int>>& mmGetTracePredictedActiveColumns() const
+  Trace<vector<int>>& mmGetTracePredictedActiveColumns()
   {
     //@return (Trace) Trace of predicted => active columns
     _mmComputeTransitionTraces();
-    return _mmTraces["predictedActiveColumns"];
+    return _mmTraces.find("predictedActiveColumns")->second;
   }
 
 
-  Trace<vector<int>>& mmGetTracePredictedInactiveColumns() const
+  Trace<vector<int>>& mmGetTracePredictedInactiveColumns()
   {
     //@return (Trace) Trace of predicted => inactive columns
     _mmComputeTransitionTraces();
-    return _mmTraces["predictedInactiveColumns"];
+    return _mmTraces.find("predictedInactiveColumns")->second;
   }
 
 
-  Trace<vector<int>>& mmGetTraceUnpredictedActiveColumns() const
+  Trace<vector<int>>& mmGetTraceUnpredictedActiveColumns()
   {
     //@return (Trace) Trace of unpredicted => active columns
     _mmComputeTransitionTraces();
-    return _mmTraces["unpredictedActiveColumns"];
+    return _mmTraces.find("unpredictedActiveColumns")->second;
   }
 
 
-  Metric<vector<int>>& mmGetMetricFromTrace(Trace<vector<int>>& trace) const
+  Metric<vector<int>>& mmGetMetricFromTrace(Trace<vector<int>>& trace)
   {
     // Convenience method to compute a metric over 
     // an indices trace, excluding resets.
     //@param (IndicesTrace) Trace of indices
     //@return (Metric) Metric over trace excluding resets
-    return Metric.createFromTrace(trace.makeCountsTrace(), mmGetTraceResets());
+    return Metric<vector<int>>::createFromTrace(trace.makeCountsTrace());//, mmGetTraceResets());
   }
 
 
@@ -378,13 +375,13 @@ public:
 
     //_mmData["predictedActiveCellsForSequence"] = defaultdict(set);
 
-    _mmTraces["predictedActiveCells"] = IndicesTrace("predicted => active cells (correct)");
-    _mmTraces["predictedInactiveCells"] = IndicesTrace("predicted => inactive cells (extra)");
-    _mmTraces["predictedActiveColumns"] = IndicesTrace("predicted => active columns (correct)");
-    _mmTraces["predictedInactiveColumns"] = IndicesTrace("predicted => inactive columns (extra)");
-    _mmTraces["unpredictedActiveColumns"] = IndicesTrace("unpredicted => active columns (bursting)");
+//    _mmTraces["predictedActiveCells"] = IndicesTrace("predicted => active cells (correct)");
+//    _mmTraces["predictedInactiveCells"] = IndicesTrace("predicted => inactive cells (extra)");
+//    _mmTraces["predictedActiveColumns"] = IndicesTrace("predicted => active columns (correct)");
+//    _mmTraces["predictedInactiveColumns"] = IndicesTrace("predicted => inactive columns (extra)");
+//    _mmTraces["unpredictedActiveColumns"] = IndicesTrace("unpredicted => active columns (bursting)");
 
-    Trace<vector<int>> predictedCellsTrace = _mmTraces["predictedCells"];
+    Trace<vector<int>>& predictedCellsTrace = _mmTraces.find("predictedCells")->second;
 
     /*      for i, activeColumns in enumerate(mmGetTraceActiveColumns().data) :
             predictedActiveCells = set()
@@ -449,38 +446,48 @@ public:
   }
 
 
-  Trace mmGetDefaultTraces(bool verbosity = true)
+  vector<Trace<vector<int>>> mmGetDefaultTraces(int verbosity = 1)
   {
-    traces = [
-      mmGetTraceActiveColumns(),
-        mmGetTracePredictedActiveColumns(),
-        mmGetTracePredictedInactiveColumns(),
-        mmGetTraceUnpredictedActiveColumns(),
-        mmGetTracePredictedActiveCells(),
-        mmGetTracePredictedInactiveCells()
-    ]
+    vector<Trace<vector<int>>> traces;
+    
+    traces.push_back(mmGetTraceActiveColumns());
+    traces.push_back(mmGetTracePredictedActiveColumns());
+    traces.push_back(mmGetTracePredictedInactiveColumns());
+    traces.push_back(mmGetTraceUnpredictedActiveColumns());
+    traces.push_back(mmGetTracePredictedActiveCells());
+    traces.push_back(mmGetTracePredictedInactiveCells());
 
-    if verbosity == 1:
-      traces = [trace.makeCountsTrace() for trace in traces]
+    if (verbosity == 1)
+    {
+      for (int i = 0; i < 5; i++)
+      {
+        Trace<vector<int>>& trace = traces[i];
+        trace.makeCountsTrace();
+      }
 
-        traces += [
-          mmGetTraceNumSegments(),
-            mmGetTraceNumSynapses()
-        ]
+      traces.push_back(mmGetTraceNumSegments());
+      traces.push_back(mmGetTraceNumSynapses());
+    }
+    traces.push_back(mmGetTraceSequenceLabels());
 
-        return traces + [mmGetTraceSequenceLabels()]
+    return traces;
   }
 
 
-  Metric mmGetDefaultMetrics(bool verbosity = true)
+  Metric<vector<int>> mmGetDefaultMetrics(int verbosity = 1)
   {
-    resetsTrace = mmGetTraceResets()
-      return ([Metric.createFromTrace(trace, excludeResets = resetsTrace)
-      for trace in mmGetDefaultTraces()[:-3]] +
-        [Metric.createFromTrace(trace)
-        for trace in mmGetDefaultTraces()[-3:-1]] +
-          [mmGetMetricSequencesPredictedActiveCellsPerColumn(),
-          mmGetMetricSequencesPredictedActiveCellsShared()])
+    Trace<vector<int>> resetsTrace = mmGetTraceResets();
+    vector<Trace<vector<int>>> traces = mmGetDefaultTraces();
+  //  Metric<vector<int>> ret;
+
+  //  ([Metric.createFromTrace(trace, excludeResets = resetsTrace)
+  //    for trace in mmGetDefaultTraces()[:-3]] +
+  //      [Metric.createFromTrace(trace)
+  //      for trace in mmGetDefaultTraces()[-3:-1]] +
+  //        [mmGetMetricSequencesPredictedActiveCellsPerColumn(),
+  //        mmGetMetricSequencesPredictedActiveCellsShared()])
+
+  //        return ret;
   }
 
 
@@ -488,13 +495,13 @@ public:
   {
     //super(TemporalMemoryMonitorMixin, self).mmClearHistory()
 
-    _mmTraces["predictedCells"] = IndicesTrace("predicted cells");
-    _mmTraces["activeColumns"] = IndicesTrace("active columns");
-    _mmTraces["predictiveCells"] = IndicesTrace("predictive cells");
-    _mmTraces["numSegments"] = CountsTrace("# segments");
-    _mmTraces["numSynapses"] = CountsTrace("# synapses");
-    _mmTraces["sequenceLabels"] = StringsTrace("sequence labels");
-    _mmTraces["resets"] = BoolsTrace("resets");
+//    _mmTraces["predictedCells"] = IndicesTrace("predicted cells");
+//    _mmTraces["activeColumns"] = IndicesTrace("active columns");
+//    _mmTraces["predictiveCells"] = IndicesTrace("predictive cells");
+//    _mmTraces["numSegments"] = CountsTrace("# segments");
+//    _mmTraces["numSynapses"] = CountsTrace("# synapses");
+//    _mmTraces["sequenceLabels"] = StringsTrace("sequence labels");
+//    _mmTraces["resets"] = BoolsTrace("resets");
 
     _mmTransitionTracesStale = true;
   }

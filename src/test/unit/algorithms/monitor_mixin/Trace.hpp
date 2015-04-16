@@ -28,60 +28,57 @@
 #ifndef NTA_trace_classes_HPP
 #define NTA_trace_classes_HPP
 
-#include <vector>
-#include <nupic\types\Types.hpp>
 #include "Instance.hpp"
-
-using namespace std;
-using namespace nupic;
 
 template<typename TraceType>
 class Trace
 {
 public:
-  Instance& _monitor;
+  Instance* _monitor;
   string _title;
 
-  TraceType& _data;
+  vector<TraceType> _data;
 
 public:
-  Trace(Instance& monitor, string& title);
+  Trace(Instance* monitor, string& title);
+
+  virtual Trace<TraceType> makeCountsTrace();
+  virtual Trace<TraceType> makeCumCountsTrace();
 
   virtual string prettyPrintTitle();
   virtual string prettyPrintDatum(TraceType& datum);
-
 };
 
-class CountsTrace : public Trace<vector<int>>
+
+class CountsTrace : public Trace<int>
 {
+public:
   // Each entry contains counts(for example # of predicted = > active cells).
 };
 
 
-class IndicesTrace : public Trace<vector<int>>
+class IndicesTrace : public CountsTrace
 {
 private:
-  int accumulate(Trace<vector<int>>& iterator);
+  int accumulate(CountsTrace& trace);
 
 public:
-  template<typename TraceType>
-  Trace<TraceType> makeCountsTrace();
-  template<typename TraceType>
-  Trace<TraceType> makeCumCountsTrace();
+  virtual Trace<int> makeCountsTrace();
+  virtual Trace<int> makeCumCountsTrace();
 
-  string prettyPrintDatum(vector<int>& datum);
+  virtual string prettyPrintDatum(int datum);
 
 };
 
 
-class BoolsTrace : public Trace<vector<bool>>
+class BoolsTrace : public Trace<bool>
 {
   // Each entry contains bools(for example resets).
 
 };
 
 
-class StringsTrace : public Trace<vector<string>>
+class StringsTrace : public Trace<string>
 {
   // Each entry contains strings(for example sequence labels).
 };

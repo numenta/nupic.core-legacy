@@ -41,8 +41,8 @@ public:
   
   virtual void reset() {};
 
-  virtual void compute(vector<UInt> pattern, bool learn) = 0;
-  virtual void compute(vector<UInt> pattern, bool learn, bool learn2) = 0;
+  virtual void compute(vector<UInt> pattern, bool learn) { };
+  virtual void compute(vector<UInt> pattern, bool learn, bool learn2) { };
 };
 
 typedef void ComputeFunction(vector<UInt>& pattern, Instance& instance);
