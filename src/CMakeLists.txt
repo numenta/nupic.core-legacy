@@ -344,7 +344,6 @@ ADD_LIBRARY(${LIB_STATIC_NUPICCORE}
             nupic/algorithms/CondProbTable.cpp
             nupic/algorithms/Connections.cpp
             nupic/algorithms/FastClaClassifier.cpp
-            nupic/algorithms/FlatSpatialPooler.cpp
             nupic/algorithms/GaborNode.cpp
             nupic/algorithms/ImageSensorLite.cpp
             nupic/algorithms/InSynapse.cpp
@@ -481,7 +480,6 @@ add_executable(${EXECUTABLE_GTESTS}
                test/unit/algorithms/CondProbTableTest.cpp
                test/unit/algorithms/ConnectionsTest.cpp
                test/unit/algorithms/FastCLAClassifierTest.cpp
-               test/unit/algorithms/FlatSpatialPoolerTest.cpp
                test/unit/algorithms/NearestNeighborUnitTest.cpp
                test/unit/algorithms/SpatialPoolerTest.cpp
                test/unit/engine/InputTest.cpp
@@ -533,7 +531,6 @@ add_custom_target(tests_unit
 set(TEST_HEADERS
     test/unit/algorithms/CondProbTableTest.hpp
     test/unit/algorithms/ConnectionsTest.hpp
-    test/unit/algorithms/FlatSpatialPoolerTest.hpp
     test/unit/algorithms/NearestNeighborUnitTest.hpp
     test/unit/algorithms/SpatialPoolerTest.hpp
     test/unit/engine/InputTest.hpp
