@@ -34,7 +34,7 @@
 #include <nupic/types/Types.hpp>
 #include <nupic/utils/Log.hpp>
 #include <nupic/test/Tester.hpp>
-#include "Metric.hpp"
+#include <nupic/algorithms/monitor_mixin/Metric.hpp>
 
 using namespace std;
 
@@ -50,39 +50,13 @@ namespace nupic {
     virtual void RunTests() override;
 
   private:
-    //Trace<vector<int>> trace;
+    Instance temp;
+    Trace<vector<int>> trace;
 
-    void setup()
-    {
-      //trace = Trace<vector<int>>(_monitor, "# active cells");
-      //trace._data = vector<int>{ 1, 2, 3, 4, 5, 0 };
-    }
+    void setup();
 
-
-    void testCreateFromTrace()
-    {
-      //Metric<vector<int>> metric = createFromTrace(trace);
-      //assertEqual(metric.title, self.trace.title);
-      //assertEqual(metric.min, 0);
-      //assertEqual(metric.max, 5);
-      //assertEqual(metric.sum, 15);
-      //assertEqual(metric.mean, 2.5);
-      //assertEqual(metric.standardDeviation, 1.707825127659933);
-    }
-
-
-    void testCreateFromTraceExcludeResets()
-    {
-      //BoolsTrace resetTrace = BoolsTrace(_monitor, "resets");
-      //resetTrace._data = vector<bool>{ true, false, false, true, false, false };
-      //Metric<vector<int>> metric = Metric::createFromTrace(_trace, resetTrace);
-      //assertEqual(metric.title, self.trace.title);
-      //assertEqual(metric.min, 0);
-      //assertEqual(metric.max, 5);
-      //assertEqual(metric.sum, 10);
-      //assertEqual(metric.mean, 2.5);
-      //assertEqual(metric.standardDeviation, 1.8027756377319946);
-    }
+    void testCreateFromTrace();
+    void testCreateFromTraceExcludeResets();
 
   }; // end class MetricTest
 

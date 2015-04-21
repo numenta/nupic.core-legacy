@@ -41,10 +41,10 @@ using namespace nupic;
 using namespace nupic::algorithms::connections;
 using namespace nupic::algorithms::temporal_memory;
 
+
 TemporalMemory::TemporalMemory()
 {
   version_ = 1;
-
   connections_ = nullptr;
 }
 

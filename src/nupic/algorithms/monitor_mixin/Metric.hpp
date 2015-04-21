@@ -41,27 +41,38 @@ public:
   // A metric computed over a set of data (usually from a `CountsTrace`).
 
   Instance* _monitor;
-  string& _title;
+  string _title;
 
-  Real _min, _max, _sum, _mean, _standardDeviation;
+  Real _min, _max;
+  Real _sum, _mean;
+  Real _standardDeviation;
 
-  vector<TraceType> data;
+  vector<TraceType>* _data;
 
-  Metric(Instance* monitor, string& title, vector<TraceType>& data);
-
-  static Metric<TraceType> createFromTrace(Trace<TraceType>& trace, bool excludeResets = false);
-  static Metric<TraceType> copy(const Trace<TraceType>& rhs);
+  Metric<TraceType>()
+  {
+    string emptyTitle("");
+    _monitor = NULL;
+    _title = emptyTitle;
+  }
+  
+  Metric<TraceType>(Instance* monitor, string& title, vector<TraceType>* data);
 
   string prettyPrintTitle();
 
-  void _computeStats(vector<TraceType>& data);
+  void _computeStats();
+
+  static Metric<TraceType> createFromTrace(Trace<TraceType>& trace, bool excludeResets = false);
+  static Metric<TraceType> copy(const Metric<TraceType>& rhs);
+
 };
 
 
-class MetricsTrace : public Trace<vector<Metric<int>&>>
+class MetricsTrace : public Trace<Metric<int>>
 {
+public:
   // Each entry contains Metrics(for example metric for # of predicted = > active cells).
-  string prettyPrintDatum(int& datum);
+  string prettyPrintDatum(Metric<int>& datum);
 
 };
 

@@ -88,7 +88,7 @@ namespace nupic {
         /*
          * Indicates the start of a new sequence.Resets sequence state of the TM.
          */
-        void reset(void);
+        virtual void reset();
 
         /*
          * Feeds input record through TM, performing inference and learning.
@@ -97,14 +97,13 @@ namespace nupic {
          * @param activeColumns   Indices of active columns in `t`
          * @param learn           Whether or not learning is enabled
          */
-        void compute(UInt activeColumns[], bool learn = true);
+        virtual void compute(UInt activeColumns[], bool learn = true);
 
         // Implementation note: this method sets up the instance using data from
         // inStream. This method does not call initialize. As such we have to be careful
         // that everything in initialize is handled properly here.
         
         void load(istream& inStream);
-
         void save(ostream& outStream) const;
 
         /**
@@ -556,7 +555,11 @@ namespace nupic {
         Connections* connections_;
 
       };
+
     } // end namespace temporal_memory
+
   } // end namespace algorithms
+
 } // end namespace nta
+
 #endif // NTA_TEMPORAL_MEMORY_HPP

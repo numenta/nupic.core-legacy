@@ -116,6 +116,7 @@ void PatternMachine::_generate()
     vector<UInt> pattern;
     Int w = _getW();
 
+    pattern.resize(w);
     _Copy_n(candidates.begin(), w, pattern.begin());
 
     _patterns[i] = pattern;

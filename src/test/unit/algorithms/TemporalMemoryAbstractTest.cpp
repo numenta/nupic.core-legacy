@@ -24,77 +24,44 @@
 * Implementation of unit tests for SpatialPooler
 */
 
-#include <cstring>
-#include <fstream>
-#include <stdio.h>
+#include "TemporalMemoryAbstractTest.hpp"
 
-#include <nupic/test/Tester.hpp>
-#include <nupic/algorithms/TemporalMemory.hpp>
 
-#include <nupic/types/Types.hpp>
-#include <nupic/utils/Log.hpp>
-#include <nupic/utils/PatternMachine.hpp>
-#include <nupic/utils/SequenceMachine.hpp>
+void TemporalMemoryAbstractTest::setUp()
+{
+  //tm = None;
+  //patternMachine = None;
+  //sequenceMachine = None;
+}
 
-using namespace std;
-using namespace nupic::utils;
-using namespace nupic::algorithms::temporal_memory;
+// Initialize Temporal Memory, and other member variables.
+// param overrides : overrides for default Temporal Memory parameters
+void TemporalMemoryAbstractTest::init()
+{
+  //params = self._computeTMParams(overrides);
+  _tm = MonitoredTemporalMemory();// **params);
 
-namespace nupic {
-  //class MonitoredTemporalMemory : public TemporalMemoryMonitorMixin, TemporalMemory;
+  _patternMachine = PatternMachine();
+  _sequenceMachine = SequenceMachine(_patternMachine);
+}
 
-  class AbstractTemporalMemoryTest : Tester
-  {
-  public:
-    AbstractTemporalMemoryTest() { _verbosity = 1; }
-    virtual ~AbstractTemporalMemoryTest() {}
-
-    // Run all appropriate tests
-    virtual void RunTests() override;
-
-    int _verbosity;
-
-    TemporalMemory  _tm;
-    PatternMachine  _patternMachine;
-    SequenceMachine _sequenceMachine;
-
-    void setUp()
-    {
-      //tm = None;
-      //patternMachine = None;
-      //sequenceMachine = None;
-    }
-
-    // Initialize Temporal Memory, and other member variables.
-    // param overrides : overrides for default Temporal Memory parameters
-    void init()
-    {
-      //params = self._computeTMParams(overrides);
-      _tm = TemporalMemory();// **params);
-
-      _patternMachine = PatternMachine();
-      _sequenceMachine = SequenceMachine(_patternMachine);
-    }
-
-    void feedTM(Sequence sequence, bool learn = true, int num = 1)
-    {
-      Sequence repeatedSequence;
+void TemporalMemoryAbstractTest::_feedTM(Sequence sequence, bool learn, int num)
+{
+  Sequence repeatedSequence;
       
-      for (int i = 0; i < num; i++)
-      {
-        repeatedSequence.push_back(sequence[i]);
-      }
+  for (int i = 0; i < num; i++)
+  {
+    repeatedSequence.push_back(sequence[i]);
+  }
 
-      //_tm.mmClearHistory();
-
-      for (vector<UInt> pattern : repeatedSequence)
-      {
-        if (pattern[0] < 0)
-          _tm.reset();
-        else
-          _tm.compute(&pattern[0], learn);
-      }
-    }
-  }; // of class AbstractTemporalMemoryTest
-
-}; // of namespace nupic
+  _tm.mmClearHistory();
+/*
+  for (vector<UInt> pattern : repeatedSequence)
+  {
+    if (pattern.size() == 0)
+      _tm.reset();
+    else
+      _tm.compute(&pattern[0], learn);
+  }
+*/
+}

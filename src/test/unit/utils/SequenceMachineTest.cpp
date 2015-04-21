@@ -112,19 +112,11 @@ void SequenceMachineTest::RunTests()
 
 void SequenceMachineTest::testGenerateFromNumbers()
 {
-  vector<vector<UInt>> numbers;
-  vector<UInt> range0, range1, range2;
-  range0 = range(0, 10);
-  range1 = vector<UInt>{};
-  range2 = range(10, 19);
-  
-  numbers.insert(numbers.end(), range0.begin(), range0.end());
-  numbers.insert(numbers.end(), range1.begin(), range1.end());
-  numbers.insert(numbers.end(), range2.begin(), range2.end());
+  vector<vector<UInt>> numbers = { range(0, 10), {}, range(10, 20) };
 
   Sequence sequence = _sequenceMachine.generateFromNumbers(numbers);
 
-  NTA_CHECK(sequence.size() == 20);
+  NTA_CHECK(sequence.size() == 21);
   NTA_CHECK(check_pattern_eq(sequence[0], _patternMachine.get(0)));
   NTA_CHECK(check_pattern_eq(sequence[10], vector<UInt>{}));
   NTA_CHECK(check_pattern_eq(sequence[11], _patternMachine.get(10)));

@@ -20,59 +20,69 @@
 * ---------------------------------------------------------------------
 */
 
-#ifndef NTA_TEMPORALMEMORYABSTRACTTEST_HPP
-#define NTA_TEMPORALMEMORYABSTRACTTEST_HPP
-
 /** @file
-* Definition of unit tests for Temporal Memory abstract test
+* Implementation of unit tests for TemporalMemory
 */
+
+#ifndef NTA_ExtensiveTemporalMemory_TEST
+#define NTA_ExtensiveTemporalMemory_TEST
 
 #include <cstring>
 #include <fstream>
 #include <stdio.h>
-
-#include <nupic/test/Tester.hpp>
+#include <nupic/math/StlIo.hpp>
 #include <nupic/types/Types.hpp>
 #include <nupic/utils/Log.hpp>
 #include <nupic/utils/PatternMachine.hpp>
 #include <nupic/utils/SequenceMachine.hpp>
 #include <nupic/algorithms/TemporalMemory.hpp>
-#include <nupic/algorithms/monitor_mixin/MonitorMixin.hpp>
+#include "TemporalMemoryAbstractTest.hpp"
 
 using namespace std;
-using namespace nupic::utils;
-using namespace nupic::algorithms::temporal_memory;
 
 
 namespace nupic {
 
-  class MonitoredTemporalMemory : public TemporalMemoryMonitorMixin, public TemporalMemory
+  class TemporalMemoryExtensiveTest : public TemporalMemoryAbstractTest
   {
   public:
-  };
+    void testB1();
+    void testB3();
+    void testB4();
+    void testB5();
+    void testB6();
+    void testB7();
+    void testB8();
+    void testB9();
+    void testB11();
 
-  class TemporalMemoryAbstractTest : public Tester
-  {
-  public:
-    TemporalMemoryAbstractTest() { _verbosity = 1; }
-    virtual ~TemporalMemoryAbstractTest() {}
+    void testH1();
+    void testH2();
+    void testH3();
+    void testH4();
+    void testH5();
+    void testH9();
 
-    int _verbosity;
+    // ==============================
+    // Overrides
+    // ==============================
 
-    MonitoredTemporalMemory  _tm;
-    PatternMachine  _patternMachine;
-    SequenceMachine _sequenceMachine;
-
-    virtual void setUp();
-
-    // Initialize Temporal Memory, and other member variables.
-    // param overrides : overrides for default Temporal Memory parameters
     virtual void init();
+    virtual void setUp();
+    virtual void _feedTM(Sequence& sequence, bool learn = true, int num = 1);
 
-    virtual void _feedTM(Sequence sequence, bool learn = true, int num = 1);
+    // ==============================
+    // Helper functions
+    // ==============================
 
-  }; // of class AbstractTemporalMemoryTest
+    void _testTM(Sequence& sequence);
+
+    void assertAllActiveWerePredicted();
+    void assertAllInactiveWereUnpredicted();
+    void assertAllActiveWereUnpredicted();
+
+  }; // of class ExtensiveTemporalMemoryTest
 
 }; // of namespace nupic
 
-#endif // of NTA_TEMPORALMEMORYABSTRACTTEST_HPP
+#endif // NTA_ExtensiveTemporalMemory_TEST

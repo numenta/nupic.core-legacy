@@ -36,4 +36,45 @@ using namespace std;
 
 namespace nupic {
 
+  void MetricTest::RunTests()
+  {
+    setup();
+
+    testCreateFromTrace();
+    testCreateFromTraceExcludeResets();
+  }
+
+  void MetricTest::setup()
+  {
+    trace = Trace<vector<int>>(&temp, string("# active cells"));
+    
+    trace._data.resize(6);
+    //trace._data.assign({ 1, 2, 3, 4, 5, 0 });
+  }
+
+
+  void MetricTest::testCreateFromTrace()
+  {
+    //Metric<vector<int>> metric = Metric<vector<int>>::createFromTrace(trace);
+    //assertEqual(metric._title, trace._title);
+    //assertEqual(metric.min, 0);
+    //assertEqual(metric.max, 5);
+    //assertEqual(metric.sum, 15);
+    //assertEqual(metric.mean, 2.5);
+    //assertEqual(metric.standardDeviation, 1.707825127659933);
+  }
+
+  void MetricTest::testCreateFromTraceExcludeResets()
+  {
+    //BoolsTrace resetTrace = BoolsTrace(_monitor, "resets");
+    //resetTrace._data = vector<bool>{ true, false, false, true, false, false };
+    //Metric<vector<int>> metric = Metric::createFromTrace(_trace, resetTrace);
+    //assertEqual(metric.title, self.trace.title);
+    //assertEqual(metric.min, 0);
+    //assertEqual(metric.max, 5);
+    //assertEqual(metric.sum, 10);
+    //assertEqual(metric.mean, 2.5);
+    //assertEqual(metric.standardDeviation, 1.8027756377319946);
+  }
+
 }; // of namespace nupic

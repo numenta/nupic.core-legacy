@@ -44,7 +44,7 @@ namespace nupic {
 
     // Base sequence machine class.
 
-    typedef std::vector<vector<UInt>> Sequence;
+    typedef vector<vector<UInt>> Sequence;
 
     class SequenceMachine
     {

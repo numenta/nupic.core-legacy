@@ -26,11 +26,19 @@
 
 #include <map>
 #include <string>
+#include <sstream>
 #include <iostream>
+#include <algorithm>
 
 #include "Trace.hpp"
-#include "Metric.hpp"
 
+
+template<typename TraceType>
+Trace<TraceType>::Trace()
+{
+  _monitor = NULL;
+  _title = "";
+}
 
 template<typename TraceType>
 Trace<TraceType>::Trace(Instance* monitor, string& title)
@@ -46,7 +54,7 @@ string Trace<TraceType>::prettyPrintTitle()
 {
   string ret;
 
-  if (_monitor->mmName.size() > 0)
+  if (_monitor && _monitor->mmName.size() > 0)
     ret = "[" + _monitor->mmName + "]";
   else
     ret = "[" + _title + "]";
@@ -73,44 +81,68 @@ string Trace<TraceType>::prettyPrintDatum(TraceType& datum)
   return out;
 }
 
+template<typename TraceType>
+Trace<TraceType> Trace<TraceType>::makeCountsTrace()
+{
+  return Trace<TraceType>();
+}
 
-Trace<int> IndicesTrace::makeCountsTrace()
+template<typename TraceType>
+Trace<TraceType> Trace<TraceType>::makeCumCountsTrace()
+{
+  return Trace<TraceType>();
+}
+
+Trace<vector<int>> IndicesTrace::makeCountsTrace()
 {
   //@return (CountsTrace)A new Trace made up of counts of this trace's indices.
   string title = "# " + _title;
-  Trace<int> trace(_monitor, title);
+  Trace<vector<int>> trace(_monitor, title);
 
-  for (int indicies : _data)
+  for (vector<int> indicies : _data)
   {
     trace._data.push_back(indicies);
   }
+
   return trace;
 }
 
 
-int IndicesTrace::accumulate(CountsTrace& trace)
+int IndicesTrace::accumulate(Trace<vector<int>>& trace)
 {
   int total = 0;
-  for (int item : trace._data)
-    total += item;
+
+  for (vector<int>& entry : trace._data)
+  {
+    for (int item : entry)
+      total += item;
+  }
 
   return total;
 }
 
 
-Trace<int> IndicesTrace::makeCumCountsTrace()
+Trace<vector<int>> IndicesTrace::makeCumCountsTrace()
 {
   //@return (CountsTrace)A new Trace made up of cumulative counts of this trace's indices.
   string title = "# (cumulative) " + _title;
-  Trace<int> trace(_monitor, title);
-  Trace<int> countsTrace = makeCountsTrace();
-
-  //trace.data = list(accumulate(countsTrace.data));
+  Trace<vector<int>> trace(_monitor, title);
+  Trace<vector<int>> countsTrace = makeCountsTrace();
+  trace._data.push_back(vector<int>{ accumulate(countsTrace) });
   return trace;
 }
 
 
-string IndicesTrace::prettyPrintDatum(int datum)
+string IndicesTrace::prettyPrintDatum(vector<int>& datum)
 {
-  return "";// str(sorted(list(datum)));
+  stringstream ret;
+
+  sort(datum.begin(), datum.end());
+
+  for (int item : datum)
+  {
+    ret << item << ",";
+  }
+
+  return ret.str();
 }

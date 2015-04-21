@@ -26,9 +26,7 @@
 */
 
 #include <vector>
-
 #include <nupic/utils/SequenceMachine.hpp>
-//import numpy
 
 using namespace std;
 using namespace nupic;

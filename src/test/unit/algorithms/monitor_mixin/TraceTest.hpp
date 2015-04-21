@@ -34,44 +34,26 @@
 #include <nupic/types/Types.hpp>
 #include <nupic/utils/Log.hpp>
 #include <nupic/test/Tester.hpp>
-#include "Trace.hpp"
+#include <nupic/algorithms/monitor_mixin/Trace.hpp>
 
 using namespace std;
 
 namespace nupic {
 
-  class IndicesTraceTest : public Tester
+  class TraceTest : public Tester
   {
   public:
-    IndicesTraceTest() {}
-    virtual ~IndicesTraceTest() {}
+    TraceTest() {}
+    virtual ~TraceTest() {}
 
     // Run all appropriate tests
     virtual void RunTests() override;
 
   private:
-    void setUp()
-    {
-      //self.trace = IndicesTrace(self, "active cells")
-      //self.trace.data.append(set([1, 2, 3]))
-      //self.trace.data.append(set([4, 5]))
-      //self.trace.data.append(set([6]))
-      //self.trace.data.append(set([]))
-    }
-    
-    void testMakeCountsTrace()
-    {
-      //countsTrace = self.trace.makeCountsTrace()
-      //self.assertEqual(countsTrace.title, "# active cells")
-      //self.assertEqual(countsTrace.data, [3, 2, 1, 0])
-    }
-    
-    void testMakeCumCountsTrace()
-    {
-      //countsTrace = self.trace.makeCumCountsTrace()
-      //self.assertEqual(countsTrace.title, "# (cumulative) active cells")
-      //self.assertEqual(countsTrace.data, [3, 5, 6, 6])
-    }
+    void setUp();
+
+    virtual void testMakeCountsTrace();
+    virtual void testMakeCumCountsTrace();
 
   }; // end class TraceTest
 

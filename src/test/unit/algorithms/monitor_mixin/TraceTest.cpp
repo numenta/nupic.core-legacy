@@ -36,4 +36,33 @@ using namespace std;
 
 namespace nupic {
 
+  void TraceTest::setUp()
+  {
+    //self.trace = IndicesTrace(self, "active cells")
+    //self.trace.data.append(set([1, 2, 3]))
+    //self.trace.data.append(set([4, 5]))
+    //self.trace.data.append(set([6]))
+    //self.trace.data.append(set([]))
+  }
+
+  void TraceTest::RunTests()
+  {
+    testMakeCountsTrace();
+    testMakeCumCountsTrace();
+  }
+
+  void TraceTest::testMakeCountsTrace()
+  {
+    //countsTrace = self.trace.makeCountsTrace()
+    //self.assertEqual(countsTrace.title, "# active cells")
+    //self.assertEqual(countsTrace.data, [3, 2, 1, 0])
+  }
+
+  void TraceTest::testMakeCumCountsTrace()
+  {
+    //countsTrace = self.trace.makeCumCountsTrace()
+    //self.assertEqual(countsTrace.title, "# (cumulative) active cells")
+    //self.assertEqual(countsTrace.data, [3, 5, 6, 6])
+  }
+
 }; // of namespace nupic

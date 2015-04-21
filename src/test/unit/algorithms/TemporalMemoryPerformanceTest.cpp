@@ -24,28 +24,7 @@
 * Implementation of unit tests for SpatialPooler
 */
 
-#include <cstring>
-#include <fstream>
-#include <stdio.h>
-
-#include <nupic/utils/PatternMachine.hpp>
-#include <nupic/utils/SequenceMachine.hpp>
-
-#include <nupic/algorithms/SpatialPooler.hpp>
-#include <nupic/algorithms/Cells4.hpp>
-#include <nupic/algorithms/TemporalMemory.hpp>
-
-#include <nupic/os/Timer.hpp>
-
-#include <nupic/test/Tester.hpp>
-#include <nupic/types/Types.hpp>
-#include <nupic/utils/Log.hpp>
-
-#include "monitor_mixin\Instance.hpp"
-
-//import time
-//import unittest
-//import numpy
+#include "TemporalMemoryPerformanceTest.hpp"
 
 using namespace std;
 using namespace nupic::utils;
@@ -54,27 +33,6 @@ using namespace nupic::algorithms::Cells4;
 using namespace nupic::algorithms::temporal_memory;
 
 namespace nupic {
-
-  class SpatialPoolerInstance : public Instance, public SpatialPooler
-  {
-  public:
-    void compute(vector<UInt> pattern, bool learn) { };
-    void compute(vector<UInt> pattern, bool learn, bool learn2) { };
-  };
-
-  class Cells4Instance : public Instance, public Cells4
-  {
-  public:
-    void compute(vector<UInt> pattern, bool learn) { };
-    void compute(vector<UInt> pattern, bool learn, bool learn2) { };
-  };
-
-  class TemporalMemoryInstance : public Instance, public TemporalMemory
-  {
-  public:
-    void compute(vector<UInt> pattern, bool learn) { };
-    void compute(vector<UInt> pattern, bool learn, bool learn2) { };
-  };
 
   static void tmComputeFn(vector<UInt>& pattern, Instance& instance)
   {
@@ -90,87 +48,80 @@ namespace nupic {
   //  Tests
   // ==============================
 
-  class TemporalMemoryPerformanceTest : public Tester
+  void TemporalMemoryPerformanceTest::setUp()
   {
-    SpatialPoolerInstance sp;
-    Cells4Instance tp;
-    TemporalMemoryInstance tm;
-    PatternMachine  _patternMachine;
-    SequenceMachine _sequenceMachine;
-    bool _learn;
+    tm.initialize({ 2048 }, 32, 15, 2048L, .5, .8, 15, 12, .1, .05);
 
-    void setUp()
+    _patternMachine = PatternMachine();
+    _patternMachine.initialize(2048, vector<UInt>{ 40 }, 100);
+    _sequenceMachine = SequenceMachine(_patternMachine);
+  }
+
+
+  // Run all appropriate tests
+  void TemporalMemoryPerformanceTest::RunTests()
+  {
+    //testSingleSequence();
+  }
+
+
+  void TemporalMemoryPerformanceTest::testSingleSequence()
+  {
+    // "Test: Single sequence"
+    Sequence sequence = _sequenceMachine.generateFromNumbers(vector<vector<UInt>>{ range(50) });
+    vector<Real64> times = _feedAll(sequence);
+
+    NTA_CHECK(times[0] < times[1]);
+    NTA_CHECK(times[2] < times[1]);
+    NTA_CHECK(times[2] < times[0]);
+  }
+
+  // ==============================
+  // Helper functions
+  // ==============================
+
+  Real64 TemporalMemoryPerformanceTest::_feedOne(Sequence& sequence, Instance& instance, ComputeFunction& computeFn)
+  {
+    Timer timer(true); // auto start enabled
+
+    for (vector<UInt> pattern : sequence)
     {
-      tm.initialize({ 2048 }, 32, 15, 2048L, .5, .8, 15, 12, .1, .05);
-
-      _patternMachine = PatternMachine();
-      _patternMachine.initialize(2048, vector<UInt>{ 40 }, 100);
-      _sequenceMachine = SequenceMachine(_patternMachine);
+      if (pattern.size() == 0)
+        instance.reset();
+      else
+        computeFn(pattern, instance);
     }
 
-    // Run all appropriate tests
-    virtual void RunTests() override
+    timer.stop();
+
+    return timer.getElapsed();
+  }
+
+  vector<Real64> TemporalMemoryPerformanceTest::_feedAll(Sequence& sequence, bool learn, int num)
+  {
+    vector<Real64> times;
+    Real64 elapsed;
+    Sequence repeatedSequence;
+
+    for (int i = 0; i < num; i++)
     {
-      testSingleSequence();
+      for (auto seq : sequence)
+        repeatedSequence.push_back(seq);
     }
 
-    void testSingleSequence()
-    {
-      // "Test: Single sequence"
-      Sequence sequence = _sequenceMachine.generateFromNumbers(vector<vector<UInt>>{ range(50) });
-      vector<Real64> times = _feedAll(sequence);
+    elapsed = _feedOne(repeatedSequence, tm, tmComputeFn);
+    times.push_back(elapsed);
+    cout << "TM:\t" << elapsed << " s";
 
-      NTA_CHECK(times[0] < times[1]);
-      NTA_CHECK(times[2] < times[1]);
-      NTA_CHECK(times[2] < times[0]);
-    }
+    elapsed = _feedOne(repeatedSequence, tp, tpComputeFn);
+    times.push_back(elapsed);
+    cout << "TP:\t" << elapsed << " s";
 
-    // ==============================
-    // Helper functions
-    // ==============================
+    elapsed = _feedOne(repeatedSequence, sp, tpComputeFn);
+    times.push_back(elapsed);
+    cout << "SP:\t" << elapsed << " s";
 
-    Real64 _feedOne(Sequence& sequence, Instance& instance, ComputeFunction& computeFn)
-    {
-      Timer timer(true); // auto start enabled
+    return times;
+  }
 
-      for (vector<UInt> pattern : sequence)
-      {
-        if (pattern.size() == 0)
-          instance.reset();
-        else
-          computeFn(pattern, instance);
-      }
-
-      timer.stop();
-
-      return timer.getElapsed();
-    }
-
-    vector<Real64> _feedAll(Sequence& sequence, bool learn = true, int num = 1)
-    {
-      vector<Real64> times;
-      Real64 elapsed;
-      Sequence repeatedSequence;
-
-      for (int i = 0; i < num; i++)
-      {
-        for (auto seq : sequence)
-          repeatedSequence.push_back(seq);
-      }
-
-      elapsed = _feedOne(repeatedSequence, tm, tmComputeFn);
-      times.push_back(elapsed);
-      cout << "TM:\t" << elapsed << " s";
-
-      elapsed = _feedOne(repeatedSequence, tp, tpComputeFn);
-      times.push_back(elapsed);
-      cout << "TP:\t" << elapsed << " s";
-
-      elapsed = _feedOne(repeatedSequence, sp, tpComputeFn);
-      times.push_back(elapsed);
-      cout << "SP:\t" << elapsed << " s";
-
-      return times;
-    }
-  };
 };

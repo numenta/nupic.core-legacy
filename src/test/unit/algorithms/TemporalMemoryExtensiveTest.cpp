@@ -1,37 +1,30 @@
-/*
-#!/usr/bin/env python
-# ----------------------------------------------------------------------
-# Numenta Platform for Intelligent Computing (NuPIC)
-# Copyright (C) 2014, Numenta, Inc.  Unless you have an agreement
-# with Numenta, Inc., for a separate license for this software code, the
-# following terms and conditions apply:
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License version 3 as
-# published by the Free Software Foundation.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-# See the GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see http://www.gnu.org/licenses.
-#
-# http://numenta.org/licenses/
-# ----------------------------------------------------------------------
+/* ---------------------------------------------------------------------
+* Numenta Platform for Intelligent Computing (NuPIC)
+* Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
+* with Numenta, Inc., for a separate license for this software code, the
+* following terms and conditions apply:
+*
+* This program is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License version 3 as
+* published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program.  If not, see http://www.gnu.org/licenses.
+*
+* http://numenta.org/licenses/
+* ---------------------------------------------------------------------
+*/
 
-import unittest2 as unittest
+/** @file
+* Implementation of unit tests for TemporalMemory
+*/
 
-from nupic.data.pattern_machine import PatternMachine
-
-from nupic.test.abstract_temporal_memory_test import AbstractTemporalMemoryTest
-
-
-
-class ExtensiveTemporalMemoryTest(AbstractTemporalMemoryTest):
-  """
-  ==============================================================================
+/*==============================================================================
                   Basic First Order Sequences
   ==============================================================================
 
@@ -187,396 +180,448 @@ class ExtensiveTemporalMemoryTest(AbstractTemporalMemoryTest):
   when presented with the second A and B is different from the representation
   in the first presentation. [TODO]
   """
+  */
+#include "TemporalMemoryExtensiveTest.hpp"
 
-  VERBOSITY = 1
-  DEFAULT_TM_PARAMS = {
-    "columnDimensions": [100],
-    "cellsPerColumn": 1,
-    "initialPermanence": 0.8,
-    "connectedPermanence": 0.7,
-    "minThreshold": 11,
-    "maxNewSynapseCount": 11,
-    "permanenceIncrement": 0.4,
-    "permanenceDecrement": 0,
-    "activationThreshold": 11
+void TemporalMemoryExtensiveTest::init()
+
+{
+  _verbosity = 1;
+
+//    DEFAULT_TM_PARAMS = {
+//      "columnDimensions": [100],
+//      "cellsPerColumn" : 1,
+//      "initialPermanence" : 0.8,
+//      "connectedPermanence" : 0.7,
+//      "minThreshold" : 11,
+//      "maxNewSynapseCount" : 11,
+//      "permanenceIncrement" : 0.4,
+//      "permanenceDecrement" : 0,
+//      "activationThreshold" : 11
+//  }
+
+  _patternMachine.initialize(100, range(21, 26), 300);
+
+}
+
+//==============================
+// Overrides
+// ==============================
+
+void TemporalMemoryExtensiveTest::setUp()
+{
+  TemporalMemoryAbstractTest::setUp();
+
+  cout << endl;
+  cout << "======================================================" << endl;
+  cout << "Test: ";// << id() << endl;
+//  cout << shortDescription() << endl;
+  cout << "======================================================" << endl;
+}
+
+
+void TemporalMemoryExtensiveTest::_feedTM(Sequence& sequence, bool learn, int num)
+{
+  TemporalMemoryAbstractTest::_feedTM(sequence, learn, num);
+
+  if (_verbosity >= 2)
+  {
+    _tm.mmPrettyPrintTraces(_tm.mmGetDefaultTraces(_verbosity - 1), _tm.mmGetTraceResets());
+    //print;
   }
-  PATTERN_MACHINE = PatternMachine(100, range(21, 26), num=300)
+  if (learn && _verbosity >= 3)
+    cout << _tm.mmPrettyPrintConnections();
+}
 
 
-  def testB1(self):
-    """Basic sequence learner.  M=1, N=100, P=1."""
-    self.init()
+// ==============================
+// Helper functions
+// ==============================
 
-    numbers = self.sequenceMachine.generateNumbers(1, 100)
-    sequence = self.sequenceMachine.generateFromNumbers(numbers)
+void TemporalMemoryExtensiveTest::_testTM(Sequence& sequence)
+{
+  _feedTM(sequence, false);
 
-    self.feedTM(sequence)
+  cout << _tm.mmPrettyPrintMetrics(_tm.mmGetDefaultMetrics());
+}
 
-    self._testTM(sequence)
-    self.assertAllActiveWerePredicted()
-    self.assertAllInactiveWereUnpredicted()
 
+void TemporalMemoryExtensiveTest::assertAllActiveWerePredicted()
+{
+  Metric<vector<int>> unpredictedActiveColumnsMetric = _tm.mmGetMetricFromTrace(
+    _tm.mmGetTraceUnpredictedActiveColumns());
+  Metric<vector<int>> predictedActiveColumnsMetric = _tm.mmGetMetricFromTrace(
+    _tm.mmGetTracePredictedActiveColumns());
 
-  def testB3(self):
-    """N=300, M=1, P=1. (See how high we can go with N)"""
-    self.init()
+  NTA_CHECK(unpredictedActiveColumnsMetric._sum == 0);
 
-    numbers = self.sequenceMachine.generateNumbers(1, 300)
-    sequence = self.sequenceMachine.generateFromNumbers(numbers)
+  NTA_CHECK(predictedActiveColumnsMetric._min == 21);
+  NTA_CHECK(predictedActiveColumnsMetric._max == 25);
+}
 
-    self.feedTM(sequence)
 
-    self._testTM(sequence)
-    self.assertAllActiveWerePredicted()
-    self.assertAllInactiveWereUnpredicted()
+void TemporalMemoryExtensiveTest::assertAllInactiveWereUnpredicted()
+{
+  Metric<vector<int>> predictedInactiveColumnsMetric = _tm.mmGetMetricFromTrace(
+    _tm.mmGetTracePredictedInactiveColumns());
 
+  NTA_CHECK(predictedInactiveColumnsMetric._sum == 0);
+}
 
-  def testB4(self):
-    """N=100, M=3, P=1. (See how high we can go with N*M)"""
-    self.init()
 
-    numbers = self.sequenceMachine.generateNumbers(3, 100)
-    sequence = self.sequenceMachine.generateFromNumbers(numbers)
+void TemporalMemoryExtensiveTest::assertAllActiveWereUnpredicted()
+{
+  Metric<vector<int>> unpredictedActiveColumnsMetric = _tm.mmGetMetricFromTrace(
+    _tm.mmGetTraceUnpredictedActiveColumns());
+  Metric<vector<int>> predictedActiveColumnsMetric = _tm.mmGetMetricFromTrace(
+    _tm.mmGetTracePredictedActiveColumns());
 
-    self.feedTM(sequence)
+  NTA_CHECK(predictedActiveColumnsMetric._sum == 0);
 
-    self._testTM(sequence)
-    self.assertAllActiveWerePredicted()
+  NTA_CHECK(unpredictedActiveColumnsMetric._min == 21);
+  NTA_CHECK(unpredictedActiveColumnsMetric._max == 25);
+}
 
 
-  def testB5(self):
-    """Like B1 but with cellsPerColumn = 4.
-    First order sequences should still work just fine."""
-    self.init({"cellsPerColumn": 4})
+void TemporalMemoryExtensiveTest::testB1()
+{
+  // Basic sequence learner.  M=1, N=100, P=1.
+  init();
 
-    numbers = self.sequenceMachine.generateNumbers(1, 100)
-    sequence = self.sequenceMachine.generateFromNumbers(numbers)
+  Sequence numbers = _sequenceMachine.generateNumbers(1, 100);
+  Sequence sequence = _sequenceMachine.generateFromNumbers(numbers);
 
-    self.feedTM(sequence)
+  _feedTM(sequence);
 
-    self._testTM(sequence)
-    self.assertAllActiveWerePredicted()
-    self.assertAllInactiveWereUnpredicted()
+  _testTM(sequence);
+  assertAllActiveWerePredicted();
+  assertAllInactiveWereUnpredicted();
+}
 
 
-  def testB6(self):
-    """Like B4 but with cellsPerColumn = 4.
-    First order sequences should still work just fine."""
-    self.init({"cellsPerColumn": 4})
+void TemporalMemoryExtensiveTest::testB3()
+{
+  // N=300, M=1, P=1. (See how high we can go with N)
+  init();
 
-    numbers = self.sequenceMachine.generateNumbers(3, 100)
-    sequence = self.sequenceMachine.generateFromNumbers(numbers)
+  Sequence numbers = _sequenceMachine.generateNumbers(1, 300);
+  Sequence sequence = _sequenceMachine.generateFromNumbers(numbers);
 
-    self.feedTM(sequence)
+  _feedTM(sequence);
 
-    self._testTM(sequence)
-    self.assertAllActiveWerePredicted()
-    self.assertAllInactiveWereUnpredicted()
+  _testTM(sequence);
+  assertAllActiveWerePredicted();
+  assertAllInactiveWereUnpredicted();
+}
 
 
-  def testB7(self):
-    """Like B1 but with slower learning.
+void TemporalMemoryExtensiveTest::testB4()
+{
+  // N=100, M=3, P=1. (See how high we can go with N*M)
+  init();
 
-    Set the following parameters differently:
+  Sequence numbers = _sequenceMachine.generateNumbers(3, 100);
+  Sequence sequence = _sequenceMachine.generateFromNumbers(numbers);
 
-      initialPermanence = 0.2
-      connectedPermanence = 0.7
-      permanenceIncrement = 0.2
+  _feedTM(sequence);
 
-    Now we train the TP with the B1 sequence 4 times (P=4). This will increment
-    the permanences to be above 0.8 and at that point the inference will be correct.
-    This test will ensure the basic match function and segment activation rules are
-    working correctly.
-    """
-    self.init({"initialPermanence": 0.2,
-               "connectedPermanence": 0.7,
-               "permanenceIncrement": 0.2})
+  _testTM(sequence);
+  assertAllActiveWerePredicted();
+}
 
-    numbers = self.sequenceMachine.generateNumbers(1, 100)
-    sequence = self.sequenceMachine.generateFromNumbers(numbers)
 
-    for _ in xrange(4):
-      self.feedTM(sequence)
+void TemporalMemoryExtensiveTest::testB5()
+{
+  // Like B1 but with cellsPerColumn = 4.
+  // First order sequences should still work just fine.
+  
+  //init({ "cellsPerColumn": 4 });
+
+  Sequence numbers = _sequenceMachine.generateNumbers(1, 100);
+  Sequence sequence = _sequenceMachine.generateFromNumbers(numbers);
+
+  _feedTM(sequence);
+
+  _testTM(sequence);
+  assertAllActiveWerePredicted();
+  assertAllInactiveWereUnpredicted();
+}
+
+
+void TemporalMemoryExtensiveTest::testB6()
+{
+  // Like B4 but with cellsPerColumn = 4.
+  // First order sequences should still work just fine."""
+  
+  //init({ "cellsPerColumn": 4 });
+
+  Sequence numbers = _sequenceMachine.generateNumbers(3, 100);
+  Sequence sequence = _sequenceMachine.generateFromNumbers(numbers);
+
+  _feedTM(sequence);
+
+  _testTM(sequence);
+  assertAllActiveWerePredicted();
+  assertAllInactiveWereUnpredicted();
+}
+
+
+void TemporalMemoryExtensiveTest::testB7()
+{
+  // Like B1 but with slower learning.
+  // 
+  // Set the following parameters differently:
+  // 
+  //   initialPermanence = 0.2
+  //   connectedPermanence = 0.7
+  //   permanenceIncrement = 0.2
+  // 
+  // Now we train the TP with the B1 sequence 4 times (P=4). This will increment
+  // the permanences to be above 0.8 and at that point the inference will be correct.
+  // This test will ensure the basic match function and segment activation rules are
+  // working correctly.
+  
+  //init({ "initialPermanence": 0.2,
+  //       "connectedPermanence" : 0.7,
+  //       "permanenceIncrement" : 0.2 });
+
+  Sequence numbers = _sequenceMachine.generateNumbers(1, 100);
+  Sequence sequence = _sequenceMachine.generateFromNumbers(numbers);
+
+  for (int i = 0; i < 4; i++)
+    _feedTM(sequence);
+
+  _testTM(sequence);
+  assertAllActiveWerePredicted();
+  assertAllInactiveWereUnpredicted();
+}
+
+
+void TemporalMemoryExtensiveTest::testB8()
+{
+  // Like B7 but with 4 cells per column.
+  // Should still work.
+  
+  //init({ "initialPermanence": 0.2,
+  //       "connectedPermanence" : 0.7,
+  //       "permanenceIncrement" : 0.2,
+  //       "cellsPerColumn" : 4 });
+
+  Sequence numbers = _sequenceMachine.generateNumbers(1, 100);
+  Sequence sequence = _sequenceMachine.generateFromNumbers(numbers);
+
+  for (int i = 0; i < 4; i++)
+    _feedTM(sequence);
+
+  _testTM(sequence);
+  assertAllActiveWerePredicted();
+  assertAllInactiveWereUnpredicted();
+}
 
-    self._testTM(sequence)
-    self.assertAllActiveWerePredicted()
-    self.assertAllInactiveWereUnpredicted()
+
+void TemporalMemoryExtensiveTest::testB9()
+{
+  // Like B7 but present the sequence less than 4 times.
+  // The inference should be incorrect.
+  
+  //init({ "initialPermanence": 0.2,
+  //       "connectedPermanence" : 0.7,
+  //       "permanenceIncrement" : 0.2 });
+
+  Sequence numbers = _sequenceMachine.generateNumbers(1, 100);
+  Sequence sequence = _sequenceMachine.generateFromNumbers(numbers);
+
+  for (int i = 0; i < 4; i++)
+    _feedTM(sequence);
+
+  _testTM(sequence);
+  assertAllActiveWereUnpredicted();
+}
+
+
+void TemporalMemoryExtensiveTest::testB11()
+{
+  // Like B5, but with activationThreshold = 8 and with each pattern
+  // corrupted by a small amount of spatial noise (X = 0.05).
+  
+  //init({ "cellsPerColumn": 4,
+  //       "activationThreshold" : 8 });
+
+  Sequence numbers = _sequenceMachine.generateNumbers(1, 100);
+  Sequence sequence = _sequenceMachine.generateFromNumbers(numbers);
+
+  _feedTM(sequence);
+
+  sequence = _sequenceMachine.addSpatialNoise(sequence, 0.05);
+
+  _testTM(sequence);
+  Metric<vector<int>> unpredictedActiveColumnsMetric = _tm.mmGetMetricFromTrace(
+    _tm.mmGetTraceUnpredictedActiveColumns());
+  NTA_CHECK(unpredictedActiveColumnsMetric._mean < 1);
+}
+
+
+void TemporalMemoryExtensiveTest::testH1()
+{
+  // Learn two sequences with a short shared pattern.
+  // Parameters should be the same as B1.
+  // Since cellsPerColumn == 1, it should make more predictions than necessary.
+  init();
+
+  Sequence numbers = _sequenceMachine.generateNumbers(2, 20, { 10, 15 });
+  Sequence sequence = _sequenceMachine.generateFromNumbers(numbers);
+
+  _feedTM(sequence);
 
-
-  def testB8(self):
-    """Like B7 but with 4 cells per column.
-    Should still work."""
-    self.init({"initialPermanence": 0.2,
-               "connectedPermanence": 0.7,
-               "permanenceIncrement": 0.2,
-               "cellsPerColumn": 4})
-
-    numbers = self.sequenceMachine.generateNumbers(1, 100)
-    sequence = self.sequenceMachine.generateFromNumbers(numbers)
-
-    for _ in xrange(4):
-      self.feedTM(sequence)
-
-    self._testTM(sequence)
-    self.assertAllActiveWerePredicted()
-    self.assertAllInactiveWereUnpredicted()
-
-
-  def testB9(self):
-    """Like B7 but present the sequence less than 4 times.
-    The inference should be incorrect."""
-    self.init({"initialPermanence": 0.2,
-               "connectedPermanence": 0.7,
-               "permanenceIncrement": 0.2})
-
-    numbers = self.sequenceMachine.generateNumbers(1, 100)
-    sequence = self.sequenceMachine.generateFromNumbers(numbers)
-
-    for _ in xrange(3):
-      self.feedTM(sequence)
-
-    self._testTM(sequence)
-    self.assertAllActiveWereUnpredicted()
-
-
-  def testB11(self):
-    """Like B5, but with activationThreshold = 8 and with each pattern
-    corrupted by a small amount of spatial noise (X = 0.05)."""
-    self.init({"cellsPerColumn": 4,
-               "activationThreshold": 8})
-
-    numbers = self.sequenceMachine.generateNumbers(1, 100)
-    sequence = self.sequenceMachine.generateFromNumbers(numbers)
-
-    self.feedTM(sequence)
-
-    sequence = self.sequenceMachine.addSpatialNoise(sequence, 0.05)
-
-    self._testTM(sequence)
-    unpredictedActiveColumnsMetric = self.tm.mmGetMetricFromTrace(
-      self.tm.mmGetTraceUnpredictedActiveColumns())
-    self.assertTrue(unpredictedActiveColumnsMetric.mean < 1)
-
-
-  def testH1(self):
-    """Learn two sequences with a short shared pattern.
-    Parameters should be the same as B1.
-    Since cellsPerColumn == 1, it should make more predictions than necessary.
-    """
-    self.init()
-
-    numbers = self.sequenceMachine.generateNumbers(2, 20, (10, 15))
-    sequence = self.sequenceMachine.generateFromNumbers(numbers)
-
-    self.feedTM(sequence)
-
-    self._testTM(sequence)
-    self.assertAllActiveWerePredicted()
-
-    predictedInactiveColumnsMetric = self.tm.mmGetMetricFromTrace(
-      self.tm.mmGetTracePredictedInactiveColumns())
-    self.assertTrue(predictedInactiveColumnsMetric.mean > 0)
-
-    # At the end of both shared sequences, there should be
-    # predicted but inactive columns
-    self.assertTrue(
-      len(self.tm.mmGetTracePredictedInactiveColumns().data[15]) > 0)
-    self.assertTrue(
-      len(self.tm.mmGetTracePredictedInactiveColumns().data[35]) > 0)
-
-
-  def testH2(self):
-    """Same as H1, but with cellsPerColumn == 4, and train multiple times.
-    It should make just the right number of predictions."""
-    self.init({"cellsPerColumn": 4})
-
-    numbers = self.sequenceMachine.generateNumbers(2, 20, (10, 15))
-    sequence = self.sequenceMachine.generateFromNumbers(numbers)
-
-    for _ in xrange(10):
-      self.feedTM(sequence)
-
-    self._testTM(sequence)
-    self.assertAllActiveWerePredicted()
-
-    # Without some kind of decay, expect predicted inactive columns at the
-    # end of the first shared sequence
-    predictedInactiveColumnsMetric = self.tm.mmGetMetricFromTrace(
-      self.tm.mmGetTracePredictedInactiveColumns())
-    self.assertTrue(predictedInactiveColumnsMetric.sum < 26)
-
-    # At the end of the second shared sequence, there should be no
-    # predicted but inactive columns
-    self.assertEqual(
-      len(self.tm.mmGetTracePredictedInactiveColumns().data[36]), 0)
-
-
-  def testH3(self):
-    """Like H2, except the shared subsequence is in the beginning.
-    (e.g. "ABCDEF" and "ABCGHIJ") At the point where the shared subsequence
-    ends, all possible next patterns should be predicted. As soon as you see
-    the first unique pattern, the predictions should collapse to be a perfect
-    prediction."""
-    self.init({"cellsPerColumn": 4})
-
-    numbers = self.sequenceMachine.generateNumbers(2, 20, (0, 5))
-    sequence = self.sequenceMachine.generateFromNumbers(numbers)
-
-    self.feedTM(sequence)
-
-    self._testTM(sequence)
-    self.assertAllActiveWerePredicted()
-
-    predictedInactiveColumnsMetric = self.tm.mmGetMetricFromTrace(
-      self.tm.mmGetTracePredictedInactiveColumns())
-    self.assertTrue(predictedInactiveColumnsMetric.sum < 26 * 2)
-
-    # At the end of each shared sequence, there should be
-    # predicted but inactive columns
-    self.assertTrue(
-      len(self.tm.mmGetTracePredictedInactiveColumns().data[5]) > 0)
-    self.assertTrue(
-      len(self.tm.mmGetTracePredictedInactiveColumns().data[25]) > 0)
-
-
-  def testH4(self):
-    """Shared patterns. Similar to H2 except that patterns are shared between
-    sequences.  All sequences are different shufflings of the same set of N
-    patterns (there is no shared subsequence)."""
-    self.init({"cellsPerColumn": 4})
-
-    numbers = []
-    for _ in xrange(2):
-      numbers += self.sequenceMachine.generateNumbers(1, 20)
-
-    sequence = self.sequenceMachine.generateFromNumbers(numbers)
-
-    for _ in xrange(20):
-      self.feedTM(sequence)
-
-    self._testTM(sequence)
-    self.assertAllActiveWerePredicted()
-
-    predictedInactiveColumnsMetric = self.tm.mmGetMetricFromTrace(
-      self.tm.mmGetTracePredictedInactiveColumns())
-    self.assertTrue(predictedInactiveColumnsMetric.mean < 3)
-
-
-  def testH5(self):
-    """Combination of H4) and H2).
-    Shared patterns in different sequences, with a shared subsequence."""
-    self.init({"cellsPerColumn": 4})
-
-    numbers = []
-    shared = self.sequenceMachine.generateNumbers(1, 5)[:-1]
-    for _ in xrange(2):
-      sublist = self.sequenceMachine.generateNumbers(1, 20)
-      sublist = [x for x in sublist if x not in xrange(5)]
-      numbers += sublist[0:10] + shared + sublist[10:]
-
-    sequence = self.sequenceMachine.generateFromNumbers(numbers)
-
-    for _ in xrange(20):
-      self.feedTM(sequence)
-
-    self._testTM(sequence)
-    self.assertAllActiveWerePredicted()
-
-    predictedInactiveColumnsMetric = self.tm.mmGetMetricFromTrace(
-      self.tm.mmGetTracePredictedInactiveColumns())
-    self.assertTrue(predictedInactiveColumnsMetric.mean < 3)
-
-
-  def testH9(self):
-    """Sensitivity to small amounts of spatial noise during inference
-    (X = 0.05). Parameters the same as B11, and sequences like H2."""
-    self.init({"cellsPerColumn": 4,
-               "activationThreshold": 8})
-
-    numbers = self.sequenceMachine.generateNumbers(2, 20, (10, 15))
-    sequence = self.sequenceMachine.generateFromNumbers(numbers)
-
-    for _ in xrange(10):
-      self.feedTM(sequence)
-
-    sequence = self.sequenceMachine.addSpatialNoise(sequence, 0.05)
-
-    self._testTM(sequence)
-    unpredictedActiveColumnsMetric = self.tm.mmGetMetricFromTrace(
-      self.tm.mmGetTraceUnpredictedActiveColumns())
-    self.assertTrue(unpredictedActiveColumnsMetric.mean < 3)
-
-
-  # ==============================
-  # Overrides
-  # ==============================
-
-  def setUp(self):
-    super(ExtensiveTemporalMemoryTest, self).setUp()
-
-    print ("\n"
-           "======================================================\n"
-           "Test: {0} \n"
-           "{1}\n"
-           "======================================================\n"
-    ).format(self.id(), self.shortDescription())
-
-
-  def feedTM(self, sequence, learn=True, num=1):
-    super(ExtensiveTemporalMemoryTest, self).feedTM(
-      sequence, learn=learn, num=num)
-
-    if self.VERBOSITY >= 2:
-      print self.tm.mmPrettyPrintTraces(
-        self.tm.mmGetDefaultTraces(verbosity=self.VERBOSITY-1))
-      print
-
-    if learn and self.VERBOSITY >= 3:
-      print self.tm.mmPrettyPrintConnections()
-
-
-  # ==============================
-  # Helper functions
-  # ==============================
-
-  def _testTM(self, sequence):
-    self.feedTM(sequence, learn=False)
-
-    print self.tm.mmPrettyPrintMetrics(self.tm.mmGetDefaultMetrics())
-
-
-  def assertAllActiveWerePredicted(self):
-    unpredictedActiveColumnsMetric = self.tm.mmGetMetricFromTrace(
-      self.tm.mmGetTraceUnpredictedActiveColumns())
-    predictedActiveColumnsMetric = self.tm.mmGetMetricFromTrace(
-      self.tm.mmGetTracePredictedActiveColumns())
-
-    self.assertEqual(unpredictedActiveColumnsMetric.sum, 0)
-
-    self.assertEqual(predictedActiveColumnsMetric.min, 21)
-    self.assertEqual(predictedActiveColumnsMetric.max, 25)
-
-
-  def assertAllInactiveWereUnpredicted(self):
-    predictedInactiveColumnsMetric = self.tm.mmGetMetricFromTrace(
-      self.tm.mmGetTracePredictedInactiveColumns())
-
-    self.assertEqual(predictedInactiveColumnsMetric.sum, 0)
-
-
-  def assertAllActiveWereUnpredicted(self):
-    unpredictedActiveColumnsMetric = self.tm.mmGetMetricFromTrace(
-      self.tm.mmGetTraceUnpredictedActiveColumns())
-    predictedActiveColumnsMetric = self.tm.mmGetMetricFromTrace(
-      self.tm.mmGetTracePredictedActiveColumns())
-
-    self.assertEqual(predictedActiveColumnsMetric.sum, 0)
-
-    self.assertEqual(unpredictedActiveColumnsMetric.min, 21)
-    self.assertEqual(unpredictedActiveColumnsMetric.max, 25)
-
-
-
-if __name__ == "__main__":
-  unittest.main()
-*/
+  _testTM(sequence);
+  assertAllActiveWerePredicted();
+
+  Metric<vector<int>> predictedInactiveColumnsMetric = _tm.mmGetMetricFromTrace(
+    _tm.mmGetTracePredictedInactiveColumns());
+  NTA_CHECK(predictedInactiveColumnsMetric._mean > 0);
+
+
+  // At the end of both shared sequences, there should be
+  // predicted but inactive columns
+  NTA_CHECK(_tm.mmGetTracePredictedInactiveColumns()._data[15].size() > 0);
+  NTA_CHECK(_tm.mmGetTracePredictedInactiveColumns()._data[35].size() > 0);
+}
+
+
+void TemporalMemoryExtensiveTest::testH2()
+{
+  // Same as H1, but with cellsPerColumn == 4, and train multiple times.
+  // It should make just the right number of predictions.
+  
+  //init({ "cellsPerColumn": 4 });
+
+  Sequence numbers = _sequenceMachine.generateNumbers(2, 20, { 10, 15 });
+  Sequence sequence = _sequenceMachine.generateFromNumbers(numbers);
+
+  for (int i = 0; i < 10; i++)
+    _feedTM(sequence);
+
+  _testTM(sequence);
+  assertAllActiveWerePredicted();
+
+  // Without some kind of decay, expect predicted inactive columns at the
+  // end of the first shared sequence
+  Metric<vector<int>> predictedInactiveColumnsMetric = _tm.mmGetMetricFromTrace(
+    _tm.mmGetTracePredictedInactiveColumns());
+  NTA_CHECK(predictedInactiveColumnsMetric._sum < 26);
+
+  // At the end of the second shared sequence, there should be no
+  // predicted but inactive columns
+  NTA_CHECK(_tm.mmGetTracePredictedInactiveColumns()._data[36].size() == 0);
+}
+
+
+void TemporalMemoryExtensiveTest::testH3()
+{
+  // Like H2, except the shared subsequence is in the beginning.
+  // (e.g. "ABCDEF" and "ABCGHIJ") At the point where the shared subsequence
+  // ends, all possible next patterns should be predicted.As soon as you see
+  // the first unique pattern, the predictions should collapse to be a perfect
+  // prediction.
+  
+  //init({ "cellsPerColumn": 4 });
+
+  Sequence numbers = _sequenceMachine.generateNumbers(2, 20, { 0, 5 });
+  Sequence sequence = _sequenceMachine.generateFromNumbers(numbers);
+
+  _feedTM(sequence);
+
+  _testTM(sequence);
+  assertAllActiveWerePredicted();
+
+  Metric<vector<int>> predictedInactiveColumnsMetric = _tm.mmGetMetricFromTrace(
+    _tm.mmGetTracePredictedInactiveColumns());
+  NTA_CHECK(predictedInactiveColumnsMetric._sum < 26 * 2);
+
+  // At the end of each shared sequence, there should be
+  // predicted but inactive columns
+  NTA_CHECK(_tm.mmGetTracePredictedInactiveColumns()._data[5].size() > 0);
+  NTA_CHECK(_tm.mmGetTracePredictedInactiveColumns()._data[25].size() > 0);
+}
+
+
+void TemporalMemoryExtensiveTest::testH4()
+{
+  // Shared patterns. Similar to H2 except that patterns are shared between
+  // sequences. All sequences are different shufflings of the same set of N
+  // patterns (there is no shared subsequence).
+  
+  //init({ "cellsPerColumn": 4 });
+
+  Sequence numbers;
+  numbers += _sequenceMachine.generateNumbers(1, 20);
+  numbers += _sequenceMachine.generateNumbers(1, 20);
+
+  Sequence sequence = _sequenceMachine.generateFromNumbers(numbers);
+
+  for (int i = 0; i < 20; i++)
+    _feedTM(sequence);
+
+  _testTM(sequence);
+  assertAllActiveWerePredicted();
+
+  Metric<vector<int>> predictedInactiveColumnsMetric = _tm.mmGetMetricFromTrace(
+    _tm.mmGetTracePredictedInactiveColumns());
+  NTA_CHECK(predictedInactiveColumnsMetric._mean < 3);
+}
+
+
+void TemporalMemoryExtensiveTest::testH5()
+{
+  // Combination of H4) and H2).
+  // Shared patterns in different sequences, with a shared subsequence.
+  
+  //init({ "cellsPerColumn": 4 });
+
+  Sequence numbers;
+  Sequence shared = _sequenceMachine.generateNumbers(1, 5);// [:-1];
+  for (int i = 0; i < 2; i++)
+  {
+    Sequence sublist = _sequenceMachine.generateNumbers(1, 20);
+    //sublist = [x for x in sublist if x not in xrange(5)];
+    
+    numbers += sublist;// [0:10];
+    numbers += shared;
+    numbers += sublist;// [10:];
+  }
+
+  Sequence sequence = _sequenceMachine.generateFromNumbers(numbers);
+
+  for (int i = 0; i < 20; i++)
+    _feedTM(sequence);
+
+  _testTM(sequence);
+  assertAllActiveWerePredicted();
+
+  Metric<vector<int>> predictedInactiveColumnsMetric = _tm.mmGetMetricFromTrace(
+    _tm.mmGetTracePredictedInactiveColumns());
+  NTA_CHECK(predictedInactiveColumnsMetric._mean < 3);
+}
+
+
+void TemporalMemoryExtensiveTest::testH9()
+{
+  // Sensitivity to small amounts of spatial noise during inference
+  // (X = 0.05). Parameters the same as B11, and sequences like H2.
+  
+  //init({ "cellsPerColumn": 4,
+  //       "activationThreshold" : 8 });
+
+  Sequence numbers = _sequenceMachine.generateNumbers(2, 20, { 10, 15 });
+  Sequence sequence = _sequenceMachine.generateFromNumbers(numbers);
+
+  for (int i = 0; i < 10; i++)
+    _feedTM(sequence);
+
+  sequence = _sequenceMachine.addSpatialNoise(sequence, 0.05);
+
+  _testTM(sequence);
+  Metric<vector<int>> unpredictedActiveColumnsMetric = _tm.mmGetMetricFromTrace(
+    _tm.mmGetTraceUnpredictedActiveColumns());
+  NTA_CHECK(unpredictedActiveColumnsMetric._mean < 3);
+}
