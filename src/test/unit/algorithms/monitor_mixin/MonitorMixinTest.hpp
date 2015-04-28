@@ -66,7 +66,7 @@ namespace nupic {
 
     utils::PatternMachine _patternMachine;
     utils::SequenceMachine _sequenceMachine;
-    MonitoredTemporalMemory _tm;
+    TemporalMemoryMonitorMixin _tm;
 
   }; // end class MonitorMixinTest
 

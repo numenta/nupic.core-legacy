@@ -182,7 +182,8 @@ void TemporalMemoryTutorialTest::testSingleEndlesslyRepeating()
   
   //init({ "columnDimensions": [1] });
 
-  Sequence sequence = { _patternMachine.get(0) };
+  Sequence sequence;
+  sequence.data.push_back( _patternMachine.get(0) );
 
   for (int i = 0; i < 4; i++)
     _feedTM(sequence);

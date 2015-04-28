@@ -84,7 +84,7 @@ namespace nupic {
   {
     Timer timer(true); // auto start enabled
 
-    for (vector<UInt> pattern : sequence)
+    for (vector<UInt> pattern : sequence.data)
     {
       if (pattern.size() == 0)
         instance.reset();
@@ -101,14 +101,16 @@ namespace nupic {
   {
     vector<Real64> times;
     Real64 elapsed;
-    Sequence repeatedSequence;
-
+  
+    Sequence repeatedSequence(sequence);
+    repeatedSequence *= num;
+/*
     for (int i = 0; i < num; i++)
     {
-      for (auto seq : sequence)
+      for (auto seq : sequence.data))
         repeatedSequence.push_back(seq);
     }
-
+*/
     elapsed = _feedOne(repeatedSequence, tm, tmComputeFn);
     times.push_back(elapsed);
     cout << "TM:\t" << elapsed << " s";

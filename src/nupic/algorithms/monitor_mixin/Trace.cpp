@@ -34,22 +34,6 @@
 
 
 template<typename TraceType>
-Trace<TraceType>::Trace()
-{
-  _monitor = NULL;
-  _title = "";
-}
-
-template<typename TraceType>
-Trace<TraceType>::Trace(Instance* monitor, string& title)
-{
-  //@param monitor(MonitorMixinBase) Monitor Mixin instance that generated this trace
-  //@param title(string)             Title
-  _monitor = monitor;
-  _title = title;
-}
-
-template<typename TraceType>
 string Trace<TraceType>::prettyPrintTitle()
 {
   string ret;
@@ -70,14 +54,6 @@ string Trace<TraceType>::prettyPrintDatum(TraceType& datum)
   //@param datum(object) Datum from `self.data` to pretty - print
   //@return (string)Pretty - printed datum
   string out = "";
-
-  //if (datum.size())
-  //{
-  //  for (auto data : datum)
-  //    out += data.ToString();
-  //  return out;
-  //}
-
   return out;
 }
 
@@ -93,13 +69,15 @@ Trace<TraceType> Trace<TraceType>::makeCumCountsTrace()
   return Trace<TraceType>();
 }
 
-Trace<vector<int>> IndicesTrace::makeCountsTrace()
+Trace<vector<UInt>> CountsTrace::makeCountsTrace()
 {
   //@return (CountsTrace)A new Trace made up of counts of this trace's indices.
   string title = "# " + _title;
-  Trace<vector<int>> trace(_monitor, title);
+  CountsTrace trace;
+  trace._monitor = _monitor;
+  trace._title = title;
 
-  for (vector<int> indicies : _data)
+  for (vector<UInt> indicies : _data)
   {
     trace._data.push_back(indicies);
   }
@@ -108,11 +86,25 @@ Trace<vector<int>> IndicesTrace::makeCountsTrace()
 }
 
 
-int IndicesTrace::accumulate(Trace<vector<int>>& trace)
+Trace<vector<UInt>> CountsTrace::makeCumCountsTrace()
+{
+  //@return (CountsTrace)A new Trace made up of cumulative counts of this trace's indices.
+  string title = "# (cumulative) " + _title;
+  CountsTrace trace;
+  trace._monitor = _monitor;
+  trace._title = title;
+
+  Trace<vector<UInt>> countsTrace = makeCountsTrace();
+  trace._data.push_back(vector<UInt>{ accumulate(countsTrace) });
+  return trace;
+}
+
+
+int CountsTrace::accumulate(Trace<vector<UInt>>& trace)
 {
   int total = 0;
 
-  for (vector<int>& entry : trace._data)
+  for (vector<UInt>& entry : trace._data)
   {
     for (int item : entry)
       total += item;
@@ -122,24 +114,40 @@ int IndicesTrace::accumulate(Trace<vector<int>>& trace)
 }
 
 
-Trace<vector<int>> IndicesTrace::makeCumCountsTrace()
-{
-  //@return (CountsTrace)A new Trace made up of cumulative counts of this trace's indices.
-  string title = "# (cumulative) " + _title;
-  Trace<vector<int>> trace(_monitor, title);
-  Trace<vector<int>> countsTrace = makeCountsTrace();
-  trace._data.push_back(vector<int>{ accumulate(countsTrace) });
-  return trace;
-}
-
-
-string IndicesTrace::prettyPrintDatum(vector<int>& datum)
+string CountsTrace::prettyPrintDatum(vector<UInt>& datum)
 {
   stringstream ret;
 
   sort(datum.begin(), datum.end());
 
   for (int item : datum)
+  {
+    ret << item << ",";
+  }
+
+  return ret.str();
+}
+
+string BoolsTrace::prettyPrintDatum(vector<bool>& datum)
+{
+  stringstream ret;
+
+  for (bool item : datum)
+  {
+    if (item)
+      ret << "true,";
+    else
+      ret << "false,";
+  }
+
+  return ret.str();
+}
+
+string StringsTrace::prettyPrintDatum(vector<string>& datum)
+{
+  stringstream ret;
+
+  for (string item : datum)
   {
     ret << item << ",";
   }

@@ -30,6 +30,7 @@
 #include <cstring>
 #include <fstream>
 #include <stdio.h>
+#include <set>
 
 #include <nupic/types/Types.hpp>
 #include <nupic/utils/Log.hpp>
@@ -50,6 +51,8 @@ namespace nupic {
     virtual void RunTests() override;
 
   private:
+    IndicesTrace  _trace;
+
     void setUp();
 
     virtual void testMakeCountsTrace();

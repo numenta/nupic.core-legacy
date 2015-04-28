@@ -228,7 +228,7 @@ namespace nupic
          * @retval Created segment.
          */
         Connections(CellIdx numCells,
-                    SegmentIdx maxSegmentsPerCell = SEGMENT_MAX);
+                    SegmentIdx maxSegmentsPerCell=SEGMENT_MAX);
 
         virtual ~Connections() {}
 
@@ -324,8 +324,8 @@ namespace nupic
          *
          * @retval Segment found?
          */
-        bool mostActiveSegmentForCells(const std::set<Cell>& cells,
-                                       std::set<Cell> input,
+        bool mostActiveSegmentForCells(const std::vector<Cell>& cells,
+                                       std::vector<Cell> input,
                                        SynapseIdx synapseThreshold,
                                        Segment& retSegment) const;
 
@@ -351,7 +351,7 @@ namespace nupic
          *
          * @retval Activity to return.
          */
-        Activity computeActivity(const std::set<Cell>& input,
+        Activity computeActivity(const std::vector<Cell>& input,
                                  Permanence permanenceThreshold,
                                  SynapseIdx synapseThreshold,
                                  bool recordIteration=true);

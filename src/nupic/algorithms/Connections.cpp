@@ -55,7 +55,7 @@ Segment Connections::createSegment(const Cell& cell)
   SegmentData segmentData = {vector<SynapseData>(), false, iteration_};
   Segment segment(segments.size(), cell);
 
-  if (segments.size() == (size_t)maxSegmentsPerCell_)
+  if (segments.size() == maxSegmentsPerCell_)
   {
     bool found = leastRecentlyUsedSegment(cell, segment);
     if (!found) { NTA_THROW << "Unable to find segment to reuse."; }
@@ -140,7 +140,7 @@ vector<Segment> Connections::segmentsForCell(const Cell& cell) const
   vector<Segment> segments;
   Segment segment;
 
-  for (SegmentIdx i = 0; i < (SegmentIdx)cells_[cell.idx].segments.size(); i++)
+  for (SegmentIdx i = 0; i < cells_[cell.idx].segments.size(); i++)
   {
     segment.idx = i;
     segment.cell = cell;
@@ -193,8 +193,8 @@ SynapseData Connections::dataForSynapse(const Synapse& synapse) const
   return cells_[cell.idx].segments[segment.idx].synapses[synapse.idx];
 }
 
-bool Connections::mostActiveSegmentForCells(const set<Cell>& cells,
-                                            set<Cell> input,
+bool Connections::mostActiveSegmentForCells(const vector<Cell>& cells,
+                                            vector<Cell> input,
                                             SynapseIdx synapseThreshold,
                                             Segment& retSegment) const
 {
@@ -204,7 +204,7 @@ bool Connections::mostActiveSegmentForCells(const set<Cell>& cells,
   SegmentIdx segmentIdx = 0;
   bool found = false;
 
-//  sort(input.begin(), input.end());  // for binary search
+  sort(input.begin(), input.end());  // for binary search
 
   for (auto cell : cells)
   {
@@ -262,7 +262,7 @@ bool Connections::leastRecentlyUsedSegment(const Cell& cell,
   return found;
 }
 
-Activity Connections::computeActivity(const set<Cell>& input,
+Activity Connections::computeActivity(const vector<Cell>& input,
                                       Permanence permanenceThreshold,
                                       SynapseIdx synapseThreshold,
                                       bool recordIteration)

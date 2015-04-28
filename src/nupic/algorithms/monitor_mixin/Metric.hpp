@@ -34,46 +34,60 @@
 #include "Instance.hpp"
 #include "Trace.hpp"
 
-template<typename TraceType>
-class Metric
+namespace nupic
 {
-public:
-  // A metric computed over a set of data (usually from a `CountsTrace`).
-
-  Instance* _monitor;
-  string _title;
-
-  Real _min, _max;
-  Real _sum, _mean;
-  Real _standardDeviation;
-
-  vector<TraceType>* _data;
-
-  Metric<TraceType>()
+  template<typename TraceType>
+  class Metric
   {
-    string emptyTitle("");
-    _monitor = NULL;
-    _title = emptyTitle;
-  }
-  
-  Metric<TraceType>(Instance* monitor, string& title, vector<TraceType>* data);
+  public:
+    // A metric computed over a set of data (usually from a `CountsTrace`).
 
-  string prettyPrintTitle();
+    Instance _monitor;
+    string _title;
 
-  void _computeStats();
+    Real _min, _max;
+    Real _sum, _mean;
+    Real _standardDeviation;
 
-  static Metric<TraceType> createFromTrace(Trace<TraceType>& trace, bool excludeResets = false);
-  static Metric<TraceType> copy(const Metric<TraceType>& rhs);
+    vector<TraceType> _data;
 
-};
+    Metric()
+    {
+      string emptyTitle("");
+      _title = emptyTitle;
+    }
 
+    Metric(Instance& monitor, string& title, TraceType& data);
 
-class MetricsTrace : public Trace<Metric<int>>
-{
-public:
-  // Each entry contains Metrics(for example metric for # of predicted = > active cells).
-  string prettyPrintDatum(Metric<int>& datum);
+    string prettyPrintTitle();
 
-};
+    virtual void _computeStats(Trace<vector<int>>& resets);
+
+    virtual Metric<TraceType> createFromTrace(Trace<TraceType>& trace);
+    virtual Metric<TraceType> createFromTrace(Trace<TraceType>& trace, Trace<vector<int>>& resets);
+
+    static Metric<TraceType> copy(const Metric<TraceType>& rhs);
+
+  };
+
+  class MetricsVector : public Metric<vector<int>>
+  {
+  public:
+    virtual void _computeStats(Trace<vector<int>>& resets);
+
+    static Metric<vector<int>> createFromTrace(Trace<vector<int>>& trace);
+    static Metric<vector<int>> createFromTrace(Trace<vector<int>>& trace, Trace<vector<int>>& resets);
+
+  };
+
+  class MetricsTrace : public Trace<Metric<int>>
+  {
+  public:
+    // Each entry contains Metrics(for example metric for # of predicted = > active cells).
+    string prettyPrintDatum(Metric<int>& datum);
+
+  };
+
+}; // of namespace nupic
 
 #endif // NTA_metric_HPP

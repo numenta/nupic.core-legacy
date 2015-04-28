@@ -289,7 +289,7 @@ void TemporalMemoryExtensiveTest::testB1()
   init();
 
   Sequence numbers = _sequenceMachine.generateNumbers(1, 100);
-  Sequence sequence = _sequenceMachine.generateFromNumbers(numbers);
+  Sequence sequence = _sequenceMachine.generateFromNumbers(numbers.data);
 
   _feedTM(sequence);
 
@@ -305,7 +305,7 @@ void TemporalMemoryExtensiveTest::testB3()
   init();
 
   Sequence numbers = _sequenceMachine.generateNumbers(1, 300);
-  Sequence sequence = _sequenceMachine.generateFromNumbers(numbers);
+  Sequence sequence = _sequenceMachine.generateFromNumbers(numbers.data);
 
   _feedTM(sequence);
 
@@ -321,7 +321,7 @@ void TemporalMemoryExtensiveTest::testB4()
   init();
 
   Sequence numbers = _sequenceMachine.generateNumbers(3, 100);
-  Sequence sequence = _sequenceMachine.generateFromNumbers(numbers);
+  Sequence sequence = _sequenceMachine.generateFromNumbers(numbers.data);
 
   _feedTM(sequence);
 
@@ -338,7 +338,7 @@ void TemporalMemoryExtensiveTest::testB5()
   //init({ "cellsPerColumn": 4 });
 
   Sequence numbers = _sequenceMachine.generateNumbers(1, 100);
-  Sequence sequence = _sequenceMachine.generateFromNumbers(numbers);
+  Sequence sequence = _sequenceMachine.generateFromNumbers(numbers.data);
 
   _feedTM(sequence);
 
@@ -356,7 +356,7 @@ void TemporalMemoryExtensiveTest::testB6()
   //init({ "cellsPerColumn": 4 });
 
   Sequence numbers = _sequenceMachine.generateNumbers(3, 100);
-  Sequence sequence = _sequenceMachine.generateFromNumbers(numbers);
+  Sequence sequence = _sequenceMachine.generateFromNumbers(numbers.data);
 
   _feedTM(sequence);
 
@@ -386,7 +386,7 @@ void TemporalMemoryExtensiveTest::testB7()
   //       "permanenceIncrement" : 0.2 });
 
   Sequence numbers = _sequenceMachine.generateNumbers(1, 100);
-  Sequence sequence = _sequenceMachine.generateFromNumbers(numbers);
+  Sequence sequence = _sequenceMachine.generateFromNumbers(numbers.data);
 
   for (int i = 0; i < 4; i++)
     _feedTM(sequence);
@@ -408,7 +408,7 @@ void TemporalMemoryExtensiveTest::testB8()
   //       "cellsPerColumn" : 4 });
 
   Sequence numbers = _sequenceMachine.generateNumbers(1, 100);
-  Sequence sequence = _sequenceMachine.generateFromNumbers(numbers);
+  Sequence sequence = _sequenceMachine.generateFromNumbers(numbers.data);
 
   for (int i = 0; i < 4; i++)
     _feedTM(sequence);
@@ -429,7 +429,7 @@ void TemporalMemoryExtensiveTest::testB9()
   //       "permanenceIncrement" : 0.2 });
 
   Sequence numbers = _sequenceMachine.generateNumbers(1, 100);
-  Sequence sequence = _sequenceMachine.generateFromNumbers(numbers);
+  Sequence sequence = _sequenceMachine.generateFromNumbers(numbers.data);
 
   for (int i = 0; i < 4; i++)
     _feedTM(sequence);
@@ -448,7 +448,7 @@ void TemporalMemoryExtensiveTest::testB11()
   //       "activationThreshold" : 8 });
 
   Sequence numbers = _sequenceMachine.generateNumbers(1, 100);
-  Sequence sequence = _sequenceMachine.generateFromNumbers(numbers);
+  Sequence sequence = _sequenceMachine.generateFromNumbers(numbers.data);
 
   _feedTM(sequence);
 
@@ -469,7 +469,7 @@ void TemporalMemoryExtensiveTest::testH1()
   init();
 
   Sequence numbers = _sequenceMachine.generateNumbers(2, 20, { 10, 15 });
-  Sequence sequence = _sequenceMachine.generateFromNumbers(numbers);
+  Sequence sequence = _sequenceMachine.generateFromNumbers(numbers.data);
 
   _feedTM(sequence);
 
@@ -496,7 +496,7 @@ void TemporalMemoryExtensiveTest::testH2()
   //init({ "cellsPerColumn": 4 });
 
   Sequence numbers = _sequenceMachine.generateNumbers(2, 20, { 10, 15 });
-  Sequence sequence = _sequenceMachine.generateFromNumbers(numbers);
+  Sequence sequence = _sequenceMachine.generateFromNumbers(numbers.data);
 
   for (int i = 0; i < 10; i++)
     _feedTM(sequence);
@@ -527,7 +527,7 @@ void TemporalMemoryExtensiveTest::testH3()
   //init({ "cellsPerColumn": 4 });
 
   Sequence numbers = _sequenceMachine.generateNumbers(2, 20, { 0, 5 });
-  Sequence sequence = _sequenceMachine.generateFromNumbers(numbers);
+  Sequence sequence = _sequenceMachine.generateFromNumbers(numbers.data);
 
   _feedTM(sequence);
 
@@ -557,7 +557,7 @@ void TemporalMemoryExtensiveTest::testH4()
   numbers += _sequenceMachine.generateNumbers(1, 20);
   numbers += _sequenceMachine.generateNumbers(1, 20);
 
-  Sequence sequence = _sequenceMachine.generateFromNumbers(numbers);
+  Sequence sequence = _sequenceMachine.generateFromNumbers(numbers.data);
 
   for (int i = 0; i < 20; i++)
     _feedTM(sequence);
@@ -590,7 +590,7 @@ void TemporalMemoryExtensiveTest::testH5()
     numbers += sublist;// [10:];
   }
 
-  Sequence sequence = _sequenceMachine.generateFromNumbers(numbers);
+  Sequence sequence = _sequenceMachine.generateFromNumbers(numbers.data);
 
   for (int i = 0; i < 20; i++)
     _feedTM(sequence);
@@ -613,7 +613,7 @@ void TemporalMemoryExtensiveTest::testH9()
   //       "activationThreshold" : 8 });
 
   Sequence numbers = _sequenceMachine.generateNumbers(2, 20, { 10, 15 });
-  Sequence sequence = _sequenceMachine.generateFromNumbers(numbers);
+  Sequence sequence = _sequenceMachine.generateFromNumbers(numbers.data);
 
   for (int i = 0; i < 10; i++)
     _feedTM(sequence);

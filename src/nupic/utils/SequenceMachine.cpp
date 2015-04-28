@@ -109,7 +109,7 @@ Sequence SequenceMachine::addSpatialNoise(Sequence& sequence, Real amount)
 {
   Sequence newSequence;
 
-  for (auto pattern : sequence)
+  for (auto pattern : sequence.data)
   {
     vector<UInt> noise = _patternMachine.addNoise(pattern, amount);
 

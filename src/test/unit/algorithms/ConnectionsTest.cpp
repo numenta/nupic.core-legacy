@@ -85,7 +85,7 @@ namespace nupic {
     vector<Segment> segments = connections.segmentsForCell(cell);
     ASSERT_EQ(segments.size(), 2);
 
-    for (SegmentIdx i = 0; i < (SegmentIdx)segments.size(); i++) {
+    for (SegmentIdx i = 0; i < segments.size(); i++) {
       ASSERT_EQ(segments[i].idx, i);
       ASSERT_EQ(segments[i].cell.idx, cell.idx);
     }
@@ -257,8 +257,8 @@ namespace nupic {
     Segment segment;
     Synapse synapse;
     Cell cell, presynapticCell;
-    set<Cell> cells;
-    set<Cell> input;
+    vector<Cell> cells;
+    vector<Cell> input;
 
     cell.idx = 10; presynapticCell.idx = 150;
     segment = connections.createSegment(cell);
@@ -269,11 +269,11 @@ namespace nupic {
     synapse = connections.createSynapse(segment, presynapticCell, 0.85);
 
     Cell cell1(10), cell2(20);
-    cells.insert(cell1);
-    cells.insert(cell2);
+    cells.push_back(cell1);
+    cells.push_back(cell2);
 
     Cell input1(50);
-    input.insert(input1);
+    input.push_back(input1);
 
     bool result = connections.mostActiveSegmentForCells(
       cells, input, 0, segment);
@@ -295,8 +295,8 @@ namespace nupic {
     Segment segment;
     Synapse synapse;
     Cell cell, presynapticCell;
-    set<Cell> cells;
-    set<Cell> input;
+    vector<Cell> cells;
+    vector<Cell> input;
 
     cell.idx = 10; presynapticCell.idx = 150;
     segment = connections.createSegment(cell);
@@ -307,11 +307,11 @@ namespace nupic {
     synapse = connections.createSynapse(segment, presynapticCell, 0.85);
 
     Cell cell1(10), cell2(20);
-    cells.insert(cell1);
-    cells.insert(cell2);
+    cells.push_back(cell1);
+    cells.push_back(cell2);
 
     Cell input1(150);
-    input.insert(input1);
+    input.push_back(input1);
 
     bool result = connections.mostActiveSegmentForCells(
       cells, input, 2, segment);
@@ -494,15 +494,15 @@ namespace nupic {
   Activity ConnectionsTest::computeSampleActivity(Connections &connections)
   {
     Cell cell;
-    set<Cell> input;
+    vector<Cell> input;
 
-    cell.idx = 150; input.insert(cell);
-    cell.idx = 151; input.insert(cell);
-    cell.idx = 50; input.insert(cell);
-    cell.idx = 52; input.insert(cell);
-    cell.idx = 80; input.insert(cell);
-    cell.idx = 81; input.insert(cell);
-    cell.idx = 82; input.insert(cell);
+    cell.idx = 150; input.push_back(cell);
+    cell.idx = 151; input.push_back(cell);
+    cell.idx = 50; input.push_back(cell);
+    cell.idx = 52; input.push_back(cell);
+    cell.idx = 80; input.push_back(cell);
+    cell.idx = 81; input.push_back(cell);
+    cell.idx = 82; input.push_back(cell);
 
     Activity activity = connections.computeActivity(input, 0.50, 2);
     return activity;

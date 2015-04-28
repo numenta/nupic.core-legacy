@@ -30,51 +30,58 @@
 
 #include <nupic/types/Types.hpp>
 #include <nupic/utils/Log.hpp>
+#include <nupic/math/Math.hpp>
 #include "MetricTest.hpp"
 
 using namespace std;
+using namespace nupic;
 
-namespace nupic {
+void MetricTest::RunTests()
+{
+  setup();
 
-  void MetricTest::RunTests()
-  {
-    setup();
+  testCreateFromTrace();
+  testCreateFromTraceExcludeResets();
+}
 
-    testCreateFromTrace();
-    testCreateFromTraceExcludeResets();
-  }
-
-  void MetricTest::setup()
-  {
-    trace = Trace<vector<int>>(&temp, string("# active cells"));
+void MetricTest::setup()
+{
+  trace._monitor = &temp;
+  trace._title = string("# active cells");
     
-    trace._data.resize(6);
-    //trace._data.assign({ 1, 2, 3, 4, 5, 0 });
-  }
+  //trace._data.resize(6);
+  trace._data.push_back({ 1, 2, 3, 4, 5, 0 });
+};
 
+void MetricTest::testCreateFromTrace()
+{
+  MetricsVector metric;
+  metric.createFromTrace(trace);
+    
+  NTA_CHECK(metric._title == trace._title);
+  NTA_CHECK(metric._min == 0);
+  NTA_CHECK(metric._max == 5);
+  NTA_CHECK(metric._sum == 15);
+  NTA_CHECK(metric._mean == 2.5);
+  bool eq = nupic::nearlyEqual(metric._standardDeviation, Real(1.707825127659933));
+  EXPECT_TRUE(eq);
+}
 
-  void MetricTest::testCreateFromTrace()
-  {
-    //Metric<vector<int>> metric = Metric<vector<int>>::createFromTrace(trace);
-    //assertEqual(metric._title, trace._title);
-    //assertEqual(metric.min, 0);
-    //assertEqual(metric.max, 5);
-    //assertEqual(metric.sum, 15);
-    //assertEqual(metric.mean, 2.5);
-    //assertEqual(metric.standardDeviation, 1.707825127659933);
-  }
+void MetricTest::testCreateFromTraceExcludeResets()
+{
+  vector<bool> resetsList({ true, false, false, true, false, false });
 
-  void MetricTest::testCreateFromTraceExcludeResets()
-  {
-    //BoolsTrace resetTrace = BoolsTrace(_monitor, "resets");
-    //resetTrace._data = vector<bool>{ true, false, false, true, false, false };
-    //Metric<vector<int>> metric = Metric::createFromTrace(_trace, resetTrace);
-    //assertEqual(metric.title, self.trace.title);
-    //assertEqual(metric.min, 0);
-    //assertEqual(metric.max, 5);
-    //assertEqual(metric.sum, 10);
-    //assertEqual(metric.mean, 2.5);
-    //assertEqual(metric.standardDeviation, 1.8027756377319946);
-  }
+  BoolsTrace resetsTrace = BoolsTrace();// &temp, string("resets"));
+  resetsTrace._data.push_back(resetsList);
 
-}; // of namespace nupic
+  MetricsVector metric;
+  metric.createFromTrace(trace, resetsTrace);
+
+  NTA_CHECK(metric._title == trace._title);
+  NTA_CHECK(metric._min == 0);
+  NTA_CHECK(metric._max == 5);
+  NTA_CHECK(metric._sum == 10);
+  NTA_CHECK(metric._mean == 2.5);
+  bool eq = nupic::nearlyEqual(metric._standardDeviation, Real(1.707825127659933));
+  EXPECT_TRUE(eq);
+}

@@ -27,7 +27,6 @@
 
 #include "MonitorMixin.hpp"
 
-
 MonitorMixinBase::MonitorMixinBase()
 {
   _mmName = "";
@@ -41,36 +40,30 @@ MonitorMixinBase::MonitorMixinBase(string& title)
 
   // Mapping from key(string) = > trace(Trace)
   _mmTraces.clear();
-  //_mmData.clear();
+  _mmData.clear();
+
   mmClearHistory();
 }
-
 
 void MonitorMixinBase::reset()
 {
   _mmName = "";
   
-  _mmTraces.clear();
-  //_mmData.clear();
-  
   mmClearHistory();
 }
-
 
 void MonitorMixinBase::compute(vector<UInt> activeColumns, bool learn)
 {
 }
 
-
 void MonitorMixinBase::mmClearHistory()
 {
   // Clears the stored history.
   _mmTraces.clear();
-  //_mmData.clear();
+  _mmData.clear();
 }
 
-
-string MonitorMixinBase::mmPrettyPrintTraces(vector<Trace<vector<int>>>& traces, Trace<vector<int>>& breakOnResets)
+string MonitorMixinBase::mmPrettyPrintTraces(vector<Trace<vector<UInt>>>& traces, Trace<vector<UInt>>& breakOnResets)
 {
   //Returns pretty - printed table of traces.
   //@param traces(list) Traces to print in table
@@ -91,7 +84,7 @@ string MonitorMixinBase::mmPrettyPrintTraces(vector<Trace<vector<int>>>& traces,
   return "";
 }
 
-string MonitorMixinBase::mmPrettyPrintMetrics(vector<Metric<vector<int>>>& metrics)
+string MonitorMixinBase::mmPrettyPrintMetrics(vector<Metric<vector<UInt>>>& metrics)
 {
   //Returns pretty - printed table of metrics.
   //@param metrics(list) Traces to print in table
@@ -113,174 +106,6 @@ string MonitorMixinBase::mmPrettyPrintMetrics(vector<Metric<vector<int>>>& metri
   */
   return "";
 }
-
-
-vector<Trace<vector<int>>> MonitorMixinBase::mmGetDefaultTraces(int verbosity)
-{
-  //Returns list of default traces. (To be overridden.)
-  //@param verbosity(int) Verbosity level
-  //@return (list)Default traces
-  return {};
-}
-
-
-vector<Metric<vector<int>>> MonitorMixinBase::mmGetDefaultMetrics(int verbosity)
-{
-  //Returns list of default metrics. (To be overridden.)
-  //@param verbosity(int) Verbosity level
-  //@return (list)Default metrics
-  return {};
-}
-
-
-TemporalMemoryMonitorMixin::TemporalMemoryMonitorMixin(string& title)
-{
-  _mmName = title;
-  _mmResetActive = true; // First iteration is always a reset
-}
-
-
-Trace<vector<int>>& TemporalMemoryMonitorMixin::mmGetTraceActiveColumns()
-{
-  //@return (Trace) Trace of active columns
-  return _mmTraces.find("activeColumns")->second;
-}
-
-
-Trace<vector<int>>& TemporalMemoryMonitorMixin::mmGetTracePredictiveCells()
-{
-  //@return (Trace) Trace of predictive cells
-  return _mmTraces.find("predictiveCells")->second;
-}
-
-
-Trace<vector<int>>& TemporalMemoryMonitorMixin::mmGetTraceNumSegments()
-{
-  //@return (Trace) Trace of # segments
-  return _mmTraces.find("numSegments")->second;
-}
-
-
-Trace<vector<int>>& TemporalMemoryMonitorMixin::mmGetTraceNumSynapses()
-{
-  //@return (Trace) Trace of # synapses
-  return _mmTraces.find("numSynapses")->second;
-}
-
-
-Trace<vector<int>>& TemporalMemoryMonitorMixin::mmGetTraceSequenceLabels()
-{
-  //@return (Trace) Trace of sequence labels
-  return _mmTraces.find("sequenceLabels")->second;
-}
-
-
-Trace<vector<int>>& TemporalMemoryMonitorMixin::mmGetTraceResets()
-{
-  //@return (Trace) Trace of resets
-  return _mmTraces.find("resets")->second;
-}
-
-
-Trace<vector<int>>& TemporalMemoryMonitorMixin::mmGetTracePredictedActiveCells()
-{
-  //@return (Trace) Trace of predicted => active cells
-  _mmComputeTransitionTraces();
-  return _mmTraces.find("predictedActiveCells")->second;
-}
-
-
-Trace<vector<int>>& TemporalMemoryMonitorMixin::mmGetTracePredictedInactiveCells()
-{
-  //@return (Trace) Trace of predicted => inactive cells
-  _mmComputeTransitionTraces();
-  return _mmTraces.find("predictedInactiveCells")->second;
-}
-
-
-Trace<vector<int>>& TemporalMemoryMonitorMixin::mmGetTracePredictedActiveColumns()
-{
-  //@return (Trace) Trace of predicted => active columns
-  _mmComputeTransitionTraces();
-  return _mmTraces.find("predictedActiveColumns")->second;
-}
-
-
-Trace<vector<int>>& TemporalMemoryMonitorMixin::mmGetTracePredictedInactiveColumns()
-{
-  //@return (Trace) Trace of predicted => inactive columns
-  _mmComputeTransitionTraces();
-  return _mmTraces.find("predictedInactiveColumns")->second;
-}
-
-
-Trace<vector<int>>& TemporalMemoryMonitorMixin::mmGetTraceUnpredictedActiveColumns()
-{
-  //@return (Trace) Trace of unpredicted => active columns
-  _mmComputeTransitionTraces();
-  return _mmTraces.find("unpredictedActiveColumns")->second;
-}
-
-
-Metric<vector<int>> TemporalMemoryMonitorMixin::mmGetMetricFromTrace(Trace<vector<int>>& trace)
-{
-  // Convenience method to compute a metric over 
-  // an indices trace, excluding resets.
-  //@param (IndicesTrace) Trace of indices
-  //@return (Metric) Metric over trace excluding resets
-  Trace<vector<int>> countsTrace = trace.makeCountsTrace();
-  return Metric<vector<int>>();// Metric<vector<int>>::createFromTrace(countsTrace, false);//, mmGetTraceResets());
-}
-
-
-Metric<vector<int>> TemporalMemoryMonitorMixin::mmGetMetricSequencesPredictedActiveCellsPerColumn()
-{
-/*
-  vector<int> data;
-  Instance temp;
-  Metric<vector<int>> ret(this, string("temp"), &data);
-
-  // Metric for number of predicted => active cells per column for each sequence
-  //@return (Metric) metric
-  _mmComputeTransitionTraces();
-
-  numCellsPerColumn = []
-
-  for predictedActiveCells in(
-  _mmData["predictedActiveCellsForSequence"].values()) :
-  cellsForColumn = mapCellsToColumns(predictedActiveCells)
-  numCellsPerColumn += [len(x) for x in cellsForColumn.values()]
-
-  return Metric(self,
-    "# predicted => active cells per column for each sequence",
-    numCellsPerColumn)
-*/
-  return Metric<vector<int>>();
-}
-
-
-Metric<vector<int>> TemporalMemoryMonitorMixin::mmGetMetricSequencesPredictedActiveCellsShared()
-{
-/*
-  //Metric for number of sequences each predicted = > active cell appears in
-  //Note : This metric is flawed when it comes to high - order sequences.
-  //@return (Metric)metric
-  _mmComputeTransitionTraces();
-
-  numSequencesForCell = defaultdict(lambda: 0);
-
-  for predictedActiveCells in(
-  _mmData["predictedActiveCellsForSequence"].values()) :
-  for cell in predictedActiveCells :
-  numSequencesForCell[cell] += 1;
-
-  return Metric(self,
-    "# sequences each predicted => active cells appears in",
-    numSequencesForCell.values());
-*/
-  return Metric<vector<int>>();
-}
-
 
 string TemporalMemoryMonitorMixin::mmPrettyPrintConnections()
 {
@@ -329,7 +154,6 @@ string TemporalMemoryMonitorMixin::mmPrettyPrintConnections()
   return text;
 }
 
-
 string TemporalMemoryMonitorMixin::mmPrettyPrintSequenceCellRepresentations(string sortby)
 {
   //Pretty print the cell representations for sequences in the history.
@@ -350,6 +174,136 @@ string TemporalMemoryMonitorMixin::mmPrettyPrintSequenceCellRepresentations(stri
   return "";
 }
 
+vector<Trace<vector<UInt>>> MonitorMixinBase::mmGetDefaultTraces(int verbosity)
+{
+  //Returns list of default traces. (To be overridden.)
+  //@param verbosity(int) Verbosity level
+  //@return (list)Default traces
+  return {};
+}
+
+vector<Metric<vector<UInt>>> MonitorMixinBase::mmGetDefaultMetrics(int verbosity)
+{
+  //Returns list of default metrics. (To be overridden.)
+  //@param verbosity(int) Verbosity level
+  //@return (list)Default metrics
+  return {};
+}
+
+TemporalMemoryMonitorMixin::TemporalMemoryMonitorMixin(string& title)
+{
+  _mmName = title;
+  _mmResetActive = true; // First iteration is always a reset
+}
+
+Trace<vector<UInt>>& TemporalMemoryMonitorMixin::mmGetTraceActiveColumns()
+{
+  //@return (Trace) Trace of active columns
+  return _mmTraces.find("activeColumns")->second;
+}
+
+Trace<vector<UInt>>& TemporalMemoryMonitorMixin::mmGetTracePredictiveCells()
+{
+  //@return (Trace) Trace of predictive cells
+  return _mmTraces.find("predictiveCells")->second;
+}
+
+Trace<vector<UInt>>& TemporalMemoryMonitorMixin::mmGetTraceNumSegments()
+{
+  //@return (Trace) Trace of # segments
+  return _mmTraces.find("numSegments")->second;
+}
+
+Trace<vector<UInt>>& TemporalMemoryMonitorMixin::mmGetTraceNumSynapses()
+{
+  //@return (Trace) Trace of # synapses
+  return _mmTraces.find("numSynapses")->second;
+}
+
+Trace<vector<UInt>>& TemporalMemoryMonitorMixin::mmGetTraceSequenceLabels()
+{
+  //@return (Trace) Trace of sequence labels
+  return _mmTraces.find("sequenceLabels")->second;
+}
+
+Trace<vector<UInt>>& TemporalMemoryMonitorMixin::mmGetTraceResets()
+{
+  //@return (Trace) Trace of resets
+  return _mmTraces.find("resets")->second;
+}
+
+Trace<vector<UInt>>& TemporalMemoryMonitorMixin::mmGetTracePredictedActiveCells()
+{
+  //@return (Trace) Trace of predicted => active cells
+  _mmComputeTransitionTraces();
+  return _mmTraces.find("predictedActiveCells")->second;
+}
+
+Trace<vector<UInt>>& TemporalMemoryMonitorMixin::mmGetTracePredictedInactiveCells()
+{
+  //@return (Trace) Trace of predicted => inactive cells
+  _mmComputeTransitionTraces();
+  return _mmTraces.find("predictedInactiveCells")->second;
+}
+
+Trace<vector<UInt>>& TemporalMemoryMonitorMixin::mmGetTracePredictedActiveColumns()
+{
+  //@return (Trace) Trace of predicted => active columns
+  _mmComputeTransitionTraces();
+  return _mmTraces.find("predictedActiveColumns")->second;
+}
+
+Trace<vector<UInt>>& TemporalMemoryMonitorMixin::mmGetTracePredictedInactiveColumns()
+{
+  //@return (Trace) Trace of predicted => inactive columns
+  _mmComputeTransitionTraces();
+  return _mmTraces.find("predictedInactiveColumns")->second;
+}
+
+Trace<vector<UInt>>& TemporalMemoryMonitorMixin::mmGetTraceUnpredictedActiveColumns()
+{
+  //@return (Trace) Trace of unpredicted => active columns
+  _mmComputeTransitionTraces();
+  return _mmTraces.find("unpredictedActiveColumns")->second;
+}
+
+Metric<vector<UInt>> TemporalMemoryMonitorMixin::mmGetMetricSequencesPredictedActiveCellsPerColumn()
+{
+  // Metric for number of predicted => active cells per column for each sequence
+  //@return (Metric) metric
+  _mmComputeTransitionTraces();
+
+  vector<UInt> numCellsPerColumn;
+
+  for (Cell predictedActiveCells : _mmData["predictedActiveCellsForSequence"])
+  {
+//    map<Int, vector<Cell>> cellsForColumn = mapCellsToColumns(predictedActiveCells);
+//    numCellsPerColumn += [len(x) for x in cellsForColumn.values()];
+  }
+
+  Metric<vector<UInt>> ret(*this, string("temp"), numCellsPerColumn);
+  return ret;
+}
+
+
+Metric<vector<UInt>> TemporalMemoryMonitorMixin::mmGetMetricSequencesPredictedActiveCellsShared()
+{
+  //Metric for number of sequences each predicted = > active cell appears in
+  //Note : This metric is flawed when it comes to high - order sequences.
+  //@return (Metric)metric
+  _mmComputeTransitionTraces();
+
+  map<Cell, int> numSequencesForCell;
+
+  for (Cell predictedActiveCells : _mmData["predictedActiveCellsForSequence"])
+  {
+    numSequencesForCell[predictedActiveCells] += 1;
+  }
+
+  vector<UInt> numCellsPerColumn;
+  Metric<vector<UInt>> ret(*this, string("# sequences each predicted => active cells appears in"), numCellsPerColumn);// numSequencesForCell);
+  return ret;
+}
 
 // ==============================
 // Helper methods
@@ -370,48 +324,48 @@ void TemporalMemoryMonitorMixin::_mmComputeTransitionTraces()
   if (!_mmTransitionTracesStale)
     return;
 
-  //_mmData["predictedActiveCellsForSequence"] = defaultdict(set);
+  _mmData["predictedActiveCellsForSequence"] = vector<Cell>();
 
-//    _mmTraces["predictedActiveCells"] = IndicesTrace("predicted => active cells (correct)");
-//    _mmTraces["predictedInactiveCells"] = IndicesTrace("predicted => inactive cells (extra)");
-//    _mmTraces["predictedActiveColumns"] = IndicesTrace("predicted => active columns (correct)");
-//    _mmTraces["predictedInactiveColumns"] = IndicesTrace("predicted => inactive columns (extra)");
-//    _mmTraces["unpredictedActiveColumns"] = IndicesTrace("unpredicted => active columns (bursting)");
+  _mmTraces["predictedActiveCells"] = IndicesTrace(this, string("predicted => active cells (correct)"));
+  _mmTraces["predictedInactiveCells"] = IndicesTrace(this, string("predicted => inactive cells (extra)"));
+  _mmTraces["predictedActiveColumns"] = IndicesTrace(this, string("predicted => active columns (correct)"));
+  _mmTraces["predictedInactiveColumns"] = IndicesTrace(this, string("predicted => inactive columns (extra)"));
+  _mmTraces["unpredictedActiveColumns"] = IndicesTrace(this, string("unpredicted => active columns (bursting)"));
 
-  Trace<vector<int>>& predictedCellsTrace = _mmTraces.find("predictedCells")->second;
+  Trace<vector<UInt>>& predictedCellsTrace = _mmTraces.find("predictedCells")->second;
+/*
+  for i, activeColumns in enumerate(mmGetTraceActiveColumns()._data)
+  {
+    predictedActiveCells = set()
+      predictedInactiveCells = set()
+      predictedActiveColumns = set()
+      predictedInactiveColumns = set()
 
-  /*      for i, activeColumns in enumerate(mmGetTraceActiveColumns().data) :
-          predictedActiveCells = set()
-          predictedInactiveCells = set()
-          predictedActiveColumns = set()
-          predictedInactiveColumns = set()
+      for predictedCell in predictedCellsTrace.data[i]:
+    predictedColumn = columnForCell(predictedCell)
 
-          for predictedCell in predictedCellsTrace.data[i]:
-      predictedColumn = columnForCell(predictedCell)
+      if predictedColumn  in activeColumns :
+    predictedActiveCells.add(predictedCell)
+      predictedActiveColumns.add(predictedColumn)
 
-        if predictedColumn  in activeColumns :
-      predictedActiveCells.add(predictedCell)
-        predictedActiveColumns.add(predictedColumn)
+      sequenceLabel = mmGetTraceSequenceLabels().data[i]
+      if sequenceLabel is not None :
+        _mmData["predictedActiveCellsForSequence"][sequenceLabel].add(
+        predictedCell)
+      else:
+    predictedInactiveCells.add(predictedCell)
+      predictedInactiveColumns.add(predictedColumn)
+  }
+  unpredictedActiveColumns = activeColumns - predictedActiveColumns;
+*/
+  _mmTraces["predictedActiveCells"]._data.push_back(predictedActiveCells);
+  _mmTraces["predictedInactiveCells"]._data.push_back(predictedInactiveCells);
+  _mmTraces["predictedActiveColumns"]._data.push_back(predictedActiveColumns);
+  _mmTraces["predictedInactiveColumns"]._data.push_back(predictedInactiveColumns);
+  _mmTraces["unpredictedActiveColumns"]._data.push_back(unpredictedActiveColumns);
 
-        sequenceLabel = mmGetTraceSequenceLabels().data[i]
-        if sequenceLabel is not None :
-          _mmData["predictedActiveCellsForSequence"][sequenceLabel].add(
-          predictedCell)
-        else:
-      predictedInactiveCells.add(predictedCell)
-        predictedInactiveColumns.add(predictedColumn)
-
-        unpredictedActiveColumns = activeColumns - predictedActiveColumns
-
-        _mmTraces["predictedActiveCells"].data.append(predictedActiveCells)
-        _mmTraces["predictedInactiveCells"].data.append(predictedInactiveCells)
-        _mmTraces["predictedActiveColumns"].data.append(predictedActiveColumns)
-        _mmTraces["predictedInactiveColumns"].data.append(predictedInactiveColumns)
-        _mmTraces["unpredictedActiveColumns"].data.append(unpredictedActiveColumns)
-    */
   _mmTransitionTracesStale = false;
 }
-
 
 //==============================
 // Overrides
@@ -419,34 +373,33 @@ void TemporalMemoryMonitorMixin::_mmComputeTransitionTraces()
 
 void TemporalMemoryMonitorMixin::compute(UInt activeColumns[], bool learn)
 {
-  //_mmTraces["predictedCells"].data.append(predictiveCells)
+//  _mmTraces["predictedCells"]._data.push_back(predictiveCells);
 
-  //super(TemporalMemoryMonitorMixin, self).compute(activeColumns, **kwargs)
+  TemporalMemoryMonitorMixin::compute(activeColumns, learn);
 
-  //_mmTraces["predictiveCells"].data.append(predictiveCells)
-  //_mmTraces["activeColumns"].data.append(activeColumns)
+//  _mmTraces["predictiveCells"]._data.push_back(predictiveCells);
+//  _mmTraces["activeColumns"]._data.push_back(activeColumns);
 
-  //_mmTraces["numSegments"].data.append(connections.numSegments())
-  //_mmTraces["numSynapses"].data.append(connections.numSynapses())
+//  _mmTraces["numSegments"]._data.push_back(connections_->numSegments());
+//  _mmTraces["numSynapses"]._data.push_back(connections_->numSynapses());
 
-  //_mmTraces["sequenceLabels"].data.append(sequenceLabel)
-  //_mmTraces["resets"].data.append(_mmResetActive)
+//  _mmTraces["sequenceLabels"]._data.push_back(sequenceLabel);
+
+//  _mmTraces["resets"]._data.push_back(_mmResetActive);
   _mmResetActive = false;
 
   _mmTransitionTracesStale = true;
 }
 
-
 void TemporalMemoryMonitorMixin::reset()
 {
-  //MonitorMixinBase::reset();
+  MonitorMixinBase::reset();
   _mmResetActive = true;
 }
 
-
-vector<Trace<vector<int>>> TemporalMemoryMonitorMixin::mmGetDefaultTraces(int verbosity)
+vector<Trace<vector<UInt>>> TemporalMemoryMonitorMixin::mmGetDefaultTraces(int verbosity)
 {
-  vector<Trace<vector<int>>> traces;
+  vector<Trace<vector<UInt>>> traces;
     
   traces.push_back(mmGetTraceActiveColumns());
   traces.push_back(mmGetTracePredictedActiveColumns());
@@ -459,7 +412,7 @@ vector<Trace<vector<int>>> TemporalMemoryMonitorMixin::mmGetDefaultTraces(int ve
   {
     for (int i = 0; i < 5; i++)
     {
-      Trace<vector<int>>& trace = traces[i];
+      Trace<vector<UInt>>& trace = traces[i];
       trace.makeCountsTrace();
     }
 
@@ -471,10 +424,22 @@ vector<Trace<vector<int>>> TemporalMemoryMonitorMixin::mmGetDefaultTraces(int ve
   return traces;
 }
 
-
-vector<Metric<vector<int>>> TemporalMemoryMonitorMixin::mmGetDefaultMetrics(int verbosity)
+Metric<vector<UInt>> TemporalMemoryMonitorMixin::mmGetMetricFromTrace(Trace<vector<UInt>>& trace)
 {
-  vector<Metric<vector<int>>> ret;
+  // Convenience method to compute a metric over 
+  // an indices trace, excluding resets.
+  //@param (IndicesTrace) Trace of indices
+  //@return (Metric) Metric over trace excluding resets
+  Trace<vector<UInt>> countsTrace(trace.makeCountsTrace());
+  Metric<vector<UInt>> ret;
+  ret.createFromTrace(countsTrace, mmGetTraceResets());
+  return ret;
+}
+
+vector<Metric<vector<UInt>>> TemporalMemoryMonitorMixin::mmGetDefaultMetrics(int verbosity)
+{
+  vector<Metric<vector<UInt>>> ret;
+  return ret;
 
 //  ([Metric.createFromTrace(trace, excludeResets = resetsTrace)
 //    for trace in mmGetDefaultTraces()[:-3]] +
@@ -482,22 +447,19 @@ vector<Metric<vector<int>>> TemporalMemoryMonitorMixin::mmGetDefaultMetrics(int 
 //      for trace in mmGetDefaultTraces()[-3:-1]] +
 //        [mmGetMetricSequencesPredictedActiveCellsPerColumn(),
 //        mmGetMetricSequencesPredictedActiveCellsShared()])
-
-  return ret;
 }
-
 
 void TemporalMemoryMonitorMixin::mmClearHistory()
 {
-  //super(TemporalMemoryMonitorMixin, self).mmClearHistory()
+  mmClearHistory();
 
-//    _mmTraces["predictedCells"] = IndicesTrace("predicted cells");
-//    _mmTraces["activeColumns"] = IndicesTrace("active columns");
-//    _mmTraces["predictiveCells"] = IndicesTrace("predictive cells");
-//    _mmTraces["numSegments"] = CountsTrace("# segments");
-//    _mmTraces["numSynapses"] = CountsTrace("# synapses");
-//    _mmTraces["sequenceLabels"] = StringsTrace("sequence labels");
-//    _mmTraces["resets"] = BoolsTrace("resets");
+  _mmTraces["predictedCells"] = IndicesTrace(this, string("predicted cells"));
+  _mmTraces["activeColumns"] = IndicesTrace(this, string("active columns"));
+  _mmTraces["predictiveCells"] = IndicesTrace(this, string("predictive cells"));
+  _mmTraces["numSegments"] = CountsTrace(this, string("# segments"));
+  _mmTraces["numSynapses"] = CountsTrace(this, string("# synapses"));
+  _mmTraces["sequenceLabels"] = StringsTrace(this, string("sequence labels"));
+  _mmTraces["resets"] = BoolsTrace(this, string("resets"));
 
   _mmTransitionTracesStale = true;
 }

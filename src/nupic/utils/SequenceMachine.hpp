@@ -34,7 +34,6 @@
 #include <nupic/math/Math.hpp>
 #include <nupic/utils/Random.hpp>
 #include <nupic/utils/PatternMachine.hpp>
-//import numpy
 
 using namespace std;
 using namespace nupic;
@@ -44,7 +43,49 @@ namespace nupic {
 
     // Base sequence machine class.
 
-    typedef vector<vector<UInt>> Sequence;
+    class Sequence
+    {
+    public:
+      vector<vector<UInt>> data;
+
+      size_t size()
+      {
+        return data.size();
+      }
+
+      void push_back(vector<UInt> sequence)
+      {
+        data.push_back(sequence);
+      }
+
+      void operator+=(Sequence sequence)
+      {
+        for (auto i : sequence.data)
+        {
+          data.push_back(i);
+        }
+      }
+
+      vector<UInt> operator[](int index)
+      {
+        return data[index];
+      }
+
+      // Replicates the sequence consecutively
+      //  @param count(UInt) Number of times to repeat
+      //                     the current sequence
+      //  @return this
+      Sequence operator*= (UInt count)
+      {
+        data.resize(data.size() * count);
+        for (UInt i = count; i > 1; i /= 2)
+        {
+          copy(data.begin(), data.end(), std::back_inserter(data));
+        }
+        return *this;
+      }
+
+    };
 
     class SequenceMachine
     {
@@ -71,14 +112,14 @@ namespace nupic {
       Sequence generateFromNumbers(vector<vector<UInt>>& numbers);
 
       // Add spatial noise to each pattern in the sequence.
-      //  @param sequence(list)  Sequence
-      //  @param amount(float) Amount of spatial noise
+      //  @param sequence(list) Sequence
+      //  @param amount(float)  Amount of spatial noise
       //  @return (list)Sequence with spatial noise
       Sequence addSpatialNoise(Sequence& sequence, Real amount);
 
       // Pretty print a sequence.
       //  @param sequence(list) Sequence
-      //  @param verbosity(int)  Verbosity level
+      //  @param verbosity(int) Verbosity level
       //  @return (string)Pretty - printed text
       string prettyPrintSequence(Sequence& sequence, int verbosity = 1);
     };

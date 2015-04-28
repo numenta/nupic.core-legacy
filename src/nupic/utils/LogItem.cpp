@@ -58,9 +58,10 @@ LogItem::~LogItem()
     slevel = "INFO: ";
     break;
   case error:
-    // The use of the keyword 'error' 
-    // in stdout is discouraged
-    slevel = "ERR0R:";
+    // The use of the keyword 'error' in stdout
+    // can break msbuild Utility projects
+    // https://github.com/numenta/nupic.core/issues/370
+    slevel = "ERR:";
     break;
   default:
     slevel = "Unknown: ";

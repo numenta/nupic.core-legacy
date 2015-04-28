@@ -46,11 +46,6 @@ using namespace nupic::algorithms::temporal_memory;
 
 namespace nupic {
 
-  class MonitoredTemporalMemory : public TemporalMemoryMonitorMixin, public TemporalMemory
-  {
-  public:
-  };
-
   class TemporalMemoryAbstractTest : public Tester
   {
   public:
@@ -59,7 +54,7 @@ namespace nupic {
 
     int _verbosity;
 
-    MonitoredTemporalMemory  _tm;
+    TemporalMemoryMonitorMixin _tm;
     PatternMachine  _patternMachine;
     SequenceMachine _sequenceMachine;
 

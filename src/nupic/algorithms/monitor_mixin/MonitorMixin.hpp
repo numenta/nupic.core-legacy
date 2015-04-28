@@ -29,98 +29,116 @@
 */
 
 #include <map>
+#include <set>
+#include <vector>
 #include <string>
 
 #include <nupic\types\Types.hpp>
+#include <nupic\algorithms\TemporalMemory.hpp>
 
 #include "Trace.hpp"
 #include "Metric.hpp"
+#include "Instance.hpp"
 
-
-class MonitorMixinBase
+namespace nupic
 {
-protected:
-  string _mmName;
+  using namespace algorithms::temporal_memory;
 
-  map<string, Trace<vector<int>>> _mmTraces;
+  class MonitorMixinBase : public Instance
+  {
+  protected:
+    string _mmName;
 
-public:
-  // Base class for MonitorMixin.
-  // Each subclass will be a mixin for a particular algorithm.
-  // 
-  // All arguments, variables, and methods in monitor mixin classes should be
-  // prefixed with "mm" (to avoid collision with the classes they mix in to).
+    map<string, Trace<vector<UInt>>> _mmTraces;
+    map<string, vector<Cell>> _mmData;
 
-  MonitorMixinBase();
-  MonitorMixinBase(string& title);
+    vector<string> sequenceLabel;
 
-  virtual void compute(vector<UInt> activeColumns, bool learn);// , string sequenceLabel = "");
-  virtual void reset();
+    vector<Cell> predictiveCells;
+    vector<UInt> predictedActiveCells;
+    vector<UInt> predictedInactiveCells;
 
-  virtual void mmClearHistory();
+    vector<UInt> predictedActiveColumns;
+    vector<UInt> predictedInactiveColumns;
+    vector<UInt> unpredictedActiveColumns;
 
-  virtual vector<Trace<vector<int>>> mmGetDefaultTraces(int verbosity = 1);
-  virtual vector<Metric<vector<int>>> mmGetDefaultMetrics(int verbosity = 1);
+  public:
+    // Base class for MonitorMixin.
+    // Each subclass will be a mixin for a particular algorithm.
+    // 
+    // All arguments, variables, and methods in monitor mixin classes should be
+    // prefixed with "mm" (to avoid collision with the classes they mix in to).
 
-  virtual string mmPrettyPrintTraces(vector<Trace<vector<int>>>& traces, Trace<vector<int>>& breakOnResets);
-  virtual string mmPrettyPrintMetrics(vector<Metric<vector<int>>>& metrics);
+    MonitorMixinBase();
+    MonitorMixinBase(string& title);
 
-}; // MonitorMixinBase
+    virtual void compute(vector<UInt> activeColumns, bool learn);// , string sequenceLabel = "");
+    virtual void reset();
 
+    virtual void mmClearHistory();
 
-// Mixin for TemporalMemory that stores a detailed history, 
-// for inspection and debugging.
+    virtual vector<Trace<vector<UInt>>> mmGetDefaultTraces(int verbosity = 1);
+    virtual vector<Metric<vector<UInt>>> mmGetDefaultMetrics(int verbosity = 1);
 
-class TemporalMemoryMonitorMixin : public MonitorMixinBase
-{
-protected:
-  bool _mmResetActive;
-  bool _mmTransitionTracesStale;
+    virtual string mmPrettyPrintTraces(vector<Trace<vector<UInt>>>& traces, Trace<vector<UInt>>& breakOnResets);
+    virtual string mmPrettyPrintMetrics(vector<Metric<vector<UInt>>>& metrics);
 
-public:
-  TemporalMemoryMonitorMixin() {};
-  TemporalMemoryMonitorMixin(string& title);
-
-  Trace<vector<int>>& mmGetTraceActiveColumns();
-  Trace<vector<int>>& mmGetTracePredictiveCells();
-  Trace<vector<int>>& mmGetTraceNumSegments();
-  Trace<vector<int>>& mmGetTraceNumSynapses();
-  Trace<vector<int>>& mmGetTraceSequenceLabels();
-  Trace<vector<int>>& mmGetTraceResets();
-  Trace<vector<int>>& mmGetTracePredictedActiveCells();
-  Trace<vector<int>>& mmGetTracePredictedInactiveCells();
-  Trace<vector<int>>& mmGetTracePredictedActiveColumns();
-  Trace<vector<int>>& mmGetTracePredictedInactiveColumns();
-  Trace<vector<int>>& mmGetTraceUnpredictedActiveColumns();
-
-  Metric<vector<int>> mmGetMetricSequencesPredictedActiveCellsPerColumn();
-  Metric<vector<int>> mmGetMetricSequencesPredictedActiveCellsShared();
-
-  Metric<vector<int>> mmGetMetricFromTrace(Trace<vector<int>>& trace);
-
-  string mmPrettyPrintConnections();
-  string mmPrettyPrintSequenceCellRepresentations(string sortby = "Column");
+  }; // MonitorMixinBase
 
 
-  // ==============================
-  // Helper methods
-  // ==============================
+  // Mixin for TemporalMemory that stores a detailed history, 
+  // for inspection and debugging.
 
-  void _mmComputeTransitionTraces();
+  class TemporalMemoryMonitorMixin : public MonitorMixinBase, public TemporalMemory
+  {
+  protected:
+    bool _mmResetActive;
+    bool _mmTransitionTracesStale;
 
+  public:
+    TemporalMemoryMonitorMixin() {};
+    TemporalMemoryMonitorMixin(string& title);
 
-  //==============================
-  // Overrides
-  // ==============================
+    Trace<vector<UInt>>& mmGetTraceActiveColumns();
+    Trace<vector<UInt>>& mmGetTracePredictiveCells();
+    Trace<vector<UInt>>& mmGetTraceNumSegments();
+    Trace<vector<UInt>>& mmGetTraceNumSynapses();
+    Trace<vector<UInt>>& mmGetTraceSequenceLabels();
+    Trace<vector<UInt>>& mmGetTraceResets();
+    Trace<vector<UInt>>& mmGetTracePredictedActiveCells();
+    Trace<vector<UInt>>& mmGetTracePredictedInactiveCells();
+    Trace<vector<UInt>>& mmGetTracePredictedActiveColumns();
+    Trace<vector<UInt>>& mmGetTracePredictedInactiveColumns();
+    Trace<vector<UInt>>& mmGetTraceUnpredictedActiveColumns();
 
-  virtual void compute(UInt activeColumns[], bool learn);
-  virtual void reset();
-  
-  virtual vector<Trace<vector<int>>> mmGetDefaultTraces(int verbosity = 1);
-  virtual vector<Metric<vector<int>>> mmGetDefaultMetrics(int verbosity = 1);
+    Metric<vector<UInt>> mmGetMetricSequencesPredictedActiveCellsPerColumn();
+    Metric<vector<UInt>> mmGetMetricSequencesPredictedActiveCellsShared();
 
-  virtual void mmClearHistory();
+    Metric<vector<UInt>> mmGetMetricFromTrace(Trace<vector<UInt>>& trace);
 
-}; // of TemporalMemoryMonitorMixin
+    string mmPrettyPrintConnections();
+    string mmPrettyPrintSequenceCellRepresentations(string sortby = "Column");
+
+    // ==============================
+    // Helper methods
+    // ==============================
+
+    void _mmComputeTransitionTraces();
+
+    //==============================
+    // Overrides
+    // ==============================
+
+    virtual void compute(UInt activeColumns[], bool learn);
+    virtual void reset();
+
+    virtual vector<Trace<vector<UInt>>> mmGetDefaultTraces(int verbosity = 1);
+    virtual vector<Metric<vector<UInt>>> mmGetDefaultMetrics(int verbosity = 1);
+
+    virtual void mmClearHistory();
+
+  }; // of TemporalMemoryMonitorMixin
+
+}; // of namespace nupic
 
 #endif // of NTA_MONITOR_MIXIN_HPP

@@ -42,57 +42,76 @@ namespace nupic
     vector<TraceType> _data;
 
   public:
-    Trace();
-    Trace(Instance* monitor, string& title);
+    Trace()
+      : _monitor(NULL), _title("") {};
+
+    Trace(Instance* monitor, string& title)
+      : _monitor(monitor), _title(title) {};
 
     virtual Trace<TraceType> makeCountsTrace();
     virtual Trace<TraceType> makeCumCountsTrace();
 
-    virtual string prettyPrintTitle();
+    string prettyPrintTitle();
+
     virtual string prettyPrintDatum(TraceType& datum);
   };
 
-
-  class CountsTrace : public Trace<vector<int>>
+  class CountsTrace : public Trace<vector<UInt>>
   {
+  private:
+    static int accumulate(Trace<vector<UInt>>& trace);
+
   public:
     // Each entry contains counts(for example # of predicted = > active cells).
-    CountsTrace() { };
+    CountsTrace() {};
+    CountsTrace(Instance* monitor, string& title)
+    {
+      _monitor = monitor;
+      _title = title;
+    };
+
+    virtual Trace<vector<UInt>> makeCountsTrace();
+    virtual Trace<vector<UInt>> makeCumCountsTrace();
+
+    virtual string prettyPrintDatum(vector<UInt>& datum);
 
   };
-
 
   class IndicesTrace : public CountsTrace
   {
-  private:
-    static int accumulate(Trace<vector<int>>& trace);
-
   public:
-    virtual Trace<vector<int>> makeCountsTrace();
-    virtual Trace<vector<int>> makeCumCountsTrace();
-
-    virtual string prettyPrintDatum(vector<int>& datum);
+    IndicesTrace(Instance* monitor, string& title)
+    {
+      _monitor = monitor;
+      _title = title;
+    };
 
   };
-
 
   class BoolsTrace : public Trace<vector<bool>>
   {
   public:
     // Each entry contains bools(for example resets).
-    BoolsTrace() { };
+    BoolsTrace(Instance* monitor, string& title)
+    {
+      _monitor = monitor;
+      _title = title;
+    };
 
+    virtual string prettyPrintDatum(vector<bool>& datum);
   };
 
-
-  class StringsTrace : public Trace<vector<string>>
+  class StringsTrace : public Trace<string>
   {
   public:
     // Each entry contains strings(for example sequence labels).
-    StringsTrace() { };
+    StringsTrace(Instance* monitor, string& title)
+    {
+      _monitor = monitor;
+      _title = title;
+    };
 
+    virtual string prettyPrintDatum(vector<string>& datum);
   };
-
-}; // of namespace nupic
-
+ }; // of namespace nupic
 #endif // NTA_trace_classes_HPP

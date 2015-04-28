@@ -39,7 +39,7 @@ void TemporalMemoryAbstractTest::setUp()
 void TemporalMemoryAbstractTest::init()
 {
   //params = self._computeTMParams(overrides);
-  _tm = MonitoredTemporalMemory();// **params);
+  _tm = TemporalMemoryMonitorMixin();// **params);
 
   _patternMachine = PatternMachine();
   _sequenceMachine = SequenceMachine(_patternMachine);

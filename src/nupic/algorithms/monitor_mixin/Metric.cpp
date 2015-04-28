@@ -38,7 +38,7 @@ using namespace boost;
 
 
 template<typename TraceType>
-Metric<TraceType>::Metric(Instance* monitor, string& title, vector<TraceType>* data)
+Metric<TraceType>::Metric(Instance & monitor, string & title, TraceType & data)
 {
   //@param monitor(MonitorMixinBase)  Monitor Mixin instance that generated this trace
   //@param title(string)              Title
@@ -46,22 +46,29 @@ Metric<TraceType>::Metric(Instance* monitor, string& title, vector<TraceType>* d
   _monitor = monitor;
   _title = title;
 
-  _min = _max = _sum = 0.0;
-  _mean = _standardDeviation = 0.0;
+  _min =  1000000000.0;
+  _max = -1000000000.0;
+  _sum = _mean = _standardDeviation = 0.0;
 
   _data = data;
-  _computeStats(data);
+  _computeStats();
 }
 
 template<typename TraceType>
-Metric<TraceType> Metric<TraceType>::createFromTrace(Trace<TraceType>& trace, bool excludeResets)
+Metric<TraceType> Metric<TraceType>::createFromTrace(Trace<TraceType>& trace)
 {
-  vector<TraceType> data = trace.data;
+  Metric<TraceType> ret;
+  ret._monitor = *trace._monitor;
+  ret._title = trace._title;
 
-//  if (excludeResets)
-//    data = [x for i, x in enumerate(trace.data) if not excludeResets.data[i]];
+  _min =  1000000000.0;
+  _max = -1000000000.0;
+  _sum = _mean = _standardDeviation = 0.0;
 
-  return Metric<TraceType>(trace.monitor, trace.title, &data);
+  _data = trace._data;
+  _computeStats(vector<int>{});
+
+  return ret;
 }
 
 template<typename TraceType>
@@ -94,21 +101,96 @@ Metric<TraceType> copy(const Metric<TraceType>& rhs)
 template<typename TraceType>
 string Metric<TraceType>::prettyPrintTitle()
 {
-  return "";// ("[{0}] {1}".format(self.monitor.mmName, self.title)
-            //if self.monitor.mmName is not None else self.title)
+  string ret;
+
+  if (_monitor && _monitor->mmName.size() > 0)
+    ret = "[" + _monitor->mmName + "]";
+  else
+    ret = "[" + _title + "]";
+
+  ret += "{" + _title + "}";
+
+  return ret;
 }
 
 template<typename TraceType>
-void Metric<TraceType>::_computeStats()
+void Metric<TraceType>::_computeStats(Trace<vector<int>>& resets)
 {
   if (_data.size() == 0)
     return;
 
-  //_min = min(_data);
-  //_max = max(_data);
-  //_sum = sum(_data);
-  //_mean = numpy.mean(_data);
-  //_standardDeviation = numpy.std(_data);
+  _min =  1000000000.0;
+  _max = -1000000000.0;
+  _sum = _mean = _standardDeviation = 0.0;
+}
+
+void MetricsVector::_computeStats(Trace<vector<int>>& resets)
+{
+  if (_data.size() == 0)
+    return;
+
+  int total = 0;
+  for (auto item : _data)
+  {
+    for (int i : item)
+    {
+      if (i < _min)
+        _min = i;
+
+      if (i > _max)
+        _max = i;
+
+      _mean += i;
+
+      total++;
+    }
+  }
+  _sum = _mean;
+  _mean /= total;
+
+  Real sum_deviation = 0.0;
+  for (auto item : _data)
+  {
+    for (int i : item)
+    {
+      sum_deviation += (i - _mean) * (i - _mean);
+    }
+  }
+  _standardDeviation = sqrt(sum_deviation / total);
+
+}
+
+Metric<vector<int>> MetricsVector::createFromTrace(Trace<vector<int>>& trace)
+{
+  Metric<vector<int>> ret;
+  ret._monitor = *trace._monitor;
+  ret._title = trace._title;
+  ret._data = trace._data;
+
+  ret._min =  1000000000.0;
+  ret._max = -1000000000.0;
+  ret._sum = ret._mean = ret._standardDeviation = 0.0;
+
+  vector<int> resets;
+  ret._computeStats(resets);
+
+  return ret;
+}
+
+Metric<vector<int>> MetricsVector::createFromTrace(Trace<vector<int>>& trace, Trace<vector<int>>& resets)
+{
+  Metric<vector<int>> ret;
+  ret._monitor = *trace._monitor;
+  ret._title = trace._title;
+  ret._data = trace._data;
+
+  ret._min = 1000000000.0;
+  ret._max = -1000000000.0;
+  ret._sum = ret._mean = ret._standardDeviation = 0.0;
+
+  ret._computeStats(resets);
+
+  return ret;
 }
 
 string MetricsTrace::prettyPrintDatum(Metric<int>& datum)
