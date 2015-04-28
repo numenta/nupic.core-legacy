@@ -298,7 +298,7 @@ vector<Cell>& prevWinnerCells,
 Connections& connections,
 bool learn)
 {
-  vector<UInt> _activeColumns(activeColumns, activeColumns + sizeof activeColumns / sizeof activeColumns[0]);
+  vector<UInt> _activeColumns(activeColumns, activeColumns + sizeof(*activeColumns) / sizeof(activeColumns[0]));
   vector<UInt> predictedColumns;
 
   vector<Cell> activeCells;
