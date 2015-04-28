@@ -1,6 +1,6 @@
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
+ * Copyright (C) 2013-2015, Numenta, Inc.  Unless you have an agreement
  * with Numenta, Inc., for a separate license for this software code, the
  * following terms and conditions apply:
  *
@@ -20,6 +20,7 @@
  * ---------------------------------------------------------------------
  */
 
+#include <cmath>
 #include <map>
 #include <math.h>
 #include <sstream>
@@ -27,6 +28,7 @@
 #include <vector>
 
 #include <nupic/algorithms/BitHistory.hpp>
+#include <nupic/proto/BitHistory.capnp.h>
 #include <nupic/types/Types.hpp>
 #include <nupic/utils/Log.hpp>
 
@@ -171,6 +173,72 @@ namespace nupic
         // Check the termination marker.
         inStream >> marker;
         NTA_CHECK(marker == "~BitHistory");
+      }
+      void BitHistory::write(BitHistoryProto::Builder& proto) const
+      {
+        proto.setId(id_.c_str());
+
+        auto statsList = proto.initStats(stats_.size());
+        UInt i = 0;
+        for (const auto & elem : stats_)
+        {
+          auto stat = statsList[i];
+          stat.setIndex(elem.first);
+          stat.setDutyCycle(elem.second);
+          i++;
+        }
+
+        proto.setLastTotalUpdate(lastTotalUpdate_);
+        proto.setLearnIteration(learnIteration_);
+        proto.setAlpha(alpha_);
+        proto.setVerbosity(verbosity_);
+      }
+
+      void BitHistory::read(BitHistoryProto::Reader& proto)
+      {
+        id_ = proto.getId().cStr();
+
+        stats_.clear();
+        for (auto stat : proto.getStats())
+        {
+          stats_[stat.getIndex()] = stat.getDutyCycle();
+        }
+
+        lastTotalUpdate_ = proto.getLastTotalUpdate();
+        learnIteration_ = proto.getLearnIteration();
+        alpha_ = proto.getAlpha();
+        verbosity_ = proto.getVerbosity();
+      }
+
+      bool BitHistory::operator==(const BitHistory& other) const
+      {
+        if (id_ != other.id_ ||
+            lastTotalUpdate_ != other.lastTotalUpdate_ ||
+            learnIteration_ != other.learnIteration_ ||
+            fabs(alpha_ - other.alpha_) > 0.000001 ||
+            verbosity_ != other.verbosity_)
+        {
+          return false;
+        }
+
+        if (stats_.size() != other.stats_.size())
+        {
+          return false;
+        }
+        for (auto it = stats_.begin(); it != stats_.end(); it++)
+        {
+          if (fabs(it->second - other.stats_.at(it->first)) > 0.000001)
+          {
+            return false;
+          }
+        }
+
+        return true;
+      }
+
+      bool BitHistory::operator!=(const BitHistory& other) const
+      {
+        return !operator==(other);
       }
 
     } // end namespace cla_classifier

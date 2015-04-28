@@ -1,6 +1,6 @@
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
+ * Copyright (C) 2013-2015, Numenta, Inc.  Unless you have an agreement
  * with Numenta, Inc., for a separate license for this software code, the
  * following terms and conditions apply:
  *
@@ -33,6 +33,8 @@
 #include <string>
 #include <vector>
 
+#include <nupic/algorithms/BitHistory.hpp>
+#include <nupic/proto/ClaClassifier.capnp.h>
 #include <nupic/types/Types.hpp>
 
 using namespace std;
@@ -131,6 +133,34 @@ namespace nupic
            */
           void load(istream& inStream);
 
+          /**
+           * Save the state to the builder.
+           */
+          void write(ClaClassifierProto::Builder& proto) const;
+
+          /**
+           * Save the state to the stream.
+           */
+          void write(ostream& proto) const;
+
+          /**
+           * Load state from reader.
+           */
+          void read(ClaClassifierProto::Reader& proto);
+
+          /**
+           * Load state from stream.
+           */
+          void read(istream& stream);
+
+          /**
+           * Compare the other instance to this one.
+           *
+           * @param other Another instance of FastCLAClassifier to compare to.
+           * @returns true iff other is identical to this instance.
+           */
+          virtual bool operator==(const FastCLAClassifier& other) const;
+
         private:
           // The list of prediction steps to learn and infer.
           vector<UInt> steps_;
@@ -149,12 +179,12 @@ namespace nupic
           UInt maxSteps_;
           // Stores the input pattern history, starting with the previous input
           // and containing _maxSteps total input patterns.
-          deque<vector<UInt>*> patternNZHistory_;
+          deque< vector<UInt> > patternNZHistory_;
           deque<UInt> iterationNumHistory_;
           // Mapping from the number of steps in the future to predict to the
           // input bit index to a BitHistory that contains the duty cycles for
           // each bucket.
-          map<UInt, map<UInt, BitHistory*>* > activeBitHistory_;
+          map< UInt, map<UInt, BitHistory> > activeBitHistory_;
           // The highest bucket index that has been seen so far.
           UInt maxBucketIdx_;
           // The current actual values used for each bucket index. The index of
