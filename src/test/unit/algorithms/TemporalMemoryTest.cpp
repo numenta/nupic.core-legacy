@@ -27,145 +27,16 @@
 #include <cstring>
 #include <fstream>
 #include <stdio.h>
+
 #include <nupic/math/StlIo.hpp>
 #include <nupic/types/Types.hpp>
 #include <nupic/utils/Log.hpp>
+
 #include "TemporalMemoryTest.hpp"
 
 using namespace std;
 
 namespace nupic {
-
-  void TemporalMemoryTest::print_vec(UInt arr[], UInt n)
-  {
-    for (UInt i = 0; i < n; i++) {
-      cout << arr[i] << " ";
-    }
-    cout << endl;
-  }
-
-  void TemporalMemoryTest::print_vec(Real arr[], UInt n)
-  {
-    for (UInt i = 0; i < n; i++) {
-      cout << arr[i] << " ";
-    }
-    cout << endl;
-  }
-
-  void TemporalMemoryTest::print_vec(vector<UInt> vec)
-  {
-    for (auto & elem : vec) {
-      cout << elem << " ";
-    }
-    cout << endl;
-  }
-
-  void TemporalMemoryTest::print_vec(vector<Real> vec)
-  {
-    for (auto & elem : vec) {
-      cout << elem << " ";
-    }
-    cout << endl;
-  }
-
-  bool TemporalMemoryTest::almost_eq(Real a, Real b)
-  {
-    Real diff = a - b;
-    return (diff > -1e-5 && diff < 1e-5);
-  }
-
-  bool TemporalMemoryTest::check_vector_eq(UInt arr[], vector<UInt> vec)
-  {
-    for (UInt i = 0; i < vec.size(); i++) {
-      if (arr[i] != vec[i]) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  bool TemporalMemoryTest::check_vector_eq(Real arr[], vector<Real> vec)
-  {
-    for (UInt i = 0; i < vec.size(); i++) {
-      if (!almost_eq(arr[i], vec[i])) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  bool TemporalMemoryTest::check_vector_eq(UInt arr1[], UInt arr2[], UInt n)
-  {
-    for (UInt i = 0; i < n; i++) {
-      if (arr1[i] != arr2[i]) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  bool TemporalMemoryTest::check_vector_eq(Real arr1[], Real arr2[], UInt n)
-  {
-    for (UInt i = 0; i < n; i++) {
-      if (!almost_eq(arr1[i], arr2[i])) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  bool TemporalMemoryTest::check_vector_eq(vector<UInt> vec1, vector<UInt> vec2)
-  {
-    if (vec1.size() != vec2.size()) {
-      return false;
-    }
-    for (UInt i = 0; i < vec1.size(); i++) {
-      if (vec1[i] != vec2[i]) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  bool TemporalMemoryTest::check_vector_eq(vector<Cell>& vec1, vector<Cell>& vec2)
-  {
-    if (vec1.size() != vec2.size()) {
-      return false;
-    }
-    for (UInt i = 0; i < vec1.size(); i++) {
-      if (vec1[i].idx != vec2[i].idx) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  bool TemporalMemoryTest::check_vector_eq(vector<Segment>& vec1, vector<Segment>& vec2)
-  {
-    if (vec1.size() != vec2.size()) {
-      return false;
-    }
-    for (UInt i = 0; i < vec1.size(); i++) {
-      if (vec1[i].idx != vec2[i].idx || vec1[i].cell.idx != vec2[i].cell.idx) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  void TemporalMemoryTest::check_spatial_eq(const TemporalMemory& tm1, const TemporalMemory& tm2)
-  {
-    NTA_CHECK(tm1.getNumColumns() == tm2.getNumColumns());
-    NTA_CHECK(tm1.getCellsPerColumn() == tm2.getCellsPerColumn());
-    NTA_CHECK(tm1.getActivationThreshold() == tm2.getActivationThreshold());
-    NTA_CHECK(tm1.getLearningRadius() == tm2.getLearningRadius());
-    NTA_CHECK(tm1.getMinThreshold() == tm2.getMinThreshold());
-    NTA_CHECK(tm1.getMaxNewSynapseCount() == tm2.getMaxNewSynapseCount());
-    TEST(nupic::nearlyEqual(tm1.getInitialPermanence(), tm2.getInitialPermanence()));
-    TEST(nupic::nearlyEqual(tm1.getConnectedPermanence(), tm2.getConnectedPermanence()));
-    TEST(nupic::nearlyEqual(tm1.getPermanenceIncrement(), tm2.getPermanenceIncrement()));
-    TEST(nupic::nearlyEqual(tm1.getPermanenceDecrement(), tm2.getPermanenceDecrement()));
-  }
 
   void TemporalMemoryTest::setup(TemporalMemory& tm, UInt numColumns)
   {
@@ -203,8 +74,21 @@ namespace nupic {
     testNumberOfColumns();
     testNumberOfCells();
     testMapCellsToColumns();
-    //testSaveLoad();
+    testSaveLoad();
+  }
 
+  void TemporalMemoryTest::check_spatial_eq(const TemporalMemory& tm1, const TemporalMemory& tm2)
+  {
+    NTA_CHECK(tm1.getNumColumns() == tm2.getNumColumns());
+    NTA_CHECK(tm1.getCellsPerColumn() == tm2.getCellsPerColumn());
+    NTA_CHECK(tm1.getActivationThreshold() == tm2.getActivationThreshold());
+    NTA_CHECK(tm1.getLearningRadius() == tm2.getLearningRadius());
+    NTA_CHECK(tm1.getMinThreshold() == tm2.getMinThreshold());
+    NTA_CHECK(tm1.getMaxNewSynapseCount() == tm2.getMaxNewSynapseCount());
+    TEST(nupic::nearlyEqual(tm1.getInitialPermanence(), tm2.getInitialPermanence()));
+    TEST(nupic::nearlyEqual(tm1.getConnectedPermanence(), tm2.getConnectedPermanence()));
+    TEST(nupic::nearlyEqual(tm1.getPermanenceIncrement(), tm2.getPermanenceIncrement()));
+    TEST(nupic::nearlyEqual(tm1.getPermanenceDecrement(), tm2.getPermanenceDecrement()));
   }
 
   void TemporalMemoryTest::testInitInvalidParams()
@@ -335,15 +219,15 @@ namespace nupic {
       tm.burstColumns(activeColumns, predictiveCols, prevActiveCells, prevWinnerCells, connections);
 
     vector<Cell> expectedActiveCells = { Cell(0), Cell(1), Cell(2), Cell(3), Cell(4), Cell(5), Cell(6), Cell(7) };
-    vector<Cell> expectedWinnerCells = { Cell(0), Cell(6) }; // 6 is randomly chosen cell
-    vector<Segment> expectedLearningSegments = { Segment(0, Cell(0)), Segment(0, Cell(6)) };
+    vector<Cell> expectedWinnerCells = { Cell(0), Cell(7) }; // 7 is randomly chosen cell
+    vector<Segment> expectedLearningSegments = { Segment(0, Cell(0)), Segment(0, Cell(7)) };
     NTA_CHECK(check_vector_eq(activeCells, expectedActiveCells));
     NTA_CHECK(check_vector_eq(winnerCells, expectedWinnerCells));
     NTA_CHECK(check_vector_eq(learningSegments, expectedLearningSegments));
 
     // Check that new segment was added to winner cell(6) in column 1
-    vector<Segment> segments = connections.segmentsForCell(6);
-    vector<Segment> expectedSegments = { Segment(0, Cell(6)) };
+    vector<Segment> segments = connections.segmentsForCell(7);
+    vector<Segment> expectedSegments = { Segment(0, Cell(7)) };
     NTA_CHECK(check_vector_eq(segments, expectedSegments));
   }
 
@@ -469,7 +353,7 @@ namespace nupic {
   void TemporalMemoryTest::testBestMatchingCell()
   {
     Cell bestCell;
-    Segment bestSegment;
+    Segment* bestSegment;
 
     TemporalMemory tm;
     setup(tm, 2048);
@@ -499,29 +383,28 @@ namespace nupic {
     cellsForColumn = tm.cellsForColumn(0);
     tie(bestCell, bestSegment) = tm.bestMatchingCell(cellsForColumn, activeCells, connections);
     ASSERT_EQ(bestCell, Cell(0));
-    ASSERT_EQ(bestSegment, Segment(0, Cell(0)));
+    if (bestSegment) ASSERT_EQ(*bestSegment, Segment(0, Cell(0)));
 
     cellsForColumn = tm.cellsForColumn(3);
     tie(bestCell, bestSegment) = tm.bestMatchingCell(cellsForColumn, activeCells, connections);
-    ASSERT_EQ(bestCell, Cell(96)); // Random cell from column
+    ASSERT_EQ(bestCell, Cell(106)); // Random cell from column
 
     cellsForColumn = tm.cellsForColumn(999);
     tie(bestCell, bestSegment) = tm.bestMatchingCell(cellsForColumn, activeCells, connections);
-    ASSERT_EQ(bestCell, Cell(31972)); // Random cell from column
+    ASSERT_EQ(bestCell, Cell(31974)); // Random cell from column
   }
 
   void TemporalMemoryTest::testBestMatchingCellFewestSegments()
   {
     Cell cell(0);
-    Segment segment;
+    Segment* segment = NULL;
 
     TemporalMemory tm;
     tm.initialize(vector<UInt>{2}, 2);
     tm.setMinThreshold(1);
 
     Connections connections = *tm.connections_;
-    segment = connections.createSegment(cell);
-    connections.createSynapse(segment, 3, 0.3);
+    connections.createSynapse(connections.createSegment(cell), 3, 0.3);
 
     vector<Cell> activeSynapsesForSegment = {};
 
@@ -540,7 +423,7 @@ namespace nupic {
   void TemporalMemoryTest::testBestMatchingSegment()
   {
     Int numActiveSynapses;
-    Segment bestSegment;
+    Segment* bestSegment = NULL;
 
     TemporalMemory tm;
     setup(tm, 2048);
@@ -564,26 +447,27 @@ namespace nupic {
     connections.createSynapse(segment, Cell(486), 0.9);
 
     vector<Cell> activeCells = { Cell(23), Cell(37), Cell(49), Cell(733) };
-    Cell cell;
 
+    Cell cell;
     cell.idx = 0;
+
     tie(bestSegment, numActiveSynapses) = tm.bestMatchingSegment(cell, activeCells, connections);
-    ASSERT_EQ(bestSegment, Segment(0, Cell(0)));
+    if (bestSegment) ASSERT_EQ(*bestSegment, Segment(0, Cell(0)));
     ASSERT_EQ(numActiveSynapses, 2);
 
     cell.idx = 1;
     tie(bestSegment, numActiveSynapses) = tm.bestMatchingSegment(cell, activeCells, connections);
-    ASSERT_EQ(bestSegment, Segment(0, Cell(1)));
+    if (bestSegment) ASSERT_EQ(*bestSegment, Segment(0, Cell(1)));
     ASSERT_EQ(numActiveSynapses, 1);
 
     cell.idx = 8;
     tie(bestSegment, numActiveSynapses) = tm.bestMatchingSegment(cell, activeCells, connections);
-    ASSERT_EQ(bestSegment, Segment(-1, Cell(0)));
+    ASSERT_EQ(bestSegment, (Segment*)NULL);
     ASSERT_EQ(numActiveSynapses, 0);
 
     cell.idx = 100;
     tie(bestSegment, numActiveSynapses) = tm.bestMatchingSegment(cell, activeCells, connections);
-    ASSERT_EQ(bestSegment, Segment(-1, Cell(0)));
+    ASSERT_EQ(bestSegment, (Segment*)NULL);
     ASSERT_EQ(numActiveSynapses, 0);
   }
 
@@ -593,8 +477,8 @@ namespace nupic {
     tm.initialize(vector<UInt>{2}, 2);
 
     Connections connections = *tm.connections_;
-    Segment segment = connections.createSegment(Cell(0));
-    connections.createSynapse(segment, 3, 0.3);
+    Segment* segment = NULL;
+    connections.createSynapse(connections.createSegment(Cell(0)), 3, 0.3);
 
     vector<Cell> cells = {};
 
@@ -680,7 +564,7 @@ namespace nupic {
     vector<Cell> winnerCells = { Cell(4), Cell(47), Cell(58), Cell(93) };
     vector<Cell> learningCells, expectedCells;
 
-    expectedCells = vector<Cell> { Cell(4), Cell(58) }; // Randomly picked
+    expectedCells = vector<Cell> { Cell(47), Cell(93) }; // Randomly picked
     learningCells = tm.pickCellsToLearnOn(2, segment, winnerCells, connections);
     sort(learningCells.begin(), learningCells.end());
     NTA_CHECK(check_vector_eq(learningCells, expectedCells));
@@ -848,6 +732,123 @@ namespace nupic {
 
     int ret = ::remove(filename);
     NTA_CHECK(ret == 0) << "Failed to delete " << filename;
+  }
+
+  void TemporalMemoryTest::print_vec(UInt arr[], UInt n)
+  {
+    for (UInt i = 0; i < n; i++) {
+      cout << arr[i] << " ";
+    }
+    cout << endl;
+  }
+
+  void TemporalMemoryTest::print_vec(Real arr[], UInt n)
+  {
+    for (UInt i = 0; i < n; i++) {
+      cout << arr[i] << " ";
+    }
+    cout << endl;
+  }
+
+  void TemporalMemoryTest::print_vec(vector<UInt> vec)
+  {
+    for (auto & elem : vec) {
+      cout << elem << " ";
+    }
+    cout << endl;
+  }
+
+  void TemporalMemoryTest::print_vec(vector<Real> vec)
+  {
+    for (auto & elem : vec) {
+      cout << elem << " ";
+    }
+    cout << endl;
+  }
+
+  bool TemporalMemoryTest::almost_eq(Real a, Real b)
+  {
+    Real diff = a - b;
+    return (diff > -1e-5 && diff < 1e-5);
+  }
+
+  bool TemporalMemoryTest::check_vector_eq(UInt arr[], vector<UInt> vec)
+  {
+    for (UInt i = 0; i < vec.size(); i++) {
+      if (arr[i] != vec[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  bool TemporalMemoryTest::check_vector_eq(Real arr[], vector<Real> vec)
+  {
+    for (UInt i = 0; i < vec.size(); i++) {
+      if (!almost_eq(arr[i], vec[i])) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  bool TemporalMemoryTest::check_vector_eq(UInt arr1[], UInt arr2[], UInt n)
+  {
+    for (UInt i = 0; i < n; i++) {
+      if (arr1[i] != arr2[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  bool TemporalMemoryTest::check_vector_eq(Real arr1[], Real arr2[], UInt n)
+  {
+    for (UInt i = 0; i < n; i++) {
+      if (!almost_eq(arr1[i], arr2[i])) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  bool TemporalMemoryTest::check_vector_eq(vector<UInt> vec1, vector<UInt> vec2)
+  {
+    if (vec1.size() != vec2.size()) {
+      return false;
+    }
+    for (UInt i = 0; i < vec1.size(); i++) {
+      if (vec1[i] != vec2[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  bool TemporalMemoryTest::check_vector_eq(vector<Cell>& vec1, vector<Cell>& vec2)
+  {
+    if (vec1.size() != vec2.size()) {
+      return false;
+    }
+    for (UInt i = 0; i < vec1.size(); i++) {
+      if (vec1[i].idx != vec2[i].idx) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  bool TemporalMemoryTest::check_vector_eq(vector<Segment>& vec1, vector<Segment>& vec2)
+  {
+    if (vec1.size() != vec2.size()) {
+      return false;
+    }
+    for (UInt i = 0; i < vec1.size(); i++) {
+      if (vec1[i].idx != vec2[i].idx || vec1[i].cell.idx != vec2[i].cell.idx) {
+        return false;
+      }
+    }
+    return true;
   }
 
 } // end namespace nupic

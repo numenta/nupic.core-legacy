@@ -1,6 +1,6 @@
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
+ * Copyright (C) 2013-2015, Numenta, Inc.  Unless you have an agreement
  * with Numenta, Inc., for a separate license for this software code, the
  * following terms and conditions apply:
  *
@@ -50,7 +50,19 @@ namespace nupic {
       class TemporalMemory {
       public:
         TemporalMemory();
-        
+        TemporalMemory(
+          vector<UInt> columnDimensions,
+          Int cellsPerColumn=32,
+          Int activationThreshold=13,
+          Int learningRadius=2048,
+          Permanence initialPermanence=0.21,
+          Permanence connectedPermanence=0.50,
+          Int minThreshold=10,
+          Int maxNewSynapseCount=20,
+          Permanence permanenceIncrement=0.10,
+          Permanence permanenceDecrement=0.10,
+          Int seed=1);
+
         virtual ~TemporalMemory();
 
         /**
@@ -69,24 +81,25 @@ namespace nupic {
           @param seed                 Seed for the random number generator.
         */
         virtual void initialize(
-          vector<UInt> columnDimensions = { 2048 },
-          Int cellsPerColumn = 32,
-          Int activationThreshold = 13,
-          Int learningRadius = 2048,
-          Permanence initialPermanence = 0.21,
-          Permanence connectedPermanence = 0.50,
-          Int minThreshold = 10,
-          Int maxNewSynapseCount = 20,
-          Permanence permanenceIncrement = 0.10,
-          Permanence permanenceDecrement = 0.10,
-          Int seed = 42);
+          vector<UInt> columnDimensions={ 2048 },
+          Int cellsPerColumn=32,
+          Int activationThreshold=13,
+          Int learningRadius=2048,
+          Permanence initialPermanence=0.21,
+          Permanence connectedPermanence=0.50,
+          Int minThreshold=10,
+          Int maxNewSynapseCount=20,
+          Permanence permanenceIncrement=0.10,
+          Permanence permanenceDecrement=0.10,
+          Int seed=1);
 
         // ==============================
         //  Main functions
         // ==============================
 
         /*
-         * Indicates the start of a new sequence.Resets sequence state of the TM.
+         * Indicates the start of a new sequence.
+         * Resets sequence state of the TM.
          */
         virtual void reset();
 
@@ -99,12 +112,64 @@ namespace nupic {
          */
         virtual void compute(UInt activeColumns[], bool learn = true);
 
-        // Implementation note: this method sets up the instance using data from
-        // inStream. This method does not call initialize. As such we have to be careful
-        // that everything in initialize is handled properly here.
-        
-        void load(istream& inStream);
-        void save(ostream& outStream) const;
+        /*
+        * 'Functional' version of compute.
+        * Returns new state.
+        *
+        * @param activeColumns         Indices of active columns in `t`
+        * @param prevPredictiveCells   Indices of predictive cells in `t-1`
+        * @param prevActiveSegments    Indices of active segments in `t-1`
+        * @param prevActiveCells       Indices of active cells in `t-1`
+        * @param prevWinnerCells       Indices of winner cells in `t-1`
+        * @param connections           Connectivity of layer
+        * @param learn                 Whether or not learning is enabled
+        *
+        * @return (tuple)Contains:
+        *  `activeCells`       (set),
+        *  `winnerCells`       (set),
+        *  `activeSegments`    (set),
+        *  `predictiveCells`   (set),
+        *  'predictedColumns'  (set)
+        */
+        tuple<vector<Cell>, vector<Cell>, vector<Segment>, vector<Cell>, vector<UInt>> computeFn(
+          UInt activeColumns[],
+          vector<Cell>& prevPredictiveCells,
+          vector<Segment>& prevActiveSegments,
+          vector<Cell>& prevActiveCells,
+          vector<Cell>& prevWinnerCells,
+          Connections& connections,
+          bool learn=true);
+
+        /**
+        * Get the version number of this temporal memory.
+
+        * @returns Integer version number.
+        */
+        virtual UInt version() const {
+          return version_;
+        };
+
+        /**
+        Save (serialize) the current state of the spatial pooler to the
+        specified file.
+
+        @param fd A valid file descriptor.
+        */
+        virtual void save(ostream& outStream) const;
+
+        virtual void write(ostream& stream) const;
+        //virtual void write(TemporalMemoryProto::Builder& proto) const;
+
+        /**
+        Load (deserialize) and initialize the spatial pooler from the
+        specified input stream.
+
+        @param inStream A valid istream.
+        */
+        virtual void load(istream& inStream);
+
+        virtual void read(istream& stream);
+        //virtual void read(TemporalMemoryProto::Reader& proto);
 
         /**
         Returns the number of bytes that a save operation would result in.
@@ -116,35 +181,6 @@ namespace nupic {
         virtual UInt persistentSize() const;
 
         void seed_(UInt64 seed);
-
-        /*
-         * 'Functional' version of compute.
-         * Returns new state.
-         *
-         * @param activeColumns         Indices of active columns in `t`
-         * @param prevPredictiveCells   Indices of predictive cells in `t-1`
-         * @param prevActiveSegments    Indices of active segments in `t-1`
-         * @param prevActiveCells       Indices of active cells in `t-1`
-         * @param prevWinnerCells       Indices of winner cells in `t-1`
-         * @param connections           Connectivity of layer
-         * @param learn                 Whether or not learning is enabled
-         *
-         * @return (tuple)Contains:
-         *  `activeCells`       (set),
-         *  `winnerCells`       (set),
-         *  `activeSegments`    (set),
-         *  `predictiveCells`   (set),
-         *  'predictedColumns'  (set)
-         */
-        tuple<vector<Cell>, vector<Cell>, vector<Segment>, vector<Cell>, vector<UInt>> computeFn(
-          UInt activeColumns[],
-          vector<Cell>& prevPredictiveCells,
-          vector<Segment>& prevActiveSegments,
-          vector<Cell>& prevActiveCells,
-          vector<Cell>& prevWinnerCells,
-          Connections& connections,
-          bool learn = true);
-
 
         // ==============================
         //  Phases
@@ -276,7 +312,7 @@ namespace nupic {
          *   `cell`        (int),
          *   `bestSegment` (int)
          */
-        tuple<Cell, Segment> bestMatchingCell(
+        tuple<Cell, Segment*> bestMatchingCell(
           vector<Cell>& cells,
           vector<Cell>& activeCells,
           Connections& connections);
@@ -293,7 +329,7 @@ namespace nupic {
          *  `segment`                 (int),
          *  `connectedActiveSynapses` (set)
          */
-        tuple<Segment, Int> bestMatchingSegment(
+        tuple<Segment*, Int> bestMatchingSegment(
           Cell& cell,
           vector<Cell>& activeCells,
           Connections& connections);
@@ -528,9 +564,9 @@ namespace nupic {
         */
         void printState(vector<Real> &state);
 
+      protected:
         UInt numColumns_;
         vector<UInt> columnDimensions_;
-
         Int cellsPerColumn_;
         Int activationThreshold_;
         Int learningRadius_;
@@ -541,25 +577,18 @@ namespace nupic {
         Permanence permanenceIncrement_;
         Permanence permanenceDecrement_;
 
-        vector<Cell> activeCells_;
-        vector<Cell> winnerCells_;
-
-        vector<Segment> activeSegments_;
-        vector<Segment> learningSegments_;
-
-        vector<Cell> predictiveCells_;
-
         Int version_;
         Random _rng;
 
+      public:
+        vector<Cell> predictiveCells_;
+        vector<Cell> activeCells_;
+        vector<Cell> winnerCells_;
+        vector<Segment> activeSegments_;
+        vector<Segment> learningSegments_;
         Connections* connections_;
-
       };
-
     } // end namespace temporal_memory
-
   } // end namespace algorithms
-
 } // end namespace nta
-
 #endif // NTA_TEMPORAL_MEMORY_HPP

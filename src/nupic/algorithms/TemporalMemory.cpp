@@ -1,6 +1,6 @@
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
+ * Copyright (C) 2013-2015, Numenta, Inc.  Unless you have an agreement
  * with Numenta, Inc., for a separate license for this software code, the
  * following terms and conditions apply:
  *
@@ -25,16 +25,19 @@
   */
 
 #include <cstring>
-#include <climits>
 #include <iostream>
 #include <string>
 #include <iterator>
 #include <vector>
-
 #include <boost/tuple/tuple.hpp>
+
+#include <capnp/message.h>
+#include <capnp/serialize.h>
+#include <kj/std/iostream.h>
 
 #include <nupic/algorithms/Connections.hpp>
 #include <nupic/algorithms/TemporalMemory.hpp>
+//#include <nupic/proto/TemporalMemoryProto.capnp.h>
 
 using namespace std;
 using namespace nupic;
@@ -48,11 +51,39 @@ TemporalMemory::TemporalMemory()
   connections_ = nullptr;
 }
 
+TemporalMemory::TemporalMemory(
+  vector<UInt> columnDimensions,
+  Int cellsPerColumn,
+  Int activationThreshold,
+  Int learningRadius,
+  Permanence initialPermanence,
+  Permanence connectedPermanence,
+  Int minThreshold,
+  Int maxNewSynapseCount,
+  Permanence permanenceIncrement,
+  Permanence permanenceDecrement,
+  Int seed)
+{
+  initialize(
+    columnDimensions,
+    cellsPerColumn,
+    activationThreshold,
+    learningRadius,
+    initialPermanence,
+    connectedPermanence,
+    minThreshold,
+    maxNewSynapseCount,
+    permanenceIncrement,
+    permanenceDecrement,
+    seed);
+}
+  
 TemporalMemory::~TemporalMemory()
 {
   if (connections_)
     delete connections_;
 }
+
 
 /**
  Initialize the temporal memory using the given parameters.
@@ -91,6 +122,8 @@ void TemporalMemory::initialize(
 
   // TODO: Validate all parameters (and add validation tests)
 
+  seed_((UInt64)(seed < 0 ? rand() : seed));
+
   // Save member variables
 
   numColumns_ = 1;
@@ -118,8 +151,6 @@ void TemporalMemory::initialize(
 
   activeSegments_.clear();
   learningSegments_.clear();
-
-  seed_((UInt64)(seed < 0 ? rand() : seed));
 
   connections_ = new Connections(numberOfCells());
 }
@@ -150,15 +181,14 @@ void TemporalMemory::reset(void)
 */
 void TemporalMemory::compute(UInt activeColumns[], bool learn)
 {
+  vector<Segment> activeSegments;
   vector<Cell> activeCells;
   vector<Cell> winnerCells;
-
-  vector<Segment> activeSegments;
-
   vector<Cell> predictiveCells;
   vector<UInt> predictedColumns;
 
-  tie(activeCells, winnerCells, activeSegments, predictiveCells, predictedColumns)
+  tie(activeCells, winnerCells, activeSegments,
+    predictiveCells, predictedColumns)
     = computeFn(
     activeColumns,
     predictiveCells_,
@@ -173,100 +203,6 @@ void TemporalMemory::compute(UInt activeColumns[], bool learn)
   activeSegments_ = activeSegments;
   predictiveCells_ = predictiveCells;
 
-}
-
-UInt TemporalMemory::persistentSize() const
-{
-  // TODO: this won't scale!
-  stringstream s;
-  s.flags(ios::scientific);
-  s.precision(numeric_limits<double>::digits10 + 1);
-  this->save(s);
-  return s.str().size();
-}
-
-void TemporalMemory::save(ostream& outStream) const
-{
-  // Write a starting marker and version.
-  outStream << "TemporalMemory" << endl;
-  outStream << version_ << endl;
-
-  outStream << numColumns_ << " " << endl;
-
-  outStream << columnDimensions_.size() << " ";
-  for (const UInt & elem : columnDimensions_) {
-    outStream << elem << " ";
-  }
-  outStream << endl;
-
-  outStream << cellsPerColumn_ << " "
-    << activationThreshold_ << " "
-    << learningRadius_ << " "
-    << initialPermanence_ << " "
-    << connectedPermanence_ << " "
-    << minThreshold_ << " "
-    << maxNewSynapseCount_ << " "
-    << permanenceIncrement_ << " "
-    << permanenceDecrement_ << " " << endl;
-
-  outStream << _rng << " " << endl;
-
-  outStream << endl;
-  outStream << "~TemporalMemory" << endl;
-
-}
-
-// Implementation note: this method sets up the instance using data from
-// inStream. This method does not call initialize. As such we have to be careful
-// that everything in initialize is handled properly here.
-void TemporalMemory::load(istream& inStream)
-{
-  // Current version
-  version_ = 1;
-
-  // Check the marker
-  string marker;
-  inStream >> marker;
-  NTA_CHECK(marker == "TemporalMemory");
-
-  // Check the saved version.
-  Int version;
-  inStream >> version;
-  NTA_CHECK(version <= version_);
-
-  // Retrieve simple variables
-  inStream >> numColumns_;
-
-  // Retrieve vectors.
-  UInt numColumnDimensions;
-  inStream >> numColumnDimensions;
-
-  columnDimensions_.resize(numColumnDimensions);
-  for (UInt i = 0; i < numColumnDimensions; i++) {
-    inStream >> columnDimensions_[i];
-  }
-
-  inStream >> cellsPerColumn_;
-  inStream >> activationThreshold_;
-  inStream >> learningRadius_;
-  inStream >> initialPermanence_;
-  inStream >> connectedPermanence_;
-  inStream >> minThreshold_;
-  inStream >> maxNewSynapseCount_;
-  inStream >> permanenceIncrement_;
-  inStream >> permanenceDecrement_;
-
-  inStream >> _rng;
-
-  inStream >> marker;
-  NTA_CHECK(marker == "~TemporalMemory");
-
-}
-
-/* create a RNG with given seed */
-void TemporalMemory::seed_(UInt64 seed)
-{
-  _rng = Random(seed);
 }
 
 /*
@@ -459,7 +395,7 @@ tuple<vector<Cell>, vector<Cell>, vector<Segment>> TemporalMemory::burstColumns(
 
   for (Int column : unpredictedColumns)
   {
-    Segment bestSegment;
+    Segment* bestSegment = NULL;
     Cell bestCell;
 
     vector<Cell> cells = cellsForColumn(column);
@@ -472,11 +408,11 @@ tuple<vector<Cell>, vector<Cell>, vector<Segment>> TemporalMemory::burstColumns(
 
     winnerCells.push_back(bestCell);
 
-    if (bestSegment.idx < 0 && prevWinnerCells.size())
-      bestSegment = connections.createSegment(bestCell);
+    if (bestSegment == NULL && prevWinnerCells.size())
+      bestSegment = new Segment(connections.createSegment(bestCell));
 
-    if (bestSegment.idx >= 0)
-      learningSegments.push_back(bestSegment);
+    if (bestSegment && bestSegment->idx >= 0)
+      learningSegments.push_back(*bestSegment);
   }
 
   return make_tuple(activeCells, winnerCells, learningSegments);
@@ -620,7 +556,7 @@ tuple<vector<Segment>, vector<Cell>> TemporalMemory::computePredictiveCells(
  *   `bestSegment` (int)
  */
 
-tuple<Cell, Segment>
+tuple<Cell, Segment*>
 TemporalMemory::bestMatchingCell(
 vector<Cell>& cells,
 vector<Cell>& activeCells,
@@ -628,12 +564,12 @@ Connections& connections)
 {
   Int maxSynapses = 0;
   Cell bestCell;
-  Segment bestSegment(-1, Cell(0));
+  Segment* bestSegment = NULL;
 
   for (Cell cell : cells)
   {
     Int numActiveSynapses;
-    Segment segment;
+    Segment* segment = NULL;
 
     tie(segment, numActiveSynapses) = bestMatchingSegment(cell, activeCells, connections);
 
@@ -642,6 +578,11 @@ Connections& connections)
       maxSynapses = numActiveSynapses;
       bestCell = cell;
       bestSegment = segment;
+    }
+    else
+    {
+      if (segment)
+        delete segment;
     }
   }
 
@@ -663,14 +604,14 @@ Connections& connections)
  *  `segment`                 (int),
  *  `connectedActiveSynapses` (set)
  */
-tuple<Segment, Int>
+tuple<Segment*, Int>
 TemporalMemory::bestMatchingSegment(
 Cell& cell,
 vector<Cell>& activeCells,
 Connections& connections)
 {
   Int maxSynapses = minThreshold_;
-  Segment bestSegment(-1, Cell(0));
+  Segment* bestSegment = NULL;
   Int bestNumActiveSynapses = 0;
 
   for (Segment segment : connections.segmentsForCell(cell))
@@ -690,8 +631,11 @@ Connections& connections)
 
     if (numActiveSynapses >= maxSynapses)
     {
+      if (bestSegment != NULL)
+        delete bestSegment;
+
       maxSynapses = numActiveSynapses;
-      bestSegment = segment;
+      bestSegment = new Segment(segment);
       bestNumActiveSynapses = numActiveSynapses;
     }
   }
@@ -969,9 +913,11 @@ bool TemporalMemory::_validateCell(Cell& cell)
  */
 bool TemporalMemory::_validateSegment(Segment& segment)
 {
-  if (activeSegments_.size() == 0 && segment.idx <= SEGMENT_MAX && _validateCell(segment.cell))
+  if (activeSegments_.size() == 0 && segment.idx <= SEGMENT_MAX && 
+    _validateCell(segment.cell))
     return true;
-  if (find(activeSegments_.begin(), activeSegments_.end(), segment) != activeSegments_.end())
+  if (find(activeSegments_.begin(), activeSegments_.end(), segment)
+    != activeSegments_.end())
     return true;
 
   NTA_THROW << "Invalid segment" << segment.idx;
@@ -1086,6 +1032,198 @@ Permanence TemporalMemory::getPermanenceDecrement() const
 void TemporalMemory::setPermanenceDecrement(Permanence permanenceDecrement)
 {
   permanenceDecrement_ = permanenceDecrement;
+}
+
+/* create a RNG with given seed */
+void TemporalMemory::seed_(UInt64 seed)
+{
+  _rng = Random(seed);
+}
+
+UInt TemporalMemory::persistentSize() const
+{
+  // TODO: this won't scale!
+  stringstream s;
+  s.flags(ios::scientific);
+  s.precision(numeric_limits<double>::digits10 + 1);
+  this->save(s);
+  return s.str().size();
+}
+
+void TemporalMemory::save(ostream& outStream) const
+{
+  // Write a starting marker and version.
+  outStream << "TemporalMemory" << endl;
+  outStream << version_ << endl;
+
+  outStream << numColumns_ << " "
+    << cellsPerColumn_ << " "
+    << activationThreshold_ << " "
+    << learningRadius_ << " "
+    << minThreshold_ << " "
+    << maxNewSynapseCount_ << " "
+    << initialPermanence_ << " "
+    << connectedPermanence_ << " "
+    << permanenceIncrement_ << " "
+    << permanenceDecrement_ << " "
+    << endl;
+
+  outStream << columnDimensions_.size() << " ";
+  for (auto & elem : columnDimensions_) {
+    outStream << elem << " ";
+  }
+  outStream << endl;
+
+  outStream << predictiveCells_.size() << " ";
+  for (Cell elem : predictiveCells_) {
+    outStream << elem.idx << " ";
+  }
+  outStream << endl;
+
+  outStream << activeCells_.size() << " ";
+  for (Cell elem : activeCells_) {
+    outStream << elem.idx << " ";
+  }
+  outStream << endl;
+
+  outStream << winnerCells_.size() << " ";
+  for (Cell elem : winnerCells_) {
+    outStream << elem.idx << " ";
+  }
+  outStream << endl;
+
+  outStream << activeSegments_.size() << " ";
+  for (Segment elem : activeSegments_) {
+    outStream << elem.idx << " ";
+    outStream << elem.cell.idx << " ";
+  }
+  outStream << endl;
+
+  outStream << learningSegments_.size() << " ";
+  for (Segment elem : learningSegments_) {
+    outStream << elem.idx << " ";
+    outStream << elem.cell.idx << " ";
+  }
+  outStream << endl;
+
+//  outStream << connections_ << endl;
+  outStream << _rng << endl;
+
+  outStream << "~TemporalMemory" << endl;
+}
+/*
+void TemporalMemory::write(TemporalMemoryProto::Builder& proto) const
+{
+}
+*/
+void TemporalMemory::write(ostream& stream) const
+{
+/*
+  capnp::MallocMessageBuilder message;
+  TemporalMemoryProto::Builder proto = message.initRoot<TemporalMemoryProto>();
+  write(proto);
+
+  kj::std::StdOutputStream out(stream);
+  capnp::writeMessage(out, message);
+*/
+}
+
+// Implementation note: this method sets up the instance using data from
+// inStream. This method does not call initialize. As such we have to be careful
+// that everything in initialize is handled properly here.
+void TemporalMemory::read(istream& stream)
+{
+/*
+  kj::std::StdInputStream in(stream);
+
+  capnp::InputStreamMessageReader message(in);
+  TemporalMemoryProto::Reader proto = message.getRoot<TemporalMemoryProto>();
+  read(proto);
+*/
+}
+/*
+void TemporalMemory::read(TemporalMemoryProto::Reader& proto)
+{
+}
+*/
+void TemporalMemory::load(istream& inStream)
+{
+  // Current version
+  version_ = 1;
+
+  // Check the marker
+  string marker;
+  inStream >> marker;
+  NTA_CHECK(marker == "TemporalMemory");
+
+  // Check the saved version.
+  Int version;
+  inStream >> version;
+  NTA_CHECK(version <= version_);
+
+  // Retrieve simple variables
+  inStream >> numColumns_
+    >> cellsPerColumn_
+    >> activationThreshold_
+    >> learningRadius_
+    >> minThreshold_
+    >> maxNewSynapseCount_
+    >> initialPermanence_
+    >> connectedPermanence_
+    >> permanenceIncrement_
+    >> permanenceDecrement_;
+
+  // Retrieve vectors.
+  UInt numColumnDimensions;
+  inStream >> numColumnDimensions;
+  columnDimensions_.resize(numColumnDimensions);
+  for (UInt i = 0; i < numColumnDimensions; i++) {
+    inStream >> columnDimensions_[i];
+  }
+
+  UInt numPredictiveCells;
+  inStream >> numPredictiveCells;
+  predictiveCells_.resize(numPredictiveCells);
+  for (UInt i = 0; i < numPredictiveCells; i++) {
+    inStream >> predictiveCells_[i].idx;
+  }
+
+  UInt numActiveCells;
+  inStream >> numActiveCells;
+  activeCells_.resize(numActiveCells);
+  for (UInt i = 0; i < numActiveCells; i++) {
+    inStream >> activeCells_[i].idx;
+  }
+
+  UInt numWinnerCells;
+  inStream >> numWinnerCells;
+  winnerCells_.resize(numWinnerCells);
+  for (UInt i = 0; i < numWinnerCells; i++) {
+    inStream >> winnerCells_[i].idx;
+  }
+
+  UInt numActiveSegments;
+  inStream >> numActiveSegments;
+  activeSegments_.resize(numActiveSegments);
+  for (UInt i = 0; i < numActiveSegments; i++) {
+    inStream >> activeSegments_[i].idx;
+    inStream >> activeSegments_[i].cell.idx;
+  }
+
+  UInt numLearningSegments;
+  inStream >> numLearningSegments;
+  learningSegments_.resize(numLearningSegments);
+  for (UInt i = 0; i < numLearningSegments; i++) {
+    inStream >> learningSegments_[i].idx;
+    inStream >> learningSegments_[i].cell.idx;
+  }
+
+//  inStream >> connections_;
+  inStream >> _rng;
+
+  inStream >> marker;
+  NTA_CHECK(marker == "~TemporalMemory");
+
 }
 
 //----------------------------------------------------------------------
