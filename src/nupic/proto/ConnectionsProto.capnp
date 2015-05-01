@@ -1,6 +1,6 @@
 @0xb1b8a459d70716ad;
 
-# Next ID: 2
+# Next ID: 3
 struct ConnectionsProto {
 
   # Next ID: 3
@@ -24,5 +24,6 @@ struct ConnectionsProto {
 
   cells @0 :List(CellProto);
   maxSegmentsPerCell @1 :UInt8;
+  iteration @2 :UInt64;
 
 }

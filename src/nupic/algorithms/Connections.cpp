@@ -137,6 +137,10 @@ void Connections::destroySynapse(const Synapse& synapse)
       break;
     }
   }
+
+  if (synapses.size() == 0) {
+    synapsesForPresynapticCell_.erase(synapseData.presynapticCell);
+  }
 }
 
 void Connections::updateSynapsePermanence(const Synapse& synapse,
@@ -376,6 +380,7 @@ void Connections::write(ConnectionsProto::Builder& proto) const
   }
 
   proto.setMaxSegmentsPerCell(maxSegmentsPerCell_);
+  proto.setIteration(iteration_);
 }
 
 void Connections::read(istream& stream)
@@ -413,12 +418,21 @@ void Connections::read(ConnectionsProto::Reader& proto)
                                    protoSynapses[k].getDestroyed()};
         synapses.push_back(synapseData);
 
-        if (!synapseData.destroyed) numSynapses_++;
+        if (!synapseData.destroyed) {
+          numSynapses_++;
+
+          Synapse synapse = Synapse(k, Segment(j, Cell(i)));
+          synapsesForPresynapticCell_[presynapticCell].push_back(synapse);
+        }
       }
 
-      if (!segmentData.destroyed) numSegments_++;
+      if (!segmentData.destroyed) {
+        numSegments_++;
+      }
     }
   }
+
+  iteration_ = proto.getIteration();
 }
 
 UInt Connections::numSegments() const
@@ -464,8 +478,31 @@ bool Connections::operator== (const Connections &other) const
     }
   }
 
+  if (synapsesForPresynapticCell_.size() != other.synapsesForPresynapticCell_.size()) return false;
+
+  for (auto i = synapsesForPresynapticCell_.begin(); i != synapsesForPresynapticCell_.end(); ++i) {
+    auto synapses = i->second;
+    auto otherSynapses = other.synapsesForPresynapticCell_.at(i->first);
+
+    if (synapses.size() != otherSynapses.size()) return false;
+
+    for (SynapseIdx j = 0; j < synapses.size(); ++j) {
+      auto synapse = synapses[j];
+      auto otherSynapse = otherSynapses[j];
+      auto segment = synapse.segment;
+      auto otherSegment = otherSynapse.segment;
+      auto cell = segment.cell;
+      auto otherCell = otherSegment.cell;
+
+      if (synapse.idx != otherSynapse.idx) return false;
+      if (segment.idx != otherSegment.idx) return false;
+      if (cell.idx != otherCell.idx) return false;
+    }
+  }
+
   if (numSegments_ != other.numSegments_) return false;
   if (numSynapses_ != other.numSynapses_) return false;
+  if (iteration_ != other.iteration_) return false;
 
   return true;
 }
