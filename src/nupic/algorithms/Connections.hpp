@@ -433,7 +433,7 @@ namespace nupic
         /**
          * Comparison operator.
          */
-        bool operator== (const Connections &other) const;
+        bool operator==(const Connections &other) const;
 
       private:
         std::vector<CellData> cells_;

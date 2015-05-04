@@ -138,7 +138,8 @@ void Connections::destroySynapse(const Synapse& synapse)
     }
   }
 
-  if (synapses.size() == 0) {
+  if (synapses.size() == 0)
+  {
     synapsesForPresynapticCell_.erase(synapseData.presynapticCell);
   }
 }
@@ -445,7 +446,7 @@ UInt Connections::numSynapses() const
   return numSynapses_;
 }
 
-bool Connections::operator== (const Connections &other) const
+bool Connections::operator==(const Connections &other) const
 {
   if (maxSegmentsPerCell_ != other.maxSegmentsPerCell_) return false;
 
