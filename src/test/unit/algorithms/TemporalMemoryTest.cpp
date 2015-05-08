@@ -213,7 +213,7 @@ namespace nupic {
 
     vector<Cell> activeCells;
     vector<Cell> winnerCells;
-    vector<Segment*> learningSegments;
+    vector<Segment> learningSegments;
 
     tie(activeCells, winnerCells, learningSegments) =
       tm.burstColumns(activeColumns, predictiveCols, prevActiveCells, prevWinnerCells, connections);
@@ -241,7 +241,7 @@ namespace nupic {
 
     vector<Cell> activeCells;
     vector<Cell> winnerCells;
-    vector<Segment*> learningSegments;
+    vector<Segment> learningSegments;
 
     tie(activeCells, winnerCells, learningSegments) =
       tm.burstColumns(activeColumns, predictiveCols, prevActiveCells, prevWinnerCells, connections);
@@ -278,7 +278,7 @@ namespace nupic {
     Segment segment3 = connections.createSegment(Cell(100));
 
     vector<Segment> prevActiveSegments = { segment0, segment2 };
-    vector<Segment*> learningSegments = { &segment1, &segment3 };
+    vector<Segment> learningSegments = { segment1, segment3 };
     vector<Cell> prevActiveCells = { Cell(23), Cell(37), Cell(733) };
     vector<Cell> winnerCells = { Cell(0) };
     vector<Cell> prevWinnerCells = { Cell(10), Cell(11), Cell(12), Cell(13), Cell(14) };

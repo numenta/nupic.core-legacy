@@ -97,6 +97,17 @@ namespace nupic {
         //  Main functions
         // ==============================
 
+        void seed_(UInt64 seed);
+
+        /**
+        * Get the version number of this temporal memory.
+
+        * @returns Integer version number.
+        */
+        virtual UInt version() const {
+          return version_;
+        };
+
         /*
          * Indicates the start of a new sequence.
          * Resets sequence state of the TM.
@@ -139,48 +150,6 @@ namespace nupic {
           vector<Cell>& prevWinnerCells,
           Connections& connections,
           bool learn=true);
-
-        /**
-        * Get the version number of this temporal memory.
-
-        * @returns Integer version number.
-        */
-        virtual UInt version() const {
-          return version_;
-        };
-
-        /**
-        Save (serialize) the current state of the spatial pooler to the
-        specified file.
-
-        @param fd A valid file descriptor.
-        */
-        virtual void save(ostream& outStream) const;
-
-        virtual void write(ostream& stream) const;
-        //virtual void write(TemporalMemoryProto::Builder& proto) const;
-
-        /**
-        Load (deserialize) and initialize the spatial pooler from the
-        specified input stream.
-
-        @param inStream A valid istream.
-        */
-        virtual void load(istream& inStream);
-
-        virtual void read(istream& stream);
-        //virtual void read(TemporalMemoryProto::Reader& proto);
-
-        /**
-        Returns the number of bytes that a save operation would result in.
-        Note: this method is currently somewhat inefficient as it just does
-        a full save into an ostream and counts the resulting size.
-
-        @returns Integer number of bytes
-        */
-        virtual UInt persistentSize() const;
-
-        void seed_(UInt64 seed);
 
         // ==============================
         //  Phases
@@ -235,7 +204,7 @@ namespace nupic {
          *  `winnerCells`      (set),
          *  `learningSegments` (set)
          */
-        virtual tuple<vector<Cell>, vector<Cell>, vector<Segment*>> burstColumns(
+        virtual tuple<vector<Cell>, vector<Cell>, vector<Segment>> burstColumns(
           vector<UInt>& activeColumns,
           vector<UInt>& predictedColumns,
           vector<Cell>& prevActiveCells,
@@ -264,7 +233,7 @@ namespace nupic {
          */
         virtual void learnOnSegments(
           vector<Segment>& prevActiveSegments,
-          vector<Segment*>& learningSegments,
+          vector<Segment>& learningSegments,
           vector<Cell>& prevActiveCells,
           vector<Cell>& winnerCells,
           vector<Cell>& prevWinnerCells,
@@ -547,6 +516,37 @@ namespace nupic {
         */
         bool _validatePermanence(Real permanence);
           
+        /**
+        Save (serialize) the current state of the spatial pooler to the
+        specified file.
+
+        @param fd A valid file descriptor.
+        */
+        virtual void save(ostream& outStream) const;
+
+        virtual void write(ostream& stream) const;
+        //virtual void write(TemporalMemoryProto::Builder& proto) const;
+
+        /**
+        Load (deserialize) and initialize the spatial pooler from the
+        specified input stream.
+
+        @param inStream A valid istream.
+        */
+        virtual void load(istream& inStream);
+
+        virtual void read(istream& stream);
+        //virtual void read(TemporalMemoryProto::Reader& proto);
+
+        /**
+        Returns the number of bytes that a save operation would result in.
+        Note: this method is currently somewhat inefficient as it just does
+        a full save into an ostream and counts the resulting size.
+
+        @returns Integer number of bytes
+        */
+        virtual UInt persistentSize() const;
+
         //----------------------------------------------------------------------
         // Debugging helpers
         //----------------------------------------------------------------------

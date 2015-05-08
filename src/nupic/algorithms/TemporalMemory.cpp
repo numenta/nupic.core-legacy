@@ -245,7 +245,7 @@ bool learn)
   for (auto cell : winnerCells_)
     winnerCells.push_back(cell);
 
-  vector<Segment*> learningSegments;
+  vector<Segment> learningSegments;
 
   tie(activeCells, winnerCells, learningSegments) = burstColumns(
     _activeColumns, 
@@ -362,7 +362,7 @@ vector<UInt>& activeColumns)
  *  `winnerCells`      (set),
  *  `learningSegments` (set)
  */
-tuple<vector<Cell>, vector<Cell>, vector<Segment*>> TemporalMemory::burstColumns(
+tuple<vector<Cell>, vector<Cell>, vector<Segment>> TemporalMemory::burstColumns(
   vector<UInt>& activeColumns,
   vector<UInt>& predictedColumns,
   vector<Cell>& prevActiveCells,
@@ -371,7 +371,7 @@ tuple<vector<Cell>, vector<Cell>, vector<Segment*>> TemporalMemory::burstColumns
 {
   vector<Cell> activeCells;
   vector<Cell> winnerCells;
-  vector<Segment*> learningSegments;
+  vector<Segment> learningSegments;
   vector<UInt> unpredictedColumns;
 
   // unpredictedColumns = activeColumns - predictedColumns
@@ -410,9 +410,9 @@ tuple<vector<Cell>, vector<Cell>, vector<Segment*>> TemporalMemory::burstColumns
       bestSegment = new Segment(connections.createSegment(*bestCell));
     }
 
-    if (bestSegment && bestSegment->idx >= 0)
+    if (bestSegment != NULL)
     {
-      learningSegments.push_back(bestSegment);
+      learningSegments.push_back(*bestSegment);
     }
   }
 
@@ -441,7 +441,7 @@ tuple<vector<Cell>, vector<Cell>, vector<Segment*>> TemporalMemory::burstColumns
  */
 void TemporalMemory::learnOnSegments(
   vector<Segment>& prevActiveSegments,
-  vector<Segment*>& learningSegments,
+  vector<Segment>& learningSegments,
   vector<Cell>& prevActiveCells,
   vector<Cell>& winnerCells,
   vector<Cell>& prevWinnerCells,
@@ -452,16 +452,16 @@ void TemporalMemory::learnOnSegments(
   for (auto segment : prevActiveSegments)
     allSegments.push_back(segment);
   for (auto segment : learningSegments)
-    allSegments.push_back(*segment);
+    allSegments.push_back(segment);
 
   for (Segment segment : allSegments)
   {
     bool isLearningSegment = false;
     bool isFromWinnerCell = (find(winnerCells.begin(), winnerCells.end(), segment.cell) != winnerCells.end());
 
-    for (Segment* s : learningSegments)
+    for (Segment s : learningSegments)
     {
-      if (*s == segment)
+      if (s == segment)
       {
         isLearningSegment = true;
         break;
