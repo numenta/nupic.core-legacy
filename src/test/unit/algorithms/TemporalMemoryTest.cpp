@@ -213,7 +213,7 @@ namespace nupic {
 
     vector<Cell> activeCells;
     vector<Cell> winnerCells;
-    vector<Segment> learningSegments;
+    vector<Segment*> learningSegments;
 
     tie(activeCells, winnerCells, learningSegments) =
       tm.burstColumns(activeColumns, predictiveCols, prevActiveCells, prevWinnerCells, connections);
@@ -241,7 +241,7 @@ namespace nupic {
 
     vector<Cell> activeCells;
     vector<Cell> winnerCells;
-    vector<Segment> learningSegments;
+    vector<Segment*> learningSegments;
 
     tie(activeCells, winnerCells, learningSegments) =
       tm.burstColumns(activeColumns, predictiveCols, prevActiveCells, prevWinnerCells, connections);
@@ -278,7 +278,7 @@ namespace nupic {
     Segment segment3 = connections.createSegment(Cell(100));
 
     vector<Segment> prevActiveSegments = { segment0, segment2 };
-    vector<Segment> learningSegments = { segment1, segment3 };
+    vector<Segment*> learningSegments = { &segment1, &segment3 };
     vector<Cell> prevActiveCells = { Cell(23), Cell(37), Cell(733) };
     vector<Cell> winnerCells = { Cell(0) };
     vector<Cell> prevWinnerCells = { Cell(10), Cell(11), Cell(12), Cell(13), Cell(14) };
@@ -352,7 +352,7 @@ namespace nupic {
 
   void TemporalMemoryTest::testBestMatchingCell()
   {
-    Cell bestCell;
+    Cell* bestCell;
     Segment* bestSegment;
 
     TemporalMemory tm;
@@ -382,21 +382,21 @@ namespace nupic {
 
     cellsForColumn = tm.cellsForColumn(0);
     tie(bestCell, bestSegment) = tm.bestMatchingCell(cellsForColumn, activeCells, connections);
-    ASSERT_EQ(bestCell, Cell(0));
+    if (bestCell) ASSERT_EQ(*bestCell, Cell(0));
     if (bestSegment) ASSERT_EQ(*bestSegment, Segment(0, Cell(0)));
 
     cellsForColumn = tm.cellsForColumn(3);
     tie(bestCell, bestSegment) = tm.bestMatchingCell(cellsForColumn, activeCells, connections);
-    ASSERT_EQ(bestCell, Cell(106)); // Random cell from column
+    if (bestCell) ASSERT_EQ(*bestCell, Cell(106)); // Random cell from column
 
     cellsForColumn = tm.cellsForColumn(999);
     tie(bestCell, bestSegment) = tm.bestMatchingCell(cellsForColumn, activeCells, connections);
-    ASSERT_EQ(bestCell, Cell(31974)); // Random cell from column
+    if (bestCell) ASSERT_EQ(*bestCell, Cell(31974)); // Random cell from column
   }
 
   void TemporalMemoryTest::testBestMatchingCellFewestSegments()
   {
-    Cell cell(0);
+    Cell* cell = NULL;
     Segment* segment = NULL;
 
     TemporalMemory tm;
@@ -404,7 +404,7 @@ namespace nupic {
     tm.setMinThreshold(1);
 
     Connections connections = *tm.connections_;
-    connections.createSynapse(connections.createSegment(cell), 3, 0.3);
+    connections.createSynapse(connections.createSegment(Cell(0)), 3, 0.3);
 
     vector<Cell> activeSynapsesForSegment = {};
 
@@ -416,7 +416,7 @@ namespace nupic {
         cellsForColumn,
         activeSynapsesForSegment,
         connections);
-      ASSERT_EQ(cell, Cell(1));
+      if (cell) ASSERT_EQ(*cell, Cell(1));
     }
   }
 
@@ -486,10 +486,9 @@ namespace nupic {
     {
       // Never pick cell 0, always pick cell 1
       vector<Cell> cellsForColumn = tm.cellsForColumn(0);
-      Cell cell;
-
+      Cell* cell = NULL;
       tie(cell, segment) = tm.bestMatchingCell(cellsForColumn, cells, connections);
-      ASSERT_EQ(cell, Cell(1));
+      if (cell) ASSERT_EQ(*cell, Cell(1));
     }
   }
 
@@ -845,6 +844,19 @@ namespace nupic {
     }
     for (UInt i = 0; i < vec1.size(); i++) {
       if (vec1[i].idx != vec2[i].idx || vec1[i].cell.idx != vec2[i].cell.idx) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  bool TemporalMemoryTest::check_vector_eq(vector<Segment*>& vec1, vector<Segment>& vec2)
+  {
+    if (vec1.size() != vec2.size()) {
+      return false;
+    }
+    for (UInt i = 0; i < vec1.size(); i++) {
+      if (vec1[i]->idx != vec2[i].idx || vec1[i]->cell.idx != vec2[i].cell.idx) {
         return false;
       }
     }

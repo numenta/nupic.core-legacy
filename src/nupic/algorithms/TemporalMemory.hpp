@@ -235,7 +235,7 @@ namespace nupic {
          *  `winnerCells`      (set),
          *  `learningSegments` (set)
          */
-        virtual tuple<vector<Cell>, vector<Cell>, vector<Segment>> burstColumns(
+        virtual tuple<vector<Cell>, vector<Cell>, vector<Segment*>> burstColumns(
           vector<UInt>& activeColumns,
           vector<UInt>& predictedColumns,
           vector<Cell>& prevActiveCells,
@@ -264,7 +264,7 @@ namespace nupic {
          */
         virtual void learnOnSegments(
           vector<Segment>& prevActiveSegments,
-          vector<Segment>& learningSegments,
+          vector<Segment*>& learningSegments,
           vector<Cell>& prevActiveCells,
           vector<Cell>& winnerCells,
           vector<Cell>& prevWinnerCells,
@@ -312,7 +312,7 @@ namespace nupic {
          *   `cell`        (int),
          *   `bestSegment` (int)
          */
-        tuple<Cell, Segment*> bestMatchingCell(
+        tuple<Cell*, Segment*> bestMatchingCell(
           vector<Cell>& cells,
           vector<Cell>& activeCells,
           Connections& connections);
