@@ -906,7 +906,7 @@ bool TemporalMemory::_validateColumn(Int column)
  */
 bool TemporalMemory::_validateCell(Cell& cell)
 {
-  if (cell.idx >= 0 && cell.idx < numberOfCells())
+  if (cell.idx < numberOfCells())
     return true;
 
   NTA_THROW << "Invalid cell " << cell.idx;
