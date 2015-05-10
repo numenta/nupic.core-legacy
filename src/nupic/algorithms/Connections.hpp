@@ -42,14 +42,14 @@ namespace nupic
     namespace connections
     {
       typedef UInt32 CellIdx;
-      typedef unsigned short SegmentIdx;
-      typedef unsigned short SynapseIdx;
+      typedef unsigned char SegmentIdx;
+      typedef unsigned char SynapseIdx;
       typedef Real32 Permanence;
       typedef UInt64 Iteration;
 
       #define CELL_MAX ((USHRT_MAX<<4)-1)
-      #define SEGMENT_MAX (USHRT_MAX-1)
-      #define SYNAPSE_MAX (USHRT_MAX-1)
+      #define SEGMENT_MAX (UCHAR_MAX-1)
+      #define SYNAPSE_MAX (UCHAR_MAX-1)
 
       /**
        * Cell class used in Connections.
