@@ -547,6 +547,20 @@ private:
   Array<ExceptionOr<T>> resultParts;
 };
 
+template <>
+class ArrayJoinPromiseNode<void> final: public ArrayJoinPromiseNodeBase {
+public:
+  ArrayJoinPromiseNode(Array<Own<PromiseNode>> promises,
+                       Array<ExceptionOr<_::Void>> resultParts);
+  ~ArrayJoinPromiseNode();
+
+protected:
+  void getNoError(ExceptionOrValue& output) noexcept override;
+
+private:
+  Array<ExceptionOr<_::Void>> resultParts;
+};
+
 // -------------------------------------------------------------------
 
 class EagerPromiseNodeBase: public PromiseNode, protected Event {
