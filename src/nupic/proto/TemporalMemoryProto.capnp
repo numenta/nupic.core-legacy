@@ -21,6 +21,7 @@ struct TemporalMemoryProto {
   connections @10 :ConnectionsProto;
   random @11 :RandomProto;
 
+  # Lists of indices
   activeCells @12 :List(UInt32);
   predictiveCells @13 :List(UInt32);
   activeSegments @14 :List(UInt32);
