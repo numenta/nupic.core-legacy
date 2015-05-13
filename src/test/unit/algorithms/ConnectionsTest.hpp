@@ -62,6 +62,7 @@ namespace nupic
     void testActiveCells();
     void testNumSegments();
     void testNumSynapses();
+    void testWriteRead();
 
     void setupSampleConnections(Connections &connections);
     Activity computeSampleActivity(Connections &connections);

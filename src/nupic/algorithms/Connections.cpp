@@ -25,6 +25,12 @@
  */
 
 #include <climits>
+#include <iostream>
+
+#include <capnp/message.h>
+#include <capnp/serialize.h>
+#include <kj/std/iostream.h>
+
 #include <nupic/algorithms/Connections.hpp>
 
 using namespace std;
@@ -32,7 +38,13 @@ using namespace nupic;
 using namespace nupic::algorithms::connections;
 
 Connections::Connections(CellIdx numCells,
-                         SegmentIdx maxSegmentsPerCell) : cells_(numCells)
+                         SegmentIdx maxSegmentsPerCell)
+{
+  initialize(numCells, maxSegmentsPerCell);
+}
+
+void Connections::initialize(CellIdx numCells,
+                             SegmentIdx maxSegmentsPerCell)
 {
   if (numCells > CELL_MAX)
   {
@@ -43,6 +55,7 @@ Connections::Connections(CellIdx numCells,
     NTA_THROW << "Attemped to create Connections with maxSegmentsPerCell > SEGMENT_MAX";
   }
 
+  cells_ = vector<CellData>(numCells);
   numSegments_ = 0;
   numSynapses_ = 0;
   maxSegmentsPerCell_ = maxSegmentsPerCell;
@@ -123,6 +136,11 @@ void Connections::destroySynapse(const Synapse& synapse)
       synapses.erase(s);
       break;
     }
+  }
+
+  if (synapses.size() == 0)
+  {
+    synapsesForPresynapticCell_.erase(synapseData.presynapticCell);
   }
 }
 
@@ -330,6 +348,94 @@ vector<Cell> Connections::activeCells(const Activity& activity)
   return cells;
 }
 
+void Connections::write(ostream& stream) const
+{
+  capnp::MallocMessageBuilder message;
+  ConnectionsProto::Builder proto = message.initRoot<ConnectionsProto>();
+  write(proto);
+
+  kj::std::StdOutputStream out(stream);
+  capnp::writeMessage(out, message);
+}
+
+void Connections::write(ConnectionsProto::Builder& proto) const
+{
+  auto protoCells = proto.initCells(cells_.size());
+
+  for (CellIdx i = 0; i < cells_.size(); ++i) {
+    auto segments = cells_[i].segments;
+    auto protoSegments = protoCells[i].initSegments(segments.size());
+
+    for (SegmentIdx j = 0; j < segments.size(); ++j) {
+      auto synapses = segments[j].synapses;
+      auto protoSynapses = protoSegments[j].initSynapses(synapses.size());
+      protoSegments[j].setDestroyed(segments[j].destroyed);
+      protoSegments[j].setLastUsedIteration(segments[j].lastUsedIteration);
+
+      for (SynapseIdx k = 0; k < synapses.size(); ++k) {
+        protoSynapses[k].setPresynapticCell(synapses[k].presynapticCell.idx);
+        protoSynapses[k].setPermanence(synapses[k].permanence);
+        protoSynapses[k].setDestroyed(synapses[k].destroyed);
+      }
+    }
+  }
+
+  proto.setMaxSegmentsPerCell(maxSegmentsPerCell_);
+  proto.setIteration(iteration_);
+}
+
+void Connections::read(istream& stream)
+{
+  kj::std::StdInputStream in(stream);
+
+  capnp::InputStreamMessageReader message(in);
+  ConnectionsProto::Reader proto = message.getRoot<ConnectionsProto>();
+  read(proto);
+}
+
+void Connections::read(ConnectionsProto::Reader& proto)
+{
+  auto protoCells = proto.getCells();
+
+  initialize(protoCells.size(), proto.getMaxSegmentsPerCell());
+
+  for (CellIdx i = 0; i < protoCells.size(); ++i) {
+    auto protoSegments = protoCells[i].getSegments();
+    vector<SegmentData>& segments = cells_[i].segments;
+
+    for (SegmentIdx j = 0; j < protoSegments.size(); ++j) {
+      SegmentData segmentData = {vector<SynapseData>(),
+                                 protoSegments[j].getDestroyed(),
+                                 protoSegments[j].getLastUsedIteration()};
+      segments.push_back(segmentData);
+
+      auto protoSynapses = protoSegments[j].getSynapses();
+      vector<SynapseData>& synapses = segments[j].synapses;
+
+      for (SynapseIdx k = 0; k < protoSynapses.size(); ++k) {
+        Cell presynapticCell = Cell(protoSynapses[k].getPresynapticCell());
+        SynapseData synapseData = {presynapticCell,
+                                   protoSynapses[k].getPermanence(),
+                                   protoSynapses[k].getDestroyed()};
+        synapses.push_back(synapseData);
+
+        if (!synapseData.destroyed) {
+          numSynapses_++;
+
+          Synapse synapse = Synapse(k, Segment(j, Cell(i)));
+          synapsesForPresynapticCell_[presynapticCell].push_back(synapse);
+        }
+      }
+
+      if (!segmentData.destroyed) {
+        numSegments_++;
+      }
+    }
+  }
+
+  iteration_ = proto.getIteration();
+}
+
 UInt Connections::numSegments() const
 {
   return numSegments_;
@@ -338,6 +444,68 @@ UInt Connections::numSegments() const
 UInt Connections::numSynapses() const
 {
   return numSynapses_;
+}
+
+bool Connections::operator==(const Connections &other) const
+{
+  if (maxSegmentsPerCell_ != other.maxSegmentsPerCell_) return false;
+
+  if (cells_.size() != other.cells_.size()) return false;
+
+  for (CellIdx i = 0; i < cells_.size(); ++i) {
+    auto segments = cells_[i].segments;
+    auto otherSegments = other.cells_[i].segments;
+
+    if (segments.size() != otherSegments.size()) return false;
+
+    for (SegmentIdx j = 0; j < segments.size(); ++j) {
+      auto segment = segments[j];
+      auto otherSegment = otherSegments[j];
+      auto synapses = segment.synapses;
+      auto otherSynapses = otherSegment.synapses;
+
+      if (segment.destroyed != otherSegment.destroyed) return false;
+      if (segment.lastUsedIteration != otherSegment.lastUsedIteration) return false;
+      if (synapses.size() != otherSynapses.size()) return false;
+
+      for (SynapseIdx k = 0; k < synapses.size(); ++k) {
+        auto synapse = synapses[k];
+        auto otherSynapse = synapses[k];
+
+        if (synapse.presynapticCell.idx != otherSynapse.presynapticCell.idx) return false;
+        if (synapse.permanence != otherSynapse.permanence) return false;
+        if (synapse.destroyed != otherSynapse.destroyed) return false;
+      }
+    }
+  }
+
+  if (synapsesForPresynapticCell_.size() != other.synapsesForPresynapticCell_.size()) return false;
+
+  for (auto i = synapsesForPresynapticCell_.begin(); i != synapsesForPresynapticCell_.end(); ++i) {
+    auto synapses = i->second;
+    auto otherSynapses = other.synapsesForPresynapticCell_.at(i->first);
+
+    if (synapses.size() != otherSynapses.size()) return false;
+
+    for (SynapseIdx j = 0; j < synapses.size(); ++j) {
+      auto synapse = synapses[j];
+      auto otherSynapse = otherSynapses[j];
+      auto segment = synapse.segment;
+      auto otherSegment = otherSynapse.segment;
+      auto cell = segment.cell;
+      auto otherCell = otherSegment.cell;
+
+      if (synapse.idx != otherSynapse.idx) return false;
+      if (segment.idx != otherSegment.idx) return false;
+      if (cell.idx != otherCell.idx) return false;
+    }
+  }
+
+  if (numSegments_ != other.numSegments_) return false;
+  if (numSynapses_ != other.numSynapses_) return false;
+  if (iteration_ != other.iteration_) return false;
+
+  return true;
 }
 
 bool Cell::operator==(const Cell &other) const

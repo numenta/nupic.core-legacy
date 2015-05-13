@@ -24,6 +24,7 @@
  * Implementation of unit tests for Connections
  */
 
+#include <fstream>
 #include <iostream>
 #include "ConnectionsTest.hpp"
 
@@ -51,6 +52,7 @@ namespace nupic {
     testActiveSegments();
     testNumSegments();
     testNumSynapses();
+    testWriteRead();
   }
 
   /**
@@ -454,6 +456,42 @@ namespace nupic {
     setupSampleConnections(connections);
 
     ASSERT_EQ(connections.numSynapses(), 8);
+  }
+
+  /**
+   * Creates a sample set of connections with destroyed segments/synapses,
+   * computes sample activity, and makes sure that we can write to a
+   * filestream and read it back correctly.
+   */
+  void ConnectionsTest::testWriteRead()
+  {
+    const char* filename = "ConnectionsSerialization.tmp";
+    Connections c1(1024), c2;
+    setupSampleConnections(c1);
+
+    Segment segment;
+    Cell cell, presynapticCell;
+
+    cell.idx = 10;
+    presynapticCell.idx = 400;
+    segment = c1.createSegment(cell);
+    c1.createSynapse(segment, presynapticCell, 0.5);
+    c1.destroySegment(segment);
+
+    computeSampleActivity(c1);
+
+    ofstream os(filename, ios::binary);
+    c1.write(os);
+    os.close();
+
+    ifstream is(filename, ios::binary);
+    c2.read(is);
+    is.close();
+
+    ASSERT_EQ(c1, c2);
+
+    int ret = ::remove(filename);
+    NTA_CHECK(ret == 0) << "Failed to delete " << filename;
   }
 
   void ConnectionsTest::setupSampleConnections(Connections &connections)
