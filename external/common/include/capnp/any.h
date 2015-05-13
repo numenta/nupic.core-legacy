@@ -256,6 +256,9 @@ struct AnyPointer {
     inline kj::Own<PipelineHook> releasePipelineHook() { return kj::mv(hook); }
     // For use by RPC implementations.
 
+    template <typename T, typename = kj::EnableIf<CAPNP_KIND(FromClient<T>) == Kind::INTERFACE>>
+    inline operator T() { return T(asCap()); }
+
   private:
     kj::Own<PipelineHook> hook;
     kj::Array<PipelineOp> ops;
@@ -565,7 +568,7 @@ public:
   inline uint size() { return _reader.size() / ELEMENTS; }
 
   template <typename T> ReaderFor<T> as() {
-  // T must be List<U>.
+    // T must be List<U>.
     return ReaderFor<T>(_reader);
   }
 private:
@@ -590,7 +593,7 @@ public:
   inline uint size() { return _builder.size() / ELEMENTS; }
 
   template <typename T> BuilderFor<T> as() {
-  // T must be List<U>.
+    // T must be List<U>.
     return BuilderFor<T>(_builder);
   }
 
