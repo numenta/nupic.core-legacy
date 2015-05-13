@@ -32,6 +32,8 @@
 #include <nupic/utils/Random.hpp>
 #include <nupic/algorithms/Connections.hpp>
 
+#include <nupic/proto/TemporalMemoryProto.capnp.h>
+
 using namespace std;
 using namespace nupic;
 using namespace nupic::algorithms::connections;
@@ -525,7 +527,7 @@ namespace nupic {
         virtual void save(ostream& outStream) const;
 
         virtual void write(ostream& stream) const;
-        //virtual void write(TemporalMemoryProto::Builder& proto) const;
+        virtual void write(TemporalMemoryProto::Builder& proto) const;
 
         /**
         Load (deserialize) and initialize the spatial pooler from the
@@ -536,7 +538,7 @@ namespace nupic {
         virtual void load(istream& inStream);
 
         virtual void read(istream& stream);
-        //virtual void read(TemporalMemoryProto::Reader& proto);
+        virtual void read(TemporalMemoryProto::Reader& proto);
 
         /**
         Returns the number of bytes that a save operation would result in.

@@ -37,7 +37,6 @@
 
 #include <nupic/algorithms/Connections.hpp>
 #include <nupic/algorithms/TemporalMemory.hpp>
-//#include <nupic/proto/TemporalMemoryProto.capnp.h>
 
 using namespace std;
 using namespace nupic;
@@ -1120,21 +1119,19 @@ void TemporalMemory::save(ostream& outStream) const
 
   outStream << "~TemporalMemory" << endl;
 }
-/*
+
 void TemporalMemory::write(TemporalMemoryProto::Builder& proto) const
 {
 }
-*/
+
 void TemporalMemory::write(ostream& stream) const
 {
-/*
   capnp::MallocMessageBuilder message;
   TemporalMemoryProto::Builder proto = message.initRoot<TemporalMemoryProto>();
   write(proto);
 
   kj::std::StdOutputStream out(stream);
   capnp::writeMessage(out, message);
-*/
 }
 
 // Implementation note: this method sets up the instance using data from
@@ -1142,19 +1139,17 @@ void TemporalMemory::write(ostream& stream) const
 // that everything in initialize is handled properly here.
 void TemporalMemory::read(istream& stream)
 {
-/*
   kj::std::StdInputStream in(stream);
 
   capnp::InputStreamMessageReader message(in);
   TemporalMemoryProto::Reader proto = message.getRoot<TemporalMemoryProto>();
   read(proto);
-*/
 }
-/*
+
 void TemporalMemory::read(TemporalMemoryProto::Reader& proto)
 {
 }
-*/
+
 void TemporalMemory::load(istream& inStream)
 {
   // Current version
