@@ -50,7 +50,7 @@ The following libraries are embedded into the `%NUPIC_CORE%/lib/nupic_core` libr
 | APR | **1.5.1** | apr-**1.5.1**-win32-src.zip | https://apr.apache.org/ |
 | Apr Util | **1.5.4** | apr-util-**1.5.4**-win32-src.zip | https://apr.apache.org/ |
 | Apr Iconv | **1.2.1** | apr-iconv-**1.2.1**-win32-src-r2.zip | https://apr.apache.org/ |
-| Cap'n Proto | **0.5.0** | capnproto-c++-win32-**0.5.0**.zip | https://capnproto.org |
+| Cap'n Proto | **0.5.2** | capnproto-c++-win32-**0.5.2**.zip | https://capnproto.org |
 | Yaml | **0.1.5** | yaml-**0.1.5**.tar.gz | http://pyyaml.org/wiki/LibYAML |
 | Yaml Cpp | **0.3.0** | yaml-cpp-**0.3.0**.tar.gz | https://code.google.com/p/yaml-cpp/ |
 | Z Lib | **1.2.8** | zlib-**1.2.8**.tar.gz | http://www.zlib.net/ |
@@ -77,15 +77,15 @@ apr.dsw and aprutil.dsw workspace files can be imported into Visual Studio 2015.
 
 ### Cap'n Proto
 
-Download version **0.5.0** from https://capnproto.org/capnproto-c++-win32-0.5.0.zip 
+Download version **0.5.2** from https://capnproto.org/capnproto-c++-win32-0.5.2.zip 
 
-The three executable files found in `%NUPIC_CORE_SOURCE%\build\capnproto-tools-win32-0.5.0` should match the corresponding `%NUPIC_CORE_SOURCE%\external\windows64\bin` executable files, and tie in with the external capnp and kj common include directories. 
+The three executable files found in `%NUPIC_CORE_SOURCE%\build\capnproto-tools-win32-0.5.2` should match the corresponding `%NUPIC_CORE_SOURCE%\external\windows64\bin` executable files, and tie in with the external capnp and kj common include directories. 
 
 Install instructions can be found at https://capnproto.org/install.html This is an example Visual Studio Command Prompt line to invoke cmake and generator a solution and project files for Cap'n Proto.
 
-> cd %NUPIC_CORE_SOURCE%\build\capnproto-c++-0.5.0  
+> cd %NUPIC_CORE_SOURCE%\build\capnproto-c++-0.5.2  
 > vcvarsall.bat  
-> cmake -G "Visual Studio 14 2015 Win64" -DCAPNP_LITE=1 -DEXTERNAL_CAPNP=1 -DCAPNP_INCLUDE_DIRS=..\\..\external\common\include -DCAPNP_LIB_KJ=.\ -DCAPNP_LIB_CAPNP=.\ -DCAPNP_EXECUTABLE="..\capnproto-tools-win32-0.5.0\capnpc-c++.exe"  
+> cmake -G "Visual Studio 14 2015 Win64" -DCAPNP_LITE=1 -DEXTERNAL_CAPNP=1 -DCAPNP_INCLUDE_DIRS=..\\..\external\common\include -DCAPNP_LIB_KJ=.\ -DCAPNP_LIB_CAPNP=.\ -DCAPNP_EXECUTABLE="..\capnproto-tools-win32-0.5.2\capnpc-c++.exe"  
  
 Building the test programs may halt a full build. But enough will be built for an Install, and finally copy out the new capnp.lib and kj.lib libraries.
 

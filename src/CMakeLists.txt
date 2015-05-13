@@ -124,7 +124,7 @@ include_directories(SYSTEM
                     "${PROJECT_BINARY_DIR}")
 
 #
-# Set linker (ld) 
+# Set linker (ld)
 # use ld.gold if available
 #
 execute_process(COMMAND ld.gold --version
@@ -156,7 +156,7 @@ endif()
 
 #
 # Enable Optimization flags here
-# these are quite aggresive flags, if your code misbehaves for strange reasons, try 
+# these are quite aggresive flags, if your code misbehaves for strange reasons, try
 # compiling without them.
 #
 if(NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
@@ -309,10 +309,12 @@ include_directories(${CAPNP_INCLUDE_DIRS})
 set(CAPNP_SPECS
     nupic/proto/BitHistory.capnp
     nupic/proto/ClaClassifier.capnp
+    nupic/proto/ConnectionsProto.capnp
     nupic/proto/RandomProto.capnp
     nupic/proto/SparseBinaryMatrixProto.capnp
     nupic/proto/SparseMatrixProto.capnp
     nupic/proto/SpatialPoolerProto.capnp
+    nupic/proto/TemporalMemoryProto.capnp
 )
 capnp_generate_cpp(CAPNP_SRCS CAPNP_HDRS ${CAPNP_SPECS})
 
@@ -603,8 +605,8 @@ if(UNIX)
                             ${EXECUTABLE_HELLOSPTP})
 else()
   add_custom_target(combined ALL
-                    COMMAND lib.exe /OUT:nupic_core.lib 
-                            $<TARGET_FILE:${LIB_STATIC_NUPICCORE}> 
+                    COMMAND lib.exe /OUT:nupic_core.lib
+                            $<TARGET_FILE:${LIB_STATIC_NUPICCORE}>
                             ${LIB_STATIC_YAML_CPP_LOC}
                             ${LIB_STATIC_YAML_LOC}
                             ${LIB_STATIC_APRUTIL1_LOC}
