@@ -12,7 +12,7 @@ commands thus look similar to this:
 curl -O https://capnproto.org/capnproto-c++-0.5.2.tar.gz
 tar zxf capnproto-c++-0.5.2.tar.gz
 cd capnproto-c++-0.5.2
-CXXFLAGS="-fPIC -std=c++11 -m64 -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-unused-parameter" ./configure --prefix=$HOME/nta/nupic.core/external/common --disable-shared
+LDFLAGS="-static-libgcc -static-libstdc++ -static" CXXFLAGS="-fPIC -std=c++11 -m64 -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-unused-parameter" ./configure --prefix=$HOME/nta/nupic.core/external/common --disable-shared
 make -j6 check
 make install
 
