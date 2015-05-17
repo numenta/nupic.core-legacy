@@ -74,7 +74,11 @@ namespace nupic {
     testNumberOfColumns();
     testNumberOfCells();
     testMapCellsToColumns();
-    testSaveLoad();
+    testWrite();
+
+    // Depreciated serialization method (incomplete due to lack of load & save 
+    // in Connections and Random classes). Replaced by Cap'n Proto read & write.
+    //testSaveLoad();
   }
 
   void TemporalMemoryTest::check_spatial_eq(const TemporalMemory& tm1, const TemporalMemory& tm2)
@@ -190,7 +194,7 @@ namespace nupic {
     tm.setConnectedPermanence(0.50);
     tm.setMinThreshold(1);
 
-    Connections connections = *tm.connections_;
+    Connections connections = tm.connections_;
     Segment segment = connections.createSegment(Cell(0));
     connections.createSynapse(segment, Cell(23), 0.6);
     connections.createSynapse(segment, Cell(37), 0.4);
@@ -237,7 +241,7 @@ namespace nupic {
     vector<UInt> predictiveCols = {};
     vector<Cell> prevActiveCells = {};
     vector<Cell> prevWinnerCells = {};
-    Connections connections = *tm.connections_;
+    Connections connections = tm.connections_;
 
     vector<Cell> activeCells;
     vector<Cell> winnerCells;
@@ -263,7 +267,7 @@ namespace nupic {
     setup(tm, 2048);
     tm.setMaxNewSynapseCount(2);
 
-    Connections connections = *tm.connections_;
+    Connections connections = tm.connections_;
     Segment segment0 = connections.createSegment(Cell(0));
     connections.createSynapse(segment0, Cell(23), 0.6);
     connections.createSynapse(segment0, Cell(37), 0.4);
@@ -322,7 +326,7 @@ namespace nupic {
     setup(tm, 2048);
     tm.setMaxNewSynapseCount(2);
 
-    Connections connections = *tm.connections_;
+    Connections connections = tm.connections_;
     Segment segment = connections.createSegment(Cell(0));
     connections.createSynapse(segment, Cell(23), 0.6);
     connections.createSynapse(segment, Cell(37), 0.5);
@@ -360,7 +364,7 @@ namespace nupic {
     tm.setConnectedPermanence(0.50);
     tm.setMinThreshold(1);
 
-    Connections connections = *tm.connections_;
+    Connections connections = tm.connections_;
 
     Segment segment = connections.createSegment(Cell(0));
     connections.createSynapse(segment, Cell(23), 0.6);
@@ -403,7 +407,7 @@ namespace nupic {
     tm.initialize(vector<UInt>{2}, 2);
     tm.setMinThreshold(1);
 
-    Connections connections = *tm.connections_;
+    Connections connections = tm.connections_;
     connections.createSynapse(connections.createSegment(Cell(0)), 3, 0.3);
 
     vector<Cell> activeSynapsesForSegment = {};
@@ -429,7 +433,7 @@ namespace nupic {
     setup(tm, 2048);
     tm.setMinThreshold(1);
 
-    Connections connections = *tm.connections_;
+    Connections connections = tm.connections_;
 
     Segment segment = connections.createSegment(Cell(0));
     connections.createSynapse(segment, Cell(23), 0.6);
@@ -476,7 +480,7 @@ namespace nupic {
     TemporalMemory tm;
     tm.initialize(vector<UInt>{2}, 2);
 
-    Connections connections = *tm.connections_;
+    Connections connections = tm.connections_;
     Segment* segment = NULL;
     connections.createSynapse(connections.createSegment(Cell(0)), 3, 0.3);
 
@@ -497,7 +501,7 @@ namespace nupic {
     vector<Synapse> synapses;
     bool eq;
 
-    Connections connections = *tm.connections_;
+    Connections connections = tm.connections_;
     Segment segment = connections.createSegment(Cell(0));
     connections.createSynapse(segment, Cell(23), 0.6);
     connections.createSynapse(segment, Cell(37), 0.4);
@@ -519,7 +523,7 @@ namespace nupic {
     vector<Synapse> synapses;
     bool eq;
 
-    Connections connections = *tm.connections_;
+    Connections connections = tm.connections_;
     Segment segment = connections.createSegment(Cell(0));
     synapses.push_back(connections.createSynapse(segment, Cell(23), 0.9));
 
@@ -538,7 +542,7 @@ namespace nupic {
     vector<Synapse> synapses = { Synapse(-1, Segment(-1, Cell(0))) };
     bool eq;
 
-    Connections connections = *tm.connections_;
+    Connections connections = tm.connections_;
     Segment segment = connections.createSegment(Cell(0));
     connections.createSynapse(segment, Cell(23), 0.1);
 
@@ -557,7 +561,7 @@ namespace nupic {
     TemporalMemory tm;
     setup(tm, 2048);
 
-    Connections connections = *tm.connections_;
+    Connections connections = tm.connections_;
     Segment segment = connections.createSegment(Cell(0));
 
     vector<Cell> winnerCells = { Cell(4), Cell(47), Cell(58), Cell(93) };
@@ -583,7 +587,7 @@ namespace nupic {
     TemporalMemory tm;
     setup(tm, 2048);
 
-    Connections connections = *tm.connections_;
+    Connections connections = tm.connections_;
     Segment segment = connections.createSegment(Cell(0));
     connections.createSynapse(segment, 23, 0.6);
 
@@ -733,6 +737,56 @@ namespace nupic {
     NTA_CHECK(ret == 0) << "Failed to delete " << filename;
   }
 
+  void TemporalMemoryTest::testWrite()
+  {
+    const char* filename = "TemporalMemorySerialization.tmp";
+    TemporalMemory tm1, tm2;
+
+    tm1.initialize({ 100 }, 4, 7, 2048, 0.37, 0.58, 4, 18, 0.23, 0.08, 91);
+/*
+    // Run some data through before serializing
+    patternMachine = PatternMachine(100, 4);
+    sequenceMachine = SequenceMachine(self.patternMachine);
+    sequence = self.sequenceMachine.generateFromNumbers(range(5));
+    for (UInt i = 0; i < 3; i++)
+    {
+      for (auto pattern : sequence)
+        tm1.compute(pattern);
+    }
+*/
+    // Write the proto to a temp file and read it back into a new proto
+    ofstream outfile(filename, ios::binary);
+    tm1.write(outfile);
+    outfile.close();
+    outfile.seekp(0);
+
+    // Load the deserialized proto
+    ifstream infile(filename, ios::binary);
+    tm2.read(infile);
+    infile.close();
+
+    // Check that the two temporal memory objects have the same attributes
+    check_spatial_eq(tm1, tm2);
+
+    // Run a couple records through after deserializing and check results match
+/*  tm1.compute(self.patternMachine.get(0))
+    tm2.compute(self.patternMachine.get(0))
+    self.assertEqual(tm1.activeCells, tm2.activeCells)
+    self.assertEqual(tm1.predictiveCells, tm2.predictiveCells)
+    self.assertEqual(tm1.winnerCells, tm2.winnerCells)
+    self.assertEqual(tm1.connections, tm2.connections)
+
+    tm1.compute(self.patternMachine.get(3))
+    tm2.compute(self.patternMachine.get(3))
+    self.assertEqual(tm1.activeCells, tm2.activeCells)
+    self.assertEqual(tm1.predictiveCells, tm2.predictiveCells)
+    self.assertEqual(tm1.winnerCells, tm2.winnerCells)
+    self.assertEqual(tm1.connections, tm2.connections)
+*/
+    int ret = ::remove(filename);
+    NTA_CHECK(ret == 0) << "Failed to delete " << filename;
+  }
+
   void TemporalMemoryTest::print_vec(UInt arr[], UInt n)
   {
     for (UInt i = 0; i < n; i++) {
@@ -862,5 +916,4 @@ namespace nupic {
     }
     return true;
   }
-
 } // end namespace nupic

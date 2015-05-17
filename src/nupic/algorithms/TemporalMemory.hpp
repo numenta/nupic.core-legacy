@@ -54,16 +54,16 @@ namespace nupic {
         TemporalMemory();
         TemporalMemory(
           vector<UInt> columnDimensions,
-          Int cellsPerColumn=32,
-          Int activationThreshold=13,
-          Int learningRadius=2048,
-          Permanence initialPermanence=0.21,
-          Permanence connectedPermanence=0.50,
-          Int minThreshold=10,
-          Int maxNewSynapseCount=20,
-          Permanence permanenceIncrement=0.10,
-          Permanence permanenceDecrement=0.10,
-          Int seed=1);
+          Int cellsPerColumn = 32,
+          Int activationThreshold = 13,
+          Int learningRadius = 2048,
+          Permanence initialPermanence = 0.21,
+          Permanence connectedPermanence = 0.50,
+          Int minThreshold = 10,
+          Int maxNewSynapseCount = 20,
+          Permanence permanenceIncrement = 0.10,
+          Permanence permanenceDecrement = 0.10,
+          Int seed = 1);
 
         virtual ~TemporalMemory();
 
@@ -83,17 +83,17 @@ namespace nupic {
           @param seed                 Seed for the random number generator.
         */
         virtual void initialize(
-          vector<UInt> columnDimensions={ 2048 },
-          Int cellsPerColumn=32,
-          Int activationThreshold=13,
-          Int learningRadius=2048,
-          Permanence initialPermanence=0.21,
-          Permanence connectedPermanence=0.50,
-          Int minThreshold=10,
-          Int maxNewSynapseCount=20,
-          Permanence permanenceIncrement=0.10,
-          Permanence permanenceDecrement=0.10,
-          Int seed=1);
+          vector<UInt> columnDimensions = { 2048 },
+          Int cellsPerColumn = 32,
+          Int activationThreshold = 13,
+          Int learningRadius = 2048,
+          Permanence initialPermanence = 0.21,
+          Permanence connectedPermanence = 0.50,
+          Int minThreshold = 10,
+          Int maxNewSynapseCount = 20,
+          Permanence permanenceIncrement = 0.10,
+          Permanence permanenceDecrement = 0.10,
+          Int seed = 1);
 
         // ==============================
         //  Main functions
@@ -151,7 +151,7 @@ namespace nupic {
           vector<Cell>& prevActiveCells,
           vector<Cell>& prevWinnerCells,
           Connections& connections,
-          bool learn=true);
+          bool learn = true);
 
         // ==============================
         //  Phases
@@ -178,8 +178,8 @@ namespace nupic {
          */
         virtual tuple<vector<Cell>, vector<Cell>, vector<UInt>>
           activateCorrectlyPredictiveCells(
-          vector<Cell>& prevPredictiveCells,
-          vector<UInt>& activeColumns);
+            vector<Cell>& prevPredictiveCells,
+            vector<UInt>& activeColumns);
 
         /*
          * Phase 2 : Burst unpredicted columns.
@@ -517,7 +517,7 @@ namespace nupic {
         * @param permanence (float) Permanence
         */
         bool _validatePermanence(Real permanence);
-          
+
         /**
         Save (serialize) the current state of the spatial pooler to the
         specified file.
@@ -588,7 +588,7 @@ namespace nupic {
         vector<Cell> winnerCells_;
         vector<Segment> activeSegments_;
         vector<Segment> learningSegments_;
-        Connections* connections_;
+        Connections connections_;
       };
     } // end namespace temporal_memory
   } // end namespace algorithms

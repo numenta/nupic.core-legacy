@@ -76,6 +76,7 @@ namespace nupic {
     void testNumberOfCells();
     void testMapCellsToColumns();
     void testSaveLoad();
+    void testWrite();
 
     bool check_vector_eq(UInt arr[], vector<UInt> vec);
     bool check_vector_eq(Real arr[], vector<Real> vec);
