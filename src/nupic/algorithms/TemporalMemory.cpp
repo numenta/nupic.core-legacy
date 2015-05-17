@@ -1143,6 +1143,7 @@ void TemporalMemory::write(TemporalMemoryProto::Builder& proto) const
 
   proto.setCellsPerColumn(cellsPerColumn_);
   proto.setActivationThreshold(activationThreshold_);
+  proto.setLearningRadius(learningRadius_);
   proto.setInitialPermanence(initialPermanence_);
   proto.setConnectedPermanence(connectedPermanence_);
   proto.setMinThreshold(minThreshold_);
@@ -1217,6 +1218,7 @@ void TemporalMemory::read(TemporalMemoryProto::Reader& proto)
 
   cellsPerColumn_ = proto.getCellsPerColumn();
   activationThreshold_ = proto.getActivationThreshold();
+  learningRadius_ = proto.getLearningRadius();
   initialPermanence_ = proto.getInitialPermanence();
   connectedPermanence_ = proto.getConnectedPermanence();
   minThreshold_ = proto.getMinThreshold();
