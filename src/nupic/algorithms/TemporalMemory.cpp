@@ -1224,9 +1224,11 @@ void TemporalMemory::read(TemporalMemoryProto::Reader& proto)
   permanenceIncrement_ = proto.getPermanenceIncrement();
   permanenceDecrement_ = proto.getPermanenceDecrement();
 
-  connections_.read(proto.getConnections());
+  auto connections = proto.getConnections();
+  connections_.read(connections);
   
-  _rng.read(proto.getRandom());
+  auto random = proto.getRandom();
+  _rng.read(random);
 
   activeCells_.clear();
   for (auto value : proto.getActiveCells())
