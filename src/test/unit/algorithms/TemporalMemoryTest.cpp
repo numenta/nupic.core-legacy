@@ -86,7 +86,6 @@ namespace nupic {
     NTA_CHECK(tm1.getNumColumns() == tm2.getNumColumns());
     NTA_CHECK(tm1.getCellsPerColumn() == tm2.getCellsPerColumn());
     NTA_CHECK(tm1.getActivationThreshold() == tm2.getActivationThreshold());
-    NTA_CHECK(tm1.getLearningRadius() == tm2.getLearningRadius());
     NTA_CHECK(tm1.getMinThreshold() == tm2.getMinThreshold());
     NTA_CHECK(tm1.getMaxNewSynapseCount() == tm2.getMaxNewSynapseCount());
     TEST(nupic::nearlyEqual(tm1.getInitialPermanence(), tm2.getInitialPermanence()));
@@ -742,7 +741,7 @@ namespace nupic {
     const char* filename = "TemporalMemorySerialization.tmp";
     TemporalMemory tm1, tm2;
 
-    tm1.initialize({ 100 }, 4, 7, 2048, 0.37, 0.58, 4, 18, 0.23, 0.08, 91);
+    tm1.initialize({ 100 }, 4, 7, 0.37, 0.58, 4, 18, 0.23, 0.08, 91);
 /*
     // Run some data through before serializing
     patternMachine = PatternMachine(100, 4);

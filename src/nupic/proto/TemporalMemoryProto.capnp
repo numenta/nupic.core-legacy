@@ -10,21 +10,20 @@ struct TemporalMemoryProto {
   columnDimensions @0 :List(UInt32);
   cellsPerColumn @1 :UInt32;
   activationThreshold @2 :UInt32;
-  learningRadius @3 :UInt32;
-  initialPermanence @4 :Float32;
-  connectedPermanence @5 :Float32;
-  minThreshold @6 :UInt32;
-  maxNewSynapseCount @7 :UInt32;
-  permanenceIncrement @8 :Float32;
-  permanenceDecrement @9 :Float32;
+  initialPermanence @3 :Float32;
+  connectedPermanence @4 :Float32;
+  minThreshold @5 :UInt32;
+  maxNewSynapseCount @6 :UInt32;
+  permanenceIncrement @7 :Float32;
+  permanenceDecrement @8 :Float32;
 
-  connections @10 :ConnectionsProto;
-  random @11 :RandomProto;
+  connections @9 :ConnectionsProto;
+  random @10 :RandomProto;
 
   # Lists of indices
-  activeCells @12 :List(UInt32);
-  predictiveCells @13 :List(UInt32);
-  activeSegments @14 :List(UInt32);
-  winnerCells @15 :List(UInt32);
+  activeCells @11 :List(UInt32);
+  predictiveCells @12 :List(UInt32);
+  activeSegments @13 :List(UInt32);
+  winnerCells @14 :List(UInt32);
 
 }

@@ -46,26 +46,12 @@ using namespace nupic::algorithms::temporal_memory;
 TemporalMemory::TemporalMemory()
 {
   version_ = 1;
-
-  // Setup defaults (not all get serialized)
-  numColumns_ = 0;
-  columnDimensions_.clear();
-  cellsPerColumn_ = 32;
-  activationThreshold_ = 13;
-  learningRadius_ = 2048;
-  minThreshold_ = 10;
-  maxNewSynapseCount_ = 20;
-  initialPermanence_ = 0.21;
-  connectedPermanence_ = 0.50;
-  permanenceIncrement_ = 0.10;
-  permanenceDecrement_ = 0.10;
 }
 
 TemporalMemory::TemporalMemory(
   vector<UInt> columnDimensions,
   Int cellsPerColumn,
   Int activationThreshold,
-  Int learningRadius,
   Permanence initialPermanence,
   Permanence connectedPermanence,
   Int minThreshold,
@@ -78,7 +64,6 @@ TemporalMemory::TemporalMemory(
     columnDimensions,
     cellsPerColumn,
     activationThreshold,
-    learningRadius,
     initialPermanence,
     connectedPermanence,
     minThreshold,
@@ -98,7 +83,6 @@ TemporalMemory::~TemporalMemory()
  @param columnDimensions     Dimensions of the column space
  @param cellsPerColumn       Number of cells per column
  @param activationThreshold  If the number of active connected synapses on a segment is at least this threshold, the segment is said to be active.
- @param learningRadius       Radius around cell from which it can sample to form distal dendrite connections.
  @param initialPermanence    Initial permanence of a new synapse.
  @param connectedPermanence  If the permanence value for a synapse is greater than this value, it is said to be connected.
  @param minThreshold         If the number of synapses active on a segment is at least this threshold, it is selected as the best matching cell in a bursting column.
@@ -111,7 +95,6 @@ void TemporalMemory::initialize(
   vector<UInt> columnDimensions,
   Int cellsPerColumn,
   Int activationThreshold,
-  Int learningRadius,
   Permanence initialPermanence,
   Permanence connectedPermanence,
   Int minThreshold,
@@ -141,7 +124,6 @@ void TemporalMemory::initialize(
 
   cellsPerColumn_ = cellsPerColumn;
   activationThreshold_ = activationThreshold;
-  learningRadius_ = learningRadius;
   initialPermanence_ = initialPermanence;
   connectedPermanence_ = connectedPermanence;
   minThreshold_ = minThreshold;
@@ -982,16 +964,6 @@ void TemporalMemory::setActivationThreshold(Int activationThreshold)
   activationThreshold_ = activationThreshold;
 }
 
-Int TemporalMemory::getLearningRadius() const
-{
-  return learningRadius_;
-}
-
-void TemporalMemory::setLearningRadius(Int learningRadius)
-{
-  learningRadius_ = learningRadius;
-}
-
 Permanence TemporalMemory::getInitialPermanence() const
 {
   return initialPermanence_;
@@ -1077,7 +1049,6 @@ void TemporalMemory::save(ostream& outStream) const
   outStream << numColumns_ << " "
     << cellsPerColumn_ << " "
     << activationThreshold_ << " "
-    << learningRadius_ << " "
     << initialPermanence_ << " "
     << connectedPermanence_ << " "
     << minThreshold_ << " "
@@ -1143,7 +1114,6 @@ void TemporalMemory::write(TemporalMemoryProto::Builder& proto) const
 
   proto.setCellsPerColumn(cellsPerColumn_);
   proto.setActivationThreshold(activationThreshold_);
-  proto.setLearningRadius(learningRadius_);
   proto.setInitialPermanence(initialPermanence_);
   proto.setConnectedPermanence(connectedPermanence_);
   proto.setMinThreshold(minThreshold_);
@@ -1218,7 +1188,6 @@ void TemporalMemory::read(TemporalMemoryProto::Reader& proto)
 
   cellsPerColumn_ = proto.getCellsPerColumn();
   activationThreshold_ = proto.getActivationThreshold();
-  learningRadius_ = proto.getLearningRadius();
   initialPermanence_ = proto.getInitialPermanence();
   connectedPermanence_ = proto.getConnectedPermanence();
   minThreshold_ = proto.getMinThreshold();
@@ -1277,7 +1246,6 @@ void TemporalMemory::load(istream& inStream)
   inStream >> numColumns_
     >> cellsPerColumn_
     >> activationThreshold_
-    >> learningRadius_
     >> initialPermanence_
     >> connectedPermanence_
     >> minThreshold_
@@ -1351,7 +1319,6 @@ void TemporalMemory::printParameters()
     << "numColumns                  = " << getNumColumns() << std::endl
     << "cellsPerColumn              = " << getCellsPerColumn() << std::endl
     << "activationThreshold         = " << getActivationThreshold() << std::endl
-    << "learningRadius              = " << getLearningRadius() << std::endl
     << "initialPermanence           = " << getInitialPermanence() << std::endl
     << "connectedPermanence         = " << getConnectedPermanence() << std::endl
     << "minThreshold                = " << getMinThreshold() << std::endl

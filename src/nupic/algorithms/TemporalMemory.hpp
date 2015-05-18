@@ -56,7 +56,6 @@ namespace nupic {
           vector<UInt> columnDimensions,
           Int cellsPerColumn = 32,
           Int activationThreshold = 13,
-          Int learningRadius = 2048,
           Permanence initialPermanence = 0.21,
           Permanence connectedPermanence = 0.50,
           Int minThreshold = 10,
@@ -73,7 +72,6 @@ namespace nupic {
           @param columnDimensions     Dimensions of the column space
           @param cellsPerColumn       Number of cells per column
           @param activationThreshold  If the number of active connected synapses on a segment is at least this threshold, the segment is said to be active.
-          @param learningRadius       Radius around cell from which it can sample to form distal dendrite connections.
           @param initialPermanence    Initial permanence of a new synapse.
           @param connectedPermanence  If the permanence value for a synapse is greater than this value, it is said to be connected.
           @param minThreshold         If the number of synapses active on a segment is at least this threshold, it is selected as the best matching cell in a bursting column.
@@ -86,7 +84,6 @@ namespace nupic {
           vector<UInt> columnDimensions = { 2048 },
           Int cellsPerColumn = 32,
           Int activationThreshold = 13,
-          Int learningRadius = 2048,
           Permanence initialPermanence = 0.21,
           Permanence connectedPermanence = 0.50,
           Int minThreshold = 10,
@@ -435,14 +432,6 @@ namespace nupic {
         void setActivationThreshold(Int);
 
         /**
-        Returns the learning radius.
-
-        @returns Integer number of learning radius.
-        */
-        Int getLearningRadius() const;
-        void setLearningRadius(Int);
-
-        /**
         Returns the initial permanence.
 
         @returns Initial permanence.
@@ -571,7 +560,6 @@ namespace nupic {
         vector<UInt> columnDimensions_;
         Int cellsPerColumn_;
         Int activationThreshold_;
-        Int learningRadius_;
         Int minThreshold_;
         Int maxNewSynapseCount_;
         Permanence initialPermanence_;
