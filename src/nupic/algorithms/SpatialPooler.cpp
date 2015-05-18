@@ -587,7 +587,7 @@ void SpatialPooler::initialize(vector<UInt> inputDimensions,
   {
     vector<UInt> potential = mapPotential_(i, wrapAround_);
     vector<Real> perm = initPermanence_(potential, initConnectedPct_);
-    potentialPools_.rowFromDense(i,potential.begin(),potential.end());
+    potentialPools_.rowFromSparse(i,potential.begin(),potential.end());
     updatePermanencesForColumn_(perm,i,true);
   }
 
@@ -685,7 +685,6 @@ UInt SpatialPooler::mapColumn_(UInt column)
 
 vector<UInt> SpatialPooler::mapPotential_(UInt column, bool wrapAround)
 {
-  vector<UInt> potential(numInputs_, 0);
   vector<UInt> indices;
   UInt index;
 
@@ -702,11 +701,7 @@ vector<UInt> SpatialPooler::mapPotential_(UInt column, bool wrapAround)
   rng_.sample(&indices.front(), indices.size(),
               &selectedIndices.front(), numPotential);
 
-  for (UInt i = 0; i < numPotential; i++) {
-    potential[selectedIndices[i]] = 1;
-  }
-
-  return potential;
+  return selectedIndices;
 }
 
 Real SpatialPooler::initPermConnected_()

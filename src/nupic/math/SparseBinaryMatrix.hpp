@@ -1579,6 +1579,24 @@ namespace nupic {
     }
 
     //--------------------------------------------------------------------------------
+    template <typename InputIterator>
+    inline void
+    rowFromSparse(size_type row, InputIterator begin, InputIterator end)
+    {
+      { // Pre-conditions
+        NTA_ASSERT(row < nRows())
+          << "SparseBinaryMatrix::rowFromDense: "
+          << "Invalid row index: " << row;
+      } // End pre-conditions
+
+      ind_[row].clear();
+      for (InputIterator it = begin; it != end; ++it)
+        if (!nearlyZero(*it))
+          ind_[row].push_back(*it);
+    }
+
+
+    //--------------------------------------------------------------------------------
     template <typename OutputIterator>
     inline void
     rowToDense(size_type row, OutputIterator begin, OutputIterator end) const
