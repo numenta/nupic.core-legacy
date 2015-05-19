@@ -213,7 +213,7 @@ TemporalMemory::computeFn(
 
   for (UInt i = 0; i < numColumns_; i++)
   {
-    _activeColumns.push_back(1);
+    _activeColumns.push_back(activeColumns[i]);
   }
 
   activeCells.clear();
