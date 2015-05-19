@@ -79,6 +79,7 @@ namespace nupic {
     // Depreciated serialization method (incomplete due to lack of load & save 
     // in Connections and Random classes). Replaced by Cap'n Proto read & write.
     //testSaveLoad();
+
   }
 
   void TemporalMemoryTest::check_spatial_eq(const TemporalMemory& tm1, const TemporalMemory& tm2)
@@ -193,7 +194,7 @@ namespace nupic {
     tm.setConnectedPermanence(0.50);
     tm.setMinThreshold(1);
 
-    Connections connections = tm.connections_;
+    Connections connections = tm.connections;
     Segment segment = connections.createSegment(Cell(0));
     connections.createSynapse(segment, Cell(23), 0.6);
     connections.createSynapse(segment, Cell(37), 0.4);
@@ -240,7 +241,7 @@ namespace nupic {
     vector<UInt> predictiveCols = {};
     vector<Cell> prevActiveCells = {};
     vector<Cell> prevWinnerCells = {};
-    Connections connections = tm.connections_;
+    Connections connections = tm.connections;
 
     vector<Cell> activeCells;
     vector<Cell> winnerCells;
@@ -266,7 +267,7 @@ namespace nupic {
     setup(tm, 2048);
     tm.setMaxNewSynapseCount(2);
 
-    Connections connections = tm.connections_;
+    Connections connections = tm.connections;
     Segment segment0 = connections.createSegment(Cell(0));
     connections.createSynapse(segment0, Cell(23), 0.6);
     connections.createSynapse(segment0, Cell(37), 0.4);
@@ -325,7 +326,7 @@ namespace nupic {
     setup(tm, 2048);
     tm.setMaxNewSynapseCount(2);
 
-    Connections connections = tm.connections_;
+    Connections connections = tm.connections;
     Segment segment = connections.createSegment(Cell(0));
     connections.createSynapse(segment, Cell(23), 0.6);
     connections.createSynapse(segment, Cell(37), 0.5);
@@ -349,8 +350,8 @@ namespace nupic {
 
     vector<Segment> expectedActiveSegments = {};
     vector<Cell> expectedPredictiveCells = {};
-    NTA_CHECK(check_vector_eq(tm.activeSegments_, expectedActiveSegments));
-    NTA_CHECK(check_vector_eq(tm.predictiveCells_, expectedPredictiveCells));
+    NTA_CHECK(check_vector_eq(tm.activeSegments, expectedActiveSegments));
+    NTA_CHECK(check_vector_eq(tm.predictiveCells, expectedPredictiveCells));
   }
 
   void TemporalMemoryTest::testBestMatchingCell()
@@ -363,7 +364,7 @@ namespace nupic {
     tm.setConnectedPermanence(0.50);
     tm.setMinThreshold(1);
 
-    Connections connections = tm.connections_;
+    Connections connections = tm.connections;
 
     Segment segment = connections.createSegment(Cell(0));
     connections.createSynapse(segment, Cell(23), 0.6);
@@ -406,7 +407,7 @@ namespace nupic {
     tm.initialize(vector<UInt>{2}, 2);
     tm.setMinThreshold(1);
 
-    Connections connections = tm.connections_;
+    Connections connections = tm.connections;
     connections.createSynapse(connections.createSegment(Cell(0)), 3, 0.3);
 
     vector<Cell> activeSynapsesForSegment = {};
@@ -432,7 +433,7 @@ namespace nupic {
     setup(tm, 2048);
     tm.setMinThreshold(1);
 
-    Connections connections = tm.connections_;
+    Connections connections = tm.connections;
 
     Segment segment = connections.createSegment(Cell(0));
     connections.createSynapse(segment, Cell(23), 0.6);
@@ -479,7 +480,7 @@ namespace nupic {
     TemporalMemory tm;
     tm.initialize(vector<UInt>{2}, 2);
 
-    Connections connections = tm.connections_;
+    Connections connections = tm.connections;
     Segment* segment = NULL;
     connections.createSynapse(connections.createSegment(Cell(0)), 3, 0.3);
 
@@ -500,7 +501,7 @@ namespace nupic {
     vector<Synapse> synapses;
     bool eq;
 
-    Connections connections = tm.connections_;
+    Connections connections = tm.connections;
     Segment segment = connections.createSegment(Cell(0));
     connections.createSynapse(segment, Cell(23), 0.6);
     connections.createSynapse(segment, Cell(37), 0.4);
@@ -522,7 +523,7 @@ namespace nupic {
     vector<Synapse> synapses;
     bool eq;
 
-    Connections connections = tm.connections_;
+    Connections connections = tm.connections;
     Segment segment = connections.createSegment(Cell(0));
     synapses.push_back(connections.createSynapse(segment, Cell(23), 0.9));
 
@@ -541,7 +542,7 @@ namespace nupic {
     vector<Synapse> synapses = { Synapse(-1, Segment(-1, Cell(0))) };
     bool eq;
 
-    Connections connections = tm.connections_;
+    Connections connections = tm.connections;
     Segment segment = connections.createSegment(Cell(0));
     connections.createSynapse(segment, Cell(23), 0.1);
 
@@ -560,7 +561,7 @@ namespace nupic {
     TemporalMemory tm;
     setup(tm, 2048);
 
-    Connections connections = tm.connections_;
+    Connections connections = tm.connections;
     Segment segment = connections.createSegment(Cell(0));
 
     vector<Cell> winnerCells = { Cell(4), Cell(47), Cell(58), Cell(93) };
@@ -586,7 +587,7 @@ namespace nupic {
     TemporalMemory tm;
     setup(tm, 2048);
 
-    Connections connections = tm.connections_;
+    Connections connections = tm.connections;
     Segment segment = connections.createSegment(Cell(0));
     connections.createSynapse(segment, 23, 0.6);
 

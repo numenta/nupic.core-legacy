@@ -30,7 +30,7 @@ skip_commits:
 #---------------------------------#
 
 # Operating system (build VM template)
-os: Visual Studio 2015 CTP
+os: Visual Studio 2015 RC
 
 init:
   - git config --global core.autocrlf input

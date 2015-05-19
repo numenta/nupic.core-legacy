@@ -571,12 +571,12 @@ namespace nupic {
         Random _rng;
 
       public:
-        vector<Cell> predictiveCells_;
-        vector<Cell> activeCells_;
-        vector<Cell> winnerCells_;
-        vector<Segment> activeSegments_;
-        vector<Segment> learningSegments_;
-        Connections connections_;
+        vector<Cell> predictiveCells;
+        vector<Cell> activeCells;
+        vector<Cell> winnerCells;
+        vector<Segment> activeSegments;
+        vector<Segment> learningSegments;
+        Connections connections;
       };
     } // end namespace temporal_memory
   } // end namespace algorithms
