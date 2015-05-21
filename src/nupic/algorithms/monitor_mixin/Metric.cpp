@@ -66,7 +66,8 @@ Metric<TraceType> Metric<TraceType>::createFromTrace(Trace<TraceType>& trace)
   _sum = _mean = _standardDeviation = 0.0;
 
   _data = trace._data;
-  _computeStats(vector<int>{});
+  Trace<vector<UInt>> resets;
+  _computeStats(resets);
 
   return ret;
 }
@@ -114,7 +115,7 @@ string Metric<TraceType>::prettyPrintTitle()
 }
 
 template<typename TraceType>
-void Metric<TraceType>::_computeStats(Trace<vector<int>>& resets)
+void Metric<TraceType>::_computeStats(Trace<vector<UInt>>& resets)
 {
   if (_data.size() == 0)
     return;
@@ -124,7 +125,7 @@ void Metric<TraceType>::_computeStats(Trace<vector<int>>& resets)
   _sum = _mean = _standardDeviation = 0.0;
 }
 
-void MetricsVector::_computeStats(Trace<vector<int>>& resets)
+void MetricsVector::_computeStats(Trace<vector<UInt>>& resets)
 {
   if (_data.size() == 0)
     return;
@@ -160,9 +161,9 @@ void MetricsVector::_computeStats(Trace<vector<int>>& resets)
 
 }
 
-Metric<vector<int>> MetricsVector::createFromTrace(Trace<vector<int>>& trace)
+Metric<vector<UInt>> MetricsVector::createFromTrace(Trace<vector<UInt>>& trace)
 {
-  Metric<vector<int>> ret;
+  Metric<vector<UInt>> ret;
   ret._monitor = *trace._monitor;
   ret._title = trace._title;
   ret._data = trace._data;
@@ -171,15 +172,15 @@ Metric<vector<int>> MetricsVector::createFromTrace(Trace<vector<int>>& trace)
   ret._max = -1000000000.0;
   ret._sum = ret._mean = ret._standardDeviation = 0.0;
 
-  vector<int> resets;
+  Trace<vector<UInt>> resets;
   ret._computeStats(resets);
 
   return ret;
 }
 
-Metric<vector<int>> MetricsVector::createFromTrace(Trace<vector<int>>& trace, Trace<vector<int>>& resets)
+Metric<vector<UInt>> MetricsVector::createFromTrace(Trace<vector<UInt>>& trace, Trace<vector<UInt>>& resets)
 {
-  Metric<vector<int>> ret;
+  Metric<vector<UInt>> ret;
   ret._monitor = *trace._monitor;
   ret._title = trace._title;
   ret._data = trace._data;
@@ -189,7 +190,6 @@ Metric<vector<int>> MetricsVector::createFromTrace(Trace<vector<int>>& trace, Tr
   ret._sum = ret._mean = ret._standardDeviation = 0.0;
 
   ret._computeStats(resets);
-
   return ret;
 }
 

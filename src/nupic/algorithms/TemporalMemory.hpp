@@ -1,6 +1,6 @@
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
+ * Copyright (C) 2013-2015, Numenta, Inc.  Unless you have an agreement
  * with Numenta, Inc., for a separate license for this software code, the
  * following terms and conditions apply:
  *
@@ -32,6 +32,8 @@
 #include <nupic/utils/Random.hpp>
 #include <nupic/algorithms/Connections.hpp>
 
+#include <nupic/proto/TemporalMemoryProto.capnp.h>
+
 using namespace std;
 using namespace nupic;
 using namespace nupic::algorithms::connections;
@@ -50,7 +52,19 @@ namespace nupic {
       class TemporalMemory {
       public:
         TemporalMemory();
-        
+
+        TemporalMemory(
+          vector<UInt> columnDimensions,
+          Int cellsPerColumn = 32,
+          Int activationThreshold = 13,
+          Permanence initialPermanence = 0.21,
+          Permanence connectedPermanence = 0.50,
+          Int minThreshold = 10,
+          Int maxNewSynapseCount = 20,
+          Permanence permanenceIncrement = 0.10,
+          Permanence permanenceDecrement = 0.10,
+          Int seed = 1);
+
         virtual ~TemporalMemory();
 
         /**
@@ -59,7 +73,6 @@ namespace nupic {
           @param columnDimensions     Dimensions of the column space
           @param cellsPerColumn       Number of cells per column
           @param activationThreshold  If the number of active connected synapses on a segment is at least this threshold, the segment is said to be active.
-          @param learningRadius       Radius around cell from which it can sample to form distal dendrite connections.
           @param initialPermanence    Initial permanence of a new synapse.
           @param connectedPermanence  If the permanence value for a synapse is greater than this value, it is said to be connected.
           @param minThreshold         If the number of synapses active on a segment is at least this threshold, it is selected as the best matching cell in a bursting column.
@@ -72,7 +85,6 @@ namespace nupic {
           vector<UInt> columnDimensions = { 2048 },
           Int cellsPerColumn = 32,
           Int activationThreshold = 13,
-          Int learningRadius = 2048,
           Permanence initialPermanence = 0.21,
           Permanence connectedPermanence = 0.50,
           Int minThreshold = 10,
@@ -85,12 +97,24 @@ namespace nupic {
         //  Main functions
         // ==============================
 
-        /*
-         * Indicates the start of a new sequence.Resets sequence state of the TM.
+        void seed_(UInt64 seed);
+
+        /**
+         * Get the version number of this temporal memory.
+         *
+         * @returns Integer version number.
+         */
+        virtual UInt version() const {
+          return version_;
+        };
+
+        /**
+         * Indicates the start of a new sequence.
+         * Resets sequence state of the TM.
          */
         virtual void reset();
 
-        /*
+        /**
          * Feeds input record through TM, performing inference and learning.
          * Updates member variables with new state.
          *
@@ -99,25 +123,7 @@ namespace nupic {
          */
         virtual void compute(UInt activeColumns[], bool learn = true);
 
-        // Implementation note: this method sets up the instance using data from
-        // inStream. This method does not call initialize. As such we have to be careful
-        // that everything in initialize is handled properly here.
-        
-        void load(istream& inStream);
-        void save(ostream& outStream) const;
-
         /**
-        Returns the number of bytes that a save operation would result in.
-        Note: this method is currently somewhat inefficient as it just does
-        a full save into an ostream and counts the resulting size.
-
-        @returns Integer number of bytes
-        */
-        virtual UInt persistentSize() const;
-
-        void seed_(UInt64 seed);
-
-        /*
          * 'Functional' version of compute.
          * Returns new state.
          *
@@ -136,21 +142,20 @@ namespace nupic {
          *  `predictiveCells`   (set),
          *  'predictedColumns'  (set)
          */
-        tuple<vector<Cell>, vector<Cell>, set<Segment>, vector<Cell>, vector<UInt>> computeFn(
+        tuple<vector<Cell>, vector<Cell>, vector<Segment>, vector<Cell>, vector<UInt>> computeFn(
           UInt activeColumns[],
           vector<Cell>& prevPredictiveCells,
-          set<Segment>& prevActiveSegments,
+          vector<Segment>& prevActiveSegments,
           vector<Cell>& prevActiveCells,
           vector<Cell>& prevWinnerCells,
           Connections& connections,
           bool learn = true);
 
-
         // ==============================
         //  Phases
         // ==============================
 
-        /*
+        /**
          * Phase 1 : Activate the correctly predictive cells.
          *
          * Pseudocode :
@@ -171,10 +176,10 @@ namespace nupic {
          */
         virtual tuple<vector<Cell>, vector<Cell>, vector<UInt>>
           activateCorrectlyPredictiveCells(
-          vector<Cell>& prevPredictiveCells,
-          vector<UInt>& activeColumns);
+            vector<Cell>& prevPredictiveCells,
+            vector<UInt>& activeColumns);
 
-        /*
+        /**
          * Phase 2 : Burst unpredicted columns.
          *
          * Pseudocode :
@@ -199,14 +204,14 @@ namespace nupic {
          *  `winnerCells`      (set),
          *  `learningSegments` (set)
          */
-        virtual tuple<vector<Cell>, vector<Cell>, set<Segment>> burstColumns(
+        virtual tuple<vector<Cell>, vector<Cell>, vector<Segment>> burstColumns(
           vector<UInt>& activeColumns,
           vector<UInt>& predictedColumns,
           vector<Cell>& prevActiveCells,
           vector<Cell>& prevWinnerCells,
           Connections& connections);
 
-        /*
+        /**
          * Phase 3 : Perform learning by adapting segments.
          *
          * Pseudocode :
@@ -227,14 +232,14 @@ namespace nupic {
          * @param connections(Connections)  Connectivity of layer
          */
         virtual void learnOnSegments(
-          set<Segment>& prevActiveSegments,
-          set<Segment>& learningSegments,
+          vector<Segment>& prevActiveSegments,
+          vector<Segment>& learningSegments,
           vector<Cell>& prevActiveCells,
           vector<Cell>& winnerCells,
           vector<Cell>& prevWinnerCells,
           Connections& connections);
 
-        /*
+        /**
          * Phase 4 : Compute predictive cells due to lateral input on distal dendrites.
          *
          * Pseudocode :
@@ -252,7 +257,7 @@ namespace nupic {
          *   `activeSegments`  (set),
          *   `predictiveCells` (set)
          */
-        virtual tuple<set<Segment>, vector<Cell>> computePredictiveCells(
+        virtual tuple<vector<Segment>, vector<Cell>> computePredictiveCells(
           vector<Cell>& activeCells,
           Connections& connections);
 
@@ -261,7 +266,7 @@ namespace nupic {
         //  Helper functions
         // ==============================
 
-        /*
+        /**
          * Gets the cell with the best matching segment
          * (see `TM.bestMatchingSegment`) that has the largest number of active
          * synapses of all best matching segments.
@@ -276,12 +281,12 @@ namespace nupic {
          *   `cell`        (int),
          *   `bestSegment` (int)
          */
-        tuple<Cell, Segment> bestMatchingCell(
+        tuple<Cell*, Segment*> bestMatchingCell(
           vector<Cell>& cells,
           vector<Cell>& activeCells,
           Connections& connections);
 
-        /*
+        /**
          * Gets the segment on a cell with the largest number of activate synapses,
          * including all synapses with non - zero permanences.
          *
@@ -293,12 +298,12 @@ namespace nupic {
          *  `segment`                 (int),
          *  `connectedActiveSynapses` (set)
          */
-        tuple<Segment, Int> bestMatchingSegment(
+        tuple<Segment*, Int> bestMatchingSegment(
           Cell& cell,
           vector<Cell>& activeCells,
           Connections& connections);
 
-        /*
+        /**
          * Gets the cell with the smallest number of segments.
          * Break ties randomly.
          *
@@ -311,7 +316,7 @@ namespace nupic {
           vector<Cell>& cells,
           Connections& connections);
 
-        /*
+        /**
          * Returns the synapses on a segment that are active due to lateral input
          * from active cells.
          *
@@ -326,20 +331,20 @@ namespace nupic {
           vector<Cell>& activeCells,
           Connections& connections);
 
-        /*
-        * Updates synapses on segment.
-        * Strengthens active synapses; weakens inactive synapses.
-        *
-        * @param segment        Segment index
-        * @param activeSynapses Indices of active synapses
-        * @param connections    Connectivity of layer
-        */
+        /**
+         * Updates synapses on segment.
+         * Strengthens active synapses; weakens inactive synapses.
+         *
+         * @param segment        Segment index
+         * @param activeSynapses Indices of active synapses
+         * @param connections    Connectivity of layer
+         */
         void adaptSegment(
           Segment& segment,
           vector<Synapse>& activeSynapses,
           Connections& connections);
 
-        /*
+        /**
          * Pick cells to form distal connections to.
          *
          * TODO : Respect topology and learningRadius
@@ -357,7 +362,7 @@ namespace nupic {
           vector<Cell>& winnerCells,
           Connections& connections);
 
-        /*
+        /**
          * Returns the index of the column that a cell belongs to.
          *
          * @param cell Cell index
@@ -366,7 +371,7 @@ namespace nupic {
          */
         Int columnForCell(Cell& cell);
 
-        /*
+        /**
          * Returns the indices of cells that belong to a column.
          *
          * @param column Column index
@@ -375,21 +380,21 @@ namespace nupic {
          */
         vector<Cell> cellsForColumn(Int column);
 
-        /*
+        /**
          * Returns the number of columns in this layer.
          *
          * @return (int) Number of columns
          */
         Int numberOfColumns(void);
 
-        /*
+        /**
          * Returns the number of cells in this layer.
          *
          * @return (int) Number of cells
          */
         UInt numberOfCells(void);
 
-        /*
+        /**
          * Maps cells to the columns they belong to
          *
          * @param cells Cells
@@ -399,118 +404,141 @@ namespace nupic {
         map<Int, vector<Cell>> mapCellsToColumns(vector<Cell>& cells);
 
         /**
-        Returns the dimensions of the columns in the region.
+         Returns the dimensions of the columns in the region.
 
-        @returns Integer number of column dimension.
+         @returns Integer number of column dimension.
         */
         vector<UInt> getColumnDimensions() const;
 
         /**
-        Returns the total number of columns.
+         Returns the total number of columns.
 
-        @returns Integer number of column numbers.
+         @returns Integer number of column numbers.
         */
         Int getNumColumns() const;
 
         /**
-        Returns the number of cells per column.
+         Returns the number of cells per column.
 
-        @returns Integer number of cells per column.
+         @returns Integer number of cells per column.
         */
         Int getCellsPerColumn() const;
 
         /**
-        Returns the activation threshold.
+         Returns the activation threshold.
 
-        @returns Integer number of the activation threshold.
+         @returns Integer number of the activation threshold.
         */
         Int getActivationThreshold() const;
         void setActivationThreshold(Int);
 
         /**
-        Returns the learning radius.
+         Returns the initial permanence.
 
-        @returns Integer number of learning radius.
-        */
-        Int getLearningRadius() const;
-        void setLearningRadius(Int);
-
-        /**
-        Returns the initial permanence.
-
-        @returns Initial permanence.
+         @returns Initial permanence.
         */
         Permanence getInitialPermanence() const;
         void setInitialPermanence(Permanence);
 
         /**
-        Returns the connected permanance.
+         Returns the connected permanance.
 
-        @returns Returns the connected permanance.
+         @returns Returns the connected permanance.
         */
         Permanence getConnectedPermanence() const;
         void setConnectedPermanence(Permanence);
 
         /**
-        Returns the minimum threshold.
+         Returns the minimum threshold.
 
-        @returns Integer number of minimum threshold.
+         @returns Integer number of minimum threshold.
         */
         Int getMinThreshold() const;
         void setMinThreshold(Int);
 
         /**
-        Returns the maximum new synapse count.
+         Returns the maximum new synapse count.
 
-        @returns Integer number of maximum new synapse count.
+         @returns Integer number of maximum new synapse count.
         */
         Int getMaxNewSynapseCount() const;
         void setMaxNewSynapseCount(Int);
 
         /**
-        Returns the permanence increment.
+         Returns the permanence increment.
 
-        @returns Returns the Permanence increment.
+         @returns Returns the Permanence increment.
         */
         Permanence getPermanenceIncrement() const;
         void setPermanenceIncrement(Permanence);
 
         /**
-        Returns the permanence decrement.
+         Returns the permanence decrement.
 
-        @returns Returns the Permanence decrement.
+         @returns Returns the Permanence decrement.
         */
         Permanence getPermanenceDecrement() const;
         void setPermanenceDecrement(Permanence);
 
-        /*
-        * Raises an error if column index is invalid.
-        *
-        * @param column Column index
-        */
+        /**
+         * Raises an error if column index is invalid.
+         *
+         * @param column Column index
+         */
         bool _validateColumn(Int column);
 
-        /*
-        * Raises an error if cell index is invalid.
-        *
-        * @param cell Cell index
-        */
+        /**
+         * Raises an error if cell index is invalid.
+         *
+         * @param cell Cell index
+         */
         bool _validateCell(Cell& cell);
 
-        /*
-        * Raises an error if segment is invalid.
-        *
-        * @param segment segment index
-        */
+        /**
+         * Raises an error if segment is invalid.
+         *
+         * @param segment segment index
+         */
         bool _validateSegment(Segment& segment);
 
-        /*
-        * Raises an error if segment is invalid.
-        *
-        * @param permanence (float) Permanence
-        */
+        /**
+         * Raises an error if segment is invalid.
+         *
+         * @param permanence (float) Permanence
+         */
         bool _validatePermanence(Real permanence);
-          
+
+        /**
+        Save (serialize) the current state of the spatial pooler to the
+        specified file.
+
+        @param fd A valid file descriptor.
+        */
+        virtual void save(ostream& outStream) const;
+
+        virtual void write(ostream& stream) const;
+        virtual void write(TemporalMemoryProto::Builder& proto) const;
+
+        /**
+        Load (deserialize) and initialize the spatial pooler from the
+        specified input stream.
+
+        @param inStream A valid istream.
+        */
+        virtual void load(istream& inStream);
+
+        virtual void read(istream& stream);
+        virtual void read(TemporalMemoryProto::Reader& proto);
+
+        /**
+        Returns the number of bytes that a save operation would result in.
+        Note: this method is currently somewhat inefficient as it just does
+        a full save into an ostream and counts the resulting size.
+
+        @returns Integer number of bytes
+        */
+        virtual UInt persistentSize() const;
+
         //----------------------------------------------------------------------
         // Debugging helpers
         //----------------------------------------------------------------------
@@ -519,21 +547,20 @@ namespace nupic {
         void printParameters();
 
         /**
-        Print the given UInt array in a nice format
-        */
+         * Print the given UInt array in a nice format
+         */
         void printState(vector<UInt> &state);
 
         /**
-        Print the given Real array in a nice format
-        */
+         * Print the given Real array in a nice format
+         */
         void printState(vector<Real> &state);
 
+      protected:
         UInt numColumns_;
         vector<UInt> columnDimensions_;
-
         Int cellsPerColumn_;
         Int activationThreshold_;
-        Int learningRadius_;
         Int minThreshold_;
         Int maxNewSynapseCount_;
         Permanence initialPermanence_;
@@ -541,25 +568,18 @@ namespace nupic {
         Permanence permanenceIncrement_;
         Permanence permanenceDecrement_;
 
-        vector<Cell> activeCells_;
-        vector<Cell> winnerCells_;
-
-        set<Segment> activeSegments_;
-        set<Segment> learningSegments_;
-
-        vector<Cell> predictiveCells_;
-
         Int version_;
-        Random random_;
+        Random _rng;
 
-        Connections* connections_;
-
+      public:
+        vector<Cell> predictiveCells;
+        vector<Cell> activeCells;
+        vector<Cell> winnerCells;
+        vector<Segment> activeSegments;
+        vector<Segment> learningSegments;
+        Connections connections;
       };
-
     } // end namespace temporal_memory
-
   } // end namespace algorithms
-
 } // end namespace nta
-
 #endif // NTA_TEMPORAL_MEMORY_HPP

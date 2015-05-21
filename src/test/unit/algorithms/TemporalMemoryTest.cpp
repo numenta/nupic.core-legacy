@@ -30,11 +30,761 @@
 #include <nupic/math/StlIo.hpp>
 #include <nupic/types/Types.hpp>
 #include <nupic/utils/Log.hpp>
+
 #include "TemporalMemoryTest.hpp"
 
 using namespace std;
 
 namespace nupic {
+
+  void TemporalMemoryTest::setup(TemporalMemory& tm, UInt numColumns)
+  {
+    vector<UInt> columnDim;
+    columnDim.push_back(numColumns);
+    tm.initialize(columnDim);
+  }
+
+  void TemporalMemoryTest::RunTests()
+  {
+    setup(tm, 2048);
+
+    testInitInvalidParams();
+    testActivateCorrectlyPredictiveCells();
+    testActivateCorrectlyPredictiveCellsEmpty();
+    testBurstColumns();
+    testBurstColumnsEmpty();
+    testLearnOnSegments();
+    testComputePredictiveCells();
+    testBestMatchingCell();
+    testBestMatchingCellFewestSegments();
+    testBestMatchingSegment();
+    testLeastUsedCell();
+    testAdaptSegment();
+    testAdaptSegmentToMax();
+    testAdaptSegmentToMin();
+    testPickCellsToLearnOn();
+    testPickCellsToLearnOnAvoidDuplicates();
+    testColumnForCell1D();
+    testColumnForCell2D();
+    testColumnForCellInvalidCell();
+    testCellsForColumn1D();
+    testCellsForColumn2D();
+    testCellsForColumnInvalidColumn();
+    testNumberOfColumns();
+    testNumberOfCells();
+    testMapCellsToColumns();
+    testWrite();
+
+    // Depreciated serialization method (incomplete due to lack of load & save 
+    // in Connections and Random classes). Replaced by Cap'n Proto read & write.
+    //testSaveLoad();
+
+  }
+
+  void TemporalMemoryTest::check_spatial_eq(const TemporalMemory& tm1, const TemporalMemory& tm2)
+  {
+    NTA_CHECK(tm1.getNumColumns() == tm2.getNumColumns());
+    NTA_CHECK(tm1.getCellsPerColumn() == tm2.getCellsPerColumn());
+    NTA_CHECK(tm1.getActivationThreshold() == tm2.getActivationThreshold());
+    NTA_CHECK(tm1.getMinThreshold() == tm2.getMinThreshold());
+    NTA_CHECK(tm1.getMaxNewSynapseCount() == tm2.getMaxNewSynapseCount());
+    TEST(nupic::nearlyEqual(tm1.getInitialPermanence(), tm2.getInitialPermanence()));
+    TEST(nupic::nearlyEqual(tm1.getConnectedPermanence(), tm2.getConnectedPermanence()));
+    TEST(nupic::nearlyEqual(tm1.getPermanenceIncrement(), tm2.getPermanenceIncrement()));
+    TEST(nupic::nearlyEqual(tm1.getPermanenceDecrement(), tm2.getPermanenceDecrement()));
+  }
+
+  void TemporalMemoryTest::testInitInvalidParams()
+  {
+    // Invalid columnDimensions
+    vector<UInt> columnDim;
+    SHOULDFAIL(tm.initialize(columnDim, 32));
+
+    // Invalid cellsPerColumn
+    columnDim.push_back(2048);
+    SHOULDFAIL(tm.initialize(columnDim, 0));
+    SHOULDFAIL(tm.initialize(columnDim, -10));
+  }
+
+  void TemporalMemoryTest::testActivateCorrectlyPredictiveCells()
+  {
+    vector<Cell> prevPredictiveCells = { Cell(0), Cell(237), Cell(1026), Cell(26337), Cell(26339), Cell(55536) };
+    vector<UInt> activeColumns = { 32, 47, 823 };
+
+    vector<Cell> activeCells;
+    vector<Cell> winnerCells;
+    vector<UInt> predictedColumns;
+
+    tie(activeCells, winnerCells, predictedColumns) =
+      tm.activateCorrectlyPredictiveCells(prevPredictiveCells, activeColumns);
+
+    vector<Cell> expectedCells = { Cell(1026), Cell(26337), Cell(26339) };
+    vector<UInt> expectedCols = { 32, 823 };
+    NTA_CHECK(check_vector_eq(activeCells, expectedCells));
+    NTA_CHECK(check_vector_eq(winnerCells, expectedCells));
+    NTA_CHECK(check_vector_eq(predictedColumns, expectedCols));
+  }
+
+  void TemporalMemoryTest::testActivateCorrectlyPredictiveCellsEmpty()
+  {
+    {
+      vector<Cell> prevPredictiveCells = {};
+      vector<UInt> activeColumns = {};
+
+      vector<Cell> activeCells;
+      vector<Cell> winnerCells;
+      vector<UInt> predictedColumns;
+
+      tie(activeCells, winnerCells, predictedColumns) =
+        tm.activateCorrectlyPredictiveCells(prevPredictiveCells, activeColumns);
+
+      vector<Cell> expectedCells = {};
+      vector<UInt> expectedCols = {};
+      NTA_CHECK(check_vector_eq(activeCells, expectedCells));
+      NTA_CHECK(check_vector_eq(winnerCells, expectedCells));
+      NTA_CHECK(check_vector_eq(predictedColumns, expectedCols));
+    }
+
+    // No previous predictive cells
+
+    {
+      vector<Cell> prevPredictiveCells = {};
+      vector<UInt> activeColumns = { 32, 47, 823 };
+
+      vector<Cell> activeCells;
+      vector<Cell> winnerCells;
+      vector<UInt> predictedColumns;
+
+      tie(activeCells, winnerCells, predictedColumns) =
+        tm.activateCorrectlyPredictiveCells(prevPredictiveCells, activeColumns);
+
+      vector<Cell> expectedCells = {};
+      vector<UInt> expectedCols = {};
+      NTA_CHECK(check_vector_eq(activeCells, expectedCells));
+      NTA_CHECK(check_vector_eq(winnerCells, expectedCells));
+      NTA_CHECK(check_vector_eq(predictedColumns, expectedCols));
+    }
+
+    // No active columns
+
+    {
+      vector<Cell> prevPredictiveCells = { Cell(0), Cell(237), Cell(1026), Cell(26337), Cell(26339), Cell(55536) };
+      vector<UInt> activeColumns = {};
+
+      vector<Cell> activeCells;
+      vector<Cell> winnerCells;
+      vector<UInt> predictedColumns;
+
+      tie(activeCells, winnerCells, predictedColumns) =
+        tm.activateCorrectlyPredictiveCells(prevPredictiveCells, activeColumns);
+
+      vector<Cell> expectedCells = {};
+      vector<UInt> expectedCols = {};
+      NTA_CHECK(check_vector_eq(activeCells, expectedCells));
+      NTA_CHECK(check_vector_eq(winnerCells, expectedCells));
+      NTA_CHECK(check_vector_eq(predictedColumns, expectedCols));
+    }
+  }
+
+  void TemporalMemoryTest::testBurstColumns()
+  {
+    TemporalMemory tm;
+    tm.initialize(vector<UInt>{2048}, 4);
+    tm.setConnectedPermanence(0.50);
+    tm.setMinThreshold(1);
+
+    Connections connections = tm.connections;
+    Segment segment = connections.createSegment(Cell(0));
+    connections.createSynapse(segment, Cell(23), 0.6);
+    connections.createSynapse(segment, Cell(37), 0.4);
+    connections.createSynapse(segment, Cell(477), 0.9);
+
+    segment = connections.createSegment(Cell(0));
+    connections.createSynapse(segment, Cell(49), 0.9);
+    connections.createSynapse(segment, Cell(3), 0.8);
+
+    segment = connections.createSegment(Cell(1));
+    connections.createSynapse(segment, Cell(733), 0.7);
+
+    segment = connections.createSegment(Cell(108));
+    connections.createSynapse(segment, Cell(486), 0.9);
+
+    vector<UInt> activeColumns = { 0, 1, 26 };
+    vector<UInt> predictiveCols = { 26 };
+    vector<Cell> prevActiveCells = { Cell(23), Cell(37), Cell(49), Cell(733) };
+    vector<Cell> prevWinnerCells = { Cell(23), Cell(37), Cell(49), Cell(733) };
+
+    vector<Cell> activeCells;
+    vector<Cell> winnerCells;
+    vector<Segment> learningSegments;
+
+    tie(activeCells, winnerCells, learningSegments) =
+      tm.burstColumns(activeColumns, predictiveCols, prevActiveCells, prevWinnerCells, connections);
+
+    vector<Cell> expectedActiveCells = { Cell(0), Cell(1), Cell(2), Cell(3), Cell(4), Cell(5), Cell(6), Cell(7) };
+    vector<Cell> expectedWinnerCells = { Cell(0), Cell(7) }; // 7 is randomly chosen cell
+    vector<Segment> expectedLearningSegments = { Segment(0, Cell(0)), Segment(0, Cell(7)) };
+    NTA_CHECK(check_vector_eq(activeCells, expectedActiveCells));
+    NTA_CHECK(check_vector_eq(winnerCells, expectedWinnerCells));
+    NTA_CHECK(check_vector_eq(learningSegments, expectedLearningSegments));
+
+    // Check that new segment was added to winner cell(6) in column 1
+    vector<Segment> segments = connections.segmentsForCell(7);
+    vector<Segment> expectedSegments = { Segment(0, Cell(7)) };
+    NTA_CHECK(check_vector_eq(segments, expectedSegments));
+  }
+
+  void TemporalMemoryTest::testBurstColumnsEmpty()
+  {
+    vector<UInt> activeColumns = {};
+    vector<UInt> predictiveCols = {};
+    vector<Cell> prevActiveCells = {};
+    vector<Cell> prevWinnerCells = {};
+    Connections connections = tm.connections;
+
+    vector<Cell> activeCells;
+    vector<Cell> winnerCells;
+    vector<Segment> learningSegments;
+
+    tie(activeCells, winnerCells, learningSegments) =
+      tm.burstColumns(activeColumns, predictiveCols, prevActiveCells, prevWinnerCells, connections);
+
+    vector<Cell> expectedActiveCells = {};
+    vector<Cell> expectedWinnerCells = {};
+    vector<Segment> expectedLearningSegments = {};
+    NTA_CHECK(check_vector_eq(activeCells, expectedActiveCells));
+    NTA_CHECK(check_vector_eq(winnerCells, expectedWinnerCells));
+    NTA_CHECK(check_vector_eq(learningSegments, expectedLearningSegments));
+  }
+
+  void TemporalMemoryTest::testLearnOnSegments()
+  {
+    vector<Synapse> synapses;
+    bool eq;
+
+    TemporalMemory tm;
+    setup(tm, 2048);
+    tm.setMaxNewSynapseCount(2);
+
+    Connections connections = tm.connections;
+    Segment segment0 = connections.createSegment(Cell(0));
+    connections.createSynapse(segment0, Cell(23), 0.6);
+    connections.createSynapse(segment0, Cell(37), 0.4);
+    connections.createSynapse(segment0, Cell(477), 0.9);
+
+    Segment segment1 = connections.createSegment(Cell(1));
+    connections.createSynapse(segment1, Cell(733), 0.7);
+
+    Segment segment2 = connections.createSegment(Cell(8));
+    connections.createSynapse(segment2, Cell(486), 0.9);
+
+    Segment segment3 = connections.createSegment(Cell(100));
+
+    vector<Segment> prevActiveSegments = { segment0, segment2 };
+    vector<Segment> learningSegments = { segment1, segment3 };
+    vector<Cell> prevActiveCells = { Cell(23), Cell(37), Cell(733) };
+    vector<Cell> winnerCells = { Cell(0) };
+    vector<Cell> prevWinnerCells = { Cell(10), Cell(11), Cell(12), Cell(13), Cell(14) };
+
+    tm.learnOnSegments(
+      prevActiveSegments,
+      learningSegments,
+      prevActiveCells,
+      winnerCells,
+      prevWinnerCells,
+      connections);
+
+    // Check segment 0
+    eq = nupic::nearlyEqual(connections.dataForSynapse(Synapse(0, segment0)).permanence, Real(0.7));
+    EXPECT_TRUE(eq);
+    eq = nupic::nearlyEqual(connections.dataForSynapse(Synapse(1, segment0)).permanence, Real(0.5));
+    EXPECT_TRUE(eq);
+    eq = nupic::nearlyEqual(connections.dataForSynapse(Synapse(2, segment0)).permanence, Real(0.8));
+    EXPECT_TRUE(eq);
+
+    // Check segment 1
+    eq = nupic::nearlyEqual(connections.dataForSynapse(Synapse(0, segment1)).permanence, Real(0.8));
+    EXPECT_TRUE(eq);
+    synapses = connections.synapsesForSegment(segment1);
+    ASSERT_EQ(synapses.size(), 2);
+
+    // Check segment 2
+    eq = nupic::nearlyEqual(connections.dataForSynapse(Synapse(0, segment2)).permanence, Real(0.9));
+    EXPECT_TRUE(eq);
+    synapses = connections.synapsesForSegment(segment2);
+    ASSERT_EQ(synapses.size(), 1);
+
+    // Check segment 3
+    synapses = connections.synapsesForSegment(segment3);
+    ASSERT_EQ(synapses.size(), 2);
+  }
+
+  void TemporalMemoryTest::testComputePredictiveCells()
+  {
+    TemporalMemory tm;
+    setup(tm, 2048);
+    tm.setMaxNewSynapseCount(2);
+
+    Connections connections = tm.connections;
+    Segment segment = connections.createSegment(Cell(0));
+    connections.createSynapse(segment, Cell(23), 0.6);
+    connections.createSynapse(segment, Cell(37), 0.5);
+    connections.createSynapse(segment, Cell(477), 0.9);
+
+    segment = connections.createSegment(Cell(1));
+    connections.createSynapse(segment, Cell(733), 0.7);
+    connections.createSynapse(segment, Cell(733), 0.4);
+
+    segment = connections.createSegment(Cell(1));
+    connections.createSynapse(segment, Cell(974), 0.9);
+
+    segment = connections.createSegment(Cell(8));
+    connections.createSynapse(segment, Cell(486), 0.9);
+
+    segment = connections.createSegment(Cell(100));
+
+    vector<Cell> activeCells = { Cell(23), Cell(37), Cell(733), Cell(974) };
+
+    tm.computePredictiveCells(activeCells, connections);
+
+    vector<Segment> expectedActiveSegments = {};
+    vector<Cell> expectedPredictiveCells = {};
+    NTA_CHECK(check_vector_eq(tm.activeSegments, expectedActiveSegments));
+    NTA_CHECK(check_vector_eq(tm.predictiveCells, expectedPredictiveCells));
+  }
+
+  void TemporalMemoryTest::testBestMatchingCell()
+  {
+    Cell* bestCell;
+    Segment* bestSegment;
+
+    TemporalMemory tm;
+    setup(tm, 2048);
+    tm.setConnectedPermanence(0.50);
+    tm.setMinThreshold(1);
+
+    Connections connections = tm.connections;
+
+    Segment segment = connections.createSegment(Cell(0));
+    connections.createSynapse(segment, Cell(23), 0.6);
+    connections.createSynapse(segment, Cell(37), 0.4);
+    connections.createSynapse(segment, Cell(477), 0.9);
+
+    segment = connections.createSegment(Cell(0));
+    connections.createSynapse(segment, Cell(49), 0.9);
+    connections.createSynapse(segment, Cell(3), 0.8);
+
+    segment = connections.createSegment(Cell(1));
+    connections.createSynapse(segment, Cell(733), 0.7);
+
+    segment = connections.createSegment(Cell(108));
+    connections.createSynapse(segment, Cell(486), 0.9);
+
+    vector<Cell> activeCells = { Cell(23), Cell(37), Cell(49), Cell(733) };
+    vector<Cell> cellsForColumn;
+
+    cellsForColumn = tm.cellsForColumn(0);
+    tie(bestCell, bestSegment) = tm.bestMatchingCell(cellsForColumn, activeCells, connections);
+    if (bestCell) ASSERT_EQ(*bestCell, Cell(0));
+    if (bestSegment) ASSERT_EQ(*bestSegment, Segment(0, Cell(0)));
+
+    cellsForColumn = tm.cellsForColumn(3);
+    tie(bestCell, bestSegment) = tm.bestMatchingCell(cellsForColumn, activeCells, connections);
+    if (bestCell) ASSERT_EQ(*bestCell, Cell(106)); // Random cell from column
+
+    cellsForColumn = tm.cellsForColumn(999);
+    tie(bestCell, bestSegment) = tm.bestMatchingCell(cellsForColumn, activeCells, connections);
+    if (bestCell) ASSERT_EQ(*bestCell, Cell(31974)); // Random cell from column
+  }
+
+  void TemporalMemoryTest::testBestMatchingCellFewestSegments()
+  {
+    Cell* cell = NULL;
+    Segment* segment = NULL;
+
+    TemporalMemory tm;
+    tm.initialize(vector<UInt>{2}, 2);
+    tm.setMinThreshold(1);
+
+    Connections connections = tm.connections;
+    connections.createSynapse(connections.createSegment(Cell(0)), 3, 0.3);
+
+    vector<Cell> activeSynapsesForSegment = {};
+
+    for (int i = 0; i < 100; i++)
+    {
+      // Never pick cell 0, always pick cell 1
+      vector<Cell> cellsForColumn = tm.cellsForColumn(0);
+      tie(cell, segment) = tm.bestMatchingCell(
+        cellsForColumn,
+        activeSynapsesForSegment,
+        connections);
+      if (cell) ASSERT_EQ(*cell, Cell(1));
+    }
+  }
+
+  void TemporalMemoryTest::testBestMatchingSegment()
+  {
+    Int numActiveSynapses;
+    Segment* bestSegment = NULL;
+
+    TemporalMemory tm;
+    setup(tm, 2048);
+    tm.setMinThreshold(1);
+
+    Connections connections = tm.connections;
+
+    Segment segment = connections.createSegment(Cell(0));
+    connections.createSynapse(segment, Cell(23), 0.6);
+    connections.createSynapse(segment, Cell(37), 0.4);
+    connections.createSynapse(segment, Cell(477), 0.9);
+
+    segment = connections.createSegment(Cell(0));
+    connections.createSynapse(segment, Cell(49), 0.9);
+    connections.createSynapse(segment, Cell(3), 0.8);
+
+    segment = connections.createSegment(Cell(1));
+    connections.createSynapse(segment, Cell(733), 0.7);
+
+    segment = connections.createSegment(Cell(8));
+    connections.createSynapse(segment, Cell(486), 0.9);
+
+    vector<Cell> activeCells = { Cell(23), Cell(37), Cell(49), Cell(733) };
+
+    Cell cell;
+    cell.idx = 0;
+
+    tie(bestSegment, numActiveSynapses) = tm.bestMatchingSegment(cell, activeCells, connections);
+    if (bestSegment) ASSERT_EQ(*bestSegment, Segment(0, Cell(0)));
+    ASSERT_EQ(numActiveSynapses, 2);
+
+    cell.idx = 1;
+    tie(bestSegment, numActiveSynapses) = tm.bestMatchingSegment(cell, activeCells, connections);
+    if (bestSegment) ASSERT_EQ(*bestSegment, Segment(0, Cell(1)));
+    ASSERT_EQ(numActiveSynapses, 1);
+
+    cell.idx = 8;
+    tie(bestSegment, numActiveSynapses) = tm.bestMatchingSegment(cell, activeCells, connections);
+    ASSERT_EQ(bestSegment, (Segment*)NULL);
+    ASSERT_EQ(numActiveSynapses, 0);
+
+    cell.idx = 100;
+    tie(bestSegment, numActiveSynapses) = tm.bestMatchingSegment(cell, activeCells, connections);
+    ASSERT_EQ(bestSegment, (Segment*)NULL);
+    ASSERT_EQ(numActiveSynapses, 0);
+  }
+
+  void TemporalMemoryTest::testLeastUsedCell()
+  {
+    TemporalMemory tm;
+    tm.initialize(vector<UInt>{2}, 2);
+
+    Connections connections = tm.connections;
+    Segment* segment = NULL;
+    connections.createSynapse(connections.createSegment(Cell(0)), 3, 0.3);
+
+    vector<Cell> cells = {};
+
+    for (int i = 0; i < 100; i++)
+    {
+      // Never pick cell 0, always pick cell 1
+      vector<Cell> cellsForColumn = tm.cellsForColumn(0);
+      Cell* cell = NULL;
+      tie(cell, segment) = tm.bestMatchingCell(cellsForColumn, cells, connections);
+      if (cell) ASSERT_EQ(*cell, Cell(1));
+    }
+  }
+
+  void TemporalMemoryTest::testAdaptSegment()
+  {
+    vector<Synapse> synapses;
+    bool eq;
+
+    Connections connections = tm.connections;
+    Segment segment = connections.createSegment(Cell(0));
+    connections.createSynapse(segment, Cell(23), 0.6);
+    connections.createSynapse(segment, Cell(37), 0.4);
+    connections.createSynapse(segment, Cell(477), 0.9);
+
+    synapses = vector<Synapse>{ Synapse(0, segment), Synapse(1, segment) };
+    tm.adaptSegment(segment, synapses, connections);
+
+    eq = nupic::nearlyEqual(connections.dataForSynapse(Synapse(0, segment)).permanence, Real(0.7));
+    EXPECT_TRUE(eq);
+    eq = nupic::nearlyEqual(connections.dataForSynapse(Synapse(1, segment)).permanence, Real(0.5));
+    EXPECT_TRUE(eq);
+    eq = nupic::nearlyEqual(connections.dataForSynapse(Synapse(2, segment)).permanence, Real(0.8));
+    EXPECT_TRUE(eq);
+  }
+
+  void TemporalMemoryTest::testAdaptSegmentToMax()
+  {
+    vector<Synapse> synapses;
+    bool eq;
+
+    Connections connections = tm.connections;
+    Segment segment = connections.createSegment(Cell(0));
+    synapses.push_back(connections.createSynapse(segment, Cell(23), 0.9));
+
+    tm.adaptSegment(segment, synapses, connections);
+    eq = nupic::nearlyEqual(connections.dataForSynapse(Synapse(0, segment)).permanence, Real(1.0));
+    EXPECT_TRUE(eq);
+
+    // Now permanence should be at min
+    tm.adaptSegment(segment, synapses, connections);
+    eq = nupic::nearlyEqual(connections.dataForSynapse(Synapse(0, segment)).permanence, Real(1.0));
+    EXPECT_TRUE(eq);
+  }
+
+  void TemporalMemoryTest::testAdaptSegmentToMin()
+  {
+    vector<Synapse> synapses = { Synapse(-1, Segment(-1, Cell(0))) };
+    bool eq;
+
+    Connections connections = tm.connections;
+    Segment segment = connections.createSegment(Cell(0));
+    connections.createSynapse(segment, Cell(23), 0.1);
+
+    tm.adaptSegment(segment, synapses, connections);
+    eq = nupic::nearlyEqual(connections.dataForSynapse(Synapse(0, segment)).permanence, Real(0.0));
+    EXPECT_TRUE(eq);
+
+    // Now permanence should be at min
+    tm.adaptSegment(segment, synapses, connections);
+    eq = nupic::nearlyEqual(connections.dataForSynapse(Synapse(0, segment)).permanence, Real(0.0));
+    EXPECT_TRUE(eq);
+  }
+
+  void TemporalMemoryTest::testPickCellsToLearnOn()
+  {
+    TemporalMemory tm;
+    setup(tm, 2048);
+
+    Connections connections = tm.connections;
+    Segment segment = connections.createSegment(Cell(0));
+
+    vector<Cell> winnerCells = { Cell(4), Cell(47), Cell(58), Cell(93) };
+    vector<Cell> learningCells, expectedCells;
+
+    expectedCells = vector<Cell> { Cell(47), Cell(93) }; // Randomly picked
+    learningCells = tm.pickCellsToLearnOn(2, segment, winnerCells, connections);
+    sort(learningCells.begin(), learningCells.end());
+    NTA_CHECK(check_vector_eq(learningCells, expectedCells));
+
+    expectedCells = vector<Cell> { Cell(4), Cell(47), Cell(58), Cell(93) };
+    learningCells = tm.pickCellsToLearnOn(100, segment, winnerCells, connections);
+    sort(learningCells.begin(), learningCells.end());
+    NTA_CHECK(check_vector_eq(learningCells, expectedCells));
+
+    expectedCells = vector<Cell> { };
+    learningCells = tm.pickCellsToLearnOn(0, segment, winnerCells, connections);
+    NTA_CHECK(check_vector_eq(learningCells, expectedCells));
+  }
+
+  void TemporalMemoryTest::testPickCellsToLearnOnAvoidDuplicates()
+  {
+    TemporalMemory tm;
+    setup(tm, 2048);
+
+    Connections connections = tm.connections;
+    Segment segment = connections.createSegment(Cell(0));
+    connections.createSynapse(segment, 23, 0.6);
+
+    vector<Cell> winnerCells = { Cell(23) };
+
+    // Ensure that no additional(duplicate) cells were picked
+    vector<Cell> expectedCells = {};
+    vector<Cell> learningCells = tm.pickCellsToLearnOn(2, segment, winnerCells, connections);
+    NTA_CHECK(check_vector_eq(learningCells, expectedCells));
+  }
+
+  void TemporalMemoryTest::testColumnForCell1D()
+  {
+    TemporalMemory tm;
+    tm.initialize(vector<UInt>{2048}, 5);
+
+    Cell cell;
+
+    cell.idx = 0;
+    TEST(tm.columnForCell(cell) == 0);
+    cell.idx = 4;
+    TEST(tm.columnForCell(cell) == 0);
+    cell.idx = 5;
+    TEST(tm.columnForCell(cell) == 1);
+    cell.idx = 10239;
+    TEST(tm.columnForCell(cell) == 2047);
+  }
+
+  void TemporalMemoryTest::testColumnForCell2D()
+  {
+    TemporalMemory tm;
+    tm.initialize(vector<UInt>{64, 64}, 4);
+
+    Cell cell;
+
+    cell.idx = 0;
+    TEST(tm.columnForCell(cell) == 0);
+    cell.idx = 3;
+    TEST(tm.columnForCell(cell) == 0);
+    cell.idx = 4;
+    TEST(tm.columnForCell(cell) == 1);
+    cell.idx = 16383;
+    TEST(tm.columnForCell(cell) == 4095);
+  }
+
+  void TemporalMemoryTest::testColumnForCellInvalidCell()
+  {
+    TemporalMemory tm;
+    tm.initialize(vector<UInt>{64, 64}, 4);
+
+    Cell cell;
+
+    cell.idx = 16383;
+    EXPECT_NO_THROW(tm.columnForCell(cell));
+    cell.idx = 16384;
+    EXPECT_THROW(tm.columnForCell(cell), std::exception);
+    cell.idx = -1;
+    EXPECT_THROW(tm.columnForCell(cell), std::exception);
+  }
+
+  void TemporalMemoryTest::testCellsForColumn1D()
+  {
+    TemporalMemory tm;
+    tm.initialize(vector<UInt>{2048}, 5);
+
+    vector<Cell> expectedCells = { Cell(5), Cell(6), Cell(7), Cell(8), Cell(9) };
+    vector<Cell> cellsForColumn = tm.cellsForColumn(1);
+    NTA_CHECK(check_vector_eq(cellsForColumn, expectedCells));
+  }
+
+  void TemporalMemoryTest::testCellsForColumn2D()
+  {
+    TemporalMemory tm;
+    tm.initialize(vector<UInt>{64, 64}, 4);
+
+    vector<Cell> expectedCells = { Cell(256), Cell(257), Cell(258), Cell(259) };
+    vector<Cell> cellsForColumn = tm.cellsForColumn(64);
+    NTA_CHECK(check_vector_eq(cellsForColumn, expectedCells));
+  }
+
+  void TemporalMemoryTest::testCellsForColumnInvalidColumn()
+  {
+    TemporalMemory tm;
+    tm.initialize(vector<UInt>{64, 64}, 4);
+
+    EXPECT_NO_THROW(tm.cellsForColumn(4095));
+    EXPECT_THROW(tm.cellsForColumn(4096), std::exception);
+    EXPECT_THROW(tm.cellsForColumn(-1), std::exception);
+  }
+
+  void TemporalMemoryTest::testNumberOfColumns()
+  {
+    TemporalMemory tm;
+    tm.initialize(vector<UInt>{64, 64}, 32);
+
+    int numOfColumns = tm.numberOfColumns();
+    ASSERT_EQ(numOfColumns, 64 * 64);
+  }
+
+  void TemporalMemoryTest::testNumberOfCells()
+  {
+    TemporalMemory tm;
+    tm.initialize(vector<UInt>{64, 64}, 32);
+
+    Int numberOfCells = tm.numberOfCells();
+    ASSERT_EQ(numberOfCells, 64 * 64 * 32);
+  }
+
+  void TemporalMemoryTest::testMapCellsToColumns()
+  {
+    TemporalMemory tm;
+    tm.initialize(vector<UInt>{100}, 4);
+
+    vector<Cell> cells = { Cell(0), Cell(1), Cell(2), Cell(5), Cell(399) };
+    map<Int, vector<Cell>> columnsForCells = tm.mapCellsToColumns(cells);
+
+    vector<Cell> expectedCells = { Cell(0), Cell(1), Cell(2) };
+    NTA_CHECK(check_vector_eq(columnsForCells[0], expectedCells));
+    expectedCells = { Cell(5) };
+    NTA_CHECK(check_vector_eq(columnsForCells[1], expectedCells));
+    expectedCells = { Cell(399) };
+    NTA_CHECK(check_vector_eq(columnsForCells[99], expectedCells));
+  }
+
+  void TemporalMemoryTest::testSaveLoad()
+  {
+    const char* filename = "TemporalMemorySerialization.tmp";
+    TemporalMemory tm1, tm2;
+    vector<UInt> columnDim;
+    UInt numColumns = 12;
+
+    columnDim.push_back(numColumns);
+    tm1.initialize(columnDim);
+
+    ofstream outfile;
+    outfile.open(filename, ios::binary);
+    tm1.save(outfile);
+    outfile.close();
+
+    ifstream infile(filename, ios::binary);
+    tm2.load(infile);
+    infile.close();
+
+    check_spatial_eq(tm1, tm2);
+
+    int ret = ::remove(filename);
+    NTA_CHECK(ret == 0) << "Failed to delete " << filename;
+  }
+
+  void TemporalMemoryTest::testWrite()
+  {
+    const char* filename = "TemporalMemorySerialization.tmp";
+    TemporalMemory tm1, tm2;
+
+    tm1.initialize({ 100 }, 4, 7, 0.37, 0.58, 4, 18, 0.23, 0.08, 91);
+/*
+    // Run some data through before serializing
+    patternMachine = PatternMachine(100, 4);
+    sequenceMachine = SequenceMachine(self.patternMachine);
+    sequence = self.sequenceMachine.generateFromNumbers(range(5));
+    for (UInt i = 0; i < 3; i++)
+    {
+      for (auto pattern : sequence)
+        tm1.compute(pattern);
+    }
+*/
+    // Write the proto to a temp file and read it back into a new proto
+    ofstream outfile(filename, ios::binary);
+    tm1.write(outfile);
+    outfile.close();
+    outfile.seekp(0);
+
+    // Load the deserialized proto
+    ifstream infile(filename, ios::binary);
+    tm2.read(infile);
+    infile.close();
+
+    // Check that the two temporal memory objects have the same attributes
+    check_spatial_eq(tm1, tm2);
+
+    // Run a couple records through after deserializing and check results match
+/*  tm1.compute(self.patternMachine.get(0))
+    tm2.compute(self.patternMachine.get(0))
+    self.assertEqual(tm1.activeCells, tm2.activeCells)
+    self.assertEqual(tm1.predictiveCells, tm2.predictiveCells)
+    self.assertEqual(tm1.winnerCells, tm2.winnerCells)
+    self.assertEqual(tm1.connections, tm2.connections)
+
+    tm1.compute(self.patternMachine.get(3))
+    tm2.compute(self.patternMachine.get(3))
+    self.assertEqual(tm1.activeCells, tm2.activeCells)
+    self.assertEqual(tm1.predictiveCells, tm2.predictiveCells)
+    self.assertEqual(tm1.winnerCells, tm2.winnerCells)
+    self.assertEqual(tm1.connections, tm2.connections)
+*/
+    int ret = ::remove(filename);
+    NTA_CHECK(ret == 0) << "Failed to delete " << filename;
+  }
 
   void TemporalMemoryTest::print_vec(UInt arr[], UInt n)
   {
@@ -153,751 +903,16 @@ namespace nupic {
     return true;
   }
 
-  bool TemporalMemoryTest::check_set_eq(set<UInt>& vec1, set<UInt>& vec2)
+  bool TemporalMemoryTest::check_vector_eq(vector<Segment*>& vec1, vector<Segment>& vec2)
   {
     if (vec1.size() != vec2.size()) {
       return false;
     }
-    for (UInt i : vec2) {
-      if (vec1.find(i) == vec1.end()) {
+    for (UInt i = 0; i < vec1.size(); i++) {
+      if (vec1[i]->idx != vec2[i].idx || vec1[i]->cell.idx != vec2[i].cell.idx) {
         return false;
       }
     }
     return true;
   }
-
-  bool TemporalMemoryTest::check_set_eq(set<Int>& vec1, set<Int>& vec2)
-  {
-    if (vec1.size() != vec2.size()) {
-      return false;
-    }
-    for (UInt i : vec2) {
-      if (vec1.find(i) == vec1.end()) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  bool TemporalMemoryTest::check_set_eq(set<Cell>& vec1, set<Cell>& vec2)
-  {
-    if (vec1.size() != vec2.size()) {
-      return false;
-    }
-    for (Cell cell : vec2) {
-      if (vec1.find(cell) == vec1.end()) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  bool TemporalMemoryTest::check_set_eq(set<Segment>& vec1, set<Segment>& vec2)
-  {
-    if (vec1.size() != vec2.size()) {
-      return false;
-    }
-    for (Segment segment : vec2) {
-      if (vec1.find(segment) == vec1.end()) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  void TemporalMemoryTest::check_spatial_eq(const TemporalMemory& tm1, const TemporalMemory& tm2)
-  {
-    NTA_CHECK(tm1.getNumColumns() == tm2.getNumColumns());
-    NTA_CHECK(tm1.getCellsPerColumn() == tm2.getCellsPerColumn());
-    NTA_CHECK(tm1.getActivationThreshold() == tm2.getActivationThreshold());
-    NTA_CHECK(tm1.getLearningRadius() == tm2.getLearningRadius());
-    NTA_CHECK(tm1.getMinThreshold() == tm2.getMinThreshold());
-    NTA_CHECK(tm1.getMaxNewSynapseCount() == tm2.getMaxNewSynapseCount());
-    TEST(nupic::nearlyEqual(tm1.getInitialPermanence(), tm2.getInitialPermanence()));
-    TEST(nupic::nearlyEqual(tm1.getConnectedPermanence(), tm2.getConnectedPermanence()));
-    TEST(nupic::nearlyEqual(tm1.getPermanenceIncrement(), tm2.getPermanenceIncrement()));
-    TEST(nupic::nearlyEqual(tm1.getPermanenceDecrement(), tm2.getPermanenceDecrement()));
-  }
-
-  void TemporalMemoryTest::setup(TemporalMemory& tm, UInt numColumns)
-  {
-    vector<UInt> columnDim;
-    columnDim.push_back(numColumns);
-    tm.initialize(columnDim);
-  }
-
-  void TemporalMemoryTest::RunTests()
-  {
-    setup(tm, 2048);
-
-    testInitInvalidParams();
-    testActivateCorrectlyPredictiveCells();
-    testActivateCorrectlyPredictiveCellsEmpty();
-    testBurstColumns();
-    testBurstColumnsEmpty();
-    testLearnOnSegments();
-    testComputePredictiveCells();
-    testBestMatchingCell();
-    testBestMatchingCellFewestSegments();
-    testBestMatchingSegment();
-    testLeastUsedCell();
-    testAdaptSegment();
-    testAdaptSegmentToMax();
-    testAdaptSegmentToMin();
-    testPickCellsToLearnOn();
-    testPickCellsToLearnOnAvoidDuplicates();
-    testColumnForCell1D();
-    testColumnForCell2D();
-    testColumnForCellInvalidCell();
-    testCellsForColumn1D();
-    testCellsForColumn2D();
-    testCellsForColumnInvalidColumn();
-    testNumberOfColumns();
-    testNumberOfCells();
-    testMapCellsToColumns();
-    //testSaveLoad();
-
-  }
-
-  void TemporalMemoryTest::testInitInvalidParams()
-  {
-    // Invalid columnDimensions
-    vector<UInt> columnDim;
-    SHOULDFAIL(tm.initialize(columnDim, 32));
-
-    // Invalid cellsPerColumn
-    columnDim.push_back(2048);
-    SHOULDFAIL(tm.initialize(columnDim, 0));
-    SHOULDFAIL(tm.initialize(columnDim, -10));
-  }
-
-  void TemporalMemoryTest::testActivateCorrectlyPredictiveCells()
-  {
-    set<Cell> prevPredictiveCells = { Cell(0), Cell(237), Cell(1026), Cell(26337), Cell(26339), Cell(55536) };
-    set<UInt> activeColumns = { 32, 47, 823 };
-
-    set<Cell> activeCells;
-    set<Cell> winnerCells;
-    set<UInt> predictedColumns;
-
-    tie(activeCells, winnerCells, predictedColumns) =
-      tm.activateCorrectlyPredictiveCells(prevPredictiveCells, activeColumns);
-
-    set<Cell> expectedCells = { Cell(1026), Cell(26337), Cell(26339) };
-    set<UInt> expectedCols = { 32, 823 };
-    NTA_CHECK(check_set_eq(activeCells, expectedCells));
-    NTA_CHECK(check_set_eq(winnerCells, expectedCells));
-    NTA_CHECK(check_set_eq(predictedColumns, expectedCols));
-  }
-
-  void TemporalMemoryTest::testActivateCorrectlyPredictiveCellsEmpty()
-  {
-    {
-      set<Cell> prevPredictiveCells = {};
-      set<UInt> activeColumns = {};
-
-      set<Cell> activeCells;
-      set<Cell> winnerCells;
-      set<UInt> predictedColumns;
-
-      tie(activeCells, winnerCells, predictedColumns) =
-        tm.activateCorrectlyPredictiveCells(prevPredictiveCells, activeColumns);
-
-      set<Cell> expectedCells = {};
-      set<UInt> expectedCols = {};
-      NTA_CHECK(check_set_eq(activeCells, expectedCells));
-      NTA_CHECK(check_set_eq(winnerCells, expectedCells));
-      NTA_CHECK(check_set_eq(predictedColumns, expectedCols));
-    }
-
-    // No previous predictive cells
-
-    {
-      set<Cell> prevPredictiveCells = {};
-      set<UInt> activeColumns = { 32, 47, 823 };
-
-      set<Cell> activeCells;
-      set<Cell> winnerCells;
-      set<UInt> predictedColumns;
-
-      tie(activeCells, winnerCells, predictedColumns) =
-        tm.activateCorrectlyPredictiveCells(prevPredictiveCells, activeColumns);
-
-      set<Cell> expectedCells = {};
-      set<UInt> expectedCols = {};
-      NTA_CHECK(check_set_eq(activeCells, expectedCells));
-      NTA_CHECK(check_set_eq(winnerCells, expectedCells));
-      NTA_CHECK(check_set_eq(predictedColumns, expectedCols));
-    }
-
-    // No active columns
-
-    {
-      set<Cell> prevPredictiveCells = { Cell(0), Cell(237), Cell(1026), Cell(26337), Cell(26339), Cell(55536) };
-      set<UInt> activeColumns = {};
-
-      set<Cell> activeCells;
-      set<Cell> winnerCells;
-      set<UInt> predictedColumns;
-
-      tie(activeCells, winnerCells, predictedColumns) =
-        tm.activateCorrectlyPredictiveCells(prevPredictiveCells, activeColumns);
-
-      set<Cell> expectedCells = {};
-      set<UInt> expectedCols = {};
-      NTA_CHECK(check_set_eq(activeCells, expectedCells));
-      NTA_CHECK(check_set_eq(winnerCells, expectedCells));
-      NTA_CHECK(check_set_eq(predictedColumns, expectedCols));
-    }
-  }
-
-  void TemporalMemoryTest::testBurstColumns()
-  {
-    TemporalMemory tm;
-    tm.initialize(vector<UInt>{2048}, 4);
-    tm.setConnectedPermanence(0.50);
-    tm.setMinThreshold(1);
-
-    Connections connections = *tm.connections_;
-    Segment segment = connections.createSegment(Cell(0));
-    connections.createSynapse(segment, Cell(23), 0.6);
-    connections.createSynapse(segment, Cell(37), 0.4);
-    connections.createSynapse(segment, Cell(477), 0.9);
-
-    segment = connections.createSegment(Cell(0));
-    connections.createSynapse(segment, Cell(49), 0.9);
-    connections.createSynapse(segment, Cell(3), 0.8);
-
-    segment = connections.createSegment(Cell(1));
-    connections.createSynapse(segment, Cell(733), 0.7);
-
-    segment = connections.createSegment(Cell(108));
-    connections.createSynapse(segment, Cell(486), 0.9);
-
-    set<UInt> activeColumns = { 0, 1, 26 };
-    set<UInt> predictiveCols = { 26 };
-    set<Cell> prevActiveCells = { Cell(23), Cell(37), Cell(49), Cell(733) };
-    set<Cell> prevWinnerCells = { Cell(23), Cell(37), Cell(49), Cell(733) };
-
-    set<Cell> activeCells;
-    set<Cell> winnerCells;
-    set<Segment> learningSegments;
-
-    tie(activeCells, winnerCells, learningSegments) =
-      tm.burstColumns(activeColumns, predictiveCols, prevActiveCells, prevWinnerCells, connections);
-
-    set<Cell> expectedActiveCells = { Cell(0), Cell(1), Cell(2), Cell(3), Cell(4), Cell(5), Cell(6), Cell(7) };
-    set<Cell> expectedWinnerCells = { Cell(0), Cell(6) }; // 6 is randomly chosen cell
-    set<Segment> expectedLearningSegments = { Segment(0, Cell(0)), Segment(0, Cell(6)) };
-    NTA_CHECK(check_set_eq(activeCells, expectedActiveCells));
-    NTA_CHECK(check_set_eq(winnerCells, expectedWinnerCells));
-    NTA_CHECK(check_set_eq(learningSegments, expectedLearningSegments));
-
-    // Check that new segment was added to winner cell(6) in column 1
-    vector<Segment> segments = connections.segmentsForCell(6);
-    vector<Segment> expectedSegments = { Segment(0, Cell(6)) };
-    NTA_CHECK(check_vector_eq(segments, expectedSegments));
-  }
-
-  void TemporalMemoryTest::testBurstColumnsEmpty()
-  {
-    set<UInt> activeColumns = {};
-    set<UInt> predictiveCols = {};
-    set<Cell> prevActiveCells = {};
-    set<Cell> prevWinnerCells = {};
-    Connections connections = *tm.connections_;
-
-    set<Cell> activeCells;
-    set<Cell> winnerCells;
-    set<Segment> learningSegments;
-
-    tie(activeCells, winnerCells, learningSegments) =
-      tm.burstColumns(activeColumns, predictiveCols, prevActiveCells, prevWinnerCells, connections);
-
-    set<Cell> expectedActiveCells = {};
-    set<Cell> expectedWinnerCells = {};
-    set<Segment> expectedLearningSegments = {};
-    NTA_CHECK(check_set_eq(activeCells, expectedActiveCells));
-    NTA_CHECK(check_set_eq(winnerCells, expectedWinnerCells));
-    NTA_CHECK(check_set_eq(learningSegments, expectedLearningSegments));
-  }
-
-  void TemporalMemoryTest::testLearnOnSegments()
-  {
-    vector<Synapse> synapses;
-    bool eq;
-
-    TemporalMemory tm;
-    setup(tm, 2048);
-    tm.setMaxNewSynapseCount(2);
-
-    Connections connections = *tm.connections_;
-    Segment segment0 = connections.createSegment(Cell(0));
-    connections.createSynapse(segment0, Cell(23), 0.6);
-    connections.createSynapse(segment0, Cell(37), 0.4);
-    connections.createSynapse(segment0, Cell(477), 0.9);
-
-    Segment segment1 = connections.createSegment(Cell(1));
-    connections.createSynapse(segment1, Cell(733), 0.7);
-
-    Segment segment2 = connections.createSegment(Cell(8));
-    connections.createSynapse(segment2, Cell(486), 0.9);
-
-    Segment segment3 = connections.createSegment(Cell(100));
-
-    set<Segment> prevActiveSegments = { segment0, segment2 };
-    set<Segment> learningSegments = { segment1, segment3 };
-    set<Cell> prevActiveCells = { Cell(23), Cell(37), Cell(733) };
-    set<Cell> winnerCells = { Cell(0) };
-    set<Cell> prevWinnerCells = { Cell(10), Cell(11), Cell(12), Cell(13), Cell(14) };
-
-    tm.learnOnSegments(
-      prevActiveSegments,
-      learningSegments,
-      prevActiveCells,
-      winnerCells,
-      prevWinnerCells,
-      connections);
-
-    // Check segment 0
-    eq = nupic::nearlyEqual(connections.dataForSynapse(Synapse(0, segment0)).permanence, Real(0.7));
-    EXPECT_TRUE(eq);
-    eq = nupic::nearlyEqual(connections.dataForSynapse(Synapse(1, segment0)).permanence, Real(0.5));
-    EXPECT_TRUE(eq);
-    eq = nupic::nearlyEqual(connections.dataForSynapse(Synapse(2, segment0)).permanence, Real(0.8));
-    EXPECT_TRUE(eq);
-
-    // Check segment 1
-    eq = nupic::nearlyEqual(connections.dataForSynapse(Synapse(0, segment1)).permanence, Real(0.8));
-    EXPECT_TRUE(eq);
-    synapses = connections.synapsesForSegment(segment1);
-    ASSERT_EQ(synapses.size(), 2);
-
-    // Check segment 2
-    eq = nupic::nearlyEqual(connections.dataForSynapse(Synapse(0, segment2)).permanence, Real(0.9));
-    EXPECT_TRUE(eq);
-    synapses = connections.synapsesForSegment(segment2);
-    ASSERT_EQ(synapses.size(), 1);
-
-    // Check segment 3
-    synapses = connections.synapsesForSegment(segment3);
-    ASSERT_EQ(synapses.size(), 2);
-  }
-
-  void TemporalMemoryTest::testComputePredictiveCells()
-  {
-    TemporalMemory tm;
-    setup(tm, 2048);
-    tm.setMaxNewSynapseCount(2);
-
-    Connections connections = *tm.connections_;
-    Segment segment = connections.createSegment(Cell(0));
-    connections.createSynapse(segment, Cell(23), 0.6);
-    connections.createSynapse(segment, Cell(37), 0.5);
-    connections.createSynapse(segment, Cell(477), 0.9);
-
-    segment = connections.createSegment(Cell(1));
-    connections.createSynapse(segment, Cell(733), 0.7);
-    connections.createSynapse(segment, Cell(733), 0.4);
-
-    segment = connections.createSegment(Cell(1));
-    connections.createSynapse(segment, Cell(974), 0.9);
-
-    segment = connections.createSegment(Cell(8));
-    connections.createSynapse(segment, Cell(486), 0.9);
-
-    segment = connections.createSegment(Cell(100));
-
-    set<Cell> activeCells = { Cell(23), Cell(37), Cell(733), Cell(974) };
-
-    tm.computePredictiveCells(activeCells, connections);
-
-    set<Segment> expectedActiveSegments = {};
-    set<Cell> expectedPredictiveCells = {};
-    NTA_CHECK(check_set_eq(tm.activeSegments_, expectedActiveSegments));
-    NTA_CHECK(check_set_eq(tm.predictiveCells_, expectedPredictiveCells));
-  }
-
-  void TemporalMemoryTest::testBestMatchingCell()
-  {
-    Cell bestCell;
-    Segment bestSegment;
-
-    TemporalMemory tm;
-    setup(tm, 2048);
-    tm.setConnectedPermanence(0.50);
-    tm.setMinThreshold(1);
-
-    Connections connections = *tm.connections_;
-
-    Segment segment = connections.createSegment(Cell(0));
-    connections.createSynapse(segment, Cell(23), 0.6);
-    connections.createSynapse(segment, Cell(37), 0.4);
-    connections.createSynapse(segment, Cell(477), 0.9);
-
-    segment = connections.createSegment(Cell(0));
-    connections.createSynapse(segment, Cell(49), 0.9);
-    connections.createSynapse(segment, Cell(3), 0.8);
-
-    segment = connections.createSegment(Cell(1));
-    connections.createSynapse(segment, Cell(733), 0.7);
-
-    segment = connections.createSegment(Cell(108));
-    connections.createSynapse(segment, Cell(486), 0.9);
-
-    set<Cell> activeCells = { Cell(23), Cell(37), Cell(49), Cell(733) };
-    set<Cell> cellsForColumn;
-
-    cellsForColumn = tm.cellsForColumn(0);
-    tie(bestCell, bestSegment) = tm.bestMatchingCell(cellsForColumn, activeCells, connections);
-    ASSERT_EQ(bestCell, Cell(0));
-    ASSERT_EQ(bestSegment, Segment(0, Cell(0)));
-
-    cellsForColumn = tm.cellsForColumn(3);
-    tie(bestCell, bestSegment) = tm.bestMatchingCell(cellsForColumn, activeCells, connections);
-    ASSERT_EQ(bestCell, Cell(96)); // Random cell from column
-
-    cellsForColumn = tm.cellsForColumn(999);
-    tie(bestCell, bestSegment) = tm.bestMatchingCell(cellsForColumn, activeCells, connections);
-    ASSERT_EQ(bestCell, Cell(31972)); // Random cell from column
-  }
-
-  void TemporalMemoryTest::testBestMatchingCellFewestSegments()
-  {
-    Cell cell(0);
-    Segment segment;
-
-    TemporalMemory tm;
-    tm.initialize(vector<UInt>{2}, 2);
-    tm.setMinThreshold(1);
-
-    Connections connections = *tm.connections_;
-    segment = connections.createSegment(cell);
-    connections.createSynapse(segment, 3, 0.3);
-
-    set<Cell> activeSynapsesForSegment = {};
-
-    for (int i = 0; i < 100; i++)
-    {
-      // Never pick cell 0, always pick cell 1
-      set<Cell> cellsForColumn = tm.cellsForColumn(0);
-      tie(cell, segment) = tm.bestMatchingCell(
-        cellsForColumn,
-        activeSynapsesForSegment,
-        connections);
-      ASSERT_EQ(cell, Cell(1));
-    }
-  }
-
-  void TemporalMemoryTest::testBestMatchingSegment()
-  {
-    Int numActiveSynapses;
-    Segment bestSegment;
-
-    TemporalMemory tm;
-    setup(tm, 2048);
-    tm.setMinThreshold(1);
-
-    Connections connections = *tm.connections_;
-
-    Segment segment = connections.createSegment(Cell(0));
-    connections.createSynapse(segment, Cell(23), 0.6);
-    connections.createSynapse(segment, Cell(37), 0.4);
-    connections.createSynapse(segment, Cell(477), 0.9);
-
-    segment = connections.createSegment(Cell(0));
-    connections.createSynapse(segment, Cell(49), 0.9);
-    connections.createSynapse(segment, Cell(3), 0.8);
-
-    segment = connections.createSegment(Cell(1));
-    connections.createSynapse(segment, Cell(733), 0.7);
-
-    segment = connections.createSegment(Cell(8));
-    connections.createSynapse(segment, Cell(486), 0.9);
-
-    set<Cell> activeCells = { Cell(23), Cell(37), Cell(49), Cell(733) };
-    Cell cell;
-
-    cell.idx = 0;
-    tie(bestSegment, numActiveSynapses) = tm.bestMatchingSegment(cell, activeCells, connections);
-    ASSERT_EQ(bestSegment, Segment(0, Cell(0)));
-    ASSERT_EQ(numActiveSynapses, 2);
-
-    cell.idx = 1;
-    tie(bestSegment, numActiveSynapses) = tm.bestMatchingSegment(cell, activeCells, connections);
-    ASSERT_EQ(bestSegment, Segment(0, Cell(1)));
-    ASSERT_EQ(numActiveSynapses, 1);
-
-    cell.idx = 8;
-    tie(bestSegment, numActiveSynapses) = tm.bestMatchingSegment(cell, activeCells, connections);
-    ASSERT_EQ(bestSegment, Segment(-1, Cell(0)));
-    ASSERT_EQ(numActiveSynapses, 0);
-
-    cell.idx = 100;
-    tie(bestSegment, numActiveSynapses) = tm.bestMatchingSegment(cell, activeCells, connections);
-    ASSERT_EQ(bestSegment, Segment(-1, Cell(0)));
-    ASSERT_EQ(numActiveSynapses, 0);
-  }
-
-  void TemporalMemoryTest::testLeastUsedCell()
-  {
-    TemporalMemory tm;
-    tm.initialize(vector<UInt>{2}, 2);
-
-    Connections connections = *tm.connections_;
-    Segment segment = connections.createSegment(Cell(0));
-    connections.createSynapse(segment, 3, 0.3);
-
-    set<Cell> cells = {};
-
-    for (int i = 0; i < 100; i++)
-    {
-      // Never pick cell 0, always pick cell 1
-      set<Cell> cellsForColumn = tm.cellsForColumn(0);
-      Cell cell;
-
-      tie(cell, segment) = tm.bestMatchingCell(cellsForColumn, cells, connections);
-      ASSERT_EQ(cell, Cell(1));
-    }
-  }
-
-  void TemporalMemoryTest::testAdaptSegment()
-  {
-    vector<Synapse> synapses;
-    bool eq;
-
-    Connections connections = *tm.connections_;
-    Segment segment = connections.createSegment(Cell(0));
-    connections.createSynapse(segment, Cell(23), 0.6);
-    connections.createSynapse(segment, Cell(37), 0.4);
-    connections.createSynapse(segment, Cell(477), 0.9);
-
-    synapses = vector<Synapse>{ Synapse(0, segment), Synapse(1, segment) };
-    tm.adaptSegment(segment, synapses, connections);
-
-    eq = nupic::nearlyEqual(connections.dataForSynapse(Synapse(0, segment)).permanence, Real(0.7));
-    EXPECT_TRUE(eq);
-    eq = nupic::nearlyEqual(connections.dataForSynapse(Synapse(1, segment)).permanence, Real(0.5));
-    EXPECT_TRUE(eq);
-    eq = nupic::nearlyEqual(connections.dataForSynapse(Synapse(2, segment)).permanence, Real(0.8));
-    EXPECT_TRUE(eq);
-  }
-
-  void TemporalMemoryTest::testAdaptSegmentToMax()
-  {
-    vector<Synapse> synapses;
-    bool eq;
-
-    Connections connections = *tm.connections_;
-    Segment segment = connections.createSegment(Cell(0));
-    synapses.push_back(connections.createSynapse(segment, Cell(23), 0.9));
-
-    tm.adaptSegment(segment, synapses, connections);
-    eq = nupic::nearlyEqual(connections.dataForSynapse(Synapse(0, segment)).permanence, Real(1.0));
-    EXPECT_TRUE(eq);
-
-    // Now permanence should be at min
-    tm.adaptSegment(segment, synapses, connections);
-    eq = nupic::nearlyEqual(connections.dataForSynapse(Synapse(0, segment)).permanence, Real(1.0));
-    EXPECT_TRUE(eq);
-  }
-
-  void TemporalMemoryTest::testAdaptSegmentToMin()
-  {
-    vector<Synapse> synapses = { Synapse(-1, Segment(-1, Cell(0))) };
-    bool eq;
-
-    Connections connections = *tm.connections_;
-    Segment segment = connections.createSegment(Cell(0));
-    connections.createSynapse(segment, Cell(23), 0.1);
-
-    tm.adaptSegment(segment, synapses, connections);
-    eq = nupic::nearlyEqual(connections.dataForSynapse(Synapse(0, segment)).permanence, Real(0.0));
-    EXPECT_TRUE(eq);
-
-    // Now permanence should be at min
-    tm.adaptSegment(segment, synapses, connections);
-    eq = nupic::nearlyEqual(connections.dataForSynapse(Synapse(0, segment)).permanence, Real(0.0));
-    EXPECT_TRUE(eq);
-  }
-
-  void TemporalMemoryTest::testPickCellsToLearnOn()
-  {
-    TemporalMemory tm;
-    setup(tm, 2048);
-
-    Connections connections = *tm.connections_;
-    Segment segment = connections.createSegment(Cell(0));
-
-    set<Cell> winnerCells = { Cell(4), Cell(47), Cell(58), Cell(93) };
-    set<Cell> learningCells, expectedCells;
-
-    expectedCells = set<Cell> { Cell(4), Cell(58) }; // Randomly picked
-    learningCells = tm.pickCellsToLearnOn(2, segment, winnerCells, connections);
-    NTA_CHECK(check_set_eq(learningCells, expectedCells));
-
-    expectedCells = set<Cell> { Cell(4), Cell(47), Cell(58), Cell(93) };
-    learningCells = tm.pickCellsToLearnOn(100, segment, winnerCells, connections);
-    NTA_CHECK(check_set_eq(learningCells, expectedCells));
-
-    expectedCells = set<Cell> { };
-    learningCells = tm.pickCellsToLearnOn(0, segment, winnerCells, connections);
-    NTA_CHECK(check_set_eq(learningCells, expectedCells));
-  }
-
-  void TemporalMemoryTest::testPickCellsToLearnOnAvoidDuplicates()
-  {
-    TemporalMemory tm;
-    setup(tm, 2048);
-
-    Connections connections = *tm.connections_;
-    Segment segment = connections.createSegment(Cell(0));
-    connections.createSynapse(segment, 23, 0.6);
-
-    set<Cell> winnerCells = { Cell(23) };
-
-    // Ensure that no additional(duplicate) cells were picked
-    set<Cell> expectedCells = {};
-    set<Cell> learningCells = tm.pickCellsToLearnOn(2, segment, winnerCells, connections);
-    NTA_CHECK(check_set_eq(learningCells, expectedCells));
-  }
-
-  void TemporalMemoryTest::testColumnForCell1D()
-  {
-    TemporalMemory tm;
-    tm.initialize(vector<UInt>{2048}, 5);
-
-    Cell cell;
-
-    cell.idx = 0;
-    TEST(tm.columnForCell(cell) == 0);
-    cell.idx = 4;
-    TEST(tm.columnForCell(cell) == 0);
-    cell.idx = 5;
-    TEST(tm.columnForCell(cell) == 1);
-    cell.idx = 10239;
-    TEST(tm.columnForCell(cell) == 2047);
-  }
-
-  void TemporalMemoryTest::testColumnForCell2D()
-  {
-    TemporalMemory tm;
-    tm.initialize(vector<UInt>{64, 64}, 4);
-
-    Cell cell;
-
-    cell.idx = 0;
-    TEST(tm.columnForCell(cell) == 0);
-    cell.idx = 3;
-    TEST(tm.columnForCell(cell) == 0);
-    cell.idx = 4;
-    TEST(tm.columnForCell(cell) == 1);
-    cell.idx = 16383;
-    TEST(tm.columnForCell(cell) == 4095);
-  }
-
-  void TemporalMemoryTest::testColumnForCellInvalidCell()
-  {
-    TemporalMemory tm;
-    tm.initialize(vector<UInt>{64, 64}, 4);
-
-    Cell cell;
-
-    cell.idx = 16383;
-    EXPECT_NO_THROW(tm.columnForCell(cell));
-    cell.idx = 16384;
-    EXPECT_THROW(tm.columnForCell(cell), std::exception);
-    cell.idx = -1;
-    EXPECT_THROW(tm.columnForCell(cell), std::exception);
-  }
-
-  void TemporalMemoryTest::testCellsForColumn1D()
-  {
-    TemporalMemory tm;
-    tm.initialize(vector<UInt>{2048}, 5);
-
-    set<Cell> expectedCells = { Cell(5), Cell(6), Cell(7), Cell(8), Cell(9) };
-    set<Cell> cellsForColumn = tm.cellsForColumn(1);
-    NTA_CHECK(check_set_eq(cellsForColumn, expectedCells));
-  }
-
-  void TemporalMemoryTest::testCellsForColumn2D()
-  {
-    TemporalMemory tm;
-    tm.initialize(vector<UInt>{64, 64}, 4);
-
-    set<Cell> expectedCells = { Cell(256), Cell(257), Cell(258), Cell(259) };
-    set<Cell> cellsForColumn = tm.cellsForColumn(64);
-    NTA_CHECK(check_set_eq(cellsForColumn, expectedCells));
-  }
-
-  void TemporalMemoryTest::testCellsForColumnInvalidColumn()
-  {
-    TemporalMemory tm;
-    tm.initialize(vector<UInt>{64, 64}, 4);
-
-    EXPECT_NO_THROW(tm.cellsForColumn(4095));
-    EXPECT_THROW(tm.cellsForColumn(4096), std::exception);
-    EXPECT_THROW(tm.cellsForColumn(-1), std::exception);
-  }
-
-  void TemporalMemoryTest::testNumberOfColumns()
-  {
-    TemporalMemory tm;
-    tm.initialize(vector<UInt>{64, 64}, 32);
-
-    int numOfColumns = tm.numberOfColumns();
-    ASSERT_EQ(numOfColumns, 64 * 64);
-  }
-
-  void TemporalMemoryTest::testNumberOfCells()
-  {
-    TemporalMemory tm;
-    tm.initialize(vector<UInt>{64, 64}, 32);
-
-    Int numberOfCells = tm.numberOfCells();
-    ASSERT_EQ(numberOfCells, 64 * 64 * 32);
-  }
-
-  void TemporalMemoryTest::testMapCellsToColumns()
-  {
-    TemporalMemory tm;
-    tm.initialize(vector<UInt>{100}, 4);
-
-    set<Cell> cells = { Cell(0), Cell(1), Cell(2), Cell(5), Cell(399) };
-    map<Int, vector<Cell>> columnsForCells = tm.mapCellsToColumns(cells);
-
-    vector<Cell> expectedCells = { Cell(0), Cell(1), Cell(2) };
-    NTA_CHECK(check_vector_eq(columnsForCells[0], expectedCells));
-    expectedCells = { Cell(5) };
-    NTA_CHECK(check_vector_eq(columnsForCells[1], expectedCells));
-    expectedCells = { Cell(399) };
-    NTA_CHECK(check_vector_eq(columnsForCells[99], expectedCells));
-  }
-
-  void TemporalMemoryTest::testSaveLoad()
-  {
-    const char* filename = "TemporalMemorySerialization.tmp";
-    TemporalMemory tm1, tm2;
-    vector<UInt> columnDim;
-    UInt numColumns = 12;
-
-    columnDim.push_back(numColumns);
-    tm1.initialize(columnDim);
-
-    ofstream outfile;
-    outfile.open(filename, ios::binary);
-    tm1.save(outfile);
-    outfile.close();
-
-    ifstream infile(filename, ios::binary);
-    tm2.load(infile);
-    infile.close();
-
-    check_spatial_eq(tm1, tm2);
-
-    int ret = ::remove(filename);
-    NTA_CHECK(ret == 0) << "Failed to delete " << filename;
-  }
-
 } // end namespace nupic

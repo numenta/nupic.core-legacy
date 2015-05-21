@@ -30,8 +30,12 @@
 #include <climits>
 #include <utility>
 #include <vector>
+
 #include <nupic/types/Types.hpp>
 #include <nupic/math/Math.hpp>
+#include <nupic/proto/ConnectionsProto.capnp.h>
+
+using namespace std;
 
 namespace nupic
 {
@@ -47,9 +51,9 @@ namespace nupic
       typedef Real32 Permanence;
       typedef UInt64 Iteration;
 
-      #define CELL_MAX ((USHRT_MAX*32)-1)
-      #define SEGMENT_MAX (SHRT_MAX-1)
-      #define SYNAPSE_MAX (USHRT_MAX-1)
+      #define CELL_MAX ((USHRT_MAX<<4)-1)
+      #define SEGMENT_MAX (UCHAR_MAX-1)
+      #define SYNAPSE_MAX (UCHAR_MAX-1)
 
       /**
        * Cell class used in Connections.
@@ -217,6 +221,10 @@ namespace nupic
       class Connections
       {
       public:
+        /**
+         * Connections empty constructor.
+         * (Does not call `initialize`.)
+         */
         Connections() {};
 
         /**
@@ -231,6 +239,16 @@ namespace nupic
                     SegmentIdx maxSegmentsPerCell=SEGMENT_MAX);
 
         virtual ~Connections() {}
+
+        /**
+         * Initialize connections.
+         *
+         * @param numCells           Number of cells. Must be <= CELL_MAX.
+         * @param maxSegmentsPerCell Maximum number of segments per cell. Must be <= SEGMENT_MAX.
+         *
+         * @retval Created segment.
+         */
+        void initialize(CellIdx numCells, SegmentIdx maxSegmentsPerCell);
 
         /**
          * Creates a segment on the specified cell.
@@ -374,6 +392,28 @@ namespace nupic
          */
         std::vector<Cell> activeCells(const Activity& activity);
 
+        // Serialization
+
+        /**
+         * Writes serialized data to output stream.
+         */
+        virtual void write(ostream& stream) const;
+
+        /**
+         * Writes serialized data to proto object.
+         */
+        virtual void write(ConnectionsProto::Builder& proto) const;
+
+        /**
+         * Reads serialized data from input stream.
+         */
+        virtual void read(istream& stream);
+
+        /**
+         * Reads serialized data from proto object.
+         */
+        virtual void read(ConnectionsProto::Reader& proto);
+
         // Debugging
 
         /**
@@ -389,6 +429,11 @@ namespace nupic
          * @retval Number of synapses.
          */
         UInt numSynapses() const;
+
+        /**
+         * Comparison operator.
+         */
+        bool operator==(const Connections &other) const;
 
       private:
         std::vector<CellData> cells_;

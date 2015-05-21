@@ -375,7 +375,7 @@ void TemporalMemoryMonitorMixin::compute(UInt activeColumns[], bool learn)
 {
 //  _mmTraces["predictedCells"]._data.push_back(predictiveCells);
 
-  TemporalMemoryMonitorMixin::compute(activeColumns, learn);
+  compute(activeColumns, learn);
 
 //  _mmTraces["predictiveCells"]._data.push_back(predictiveCells);
 //  _mmTraces["activeColumns"]._data.push_back(activeColumns);
@@ -458,8 +458,8 @@ void TemporalMemoryMonitorMixin::mmClearHistory()
   _mmTraces["predictiveCells"] = IndicesTrace(this, string("predictive cells"));
   _mmTraces["numSegments"] = CountsTrace(this, string("# segments"));
   _mmTraces["numSynapses"] = CountsTrace(this, string("# synapses"));
-  _mmTraces["sequenceLabels"] = StringsTrace(this, string("sequence labels"));
-  _mmTraces["resets"] = BoolsTrace(this, string("resets"));
+//  _mmTraces["sequenceLabels"] = StringsTrace(this, string("sequence labels"));
+//  _mmTraces["resets"] = BoolsTrace(this, string("resets"));
 
   _mmTransitionTracesStale = true;
 }

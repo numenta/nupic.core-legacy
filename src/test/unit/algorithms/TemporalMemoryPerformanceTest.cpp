@@ -50,7 +50,7 @@ namespace nupic {
 
   void TemporalMemoryPerformanceTest::setUp()
   {
-    tm.initialize({ 2048 }, 32, 15, 2048L, .5, .8, 15, 12, .1, .05);
+    tm.initialize({ 2048 }, 32, 15, .5, .8, 15, 12, .1, .05);
 
     _patternMachine = PatternMachine();
     _patternMachine.initialize(2048, vector<UInt>{ 40 }, 100);

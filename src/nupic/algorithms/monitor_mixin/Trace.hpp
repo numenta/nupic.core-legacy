@@ -59,7 +59,7 @@ namespace nupic
   class CountsTrace : public Trace<vector<UInt>>
   {
   private:
-    static int accumulate(Trace<vector<UInt>>& trace);
+    static UInt accumulate(Trace<vector<UInt>>& trace);
 
   public:
     // Each entry contains counts(for example # of predicted = > active cells).
@@ -80,6 +80,7 @@ namespace nupic
   class IndicesTrace : public CountsTrace
   {
   public:
+    IndicesTrace() {};
     IndicesTrace(Instance* monitor, string& title)
     {
       _monitor = monitor;
@@ -92,6 +93,7 @@ namespace nupic
   {
   public:
     // Each entry contains bools(for example resets).
+    BoolsTrace() {};
     BoolsTrace(Instance* monitor, string& title)
     {
       _monitor = monitor;
@@ -105,6 +107,7 @@ namespace nupic
   {
   public:
     // Each entry contains strings(for example sequence labels).
+    StringsTrace() {};
     StringsTrace(Instance* monitor, string& title)
     {
       _monitor = monitor;

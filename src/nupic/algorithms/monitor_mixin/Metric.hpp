@@ -61,26 +61,26 @@ namespace nupic
 
     string prettyPrintTitle();
 
-    virtual void _computeStats(Trace<vector<int>>& resets);
+    virtual void _computeStats(Trace<vector<UInt>>& resets);
 
     virtual Metric<TraceType> createFromTrace(Trace<TraceType>& trace);
-    virtual Metric<TraceType> createFromTrace(Trace<TraceType>& trace, Trace<vector<int>>& resets);
+    virtual Metric<TraceType> createFromTrace(Trace<TraceType>& trace, Trace<vector<UInt>>& resets);
 
     static Metric<TraceType> copy(const Metric<TraceType>& rhs);
 
   };
 
-  class MetricsVector : public Metric<vector<int>>
+  class MetricsVector : public Metric<vector<UInt>>
   {
   public:
-    virtual void _computeStats(Trace<vector<int>>& resets);
+    virtual void _computeStats(Trace<vector<UInt>>& resets);
 
-    static Metric<vector<int>> createFromTrace(Trace<vector<int>>& trace);
-    static Metric<vector<int>> createFromTrace(Trace<vector<int>>& trace, Trace<vector<int>>& resets);
+    static Metric<vector<UInt>> createFromTrace(Trace<vector<UInt>>& trace);
+    static Metric<vector<UInt>> createFromTrace(Trace<vector<UInt>>& trace, Trace<vector<UInt>>& resets);
 
   };
 
-  class MetricsTrace : public Trace<Metric<int>>
+  class MetricsTrace : public Trace<Metric<UInt>>
   {
   public:
     // Each entry contains Metrics(for example metric for # of predicted = > active cells).

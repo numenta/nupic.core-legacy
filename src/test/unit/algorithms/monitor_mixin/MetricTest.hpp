@@ -51,7 +51,7 @@ namespace nupic {
 
   private:
     Instance temp;
-    Trace<vector<int>> trace;
+    Trace<vector<UInt>> trace;
 
     void setup();
 

@@ -69,9 +69,9 @@ void MetricTest::testCreateFromTrace()
 
 void MetricTest::testCreateFromTraceExcludeResets()
 {
-  vector<bool> resetsList({ true, false, false, true, false, false });
+  vector<UInt> resetsList({ 1,0,0,1,0,0 });
 
-  BoolsTrace resetsTrace = BoolsTrace();// &temp, string("resets"));
+  Trace<vector<UInt>> resetsTrace = Trace<vector<UInt>>(&temp, string("resets"));
   resetsTrace._data.push_back(resetsList);
 
   MetricsVector metric;

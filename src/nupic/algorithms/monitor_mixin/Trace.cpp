@@ -100,13 +100,13 @@ Trace<vector<UInt>> CountsTrace::makeCumCountsTrace()
 }
 
 
-int CountsTrace::accumulate(Trace<vector<UInt>>& trace)
+UInt CountsTrace::accumulate(Trace<vector<UInt>>& trace)
 {
-  int total = 0;
+  UInt total = 0;
 
   for (vector<UInt>& entry : trace._data)
   {
-    for (int item : entry)
+    for (UInt item : entry)
       total += item;
   }
 

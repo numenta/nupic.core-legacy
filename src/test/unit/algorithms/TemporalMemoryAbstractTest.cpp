@@ -55,13 +55,13 @@ void TemporalMemoryAbstractTest::_feedTM(Sequence sequence, bool learn, int num)
   }
 
   _tm.mmClearHistory();
-/*
-  for (vector<UInt> pattern : repeatedSequence)
+
+  for (vector<UInt> pattern : repeatedSequence.data)
   {
     if (pattern.size() == 0)
       _tm.reset();
     else
       _tm.compute(&pattern[0], learn);
   }
-*/
+
 }

@@ -38,7 +38,7 @@ namespace nupic {
 
   void TraceTest::setUp()
   {
-    _trace = IndicesTrace();//(NULL, string("active cells"));
+    _trace = IndicesTrace(NULL, string("active cells"));
     _trace._data.push_back({ 1, 2, 3 });
     _trace._data.push_back({ 4, 5 });
     _trace._data.push_back({ 6 });
@@ -53,14 +53,14 @@ namespace nupic {
 
   void TraceTest::testMakeCountsTrace()
   {
-    Trace<vector<int>> countsTrace = _trace.makeCountsTrace();
+    Trace<vector<UInt>> countsTrace = _trace.makeCountsTrace();
     NTA_CHECK(countsTrace._title == string("# active cells"));
 //    NTA_CHECK(countsTrace._data == vector<int>{3, 2, 1, 0});
   }
 
   void TraceTest::testMakeCumCountsTrace()
   {
-    Trace<vector<int>> countsTrace = _trace.makeCumCountsTrace();
+    Trace<vector<UInt>> countsTrace = _trace.makeCumCountsTrace();
     NTA_CHECK(countsTrace._title == string("# (cumulative) active cells"));
 //    NTA_CHECK(countsTrace._data == vector<int>{3, 5, 6, 6});
   }

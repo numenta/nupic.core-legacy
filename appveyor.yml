@@ -3,15 +3,27 @@
 #---------------------------------#
 
 # version format
-version: 1.0.{build}
+version: 0.3.0.{build}
 
-# branches to build
 branches:
   only:
     - master
 
   except:
     - gh-pages
+
+environment:
+  matrix:
+    # Must add CLang, or GCC
+    # i.e. - COMPILER_FAMILY: GNU
+    - COMPILER_FAMILY: MSVC
+      DEPLOY_TO_NUGET: 0
+      DEPLOY_BUILD: 0
+
+skip_commits:
+  # Add [av skip] to commit messages to skip AppVeyor building
+  # Add [ci skip] to skip Travis and AppVeyor building
+  message: /\[av skip\]/ 
 
 #---------------------------------#
 #    environment configuration    #
@@ -23,69 +35,117 @@ os: Visual Studio 2015 CTP
 init:
   - git config --global core.autocrlf input
 
-# clone directory
 clone_folder: c:\projects\nupic-core
-
-environment:
-
-  matrix:
-#    - COMPILER_FAMILY: GNU
-#      DEPLOY_BUILD: 0
-    - COMPILER_FAMILY: MSVC
-      DEPLOY_BUILD: 0
-
-install:
-  - mkdir C:\projects\nupic-core\build\
-  - mkdir C:\projects\nupic-core\build\scripts
-  - mkdir C:\projects\nupic-core\build\release
-  - cd C:\projects\nupic-core\build\scripts
-  - ps: Start-FileDownload 'http://www.cmake.org/files/v3.1/cmake-3.1.0-win32-x86.zip'
-  - ps: Write-Host '7z x cmake-3.1.0-win32-x86.zip'
-  - ps: Start-Process -FilePath "7z" -ArgumentList "x -y cmake-3.1.0-win32-x86.zip" -Wait -Passthru
-  - set PATH="C:\projects\nupic-core\build\scripts\cmake-3.1.0-win32-x86\bin";%PATH%
-  - set PATH="C:\Program Files (x86)\MSBuild\14.0\Bin";%PATH%
-  - echo %PATH%
+clone_depth: 50
+# Can't have a shallow clone because the CMake process will be calling into
+# git to write the current SHA into the binaries.
+shallow_clone: false
 
 #---------------------------------#
 #       build configuration       #
 #---------------------------------#
 
-# enable patching of AssemblyInfo.* files
-assembly_info:
-  patch: true
-  file: AssemblyInfo.*
-  assembly_version: "1.0.{build}"
-  assembly_file_version: "{version}"
-  assembly_informational_version: "{version}"
+nuget:
+  account_feed: true
+  project_feed: true
+  disable_publish_on_pr: true     # disable publishing of .nupkg artifacts to
+                                  # account/project feeds for pull request builds
 
 configuration: Release
 
-before_build:
-  - cd C:\projects\nupic-core\build\scripts
-  - cmake C:\projects\nupic-core\src -G "Visual Studio 14 2015 Win64" -DCMAKE_INSTALL_PREFIX=..\Release -DLIB_STATIC_APR1_LOC=..\..\external\windows64\lib\apr-1.lib -DLIB_STATIC_APRUTIL1_LOC=..\..\external\windows64\lib\aprutil-1.lib -DLIB_STATIC_YAML_CPP_LOC=..\..\external\windows64\lib\yaml-cpp.lib -DLIB_STATIC_YAML_LOC=..\..\external\windows64\lib\yaml.lib -DLIB_STATIC_Z_LOC=..\..\external\windows64\lib\z.lib  -DLIB_STATIC_CAPNP_LOC=..\..\external\windows64\lib\capnp.lib  -DLIB_STATIC_KJ_LOC=..\..\external\windows64\lib\kj.lib
+install:
+  - set REPO_DIR=c:\projects\nupic-core
+  - set NUPIC_DEPLOYMENT_BUILD=1
+
+  - mkdir %REPO_DIR%\build\
+  - mkdir %REPO_DIR%\build\release
+  - mkdir %REPO_DIR%\build\scripts
+  - cd %REPO_DIR%\build\scripts
+
+  # Need at least version 3.1.0 for the VS 2015 generator
+  - ps: Start-FileDownload 'http://www.cmake.org/files/v3.1/cmake-3.1.0-win32-x86.zip'
+  - ps: Write-Host '7z x cmake-3.1.0-win32-x86.zip'
+  - ps: Start-Process -FilePath "7z" -ArgumentList "x -y cmake-3.1.0-win32-x86.zip" -Wait -Passthru
+  - set PATH="%REPO_DIR%\build\scripts\cmake-3.1.0-win32-x86\bin";%PATH%
+  - set PATH="C:\Program Files (x86)\MSBuild\14.0\Bin";%PATH%
+
+  - cd %REPO_DIR%\build\scripts
+  - set EXT_LIBS=%REPO_DIR%\external\windows64\lib
+  - cmake %REPO_DIR%\src
+     -G "Visual Studio 14 2015 Win64" -Wno-dev
+     -DCMAKE_BUILD_TYPE=Release 
+     -DCMAKE_INSTALL_PREFIX=..\Release
+     -DLIB_STATIC_APR1_LOC=%EXT_LIBS%\apr-1.lib
+     -DLIB_STATIC_APRUTIL1_LOC=%EXT_LIBS%\aprutil-1.lib
+     -DLIB_STATIC_YAML_CPP_LOC=%EXT_LIBS%\yaml-cpp.lib
+     -DLIB_STATIC_YAML_LOC=%EXT_LIBS%\yaml.lib
+     -DLIB_STATIC_Z_LOC=%EXT_LIBS%\z.lib
+     -DLIB_STATIC_CAPNP_LOC=%EXT_LIBS%\capnp.lib
+     -DLIB_STATIC_KJ_LOC=%EXT_LIBS%\kj.lib
 
 build_script:
-  - msbuild "C:\projects\nupic-core\build\scripts\gtest.vcxproj" /p:Configuration=Release /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
-  - msbuild "C:\projects\nupic-core\build\scripts\nupic_core_solo.vcxproj" /p:Configuration=Release /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
-  - msbuild "C:\projects\nupic-core\build\scripts\helloregion.vcxproj" /p:Configuration=Release /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
-  - msbuild "C:\projects\nupic-core\build\scripts\prototest.vcxproj" /p:Configuration=Release /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
-  - msbuild "C:\projects\nupic-core\build\scripts\py_region_test.vcxproj" /p:Configuration=Release /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
-  - msbuild "C:\projects\nupic-core\build\scripts\cpp_region_test.vcxproj" /p:Configuration=Release /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
-  - msbuild "C:\projects\nupic-core\build\scripts\unit_tests.vcxproj" /p:Configuration=Release /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
-  - msbuild "C:\projects\nupic-core\build\scripts\Install.vcxproj" /p:Configuration=Release /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+  - cd %REPO_DIR%\build\scripts
 
-after_build:
-  - cd C:\projects\nupic-core\build\release\bin
-  - prototest 2>&1
-  - cpp_region_test 1 2>&1
-  - unit_tests --gtest_output=xml:${PROJECT_BUILD_ARTIFACTS_DIR}/unit_tests_report.xml 2>&1
-  - ps: if($env:DEPLOY_BUILD -eq 1) { cd C:\projects\nupic-core\build\release\ }
-  - ps: if($env:DEPLOY_BUILD -eq 1) { copy C:\projects\nupic-core\Package.nuspec . }
-  - ps: if($env:DEPLOY_BUILD -eq 1) { nuget pack -version $env:APPVEYOR_BUILD_VERSION }
-  - ps: if($env:DEPLOY_BUILD -eq 1) { nuget push *.nupkg 30618afb-ecf6-4476-8e61-a5b823ad9892 }
+  - ps: >-
+      $root = $env:APPVEYOR_BUILD_FOLDER
 
-artifacts:
-  - path: nupic-core\build\release
+      $versionStr = $env:APPVEYOR_BUILD_VERSION
+
+      Write-Host $root
+
+      Write-Host "Setting Package.nuspec version tag to $versionStr"
+
+      $content = (Get-Content $root\Package.nuspec) 
+
+      $content = $content -replace '\$version\$',$versionStr
+
+      $content | Out-File $root\Package.nuspec
+
+  - set MSBuildLogger="C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+  - set MSBuildOptions=/v:m /p:Configuration=Release /logger:%MSBuildLogger%
+
+  - msbuild %MSBuildOptions% nupic_core.sln
+  - set MSBuildOptions=/v:q /p:Configuration=Release /logger:%MSBuildLogger%
+  - msbuild %MSBuildOptions% INSTALL.vcxproj
 
 test: off
-deploy: off
+
+after_build:
+  - cd %REPO_DIR%\build\release
+  - set PROJECT_BUILD_ARTIFACTS_DIR=%REPO_DIR%\build\artifacts
+
+  - ps: >-
+      if($env:DEPLOY_TO_NUGET -eq 1) {
+        copy $env:REPO_DIR\Package.nuspec .
+
+        nuget pack -version $env:APPVEYOR_BUILD_VERSION
+
+        nuget push *.nupkg 30618afb-ecf6-4476-8e61-a5b823ad9892
+        # NOTE: Push to nuget is here, rather than normal AV deployment
+
+      }
+
+      # This packages via CMakeList CPack settings (Tar.Gzip for SW upload)
+      # msbuild $env:MSBuildOptions PACKAGE.vcxproj
+
+      7z a -ttar -y -bd nupic_core-$env:APPVEYOR_REPO_COMMIT-windows64.tar .
+
+      7z a -tgzip -y -bd ..\..\nupic_core-$env:APPVEYOR_REPO_COMMIT-windows64.tar.gz nupic_core-$env:APPVEYOR_REPO_COMMIT-windows64.tar
+
+artifacts:
+  - path: '**\*.tar.gz' # find all Gz(ip) packages recursively
+
+deploy:
+  # Amazon S3 deployment provider settings
+  - provider: S3
+    access_key_id:
+      secure: /9U0mCHp3k1U8Y5CY/kDqwCKG2gqchG/T/UlVWo8SME=
+    secret_access_key:
+      secure: /8wO17Gir0XAiecJkHeE3jxOJzvyl0+uWcl7BKCuN0FC795golsL8905VmNuRl1o
+    bucket: "artifacts.numenta.org"
+    region: us-west-2
+    set_public: true
+    artifact: "nupic_core-$(APPVEYOR_REPO_COMMIT)-windows64.tar.gz"
+    folder: "numenta/nupic.core"
+    on:
+      branch: master

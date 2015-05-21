@@ -248,9 +248,9 @@ void TemporalMemoryExtensiveTest::_testTM(Sequence& sequence)
 
 void TemporalMemoryExtensiveTest::assertAllActiveWerePredicted()
 {
-  Metric<vector<int>> unpredictedActiveColumnsMetric = _tm.mmGetMetricFromTrace(
+  Metric<vector<UInt>> unpredictedActiveColumnsMetric = _tm.mmGetMetricFromTrace(
     _tm.mmGetTraceUnpredictedActiveColumns());
-  Metric<vector<int>> predictedActiveColumnsMetric = _tm.mmGetMetricFromTrace(
+  Metric<vector<UInt>> predictedActiveColumnsMetric = _tm.mmGetMetricFromTrace(
     _tm.mmGetTracePredictedActiveColumns());
 
   NTA_CHECK(unpredictedActiveColumnsMetric._sum == 0);
@@ -262,7 +262,7 @@ void TemporalMemoryExtensiveTest::assertAllActiveWerePredicted()
 
 void TemporalMemoryExtensiveTest::assertAllInactiveWereUnpredicted()
 {
-  Metric<vector<int>> predictedInactiveColumnsMetric = _tm.mmGetMetricFromTrace(
+  Metric<vector<UInt>> predictedInactiveColumnsMetric = _tm.mmGetMetricFromTrace(
     _tm.mmGetTracePredictedInactiveColumns());
 
   NTA_CHECK(predictedInactiveColumnsMetric._sum == 0);
@@ -271,9 +271,9 @@ void TemporalMemoryExtensiveTest::assertAllInactiveWereUnpredicted()
 
 void TemporalMemoryExtensiveTest::assertAllActiveWereUnpredicted()
 {
-  Metric<vector<int>> unpredictedActiveColumnsMetric = _tm.mmGetMetricFromTrace(
+  Metric<vector<UInt>> unpredictedActiveColumnsMetric = _tm.mmGetMetricFromTrace(
     _tm.mmGetTraceUnpredictedActiveColumns());
-  Metric<vector<int>> predictedActiveColumnsMetric = _tm.mmGetMetricFromTrace(
+  Metric<vector<UInt>> predictedActiveColumnsMetric = _tm.mmGetMetricFromTrace(
     _tm.mmGetTracePredictedActiveColumns());
 
   NTA_CHECK(predictedActiveColumnsMetric._sum == 0);
@@ -455,7 +455,7 @@ void TemporalMemoryExtensiveTest::testB11()
   sequence = _sequenceMachine.addSpatialNoise(sequence, 0.05);
 
   _testTM(sequence);
-  Metric<vector<int>> unpredictedActiveColumnsMetric = _tm.mmGetMetricFromTrace(
+  Metric<vector<UInt>> unpredictedActiveColumnsMetric = _tm.mmGetMetricFromTrace(
     _tm.mmGetTraceUnpredictedActiveColumns());
   NTA_CHECK(unpredictedActiveColumnsMetric._mean < 1);
 }
@@ -476,7 +476,7 @@ void TemporalMemoryExtensiveTest::testH1()
   _testTM(sequence);
   assertAllActiveWerePredicted();
 
-  Metric<vector<int>> predictedInactiveColumnsMetric = _tm.mmGetMetricFromTrace(
+  Metric<vector<UInt>> predictedInactiveColumnsMetric = _tm.mmGetMetricFromTrace(
     _tm.mmGetTracePredictedInactiveColumns());
   NTA_CHECK(predictedInactiveColumnsMetric._mean > 0);
 
@@ -506,7 +506,7 @@ void TemporalMemoryExtensiveTest::testH2()
 
   // Without some kind of decay, expect predicted inactive columns at the
   // end of the first shared sequence
-  Metric<vector<int>> predictedInactiveColumnsMetric = _tm.mmGetMetricFromTrace(
+  Metric<vector<UInt>> predictedInactiveColumnsMetric = _tm.mmGetMetricFromTrace(
     _tm.mmGetTracePredictedInactiveColumns());
   NTA_CHECK(predictedInactiveColumnsMetric._sum < 26);
 
@@ -534,7 +534,7 @@ void TemporalMemoryExtensiveTest::testH3()
   _testTM(sequence);
   assertAllActiveWerePredicted();
 
-  Metric<vector<int>> predictedInactiveColumnsMetric = _tm.mmGetMetricFromTrace(
+  Metric<vector<UInt>> predictedInactiveColumnsMetric = _tm.mmGetMetricFromTrace(
     _tm.mmGetTracePredictedInactiveColumns());
   NTA_CHECK(predictedInactiveColumnsMetric._sum < 26 * 2);
 
@@ -565,7 +565,7 @@ void TemporalMemoryExtensiveTest::testH4()
   _testTM(sequence);
   assertAllActiveWerePredicted();
 
-  Metric<vector<int>> predictedInactiveColumnsMetric = _tm.mmGetMetricFromTrace(
+  Metric<vector<UInt>> predictedInactiveColumnsMetric = _tm.mmGetMetricFromTrace(
     _tm.mmGetTracePredictedInactiveColumns());
   NTA_CHECK(predictedInactiveColumnsMetric._mean < 3);
 }
@@ -598,7 +598,7 @@ void TemporalMemoryExtensiveTest::testH5()
   _testTM(sequence);
   assertAllActiveWerePredicted();
 
-  Metric<vector<int>> predictedInactiveColumnsMetric = _tm.mmGetMetricFromTrace(
+  Metric<vector<UInt>> predictedInactiveColumnsMetric = _tm.mmGetMetricFromTrace(
     _tm.mmGetTracePredictedInactiveColumns());
   NTA_CHECK(predictedInactiveColumnsMetric._mean < 3);
 }
@@ -621,7 +621,7 @@ void TemporalMemoryExtensiveTest::testH9()
   sequence = _sequenceMachine.addSpatialNoise(sequence, 0.05);
 
   _testTM(sequence);
-  Metric<vector<int>> unpredictedActiveColumnsMetric = _tm.mmGetMetricFromTrace(
+  Metric<vector<UInt>> unpredictedActiveColumnsMetric = _tm.mmGetMetricFromTrace(
     _tm.mmGetTraceUnpredictedActiveColumns());
   NTA_CHECK(unpredictedActiveColumnsMetric._mean < 3);
 }

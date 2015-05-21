@@ -68,13 +68,14 @@ LogItem::~LogItem()
     break;
   }
 
-
   if (ostream_ == nullptr)
     ostream_ = &(std::cout);
 
   (*ostream_) << slevel << "  " << msg_.str();
+
   if (level_ == error)
     (*ostream_) << " [" << filename_ << " line " << lineno_ << "]";
+
   (*ostream_) << std::endl;
 
 }
