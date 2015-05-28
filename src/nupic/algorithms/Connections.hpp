@@ -51,7 +51,7 @@ namespace nupic
       typedef Real32 Permanence;
       typedef UInt64 Iteration;
 
-      #define CELL_MAX (USHRT_MAX-1)
+      #define CELL_MAX (UINT_MAX-1)
       #define SEGMENT_MAX (UCHAR_MAX-1)
       #define SYNAPSE_MAX (UCHAR_MAX-1)
 

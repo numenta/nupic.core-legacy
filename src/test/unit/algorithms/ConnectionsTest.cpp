@@ -60,10 +60,7 @@ namespace nupic {
    */
   void ConnectionsTest::testConstructor()
   {
-    ASSERT_NO_THROW(Connections connections(CELL_MAX););
     ASSERT_THROW(Connections connections(CELL_MAX+1);, runtime_error);
-
-    ASSERT_NO_THROW(Connections connections(100, SEGMENT_MAX););
     ASSERT_THROW(Connections connections(100, SEGMENT_MAX+1);, runtime_error);
   }
 
