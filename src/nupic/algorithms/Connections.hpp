@@ -51,9 +51,9 @@ namespace nupic
       typedef Real32 Permanence;
       typedef UInt64 Iteration;
 
-      #define CELL_MAX (UINT_MAX-1)
-      #define SEGMENT_MAX (UCHAR_MAX-1)
-      #define SYNAPSE_MAX (UCHAR_MAX-1)
+      const UInt32 cellMax = UINT_MAX-1;
+      const unsigned char segmentMax = UCHAR_MAX-1;
+      const unsigned char synapseMax = UCHAR_MAX-1;
 
       /**
        * Cell class used in Connections.
@@ -230,21 +230,21 @@ namespace nupic
         /**
          * Connections constructor.
          *
-         * @param numCells           Number of cells. Must be <= CELL_MAX.
-         * @param maxSegmentsPerCell Maximum number of segments per cell. Must be <= SEGMENT_MAX.
+         * @param numCells           Number of cells. Must be <= cellMax.
+         * @param maxSegmentsPerCell Maximum number of segments per cell. Must be <= segmentMax.
          *
          * @retval Created segment.
          */
         Connections(CellIdx numCells,
-                    SegmentIdx maxSegmentsPerCell=SEGMENT_MAX);
+                    SegmentIdx maxSegmentsPerCell=segmentMax);
 
         virtual ~Connections() {}
 
         /**
          * Initialize connections.
          *
-         * @param numCells           Number of cells. Must be <= CELL_MAX.
-         * @param maxSegmentsPerCell Maximum number of segments per cell. Must be <= SEGMENT_MAX.
+         * @param numCells           Number of cells. Must be <= cellMax.
+         * @param maxSegmentsPerCell Maximum number of segments per cell. Must be <= segmentMax.
          *
          * @retval Created segment.
          */
