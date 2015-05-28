@@ -214,7 +214,6 @@ static RegionImpl * createPyNode(DynamicPythonLibrary * pyLib,
                                  Region * region)
 {
   for (std::vector<const char *>::iterator package = packages.begin(); package !=packages.end();package++)
-  //for (auto package : packages)
   {
     
     // Construct the full module path to the requested node
@@ -239,7 +238,6 @@ static RegionImpl * deserializePyNode(DynamicPythonLibrary * pyLib,
 {
   // We need to find the module so that we know if it is NuPIC 1 or NuPIC 2
   for (std::vector<const char *>::iterator package = packages.begin(); package !=packages.end();package++)
-  //for (auto package : packages)
   {
     
     // Construct the full module path to the requested node
@@ -329,7 +327,6 @@ static Spec * getPySpec(DynamicPythonLibrary * pyLib,
                                 const std::string & nodeType)
 {
   for (std::vector<const char *>::iterator package = packages.begin(); package !=packages.end();package++)
-  //for (auto package : packages)
   {
     
 

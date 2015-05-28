@@ -68,6 +68,7 @@ namespace nupic
   class Region 
   {
   public:
+
     /**
      * @name Region information
      *
