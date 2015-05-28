@@ -68,7 +68,6 @@ namespace nupic
   class Region 
   {
   public:
-
     /**
      * @name Region information
      *
@@ -146,6 +145,13 @@ namespace nupic
      */
     static const Spec* 
     getSpecFromType(const std::string& nodeType);
+
+
+    /*
+     * Adds a package to the RegionImplFactory's packages
+     */
+    static void addCustomRegionPackage(const char * path);
+
 
     /**
      * @}

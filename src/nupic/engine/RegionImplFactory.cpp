@@ -44,10 +44,17 @@
 #define expand_and_stringify(x) stringify(x)
 
 // Path from site-packages to packages that contain NuPIC Python regions
-const char * packages[] = { "nupic.regions", "nupic.regions.extra" };
+static std::vector<const char *> packages { "nupic.regions", "nupic.regions.extra" };
 
 namespace nupic
 {
+
+  // Allows the user to add custom regions to the package list
+  void RegionImplFactory::addPackage(const char * path)
+  {
+    packages.push_back(path);
+  }
+
   class DynamicPythonLibrary
   {
     typedef void (*initPythonFunc)();
@@ -200,49 +207,24 @@ RegionImplFactory & RegionImplFactory::getInstance()
   return instance;
 }
 
-static std::string getPackageDir(const std::string& rootDir, const std::string & package)
-{
-  
-  std::string p(package);
-  p.replace(p.find("."), 1, "/");
-  size_t pos = p.find(".");
-  if (pos != std::string::npos)
-    p.replace(p.find("."), 1, "/");
-
-  return Path::join(rootDir, p);
-}
-
 // This function creates either a NuPIC 2 or NuPIC 1 Python node 
 static RegionImpl * createPyNode(DynamicPythonLibrary * pyLib, 
                                  const std::string & nodeType,
                                  ValueMap * nodeParams,
                                  Region * region)
 {
-  for (auto package : packages)
+  for (std::vector<const char *>::iterator package = packages.begin(); package !=packages.end();package++)
+  //for (auto package : packages)
   {
     
     // Construct the full module path to the requested node
-    std::string fullNodeType = std::string(package) + std::string(".") +
+    std::string fullNodeType = std::string(* package) + std::string(".") +
                                std::string(nodeType.c_str() + 3);
-
-    // Check if node exists and continue if not
-    std::string nodePath = Path::join(getPackageDir(pyLib->getRootDir(), package), 
-      std::string(nodeType.c_str() + 3) + std::string(".py"));
-
-      if (!Path::exists(nodePath))
-        continue;
 
     void * exception = nullptr;
     void * node = pyLib->createPyNode(fullNodeType, nodeParams, region, &exception);
     if (node)
       return static_cast<RegionImpl*>(node);
-
-    if (exception)
-    {
-      nupic::Exception * e = (nupic::Exception *)exception;
-      throw nupic::Exception(*e);
-      delete e;
-    }
   }
 
   NTA_THROW << "Unable to create region " << region->getName() << " of type " << nodeType;
@@ -256,33 +238,18 @@ static RegionImpl * deserializePyNode(DynamicPythonLibrary * pyLib,
                                       Region * region)
 {
   // We need to find the module so that we know if it is NuPIC 1 or NuPIC 2
-  for (auto package : packages)
+  for (std::vector<const char *>::iterator package = packages.begin(); package !=packages.end();package++)
+  //for (auto package : packages)
   {
     
     // Construct the full module path to the requested node
-    std::string fullNodeType = std::string(package) + std::string(".") +
+    std::string fullNodeType = std::string(* package) + std::string(".") +
                                std::string(nodeType.c_str() + 3);
-
-    // Check if node exists and continue if not
-    std::string nodePath = Path::join(getPackageDir(pyLib->getRootDir(), package), 
-           std::string(nodeType.c_str() + 3) + std::string(".py"));
-
-    if (!Path::exists(nodePath))
-      continue;
-
-
 
     void *exception = nullptr;
     void * node = pyLib->deserializePyNode(fullNodeType, &bundle, region, &exception);
     if (node)
       return static_cast<RegionImpl*>(node);
-    
-    if (exception)
-    {
-      nupic::Exception * e = (nupic::Exception *)exception;
-      throw nupic::Exception(*e);
-      delete e;
-    }
   }
   NTA_THROW << "Unable to deserialize region " << region->getName() << " of type " << nodeType;
   return nullptr;
@@ -361,31 +328,19 @@ RegionImpl* RegionImplFactory::deserializeRegionImpl(const std::string nodeType,
 static Spec * getPySpec(DynamicPythonLibrary * pyLib,
                                 const std::string & nodeType)
 {
-  for (auto package : packages)
+  for (std::vector<const char *>::iterator package = packages.begin(); package !=packages.end();package++)
+  //for (auto package : packages)
   {
     
 
     // Construct the full module path to the requested node
-    std::string fullNodeType = std::string(package) + std::string(".") + 
+    std::string fullNodeType = std::string(* package) + std::string(".") + 
                                std::string(nodeType.c_str() + 3);
 
-    // Check if node exists and continue if not
-    std::string nodePath = Path::join(getPackageDir(pyLib->getRootDir(), package), 
-      std::string(nodeType.c_str() + 3) + std::string(".py"));
-
-      if (!Path::exists(nodePath))
-        continue;
     void * exception = nullptr;
     void * ns = pyLib->createSpec(fullNodeType, &exception);
     if (ns) {
       return (Spec *)ns;
-    }
-
-    if (exception)
-    {
-      nupic::Exception * e = (nupic::Exception *)exception;
-      delete e;
-      NTA_THROW << "Could not get valid spec for Region: " << nodeType;
     }
   }
 
