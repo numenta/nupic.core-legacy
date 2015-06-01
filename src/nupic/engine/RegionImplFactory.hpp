@@ -77,7 +77,7 @@ namespace nupic
     void cleanup();
 
     // Allows the user to load custom packages
-    static void addPackage(const char * path);
+    static void registerRegionPackage(const char * path);
 
     static void addCPPRegion(const std::string name, RegionImplWrapper<RegionImpl>* wrapper);
 

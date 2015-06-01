@@ -151,7 +151,7 @@ namespace nupic
     /*
      * Adds a package to the RegionImplFactory's packages
      */
-    static void addCustomRegionPackage(const char * path);
+    static void registerRegionPackage(const char * path);
 
 
     /**

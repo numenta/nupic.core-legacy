@@ -58,8 +58,8 @@ namespace nupic
     cpp_packages[name] = wrapper;
   }
 
-  // Allows the user to add custom python regions to the package list
-  void RegionImplFactory::addPackage(const char * path)
+  // Allows the user to add custom regions to the package list
+  void RegionImplFactory::registerRegionPackage(const char * path)
   {
     packages.push_back(path);
   }
@@ -233,8 +233,10 @@ static RegionImpl * createPyNode(DynamicPythonLibrary * pyLib,
   {
     
     // Construct the full module path to the requested node
-    std::string fullNodeType = std::string(package) + std::string(".") +
-                               std::string(nodeType.c_str() + 3);
+    std::string fullNodeType = std::string(package);
+    if (!fullNodeType.empty()) // Not in current directory
+      fullNodeType += std::string(".");
+    fullNodeType += std::string(nodeType.c_str() + 3);
 
     void * exception = nullptr;
     void * node = pyLib->createPyNode(fullNodeType, nodeParams, region, &exception);
@@ -257,8 +259,10 @@ static RegionImpl * deserializePyNode(DynamicPythonLibrary * pyLib,
   {
     
     // Construct the full module path to the requested node
-    std::string fullNodeType = std::string(package) + std::string(".") +
-                               std::string(nodeType.c_str() + 3);
+    std::string fullNodeType = std::string(package);
+    if (!fullNodeType.empty()) // Not in current directory
+      fullNodeType += std::string(".");
+    fullNodeType += std::string(nodeType.c_str() + 3);
 
     void *exception = nullptr;
     void * node = pyLib->deserializePyNode(fullNodeType, &bundle, region, &exception);
@@ -357,8 +361,10 @@ static Spec * getPySpec(DynamicPythonLibrary * pyLib,
     
 
     // Construct the full module path to the requested node
-    std::string fullNodeType = std::string(package) + std::string(".") + 
-                               std::string(nodeType.c_str() + 3);
+    std::string fullNodeType = std::string(package);
+    if (!fullNodeType.empty()) // Not in current directory
+      fullNodeType += std::string(".");
+    fullNodeType += std::string(nodeType.c_str() + 3);
 
     void * exception = nullptr;
     void * ns = pyLib->createSpec(fullNodeType, &exception);

@@ -224,9 +224,9 @@ Region::getSpecFromType(const std::string& nodeType)
 }
 
 void
-Region::addCustomRegionPackage(const char * path)
+Region::registerRegionPackage(const char * path)
 {
-  RegionImplFactory::addPackage(path);
+  RegionImplFactory::registerRegionPackage(path);
 }
 
 const Dimensions&
