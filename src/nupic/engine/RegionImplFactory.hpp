@@ -76,7 +76,7 @@ namespace nupic
     void cleanup();
 
     // Allows the user to load custom packages
-    static void addPackage(const char * path);
+    static void registerRegionPackage(const char * path);
 
   private:
     RegionImplFactory() {};

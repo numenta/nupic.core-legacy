@@ -374,7 +374,7 @@ namespace nupic
      * Add user built regions to package path
      */
     static void
-    addCustomRegionPackage(const char * path);
+    registerRegionPackage(const char * path);
 
   private:
 
