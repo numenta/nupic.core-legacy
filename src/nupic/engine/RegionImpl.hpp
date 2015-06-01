@@ -50,6 +50,7 @@ namespace nupic
   class ArrayRef;
   class NodeSet;
   class BundleIO;
+  class ValueMap;
 
   class RegionImpl
   {
@@ -58,6 +59,8 @@ namespace nupic
 
     // All subclasses must call this constructor from their regular constructor
     RegionImpl(Region* region);
+    RegionImpl(const ValueMap& params, Region *region);
+    RegionImpl(BundleIO& params, Region *region);
     
     virtual ~RegionImpl();
 
@@ -99,14 +102,14 @@ namespace nupic
     virtual std::string getParameterString(const std::string& name, Int64 index);
 
 
-    /* -------- Methods that must be implemented by subclasses -------- */
+    /* -------- Methods that must be overridden by subclasses -------- */
 
     /**
      * Can't declare a static method in an interface. But RegionFactory
-     * expects to find this method. Caller gets ownership. 
+     * expects to find this static method. Caller gets ownership. 
      */
 
-    // static Spec* createSpec();
+    static Spec* createSpec();
 
     // Serialize state. 
     virtual void serialize(BundleIO& bundle) = 0;

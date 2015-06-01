@@ -24,6 +24,7 @@
 #include <stdexcept>
 #include <nupic/engine/RegionImplFactory.hpp>
 #include <nupic/engine/RegionImpl.hpp>
+#include <nupic/engine/RegionImplWrapper.hpp>
 #include <nupic/engine/Region.hpp>
 #include <nupic/engine/Spec.hpp>
 #include <nupic/os/DynamicLibrary.hpp>
@@ -43,13 +44,21 @@
 #define stringify(x)  #x
 #define expand_and_stringify(x) stringify(x)
 
-// Path from site-packages to packages that contain NuPIC Python regions
-static std::vector<const char *> packages { "nupic.regions", "nupic.regions.extra" };
-
 namespace nupic
 {
+  // Path from site-packages to packages that contain NuPIC Python regions
+  static std::vector<const char *> packages { "nupic.regions", "nupic.regions.extra" };
 
-  // Allows the user to add custom regions to the package list
+  // Mappings for c++ regions
+  static std::map<const std::string, RegionImplWrapper<RegionImpl>*> cpp_packages;
+
+  // Allows the user to add custom c++ regions
+  void RegionImplFactory::addCPPRegion(const std::string name, RegionImplWrapper<RegionImpl>* wrapper)
+  {
+    cpp_packages[name] = wrapper;
+  }
+
+  // Allows the user to add custom python regions to the package list
   void RegionImplFactory::addPackage(const char * path)
   {
     packages.push_back(path);
@@ -136,6 +145,13 @@ namespace nupic
 
       destroySpec_ = (destroySpecFunc)pynodeLibrary_->getSymbol("NTA_destroySpec");
       NTA_CHECK(destroySpec_) << "Unable to find NTA_destroySpec symbol in " << filename;
+
+      if(cpp_packages.empty())
+      {
+        cpp_packages["TestNode"] = new RegionImplWrapper<TestNode>();
+        cpp_packages["VectorFileEffector"] = new RegionImplWrapper<VectorFileEffector>();
+        cpp_packages["VectorFileSensor"] = new  RegionImplWrapper<VectorFileSensor>();
+      }
 
       (*initPython_)();
     }
@@ -269,7 +285,11 @@ RegionImpl* RegionImplFactory::createRegionImpl(const std::string nodeType,
     nodeType, 
     region->getName());
     
-  if (nodeType == "TestNode")
+  if (cpp_packages.find(nodeType) != cpp_packages.end())
+  {
+    mn = cpp_packages[nodeType]->createRegionImpl(vm, region);
+  }
+  /*if (nodeType == "TestNode")
   {
     mn = new TestNode(vm, region);
   } else if (nodeType == "VectorFileEffector")
@@ -278,7 +298,8 @@ RegionImpl* RegionImplFactory::createRegionImpl(const std::string nodeType,
   } else if (nodeType == "VectorFileSensor")
   {
     mn = new VectorFileSensor(vm, region);
-  } else if ((nodeType.find(std::string("py.")) == 0))
+  }*/
+  else if ((nodeType.find(std::string("py.")) == 0))
   {
     if (!pyLib_)
       pyLib_ = boost::shared_ptr<DynamicPythonLibrary>(new DynamicPythonLibrary());
@@ -299,7 +320,11 @@ RegionImpl* RegionImplFactory::deserializeRegionImpl(const std::string nodeType,
 
   RegionImpl *mn = nullptr;
 
-  if (nodeType == "TestNode")
+  if (cpp_packages.find(nodeType) != cpp_packages.end())
+  {
+    mn = cpp_packages[nodeType]->deserializeRegionImpl(bundle, region);
+  }
+  /*if (nodeType == "TestNode")
   {
     mn = new TestNode(bundle, region);
   } else if (nodeType == "VectorFileEffector")
@@ -308,7 +333,8 @@ RegionImpl* RegionImplFactory::deserializeRegionImpl(const std::string nodeType,
   } else if (nodeType == "VectorFileSensor")
   {
     mn = new VectorFileSensor(bundle, region);
-  } else if (StringUtils::startsWith(nodeType, "py."))
+  }*/
+  else if (StringUtils::startsWith(nodeType, "py."))
   {
     if (!pyLib_)
       pyLib_ = boost::shared_ptr<DynamicPythonLibrary>(new DynamicPythonLibrary());
@@ -355,7 +381,11 @@ Spec * RegionImplFactory::getSpec(const std::string nodeType)
   // grab the nodespec and cache it
   // one entry per supported node type
   Spec * ns = nullptr;
-  if (nodeType == "TestNode")
+  if (cpp_packages.find(nodeType) != cpp_packages.end())
+  {
+    ns = cpp_packages[nodeType]->createSpec();
+  }
+  /*if (nodeType == "TestNode")
   {
     ns = TestNode::createSpec();
   } 
@@ -366,7 +396,7 @@ Spec * RegionImplFactory::getSpec(const std::string nodeType)
   else if (nodeType == "VectorFileSensor")
   {
     ns = VectorFileSensor::createSpec();
-  }
+  }*/
   else if (nodeType.find(std::string("py.")) == 0)
   {
     if (!pyLib_)

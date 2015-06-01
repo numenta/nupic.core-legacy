@@ -41,6 +41,7 @@ namespace nupic
 {
 
   class RegionImpl;
+  template<class T> class RegionImplWrapper;
   class Region;
   class DynamicPythonLibrary;
   struct Spec;
@@ -77,6 +78,8 @@ namespace nupic
 
     // Allows the user to load custom packages
     static void addPackage(const char * path);
+
+    static void addCPPRegion(const std::string name, RegionImplWrapper<RegionImpl>* wrapper);
 
   private:
     RegionImplFactory() {};
