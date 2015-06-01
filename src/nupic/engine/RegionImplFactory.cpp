@@ -339,7 +339,6 @@ static Spec * getPySpec(DynamicPythonLibrary * pyLib,
     if (!fullNodeType.empty()) // Not in current directory
       fullNodeType += std::string(".");
     fullNodeType += std::string(nodeType.c_str() + 3);
-    std::cout << fullNodeType << std::endl;
 
     void * exception = nullptr;
     void * ns = pyLib->createSpec(fullNodeType, &exception);
