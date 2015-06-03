@@ -24,8 +24,8 @@
 #include <stdexcept>
 #include <nupic/engine/RegionImplFactory.hpp>
 #include <nupic/engine/RegionImpl.hpp>
-#include <nupic/engine/RegionImplWrapper.hpp>
 #include <nupic/engine/Region.hpp>
+#include <nupic/engine/RegisteredRegionImpl.hpp>
 #include <nupic/engine/Spec.hpp>
 #include <nupic/os/DynamicLibrary.hpp>
 #include <nupic/os/Path.hpp>
@@ -50,18 +50,44 @@ namespace nupic
   static std::vector<const char *> packages { "nupic.regions", "nupic.regions.extra" };
 
   // Mappings for c++ regions
-  static std::map<const std::string, RegionImplWrapper<RegionImpl>*> cpp_packages;
+  //static std::map<const std::string, RegisteredRegionImplPointer*> cpp_packages;
+  static std::map<const std::string, GenericRegisteredRegionImpl*> cpp_packages;
 
   // Allows the user to add custom c++ regions
-  void RegionImplFactory::addCPPRegion(const std::string name, RegionImplWrapper<RegionImpl>* wrapper)
+  /*void RegionImplFactory::registerCPPRegion(const std::string name, RegisteredRegionImplPointer * wrapper)
+  {
+    cpp_packages[name] = wrapper;
+  }*/
+
+  void RegionImplFactory::registerCPPRegion(const std::string name, GenericRegisteredRegionImpl * wrapper)
   {
     cpp_packages[name] = wrapper;
   }
 
   // Allows the user to add custom regions to the package list
-  void RegionImplFactory::registerRegionPackage(const char * path)
+  void RegionImplFactory::registerRegionPackage(const char * path, bool filetype)
   {
-    packages.push_back(path);
+    if (filetype) // Python
+    {
+      packages.push_back(path);
+    }
+    else // C++
+    {
+      /*std::string stringpath(path);
+      const std::string name = Path::getBasename(stringpath.substr(0,stringpath.length() - 3));
+      std::string errorString;
+      DynamicLibrary * p = DynamicLibrary::load(path, errorString);
+      if (p != 0) {
+        boost::shared_ptr<DynamicLibrary> cppRegion = boost::shared_ptr<DynamicLibrary>(p);
+        createRegionImplFunc create = (createRegionImplFunc)cppRegion->getSymbol("createRegionImpl");
+        deserializeRegionImplFunc deserialize = (deserializeRegionImplFunc)cppRegion->getSymbol("deserializeRegionImpl");
+        createSpecFunc regionspec = (createSpecFunc)cppRegion->getSymbol("createSpec");
+        cpp_packages[name] = new RegisteredRegionImplPointer(name, create, deserialize, regionspec);
+      }
+      else {
+        std::cout << errorString << std::endl;
+      }*/
+    }
   }
 
   class DynamicPythonLibrary
@@ -146,11 +172,25 @@ namespace nupic
       destroySpec_ = (destroySpecFunc)pynodeLibrary_->getSymbol("NTA_destroySpec");
       NTA_CHECK(destroySpec_) << "Unable to find NTA_destroySpec symbol in " << filename;
 
-      if(cpp_packages.empty())
-      {
-        cpp_packages["TestNode"] = new RegionImplWrapper<TestNode>();
-        cpp_packages["VectorFileEffector"] = new RegionImplWrapper<VectorFileEffector>();
-        cpp_packages["VectorFileSensor"] = new  RegionImplWrapper<VectorFileSensor>();
+      if (cpp_packages.empty()) {
+        /*RegisteredRegionImplPointer* testNodeWrapper = new RegisteredRegionImplPointer("TestNode",
+            TestNode::createRegionImpl, TestNode::deserializeRegionImpl,
+            TestNode::createSpec);
+        cpp_packages["TestNode"] = testNodeWrapper;
+
+        RegisteredRegionImplPointer* vectorFileEffectorWrapper = new RegisteredRegionImplPointer("VectorFileEffector",
+              VectorFileEffector::createRegionImpl, VectorFileEffector::deserializeRegionImpl,
+              VectorFileEffector::createSpec);
+        cpp_packages["VectorFileEffector"] = vectorFileEffectorWrapper;
+
+        RegisteredRegionImplPointer* vectorFileSensorWrapper = new RegisteredRegionImplPointer("VectorFileSensor",
+              VectorFileSensor::createRegionImpl, VectorFileSensor::deserializeRegionImpl,
+              VectorFileSensor::createSpec);
+        cpp_packages["VectorFileSensor"] = vectorFileSensorWrapper;*/
+
+        cpp_packages["TestNode"] = new RegisteredRegionImpl<TestNode>();
+        cpp_packages["VectorFileEffector"] = new RegisteredRegionImpl<VectorFileEffector>();
+        cpp_packages["VectorFileSensor"] = new RegisteredRegionImpl<VectorFileSensor>();
       }
 
       (*initPython_)();
@@ -219,6 +259,11 @@ namespace nupic
 RegionImplFactory & RegionImplFactory::getInstance()
 {
   static RegionImplFactory instance;
+  if (cpp_packages.empty()) {
+    cpp_packages["TestNode"] = new RegisteredRegionImpl<TestNode>();
+    cpp_packages["VectorFileEffector"] = new RegisteredRegionImpl<VectorFileEffector>();
+    cpp_packages["VectorFileSensor"] = new RegisteredRegionImpl<VectorFileSensor>();
+  }
 
   return instance;
 }
@@ -313,6 +358,7 @@ RegionImpl* RegionImplFactory::createRegionImpl(const std::string nodeType,
   {
     NTA_THROW << "Unsupported node type '" << nodeType << "'";
   }
+
   return mn;
 
 }

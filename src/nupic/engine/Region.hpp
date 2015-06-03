@@ -53,6 +53,7 @@ namespace nupic
   class BundleIO;
   class Timer;
   class Network;
+  class GenericRegisteredRegionImpl;
 
   /**
    * Represents a set of one or more "identical" nodes in a Network.
@@ -152,6 +153,11 @@ namespace nupic
      * Adds a package to the RegionImplFactory's packages
      */
     static void registerRegionPackage(const char * path);
+
+    /*
+     * Adds a cpp region to the RegionImplFactory's packages
+     */
+    static void registerCPPRegion(const std::string name, GenericRegisteredRegionImpl* wrapper);
 
 
     /**

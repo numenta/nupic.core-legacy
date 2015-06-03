@@ -985,6 +985,11 @@ void Network::registerRegionPackage(const char * path)
   Region::registerRegionPackage(path);
 }
 
+void Network::registerCPPRegion(const std::string name, GenericRegisteredRegionImpl* wrapper)
+{
+  Region::registerCPPRegion(name, wrapper);
+}
+
 
 
 } // namespace nupic

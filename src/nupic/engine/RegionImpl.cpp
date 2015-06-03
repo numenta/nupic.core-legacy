@@ -51,6 +51,17 @@ Spec * RegionImpl::createSpec()
   return NULL;
 }
 
+RegionImpl* RegionImpl::createRegionImpl(const ValueMap& params, Region *region)
+{
+  return NULL;
+}
+
+RegionImpl* RegionImpl::deserializeRegionImpl(BundleIO& params, Region *region)
+{
+  return NULL;
+}
+
+
 // convenience method
 const std::string& RegionImpl::getType() const
 {

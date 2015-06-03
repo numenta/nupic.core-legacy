@@ -40,6 +40,7 @@ namespace nupic
 
   class Region;
   class Dimensions;
+  class GenericRegisteredRegionImpl;
 
 
   /**
@@ -375,6 +376,11 @@ namespace nupic
      */
     static void
     registerRegionPackage(const char * path);
+
+    /*
+     * Adds a cpp region to the RegionImplFactory's packages
+     */
+    static void registerCPPRegion(const std::string name, GenericRegisteredRegionImpl* wrapper);
 
   private:
 

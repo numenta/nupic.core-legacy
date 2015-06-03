@@ -59,8 +59,6 @@ namespace nupic
 
     // All subclasses must call this constructor from their regular constructor
     RegionImpl(Region* region);
-    RegionImpl(const ValueMap& params, Region *region);
-    RegionImpl(BundleIO& params, Region *region);
     
     virtual ~RegionImpl();
 
@@ -110,6 +108,9 @@ namespace nupic
      */
 
     static Spec* createSpec();
+    // factory functions for instantiating an instance
+    static RegionImpl* createRegionImpl(const ValueMap& params, Region *region);
+    static RegionImpl* deserializeRegionImpl(BundleIO& params, Region *region);
 
     // Serialize state. 
     virtual void serialize(BundleIO& bundle) = 0;

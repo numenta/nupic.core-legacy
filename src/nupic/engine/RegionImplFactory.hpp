@@ -41,11 +41,12 @@ namespace nupic
 {
 
   class RegionImpl;
-  template<class T> class RegionImplWrapper;
   class Region;
   class DynamicPythonLibrary;
   struct Spec;
   class BundleIO;
+  class ValueMap;
+  class GenericRegisteredRegionImpl;
 
   class RegionImplFactory
   {
@@ -77,9 +78,10 @@ namespace nupic
     void cleanup();
 
     // Allows the user to load custom packages
-    static void registerRegionPackage(const char * path);
+    static void registerRegionPackage(const char * path, bool filetype=true);
 
-    static void addCPPRegion(const std::string name, RegionImplWrapper<RegionImpl>* wrapper);
+    //static void registerCPPRegion(const std::string name, RegionImplWrapper * wrapper);
+    static void registerCPPRegion(const std::string name, GenericRegisteredRegionImpl * wrapper);
 
   private:
     RegionImplFactory() {};

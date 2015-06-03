@@ -229,6 +229,12 @@ Region::registerRegionPackage(const char * path)
   RegionImplFactory::registerRegionPackage(path);
 }
 
+void
+Region::registerCPPRegion(const std::string name, GenericRegisteredRegionImpl* wrapper)
+{
+  RegionImplFactory::registerCPPRegion(name, wrapper);
+}
+
 const Dimensions&
 Region::getDimensions() const
 {
