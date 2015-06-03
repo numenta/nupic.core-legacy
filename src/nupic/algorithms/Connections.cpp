@@ -46,15 +46,6 @@ Connections::Connections(CellIdx numCells,
 void Connections::initialize(CellIdx numCells,
                              SegmentIdx maxSegmentsPerCell)
 {
-  if (numCells > CELL_MAX)
-  {
-    NTA_THROW << "Attemped to create Connections with numCells > CELL_MAX";
-  }
-  if (maxSegmentsPerCell > SEGMENT_MAX)
-  {
-    NTA_THROW << "Attemped to create Connections with maxSegmentsPerCell > SEGMENT_MAX";
-  }
-
   cells_ = vector<CellData>(numCells);
   numSegments_ = 0;
   numSynapses_ = 0;
@@ -89,7 +80,7 @@ Synapse Connections::createSynapse(const Segment& segment,
                                    Permanence permanence)
 {
   vector<SynapseData>& synapses = cells_[segment.cell.idx].segments[segment.idx].synapses;
-  if (synapses.size() == SYNAPSE_MAX)
+  if (synapses.size() == MAX_SYNAPSES_PER_SEGMENT)
   {
     NTA_THROW << "Cannot create synapse: segment has reached maximum number of synapses.";
   }

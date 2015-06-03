@@ -38,7 +38,6 @@ namespace nupic {
 
   void ConnectionsTest::RunTests()
   {
-    testConstructor();
     testCreateSegment();
     testCreateSegmentReuse();
     testCreateSynapse();
@@ -53,15 +52,6 @@ namespace nupic {
     testNumSegments();
     testNumSynapses();
     testWriteRead();
-  }
-
-  /**
-   * Tests boundary cases of parameters for constructor.
-   */
-  void ConnectionsTest::testConstructor()
-  {
-    ASSERT_THROW(Connections connections(CELL_MAX+1);, runtime_error);
-    ASSERT_THROW(Connections connections(100, SEGMENT_MAX+1);, runtime_error);
   }
 
   /**
