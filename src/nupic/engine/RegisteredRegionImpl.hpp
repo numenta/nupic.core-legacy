@@ -30,43 +30,43 @@
 #ifndef NTA_REGION_IMPL_WRAPPER_HPP
 #define NTA_REGION_IMPL_WRAPPER_HPP
 
+#include <string>
+
 namespace nupic
 {
   struct Spec;
   class BundleIO;
+  class RegionImpl;
   class Region;
   class ValueMap;
 
-  template<typename T>
-  class RegionImplWrapper
-  {
-    //static_assert((std::is_base_of<RegionImpl, T>::value), "T must inherit from RegionImpl");
+  class GenericRegisteredRegionImpl {
     public:
-      /*
-       * Create an instance of a RegionImplWrapper that is a template of T
-       */
-      RegionImplWrapper();
+      GenericRegisteredRegionImpl() {
+      }
+      virtual RegionImpl* createRegionImpl(const ValueMap& params, Region *region) {
+      }
+      virtual RegionImpl* deserializeRegionImpl(BundleIO& params, Region *region) {
+      }
+      virtual Spec* createSpec() {
+      }
+  };
 
-      ~RegionImplWrapper();
-
-      /*
-       * Creates an instance of the RegionImpl for RegionImplFactory's
-       * createRegionImpl
-       */
-      T* createRegionImpl(const ValueMap& params, Region *region);
-
-      /*
-       * Creates an instance of the RegionImpl for RegionImplFactory's
-       * deserializeRegionImpl
-       */
-      T* deserializeRegionImpl(BundleIO& params, Region *region);
-
-      /*
-       * Creates the spec for the RegionImpl
-       */
-      Spec* createSpec();
-
-      
+  template <class T>
+  class RegisteredRegionImpl: public GenericRegisteredRegionImpl {
+    public:
+      RegisteredRegionImpl() {
+      }
+      T* createRegionImpl(const ValueMap& params, Region *region) {
+        return new T(params, region);
+      }
+      T* deserializeRegionImpl(BundleIO& params, Region *region) {
+        return new T(params, region);
+      }
+      Spec* createSpec()
+      {
+        return T::createSpec();
+      }
   };
 }
 
