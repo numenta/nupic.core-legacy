@@ -58,7 +58,7 @@ namespace nupic
   }
 
   // Allows the user to add custom regions to the package list
-  void RegionImplFactory::registerRegionPackage(const char * path)
+  void RegionImplFactory::registerPyRegionPackage(const char * path)
   {
     packages.push_back(path);
   }

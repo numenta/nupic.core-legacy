@@ -48,7 +48,7 @@ RegionImpl::~RegionImpl()
 // need to override in a subclass
 Spec * RegionImpl::createSpec()
 {
-  return NULL;
+  return nullptr;
 }
 
 // convenience method

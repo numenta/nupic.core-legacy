@@ -980,9 +980,9 @@ void Network::resetProfiling()
     regions_.getByIndex(i).second->resetProfiling();
 }
 
-void Network::registerRegionPackage(const char * path)
+void Network::registerPyRegionPackage(const char * path)
 {
-  Region::registerRegionPackage(path);
+  Region::registerPyRegionPackage(path);
 }
 
 void Network::registerCPPRegion(const std::string name, GenericRegisteredRegionImpl* wrapper)
