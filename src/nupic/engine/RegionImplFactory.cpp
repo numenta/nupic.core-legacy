@@ -410,6 +410,17 @@ void RegionImplFactory::cleanup()
 
   nodespecCache_.clear();
 
+  // destroy all RegisteredRegionImpls
+  std::map<const std::string, GenericRegisteredRegionImpl*>::iterator rri;
+  for (rri = cpp_packages.begin(); rri != cpp_packages.end(); rri++)
+  {
+    assert(rri->second != nullptr);
+    delete rri->second;
+    rri->second = nullptr;
+  }
+
+  cpp_packages.clear();
+
   // Never release the Python dynamic library!
   // This is due to cleanup issues of Python itself
   // See: http://docs.python.org/c-api/init.html#Py_Finalize

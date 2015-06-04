@@ -44,6 +44,8 @@ namespace nupic
     public:
       GenericRegisteredRegionImpl() {
       }
+      virtual ~GenericRegisteredRegionImpl() {
+      }
       virtual RegionImpl* createRegionImpl(const ValueMap& params, Region *region) {
       }
       virtual RegionImpl* deserializeRegionImpl(BundleIO& params, Region *region) {
@@ -56,6 +58,8 @@ namespace nupic
   class RegisteredRegionImpl: public GenericRegisteredRegionImpl {
     public:
       RegisteredRegionImpl() {
+      }
+      ~RegisteredRegionImpl() {
       }
       T* createRegionImpl(const ValueMap& params, Region *region) {
         return new T(params, region);
