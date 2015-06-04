@@ -50,7 +50,6 @@ namespace nupic
   class ArrayRef;
   class NodeSet;
   class BundleIO;
-  class ValueMap;
 
   class RegionImpl
   {
