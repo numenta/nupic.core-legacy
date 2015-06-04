@@ -47,10 +47,13 @@ namespace nupic
       virtual ~GenericRegisteredRegionImpl() {
       }
       virtual RegionImpl* createRegionImpl(const ValueMap& params, Region *region) {
+        return nullptr;
       }
       virtual RegionImpl* deserializeRegionImpl(BundleIO& params, Region *region) {
+        return nullptr;
       }
       virtual Spec* createSpec() {
+        return nullptr;
       }
   };
 
