@@ -108,9 +108,6 @@ namespace nupic
      */
 
     static Spec* createSpec();
-    // factory functions for instantiating an instance
-    static RegionImpl* createRegionImpl(const ValueMap& params, Region *region);
-    static RegionImpl* deserializeRegionImpl(BundleIO& params, Region *region);
 
     // Serialize state. 
     virtual void serialize(BundleIO& bundle) = 0;

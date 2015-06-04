@@ -50,14 +50,7 @@ namespace nupic
   static std::vector<const char *> packages { "nupic.regions", "nupic.regions.extra" };
 
   // Mappings for c++ regions
-  //static std::map<const std::string, RegisteredRegionImplPointer*> cpp_packages;
   static std::map<const std::string, GenericRegisteredRegionImpl*> cpp_packages;
-
-  // Allows the user to add custom c++ regions
-  /*void RegionImplFactory::registerCPPRegion(const std::string name, RegisteredRegionImplPointer * wrapper)
-  {
-    cpp_packages[name] = wrapper;
-  }*/
 
   void RegionImplFactory::registerCPPRegion(const std::string name, GenericRegisteredRegionImpl * wrapper)
   {
@@ -65,29 +58,9 @@ namespace nupic
   }
 
   // Allows the user to add custom regions to the package list
-  void RegionImplFactory::registerRegionPackage(const char * path, bool filetype)
+  void RegionImplFactory::registerRegionPackage(const char * path)
   {
-    if (filetype) // Python
-    {
-      packages.push_back(path);
-    }
-    else // C++
-    {
-      /*std::string stringpath(path);
-      const std::string name = Path::getBasename(stringpath.substr(0,stringpath.length() - 3));
-      std::string errorString;
-      DynamicLibrary * p = DynamicLibrary::load(path, errorString);
-      if (p != 0) {
-        boost::shared_ptr<DynamicLibrary> cppRegion = boost::shared_ptr<DynamicLibrary>(p);
-        createRegionImplFunc create = (createRegionImplFunc)cppRegion->getSymbol("createRegionImpl");
-        deserializeRegionImplFunc deserialize = (deserializeRegionImplFunc)cppRegion->getSymbol("deserializeRegionImpl");
-        createSpecFunc regionspec = (createSpecFunc)cppRegion->getSymbol("createSpec");
-        cpp_packages[name] = new RegisteredRegionImplPointer(name, create, deserialize, regionspec);
-      }
-      else {
-        std::cout << errorString << std::endl;
-      }*/
-    }
+    packages.push_back(path);
   }
 
   class DynamicPythonLibrary
@@ -171,27 +144,6 @@ namespace nupic
 
       destroySpec_ = (destroySpecFunc)pynodeLibrary_->getSymbol("NTA_destroySpec");
       NTA_CHECK(destroySpec_) << "Unable to find NTA_destroySpec symbol in " << filename;
-
-      if (cpp_packages.empty()) {
-        /*RegisteredRegionImplPointer* testNodeWrapper = new RegisteredRegionImplPointer("TestNode",
-            TestNode::createRegionImpl, TestNode::deserializeRegionImpl,
-            TestNode::createSpec);
-        cpp_packages["TestNode"] = testNodeWrapper;
-
-        RegisteredRegionImplPointer* vectorFileEffectorWrapper = new RegisteredRegionImplPointer("VectorFileEffector",
-              VectorFileEffector::createRegionImpl, VectorFileEffector::deserializeRegionImpl,
-              VectorFileEffector::createSpec);
-        cpp_packages["VectorFileEffector"] = vectorFileEffectorWrapper;
-
-        RegisteredRegionImplPointer* vectorFileSensorWrapper = new RegisteredRegionImplPointer("VectorFileSensor",
-              VectorFileSensor::createRegionImpl, VectorFileSensor::deserializeRegionImpl,
-              VectorFileSensor::createSpec);
-        cpp_packages["VectorFileSensor"] = vectorFileSensorWrapper;*/
-
-        cpp_packages["TestNode"] = new RegisteredRegionImpl<TestNode>();
-        cpp_packages["VectorFileEffector"] = new RegisteredRegionImpl<VectorFileEffector>();
-        cpp_packages["VectorFileSensor"] = new RegisteredRegionImpl<VectorFileSensor>();
-      }
 
       (*initPython_)();
     }
@@ -338,16 +290,6 @@ RegionImpl* RegionImplFactory::createRegionImpl(const std::string nodeType,
   {
     mn = cpp_packages[nodeType]->createRegionImpl(vm, region);
   }
-  /*if (nodeType == "TestNode")
-  {
-    mn = new TestNode(vm, region);
-  } else if (nodeType == "VectorFileEffector")
-  {
-    mn = new VectorFileEffector(vm, region);
-  } else if (nodeType == "VectorFileSensor")
-  {
-    mn = new VectorFileSensor(vm, region);
-  }*/
   else if ((nodeType.find(std::string("py.")) == 0))
   {
     if (!pyLib_)
@@ -374,16 +316,6 @@ RegionImpl* RegionImplFactory::deserializeRegionImpl(const std::string nodeType,
   {
     mn = cpp_packages[nodeType]->deserializeRegionImpl(bundle, region);
   }
-  /*if (nodeType == "TestNode")
-  {
-    mn = new TestNode(bundle, region);
-  } else if (nodeType == "VectorFileEffector")
-  {
-    mn = new VectorFileEffector(bundle, region);
-  } else if (nodeType == "VectorFileSensor")
-  {
-    mn = new VectorFileSensor(bundle, region);
-  }*/
   else if (StringUtils::startsWith(nodeType, "py."))
   {
     if (!pyLib_)
@@ -437,18 +369,6 @@ Spec * RegionImplFactory::getSpec(const std::string nodeType)
   {
     ns = cpp_packages[nodeType]->createSpec();
   }
-  /*if (nodeType == "TestNode")
-  {
-    ns = TestNode::createSpec();
-  } 
-  else if (nodeType == "VectorFileEffector")
-  {
-    ns = VectorFileEffector::createSpec();
-  }
-  else if (nodeType == "VectorFileSensor")
-  {
-    ns = VectorFileSensor::createSpec();
-  }*/
   else if (nodeType.find(std::string("py.")) == 0)
   {
     if (!pyLib_)
