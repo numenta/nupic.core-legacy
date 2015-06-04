@@ -147,6 +147,13 @@ namespace nupic
     static const Spec* 
     getSpecFromType(const std::string& nodeType);
 
+
+    /*
+     * Adds a package to the RegionImplFactory's packages
+     */
+    static void registerRegionPackage(const char * path);
+
+
     /**
      * @}
      *

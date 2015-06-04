@@ -980,6 +980,11 @@ void Network::resetProfiling()
     regions_.getByIndex(i).second->resetProfiling();
 }
 
+void Network::registerRegionPackage(const char * path)
+{
+  Region::registerRegionPackage(path);
+}
+
 
 
 } // namespace nupic

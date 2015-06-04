@@ -75,6 +75,9 @@ namespace nupic
     // nodespec references (e.g. in NuPIC shutdown) or pynodes. 
     void cleanup();
 
+    // Allows the user to load custom packages
+    static void registerRegionPackage(const char * path);
+
   private:
     RegionImplFactory() {};
     RegionImplFactory(const RegionImplFactory &);

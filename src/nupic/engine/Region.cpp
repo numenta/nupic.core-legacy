@@ -223,6 +223,12 @@ Region::getSpecFromType(const std::string& nodeType)
   return factory.getSpec(nodeType);
 }
 
+void
+Region::registerRegionPackage(const char * path)
+{
+  RegionImplFactory::registerRegionPackage(path);
+}
+
 const Dimensions&
 Region::getDimensions() const
 {
