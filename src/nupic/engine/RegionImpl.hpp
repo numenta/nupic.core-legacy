@@ -100,11 +100,11 @@ namespace nupic
     virtual std::string getParameterString(const std::string& name, Int64 index);
 
 
-    /* -------- Methods that must be overridden by subclasses -------- */
+    /* -------- Methods that must be implemented by subclasses -------- */
 
     /**
      * Can't declare a static method in an interface. But RegionFactory
-     * expects to find this static method. Caller gets ownership. 
+     * expects to find this method. Caller gets ownership. 
      */
 
     static Spec* createSpec();
