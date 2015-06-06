@@ -411,10 +411,9 @@ void RegionImplFactory::cleanup()
   nodespecCache_.clear();
 
   // destroy all RegisteredRegionImpls
-  std::map<const std::string, GenericRegisteredRegionImpl*>::iterator rri;
-  for (rri = cpp_packages.begin(); rri != cpp_packages.end(); rri++)
+  for (auto rri = cpp_packages.begin(); rri != cpp_packages.end(); rri++)
   {
-    assert(rri->second != nullptr);
+    NTA_ASSERT(rri->second != nullptr);
     delete rri->second;
     rri->second = nullptr;
   }

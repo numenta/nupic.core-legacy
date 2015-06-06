@@ -45,12 +45,6 @@ RegionImpl::~RegionImpl()
 {
 }
 
-// need to override in a subclass
-Spec * RegionImpl::createSpec()
-{
-  return nullptr;
-}
-
 // convenience method
 const std::string& RegionImpl::getType() const
 {
