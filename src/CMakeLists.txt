@@ -312,6 +312,7 @@ set(CAPNP_SPECS
     nupic/proto/ConnectionsProto.capnp
     nupic/proto/LinkProto.capnp
     nupic/proto/RandomProto.capnp
+    nupic/proto/RegionProto.capnp
     nupic/proto/SparseBinaryMatrixProto.capnp
     nupic/proto/SparseMatrixProto.capnp
     nupic/proto/SpatialPoolerProto.capnp
