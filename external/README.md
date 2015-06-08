@@ -2,6 +2,12 @@
 
 ## Cap'n Proto v0.5.2
 
+**Note**: Compiling on newer versions of linux with glibc >=2.14 can be
+problematic. A change to memcpy causes linking to the newer glibc version,
+resulting in binaries that cannot be used on older platforms. See details
+and a potential workaround here:
+http://www.win.tue.nl/~aeb/linux/misc/gcc-semibug.html
+
 We install everything the user will need, including the capnp command-line
 tool. As such, the `--disable-shared` option to `./configure` must be used
 to ensure that the binaries are statically compiled. Additionally, the
