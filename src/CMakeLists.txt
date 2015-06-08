@@ -310,6 +310,7 @@ set(CAPNP_SPECS
     nupic/proto/BitHistory.capnp
     nupic/proto/ClaClassifier.capnp
     nupic/proto/ConnectionsProto.capnp
+    nupic/proto/LinkProto.capnp
     nupic/proto/RandomProto.capnp
     nupic/proto/SparseBinaryMatrixProto.capnp
     nupic/proto/SparseMatrixProto.capnp
