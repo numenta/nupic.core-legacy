@@ -1,7 +1,8 @@
 @0x8e18cab40b91663a;
 
+# Next ID: 4
 struct RegionProto {
-  # The type of the region, a string identifier for the RegionImpl subclass
+  # The type of the region, a string identifier for the RegionImpl subclass.
   nodeType @0 :Text;
 
   # This stores the data for the RegionImpl. The nodeType field is necessary
