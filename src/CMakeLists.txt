@@ -315,6 +315,7 @@ set(CAPNP_SPECS
     nupic/proto/SparseMatrixProto.capnp
     nupic/proto/SpatialPoolerProto.capnp
     nupic/proto/TemporalMemoryProto.capnp
+    nupic/proto/TestNodeProto.capnp
 )
 capnp_generate_cpp(CAPNP_SRCS CAPNP_HDRS ${CAPNP_SPECS})
 
