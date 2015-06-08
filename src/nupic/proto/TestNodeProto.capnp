@@ -1,5 +1,6 @@
 @0xacbfb584b84b791c;
 
+# Next ID: 16
 struct TestNodeProto {
   int32Param @0 :Int32;
   uint32Param @1 :UInt32;
@@ -7,7 +8,6 @@ struct TestNodeProto {
   uint64Param @3 :UInt64;
   real32Param @4 :Float32;
   real64Param @5 :Float64;
-  # TODO: This wasn't serialized before?
   stringParam @6 :Text;
 
   real32ArrayParam @7 :List(Float32);
