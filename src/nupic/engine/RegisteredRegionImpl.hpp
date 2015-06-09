@@ -27,8 +27,8 @@
  * RegionImpl and get its spec.
  */
 
-#ifndef NTA_REGION_IMPL_WRAPPER_HPP
-#define NTA_REGION_IMPL_WRAPPER_HPP
+#ifndef NTA_REGISTERED_REGION_IMPL_HPP
+#define NTA_REGISTERED_REGION_IMPL_HPP
 
 #include <string>
 
@@ -78,4 +78,4 @@ namespace nupic
 }
 
 
-#endif // NTA_REGION_IMPL_WRAPPER_HPP
+#endif // NTA_REGISTERED_REGION_IMPL_HPP
