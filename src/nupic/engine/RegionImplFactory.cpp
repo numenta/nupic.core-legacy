@@ -25,6 +25,7 @@
 #include <nupic/engine/RegionImplFactory.hpp>
 #include <nupic/engine/RegionImpl.hpp>
 #include <nupic/engine/Region.hpp>
+#include <nupic/engine/RegisteredRegionImpl.hpp>
 #include <nupic/engine/Spec.hpp>
 #include <nupic/os/DynamicLibrary.hpp>
 #include <nupic/os/Path.hpp>
@@ -43,14 +44,21 @@
 #define stringify(x)  #x
 #define expand_and_stringify(x) stringify(x)
 
-// Path from site-packages to packages that contain NuPIC Python regions
-static std::vector<const char *> packages { "nupic.regions", "nupic.regions.extra" };
-
 namespace nupic
 {
+  // Path from site-packages to packages that contain NuPIC Python regions
+  static std::vector<const char *> packages { "nupic.regions", "nupic.regions.extra" };
+
+  // Mappings for C++ regions
+  static std::map<const std::string, GenericRegisteredRegionImpl*> cpp_packages;
+
+  void RegionImplFactory::registerCPPRegion(const std::string name, GenericRegisteredRegionImpl * wrapper)
+  {
+    cpp_packages[name] = wrapper;
+  }
 
   // Allows the user to add custom regions to the package list
-  void RegionImplFactory::registerRegionPackage(const char * path)
+  void RegionImplFactory::registerPyRegionPackage(const char * path)
   {
     packages.push_back(path);
   }
@@ -203,6 +211,12 @@ namespace nupic
 RegionImplFactory & RegionImplFactory::getInstance()
 {
   static RegionImplFactory instance;
+  if (cpp_packages.empty())
+  {
+    cpp_packages["TestNode"] = new RegisteredRegionImpl<TestNode>();
+    cpp_packages["VectorFileEffector"] = new RegisteredRegionImpl<VectorFileEffector>();
+    cpp_packages["VectorFileSensor"] = new RegisteredRegionImpl<VectorFileSensor>();
+  }
 
   return instance;
 }
@@ -273,16 +287,11 @@ RegionImpl* RegionImplFactory::createRegionImpl(const std::string nodeType,
     nodeType, 
     region->getName());
     
-  if (nodeType == "TestNode")
+  if (cpp_packages.find(nodeType) != cpp_packages.end())
   {
-    mn = new TestNode(vm, region);
-  } else if (nodeType == "VectorFileEffector")
-  {
-    mn = new VectorFileEffector(vm, region);
-  } else if (nodeType == "VectorFileSensor")
-  {
-    mn = new VectorFileSensor(vm, region);
-  } else if ((nodeType.find(std::string("py.")) == 0))
+    mn = cpp_packages[nodeType]->createRegionImpl(vm, region);
+  }
+  else if ((nodeType.find(std::string("py.")) == 0))
   {
     if (!pyLib_)
       pyLib_ = boost::shared_ptr<DynamicPythonLibrary>(new DynamicPythonLibrary());
@@ -292,6 +301,7 @@ RegionImpl* RegionImplFactory::createRegionImpl(const std::string nodeType,
   {
     NTA_THROW << "Unsupported node type '" << nodeType << "'";
   }
+
   return mn;
 
 }
@@ -303,16 +313,11 @@ RegionImpl* RegionImplFactory::deserializeRegionImpl(const std::string nodeType,
 
   RegionImpl *mn = nullptr;
 
-  if (nodeType == "TestNode")
+  if (cpp_packages.find(nodeType) != cpp_packages.end())
   {
-    mn = new TestNode(bundle, region);
-  } else if (nodeType == "VectorFileEffector")
-  {
-    mn = new VectorFileEffector(bundle, region);
-  } else if (nodeType == "VectorFileSensor")
-  {
-    mn = new VectorFileSensor(bundle, region);
-  } else if (StringUtils::startsWith(nodeType, "py."))
+    mn = cpp_packages[nodeType]->deserializeRegionImpl(bundle, region);
+  }
+  else if (StringUtils::startsWith(nodeType, "py."))
   {
     if (!pyLib_)
       pyLib_ = boost::shared_ptr<DynamicPythonLibrary>(new DynamicPythonLibrary());
@@ -361,17 +366,9 @@ Spec * RegionImplFactory::getSpec(const std::string nodeType)
   // grab the nodespec and cache it
   // one entry per supported node type
   Spec * ns = nullptr;
-  if (nodeType == "TestNode")
+  if (cpp_packages.find(nodeType) != cpp_packages.end())
   {
-    ns = TestNode::createSpec();
-  } 
-  else if (nodeType == "VectorFileEffector")
-  {
-    ns = VectorFileEffector::createSpec();
-  }
-  else if (nodeType == "VectorFileSensor")
-  {
-    ns = VectorFileSensor::createSpec();
+    ns = cpp_packages[nodeType]->createSpec();
   }
   else if (nodeType.find(std::string("py.")) == 0)
   {
@@ -413,6 +410,16 @@ void RegionImplFactory::cleanup()
   }
 
   nodespecCache_.clear();
+
+  // destroy all RegisteredRegionImpls
+  for (auto rri = cpp_packages.begin(); rri != cpp_packages.end(); rri++)
+  {
+    NTA_ASSERT(rri->second != nullptr);
+    delete rri->second;
+    rri->second = nullptr;
+  }
+
+  cpp_packages.clear();
 
   // Never release the Python dynamic library!
   // This is due to cleanup issues of Python itself

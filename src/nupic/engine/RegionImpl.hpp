@@ -106,7 +106,7 @@ namespace nupic
      * expects to find this method. Caller gets ownership. 
      */
 
-    // static Spec* createSpec();
+    //static Spec* createSpec();
 
     // Serialize state. 
     virtual void serialize(BundleIO& bundle) = 0;
