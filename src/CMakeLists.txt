@@ -311,6 +311,8 @@ set(CAPNP_SPECS
     nupic/proto/ClaClassifier.capnp
     nupic/proto/ConnectionsProto.capnp
     nupic/proto/LinkProto.capnp
+    nupic/proto/Map.capnp
+    nupic/proto/NetworkProto.capnp
     nupic/proto/RandomProto.capnp
     nupic/proto/RegionProto.capnp
     nupic/proto/SparseBinaryMatrixProto.capnp
