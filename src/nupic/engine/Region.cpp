@@ -45,6 +45,7 @@ Methods related to inputs and outputs are in Region_io.cpp
 
 namespace nupic
 {
+class GenericRegisteredRegionImpl;
 
 
 // Create region from parameter spec

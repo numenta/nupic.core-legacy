@@ -49,7 +49,7 @@ namespace nupic
   // Path from site-packages to packages that contain NuPIC Python regions
   static std::vector<const char *> packages { "nupic.regions", "nupic.regions.extra" };
 
-  // Mappings for c++ regions
+  // Mappings for C++ regions
   static std::map<const std::string, GenericRegisteredRegionImpl*> cpp_packages;
 
   void RegionImplFactory::registerCPPRegion(const std::string name, GenericRegisteredRegionImpl * wrapper)
@@ -211,7 +211,8 @@ namespace nupic
 RegionImplFactory & RegionImplFactory::getInstance()
 {
   static RegionImplFactory instance;
-  if (cpp_packages.empty()) {
+  if (cpp_packages.empty())
+  {
     cpp_packages["TestNode"] = new RegisteredRegionImpl<TestNode>();
     cpp_packages["VectorFileEffector"] = new RegisteredRegionImpl<VectorFileEffector>();
     cpp_packages["VectorFileSensor"] = new RegisteredRegionImpl<VectorFileSensor>();

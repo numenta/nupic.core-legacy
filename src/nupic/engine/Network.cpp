@@ -45,6 +45,7 @@ Implementation of the Network class
 
 namespace nupic
 {
+class GenericRegisteredRegionImpl;
 
 Network::Network()
 {
