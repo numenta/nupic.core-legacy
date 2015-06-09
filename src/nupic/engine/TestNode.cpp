@@ -30,6 +30,9 @@
 #include <numeric> // std::accumulate
 #include <fstream>
 #include <sstream>
+
+#include <capnp/any.h>
+
 #include <nupic/engine/TestNode.hpp>
 #include <nupic/engine/Spec.hpp>
 #include <nupic/engine/Region.hpp>
@@ -41,8 +44,9 @@
 #include <nupic/utils/Log.hpp>
 #include <nupic/engine/Output.hpp>
 #include <nupic/engine/Input.hpp>
+#include <nupic/proto/TestNodeProto.capnp.h>
 
-
+using capnp::AnyPointer;
 
 namespace nupic
 {
@@ -59,7 +63,7 @@ namespace nupic
     real64Param_ = params.getScalarT<Real64>("real64Param", 64.1);
 
     shouldCloneParam_ = params.getScalarT<UInt32>("shouldCloneParam", 1) != 0;
-  
+
     stringParam_ = *params.getString("stringParam");
 
     computeCallback_ = nullptr;
@@ -90,13 +94,20 @@ namespace nupic
     outputElementCount_ = 2;
     delta_ = 1;
     iter_ = 0;
-  
+
   }
 
-  TestNode::TestNode(BundleIO& bundle, Region* region) : 
+  TestNode::TestNode(BundleIO& bundle, Region* region) :
     RegionImpl(region)
   {
     deserialize(bundle);
+  }
+
+
+  TestNode::TestNode(AnyPointer::Reader& proto, Region* region) :
+    RegionImpl(region)
+  {
+    read(proto);
   }
 
 
@@ -147,7 +158,7 @@ namespace nupic
     /* ---- parameters ------ */
 
     ns->parameters.add(
-      "int32Param", 
+      "int32Param",
       ParameterSpec(
         "Int32 scalar parameter",  // description
         NTA_BasicType_Int32,
@@ -157,27 +168,27 @@ namespace nupic
         ParameterSpec::ReadWriteAccess));
 
     ns->parameters.add(
-      "uint32Param", 
+      "uint32Param",
       ParameterSpec(
         "UInt32 scalar parameter", // description
-        NTA_BasicType_UInt32, 
+        NTA_BasicType_UInt32,
         1,                         // elementCount
         "",                        // constraints
         "33",                      // defaultValue
         ParameterSpec::ReadWriteAccess));
 
     ns->parameters.add(
-      "int64Param", 
+      "int64Param",
       ParameterSpec(
         "Int64 scalar parameter",  // description
-        NTA_BasicType_Int64, 
+        NTA_BasicType_Int64,
         1,                         // elementCount
         "",                        // constraints
         "64",                       // defaultValue
         ParameterSpec::ReadWriteAccess));
 
     ns->parameters.add(
-      "uint64Param", 
+      "uint64Param",
       ParameterSpec(
         "UInt64 scalar parameter", // description
         NTA_BasicType_UInt64,
@@ -187,7 +198,7 @@ namespace nupic
         ParameterSpec::ReadWriteAccess));
 
     ns->parameters.add(
-      "real32Param", 
+      "real32Param",
       ParameterSpec(
         "Real32 scalar parameter",  // description
         NTA_BasicType_Real32,
@@ -197,7 +208,7 @@ namespace nupic
         ParameterSpec::ReadWriteAccess));
 
     ns->parameters.add(
-      "real64Param", 
+      "real64Param",
       ParameterSpec(
         "Real64 scalar parameter",  // description
         NTA_BasicType_Real64,
@@ -209,20 +220,20 @@ namespace nupic
     ns->parameters.add(
       "real32ArrayParam",
       ParameterSpec(
-        "int32 array parameter", 
+        "int32 array parameter",
         NTA_BasicType_Real32,
         0, // array
-        "", 
+        "",
         "",
         ParameterSpec::ReadWriteAccess));
 
     ns->parameters.add(
       "int64ArrayParam",
       ParameterSpec(
-        "int64 array parameter", 
+        "int64 array parameter",
         NTA_BasicType_Int64,
         0, // array
-        "", 
+        "",
         "",
         ParameterSpec::ReadWriteAccess));
 
@@ -230,20 +241,20 @@ namespace nupic
       "computeCallback",
       ParameterSpec(
         "address of a function that is called at every compute()",
-        NTA_BasicType_Handle, 
+        NTA_BasicType_Handle,
         1,
-        "", 
+        "",
         "",  // handles must not have a default value
         ParameterSpec::ReadWriteAccess));
 
     ns->parameters.add(
-      "stringParam", 
+      "stringParam",
       ParameterSpec(
-        "string parameter", 
-        NTA_BasicType_Byte, 
+        "string parameter",
+        NTA_BasicType_Byte,
         0, // length=0 required for strings
-        "", 
-        "nodespec value", 
+        "",
+        "nodespec value",
         ParameterSpec::ReadWriteAccess));
 
     ns->parameters.add(
@@ -270,7 +281,7 @@ namespace nupic
       "possiblyUnclonedParam",
       ParameterSpec(
         "cloned if shouldCloneParam is true",  //description
-        NTA_BasicType_UInt32,                  
+        NTA_BasicType_UInt32,
         1,                                     //elementCount
         "",                                    //constraints
         "",                                   //defaultValue
@@ -289,21 +300,21 @@ namespace nupic
 
     /* ----- inputs ------- */
     ns->inputs.add(
-      "bottomUpIn", 
+      "bottomUpIn",
       InputSpec(
-        "Primary input for the node", 
-        NTA_BasicType_Real64, 
+        "Primary input for the node",
+        NTA_BasicType_Real64,
         0, // count. omit?
         true, // required?
-        false, // isRegionLevel, 
+        false, // isRegionLevel,
         true  // isDefaultOutput
         ));
 
     /* ----- outputs ------ */
     ns->outputs.add(
-      "bottomUpOut", 
+      "bottomUpOut",
       OutputSpec(
-        "Primary output for the node", 
+        "Primary output for the node",
         NTA_BasicType_Real64,
         0, // count is dynamic
         false, // isRegionLevel
@@ -323,7 +334,7 @@ namespace nupic
     {
       return real64Param_;
     }
-    else 
+    else
     {
       NTA_THROW << "TestNode::getParameter<Int64> -- unknown parameter " << name;
     }
@@ -336,15 +347,15 @@ namespace nupic
     {
       real64Param_ = value;
     }
-    else 
+    else
     {
       NTA_THROW << "TestNode::setParameter<Int64> -- unknown parameter " << name;
     }
   }
 
 
-  void TestNode::getParameterFromBuffer(const std::string& name, 
-                                        Int64 index, 
+  void TestNode::getParameterFromBuffer(const std::string& name,
+                                        Int64 index,
                                         IWriteBuffer& value)
   {
     if (name == "int32Param") {
@@ -384,7 +395,7 @@ namespace nupic
       {
         value.write(possiblyUnclonedParam_[0]);
       }
-      else 
+      else
       {
         if (index < 0)
         {
@@ -407,7 +418,7 @@ namespace nupic
     }
   }
 
-  void TestNode::setParameterFromBuffer(const std::string& name, 
+  void TestNode::setParameterFromBuffer(const std::string& name,
                                         Int64 index,
                                         IReadBuffer& value)
   {
@@ -450,7 +461,7 @@ namespace nupic
       {
         value.read(possiblyUnclonedParam_[0]);
       }
-      else 
+      else
       {
         if (index < 0)
         {
@@ -480,11 +491,11 @@ namespace nupic
 
   size_t TestNode::getParameterArrayCount(const std::string& name, Int64 index)
   {
-    if (name == "int64ArrayParam") 
+    if (name == "int64ArrayParam")
     {
       return int64ArrayParam_.size();
     }
-    else if (name == "real32ArrayParam") 
+    else if (name == "real32ArrayParam")
     {
       return real32ArrayParam_.size();
     }
@@ -496,7 +507,7 @@ namespace nupic
       }
       return unclonedInt64ArrayParam_[(UInt)index].size();
     }
-    else 
+    else
     {
       NTA_THROW << "TestNode::getParameterArrayCount -- unknown parameter " << name;
     }
@@ -571,11 +582,11 @@ namespace nupic
     }
   }
 
-  template <typename T> static void 
+  template <typename T> static void
   arrayOut(std::ostream& s, const std::vector<T>& array, const std::string& name)
   {
     s << "ARRAY_" << name << " ";
-    s << array.size() << " "; 
+    s << array.size() << " ";
     for (auto & elem : array)
     {
       s << elem << " ";
@@ -584,7 +595,7 @@ namespace nupic
 
   template <typename T> static void
   arrayIn(std::istream& s, std::vector<T>& array, const std::string& name)
-  {                                                                     
+  {
     std::string expectedCookie = std::string("ARRAY_") + name;
     std::string cookie;
     s >> cookie;
@@ -604,9 +615,9 @@ namespace nupic
   {
     {
       std::ofstream& f = bundle.getOutputStream("main");
-      // There is more than one way to do this. We could serialize to YAML, which 
+      // There is more than one way to do this. We could serialize to YAML, which
       // would make a readable format, or we could serialize directly to the stream
-      // Choose the easier one. 
+      // Choose the easier one.
       f << "TestNode-v1" << " "
         << nodeCount_ << " "
         << int32Param_ << " "
@@ -623,8 +634,8 @@ namespace nupic
       arrayOut(f, int64ArrayParam_, "int64ArrayParam_");
       arrayOut(f, unclonedParam_, "unclonedParam_");
       f << shouldCloneParam_ << " ";
-    
-      // outer vector needs to be done by hand. 
+
+      // outer vector needs to be done by hand.
       f << "unclonedArray ";
       f << unclonedInt64ArrayParam_.size() << " "; // number of nodes
       for (size_t i = 0; i < unclonedInt64ArrayParam_.size(); i++)
@@ -658,14 +669,14 @@ namespace nupic
   {
     {
       std::ifstream& f = bundle.getInputStream("main");
-      // There is more than one way to do this. We could serialize to YAML, which 
+      // There is more than one way to do this. We could serialize to YAML, which
       // would make a readable format, or we could serialize directly to the stream
-      // Choose the easier one. 
+      // Choose the easier one.
       std::string versionString;
       f >> versionString;
       if (versionString != "TestNode-v1")
       {
-        NTA_THROW << "Bad serialization for region '" << region_->getName() 
+        NTA_THROW << "Bad serialization for region '" << region_->getName()
                   << "' of type TestNode. Main serialization file must start "
                   << "with \"TestNode-v1\" but instead it starts with '"
                   << versionString << "'";
@@ -734,5 +745,117 @@ namespace nupic
     }
   }
 
-}
 
+  void TestNode::write(AnyPointer::Builder& anyProto) const
+  {
+    TestNodeProto::Builder proto = anyProto.getAs<TestNodeProto>();
+
+    proto.setInt32Param(int32Param_);
+    proto.setUint32Param(uint32Param_);
+    proto.setInt64Param(int64Param_);
+    proto.setUint64Param(uint64Param_);
+    proto.setReal32Param(real32Param_);
+    proto.setReal64Param(real64Param_);
+    proto.setStringParam(stringParam_);
+
+    auto real32ArrayProto =
+        proto.initReal32ArrayParam(real32ArrayParam_.size());
+    for (UInt i = 0; i < real32ArrayParam_.size(); i++)
+    {
+      real32ArrayProto.set(i, real32ArrayParam_[i]);
+    }
+
+    auto int64ArrayProto = proto.initInt64ArrayParam(int64ArrayParam_.size());
+    for (UInt i = 0; i < int64ArrayParam_.size(); i++)
+    {
+      int64ArrayProto.set(i, int64ArrayParam_[i]);
+    }
+
+    proto.setIterations(iter_);
+    proto.setOutputElementCount(outputElementCount_);
+    proto.setDelta(delta_);
+
+    proto.setShouldCloneParam(shouldCloneParam_);
+
+    auto unclonedParamProto = proto.initUnclonedParam(unclonedParam_.size());
+    for (UInt i = 0; i < unclonedParam_.size(); i++)
+    {
+      unclonedParamProto.set(i, unclonedParam_[i]);
+    }
+
+    auto unclonedInt64ArrayParamProto =
+        proto.initUnclonedInt64ArrayParam(unclonedInt64ArrayParam_.size());
+    for (UInt i = 0; i < unclonedInt64ArrayParam_.size(); i++)
+    {
+      auto innerUnclonedParamProto =
+          unclonedInt64ArrayParamProto.init(
+              i, unclonedInt64ArrayParam_[i].size());
+      for (UInt j = 0; j < unclonedInt64ArrayParam_[i].size(); j++)
+      {
+        innerUnclonedParamProto.set(j, unclonedInt64ArrayParam_[i][j]);
+      }
+    }
+
+    proto.setNodeCount(nodeCount_);
+  }
+
+
+  void TestNode::read(AnyPointer::Reader& anyProto)
+  {
+    TestNodeProto::Reader proto = anyProto.getAs<TestNodeProto>();
+
+    int32Param_ = proto.getInt32Param();
+    uint32Param_ = proto.getUint32Param();
+    int64Param_ = proto.getInt64Param();
+    uint64Param_ = proto.getUint64Param();
+    real32Param_ = proto.getReal32Param();
+    real64Param_ = proto.getReal64Param();
+    stringParam_ = proto.getStringParam();
+
+    real32ArrayParam_.clear();
+    auto real32ArrayParamProto = proto.getReal32ArrayParam();
+    real32ArrayParam_.resize(real32ArrayParamProto.size());
+    for (UInt i = 0; i < real32ArrayParamProto.size(); i++)
+    {
+      real32ArrayParam_[i] = real32ArrayParamProto[i];
+    }
+
+    int64ArrayParam_.clear();
+    auto int64ArrayParamProto = proto.getInt64ArrayParam();
+    int64ArrayParam_.resize(int64ArrayParamProto.size());
+    for (UInt i = 0; i < int64ArrayParamProto.size(); i++)
+    {
+      int64ArrayParam_[i] = int64ArrayParamProto[i];
+    }
+
+    iter_ = proto.getIterations();
+    outputElementCount_ = proto.getOutputElementCount();
+    delta_ = proto.getDelta();
+
+    shouldCloneParam_ = proto.getShouldCloneParam();
+
+    unclonedParam_.clear();
+    auto unclonedParamProto = proto.getUnclonedParam();
+    unclonedParam_.resize(unclonedParamProto.size());
+    for (UInt i = 0; i < unclonedParamProto.size(); i++)
+    {
+      unclonedParam_[i] = unclonedParamProto[i];
+    }
+
+    unclonedInt64ArrayParam_.clear();
+    auto unclonedInt64ArrayProto = proto.getUnclonedInt64ArrayParam();
+    unclonedInt64ArrayParam_.resize(unclonedInt64ArrayProto.size());
+    for (UInt i = 0; i < unclonedInt64ArrayProto.size(); i++)
+    {
+      auto innerProto = unclonedInt64ArrayProto[i];
+      unclonedInt64ArrayParam_[i].resize(innerProto.size());
+      for (UInt j = 0; j < innerProto.size(); j++)
+      {
+        unclonedInt64ArrayParam_[i][j] = innerProto[j];
+      }
+    }
+
+    nodeCount_ = proto.getNodeCount();
+  }
+
+}
