@@ -20,7 +20,7 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file 
+/** @file
  * Declarations for VectorFileEffector class
  */
 
@@ -30,6 +30,8 @@
 #define NTA_VECTOR_FILE_EFFECTOR_HPP
 
 //----------------------------------------------------------------------
+
+#include <capnp/any.h>
 
 #include <nupic/types/Types.h>
 #include <nupic/os/FStream.hpp>
@@ -45,7 +47,7 @@ namespace nupic
   /**
    *  VectorFileEffector is a node that takes its input vectors and
    *  writes them sequentially to a file.
-   *  
+   *
    *  The current input vector is written (but not flushed) to the file
    *  each time the effector's compute() method is called.
    *
@@ -64,7 +66,7 @@ namespace nupic
   class VectorFileEffector : public RegionImpl
   {
   public:
-    
+
     static Spec* createSpec();
     size_t getNodeOutputElementCount(const std::string& outputName) override;
     void getParameterFromBuffer(const std::string& name, Int64 index, IWriteBuffer& value) override;
@@ -75,13 +77,13 @@ namespace nupic
     std::string getParameterString(const std::string& name, Int64 index) override;
 
     void initialize() override;
-  
+
     VectorFileEffector(const ValueMap& params, Region *region);
-  
+
     VectorFileEffector(BundleIO& bundle, Region* region);
 
     virtual ~VectorFileEffector();
-  
+
 
     // ---
     /// Serialize state to bundle
@@ -93,33 +95,34 @@ namespace nupic
     // ---
     virtual void deserialize(BundleIO& bundle) override;
 
+    virtual void write(capnp::AnyPointer::Builder& anyProto) const override;
+    virtual void read(capnp::AnyPointer::Reader& anyProto) override;
+
     void compute() override;
 
     virtual std::string executeCommand(const std::vector<std::string>& args, Int64 index) override;
 
-    
-    
+
+
   private:
-    
+
     void closeFile();
     void openFile(const std::string& filename);
 
     ArrayRef dataIn_;
     std::string filename_;          // Name of the output file
     nupic::OFStream *outFile_;        // Handle to current file
-    
+
     /// Disable unsupported default constructors
     VectorFileEffector(const VectorFileEffector&);
     VectorFileEffector& operator=(const VectorFileEffector&);
-    
+
   }; // end class VectorFileEffector
-  
+
   //----------------------------------------------------------------------
-  
-
-#endif // NTA_VECTOR_FILE_EFFECTOR_HPP
-
 
 
 } // namespace nupic
 
+
+#endif // NTA_VECTOR_FILE_EFFECTOR_HPP
