@@ -21,9 +21,9 @@
  */
 
 /** @file
- * Definition of the RegionImplWapper
+ * Definition of the RegisteredRegionImpl
  *
- * A RegionImplWrapper is an object that can instantiate a subclass of
+ * A RegisteredRegionImpl is an object that can instantiate a subclass of
  * RegionImpl and get its spec.
  */
 
