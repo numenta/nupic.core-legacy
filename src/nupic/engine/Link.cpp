@@ -343,8 +343,9 @@ void Link::write(LinkProto::Builder& proto) const
 void Link::read(LinkProto::Reader& proto)
 {
   commonConstructorInit_(
-      proto.getType(), proto.getParams(), proto.getSrcRegion(),
-      proto.getDestRegion(), proto.getSrcOutput(), proto.getDestInput());
+      proto.getType().cStr(), proto.getParams().cStr(),
+      proto.getSrcRegion().cStr(), proto.getDestRegion().cStr(),
+      proto.getSrcOutput().cStr(), proto.getDestInput().cStr());
 }
 
 namespace nupic
