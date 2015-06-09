@@ -711,8 +711,6 @@ vector<UInt> SpatialPooler::mapPotential_(UInt column, bool wrapAround)
 
 Real SpatialPooler::initPermConnected_()
 {
-  std::printf("Using modified SP.\n");
-
   Real p = synPermConnected_ +
            (synPermMax_ - synPermConnected_)*rng_.getReal64();
   return round5_(p);
