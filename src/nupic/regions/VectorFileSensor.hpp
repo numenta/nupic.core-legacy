@@ -20,7 +20,7 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file 
+/** @file
  * Declarations for VectorFileSensor class
  */
 
@@ -32,6 +32,9 @@
 //----------------------------------------------------------------------
 
 #include <vector>
+
+#include <capnp/any.h>
+
 #include <nupic/types/Types.h>
 #include <nupic/os/FStream.hpp>
 #include <nupic/engine/RegionImpl.hpp>
@@ -47,18 +50,18 @@ namespace nupic
   /**
    *  VectorFileSensor is a sensor that reads in files containing lists of
    *  vectors and outputs these vectors in sequence.
-   * 
+   *
    *  @b Description
-   * 
+   *
    *  Three input file formats are supported:
    *      0 - unlabeled files with element count
    *      1 - labeled files with element count
    *      2 - unlabeled files without element count (default)
-   *      
-   *  These input formats are described in more detail below. 
-   * 
+   *
+   *  These input formats are described in more detail below.
+   *
    *  The Sensor implements the execute() commands as specified in the nodeSpec.
-   * 
+   *
    *  @b Notes:
    *  The file format for an unlabeled file without element count is as follows:
    *  \verbatim
@@ -67,7 +70,7 @@ namespace nupic
                :
             eM1 eM2 eM3 ... eMN
       \endverbatim
-   * 
+   *
    *  The file format for an unlabeled file with element count is as follows:
    *  \verbatim
             N
@@ -76,7 +79,7 @@ namespace nupic
                :
             eM1 eM2 eM3 ... eMN
       \endverbatim
-   * 
+   *
    *  The format for a labeled file with element count is as follows:
    *  \verbatim
          N
@@ -86,26 +89,26 @@ namespace nupic
                :
          VLM   eM1 eM2 eM3 ... eMN
       \endverbatim
-   *  
+   *
    *  where ELi are string labels for each element in the vector and VLi are
    *  string labels for each vector. Strings are separated by whitespace. Strings
    *  with whitespace are not supported (e.g. no quoting of strings).
-   * 
-   *  Whitespace between numbers is ignored. 
+   *
+   *  Whitespace between numbers is ignored.
    *  The full list of vectors is read into memory when the loadFile command
-   *  is executed. 
-   * 
+   *  is executed.
+   *
    */
 
   class VectorFileSensor : public RegionImpl
   {
   public:
-    
+
     //------ Static methods for plug-in API ------------------------------------
-    
+
 //    static const NTA_Spec * getSpec(const NTA_Byte * nodeType)
 //    {
-//      const char *description = 
+//      const char *description =
 //"VectorFileSensor is a basic sensor for reading files containing vectors.\n"
 //"\n"
 //"VectorFileSensor reads in a text file containing lists of numbers\n"
@@ -154,8 +157,8 @@ namespace nupic
 //                     "       1        # Reads in a labeled file with first number = element count (deprecated)\n"
 //                     "       2        # Reads in unlabeled file without element count (default)\n"
 //                     "       3        # Reads in a csv file\n");
-//                     
-//      nsb.addCommand("appendFile", 
+//
+//      nsb.addCommand("appendFile",
 //             "appendFile <filename> [file_format]\n"
 //             "Reads vectors from the specified file, appending to current vector list.\n"
 //             "Position remains unchanged. Available file formats are: \n"
@@ -163,52 +166,52 @@ namespace nupic
 //             "       1        # Reads in a labeled file with first number = element count (deprecated)\n"
 //             "       2        # Reads in unlabeled file without element count (default)\n"
 //             "       3        # Reads in a csv file\n");
-//                     
+//
 //
 //      nsb.addCommand("dump", "Displays some debugging info.");
 //
-//      nsb.addCommand("saveFile", 
+//      nsb.addCommand("saveFile",
 //        "saveFile filename [format [begin [end]]]\n"
 //        "Save the currently loaded vectors to a file. Typically used for debugging\n"
 //        "but may be used to convert between formats.\n");
 //
 //      // ------ PARAMETERS
 //
-//      nsb.addParameter("vectorCount", 
-//                       "uint32", 
-//                       "The number of vectors currently loaded in memory.", 
+//      nsb.addParameter("vectorCount",
+//                       "uint32",
+//                       "The number of vectors currently loaded in memory.",
 //                       1, /* elementCount */
-//                       "get", 
+//                       "get",
 //                       "interval: [0, ...]",
 //                       "0" /* defaultValue */);
-//      
-//      nsb.addParameter("position", 
-//                       "uint32", 
-//                       "Set or get the current position within the list of vectors in memory.", 
-//                       1, /* elementCount */
-//                       "getset", 
-//                       "interval: [0, ...]", 
-//                       "0" /* defaultValue */); 
 //
-//      nsb.addParameter("repeatCount", 
-//                       "uint32", 
-//                       "Set or get the current repeatCount. Each vector is repeated\n"
-//                       "repeatCount times before moving to the next one.", 
+//      nsb.addParameter("position",
+//                       "uint32",
+//                       "Set or get the current position within the list of vectors in memory.",
 //                       1, /* elementCount */
-//                       "getset", 
-//                       "interval: [1, ...]", 
+//                       "getset",
+//                       "interval: [0, ...]",
+//                       "0" /* defaultValue */);
+//
+//      nsb.addParameter("repeatCount",
+//                       "uint32",
+//                       "Set or get the current repeatCount. Each vector is repeated\n"
+//                       "repeatCount times before moving to the next one.",
+//                       1, /* elementCount */
+//                       "getset",
+//                       "interval: [1, ...]",
 //                       "1" /* defaultValue */);
 //
-//      nsb.addParameter("recentFile", 
-//                       "byteptr", 
+//      nsb.addParameter("recentFile",
+//                       "byteptr",
 //        "Name of the most recently file that is loaded or appended. Mostly to \n"
-//                       "support interactive use.\n", 
+//                       "support interactive use.\n",
 //                       1, /* elementCount */
 //                       "get");
 //
-//                       
-//      nsb.addParameter("scalingMode", 
-//                       "byteptr", 
+//
+//      nsb.addParameter("scalingMode",
+//                       "byteptr",
 //        "During compute, each vector is adjusted as follows. If X is the data vector,\n"
 //        "S the scaling vector and O the offset vector, then the node's output\n"
 //        "                Y[i] = S[i]*(X[i] + O[i]).\n"
@@ -218,22 +221,22 @@ namespace nupic
 //        "    If 'none', the vectors are unchanged, i.e. S[i]=1 and O[i]=0.\n"
 //        "    If 'standardForm', S[i] is 1/standard deviation(i) and O[i] = - mean(i)\n"
 //        "    If 'custom', each component is adjusted according to the vectors specified by the\n"
-//                       "setScale and setOffset commands.\n", 
+//                       "setScale and setOffset commands.\n",
 //                       1, /* elementCount */
 //                       "all", /* access */
 //                       "", /* constraints */
 //                       "none" /* defaultValue */);
-//      
-//      nsb.addParameter("scaleVector", 
-//                       "real", 
-//                       "Set or return the current scale vector S.\n", 
+//
+//      nsb.addParameter("scaleVector",
+//                       "real",
+//                       "Set or return the current scale vector S.\n",
 //                       0, /* elementCount */
 //                       "all",  /* access */
 //                       "", /* constraints */
 //                       "" /* defaultValue */);
-//      
-//      nsb.addParameter("offsetVector", 
-//                       "real", 
+//
+//      nsb.addParameter("offsetVector",
+//                       "real",
 //                       "Set or return the current offset vector 0.\n",
 //                       0, /* elementCount */
 //                       "all", /* access */
@@ -241,27 +244,27 @@ namespace nupic
 //                       "" /* defaultValue */);
 //
 //
-//      nsb.addParameter("activeOutputCount", 
-//                       "uint32", 
+//      nsb.addParameter("activeOutputCount",
+//                       "uint32",
 //                       "The number of active outputs of the node.",
 //                       1, /* elementCount */
 //                       "get", /* access */
 //                       "interval: [0, ...]");
-//                       
 //
-//      nsb.addParameter("maxOutputVectorCount", 
-//                       "uint32", 
+//
+//      nsb.addParameter("maxOutputVectorCount",
+//                       "uint32",
 //        "The number of output vectors that can be generated by this sensor\n"
-//                       "under the current configuration.", 
+//                       "under the current configuration.",
 //                       1, /* elementCount */
-//                       "get", 
+//                       "get",
 //                       "interval: [0, ...]");
-//                      
+//
 //
 //
 //      return nsb.getSpec();
 //    }
-    
+
     static Spec* createSpec();
     size_t getNodeOutputElementCount(const std::string& outputName) override;
     void getParameterFromBuffer(const std::string& name, Int64 index, IWriteBuffer& value) override;
@@ -277,13 +280,13 @@ namespace nupic
     //std::string getParameterString(const std::string& name, Int64 index);
 
     void initialize() override;
-  
+
     VectorFileSensor(const ValueMap & params, Region *region);
-  
+
     VectorFileSensor(BundleIO& bundle, Region* region);
 
     virtual ~VectorFileSensor();
-  
+
 
     // ---
     /// Serialize state to bundle
@@ -294,10 +297,14 @@ namespace nupic
     /// De-serialize state from bundle
     // ---
     virtual void deserialize(BundleIO& bundle) override;
+
+    virtual void write(capnp::AnyPointer::Builder& anyProto) const override;
+    virtual void read(capnp::AnyPointer::Reader& anyProto) override;
+
     void compute() override;
     virtual std::string executeCommand(const std::vector<std::string>& args, Int64 index) override;
 
-  private:    
+  private:
     void closeFile();
     void openFile(const std::string& filename);
 
@@ -309,7 +316,7 @@ namespace nupic
     bool       hasCategoryOut_;    // determine if a category output is needed
     bool       hasResetOut_;       // determine if a reset output is needed
     nupic::VectorFile vectorFile_;   // Container class for the vectors
-    
+
     ArrayRef dataOut_;
     ArrayRef categoryOut_;
     ArrayRef resetOut_;
@@ -317,19 +324,17 @@ namespace nupic
 
     std::string scalingMode_;
     std::string recentFile_;        // The most recently loaded or appended file
-    
+
     //------------------- Utility routines and debugging support
-    
+
     // Seek to the n'th vector in the list. n should be between 0 and
     // numVectors-1. Logs a warning if n is outside those bounds.
     void seek(int n);
 
   }; // end class VectorFileSensor
-  
+
   //----------------------------------------------------------------------
-  
+
 } // end namespace nupic
 
 #endif // NTA_VECTOR_FILE_SENSOR_HPP
-
-
