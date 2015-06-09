@@ -1,6 +1,6 @@
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
+ * Copyright (C) 2015, Numenta, Inc.  Unless you have an agreement
  * with Numenta, Inc., for a separate license for this software code, the
  * following terms and conditions apply:
  *
@@ -21,14 +21,14 @@
  */
 
 /** @file
- * Definition of the RegionImplWapper
+ * Definition of the RegisteredRegionImpl
  *
- * A RegionImplWrapper is an object that can instantiate a subclass of
+ * A RegisteredRegionImpl is an object that can instantiate a subclass of
  * RegionImpl and get its spec.
  */
 
-#ifndef NTA_REGION_IMPL_WRAPPER_HPP
-#define NTA_REGION_IMPL_WRAPPER_HPP
+#ifndef NTA_REGISTERED_REGION_IMPL_HPP
+#define NTA_REGISTERED_REGION_IMPL_HPP
 
 #include <string>
 
@@ -44,11 +44,16 @@ namespace nupic
     public:
       GenericRegisteredRegionImpl() {
       }
+      virtual ~GenericRegisteredRegionImpl() {
+      }
       virtual RegionImpl* createRegionImpl(const ValueMap& params, Region *region) {
+        return nullptr;
       }
       virtual RegionImpl* deserializeRegionImpl(BundleIO& params, Region *region) {
+        return nullptr;
       }
       virtual Spec* createSpec() {
+        return nullptr;
       }
   };
 
@@ -56,6 +61,8 @@ namespace nupic
   class RegisteredRegionImpl: public GenericRegisteredRegionImpl {
     public:
       RegisteredRegionImpl() {
+      }
+      ~RegisteredRegionImpl() {
       }
       T* createRegionImpl(const ValueMap& params, Region *region) {
         return new T(params, region);
@@ -71,4 +78,4 @@ namespace nupic
 }
 
 
-#endif // NTA_REGION_IMPL_WRAPPER_HPP
+#endif // NTA_REGISTERED_REGION_IMPL_HPP

@@ -49,7 +49,7 @@ namespace nupic
   // Path from site-packages to packages that contain NuPIC Python regions
   static std::vector<const char *> packages { "nupic.regions", "nupic.regions.extra" };
 
-  // Mappings for c++ regions
+  // Mappings for C++ regions
   static std::map<const std::string, GenericRegisteredRegionImpl*> cpp_packages;
 
   void RegionImplFactory::registerCPPRegion(const std::string name, GenericRegisteredRegionImpl * wrapper)
@@ -58,7 +58,7 @@ namespace nupic
   }
 
   // Allows the user to add custom regions to the package list
-  void RegionImplFactory::registerRegionPackage(const char * path)
+  void RegionImplFactory::registerPyRegionPackage(const char * path)
   {
     packages.push_back(path);
   }
@@ -211,7 +211,8 @@ namespace nupic
 RegionImplFactory & RegionImplFactory::getInstance()
 {
   static RegionImplFactory instance;
-  if (cpp_packages.empty()) {
+  if (cpp_packages.empty())
+  {
     cpp_packages["TestNode"] = new RegisteredRegionImpl<TestNode>();
     cpp_packages["VectorFileEffector"] = new RegisteredRegionImpl<VectorFileEffector>();
     cpp_packages["VectorFileSensor"] = new RegisteredRegionImpl<VectorFileSensor>();
@@ -409,6 +410,16 @@ void RegionImplFactory::cleanup()
   }
 
   nodespecCache_.clear();
+
+  // destroy all RegisteredRegionImpls
+  for (auto rri = cpp_packages.begin(); rri != cpp_packages.end(); rri++)
+  {
+    NTA_ASSERT(rri->second != nullptr);
+    delete rri->second;
+    rri->second = nullptr;
+  }
+
+  cpp_packages.clear();
 
   // Never release the Python dynamic library!
   // This is due to cleanup issues of Python itself

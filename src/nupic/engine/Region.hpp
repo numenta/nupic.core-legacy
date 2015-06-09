@@ -152,7 +152,7 @@ namespace nupic
     /*
      * Adds a package to the RegionImplFactory's packages
      */
-    static void registerRegionPackage(const char * path);
+    static void registerPyRegionPackage(const char * path);
 
     /*
      * Adds a cpp region to the RegionImplFactory's packages

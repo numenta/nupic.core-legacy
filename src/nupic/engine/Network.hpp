@@ -375,10 +375,10 @@ namespace nupic
      * Add user built regions to package path
      */
     static void
-    registerRegionPackage(const char * path);
+    registerPyRegionPackage(const char * path);
 
     /*
-     * Adds a cpp region to the RegionImplFactory's packages
+     * Adds a c++ region to the RegionImplFactory's packages
      */
     static void registerCPPRegion(const std::string name, GenericRegisteredRegionImpl* wrapper);
 
