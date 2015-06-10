@@ -31,6 +31,8 @@
 #include <fstream>
 #include <sstream>
 
+#undef VOID
+
 #include <capnp/any.h>
 
 #include <nupic/engine/TestNode.hpp>

@@ -28,6 +28,8 @@
 #include <string>
 #include <vector>
 
+#undef VOID
+
 #include <capnp/any.h>
 
 #include <nupic/engine/RegionImpl.hpp>
