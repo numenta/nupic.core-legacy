@@ -332,12 +332,12 @@ Link::compute()
 
 void Link::write(LinkProto::Builder& proto) const
 {
-  proto.setType(linkType_);
-  proto.setParams(linkParams_);
-  proto.setSrcRegion(srcRegionName_);
-  proto.setSrcOutput(srcOutputName_);
-  proto.setDestRegion(destRegionName_);
-  proto.setDestInput(destInputName_);
+  proto.setType(linkType_.c_str());
+  proto.setParams(linkParams_.c_str());
+  proto.setSrcRegion(srcRegionName_.c_str());
+  proto.setSrcOutput(srcOutputName_.c_str());
+  proto.setDestRegion(destRegionName_.c_str());
+  proto.setDestInput(destInputName_.c_str());
 }
 
 void Link::read(LinkProto::Reader& proto)
