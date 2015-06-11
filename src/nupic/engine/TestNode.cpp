@@ -31,8 +31,9 @@
 #include <fstream>
 #include <sstream>
 
+// Workaround windows.h collision:
+// https://github.com/sandstorm-io/capnproto/issues/213
 #undef VOID
-
 #include <capnp/any.h>
 
 #include <nupic/engine/TestNode.hpp>
