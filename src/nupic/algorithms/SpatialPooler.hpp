@@ -641,10 +641,10 @@ namespace nupic {
           Sets the permanence amount that qualifies a synapse as
           being connected.
 
-          @param setSynPermConnected real number of the permanence amount that qualifies a synapse as
+          @param synPermConnected real number of the permanence amount that qualifies a synapse as
           being connected.
           */
-          void setSynPermConnected(Real setSynPermConnected);
+          void setSynPermConnected(Real synPermConnected);
 
           /**
           Returns the maximum permanence amount a synapse can
@@ -657,10 +657,10 @@ namespace nupic {
           Sets the maximum permanence amount a synapse can
           achieve.
 
-          @param setSynPermCMax real number of the maximum permanence
+          @param synPermCMax real number of the maximum permanence
           amount that a synapse can achieve.
           */
-          void setSynPermMax(Real setSynPermMax);
+          void setSynPermMax(Real synPermMax);
 
           /**
           Returns the minimum tolerated overlaps, given as percent of
