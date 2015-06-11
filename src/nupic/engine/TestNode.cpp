@@ -758,7 +758,7 @@ namespace nupic
     proto.setUint64Param(uint64Param_);
     proto.setReal32Param(real32Param_);
     proto.setReal64Param(real64Param_);
-    proto.setStringParam(stringParam_);
+    proto.setStringParam(stringParam_.c_str());
 
     auto real32ArrayProto =
         proto.initReal32ArrayParam(real32ArrayParam_.size());
@@ -812,7 +812,7 @@ namespace nupic
     uint64Param_ = proto.getUint64Param();
     real32Param_ = proto.getReal32Param();
     real64Param_ = proto.getReal64Param();
-    stringParam_ = proto.getStringParam();
+    stringParam_ = proto.getStringParam().cStr();
 
     real32ArrayParam_.clear();
     auto real32ArrayParamProto = proto.getReal32ArrayParam();
