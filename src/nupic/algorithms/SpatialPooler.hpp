@@ -647,6 +647,22 @@ namespace nupic {
           void setSynPermConnected(Real setSynPermConnected);
 
           /**
+          Returns the maximum permanence amount a synapse can
+          achieve.
+
+          @returns real number of the max permanence amount.
+          */
+          Real getSynPermMax() const;
+          /**
+          Sets the maximum permanence amount a synapse can
+          achieve.
+
+          @param setSynPermCMax real number of the maximum permanence
+          amount that a synapse can achieve.
+          */
+          void setSynPermMax(Real setSynPermConnected);
+
+          /**
           Returns the minimum tolerated overlaps, given as percent of
           neighbors overlap score.
 

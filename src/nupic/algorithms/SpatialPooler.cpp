@@ -373,6 +373,16 @@ void SpatialPooler::setSynPermConnected(Real synPermConnected)
   synPermConnected_ = synPermConnected;
 }
 
+Real SpatialPooler::getSynPermMax() const
+{
+  return synPermMax_;
+}
+
+void SpatialPooler::setSynPermMax(Real synPermMax)
+{
+  synPermMax_ = synPermMax;
+}
+
 Real SpatialPooler::getMinPctOverlapDutyCycles() const
 {
   return minPctOverlapDutyCycles_;

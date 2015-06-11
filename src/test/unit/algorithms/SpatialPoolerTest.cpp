@@ -2296,22 +2296,17 @@ namespace nupic {
 
   void SpatialPoolerTest::testInitPermConnected()
   {
-    vector<UInt> inputDim, columnDim;
     SpatialPooler sp;
-
-    inputDim.push_back(1);
-    columnDim.push_back(1);
-
-    // Must initialize so synPermMax_ gets set to 1.0
-    sp.initialize(inputDim, columnDim);
-
     Real synPermConnected = 0.2;
+    Real synPermMax = 1.0;
+
     sp.setSynPermConnected(synPermConnected);
+    sp.setSynPermMax(synPermMax);
 
     for (UInt i = 0; i < 100; i++) {
       Real permVal = sp.initPermConnected_();
       NTA_CHECK(permVal >= synPermConnected &&
-                permVal <= 1.0);
+                permVal <= synPermMax);
     }
   }
 
