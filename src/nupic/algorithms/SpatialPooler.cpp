@@ -713,6 +713,7 @@ Real SpatialPooler::initPermConnected_()
 {
   Real p = synPermConnected_ +
            (synPermMax_ - synPermConnected_)*rng_.getReal64();
+
   return round5_(p);
 }
 
