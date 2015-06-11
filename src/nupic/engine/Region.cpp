@@ -45,6 +45,7 @@ Methods related to inputs and outputs are in Region_io.cpp
 
 namespace nupic
 {
+class GenericRegisteredRegionImpl;
 
 
 // Create region from parameter spec
@@ -224,9 +225,15 @@ Region::getSpecFromType(const std::string& nodeType)
 }
 
 void
-Region::registerRegionPackage(const char * path)
+Region::registerPyRegionPackage(const char * path)
 {
-  RegionImplFactory::registerRegionPackage(path);
+  RegionImplFactory::registerPyRegionPackage(path);
+}
+
+void
+Region::registerCPPRegion(const std::string name, GenericRegisteredRegionImpl* wrapper)
+{
+  RegionImplFactory::registerCPPRegion(name, wrapper);
 }
 
 const Dimensions&
