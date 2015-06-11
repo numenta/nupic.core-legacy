@@ -660,7 +660,7 @@ namespace nupic {
           @param setSynPermCMax real number of the maximum permanence
           amount that a synapse can achieve.
           */
-          void setSynPermMax(Real setSynPermConnected);
+          void setSynPermMax(Real setSynPermMax);
 
           /**
           Returns the minimum tolerated overlaps, given as percent of
