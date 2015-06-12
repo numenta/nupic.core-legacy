@@ -139,7 +139,8 @@ namespace nupic
     Region*
     addRegion(const std::string& name, 
               const std::string& nodeType, 
-              const std::string& nodeParams);
+              const std::string& nodeParams,
+              const std::string& className="");
 
     /**
      * Create a new region from saved state.

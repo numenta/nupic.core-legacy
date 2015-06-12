@@ -625,14 +625,16 @@ namespace nupic
     Region(std::string name,
            const std::string& type,
            const std::string& nodeParams,
-           Network * network = nullptr);
+           Network * network = nullptr,
+           const std::string& className="");
 
     // New region from serialized state
     Region(std::string name, 
            const std::string& type, 
            const Dimensions& dimensions, 
            BundleIO& bundle,
-           Network * network = nullptr);
+           Network * network = nullptr,
+           const std::string& className="");
 
     virtual ~Region();
 

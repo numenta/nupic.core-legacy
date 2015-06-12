@@ -52,7 +52,8 @@ class GenericRegisteredRegionImpl;
 Region::Region(std::string name, 
                const std::string& nodeType, 
                const std::string& nodeParams,
-               Network * network) :
+               Network * network,
+               const std::string& className) :
   name_(std::move(name)), 
   type_(nodeType), 
   initialized_(false), 
@@ -62,7 +63,7 @@ Region::Region(std::string name,
   // Set region info before creating the RegionImpl so that the 
   // Impl has access to the region info in its constructor.
   RegionImplFactory & factory = RegionImplFactory::getInstance();
-  spec_ = factory.getSpec(nodeType);
+  spec_ = factory.getSpec(nodeType, className);
 
   // Dimensions start off as unspecified, but if
   // the RegionImpl only supports a single node, we 
@@ -81,7 +82,8 @@ Region::Region(std::string name,
                const std::string& nodeType,
                const Dimensions& dimensions,
                BundleIO& bundle,
-               Network * network) :
+               Network * network,
+               const std::string& className) :
   name_(std::move(name)), 
   type_(nodeType), 
   initialized_(false), 
@@ -91,7 +93,7 @@ Region::Region(std::string name,
   // Set region info before creating the RegionImpl so that the 
   // Impl has access to the region info in its constructor.
   RegionImplFactory & factory = RegionImplFactory::getInstance();
-  spec_ = factory.getSpec(nodeType);
+  spec_ = factory.getSpec(nodeType, className);
 
   // Dimensions start off as unspecified, but if
   // the RegionImpl only supports a single node, we 

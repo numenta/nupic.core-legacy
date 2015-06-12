@@ -109,12 +109,13 @@ Network::~Network()
 
 Region* Network::addRegion(const std::string& name, 
                            const std::string& nodeType, 
-                           const std::string& nodeParams)
+                           const std::string& nodeParams,
+                           const std::string& className)
 {
   if (regions_.contains(name))
     NTA_THROW << "Region with name '" << name << "' already exists in network";
 
-  auto r = new Region(name, nodeType, nodeParams, this);
+  auto r = new Region(name, nodeType, nodeParams, this, className);
   regions_.add(name, r);
   initialized_ = false;
     

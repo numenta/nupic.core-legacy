@@ -59,17 +59,20 @@ namespace nupic
     // Create a RegionImpl of a specific type; caller gets ownership.
     RegionImpl* createRegionImpl(const std::string nodeType, 
                                  const std::string nodeParams,
-                                 Region* region);
+                                 Region* region,
+                                 const std::string& className="");
 
     // Create a RegionImpl from serialized state; caller gets ownership. 
     RegionImpl* deserializeRegionImpl(const std::string nodeType,
                                       BundleIO& bundle,
-                                      Region* region);
+                                      Region* region,
+                                      const std::string& className="");
 
 
 
     // Returns nodespec for a specific node type; Factory retains ownership. 
-    Spec* getSpec(const std::string nodeType);
+    Spec* getSpec(const std::string nodeType,
+                  const std::string& className="");
 
     // RegionImplFactory caches nodespecs and the dynamic library reference
     // This frees up the cached information.
