@@ -135,7 +135,7 @@ SpatialPooler::SpatialPooler(vector<UInt> inputDimensions,
                              Real maxBoost,
                              Int seed,
                              UInt spVerbosity,
-                             bool wrapAround) : SpatialPooler::SpatialPooler() 
+                             bool wrapAround) : SpatialPooler::SpatialPooler()
 {
   initialize(inputDimensions,
              columnDimensions,
@@ -371,6 +371,16 @@ Real SpatialPooler::getSynPermConnected() const
 void SpatialPooler::setSynPermConnected(Real synPermConnected)
 {
   synPermConnected_ = synPermConnected;
+}
+
+Real SpatialPooler::getSynPermMax() const
+{
+  return synPermMax_;
+}
+
+void SpatialPooler::setSynPermMax(Real synPermMax)
+{
+  synPermMax_ = synPermMax;
 }
 
 Real SpatialPooler::getMinPctOverlapDutyCycles() const
@@ -711,7 +721,9 @@ vector<UInt> SpatialPooler::mapPotential_(UInt column, bool wrapAround)
 
 Real SpatialPooler::initPermConnected_()
 {
-  Real p = synPermConnected_ + rng_.getReal64() * synPermActiveInc_ / 4.0;
+  Real p = synPermConnected_ +
+           (synPermMax_ - synPermConnected_)*rng_.getReal64();
+
   return round5_(p);
 }
 
