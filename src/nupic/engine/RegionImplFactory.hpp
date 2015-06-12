@@ -59,20 +59,17 @@ namespace nupic
     // Create a RegionImpl of a specific type; caller gets ownership.
     RegionImpl* createRegionImpl(const std::string nodeType, 
                                  const std::string nodeParams,
-                                 Region* region,
-                                 const std::string& className="");
+                                 Region* region);
 
     // Create a RegionImpl from serialized state; caller gets ownership. 
     RegionImpl* deserializeRegionImpl(const std::string nodeType,
                                       BundleIO& bundle,
-                                      Region* region,
-                                      const std::string& className="");
+                                      Region* region);
 
 
 
     // Returns nodespec for a specific node type; Factory retains ownership. 
-    Spec* getSpec(const std::string nodeType,
-                  const std::string& className="");
+    Spec* getSpec(const std::string nodeType);
 
     // RegionImplFactory caches nodespecs and the dynamic library reference
     // This frees up the cached information.
@@ -80,8 +77,11 @@ namespace nupic
     // nodespec references (e.g. in NuPIC shutdown) or pynodes. 
     void cleanup();
 
-    // Allows the user to load custom packages
+    // Allows the user to load custom C++ regions
     static void registerPyRegionPackage(const char * path);
+
+    // Allows the user to load custom Python regions
+    static void registerPyRegion(const char * module, const char * className);
 
     //static void registerCPPRegion(const std::string name, RegionImplWrapper * wrapper);
     static void registerCPPRegion(const std::string name, GenericRegisteredRegionImpl * wrapper);

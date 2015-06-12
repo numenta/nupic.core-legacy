@@ -155,6 +155,11 @@ namespace nupic
     static void registerPyRegionPackage(const char * path);
 
     /*
+     * Adds a Python module and class to the RegionImplFactory's regions
+     */
+    static void registerPyRegion(const char * module, const char * className);
+
+    /*
      * Adds a cpp region to the RegionImplFactory's packages
      */
     static void registerCPPRegion(const std::string name, GenericRegisteredRegionImpl* wrapper);
@@ -625,16 +630,14 @@ namespace nupic
     Region(std::string name,
            const std::string& type,
            const std::string& nodeParams,
-           Network * network = nullptr,
-           const std::string& className="");
+           Network * network = nullptr);
 
     // New region from serialized state
     Region(std::string name, 
            const std::string& type, 
            const Dimensions& dimensions, 
            BundleIO& bundle,
-           Network * network = nullptr,
-           const std::string& className="");
+           Network * network = nullptr);
 
     virtual ~Region();
 

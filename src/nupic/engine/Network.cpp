@@ -109,13 +109,12 @@ Network::~Network()
 
 Region* Network::addRegion(const std::string& name, 
                            const std::string& nodeType, 
-                           const std::string& nodeParams,
-                           const std::string& className)
+                           const std::string& nodeParams)
 {
   if (regions_.contains(name))
     NTA_THROW << "Region with name '" << name << "' already exists in network";
 
-  auto r = new Region(name, nodeType, nodeParams, this, className);
+  auto r = new Region(name, nodeType, nodeParams, this);
   regions_.add(name, r);
   initialized_ = false;
     
@@ -980,6 +979,11 @@ void Network::resetProfiling()
 {
   for (size_t i = 0; i < regions_.getCount(); i++)
     regions_.getByIndex(i).second->resetProfiling();
+}
+
+void Network::registerPyRegion(const char * module, const char * className)
+{
+  Region::registerPyRegion(module, className);
 }
 
 void Network::registerPyRegionPackage(const char * path)

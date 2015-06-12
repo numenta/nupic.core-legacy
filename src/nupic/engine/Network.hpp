@@ -139,8 +139,7 @@ namespace nupic
     Region*
     addRegion(const std::string& name, 
               const std::string& nodeType, 
-              const std::string& nodeParams,
-              const std::string& className="");
+              const std::string& nodeParams);
 
     /**
      * Create a new region from saved state.
@@ -377,6 +376,11 @@ namespace nupic
      */
     static void
     registerPyRegionPackage(const char * path);
+
+    /*
+     * Adds user built region to list of regions
+     */
+    static void registerPyRegion(const char * module, const char * className);
 
     /*
      * Adds a c++ region to the RegionImplFactory's packages
