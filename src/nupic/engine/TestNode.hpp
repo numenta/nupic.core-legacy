@@ -25,26 +25,32 @@
 #define NTA_TESTNODE_HPP
 
 
-#include <nupic/engine/RegionImpl.hpp>
-#include <nupic/ntypes/Value.hpp>
 #include <string>
 #include <vector>
 
+// Workaround windows.h collision:
+// https://github.com/sandstorm-io/capnproto/issues/213
+#undef VOID
+#include <capnp/any.h>
+
+#include <nupic/engine/RegionImpl.hpp>
+#include <nupic/ntypes/Value.hpp>
+
 namespace nupic
 {
-  
+
   /*
    * TestNode is does simple computations of inputs->outputs
    * inputs and outputs are Real64 arrays
-   * 
+   *
    * delta is a parameter used for the computation. defaults to 1
-   * 
+   *
    * Size of each node output is given by the outputSize parameter (cg)
    * which defaults to 2 and cannot be less than 1. (parameter not yet implemented)
-   * 
+   *
    * Here is the totally lame "computation"
    * output[0] = number of inputs to this baby node + current iteration number (0 for first compute)
-   * output[1] = baby node num + sum of inputs to this baby node 
+   * output[1] = baby node num + sum of inputs to this baby node
    * output[2] = baby node num + sum of inputs + (delta)
    * output[3] = baby node num + sum of inputs + (2*delta)
    * ...
@@ -55,18 +61,19 @@ namespace nupic
 
   class BundleIO;
 
-  class TestNode : public RegionImpl 
+  class TestNode : public RegionImpl
   {
   public:
     typedef void (*computeCallbackFunc)(const std::string&);
     TestNode(const ValueMap& params, Region *region);
     TestNode(BundleIO& bundle, Region* region);
+    TestNode(capnp::AnyPointer::Reader& proto, Region* region);
     virtual ~TestNode();
 
     /* -----------  Required RegionImpl Interface methods ------- */
 
     // Used by RegionImplFactory to create and cache
-    // a nodespec. Ownership is transferred to the caller. 
+    // a nodespec. Ownership is transferred to the caller.
     static Spec* createSpec();
 
     std::string getNodeType() { return "TestNode"; };
@@ -82,6 +89,8 @@ namespace nupic
     void serialize(BundleIO& bundle) override;
     void deserialize(BundleIO& bundle) override;
 
+    virtual void write(capnp::AnyPointer::Builder& anyProto) const;
+    virtual void read(capnp::AnyPointer::Reader& anyProto);
 
     /* -----------  Optional RegionImpl Interface methods ------- */
 
@@ -90,7 +99,7 @@ namespace nupic
     // Override for Real64 only
     // We choose Real64 in the test node to preserve precision. All other type
     // go through read/write buffer serialization, and floating point values may get
-    // truncated in the conversion to/from ascii. 
+    // truncated in the conversion to/from ascii.
     Real64 getParameterReal64(const std::string& name, Int64 index) override;
     void setParameterReal64(const std::string& name, Int64 index, Real64 value) override;
 
@@ -102,14 +111,14 @@ namespace nupic
     // parameters
     // cgs parameters for parameter testing
     Int32 int32Param_;
-    UInt32 uint32Param_; 
+    UInt32 uint32Param_;
     Int64 int64Param_;
     UInt64 uint64Param_;
     Real32 real32Param_;
     Real64 real64Param_;
     std::string stringParam_;
     computeCallbackFunc computeCallback_;
-    
+
     std::vector<Real32> real32ArrayParam_;
     std::vector<Int64> int64ArrayParam_;
 
