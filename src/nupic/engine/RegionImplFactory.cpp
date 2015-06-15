@@ -47,7 +47,7 @@
 namespace nupic
 {
   // Path from site-packages to packages that contain NuPIC Python regions
-  static std::map<const std::string, std::vector<const std::string>> py_regions;
+  static std::map<const std::string, std::set<std::string>> py_regions;
 
   // Mappings for C++ regions
   static std::map<const std::string, GenericRegisteredRegionImpl*> cpp_regions;
@@ -59,9 +59,9 @@ namespace nupic
   {
     // Module hasn't been added yet
     if (py_regions.find(module) == py_regions.end())
-      py_regions[module] = std::vector<const std::string>();
+      py_regions[module] = std::set<std::string>();
         
-    py_regions[module].push_back(className);
+    py_regions[module].insert(className);
   }
 
   void RegionImplFactory::registerCPPRegion(const std::string name, GenericRegisteredRegionImpl * wrapper)
@@ -262,14 +262,14 @@ static RegionImpl * createPyNode(DynamicPythonLibrary * pyLib,
                                  ValueMap * nodeParams,
                                  Region * region)
 {
-  const std::string className(nodeType.c_str() + 3);
+  std::string className(nodeType.c_str() + 3);
   for (auto pyr=py_regions.begin(); pyr!=py_regions.end(); pyr++)
   {
     const std::string module = pyr->first;
-    std::vector<const std::string> classes = pyr->second;
+    std::set<std::string> classes = pyr->second;
 
     // This module contains the class
-    if (std::find(classes.begin(), classes.end(), className) != classes.end())
+    if (classes.find(className) != classes.end())
     {
       void * exception = nullptr;
       void * node = pyLib->createPyNode(module, nodeParams, region, &exception, className);
@@ -290,14 +290,14 @@ static RegionImpl * deserializePyNode(DynamicPythonLibrary * pyLib,
                                       BundleIO & bundle,
                                       Region * region)
 {
-  const std::string className(nodeType.c_str() + 3);
+  std::string className(nodeType.c_str() + 3);
   for (auto pyr=py_regions.begin(); pyr!=py_regions.end(); pyr++)
   {
     const std::string module = pyr->first;
-    std::vector<const std::string> classes = pyr->second;
+    std::set<std::string> classes = pyr->second;
 
     // This module contains the class
-    if (std::find(classes.begin(), classes.end(), className) != classes.end())
+    if (classes.find(className) != classes.end())
     {
       void * exception = nullptr;
       void * node = pyLib->deserializePyNode(module, &bundle, region, &exception, className);
@@ -376,14 +376,14 @@ RegionImpl* RegionImplFactory::deserializeRegionImpl(const std::string nodeType,
 static Spec * getPySpec(DynamicPythonLibrary * pyLib,
                                 const std::string & nodeType)
 {
-  const std::string className(nodeType.c_str() + 3);
+  std::string className(nodeType.c_str() + 3);
   for (auto pyr=py_regions.begin(); pyr!=py_regions.end(); pyr++)
   {
     const std::string module = pyr->first;
-    std::vector<const std::string> classes = pyr->second;
+    std::set<std::string> classes = pyr->second;
 
     // This module contains the class
-    if (std::find(classes.begin(), classes.end(), className) != classes.end())
+    if (classes.find(className) != classes.end())
     {
       void * exception = nullptr;
       void * ns = pyLib->createSpec(module, &exception, className);
