@@ -252,10 +252,11 @@ RegionImplFactory & RegionImplFactory::getInstance()
 
 // This function creates either a NuPIC 2 or NuPIC 1 Python node 
 static RegionImpl * createPyNode(DynamicPythonLibrary * pyLib, 
-                                 const std::string & className,
+                                 const std::string & nodeType,
                                  ValueMap * nodeParams,
                                  Region * region)
 {
+  const std::string className(nodeType.c_str() + 3);
   for (auto pyr=py_regions.begin(); pyr!=py_regions.end(); pyr++)
   {
     const std::string module = pyr->first;
@@ -276,10 +277,11 @@ static RegionImpl * createPyNode(DynamicPythonLibrary * pyLib,
 
 // This function deserializes either a NuPIC 2 or NuPIC 1 Python node 
 static RegionImpl * deserializePyNode(DynamicPythonLibrary * pyLib, 
-                                      const std::string & className,
+                                      const std::string & nodeType,
                                       BundleIO & bundle,
                                       Region * region)
 {
+  const std::string className(nodeType.c_str() + 3);
   for (auto pyr=py_regions.begin(); pyr!=py_regions.end(); pyr++)
   {
     const std::string module = pyr->first;
@@ -323,8 +325,7 @@ RegionImpl* RegionImplFactory::createRegionImpl(const std::string nodeType,
     if (!pyLib_)
       pyLib_ = boost::shared_ptr<DynamicPythonLibrary>(new DynamicPythonLibrary());
     
-    const std::string className(nodeType.c_str() + 3);
-    mn = createPyNode(pyLib_.get(), className, &vm, region);
+    mn = createPyNode(pyLib_.get(), nodeType, &vm, region);
   } else
   {
     NTA_THROW << "Unsupported node type '" << nodeType << "'";
@@ -350,8 +351,7 @@ RegionImpl* RegionImplFactory::deserializeRegionImpl(const std::string nodeType,
     if (!pyLib_)
       pyLib_ = boost::shared_ptr<DynamicPythonLibrary>(new DynamicPythonLibrary());
     
-    const std::string className(nodeType.c_str() + 3);
-    mn = deserializePyNode(pyLib_.get(), className, bundle, region);
+    mn = deserializePyNode(pyLib_.get(), nodeType, bundle, region);
   } else
   {
     NTA_THROW << "Unsupported node type '" << nodeType << "'";
@@ -362,8 +362,9 @@ RegionImpl* RegionImplFactory::deserializeRegionImpl(const std::string nodeType,
 
 // This function returns the node spec of a NuPIC 2 or NuPIC 1 Python node 
 static Spec * getPySpec(DynamicPythonLibrary * pyLib,
-                                const std::string & className)
+                                const std::string & nodeType)
 {
+  const std::string className(nodeType.c_str() + 3);
   for (auto pyr=py_regions.begin(); pyr!=py_regions.end(); pyr++)
   {
     const std::string module = pyr->first;
@@ -402,8 +403,7 @@ Spec * RegionImplFactory::getSpec(const std::string nodeType)
     if (!pyLib_)
       pyLib_ = boost::shared_ptr<DynamicPythonLibrary>(new DynamicPythonLibrary());
 
-    const std::string className(nodeType.c_str() + 3);
-    ns = getPySpec(pyLib_.get(), className);
+    ns = getPySpec(pyLib_.get(), nodeType);
   } 
   else 
   {
