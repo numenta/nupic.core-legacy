@@ -225,13 +225,7 @@ Region::getSpecFromType(const std::string& nodeType)
 }
 
 void
-Region::registerPyRegionPackage(const char * path)
-{
-  RegionImplFactory::registerPyRegionPackage(path);
-}
-
-void
-Region::registerPyRegion(const char * module, const char * className)
+Region::registerPyRegion(const std::string module, const std::string className)
 {
   RegionImplFactory::registerPyRegion(module, className);
 }
