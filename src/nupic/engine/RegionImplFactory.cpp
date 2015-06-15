@@ -52,6 +52,8 @@ namespace nupic
   // Mappings for C++ regions
   static std::map<const std::string, GenericRegisteredRegionImpl*> cpp_regions;
 
+  bool initializedRegions = false;
+
   // Allows the user to add custom regions
   void RegionImplFactory::registerPyRegion(const std::string module, const std::string className)
   {
@@ -219,33 +221,37 @@ namespace nupic
 RegionImplFactory & RegionImplFactory::getInstance()
 {
   static RegionImplFactory instance;
-  // Create C++ regions
-  if (cpp_regions.empty())
+
+  // Initialize Regions
+  if (!initializedRegions)
   {
+    // Create C++ regions
     cpp_regions["TestNode"] = new RegisteredRegionImpl<TestNode>();
     cpp_regions["VectorFileEffector"] = new RegisteredRegionImpl<VectorFileEffector>();
     cpp_regions["VectorFileSensor"] = new RegisteredRegionImpl<VectorFileSensor>();
+
+    // Create Python regions
+    // nupic.regions
+    RegionImplFactory::registerPyRegion("nupic.regions.AnomalyRegion", "AnomalyRegion");
+    RegionImplFactory::registerPyRegion("nupic.regions.CLAClassifierRegion", "CLAClassifierRegion");
+    RegionImplFactory::registerPyRegion("nupic.regions.ImageSensor", "ImageSensor");
+    RegionImplFactory::registerPyRegion("nupic.regions.KNNAnomalyClassifierRegion", "KNNAnomalyClassifierRegion");
+    RegionImplFactory::registerPyRegion("nupic.regions.KNNClassifierRegion", "KNNClassifierRegion");
+    RegionImplFactory::registerPyRegion("nupic.regions.PCANode", "PCANode");
+    RegionImplFactory::registerPyRegion("nupic.regions.PyRegion", "PyRegion");
+    RegionImplFactory::registerPyRegion("nupic.regions.RecordSensor", "RecordSensor");
+    RegionImplFactory::registerPyRegion("nupic.regions.SPRegion", "SPRegion");
+    RegionImplFactory::registerPyRegion("nupic.regions.SVMClassifierNode", "SVMClassifierNode");
+    RegionImplFactory::registerPyRegion("nupic.regions.TPRegion", "TPRegion");
+    RegionImplFactory::registerPyRegion("nupic.regions.TestNode", "TestNode");
+    RegionImplFactory::registerPyRegion("nupic.regions.TestRegion", "TestRegion");
+    RegionImplFactory::registerPyRegion("nupic.regions.UnimportableNode", "UnimportableNode");
+
+    // nupic.regions.extra
+    RegionImplFactory::registerPyRegion("nupic.regions.GaborNode2", "GaborNode2");
+
+    initializedRegions = true;
   }
-
-  // Create Python regions
-  // nupic.regions
-  RegionImplFactory::registerPyRegion("nupic.regions.AnomalyRegion", "AnomalyRegion");
-  RegionImplFactory::registerPyRegion("nupic.regions.CLAClassifierRegion", "CLAClassifierRegion");
-  RegionImplFactory::registerPyRegion("nupic.regions.ImageSensor", "ImageSensor");
-  RegionImplFactory::registerPyRegion("nupic.regions.KNNAnomalyClassifierRegion", "KNNAnomalyClassifierRegion");
-  RegionImplFactory::registerPyRegion("nupic.regions.KNNClassifierRegion", "KNNClassifierRegion");
-  RegionImplFactory::registerPyRegion("nupic.regions.PCANode", "PCANode");
-  RegionImplFactory::registerPyRegion("nupic.regions.PyRegion", "PyRegion");
-  RegionImplFactory::registerPyRegion("nupic.regions.RecordSensor", "RecordSensor");
-  RegionImplFactory::registerPyRegion("nupic.regions.SPRegion", "SPRegion");
-  RegionImplFactory::registerPyRegion("nupic.regions.SVMClassifierNode", "SVMClassifierNode");
-  RegionImplFactory::registerPyRegion("nupic.regions.TPRegion", "TPRegion");
-  RegionImplFactory::registerPyRegion("nupic.regions.TestNode", "TestNode");
-  RegionImplFactory::registerPyRegion("nupic.regions.TestRegion", "TestRegion");
-  RegionImplFactory::registerPyRegion("nupic.regions.UnimportableNode", "UnimportableNode");
-
-  // nupic.regions.extra
-  RegionImplFactory::registerPyRegion("nupic.regions.GaborNode2", "GaborNode2");
 
   return instance;
 }
@@ -263,11 +269,14 @@ static RegionImpl * createPyNode(DynamicPythonLibrary * pyLib,
     std::set<const std::string> classes = pyr->second;
 
     // This module contains the class
-    if (classes.find(className) != classes.end()) {
+    if (classes.find(className) != classes.end())
+    {
       void * exception = nullptr;
       void * node = pyLib->createPyNode(module, nodeParams, region, &exception, className);
       if (node)
+      {
         return static_cast<RegionImpl*>(node);
+      }
     }
   }
 
@@ -288,11 +297,14 @@ static RegionImpl * deserializePyNode(DynamicPythonLibrary * pyLib,
     std::set<const std::string> classes = pyr->second;
 
     // This module contains the class
-    if (classes.find(className) != classes.end()) {
+    if (classes.find(className) != classes.end())
+    {
       void * exception = nullptr;
       void * node = pyLib->deserializePyNode(module, &bundle, region, &exception, className);
       if (node)
+      {
         return static_cast<RegionImpl*>(node);
+      }
     }
   }
 
@@ -371,10 +383,12 @@ static Spec * getPySpec(DynamicPythonLibrary * pyLib,
     std::set<const std::string> classes = pyr->second;
 
     // This module contains the class
-    if (classes.find(className) != classes.end()) {
+    if (classes.find(className) != classes.end())
+    {
       void * exception = nullptr;
       void * ns = pyLib->createSpec(module, &exception, className);
-      if (ns) {
+      if (ns)
+      {
         return (Spec *)ns;
       }
     }
