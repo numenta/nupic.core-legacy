@@ -463,6 +463,7 @@ void RegionImplFactory::cleanup()
   }
 
   cpp_regions.clear();
+  initializedRegions = false;
 
   // Never release the Python dynamic library!
   // This is due to cleanup issues of Python itself
