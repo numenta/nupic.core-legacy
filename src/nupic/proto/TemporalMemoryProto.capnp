@@ -4,7 +4,7 @@
 using import "ConnectionsProto.capnp".ConnectionsProto;
 using import "RandomProto.capnp".RandomProto;
 
-# Next ID: 16
+# Next ID: 18
 struct TemporalMemoryProto {
 
   columnDimensions @0 :List(UInt32);
@@ -26,5 +26,6 @@ struct TemporalMemoryProto {
   predictiveCells @13 :List(UInt32);
   activeSegments @14 :List(UInt32);
   winnerCells @15 :List(UInt32);
-
+  matchingSegments @16 :List(UInt32);
+  matchingCells @17 :List(UInt32);
 }
