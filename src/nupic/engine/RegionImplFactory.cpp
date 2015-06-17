@@ -47,10 +47,10 @@
 namespace nupic
 {
   // Path from site-packages to packages that contain NuPIC Python regions
-  static std::map<const std::string, std::set<std::string>> py_regions;
+  static std::map<const std::string, std::set<std::string>> pyRegions;
 
   // Mappings for C++ regions
-  static std::map<const std::string, GenericRegisteredRegionImpl*> cpp_regions;
+  static std::map<const std::string, GenericRegisteredRegionImpl*> cppRegions;
 
   bool initializedRegions = false;
 
@@ -58,15 +58,17 @@ namespace nupic
   void RegionImplFactory::registerPyRegion(const std::string module, const std::string className)
   {
     // Module hasn't been added yet
-    if (py_regions.find(module) == py_regions.end())
-      py_regions[module] = std::set<std::string>();
+    if (pyRegions.find(module) == pyRegions.end())
+    {
+      pyRegions[module] = std::set<std::string>();
+    }
         
-    py_regions[module].insert(className);
+    pyRegions[module].insert(className);
   }
 
   void RegionImplFactory::registerCPPRegion(const std::string name, GenericRegisteredRegionImpl * wrapper)
   {
-    cpp_regions[name] = wrapper;
+    cppRegions[name] = wrapper;
   }
 
   class DynamicPythonLibrary
@@ -226,9 +228,9 @@ RegionImplFactory & RegionImplFactory::getInstance()
   if (!initializedRegions)
   {
     // Create C++ regions
-    cpp_regions["TestNode"] = new RegisteredRegionImpl<TestNode>();
-    cpp_regions["VectorFileEffector"] = new RegisteredRegionImpl<VectorFileEffector>();
-    cpp_regions["VectorFileSensor"] = new RegisteredRegionImpl<VectorFileSensor>();
+    cppRegions["TestNode"] = new RegisteredRegionImpl<TestNode>();
+    cppRegions["VectorFileEffector"] = new RegisteredRegionImpl<VectorFileEffector>();
+    cppRegions["VectorFileSensor"] = new RegisteredRegionImpl<VectorFileSensor>();
 
     // Create Python regions
     // nupic.regions
@@ -263,7 +265,7 @@ static RegionImpl * createPyNode(DynamicPythonLibrary * pyLib,
                                  Region * region)
 {
   std::string className(nodeType.c_str() + 3);
-  for (auto pyr=py_regions.begin(); pyr!=py_regions.end(); pyr++)
+  for (auto pyr=pyRegions.begin(); pyr!=pyRegions.end(); pyr++)
   {
     const std::string module = pyr->first;
     std::set<std::string> classes = pyr->second;
@@ -291,7 +293,7 @@ static RegionImpl * deserializePyNode(DynamicPythonLibrary * pyLib,
                                       Region * region)
 {
   std::string className(nodeType.c_str() + 3);
-  for (auto pyr=py_regions.begin(); pyr!=py_regions.end(); pyr++)
+  for (auto pyr=pyRegions.begin(); pyr!=pyRegions.end(); pyr++)
   {
     const std::string module = pyr->first;
     std::set<std::string> classes = pyr->second;
@@ -328,9 +330,9 @@ RegionImpl* RegionImplFactory::createRegionImpl(const std::string nodeType,
     nodeType, 
     region->getName());
     
-  if (cpp_regions.find(nodeType) != cpp_regions.end())
+  if (cppRegions.find(nodeType) != cppRegions.end())
   {
-    mn = cpp_regions[nodeType]->createRegionImpl(vm, region);
+    mn = cppRegions[nodeType]->createRegionImpl(vm, region);
   }
   else if ((nodeType.find(std::string("py.")) == 0))
   {
@@ -354,9 +356,9 @@ RegionImpl* RegionImplFactory::deserializeRegionImpl(const std::string nodeType,
 
   RegionImpl *mn = nullptr;
 
-  if (cpp_regions.find(nodeType) != cpp_regions.end())
+  if (cppRegions.find(nodeType) != cppRegions.end())
   {
-    mn = cpp_regions[nodeType]->deserializeRegionImpl(bundle, region);
+    mn = cppRegions[nodeType]->deserializeRegionImpl(bundle, region);
   }
   else if (StringUtils::startsWith(nodeType, "py."))
   {
@@ -377,7 +379,7 @@ static Spec * getPySpec(DynamicPythonLibrary * pyLib,
                                 const std::string & nodeType)
 {
   std::string className(nodeType.c_str() + 3);
-  for (auto pyr=py_regions.begin(); pyr!=py_regions.end(); pyr++)
+  for (auto pyr=pyRegions.begin(); pyr!=pyRegions.end(); pyr++)
   {
     const std::string module = pyr->first;
     std::set<std::string> classes = pyr->second;
@@ -408,9 +410,9 @@ Spec * RegionImplFactory::getSpec(const std::string nodeType)
   // grab the nodespec and cache it
   // one entry per supported node type
   Spec * ns = nullptr;
-  if (cpp_regions.find(nodeType) != cpp_regions.end())
+  if (cppRegions.find(nodeType) != cppRegions.end())
   {
-    ns = cpp_regions[nodeType]->createSpec();
+    ns = cppRegions[nodeType]->createSpec();
   }
   else if (nodeType.find(std::string("py.")) == 0)
   {
@@ -455,14 +457,14 @@ void RegionImplFactory::cleanup()
   nodespecCache_.clear();
 
   // destroy all RegisteredRegionImpls
-  for (auto rri = cpp_regions.begin(); rri != cpp_regions.end(); rri++)
+  for (auto rri = cppRegions.begin(); rri != cppRegions.end(); rri++)
   {
     NTA_ASSERT(rri->second != nullptr);
     delete rri->second;
     rri->second = nullptr;
   }
 
-  cpp_regions.clear();
+  cppRegions.clear();
   initializedRegions = false;
 
   // Never release the Python dynamic library!
