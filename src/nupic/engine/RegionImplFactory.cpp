@@ -232,26 +232,6 @@ RegionImplFactory & RegionImplFactory::getInstance()
     cppRegions["VectorFileEffector"] = new RegisteredRegionImpl<VectorFileEffector>();
     cppRegions["VectorFileSensor"] = new RegisteredRegionImpl<VectorFileSensor>();
 
-    // Create Python regions
-    // nupic.regions
-    RegionImplFactory::registerPyRegion("nupic.regions.AnomalyRegion", "AnomalyRegion");
-    RegionImplFactory::registerPyRegion("nupic.regions.CLAClassifierRegion", "CLAClassifierRegion");
-    RegionImplFactory::registerPyRegion("nupic.regions.ImageSensor", "ImageSensor");
-    RegionImplFactory::registerPyRegion("nupic.regions.KNNAnomalyClassifierRegion", "KNNAnomalyClassifierRegion");
-    RegionImplFactory::registerPyRegion("nupic.regions.KNNClassifierRegion", "KNNClassifierRegion");
-    RegionImplFactory::registerPyRegion("nupic.regions.PCANode", "PCANode");
-    RegionImplFactory::registerPyRegion("nupic.regions.PyRegion", "PyRegion");
-    RegionImplFactory::registerPyRegion("nupic.regions.RecordSensor", "RecordSensor");
-    RegionImplFactory::registerPyRegion("nupic.regions.SPRegion", "SPRegion");
-    RegionImplFactory::registerPyRegion("nupic.regions.SVMClassifierNode", "SVMClassifierNode");
-    RegionImplFactory::registerPyRegion("nupic.regions.TPRegion", "TPRegion");
-    RegionImplFactory::registerPyRegion("nupic.regions.TestNode", "TestNode");
-    RegionImplFactory::registerPyRegion("nupic.regions.TestRegion", "TestRegion");
-    RegionImplFactory::registerPyRegion("nupic.regions.UnimportableNode", "UnimportableNode");
-
-    // nupic.regions.extra
-    RegionImplFactory::registerPyRegion("nupic.regions.GaborNode2", "GaborNode2");
-
     initializedRegions = true;
   }
 
