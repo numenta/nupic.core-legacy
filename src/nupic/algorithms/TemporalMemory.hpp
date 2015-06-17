@@ -117,10 +117,11 @@ namespace nupic {
          * Feeds input record through TM, performing inference and learning.
          * Updates member variables with new state.
          *
-         * @param activeColumns   Indices of active columns in `t`
-         * @param learn           Whether or not learning is enabled
+         * @param activeColumnsSize Number of active columns
+         * @param activeColumns     Indices of active columns in `t`
+         * @param learn             Whether or not learning is enabled
          */
-        virtual void compute(UInt activeColumns[], bool learn = true);
+        virtual void compute(UInt activeColumnsSize, UInt activeColumns[], bool learn = true);
 
         /*
         * 'Functional' version of compute.
@@ -142,6 +143,7 @@ namespace nupic {
         *  'predictedColumns'  (set)
         */
         tuple<vector<Cell>, vector<Cell>, vector<Segment>, vector<Cell>, vector<UInt>> computeFn(
+          UInt activeColumnsSize,
           UInt activeColumns[],
           vector<Cell>& prevPredictiveCells,
           vector<Segment>& prevActiveSegments,
