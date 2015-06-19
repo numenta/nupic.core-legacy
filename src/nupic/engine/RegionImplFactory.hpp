@@ -77,10 +77,12 @@ namespace nupic
     // nodespec references (e.g. in NuPIC shutdown) or pynodes. 
     void cleanup();
 
-    // Allows the user to load custom packages
     static void registerPyRegionPackage(const char * path);
 
-    //static void registerCPPRegion(const std::string name, RegionImplWrapper * wrapper);
+    // Allows the user to load custom Python regions
+    static void registerPyRegion(const std::string module, const std::string className);
+
+    // Allows the user to load custom C++ regions
     static void registerCPPRegion(const std::string name, GenericRegisteredRegionImpl * wrapper);
 
   private:

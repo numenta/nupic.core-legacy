@@ -148,11 +148,10 @@ namespace nupic
     static const Spec* 
     getSpecFromType(const std::string& nodeType);
 
-
     /*
-     * Adds a package to the RegionImplFactory's packages
+     * Adds a Python module and class to the RegionImplFactory's regions
      */
-    static void registerPyRegionPackage(const char * path);
+    static void registerPyRegion(const std::string module, const std::string className);
 
     /*
      * Adds a cpp region to the RegionImplFactory's packages
