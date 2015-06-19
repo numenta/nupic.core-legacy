@@ -77,8 +77,8 @@ namespace nupic {
                         Real localAreaDensity=-1.0,
                         UInt numActiveColumnsPerInhArea=10,
                         UInt stimulusThreshold=0,
-                        Real synPermInactiveDec=0.01,
-                        Real synPermActiveInc=0.1,
+                        Real synPermInactiveDec=0.008,
+                        Real synPermActiveInc=0.05,
                         Real synPermConnected=0.1,
                         Real minPctOverlapDutyCycles=0.001,
                         Real minPctActiveDutyCycles=0.001,
@@ -641,10 +641,26 @@ namespace nupic {
           Sets the permanence amount that qualifies a synapse as
           being connected.
 
-          @param setSynPermConnected real number of the permanence amount that qualifies a synapse as
+          @param synPermConnected real number of the permanence amount that qualifies a synapse as
           being connected.
           */
-          void setSynPermConnected(Real setSynPermConnected);
+          void setSynPermConnected(Real synPermConnected);
+
+          /**
+          Returns the maximum permanence amount a synapse can
+          achieve.
+
+          @returns real number of the max permanence amount.
+          */
+          Real getSynPermMax() const;
+          /**
+          Sets the maximum permanence amount a synapse can
+          achieve.
+
+          @param synPermCMax real number of the maximum permanence
+          amount that a synapse can achieve.
+          */
+          void setSynPermMax(Real synPermMax);
 
           /**
           Returns the minimum tolerated overlaps, given as percent of
