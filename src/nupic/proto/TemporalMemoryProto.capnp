@@ -28,5 +28,5 @@ struct TemporalMemoryProto {
   winnerCells @15 :List(UInt32);
   matchingSegments @16 :List(UInt32);
   matchingCells @17 :List(UInt32);
-  permanenceOrphanDecrement @18 :Float32;
+  predictedSegmentDecrement @18 :Float32;
 }
