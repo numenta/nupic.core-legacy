@@ -500,8 +500,8 @@ void VectorFileSensor::write(capnp::AnyPointer::Builder& anyProto) const
   auto proto = anyProto.getAs<VectorFileSensorProto>();
   proto.setRepeatCount(repeatCount_);
   proto.setActiveOutputCount(activeOutputCount_);
-  proto.setFilename(filename_);
-  proto.setScalingMode(scalingMode_);
+  proto.setFilename(filename_.c_str());
+  proto.setScalingMode(scalingMode_.c_str());
 }
 
 void VectorFileSensor::read(capnp::AnyPointer::Reader& anyProto)
