@@ -153,7 +153,7 @@ void TemporalMemory::initialize(
  * @param activeColumns   Indices of active columns in `t`
  * @param learn           Whether or not learning is enabled
  */
-void TemporalMemory::compute(UInt activeColumns[], bool learn)
+void TemporalMemory::compute(UInt activeColumnsSize, UInt activeColumns[], bool learn)
 {
   vector<Cell> _activeCells;
   vector<Cell> _winnerCells;
@@ -164,6 +164,7 @@ void TemporalMemory::compute(UInt activeColumns[], bool learn)
   tie(_activeCells, _winnerCells, _activeSegments,
     _predictiveCells, _predictedColumns)
     = computeFn(
+      activeColumnsSize,
       activeColumns,
       predictiveCells,
       activeSegments,
@@ -198,6 +199,7 @@ void TemporalMemory::compute(UInt activeColumns[], bool learn)
  */
 tuple<vector<Cell>, vector<Cell>, vector<Segment>, vector<Cell>, vector<UInt>>
 TemporalMemory::computeFn(
+  UInt activeColumnsSize,
   UInt activeColumns[],
   vector<Cell>& prevPredictiveCells,
   vector<Segment>& prevActiveSegments,
@@ -208,11 +210,13 @@ TemporalMemory::computeFn(
 {
   vector<UInt> _activeColumns;
   vector<UInt> _predictedColumns;
-
+  vector<Cell> _predictiveCells;
   vector<Cell> _activeCells;
   vector<Cell> _winnerCells;
+  vector<Segment> _learningSegments;
+  vector<Segment> _activeSegments;
 
-  for (UInt i = 0; i < numColumns_; i++)
+  for (UInt i = 0; i < activeColumnsSize; i++)
   {
     _activeColumns.push_back(activeColumns[i]);
   }
@@ -227,12 +231,10 @@ TemporalMemory::computeFn(
       prevPredictiveCells,
       _activeColumns);
 
-  for (auto cell : _activeCells)
+  for (Cell cell : _activeCells)
     activeCells.push_back(cell);
-  for (auto cell : _winnerCells)
+  for (Cell cell : _winnerCells)
     winnerCells.push_back(cell);
-
-  vector<Segment> _learningSegments;
 
   tie(
     _activeCells,
@@ -245,9 +247,33 @@ TemporalMemory::computeFn(
     _connections);
 
   for (auto cell : _activeCells)
-    activeCells.push_back(cell);
+  {
+    bool found = false;
+    for (Cell ac : activeCells)
+    {
+      if (ac.idx == cell.idx)
+      {
+        found = true;
+        continue;
+      }
+    }
+    if (!found)
+      activeCells.push_back(cell);
+  }
   for (auto cell : _winnerCells)
-    winnerCells.push_back(cell);
+  {
+    bool found = false;
+    for (Cell wc : winnerCells)
+    {
+      if (wc.idx == cell.idx)
+      {
+        found = true;
+        continue;
+      }
+    }
+    if (!found)
+      winnerCells.push_back(cell);
+  }
 
   if (learn)
   {
@@ -259,9 +285,6 @@ TemporalMemory::computeFn(
       prevWinnerCells,
       _connections);
   }
-
-  vector<Segment> _activeSegments;
-  vector<Cell> _predictiveCells;
 
   tie(_activeSegments, _predictiveCells) =
     computePredictiveCells(activeCells, _connections);
