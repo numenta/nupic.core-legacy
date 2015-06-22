@@ -24,21 +24,24 @@
  * Implementation for VectorFileEffector class
  */
 
-#include <nupic/engine/Region.hpp>
-#include <nupic/engine/Spec.hpp>
-#include <nupic/regions/VectorFileEffector.hpp>
-#include <nupic/utils/Log.hpp>
-#include <nupic/os/FStream.hpp>
-#include <nupic/ntypes/Value.hpp>
 #include <stdexcept>
 #include <string>
 #include <iostream>
 #include <sstream>
 #include <list>
 
+#include <capnp/any.h>
+
+#include <nupic/engine/Region.hpp>
+#include <nupic/engine/Spec.hpp>
+#include <nupic/regions/VectorFileEffector.hpp>
+#include <nupic/utils/Log.hpp>
+#include <nupic/os/FStream.hpp>
+#include <nupic/ntypes/Value.hpp>
+
 namespace nupic
 {
-  
+
 VectorFileEffector::VectorFileEffector(const ValueMap& params, Region* region) :
   RegionImpl(region),
   dataIn_(NTA_BasicType_Real32),
@@ -71,7 +74,7 @@ VectorFileEffector::~VectorFileEffector()
 void VectorFileEffector::initialize()
 {
   NTA_CHECK(region_ != nullptr);
-  // We have no outputs or parameters; just need our input. 
+  // We have no outputs or parameters; just need our input.
   dataIn_ = region_->getInputData("dataIn");
 
   if (dataIn_.getCount() == 0)
@@ -83,25 +86,25 @@ void VectorFileEffector::initialize()
 
 void VectorFileEffector::compute()
 {
-  
+
   // It's not necessarily an error to have no inputs. In this case we just return
-  if (dataIn_.getCount() == 0) 
+  if (dataIn_.getCount() == 0)
     return;
-  
-  // Don't write if there is no open file. 
+
+  // Don't write if there is no open file.
   if (outFile_ == nullptr)
   {
     NTA_WARN << "VectorFileEffector compute() called, but there is no open file";
     return;
   }
-  
+
   // Ensure we can write to it
   if ( outFile_->fail() )
   {
-    NTA_THROW << "VectorFileEffector: There was an error writing to the file " 
+    NTA_THROW << "VectorFileEffector: There was an error writing to the file "
               << filename_.c_str() << "\n";
   }
-  
+
   Real *inputVec = (Real*)(dataIn_.getBuffer());
   NTA_CHECK(inputVec != nullptr);
   OFStream &outFile = *outFile_;
@@ -112,7 +115,7 @@ void VectorFileEffector::compute()
   }
   outFile << "\n";
 }
-  
+
 
 void VectorFileEffector::closeFile()
 {
@@ -126,7 +129,7 @@ void VectorFileEffector::closeFile()
 
 void VectorFileEffector::openFile(const std::string& filename)
 {
-  
+
   if (outFile_ && !outFile_->fail())
   closeFile();
   if (filename == "")
@@ -155,7 +158,7 @@ void VectorFileEffector::setParameterString(const std::string& paramName, Int64 
   } else {
     NTA_THROW << "VectorFileEffector -- Unknown string parameter " << paramName;
   }
-    
+
 }
 
 std::string VectorFileEffector::getParameterString(const std::string& paramName, Int64 index)
@@ -188,7 +191,7 @@ std::string VectorFileEffector::executeCommand(const std::vector<std::string>& a
     {
       NTA_THROW << "VectorFileEffector: echo command failed because there is no file open";
     }
-    
+
     for (size_t i = 1; i < args.size(); i++)
     {
       *outFile_ << args[i];
@@ -198,17 +201,17 @@ std::string VectorFileEffector::executeCommand(const std::vector<std::string>& a
   {
     NTA_THROW << "VectorFileEffector: Unknown execute '" << args[0] << "'";
   }
-  
+
   return "";
 
-} 
+}
 
 
 Spec* VectorFileEffector::createSpec()
 {
 
   auto ns = new Spec;
-  ns->description = 
+  ns->description =
         "VectorFileEffector is a node that simply writes its\n"
         "input vectors to a text file. The target filename is specified\n"
         "using the 'outputFile' parameter at run time. On each\n"
@@ -217,8 +220,8 @@ Spec* VectorFileEffector::createSpec()
 
   ns->inputs.add(
     "dataIn",
-    InputSpec("Data to be written to file", 
-              NTA_BasicType_Real32, 
+    InputSpec("Data to be written to file",
+              NTA_BasicType_Real32,
               0, // count
               false, // required?
               false, // isRegionLevel
@@ -233,8 +236,8 @@ Spec* VectorFileEffector::createSpec()
       "Writes output vectors to this file on each compute. Will append to any\n"
       "existing data in the file. This parameter must be set at runtime before\n"
       "the first compute is called. Throws an exception if it is not set or\n"
-      "the file cannot be written to.\n", 
-      NTA_BasicType_Byte, 
+      "the file cannot be written to.\n",
+      NTA_BasicType_Byte,
       0,  // elementCount
       "", // constraints
       "", // defaultValue
@@ -242,7 +245,7 @@ Spec* VectorFileEffector::createSpec()
       ));
 
   ns->commands.add(
-    "flushFile", 
+    "flushFile",
     CommandSpec("Flush file data to disk"));
 
   ns->commands.add(
@@ -253,7 +256,6 @@ Spec* VectorFileEffector::createSpec()
 }
 
 
-    
 size_t VectorFileEffector::getNodeOutputElementCount(const std::string& outputName)
 {
   NTA_THROW << "VectorFileEffector::getNodeOutputElementCount -- unknown output '"
@@ -278,10 +280,23 @@ void VectorFileEffector::serialize(BundleIO& bundle)
   return;
 }
 
+
 void VectorFileEffector::deserialize(BundleIO& bundle)
 {
   return;
 }
 
+
+void VectorFileEffector::write(capnp::AnyPointer::Builder& anyProto) const
+{
+  return;
 }
 
+
+void VectorFileEffector::read(capnp::AnyPointer::Reader& anyProto)
+{
+  return;
+}
+
+
+}
