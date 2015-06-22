@@ -114,6 +114,7 @@ struct MemoryMonitor
 void testExceptionBug()
 {
   Network n;
+  Network::registerPyRegion("nupic.regions.TestNode", "TestNode");
   Region *l1 = n.addRegion("l1", "py.TestNode", "");
   //Dimensions d(1);
   Dimensions d(1);
