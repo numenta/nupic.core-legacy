@@ -78,10 +78,10 @@ namespace nupic
     virtual void mmClearHistory();
 
     virtual vector<Trace<vector<UInt>>> mmGetDefaultTraces(int verbosity = 1);
-    virtual vector<Metric<vector<UInt>>> mmGetDefaultMetrics(int verbosity = 1);
+    virtual vector<MetricsVector> mmGetDefaultMetrics(int verbosity = 1);
 
     virtual string mmPrettyPrintTraces(vector<Trace<vector<UInt>>>& traces, Trace<vector<UInt>>& breakOnResets);
-    virtual string mmPrettyPrintMetrics(vector<Metric<vector<UInt>>>& metrics);
+    virtual string mmPrettyPrintMetrics(vector<MetricsVector>& metrics);
 
   }; // MonitorMixinBase
 
@@ -111,10 +111,10 @@ namespace nupic
     Trace<vector<UInt>>& mmGetTracePredictedInactiveColumns();
     Trace<vector<UInt>>& mmGetTraceUnpredictedActiveColumns();
 
-    Metric<vector<UInt>> mmGetMetricSequencesPredictedActiveCellsPerColumn();
-    Metric<vector<UInt>> mmGetMetricSequencesPredictedActiveCellsShared();
+    MetricsVector mmGetMetricSequencesPredictedActiveCellsPerColumn();
+    MetricsVector mmGetMetricSequencesPredictedActiveCellsShared();
 
-    Metric<vector<UInt>> mmGetMetricFromTrace(Trace<vector<UInt>>& trace);
+    MetricsVector mmGetMetricFromTrace(Trace<vector<UInt>>& trace);
 
     string mmPrettyPrintConnections();
     string mmPrettyPrintSequenceCellRepresentations(string sortby = "Column");
@@ -133,7 +133,7 @@ namespace nupic
     virtual void reset();
 
     virtual vector<Trace<vector<UInt>>> mmGetDefaultTraces(int verbosity = 1);
-    virtual vector<Metric<vector<UInt>>> mmGetDefaultMetrics(int verbosity = 1);
+    virtual vector<MetricsVector> mmGetDefaultMetrics(int verbosity = 1);
 
     virtual void mmClearHistory();
 

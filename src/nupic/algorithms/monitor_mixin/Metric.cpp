@@ -66,8 +66,24 @@ Metric<TraceType> Metric<TraceType>::createFromTrace(Trace<TraceType>& trace)
   _sum = _mean = _standardDeviation = 0.0;
 
   _data = trace._data;
-  Trace<vector<UInt>> resets;
-  _computeStats(resets);
+  _computeStats();
+
+  return ret;
+}
+
+template<typename TraceType>
+Metric<TraceType> Metric<TraceType>::createFromTrace(Trace<TraceType>& trace, Trace<vector<UInt>>& resets)
+{
+  Metric<TraceType> ret;
+  ret._monitor = *trace._monitor;
+  ret._title = trace._title;
+
+  _min = 1000000000.0;
+  _max = -1000000000.0;
+  _sum = _mean = _standardDeviation = 0.0;
+
+  _data = trace._data;
+  _computeStats();
 
   return ret;
 }
@@ -115,7 +131,7 @@ string Metric<TraceType>::prettyPrintTitle()
 }
 
 template<typename TraceType>
-void Metric<TraceType>::_computeStats(Trace<vector<UInt>>& resets)
+void Metric<TraceType>::_computeStats()
 {
   if (_data.size() == 0)
     return;
@@ -125,7 +141,7 @@ void Metric<TraceType>::_computeStats(Trace<vector<UInt>>& resets)
   _sum = _mean = _standardDeviation = 0.0;
 }
 
-void MetricsVector::_computeStats(Trace<vector<UInt>>& resets)
+void MetricsVector::_computeStats()
 {
   if (_data.size() == 0)
     return;
@@ -161,9 +177,9 @@ void MetricsVector::_computeStats(Trace<vector<UInt>>& resets)
 
 }
 
-Metric<vector<UInt>> MetricsVector::createFromTrace(Trace<vector<UInt>>& trace)
+MetricsVector MetricsVector::createFromTrace(Trace<vector<UInt>>& trace)
 {
-  Metric<vector<UInt>> ret;
+  MetricsVector ret;
   ret._monitor = *trace._monitor;
   ret._title = trace._title;
   ret._data = trace._data;
@@ -172,24 +188,37 @@ Metric<vector<UInt>> MetricsVector::createFromTrace(Trace<vector<UInt>>& trace)
   ret._max = -1000000000.0;
   ret._sum = ret._mean = ret._standardDeviation = 0.0;
 
-  Trace<vector<UInt>> resets;
-  ret._computeStats(resets);
+  ret._computeStats();
 
   return ret;
 }
 
-Metric<vector<UInt>> MetricsVector::createFromTrace(Trace<vector<UInt>>& trace, Trace<vector<UInt>>& resets)
+MetricsVector MetricsVector::createFromTrace(Trace<vector<UInt>>& trace, Trace<vector<UInt>>& excludesResets)
 {
-  Metric<vector<UInt>> ret;
+  MetricsVector ret;
   ret._monitor = *trace._monitor;
+
   ret._title = trace._title;
-  ret._data = trace._data;
+
+  for (vector<UInt> v : trace._data)
+  {
+    vector<UInt> n;
+
+    UInt i = 0;
+    for (UInt r : excludesResets._data[0])
+    {
+      if (!r)
+        n.push_back(v[i]);
+      i++;
+    }
+    ret._data.push_back(n);
+  }
 
   ret._min = 1000000000.0;
   ret._max = -1000000000.0;
   ret._sum = ret._mean = ret._standardDeviation = 0.0;
 
-  ret._computeStats(resets);
+  ret._computeStats();
   return ret;
 }
 

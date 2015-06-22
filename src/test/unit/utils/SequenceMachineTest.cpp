@@ -152,8 +152,9 @@ void SequenceMachineTest::testGenerateNumbers()
   Sequence numbers = _sequenceMachine.generateNumbers(1, 100);
   vector<UInt> p = range(0, 100);
   NTA_CHECK(check_pattern_eq(numbers[0], p) == false);
-  sort(numbers[0].begin(), numbers[0].end());
-  NTA_CHECK(check_pattern_eq(numbers[0], p));
+  vector<UInt> v = numbers[0];
+  sort(v.begin(), v.end());
+  NTA_CHECK(check_pattern_eq(v, p));
 }
 
 void SequenceMachineTest::testGenerateNumbersMultipleSequences()
@@ -162,23 +163,35 @@ void SequenceMachineTest::testGenerateNumbersMultipleSequences()
   vector<UInt> p;
 
   p = range(0, 100);
-  sort(numbers[0].begin(), numbers[0].end());
-  NTA_CHECK(check_pattern_eq(numbers[0], p));
+  vector<UInt> v0 = numbers[0];
+  sort(v0.begin(), v0.end());
+  NTA_CHECK(check_pattern_eq(v0, p));
 
   p = range(100, 200);
-  sort(numbers[1].begin(), numbers[1].end());
-  NTA_CHECK(check_pattern_eq(numbers[1], p));
+  vector<UInt> v1 = numbers[1];
+  sort(v1.begin(), v1.end());
+  NTA_CHECK(check_pattern_eq(v1, p));
 
   p = range(200, 300);
-  sort(numbers[2].begin(), numbers[2].end());
-  NTA_CHECK(check_pattern_eq(numbers[2], p));
+  vector<UInt> v2 = numbers[2];
+  sort(v2.begin(), v2.end());
+  NTA_CHECK(check_pattern_eq(v2, p));
 }
 
 void SequenceMachineTest::testGenerateNumbersWithShared()
 {
   Sequence numbers = _sequenceMachine.generateNumbers(3, 100, { 20, 35 });
   vector<UInt> shared = range(300, 315);
-  NTA_CHECK(check_pattern_eq(vector<UInt>(numbers[0].begin() + 20, numbers[0].begin() + 35), shared));
-  NTA_CHECK(check_pattern_eq(vector<UInt>(numbers[1].begin() + 20, numbers[1].begin() + 35), shared));
-  NTA_CHECK(check_pattern_eq(vector<UInt>(numbers[2].begin() + 20, numbers[2].begin() + 35), shared));
+
+  vector<UInt> v0 = numbers[0];
+  vector<UInt> s0(v0.begin() + 20, v0.begin() + 35);
+  NTA_CHECK(check_pattern_eq(s0, shared));
+
+  vector<UInt> v1 = numbers[1];
+  vector<UInt> s1(v1.begin() + 20, v1.begin() + 35);
+  NTA_CHECK(check_pattern_eq(s1, shared));
+
+  vector<UInt> v2 = numbers[2];
+  vector<UInt> s2(v2.begin() + 20, v2.begin() + 35);
+  NTA_CHECK(check_pattern_eq(s2, shared));
 }

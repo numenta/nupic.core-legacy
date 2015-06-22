@@ -61,10 +61,10 @@ namespace nupic
 
     string prettyPrintTitle();
 
-    virtual void _computeStats(Trace<vector<UInt>>& resets);
+    virtual void _computeStats();
 
-    virtual Metric<TraceType> createFromTrace(Trace<TraceType>& trace);
-    virtual Metric<TraceType> createFromTrace(Trace<TraceType>& trace, Trace<vector<UInt>>& resets);
+    static Metric<TraceType> createFromTrace(Trace<TraceType>& trace);
+    static Metric<TraceType> createFromTrace(Trace<TraceType>& trace, Trace<vector<UInt>>& resets);
 
     static Metric<TraceType> copy(const Metric<TraceType>& rhs);
 
@@ -73,10 +73,10 @@ namespace nupic
   class MetricsVector : public Metric<vector<UInt>>
   {
   public:
-    virtual void _computeStats(Trace<vector<UInt>>& resets);
+    virtual void _computeStats();
 
-    static Metric<vector<UInt>> createFromTrace(Trace<vector<UInt>>& trace);
-    static Metric<vector<UInt>> createFromTrace(Trace<vector<UInt>>& trace, Trace<vector<UInt>>& resets);
+    static MetricsVector createFromTrace(Trace<vector<UInt>>& trace);
+    static MetricsVector createFromTrace(Trace<vector<UInt>>& trace, Trace<vector<UInt>>& resets);
 
   };
 

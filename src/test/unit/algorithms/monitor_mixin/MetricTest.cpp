@@ -56,7 +56,7 @@ void MetricTest::setup()
 void MetricTest::testCreateFromTrace()
 {
   MetricsVector metric;
-  metric.createFromTrace(trace);
+  metric = metric.createFromTrace(trace);
     
   NTA_CHECK(metric._title == trace._title);
   NTA_CHECK(metric._min == 0);
@@ -75,13 +75,13 @@ void MetricTest::testCreateFromTraceExcludeResets()
   resetsTrace._data.push_back(resetsList);
 
   MetricsVector metric;
-  metric.createFromTrace(trace, resetsTrace);
+  metric = metric.createFromTrace(trace, resetsTrace);
 
   NTA_CHECK(metric._title == trace._title);
   NTA_CHECK(metric._min == 0);
   NTA_CHECK(metric._max == 5);
   NTA_CHECK(metric._sum == 10);
   NTA_CHECK(metric._mean == 2.5);
-  bool eq = nupic::nearlyEqual(metric._standardDeviation, Real(1.707825127659933));
+  bool eq = nupic::nearlyEqual(metric._standardDeviation, Real(1.8027756377319946));
   EXPECT_TRUE(eq);
 }

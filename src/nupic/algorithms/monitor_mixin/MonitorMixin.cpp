@@ -84,7 +84,7 @@ string MonitorMixinBase::mmPrettyPrintTraces(vector<Trace<vector<UInt>>>& traces
   return "";
 }
 
-string MonitorMixinBase::mmPrettyPrintMetrics(vector<Metric<vector<UInt>>>& metrics)
+string MonitorMixinBase::mmPrettyPrintMetrics(vector<MetricsVector>& metrics)
 {
   //Returns pretty - printed table of metrics.
   //@param metrics(list) Traces to print in table
@@ -182,7 +182,7 @@ vector<Trace<vector<UInt>>> MonitorMixinBase::mmGetDefaultTraces(int verbosity)
   return {};
 }
 
-vector<Metric<vector<UInt>>> MonitorMixinBase::mmGetDefaultMetrics(int verbosity)
+vector<MetricsVector> MonitorMixinBase::mmGetDefaultMetrics(int verbosity)
 {
   //Returns list of default metrics. (To be overridden.)
   //@param verbosity(int) Verbosity level
@@ -267,7 +267,7 @@ Trace<vector<UInt>>& TemporalMemoryMonitorMixin::mmGetTraceUnpredictedActiveColu
   return _mmTraces.find("unpredictedActiveColumns")->second;
 }
 
-Metric<vector<UInt>> TemporalMemoryMonitorMixin::mmGetMetricSequencesPredictedActiveCellsPerColumn()
+MetricsVector TemporalMemoryMonitorMixin::mmGetMetricSequencesPredictedActiveCellsPerColumn()
 {
   // Metric for number of predicted => active cells per column for each sequence
   //@return (Metric) metric
@@ -275,18 +275,18 @@ Metric<vector<UInt>> TemporalMemoryMonitorMixin::mmGetMetricSequencesPredictedAc
 
   vector<UInt> numCellsPerColumn;
 
-  for (Cell predictedActiveCells : _mmData["predictedActiveCellsForSequence"])
-  {
+//  for (Cell predictedActiveCells : _mmData["predictedActiveCellsForSequence"])
+//  {
 //    map<Int, vector<Cell>> cellsForColumn = mapCellsToColumns(predictedActiveCells);
 //    numCellsPerColumn += [len(x) for x in cellsForColumn.values()];
-  }
+//  }
 
-  Metric<vector<UInt>> ret(*this, string("temp"), numCellsPerColumn);
+  MetricsVector ret;//(*this, string("temp"), numCellsPerColumn);
   return ret;
 }
 
 
-Metric<vector<UInt>> TemporalMemoryMonitorMixin::mmGetMetricSequencesPredictedActiveCellsShared()
+MetricsVector TemporalMemoryMonitorMixin::mmGetMetricSequencesPredictedActiveCellsShared()
 {
   //Metric for number of sequences each predicted = > active cell appears in
   //Note : This metric is flawed when it comes to high - order sequences.
@@ -301,7 +301,7 @@ Metric<vector<UInt>> TemporalMemoryMonitorMixin::mmGetMetricSequencesPredictedAc
   }
 
   vector<UInt> numCellsPerColumn;
-  Metric<vector<UInt>> ret(*this, string("# sequences each predicted => active cells appears in"), numCellsPerColumn);// numSequencesForCell);
+  MetricsVector ret;// (*this, string("# sequences each predicted => active cells appears in"), numCellsPerColumn);// numSequencesForCell);
   return ret;
 }
 
@@ -424,21 +424,21 @@ vector<Trace<vector<UInt>>> TemporalMemoryMonitorMixin::mmGetDefaultTraces(int v
   return traces;
 }
 
-Metric<vector<UInt>> TemporalMemoryMonitorMixin::mmGetMetricFromTrace(Trace<vector<UInt>>& trace)
+MetricsVector TemporalMemoryMonitorMixin::mmGetMetricFromTrace(Trace<vector<UInt>>& trace)
 {
   // Convenience method to compute a metric over 
   // an indices trace, excluding resets.
   //@param (IndicesTrace) Trace of indices
   //@return (Metric) Metric over trace excluding resets
   Trace<vector<UInt>> countsTrace(trace.makeCountsTrace());
-  Metric<vector<UInt>> ret;
+  MetricsVector ret;
   ret.createFromTrace(countsTrace, mmGetTraceResets());
   return ret;
 }
 
-vector<Metric<vector<UInt>>> TemporalMemoryMonitorMixin::mmGetDefaultMetrics(int verbosity)
+vector<MetricsVector> TemporalMemoryMonitorMixin::mmGetDefaultMetrics(int verbosity)
 {
-  vector<Metric<vector<UInt>>> ret;
+  vector<MetricsVector> ret;
   return ret;
 
 //  ([Metric.createFromTrace(trace, excludeResets = resetsTrace)
