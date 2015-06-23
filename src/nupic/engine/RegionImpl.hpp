@@ -20,11 +20,11 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file 
+/** @file
  * Definition of the RegionImpl API
  *
- * A RegionImpl is a node "plugin" that provides most of the 
- * implementation of a Region, including algorithms. 
+ * A RegionImpl is a node "plugin" that provides most of the
+ * implementation of a Region, including algorithms.
  *
  * The RegionImpl class is expected to be subclassed for particular
  * node types (e.g. FDRNode, PyNode, etc) and RegionImpls are created
@@ -36,6 +36,7 @@
 
 #include <string>
 #include <vector>
+
 #include <nupic/ntypes/ObjectModel.hpp> // IWriteBuffer
 
 namespace nupic
@@ -58,7 +59,7 @@ namespace nupic
 
     // All subclasses must call this constructor from their regular constructor
     RegionImpl(Region* region);
-    
+
     virtual ~RegionImpl();
 
 
@@ -66,15 +67,15 @@ namespace nupic
     /* ------- Convenience methods  that access region data -------- */
 
     const std::string& getType() const;
-    
+
     const std::string& getName() const;
 
     const NodeSet& getEnabledNodes() const;
 
     /* ------- Parameter support in the base class. ---------*/
-    // The default implementation of all of these methods goes through 
-    // set/getParameterFromBuffer, which is compatible with NuPIC 1. 
-    // RegionImpl subclasses may override for higher performance. 
+    // The default implementation of all of these methods goes through
+    // set/getParameterFromBuffer, which is compatible with NuPIC 1.
+    // RegionImpl subclasses may override for higher performance.
 
     virtual Int32 getParameterInt32(const std::string& name, Int64 index);
     virtual UInt32 getParameterUInt32(const std::string& name, Int64 index);
@@ -91,7 +92,7 @@ namespace nupic
     virtual void setParameterReal32(const std::string& name, Int64 index, Real32 value);
     virtual void setParameterReal64(const std::string& name, Int64 index, Real64 value);
     virtual void setParameterHandle(const std::string& name, Int64 index, Handle value);
-    
+
     virtual void getParameterArray(const std::string& name, Int64 index, Array & array);
     virtual void setParameterArray(const std::string& name, Int64 index, const Array & array);
 
@@ -103,12 +104,12 @@ namespace nupic
 
     /**
      * Can't declare a static method in an interface. But RegionFactory
-     * expects to find this method. Caller gets ownership. 
+     * expects to find this method. Caller gets ownership.
      */
 
     //static Spec* createSpec();
 
-    // Serialize state. 
+    // Serialize state.
     virtual void serialize(BundleIO& bundle) = 0;
 
     // De-serialize state. Must be called from deserializing constructor
@@ -130,24 +131,24 @@ namespace nupic
     virtual std::string executeCommand(const std::vector<std::string>& args, Int64 index) = 0;
 
 
-    // Per-node size (in elements) of the given output. 
+    // Per-node size (in elements) of the given output.
     // For per-region outputs, it is the total element count.
     // This method is called only for outputs whose size is not
-    // specified in the nodespec. 
+    // specified in the nodespec.
     virtual size_t getNodeOutputElementCount(const std::string& outputName) = 0;
 
     /**
-     * Get a parameter from a write buffer. 
+     * Get a parameter from a write buffer.
      * This method is called only by the typed getParameter*
      * methods in the RegionImpl base class
-     * 
+     *
      * Must be implemented by all subclasses.
      *
      * @param index A node index. (-1) indicates a region-level parameter
      *
      */
-    virtual void getParameterFromBuffer(const std::string& name, 
-                                        Int64 index, 
+    virtual void getParameterFromBuffer(const std::string& name,
+                                        Int64 index,
                                         IWriteBuffer& value) = 0;
 
     /**
@@ -158,7 +159,7 @@ namespace nupic
      *
      * @param index A node index. (-1) indicates a region-level parameter
      */
-    virtual void setParameterFromBuffer(const std::string& name, 
+    virtual void setParameterFromBuffer(const std::string& name,
                               Int64 index,
                               IReadBuffer& value) = 0;
 
@@ -168,11 +169,11 @@ namespace nupic
 
 
     /**
-     * Array-valued parameters may have a size determined at runtime. 
-     * This method returns the number of elements in the named parameter. 
+     * Array-valued parameters may have a size determined at runtime.
+     * This method returns the number of elements in the named parameter.
      * If parameter is not an array type, may throw an exception or return 1.
      *
-     * Must be implemented only if the node has one or more array 
+     * Must be implemented only if the node has one or more array
      * parameters with a dynamically-determined length.
      */
     virtual size_t getParameterArrayCount(const std::string& name, Int64 index);
@@ -187,27 +188,27 @@ namespace nupic
 
 
 
-  protected: 
+  protected:
     Region* region_;
 
     /* -------- Methods provided by the base class for use by subclasses -------- */
-    
+
     // ---
-    /// Callback for subclasses to get an output stream during serialize() 
+    /// Callback for subclasses to get an output stream during serialize()
     /// (for output) and the deserializing constructor (for input)
-    /// It is invalid to call this method except inside serialize() in a subclass. 
-    /// 
+    /// It is invalid to call this method except inside serialize() in a subclass.
+    ///
     /// Only one serialization stream may be open at a time. Calling
-    /// getSerializationXStream a second time automatically closes the 
-    /// first stream. Any open stream is closed when serialize() returns. 
+    /// getSerializationXStream a second time automatically closes the
+    /// first stream. Any open stream is closed when serialize() returns.
     // ---
     std::ostream& getSerializationOutputStream(const std::string& name);
     std::istream& getSerializationInputStream(const std::string& name);
     std::string getSerializationPath(const std::string& name);
 
     // These methods provide access to inputs and outputs
-    // They raise an exception if the named input or output is 
-    // not found. 
+    // They raise an exception if the named input or output is
+    // not found.
     const Input* getInput(const std::string& name);
     const Output* getOutput(const std::string& name);
 
@@ -216,6 +217,5 @@ namespace nupic
   };
 
 }
-
 
 #endif // NTA_REGION_IMPL_HPP
