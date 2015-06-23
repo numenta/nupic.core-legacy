@@ -82,6 +82,8 @@ namespace nupic
 
     VectorFileEffector(BundleIO& bundle, Region* region);
 
+    VectorFileEffector(capnp::AnyPointer::Reader& proto, Region* region);
+
     virtual ~VectorFileEffector();
 
 
