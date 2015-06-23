@@ -42,6 +42,7 @@ Methods related to inputs and outputs are in Region_io.cpp
 #include <nupic/engine/Link.hpp>
 #include <nupic/ntypes/NodeSet.hpp>
 #include <nupic/os/Timer.hpp>
+#include <nupic/proto/RegionProto.capnp.h>
 
 namespace nupic
 {
@@ -109,6 +110,16 @@ namespace nupic
     createInputsAndOutputs_();
   }
 
+  Region::Region(std::string name, RegionProto::Reader& proto,
+                 Network* network) :
+    name_(std::move(name)),
+    type_(proto.getNodeType().cStr()),
+    initialized_(false),
+    enabledNodes_(nullptr),
+    network_(network)
+  {
+    read(proto);
+  }
 
   Network * Region::getNetwork()
   {
@@ -475,7 +486,6 @@ namespace nupic
 
   }
 
-
   void
   Region::uninitialize()
   {
@@ -494,11 +504,46 @@ namespace nupic
     return phases_;
   }
 
-
   void
   Region::serializeImpl(BundleIO& bundle)
   {
     impl_->serialize(bundle);
+  }
+
+  void Region::write(RegionProto::Builder& proto) const
+  {
+    auto dimensionsProto = proto.initDimensions(dims_.size());
+    for (UInt i = 0; i < dims_.size(); ++i)
+    {
+      dimensionsProto.set(i, dims_[i]);
+    }
+    auto phasesProto = proto.initPhases(phases_.size());
+    for (UInt i = 0; i < phases_.size(); ++i)
+    {
+      phasesProto.set(i, phases_[i]);
+    }
+    proto.setNodeType(type_);
+    auto implProto = proto.getRegionImpl();
+    impl_->write(implProto);
+  }
+
+  void Region::read(RegionProto::Reader& proto)
+  {
+    dims_.clear();
+    for (auto elem : proto.getDimensions())
+    {
+      dims_.push_back(elem);
+    }
+
+    phases_.clear();
+    for (auto elem : proto.getPhases())
+    {
+      phases_.insert(elem);
+    }
+
+    auto implProto = proto.getRegionImpl();
+    RegionImplFactory& factory = RegionImplFactory::getInstance();
+    impl_ = factory.deserializeRegionImpl(proto.getNodeType(), implProto, this);
   }
 
   void

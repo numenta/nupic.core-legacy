@@ -35,11 +35,12 @@
 #include <map>
 #include <set>
 
-#include <nupic/types/Types.hpp>
 // We need the full definitions because these
 // objects are returned by value.
 #include <nupic/ntypes/Dimensions.hpp>
 #include <nupic/os/Timer.hpp>
+#include <nupic/proto/RegionProto.capnp.h>
+#include <nupic/types/Types.hpp>
 
 namespace nupic
 {
@@ -634,6 +635,10 @@ namespace nupic
            BundleIO& bundle,
            Network * network = nullptr);
 
+    // New region from capnp struct
+    Region(std::string name, RegionProto::Reader& proto,
+           Network* network=nullptr);
+
     virtual ~Region();
 
     void
@@ -713,6 +718,9 @@ namespace nupic
     // Called by Network for serialization
     void
     serializeImpl(BundleIO& bundle);
+
+    void write(RegionProto::Builder& proto) const;
+    void read(RegionProto::Reader& proto);
 
 
 #endif // NTA_INTERNAL
