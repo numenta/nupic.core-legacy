@@ -34,8 +34,11 @@
 #ifndef NTA_REGION_IMPL_HPP
 #define NTA_REGION_IMPL_HPP
 
+#include <iostream>
 #include <string>
 #include <vector>
+
+#include <capnp/any.h>
 
 #include <nupic/ntypes/ObjectModel.hpp> // IWriteBuffer
 
@@ -115,6 +118,14 @@ namespace nupic
     // De-serialize state. Must be called from deserializing constructor
     virtual void deserialize(BundleIO& bundle) = 0;
 
+    // Serialize state with capnp
+    void writeToStream(std::ostream& stream) const;
+    virtual void write(capnp::AnyPointer::Builder& anyProto) const = 0;
+
+    // Deserialize state from capnp. Must be called from deserializing
+    // constructor.
+    void readFromStream(std::istream& stream);
+    virtual void read(capnp::AnyPointer::Reader& anyProto) = 0;
 
     /**
      * Inputs/Outputs are made available in initialize()
