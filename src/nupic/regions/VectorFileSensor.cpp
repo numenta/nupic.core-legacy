@@ -96,6 +96,25 @@ VectorFileSensor::VectorFileSensor(BundleIO& bundle, Region* region) :
   deserialize(bundle);
 }
 
+VectorFileSensor::VectorFileSensor(
+    capnp::AnyPointer::Reader& proto, Region* region) :
+  RegionImpl(region),
+  repeatCount_(1),
+  iterations_(0),
+  curVector_(0),
+  activeOutputCount_(0),
+  hasCategoryOut_(false),
+  hasResetOut_(false),
+  dataOut_(NTA_BasicType_Real32),
+  categoryOut_(NTA_BasicType_Real32),
+  resetOut_(NTA_BasicType_Real32),
+  filename_(""),
+  scalingMode_("none"),
+  recentFile_("")
+{
+  read(proto);
+}
+
 void VectorFileSensor::initialize()
 {
   NTA_CHECK(region_ != nullptr);

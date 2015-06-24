@@ -285,6 +285,9 @@ namespace nupic
 
     VectorFileSensor(BundleIO& bundle, Region* region);
 
+    VectorFileSensor(capnp::AnyPointer::Reader& proto, Region* region);
+
+
     virtual ~VectorFileSensor();
 
 
@@ -298,8 +301,8 @@ namespace nupic
     // ---
     virtual void deserialize(BundleIO& bundle) override;
 
-    virtual void write(capnp::AnyPointer::Builder& anyProto) const;
-    virtual void read(capnp::AnyPointer::Reader& anyProto);
+    virtual void write(capnp::AnyPointer::Builder& anyProto) const override;
+    virtual void read(capnp::AnyPointer::Reader& anyProto) override;
 
     void compute() override;
     virtual std::string executeCommand(const std::vector<std::string>& args, Int64 index) override;

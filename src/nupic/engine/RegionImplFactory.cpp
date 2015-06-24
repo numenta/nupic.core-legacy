@@ -1,6 +1,6 @@
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
+ * Copyright (C) 2013-2015, Numenta, Inc.  Unless you have an agreement
  * with Numenta, Inc., for a separate license for this software code, the
  * following terms and conditions apply:
  *
@@ -20,8 +20,10 @@
  * ---------------------------------------------------------------------
  */
 
-
 #include <stdexcept>
+
+#include <capnp/any.h>
+
 #include <nupic/engine/RegionImplFactory.hpp>
 #include <nupic/engine/RegionImpl.hpp>
 #include <nupic/engine/Region.hpp>
@@ -62,7 +64,7 @@ namespace nupic
     {
       pyRegions[module] = std::set<std::string>();
     }
-        
+
     pyRegions[module].insert(className);
   }
 
@@ -97,8 +99,8 @@ namespace nupic
       rootDir_ = OS::executeCommand(command);
       if (!Path::exists(rootDir_))
         NTA_THROW << "Unable to find NuPIC library in '" << rootDir_ << "'";
-      
-      
+
+
 #if defined(NTA_OS_WINDOWS)
       const char * filename = "cpp_region.dll";
 #else
@@ -111,20 +113,20 @@ namespace nupic
         NTA_THROW << "Unable to find library '" << libName << "'";
 
       std::string errorString;
-      DynamicLibrary * p = 
-        DynamicLibrary::load(libName, 
+      DynamicLibrary * p =
+        DynamicLibrary::load(libName,
                              // export as LOCAL because we don't want
-                             // the symbols to be globally visible; 
+                             // the symbols to be globally visible;
                              // But the python module that we load
                              // has to be able to access symbols from
                              // libpython.so; Since libpython.so is linked
                              // to the pynode shared library, it appears
                              // we have to make the pynode shared library
                              // symbols global. TODO: investigate
-                             DynamicLibrary::GLOBAL| 
-                             // Evaluate them NOW instead of LAZY to catch 
+                             DynamicLibrary::GLOBAL|
+                             // Evaluate them NOW instead of LAZY to catch
                              // errors up front, even though this takes
-                             // a little longer to load the library. 
+                             // a little longer to load the library.
                              // However -- the current dependency chain
                              // PyNode->Region->RegionImplFactory apparently
                              // creates never-used dependencies on YAML
@@ -161,7 +163,7 @@ namespace nupic
       //NTA_DEBUG << "In DynamicPythonLibrary Destructor";
       if (finalizePython_)
         finalizePython_();
-    } 
+    }
 
     void * createSpec(std::string nodeType, void ** exception, std::string className)
     {
@@ -175,7 +177,7 @@ namespace nupic
       return (*destroySpec_)(nodeType.c_str(), className.c_str());
     }
 
-    void * createPyNode(const std::string& nodeType, 
+    void * createPyNode(const std::string& nodeType,
                         ValueMap * nodeParams,
                         Region * region,
                         void ** exception,
@@ -190,16 +192,16 @@ namespace nupic
 
     }
 
-    void * deserializePyNode(const std::string& nodeType, 
+    void * deserializePyNode(const std::string& nodeType,
                              BundleIO* bundle,
-                             Region * region, 
+                             Region * region,
                              void ** exception,
                              const std::string& className)
     {
       //NTA_DEBUG << "RegionImplFactory::deserializePyNode(" << nodeType << ")";
-      return (*deserializePyNode_)(nodeType.c_str(), 
+      return (*deserializePyNode_)(nodeType.c_str(),
                                    reinterpret_cast<void*>(bundle),
-                                   reinterpret_cast<void*>(region), 
+                                   reinterpret_cast<void*>(region),
                                    exception,
                                    className.c_str());
     }
@@ -238,8 +240,8 @@ RegionImplFactory & RegionImplFactory::getInstance()
   return instance;
 }
 
-// This function creates either a NuPIC 2 or NuPIC 1 Python node 
-static RegionImpl * createPyNode(DynamicPythonLibrary * pyLib, 
+// This function creates either a NuPIC 2 or NuPIC 1 Python node
+static RegionImpl * createPyNode(DynamicPythonLibrary * pyLib,
                                  const std::string & nodeType,
                                  ValueMap * nodeParams,
                                  Region * region)
@@ -266,8 +268,8 @@ static RegionImpl * createPyNode(DynamicPythonLibrary * pyLib,
   return nullptr;
 }
 
-// This function deserializes either a NuPIC 2 or NuPIC 1 Python node 
-static RegionImpl * deserializePyNode(DynamicPythonLibrary * pyLib, 
+// This function deserializes either a NuPIC 2 or NuPIC 1 Python node
+static RegionImpl * deserializePyNode(DynamicPythonLibrary * pyLib,
                                       const std::string & nodeType,
                                       BundleIO & bundle,
                                       Region * region)
@@ -297,64 +299,93 @@ static RegionImpl * deserializePyNode(DynamicPythonLibrary * pyLib,
 
 }
 
-RegionImpl* RegionImplFactory::createRegionImpl(const std::string nodeType, 
+RegionImpl* RegionImplFactory::createRegionImpl(const std::string nodeType,
                                                 const std::string nodeParams,
                                                 Region* region)
 {
 
-  RegionImpl *mn = nullptr;
+  RegionImpl *impl = nullptr;
   Spec *ns = getSpec(nodeType);
   ValueMap vm = YAMLUtils::toValueMap(
-    nodeParams.c_str(), 
-    ns->parameters, 
-    nodeType, 
+    nodeParams.c_str(),
+    ns->parameters,
+    nodeType,
     region->getName());
-    
+
   if (cppRegions.find(nodeType) != cppRegions.end())
   {
-    mn = cppRegions[nodeType]->createRegionImpl(vm, region);
+    impl = cppRegions[nodeType]->createRegionImpl(vm, region);
   }
   else if ((nodeType.find(std::string("py.")) == 0))
   {
     if (!pyLib_)
       pyLib_ = boost::shared_ptr<DynamicPythonLibrary>(new DynamicPythonLibrary());
-    
-    mn = createPyNode(pyLib_.get(), nodeType, &vm, region);
+
+    impl = createPyNode(pyLib_.get(), nodeType, &vm, region);
   } else
   {
     NTA_THROW << "Unsupported node type '" << nodeType << "'";
   }
 
-  return mn;
+  return impl;
 
 }
 
-RegionImpl* RegionImplFactory::deserializeRegionImpl(const std::string nodeType, 
+RegionImpl* RegionImplFactory::deserializeRegionImpl(const std::string nodeType,
                                                      BundleIO& bundle,
                                                      Region* region)
 {
 
-  RegionImpl *mn = nullptr;
+  RegionImpl *impl = nullptr;
 
   if (cppRegions.find(nodeType) != cppRegions.end())
   {
-    mn = cppRegions[nodeType]->deserializeRegionImpl(bundle, region);
+    impl = cppRegions[nodeType]->deserializeRegionImpl(bundle, region);
   }
   else if (StringUtils::startsWith(nodeType, "py."))
   {
     if (!pyLib_)
       pyLib_ = boost::shared_ptr<DynamicPythonLibrary>(new DynamicPythonLibrary());
-    
-    mn = deserializePyNode(pyLib_.get(), nodeType, bundle, region);
+
+    impl = deserializePyNode(pyLib_.get(), nodeType, bundle, region);
   } else
   {
     NTA_THROW << "Unsupported node type '" << nodeType << "'";
   }
-  return mn;
+  return impl;
 
 }
 
-// This function returns the node spec of a NuPIC 2 or NuPIC 1 Python node 
+RegionImpl* RegionImplFactory::deserializeRegionImpl(
+    const std::string nodeType,
+    capnp::AnyPointer::Reader& proto,
+    Region* region)
+{
+  RegionImpl *impl = nullptr;
+
+  if (cppRegions.find(nodeType) != cppRegions.end())
+  {
+    impl = cppRegions[nodeType]->deserializeRegionImpl(proto, region);
+  }
+  else if (StringUtils::startsWith(nodeType, "py."))
+  {
+    NTA_THROW << "Python regions not yet supported for Cap'n Proto "
+      << "deserialization.";
+    // Temporarily disabled for Cap'n Proto serialization until PyRegion in
+    // nupic defines the new RegionImpl functions.
+    //if (!pyLib_)
+    //  pyLib_ = boost::shared_ptr<DynamicPythonLibrary>(new DynamicPythonLibrary());
+
+    //impl = deserializePyNode(pyLib_.get(), nodeType, proto, region);
+  }
+  else
+  {
+    NTA_THROW << "Unsupported node type '" << nodeType << "'";
+  }
+  return impl;
+}
+
+// This function returns the node spec of a NuPIC 2 or NuPIC 1 Python node
 static Spec * getPySpec(DynamicPythonLibrary * pyLib,
                                 const std::string & nodeType)
 {
@@ -400,8 +431,8 @@ Spec * RegionImplFactory::getSpec(const std::string nodeType)
       pyLib_ = boost::shared_ptr<DynamicPythonLibrary>(new DynamicPythonLibrary());
 
     ns = getPySpec(pyLib_.get(), nodeType);
-  } 
-  else 
+  }
+  else
   {
     NTA_THROW << "getSpec() -- Unsupported node type '" << nodeType << "'";
   }
@@ -412,7 +443,7 @@ Spec * RegionImplFactory::getSpec(const std::string nodeType)
   nodespecCache_[nodeType] = ns;
   return ns;
 }
-    
+
 void RegionImplFactory::cleanup()
 {
   std::map<std::string, Spec*>::iterator ns;
@@ -454,4 +485,3 @@ void RegionImplFactory::cleanup()
 }
 
 }
-

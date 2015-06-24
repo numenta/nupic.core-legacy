@@ -82,6 +82,8 @@ namespace nupic
 
     VectorFileEffector(BundleIO& bundle, Region* region);
 
+    VectorFileEffector(capnp::AnyPointer::Reader& proto, Region* region);
+
     virtual ~VectorFileEffector();
 
 
@@ -95,8 +97,8 @@ namespace nupic
     // ---
     virtual void deserialize(BundleIO& bundle) override;
 
-    virtual void write(capnp::AnyPointer::Builder& anyProto) const;
-    virtual void read(capnp::AnyPointer::Reader& anyProto);
+    virtual void write(capnp::AnyPointer::Builder& anyProto) const override;
+    virtual void read(capnp::AnyPointer::Reader& anyProto) override;
 
     void compute() override;
 

@@ -42,40 +42,53 @@ namespace nupic
 
   class GenericRegisteredRegionImpl {
     public:
-      GenericRegisteredRegionImpl() {
-      }
-      virtual ~GenericRegisteredRegionImpl() {
-      }
-      virtual RegionImpl* createRegionImpl(const ValueMap& params, Region *region) {
-        return nullptr;
-      }
-      virtual RegionImpl* deserializeRegionImpl(BundleIO& params, Region *region) {
-        return nullptr;
-      }
-      virtual Spec* createSpec() {
-        return nullptr;
-      }
+      GenericRegisteredRegionImpl() {}
+
+      virtual ~GenericRegisteredRegionImpl() {}
+
+      virtual RegionImpl* createRegionImpl(
+          const ValueMap& params, Region *region) = 0;
+
+      virtual RegionImpl* deserializeRegionImpl(
+          BundleIO& params, Region *region) = 0;
+
+      virtual RegionImpl* deserializeRegionImpl(
+          capnp::AnyPointer::Reader& proto, Region *region) = 0;
+
+      virtual Spec* createSpec() = 0;
   };
 
   template <class T>
   class RegisteredRegionImpl: public GenericRegisteredRegionImpl {
     public:
-      RegisteredRegionImpl() {
-      }
-      ~RegisteredRegionImpl() {
-      }
-      T* createRegionImpl(const ValueMap& params, Region *region) {
+      RegisteredRegionImpl() {}
+
+      ~RegisteredRegionImpl() {}
+
+      virtual RegionImpl* createRegionImpl(
+          const ValueMap& params, Region *region) override
+      {
         return new T(params, region);
       }
-      T* deserializeRegionImpl(BundleIO& params, Region *region) {
+
+      virtual RegionImpl* deserializeRegionImpl(
+          BundleIO& params, Region *region) override
+      {
         return new T(params, region);
       }
-      Spec* createSpec()
+
+      virtual RegionImpl* deserializeRegionImpl(
+          capnp::AnyPointer::Reader& proto, Region *region) override
+      {
+        return new T(proto, region);
+      }
+
+      virtual Spec* createSpec() override
       {
         return T::createSpec();
       }
   };
-}
 
+}
 
 #endif // NTA_REGISTERED_REGION_IMPL_HPP
