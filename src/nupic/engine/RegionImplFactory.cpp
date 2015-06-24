@@ -371,11 +371,14 @@ RegionImpl* RegionImplFactory::deserializeRegionImpl(
   {
     NTA_THROW << "Python regions not yet supported for Cap'n Proto "
       << "deserialization.";
+    // Temporarily disabled for Cap'n Proto serialization until PyRegion in
+    // nupic defines the new RegionImpl functions.
     //if (!pyLib_)
     //  pyLib_ = boost::shared_ptr<DynamicPythonLibrary>(new DynamicPythonLibrary());
 
     //impl = deserializePyNode(pyLib_.get(), nodeType, proto, region);
-  } else
+  }
+  else
   {
     NTA_THROW << "Unsupported node type '" << nodeType << "'";
   }
