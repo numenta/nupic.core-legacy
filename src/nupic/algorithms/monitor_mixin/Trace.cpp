@@ -74,6 +74,7 @@ Trace<vector<UInt>> CountsTrace::makeCountsTrace()
   //@return (CountsTrace)A new Trace made up of counts of this trace's indices.
   string title = "# " + _title;
   CountsTrace trace;
+
   trace._monitor = _monitor;
   trace._title = title;
 
@@ -91,11 +92,13 @@ Trace<vector<UInt>> CountsTrace::makeCumCountsTrace()
   //@return (CountsTrace)A new Trace made up of cumulative counts of this trace's indices.
   string title = "# (cumulative) " + _title;
   CountsTrace trace;
+
   trace._monitor = _monitor;
   trace._title = title;
 
   Trace<vector<UInt>> countsTrace = makeCountsTrace();
   trace._data.push_back(vector<UInt>{ accumulate(countsTrace) });
+  
   return trace;
 }
 
@@ -127,6 +130,26 @@ string CountsTrace::prettyPrintDatum(vector<UInt>& datum)
 
   return ret.str();
 }
+
+Trace<vector<bool>> BoolsTrace::makeCountsTrace()
+{
+  return Trace<vector<bool>>();
+}
+
+Trace<vector<bool>> BoolsTrace::makeCumCountsTrace()
+{
+  return Trace<vector<bool>>();
+};
+
+Trace<vector<string>> StringsTrace::makeCountsTrace()
+{
+  return Trace<vector<string>>();
+}
+
+Trace<vector<string>> StringsTrace::makeCumCountsTrace()
+{
+  return Trace<vector<string>>();
+};
 
 string BoolsTrace::prettyPrintDatum(vector<bool>& datum)
 {

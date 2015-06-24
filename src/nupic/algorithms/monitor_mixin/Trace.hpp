@@ -100,10 +100,13 @@ namespace nupic
       _title = title;
     };
 
-    virtual string prettyPrintDatum(vector<bool>& datum);
+    virtual Trace<vector<bool>> makeCountsTrace();
+    virtual Trace<vector<bool>> makeCumCountsTrace();
+
+    string prettyPrintDatum(vector<bool>& datum);
   };
 
-  class StringsTrace : public Trace<string>
+  class StringsTrace : public Trace<vector<string>>
   {
   public:
     // Each entry contains strings(for example sequence labels).
@@ -114,7 +117,11 @@ namespace nupic
       _title = title;
     };
 
-    virtual string prettyPrintDatum(vector<string>& datum);
+    virtual Trace<vector<string>> makeCountsTrace();
+    virtual Trace<vector<string>> makeCumCountsTrace();
+
+    string prettyPrintDatum(vector<string>& datum);
   };
- }; // of namespace nupic
+
+}; // of namespace nupic
 #endif // NTA_trace_classes_HPP

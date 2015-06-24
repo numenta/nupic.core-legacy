@@ -46,6 +46,13 @@ namespace nupic {
     class Sequence
     {
     public:
+      Sequence() { }
+
+      Sequence(vector<vector<UInt>> initialData)
+      {
+        data = initialData;
+      }
+
       vector<vector<UInt>> data;
 
       size_t size()
@@ -109,7 +116,7 @@ namespace nupic {
       // Note : Any `None` in the list of numbers is considered a reset.
       //  @param numbers(list) List of numbers
       //  @return (list)Generated sequence
-      Sequence generateFromNumbers(vector<vector<UInt>>& numbers);
+      Sequence generateFromNumbers(Sequence& numbers);
 
       // Add spatial noise to each pattern in the sequence.
       //  @param sequence(list) Sequence

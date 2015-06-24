@@ -403,15 +403,23 @@ tuple<vector<Cell>, vector<Cell>, vector<Segment>> TemporalMemory::burstColumns(
     // Resize to the worst case usage
     _unpredictedColumns.resize(activeColumns.size() + predictedColumns.size());
 
-    // Remove the predicted columns from the 
-    // currently active columns
-    vector<UInt>::iterator it = set_difference(
-      activeColumns.begin(), activeColumns.end(),
-      predictedColumns.begin(), predictedColumns.end(),
-      _unpredictedColumns.begin());
+    if (predictedColumns.size() == 0)
+      _unpredictedColumns = activeColumns;
+    else
+      if (activeColumns.size() == 0)
+      _unpredictedColumns = predictedColumns;
+      else
+      {
+        // Remove the predicted columns from the 
+        // currently active columns
+        vector<UInt>::iterator it = set_difference(
+          activeColumns.begin(), activeColumns.end(),
+          predictedColumns.begin(), predictedColumns.end(),
+          _unpredictedColumns.begin());
 
-    // Trim remainer of set
-    _unpredictedColumns.resize(it - _unpredictedColumns.begin());
+        // Trim remainer of set
+        _unpredictedColumns.resize(it - _unpredictedColumns.begin());
+      }
   }
 
   for (Int column : _unpredictedColumns)

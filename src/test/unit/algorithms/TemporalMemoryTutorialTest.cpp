@@ -32,7 +32,7 @@ void TemporalMemoryTutorialTest::testFirstOrder()
   // Basic first order sequences
   init();
 
-  vector<vector<UInt>> numbers;
+  Sequence numbers;
   numbers.push_back(vector<UInt>{ 0, 1, 2, 3 });
   numbers.push_back({});
   Sequence sequence = _sequenceMachine.generateFromNumbers(numbers);
@@ -57,9 +57,9 @@ void TemporalMemoryTutorialTest::testHighOrder()
   // High order sequences (in order)
   init();
 
-  vector<vector<UInt>> numbersA = { {0, 1, 2, 3}, {} };
+  Sequence numbersA(vector<vector<UInt>>{ {0, 1, 2, 3}, {} });
   Sequence sequenceA = _sequenceMachine.generateFromNumbers(numbersA);
-  vector<vector<UInt>> numbersB = { {4, 1, 2, 5}, {} };
+  Sequence numbersB(vector<vector<UInt>>{ {4, 1, 2, 5}, {} });
   Sequence sequenceB = _sequenceMachine.generateFromNumbers(numbersB);
 
   _feedTM(sequenceA, 5);
@@ -103,8 +103,9 @@ void TemporalMemoryTutorialTest::testHighOrderAlternating()
   // High order sequences (alternating)
   init();
 
-  vector<vector<UInt>> numbersA = { { 0, 1, 2, 3 },{} };
-  vector<vector<UInt>> numbersB = { { 4, 1, 2, 5 },{} };
+  Sequence numbersA( { { 0, 1, 2, 3 },{} } );
+  Sequence numbersB( { { 4, 1, 2, 5 },{} } );
+
   Sequence sequence = _sequenceMachine.generateFromNumbers(numbersA);
   sequence += _sequenceMachine.generateFromNumbers(numbersB);
 
@@ -128,7 +129,7 @@ void TemporalMemoryTutorialTest::testEndlesslyRepeating()
   
   //init({ "columnDimensions": [2] });
 
-  vector<vector<UInt>> numbers = { { 0, 1 } };
+  Sequence numbers({ { 0, 1 } });
   Sequence sequence = _sequenceMachine.generateFromNumbers(numbers);
 
   for (int i = 0; i < 7; i++)
@@ -147,7 +148,7 @@ void TemporalMemoryTutorialTest::testEndlesslyRepeatingWithNoNewSynapses()
   //       "maxNewSynapseCount" : 1,
   //       "cellsPerColumn" : 10 });
 
-  vector<vector<UInt>> numbers = { { 0, 1 } };
+  Sequence numbers({ { 0, 1 } });
   Sequence sequence = _sequenceMachine.generateFromNumbers(numbers);
 
   for (int i = 0; i < 7; i++)
@@ -164,7 +165,7 @@ void TemporalMemoryTutorialTest::testLongRepeatingWithNovelEnding()
   
   //init({ "columnDimensions": [3] });
 
-  vector<vector<UInt>> numbers = { { 0, 1 } };
+  Sequence numbers({ { 0, 1 } });
   Sequence sequence = _sequenceMachine.generateFromNumbers(numbers);
 //  sequence *= 10;
 //  sequence += {_patternMachine.get(2), {}};

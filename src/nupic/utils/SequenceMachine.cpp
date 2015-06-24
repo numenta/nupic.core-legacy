@@ -83,18 +83,24 @@ Sequence SequenceMachine::generateNumbers(int numSequences, int sequenceLength, 
 // Note : Any 'None' in the list of numbers is considered a reset.
 //  @param numbers(list) List of numbers
 //  @return (list)Generated sequence
-Sequence SequenceMachine::generateFromNumbers(vector<vector<UInt>>& numbers)
+Sequence SequenceMachine::generateFromNumbers(Sequence& numbers)
 {
   Sequence sequence;
 
-  for (vector<UInt> numberSequence : numbers)
+  for (vector<UInt> numberSequence : numbers.data)
   {
     if (numberSequence.size() == 0)
+    {
+      // Append the reset pattern
       sequence.push_back(numberSequence);
+    }
     else
     {
-      for (Int number : numberSequence)
-        sequence.push_back(_patternMachine.get(number));
+      for (UInt patternIndex : numberSequence)
+      {
+        vector<UInt> pattern = _patternMachine.get(patternIndex);
+        sequence.push_back(pattern);
+      }
     }
   }
 

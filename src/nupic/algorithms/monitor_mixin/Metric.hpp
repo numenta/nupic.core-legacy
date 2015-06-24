@@ -64,6 +64,7 @@ namespace nupic
     virtual void _computeStats();
 
     static Metric<TraceType> createFromTrace(Trace<TraceType>& trace);
+    static Metric<TraceType> createFromTrace(Trace<TraceType>& trace, Trace<vector<bool>>& resets);
     static Metric<TraceType> createFromTrace(Trace<TraceType>& trace, Trace<vector<UInt>>& resets);
 
     static Metric<TraceType> copy(const Metric<TraceType>& rhs);
@@ -76,6 +77,7 @@ namespace nupic
     virtual void _computeStats();
 
     static MetricsVector createFromTrace(Trace<vector<UInt>>& trace);
+    static MetricsVector createFromTrace(Trace<vector<UInt>>& trace, Trace<vector<bool>>& resets);
     static MetricsVector createFromTrace(Trace<vector<UInt>>& trace, Trace<vector<UInt>>& resets);
 
   };

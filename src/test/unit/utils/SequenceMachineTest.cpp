@@ -112,7 +112,7 @@ void SequenceMachineTest::RunTests()
 
 void SequenceMachineTest::testGenerateFromNumbers()
 {
-  vector<vector<UInt>> numbers = { range(0, 10), {}, range(10, 20) };
+  Sequence numbers({ range(0, 10), {}, range(10, 20) });
 
   Sequence sequence = _sequenceMachine.generateFromNumbers(numbers);
 
@@ -130,7 +130,7 @@ void SequenceMachineTest::testAddSpatialNoise()
 
   SequenceMachine sequenceMachine = SequenceMachine(patternMachine);
 
-  vector<vector<UInt>> numbers = { range(0, 100), {} };
+  Sequence numbers({ range(0, 100), {} });
   vector<UInt> overlap;
 
   Sequence sequence = sequenceMachine.generateFromNumbers(numbers);

@@ -68,7 +68,7 @@ namespace nupic {
   void TemporalMemoryPerformanceTest::testSingleSequence()
   {
     // "Test: Single sequence"
-    Sequence sequence = _sequenceMachine.generateFromNumbers(vector<vector<UInt>>{ range(50) });
+    Sequence sequence = _sequenceMachine.generateFromNumbers(Sequence({ range(50) }));
     vector<Real64> times = _feedAll(sequence);
 
     NTA_CHECK(times[0] < times[1]);

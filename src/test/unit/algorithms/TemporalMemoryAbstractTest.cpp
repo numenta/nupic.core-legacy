@@ -30,8 +30,8 @@
 void TemporalMemoryAbstractTest::setUp()
 {
   //tm = None;
-  //patternMachine = None;
-  //sequenceMachine = None;
+  _patternMachine = PatternMachine();
+  _sequenceMachine = SequenceMachine(_patternMachine);
 }
 
 // Initialize Temporal Memory, and other member variables.
@@ -40,9 +40,7 @@ void TemporalMemoryAbstractTest::init()
 {
   //params = self._computeTMParams(overrides);
   _tm = TemporalMemoryMonitorMixin();// **params);
-
-  _patternMachine = PatternMachine();
-  _sequenceMachine = SequenceMachine(_patternMachine);
+  _tm.initialize({ 100 }, 1, 11, 0.8, 0.7, 11, 11, 0.4, 0.0, 42);
 }
 
 void TemporalMemoryAbstractTest::_feedTM(Sequence sequence, bool learn, int num)
@@ -51,7 +49,7 @@ void TemporalMemoryAbstractTest::_feedTM(Sequence sequence, bool learn, int num)
       
   for (int i = 0; i < num; i++)
   {
-    repeatedSequence.push_back(sequence[i]);
+    repeatedSequence += sequence;
   }
 
   _tm.mmClearHistory();
@@ -61,7 +59,9 @@ void TemporalMemoryAbstractTest::_feedTM(Sequence sequence, bool learn, int num)
     if (pattern.size() == 0)
       _tm.reset();
     else
-      _tm.compute(&pattern[0], learn);
+    {
+      _tm.compute(pattern.size(), &pattern[0], learn);
+    }
   }
 
 }

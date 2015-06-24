@@ -49,7 +49,10 @@ namespace nupic
   protected:
     string _mmName;
 
-    map<string, Trace<vector<UInt>>> _mmTraces;
+    map<string, Trace<vector<UInt>>> _mmTraces_UInt;
+    map<string, Trace<vector<string>>> _mmTraces_string;
+    map<string, Trace<vector<bool>>> _mmTraces_bool;
+
     map<string, vector<Cell>> _mmData;
 
     vector<string> sequenceLabel;
@@ -72,7 +75,7 @@ namespace nupic
     MonitorMixinBase();
     MonitorMixinBase(string& title);
 
-    virtual void compute(vector<UInt> activeColumns, bool learn);// , string sequenceLabel = "");
+    virtual void compute(UInt activeColumnsSize, UInt activeColumns[], bool learn);// , string sequenceLabel = "");
     virtual void reset();
 
     virtual void mmClearHistory();
@@ -80,7 +83,7 @@ namespace nupic
     virtual vector<Trace<vector<UInt>>> mmGetDefaultTraces(int verbosity = 1);
     virtual vector<MetricsVector> mmGetDefaultMetrics(int verbosity = 1);
 
-    virtual string mmPrettyPrintTraces(vector<Trace<vector<UInt>>>& traces, Trace<vector<UInt>>& breakOnResets);
+    virtual string mmPrettyPrintTraces(vector<Trace<vector<UInt>>>& traces, Trace<vector<bool>>& breakOnResets);
     virtual string mmPrettyPrintMetrics(vector<MetricsVector>& metrics);
 
   }; // MonitorMixinBase
@@ -104,7 +107,7 @@ namespace nupic
     Trace<vector<UInt>>& mmGetTraceNumSegments();
     Trace<vector<UInt>>& mmGetTraceNumSynapses();
     Trace<vector<UInt>>& mmGetTraceSequenceLabels();
-    Trace<vector<UInt>>& mmGetTraceResets();
+    Trace<vector<bool>>& mmGetTraceResets();
     Trace<vector<UInt>>& mmGetTracePredictedActiveCells();
     Trace<vector<UInt>>& mmGetTracePredictedInactiveCells();
     Trace<vector<UInt>>& mmGetTracePredictedActiveColumns();
@@ -129,7 +132,7 @@ namespace nupic
     // Overrides
     // ==============================
 
-    virtual void compute(UInt activeColumns[], bool learn);
+    virtual void compute(UInt activeColumnsSize, UInt activeColumns[], bool learn);
     virtual void reset();
 
     virtual vector<Trace<vector<UInt>>> mmGetDefaultTraces(int verbosity = 1);
