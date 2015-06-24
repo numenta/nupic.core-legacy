@@ -285,6 +285,9 @@ namespace nupic
 
     VectorFileSensor(BundleIO& bundle, Region* region);
 
+    VectorFileSensor(capnp::AnyPointer::Reader& proto, Region* region);
+
+
     virtual ~VectorFileSensor();
 
 

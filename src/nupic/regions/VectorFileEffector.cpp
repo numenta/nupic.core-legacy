@@ -63,6 +63,16 @@ VectorFileEffector::VectorFileEffector(BundleIO& bundle, Region* region) :
 {
 }
 
+VectorFileEffector::VectorFileEffector(
+    capnp::AnyPointer::Reader& proto, Region* region) :
+  RegionImpl(region),
+  dataIn_(NTA_BasicType_Real32),
+  filename_(""),
+  outFile_(nullptr)
+{
+  read(proto);
+}
+
 
 VectorFileEffector::~VectorFileEffector()
 {
