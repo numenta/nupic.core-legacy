@@ -544,7 +544,8 @@ namespace nupic
 
     auto implProto = proto.getRegionImpl();
     RegionImplFactory& factory = RegionImplFactory::getInstance();
-    impl_ = factory.deserializeRegionImpl(proto.getNodeType(), implProto, this);
+    impl_ = factory.deserializeRegionImpl(
+        proto.getNodeType().cStr(), implProto, this);
   }
 
   void
