@@ -518,9 +518,10 @@ namespace nupic
       dimensionsProto.set(i, dims_[i]);
     }
     auto phasesProto = proto.initPhases(phases_.size());
-    for (UInt i = 0; i < phases_.size(); ++i)
+    UInt i = 0;
+    for (auto elem : phases_)
     {
-      phasesProto.set(i, phases_[i]);
+      phasesProto.set(i++, elem);
     }
     proto.setNodeType(type_);
     auto implProto = proto.getRegionImpl();
