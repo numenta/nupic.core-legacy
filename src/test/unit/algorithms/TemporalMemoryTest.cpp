@@ -47,9 +47,9 @@ namespace nupic {
 
   void TemporalMemoryTest::RunTests()
   {
-//    TemporalMemoryExtensiveTest extensive;
-//    extensive.setUp();
-//    extensive.testB1();
+    //TemporalMemoryExtensiveTest extensive;
+    //extensive.setUp();
+    //extensive.testB1();
 
     setup(tm, 2048);
 
@@ -103,12 +103,13 @@ namespace nupic {
   {
     // Invalid columnDimensions
     vector<UInt> columnDim;
-    SHOULDFAIL(tm.initialize(columnDim, 32));
+    TemporalMemory tm1;
+    SHOULDFAIL(tm1.initialize(columnDim, 32));
 
     // Invalid cellsPerColumn
     columnDim.push_back(2048);
-    SHOULDFAIL(tm.initialize(columnDim, 0));
-    SHOULDFAIL(tm.initialize(columnDim, -10));
+    SHOULDFAIL(tm1.initialize(columnDim, 0));
+    SHOULDFAIL(tm1.initialize(columnDim, -10));
   }
 
   void TemporalMemoryTest::testActivateCorrectlyPredictiveCells()

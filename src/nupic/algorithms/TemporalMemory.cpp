@@ -177,6 +177,7 @@ void TemporalMemory::compute(UInt activeColumnsSize, UInt activeColumns[], bool 
   winnerCells = _winnerCells;
   activeSegments = _activeSegments;
   predictiveCells = _predictiveCells;
+  predictedColumns = _predictedColumns;
 }
 
 /*
@@ -203,13 +204,12 @@ TemporalMemory::computeFn(
   UInt activeColumns[],
   vector<Cell>& prevPredictiveCells,
   vector<Segment>& prevActiveSegments,
-  vector<Cell>& prevActiveCells,
-  vector<Cell>& prevWinnerCells,
+  vector<Cell> prevActiveCells,
+  vector<Cell> prevWinnerCells,
   Connections& _connections,
   bool learn)
 {
   vector<UInt> _activeColumns;
-  vector<UInt> _predictedColumns;
   vector<Cell> _predictiveCells;
   vector<Cell> _activeCells;
   vector<Cell> _winnerCells;
@@ -227,7 +227,7 @@ TemporalMemory::computeFn(
   tie(
     _activeCells,
     _winnerCells,
-    _predictedColumns) = activateCorrectlyPredictiveCells(
+    predictedColumns) = activateCorrectlyPredictiveCells(
       prevPredictiveCells,
       _activeColumns);
 
@@ -241,7 +241,7 @@ TemporalMemory::computeFn(
     _winnerCells,
     _learningSegments) = burstColumns(
     _activeColumns,
-    _predictedColumns,
+    predictedColumns,
     prevActiveCells,
     prevWinnerCells,
     _connections);
@@ -294,7 +294,7 @@ TemporalMemory::computeFn(
     winnerCells,
     activeSegments,
     predictiveCells,
-    _predictedColumns);
+    predictedColumns);
 }
 
 /*
@@ -1133,13 +1133,6 @@ void TemporalMemory::save(ostream& outStream) const
   }
   outStream << endl;
 
-  outStream << learningSegments.size() << " ";
-  for (Segment elem : learningSegments) {
-    outStream << elem.idx << " ";
-    outStream << elem.cell.idx << " ";
-  }
-  outStream << endl;
-
 //  connections.save(outStream);
 //  outStream << endl;
 
@@ -1333,14 +1326,6 @@ void TemporalMemory::load(istream& inStream)
   for (UInt i = 0; i < numActiveSegments; i++) {
     inStream >> activeSegments[i].idx;
     inStream >> activeSegments[i].cell.idx;
-  }
-
-  UInt numLearningSegments;
-  inStream >> numLearningSegments;
-  learningSegments.resize(numLearningSegments);
-  for (UInt i = 0; i < numLearningSegments; i++) {
-    inStream >> learningSegments[i].idx;
-    inStream >> learningSegments[i].cell.idx;
   }
 
 //  connections.load(inStream);

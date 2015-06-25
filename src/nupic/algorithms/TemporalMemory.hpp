@@ -148,8 +148,8 @@ namespace nupic {
           UInt activeColumns[],
           vector<Cell>& prevPredictiveCells,
           vector<Segment>& prevActiveSegments,
-          vector<Cell>& prevActiveCells,
-          vector<Cell>& prevWinnerCells,
+          vector<Cell> prevActiveCells,
+          vector<Cell> prevWinnerCells,
           Connections& connections,
           bool learn = true);
 
@@ -575,10 +575,10 @@ namespace nupic {
 
       public:
         vector<Cell> predictiveCells;
+        vector<UInt> predictedColumns;
         vector<Cell> activeCells;
         vector<Cell> winnerCells;
         vector<Segment> activeSegments;
-        vector<Segment> learningSegments;
         Connections connections;
       };
     } // end namespace temporal_memory

@@ -75,7 +75,7 @@ namespace nupic
     MonitorMixinBase();
     MonitorMixinBase(string& title);
 
-    virtual void compute(UInt activeColumnsSize, UInt activeColumns[], bool learn);// , string sequenceLabel = "");
+    virtual void compute(UInt activeColumnsSize, UInt activeColumns[], bool learn, string sequenceLabel = "");
     virtual void reset();
 
     virtual void mmClearHistory();
@@ -106,7 +106,7 @@ namespace nupic
     Trace<vector<UInt>>& mmGetTracePredictiveCells();
     Trace<vector<UInt>>& mmGetTraceNumSegments();
     Trace<vector<UInt>>& mmGetTraceNumSynapses();
-    Trace<vector<UInt>>& mmGetTraceSequenceLabels();
+    Trace<vector<string>>& mmGetTraceSequenceLabels();
     Trace<vector<bool>>& mmGetTraceResets();
     Trace<vector<UInt>>& mmGetTracePredictedActiveCells();
     Trace<vector<UInt>>& mmGetTracePredictedInactiveCells();
@@ -132,7 +132,7 @@ namespace nupic
     // Overrides
     // ==============================
 
-    virtual void compute(UInt activeColumnsSize, UInt activeColumns[], bool learn);
+    virtual void compute(UInt activeColumnsSize, UInt activeColumns[], bool learn, string sequenceLabel = "");
     virtual void reset();
 
     virtual vector<Trace<vector<UInt>>> mmGetDefaultTraces(int verbosity = 1);

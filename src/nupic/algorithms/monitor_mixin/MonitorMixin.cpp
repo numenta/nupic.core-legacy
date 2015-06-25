@@ -55,7 +55,7 @@ void MonitorMixinBase::reset()
   mmClearHistory();
 }
 
-void MonitorMixinBase::compute(UInt activeColumnsSize, UInt activeColumns[], bool learn)
+void MonitorMixinBase::compute(UInt activeColumnsSize, UInt activeColumns[], bool learn, string sequenceLabel)
 {
 }
 
@@ -226,10 +226,10 @@ Trace<vector<UInt>>& TemporalMemoryMonitorMixin::mmGetTraceNumSynapses()
   return _mmTraces_UInt.find("numSynapses")->second;
 }
 
-Trace<vector<UInt>>& TemporalMemoryMonitorMixin::mmGetTraceSequenceLabels()
+Trace<vector<string>>& TemporalMemoryMonitorMixin::mmGetTraceSequenceLabels()
 {
   //@return (Trace) Trace of sequence labels
-  return _mmTraces_UInt.find("sequenceLabels")->second;
+  return _mmTraces_string.find("sequenceLabels")->second;
 }
 
 Trace<vector<bool>>& TemporalMemoryMonitorMixin::mmGetTraceResets()
@@ -377,7 +377,7 @@ void TemporalMemoryMonitorMixin::_mmComputeTransitionTraces()
 // Overrides
 // ==============================
 
-void TemporalMemoryMonitorMixin::compute(UInt activeColumnsSize, UInt activeColumns[], bool learn)
+void TemporalMemoryMonitorMixin::compute(UInt activeColumnsSize, UInt activeColumns[], bool learn, string sequenceLabel)
 {
 //  _mmTraces["predictedCells"]._data.push_back(predictiveCells);
 
@@ -389,7 +389,7 @@ void TemporalMemoryMonitorMixin::compute(UInt activeColumnsSize, UInt activeColu
 //  _mmTraces["numSegments"]._data.push_back(connections_->numSegments());
 //  _mmTraces["numSynapses"]._data.push_back(connections_->numSynapses());
 
-//  _mmTraces["sequenceLabels"]._data.push_back(sequenceLabel);
+  _mmTraces_string["sequenceLabels"]._data.push_back({ sequenceLabel });
 
   _mmTraces_bool["resets"]._data.push_back({ _mmResetActive });
   _mmResetActive = false;
@@ -399,6 +399,7 @@ void TemporalMemoryMonitorMixin::compute(UInt activeColumnsSize, UInt activeColu
 
 void TemporalMemoryMonitorMixin::reset()
 {
+  TemporalMemory::reset();
   MonitorMixinBase::reset();
   _mmResetActive = true;
 }
@@ -425,7 +426,7 @@ vector<Trace<vector<UInt>>> TemporalMemoryMonitorMixin::mmGetDefaultTraces(int v
     traces.push_back(mmGetTraceNumSegments());
     traces.push_back(mmGetTraceNumSynapses());
   }
-  traces.push_back(mmGetTraceSequenceLabels());
+//  traces.push_back(mmGetTraceSequenceLabels());
 
   return traces;
 }
