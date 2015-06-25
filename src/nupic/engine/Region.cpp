@@ -523,7 +523,7 @@ namespace nupic
     {
       phasesProto.set(i++, elem);
     }
-    proto.setNodeType(type_);
+    proto.setNodeType(type_.c_str());
     auto implProto = proto.getRegionImpl();
     impl_->write(implProto);
   }
