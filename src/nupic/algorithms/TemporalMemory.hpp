@@ -147,8 +147,8 @@ namespace nupic {
           UInt activeColumns[],
           vector<Cell>& prevPredictiveCells,
           vector<Segment>& prevActiveSegments,
-          vector<Cell> prevActiveCells,
-          vector<Cell> prevWinnerCells,
+          vector<Cell>& prevActiveCells,
+          vector<Cell>& prevWinnerCells,
           Connections& connections,
           bool learn = true);
 

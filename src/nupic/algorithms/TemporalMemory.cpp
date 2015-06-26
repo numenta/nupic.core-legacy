@@ -161,6 +161,10 @@ void TemporalMemory::compute(UInt activeColumnsSize, UInt activeColumns[], bool 
   vector<Cell> _predictiveCells;
   vector<UInt> _predictedColumns;
 
+  // Setup previous active and winner cells lists
+  _activeCells = activeCells;
+  _winnerCells = winnerCells;
+
   tie(_activeCells, _winnerCells, _activeSegments,
     _predictiveCells, _predictedColumns)
     = computeFn(
@@ -168,8 +172,8 @@ void TemporalMemory::compute(UInt activeColumnsSize, UInt activeColumns[], bool 
       activeColumns,
       predictiveCells,
       activeSegments,
-      activeCells,
-      winnerCells,
+      _activeCells,
+      _winnerCells,
       connections,
       learn);
 
@@ -204,8 +208,8 @@ TemporalMemory::computeFn(
   UInt activeColumns[],
   vector<Cell>& prevPredictiveCells,
   vector<Segment>& prevActiveSegments,
-  vector<Cell> prevActiveCells,
-  vector<Cell> prevWinnerCells,
+  vector<Cell>& prevActiveCells,
+  vector<Cell>& prevWinnerCells,
   Connections& _connections,
   bool learn)
 {
