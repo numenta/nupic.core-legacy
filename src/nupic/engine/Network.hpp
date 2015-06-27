@@ -20,7 +20,7 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file 
+/** @file
  * Interface for the Network class
  */
 
@@ -61,7 +61,7 @@ namespace nupic
      *
      * Create an new Network and register it to NuPIC.
      *
-     * @note Creating a Network will auto-initialize NuPIC. 
+     * @note Creating a Network will auto-initialize NuPIC.
      */
     Network();
 
@@ -69,14 +69,14 @@ namespace nupic
      * Create a Network by loading previously saved bundle,
      * and register it to NuPIC.
      *
-     * @param path The path to the previously saved bundle file, currently only 
+     * @param path The path to the previously saved bundle file, currently only
      * support files with `.nta` extension.
      *
-     * @note Creating a Network will auto-initialize NuPIC. 
+     * @note Creating a Network will auto-initialize NuPIC.
      */
     Network(const std::string& path);
 
-    /** 
+    /**
      * Destructor.
      *
      * Destruct the network and unregister it from NuPIC:
@@ -90,10 +90,10 @@ namespace nupic
     ~Network();
 
     /**
-     * Initialize all elements of a network so that it can run. 
-     * 
-     * @note This can be called after the Network structure has been set and 
-     * before Network.run(). However, if you don't call it, Network.run() will 
+     * Initialize all elements of a network so that it can run.
+     *
+     * @note This can be called after the Network structure has been set and
+     * before Network.run(). However, if you don't call it, Network.run() will
      * call it for you. Also sets up various memory buffers etc. once the Network
      *  structure has been finalized.
      */
@@ -107,18 +107,18 @@ namespace nupic
      *
      * @{
      */
-    
+
     /**
      * Save the network to a network bundle (extension `.nta`).
-     * 
+     *
      * @param name
      *        Name of the bundle
      */
     void save(const std::string& name);
-    
+
     /**
      * @}
-     * 
+     *
      * @name Region and Link operations
      *
      * @{
@@ -126,24 +126,24 @@ namespace nupic
 
     /**
      * Create a new region in a network.
-     * 
+     *
      * @param name
      *        Name of the region, Must be unique in the network
      * @param nodeType
      *        Type of node in the region, e.g. "FDRNode"
      * @param nodeParams
      *        A JSON-encoded string specifying writable params
-     * 
+     *
      * @returns A pointer to the newly created Region
      */
     Region*
-    addRegion(const std::string& name, 
-              const std::string& nodeType, 
+    addRegion(const std::string& name,
+              const std::string& nodeType,
               const std::string& nodeParams);
 
     /**
      * Create a new region from saved state.
-     * 
+     *
      * @param name
      *        Name of the region, Must be unique in the network
      * @param nodeType
@@ -155,21 +155,21 @@ namespace nupic
      * @param label
      *        The label of the bundle
      *
-     * @todo @a label is the prefix of filename of the saved bundle, should this 
+     * @todo @a label is the prefix of filename of the saved bundle, should this
      * be documented?
-     * 
+     *
      * @returns A pointer to the newly created Region
      */
     Region*
-    addRegionFromBundle(const std::string& name, 
-                        const std::string& nodeType, 
-                        const Dimensions& dimensions, 
-                        const std::string& bundlePath, 
+    addRegionFromBundle(const std::string& name,
+                        const std::string& nodeType,
+                        const Dimensions& dimensions,
+                        const std::string& bundlePath,
                         const std::string& label);
 
     /**
      * Removes an existing region from the network.
-     * 
+     *
      * @param name
      *        Name of the Region
      */
@@ -178,7 +178,7 @@ namespace nupic
 
     /**
      * Create a link and add it to the network.
-     * 
+     *
      * @param srcName
      *        Name of the source region
      * @param destName
@@ -193,14 +193,14 @@ namespace nupic
      *        Name of the destination input
      */
     void
-    link(const std::string& srcName, const std::string& destName, 
-         const std::string& linkType, const std::string& linkParams, 
+    link(const std::string& srcName, const std::string& destName,
+         const std::string& linkType, const std::string& linkParams,
          const std::string& srcOutput="", const std::string& destInput="");
 
 
     /**
      * Removes a link.
-     * 
+     *
      * @param srcName
      *        Name of the source region
      * @param destName
@@ -211,8 +211,8 @@ namespace nupic
      *        Name of the destination input
      */
     void
-    removeLink(const std::string& srcName, const std::string& destName, 
-               const std::string& srcOutputName="", const std::string& destInputName=""); 
+    removeLink(const std::string& srcName, const std::string& destName,
+               const std::string& srcOutputName="", const std::string& destInputName="");
 
     /**
      * @}
@@ -224,15 +224,15 @@ namespace nupic
 
     /**
      * Get all regions.
-     * 
+     *
      * @returns A Collection of Region objects in the network
      */
     const Collection<Region*>&
     getRegions() const;
-  
+
     /**
      * Set phases for a region.
-     * 
+     *
      * @param name
      *        Name of the region
      * @param phases
@@ -240,13 +240,13 @@ namespace nupic
      */
     void
     setPhases(const std::string& name, std::set<UInt32>& phases);
-    
+
     /**
      * Get phases for a region.
-     * 
+     *
      * @param name
      *        Name of the region
-     * 
+     *
      * @returns Set of phases for the region
      */
     std::set<UInt32>
@@ -254,21 +254,21 @@ namespace nupic
 
     /**
      * Get minimum phase for regions in this network. If no regions, then min = 0.
-     * 
+     *
      * @returns Minimum phase
      */
     UInt32 getMinPhase() const;
 
     /**
      * Get maximum phase for regions in this network. If no regions, then max = 0.
-     * 
+     *
      * @returns Maximum phase
      */
     UInt32 getMaxPhase() const;
 
     /**
      * Set the minimum enabled phase for this network.
-     * 
+     *
      * @param minPhase Minimum enabled phase
      */
     void
@@ -276,28 +276,28 @@ namespace nupic
 
     /**
      * Set the maximum enabled phase for this network.
-     * 
+     *
      * @param minPhase Maximum enabled phase
      */
     void
     setMaxEnabledPhase(UInt32 minPhase);
-    
+
     /**
      * Get the minimum enabled phase for this network.
-     * 
+     *
      * @returns Minimum enabled phase for this network
      */
     UInt32
     getMinEnabledPhase() const;
-    
+
     /**
      * Get the maximum enabled phase for this network.
-     * 
+     *
      * @returns Maximum enabled phase for this network
      */
     UInt32
     getMaxEnabledPhase() const;
-    
+
     /**
      * @}
      *
@@ -307,11 +307,11 @@ namespace nupic
      */
 
     /**
-     * Run the network for the given number of iterations of compute for each 
-     * Region in the correct order. 
-     * 
+     * Run the network for the given number of iterations of compute for each
+     * Region in the correct order.
+     *
      * For each iteration, Region.compute() is called.
-     * 
+     *
      * @param n Number of iterations
      */
     void
@@ -321,22 +321,22 @@ namespace nupic
      * The type of run callback function.
      *
      * You can attach a callback function to a network, and the callback function
-     *  is called after every iteration of run(). 
-     *  
-     * To attach a callback, just get a reference to the callback 
+     *  is called after every iteration of run().
+     *
+     * To attach a callback, just get a reference to the callback
      * collection with getCallbacks() , and add a callback.
      */
     typedef void (*runCallbackFunction)(Network*, UInt64 iteration, void*);
 
     /**
-     * Type definition for a callback item, combines a @c runCallbackFunction and 
+     * Type definition for a callback item, combines a @c runCallbackFunction and
      * a `void*` pointer to the associated data.
      */
     typedef std::pair<runCallbackFunction, void*> callbackItem;
 
     /**
      * Get reference to callback Collection.
-     * 
+     *
      * @returns Reference to callback Collection
      */
     Collection<callbackItem>& getCallbacks();
@@ -397,12 +397,12 @@ namespace nupic
     void saveToBundle(const std::string& bundleName);
 
     // internal method using region pointer instead of name
-    void 
+    void
     setPhases_(Region *r, std::set<UInt32>& phases);
 
     // default phase assignment for a new region
     void setDefaultPhase_(Region* region);
-    
+
     // whenever we modify a network or change phase
     // information, we set enabled phases to min/max for
     // the network
@@ -413,14 +413,14 @@ namespace nupic
 
     UInt32 minEnabledPhase_;
     UInt32 maxEnabledPhase_;
-    
+
     // This is main data structure used to choreograph
     // network computation
     std::vector< std::set<Region*> > phaseInfo_;
-  
+
     // we invoke these callbacks at every iteration
     Collection<callbackItem> callbacks_;
-    
+
     //number of elapsed iterations
     UInt64 iteration_;
   };
