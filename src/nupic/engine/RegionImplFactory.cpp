@@ -102,9 +102,9 @@ namespace nupic
 
 
 #if defined(NTA_OS_WINDOWS)
-      const char * filename = "cpp_region.dll";
+      const char * filename = "py_region.dll";
 #else
-      const char * filename = "libcpp_region.so";
+      const char * filename = "libpy_region.so";
 #endif
 
       std::string libName = Path::join(rootDir_, "nupic", filename);
