@@ -1,6 +1,6 @@
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
+ * Copyright (C) 2013-2015, Numenta, Inc.  Unless you have an agreement
  * with Numenta, Inc., for a separate license for this software code, the
  * following terms and conditions apply:
  *
@@ -28,12 +28,16 @@
 #define NTA_NETWORK_HPP
 
 
+#include <iostream>
 #include <map>
+#include <set>
 #include <string>
 #include <vector>
-#include <set>
-#include <nupic/types/Types.hpp>
+
 #include <nupic/ntypes/Collection.hpp>
+#include <nupic/proto/NetworkProto.capnp.h>
+#include <nupic/proto/RegionProto.capnp.h>
+#include <nupic/types/Types.hpp>
 
 namespace nupic
 {
@@ -166,6 +170,20 @@ namespace nupic
                         const Dimensions& dimensions,
                         const std::string& bundlePath,
                         const std::string& label);
+
+    /**
+     * Create a new region from saved Cap'n Proto state.
+     *
+     * @param name
+     *        Name of the region, Must be unique in the network
+     * @param proto
+     *        The capnp proto reader
+     *
+     * @returns A pointer to the newly created Region
+     */
+    Region*
+    addRegionFromProto(const std::string& name,
+                        RegionProto::Reader& proto);
 
     /**
      * Removes an existing region from the network.
@@ -367,6 +385,12 @@ namespace nupic
     void
     resetProfiling();
 
+    // Capnp serialization methods
+    void write(std::ostream& stream) const;
+    void read(std::istream& stream);
+    void write(NetworkProto::Builder& proto) const;
+    void read(NetworkProto::Reader& proto);
+
     /**
      * @}
      */
@@ -374,12 +398,14 @@ namespace nupic
     /*
      * Adds user built region to list of regions
      */
-    static void registerPyRegion(const std::string module, const std::string className);
+    static void registerPyRegion(const std::string module,
+                                 const std::string className);
 
     /*
      * Adds a c++ region to the RegionImplFactory's packages
      */
-    static void registerCPPRegion(const std::string name, GenericRegisteredRegionImpl* wrapper);
+    static void registerCPPRegion(const std::string name,
+                                  GenericRegisteredRegionImpl* wrapper);
 
   private:
 

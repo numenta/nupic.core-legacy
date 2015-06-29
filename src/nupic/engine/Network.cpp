@@ -1,6 +1,6 @@
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
+ * Copyright (C) 2013-2015, Numenta, Inc.  Unless you have an agreement
  * with Numenta, Inc., for a separate license for this software code, the
  * following terms and conditions apply:
  *
@@ -28,11 +28,18 @@ Implementation of the Network class
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
+
+#include <capnp/message.h>
+#include <capnp/serialize.h>
+#include <kj/std/iostream.h>
+
 #include <nupic/engine/Network.hpp>
 #include <nupic/engine/Region.hpp>
 #include <nupic/engine/Spec.hpp>
 #include <nupic/engine/Link.hpp>
 #include <nupic/engine/Input.hpp>
+#include <nupic/proto/NetworkProto.capnp.h>
+#include <nupic/proto/RegionProto.capnp.h>
 #include <nupic/utils/Log.hpp>
 #include <nupic/utils/StringUtils.hpp>
 #include <nupic/engine/NuPIC.hpp> // for register/unregister
@@ -158,6 +165,28 @@ Region* Network::addRegionFromBundle(const std::string& name,
   // to safely call addRegionFromBundle directly.
   setDefaultPhase_(r);
   return r;
+}
+
+
+Region* Network::addRegionFromProto(const std::string& name,
+                                    RegionProto::Reader& proto)
+{
+  if (regions_.contains(name))
+  {
+    NTA_THROW << "Cannot add region with name '" << name
+              << "' that is already in used.";
+  }
+
+  auto region = new Region(name, proto, this);
+  regions_.add(name, region);
+  initialized_ = false;
+
+  // In the normal use case (deserializing a network)
+  // this default phase will immediately be overridden with the
+  // saved phases. Having it here makes it possible for user code
+  // to safely call addRegionFromProto directly.
+  setDefaultPhase_(region);
+  return region;
 }
 
 
@@ -963,6 +992,116 @@ void Network::loadFromBundle(const std::string& name)
 
 }
 
+void Network::write(std::ostream& stream) const
+{
+  capnp::MallocMessageBuilder message;
+  NetworkProto::Builder proto = message.initRoot<NetworkProto>();
+  write(proto);
+
+  kj::std::StdOutputStream out(stream);
+  capnp::writeMessage(out, message);
+}
+
+void Network::read(std::istream& stream)
+{
+  kj::std::StdInputStream in(stream);
+
+  capnp::InputStreamMessageReader message(in);
+  NetworkProto::Reader proto = message.getRoot<NetworkProto>();
+  read(proto);
+}
+
+void Network::write(NetworkProto::Builder& proto) const
+{
+  // Aggregate links from all of the regions
+  std::vector<Link*> links;
+
+  auto entriesProto = proto.initRegions().initEntries(regions_.getCount());
+  for (UInt i = 0; i < regions_.getCount(); i++)
+  {
+    auto entry = entriesProto[i];
+    auto regionPair = regions_.getByIndex(i);
+    auto regionProto = entry.initValue();
+    entry.setKey(regionPair.first);
+    regionPair.second->write(regionProto);
+
+    // Aggregate this regions links in a vector to store at end
+    for (auto inputPair : regionPair.second->getInputs())
+    {
+      auto& newLinks = inputPair.second->getLinks();
+      links.insert(links.end(), newLinks.begin(), newLinks.end());
+    }
+  }
+
+  // Store the aggregated links
+  auto linksListProto = proto.initLinks(links.size());
+  for (UInt i = 0; i < links.size(); ++i)
+  {
+    auto linkProto = linksListProto[i];
+    links[i]->write(linkProto);
+  }
+}
+
+void Network::read(NetworkProto::Reader& proto)
+{
+  // Clear any previous regions
+  while (regions_.getCount() > 0)
+  {
+    auto pair = regions_.getByIndex(0);
+    delete pair.second;
+    regions_.remove(pair.first);
+  }
+
+  // Add regions
+  for (auto entry : proto.getRegions().getEntries())
+  {
+    auto regionProto = entry.getValue();
+    auto region = addRegionFromProto(entry.getKey(), regionProto);
+    // Initialize the phases for the region
+    std::set<UInt32> phases;
+    for (auto phase : regionProto.getPhases())
+    {
+      phases.insert(phase);
+    }
+    setPhases_(region, phases);
+  }
+
+  // Add links. Note that we can't just pass the capnp struct to Link.read
+  // because the linked input and output need references to the new link.
+  for (auto linkProto : proto.getLinks())
+  {
+    if (!regions_.contains(linkProto.getSrcRegion()))
+    {
+      NTA_THROW << "Link references unknown region: "
+                << linkProto.getSrcRegion().cStr();
+    }
+    Region* srcRegion = regions_.getByName(linkProto.getSrcRegion());
+    Output* srcOutput = srcRegion->getOutput(linkProto.getSrcOutput());
+    if (srcOutput == nullptr)
+    {
+      NTA_THROW << "Link references unknown source output: "
+                << linkProto.getSrcOutput().cStr();
+    }
+
+    if (!regions_.contains(linkProto.getDestRegion()))
+    {
+      NTA_THROW << "Link references unknown region: "
+                << linkProto.getDestRegion().cStr();
+    }
+    Region* destRegion = regions_.getByName(linkProto.getDestRegion());
+    Input* destInput = destRegion->getInput(linkProto.getDestInput());
+    if (destInput == nullptr)
+    {
+      NTA_THROW << "Link references unknown destination input: "
+                << linkProto.getDestInput().cStr();
+    }
+
+    // Actually create the link
+    destInput->addLink(linkProto.getType(), linkProto.getParams(), srcOutput);
+  }
+
+  initialized_ = false;
+}
 
 void Network::enableProfiling()
 {
