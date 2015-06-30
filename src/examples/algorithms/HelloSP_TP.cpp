@@ -69,6 +69,7 @@ const UInt EPOCHS = pow(10, 4); // number of iterations (calls to SP/TP compute(
     generate(input.begin(), input.end(), RandomNumber01);
     fill(outSP.begin(), outSP.end(), 0);
     sp.compute(input.data(), true, outSP.data());
+    sp.stripUnlearnedColumns(outSP.data())
 
     for (UInt i = 0; i < DIM; i++) {
       rIn[i] = (Real)(outSP[i]);
