@@ -541,7 +541,7 @@ namespace nupic {
                                           { _checkSynapseConsistency = val;}
 
         void setMaxSegmentsPerCell(int maxSegs) {
-          if (maxSegs != -1) {
+          if (maxSegs != 0) {
             NTA_CHECK(maxSegs > 0);
             NTA_CHECK(_globalDecay == 0.0);
             NTA_CHECK(_maxAge == 0);
@@ -550,7 +550,7 @@ namespace nupic {
         }
 
         void setMaxSynapsesPerCell(int maxSyns) {
-          if (maxSyns != -1) {
+          if (maxSyns != 0) {
             NTA_CHECK(maxSyns > 0);
             NTA_CHECK(_globalDecay == 0.0);
             NTA_CHECK(_maxAge == 0);
