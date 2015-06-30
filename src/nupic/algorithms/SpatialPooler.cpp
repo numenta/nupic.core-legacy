@@ -610,7 +610,7 @@ void SpatialPooler::initialize(vector<UInt> inputDimensions,
 }
 
 void SpatialPooler::compute(UInt inputArray[], bool learn,
-                            UInt activeArray[], bool stripNeverLearned)
+                            UInt activeArray[])
 {
   updateBookeepingVars_(learn);
   calculateOverlap_(inputArray, overlaps_);
@@ -634,14 +634,7 @@ void SpatialPooler::compute(UInt inputArray[], bool learn,
       updateInhibitionRadius_();
       updateMinDutyCycles_();
     }
-  } else if (stripNeverLearned) {
-    stripUnlearnedColumns(activeArray);
   }
-}
-
-void SpatialPooler::compute(UInt inputArray[], bool learn,
-                            UInt activeArray[]) {
-  compute(inputArray, learn, activeArray, true);
 }
 
 void SpatialPooler::stripUnlearnedColumns(UInt activeArray[]) const
