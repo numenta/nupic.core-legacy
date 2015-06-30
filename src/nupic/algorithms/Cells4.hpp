@@ -304,8 +304,8 @@ namespace nupic {
         Real _avgLearnedSeqLength;
         UInt _maxAge;
         UInt _verbosity;
-        Int  _maxSegmentsPerCell;
-        Int  _maxSynapsesPerSegment;
+        UInt  _maxSegmentsPerCell;
+        UInt  _maxSynapsesPerSegment;
         bool _checkSynapseConsistency;    // If true, will perform time
                                           // consuming invariance checks.
 
@@ -523,8 +523,8 @@ namespace nupic {
         UInt getMaxSeqLength() const        { return _maxSeqLength;}
         Real getAvgLearnedSeqLength() const { return _avgLearnedSeqLength;}
         UInt getNLrnIterations() const      { return _nLrnIterations;}
-        Int  getmaxSegmentsPerCell() const  { return _maxSegmentsPerCell;}
-        Int  getMaxSynapsesPerCell() const  { return _maxSynapsesPerSegment;}
+        UInt  getmaxSegmentsPerCell() const { return _maxSegmentsPerCell;}
+        UInt  getMaxSynapsesPerCell() const { return _maxSynapsesPerSegment;}
         bool getCheckSynapseConsistency()   { return _checkSynapseConsistency;}
         bool isFixedSized()                 { return _maxSegmentsPerCell == 0 && _maxSynapsesPerSegment == 0; }
 
