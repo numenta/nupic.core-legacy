@@ -267,27 +267,12 @@ namespace nupic {
                 boosting on even when learning is off.
 
           @param activeVector An array representing the winning columns after
-                inhinition. The size of the array is equal to the number of
+                inhibition. The size of the array is equal to the number of
                 columns (also returned by the method getNumColumns). This array
                 will be populated with 1's at the indices of the active columns,
                 and 0's everywhere else. In the case where the output is
                 multi-dimensional, activeVector represents a flattened array
                 of outputs.
-
-          @param stripNeverLearned A boolean value indicating when to strip
-              columns from the predictions if they have never learned. The
-              default behavior is to strip unlearned columns but this should be
-              disabled when using a random, unlearned spatial pooler. NOTE:
-              if you rely on this behavior then you should additionally call
-              the stripNeverLearned method directly on the activeVector output
-              as we will be changing the default to false and then removing this
-              parameter entirely in the near future.
-           */
-          virtual void compute(UInt inputVector[], bool learn,
-                               UInt activeVector[], bool stripNeverLearned);
-
-          /**
-           Same as above but with stripUnlearnedColumns set to true.
            */
           virtual void compute(UInt inputVector[], bool learn,
                                UInt activeVector[]);
@@ -298,8 +283,9 @@ namespace nupic {
            cannot represent learned pattern and are therefore meaningless if
            only inference is required.
 
-           @param activeArray  An int array containing the indices of the
-               active columns.
+           @param activeArray  An array of 1's and 0's representing winning
+                 columns calculated by the 'compute' method after disabling
+                 any columns that are not learned.
           */
           void stripUnlearnedColumns(UInt activeArray[]) const;
 
