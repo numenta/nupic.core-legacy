@@ -552,7 +552,7 @@ namespace nupic {
           _maxSegmentsPerCell = maxSegs;
         }
 
-        void setMaxSynapsesPerCell(UInt maxSyns) {
+        void setMaxSynapsesPerSegment(UInt maxSyns) {
           // fixed-sized CLA
           if (maxSyns > 0) {
             _globalDecay = 0.0;
