@@ -119,6 +119,7 @@ namespace nupic
     network_(network)
   {
     read(proto);
+    createInputsAndOutputs_();
   }
 
   Network * Region::getNetwork()
@@ -544,6 +545,7 @@ namespace nupic
 
     auto implProto = proto.getRegionImpl();
     RegionImplFactory& factory = RegionImplFactory::getInstance();
+    spec_ = factory.getSpec(type_);
     impl_ = factory.deserializeRegionImpl(
         proto.getNodeType().cStr(), implProto, this);
   }
