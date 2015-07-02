@@ -1022,7 +1022,7 @@ void Network::write(NetworkProto::Builder& proto) const
     auto entry = entriesProto[i];
     auto regionPair = regions_.getByIndex(i);
     auto regionProto = entry.initValue();
-    entry.setKey(regionPair.first);
+    entry.setKey(regionPair.first.c_str());
     regionPair.second->write(regionProto);
 
     // Aggregate this regions links in a vector to store at end
@@ -1056,7 +1056,7 @@ void Network::read(NetworkProto::Reader& proto)
   for (auto entry : proto.getRegions().getEntries())
   {
     auto regionProto = entry.getValue();
-    auto region = addRegionFromProto(entry.getKey(), regionProto);
+    auto region = addRegionFromProto(entry.getKey().cStr(), regionProto);
     // Initialize the phases for the region
     std::set<UInt32> phases;
     for (auto phase : regionProto.getPhases())
@@ -1070,26 +1070,26 @@ void Network::read(NetworkProto::Reader& proto)
   // because the linked input and output need references to the new link.
   for (auto linkProto : proto.getLinks())
   {
-    if (!regions_.contains(linkProto.getSrcRegion()))
+    if (!regions_.contains(linkProto.getSrcRegion().cStr()))
     {
       NTA_THROW << "Link references unknown region: "
                 << linkProto.getSrcRegion().cStr();
     }
-    Region* srcRegion = regions_.getByName(linkProto.getSrcRegion());
-    Output* srcOutput = srcRegion->getOutput(linkProto.getSrcOutput());
+    Region* srcRegion = regions_.getByName(linkProto.getSrcRegion().cStr());
+    Output* srcOutput = srcRegion->getOutput(linkProto.getSrcOutput().cStr());
     if (srcOutput == nullptr)
     {
       NTA_THROW << "Link references unknown source output: "
                 << linkProto.getSrcOutput().cStr();
     }
 
-    if (!regions_.contains(linkProto.getDestRegion()))
+    if (!regions_.contains(linkProto.getDestRegion().cStr()))
     {
       NTA_THROW << "Link references unknown region: "
                 << linkProto.getDestRegion().cStr();
     }
-    Region* destRegion = regions_.getByName(linkProto.getDestRegion());
-    Input* destInput = destRegion->getInput(linkProto.getDestInput());
+    Region* destRegion = regions_.getByName(linkProto.getDestRegion().cStr());
+    Input* destInput = destRegion->getInput(linkProto.getDestInput().cStr());
     if (destInput == nullptr)
     {
       NTA_THROW << "Link references unknown destination input: "
@@ -1097,7 +1097,8 @@ void Network::read(NetworkProto::Reader& proto)
     }
 
     // Actually create the link
-    destInput->addLink(linkProto.getType(), linkProto.getParams(), srcOutput);
+    destInput->addLink(
+        linkProto.getType().cStr(), linkProto.getParams().cStr(), srcOutput);
   }
 
   initialized_ = false;
