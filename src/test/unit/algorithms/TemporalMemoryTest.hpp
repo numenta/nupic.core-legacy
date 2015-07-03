@@ -24,8 +24,6 @@
   * Definitions for TemporalMemoryTest
   */
 
-  //----------------------------------------------------------------------
-
 #ifndef NTA_TEMPORAL_MEMORY_TEST
 #define NTA_TEMPORAL_MEMORY_TEST
 
@@ -78,11 +76,14 @@ namespace nupic {
     void testSaveLoad();
     void testWrite();
 
-    bool check_vector_eq(UInt arr[], vector<UInt> vec);
-    bool check_vector_eq(Real arr[], vector<Real> vec);
+    bool check_set_eq(set<UInt>& vec1, set<UInt>& vec2);
+    bool check_set_eq(set<Cell>& vec1, set<Cell>& vec2);
+
+    bool check_vector_eq(UInt arr[], vector<UInt>& vec);
+    bool check_vector_eq(Real arr[], vector<Real>& vec);
     bool check_vector_eq(UInt arr1[], UInt arr2[], UInt n);
     bool check_vector_eq(Real arr1[], Real arr2[], UInt n);
-    bool check_vector_eq(vector<UInt> vec1, vector<UInt> vec2);
+    bool check_vector_eq(vector<UInt>& vec1, vector<UInt>& vec2);
     bool check_vector_eq(vector<Cell>& vec1, vector<Cell>& vec2);
     bool check_vector_eq(vector<Segment>& vec1, vector<Segment>& vec2);
     bool check_vector_eq(vector<Segment*>& vec1, vector<Segment>& vec2);
@@ -91,9 +92,10 @@ namespace nupic {
 
     void print_vec(UInt arr[], UInt n);
     void print_vec(Real arr[], UInt n);
-    void print_vec(vector<UInt> vec);
-    void print_vec(vector<Real> vec);
+    void print_vec(vector<UInt>& vec);
+    void print_vec(vector<Real>& vec);
 
   }; // end class TemporalMemoryTest
 } // end namespace nupic
 #endif // NTA_TEMPORAL_MEMORY_TEST
+

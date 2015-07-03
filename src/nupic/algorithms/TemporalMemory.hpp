@@ -31,7 +31,6 @@
 #include <nupic/types/Types.hpp>
 #include <nupic/utils/Random.hpp>
 #include <nupic/algorithms/Connections.hpp>
-
 #include <nupic/proto/TemporalMemoryProto.capnp.h>
 
 using namespace std;
@@ -143,13 +142,13 @@ namespace nupic {
          *  `predictiveCells`   (set),
          *  'predictedColumns'  (set)
          */
-        tuple<vector<Cell>, vector<Cell>, vector<Segment>, vector<Cell>, vector<UInt>> computeFn(
+        tuple<set<Cell>, set<Cell>, vector<Segment>, set<Cell>, set<UInt>> computeFn(
           UInt activeColumnsSize,
           UInt activeColumns[],
-          vector<Cell>& prevPredictiveCells,
+          set<Cell>& prevPredictiveCells,
           vector<Segment>& prevActiveSegments,
-          vector<Cell> prevActiveCells,
-          vector<Cell> prevWinnerCells,
+          set<Cell>& prevActiveCells,
+          set<Cell>& prevWinnerCells,
           Connections& connections,
           bool learn = true);
 
@@ -176,10 +175,10 @@ namespace nupic {
          *  `winnerCells`      (set),
          *  `predictedColumns` (set)
          */
-        virtual tuple<vector<Cell>, vector<Cell>, vector<UInt>>
+        virtual tuple<set<Cell>, set<Cell>, set<UInt>>
           activateCorrectlyPredictiveCells(
-            vector<Cell>& prevPredictiveCells,
-            vector<UInt>& activeColumns);
+            set<Cell>& prevPredictiveCells,
+            set<UInt>& activeColumns);
 
         /**
          * Phase 2 : Burst unpredicted columns.
@@ -206,11 +205,11 @@ namespace nupic {
          *  `winnerCells`      (set),
          *  `learningSegments` (set)
          */
-        virtual tuple<vector<Cell>, vector<Cell>, vector<Segment>> burstColumns(
-          vector<UInt>& activeColumns,
-          vector<UInt>& predictedColumns,
-          vector<Cell>& prevActiveCells,
-          vector<Cell>& prevWinnerCells,
+        virtual tuple<set<Cell>, set<Cell>, vector<Segment>> burstColumns(
+          set<UInt>& activeColumns,
+          set<UInt>& predictedColumns,
+          set<Cell>& prevActiveCells,
+          set<Cell>& prevWinnerCells,
           Connections& connections);
 
         /**
@@ -236,9 +235,9 @@ namespace nupic {
         virtual void learnOnSegments(
           vector<Segment>& prevActiveSegments,
           vector<Segment>& learningSegments,
-          vector<Cell>& prevActiveCells,
-          vector<Cell>& winnerCells,
-          vector<Cell>& prevWinnerCells,
+          set<Cell>& prevActiveCells,
+          set<Cell>& winnerCells,
+          set<Cell>& prevWinnerCells,
           Connections& connections);
 
         /**
@@ -259,8 +258,8 @@ namespace nupic {
          *   `activeSegments`  (set),
          *   `predictiveCells` (set)
          */
-        virtual tuple<vector<Segment>, vector<Cell>> computePredictiveCells(
-          vector<Cell>& activeCells,
+        virtual tuple<vector<Segment>, set<Cell>> computePredictiveCells(
+          set<Cell>& activeCells,
           Connections& connections);
 
 
@@ -285,7 +284,7 @@ namespace nupic {
          */
         tuple<Cell*, Segment*> bestMatchingCell(
           vector<Cell>& cells,
-          vector<Cell>& activeCells,
+          set<Cell>& activeCells,
           Connections& connections);
 
         /**
@@ -302,7 +301,7 @@ namespace nupic {
          */
         tuple<Segment*, Int> bestMatchingSegment(
           Cell& cell,
-          vector<Cell>& activeCells,
+          set<Cell>& activeCells,
           Connections& connections);
 
         /**
@@ -330,7 +329,7 @@ namespace nupic {
          */
         vector<Synapse> activeSynapsesForSegment(
           Segment& segment,
-          vector<Cell>& activeCells,
+          set<Cell>& activeCells,
           Connections& connections);
 
         /**
@@ -358,10 +357,10 @@ namespace nupic {
          *
          *	   @return (set) Indices of cells picked
          */
-        vector<Cell> pickCellsToLearnOn(
+        set<Cell> pickCellsToLearnOn(
           Int n,
           Segment& segment,
-          vector<Cell>& winnerCells,
+          set<Cell>& winnerCells,
           Connections& connections);
 
         /**
@@ -403,82 +402,82 @@ namespace nupic {
          *
          * @return (dict) Mapping from columns to their cells in `cells`
          */
-        map<Int, vector<Cell>> mapCellsToColumns(vector<Cell>& cells);
+        map<Int, set<Cell>> mapCellsToColumns(set<Cell>& cells);
 
         /**
-         Returns the dimensions of the columns in the region.
-
-         @returns Integer number of column dimension.
-        */
+         * Returns the dimensions of the columns in the region.
+         *
+         * @returns Integer number of column dimension.
+         */
         vector<UInt> getColumnDimensions() const;
 
         /**
-         Returns the total number of columns.
-
-         @returns Integer number of column numbers.
-        */
+         * Returns the total number of columns.
+         *
+         * @returns Integer number of column numbers.
+         */
         Int getNumColumns() const;
 
         /**
-         Returns the number of cells per column.
-
-         @returns Integer number of cells per column.
-        */
+         * Returns the number of cells per column.
+         *
+         * @returns Integer number of cells per column.
+         */
         Int getCellsPerColumn() const;
 
         /**
-         Returns the activation threshold.
-
-         @returns Integer number of the activation threshold.
-        */
+         * Returns the activation threshold.
+         *
+         * @returns Integer number of the activation threshold.
+         */
         Int getActivationThreshold() const;
         void setActivationThreshold(Int);
 
         /**
-         Returns the initial permanence.
-
-         @returns Initial permanence.
-        */
+         * Returns the initial permanence.
+         *
+         * @returns Initial permanence.
+         */
         Permanence getInitialPermanence() const;
         void setInitialPermanence(Permanence);
 
         /**
-         Returns the connected permanance.
-
-         @returns Returns the connected permanance.
-        */
+         * Returns the connected permanance.
+         *
+         * @returns Returns the connected permanance.
+         */
         Permanence getConnectedPermanence() const;
         void setConnectedPermanence(Permanence);
 
         /**
-         Returns the minimum threshold.
-
-         @returns Integer number of minimum threshold.
-        */
+         * Returns the minimum threshold.
+         *
+         * @returns Integer number of minimum threshold.
+         */
         Int getMinThreshold() const;
         void setMinThreshold(Int);
 
         /**
-         Returns the maximum new synapse count.
-
-         @returns Integer number of maximum new synapse count.
-        */
+         * Returns the maximum new synapse count.
+         *
+         * @returns Integer number of maximum new synapse count.
+         */
         Int getMaxNewSynapseCount() const;
         void setMaxNewSynapseCount(Int);
 
         /**
-         Returns the permanence increment.
-
-         @returns Returns the Permanence increment.
-        */
+         * Returns the permanence increment.
+         *
+         * @returns Returns the Permanence increment.
+         */
         Permanence getPermanenceIncrement() const;
         void setPermanenceIncrement(Permanence);
 
         /**
-         Returns the permanence decrement.
-
-         @returns Returns the Permanence decrement.
-        */
+         * Returns the permanence decrement.
+         *
+         * @returns Returns the Permanence decrement.
+         */
         Permanence getPermanenceDecrement() const;
         void setPermanenceDecrement(Permanence);
 
@@ -511,34 +510,34 @@ namespace nupic {
         bool _validatePermanence(Real permanence);
 
         /**
-        Save (serialize) the current state of the spatial pooler to the
-        specified file.
-
-        @param fd A valid file descriptor.
-        */
+         * Save (serialize) the current state of the spatial pooler to the
+         * specified file.
+         *
+         * @param fd A valid file descriptor.
+         */
         virtual void save(ostream& outStream) const;
 
         virtual void write(ostream& stream) const;
         virtual void write(TemporalMemoryProto::Builder& proto) const;
 
         /**
-        Load (deserialize) and initialize the spatial pooler from the
-        specified input stream.
-
-        @param inStream A valid istream.
-        */
+         * Load (deserialize) and initialize the spatial pooler from the
+         * specified input stream.
+         *
+         * @param inStream A valid istream.
+         */
         virtual void load(istream& inStream);
 
         virtual void read(istream& stream);
         virtual void read(TemporalMemoryProto::Reader& proto);
 
         /**
-        Returns the number of bytes that a save operation would result in.
-        Note: this method is currently somewhat inefficient as it just does
-        a full save into an ostream and counts the resulting size.
-
-        @returns Integer number of bytes
-        */
+         * Returns the number of bytes that a save operation would result in.
+         * Note: this method is currently somewhat inefficient as it just does
+         * a full save into an ostream and counts the resulting size.
+         *
+         * @returns Integer number of bytes
+         */
         virtual UInt persistentSize() const;
 
         //----------------------------------------------------------------------
@@ -574,11 +573,10 @@ namespace nupic {
         Random _rng;
 
       public:
-        vector<Cell> predictiveCells;
-        vector<UInt> predictedColumns;
-        vector<Cell> activeCells;
-        vector<Cell> winnerCells;
+        set<Cell> activeCells;
+        set<Cell> winnerCells;
         vector<Segment> activeSegments;
+        vector<Cell> predictiveCells;
         Connections connections;
       };
     } // end namespace temporal_memory
