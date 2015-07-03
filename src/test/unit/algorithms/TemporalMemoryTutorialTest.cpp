@@ -209,30 +209,24 @@ void TemporalMemoryTutorialTest::setUp()
     "{1}\n"
     "======================================================\n"
     ).format(self.id(), self.shortDescription());
-  VERBOSITY = 1;
-  DEFAULT_TM_PARAMS = {
-    "columnDimensions": [6],
-    "cellsPerColumn" : 4,
-    "initialPermanence" : 0.3,
-    "connectedPermanence" : 0.5,
-    "minThreshold" : 1,
-    "maxNewSynapseCount" : 6,
-    "permanenceIncrement" : 0.1,
-    "permanenceDecrement" : 0.05,
-    "activationThreshold" : 1
-  };
-  PATTERN_MACHINE = ConsecutivePatternMachine(6, 1);
 */
+  _verbosity = 1;
+  _tm.initialize({ 6 }, 4, 1, 0.3, 0.5, 1, 6, 0.1, 0.05, -1);
+
+  patternMachine = ConsecutivePatternMachine();
+  patternMachine.initialize(6, vector<UInt>{ 1 }, 100, -1);
+  _sequenceMachine = SequenceMachine(patternMachine, -1);
 }
 
 
 void TemporalMemoryTutorialTest::init()
 {
-  TemporalMemoryAbstractTest::init();
+  _tm.initialize({ 6 }, 4, 1, 0.3, 0.5, 1, 6, 0.1, 0.05, -1);
 
-  cout << "Initialized new TM with parameters:";
+//  TemporalMemoryAbstractTest::init();
+//  cout << "Initialized new TM with parameters:";
 //  cout << pprint.pformat(_computeTMParams(kwargs.get("overrides")));
-  cout << endl;
+//  cout << endl;
 }
 
 void TemporalMemoryTutorialTest::_feedTM(Sequence& sequence, bool learn, int num)

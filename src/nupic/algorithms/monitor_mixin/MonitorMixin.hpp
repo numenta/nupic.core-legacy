@@ -132,7 +132,7 @@ namespace nupic
     // Overrides
     // ==============================
 
-    virtual void compute(UInt activeColumnsSize, UInt activeColumns[], bool learn, string sequenceLabel = "");
+    virtual void compute(vector<UInt>& activeColumns, bool learn, string sequenceLabel = "");
     virtual void reset();
 
     virtual vector<Trace<vector<UInt>>> mmGetDefaultTraces(int verbosity = 1);

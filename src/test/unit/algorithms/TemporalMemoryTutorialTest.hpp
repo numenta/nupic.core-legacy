@@ -46,6 +46,7 @@ namespace nupic {
 
   class TemporalMemoryTutorialTest : public TemporalMemoryAbstractTest
   {
+  public:
     //VERBOSITY = 1
     //DEFAULT_TM_PARAMS = {
     //  "columnDimensions": [6],
@@ -59,7 +60,7 @@ namespace nupic {
     //  "activationThreshold": 1
     //}
     //PATTERN_MACHINE = ConsecutivePatternMachine(6, 1)
-
+    ConsecutivePatternMachine patternMachine;
 
     void testFirstOrder();
     void testHighOrder();

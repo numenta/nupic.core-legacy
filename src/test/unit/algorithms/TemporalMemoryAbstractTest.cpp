@@ -60,7 +60,7 @@ void TemporalMemoryAbstractTest::_feedTM(Sequence sequence, bool learn, int num)
       _tm.reset();
     else
     {
-      _tm.compute(pattern.size(), &pattern[0], learn);
+      _tm.compute(pattern, learn);
     }
   }
 

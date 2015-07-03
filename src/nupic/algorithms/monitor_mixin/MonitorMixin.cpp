@@ -377,21 +377,21 @@ void TemporalMemoryMonitorMixin::_mmComputeTransitionTraces()
 // Overrides
 // ==============================
 
-void TemporalMemoryMonitorMixin::compute(UInt activeColumnsSize, UInt activeColumns[], bool learn, string sequenceLabel)
+void TemporalMemoryMonitorMixin::compute(vector<UInt>& activeColumns, bool learn, string sequenceLabel)
 {
-//  _mmTraces["predictedCells"]._data.push_back(predictiveCells);
+//  _mmTraces_UInt["predictedCells"]._data.push_back(TemporalMemory::predictiveCells);
 
-  TemporalMemory::compute(activeColumnsSize, activeColumns, learn);
+  TemporalMemory::compute(activeColumns.size(), &activeColumns[0], learn);
 
-//  _mmTraces["predictiveCells"]._data.push_back(predictiveCells);
-//  _mmTraces["activeColumns"]._data.push_back(activeColumns);
+//  _mmTraces_UInt["predictiveCells"]._data.push_back(TemporalMemory::predictiveCells);
+//  _mmTraces_UInt["activeColumns"]._data.push_back(activeColumns);
 
-//  _mmTraces["numSegments"]._data.push_back(connections_->numSegments());
-//  _mmTraces["numSynapses"]._data.push_back(connections_->numSynapses());
+//  _mmTraces_UInt["numSegments"]._data.push_back(connections.numSegments());
+//  _mmTraces_UInt["numSynapses"]._data.push_back(connections.numSynapses());
 
-  _mmTraces_string["sequenceLabels"]._data.push_back({ sequenceLabel });
+//  _mmTraces_string["sequenceLabels"]._data.push_back({ sequenceLabel });
 
-  _mmTraces_bool["resets"]._data.push_back({ _mmResetActive });
+//  _mmTraces_bool["resets"]._data.push_back({ _mmResetActive });
   _mmResetActive = false;
 
   _mmTransitionTracesStale = true;
@@ -400,7 +400,7 @@ void TemporalMemoryMonitorMixin::compute(UInt activeColumnsSize, UInt activeColu
 void TemporalMemoryMonitorMixin::reset()
 {
   TemporalMemory::reset();
-  MonitorMixinBase::reset();
+  //MonitorMixinBase::reset();
   _mmResetActive = true;
 }
 
