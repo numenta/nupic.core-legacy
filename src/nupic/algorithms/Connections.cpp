@@ -80,6 +80,8 @@ Synapse Connections::createSynapse(const Segment& segment,
                                    Permanence permanence)
 {
   vector<SynapseData>& synapses = cells_[segment.cell.idx].segments[segment.idx].synapses;
+  // TODO: Allow specifying the max number of synapses per segment
+  // in the constructor (https://github.com/numenta/nupic.core/issues/250)
   if (synapses.size() == MAX_SYNAPSES_PER_SEGMENT)
   {
     NTA_THROW << "Cannot create synapse: segment has reached maximum number of synapses.";
