@@ -68,7 +68,7 @@ void testSP()
   for (UInt i = 0; i < 10000; ++i)
   {
     random.shuffle(input, input + inputSize);
-    sp1.compute(input, true, output, false);
+    sp1.compute(input, true, output);
   }
 
   // Now we reuse the last input to test after serialization
@@ -102,7 +102,7 @@ void testSP()
 
     // Get expected output
     UInt outputBaseline[numColumns];
-    sp1.compute(input, true, outputBaseline, false);
+    sp1.compute(input, true, outputBaseline);
 
     UInt outputA[numColumns];
     UInt outputC[numColumns];
@@ -119,7 +119,7 @@ void testSP()
       is.close();
 
       // Feed new record through
-      spTemp.compute(input, true, outputA, false);
+      spTemp.compute(input, true, outputA);
 
       // Serialize
       ofstream os("outA.proto", ofstream::binary);
@@ -141,7 +141,7 @@ void testSP()
       is.close();
 
       // Feed new record through
-      spTemp.compute(input, true, outputC, false);
+      spTemp.compute(input, true, outputC);
 
       // Serialize
       ofstream os("outC.proto", ofstream::binary);
