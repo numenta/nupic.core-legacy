@@ -39,10 +39,10 @@ public:
   string mmName;
   bool _learn;
   
-  virtual void reset() {};
+  virtual void mmReset() {};
 
-  virtual void compute(vector<UInt> pattern, bool learn) { };
-  virtual void compute(vector<UInt> pattern, bool learn, bool learn2) { };
+  virtual void mmCompute(vector<UInt> pattern, bool learn) { };
+  virtual void mmCompute(vector<UInt> pattern, bool learn, bool learn2) { };
 };
 
 typedef void ComputeFunction(vector<UInt>& pattern, Instance& instance);

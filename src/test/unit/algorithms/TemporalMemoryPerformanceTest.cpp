@@ -36,12 +36,12 @@ namespace nupic {
 
   static void tmComputeFn(vector<UInt>& pattern, Instance& instance)
   {
-    instance.compute(pattern, instance._learn);
+    instance.mmCompute(pattern, instance._learn);
   }
 
   static void tpComputeFn(vector<UInt>& pattern, Instance& instance)
   {
-    instance.compute(pattern, instance._learn, true);
+    instance.mmCompute(pattern, instance._learn, true);
   }
 
   // ==============================
@@ -87,7 +87,7 @@ namespace nupic {
     for (vector<UInt> pattern : sequence.data)
     {
       if (pattern.size() == 0)
-        instance.reset();
+        instance.mmReset();
       else
         computeFn(pattern, instance);
     }

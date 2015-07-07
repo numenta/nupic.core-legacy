@@ -33,6 +33,7 @@
 
 #include "TemporalMemoryTest.hpp"
 #include "TemporalMemoryExtensiveTest.hpp"
+#include "TemporalMemoryTutorialTest.hpp"
 
 using namespace std;
 
@@ -50,6 +51,10 @@ namespace nupic {
     //TemporalMemoryExtensiveTest extensive;
     //extensive.setUp();
     //extensive.testB1();
+
+    TemporalMemoryTutorialTest tutorial;
+    tutorial.setUp();
+    tutorial.testFirstOrder();
 
     setup(tm, 2048);
 

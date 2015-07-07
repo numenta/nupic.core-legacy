@@ -48,15 +48,11 @@ MonitorMixinBase::MonitorMixinBase(string& title)
   mmClearHistory();
 }
 
-void MonitorMixinBase::reset()
+void MonitorMixinBase::mmReset()
 {
   _mmName = "";
   
   mmClearHistory();
-}
-
-void MonitorMixinBase::compute(UInt activeColumnsSize, UInt activeColumns[], bool learn, string sequenceLabel)
-{
 }
 
 void MonitorMixinBase::mmClearHistory()
@@ -377,11 +373,11 @@ void TemporalMemoryMonitorMixin::_mmComputeTransitionTraces()
 // Overrides
 // ==============================
 
-void TemporalMemoryMonitorMixin::compute(vector<UInt>& activeColumns, bool learn, string sequenceLabel)
+void TemporalMemoryMonitorMixin::mmCompute(UInt activeColumnsSize, UInt activeColumns[], bool learn, string sequenceLabel)
 {
 //  _mmTraces_UInt["predictedCells"]._data.push_back(TemporalMemory::predictiveCells);
 
-  TemporalMemory::compute(activeColumns.size(), &activeColumns[0], learn);
+  compute(activeColumnsSize, &activeColumns[0], learn);
 
 //  _mmTraces_UInt["predictiveCells"]._data.push_back(TemporalMemory::predictiveCells);
 //  _mmTraces_UInt["activeColumns"]._data.push_back(activeColumns);
@@ -397,7 +393,7 @@ void TemporalMemoryMonitorMixin::compute(vector<UInt>& activeColumns, bool learn
   _mmTransitionTracesStale = true;
 }
 
-void TemporalMemoryMonitorMixin::reset()
+void TemporalMemoryMonitorMixin::mmReset()
 {
   TemporalMemory::reset();
   //MonitorMixinBase::reset();
