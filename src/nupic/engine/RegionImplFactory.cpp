@@ -420,13 +420,6 @@ static Spec * getPySpec(DynamicPythonLibrary * pyLib,
                                 const std::string & nodeType)
 {
   std::string className(nodeType.c_str() + 3);
-  NTA_DEBUG << "getPySpec - className = '" << className << "'";
-
-  for (auto pyr=pyRegions.begin(); pyr!=pyRegions.end(); pyr++)
-  {
-    NTA_DEBUG << "     region: '" << pyr->first << "'";
-  }
-
   for (auto pyr=pyRegions.begin(); pyr!=pyRegions.end(); pyr++)
   {
     const std::string module = pyr->first;
@@ -434,17 +427,11 @@ static Spec * getPySpec(DynamicPythonLibrary * pyLib,
 
     // This module contains the class
     if (classes.find(className) != classes.end())
-    { 
-      NTA_DEBUG << "     found spec! - module = '" << module << "'";
-
-      for(std::set<std::string>::iterator it=classes.begin(); it!=classes.end(); ++it)
-        NTA_DEBUG << "                     - class = '" << *it << "'";
-
+    {
       void * exception = nullptr;
       void * ns = pyLib->createSpec(module, &exception, className);
       if (ns)
-      { 
-        NTA_DEBUG << "returning spec from module = '" << module << "'";
+      {
         return (Spec *)ns;
       }
     }
@@ -466,17 +453,14 @@ Spec * RegionImplFactory::getSpec(const std::string nodeType)
   Spec * ns = nullptr;
   if (cppRegions.find(nodeType) != cppRegions.end())
   {
-    NTA_DEBUG << "Using cpp region of type '" << nodeType << "'";
     ns = cppRegions[nodeType]->createSpec();
   }
   else if (nodeType.find(std::string("py.")) == 0)
   {
-    NTA_DEBUG << "Using py region of type '" << nodeType << "'";
     if (!pyLib_)
       pyLib_ = boost::shared_ptr<DynamicPythonLibrary>(new DynamicPythonLibrary());
 
     ns = getPySpec(pyLib_.get(), nodeType);
-    NTA_DEBUG << "Nodespec = '" << ns << "'";
   }
   else
   {
