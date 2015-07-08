@@ -17,3 +17,10 @@ build/
 
 # Doxygen generated doc
 html/
+
+# SWIG
+src/bindings/*.cxx
+src/bindings/*.py
+src/bindings/*.pyc
+src/bindings/*.so
+src/bindings/proto/*.capnp
