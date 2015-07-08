@@ -59,6 +59,12 @@ namespace nupic
   // Allows the user to add custom regions
   void RegionImplFactory::registerPyRegion(const std::string module, const std::string className)
   {
+    // Verify that no regions exist with the same className
+    for (auto pyr=pyRegions.begin(); pyr!=pyRegions.end(); pyr++)
+      if (pyr->second.find(className) != pyr->second.end())
+        NTA_THROW << "A pyRegion with name '" << className << "' already exists. " <<
+        "Unregister the existing region or register the new region using a different name.";
+
     // Module hasn't been added yet
     if (pyRegions.find(module) == pyRegions.end())
     {
@@ -70,7 +76,31 @@ namespace nupic
 
   void RegionImplFactory::registerCPPRegion(const std::string name, GenericRegisteredRegionImpl * wrapper)
   {
+    if (cppRegions.find(name) != cppRegions.end())
+      NTA_WARN << "A CPPRegion already exists with the name '" << name << "'. Overwriting it...";
     cppRegions[name] = wrapper;
+  }
+
+  // Allows the user do unregister regions
+  void RegionImplFactory::unregisterPyRegion(const std::string className)
+  {
+    for (auto pyr=pyRegions.begin(); pyr!=pyRegions.end(); pyr++)
+      if (pyr->second.find(className) != pyr->second.end())
+      {
+        pyRegions.erase(pyr);
+        return;
+      }
+
+    NTA_WARN << "A pyRegion with name '" << className << "' doesn't exist. Nothing to unregister...";
+  }
+
+  void RegionImplFactory::unregisterCPPRegion(const std::string name)
+  {
+    if (cppRegions.find(name) != cppRegions.end())
+    {
+      cppRegions.erase(name);
+      return;
+    }
   }
 
   class DynamicPythonLibrary
