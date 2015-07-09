@@ -201,7 +201,6 @@ void TemporalMemoryTutorialTest::testSingleEndlesslyRepeating()
 
 void TemporalMemoryTutorialTest::setUp()
 {
-  TemporalMemoryAbstractTest::setUp();
 /*
   print("\n"
     "======================================================\n"
@@ -211,23 +210,27 @@ void TemporalMemoryTutorialTest::setUp()
     ).format(self.id(), self.shortDescription());
 */
   _verbosity = 1;
-  _tm.initialize({ 6 }, 4, 1, 0.3, 0.5, 1, 6, 0.1, 0.05, -1);
+  _tm.initialize({ 6 }, 4, 1, 0.3, 0.5, 1, 6, 0.1, 0.05, 42);
 
   patternMachine = ConsecutivePatternMachine();
-  patternMachine.initialize(6, vector<UInt>{ 1 }, 100, -1);
-  _sequenceMachine = SequenceMachine(patternMachine, -1);
+  patternMachine.initialize(6, vector<UInt>{ 1 }, 100, 42);
+
+  _sequenceMachine = SequenceMachine(patternMachine);
+
+//  TemporalMemoryAbstractTest::setUp();
+
 }
 
 
 void TemporalMemoryTutorialTest::init()
 {
-  _tm.initialize({ 6 }, 4, 1, 0.3, 0.5, 1, 6, 0.1, 0.05, -1);
-  _tm.printParameters();
-
 //  TemporalMemoryAbstractTest::init();
-//  cout << "Initialized new TM with parameters:";
+  _tm.initialize({ 6 }, 4, 1, 0.3, 0.5, 1, 6, 0.1, 0.05, 42);
+
+  cout << "Initialized new TM with parameters:";
 //  cout << pprint.pformat(_computeTMParams(kwargs.get("overrides")));
-//  cout << endl;
+  _tm.printParameters();
+  cout << endl;
 }
 
 void TemporalMemoryTutorialTest::_feedTM(Sequence& sequence, int num, bool learn)
@@ -249,12 +252,11 @@ void TemporalMemoryTutorialTest::_feedTM(Sequence& sequence, int num, bool learn
 
 void TemporalMemoryTutorialTest::_showInput(Sequence& sequence, bool learn, int num)
 {
-/*
   string sequenceText = _sequenceMachine.prettyPrintSequence(sequence, _verbosity);
-  string learnText = "(learning {0})".format("enabled" if learn else "disabled");
-  string numText = " [{0} times]".format(num) if num > 1 else "";
+  string learnText = "(learning " + string(learn ? "enabled" : "disabled") + ")";
+  string numText = (num <= 1 ? "" : " [" + ::to_string(num) + " times]");
   
-  print "Feeding sequence {0}{1}:\n{2}".format(learnText, numText, sequenceText);
-  print;
-*/
+  cout << "Feeding sequence " + learnText + numText + ":\n" + sequenceText;
+  cout << endl;
+
 }

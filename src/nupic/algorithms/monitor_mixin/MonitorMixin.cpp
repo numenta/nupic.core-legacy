@@ -25,6 +25,7 @@
 * monitor mixin framework.
 */
 
+#include <nupic\utils\PatternMachine.hpp>
 #include "MonitorMixin.hpp"
 
 MonitorMixinBase::MonitorMixinBase()
@@ -116,43 +117,56 @@ string TemporalMemoryMonitorMixin::mmPrettyPrintConnections()
   //@return (string)Pretty - printed text
   string text = "";
 
-  /*
-  text += ("Segments: (format => "
-  "(#) [(source cell=permanence ...),       ...]\n")
-  text += "------------------------------------\n"
+  text += "Segments: (format => (#) [(source cell=permanence ...),       ...]\n";
+  text += "------------------------------------\n";
 
-  columns = range(numberOfColumns())
+  vector<UInt> columns = nupic::utils::range(numberOfColumns());
 
-  for column in columns :
-  cells = cellsForColumn(column)
+  for (UInt column : columns)
+  {
+    vector<Cell> cells = cellsForColumn(column);
 
-  for cell in cells :
-  segmentDict = dict()
+    for (Cell cell : cells)
+    {
+      text += string("Column ") + ::to_string(column) + string(" / Cell ") + ::to_string(cell.idx);
 
-  for seg in connections.segmentsForCell(cell) :
-  synapseList = []
+      for (Segment seg : connections.segmentsForCell(cell))
+      {
+        vector<map<Cell, SynapseData>> synapseList;
 
-  for synapse in connections.synapsesForSegment(seg) :
-  (_, sourceCell, permanence) = connections.dataForSynapse(
-  synapse)
+        for (Synapse synapse : connections.synapsesForSegment(seg))
+        {
+          SynapseData data = connections.dataForSynapse(synapse);
+          map<Cell, SynapseData> synapseDataMap;
+          synapseDataMap[cell] = data;
+          synapseList.push_back(synapseDataMap);
+        }
 
-  synapseList.append((sourceCell, permanence))
+        //sort(synapseList.begin(), synapseList.end());
 
-  synapseList.sort()
-  synapseStringList = ["{0:3}={1:.2f}".format(sourceCell, permanence) for
-  sourceCell, permanence in synapseList]
-  segmentDict[seg] = "({0})".format(" ".join(synapseStringList))
+        text += string(":\t(") + ::to_string(synapseList.size()) + string(")");
 
-  text += ("Column {0:3} / Cell {1:3}:\t({2}) {3}\n".format(
-  column, cell,
-  len(segmentDict.values()),
-  "[{0}]".format(",       ".join(segmentDict.values()))))
+        string synapseStringList = "";
 
-  if column < len(columns) - 1:  # not last
-  text += "\n"
+        for (map<Cell, SynapseData> synapseMap : synapseList)
+        {
+          map<Cell, SynapseData>::iterator iter;
+          for (iter = synapseMap.begin(); iter != synapseMap.end(); ++iter) {
+            synapseStringList += ::to_string(iter->second.presynapticCell.idx) + "=" + ::to_string(iter->second.permanence) + " ";
+          }
+        }
 
-  text += "------------------------------------\n"
-  */
+        text += synapseStringList;
+      }
+      text += "\n";
+    }
+
+    if (column < columns.size() - 1)  // not last
+      text += "\n";
+  }
+
+  text += "------------------------------------\n";
+
   return text;
 }
 
@@ -276,13 +290,13 @@ MetricsVector TemporalMemoryMonitorMixin::mmGetMetricSequencesPredictedActiveCel
   _mmComputeTransitionTraces();
 
   vector<UInt> numCellsPerColumn;
-
-//  for (Cell predictedActiveCells : _mmData["predictedActiveCellsForSequence"])
-//  {
-//    map<Int, vector<Cell>> cellsForColumn = mapCellsToColumns(predictedActiveCells);
-//    numCellsPerColumn += [len(x) for x in cellsForColumn.values()];
-//  }
-
+/*
+  for (Cell predictedActiveCells : _mmData["predictedActiveCellsForSequence"])
+  {
+    map<Int, vector<Cell>> cellsForColumn = mapCellsToColumns(predictedActiveCells);
+    numCellsPerColumn += [len(x) for x in cellsForColumn.values()];
+  }
+*/
   MetricsVector ret;//(*this, string("temp"), numCellsPerColumn);
   return ret;
 }
@@ -334,38 +348,46 @@ void TemporalMemoryMonitorMixin::_mmComputeTransitionTraces()
   _mmTraces_UInt["predictedInactiveColumns"] = IndicesTrace(this, string("predicted => inactive columns (extra)"));
   _mmTraces_UInt["unpredictedActiveColumns"] = IndicesTrace(this, string("unpredicted => active columns (bursting)"));
 
-  Trace<vector<UInt>>& predictedCellsTrace = _mmTraces_UInt.find("predictedCells")->second;
 /*
-  for i, activeColumns in enumerate(mmGetTraceActiveColumns()._data)
+  Trace<vector<UInt>>& predictedCellsTrace = _mmTraces_UInt.find("predictedCells")->second;
+
+  set<Cell> predictedActiveCells;
+  set<Cell> predictedInactiveCells;
+  set<UInt> predictedActiveColumns;
+  set<UInt> predictedInactiveColumns;
+
+  UInt i = 0;
+  for (UInt activeColumns : mmGetTraceActiveColumns()._data[i])
   {
-    predictedActiveCells = set()
-      predictedInactiveCells = set()
-      predictedActiveColumns = set()
-      predictedInactiveColumns = set()
+    for (Cell predictedCell : predictedCellsTrace._data[i])
+    {
+      UInt predictedColumn = columnForCell(predictedCell);
 
-      for predictedCell in predictedCellsTrace.data[i]:
-    predictedColumn = columnForCell(predictedCell)
+      if (activeColumns.find(activeColumns.begin, activeColumns.end(), predictedColumn) != activeColumns.end())
+      {
+        predictedActiveCells.insert(predictedCell);
+        predictedActiveColumns.insert(predictedColumn);
 
-      if predictedColumn  in activeColumns :
-    predictedActiveCells.add(predictedCell)
-      predictedActiveColumns.add(predictedColumn)
-
-      sequenceLabel = mmGetTraceSequenceLabels().data[i]
-      if sequenceLabel is not None :
-        _mmData["predictedActiveCellsForSequence"][sequenceLabel].add(
-        predictedCell)
-      else:
-    predictedInactiveCells.add(predictedCell)
-      predictedInactiveColumns.add(predictedColumn)
+        string sequenceLabel = mmGetTraceSequenceLabels()._data;
+        if (sequenceLabel.size() > 0)
+          _mmData["predictedActiveCellsForSequence"][sequenceLabel].add(predictedCell);
+      }
+      else
+      {
+        predictedInactiveCells.insert(predictedCell);
+        predictedInactiveColumns.insert(predictedColumn);
+      }
+    }
+    i++;
   }
   unpredictedActiveColumns = activeColumns - predictedActiveColumns;
-*/
+
   _mmTraces_UInt["predictedActiveCells"]._data.push_back(predictedActiveCells);
   _mmTraces_UInt["predictedInactiveCells"]._data.push_back(predictedInactiveCells);
   _mmTraces_UInt["predictedActiveColumns"]._data.push_back(predictedActiveColumns);
   _mmTraces_UInt["predictedInactiveColumns"]._data.push_back(predictedInactiveColumns);
   _mmTraces_UInt["unpredictedActiveColumns"]._data.push_back(unpredictedActiveColumns);
-
+*/
   _mmTransitionTracesStale = false;
 }
 
@@ -375,19 +397,19 @@ void TemporalMemoryMonitorMixin::_mmComputeTransitionTraces()
 
 void TemporalMemoryMonitorMixin::mmCompute(UInt activeColumnsSize, UInt activeColumns[], bool learn, string sequenceLabel)
 {
-//  _mmTraces_UInt["predictedCells"]._data.push_back(TemporalMemory::predictiveCells);
+//  _mmTraces_UInt["predictedCells"]._data.push_back(predictiveCells);
 
   compute(activeColumnsSize, &activeColumns[0], learn);
+/*
+  _mmTraces_UInt["predictiveCells"]._data.push_back(predictiveCells);
+  _mmTraces_UInt["activeColumns"]._data.push_back(activeColumns);
 
-//  _mmTraces_UInt["predictiveCells"]._data.push_back(TemporalMemory::predictiveCells);
-//  _mmTraces_UInt["activeColumns"]._data.push_back(activeColumns);
+  _mmTraces_UInt["numSegments"]._data.push_back(connections.numSegments());
+  _mmTraces_UInt["numSynapses"]._data.push_back(connections.numSynapses());
 
-//  _mmTraces_UInt["numSegments"]._data.push_back(connections.numSegments());
-//  _mmTraces_UInt["numSynapses"]._data.push_back(connections.numSynapses());
-
-//  _mmTraces_string["sequenceLabels"]._data.push_back({ sequenceLabel });
-
-//  _mmTraces_bool["resets"]._data.push_back({ _mmResetActive });
+  _mmTraces_string["sequenceLabels"]._data.push_back({ sequenceLabel });
+*/
+  _mmTraces_bool["resets"]._data.push_back({ _mmResetActive });
   _mmResetActive = false;
 
   _mmTransitionTracesStale = true;

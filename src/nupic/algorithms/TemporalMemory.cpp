@@ -158,8 +158,8 @@ void TemporalMemory::compute(UInt activeColumnsSize, UInt activeColumns[], bool 
   set<Cell> _activeCells(activeCells);
   set<Cell> _winnerCells(winnerCells);
   vector<Segment> _activeSegments(activeSegments);
-  set<UInt> _predictedColumns;
   set<Cell> _predictiveCells(predictiveCells.begin(), predictiveCells.end());
+  set<UInt> _predictedColumns;
 
   tie(_activeCells, _winnerCells, _activeSegments,
     _predictiveCells, _predictedColumns)
@@ -179,6 +179,7 @@ void TemporalMemory::compute(UInt activeColumnsSize, UInt activeColumns[], bool 
 
   for (Cell c : _predictiveCells)
     predictiveCells.push_back(c);
+
 }
 
 /**
@@ -480,7 +481,8 @@ void TemporalMemory::learnOnSegments(
     {
       Int n = maxNewSynapseCount_ - Int(activeSynapses.size());
 
-      for (Cell presynapticCell : pickCellsToLearnOn(n, segment, prevWinnerCells, _connections))
+      set<Cell> cells = pickCellsToLearnOn(n, segment, prevWinnerCells, _connections);
+      for (Cell presynapticCell : cells)
       {
         _connections.createSynapse(segment, presynapticCell, initialPermanence_);
       }
@@ -517,26 +519,21 @@ tuple<vector<Segment>, set<Cell>> TemporalMemory::computePredictiveCells(
 
   for (Cell cell : _activeCells)
   {
-    vector<Segment> segmentsForCell = _connections.segmentsForCell(cell);
-
-    for (Segment segment : segmentsForCell)
+    for (Synapse synapse : _connections.synapsesForPresynapticCell(cell))
     {
-      for (Synapse synapse : _connections.synapsesForSegment(segment))
+      SynapseData synapseData = _connections.dataForSynapse(synapse);
+      Segment segment = synapse.segment;
+      Real permanence = synapseData.permanence;
+
+      if (permanence >= connectedPermanence_)
       {
-        SynapseData synapseData = _connections.dataForSynapse(synapse);
-        Segment segment = synapse.segment;
-        Real permanence = synapseData.permanence;
+        _numActiveConnectedSynapsesForSegment[segment] += 1;
 
-        if (permanence >= connectedPermanence_)
+        if (_numActiveConnectedSynapsesForSegment[segment] >=
+          activationThreshold_)
         {
-          _numActiveConnectedSynapsesForSegment[segment] += 1;
-
-          if (_numActiveConnectedSynapsesForSegment[segment] >=
-            activationThreshold_)
-          {
-            _activeSegments.push_back(segment);
-            _predictiveCells.insert(Cell(segment.cell.idx));
-          }
+          _activeSegments.push_back(segment);
+          _predictiveCells.insert(Cell(segment.cell.idx));
         }
       }
     }

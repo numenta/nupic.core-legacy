@@ -197,39 +197,52 @@ std::map<UInt, vector<UInt>> PatternMachine::numberMapForBits(vector<UInt>& bits
   return numberMap;
 }
 
+/**
+Pretty print a pattern.
+
+@param bits(set) Indices of on bits
+@param verbosity(int) Verbosity level
+
+@return (string)Pretty - printed text
+*/
 string PatternMachine::prettyPrintPattern(vector<UInt>& bits, int verbosity)
 {
   string text = "";
-  /*
-  Pretty print a pattern.
+  
+  map<UInt, vector<UInt>> numberMap = numberMapForBits(bits);
+  vector<string> numberList;
 
-  @param bits(set) Indices of on bits
-  @param verbosity(int) Verbosity level
+  map<UInt, vector<UInt>>::iterator iter = numberMap.begin();
+  while (iter != numberMap.end())
+  {
+    string numberText = "";
 
-  @return (string)Pretty - printed text
-  """
-  numberMap = self.numberMapForBits(bits)
+    if (verbosity > 2)
+    {
+      string strBits;
+      for (UInt n : iter->second)
+        strBits += ::to_string(n);
 
-  numberList = []
-  numberItems = sorted(numberMap.iteritems(),
-  key = lambda(number, bits) : len(bits),
-  reverse = True)
+      numberText = ::to_string(iter->first) + " (bits: " + strBits + ")";
+    }
+    else if (verbosity > 1)
+    {
+      numberText = ::to_string(iter->first) + " ( " + ::to_string(iter->second.size()) + " bits)";
+    }
+    else
+    {
+      numberText = ::to_string(iter->first);
+    }
 
-  for number, bits in numberItems :
+    numberList.push_back(numberText);
+    iter++;
+  }
 
-  if verbosity > 2:
-  strBits = [str(n) for n in bits]
-  numberText = "{0} (bits: {1})".format(number, ",".join(strBits))
-  elif verbosity > 1:
-  numberText = "{0} ({1} bits)".format(number, len(bits))
-  else:
-  numberText = str(number)
+  for (auto s : numberList)
+  {
+    text += "[" + s + "]";
+  }
 
-  numberList.append(numberText)
-
-  text += "[{0}]".format(", ".join(numberList))
-
-  */
   return text;
 }
 

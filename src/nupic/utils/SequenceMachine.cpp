@@ -132,18 +132,20 @@ Sequence SequenceMachine::addSpatialNoise(Sequence& sequence, Real amount)
 string SequenceMachine::prettyPrintSequence(Sequence& sequence, int verbosity)
 {
   string text = "";
-/*
-  for (auto i : xrange(len(sequence)))
+
+  vector<UInt> sequenceRange(nupic::utils::range(sequence.size()));
+  for (auto i : sequenceRange)
   {
     vector<UInt> pattern = sequence[i];
 
-    if (pattern == None)
+    if (pattern.size() == 0)
       text += "<reset>";
-    if (i < sequence.size() - 1)
-      text += "\n";
     else
       text += _patternMachine.prettyPrintPattern(pattern, verbosity);
+
+    if (i >= sequence.size() - 1)
+      text += "\n";
   }
-*/
+
   return text;
 }

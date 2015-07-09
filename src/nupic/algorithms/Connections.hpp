@@ -332,6 +332,15 @@ namespace nupic
         SynapseData dataForSynapse(const Synapse& synapse) const;
 
         /**
+         * Returns the synapses for the source cell that they synapse on.
+         *
+         * @param presynapticCell(int) Source cell index
+         *
+         * @return (set)Synapse indices
+         */
+        std::vector<Synapse> synapsesForPresynapticCell(const Cell& presynapticCell) const;
+
+        /**
          * Gets the segment with the most active synapses due to given input,
          * from among all the segments on all the given cells.
          *

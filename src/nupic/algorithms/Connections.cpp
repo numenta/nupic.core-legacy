@@ -211,6 +211,14 @@ SynapseData Connections::dataForSynapse(const Synapse& synapse) const
   return cells_[cell.idx].segments[segment.idx].synapses[synapse.idx];
 }
 
+std::vector<Synapse> Connections::synapsesForPresynapticCell(const Cell& presynapticCell) const
+{
+  if (synapsesForPresynapticCell_.find(presynapticCell) == synapsesForPresynapticCell_.end())
+    return vector<Synapse>{};
+
+  return synapsesForPresynapticCell_.at(presynapticCell.idx);
+}
+
 bool Connections::mostActiveSegmentForCells(const vector<Cell>& cells,
                                             vector<Cell> input,
                                             SynapseIdx synapseThreshold,
@@ -366,13 +374,13 @@ void Connections::write(ConnectionsProto::Builder& proto) const
     auto segments = cells_[i].segments;
     auto protoSegments = protoCells[i].initSegments(segments.size());
 
-    for (SegmentIdx j = 0; j < segments.size(); ++j) {
+    for (SegmentIdx j = 0; j < (SegmentIdx)segments.size(); ++j) {
       auto synapses = segments[j].synapses;
       auto protoSynapses = protoSegments[j].initSynapses(synapses.size());
       protoSegments[j].setDestroyed(segments[j].destroyed);
       protoSegments[j].setLastUsedIteration(segments[j].lastUsedIteration);
 
-      for (SynapseIdx k = 0; k < synapses.size(); ++k) {
+      for (SynapseIdx k = 0; k < (SynapseIdx)synapses.size(); ++k) {
         protoSynapses[k].setPresynapticCell(synapses[k].presynapticCell.idx);
         protoSynapses[k].setPermanence(synapses[k].permanence);
         protoSynapses[k].setDestroyed(synapses[k].destroyed);
@@ -403,7 +411,7 @@ void Connections::read(ConnectionsProto::Reader& proto)
     auto protoSegments = protoCells[i].getSegments();
     vector<SegmentData>& segments = cells_[i].segments;
 
-    for (SegmentIdx j = 0; j < protoSegments.size(); ++j) {
+    for (SegmentIdx j = 0; j < (SegmentIdx)protoSegments.size(); ++j) {
       SegmentData segmentData = {vector<SynapseData>(),
                                  protoSegments[j].getDestroyed(),
                                  protoSegments[j].getLastUsedIteration()};
@@ -458,7 +466,7 @@ bool Connections::operator==(const Connections &other) const
 
     if (segments.size() != otherSegments.size()) return false;
 
-    for (SegmentIdx j = 0; j < segments.size(); ++j) {
+    for (SegmentIdx j = 0; j < (SegmentIdx)segments.size(); ++j) {
       auto segment = segments[j];
       auto otherSegment = otherSegments[j];
       auto synapses = segment.synapses;
