@@ -211,6 +211,15 @@ SynapseData Connections::dataForSynapse(const Synapse& synapse) const
   return cells_[cell.idx].segments[segment.idx].synapses[synapse.idx];
 }
 
+std::vector<Synapse> Connections::synapsesForPresynapticCell(const Cell& presynapticCell) const
+{
+  if (synapsesForPresynapticCell_.find(presynapticCell) == 
+      synapsesForPresynapticCell_.end())
+    return vector<Synapse>{};
+
+  return synapsesForPresynapticCell_.at(presynapticCell.idx);
+}
+
 bool Connections::mostActiveSegmentForCells(const vector<Cell>& cells,
                                             vector<Cell> input,
                                             SynapseIdx synapseThreshold,
