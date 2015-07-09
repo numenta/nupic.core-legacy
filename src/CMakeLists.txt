@@ -339,15 +339,9 @@ capnp_generate_cpp(CAPNP_SRCS CAPNP_HDRS ${CAPNP_SPECS})
 #
 set (PY_SUPPORT_FILES
             nupic/py_support/NumpyVector.cpp
-            nupic/py_support/NumpyVector.hpp
             nupic/py_support/PyArray.cpp
-            nupic/py_support/PyArray.hpp
-            nupic/py_support/PyCapnp.hpp
             nupic/py_support/PyHelpers.cpp
-            nupic/py_support/PyHelpers.hpp
             nupic/py_support/PythonStream.cpp
-            nupic/py_support/PythonStream.hpp
-            nupic/py_support/WrappedVector.hpp
 )
 
 #
@@ -704,6 +698,9 @@ else()
   install(FILES "${PROJECT_BINARY_DIR}/nupic_core.lib"
           DESTINATION lib)
 endif()
+
+install(DIRECTORY nupic/py_support DESTINATION include/nupic
+        FILES_MATCHING PATTERN "*.c*")
 
 #
 # `make package` results in
