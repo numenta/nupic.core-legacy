@@ -450,10 +450,13 @@ set_target_properties(${EXECUTABLE_PYREGIONTEST}
 # Setup test_connections_performance
 #
 set(EXECUTABLE_CONNECTIONSPERFORMANCETEST connections_performance_test)
-add_executable(${EXECUTABLE_CONNECTIONSPERFORMANCETEST} test/integration/ConnectionsPerformanceTest.cpp)
+add_executable(${EXECUTABLE_CONNECTIONSPERFORMANCETEST}
+               test/integration/ConnectionsPerformanceTest.cpp)
 target_link_libraries(${EXECUTABLE_CONNECTIONSPERFORMANCETEST} ${COMMON_LIBS})
-set_target_properties(${EXECUTABLE_CONNECTIONSPERFORMANCETEST} PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
-set_target_properties(${EXECUTABLE_CONNECTIONSPERFORMANCETEST} PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
+set_target_properties(${EXECUTABLE_CONNECTIONSPERFORMANCETEST}
+                      PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
+set_target_properties(${EXECUTABLE_CONNECTIONSPERFORMANCETEST}
+                      PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
 add_custom_target(tests_connections_performance
                   COMMAND ${EXECUTABLE_CONNECTIONSPERFORMANCETEST}
                   DEPENDS ${EXECUTABLE_CONNECTIONSPERFORMANCETEST}
