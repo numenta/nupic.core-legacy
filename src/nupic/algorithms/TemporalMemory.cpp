@@ -175,6 +175,7 @@ void TemporalMemory::compute(UInt activeColumnsSize, UInt activeColumns[], bool 
   activeCells = _activeCells;
   winnerCells = _winnerCells;
   activeSegments = _activeSegments;
+  predictiveCells.clear();
   for (Cell c : _predictiveCells)
     predictiveCells.push_back(c);
 }
@@ -453,18 +454,13 @@ void TemporalMemory::learnOnSegments(
 
   for (Segment segment : _allSegments)
   {
-    bool isLearningSegment = false;
-    bool isFromWinnerCell = (find(winnerCells.begin(), winnerCells.end(),
-      segment.cell) != winnerCells.end());
+    bool isLearningSegment = (find(
+      learningSegments.begin(), learningSegments.end(),
+      segment) != learningSegments.end());
 
-    for (Segment s : learningSegments)
-    {
-      if (s == segment)
-      {
-        isLearningSegment = true;
-        break;
-      }
-    }
+    bool isFromWinnerCell = (find(
+      winnerCells.begin(), winnerCells.end(),
+      segment.cell) != winnerCells.end());
 
     vector<Synapse> activeSynapses(activeSynapsesForSegment(
       segment, prevActiveCells, _connections));
@@ -579,14 +575,14 @@ TemporalMemory::bestMatchingCell(
 
     if (segment != NULL && numActiveSynapses > maxSynapses)
     {
+      if (bestSegment != NULL)
+      {
+        delete bestSegment;
+      }
+
       maxSynapses = numActiveSynapses;
       bestCell = new Cell(cell);
-      bestSegment = segment;
-    }
-    else
-    {
-      if (segment)
-        delete segment;
+      bestSegment = new Segment(*segment);
     }
   }
 
