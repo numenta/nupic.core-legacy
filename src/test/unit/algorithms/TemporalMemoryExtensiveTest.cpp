@@ -210,6 +210,7 @@ void TemporalMemoryExtensiveTest::setUp()
 {
   TemporalMemoryAbstractTest::setUp();
 
+  _patternMachine = PatternMachine();
   _patternMachine.initialize(100, range(21, 26), 300);
   _sequenceMachine = SequenceMachine(_patternMachine);
 

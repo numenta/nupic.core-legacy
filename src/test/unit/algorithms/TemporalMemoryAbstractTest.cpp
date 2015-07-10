@@ -30,8 +30,8 @@
 void TemporalMemoryAbstractTest::setUp()
 {
   //tm = None;
-  _patternMachine = PatternMachine();
-  _sequenceMachine = SequenceMachine(_patternMachine);
+  //_patternMachine = PatternMachine();
+  //_sequenceMachine = SequenceMachine(_patternMachine);
 }
 
 // Initialize Temporal Memory, and other member variables.

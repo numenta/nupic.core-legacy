@@ -117,7 +117,7 @@ string TemporalMemoryMonitorMixin::mmPrettyPrintConnections()
   //@return (string)Pretty - printed text
   string text = "";
 
-  text += "Segments: (format => (#) [(source cell=permanence ...),       ...]\n";
+  text += "Segments: (format => (numSegments) [(source cell=permanence ...),       ...]\n";
   text += "------------------------------------\n";
 
   vector<UInt> columns = nupic::utils::range(numberOfColumns());
@@ -128,37 +128,37 @@ string TemporalMemoryMonitorMixin::mmPrettyPrintConnections()
 
     for (Cell cell : cells)
     {
+      vector<Segment> segmentList;
+
       text += string("Column ") + ::to_string(column) + string(" / Cell ") + ::to_string(cell.idx);
 
-      for (Segment seg : connections.segmentsForCell(cell))
-      {
-        vector<map<Cell, SynapseData>> synapseList;
+      segmentList = connections.segmentsForCell(cell);
+      text += string(":\t(") + ::to_string(segmentList.size()) + string(") [");
 
+      for (Segment seg : segmentList)
+      {
+        text += string("(");
+
+        vector<SynapseData> synapseList;
         for (Synapse synapse : connections.synapsesForSegment(seg))
         {
           SynapseData data = connections.dataForSynapse(synapse);
-          map<Cell, SynapseData> synapseDataMap;
-          synapseDataMap[cell] = data;
-          synapseList.push_back(synapseDataMap);
+          synapseList.push_back(data);
         }
-
-        //sort(synapseList.begin(), synapseList.end());
-
-        text += string(":\t(") + ::to_string(synapseList.size()) + string(")");
+        sort(synapseList.begin(), synapseList.end());
 
         string synapseStringList = "";
-
-        for (map<Cell, SynapseData> synapseMap : synapseList)
+        for (SynapseData synapseData : synapseList)
         {
-          map<Cell, SynapseData>::iterator iter;
-          for (iter = synapseMap.begin(); iter != synapseMap.end(); ++iter) {
-            synapseStringList += ::to_string(iter->second.presynapticCell.idx) + "=" + ::to_string(iter->second.permanence) + " ";
-          }
+          synapseStringList += ::to_string(synapseData.presynapticCell.idx) + "=" + ::to_string(synapseData.permanence);
+          if (synapseList.size() > 1)
+            synapseStringList += " ";
         }
-
-        text += synapseStringList;
+        text += synapseStringList + ")";
+        if (segmentList.size() > 1)
+          text += ",";
       }
-      text += "\n";
+      text += "]\n";
     }
 
     if (column < columns.size() - 1)  // not last

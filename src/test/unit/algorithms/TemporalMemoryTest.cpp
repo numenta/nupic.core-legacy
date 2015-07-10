@@ -32,8 +32,6 @@
 #include <nupic/utils/Log.hpp>
 
 #include "TemporalMemoryTest.hpp"
-#include "TemporalMemoryExtensiveTest.hpp"
-#include "TemporalMemoryTutorialTest.hpp"
 
 using namespace std;
 
@@ -48,14 +46,6 @@ namespace nupic {
 
   void TemporalMemoryTest::RunTests()
   {
-    //TemporalMemoryExtensiveTest extensive;
-    //extensive.setUp();
-    //extensive.testB1();
-
-    TemporalMemoryTutorialTest tutorial;
-    tutorial.setUp();
-    tutorial.testFirstOrder();
-
     setup(tm, 2048);
 
     testInitInvalidParams();
