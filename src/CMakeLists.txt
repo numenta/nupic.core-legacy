@@ -338,10 +338,10 @@ capnp_generate_cpp(CAPNP_SRCS CAPNP_HDRS ${CAPNP_SPECS})
 # Python support
 #
 set (PY_SUPPORT_FILES
-            nupic/py_support/NumpyVector.cpp
-            nupic/py_support/PyArray.cpp
-            nupic/py_support/PyHelpers.cpp
-            nupic/py_support/PythonStream.cpp
+     nupic/py_support/NumpyVector.cpp
+     nupic/py_support/PyArray.cpp
+     nupic/py_support/PyHelpers.cpp
+     nupic/py_support/PythonStream.cpp
 )
 
 #
@@ -541,6 +541,7 @@ add_executable(${EXECUTABLE_GTESTS}
                test/unit/os/PathTest.cpp
                test/unit/os/RegexTest.cpp
                test/unit/os/TimerTest.cpp
+               test/unit/py_support/PyHelpersTest.cpp
                test/unit/test/TesterTest.cpp
                test/unit/types/BasicTypeTest.cpp
                test/unit/types/ExceptionTest.cpp
@@ -590,6 +591,7 @@ set(TEST_HEADERS
     test/unit/os/PathTest.hpp
     test/unit/os/RegexTest.hpp
     test/unit/os/TimerTest.hpp
+    test/unit/py_support/PyHelpersTest.hpp
     test/unit/test/TesterTest.hpp
     test/unit/types/BasicTypeTest.hpp
     test/unit/types/ExceptionTest.hpp
