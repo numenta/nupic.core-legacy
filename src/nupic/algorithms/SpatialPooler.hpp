@@ -77,8 +77,8 @@ namespace nupic {
                         Real localAreaDensity=-1.0,
                         UInt numActiveColumnsPerInhArea=10,
                         UInt stimulusThreshold=0,
-                        Real synPermInactiveDec=0.01,
-                        Real synPermActiveInc=0.1,
+                        Real synPermInactiveDec=0.008,
+                        Real synPermActiveInc=0.05,
                         Real synPermConnected=0.1,
                         Real minPctOverlapDutyCycles=0.001,
                         Real minPctActiveDutyCycles=0.001,
@@ -267,27 +267,12 @@ namespace nupic {
                 boosting on even when learning is off.
 
           @param activeVector An array representing the winning columns after
-                inhinition. The size of the array is equal to the number of
+                inhibition. The size of the array is equal to the number of
                 columns (also returned by the method getNumColumns). This array
                 will be populated with 1's at the indices of the active columns,
                 and 0's everywhere else. In the case where the output is
                 multi-dimensional, activeVector represents a flattened array
                 of outputs.
-
-          @param stripNeverLearned A boolean value indicating when to strip
-              columns from the predictions if they have never learned. The
-              default behavior is to strip unlearned columns but this should be
-              disabled when using a random, unlearned spatial pooler. NOTE:
-              if you rely on this behavior then you should additionally call
-              the stripNeverLearned method directly on the activeVector output
-              as we will be changing the default to false and then removing this
-              parameter entirely in the near future.
-           */
-          virtual void compute(UInt inputVector[], bool learn,
-                               UInt activeVector[], bool stripNeverLearned);
-
-          /**
-           Same as above but with stripUnlearnedColumns set to true.
            */
           virtual void compute(UInt inputVector[], bool learn,
                                UInt activeVector[]);
@@ -298,8 +283,9 @@ namespace nupic {
            cannot represent learned pattern and are therefore meaningless if
            only inference is required.
 
-           @param activeArray  An int array containing the indices of the
-               active columns.
+           @param activeArray  An array of 1's and 0's representing winning
+                 columns calculated by the 'compute' method after disabling
+                 any columns that are not learned.
           */
           void stripUnlearnedColumns(UInt activeArray[]) const;
 
@@ -641,10 +627,26 @@ namespace nupic {
           Sets the permanence amount that qualifies a synapse as
           being connected.
 
-          @param setSynPermConnected real number of the permanence amount that qualifies a synapse as
+          @param synPermConnected real number of the permanence amount that qualifies a synapse as
           being connected.
           */
-          void setSynPermConnected(Real setSynPermConnected);
+          void setSynPermConnected(Real synPermConnected);
+
+          /**
+          Returns the maximum permanence amount a synapse can
+          achieve.
+
+          @returns real number of the max permanence amount.
+          */
+          Real getSynPermMax() const;
+          /**
+          Sets the maximum permanence amount a synapse can
+          achieve.
+
+          @param synPermCMax real number of the maximum permanence
+          amount that a synapse can achieve.
+          */
+          void setSynPermMax(Real synPermMax);
 
           /**
           Returns the minimum tolerated overlaps, given as percent of

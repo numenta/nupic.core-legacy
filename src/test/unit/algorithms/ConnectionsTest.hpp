@@ -47,7 +47,6 @@ namespace nupic
     virtual void RunTests() override;
 
   private:
-    void testConstructor();
     void testCreateSegment();
     void testCreateSegmentReuse();
     void testCreateSynapse();

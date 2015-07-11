@@ -310,11 +310,17 @@ set(CAPNP_SPECS
     nupic/proto/BitHistory.capnp
     nupic/proto/ClaClassifier.capnp
     nupic/proto/ConnectionsProto.capnp
+    nupic/proto/LinkProto.capnp
+    nupic/proto/Map.capnp
+    nupic/proto/NetworkProto.capnp
     nupic/proto/RandomProto.capnp
+    nupic/proto/RegionProto.capnp
     nupic/proto/SparseBinaryMatrixProto.capnp
     nupic/proto/SparseMatrixProto.capnp
     nupic/proto/SpatialPoolerProto.capnp
     nupic/proto/TemporalMemoryProto.capnp
+    nupic/proto/TestNodeProto.capnp
+    nupic/proto/VectorFileSensorProto.capnp
 )
 capnp_generate_cpp(CAPNP_SRCS CAPNP_HDRS ${CAPNP_SPECS})
 
