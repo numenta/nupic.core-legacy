@@ -29,9 +29,6 @@ skip_commits:
 #    environment configuration    #
 #---------------------------------#
 
-# Operating system (build VM template)
-os: Visual Studio 2015 CTP
-
 init:
   - git config --global core.autocrlf input
 
@@ -128,7 +125,7 @@ after_build:
       # This packages via CMakeList CPack settings (Tar.Gzip for SW upload)
       # msbuild $env:MSBuildOptions PACKAGE.vcxproj
 
-      7z a -ttar -y -bd nupic_core-$env:APPVEYOR_REPO_COMMIT-windows64.tar .
+      7z a -ttar -y -bd nupic_core-$env:APPVEYOR_REPO_COMMIT-windows64.tar . | findstr /b /c:"Everything is Ok" /c:"Scanning" /c:"Creating archive"
 
       7z a -tgzip -y -bd ..\..\nupic_core-$env:APPVEYOR_REPO_COMMIT-windows64.tar.gz nupic_core-$env:APPVEYOR_REPO_COMMIT-windows64.tar
 
