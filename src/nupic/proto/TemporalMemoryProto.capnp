@@ -18,8 +18,8 @@ struct TemporalMemoryProto {
   permanenceIncrement @8 :Float32;
   permanenceDecrement @9 :Float32;  
 
-  connections @9 :ConnectionsProto;
-  random @10 :RandomProto;
+  connections @10 :ConnectionsProto;
+  random @11 :RandomProto;
 
   # Lists of indices
   activeCells @12 :List(UInt32);

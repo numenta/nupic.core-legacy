@@ -583,5 +583,5 @@ namespace nupic {
     } // end namespace temporal_memory
   } // end namespace algorithms
 } // end namespace nta
-#endif // NTA_TEMPORAL_MEMORY_HPP
 
+#endif // NTA_TEMPORAL_MEMORY_HPP

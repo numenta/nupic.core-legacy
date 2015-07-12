@@ -912,7 +912,7 @@ bool TemporalMemory::_validateCell(Cell& cell)
  */
 bool TemporalMemory::_validateSegment(Segment& segment)
 {
-  if (activeSegments.size() == 0 && segment.idx <= SEGMENT_MAX &&
+  if (activeSegments.size() == 0 && segment.idx <= MAX_SEGMENTS_PER_CELL &&
     _validateCell(segment.cell))
     return true;
 
