@@ -1,6 +1,6 @@
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
+ * Copyright (C) 2013-2015, Numenta, Inc.  Unless you have an agreement
  * with Numenta, Inc., for a separate license for this software code, the
  * following terms and conditions apply:
  *
@@ -17,10 +17,10 @@
  * along with this program.  If not, see http://www.gnu.org/licenses.
  *
  * http://numenta.org/licenses/
- * ---------------------------------------------------------------------
+ * ----------------------------------------------------------------------
  */
 
- /** @file
+/** @file
   * Definitions for TemporalMemoryTest
   */
 
@@ -76,9 +76,6 @@ namespace nupic {
     void testSaveLoad();
     void testWrite();
 
-    bool check_set_eq(set<UInt>& vec1, set<UInt>& vec2);
-    bool check_set_eq(set<Cell>& vec1, set<Cell>& vec2);
-
     bool check_vector_eq(UInt arr[], vector<UInt>& vec);
     bool check_vector_eq(Real arr[], vector<Real>& vec);
     bool check_vector_eq(UInt arr1[], UInt arr2[], UInt n);
@@ -87,8 +84,13 @@ namespace nupic {
     bool check_vector_eq(vector<Cell>& vec1, vector<Cell>& vec2);
     bool check_vector_eq(vector<Segment>& vec1, vector<Segment>& vec2);
     bool check_vector_eq(vector<Segment*>& vec1, vector<Segment>& vec2);
-    void check_spatial_eq(const TemporalMemory& tm1, const TemporalMemory& tm2);
+    bool check_set_eq(set<UInt>& vec1, set<UInt>& vec2);
+    bool check_set_eq(set<Cell>& vec1, set<Cell>& vec2);
     bool almost_eq(Real a, Real b);
+
+    void check_spatial_eq(
+      const TemporalMemory& tm1, 
+      const TemporalMemory& tm2);
 
     void print_vec(UInt arr[], UInt n);
     void print_vec(Real arr[], UInt n);
@@ -98,4 +100,3 @@ namespace nupic {
   }; // end class TemporalMemoryTest
 } // end namespace nupic
 #endif // NTA_TEMPORAL_MEMORY_TEST
-
