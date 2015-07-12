@@ -46,14 +46,14 @@ namespace nupic
     namespace connections
     {
       typedef UInt32 CellIdx;
-      typedef unsigned char SegmentIdx;
-      typedef unsigned char SynapseIdx;
+      typedef UInt16 SegmentIdx;
+      typedef UInt16 SynapseIdx;
       typedef Real32 Permanence;
       typedef UInt64 Iteration;
 
-      #define CELL_MAX ((USHRT_MAX<<4)-1)
-      #define SEGMENT_MAX (UCHAR_MAX-1)
-      #define SYNAPSE_MAX (UCHAR_MAX-1)
+      // Defaults
+      static const UInt16 MAX_SEGMENTS_PER_CELL = 255;
+      static const UInt16 MAX_SYNAPSES_PER_SEGMENT = 255;
 
       /**
        * Cell class used in Connections.
@@ -236,7 +236,7 @@ namespace nupic
          * @retval Created segment.
          */
         Connections(CellIdx numCells,
-                    SegmentIdx maxSegmentsPerCell=SEGMENT_MAX);
+                    SegmentIdx maxSegmentsPerCell=MAX_SEGMENTS_PER_CELL);
 
         virtual ~Connections() {}
 

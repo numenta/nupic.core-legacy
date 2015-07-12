@@ -21,11 +21,14 @@
  */
 
 #include <iostream>
+#include <sstream>
+
 #include <nupic/engine/Network.hpp>
 #include <nupic/engine/Region.hpp>
 #include <nupic/ntypes/Dimensions.hpp>
 #include <nupic/ntypes/ArrayRef.hpp>
 #include <nupic/os/Path.hpp>
+#include <nupic/utils/Log.hpp>
 
 
 
@@ -77,6 +80,30 @@ int main(int argc, const char * argv[])
     for (size_t i = 0; i < outputArray.getCount(); i++)
     {
         std::cout << "  " << i << "    " << buffer[i] << "" << std::endl;
+    }
+
+    // Serialize
+    Network net2;
+    {
+      std::stringstream ss;
+      net.write(ss);
+      net2.read(ss);
+    }
+    net2.initialize();
+
+    Region* region2 = net2.getRegions().getByName("region");
+    region2->executeCommand(loadFileArgs);
+    ArrayRef outputArray2 = region2->getOutputData("dataOut");
+    Real64 *buffer2 = (Real64*)outputArray2.getBuffer();
+
+    net.run(1);
+    net2.run(1);
+
+    NTA_ASSERT(outputArray2.getCount() == outputArray.getCount());
+    for (size_t i = 0; i < outputArray.getCount(); i++)
+    {
+        std::cout << "  " << i << "    " << buffer[i] << "   " << buffer2[i]
+                  << std::endl;
     }
 
     return 0;
