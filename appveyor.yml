@@ -13,6 +13,12 @@ branches:
     - gh-pages
 
 environment:
+  global:
+    # SDK v7.0 MSVC Express 2008's SetEnv.cmd script will fail if the
+    # /E:ON and /V:ON options are not enabled in the batch script intepreter
+    # See: http://stackoverflow.com/a/13751649/163740
+    WITH_COMPILER: "cmd /E:ON /V:ON /C run_with_compiler.cmd"
+
   matrix:
     # Must add CLang, or GCC
     # i.e. - COMPILER_FAMILY: GNU
@@ -71,7 +77,7 @@ install:
   # https://github.com/ogrisel/python-appveyor-demo/blob/master/appveyor.yml
   # Install Python (from the official .msi of http://python.org) and pip when
   # not already installed.
-  - "powershell install_python_pip.ps1"
+  - "powershell %REPO_DIR%\\install_python_pip.ps1"
 
   - cd %REPO_DIR%\build\scripts
   - set EXT_LIBS=%REPO_DIR%\external\windows64\lib
