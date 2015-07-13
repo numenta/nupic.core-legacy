@@ -61,7 +61,7 @@ function InstallPip ($python_home) {
     $pip_path = $python_home + "/Scripts/pip.exe"
     $python_path = $python_home + "/python.exe"
     if ( $(Try { Test-Path $pip_path.trim() } Catch { $false }) ) {
-        Write-Host "pip already installed."
+        Write-Host "pip already installed at " $pip_path
         return $false
     }
 
@@ -74,6 +74,7 @@ function InstallPip ($python_home) {
 }
 
 function InstallPackage ($python_home, $pkg) {
+    Write-Host "pip install " $pkg
     $pip_path = $python_home + "/Scripts/pip.exe"
     & $pip_path install $pkg
 }
@@ -81,7 +82,7 @@ function InstallPackage ($python_home, $pkg) {
 function main () {
     InstallPython $env:PYTHON_VERSION $env:PYTHON_ARCH $env:PYTHON
     InstallPip $env:PYTHON
-    InstallPackage $env:PYTHON wheel
+    InstallPackage $env:PYTHON numpy
 }
 
 main
