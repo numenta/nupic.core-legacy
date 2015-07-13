@@ -114,7 +114,6 @@ struct MemoryMonitor
 void testExceptionBug()
 {
   Network n;
-  Network::registerPyRegion("nupic.regions.TestNode", "TestNode");
   Region *l1 = n.addRegion("l1", "py.TestNode", "");
   //Dimensions d(1);
   Dimensions d(1);
@@ -189,7 +188,6 @@ void testPynodeLinking()
   Network net = Network();
 
   Region * region1 = net.addRegion("region1", "TestNode", "");
-  Network::registerPyRegion("nupic.regions.TestNode", "TestNode");
   Region * region2 = net.addRegion("region2", "py.TestNode", "");
   std::cout << "Linking region 1 to region 2" << std::endl;
   net.link("region1", "region2", "TestFanIn2", "");
@@ -282,7 +280,6 @@ void testPynodeLinking()
 void testSecondTimeLeak()
 {
   Network n;
-  Network::registerPyRegion("nupic.regions.TestNode", "TestNode");
   n.addRegion("r1", "py.TestNode", "");
   n.addRegion("r2", "py.TestNode", "");
 }
