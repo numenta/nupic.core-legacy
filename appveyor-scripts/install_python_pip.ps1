@@ -38,7 +38,7 @@ function DownloadPython ($python_version, $platform_suffix) {
 
 function InstallPython ($python_version, $architecture, $python_home) {
     Write-Host "Installing Python" $python_version "for" $architecture "bit architecture to" $python_home
-    if (Test-Path $python_home) {
+    if ( $(Try { Test-Path $python_home.trim() } Catch { $false }) ) {
         Write-Host $python_home "already exists, skipping."
         return $false
     }
@@ -60,15 +60,17 @@ function InstallPython ($python_version, $architecture, $python_home) {
 function InstallPip ($python_home) {
     $pip_path = $python_home + "/Scripts/pip.exe"
     $python_path = $python_home + "/python.exe"
-    if (-not(Test-Path $pip_path)) {
-        Write-Host "Installing pip..."
-        $webclient = New-Object System.Net.WebClient
-        $webclient.DownloadFile($GET_PIP_URL, $GET_PIP_PATH)
-        Write-Host "Executing:" $python_path $GET_PIP_PATH
-        Start-Process -FilePath "$python_path" -ArgumentList "$GET_PIP_PATH" -Wait -Passthru
-    } else {
+    if ( $(Try { Test-Path $pip_path.trim() } Catch { $false }) ) {
         Write-Host "pip already installed."
+        return $false
     }
+
+    Write-Host "Installing pip..."
+    $webclient = New-Object System.Net.WebClient
+    $webclient.DownloadFile($GET_PIP_URL, $GET_PIP_PATH)
+    Write-Host "Executing:" $python_path $GET_PIP_PATH
+    Start-Process -FilePath "$python_path" -ArgumentList "$GET_PIP_PATH" -Wait -Passthru
+    return $true
 }
 
 function InstallPackage ($python_home, $pkg) {
