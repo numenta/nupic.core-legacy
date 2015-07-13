@@ -63,8 +63,9 @@ namespace nupic
     for (auto pyRegion : pyRegions)
       if (pyRegion.second.find(className) != pyRegion.second.end())
       {
-        NTA_THROW << "A pyRegion with name '" << className << "' already exists. " <<
-        "Unregister the existing region or register the new region using a different name.";
+        NTA_THROW << "A pyRegion with name '" << className << "' already exists. "
+                  << "Unregister the existing region or register the new region using a "
+                  << "different name.";
       }
 
     // Module hasn't been added yet
@@ -76,11 +77,13 @@ namespace nupic
     pyRegions[module].insert(className);
   }
 
-  void RegionImplFactory::registerCPPRegion(const std::string name, GenericRegisteredRegionImpl * wrapper)
+  void RegionImplFactory::registerCPPRegion(const std::string name,
+                                            GenericRegisteredRegionImpl * wrapper)
   {
     if (cppRegions.find(name) != cppRegions.end())
     {
-      NTA_WARN << "A CPPRegion already exists with the name '" << name << "'. Overwriting it...";
+      NTA_WARN << "A CPPRegion already exists with the name '" 
+               << name << "'. Overwriting it...";
     }
     cppRegions[name] = wrapper;
   }
