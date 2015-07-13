@@ -284,6 +284,49 @@ void testSecondTimeLeak()
   n.addRegion("r2", "py.TestNode", "");
 }
 
+void testFailOnRegisterDuplicateRegion()
+{
+  bool caughtException = false;
+  Network::registerPyRegion("nupic.regions.TestDuplicateNodes", "TestDuplicateNodes");
+  try
+  {
+    Network::registerPyRegion("nupic.regions.TestDuplicateNodes", "TestDuplicateNodes");
+  } catch (std::exception& e) {
+    NTA_DEBUG << "Caught exception as expected: '" << e.what() << "'";
+    caughtException = true;
+  }
+  if (caughtException)
+  {
+    NTA_DEBUG << "testFailOnRegisterDuplicateRegion passed";
+  } else {
+    NTA_THROW << "testFailOnRegisterDuplicateRegion did not throw an exception as expected";
+  }
+}
+
+void testUnregisterRegion()
+{
+  Network n;
+  n.addRegion("test", "py.TestNode", "");
+
+  Network::unregisterPyRegion("TestNode");
+
+  bool caughtException = false;
+  try
+  {
+    n.addRegion("test", "py.TestNode", "");
+  } catch (std::exception& e) {
+    NTA_DEBUG << "Caught exception as expected: '" << e.what() << "'";
+    caughtException = true;
+  }
+  if (caughtException)
+  {
+    NTA_DEBUG << "testUnregisterRegion passed";
+  } else {
+    NTA_THROW << "testUnregisterRegion did not throw an exception as expected";
+  }
+
+}
+
 int realmain(bool leakTest)
 {
   // verbose == true turns on extra output that is useful for
@@ -342,11 +385,16 @@ int realmain(bool leakTest)
   testPynodeInputOutputAccess(level2);
   testPynodeArrayParameters(level2);
   testPynodeLinking();
+  testFailOnRegisterDuplicateRegion();
   if (!leakTest)
   {
     //testNuPIC1x();
     //testPynode1xLinking();
   }
+
+  // testUnregisterRegion needs to be the last test run as it will unregister
+  // the region 'TestNode'.
+  testUnregisterRegion();
 
   std::cout << "Done -- all tests passed" << std::endl;
 
