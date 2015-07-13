@@ -60,8 +60,8 @@ namespace nupic
   void RegionImplFactory::registerPyRegion(const std::string module, const std::string className)
   {
     // Verify that no regions exist with the same className
-    for (auto pyr=pyRegions.begin(); pyr!=pyRegions.end(); pyr++)
-      if (pyr->second.find(className) != pyr->second.end())
+    for (auto pyRegion : pyRegions)
+      if (pyRegion.second.find(className) != pyRegion.second.end())
       {
         NTA_THROW << "A pyRegion with name '" << className << "' already exists. " <<
         "Unregister the existing region or register the new region using a different name.";
