@@ -145,7 +145,8 @@ void Connections::updateSynapsePermanence(const Synapse& synapse,
 
   cells_[cell.idx].segments[segment.idx].synapses[synapse.idx].permanence = permanence;
 
-  if (permanence == 0) {
+  if (permanence == 0)
+  {
     destroySynapse(synapse);
   }
 }
