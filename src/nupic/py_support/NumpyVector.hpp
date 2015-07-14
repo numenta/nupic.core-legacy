@@ -1,8 +1,6 @@
 #ifndef NTA_NUMPY_VECTOR_HPP
 #define NTA_NUMPY_VECTOR_HPP
 
-#ifdef NTA_PYTHON_SUPPORT
-
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
  * Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
@@ -59,7 +57,7 @@ namespace nupic {
     NumpyArray &operator=(const NumpyArray &); // Verboten.
 
   protected:
-    const PyArrayObject *p_;
+    PyArrayObject *p_;
     int dtype_;
 
     const char *addressOf0() const;
@@ -423,8 +421,6 @@ namespace nupic {
   //--------------------------------------------------------------------------------
 
 } // End namespace nupic.
-
-#endif // NTA_PYTHON_SUPPORT
 
 #endif
 

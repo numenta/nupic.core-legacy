@@ -30,6 +30,7 @@
 #include "PyArray.hpp"
 #include <nupic/utils/Log.hpp>
 
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include <numpy/arrayobject.h>
 #include <iostream>
 #include <string>
@@ -77,31 +78,31 @@ namespace nupic
     switch (t)
     {
     case NTA_BasicType_Byte: 
-      dtype = PyArray_INT8; 
+      dtype = NPY_INT8;
       break;      
     case NTA_BasicType_Int16: 
-      dtype = PyArray_INT16; 
+      dtype = NPY_INT16;
       break;      
     case NTA_BasicType_UInt16: 
-      dtype = PyArray_UINT16; 
+      dtype = NPY_UINT16;
       break;      
     case NTA_BasicType_Int32: 
-      dtype = PyArray_INT32; 
+      dtype = NPY_INT32;
       break;      
     case NTA_BasicType_UInt32: 
-      dtype = PyArray_UINT32; 
+      dtype = NPY_UINT32;
       break;      
     case NTA_BasicType_Int64: 
-      dtype = PyArray_INT64; 
+      dtype = NPY_INT64;
       break;      
     case NTA_BasicType_UInt64: 
-      dtype = PyArray_UINT64; 
+      dtype = NPY_UINT64;
       break;      
     case NTA_BasicType_Real32: 
-      dtype = PyArray_FLOAT32; 
+      dtype = NPY_FLOAT32;
       break;      
     case NTA_BasicType_Real64: 
-      dtype = PyArray_FLOAT64; 
+      dtype = NPY_FLOAT64;
       break;      
     default:
       NTA_THROW << "Unknown basic type: " << t;

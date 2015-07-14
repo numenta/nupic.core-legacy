@@ -1,5 +1,3 @@
-#ifdef NTA_PYTHON_SUPPORT
-
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
  * Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
@@ -59,7 +57,5 @@ PyObject * SharedPythonOStream::close()
 
   return PyString_FromStringAndSize(ss_.str().c_str(), ss_.str().length());
 }
-
-#endif // NTA_PYTHON_SUPPORT
 
 

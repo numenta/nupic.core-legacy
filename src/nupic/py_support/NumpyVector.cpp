@@ -1,5 +1,3 @@
-#ifdef NTA_PYTHON_SUPPORT
-
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
  * Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
@@ -30,6 +28,7 @@
 //#define NO_IMPORT_ARRAY
 #include <Python.h>
 
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include <numpy/arrayobject.h>
 
 // workaround for change in numpy config.h for python2.5 on windows
@@ -65,35 +64,35 @@ int LookupNumpyDTypeT(const T *)
 template<> class NumpyDTypeTraits<a> { public: enum { numpyDType=b }; }; \
 int nupic::LookupNumpyDType(const a *p) { return LookupNumpyDTypeT(p); }
 
-NTA_DEF_NUMPY_DTYPE_TRAIT(nupic::Byte, PyArray_BYTE);
-NTA_DEF_NUMPY_DTYPE_TRAIT(nupic::Int16, PyArray_INT16);
-NTA_DEF_NUMPY_DTYPE_TRAIT(nupic::UInt16, PyArray_UINT16);
+NTA_DEF_NUMPY_DTYPE_TRAIT(nupic::Byte, NPY_BYTE);
+NTA_DEF_NUMPY_DTYPE_TRAIT(nupic::Int16, NPY_INT16);
+NTA_DEF_NUMPY_DTYPE_TRAIT(nupic::UInt16, NPY_UINT16);
 
 #if defined(NTA_ARCH_64) && (defined(NTA_OS_LINUX) || defined(NTA_OS_DARWIN) || defined(NTA_OS_SPARC))
-NTA_DEF_NUMPY_DTYPE_TRAIT(size_t, PyArray_UINT64);
+NTA_DEF_NUMPY_DTYPE_TRAIT(size_t, NPY_UINT64);
 #else
-NTA_DEF_NUMPY_DTYPE_TRAIT(size_t, PyArray_UINT32);
+NTA_DEF_NUMPY_DTYPE_TRAIT(size_t, NPY_UINT32);
 #endif
 
-NTA_DEF_NUMPY_DTYPE_TRAIT(nupic::Int32, PyArray_INT32);
+NTA_DEF_NUMPY_DTYPE_TRAIT(nupic::Int32, NPY_INT32);
 
 #if !(defined(NTA_ARCH_32) && defined(NTA_OS_LINUX))
 // size_t (above) is the same as UInt32 on linux32
-NTA_DEF_NUMPY_DTYPE_TRAIT(nupic::UInt32, PyArray_UINT32);
+NTA_DEF_NUMPY_DTYPE_TRAIT(nupic::UInt32, NPY_UINT32);
 #endif
 
-NTA_DEF_NUMPY_DTYPE_TRAIT(nupic::Int64, PyArray_INT64);
+NTA_DEF_NUMPY_DTYPE_TRAIT(nupic::Int64, NPY_INT64);
 
 #if !(defined(NTA_ARCH_64) && (defined(NTA_OS_LINUX) || defined(NTA_OS_DARWIN) || defined(NTA_OS_SPARC)))
-NTA_DEF_NUMPY_DTYPE_TRAIT(nupic::UInt64, PyArray_UINT64);
+NTA_DEF_NUMPY_DTYPE_TRAIT(nupic::UInt64, NPY_UINT64);
 #endif
 
 
-NTA_DEF_NUMPY_DTYPE_TRAIT(nupic::Real32, PyArray_FLOAT32);
-NTA_DEF_NUMPY_DTYPE_TRAIT(nupic::Real64, PyArray_FLOAT64);
+NTA_DEF_NUMPY_DTYPE_TRAIT(nupic::Real32, NPY_FLOAT32);
+NTA_DEF_NUMPY_DTYPE_TRAIT(nupic::Real64, NPY_FLOAT64);
 
 #ifdef NTA_QUAD_PRECISION
-NTA_DEF_NUMPY_DTYPE_TRAIT(nupic::Real128, PyArray_FLOAT128);
+NTA_DEF_NUMPY_DTYPE_TRAIT(nupic::Real128, NPY_FLOAT128);
 #endif
 
 // --------------------------------------------------------------
@@ -144,7 +143,7 @@ NumpyArray::NumpyArray(PyObject *p, int dtype, int requiredDimension)
 {
   CheckInit();
 
-  PyObject *contiguous = PyArray_ContiguousFromObject(p, PyArray_NOTYPE, 0, 0);
+  PyObject *contiguous = PyArray_ContiguousFromObject(p, NPY_NOTYPE, 0, 0);
   if(!contiguous)
     throw std::runtime_error("Array could not be made contiguous.");
   if(!PyArray_Check(contiguous))
@@ -156,7 +155,7 @@ NumpyArray::NumpyArray(PyObject *p, int dtype, int requiredDimension)
   if(!casted) throw std::runtime_error("Array could not be cast to requested type.");
   if(!PyArray_Check(casted)) throw std::logic_error("Array is not contiguous.");
   PyArrayObject *final = (PyArrayObject *) casted;
-  if((requiredDimension != 0) && (final->nd != requiredDimension))
+  if((requiredDimension != 0) && (PyArray_NDIM(final) != requiredDimension))
     throw std::runtime_error("Array is not of the required dimension.");
   p_ = final;
 }
@@ -171,39 +170,39 @@ NumpyArray::~NumpyArray()
 int NumpyArray::getRank() const
 {
   if(!p_) throw runtime_error("Null NumpyArray.");
-  return p_->nd;
+  return PyArray_NDIM(p_);
 }
 
 int NumpyArray::dimension(int i) const
 {
   if(!p_) throw runtime_error("Null NumpyArray.");
   if(i < 0) throw runtime_error("Negative dimension requested.");
-  if(i >= p_->nd) throw out_of_range("Dimension exceeds number available.");
-  return int(p_->dimensions[i]);
+  if(i >= PyArray_NDIM(p_)) throw out_of_range("Dimension exceeds number available.");
+  return int(PyArray_DIMS(p_)[i]);
 }
 
 void NumpyArray::getDims(int *out) const
 {
   if(!p_) throw runtime_error("Null NumpyArray.");
-  int n = p_->nd;
-  for(int i=0; i<n; ++i) out[i] = int(p_->dimensions[i]); // npy_intp? New type in latest numpy headers.
+  int n = PyArray_NDIM(p_);
+  for(int i=0; i<n; ++i) out[i] = int(PyArray_DIMS(p_)[i]); // npy_intp? New type in latest numpy headers.
 }
 
 const char *NumpyArray::addressOf0() const
 {
   if(!p_) throw runtime_error("Null NumpyArray.");
-  return p_->data;
+  return (const char *)PyArray_DATA(p_);
 }
 char *NumpyArray::addressOf0()
 {
   if(!p_) throw runtime_error("Numpy NumpyArray.");
-  return p_->data;
+  return (char *)PyArray_DATA(p_);
 }
 
 int NumpyArray::stride(int i) const
 {
   if(!p_) throw runtime_error("Numpy NumpyArray.");
-  return int(p_->strides[i]); // npy_intp? New type in latest numpy headers.
+  return int(PyArray_STRIDES(p_)[i]); // npy_intp? New type in latest numpy headers.
 }
 
 PyObject *NumpyArray::forPython() {
@@ -214,7 +213,4 @@ PyObject *NumpyArray::forPython() {
   }
   else return 0;
 }
-
-#endif // NTA_PYTHON_SUPPORT
-
 

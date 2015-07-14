@@ -1,8 +1,6 @@
 #ifndef NTA_PYTHON_STREAM_HPP
 #define NTA_PYTHON_STREAM_HPP
 
-#ifdef NTA_PYTHON_SUPPORT
-
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
  * Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
@@ -59,8 +57,6 @@ private:
 };
 
 //------------------------------------------------------------------
-
-#endif // NTA_PYTHON_SUPPORT
 
 #endif // NTA_PYTHON_STREAM_HPP
 
