@@ -206,7 +206,6 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cmdOptions):
     pythonIncludeDir,
     SRC_DIR,
     numpyIncludeDir]
-  print commonIncludeDirs
 
   commonCompileFlags = [
     # Adhere to c++11 spec
@@ -326,7 +325,7 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cmdOptions):
                                     swigFlags,
                                     "bindings/algorithms.i")
   libModuleAlgorithms = Extension(
-    "bindings._algorithms",
+    "nupic.bindings._algorithms",
     extra_compile_args=commonCompileFlags,
     define_macros=commonDefines,
     extra_link_args=commonLinkFlags,
@@ -340,7 +339,7 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cmdOptions):
                                         swigFlags,
                                         "bindings/engine_internal.i")
   libModuleEngineInternal = Extension(
-    "bindings._engine_internal",
+    "nupic.bindings._engine_internal",
     extra_compile_args=commonCompileFlags,
     define_macros=commonDefines,
     extra_link_args=commonLinkFlags,
@@ -354,7 +353,7 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cmdOptions):
                               swigFlags,
                               "bindings/math.i")
   libModuleMath = Extension(
-    "bindings._math",
+    "nupic.bindings._math",
     extra_compile_args=commonCompileFlags,
     define_macros=commonDefines,
     extra_link_args=commonLinkFlags,
@@ -365,6 +364,17 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cmdOptions):
   extensions.append(libModuleMath)
 
   return extensions
+
+
+
+def copyProtoFiles(nupicCoreReleaseDir):
+  # Copy proto files located at nupic.core dir into nupic dir
+  protoSourceDir = glob.glob(os.path.join(nupicCoreReleaseDir, "include/nupic/proto/"))[0]
+  protoTargetDir = SRC_DIR + "/bindings/proto"
+  if not os.path.exists(protoTargetDir):
+    os.makedirs(protoTargetDir)
+  for fileName in glob.glob(protoSourceDir + "/*.capnp"):
+    shutil.copy(fileName, protoTargetDir)
 
 
 
@@ -380,5 +390,10 @@ if __name__ == "__main__":
   extensions = getExtensionModules(nupicCoreReleaseDir, platform, bitness,
     options)
 
+  print "Copy capnp proto files"
+  copyProtoFiles(nupicCoreReleaseDir)
+
   print "\nSetup SWIG Python module"
-  setup(name="bindings", ext_modules=extensions)
+  setup(name="nupiccore-python", ext_modules=extensions,
+    namespace_packages=["nupic"])
+
