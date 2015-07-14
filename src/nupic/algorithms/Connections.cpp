@@ -144,6 +144,11 @@ void Connections::updateSynapsePermanence(const Synapse& synapse,
   const Cell& cell = segment.cell;
 
   cells_[cell.idx].segments[segment.idx].synapses[synapse.idx].permanence = permanence;
+
+  if (permanence == 0)
+  {
+    destroySynapse(synapse);
+  }
 }
 
 vector<Segment> Connections::segmentsForCell(const Cell& cell) const
