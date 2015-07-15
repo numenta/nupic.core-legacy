@@ -593,7 +593,6 @@ file(WRITE "${PROJECT_BINARY_DIR}/AddTestHeaders.hpp" "${headers_file_content}")
 #
 add_custom_target(tests_all
                   DEPENDS tests_cpp_region
-                  DEPENDS tests_py_region
                   DEPENDS tests_unit
                   COMMENT "Running all tests"
                   VERBATIM)
