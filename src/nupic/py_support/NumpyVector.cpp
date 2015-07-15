@@ -83,7 +83,7 @@ NTA_DEF_NUMPY_DTYPE_TRAIT(nupic::UInt32, NPY_UINT32);
 
 NTA_DEF_NUMPY_DTYPE_TRAIT(nupic::Int64, NPY_INT64);
 
-#if !(defined(NTA_ARCH_64) && (defined(NTA_OS_LINUX) || defined(NTA_OS_DARWIN) || defined(NTA_OS_SPARC)))
+#if (!(defined(NTA_ARCH_64) && (defined(NTA_OS_LINUX) || defined(NTA_OS_DARWIN) || defined(NTA_OS_SPARC))) && !defined(NTA_OS_WINDOWS))
 NTA_DEF_NUMPY_DTYPE_TRAIT(nupic::UInt64, NPY_UINT64);
 #endif
 
