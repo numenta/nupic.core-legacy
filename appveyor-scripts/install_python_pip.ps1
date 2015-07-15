@@ -73,16 +73,16 @@ function InstallPip ($python_home) {
     return $true
 }
 
-function InstallPackage ($python_home, $pkg) {
-    Write-Host "pip install " $pkg
-    $pip_path = $python_home + "/Scripts/pip.exe"
-    & $pip_path install $pkg
-}
-
 function main () {
     InstallPython $env:PYTHON_VERSION $env:PYTHON_ARCH $env:PYTHON
     InstallPip $env:PYTHON
-    InstallPackage $env:PYTHON numpy
+
+    $pip_path = $env:PYTHON + "/Scripts/pip.exe"
+    Write-Host "pip install " wheel
+    & $pip_path install wheel
+
+    Write-Host "pip install " numpy
+    & $pip_path install -i https://pypi.numenta.com/pypi numpy
 }
 
 main
