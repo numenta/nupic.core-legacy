@@ -445,6 +445,11 @@ target_link_libraries(${EXECUTABLE_PYREGIONTEST} ${COMMON_LIBS})
 set_target_properties(${EXECUTABLE_PYREGIONTEST} PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
 set_target_properties(${EXECUTABLE_PYREGIONTEST}
                       PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
+add_custom_target(tests_py_region
+                  COMMAND ${EXECUTABLE_PYREGIONTEST}
+                  DEPENDS ${EXECUTABLE_PYREGIONTEST}
+                  VERBATIM)
+
 
 #
 # Setup helloregion example
