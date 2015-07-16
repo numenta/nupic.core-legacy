@@ -90,6 +90,12 @@ namespace nupic
     // Allows the user to load custom C++ regions
     static void registerCPPRegion(const std::string name, GenericRegisteredRegionImpl * wrapper);
 
+    // Allows the user to unregister Python regions
+    static void unregisterPyRegion(const std::string className);
+
+    // Allows the user to unregister C++ regions
+    static void unregisterCPPRegion(const std::string name);
+
   private:
     RegionImplFactory() {};
     RegionImplFactory(const RegionImplFactory &);
