@@ -62,6 +62,8 @@ void TemporalMemoryAbstractTest::_feedTM(Sequence sequence, bool learn, int num)
     {
       _tm.compute((UInt)pattern.size(), &pattern[0], learn);
     }
+    if (learn)
+      cout << _tm.mmPrettyPrintConnections();
   }
 
 }

@@ -204,6 +204,8 @@ void TemporalMemoryTutorialTest::testSingleEndlesslyRepeating()
 
 void TemporalMemoryTutorialTest::setUp()
 {
+  //  TemporalMemoryAbstractTest::setUp();
+
 /*
   print("\n"
     "======================================================\n"
@@ -220,8 +222,6 @@ void TemporalMemoryTutorialTest::setUp()
 
   _sequenceMachine = SequenceMachine(patternMachine);
 
-//  TemporalMemoryAbstractTest::setUp();
-
 }
 
 
@@ -230,9 +230,9 @@ void TemporalMemoryTutorialTest::init()
   TemporalMemoryAbstractTest::init();
   _tm.initialize({ 6 }, 4, 1, 0.3, 0.5, 1, 6, 0.1, 0.05, 42);
 
-  _patternMachine = utils::ConsecutivePatternMachine();
-  _patternMachine.initialize(6, vector<UInt>{ 1 }, 100, 42);
-  _sequenceMachine = utils::SequenceMachine(_patternMachine, 42);
+  patternMachine = utils::ConsecutivePatternMachine();
+  patternMachine.initialize(6, vector<UInt>{ 1 }, 100, 42);
+  _sequenceMachine = utils::SequenceMachine(patternMachine, 42);
 
   cout << "Initialized new TM with parameters:" << endl;
 //  cout << pprint.pformat(_computeTMParams(kwargs.get("overrides")));
@@ -250,7 +250,7 @@ void TemporalMemoryTutorialTest::_feedTM(Sequence& sequence, int num, bool learn
   cout << _tm.mmPrettyPrintTraces(_tm.mmGetDefaultTraces(2), _tm.mmGetTraceResets()) << endl;
 
   if (learn)
-    cout << _tm.mmPrettyPrintConnections();
+    cout << _tm.mmPrettyPrintConnections() << endl;
 
 }
 

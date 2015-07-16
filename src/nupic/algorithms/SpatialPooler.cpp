@@ -135,7 +135,7 @@ SpatialPooler::SpatialPooler(vector<UInt> inputDimensions,
                              Real maxBoost,
                              Int seed,
                              UInt spVerbosity,
-                             bool wrapAround) : SpatialPooler::SpatialPooler() 
+                             bool wrapAround) : SpatialPooler::SpatialPooler()
 {
   initialize(inputDimensions,
              columnDimensions,
@@ -373,6 +373,16 @@ void SpatialPooler::setSynPermConnected(Real synPermConnected)
   synPermConnected_ = synPermConnected;
 }
 
+Real SpatialPooler::getSynPermMax() const
+{
+  return synPermMax_;
+}
+
+void SpatialPooler::setSynPermMax(Real synPermMax)
+{
+  synPermMax_ = synPermMax;
+}
+
 Real SpatialPooler::getMinPctOverlapDutyCycles() const
 {
   return minPctOverlapDutyCycles_;
@@ -600,7 +610,7 @@ void SpatialPooler::initialize(vector<UInt> inputDimensions,
 }
 
 void SpatialPooler::compute(UInt inputArray[], bool learn,
-                            UInt activeArray[], bool stripNeverLearned)
+                            UInt activeArray[])
 {
   updateBookeepingVars_(learn);
   calculateOverlap_(inputArray, overlaps_);
@@ -627,14 +637,7 @@ void SpatialPooler::compute(UInt inputArray[], bool learn,
       updateInhibitionRadius_();
       updateMinDutyCycles_();
     }
-  } else if (stripNeverLearned) {
-    stripUnlearnedColumns(activeArray);
   }
-}
-
-void SpatialPooler::compute(UInt inputArray[], bool learn,
-                            UInt activeArray[]) {
-  compute(inputArray, learn, activeArray, true);
 }
 
 void SpatialPooler::stripUnlearnedColumns(UInt activeArray[]) const
@@ -714,7 +717,9 @@ vector<UInt> SpatialPooler::mapPotential_(UInt column, bool wrapAround)
 
 Real SpatialPooler::initPermConnected_()
 {
-  Real p = synPermConnected_ + rng_.getReal64() * synPermActiveInc_ / 4.0;
+  Real p = synPermConnected_ +
+           (synPermMax_ - synPermConnected_)*rng_.getReal64();
+
   return round5_(p);
 }
 

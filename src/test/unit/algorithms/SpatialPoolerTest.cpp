@@ -137,26 +137,26 @@ namespace nupic {
 
     NTA_CHECK(sp1.getNumColumns() == sp2.getNumColumns());
     NTA_CHECK(sp1.getNumInputs() == sp2.getNumInputs());
-    NTA_CHECK(sp1.getPotentialRadius() == 
+    NTA_CHECK(sp1.getPotentialRadius() ==
               sp2.getPotentialRadius());
     NTA_CHECK(sp1.getPotentialPct() == sp2.getPotentialPct());
-    NTA_CHECK(sp1.getGlobalInhibition() == 
+    NTA_CHECK(sp1.getGlobalInhibition() ==
               sp2.getGlobalInhibition());
-    NTA_CHECK(sp1.getNumActiveColumnsPerInhArea() == 
+    NTA_CHECK(sp1.getNumActiveColumnsPerInhArea() ==
               sp2.getNumActiveColumnsPerInhArea());
     NTA_CHECK(almost_eq(sp1.getLocalAreaDensity(),
               sp2.getLocalAreaDensity()));
-    NTA_CHECK(sp1.getStimulusThreshold() == 
+    NTA_CHECK(sp1.getStimulusThreshold() ==
               sp2.getStimulusThreshold());
     NTA_CHECK(sp1.getDutyCyclePeriod() == sp2.getDutyCyclePeriod());
     NTA_CHECK(almost_eq(sp1.getMaxBoost(), sp2.getMaxBoost()));
     NTA_CHECK(sp1.getIterationNum() == sp2.getIterationNum());
-    NTA_CHECK(sp1.getIterationLearnNum() == 
+    NTA_CHECK(sp1.getIterationLearnNum() ==
               sp2.getIterationLearnNum());
     NTA_CHECK(sp1.getSpVerbosity() == sp2.getSpVerbosity());
     NTA_CHECK(sp1.getWrapAround() == sp2.getWrapAround());
     NTA_CHECK(sp1.getUpdatePeriod() == sp2.getUpdatePeriod());
-    NTA_CHECK(almost_eq(sp1.getSynPermTrimThreshold(), 
+    NTA_CHECK(almost_eq(sp1.getSynPermTrimThreshold(),
               sp2.getSynPermTrimThreshold()));
     cout << "check: " << sp1.getSynPermActiveInc() << " " <<
       sp2.getSynPermActiveInc() << endl;
@@ -164,7 +164,7 @@ namespace nupic {
               sp2.getSynPermActiveInc()));
     NTA_CHECK(almost_eq(sp1.getSynPermInactiveDec(),
               sp2.getSynPermInactiveDec()));
-    NTA_CHECK(almost_eq(sp1.getSynPermBelowStimulusInc(), 
+    NTA_CHECK(almost_eq(sp1.getSynPermBelowStimulusInc(),
               sp2.getSynPermBelowStimulusInc()));
     NTA_CHECK(almost_eq(sp1.getSynPermConnected(),
               sp2.getSynPermConnected()));
@@ -251,7 +251,7 @@ namespace nupic {
     delete[] conCounts2;
   }
 
-  void SpatialPoolerTest::setup(SpatialPooler& sp, UInt numInputs, 
+  void SpatialPoolerTest::setup(SpatialPooler& sp, UInt numInputs,
                                 UInt numColumns)
   {
     vector<UInt> inputDim;
@@ -2298,13 +2298,15 @@ namespace nupic {
   {
     SpatialPooler sp;
     Real synPermConnected = 0.2;
-    Real synPermActiveInc = 0.05;
+    Real synPermMax = 1.0;
+
     sp.setSynPermConnected(synPermConnected);
-    sp.setSynPermActiveInc(synPermActiveInc);
+    sp.setSynPermMax(synPermMax);
+
     for (UInt i = 0; i < 100; i++) {
       Real permVal = sp.initPermConnected_();
       NTA_CHECK(permVal >= synPermConnected &&
-                permVal <= synPermConnected + synPermActiveInc / 4.0);
+                permVal <= synPermMax);
     }
   }
 

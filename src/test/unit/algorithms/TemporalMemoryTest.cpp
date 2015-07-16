@@ -1,6 +1,6 @@
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
+ * Copyright (C) 2013-2015, Numenta, Inc.  Unless you have an agreement
  * with Numenta, Inc., for a separate license for this software code, the
  * following terms and conditions apply:
  *
@@ -17,12 +17,12 @@
  * along with this program.  If not, see http://www.gnu.org/licenses.
  *
  * http://numenta.org/licenses/
- * ---------------------------------------------------------------------
+ * ----------------------------------------------------------------------
  */
 
- /** @file
-  * Implementation of unit tests for TemporalMemory
-  */
+/** @file
+ * Implementation of unit tests for TemporalMemory
+ */
 
 #include <cstring>
 #include <fstream>
@@ -83,7 +83,7 @@ namespace nupic {
 
   void TemporalMemoryTest::check_spatial_eq(const TemporalMemory& tm1, const TemporalMemory& tm2)
   {
-    NTA_CHECK(tm1.getNumColumns() == tm2.getNumColumns());
+    NTA_CHECK(tm1.numberOfColumns() == tm2.numberOfColumns());
     NTA_CHECK(tm1.getCellsPerColumn() == tm2.getCellsPerColumn());
     NTA_CHECK(tm1.getActivationThreshold() == tm2.getActivationThreshold());
     NTA_CHECK(tm1.getMinThreshold() == tm2.getMinThreshold());
@@ -129,8 +129,8 @@ namespace nupic {
   void TemporalMemoryTest::testActivateCorrectlyPredictiveCellsEmpty()
   {
     {
-      set<Cell> prevPredictiveCells = {};
-      set<UInt> activeColumns = {};
+      set<Cell> prevPredictiveCells;
+      set<UInt> activeColumns;
 
       set<Cell> activeCells;
       set<Cell> winnerCells;
@@ -139,8 +139,8 @@ namespace nupic {
       tie(activeCells, winnerCells, predictedColumns) =
         tm.activateCorrectlyPredictiveCells(prevPredictiveCells, activeColumns);
 
-      set<Cell> expectedCells = {};
-      set<UInt> expectedCols = {};
+      set<Cell> expectedCells;
+      set<UInt> expectedCols;
       NTA_CHECK(check_set_eq(activeCells, expectedCells));
       NTA_CHECK(check_set_eq(winnerCells, expectedCells));
       NTA_CHECK(check_set_eq(predictedColumns, expectedCols));
@@ -149,7 +149,7 @@ namespace nupic {
     // No previous predictive cells
 
     {
-      set<Cell> prevPredictiveCells = {};
+      set<Cell> prevPredictiveCells;
       set<UInt> activeColumns = { 32, 47, 823 };
 
       set<Cell> activeCells;
@@ -159,8 +159,8 @@ namespace nupic {
       tie(activeCells, winnerCells, predictedColumns) =
         tm.activateCorrectlyPredictiveCells(prevPredictiveCells, activeColumns);
 
-      set<Cell> expectedCells = {};
-      set<UInt> expectedCols = {};
+      set<Cell> expectedCells;
+      set<UInt> expectedCols;
       NTA_CHECK(check_set_eq(activeCells, expectedCells));
       NTA_CHECK(check_set_eq(winnerCells, expectedCells));
       NTA_CHECK(check_set_eq(predictedColumns, expectedCols));
@@ -170,7 +170,7 @@ namespace nupic {
 
     {
       set<Cell> prevPredictiveCells = { Cell(0), Cell(237), Cell(1026), Cell(26337), Cell(26339), Cell(55536) };
-      set<UInt> activeColumns = {};
+      set<UInt> activeColumns;
 
       set<Cell> activeCells;
       set<Cell> winnerCells;
@@ -179,8 +179,8 @@ namespace nupic {
       tie(activeCells, winnerCells, predictedColumns) =
         tm.activateCorrectlyPredictiveCells(prevPredictiveCells, activeColumns);
 
-      set<Cell> expectedCells = {};
-      set<UInt> expectedCols = {};
+      set<Cell> expectedCells;
+      set<UInt> expectedCols;
       NTA_CHECK(check_set_eq(activeCells, expectedCells));
       NTA_CHECK(check_set_eq(winnerCells, expectedCells));
       NTA_CHECK(check_set_eq(predictedColumns, expectedCols));
@@ -237,10 +237,10 @@ namespace nupic {
 
   void TemporalMemoryTest::testBurstColumnsEmpty()
   {
-    set<UInt> activeColumns = {};
-    set<UInt> predictiveCols = {};
-    set<Cell> prevActiveCells = {};
-    set<Cell> prevWinnerCells = {};
+    set<UInt> activeColumns;
+    set<UInt> predictiveCols;
+    set<Cell> prevActiveCells;
+    set<Cell> prevWinnerCells;
     Connections connections = tm.connections;
 
     set<Cell> activeCells;
@@ -250,9 +250,9 @@ namespace nupic {
     tie(activeCells, winnerCells, learningSegments) =
       tm.burstColumns(activeColumns, predictiveCols, prevActiveCells, prevWinnerCells, connections);
 
-    set<Cell> expectedActiveCells = {};
-    set<Cell> expectedWinnerCells = {};
-    vector<Segment> expectedLearningSegments = {};
+    set<Cell> expectedActiveCells;
+    set<Cell> expectedWinnerCells;
+    vector<Segment> expectedLearningSegments;
     NTA_CHECK(check_set_eq(activeCells, expectedActiveCells));
     NTA_CHECK(check_set_eq(winnerCells, expectedWinnerCells));
     NTA_CHECK(check_vector_eq(learningSegments, expectedLearningSegments));
@@ -348,16 +348,17 @@ namespace nupic {
 
     tm.computePredictiveCells(activeCells, connections);
 
-    vector<Segment> expectedActiveSegments = {};
-    vector<Cell> expectedPredictiveCells = {};
+    vector<Segment> expectedActiveSegments;
+    vector<Cell> expectedPredictiveCells;
     NTA_CHECK(check_vector_eq(tm.activeSegments, expectedActiveSegments));
     NTA_CHECK(check_vector_eq(tm.predictiveCells, expectedPredictiveCells));
   }
 
   void TemporalMemoryTest::testBestMatchingCell()
   {
-    Cell* bestCell;
-    Segment* bestSegment;
+    bool foundCell, foundSegment;
+    Cell bestCell;
+    Segment bestSegment;
 
     TemporalMemory tm;
     setup(tm, 2048);
@@ -385,23 +386,28 @@ namespace nupic {
     vector<Cell> cellsForColumn;
 
     cellsForColumn = tm.cellsForColumn(0);
-    tie(bestCell, bestSegment) = tm.bestMatchingCell(cellsForColumn, activeCells, connections);
-    if (bestCell) ASSERT_EQ(*bestCell, Cell(0));
-    if (bestSegment) ASSERT_EQ(*bestSegment, Segment(0, Cell(0)));
+    tie(foundCell, bestCell, foundSegment, bestSegment) = 
+      tm.bestMatchingCell(cellsForColumn, activeCells, connections);
+
+    ASSERT_EQ(bestCell, Cell(0));
+    ASSERT_EQ(bestSegment, Segment(0, Cell(0)));
 
     cellsForColumn = tm.cellsForColumn(3);
-    tie(bestCell, bestSegment) = tm.bestMatchingCell(cellsForColumn, activeCells, connections);
-    if (bestCell) ASSERT_EQ(*bestCell, Cell(106)); // Random cell from column
+    tie(foundCell, bestCell, foundSegment, bestSegment) = 
+      tm.bestMatchingCell(cellsForColumn, activeCells, connections);
+    ASSERT_EQ(bestCell, Cell(106)); // Random cell from column
 
     cellsForColumn = tm.cellsForColumn(999);
-    tie(bestCell, bestSegment) = tm.bestMatchingCell(cellsForColumn, activeCells, connections);
-    if (bestCell) ASSERT_EQ(*bestCell, Cell(31974)); // Random cell from column
+    tie(foundCell, bestCell, foundSegment, bestSegment) = 
+      tm.bestMatchingCell(cellsForColumn, activeCells, connections);
+    ASSERT_EQ(bestCell, Cell(31974)); // Random cell from column
   }
 
   void TemporalMemoryTest::testBestMatchingCellFewestSegments()
   {
-    Cell* cell = NULL;
-    Segment* segment = NULL;
+    bool foundCell, foundSegment;
+    Cell cell;
+    Segment segment;
 
     TemporalMemory tm;
     tm.initialize(vector<UInt>{2}, 2);
@@ -410,24 +416,23 @@ namespace nupic {
     Connections connections = tm.connections;
     connections.createSynapse(connections.createSegment(Cell(0)), 3, 0.3);
 
-    set<Cell> activeSynapsesForSegment = {};
+    set<Cell> activeSynapsesForSegment;
 
     for (int i = 0; i < 100; i++)
     {
       // Never pick cell 0, always pick cell 1
       vector<Cell> cellsForColumn = tm.cellsForColumn(0);
-      tie(cell, segment) = tm.bestMatchingCell(
-        cellsForColumn,
-        activeSynapsesForSegment,
-        connections);
-      if (cell) ASSERT_EQ(*cell, Cell(1));
+      tie(foundCell, cell, foundSegment, segment) = 
+        tm.bestMatchingCell(cellsForColumn, activeSynapsesForSegment, connections);
+      ASSERT_EQ(cell, Cell(1));
     }
   }
 
   void TemporalMemoryTest::testBestMatchingSegment()
   {
     Int numActiveSynapses;
-    Segment* bestSegment = NULL;
+    Segment bestSegment;
+    bool found;
 
     TemporalMemory tm;
     setup(tm, 2048);
@@ -455,24 +460,22 @@ namespace nupic {
     Cell cell;
     cell.idx = 0;
 
-    tie(bestSegment, numActiveSynapses) = tm.bestMatchingSegment(cell, activeCells, connections);
-    if (bestSegment) ASSERT_EQ(*bestSegment, Segment(0, Cell(0)));
+    tie(found, bestSegment, numActiveSynapses) = tm.bestMatchingSegment(cell, activeCells, connections);
+    if (found) ASSERT_EQ(bestSegment, Segment(0, Cell(0)));
     ASSERT_EQ(numActiveSynapses, 2);
 
     cell.idx = 1;
-    tie(bestSegment, numActiveSynapses) = tm.bestMatchingSegment(cell, activeCells, connections);
-    if (bestSegment) ASSERT_EQ(*bestSegment, Segment(0, Cell(1)));
+    tie(found, bestSegment, numActiveSynapses) = tm.bestMatchingSegment(cell, activeCells, connections);
+    if (found) ASSERT_EQ(bestSegment, Segment(0, Cell(1)));
     ASSERT_EQ(numActiveSynapses, 1);
 
     cell.idx = 8;
-    tie(bestSegment, numActiveSynapses) = tm.bestMatchingSegment(cell, activeCells, connections);
-    ASSERT_EQ(bestSegment, (Segment*)NULL);
-    ASSERT_EQ(numActiveSynapses, 0);
+    tie(found, bestSegment, numActiveSynapses) = tm.bestMatchingSegment(cell, activeCells, connections);
+    ASSERT_EQ(found, false);
 
     cell.idx = 100;
-    tie(bestSegment, numActiveSynapses) = tm.bestMatchingSegment(cell, activeCells, connections);
-    ASSERT_EQ(bestSegment, (Segment*)NULL);
-    ASSERT_EQ(numActiveSynapses, 0);
+    tie(found, bestSegment, numActiveSynapses) = tm.bestMatchingSegment(cell, activeCells, connections);
+    ASSERT_EQ(found, false);
   }
 
   void TemporalMemoryTest::testLeastUsedCell()
@@ -481,18 +484,20 @@ namespace nupic {
     tm.initialize(vector<UInt>{2}, 2);
 
     Connections connections = tm.connections;
-    Segment* segment = NULL;
     connections.createSynapse(connections.createSegment(Cell(0)), 3, 0.3);
 
-    set<Cell> cells = {};
+    set<Cell> cells;
+    Segment segment;
+    Cell cell;
+    bool foundCell, foundSegment;
 
     for (int i = 0; i < 100; i++)
     {
       // Never pick cell 0, always pick cell 1
       vector<Cell> cellsForColumn = tm.cellsForColumn(0);
-      Cell* cell = NULL;
-      tie(cell, segment) = tm.bestMatchingCell(cellsForColumn, cells, connections);
-      if (cell) ASSERT_EQ(*cell, Cell(1));
+      tie(foundCell, cell, foundSegment, segment) = 
+        tm.bestMatchingCell(cellsForColumn, cells, connections);
+      ASSERT_EQ(cell, Cell(1));
     }
   }
 
@@ -592,7 +597,7 @@ namespace nupic {
     set<Cell> winnerCells = { Cell(23) };
 
     // Ensure that no additional(duplicate) cells were picked
-    set<Cell> expectedCells = {};
+    set<Cell> expectedCells;
     set<Cell> learningCells = tm.pickCellsToLearnOn(2, segment, winnerCells, connections);
     NTA_CHECK(check_set_eq(learningCells, expectedCells));
   }

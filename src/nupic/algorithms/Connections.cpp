@@ -46,15 +46,6 @@ Connections::Connections(CellIdx numCells,
 void Connections::initialize(CellIdx numCells,
                              SegmentIdx maxSegmentsPerCell)
 {
-  if (numCells > CELL_MAX)
-  {
-    NTA_THROW << "Attemped to create Connections with numCells > CELL_MAX";
-  }
-  if (maxSegmentsPerCell > SEGMENT_MAX)
-  {
-    NTA_THROW << "Attemped to create Connections with maxSegmentsPerCell > SEGMENT_MAX";
-  }
-
   cells_ = vector<CellData>(numCells);
   numSegments_ = 0;
   numSynapses_ = 0;
@@ -68,7 +59,7 @@ Segment Connections::createSegment(const Cell& cell)
   SegmentData segmentData = {vector<SynapseData>(), false, iteration_};
   Segment segment(segments.size(), cell);
 
-  if (segments.size() == (size_t)maxSegmentsPerCell_)
+  if ((SegmentIdx)segments.size() == maxSegmentsPerCell_)
   {
     bool found = leastRecentlyUsedSegment(cell, segment);
     if (!found) { NTA_THROW << "Unable to find segment to reuse."; }
@@ -89,7 +80,9 @@ Synapse Connections::createSynapse(const Segment& segment,
                                    Permanence permanence)
 {
   vector<SynapseData>& synapses = cells_[segment.cell.idx].segments[segment.idx].synapses;
-  if (synapses.size() == SYNAPSE_MAX)
+  // TODO: Allow specifying the max number of synapses per segment
+  // in the constructor (https://github.com/numenta/nupic.core/issues/250)
+  if (synapses.size() == MAX_SYNAPSES_PER_SEGMENT)
   {
     NTA_THROW << "Cannot create synapse: segment has reached maximum number of synapses.";
   }
@@ -213,7 +206,8 @@ SynapseData Connections::dataForSynapse(const Synapse& synapse) const
 
 std::vector<Synapse> Connections::synapsesForPresynapticCell(const Cell& presynapticCell) const
 {
-  if (synapsesForPresynapticCell_.find(presynapticCell) == synapsesForPresynapticCell_.end())
+  if (synapsesForPresynapticCell_.find(presynapticCell) == 
+      synapsesForPresynapticCell_.end())
     return vector<Synapse>{};
 
   return synapsesForPresynapticCell_.at(presynapticCell.idx);

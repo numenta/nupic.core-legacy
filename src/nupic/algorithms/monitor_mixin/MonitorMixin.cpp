@@ -117,7 +117,7 @@ string TemporalMemoryMonitorMixin::mmPrettyPrintConnections()
   //@return (string)Pretty - printed text
   string text = "";
 
-  text += "Segments: (format => (numSegments) [(source cell=permanence ...),       ...]\n";
+  text += "(numSegments) [(source cell=permanence ...), ...]\n";
   text += "------------------------------------\n";
 
   vector<UInt> columns = nupic::utils::range(numberOfColumns());
@@ -145,7 +145,7 @@ string TemporalMemoryMonitorMixin::mmPrettyPrintConnections()
           SynapseData data = connections.dataForSynapse(synapse);
           synapseList.push_back(data);
         }
-        sort(synapseList.begin(), synapseList.end());
+        //sort(synapseList.begin(), synapseList.end());
 
         string synapseStringList = "";
         for (SynapseData synapseData : synapseList)
