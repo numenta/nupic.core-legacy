@@ -118,7 +118,9 @@ if("${PROJECT_BUILD_ARTIFACTS_DIR}" STREQUAL "")
 endif()
 
 find_package(PythonInterp REQUIRED)
-execute_process(COMMAND "${PYTHON_EXECUTABLE}" "-c" "import sys; import os; import numpy; sys.stdout.write(os.path.dirname(numpy.get_include()))" OUTPUT_VARIABLE NUMPY_CORE)
+execute_process(COMMAND "${PYTHON_EXECUTABLE}" "-c" 
+                        "import numpy; import os; import sys; sys.stdout.write(os.path.dirname(numpy.get_include()))"
+                         OUTPUT_VARIABLE NUMPY_CORE)
 include_directories(SYSTEM
                     "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/include"
                     "${REPOSITORY_DIR}/external/common/include"
