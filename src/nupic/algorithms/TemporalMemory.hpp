@@ -84,24 +84,24 @@ namespace nupic {
         */
         TemporalMemory(
           vector<UInt> columnDimensions,
-          Int cellsPerColumn = 32,
-          Int activationThreshold = 13,
+          UInt cellsPerColumn = 32,
+          UInt activationThreshold = 13,
           Permanence initialPermanence = 0.21,
           Permanence connectedPermanence = 0.50,
-          Int minThreshold = 10,
-          Int maxNewSynapseCount = 20,
+          UInt minThreshold = 10,
+          UInt maxNewSynapseCount = 20,
           Permanence permanenceIncrement = 0.10,
           Permanence permanenceDecrement = 0.10,
           Int seed = 1);
 
         virtual void initialize(
           vector<UInt> columnDimensions = { 2048 },
-          Int cellsPerColumn = 32,
-          Int activationThreshold = 13,
+          UInt cellsPerColumn = 32,
+          UInt activationThreshold = 13,
           Permanence initialPermanence = 0.21,
           Permanence connectedPermanence = 0.50,
-          Int minThreshold = 10,
-          Int maxNewSynapseCount = 20,
+          UInt minThreshold = 10,
+          UInt maxNewSynapseCount = 20,
           Permanence permanenceIncrement = 0.10,
           Permanence permanenceDecrement = 0.10,
           Int seed = 1);
@@ -303,10 +303,12 @@ namespace nupic {
          *	@param connections  Connectivity of layer
          *
          *	@return (tuple)Contains:
-         *   `cell`        (int),
-         *   `bestSegment` (int)
+         *   `foundCell`    (bool),
+         *   `bestCell`     (int),
+         *   `foundSegment` (bool),
+         *   `bestSegment`  (int)
          */
-        tuple<Cell*, Segment*> bestMatchingCell(
+        tuple<bool, Cell, bool, Segment> bestMatchingCell(
           vector<Cell>& cells,
           set<Cell>& activeCells,
           Connections& connections);
@@ -323,7 +325,7 @@ namespace nupic {
          *  `segment`                 (int),
          *  `connectedActiveSynapses` (set)
          */
-        tuple<Segment*, Int> bestMatchingSegment(
+        tuple<bool, Segment, Int> bestMatchingSegment(
           Cell& cell,
           set<Cell>& activeCells,
           Connections& connections);
@@ -406,13 +408,6 @@ namespace nupic {
         vector<Cell> cellsForColumn(Int column);
 
         /**
-         * Returns the number of columns in this layer.
-         *
-         * @return (int) Number of columns
-         */
-        Int numberOfColumns(void);
-
-        /**
          * Returns the number of cells in this layer.
          *
          * @return (int) Number of cells
@@ -440,22 +435,22 @@ namespace nupic {
          *
          * @returns Integer number of column numbers
          */
-        Int getNumColumns() const;
+        UInt numberOfColumns() const;
 
         /**
          * Returns the number of cells per column.
          *
          * @returns Integer number of cells per column
          */
-        Int getCellsPerColumn() const;
+        UInt getCellsPerColumn() const;
 
         /**
          * Returns the activation threshold.
          *
          * @returns Integer number of the activation threshold
          */
-        Int getActivationThreshold() const;
-        void setActivationThreshold(Int);
+        UInt getActivationThreshold() const;
+        void setActivationThreshold(UInt);
 
         /**
          * Returns the initial permanence.
@@ -478,16 +473,16 @@ namespace nupic {
          *
          * @returns Integer number of minimum threshold
          */
-        Int getMinThreshold() const;
-        void setMinThreshold(Int);
+        UInt getMinThreshold() const;
+        void setMinThreshold(UInt);
 
         /**
          * Returns the maximum new synapse count.
          *
          * @returns Integer number of maximum new synapse count
          */
-        Int getMaxNewSynapseCount() const;
-        void setMaxNewSynapseCount(Int);
+        UInt getMaxNewSynapseCount() const;
+        void setMaxNewSynapseCount(UInt);
 
         /**
          * Returns the permanence increment.
@@ -510,7 +505,7 @@ namespace nupic {
          *
          * @param column Column index
          */
-        bool _validateColumn(Int column);
+        bool _validateColumn(UInt column);
 
         /**
          * Raises an error if cell index is invalid.
@@ -586,16 +581,16 @@ namespace nupic {
       protected:
         UInt numColumns_;
         vector<UInt> columnDimensions_;
-        Int cellsPerColumn_;
-        Int activationThreshold_;
-        Int minThreshold_;
-        Int maxNewSynapseCount_;
+        UInt cellsPerColumn_;
+        UInt activationThreshold_;
+        UInt minThreshold_;
+        UInt maxNewSynapseCount_;
         Permanence initialPermanence_;
         Permanence connectedPermanence_;
         Permanence permanenceIncrement_;
         Permanence permanenceDecrement_;
 
-        Int version_;
+        UInt version_;
         Random _rng;
 
       public:
@@ -603,6 +598,7 @@ namespace nupic {
         set<Cell> winnerCells;
         vector<Segment> activeSegments;
         vector<Cell> predictiveCells;
+        set<UInt> predictedColumns;
         Connections connections;
       };
 

@@ -83,7 +83,7 @@ namespace nupic {
 
   void TemporalMemoryTest::check_spatial_eq(const TemporalMemory& tm1, const TemporalMemory& tm2)
   {
-    NTA_CHECK(tm1.getNumColumns() == tm2.getNumColumns());
+    NTA_CHECK(tm1.numberOfColumns() == tm2.numberOfColumns());
     NTA_CHECK(tm1.getCellsPerColumn() == tm2.getCellsPerColumn());
     NTA_CHECK(tm1.getActivationThreshold() == tm2.getActivationThreshold());
     NTA_CHECK(tm1.getMinThreshold() == tm2.getMinThreshold());
@@ -224,7 +224,7 @@ namespace nupic {
 
     set<Cell> expectedActiveCells = { Cell(0), Cell(1), Cell(2), Cell(3), Cell(4), Cell(5), Cell(6), Cell(7) };
     set<Cell> expectedWinnerCells = { Cell(0), Cell(7) }; // 7 is randomly chosen cell
-    vector<Segment> expectedLearningSegments = { Segment(0, Cell(0)), Segment(0, Cell(7)) };
+    vector<Segment> expectedLearningSegments = { Segment(2, Cell(0)), Segment(0, Cell(7)) };
     NTA_CHECK(check_set_eq(activeCells, expectedActiveCells));
     NTA_CHECK(check_set_eq(winnerCells, expectedWinnerCells));
     NTA_CHECK(check_vector_eq(learningSegments, expectedLearningSegments));
@@ -356,8 +356,9 @@ namespace nupic {
 
   void TemporalMemoryTest::testBestMatchingCell()
   {
-    Cell* bestCell;
-    Segment* bestSegment;
+    bool foundCell, foundSegment;
+    Cell bestCell;
+    Segment bestSegment;
 
     TemporalMemory tm;
     setup(tm, 2048);
@@ -385,23 +386,28 @@ namespace nupic {
     vector<Cell> cellsForColumn;
 
     cellsForColumn = tm.cellsForColumn(0);
-    tie(bestCell, bestSegment) = tm.bestMatchingCell(cellsForColumn, activeCells, connections);
-    if (bestCell) ASSERT_EQ(*bestCell, Cell(0));
-    if (bestSegment) ASSERT_EQ(*bestSegment, Segment(0, Cell(0)));
+    tie(foundCell, bestCell, foundSegment, bestSegment) = 
+      tm.bestMatchingCell(cellsForColumn, activeCells, connections);
+
+    ASSERT_EQ(bestCell, Cell(0));
+    ASSERT_EQ(bestSegment, Segment(0, Cell(0)));
 
     cellsForColumn = tm.cellsForColumn(3);
-    tie(bestCell, bestSegment) = tm.bestMatchingCell(cellsForColumn, activeCells, connections);
-    if (bestCell) ASSERT_EQ(*bestCell, Cell(106)); // Random cell from column
+    tie(foundCell, bestCell, foundSegment, bestSegment) = 
+      tm.bestMatchingCell(cellsForColumn, activeCells, connections);
+    ASSERT_EQ(bestCell, Cell(106)); // Random cell from column
 
     cellsForColumn = tm.cellsForColumn(999);
-    tie(bestCell, bestSegment) = tm.bestMatchingCell(cellsForColumn, activeCells, connections);
-    if (bestCell) ASSERT_EQ(*bestCell, Cell(31974)); // Random cell from column
+    tie(foundCell, bestCell, foundSegment, bestSegment) = 
+      tm.bestMatchingCell(cellsForColumn, activeCells, connections);
+    ASSERT_EQ(bestCell, Cell(31974)); // Random cell from column
   }
 
   void TemporalMemoryTest::testBestMatchingCellFewestSegments()
   {
-    Cell* cell = NULL;
-    Segment* segment = NULL;
+    bool foundCell, foundSegment;
+    Cell cell;
+    Segment segment;
 
     TemporalMemory tm;
     tm.initialize(vector<UInt>{2}, 2);
@@ -416,18 +422,17 @@ namespace nupic {
     {
       // Never pick cell 0, always pick cell 1
       vector<Cell> cellsForColumn = tm.cellsForColumn(0);
-      tie(cell, segment) = tm.bestMatchingCell(
-        cellsForColumn,
-        activeSynapsesForSegment,
-        connections);
-      if (cell) ASSERT_EQ(*cell, Cell(1));
+      tie(foundCell, cell, foundSegment, segment) = 
+        tm.bestMatchingCell(cellsForColumn, activeSynapsesForSegment, connections);
+      ASSERT_EQ(cell, Cell(1));
     }
   }
 
   void TemporalMemoryTest::testBestMatchingSegment()
   {
     Int numActiveSynapses;
-    Segment* bestSegment = NULL;
+    Segment bestSegment;
+    bool found;
 
     TemporalMemory tm;
     setup(tm, 2048);
@@ -455,24 +460,22 @@ namespace nupic {
     Cell cell;
     cell.idx = 0;
 
-    tie(bestSegment, numActiveSynapses) = tm.bestMatchingSegment(cell, activeCells, connections);
-    if (bestSegment) ASSERT_EQ(*bestSegment, Segment(0, Cell(0)));
+    tie(found, bestSegment, numActiveSynapses) = tm.bestMatchingSegment(cell, activeCells, connections);
+    if (found) ASSERT_EQ(bestSegment, Segment(0, Cell(0)));
     ASSERT_EQ(numActiveSynapses, 2);
 
     cell.idx = 1;
-    tie(bestSegment, numActiveSynapses) = tm.bestMatchingSegment(cell, activeCells, connections);
-    if (bestSegment) ASSERT_EQ(*bestSegment, Segment(0, Cell(1)));
+    tie(found, bestSegment, numActiveSynapses) = tm.bestMatchingSegment(cell, activeCells, connections);
+    if (found) ASSERT_EQ(bestSegment, Segment(0, Cell(1)));
     ASSERT_EQ(numActiveSynapses, 1);
 
     cell.idx = 8;
-    tie(bestSegment, numActiveSynapses) = tm.bestMatchingSegment(cell, activeCells, connections);
-    ASSERT_EQ(bestSegment, (Segment*)NULL);
-    ASSERT_EQ(numActiveSynapses, 0);
+    tie(found, bestSegment, numActiveSynapses) = tm.bestMatchingSegment(cell, activeCells, connections);
+    ASSERT_EQ(found, false);
 
     cell.idx = 100;
-    tie(bestSegment, numActiveSynapses) = tm.bestMatchingSegment(cell, activeCells, connections);
-    ASSERT_EQ(bestSegment, (Segment*)NULL);
-    ASSERT_EQ(numActiveSynapses, 0);
+    tie(found, bestSegment, numActiveSynapses) = tm.bestMatchingSegment(cell, activeCells, connections);
+    ASSERT_EQ(found, false);
   }
 
   void TemporalMemoryTest::testLeastUsedCell()
@@ -481,18 +484,20 @@ namespace nupic {
     tm.initialize(vector<UInt>{2}, 2);
 
     Connections connections = tm.connections;
-    Segment* segment = NULL;
     connections.createSynapse(connections.createSegment(Cell(0)), 3, 0.3);
 
     set<Cell> cells;
+    Segment segment;
+    Cell cell;
+    bool foundCell, foundSegment;
 
     for (int i = 0; i < 100; i++)
     {
       // Never pick cell 0, always pick cell 1
       vector<Cell> cellsForColumn = tm.cellsForColumn(0);
-      Cell* cell = NULL;
-      tie(cell, segment) = tm.bestMatchingCell(cellsForColumn, cells, connections);
-      if (cell) ASSERT_EQ(*cell, Cell(1));
+      tie(foundCell, cell, foundSegment, segment) = 
+        tm.bestMatchingCell(cellsForColumn, cells, connections);
+      ASSERT_EQ(cell, Cell(1));
     }
   }
 
