@@ -23,8 +23,8 @@ struct ConnectionsProto {
   }
 
   cells @0 :List(CellProto);
-  maxSegmentsPerCell @1 :UInt8;
+  maxSegmentsPerCell @1 :UInt16;
   iteration @2 :UInt64;
-  maxSynapsesPerSegment @3 :UInt8;
+  maxSynapsesPerSegment @3 :UInt16;
 
 }
