@@ -36,7 +36,8 @@ using namespace nupic::algorithms::connections;
 
 #define SEED 42
 
-namespace nupic {
+namespace nupic
+{
 
   void ConnectionsPerformanceTest::RunTests()
   {
@@ -56,7 +57,8 @@ namespace nupic {
     Connections connections(2048);
     setupSampleConnections(connections);
 
-    for (int i = 0; i < 1000000; i++) {
+    for (int i = 0; i < 1000000; i++)
+    {
       Activity activity = computeSampleActivity(connections);
     }
 
@@ -76,11 +78,13 @@ namespace nupic {
     vector<Cell> sdr;
     Activity activity;
 
-    for (UInt c = 0; c < numCells; c++) {
+    for (UInt c = 0; c < numCells; c++)
+    {
       cell = Cell(c);
       segment = connections.createSegment(c);
 
-      for (UInt i = 0; i < numInputs; i++) {
+      for (UInt i = 0; i < numInputs; i++)
+      {
         connections.createSynapse(segment, i, (Permanence)rand()/RAND_MAX);
       }
     }
@@ -93,7 +97,8 @@ namespace nupic {
     SynapseData synapseData;
     Permanence permanence;
 
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < 100; i++)
+    {
       sdr = randomSDR(numInputs, w);
       activity = connections.computeActivity(sdr, 0.5, 0);
 
@@ -101,27 +106,33 @@ namespace nupic {
                                    activity.numActiveSynapsesForSegment.end());
 
       sort(numActiveSynapsesList.begin(), numActiveSynapsesList.end(),
-           [](const pair<Segment, SynapseIdx>& left, const pair<Segment, SynapseIdx>& right) {
+           [](const pair<Segment, SynapseIdx>& left, const pair<Segment, SynapseIdx>& right)
+           {
              return left.second > right.second;
            });
 
       winnerCells.clear();
 
-      for (UInt j = 0; j < w; j++) {
+      for (UInt j = 0; j < w; j++)
+      {
         winnerCells.push_back(numActiveSynapsesList[j].first.cell);
       }
 
-      for (Cell cell : winnerCells) {
+      for (Cell cell : winnerCells)
+      {
         segment = Segment(0, cell);
 
-        for (Synapse synapse : connections.synapsesForSegment(segment)) {
+        for (Synapse synapse : connections.synapsesForSegment(segment))
+        {
           synapseData = connections.dataForSynapse(synapse);
           permanence = synapseData.permanence;
 
-          if (find(sdr.begin(), sdr.end(), synapseData.presynapticCell) != sdr.end()) {
+          if (find(sdr.begin(), sdr.end(), synapseData.presynapticCell) != sdr.end())
+          {
             permanence += 0.2;
           }
-          else {
+          else
+          {
             permanence -= 0.1;
           }
 
@@ -139,7 +150,8 @@ namespace nupic {
 
     // Compute
 
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < 100; i++)
+    {
       sdr = randomSDR(numInputs, w);
       connections.computeActivity(sdr, 0.5, 0);
     }
@@ -159,11 +171,13 @@ namespace nupic {
     set<UInt> sdrSet = set<UInt>();
     vector<Cell> sdr = vector<Cell>();
 
-    for (UInt i = 0; i < w; i++) {
+    for (UInt i = 0; i < w; i++)
+    {
       sdrSet.insert(rand() % (UInt)(n + 1));
     }
 
-    for (UInt c : sdrSet) {
+    for (UInt c : sdrSet)
+    {
       sdr.push_back(Cell(c));
     }
 
