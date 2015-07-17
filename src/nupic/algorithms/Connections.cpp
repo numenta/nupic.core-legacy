@@ -230,7 +230,8 @@ bool Connections::mostActiveSegmentForCells(const vector<Cell>& cells,
 
       for (auto synapse : synapses)
       {
-        if (!synapse.destroyed && binary_search(input.begin(), input.end(), synapse.presynapticCell))
+        if (!synapse.destroyed && synapse.permanence > 0 &&
+            binary_search(input.begin(), input.end(), synapse.presynapticCell))
         {
           numSynapses++;
         }
