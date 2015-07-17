@@ -51,8 +51,6 @@ namespace nupic
 
     void checkpoint(clock_t timer, std::string text);
     std::vector<Cell> randomSDR(UInt n, UInt w);
-    void setupSampleConnections(Connections &connections);
-    Activity computeSampleActivity(Connections &connections);
 
   }; // end class ConnectionsPerformanceTest
 
