@@ -52,15 +52,9 @@ namespace nupic
    */
   void ConnectionsPerformanceTest::testTemporalMemoryUsage()
   {
-    // TODO: Implement actual test, this is just a placeholder for now
     clock_t timer = clock();
-    Connections connections(2048);
-    setupSampleConnections(connections);
 
-    for (int i = 0; i < 1000000; i++)
-    {
-      Activity activity = computeSampleActivity(connections);
-    }
+    // TODO: Implement actual test, this is just a placeholder for now
 
     checkpoint(timer, "testTemporalMemoryUsage");
   }
@@ -182,58 +176,6 @@ namespace nupic
     }
 
     return sdr;
-  }
-
-  void ConnectionsPerformanceTest::setupSampleConnections(Connections &connections)
-  {
-    Segment segment;
-    Synapse synapse;
-    Cell cell, presynapticCell;
-
-    cell.idx = 10;
-    segment = connections.createSegment(cell);
-
-    presynapticCell.idx = 150;
-    synapse = connections.createSynapse(segment, presynapticCell, 0.85);
-    presynapticCell.idx = 151;
-    synapse = connections.createSynapse(segment, presynapticCell, 0.15);
-
-    cell.idx = 20;
-    segment = connections.createSegment(cell);
-
-    presynapticCell.idx = 80;
-    synapse = connections.createSynapse(segment, presynapticCell, 0.85);
-    presynapticCell.idx = 81;
-    synapse = connections.createSynapse(segment, presynapticCell, 0.85);
-    presynapticCell.idx = 82;
-    synapse = connections.createSynapse(segment, presynapticCell, 0.85);
-    connections.updateSynapsePermanence(synapse, 0.15);
-
-    segment = connections.createSegment(cell);
-
-    presynapticCell.idx = 50;
-    synapse = connections.createSynapse(segment, presynapticCell, 0.85);
-    presynapticCell.idx = 51;
-    synapse = connections.createSynapse(segment, presynapticCell, 0.85);
-    presynapticCell.idx = 52;
-    synapse = connections.createSynapse(segment, presynapticCell, 0.15);
-  }
-
-  Activity ConnectionsPerformanceTest::computeSampleActivity(Connections &connections)
-  {
-    Cell cell;
-    vector<Cell> input;
-
-    cell.idx = 150; input.push_back(cell);
-    cell.idx = 151; input.push_back(cell);
-    cell.idx = 50; input.push_back(cell);
-    cell.idx = 52; input.push_back(cell);
-    cell.idx = 80; input.push_back(cell);
-    cell.idx = 81; input.push_back(cell);
-    cell.idx = 82; input.push_back(cell);
-
-    Activity activity = connections.computeActivity(input, 0.50, 2);
-    return activity;
   }
 
 } // end namespace nupic
