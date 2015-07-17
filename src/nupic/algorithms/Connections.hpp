@@ -230,9 +230,9 @@ namespace nupic
         /**
          * Connections constructor.
          *
-         * @param numCells              Number of cells. Must be <= CELL_MAX.
-         * @param maxSegmentsPerCell    Maximum number of segments per cell. Must be <= SEGMENT_MAX.
-         * @param maxSynapsesPerSegment Maximum number of synapses per segment. Must be <= SYNAPSE_MAX.
+         * @param numCells              Number of cells.
+         * @param maxSegmentsPerCell    Maximum number of segments per cell.
+         * @param maxSynapsesPerSegment Maximum number of synapses per segment.
          */
         Connections(CellIdx numCells,
                     SegmentIdx maxSegmentsPerCell=MAX_SEGMENTS_PER_CELL,
@@ -243,9 +243,9 @@ namespace nupic
         /**
          * Initialize connections.
          *
-         * @param numCells              Number of cells. Must be <= CELL_MAX.
-         * @param maxSegmentsPerCell    Maximum number of segments per cell. Must be <= SEGMENT_MAX.
-         * @param maxSynapsesPerSegment Maximum number of synapses per segment. Must be <= SYNAPSE_MAX.
+         * @param numCells              Number of cells.
+         * @param maxSegmentsPerCell    Maximum number of segments per cell.
+         * @param maxSynapsesPerSegment Maximum number of synapses per segment.
          */
         void initialize(CellIdx numCells,
                         SegmentIdx maxSegmentsPerCell,
