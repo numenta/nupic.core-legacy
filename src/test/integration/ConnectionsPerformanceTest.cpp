@@ -27,17 +27,23 @@
 #include <fstream>
 #include <iostream>
 #include <time.h>
+#include <stdlib.h>
 #include "ConnectionsPerformanceTest.hpp"
 
 using namespace std;
 using namespace nupic;
 using namespace nupic::algorithms::connections;
 
+#define SEED 42
+
 namespace nupic {
 
   void ConnectionsPerformanceTest::RunTests()
   {
+    srand(SEED);
+
     testTemporalMemoryUsage();
+    testSpatialPoolerUsage();
   }
 
   /**
@@ -46,7 +52,7 @@ namespace nupic {
   void ConnectionsPerformanceTest::testTemporalMemoryUsage()
   {
     // TODO: Implement actual test, this is just a placeholder for now
-    clock_t start = clock();
+    clock_t timer = clock();
     Connections connections(2048);
     setupSampleConnections(connections);
 
@@ -54,8 +60,114 @@ namespace nupic {
       Activity activity = computeSampleActivity(connections);
     }
 
-    float duration = (float)(clock() - start) / CLOCKS_PER_SEC;
-    cout << "testTemporalMemoryUsage: " << duration << endl;
+    checkpoint(timer, "testTemporalMemoryUsage");
+  }
+
+  /**
+   * Tests typical usage of Connections with Spatial Pooler.
+   */
+  void ConnectionsPerformanceTest::testSpatialPoolerUsage()
+  {
+    clock_t timer = clock();
+    UInt numCells = 2048, numInputs = 2048, w = 40;
+    Connections connections(numCells, 1, numInputs);
+    Cell cell;
+    Segment segment;
+    vector<Cell> sdr;
+    Activity activity;
+
+    for (UInt c = 0; c < numCells; c++) {
+      cell = Cell(c);
+      segment = connections.createSegment(c);
+
+      for (UInt i = 0; i < numInputs; i++) {
+        connections.createSynapse(segment, i, (Permanence)rand()/RAND_MAX);
+      }
+    }
+
+    checkpoint(timer, "testSpatialPoolerUsage: initialize");
+
+    // Learn
+    vector< pair<Segment, SynapseIdx> > numActiveSynapsesList;
+    vector<Cell>winnerCells;
+    SynapseData synapseData;
+    Permanence permanence;
+
+    for (int i = 0; i < 100; i++) {
+      sdr = randomSDR(numInputs, w);
+      activity = connections.computeActivity(sdr, 0.5, 0);
+
+      numActiveSynapsesList.assign(activity.numActiveSynapsesForSegment.begin(),
+                                   activity.numActiveSynapsesForSegment.end());
+
+      sort(numActiveSynapsesList.begin(), numActiveSynapsesList.end(),
+           [](const pair<Segment, SynapseIdx>& left, const pair<Segment, SynapseIdx>& right) {
+             return left.second > right.second;
+           });
+
+      winnerCells.clear();
+
+      for (UInt j = 0; j < w; j++) {
+        winnerCells.push_back(numActiveSynapsesList[j].first.cell);
+      }
+
+      for (Cell cell : winnerCells) {
+        segment = Segment(0, cell);
+
+        for (Synapse synapse : connections.synapsesForSegment(segment)) {
+          synapseData = connections.dataForSynapse(synapse);
+          permanence = synapseData.permanence;
+
+          if (find(sdr.begin(), sdr.end(), synapseData.presynapticCell) != sdr.end()) {
+            permanence += 0.2;
+          }
+          else {
+            permanence -= 0.1;
+          }
+
+          permanence = max(permanence, (Permanence)0);
+          permanence = min(permanence, (Permanence)1);
+
+          // TODO (Question): Remove synapses with 0 permanence?
+
+          connections.updateSynapsePermanence(synapse, permanence);
+        }
+      }
+    }
+
+    checkpoint(timer, "testSpatialPoolerUsage: initialize + learn");
+
+    // Compute
+
+    for (int i = 0; i < 100; i++) {
+      sdr = randomSDR(numInputs, w);
+      connections.computeActivity(sdr, 0.5, 0);
+    }
+
+    checkpoint(timer, "testSpatialPoolerUsage: initialize + learn + compute");
+
+  }
+
+  void ConnectionsPerformanceTest::checkpoint(clock_t timer, string text)
+  {
+    float duration = (float)(clock() - timer) / CLOCKS_PER_SEC;
+    cout << duration << " in " << text << endl;
+  }
+
+  vector<Cell> ConnectionsPerformanceTest::randomSDR(UInt n, UInt w)
+  {
+    set<UInt> sdrSet = set<UInt>();
+    vector<Cell> sdr = vector<Cell>();
+
+    for (UInt i = 0; i < w; i++) {
+      sdrSet.insert(rand() % (UInt)(n + 1));
+    }
+
+    for (UInt c : sdrSet) {
+      sdr.push_back(Cell(c));
+    }
+
+    return sdr;
   }
 
   void ConnectionsPerformanceTest::setupSampleConnections(Connections &connections)
