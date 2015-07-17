@@ -97,7 +97,7 @@ namespace nupic
     SynapseData synapseData;
     Permanence permanence;
 
-    for (int i = 0; i < 100; i++)
+    for (int i = 0; i < 500; i++)
     {
       sdr = randomSDR(numInputs, w);
       activity = connections.computeActivity(sdr, 0.5, 0);
@@ -150,7 +150,7 @@ namespace nupic
 
     // Compute
 
-    for (int i = 0; i < 100; i++)
+    for (int i = 0; i < 500; i++)
     {
       sdr = randomSDR(numInputs, w);
       connections.computeActivity(sdr, 0.5, 0);
