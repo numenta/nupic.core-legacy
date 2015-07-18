@@ -449,9 +449,14 @@ add_custom_target(tests_cpp_region
 set(EXECUTABLE_PYREGIONTEST py_region_test)
 add_executable(${EXECUTABLE_PYREGIONTEST} test/integration/PyRegionTest.cpp)
 target_link_libraries(${EXECUTABLE_PYREGIONTEST} ${COMMON_LIBS})
-set_target_properties(${EXECUTABLE_PYREGIONTEST} PROPERTIES
-                      COMPILE_FLAGS ${COMMON_COMPILE_FLAGS}
-                      LINK_FLAGS "${COMMON_LINK_FLAGS}")
+set_target_properties(${EXECUTABLE_PYREGIONTEST} PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
+set_target_properties(${EXECUTABLE_PYREGIONTEST}
+                      PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
+add_custom_target(tests_py_region
+                  COMMAND ${EXECUTABLE_PYREGIONTEST}
+                  DEPENDS ${EXECUTABLE_PYREGIONTEST}
+                  VERBATIM)
+
 
 #
 # Setup helloregion example

@@ -98,6 +98,7 @@ void TemporalMemory::initialize(
     NTA_THROW << "Number of cells per column must be greater than 0";
 
   // TODO: Validate all parameters (and add validation tests)
+  // nupic.core GH issue #504 has been created to deal with this todo
 
   // Save member variables
 
@@ -787,6 +788,12 @@ void TemporalMemory::save(ostream& outStream) const
     << permanenceDecrement_ << " "
     << endl;
 
+  //connections.save(outStream);
+  //outStream << endl;
+
+  //_rng.save(outStream);
+  //outStream << endl;
+
   outStream << columnDimensions_.size() << " ";
   for (auto & elem : columnDimensions_) {
     outStream << elem << " ";
@@ -818,12 +825,6 @@ void TemporalMemory::save(ostream& outStream) const
   }
   outStream << endl;
 
-//  connections.save(outStream);
-//  outStream << endl;
-
-//  _rng.save(outStream);
-//  outStream << endl;
-
   outStream << "~TemporalMemory" << endl;
 }
 
@@ -850,8 +851,15 @@ void TemporalMemory::write(TemporalMemoryProto::Builder& proto) const
   auto random = proto.initRandom();
   _rng.write(random);
 
-  auto _activeCells = proto.initActiveCells(activeCells.size());
+  auto _predictiveCells = proto.initPredictiveCells(predictiveCells.size());
   UInt i = 0;
+  for (Cell c : predictiveCells)
+  {
+    _predictiveCells.set(i++, c.idx);
+  }
+
+  auto _activeCells = proto.initActiveCells(activeCells.size());
+  i = 0;
   for (Cell c : activeCells)
   {
     _activeCells.set(i++, c.idx);
@@ -868,13 +876,6 @@ void TemporalMemory::write(TemporalMemoryProto::Builder& proto) const
   for (Cell c : winnerCells)
   {
     _winnerCells.set(i++, c.idx);
-  }
-
-  auto _predictiveCells = proto.initPredictiveCells(predictiveCells.size());
-  i = 0;
-  for (Cell c : predictiveCells)
-  {
-    _predictiveCells.set(i++, c.idx);
   }
 }
 
@@ -927,6 +928,12 @@ void TemporalMemory::read(TemporalMemoryProto::Reader& proto)
   auto random = proto.getRandom();
   _rng.read(random);
 
+  predictiveCells.clear();
+  for (auto value : proto.getPredictiveCells())
+  {
+    predictiveCells.push_back(Cell(value));
+  }
+
   activeCells.clear();
   for (auto value : proto.getActiveCells())
   {
@@ -944,12 +951,6 @@ void TemporalMemory::read(TemporalMemoryProto::Reader& proto)
   for (auto value : proto.getWinnerCells())
   {
     winnerCells.insert(Cell(value));
-  }
-
-  predictiveCells.clear();
-  for (auto value : proto.getPredictiveCells())
-  {
-    predictiveCells.push_back(Cell(value));
   }
 }
 
@@ -979,6 +980,9 @@ void TemporalMemory::load(istream& inStream)
     >> permanenceIncrement_
     >> permanenceDecrement_;
 
+  //connections.load(inStream);
+  //_rng.load(inStream);
+
   // Retrieve vectors.
   UInt numColumnDimensions;
   inStream >> numColumnDimensions;
@@ -988,6 +992,14 @@ void TemporalMemory::load(istream& inStream)
   }
 
   CellIdx cellIndex;
+
+  UInt numPredictiveCells;
+  inStream >> numPredictiveCells;
+  for (UInt i = 0; i < numPredictiveCells; i++) {
+    inStream >> cellIndex;
+    predictiveCells.push_back(Cell(cellIndex));
+  }
+
   UInt numActiveCells;
   inStream >> numActiveCells;
   for (UInt i = 0; i < numActiveCells; i++) {
@@ -1009,16 +1021,6 @@ void TemporalMemory::load(istream& inStream)
     inStream >> activeSegments[i].idx;
     inStream >> activeSegments[i].cell.idx;
   }
-
-  UInt numPredictiveCells;
-  inStream >> numPredictiveCells;
-  for (UInt i = 0; i < numPredictiveCells; i++) {
-    inStream >> cellIndex;
-    predictiveCells.push_back(Cell(cellIndex));
-  }
-
-  //  connections.load(inStream);
-  //  _rng.load(inStream);
 
   inStream >> marker;
   NTA_CHECK(marker == "~TemporalMemory");
@@ -1069,3 +1071,4 @@ void TemporalMemory::printState(vector<Real> &state)
   }
   std::cout << "]\n";
 }
+
