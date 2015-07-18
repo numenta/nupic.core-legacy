@@ -407,6 +407,16 @@ namespace nupic
     static void registerCPPRegion(const std::string name,
                                   GenericRegisteredRegionImpl* wrapper);
 
+    /*
+     * Removes a region from RegionImplFactory's packages
+     */
+    static void unregisterPyRegion(const std::string className);
+
+    /*
+     * Removes a c++ region from RegionImplFactory's packages
+     */
+    static void unregisterCPPRegion(const std::string name);
+
   private:
 
 

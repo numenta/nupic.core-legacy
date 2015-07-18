@@ -453,7 +453,7 @@ namespace nupic {
   void ConnectionsTest::testWriteRead()
   {
     const char* filename = "ConnectionsSerialization.tmp";
-    Connections c1(1024), c2;
+    Connections c1(1024, 1024, 1024), c2;
     setupSampleConnections(c1);
 
     Segment segment;
