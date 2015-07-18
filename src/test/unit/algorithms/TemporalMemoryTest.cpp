@@ -224,7 +224,7 @@ namespace nupic {
 
     set<Cell> expectedActiveCells = { Cell(0), Cell(1), Cell(2), Cell(3), Cell(4), Cell(5), Cell(6), Cell(7) };
     set<Cell> expectedWinnerCells = { Cell(0), Cell(7) }; // 7 is randomly chosen cell
-    vector<Segment> expectedLearningSegments = { Segment(2, Cell(0)), Segment(0, Cell(7)) };
+    vector<Segment> expectedLearningSegments = { Segment(0, Cell(0)), Segment(0, Cell(7)) };
     NTA_CHECK(check_set_eq(activeCells, expectedActiveCells));
     NTA_CHECK(check_set_eq(winnerCells, expectedWinnerCells));
     NTA_CHECK(check_vector_eq(learningSegments, expectedLearningSegments));
