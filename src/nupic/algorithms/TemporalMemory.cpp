@@ -98,6 +98,7 @@ void TemporalMemory::initialize(
     NTA_THROW << "Number of cells per column must be greater than 0";
 
   // TODO: Validate all parameters (and add validation tests)
+  // nupic.core GH issue #504 has been created to deal with this todo
 
   // Save member variables
 

@@ -747,6 +747,8 @@ namespace nupic {
 
     tm1.initialize({ 100 }, 4, 7, 0.37, 0.58, 4, 18, 0.23, 0.08, 91);
     /*
+    // GH issue https://github.com/numenta/nupic.core/issues/505 to uncomment this
+    //
     // Run some data through before serializing
     patternMachine = PatternMachine(100, 4);
     sequenceMachine = SequenceMachine(self.patternMachine);
