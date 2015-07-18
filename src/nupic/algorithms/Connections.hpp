@@ -230,25 +230,26 @@ namespace nupic
         /**
          * Connections constructor.
          *
-         * @param numCells           Number of cells. Must be <= CELL_MAX.
-         * @param maxSegmentsPerCell Maximum number of segments per cell. Must be <= SEGMENT_MAX.
-         *
-         * @retval Created segment.
+         * @param numCells              Number of cells.
+         * @param maxSegmentsPerCell    Maximum number of segments per cell.
+         * @param maxSynapsesPerSegment Maximum number of synapses per segment.
          */
         Connections(CellIdx numCells,
-                    SegmentIdx maxSegmentsPerCell=MAX_SEGMENTS_PER_CELL);
+                    SegmentIdx maxSegmentsPerCell=MAX_SEGMENTS_PER_CELL,
+                    SynapseIdx maxSynapsesPerSegment=MAX_SYNAPSES_PER_SEGMENT);
 
         virtual ~Connections() {}
 
         /**
          * Initialize connections.
          *
-         * @param numCells           Number of cells. Must be <= CELL_MAX.
-         * @param maxSegmentsPerCell Maximum number of segments per cell. Must be <= SEGMENT_MAX.
-         *
-         * @retval Created segment.
+         * @param numCells              Number of cells.
+         * @param maxSegmentsPerCell    Maximum number of segments per cell.
+         * @param maxSynapsesPerSegment Maximum number of synapses per segment.
          */
-        void initialize(CellIdx numCells, SegmentIdx maxSegmentsPerCell);
+        void initialize(CellIdx numCells,
+                        SegmentIdx maxSegmentsPerCell,
+                        SynapseIdx maxSynapsesPerSegment);
 
         /**
          * Creates a segment on the specified cell.
@@ -451,6 +452,7 @@ namespace nupic
         UInt numSegments_;
         UInt numSynapses_;
         SegmentIdx maxSegmentsPerCell_;
+        SynapseIdx maxSynapsesPerSegment_;
         Iteration iteration_;
       }; // end class Connections
 

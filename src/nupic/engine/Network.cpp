@@ -1132,5 +1132,15 @@ void Network::registerCPPRegion(const std::string name, GenericRegisteredRegionI
   Region::registerCPPRegion(name, wrapper);
 }
 
+void Network::unregisterPyRegion(const std::string className)
+{
+  Region::unregisterPyRegion(className);
+}
+
+void Network::unregisterCPPRegion(const std::string name)
+{
+  Region::unregisterCPPRegion(name);
+}
+
 
 } // namespace nupic
