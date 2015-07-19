@@ -97,7 +97,7 @@ namespace nupic {
   void TemporalMemoryTest::testInitInvalidParams()
   {
     // Invalid columnDimensions
-    vector<UInt> columnDim;
+    vector<UInt> columnDim = {};
     TemporalMemory tm1;
     SHOULDFAIL(tm1.initialize(columnDim, 32));
 
