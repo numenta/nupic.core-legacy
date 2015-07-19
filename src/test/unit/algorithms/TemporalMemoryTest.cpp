@@ -104,7 +104,6 @@ namespace nupic {
     // Invalid cellsPerColumn
     columnDim.push_back(2048);
     SHOULDFAIL(tm1.initialize(columnDim, 0));
-    SHOULDFAIL(tm1.initialize(columnDim, -10));
   }
 
   void TemporalMemoryTest::testActivateCorrectlyPredictiveCells()
