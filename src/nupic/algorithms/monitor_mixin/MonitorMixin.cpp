@@ -25,7 +25,7 @@
 * monitor mixin framework.
 */
 
-#include <nupic\utils\PatternMachine.hpp>
+#include <nupic/utils/PatternMachine.hpp>
 #include "MonitorMixin.hpp"
 
 MonitorMixinBase::MonitorMixinBase()

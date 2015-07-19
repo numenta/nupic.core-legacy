@@ -29,7 +29,7 @@
 #include <sstream>
 #include <boost/format.hpp>
 
-#include <nupic\types\Types.hpp>
+#include <nupic/types/Types.hpp>
 #include "Instance.hpp"
 #include "Trace.hpp"
 #include "Metric.hpp"
