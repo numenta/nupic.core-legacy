@@ -28,7 +28,7 @@
 #define NTA_instance_HPP
 
 #include <vector>
-#include <nupic\types\Types.hpp>
+#include <nupic/types/Types.hpp>
 
 using namespace std;
 using namespace nupic;

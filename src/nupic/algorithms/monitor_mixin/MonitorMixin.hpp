@@ -33,8 +33,8 @@
 #include <vector>
 #include <string>
 
-#include <nupic\types\Types.hpp>
-#include <nupic\algorithms\TemporalMemory.hpp>
+#include <nupic/types/Types.hpp>
+#include <nupic/algorithms/TemporalMemory.hpp>
 
 #include "Trace.hpp"
 #include "Metric.hpp"

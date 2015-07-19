@@ -30,7 +30,7 @@
 #include <map>
 #include <string>
 
-#include <nupic\types\Types.hpp>
+#include <nupic/types/Types.hpp>
 #include "Instance.hpp"
 #include "Trace.hpp"
 
