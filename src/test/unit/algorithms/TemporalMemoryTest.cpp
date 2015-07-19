@@ -348,8 +348,8 @@ namespace nupic {
 
     tm.computePredictiveCells(activeCells, connections);
 
-    vector<Segment> expectedActiveSegments;
-    vector<Cell> expectedPredictiveCells;
+    vector<Segment> expectedActiveSegments = {};
+    vector<Cell> expectedPredictiveCells = {};
     NTA_CHECK(check_vector_eq(tm.activeSegments, expectedActiveSegments));
     NTA_CHECK(check_vector_eq(tm.predictiveCells, expectedPredictiveCells));
   }
@@ -383,9 +383,8 @@ namespace nupic {
     connections.createSynapse(segment, Cell(486), 0.9);
 
     set<Cell> activeCells = { Cell(23), Cell(37), Cell(49), Cell(733) };
-    vector<Cell> cellsForColumn;
+    vector<Cell> cellsForColumn = tm.cellsForColumn(0);
 
-    cellsForColumn = tm.cellsForColumn(0);
     tie(foundCell, bestCell, foundSegment, bestSegment) = 
       tm.bestMatchingCell(cellsForColumn, activeCells, connections);
 
