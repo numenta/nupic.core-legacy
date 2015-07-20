@@ -19,8 +19,8 @@ build/
 html/
 
 # SWIG
-src/bindings/*.cxx
-src/bindings/*.py
-src/bindings/*.pyc
-src/bindings/*.so
-src/bindings/proto/*.capnp
+src/nupic/bindings/*.cxx
+src/nupic/bindings/*.py
+src/nupic/bindings/*.pyc
+src/nupic/bindings/*.so
+src/nupic/bindings/proto/*.capnp
