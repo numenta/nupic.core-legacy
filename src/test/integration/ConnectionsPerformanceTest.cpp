@@ -131,7 +131,6 @@ namespace nupic
     checkpoint(timer, "testSpatialPoolerUsage: initialize");
 
     // Learn
-    vector< pair<Segment, SynapseIdx> > numActiveSynapsesList;
     vector<Cell>winnerCells;
     SynapseData synapseData;
     Permanence permanence;
@@ -140,22 +139,7 @@ namespace nupic
     {
       sdr = randomSDR(numInputs, w);
       activity = connections.computeActivity(sdr, 0.5, 0);
-
-      numActiveSynapsesList.assign(activity.numActiveSynapsesForSegment.begin(),
-                                   activity.numActiveSynapsesForSegment.end());
-
-      sort(numActiveSynapsesList.begin(), numActiveSynapsesList.end(),
-           [](const pair<Segment, SynapseIdx>& left, const pair<Segment, SynapseIdx>& right)
-           {
-             return left.second > right.second;
-           });
-
-      winnerCells.clear();
-
-      for (UInt j = 0; j < w; j++)
-      {
-        winnerCells.push_back(numActiveSynapsesList[j].first.cell);
-      }
+      winnerCells = computeSPWinnerCells(w, activity);
 
       for (Cell cell : winnerCells)
       {
@@ -235,6 +219,29 @@ namespace nupic
     }
 
     tm.compute(sdr.size(), activeColumns, learn);
+  }
+
+  vector<Cell> ConnectionsPerformanceTest::computeSPWinnerCells(UInt numCells,
+                                                                Activity& activity)
+  {
+    vector< pair<Segment, SynapseIdx> > numActiveSynapsesList;
+    vector<Cell>winnerCells;
+
+    numActiveSynapsesList.assign(activity.numActiveSynapsesForSegment.begin(),
+                                 activity.numActiveSynapsesForSegment.end());
+
+    sort(numActiveSynapsesList.begin(), numActiveSynapsesList.end(),
+         [](const pair<Segment, SynapseIdx>& left, const pair<Segment, SynapseIdx>& right)
+         {
+           return left.second > right.second;
+         });
+
+    for (UInt j = 0; j < numCells; j++)
+    {
+      winnerCells.push_back(numActiveSynapsesList[j].first.cell);
+    }
+
+    return winnerCells;
   }
 
 } // end namespace nupic

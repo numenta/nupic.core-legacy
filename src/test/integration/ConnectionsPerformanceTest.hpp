@@ -54,6 +54,7 @@ namespace nupic
     void checkpoint(clock_t timer, std::string text);
     std::vector<Cell> randomSDR(UInt n, UInt w);
     void feedTM(TemporalMemory &tm, vector<Cell> sdr, bool learn = true);
+    std::vector<Cell> computeSPWinnerCells(UInt numCells, Activity& activity);
 
   }; // end class ConnectionsPerformanceTest
 
