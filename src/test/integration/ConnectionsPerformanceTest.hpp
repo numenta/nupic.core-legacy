@@ -49,6 +49,7 @@ namespace nupic
 
     void testTemporalMemoryUsage();
     void testSpatialPoolerUsage();
+    void testTemporalPoolerUsage();
 
   private:
     void runSpatialPoolerTest(UInt numCells, UInt numInputs, UInt w, UInt numWinners, string label);

@@ -45,6 +45,7 @@ namespace nupic
 
     testTemporalMemoryUsage();
     testSpatialPoolerUsage();
+    testTemporalPoolerUsage();
   }
 
   /**
@@ -109,6 +110,14 @@ namespace nupic
   void ConnectionsPerformanceTest::testSpatialPoolerUsage()
   {
     runSpatialPoolerTest(2048, 2048, 40, 40, "spatial pooler");
+  }
+
+  /**
+   * Tests typical usage of Connections with Temporal Pooler.
+   */
+  void ConnectionsPerformanceTest::testTemporalPoolerUsage()
+  {
+    runSpatialPoolerTest(2048, 16384, 40, 400, "temporal pooler");
   }
 
   void ConnectionsPerformanceTest::runSpatialPoolerTest(UInt numCells,
