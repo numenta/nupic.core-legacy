@@ -44,6 +44,16 @@ namespace
 
   TEST(FastCLAClassifierTest, Basic)
   {
+    ASSERT_EQ(4, sizeof(Real));
+    ASSERT_EQ(4, sizeof(Real32));
+    ASSERT_EQ(8, sizeof(Real64));
+    ASSERT_EQ(4, sizeof(Int32));
+    ASSERT_EQ(4, sizeof(UInt));
+    ASSERT_EQ(4, sizeof(UInt32));
+    ASSERT_EQ(8, sizeof(UInt64));
+    ASSERT_EQ(4, sizeof(float));
+    ASSERT_EQ(8, sizeof(double));
+
     vector<UInt> steps;
     steps.push_back(1);
     FastCLAClassifier c = FastCLAClassifier(steps, 0.1, 0.1, 0);
