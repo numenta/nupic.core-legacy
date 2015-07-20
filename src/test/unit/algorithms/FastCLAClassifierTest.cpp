@@ -44,7 +44,7 @@ namespace
 
   TEST(FastCLAClassifierTest, Basic)
   {
-    ASSERT_EQ(sizeof(Real), 4);
+    ASSERT_EQ(sizeof(Real), 5);
     ASSERT_EQ(sizeof(Real32), 4);
     ASSERT_EQ(sizeof(Real64), 8);
 
