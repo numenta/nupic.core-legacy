@@ -29,13 +29,10 @@
 #include <time.h>
 #include <stdlib.h>
 
-#include <nupic/algorithms/Connections.hpp>
-
 #include "ConnectionsPerformanceTest.hpp"
 
 using namespace std;
 using namespace nupic;
-using namespace nupic::algorithms::connections;
 
 #define SEED 42
 
@@ -56,10 +53,54 @@ namespace nupic
   void ConnectionsPerformanceTest::testTemporalMemoryUsage()
   {
     clock_t timer = clock();
+    UInt numColumns = 2048, w = 40;
 
-    // TODO: Implement actual test, this is just a placeholder for now
+    TemporalMemory tm;
+    vector<UInt> columnDim;
+    columnDim.push_back(numColumns);
+    tm.initialize(columnDim);
 
-    checkpoint(timer, "testTemporalMemoryUsage");
+    checkpoint(timer, "testTemporalMemoryUsage: initialize");
+
+    vector< vector< vector<Cell> > >sequences;
+    vector< vector<Cell> >sequence;
+    vector<Cell> sdr;
+
+    for (int i = 0; i < 5; i++)
+    {
+      for (int j = 0; j < 100; j++)
+      {
+        sdr = randomSDR(numColumns, w);
+        sequence.push_back(sdr);
+      }
+
+      sequences.push_back(sequence);
+    }
+
+    for (int i = 0; i < 5; i++)
+    {
+      for (auto sequence : sequences)
+      {
+        for (auto sdr : sequence)
+        {
+          feedTM(tm, sdr);
+          tm.reset();
+        }
+      }
+    }
+
+    checkpoint(timer, "testTemporalMemoryUsage: initialize + learn");
+
+    for (auto sequence : sequences)
+    {
+      for (auto sdr : sequence)
+      {
+        feedTM(tm, sdr, false);
+        tm.reset();
+      }
+    }
+
+    checkpoint(timer, "testTemporalMemoryUsage: initialize + learn + test");
   }
 
   /**
@@ -69,6 +110,7 @@ namespace nupic
   {
     clock_t timer = clock();
     UInt numCells = 2048, numInputs = 2048, w = 40;
+
     Connections connections(numCells, 1, numInputs);
     Cell cell;
     Segment segment;
@@ -170,7 +212,7 @@ namespace nupic
 
     for (UInt i = 0; i < w; i++)
     {
-      sdrSet.insert(rand() % (UInt)(n + 1));
+      sdrSet.insert(rand() % (UInt)n);
     }
 
     for (UInt c : sdrSet)
@@ -179,6 +221,20 @@ namespace nupic
     }
 
     return sdr;
+  }
+
+  void ConnectionsPerformanceTest::feedTM(TemporalMemory &tm,
+                                          vector<Cell> sdr,
+                                          bool learn)
+  {
+    UInt activeColumns[sdr.size()];
+
+    for (size_t i = 0; i < sdr.size(); i++)
+    {
+      activeColumns[i] = sdr[i].idx;
+    }
+
+    tm.compute(sdr.size(), activeColumns, learn);
   }
 
 } // end namespace nupic
