@@ -62,7 +62,7 @@ Segment Connections::createSegment(const Cell& cell)
   SegmentData segmentData = {vector<SynapseData>(), false, iteration_};
   Segment segment(segments.size(), cell);
 
-  if (segments.size() == maxSegmentsPerCell_)
+  if ((SegmentIdx)segments.size() == maxSegmentsPerCell_)
   {
     bool found = leastRecentlyUsedSegment(cell, segment);
     if (!found) { NTA_THROW << "Unable to find segment to reuse."; }
@@ -152,7 +152,7 @@ vector<Segment> Connections::segmentsForCell(const Cell& cell) const
   vector<Segment> segments;
   Segment segment;
 
-  for (SegmentIdx i = 0; i < cells_[cell.idx].segments.size(); i++)
+  for (SegmentIdx i = 0; i < (SegmentIdx)cells_[cell.idx].segments.size(); i++)
   {
     segment.idx = i;
     segment.cell = cell;
@@ -203,6 +203,15 @@ SynapseData Connections::dataForSynapse(const Synapse& synapse) const
   const Cell& cell = segment.cell;
 
   return cells_[cell.idx].segments[segment.idx].synapses[synapse.idx];
+}
+
+std::vector<Synapse> Connections::synapsesForPresynapticCell(const Cell& presynapticCell) const
+{
+  if (synapsesForPresynapticCell_.find(presynapticCell) == 
+      synapsesForPresynapticCell_.end())
+    return vector<Synapse>{};
+
+  return synapsesForPresynapticCell_.at(presynapticCell.idx);
 }
 
 bool Connections::mostActiveSegmentForCells(const vector<Cell>& cells,
@@ -361,7 +370,7 @@ void Connections::write(ConnectionsProto::Builder& proto) const
     auto segments = cells_[i].segments;
     auto protoSegments = protoCells[i].initSegments(segments.size());
 
-    for (SegmentIdx j = 0; j < segments.size(); ++j) {
+    for (SegmentIdx j = 0; j < (SegmentIdx)segments.size(); ++j) {
       auto synapses = segments[j].synapses;
       auto protoSynapses = protoSegments[j].initSynapses(synapses.size());
       protoSegments[j].setDestroyed(segments[j].destroyed);
@@ -401,7 +410,7 @@ void Connections::read(ConnectionsProto::Reader& proto)
     auto protoSegments = protoCells[i].getSegments();
     vector<SegmentData>& segments = cells_[i].segments;
 
-    for (SegmentIdx j = 0; j < protoSegments.size(); ++j) {
+    for (SegmentIdx j = 0; j < (SegmentIdx)protoSegments.size(); ++j) {
       SegmentData segmentData = {vector<SynapseData>(),
                                  protoSegments[j].getDestroyed(),
                                  protoSegments[j].getLastUsedIteration()};
@@ -457,7 +466,7 @@ bool Connections::operator==(const Connections &other) const
 
     if (segments.size() != otherSegments.size()) return false;
 
-    for (SegmentIdx j = 0; j < segments.size(); ++j) {
+    for (SegmentIdx j = 0; j < (SegmentIdx)segments.size(); ++j) {
       auto segment = segments[j];
       auto otherSegment = otherSegments[j];
       auto synapses = segment.synapses;

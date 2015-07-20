@@ -19,6 +19,9 @@ environment:
     - COMPILER_FAMILY: MSVC
       DEPLOY_TO_NUGET: 0
       DEPLOY_BUILD: 0
+      PYTHON: "C:\\Python27"
+      PYTHON_VERSION: "2.7.x" # currently 2.7.9
+      PYTHON_ARCH: "32"
 
 skip_commits:
   # Add [av skip] to commit messages to skip AppVeyor building
@@ -68,6 +71,10 @@ install:
   - ps: Start-Process -FilePath "7z" -ArgumentList "x -y cmake-3.1.0-win32-x86.zip" -Wait -Passthru
   - set PATH="%REPO_DIR%\build\scripts\cmake-3.1.0-win32-x86\bin";%PATH%
   - set PATH="C:\Program Files (x86)\MSBuild\14.0\Bin";%PATH%
+  # https://github.com/ogrisel/python-appveyor-demo/blob/master/appveyor.yml
+  # Install Python (from the official .msi of http://python.org) and pip when
+  # not already installed.
+  - "powershell %REPO_DIR%\\appveyor-scripts\\install_python_pip.ps1"
 
   - cd %REPO_DIR%\build\scripts
   - set EXT_LIBS=%REPO_DIR%\external\windows64\lib
@@ -128,7 +135,7 @@ after_build:
       # This packages via CMakeList CPack settings (Tar.Gzip for SW upload)
       # msbuild $env:MSBuildOptions PACKAGE.vcxproj
 
-      7z a -ttar -y -bd nupic_core-$env:APPVEYOR_REPO_COMMIT-windows64.tar .
+      7z a -ttar -y -bd nupic_core-$env:APPVEYOR_REPO_COMMIT-windows64.tar . | findstr /b /c:"Everything is Ok" /c:"Scanning" /c:"Creating archive"
 
       7z a -tgzip -y -bd ..\..\nupic_core-$env:APPVEYOR_REPO_COMMIT-windows64.tar.gz nupic_core-$env:APPVEYOR_REPO_COMMIT-windows64.tar
 
