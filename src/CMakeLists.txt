@@ -383,6 +383,7 @@ ADD_LIBRARY(${LIB_STATIC_NUPICCORE}
             nupic/algorithms/Segment.cpp
             nupic/algorithms/SegmentUpdate.cpp
             nupic/algorithms/SpatialPooler.cpp
+            nupic/algorithms/TemporalMemory.cpp
             nupic/algorithms/Svm.cpp
             nupic/engine/Collections.cpp
             nupic/engine/Input.cpp
@@ -520,6 +521,7 @@ add_executable(${EXECUTABLE_GTESTS}
                test/unit/algorithms/FastCLAClassifierTest.cpp
                test/unit/algorithms/NearestNeighborUnitTest.cpp
                test/unit/algorithms/SpatialPoolerTest.cpp
+               test/unit/algorithms/TemporalMemoryTest.cpp
                test/unit/engine/InputTest.cpp
                test/unit/engine/NetworkTest.cpp
                test/unit/engine/UniformLinkPolicyTest.cpp
@@ -572,6 +574,7 @@ set(TEST_HEADERS
     test/unit/algorithms/ConnectionsTest.hpp
     test/unit/algorithms/NearestNeighborUnitTest.hpp
     test/unit/algorithms/SpatialPoolerTest.hpp
+    test/unit/algorithms/TemporalMemoryTest.hpp
     test/unit/engine/InputTest.hpp
     test/unit/engine/NetworkTest.hpp
     test/unit/engine/UniformLinkPolicyTest.hpp
