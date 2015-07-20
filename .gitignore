@@ -5,6 +5,7 @@
 *~
 *.DS_Store
 *.swp
+*.pyc
 
 # IDE project files
 /nbproject/
@@ -21,6 +22,5 @@ html/
 # SWIG
 src/nupic/bindings/*.cxx
 src/nupic/bindings/*.py
-src/nupic/bindings/*.pyc
 src/nupic/bindings/*.so
 src/nupic/bindings/proto/*.capnp

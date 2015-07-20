@@ -187,7 +187,7 @@ if(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
   endif()
 else()
   # clang/gcc
-  set(COMMON_COMPILE_FLAGS "-fPIC -std=c++11 -m${BITNESS} ${STDLIB} -fvisibility=hidden -Wall -Wextra -Wreturn-type -Wunused -Wno-unused-parameter -Wno-missing-field-initializers")
+  set(COMMON_COMPILE_FLAGS "-fPIC -std=c++11 -m${BITNESS} ${STDLIB} -fvisibility=hidden -Werror -Wall -Wextra -Wreturn-type -Wunused -Wno-unused-parameter -Wno-missing-field-initializers")
   set(COMMON_LINK_FLAGS "-m${BITNESS} ${STDLIB}")
   if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} -static-libstdc++")
