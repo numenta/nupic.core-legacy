@@ -176,11 +176,11 @@ namespace nupic
     for (int i = 0; i < 500; i++)
     {
       sdr = randomSDR(numInputs, w);
-      connections.computeActivity(sdr, 0.5, 0);
+      activity = connections.computeActivity(sdr, 0.5, 0);
+      winnerCells = computeSPWinnerCells(w, activity);
     }
 
-    checkpoint(timer, "testSpatialPoolerUsage: initialize + learn + compute");
-
+    checkpoint(timer, "testSpatialPoolerUsage: initialize + learn + test");
   }
 
   void ConnectionsPerformanceTest::checkpoint(clock_t timer, string text)
