@@ -251,6 +251,9 @@ UInt32 expected[1000] =
 
 void RandomTest::RunTests()
 {
+
+  TESTEQUAL(18446744073709551615U, Random::MAX64);
+
   UInt32 r1, r2, r3;
   // make sure the global instance is seeded from time()
   // in the test situation, we can be sure we were seeded less than 100000 seconds ago
