@@ -109,7 +109,7 @@ namespace nupic
   void ConnectionsPerformanceTest::testSpatialPoolerUsage()
   {
     clock_t timer = clock();
-    UInt numCells = 2048, numInputs = 2048, w = 40;
+    UInt numCells = 2048, numInputs = 2048, w = 40, numWinners = 40;
 
     Connections connections(numCells, 1, numInputs);
     Cell cell;
@@ -139,7 +139,7 @@ namespace nupic
     {
       sdr = randomSDR(numInputs, w);
       activity = connections.computeActivity(sdr, 0.5, 0);
-      winnerCells = computeSPWinnerCells(w, activity);
+      winnerCells = computeSPWinnerCells(numWinners, activity);
 
       for (Cell cell : winnerCells)
       {
@@ -177,7 +177,7 @@ namespace nupic
     {
       sdr = randomSDR(numInputs, w);
       activity = connections.computeActivity(sdr, 0.5, 0);
-      winnerCells = computeSPWinnerCells(w, activity);
+      winnerCells = computeSPWinnerCells(numWinners, activity);
     }
 
     checkpoint(timer, "testSpatialPoolerUsage: initialize + learn + test");
