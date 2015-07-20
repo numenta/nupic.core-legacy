@@ -28,6 +28,9 @@
 #include <iostream>
 #include <time.h>
 #include <stdlib.h>
+
+#include <nupic/algorithms/Connections.hpp>
+
 #include "ConnectionsPerformanceTest.hpp"
 
 using namespace std;

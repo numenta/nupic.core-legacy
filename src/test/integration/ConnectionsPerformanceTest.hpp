@@ -29,8 +29,6 @@
 #ifndef NTA_CONNECTIONS_PERFORMANCE_TEST
 #define NTA_CONNECTIONS_PERFORMANCE_TEST
 
-#include <nupic/algorithms/Connections.hpp>
-
 using namespace nupic::algorithms::connections;
 
 namespace nupic
