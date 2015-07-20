@@ -252,6 +252,7 @@ UInt32 expected[1000] =
 void RandomTest::RunTests()
 {
 
+  TESTEQUAL(4294967295U, Random::MAX32);
   TESTEQUAL(18446744073709551615U, Random::MAX64);
 
   UInt32 r1, r2, r3;
