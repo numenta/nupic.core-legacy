@@ -45,10 +45,10 @@ namespace nupic
     // Run all appropriate tests
     virtual void RunTests();
 
-  private:
     void testTemporalMemoryUsage();
     void testSpatialPoolerUsage();
 
+  private:
     void checkpoint(clock_t timer, std::string text);
     std::vector<Cell> randomSDR(UInt n, UInt w);
 
