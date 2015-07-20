@@ -60,7 +60,7 @@ namespace nupic
     columnDim.push_back(numColumns);
     tm.initialize(columnDim);
 
-    checkpoint(timer, "testTemporalMemoryUsage: initialize");
+    checkpoint(timer, "temporal memory: initialize");
 
     vector< vector< vector<Cell> > >sequences;
     vector< vector<Cell> >sequence;
@@ -89,7 +89,7 @@ namespace nupic
       }
     }
 
-    checkpoint(timer, "testTemporalMemoryUsage: initialize + learn");
+    checkpoint(timer, "temporal memory: initialize + learn");
 
     for (auto sequence : sequences)
     {
@@ -100,7 +100,7 @@ namespace nupic
       }
     }
 
-    checkpoint(timer, "testTemporalMemoryUsage: initialize + learn + test");
+    checkpoint(timer, "temporal memory: initialize + learn + test");
   }
 
   /**
@@ -108,8 +108,16 @@ namespace nupic
    */
   void ConnectionsPerformanceTest::testSpatialPoolerUsage()
   {
+    runSpatialPoolerTest(2048, 2048, 40, 40, "spatial pooler");
+  }
+
+  void ConnectionsPerformanceTest::runSpatialPoolerTest(UInt numCells,
+                                                        UInt numInputs,
+                                                        UInt w,
+                                                        UInt numWinners,
+                                                        string label)
+  {
     clock_t timer = clock();
-    UInt numCells = 2048, numInputs = 2048, w = 40, numWinners = 40;
 
     Connections connections(numCells, 1, numInputs);
     Cell cell;
@@ -128,7 +136,7 @@ namespace nupic
       }
     }
 
-    checkpoint(timer, "testSpatialPoolerUsage: initialize");
+    checkpoint(timer, label + ": initialize");
 
     // Learn
     vector<Cell>winnerCells;
@@ -169,7 +177,7 @@ namespace nupic
       }
     }
 
-    checkpoint(timer, "testSpatialPoolerUsage: initialize + learn");
+    checkpoint(timer, label + ": initialize + learn");
 
     // Compute
 
@@ -180,7 +188,7 @@ namespace nupic
       winnerCells = computeSPWinnerCells(numWinners, activity);
     }
 
-    checkpoint(timer, "testSpatialPoolerUsage: initialize + learn + test");
+    checkpoint(timer, label + ": initialize + learn + test");
   }
 
   void ConnectionsPerformanceTest::checkpoint(clock_t timer, string text)

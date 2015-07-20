@@ -51,6 +51,8 @@ namespace nupic
     void testSpatialPoolerUsage();
 
   private:
+    void runSpatialPoolerTest(UInt numCells, UInt numInputs, UInt w, UInt numWinners, string label);
+
     void checkpoint(clock_t timer, std::string text);
     std::vector<Cell> randomSDR(UInt n, UInt w);
     void feedTM(TemporalMemory &tm, vector<Cell> sdr, bool learn = true);
