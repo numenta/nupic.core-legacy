@@ -114,7 +114,6 @@ struct MemoryMonitor
 void testExceptionBug()
 {
   Network n;
-  Network::registerPyRegion("nupic.regions.TestNode", "TestNode");
   Region *l1 = n.addRegion("l1", "py.TestNode", "");
   //Dimensions d(1);
   Dimensions d(1);
@@ -189,7 +188,6 @@ void testPynodeLinking()
   Network net = Network();
 
   Region * region1 = net.addRegion("region1", "TestNode", "");
-  Network::registerPyRegion("nupic.regions.TestNode", "TestNode");
   Region * region2 = net.addRegion("region2", "py.TestNode", "");
   std::cout << "Linking region 1 to region 2" << std::endl;
   net.link("region1", "region2", "TestFanIn2", "");
@@ -282,9 +280,54 @@ void testPynodeLinking()
 void testSecondTimeLeak()
 {
   Network n;
-  Network::registerPyRegion("nupic.regions.TestNode", "TestNode");
   n.addRegion("r1", "py.TestNode", "");
   n.addRegion("r2", "py.TestNode", "");
+}
+
+void testFailOnRegisterDuplicateRegion()
+{
+  bool caughtException = false;
+  Network::registerPyRegion("nupic.regions.TestDuplicateNodes",
+                            "TestDuplicateNodes");
+  try
+  {
+    Network::registerPyRegion("nupic.regions.TestDuplicateNodes",
+                              "TestDuplicateNodes");
+  } catch (std::exception& e) {
+    NTA_DEBUG << "Caught exception as expected: '" << e.what() << "'";
+    caughtException = true;
+  }
+  if (caughtException)
+  {
+    NTA_DEBUG << "testFailOnRegisterDuplicateRegion passed";
+  } else {
+    NTA_THROW << "testFailOnRegisterDuplicateRegion did not "
+              << "throw an exception as expected";
+  }
+}
+
+void testUnregisterRegion()
+{
+  Network n;
+  n.addRegion("test", "py.TestNode", "");
+
+  Network::unregisterPyRegion("TestNode");
+
+  bool caughtException = false;
+  try
+  {
+    n.addRegion("test", "py.TestNode", "");
+  } catch (std::exception& e) {
+    NTA_DEBUG << "Caught exception as expected: '" << e.what() << "'";
+    caughtException = true;
+  }
+  if (caughtException)
+  {
+    NTA_DEBUG << "testUnregisterRegion passed";
+  } else {
+    NTA_THROW << "testUnregisterRegion did not throw an exception as expected";
+  }
+
 }
 
 int realmain(bool leakTest)
@@ -345,11 +388,16 @@ int realmain(bool leakTest)
   testPynodeInputOutputAccess(level2);
   testPynodeArrayParameters(level2);
   testPynodeLinking();
+  testFailOnRegisterDuplicateRegion();
   if (!leakTest)
   {
     //testNuPIC1x();
     //testPynode1xLinking();
   }
+
+  // testUnregisterRegion needs to be the last test run as it will unregister
+  // the region 'TestNode'.
+  testUnregisterRegion();
 
   std::cout << "Done -- all tests passed" << std::endl;
 

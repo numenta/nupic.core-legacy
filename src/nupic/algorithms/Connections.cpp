@@ -38,18 +38,21 @@ using namespace nupic;
 using namespace nupic::algorithms::connections;
 
 Connections::Connections(CellIdx numCells,
-                         SegmentIdx maxSegmentsPerCell)
+                         SegmentIdx maxSegmentsPerCell,
+                         SynapseIdx maxSynapsesPerSegment)
 {
-  initialize(numCells, maxSegmentsPerCell);
+  initialize(numCells, maxSegmentsPerCell, maxSynapsesPerSegment);
 }
 
 void Connections::initialize(CellIdx numCells,
-                             SegmentIdx maxSegmentsPerCell)
+                             SegmentIdx maxSegmentsPerCell,
+                             SynapseIdx maxSynapsesPerSegment)
 {
   cells_ = vector<CellData>(numCells);
   numSegments_ = 0;
   numSynapses_ = 0;
   maxSegmentsPerCell_ = maxSegmentsPerCell;
+  maxSynapsesPerSegment_ = maxSynapsesPerSegment;
   iteration_ = 0;
 }
 
@@ -80,9 +83,7 @@ Synapse Connections::createSynapse(const Segment& segment,
                                    Permanence permanence)
 {
   vector<SynapseData>& synapses = cells_[segment.cell.idx].segments[segment.idx].synapses;
-  // TODO: Allow specifying the max number of synapses per segment
-  // in the constructor (https://github.com/numenta/nupic.core/issues/250)
-  if (synapses.size() == MAX_SYNAPSES_PER_SEGMENT)
+  if (synapses.size() == maxSynapsesPerSegment_)
   {
     NTA_THROW << "Cannot create synapse: segment has reached maximum number of synapses.";
   }
@@ -229,7 +230,8 @@ bool Connections::mostActiveSegmentForCells(const vector<Cell>& cells,
 
       for (auto synapse : synapses)
       {
-        if (binary_search(input.begin(), input.end(), synapse.presynapticCell))
+        if (!synapse.destroyed && synapse.permanence > 0 &&
+            binary_search(input.begin(), input.end(), synapse.presynapticCell))
         {
           numSynapses++;
         }
@@ -374,6 +376,7 @@ void Connections::write(ConnectionsProto::Builder& proto) const
   }
 
   proto.setMaxSegmentsPerCell(maxSegmentsPerCell_);
+  proto.setMaxSynapsesPerSegment(maxSynapsesPerSegment_);
   proto.setIteration(iteration_);
 }
 
@@ -390,7 +393,9 @@ void Connections::read(ConnectionsProto::Reader& proto)
 {
   auto protoCells = proto.getCells();
 
-  initialize(protoCells.size(), proto.getMaxSegmentsPerCell());
+  initialize(protoCells.size(),
+             proto.getMaxSegmentsPerCell(),
+             proto.getMaxSynapsesPerSegment());
 
   for (CellIdx i = 0; i < protoCells.size(); ++i) {
     auto protoSegments = protoCells[i].getSegments();
@@ -442,6 +447,7 @@ UInt Connections::numSynapses() const
 bool Connections::operator==(const Connections &other) const
 {
   if (maxSegmentsPerCell_ != other.maxSegmentsPerCell_) return false;
+  if (maxSynapsesPerSegment_ != other.maxSynapsesPerSegment_) return false;
 
   if (cells_.size() != other.cells_.size()) return false;
 

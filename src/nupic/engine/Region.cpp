@@ -248,6 +248,18 @@ namespace nupic
     RegionImplFactory::registerCPPRegion(name, wrapper);
   }
 
+  void
+  Region::unregisterPyRegion(const std::string className)
+  {
+    RegionImplFactory::unregisterPyRegion(className);
+  }
+
+  void
+  Region::unregisterCPPRegion(const std::string name)
+  {
+    RegionImplFactory::unregisterCPPRegion(name);
+  }
+
   const Dimensions&
   Region::getDimensions() const
   {
