@@ -35,6 +35,8 @@
 #include <nupic/types/Types.hpp>
 #include <nupic/utils/Log.hpp>
 
+#include <typeinfo>
+
 using namespace std;
 using namespace nupic;
 using namespace nupic::algorithms::cla_classifier;
@@ -44,19 +46,10 @@ namespace
 
   TEST(FastCLAClassifierTest, Basic)
   {
-    ASSERT_EQ(4, sizeof(Real));
-    ASSERT_EQ(4, sizeof(Real32));
-    ASSERT_EQ(8, sizeof(Real64));
-    ASSERT_EQ(4, sizeof(Int32));
-    ASSERT_EQ(4, sizeof(UInt));
-    ASSERT_EQ(4, sizeof(int));
-    ASSERT_EQ(8, sizeof(long));
-    ASSERT_EQ(4, sizeof(UInt32));
-    ASSERT_EQ(8, sizeof(UInt64));
-    ASSERT_EQ(4, sizeof(float));
-    ASSERT_EQ(8, sizeof(double));
-
     vector<UInt> steps;
+    unsigned long dummy;
+    ASSERT_EQ(typeid(dummy), typeid(steps.size()));
+
     steps.push_back(1);
     FastCLAClassifier c = FastCLAClassifier(steps, 0.1, 0.1, 0);
 
