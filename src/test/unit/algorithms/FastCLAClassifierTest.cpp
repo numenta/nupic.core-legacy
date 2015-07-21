@@ -49,6 +49,8 @@ namespace
     ASSERT_EQ(8, sizeof(Real64));
     ASSERT_EQ(4, sizeof(Int32));
     ASSERT_EQ(4, sizeof(UInt));
+    ASSERT_EQ(4, sizeof(int));
+    ASSERT_EQ(8, sizeof(long));
     ASSERT_EQ(4, sizeof(UInt32));
     ASSERT_EQ(8, sizeof(UInt64));
     ASSERT_EQ(4, sizeof(float));
