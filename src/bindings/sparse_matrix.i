@@ -1152,14 +1152,14 @@ def __div__(self, other):
   void axby(nupic::UInt ## N1 row, nupic::Real ## N2 a, nupic::Real ## N2 b, PyObject *xIn)
   {
     PyArrayObject* x = (PyArrayObject*) xIn;
-    nupic::Real ## N2* x_begin = (nupic::Real ## N2*)(x->data);
+    nupic::Real ## N2* x_begin = (nupic::Real ## N2*)(PyArray_DATA(x));
     self->axby(row, a, b, x_begin);
   }
 
   void axby(nupic::Real ## N2 a, nupic::Real ## N2 b, PyObject *xIn)
   {
     PyArrayObject* x = (PyArrayObject*) xIn;
-    nupic::Real ## N2* x_begin = (nupic::Real ## N2*)(x->data);
+    nupic::Real ## N2* x_begin = (nupic::Real ## N2*)(PyArray_DATA(x));
     self->axby(a, b, x_begin);
   }
 
@@ -1185,9 +1185,9 @@ def __div__(self, other):
   inline void rightVecProd_fast(PyObject *xIn, PyObject *yOut) const
   {
     PyArrayObject* x = (PyArrayObject*) xIn;
-    nupic::Real ## N2* x_begin = (nupic::Real ## N2*)(x->data);
+    nupic::Real ## N2* x_begin = (nupic::Real ## N2*)(PyArray_DATA(x));
     PyArrayObject* y = (PyArrayObject*) yOut;
-    nupic::Real ## N2* y_begin = (nupic::Real ## N2*)(y->data);
+    nupic::Real ## N2* y_begin = (nupic::Real ## N2*)(PyArray_DATA(y));
     self->rightVecProd(x_begin, y_begin);
   }
 
@@ -1389,9 +1389,9 @@ def __div__(self, other):
   inline void rightVecSumAtNZ_fast(PyObject *xIn, PyObject *yOut) const
   {
     PyArrayObject* x = (PyArrayObject*) xIn;
-    nupic::Real ## N2* x_begin = (nupic::Real ## N2*)(x->data);
+    nupic::Real ## N2* x_begin = (nupic::Real ## N2*)(PyArray_DATA(x));
     PyArrayObject* y = (PyArrayObject*) yOut;
-    nupic::Real ## N2* y_begin = (nupic::Real ## N2*)(y->data);
+    nupic::Real ## N2* y_begin = (nupic::Real ## N2*)(PyArray_DATA(y));
     self->rightVecSumAtNZ(x_begin, y_begin);
   }
 
@@ -1414,9 +1414,9 @@ def __div__(self, other):
   inline void leftVecSumAtNZ_fast(PyObject *xIn, PyObject *yOut) const
   {
     PyArrayObject* x = (PyArrayObject*) xIn;
-    nupic::Real ## N2* x_begin = (nupic::Real ## N2*)(x->data);
+    nupic::Real ## N2* x_begin = (nupic::Real ## N2*)(PyArray_DATA(x));
     PyArrayObject* y = (PyArrayObject*) yOut;
-    nupic::Real ## N2* y_begin = (nupic::Real ## N2*)(y->data);
+    nupic::Real ## N2* y_begin = (nupic::Real ## N2*)(PyArray_DATA(y));
     self->leftVecSumAtNZ(x_begin, y_begin);
   }
 
@@ -1424,9 +1424,9 @@ def __div__(self, other):
     rightVecSumAtNZGtThreshold_fast(PyObject* xIn, PyObject *yOut, nupic::Real ## 32 threshold) const
   {
     PyArrayObject* x = (PyArrayObject*) xIn;
-    nupic::Real ## N2* x_begin = (nupic::Real ## N2*)(x->data);
+    nupic::Real ## N2* x_begin = (nupic::Real ## N2*)(PyArray_DATA(x));
     PyArrayObject* y = (PyArrayObject*) yOut;
-    nupic::Real ## N2* y_begin = (nupic::Real ## N2*)(y->data);
+    nupic::Real ## N2* y_begin = (nupic::Real ## N2*)(PyArray_DATA(y));
     self->rightVecSumAtNZGtThreshold(x_begin, y_begin, threshold);
   }
 
@@ -1702,8 +1702,8 @@ PyObject* sparseRightVecProd(const nupic::SparseMatrix<nupic::UInt32,nupic::Real
 inline bool isZero_01(PyObject* py_x)
 {
   PyArrayObject* x = (PyArrayObject*) py_x;
-  nupic::Real32* begin = (nupic::Real32*)(x->data);
-  nupic::Real32* end = begin + x->dimensions[0];
+  nupic::Real32* begin = (nupic::Real32*)(PyArray_DATA(x));
+  nupic::Real32* end = begin + PyArray_DIMS(x)[0];
   return nupic::isZero_01(begin, end);
 }
 
@@ -1714,8 +1714,8 @@ inline bool isZero_01(PyObject* py_x)
 inline nupic::Real32 dense_vector_sum(PyObject* py_x)
 {
   PyArrayObject* x = (PyArrayObject*) py_x;
-  nupic::Real32* begin = (nupic::Real32*)(x->data);
-  nupic::Real32* end = begin + x->dimensions[0];
+  nupic::Real32* begin = (nupic::Real32*)(PyArray_DATA(x));
+  nupic::Real32* end = begin + PyArray_DIMS(x)[0];
   return nupic::sum(begin, end);
 }
 
@@ -1725,8 +1725,8 @@ inline nupic::Real32 dense_vector_sum(PyObject* py_x)
 inline PyObject* binarize_with_threshold(nupic::Real32 threshold, PyObject* py_x)
 {
   PyArrayObject* x = (PyArrayObject*) py_x;
-  nupic::Real32* begin = (nupic::Real32*)(x->data);
-  nupic::Real32* end = begin + x->dimensions[0];
+  nupic::Real32* begin = (nupic::Real32*)(PyArray_DATA(x));
+  nupic::Real32* end = begin + PyArray_DIMS(x)[0];
   nupic::NumpyVectorT<nupic::Real32> y(end - begin);
   nupic::UInt32 c =
     nupic::binarize_with_threshold(threshold, begin, end, y.begin(), y.end());
@@ -1743,8 +1743,8 @@ inline PyObject*
 nonZeroRowsIndicator_01(nupic::UInt32 nrows, nupic::UInt32 ncols, PyObject* py_x)
 {
   PyArrayObject* x = (PyArrayObject*) py_x;
-  nupic::Real32* begin = (nupic::Real32*)(x->data);
-  nupic::Real32* end = begin + x->dimensions[0];
+  nupic::Real32* begin = (nupic::Real32*)(PyArray_DATA(x));
+  nupic::Real32* end = begin + PyArray_DIMS(x)[0];
   nupic::NumpyVectorT<nupic::UInt32> ind(nrows);
   nupic::nonZeroRowsIndicator_01(nrows, ncols, begin, end, ind.begin(), ind.end());
   return ind.forPython();
@@ -1754,8 +1754,8 @@ inline PyObject*
 nonZeroColsIndicator_01(nupic::UInt32 nrows, nupic::UInt32 ncols, PyObject* py_x)
 {
   PyArrayObject* x = (PyArrayObject*) py_x;
-  nupic::Real32* begin = (nupic::Real32*)(x->data);
-  nupic::Real32* end = begin + x->dimensions[0];
+  nupic::Real32* begin = (nupic::Real32*)(PyArray_DATA(x));
+  nupic::Real32* end = begin + PyArray_DIMS(x)[0];
   nupic::NumpyVectorT<nupic::UInt32> ind(ncols);
   nupic::nonZeroColsIndicator_01(nrows, ncols, begin, end, ind.begin(), ind.end());
   return ind.forPython();
@@ -1764,16 +1764,16 @@ nonZeroColsIndicator_01(nupic::UInt32 nrows, nupic::UInt32 ncols, PyObject* py_x
 inline nupic::UInt32 nNonZeroRows_01(nupic::UInt32 nrows, nupic::UInt32 ncols, PyObject* py_x)
 {
   PyArrayObject* x = (PyArrayObject*) py_x;
-  nupic::Real32* begin = (nupic::Real32*)(x->data);
-  nupic::Real32* end = begin + x->dimensions[0];
+  nupic::Real32* begin = (nupic::Real32*)(PyArray_DATA(x));
+  nupic::Real32* end = begin + PyArray_DIMS(x)[0];
   return nupic::nNonZeroRows_01(nrows, ncols, begin, end);
 }
 
 inline nupic::UInt32 nNonZeroCols_01(nupic::UInt32 nrows, nupic::UInt32 ncols, PyObject* py_x)
 {
   PyArrayObject* x = (PyArrayObject*) py_x;
-  nupic::Real32* begin = (nupic::Real32*)(x->data);
-  nupic::Real32* end = begin + x->dimensions[0];
+  nupic::Real32* begin = (nupic::Real32*)(PyArray_DATA(x));
+  nupic::Real32* end = begin + PyArray_DIMS(x)[0];
   return nupic::nNonZeroCols_01(nrows, ncols, begin, end);
 }
 
@@ -2063,8 +2063,8 @@ def SM_assignNoAlloc(sm, right):
   inline nupic::UInt32 count_gt(PyObject* py_x, nupic::Real32 threshold)
   {
     PyArrayObject* x = (PyArrayObject*) py_x;
-    nupic::Real32* x_begin = (nupic::Real32*)(x->data);
-    nupic::Real32* x_end = x_begin + x->dimensions[0];
+    nupic::Real32* x_begin = (nupic::Real32*)(PyArray_DATA(x));
+    nupic::Real32* x_end = x_begin + PyArray_DIMS(x)[0];
 
     return nupic::count_gt(x_begin, x_end, threshold);
   }
@@ -2076,8 +2076,8 @@ def SM_assignNoAlloc(sm, right):
   inline nupic::UInt32 count_gte(PyObject* py_x, nupic::Real32 threshold)
   {
     PyArrayObject* x = (PyArrayObject*) py_x;
-    nupic::Real32* x_begin = (nupic::Real32*)(x->data);
-    nupic::Real32* x_end = x_begin + x->dimensions[0];
+    nupic::Real32* x_begin = (nupic::Real32*)(PyArray_DATA(x));
+    nupic::Real32* x_end = x_begin + PyArray_DIMS(x)[0];
 
     return nupic::count_gte(x_begin, x_end, threshold);
   }
@@ -2089,8 +2089,8 @@ def SM_assignNoAlloc(sm, right):
   inline nupic::UInt32 count_lt(PyObject* py_x, nupic::Real32 threshold)
   {
     PyArrayObject* x = (PyArrayObject*) py_x;
-    nupic::Real32* x_begin = (nupic::Real32*)(x->data);
-    nupic::Real32* x_end = x_begin + x->dimensions[0];
+    nupic::Real32* x_begin = (nupic::Real32*)(PyArray_DATA(x));
+    nupic::Real32* x_end = x_begin + PyArray_DIMS(x)[0];
 
     return nupic::count_lt(x_begin, x_end, threshold);
   }
@@ -2114,12 +2114,12 @@ def SM_assignNoAlloc(sm, right):
     partialArgsort(size_t k, PyObject* py_x, PyObject* py_r, int direction =-1)
   {
     PyArrayObject* x = (PyArrayObject*) py_x;
-    nupic::Real32* x_begin = (nupic::Real32*)(x->data);
-    nupic::Real32* x_end = x_begin + x->dimensions[0];
+    nupic::Real32* x_begin = (nupic::Real32*)(PyArray_DATA(x));
+    nupic::Real32* x_end = x_begin + PyArray_DIMS(x)[0];
 
     PyArrayObject* r = (PyArrayObject*) py_r;
-    nupic::UInt32* r_begin = (nupic::UInt32*)(r->data);
-    nupic::UInt32* r_end = r_begin + r->dimensions[0];
+    nupic::UInt32* r_begin = (nupic::UInt32*)(PyArray_DATA(r));
+    nupic::UInt32* r_end = r_begin + PyArray_DIMS(r)[0];
 
     nupic::partial_argsort(k, x_begin, x_end, r_begin, r_end, direction);
   }
@@ -2137,12 +2137,12 @@ def SM_assignNoAlloc(sm, right):
                                    bool real_random =false)
   {
     PyArrayObject* x = (PyArrayObject*) py_x;
-    nupic::Real32* x_begin = (nupic::Real32*)(x->data);
-    nupic::Real32* x_end = x_begin + x->dimensions[0];
+    nupic::Real32* x_begin = (nupic::Real32*)(PyArray_DATA(x));
+    nupic::Real32* x_end = x_begin + PyArray_DIMS(x)[0];
 
     PyArrayObject* r = (PyArrayObject*) py_r;
-    nupic::UInt32* r_begin = (nupic::UInt32*)(r->data);
-    nupic::UInt32* r_end = r_begin + r->dimensions[0];
+    nupic::UInt32* r_begin = (nupic::UInt32*)(PyArray_DATA(r));
+    nupic::UInt32* r_end = r_begin + PyArray_DIMS(r)[0];
 
     nupic::partial_argsort_rnd_tie_break(k,
                                        x_begin, x_end, 
@@ -2162,12 +2162,12 @@ def SM_assignNoAlloc(sm, right):
   inline PyObject* logicalAnd(PyObject* py_x, PyObject* py_y)
   {
     PyArrayObject* x = (PyArrayObject*) py_x;
-    nupic::Real32* x_begin = (nupic::Real32*)(x->data);
-    nupic::Real32* x_end = x_begin + x->dimensions[0];
+    nupic::Real32* x_begin = (nupic::Real32*)(PyArray_DATA(x));
+    nupic::Real32* x_end = x_begin + PyArray_DIMS(x)[0];
 
     PyArrayObject* y = (PyArrayObject*) py_y;
-    nupic::Real32* y_begin = (nupic::Real32*)(y->data);
-    nupic::Real32* y_end = y_begin + y->dimensions[0];
+    nupic::Real32* y_begin = (nupic::Real32*)(PyArray_DATA(y));
+    nupic::Real32* y_end = y_begin + PyArray_DIMS(y)[0];
 
     nupic::NumpyVectorT<nupic::Real32> z(x_end - x_begin);
 
@@ -2186,12 +2186,12 @@ def SM_assignNoAlloc(sm, right):
   inline void logicalAnd2(PyObject* py_x, PyObject* py_y)
   {
     PyArrayObject* x = (PyArrayObject*) py_x;
-    nupic::Real32* x_begin = (nupic::Real32*)(x->data);
-    nupic::Real32* x_end = x_begin + x->dimensions[0];
+    nupic::Real32* x_begin = (nupic::Real32*)(PyArray_DATA(x));
+    nupic::Real32* x_end = x_begin + PyArray_DIMS(x)[0];
 
     PyArrayObject* y = (PyArrayObject*) py_y;
-    nupic::Real32* y_begin = (nupic::Real32*)(y->data);
-    nupic::Real32* y_end = y_begin + y->dimensions[0];
+    nupic::Real32* y_begin = (nupic::Real32*)(PyArray_DATA(y));
+    nupic::Real32* y_end = y_begin + PyArray_DIMS(y)[0];
 
     nupic::in_place_logical_and(x_begin, x_end, y_begin, y_end);
   }
@@ -2946,8 +2946,8 @@ def __setstate__(self, inString):
   inline PyObject* rightVecSumAtNZ(PyObject* py_x) const
   {
     PyArrayObject* x = (PyArrayObject*) py_x;
-    nupic::Real32* x_begin = (nupic::Real32*)(x->data);
-    nupic::Real32* x_end = x_begin + x->dimensions[0];
+    nupic::Real32* x_begin = (nupic::Real32*)(PyArray_DATA(x));
+    nupic::Real32* x_end = x_begin + PyArray_DIMS(x)[0];
     nupic::NumpyVectorT<nupic::Real32> y(self->nRows());
     self->rightVecSumAtNZ(x_begin, x_end, y.begin(), y.end());
     return y.forPython();
@@ -2959,11 +2959,11 @@ def __setstate__(self, inString):
   inline void rightVecSumAtNZ_fast(PyObject* py_x, PyObject* py_y) const
   {
     PyArrayObject* x = (PyArrayObject*) py_x;
-    nupic::Real32* x_begin = (nupic::Real32*)(x->data);
-    nupic::Real32* x_end = x_begin + x->dimensions[0];
+    nupic::Real32* x_begin = (nupic::Real32*)(PyArray_DATA(x));
+    nupic::Real32* x_end = x_begin + PyArray_DIMS(x)[0];
     PyArrayObject* y = (PyArrayObject*) py_y;
-    nupic::Real32* y_begin = (nupic::Real32*)(y->data);
-    nupic::Real32* y_end = y_begin + y->dimensions[0];
+    nupic::Real32* y_begin = (nupic::Real32*)(PyArray_DATA(y));
+    nupic::Real32* y_end = y_begin + PyArray_DIMS(y)[0];
     self->rightVecSumAtNZ(x_begin, x_end, y_begin, y_end);
   }
 
@@ -2973,8 +2973,8 @@ def __setstate__(self, inString):
   inline PyObject* leftVecSumAtNZ(PyObject* py_x) const
   {
     PyArrayObject* x = (PyArrayObject*) py_x;
-    nupic::Real32* x_begin = (nupic::Real32*)(x->data);
-    nupic::Real32* x_end = x_begin + x->dimensions[0];
+    nupic::Real32* x_begin = (nupic::Real32*)(PyArray_DATA(x));
+    nupic::Real32* x_end = x_begin + PyArray_DIMS(x)[0];
     nupic::NumpyVectorT<nupic::Real32> y(self->nCols());
     self->leftVecSumAtNZ(x_begin, x_end, y.begin(), y.end());
     return y.forPython();
@@ -2986,11 +2986,11 @@ def __setstate__(self, inString):
   inline void leftVecSumAtNZ_fast(PyObject* py_x, PyObject* py_y) const
   {
     PyArrayObject* x = (PyArrayObject*) py_x;
-    nupic::Real32* x_begin = (nupic::Real32*)(x->data);
-    nupic::Real32* x_end = x_begin + x->dimensions[0];
+    nupic::Real32* x_begin = (nupic::Real32*)(PyArray_DATA(x));
+    nupic::Real32* x_end = x_begin + PyArray_DIMS(x)[0];
     PyArrayObject* y = (PyArrayObject*) py_y;
-    nupic::Real32* y_begin = (nupic::Real32*)(y->data);
-    nupic::Real32* y_end = y_begin + y->dimensions[0];
+    nupic::Real32* y_begin = (nupic::Real32*)(PyArray_DATA(y));
+    nupic::Real32* y_end = y_begin + PyArray_DIMS(y)[0];
     self->leftVecSumAtNZ(x_begin, x_end, y_begin, y_end);
   }
 
@@ -3461,8 +3461,8 @@ def __setstate__(self, inString):
   inline PyObject* rightVecSumAtNZ(PyObject* py_x) const
   {
     PyArrayObject* x = (PyArrayObject*) py_x;
-    nupic::Real32* x_begin = (nupic::Real32*)(x->data);
-    nupic::Real32* x_end = x_begin + x->dimensions[0];
+    nupic::Real32* x_begin = (nupic::Real32*)(PyArray_DATA(x));
+    nupic::Real32* x_end = x_begin + PyArray_DIMS(x)[0];
     nupic::NumpyVectorT<nupic::Real32> y(self->nRows());
     self->rightVecSumAtNZ(x_begin, x_end, y.begin(), y.end());
     return y.forPython();
@@ -3474,11 +3474,11 @@ def __setstate__(self, inString):
   inline void rightVecSumAtNZ_fast(PyObject* py_x, PyObject* py_y) const
   {
     PyArrayObject* x = (PyArrayObject*) py_x;
-    nupic::Real32* x_begin = (nupic::Real32*)(x->data);
-    nupic::Real32* x_end = x_begin + x->dimensions[0];
+    nupic::Real32* x_begin = (nupic::Real32*)(PyArray_DATA(x));
+    nupic::Real32* x_end = x_begin + PyArray_DIMS(x)[0];
     PyArrayObject* y = (PyArrayObject*) py_y;
-    nupic::Real32* y_begin = (nupic::Real32*)(y->data);
-    nupic::Real32* y_end = y_begin + y->dimensions[0];
+    nupic::Real32* y_begin = (nupic::Real32*)(PyArray_DATA(y));
+    nupic::Real32* y_end = y_begin + PyArray_DIMS(y)[0];
     self->rightVecSumAtNZ(x_begin, x_end, y_begin, y_end);
   }
 
@@ -3488,8 +3488,8 @@ def __setstate__(self, inString):
   inline PyObject* leftVecSumAtNZ(PyObject* py_x) const
   {
     PyArrayObject* x = (PyArrayObject*) py_x;
-    nupic::Real32* x_begin = (nupic::Real32*)(x->data);
-    nupic::Real32* x_end = x_begin + x->dimensions[0];
+    nupic::Real32* x_begin = (nupic::Real32*)(PyArray_DATA(x));
+    nupic::Real32* x_end = x_begin + PyArray_DIMS(x)[0];
     nupic::NumpyVectorT<nupic::Real32> y(self->nCols());
     self->leftVecSumAtNZ(x_begin, x_end, y.begin(), y.end());
     return y.forPython();
@@ -3501,11 +3501,11 @@ def __setstate__(self, inString):
   inline void leftVecSumAtNZ_fast(PyObject* py_x, PyObject* py_y) const
   {
     PyArrayObject* x = (PyArrayObject*) py_x;
-    nupic::Real32* x_begin = (nupic::Real32*)(x->data);
-    nupic::Real32* x_end = x_begin + x->dimensions[0];
+    nupic::Real32* x_begin = (nupic::Real32*)(PyArray_DATA(x));
+    nupic::Real32* x_end = x_begin + PyArray_DIMS(x)[0];
     PyArrayObject* y = (PyArrayObject*) py_y;
-    nupic::Real32* y_begin = (nupic::Real32*)(y->data);
-    nupic::Real32* y_end = y_begin + y->dimensions[0];
+    nupic::Real32* y_begin = (nupic::Real32*)(PyArray_DATA(y));
+    nupic::Real32* y_end = y_begin + PyArray_DIMS(y)[0];
     self->leftVecSumAtNZ(x_begin, x_end, y_begin, y_end);
   }
 
@@ -4049,18 +4049,18 @@ def __setstate__(self, inString):
   inline void construct(nupic::UInt32 m, PyObject* py_a)
   {
     PyArrayObject* _a = (PyArrayObject*) py_a;
-    nupic::UInt32* a = (nupic::UInt32*)(_a->data);
-    nupic::UInt32 n = _a->dimensions[0];
+    nupic::UInt32* a = (nupic::UInt32*)(PyArray_DATA(_a));
+    nupic::UInt32 n = PyArray_DIMS(_a)[0];
     self->construct(m, n, a);
   }
 
   inline nupic::UInt32 intersection(PyObject* py_s2, PyObject* py_r) const
   {
     PyArrayObject* _s2 = (PyArrayObject*) py_s2;
-    nupic::UInt32* s2 = (nupic::UInt32*)(_s2->data);
-    nupic::UInt32 n2 = _s2->dimensions[0];
+    nupic::UInt32* s2 = (nupic::UInt32*)(PyArray_DATA(_s2));
+    nupic::UInt32 n2 = PyArray_DIMS(_s2)[0];
     PyArrayObject* _r = (PyArrayObject*) py_r;
-    nupic::UInt32* r = (nupic::UInt32*)(_r->data);
+    nupic::UInt32* r = (nupic::UInt32*)(PyArray_DATA(_r));
 
     return self->intersection(n2, s2, r);
   }

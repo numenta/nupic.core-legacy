@@ -80,6 +80,7 @@ _MATH = _math
 #include <nupic/math/ArrayAlgo.hpp>
 #include <nupic/proto/RandomProto.capnp.h>
 #include <nupic/utils/Random.hpp>
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include <numpy/arrayobject.h>
 
 #include <nupic/py_support/PyCapnp.hpp>
@@ -240,8 +241,8 @@ void jumpAhead(unsigned int n)
 inline void initializeUInt32Array(PyObject* py_array, nupic::UInt32 max_value)
 {
   PyArrayObject* array = (PyArrayObject*) py_array;
-  nupic::UInt32* array_data = (nupic::UInt32*) array->data;
-  nupic::UInt32 size = array->dimensions[0];
+  nupic::UInt32* array_data = (nupic::UInt32*) PyArray_DATA(array);
+  nupic::UInt32 size = PyArray_DIMS(array)[0];
   for (nupic::UInt32 i = 0; i != size; ++i)
     array_data[i] = self->getUInt32() % max_value;
 }
@@ -249,8 +250,8 @@ inline void initializeUInt32Array(PyObject* py_array, nupic::UInt32 max_value)
 inline void initializeReal32Array(PyObject* py_array)
 {
   PyArrayObject* array = (PyArrayObject*) py_array;
-  nupic::Real32* array_data = (nupic::Real32*) array->data;
-  nupic::UInt32 size = array->dimensions[0];
+  nupic::Real32* array_data = (nupic::Real32*) PyArray_DATA(array);
+  nupic::UInt32 size = PyArray_DIMS(array)[0];
   for (nupic::UInt32 i = 0; i != size; ++i)
     array_data[i] = (nupic::Real32) self->getReal64();
 }
@@ -258,8 +259,8 @@ inline void initializeReal32Array(PyObject* py_array)
 inline void initializeReal32Array_01(PyObject* py_array, nupic::Real32 proba)
 {
   PyArrayObject* array = (PyArrayObject*) py_array;
-  nupic::Real32* array_data = (nupic::Real32*) array->data;
-  nupic::Real32 size = array->dimensions[0];
+  nupic::Real32* array_data = (nupic::Real32*) PyArray_DATA(array);
+  nupic::Real32 size = PyArray_DIMS(array)[0];
   for (nupic::UInt32 i = 0; i != size; ++i)
     array_data[i] = (nupic::Real32)(self->getReal64() <= proba ? 1.0 : 0.0);
 }
@@ -271,7 +272,7 @@ inline PyObject* sample(PyObject* population, PyObject* choices)
     PyArrayObject* values = (PyArrayObject*) population;
     PyArrayObject* result = (PyArrayObject*) choices;
 
-    if (values->nd != 1 || result->nd != 1)
+    if (PyArray_NDIM(values) != 1 || PyArray_NDIM(result) != 1)
     {
       PyErr_SetString(PyExc_ValueError,
                      "Only one dimensional arrays are supported.");
@@ -290,19 +291,19 @@ inline PyObject* sample(PyObject* population, PyObject* choices)
     {
       if (PyArray_DESCR(values)->type_num == NPY_UINT32)
       {
-        nupic::UInt32* valuesStart = (nupic::UInt32*) values->data;
-        nupic::UInt32 valuesSize = values->dimensions[0];
+        nupic::UInt32* valuesStart = (nupic::UInt32*) PyArray_DATA(values);
+        nupic::UInt32 valuesSize = PyArray_DIMS(values)[0];
 
-        nupic::UInt32* resultStart = (nupic::UInt32*) result->data;
-        nupic::UInt32 resultSize = result->dimensions[0];
+        nupic::UInt32* resultStart = (nupic::UInt32*) PyArray_DATA(result);
+        nupic::UInt32 resultSize = PyArray_DIMS(result)[0];
 
         self->sample(valuesStart, valuesSize, resultStart, resultSize);
       } else if (PyArray_DESCR(values)->type_num == NPY_UINT64) {
-        nupic::UInt64* valuesStart = (nupic::UInt64*) values->data;
-        nupic::UInt64 valuesSize = values->dimensions[0];
+        nupic::UInt64* valuesStart = (nupic::UInt64*) PyArray_DATA(values);
+        nupic::UInt64 valuesSize = PyArray_DIMS(values)[0];
 
-        nupic::UInt64* resultStart = (nupic::UInt64*) result->data;
-        nupic::UInt64 resultSize = result->dimensions[0];
+        nupic::UInt64* resultStart = (nupic::UInt64*) PyArray_DATA(result);
+        nupic::UInt64 resultSize = PyArray_DIMS(result)[0];
 
         self->sample(valuesStart, valuesSize, resultStart, resultSize);
       } else {
@@ -332,7 +333,7 @@ inline PyObject* shuffle(PyObject* obj)
   {
     PyArrayObject* arr = (PyArrayObject*) obj;
 
-    if (arr->nd != 1)
+    if (PyArray_NDIM(arr) != 1)
     {
       PyErr_SetString(PyExc_ValueError,
                      "Only one dimensional arrays are supported.");
@@ -341,13 +342,13 @@ inline PyObject* shuffle(PyObject* obj)
 
     if (PyArray_DESCR(arr)->type_num == NPY_UINT32)
     {
-      nupic::UInt32* arrStart = (nupic::UInt32*) arr->data;
-      nupic::UInt32* arrEnd = arrStart + arr->dimensions[0];
+      nupic::UInt32* arrStart = (nupic::UInt32*) PyArray_DATA(arr);
+      nupic::UInt32* arrEnd = arrStart + PyArray_DIMS(arr)[0];
 
       self->shuffle(arrStart, arrEnd);
     } else if (PyArray_DESCR(arr)->type_num == NPY_UINT64) {
-      nupic::UInt64* arrStart = (nupic::UInt64*) arr->data;
-      nupic::UInt64* arrEnd = arrStart + arr->dimensions[0];
+      nupic::UInt64* arrStart = (nupic::UInt64*) PyArray_DATA(arr);
+      nupic::UInt64* arrEnd = arrStart + PyArray_DIMS(arr)[0];
 
       self->shuffle(arrStart, arrEnd);
     } else {

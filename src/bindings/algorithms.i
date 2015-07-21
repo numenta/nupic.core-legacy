@@ -107,6 +107,7 @@ _ALGORITHMS = _algorithms
 
 #include <nupic/proto/SpatialPoolerProto.capnp.h>
 
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include <numpy/arrayobject.h>
 #include <nupic/py_support/NumpyVector.hpp>
 #include <nupic/py_support/PyCapnp.hpp>
@@ -129,7 +130,7 @@ using namespace nupic::algorithms::cla_classifier;
 using namespace nupic;
 
 #define CHECKSIZE(var) \
-  NTA_ASSERT((var)->descr->elsize == 4) << " elsize:" << (var)->descr->elsize
+  NTA_ASSERT(PyArray_DESCR(var)->elsize == 4) << " elsize:" << PyArray_DESCR(var)->elsize
 
 %}
 
@@ -208,34 +209,34 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
     PyArrayObject* samples = (PyArrayObject*)samplesIn;
 
     self->create_problem(size, n_dims,
-             (float*)(labels->data), (float*)(samples->data),
+             (float*)(PyArray_DATA(labels)), (float*)(PyArray_DATA(samples)),
              bias);
   }
 
   inline void cross_validation(int nr_fold, PyObject* py_target)
   {
     PyArrayObject* target = (PyArrayObject*)py_target;
-    self->cross_validation(nr_fold, (int*)target->data);
+    self->cross_validation(nr_fold, (int*)PyArray_DATA(target));
   }
 
   inline int predict_values(PyObject* py_x, PyObject* py_dec_values)
   {
     PyArrayObject* x = (PyArrayObject*)py_x;
     PyArrayObject* dec_values = (PyArrayObject*)py_dec_values;
-    return self->predict_values((float*)x->data, (float*)dec_values->data);
+    return self->predict_values((float*)PyArray_DATA(x), (float*)PyArray_DATA(dec_values));
   }
 
   inline int predict(PyObject* py_x)
   {
     PyArrayObject* x = (PyArrayObject*)py_x;
-    return self->predict((float*)x->data);
+    return self->predict((float*)PyArray_DATA(x));
   }
 
   inline int predict_probability(PyObject* py_x, PyObject* py_prob_estimates)
   {
     PyArrayObject* x = (PyArrayObject*)py_x;
     PyArrayObject* prob_estimates = (PyArrayObject*)py_prob_estimates;
-    return self->predict_probability((float*)x->data, (float*)prob_estimates->data);
+    return self->predict_probability((float*)PyArray_DATA(x), (float*)PyArray_DATA(prob_estimates));
   }
 }
 
@@ -252,7 +253,7 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
   {
     PyArrayObject* samples_py = (PyArrayObject*)samplesIn;
     for (int i = 0; i < self->size(); ++i) {
-      float* row_it = (float*)(samples_py->data+i*samples_py->strides[0]);
+      float* row_it = (float*)((char *)PyArray_DATA(samples_py)+i*PyArray_STRIDES(samples_py)[0]);
       *row_it++ = self->y_[i];
       for (int j = 0; j < self->n_dims(); ++j, ++row_it)
     *row_it = self->x_[i][j];
@@ -266,7 +267,7 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
   {
     PyArrayObject* samples_py = (PyArrayObject*)samplesIn;
     for (int i = 0; i < self->size(); ++i) {
-      float* row_it = (float*)(samples_py->data+i*samples_py->strides[0]);
+      float* row_it = (float*)((char *)PyArray_DATA(samples_py)+i*PyArray_STRIDES(samples_py)[0]);
       *row_it++ = self->y_[i];
       std::fill(row_it, row_it + self->n_dims(), (float) 0);
       for (int j = 0; j < self->nnz(i); ++j)
@@ -281,7 +282,7 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
   {
     PyArrayObject* sv_py = (PyArrayObject*)svIn;
     for (int i = 0; i < self->size(); ++i) {
-      float* row_it = (float*)(sv_py->data+i*sv_py->strides[0]);
+      float* row_it = (float*)((char *)PyArray_DATA(sv_py)+i*PyArray_STRIDES(sv_py)[0]);
       for (int j = 0; j < self->n_dims(); ++j, ++row_it)
     *row_it = self->sv[i][j];
     }
@@ -291,7 +292,7 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
   {
     PyArrayObject* sv_coeff_py = (PyArrayObject*)svCoeffIn;
     for (size_t i = 0; i < self->sv_coef.size(); ++i) {
-      float* row_it = (float*)(sv_coeff_py->data+i*sv_coeff_py->strides[0]);
+      float* row_it = (float*)((char *)PyArray_DATA(sv_coeff_py)+i*PyArray_STRIDES(sv_coeff_py)[0]);
       for (int j = 0; j < self->size(); ++j, ++row_it)
     *row_it = self->sv_coef[i][j];
     }
@@ -356,20 +357,20 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
   inline void add_sample(float y_val, PyObject* x_vector)
   {
     PyArrayObject* x = (PyArrayObject*) x_vector;
-    self->add_sample(y_val, (float*)x->data);
+    self->add_sample(y_val, (float*)PyArray_DATA(x));
   }
 
   inline float predict(PyObject* x_vector)
   {
     PyArrayObject* x = (PyArrayObject*) x_vector;
-    return self->predict((float*)x->data);
+    return self->predict((float*)PyArray_DATA(x));
   }
 
   inline float predict_probability(PyObject* x_vector, PyObject* proba_vector)
   {
     PyArrayObject* x = (PyArrayObject*) x_vector;
     PyArrayObject* proba = (PyArrayObject*) proba_vector;
-    return self->predict_probability((float*)x->data, (float*)proba->data);
+    return self->predict_probability((float*)PyArray_DATA(x), (float*)PyArray_DATA(proba));
   }
 
   inline void save(const std::string& filename)
@@ -429,20 +430,20 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
   inline void add_sample(float y_val, PyObject* x_vector)
   {
     PyArrayObject* x = (PyArrayObject*) x_vector;
-    self->add_sample(y_val, (float*)x->data);
+    self->add_sample(y_val, (float*)PyArray_DATA(x));
   }
 
   inline float predict(PyObject* x_vector)
   {
     PyArrayObject* x = (PyArrayObject*) x_vector;
-    return self->predict((float*)x->data);
+    return self->predict((float*)PyArray_DATA(x));
   }
 
   inline float predict_probability(PyObject* x_vector, PyObject* proba_vector)
   {
     PyArrayObject* x = (PyArrayObject*) x_vector;
     PyArrayObject* proba = (PyArrayObject*) proba_vector;
-    return self->predict_probability((float*)x->data, (float*)proba->data);
+    return self->predict_probability((float*)PyArray_DATA(x), (float*)PyArray_DATA(proba));
   }
 
   inline float cross_validate(int n_fold, float gamma, float C, float eps)
@@ -492,7 +493,7 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
     PyArrayObject *f1 = (PyArrayObject*) pyF1;
     PyArrayObject *f2 = (PyArrayObject*) pyF2;
 
-    self->init(nrows, ncols, f1_size, f2_size, (float*)(f1->data), (float*)(f2->data));
+    self->init(nrows, ncols, f1_size, f2_size, (float*)(PyArray_DATA(f1)), (float*)(PyArray_DATA(f2)));
   }
 
   inline void compute(PyObject* pyData, PyObject* pyConvolved, bool rotated45 =false)
@@ -500,7 +501,7 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
     PyArrayObject* data = (PyArrayObject*)pyData;
     PyArrayObject* convolved = (PyArrayObject*)pyConvolved;
 
-    self->compute((float*)(data->data), (float*)(convolved->data), rotated45);
+    self->compute((float*)(PyArray_DATA(data)), (float*)(PyArray_DATA(convolved)), rotated45);
   }
 
   inline void getBuffer(PyObject* pyBuffer) const
@@ -508,7 +509,7 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
     PyArrayObject *buffer = (PyArrayObject*)pyBuffer;
 
     const size_t size = self->nrows_ * self->ncols_;
-    std::copy(self->buffer_, self->buffer_ + size, (float*)(buffer->data));
+    std::copy(self->buffer_, self->buffer_ + size, (float*)(PyArray_DATA(buffer)));
   }
 };
 
@@ -527,7 +528,7 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
     PyArrayObject* original = (PyArrayObject*)pyOriginal;
     PyArrayObject* rotated = (PyArrayObject*)pyRotated;
 
-    self->rotate((float*)(original->data), (float*)(rotated->data),
+    self->rotate((float*)(PyArray_DATA(original)), (float*)(PyArray_DATA(rotated)),
       nrows, ncols, z);
   }
 
@@ -537,7 +538,7 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
     PyArrayObject* unrotated = (PyArrayObject*)pyUnrotated;
     PyArrayObject* rotated = (PyArrayObject*)pyRotated;
 
-    self->unrotate((float*)(unrotated->data), (float*)(rotated->data),
+    self->unrotate((float*)(PyArray_DATA(unrotated)), (float*)(PyArray_DATA(rotated)),
       nrows, ncols, z);
   }
 };
@@ -562,7 +563,7 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
     PyArrayObject* data = (PyArrayObject*)pyData;
     PyArrayObject* eroded = (PyArrayObject*)pyEroded;
 
-    self->compute((float*)(data->data), (float*)(eroded->data),
+    self->compute((float*)(PyArray_DATA(data)), (float*)(PyArray_DATA(eroded)),
                   iterations, dilate);
   }
 
@@ -571,7 +572,7 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
     PyArrayObject *buffer = (PyArrayObject*)pyBuffer;
 
     const size_t size = self->nrows_ * self->ncols_;
-    std::copy(self->buffer_, self->buffer_ + size, (float*)(buffer->data));
+    std::copy(self->buffer_, self->buffer_ + size, (float*)(PyArray_DATA(buffer)));
   }
 };
 
@@ -595,8 +596,8 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
     PyArrayObject *weights = (PyArrayObject*) pyWeights;
     computeAlpha(xstep, ystep, widthS, heightS, imageWidth, imageHeight,
                  xcount, ycount, weightWidth, sharpness,
-                 (float*)(data->data), (float*)(values->data),
-                 (float*)(counts->data), (float*)(weights->data));
+                 (float*)(PyArray_DATA(data)), (float*)(PyArray_DATA(values)),
+                 (float*)(PyArray_DATA(counts)), (float*)(PyArray_DATA(weights)));
   }
 }
 
@@ -633,9 +634,9 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
     PyArrayObject* x = (PyArrayObject*)py_x;
     PyArrayObject* y = (PyArrayObject*)py_y;
     nupic::UInt32 nnz = 0;
-    unsigned char* x_data = (unsigned char*) x->data;
-    nupic::UInt32* y_res = (nupic::UInt32*) y->data;
-    for (int i = 0; i != x->dimensions[0]; ++i)
+    unsigned char* x_data = (unsigned char*) PyArray_DATA(x);
+    nupic::UInt32* y_res = (nupic::UInt32*) PyArray_DATA(y);
+    for (int i = 0; i != PyArray_DIMS(x)[0]; ++i)
       if (x_data[i] != 0)
         y_res[nnz++] = i;
     return nnz;
@@ -646,9 +647,9 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
     PyArrayObject* x = (PyArrayObject*)py_x;
     PyArrayObject* y = (PyArrayObject*)py_y;
     nupic::UInt32 nnz = 0;
-    nupic::UInt32* x_data = (nupic::UInt32*) x->data;
-    nupic::UInt32* y_res = (nupic::UInt32*) y->data;
-    for (int i = 0; i != x->dimensions[0]; ++i)
+    nupic::UInt32* x_data = (nupic::UInt32*) PyArray_DATA(x);
+    nupic::UInt32* y_res = (nupic::UInt32*) PyArray_DATA(y);
+    for (int i = 0; i != PyArray_DIMS(x)[0]; ++i)
       if (x_data[i] != 0)
         y_res[nnz++] = i;
     return nnz;
@@ -661,9 +662,9 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
     PyArrayObject* y = (PyArrayObject*)py_y;
     CHECKSIZE(y);
     nupic::UInt32 nnz = 0;
-    nupic::Real32* x_data = (nupic::Real32*) x->data;
-    nupic::UInt32* y_res = (nupic::UInt32*) y->data;
-    for (int i = 0; i != x->dimensions[0]; ++i)
+    nupic::Real32* x_data = (nupic::Real32*) PyArray_DATA(x);
+    nupic::UInt32* y_res = (nupic::UInt32*) PyArray_DATA(y);
+    for (int i = 0; i != PyArray_DIMS(x)[0]; ++i)
       if (x_data[i] != 0)
         y_res[nnz++] = i;
     return nnz;
@@ -674,11 +675,11 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
     PyArrayObject* ind = (PyArrayObject*)py_ind;
     PyArrayObject* x = (PyArrayObject*)py_x;
     PyArrayObject* y = (PyArrayObject*)py_y;
-    nupic::UInt32 nc = ind->dimensions[0];
-    nupic::UInt32 ni = ind->dimensions[1];
-    nupic::UInt32* ind_data = (nupic::UInt32*) ind->data;
-    nupic::Real32* x_data = (nupic::Real32*) x->data;
-    nupic::Real32* y_res = (nupic::Real32*) y->data;
+    nupic::UInt32 nc = PyArray_DIMS(ind)[0];
+    nupic::UInt32 ni = PyArray_DIMS(ind)[1];
+    nupic::UInt32* ind_data = (nupic::UInt32*) PyArray_DATA(ind);
+    nupic::Real32* x_data = (nupic::Real32*) PyArray_DATA(x);
+    nupic::Real32* y_res = (nupic::Real32*) PyArray_DATA(y);
 
     for (nupic::UInt32 c = 0; c != nc; ++c, ind_data += ni) {
       nupic::Real32 val = 0;
@@ -710,11 +711,11 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
   {
     PyArrayObject* _x = (PyArrayObject*) py_x;
     CHECKSIZE(_x);
-    nupic::Real32* x = (nupic::Real32*)(_x->data);
+    nupic::Real32* x = (nupic::Real32*)(PyArray_DATA(_x));
 
     PyArrayObject* _y = (PyArrayObject*) py_y;
     CHECKSIZE(_y);
-    nupic::UInt32* y = (nupic::UInt32*)(_y->data);
+    nupic::UInt32* y = (nupic::UInt32*)(PyArray_DATA(_y));
 
     return self->compute(x, y, stimulus_threshold, k);
   }
@@ -740,11 +741,11 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
   {
     PyArrayObject* _x = (PyArrayObject*) py_x;
     CHECKSIZE(_x);
-    nupic::Real32* x = (nupic::Real32*)(_x->data);
+    nupic::Real32* x = (nupic::Real32*)(PyArray_DATA(_x));
 
     PyArrayObject* _y = (PyArrayObject*) py_y;
     CHECKSIZE(_y);
-    nupic::UInt32* y = (nupic::UInt32*)(_y->data);
+    nupic::UInt32* y = (nupic::UInt32*)(PyArray_DATA(_y));
 
     return self->compute(x, y, stimulus_threshold, add_to_winners);
   }
@@ -784,8 +785,8 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
                                              nupic::Real32 connectedPerm)
   {
     PyArrayObject* _state = (PyArrayObject*) py_state;
-    nupic::Byte* state = (nupic::Byte*) _state->data;
-    nupic::UInt32 stride0 = _state->strides[0];
+    nupic::Byte* state = (nupic::Byte*) PyArray_DATA(_state);
+    nupic::UInt32 stride0 = PyArray_STRIDES(_state)[0];
 
     nupic::py::List seg;
     seg.assign(py_seg);
@@ -821,8 +822,8 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
                               nupic::UInt32 activationThreshold)
   {
     PyArrayObject* _state = (PyArrayObject*) py_state;
-    nupic::Byte* state = (nupic::Byte*) _state->data;
-    nupic::UInt32 stride0 = _state->strides[0];
+    nupic::Byte* state = (nupic::Byte*) PyArray_DATA(_state);
+    nupic::UInt32 stride0 = PyArray_STRIDES(_state)[0];
 
     nupic::py::List seg;
     seg.assign(py_seg);
@@ -873,7 +874,7 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
                        nupic::UInt32 activationThreshold) const
   {
     PyArrayObject* act = (PyArrayObject*) py_activities;
-    return self->isActive((nupic::UInt32*) act->data,
+    return self->isActive((nupic::UInt32*) PyArray_DATA(act),
                           permConnected,
                           activationThreshold);
   }
@@ -896,7 +897,7 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
                              nupic::Real32 input, PyObject* py_output)
   {
     PyArrayObject* p_output = (PyArrayObject*) py_output;
-    nupic::Real32 output = p_output->data;
+    nupic::Real32 output = PyArray_DATA(p_output);
     int centerbin = padding + int((input - minval) * nInternal / range);
 
   }
@@ -955,14 +956,14 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
     PyArrayObject* cellConfidenceT = (PyArrayObject*) py_cellConfidenceT;
     PyArrayObject* cellConfidenceT1 = (PyArrayObject*) py_cellConfidenceT1;
 
-    self->setStatePointers((nupic::Byte*) infActiveStateT->data,
-                           (nupic::Byte*) infActiveStateT1->data,
-                           (nupic::Byte*) infPredictedStateT->data,
-                           (nupic::Byte*) infPredictedStateT1->data,
-                           (nupic::Real32*) colConfidenceT->data,
-                           (nupic::Real32*) colConfidenceT1->data,
-                           (nupic::Real32*) cellConfidenceT->data,
-                           (nupic::Real32*) cellConfidenceT1->data);
+    self->setStatePointers((nupic::Byte*) PyArray_DATA(infActiveStateT),
+                           (nupic::Byte*) PyArray_DATA(infActiveStateT1),
+                           (nupic::Byte*) PyArray_DATA(infPredictedStateT),
+                           (nupic::Byte*) PyArray_DATA(infPredictedStateT1),
+                           (nupic::Real32*) PyArray_DATA(colConfidenceT),
+                           (nupic::Real32*) PyArray_DATA(colConfidenceT1),
+                           (nupic::Real32*) PyArray_DATA(cellConfidenceT),
+                           (nupic::Real32*) PyArray_DATA(cellConfidenceT1));
   }
 
   inline PyObject* getStates() const
@@ -1031,7 +1032,7 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
     getBestMatchingCell(nupic::UInt32 colIdx, PyObject* py_state)
     {
       PyArrayObject* st = (PyArrayObject*) py_state;
-      return self->getBestMatchingCell(colIdx, (nupic::UInt32*) st->data);
+      return self->getBestMatchingCell(colIdx, (nupic::UInt32*) PyArray_DATA(st));
     }
   */
 
@@ -1044,8 +1045,8 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
   {
     PyArrayObject* st = (PyArrayObject*) py_state;
     PyArrayObject* lst = (PyArrayObject*) py_learnState;
-    self->computeUpdate(colIdx, cellIdxInCol, segIdx, (nupic::UInt32*) st->data,
-                        (nupic::UInt32*) lst->data,
+    self->computeUpdate(colIdx, cellIdxInCol, segIdx, (nupic::UInt32*) PyArray_DATA(st),
+                        (nupic::UInt32*) PyArray_DATA(lst),
                         sequenceSegmentFlag, newSynapsesFlag);
   }
   */
@@ -1054,7 +1055,7 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
   {
     PyArrayObject* x = (PyArrayObject*) py_x;
     nupic::NumpyVectorT<nupic::Real32> y(self->nCells());
-    self->compute((nupic::Real32*) x->data, y.begin(), doInference, doLearning);
+    self->compute((nupic::Real32*) PyArray_DATA(x), y.begin(), doInference, doLearning);
     return y.forPython();
   }
 }
@@ -1119,13 +1120,13 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
   {
     PyArrayObject* x = (PyArrayObject*) py_x;
     PyArrayObject* y = (PyArrayObject*) py_y;
-    self->compute((nupic::UInt*) x->data, (bool)learn, (nupic::UInt*) y->data);
+    self->compute((nupic::UInt*) PyArray_DATA(x), (bool)learn, (nupic::UInt*) PyArray_DATA(y));
   }
 
   inline void stripUnlearnedColumns(PyObject *py_x)
   {
     PyArrayObject* x = (PyArrayObject*) py_x;
-    self->stripUnlearnedColumns((nupic::UInt*) x->data);
+    self->stripUnlearnedColumns((nupic::UInt*) PyArray_DATA(x));
   }
 
   inline void write(PyObject* pyBuilder) const
@@ -1162,98 +1163,98 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
   inline void setBoostFactors(PyObject* py_x)
   {
     PyArrayObject* x = (PyArrayObject*) py_x;
-    self->setBoostFactors((nupic::Real*) x->data);
+    self->setBoostFactors((nupic::Real*) PyArray_DATA(x));
   }
 
   inline void getBoostFactors(PyObject* py_x)
   {
     PyArrayObject* x = (PyArrayObject*) py_x;
-    self->getBoostFactors((nupic::Real*) x->data);
+    self->getBoostFactors((nupic::Real*) PyArray_DATA(x));
   }
 
   inline void setOverlapDutyCycles(PyObject* py_x)
   {
     PyArrayObject* x = (PyArrayObject*) py_x;
-    self->setOverlapDutyCycles((nupic::Real*) x->data);
+    self->setOverlapDutyCycles((nupic::Real*) PyArray_DATA(x));
   }
 
   inline void getOverlapDutyCycles(PyObject* py_x)
   {
     PyArrayObject* x = (PyArrayObject*) py_x;
-    self->getOverlapDutyCycles((nupic::Real*) x->data);
+    self->getOverlapDutyCycles((nupic::Real*) PyArray_DATA(x));
   }
 
   inline void setActiveDutyCycles(PyObject* py_x)
   {
     PyArrayObject* x = (PyArrayObject*) py_x;
-    self->setActiveDutyCycles((nupic::Real*) x->data);
+    self->setActiveDutyCycles((nupic::Real*) PyArray_DATA(x));
   }
 
   inline void getActiveDutyCycles(PyObject* py_x)
   {
     PyArrayObject* x = (PyArrayObject*) py_x;
-    self->getActiveDutyCycles((nupic::Real*) x->data);
+    self->getActiveDutyCycles((nupic::Real*) PyArray_DATA(x));
   }
 
 
   inline void setMinOverlapDutyCycles(PyObject* py_x)
   {
     PyArrayObject* x = (PyArrayObject*) py_x;
-    self->setMinOverlapDutyCycles((nupic::Real*) x->data);
+    self->setMinOverlapDutyCycles((nupic::Real*) PyArray_DATA(x));
   }
 
   inline void getMinOverlapDutyCycles(PyObject* py_x)
   {
     PyArrayObject* x = (PyArrayObject*) py_x;
-    self->getMinOverlapDutyCycles((nupic::Real*) x->data);
+    self->getMinOverlapDutyCycles((nupic::Real*) PyArray_DATA(x));
   }
 
   inline void setMinActiveDutyCycles(PyObject* py_x)
   {
     PyArrayObject* x = (PyArrayObject*) py_x;
-    self->setMinActiveDutyCycles((nupic::Real*) x->data);
+    self->setMinActiveDutyCycles((nupic::Real*) PyArray_DATA(x));
   }
 
   inline void getMinActiveDutyCycles(PyObject* py_x)
   {
     PyArrayObject* x = (PyArrayObject*) py_x;
-    self->getMinActiveDutyCycles((nupic::Real*) x->data);
+    self->getMinActiveDutyCycles((nupic::Real*) PyArray_DATA(x));
   }
 
   inline void setPotential(UInt column, PyObject* py_x)
   {
     PyArrayObject* x = (PyArrayObject*) py_x;
-    self->setPotential(column, (nupic::UInt*) x->data);
+    self->setPotential(column, (nupic::UInt*) PyArray_DATA(x));
   }
 
   inline void getPotential(UInt column, PyObject* py_x)
   {
     PyArrayObject* x = (PyArrayObject*) py_x;
-    self->getPotential(column, (nupic::UInt*) x->data);
+    self->getPotential(column, (nupic::UInt*) PyArray_DATA(x));
   }
 
   inline void setPermanence(UInt column, PyObject* py_x)
   {
     PyArrayObject* x = (PyArrayObject*) py_x;
-    self->setPermanence(column, (nupic::Real*) x->data);
+    self->setPermanence(column, (nupic::Real*) PyArray_DATA(x));
   }
 
   inline void getPermanence(UInt column, PyObject* py_x)
   {
     PyArrayObject* x = (PyArrayObject*) py_x;
-    self->getPermanence(column, (nupic::Real*) x->data);
+    self->getPermanence(column, (nupic::Real*) PyArray_DATA(x));
   }
 
   inline void getConnectedSynapses(UInt column, PyObject* py_x)
   {
     PyArrayObject* x = (PyArrayObject*) py_x;
-    self->getConnectedSynapses(column, (nupic::UInt*) x->data);
+    self->getConnectedSynapses(column, (nupic::UInt*) PyArray_DATA(x));
   }
 
   inline void getConnectedCounts(PyObject* py_x)
   {
     PyArrayObject* x = (PyArrayObject*) py_x;
-    self->getConnectedCounts((nupic::UInt*) x->data);
+    self->getConnectedCounts((nupic::UInt*) PyArray_DATA(x));
   }
 
 }
