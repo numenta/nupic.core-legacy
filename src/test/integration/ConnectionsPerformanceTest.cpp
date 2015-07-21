@@ -148,7 +148,8 @@ namespace nupic
     checkpoint(timer, label + ": initialize");
 
     // Learn
-    vector<Cell>winnerCells;
+
+    vector<Cell> winnerCells;
     SynapseData synapseData;
     Permanence permanence;
 
@@ -158,9 +159,9 @@ namespace nupic
       activity = connections.computeActivity(sdr, 0.5, 0);
       winnerCells = computeSPWinnerCells(numWinners, activity);
 
-      for (Cell cell : winnerCells)
+      for (Cell winnerCell : winnerCells)
       {
-        segment = Segment(0, cell);
+        segment = Segment(0, winnerCell);
 
         for (Synapse synapse : connections.synapsesForSegment(segment))
         {
@@ -253,7 +254,7 @@ namespace nupic
            return left.second > right.second;
          });
 
-    for (UInt j = 0; j < numCells; j++)
+    for (UInt j = 0; j < min(numCells, (UInt)numActiveSynapsesList.size()); j++)
     {
       winnerCells.push_back(numActiveSynapsesList[j].first.cell);
     }
