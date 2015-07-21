@@ -56,12 +56,16 @@ namespace nupic
     clock_t timer = clock();
     UInt numColumns = 2048, w = 40;
 
+    // Initialize
+
     TemporalMemory tm;
     vector<UInt> columnDim;
     columnDim.push_back(numColumns);
     tm.initialize(columnDim);
 
     checkpoint(timer, "temporal memory: initialize");
+
+    // Learn
 
     vector< vector< vector<Cell> > >sequences;
     vector< vector<Cell> >sequence;
@@ -91,6 +95,8 @@ namespace nupic
     }
 
     checkpoint(timer, "temporal memory: initialize + learn");
+
+    // Test
 
     for (auto sequence : sequences)
     {
@@ -133,6 +139,8 @@ namespace nupic
     Segment segment;
     vector<Cell> sdr;
     Activity activity;
+
+    // Initialize
 
     for (UInt c = 0; c < numCells; c++)
     {
@@ -189,7 +197,7 @@ namespace nupic
 
     checkpoint(timer, label + ": initialize + learn");
 
-    // Compute
+    // Test
 
     for (int i = 0; i < 500; i++)
     {
