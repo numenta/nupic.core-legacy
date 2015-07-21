@@ -48,10 +48,12 @@ namespace nupic
     virtual void RunTests();
 
     void testTemporalMemoryUsage();
+    void testLargeTemporalMemoryUsage();
     void testSpatialPoolerUsage();
     void testTemporalPoolerUsage();
 
   private:
+    void runTemporalMemoryTest(UInt numColumns, UInt w, int numSequences, int numElements, string label);
     void runSpatialPoolerTest(UInt numCells, UInt numInputs, UInt w, UInt numWinners, string label);
 
     void checkpoint(clock_t timer, std::string text);

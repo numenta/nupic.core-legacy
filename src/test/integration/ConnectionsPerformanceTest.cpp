@@ -44,6 +44,7 @@ namespace nupic
     srand(SEED);
 
     testTemporalMemoryUsage();
+    testLargeTemporalMemoryUsage();
     testSpatialPoolerUsage();
     testTemporalPoolerUsage();
   }
@@ -53,8 +54,40 @@ namespace nupic
    */
   void ConnectionsPerformanceTest::testTemporalMemoryUsage()
   {
+    runTemporalMemoryTest(2048, 40, 5, 100, "temporal memory");
+  }
+
+  /**
+   * Tests typical usage of Connections with a large Temporal Memory.
+   */
+  void ConnectionsPerformanceTest::testLargeTemporalMemoryUsage()
+  {
+    runTemporalMemoryTest(16384, 328, 3, 40, "temporal memory (large)");
+  }
+
+  /**
+   * Tests typical usage of Connections with Spatial Pooler.
+   */
+  void ConnectionsPerformanceTest::testSpatialPoolerUsage()
+  {
+    runSpatialPoolerTest(2048, 2048, 40, 40, "spatial pooler");
+  }
+
+  /**
+   * Tests typical usage of Connections with Temporal Pooler.
+   */
+  void ConnectionsPerformanceTest::testTemporalPoolerUsage()
+  {
+    runSpatialPoolerTest(2048, 16384, 40, 400, "temporal pooler");
+  }
+
+  void ConnectionsPerformanceTest::runTemporalMemoryTest(UInt numColumns,
+                                                         UInt w,
+                                                         int numSequences,
+                                                         int numElements,
+                                                         string label)
+  {
     clock_t timer = clock();
-    UInt numColumns = 2048, w = 40;
 
     // Initialize
 
@@ -63,7 +96,7 @@ namespace nupic
     columnDim.push_back(numColumns);
     tm.initialize(columnDim);
 
-    checkpoint(timer, "temporal memory: initialize");
+    checkpoint(timer, label + ": initialize");
 
     // Learn
 
@@ -71,9 +104,9 @@ namespace nupic
     vector< vector<Cell> >sequence;
     vector<Cell> sdr;
 
-    for (int i = 0; i < 5; i++)
+    for (int i = 0; i < numSequences; i++)
     {
-      for (int j = 0; j < 100; j++)
+      for (int j = 0; j < numElements; j++)
       {
         sdr = randomSDR(numColumns, w);
         sequence.push_back(sdr);
@@ -94,7 +127,7 @@ namespace nupic
       }
     }
 
-    checkpoint(timer, "temporal memory: initialize + learn");
+    checkpoint(timer, label + ": initialize + learn");
 
     // Test
 
@@ -107,23 +140,7 @@ namespace nupic
       }
     }
 
-    checkpoint(timer, "temporal memory: initialize + learn + test");
-  }
-
-  /**
-   * Tests typical usage of Connections with Spatial Pooler.
-   */
-  void ConnectionsPerformanceTest::testSpatialPoolerUsage()
-  {
-    runSpatialPoolerTest(2048, 2048, 40, 40, "spatial pooler");
-  }
-
-  /**
-   * Tests typical usage of Connections with Temporal Pooler.
-   */
-  void ConnectionsPerformanceTest::testTemporalPoolerUsage()
-  {
-    runSpatialPoolerTest(2048, 16384, 40, 400, "temporal pooler");
+    checkpoint(timer, label + ": initialize + learn + test");
   }
 
   void ConnectionsPerformanceTest::runSpatialPoolerTest(UInt numCells,
