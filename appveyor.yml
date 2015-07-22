@@ -8,6 +8,7 @@ version: 0.3.0.{build}
 branches:
   only:
     - master
+    - swig
 
   except:
     - gh-pages
@@ -81,7 +82,7 @@ install:
   - cmake %REPO_DIR%\src
      -G "Visual Studio 14 2015 Win64" -Wno-dev
      -DCMAKE_BUILD_TYPE=Release 
-     -DCMAKE_INSTALL_PREFIX=..\Release
+     -DCMAKE_INSTALL_PREFIX=%REPO_DIR%\build\Release
      -DLIB_STATIC_APR1_LOC=%EXT_LIBS%\apr-1.lib
      -DLIB_STATIC_APRUTIL1_LOC=%EXT_LIBS%\aprutil-1.lib
      -DLIB_STATIC_YAML_CPP_LOC=%EXT_LIBS%\yaml-cpp.lib
@@ -89,6 +90,8 @@ install:
      -DLIB_STATIC_Z_LOC=%EXT_LIBS%\z.lib
      -DLIB_STATIC_CAPNP_LOC=%EXT_LIBS%\capnp.lib
      -DLIB_STATIC_KJ_LOC=%EXT_LIBS%\kj.lib
+  - cd %REPO_DIR%\src
+  - python setup.py install --user --nupic-core-dir=%REPO_DIR%\build\Release
 
 build_script:
   - cd %REPO_DIR%\build\scripts

@@ -26,7 +26,7 @@
 #include <Python.h>
 
 #include <nupic/py_support/NumpyVector.hpp>
-#include <bindings/PySparseTensor.hpp>
+#include <nupic/bindings/PySparseTensor.hpp>
 
 using namespace std;
 using namespace nupic;

@@ -16,6 +16,22 @@ LINUX_PLATFORM = "linux"
 UNIX_PLATFORMS = [LINUX_PLATFORM, DARWIN_PLATFORM]
 WINDOWS_PLATFORMS = ["windows"]
 
+print "NUMPY VERSION: {}\n".format(numpy.__version__)
+
+
+
+def findRequirements():
+  """
+  Read the requirements.txt file and parse into requirements for setup's
+  install_requirements option.
+  """
+  requirementsPath = os.path.normpath(SRC_DIR + "/../external/common/requirements.txt")
+  return [
+    line.strip()
+    for line in open(requirementsPath).readlines()
+    if not line.startswith("#")
+  ]
+
 
 
 def printOptions(optionsDesc):
@@ -270,10 +286,10 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cmdOptions):
       getLibPrefix(platform) + "nupic_core" + getStaticLibExtension(platform)]
 
   pythonSupportSources = [
-    'nupic/py_support/NumpyVector.cpp',
-    'nupic/py_support/PyArray.cpp',
-    'nupic/py_support/PyHelpers.cpp',
-    'nupic/py_support/PythonStream.cpp']
+    os.path.relpath(nupicCoreReleaseDir + "/include/nupic/py_support/NumpyVector.cpp", SRC_DIR),
+    os.path.relpath(nupicCoreReleaseDir + "/include/nupic/py_support/PyArray.cpp", SRC_DIR),
+    os.path.relpath(nupicCoreReleaseDir + "/include/nupic/py_support/PyHelpers.cpp", SRC_DIR),
+    os.path.relpath(nupicCoreReleaseDir + "/include/nupic/py_support/PythonStream.cpp", SRC_DIR)]
 
   extensions = []
 
@@ -323,7 +339,7 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cmdOptions):
 
   wrapAlgorithms = generateSwigWrap(swigExecutable,
                                     swigFlags,
-                                    "bindings/algorithms.i")
+                                    "nupic/bindings/algorithms.i")
   libModuleAlgorithms = Extension(
     "nupic.bindings._algorithms",
     extra_compile_args=commonCompileFlags,
@@ -337,7 +353,7 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cmdOptions):
 
   wrapEngineInternal = generateSwigWrap(swigExecutable,
                                         swigFlags,
-                                        "bindings/engine_internal.i")
+                                        "nupic/bindings/engine_internal.i")
   libModuleEngineInternal = Extension(
     "nupic.bindings._engine_internal",
     extra_compile_args=commonCompileFlags,
@@ -351,7 +367,7 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cmdOptions):
 
   wrapMath = generateSwigWrap(swigExecutable,
                               swigFlags,
-                              "bindings/math.i")
+                              "nupic/bindings/math.i")
   libModuleMath = Extension(
     "nupic.bindings._math",
     extra_compile_args=commonCompileFlags,
@@ -359,22 +375,11 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cmdOptions):
     extra_link_args=commonLinkFlags,
     include_dirs=commonIncludeDirs,
     libraries=commonLibraries,
-    sources=pythonSupportSources + [wrapMath, "bindings/PySparseTensor.cpp"],
+    sources=pythonSupportSources + [wrapMath, "nupic/bindings/PySparseTensor.cpp"],
     extra_objects=commonObjects)
   extensions.append(libModuleMath)
 
   return extensions
-
-
-
-def copyProtoFiles(nupicCoreReleaseDir):
-  # Copy proto files located at nupic.core dir into nupic dir
-  protoSourceDir = glob.glob(os.path.join(nupicCoreReleaseDir, "include/nupic/proto/"))[0]
-  protoTargetDir = SRC_DIR + "/bindings/proto"
-  if not os.path.exists(protoTargetDir):
-    os.makedirs(protoTargetDir)
-  for fileName in glob.glob(protoSourceDir + "/*.capnp"):
-    shutil.copy(fileName, protoTargetDir)
 
 
 
@@ -383,17 +388,36 @@ if __name__ == "__main__":
   platform, bitness = getPlatformInfo()
 
   nupicCoreReleaseDir = getCommandLineOption("nupic-core-dir", options)
-  print "Nupic Core Release Directory: {}\n".format(nupicCoreReleaseDir)
+  print "Nupic Core Release Directory: {}".format(nupicCoreReleaseDir)
 
   # Build and setup NuPIC.Core Bindings
   print "Get SWIG C++ extensions"
   extensions = getExtensionModules(nupicCoreReleaseDir, platform, bitness,
     options)
 
-  print "Copy capnp proto files"
-  copyProtoFiles(nupicCoreReleaseDir)
-
   print "\nSetup SWIG Python module"
-  setup(name="nupiccore-python", ext_modules=extensions,
-    namespace_packages=["nupic"])
+  setup(
+    name="nupiccore-python",
+    ext_modules=extensions,
+    version="1.0",
+    namespace_packages=["nupic", "nupic.bindings"],
+    install_requires=findRequirements(),
+    description="Numenta Platform for Intelligent Computing - bindings",
+    author="Numenta",
+    author_email="help@numenta.org",
+    url="https://github.com/numenta/nupic.core",
+    classifiers=[
+      "Programming Language :: Python",
+      "Programming Language :: Python :: 2",
+      "License :: OSI Approved :: GNU General Public License (GPL)",
+      "Operating System :: MacOS :: MacOS X",
+      "Operating System :: POSIX :: Linux",
+      # It has to be "5 - Production/Stable" or else pypi rejects it!
+      "Development Status :: 5 - Production/Stable",
+      "Environment :: Console",
+      "Intended Audience :: Science/Research",
+      "Topic :: Scientific/Engineering :: Artificial Intelligence"
+    ],
+    long_description = "Python bindings for nupic core.",
+    packages=find_packages())
 

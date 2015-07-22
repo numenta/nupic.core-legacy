@@ -21,7 +21,7 @@
  */
 
 %module(package="bindings") engine_internal
-%include <bindings/exception.i>
+%include <nupic/bindings/exception.i>
 
 %pythoncode %{
 # ----------------------------------------------------------------------
@@ -146,7 +146,7 @@
 
 %include <nupic/os/Timer.hpp>
 
-%include <bindings/numpy.i>
+%include <nupic/bindings/numpy.i>
 
 
 %include <nupic/py_support/PyArray.hpp>

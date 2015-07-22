@@ -21,7 +21,7 @@
  */
 
 %module(package="bindings") math
-%include <bindings/exception.i>
+%include <nupic/bindings/exception.i>
 
 %pythoncode %{
 # ----------------------------------------------------------------------
@@ -92,7 +92,7 @@ _MATH = _math
 #define SWIG_FILE_WITH_INIT
 %}
 
-%include <bindings/numpy.i> // %import does not work.
+%include <nupic/bindings/numpy.i> // %import does not work.
 
 %init %{
 
@@ -101,16 +101,16 @@ import_array();
   
 %}
 
-%include <bindings/types.i>
-%include <bindings/reals.i>
+%include <nupic/bindings/types.i>
+%include <nupic/bindings/reals.i>
 
 ///////////////////////////////////////////////////////////////////
 /// Utility functions that are expensive in Python but fast in C.
 ///////////////////////////////////////////////////////////////////
 
 
-%include <bindings/sparse_matrix.i>
-%include <bindings/sparse_tensor.i>
+%include <nupic/bindings/sparse_matrix.i>
+%include <nupic/bindings/sparse_tensor.i>
 
 //--------------------------------------------------------------------------------
 %inline {

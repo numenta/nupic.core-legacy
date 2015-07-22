@@ -2010,10 +2010,10 @@ def SM_assignNoAlloc(sm, right):
     # This does doesnt look right. Since we are in the bindings module, 
     # I think we can just call SM_assignNoAllocFromBinary directly - wcs
 
-    bindings.math.SM_assignNoAllocFromBinary(sm, right)
+    nupic.bindings.math.SM_assignNoAllocFromBinary(sm, right)
   else:
     # Not updating for NuPIC2 because it looks like it leads to an infinite loop - wcs
-    bindings.math.SM_assignNoAlloc(sm, right)
+    nupic.bindings.math.SM_assignNoAlloc(sm, right)
      
 %}
 */
@@ -2225,7 +2225,7 @@ def SM_assignNoAlloc(sm, right):
 
   def SparseMatrix(*args, **keywords):
     """
-    See help(bindings.math.SM32).
+    See help(nupic.bindings.math.SM32).
     """
     if 'dtype' not in keywords:
       return _SparseMatrix32(*args)

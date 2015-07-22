@@ -21,8 +21,8 @@
  */
 
 %module(package="bindings") algorithms
-%include <bindings/exception.i>
-%import <bindings/math.i>
+%include <nupic/bindings/exception.i>
+%import <nupic/bindings/math.i>
 
 %pythoncode %{
 # ----------------------------------------------------------------------
@@ -1066,7 +1066,7 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
 {
   %pythoncode %{
     import numpy
-    from bindings.math import (SM32 as SparseMatrix,
+    from nupic.bindings.math import (SM32 as SparseMatrix,
                                      SM_01_32_32 as SparseBinaryMatrix)
 
     def __init__(self,

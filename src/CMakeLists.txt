@@ -734,6 +734,13 @@ else()
           DESTINATION lib)
 endif()
 
+install(DIRECTORY nupic/py_support DESTINATION include/nupic
+        FILES_MATCHING PATTERN "*.c*")
+install(DIRECTORY nupic/bindings DESTINATION include/nupic)
+install(DIRECTORY nupic DESTINATION include/nupic
+        FILES_MATCHING PATTERN "*.py")
+install(DIRECTORY . DESTINATION include FILES_MATCHING PATTERN "setup.py")
+
 #
 # `make package` results in
 # nupic_core-${NUPIC_CORE_VERSION}-${PLATFORM}${BITNESS}.tar.gz binary release
