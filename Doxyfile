@@ -755,17 +755,18 @@ WARN_LOGFILE           =
 # Note: If this tag is empty the current directory is searched.
 
 INPUT                  = doc \
-                         src/main/engine/NuPIC.hpp \
-                         src/main/engine/Network.hpp \
-                         src/main/engine/Region.hpp \
-                         src/main/engine/Link.hpp \
-                         src/main/engine/Output.hpp \
-                         src/main/engine/Input.hpp \
-                         src/main/ntypes/Dimensions.hpp \
-                         src/main/types/Types.h \
-                         src/main/types/Types.hpp \
-                         src/main/algorithms/SpatialPooler.hpp \
-                         src/main/algorithms/Connections.hpp
+                         src/nupic/engine/NuPIC.hpp \
+                         src/nupic/engine/Network.hpp \
+                         src/nupic/engine/Region.hpp \
+                         src/nupic/engine/Link.hpp \
+                         src/nupic/engine/Output.hpp \
+                         src/nupic/engine/Input.hpp \
+                         src/nupic/ntypes/Dimensions.hpp \
+                         src/nupic/types/Types.h \
+                         src/nupic/types/Types.hpp \
+                         src/nupic/algorithms/SpatialPooler.hpp \
+                         src/nupic/algorithms/TemporalMemory.hpp \
+                         src/nupic/algorithms/Connections.hpp
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding. Doxygen uses
