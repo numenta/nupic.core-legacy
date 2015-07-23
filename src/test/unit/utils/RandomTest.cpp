@@ -261,6 +261,11 @@ void RandomTest::RunTests()
   UInt64 x = r.getUInt64();
   TEST(x != 0);
 
+
+  Random tom;
+  tom = Random::Random(42);
+  TESTEQUAL(71876166, tom.getUInt32());
+
   mysrandom(148);
   Random rWithSeed(148);
   for (auto & elem : expected)
