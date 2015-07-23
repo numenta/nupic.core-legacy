@@ -193,7 +193,8 @@ namespace nupic
           synapseData = connections.dataForSynapse(synapse);
           permanence = synapseData.permanence;
 
-          if (find(sdr.begin(), sdr.end(), synapseData.presynapticCell) != sdr.end())
+          if (find(sdr.begin(), sdr.end(), synapseData.presynapticCell) !=
+              sdr.end())
           {
             permanence += 0.2;
           }
@@ -264,8 +265,8 @@ namespace nupic
     tm.compute(sdr.size(), activeColumns, learn);
   }
 
-  vector<Cell> ConnectionsPerformanceTest::computeSPWinnerCells(UInt numCells,
-                                                                Activity& activity)
+  vector<Cell> ConnectionsPerformanceTest::computeSPWinnerCells(
+    UInt numCells, Activity& activity)
   {
     vector< pair<Segment, SynapseIdx> > numActiveSynapsesList;
     vector<Cell>winnerCells;
@@ -274,7 +275,8 @@ namespace nupic
                                  activity.numActiveSynapsesForSegment.end());
 
     sort(numActiveSynapsesList.begin(), numActiveSynapsesList.end(),
-         [](const pair<Segment, SynapseIdx>& left, const pair<Segment, SynapseIdx>& right)
+         [](const pair<Segment, SynapseIdx>& left,
+            const pair<Segment, SynapseIdx>& right)
          {
            return left.second > right.second;
          });
