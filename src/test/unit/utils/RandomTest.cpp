@@ -262,10 +262,6 @@ void RandomTest::RunTests()
   TEST(x != 0);
 
 
-  Random tom;
-  tom = Random::Random(42);
-  TESTEQUAL(3043382644554907206U, tom.getUInt64());
-
   mysrandom(148);
   Random rWithSeed(148);
   for (auto & elem : expected)
