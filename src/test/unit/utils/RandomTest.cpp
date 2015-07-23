@@ -264,7 +264,7 @@ void RandomTest::RunTests()
 
   Random tom;
   tom = Random::Random(42);
-  TESTEQUAL(71876166, tom.getUInt32());
+  TESTEQUAL(3043382644554907206U, tom.getUInt64());
 
   mysrandom(148);
   Random rWithSeed(148);
