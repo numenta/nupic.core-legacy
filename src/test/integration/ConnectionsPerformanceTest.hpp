@@ -29,10 +29,8 @@
 #ifndef NTA_CONNECTIONS_PERFORMANCE_TEST
 #define NTA_CONNECTIONS_PERFORMANCE_TEST
 
-#include <nupic/algorithms/Connections.hpp>
 #include <nupic/algorithms/TemporalMemory.hpp>
 
-using namespace nupic::algorithms::connections;
 using namespace nupic::algorithms::temporal_memory;
 
 namespace nupic
