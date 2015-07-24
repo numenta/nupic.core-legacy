@@ -45,8 +45,8 @@ namespace nupic
 
     namespace connections
     {
-      class Activity;
-      class Cell;
+      struct Activity;
+      struct Cell;
     }
   }
 
