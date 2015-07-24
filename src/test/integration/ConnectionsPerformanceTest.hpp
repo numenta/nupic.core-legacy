@@ -29,8 +29,26 @@
 #ifndef NTA_CONNECTIONS_PERFORMANCE_TEST
 #define NTA_CONNECTIONS_PERFORMANCE_TEST
 
+#include <vector>
+
+#include <nupic/types/Types.hpp>
+
 namespace nupic
 {
+
+  namespace algorithms
+  {
+    namespace temporal_memory
+    {
+      class TemporalMemory;
+    }
+
+    namespace connections
+    {
+      class Activity;
+      class Cell;
+    }
+  }
 
   class ConnectionsPerformanceTest
   {
@@ -51,19 +69,19 @@ namespace nupic
                                UInt w,
                                int numSequences,
                                int numElements,
-                               string label);
+                               std::string label);
     void runSpatialPoolerTest(UInt numCells,
                               UInt numInputs,
                               UInt w,
                               UInt numWinners,
-                              string label);
+                              std::string label);
 
     void checkpoint(clock_t timer, std::string text);
-    std::vector<Cell> randomSDR(UInt n, UInt w);
+    std::vector<algorithms::connections::Cell> randomSDR(UInt n, UInt w);
     void feedTM(algorithms::temporal_memory::TemporalMemory &tm,
-                std::vector<Cell> sdr,
+                std::vector<algorithms::connections::Cell> sdr,
                 bool learn = true);
-    std::vector<Cell> computeSPWinnerCells(
+    std::vector<algorithms::connections::Cell> computeSPWinnerCells(
       UInt numCells, algorithms::connections::Activity& activity);
 
   }; // end class ConnectionsPerformanceTest
