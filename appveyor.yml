@@ -62,7 +62,7 @@ install:
   - set NUPIC_DEPLOYMENT_BUILD=1
 
   - mkdir %REPO_DIR%\build\
-  - mkdir %REPO_DIR%\build\release
+  - mkdir %REPO_DIR%\build\Release
   - mkdir %REPO_DIR%\build\scripts
   - cd %REPO_DIR%\build\scripts
 
@@ -90,8 +90,6 @@ install:
      -DLIB_STATIC_Z_LOC=%EXT_LIBS%\z.lib
      -DLIB_STATIC_CAPNP_LOC=%EXT_LIBS%\capnp.lib
      -DLIB_STATIC_KJ_LOC=%EXT_LIBS%\kj.lib
-  - cd %REPO_DIR%\src
-  - python setup.py install --user --nupic-core-dir=%REPO_DIR%\build\Release
 
 build_script:
   - cd %REPO_DIR%\build\scripts
@@ -117,11 +115,13 @@ build_script:
   - msbuild %MSBuildOptions% nupic_core.sln
   - set MSBuildOptions=/v:q /p:Configuration=Release /logger:%MSBuildLogger%
   - msbuild %MSBuildOptions% INSTALL.vcxproj
+  - cd %REPO_DIR%\src
+  - python setup.py install --user --nupic-core-dir=%REPO_DIR%\build\Release
 
 test: off
 
 after_build:
-  - cd %REPO_DIR%\build\release
+  - cd %REPO_DIR%\build\Release
   - set PROJECT_BUILD_ARTIFACTS_DIR=%REPO_DIR%\build\artifacts
 
   - ps: >-

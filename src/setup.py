@@ -232,9 +232,6 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cmdOptions):
     "-fPIC",
     "-fvisibility=hidden",
     "-Wall",
-    "-Wreturn-type",
-    "-Wunused",
-    "-Wno-unused-parameter",
     # optimization flags (generic builds used for binary distribution)
     "-mtune=generic",
     "-O2",
@@ -244,6 +241,9 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cmdOptions):
 
   if platform != "windows":
     commonCompileFlags.append("-Wextra")
+    commonCompileFlags.append("-Wreturn-type")
+    commonCompileFlags.append("-Wunused")
+    commonCompileFlags.append("-Wno-unused-parameter")
 
   commonLinkFlags = [
     "-m" + bitness,
@@ -391,6 +391,12 @@ if __name__ == "__main__":
 
   nupicCoreReleaseDir = getCommandLineOption("nupic-core-dir", options)
   print "Nupic Core Release Directory: {}".format(nupicCoreReleaseDir)
+  if not os.path.isdir(nupicCoreReleaseDir):
+    raise Exception("{} does not exist").format(nupicCoreReleaseDir)
+
+  if platform == DARWIN_PLATFORM and not "ARCHFLAGS" in os.environ:
+    raise Exception("To build NuPIC in OS X, you must "
+                    "`export ARCHFLAGS=\"-arch x86_64\"`.")
 
   # Build and setup NuPIC.Core Bindings
   print "Get SWIG C++ extensions"
