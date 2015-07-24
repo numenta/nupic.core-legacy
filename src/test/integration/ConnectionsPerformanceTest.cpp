@@ -29,10 +29,15 @@
 #include <time.h>
 #include <stdlib.h>
 
+#include <nupic/algorithms/TemporalMemory.hpp>
+#include <nupic/algorithms/Connections.hpp>
+
 #include "ConnectionsPerformanceTest.hpp"
 
 using namespace std;
 using namespace nupic;
+using namespace nupic::algorithms::temporal_memory;
+using namespace nupic::algorithms::connections;
 
 #define SEED 42
 

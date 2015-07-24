@@ -29,10 +29,6 @@
 #ifndef NTA_CONNECTIONS_PERFORMANCE_TEST
 #define NTA_CONNECTIONS_PERFORMANCE_TEST
 
-#include <nupic/algorithms/TemporalMemory.hpp>
-
-using namespace nupic::algorithms::temporal_memory;
-
 namespace nupic
 {
 
@@ -64,8 +60,11 @@ namespace nupic
 
     void checkpoint(clock_t timer, std::string text);
     std::vector<Cell> randomSDR(UInt n, UInt w);
-    void feedTM(TemporalMemory &tm, vector<Cell> sdr, bool learn = true);
-    std::vector<Cell> computeSPWinnerCells(UInt numCells, Activity& activity);
+    void feedTM(algorithms::temporal_memory::TemporalMemory &tm,
+                std::vector<Cell> sdr,
+                bool learn = true);
+    std::vector<Cell> computeSPWinnerCells(
+      UInt numCells, algorithms::connections::Activity& activity);
 
   }; // end class ConnectionsPerformanceTest
 
