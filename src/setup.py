@@ -1,4 +1,5 @@
 import argparse
+import glob
 import numpy
 import os
 import subprocess
@@ -16,7 +17,17 @@ LINUX_PLATFORM = "linux"
 UNIX_PLATFORMS = [LINUX_PLATFORM, DARWIN_PLATFORM]
 WINDOWS_PLATFORMS = ["windows"]
 
-print "NUMPY VERSION: {}\n".format(numpy.__version__)
+
+
+def fixPath(path):
+  """
+  Ensures paths are correct for linux and windows
+  """
+  path = os.path.abspath(os.path.expanduser(path))
+  if path.startswith("\\"):
+    return "C:" + path
+
+  return path
 
 
 
@@ -25,7 +36,7 @@ def findRequirements():
   Read the requirements.txt file and parse into requirements for setup's
   install_requirements option.
   """
-  requirementsPath = os.path.normpath(SRC_DIR + "/../external/common/requirements.txt")
+  requirementsPath = os.path.normpath(fixPath(SRC_DIR + "/../external/common/requirements.txt"))
   return [
     line.strip()
     for line in open(requirementsPath).readlines()
@@ -59,6 +70,12 @@ def getCommandLineOptions():
     ["nupic-core-dir",
      "dir",
      "(optional) Absolute path to nupic.core binary release directory"]
+  )
+
+  optionsDesc.append(
+    ["visual-studio-version",
+     "value",
+     "(optional) Version of visual studio if windows (i.e. Microsoft Visual Studio *.*)"]
   )
   optionsDesc.append(
     ["skip-compare-versions",
@@ -196,7 +213,7 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cmdOptions):
   #
   pythonPrefix = sys.prefix
   pythonPrefix = pythonPrefix.replace("\\", "/")
-  pythonIncludeDir = pythonPrefix + "/include/python" + pythonVersion
+  pythonIncludeDir = fixPath(pythonPrefix + "/include/python" + pythonVersion)
 
   #
   # Finds out version of Numpy and headers' path.
@@ -216,9 +233,9 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cmdOptions):
     ("BOOST_NO_WREGEX", None)]
 
   commonIncludeDirs = [
-    os.path.normpath(SRC_DIR + "/../external/" + platform + bitness + "/include"),
-    os.path.normpath(SRC_DIR + "/../external/common/include"),
-    nupicCoreReleaseDir + "/include",
+    os.path.normpath(fixPath(SRC_DIR + "/../external/" + platform + bitness + "/include")),
+    os.path.normpath(fixPath(SRC_DIR + "/../external/common/include")),
+    fixPath(nupicCoreReleaseDir + "/include"),
     pythonIncludeDir,
     SRC_DIR,
     numpyIncludeDir]
@@ -248,7 +265,7 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cmdOptions):
   commonLinkFlags = [
     "-m" + bitness,
     "-fPIC",
-    "-L" + nupicCoreReleaseDir + "/lib",
+    "-L" + fixPath(nupicCoreReleaseDir + "/lib"),
     # for Cap'n'Proto serialization
     "-lkj",
     "-lcapnp",
@@ -284,23 +301,32 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cmdOptions):
     commonLibraries.extend(["pthread"])
 
   commonObjects = [
-    nupicCoreReleaseDir + "/lib/" +
-      getLibPrefix(platform) + "nupic_core" + getStaticLibExtension(platform)]
+    fixPath(nupicCoreReleaseDir + "/lib/" +
+      getLibPrefix(platform) + "nupic_core" + getStaticLibExtension(platform))]
 
-  pythonSupportSources = [
-    os.path.relpath(nupicCoreReleaseDir + "/include/nupic/py_support/NumpyVector.cpp", SRC_DIR),
-    os.path.relpath(nupicCoreReleaseDir + "/include/nupic/py_support/PyArray.cpp", SRC_DIR),
-    os.path.relpath(nupicCoreReleaseDir + "/include/nupic/py_support/PyHelpers.cpp", SRC_DIR),
-    os.path.relpath(nupicCoreReleaseDir + "/include/nupic/py_support/PythonStream.cpp", SRC_DIR)]
+  supportFiles = [
+    os.path.relpath(fixPath(nupicCoreReleaseDir + "/include/nupic/py_support/NumpyVector.cpp"), SRC_DIR),
+    os.path.relpath(fixPath(nupicCoreReleaseDir + "/include/nupic/py_support/PyArray.cpp"), SRC_DIR),
+    os.path.relpath(fixPath(nupicCoreReleaseDir + "/include/nupic/py_support/PyHelpers.cpp"), SRC_DIR),
+    os.path.relpath(fixPath(nupicCoreReleaseDir + "/include/nupic/py_support/PythonStream.cpp"), SRC_DIR)]
+
+  # To find stdlib.h
+  #if platform == "windows":
+  #  vsVersion = getCommandLineOption('visual-studio-version', cmdOptions)
+  #  if vsVersion is None:
+  #    raise Exception("Must provide visual studio version if using windows")
+
+  #  stdlib = os.path.relpath(fixPath('C:\\Program Files (x86)\\' + vsVersion + '\\VC\\include\\stdlib.h'), SRC_DIR)
+  #  supportFiles.append(stdlib)
 
   extensions = []
 
   #
   # SWIG
   #
-  swigDir = os.path.normpath(SRC_DIR + "/../external/common/share/swig/3.0.2")
+  swigDir = os.path.normpath(fixPath(SRC_DIR + "/../external/common/share/swig/3.0.2"))
   swigExecutable = (
-    os.path.normpath(SRC_DIR + "/../external/" + platform + bitness + "/bin/swig")
+    os.path.normpath(fixPath(SRC_DIR + "/../external/" + platform + bitness + "/bin/swig"))
   )
 
   # SWIG options from:
@@ -341,7 +367,7 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cmdOptions):
 
   wrapAlgorithms = generateSwigWrap(swigExecutable,
                                     swigFlags,
-                                    "nupic/bindings/algorithms.i")
+                                    os.path.relpath(fixPath("nupic/bindings/algorithms.i"), SRC_DIR))
   libModuleAlgorithms = Extension(
     "nupic.bindings._algorithms",
     extra_compile_args=commonCompileFlags,
@@ -349,13 +375,13 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cmdOptions):
     extra_link_args=commonLinkFlags,
     include_dirs=commonIncludeDirs,
     libraries=commonLibraries,
-    sources=pythonSupportSources + [wrapAlgorithms],
+    sources=supportFiles + [wrapAlgorithms],
     extra_objects=commonObjects)
   extensions.append(libModuleAlgorithms)
 
   wrapEngineInternal = generateSwigWrap(swigExecutable,
                                         swigFlags,
-                                        "nupic/bindings/engine_internal.i")
+                                        os.path.relpath(fixPath("nupic/bindings/engine_internal.i"), SRC_DIR))
   libModuleEngineInternal = Extension(
     "nupic.bindings._engine_internal",
     extra_compile_args=commonCompileFlags,
@@ -369,7 +395,7 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cmdOptions):
 
   wrapMath = generateSwigWrap(swigExecutable,
                               swigFlags,
-                              "nupic/bindings/math.i")
+                              os.path.relpath(fixPath("nupic/bindings/math.i"), SRC_DIR))
   libModuleMath = Extension(
     "nupic.bindings._math",
     extra_compile_args=commonCompileFlags,
@@ -377,7 +403,7 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cmdOptions):
     extra_link_args=commonLinkFlags,
     include_dirs=commonIncludeDirs,
     libraries=commonLibraries,
-    sources=pythonSupportSources + [wrapMath, "nupic/bindings/PySparseTensor.cpp"],
+    sources=supportFiles + [wrapMath, os.path.relpath(fixPath("nupic/bindings/PySparseTensor.cpp"), SRC_DIR)],
     extra_objects=commonObjects)
   extensions.append(libModuleMath)
 
@@ -389,10 +415,12 @@ if __name__ == "__main__":
   options = getCommandLineOptions()
   platform, bitness = getPlatformInfo()
 
+  print "NUMPY VERSION: {}".format(numpy.__version__)
+
   nupicCoreReleaseDir = getCommandLineOption("nupic-core-dir", options)
-  print "Nupic Core Release Directory: {}".format(nupicCoreReleaseDir)
+  print "Nupic Core Release Directory: {}\n".format(nupicCoreReleaseDir)
   if not os.path.isdir(nupicCoreReleaseDir):
-    raise Exception("{} does not exist").format(nupicCoreReleaseDir)
+    raise Exception("{} does not exist".format(nupicCoreReleaseDir))
 
   if platform == DARWIN_PLATFORM and not "ARCHFLAGS" in os.environ:
     raise Exception("To build NuPIC in OS X, you must "

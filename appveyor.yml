@@ -62,7 +62,7 @@ install:
   - set NUPIC_DEPLOYMENT_BUILD=1
 
   - mkdir %REPO_DIR%\build\
-  - mkdir %REPO_DIR%\build\Release
+  - mkdir %REPO_DIR%\build\release
   - mkdir %REPO_DIR%\build\scripts
   - cd %REPO_DIR%\build\scripts
 
@@ -79,6 +79,7 @@ install:
 
   - cd %REPO_DIR%\build\scripts
   - set EXT_LIBS=%REPO_DIR%\external\windows64\lib
+  - '"C:\Program Files\Microsoft SDKs\Windows\v7.0\Bin\SetEnv.cmd" /x64'
   - cmake %REPO_DIR%\src
      -G "Visual Studio 14 2015 Win64" -Wno-dev
      -DCMAKE_BUILD_TYPE=Release 
@@ -116,7 +117,8 @@ build_script:
   - set MSBuildOptions=/v:q /p:Configuration=Release /logger:%MSBuildLogger%
   - msbuild %MSBuildOptions% INSTALL.vcxproj
   - cd %REPO_DIR%\src
-  - python setup.py install --user --nupic-core-dir=%REPO_DIR%\build\Release
+  - set INCLUDE='C:\Program Files (x86)\MSBuild\14.0\Include';%INCLUDE%
+  - python setup.py install --user --nupic-core-dir=%REPO_DIR%\build\Release --visual-studio-version="Microsoft Visual Studio 14.0"
 
 test: off
 
