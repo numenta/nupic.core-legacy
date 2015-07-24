@@ -126,7 +126,7 @@ def getPlatformInfo():
     platform = "linux"
   elif "darwin" in sys.platform:
     platform = "darwin"
-  elif "windows" in sys.platform:
+  elif sys.platform.startswith("win"):
     platform = "windows"
   else:
     raise Exception("Platform '%s' is unsupported!" % sys.platform)
@@ -232,7 +232,6 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cmdOptions):
     "-fPIC",
     "-fvisibility=hidden",
     "-Wall",
-    "-Wextra",
     "-Wreturn-type",
     "-Wunused",
     "-Wno-unused-parameter",
@@ -242,6 +241,9 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cmdOptions):
   ]
   if platform == "darwin":
     commonCompileFlags.append("-stdlib=libc++")
+
+  if platform != "windows":
+    commonCompileFlags.append("-Wextra")
 
   commonLinkFlags = [
     "-m" + bitness,
