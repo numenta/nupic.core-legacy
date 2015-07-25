@@ -1,28 +1,28 @@
 /* ---------------------------------------------------------------------
-* Numenta Platform for Intelligent Computing (NuPIC)
-* Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
-* with Numenta, Inc., for a separate license for this software code, the
-* following terms and conditions apply:
-*
-* This program is free software: you can redistribute it and/or modify
-* it under the terms of the GNU General Public License version 3 as
-* published by the Free Software Foundation.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program.  If not, see http://www.gnu.org/licenses.
-*
-* http://numenta.org/licenses/
-* ---------------------------------------------------------------------
-*/
+ * Numenta Platform for Intelligent Computing (NuPIC)
+ * Copyright (C) 2013-2015, Numenta, Inc.  Unless you have an agreement
+ * with Numenta, Inc., for a separate license for this software code, the
+ * following terms and conditions apply:
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3 as
+ * published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see http://www.gnu.org/licenses.
+ *
+ * http://numenta.org/licenses/
+ * ---------------------------------------------------------------------
+ */
 
 /** @file
-* Implementation of unit tests for TemporalMemory
-*/
+ * Implementation of unit tests for TemporalMemory
+ */
 
 #ifndef NTA_TemporalMemoryTutorial_TEST
 #define NTA_TemporalMemoryTutorial_TEST
@@ -31,8 +31,6 @@
 #include <fstream>
 #include <stdio.h>
 #include <nupic/math/StlIo.hpp>
-#include <nupic/types/Types.hpp>
-#include <nupic/utils/Log.hpp>
 #include <nupic/utils/PatternMachine.hpp>
 #include <nupic/utils/SequenceMachine.hpp>
 #include <nupic/algorithms/TemporalMemory.hpp>
@@ -47,20 +45,10 @@ namespace nupic {
   class TemporalMemoryTutorialTest : public TemporalMemoryAbstractTest
   {
   public:
-    //VERBOSITY = 1
-    //DEFAULT_TM_PARAMS = {
-    //  "columnDimensions": [6],
-    //  "cellsPerColumn": 4,
-    //  "initialPermanence": 0.3,
-    //  "connectedPermanence": 0.5,
-    //  "minThreshold": 1,
-    //  "maxNewSynapseCount": 6,
-    //  "permanenceIncrement": 0.1,
-    //  "permanenceDecrement": 0.05,
-    //  "activationThreshold": 1
-    //}
-    //PATTERN_MACHINE = ConsecutivePatternMachine(6, 1)
     ConsecutivePatternMachine patternMachine;
+
+    // Run all appropriate tests
+    virtual void RunTests();
 
     void testFirstOrder();
     void testHighOrder();

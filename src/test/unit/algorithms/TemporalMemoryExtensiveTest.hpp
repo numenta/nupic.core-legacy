@@ -77,10 +77,6 @@ namespace nupic {
 
     void _testTM(Sequence& sequence);
 
-    void assertAllActiveWerePredicted();
-    void assertAllInactiveWereUnpredicted();
-    void assertAllActiveWereUnpredicted();
-
   }; // of class ExtensiveTemporalMemoryTest
 
 }; // of namespace nupic

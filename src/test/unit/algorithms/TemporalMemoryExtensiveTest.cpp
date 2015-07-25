@@ -185,18 +185,6 @@
 
 void TemporalMemoryExtensiveTest::init()
 {
-//    DEFAULT_TM_PARAMS = {
-//      "columnDimensions": [100],
-//      "cellsPerColumn" : 1,
-//      "initialPermanence" : 0.8,
-//      "connectedPermanence" : 0.7,
-//      "minThreshold" : 11,
-//      "maxNewSynapseCount" : 11,
-//      "permanenceIncrement" : 0.4,
-//      "permanenceDecrement" : 0,
-//      "activationThreshold" : 11
-//  }
-
   _verbosity = 1;
 
   TemporalMemoryAbstractTest::init();
@@ -213,26 +201,12 @@ void TemporalMemoryExtensiveTest::setUp()
   _patternMachine = PatternMachine();
   _patternMachine.initialize(100, range(21, 26), 300);
   _sequenceMachine = SequenceMachine(_patternMachine);
-
-  cout << endl;
-  cout << "======================================================" << endl;
-  cout << "Test: ";// << id() << endl;
-//  cout << shortDescription() << endl;
-  cout << "======================================================" << endl;
 }
 
 
 void TemporalMemoryExtensiveTest::_feedTM(Sequence& sequence, bool learn, int num)
 {
   TemporalMemoryAbstractTest::_feedTM(sequence, learn, num);
-
-  if (_verbosity >= 2)
-  {
-    _tm.mmPrettyPrintTraces(_tm.mmGetDefaultTraces(_verbosity - 1), _tm.mmGetTraceResets());
-    cout << endl;
-  }
-  if (learn && _verbosity >= 3)
-    cout << _tm.mmPrettyPrintConnections();
 }
 
 
@@ -243,46 +217,6 @@ void TemporalMemoryExtensiveTest::_feedTM(Sequence& sequence, bool learn, int nu
 void TemporalMemoryExtensiveTest::_testTM(Sequence& sequence)
 {
   _feedTM(sequence, false);
-
-  //cout << _tm.mmPrettyPrintConnections() << endl;
-  cout << _tm.mmPrettyPrintMetrics(_tm.mmGetDefaultMetrics());
-}
-
-
-void TemporalMemoryExtensiveTest::assertAllActiveWerePredicted()
-{
-  MetricsVector unpredictedActiveColumnsMetric = _tm.mmGetMetricFromTrace(
-    _tm.mmGetTraceUnpredictedActiveColumns());
-  MetricsVector predictedActiveColumnsMetric = _tm.mmGetMetricFromTrace(
-    _tm.mmGetTracePredictedActiveColumns());
-
-  NTA_CHECK(unpredictedActiveColumnsMetric._sum == 0);
-
-  NTA_CHECK(predictedActiveColumnsMetric._min == 21);
-  NTA_CHECK(predictedActiveColumnsMetric._max == 25);
-}
-
-
-void TemporalMemoryExtensiveTest::assertAllInactiveWereUnpredicted()
-{
-  MetricsVector predictedInactiveColumnsMetric = _tm.mmGetMetricFromTrace(
-    _tm.mmGetTracePredictedInactiveColumns());
-
-  NTA_CHECK(predictedInactiveColumnsMetric._sum == 0);
-}
-
-
-void TemporalMemoryExtensiveTest::assertAllActiveWereUnpredicted()
-{
-  MetricsVector unpredictedActiveColumnsMetric = _tm.mmGetMetricFromTrace(
-    _tm.mmGetTraceUnpredictedActiveColumns());
-  MetricsVector predictedActiveColumnsMetric = _tm.mmGetMetricFromTrace(
-    _tm.mmGetTracePredictedActiveColumns());
-
-  NTA_CHECK(predictedActiveColumnsMetric._sum == 0);
-
-  NTA_CHECK(unpredictedActiveColumnsMetric._min == 21);
-  NTA_CHECK(unpredictedActiveColumnsMetric._max == 25);
 }
 
 
@@ -297,8 +231,6 @@ void TemporalMemoryExtensiveTest::testB1()
   _feedTM(sequence);
 
   _testTM(sequence);
-  assertAllActiveWerePredicted();
-  assertAllInactiveWereUnpredicted();
 }
 
 
@@ -313,8 +245,6 @@ void TemporalMemoryExtensiveTest::testB3()
   _feedTM(sequence);
 
   _testTM(sequence);
-  assertAllActiveWerePredicted();
-  assertAllInactiveWereUnpredicted();
 }
 
 
@@ -329,7 +259,6 @@ void TemporalMemoryExtensiveTest::testB4()
   _feedTM(sequence);
 
   _testTM(sequence);
-  assertAllActiveWerePredicted();
 }
 
 
@@ -347,8 +276,6 @@ void TemporalMemoryExtensiveTest::testB5()
   _feedTM(sequence);
 
   _testTM(sequence);
-  assertAllActiveWerePredicted();
-  assertAllInactiveWereUnpredicted();
 }
 
 
@@ -366,8 +293,6 @@ void TemporalMemoryExtensiveTest::testB6()
   _feedTM(sequence);
 
   _testTM(sequence);
-  assertAllActiveWerePredicted();
-  assertAllInactiveWereUnpredicted();
 }
 
 
@@ -398,8 +323,6 @@ void TemporalMemoryExtensiveTest::testB7()
     _feedTM(sequence);
 
   _testTM(sequence);
-  assertAllActiveWerePredicted();
-  assertAllInactiveWereUnpredicted();
 }
 
 
@@ -421,8 +344,6 @@ void TemporalMemoryExtensiveTest::testB8()
     _feedTM(sequence);
 
   _testTM(sequence);
-  assertAllActiveWerePredicted();
-  assertAllInactiveWereUnpredicted();
 }
 
 
@@ -443,7 +364,6 @@ void TemporalMemoryExtensiveTest::testB9()
     _feedTM(sequence);
 
   _testTM(sequence);
-  assertAllActiveWereUnpredicted();
 }
 
 
@@ -464,9 +384,6 @@ void TemporalMemoryExtensiveTest::testB11()
   sequence = _sequenceMachine.addSpatialNoise(sequence, 0.05);
 
   _testTM(sequence);
-  MetricsVector unpredictedActiveColumnsMetric = _tm.mmGetMetricFromTrace(
-    _tm.mmGetTraceUnpredictedActiveColumns());
-  NTA_CHECK(unpredictedActiveColumnsMetric._mean < 1);
 }
 
 
@@ -476,6 +393,7 @@ void TemporalMemoryExtensiveTest::testH1()
   // Parameters should be the same as B1.
   // Since cellsPerColumn == 1, it should make more predictions than necessary.
   init();
+  _tm.initialize({ 100 }, 1, 8, 0.2, 0.7, 11, 11, 0.2, 0.0, 42);
 
   Sequence numbers = _sequenceMachine.generateNumbers(2, 20, { 10, 15 });
   Sequence sequence = _sequenceMachine.generateFromNumbers(numbers);
@@ -483,17 +401,6 @@ void TemporalMemoryExtensiveTest::testH1()
   _feedTM(sequence);
 
   _testTM(sequence);
-  assertAllActiveWerePredicted();
-
-  MetricsVector predictedInactiveColumnsMetric = _tm.mmGetMetricFromTrace(
-    _tm.mmGetTracePredictedInactiveColumns());
-  NTA_CHECK(predictedInactiveColumnsMetric._mean > 0);
-
-
-  // At the end of both shared sequences, there should be
-  // predicted but inactive columns
-  NTA_CHECK(_tm.mmGetTracePredictedInactiveColumns()._data[15].size() > 0);
-  NTA_CHECK(_tm.mmGetTracePredictedInactiveColumns()._data[35].size() > 0);
 }
 
 
@@ -512,17 +419,6 @@ void TemporalMemoryExtensiveTest::testH2()
     _feedTM(sequence);
 
   _testTM(sequence);
-  assertAllActiveWerePredicted();
-
-  // Without some kind of decay, expect predicted inactive columns at the
-  // end of the first shared sequence
-  MetricsVector predictedInactiveColumnsMetric = _tm.mmGetMetricFromTrace(
-    _tm.mmGetTracePredictedInactiveColumns());
-  NTA_CHECK(predictedInactiveColumnsMetric._sum < 26);
-
-  // At the end of the second shared sequence, there should be no
-  // predicted but inactive columns
-  NTA_CHECK(_tm.mmGetTracePredictedInactiveColumns()._data[36].size() == 0);
 }
 
 
@@ -543,16 +439,6 @@ void TemporalMemoryExtensiveTest::testH3()
   _feedTM(sequence);
 
   _testTM(sequence);
-  assertAllActiveWerePredicted();
-
-  MetricsVector predictedInactiveColumnsMetric = _tm.mmGetMetricFromTrace(
-    _tm.mmGetTracePredictedInactiveColumns());
-  NTA_CHECK(predictedInactiveColumnsMetric._sum < 26 * 2);
-
-  // At the end of each shared sequence, there should be
-  // predicted but inactive columns
-  NTA_CHECK(_tm.mmGetTracePredictedInactiveColumns()._data[5].size() > 0);
-  NTA_CHECK(_tm.mmGetTracePredictedInactiveColumns()._data[25].size() > 0);
 }
 
 
@@ -575,11 +461,6 @@ void TemporalMemoryExtensiveTest::testH4()
     _feedTM(sequence);
 
   _testTM(sequence);
-  assertAllActiveWerePredicted();
-
-  MetricsVector predictedInactiveColumnsMetric = _tm.mmGetMetricFromTrace(
-    _tm.mmGetTracePredictedInactiveColumns());
-  NTA_CHECK(predictedInactiveColumnsMetric._mean < 3);
 }
 
 
@@ -609,11 +490,6 @@ void TemporalMemoryExtensiveTest::testH5()
     _feedTM(sequence);
 
   _testTM(sequence);
-  assertAllActiveWerePredicted();
-
-  MetricsVector predictedInactiveColumnsMetric = _tm.mmGetMetricFromTrace(
-    _tm.mmGetTracePredictedInactiveColumns());
-  NTA_CHECK(predictedInactiveColumnsMetric._mean < 3);
 }
 
 
@@ -635,7 +511,4 @@ void TemporalMemoryExtensiveTest::testH9()
   sequence = _sequenceMachine.addSpatialNoise(sequence, 0.05);
 
   _testTM(sequence);
-  MetricsVector unpredictedActiveColumnsMetric = _tm.mmGetMetricFromTrace(
-    _tm.mmGetTraceUnpredictedActiveColumns());
-  NTA_CHECK(unpredictedActiveColumnsMetric._mean < 3);
 }

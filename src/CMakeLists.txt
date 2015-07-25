@@ -363,9 +363,6 @@ ADD_LIBRARY(${LIB_STATIC_NUPICCORE}
             nupic/algorithms/SpatialPooler.cpp
             nupic/algorithms/TemporalMemory.cpp
             nupic/algorithms/Svm.cpp
-            nupic/algorithms/monitor_mixin/Metric.cpp
-            nupic/algorithms/monitor_mixin/MonitorMixin.cpp
-            nupic/algorithms/monitor_mixin/Trace.cpp
             nupic/engine/Collections.cpp
             nupic/engine/Input.cpp
             nupic/engine/Link.cpp
@@ -503,12 +500,9 @@ add_executable(${EXECUTABLE_GTESTS}
                test/unit/algorithms/SpatialPoolerTest.cpp
                test/unit/algorithms/TemporalMemoryTest.cpp
                test/unit/algorithms/TemporalMemoryAbstractTest.cpp
-               test/unit/algorithms/TemporalMemoryExtensiveTest.cpp
                test/unit/algorithms/TemporalMemoryPerformanceTest.cpp
                test/unit/algorithms/TemporalMemoryTutorialTest.cpp
-               test/unit/algorithms/monitor_mixin/MetricTest.cpp
-               test/unit/algorithms/monitor_mixin/MonitorMixinTest.cpp
-               test/unit/algorithms/monitor_mixin/TraceTest.cpp
+               test/unit/algorithms/TemporalMemoryExtensiveTest.cpp
                test/unit/engine/InputTest.cpp
                test/unit/engine/NetworkTest.cpp
                test/unit/engine/UniformLinkPolicyTest.cpp
@@ -563,11 +557,9 @@ set(TEST_HEADERS
     test/unit/algorithms/NearestNeighborUnitTest.hpp
     test/unit/algorithms/SpatialPoolerTest.hpp
     test/unit/algorithms/TemporalMemoryTest.hpp
-    test/unit/algorithms/TemporalMemoryAbstractTest.hpp
     test/unit/algorithms/TemporalMemoryPerformanceTest.hpp
-    test/unit/algorithms/monitor_mixin/MetricTest.hpp
-    test/unit/algorithms/monitor_mixin/MonitorMixinTest.hpp
-    test/unit/algorithms/monitor_mixin/TraceTest.hpp
+    test/unit/algorithms/TemporalMemoryTutorialTest.hpp
+    test/unit/algorithms/TemporalMemoryExtensiveTest.hpp
     test/unit/engine/InputTest.hpp
     test/unit/engine/NetworkTest.hpp
     test/unit/engine/UniformLinkPolicyTest.hpp

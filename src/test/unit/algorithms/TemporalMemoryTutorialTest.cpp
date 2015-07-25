@@ -1,31 +1,42 @@
 /* ---------------------------------------------------------------------
-* Numenta Platform for Intelligent Computing (NuPIC)
-* Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
-* with Numenta, Inc., for a separate license for this software code, the
-* following terms and conditions apply:
-*
-* This program is free software: you can redistribute it and/or modify
-* it under the terms of the GNU General Public License version 3 as
-* published by the Free Software Foundation.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program.  If not, see http://www.gnu.org/licenses.
-*
-* http://numenta.org/licenses/
-* ---------------------------------------------------------------------
-*/
+ * Numenta Platform for Intelligent Computing (NuPIC)
+ * Copyright (C) 2013-2015, Numenta, Inc.  Unless you have an agreement
+ * with Numenta, Inc., for a separate license for this software code, the
+ * following terms and conditions apply:
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3 as
+ * published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see http://www.gnu.org/licenses.
+ *
+ * http://numenta.org/licenses/
+ * ---------------------------------------------------------------------
+ */
 
 /** @file
-* Implementation of unit tests for TemporalMemory
-*/
+ * Implementation of unit tests for TemporalMemory
+ */
 
 #include "TemporalMemoryTutorialTest.hpp"
 
+
+void TemporalMemoryTutorialTest::RunTests()
+{
+  testFirstOrder();
+  testHighOrder();
+  testHighOrderAlternating();
+  testEndlesslyRepeating();
+  testEndlesslyRepeatingWithNoNewSynapses();
+  testLongRepeatingWithNovelEnding();
+  testSingleEndlesslyRepeating();
+}
 
 void TemporalMemoryTutorialTest::testFirstOrder()
 {
@@ -50,7 +61,6 @@ void TemporalMemoryTutorialTest::testFirstOrder()
   _feedTM(sequence);
   //NTA_CHECK(_tm.mmGetTracePredictedActiveColumns()._data[3].size() == 1);
 }
-
 
 void TemporalMemoryTutorialTest::testHighOrder()
 {
@@ -97,7 +107,6 @@ void TemporalMemoryTutorialTest::testHighOrder()
   //NTA_CHECK(len(self.tm.mmGetTracePredictedInactiveColumns()._data[3].size() == 0);
 }
 
-
 void TemporalMemoryTutorialTest::testHighOrderAlternating()
 {
   // High order sequences (alternating)
@@ -122,7 +131,6 @@ void TemporalMemoryTutorialTest::testHighOrderAlternating()
   // NTA_CHECK(len(self.tm.mmGetTracePredictedInactiveColumns()._data[7]), 0)
 }
 
-
 void TemporalMemoryTutorialTest::testEndlesslyRepeating()
 {
   // Endlessly repeating sequence of 2 elements
@@ -138,7 +146,6 @@ void TemporalMemoryTutorialTest::testEndlesslyRepeating()
   _feedTM(sequence, 50);
 
 }
-
 
 void TemporalMemoryTutorialTest::testEndlesslyRepeatingWithNoNewSynapses()
 {
@@ -159,7 +166,6 @@ void TemporalMemoryTutorialTest::testEndlesslyRepeatingWithNoNewSynapses()
 
 }
 
-
 void TemporalMemoryTutorialTest::testLongRepeatingWithNovelEnding()
 {
   // Long repeating sequence with novel pattern at the end
@@ -178,7 +184,6 @@ void TemporalMemoryTutorialTest::testLongRepeatingWithNovelEnding()
   _feedTM(sequence, 10);
 }
 
-
 void TemporalMemoryTutorialTest::testSingleEndlesslyRepeating()
 {
   // A single endlessly repeating pattern
@@ -187,7 +192,7 @@ void TemporalMemoryTutorialTest::testSingleEndlesslyRepeating()
   _tm.initialize({ 1 }, 4, 1, 0.3, 0.5, 1, 6, 0.1, 0.05, 42);
 
   Sequence sequence;
-  sequence.data.push_back( _patternMachine.get(0) );
+  sequence.data.push_back( patternMachine.get(0) );
 
   for (int i = 0; i < 4; i++)
     _feedTM(sequence);
@@ -197,23 +202,12 @@ void TemporalMemoryTutorialTest::testSingleEndlesslyRepeating()
 
 }
 
-
 // ==============================
 // Overrides
 // ==============================
 
 void TemporalMemoryTutorialTest::setUp()
 {
-  //  TemporalMemoryAbstractTest::setUp();
-
-/*
-  print("\n"
-    "======================================================\n"
-    "Test: {0} \n"
-    "{1}\n"
-    "======================================================\n"
-    ).format(self.id(), self.shortDescription());
-*/
   _verbosity = 1;
   _tm.initialize({ 6 }, 4, 1, 0.3, 0.5, 1, 6, 0.1, 0.05, 42);
 
@@ -221,9 +215,7 @@ void TemporalMemoryTutorialTest::setUp()
   patternMachine.initialize(6, vector<UInt>{ 1 }, 100, 42);
 
   _sequenceMachine = SequenceMachine(patternMachine);
-
 }
-
 
 void TemporalMemoryTutorialTest::init()
 {
@@ -235,8 +227,7 @@ void TemporalMemoryTutorialTest::init()
   _sequenceMachine = utils::SequenceMachine(patternMachine, 42);
 
   cout << "Initialized new TM with parameters:" << endl;
-//  cout << pprint.pformat(_computeTMParams(kwargs.get("overrides")));
-  
+
   _tm.printParameters();
   cout << endl;
 }
@@ -246,12 +237,6 @@ void TemporalMemoryTutorialTest::_feedTM(Sequence& sequence, int num, bool learn
   _showInput(sequence, learn, num);
 
   TemporalMemoryAbstractTest::_feedTM(sequence, learn, num);
-
-  cout << _tm.mmPrettyPrintTraces(_tm.mmGetDefaultTraces(2), _tm.mmGetTraceResets()) << endl;
-
-  if (learn)
-    cout << _tm.mmPrettyPrintConnections() << endl;
-
 }
 
 // ==============================
@@ -266,5 +251,4 @@ void TemporalMemoryTutorialTest::_showInput(Sequence& sequence, bool learn, int 
   
   cout << "Feeding sequence " + learnText + numText + ":\n" + sequenceText;
   cout << endl;
-
 }
