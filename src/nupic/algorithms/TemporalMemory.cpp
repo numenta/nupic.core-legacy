@@ -788,11 +788,11 @@ void TemporalMemory::save(ostream& outStream) const
     << permanenceDecrement_ << " "
     << endl;
 
+  // See issue https://github.com/numenta/nupic.core/issues/506
   //connections.save(outStream);
   //outStream << endl;
 
-  //_rng.save(outStream);
-  //outStream << endl;
+  outStream << _rng << endl;
 
   outStream << columnDimensions_.size() << " ";
   for (auto & elem : columnDimensions_) {
@@ -980,8 +980,10 @@ void TemporalMemory::load(istream& inStream)
     >> permanenceIncrement_
     >> permanenceDecrement_;
 
+  // See issue https://github.com/numenta/nupic.core/issues/506
   //connections.load(inStream);
-  //_rng.load(inStream);
+
+  inStream >> _rng;
 
   // Retrieve vectors.
   UInt numColumnDimensions;

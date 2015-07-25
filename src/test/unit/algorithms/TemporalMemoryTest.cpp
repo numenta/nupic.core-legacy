@@ -99,14 +99,13 @@ namespace nupic {
   void TemporalMemoryTest::testInitInvalidParams()
   {
     // Invalid columnDimensions
-    vector<UInt> columnDim;
+    vector<UInt> columnDim = {};
     TemporalMemory tm1;
     SHOULDFAIL(tm1.initialize(columnDim, 32));
 
     // Invalid cellsPerColumn
     columnDim.push_back(2048);
     SHOULDFAIL(tm1.initialize(columnDim, 0));
-    SHOULDFAIL(tm1.initialize(columnDim, -10));
   }
 
   void TemporalMemoryTest::testActivateCorrectlyPredictiveCells()
@@ -350,8 +349,8 @@ namespace nupic {
 
     tm.computePredictiveCells(activeCells, connections);
 
-    vector<Segment> expectedActiveSegments;
-    vector<Cell> expectedPredictiveCells;
+    vector<Segment> expectedActiveSegments = {};
+    vector<Cell> expectedPredictiveCells = {};
     NTA_CHECK(check_vector_eq(tm.activeSegments, expectedActiveSegments));
     NTA_CHECK(check_vector_eq(tm.predictiveCells, expectedPredictiveCells));
   }
@@ -385,9 +384,8 @@ namespace nupic {
     connections.createSynapse(segment, Cell(486), 0.9);
 
     set<Cell> activeCells = { Cell(23), Cell(37), Cell(49), Cell(733) };
-    vector<Cell> cellsForColumn;
+    vector<Cell> cellsForColumn = tm.cellsForColumn(0);
 
-    cellsForColumn = tm.cellsForColumn(0);
     tie(foundCell, bestCell, foundSegment, bestSegment) = 
       tm.bestMatchingCell(cellsForColumn, activeCells, connections);
 

@@ -118,11 +118,16 @@ if("${PROJECT_BUILD_ARTIFACTS_DIR}" STREQUAL "")
   set(PROJECT_BUILD_ARTIFACTS_DIR "${REPOSITORY_DIR}/build/artifacts")
 endif()
 
+find_package(PythonInterp REQUIRED)
+execute_process(COMMAND "${PYTHON_EXECUTABLE}" "-c" 
+                        "import numpy; import os; import sys; sys.stdout.write(os.path.dirname(numpy.get_include()))"
+                         OUTPUT_VARIABLE NUMPY_CORE)
 include_directories(SYSTEM
                     "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/include"
                     "${REPOSITORY_DIR}/external/common/include"
                     "${PROJECT_SOURCE_DIR}"
-                    "${PROJECT_BINARY_DIR}")
+                    "${PROJECT_BINARY_DIR}"
+                    "${NUMPY_CORE}/include")
 
 #
 # Set linker (ld)
@@ -201,7 +206,8 @@ endif()
 # Let CMake know where all of the external files are.
 #
 set(CMAKE_PREFIX_PATH ${REPOSITORY_DIR}/external/common/
-                      ${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/)
+                      ${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/
+                      ${NUMPY_CORE}/)
 #
 # Make sure the Cap'n Proto generation scripts are on the PATH.
 #
@@ -300,6 +306,12 @@ find_library(LIB_STATIC_CAPNP_LOC
 add_library(${LIB_STATIC_CAPNP} STATIC IMPORTED GLOBAL)
 
 #
+# Setup for python
+#
+find_package(PythonLibs REQUIRED)
+include_directories(${PYTHON_INCLUDE_DIRS})
+
+#
 # Generate Cap'n Proto C++ files
 #
 set(CAPNPC_OUTPUT_DIR ${CMAKE_BINARY_DIR})
@@ -326,6 +338,16 @@ set(CAPNP_SPECS
 capnp_generate_cpp(CAPNP_SRCS CAPNP_HDRS ${CAPNP_SPECS})
 
 #
+# Python support
+#
+set (PY_SUPPORT_FILES
+     nupic/py_support/NumpyVector.cpp
+     nupic/py_support/PyArray.cpp
+     nupic/py_support/PyHelpers.cpp
+     nupic/py_support/PythonStream.cpp
+)
+
+#
 # Setup libnupic_core
 #
 set(LIB_STATIC_NUPICCORE nupic_core_solo)
@@ -346,6 +368,7 @@ endif()
 ADD_LIBRARY(${LIB_STATIC_NUPICCORE}
             STATIC
             ${CAPNP_SRCS}
+            ${PY_SUPPORT_FILES}
             nupic/algorithms/BitHistory.cpp
             nupic/algorithms/Cell.cpp
             nupic/algorithms/Cells4.cpp
@@ -400,6 +423,7 @@ ADD_LIBRARY(${LIB_STATIC_NUPICCORE}
             nupic/os/Path.cpp
             nupic/os/Regex.cpp
             nupic/os/Timer.cpp
+            nupic/regions/PyRegion.cpp
             nupic/regions/VectorFile.cpp
             nupic/regions/VectorFileEffector.cpp
             nupic/regions/VectorFileSensor.cpp
@@ -421,10 +445,10 @@ target_link_libraries(${LIB_STATIC_NUPICCORE}
                       ${LIB_STATIC_APRUTIL1_LOC}
                       ${LIB_STATIC_Z_LOC}
                       ${LIB_STATIC_KJ_LOC}
-                      ${LIB_STATIC_CAPNP_LOC})
-set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES
-                      COMPILE_FLAGS ${COMMON_COMPILE_FLAGS}
-                      LINK_FLAGS "${COMMON_LINK_FLAGS} -static")
+                      ${LIB_STATIC_CAPNP_LOC}
+                      ${PYTHON_LIBRARIES})
+set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES COMPILE_FLAGS "${COMMON_COMPILE_FLAGS} -I${NUMPY_CORE}/include")
+set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS} -static")
 
 #
 # Setup test_cpp_region
@@ -531,6 +555,7 @@ add_executable(${EXECUTABLE_GTESTS}
                test/unit/os/PathTest.cpp
                test/unit/os/RegexTest.cpp
                test/unit/os/TimerTest.cpp
+               test/unit/py_support/PyHelpersTest.cpp
                test/unit/test/TesterTest.cpp
                test/unit/types/BasicTypeTest.cpp
                test/unit/types/ExceptionTest.cpp
@@ -586,6 +611,7 @@ set(TEST_HEADERS
     test/unit/os/PathTest.hpp
     test/unit/os/RegexTest.hpp
     test/unit/os/TimerTest.hpp
+    test/unit/py_support/PyHelpersTest.hpp
     test/unit/test/TesterTest.hpp
     test/unit/types/BasicTypeTest.hpp
     test/unit/types/ExceptionTest.hpp
@@ -685,6 +711,10 @@ install(DIRECTORY "${REPOSITORY_DIR}/external/common/include/"
         DESTINATION include)
 install(DIRECTORY "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/include/"
         DESTINATION include)
+install(DIRECTORY "${NUMPY_CORE}/lib/"
+        DESTINATION lib)
+install(DIRECTORY "${NUMPY_CORE}/include/"
+        DESTINATION include)
 if(UNIX)
   install(FILES "${PROJECT_BINARY_DIR}/libnupic_core.a"
           DESTINATION lib)
@@ -692,6 +722,9 @@ else()
   install(FILES "${PROJECT_BINARY_DIR}/nupic_core.lib"
           DESTINATION lib)
 endif()
+
+install(DIRECTORY nupic/py_support DESTINATION include/nupic
+        FILES_MATCHING PATTERN "*.c*")
 
 #
 # `make package` results in
