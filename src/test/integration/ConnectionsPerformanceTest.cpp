@@ -260,14 +260,14 @@ namespace nupic
                                           vector<Cell> sdr,
                                           bool learn)
   {
-    UInt activeColumns[sdr.size()];
+    vector<UInt> activeColumns;
 
-    for (size_t i = 0; i < sdr.size(); i++)
+    for (auto c : sdr)
     {
-      activeColumns[i] = sdr[i].idx;
+      activeColumns.push_back(c.idx);
     }
 
-    tm.compute(sdr.size(), activeColumns, learn);
+    tm.compute(activeColumns.size(), activeColumns.data(), learn);
   }
 
   vector<Cell> ConnectionsPerformanceTest::computeSPWinnerCells(
