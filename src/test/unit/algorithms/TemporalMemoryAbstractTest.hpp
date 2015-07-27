@@ -63,7 +63,7 @@ namespace nupic {
     // param overrides : overrides for default Temporal Memory parameters
     virtual void init();
 
-    virtual void _feedTM(Sequence sequence, bool learn = true, int num = 1);
+    virtual void _feedTM(Sequence& sequence, bool learn = true, int num = 1);
 
   }; // of class AbstractTemporalMemoryTest
 
