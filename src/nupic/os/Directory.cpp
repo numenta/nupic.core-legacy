@@ -54,7 +54,7 @@ namespace nupic
     #if defined(NTA_OS_WINDOWS)
       wchar_t wcwd[APR_PATH_MAX];
       DWORD res = ::GetCurrentDirectoryW(APR_PATH_MAX, wcwd);
-      NTA_CHECK(res > 0) << "Couldn't get current working directory. OS msg: " 
+      NTA_CHECK(res > 0) << "Couldn't get current working directory. Code: " 
         << OS::getErrorMessage();
       std::string cwd = Path::unicodeToUtf8(std::wstring(wcwd));
       return cwd;
@@ -62,7 +62,7 @@ namespace nupic
       char cwd[APR_PATH_MAX];
       cwd[0] = '\0';
       char * res = ::getcwd(cwd, APR_PATH_MAX);
-      NTA_CHECK(res != nullptr) << "Couldn't get current working directory. OS num: " << errno;
+      NTA_CHECK(res != nullptr) << "Couldn't get current working directory. Code: " << errno;
       return std::string(cwd);
     #endif
     }
@@ -277,7 +277,7 @@ namespace nupic
       std::string absolutePath = Path::makeAbsolute(path);
       res = ::apr_dir_open(&handle_, absolutePath.c_str(), pool_);
       NTA_CHECK(res == 0) << "Can't open directory " << path
-                          << ". OS num: " << APR_TO_OS_ERROR(res);
+                          << " Code: " << APR_TO_OS_ERROR(res);
     }
     
     Iterator::~Iterator()
@@ -285,15 +285,14 @@ namespace nupic
       apr_status_t res = ::apr_dir_close(handle_);
       ::apr_pool_destroy(pool_);
       NTA_CHECK(res == 0) << "Couldn't close directory." 
-                          << " OS num: " << APR_TO_OS_ERROR(res);
+                          << " Code: " << APR_TO_OS_ERROR(res);
     }
     
     void Iterator::reset()
     {
       apr_status_t res = ::apr_dir_rewind(handle_);
-      NTA_CHECK(res == 0) 
-        << "Couldn't reset directory iterator." 
-        << " OS num: " << APR_TO_OS_ERROR(res);
+      NTA_CHECK(res == 0) << "Couldn't reset directory iterator." 
+                          << " Code: " << APR_TO_OS_ERROR(res);
     }
     
     Entry * Iterator::next(Entry & e)
@@ -309,7 +308,7 @@ namespace nupic
       {
         NTA_CHECK(res == APR_INCOMPLETE) 
           << "Couldn't read next dir entry." 
-          << " OS num: " << APR_TO_OS_ERROR(res);
+          << " Code: " << APR_TO_OS_ERROR(res);
         NTA_CHECK(((e.valid & wanted) | APR_FINFO_LINK) == wanted) 
           << "Couldn't retrieve all fields. Valid mask=" << e.valid; 
       } 

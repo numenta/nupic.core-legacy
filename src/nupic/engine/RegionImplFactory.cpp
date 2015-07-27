@@ -37,6 +37,7 @@
 #include <nupic/ntypes/BundleIO.hpp>
 #include <nupic/engine/YAMLUtils.hpp>
 #include <nupic/engine/TestNode.hpp>
+#include <nupic/regions/PyRegion.hpp>
 #include <nupic/regions/VectorFileEffector.hpp>
 #include <nupic/regions/VectorFileSensor.hpp>
 #include <nupic/utils/Log.hpp>
@@ -129,71 +130,12 @@ namespace nupic
       destroySpec_(nullptr),
       createPyNode_(nullptr)
     {
-      // To find the pynode plugin we need the nupic
-      // installation directory.
-#if defined(NTA_OS_WINDOWS)
-      std::string command = "python -c \"import sys;import os;import nupic;sys.stdout.write(os.path.abspath(os.path.join(nupic.__file__, \"\"../..\"\")))\"";
-#else
-      std::string command = "python -c 'import sys;import os;import nupic;sys.stdout.write(os.path.abspath(os.path.join(nupic.__file__, \"../..\")))'";
-#endif
-      rootDir_ = OS::executeCommand(command);
-      if (!Path::exists(rootDir_))
-        NTA_THROW << "Unable to find NuPIC library in '" << rootDir_ << "'";
-
-
-#if defined(NTA_OS_WINDOWS)
-      const char * filename = "py_region.dll";
-#else
-      const char * filename = "libpy_region.so";
-#endif
-
-      std::string libName = Path::join(rootDir_, "nupic", filename);
-
-      if (!Path::exists(libName))
-        NTA_THROW << "Unable to find library '" << libName << "'";
-
-      std::string errorString;
-      DynamicLibrary * p =
-        DynamicLibrary::load(libName,
-                             // export as LOCAL because we don't want
-                             // the symbols to be globally visible;
-                             // But the python module that we load
-                             // has to be able to access symbols from
-                             // libpython.so; Since libpython.so is linked
-                             // to the pynode shared library, it appears
-                             // we have to make the pynode shared library
-                             // symbols global. TODO: investigate
-                             DynamicLibrary::GLOBAL|
-                             // Evaluate them NOW instead of LAZY to catch
-                             // errors up front, even though this takes
-                             // a little longer to load the library.
-                             // However -- the current dependency chain
-                             // PyNode->Region->RegionImplFactory apparently
-                             // creates never-used dependencies on YAML
-                             // so until this is resolved use LAZY
-                             DynamicLibrary::LAZY,
-                             errorString);
-      NTA_CHECK(p) << "Unable to load the pynode library: " << errorString;
-
-      pynodeLibrary_ = boost::shared_ptr<DynamicLibrary>(p);
-
-      initPython_ = (initPythonFunc)pynodeLibrary_->getSymbol("NTA_initPython");
-      NTA_CHECK(initPython_) << "Unable to find NTA_initPython symbol in " << filename;
-
-      finalizePython_ = (finalizePythonFunc)pynodeLibrary_->getSymbol("NTA_finalizePython");
-      NTA_CHECK(finalizePython_) << "Unable to find NTA_finalizePython symbol in " << filename;
-
-      createPyNode_ = (createPyNodeFunc)pynodeLibrary_->getSymbol("NTA_createPyNode");
-      NTA_CHECK(createPyNode_) << "Unable to find NTA_createPyNode symbol in " << filename;
-
-      deserializePyNode_ = (deserializePyNodeFunc)pynodeLibrary_->getSymbol("NTA_deserializePyNode");
-      NTA_CHECK(createPyNode_) << "Unable to find NTA_createPyNode symbol in " << filename;
-
-      createSpec_ = (createSpecFunc)pynodeLibrary_->getSymbol("NTA_createSpec");
-      NTA_CHECK(createSpec_) << "Unable to find NTA_createSpec symbol in " << filename;
-
-      destroySpec_ = (destroySpecFunc)pynodeLibrary_->getSymbol("NTA_destroySpec");
-      NTA_CHECK(destroySpec_) << "Unable to find NTA_destroySpec symbol in " << filename;
+      initPython_ = (initPythonFunc) PyRegion::NTA_initPython;
+      finalizePython_ = (finalizePythonFunc) PyRegion::NTA_finalizePython;
+      createPyNode_ = (createPyNodeFunc) PyRegion::NTA_createPyNode;
+      deserializePyNode_ = (deserializePyNodeFunc) PyRegion::NTA_deserializePyNode;
+      createSpec_ = (createSpecFunc) PyRegion::NTA_createSpec;
+      destroySpec_ = (destroySpecFunc) PyRegion::NTA_destroySpec;
 
       (*initPython_)();
     }

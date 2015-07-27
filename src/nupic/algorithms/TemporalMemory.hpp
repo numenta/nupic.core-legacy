@@ -31,7 +31,6 @@
 #include <nupic/types/Types.hpp>
 #include <nupic/utils/Random.hpp>
 #include <nupic/algorithms/Connections.hpp>
-
 #include <nupic/proto/TemporalMemoryProto.capnp.h>
 
 using namespace std;
