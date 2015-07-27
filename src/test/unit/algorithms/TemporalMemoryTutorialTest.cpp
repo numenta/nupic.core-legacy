@@ -234,7 +234,7 @@ void TemporalMemoryTutorialTest::init()
   cout << endl;
 }
 
-void TemporalMemoryTutorialTest::_feedTM(Sequence& sequence, int num, bool learn)
+void TemporalMemoryTutorialTest::_feedTM(Sequence& sequence, bool learn, int num)
 {
   _showInput(sequence, learn, num);
 

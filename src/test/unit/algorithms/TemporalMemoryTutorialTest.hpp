@@ -66,7 +66,7 @@ namespace nupic {
     virtual void setUp();
     virtual void init();
 
-    virtual void _feedTM(Sequence& sequence, int num = 1, bool learn = true);
+    virtual void _feedTM(Sequence& sequence, bool learn = true, int num = 1);
 
 
     // ==============================
