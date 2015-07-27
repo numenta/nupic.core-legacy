@@ -524,7 +524,6 @@ add_executable(${EXECUTABLE_GTESTS}
                test/unit/algorithms/SpatialPoolerTest.cpp
                test/unit/algorithms/TemporalMemoryTest.cpp
                test/unit/algorithms/TemporalMemoryAbstractTest.cpp
-               test/unit/algorithms/TemporalMemoryPerformanceTest.cpp
                test/unit/algorithms/TemporalMemoryTutorialTest.cpp
                test/unit/algorithms/TemporalMemoryExtensiveTest.cpp
                test/unit/engine/InputTest.cpp
@@ -582,7 +581,7 @@ set(TEST_HEADERS
     test/unit/algorithms/NearestNeighborUnitTest.hpp
     test/unit/algorithms/SpatialPoolerTest.hpp
     test/unit/algorithms/TemporalMemoryTest.hpp
-    test/unit/algorithms/TemporalMemoryPerformanceTest.hpp
+    test/unit/algorithms/TemporalMemoryAbstractTest.hpp
     test/unit/algorithms/TemporalMemoryTutorialTest.hpp
     test/unit/algorithms/TemporalMemoryExtensiveTest.hpp
     test/unit/engine/InputTest.hpp
