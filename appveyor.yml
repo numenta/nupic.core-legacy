@@ -118,7 +118,8 @@ build_script:
   - msbuild %MSBuildOptions% INSTALL.vcxproj
   - cd %REPO_DIR%\src
   - set INCLUDE='C:\Program Files (x86)\MSBuild\14.0\Include';%INCLUDE%
-  - python setup.py install --user --nupic-core-dir=%REPO_DIR%\build\Release --visual-studio-version="Microsoft Visual Studio 14.0"
+  - set NUPIC_CORE_RELEASE=%REPO_DIR%\build\Release
+  - python setup.py install --user
 
 test: off
 

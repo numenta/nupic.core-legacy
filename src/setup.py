@@ -67,17 +67,6 @@ def getCommandLineOptions():
   # optionDesc = [name, value, description]
   optionsDesc = []
   optionsDesc.append(
-    ["nupic-core-dir",
-     "dir",
-     "(optional) Absolute path to nupic.core binary release directory"]
-  )
-
-  optionsDesc.append(
-    ["visual-studio-version",
-     "value",
-     "(optional) Version of visual studio if windows (i.e. Microsoft Visual Studio *.*)"]
-  )
-  optionsDesc.append(
     ["skip-compare-versions",
      "",
      "(optional) Skip nupic.core version comparison"]
@@ -310,15 +299,6 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cmdOptions):
     os.path.relpath(fixPath(nupicCoreReleaseDir + "/include/nupic/py_support/PyHelpers.cpp"), SRC_DIR),
     os.path.relpath(fixPath(nupicCoreReleaseDir + "/include/nupic/py_support/PythonStream.cpp"), SRC_DIR)]
 
-  # To find stdlib.h
-  #if platform == "windows":
-  #  vsVersion = getCommandLineOption('visual-studio-version', cmdOptions)
-  #  if vsVersion is None:
-  #    raise Exception("Must provide visual studio version if using windows")
-
-  #  stdlib = os.path.relpath(fixPath('C:\\Program Files (x86)\\' + vsVersion + '\\VC\\include\\stdlib.h'), SRC_DIR)
-  #  supportFiles.append(stdlib)
-
   extensions = []
 
   #
@@ -417,7 +397,9 @@ if __name__ == "__main__":
 
   print "NUMPY VERSION: {}".format(numpy.__version__)
 
-  nupicCoreReleaseDir = getCommandLineOption("nupic-core-dir", options)
+  nupicCoreReleaseDir = fixPath(os.environ.get('NUPIC_CORE_RELEASE'))
+  if nupicCoreReleaseDir is None:
+    raise Exception("Must provide path to nupic core release. export NUPIC_CORE_RELEASE=<path>")
   print "Nupic Core Release Directory: {}\n".format(nupicCoreReleaseDir)
   if not os.path.isdir(nupicCoreReleaseDir):
     raise Exception("{} does not exist".format(nupicCoreReleaseDir))

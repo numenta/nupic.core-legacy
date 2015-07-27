@@ -34,7 +34,7 @@ sudo pip install twine || exit
 echo "Creating distribution files..."
 # This release build creates the source distribution. All other release builds
 # should not.
-python setup.py sdist bdist bdist_wheel --nupic-core-dir=\"${NUPICCORE}/build/release\" || exit
+python setup.py sdist bdist bdist_wheel || exit
 
 echo "Created the following distribution files:"
 ls -l dist

@@ -24,11 +24,12 @@ echo
 echo Running before_deploy.sh...
 echo
 
-cd ${TRAVIS_BUILD_DIR}
-
 # If this branch is master, this is an iterative deployment, so we'll package
 # wheels ourselves for deployment to S3. No need to build docs.
 if [ "${TRAVIS_BRANCH}" = "swig" ]; then
+
+    # Upgrading pip
+    sudo pip install --upgrade pip
 
     # Assuming pip 1.5.X is installed.
     echo "sudo pip install wheel"
@@ -40,8 +41,7 @@ if [ "${TRAVIS_BRANCH}" = "swig" ]; then
     # Build all NuPIC and all required python packages into dist/wheels as .whl
     # files.
     echo "pip wheel --wheel-dir=dist/wheels ."
-    pip wheel --wheel-dir=dist/wheels .
-
+    pip wheel --wheel-dir=dist/wheels . 
     # The dist/wheels folder is expected to be deployed to S3.
 
 # If this is a tag, we're doing a release deployment, so we want to build docs
