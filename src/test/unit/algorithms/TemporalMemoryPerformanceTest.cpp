@@ -21,7 +21,7 @@
  */
 
 /** @file
- * Implementation of unit tests for SpatialPooler
+ *
  */
 
 #include "TemporalMemoryPerformanceTest.hpp"
@@ -36,17 +36,17 @@ namespace nupic {
 
   static void tmComputeFn(vector<UInt>& pattern, Instance& instance)
   {
-    instance.compute(pattern, instance._learn);
+    instance.compute(pattern.data(), instance._learn);
   }
 
   static void tpComputeFn(vector<UInt>& pattern, Instance& instance)
   {
-    instance.compute(pattern, instance._learn, true);
+    instance.compute(pattern.data(), instance._learn);
   }
 
   static void spComputeFn(vector<UInt>& pattern, Instance& instance)
   {
-    instance.compute(pattern, instance._learn, true);
+    instance.compute(pattern.data(), instance._learn);
   }
 
   // ==============================

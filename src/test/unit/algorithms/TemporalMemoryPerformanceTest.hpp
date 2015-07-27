@@ -60,8 +60,7 @@ namespace nupic {
 
     virtual void reset() {};
 
-    virtual void compute(vector<UInt> pattern, bool learn) { };
-    virtual void compute(vector<UInt> pattern, bool learn, bool learn2) { };
+    virtual void compute(UInt pattern[], bool learn) { };
   };
 
   typedef void ComputeFunction(vector<UInt>& pattern, Instance& instance);
@@ -69,22 +68,19 @@ namespace nupic {
   class SpatialPoolerInstance : public Instance, public SpatialPooler
   {
   public:
-    void compute(vector<UInt> pattern, bool learn) { };
-    void compute(vector<UInt> pattern, bool learn, bool learn2) { };
+    void compute(UInt pattern[], bool learn) { };
   };
 
   class Cells4Instance : public Instance, public Cells4
   {
   public:
-    void compute(vector<UInt> pattern, bool learn) { };
-    void compute(vector<UInt> pattern, bool learn, bool learn2) { };
+    void compute(UInt pattern[], bool learn) { };
   };
 
   class TemporalMemoryInstance : public Instance, public TemporalMemory
   {
   public:
-    void compute(vector<UInt> pattern, bool learn) { };
-    void compute(vector<UInt> pattern, bool learn, bool learn2) { };
+    void compute(UInt pattern[], bool learn) { };
   };
 
   // ==============================
