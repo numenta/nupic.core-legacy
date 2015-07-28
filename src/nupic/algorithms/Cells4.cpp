@@ -21,7 +21,7 @@
  */
 
 #include <nupic/utils/Random.hpp>
- 
+
 #include <iomanip>
 #include <vector>
 #include <iostream>
@@ -188,7 +188,7 @@ bool Cells4::computeUpdate(UInt cellIdx, UInt segIdx, CStateIndexed& activeState
       highWaterSize = segment.size();
       newSynapses.reserve(highWaterSize);
     }
-    for (UInt i = 0; i < segment.size(); ++i) 
+    for (UInt i = 0; i < segment.size(); ++i)
     {
       if (activeState.isSet(segment[i].srcCellIdx())) {
         newSynapses.push_back(segment[i].srcCellIdx());
@@ -377,21 +377,21 @@ void Cells4::inferBacktrack(const std::vector<UInt> & activeColumns)
     }
     else {
       candStartOffset = startOffset;
-      
+
       // If we got to here, startOffset is a candidate starting point.
       if (_verbosity >= 3 && (startOffset != currentTimeStepsOffset) ) {
         std::cout << "# Prediction confidence of current input after starting "
         << _prevInfPatterns.size() - 1 - startOffset
         << " steps ago: " << totalConfidence << "\n";
       }
-      
+
       if (candStartOffset == (Int) currentTimeStepsOffset)
         break;
       _infActiveStateCandidate = _infActiveStateT;
       _infPredictedStateCandidate = _infPredictedStateT;
       memcpy(_cellConfidenceCandidate, _cellConfidenceT, _nCells * sizeof(_cellConfidenceT[0]));
       memcpy(_colConfidenceCandidate, _colConfidenceT, _nColumns * sizeof(_colConfidenceT[0]));
-      
+
       break;
     }
 
@@ -1025,7 +1025,7 @@ void Cells4::updateLearningState(const std::vector<UInt> & activeColumns,
 void Cells4::updateInferenceState(const std::vector<UInt> & activeColumns)
 {
   //---------------------------------------------------------------------------
-  // Copy over inference related states to t-1 
+  // Copy over inference related states to t-1
   // We need to do a copy here in case the buffers are numpy allocated
   // A possible optimization here is to do a swap if Cells4 owns its memory.
   _infActiveStateT1 = _infActiveStateT;
@@ -2530,7 +2530,7 @@ Cells4::chooseCellsToLearnFrom(UInt cellIdx, UInt segIdx,
 
   // start with a sorted vector of all the cells that are on in the current state
   static std::vector<UInt> vecCellBuffer;
-  vecCellBuffer = state.cellsOn();
+  vecCellBuffer = state.cellsOn(true);
 
   // remove any cells already in this segment
   static std::vector<UInt> vecPruned;
@@ -2544,6 +2544,8 @@ Cells4::chooseCellsToLearnFrom(UInt cellIdx, UInt segIdx,
     vecAlreadyHave.clear();                 // purge residual data
     for (UInt i = 0; i != segThis.size(); ++i)
       vecAlreadyHave.push_back(segThis[i].srcCellIdx());
+
+    std::sort(vecAlreadyHave.begin(), vecAlreadyHave.end());
 
     // remove any of these found in vecCellBuffer
     if (vecPruned.size() < vecCellBuffer.size())   // ensure there is enough room for the results
@@ -2817,7 +2819,7 @@ void Cells4::computeForwardPropagation(CState& state)
 {
   // Zero out previous values
   // Using memset is quite a bit faster on laptops, but has almost no effect
-  // on Neo15! 
+  // on Neo15!
   _inferActivity.reset();
 
   // Compute cell and segment activity by following forward propagation

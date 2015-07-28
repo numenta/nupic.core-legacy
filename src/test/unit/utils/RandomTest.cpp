@@ -261,6 +261,7 @@ void RandomTest::RunTests()
   UInt64 x = r.getUInt64();
   TEST(x != 0);
 
+
   mysrandom(148);
   Random rWithSeed(148);
   for (auto & elem : expected)
