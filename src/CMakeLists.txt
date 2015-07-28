@@ -69,7 +69,7 @@ add_definitions(-DNTA_OS_${PLATFORM_UPPERCASE}
                 -DBOOST_NO_WREGEX
                 -DNUPIC2
                 -DNTA_ASSERTIONS_ON
-                -DNTA_ASM)
+                )
 if(UNIX) # or UNIX like (i.e. APPLE and CYGWIN)
   add_definitions(-DHAVE_UNISTD_H)
 elseif(WIN32) # incl. win64
