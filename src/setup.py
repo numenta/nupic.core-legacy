@@ -235,6 +235,9 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cmdOptions):
     os.path.dirname(os.path.realpath(__file__)),
     numpyIncludeDir]
 
+  if platform == "windows":
+    commonIncludeDirs.append(os.path.normpath(fixPath(SRC_DIR + "/../external/c11/include")))
+
   commonCompileFlags = [
     # Adhere to c++11 spec
     "-std=c++11",
@@ -243,19 +246,20 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cmdOptions):
     # `position independent code`, required for shared libraries
     "-fPIC",
     "-fvisibility=hidden",
+    "-mtune=generic",
     "-Wall",
     # optimization flags (generic builds used for binary distribution)
-    "-mtune=generic",
-    "-O2",
+    "-O2"
   ]
-  if platform == "darwin":
-    commonCompileFlags.append("-stdlib=libc++")
 
   if platform != "windows":
     commonCompileFlags.append("-Wextra")
     commonCompileFlags.append("-Wreturn-type")
     commonCompileFlags.append("-Wunused")
     commonCompileFlags.append("-Wno-unused-parameter")
+
+  if platform == "darwin":
+    commonCompileFlags.append("-stdlib=libc++")
 
   commonLinkFlags = [
     "-m" + bitness,
@@ -266,7 +270,7 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cmdOptions):
     "-lcapnp",
     "-lcapnpc",
     # optimization (safe defaults)
-    "-O2",
+    "-O2"
   ]
 
   # Optimizations

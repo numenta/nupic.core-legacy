@@ -24,6 +24,8 @@ echo
 echo "Running after_success-release.sh..."
 echo
 
+cd ${TRAVIS_BUILD_DIR}/src
+
 echo "Installing boto..."
 pip install boto --user || exit
 echo "Installing wheel..."
@@ -44,11 +46,10 @@ ls -l dist
 # nupic-0.0.33-py2.7-linux-x86_64.egg
 # nupic-0.0.33.tar.gz
 
-NUPICCORE_VERSION=`cat ${NUPICCORE}/nupic/VERSION`
 echo "Uploading Linux egg to PyPi..."
-twine upload dist/nupic-${NUPICCORE_VERSION}*.egg -u "${PYPI_USERNAME}" -p "${PYPI_PASSWD}"
+twine upload dist/nupiccore_python-*.egg -u "${PYPI_USERNAME}" -p "${PYPI_PASSWD}"
 echo "Uploading source package to PyPi..."
-twine upload dist/nupic-${NUPICCORE_VERSION}.tar.gz -u "${PYPI_USERNAME}" -p "${PYPI_PASSWD}"
+twine upload dist/nupiccore_python-*.tar.gz -u "${PYPI_USERNAME}" -p "${PYPI_PASSWD}"
 
 # We can't upload the wheel to PyPi because PyPi rejects linux platform wheel
 # files. So we'll push it up into S3.

@@ -24,6 +24,8 @@ echo
 echo "Running after_success-release.sh..."
 echo
 
+cd ${TRAVIS_BUILD_DIR}/src
+
 echo "Installing wheel..."
 pip install wheel --user || exit
 # `sudo install twine` doesn't put twine in a place we can use it, so we install
@@ -48,9 +50,9 @@ ls -l dist
 # nupic-0.0.33.macosx-10.9-intel.tar.gz
 
 echo "Uploading OS X egg to PyPi..."
-twine upload dist/nupic-*.egg -u "${PYPI_USERNAME}" -p "${PYPI_PASSWD}"
+twine upload dist/nupiccore_python-*.egg -u "${PYPI_USERNAME}" -p "${PYPI_PASSWD}"
 echo "Uploading OS x wheel to PyPi..."
-twine upload dist/nupic-*.whl -u "${PYPI_USERNAME}" -p "${PYPI_PASSWD}"
+twine upload dist/nupiccore_python-*.whl -u "${PYPI_USERNAME}" -p "${PYPI_PASSWD}"
 
 echo "Attempting to upload all distribution files to PyPi..."
 twine upload dist/* -u "${PYPI_USERNAME}" -p "${PYPI_PASSWD}"

@@ -71,6 +71,7 @@ install:
   - ps: Write-Host '7z x cmake-3.1.0-win32-x86.zip'
   - ps: Start-Process -FilePath "7z" -ArgumentList "x -y cmake-3.1.0-win32-x86.zip" -Wait -Passthru
   - set PATH="%REPO_DIR%\build\scripts\cmake-3.1.0-win32-x86\bin";%PATH%
+  - set PATH="C:\Program Files (x86)\MSBuild\14.0\Bin";%PATH%
   # https://github.com/ogrisel/python-appveyor-demo/blob/master/appveyor.yml
   # Install Python (from the official .msi of http://python.org) and pip when
   # not already installed.
