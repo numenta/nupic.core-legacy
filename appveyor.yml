@@ -71,7 +71,6 @@ install:
   - ps: Write-Host '7z x cmake-3.1.0-win32-x86.zip'
   - ps: Start-Process -FilePath "7z" -ArgumentList "x -y cmake-3.1.0-win32-x86.zip" -Wait -Passthru
   - set PATH="%REPO_DIR%\build\scripts\cmake-3.1.0-win32-x86\bin";%PATH%
-  - set PATH="C:\Program Files (x86)\MSBuild\14.0\Bin";%PATH%
   # https://github.com/ogrisel/python-appveyor-demo/blob/master/appveyor.yml
   # Install Python (from the official .msi of http://python.org) and pip when
   # not already installed.
@@ -79,7 +78,6 @@ install:
 
   - cd %REPO_DIR%\build\scripts
   - set EXT_LIBS=%REPO_DIR%\external\windows64\lib
-  - '"C:\Program Files\Microsoft SDKs\Windows\v7.0\Bin\SetEnv.cmd" /x64'
   - cmake %REPO_DIR%\src
      -G "Visual Studio 14 2015 Win64" -Wno-dev
      -DCMAKE_BUILD_TYPE=Release 

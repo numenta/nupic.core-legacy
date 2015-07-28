@@ -40,6 +40,7 @@ if [ "${TRAVIS_BRANCH}" = "swig" ]; then
 
     # Build all NuPIC and all required python packages into dist/wheels as .whl
     # files.
+    export NUPIC_CORE_SRC="${TRAVIS_BUILD_DIR}/src"
     echo "pip wheel --wheel-dir=dist/wheels ."
     pip wheel --wheel-dir=dist/wheels . 
     # The dist/wheels folder is expected to be deployed to S3.
