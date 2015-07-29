@@ -7,7 +7,7 @@ version: 0.3.0.{build}
 
 branches:
   only:
-    - numpy_fix
+    - master
 
   except:
     - gh-pages

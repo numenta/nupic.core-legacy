@@ -40,7 +40,7 @@ deploy:
   local-dir: "$TRAVIS_BUILD_DIR/release"
   upload-dir: "numenta/nupic.core"
   skip_cleanup: true
-  # Deploying on master branch from linux/gcc and osx/clang.
+  # Deploying on master branch from linux/gcc and osx/clang
   on:
     branch: master
     condition:
