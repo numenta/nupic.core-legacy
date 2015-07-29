@@ -1,0 +1,2 @@
+#See http://www.pip-installer.org/en/latest/requirements.html for details
+numpy>=1.9.2
