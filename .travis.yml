@@ -1,3 +1,5 @@
+sudo: false
+
 language: cpp
 
 os:
@@ -7,6 +9,15 @@ os:
 compiler:
   - clang
   - gcc
+
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      # install gcc-4.8 for C++11 compatibility, #TODO remove when Travis has gcc>=4.8, (it's used for clang too, in coveralls)
+      - g++-4.8
+      - cmake
 
 env:
   global:
@@ -50,18 +61,18 @@ notifications:
   irc:
     channels:
       - "irc.freenode.net#nupic-hackers"
-  webhooks: 
+  webhooks:
     - urls:
         - https://webhooks.gitter.im/e/68f77bae61efa5c931f8
         - https://api.keen.io/3.0/projects/5555161e2fd4b1326f14444a/events/travis-webhooks?api_key=a2e613bbb19b9b1f71a5543b7b677563551b4c3fe98534269546ff666ae453f82505791772faefc48682ee882ac7e99d2c3bfae7c7c19db7b5e7bbda34039119e4b42f5bf41bcea62d4ea9731db4a455141be7d5e8c715cb06366922eae0358e84abc2704ce16bb77b01fec3476cbac6
 
 before_install:
   # install gcc-4.8 for C++11 compatibility, #TODO remove when Travis has gcc>=4.8, (it's used for clang too, in coveralls)
-  - "if [ ${TRAVIS_OS_NAME:-'linux'} = 'linux' ]; then sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test; sudo apt-get -qq update; sudo apt-get -qq install g++-4.8; alias gcc='gcc-4.8'; alias g++='g++-4.8'; sudo apt-get install -qq python-numpy; fi"
+  - "if [ ${TRAVIS_OS_NAME:-'linux'} = 'linux' ]; then alias gcc='gcc-4.8'; alias g++='g++-4.8'; fi"
   - "if [ $CC = 'gcc' ]; then export CC='gcc-4.8' && export CXX='g++-4.8'; fi"
   - "if [ $CC = 'clang' ]; then export CXX=clang++; fi"
   # Install cpp-coveralls for reporting test coverage under only linux, see https://github.com/eddyxu/cpp-coveralls
-  - "if [ ${TRAVIS_OS_NAME:-'linux'} = 'linux' ]; then sudo pip install cpp-coveralls; fi"
+  - "if [ ${TRAVIS_OS_NAME:-'linux'} = 'linux' ]; then pip install cpp-coveralls --user; fi"
 
 install:
   - "mkdir -p $TRAVIS_BUILD_DIR/build/scripts"
