@@ -40,9 +40,9 @@ deploy:
   local-dir: "$TRAVIS_BUILD_DIR/release"
   upload-dir: "numenta/nupic.core"
   skip_cleanup: true
-  # Deploying on master branch from linux/gcc and osx/clang. CHANGE BACK!
+  # Deploying on master branch from linux/gcc and osx/clang.
   on:
-    branch: numpy_fix
+    branch: master
     condition:
       - "( ${TRAVIS_OS_NAME}--${CC} = 'linux--gcc-4.8' ) || ( ${TRAVIS_OS_NAME}--${CC} = 'linux--gcc' ) || ( ${TRAVIS_OS_NAME}--${CC} = 'osx--clang' )"
 
