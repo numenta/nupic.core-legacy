@@ -18,6 +18,7 @@ addons:
       # install gcc-4.8 for C++11 compatibility, #TODO remove when Travis has gcc>=4.8, (it's used for clang too, in coveralls)
       - g++-4.8
       - cmake
+      - python-numpy
 
 env:
   global:
