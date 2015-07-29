@@ -263,11 +263,11 @@ double Random::getReal64()
 
 UInt32 RandomImpl::getUInt32(void)
 {
-  long i;
+  int i;
 #ifdef RANDOM_SUPERDEBUG
   printf("Random::get *fptr = %ld; *rptr = %ld fptr = %ld rptr = %ld\n", state_[fptr_], state_[rptr_], fptr_, rptr_);
 #endif
-  state_[fptr_] += state_[rptr_];
+  state_[fptr_] = (int)(((long)state_[fptr_] + (long)state_[rptr_]) % Random::MAX32);
   i = state_[fptr_];
   i = (i >> 1) & 0x7fffffff;	/* chucking least random bit */
   if (++fptr_ >= stateSize_) {
@@ -282,7 +282,7 @@ UInt32 RandomImpl::getUInt32(void)
   }
 #endif
 
-  return((UInt32)i);
+  return(i);
 }
 
 
