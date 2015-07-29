@@ -18,6 +18,7 @@ addons:
       # install gcc-4.8 for C++11 compatibility, #TODO remove when Travis has gcc>=4.8, (it's used for clang too, in coveralls)
       - g++-4.8
       - cmake
+      - xsltproc
       - python-numpy
 
 env:
@@ -90,8 +91,6 @@ script:
   - "make tests_unit"
   # output unit tests report
   - "cd $TRAVIS_BUILD_DIR/build/artifacts/"
-  # install xsltproc only on linux, mac has pre-installed it
-  - "if [ ${TRAVIS_OS_NAME:-'linux'} = 'linux' ]; then sudo apt-get install xsltproc; fi"
   # transform the JUnit-style xml report to html
   - "xsltproc $TRAVIS_BUILD_DIR/doc/xunit.xslt unit_tests_report.xml > unit_tests_report.html"
 
