@@ -6,7 +6,8 @@ struct RegionProto {
   nodeType @0 :Text;
 
   # This stores the data for the RegionImpl. The nodeType field is necessary
-  # when deserializing to know what schema struct to cast this as.
+  # when deserializing to know what schema struct to cast this as. This will
+  # be a PyRegionProto instance if it is a PyRegion.
   regionImpl @1 :AnyPointer;
 
   dimensions @2 :List(UInt32);
