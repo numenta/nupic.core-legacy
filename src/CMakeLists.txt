@@ -26,6 +26,11 @@
 # -----------------------------------------------------------------------------
 
 cmake_minimum_required(VERSION 2.8)
+cmake_policy(VERSION 2.8)
+# The new policy for add_dependencies is to now error if a dependency target
+# is not found. The old policy didn't care and continued through configuration
+cmake_policy(SET CMP0046 OLD)
+
 project(nupic_core CXX)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set(CMAKE_VERBOSE_MAKEFILE OFF) # toggle for cmake debug
@@ -51,7 +56,7 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 endif()
 string(TOUPPER ${PLATFORM} PLATFORM_UPPERCASE)
 
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
    set(STDLIB "${STDLIB} -static-libgcc -static-libstdc++")
 endif()
 
@@ -91,7 +96,7 @@ if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
   add_definitions(-DNTA_COMPILER_GNU)
 elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
   add_definitions(-DNTA_COMPILER_CLANG)
-elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
+elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "MSVC")
   add_definitions(-DNTA_COMPILER_MSVC)
 endif()
 
@@ -147,13 +152,13 @@ endif()
 #
 if($ENV{NUPIC_DEPLOYMENT_BUILD})
   message("doing deployment build in TravisCI")
-  if(NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
+  if(NOT ${CMAKE_CXX_COMPILER_ID} MATCHES "MSVC")
     set(OPTIMIZATION_FLAGS_CC "${OPTIMIZATION_FLAGS_CC} -mtune=generic -O2")
     set(OPTIMIZATION_FLAGS_LT "-O2 ${OPTIMIZATION_FLAGS_LT}")
   endif()
 else()
   message("doing local build")
-  if(NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
+  if(NOT ${CMAKE_CXX_COMPILER_ID} MATCHES "MSVC")
     set(OPTIMIZATION_FLAGS_CC "${OPTIMIZATION_FLAGS_CC} -march=native -O3")
     set(OPTIMIZATION_FLAGS_LT "-O3 ${OPTIMIZATION_FLAGS_LT}")
   endif()
@@ -165,9 +170,9 @@ endif()
 # these are quite aggresive flags, if your code misbehaves for strange reasons, try
 # compiling without them.
 #
-if(NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
+if(NOT ${CMAKE_CXX_COMPILER_ID} MATCHES "MSVC")
   set(OPTIMIZATION_FLAGS_CC "-pipe ${OPTIMIZATION_FLAGS_CC}") #TODO use -Ofast instead of -O3
-  if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+  if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
     set(OPTIMIZATION_FLAGS_CC "${OPTIMIZATION_FLAGS_CC} -fuse-linker-plugin -flto-report")
     set(OPTIMIZATION_FLAGS_CC "${OPTIMIZATION_FLAGS_CC} -flto -fuse-ld=gold") #TODO fix LTO for clang
     set(OPTIMIZATION_FLAGS_LT "${OPTIMIZATION_FLAGS_LT} -flto") #TODO LTO for clang too
@@ -178,7 +183,7 @@ endif()
 #
 # compiler specific settings here
 #
-if(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
+if(${CMAKE_CXX_COMPILER_ID} MATCHES "MSVC")
   set(COMMON_COMPILE_FLAGS "/TP /Zc:wchar_t /Gm- /fp:precise /errorReport:prompt /W1 /WX- /GR /Gd /GS /Oy- /EHs /analyze- /nologo")
   set(COMMON_LINK_FLAGS "/NOLOGO /SAFESEH:NO /NODEFAULTLIB:LIBCMT")
   if("${BITNESS}" STREQUAL "32")
@@ -190,7 +195,7 @@ else()
   # clang/gcc
   set(COMMON_COMPILE_FLAGS "-fPIC -std=c++11 -m${BITNESS} ${STDLIB} -fvisibility=hidden -Werror -Wall -Wextra -Wreturn-type -Wunused -Wno-unused-parameter -Wno-missing-field-initializers")
   set(COMMON_LINK_FLAGS "-m${BITNESS} ${STDLIB}")
-  if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+  if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
     set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} -static-libstdc++")
   endif()
 endif()
