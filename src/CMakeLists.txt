@@ -27,9 +27,12 @@
 
 cmake_minimum_required(VERSION 2.8)
 cmake_policy(VERSION 2.8)
-# The new policy for add_dependencies is to now error if a dependency target
-# is not found. The old policy didn't care and continued through configuration
-cmake_policy(SET CMP0046 OLD)
+
+if ( POLICY CMP0046 )
+ # The new policy for add_dependencies is to now error if a dependency target
+ # is not found. The old policy didn't care and continued through configuration
+ cmake_policy(SET CMP0046 OLD)
+endif()
 
 project(nupic_core CXX)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
