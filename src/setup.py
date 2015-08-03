@@ -307,7 +307,6 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cxxCompiler, cmd
       "/W3",
       "/WX-",
       "/GR",
-      "--includecmath",
       "/Gd",
       "/GS-",
       "/Oy-",
