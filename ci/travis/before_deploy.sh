@@ -26,7 +26,7 @@ echo
 
 # If this branch is master, this is an iterative deployment, so we'll package
 # wheels ourselves for deployment to S3. No need to build docs.
-if [ "${TRAVIS_BRANCH}" = "swig" ]; then
+if [ "${TRAVIS_BRANCH}" = "master" ]; then
 
     # Upgrading pip
     sudo pip install --upgrade pip
