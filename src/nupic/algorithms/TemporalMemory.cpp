@@ -465,35 +465,11 @@ TemporalMemory::computePredictiveCells(
 
   Activity activity = _connections.computeActivity(activeCells, connectedPermanence_, activationThreshold_);
 
-  Activity matchingActivity;
-
-  if (predictedSegmentDecrement_ > 0.0)
-  {
-    for (auto cell : activeCells)
-    {
-      vector<Synapse> synapses = _connections.synapsesForPresynapticCell(cell);
-      if (synapses.size() == 0) continue;
-
-      for (auto synapse : synapses)
-      {
-        SynapseData synapseData(_connections.dataForSynapse(synapse));
-
-        if (synapseData.permanence > 0.0)
-        {
-          matchingActivity.numActiveSynapsesForSegment[synapse.segment] += 1;
-
-          if (matchingActivity.numActiveSynapsesForSegment[synapse.segment] >= minThreshold_)
-          {
-            matchingActivity.activeSegmentsForCell[synapse.segment.cell].push_back(synapse.segment);
-          }
-        }
-      }
-    }
-  }
-
   vector<Segment> _activeSegments = _connections.activeSegments(activity);
   vector<Cell> predictiveCellsVec = _connections.activeCells(activity);
   set<Cell> _predictiveCells(predictiveCellsVec.begin(), predictiveCellsVec.end());
+
+  Activity matchingActivity = _connections.computeActivity(activeCells, 0.0, minThreshold_);
 
   vector<Segment> _matchingSegments = _connections.activeSegments(matchingActivity);
   vector<Cell> matchingCellsVec = _connections.activeCells(matchingActivity);
