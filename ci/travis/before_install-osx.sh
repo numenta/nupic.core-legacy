@@ -32,3 +32,8 @@ fi
 if [ $CC = 'clang' ]; then
     export CXX='clang++'
 fi
+
+echo "Installing wheel..."
+pip install wheel --user || exit
+echo "Installing numpy..."
+pip install --use-wheel numpy==1.9.2 --user || exit
