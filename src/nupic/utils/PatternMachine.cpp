@@ -24,6 +24,7 @@
  *
  */
 
+#include <math.h>
 #include <vector>
 #include <iterator>
 #include <functional>
@@ -35,17 +36,25 @@ using namespace std;
 using namespace nupic;
 using namespace nupic::utils;
 
-// Return a pattern for a given integer range.
-// If the step argument is omitted, it defaults to 1. 
-// If the start argument is omitted, it defaults to 0. 
-// The full form returns a list of plain integers [start, start + step, start + 2 * step, ...].
-// If step is positive, the last element is the largest start + i * step less than stop; 
-// if step is negative, the last element is the smallest start + i * step greater than stop.
-// step must not be zero (or else ValueError is raised).
+/**
+ * Create a number range
+ *
+ * If the step argument is omitted, it defaults to 1.
+ * If the start argument is omitted, it defaults to 0.
+ *
+ * The full form returns a list of plain integers [start, start + step, start + 2 * step, ...].
+ * If step is positive, the last element is the largest start + i * step less than stop;
+ * If step is negative, the last element is the smallest start + i * step greater than stop.
+ * Step must not be zero (or else ValueError is raised).
+ *
+ *  @param start(int) Starting value
+ *  @param stop(set)  Ending value 
+ *  @param step(int)  Amount to step by
+ */
 vector<UInt> nupic::utils::range(int start, int stop, int step)
 {
   vector<UInt> x;
-  int numEntries = ceil((Real)(stop - start) / (Real)step);
+  int numEntries = std::ceil( (Real)(stop - start) / step );
 
   if (numEntries <= 0)
     return x;
@@ -76,12 +85,20 @@ vector<UInt> nupic::utils::range(int stop)
   return utils::range(0, stop, 1);
 }
 
-void PatternMachine::initialize(int n, vector<UInt>& w, int num, int seed)
+/**
+ * Return a pattern from the list
+ *
+ *  @param highestValue(int)  Highest value in a pattern [0 .. hightestValue]
+ *  @param w(set)             Pattern dimensions
+ *  @param numPatterns(int)   Number of patterns to make
+ *  @param seed(int)          Seed for random number generator
+ */
+void PatternMachine::initialize(int highestValue, vector<UInt>& w, int numPatterns, int seed)
 {
   // Save member variables
-  _n = n;
+  _n = highestValue;
   _w = w;
-  _num = num;
+  _num = numPatterns;
 
   // Initialize member variables
   _random = Random(seed);
@@ -90,9 +107,13 @@ void PatternMachine::initialize(int n, vector<UInt>& w, int num, int seed)
   _generate();
 }
 
-// Return a pattern for a number.
-//  @param number(int) Number of pattern
-//  @return (set)Indices of on bits
+/**
+ * Return a pattern from the list
+ *
+ *  @param number(int)  Index of pattern
+ *
+ *  @return (set)       The requested patter or an Invalid Index assert
+ */
 vector<UInt> PatternMachine::get(int number)
 {
   if (number < 0 || number >= (int)_patterns.size())
@@ -101,7 +122,9 @@ vector<UInt> PatternMachine::get(int number)
   return _patterns[number];
 }
 
-// Generates set of random patterns.
+/**
+ * Generates set of random patterns.
+ */
 void PatternMachine::_generate()
 {
   vector<UInt> candidates = range(0, _n, 1);
@@ -123,7 +146,11 @@ void PatternMachine::_generate()
   }
 }
 
-// Gets a value of `w` for use in generating a pattern.
+/**
+ * Gets a value of `w` for use in generating a pattern.
+ *
+ *  @return (int) A random entry from w vector or -1
+ */
 int PatternMachine::_getW()
 {
   vector<UInt> w = _w;
@@ -137,10 +164,14 @@ int PatternMachine::_getW()
   return -1;
 }
 
-// Add noise to pattern.
-//  @param bits(set)   Indices of on bits
-//  @param amount(float) Probability of switching an on bit with a random bit
-//  @return (set)Indices of on bits in noisy pattern
+/**
+ * Add noise to pattern.
+ *
+ *  @param bits(set)      Indices of on bits
+ *  @param amount(float)  Probability of switching an on bit with a random bit
+ *
+ *  @return (set)         Indices of on bits in noisy pattern
+ */
 vector<UInt> PatternMachine::addNoise(vector<UInt>& bits, Real amount)
 {
   vector<UInt> newBits;
@@ -156,9 +187,13 @@ vector<UInt> PatternMachine::addNoise(vector<UInt>& bits, Real amount)
   return newBits;
 }
 
-// Return the set of pattern numbers that match a bit.
-//  @param bit(int) Index of bit
-//  @return (set)Indices of numbers
+/**
+ * Return the set of pattern numbers that match a bit.
+ *
+ *  @param bits(set) Indices of bits
+ *
+ *  @return (set)    Indices of numbers
+*/
 vector<UInt> PatternMachine::numbersForBit(int bit)
 {
   if (bit < 0 || bit >= _n)
@@ -178,10 +213,14 @@ vector<UInt> PatternMachine::numbersForBit(int bit)
   return numbers;
 }
 
-// Return a map from number to matching on bits,
-// for all numbers that match a set of bits.
-//   @param bits(set) Indices of bits
-//   @return (dict)Mapping from number = > on bits.
+/**
+ * Return a map from number to matching on bits,
+ * for all numbers that match a set of bits.
+ *
+ *  @param bits(set) Indices of bits
+ *
+ *  @return (dict)   Mapping from number = > on bits.
+ */
 std::map<UInt, vector<UInt>> PatternMachine::numberMapForBits(vector<UInt>& bits)
 {
   std::map<UInt, vector<UInt>> numberMap;
@@ -198,12 +237,12 @@ std::map<UInt, vector<UInt>> PatternMachine::numberMapForBits(vector<UInt>& bits
 }
 
 /**
-Pretty print a pattern.
-
-@param bits(set) Indices of on bits
-@param verbosity(int) Verbosity level
-
-@return (string)Pretty - printed text
+ * Pretty print a pattern.
+ *
+ *  @param bits(set)      Indices of on bits
+ *  @param verbosity(int) Verbosity level
+ *
+ *  @return (string)      Pretty - printed text
 */
 string PatternMachine::prettyPrintPattern(vector<UInt>& bits, int verbosity)
 {

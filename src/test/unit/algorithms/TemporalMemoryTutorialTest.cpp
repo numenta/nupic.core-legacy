@@ -26,9 +26,54 @@
 
 #include "TemporalMemoryTutorialTest.hpp"
 
+void TemporalMemoryTutorialTest::setUp()
+{
+  _verbosity = 0;
+
+  patternMachine = ConsecutivePatternMachine();
+
+  vector<UInt> dimensions = { 1 };
+  patternMachine.initialize(6, dimensions, 100, 42);
+
+  _sequenceMachine = SequenceMachine(patternMachine);
+}
+
+void TemporalMemoryTutorialTest::init()
+{
+  _tm.initialize({ 6 }, 4, 1, 0.3, 0.5, 1, 6, 0.1, 0.05, 42);
+
+  if (_verbosity > 0)
+  {
+    cout << "Initialized new TM with parameters:" << endl;
+
+    _tm.printParameters();
+    cout << endl;
+  }
+}
+
+void TemporalMemoryTutorialTest::_feedTM(Sequence& sequence, bool learn, int num)
+{
+  _showInput(sequence, learn, num);
+
+  TemporalMemoryAbstractTest::_feedTM(sequence, learn, num);
+}
+
+void TemporalMemoryTutorialTest::_showInput(Sequence& sequence, bool learn, int num)
+{
+  if (_verbosity == 0)
+    return;
+
+  string sequenceText = _sequenceMachine.prettyPrintSequence(sequence, _verbosity);
+  string learnText = "(learning " + string(learn ? "enabled" : "disabled") + ")";
+  string numText = (num <= 1 ? "" : " [" + ::to_string(num) + " times]");
+
+  cout << "Feeding sequence " + learnText + numText + ":\n" + sequenceText << endl;
+}
 
 void TemporalMemoryTutorialTest::RunTests()
 {
+  setUp();
+
   testFirstOrder();
   testHighOrder();
   testHighOrderAlternating();
@@ -52,12 +97,10 @@ void TemporalMemoryTutorialTest::testFirstOrder()
   //NTA_CHECK(_tm.mmGetTracePredictedActiveColumns()._data[3].size() == 0);
 
   _feedTM(sequence, 2);
-
   _feedTM(sequence);
   //NTA_CHECK(_tm.mmGetTracePredictedActiveColumns()._data[3].size() == 1);
 
   _feedTM(sequence, 4);
-
   _feedTM(sequence);
   //NTA_CHECK(_tm.mmGetTracePredictedActiveColumns()._data[3].size() == 1);
 }
@@ -69,28 +112,24 @@ void TemporalMemoryTutorialTest::testHighOrder()
 
   Sequence numbersA(vector<vector<UInt>>{ {0, 1, 2, 3}, {} });
   Sequence sequenceA = _sequenceMachine.generateFromNumbers(numbersA);
+  
   Sequence numbersB(vector<vector<UInt>>{ {4, 1, 2, 5}, {} });
   Sequence sequenceB = _sequenceMachine.generateFromNumbers(numbersB);
 
   _feedTM(sequenceA, 5);
-
   _feedTM(sequenceA, 1, false);
   //NTA_CHECK(_tm.mmGetTracePredictedActiveColumns()._data[3].size() == 1);
 
   _feedTM(sequenceB);
-
   _feedTM(sequenceB, 2);
-
   _feedTM(sequenceB, 1, false);
   //NTA_CHECK(_tm.mmGetTracePredictedActiveColumns()._data[1].size() == 1);
 
   _feedTM(sequenceB, 3);
-
   _feedTM(sequenceB, 1, false);
   //NTA_CHECK(_tm.mmGetTracePredictedActiveColumns()._data[2].size() == 1);
 
   _feedTM(sequenceB, 3);
-
   _feedTM(sequenceB, 1, false);
   //NTA_CHECK(_tm.mmGetTracePredictedActiveColumns()._data[3].size() == 1);
 
@@ -144,7 +183,6 @@ void TemporalMemoryTutorialTest::testEndlesslyRepeating()
     _feedTM(sequence);
 
   _feedTM(sequence, 50);
-
 }
 
 void TemporalMemoryTutorialTest::testEndlesslyRepeatingWithNoNewSynapses()
@@ -163,7 +201,6 @@ void TemporalMemoryTutorialTest::testEndlesslyRepeatingWithNoNewSynapses()
     _feedTM(sequence);
 
   _feedTM(sequence, 100);
-
 }
 
 void TemporalMemoryTutorialTest::testLongRepeatingWithNovelEnding()
@@ -176,7 +213,9 @@ void TemporalMemoryTutorialTest::testLongRepeatingWithNovelEnding()
   Sequence numbers({ { 0, 1 } });
   Sequence sequence = _sequenceMachine.generateFromNumbers(numbers);
   sequence *= 10;
-//  sequence += {_patternMachine.get(2), {}};
+
+  sequence.push_back( patternMachine.get(2) );
+  sequence.push_back( {} );
 
   for (int i = 0; i < 4; i++)
     _feedTM(sequence);
@@ -199,59 +238,4 @@ void TemporalMemoryTutorialTest::testSingleEndlesslyRepeating()
 
   for (int i = 0; i < 2; i++)
     _feedTM(sequence, 10);
-
 }
-
-// ==============================
-// Overrides
-// ==============================
-
-void TemporalMemoryTutorialTest::setUp()
-{
-  _verbosity = 1;
-  _tm.initialize({ 6 }, 4, 1, 0.3, 0.5, 1, 6, 0.1, 0.05, 42);
-
-  patternMachine = ConsecutivePatternMachine();
-  vector<UInt> dimensions = { 1 };
-  patternMachine.initialize(6, dimensions, 100, 42);
-
-  _sequenceMachine = SequenceMachine(patternMachine);
-}
-
-void TemporalMemoryTutorialTest::init()
-{
-  TemporalMemoryAbstractTest::init();
-  _tm.initialize({ 6 }, 4, 1, 0.3, 0.5, 1, 6, 0.1, 0.05, 42);
-
-  patternMachine = utils::ConsecutivePatternMachine();
-  vector<UInt> dimensions = { 1 };
-  patternMachine.initialize(6, dimensions, 100, 42);
-  _sequenceMachine = utils::SequenceMachine(patternMachine, 42);
-
-  cout << "Initialized new TM with parameters:" << endl;
-
-  _tm.printParameters();
-  cout << endl;
-}
-
-void TemporalMemoryTutorialTest::_feedTM(Sequence& sequence, bool learn, int num)
-{
-  _showInput(sequence, learn, num);
-
-  TemporalMemoryAbstractTest::_feedTM(sequence, learn, num);
-}
-
-// ==============================
-// Helper functions
-// ==============================
-
-void TemporalMemoryTutorialTest::_showInput(Sequence& sequence, bool learn, int num)
-{
-  string sequenceText = _sequenceMachine.prettyPrintSequence(sequence, _verbosity);
-  string learnText = "(learning " + string(learn ? "enabled" : "disabled") + ")";
-  string numText = (num <= 1 ? "" : " [" + ::to_string(num) + " times]");
-  
-  cout << "Feeding sequence " + learnText + numText + ":\n" + sequenceText;
-  cout << endl;
-}
-

@@ -101,7 +101,7 @@ endif()
 # the variable NUPIC_DEPLOYMENT_BUILD must be set in travis CI scripts
 #
 if($ENV{NUPIC_DEPLOYMENT_BUILD})
-  message("doing deployment build in TravisCI")
+  message("doing deployment build")
 else()
   message("doing local build")
 endif()

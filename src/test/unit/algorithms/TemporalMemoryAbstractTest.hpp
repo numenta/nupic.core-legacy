@@ -18,7 +18,7 @@
  *
  * http://numenta.org/licenses/
  * ---------------------------------------------------------------------
-*/
+ */
 
 #ifndef NTA_TEMPORALMEMORYABSTRACTTEST_HPP
 #define NTA_TEMPORALMEMORYABSTRACTTEST_HPP
@@ -42,28 +42,35 @@ using namespace std;
 using namespace nupic::utils;
 using namespace nupic::algorithms::temporal_memory;
 
-
 namespace nupic {
 
   class TemporalMemoryAbstractTest : public Tester
   {
   public:
-    TemporalMemoryAbstractTest() { _verbosity = 1; }
-    virtual ~TemporalMemoryAbstractTest() {}
+    TemporalMemoryAbstractTest() { _verbosity = 1; };
+    virtual ~TemporalMemoryAbstractTest() {};
 
+    /**
+    * Initialize verbosity level, and the Pattern and Sequence machines
+    */
+    virtual void setUp();
+
+    /**
+     * Initialize the Temporal Memory
+     */
+    virtual void init();
+
+    /**
+     * Feed a sequence(s) into the TM with learning enabled or disabled
+     */
+    virtual void _feedTM(Sequence& sequence, bool learn = true, int num = 1);
+
+  protected:
     int _verbosity;
 
     TemporalMemory _tm;
     PatternMachine  _patternMachine;
     SequenceMachine _sequenceMachine;
-
-    virtual void setUp();
-
-    // Initialize Temporal Memory, and other member variables.
-    // param overrides : overrides for default Temporal Memory parameters
-    virtual void init();
-
-    virtual void _feedTM(Sequence& sequence, bool learn = true, int num = 1);
 
   }; // of class AbstractTemporalMemoryTest
 

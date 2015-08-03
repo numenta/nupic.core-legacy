@@ -1,28 +1,72 @@
 /* ---------------------------------------------------------------------
-* Numenta Platform for Intelligent Computing (NuPIC)
-* Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
-* with Numenta, Inc., for a separate license for this software code, the
-* following terms and conditions apply:
-*
-* This program is free software: you can redistribute it and/or modify
-* it under the terms of the GNU General Public License version 3 as
-* published by the Free Software Foundation.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program.  If not, see http://www.gnu.org/licenses.
-*
-* http://numenta.org/licenses/
-* ---------------------------------------------------------------------
-*/
+ * Numenta Platform for Intelligent Computing (NuPIC)
+ * Copyright (C) 2013-2015, Numenta, Inc.  Unless you have an agreement
+ * with Numenta, Inc., for a separate license for this software code, the
+ * following terms and conditions apply:
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3 as
+ * published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see http://www.gnu.org/licenses.
+ *
+ * http://numenta.org/licenses/
+ * ---------------------------------------------------------------------
+ */
 
 /** @file
-* Implementation of unit tests for TemporalMemory
-*/
+ * Implementation of unit tests for TemporalMemory
+ */
+
+#include "TemporalMemoryExtensiveTest.hpp"
+
+void TemporalMemoryExtensiveTest::setUp()
+{
+  _verbosity = 0;
+
+  vector<UInt> numbers = range(21, 26);
+  _patternMachine.initialize(100, numbers, 300);
+
+  _sequenceMachine = SequenceMachine(_patternMachine);
+}
+
+void TemporalMemoryExtensiveTest::_testTM(Sequence& sequence)
+{
+  _feedTM(sequence, false);
+}
+
+void TemporalMemoryExtensiveTest::RunTests()
+{
+  setUp();
+
+  // NOTE: All of these tests together take ~15 minutes
+  bool runTests = false;
+  if (runTests)
+  {
+    testB1();
+    testB3();
+    testB4();
+    testB5();
+    testB6();
+    testB7();
+    testB8();
+    testB9();
+    testB11();
+
+    testH1();
+    testH2();
+    testH3();
+    testH4();
+    testH5();
+    testH9();
+  }
+}
 
 /*==============================================================================
                   Basic First Order Sequences
@@ -181,44 +225,6 @@
   in the first presentation. [TODO]
   """
   */
-#include "TemporalMemoryExtensiveTest.hpp"
-
-void TemporalMemoryExtensiveTest::init()
-{
-  _verbosity = 1;
-
-  TemporalMemoryAbstractTest::init();
-}
-
-//==============================
-// Overrides
-// ==============================
-
-void TemporalMemoryExtensiveTest::setUp()
-{
-  TemporalMemoryAbstractTest::setUp();
-
-  _patternMachine = PatternMachine();
-  vector<UInt> numbers = range(21, 26);
-  _patternMachine.initialize(100, numbers, 300);
-  _sequenceMachine = SequenceMachine(_patternMachine);
-}
-
-
-void TemporalMemoryExtensiveTest::_feedTM(Sequence& sequence, bool learn, int num)
-{
-  TemporalMemoryAbstractTest::_feedTM(sequence, learn, num);
-}
-
-
-// ==============================
-// Helper functions
-// ==============================
-
-void TemporalMemoryExtensiveTest::_testTM(Sequence& sequence)
-{
-  _feedTM(sequence, false);
-}
 
 
 void TemporalMemoryExtensiveTest::testB1()
@@ -230,7 +236,6 @@ void TemporalMemoryExtensiveTest::testB1()
   Sequence sequence = _sequenceMachine.generateFromNumbers(numbers);
 
   _feedTM(sequence);
-
   _testTM(sequence);
 }
 
@@ -244,7 +249,6 @@ void TemporalMemoryExtensiveTest::testB3()
   Sequence sequence = _sequenceMachine.generateFromNumbers(numbers);
 
   _feedTM(sequence);
-
   _testTM(sequence);
 }
 
@@ -258,7 +262,6 @@ void TemporalMemoryExtensiveTest::testB4()
   Sequence sequence = _sequenceMachine.generateFromNumbers(numbers);
 
   _feedTM(sequence);
-
   _testTM(sequence);
 }
 
@@ -275,7 +278,6 @@ void TemporalMemoryExtensiveTest::testB5()
   Sequence sequence = _sequenceMachine.generateFromNumbers(numbers);
 
   _feedTM(sequence);
-
   _testTM(sequence);
 }
 
@@ -292,7 +294,6 @@ void TemporalMemoryExtensiveTest::testB6()
   Sequence sequence = _sequenceMachine.generateFromNumbers(numbers);
 
   _feedTM(sequence);
-
   _testTM(sequence);
 }
 
@@ -383,7 +384,6 @@ void TemporalMemoryExtensiveTest::testB11()
   _feedTM(sequence);
 
   sequence = _sequenceMachine.addSpatialNoise(sequence, 0.05);
-
   _testTM(sequence);
 }
 
@@ -400,7 +400,6 @@ void TemporalMemoryExtensiveTest::testH1()
   Sequence sequence = _sequenceMachine.generateFromNumbers(numbers);
 
   _feedTM(sequence);
-
   _testTM(sequence);
 }
 
@@ -438,7 +437,6 @@ void TemporalMemoryExtensiveTest::testH3()
   Sequence sequence = _sequenceMachine.generateFromNumbers(numbers);
 
   _feedTM(sequence);
-
   _testTM(sequence);
 }
 

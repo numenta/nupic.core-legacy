@@ -25,19 +25,26 @@
  */
 
 #include "TemporalMemoryAbstractTest.hpp"
-
+#include <nupic/os/Env.hpp>
 
 void TemporalMemoryAbstractTest::setUp()
 {
+  _verbosity = 1;
+
+  std::string value = "";
+  if (Env::get("NUPIC_DEPLOYMENT_BUILD", value))
+    _verbosity = 0;
+
+  _patternMachine = PatternMachine();
+  
+  vector<UInt> dimensions = { 1 };
+  _patternMachine.initialize(10, dimensions, 100, 42);
+
+  _sequenceMachine = SequenceMachine(_patternMachine, 42);
 }
 
-// Initialize Temporal Memory, and other member variables.
 void TemporalMemoryAbstractTest::init()
 {
-  // param overrides : overrides for default Temporal Memory parameters
-  //params = self._computeTMParams(overrides);
-
-  _tm = TemporalMemory();// **params);
   _tm.initialize({ 100 }, 1, 11, 0.8, 0.7, 11, 11, 0.4, 0.0, 42);
 }
 
@@ -59,4 +66,5 @@ void TemporalMemoryAbstractTest::_feedTM(Sequence& sequence, bool learn, int num
       _tm.compute((UInt)pattern.size(), &pattern[0], learn);
     }
   }
+
 }

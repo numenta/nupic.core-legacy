@@ -47,7 +47,6 @@ namespace nupic {
   public:
     ConsecutivePatternMachine patternMachine;
 
-    // Run all appropriate tests
     virtual void RunTests();
 
     void testFirstOrder();
@@ -58,20 +57,10 @@ namespace nupic {
     void testLongRepeatingWithNovelEnding();
     void testSingleEndlesslyRepeating();
 
-
-    // ==============================
-    // Overrides
-    // ==============================
-
     virtual void setUp();
     virtual void init();
 
     virtual void _feedTM(Sequence& sequence, bool learn = true, int num = 1);
-
-
-    // ==============================
-    // Helper functions
-    // ==============================
 
     void _showInput(Sequence& sequence, bool learn = false, int num = 1);
 
