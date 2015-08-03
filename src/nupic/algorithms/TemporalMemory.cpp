@@ -44,6 +44,8 @@ using namespace nupic;
 using namespace nupic::algorithms::connections;
 using namespace nupic::algorithms::temporal_memory;
 
+#define EPSILON 0.0000001
+
 TemporalMemory::TemporalMemory()
 {
   version_ = 1;
@@ -631,7 +633,7 @@ void TemporalMemory::adaptSegment(
     if (permanence < 0.0)
       permanence = 0.0;
 
-    if (permanence < 0.0000001)
+    if (permanence < EPSILON)
       _connections.destroySynapse(synapse);
     else
       _connections.updateSynapsePermanence(synapse, permanence);
@@ -1231,4 +1233,3 @@ void TemporalMemory::printState(vector<Real> &state)
   }
   std::cout << "]\n";
 }
-
