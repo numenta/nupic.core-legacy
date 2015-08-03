@@ -24,6 +24,7 @@
  *
  */
 
+#include <math.h>
 #include <vector>
 #include <iterator>
 #include <functional>
