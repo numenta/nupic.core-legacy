@@ -90,15 +90,18 @@ void TemporalMemory::initialize(
   Permanence permanenceDecrement,
   Int seed)
 {
-  // Error checking
+  // Validate all input parameters
+
   if (columnDimensions.size() <= 0)
     NTA_THROW << "Number of column dimensions must be greater than 0";
 
   if (cellsPerColumn <= 0)
     NTA_THROW << "Number of cells per column must be greater than 0";
 
-  // TODO: Validate all parameters (and add validation tests)
-  // nupic.core GH issue #504 has been created to deal with this todo
+  NTA_CHECK(initialPermanence >= 0.0 && initialPermanence <= 1.0);
+  NTA_CHECK(connectedPermanence >= 0.0 && connectedPermanence <= 1.0);
+  NTA_CHECK(permanenceIncrement >= 0.0 && permanenceIncrement <= 1.0);
+  NTA_CHECK(permanenceDecrement >= 0.0 && permanenceDecrement <= 1.0);
 
   // Save member variables
 
