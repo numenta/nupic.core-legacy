@@ -405,6 +405,11 @@ namespace nupic
         // Serialization
 
         /**
+         * Saves serialized data to output stream.
+         */
+        virtual void save(ostream& outStream) const;
+
+        /**
          * Writes serialized data to output stream.
          */
         virtual void write(ostream& stream) const;
@@ -413,6 +418,11 @@ namespace nupic
          * Writes serialized data to proto object.
          */
         virtual void write(ConnectionsProto::Builder& proto) const;
+
+        /**
+         * Loads serialized data from input stream.
+         */
+        virtual void load(istream& inStream);
 
         /**
          * Reads serialized data from input stream.
