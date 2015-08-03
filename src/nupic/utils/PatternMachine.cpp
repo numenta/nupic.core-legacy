@@ -24,7 +24,6 @@
  *
  */
 
-#include <math.h>
 #include <vector>
 #include <iterator>
 #include <functional>
@@ -54,7 +53,8 @@ using namespace nupic::utils;
 vector<UInt> nupic::utils::range(int start, int stop, int step)
 {
   vector<UInt> x;
-  int numEntries = std::ceil( (Real)(stop - start) / step );
+  int numEntries(static_cast<int>(
+    std::ceil(static_cast<double>((Real)(stop - start) / (Real)step))));
 
   if (numEntries <= 0)
     return x;
