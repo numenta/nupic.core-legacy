@@ -81,9 +81,6 @@ elseif(WIN32) # incl. win64
                   -D_WINDOWS
                   -D_MBCS
                   -D_CRT_SECURE_NO_WARNINGS
-                  -D_ALLOW_ITERATOR_DEBUG_LEVEL_MISMATCH
-                  -D_HAS_ITERATOR_DEBUGGING=0
-                  -D_ITERATOR_DEBUG_LEVEL=0
                   -DNDEBUG)
 endif()
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
@@ -96,6 +93,19 @@ elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
                   -D_VARIADIC_MAX=10
                   -DNOMINMAX)
 endif()
+
+
+#
+# Identify build type - local or deployment (Travis)
+# the variable NUPIC_DEPLOYMENT_BUILD must be set in travis CI scripts
+#
+if($ENV{NUPIC_DEPLOYMENT_BUILD})
+  message("doing deployment build in TravisCI")
+else()
+  message("doing local build")
+endif()
+
+
 
 
 #
@@ -182,13 +192,13 @@ else()
   if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} -static-libstdc++")
   endif()
-  if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-    set(COMMON_COMPILE_FLAGS "${COMMON_COMPILE_FLAGS} -Og -g")
-    set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} -O0")
-  else()
-    set(COMMON_COMPILE_FLAGS "${COMMON_COMPILE_FLAGS} ${OPTIMIZATION_FLAGS_CC}")
-    set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} ${OPTIMIZATION_FLAGS_LT}")
-  endif()
+endif()
+if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+  set(COMMON_COMPILE_FLAGS "${COMMON_COMPILE_FLAGS} -Og -g")
+  set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} -O0")
+else()
+  set(COMMON_COMPILE_FLAGS "${COMMON_COMPILE_FLAGS} ${OPTIMIZATION_FLAGS_CC}")
+  set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} ${OPTIMIZATION_FLAGS_LT}")
 endif()
 
 #
@@ -295,6 +305,12 @@ find_library(LIB_STATIC_CAPNP_LOC
 add_library(${LIB_STATIC_CAPNP} STATIC IMPORTED GLOBAL)
 
 #
+# Setup for python
+#
+find_package(PythonLibs REQUIRED)
+include_directories(${PYTHON_INCLUDE_DIRS})
+
+#
 # Generate Cap'n Proto C++ files
 #
 set(CAPNPC_OUTPUT_DIR ${CMAKE_BINARY_DIR})
@@ -323,23 +339,12 @@ capnp_generate_cpp(CAPNP_SRCS CAPNP_HDRS ${CAPNP_SPECS})
 #
 # Python support
 #
-
 set (PY_SUPPORT_FILES
      nupic/py_support/NumpyVector.cpp
      nupic/py_support/PyArray.cpp
      nupic/py_support/PyHelpers.cpp
-     nupic/py_support/PythonStream.cpp)
-
-find_package(PythonLibs REQUIRED)
-include_directories(${PYTHON_INCLUDE_DIRS})
-
-set(LIB_STATIC_PYTHON python)
-find_library(LIB_STATIC_PYTHON_LOC
-             ${LIB_STATIC_PYTHON}
-             "${PYTHON_INCLUDE_PATH}/"
-             NO_DEFAULT_PATH)
-add_library(${LIB_STATIC_PYTHON} STATIC IMPORTED GLOBAL)
-set_target_properties(${LIB_STATIC_PYTHON} PROPERTIES DEBUG_POSTFIX "")
+     nupic/py_support/PythonStream.cpp
+)
 
 #
 # Setup libnupic_core
@@ -348,8 +353,8 @@ set(LIB_STATIC_NUPICCORE nupic_core_solo)
 
 set(COMMON_LIBS ${LIB_STATIC_NUPICCORE}
                 ${LIB_STATIC_KJ_LOC}
-                ${LIB_STATIC_CAPNP_LOC}
-                ${LIB_STATIC_PYTHON_LOC})
+                ${LIB_STATIC_CAPNP_LOC})
+
 
 if("${PLATFORM}" STREQUAL "linux")
   list(APPEND COMMON_LIBS pthread dl)
@@ -437,11 +442,10 @@ target_link_libraries(${LIB_STATIC_NUPICCORE}
                       ${LIB_STATIC_APRUTIL1_LOC}
                       ${LIB_STATIC_Z_LOC}
                       ${LIB_STATIC_KJ_LOC}
-                      ${LIB_STATIC_CAPNP_LOC})
-set_target_properties(${LIB_STATIC_NUPICCORE}
-                      PROPERTIES COMPILE_FLAGS "${COMMON_COMPILE_FLAGS} -I${NUMPY_CORE}/include")
-set_target_properties(${LIB_STATIC_NUPICCORE}
-                      PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS} -static")
+                      ${LIB_STATIC_CAPNP_LOC}
+                      ${PYTHON_LIBRARIES})
+set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES COMPILE_FLAGS "${COMMON_COMPILE_FLAGS} -I${NUMPY_CORE}/include")
+set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS} -static")
 
 #
 # Setup test_cpp_region
@@ -449,14 +453,14 @@ set_target_properties(${LIB_STATIC_NUPICCORE}
 set(EXECUTABLE_CPPREGIONTEST cpp_region_test)
 add_executable(${EXECUTABLE_CPPREGIONTEST} test/integration/CppRegionTest.cpp)
 target_link_libraries(${EXECUTABLE_CPPREGIONTEST} ${COMMON_LIBS})
-set_target_properties(${EXECUTABLE_CPPREGIONTEST}
-                      PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
-set_target_properties(${EXECUTABLE_CPPREGIONTEST}
-                      PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
+set_target_properties(${EXECUTABLE_CPPREGIONTEST} PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
+set_target_properties(${EXECUTABLE_CPPREGIONTEST} PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
 add_custom_target(tests_cpp_region
                   COMMAND ${EXECUTABLE_CPPREGIONTEST}
                   DEPENDS ${EXECUTABLE_CPPREGIONTEST}
                   VERBATIM)
+
+set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS} -static")
 
 #
 # Setup test_py_region
@@ -464,14 +468,14 @@ add_custom_target(tests_cpp_region
 set(EXECUTABLE_PYREGIONTEST py_region_test)
 add_executable(${EXECUTABLE_PYREGIONTEST} test/integration/PyRegionTest.cpp)
 target_link_libraries(${EXECUTABLE_PYREGIONTEST} ${COMMON_LIBS})
-set_target_properties(${EXECUTABLE_PYREGIONTEST}
-                      PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
+set_target_properties(${EXECUTABLE_PYREGIONTEST} PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
 set_target_properties(${EXECUTABLE_PYREGIONTEST}
                       PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
 add_custom_target(tests_py_region
                   COMMAND ${EXECUTABLE_PYREGIONTEST}
                   DEPENDS ${EXECUTABLE_PYREGIONTEST}
                   VERBATIM)
+
 
 #
 # Setup test_connections_performance
@@ -489,35 +493,30 @@ add_custom_target(tests_connections_performance
                   DEPENDS ${EXECUTABLE_CONNECTIONSPERFORMANCETEST}
                   VERBATIM)
 
+set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS} -static")
+
 #
 # Setup helloregion example
 #
 set(EXECUTABLE_HELLOREGION helloregion)
 add_executable(${EXECUTABLE_HELLOREGION} examples/regions/HelloRegions.cpp)
 target_link_libraries(${EXECUTABLE_HELLOREGION} ${COMMON_LIBS})
-set_target_properties(${EXECUTABLE_HELLOREGION} 
-                      PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
+set_target_properties(${EXECUTABLE_HELLOREGION} PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
 set_target_properties(${EXECUTABLE_HELLOREGION}
                       PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
-add_custom_target(tests_helloregion
-                  COMMAND ${EXECUTABLE_HELLOREGION}
-                  DEPENDS ${EXECUTABLE_HELLOREGION}
-                  VERBATIM)
+add_dependencies(${EXECUTABLE_HELLOREGION} ${COMMON_LIBS})
 
 #
 # Setup prototest example
 #
 set(EXECUTABLE_PROTOTEST prototest)
 add_executable(${EXECUTABLE_PROTOTEST} examples/prototest.cpp)
-target_link_libraries(${EXECUTABLE_PROTOTEST} ${COMMON_LIBS})
-set_target_properties(${EXECUTABLE_PROTOTEST}
-                      PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
+target_link_libraries(${EXECUTABLE_PROTOTEST}
+                      ${COMMON_LIBS})
+set_target_properties(${EXECUTABLE_PROTOTEST} PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
 set_target_properties(${EXECUTABLE_PROTOTEST}
                       PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
-add_custom_target(tests_prototest
-                  COMMAND ${EXECUTABLE_PROTOTEST}
-                  DEPENDS ${EXECUTABLE_PROTOTEST}
-                  VERBATIM)
+add_dependencies(${EXECUTABLE_PROTOTEST} ${COMMON_LIBS})
 
 #
 # Setup HelloSP_TP example
@@ -525,14 +524,10 @@ add_custom_target(tests_prototest
 set(EXECUTABLE_HELLOSPTP hello_sp_tp)
 add_executable(${EXECUTABLE_HELLOSPTP} examples/algorithms/HelloSP_TP.cpp)
 target_link_libraries(${EXECUTABLE_HELLOSPTP} ${COMMON_LIBS})
-set_target_properties(${EXECUTABLE_HELLOSPTP}
-                      PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
-set_target_properties(${EXECUTABLE_HELLOSPTP}
-                      PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
-add_custom_target(tests_hello_sp_tp
-                  COMMAND ${EXECUTABLE_HELLOSPTP}
-                  DEPENDS ${EXECUTABLE_HELLOSPTP}
-                  VERBATIM)
+set_target_properties(${EXECUTABLE_HELLOSPTP} PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
+set_target_properties(${EXECUTABLE_HELLOSPTP} PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
+add_dependencies(${EXECUTABLE_HELLOSPTP} ${COMMON_LIBS})
+
 
 #
 # Setup gtests
@@ -677,9 +672,6 @@ else()
                             ${LIB_STATIC_APRUTIL1_LOC}
                             ${LIB_STATIC_APR1_LOC}
                             ${LIB_STATIC_Z_LOC}
-                            ${LIB_STATIC_KJ_LOC}
-                            ${LIB_STATIC_CAPNP_LOC}
-                            ${LIB_STATIC_PYTHON_LOC}
                     DEPENDS ${LIB_STATIC_NUPICCORE}
                             ${LIB_STATIC_GTEST}
                             ${EXECUTABLE_HELLOREGION}
