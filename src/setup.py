@@ -172,9 +172,8 @@ def getCompilerInfo():
   elif "gnu" in cxxCompiler:
     cxxCompiler = "GNU"
   # TODO: There is a problem here, because on OS X ccompiler.get_default_compiler()
-  # returns "unix", not "clang" or "gnu". So we have to handle "unix" and we loose
-  # the ability to decide which compiler is used. I'm not sure how big of a 
-  # problem this is, so I'm moving ahead with this noted. 
+  # returns "unix", not "clang" or "gnu". So we have to handle "unix" and we lose
+  # the ability to decide which compiler is used.
   elif "unix" in cxxCompiler:
     cxxCompiler = "unix"
   else:
@@ -265,6 +264,7 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cxxCompiler, cmd
     ("NTA_ASM", None),
     ("HAVE_CONFIG_H", None),
     ("BOOST_NO_WREGEX", None)]
+
   if platform in WINDOWS_PLATFORMS:
     commonDefines.extend([
       ("PSAPI_VERSION", "1"),
@@ -501,55 +501,71 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cxxCompiler, cmd
 
 
 
+def postProcess(nupicCoreReleaseDir):
+  for egg in glob.glob("dist/*.egg"):
+    shutil.copy(egg, nupicCoreReleaseDir)
+
+
+
 if __name__ == "__main__":
+  cwd = os.getcwd()
+  os.chdir(SRC_DIR)
   options = getCommandLineOptions()
   platform, bitness = getPlatformInfo()
   cxxCompiler = getCompilerInfo()
 
   print "NUMPY VERSION: {}".format(numpy.__version__)
 
-  nupicCoreReleaseDir = os.environ.get('NUPIC_CORE_RELEASE')
-  if nupicCoreReleaseDir is None:
-    raise Exception("Must provide path to nupic core release. export NUPIC_CORE_RELEASE=<path>")
-  nupicCoreReleaseDir = fixPath(nupicCoreReleaseDir)
-  print "Nupic Core Release Directory: {}\n".format(nupicCoreReleaseDir)
-  if not os.path.isdir(nupicCoreReleaseDir):
-    raise Exception("{} does not exist".format(nupicCoreReleaseDir))
+  try:
+    nupicCoreReleaseDir = os.environ.get('NUPIC_CORE_RELEASE')
+    if nupicCoreReleaseDir is None:
+      raise Exception("Must provide path to nupic core release. export NUPIC_CORE_RELEASE=<path>")
+    nupicCoreReleaseDir = fixPath(nupicCoreReleaseDir)
+    print "Nupic Core Release Directory: {}\n".format(nupicCoreReleaseDir)
+    if not os.path.isdir(nupicCoreReleaseDir):
+      raise Exception("{} does not exist".format(nupicCoreReleaseDir))
 
-  if platform == DARWIN_PLATFORM and not "ARCHFLAGS" in os.environ:
-    raise Exception("To build NuPIC in OS X, you must "
-                    "`export ARCHFLAGS=\"-arch x86_64\"`.")
+    if platform == DARWIN_PLATFORM and not "ARCHFLAGS" in os.environ:
+      raise Exception("To build NuPIC Core bindings in OS X, you must "
+                      "`export ARCHFLAGS=\"-arch x86_64\"`.")
 
-  # Build and setup NuPIC.Core Bindings
-  print "Get SWIG C++ extensions"
-  extensions = getExtensionModules(nupicCoreReleaseDir, platform, bitness, cxxCompiler,
-    options)
+    buildEgg = False
+    for arg in sys.argv[:]:
+      if arg == "bdist_egg":
+        buildEgg = True
 
-  print "\nSetup SWIG Python module"
-  setup(
-    name="nupiccore-python",
-    ext_modules=extensions,
-    version="1.0",
-    namespace_packages=["nupic", "nupic.bindings"],
-    install_requires=findRequirements(),
-    description="Numenta Platform for Intelligent Computing - bindings",
-    author="Numenta",
-    author_email="help@numenta.org",
-    url="https://github.com/numenta/nupic.core",
-    classifiers=[
-      "Programming Language :: Python",
-      "Programming Language :: Python :: 2",
-      "License :: OSI Approved :: GNU General Public License (GPL)",
-      "Operating System :: MacOS :: MacOS X",
-      "Operating System :: POSIX :: Linux",
-      # It has to be "5 - Production/Stable" or else pypi rejects it!
-      "Development Status :: 5 - Production/Stable",
-      "Environment :: Console",
-      "Intended Audience :: Science/Research",
-      "Topic :: Scientific/Engineering :: Artificial Intelligence"
-    ],
-    long_description = "Python bindings for nupic core.",
-    packages=find_packages())
+    # Build and setup NuPIC.Core Bindings
+    print "Get SWIG C++ extensions"
+    extensions = getExtensionModules(nupicCoreReleaseDir, platform, bitness, cxxCompiler,
+      options)
 
-  shutil.copytree("nupiccore_python.egg-info", os.path.join(nupicCoreReleaseDir, "nupiccore_python.egg-info"))
+    print "\nSetup SWIG Python module"
+    setup(
+      name="nupiccore-python",
+      ext_modules=extensions,
+      version="1.0",
+      namespace_packages=["nupic", "nupic.bindings"],
+      install_requires=findRequirements(),
+      description="Numenta Platform for Intelligent Computing - bindings",
+      author="Numenta",
+      author_email="help@numenta.org",
+      url="https://github.com/numenta/nupic.core",
+      classifiers=[
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 2",
+        "License :: OSI Approved :: GNU General Public License (GPL)",
+        "Operating System :: MacOS :: MacOS X",
+        "Operating System :: POSIX :: Linux",
+        # It has to be "5 - Production/Stable" or else pypi rejects it!
+        "Development Status :: 5 - Production/Stable",
+        "Environment :: Console",
+        "Intended Audience :: Science/Research",
+        "Topic :: Scientific/Engineering :: Artificial Intelligence"
+      ],
+      long_description = "Python bindings for nupic core.",
+      packages=find_packages())
+    if buildEgg:
+      postProcess(nupicCoreReleaseDir)
+  finally:
+    os.chdir(cwd)
 
