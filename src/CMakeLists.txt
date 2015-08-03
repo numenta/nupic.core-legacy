@@ -26,14 +26,6 @@
 # -----------------------------------------------------------------------------
 
 cmake_minimum_required(VERSION 2.8)
-cmake_policy(VERSION 2.8)
-
-if ( POLICY CMP0046 )
- # The new policy for add_dependencies is to now error if a dependency target
- # is not found. The old policy didn't care and continued through configuration
- cmake_policy(SET CMP0046 OLD)
-endif()
-
 project(nupic_core CXX)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set(CMAKE_VERBOSE_MAKEFILE OFF) # toggle for cmake debug
@@ -99,7 +91,7 @@ if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
   add_definitions(-DNTA_COMPILER_GNU)
 elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
   add_definitions(-DNTA_COMPILER_CLANG)
-elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "MSVC")
+elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
   add_definitions(-DNTA_COMPILER_MSVC)
 endif()
 
@@ -155,13 +147,13 @@ endif()
 #
 if($ENV{NUPIC_DEPLOYMENT_BUILD})
   message("doing deployment build in TravisCI")
-  if(NOT ${CMAKE_CXX_COMPILER_ID} MATCHES "MSVC")
+  if(NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
     set(OPTIMIZATION_FLAGS_CC "${OPTIMIZATION_FLAGS_CC} -mtune=generic -O2")
     set(OPTIMIZATION_FLAGS_LT "-O2 ${OPTIMIZATION_FLAGS_LT}")
   endif()
 else()
   message("doing local build")
-  if(NOT ${CMAKE_CXX_COMPILER_ID} MATCHES "MSVC")
+  if(NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
     set(OPTIMIZATION_FLAGS_CC "${OPTIMIZATION_FLAGS_CC} -march=native -O3")
     set(OPTIMIZATION_FLAGS_LT "-O3 ${OPTIMIZATION_FLAGS_LT}")
   endif()
@@ -173,7 +165,7 @@ endif()
 # these are quite aggresive flags, if your code misbehaves for strange reasons, try
 # compiling without them.
 #
-if(NOT ${CMAKE_CXX_COMPILER_ID} MATCHES "MSVC")
+if(NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
   set(OPTIMIZATION_FLAGS_CC "-pipe ${OPTIMIZATION_FLAGS_CC}") #TODO use -Ofast instead of -O3
   if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
     set(OPTIMIZATION_FLAGS_CC "${OPTIMIZATION_FLAGS_CC} -fuse-linker-plugin -flto-report")
@@ -186,7 +178,7 @@ endif()
 #
 # compiler specific settings here
 #
-if(${CMAKE_CXX_COMPILER_ID} MATCHES "MSVC")
+if(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
   set(COMMON_COMPILE_FLAGS "/TP /Zc:wchar_t /Gm- /fp:precise /errorReport:prompt /W1 /WX- /GR /Gd /GS /Oy- /EHs /analyze- /nologo")
   set(COMMON_LINK_FLAGS "/NOLOGO /SAFESEH:NO /NODEFAULTLIB:LIBCMT")
   if("${BITNESS}" STREQUAL "32")
