@@ -40,7 +40,7 @@ before_deploy:
   - mkdir -p $TRAVIS_BUILD_DIR/release
   - mv nupic_core-${TRAVIS_COMMIT}-${PLATFORM}64.tar.gz $TRAVIS_BUILD_DIR/release/.
   - cd $TRAVIS_BUILD_DIR
-  - . ci/travis/before_deploy.sh
+  - ./ci/travis/before_deploy.sh
 
 deploy:
   provider: s3
