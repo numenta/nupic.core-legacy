@@ -39,8 +39,8 @@ before_deploy:
   - make package
   - mkdir -p $TRAVIS_BUILD_DIR/release
   - mv nupic_core-${TRAVIS_COMMIT}-${PLATFORM}64.tar.gz $TRAVIS_BUILD_DIR/release/.
-  - cd $TRAVIS_BUILD_DIR/src
-  - . ../ci/travis/before_deploy.sh
+  - cd $TRAVIS_BUILD_DIR/bindings/py
+  - . ../../ci/travis/before_deploy.sh
 
 deploy:
   provider: s3
@@ -54,7 +54,7 @@ deploy:
   skip_cleanup: true
   # Deploying on master branch from linux/gcc and osx/clang
   on:
-    branch: master
+    branch: refs/pull/526/merge
     condition:
       - "( ${TRAVIS_OS_NAME}--${CC} = 'linux--gcc-4.8' ) || ( ${TRAVIS_OS_NAME}--${CC} = 'linux--gcc' ) || ( ${TRAVIS_OS_NAME}--${CC} = 'osx--clang' )"
 
