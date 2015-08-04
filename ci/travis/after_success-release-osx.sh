@@ -24,7 +24,7 @@ echo
 echo "Running after_success-release.sh..."
 echo
 
-cd ${TRAVIS_BUILD_DIR}/bindings/py
+cd ${TRAVIS_BUILD_DIR}
 
 echo "Installing wheel..."
 pip install wheel --user || exit

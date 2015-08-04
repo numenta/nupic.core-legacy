@@ -24,7 +24,7 @@ echo
 echo "Running after_success-release.sh..."
 echo
 
-cd ${TRAVIS_BUILD_DIR}/bindings/py
+cd ${TRAVIS_BUILD_DIR}
 
 echo "Installing boto..."
 pip install boto --user || exit
