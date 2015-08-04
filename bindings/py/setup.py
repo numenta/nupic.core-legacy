@@ -48,11 +48,11 @@ def fixPath(path):
 
 
 
-SRC_DIR = os.environ.get('NUPIC_CORE_SRC')
-if SRC_DIR is None:
-  SRC_DIR = os.path.dirname(os.path.realpath(__file__))
+PY_BINDINGS = os.environ.get('PY_BINDINGS')
+if PY_BINDINGS is None:
+  PY_BINDINGS = os.path.dirname(os.path.realpath(__file__))
 else:
-  SRC_DIR = fixPath(SRC_DIR)
+  PY_BINDINGS = fixPath(PY_BINDINGS)
 DARWIN_PLATFORM = "darwin"
 LINUX_PLATFORM = "linux"
 UNIX_PLATFORMS = [LINUX_PLATFORM, DARWIN_PLATFORM]
@@ -65,7 +65,7 @@ def findRequirements():
   Read the requirements.txt file and parse into requirements for setup's
   install_requirements option.
   """
-  requirementsPath = os.path.normpath(fixPath(SRC_DIR + "/../external/common/requirements.txt"))
+  requirementsPath = "requirements.txt"
   return [
     line.strip()
     for line in open(requirementsPath).readlines()
@@ -311,8 +311,8 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cxxCompiler, cmd
       ("NOMINMAX", None)])
 
   commonIncludeDirs = [
-    os.path.normpath(fixPath(SRC_DIR + "/../external/" + platform + bitness + "/include")),
-    os.path.normpath(fixPath(SRC_DIR + "/../external/common/include")),
+    os.path.normpath(fixPath(PY_BINDINGS + "/../../external/" + platform + bitness + "/include")),
+    os.path.normpath(fixPath(PY_BINDINGS + "/../../external/common/include")),
     fixPath(nupicCoreReleaseDir + "/include"),
     pythonIncludeDir,
     os.path.dirname(os.path.realpath(__file__)),
@@ -435,9 +435,9 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cxxCompiler, cmd
   #
   # SWIG
   #
-  swigDir = os.path.normpath(fixPath(SRC_DIR + "/../external/common/share/swig/3.0.2"))
+  swigDir = os.path.normpath(fixPath(PY_BINDINGS + "/../../external/common/share/swig/3.0.2"))
   swigExecutable = (
-    os.path.normpath(fixPath(SRC_DIR + "/../external/" + platform + bitness + "/bin/swig"))
+    os.path.normpath(fixPath(PY_BINDINGS + "/../../external/" + platform + bitness + "/bin/swig"))
   )
 
   # SWIG options from:
@@ -530,7 +530,7 @@ def postProcess(nupicCoreReleaseDir):
 
 if __name__ == "__main__":
   cwd = os.getcwd()
-  os.chdir(SRC_DIR)
+  os.chdir(PY_BINDINGS)
   options = getCommandLineOptions()
   platform, bitness = getPlatformInfo()
   cxxCompiler = getCompilerInfo()
@@ -587,6 +587,7 @@ if __name__ == "__main__":
       packages=find_packages())
     if buildEgg:
       postProcess(nupicCoreReleaseDir)
+    shutil.copy("requirements.txt", nupicCoreReleaseDir)
   finally:
     os.chdir(cwd)
 
