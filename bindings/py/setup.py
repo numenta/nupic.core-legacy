@@ -562,9 +562,9 @@ if __name__ == "__main__":
 
     print "\nSetup SWIG Python module"
     setup(
-      name="nupiccore-python",
+      name="nupiccore",
       ext_modules=extensions,
-      version="1.0",
+      version="0.1.0",
       namespace_packages=["nupic", "nupic.bindings"],
       install_requires=findRequirements(),
       description="Numenta Platform for Intelligent Computing - bindings",
