@@ -51,6 +51,7 @@ namespace nupic {
     void testInitInvalidParams();
     void testActivateCorrectlyPredictiveCells();
     void testActivateCorrectlyPredictiveCellsEmpty();
+    void testActivateCorrectlyPredictiveCellsOrphan();
     void testBurstColumns();
     void testBurstColumnsEmpty();
     void testLearnOnSegments();
@@ -100,3 +101,4 @@ namespace nupic {
   }; // end class TemporalMemoryTest
 } // end namespace nupic
 #endif // NTA_TEMPORAL_MEMORY_TEST
+
