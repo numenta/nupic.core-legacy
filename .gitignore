@@ -5,6 +5,7 @@
 *~
 *.DS_Store
 *.swp
+*.pyc
 
 # IDE project files
 /nbproject/
@@ -17,3 +18,8 @@ build/
 
 # Doxygen generated doc
 html/
+
+# SWIG
+bindings/py/nupic/bindings/*.cxx
+bindings/py/nupic/bindings/*.py
+bindings/py/nupic/bindings/*.so

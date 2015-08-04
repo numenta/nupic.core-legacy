@@ -724,8 +724,6 @@ install(DIRECTORY "${NUMPY_CORE}/lib/"
         DESTINATION lib)
 install(DIRECTORY "${NUMPY_CORE}/include/"
         DESTINATION include)
-install(FILES "${REPOSITORY_DIR}/external/common/requirements.txt"
-        DESTINATION .)
 if(UNIX)
   install(FILES "${PROJECT_BINARY_DIR}/libnupic_core.a"
           DESTINATION lib)
@@ -736,6 +734,8 @@ endif()
 
 install(DIRECTORY nupic/py_support DESTINATION include/nupic
         FILES_MATCHING PATTERN "*.c*")
+install(DIRECTORY nupic DESTINATION include/nupic
+        FILES_MATCHING PATTERN "*.py")
 
 #
 # `make package` results in

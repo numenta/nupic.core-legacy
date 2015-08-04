@@ -29,6 +29,7 @@
 
 #include <nupic/types/Types.hpp> // For nupic::Real.
 #include <algorithm> // For std::copy.
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include <numpy/arrayobject.h>
 
 namespace nupic {
