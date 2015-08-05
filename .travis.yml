@@ -13,6 +13,7 @@ env:
     - NUPICCORE = ${TRAVIS_BUILD_DIR}
     - PATH=${TRAVIS_BUILD_DIR}/python/bin:$PATH
     - PLATFORM=${TRAVIS_OS_NAME}
+    - ARCHFLAGS="-arch x86_64"
     # AWS keys are for manual uploads of linux wheel to S3.
     - AWS_ACCESS_KEY_ID=AKIAIGHYSEHV3WFKOWNQ
     # AWS_SECRET_ACCESS_KEY encrypted below
