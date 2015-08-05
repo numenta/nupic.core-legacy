@@ -41,7 +41,11 @@ if [ "${TRAVIS_BRANCH}" = "master" ]; then
     # Build all NuPIC and all required python packages into dist/wheels as .whl
     # files.
     echo "pip wheel --wheel-dir=dist/wheels ."
-    pip wheel --wheel-dir=dist/wheels . 
+    if [ ${PLATFORM} = "darwin" ]; then
+      export ARCHFLAGS="-arch x86_64" pip wheel --wheel-dir=dist/wheels .
+    else
+      pip wheel --wheel-dir=dist/wheels . 
+    fi
     # The dist/wheels folder is expected to be deployed to S3.
 
 # If this is a tag, we're doing a release deployment, so we want to build docs
