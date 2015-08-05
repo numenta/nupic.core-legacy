@@ -259,6 +259,54 @@ void RandomTest::RunTests()
   Random r;
   UInt64 x = r.getUInt64();
   TEST(x != 0);
+
+  // test getSeed
+  {
+    Random r(98765);
+    TESTEQUAL(98765U, r.getSeed());
+  }
+
+  {
+    // test copy constructor.
+    Random r1(289436);
+    int i;
+    for (i = 0; i < 100; i++)
+      r1.getUInt32();
+    Random r2(r1);
+
+    UInt32 v1, v2;
+    for (i = 0; i < 100; i++)
+    {
+      v1 = r1.getUInt32();
+      v2 = r2.getUInt32();
+      if (v1 != v2)
+        break;
+    }
+    TEST2("copy constructor", v1 == v2);
+  }
+
+  {
+    // test operator=
+    Random r1(289436);
+    int i;
+    for (i = 0; i < 100; i++)
+      r1.getUInt32();
+    Random r2(86726008);
+    for (i = 0; i < 100; i++)
+      r2.getUInt32();
+
+    r2 = r1;
+    UInt32 v1, v2;
+    for (i = 0; i < 100; i++)
+    {
+      v1 = r1.getUInt32();
+      v2 = r2.getUInt32();
+      if (v1 != v2)
+        break;
+    }
+    TEST2("operator=", v1 == v2);
+  }
+
   {
     // test serialization/deserialization
     Random r1(862973);
