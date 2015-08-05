@@ -44,6 +44,8 @@ using namespace nupic;
 using namespace nupic::algorithms::connections;
 using namespace nupic::algorithms::temporal_memory;
 
+#define EPSILON 0.0000001
+
 TemporalMemory::TemporalMemory()
 {
   version_ = 1;
@@ -93,15 +95,18 @@ void TemporalMemory::initialize(
   Permanence predictedSegmentDecrement,
   Int seed)
 {
-  // Error checking
+  // Validate all input parameters
+
   if (columnDimensions.size() <= 0)
     NTA_THROW << "Number of column dimensions must be greater than 0";
 
   if (cellsPerColumn <= 0)
     NTA_THROW << "Number of cells per column must be greater than 0";
 
-  // TODO: Validate all parameters (and add validation tests)
-  // nupic.core GH issue #504 has been created to deal with this todo
+  NTA_CHECK(initialPermanence >= 0.0 && initialPermanence <= 1.0);
+  NTA_CHECK(connectedPermanence >= 0.0 && connectedPermanence <= 1.0);
+  NTA_CHECK(permanenceIncrement >= 0.0 && permanenceIncrement <= 1.0);
+  NTA_CHECK(permanenceDecrement >= 0.0 && permanenceDecrement <= 1.0);
 
   // Save member variables
 
@@ -465,35 +470,11 @@ TemporalMemory::computePredictiveCells(
 
   Activity activity = _connections.computeActivity(activeCells, connectedPermanence_, activationThreshold_);
 
-  Activity matchingActivity;
-
-  if (predictedSegmentDecrement_ > 0.0)
-  {
-    for (auto cell : activeCells)
-    {
-      vector<Synapse> synapses = _connections.synapsesForPresynapticCell(cell);
-      if (synapses.size() == 0) continue;
-
-      for (auto synapse : synapses)
-      {
-        SynapseData synapseData(_connections.dataForSynapse(synapse));
-
-        if (synapseData.permanence > 0.0)
-        {
-          matchingActivity.numActiveSynapsesForSegment[synapse.segment] += 1;
-
-          if (matchingActivity.numActiveSynapsesForSegment[synapse.segment] >= minThreshold_)
-          {
-            matchingActivity.activeSegmentsForCell[synapse.segment.cell].push_back(synapse.segment);
-          }
-        }
-      }
-    }
-  }
-
   vector<Segment> _activeSegments = _connections.activeSegments(activity);
   vector<Cell> predictiveCellsVec = _connections.activeCells(activity);
   set<Cell> _predictiveCells(predictiveCellsVec.begin(), predictiveCellsVec.end());
+
+  Activity matchingActivity = _connections.computeActivity(activeCells, 0.0, minThreshold_);
 
   vector<Segment> _matchingSegments = _connections.activeSegments(matchingActivity);
   vector<Cell> matchingCellsVec = _connections.activeCells(matchingActivity);
@@ -655,7 +636,7 @@ void TemporalMemory::adaptSegment(
     if (permanence < 0.0)
       permanence = 0.0;
 
-    if (permanence < 0.0000001)
+    if (permanence < EPSILON)
       _connections.destroySynapse(synapse);
     else
       _connections.updateSynapsePermanence(synapse, permanence);
@@ -1255,4 +1236,3 @@ void TemporalMemory::printState(vector<Real> &state)
   }
   std::cout << "]\n";
 }
-

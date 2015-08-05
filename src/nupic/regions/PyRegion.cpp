@@ -1072,8 +1072,14 @@ void PyRegion::createSpec(const char * nodeType, Spec & ns, const char* classNam
         << parameterMessagePrefix.str() << "count";
     UInt32 count = py::Int(parameter.getItem("count"));
 
+
+    std::string constraints;
     // This parameter is optional
-    std::string constraints(py::String(parameter.getItem("constraints")));
+    if (parameter.getItem("constraints") != nullptr){
+      constraints = py::String(parameter.getItem("constraints"));
+    } else {
+      constraints = py::String("");
+    }
 
     NTA_ASSERT(parameter.getItem("accessMode") != nullptr)
         << parameterMessagePrefix.str() << "accessMode";

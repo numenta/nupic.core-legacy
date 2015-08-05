@@ -10,7 +10,17 @@ compiler:
 
 env:
   global:
+    - NUPICCORE = ${TRAVIS_BUILD_DIR}
+    - PATH=${TRAVIS_BUILD_DIR}/python/bin:$PATH
     - PLATFORM=${TRAVIS_OS_NAME}
+    # AWS keys are for manual uploads of linux wheel to S3.
+    - AWS_ACCESS_KEY_ID=AKIAIGHYSEHV3WFKOWNQ
+    # AWS_SECRET_ACCESS_KEY encrypted below
+    - secure: "pYsMDbNp8k2i0d9p5mf/9TlDzxt2FiiR1QJV7QUn+S2/r372VYdZaplL+s9ItVGCGFpAyKk7HXcwm//DKw/ZKb6UlDJm3Fph9m+3aDDIiVFNB7g1uro+Yg8nIGuV8qZEtIaHRtR1zOt1EufoR9dg1Mq8ryRggN9rrB0FvCxUZAQ="
+    # PyPi credentials for manual uploads to Pypi on release.
+    - PYPI_USERNAME=numenta
+    # PYPI_PASSWD encrypted below.
+    - secure: "elm3E3MwpbZqTCz+EHPQ7CEBwoBvRgqS3q5MHY+jUcpdrWeSjmy7TZoRN5+rAjDQYuR5g33pMXnyeRGw/DG7Xa5FG0g3PoMnO6fnIe7Hs7gPlDXbwilfYxfi462N7Y9aAGPFuvNkZsgd0dfwXKwNEiZ5hYfsbFFwHMeXMQA/SA8="
     - NUPIC_DEPLOYMENT_BUILD=true
 
 virtualenv:
@@ -29,6 +39,8 @@ before_deploy:
   - make package
   - mkdir -p $TRAVIS_BUILD_DIR/release
   - mv nupic_core-${TRAVIS_COMMIT}-${PLATFORM}64.tar.gz $TRAVIS_BUILD_DIR/release/.
+  - cd $TRAVIS_BUILD_DIR/bindings/py
+  - . ../../ci/travis/before_deploy.sh
 
 deploy:
   provider: s3
@@ -56,22 +68,24 @@ notifications:
         - https://api.keen.io/3.0/projects/5555161e2fd4b1326f14444a/events/travis-webhooks?api_key=a2e613bbb19b9b1f71a5543b7b677563551b4c3fe98534269546ff666ae453f82505791772faefc48682ee882ac7e99d2c3bfae7c7c19db7b5e7bbda34039119e4b42f5bf41bcea62d4ea9731db4a455141be7d5e8c715cb06366922eae0358e84abc2704ce16bb77b01fec3476cbac6
 
 before_install:
-  # install gcc-4.8 for C++11 compatibility, #TODO remove when Travis has gcc>=4.8, (it's used for clang too, in coveralls)
-  - "if [ ${TRAVIS_OS_NAME:-'linux'} = 'linux' ]; then sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test; sudo apt-get -qq update; sudo apt-get -qq install g++-4.8; alias gcc='gcc-4.8'; alias g++='g++-4.8'; sudo apt-get install -qq python-numpy; fi"
-  - "if [ $CC = 'gcc' ]; then export CC='gcc-4.8' && export CXX='g++-4.8'; fi"
-  - "if [ $CC = 'clang' ]; then export CXX=clang++; fi"
-  # Install cpp-coveralls for reporting test coverage under only linux, see https://github.com/eddyxu/cpp-coveralls
-  - "if [ ${TRAVIS_OS_NAME:-'linux'} = 'linux' ]; then sudo pip install cpp-coveralls; fi"
+  - "if [ ${TRAVIS_OS_NAME:-'linux'} = 'linux' ]; then . ./ci/travis/before_install-linux.sh; fi"
+  - "if [ ${TRAVIS_OS_NAME:-'osx'} = 'osx' ]; then . ./ci/travis/before_install-osx.sh; fi"
 
 install:
   - "mkdir -p $TRAVIS_BUILD_DIR/build/scripts"
   - "cd $TRAVIS_BUILD_DIR/build/scripts"
+  - "mkdir -p $TRAVIS_BUILD_DIR/build/release"
   # Enable test coverage for travis-ci build
-  - "cmake $TRAVIS_BUILD_DIR/src -DNTA_COV_ENABLED=ON"
+  - "cmake $TRAVIS_BUILD_DIR/src -DNTA_COV_ENABLED=ON -DCMAKE_INSTALL_PREFIX=${TRAVIS_BUILD_DIR}/build/release"
+  - "make -j3"
+  - "make install"
+  - "cd $TRAVIS_BUILD_DIR/bindings/py"
+  - "export NUPIC_CORE_RELEASE=\"${TRAVIS_BUILD_DIR}/build/release\""
+  - "if [ ${TRAVIS_OS_NAME:-'linux'} = 'linux' ]; then python setup.py install --user; fi"
+  - "if [ ${TRAVIS_OS_NAME:-'osx'} = 'osx' ]; then ARCHFLAGS=\"-arch x86_64\" python setup.py install --user; fi"
 
 script:
   - "cd $TRAVIS_BUILD_DIR/build/scripts"
-  - "make -j3"
   # legacy binary tests
   - "make tests_cpp_region"
   # unit tests
@@ -87,3 +101,5 @@ after_success:
   - "cd $TRAVIS_BUILD_DIR"
   # Send test coverage report to http://coveralls.io under only linux
   - "if [ ${TRAVIS_OS_NAME:-'linux'} = 'linux' ]; then coveralls --gcov /usr/bin/gcov-4.8 --exclude external --exclude doc --exclude src/test > /dev/null 2>/dev/stdout|grep -v 'gcno:version'|grep -v 'gcda:version'; fi"
+  - "if [ -n \"${TRAVIS_TAG}\" -a \"${TRAVIS_OS_NAME}--${CC}\" = 'linux--gcc-4.8' ]; then . ./ci/travis/after_success-release-linux.sh; fi"
+  - "if [ -n \"${TRAVIS_TAG}\" -a \"${TRAVIS_OS_NAME}--${CC}\" = 'osx--clang' ]; then . ./ci/travis/after_success-release-osx.sh; fi"

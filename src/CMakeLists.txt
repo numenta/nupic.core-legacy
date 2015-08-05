@@ -484,6 +484,24 @@ add_custom_target(tests_py_region
 
 
 #
+# Setup test_connections_performance
+#
+set(EXECUTABLE_CONNECTIONSPERFORMANCETEST connections_performance_test)
+add_executable(${EXECUTABLE_CONNECTIONSPERFORMANCETEST}
+               test/integration/ConnectionsPerformanceTest.cpp)
+target_link_libraries(${EXECUTABLE_CONNECTIONSPERFORMANCETEST} ${COMMON_LIBS})
+set_target_properties(${EXECUTABLE_CONNECTIONSPERFORMANCETEST}
+                      PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
+set_target_properties(${EXECUTABLE_CONNECTIONSPERFORMANCETEST}
+                      PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
+add_custom_target(tests_connections_performance
+                  COMMAND ${EXECUTABLE_CONNECTIONSPERFORMANCETEST}
+                  DEPENDS ${EXECUTABLE_CONNECTIONSPERFORMANCETEST}
+                  VERBATIM)
+
+set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS} -static")
+
+#
 # Setup helloregion example
 #
 set(EXECUTABLE_HELLOREGION helloregion)
@@ -657,6 +675,7 @@ if(UNIX)
                             ${LIB_STATIC_GTEST}
                             ${EXECUTABLE_HELLOREGION}
                             ${EXECUTABLE_CPPREGIONTEST}
+                            ${EXECUTABLE_CONNECTIONSPERFORMANCETEST}
                             ${EXECUTABLE_GTESTS}
                             ${EXECUTABLE_HELLOSPTP})
 else()
@@ -672,6 +691,7 @@ else()
                             ${LIB_STATIC_GTEST}
                             ${EXECUTABLE_HELLOREGION}
                             ${EXECUTABLE_CPPREGIONTEST}
+                            ${EXECUTABLE_CONNECTIONSPERFORMANCETEST}
                             ${EXECUTABLE_GTESTS}
                             ${EXECUTABLE_HELLOSPTP}
                     VERBATIM)
@@ -686,6 +706,7 @@ install(TARGETS
         ${EXECUTABLE_HELLOREGION}
         ${EXECUTABLE_CPPREGIONTEST}
         ${EXECUTABLE_PYREGIONTEST}
+        ${EXECUTABLE_CONNECTIONSPERFORMANCETEST}
         ${EXECUTABLE_HELLOSPTP}
         ${EXECUTABLE_PROTOTEST}
         ${EXECUTABLE_GTESTS}
@@ -728,6 +749,8 @@ endif()
 
 install(DIRECTORY nupic/py_support DESTINATION include/nupic
         FILES_MATCHING PATTERN "*.c*")
+install(DIRECTORY nupic DESTINATION include/nupic
+        FILES_MATCHING PATTERN "*.py")
 
 #
 # `make package` results in
