@@ -82,8 +82,7 @@ install:
   - "make install"
   - "cd $TRAVIS_BUILD_DIR"
   - "export NUPIC_CORE_RELEASE=\"${TRAVIS_BUILD_DIR}/build/release\""
-  - "if [ ${TRAVIS_OS_NAME:-'linux'} = 'linux' ]; then python setup.py install --user; fi"
-  - "if [ ${TRAVIS_OS_NAME:-'osx'} = 'osx' ]; then ARCHFLAGS=\"-arch x86_64\" python setup.py install --user; fi"
+  - "python setup.py install --user"
 
 script:
   - "cd $TRAVIS_BUILD_DIR/build/scripts"
