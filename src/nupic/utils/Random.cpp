@@ -283,7 +283,7 @@ UInt32 RandomImpl::getUInt32(void)
   }
 #endif
 
-  return(i);
+  return i;
 }
 
 
