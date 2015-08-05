@@ -293,7 +293,7 @@ RandomImpl::RandomImpl(UInt64 seed)
   /**
    * Initialize our state. Taken from BSD source for random()
    */
-  state_[0] = (UInt32)seed;
+  state_[0] = (UInt32)(seed % Random::MAX32);
   for (long i = 1; i < stateSize_; i++) {
     /*
      * Implement the following, without overflowing 31 bits:
@@ -304,7 +304,7 @@ RandomImpl::RandomImpl(UInt64 seed)
      */
     ldiv_t val = ldiv(state_[i-1], 127773);
     long test = 16807 * val.rem - 2836 * val.quot;
-    state_[i] = test + (test < 0 ? 2147483647 : 0);
+    state_[i] = (UInt32)((test + (test < 0 ? 2147483647 : 0)) % Random::MAX32);
   }
   fptr_ = sep_;
   rptr_ = 0;
