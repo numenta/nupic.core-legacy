@@ -8,6 +8,7 @@ version: 0.3.0.{build}
 branches:
   only:
     - master
+    - Port-of-TM-integration-tests
 
   except:
     - gh-pages
