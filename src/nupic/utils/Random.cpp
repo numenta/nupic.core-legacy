@@ -80,7 +80,7 @@ namespace nupic
     // internal state
     static const int stateSize_ = 31;
     static const int sep_ = 3;
-    int state_[stateSize_];
+    UInt32 state_[stateSize_];
     int rptr_;
     int fptr_;
 
@@ -263,11 +263,11 @@ double Random::getReal64()
 
 UInt32 RandomImpl::getUInt32(void)
 {
-  int i;
+  UInt32 i;
 #ifdef RANDOM_SUPERDEBUG
   printf("Random::get *fptr = %ld; *rptr = %ld fptr = %ld rptr = %ld\n", state_[fptr_], state_[rptr_], fptr_, rptr_);
 #endif
-  state_[fptr_] = (int)(((long)state_[fptr_] + (long)state_[rptr_]) % Random::MAX32);
+  state_[fptr_] = (UInt32)(((UInt64)state_[fptr_] + (UInt64)state_[rptr_]) % Random::MAX32);
   i = state_[fptr_];
   i = (i >> 1) & 0x7fffffff;	/* chucking least random bit */
   if (++fptr_ >= stateSize_) {
@@ -293,7 +293,7 @@ RandomImpl::RandomImpl(UInt64 seed)
   /**
    * Initialize our state. Taken from BSD source for random()
    */
-  state_[0] = (int)seed;
+  state_[0] = (UInt32)seed;
   for (long i = 1; i < stateSize_; i++) {
     /*
      * Implement the following, without overflowing 31 bits:
