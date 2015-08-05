@@ -21,7 +21,7 @@ environment:
       DEPLOY_BUILD: 0
       PYTHON: "C:\\Python27"
       PYTHON_VERSION: "2.7.x" # currently 2.7.9
-      PYTHON_ARCH: "32"
+      PYTHON_ARCH: "64"
 
 skip_commits:
   # Add [av skip] to commit messages to skip AppVeyor building
@@ -117,6 +117,7 @@ build_script:
   - cd %REPO_DIR%\bindings\py
   - set INCLUDE='C:\Program Files (x86)\MSBuild\14.0\Include';%INCLUDE%
   - set NUPIC_CORE_RELEASE=%REPO_DIR%\build\Release
+  - set VS90COMNTOOLS=%VS140COMNTOOLS%
   - python setup.py install --user
 
 test: off
