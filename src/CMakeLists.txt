@@ -83,16 +83,20 @@ elseif(WIN32) # incl. win64
                   -D_CRT_SECURE_NO_WARNINGS
                   -D_SCL_SECURE_NO_WARNINGS
                   -DNDEBUG
-                  -DCAPNP_LITE=1
                   -DVARIADIC_MAX=10
-                  -DNOMINMAX)
+                  -DNOMINMAX
+                  -DNTA_DOUBLE_PRECISION)
 endif()
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
   add_definitions(-DNTA_COMPILER_GNU)
 elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
   add_definitions(-DNTA_COMPILER_CLANG)
 elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
-  add_definitions(-DNTA_COMPILER_MSVC)
+  add_definitions(-DNTA_COMPILER_MSVC
+                  -D_ALLOW_ITERATOR_DEBUG_LEVEL_MISMATCH
+                  -D_HAS_ITERATOR_DEBUGGING=0
+                  -D_ITERATOR_DEBUG_LEVEL=0
+                  -DCAPNP_LITE=1)
 endif()
 
 

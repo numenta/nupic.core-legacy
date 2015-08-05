@@ -67,4 +67,64 @@ void TemporalMemoryAbstractTest::_feedTM(Sequence& sequence, bool learn, int num
     }
   }
 
+  if (learn && _verbosity >= 2)
+    cout << prettyPrintConnections();
+}
+
+string TemporalMemoryAbstractTest::prettyPrintConnections()
+{
+  //Pretty print the connections in the temporal memory.
+  string text = "";
+
+  text += "(numSegments) [(source cell=permanence ...), ...]\n";
+  text += "------------------------------------\n";
+
+  vector<UInt> columns = nupic::utils::range(_tm.numberOfColumns());
+
+  for (UInt column : columns)
+  {
+    vector<Cell> cells = _tm.cellsForColumn(column);
+
+    for (Cell cell : cells)
+    {
+      vector<Segment> segmentList;
+
+      text += string("Column ") + ::to_string(column) + string(" / Cell ") + ::to_string(cell.idx);
+
+      segmentList = _tm.connections.segmentsForCell(cell);
+      text += string(":\t(") + ::to_string(segmentList.size()) + string(") [");
+
+      for (Segment seg : segmentList)
+      {
+        text += string("(");
+
+        vector<SynapseData> synapseList;
+        for (Synapse synapse : _tm.connections.synapsesForSegment(seg))
+        {
+          SynapseData data = _tm.connections.dataForSynapse(synapse);
+          synapseList.push_back(data);
+        }
+        //sort(synapseList.begin(), synapseList.end());
+
+        string synapseStringList = "";
+        for (SynapseData synapseData : synapseList)
+        {
+          synapseStringList += ::to_string(synapseData.presynapticCell.idx) + "=" + ::to_string(synapseData.permanence);
+          if (synapseList.size() > 1)
+            synapseStringList += " ";
+        }
+        text += synapseStringList + ")";
+        if (segmentList.size() > 1)
+          text += ",";
+      }
+      text += "]\n";
+    }
+
+    if (column < columns.size() - 1)  // not last
+      text += "\n";
+  }
+
+  text += "------------------------------------\n";
+
+  return text;
 }

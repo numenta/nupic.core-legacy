@@ -352,21 +352,21 @@ namespace nupic {
       prevMatchingSegments);
 
     // Check segment 0
-    eq = nupic::nearlyEqual(connections.dataForSynapse(Synapse(0, segment0)).permanence, Real(0.7));
+    eq = nupic::nearlyEqual(connections.dataForSynapse(Synapse(0, segment0)).permanence, Permanence(0.7));
     EXPECT_TRUE(eq);
-    eq = nupic::nearlyEqual(connections.dataForSynapse(Synapse(1, segment0)).permanence, Real(0.5));
+    eq = nupic::nearlyEqual(connections.dataForSynapse(Synapse(1, segment0)).permanence, Permanence(0.5));
     EXPECT_TRUE(eq);
-    eq = nupic::nearlyEqual(connections.dataForSynapse(Synapse(2, segment0)).permanence, Real(0.8));
+    eq = nupic::nearlyEqual(connections.dataForSynapse(Synapse(2, segment0)).permanence, Permanence(0.8));
     EXPECT_TRUE(eq);
 
     // Check segment 1
-    eq = nupic::nearlyEqual(connections.dataForSynapse(Synapse(0, segment1)).permanence, Real(0.8));
+    eq = nupic::nearlyEqual(connections.dataForSynapse(Synapse(0, segment1)).permanence, Permanence(0.8));
     EXPECT_TRUE(eq);
     synapses = connections.synapsesForSegment(segment1);
     ASSERT_EQ(synapses.size(), 2);
 
     // Check segment 2
-    eq = nupic::nearlyEqual(connections.dataForSynapse(Synapse(0, segment2)).permanence, Real(0.9));
+    eq = nupic::nearlyEqual(connections.dataForSynapse(Synapse(0, segment2)).permanence, Permanence(0.9));
     EXPECT_TRUE(eq);
     synapses = connections.synapsesForSegment(segment2);
     ASSERT_EQ(synapses.size(), 1);
@@ -589,11 +589,11 @@ namespace nupic {
     tm.adaptSegment(
       segment, synapses, connections,  tm.getPermanenceIncrement(), tm.getPermanenceDecrement());
 
-    eq = nupic::nearlyEqual(connections.dataForSynapse(Synapse(0, segment)).permanence, Real(0.7));
+    eq = nupic::nearlyEqual(connections.dataForSynapse(Synapse(0, segment)).permanence, Permanence(0.7));
     EXPECT_TRUE(eq);
-    eq = nupic::nearlyEqual(connections.dataForSynapse(Synapse(1, segment)).permanence, Real(0.5));
+    eq = nupic::nearlyEqual(connections.dataForSynapse(Synapse(1, segment)).permanence, Permanence(0.5));
     EXPECT_TRUE(eq);
-    eq = nupic::nearlyEqual(connections.dataForSynapse(Synapse(2, segment)).permanence, Real(0.8));
+    eq = nupic::nearlyEqual(connections.dataForSynapse(Synapse(2, segment)).permanence, Permanence(0.8));
     EXPECT_TRUE(eq);
   }
 
@@ -609,14 +609,14 @@ namespace nupic {
     tm.adaptSegment(
       segment, synapses, connections, tm.getPermanenceIncrement(), tm.getPermanenceDecrement());
 
-    eq = nupic::nearlyEqual(connections.dataForSynapse(Synapse(0, segment)).permanence, Real(1.0));
+    eq = nupic::nearlyEqual(connections.dataForSynapse(Synapse(0, segment)).permanence, Permanence(1.0));
     EXPECT_TRUE(eq);
 
     // Now permanence should be at min
     tm.adaptSegment(
       segment, synapses, connections, tm.getPermanenceIncrement(), tm.getPermanenceDecrement());
 
-    eq = nupic::nearlyEqual(connections.dataForSynapse(Synapse(0, segment)).permanence, Real(1.0));
+    eq = nupic::nearlyEqual(connections.dataForSynapse(Synapse(0, segment)).permanence, Permanence(1.0));
     EXPECT_TRUE(eq);
   }
 

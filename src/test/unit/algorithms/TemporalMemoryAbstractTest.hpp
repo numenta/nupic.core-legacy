@@ -65,6 +65,11 @@ namespace nupic {
      */
     virtual void _feedTM(Sequence& sequence, bool learn = true, int num = 1);
 
+    /**
+     * Print out the Connections state
+     */
+    virtual string prettyPrintConnections();
+
   protected:
     int _verbosity;
 

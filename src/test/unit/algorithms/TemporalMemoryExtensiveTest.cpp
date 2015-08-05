@@ -44,7 +44,12 @@ void TemporalMemoryExtensiveTest::_testTM(Sequence& sequence)
 void TemporalMemoryExtensiveTest::RunTests()
 {
   setUp();
-
+/*
+  _verbosity = 2;
+  testB11();
+  testH4();
+  testH5();
+*/
   // NOTE: All of these tests together take ~15 minutes
   bool runTests = false;
   if (runTests)
@@ -376,7 +381,7 @@ void TemporalMemoryExtensiveTest::testB11()
   
   init();// { "cellsPerColumn": 4,
   //          "activationThreshold" : 8 });
-  _tm.initialize({ 100 }, 4, 8, 0.2, 0.7, 11, 11, 0.2, 0.0, 42);
+  _tm.initialize({ 100 }, 4, 8, 0.8, 0.7, 11, 11, 0.4, 0.0, 42);
 
   Sequence numbers = _sequenceMachine.generateNumbers(1, 100);
   Sequence sequence = _sequenceMachine.generateFromNumbers(numbers);
@@ -394,7 +399,6 @@ void TemporalMemoryExtensiveTest::testH1()
   // Parameters should be the same as B1.
   // Since cellsPerColumn == 1, it should make more predictions than necessary.
   init();
-  _tm.initialize({ 100 }, 1, 8, 0.2, 0.7, 11, 11, 0.2, 0.0, 42);
 
   Sequence numbers = _sequenceMachine.generateNumbers(2, 20, { 10, 15 });
   Sequence sequence = _sequenceMachine.generateFromNumbers(numbers);
@@ -410,7 +414,7 @@ void TemporalMemoryExtensiveTest::testH2()
   // It should make just the right number of predictions.
   
   init();// { "cellsPerColumn": 4 });
-  _tm.initialize({ 100 }, 4, 11, 0.2, 0.7, 11, 11, 0.2, 0.0, 42);
+  _tm.initialize({ 100 }, 4, 11, 0.8, 0.7, 11, 11, 0.4, 0.0, 42);
 
   Sequence numbers = _sequenceMachine.generateNumbers(2, 20, { 10, 15 });
   Sequence sequence = _sequenceMachine.generateFromNumbers(numbers);
@@ -431,7 +435,7 @@ void TemporalMemoryExtensiveTest::testH3()
   // prediction.
   
   init();// { "cellsPerColumn": 4 });
-  _tm.initialize({ 100 }, 4, 11, 0.2, 0.7, 11, 11, 0.2, 0.0, 42);
+  _tm.initialize({ 100 }, 4, 11, 0.8, 0.7, 11, 11, 0.4, 0.0, 42);
 
   Sequence numbers = _sequenceMachine.generateNumbers(2, 20, { 0, 5 });
   Sequence sequence = _sequenceMachine.generateFromNumbers(numbers);
@@ -469,7 +473,7 @@ void TemporalMemoryExtensiveTest::testH5()
   // Shared patterns in different sequences, with a shared subsequence.
   
   init();// { "cellsPerColumn": 4 });
-  _tm.initialize({ 100 }, 4, 11, 0.2, 0.7, 11, 11, 0.2, 0.0, 42);
+  _tm.initialize({ 100 }, 4, 11, 0.8, 0.7, 11, 11, 0.4, 0.0, 42);
 
   Sequence numbers;
   Sequence shared = _sequenceMachine.generateNumbers(1, 5);// [:-1];
@@ -499,7 +503,7 @@ void TemporalMemoryExtensiveTest::testH9()
   
   init();// { "cellsPerColumn": 4,
   //          "activationThreshold" : 8 });
-  _tm.initialize({ 100 }, 4, 8, 0.2, 0.7, 11, 11, 0.2, 0.0, 42);
+  _tm.initialize({ 100 }, 4, 8, 0.8, 0.7, 11, 11, 0.4, 0.0, 42);
 
   Sequence numbers = _sequenceMachine.generateNumbers(2, 20, { 10, 15 });
   Sequence sequence = _sequenceMachine.generateFromNumbers(numbers);
