@@ -734,6 +734,8 @@ endif()
 
 install(DIRECTORY nupic/py_support DESTINATION include/nupic
         FILES_MATCHING PATTERN "*.c*")
+install(DIRECTORY nupic DESTINATION include/nupic
+        FILES_MATCHING PATTERN "*.py")
 
 #
 # `make package` results in
