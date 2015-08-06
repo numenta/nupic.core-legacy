@@ -29,19 +29,16 @@ echo
 if [ "${TRAVIS_BRANCH}" = "master" ]; then
 
     # Upgrading pip
-    sudo pip install --upgrade pip
+    pip install --upgrade pip
 
     # Assuming pip 1.5.X is installed.
-    echo "sudo pip install wheel"
-    sudo pip install wheel
-
-    # Wheel fails unless we remove this.
-    sudo rm -rf external/linux32arm
+    echo "pip install wheel --user"
+    pip install wheel --user
 
     # Build all NuPIC and all required python packages into dist/wheels as .whl
     # files.
     echo "pip wheel --wheel-dir=dist/wheels ."
-    pip wheel --wheel-dir=dist/wheels . 
+    pip wheel --wheel-dir=dist/wheels .
     # The dist/wheels folder is expected to be deployed to S3.
 
 # If this is a tag, we're doing a release deployment, so we want to build docs
@@ -53,6 +50,3 @@ else
     echo "<html><body>See NuPIC docs at <a href='http://numenta.org/docs/nupic/'>http://numenta.org/docs/nupic/</a>.</body></html>" > build/docs/index.html
 
 fi
-
-
-

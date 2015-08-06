@@ -28,8 +28,6 @@ cd ${TRAVIS_BUILD_DIR}
 
 echo "Installing wheel..."
 pip install wheel --user || exit
-# `sudo install twine` doesn't put twine in a place we can use it, so we install
-# it at the --user level.
 echo "Installing twine..."
 pip install twine --user -v || exit
 
