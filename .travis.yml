@@ -36,12 +36,13 @@ matrix:
 # Successful builds are archived and uploaded to S3 for nupic builds.
 before_deploy:
   - "if [ ${TRAVIS_OS_NAME:-'osx'} = 'osx' ]; then PLATFORM='darwin'; fi"
-  - cd $TRAVIS_BUILD_DIR/build/scripts
-  - make package
-  - mkdir -p $TRAVIS_BUILD_DIR/release
-  - mv nupic_core-${TRAVIS_COMMIT}-${PLATFORM}64.tar.gz $TRAVIS_BUILD_DIR/release/.
   - cd $TRAVIS_BUILD_DIR
   - ./ci/travis/before_deploy.sh
+  - cp $TRAVIS_BUILD_DIR/bindings/py/requirements.txt $TRAVIS_BUILD_DIR/bindings/py/dist/
+  - mkdir -p $TRAVIS_BUILD_DIR/bindings/py/dist/proto
+  - cp $TRAVIS_BUILD_DIR/src/nupic/proto/*.capnp $TRAVIS_BUILD_DIR/bindings/py/dist/proto
+  - mkdir -p $TRAVIS_BUILD_DIR/release
+  - tar -zcvf $TRAVIS_BUILD_DIR/release/nupic_core-${TRAVIS_COMMIT}-${PLATFORM}64.tar.gz $TRAVIS_BUILD_DIR/bindings/py/dist
 
 deploy:
   provider: s3
