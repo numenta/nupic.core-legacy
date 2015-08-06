@@ -36,12 +36,9 @@ matrix:
 # Successful builds are archived and uploaded to S3 for nupic builds.
 before_deploy:
   - "if [ ${TRAVIS_OS_NAME:-'osx'} = 'osx' ]; then PLATFORM='darwin'; fi"
-  - cd $TRAVIS_BUILD_DIR/build/scripts
-  - make package
-  - mkdir -p $TRAVIS_BUILD_DIR/release
-  - mv nupic_core-${TRAVIS_COMMIT}-${PLATFORM}64.tar.gz $TRAVIS_BUILD_DIR/release/.
   - cd $TRAVIS_BUILD_DIR
   - ./ci/travis/before_deploy.sh
+  - cp $TRAVIS_BUILD_DIR/bindings/py/requirements.txt $TRAVIS_BUILD_DIR/bindings/py/dist
 
 deploy:
   provider: s3
@@ -50,8 +47,8 @@ deploy:
     secure: YhyY/6r2LNya8OZEmVOj+fv0lY5bBPqvy8MnsdLlptXa2uqwvezkCMNKiQ+wA+tOu+BS7VRRp86DhUqCpTZ3jUM2Mwdhud/Smq7D2X8vtZBiTVcOKfQcaypDE6Zu9Zp0SjMOSf6yiq6Ruu7D5QtZ4rtaq+5uPlvbgUXRZoZm0Po=
   bucket: artifacts.numenta.org
   region: us-west-2
-  local-dir: "$TRAVIS_BUILD_DIR/release"
-  upload-dir: "numenta/nupic.core"
+  local-dir: "$TRAVIS_BUILD_DIR/bindings/py/dist"
+  upload-dir: "numenta/nupic.core/${TRAVIS_COMMIT}-${PLATFORM}64"
   skip_cleanup: true
   # Deploying on master branch from linux/gcc and osx/clang
   on:
