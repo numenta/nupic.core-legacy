@@ -39,6 +39,8 @@ before_deploy:
   - cd $TRAVIS_BUILD_DIR
   - ./ci/travis/before_deploy.sh
   - cp $TRAVIS_BUILD_DIR/bindings/py/requirements.txt $TRAVIS_BUILD_DIR/bindings/py/dist/
+  - mkdir -p $TRAVIS_BUILD_DIR/release
+  - tar -zcvf $TRAVIS_BUILD_DIR/release/nupic_core-${TRAVIS_COMMIT}-${PLATFORM}64.tar.gz $TRAVIS_BUILD_DIR/bindings/py/dist
 
 deploy:
   provider: s3
@@ -47,8 +49,8 @@ deploy:
     secure: YhyY/6r2LNya8OZEmVOj+fv0lY5bBPqvy8MnsdLlptXa2uqwvezkCMNKiQ+wA+tOu+BS7VRRp86DhUqCpTZ3jUM2Mwdhud/Smq7D2X8vtZBiTVcOKfQcaypDE6Zu9Zp0SjMOSf6yiq6Ruu7D5QtZ4rtaq+5uPlvbgUXRZoZm0Po=
   bucket: artifacts.numenta.org
   region: us-west-2
-  local-dir: "$TRAVIS_BUILD_DIR/bindings/py/dist"
-  upload-dir: "numenta/nupic.core/${TRAVIS_COMMIT}-${PLATFORM}64"
+  local-dir: "$TRAVIS_BUILD_DIR/release"
+  upload-dir: "numenta/nupic.core"
   skip_cleanup: true
   # Deploying on master branch from linux/gcc and osx/clang
   on:
