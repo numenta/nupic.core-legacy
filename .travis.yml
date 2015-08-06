@@ -38,7 +38,7 @@ before_deploy:
   - "if [ ${TRAVIS_OS_NAME:-'osx'} = 'osx' ]; then PLATFORM='darwin'; fi"
   - cd $TRAVIS_BUILD_DIR
   - ./ci/travis/before_deploy.sh
-  - cp $TRAVIS_BUILD_DIR/bindings/py/requirements.txt $TRAVIS_BUILD_DIR/bindings/py/dist
+  - cp $TRAVIS_BUILD_DIR/bindings/py/requirements.txt $TRAVIS_BUILD_DIR/bindings/py/dist/
 
 deploy:
   provider: s3
