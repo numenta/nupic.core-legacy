@@ -252,6 +252,15 @@ namespace nupic
                         SynapseIdx maxSynapsesPerSegment);
 
         /**
+        * Get the version number of these connections.
+
+        * @returns Integer version number.
+        */
+        virtual UInt version() const {
+          return version_;
+        };
+
+        /**
          * Creates a segment on the specified cell.
          *
          * @param cell Cell to create segment on.
@@ -464,6 +473,7 @@ namespace nupic
         SegmentIdx maxSegmentsPerCell_;
         SynapseIdx maxSynapsesPerSegment_;
         Iteration iteration_;
+        UInt version_;
       }; // end class Connections
 
     } // end namespace connections

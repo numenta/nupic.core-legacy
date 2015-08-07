@@ -41,6 +41,9 @@ Connections::Connections(CellIdx numCells,
                          SegmentIdx maxSegmentsPerCell,
                          SynapseIdx maxSynapsesPerSegment)
 {
+  // The current version number.
+  version_ = 1;
+
   initialize(numCells, maxSegmentsPerCell, maxSynapsesPerSegment);
 }
 
@@ -356,6 +359,7 @@ void Connections::save(ostream& outStream) const
 {
   // Write a starting marker.
   outStream << "Connections" << endl;
+  outStream << version_ << endl;
 
   outStream << cells_.size() << " "
     << maxSegmentsPerCell_ << " "
@@ -421,6 +425,7 @@ void Connections::write(ConnectionsProto::Builder& proto) const
     }
   }
 
+  proto.setVersion(version_);
   proto.setMaxSegmentsPerCell(maxSegmentsPerCell_);
   proto.setMaxSynapsesPerSegment(maxSynapsesPerSegment_);
   proto.setIteration(iteration_);
@@ -428,15 +433,24 @@ void Connections::write(ConnectionsProto::Builder& proto) const
 
 void Connections::load(istream& inStream)
 {
+  // Current version
+  version_ = 1;
+
   // Check the marker
   string marker;
   inStream >> marker;
   NTA_CHECK(marker == "Connections");
 
+  // Check the saved version.
+  UInt version;
+  inStream >> version;
+  NTA_CHECK(version <= version_);
+
+  // Retrieve simple variables
   UInt numCells;
   inStream >> numCells
-    >> maxSegmentsPerCell_
-    >> maxSynapsesPerSegment_;
+           >> maxSegmentsPerCell_
+           >> maxSynapsesPerSegment_;
 
   initialize(numCells, maxSegmentsPerCell_, maxSynapsesPerSegment_);
 
@@ -493,6 +507,13 @@ void Connections::read(istream& stream)
 
 void Connections::read(ConnectionsProto::Reader& proto)
 {
+  // Current version
+  version_ = 1;
+
+  // Check the saved version.
+  UInt version = proto.getVersion();
+  NTA_CHECK(version <= version_);
+
   auto protoCells = proto.getCells();
 
   initialize(protoCells.size(),
