@@ -466,7 +466,6 @@ namespace nupic
         SegmentIdx maxSegmentsPerCell_;
         SynapseIdx maxSynapsesPerSegment_;
         Iteration iteration_;
-        UInt version_;
       }; // end class Connections
 
     } // end namespace connections
