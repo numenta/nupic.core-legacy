@@ -362,9 +362,9 @@ void Connections::save(ostream& outStream) const
   outStream << version_ << endl;
 
   outStream << cells_.size() << " "
-    << maxSegmentsPerCell_ << " "
-    << maxSynapsesPerSegment_ << " "
-    << endl;
+            << maxSegmentsPerCell_ << " "
+            << maxSynapsesPerSegment_ << " "
+            << endl;
 
   for (CellData cellData : cells_) {
     auto segments = cellData.segments;
@@ -405,6 +405,8 @@ void Connections::write(ostream& stream) const
 
 void Connections::write(ConnectionsProto::Builder& proto) const
 {
+  proto.setVersion(version_);
+
   auto protoCells = proto.initCells(cells_.size());
 
   for (CellIdx i = 0; i < cells_.size(); ++i) {
@@ -425,7 +427,6 @@ void Connections::write(ConnectionsProto::Builder& proto) const
     }
   }
 
-  proto.setVersion(version_);
   proto.setMaxSegmentsPerCell(maxSegmentsPerCell_);
   proto.setMaxSynapsesPerSegment(maxSynapsesPerSegment_);
   proto.setIteration(iteration_);
@@ -569,6 +570,7 @@ UInt Connections::numSynapses() const
 
 bool Connections::operator==(const Connections &other) const
 {
+  if (version_ != other.version_) return false;
   if (maxSegmentsPerCell_ != other.maxSegmentsPerCell_) return false;
   if (maxSynapsesPerSegment_ != other.maxSynapsesPerSegment_) return false;
 
