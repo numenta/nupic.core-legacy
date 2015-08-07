@@ -30,6 +30,20 @@ project(nupic_core CXX)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set(CMAKE_VERBOSE_MAKEFILE OFF) # toggle for cmake debug
 
+if( POLICY CMP0046 )
+  cmake_policy(VERSION 2.8)
+  # The new policy for add_dependencies is to now error if a dependency target
+  # is not found. The old policy didn't care and continued through configuration
+  cmake_policy(SET CMP0046 OLD)
+endif()
+  
+if( POLICY CMP0054 )
+  # The OLD behavior for this policy is to dereference variables and interpret 
+  # keywords even if they are quoted or bracketed. The NEW behavior is to not 
+  # dereference variables or interpret keywords that have been quoted or bracketed.
+  cmake_policy(SET CMP0054 OLD)
+endif()
+
 #
 # Include extra cmake files
 #
@@ -51,7 +65,7 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 endif()
 string(TOUPPER ${PLATFORM} PLATFORM_UPPERCASE)
 
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
    set(STDLIB "${STDLIB} -static-libgcc -static-libstdc++")
 endif()
 
@@ -166,7 +180,7 @@ endif()
 #
 if(NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
   set(OPTIMIZATION_FLAGS_CC "-pipe ${OPTIMIZATION_FLAGS_CC}") #TODO use -Ofast instead of -O3
-  if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+  if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
     set(OPTIMIZATION_FLAGS_CC "${OPTIMIZATION_FLAGS_CC} -fuse-linker-plugin -flto-report")
     set(OPTIMIZATION_FLAGS_CC "${OPTIMIZATION_FLAGS_CC} -flto -fuse-ld=gold") #TODO fix LTO for clang
     set(OPTIMIZATION_FLAGS_LT "${OPTIMIZATION_FLAGS_LT} -flto") #TODO LTO for clang too
