@@ -41,9 +41,6 @@ Connections::Connections(CellIdx numCells,
                          SegmentIdx maxSegmentsPerCell,
                          SynapseIdx maxSynapsesPerSegment)
 {
-  // The current version number.
-  version_ = 1;
-
   initialize(numCells, maxSegmentsPerCell, maxSynapsesPerSegment);
 }
 
@@ -359,7 +356,7 @@ void Connections::save(ostream& outStream) const
 {
   // Write a starting marker.
   outStream << "Connections" << endl;
-  outStream << version_ << endl;
+  outStream << Connections::VERSION << endl;
 
   outStream << cells_.size() << " "
             << maxSegmentsPerCell_ << " "
@@ -405,7 +402,7 @@ void Connections::write(ostream& stream) const
 
 void Connections::write(ConnectionsProto::Builder& proto) const
 {
-  proto.setVersion(version_);
+  proto.setVersion(Connections::VERSION);
 
   auto protoCells = proto.initCells(cells_.size());
 
@@ -434,9 +431,6 @@ void Connections::write(ConnectionsProto::Builder& proto) const
 
 void Connections::load(istream& inStream)
 {
-  // Current version
-  version_ = 1;
-
   // Check the marker
   string marker;
   inStream >> marker;
@@ -445,7 +439,7 @@ void Connections::load(istream& inStream)
   // Check the saved version.
   UInt version;
   inStream >> version;
-  NTA_CHECK(version <= version_);
+  NTA_CHECK(version <= Connections::VERSION);
 
   // Retrieve simple variables
   UInt numCells;
@@ -508,12 +502,9 @@ void Connections::read(istream& stream)
 
 void Connections::read(ConnectionsProto::Reader& proto)
 {
-  // Current version
-  version_ = 1;
-
   // Check the saved version.
   UInt version = proto.getVersion();
-  NTA_CHECK(version <= version_);
+  NTA_CHECK(version <= Connections::VERSION);
 
   auto protoCells = proto.getCells();
 
@@ -570,7 +561,6 @@ UInt Connections::numSynapses() const
 
 bool Connections::operator==(const Connections &other) const
 {
-  if (version_ != other.version_) return false;
   if (maxSegmentsPerCell_ != other.maxSegmentsPerCell_) return false;
   if (maxSynapsesPerSegment_ != other.maxSynapsesPerSegment_) return false;
 

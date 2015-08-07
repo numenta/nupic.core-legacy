@@ -221,6 +221,8 @@ namespace nupic
       class Connections
       {
       public:
+        static const UInt VERSION = 1;
+
         /**
          * Connections empty constructor.
          * (Does not call `initialize`.)
@@ -250,15 +252,6 @@ namespace nupic
         void initialize(CellIdx numCells,
                         SegmentIdx maxSegmentsPerCell,
                         SynapseIdx maxSynapsesPerSegment);
-
-        /**
-        * Get the version number of these connections.
-
-        * @returns Integer version number.
-        */
-        virtual UInt version() const {
-          return version_;
-        };
 
         /**
          * Creates a segment on the specified cell.
