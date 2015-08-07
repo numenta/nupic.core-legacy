@@ -553,7 +553,7 @@ if __name__ == "__main__":
 
     print "\nSetup SWIG Python module"
     setup(
-      name="nupiccore",
+      name="nupic.bindings",
       ext_modules=extensions,
       version="0.1.0",
       namespace_packages=["nupic", "nupic.bindings"],
