@@ -58,6 +58,9 @@ before_deploy:
   - cp $TRAVIS_BUILD_DIR/bindings/py/requirements.txt $TRAVIS_BUILD_DIR/bindings/py/dist/
   - mkdir -p $TRAVIS_BUILD_DIR/bindings/py/dist/proto
   - cp $TRAVIS_BUILD_DIR/src/nupic/proto/*.capnp $TRAVIS_BUILD_DIR/bindings/py/dist/proto
+  - cp $NUPIC_CORE_RELEASE/include/nupic/Version.hpp $TRAVIS_BUILD_DIR/bindings/py/dist
+  - mkdir -p $TRAVIS_BUILD_DIR/bindings/py/dist/bin
+  - cp $NUPIC_CORE_RELEASE/bin/py_region_test $TRAVIS_BUILD_DIR/bindings/py/dist/bin
   - mkdir -p $TRAVIS_BUILD_DIR/release
   - tar -zcvf $TRAVIS_BUILD_DIR/release/nupic_core-${TRAVIS_COMMIT}-${PLATFORM}64.tar.gz $TRAVIS_BUILD_DIR/bindings/py/dist
 
