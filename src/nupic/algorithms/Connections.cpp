@@ -352,6 +352,44 @@ vector<Cell> Connections::activeCells(const Activity& activity)
   return cells;
 }
 
+void Connections::save(ostream& outStream) const
+{
+  // Write a starting marker.
+  outStream << "Connections" << endl;
+  outStream << Connections::VERSION << endl;
+
+  outStream << cells_.size() << " "
+            << maxSegmentsPerCell_ << " "
+            << maxSynapsesPerSegment_ << " "
+            << endl;
+
+  for (CellData cellData : cells_) {
+    auto segments = cellData.segments;
+    outStream << segments.size() << " ";
+    
+    for (SegmentData segment : segments) {
+      outStream << segment.destroyed << " ";
+      outStream << segment.lastUsedIteration << " ";
+
+      auto synapses = segment.synapses;
+      outStream << synapses.size() << " ";
+
+      for (SynapseData synapse : synapses) {
+        outStream << synapse.presynapticCell.idx << " ";
+        outStream << synapse.permanence << " ";
+        outStream << synapse.destroyed << " ";
+      }
+      outStream << endl;
+    }
+    outStream << endl;
+  }
+  outStream << endl;
+
+  outStream << iteration_ << " " << endl;
+
+  outStream << "~Connections" << endl;
+}
+
 void Connections::write(ostream& stream) const
 {
   capnp::MallocMessageBuilder message;
@@ -364,6 +402,8 @@ void Connections::write(ostream& stream) const
 
 void Connections::write(ConnectionsProto::Builder& proto) const
 {
+  proto.setVersion(Connections::VERSION);
+
   auto protoCells = proto.initCells(cells_.size());
 
   for (CellIdx i = 0; i < cells_.size(); ++i) {
@@ -389,6 +429,68 @@ void Connections::write(ConnectionsProto::Builder& proto) const
   proto.setIteration(iteration_);
 }
 
+void Connections::load(istream& inStream)
+{
+  // Check the marker
+  string marker;
+  inStream >> marker;
+  NTA_CHECK(marker == "Connections");
+
+  // Check the saved version.
+  UInt version;
+  inStream >> version;
+  NTA_CHECK(version <= Connections::VERSION);
+
+  // Retrieve simple variables
+  UInt numCells;
+  inStream >> numCells
+           >> maxSegmentsPerCell_
+           >> maxSynapsesPerSegment_;
+
+  initialize(numCells, maxSegmentsPerCell_, maxSynapsesPerSegment_);
+
+  cells_.resize(numCells);
+  for (UInt i = 0; i < numCells; i++) {
+    CellData& cellData = cells_[i];
+
+    UInt numSegments;
+    inStream >> numSegments;
+
+    cellData.segments.resize(numSegments);
+    for (UInt j = 0; j < numSegments; j++) {
+      inStream >> cellData.segments[j].destroyed;
+      inStream >> cellData.segments[j].lastUsedIteration;
+
+      UInt numSynapses;
+      inStream >> numSynapses;
+
+      auto& synapses = cellData.segments[j].synapses;
+      synapses.resize(numSynapses);
+      for (UInt k = 0; k < numSynapses; k++) {
+        inStream >> synapses[k].presynapticCell.idx;
+        inStream >> synapses[k].permanence;
+        inStream >> synapses[k].destroyed;
+
+        if (!synapses[k].destroyed) {
+          numSynapses_++;
+
+          Synapse synapse = Synapse(k, Segment(j, Cell(i)));
+          synapsesForPresynapticCell_[synapses[k].presynapticCell].push_back(synapse);
+        }
+      }
+
+      if (!cellData.segments[j].destroyed) {
+        numSegments_++;
+      }
+    }
+  }
+
+  inStream >> iteration_;
+
+  inStream >> marker;
+  NTA_CHECK(marker == "~Connections");
+}
+
 void Connections::read(istream& stream)
 {
   kj::std::StdInputStream in(stream);
@@ -400,6 +502,10 @@ void Connections::read(istream& stream)
 
 void Connections::read(ConnectionsProto::Reader& proto)
 {
+  // Check the saved version.
+  UInt version = proto.getVersion();
+  NTA_CHECK(version <= Connections::VERSION);
+
   auto protoCells = proto.getCells();
 
   initialize(protoCells.size(),
