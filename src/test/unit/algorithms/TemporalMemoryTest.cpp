@@ -815,54 +815,51 @@ namespace nupic {
 
   void TemporalMemoryTest::testWrite()
   {
-    const char* filename = "TemporalMemorySerialization.tmp";
     TemporalMemory tm1, tm2;
 
-    tm1.initialize({ 100 }, 4, 7, 0.37, 0.58, 4, 18, 0.23, 0.08, 91);
-    /*
-    // GH issue https://github.com/numenta/nupic.core/issues/505 to uncomment this
-    //
+    tm1.initialize({ 100 }, 4, 7, 0.37, 0.58, 4, 18, 0.23, 0.08, 0.0, 91);
+
     // Run some data through before serializing
-    patternMachine = PatternMachine(100, 4);
-    sequenceMachine = SequenceMachine(self.patternMachine);
-    sequence = self.sequenceMachine.generateFromNumbers(range(5));
+    /*
+    PatternMachine patternMachine = PatternMachine(100, 4);
+    SequenceMachine sequenceMachine = SequenceMachine(self.patternMachine);
+    Sequence sequence = self.sequenceMachine.generateFromNumbers(range(5));
+    */
+    vector<vector<UInt>> sequence = 
+    { 
+      { 83, 53, 70, 45 },
+      { 8, 65, 67, 59 },
+      { 25, 98, 99, 39 },
+      { 66, 11, 78, 14 },
+      { 96, 87, 69, 95 } };
+
     for (UInt i = 0; i < 3; i++)
     {
-    for (auto pattern : sequence)
-    tm1.compute(pattern);
+      for (vector<UInt> pattern : sequence)
+        tm1.compute(pattern.size(), pattern.data());
     }
-    */
-    // Write the proto to a temp file and read it back into a new proto
-    ofstream outfile(filename, ios::binary);
-    tm1.write(outfile);
-    outfile.close();
-    outfile.seekp(0);
 
-    // Load the deserialized proto
-    ifstream infile(filename, ios::binary);
-    tm2.read(infile);
-    infile.close();
+    // Write and read back the proto
+    stringstream ss;
+    tm1.write(ss);
+    tm2.read(ss);
 
     // Check that the two temporal memory objects have the same attributes
     check_spatial_eq(tm1, tm2);
 
-    // Run a couple records through after deserializing and check results match
-    /*  tm1.compute(self.patternMachine.get(0))
-    tm2.compute(self.patternMachine.get(0))
-    self.assertEqual(tm1.activeCells, tm2.activeCells)
-    self.assertEqual(tm1.predictiveCells, tm2.predictiveCells)
-    self.assertEqual(tm1.winnerCells, tm2.winnerCells)
-    self.assertEqual(tm1.connections, tm2.connections)
+    tm1.compute(sequence[0].size(), sequence[0].data());
+    tm2.compute(sequence[0].size(), sequence[0].data());
+    ASSERT_EQ(tm1.activeCells, tm2.activeCells);
+    ASSERT_EQ(tm1.predictiveCells, tm2.predictiveCells);
+    ASSERT_EQ(tm1.winnerCells, tm2.winnerCells);
+    ASSERT_EQ(tm1.connections, tm2.connections);
 
-    tm1.compute(self.patternMachine.get(3))
-    tm2.compute(self.patternMachine.get(3))
-    self.assertEqual(tm1.activeCells, tm2.activeCells)
-    self.assertEqual(tm1.predictiveCells, tm2.predictiveCells)
-    self.assertEqual(tm1.winnerCells, tm2.winnerCells)
-    self.assertEqual(tm1.connections, tm2.connections)
-    */
-    int ret = ::remove(filename);
-    NTA_CHECK(ret == 0) << "Failed to delete " << filename;
+    tm1.compute(sequence[3].size(), sequence[3].data());
+    tm2.compute(sequence[3].size(), sequence[3].data());
+    ASSERT_EQ(tm1.activeCells, tm2.activeCells);
+    ASSERT_EQ(tm1.predictiveCells, tm2.predictiveCells);
+    ASSERT_EQ(tm1.winnerCells, tm2.winnerCells);
+    ASSERT_EQ(tm1.connections, tm2.connections);
   }
 
   void TemporalMemoryTest::print_vec(UInt arr[], UInt n)
@@ -1021,4 +1018,3 @@ namespace nupic {
     return true;
   }
 } // end namespace nupic
-
