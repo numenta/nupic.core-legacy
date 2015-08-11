@@ -24,12 +24,10 @@ echo
 echo "Running after_success-release.sh..."
 echo
 
-cd ${TRAVIS_BUILD_DIR}/bindings/py
+cd ${TRAVIS_BUILD_DIR}
 
 echo "Installing wheel..."
 pip install wheel --user || exit
-# `sudo install twine` doesn't put twine in a place we can use it, so we install
-# it at the --user level.
 echo "Installing twine..."
 pip install twine --user -v || exit
 
@@ -40,7 +38,7 @@ export PATH=/Users/travis/Library/Python/2.7/bin:${PATH}
 echo "Creating distribution files..."
 # We are not creating sdist here, because it's being created and uploaded in the
 # linux Travis-CI release build.
-ARCHFLAGS="-arch x86_64" python setup.py bdist bdist_wheel || exit
+python setup.py bdist bdist_wheel || exit
 
 echo "Created the following distribution files:"
 ls -l dist
