@@ -484,33 +484,24 @@ namespace nupic {
 
   void ConnectionsTest::testSaveLoad()
   {
-    const char* filename = "ConnectionsSerialization.tmp";
     Connections c1(1024, 1024, 1024), c2;
     setupSampleConnections(c1);
 
-    Segment segment;
-    Cell cell, presynapticCell;
+    Cell cell(10), presynapticCell(400);
+    auto segment = c1.createSegment(cell);
 
-    cell.idx = 10;
-    presynapticCell.idx = 400;
-    segment = c1.createSegment(cell);
     c1.createSynapse(segment, presynapticCell, 0.5);
     c1.destroySegment(segment);
 
     computeSampleActivity(c1);
 
-    ofstream os(filename, ios::binary);
-    c1.save(os);
-    os.close();
-
-    ifstream is(filename, ios::binary);
-    c2.load(is);
-    is.close();
+    {
+      stringstream ss;
+      c1.save(ss);
+      c2.load(ss);
+    }
 
     ASSERT_EQ(c1, c2);
-
-    int ret = ::remove(filename);
-    NTA_CHECK(ret == 0) << "Failed to delete " << filename;
   }
 
   void ConnectionsTest::setupSampleConnections(Connections &connections)

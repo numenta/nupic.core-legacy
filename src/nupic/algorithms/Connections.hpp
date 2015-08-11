@@ -221,7 +221,7 @@ namespace nupic
       class Connections
       {
       public:
-        static const UInt VERSION = 1;
+        static const UInt16 VERSION = 1;
 
         /**
          * Connections empty constructor.
