@@ -41,6 +41,7 @@ Important notes:
     make tests_unit
 
 #### Install nupic.bindings for nupic:
+    cd $NUPIC_CORE
     export NUPIC_CORE_RELEASE=$NUPIC_CORE/build/release
     python setup.py install
 
