@@ -40,13 +40,13 @@ Important notes:
     make tests_cpp_region
     make tests_unit
 
-#### Install nupic.binding files for nupic:
+#### Install nupic.bindings for nupic:
     export NUPIC_CORE_RELEASE=$NUPIC_CORE/build/release
     python setup.py install
 
 > **Note**: set `NUPIC_CORE_RELEASE` to the location where `nupic.core` was installed.
 
-If you get a gcc exit code 1, you may consider running thus instead:
+If you get a gcc exit code 1, you may consider running this instead:
 
      [sudo] CC=clang CXX=clang++ python setup.py install --user
 
@@ -54,7 +54,7 @@ If you are installing on Mac OS X, you should add the instruction `ARCHFLAGS="-a
 
     ARCHFLAGS="-arch x86_64" python setup.py install
 
-Alternatively, you can use the `develop` command to link to Python source code in place. This is useful if you are changing NuPIC Python code because you don't need to recompile between changes.
+Alternatively, you can use the `develop` command to link to Python source code in place. This is useful if you are changing Python code because you don't need to recompile between changes.
 
     python setup.py develop
 
