@@ -57,11 +57,11 @@ before_deploy:
   - ./ci/travis/before_deploy.sh
   - cp $TRAVIS_BUILD_DIR/bindings/py/requirements.txt $TRAVIS_BUILD_DIR/bindings/py/dist/
   - mkdir -p $TRAVIS_BUILD_DIR/bindings/py/dist/include/nupic
-  - cp $NUPIC_CORE_RELEASE/include/nupic/Version.hpp $TRAVIS_BUILD_DIR/bindings/py/dist/include/nupic
+  - cp ${TRAVIS_BUILD_DIR}/build/release/include/nupic/Version.hpp $TRAVIS_BUILD_DIR/bindings/py/dist/include/nupic
   - mkdir -p $TRAVIS_BUILD_DIR/bindings/py/dist/include/nupic/proto
   - cp $TRAVIS_BUILD_DIR/src/nupic/proto/*.capnp $TRAVIS_BUILD_DIR/bindings/py/dist/include/nupic/proto
   - mkdir -p $TRAVIS_BUILD_DIR/bindings/py/dist/bin
-  - cp $NUPIC_CORE_RELEASE/bin/py_region_test $TRAVIS_BUILD_DIR/bindings/py/dist/bin
+  - cp ${TRAVIS_BUILD_DIR}/build/release/bin/py_region_test $TRAVIS_BUILD_DIR/bindings/py/dist/bin
   - mkdir -p $TRAVIS_BUILD_DIR/release
   - tar -zcvf $TRAVIS_BUILD_DIR/release/nupic_core-${TRAVIS_COMMIT}-${PLATFORM}64.tar.gz $TRAVIS_BUILD_DIR/bindings/py/dist
 
@@ -77,7 +77,7 @@ deploy:
   skip_cleanup: true
   # Deploying on master branch from linux/gcc and osx/clang
   on:
-    branch: master
+    branch: remove_env_var
     condition:
       - "( ${TRAVIS_OS_NAME}--${CC} = 'linux--gcc-4.8' ) || ( ${TRAVIS_OS_NAME}--${CC} = 'linux--gcc' ) || ( ${TRAVIS_OS_NAME}--${CC} = 'osx--clang' )"
 
@@ -103,8 +103,7 @@ install:
   - "make -j3"
   - "make install"
   - "cd $TRAVIS_BUILD_DIR"
-  - "export NUPIC_CORE_RELEASE=\"${TRAVIS_BUILD_DIR}/build/release\""
-  - "python setup.py install --user"
+  - "python setup.py install --user --nupic-core-dir=${TRAVIS_BUILD_DIR}/build/release"
 
 script:
   - "cd $TRAVIS_BUILD_DIR/build/scripts"

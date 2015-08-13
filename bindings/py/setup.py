@@ -92,9 +92,9 @@ def getCommandLineOptions():
   # optionDesc = [name, value, description]
   optionsDesc = []
   optionsDesc.append(
-    ["skip-compare-versions",
-     "",
-     "(optional) Skip nupic.core version comparison"]
+    ["nupic-core-dir",
+     "dir",
+     "Absolute path to nupic.core binary release directory"]
   )
   optionsDesc.append(
     ["optimizations-native",
@@ -529,9 +529,9 @@ if __name__ == "__main__":
   print "NUMPY VERSION: {}".format(numpy.__version__)
 
   try:
-    nupicCoreReleaseDir = os.environ.get('NUPIC_CORE_RELEASE')
+    nupicCoreReleaseDir = getCommandLineOption("nupic-core-dir", options)
     if nupicCoreReleaseDir is None:
-      raise Exception("Must provide path to nupic core release. export NUPIC_CORE_RELEASE=<path>")
+      raise Exception("Must provide nupic core release directory. --nupic-core-dir")
     nupicCoreReleaseDir = fixPath(nupicCoreReleaseDir)
     print "Nupic Core Release Directory: {}\n".format(nupicCoreReleaseDir)
     if not os.path.isdir(nupicCoreReleaseDir):

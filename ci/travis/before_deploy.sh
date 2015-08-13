@@ -26,7 +26,7 @@ echo
 
 # If this branch is master, this is an iterative deployment, so we'll package
 # wheels ourselves for deployment to S3. No need to build docs.
-if [ "${TRAVIS_BRANCH}" = "master" ]; then
+if [ "${TRAVIS_BRANCH}" = "remove_env_var" ]; then
 
     # Upgrading pip
     pip install --upgrade pip
@@ -35,10 +35,14 @@ if [ "${TRAVIS_BRANCH}" = "master" ]; then
     echo "pip install wheel --user"
     pip install wheel --user
 
+    cd ${TRAVIS_BUILD_DIR}/bindings/py
+
     # Build all NuPIC and all required python packages into dist/wheels as .whl
     # files.
-    echo "pip wheel --wheel-dir=dist/wheels ."
-    pip wheel --wheel-dir=dist/wheels .
+    echo "pip wheel -r requirements.txt"
+    pip wheel --wheel-dir=dist/wheels -r requirements.txt
+    echo "python setup.py bdist_wheel"
+    python setup.py bdist_wheel -d dist/wheels --nupic-core-dir=${TRAVIS_BUILD_DIR}/build/release
     # The dist/wheels folder is expected to be deployed to S3.
 
 # If this is a tag, we're doing a release deployment, so we want to build docs
