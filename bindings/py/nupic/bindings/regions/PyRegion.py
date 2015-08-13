@@ -204,8 +204,6 @@ class PyRegion(object):
     if name.startswith('_'):
       raise Exception('Parameter name must not start with an underscore')
 
-
-    v = getattr(self, name)
     return len(self.parameters[name])
 
 
@@ -291,7 +289,7 @@ class PyRegion(object):
     This is used to convert the proto into the proper type before passing it
     into the read or write method of the subclass.
     """
-    pass
+    raise NotImplementedError()
 
 
   @classmethod
@@ -304,7 +302,7 @@ class PyRegion(object):
 
     The type of proto is determined by getProtoType().
     """
-    pass
+    raise NotImplementedError()
 
 
   def read(self, proto):
@@ -312,7 +310,7 @@ class PyRegion(object):
 
     The type of proto is determined by getProtoType().
     """
-    pass
+    raise NotImplementedError()
 
 
   def writePyRegion(self, pyRegionProto):
