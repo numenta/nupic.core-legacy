@@ -386,11 +386,9 @@ ADD_LIBRARY(${LIB_STATIC_NUPICCORE}
             nupic/algorithms/Cell.cpp
             nupic/algorithms/Cells4.cpp
             nupic/algorithms/ClassifierResult.cpp
-            nupic/algorithms/CondProbTable.cpp
             nupic/algorithms/Connections.cpp
             nupic/algorithms/FastClaClassifier.cpp
             nupic/algorithms/GaborNode.cpp
-            nupic/algorithms/ImageSensorLite.cpp
             nupic/algorithms/InSynapse.cpp
             nupic/algorithms/Linear.cpp
             nupic/algorithms/OutSynapse.cpp
@@ -447,8 +445,7 @@ ADD_LIBRARY(${LIB_STATIC_NUPICCORE}
             nupic/utils/LogItem.cpp
             nupic/utils/Random.cpp
             nupic/utils/StringUtils.cpp
-            nupic/utils/TRandom.cpp
-            nupic/utils/Watcher.cpp)
+            nupic/utils/TRandom.cpp)
 target_link_libraries(${LIB_STATIC_NUPICCORE}
                       ${LIB_STATIC_YAML_CPP_LOC}
                       ${LIB_STATIC_YAML_LOC}
@@ -548,7 +545,6 @@ add_dependencies(${EXECUTABLE_HELLOSPTP} ${COMMON_LIBS})
 #
 set(EXECUTABLE_GTESTS unit_tests)
 add_executable(${EXECUTABLE_GTESTS}
-               test/unit/algorithms/CondProbTableTest.cpp
                test/unit/algorithms/ConnectionsTest.cpp
                test/unit/algorithms/FastCLAClassifierTest.cpp
                test/unit/algorithms/NearestNeighborUnitTest.cpp
@@ -563,7 +559,6 @@ add_executable(${EXECUTABLE_GTESTS}
                test/unit/math/IndexUnitTest.cpp
                test/unit/math/MathsTest.cpp
                test/unit/math/SparseBinaryMatrixTest.cpp
-               test/unit/math/SparseMatrix01UnitTest.cpp
                test/unit/math/SparseMatrixTest.cpp
                test/unit/math/SparseMatrixUnitTest.cpp
                test/unit/math/SparseTensorUnitTest.cpp
@@ -588,8 +583,7 @@ add_executable(${EXECUTABLE_GTESTS}
                test/unit/types/ExceptionTest.cpp
                test/unit/types/FractionTest.cpp
                test/unit/UnitTestMain.cpp
-               test/unit/utils/RandomTest.cpp
-               test/unit/utils/WatcherTest.cpp)
+               test/unit/utils/RandomTest.cpp)
 target_link_libraries(${EXECUTABLE_GTESTS}
                       ${COMMON_LIBS}
                       ${LIB_STATIC_GTEST})
@@ -602,7 +596,6 @@ add_custom_target(tests_unit
                   DEPENDS ${EXECUTABLE_GTESTS}
                   VERBATIM)
 set(TEST_HEADERS
-    test/unit/algorithms/CondProbTableTest.hpp
     test/unit/algorithms/ConnectionsTest.hpp
     test/unit/algorithms/NearestNeighborUnitTest.hpp
     test/unit/algorithms/SpatialPoolerTest.hpp
@@ -615,7 +608,6 @@ set(TEST_HEADERS
     test/unit/math/DomainUnitTest.hpp
     test/unit/math/IndexUnitTest.hpp
     test/unit/math/MathsTest.hpp
-    test/unit/math/SparseMatrix01UnitTest.hpp
     test/unit/math/SparseMatrixUnitTest.hpp
     test/unit/math/SparseTensorUnitTest.hpp
     test/unit/ntypes/ArrayTest.hpp
@@ -638,8 +630,7 @@ set(TEST_HEADERS
     test/unit/types/BasicTypeTest.hpp
     test/unit/types/ExceptionTest.hpp
     test/unit/types/FractionTest.hpp
-    test/unit/utils/RandomTest.hpp
-    test/unit/utils/WatcherTest.hpp)
+    test/unit/utils/RandomTest.hpp)
 set(tests_file_content "")
 set(headers_file_content "")
 foreach(file ${TEST_HEADERS})
