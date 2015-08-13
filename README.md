@@ -49,9 +49,9 @@ Important notes:
 
 If you get a gcc exit code 1, you may consider running this instead:
 
-     [sudo] CC=clang CXX=clang++ python setup.py install --user
+     CC=clang CXX=clang++ python setup.py install --user
 
-If you are installing on Mac OS X, you should add the instruction `ARCHFLAGS="-arch x86_64"` before the python call:
+If you are installing on Mac OS X, you must add the instruction `ARCHFLAGS="-arch x86_64"` before the python call:
 
     ARCHFLAGS="-arch x86_64" python setup.py install
 
@@ -59,7 +59,7 @@ Alternatively, you can use the `develop` command to link to Python source code i
 
     python setup.py develop
 
-> _Note_: If you get a "permission denied" error when using the setup commands above, you may add the `--user` flag to install to a location in your home directory, which should resolve any permissions issues. Doing this, you may need to add this location to your PATH and PYTHONPATH. Alternatively, you can run this with `sudo` (not recommended).
+> _Note_: If you get a "permission denied" error when using the setup commands above, you may add the `--user` flag to install to a location in your home directory, which should resolve any permissions issues. Doing this, you may need to add this location to your PATH and PYTHONPATH.
 
 Once it is installed, you can import NuPIC bindings library to your python script using:
 
