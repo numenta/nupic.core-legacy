@@ -77,7 +77,7 @@ deploy:
   skip_cleanup: true
   # Deploying on master branch from linux/gcc and osx/clang
   on:
-    branch: remove_env_var
+    branch: master
     condition:
       - "( ${TRAVIS_OS_NAME}--${CC} = 'linux--gcc-4.8' ) || ( ${TRAVIS_OS_NAME}--${CC} = 'linux--gcc' ) || ( ${TRAVIS_OS_NAME}--${CC} = 'osx--clang' )"
 

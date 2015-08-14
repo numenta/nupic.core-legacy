@@ -26,7 +26,7 @@ echo
 
 # If this branch is master, this is an iterative deployment, so we'll package
 # wheels ourselves for deployment to S3. No need to build docs.
-if [ "${TRAVIS_BRANCH}" = "remove_env_var" ]; then
+if [ "${TRAVIS_BRANCH}" = "master" ]; then
 
     # Upgrading pip
     pip install --upgrade pip
