@@ -43,6 +43,7 @@ if [ "${TRAVIS_BRANCH}" = "master" ]; then
     pip wheel --wheel-dir=dist/wheels -r requirements.txt
     echo "python setup.py bdist_wheel"
     python setup.py bdist_wheel -d dist/wheels --nupic-core-dir=${TRAVIS_BUILD_DIR}/build/release
+    python setup.py bdist_egg -d dist --nupic-core-dir=${TRAVIS_BUILD_DIR}/build/release
     # The dist/wheels folder is expected to be deployed to S3.
 
 # If this is a tag, we're doing a release deployment, so we want to build docs
