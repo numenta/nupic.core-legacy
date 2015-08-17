@@ -52,6 +52,7 @@ namespace nupic {
     testNumSegments();
     testNumSynapses();
     testWriteRead();
+    testSaveLoad();
   }
 
   /**
@@ -479,6 +480,28 @@ namespace nupic {
 
     int ret = ::remove(filename);
     NTA_CHECK(ret == 0) << "Failed to delete " << filename;
+  }
+
+  void ConnectionsTest::testSaveLoad()
+  {
+    Connections c1(1024, 1024, 1024), c2;
+    setupSampleConnections(c1);
+
+    Cell cell(10), presynapticCell(400);
+    auto segment = c1.createSegment(cell);
+
+    c1.createSynapse(segment, presynapticCell, 0.5);
+    c1.destroySegment(segment);
+
+    computeSampleActivity(c1);
+
+    {
+      stringstream ss;
+      c1.save(ss);
+      c2.load(ss);
+    }
+
+    ASSERT_EQ(c1, c2);
   }
 
   void ConnectionsTest::setupSampleConnections(Connections &connections)
