@@ -24,6 +24,8 @@ echo
 echo Running before_deploy.sh...
 echo
 
+set -o xtrace
+
 # If this branch is master, this is an iterative deployment, so we'll package
 # wheels ourselves for deployment to S3. No need to build docs.
 if [ "${TRAVIS_BRANCH}" = "master" ]; then
@@ -32,16 +34,13 @@ if [ "${TRAVIS_BRANCH}" = "master" ]; then
     pip install --upgrade pip
 
     # Assuming pip 1.5.X is installed.
-    echo "pip install wheel --user"
     pip install wheel --user
 
     cd ${TRAVIS_BUILD_DIR}/bindings/py
 
     # Build all NuPIC and all required python packages into dist/wheels as .whl
     # files.
-    echo "pip wheel -r requirements.txt"
     pip wheel --wheel-dir=dist/wheels -r requirements.txt
-    echo "python setup.py bdist_wheel"
     python setup.py bdist_wheel -d dist/wheels --nupic-core-dir=${TRAVIS_BUILD_DIR}/build/release
     python setup.py bdist_egg -d dist --nupic-core-dir=${TRAVIS_BUILD_DIR}/build/release
     # The dist/wheels folder is expected to be deployed to S3.
