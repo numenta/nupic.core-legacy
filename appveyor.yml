@@ -115,7 +115,7 @@ build_script:
   - msbuild %MSBuildOptions% nupic_core.sln
   - set MSBuildOptions=/v:q /p:Configuration=Release /logger:%MSBuildLogger%
   - msbuild %MSBuildOptions% INSTALL.vcxproj
-  - cd %REPO_DIR%\bindings\py
+  - cd %REPO_DIR%
   - set INCLUDE='C:\Program Files (x86)\MSBuild\14.0\Include';%INCLUDE%
   - set NUPIC_CORE_RELEASE=%REPO_DIR%\build\Release
   - set VS90COMNTOOLS=%VS140COMNTOOLS%

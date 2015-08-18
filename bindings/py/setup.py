@@ -36,6 +36,14 @@ This file builds and installs the NuPIC Core bindings
 
 
 
+PY_BINDINGS = os.path.dirname(os.path.realpath(__file__))
+DARWIN_PLATFORM = "darwin"
+LINUX_PLATFORM = "linux"
+UNIX_PLATFORMS = [LINUX_PLATFORM, DARWIN_PLATFORM]
+WINDOWS_PLATFORMS = ["windows"]
+
+
+
 def fixPath(path):
   """
   Ensures paths are correct for linux and windows
@@ -45,18 +53,6 @@ def fixPath(path):
     return "C:" + path
 
   return path
-
-
-
-PY_BINDINGS = os.environ.get('PY_BINDINGS')
-if PY_BINDINGS is None:
-  PY_BINDINGS = os.path.dirname(os.path.realpath(__file__))
-else:
-  PY_BINDINGS = fixPath(PY_BINDINGS)
-DARWIN_PLATFORM = "darwin"
-LINUX_PLATFORM = "linux"
-UNIX_PLATFORMS = [LINUX_PLATFORM, DARWIN_PLATFORM]
-WINDOWS_PLATFORMS = ["windows"]
 
 
 
@@ -425,10 +421,10 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cxxCompiler, cmd
       getLibPrefix(platform) + "nupic_core" + getStaticLibExtension(platform))]
 
   supportFiles = [
-    os.path.relpath(fixPath(nupicCoreReleaseDir + "/include/nupic/py_support/NumpyVector.cpp")),
-    os.path.relpath(fixPath(nupicCoreReleaseDir + "/include/nupic/py_support/PyArray.cpp")),
-    os.path.relpath(fixPath(nupicCoreReleaseDir + "/include/nupic/py_support/PyHelpers.cpp")),
-    os.path.relpath(fixPath(nupicCoreReleaseDir + "/include/nupic/py_support/PythonStream.cpp"))]
+    os.path.relpath("../../src/nupic/py_support/NumpyVector.cpp"),
+    os.path.relpath("../../src/nupic/py_support/PyArray.cpp"),
+    os.path.relpath("../../src/nupic/py_support/PyHelpers.cpp"),
+    os.path.relpath("../../src/nupic/py_support/PythonStream.cpp")]
 
   extensions = []
 
@@ -478,7 +474,7 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cxxCompiler, cmd
 
   wrapAlgorithms = generateSwigWrap(swigExecutable,
                                     swigFlags,
-                                    os.path.relpath(fixPath("nupic/bindings/algorithms.i")))
+                                    "nupic/bindings/algorithms.i")
   libModuleAlgorithms = Extension(
     "nupic.bindings._algorithms",
     extra_compile_args=commonCompileFlags,
@@ -492,7 +488,7 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cxxCompiler, cmd
 
   wrapEngineInternal = generateSwigWrap(swigExecutable,
                                         swigFlags,
-                                        os.path.relpath(fixPath("nupic/bindings/engine_internal.i")))
+                                        "nupic/bindings/engine_internal.i")
   libModuleEngineInternal = Extension(
     "nupic.bindings._engine_internal",
     extra_compile_args=commonCompileFlags,
@@ -506,7 +502,7 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cxxCompiler, cmd
 
   wrapMath = generateSwigWrap(swigExecutable,
                               swigFlags,
-                              os.path.relpath(fixPath("nupic/bindings/math.i")))
+                              "nupic/bindings/math.i")
   libModuleMath = Extension(
     "nupic.bindings._math",
     extra_compile_args=commonCompileFlags,
@@ -514,17 +510,11 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cxxCompiler, cmd
     extra_link_args=commonLinkFlags,
     include_dirs=commonIncludeDirs,
     libraries=commonLibraries,
-    sources=supportFiles + [wrapMath, os.path.relpath(fixPath("nupic/bindings/PySparseTensor.cpp"))],
+    sources=supportFiles + [wrapMath, "nupic/bindings/PySparseTensor.cpp"],
     extra_objects=commonObjects)
   extensions.append(libModuleMath)
 
   return extensions
-
-
-
-def postProcess(nupicCoreReleaseDir):
-  for egg in glob.glob("dist/*.egg"):
-    shutil.copy(egg, nupicCoreReleaseDir)
 
 
 
@@ -535,6 +525,7 @@ if __name__ == "__main__":
   platform, bitness = getPlatformInfo()
   cxxCompiler = getCompilerInfo()
 
+  print "Python Bindings directory: {}".format(PY_BINDINGS)
   print "NUMPY VERSION: {}".format(numpy.__version__)
 
   try:
@@ -562,7 +553,7 @@ if __name__ == "__main__":
 
     print "\nSetup SWIG Python module"
     setup(
-      name="nupiccore",
+      name="nupic.bindings",
       ext_modules=extensions,
       version="0.1.0",
       namespace_packages=["nupic", "nupic.bindings"],
@@ -585,9 +576,6 @@ if __name__ == "__main__":
       ],
       long_description = "Python bindings for nupic core.",
       packages=find_packages())
-    if buildEgg:
-      postProcess(nupicCoreReleaseDir)
-    shutil.copy("requirements.txt", nupicCoreReleaseDir)
   finally:
     os.chdir(cwd)
 
