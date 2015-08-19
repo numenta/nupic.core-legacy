@@ -123,7 +123,7 @@ build_script:
   - set VS90COMNTOOLS=%VS140COMNTOOLS%
   - set DISTUTILS_USE_SDK=1
   - set MSSdk=1
-  - copy /y ..\..\external\windows64\bin\msvc9compiler.py %PYTHON%\Lib\distutils
+  - copy /y %REPO_DIR%\external\windows64\bin\msvc9compiler.py %PYTHON%\Lib\distutils
   - python setup.py install --user
 
 test: off
