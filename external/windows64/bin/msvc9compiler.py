@@ -150,7 +150,7 @@ extensions must be built with a compiler than can generate compatible binaries.
 Visual Studio 2008 was not found on this system. If you have Cygwin installed,
 you can try compiling with MingW32, by passing "-c mingw32" to setup.py.""")
 
-        if version >= 9.0:
+        if version == 9.0:
             self.set_macro("FrameworkVersion", self.vsbase, "clr version")
             self.set_macro("WindowsSdkDir", WINSDK_BASE, "currentinstallfolder")
         else:
@@ -787,13 +787,13 @@ class MSVCCompiler(CCompiler) :
         absolute path that is known to exist.  If none of them work, just
         return the original program name, 'exe'.
         """
-        for p in os.environ['Path'].split(';'):
-            fn = os.path.join(os.path.abspath(p),exe)
+        for p in self.__paths:
+            fn = os.path.join(os.path.abspath(p), exe)
             if os.path.isfile(fn):
                 return fn
 
-        for p in self.__paths:
-            fn = os.path.join(os.path.abspath(p), exe)
+        for p in os.environ['Path'].split(';'):
+            fn = os.path.join(os.path.abspath(p),exe)
             if os.path.isfile(fn):
                 return fn
 

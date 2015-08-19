@@ -124,6 +124,7 @@ build_script:
   - set DISTUTILS_USE_SDK=1
   - set MSSdk=1
   - copy /y %REPO_DIR%\external\windows64\bin\msvc9compiler.py %PYTHON%\Lib\distutils
+  - vcvarsall amd64
   - python setup.py install --user
 
 test: off
