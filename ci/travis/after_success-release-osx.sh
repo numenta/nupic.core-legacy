@@ -41,7 +41,7 @@ echo "Creating distribution files..."
 python setup.py bdist bdist_wheel -d dist || exit
 
 echo "Created the following distribution files:"
-ls -l dist
+ls -l bindings/py/dist
 # These should get created on osx:
 # nupic-0.0.33-cp27-none-macosx_10_9_intel.whl
 # nupic-0.0.33-py2.7-macosx-10.9-intel.egg

@@ -38,7 +38,7 @@ env:
     # PyPi credentials for manual uploads to Pypi on release.
     - PYPI_USERNAME=numenta
     # PYPI_PASSWD encrypted below.
-    - secure: "elm3E3MwpbZqTCz+EHPQ7CEBwoBvRgqS3q5MHY+jUcpdrWeSjmy7TZoRN5+rAjDQYuR5g33pMXnyeRGw/DG7Xa5FG0g3PoMnO6fnIe7Hs7gPlDXbwilfYxfi462N7Y9aAGPFuvNkZsgd0dfwXKwNEiZ5hYfsbFFwHMeXMQA/SA8="
+    - secure: "kDO4h7Ylyq61fKP2TQdrmbdEL84jRaMvt4+aqihGTNjy87me1INoNrM/awyeEpSAsPqUo+bcnFOVMA4ulmY896Jux3UpBgrqidOQujp9+wKeEczpUB6+6pbeMr/yFAXwRuMZmJn3hKT78c14lFP7pjnj3+Uq8OiDVa1rordGvWQ"
     - NUPIC_DEPLOYMENT_BUILD=true
 
 virtualenv:
