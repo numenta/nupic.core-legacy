@@ -38,7 +38,7 @@ export PATH=/Users/travis/Library/Python/2.7/bin:${PATH}
 echo "Creating distribution files..."
 # We are not creating sdist here, because it's being created and uploaded in the
 # linux Travis-CI release build.
-python setup.py bdist bdist_wheel || exit
+python setup.py bdist bdist_egg bdist_wheel -d dist || exit
 
 echo "Created the following distribution files:"
 ls -l dist
@@ -48,9 +48,9 @@ ls -l dist
 # nupic-0.0.33.macosx-10.9-intel.tar.gz
 
 echo "Uploading OS X egg to PyPi..."
-twine upload dist/nupiccore_python-*.egg -u "${PYPI_USERNAME}" -p "${PYPI_PASSWD}"
+twine upload bindings/py/dist/nupic.bindings-*.egg -u "${PYPI_USERNAME}" -p "${PYPI_PASSWD}"
 echo "Uploading OS x wheel to PyPi..."
-twine upload dist/nupiccore_python-*.whl -u "${PYPI_USERNAME}" -p "${PYPI_PASSWD}"
+twine upload bindings/py/dist/nupic.bindings-*.whl -u "${PYPI_USERNAME}" -p "${PYPI_PASSWD}"
 
 echo "Attempting to upload all distribution files to PyPi..."
-twine upload dist/* -u "${PYPI_USERNAME}" -p "${PYPI_PASSWD}"
+twine upload bindings/py/dist/* -u "${PYPI_USERNAME}" -p "${PYPI_PASSWD}"
