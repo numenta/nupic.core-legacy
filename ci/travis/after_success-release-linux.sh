@@ -36,7 +36,7 @@ pip install twine --user || exit
 echo "Creating distribution files..."
 # This release build creates the source distribution. All other release builds
 # should not.
-python setup.py sdist bdist bdist_wheel || exit
+python setup.py sdist bdist bdist_egg bdist_wheel -d dist || exit
 
 echo "Created the following distribution files:"
 ls -l dist
@@ -47,14 +47,14 @@ ls -l dist
 # nupic-0.0.33.tar.gz
 
 echo "Uploading Linux egg to PyPi..."
-twine upload dist/nupiccore_python-*.egg -u "${PYPI_USERNAME}" -p "${PYPI_PASSWD}"
+twine upload bindings/py/dist/nupic.bindings-*.egg -u "${PYPI_USERNAME}" -p "${PYPI_PASSWD}"
 echo "Uploading source package to PyPi..."
-twine upload dist/nupiccore_python-*.tar.gz -u "${PYPI_USERNAME}" -p "${PYPI_PASSWD}"
+twine upload bindings/py/dist/nupic.bindings-*.tar.gz -u "${PYPI_USERNAME}" -p "${PYPI_PASSWD}"
 
 # We can't upload the wheel to PyPi because PyPi rejects linux platform wheel
 # files. So we'll push it up into S3.
 # See: https://bitbucket.org/pypa/pypi-metadata-formats/issue/15/enhance-the-platform-tag-definition-for
 
-wheel_file=`ls dist/*.whl`
+wheel_file=`ls bindings/py/dist/*.whl`
 echo "Deploying ${wheel_file} to S3..."
 python ci/travis/deploy-wheel-to-s3.py "${wheel_file}"
