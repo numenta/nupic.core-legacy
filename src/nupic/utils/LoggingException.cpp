@@ -41,4 +41,3 @@ LoggingException::~LoggingException() throw()
     alreadyLogged_ = true;
   }
 }
-

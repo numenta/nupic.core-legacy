@@ -316,19 +316,8 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cxxCompiler, cmd
 
   if cxxCompiler == "MSVC":
     commonCompileFlags = [
-      "/TP",
-      "/Zc:wchar_t",
-      "/Gm-",
-      "/fp:precise",
-      "/errorReport:prompt",
-      "/W3",
-      "/WX-",
-      "/GR",
-      "/Gd",
-      "/GS-",
-      "/Oy-",
-      "/EHs",
-      "/analyze-",
+      "/TP", "/Zc:wchar_t", "/Gm-", "/fp:precise", "/errorReport:prompt",
+      "/W3", "/WX-", "/GR", "/Gd", "/GS-", "/Oy-", "/EHs", "/analyze-",
       "/nologo"]
     commonLinkFlags = [
       "/NOLOGO",
