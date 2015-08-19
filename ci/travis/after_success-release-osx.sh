@@ -6,15 +6,15 @@
 # following terms and conditions apply:
 #
 # This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License version 3 as
+# it under the terms of the GNU Affero Public License version 3 as
 # published by the Free Software Foundation.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-# See the GNU General Public License for more details.
+# See the GNU Affero Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
+# You should have received a copy of the GNU Affero Public License
 # along with this program.  If not, see http://www.gnu.org/licenses.
 #
 # http://numenta.org/licenses/
@@ -38,7 +38,7 @@ export PATH=/Users/travis/Library/Python/2.7/bin:${PATH}
 echo "Creating distribution files..."
 # We are not creating sdist here, because it's being created and uploaded in the
 # linux Travis-CI release build.
-python setup.py bdist bdist_wheel --nupic-core-dir=${TRAVIS_BUILD_DIR}/build/release || exit
+python setup.py bdist bdist_egg bdist_wheel --nupic-core-dir=${TRAVIS_BUILD_DIR}/build/release -d dist || exit
 
 echo "Created the following distribution files:"
 ls -l dist
@@ -48,9 +48,9 @@ ls -l dist
 # nupic-0.0.33.macosx-10.9-intel.tar.gz
 
 echo "Uploading OS X egg to PyPi..."
-twine upload dist/nupiccore_python-*.egg -u "${PYPI_USERNAME}" -p "${PYPI_PASSWD}"
+twine upload bindings/py/dist/nupic.bindings-*.egg -u "${PYPI_USERNAME}" -p "${PYPI_PASSWD}"
 echo "Uploading OS x wheel to PyPi..."
-twine upload dist/nupiccore_python-*.whl -u "${PYPI_USERNAME}" -p "${PYPI_PASSWD}"
+twine upload bindings/py/dist/nupic.bindings-*.whl -u "${PYPI_USERNAME}" -p "${PYPI_PASSWD}"
 
 echo "Attempting to upload all distribution files to PyPi..."
-twine upload dist/* -u "${PYPI_USERNAME}" -p "${PYPI_PASSWD}"
+twine upload bindings/py/dist/* -u "${PYPI_USERNAME}" -p "${PYPI_PASSWD}"
