@@ -36,7 +36,7 @@ pip install twine --user || exit
 echo "Creating distribution files..."
 # This release build creates the source distribution. All other release builds
 # should not.
-python setup.py sdist bdist bdist_egg bdist_wheel -d dist || exit
+python setup.py sdist bdist bdist_wheel -d dist || exit
 
 echo "Created the following distribution files:"
 ls -l dist
