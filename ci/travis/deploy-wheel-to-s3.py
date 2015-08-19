@@ -31,7 +31,7 @@ from boto.s3.key import Key
 
 REGION = "us-west-2"
 BUCKET = "artifacts.numenta.org"
-RELEASE_FOLDER = "numenta/nupic/releases"
+RELEASE_FOLDER = "numenta/nupic.core/releases/nupic.bindings"
 
 
 
