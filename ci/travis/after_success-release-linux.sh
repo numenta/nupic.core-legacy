@@ -39,7 +39,7 @@ echo "Creating distribution files..."
 python setup.py sdist bdist bdist_wheel -d dist || exit
 
 echo "Created the following distribution files:"
-ls -l dist
+ls -l bindings/py/dist
 # These should get created on linux:
 # nupic-0.0.33-cp27-none-linux-x86_64.whl
 # nupic-0.0.33.linux-x86_64.tar.gz
