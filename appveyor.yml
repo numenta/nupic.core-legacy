@@ -66,12 +66,8 @@ install:
   - mkdir %REPO_DIR%\build\scripts
   - cd %REPO_DIR%\build\scripts
 
-  # Need at least version 3.1.0 for the VS 2015 generator
-  - ps: Start-FileDownload 'http://www.cmake.org/files/v3.1/cmake-3.1.0-win32-x86.zip'
-  - ps: Write-Host '7z x cmake-3.1.0-win32-x86.zip'
-  - ps: Start-Process -FilePath "7z" -ArgumentList "x -y cmake-3.1.0-win32-x86.zip" -Wait -Passthru
-  - set PATH="%REPO_DIR%\build\scripts\cmake-3.1.0-win32-x86\bin";%PATH%
   - set PATH="C:\Program Files (x86)\MSBuild\14.0\Bin";%PATH%
+  - echo PATH=%PATH%
   # https://github.com/ogrisel/python-appveyor-demo/blob/master/appveyor.yml
   # Install Python (from the official .msi of http://python.org) and pip when
   # not already installed.
@@ -118,13 +114,12 @@ build_script:
   - msbuild %MSBuildOptions% INSTALL.vcxproj
 
   - cd %REPO_DIR%
-  - set INCLUDE='C:\Program Files (x86)\MSBuild\14.0\Include';%INCLUDE%
   - set NUPIC_CORE_RELEASE=%REPO_DIR%\build\Release
   - set VS90COMNTOOLS=%VS140COMNTOOLS%
   - set DISTUTILS_USE_SDK=1
   - set MSSdk=1
   - copy /y %REPO_DIR%\external\windows64\bin\msvc9compiler.py %PYTHON%\Lib\distutils
-  - vcvarsall amd64
+  - "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64
   - python setup.py install --user
 
 test: off
