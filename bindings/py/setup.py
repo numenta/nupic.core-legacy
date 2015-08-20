@@ -1,4 +1,4 @@
-# ----------------------------------------------------------------------
+﻿# ----------------------------------------------------------------------
 # Numenta Platform for Intelligent Computing (NuPIC)
 # Copyright (C) 2015, Numenta, Inc.  Unless you have an agreement
 # with Numenta, Inc., for a separate license for this software code, the
@@ -292,19 +292,20 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cxxCompiler, cmd
       ("_WINDOWS", None),
       ("_MBCS", None),
       ("_CRT_SECURE_NO_WARNINGS", None),
-      ("NDEBUG", None)])
+      ("NDEBUG", None),
+      ("CAPNP_LITE", "1"),
+      ("_VARIADIC_MAX", "10"),
+      ("NOMINMAX", None),
+      ("NTA_DOUBLE_PRECISION", None)])
   else:
     commonDefines.append(("HAVE_UNISTD_H", None))
+  
   if cxxCompiler == "GNU":
     commonDefines.append(("NTA_COMPILER_GNU", None))
   elif cxxCompiler == "Clang":
     commonDefines.append(("NTA_COMPILER_CLANG", None))
   elif cxxCompiler == "MSVC":
-    commonDefines.extend([
-      ("NTA_COMPILER_MSVC", None),
-      ("CAPNP_LITE", "1"),
-      ("_VARIADIC_MAX", "10"),
-      ("NOMINMAX", None)])
+    commonDefines.append(("NTA_COMPILER_MSVC", None))
 
   commonIncludeDirs = [
     os.path.normpath(fixPath(PY_BINDINGS + "/../../external/" + platform + bitness + "/include")),
