@@ -27,7 +27,6 @@ import numpy
 
 RealNumpyDType = numpy.float32
 from abc import ABCMeta, abstractmethod
-from nupic.support import getCallerInfo
 
 
 
