@@ -5,15 +5,15 @@
  * following terms and conditions apply:
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 3 as
+ * it under the terms of the GNU Affero Public License version 3 as
  * published by the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * See the GNU General Public License for more details.
+ * See the GNU Affero Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
+ * You should have received a copy of the GNU Affero Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
  *
  * http://numenta.org/licenses/
@@ -52,6 +52,7 @@ namespace nupic {
     testNumSegments();
     testNumSynapses();
     testWriteRead();
+    testSaveLoad();
   }
 
   /**
@@ -479,6 +480,28 @@ namespace nupic {
 
     int ret = ::remove(filename);
     NTA_CHECK(ret == 0) << "Failed to delete " << filename;
+  }
+
+  void ConnectionsTest::testSaveLoad()
+  {
+    Connections c1(1024, 1024, 1024), c2;
+    setupSampleConnections(c1);
+
+    Cell cell(10), presynapticCell(400);
+    auto segment = c1.createSegment(cell);
+
+    c1.createSynapse(segment, presynapticCell, 0.5);
+    c1.destroySegment(segment);
+
+    computeSampleActivity(c1);
+
+    {
+      stringstream ss;
+      c1.save(ss);
+      c2.load(ss);
+    }
+
+    ASSERT_EQ(c1, c2);
   }
 
   void ConnectionsTest::setupSampleConnections(Connections &connections)
