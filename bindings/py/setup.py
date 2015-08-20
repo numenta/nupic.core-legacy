@@ -551,6 +551,12 @@ if __name__ == "__main__":
     extensions = getExtensionModules(nupicCoreReleaseDir, platform, bitness, cxxCompiler,
       options)
 
+    # Copy the proto files into the proto Python package.
+    destDir = os.path.relpath(os.path.join("nupic", "proto"))
+    for protoPath in glob.glob(os.path.relpath(os.path.join(
+        "..", "..", "src", "nupic", "proto", "*.capnp"))):
+      shutil.copy(protoPath, destDir)
+
     print "\nSetup SWIG Python module"
     setup(
       name="nupic.bindings",
@@ -575,6 +581,9 @@ if __name__ == "__main__":
         "Topic :: Scientific/Engineering :: Artificial Intelligence"
       ],
       long_description = "Python bindings for nupic core.",
-      packages=find_packages())
+      packages=find_packages(),
+      package_data={"nupic.proto": ["*.capnp"]},
+      zip_safe=False,
+    )
   finally:
     os.chdir(cwd)
