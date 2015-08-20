@@ -80,7 +80,7 @@ namespace nupic
     // internal state
     static const int stateSize_ = 31;
     static const int sep_ = 3;
-    int state_[stateSize_];
+    UInt32 state_[stateSize_];
     int rptr_;
     int fptr_;
 
@@ -263,11 +263,12 @@ double Random::getReal64()
 
 UInt32 RandomImpl::getUInt32(void)
 {
-  long i;
+  UInt32 i;
 #ifdef RANDOM_SUPERDEBUG
   printf("Random::get *fptr = %ld; *rptr = %ld fptr = %ld rptr = %ld\n", state_[fptr_], state_[rptr_], fptr_, rptr_);
 #endif
-  state_[fptr_] += state_[rptr_];
+  state_[fptr_] = (UInt32)(
+    ((UInt64)state_[fptr_] + (UInt64)state_[rptr_]) % Random::MAX32);
   i = state_[fptr_];
   i = (i >> 1) & 0x7fffffff;	/* chucking least random bit */
   if (++fptr_ >= stateSize_) {
@@ -282,7 +283,7 @@ UInt32 RandomImpl::getUInt32(void)
   }
 #endif
 
-  return((UInt32)i);
+  return i;
 }
 
 
@@ -293,7 +294,7 @@ RandomImpl::RandomImpl(UInt64 seed)
   /**
    * Initialize our state. Taken from BSD source for random()
    */
-  state_[0] = (int)seed;
+  state_[0] = (UInt32)(seed % Random::MAX32);
   for (long i = 1; i < stateSize_; i++) {
     /*
      * Implement the following, without overflowing 31 bits:
@@ -304,7 +305,7 @@ RandomImpl::RandomImpl(UInt64 seed)
      */
     ldiv_t val = ldiv(state_[i-1], 127773);
     long test = 16807 * val.rem - 2836 * val.quot;
-    state_[i] = test + (test < 0 ? 2147483647 : 0);
+    state_[i] = (UInt32)((test + (test < 0 ? 2147483647 : 0)) % Random::MAX32);
   }
   fptr_ = sep_;
   rptr_ = 0;
