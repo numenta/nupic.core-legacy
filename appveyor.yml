@@ -58,6 +58,10 @@ nuget:
 configuration: Release
 
 install:
+  - set PATH="C:\Program Files (x86)\MSBuild\14.0\Bin";%PATH%
+  - set PATH="C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC";%PATH%
+  - echo PATH=%PATH%
+  
   - set REPO_DIR=c:\projects\nupic-core
   - set NUPIC_DEPLOYMENT_BUILD=1
 
@@ -66,8 +70,6 @@ install:
   - mkdir %REPO_DIR%\build\scripts
   - cd %REPO_DIR%\build\scripts
 
-  - set PATH="C:\Program Files (x86)\MSBuild\14.0\Bin";%PATH%
-  - echo PATH=%PATH%
   # https://github.com/ogrisel/python-appveyor-demo/blob/master/appveyor.yml
   # Install Python (from the official .msi of http://python.org) and pip when
   # not already installed.
@@ -119,7 +121,7 @@ build_script:
   - set DISTUTILS_USE_SDK=1
   - set MSSdk=1
   - copy /y %REPO_DIR%\external\windows64\bin\msvc9compiler.py %PYTHON%\Lib\distutils
-  - "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64
+  - vcvarsall amd64
   - python setup.py install --user
 
 test: off
