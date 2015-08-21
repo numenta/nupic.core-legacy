@@ -82,6 +82,9 @@ _ALGORITHMS = _algorithms
 #include <fstream>
 #include <vector>
 
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
+#define CAPNP_LITE 1
+
 #include <nupic/math/Types.hpp>
 #include <nupic/math/Convolution.hpp>
 #include <nupic/math/Rotation.hpp>
@@ -107,10 +110,8 @@ _ALGORITHMS = _algorithms
 
 #include <nupic/proto/SpatialPoolerProto.capnp.h>
 
-#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include <numpy/arrayobject.h>
 #include <nupic/py_support/NumpyVector.hpp>
-#define CAPNP_LITE 1
 #include <nupic/py_support/PyCapnp.hpp>
 #include <nupic/py_support/PythonStream.hpp>
 #include <nupic/py_support/PyHelpers.hpp>
