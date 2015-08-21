@@ -163,9 +163,9 @@ def getPlatformInfo():
   else:
     raise Exception("Platform '%s' is unsupported!" % sys.platform)
 
-  # Python 32-bits doesn't detect Windows 64-bits so the workaround is 
+  # Python 32-bits doesn't detect Windows 64-bits so the workaround is
   # check whether "ProgramFiles (x86)" environment variable exists.
-  is64bits = (sys.maxsize > 2**32 or 
+  is64bits = (sys.maxsize > 2**32 or
      (platform in WINDOWS_PLATFORMS and 'PROGRAMFILES(X86)' in os.environ))
   if is64bits:
     bitness = "64"
@@ -555,7 +555,7 @@ if __name__ == "__main__":
     setup(
       name="nupic.bindings",
       ext_modules=extensions,
-      version="0.1.0",
+      version="0.1.5",
       namespace_packages=["nupic", "nupic.bindings"],
       install_requires=findRequirements(),
       description="Numenta Platform for Intelligent Computing - bindings",
@@ -578,4 +578,3 @@ if __name__ == "__main__":
       packages=find_packages())
   finally:
     os.chdir(cwd)
-
