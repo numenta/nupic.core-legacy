@@ -562,7 +562,7 @@ if __name__ == "__main__":
       name="nupic.bindings",
       ext_modules=extensions,
       version="0.1.5",
-      namespace_packages=["nupic", "nupic.bindings"],
+      namespace_packages=["nupic"],
       install_requires=findRequirements(),
       description="Numenta Platform for Intelligent Computing - bindings",
       author="Numenta",
