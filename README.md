@@ -12,11 +12,12 @@ Important notes:
 
 ### Using command line
 
-#### Configure and generate build files:
+#### Configure and generate C++ build files:
 
     mkdir -p $NUPIC_CORE/build/scripts
     cd $NUPIC_CORE/build/scripts
     cmake $NUPIC_CORE/src [-DCMAKE_INSTALL_PREFIX=../release]
+    export NUPIC_CORE_RELEASE=$NUPIC_CORE/build/release
 
 > **Note**: The `-DCMAKE_INSTALL_PREFIX=../release` option shown above is optional, and specifies the location where `nupic.core` should be installed. If omitted, `nupic.core` will be installed in a system location. Using this option is useful when testing versions of `nupic.core` with `nupic` (see [NuPIC's Dependency on nupic.core](https://github.com/numenta/nupic/wiki/NuPIC's-Dependency-on-nupic.core)).
 
@@ -38,6 +39,31 @@ Important notes:
     cd $NUPIC_CORE/build/scripts
     make tests_cpp_region
     make tests_unit
+
+#### Install nupic.bindings for nupic:
+    cd $NUPIC_CORE
+    export NUPIC_CORE_RELEASE=$NUPIC_CORE/build/release
+    python setup.py install
+
+> **Note**: set `NUPIC_CORE_RELEASE` to the location where `nupic.core` was installed.
+
+If you get a gcc exit code 1, you may consider running this instead:
+
+     CC=clang CXX=clang++ python setup.py install --user
+
+If you are installing on Mac OS X, you must add the instruction `ARCHFLAGS="-arch x86_64"` before the python call:
+
+    ARCHFLAGS="-arch x86_64" python setup.py install
+
+Alternatively, you can use the `develop` command to link to Python source code in place. This is useful if you are changing Python code because you don't need to recompile between changes.
+
+    python setup.py develop
+
+> _Note_: If you get a "permission denied" error when using the setup commands above, you may add the `--user` flag to install to a location in your home directory, which should resolve any permissions issues. Doing this, you may need to add this location to your PATH and PYTHONPATH.
+
+Once it is installed, you can import NuPIC bindings library to your python script using:
+
+    import nupic.bindings
 
 ### Using graphical interface
 
