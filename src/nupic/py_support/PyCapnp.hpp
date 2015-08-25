@@ -29,24 +29,27 @@
 #include <Python.h>
 
 #include <capnp/any.h>
-#include <capnp/dynamic.h>
 #include <capnp/message.h>
+#if !defined(CAPNP_LITE)
+#include <capnp/dynamic.h>
 #include <capnp/schema-parser.h>
+#endif
 
 namespace nupic
 {
-
+#if !defined(CAPNP_LITE)
   struct pycapnp_SchemaParser {
     PyObject_HEAD
-    void *__pyx_vtab;
-     ::capnp::SchemaParser *thisptr;
+      void *__pyx_vtab;
+    ::capnp::SchemaParser *thisptr;
     PyObject *modules_by_id;
   };
+#endif
 
   struct pycapnp_DynamicStructBuilder {
     PyObject_HEAD
-    void *__pyx_vtab;
-     ::capnp::DynamicStruct::Builder thisptr;
+      void *__pyx_vtab;
+    ::capnp::DynamicStruct::Builder thisptr;
     PyObject *_parent;
     int is_root;
     int _is_written;
@@ -55,8 +58,8 @@ namespace nupic
 
   struct pycapnp_DynamicStructReader {
     PyObject_HEAD
-    void *__pyx_vtab;
-     ::capnp::DynamicStruct::Reader thisptr;
+      void *__pyx_vtab;
+    ::capnp::DynamicStruct::Reader thisptr;
     PyObject *_parent;
     int is_root;
     PyObject *_obj_to_pin;
@@ -66,14 +69,16 @@ namespace nupic
   template<class T>
   typename T::Builder getBuilder(PyObject* pyBuilder)
   {
+#if !defined(CAPNP_LITE)
     PyObject* capnpModule = PyImport_AddModule("capnp.lib.capnp");
     PyObject* pySchemaParser = PyObject_GetAttrString(capnpModule,
-                                                      "_global_schema_parser");
+      "_global_schema_parser");
     pycapnp_SchemaParser* schemaParser = (pycapnp_SchemaParser*)pySchemaParser;
     schemaParser->thisptr->loadCompiledTypeAndDependencies<T>();
+#endif
 
     pycapnp_DynamicStructBuilder* dynamicStruct =
-        (pycapnp_DynamicStructBuilder*)pyBuilder;
+      (pycapnp_DynamicStructBuilder*)pyBuilder;
     capnp::DynamicStruct::Builder& builder = dynamicStruct->thisptr;
     typename T::Builder proto = builder.as<T>();
     return proto;
@@ -82,14 +87,16 @@ namespace nupic
   template<class T>
   typename T::Reader getReader(PyObject* pyReader)
   {
+#if !defined(CAPNP_LITE)
     PyObject* capnpModule = PyImport_AddModule("capnp.lib.capnp");
     PyObject* pySchemaParser = PyObject_GetAttrString(capnpModule,
-                                                      "_global_schema_parser");
+      "_global_schema_parser");
     pycapnp_SchemaParser* schemaParser = (pycapnp_SchemaParser*)pySchemaParser;
     schemaParser->thisptr->loadCompiledTypeAndDependencies<T>();
+#endif
 
     pycapnp_DynamicStructReader* dynamicStruct =
-        (pycapnp_DynamicStructReader*)pyReader;
+      (pycapnp_DynamicStructReader*)pyReader;
     capnp::DynamicStruct::Reader& reader = dynamicStruct->thisptr;
     typename T::Reader proto = reader.as<T>();
     return proto;

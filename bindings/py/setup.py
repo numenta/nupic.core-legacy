@@ -295,8 +295,7 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cxxCompiler, cmd
       ("NDEBUG", None),
       ("CAPNP_LITE", "1"),
       ("_VARIADIC_MAX", "10"),
-      ("NOMINMAX", None),
-      ("NTA_DOUBLE_PRECISION", None)])
+      ("NOMINMAX", None)])
   else:
     commonDefines.append(("HAVE_UNISTD_H", None))
   
@@ -361,18 +360,6 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cxxCompiler, cmd
   if platform == "darwin":
     commonCompileFlags.append("-stdlib=libc++")
 
-  commonLinkFlags = [
-    "-m" + bitness,
-    "-fPIC",
-    "-L" + fixPath(nupicCoreReleaseDir + "/lib"),
-    # for Cap'n'Proto serialization
-    "-lkj",
-    "-lcapnp",
-    "-lcapnpc",
-    # optimization (safe defaults)
-    "-O2"
-  ]
-
   # Optimizations
   if getCommandLineOption("debug", cmdOptions):
     commonCompileFlags.append("-Og")
@@ -392,12 +379,10 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cxxCompiler, cmd
 
   commonLibraries = [
     pythonLib,
-    "dl",
     "kj",
-    "capnp",
-    "capnpc"]
+    "capnp"]
   if platform == "linux":
-    commonLibraries.extend(["pthread"])
+    commonLibraries.extend(["capnpc","dl","pthread"])
   elif platform in WINDOWS_PLATFORMS:
     commonLibraries.extend([
       "oldnames",
