@@ -42,7 +42,7 @@ curl -O https://capnproto.org/capnproto-c++-0.5.2.tar.gz
 tar zxf capnproto-c++-0.5.2.tar.gz
 cd capnproto-c++-0.5.2
 ./configure
-make -j6 check
+make
 make install
 
 echo "Installing wheel..."
