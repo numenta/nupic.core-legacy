@@ -298,25 +298,22 @@ find_library(LIB_STATIC_Z_LOC
              NO_DEFAULT_PATH)
 add_library(${LIB_STATIC_Z} STATIC IMPORTED GLOBAL)
 
+#set(LIB_STATIC_KJ kj)
+#find_library(LIB_STATIC_KJ_LOC
+#             ${LIB_STATIC_KJ}
+#             "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/lib/"
+#             NO_DEFAULT_PATH)
+#add_library(${LIB_STATIC_KJ} STATIC IMPORTED GLOBAL)
 #
-# Find and add libkj
-#
-set(LIB_STATIC_KJ kj)
-find_library(LIB_STATIC_KJ_LOC
-             ${LIB_STATIC_KJ}
-             "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/lib/"
-             NO_DEFAULT_PATH)
-add_library(${LIB_STATIC_KJ} STATIC IMPORTED GLOBAL)
-
-#
-# Find and add libcapnp
-#
-set(LIB_STATIC_CAPNP capnp)
-find_library(LIB_STATIC_CAPNP_LOC
-             ${LIB_STATIC_CAPNP}
-             "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/lib/"
-             NO_DEFAULT_PATH)
-add_library(${LIB_STATIC_CAPNP} STATIC IMPORTED GLOBAL)
+##
+## Find and add libcapnp
+##
+#set(LIB_STATIC_CAPNP capnp)
+#find_library(LIB_STATIC_CAPNP_LOC
+#             ${LIB_STATIC_CAPNP}
+#             "${REPOSITORY_DIR}/external/common/src/"
+#             NO_DEFAULT_PATH)
+#add_library(${LIB_STATIC_CAPNP} STATIC IMPORTED GLOBAL)
 
 #
 # Setup for python
@@ -325,11 +322,13 @@ find_package(PythonLibs REQUIRED)
 include_directories(${PYTHON_INCLUDE_DIRS})
 
 #
-# Generate Cap'n Proto C++ files
+# Find and add capnp and kj and generate Cap'n Proto C++ files
 #
 set(CAPNPC_OUTPUT_DIR ${CMAKE_BINARY_DIR})
 find_package(CapnProto REQUIRED)
 include_directories(${CAPNP_INCLUDE_DIRS})
+add_definitions(${CAPNP_DEFINITIONS})
+
 # List all .capnp files here. The C++ files will be generated and included
 # when compiling later on.
 set(CAPNP_SPECS
@@ -366,8 +365,7 @@ set (PY_SUPPORT_FILES
 set(LIB_STATIC_NUPICCORE nupic_core_solo)
 
 set(COMMON_LIBS ${LIB_STATIC_NUPICCORE}
-                ${LIB_STATIC_KJ_LOC}
-                ${LIB_STATIC_CAPNP_LOC})
+                ${CAPNP_LIBRARIES})
 
 
 if("${PLATFORM}" STREQUAL "linux")
@@ -455,8 +453,7 @@ target_link_libraries(${LIB_STATIC_NUPICCORE}
                       ${LIB_STATIC_APR1_LOC}
                       ${LIB_STATIC_APRUTIL1_LOC}
                       ${LIB_STATIC_Z_LOC}
-                      ${LIB_STATIC_KJ_LOC}
-                      ${LIB_STATIC_CAPNP_LOC}
+                      ${CAPNP_LIBRARIES}
                       ${PYTHON_LIBRARIES})
 set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES COMPILE_FLAGS "${COMMON_COMPILE_FLAGS} -I${NUMPY_CORE}/include")
 set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS} -static")
@@ -667,8 +664,6 @@ if(UNIX)
                     COMMAND ${CMAKE_AR} -x ${LIB_STATIC_APRUTIL1_LOC}
                     COMMAND ${CMAKE_AR} -x ${LIB_STATIC_APR1_LOC}
                     COMMAND ${CMAKE_AR} -x ${LIB_STATIC_Z_LOC}
-                    COMMAND ${CMAKE_AR} -x ${LIB_STATIC_KJ_LOC}
-                    COMMAND ${CMAKE_AR} -x ${LIB_STATIC_CAPNP_LOC}
                     COMMAND ${CMAKE_AR} rcs libnupic_core.a *.o
                     DEPENDS ${LIB_STATIC_NUPICCORE}
                             ${LIB_STATIC_GTEST}
