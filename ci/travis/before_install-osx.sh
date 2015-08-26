@@ -37,8 +37,8 @@ echo "Installing Cap'n Proto..."
 curl -O https://capnproto.org/capnproto-c++-0.5.2.tar.gz
 tar zxf capnproto-c++-0.5.2.tar.gz
 cd capnproto-c++-0.5.2
-./configure
-make
+./configure --prefix=${TRAVIS_BUILD_DIR}
+make check
 make install
 
 echo "Installing wheel..."
