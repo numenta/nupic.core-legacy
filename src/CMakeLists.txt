@@ -298,23 +298,6 @@ find_library(LIB_STATIC_Z_LOC
              NO_DEFAULT_PATH)
 add_library(${LIB_STATIC_Z} STATIC IMPORTED GLOBAL)
 
-#set(LIB_STATIC_KJ kj)
-#find_library(LIB_STATIC_KJ_LOC
-#             ${LIB_STATIC_KJ}
-#             "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/lib/"
-#             NO_DEFAULT_PATH)
-#add_library(${LIB_STATIC_KJ} STATIC IMPORTED GLOBAL)
-#
-##
-## Find and add libcapnp
-##
-#set(LIB_STATIC_CAPNP capnp)
-#find_library(LIB_STATIC_CAPNP_LOC
-#             ${LIB_STATIC_CAPNP}
-#             "${REPOSITORY_DIR}/external/common/src/"
-#             NO_DEFAULT_PATH)
-#add_library(${LIB_STATIC_CAPNP} STATIC IMPORTED GLOBAL)
-
 #
 # Setup for python
 #
