@@ -1,0 +1,11 @@
+prefix=/home/mmm/devel/nupic/nupic.core/external/common
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: Cap'n Proto RPC
+Description: Fast object-oriented RPC system
+Version: 0.5.2
+Libs: -L${libdir} -lcapnp-rpc -lkj-async
+Requires: capnp = 0.5.2
+Cflags: -I${includedir}
