@@ -5,6 +5,7 @@ This repository contains the C++ source code for the Numenta Platform for Intell
 ## Build and test NuPIC Core:
 
 Important notes:
+
  * For developers (contributing to NuPIC Core) please follow the [Development Workflow](https://github.com/numenta/nupic.core/wiki/Development-Workflow) steps.
  * `$NUPIC_CORE` is the current location of the repository that you downloaded from GitHub.
  * Platform specific Readme.md text files exist in some `external/` subdirectories
@@ -16,22 +17,20 @@ Important notes:
 
     mkdir -p $NUPIC_CORE/build/scripts
     cd $NUPIC_CORE/build/scripts
-    cmake $NUPIC_CORE/src [-DCMAKE_INSTALL_PREFIX=../release]
-    export NUPIC_CORE_RELEASE=$NUPIC_CORE/build/release
+    cmake $NUPIC_CORE/src -DCMAKE_INSTALL_PREFIX=../release
 
 > **Note**: The `-DCMAKE_INSTALL_PREFIX=../release` option shown above is optional, and specifies the location where `nupic.core` should be installed. If omitted, `nupic.core` will be installed in a system location. Using this option is useful when testing versions of `nupic.core` with `nupic` (see [NuPIC's Dependency on nupic.core](https://github.com/numenta/nupic/wiki/NuPIC's-Dependency-on-nupic.core)).
 
 #### Build:
 
-    cd $NUPIC_CORE/build/scripts
-    # optionally start a fresh build
-    make clean
+    # While still in $NUPIC_CORE/build/scripts
     make -j3
     
 > **Note**: The `-j3` option specifies '3' as the maximum number of parallel jobs/threads that Make will use during the build in order to gain speed. However, you can increase this number depending your CPU.
 
 #### Install:
 
+    # While still in $NUPIC_CORE/build/scripts
     make install
 
 #### Run the tests:
@@ -41,11 +40,11 @@ Important notes:
     make tests_unit
 
 #### Install nupic.bindings for nupic:
-    cd $NUPIC_CORE
-    export NUPIC_CORE_RELEASE=$NUPIC_CORE/build/release
-    python setup.py install
 
-> **Note**: set `NUPIC_CORE_RELEASE` to the location where `nupic.core` was installed.
+    cd $NUPIC_CORE
+    python setup.py install --nupic-core-dir=$NUPIC_CORE/build/release
+
+> **Note**: set `--nupic-core-dir` to the location where `nupic.core` was installed.
 
 If you get a gcc exit code 1, you may consider running this instead:
 
