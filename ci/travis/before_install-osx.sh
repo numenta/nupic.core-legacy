@@ -45,4 +45,5 @@ popd
 echo "Installing wheel..."
 pip install wheel --user || exit
 echo "Installing Python dependencies"
+pip install --user pycapnp==0.5.5 --install-option="--force-system-libcapnp"
 pip install --use-wheel --user -r bindings/py/requirements.txt || exit
