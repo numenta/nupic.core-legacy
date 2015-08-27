@@ -36,10 +36,11 @@ fi
 echo "Installing Cap'n Proto..."
 curl -O https://capnproto.org/capnproto-c++-0.5.2.tar.gz
 tar zxf capnproto-c++-0.5.2.tar.gz
-cd capnproto-c++-0.5.2
+pushd capnproto-c++-0.5.2
 ./configure --prefix=${TRAVIS_BUILD_DIR}
 make
 make install
+popd
 
 echo "Installing wheel..."
 pip install wheel --user || exit
