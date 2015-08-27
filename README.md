@@ -20,7 +20,7 @@ Important notes:
 - [NumPy](http://www.numpy.org/) - Can be installed through some system package managers or via [pip](https://pip.pypa.io/)
     - Version 1.9.2
 - [pycapnp](http://jparyani.github.io/pycapnp/)
-    - Version 0.5.5
+    - Version 0.5.7
 - [CMake](http://www.cmake.org/)
 - [Cap'n Proto](https://capnproto.org/)
     - Version 0.5.2

@@ -16,6 +16,7 @@ addons:
       - ubuntu-toolchain-r-test
     packages:
       # install gcc-4.8 for C++11 compatibility, #TODO remove when Travis has gcc>=4.8, (it's used for clang too, in coveralls)
+      - gcc-4.8
       - g++-4.8
       - cmake
       - cmake-data
@@ -28,10 +29,11 @@ addons:
 env:
   global:
     - NUPICCORE = ${TRAVIS_BUILD_DIR}
-    - PATH=${TRAVIS_BUILD_DIR}/bin:${TRAVIS_BUILD_DIR}/python/bin:$PATH
-    - CPPFLAGS=-I${TRAVIS_BUILD_DIR}/include
-    - LDFLAGS=-L${TRAVIS_BUILD_DIR}/lib
-    - LD_LIBRARY_PATH=${TRAVIS_BUILD_DIR}/lib:$LD_LIBRARY_PATH
+    - PATH=${HOME}/.local/bin:${TRAVIS_BUILD_DIR}/python/bin:$PATH
+    - CPPFLAGS=-I${HOME}/.local/include
+    - LDFLAGS=-L${HOME}/.local/lib
+    - LD_LIBRARY_PATH=${HOME}/.local/lib:$LD_LIBRARY_PATH
+    - LD_RUN_PATH=${HOME}/.local/lib:$LD_RUN_PATH
     - PLATFORM=${TRAVIS_OS_NAME}
     - ARCHFLAGS="-arch x86_64"
     # AWS keys are for manual uploads of linux wheel to S3.
