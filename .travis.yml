@@ -29,11 +29,9 @@ addons:
 env:
   global:
     - NUPICCORE = ${TRAVIS_BUILD_DIR}
-    - PATH=${HOME}/.local/bin:${TRAVIS_BUILD_DIR}/python/bin:$PATH
-    - CPPFLAGS=-I${HOME}/.local/include
-    - LDFLAGS=-L${HOME}/.local/lib
-    - LD_LIBRARY_PATH=${HOME}/.local/lib:$LD_LIBRARY_PATH
-    - LD_RUN_PATH=${HOME}/.local/lib:$LD_RUN_PATH
+    - PATH=${TRAVIS_BUILD_DIR}/python/bin:$PATH
+    - CPPFLAGS=-I${TRAVIS_BUILD_DIR}/include
+    - LDFLAGS=-L${TRAVIS_BUILD_DIR}/lib
     - PLATFORM=${TRAVIS_OS_NAME}
     - ARCHFLAGS="-arch x86_64"
     # AWS keys are for manual uploads of linux wheel to S3.
@@ -102,7 +100,7 @@ install:
   - "cd $TRAVIS_BUILD_DIR/build/scripts"
   - "mkdir -p $TRAVIS_BUILD_DIR/build/release"
   # Enable test coverage for travis-ci build
-  - "cmake $TRAVIS_BUILD_DIR/src -DNTA_COV_ENABLED=ON -DCMAKE_INSTALL_PREFIX=${TRAVIS_BUILD_DIR}/build/release"
+  - "cmake $TRAVIS_BUILD_DIR/src -DNTA_COV_ENABLED=ON -DCMAKE_INSTALL_PREFIX=${TRAVIS_BUILD_DIR}/build/release -DCMAKE_PREFIX_PATH=${TRAVIS_BUILD_DIR}"
   - "make -j3"
   - "make install"
   - "cd $TRAVIS_BUILD_DIR"

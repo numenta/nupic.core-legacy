@@ -218,7 +218,8 @@ endif()
 #
 # Let CMake know where all of the external files are.
 #
-set(CMAKE_PREFIX_PATH ${REPOSITORY_DIR}/external/common/
+set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH}
+                      ${REPOSITORY_DIR}/external/common/
                       ${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/
                       ${NUMPY_CORE}/)
 #
