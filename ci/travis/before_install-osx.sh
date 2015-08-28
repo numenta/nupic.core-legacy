@@ -30,10 +30,23 @@ if [ $CC = 'gcc' ]; then
 fi
 
 if [ $CC = 'clang' ]; then
+    export CC='clang'
     export CXX='clang++'
 fi
 
+export PATH=$HOME/Library/Python/2.7/bin:$PATH
+export PYTHONPATH=$HOME/Library/Python/2.7/lib/python/site-packages:$PYTHONPATH
+
 echo "Installing wheel..."
 pip install wheel --user || exit
-echo "Installing numpy..."
-pip install --use-wheel numpy==1.9.2 --user || exit
+echo "Installing Python dependencies"
+pip install --use-wheel --user -r bindings/py/requirements.txt || exit
+
+echo "Installing Cap'n Proto..."
+curl -O https://capnproto.org/capnproto-c++-0.5.2.tar.gz
+tar zxf capnproto-c++-0.5.2.tar.gz
+pushd capnproto-c++-0.5.2
+./configure --prefix=${TRAVIS_BUILD_DIR}
+make
+make install
+popd

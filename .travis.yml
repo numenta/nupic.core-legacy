@@ -16,6 +16,7 @@ addons:
       - ubuntu-toolchain-r-test
     packages:
       # install gcc-4.8 for C++11 compatibility, #TODO remove when Travis has gcc>=4.8, (it's used for clang too, in coveralls)
+      - gcc-4.8
       - g++-4.8
       - cmake
       - cmake-data
@@ -29,6 +30,8 @@ env:
   global:
     - NUPICCORE = ${TRAVIS_BUILD_DIR}
     - PATH=${TRAVIS_BUILD_DIR}/python/bin:$PATH
+    - CPPFLAGS=-I${TRAVIS_BUILD_DIR}/include
+    - LDFLAGS=-L${TRAVIS_BUILD_DIR}/lib
     - PLATFORM=${TRAVIS_OS_NAME}
     - ARCHFLAGS="-arch x86_64"
     # AWS keys are for manual uploads of linux wheel to S3.
@@ -97,7 +100,7 @@ install:
   - "cd $TRAVIS_BUILD_DIR/build/scripts"
   - "mkdir -p $TRAVIS_BUILD_DIR/build/release"
   # Enable test coverage for travis-ci build
-  - "cmake $TRAVIS_BUILD_DIR/src -DNTA_COV_ENABLED=ON -DCMAKE_INSTALL_PREFIX=${TRAVIS_BUILD_DIR}/build/release"
+  - "cmake $TRAVIS_BUILD_DIR/src -DNTA_COV_ENABLED=ON -DCMAKE_INSTALL_PREFIX=${TRAVIS_BUILD_DIR}/build/release -DCMAKE_PREFIX_PATH=${TRAVIS_BUILD_DIR}"
   - "make -j3"
   - "make install"
   - "cd $TRAVIS_BUILD_DIR"
@@ -109,6 +112,8 @@ script:
   - "make tests_cpp_region"
   # unit tests
   - "make tests_unit"
+  # run python tests
+  - "py.test $TRAVIS_BUILD_DIR/bindings/py/nupic/bindings/tests"
   # output unit tests report
   - "cd $TRAVIS_BUILD_DIR/build/artifacts/"
   # transform the JUnit-style xml report to html

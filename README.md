@@ -13,6 +13,22 @@ Important notes:
 
 ### Using command line
 
+#### Install Dependencies
+
+- Python - We recommend you use the system version where possibly.
+    - Version 2.7
+- [NumPy](http://www.numpy.org/) - Can be installed through some system package managers or via [pip](https://pip.pypa.io/)
+    - Version 1.9.2
+- [pycapnp](http://jparyani.github.io/pycapnp/)
+    - Version 0.5.5
+- [CMake](http://www.cmake.org/)
+- [Cap'n Proto](https://capnproto.org/)
+    - Version 0.5.2
+
+The Python depedencies (NumPy and pycapnp) can be installed with `pip`:
+
+    pip install -r bindings/py/requirements.txt
+
 #### Configure and generate C++ build files:
 
     mkdir -p $NUPIC_CORE/build/scripts
