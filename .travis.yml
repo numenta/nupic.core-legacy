@@ -112,6 +112,8 @@ script:
   - "make tests_cpp_region"
   # unit tests
   - "make tests_unit"
+  # run python tests
+  - "py.test $TRAVIS_BUILD_DIR/bindings/py/nupic/bindings/tests"
   # output unit tests report
   - "cd $TRAVIS_BUILD_DIR/build/artifacts/"
   # transform the JUnit-style xml report to html
