@@ -309,6 +309,9 @@ include_directories(${PYTHON_INCLUDE_DIRS})
 # Find and add capnp and kj and generate Cap'n Proto C++ files
 #
 set(CAPNPC_OUTPUT_DIR ${CMAKE_BINARY_DIR})
+set(CAPNPC_IMPORT_DIRS
+    ${CAPNPC_IMPORT_DIRS}
+    ${REPOSITORY_DIR}/src)
 find_package(CapnProto REQUIRED)
 include_directories(${CAPNP_INCLUDE_DIRS})
 add_definitions(${CAPNP_DEFINITIONS})
