@@ -53,7 +53,7 @@ echo "Installing Cap'n Proto..."
 curl -O https://capnproto.org/capnproto-c++-0.5.2.tar.gz
 tar zxf capnproto-c++-0.5.2.tar.gz
 pushd capnproto-c++-0.5.2
-./configure --prefix=${TRAVIS_BUILD_DIR}
+./configure --prefix=${TRAVIS_BUILD_DIR} --disable-shared
 make
 make install
 popd
