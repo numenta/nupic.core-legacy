@@ -34,6 +34,9 @@ if [ $CC = 'clang' ]; then
     export CXX='clang++'
 fi
 
+export PATH=$HOME/Library/Python/2.7/bin:$PATH
+export PYTHONPATH=$HOME/Library/Python/2.7/lib/python/site-packages:$PYTHONPATH
+
 echo "Installing wheel..."
 pip install wheel --user || exit
 echo "Installing Python dependencies"
