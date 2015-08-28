@@ -303,14 +303,17 @@ add_library(${LIB_STATIC_Z} STATIC IMPORTED GLOBAL)
 # Setup for python
 #
 find_package(PythonLibs REQUIRED)
-include_directories(${PYTHON_INCLUDE_DIRS})
+include_directories(SYSTEM ${PYTHON_INCLUDE_DIRS})
 
 #
 # Find and add capnp and kj and generate Cap'n Proto C++ files
 #
 set(CAPNPC_OUTPUT_DIR ${CMAKE_BINARY_DIR})
+set(CAPNPC_IMPORT_DIRS
+    ${CAPNPC_IMPORT_DIRS}
+    ${REPOSITORY_DIR}/src)
 find_package(CapnProto REQUIRED)
-include_directories(${CAPNP_INCLUDE_DIRS})
+include_directories(SYSTEM ${CAPNP_INCLUDE_DIRS})
 add_definitions(${CAPNP_DEFINITIONS})
 
 # List all .capnp files here. The C++ files will be generated and included
