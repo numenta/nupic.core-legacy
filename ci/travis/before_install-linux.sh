@@ -47,7 +47,7 @@ pip install --ignore-installed --user pip
 echo "Installing wheel..."
 pip install wheel --user || exit
 echo "Installing Python dependencies"
-pip install --use-wheel --user -r bindings/py/requirements.txt || exit
+pip install --use-wheel --user -r bindings/py/requirements.txt --quiet || exit
 
 echo "Installing Cap'n Proto..."
 curl -O https://capnproto.org/capnproto-c++-0.5.2.tar.gz
