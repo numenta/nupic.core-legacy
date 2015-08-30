@@ -5,15 +5,15 @@
  * following terms and conditions apply:
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 3 as
+ * it under the terms of the GNU Affero Public License version 3 as
  * published by the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * See the GNU General Public License for more details.
+ * See the GNU Affero Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
+ * You should have received a copy of the GNU Affero Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
  *
  * http://numenta.org/licenses/
@@ -24,7 +24,6 @@
  * @file
  */
 
-#include <unistd.h>
 #include "OSTest.hpp"
 #include <nupic/os/Env.hpp>
 #include <nupic/os/Path.hpp>
@@ -39,7 +38,7 @@ OSTest::~OSTest() {};
 
 void OSTest::RunTests()
 {
-#ifdef NTA_PLATFORM_win32
+#if defined(NTA_OS_WINDOWS)
 
 #else
   // save the parts of the environment we'll be changing
@@ -70,7 +69,7 @@ void OSTest::RunTests()
 
   // Test getUserName()
   {
-#ifdef NTA_PLATFORM_win32
+#if defined(NTA_OS_WINDOWS)
     Env::set("USERNAME", "123");
     TEST(OS::getUserName() == "123");    
 #else
@@ -95,7 +94,7 @@ void OSTest::RunTests()
 
   // Test getStackTrace()
   {
-#ifdef NTA_PLATFORM_win32
+#if defined(NTA_OS_WINDOWS)
 //    std::string stackTrace = OS::getStackTrace();
 //    TEST(!stackTrace.empty());  
 //

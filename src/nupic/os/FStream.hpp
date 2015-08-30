@@ -5,15 +5,15 @@
  * following terms and conditions apply:
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 3 as
+ * it under the terms of the GNU Affero Public License version 3 as
  * published by the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * See the GNU General Public License for more details.
+ * See the GNU Affero Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
+ * You should have received a copy of the GNU Affero Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
  *
  * http://numenta.org/licenses/
@@ -24,9 +24,9 @@
  * Definitions for the FStream classes
  * 
  * These classes are versions of ifstream and ofstream that accept platform independent
- * (i.e. win32 or unix) utf-8 path specifiers for their constructor and open() methods.
+ * (i.e. windows or unix) utf-8 path specifiers for their constructor and open() methods.
  *
- * The native ifstream and ofstream classes on unix already accept UTF-8, but on win32,
+ * The native ifstream and ofstream classes on unix already accept UTF-8, but on windows,
  * we must convert the utf-8 path to unicode and then pass it to the 'w' version of
  * ifstream or ofstream
  */

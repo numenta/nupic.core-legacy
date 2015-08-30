@@ -5,15 +5,15 @@
  * following terms and conditions apply:
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 3 as
+ * it under the terms of the GNU Affero Public License version 3 as
  * published by the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * See the GNU General Public License for more details.
+ * See the GNU Affero Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
+ * You should have received a copy of the GNU Affero Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
  *
  * http://numenta.org/licenses/
@@ -25,9 +25,11 @@
 
 #include <nupic/os/Regex.hpp>
 #include <nupic/utils/Log.hpp>
-#ifdef NTA_PLATFORM_win32
-  #include <pcre/pcreposix.h>
+#if defined(NTA_OS_WINDOWS)
+  // TODO: See https://github.com/numenta/nupic.core/issues/128
+  #include <regex>
 #else
+  //https://gcc.gnu.org/bugzilla/show_bug.cgi?id=53631
   #include <regex.h>
 #endif
 
@@ -46,7 +48,14 @@ namespace nupic
       exactRegExp += re;
       if (re[re.length()-1] != '$') 
         exactRegExp += '$';
-      
+
+#if defined(NTA_OS_WINDOWS)
+      std::regex r(exactRegExp, std::regex::extended | std::regex::nosubs);
+      if (std::regex_match(text, r))
+        return true;
+
+      return false;
+#else
       regex_t r;
       int res = ::regcomp(&r, exactRegExp.c_str(), REG_EXTENDED|REG_NOSUB);
       NTA_CHECK(res == 0) 
@@ -55,7 +64,9 @@ namespace nupic
         
       res = regexec(&r, text.c_str(), (size_t) 0, nullptr, 0);
       ::regfree(&r);
+
       return res == 0; 
+#endif
     }
   }
 }

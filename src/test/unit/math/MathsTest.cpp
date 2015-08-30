@@ -5,15 +5,15 @@
  * following terms and conditions apply:
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 3 as
+ * it under the terms of the GNU Affero Public License version 3 as
  * published by the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * See the GNU General Public License for more details.
+ * See the GNU Affero Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
+ * You should have received a copy of the GNU Affero Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
  *
  * http://numenta.org/licenses/
@@ -223,7 +223,7 @@ namespace nupic {
 //      vector<Real> v1(3);
 //      v1[0] = 1.0; v1[1] = numeric_limits<Real>::infinity(); v1[2] = 3.0;
 //      stringstream s, answer;
-//#ifdef NTA_PLATFORM_win32
+//#if defined(NTA_OS_WINDOWS)
 //      answer << "3 1 1.#INF 3 ";
 //#else
 //      answer << "3 1 inf 3 ";
@@ -237,7 +237,7 @@ namespace nupic {
 //      vector<Real> v1(3);
 //      v1[0] = 1.0; v1[1] = numeric_limits<Real>::quiet_NaN(); v1[2] = 3.0;
 //      stringstream s, answer;
-//#ifdef NTA_PLATFORM_win32
+//#if defined(NTA_OS_WINDOWS)
 //      answer << "3 1 1.#QNAN 3 ";
 //#else
 //      answer << "3 1 nan 3 ";
@@ -251,7 +251,7 @@ namespace nupic {
 //      vector<Real> v1(3);
 //      v1[0] = 1.0; v1[1] = numeric_limits<Real>::signaling_NaN(); v1[2] = 3.0;
 //      stringstream s, answer;
-//#ifdef NTA_PLATFORM_win32
+//#if defined(NTA_OS_WINDOWS)
 //      answer << "3 1 1.#QNAN 3 ";
 //#else
 //      answer << "3 1 nan 3 ";

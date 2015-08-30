@@ -1,9 +1,9 @@
 @0xaf55f2dcb92e4304;
 
 # TODO: Use absolute path
-using import "SparseBinaryMatrixProto.capnp".SparseBinaryMatrixProto;
-using import "SparseMatrixProto.capnp".SparseMatrixProto;
-using import "RandomProto.capnp".RandomProto;
+using import "/nupic/proto/SparseBinaryMatrixProto.capnp".SparseBinaryMatrixProto;
+using import "/nupic/proto/SparseMatrixProto.capnp".SparseMatrixProto;
+using import "/nupic/proto/RandomProto.capnp".RandomProto;
 
 # Next ID: 37
 struct SpatialPoolerProto {

@@ -1,0 +1,161 @@
+#---------------------------------#
+#      general configuration      #
+#---------------------------------#
+
+# version format
+version: 0.3.0.{build}
+
+branches:
+  only:
+    - master
+
+  except:
+    - gh-pages
+
+environment:
+  matrix:
+    # Must add CLang, or GCC
+    # i.e. - COMPILER_FAMILY: GNU
+    - COMPILER_FAMILY: MSVC
+      DEPLOY_TO_NUGET: 0
+      DEPLOY_BUILD: 0
+      PYTHON: "C:\\Python27"
+      PYTHON_VERSION: "2.7.x" # currently 2.7.9
+      PYTHON_ARCH: "32"
+
+skip_commits:
+  # Add [av skip] to commit messages to skip AppVeyor building
+  # Add [ci skip] to skip Travis and AppVeyor building
+  message: /\[av skip\]/ 
+
+#---------------------------------#
+#    environment configuration    #
+#---------------------------------#
+
+# Operating system (build VM template)
+os: Visual Studio 2015 CTP
+
+init:
+  - git config --global core.autocrlf input
+
+clone_folder: c:\projects\nupic-core
+clone_depth: 50
+# Can't have a shallow clone because the CMake process will be calling into
+# git to write the current SHA into the binaries.
+shallow_clone: false
+
+#---------------------------------#
+#       build configuration       #
+#---------------------------------#
+
+nuget:
+  account_feed: true
+  project_feed: true
+  disable_publish_on_pr: true     # disable publishing of .nupkg artifacts to
+                                  # account/project feeds for pull request builds
+
+configuration: Release
+
+install:
+  - set REPO_DIR=c:\projects\nupic-core
+  - set NUPIC_DEPLOYMENT_BUILD=1
+
+  - mkdir %REPO_DIR%\build\
+  - mkdir %REPO_DIR%\build\release
+  - mkdir %REPO_DIR%\build\scripts
+  - cd %REPO_DIR%\build\scripts
+
+  # Need at least version 3.1.0 for the VS 2015 generator
+  - ps: Start-FileDownload 'http://www.cmake.org/files/v3.1/cmake-3.1.0-win32-x86.zip'
+  - ps: Write-Host '7z x cmake-3.1.0-win32-x86.zip'
+  - ps: Start-Process -FilePath "7z" -ArgumentList "x -y cmake-3.1.0-win32-x86.zip" -Wait -Passthru
+  - set PATH="%REPO_DIR%\build\scripts\cmake-3.1.0-win32-x86\bin";%PATH%
+  - set PATH="C:\Program Files (x86)\MSBuild\14.0\Bin";%PATH%
+  # https://github.com/ogrisel/python-appveyor-demo/blob/master/appveyor.yml
+  # Install Python (from the official .msi of http://python.org) and pip when
+  # not already installed.
+  - "powershell %REPO_DIR%\\ci\\appveyor\\install_python_pip.ps1"
+
+  - cd %REPO_DIR%\build\scripts
+  - set EXT_LIBS=%REPO_DIR%\external\windows64\lib
+  - cmake %REPO_DIR%\src
+     -G "Visual Studio 14 2015 Win64" -Wno-dev
+     -DCMAKE_BUILD_TYPE=Release 
+     -DCMAKE_INSTALL_PREFIX=%REPO_DIR%\build\Release
+     -DLIB_STATIC_APR1_LOC=%EXT_LIBS%\apr-1.lib
+     -DLIB_STATIC_APRUTIL1_LOC=%EXT_LIBS%\aprutil-1.lib
+     -DLIB_STATIC_YAML_CPP_LOC=%EXT_LIBS%\yaml-cpp.lib
+     -DLIB_STATIC_YAML_LOC=%EXT_LIBS%\yaml.lib
+     -DLIB_STATIC_Z_LOC=%EXT_LIBS%\z.lib
+     -DLIB_STATIC_CAPNP_LOC=%EXT_LIBS%\capnp.lib
+     -DLIB_STATIC_KJ_LOC=%EXT_LIBS%\kj.lib
+
+build_script:
+  - cd %REPO_DIR%\build\scripts
+
+  - ps: >-
+      $root = $env:APPVEYOR_BUILD_FOLDER
+
+      $versionStr = $env:APPVEYOR_BUILD_VERSION
+
+      Write-Host $root
+
+      Write-Host "Setting Package.nuspec version tag to $versionStr"
+
+      $content = (Get-Content $root\Package.nuspec) 
+
+      $content = $content -replace '\$version\$',$versionStr
+
+      $content | Out-File $root\Package.nuspec
+
+  - set MSBuildLogger="C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+  - set MSBuildOptions=/v:m /p:Configuration=Release /logger:%MSBuildLogger%
+
+  - msbuild %MSBuildOptions% nupic_core.sln
+  - set MSBuildOptions=/v:q /p:Configuration=Release /logger:%MSBuildLogger%
+  - msbuild %MSBuildOptions% INSTALL.vcxproj
+  - cd %REPO_DIR%
+  - set INCLUDE='C:\Program Files (x86)\MSBuild\14.0\Include';%INCLUDE%
+  - python setup.py install --user --nupic-core-dir=%REPO_DIR%\build\Release
+
+test: off
+
+after_build:
+  - cd %REPO_DIR%\build\Release
+  - set PROJECT_BUILD_ARTIFACTS_DIR=%REPO_DIR%\build\artifacts
+
+  - ps: >-
+      if($env:DEPLOY_TO_NUGET -eq 1) {
+        copy $env:REPO_DIR\Package.nuspec .
+
+        nuget pack -version $env:APPVEYOR_BUILD_VERSION
+
+        nuget push *.nupkg 30618afb-ecf6-4476-8e61-a5b823ad9892
+        # NOTE: Push to nuget is here, rather than normal AV deployment
+
+      }
+
+      # This packages via CMakeList CPack settings (Tar.Gzip for SW upload)
+      # msbuild $env:MSBuildOptions PACKAGE.vcxproj
+
+      7z a -ttar -y -bd nupic_core-$env:APPVEYOR_REPO_COMMIT-windows64.tar . | findstr /b /c:"Everything is Ok" /c:"Scanning" /c:"Creating archive"
+
+      7z a -tgzip -y -bd ..\..\nupic_core-$env:APPVEYOR_REPO_COMMIT-windows64.tar.gz nupic_core-$env:APPVEYOR_REPO_COMMIT-windows64.tar
+
+artifacts:
+  - path: '**\*.tar.gz' # find all Gz(ip) packages recursively
+
+deploy:
+  # Amazon S3 deployment provider settings
+  - provider: S3
+    access_key_id:
+      secure: /9U0mCHp3k1U8Y5CY/kDqwCKG2gqchG/T/UlVWo8SME=
+    secret_access_key:
+      secure: /8wO17Gir0XAiecJkHeE3jxOJzvyl0+uWcl7BKCuN0FC795golsL8905VmNuRl1o
+    bucket: "artifacts.numenta.org"
+    region: us-west-2
+    set_public: true
+    artifact: "nupic_core-$(APPVEYOR_REPO_COMMIT)-windows64.tar.gz"
+    folder: "numenta/nupic.core"
+    on:
+      branch: master

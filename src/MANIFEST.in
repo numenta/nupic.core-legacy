@@ -1,0 +1,3 @@
+recursive-include nupic/bindings *.hpp *.cpp *.i
+
+recursive-include nupic/bindings/proto *.capnp

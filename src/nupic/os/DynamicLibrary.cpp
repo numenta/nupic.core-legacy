@@ -5,15 +5,15 @@
  * following terms and conditions apply:
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 3 as
+ * it under the terms of the GNU Affero Public License version 3 as
  * published by the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * See the GNU General Public License for more details.
+ * See the GNU Affero Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
+ * You should have received a copy of the GNU Affero Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
  *
  * http://numenta.org/licenses/
@@ -40,7 +40,7 @@ namespace nupic
 
   DynamicLibrary::~DynamicLibrary()
   {
-    #ifdef NTA_PLATFORM_win32
+    #if defined(NTA_OS_WINDOWS)
       ::FreeLibrary((HMODULE)handle_);
     #else
       ::dlclose(handle_);
@@ -49,7 +49,7 @@ namespace nupic
 
   DynamicLibrary * DynamicLibrary::load(const std::string & name, std::string &errorString)
   {
-    #ifdef NTA_PLATFORM_win32
+    #if defined(NTA_OS_WINDOWS)
       return load(name, 0, errorString);
     #else
       // LOCAL/NOW make more sense. In NuPIC 2 we currently need GLOBAL/LAZY
@@ -75,7 +75,7 @@ namespace nupic
     
     void * handle = nullptr;
   
-    #ifdef NTA_PLATFORM_win32
+    #if defined(NTA_OS_WINDOWS)
       mode; // ignore on Windows
       handle = ::LoadLibraryA(name.c_str());
       if (handle == NULL)
@@ -109,8 +109,8 @@ namespace nupic
 
   void * DynamicLibrary::getSymbol(const std::string & symbol)
   {    
-    #ifdef NTA_PLATFORM_win32
-      return ::GetProcAddress((HMODULE)handle_, symbol.c_str());
+    #if defined(NTA_OS_WINDOWS)
+      return (void*)::GetProcAddress((HMODULE)handle_, symbol.c_str());
     #else
       return ::dlsym(handle_, symbol.c_str());
     #endif

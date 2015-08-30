@@ -5,15 +5,15 @@
  * following terms and conditions apply:
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 3 as
+ * it under the terms of the GNU Affero Public License version 3 as
  * published by the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * See the GNU General Public License for more details.
+ * See the GNU Affero Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
+ * You should have received a copy of the GNU Affero Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
  *
  * http://numenta.org/licenses/
@@ -86,9 +86,14 @@ namespace nupic
   typedef NTA_Real64          Real64;
 
   /**
-   * Represents a opaque handle/pointer, same as `void *`
+   * Represents an opaque handle/pointer, same as `void *`
    */
   typedef NTA_Handle          Handle;
+
+  /**
+  * Represents an opaque pointer, same as `uintptr_t`
+  */
+  typedef NTA_UIntPtr         UIntPtr;
 
   /**
    * @}
@@ -127,7 +132,7 @@ namespace nupic
   /**
    * Represents lengths of arrays, strings and so on.
    */
-  typedef NTA_Size            Size;
+  typedef NTA_Size Size;
 
   /**
    * @}

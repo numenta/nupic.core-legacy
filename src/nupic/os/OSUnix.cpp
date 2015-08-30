@@ -5,15 +5,15 @@
  * following terms and conditions apply:
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 3 as
+ * it under the terms of the GNU Affero Public License version 3 as
  * published by the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * See the GNU General Public License for more details.
+ * See the GNU Affero Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
+ * You should have received a copy of the GNU Affero Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
  *
  * http://numenta.org/licenses/
@@ -25,7 +25,7 @@
  * Unix Implementations for the OS class
  */
 
-#ifndef WIN32
+#if !defined(NTA_OS_WINDOWS)
 
 #include <nupic/os/OS.hpp>
 #include <nupic/os/Path.hpp>
@@ -94,7 +94,7 @@ std::string OS::getErrorMessageFromErrorCode(int errorCode)
   char errorBuffer[1024];
   errorBuffer[0] = '\0';
   
-#if defined(__APPLE__) || defined(NTA_PLATFORM_sparc64)
+#if defined(__APPLE__) || (defined(NTA_ARCH_64) && defined(NTA_OS_SPARC))
   int result = ::strerror_r(errorCode, errorBuffer, 1024);
   if(result == 0) errorMessage << errorBuffer;
 #else
@@ -105,6 +105,6 @@ std::string OS::getErrorMessageFromErrorCode(int errorCode)
   return errorMessage.str();
 }
 
-#endif // #ifndef WIN32
+#endif
 
 

@@ -5,15 +5,15 @@
  * following terms and conditions apply:
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 3 as
+ * it under the terms of the GNU Affero Public License version 3 as
  * published by the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * See the GNU General Public License for more details.
+ * See the GNU Affero Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
+ * You should have received a copy of the GNU Affero Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
  *
  * http://numenta.org/licenses/
@@ -44,7 +44,7 @@ void PathTest::RunTests()
 
   // test static getParent()
   {
-#ifdef NTA_PLATFORM_win32
+#if defined(NTA_OS_WINDOWS)
 // no tests defined
 #else
     std::string g = "/a/b/c/g.ext";
@@ -100,7 +100,7 @@ void PathTest::RunTests()
 
   // test static getBasename()
   {
-#ifdef NTA_PLATFORM_win32
+#if defined(NTA_OS_WINDOWS)
 // no tests defined
 #else
     TESTEQUAL2_STR("basename1", "bar", Path::getBasename("/foo/bar").c_str());
@@ -117,7 +117,7 @@ void PathTest::RunTests()
 
   // test static normalize()
   {
-#ifdef NTA_PLATFORM_win32
+#if defined(NTA_OS_WINDOWS)
 // no tests defined
 #else
     TESTEQUAL2_STR("normalize1", "/foo/bar", Path::normalize("//foo/quux/..//bar").c_str());
@@ -135,7 +135,7 @@ void PathTest::RunTests()
 
   // test static split()
   {
-#ifdef NTA_PLATFORM_win32
+#if defined(NTA_OS_WINDOWS)
 // no tests defined
 #else
     Path::StringVec sv;
@@ -255,7 +255,7 @@ void PathTest::RunTests()
 
   //test static isAbsolute()
   {
-  #ifdef NTA_PLATFORM_win32
+  #if defined(NTA_OS_WINDOWS)
     TEST(Path::isAbsolute("c:"));
     TEST(Path::isAbsolute("c:\\"));
     TEST(Path::isAbsolute("c:\\foo\\"));
@@ -289,7 +289,7 @@ void PathTest::RunTests()
     TEST(Path::exists(path));
 
     std::string basename = Path::getBasename(path);
-#ifdef NTA_PLATFORM_win32
+#if defined(NTA_OS_WINDOWS)
     TESTEQUAL2_STR("basename should be unit_tests", basename.c_str(), "unit_tests.exe");
 #else
     TESTEQUAL2_STR("basename should be unit_tests", basename.c_str(), "unit_tests");

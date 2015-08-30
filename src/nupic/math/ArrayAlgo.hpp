@@ -5,15 +5,15 @@
  * following terms and conditions apply:
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 3 as
+ * it under the terms of the GNU Affero Public License version 3 as
  * published by the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * See the GNU General Public License for more details.
+ * See the GNU Affero Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
+ * You should have received a copy of the GNU Affero Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
  *
  * http://numenta.org/licenses/
@@ -32,6 +32,11 @@
 #include <math.h>
 #include <iterator>
 #include <algorithm>
+
+#if defined(NTA_OS_WINDOWS) && defined(NTA_COMPILER_MSVC) 
+  #include <array>
+  #include <intrin.h>
+#endif
 
 #include <nupic/utils/Random.hpp> // For the official Numenta RNG
 #include <nupic/math/Math.hpp>
@@ -61,51 +66,60 @@ namespace nupic {
             SSE41 = 1<<19,
             SSE42 = 1<<20;
 #ifdef NTA_ASM
-  #if defined(NTA_PLATFORM_win32) && defined(NTA_COMPILER_MSVC)
+  #if defined(NTA_ARCH_32)
+    #if defined(NTA_OS_WINDOWS) && defined(NTA_COMPILER_MSVC)
 
-    // VC asm
+      // VC asm
 
-    unsigned int f = 1;
-    __asm {
-      mov eax, f
-      cpuid
-      mov c, ecx
-      mov d, edx
-    }
+      unsigned int f = 1;
+      __asm {
+        mov eax, f
+        cpuid
+        mov c, ecx
+        mov d, edx
+      }
 
-  // TODO: add asm code for gcc/clang/... on Windows
+    // TODO: add asm code for gcc/clang/... on Windows
 
-  #elif defined(NTA_PLATFORM_darwin86) || defined(NTA_PLATFORM_linux32)
+    #elif defined(NTA_OS_LINUX) || defined(NTA_OS_DARWIN)
 
-    unsigned int a = 0,b = 0, f = 1;
+      unsigned int a = 0,b = 0, f = 1;
 
-    // PIC-compliant asm
-    __asm__ __volatile__(
-                         "pushl %%ebx\n\t"
-                         "cpuid\n\t"
-                         "movl %%ebx, %1\n\t"
-                         "popl %%ebx\n\t"
-                         : "=a" (a), "=r" (b), "=c" (c), "=d" (d)
-                         : "a" (f)
-                         : "cc"
-                         );
+      // PIC-compliant asm
+      __asm__ __volatile__(
+                           "pushl %%ebx\n\t"
+                           "cpuid\n\t"
+                           "movl %%ebx, %1\n\t"
+                           "popl %%ebx\n\t"
+                           : "=a" (a), "=r" (b), "=c" (c), "=d" (d)
+                           : "a" (f)
+                           : "cc"
+                           );
+    #endif
+  #elif defined(NTA_ARCH_64)
+    #if defined(NTA_OS_LINUX) || defined(NTA_OS_DARWIN)
 
-  #elif defined(NTA_PLATFORM_linux64) || defined(NTA_PLATFORM_darwin64)
+      __asm__ __volatile__ (
+                            "pushq  %%rbx\n\t"
 
-    __asm__ __volatile__ (
-                         "pushq  %%rbx\n\t"
+                            "movl   $1, %%eax\n\t"
+                            "cpuid\n\t"
+                            "movl   %%ecx, %0\n\t"
+                            "movl   %%edx, %1\n\t"
 
-                         "movl   $1, %%eax\n\t"
-                         "cpuid\n\t"
-                         "movl   %%ecx, %0\n\t"
-                         "movl   %%edx, %1\n\t"
+                            "popq  %%rbx\n\t"
+                            : "=c" (c), "=d" (d)
+                            :
+                            :
+                            );
+   #elif defined(NTA_OS_WINDOWS) && defined(NTA_COMPILER_MSVC)
 
-                         "popq  %%rbx\n\t"
-                         : "=c" (c), "=d" (d)
-                         :
-                         :
-			 );
-  #endif //NTA_PLATFORM_win32
+      std::array<int, 4> cpui;
+       __cpuid(cpui.data(), 1);
+       c = cpui[2];
+       d = cpui[3];
+    #endif
+  #endif
 #endif //NTA_ASM
 
     int ret = -1;
@@ -236,7 +250,7 @@ namespace nupic {
     if (SSE_LEVEL >= 41) { // ptest is a SSE 4.1 instruction
 
     // On win32, the asm syntax is not correct.
-#if (defined(NTA_PLATFORM_linux32) || defined(NTA_PLATFORM_darwin86)) && defined(NTA_ASM)
+#if defined(NTA_ASM) && defined(NTA_ARCH_32) && !defined(NTA_OS_WINDOWS)
 
       // n is the total number of floats to process.
       // n1 is the number of floats we can process in parallel using SSE.
@@ -302,7 +316,7 @@ namespace nupic {
           return false;
       return true;
 
-#elif (defined(NTA_PLATFORM_linux64) || defined(NTA_PLATFORM_darwin64)) && defined(NTA_ASM)
+#elif defined(NTA_ASM) && defined(NTA_ARCH_64) && !defined(NTA_OS_WINDOWS)
 
       // n is the total number of floats to process.
       // n1 is the number of floats we can process in parallel using SSE.
@@ -401,7 +415,7 @@ namespace nupic {
     // const int SSE_LEVEL. 
     if (SSE_LEVEL >= 41) { // ptest is a SSE 4.1 instruction
 
-#if (defined(NTA_PLATFORM_linux32) || defined(NTA_PLATFORM_darwin86)) && defined(NTA_ASM)
+#if defined(NTA_ASM) && defined(NTA_ARCH_32) && !defined(NTA_OS_WINDOWS)
 
       // n is the total number of floats to process.
       // n1 is the number of floats we can process in parallel using SSE.
@@ -467,7 +481,7 @@ namespace nupic {
           return false;
       return true;
 
-#elif (defined(NTA_PLATFORM_linux64) || defined(NTA_PLATFORM_darwin64)) && defined(NTA_ASM)
+#elif defined(NTA_ASM) && !defined(NTA_OS_WINDOWS)
 
       // n is the total number of floats to process.
       // n1 is the number of floats we can process in parallel using SSE.
@@ -599,12 +613,12 @@ namespace nupic {
 
   //--------------------------------------------------------------------------------
   /**
-   * For more bytes for alignment on x86 with darwin: darwin86 always allocates on 
+   * For more bytes for alignment on x86 with darwin: darwin32 always allocates on 
    * 16 bytes boundaries, so the three pointers in the STL vectors (of 32 bits each
    * in -m32), become: 3 * 4 + 4 = 16 bytes. The capacity similarly needs to be 
    * adjusted for aligment. On other platforms, the alignment might be different.
    *
-   * NOTE/WARNING: this is really "accurate" only on darwin86. And even, it's probably
+   * NOTE/WARNING: this is really "accurate" only on darwin32. And even, it's probably
    * only approximate.
    */
   template <typename T>
@@ -2242,7 +2256,7 @@ namespace nupic {
 
     a.resize(nrows * nnzpr);
 
-#ifdef NTA_PLATFORM_darwin86
+#if defined(NTA_ARCH_32) && defined(NTA_OS_DARWIN)
     nupic::Random rng(seed == -1 ? arc4random() : seed);
 #else
     nupic::Random rng(seed == -1 ? rand() : seed);
@@ -2295,7 +2309,7 @@ namespace nupic {
 
     a.resize(nrows * nnzpr);
 
-#ifdef NTA_PLATFORM_darwin86
+#if defined(NTA_ARCH_32) && defined(NTA_OS_DARWIN)
     nupic::Random rng(seed == -1 ? arc4random() : seed);
 #else
     nupic::Random rng(seed == -1 ? rand() : seed);
@@ -3754,7 +3768,7 @@ namespace nupic {
     // Need this, because the asm syntax is not correct for win32, 
     // we simply can't compile the code as is on win32.
 
-    // Need this, because even on darwin86, some older machines might 
+    // Need this, because even on darwin32 (which is darwin86), some older machines might 
     // not have the right SSE instructions.
     if (SSE_LEVEL >= 3) {
 
@@ -3765,115 +3779,16 @@ namespace nupic {
       // n1 is the number floats we can process in parallel with xmm
       // n2 is the number of "stragglers" what we will have to do one by one ( < 4)
       nupic::Real32 count = 0;
-      long x_addr = (long) begin; // 8 bytes on 64 bits platforms
+      NTA_UIntPtr x_addr = (NTA_UIntPtr) begin; // 8 bytes on 64 bits platforms
       nupic::Real32* start = (x_addr % 16 == 0) ? begin : (nupic::Real32*) (16*(x_addr/16+1));
       int n0 = (int)(start - begin);
       int n1 = 4 * ((end - start) / 4);
       int n2 = (int)(end - start - n1);
 
 
-#if defined(NTA_PLATFORM_darwin86_disabled) || defined(NTA_PLATFORM_linux32_disabled)
-      __asm__ __volatile__(
-                   // Prepare various xmm registers, storing the value of the
-                   // threshold and the value 1: with xmm, we will operate on
-                   // 4 floats at a time, so we replicate threshold 4 times in
-                   // xmm1, and 4 times again in xmm2. The operations will be in
-                   // parallel.
-                   "subl $16, %%esp\n\t"            // allocate 4 floats on stack
+#if defined(NTA_ARCH_64) && !defined(NTA_OS_WINDOWS)
 
-                   "movl %%eax, (%%esp)\n\t"        // copy threshold to 4 locations
-                   "movl %%eax, 4(%%esp)\n\t"       // on stack: we want threshold
-                   "movl %%eax, 8(%%esp)\n\t"       // to be filling xmm1 and xmm2
-                   "movl %%eax, 12(%%esp)\n\t"      // (operate on 4 floats at a time)
-                   "movaps (%%esp), %%xmm1\n\t"     // move 4 thresholds into xmm1
-                   "movaps %%xmm1, %%xmm2\n\t"      // copy 4 thresholds to xmm2
-
-                   "movl $0x3f800000, (%%esp)\n\t"  // $0x3f800000 = (float) 1.0
-                   "movl $0x3f800000, 4(%%esp)\n\t" // we want to have that constant
-                   "movl $0x3f800000, 8(%%esp)\n\t" // 8 times, in xmm3 and xmm4,
-                   "movl $0x3f800000, 12(%%esp)\n\t"// since the xmm4 registers allow
-                   "movaps (%%esp), %%xmm3\n\t"     // us to operate on 4 floats at
-                   "movaps (%%esp), %%xmm4\n\t"     // a time
-
-                   "addl $16, %%esp\n\t"            // deallocate 4 floats on stack
-
-                   "xorps %%xmm5, %%xmm5\n\t"       // set xmm5 to 0
-
-                   // Loop over individual floats till we reach the right alignment
-                   // that was computed in n0. If we don't start handling 4 floats
-                   // at a time with SSE on a 4 bytes boundary, we get a crash
-                   // in movaps (here, we use only movss, moving only 1 float at a
-                   // time).
-                   "0:\n\t"
-                   "test %%ecx, %%ecx\n\t"          // if n0 == 0, jump to next loop
-                   "jz 1f\n\t"
-
-                   "movss (%%esi), %%xmm0\n\t"      // move a single float to xmm0
-                   "cmpss $1, %%xmm0, %%xmm1\n\t"   // compare to threshold
-                   "andps %%xmm1, %%xmm3\n\t"       // and with all 1s
-                   "addss %%xmm3, %%xmm5\n\t"       // add result to xmm5 (=count!)
-                   "movaps %%xmm2, %%xmm1\n\t"      // restore threshold in xmm1
-                   "movaps %%xmm4, %%xmm3\n\t"      // restore all 1s in xmm3
-                   "addl $4, %%esi\n\t"             // move to next float (4 bytes)
-                   "decl %%ecx\n\t"                 // decrement ecx, which started at n0
-                   "ja 0b\n\t"                      // jump if not done yet
-
-                   // Loop over 4 floats at a time: this time, we have reached
-                   // the proper alignment for movaps, so we can operate in parallel
-                   // on 4 floats at a time. The code is the same as the previous loop
-                   // except that the "ss" instructions are now "ps" instructions.
-                   "1:\n\t"
-                   "test %%edx, %%edx\n\t"
-                   "jz 2f\n\t"
-
-                   "movaps (%%esi), %%xmm0\n\t"     // note movaps, not movss
-                   "cmpps $1, %%xmm0, %%xmm1\n\t"
-                   "andps %%xmm1, %%xmm3\n\t"
-                   "addps %%xmm3, %%xmm5\n\t"       // addps, not addss
-                   "movaps %%xmm2, %%xmm1\n\t"
-                   "movaps %%xmm4, %%xmm3\n\t"
-                   "addl $16, %%esi\n\t"            // jump over 4 floats
-                   "subl $4, %%edx\n\t"             // decrement edx (n1) by 4
-                   "ja 1b\n\t"
-
-                   // Tally up count so far into last float of xmm5: we were
-                   // doing operations in parallels on the 4 floats in the xmm
-                   // registers, resulting in 4 partial counts in xmm5.
-                   "xorps %%xmm0, %%xmm0\n\t"
-                   "haddps %%xmm0, %%xmm5\n\t"
-                   "haddps %%xmm0, %%xmm5\n\t"
-
-                   // Last loop, for stragglers in case the array is not evenly
-                   // divisible by 4. We are back to operating on a single float
-                   // at a time, using movss and addss.
-                   "2:\n\t"
-                   "test %%edi, %%edi\n\t"
-                   "jz 3f\n\t"
-
-                   "movss (%%esi), %%xmm0\n\t"
-                   "cmpss $1, %%xmm0, %%xmm1\n\t"
-                   "andps %%xmm1, %%xmm3\n\t"
-                   "addss %%xmm3, %%xmm5\n\t"
-                   "movaps %%xmm2, %%xmm1\n\t"
-                   "movaps %%xmm4, %%xmm3\n\t"
-                   "addl $4, %%esi\n\t"
-                   "decl %%edi\n\t"
-                   "ja 0b\n\t"
-
-                   // Push result from xmm5 to variable count in memory.
-                   "3:\n\t"
-                   "movss %%xmm5, %0\n\t"
-
-                   : "=m" (count)
-                   : "S" (begin), "a" (threshold), "c" (n0), "d" (n1), "D" (n2)
-                   :
-                   );
-
-      return (int) count;
-
-#elif defined(NTA_PLATFORM_darwin64) || defined(NTA_PLATFORM_linux64)
-
-    #if defined(NTA_PLATFORM_darwin64)
+    #if defined(NTA_OS_DARWIN)
 
       // DO NOT CHANGE THESE NEXT TWO LINES, OTHERWISE THE ASM CODE BELOW WILL BREAK.
       // 'localThreshold' MUST BE STATIC!! Must always assign threshold to localThreshold also!
@@ -3883,7 +3798,7 @@ namespace nupic {
 
       __asm__ __volatile__(
 
-    #if defined(NTA_PLATFORM_darwin64)
+    #if defined(NTA_OS_DARWIN)
 		   // We need to access localThreshold by it's mangled name here because g++ and
                    // clang++ do things differently on OS X. They clobber eax by the time they
                    // get here and 'threshold' is not properly loaded into rax by the constraint
@@ -5061,7 +4976,7 @@ namespace nupic {
 
     // See comments in count_gt. We need both conditional compilation and 
     // SSE_LEVEL check.
-#if defined(NTA_PLATFORM_darwin86) || defined(NTA_PLATFORM_darwin64) || defined(NTA_PLATFORM_linux64) || defined(NTA_PLATFORM_linux32)
+#if !defined(NTA_OS_WINDOWS)
 
     if (SSE_LEVEL >= 3) {
 
@@ -5078,7 +4993,7 @@ namespace nupic {
       // skip the asm. 
       if (n1 > 0) { 
 
-  #if defined (NTA_PLATFORM_darwin86) || defined(NTA_PLATFORM_linux32)
+  #if defined(NTA_ARCH_32)
         __asm__ __volatile__(
                      "pusha\n\t"                   // save all registers
                  
@@ -5110,7 +5025,7 @@ namespace nupic {
                      : 
                      );
 
-  #elif defined(NTA_PLATFORM_darwin64) || defined(NTA_PLATFORM_linux64)
+  #else
         __asm__ __volatile__(
                      "pushq %%rsi\n\t"             // save affected registers
                      "pushq %%rdi\n\t"             // this 'shouldn't' be necessary
@@ -5184,7 +5099,7 @@ namespace nupic {
 
     // See comments in count_gt. We need conditional compilation
     // _AND_ SSE_LEVEL check.
-#if defined(NTA_PLATFORM_darwin86) || defined(NTA_PLATFORM_linux64) || defined(NTA_PLATFORM_darwin64) || defined(NTA_PLATFORM_linux32)
+#if defined(NTA_OS_LINUX) || defined(NTA_OS_DARWIN)
 
     if (SSE_LEVEL >= 3) {
 
@@ -5196,7 +5111,7 @@ namespace nupic {
     
       if (n1 > 0) {
 
-  #if defined(NTA_PLATFORM_darwin86) || defined(NTA_PLATFORM_linux32)
+  #if defined(NTA_ARCH_32)
         __asm__ __volatile__(
                      "pusha\n\t"
                  
@@ -5227,7 +5142,7 @@ namespace nupic {
                      : 
                      );
 
-  #elif defined(NTA_PLATFORM_darwin64) || defined(NTA_PLATFORM_linux64)
+  #else //64bit
         __asm__ __volatile__(
                      "pushq %%rsi\n\t"             // save affected registers
                      "pushq %%rdi\n\t"

@@ -5,15 +5,15 @@
  * following terms and conditions apply:
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 3 as
+ * it under the terms of the GNU Affero Public License version 3 as
  * published by the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * See the GNU General Public License for more details.
+ * See the GNU Affero Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
+ * You should have received a copy of the GNU Affero Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
  *
  * http://numenta.org/licenses/
@@ -137,26 +137,26 @@ namespace nupic {
 
     NTA_CHECK(sp1.getNumColumns() == sp2.getNumColumns());
     NTA_CHECK(sp1.getNumInputs() == sp2.getNumInputs());
-    NTA_CHECK(sp1.getPotentialRadius() == 
+    NTA_CHECK(sp1.getPotentialRadius() ==
               sp2.getPotentialRadius());
     NTA_CHECK(sp1.getPotentialPct() == sp2.getPotentialPct());
-    NTA_CHECK(sp1.getGlobalInhibition() == 
+    NTA_CHECK(sp1.getGlobalInhibition() ==
               sp2.getGlobalInhibition());
-    NTA_CHECK(sp1.getNumActiveColumnsPerInhArea() == 
+    NTA_CHECK(sp1.getNumActiveColumnsPerInhArea() ==
               sp2.getNumActiveColumnsPerInhArea());
     NTA_CHECK(almost_eq(sp1.getLocalAreaDensity(),
               sp2.getLocalAreaDensity()));
-    NTA_CHECK(sp1.getStimulusThreshold() == 
+    NTA_CHECK(sp1.getStimulusThreshold() ==
               sp2.getStimulusThreshold());
     NTA_CHECK(sp1.getDutyCyclePeriod() == sp2.getDutyCyclePeriod());
     NTA_CHECK(almost_eq(sp1.getMaxBoost(), sp2.getMaxBoost()));
     NTA_CHECK(sp1.getIterationNum() == sp2.getIterationNum());
-    NTA_CHECK(sp1.getIterationLearnNum() == 
+    NTA_CHECK(sp1.getIterationLearnNum() ==
               sp2.getIterationLearnNum());
     NTA_CHECK(sp1.getSpVerbosity() == sp2.getSpVerbosity());
     NTA_CHECK(sp1.getWrapAround() == sp2.getWrapAround());
     NTA_CHECK(sp1.getUpdatePeriod() == sp2.getUpdatePeriod());
-    NTA_CHECK(almost_eq(sp1.getSynPermTrimThreshold(), 
+    NTA_CHECK(almost_eq(sp1.getSynPermTrimThreshold(),
               sp2.getSynPermTrimThreshold()));
     cout << "check: " << sp1.getSynPermActiveInc() << " " <<
       sp2.getSynPermActiveInc() << endl;
@@ -164,7 +164,7 @@ namespace nupic {
               sp2.getSynPermActiveInc()));
     NTA_CHECK(almost_eq(sp1.getSynPermInactiveDec(),
               sp2.getSynPermInactiveDec()));
-    NTA_CHECK(almost_eq(sp1.getSynPermBelowStimulusInc(), 
+    NTA_CHECK(almost_eq(sp1.getSynPermBelowStimulusInc(),
               sp2.getSynPermBelowStimulusInc()));
     NTA_CHECK(almost_eq(sp1.getSynPermConnected(),
               sp2.getSynPermConnected()));
@@ -172,68 +172,86 @@ namespace nupic {
               sp2.getMinPctActiveDutyCycles()));
 
 
-    Real boostFactors1[numColumns];
-    Real boostFactors2[numColumns];
+    auto boostFactors1 = new Real[numColumns];
+    auto boostFactors2 = new Real[numColumns];
     sp1.getBoostFactors(boostFactors1);
     sp2.getBoostFactors(boostFactors2);
     NTA_CHECK(check_vector_eq(boostFactors1, boostFactors2, numColumns));
+    delete[] boostFactors1;
+    delete[] boostFactors2;
 
-    Real overlapDutyCycles1[numColumns];
-    Real overlapDutyCycles2[numColumns];
+    auto overlapDutyCycles1 = new Real[numColumns];
+    auto overlapDutyCycles2 = new Real[numColumns];
     sp1.getOverlapDutyCycles(overlapDutyCycles1);
     sp2.getOverlapDutyCycles(overlapDutyCycles2);
     NTA_CHECK(check_vector_eq(overlapDutyCycles1, overlapDutyCycles2, numColumns));
+    delete[] overlapDutyCycles1;
+    delete[] overlapDutyCycles2;
 
-    Real activeDutyCycles1[numColumns];
-    Real activeDutyCycles2[numColumns];
+    auto activeDutyCycles1 = new Real[numColumns];
+    auto activeDutyCycles2 = new Real[numColumns];
     sp1.getActiveDutyCycles(activeDutyCycles1);
     sp2.getActiveDutyCycles(activeDutyCycles2);
     NTA_CHECK(check_vector_eq(activeDutyCycles1, activeDutyCycles2, numColumns));
+    delete[] activeDutyCycles1;
+    delete[] activeDutyCycles2;
 
-    Real minOverlapDutyCycles1[numColumns];
-    Real minOverlapDutyCycles2[numColumns];
+    auto minOverlapDutyCycles1 = new Real[numColumns];
+    auto minOverlapDutyCycles2 = new Real[numColumns];
     sp1.getMinOverlapDutyCycles(minOverlapDutyCycles1);
     sp2.getMinOverlapDutyCycles(minOverlapDutyCycles2);
     NTA_CHECK(check_vector_eq(minOverlapDutyCycles1, minOverlapDutyCycles2, numColumns));
+    delete[] minOverlapDutyCycles1;
+    delete[] minOverlapDutyCycles2;
 
-    Real minActiveDutyCycles1[numColumns];
-    Real minActiveDutyCycles2[numColumns];
+    auto minActiveDutyCycles1 = new Real[numColumns];
+    auto minActiveDutyCycles2 = new Real[numColumns];
     sp1.getMinActiveDutyCycles(minActiveDutyCycles1);
     sp2.getMinActiveDutyCycles(minActiveDutyCycles2);
     NTA_CHECK(check_vector_eq(minActiveDutyCycles1, minActiveDutyCycles2, numColumns));
+    delete[] minActiveDutyCycles1;
+    delete[] minActiveDutyCycles2;
 
     for (UInt i = 0; i < numColumns; i++) {
-      UInt potential1[numInputs];
-      UInt potential2[numInputs];
+      auto potential1 = new UInt[numInputs];
+      auto potential2 = new UInt[numInputs];
       sp1.getPotential(i, potential1);
       sp2.getPotential(i, potential2);
       NTA_CHECK(check_vector_eq(potential1, potential2, numInputs));
+      delete[] potential1;
+      delete[] potential2;
     }
 
     for (UInt i = 0; i < numColumns; i++) {
-      Real perm1[numInputs];
-      Real perm2[numInputs];
+      auto perm1 = new Real[numInputs];
+      auto perm2 = new Real[numInputs];
       sp1.getPermanence(i, perm1);
       sp2.getPermanence(i, perm2);
       NTA_CHECK(check_vector_eq(perm1, perm2, numInputs));
+      delete[] perm1;
+      delete[] perm2;
     }
 
     for (UInt i = 0; i < numColumns; i++) {
-      UInt con1[numInputs];
-      UInt con2[numInputs];
+      auto con1 = new UInt[numInputs];
+      auto con2 = new UInt[numInputs];
       sp1.getConnectedSynapses(i, con1);
       sp2.getConnectedSynapses(i, con2);
       NTA_CHECK(check_vector_eq(con1, con2, numInputs));
+      delete[] con1;
+      delete[] con2;
     }
 
-    UInt conCounts1[numColumns];
-    UInt conCounts2[numColumns];
+    auto conCounts1 = new UInt[numColumns];
+    auto conCounts2 = new UInt[numColumns];
     sp1.getConnectedCounts(conCounts1);
     sp2.getConnectedCounts(conCounts2);
     NTA_CHECK(check_vector_eq(conCounts1, conCounts2, numColumns));
+    delete[] conCounts1;
+    delete[] conCounts2;
   }
 
-  void SpatialPoolerTest::setup(SpatialPooler& sp, UInt numInputs, 
+  void SpatialPoolerTest::setup(SpatialPooler& sp, UInt numInputs,
                                 UInt numColumns)
   {
     vector<UInt> inputDim;
@@ -898,11 +916,12 @@ namespace nupic {
     sp.adaptSynapses_(inputArr1, activeColumns);
     cout << endl;
     for (UInt column = 0; column < numColumns; column++) {
-      Real permArr[numInputs];
+      auto permArr = new Real[numInputs];
       sp.getPermanence(column, permArr);
       NTA_CHECK(check_vector_eq(truePermanences1[column],
                                 permArr,
                                 numInputs));
+      delete[] permArr;
     }
 
 
@@ -941,9 +960,10 @@ namespace nupic {
     sp.adaptSynapses_(inputArr2, activeColumns);
     cout << endl;
     for (UInt column = 0; column < numColumns; column++) {
-      Real permArr[numInputs];
+      auto permArr = new Real[numInputs];
       sp.getPermanence(column, permArr);
       NTA_CHECK(check_vector_eq(truePermanences2[column], permArr, numInputs));
+      delete[] permArr;
     }
 
   }
@@ -1062,72 +1082,72 @@ namespace nupic {
     setup(sp, 6, 6);
 
     Real initMinActiveDutyCycles1[] =
-      {1e-6, 1e-6, 1e-6, 1e-6, 1e-6};
+      {1e-6, 1e-6, 1e-6, 1e-6, 1e-6, 1e-6 };
     Real initActiveDutyCycles1[] =
       {0.1, 0.3, 0.02, 0.04, 0.7, 0.12};
     Real initBoostFactors1[] =
-      {0, 0, 0, 0, 0};
+      {0, 0, 0, 0, 0, 0};
     Real trueBoostFactors1[] =
-      {1, 1, 1, 1, 1};
-    Real resultBoostFactors1[5];
+      {1, 1, 1, 1, 1, 1};
+    Real resultBoostFactors1[6];
     sp.setMaxBoost(10);
     sp.setBoostFactors(initBoostFactors1);
     sp.setActiveDutyCycles(initActiveDutyCycles1);
     sp.setMinActiveDutyCycles(initMinActiveDutyCycles1);
     sp.updateBoostFactors_();
     sp.getBoostFactors(resultBoostFactors1);
-    NTA_CHECK(check_vector_eq(trueBoostFactors1, resultBoostFactors1, 5));
+    NTA_CHECK(check_vector_eq(trueBoostFactors1, resultBoostFactors1, 6));
 
     Real initMinActiveDutyCycles2[] =
       {0.1, 0.3, 0.02, 0.04, 0.7, 0.12};
     Real initActiveDutyCycles2[] =
       {0.1 ,0.3, 0.02, 0.04, 0.7, 0.12};
     Real initBoostFactors2[] =
-      {0, 0, 0, 0, 0};
+      {0, 0, 0, 0, 0, 0};
     Real trueBoostFactors2[] =
-      {1, 1, 1, 1, 1};
-    Real resultBoostFactors2[5];
+      {1, 1, 1, 1, 1, 1};
+    Real resultBoostFactors2[6];
     sp.setMaxBoost(10);
     sp.setBoostFactors(initBoostFactors2);
     sp.setActiveDutyCycles(initActiveDutyCycles2);
     sp.setMinActiveDutyCycles(initMinActiveDutyCycles2);
     sp.updateBoostFactors_();
     sp.getBoostFactors(resultBoostFactors2);
-    NTA_CHECK(check_vector_eq(trueBoostFactors2, resultBoostFactors2, 5));
+    NTA_CHECK(check_vector_eq(trueBoostFactors2, resultBoostFactors2, 6));
 
      Real initMinActiveDutyCycles3[] =
       {0.1, 0.3, 0.02, 0.04, 0.7, 0.12};
     Real initActiveDutyCycles3[] =
       {0.01 ,0.03, 0.002, 0.004, 0.07, 0.012};
     Real initBoostFactors3[] =
-      {0, 0, 0, 0, 0};
+      {0, 0, 0, 0, 0, 0};
     Real trueBoostFactors3[] =
-      {9.1, 9.1, 9.1, 9.1, 9.1};
-    Real resultBoostFactors3[5];
+      {9.1, 9.1, 9.1, 9.1, 9.1, 9.1};
+    Real resultBoostFactors3[6];
     sp.setMaxBoost(10);
     sp.setBoostFactors(initBoostFactors3);
     sp.setActiveDutyCycles(initActiveDutyCycles3);
     sp.setMinActiveDutyCycles(initMinActiveDutyCycles3);
     sp.updateBoostFactors_();
     sp.getBoostFactors(resultBoostFactors3);
-    NTA_CHECK(check_vector_eq(trueBoostFactors3, resultBoostFactors3, 5));
+    NTA_CHECK(check_vector_eq(trueBoostFactors3, resultBoostFactors3, 6));
 
      Real initMinActiveDutyCycles4[] =
       {0.1, 0.3, 0.02, 0.04, 0.7, 0.12};
     Real initActiveDutyCycles4[] =
       {0 ,0, 0, 0, 0, 0};
     Real initBoostFactors4[] =
-      {0, 0, 0, 0, 0};
+      {0, 0, 0, 0, 0, 0};
     Real trueBoostFactors4[] =
-      {10, 10, 10, 10, 10};
-    Real resultBoostFactors4[5];
+      {10, 10, 10, 10, 10, 10};
+    Real resultBoostFactors4[6];
     sp.setMaxBoost(10);
     sp.setBoostFactors(initBoostFactors4);
     sp.setActiveDutyCycles(initActiveDutyCycles4);
     sp.setMinActiveDutyCycles(initMinActiveDutyCycles4);
     sp.updateBoostFactors_();
     sp.getBoostFactors(resultBoostFactors4);
-    NTA_CHECK(check_vector_eq(trueBoostFactors4, resultBoostFactors4, 5));
+    NTA_CHECK(check_vector_eq(trueBoostFactors4, resultBoostFactors4, 6));
   }
 
   void SpatialPoolerTest::testUpdateBookeepingVars()
@@ -1535,7 +1555,7 @@ namespace nupic {
     UInt trueNeighborsMap1[8] = {0, 0, 1, 0, 1, 0, 0, 0};
     sp.getNeighbors1D_(column, dimensions, radius, wrapAround,
                           neighbors);
-    neighborsMap.clear();
+    neighborsMap.assign(numColumns, 0);
     for (auto & neighbor : neighbors) {
       neighborsMap[neighbor] = 1;
     }
@@ -1547,7 +1567,7 @@ namespace nupic {
     UInt trueNeighborsMap2[8] = {0, 1, 1, 0, 1, 1, 0, 0};
     sp.getNeighbors1D_(column, dimensions, radius, wrapAround,
                           neighbors);
-    neighborsMap.clear();
+    neighborsMap.assign(numColumns, 0);
     for (auto & neighbor : neighbors) {
       neighborsMap[neighbor] = 1;
     }
@@ -1559,7 +1579,7 @@ namespace nupic {
     UInt trueNeighborsMap3[8] = {0, 1, 1, 0, 0, 0, 1, 1};
     sp.getNeighbors1D_(column, dimensions, radius, wrapAround,
                           neighbors);
-    neighborsMap.clear();
+    neighborsMap.assign(numColumns, 0);
     for (auto & neighbor : neighbors) {
       neighborsMap[neighbor] = 1;
     }
@@ -1852,8 +1872,7 @@ namespace nupic {
     for (auto & neighbor : neighbors) {
       neighborsMap[neighbor] = 1;
     }
-
-    NTA_CHECK(check_vector_eq((UInt *) trueNeighbors1, neighborsMap));
+    NTA_CHECK(check_vector_eq((UInt*) trueNeighbors1, neighborsMap));
 
     neighborsMap.clear();
     w = 4;
@@ -1935,7 +1954,6 @@ namespace nupic {
     for (auto & neighbor : neighbors) {
       neighborsMap[neighbor] = 1;
     }
-
     NTA_CHECK(check_vector_eq((UInt *) trueNeighbors2Wrap, neighborsMap));
 
 
@@ -1943,6 +1961,7 @@ namespace nupic {
     dimensions.clear();
     dimensions.push_back(6);
     dimensions.push_back(5);
+
     numColumns = 30;
     UInt trueNeighborsMap3[30] =
       {0, 0, 0, 0, 0,
@@ -1998,83 +2017,71 @@ namespace nupic {
     }
     NTA_CHECK(check_vector_eq(trueNeighborsMap5, neighborsMap));
 
+    dimensions.clear();
+    dimensions.push_back(8);
+    numColumns = 8;
 
+    UInt trueNeighborsMap6[8] = { 0, 0, 1, 0, 1, 0, 0, 0 };
     column = 3;
     radius = 1;
     wrapAround = true;
-    dimensions.clear();
-    dimensions.push_back(8);
-    UInt trueNeighborsMap6[8] = {0, 0, 1, 0, 1, 0, 0, 0};
     sp.getNeighborsND_(column, dimensions, radius, wrapAround,
                           neighbors);
-    neighborsMap.clear();
+    neighborsMap.assign(numColumns, 0);
     for (auto & neighbor : neighbors) {
       neighborsMap[neighbor] = 1;
     }
-
     NTA_CHECK(check_vector_eq(trueNeighborsMap6, neighborsMap));
 
+    UInt trueNeighborsMap7[8] = { 0, 1, 1, 0, 1, 1, 0, 0 };
     column = 3;
     radius = 2;
     wrapAround = false;
-    dimensions.clear();
-    dimensions.push_back(8);
-    UInt trueNeighborsMap7[8] = {0, 1, 1, 0, 1, 1, 0, 0};
     sp.getNeighborsND_(column, dimensions, radius, wrapAround,
                           neighbors);
-    neighborsMap.clear();
+    neighborsMap.assign(numColumns, 0);
     for (auto & neighbor : neighbors) {
       neighborsMap[neighbor] = 1;
     }
-
     NTA_CHECK(check_vector_eq(trueNeighborsMap7, neighborsMap));
 
+    UInt trueNeighborsMap8[8] = { 0, 1, 1, 0, 0, 0, 1, 1 };
     column = 0;
     radius = 2;
     wrapAround = true;
-    dimensions.clear();
-    dimensions.push_back(8);
-    UInt trueNeighborsMap8[8] = {0, 1, 1, 0, 0, 0, 1, 1};
     sp.getNeighborsND_(column, dimensions, radius, wrapAround,
                           neighbors);
-    neighborsMap.clear();
+    neighborsMap.assign(numColumns, 0);
     for (auto & neighbor : neighbors) {
       neighborsMap[neighbor] = 1;
     }
-
     NTA_CHECK(check_vector_eq(trueNeighborsMap8, neighborsMap));
 
     // Test with radius larger than the dimension range
+    UInt trueNeighborsMap9[8] = { 0, 1, 1, 1, 1, 1, 1, 1 };
     column = 0;
     radius = 100;
     wrapAround = false;
-    dimensions.clear();
-    dimensions.push_back(8);
-    UInt trueNeighborsMap9[8] = {1, 1, 1, 1, 1, 1, 1, 1};
     sp.getNeighborsND_(column, dimensions, radius, wrapAround,
                           neighbors);
-    neighborsMap.clear();
+    neighborsMap.assign(numColumns, 0);
     for (auto & neighbor : neighbors) {
       neighborsMap[neighbor] = 1;
     }
-
     NTA_CHECK(check_vector_eq(trueNeighborsMap9, neighborsMap));
 
     // Test with radius larger than the dimension range,
     // with wrapAround enabled
+    UInt trueNeighborsMap10[8] = { 0, 1, 1, 1, 1, 1, 1, 1 };
     column = 0;
     radius = 100;
     wrapAround = true;
-    dimensions.clear();
-    dimensions.push_back(8);
-    UInt trueNeighborsMap10[8] = {1, 1, 1, 1, 1, 1, 1, 1};
     sp.getNeighborsND_(column, dimensions, radius, wrapAround,
                           neighbors);
-    neighborsMap.clear();
+    neighborsMap.assign(numColumns, 0);
     for (auto & neighbor : neighbors) {
       neighborsMap[neighbor] = 1;
     }
-
     NTA_CHECK(check_vector_eq(trueNeighborsMap10, neighborsMap));
 
   }
@@ -2217,9 +2224,9 @@ namespace nupic {
     {
       vector<Real> perm(&permArr[i][0], &permArr[i][5]);
       sp.updatePermanencesForColumn_(perm, i, false);
-      Real permArr[numInputs];
-      UInt connectedArr[numInputs];
-      UInt connectedCountsArr[numColumns];
+      auto permArr = new Real[numInputs];
+      auto connectedArr = new UInt[numInputs];
+      auto connectedCountsArr = new UInt[numColumns];
       sp.getPermanence(i, permArr);
       sp.getConnectedSynapses(i, connectedArr);
       sp.getConnectedCounts(connectedCountsArr);
@@ -2227,6 +2234,9 @@ namespace nupic {
       NTA_CHECK(check_vector_eq(trueConnectedSynapses[i],connectedArr,
                                 numInputs));
       NTA_CHECK(trueConnectedCount[i] == connectedCountsArr[i]);
+      delete[] permArr;
+      delete[] connectedArr;
+      delete[] connectedCountsArr;
     }
 
   }
@@ -2288,13 +2298,15 @@ namespace nupic {
   {
     SpatialPooler sp;
     Real synPermConnected = 0.2;
-    Real synPermActiveInc = 0.05;
+    Real synPermMax = 1.0;
+
     sp.setSynPermConnected(synPermConnected);
-    sp.setSynPermActiveInc(synPermActiveInc);
+    sp.setSynPermMax(synPermMax);
+
     for (UInt i = 0; i < 100; i++) {
       Real permVal = sp.initPermConnected_();
       NTA_CHECK(permVal >= synPermConnected &&
-                permVal <= synPermConnected + synPermActiveInc / 4.0);
+                permVal <= synPermMax);
     }
   }
 
@@ -2571,11 +2583,11 @@ namespace nupic {
     UInt numColumns = 12;
     setup(sp1, numInputs, numColumns);
 
-    ofstream os(filename);
+    ofstream os(filename, ios::binary);
     sp1.write(os);
     os.close();
 
-    ifstream is(filename);
+    ifstream is(filename, ios::binary);
     sp2.read(is);
     is.close();
 

@@ -5,15 +5,15 @@
  * following terms and conditions apply:
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 3 as
+ * it under the terms of the GNU Affero Public License version 3 as
  * published by the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * See the GNU General Public License for more details.
+ * See the GNU Affero Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
+ * You should have received a copy of the GNU Affero Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
  *
  * http://numenta.org/licenses/
@@ -2001,13 +2001,18 @@ namespace nupic {
 	  << "SparseBinaryMatrix::" << where << ": "
 	  << "Invalid index: " << *it
 	  << " - Should be >= 0 and < number of columns:" << nCols();
-      
-      for (size_type i = 1; i < (size_type)(end - begin); ++i)
-	NTA_ASSERT(*(begin + i - 1) < *(begin + i))
-	  << "SparseBinaryMatrix::" << where << ": "
-	  << "Invalid indices: " << *(begin + i - 1)
-	  << " and: " << *(begin + i)
-	  << " - Indices need to be in strictly increasing order";
+
+      InputIterator last = begin;
+      for (InputIterator it = begin; it != end; ++it)
+      {
+        if (it != begin)
+          NTA_ASSERT(*last < *it)
+            << "SparseBinaryMatrix::" << where << ": "
+            << "Invalid indices: " << *last
+            << " and: " << *it
+            << " - Indices need to be in strictly increasing order";
+        last = it;
+      }
     }
 
     //--------------------------------------------------------------------------------

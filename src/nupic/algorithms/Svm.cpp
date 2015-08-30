@@ -5,15 +5,15 @@
  * following terms and conditions apply:
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 3 as
+ * it under the terms of the GNU Affero Public License version 3 as
  * published by the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * See the GNU General Public License for more details.
+ * See the GNU Affero Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
+ * You should have received a copy of the GNU Affero Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
  *
  * http://numenta.org/licenses/
@@ -163,7 +163,7 @@ namespace nupic {
 	
 	for (int i = 0; i < size(); ++i) {
 
-#if defined(NTA_PLATFORM_win32) && defined(NTA_COMPILER_MSVC)
+#if defined(NTA_OS_WINDOWS) && defined(NTA_COMPILER_MSVC)
           x_[i] = (float*) _aligned_malloc(4*n_dims(), 16);
 #else
 	  x_[i] = new feature_type[n_dims()];
@@ -235,7 +235,7 @@ namespace nupic {
         if (sv_mem == nullptr) {
           for (size_t i = 0; i != sv.size(); ++i)
 
-#if defined(NTA_PLATFORM_win32) && defined(NTA_COMPILER_MSVC)
+#if defined(NTA_OS_WINDOWS) && defined(NTA_COMPILER_MSVC)
             _aligned_free(sv[i]);
 #else
             delete [] sv[i];
@@ -243,7 +243,7 @@ namespace nupic {
 
         } else {
 
-#if defined(NTA_PLATFORM_win32) && defined(NTA_COMPILER_MSVC)
+#if defined(NTA_OS_WINDOWS) && defined(NTA_COMPILER_MSVC)
           _aligned_free(sv_mem);
 #else
           delete [] sv_mem;
@@ -398,7 +398,7 @@ namespace nupic {
           sv_mem = nullptr;
         }
 
-#if defined(NTA_PLATFORM_win32) && defined(NTA_COMPILER_MSVC)
+#if defined(NTA_OS_WINDOWS) && defined(NTA_COMPILER_MSVC)
         sv_mem = (float*) _aligned_malloc(4 * l * n_dims(), 16);
 #else
         sv_mem = new float [l * n_dims()];

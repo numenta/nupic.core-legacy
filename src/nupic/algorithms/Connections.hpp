@@ -5,15 +5,15 @@
  * following terms and conditions apply:
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 3 as
+ * it under the terms of the GNU Affero Public License version 3 as
  * published by the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * See the GNU General Public License for more details.
+ * See the GNU Affero Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
+ * You should have received a copy of the GNU Affero Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
  *
  * http://numenta.org/licenses/
@@ -30,8 +30,12 @@
 #include <climits>
 #include <utility>
 #include <vector>
+
 #include <nupic/types/Types.hpp>
 #include <nupic/math/Math.hpp>
+#include <nupic/proto/ConnectionsProto.capnp.h>
+
+using namespace std;
 
 namespace nupic
 {
@@ -42,14 +46,14 @@ namespace nupic
     namespace connections
     {
       typedef UInt32 CellIdx;
-      typedef unsigned char SegmentIdx;
-      typedef unsigned char SynapseIdx;
+      typedef UInt16 SegmentIdx;
+      typedef UInt16 SynapseIdx;
       typedef Real32 Permanence;
       typedef UInt64 Iteration;
 
-      #define CELL_MAX (USHRT_MAX-1)
-      #define SEGMENT_MAX (UCHAR_MAX-1)
-      #define SYNAPSE_MAX (UCHAR_MAX-1)
+      // Defaults
+      static const UInt16 MAX_SEGMENTS_PER_CELL = 255;
+      static const UInt16 MAX_SYNAPSES_PER_SEGMENT = 255;
 
       /**
        * Cell class used in Connections.
@@ -217,18 +221,37 @@ namespace nupic
       class Connections
       {
       public:
+        static const UInt16 VERSION = 1;
+
+        /**
+         * Connections empty constructor.
+         * (Does not call `initialize`.)
+         */
+        Connections() {};
+
         /**
          * Connections constructor.
          *
-         * @param numCells           Number of cells. Must be <= CELL_MAX.
-         * @param maxSegmentsPerCell Maximum number of segments per cell. Must be <= SEGMENT_MAX.
-         *
-         * @retval Created segment.
+         * @param numCells              Number of cells.
+         * @param maxSegmentsPerCell    Maximum number of segments per cell.
+         * @param maxSynapsesPerSegment Maximum number of synapses per segment.
          */
         Connections(CellIdx numCells,
-                    SegmentIdx maxSegmentsPerCell=SEGMENT_MAX);
+                    SegmentIdx maxSegmentsPerCell=MAX_SEGMENTS_PER_CELL,
+                    SynapseIdx maxSynapsesPerSegment=MAX_SYNAPSES_PER_SEGMENT);
 
         virtual ~Connections() {}
+
+        /**
+         * Initialize connections.
+         *
+         * @param numCells              Number of cells.
+         * @param maxSegmentsPerCell    Maximum number of segments per cell.
+         * @param maxSynapsesPerSegment Maximum number of synapses per segment.
+         */
+        void initialize(CellIdx numCells,
+                        SegmentIdx maxSegmentsPerCell,
+                        SynapseIdx maxSynapsesPerSegment);
 
         /**
          * Creates a segment on the specified cell.
@@ -312,6 +335,15 @@ namespace nupic
         SynapseData dataForSynapse(const Synapse& synapse) const;
 
         /**
+         * Returns the synapses for the source cell that they synapse on.
+         *
+         * @param presynapticCell(int) Source cell index
+         *
+         * @return (set)Synapse indices
+         */
+        std::vector<Synapse> synapsesForPresynapticCell(const Cell& presynapticCell) const;
+
+        /**
          * Gets the segment with the most active synapses due to given input,
          * from among all the segments on all the given cells.
          *
@@ -372,6 +404,38 @@ namespace nupic
          */
         std::vector<Cell> activeCells(const Activity& activity);
 
+        // Serialization
+
+        /**
+         * Saves serialized data to output stream.
+         */
+        virtual void save(ostream& outStream) const;
+
+        /**
+         * Writes serialized data to output stream.
+         */
+        virtual void write(ostream& stream) const;
+
+        /**
+         * Writes serialized data to proto object.
+         */
+        virtual void write(ConnectionsProto::Builder& proto) const;
+
+        /**
+         * Loads serialized data from input stream.
+         */
+        virtual void load(istream& inStream);
+
+        /**
+         * Reads serialized data from input stream.
+         */
+        virtual void read(istream& stream);
+
+        /**
+         * Reads serialized data from proto object.
+         */
+        virtual void read(ConnectionsProto::Reader& proto);
+
         // Debugging
 
         /**
@@ -388,6 +452,11 @@ namespace nupic
          */
         UInt numSynapses() const;
 
+        /**
+         * Comparison operator.
+         */
+        bool operator==(const Connections &other) const;
+
       private:
         std::vector<CellData> cells_;
         // Mapping (presynaptic cell => synapses) used in forward propagation
@@ -395,6 +464,7 @@ namespace nupic
         UInt numSegments_;
         UInt numSynapses_;
         SegmentIdx maxSegmentsPerCell_;
+        SynapseIdx maxSynapsesPerSegment_;
         Iteration iteration_;
       }; // end class Connections
 

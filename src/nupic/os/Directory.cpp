@@ -5,15 +5,15 @@
  * following terms and conditions apply:
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 3 as
+ * it under the terms of the GNU Affero Public License version 3 as
  * published by the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * See the GNU General Public License for more details.
+ * See the GNU Affero Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
+ * You should have received a copy of the GNU Affero Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
  *
  * http://numenta.org/licenses/
@@ -23,7 +23,6 @@
 /** @file 
 */
 
-#include <unistd.h>
 #include <string>
 #include <algorithm>
 #include <nupic/os/Directory.hpp>
@@ -33,10 +32,11 @@
 #include <apr-1/apr_file_io.h>
 #include <apr-1/apr_time.h>
 
-#ifdef NTA_PLATFORM_win32
+#if defined(NTA_OS_WINDOWS)
   #include <windows.h>
   #include <tchar.h>
 #else
+  #include <unistd.h>
   #include <sys/stat.h>
 #endif
 
@@ -51,10 +51,10 @@ namespace nupic
     
     std::string getCWD()
     {
-    #ifdef NTA_PLATFORM_win32
+    #if defined(NTA_OS_WINDOWS)
       wchar_t wcwd[APR_PATH_MAX];
       DWORD res = ::GetCurrentDirectoryW(APR_PATH_MAX, wcwd);
-      NTA_CHECK(res > 0) << "Couldn't get current working directory. Error code: " 
+      NTA_CHECK(res > 0) << "Couldn't get current working directory. OS msg: " 
         << OS::getErrorMessage();
       std::string cwd = Path::unicodeToUtf8(std::wstring(wcwd));
       return cwd;
@@ -62,7 +62,7 @@ namespace nupic
       char cwd[APR_PATH_MAX];
       cwd[0] = '\0';
       char * res = ::getcwd(cwd, APR_PATH_MAX);
-      NTA_CHECK(res != nullptr) << "Couldn't get current working directory. Error code: " << errno;
+      NTA_CHECK(res != nullptr) << "Couldn't get current working directory. OS num: " << errno;
       return std::string(cwd);
     #endif
     }
@@ -76,7 +76,7 @@ namespace nupic
     void setCWD(const std::string & path)
     {
       int res = 0;
-    #ifdef NTA_PLATFORM_win32
+    #if defined(NTA_OS_WINDOWS)
       std::wstring wpath(Path::utf8ToUnicode(path));
       res = ::SetCurrentDirectoryW(wpath.c_str()) ? 0 : -1;
     #else
@@ -89,7 +89,7 @@ namespace nupic
     static bool removeEmptyDir(const std::string & path, bool noThrow)
     {
       int res = 0;
-    #ifdef NTA_PLATFORM_win32
+    #if defined(NTA_OS_WINDOWS)
       std::wstring wpath(Path::utf8ToUnicode(path));
       res = ::RemoveDirectoryW(wpath.c_str()) != FALSE ? 0 : -1;
     #else
@@ -148,7 +148,7 @@ namespace nupic
                 NTA_THROW
                   << "Directory::removeTree() failed. "
                   << "Unable to remove the file'" << fullPath << "'. "
-                  << "OS error description: " << OS::getErrorMessage();
+                  << "OS msg: " << OS::getErrorMessage();
               }
             }
           }
@@ -217,9 +217,19 @@ namespace nupic
 
       // non-recursive case
       bool success = true;
-    #ifdef NTA_PLATFORM_win32
+    #if defined(NTA_OS_WINDOWS)
       std::wstring wPath = Path::utf8ToUnicode(path);
       success = ::CreateDirectoryW(wPath.c_str(), NULL) != FALSE;
+      if (!success)
+      {
+        if (GetLastError() == ERROR_ALREADY_EXISTS) {
+          // Not a hard error, due to potential race conditions.
+          std::cerr << "Path '" << path << "' exists. "
+                       "Possible race condition."
+                    << std::endl;
+          success = Path::isDirectory(path);
+        }
+      }
 
     #else
       int permissions = S_IRWXU;
@@ -245,7 +255,7 @@ namespace nupic
       if (!success) 
       {
         NTA_THROW << "Directory::create -- failed to create directory \"" << path << "\".\n"
-                  << "OS Error: " << OS::getErrorMessage();
+                  << "OS msg: " << OS::getErrorMessage();
       }
     }
     
@@ -267,7 +277,7 @@ namespace nupic
       std::string absolutePath = Path::makeAbsolute(path);
       res = ::apr_dir_open(&handle_, absolutePath.c_str(), pool_);
       NTA_CHECK(res == 0) << "Can't open directory " << path
-                          << ". Error code: " << APR_TO_OS_ERROR(res);
+                          << ". OS num: " << APR_TO_OS_ERROR(res);
     }
     
     Iterator::~Iterator()
@@ -275,7 +285,7 @@ namespace nupic
       apr_status_t res = ::apr_dir_close(handle_);
       ::apr_pool_destroy(pool_);
       NTA_CHECK(res == 0) << "Couldn't close directory." 
-                          << " Error code: " << APR_TO_OS_ERROR(res);
+                          << " OS num: " << APR_TO_OS_ERROR(res);
     }
     
     void Iterator::reset()
@@ -283,7 +293,7 @@ namespace nupic
       apr_status_t res = ::apr_dir_rewind(handle_);
       NTA_CHECK(res == 0) 
         << "Couldn't reset directory iterator." 
-        << " Error code: " << APR_TO_OS_ERROR(res);
+        << " OS num: " << APR_TO_OS_ERROR(res);
     }
     
     Entry * Iterator::next(Entry & e)
@@ -299,7 +309,7 @@ namespace nupic
       {
         NTA_CHECK(res == APR_INCOMPLETE) 
           << "Couldn't read next dir entry." 
-          << " Error code: " << APR_TO_OS_ERROR(res);
+          << " OS num: " << APR_TO_OS_ERROR(res);
         NTA_CHECK(((e.valid & wanted) | APR_FINFO_LINK) == wanted) 
           << "Couldn't retrieve all fields. Valid mask=" << e.valid; 
       } 
@@ -318,4 +328,3 @@ namespace nupic
     }
   }
 }
-

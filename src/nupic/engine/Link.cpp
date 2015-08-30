@@ -5,22 +5,22 @@
  * following terms and conditions apply:
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 3 as
+ * it under the terms of the GNU Affero Public License version 3 as
  * published by the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * See the GNU General Public License for more details.
+ * See the GNU Affero Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
+ * You should have received a copy of the GNU Affero Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
  *
  * http://numenta.org/licenses/
  * ---------------------------------------------------------------------
  */
 
-/** @file 
+/** @file
  * Implementation of the Link class
  */
 
@@ -41,22 +41,22 @@ namespace nupic
 
 
 Link::Link(const std::string& linkType, const std::string& linkParams,
-           const std::string& srcRegionName, const std::string& destRegionName, 
+           const std::string& srcRegionName, const std::string& destRegionName,
            const std::string& srcOutputName, const std::string& destInputName)
 {
-  commonConstructorInit_(linkType, linkParams, 
-        srcRegionName, destRegionName, 
+  commonConstructorInit_(linkType, linkParams,
+        srcRegionName, destRegionName,
         srcOutputName, destInputName);
 
 }
-    
-Link::Link(const std::string& linkType, const std::string& linkParams, 
+
+Link::Link(const std::string& linkType, const std::string& linkParams,
            Output* srcOutput, Input* destInput)
 {
-  commonConstructorInit_(linkType, linkParams, 
+  commonConstructorInit_(linkType, linkParams,
         srcOutput->getRegion().getName(),
-        destInput->getRegion().getName(), 
-        srcOutput->getName(), 
+        destInput->getRegion().getName(),
+        srcOutput->getName(),
         destInput->getName() );
 
   connectToNetwork(srcOutput, destInput);
@@ -95,14 +95,14 @@ void Link::initialize(size_t destinationOffset)
   // consistent. Unless there is a NuPIC implementation
   // error, all these checks are guaranteed to pass
   // because of the way the network is constructed
-  // and initialized. 
-  
+  // and initialized.
+
   // Make sure we have been attached to a real network
   NTA_CHECK(src_ != nullptr);
   NTA_CHECK(dest_ != nullptr);
 
-  // Confirm that our dimensions are consistent with the 
-  // dimensions of the regions we're connecting. 
+  // Confirm that our dimensions are consistent with the
+  // dimensions of the regions we're connecting.
   const Dimensions& srcD = getSrcDimensions();
   const Dimensions& destD = getDestDimensions();
   NTA_CHECK(! srcD.isUnspecified());
@@ -118,7 +118,7 @@ void Link::initialize(size_t destinationOffset)
     {
       d.push_back(1);
     }
-    
+
     NTA_CHECK(srcD.isDontcare() || srcD == d);
   }
   else if(src_->getRegion().getDimensions() == oneD)
@@ -142,7 +142,7 @@ void Link::initialize(size_t destinationOffset)
     {
       d.push_back(1);
     }
-    
+
     NTA_CHECK(destD.isDontcare() || destD.isOnes());
   }
   else if(dest_->getRegion().getDimensions() == oneD)
@@ -158,16 +158,16 @@ void Link::initialize(size_t destinationOffset)
   {
     NTA_CHECK(destD.isDontcare() || destD == dest_->getRegion().getDimensions());
   }
-  
+
   destOffset_ = destinationOffset;
   impl_->initialize();
   initialized_ = true;
-  
+
 }
 
 void Link::setSrcDimensions(Dimensions& dims)
 {
-  NTA_CHECK(src_ != nullptr && dest_ != nullptr) 
+  NTA_CHECK(src_ != nullptr && dest_ != nullptr)
     << "Link::setSrcDimensions() can only be called on a connected link";
 
   size_t nodeElementCount = src_->getNodeOutputElementCount();
@@ -183,7 +183,7 @@ void Link::setSrcDimensions(Dimensions& dims)
 
 void Link::setDestDimensions(Dimensions& dims)
 {
-  NTA_CHECK(src_ != nullptr && dest_ != nullptr) 
+  NTA_CHECK(src_ != nullptr && dest_ != nullptr)
     << "Link::setDestDimensions() can only be called on a connected link";
 
   size_t nodeElementCount = src_->getNodeOutputElementCount();
@@ -198,12 +198,12 @@ void Link::setDestDimensions(Dimensions& dims)
 }
 
 const Dimensions& Link::getSrcDimensions() const
-{ 
-  return impl_->getSrcDimensions(); 
+{
+  return impl_->getSrcDimensions();
 };
 
 const Dimensions& Link::getDestDimensions() const
-{ 
+{
   return impl_->getDestDimensions();
 };
 
@@ -269,26 +269,26 @@ void Link::connectToNetwork(Output *src, Input *dest)
 // The methods below only work on connected links.
 Output& Link::getSrc() const
 
-{ 
-  NTA_CHECK(src_ != nullptr) 
+{
+  NTA_CHECK(src_ != nullptr)
     << "Link::getSrc() can only be called on a connected link";
-  return *src_; 
+  return *src_;
 }
 
 Input& Link::getDest() const
-{ 
-  NTA_CHECK(dest_ != nullptr) 
+{
+  NTA_CHECK(dest_ != nullptr)
     << "Link::getDest() can only be called on a connected link";
-  return *dest_; 
+  return *dest_;
 }
 
-void 
+void
 Link::buildSplitterMap(Input::SplitterMap& splitter)
 {
   // The link policy generates a splitter map
   // at the element level.  Here we convert it
-  // to a full splitter map 
-  // 
+  // to a full splitter map
+  //
   // if protoSplitter[destNode][x] == srcElement for some x
   // means that the output srcElement is sent to destNode
 
@@ -312,14 +312,14 @@ Link::buildSplitterMap(Input::SplitterMap& splitter)
   }
 }
 
-void 
+void
 Link::compute()
 {
   NTA_CHECK(initialized_);
-  
-  // Copy data from source to destination. 
-  // TBD: with zero-copy optimization, we won't do anything, 
-  // but that isn't implemented yet. 
+
+  // Copy data from source to destination.
+  // TBD: with zero-copy optimization, we won't do anything,
+  // but that isn't implemented yet.
   const Array & src = src_->getData();
   const Array & dest = dest_->getData();
 
@@ -330,8 +330,23 @@ Link::compute()
   ::memcpy((char*)(dest.getBuffer()) + destByteOffset, src.getBuffer(), srcSize);
 }
 
+void Link::write(LinkProto::Builder& proto) const
+{
+  proto.setType(linkType_.c_str());
+  proto.setParams(linkParams_.c_str());
+  proto.setSrcRegion(srcRegionName_.c_str());
+  proto.setSrcOutput(srcOutputName_.c_str());
+  proto.setDestRegion(destRegionName_.c_str());
+  proto.setDestInput(destInputName_.c_str());
+}
 
-
+void Link::read(LinkProto::Reader& proto)
+{
+  commonConstructorInit_(
+      proto.getType().cStr(), proto.getParams().cStr(),
+      proto.getSrcRegion().cStr(), proto.getDestRegion().cStr(),
+      proto.getSrcOutput().cStr(), proto.getDestInput().cStr());
+}
 
 namespace nupic
 {

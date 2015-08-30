@@ -5,15 +5,15 @@
  * following terms and conditions apply:
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 3 as
+ * it under the terms of the GNU Affero Public License version 3 as
  * published by the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * See the GNU General Public License for more details.
+ * See the GNU Affero Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
+ * You should have received a copy of the GNU Affero Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
  *
  * http://numenta.org/licenses/
@@ -2720,7 +2720,7 @@ namespace nupic {
       if (totalBytes < 0)
         totalBytes = 0;
 
-#ifdef NTA_PLATFORM_win32 // On Windows, don't use MemParser, it's slow.
+#if defined(NTA_OS_WINDOWS) // On Windows, don't use MemParser, it's slow.
 
       size_type i, j, k, nrows, ncols, nnz, nnzr;
       i = j = k = nrows = ncols = nnz = nnzr = 0;
@@ -2792,8 +2792,7 @@ namespace nupic {
         addRow(indb_, indb_it, nzb_, zero_permissive);
       }
 
-#endif
-#ifndef WIN32 // On Unix, MemParser is faster.
+#else // On Unix, MemParser is faster.
 
       MemParser inStream(inStreamParam, totalBytes);
 
@@ -2989,8 +2988,8 @@ namespace nupic {
      */
     inline void fromBinary(std::istream& inStream)
     {
-#ifdef NTA_PLATFORM_win32
-      std::cout << "fromBinary not supported on win32" << std::endl;
+#if defined(NTA_OS_WINDOWS)
+      std::cout << "fromBinary not supported on Windows" << std::endl;
       exit(-1);
 #endif
 
@@ -3091,8 +3090,8 @@ namespace nupic {
      */
     inline void toBinary(std::ostream& outStream)
     {
-#ifdef NTA_PLATFORM_win32
-      std::cout << "toBinary not supported on win32" << std::endl;
+#if defined(NTA_OS_WINDOWS)
+      std::cout << "toBinary not supported on Windows" << std::endl;
       exit(-1);
 #endif
 

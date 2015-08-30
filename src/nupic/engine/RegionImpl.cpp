@@ -1,42 +1,46 @@
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
+ * Copyright (C) 2013-2015, Numenta, Inc.  Unless you have an agreement
  * with Numenta, Inc., for a separate license for this software code, the
  * following terms and conditions apply:
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 3 as
+ * it under the terms of the GNU Affero Public License version 3 as
  * published by the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * See the GNU General Public License for more details.
+ * See the GNU Affero Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
+ * You should have received a copy of the GNU Affero Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
  *
  * http://numenta.org/licenses/
  * ---------------------------------------------------------------------
  */
 
-
 #include <iostream>
 
-#include <nupic/engine/RegionImpl.hpp>
-#include <nupic/ntypes/Buffer.hpp>
-#include <nupic/ntypes/Array.hpp>
-#include <nupic/types/BasicType.hpp>
+#include <capnp/any.h>
+#include <capnp/message.h>
+#include <capnp/serialize.h>
+#include <kj/std/iostream.h>
+
 #include <nupic/engine/Region.hpp>
+#include <nupic/engine/RegionImpl.hpp>
 #include <nupic/engine/Spec.hpp>
-#include <nupic/ntypes/Dimensions.hpp>
+#include <nupic/ntypes/Array.hpp>
+#include <nupic/ntypes/Buffer.hpp>
 #include <nupic/ntypes/BundleIO.hpp>
+#include <nupic/ntypes/Dimensions.hpp>
 #include <nupic/os/FStream.hpp>
+#include <nupic/types/BasicType.hpp>
 
 namespace nupic
 {
 
-RegionImpl::RegionImpl(Region *region) : 
+RegionImpl::RegionImpl(Region *region) :
   region_(region)
 {
 }
@@ -52,7 +56,7 @@ const std::string& RegionImpl::getType() const
 }
 
 const std::string& RegionImpl::getName() const
-{ 
+{
   return region_->getName();
 }
 
@@ -66,10 +70,10 @@ const NodeSet& RegionImpl::getEnabledNodes() const
 // By default, all typed getParameter calls forward to the
 // untyped getParameter that serializes to a buffer
 
-// Use macros to implement these methods. 
+// Use macros to implement these methods.
 // This is similar to a template + explicit instantiation, but
 // templated methods can't be virtual and thus can't be
-// overridden by subclasses. 
+// overridden by subclasses.
 
 #define getParameterT(Type) \
 Type RegionImpl::getParameter##Type(const std::string& name, Int64 index) \
@@ -117,7 +121,7 @@ setParameterT(UInt64)
 setParameterT(Real32);
 setParameterT(Real64);
 
-// buffer mechanism can't handle Handles. RegionImpl must override these methods. 
+// buffer mechanism can't handle Handles. RegionImpl must override these methods.
 Handle RegionImpl::getParameterHandle(const std::string& name, Int64 index)
 {
   NTA_THROW << "Unknown parameter '"  << name << "' of type Handle.";
@@ -126,7 +130,7 @@ Handle RegionImpl::getParameterHandle(const std::string& name, Int64 index)
 void RegionImpl::setParameterHandle(const std::string& name, Int64 index, Handle h)
 {
   NTA_THROW << "Unknown parameter '"  << name << "' of type Handle.";
-}  
+}
 
 
 
@@ -139,7 +143,7 @@ void RegionImpl::getParameterArray(const std::string& name, Int64 index, Array &
   void *buffer = array.getBuffer();
 
   for (size_t i = 0; i < count; i++)
-  { 
+  {
     int rc;
     switch (array.getType())
     {
@@ -170,7 +174,7 @@ void RegionImpl::getParameterArray(const std::string& name, Int64 index, Array &
                 << " in getParameterArray for parameter " << name;
       break;
     }
-    
+
     if (rc != 0)
     {
       NTA_THROW << "getParameterArray -- failure to get parameter '"
@@ -187,7 +191,7 @@ void RegionImpl::setParameterArray(const std::string& name, Int64 index,const Ar
   size_t count = array.getCount();
   void *buffer = array.getBuffer();
   for (size_t i = 0; i < count; i++)
-  { 
+  {
     int rc;
     switch (array.getType())
     {
@@ -247,14 +251,14 @@ bool RegionImpl::isParameterShared(const std::string& name)
   NTA_THROW << "RegionImpl::isParameterShared was not overridden in node type " << getType();
 }
 
-void RegionImpl::getParameterFromBuffer(const std::string& name, 
-                             Int64 index, 
+void RegionImpl::getParameterFromBuffer(const std::string& name,
+                             Int64 index,
                              IWriteBuffer& value)
 {
   NTA_THROW << "RegionImpl::getParameterFromBuffer must be overridden by subclasses";
 }
 
-void RegionImpl::setParameterFromBuffer(const std::string& name, 
+void RegionImpl::setParameterFromBuffer(const std::string& name,
                           Int64 index,
                           IReadBuffer& value)
 {
@@ -266,14 +270,14 @@ void RegionImpl::setParameterFromBuffer(const std::string& name,
 size_t RegionImpl::getParameterArrayCount(const std::string& name, Int64 index)
 {
   // Default implementation for RegionImpls with no array parameters
-  // that have a dynamic length. 
+  // that have a dynamic length.
   //std::map<std::string, ParameterSpec*>::iterator i = nodespec_->parameters.find(name);
   //if (i == nodespec_->parameters.end())
 
-  
+
   if (!region_->getSpec()->parameters.contains(name))
   {
-    NTA_THROW << "getParameterArrayCount -- no parameter named '" 
+    NTA_THROW << "getParameterArrayCount -- no parameter named '"
               << name << "' in node of type " << getType();
   }
   UInt32 count = region_->getSpec()->parameters.getByName(name).count;
@@ -305,5 +309,23 @@ const Dimensions& RegionImpl::getDimensions()
   return region_->getDimensions();
 }
 
+void RegionImpl::writeToStream(std::ostream& stream) const
+{
+  capnp::MallocMessageBuilder message;
+  capnp::AnyPointer::Builder proto = message.initRoot<capnp::AnyPointer>();
+  this->write(proto);
+
+  kj::std::StdOutputStream out(stream);
+  capnp::writeMessage(out, message);
 }
 
+void RegionImpl::readFromStream(std::istream& stream)
+{
+  kj::std::StdInputStream in(stream);
+
+  capnp::InputStreamMessageReader message(in);
+  capnp::AnyPointer::Reader proto = message.getRoot<capnp::AnyPointer>();
+  this->read(proto);
+}
+
+}

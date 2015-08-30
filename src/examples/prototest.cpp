@@ -5,15 +5,15 @@
  * following terms and conditions apply:
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 3 as
+ * it under the terms of the GNU Affero Public License version 3 as
  * published by the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * See the GNU General Public License for more details.
+ * See the GNU Affero Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
+ * You should have received a copy of the GNU Affero Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
  *
  * http://numenta.org/licenses/
@@ -24,7 +24,6 @@
 #include <fstream>
 #include <stdio.h>
 #include <time.h>
-#include <sys/time.h>
 #include <vector>
 
 #include <capnp/message.h>
@@ -32,25 +31,17 @@
 
 #include <nupic/algorithms/SpatialPooler.hpp>
 #include <nupic/math/SparseMatrix.hpp>
-#include <nupic/proto/SparseMatrixProto.capnp.h>
+#include <nupic/os/Timer.hpp>
 #include <nupic/utils/Random.hpp>
 
 using namespace std;
 using namespace nupic;
 using namespace nupic::algorithms::spatial_pooler;
 
-long diff(timeval & start, timeval & end)
-{
-  return (
-      ((end.tv_sec - start.tv_sec) * 1000000) +
-      (end.tv_usec - start.tv_usec)
-  );
-}
-
 void testSP()
 {
   Random random(10);
-  struct timeval start, end;
+  nupic::Timer testTimer;
 
   const UInt inputSize = 500;
   const UInt numColumns = 500;
@@ -77,7 +68,7 @@ void testSP()
   for (UInt i = 0; i < 10000; ++i)
   {
     random.shuffle(input, input + inputSize);
-    sp1.compute(input, true, output, false);
+    sp1.compute(input, true, output);
   }
 
   // Now we reuse the last input to test after serialization
@@ -111,7 +102,7 @@ void testSP()
 
     // Get expected output
     UInt outputBaseline[numColumns];
-    sp1.compute(input, true, outputBaseline, false);
+    sp1.compute(input, true, outputBaseline);
 
     UInt outputA[numColumns];
     UInt outputC[numColumns];
@@ -120,7 +111,7 @@ void testSP()
     {
       SpatialPooler spTemp;
 
-      gettimeofday(&start, nullptr);
+      testTimer.start();
 
       // Deserialize
       ifstream is("outA.proto", ifstream::binary);
@@ -128,21 +119,21 @@ void testSP()
       is.close();
 
       // Feed new record through
-      spTemp.compute(input, true, outputA, false);
+      spTemp.compute(input, true, outputA);
 
       // Serialize
       ofstream os("outA.proto", ofstream::binary);
       spTemp.write(os);
       os.close();
 
-      gettimeofday(&end, nullptr);
-      timeA = timeA + diff(start, end);
+      testTimer.stop();
+      timeA = timeA + testTimer.getElapsed();
     }
     // C - Next do old version
     {
       SpatialPooler spTemp;
 
-      gettimeofday(&start, nullptr);
+      testTimer.start();
 
       // Deserialize
       ifstream is("outC.proto", ifstream::binary);
@@ -150,15 +141,15 @@ void testSP()
       is.close();
 
       // Feed new record through
-      spTemp.compute(input, true, outputC, false);
+      spTemp.compute(input, true, outputC);
 
       // Serialize
       ofstream os("outC.proto", ofstream::binary);
       spTemp.save(os);
       os.close();
 
-      gettimeofday(&end, nullptr);
-      timeC = timeC + diff(start, end);
+      testTimer.stop();
+      timeC = timeC + testTimer.getElapsed();
     }
 
     for (UInt i = 0; i < numColumns; ++i)
@@ -180,8 +171,8 @@ void testRandomIOStream(UInt n)
   Random r1(7);
   Random r2;
 
-  struct timeval start, end;
-  gettimeofday(&start, nullptr);
+  nupic::Timer testTimer;
+  testTimer.start();
   for (UInt i = 0; i < n; ++i)
   {
     r1.getUInt32();
@@ -204,11 +195,11 @@ void testRandomIOStream(UInt n)
     NTA_ASSERT(r1.getUInt32() == r2.getUInt32());
     NTA_ASSERT(r1.getUInt32() == r2.getUInt32());
   }
-  gettimeofday(&end, nullptr);
+  testTimer.stop();
 
   remove("random2.proto");
 
-  cout << "Stream time: " << ((Real)diff(start, end) / 1000.0) << endl;
+  cout << "Stream time: " << ((Real)testTimer.getElapsed() / 1000.0) << endl;
 }
 
 void testRandomManual(UInt n)
@@ -216,8 +207,8 @@ void testRandomManual(UInt n)
   Random r1(7);
   Random r2;
 
-  struct timeval start, end;
-  gettimeofday(&start, nullptr);
+  nupic::Timer testTimer;
+  testTimer.start();
   for (UInt i = 0; i < n; ++i)
   {
     r1.getUInt32();
@@ -240,11 +231,11 @@ void testRandomManual(UInt n)
     NTA_ASSERT(r1.getUInt32() == r2.getUInt32());
     NTA_ASSERT(r1.getUInt32() == r2.getUInt32());
   }
-  gettimeofday(&end, nullptr);
+  testTimer.stop();
 
   remove("random3.proto");
 
-  cout << "Manual time: " << ((Real)diff(start, end) / 1000.0) << endl;
+  cout << "Manual time: " << ((Real)testTimer.getElapsed() / 1000.0) << endl;
 }
 
 int main(int argc, const char * argv[])
