@@ -19,8 +19,8 @@ environment:
     # i.e. - COMPILER_FAMILY: GNU
     - COMPILER_FAMILY: GNU
       DEPLOY_TO_NUGET: 0
-      PYTHON: "C:\\Python27"
-      PYTHON_VERSION: "2.7.x" # currently 2.7.9
+      PYTHON: "C:\\Python27-x64"
+      PYTHON_VERSION: "2.7.9"
       PYTHON_ARCH: "64"
 
 skip_commits:
@@ -58,8 +58,50 @@ nuget:
 configuration: Release
 
 install:
-  - echo PATH=%PATH%
+  - ECHO "Filesystem root:"
+  - ps: "ls \"C:/\""
+
+  - ECHO "Installed Windows SDKs:"
+  - ps: "ls \"C:/Program Files/Microsoft SDKs/Windows\""
+
+  - ECHO "Installed MinGW-w64:"
+  - ps: >-
+      $url  = "http://sourceforge.net/projects/mingw-w64/files/"
+
+      $url += "Toolchains%20targetting%20Win64/Personal%20Builds/"
+
+      $url += "mingw-builds/4.8.2/threads-win32/seh/"
+
+      $url += "x86_64-4.8.2-release-win32-seh-rt_v3-rev4.7z/download"
+
+      Invoke-WebRequest -UserAgent wget -Uri $url -OutFile x86_64-4.8.2-release-win32-seh-rt_v3-rev4.7z
+
+      &7z x -oC:\ x86_64-4.8.2-release-win32-seh-rt_v3-rev4.7z > $null
+
+  - set PATH=C:\mingw64\bin;%PATH%
+  - set CC=gcc
+
+  # https://github.com/ogrisel/python-appveyor-demo/blob/master/appveyor.yml
+  # Install Python (from the official .msi of http://python.org)
+  # and pip when not already installed.
+  - "powershell %REPO_DIR%\\ci\\appveyor\\install_python_pip.ps1"
+
+  # Prepend newly installed Python to the PATH of this build (this cannot be
+  # done from inside the powershell script as it would require to restart
+  # the parent CMD process).
+  - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
+
+  - ECHO "PATH:"
+  - echo %PATH%
   
+  # Check that we have the expected version and architecture for Python
+  - "python --version"
+  - "python -c \"import struct; print(struct.calcsize('P') * 8)\""
+
+  # Upgrade to the latest version of pip to avoid it displaying warnings
+  # about it being out of date.
+  - "pip install --disable-pip-version-check --user --upgrade pip"
+
   - set REPO_DIR=c:\projects\nupic-core
   - set NUPIC_DEPLOYMENT_BUILD=1
 
@@ -68,12 +110,6 @@ install:
   - mkdir %REPO_DIR%\build\scripts
   - cd %REPO_DIR%\build\scripts
 
-  # https://github.com/ogrisel/python-appveyor-demo/blob/master/appveyor.yml
-  # Install Python (from the official .msi of http://python.org) and pip when
-  # not already installed.
-  - "powershell %REPO_DIR%\\ci\\appveyor\\install_python_pip.ps1"
-
-  - cd %REPO_DIR%\build\scripts
   - set EXT_LIBS=%REPO_DIR%\external\windows64\lib
 
   # Remove sh.exe from the paths
