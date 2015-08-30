@@ -93,7 +93,7 @@ add_definitions(-DNTA_OS_${PLATFORM_UPPERCASE}
                 -DNTA_ASM)
 if(UNIX) # or UNIX like (i.e. APPLE and CYGWIN)
   add_definitions(-DHAVE_UNISTD_H)
-elseif(MSVC)
+elseif(MSVC OR MSYS OR MINGW)
   add_definitions(-DPSAPI_VERSION=1
                   -DAPR_DECLARE_STATIC
                   -DAPU_DECLARE_STATIC
@@ -106,6 +106,10 @@ elseif(MSVC)
                   -DCAPNP_LITE=1
                   -D_VARIADIC_MAX=10
                   -DNOMINMAX)
+  if(MSYS OR MINGW)
+    add_definitions(-DHAVE_UNISTD_H
+                    -DNTA_COMPILER_GNU)
+  endif()
 endif()
 
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
@@ -114,12 +118,6 @@ elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
   add_definitions(-DNTA_COMPILER_CLANG)
 elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
   add_definitions(-DNTA_COMPILER_MSVC)
-endif()
-
-if(MSYS OR MINGW)
-  add_definitions(-DHAVE_UNISTD_H)
-  add_definitions(-DNTA_COMPILER_GNU)
-  add_definitions(-DCAPNP_LITE=1)
 endif()
 
 #
@@ -395,7 +393,7 @@ if("${PLATFORM}" STREQUAL "linux")
 elseif("${PLATFORM}" STREQUAL "darwin")
   list(APPEND COMMON_LIBS c++abi)
 elseif(MSYS OR MINGW)
-  list(APPEND COMMON_LIBS pthread)
+  list(APPEND COMMON_LIBS psapi ws2_32)
 elseif("${PLATFORM}" STREQUAL "windows")
   list(APPEND COMMON_LIBS oldnames.lib psapi.lib ws2_32.lib)
 endif()

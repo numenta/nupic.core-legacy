@@ -113,8 +113,7 @@ install:
   - set PATH=%PATH:C:\Program Files (x86)\Git\bin;=%
 
   # http://www.cmake.org/Wiki/CmakeMingw
-  - cmake %REPO_DIR%\src
-     -G "MinGW Makefiles"
+  - cmake -G "MinGW Makefiles"
      -DCMAKE_TOOLCHAIN_FILE=%REPO_DIR%\src\cmake\MinGW-CrossCompile-Windows.cmake
      -DCMAKE_BUILD_TYPE=Release
      -DCMAKE_INSTALL_PREFIX=%REPO_DIR%\build\release
@@ -125,6 +124,7 @@ install:
      -DLIB_STATIC_Z_LOC=%EXT_LIBS%\z.lib
      -DLIB_STATIC_CAPNP_LOC=%EXT_LIBS%\capnp.lib
      -DLIB_STATIC_KJ_LOC=%EXT_LIBS%\kj.lib
+     %REPO_DIR%\src
 
 build_script:
   - cd %REPO_DIR%\build\scripts
