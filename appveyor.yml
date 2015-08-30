@@ -13,6 +13,10 @@ branches:
   except:
     - gh-pages
 
+#---------------------------------#
+#    environment configuration    #
+#---------------------------------#
+
 environment:
   matrix:
     # Must add CLang, or GCC
@@ -28,9 +32,8 @@ skip_commits:
   # Add [ci skip] to skip Travis and AppVeyor building
   message: /\[av skip\]/ 
 
-#---------------------------------#
-#    environment configuration    #
-#---------------------------------#
+cache:
+  - x86_64-4.8.2-release-win32-seh-rt_v3-rev4.7z
 
 # Operating system (build VM template)
 os: Visual Studio 2015 CTP
@@ -66,30 +69,24 @@ install:
 
   - ECHO "Installed MinGW-w64:"
   - ps: >-
-      $url  = "http://sourceforge.net/projects/mingw-w64/files/"
+      if (-Not (Test-Path "x86_64-4.8.2-release-win32-seh-rt_v3-rev4.7z")) {
+        $url  = "http://sourceforge.net/projects/mingw-w64/files/"
 
-      $url += "Toolchains%20targetting%20Win64/Personal%20Builds/"
+        $url += "Toolchains%20targetting%20Win64/Personal%20Builds/"
 
-      $url += "mingw-builds/4.8.2/threads-win32/seh/"
+        $url += "mingw-builds/4.8.2/threads-win32/seh/"
 
-      $url += "x86_64-4.8.2-release-win32-seh-rt_v3-rev4.7z/download"
+        $url += "x86_64-4.8.2-release-win32-seh-rt_v3-rev4.7z/download"
 
-      Invoke-WebRequest -UserAgent wget -Uri $url -OutFile x86_64-4.8.2-release-win32-seh-rt_v3-rev4.7z
+        Invoke-WebRequest -UserAgent wget -Uri $url -OutFile x86_64-4.8.2-release-win32-seh-rt_v3-rev4.7z
+
+      }
 
       &7z x -oC:\ x86_64-4.8.2-release-win32-seh-rt_v3-rev4.7z > $null
 
-  - set PATH=C:\mingw64\bin;%PATH%
   - set CC=gcc
 
-  # https://github.com/ogrisel/python-appveyor-demo/blob/master/appveyor.yml
-  # Install Python (from the official .msi of http://python.org)
-  # and pip when not already installed.
-  - "powershell %REPO_DIR%\\ci\\appveyor\\install_python_pip.ps1"
-
-  # Prepend newly installed Python to the PATH of this build (this cannot be
-  # done from inside the powershell script as it would require to restart
-  # the parent CMD process).
-  - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
+  - set PATH=C:\mingw64\bin;%PYTHON%;%PYTHON%\\Scripts;%PATH%"
 
   - ECHO "PATH:"
   - echo %PATH%
