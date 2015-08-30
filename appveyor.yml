@@ -76,6 +76,9 @@ install:
   - cd %REPO_DIR%\build\scripts
   - set EXT_LIBS=%REPO_DIR%\external\windows64\lib
 
+  # Remove sh.exe from the paths
+  - set PATH=%PATH:C:\Program Files (x86)\Git\bin;=%
+
   # http://www.cmake.org/Wiki/CmakeMingw
   - cmake %REPO_DIR%\src
      -G "MinGW Makefiles"
