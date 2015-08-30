@@ -76,7 +76,9 @@ namespace nupic
     void * handle = nullptr;
   
     #if defined(NTA_OS_WINDOWS)
-      mode; // ignore on Windows
+      #if !defined(NTA_COMPILER_GNU)
+        mode; // ignore on Windows
+      #endif
       handle = ::LoadLibraryA(name.c_str());
       if (handle == NULL)
       {

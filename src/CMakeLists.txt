@@ -28,7 +28,7 @@
 cmake_minimum_required(VERSION 2.8)
 project(nupic_core CXX)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-set(CMAKE_VERBOSE_MAKEFILE OFF) # toggle for cmake debug
+set(CMAKE_VERBOSE_MAKEFILE ON) # toggle for cmake debug
 
 if( POLICY CMP0046 )
   cmake_policy(VERSION 2.8)
@@ -75,6 +75,13 @@ else()
   set(BITNESS 32)
 endif()
 
+# Check the architecture and set CMAKE_LIBRARY_ARCHITECTURE accordingly
+if(UNIX)
+  if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+    set(CMAKE_LIBRARY_ARCHITECTURE "x86_64-linux-gnu")
+  endif()
+endif()
+
 # Compiler `-D*` definitions
 add_definitions(-DNTA_OS_${PLATFORM_UPPERCASE}
                 -DNTA_ARCH_${BITNESS}
@@ -86,7 +93,7 @@ add_definitions(-DNTA_OS_${PLATFORM_UPPERCASE}
                 -DNTA_ASM)
 if(UNIX) # or UNIX like (i.e. APPLE and CYGWIN)
   add_definitions(-DHAVE_UNISTD_H)
-elseif(WIN32) # incl. win64
+elseif(MSVC)
   add_definitions(-DPSAPI_VERSION=1
                   -DAPR_DECLARE_STATIC
                   -DAPU_DECLARE_STATIC
@@ -109,6 +116,11 @@ elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
   add_definitions(-DNTA_COMPILER_MSVC)
 endif()
 
+if(MSYS OR MINGW)
+  add_definitions(-DHAVE_UNISTD_H)
+  add_definitions(-DNTA_COMPILER_GNU)
+  add_definitions(-DCAPNP_LITE=1)
+endif()
 
 #
 # Identify build type - local or deployment (Travis)
@@ -119,8 +131,6 @@ if($ENV{NUPIC_DEPLOYMENT_BUILD})
 else()
   message("doing local build")
 endif()
-
-
 
 
 #
@@ -160,13 +170,11 @@ endif()
 # the variable NUPIC_DEPLOYMENT_BUILD must be set in travis CI scripts
 #
 if($ENV{NUPIC_DEPLOYMENT_BUILD})
-  message("doing deployment build in TravisCI")
   if(NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
     set(OPTIMIZATION_FLAGS_CC "${OPTIMIZATION_FLAGS_CC} -mtune=generic -O2")
     set(OPTIMIZATION_FLAGS_LT "-O2 ${OPTIMIZATION_FLAGS_LT}")
   endif()
 else()
-  message("doing local build")
   if(NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
     set(OPTIMIZATION_FLAGS_CC "${OPTIMIZATION_FLAGS_CC} -march=native -O3")
     set(OPTIMIZATION_FLAGS_LT "-O3 ${OPTIMIZATION_FLAGS_LT}")
@@ -202,18 +210,25 @@ if(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
   endif()
 else()
   # clang/gcc
-  set(COMMON_COMPILE_FLAGS "-fPIC -std=c++11 -m${BITNESS} ${STDLIB} -fvisibility=hidden -Werror -Wall -Wextra -Wreturn-type -Wunused -Wno-unused-parameter -Wno-missing-field-initializers")
+  set(COMMON_COMPILE_FLAGS "-std=c++11 -m${BITNESS} ${STDLIB} -fvisibility=hidden -Werror -Wall -Wextra -Wreturn-type -Wunused -Wno-unused-parameter -Wno-missing-field-initializers")
   set(COMMON_LINK_FLAGS "-m${BITNESS} ${STDLIB}")
   if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} -static-libstdc++")
   endif()
 endif()
+
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
   set(COMMON_COMPILE_FLAGS "${COMMON_COMPILE_FLAGS} -Og -g")
   set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} -O0")
 else()
   set(COMMON_COMPILE_FLAGS "${COMMON_COMPILE_FLAGS} ${OPTIMIZATION_FLAGS_CC}")
   set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} ${OPTIMIZATION_FLAGS_LT}")
+endif()
+
+if(MINGW)
+  # This is for GCC 4.8.x
+  # http://stackoverflow.com/questions/10660524/error-building-boost-1-49-0-with-gcc-4-7-0
+  set(COMMON_COMPILE_FLAGS "${COMMON_COMPILE_FLAGS} -include cmath")
 endif()
 
 #
@@ -325,6 +340,10 @@ add_library(${LIB_STATIC_CAPNP} STATIC IMPORTED GLOBAL)
 find_package(PythonLibs REQUIRED)
 include_directories(${PYTHON_INCLUDE_DIRS})
 
+message(STATUS "PYTHON_LIBRARIES = ${PYTHON_LIBRARIES}")
+message(STATUS "PYTHON_EXECUTABLE = ${PYTHON_EXECUTABLE}")
+message(STATUS "PYTHON_INCLUDE_DIRS = ${PYTHON_INCLUDE_DIRS}")
+
 #
 # Generate Cap'n Proto C++ files
 #
@@ -375,6 +394,8 @@ if("${PLATFORM}" STREQUAL "linux")
   list(APPEND COMMON_LIBS pthread dl)
 elseif("${PLATFORM}" STREQUAL "darwin")
   list(APPEND COMMON_LIBS c++abi)
+elseif(MSYS OR MINGW)
+  list(APPEND COMMON_LIBS pthread)
 elseif("${PLATFORM}" STREQUAL "windows")
   list(APPEND COMMON_LIBS oldnames.lib psapi.lib ws2_32.lib)
 endif()
