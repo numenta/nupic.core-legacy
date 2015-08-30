@@ -36,6 +36,11 @@
 #ifndef NTA_PY_ARRAY_HPP
 #define NTA_PY_ARRAY_HPP
 
+// The Python.h #include MUST always be #included first in every
+// compilation unit (.c or .cpp file). That means that PyHelpers.hpp
+// must be #included first and transitively every .hpp file that 
+// #includes directly or indirectly PyHelpers.hpp must be #included
+// first.
 #include <nupic/py_support/PyHelpers.hpp>
 #include <nupic/types/Types.h>
 #include <nupic/ntypes/Array.hpp>
