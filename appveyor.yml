@@ -85,6 +85,8 @@ install:
 
       &7z x -oC:\ x86_64-4.8.2-release-win32-seh-rt_v3-rev4.7z > $null
 
+  - set CC=gcc
+
   - ECHO "Installing Python 3.5rc2:"
   - ps: >-
       if (-Not (Test-Path "python-3.5.0rc2-embed-amd64.zip")) {
@@ -96,9 +98,7 @@ install:
 
       }
 
-      &python-3.5.0rc2-amd64.exe /p /q CompileAll=1 PrependPath=1 Include_test=0 TargetDir=C:\Python35-x64 > $null
-
-  - set CC=gcc
+  - python-3.5.0rc2-amd64.exe /p /q CompileAll=1 PrependPath=1 Include_test=0 TargetDir=C:\Python35-x64
 
   - set PATH=C:\mingw64\bin;%PYTHON%;%PYTHON%\\Scripts;%PATH%"
 
