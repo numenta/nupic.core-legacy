@@ -24,6 +24,7 @@ Important notes:
 - [CMake](http://www.cmake.org/)
 - [Cap'n Proto](https://capnproto.org/)
     - Version 0.5.2
+    - Some users, such as those using Linux, will need to specify some compiler flags. See [external/README.md](https://github.com/numenta/nupic.core/blob/master/external/README.md) for details.
 
 The Python depedencies (NumPy and pycapnp) can be installed with `pip`:
 
