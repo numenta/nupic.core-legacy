@@ -119,7 +119,8 @@ install:
   - "pip install wheel"
 
   - ECHO "Installing NumPy 1.9.2 (+MKL):"
-  - cd %REPO_DIR%\external\windows64\bin
+  - cd %REPO_DIR%\ci\appveyor
+  - dir
   - pip install "numpy-1.9.2+mkl-cp35-none-win_amd64.whl"
 
   - cd %REPO_DIR%
