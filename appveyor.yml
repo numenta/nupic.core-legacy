@@ -112,13 +112,10 @@ install:
   # Upgrade to the latest version of pip to avoid it displaying warnings
   # about it being out of date.
   - "pip install --disable-pip-version-check --user --upgrade pip"
-
   - "pip install wheel"
 
   - ECHO "Installing NumPy 1.9.2 (+MKL):"
-  - cmd: cinst wget
-  - cmd: wget -q -U "Mozilla/5.0 (Windows; U; Windows NT 5.0; en-US; rv:1.0rc3) Gecko/20020523" "http://www.lfd.uci.edu/~gohlke/pythonlibs/numpy-1.9.2+mkl-cp35-none-win_amd64.whl"
-  - pip install numpy-1.9.2+mkl-cp35-none-win_amd64.whl
+  - pip install %REPO_DIR%\external\windows64\bin\numpy-1.9.2+mkl-cp35-none-win_amd64.whl
 
   - set REPO_DIR=c:\projects\nupic-core
   - set NUPIC_DEPLOYMENT_BUILD=1
