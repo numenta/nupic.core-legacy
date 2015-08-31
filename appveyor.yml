@@ -64,6 +64,7 @@ configuration: Release
 install:
   - set REPO_DIR=c:\projects\nupic-core
   - set NUPIC_DEPLOYMENT_BUILD=1
+  - set EXT_LIBS=%REPO_DIR%\external\windows64\lib
 
   #- ECHO "Filesystem root:"
   #- ps: "ls \"C:/\""
@@ -118,14 +119,14 @@ install:
   - "pip install wheel"
 
   - ECHO "Installing NumPy 1.9.2 (+MKL):"
-  - pip install %REPO_DIR%\external\windows64\bin\numpy-1.9.2+mkl-cp35-none-win_amd64.whl
+  - cd %REPO_DIR%\external\windows64\bin
+  - pip install numpy-1.9.2+mkl-cp35-none-win_amd64.whl
 
+  - cd %REPO_DIR%
   - mkdir %REPO_DIR%\build\
   - mkdir %REPO_DIR%\build\release
   - mkdir %REPO_DIR%\build\scripts
   - cd %REPO_DIR%\build\scripts
-
-  - set EXT_LIBS=%REPO_DIR%\external\windows64\lib
 
   # Remove sh.exe from the paths
   - set PATH=%PATH:C:\Program Files (x86)\Git\bin;=%
