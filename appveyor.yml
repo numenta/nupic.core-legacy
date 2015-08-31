@@ -35,8 +35,8 @@ skip_commits:
 cache:
   - x86_64-4.8.2-release-win32-seh-rt_v3-rev4.7z
   - python-3.5.0rc2-amd64.exe
+  - numpy-1.9.2+mkl-cp35-none-win_amd64.whl
 
-# Operating system (build VM template)
 os: Visual Studio 2015 CTP
 
 init:
@@ -62,11 +62,11 @@ nuget:
 configuration: Release
 
 install:
-  - ECHO "Filesystem root:"
-  - ps: "ls \"C:/\""
+  #- ECHO "Filesystem root:"
+  #- ps: "ls \"C:/\""
 
-  - ECHO "Installed Windows SDKs:"
-  - ps: "ls \"C:/Program Files/Microsoft SDKs/Windows\""
+  #- ECHO "Installed Windows SDKs:"
+  #- ps: "ls \"C:/Program Files/Microsoft SDKs/Windows\""
 
   - ECHO "Installing MinGW-w64:"
   - ps: >-
@@ -111,7 +111,21 @@ install:
 
   # Upgrade to the latest version of pip to avoid it displaying warnings
   # about it being out of date.
-  - "pip install --disable-pip-version-check --user --upgrade pip"
+  #- "pip install --disable-pip-version-check --user --upgrade pip"
+  - "pip install wheel"
+
+  - ECHO "Installing NumPy 1.9.2 (+MKL):"
+  - ps: >-
+      if (-Not (Test-Path "numpy-1.9.2+mkl-cp35-none-win_amd64.whl")) {
+        $url  = "http://www.lfd.uci.edu/~gohlke/pythonlibs/"
+
+        $url += "numpy-1.9.2+mkl-cp35-none-win_amd64.whl"
+
+        Invoke-WebRequest -UserAgent wget -Uri $url -OutFile numpy-1.9.2+mkl-cp35-none-win_amd64.whl
+
+      }
+
+  - pip install numpy-1.9.2+mkl-cp35-none-win_amd64.whl
 
   - set REPO_DIR=c:\projects\nupic-core
   - set NUPIC_DEPLOYMENT_BUILD=1
