@@ -77,6 +77,7 @@ namespace nupic
   private:
     friend std::ostream& operator<<(std::ostream& outStream, const RandomImpl& r);
     friend std::istream& operator>>(std::istream& inStream, RandomImpl& r);
+    const static UInt32 VERSION = 2;
     // internal state
     static const int stateSize_ = 31;
     static const int sep_ = 3;
@@ -394,10 +395,12 @@ namespace nupic
 
   std::ostream& operator<<(std::ostream& outStream, const RandomImpl& r)
   {
-    outStream << "randomimpl-v1 ";
+    outStream << "RandomImpl " << RandomImpl::VERSION << " ";
     outStream << RandomImpl::stateSize_ << " ";
     for (auto & elem : r.state_)
+    {
       outStream << elem << " ";
+    }
     outStream << r.rptr_ << " ";
     outStream << r.fptr_;
     return outStream;
@@ -405,19 +408,44 @@ namespace nupic
 
   std::istream& operator>>(std::istream& inStream, RandomImpl& r)
   {
-    std::string version;
-    inStream >> version;
-    if (version != "randomimpl-v1")
+    std::string marker;
+    inStream >> marker;
+    UInt32 version;
+    if (marker == "RandomImpl")
     {
-      NTA_THROW << "RandomImpl() deserializer -- found unexpected version string '"
-                << version << "'";
+      inStream >> version;
+      if (version != 2)
+      {
+        NTA_THROW << "RandomImpl deserialization found unexpected version: "
+                  << version;
+      }
+    }
+    else if (marker == "randomimpl-v1")
+    {
+      version = 1;
+    }
+    else
+    {
+      NTA_THROW << "RandomImpl() deserializer -- found unexpected version "
+                << "string '" << marker << "'";
     }
     UInt32 ss = 0;
     inStream >> ss;
     NTA_CHECK(ss == (UInt32)RandomImpl::stateSize_) << " ss = " << ss;
 
+    int tmp;
     for (auto & elem : r.state_)
-      inStream >> elem;
+    {
+      if (version < 2)
+      {
+        inStream >> tmp;
+        elem = (UInt32)tmp;
+      }
+      else
+      {
+        inStream >> elem;
+      }
+    }
     inStream >> r.rptr_;
     inStream >> r.fptr_;
     return inStream;
