@@ -23,8 +23,8 @@ environment:
     # i.e. - COMPILER_FAMILY: GNU
     - COMPILER_FAMILY: GNU
       DEPLOY_TO_NUGET: 0
-      PYTHON: "C:\\Python27-x64"
-      PYTHON_VERSION: "2.7.9"
+      PYTHON: "C:\\Python35-x64"
+      PYTHON_VERSION: "3.5"
       PYTHON_ARCH: "64"
 
 skip_commits:
@@ -34,6 +34,7 @@ skip_commits:
 
 cache:
   - x86_64-4.8.2-release-win32-seh-rt_v3-rev4.7z
+  - python-3.5.0rc2-amd64.exe
 
 # Operating system (build VM template)
 os: Visual Studio 2015 CTP
@@ -67,7 +68,7 @@ install:
   - ECHO "Installed Windows SDKs:"
   - ps: "ls \"C:/Program Files/Microsoft SDKs/Windows\""
 
-  - ECHO "Installed MinGW-w64:"
+  - ECHO "Installing MinGW-w64:"
   - ps: >-
       if (-Not (Test-Path "x86_64-4.8.2-release-win32-seh-rt_v3-rev4.7z")) {
         $url  = "http://sourceforge.net/projects/mingw-w64/files/"
@@ -83,6 +84,19 @@ install:
       }
 
       &7z x -oC:\ x86_64-4.8.2-release-win32-seh-rt_v3-rev4.7z > $null
+
+  - ECHO "Installing Python 3.5rc2:"
+  - ps: >-
+      if (-Not (Test-Path "python-3.5.0rc2-embed-amd64.zip")) {
+        $url  = "https://www.python.org/ftp/python/3.5.0/"
+
+        $url += "python-3.5.0rc2-amd64.exe"
+
+        Invoke-WebRequest -UserAgent wget -Uri $url -OutFile python-3.5.0rc2-amd64.exe
+
+      }
+
+      &python-3.5.0rc2-amd64.exe /p /q CompileAll=1 PrependPath=1 Include_test=0 TargetDir=C:\Python35-x64 > $null
 
   - set CC=gcc
 
@@ -117,6 +131,8 @@ install:
      -DCMAKE_TOOLCHAIN_FILE=%REPO_DIR%\src\cmake\MinGW-CrossCompile-Windows.cmake
      -DCMAKE_BUILD_TYPE=Release
      -DCMAKE_INSTALL_PREFIX=%REPO_DIR%\build\release
+     -DPYTHON_LIBRARY=C:\Python35-x64\libs
+     -DPYTHON_INCLUDE_DIR=C:\Python35-x64\include
      -DLIB_STATIC_APR1_LOC=%EXT_LIBS%\apr-1.lib
      -DLIB_STATIC_APRUTIL1_LOC=%EXT_LIBS%\aprutil-1.lib
      -DLIB_STATIC_YAML_CPP_LOC=%EXT_LIBS%\yaml-cpp.lib
