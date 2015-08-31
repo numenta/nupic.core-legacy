@@ -133,7 +133,7 @@ install:
      -DCMAKE_INSTALL_PREFIX=%REPO_DIR%\build\release
      -DPYTHON_LIBRARY=C:\Python35-x64\libs
      -DPYTHON_INCLUDE_DIR=C:\Python35-x64\include
-     -DCAPNP_INCLUDE_DIR=%REPO_DIR%\external\common\include
+     -DCAPNP_INCLUDE_DIRS=%REPO_DIR%\external\common
      -DCAPNP_LIB_KJ=%EXT_LIBS%\kj.lib
      -DCAPNP_LIB_CAPNP=%EXT_LIBS%\capnp.lib
      -DLIB_STATIC_APR1_LOC=%EXT_LIBS%\apr-1.lib
