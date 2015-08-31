@@ -62,6 +62,9 @@ nuget:
 configuration: Release
 
 install:
+  - set REPO_DIR=c:\projects\nupic-core
+  - set NUPIC_DEPLOYMENT_BUILD=1
+
   #- ECHO "Filesystem root:"
   #- ps: "ls \"C:/\""
 
@@ -116,9 +119,6 @@ install:
 
   - ECHO "Installing NumPy 1.9.2 (+MKL):"
   - pip install %REPO_DIR%\external\windows64\bin\numpy-1.9.2+mkl-cp35-none-win_amd64.whl
-
-  - set REPO_DIR=c:\projects\nupic-core
-  - set NUPIC_DEPLOYMENT_BUILD=1
 
   - mkdir %REPO_DIR%\build\
   - mkdir %REPO_DIR%\build\release
