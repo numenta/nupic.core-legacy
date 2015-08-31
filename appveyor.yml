@@ -100,7 +100,7 @@ install:
 
   - python-3.5.0rc2-amd64.exe /p /q CompileAll=1 PrependPath=1 Include_test=0 TargetDir=C:\Python35-x64
 
-  - set PATH=C:\mingw64\bin;%PYTHON%;%PYTHON%\\Scripts;%PATH%"
+  - set PATH=C:\mingw64\bin;%PYTHON%;%PYTHON%\Scripts;%PATH%"
 
   - ECHO "PATH:"
   - echo %PATH%
@@ -133,6 +133,9 @@ install:
      -DCMAKE_INSTALL_PREFIX=%REPO_DIR%\build\release
      -DPYTHON_LIBRARY=C:\Python35-x64\libs
      -DPYTHON_INCLUDE_DIR=C:\Python35-x64\include
+     -DCAPNP_INCLUDE_DIR=%REPO_DIR%\external\common\include
+     -DCAPNP_LIB_KJ=%EXT_LIBS%\kj.lib
+     -DCAPNP_LIB_CAPNP=%EXT_LIBS%\capnp.lib
      -DLIB_STATIC_APR1_LOC=%EXT_LIBS%\apr-1.lib
      -DLIB_STATIC_APRUTIL1_LOC=%EXT_LIBS%\aprutil-1.lib
      -DLIB_STATIC_YAML_CPP_LOC=%EXT_LIBS%\yaml-cpp.lib
