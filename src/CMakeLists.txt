@@ -720,6 +720,14 @@ install(DIRECTORY "${NUMPY_CORE}/lib/"
         DESTINATION lib)
 install(DIRECTORY "${NUMPY_CORE}/include/"
         DESTINATION include)
+install(FILES ${CAPNP_LIBRARIES}
+        DESTINATION lib)
+foreach(directory ${CAPNP_INCLUDE_DIRS})
+  install(DIRECTORY "${directory}/capnp"
+          DESTINATION include)
+  install(DIRECTORY "${directory}/kj"
+          DESTINATION include)
+endforeach()
 if(UNIX)
   install(FILES "${PROJECT_BINARY_DIR}/libnupic_core.a"
           DESTINATION lib)
