@@ -364,7 +364,6 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cxxCompiler, cmd
       # for Cap'n'Proto serialization
       "-lkj",
       "-lcapnp",
-      "-lcapnpc",
       # optimization (safe defaults)
       "-O2"]
 
@@ -378,7 +377,6 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cxxCompiler, cmd
     # for Cap'n'Proto serialization
     "-lkj",
     "-lcapnp",
-    "-lcapnpc",
     # optimization (safe defaults)
     "-O2"
   ]
@@ -404,8 +402,7 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cxxCompiler, cmd
     pythonLib,
     "dl",
     "kj",
-    "capnp",
-    "capnpc"]
+    "capnp"]
   if platform == "linux":
     commonLibraries.extend(["pthread"])
   elif platform in WINDOWS_PLATFORMS:
