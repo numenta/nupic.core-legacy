@@ -316,6 +316,10 @@ find_package(CapnProto REQUIRED)
 include_directories(${CAPNP_INCLUDE_DIRS})
 add_definitions(${CAPNP_DEFINITIONS})
 
+# libcapnpc must be manually added since it isn't included by default.
+find_library(CAPNPC_LIB capnpc)
+list(APPEND CAPNP_LIBRARIES ${CAPNPC_LIB})
+
 # List all .capnp files here. The C++ files will be generated and included
 # when compiling later on.
 set(CAPNP_SPECS
