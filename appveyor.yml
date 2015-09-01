@@ -13,66 +13,80 @@ branches:
   except:
     - gh-pages
 
-#---------------------------------#
-#    environment configuration    #
-#---------------------------------#
-
-environment:
-  matrix:
-    # Must add CLang, or GCC
-    # i.e. - COMPILER_FAMILY: GNU
-    - COMPILER_FAMILY: GNU
-      DEPLOY_TO_NUGET: 0
-      PYTHON: "C:\\Python35-x64"
-      PYTHON_VERSION: "3.5"
-      PYTHON_ARCH: "64"
-
 skip_commits:
   # Add [av skip] to commit messages to skip AppVeyor building
   # Add [ci skip] to skip Travis and AppVeyor building
   message: /\[av skip\]/ 
 
-cache:
-  - x86_64-4.8.2-release-win32-seh-rt_v3-rev4.7z
-  - python-3.5.0rc2-amd64.exe
-  - numpy-1.9.2+mkl-cp35-none-win_amd64.whl
+#---------------------------------#
+#    environment configuration    #
+#---------------------------------#
 
-os: Visual Studio 2015 CTP
+# http://www.appveyor.com/docs/environment-variables
+# http://www.appveyor.com/docs/installed-software
+
+# Build VM template
+#os: Windows Server 2012
+# http://www.appveyor.com/blog/2015/06/23/new-oss-build-environment-and-xamarin-support
 
 init:
   - git config --global core.autocrlf input
 
 clone_folder: c:\projects\nupic-core
-clone_depth: 50
 
-# Can't have a shallow clone because the CMake process will be calling into
-# git to write the current SHA into the binaries.
+# Can't have a shallow clone because the CMake process will be
+# calling into git to write the current SHA into the binaries.
 shallow_clone: false
+
+environment:
+  PYTHON_ARCH: "64"
+  COMPILER_FAMILY: GCC
+      
+  matrix:
+    - PYTHON_VERSION: "2.7.9"
+      PYTHONPATH: "C:\\Python27-x64"
+      DEPLOY_TO_NUGET: 0
+
+    - PYTHON_VERSION: "3.5.0rc2"
+      PYTHONPATH: "C:\\Python35-x64"
+      DEPLOY_TO_NUGET: 0
+
+matrix:
+  fast_finish: false
+  allow_failures:
+    - PYTHON_VERSION: "3.5.0rc2"
+      
+nuget:
+  account_feed: true
+  project_feed: true
+  disable_publish_on_pr: true
+  # disable publishing of .nupkg artifacts to
+  # account/project feeds for pull request builds
 
 #---------------------------------#
 #       build configuration       #
 #---------------------------------#
 
-nuget:
-  account_feed: true
-  project_feed: true
-  disable_publish_on_pr: true     # disable publishing of .nupkg artifacts to
-                                  # account/project feeds for pull request builds
-
 configuration: Release
+
+cache:
+  - x86_64-4.8.2-release-win32-seh-rt_v3-rev4.7z
+  - python-2.7.9-amd64.exe
+  - python-3.5.0rc2-amd64.exe
+  - numpy-1.9.2+mkl-cp27-none-win_amd64.whl
+  - numpy-1.9.2+mkl-cp35-none-win_amd64.whl
 
 install:
   - set REPO_DIR=c:\projects\nupic-core
   - set NUPIC_DEPLOYMENT_BUILD=1
   - set EXT_LIBS=%REPO_DIR%\external\windows64\lib
 
-  #- ECHO "Filesystem root:"
-  #- ps: "ls \"C:/\""
+  - ECHO "Filesystem root:"
+  - ps: "ls \"C:/\""
 
-  #- ECHO "Installed Windows SDKs:"
-  #- ps: "ls \"C:/Program Files/Microsoft SDKs/Windows\""
+  - ECHO "Installed Windows SDKs:"
+  - ps: "ls \"C:/Program Files/Microsoft SDKs/Windows\""
 
-  - ECHO "Installing MinGW-w64:"
   - ps: >-
       if (-Not (Test-Path "x86_64-4.8.2-release-win32-seh-rt_v3-rev4.7z")) {
         $url  = "http://sourceforge.net/projects/mingw-w64/files/"
@@ -87,26 +101,31 @@ install:
 
       }
 
+      ECHO "Installing MinGW-w64:"
+
       &7z x -oC:\ x86_64-4.8.2-release-win32-seh-rt_v3-rev4.7z > $null
 
   - set CC=gcc
+  - set PATH="C:\mingw64\bin;%PATH%"
 
-  - ECHO "Installing Python 3.5rc2:"
   - ps: >-
-      if (-Not (Test-Path "python-3.5.0rc2-embed-amd64.zip")) {
-        $url  = "https://www.python.org/ftp/python/3.5.0/"
-
-        $url += "python-3.5.0rc2-amd64.exe"
+      if (-Not (Test-Path "python-3.5.0rc2-amd64.exe")) {
+        $url  = "https://www.python.org/ftp/python/3.5.0/python-3.5.0rc2-amd64.exe"
 
         Invoke-WebRequest -UserAgent wget -Uri $url -OutFile python-3.5.0rc2-amd64.exe
 
       }
 
-  - python-3.5.0rc2-amd64.exe /p /q CompileAll=1 PrependPath=1 Include_test=0 TargetDir=C:\Python35-x64
+      if ($env:PYTHON_VERSION -Match "3.5.0rc2") {
+        ECHO "Installing Python 3.5.0 RC2:"
 
-  - set PATH=C:\mingw64\bin;%PYTHON%;%PYTHON%\Scripts;%PATH%"
+        &python-3.5.0rc2-amd64.exe /p /q CompileAll=1 PrependPath=0 Include_test=0 TargetDir=$env:PYTHONPATH
 
-  - ECHO "PATH:"
+      }
+
+  - set PATH="%PYTHONPATH%;%PYTHONPATH%\Scripts;%PATH%"
+
+  - ECHO "PATH is now:"
   - echo %PATH%
 
   # Check that we have the expected version and architecture for Python
@@ -115,17 +134,23 @@ install:
 
   # Upgrade to the latest version of pip to avoid it displaying warnings
   # about it being out of date.
-  - "pip install --disable-pip-version-check --user --upgrade pip"
+  # - "pip install --disable-pip-version-check --user --upgrade pip"
   - "pip install wheel"
 
-  - ECHO "Installing NumPy 1.9.2 (+MKL):"
-  - cd %REPO_DIR%\ci\appveyor
-  - dir
-  - pip install "numpy-1.9.2+mkl-cp35-none-win_amd64.whl"
+  - ECHO "Installing NumPy 1.9.2:"
+  - ps: >-
+      cd $env:REPO_DIR\ci\appveyor
+
+      if ($env:PYTHON_VERSION -Match "3.5.0rc2") {
+        &pip install "numpy-1.9.2+mkl-cp35-none-win_amd64.whl" }
+
+      else {
+        &pip install "numpy-1.9.2+mkl-cp27-none-win_amd64.whl" }
 
   - cd %REPO_DIR%
   - mkdir %REPO_DIR%\build\
   - mkdir %REPO_DIR%\build\release
+
   - mkdir %REPO_DIR%\build\scripts
   - cd %REPO_DIR%\build\scripts
 
@@ -137,8 +162,8 @@ install:
      -DCMAKE_TOOLCHAIN_FILE=%REPO_DIR%\src\cmake\MinGW-CrossCompile-Windows.cmake
      -DCMAKE_BUILD_TYPE=Release
      -DCMAKE_INSTALL_PREFIX=%REPO_DIR%\build\release
-     -DPYTHON_LIBRARY=C:\Python35-x64\libs
-     -DPYTHON_INCLUDE_DIR=C:\Python35-x64\include
+     -DPYTHON_LIBRARY=%PYTHONPATH%\libs
+     -DPYTHON_INCLUDE_DIR=%PYTHONPATH%\include
      -DCAPNP_INCLUDE_DIRS=%REPO_DIR%\external\common
      -DCAPNP_LIB_KJ=%EXT_LIBS%\kj.lib
      -DCAPNP_LIB_CAPNP=%EXT_LIBS%\capnp.lib
@@ -158,24 +183,9 @@ build_script:
   - mingw32-make -f Makefile install
 
   - cd %REPO_DIR%
-
   - set NUPIC_CORE_RELEASE=%REPO_DIR%\build\release
+
   - python setup.py install --user
-
-  - ps: >-
-      $root = $env:APPVEYOR_BUILD_FOLDER
-
-      $versionStr = $env:APPVEYOR_BUILD_VERSION
-
-      Write-Host $root
-
-      Write-Host "Setting Package.nuspec version tag to $versionStr"
-
-      $content = (Get-Content $root\Package.nuspec) 
-
-      $content = $content -replace '\$version\$',$versionStr
-
-      $content | Out-File $root\Package.nuspec
 
 after_build:
   - cd %REPO_DIR%\build\Release
@@ -183,6 +193,20 @@ after_build:
 
   - ps: >-
       if($env:DEPLOY_TO_NUGET -eq 1) {
+        $root = $env:APPVEYOR_BUILD_FOLDER
+
+        $versionStr = $env:APPVEYOR_BUILD_VERSION
+
+        Write-Host $root
+
+        Write-Host "Setting Package.nuspec version tag to $versionStr"
+
+        $content = (Get-Content $root\Package.nuspec) 
+
+        $content = $content -replace '\$version\$',$versionStr
+
+        $content | Out-File $root\Package.nuspec
+
         copy $env:REPO_DIR\Package.nuspec .
 
         nuget pack -version $env:APPVEYOR_BUILD_VERSION
