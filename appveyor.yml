@@ -101,12 +101,12 @@ install:
 
       }
 
-      ECHO "Installing MinGW-w64:"
+      &ECHO "Installing MinGW-w64:"
 
       &7z x -oC:\ x86_64-4.8.2-release-win32-seh-rt_v3-rev4.7z > $null
 
   - set CC=gcc
-  - set PATH="C:\mingw64\bin;%PATH%"
+  - set PATH=C:\mingw64\bin;%PATH%
 
   - ps: >-
       if (-Not (Test-Path "python-3.5.0rc2-amd64.exe")) {
@@ -117,13 +117,14 @@ install:
       }
 
       if ($env:PYTHON_VERSION -Match "3.5.0rc2") {
-        ECHO "Installing Python 3.5.0 RC2:"
+        &ECHO "Installing Python 3.5.0 RC2:"
 
         &python-3.5.0rc2-amd64.exe /p /q CompileAll=1 PrependPath=0 Include_test=0 TargetDir=$env:PYTHONPATH
 
       }
 
-  - set PATH="%PYTHONPATH%;%PYTHONPATH%\Scripts;%PATH%"
+  - set PYTHONPATH=%PYTHONPATH%
+  - set PATH=%PYTHONPATH%;%PYTHONPATH%\Scripts;%PATH%
 
   - ECHO "PATH is now:"
   - echo %PATH%
@@ -132,14 +133,29 @@ install:
   - "python --version"
   - "python -c \"import struct; print(struct.calcsize('P') * 8)\""
 
-  # Upgrade to the latest version of pip to avoid it displaying warnings
-  # about it being out of date.
-  # - "pip install --disable-pip-version-check --user --upgrade pip"
-  - "pip install wheel"
+  - ps: >-
+      if (-Not (Test-Path "get_pip.py")) {
+        $url  = "https://bootstrap.pypa.io/get-pip.py"
+
+        Invoke-WebRequest -UserAgent wget -Uri $url -OutFile get-pip.py
+
+      }
+
+      if ($env:PYTHON_VERSION -Match "2.7.9") {
+        &ECHO "Installing Pip:"
+
+        &python get-pip.py --user
+
+        # Upgrade to the latest version of pip to avoid it displaying warnings
+        # about it being out of date.
+        #&pip install --disable-pip-version-check --user --upgrade pip
+      }
+
+  - "pip install wheel --user"
 
   - ECHO "Installing NumPy 1.9.2:"
   - ps: >-
-      cd $env:REPO_DIR\ci\appveyor
+      &cd $env:REPO_DIR\ci\appveyor
 
       if ($env:PYTHON_VERSION -Match "3.5.0rc2") {
         &pip install "numpy-1.9.2+mkl-cp35-none-win_amd64.whl" }
