@@ -30,8 +30,6 @@ env:
   global:
     - NUPICCORE = ${TRAVIS_BUILD_DIR}
     - PATH=${TRAVIS_BUILD_DIR}/python/bin:$PATH
-    - CPPFLAGS=-I${TRAVIS_BUILD_DIR}/include
-    - LDFLAGS=-L${TRAVIS_BUILD_DIR}/lib
     - PLATFORM=${TRAVIS_OS_NAME}
     - ARCHFLAGS="-arch x86_64"
     # AWS keys are for manual uploads of linux wheel to S3.
