@@ -102,7 +102,7 @@ install:
   # Enable test coverage for travis-ci build
   - "cmake $TRAVIS_BUILD_DIR/src -DNTA_COV_ENABLED=ON -DCMAKE_INSTALL_PREFIX=${TRAVIS_BUILD_DIR}/build/release -DCMAKE_PREFIX_PATH=${TRAVIS_BUILD_DIR}"
   - "make -j3"
-  - "make install"
+  - "make install | grep -v 'Up-to-date: ' | grep -v 'Installing: '" # install (but silence "Install" output due to Travis line limit)
   - "cd $TRAVIS_BUILD_DIR"
   - "python setup.py install --user --nupic-core-dir=${TRAVIS_BUILD_DIR}/build/release"
 
