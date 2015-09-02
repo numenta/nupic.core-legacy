@@ -82,7 +82,8 @@ function main () {
     & $pip_path install wheel
 
     Write-Host "pip install " numpy==1.9.2
-    & $pip_path install -i https://pypi.numenta.com/pypi numpy==1.9.2
+    #& $pip_path install -i https://pypi.numenta.com/pypi numpy==1.9.2
+    & $pip_path install "numpy-1.9.2+mkl-cp27-none-win_amd64.whl"
 }
 
 main
