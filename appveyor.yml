@@ -71,10 +71,6 @@ configuration: Release
 
 cache:
   - x86_64-4.8.2-release-win32-seh-rt_v3-rev4.7z
-  - python-2.7.9-amd64.exe
-  - python-3.5.0rc2-amd64.exe
-  - numpy-1.9.2+mkl-cp27-none-win_amd64.whl
-  - numpy-1.9.2+mkl-cp35-none-win_amd64.whl
 
 install:
   - set REPO_DIR=c:\projects\nupic-core

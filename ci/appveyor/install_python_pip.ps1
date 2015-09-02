@@ -74,10 +74,10 @@ function InstallPip ($python_home) {
 }
 
 function main () {
-    InstallPython $env:PYTHON_VERSION $env:PYTHON_ARCH $env:PYTHON
-    InstallPip $env:PYTHON
+    InstallPython $env:PYTHON_VERSION $env:PYTHON_ARCH $env:PYTHONPATH
+    InstallPip $env:PYTHONPATH
 
-    $pip_path = $env:PYTHON + "/Scripts/pip.exe"
+    $pip_path = $env:PYTHONPATH + "/Scripts/pip.exe"
     Write-Host "pip install " wheel
     & $pip_path install wheel
 
