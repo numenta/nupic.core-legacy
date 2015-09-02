@@ -111,7 +111,7 @@ script:
   # unit tests
   - "make tests_unit"
   # run python tests
-  - "py.test $TRAVIS_BUILD_DIR/bindings/py/nupic/bindings/tests"
+  - "py.test --pyargs nupic.bindings"
   # output unit tests report
   - "cd $TRAVIS_BUILD_DIR/build/artifacts/"
   # transform the JUnit-style xml report to html

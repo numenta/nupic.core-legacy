@@ -81,6 +81,10 @@ Once it is installed, you can import NuPIC bindings library to your python scrip
 
     import nupic.bindings
 
+You can run the nupic.bindings tests with `py.test`:
+
+    py.test --pyargs nupic.bindings
+
 ### Using graphical interface
 
 #### Generate the IDE solution:
