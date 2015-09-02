@@ -142,21 +142,21 @@ install:
       }
 
       if ($env:PYTHON_VERSION -Match "2.7.9") {
-        &ECHO "Installing Pip:"
+        ECHO "Installing Pip:"
 
-        &python get-pip.py --user
+        python get-pip.py --user
 
       }
 
   - ECHO "Installing NumPy 1.9.2:"
   - ps: >-
-      &cd $env:REPO_DIR\ci\appveyor
+      cd $env:REPO_DIR\ci\appveyor
 
       if ($env:PYTHON_VERSION -Match "3.5.0rc2") {
-        &pip install "numpy-1.9.2+mkl-cp35-none-win_amd64.whl" }
+        pip install "numpy-1.9.2+mkl-cp35-none-win_amd64.whl" }
 
       else {
-        &pip install "numpy-1.9.2+mkl-cp27-none-win_amd64.whl" }
+        pip install "numpy-1.9.2+mkl-cp27-none-win_amd64.whl" }
 
   - cd %REPO_DIR%
   - mkdir %REPO_DIR%\build\
