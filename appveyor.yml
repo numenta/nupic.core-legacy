@@ -146,12 +146,7 @@ install:
 
         &python get-pip.py --user
 
-        # Upgrade to the latest version of pip to avoid it displaying warnings
-        # about it being out of date.
-        #&pip install --disable-pip-version-check --user --upgrade pip
       }
-
-  - "pip install wheel --user"
 
   - ECHO "Installing NumPy 1.9.2:"
   - ps: >-
