@@ -5,15 +5,15 @@
 # following terms and conditions apply:
 #
 # This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License version 3 as
+# it under the terms of the GNU Affero Public License version 3 as
 # published by the Free Software Foundation.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-# See the GNU General Public License for more details.
+# See the GNU Affero Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
+# You should have received a copy of the GNU Affero Public License
 # along with this program.  If not, see http://www.gnu.org/licenses.
 #
 # http://numenta.org/licenses/
@@ -61,7 +61,7 @@ def findRequirements():
   Read the requirements.txt file and parse into requirements for setup's
   install_requirements option.
   """
-  requirementsPath = "requirements.txt"
+  requirementsPath = fixPath(os.path.join(PY_BINDINGS, "requirements.txt"))
   return [
     line.strip()
     for line in open(requirementsPath).readlines()
@@ -92,9 +92,9 @@ def getCommandLineOptions():
   # optionDesc = [name, value, description]
   optionsDesc = []
   optionsDesc.append(
-    ["skip-compare-versions",
-     "",
-     "(optional) Skip nupic.core version comparison"]
+    ["nupic-core-dir",
+     "dir",
+     "Absolute path to nupic.core binary release directory"]
   )
   optionsDesc.append(
     ["optimizations-native",
@@ -163,9 +163,9 @@ def getPlatformInfo():
   else:
     raise Exception("Platform '%s' is unsupported!" % sys.platform)
 
-  # Python 32-bits doesn't detect Windows 64-bits so the workaround is 
+  # Python 32-bits doesn't detect Windows 64-bits so the workaround is
   # check whether "ProgramFiles (x86)" environment variable exists.
-  is64bits = (sys.maxsize > 2**32 or 
+  is64bits = (sys.maxsize > 2**32 or
      (platform in WINDOWS_PLATFORMS and 'PROGRAMFILES(X86)' in os.environ))
   if is64bits:
     bitness = "64"
@@ -504,9 +504,9 @@ if __name__ == "__main__":
   print "NUMPY VERSION: {}".format(numpy.__version__)
 
   try:
-    nupicCoreReleaseDir = os.environ.get('NUPIC_CORE_RELEASE')
+    nupicCoreReleaseDir = getCommandLineOption("nupic-core-dir", options)
     if nupicCoreReleaseDir is None:
-      raise Exception("Must provide path to nupic core release. export NUPIC_CORE_RELEASE=<path>")
+      raise Exception("Must provide nupic core release directory. --nupic-core-dir")
     nupicCoreReleaseDir = fixPath(nupicCoreReleaseDir)
     print "Nupic Core Release Directory: {}\n".format(nupicCoreReleaseDir)
     if not os.path.isdir(nupicCoreReleaseDir):
@@ -526,12 +526,18 @@ if __name__ == "__main__":
     extensions = getExtensionModules(nupicCoreReleaseDir, platform, bitness, cxxCompiler,
       options)
 
+    # Copy the proto files into the proto Python package.
+    destDir = os.path.relpath(os.path.join("nupic", "proto"))
+    for protoPath in glob.glob(os.path.relpath(os.path.join(
+        "..", "..", "src", "nupic", "proto", "*.capnp"))):
+      shutil.copy(protoPath, destDir)
+
     print "\nSetup SWIG Python module"
     setup(
       name="nupic.bindings",
       ext_modules=extensions,
-      version="0.1.0",
-      namespace_packages=["nupic", "nupic.bindings"],
+      version="0.1.5",
+      namespace_packages=["nupic"],
       install_requires=findRequirements(),
       description="Numenta Platform for Intelligent Computing - bindings",
       author="Numenta",
@@ -540,7 +546,7 @@ if __name__ == "__main__":
       classifiers=[
         "Programming Language :: Python",
         "Programming Language :: Python :: 2",
-        "License :: OSI Approved :: GNU General Public License (GPL)",
+        "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
         "Operating System :: MacOS :: MacOS X",
         "Operating System :: POSIX :: Linux",
         # It has to be "5 - Production/Stable" or else pypi rejects it!
@@ -550,7 +556,9 @@ if __name__ == "__main__":
         "Topic :: Scientific/Engineering :: Artificial Intelligence"
       ],
       long_description = "Python bindings for nupic core.",
-      packages=find_packages())
+      packages=find_packages(),
+      package_data={"nupic.proto": ["*.capnp"]},
+      zip_safe=False,
+    )
   finally:
     os.chdir(cwd)
-

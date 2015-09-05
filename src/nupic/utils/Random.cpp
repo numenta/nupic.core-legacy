@@ -5,15 +5,15 @@
  * following terms and conditions apply:
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 3 as
+ * it under the terms of the GNU Affero Public License version 3 as
  * published by the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * See the GNU General Public License for more details.
+ * See the GNU Affero Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
+ * You should have received a copy of the GNU Affero Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
  *
  * http://numenta.org/licenses/
@@ -77,10 +77,11 @@ namespace nupic
   private:
     friend std::ostream& operator<<(std::ostream& outStream, const RandomImpl& r);
     friend std::istream& operator>>(std::istream& inStream, RandomImpl& r);
+    const static UInt32 VERSION = 2;
     // internal state
     static const int stateSize_ = 31;
     static const int sep_ = 3;
-    int state_[stateSize_];
+    UInt32 state_[stateSize_];
     int rptr_;
     int fptr_;
 
@@ -263,11 +264,12 @@ double Random::getReal64()
 
 UInt32 RandomImpl::getUInt32(void)
 {
-  long i;
+  UInt32 i;
 #ifdef RANDOM_SUPERDEBUG
   printf("Random::get *fptr = %ld; *rptr = %ld fptr = %ld rptr = %ld\n", state_[fptr_], state_[rptr_], fptr_, rptr_);
 #endif
-  state_[fptr_] += state_[rptr_];
+  state_[fptr_] = (UInt32)(
+    ((UInt64)state_[fptr_] + (UInt64)state_[rptr_]) % Random::MAX32);
   i = state_[fptr_];
   i = (i >> 1) & 0x7fffffff;	/* chucking least random bit */
   if (++fptr_ >= stateSize_) {
@@ -282,7 +284,7 @@ UInt32 RandomImpl::getUInt32(void)
   }
 #endif
 
-  return((UInt32)i);
+  return i;
 }
 
 
@@ -293,7 +295,7 @@ RandomImpl::RandomImpl(UInt64 seed)
   /**
    * Initialize our state. Taken from BSD source for random()
    */
-  state_[0] = (int)seed;
+  state_[0] = (UInt32)(seed % Random::MAX32);
   for (long i = 1; i < stateSize_; i++) {
     /*
      * Implement the following, without overflowing 31 bits:
@@ -304,7 +306,7 @@ RandomImpl::RandomImpl(UInt64 seed)
      */
     ldiv_t val = ldiv(state_[i-1], 127773);
     long test = 16807 * val.rem - 2836 * val.quot;
-    state_[i] = test + (test < 0 ? 2147483647 : 0);
+    state_[i] = (UInt32)((test + (test < 0 ? 2147483647 : 0)) % Random::MAX32);
   }
   fptr_ = sep_;
   rptr_ = 0;
@@ -393,10 +395,12 @@ namespace nupic
 
   std::ostream& operator<<(std::ostream& outStream, const RandomImpl& r)
   {
-    outStream << "randomimpl-v1 ";
+    outStream << "RandomImpl " << RandomImpl::VERSION << " ";
     outStream << RandomImpl::stateSize_ << " ";
     for (auto & elem : r.state_)
+    {
       outStream << elem << " ";
+    }
     outStream << r.rptr_ << " ";
     outStream << r.fptr_;
     return outStream;
@@ -404,19 +408,44 @@ namespace nupic
 
   std::istream& operator>>(std::istream& inStream, RandomImpl& r)
   {
-    std::string version;
-    inStream >> version;
-    if (version != "randomimpl-v1")
+    std::string marker;
+    inStream >> marker;
+    UInt32 version;
+    if (marker == "RandomImpl")
     {
-      NTA_THROW << "RandomImpl() deserializer -- found unexpected version string '"
-                << version << "'";
+      inStream >> version;
+      if (version != 2)
+      {
+        NTA_THROW << "RandomImpl deserialization found unexpected version: "
+                  << version;
+      }
+    }
+    else if (marker == "randomimpl-v1")
+    {
+      version = 1;
+    }
+    else
+    {
+      NTA_THROW << "RandomImpl() deserializer -- found unexpected version "
+                << "string '" << marker << "'";
     }
     UInt32 ss = 0;
     inStream >> ss;
     NTA_CHECK(ss == (UInt32)RandomImpl::stateSize_) << " ss = " << ss;
 
+    int tmp;
     for (auto & elem : r.state_)
-      inStream >> elem;
+    {
+      if (version < 2)
+      {
+        inStream >> tmp;
+        elem = (UInt32)tmp;
+      }
+      else
+      {
+        inStream >> elem;
+      }
+    }
     inStream >> r.rptr_;
     inStream >> r.fptr_;
     return inStream;

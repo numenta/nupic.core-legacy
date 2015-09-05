@@ -179,7 +179,7 @@ build_script:
   - cd %REPO_DIR%
   - set NUPIC_CORE_RELEASE=%REPO_DIR%\build\release
 
-  - python setup.py install --user
+  - python setup.py install --user --nupic-core-dir=%NUPIC_CORE_RELEASE%
 
 after_build:
   - cd %REPO_DIR%\build\Release
