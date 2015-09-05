@@ -1,8 +1,8 @@
 @0xc5bf8243b0c10764;
 
 # TODO: Use absolute path
-using import "ConnectionsProto.capnp".ConnectionsProto;
-using import "RandomProto.capnp".RandomProto;
+using import "/nupic/proto/ConnectionsProto.capnp".ConnectionsProto;
+using import "/nupic/proto/RandomProto.capnp".RandomProto;
 
 # Next ID: 19
 struct TemporalMemoryProto {

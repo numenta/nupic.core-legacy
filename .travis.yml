@@ -16,6 +16,7 @@ addons:
       - ubuntu-toolchain-r-test
     packages:
       # install gcc-4.8 for C++11 compatibility, #TODO remove when Travis has gcc>=4.8, (it's used for clang too, in coveralls)
+      - gcc-4.8
       - g++-4.8
       - cmake
       - cmake-data
@@ -34,11 +35,11 @@ env:
     # AWS keys are for manual uploads of linux wheel to S3.
     - AWS_ACCESS_KEY_ID=AKIAIGHYSEHV3WFKOWNQ
     # AWS_SECRET_ACCESS_KEY encrypted below
-    - secure: "pYsMDbNp8k2i0d9p5mf/9TlDzxt2FiiR1QJV7QUn+S2/r372VYdZaplL+s9ItVGCGFpAyKk7HXcwm//DKw/ZKb6UlDJm3Fph9m+3aDDIiVFNB7g1uro+Yg8nIGuV8qZEtIaHRtR1zOt1EufoR9dg1Mq8ryRggN9rrB0FvCxUZAQ="
+    - secure: "Ixm9TYZAZbCQicUTIZTY7XKNK82WF+f1jsaGtIxnGQmn0LKhKBjQnsZmhzQ7LDQeLUjRY3wM6xrX3YdP5T7WWiiqBiNCRz8oFxl/fBSm7LyuNo2CEGD9rsG6ZAY/sKKYNX5TuG78giJXwYZpq4LbVwy3W5ZlC626H7iXLQ6xDxw="
     # PyPi credentials for manual uploads to Pypi on release.
     - PYPI_USERNAME=numenta
     # PYPI_PASSWD encrypted below.
-    - secure: "elm3E3MwpbZqTCz+EHPQ7CEBwoBvRgqS3q5MHY+jUcpdrWeSjmy7TZoRN5+rAjDQYuR5g33pMXnyeRGw/DG7Xa5FG0g3PoMnO6fnIe7Hs7gPlDXbwilfYxfi462N7Y9aAGPFuvNkZsgd0dfwXKwNEiZ5hYfsbFFwHMeXMQA/SA8="
+    - secure: "oFaHJoYEq/w13o3MANKGeM/qKYhy3A8Mu2HdxhBCbRXgOhzNDLtujFKUoERmAmWLW8ARHexZWHa+0SS378+Gqgv0fgG8C7RMToBXgLWFXrv6ih0H5aFn4P2v1pYttEk1Gp+HFKFrbbmhHvDOiM+i6t78gIrt3w+raXzONgRbj2I="
     - NUPIC_DEPLOYMENT_BUILD=true
 
 virtualenv:
@@ -56,11 +57,10 @@ before_deploy:
   - cd $TRAVIS_BUILD_DIR
   - ./ci/travis/before_deploy.sh
   - cp $TRAVIS_BUILD_DIR/bindings/py/requirements.txt $TRAVIS_BUILD_DIR/bindings/py/dist/
-  - mkdir -p $TRAVIS_BUILD_DIR/bindings/py/dist/proto
-  - cp $TRAVIS_BUILD_DIR/src/nupic/proto/*.capnp $TRAVIS_BUILD_DIR/bindings/py/dist/proto
-  - cp $NUPIC_CORE_RELEASE/include/nupic/Version.hpp $TRAVIS_BUILD_DIR/bindings/py/dist
+  - mkdir -p $TRAVIS_BUILD_DIR/bindings/py/dist/include/nupic
+  - cp ${TRAVIS_BUILD_DIR}/build/release/include/nupic/Version.hpp $TRAVIS_BUILD_DIR/bindings/py/dist/include/nupic
   - mkdir -p $TRAVIS_BUILD_DIR/bindings/py/dist/bin
-  - cp $NUPIC_CORE_RELEASE/bin/py_region_test $TRAVIS_BUILD_DIR/bindings/py/dist/bin
+  - cp ${TRAVIS_BUILD_DIR}/build/release/bin/py_region_test $TRAVIS_BUILD_DIR/bindings/py/dist/bin
   - mkdir -p $TRAVIS_BUILD_DIR/release
   - tar -zcvf $TRAVIS_BUILD_DIR/release/nupic_core-${TRAVIS_COMMIT}-${PLATFORM}64.tar.gz $TRAVIS_BUILD_DIR/bindings/py/dist
 
@@ -98,12 +98,11 @@ install:
   - "cd $TRAVIS_BUILD_DIR/build/scripts"
   - "mkdir -p $TRAVIS_BUILD_DIR/build/release"
   # Enable test coverage for travis-ci build
-  - "cmake $TRAVIS_BUILD_DIR/src -DNTA_COV_ENABLED=ON -DCMAKE_INSTALL_PREFIX=${TRAVIS_BUILD_DIR}/build/release"
+  - "cmake $TRAVIS_BUILD_DIR/src -DNTA_COV_ENABLED=ON -DCMAKE_INSTALL_PREFIX=${TRAVIS_BUILD_DIR}/build/release -DCMAKE_PREFIX_PATH=${TRAVIS_BUILD_DIR}"
   - "make -j3"
-  - "make install"
+  - "make install | grep -v 'Up-to-date: ' | grep -v 'Installing: '" # install (but silence "Install" output due to Travis line limit)
   - "cd $TRAVIS_BUILD_DIR"
-  - "export NUPIC_CORE_RELEASE=\"${TRAVIS_BUILD_DIR}/build/release\""
-  - "python setup.py install --user"
+  - "python setup.py install --user --nupic-core-dir=${TRAVIS_BUILD_DIR}/build/release"
 
 script:
   - "cd $TRAVIS_BUILD_DIR/build/scripts"
@@ -111,6 +110,8 @@ script:
   - "make tests_cpp_region"
   # unit tests
   - "make tests_unit"
+  # run python tests
+  - "py.test --pyargs nupic.bindings"
   # output unit tests report
   - "cd $TRAVIS_BUILD_DIR/build/artifacts/"
   # transform the JUnit-style xml report to html

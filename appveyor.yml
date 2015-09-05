@@ -117,11 +117,12 @@ build_script:
   - msbuild %MSBuildOptions% INSTALL.vcxproj
   - cd %REPO_DIR%
   - set INCLUDE='C:\Program Files (x86)\MSBuild\14.0\Include';%INCLUDE%
+
   - set NUPIC_CORE_RELEASE=%REPO_DIR%\build\Release
   - set VS90COMNTOOLS=%VS140COMNTOOLS%
   - set DISTUTILS_USE_SDK=1
   - set MSSdk=1
-  - python setup.py install --user
+  - python setup.py install --user --nupic-core-dir=%REPO_DIR%\build\Release
 
 test: off
 
