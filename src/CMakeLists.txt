@@ -45,7 +45,7 @@ if( POLICY CMP0054 )
 endif()
 
 #
-# Include extra cmake files
+# Include extra CMake files
 #
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
                       "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
@@ -367,87 +367,121 @@ elseif("${PLATFORM}" STREQUAL "windows")
   list(APPEND COMMON_LIBS oldnames.lib psapi.lib ws2_32.lib)
 endif()
 
-ADD_LIBRARY(${LIB_STATIC_NUPICCORE}
-            STATIC
-            ${CAPNP_SRCS}
-            ${PY_SUPPORT_FILES}
-            nupic/algorithms/BitHistory.cpp
-            nupic/algorithms/Cell.cpp
-            nupic/algorithms/Cells4.cpp
-            nupic/algorithms/ClassifierResult.cpp
-            nupic/algorithms/CondProbTable.cpp
-            nupic/algorithms/Connections.cpp
-            nupic/algorithms/FastClaClassifier.cpp
-            nupic/algorithms/GaborNode.cpp
-            nupic/algorithms/ImageSensorLite.cpp
-            nupic/algorithms/InSynapse.cpp
-            nupic/algorithms/Linear.cpp
-            nupic/algorithms/OutSynapse.cpp
-            nupic/algorithms/Segment.cpp
-            nupic/algorithms/SegmentUpdate.cpp
-            nupic/algorithms/SpatialPooler.cpp
-            nupic/algorithms/TemporalMemory.cpp
-            nupic/algorithms/Svm.cpp
-            nupic/engine/Collections.cpp
-            nupic/engine/Input.cpp
-            nupic/engine/Link.cpp
-            nupic/engine/LinkPolicyFactory.cpp
-            nupic/engine/Network.cpp
-            nupic/engine/NuPIC.cpp
-            nupic/engine/Output.cpp
-            nupic/engine/Region.cpp
-            nupic/engine/RegionImpl.cpp
-            nupic/engine/RegionImplFactory.cpp
-            nupic/engine/RegionIo.cpp
-            nupic/engine/RegionParameters.cpp
-            nupic/engine/Spec.cpp
-            nupic/engine/TestFanIn2LinkPolicy.cpp
-            nupic/engine/TestNode.cpp
-            nupic/engine/UniformLinkPolicy.cpp
-            nupic/engine/YAMLUtils.cpp
-            nupic/math/SparseMatrixAlgorithms.cpp
-            nupic/math/StlIo.cpp
-            nupic/ntypes/ArrayBase.cpp
-            nupic/ntypes/Buffer.cpp
-            nupic/ntypes/BundleIO.cpp
-            nupic/ntypes/Collection.cpp
-            nupic/ntypes/Dimensions.cpp
-            nupic/ntypes/MemParser.cpp
-            nupic/ntypes/Scalar.cpp
-            nupic/ntypes/Value.cpp
-            nupic/os/Directory.cpp
-            nupic/os/DynamicLibrary.cpp
-            nupic/os/Env.cpp
-            nupic/os/FStream.cpp
-            nupic/os/OS.cpp
-            nupic/os/OSUnix.cpp
-            nupic/os/OSWin.cpp
-            nupic/os/Path.cpp
-            nupic/os/Regex.cpp
-            nupic/os/Timer.cpp
-            nupic/regions/PyRegion.cpp
-            nupic/regions/VectorFile.cpp
-            nupic/regions/VectorFileEffector.cpp
-            nupic/regions/VectorFileSensor.cpp
-            nupic/test/Tester.cpp
-            nupic/types/BasicType.cpp
-            nupic/types/Fraction.cpp
-            nupic/utils/LoggingException.cpp
-            nupic/utils/LogItem.cpp
-            nupic/utils/Random.cpp
-            nupic/utils/StringUtils.cpp
-            nupic/utils/TRandom.cpp
-            nupic/utils/Watcher.cpp)
-target_link_libraries(${LIB_STATIC_NUPICCORE}
-                      ${LIB_STATIC_YAML_CPP_LOC}
-                      ${LIB_STATIC_YAML_LOC}
-                      ${LIB_STATIC_APR1_LOC}
-                      ${LIB_STATIC_APRUTIL1_LOC}
-                      ${LIB_STATIC_Z_LOC}
-                      ${CAPNP_LIBRARIES}
-                      ${PYTHON_LIBRARIES})
-set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES COMPILE_FLAGS "${COMMON_COMPILE_FLAGS} -I${NUMPY_CORE}/include")
-set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS} -static")
+set(LIB_STATIC_NUPICCORE_SRCS
+    ${CAPNP_SRCS}
+    ${PY_SUPPORT_FILES}
+    nupic/algorithms/BitHistory.cpp
+    nupic/algorithms/Cell.cpp
+    nupic/algorithms/Cells4.cpp
+    nupic/algorithms/ClassifierResult.cpp
+    nupic/algorithms/CondProbTable.cpp
+    nupic/algorithms/Connections.cpp
+    nupic/algorithms/FastClaClassifier.cpp
+    nupic/algorithms/GaborNode.cpp
+    nupic/algorithms/ImageSensorLite.cpp
+    nupic/algorithms/InSynapse.cpp
+    nupic/algorithms/Linear.cpp
+    nupic/algorithms/OutSynapse.cpp
+    nupic/algorithms/Segment.cpp
+    nupic/algorithms/SegmentUpdate.cpp
+    nupic/algorithms/SpatialPooler.cpp
+    nupic/algorithms/TemporalMemory.cpp
+    nupic/algorithms/Svm.cpp
+    nupic/engine/Collections.cpp
+    nupic/engine/Input.cpp
+    nupic/engine/Link.cpp
+    nupic/engine/LinkPolicyFactory.cpp
+    nupic/engine/Network.cpp
+    nupic/engine/NuPIC.cpp
+    nupic/engine/Output.cpp
+    nupic/engine/Region.cpp
+    nupic/engine/RegionImpl.cpp
+    nupic/engine/RegionImplFactory.cpp
+    nupic/engine/RegionIo.cpp
+    nupic/engine/RegionParameters.cpp
+    nupic/engine/Spec.cpp
+    nupic/engine/TestFanIn2LinkPolicy.cpp
+    nupic/engine/TestNode.cpp
+    nupic/engine/UniformLinkPolicy.cpp
+    nupic/engine/YAMLUtils.cpp
+    nupic/math/SparseMatrixAlgorithms.cpp
+    nupic/math/StlIo.cpp
+    nupic/ntypes/ArrayBase.cpp
+    nupic/ntypes/Buffer.cpp
+    nupic/ntypes/BundleIO.cpp
+    nupic/ntypes/Collection.cpp
+    nupic/ntypes/Dimensions.cpp
+    nupic/ntypes/MemParser.cpp
+    nupic/ntypes/Scalar.cpp
+    nupic/ntypes/Value.cpp
+    nupic/os/Directory.cpp
+    nupic/os/DynamicLibrary.cpp
+    nupic/os/Env.cpp
+    nupic/os/FStream.cpp
+    nupic/os/OS.cpp
+    nupic/os/OSUnix.cpp
+    nupic/os/OSWin.cpp
+    nupic/os/Path.cpp
+    nupic/os/Regex.cpp
+    nupic/os/Timer.cpp
+    nupic/regions/PyRegion.cpp
+    nupic/regions/VectorFile.cpp
+    nupic/regions/VectorFileEffector.cpp
+    nupic/regions/VectorFileSensor.cpp
+    nupic/test/Tester.cpp
+    nupic/types/BasicType.cpp
+    nupic/types/Fraction.cpp
+    nupic/utils/LoggingException.cpp
+    nupic/utils/LogItem.cpp
+    nupic/utils/Random.cpp
+    nupic/utils/StringUtils.cpp
+    nupic/utils/TRandom.cpp
+    nupic/utils/Watcher.cpp)
+set(LIB_STATIC_NUPICCORE_LINK_LIBS
+    ${LIB_STATIC_NUPICCORE}
+    ${LIB_STATIC_YAML_CPP_LOC}
+    ${LIB_STATIC_YAML_LOC}
+    ${LIB_STATIC_APR1_LOC}
+    ${LIB_STATIC_APRUTIL1_LOC}
+    ${LIB_STATIC_Z_LOC}
+    ${CAPNP_LIBRARIES}
+    ${PYTHON_LIBRARIES})
+set(LIB_STATIC_NUPICCORE_COMPILE_FLAGS
+    "${COMMON_COMPILE_FLAGS} -I${NUMPY_CORE}/include")
+set(LIB_STATIC_NUPICCORE_LINK_FLAGS
+    "${COMMON_LINK_FLAGS} -static")
+
+add_library(${LIB_STATIC_NUPICCORE} STATIC ${LIB_STATIC_NUPICCORE_SRCS})
+target_link_libraries(${LIB_STATIC_NUPICCORE_LINK_LIBS})
+set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES COMPILE_FLAGS
+                      ${LIB_STATIC_NUPICCORE_COMPILE_FLAGS})
+set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES LINK_FLAGS
+                      ${LIB_STATIC_NUPICCORE_LINK_FLAGS})
+
+#
+# Write out Python file defining an Extension for the setup.py to import.
+# This rebuilds everything from source so that Python source distributions
+# don't require CMake.
+#
+# TODO: Should we be using COMMON_COMPILE_FLAGS to exclude -Inumpy/include
+# or should that be removed from NUPICCORE_COMPILE_FLAGS?
+set(EXTENSIONS_YML "${PROJECT_BINARY_DIR}/extensions.yml")
+string(REPLACE " " ";" COMPILE_FLAGS_LIST ${LIB_STATIC_NUPICCORE_COMPILE_FLAGS})
+string(REPLACE " " ";" LINK_FLAGS_LIST ${LIB_STATIC_NUPICCORE_LINK_FLAGS})
+get_property(CXX_DEFINES DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+             PROPERTY COMPILE_DEFINITIONS )
+get_property(INCLUDE_DIRS DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+             PROPERTY INCLUDE_DIRECTORIES)
+get_property(LINK_DIRS DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY LINK_DIRECTORIES)
+find_package(Extensions REQUIRED)
+write_extensions(${EXTENSIONS_YML}
+                 "${COMPILE_FLAGS_LIST}"
+                 "${LINK_FLAGS_LIST}"
+                 "${COMMON_LIBS}"
+                 "${CXX_DEFINES}"
+                 "${INCLUDE_DIRS}"
+                 "${LINK_DIRS}"
+                 "${CMAKE_PREFIX_PATH}")
 
 #
 # Setup test_cpp_region
@@ -461,8 +495,6 @@ add_custom_target(tests_cpp_region
                   COMMAND ${EXECUTABLE_CPPREGIONTEST}
                   DEPENDS ${EXECUTABLE_CPPREGIONTEST}
                   VERBATIM)
-
-set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS} -static")
 
 #
 # Setup test_py_region
@@ -494,8 +526,6 @@ add_custom_target(tests_connections_performance
                   COMMAND ${EXECUTABLE_CONNECTIONSPERFORMANCETEST}
                   DEPENDS ${EXECUTABLE_CONNECTIONSPERFORMANCETEST}
                   VERBATIM)
-
-set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS} -static")
 
 #
 # Setup helloregion example
@@ -709,6 +739,8 @@ install(DIRECTORY "${REPOSITORY_DIR}/external/common/include/gtest"
         DESTINATION include/gtest
         FILES_MATCHING PATTERN "*.h*")
 install(FILES "${PROJECT_BINARY_DIR}/Version.hpp"
+        DESTINATION include/nupic/)
+install(FILES "${EXTENSIONS_YML}"
         DESTINATION include/nupic/)
 install(DIRECTORY "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/bin/"
         DESTINATION bin USE_SOURCE_PERMISSIONS)
