@@ -35,21 +35,17 @@
 
 #include <capnp/any.h>
 #include <capnp/message.h>
-#if !defined(CAPNP_LITE)
 #include <capnp/dynamic.h>
 #include <capnp/schema-parser.h>
-#endif
 
 namespace nupic
 {
-#if !defined(CAPNP_LITE)
   struct pycapnp_SchemaParser {
     PyObject_HEAD
       void *__pyx_vtab;
     ::capnp::SchemaParser *thisptr;
     PyObject *modules_by_id;
   };
-#endif
 
   struct pycapnp_DynamicStructBuilder {
     PyObject_HEAD
@@ -74,13 +70,11 @@ namespace nupic
   template<class T>
   typename T::Builder getBuilder(PyObject* pyBuilder)
   {
-#if !defined(CAPNP_LITE)
     PyObject* capnpModule = PyImport_AddModule("capnp.lib.capnp");
     PyObject* pySchemaParser = PyObject_GetAttrString(capnpModule,
       "_global_schema_parser");
     pycapnp_SchemaParser* schemaParser = (pycapnp_SchemaParser*)pySchemaParser;
     schemaParser->thisptr->loadCompiledTypeAndDependencies<T>();
-#endif
 
     pycapnp_DynamicStructBuilder* dynamicStruct =
       (pycapnp_DynamicStructBuilder*)pyBuilder;
@@ -92,13 +86,11 @@ namespace nupic
   template<class T>
   typename T::Reader getReader(PyObject* pyReader)
   {
-#if !defined(CAPNP_LITE)
     PyObject* capnpModule = PyImport_AddModule("capnp.lib.capnp");
     PyObject* pySchemaParser = PyObject_GetAttrString(capnpModule,
       "_global_schema_parser");
     pycapnp_SchemaParser* schemaParser = (pycapnp_SchemaParser*)pySchemaParser;
     schemaParser->thisptr->loadCompiledTypeAndDependencies<T>();
-#endif
 
     pycapnp_DynamicStructReader* dynamicStruct =
       (pycapnp_DynamicStructReader*)pyReader;

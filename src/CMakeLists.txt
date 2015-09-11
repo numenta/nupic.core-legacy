@@ -105,7 +105,9 @@ elseif(MSVC OR MSYS OR MINGW)
                   -DNDEBUG
                   -DCAPNP_LITE=1
                   -D_VARIADIC_MAX=10
+                  -DNTA_DOUBLE_PRECISION
                   -DNOMINMAX)
+  set(CAPNP_LITE 1)
   if(MSYS OR MINGW)
     add_definitions(-DHAVE_UNISTD_H
                     -DNTA_COMPILER_GNU)
@@ -125,9 +127,9 @@ endif()
 # the variable NUPIC_DEPLOYMENT_BUILD must be set in travis CI scripts
 #
 if($ENV{NUPIC_DEPLOYMENT_BUILD})
-  message("doing deployment build in TravisCI")
+  message("Doing a deployment build in TravisCI")
 else()
-  message("doing local build")
+  message("Doing a local build")
 endif()
 
 
@@ -358,6 +360,11 @@ set(CAPNP_SPECS
 )
 capnp_generate_cpp(CAPNP_SRCS CAPNP_HDRS ${CAPNP_SPECS})
 
+message(STATUS "CAPNP_DEFINITIONS   = ${CAPNP_DEFINITIONS}")
+message(STATUS "CAPNP_INCLUDE_DIRS  = ${CAPNP_INCLUDE_DIRS}")
+message(STATUS "CAPNP_LIBRARIES     = ${CAPNP_LIBRARIES}")
+message(STATUS "CAPNP_LIBRARIES_LITE= ${CAPNP_LIBRARIES_LITE}")
+
 #
 # Python support
 #
@@ -373,9 +380,13 @@ set (PY_SUPPORT_FILES
 #
 set(LIB_STATIC_NUPICCORE nupic_core_solo)
 
-set(COMMON_LIBS ${LIB_STATIC_NUPICCORE}
-                ${CAPNP_LIBRARIES})
-
+if(CAPNP_LITE)
+  set(COMMON_LIBS ${LIB_STATIC_NUPICCORE}
+                  ${CAPNP_LIBRARIES_LITE})
+else()
+  set(COMMON_LIBS ${LIB_STATIC_NUPICCORE}
+                  ${CAPNP_LIBRARIES})
+endif()
 
 if("${PLATFORM}" STREQUAL "linux")
   list(APPEND COMMON_LIBS pthread dl)
