@@ -95,7 +95,11 @@ elseif(WIN32) # incl. win64
                   -D_WINDOWS
                   -D_MBCS
                   -D_CRT_SECURE_NO_WARNINGS
-                  -DNDEBUG)
+                  -D_SCL_SECURE_NO_WARNINGS
+                  -DNDEBUG
+                  -DVARIADIC_MAX=10
+                  -DNOMINMAX
+                  -DNTA_DOUBLE_PRECISION)
 endif()
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
   add_definitions(-DNTA_COMPILER_GNU)
@@ -103,9 +107,10 @@ elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
   add_definitions(-DNTA_COMPILER_CLANG)
 elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
   add_definitions(-DNTA_COMPILER_MSVC
-                  -DCAPNP_LITE=1
-                  -D_VARIADIC_MAX=10
-                  -DNOMINMAX)
+                  -D_ALLOW_ITERATOR_DEBUG_LEVEL_MISMATCH
+                  -D_HAS_ITERATOR_DEBUGGING=0
+                  -D_ITERATOR_DEBUG_LEVEL=0
+                  -DCAPNP_LITE=1)
 endif()
 
 
@@ -114,7 +119,7 @@ endif()
 # the variable NUPIC_DEPLOYMENT_BUILD must be set in travis CI scripts
 #
 if($ENV{NUPIC_DEPLOYMENT_BUILD})
-  message("doing deployment build in TravisCI")
+  message("doing deployment build")
 else()
   message("doing local build")
 endif()
@@ -203,7 +208,7 @@ else()
   # clang/gcc
   set(COMMON_COMPILE_FLAGS "-fPIC -std=c++11 -m${BITNESS} ${STDLIB} -fvisibility=hidden -Werror -Wall -Wextra -Wreturn-type -Wunused -Wno-unused-parameter -Wno-missing-field-initializers")
   set(COMMON_LINK_FLAGS "-m${BITNESS} ${STDLIB}")
-  if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+  if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
     set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} -static-libstdc++")
   endif()
 endif()
@@ -244,8 +249,8 @@ set(LIB_STATIC_GTEST gtest)
 add_library(${LIB_STATIC_GTEST}
             STATIC
             ${REPOSITORY_DIR}/external/common/src/gtest/gtest-all.cpp)
-set_target_properties(${LIB_STATIC_GTEST}
-                      PROPERTIES COMPILE_FLAGS "${COMMON_COMPILE_FLAGS}"
+set_target_properties(${LIB_STATIC_GTEST} PROPERTIES
+                      COMPILE_FLAGS "${COMMON_COMPILE_FLAGS}"
                       LINK_FLAGS "${COMMON_LINK_FLAGS}")
 
 
@@ -434,7 +439,9 @@ ADD_LIBRARY(${LIB_STATIC_NUPICCORE}
             nupic/types/Fraction.cpp
             nupic/utils/LoggingException.cpp
             nupic/utils/LogItem.cpp
+            nupic/utils/PatternMachine.cpp
             nupic/utils/Random.cpp
+            nupic/utils/SequenceMachine.cpp
             nupic/utils/StringUtils.cpp
             nupic/utils/TRandom.cpp
             nupic/utils/Watcher.cpp)
@@ -455,14 +462,13 @@ set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES LINK_FLAGS "${COMMON_LI
 set(EXECUTABLE_CPPREGIONTEST cpp_region_test)
 add_executable(${EXECUTABLE_CPPREGIONTEST} test/integration/CppRegionTest.cpp)
 target_link_libraries(${EXECUTABLE_CPPREGIONTEST} ${COMMON_LIBS})
-set_target_properties(${EXECUTABLE_CPPREGIONTEST} PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
-set_target_properties(${EXECUTABLE_CPPREGIONTEST} PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
+set_target_properties(${EXECUTABLE_CPPREGIONTEST} PROPERTIES
+                      COMPILE_FLAGS ${COMMON_COMPILE_FLAGS}
+                      LINK_FLAGS "${COMMON_LINK_FLAGS}")
 add_custom_target(tests_cpp_region
                   COMMAND ${EXECUTABLE_CPPREGIONTEST}
                   DEPENDS ${EXECUTABLE_CPPREGIONTEST}
                   VERBATIM)
-
-set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS} -static")
 
 #
 # Setup test_py_region
@@ -503,9 +509,9 @@ set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES LINK_FLAGS "${COMMON_LI
 set(EXECUTABLE_HELLOREGION helloregion)
 add_executable(${EXECUTABLE_HELLOREGION} examples/regions/HelloRegions.cpp)
 target_link_libraries(${EXECUTABLE_HELLOREGION} ${COMMON_LIBS})
-set_target_properties(${EXECUTABLE_HELLOREGION} PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
-set_target_properties(${EXECUTABLE_HELLOREGION}
-                      PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
+set_target_properties(${EXECUTABLE_HELLOREGION} PROPERTIES
+                      COMPILE_FLAGS ${COMMON_COMPILE_FLAGS}
+                      LINK_FLAGS "${COMMON_LINK_FLAGS}")
 add_dependencies(${EXECUTABLE_HELLOREGION} ${COMMON_LIBS})
 
 #
@@ -513,11 +519,10 @@ add_dependencies(${EXECUTABLE_HELLOREGION} ${COMMON_LIBS})
 #
 set(EXECUTABLE_PROTOTEST prototest)
 add_executable(${EXECUTABLE_PROTOTEST} examples/prototest.cpp)
-target_link_libraries(${EXECUTABLE_PROTOTEST}
-                      ${COMMON_LIBS})
-set_target_properties(${EXECUTABLE_PROTOTEST} PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
-set_target_properties(${EXECUTABLE_PROTOTEST}
-                      PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
+target_link_libraries(${EXECUTABLE_PROTOTEST} ${COMMON_LIBS})
+set_target_properties(${EXECUTABLE_PROTOTEST} PROPERTIES
+                      COMPILE_FLAGS ${COMMON_COMPILE_FLAGS}
+                      LINK_FLAGS "${COMMON_LINK_FLAGS}")
 add_dependencies(${EXECUTABLE_PROTOTEST} ${COMMON_LIBS})
 
 #
@@ -542,6 +547,9 @@ add_executable(${EXECUTABLE_GTESTS}
                test/unit/algorithms/NearestNeighborUnitTest.cpp
                test/unit/algorithms/SpatialPoolerTest.cpp
                test/unit/algorithms/TemporalMemoryTest.cpp
+               test/unit/algorithms/TemporalMemoryAbstractTest.cpp
+               test/unit/algorithms/TemporalMemoryTutorialTest.cpp
+               test/unit/algorithms/TemporalMemoryExtensiveTest.cpp
                test/unit/engine/InputTest.cpp
                test/unit/engine/NetworkTest.cpp
                test/unit/engine/UniformLinkPolicyTest.cpp
@@ -576,14 +584,16 @@ add_executable(${EXECUTABLE_GTESTS}
                test/unit/types/ExceptionTest.cpp
                test/unit/types/FractionTest.cpp
                test/unit/UnitTestMain.cpp
+               test/unit/utils/PatternMachineTest.cpp
                test/unit/utils/RandomTest.cpp
+               test/unit/utils/SequenceMachineTest.cpp
                test/unit/utils/WatcherTest.cpp)
 target_link_libraries(${EXECUTABLE_GTESTS}
                       ${COMMON_LIBS}
                       ${LIB_STATIC_GTEST})
-set_target_properties(${EXECUTABLE_GTESTS}
-                      PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS}
-                                 LINK_FLAGS "${COMMON_LINK_FLAGS}")
+set_target_properties(${EXECUTABLE_GTESTS} PROPERTIES
+                      COMPILE_FLAGS ${COMMON_COMPILE_FLAGS}
+                      LINK_FLAGS "${COMMON_LINK_FLAGS}")
 add_dependencies(${EXECUTABLE_GTESTS} ${LIB_STATIC_GTEST} ${COMMON_LIBS})
 add_custom_target(tests_unit
                   COMMAND ${EXECUTABLE_GTESTS} "--gtest_output=xml:${PROJECT_BUILD_ARTIFACTS_DIR}/unit_tests_report.xml"
@@ -595,6 +605,9 @@ set(TEST_HEADERS
     test/unit/algorithms/NearestNeighborUnitTest.hpp
     test/unit/algorithms/SpatialPoolerTest.hpp
     test/unit/algorithms/TemporalMemoryTest.hpp
+    test/unit/algorithms/TemporalMemoryAbstractTest.hpp
+    test/unit/algorithms/TemporalMemoryTutorialTest.hpp
+    test/unit/algorithms/TemporalMemoryExtensiveTest.hpp
     test/unit/engine/InputTest.hpp
     test/unit/engine/NetworkTest.hpp
     test/unit/engine/UniformLinkPolicyTest.hpp
@@ -626,7 +639,9 @@ set(TEST_HEADERS
     test/unit/types/BasicTypeTest.hpp
     test/unit/types/ExceptionTest.hpp
     test/unit/types/FractionTest.hpp
+    test/unit/utils/PatternMachineTest.hpp
     test/unit/utils/RandomTest.hpp
+    test/unit/utils/SequenceMachineTest.hpp
     test/unit/utils/WatcherTest.hpp)
 set(tests_file_content "")
 set(headers_file_content "")
@@ -753,4 +768,3 @@ install(DIRECTORY nupic DESTINATION include/nupic
 set(CPACK_GENERATOR "TGZ")
 set(CPACK_PACKAGE_FILE_NAME "nupic_core-${NUPIC_CORE_VERSION}-${PLATFORM}${BITNESS}")
 include(CPack)
-

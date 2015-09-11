@@ -109,7 +109,7 @@ void DirectoryTest::RunTests()
     TEST(!Path::exists(p));
   }
 
-
+  
   // Test copyTree
   {
     std::string p = Path::makeAbsolute(std::string("someDir"));

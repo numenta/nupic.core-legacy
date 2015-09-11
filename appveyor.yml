@@ -8,6 +8,7 @@ version: 0.3.0.{build}
 branches:
   only:
     - master
+    - Port-of-TM-integration-tests
 
   except:
     - gh-pages
@@ -21,7 +22,7 @@ environment:
       DEPLOY_BUILD: 0
       PYTHON: "C:\\Python27"
       PYTHON_VERSION: "2.7.x" # currently 2.7.9
-      PYTHON_ARCH: "32"
+      PYTHON_ARCH: "64"
 
 skip_commits:
   # Add [av skip] to commit messages to skip AppVeyor building
@@ -116,6 +117,11 @@ build_script:
   - msbuild %MSBuildOptions% INSTALL.vcxproj
   - cd %REPO_DIR%
   - set INCLUDE='C:\Program Files (x86)\MSBuild\14.0\Include';%INCLUDE%
+
+  - set NUPIC_CORE_RELEASE=%REPO_DIR%\build\Release
+  - set VS90COMNTOOLS=%VS140COMNTOOLS%
+  - set DISTUTILS_USE_SDK=1
+  - set MSSdk=1
   - python setup.py install --user --nupic-core-dir=%REPO_DIR%\build\Release
 
 test: off

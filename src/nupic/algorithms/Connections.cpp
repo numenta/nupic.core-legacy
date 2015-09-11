@@ -416,7 +416,7 @@ void Connections::write(ConnectionsProto::Builder& proto) const
       protoSegments[j].setDestroyed(segments[j].destroyed);
       protoSegments[j].setLastUsedIteration(segments[j].lastUsedIteration);
 
-      for (SynapseIdx k = 0; k < synapses.size(); ++k) {
+      for (SynapseIdx k = 0; k < (SynapseIdx)synapses.size(); ++k) {
         protoSynapses[k].setPresynapticCell(synapses[k].presynapticCell.idx);
         protoSynapses[k].setPermanence(synapses[k].permanence);
         protoSynapses[k].setDestroyed(synapses[k].destroyed);
