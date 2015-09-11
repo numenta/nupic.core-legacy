@@ -146,7 +146,7 @@ install:
   - cmd: copy c:\MinGW\bin\mingw32-make.exe c:\MinGW\bin\make.exe
 
   # Download other dependencies
-  - cinst wget
+  - cmd: cinst wget -x86
 
   # Install the LLVM distribution
   - cmd: mkdir LLVM_DOWNLOAD
@@ -176,6 +176,7 @@ install:
   - set PATH=%PATH:C:\Program Files (x86)\Git\bin;=%
   - set PATH=%PATH:C:\MinGW\msys\1.0\bin;=%
 
+  # Fake KJ-Async and Capnp-RPC libs, not needed in Lite mode
   # http://www.cmake.org/Wiki/CmakeMingw
   - cmake -G "MinGW Makefiles"
      -DCMAKE_TOOLCHAIN_FILE=%REPO_DIR%\src\cmake\MinGW-CrossCompile-Windows.cmake
@@ -187,6 +188,8 @@ install:
      -DCAPNP_LIB=%EXT_LIBS%\capnp.lib
      -DCAPNP_LIB_KJ=%EXT_LIBS%\kj.lib
      -DCAPNP_LIB_CAPNP=%EXT_LIBS%\capnp.lib
+     -DCAPNP_LIB_KJ-ASYNC=%EXT_LIBS%\kj.lib
+     -DCAPNP_LIB_CAPNP-RPC=%EXT_LIBS%\capnp.lib
      -DLIB_STATIC_APR1_LOC=%EXT_LIBS%\apr-1.lib
      -DLIB_STATIC_APRUTIL1_LOC=%EXT_LIBS%\aprutil-1.lib
      -DLIB_STATIC_YAML_CPP_LOC=%EXT_LIBS%\yaml-cpp.lib
