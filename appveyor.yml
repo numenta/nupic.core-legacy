@@ -185,6 +185,8 @@ install:
      -DPYTHON_LIBRARY=%PYTHONPATH%\libs
      -DPYTHON_INCLUDE_DIR=%PYTHONPATH%\include
      -DCAPNP_INCLUDE_DIRS=%REPO_DIR%\external\common
+     -DCAPNP_EXECUTABLE=%REPO_DIR%\external\windows64\bin\capnp.exe
+     -DCAPNP_CXX_EXECUTABLE=%REPO_DIR%\external\windows64\bin\capnpc-c++.exe
      -DCAPNPC_LIB=%EXT_LIBS%\capnp.lib
      -DCAPNP_LIB_KJ=%EXT_LIBS%\kj.lib
      -DCAPNP_LIB_CAPNP=%EXT_LIBS%\capnp.lib
