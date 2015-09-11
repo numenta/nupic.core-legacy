@@ -192,7 +192,7 @@ install:
      -DCMAKE_INSTALL_PREFIX=%REPO_DIR%\build\release
      -DPYTHON_LIBRARY=%PYTHONPATH%\libs
      -DPYTHON_INCLUDE_DIR=%PYTHONPATH%\include
-     -DCAPNP_INCLUDE_DIRS=%REPO_DIR%\external\windows\include
+     -DCAPNP_INCLUDE_DIRS=%REPO_DIR%\external\windows64\include
      -DCAPNP_EXECUTABLE=%REPO_DIR%\external\windows64\bin\capnp.exe
      -DCAPNPC_CXX_EXECUTABLE=%REPO_DIR%\external\windows64\bin\capnpc-c++.exe
      -DCAPNPC_LIB=%EXT_LIBS%\capnp.lib
