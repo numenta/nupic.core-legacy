@@ -71,6 +71,8 @@ configuration: Release
 
 cache:
   - x86_64-4.8.2-release-win32-seh-rt_v3-rev4.7z
+  - LLVM-3.6.0-win32.exe
+  - python-3.5.0rc2-amd64.exe
 
 install:
   - set REPO_DIR=c:\projects\nupic-core
@@ -106,6 +108,7 @@ install:
 
   - cd %REPO_DIR%\ci\appveyor
 
+  # Install Python 2.7.x or 3.5.0rc2
   - ps: >-
       if ($env:PYTHON_VERSION -Match "3.5.0rc2") {
         if (-Not (Test-Path "python-3.5.0rc2-amd64.exe")) {
@@ -150,7 +153,7 @@ install:
   - cmd: cd LLVM_DOWNLOAD
   #- cmd: wget "http://llvm.org/releases/3.6.0/LLVM-3.6.0-win32.exe"
   - ps: >-
-      if (-Not (Test-Path "x86_64-4.8.2-release-win32-seh-rt_v3-rev4.7z")) {
+      if (-Not (Test-Path "LLVM-3.6.0-win32.exe")) {
         $url  = "http://llvm.org/releases/3.6.0/LLVM-3.6.0-win32.exe"
 
         Invoke-WebRequest -UserAgent wget -Uri $url -OutFile LLVM-3.6.0-win32.exe
@@ -189,9 +192,9 @@ install:
      -DCMAKE_INSTALL_PREFIX=%REPO_DIR%\build\release
      -DPYTHON_LIBRARY=%PYTHONPATH%\libs
      -DPYTHON_INCLUDE_DIR=%PYTHONPATH%\include
-     -DCAPNP_INCLUDE_DIRS=%REPO_DIR%\external\common
+     -DCAPNP_INCLUDE_DIRS=%REPO_DIR%\external\windows64\include
      -DCAPNP_EXECUTABLE=%REPO_DIR%\external\windows64\bin\capnp.exe
-     -DCAPNP_CXX_EXECUTABLE=%REPO_DIR%\external\windows64\bin\capnpc-c++.exe
+     -DCAPNPC_CXX_EXECUTABLE=%REPO_DIR%\external\windows64\bin\capnpc-c++.exe
      -DCAPNPC_LIB=%EXT_LIBS%\capnp.lib
      -DCAPNP_LIB_KJ=%EXT_LIBS%\kj.lib
      -DCAPNP_LIB_CAPNP=%EXT_LIBS%\capnp.lib
@@ -202,16 +205,17 @@ install:
      -DLIB_STATIC_YAML_CPP_LOC=%EXT_LIBS%\yaml-cpp.lib
      -DLIB_STATIC_YAML_LOC=%EXT_LIBS%\yaml.lib
      -DLIB_STATIC_Z_LOC=%EXT_LIBS%\z.lib
-     -DLIB_STATIC_CAPNP_LOC=%EXT_LIBS%\capnp.lib
-     -DLIB_STATIC_KJ_LOC=%EXT_LIBS%\kj.lib
      %REPO_DIR%\src
+  #   -DCMAKE_EXPORT_COMPILE_COMMAND=ON Only for 'Unix Makefiles' and 'Ninja' generators
 
 build_script:
   - cd %REPO_DIR%\build\scripts
 
-  - cmd: sh -c "g++ -E -x c++ - -v < /dev/null"
-  - cmd: type  c:\mingw\include\unistd.h
-  - cmd: sh -c "grep -rnC20 _exit c:/mingw/include"
+  # Add back in sh.exe
+  #- set PATH=C:\MinGW\msys\1.0\bin;%PATH%
+  #- cmd: sh -c "g++ -E -x c++ - -v < /dev/null"
+  #- cmd: type  c:\mingw\include\unistd.h
+  #- cmd: sh -c "grep -rnC20 _exit c:/mingw/include"
 
   - mingw32-make -f Makefile
   - mingw32-make -f Makefile install
