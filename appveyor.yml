@@ -212,9 +212,11 @@ install:
 build_script:
   - cd %REPO_DIR%\build\scripts
 
-  - cmd: sh -c "g++ -E -x c++ - -v < /dev/null"
-  - cmd: type  c:\mingw\include\unistd.h
-  - cmd: sh -c "grep -rnC20 _exit c:/mingw/include"
+  # Add back in sh.exe
+  #- set PATH=C:\MinGW\msys\1.0\bin;%PATH%
+  #- cmd: sh -c "g++ -E -x c++ - -v < /dev/null"
+  #- cmd: type  c:\mingw\include\unistd.h
+  #- cmd: sh -c "grep -rnC20 _exit c:/mingw/include"
 
   - mingw32-make -f Makefile
   - mingw32-make -f Makefile install
