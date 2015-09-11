@@ -64,12 +64,13 @@ Sequence SequenceMachine::generateNumbers(int numSequences, int sequenceLength, 
 
     vector<UInt> newNumbers = range(start, start + sequenceLength);
 
-    _random.shuffle(newNumbers.begin(), newNumbers.end());
+    std::random_shuffle(newNumbers.begin(), newNumbers.end());
 
     if (sharedRange.first >= 0)
       newNumbers.insert(newNumbers.begin() + sharedRange.first, sharedNumbers.begin(), sharedNumbers.end());
 
     numbers.push_back(newNumbers);
+    numbers.push_back({});
   }
 
   return numbers;

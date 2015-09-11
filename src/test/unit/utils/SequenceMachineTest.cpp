@@ -37,6 +37,8 @@ using namespace nupic;
 
 bool SequenceMachineTest::check_pattern_eq(vector<UInt>& p1, vector<UInt>& p2)
 {
+  NTA_CHECK(p1.size() > 0);
+  NTA_CHECK(p2.size() == p1.size());
   for (UInt i = 0; i < p1.size(); i++) {
     if (p1[i] != p2[i]) {
       return false;

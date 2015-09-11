@@ -30,6 +30,12 @@ void TemporalMemoryExtensiveTest::setUp()
 {
   _verbosity = 0;
 
+}
+
+void TemporalMemoryExtensiveTest::init()
+{
+  TemporalMemoryAbstractTest::init();
+    
   vector<UInt> numbers = range(21, 26);
   _patternMachine.initialize(100, numbers, 300);
 
@@ -44,17 +50,15 @@ void TemporalMemoryExtensiveTest::_testTM(Sequence& sequence)
 void TemporalMemoryExtensiveTest::RunTests()
 {
   setUp();
-/*
+
   _verbosity = 2;
-  testB11();
-  testH4();
-  testH5();
-*/
-  // NOTE: All of these tests together take ~15 minutes
+ 
+  // NOTE: All of these tests together can take minutes to run
   bool runTests = false;
   if (runTests)
   {
     testB1();
+    testB11();
     testB3();
     testB4();
     testB5();
@@ -62,9 +66,9 @@ void TemporalMemoryExtensiveTest::RunTests()
     testB7();
     testB8();
     testB9();
-    testB11();
 
     testH1();
+    //testH10();
     testH2();
     testH3();
     testH4();

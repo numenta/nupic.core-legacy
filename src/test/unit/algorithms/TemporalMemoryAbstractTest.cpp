@@ -38,9 +38,9 @@ void TemporalMemoryAbstractTest::setUp()
   _patternMachine = PatternMachine();
   
   vector<UInt> dimensions = { 1 };
-  _patternMachine.initialize(10, dimensions, 100, 42);
+  _patternMachine.initialize(10, dimensions, 100);
 
-  _sequenceMachine = SequenceMachine(_patternMachine, 42);
+  _sequenceMachine = SequenceMachine(_patternMachine);
 }
 
 void TemporalMemoryAbstractTest::init()
@@ -67,7 +67,7 @@ void TemporalMemoryAbstractTest::_feedTM(Sequence& sequence, bool learn, int num
     }
   }
 
-  if (learn && _verbosity >= 2)
+  if (learn && _verbosity > 2)
     cout << prettyPrintConnections();
 }
 

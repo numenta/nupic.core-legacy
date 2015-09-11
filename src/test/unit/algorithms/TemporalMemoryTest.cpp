@@ -32,8 +32,6 @@
 #include <nupic/utils/Log.hpp>
 
 #include "TemporalMemoryTest.hpp"
-#include "TemporalMemoryTutorialTest.hpp"
-#include "TemporalMemoryExtensiveTest.hpp"
 
 using namespace std;
 

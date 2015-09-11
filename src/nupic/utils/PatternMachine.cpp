@@ -135,7 +135,8 @@ void PatternMachine::_generate()
   vector<UInt> xrange = range(_num);
   for (int i : xrange)
   {
-    _random.shuffle(candidates.begin(), candidates.end());
+    //_random.shuffle(candidates.begin(), candidates.end());
+    std::random_shuffle(candidates.begin(), candidates.end());
 
     vector<UInt> pattern;
     Int w = _getW();

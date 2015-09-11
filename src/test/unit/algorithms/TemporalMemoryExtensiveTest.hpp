@@ -66,6 +66,8 @@ namespace nupic {
     void testH9();
 
     virtual void setUp();
+    virtual void init();
+
     void _testTM(Sequence& sequence);
 
   }; // of class ExtensiveTemporalMemoryTest
