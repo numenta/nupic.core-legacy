@@ -185,7 +185,7 @@ install:
      -DPYTHON_LIBRARY=%PYTHONPATH%\libs
      -DPYTHON_INCLUDE_DIR=%PYTHONPATH%\include
      -DCAPNP_INCLUDE_DIRS=%REPO_DIR%\external\common
-     -DCAPNP_LIB=%EXT_LIBS%\capnp.lib
+     -DCAPNPC_LIB=%EXT_LIBS%\capnp.lib
      -DCAPNP_LIB_KJ=%EXT_LIBS%\kj.lib
      -DCAPNP_LIB_CAPNP=%EXT_LIBS%\capnp.lib
      -DCAPNP_LIB_KJ-ASYNC=%EXT_LIBS%\kj.lib
