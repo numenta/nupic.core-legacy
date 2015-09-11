@@ -145,13 +145,18 @@ install:
   # Copy mingw32-make to have a "make" executable
   - cmd: copy c:\MinGW\bin\mingw32-make.exe c:\MinGW\bin\make.exe
 
-  # Download other dependencies
-  - cmd: cinst wget -x86
-
   # Install the LLVM distribution
   - cmd: mkdir LLVM_DOWNLOAD
   - cmd: cd LLVM_DOWNLOAD
-  - cmd: wget "http://llvm.org/releases/3.6.0/LLVM-3.6.0-win32.exe"
+  #- cmd: wget "http://llvm.org/releases/3.6.0/LLVM-3.6.0-win32.exe"
+  - ps: >-
+      if (-Not (Test-Path "x86_64-4.8.2-release-win32-seh-rt_v3-rev4.7z")) {
+        $url  = "http://llvm.org/releases/3.6.0/LLVM-3.6.0-win32.exe"
+
+        Invoke-WebRequest -UserAgent wget -Uri $url -OutFile LLVM-3.6.0-win32.exe
+
+      }
+
   - cmd: 7z x LLVM-3.6.0-win32.exe
   - cmd: ren $_OUTDIR LLVM-3.6.0
   - cmd: move LLVM-3.6.0 c:\
