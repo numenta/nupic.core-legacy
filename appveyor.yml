@@ -138,6 +138,27 @@ install:
   - "python --version"
   - "python -c \"import struct; print(struct.calcsize('P') * 8)\""
 
+  # Use the pre-installed mingw
+  - ps: $env:PATH = 'C:\MinGW\bin;C:\MinGW\mingw32\bin;C:\MinGW\msys\1.0\bin;' + $env:PATH
+  # Copy mingw32-make to have a "make" executable
+  - cmd: copy c:\MinGW\bin\mingw32-make.exe c:\MinGW\bin\make.exe
+  # Sownload other deps
+  - cinst wget
+
+  # Install the LLVM distribution
+  - cmd: mkdir LLVM_DOWNLOAD
+  - cmd: cd LLVM_DOWNLOAD
+  - cmd: wget "http://llvm.org/releases/3.6.0/LLVM-3.6.0-win32.exe"
+  - cmd: 7z x LLVM-3.6.0-win32.exe
+  - cmd: ren $_OUTDIR LLVM-3.6.0
+  - cmd: move LLVM-3.6.0 c:\
+  - ps: $env:PATH = 'c:\LLVM-3.6.0\bin;' + $env:PATH
+
+  # Associated Python modules
+  - cmd: C:\Python27-x64\scripts\pip install futures
+  - cmd: C:\Python27-x64\scripts\pip install clang==3.5
+  - ps: $env:PATH = 'c:\Python27-x64\Lib\site-packages;' + $env:PATH
+  
   # Check NumPy installed correctly
   - "pip list"
 
@@ -172,6 +193,10 @@ install:
 
 build_script:
   - cd %REPO_DIR%\build\scripts
+
+  - cmd: sh -c "g++ -E -x c++ - -v < /dev/null"
+  - cmd: type  c:\mingw\include\unistd.h
+  - cmd: sh -c "grep -rnC20 _exit c:/mingw/include"
 
   - mingw32-make -f Makefile
   - mingw32-make -f Makefile install
