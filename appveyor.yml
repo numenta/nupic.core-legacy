@@ -131,6 +131,8 @@ install:
   - set PYTHONPATH=%PYTHONPATH%
   - set PATH=%PYTHONPATH%;%PYTHONPATH%\Scripts;%PATH%
 
+  - python -m pip install --upgrade pip
+
   - ECHO "PATH is now:"
   - echo %PATH%
 
@@ -142,7 +144,8 @@ install:
   - ps: $env:PATH = 'C:\MinGW\bin;C:\MinGW\mingw32\bin;C:\MinGW\msys\1.0\bin;' + $env:PATH
   # Copy mingw32-make to have a "make" executable
   - cmd: copy c:\MinGW\bin\mingw32-make.exe c:\MinGW\bin\make.exe
-  # Sownload other deps
+
+  # Download other dependencies
   - cinst wget
 
   # Install the LLVM distribution
@@ -160,7 +163,7 @@ install:
   - ps: $env:PATH = 'c:\Python27-x64\Lib\site-packages;' + $env:PATH
   
   # Check NumPy installed correctly
-  - "pip list"
+  - cmd: pip list
 
   - cd %REPO_DIR%
   - mkdir %REPO_DIR%\build\
@@ -171,6 +174,7 @@ install:
 
   # Remove sh.exe from the paths
   - set PATH=%PATH:C:\Program Files (x86)\Git\bin;=%
+  - set PATH=%PATH:C:\MinGW\msys\1.0\bin;=%
 
   # http://www.cmake.org/Wiki/CmakeMingw
   - cmake -G "MinGW Makefiles"
@@ -180,6 +184,7 @@ install:
      -DPYTHON_LIBRARY=%PYTHONPATH%\libs
      -DPYTHON_INCLUDE_DIR=%PYTHONPATH%\include
      -DCAPNP_INCLUDE_DIRS=%REPO_DIR%\external\common
+     -DCAPNP_LIB=%EXT_LIBS%\capnp.lib
      -DCAPNP_LIB_KJ=%EXT_LIBS%\kj.lib
      -DCAPNP_LIB_CAPNP=%EXT_LIBS%\capnp.lib
      -DLIB_STATIC_APR1_LOC=%EXT_LIBS%\apr-1.lib
