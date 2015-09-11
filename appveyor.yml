@@ -206,6 +206,7 @@ install:
      -DLIB_STATIC_YAML_LOC=%EXT_LIBS%\yaml.lib
      -DLIB_STATIC_Z_LOC=%EXT_LIBS%\z.lib
      %REPO_DIR%\src
+  #   -DCMAKE_EXPORT_COMPILE_COMMAND=ON Only for 'Unix Makefiles' and 'Ninja' generators
 
 build_script:
   - cd %REPO_DIR%\build\scripts
