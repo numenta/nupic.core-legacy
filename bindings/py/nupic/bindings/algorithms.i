@@ -1549,10 +1549,10 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
   {
     PyArrayObject* _x = (PyArrayObject*) py_x;
 
-    nupic::UInt32* x = (nupic::UInt32*)(_x->data);
-    nupic::UInt32  n = (nupic::UInt32)(_x->dimensions[0]);
+    nupic::UInt32  len = (nupic::UInt32)PyArray_DIMS(_x)[0];
+    nupic::UInt32* data = (nupic::UInt32*)PyArray_DATA(_x);
 
-    self->compute(n, x, learn);
+    self->compute(len, data, learn);
   }
 
   inline void write(PyObject* pyBuilder) const
