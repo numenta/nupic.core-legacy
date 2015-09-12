@@ -1,6 +1,6 @@
 @0xc8e1bdd87a2feed9;
 
-using import "BitHistory.capnp".BitHistoryProto;
+using import "/nupic/proto/BitHistory.capnp".BitHistoryProto;
 
 # Next ID: 15
 struct ClaClassifierProto {

@@ -5,15 +5,15 @@
  * following terms and conditions apply:
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 3 as
+ * it under the terms of the GNU Affero Public License version 3 as
  * published by the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * See the GNU General Public License for more details.
+ * See the GNU Affero Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
+ * You should have received a copy of the GNU Affero Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
  *
  * http://numenta.org/licenses/
@@ -251,7 +251,6 @@ UInt32 expected[1000] =
 
 void RandomTest::RunTests()
 {
-  UInt32 r1, r2, r3;
   // make sure the global instance is seeded from time()
   // in the test situation, we can be sure we were seeded less than 100000 seconds ago
   // make sure random number system is initialized by creating a random
@@ -261,49 +260,9 @@ void RandomTest::RunTests()
   UInt64 x = r.getUInt64();
   TEST(x != 0);
 
-  mysrandom(148);
-  Random rWithSeed(148);
-  for (auto & elem : expected)
+  // test getSeed
   {
-    r2 = rWithSeed.getUInt32();
-    r3 = myrandom();
-    // Uncomment to generate expected values
-    // NTA_DEBUG << "expected[" << i << "] = " << r1 << ";";
-    if ((r2 != r3) || (r3 != elem))
-    {
-      // only create a test result if we get a failure. Otherwise we
-      // end up creating and saving a lot of unnecessary test results.
-      TESTEQUAL(r2, r3);
-      break;
-    }
-
-  }
-  if (r2 == r3)
-  {
-    // create one positive test result if everything is good
-    TEST(true);
-  }
-  TESTEQUAL(148U, rWithSeed.getSeed());
-
-  {
-    // same test, different seed
-    mysrandom(98765);
     Random r(98765);
-    for (int i = 0; i < 1000; i++)
-    {
-      r1 = r.getUInt32();
-      r2 = myrandom();
-      if (r1 != r2)
-      {
-        TESTEQUAL(r1, r2);
-        break;
-      }
-    }
-    if (r1 == r2)
-    {
-      // create one positive test result if everything is good
-      TEST(true);
-    }
     TESTEQUAL(98765U, r.getSeed());
   }
 
@@ -363,7 +322,7 @@ void RandomTest::RunTests()
     std::string x(ostream.str(), ostream.pcount());
     NTA_INFO << "random serialize string: '" << x << "'";
     // Serialization should be deterministic and platform independent
-    std::string expectedString = "random-v1 862973 randomimpl-v1 31 1624753037 2009419031 633377166 -1574892086 1144529851 1406716263 1553314465 1423305391 27869257 -777179591 -476654188 -1158534456 1569565720 -1530107687 -689150702 2101555921 1535380948 1896399958 -452440042 1943129361 -1905643199 -1174375166 2019813130 -1490833398 1624596014 -694914945 517970867 1155092552 -244858627 -823365838 -938489650 7 10 endrandom-v1";
+    std::string expectedString = "random-v1 862973 RandomImpl 2 31 4241808047 927171440 115246761 3188485113 2358188524 3270869522 282383075 1082613868 441984109 995051899 2794036324 2239422562 898636415 2372250535 3369849014 2122900843 1895341779 2450525880 394177447 3199534303 3887683026 656347524 48907782 1135809043 334191338 2900562231 197628021 1265227140 569581351 466443697 843098206 7 10 endrandom-v1";
     TESTEQUAL(expectedString, x);
 
 
@@ -416,8 +375,8 @@ void RandomTest::RunTests()
       // choose some elements
       UInt32 choices[2];
       r.sample(population, 4, choices, 2);
-      TESTEQUAL2("check element 0", 2, choices[0]);
-      TESTEQUAL2("check element 1", 4, choices[1]);
+      TESTEQUAL2("check element 0", 1, choices[0]);
+      TESTEQUAL2("check element 1", 3, choices[1]);
     }
 
     {
@@ -455,10 +414,10 @@ void RandomTest::RunTests()
     UInt32* end = start + 4;
     r.shuffle(start, end);
 
-    TESTEQUAL2("check element 0", 3, arr[0]);
-    TESTEQUAL2("check element 1", 2, arr[1]);
-    TESTEQUAL2("check element 2", 4, arr[2]);
-    TESTEQUAL2("check element 3", 1, arr[3]);
+    TESTEQUAL2("check element 0", 1, arr[0]);
+    TESTEQUAL2("check element 1", 4, arr[1]);
+    TESTEQUAL2("check element 2", 3, arr[2]);
+    TESTEQUAL2("check element 3", 2, arr[3]);
   }
 
   {
