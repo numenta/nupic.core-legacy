@@ -75,10 +75,7 @@ namespace nupic {
     testNumberOfCells();
     testMapCellsToColumns();
     testWrite();
-
-    // Depreciated serialization method (incomplete due to lack of load & save 
-    // in Connections and Random classes). Replaced by Cap'n Proto read & write.
-    //testSaveLoad();
+    testSaveLoad();
 
   }
 
