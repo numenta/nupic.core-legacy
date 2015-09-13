@@ -110,7 +110,7 @@ _ALGORITHMS = _algorithms
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include <numpy/arrayobject.h>
 #include <nupic/py_support/NumpyVector.hpp>
-#include <nupic/py_support/PyCapnp.hpp>
+//#include <nupic/py_support/PyCapnp.hpp>
 #include <nupic/py_support/PythonStream.hpp>
 #include <nupic/py_support/PyHelpers.hpp>
 
@@ -1127,19 +1127,6 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
   {
     PyArrayObject* x = (PyArrayObject*) py_x;
     self->stripUnlearnedColumns((nupic::UInt*) PyArray_DATA(x));
-  }
-
-  inline void write(PyObject* pyBuilder) const
-  {
-    SpatialPoolerProto::Builder proto =
-        getBuilder<SpatialPoolerProto>(pyBuilder);
-    self->write(proto);
-  }
-
-  inline void read(PyObject* pyReader)
-  {
-    SpatialPoolerProto::Reader proto = getReader<SpatialPoolerProto>(pyReader);
-    self->read(proto);
   }
 
   void loadFromString(const std::string& inString)
