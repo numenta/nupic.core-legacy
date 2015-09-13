@@ -108,8 +108,9 @@ install:
   - set PATH=C:\mingw64\bin;%PATH%
 
   - ECHO "Installing Clang 3.2:"
+  - mkdir C:\Clang
   - ps: >-
-      if (-Not (Test-Path "x86_64-4.8.3-release-posix-seh-rt_v3-rev0.7z")) {
+      if (-Not (Test-Path "x86_64-w64-mingw32-clang-3.2-release-win64_rubenvb.7z")) {
         $url  = "http://sourceforge.net/projects/mingw-w64/files/"
 
         $url += "Toolchains%20targetting%20Win64/Personal%20Builds/"
@@ -124,9 +125,9 @@ install:
 
       7z x -oC:\Clang\ x86_64-w64-mingw32-clang-3.2-release-win64_rubenvb.7z > $null
 
-#  - set CC=clang
-#  - set CXX=clang++
-  - set PATH=C:\Clang\mingw64\bin;%PATH%
+  #- set CC=clang
+  #- set CXX=clang++
+  #- set PATH=C:\Clang\mingw64\bin;%PATH%
   - dir C:\Clang\mingw64\bin
 
   - cd %REPO_DIR%\ci\appveyor
