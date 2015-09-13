@@ -72,6 +72,7 @@ configuration: Release
 cache:
   - x86_64-4.8.3-release-posix-seh-rt_v3-rev0.7z
   - LLVM-3.6.0-win32.exe
+  - x86_64-w64-mingw32-clang-3.2-release-win64_rubenvb.7z
   - python-3.5.0rc2-amd64.exe
 
 install:
@@ -79,12 +80,13 @@ install:
   - set NUPIC_DEPLOYMENT_BUILD=1
   - set EXT_LIBS=%REPO_DIR%\external\windows64\lib
 
-  - ECHO "Filesystem root:"
-  - ps: "ls \"C:/\""
+  #- ECHO "Filesystem root:"
+  #- ps: "ls \"C:/\""
 
-  - ECHO "Installed Windows SDKs:"
-  - ps: "ls \"C:/Program Files/Microsoft SDKs/Windows\""
+  #- ECHO "Installed Windows SDKs:"
+  #- ps: "ls \"C:/Program Files/Microsoft SDKs/Windows\""
 
+  - ECHO "Installing GCC 4.8.3 (x64, posix, rev0):"
   - ps: >-
       if (-Not (Test-Path "x86_64-4.8.3-release-posix-seh-rt_v3-rev0.7z")) {
         $url  = "http://sourceforge.net/projects/mingw-w64/files/"
@@ -99,12 +101,33 @@ install:
 
       }
 
-      ECHO "Installing GCC 4.8.3 (x64, posix, rev0):"
-
       7z x -oC:\ x86_64-4.8.3-release-posix-seh-rt_v3-rev0.7z > $null
 
   - set CC=gcc
+  - set CXX=g++
   - set PATH=C:\mingw64\bin;%PATH%
+
+  - ECHO "Installing Clang 3.2:"
+  - ps: >-
+      if (-Not (Test-Path "x86_64-4.8.3-release-posix-seh-rt_v3-rev0.7z")) {
+        $url  = "http://sourceforge.net/projects/mingw-w64/files/"
+
+        $url += "Toolchains%20targetting%20Win64/Personal%20Builds/"
+
+        $url += "rubenvb/clang-3.2-release/"
+
+        $url += "x86_64-w64-mingw32-clang-3.2-release-win64_rubenvb.7z/download"
+
+        Invoke-WebRequest -UserAgent wget -Uri $url -OutFile x86_64-w64-mingw32-clang-3.2-release-win64_rubenvb.7z
+
+      }
+
+      7z x -oC:\Clang\ x86_64-w64-mingw32-clang-3.2-release-win64_rubenvb.7z > $null
+
+#  - set CC=clang
+#  - set CXX=clang++
+  - set PATH=C:\Clang\mingw64\bin;%PATH%
+  - dir C:\Clang\mingw64\bin
 
   - cd %REPO_DIR%\ci\appveyor
 
@@ -145,13 +168,13 @@ install:
 
   # Use the pre-installed mingw
   - ps: $env:PATH = 'C:\MinGW\bin;C:\MinGW\mingw32\bin;C:\MinGW\msys\1.0\bin;' + $env:PATH
+
   # Copy mingw32-make to have a "make" executable
   - cmd: copy c:\MinGW\bin\mingw32-make.exe c:\MinGW\bin\make.exe
 
   # Install the LLVM distribution
   - cmd: mkdir LLVM_DOWNLOAD
   - cmd: cd LLVM_DOWNLOAD
-  #- cmd: wget "http://llvm.org/releases/3.6.0/LLVM-3.6.0-win32.exe"
   - ps: >-
       if (-Not (Test-Path "LLVM-3.6.0-win32.exe")) {
         $url  = "http://llvm.org/releases/3.6.0/LLVM-3.6.0-win32.exe"
@@ -207,6 +230,8 @@ install:
      -DLIB_STATIC_Z_LOC=%EXT_LIBS%\z.lib
      %REPO_DIR%\src
   #   -DCMAKE_EXPORT_COMPILE_COMMAND=ON Only for 'Unix Makefiles' and 'Ninja' generators
+  #   -DCMAKE_USER_MAKE_RULES_OVERRIDE="%REPO_DIR%\ci\appveyor\ClangOverrides.txt"
+  #   -D_CMAKE_TOOLCHAIN_PREFIX=llvm-
 
 build_script:
   - cd %REPO_DIR%\build\scripts
