@@ -70,7 +70,7 @@ nuget:
 configuration: Release
 
 cache:
-  - x86_64-4.8.2-release-win32-seh-rt_v3-rev4.7z
+  - x86_64-4.8.3-release-posix-seh-rt_v3-rev0.7z
   - LLVM-3.6.0-win32.exe
   - python-3.5.0rc2-amd64.exe
 
@@ -86,22 +86,22 @@ install:
   - ps: "ls \"C:/Program Files/Microsoft SDKs/Windows\""
 
   - ps: >-
-      if (-Not (Test-Path "x86_64-4.8.2-release-win32-seh-rt_v3-rev4.7z")) {
+      if (-Not (Test-Path "x86_64-4.8.3-release-posix-seh-rt_v3-rev0.7z")) {
         $url  = "http://sourceforge.net/projects/mingw-w64/files/"
 
         $url += "Toolchains%20targetting%20Win64/Personal%20Builds/"
 
-        $url += "mingw-builds/4.8.2/threads-win32/seh/"
+        $url += "mingw-builds/4.8.3/threads-posix/seh/"
 
-        $url += "x86_64-4.8.2-release-win32-seh-rt_v3-rev4.7z/download"
+        $url += "x86_64-4.8.3-release-posix-seh-rt_v3-rev0.7z/download"
 
-        Invoke-WebRequest -UserAgent wget -Uri $url -OutFile x86_64-4.8.2-release-win32-seh-rt_v3-rev4.7z
+        Invoke-WebRequest -UserAgent wget -Uri $url -OutFile x86_64-4.8.3-release-posix-seh-rt_v3-rev0.7z
 
       }
 
-      ECHO "Installing MinGW-w64:"
+      ECHO "Installing GCC 4.8.3 (x64, posix, rev0):"
 
-      7z x -oC:\ x86_64-4.8.2-release-win32-seh-rt_v3-rev4.7z > $null
+      7z x -oC:\ x86_64-4.8.3-release-posix-seh-rt_v3-rev0.7z > $null
 
   - set CC=gcc
   - set PATH=C:\mingw64\bin;%PATH%
@@ -127,14 +127,14 @@ install:
         pip install "numpy-1.9.2+mkl-cp35-none-win_amd64.whl"
 
       } else {
+        ECHO "Installing Python 2.7.x:"
+
         .\install_python_pip.ps1
 
       }
 
   - set PYTHONPATH=%PYTHONPATH%
   - set PATH=%PYTHONPATH%;%PYTHONPATH%\Scripts;%PATH%
-
-  - python -m pip install --upgrade pip
 
   - ECHO "PATH is now:"
   - echo %PATH%
