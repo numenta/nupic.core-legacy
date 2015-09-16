@@ -167,12 +167,6 @@ install:
   - "python --version"
   - "python -c \"import struct; print(struct.calcsize('P') * 8)\""
 
-  # Use the pre-installed mingw
-  - ps: $env:PATH = 'C:\MinGW\bin;C:\MinGW\mingw32\bin;C:\MinGW\msys\1.0\bin;' + $env:PATH
-
-  # Copy mingw32-make to have a "make" executable
-  - cmd: copy c:\MinGW\bin\mingw32-make.exe c:\MinGW\bin\make.exe
-
   # Install the LLVM distribution
   - cmd: mkdir LLVM_DOWNLOAD
   - cmd: cd LLVM_DOWNLOAD
@@ -187,7 +181,7 @@ install:
   - cmd: 7z x LLVM-3.6.0-win32.exe
   - cmd: ren $_OUTDIR LLVM-3.6.0
   - cmd: move LLVM-3.6.0 c:\
-  - ps: $env:PATH = 'c:\LLVM-3.6.0\bin;' + $env:PATH
+  #- ps: $env:PATH = 'c:\LLVM-3.6.0\bin;' + $env:PATH
 
   # Associated Python modules
   - cmd: C:\Python27-x64\scripts\pip install futures
@@ -210,38 +204,13 @@ install:
 
   # Fake KJ-Async and Capnp-RPC libs, not needed in Lite mode
   # http://www.cmake.org/Wiki/CmakeMingw
-  - cmake -G "MinGW Makefiles"
-     -DCMAKE_TOOLCHAIN_FILE=%REPO_DIR%\src\cmake\MinGW-CrossCompile-Windows.cmake
-     -DCMAKE_BUILD_TYPE=Release
-     -DCMAKE_INSTALL_PREFIX=%REPO_DIR%\build\release
-     -DPYTHON_LIBRARY=%PYTHONPATH%\libs
-     -DPYTHON_INCLUDE_DIR=%PYTHONPATH%\include
-     -DCAPNP_INCLUDE_DIRS=%REPO_DIR%\external\windows64\include
-     -DCAPNP_EXECUTABLE=%REPO_DIR%\external\windows64\bin\capnp.exe
-     -DCAPNPC_CXX_EXECUTABLE=%REPO_DIR%\external\windows64\bin\capnpc-c++.exe
-     -DCAPNPC_LIB=%EXT_LIBS%\capnp.lib
-     -DCAPNP_LIB_KJ=%EXT_LIBS%\kj.lib
-     -DCAPNP_LIB_CAPNP=%EXT_LIBS%\capnp.lib
-     -DCAPNP_LIB_KJ-ASYNC=%EXT_LIBS%\kj.lib
-     -DCAPNP_LIB_CAPNP-RPC=%EXT_LIBS%\capnp.lib
-     -DLIB_STATIC_APR1_LOC=%EXT_LIBS%\apr-1.lib
-     -DLIB_STATIC_APRUTIL1_LOC=%EXT_LIBS%\aprutil-1.lib
-     -DLIB_STATIC_YAML_CPP_LOC=%EXT_LIBS%\yaml-cpp.lib
-     -DLIB_STATIC_YAML_LOC=%EXT_LIBS%\yaml.lib
-     -DLIB_STATIC_Z_LOC=%EXT_LIBS%\z.lib
-     %REPO_DIR%\src
+  - cmake -G "MinGW Makefiles" -DCMAKE_TOOLCHAIN_FILE=%REPO_DIR%\src\cmake\MinGW-CrossCompile-Windows.cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=%REPO_DIR%\build\release -DPYTHON_LIBRARY=%PYTHONPATH%\libs -DPYTHON_INCLUDE_DIR=%PYTHONPATH%\include -DCAPNP_INCLUDE_DIRS=%REPO_DIR%\external\windows64\include -DCAPNP_EXECUTABLE=%REPO_DIR%\external\windows64\bin\capnp.exe -DCAPNPC_CXX_EXECUTABLE=%REPO_DIR%\external\windows64\bin\capnpc-c++.exe -DCAPNPC_LIB=%EXT_LIBS%\capnp.lib -DCAPNP_LIB_KJ=%EXT_LIBS%\kj.lib -DCAPNP_LIB_CAPNP=%EXT_LIBS%\capnp.lib -DCAPNP_LIB_KJ-ASYNC=%EXT_LIBS%\kj.lib -DCAPNP_LIB_CAPNP-RPC=%EXT_LIBS%\capnp.lib -DLIB_STATIC_APR1_LOC=%EXT_LIBS%\apr-1.lib -DLIB_STATIC_APRUTIL1_LOC=%EXT_LIBS%\aprutil-1.lib -DLIB_STATIC_YAML_CPP_LOC=%EXT_LIBS%\yaml-cpp.lib -DLIB_STATIC_YAML_LOC=%EXT_LIBS%\yaml.lib -DLIB_STATIC_Z_LOC=%EXT_LIBS%\z.lib %REPO_DIR%\src
   #   -DCMAKE_EXPORT_COMPILE_COMMAND=ON Only for 'Unix Makefiles' and 'Ninja' generators
   #   -DCMAKE_USER_MAKE_RULES_OVERRIDE="%REPO_DIR%\ci\appveyor\ClangOverrides.txt"
   #   -D_CMAKE_TOOLCHAIN_PREFIX=llvm-
 
 build_script:
   - cd %REPO_DIR%\build\scripts
-
-  # Add back in sh.exe
-  #- set PATH=C:\MinGW\msys\1.0\bin;%PATH%
-  #- cmd: sh -c "g++ -E -x c++ - -v < /dev/null"
-  #- cmd: type  c:\mingw\include\unistd.h
-  #- cmd: sh -c "grep -rnC20 _exit c:/mingw/include"
 
   - mingw32-make -f Makefile
   - mingw32-make -f Makefile install
