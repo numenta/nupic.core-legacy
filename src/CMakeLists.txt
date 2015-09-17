@@ -464,7 +464,7 @@ set(LIB_STATIC_NUPICCORE_LINK_LIBS
     ${LIB_STATIC_APR1_LOC}
     ${LIB_STATIC_APRUTIL1_LOC}
     ${LIB_STATIC_Z_LOC}
-    ${CAPNP_LIBRARIES}
+    #${CAPNP_LIBRARIES}
     ${PYTHON_LIBRARIES})
 set(LIB_STATIC_NUPICCORE_COMPILE_FLAGS
     "${COMMON_COMPILE_FLAGS} -I${NUMPY_CORE}/include")
@@ -472,6 +472,7 @@ set(LIB_STATIC_NUPICCORE_LINK_FLAGS
     "${COMMON_LINK_FLAGS} -static")
 
 add_library(${LIB_STATIC_NUPICCORE} STATIC ${LIB_STATIC_NUPICCORE_SRCS})
+add_dependencies(${LIB_STATIC_NUPICCORE} CapnProto)
 target_link_libraries(${LIB_STATIC_NUPICCORE_LINK_LIBS})
 set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES COMPILE_FLAGS
                       ${LIB_STATIC_NUPICCORE_COMPILE_FLAGS})
@@ -508,6 +509,7 @@ write_extensions(${EXTENSIONS_YML}
 #
 set(EXECUTABLE_CPPREGIONTEST cpp_region_test)
 add_executable(${EXECUTABLE_CPPREGIONTEST} test/integration/CppRegionTest.cpp)
+add_dependencies(${EXECUTABLE_CPPREGIONTEST} CapnProto)
 target_link_libraries(${EXECUTABLE_CPPREGIONTEST} ${COMMON_LIBS})
 set_target_properties(${EXECUTABLE_CPPREGIONTEST} PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
 set_target_properties(${EXECUTABLE_CPPREGIONTEST} PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
@@ -521,6 +523,7 @@ add_custom_target(tests_cpp_region
 #
 set(EXECUTABLE_PYREGIONTEST py_region_test)
 add_executable(${EXECUTABLE_PYREGIONTEST} test/integration/PyRegionTest.cpp)
+add_dependencies(${EXECUTABLE_PYREGIONTEST} CapnProto)
 target_link_libraries(${EXECUTABLE_PYREGIONTEST} ${COMMON_LIBS})
 set_target_properties(${EXECUTABLE_PYREGIONTEST} PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
 set_target_properties(${EXECUTABLE_PYREGIONTEST}
@@ -537,6 +540,7 @@ add_custom_target(tests_py_region
 set(EXECUTABLE_CONNECTIONSPERFORMANCETEST connections_performance_test)
 add_executable(${EXECUTABLE_CONNECTIONSPERFORMANCETEST}
                test/integration/ConnectionsPerformanceTest.cpp)
+add_dependencies(${EXECUTABLE_CONNECTIONSPERFORMANCETEST} CapnProto)
 target_link_libraries(${EXECUTABLE_CONNECTIONSPERFORMANCETEST} ${COMMON_LIBS})
 set_target_properties(${EXECUTABLE_CONNECTIONSPERFORMANCETEST}
                       PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
@@ -552,6 +556,7 @@ add_custom_target(tests_connections_performance
 #
 set(EXECUTABLE_HELLOREGION helloregion)
 add_executable(${EXECUTABLE_HELLOREGION} examples/regions/HelloRegions.cpp)
+add_dependencies(${EXECUTABLE_HELLOREGION} CapnProto)
 target_link_libraries(${EXECUTABLE_HELLOREGION} ${COMMON_LIBS})
 set_target_properties(${EXECUTABLE_HELLOREGION} PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
 set_target_properties(${EXECUTABLE_HELLOREGION}
@@ -563,6 +568,7 @@ add_dependencies(${EXECUTABLE_HELLOREGION} ${COMMON_LIBS})
 #
 set(EXECUTABLE_PROTOTEST prototest)
 add_executable(${EXECUTABLE_PROTOTEST} examples/prototest.cpp)
+add_dependencies(${EXECUTABLE_PROTOTEST} CapnProto)
 target_link_libraries(${EXECUTABLE_PROTOTEST}
                       ${COMMON_LIBS})
 set_target_properties(${EXECUTABLE_PROTOTEST} PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
@@ -575,6 +581,7 @@ add_dependencies(${EXECUTABLE_PROTOTEST} ${COMMON_LIBS})
 #
 set(EXECUTABLE_HELLOSPTP hello_sp_tp)
 add_executable(${EXECUTABLE_HELLOSPTP} examples/algorithms/HelloSP_TP.cpp)
+add_dependencies(${EXECUTABLE_HELLOSPTP} CapnProto)
 target_link_libraries(${EXECUTABLE_HELLOSPTP} ${COMMON_LIBS})
 set_target_properties(${EXECUTABLE_HELLOSPTP} PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
 set_target_properties(${EXECUTABLE_HELLOSPTP} PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
