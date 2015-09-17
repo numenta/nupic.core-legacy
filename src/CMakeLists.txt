@@ -51,6 +51,26 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
                       "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
 
 #
+# Add external projects
+#
+include(ExternalProject)
+set_directory_properties(PROPERTIES EP_PREFIX
+                         ${CMAKE_BINARY_DIR}/ThirdParty)
+
+ExternalProject_Add(
+  CapnProto
+  GIT_REPOSITORY https://github.com/sandstorm-io/capnproto.git
+  GIT_TAG v0.5.2
+  UPDATE_COMMAND ""
+  INSTALL_COMMAND ""
+  # Since CMakeLists.txt isn't in the repo root, we have to point
+  # SOURCE_DIR to the "c++" folder that contains it.
+  SOURCE_DIR ${CMAKE_BINARY_DIR}/ThirdParty/src/CapnProto/c++
+)
+ExternalProject_Get_Property(CapnProto source_dir)
+include_directories(${source_dir}/include)
+
+#
 # Identify platform
 #
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
