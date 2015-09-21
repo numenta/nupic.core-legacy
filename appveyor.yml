@@ -80,9 +80,6 @@ install:
   - set NUPIC_DEPLOYMENT_BUILD=1
   - set EXT_LIBS=%REPO_DIR%\external\windows64-gcc\lib
 
-  #- ECHO "Filesystem root:"
-  #- ps: "ls \"C:/\""
-
   #- ECHO "Installed Windows SDKs:"
   #- ps: "ls \"C:/Program Files/Microsoft SDKs/Windows\""
 
@@ -152,6 +149,9 @@ install:
   # Check NumPy installed correctly
   - cmd: pip list
 
+  - ECHO "Filesystem root:"
+  - ps: "ls \"C:/\""
+
   - cd %REPO_DIR%
   - mkdir %REPO_DIR%\build\
   - mkdir %REPO_DIR%\build\release
@@ -192,8 +192,8 @@ install:
 build_script:
   - cd %REPO_DIR%\build\scripts
 
-  - copy C:\mingw-w64\mingw64\opt\bin\libpython2.7.dll .
-  - copy C:\mingw-w64\mingw64\opt\bin\libpython2.7.dll ..\release
+  - copy C:\mingw64\opt\bin\libpython2.7.dll .
+  - copy C:\mingw64\opt\bin\libpython2.7.dll ..\release
 
   - mingw32-make -f Makefile
   - mingw32-make -f Makefile install
