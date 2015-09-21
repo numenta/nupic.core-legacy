@@ -36,7 +36,7 @@ if( POLICY CMP0046 )
   # is not found. The old policy didn't care and continued through configuration
   cmake_policy(SET CMP0046 OLD)
 endif()
-  
+ 
 if( POLICY CMP0054 )
   # The OLD behavior for this policy is to dereference variables and interpret 
   # keywords even if they are quoted or bracketed. The NEW behavior is to not 
@@ -157,8 +157,7 @@ include_directories(SYSTEM
 # Set linker (ld)
 # use ld.gold if available
 #
-execute_process(COMMAND ld.gold --version
-                RESULT_VARIABLE EXIT_CODE)
+execute_process(COMMAND ld.gold --version RESULT_VARIABLE EXIT_CODE)
 if(EXIT_CODE EQUAL 0)
   message("Using ld.gold as LINKER.")
   set(CMAKE_LINKER "ld.gold")
@@ -169,13 +168,11 @@ endif()
 # Identify build type - local or deployment (Travis)
 # the variable NUPIC_DEPLOYMENT_BUILD must be set in travis CI scripts
 #
-if($ENV{NUPIC_DEPLOYMENT_BUILD})
-  if(NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
+if(NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
+  if($ENV{NUPIC_DEPLOYMENT_BUILD})
     set(OPTIMIZATION_FLAGS_CC "${OPTIMIZATION_FLAGS_CC} -mtune=generic -O2")
     set(OPTIMIZATION_FLAGS_LT "-O2 ${OPTIMIZATION_FLAGS_LT}")
-  endif()
-else()
-  if(NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
+  else()
     set(OPTIMIZATION_FLAGS_CC "${OPTIMIZATION_FLAGS_CC} -march=native -O3")
     set(OPTIMIZATION_FLAGS_LT "-O3 ${OPTIMIZATION_FLAGS_LT}")
   endif()
@@ -321,7 +318,7 @@ add_library(${LIB_STATIC_Z} STATIC IMPORTED GLOBAL)
 #
 # Setup for python
 #
-find_package(PythonLibs REQUIRED)
+find_package(PythonLibs 2.7 REQUIRED)
 include_directories(SYSTEM ${PYTHON_INCLUDE_DIRS})
 
 message(STATUS "PYTHON_EXECUTABLE   = ${PYTHON_EXECUTABLE}")
@@ -332,9 +329,7 @@ message(STATUS "PYTHON_LIBRARIES    = ${PYTHON_LIBRARIES}")
 # Find and add capnp and kj and generate Cap'n Proto C++ files
 #
 set(CAPNPC_OUTPUT_DIR ${CMAKE_BINARY_DIR})
-set(CAPNPC_IMPORT_DIRS
-    ${CAPNPC_IMPORT_DIRS}
-    ${REPOSITORY_DIR}/src)
+set(CAPNPC_IMPORT_DIRS ${CAPNPC_IMPORT_DIRS} ${REPOSITORY_DIR}/src)
 find_package(CapnProto REQUIRED)
 include_directories(SYSTEM ${CAPNP_INCLUDE_DIRS})
 add_definitions(${CAPNP_DEFINITIONS})
@@ -385,9 +380,11 @@ set(LIB_STATIC_NUPICCORE nupic_core_solo)
 
 if(CAPNP_LITE)
   set(COMMON_LIBS ${LIB_STATIC_NUPICCORE}
+                  ${PYTHON_LIBRARIES}
                   ${CAPNP_LIBRARIES_LITE})
 else()
   set(COMMON_LIBS ${LIB_STATIC_NUPICCORE}
+                  ${PYTHON_LIBRARIES}
                   ${CAPNP_LIBRARIES})
 endif()
 
@@ -496,15 +493,14 @@ add_custom_target(tests_cpp_region
                   DEPENDS ${EXECUTABLE_CPPREGIONTEST}
                   VERBATIM)
 
-set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS} -static")
-
 #
 # Setup test_py_region
 #
 set(EXECUTABLE_PYREGIONTEST py_region_test)
 add_executable(${EXECUTABLE_PYREGIONTEST} test/integration/PyRegionTest.cpp)
 target_link_libraries(${EXECUTABLE_PYREGIONTEST} ${COMMON_LIBS})
-set_target_properties(${EXECUTABLE_PYREGIONTEST} PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
+set_target_properties(${EXECUTABLE_PYREGIONTEST}
+                      PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
 set_target_properties(${EXECUTABLE_PYREGIONTEST}
                       PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
 add_custom_target(tests_py_region
@@ -529,15 +525,14 @@ add_custom_target(tests_connections_performance
                   DEPENDS ${EXECUTABLE_CONNECTIONSPERFORMANCETEST}
                   VERBATIM)
 
-set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS} -static")
-
 #
 # Setup helloregion example
 #
 set(EXECUTABLE_HELLOREGION helloregion)
 add_executable(${EXECUTABLE_HELLOREGION} examples/regions/HelloRegions.cpp)
 target_link_libraries(${EXECUTABLE_HELLOREGION} ${COMMON_LIBS})
-set_target_properties(${EXECUTABLE_HELLOREGION} PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
+set_target_properties(${EXECUTABLE_HELLOREGION}
+                      PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
 set_target_properties(${EXECUTABLE_HELLOREGION}
                       PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
 add_dependencies(${EXECUTABLE_HELLOREGION} ${COMMON_LIBS})
@@ -549,7 +544,8 @@ set(EXECUTABLE_PROTOTEST prototest)
 add_executable(${EXECUTABLE_PROTOTEST} examples/prototest.cpp)
 target_link_libraries(${EXECUTABLE_PROTOTEST}
                       ${COMMON_LIBS})
-set_target_properties(${EXECUTABLE_PROTOTEST} PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
+set_target_properties(${EXECUTABLE_PROTOTEST}
+                      PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
 set_target_properties(${EXECUTABLE_PROTOTEST}
                       PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
 add_dependencies(${EXECUTABLE_PROTOTEST} ${COMMON_LIBS})
@@ -560,8 +556,10 @@ add_dependencies(${EXECUTABLE_PROTOTEST} ${COMMON_LIBS})
 set(EXECUTABLE_HELLOSPTP hello_sp_tp)
 add_executable(${EXECUTABLE_HELLOSPTP} examples/algorithms/HelloSP_TP.cpp)
 target_link_libraries(${EXECUTABLE_HELLOSPTP} ${COMMON_LIBS})
-set_target_properties(${EXECUTABLE_HELLOSPTP} PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
-set_target_properties(${EXECUTABLE_HELLOSPTP} PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
+set_target_properties(${EXECUTABLE_HELLOSPTP}
+                      PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
+set_target_properties(${EXECUTABLE_HELLOSPTP}
+                      PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
 add_dependencies(${EXECUTABLE_HELLOSPTP} ${COMMON_LIBS})
 
 
