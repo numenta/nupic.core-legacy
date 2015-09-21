@@ -342,9 +342,6 @@ struct InSrcCellOrder
  * Free up some synapses in this segment. We always free up inactive
  * synapses (lowest permanence freed up first) before we start to free
  * up active ones.
- *
- * TODO: Implement stable tie breaker for the case where you have multiple
- * synapses with the same lowest permanence
  */
 void Segment::freeNSynapses(UInt numToFree,
                             std::vector<UInt> &inactiveSynapseIndices,
@@ -392,7 +389,7 @@ void Segment::freeNSynapses(UInt numToFree,
   }
 
   // Now sort the list of candidate synapses
-  std::sort(candidates.begin(), candidates.end(), InPermanenceOrder());
+  std::stable_sort(candidates.begin(), candidates.end(), InPermanenceOrder());
 
   //----------------------------------------------------------------------
   // Create the final list of synapses we will remove
