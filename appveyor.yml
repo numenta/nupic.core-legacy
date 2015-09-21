@@ -107,7 +107,7 @@ install:
   - set CXX=g++
   - set PATH=C:\mingw64\bin;%PATH%
 
- - cd %REPO_DIR%\ci\appveyor
+  - cd %REPO_DIR%\ci\appveyor
 
   # Install Python 2.7.x or 3.5.0rc2
   - ps: >-
