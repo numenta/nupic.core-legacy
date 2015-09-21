@@ -107,30 +107,7 @@ install:
   - set CXX=g++
   - set PATH=C:\mingw64\bin;%PATH%
 
-  - ECHO "Installing Clang 3.2:"
-  - mkdir C:\Clang
-  - ps: >-
-      if (-Not (Test-Path "x86_64-w64-mingw32-clang-3.2-release-win64_rubenvb.7z")) {
-        $url  = "http://sourceforge.net/projects/mingw-w64/files/"
-
-        $url += "Toolchains%20targetting%20Win64/Personal%20Builds/"
-
-        $url += "rubenvb/clang-3.2-release/"
-
-        $url += "x86_64-w64-mingw32-clang-3.2-release-win64_rubenvb.7z/download"
-
-        Invoke-WebRequest -UserAgent wget -Uri $url -OutFile x86_64-w64-mingw32-clang-3.2-release-win64_rubenvb.7z
-
-      }
-
-      7z x -oC:\Clang\ x86_64-w64-mingw32-clang-3.2-release-win64_rubenvb.7z > $null
-
-  #- set CC=clang
-  #- set CXX=clang++
-  #- set PATH=C:\Clang\mingw64\bin;%PATH%
-  - dir C:\Clang\mingw64\bin
-
-  - cd %REPO_DIR%\ci\appveyor
+ - cd %REPO_DIR%\ci\appveyor
 
   # Install Python 2.7.x or 3.5.0rc2
   - ps: >-
@@ -167,22 +144,6 @@ install:
   - "python --version"
   - "python -c \"import struct; print(struct.calcsize('P') * 8)\""
 
-  # Install the LLVM distribution
-  - cmd: mkdir LLVM_DOWNLOAD
-  - cmd: cd LLVM_DOWNLOAD
-  - ps: >-
-      if (-Not (Test-Path "LLVM-3.6.0-win32.exe")) {
-        $url  = "http://llvm.org/releases/3.6.0/LLVM-3.6.0-win32.exe"
-
-        Invoke-WebRequest -UserAgent wget -Uri $url -OutFile LLVM-3.6.0-win32.exe
-
-      }
-
-  - cmd: 7z x LLVM-3.6.0-win32.exe
-  - cmd: ren $_OUTDIR LLVM-3.6.0
-  - cmd: move LLVM-3.6.0 c:\
-  #- ps: $env:PATH = 'c:\LLVM-3.6.0\bin;' + $env:PATH
-
   # Associated Python modules
   - cmd: C:\Python27-x64\scripts\pip install futures
   - cmd: C:\Python27-x64\scripts\pip install clang==3.5
@@ -194,8 +155,8 @@ install:
   - cd %REPO_DIR%
   - mkdir %REPO_DIR%\build\
   - mkdir %REPO_DIR%\build\release
-
   - mkdir %REPO_DIR%\build\scripts
+
   - cd %REPO_DIR%\build\scripts
 
   # Remove sh.exe from the paths
@@ -208,7 +169,7 @@ install:
       -DCMAKE_TOOLCHAIN_FILE=%REPO_DIR%\src\cmake\MinGW-CrossCompile-Windows.cmake 
       -DCMAKE_BUILD_TYPE=Release 
       -DCMAKE_INSTALL_PREFIX=%REPO_DIR%\build\release 
-      -DPYTHON_LIBRARY=%PYTHONPATH%\libs 
+      -DPYTHON_LIBRARY=C:\mingw64\opt\lib\python2.7\config\libpython2.7.dll.a 
       -DPYTHON_INCLUDE_DIR=%PYTHONPATH%\include 
       -DCAPNP_INCLUDE_DIRS=%REPO_DIR%\external\windows64\include 
       -DCAPNP_EXECUTABLE=%REPO_DIR%\external\windows64\bin\capnp.exe 
@@ -230,6 +191,9 @@ install:
 
 build_script:
   - cd %REPO_DIR%\build\scripts
+
+  - copy C:\mingw-w64\mingw64\opt\bin\libpython2.7.dll .
+  - copy C:\mingw-w64\mingw64\opt\bin\libpython2.7.dll ..\release
 
   - mingw32-make -f Makefile
   - mingw32-make -f Makefile install
