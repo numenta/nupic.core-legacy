@@ -1803,11 +1803,12 @@ private:
 
     InputIterator last = begin;
     for (InputIterator it = begin; it != end; ++it) {
-      if (it != begin)
+      if (it != begin) {
         NTA_ASSERT(*last < *it)
             << "SparseBinaryMatrix::" << where << ": "
             << "Invalid indices: " << *last << " and: " << *it
             << " - Indices need to be in strictly increasing order";
+      }
       last = it;
     }
   }
