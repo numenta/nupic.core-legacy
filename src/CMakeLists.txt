@@ -679,7 +679,7 @@ add_custom_target(tests_all
                   COMMENT "Running all tests"
                   VERBATIM)
 
-if(UNIX)
+if(UNIX OR MSYS OR MINGW)
   add_custom_target(combined ALL
                     COMMAND ${CMAKE_AR} -x $<TARGET_FILE:${LIB_STATIC_NUPICCORE}>
                     COMMAND ${CMAKE_AR} -x ${LIB_STATIC_YAML_CPP_LOC}
