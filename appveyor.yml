@@ -104,6 +104,10 @@ install:
   - set CXX=g++
   - set PATH=C:\mingw64\bin;%PATH%
 
+  # Patch up LTO plugins
+  - mkdir C:\mingw64\lib\bfd-plugins
+  - cp C:\mingw64\libexec\gcc\x86_64-w64-mingw32\5.2.0\liblto_plugin-0.dll C:\mingw64\lib\bfd-plugins\liblto_plugin-0.dll
+
   - cd %REPO_DIR%\ci\appveyor
 
   # Install Python 2.7.x or 3.5.0rc2
@@ -155,8 +159,8 @@ install:
   - cd %REPO_DIR%
   - mkdir %REPO_DIR%\build\
   - mkdir %REPO_DIR%\build\release
-  - mkdir %REPO_DIR%\build\scripts
 
+  - mkdir %REPO_DIR%\build\scripts
   - cd %REPO_DIR%\build\scripts
 
   # Remove sh.exe from the paths
@@ -183,7 +187,7 @@ install:
       -DLIB_STATIC_APRUTIL1_LOC=%EXT_LIBS%\libaprutil-1.a 
       -DLIB_STATIC_YAML_CPP_LOC=%EXT_LIBS%\libyaml-cpp.a 
       -DLIB_STATIC_YAML_LOC=%EXT_LIBS%\libyaml.a 
-      -DLIB_STATIC_Z_LOC=%EXT_LIBS%\libzlibstatic.a 
+      -DLIB_STATIC_Z_LOC=%EXT_LIBS%\libz.a 
       %REPO_DIR%\src
   #   -DCMAKE_EXPORT_COMPILE_COMMAND=ON Only for 'Unix Makefiles' and 'Ninja' generators
   #   -DCMAKE_USER_MAKE_RULES_OVERRIDE="%REPO_DIR%\ci\appveyor\ClangOverrides.txt"
@@ -196,7 +200,9 @@ build_script:
   - copy C:\mingw64\opt\bin\libpython2.7.dll ..\release
 
   - mingw32-make -f Makefile
-  - mingw32-make -f Makefile install
+  - mingw32-make -f Makefile tests_all
+
+  - mingw32-make -f Makefile install | findstr /C:"Install" /I /V
 
   - cd %REPO_DIR%
   - set NUPIC_CORE_RELEASE=%REPO_DIR%\build\release

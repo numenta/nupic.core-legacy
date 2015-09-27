@@ -65,8 +65,14 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 endif()
 string(TOUPPER ${PLATFORM} PLATFORM_UPPERCASE)
 
-if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
-   set(STDLIB "${STDLIB} -static-libgcc -static-libstdc++")
+#
+# Identify build type - local or deployment (Travis)
+# the variable NUPIC_DEPLOYMENT_BUILD must be set in travis CI scripts
+#
+if($ENV{NUPIC_DEPLOYMENT_BUILD})
+  message("Doing a deployment build in TravisCI")
+else()
+  message("Doing a local build")
 endif()
 
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
@@ -123,17 +129,6 @@ elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
 endif()
 
 #
-# Identify build type - local or deployment (Travis)
-# the variable NUPIC_DEPLOYMENT_BUILD must be set in travis CI scripts
-#
-if($ENV{NUPIC_DEPLOYMENT_BUILD})
-  message("Doing a deployment build in TravisCI")
-else()
-  message("Doing a local build")
-endif()
-
-
-#
 # Setup include paths
 #
 get_filename_component(REPOSITORY_DIR ${PROJECT_SOURCE_DIR}/.. ABSOLUTE)
@@ -146,6 +141,9 @@ find_package(PythonInterp REQUIRED)
 execute_process(COMMAND "${PYTHON_EXECUTABLE}" "-c" 
                         "import numpy; import os; import sys; sys.stdout.write(os.path.dirname(numpy.get_include()))"
                          OUTPUT_VARIABLE NUMPY_CORE)
+
+get_filename_component(NUMPY_CORE ${NUMPY_CORE}/include/.. ABSOLUTE)
+
 include_directories(SYSTEM
                     "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/include"
                     "${REPOSITORY_DIR}/external/common/include"
@@ -163,11 +161,10 @@ if(EXIT_CODE EQUAL 0)
   set(CMAKE_LINKER "ld.gold")
 endif()
 
+if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
+   set(STDLIB "${STDLIB} -static-libgcc -static-libstdc++")
+endif()
 
-#
-# Identify build type - local or deployment (Travis)
-# the variable NUPIC_DEPLOYMENT_BUILD must be set in travis CI scripts
-#
 if(NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
   if($ENV{NUPIC_DEPLOYMENT_BUILD})
     set(OPTIMIZATION_FLAGS_CC "${OPTIMIZATION_FLAGS_CC} -mtune=generic -O2")
@@ -764,7 +761,7 @@ foreach(directory ${CAPNP_INCLUDE_DIRS})
   install(DIRECTORY "${directory}/kj"
           DESTINATION include)
 endforeach()
-if(UNIX)
+if(UNIX OR MSYS OR MINGW)
   install(FILES "${PROJECT_BINARY_DIR}/libnupic_core.a"
           DESTINATION lib)
 else()
