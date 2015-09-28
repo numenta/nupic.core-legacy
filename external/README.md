@@ -15,7 +15,7 @@ Some compiler flags are required and can be specified as below with the
 curl -O https://capnproto.org/capnproto-c++-0.5.2.tar.gz
 tar zxf capnproto-c++-0.5.2.tar.gz
 cd capnproto-c++-0.5.2
-CXXFLAGS="-fPIC -std=c++11 -m64 -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-unused-parameter" ./configure
+CXXFLAGS="-fPIC -std=c++11 -m64" ./configure
 make -j3 check
 make install
 ```
