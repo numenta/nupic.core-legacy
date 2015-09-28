@@ -1,6 +1,6 @@
 # -----------------------------------------------------------------------------
 # Numenta Platform for Intelligent Computing (NuPIC)
-# Copyright (C) 2013-2014, Numenta, Inc.  Unless you have purchased from
+# Copyright (C) 2013-2015, Numenta, Inc.  Unless you have purchased from
 # Numenta, Inc. a separate commercial license for this software code, the
 # following terms and conditions apply:
 #
@@ -17,18 +17,13 @@
 # along with this program.  If not, see http://www.gnu.org/licenses.
 #
 # http://numenta.org/licenses/
-#
-# Contributor(s):
-#   David Ragazzi (@DavidRagazzi): Full conversion and adaptation from
-#     Autotools scripts
-#   Jim Bridgewater (jwbwater@gmail.com): Updated option help messages
-#   Austin Marshall (amarshall@numenta.com): On-going maintenance
 # -----------------------------------------------------------------------------
 
 cmake_minimum_required(VERSION 2.8)
 project(nupic_core CXX)
+
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-set(CMAKE_VERBOSE_MAKEFILE OFF) # toggle for cmake debug
+set(CMAKE_VERBOSE_MAKEFILE ON) # toggle for cmake debug
 
 if( POLICY CMP0046 )
   cmake_policy(VERSION 2.8)
@@ -49,26 +44,6 @@ endif()
 #
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
                       "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
-
-#
-# Add external projects
-#
-include(ExternalProject)
-set_directory_properties(PROPERTIES EP_PREFIX
-                         ${CMAKE_BINARY_DIR}/ThirdParty)
-
-ExternalProject_Add(
-  CapnProto
-  GIT_REPOSITORY https://github.com/sandstorm-io/capnproto.git
-  GIT_TAG v0.5.2
-  UPDATE_COMMAND ""
-  INSTALL_COMMAND ""
-  # Since CMakeLists.txt isn't in the repo root, we have to point
-  # SOURCE_DIR to the "c++" folder that contains it.
-  SOURCE_DIR ${CMAKE_BINARY_DIR}/ThirdParty/src/CapnProto/c++
-)
-ExternalProject_Get_Property(CapnProto source_dir)
-include_directories(${source_dir}/include)
 
 #
 # Identify platform
@@ -260,13 +235,13 @@ configure_file(
 #
 # Setup gtest
 #
-set(LIB_STATIC_GTEST gtest)
-add_library(${LIB_STATIC_GTEST}
-            STATIC
-            ${REPOSITORY_DIR}/external/common/src/gtest/gtest-all.cpp)
-set_target_properties(${LIB_STATIC_GTEST}
-                      PROPERTIES COMPILE_FLAGS "${COMMON_COMPILE_FLAGS}"
-                      LINK_FLAGS "${COMMON_LINK_FLAGS}")
+#set(LIB_STATIC_GTEST gtest)
+#add_library(${LIB_STATIC_GTEST}
+#            STATIC
+#            ${REPOSITORY_DIR}/external/common/src/gtest/gtest-all.cpp)
+#set_target_properties(${LIB_STATIC_GTEST}
+#                      PROPERTIES COMPILE_FLAGS "${COMMON_COMPILE_FLAGS}"
+#                      LINK_FLAGS "${COMMON_LINK_FLAGS}")
 
 
 #
@@ -324,6 +299,8 @@ add_library(${LIB_STATIC_Z} STATIC IMPORTED GLOBAL)
 #
 find_package(PythonLibs REQUIRED)
 include_directories(SYSTEM ${PYTHON_INCLUDE_DIRS})
+#ExternalProject_Get_Property(gmock source_dir)
+#list(APPEND CMAKE_PREFIX_PATH ${source_dir})
 
 #
 # Find and add capnp and kj and generate Cap'n Proto C++ files
@@ -464,7 +441,7 @@ set(LIB_STATIC_NUPICCORE_LINK_LIBS
     ${LIB_STATIC_APR1_LOC}
     ${LIB_STATIC_APRUTIL1_LOC}
     ${LIB_STATIC_Z_LOC}
-    #${CAPNP_LIBRARIES}
+    ${CAPNP_LIBRARIES}
     ${PYTHON_LIBRARIES})
 set(LIB_STATIC_NUPICCORE_COMPILE_FLAGS
     "${COMMON_COMPILE_FLAGS} -I${NUMPY_CORE}/include")
@@ -472,7 +449,6 @@ set(LIB_STATIC_NUPICCORE_LINK_FLAGS
     "${COMMON_LINK_FLAGS} -static")
 
 add_library(${LIB_STATIC_NUPICCORE} STATIC ${LIB_STATIC_NUPICCORE_SRCS})
-add_dependencies(${LIB_STATIC_NUPICCORE} CapnProto)
 target_link_libraries(${LIB_STATIC_NUPICCORE_LINK_LIBS})
 set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES COMPILE_FLAGS
                       ${LIB_STATIC_NUPICCORE_COMPILE_FLAGS})
@@ -509,7 +485,6 @@ write_extensions(${EXTENSIONS_YML}
 #
 set(EXECUTABLE_CPPREGIONTEST cpp_region_test)
 add_executable(${EXECUTABLE_CPPREGIONTEST} test/integration/CppRegionTest.cpp)
-add_dependencies(${EXECUTABLE_CPPREGIONTEST} CapnProto)
 target_link_libraries(${EXECUTABLE_CPPREGIONTEST} ${COMMON_LIBS})
 set_target_properties(${EXECUTABLE_CPPREGIONTEST} PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
 set_target_properties(${EXECUTABLE_CPPREGIONTEST} PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
@@ -523,7 +498,6 @@ add_custom_target(tests_cpp_region
 #
 set(EXECUTABLE_PYREGIONTEST py_region_test)
 add_executable(${EXECUTABLE_PYREGIONTEST} test/integration/PyRegionTest.cpp)
-add_dependencies(${EXECUTABLE_PYREGIONTEST} CapnProto)
 target_link_libraries(${EXECUTABLE_PYREGIONTEST} ${COMMON_LIBS})
 set_target_properties(${EXECUTABLE_PYREGIONTEST} PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
 set_target_properties(${EXECUTABLE_PYREGIONTEST}
@@ -540,7 +514,6 @@ add_custom_target(tests_py_region
 set(EXECUTABLE_CONNECTIONSPERFORMANCETEST connections_performance_test)
 add_executable(${EXECUTABLE_CONNECTIONSPERFORMANCETEST}
                test/integration/ConnectionsPerformanceTest.cpp)
-add_dependencies(${EXECUTABLE_CONNECTIONSPERFORMANCETEST} CapnProto)
 target_link_libraries(${EXECUTABLE_CONNECTIONSPERFORMANCETEST} ${COMMON_LIBS})
 set_target_properties(${EXECUTABLE_CONNECTIONSPERFORMANCETEST}
                       PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
@@ -556,7 +529,6 @@ add_custom_target(tests_connections_performance
 #
 set(EXECUTABLE_HELLOREGION helloregion)
 add_executable(${EXECUTABLE_HELLOREGION} examples/regions/HelloRegions.cpp)
-add_dependencies(${EXECUTABLE_HELLOREGION} CapnProto)
 target_link_libraries(${EXECUTABLE_HELLOREGION} ${COMMON_LIBS})
 set_target_properties(${EXECUTABLE_HELLOREGION} PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
 set_target_properties(${EXECUTABLE_HELLOREGION}
@@ -568,7 +540,6 @@ add_dependencies(${EXECUTABLE_HELLOREGION} ${COMMON_LIBS})
 #
 set(EXECUTABLE_PROTOTEST prototest)
 add_executable(${EXECUTABLE_PROTOTEST} examples/prototest.cpp)
-add_dependencies(${EXECUTABLE_PROTOTEST} CapnProto)
 target_link_libraries(${EXECUTABLE_PROTOTEST}
                       ${COMMON_LIBS})
 set_target_properties(${EXECUTABLE_PROTOTEST} PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
@@ -581,7 +552,6 @@ add_dependencies(${EXECUTABLE_PROTOTEST} ${COMMON_LIBS})
 #
 set(EXECUTABLE_HELLOSPTP hello_sp_tp)
 add_executable(${EXECUTABLE_HELLOSPTP} examples/algorithms/HelloSP_TP.cpp)
-add_dependencies(${EXECUTABLE_HELLOSPTP} CapnProto)
 target_link_libraries(${EXECUTABLE_HELLOSPTP} ${COMMON_LIBS})
 set_target_properties(${EXECUTABLE_HELLOSPTP} PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
 set_target_properties(${EXECUTABLE_HELLOSPTP} PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
@@ -637,7 +607,7 @@ add_executable(${EXECUTABLE_GTESTS}
                test/unit/utils/WatcherTest.cpp)
 target_link_libraries(${EXECUTABLE_GTESTS}
                       ${COMMON_LIBS}
-                      ${LIB_STATIC_GTEST})
+                      gtest)
 set_target_properties(${EXECUTABLE_GTESTS}
                       PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS}
                                  LINK_FLAGS "${COMMON_LINK_FLAGS}")
