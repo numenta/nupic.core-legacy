@@ -47,9 +47,9 @@ The Python depedencies (NumPy and pycapnp) can be installed with `pip`:
 
 #### Run the tests:
 
-    cd $NUPIC_CORE/build/scripts
-    make tests_cpp_region
-    make tests_unit
+    cd $NUPIC_CORE/build/release/bin
+    ./cpp_region_test
+    ./unit_tests
 
 #### Install nupic.bindings for nupic:
 
