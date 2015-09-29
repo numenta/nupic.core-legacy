@@ -38,17 +38,12 @@ The Python depedencies (NumPy and pycapnp) can be installed with `pip`:
 
 > **Note**: The `-DCMAKE_INSTALL_PREFIX=../release` option shown above is optional, and specifies the location where `nupic.core` should be installed. If omitted, `nupic.core` will be installed in a system location. Using this option is useful when testing versions of `nupic.core` with `nupic` (see [NuPIC's Dependency on nupic.core](https://github.com/numenta/nupic/wiki/NuPIC's-Dependency-on-nupic.core)).
 
-#### Build:
+#### Build and install:
 
     # While still in $NUPIC_CORE/build/scripts
     make -j3
     
 > **Note**: The `-j3` option specifies '3' as the maximum number of parallel jobs/threads that Make will use during the build in order to gain speed. However, you can increase this number depending your CPU.
-
-#### Install:
-
-    # While still in $NUPIC_CORE/build/scripts
-    make install
 
 #### Run the tests:
 
