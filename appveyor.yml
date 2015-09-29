@@ -70,10 +70,7 @@ nuget:
 configuration: Release
 
 cache:
-  - x86_64-4.8.3-release-posix-seh-rt_v3-rev0.7z
-  - LLVM-3.6.0-win32.exe
-  - x86_64-w64-mingw32-clang-3.2-release-win64_rubenvb.7z
-  - python-3.5.0rc2-amd64.exe
+  - x86_64-4.9.3-release-posix-seh-rt_v4-rev1.7z
 
 install:
   - set REPO_DIR=c:\projects\nupic-core
@@ -83,22 +80,22 @@ install:
   #- ECHO "Installed Windows SDKs:"
   #- ps: "ls \"C:/Program Files/Microsoft SDKs/Windows\""
 
-  - ECHO "Installing GCC 4.8.3 (x64, posix, rev0):"
+  - ECHO "Installing GCC 4.9.3 (x64, posix, rev1):"
   - ps: >-
-      if (-Not (Test-Path "x86_64-4.8.3-release-posix-seh-rt_v3-rev0.7z")) {
+      if (-Not (Test-Path "x86_64-4.9.3-release-posix-seh-rt_v4-rev1.7z")) {
         $url  = "http://sourceforge.net/projects/mingw-w64/files/"
 
         $url += "Toolchains%20targetting%20Win64/Personal%20Builds/"
 
-        $url += "mingw-builds/4.8.3/threads-posix/seh/"
+        $url += "mingw-builds/4.9.3/threads-posix/seh/"
 
-        $url += "x86_64-4.8.3-release-posix-seh-rt_v3-rev0.7z/download"
+        $url += "x86_64-4.9.3-release-posix-seh-rt_v4-rev1.7z/download"
 
-        Invoke-WebRequest -UserAgent wget -Uri $url -OutFile x86_64-4.8.3-release-posix-seh-rt_v3-rev0.7z
+        Invoke-WebRequest -UserAgent wget -Uri $url -OutFile x86_64-4.9.3-release-posix-seh-rt_v4-rev1.7z
 
       }
 
-      7z x -oC:\ x86_64-4.8.3-release-posix-seh-rt_v3-rev0.7z > $null
+      7z x -oC:\ x86_64-4.9.3-release-posix-seh-rt_v4-rev1.7z > $null
 
   - set CC=gcc
   - set CXX=g++
@@ -106,7 +103,7 @@ install:
 
   # Patch up LTO plugins
   - mkdir C:\mingw64\lib\bfd-plugins
-  - cp C:\mingw64\libexec\gcc\x86_64-w64-mingw32\5.2.0\liblto_plugin-0.dll C:\mingw64\lib\bfd-plugins\liblto_plugin-0.dll
+  - cp C:\mingw64\libexec\gcc\x86_64-w64-mingw32\4.9.3\liblto_plugin-0.dll C:\mingw64\lib\bfd-plugins\liblto_plugin-0.dll
 
   - cd %REPO_DIR%\ci\appveyor
 
@@ -200,7 +197,7 @@ build_script:
   - copy C:\mingw64\opt\bin\libpython2.7.dll ..\release
 
   - mingw32-make -f Makefile
-  - mingw32-make -f Makefile tests_all
+  #- mingw32-make -f Makefile tests_all
 
   - mingw32-make -f Makefile install | findstr /C:"Install" /I /V
 
