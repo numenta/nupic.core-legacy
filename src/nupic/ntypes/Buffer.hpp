@@ -191,6 +191,7 @@ namespace nupic
   {  
   public:
     WriteBuffer();
+    virtual ~WriteBuffer();
     Int32 write(Byte value) override;
     Int32 write(const Byte * value, Size size) override;
     Int32 write(Int32 value) override;

@@ -129,6 +129,18 @@ elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
 endif()
 
 #
+# Find Python Interp, min. v2.7
+# And NumPy core directory
+#
+find_package(PythonInterp 2.7 REQUIRED)
+execute_process(COMMAND "${PYTHON_EXECUTABLE}" "-c" 
+                        "import numpy; import os; import sys; sys.stdout.write(os.path.dirname(numpy.get_include()))"
+                         OUTPUT_VARIABLE NUMPY_CORE)
+
+# Quick way to fixup directory paths to NumPy
+get_filename_component(NUMPY_CORE ${NUMPY_CORE}/include/.. ABSOLUTE)
+
+#
 # Setup include paths
 #
 get_filename_component(REPOSITORY_DIR ${PROJECT_SOURCE_DIR}/.. ABSOLUTE)
@@ -136,13 +148,6 @@ get_filename_component(REPOSITORY_DIR ${PROJECT_SOURCE_DIR}/.. ABSOLUTE)
 if("${PROJECT_BUILD_ARTIFACTS_DIR}" STREQUAL "")
   set(PROJECT_BUILD_ARTIFACTS_DIR "${REPOSITORY_DIR}/build/artifacts")
 endif()
-
-find_package(PythonInterp REQUIRED)
-execute_process(COMMAND "${PYTHON_EXECUTABLE}" "-c" 
-                        "import numpy; import os; import sys; sys.stdout.write(os.path.dirname(numpy.get_include()))"
-                         OUTPUT_VARIABLE NUMPY_CORE)
-
-get_filename_component(NUMPY_CORE ${NUMPY_CORE}/include/.. ABSOLUTE)
 
 include_directories(SYSTEM
                     "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/include"
@@ -165,23 +170,15 @@ if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
    set(STDLIB "${STDLIB} -static-libgcc -static-libstdc++")
 endif()
 
-if(NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
-  if($ENV{NUPIC_DEPLOYMENT_BUILD})
-    set(OPTIMIZATION_FLAGS_CC "${OPTIMIZATION_FLAGS_CC} -mtune=generic -O2")
-    set(OPTIMIZATION_FLAGS_LT "-O2 ${OPTIMIZATION_FLAGS_LT}")
-  else()
-    set(OPTIMIZATION_FLAGS_CC "${OPTIMIZATION_FLAGS_CC} -march=native -O3")
-    set(OPTIMIZATION_FLAGS_LT "-O3 ${OPTIMIZATION_FLAGS_LT}")
-  endif()
-endif()
-
-
 #
 # Enable Optimization flags here
-# these are quite aggresive flags, if your code misbehaves for strange reasons, try
-# compiling without them.
+# These are quite aggresive flags, if your code misbehaves
+# for strange reasons, try compiling without them.
 #
 if(NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
+  set(OPTIMIZATION_FLAGS_CC "${OPTIMIZATION_FLAGS_CC} -mtune=generic -O2")
+  set(OPTIMIZATION_FLAGS_LT "-O2 ${OPTIMIZATION_FLAGS_LT}")
+
   set(OPTIMIZATION_FLAGS_CC "-pipe ${OPTIMIZATION_FLAGS_CC}") #TODO use -Ofast instead of -O3
   if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
     set(OPTIMIZATION_FLAGS_CC "${OPTIMIZATION_FLAGS_CC} -fuse-linker-plugin -flto-report")
@@ -195,6 +192,7 @@ endif()
 # compiler specific settings here
 #
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
+  # MS Visual C
   set(COMMON_COMPILE_FLAGS "/TP /Zc:wchar_t /Gm- /fp:precise /errorReport:prompt /W1 /WX- /GR /Gd /GS /Oy- /EHs /analyze- /nologo")
   set(COMMON_LINK_FLAGS "/NOLOGO /SAFESEH:NO /NODEFAULTLIB:LIBCMT")
   if("${BITNESS}" STREQUAL "32")
@@ -202,16 +200,14 @@ if(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
   else()
     set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} /MACHINE:X${BITNESS}")
   endif()
+
 else()
-  # clang/gcc
-  set(COMMON_COMPILE_FLAGS "-std=c++11 -m${BITNESS} ${STDLIB} -fvisibility=hidden -Werror -Wall -Wextra -Wreturn-type -Wunused -Wno-unused-parameter -Wno-missing-field-initializers")
+  # LLVM Clang / Gnu GCC
+  set(COMMON_COMPILE_FLAGS "-std=c++11 -m${BITNESS} ${STDLIB} -Werror -Wall -Wextra -Wreturn-type -Wunused -Wno-unused-parameter -Wno-missing-field-initializers")
   if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set(COMMON_COMPILE_FLAGS "-fPIC ${COMMON_COMPILE_FLAGS}")
   endif()
   set(COMMON_LINK_FLAGS "-m${BITNESS} ${STDLIB}")
-  if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-    set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} -static-libstdc++")
-  endif()
 endif()
 
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
