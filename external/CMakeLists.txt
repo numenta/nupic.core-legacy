@@ -25,59 +25,29 @@ project(nupic_core_externals)
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
 set_directory_properties(
-  PROPERTIES EP_PREFIX ${CMAKE_BINARY_DIR}
+  PROPERTIES EP_PREFIX ${EP_PREFIX}
 )
 
 include(ExternalProject)
 
 ExternalProject_Add(
-  gtest
-  GIT_REPOSITORY https://github.com/google/googletest.git
-  GIT_TAG release-1.7.0
-  CMAKE_ARGS
-      -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}
-      -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-  UPDATE_COMMAND ""
-  INSTALL_COMMAND ""
-)
-
-ExternalProject_Get_Property(gtest source_dir)
-MESSAGE(STATUS "source_dir" ${source_dir})
-ExternalProject_Get_Property(gtest binary_dir)
-MESSAGE(STATUS "binary_dir" ${binary_dir})
-
-ExternalProject_Add(
   CapnProto
   GIT_REPOSITORY https://github.com/sandstorm-io/capnproto.git
   GIT_TAG v0.5.2
-  DEPENDS gtest
-  #CMAKE_ARGS
-  #    #-DBUILD_TESTING=OFF
-  #    -DUSE_EXTERNAL_GTEST=ON
-  #    -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}
-  #    -Dgtest_library=${binary_dir}/libgtest.a
-  #    -Dgtest_main_library=${binary_dir}/libgtest_main.a
-  #    -Dgtest_include_dir=${source_dir}/include
   UPDATE_COMMAND ""
-  INSTALL_COMMAND ""
-  # Since CMakeLists.txt isn't in the repo root, we have to point
-  # SOURCE_DIR to the "c++" dir inside the DOWNLOAD_DIR that contains it.
-  SOURCE_DIR ${CMAKE_BINARY_DIR}/ThirdParty/src/CapnProto
+  #INSTALL_COMMAND ""
   CONFIGURE_COMMAND
       ${CMAKE_COMMAND}
-      -DUSE_EXTERNAL_GTEST=ON
+      -DBUILD_TESTING=OFF
       -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}
-      -Dgtest_library=${binary_dir}/libgtest.a
-      -Dgtest_main_library=${binary_dir}/libgtest_main.a
-      -Dgtest_include_dir=${source_dir}/include
+      -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
       -G "Unix Makefiles"
-      ${CMAKE_BINARY_DIR}/ThirdParty/src/CapnProto/c++
-  #DOWNLOAD_DIR ${CMAKE_BINARY_DIR}/ThirdParty/src/CapnProto
+      ${EP_PREFIX}/src/CapnProto/c++
 )
-ExternalProject_Get_Property(CapnProto source_dir)
-MESSAGE(STATUS "source_dir: " ${source_dir})
-ExternalProject_Get_Property(CapnProto binary_dir)
-MESSAGE(STATUS "binary_dir: " ${binary_dir})
+#ExternalProject_Get_Property(CapnProto source_dir)
+#MESSAGE(STATUS "source_dir: " ${source_dir})
+#ExternalProject_Get_Property(CapnProto binary_dir)
+#MESSAGE(STATUS "binary_dir: " ${binary_dir})
 
 # TODO: needed?
 #ExternalProject_Add_Step(CapnProto prebuild
@@ -86,22 +56,8 @@ MESSAGE(STATUS "binary_dir: " ${binary_dir})
 #  DEPENDEES configure
 #)
 
-set(CAPNP_LIBRARY "${binary_dir}/c++/libcapnp.so")
-set(CAPNP_RPC_LIBRARY "${binary_dir}/c++/libcapnp-rpc.so")
-set(CAPNPC_LIBRARY "${binary_dir}/c++/libcapnpc.so")
-set(KJ_LIBRARY "${binary_dir}/c++/libkj.so")
-set(KJ_ASYNC_LIBRARY "${binary_dir}/c++/libkj-async.so")
-set(CAPNPC_EXECUTABLE "${binary_dir}/c++/capnp")
-set(CAPNPC_CXX_EXECUTABLE "${binary_dir}/c++/capnpc-c++")
-set(CAPNP_INCLUDE_DIRECTORIES "${source_dir}/c++/src")
-list(APPEND CAPNP_LIBRARIES ${CAPNP_RPC_LIBRARY})
-list(APPEND CAPNP_LIBRARIES ${CAPNP_LIBRARY})
-list(APPEND CAPNP_LIBRARIES ${CAPNPC_LIBRARY})
-list(APPEND CAPNP_LIBRARIES ${KJ_ASYNC_LIBRARY})
-list(APPEND CAPNP_LIBRARIES ${KJ_LIBRARY})
-
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${source_dir}/c++/cmake PARENT_SCOPE)
-set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${binary_dir} PARENT_SCOPE)
+#set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${source_dir}/c++/cmake PARENT_SCOPE)
+#set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${binary_dir} PARENT_SCOPE)
 
 # TODO: This makes CapnProto depend on gtest right? Shouldn't it already from
 # ExternalProject_Add?

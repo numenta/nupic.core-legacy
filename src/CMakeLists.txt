@@ -25,6 +25,10 @@ project(nupic_core CXX)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set(CMAKE_VERBOSE_MAKEFILE ON) # toggle for cmake debug
 
+set_directory_properties(
+  PROPERTIES EP_PREFIX ${EP_PREFIX}
+)
+
 if( POLICY CMP0046 )
   cmake_policy(VERSION 2.8)
   # The new policy for add_dependencies is to now error if a dependency target
@@ -235,13 +239,13 @@ configure_file(
 #
 # Setup gtest
 #
-#set(LIB_STATIC_GTEST gtest)
-#add_library(${LIB_STATIC_GTEST}
-#            STATIC
-#            ${REPOSITORY_DIR}/external/common/src/gtest/gtest-all.cpp)
-#set_target_properties(${LIB_STATIC_GTEST}
-#                      PROPERTIES COMPILE_FLAGS "${COMMON_COMPILE_FLAGS}"
-#                      LINK_FLAGS "${COMMON_LINK_FLAGS}")
+set(LIB_STATIC_GTEST gtest)
+add_library(${LIB_STATIC_GTEST}
+            STATIC
+            ${REPOSITORY_DIR}/external/common/src/gtest/gtest-all.cpp)
+set_target_properties(${LIB_STATIC_GTEST}
+                      PROPERTIES COMPILE_FLAGS "${COMMON_COMPILE_FLAGS}"
+                      LINK_FLAGS "${COMMON_LINK_FLAGS}")
 
 
 #
@@ -299,8 +303,6 @@ add_library(${LIB_STATIC_Z} STATIC IMPORTED GLOBAL)
 #
 find_package(PythonLibs REQUIRED)
 include_directories(SYSTEM ${PYTHON_INCLUDE_DIRS})
-#ExternalProject_Get_Property(gmock source_dir)
-#list(APPEND CMAKE_PREFIX_PATH ${source_dir})
 
 #
 # Find and add capnp and kj and generate Cap'n Proto C++ files
