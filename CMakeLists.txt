@@ -22,37 +22,38 @@
 cmake_minimum_required(VERSION 2.8)
 project(nupic_core_main)
 
-set(CMAKE_VERBOSE_MAKEFILE ON)
+set(CMAKE_VERBOSE_MAKEFILE OFF)
 
 set(EP_PREFIX ${CMAKE_BINARY_DIR})
-MESSAGE(STATUS "top level EP_PREFIX: " ${EP_PREFIX})
 set_directory_properties(
   PROPERTIES EP_PREFIX "${EP_PREFIX}"
 )
 
 include(ExternalProject)
 
-# Set up dependencies and build Cap'n Proto
+# Build Cap'n Proto first so it can be used to generate C++ from .capnp files.
 ExternalProject_Add(
-  externals
-  DOWNLOAD_COMMAND ""
+  capnproto
+  GIT_REPOSITORY https://github.com/sandstorm-io/capnproto.git
+  GIT_TAG v0.5.2
   UPDATE_COMMAND ""
-  INSTALL_COMMAND ""
-  SOURCE_DIR ${CMAKE_SOURCE_DIR}/external
-  CMAKE_ARGS
-      -DEP_PREFIX=${EP_PREFIX}
+  #INSTALL_COMMAND ""
+  CONFIGURE_COMMAND
+      ${CMAKE_COMMAND}
+      -DBUILD_TESTING=OFF
+      -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}
       -DCMAKE_INSTALL_PREFIX=${EP_PREFIX}/src/externals-install
+      -G "Unix Makefiles"
+      ${EP_PREFIX}/src/capnproto/c++
 )
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${EP_PREFIX}/src/CapnProto/c++/cmake)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${EP_PREFIX}/src/capnproto/c++/cmake)
 set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${EP_PREFIX}/src/externals-install)
 
-MESSAGE(STATUS "CMAKE_MODULE_PATH: " ${CMAKE_MODULE_PATH})
-
-# Build nupic_core project
+# Now build nupic_core project
 ExternalProject_Add(
   nupic_core
-  DEPENDS externals
+  DEPENDS capnproto
   DOWNLOAD_COMMAND ""
   UPDATE_COMMAND ""
   SOURCE_DIR ${CMAKE_SOURCE_DIR}/src

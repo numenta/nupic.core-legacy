@@ -23,11 +23,7 @@ cmake_minimum_required(VERSION 2.8)
 project(nupic_core CXX)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-set(CMAKE_VERBOSE_MAKEFILE ON) # toggle for cmake debug
-
-set_directory_properties(
-  PROPERTIES EP_PREFIX ${EP_PREFIX}
-)
+set(CMAKE_VERBOSE_MAKEFILE OFF) # toggle for cmake debug
 
 if( POLICY CMP0046 )
   cmake_policy(VERSION 2.8)
@@ -609,7 +605,7 @@ add_executable(${EXECUTABLE_GTESTS}
                test/unit/utils/WatcherTest.cpp)
 target_link_libraries(${EXECUTABLE_GTESTS}
                       ${COMMON_LIBS}
-                      gtest)
+                      ${LIB_STATIC_GTEST})
 set_target_properties(${EXECUTABLE_GTESTS}
                       PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS}
                                  LINK_FLAGS "${COMMON_LINK_FLAGS}")
