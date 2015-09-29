@@ -24,9 +24,9 @@ project(nupic_core_main)
 
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 
-set(EP_PREFIX ${CMAKE_BINARY_DIR})
+set(EP_BASE ${CMAKE_BINARY_DIR})
 set_directory_properties(
-  PROPERTIES EP_PREFIX "${EP_PREFIX}"
+  PROPERTIES EP_BASE "${EP_BASE}"
 )
 
 include(ExternalProject)
@@ -37,18 +37,17 @@ ExternalProject_Add(
   GIT_REPOSITORY https://github.com/sandstorm-io/capnproto.git
   GIT_TAG v0.5.2
   UPDATE_COMMAND ""
-  #INSTALL_COMMAND ""
   CONFIGURE_COMMAND
       ${CMAKE_COMMAND}
       -DBUILD_TESTING=OFF
       -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}
-      -DCMAKE_INSTALL_PREFIX=${EP_PREFIX}/src/externals-install
+      -DCMAKE_INSTALL_PREFIX=${EP_BASE}/Install
       -G "Unix Makefiles"
-      ${EP_PREFIX}/src/capnproto/c++
+      ${EP_BASE}/Source/capnproto/c++
 )
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${EP_PREFIX}/src/capnproto/c++/cmake)
-set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${EP_PREFIX}/src/externals-install)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${EP_BASE}/Source/capnproto/c++/cmake)
+set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${EP_BASE}/Install)
 
 # Now build nupic_core project
 ExternalProject_Add(
@@ -58,7 +57,6 @@ ExternalProject_Add(
   UPDATE_COMMAND ""
   SOURCE_DIR ${CMAKE_SOURCE_DIR}/src
   CMAKE_ARGS
-      -DEP_PREFIX=${EP_PREFIX}
       -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
       -DCMAKE_MODULE_PATH=${CMAKE_MODULE_PATH}
       -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}

@@ -123,7 +123,7 @@ endif()
 get_filename_component(REPOSITORY_DIR ${PROJECT_SOURCE_DIR}/.. ABSOLUTE)
 
 if("${PROJECT_BUILD_ARTIFACTS_DIR}" STREQUAL "")
-  set(PROJECT_BUILD_ARTIFACTS_DIR "${REPOSITORY_DIR}/build/artifacts")
+  set(PROJECT_BUILD_ARTIFACTS_DIR "${PROJECT_BINARY_DIR}/artifacts")
 endif()
 
 find_package(PythonInterp REQUIRED)
@@ -486,10 +486,6 @@ add_executable(${EXECUTABLE_CPPREGIONTEST} test/integration/CppRegionTest.cpp)
 target_link_libraries(${EXECUTABLE_CPPREGIONTEST} ${COMMON_LIBS})
 set_target_properties(${EXECUTABLE_CPPREGIONTEST} PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
 set_target_properties(${EXECUTABLE_CPPREGIONTEST} PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
-add_custom_target(tests_cpp_region
-                  COMMAND ${EXECUTABLE_CPPREGIONTEST}
-                  DEPENDS ${EXECUTABLE_CPPREGIONTEST}
-                  VERBATIM)
 
 #
 # Setup test_py_region
@@ -610,10 +606,6 @@ set_target_properties(${EXECUTABLE_GTESTS}
                       PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS}
                                  LINK_FLAGS "${COMMON_LINK_FLAGS}")
 add_dependencies(${EXECUTABLE_GTESTS} ${LIB_STATIC_GTEST} ${COMMON_LIBS})
-add_custom_target(tests_unit
-                  COMMAND ${EXECUTABLE_GTESTS} "--gtest_output=xml:${PROJECT_BUILD_ARTIFACTS_DIR}/unit_tests_report.xml"
-                  DEPENDS ${EXECUTABLE_GTESTS}
-                  VERBATIM)
 set(TEST_HEADERS
     test/unit/algorithms/CondProbTableTest.hpp
     test/unit/algorithms/ConnectionsTest.hpp
@@ -662,15 +654,6 @@ foreach(file ${TEST_HEADERS})
 endforeach()
 file(WRITE "${PROJECT_BINARY_DIR}/AddTests.hpp" "${tests_file_content}")
 file(WRITE "${PROJECT_BINARY_DIR}/AddTestHeaders.hpp" "${headers_file_content}")
-
-#
-# tests_all just calls other targets
-#
-add_custom_target(tests_all
-                  DEPENDS tests_cpp_region
-                  DEPENDS tests_unit
-                  COMMENT "Running all tests"
-                  VERBATIM)
 
 if(UNIX)
   add_custom_target(combined ALL

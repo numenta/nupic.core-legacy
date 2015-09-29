@@ -108,11 +108,12 @@ script:
   # legacy binary tests
   - "${TRAVIS_BUILD_DIR}/build/release/bin/cpp_region_test"
   # unit tests
-  - "${TRAVIS_BUILD_DIR}/build/release/bin/unit_tests"
+  - "mkdir -p $TRAVIS_BUILD_DIR/build/scripts/artifacts"
+  - "${TRAVIS_BUILD_DIR}/build/release/bin/unit_tests --gtest_output=xml:${TRAVIS_BUILD_DIR}/build/artifacts/unit_tests_report.xml"
   # run python tests
   - "py.test --pyargs nupic.bindings"
   # output unit tests report
-  - "cd $TRAVIS_BUILD_DIR/build/artifacts/"
+  - "cd $TRAVIS_BUILD_DIR/build/scripts/artifacts/"
   # transform the JUnit-style xml report to html
   - "xsltproc $TRAVIS_BUILD_DIR/doc/xunit.xslt unit_tests_report.xml > unit_tests_report.html"
 
