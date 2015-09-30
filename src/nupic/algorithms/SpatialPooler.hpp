@@ -329,6 +329,11 @@ namespace nupic {
            */
           virtual UInt persistentSize() const;
 
+
+          UInt getPrecision() const {
+            return 5;
+          }
+
           /**
           Returns the dimensions of the columns in the region.
 
