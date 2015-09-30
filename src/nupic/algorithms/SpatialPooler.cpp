@@ -780,10 +780,15 @@ void SpatialPooler::updatePermanencesForColumn_(vector<Real>& perm,
     }
   }
 
-  clip_(perm, true);
+  // round for numerical stability
+  vector<Real> roundedPerm;
+  for (auto p: perm) {
+    roundedPerm.push_back(round5_(p));
+  }
+  clip_(roundedPerm, true);
   connectedSynapses_.replaceSparseRow(column, connectedSparse.begin(),
                                       connectedSparse.end());
-  permanences_.setRowFromDense(column, perm);
+  permanences_.setRowFromDense(column, roundedPerm);
   connectedCounts_[column] = numConnected;
 }
 
