@@ -55,9 +55,14 @@ ExternalProject_Add(
   DEPENDS capnproto
   DOWNLOAD_COMMAND ""
   UPDATE_COMMAND ""
+  # Don't install nupic_core during build.
+  INSTALL_COMMAND ""
   SOURCE_DIR ${CMAKE_SOURCE_DIR}/src
   CMAKE_ARGS
       -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
       -DCMAKE_MODULE_PATH=${CMAKE_MODULE_PATH}
       -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
 )
+
+# Include the nupic_core install in the top level install step.
+install(CODE "execute_process(COMMAND \"${CMAKE_COMMAND}\" --build ${EP_BASE}/Build/nupic_core --target install)")
