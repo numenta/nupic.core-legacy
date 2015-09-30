@@ -42,7 +42,7 @@ ExternalProject_Add(
       -DBUILD_TESTING=OFF
       -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}
       -DCMAKE_INSTALL_PREFIX=${EP_BASE}/Install
-      -G "Unix Makefiles"
+      -G "${CMAKE_GENERATOR}"
       ${EP_BASE}/Source/capnproto/c++
 )
 
