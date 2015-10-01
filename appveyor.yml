@@ -47,9 +47,9 @@ environment:
       PYTHONPATH: "C:\\Python27-x64"
       DEPLOY_TO_NUGET: 0
 
-    - PYTHON_VERSION: "3.5.0rc2"
-      PYTHONPATH: "C:\\Python35-x64"
-      DEPLOY_TO_NUGET: 0
+    #- PYTHON_VERSION: "3.5.0rc2"
+    #  PYTHONPATH: "C:\\Python35-x64"
+    #  DEPLOY_TO_NUGET: 0
 
 matrix:
   fast_finish: false
@@ -135,7 +135,7 @@ install:
   - set PYTHONPATH=%PYTHONPATH%
   - set PATH=%PYTHONPATH%;%PYTHONPATH%\Scripts;%PATH%
 
-  - cp %REPO_DIR%\external\windows64-gcc\bin\distutils.cfg %PYTHON_PATH%\Lib\distutils
+  - cp %REPO_DIR%\external\windows64-gcc\bin\distutils.cfg %PYTHONPATH%\Lib\distutils
 
   - ECHO "PATH is now:"
   - echo %PATH%
