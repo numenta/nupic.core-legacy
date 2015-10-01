@@ -28,7 +28,7 @@
 cmake_minimum_required(VERSION 2.8)
 project(nupic_core CXX)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-set(CMAKE_VERBOSE_MAKEFILE ON) # toggle for cmake debug
+set(CMAKE_VERBOSE_MAKEFILE OFF) # toggle for cmake debug
 
 if( POLICY CMP0046 )
   cmake_policy(VERSION 2.8)
