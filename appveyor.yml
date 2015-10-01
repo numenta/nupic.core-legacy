@@ -135,7 +135,7 @@ install:
   - set PYTHONPATH=%PYTHONPATH%
   - set PATH=%PYTHONPATH%;%PYTHONPATH%\Scripts;%PATH%
 
-  - cp %REPO_DIR%\external\windows64-gcc\bin\distutils.cfg %PYTHONPATH%\Lib\distutils
+  - cp %REPO_DIR%\external\windows64-gcc\bin\distutils.cfg %PYTHONPATH%\Lib\distutils\distutils.cfg
 
   - ECHO "PATH is now:"
   - echo %PATH%
