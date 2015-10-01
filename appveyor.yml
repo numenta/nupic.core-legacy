@@ -206,7 +206,7 @@ build_script:
   - cd %REPO_DIR%
   - set NUPIC_CORE_RELEASE=%REPO_DIR%\build\release
 
-  - python setup.py install --user --nupic-core-dir=%NUPIC_CORE_RELEASE%
+  - python setup.py install --user --nupic-core-dir=%NUPIC_CORE_RELEASE% --compiler=mingw32
 
 after_build:
   - cd %REPO_DIR%\build\Release
