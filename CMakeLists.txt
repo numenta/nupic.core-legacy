@@ -20,11 +20,11 @@
 # -----------------------------------------------------------------------------
 
 cmake_minimum_required(VERSION 2.8)
-project(nupic_core_main)
+project(nupic_core_main CXX)
 
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 
-set(EP_BASE ${CMAKE_BINARY_DIR})
+set(EP_BASE ${CMAKE_BINARY_DIR}/ThirdParty)
 set_directory_properties(
   PROPERTIES EP_BASE "${EP_BASE}"
 )
@@ -32,6 +32,11 @@ set_directory_properties(
 include(ExternalProject)
 
 # Build Cap'n Proto first so it can be used to generate C++ from .capnp files.
+if(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
+  set(CAPNP_ARGS "-DCAPNP_LITE=1")
+else()
+  set(CAPNP_ARGS "")
+endif()
 ExternalProject_Add(
   capnproto
   GIT_REPOSITORY https://github.com/sandstorm-io/capnproto.git
@@ -39,30 +44,18 @@ ExternalProject_Add(
   UPDATE_COMMAND ""
   CONFIGURE_COMMAND
       ${CMAKE_COMMAND}
+      ${CAPNP_ARGS}
       -DBUILD_TESTING=OFF
       -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}
       -DCMAKE_INSTALL_PREFIX=${EP_BASE}/Install
       -G "${CMAKE_GENERATOR}"
       ${EP_BASE}/Source/capnproto/c++
 )
+set(CAPNP ${EP_BASE}/Install/bin/capnp)
+set(CAPNPC_CPP ${EP_BASE}/Install/bin/capnpc-c++)
+set(CAPNP_INCLUDE_DIRS ${EP_BASE}/Install/include)
+include_directories(SYSTEM ${CAPNP_INCLUDE_DIRS})
+link_directories(${EP_BASE}/Install/lib)
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${EP_BASE}/Source/capnproto/c++/cmake)
-set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${EP_BASE}/Install)
-
-# Now build nupic_core project
-ExternalProject_Add(
-  nupic_core
-  DEPENDS capnproto
-  DOWNLOAD_COMMAND ""
-  UPDATE_COMMAND ""
-  # Don't install nupic_core during build.
-  INSTALL_COMMAND ""
-  SOURCE_DIR ${CMAKE_SOURCE_DIR}/src
-  CMAKE_ARGS
-      -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
-      -DCMAKE_MODULE_PATH=${CMAKE_MODULE_PATH}
-      -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
-)
-
-# Include the nupic_core install in the top level install step.
-install(CODE "execute_process(COMMAND \"${CMAKE_COMMAND}\" --build ${EP_BASE}/Build/nupic_core --target install)")
+# Now build nupic_core project.
+add_subdirectory(src)
