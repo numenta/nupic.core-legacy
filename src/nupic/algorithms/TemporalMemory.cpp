@@ -893,9 +893,8 @@ void TemporalMemory::save(ostream& outStream) const
     << predictedSegmentDecrement_ << " "
     << endl;
 
-  // See issue https://github.com/numenta/nupic.core/issues/506
-  //connections.save(outStream);
-  //outStream << endl;
+  connections.save(outStream);
+  outStream << endl;
 
   outStream << _rng << endl;
 
@@ -1127,8 +1126,7 @@ void TemporalMemory::load(istream& inStream)
     >> permanenceDecrement_
     >> predictedSegmentDecrement_;
 
-  // See issue https://github.com/numenta/nupic.core/issues/506
-  //connections.load(inStream);
+  connections.load(inStream);
 
   inStream >> _rng;
 
