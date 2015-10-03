@@ -144,11 +144,6 @@ install:
   - "python --version"
   - "python -c \"import struct; print(struct.calcsize('P') * 8)\""
 
-  # Associated Python modules
-  - cmd: C:\Python27-x64\scripts\pip install futures
-  - cmd: C:\Python27-x64\scripts\pip install clang==3.5
-  - ps: $env:PATH = 'c:\Python27-x64\Lib\site-packages;' + $env:PATH
-  
   # Check NumPy installed correctly
   - cmd: pip list
 
@@ -206,7 +201,7 @@ build_script:
   - cd %REPO_DIR%
   - set NUPIC_CORE_RELEASE=%REPO_DIR%\build\release
 
-  - python setup.py install --user --nupic-core-dir=%NUPIC_CORE_RELEASE% --compiler=mingw32
+  - python setup.py install --user --compiler=mingw32 --nupic-core-dir=%NUPIC_CORE_RELEASE%
 
 after_build:
   - cd %REPO_DIR%\build\Release
@@ -222,13 +217,13 @@ after_build:
 
         Write-Host "Setting Package.nuspec version tag to $versionStr"
 
-        $content = (Get-Content $root\Package.nuspec) 
+        $content = (Get-Content $root\ci\appveyor\Package.nuspec) 
 
         $content = $content -replace '\$version\$',$versionStr
 
-        $content | Out-File $root\Package.nuspec
+        $content | Out-File $root\ci\appveyor\Package.nuspec
 
-        copy $env:REPO_DIR\Package.nuspec .
+        copy $env:REPO_DIR\ci\appveyor\Package.nuspec .
 
         nuget pack -version $env:APPVEYOR_BUILD_VERSION
 

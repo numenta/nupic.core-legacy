@@ -272,7 +272,7 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cxxCompiler, cmd
     pythonIncludeDir = os.path.join(pythonPrefix, "include")
     pythonLib = "python" + pythonVersion.replace(".", "")
     if cxxCompiler == "MinGW":
-      pythonLib = "C:\\mingw-w64\\mingw64\\opt\\lib\\python2.7\\config\\libpython2.7.dll.a"
+      pythonLib = "C:\\mingw64\\opt\\lib\\python2.7\\config\\libpython2.7.dll.a"
       pythonLib = pythonLib.replace("\\", "/")
   else:
     pythonIncludeDir = os.path.join(
@@ -372,10 +372,14 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cxxCompiler, cmd
       "-lcapnp",
       # optimization (safe defaults)
       "-O2"]
+
     if cxxCompiler != "MinGW":
       commonCompileFlags.append("-fPIC")
       commonLinkFlags.append("-fPIC")
       commonLinkFlags.append("-lcapnpc")
+
+    if cxxCompiler == "MinGW":
+      commonLinkFlags.append("-LC:\\mingw64\\opt\\lib\\python2.7\\config")
 
   if platform == "darwin":
     commonCompileFlags.append("-stdlib=libc++")
@@ -411,6 +415,8 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cxxCompiler, cmd
       "advapi32"])
     if cxxCompiler != "MinGW":
       commonLibraries.append("oldnames")
+    if cxxCompiler == "MinGW":
+      commonLibraries.append("python2.7")
 
   commonObjects = [
     fixPath(nupicCoreReleaseDir + "/lib/" +

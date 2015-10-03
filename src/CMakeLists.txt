@@ -180,7 +180,8 @@ if(NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
   set(OPTIMIZATION_FLAGS_LT "-O2 ${OPTIMIZATION_FLAGS_LT}")
 
   set(OPTIMIZATION_FLAGS_CC "-pipe ${OPTIMIZATION_FLAGS_CC}") #TODO use -Ofast instead of -O3
-  if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Windows" OR
+     ${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
     set(OPTIMIZATION_FLAGS_CC "${OPTIMIZATION_FLAGS_CC} -fuse-linker-plugin -flto-report")
     set(OPTIMIZATION_FLAGS_CC "${OPTIMIZATION_FLAGS_CC} -flto -fuse-ld=gold") #TODO fix LTO for clang
     set(OPTIMIZATION_FLAGS_LT "${OPTIMIZATION_FLAGS_LT} -flto") #TODO LTO for clang too
@@ -314,6 +315,16 @@ add_library(${LIB_STATIC_Z} STATIC IMPORTED GLOBAL)
 find_package(PythonLibs 2.7 REQUIRED)
 include_directories(SYSTEM ${PYTHON_INCLUDE_DIRS})
 
+#
+# Python support
+#
+set (PY_SUPPORT_FILES
+     nupic/py_support/NumpyVector.cpp
+     nupic/py_support/PyArray.cpp
+     nupic/py_support/PyHelpers.cpp
+     nupic/py_support/PythonStream.cpp
+)
+
 message(STATUS "PYTHON_EXECUTABLE   = ${PYTHON_EXECUTABLE}")
 message(STATUS "PYTHON_INCLUDE_DIRS = ${PYTHON_INCLUDE_DIRS}")
 message(STATUS "PYTHON_LIBRARIES    = ${PYTHON_LIBRARIES}")
@@ -355,16 +366,6 @@ message(STATUS "CAPNP_DEFINITIONS   = ${CAPNP_DEFINITIONS}")
 message(STATUS "CAPNP_INCLUDE_DIRS  = ${CAPNP_INCLUDE_DIRS}")
 message(STATUS "CAPNP_LIBRARIES     = ${CAPNP_LIBRARIES}")
 message(STATUS "CAPNP_LIBRARIES_LITE= ${CAPNP_LIBRARIES_LITE}")
-
-#
-# Python support
-#
-set (PY_SUPPORT_FILES
-     nupic/py_support/NumpyVector.cpp
-     nupic/py_support/PyArray.cpp
-     nupic/py_support/PyHelpers.cpp
-     nupic/py_support/PythonStream.cpp
-)
 
 #
 # Setup libnupic_core
