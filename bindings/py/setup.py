@@ -202,7 +202,7 @@ def getCompilerInfo(options):
     cxxCompiler = "unix"
   elif "msvc" in cxxCompiler:
     cxxCompiler = "MSVC"
-  elif "mingw32" in cxxCompiler:
+  elif "mingw" in cxxCompiler:
     cxxCompiler = "MinGW"
   else:
     raise Exception("C++ compiler '%s' is unsupported!" % cxxCompiler)
@@ -356,7 +356,6 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cxxCompiler, cmd
       "-std=c++11",
       # Generate 32 or 64 bit code
       "-m" + bitness,
-      # `position independent code`, required for shared libraries
       "-Wextra",
       "-Wreturn-type",
       "-Wunused",
@@ -374,11 +373,15 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cxxCompiler, cmd
       "-O2"]
 
     if cxxCompiler != "MinGW":
+      # `Position Independent Code`, required for shared libraries
       commonCompileFlags.append("-fPIC")
       commonLinkFlags.append("-fPIC")
       commonLinkFlags.append("-lcapnpc")
 
     if cxxCompiler == "MinGW":
+      commonCompileFlags.append("-Wno-unused-local-typedefs")
+      commonCompileFlags.append("-Wno-unused-variable")
+      commonCompileFlags.append("-Wno-unused-function")
       commonLinkFlags.append("-LC:\\mingw64\\opt\\lib\\python2.7\\config")
 
   if platform == "darwin":

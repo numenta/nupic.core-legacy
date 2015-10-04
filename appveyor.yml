@@ -191,7 +191,7 @@ build_script:
   - cd %REPO_DIR%\build\scripts
 
   - copy C:\mingw64\opt\bin\libpython2.7.dll .
-  - copy C:\mingw64\opt\bin\libpython2.7.dll ..\release
+  - copy C:\mingw64\opt\bin\libpython2.7.dll ..\release\bin
 
   - mingw32-make -f Makefile
   #- mingw32-make -f Makefile tests_all
@@ -201,7 +201,7 @@ build_script:
   - cd %REPO_DIR%
   - set NUPIC_CORE_RELEASE=%REPO_DIR%\build\release
 
-  - python setup.py install --user --compiler=mingw32 --nupic-core-dir=%NUPIC_CORE_RELEASE%
+  - python setup.py install --user --compiler=mingw --nupic-core-dir=%NUPIC_CORE_RELEASE%
 
 after_build:
   - cd %REPO_DIR%\build\Release
