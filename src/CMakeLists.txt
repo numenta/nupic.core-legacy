@@ -674,6 +674,12 @@ add_custom_target(tests_all
                   VERBATIM)
 
 if(UNIX OR MSYS OR MINGW)
+  if(UNIX)
+    set(OBJECT_EXTENSION "o")
+  else()
+    set(OBJECT_EXTENSION "obj")
+  endif()
+
   add_custom_target(combined ALL
                     COMMAND ${CMAKE_AR} -x $<TARGET_FILE:${LIB_STATIC_NUPICCORE}>
                     COMMAND ${CMAKE_AR} -x ${LIB_STATIC_YAML_CPP_LOC}
@@ -681,7 +687,7 @@ if(UNIX OR MSYS OR MINGW)
                     COMMAND ${CMAKE_AR} -x ${LIB_STATIC_APRUTIL1_LOC}
                     COMMAND ${CMAKE_AR} -x ${LIB_STATIC_APR1_LOC}
                     COMMAND ${CMAKE_AR} -x ${LIB_STATIC_Z_LOC}
-                    COMMAND ${CMAKE_AR} rcs libnupic_core.a *.o *.obj
+                    COMMAND ${CMAKE_AR} rcs libnupic_core.a *.${OBJECT_EXTENSION}
                     DEPENDS ${LIB_STATIC_NUPICCORE}
                             ${LIB_STATIC_GTEST}
                             ${EXECUTABLE_HELLOREGION}

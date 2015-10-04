@@ -190,13 +190,14 @@ install:
 build_script:
   - cd %REPO_DIR%\build\scripts
 
-  - copy C:\mingw64\opt\bin\libpython2.7.dll .
-  - copy C:\mingw64\opt\bin\libpython2.7.dll ..\release\bin
-
   - mingw32-make -f Makefile
+
+  #- copy C:\mingw64\opt\bin\libpython2.7.dll .
   #- mingw32-make -f Makefile tests_all
 
   - mingw32-make -f Makefile install | findstr /C:"Install" /I /V
+
+  - copy C:\mingw64\opt\bin\libpython2.7.dll ..\release\bin
 
   - cd %REPO_DIR%
   - set NUPIC_CORE_RELEASE=%REPO_DIR%\build\release
