@@ -23,7 +23,7 @@ cmake_minimum_required(VERSION 2.8)
 project(nupic_core CXX)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-set(CMAKE_VERBOSE_MAKEFILE OFF) # toggle for cmake debug
+set(CMAKE_VERBOSE_MAKEFILE ON) # toggle for cmake debug
 
 if( POLICY CMP0046 )
   cmake_policy(VERSION 2.8)
@@ -324,6 +324,7 @@ set(CAPNP_SPECS
     nupic/proto/LinkProto.capnp
     nupic/proto/Map.capnp
     nupic/proto/NetworkProto.capnp
+    nupic/proto/PyRegionProto.capnp
     nupic/proto/RandomProto.capnp
     nupic/proto/RegionProto.capnp
     nupic/proto/SparseBinaryMatrixProto.capnp
@@ -339,11 +340,19 @@ capnp_generate_cpp(CAPNP_SRCS CAPNP_HDRS ${CAPNP_SPECS})
 # Python support
 #
 set (PY_SUPPORT_FILES
+     nupic/py_support/CapnpToPycapnp.cpp
      nupic/py_support/NumpyVector.cpp
      nupic/py_support/PyArray.cpp
      nupic/py_support/PyHelpers.cpp
      nupic/py_support/PythonStream.cpp
 )
+
+#
+# Add the pycapnp Python package to includes
+execute_process(COMMAND "${PYTHON_EXECUTABLE}" "-c"
+                        "import capnp; import os; import sys; sys.stdout.write(os.path.dirname(os.path.dirname(capnp.__file__)))"
+                        OUTPUT_VARIABLE PYCAPNP)
+include_directories(SYSTEM ${PYCAPNP})
 
 #
 # Setup libnupic_core
