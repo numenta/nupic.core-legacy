@@ -25,61 +25,75 @@ project(nupic_core_main CXX)
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 
 set_directory_properties(PROPERTIES EP_BASE "${EP_BASE}")
+
+set(STATIC_PRE ${CMAKE_STATIC_LIBRARY_PREFIX})
+set(STATIC_SUF ${CMAKE_STATIC_LIBRARY_SUFFIX})
+# This is the library prefix path.
+set(LIB_PRE ${EP_BASE}/Install/lib)
+# The full prefix path for binaries.
+set(BIN_PRE ${EP_BASE}/Install/bin)
+
 include(ExternalProject)
 
-# Build Cap'n Proto first so it can be used to generate C++ from .capnp files.
-if(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
-  set(CAPNP_ARGS "-DCAPNP_LITE=1")
+# First arg is variable, second is static lib, third is generic lib fallback.
+find_library(lib_kj ${STATIC_PRE}kj${STATIC_SUF} kj)
+find_library(lib_capnp ${STATIC_PRE}capnp${STATIC_SUF} capnp)
+find_library(lib_capnpc ${STATIC_PRE}capnpc${STATIC_SUF} capnpc)
+
+find_program(bin_capnp capnp)
+find_program(bin_capnpc_cpp capnpc-c++)
+
+if ((lib_kj STREQUAL lib_kj-NOTFOUND) OR
+    (lib_capnp STREQUAL lib_capnp-NOTFOUND) OR
+    (lib_canpnc STREQUAL lib_capnpc-NOTFOUND) OR
+    (bin_capnp STREQUAL bin_capnp-NOTFOUND) OR
+    (bin_capnpc_cpp STREQUAL bin_capnpc_cpp-NOTFOUND))
+  # Build Cap'n Proto from source.
+  if(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
+    set(CAPNP_ARGS "-DCAPNP_LITE=1")
+  else()
+    set(CAPNP_ARGS "")
+  endif()
+  ExternalProject_Add(
+    CapnProto
+    GIT_REPOSITORY https://github.com/sandstorm-io/capnproto.git
+    GIT_TAG v0.5.2
+    UPDATE_COMMAND ""
+    CONFIGURE_COMMAND
+        ${CMAKE_COMMAND}
+        ${CAPNP_ARGS}
+        -DBUILD_TESTING=OFF
+        -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}
+        -DCMAKE_INSTALL_PREFIX=${EP_BASE}/Install
+        -G "${CMAKE_GENERATOR}"
+        ${EP_BASE}/Source/capnproto/c++
+  )
+
+  set(lib_kj ${LIB_PRE}/${STATIC_PRE}kj${STATIC_SUF} PARENT)
+  set(lib_capnp ${LIB_PRE}/${STATIC_PRE}capnp${STATIC_SUF} PARENT)
+  set(lib_capnpc ${LIB_PRE}/${STATIC_PRE}capnpc${STATIC_SUF} PARENT)
+  set(bin_capnp ${BIN_PRE}/capnp PARENT)
+  set(bin_capnpc_cpp ${BIN_PRE}/capnpc-c++ PARENT)
+
+  # Install headers.
+  install(DIRECTORY "${EP_BASE}/Install/include/capnp"
+          DESTINATION include)
+  install(DIRECTORY "${EP_BASE}/Install/include/kj"
+          DESTINATION include)
 else()
-  set(CAPNP_ARGS "")
+  # Create a dummy target to depend on.
+  add_custom_target(CapnProto)
 endif()
-ExternalProject_Add(
-  capnproto
-  GIT_REPOSITORY https://github.com/sandstorm-io/capnproto.git
-  GIT_TAG v0.5.2
-  UPDATE_COMMAND ""
-  CONFIGURE_COMMAND
-      ${CMAKE_COMMAND}
-      ${CAPNP_ARGS}
-      -DBUILD_TESTING=OFF
-      -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}
-      -DCMAKE_INSTALL_PREFIX=${EP_BASE}/Install
-      -G "${CMAKE_GENERATOR}"
-      ${EP_BASE}/Source/capnproto/c++
-)
 
-add_library(kj STATIC IMPORTED GLOBAL)
-set(libkj ${CMAKE_STATIC_LIBRARY_PREFIX}kj${CMAKE_STATIC_LIBRARY_SUFFIX})
-set_target_properties(kj PROPERTIES
-                      IMPORTED_LOCATION ${EP_BASE}/Install/lib/${libkj})
-add_dependencies(kj capnproto)
-
-set(libcapnp ${CMAKE_STATIC_LIBRARY_PREFIX}capnp${CMAKE_STATIC_LIBRARY_SUFFIX})
-add_library(capnp STATIC IMPORTED GLOBAL)
-set_target_properties(capnp PROPERTIES
-                      IMPORTED_LOCATION ${EP_BASE}/Install/lib/${libcapnp})
-add_dependencies(capnp capnproto)
-
-set(libcapnpc ${CMAKE_STATIC_LIBRARY_PREFIX}capnpc${CMAKE_STATIC_LIBRARY_SUFFIX})
-add_library(capnpc STATIC IMPORTED GLOBAL)
-set_target_properties(capnpc PROPERTIES
-                      IMPORTED_LOCATION ${EP_BASE}/Install/lib/${libcapnpc})
-add_dependencies(capnpc capnproto)
-
-add_executable(bin_capnp IMPORTED GLOBAL)
-set_target_properties(bin_capnp PROPERTIES
-                      IMPORTED_LOCATION ${EP_BASE}/Install/bin/capnp
-                      OUTPUT_NAME capnp)
-add_dependencies(bin_capnp capnproto)
-
-add_executable(bin_capnpc_cpp IMPORTED GLOBAL)
-set_target_properties(bin_capnpc_cpp PROPERTIES
-                      IMPORTED_LOCATION ${EP_BASE}/Install/bin/capnpc-c++
-                      OUTPUT_NAME capnpc-c++)
-add_dependencies(bin_capnpc_cpp capnproto)
-
-# Install headers.
-install(DIRECTORY "${EP_BASE}/Install/include/capnp"
-        DESTINATION include)
-install(DIRECTORY "${EP_BASE}/Install/include/kj"
-        DESTINATION include)
+function(CREATE_CAPNPC_TARGET
+         TARGET_NAME SPEC_FILES SRC_PREFIX INCLUDE_DIR TARGET_DIR)
+  add_custom_target(
+    ${TARGET_NAME}
+    COMMAND ${bin_capnp}
+    compile -o ${bin_capnpc_cpp}:${TARGET_DIR}
+    --src-prefix ${SRC_PREFIX} -I ${INCLUDE_DIR}
+        ${CAPNP_SPECS}
+    DEPENDS CapnProto
+    COMMENT "Executing Cap'n Proto compiler"
+  )
+endfunction(CREATE_CAPNPC_TARGET)

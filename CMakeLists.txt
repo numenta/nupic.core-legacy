@@ -28,20 +28,22 @@ set(EP_BASE ${CMAKE_BINARY_DIR}/ThirdParty)
 
 # Set up external dependencies.
 #
-# This will try find_library and if that fails use ExternalProject to fetch
-# and build the library.
+# This will try find_library and find_program and if that fails use
+# ExternalProject to fetch and build the libraries.
 #
-# Sets the following library targets:
-#   kj
-#   capnp
-#   capnpc
+# Sets the following variables:
+#   lib_kj
+#   lib_capnp
+#   lib_capnpc
+#   bin_capnp
+#   bin_capnpc_cpp
 #
-# Sets the following executable targets:
-#   bin_capnp (capnp)
-#   bin_capnpc_cpp (capnpc-c++)
+# Defines the follow functions:
+#   create_capnpc_target - Creates target that generates C++ files from
+#       .capnp schema files.
 add_subdirectory(external)
 
-# Make sure we can link against the external libraries.
+# Make sure we can link against any new external libraries.
 include_directories(SYSTEM ${EP_BASE}/Install/include)
 
 # Now build nupic_core project.

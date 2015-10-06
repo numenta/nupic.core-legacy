@@ -302,7 +302,7 @@ include_directories(SYSTEM ${PYTHON_INCLUDE_DIRS})
 #
 # Find and add capnp and kj and generate Cap'n Proto C++ files
 #
-set(CAPNP_LIBRARIES kj capnp capnpc)
+set(CAPNP_LIBRARIES ${lib_kj} ${lib_capnp} ${lib_capnpc})
 
 # List all .capnp files here. The C++ files will be generated and included
 # when compiling later on.
@@ -330,17 +330,11 @@ foreach(spec ${CAPNP_SPECS_REL})
 endforeach(spec)
 
 # Create custom target for generating C++ code from .capnp schema files.
-get_target_property(bin_capnp_loc bin_capnp LOCATION)
-get_target_property(bin_capnpc_cpp_loc bin_capnpc_cpp LOCATION)
-add_custom_target(
-  generate_capnp_srcs
-  COMMAND ${bin_capnp_loc}
-          compile -o ${bin_capnpc_cpp_loc}:${PROJECT_BINARY_DIR}
-          --src-prefix ${PROJECT_SOURCE_DIR} -I ${PROJECT_SOURCE_DIR}
-      ${CAPNP_SPECS}
-  DEPENDS ${bin_capnp_loc} ${bin_capnpc_cpp_loc}
-  COMMENT "Executing Cap'n Proto compiler"
-)
+create_capnpc_target(generate_capnp_cpp
+                     "${CAPNP_SPECS}"
+                     ${PROJECT_SOURCE_DIR}
+                     ${PROJECT_SOURCE_DIR}
+                     ${PROJECT_BINARY_DIR})
 set_source_files_properties(${CAPNP_SRCS} PROPERTIES GENERATED TRUE)
 
 #
@@ -455,8 +449,13 @@ set(LIB_STATIC_NUPICCORE_LINK_FLAGS
     "${COMMON_LINK_FLAGS} -static")
 
 add_library(${LIB_STATIC_NUPICCORE} STATIC ${LIB_STATIC_NUPICCORE_SRCS})
-target_link_libraries(${LIB_STATIC_NUPICCORE_LINK_LIBS})
-add_dependencies(${LIB_STATIC_NUPICCORE} generate_capnp_srcs)
+target_link_libraries(${LIB_STATIC_NUPICCORE}
+                      ${LIB_STATIC_NUPICCORE_LINK_LIBS})
+# Make sure we include any external locations specified.
+target_include_directories(${LIB_STATIC_NUPICCORE}
+                           SYSTEM
+                           PUBLIC ${CMAKE_INCLUDE_PATH})
+add_dependencies(${LIB_STATIC_NUPICCORE} generate_capnp_cpp CapnProto)
 set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES COMPILE_FLAGS
                       ${LIB_STATIC_NUPICCORE_COMPILE_FLAGS})
 set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES LINK_FLAGS
