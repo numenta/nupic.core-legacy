@@ -82,6 +82,13 @@ namespace nupic {
          * @param permanenceDecrement  Amount by which permanences of synapses are decremented during learning.
          * @param predictedSegmentDecrement Amount by which active permanences of synapses of previously predicted but inactive segments are decremented.
          * @param seed                 Seed for the random number generator.
+         *
+         * Notes:
+         *
+         * predictedSegmentDecrement: A good value is just a bit larger than
+         * (the column-level sparsity * permanenceIncrement). So, if column-level
+         * sparsity is 2% and permanenceIncrement is 0.01, this parameter should be
+         * something like 4% * 0.01 = 0.0004).
          */
         TemporalMemory(
           vector<UInt> columnDimensions,
@@ -139,50 +146,23 @@ namespace nupic {
 
         /**
          * Feeds input record through TM, performing inference and learning.
-         * Updates member variables with new state.
          *
          * @param activeColumnsSize Number of active columns
-         * @param activeColumns     Indices of active columns in `t`
+         * @param activeColumns     Indices of active columns
          * @param learn             Whether or not learning is enabled
+         *
+         * Updates member variables:
+         * - `activeCells`       (set)
+         * - `winnerCells`       (set)
+         * - `activeSegments`    (set)
+         * - `predictiveCells`   (set)
+         * - `predictedColumns`  (set)
+         * - `matchingSegments`  (set)
+         * - `matchingCells`     (set)
          */
         virtual void compute(
           UInt activeColumnsSize, UInt activeColumns[], bool learn = true);
 
-        /**
-         * 'Functional' version of compute. Returns new state.
-         *
-         * @param activeColumns         Indices of active columns in `t`
-         * @param prevPredictiveCells   Indices of predictive cells in `t-1`
-         * @param prevActiveSegments    Indices of active segments in `t-1`
-         * @param prevActiveCells       Indices of active cells in `t-1`
-         * @param prevWinnerCells       Indices of winner cells in `t-1`
-         * @param prevMatchingSegments  Indices of matching segments in `t-1`
-         * @param prevMatchingCells     Indices of matching cells in `t-1`
-         * @param connections           Connectivity of layer
-         * @param learn                 Whether or not learning is enabled
-         *
-         * @return (tuple)Contains:
-         *  `activeCells`       (set),
-         *  `winnerCells`       (set),
-         *  `activeSegments`    (set),
-         *  `predictiveCells`   (set),
-         *  `predictedColumns`  (set),
-         *  `matchingSegments`  (set),
-         *  `matchingCells`     (set)
-         */
-        tuple<set<Cell>, set<Cell>, vector<Segment>, set<Cell>,
-          set<UInt>, vector<Segment>, set<Cell >>
-          computeFn(
-            UInt activeColumnsSize,
-            UInt activeColumns[],
-            set<Cell>& prevPredictiveCells,
-            vector<Segment>& prevActiveSegments,
-            set<Cell>& prevActiveCells,
-            set<Cell>& prevWinnerCells,
-            vector<Segment>& prevMatchingSegments,
-            set<Cell>& prevMatchingCells,
-            Connections& connections,
-            bool learn = true);
 
         // ==============================
         //  Phases
