@@ -23,7 +23,7 @@ cmake_minimum_required(VERSION 2.8)
 project(nupic_core CXX)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-set(CMAKE_VERBOSE_MAKEFILE OFF) # toggle for cmake debug
+set(CMAKE_VERBOSE_MAKEFILE ON) # toggle for cmake debug
 
 if( POLICY CMP0046 )
   cmake_policy(VERSION 2.8)
@@ -302,13 +302,7 @@ include_directories(SYSTEM ${PYTHON_INCLUDE_DIRS})
 #
 # Find and add capnp and kj and generate Cap'n Proto C++ files
 #
-set(CAPNP_LIBRARIES -lkj -lcapnp -lcapnpc)
-IF(NOT DEFINED CAPNP)
-  find_program(CAPNP capnp)
-ENDIF(NOT DEFINED CAPNP)
-IF(NOT DEFINED CAPNPC_CPP)
-  find_program(CAPNPC_CPP capnpc-c++)
-ENDIF(NOT DEFINED CAPNPC_CPP)
+set(CAPNP_LIBRARIES kj capnp capnpc)
 
 # List all .capnp files here. The C++ files will be generated and included
 # when compiling later on.
@@ -335,17 +329,19 @@ foreach(spec ${CAPNP_SPECS_REL})
   list(APPEND CAPNP_SRCS ${PROJECT_BINARY_DIR}/${spec}.c++)
 endforeach(spec)
 
-add_custom_command(
-  OUTPUT ${CAPNP_SRCS}
-  COMMAND ${CAPNP}
-  ARGS compile -o ${CAPNPC_CPP}:${PROJECT_BINARY_DIR}
-      --src-prefix ${PROJECT_SOURCE_DIR} -I ${PROJECT_SOURCE_DIR}
+# Create custom target for generating C++ code from .capnp schema files.
+get_target_property(bin_capnp_loc bin_capnp LOCATION)
+get_target_property(bin_capnpc_cpp_loc bin_capnpc_cpp LOCATION)
+add_custom_target(
+  generate_capnp_srcs
+  COMMAND ${bin_capnp_loc}
+          compile -o ${bin_capnpc_cpp_loc}:${PROJECT_BINARY_DIR}
+          --src-prefix ${PROJECT_SOURCE_DIR} -I ${PROJECT_SOURCE_DIR}
       ${CAPNP_SPECS}
-  DEPENDS capnproto
+  DEPENDS ${bin_capnp_loc} ${bin_capnpc_cpp_loc}
   COMMENT "Executing Cap'n Proto compiler"
 )
-
-set_source_files_properties( ${CAPNP_SRCS} PROPERTIES GENERATED TRUE)
+set_source_files_properties(${CAPNP_SRCS} PROPERTIES GENERATED TRUE)
 
 #
 # Python support
@@ -458,9 +454,9 @@ set(LIB_STATIC_NUPICCORE_COMPILE_FLAGS
 set(LIB_STATIC_NUPICCORE_LINK_FLAGS
     "${COMMON_LINK_FLAGS} -static")
 
-add_library(${LIB_STATIC_NUPICCORE} STATIC ${LIB_STATIC_NUPICCORE_SRCS}
-            DEPENDS ${CAPNP_SRCS})
+add_library(${LIB_STATIC_NUPICCORE} STATIC ${LIB_STATIC_NUPICCORE_SRCS})
 target_link_libraries(${LIB_STATIC_NUPICCORE_LINK_LIBS})
+add_dependencies(${LIB_STATIC_NUPICCORE} generate_capnp_srcs)
 set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES COMPILE_FLAGS
                       ${LIB_STATIC_NUPICCORE_COMPILE_FLAGS})
 set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES LINK_FLAGS
@@ -748,12 +744,6 @@ install(DIRECTORY "${NUMPY_CORE}/lib/"
         DESTINATION lib)
 install(DIRECTORY "${NUMPY_CORE}/include/"
         DESTINATION include)
-foreach(directory ${CAPNP_INCLUDE_DIRS})
-  install(DIRECTORY "${directory}/capnp"
-          DESTINATION include)
-  install(DIRECTORY "${directory}/kj"
-          DESTINATION include)
-endforeach()
 if(UNIX)
   install(FILES "${PROJECT_BINARY_DIR}/libnupic_core.a"
           DESTINATION lib)

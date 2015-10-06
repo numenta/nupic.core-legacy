@@ -25,37 +25,24 @@ project(nupic_core_main CXX)
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 
 set(EP_BASE ${CMAKE_BINARY_DIR}/ThirdParty)
-set_directory_properties(
-  PROPERTIES EP_BASE "${EP_BASE}"
-)
 
-include(ExternalProject)
+# Set up external dependencies.
+#
+# This will try find_library and if that fails use ExternalProject to fetch
+# and build the library.
+#
+# Sets the following library targets:
+#   kj
+#   capnp
+#   capnpc
+#
+# Sets the following executable targets:
+#   bin_capnp (capnp)
+#   bin_capnpc_cpp (capnpc-c++)
+add_subdirectory(external)
 
-# Build Cap'n Proto first so it can be used to generate C++ from .capnp files.
-if(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
-  set(CAPNP_ARGS "-DCAPNP_LITE=1")
-else()
-  set(CAPNP_ARGS "")
-endif()
-ExternalProject_Add(
-  capnproto
-  GIT_REPOSITORY https://github.com/sandstorm-io/capnproto.git
-  GIT_TAG v0.5.2
-  UPDATE_COMMAND ""
-  CONFIGURE_COMMAND
-      ${CMAKE_COMMAND}
-      ${CAPNP_ARGS}
-      -DBUILD_TESTING=OFF
-      -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}
-      -DCMAKE_INSTALL_PREFIX=${EP_BASE}/Install
-      -G "${CMAKE_GENERATOR}"
-      ${EP_BASE}/Source/capnproto/c++
-)
-set(CAPNP ${EP_BASE}/Install/bin/capnp)
-set(CAPNPC_CPP ${EP_BASE}/Install/bin/capnpc-c++)
-set(CAPNP_INCLUDE_DIRS ${EP_BASE}/Install/include)
-include_directories(SYSTEM ${CAPNP_INCLUDE_DIRS})
-link_directories(${EP_BASE}/Install/lib)
+# Make sure we can link against the external libraries.
+include_directories(SYSTEM ${EP_BASE}/Install/include)
 
 # Now build nupic_core project.
 add_subdirectory(src)
