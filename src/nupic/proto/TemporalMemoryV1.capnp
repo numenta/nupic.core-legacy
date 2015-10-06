@@ -1,7 +1,7 @@
 @0xa64ad1d724c51d4c;
 
 # TODO: Use absolute path
-using import "RandomProto.capnp".RandomProto;
+using import "/nupic/proto/RandomProto.capnp".RandomProto;
 
 # Next ID: 72
 struct TemporalMemoryV1Proto {
