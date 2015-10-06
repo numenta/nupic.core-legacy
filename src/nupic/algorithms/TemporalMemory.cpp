@@ -142,57 +142,13 @@ void TemporalMemory::initialize(
 
 void TemporalMemory::compute(UInt activeColumnsSize, UInt activeColumns[], bool learn)
 {
-  set<Cell> _activeCells(activeCells);
-  set<Cell> _winnerCells(winnerCells);
-  vector<Segment> _activeSegments(activeSegments);
-  set<Cell> _predictiveCells(predictiveCells.begin(), predictiveCells.end());
-  set<UInt> _predictedColumns;
-  vector<Segment> _matchingSegments(matchingSegments);
-  set<Cell> _matchingCells(matchingCells.begin(), matchingCells.end());
+  set<Cell> prevPredictiveCells(predictiveCells.begin(), predictiveCells.end());
+  vector<Segment> prevActiveSegments(activeSegments);
+  set<Cell> prevActiveCells(activeCells);
+  set<Cell> prevWinnerCells(winnerCells);
+  vector<Segment> prevMatchingSegments(matchingSegments);
+  set<Cell> prevMatchingCells(matchingCells.begin(), matchingCells.end());
 
-  tie(_activeCells, _winnerCells, _activeSegments,
-    _predictiveCells, _predictedColumns,
-    _matchingSegments, _matchingCells)
-    = computeFn(
-      activeColumnsSize,
-      activeColumns,
-      _predictiveCells,
-      _activeSegments,
-      _activeCells,
-      _winnerCells,
-      _matchingSegments,
-      _matchingCells,
-      connections,
-      learn);
-
-  activeCells = _activeCells;
-  winnerCells = _winnerCells;
-  activeSegments = _activeSegments;
-  predictiveCells.clear();
-  for (Cell c : _predictiveCells)
-    predictiveCells.push_back(c);
-  matchingSegments = _matchingSegments;
-  matchingCells.clear();
-  for (Cell c : _matchingCells)
-    matchingCells.push_back(c);
-
-}
-
-tuple<set<Cell>, set<Cell>,
-  vector<Segment>, set<Cell>, set<UInt>,
-  vector<Segment>, set<Cell >>
-  TemporalMemory::computeFn(
-    UInt activeColumnsSize,
-    UInt activeColumns[],
-    set<Cell>& prevPredictiveCells,
-    vector<Segment>& prevActiveSegments,
-    set<Cell>& prevActiveCells,
-    set<Cell>& prevWinnerCells,
-    vector<Segment>& prevMatchingSegments,
-    set<Cell>& prevMatchingCells,
-    Connections& _connections,
-    bool learn)
-{
   set<UInt> _activeColumns;
   set<UInt> _predictedColumns;
   set<Cell> _predictedInactiveCells;
@@ -231,7 +187,7 @@ tuple<set<Cell>, set<Cell>,
       _predictedColumns,
       prevActiveCells,
       prevWinnerCells,
-      _connections);
+      connections);
 
   for (Cell cell : _activeCells)
     activeCells.insert(cell);
@@ -246,7 +202,7 @@ tuple<set<Cell>, set<Cell>,
       prevActiveCells,
       winnerCells,
       prevWinnerCells,
-      _connections,
+      connections,
       _predictedInactiveCells,
       prevMatchingSegments);
   }
@@ -258,16 +214,19 @@ tuple<set<Cell>, set<Cell>,
 
   tie(_activeSegments, _predictiveCells,
     _matchingSegments, _matchingCells) =
-    computePredictiveCells(activeCells, _connections);
+    computePredictiveCells(activeCells, connections);
 
-  return make_tuple(
-    activeCells,
-    winnerCells,
-    _activeSegments,
-    _predictiveCells,
-    _predictedColumns,
-    _matchingSegments,
-    _matchingCells);
+  activeCells = _activeCells;
+  winnerCells = _winnerCells;
+
+  activeSegments = _activeSegments;
+  predictiveCells.clear();
+  for (Cell c : _predictiveCells)
+    predictiveCells.push_back(c);
+  matchingSegments = _matchingSegments;
+  matchingCells.clear();
+  for (Cell c : _matchingCells)
+    matchingCells.push_back(c);
 }
 
 void TemporalMemory::reset(void)
