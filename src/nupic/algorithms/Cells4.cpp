@@ -1937,8 +1937,14 @@ void Cells4::save(std::ostream& outStream) const
 void Cells4::saveToFile(std::string filePath) const
 {
   OFStream outStream(filePath.c_str(), std::ios_base::out | std::ios_base::binary);
+  // Request std::ios_base::failure exception upon logical or physical i/o error
+  outStream.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+
   outStream.precision(std::numeric_limits<double>::digits10 + 1);
   save(outStream);
+
+  // Explicitly close the stream so that we may get an exception on error
+  outStream.close();
 }
 
 //----------------------------------------------------------------------
