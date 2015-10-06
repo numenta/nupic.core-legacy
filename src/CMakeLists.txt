@@ -141,7 +141,7 @@ endif()
 # Identify build type - local or deployment (Travis)
 # the variable NUPIC_DEPLOYMENT_BUILD must be set in travis CI scripts
 #
-if($ENV{NUPIC_DEPLOYMENT_BUILD})
+if(False) #FIXME: seems local build (with LTO) is broken, for a test forcing it here on Travis CI.
   message("doing deployment build in TravisCI")
   if(NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
     set(OPTIMIZATION_FLAGS_CC "${OPTIMIZATION_FLAGS_CC} -mtune=generic -O2")
@@ -154,6 +154,7 @@ else()
     set(OPTIMIZATION_FLAGS_LT "-O3 ${OPTIMIZATION_FLAGS_LT}")
   endif()
 endif()
+
 
 
 #
