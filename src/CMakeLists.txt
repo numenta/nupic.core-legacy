@@ -104,18 +104,6 @@ elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
 endif()
 
 
-#
-# Identify build type - local or deployment (Travis)
-# the variable NUPIC_DEPLOYMENT_BUILD must be set in travis CI scripts
-#
-if($ENV{NUPIC_DEPLOYMENT_BUILD})
-  message("doing deployment build in TravisCI")
-else()
-  message("doing local build")
-endif()
-
-
-
 
 #
 # Setup include paths
