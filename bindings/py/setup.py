@@ -1,19 +1,19 @@
-# ----------------------------------------------------------------------
+﻿# ----------------------------------------------------------------------
 # Numenta Platform for Intelligent Computing (NuPIC)
 # Copyright (C) 2015, Numenta, Inc.  Unless you have an agreement
 # with Numenta, Inc., for a separate license for this software code, the
 # following terms and conditions apply:
 #
 # This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License version 3 as
+# it under the terms of the GNU Affero Public License version 3 as
 # published by the Free Software Foundation.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-# See the GNU General Public License for more details.
+# See the GNU Affero Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
+# You should have received a copy of the GNU Affero Public License
 # along with this program.  If not, see http://www.gnu.org/licenses.
 #
 # http://numenta.org/licenses/
@@ -61,7 +61,7 @@ def findRequirements():
   Read the requirements.txt file and parse into requirements for setup's
   install_requirements option.
   """
-  requirementsPath = "requirements.txt"
+  requirementsPath = fixPath(os.path.join(PY_BINDINGS, "requirements.txt"))
   return [
     line.strip()
     for line in open(requirementsPath).readlines()
@@ -92,9 +92,14 @@ def getCommandLineOptions():
   # optionDesc = [name, value, description]
   optionsDesc = []
   optionsDesc.append(
-    ["skip-compare-versions",
-     "",
-     "(optional) Skip nupic.core version comparison"]
+    ["nupic-core-dir",
+     "dir",
+     "Absolute path to nupic.core binary release directory"]
+  )
+  optionsDesc.append(
+    ["compiler",
+    "value",
+    "(optional) compile name to use"]
   )
   optionsDesc.append(
     ["optimizations-native",
@@ -163,28 +168,30 @@ def getPlatformInfo():
   else:
     raise Exception("Platform '%s' is unsupported!" % sys.platform)
 
-  # Python 32-bits doesn't detect Windows 64-bits so the workaround is 
+  # Python 32-bits doesn't detect Windows 64-bits so the workaround is
   # check whether "ProgramFiles (x86)" environment variable exists.
-  is64bits = (sys.maxsize > 2**32 or 
+  is64bits = (sys.maxsize > 2**32 or
      (platform in WINDOWS_PLATFORMS and 'PROGRAMFILES(X86)' in os.environ))
   if is64bits:
     bitness = "64"
   else:
     bitness = "32"
 
+  print "Platform: ",platform,bitness
   return platform, bitness
 
 
 
-def getCompilerInfo():
+def getCompilerInfo(options):
   """
   Identify compiler
   """
 
-  cxxCompiler = ccompiler.get_default_compiler()
-  if "msvc" in cxxCompiler:
-    cxxCompiler = "MSVC"
-  elif "clang" in cxxCompiler:
+  cxxCompiler = getCommandLineOption("compiler", options)
+  if cxxCompiler is None:
+    cxxCompiler = ccompiler.get_default_compiler()
+  
+  if "clang" in cxxCompiler:
     cxxCompiler = "Clang"
   elif "gnu" in cxxCompiler:
     cxxCompiler = "GNU"
@@ -193,9 +200,14 @@ def getCompilerInfo():
   # the ability to decide which compiler is used.
   elif "unix" in cxxCompiler:
     cxxCompiler = "unix"
+  elif "msvc" in cxxCompiler:
+    cxxCompiler = "MSVC"
+  elif "mingw" in cxxCompiler:
+    cxxCompiler = "MinGW"
   else:
     raise Exception("C++ compiler '%s' is unsupported!" % cxxCompiler)
 
+  print "CXX Compiler: {}".format(cxxCompiler)
   return cxxCompiler
 
 
@@ -223,7 +235,7 @@ def getLibPrefix(platform):
   """
   Returns the default system prefix of a compiled library.
   """
-  if platform in UNIX_PLATFORMS:
+  if platform in UNIX_PLATFORMS or cxxCompiler == "MinGW":
     return "lib"
   elif platform in WINDOWS_PLATFORMS:
     return ""
@@ -234,7 +246,7 @@ def getStaticLibExtension(platform):
   """
   Returns the default system extension of a compiled static library.
   """
-  if platform in UNIX_PLATFORMS:
+  if platform in UNIX_PLATFORMS or cxxCompiler == "MinGW":
     return ".a"
   elif platform in WINDOWS_PLATFORMS:
     return ".lib"
@@ -259,6 +271,9 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cxxCompiler, cmd
   if platform in WINDOWS_PLATFORMS:
     pythonIncludeDir = os.path.join(pythonPrefix, "include")
     pythonLib = "python" + pythonVersion.replace(".", "")
+    if cxxCompiler == "MinGW":
+      pythonLib = "C:\\mingw64\\opt\\lib\\python2.7\\config\\libpython2.7.dll.a"
+      pythonLib = pythonLib.replace("\\", "/")
   else:
     pythonIncludeDir = os.path.join(
       pythonPrefix, "include", ("python" + pythonVersion)
@@ -272,15 +287,15 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cxxCompiler, cmd
   numpyIncludeDir = numpyIncludeDir.replace("\\", "/")
 
   commonDefines = [
-    ("NUPIC2", None),
     ("NTA_OS_" + platform.upper(), None),
     ("NTA_ARCH_" + bitness, None),
     ("NTA_PYTHON_SUPPORT", pythonVersion),
-    ("NTA_INTERNAL", None),
-    ("NTA_ASSERTIONS_ON", None),
-    ("NTA_ASM", None),
     ("HAVE_CONFIG_H", None),
-    ("BOOST_NO_WREGEX", None)]
+    ("NTA_INTERNAL", None),
+    ("BOOST_NO_WREGEX", None),
+    ("NUPIC2", None),
+    ("NTA_ASSERTIONS_ON", None),
+    ("NTA_ASM", None)]
 
   if platform in WINDOWS_PLATFORMS:
     commonDefines.extend([
@@ -292,19 +307,25 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cxxCompiler, cmd
       ("_WINDOWS", None),
       ("_MBCS", None),
       ("_CRT_SECURE_NO_WARNINGS", None),
-      ("NDEBUG", None)])
+      ("NDEBUG", None),
+      ("CAPNP_LITE", "1"),
+      ("_VARIADIC_MAX", "10"),
+      ("NOMINMAX", None)])
   else:
     commonDefines.append(("HAVE_UNISTD_H", None))
+  
   if cxxCompiler == "GNU":
     commonDefines.append(("NTA_COMPILER_GNU", None))
   elif cxxCompiler == "Clang":
     commonDefines.append(("NTA_COMPILER_CLANG", None))
   elif cxxCompiler == "MSVC":
-    commonDefines.extend([
-      ("NTA_COMPILER_MSVC", None),
-      ("CAPNP_LITE", "1"),
-      ("_VARIADIC_MAX", "10"),
-      ("NOMINMAX", None)])
+    commonDefines.append(("NTA_COMPILER_MSVC", None))
+  elif cxxCompiler == "MinGW":
+    commonDefines.append(("NTA_COMPILER_GNU", None))
+
+  if cxxCompiler == "MinGW":
+    commonDefines.append(("_hypot", "hypot"))
+    commonDefines.append(("HAVE_UNISTD_H", None))
 
   commonIncludeDirs = [
     os.path.normpath(fixPath(PY_BINDINGS + "/../../external/" + platform + bitness + "/include")),
@@ -316,19 +337,8 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cxxCompiler, cmd
 
   if cxxCompiler == "MSVC":
     commonCompileFlags = [
-      "/TP",
-      "/Zc:wchar_t",
-      "/Gm-",
-      "/fp:precise",
-      "/errorReport:prompt",
-      "/W3",
-      "/WX-",
-      "/GR",
-      "/Gd",
-      "/GS-",
-      "/Oy-",
-      "/EHs",
-      "/analyze-",
+      "/TP", "/Zc:wchar_t", "/Gm-", "/fp:precise", "/errorReport:prompt",
+      "/W3", "/WX-", "/GR", "/Gd", "/GS-", "/Oy-", "/EHs", "/analyze-",
       "/nologo"]
     commonLinkFlags = [
       "/NOLOGO",
@@ -346,10 +356,6 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cxxCompiler, cmd
       "-std=c++11",
       # Generate 32 or 64 bit code
       "-m" + bitness,
-      # `position independent code`, required for shared libraries
-      "-fPIC",
-      "-fvisibility=hidden",
-      "-Wall",
       "-Wextra",
       "-Wreturn-type",
       "-Wunused",
@@ -359,29 +365,27 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cxxCompiler, cmd
       "-O2"]
     commonLinkFlags = [
       "-m" + bitness,
-      "-fPIC",
       "-L" + nupicCoreReleaseDir + "/lib",
       # for Cap'n'Proto serialization
       "-lkj",
       "-lcapnp",
-      "-lcapnpc",
       # optimization (safe defaults)
       "-O2"]
 
+    if cxxCompiler != "MinGW":
+      # `Position Independent Code`, required for shared libraries
+      commonCompileFlags.append("-fPIC")
+      commonLinkFlags.append("-fPIC")
+      commonLinkFlags.append("-lcapnpc")
+
+    if cxxCompiler == "MinGW":
+      commonCompileFlags.append("-Wno-unused-local-typedefs")
+      commonCompileFlags.append("-Wno-unused-variable")
+      commonCompileFlags.append("-Wno-unused-function")
+      commonLinkFlags.append("-LC:\\mingw64\\opt\\lib\\python2.7\\config")
+
   if platform == "darwin":
     commonCompileFlags.append("-stdlib=libc++")
-
-  commonLinkFlags = [
-    "-m" + bitness,
-    "-fPIC",
-    "-L" + fixPath(nupicCoreReleaseDir + "/lib"),
-    # for Cap'n'Proto serialization
-    "-lkj",
-    "-lcapnp",
-    "-lcapnpc",
-    # optimization (safe defaults)
-    "-O2"
-  ]
 
   # Optimizations
   if getCommandLineOption("debug", cmdOptions):
@@ -402,29 +406,30 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cxxCompiler, cmd
 
   commonLibraries = [
     pythonLib,
-    "dl",
     "kj",
-    "capnp",
-    "capnpc"]
+    "capnp"]
   if platform == "linux":
-    commonLibraries.extend(["pthread"])
+    commonLibraries.extend(["capnpc","dl","pthread"])
   elif platform in WINDOWS_PLATFORMS:
     commonLibraries.extend([
-      "oldnames",
       "psapi",
       "ws2_32",
       "shell32",
       "advapi32"])
+    if cxxCompiler != "MinGW":
+      commonLibraries.append("oldnames")
+    if cxxCompiler == "MinGW":
+      commonLibraries.append("python2.7")
 
   commonObjects = [
     fixPath(nupicCoreReleaseDir + "/lib/" +
       getLibPrefix(platform) + "nupic_core" + getStaticLibExtension(platform))]
 
   supportFiles = [
-    os.path.relpath("../../src/nupic/py_support/NumpyVector.cpp"),
-    os.path.relpath("../../src/nupic/py_support/PyArray.cpp"),
-    os.path.relpath("../../src/nupic/py_support/PyHelpers.cpp"),
-    os.path.relpath("../../src/nupic/py_support/PythonStream.cpp")]
+    os.path.normpath(fixPath("../../src/nupic/py_support/NumpyVector.cpp")),
+    os.path.normpath(fixPath("../../src/nupic/py_support/PyArray.cpp")),
+    os.path.normpath(fixPath("../../src/nupic/py_support/PyHelpers.cpp")),
+    os.path.normpath(fixPath("../../src/nupic/py_support/PythonStream.cpp"))]
 
   extensions = []
 
@@ -521,19 +526,20 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cxxCompiler, cmd
 if __name__ == "__main__":
   cwd = os.getcwd()
   os.chdir(PY_BINDINGS)
+
   options = getCommandLineOptions()
   platform, bitness = getPlatformInfo()
-  cxxCompiler = getCompilerInfo()
+  cxxCompiler = getCompilerInfo(options)
 
-  print "Python Bindings directory: {}".format(PY_BINDINGS)
-  print "NUMPY VERSION: {}".format(numpy.__version__)
+  print "NumPy version: {}".format(numpy.__version__)
+  print "Bindings directory: {}".format(PY_BINDINGS)
 
   try:
-    nupicCoreReleaseDir = os.environ.get('NUPIC_CORE_RELEASE')
+    nupicCoreReleaseDir = getCommandLineOption("nupic-core-dir", options)
     if nupicCoreReleaseDir is None:
-      raise Exception("Must provide path to nupic core release. export NUPIC_CORE_RELEASE=<path>")
+      raise Exception("Must provide nupic core release directory. --nupic-core-dir")
     nupicCoreReleaseDir = fixPath(nupicCoreReleaseDir)
-    print "Nupic Core Release Directory: {}\n".format(nupicCoreReleaseDir)
+    print "Core directory: {}\n".format(nupicCoreReleaseDir)
     if not os.path.isdir(nupicCoreReleaseDir):
       raise Exception("{} does not exist".format(nupicCoreReleaseDir))
 
@@ -551,12 +557,18 @@ if __name__ == "__main__":
     extensions = getExtensionModules(nupicCoreReleaseDir, platform, bitness, cxxCompiler,
       options)
 
+    # Copy the proto files into the proto Python package.
+    destDir = os.path.relpath(os.path.join("nupic", "proto"))
+    for protoPath in glob.glob(os.path.relpath(os.path.join(
+        "..", "..", "src", "nupic", "proto", "*.capnp"))):
+      shutil.copy(protoPath, destDir)
+
     print "\nSetup SWIG Python module"
     setup(
       name="nupic.bindings",
       ext_modules=extensions,
-      version="0.1.0",
-      namespace_packages=["nupic", "nupic.bindings"],
+      version="0.1.5",
+      namespace_packages=["nupic"],
       install_requires=findRequirements(),
       description="Numenta Platform for Intelligent Computing - bindings",
       author="Numenta",
@@ -565,7 +577,7 @@ if __name__ == "__main__":
       classifiers=[
         "Programming Language :: Python",
         "Programming Language :: Python :: 2",
-        "License :: OSI Approved :: GNU General Public License (GPL)",
+        "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
         "Operating System :: MacOS :: MacOS X",
         "Operating System :: POSIX :: Linux",
         # It has to be "5 - Production/Stable" or else pypi rejects it!
@@ -575,7 +587,9 @@ if __name__ == "__main__":
         "Topic :: Scientific/Engineering :: Artificial Intelligence"
       ],
       long_description = "Python bindings for nupic core.",
-      packages=find_packages())
+      packages=find_packages(),
+      package_data={"nupic.proto": ["*.capnp"]},
+      zip_safe=False,
+    )
   finally:
     os.chdir(cwd)
-
