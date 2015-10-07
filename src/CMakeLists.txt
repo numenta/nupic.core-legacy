@@ -716,7 +716,7 @@ install(DIRECTORY nupic/ DESTINATION include/nupic
         PATTERN "*.hpp.in" EXCLUDE)
 install(DIRECTORY nupic/ DESTINATION include/nupic
         FILES_MATCHING PATTERN "*.capnp")
-install(DIRECTORY nupic DESTINATION include/nupic
+install(DIRECTORY ${PROJECT_BINARY_DIR}/nupic/ DESTINATION include/nupic/
         FILES_MATCHING PATTERN "*.capnp.h")
 install(DIRECTORY ${REPOSITORY_DIR}/external/common/include/gtest
         DESTINATION include/gtest
