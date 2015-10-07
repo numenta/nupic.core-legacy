@@ -98,13 +98,14 @@ function(CREATE_CAPNPC_TARGET
         ${CAPNP_SPECS}
     DEPENDS CapnProto
     COMMENT "Executing Cap'n Proto compiler"
+    SOURCES ${SPEC_FILES}
   )
 endfunction(CREATE_CAPNPC_TARGET)
 
 set(LIB_KJ ${LIB_KJ} PARENT_SCOPE)
 set(LIB_CAPNP ${LIB_CAPNP} PARENT_SCOPE)
 set(LIB_CAPNPC ${LIB_CAPNPC} PARENT_SCOPE)
-# These are only needed by CREATE_CAPNPC_TARGET but are evalauted in the
+# These are only needed by CREATE_CAPNPC_TARGET but are evaluated in the
 # caller's scope so make sure they are accessible.
 set(BIN_CAPNP ${BIN_CAPNP} PARENT_SCOPE)
 set(BIN_CAPNPC_CPP ${BIN_CAPNPC_CPP} PARENT_SCOPE)
