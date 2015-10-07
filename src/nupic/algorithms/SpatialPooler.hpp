@@ -70,7 +70,7 @@ namespace nupic {
         public:
           SpatialPooler();
           SpatialPooler(vector<UInt> inputDimensions,
-                        vector<UInt> columnDimensions (1, 2048),
+                        vector<UInt> columnDimensions,
                         UInt potentialRadius=16,
                         Real potentialPct=0.5,
                         bool globalInhibition=true,
@@ -225,7 +225,7 @@ namespace nupic {
 
            */
           virtual void initialize(vector<UInt> inputDimensions,
-                                  vector<UInt> columnDimensions (1, 2048),
+                                  vector<UInt> columnDimensions = { 2048 },
                                   UInt potentialRadius=16,
                                   Real potentialPct=0.5,
                                   bool globalInhibition=true,
