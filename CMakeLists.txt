@@ -20,49 +20,33 @@
 # -----------------------------------------------------------------------------
 
 cmake_minimum_required(VERSION 2.8)
-project(nupic_core_main)
+project(nupic_core_main CXX)
 
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 
-set(EP_BASE ${CMAKE_BINARY_DIR})
-set_directory_properties(
-  PROPERTIES EP_BASE "${EP_BASE}"
-)
+set(EP_BASE ${CMAKE_BINARY_DIR}/ThirdParty)
 
-include(ExternalProject)
+# Set up external dependencies.
+#
+# This will try find_library and find_program and if that fails use
+# ExternalProject to fetch and build the libraries.
+#
+# Sets the following variables:
+#   lib_kj
+#   lib_capnp
+#   lib_capnpc
+#   bin_capnp
+#   bin_capnpc_cpp
+#
+# Defines the follow functions:
+#   create_capnpc_target - Creates target that generates C++ files from
+#       .capnp schema files.
+add_subdirectory(external)
 
-# Build Cap'n Proto first so it can be used to generate C++ from .capnp files.
-ExternalProject_Add(
-  capnproto
-  GIT_REPOSITORY https://github.com/sandstorm-io/capnproto.git
-  GIT_TAG v0.5.2
-  UPDATE_COMMAND ""
-  CONFIGURE_COMMAND
-      ${CMAKE_COMMAND}
-      -DBUILD_TESTING=OFF
-      -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}
-      -DCMAKE_INSTALL_PREFIX=${EP_BASE}/Install
-      -G "${CMAKE_GENERATOR}"
-      ${EP_BASE}/Source/capnproto/c++
-)
+# Make sure we can link against any new external libraries.
+include_directories(SYSTEM ${EP_BASE}/Install/include)
+# Make sure we can link against any specified paths.
+include_directories(SYSTEM ${CMAKE_INCLUDE_PATH})
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${EP_BASE}/Source/capnproto/c++/cmake)
-set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${EP_BASE}/Install)
-
-# Now build nupic_core project
-ExternalProject_Add(
-  nupic_core
-  DEPENDS capnproto
-  DOWNLOAD_COMMAND ""
-  UPDATE_COMMAND ""
-  # Don't install nupic_core during build.
-  INSTALL_COMMAND ""
-  SOURCE_DIR ${CMAKE_SOURCE_DIR}/src
-  CMAKE_ARGS
-      -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
-      -DCMAKE_MODULE_PATH=${CMAKE_MODULE_PATH}
-      -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
-)
-
-# Include the nupic_core install in the top level install step.
-install(CODE "execute_process(COMMAND \"${CMAKE_COMMAND}\" --build ${EP_BASE}/Build/nupic_core --target install)")
+# Now build nupic_core project.
+add_subdirectory(src)
