@@ -451,10 +451,6 @@ set(LIB_STATIC_NUPICCORE_LINK_FLAGS
 add_library(${LIB_STATIC_NUPICCORE} STATIC ${LIB_STATIC_NUPICCORE_SRCS})
 target_link_libraries(${LIB_STATIC_NUPICCORE}
                       ${LIB_STATIC_NUPICCORE_LINK_LIBS})
-# Make sure we include any external locations specified.
-target_include_directories(${LIB_STATIC_NUPICCORE}
-                           SYSTEM
-                           PUBLIC ${CMAKE_INCLUDE_PATH})
 add_dependencies(${LIB_STATIC_NUPICCORE} generate_capnp_cpp CapnProto)
 set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES COMPILE_FLAGS
                       ${LIB_STATIC_NUPICCORE_COMPILE_FLAGS})
