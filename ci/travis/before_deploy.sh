@@ -6,15 +6,15 @@
 # following terms and conditions apply:
 #
 # This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License version 3 as
+# it under the terms of the GNU Affero Public License version 3 as
 # published by the Free Software Foundation.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-# See the GNU General Public License for more details.
+# See the GNU Affero Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
+# You should have received a copy of the GNU Affero Public License
 # along with this program.  If not, see http://www.gnu.org/licenses.
 #
 # http://numenta.org/licenses/
@@ -24,6 +24,8 @@ echo
 echo Running before_deploy.sh...
 echo
 
+set -o xtrace
+
 # If this branch is master, this is an iterative deployment, so we'll package
 # wheels ourselves for deployment to S3. No need to build docs.
 if [ "${TRAVIS_BRANCH}" = "master" ]; then
@@ -32,13 +34,15 @@ if [ "${TRAVIS_BRANCH}" = "master" ]; then
     pip install --upgrade pip
 
     # Assuming pip 1.5.X is installed.
-    echo "pip install wheel --user"
     pip install wheel --user
+
+    cd ${TRAVIS_BUILD_DIR}/bindings/py
 
     # Build all NuPIC and all required python packages into dist/wheels as .whl
     # files.
-    echo "pip wheel --wheel-dir=dist/wheels ."
-    pip wheel --wheel-dir=dist/wheels .
+    pip wheel --wheel-dir=dist/wheels -r requirements.txt
+    python setup.py bdist_wheel -d dist/wheels --nupic-core-dir=${TRAVIS_BUILD_DIR}/build/release
+    python setup.py bdist_egg -d dist --nupic-core-dir=${TRAVIS_BUILD_DIR}/build/release
     # The dist/wheels folder is expected to be deployed to S3.
 
 # If this is a tag, we're doing a release deployment, so we want to build docs

@@ -5,15 +5,15 @@
  * following terms and conditions apply:
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 3 as
+ * it under the terms of the GNU Affero Public License version 3 as
  * published by the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * See the GNU General Public License for more details.
+ * See the GNU Affero Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
+ * You should have received a copy of the GNU Affero Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
  *
  * http://numenta.org/licenses/
@@ -1937,8 +1937,14 @@ void Cells4::save(std::ostream& outStream) const
 void Cells4::saveToFile(std::string filePath) const
 {
   OFStream outStream(filePath.c_str(), std::ios_base::out | std::ios_base::binary);
+  // Request std::ios_base::failure exception upon logical or physical i/o error
+  outStream.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+
   outStream.precision(std::numeric_limits<double>::digits10 + 1);
   save(outStream);
+
+  // Explicitly close the stream so that we may get an exception on error
+  outStream.close();
 }
 
 //----------------------------------------------------------------------

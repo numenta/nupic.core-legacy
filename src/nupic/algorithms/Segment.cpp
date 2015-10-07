@@ -5,15 +5,15 @@
  * following terms and conditions apply:
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 3 as
+ * it under the terms of the GNU Affero Public License version 3 as
  * published by the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * See the GNU General Public License for more details.
+ * See the GNU Affero Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
+ * You should have received a copy of the GNU Affero Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
  *
  * http://numenta.org/licenses/
@@ -342,9 +342,6 @@ struct InSrcCellOrder
  * Free up some synapses in this segment. We always free up inactive
  * synapses (lowest permanence freed up first) before we start to free
  * up active ones.
- *
- * TODO: Implement stable tie breaker for the case where you have multiple
- * synapses with the same lowest permanence
  */
 void Segment::freeNSynapses(UInt numToFree,
                             std::vector<UInt> &inactiveSynapseIndices,
@@ -392,7 +389,7 @@ void Segment::freeNSynapses(UInt numToFree,
   }
 
   // Now sort the list of candidate synapses
-  std::sort(candidates.begin(), candidates.end(), InPermanenceOrder());
+  std::stable_sort(candidates.begin(), candidates.end(), InPermanenceOrder());
 
   //----------------------------------------------------------------------
   // Create the final list of synapses we will remove
