@@ -35,18 +35,18 @@ set(BIN_PRE ${EP_BASE}/Install/bin)
 
 include(ExternalProject)
 
-find_library(lib_kj ${STATIC_PRE}kj${STATIC_SUF})
-find_library(lib_capnp ${STATIC_PRE}capnp${STATIC_SUF})
-find_library(lib_capnpc ${STATIC_PRE}capnpc${STATIC_SUF})
+find_library(LIB_KJ ${STATIC_PRE}kj${STATIC_SUF})
+find_library(LIB_CAPNP ${STATIC_PRE}capnp${STATIC_SUF})
+find_library(LIB_CAPNPC ${STATIC_PRE}capnpc${STATIC_SUF})
 
-find_program(bin_capnp capnp)
-find_program(bin_capnpc_cpp capnpc-c++)
+find_program(BIN_CAPNP capnp)
+find_program(BIN_CAPNPC_CPP capnpc-c++)
 
-if ((lib_kj STREQUAL lib_kj-NOTFOUND) OR
-    (lib_capnp STREQUAL lib_capnp-NOTFOUND) OR
-    (lib_canpnc STREQUAL lib_capnpc-NOTFOUND) OR
-    (bin_capnp STREQUAL bin_capnp-NOTFOUND) OR
-    (bin_capnpc_cpp STREQUAL bin_capnpc_cpp-NOTFOUND))
+if ((LIB_KJ STREQUAL LIB_KJ-NOTFOUND) OR
+    (LIB_CAPNP STREQUAL LIB_CAPNP-NOTFOUND) OR
+    (lib_canpnc STREQUAL LIB_CAPNPC-NOTFOUND) OR
+    (BIN_CAPNP STREQUAL BIN_CAPNP-NOTFOUND) OR
+    (BIN_CAPNPC_CPP STREQUAL BIN_CAPNPC_CPP-NOTFOUND))
   # Build Cap'n Proto from source.
   if(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
     set(CAPNP_ARGS "-DCAPNP_LITE=1")
@@ -70,18 +70,18 @@ if ((lib_kj STREQUAL lib_kj-NOTFOUND) OR
         ${EP_BASE}/Source/CapnProto/c++
   )
 
-  set(lib_kj ${LIB_PRE}/${STATIC_PRE}kj${STATIC_SUF})
-  set(lib_capnp ${LIB_PRE}/${STATIC_PRE}capnp${STATIC_SUF})
-  set(lib_capnpc ${LIB_PRE}/${STATIC_PRE}capnpc${STATIC_SUF})
-  set(bin_capnp ${BIN_PRE}/capnp)
-  set(bin_capnpc_cpp ${BIN_PRE}/capnpc-c++)
+  set(LIB_KJ ${LIB_PRE}/${STATIC_PRE}kj${STATIC_SUF})
+  set(LIB_CAPNP ${LIB_PRE}/${STATIC_PRE}capnp${STATIC_SUF})
+  set(LIB_CAPNPC ${LIB_PRE}/${STATIC_PRE}capnpc${STATIC_SUF})
+  set(BIN_CAPNP ${BIN_PRE}/capnp)
+  set(BIN_CAPNPC_CPP ${BIN_PRE}/capnpc-c++)
 
   # Install headers.
   install(DIRECTORY ${EP_BASE}/Install/include/kj
           DESTINATION include/)
   install(DIRECTORY ${EP_BASE}/Install/include/capnp
           DESTINATION include/)
-  install(FILES ${lib_kj} ${lib_capnp} ${lib_capnpc}
+  install(FILES ${LIB_KJ} ${LIB_CAPNP} ${LIB_CAPNPC}
           DESTINATION lib/)
 else()
   # Create a dummy target to depend on.
@@ -92,8 +92,8 @@ function(CREATE_CAPNPC_TARGET
          TARGET_NAME SPEC_FILES SRC_PREFIX INCLUDE_DIR TARGET_DIR)
   add_custom_target(
     ${TARGET_NAME}
-    COMMAND ${bin_capnp}
-        compile -o ${bin_capnpc_cpp}:${TARGET_DIR}
+    COMMAND ${BIN_CAPNP}
+        compile -o ${BIN_CAPNPC_CPP}:${TARGET_DIR}
         --src-prefix ${SRC_PREFIX} -I ${INCLUDE_DIR}
         ${CAPNP_SPECS}
     DEPENDS CapnProto
@@ -101,10 +101,10 @@ function(CREATE_CAPNPC_TARGET
   )
 endfunction(CREATE_CAPNPC_TARGET)
 
-set(lib_kj ${lib_kj} PARENT_SCOPE)
-set(lib_capnp ${lib_capnp} PARENT_SCOPE)
-set(lib_capnpc ${lib_capnpc} PARENT_SCOPE)
+set(LIB_KJ ${LIB_KJ} PARENT_SCOPE)
+set(LIB_CAPNP ${LIB_CAPNP} PARENT_SCOPE)
+set(LIB_CAPNPC ${LIB_CAPNPC} PARENT_SCOPE)
 # These are only needed by CREATE_CAPNPC_TARGET but are evalauted in the
 # caller's scope so make sure they are accessible.
-set(bin_capnp ${bin_capnp} PARENT_SCOPE)
-set(bin_capnpc_cpp ${bin_capnpc_cpp} PARENT_SCOPE)
+set(BIN_CAPNP ${BIN_CAPNP} PARENT_SCOPE)
+set(BIN_CAPNPC_CPP ${BIN_CAPNPC_CPP} PARENT_SCOPE)

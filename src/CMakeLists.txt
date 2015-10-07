@@ -302,7 +302,7 @@ include_directories(SYSTEM ${PYTHON_INCLUDE_DIRS})
 #
 # Find and add capnp and kj and generate Cap'n Proto C++ files
 #
-set(CAPNP_LIBRARIES ${lib_kj} ${lib_capnp} ${lib_capnpc})
+set(CAPNP_LIBRARIES ${LIB_KJ} ${LIB_CAPNP} ${LIB_CAPNPC})
 
 # List all .capnp files here. The C++ files will be generated and included
 # when compiling later on.
