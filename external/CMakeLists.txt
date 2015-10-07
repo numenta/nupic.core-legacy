@@ -35,10 +35,9 @@ set(BIN_PRE ${EP_BASE}/Install/bin)
 
 include(ExternalProject)
 
-# First arg is variable, second is static lib, third is generic lib fallback.
-find_library(lib_kj ${STATIC_PRE}kj${STATIC_SUF} kj)
-find_library(lib_capnp ${STATIC_PRE}capnp${STATIC_SUF} capnp)
-find_library(lib_capnpc ${STATIC_PRE}capnpc${STATIC_SUF} capnpc)
+find_library(lib_kj ${STATIC_PRE}kj${STATIC_SUF})
+find_library(lib_capnp ${STATIC_PRE}capnp${STATIC_SUF})
+find_library(lib_capnpc ${STATIC_PRE}capnpc${STATIC_SUF})
 
 find_program(bin_capnp capnp)
 find_program(bin_capnpc_cpp capnpc-c++)
@@ -63,17 +62,17 @@ if ((lib_kj STREQUAL lib_kj-NOTFOUND) OR
         ${CMAKE_COMMAND}
         ${CAPNP_ARGS}
         -DBUILD_TESTING=OFF
-        -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}
+        -DBUILD_SHARED_LIBS=OFF
         -DCMAKE_INSTALL_PREFIX=${EP_BASE}/Install
         -G "${CMAKE_GENERATOR}"
         ${EP_BASE}/Source/capnproto/c++
   )
 
-  set(lib_kj ${LIB_PRE}/${STATIC_PRE}kj${STATIC_SUF} PARENT)
-  set(lib_capnp ${LIB_PRE}/${STATIC_PRE}capnp${STATIC_SUF} PARENT)
-  set(lib_capnpc ${LIB_PRE}/${STATIC_PRE}capnpc${STATIC_SUF} PARENT)
-  set(bin_capnp ${BIN_PRE}/capnp PARENT)
-  set(bin_capnpc_cpp ${BIN_PRE}/capnpc-c++ PARENT)
+  set(lib_kj ${LIB_PRE}/${STATIC_PRE}kj${STATIC_SUF} PARENT_SCOPE)
+  set(lib_capnp ${LIB_PRE}/${STATIC_PRE}capnp${STATIC_SUF} PARENT_SCOPE)
+  set(lib_capnpc ${LIB_PRE}/${STATIC_PRE}capnpc${STATIC_SUF} PARENT_SCOPE)
+  set(bin_capnp ${BIN_PRE}/capnp PARENT_SCOPE)
+  set(bin_capnpc_cpp ${BIN_PRE}/capnpc-c++ PARENT_SCOPE)
 
   # Install headers.
   install(DIRECTORY "${EP_BASE}/Install/include/capnp"
