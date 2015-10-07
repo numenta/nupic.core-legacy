@@ -65,7 +65,7 @@ if ((lib_kj STREQUAL lib_kj-NOTFOUND) OR
         -DBUILD_SHARED_LIBS=OFF
         -DCMAKE_INSTALL_PREFIX=${EP_BASE}/Install
         -G "${CMAKE_GENERATOR}"
-        ${EP_BASE}/Source/capnproto/c++
+        ${EP_BASE}/Source/CapnProto/c++
   )
 
   set(lib_kj ${LIB_PRE}/${STATIC_PRE}kj${STATIC_SUF} PARENT_SCOPE)
