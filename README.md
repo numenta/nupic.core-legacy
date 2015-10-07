@@ -33,6 +33,8 @@ The Python depedencies (NumPy and pycapnp) can be installed with `pip`:
     cd $NUPIC_CORE/build/scripts
     cmake $NUPIC_CORE -DCMAKE_INSTALL_PREFIX=../release
 
+> **Note**: If you have dependencies precompiled but not in standard system locations then you can specify where to find them with `-DCMAKE_PREFIX_PATH` (for bin/lib) and `-DCMAKE_INCLUDE_PATH` (for header files).
+
 > **Note**: The `-DCMAKE_INSTALL_PREFIX=../release` option shown above is optional, and specifies the location where `nupic.core` should be installed. If omitted, `nupic.core` will be installed in a system location. Using this option is useful when testing versions of `nupic.core` with `nupic` (see [NuPIC's Dependency on nupic.core](https://github.com/numenta/nupic/wiki/NuPIC's-Dependency-on-nupic.core)).
 
 #### Build:
