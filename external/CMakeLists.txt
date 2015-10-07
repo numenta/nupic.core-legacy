@@ -53,6 +53,7 @@ if ((lib_kj STREQUAL lib_kj-NOTFOUND) OR
   else()
     set(CAPNP_ARGS "")
   endif()
+  set(CAPNP_CXX_FLAGS "-fPIC -std=c++11 -m64")
   ExternalProject_Add(
     CapnProto
     GIT_REPOSITORY https://github.com/sandstorm-io/capnproto.git
@@ -61,6 +62,7 @@ if ((lib_kj STREQUAL lib_kj-NOTFOUND) OR
     CONFIGURE_COMMAND
         ${CMAKE_COMMAND}
         ${CAPNP_ARGS}
+        -DCMAKE_CXX_FLAGS=${CAPNP_CXX_FLAGS}
         -DBUILD_TESTING=OFF
         -DBUILD_SHARED_LIBS=OFF
         -DCMAKE_INSTALL_PREFIX=${EP_BASE}/Install
@@ -68,17 +70,19 @@ if ((lib_kj STREQUAL lib_kj-NOTFOUND) OR
         ${EP_BASE}/Source/CapnProto/c++
   )
 
-  set(lib_kj ${LIB_PRE}/${STATIC_PRE}kj${STATIC_SUF} PARENT_SCOPE)
-  set(lib_capnp ${LIB_PRE}/${STATIC_PRE}capnp${STATIC_SUF} PARENT_SCOPE)
-  set(lib_capnpc ${LIB_PRE}/${STATIC_PRE}capnpc${STATIC_SUF} PARENT_SCOPE)
-  set(bin_capnp ${BIN_PRE}/capnp PARENT_SCOPE)
-  set(bin_capnpc_cpp ${BIN_PRE}/capnpc-c++ PARENT_SCOPE)
+  set(lib_kj ${LIB_PRE}/${STATIC_PRE}kj${STATIC_SUF})
+  set(lib_capnp ${LIB_PRE}/${STATIC_PRE}capnp${STATIC_SUF})
+  set(lib_capnpc ${LIB_PRE}/${STATIC_PRE}capnpc${STATIC_SUF})
+  set(bin_capnp ${BIN_PRE}/capnp)
+  set(bin_capnpc_cpp ${BIN_PRE}/capnpc-c++)
 
   # Install headers.
-  install(DIRECTORY "${EP_BASE}/Install/include/capnp"
-          DESTINATION include)
-  install(DIRECTORY "${EP_BASE}/Install/include/kj"
-          DESTINATION include)
+  install(DIRECTORY ${EP_BASE}/Install/include/kj
+          DESTINATION include/)
+  install(DIRECTORY ${EP_BASE}/Install/include/capnp
+          DESTINATION include/)
+  install(FILES ${lib_kj} ${lib_capnp} ${lib_capnpc}
+          DESTINATION lib/)
 else()
   # Create a dummy target to depend on.
   add_custom_target(CapnProto)
@@ -89,10 +93,18 @@ function(CREATE_CAPNPC_TARGET
   add_custom_target(
     ${TARGET_NAME}
     COMMAND ${bin_capnp}
-    compile -o ${bin_capnpc_cpp}:${TARGET_DIR}
-    --src-prefix ${SRC_PREFIX} -I ${INCLUDE_DIR}
+        compile -o ${bin_capnpc_cpp}:${TARGET_DIR}
+        --src-prefix ${SRC_PREFIX} -I ${INCLUDE_DIR}
         ${CAPNP_SPECS}
     DEPENDS CapnProto
     COMMENT "Executing Cap'n Proto compiler"
   )
 endfunction(CREATE_CAPNPC_TARGET)
+
+set(lib_kj ${lib_kj} PARENT_SCOPE)
+set(lib_capnp ${lib_capnp} PARENT_SCOPE)
+set(lib_capnpc ${lib_capnpc} PARENT_SCOPE)
+# These are only needed by CREATE_CAPNPC_TARGET but are evalauted in the
+# caller's scope so make sure they are accessible.
+set(bin_capnp ${bin_capnp} PARENT_SCOPE)
+set(bin_capnpc_cpp ${bin_capnpc_cpp} PARENT_SCOPE)
