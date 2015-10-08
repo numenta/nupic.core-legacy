@@ -31,6 +31,8 @@ set(STATIC_PRE ${CMAKE_STATIC_LIBRARY_PREFIX})
 set(STATIC_SUF ${CMAKE_STATIC_LIBRARY_SUFFIX})
 # This is the library prefix path.
 set(LIB_PRE ${EP_BASE}/Install/lib)
+# This is the include path.
+set(INCLUDE_PRE ${EP_BASE}/Install/include)
 # The full prefix path for binaries.
 set(BIN_PRE ${EP_BASE}/Install/bin)
 

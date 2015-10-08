@@ -32,11 +32,7 @@ set(EP_BASE ${CMAKE_BINARY_DIR}/ThirdParty)
 # ExternalProject to fetch and build the libraries.
 #
 # Sets the following variables:
-#   lib_kj
-#   lib_capnp
-#   lib_capnpc
-#   bin_capnp
-#   bin_capnpc_cpp
+#   CAPNP_LIBRARIES
 #
 # Defines the follow functions:
 #   create_capnpc_target - Creates target that generates C++ files from

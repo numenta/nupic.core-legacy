@@ -19,18 +19,27 @@
 # http://numenta.org/licenses/
 # -----------------------------------------------------------------------------
 
-find_library(LIB_KJ ${STATIC_PRE}kj${STATIC_SUF})
-find_library(LIB_CAPNP ${STATIC_PRE}capnp${STATIC_SUF})
-find_library(LIB_CAPNPC ${STATIC_PRE}capnpc${STATIC_SUF})
+option(SOURCE_CAPNP "Build Cap'n Proto from source even if it is found." OFF)
 
-find_program(BIN_CAPNP capnp)
-find_program(BIN_CAPNPC_CPP capnpc-c++)
+if (NOT ${SOURCE_CAPNP})
+  find_library(LIB_KJ ${STATIC_PRE}kj${STATIC_SUF})
+  find_library(LIB_CAPNP ${STATIC_PRE}capnp${STATIC_SUF})
+  find_library(LIB_CAPNPC ${STATIC_PRE}capnpc${STATIC_SUF})
 
-if ((LIB_KJ STREQUAL LIB_KJ-NOTFOUND) OR
-    (LIB_CAPNP STREQUAL LIB_CAPNP-NOTFOUND) OR
-    (lib_canpnc STREQUAL LIB_CAPNPC-NOTFOUND) OR
-    (BIN_CAPNP STREQUAL BIN_CAPNP-NOTFOUND) OR
-    (BIN_CAPNPC_CPP STREQUAL BIN_CAPNPC_CPP-NOTFOUND))
+  find_path(CAPNP_INCLUDE_DIRS capnp/generated-header-support.h)
+
+  find_program(BIN_CAPNP capnp)
+  find_program(BIN_CAPNPC_CPP capnpc-c++)
+endif (NOT ${SOURCE_CAPNP})
+
+if ((NOT DEFINED LIB_KJ OR LIB_KJ STREQUAL LIB_KJ-NOTFOUND) OR
+    (NOT DEFINED LIB_CAPNP OR LIB_CAPNP STREQUAL LIB_CAPNP-NOTFOUND) OR
+    (NOT DEFINED LIB_CAPNPC OR LIB_CAPNPC STREQUAL LIB_CAPNPC-NOTFOUND) OR
+    (NOT DEFINED CAPNP_INCLUDE_DIRS OR
+         CAPNP_INCLUDE_DIRS STREQUAL CAPNP_INCLUDE_DIRS-NOTFOUND) OR
+    (NOT DEFINED BIN_CAPNP OR BIN_CAPNP STREQUAL BIN_CAPNP-NOTFOUND) OR
+    (NOT DEFINED BIN_CAPNPC_CPP OR
+         BIN_CAPNPC_CPP STREQUAL BIN_CAPNPC_CPP-NOTFOUND))
   # Build Cap'n Proto from source.
   if(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
     set(CAPNP_ARGS "-DCAPNP_LITE=1")
@@ -57,16 +66,9 @@ if ((LIB_KJ STREQUAL LIB_KJ-NOTFOUND) OR
   set(LIB_KJ ${LIB_PRE}/${STATIC_PRE}kj${STATIC_SUF})
   set(LIB_CAPNP ${LIB_PRE}/${STATIC_PRE}capnp${STATIC_SUF})
   set(LIB_CAPNPC ${LIB_PRE}/${STATIC_PRE}capnpc${STATIC_SUF})
+  set(CAPNP_INCLUDE_DIRS ${INCLUDE_PRE})
   set(BIN_CAPNP ${BIN_PRE}/capnp)
   set(BIN_CAPNPC_CPP ${BIN_PRE}/capnpc-c++)
-
-  # Install headers.
-  install(DIRECTORY ${EP_BASE}/Install/include/kj
-          DESTINATION include/)
-  install(DIRECTORY ${EP_BASE}/Install/include/capnp
-          DESTINATION include/)
-  install(FILES ${LIB_KJ} ${LIB_CAPNP} ${LIB_CAPNPC}
-          DESTINATION lib/)
 else()
   # Create a dummy target to depend on.
   add_custom_target(CapnProto)
@@ -85,10 +87,19 @@ function(CREATE_CAPNPC_TARGET
   )
 endfunction(CREATE_CAPNPC_TARGET)
 
-set(LIB_KJ ${LIB_KJ} PARENT_SCOPE)
-set(LIB_CAPNP ${LIB_CAPNP} PARENT_SCOPE)
-set(LIB_CAPNPC ${LIB_CAPNPC} PARENT_SCOPE)
+set(CAPNP_LIBRARIES ${LIB_KJ} ${LIB_CAPNP} ${LIB_CAPNPC} PARENT_SCOPE)
+set(CAPNP_INCLUDE_DIRS ${CAPNP_INCLUDE_DIRS} PARENT_SCOPE)
 # These are only needed by CREATE_CAPNPC_TARGET but are evalauted in the
 # caller's scope so make sure they are accessible.
-set(BIN_CAPNP ${BIN_CAPNP} PARENT_SCOPE)
-set(BIN_CAPNPC_CPP ${BIN_CAPNPC_CPP} PARENT_SCOPE)
+set(CAPNP_EXECUTABLE ${BIN_CAPNP} PARENT_SCOPE)
+set(CAPNPC_CXX_EXECUTABLE ${BIN_CAPNPC_CPP} PARENT_SCOPE)
+
+# Install headers.
+foreach (INCLUDE_DIR ${CAPNP_INCLUDE_DIRS})
+  install(DIRECTORY ${INCLUDE_DIR}/kj
+          DESTINATION include/)
+  install(DIRECTORY ${INCLUDE_DIR}/capnp
+          DESTINATION include/)
+endforeach ()
+install(FILES ${LIB_KJ} ${LIB_CAPNP} ${LIB_CAPNPC}
+        DESTINATION lib/)
