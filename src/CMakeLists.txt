@@ -458,32 +458,6 @@ set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES LINK_FLAGS
                       ${LIB_STATIC_NUPICCORE_LINK_FLAGS})
 
 #
-# Write out Python file defining an Extension for the setup.py to import.
-# This rebuilds everything from source so that Python source distributions
-# don't require CMake.
-#
-# TODO: Should we be using COMMON_COMPILE_FLAGS to exclude -Inumpy/include
-# or should that be removed from NUPICCORE_COMPILE_FLAGS?
-set(EXTENSIONS_YML "${PROJECT_BINARY_DIR}/extensions.yml")
-string(REPLACE " " ";" COMPILE_FLAGS_LIST ${LIB_STATIC_NUPICCORE_COMPILE_FLAGS})
-string(REPLACE " " ";" LINK_FLAGS_LIST ${LIB_STATIC_NUPICCORE_LINK_FLAGS})
-get_property(CXX_DEFINES DIRECTORY ${PROJECT_SOURCE_DIR}
-             PROPERTY COMPILE_DEFINITIONS )
-           get_property(INCLUDE_DIRS DIRECTORY ${PROJECT_SOURCE_DIR}
-             PROPERTY INCLUDE_DIRECTORIES)
-           get_property(LINK_DIRS DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY LINK_DIRECTORIES)
-MESSAGE(STATUS "package paths: ${CMAKE_MODULE_PATH}")
-find_package(Extensions REQUIRED)
-write_extensions(${EXTENSIONS_YML}
-                 "${COMPILE_FLAGS_LIST}"
-                 "${LINK_FLAGS_LIST}"
-                 "${COMMON_LIBS}"
-                 "${CXX_DEFINES}"
-                 "${INCLUDE_DIRS}"
-                 "${LINK_DIRS}"
-                 "${CMAKE_PREFIX_PATH}")
-
-#
 # Setup test_cpp_region
 #
 set(EXECUTABLE_CPPREGIONTEST cpp_region_test)
@@ -722,8 +696,6 @@ install(DIRECTORY ${REPOSITORY_DIR}/external/common/include/gtest
         DESTINATION include/gtest
         FILES_MATCHING PATTERN "*.h*")
 install(FILES ${PROJECT_BINARY_DIR}/Version.hpp
-        DESTINATION include/nupic/)
-install(FILES "${EXTENSIONS_YML}"
         DESTINATION include/nupic/)
 install(DIRECTORY "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/bin/"
         DESTINATION bin USE_SOURCE_PERMISSIONS)
