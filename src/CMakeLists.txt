@@ -129,7 +129,7 @@ find_package(PythonInterp REQUIRED)
 execute_process(COMMAND "${PYTHON_EXECUTABLE}" "-c"
                         "import numpy; import os; import sys; sys.stdout.write(os.path.dirname(numpy.get_include()))"
                          OUTPUT_VARIABLE NUMPY_CORE)
-include_directories(SYSTEM
+include_directories(BEFORE SYSTEM
                     "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/include"
                     "${REPOSITORY_DIR}/external/common/include"
                     "${PROJECT_SOURCE_DIR}"
@@ -297,7 +297,7 @@ add_library(${LIB_STATIC_Z} STATIC IMPORTED GLOBAL)
 # Setup for python
 #
 find_package(PythonLibs REQUIRED)
-include_directories(SYSTEM ${PYTHON_INCLUDE_DIRS})
+include_directories(BEFORE SYSTEM ${PYTHON_INCLUDE_DIRS})
 
 # List all .capnp files here. The C++ files will be generated and included
 # when compiling later on.
