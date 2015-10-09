@@ -41,3 +41,6 @@ include(ExternalProject)
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
 
 include(CapnProto)
+
+# Convenience variable that wraps all external include directories.
+set(EXTERNAL_INCLUDE_DIRS ${CAPNP_INCLUDE_DIRS} PARENT_SCOPE)
