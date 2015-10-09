@@ -435,7 +435,6 @@ set(LIB_STATIC_NUPICCORE_SRCS
     nupic/utils/TRandom.cpp
     nupic/utils/Watcher.cpp)
 set(LIB_STATIC_NUPICCORE_LINK_LIBS
-    ${LIB_STATIC_NUPICCORE}
     ${LIB_STATIC_YAML_CPP_LOC}
     ${LIB_STATIC_YAML_LOC}
     ${LIB_STATIC_APR1_LOC}
