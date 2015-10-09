@@ -299,11 +299,6 @@ add_library(${LIB_STATIC_Z} STATIC IMPORTED GLOBAL)
 find_package(PythonLibs REQUIRED)
 include_directories(SYSTEM ${PYTHON_INCLUDE_DIRS})
 
-#
-# Find and add capnp and kj and generate Cap'n Proto C++ files
-#
-set(CAPNP_LIBRARIES ${LIB_KJ} ${LIB_CAPNP} ${LIB_CAPNPC})
-
 # List all .capnp files here. The C++ files will be generated and included
 # when compiling later on.
 set(CAPNP_SPECS_REL
@@ -335,7 +330,8 @@ create_capnpc_target(generate_capnp_cpp
                      ${PROJECT_SOURCE_DIR}
                      ${PROJECT_SOURCE_DIR}
                      ${PROJECT_BINARY_DIR})
-set_source_files_properties(${CAPNP_SRCS} PROPERTIES GENERATED TRUE)
+set_source_files_properties(${CAPNP_SRCS} ${CAPNP_HDRS} PROPERTIES
+                            GENERATED TRUE)
 
 #
 # Python support

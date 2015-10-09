@@ -32,11 +32,8 @@ set(EP_BASE ${CMAKE_BINARY_DIR}/ThirdParty)
 # ExternalProject to fetch and build the libraries.
 #
 # Sets the following variables:
-#   lib_kj
-#   lib_capnp
-#   lib_capnpc
-#   bin_capnp
-#   bin_capnpc_cpp
+#   CAPNP_LIBRARIES
+#   EXTERNAL_INCLUDE_DIRS
 #
 # Defines the follow functions:
 #   create_capnpc_target - Creates target that generates C++ files from
@@ -44,7 +41,7 @@ set(EP_BASE ${CMAKE_BINARY_DIR}/ThirdParty)
 add_subdirectory(external)
 
 # Make sure we can link against any new external libraries.
-include_directories(SYSTEM ${EP_BASE}/Install/include)
+include_directories(SYSTEM ${EXTERNAL_INCLUDE_DIRS})
 # Make sure we can link against any specified paths.
 include_directories(SYSTEM ${CMAKE_INCLUDE_PATH})
 
