@@ -203,7 +203,7 @@ if(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
 
 else()
   # LLVM Clang / Gnu GCC
-  set(COMMON_COMPILE_FLAGS "-std=c++11 -m${BITNESS} ${STDLIB} -Werror -Wall -Wextra -Wreturn-type -Wunused -Wno-unused-parameter -Wno-missing-field-initializers")
+  set(COMMON_COMPILE_FLAGS "-std=c++11 -m${BITNESS} ${STDLIB} -Werror -Wall -Wextra -Wreturn-type -Wunused -Wno-unused-variable -Wno-unused-parameter -Wno-missing-field-initializers")
   if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set(COMMON_COMPILE_FLAGS "-fPIC ${COMMON_COMPILE_FLAGS}")
   endif()
@@ -382,13 +382,13 @@ else()
 endif()
 
 if("${PLATFORM}" STREQUAL "linux")
-  list(APPEND COMMON_LIBS pthread dl)
+  list(APPEND COMMON_OS_LIBS pthread dl)
 elseif("${PLATFORM}" STREQUAL "darwin")
-  list(APPEND COMMON_LIBS c++abi)
+  list(APPEND COMMON_OS_LIBS c++abi)
 elseif(MSYS OR MINGW)
-  list(APPEND COMMON_LIBS psapi ws2_32)
+  list(APPEND COMMON_OS_LIBS psapi ws2_32 wsock32 rpcrt4)
 elseif("${PLATFORM}" STREQUAL "windows")
-  list(APPEND COMMON_LIBS oldnames.lib psapi.lib ws2_32.lib)
+  list(APPEND COMMON_OS_LIBS oldnames.lib psapi.lib ws2_32.lib)
 endif()
 
 ADD_LIBRARY(${LIB_STATIC_NUPICCORE}
@@ -469,7 +469,8 @@ target_link_libraries(${LIB_STATIC_NUPICCORE}
                       ${LIB_STATIC_APRUTIL1_LOC}
                       ${LIB_STATIC_Z_LOC}
                       ${CAPNP_LIBRARIES}
-                      ${PYTHON_LIBRARIES})
+                      ${PYTHON_LIBRARIES}
+                      ${COMMON_OS_LIBS})
 set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES COMPILE_FLAGS "${COMMON_COMPILE_FLAGS} -I${NUMPY_CORE}/include")
 set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS} -static")
 
