@@ -41,9 +41,9 @@ set(EP_BASE ${CMAKE_BINARY_DIR}/ThirdParty)
 add_subdirectory(external)
 
 # Make sure we can link against any new external libraries.
-include_directories(SYSTEM ${EXTERNAL_INCLUDE_DIRS})
+include_directories(AFTER SYSTEM ${EXTERNAL_INCLUDE_DIRS})
 # Make sure we can link against any specified paths.
-include_directories(SYSTEM ${CMAKE_INCLUDE_PATH})
+include_directories(BEFORE SYSTEM ${CMAKE_INCLUDE_PATH})
 
 # Now build nupic_core project.
 add_subdirectory(src)
