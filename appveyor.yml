@@ -70,40 +70,53 @@ nuget:
 configuration: Release
 
 cache:
-  - x86_64-4.9.3-release-posix-seh-rt_v4-rev1.7z
+  - mingwpy_amd64_vc90.7z
+  - libpython-cp27-none-win_amd64.7z
 
 install:
-  - set REPO_DIR=c:\projects\nupic-core
   - set NUPIC_DEPLOYMENT_BUILD=1
+
+  - set REPO_DIR=c:\projects\nupic-core
+  - set NUPIC_CORE_RELEASE=%REPO_DIR%\build\release
   - set EXT_LIBS=%REPO_DIR%\external\windows64-gcc\lib
 
   #- ECHO "Installed Windows SDKs:"
   #- ps: "ls \"C:/Program Files/Microsoft SDKs/Windows\""
 
-  - ECHO "Installing GCC 4.9.3 (x64, posix, rev1):"
+  # Reference: https://bitbucket.org/carlkl/mingw-w64-for-python/downloads/mingwpy-2015-04-readme.md
+  - ECHO "Installing MinGW-w64 for Python:"
   - ps: >-
-      if (-Not (Test-Path "x86_64-4.9.3-release-posix-seh-rt_v4-rev1.7z")) {
-        $url  = "http://sourceforge.net/projects/mingw-w64/files/"
+      if (-Not (Test-Path "mingwpy_amd64_vc90.7z")) {
+        $url  = "https://bitbucket.org/carlkl/mingw-w64-for-python/downloads/"
 
-        $url += "Toolchains%20targetting%20Win64/Personal%20Builds/"
+        $url += "mingwpy_amd64_vc90.7z"
 
-        $url += "mingw-builds/4.9.3/threads-posix/seh/"
-
-        $url += "x86_64-4.9.3-release-posix-seh-rt_v4-rev1.7z/download"
-
-        Invoke-WebRequest -UserAgent wget -Uri $url -OutFile x86_64-4.9.3-release-posix-seh-rt_v4-rev1.7z
+        Invoke-WebRequest -UserAgent wget -Uri $url -OutFile mingwpy_amd64_vc90.7z
 
       }
 
-      7z x -oC:\ x86_64-4.9.3-release-posix-seh-rt_v4-rev1.7z > $null
+      7z x -oC:\ mingwpy_amd64_vc90.7z > $null
+
+  - ECHO "Installing MinGW-w64 Python 2.7.x libs:"
+  - ps: >-
+      if (-Not (Test-Path "libpython-cp27-none-win_amd64.7z")) {
+        $url  = "https://bitbucket.org/carlkl/mingw-w64-for-python/downloads/"
+
+        $url += "libpython-cp27-none-win_amd64.7z"
+
+        Invoke-WebRequest -UserAgent wget -Uri $url -OutFile libpython-cp27-none-win_amd64.7z
+
+      }
+
+      7z x -oC:\Python27-x64\ libpython-cp27-none-win_amd64.7z > $null
 
   - set CC=gcc
   - set CXX=g++
-  - set PATH=C:\mingw64\bin;%PATH%
+  - set PATH=C:\mingwpy\bin;%PATH%
 
-  # Patch up LTO plugins
-  - mkdir C:\mingw64\lib\bfd-plugins
-  - cp C:\mingw64\libexec\gcc\x86_64-w64-mingw32\4.9.3\liblto_plugin-0.dll C:\mingw64\lib\bfd-plugins\liblto_plugin-0.dll
+  # Patch up LTO plugins (only needed for certain MinGW-w64 GCC toolchain)
+  #- mkdir C:\mingw64\lib\bfd-plugins
+  #- cp C:\mingw64\libexec\gcc\x86_64-w64-mingw32\4.9.3\liblto_plugin-0.dll C:\mingw64\lib\bfd-plugins\liblto_plugin-0.dll
 
   - cd %REPO_DIR%\ci\appveyor
 
@@ -135,6 +148,7 @@ install:
   - set PYTHONPATH=%PYTHONPATH%
   - set PATH=%PYTHONPATH%;%PYTHONPATH%\Scripts;%PATH%
 
+  # Setup MinGW-w64 GCC as a valid distutils compiler
   - cp %REPO_DIR%\external\windows64-gcc\bin\distutils.cfg %PYTHONPATH%\Lib\distutils\distutils.cfg
 
   - ECHO "PATH is now:"
@@ -147,8 +161,8 @@ install:
   # Check NumPy installed correctly
   - cmd: pip list
 
-  - ECHO "Filesystem root:"
-  - ps: "ls \"C:/\""
+  #- ECHO "Filesystem root:"
+  #- ps: "ls \"C:/\""
 
   - cd %REPO_DIR%
   - mkdir %REPO_DIR%\build\
@@ -164,10 +178,9 @@ install:
   # Fake KJ-Async and Capnp-RPC libs, not needed in Lite mode
   # http://www.cmake.org/Wiki/CmakeMingw
   - cmake -G "MinGW Makefiles" 
-      -DCMAKE_TOOLCHAIN_FILE=%REPO_DIR%\src\cmake\MinGW-CrossCompile-Windows.cmake 
       -DCMAKE_BUILD_TYPE=Release 
       -DCMAKE_INSTALL_PREFIX=%REPO_DIR%\build\release 
-      -DPYTHON_LIBRARY=C:\mingw64\opt\lib\python2.7\config\libpython2.7.dll.a 
+      -DPYTHON_LIBRARY=%PYTHONPATH%\libs\libpython27.dll.a 
       -DPYTHON_INCLUDE_DIR=%PYTHONPATH%\include 
       -DCAPNP_INCLUDE_DIRS=%REPO_DIR%\external\windows64\include 
       -DCAPNP_EXECUTABLE=%REPO_DIR%\external\windows64\bin\capnp.exe 
@@ -191,17 +204,10 @@ build_script:
   - cd %REPO_DIR%\build\scripts
 
   - mingw32-make -f Makefile
-
-  #- copy C:\mingw64\opt\bin\libpython2.7.dll .
-  #- mingw32-make -f Makefile tests_all
-
+  - mingw32-make -f Makefile tests_all
   - mingw32-make -f Makefile install | findstr /C:"Install" /I /V
 
-  - copy C:\mingw64\opt\bin\libpython2.7.dll ..\release\bin
-
   - cd %REPO_DIR%
-  - set NUPIC_CORE_RELEASE=%REPO_DIR%\build\release
-
   - python setup.py install --user --compiler=mingw --nupic-core-dir=%NUPIC_CORE_RELEASE%
 
 after_build:
