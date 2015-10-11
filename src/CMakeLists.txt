@@ -311,7 +311,7 @@ add_library(${LIB_STATIC_Z} STATIC IMPORTED GLOBAL)
 #
 # Setup for python
 #
-find_package(PythonLibs 2.7 REQUIRED)
+find_package(PythonLibs REQUIRED)
 include_directories(SYSTEM ${PYTHON_INCLUDE_DIRS})
 
 #
@@ -675,12 +675,9 @@ add_custom_target(tests_all
                   VERBATIM)
 
 if(UNIX OR MSYS OR MINGW)
-  if(UNIX)
-    set(OBJECT_EXTENSION "o")
-  else()
-    set(OBJECT_EXTENSION "obj")
+  if(MSYS OR MINGW)
+    execute_process(COMMAND ren *.obj *.o)
   endif()
-
   add_custom_target(combined ALL
                     COMMAND ${CMAKE_AR} -x $<TARGET_FILE:${LIB_STATIC_NUPICCORE}>
                     COMMAND ${CMAKE_AR} -x ${LIB_STATIC_YAML_CPP_LOC}
@@ -688,7 +685,7 @@ if(UNIX OR MSYS OR MINGW)
                     COMMAND ${CMAKE_AR} -x ${LIB_STATIC_APRUTIL1_LOC}
                     COMMAND ${CMAKE_AR} -x ${LIB_STATIC_APR1_LOC}
                     COMMAND ${CMAKE_AR} -x ${LIB_STATIC_Z_LOC}
-                    COMMAND ${CMAKE_AR} rcs libnupic_core.a *.${OBJECT_EXTENSION}
+                    COMMAND ${CMAKE_AR} rcs libnupic_core.a *.o
                     DEPENDS ${LIB_STATIC_NUPICCORE}
                             ${LIB_STATIC_GTEST}
                             ${EXECUTABLE_HELLOREGION}
@@ -696,6 +693,7 @@ if(UNIX OR MSYS OR MINGW)
                             ${EXECUTABLE_CONNECTIONSPERFORMANCETEST}
                             ${EXECUTABLE_GTESTS}
                             ${EXECUTABLE_HELLOSPTP})
+
 else()
   add_custom_target(combined ALL
                     COMMAND lib.exe /OUT:nupic_core.lib

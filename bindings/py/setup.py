@@ -271,9 +271,9 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cxxCompiler, cmd
   if platform in WINDOWS_PLATFORMS:
     pythonIncludeDir = os.path.join(pythonPrefix, "include")
     pythonLib = "python" + pythonVersion.replace(".", "")
-    if cxxCompiler == "MinGW":
-      pythonLib = "C:\\mingw64\\opt\\lib\\python2.7\\config\\libpython2.7.dll.a"
-      pythonLib = pythonLib.replace("\\", "/")
+    #if cxxCompiler == "MinGW":
+    #  pythonLib = "C:\\mingw64\\opt\\lib\\python2.7\\config\\libpython2.7.dll.a"
+    #  pythonLib = pythonLib.replace("\\", "/")
   else:
     pythonIncludeDir = os.path.join(
       pythonPrefix, "include", ("python" + pythonVersion)
@@ -382,7 +382,6 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cxxCompiler, cmd
       commonCompileFlags.append("-Wno-unused-local-typedefs")
       commonCompileFlags.append("-Wno-unused-variable")
       commonCompileFlags.append("-Wno-unused-function")
-      commonLinkFlags.append("-LC:\\mingw64\\opt\\lib\\python2.7\\config")
 
   if platform == "darwin":
     commonCompileFlags.append("-stdlib=libc++")
@@ -415,11 +414,11 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cxxCompiler, cmd
       "psapi",
       "ws2_32",
       "shell32",
-      "advapi32"])
+      "advapi32",
+      "wsock32",
+      "rpcrt4"])
     if cxxCompiler != "MinGW":
       commonLibraries.append("oldnames")
-    if cxxCompiler == "MinGW":
-      commonLibraries.append("python2.7")
 
   commonObjects = [
     fixPath(nupicCoreReleaseDir + "/lib/" +
