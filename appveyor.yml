@@ -85,30 +85,14 @@ install:
 
   # Reference: https://bitbucket.org/carlkl/mingw-w64-for-python/downloads/mingwpy-2015-04-readme.md
   - ECHO "Installing MinGW-w64 for Python:"
-  - ps: >-
-      if (-Not (Test-Path "mingwpy_amd64_vc90.7z")) {
-        $url  = "https://bitbucket.org/carlkl/mingw-w64-for-python/downloads/"
-
-        $url += "mingwpy_amd64_vc90.7z"
-
-        Invoke-WebRequest -UserAgent wget -Uri $url -OutFile mingwpy_amd64_vc90.7z
-
-      }
-
-      7z x -oC:\ mingwpy_amd64_vc90.7z > $null
+  - ps: $dwntool=New-Object System.Net.WebClient
+  - ps: $dwntool.DownloadFile("https://bitbucket.org/carlkl/mingw-w64-for-python/downloads/mingwpy_amd64_vc90.7z", "C:\\mingwpy_amd64_vc90.7z")
+  - 7z x C:\\mingwpy_amd64_vc90.7z -oC:\ > null
 
   - ECHO "Installing MinGW-w64 Python 2.7.x libs:"
-  - ps: >-
-      if (-Not (Test-Path "libpython-cp27-none-win_amd64.7z")) {
-        $url  = "https://bitbucket.org/carlkl/mingw-w64-for-python/downloads/"
-
-        $url += "libpython-cp27-none-win_amd64.7z"
-
-        Invoke-WebRequest -UserAgent wget -Uri $url -OutFile libpython-cp27-none-win_amd64.7z
-
-      }
-
-      7z x -oC:\Python27-x64\ libpython-cp27-none-win_amd64.7z > $null
+  - ps: $dwntool=New-Object System.Net.WebClient
+  - ps: $dwntool.DownloadFile("https://bitbucket.org/carlkl/mingw-w64-for-python/downloads/libpython-cp27-none-win_amd64.7z", "C:\\libpython-cp27-none-win_amd64.7z")
+  - 7z x C:\\libpython-cp27-none-win_amd64.7z -oC:\Python27-x64\ > null
 
   - set CC=gcc
   - set CXX=g++
