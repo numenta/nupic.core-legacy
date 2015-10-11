@@ -162,7 +162,7 @@ install:
   # Fake KJ-Async and Capnp-RPC libs, not needed in Lite mode
   # http://www.cmake.org/Wiki/CmakeMingw
   - cmake -G "MinGW Makefiles" 
-      -DCMAKE_BUILD_TYPE=Release 
+      -DCMAKE_BUILD_TYPE=Debug 
       -DCMAKE_INSTALL_PREFIX=%REPO_DIR%\build\release 
       -DPYTHON_LIBRARY=%PYTHONPATH%\libs\libpython27.dll.a 
       -DPYTHON_INCLUDE_DIR=%PYTHONPATH%\include 
@@ -192,7 +192,7 @@ build_script:
   - mingw32-make -f Makefile install | findstr /C:"Install" /I /V
 
   - cd %REPO_DIR%
-  - python setup.py install --user --compiler=mingw --nupic-core-dir=%NUPIC_CORE_RELEASE%
+  - python setup.py install --user --debug --compiler=mingw --nupic-core-dir=%NUPIC_CORE_RELEASE%
 
 after_build:
   - cd %REPO_DIR%\build\Release
