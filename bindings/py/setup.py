@@ -271,9 +271,6 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cxxCompiler, cmd
   if platform in WINDOWS_PLATFORMS:
     pythonIncludeDir = os.path.join(pythonPrefix, "include")
     pythonLib = "python" + pythonVersion.replace(".", "")
-    #if cxxCompiler == "MinGW":
-    #  pythonLib = "C:\\mingw64\\opt\\lib\\python2.7\\config\\libpython2.7.dll.a"
-    #  pythonLib = pythonLib.replace("\\", "/")
   else:
     pythonIncludeDir = os.path.join(
       pythonPrefix, "include", ("python" + pythonVersion)
@@ -359,18 +356,13 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cxxCompiler, cmd
       "-Wextra",
       "-Wreturn-type",
       "-Wunused",
-      "-Wno-unused-parameter",
-      # optimization flags (generic builds used for binary distribution)
-      "-mtune=generic",
-      "-O2"]
+      "-Wno-unused-parameter"]
     commonLinkFlags = [
       "-m" + bitness,
       "-L" + nupicCoreReleaseDir + "/lib",
       # for Cap'n'Proto serialization
       "-lkj",
-      "-lcapnp",
-      # optimization (safe defaults)
-      "-O2"]
+      "-lcapnp"]
 
     if cxxCompiler != "MinGW":
       # `Position Independent Code`, required for shared libraries
@@ -387,7 +379,7 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cxxCompiler, cmd
     commonCompileFlags.append("-stdlib=libc++")
 
   # Optimizations
-  if getCommandLineOption("debug", cmdOptions):
+  if getCommandLineOption("debug", cmdOptions) or cxxCompiler == "MinGW":
     commonCompileFlags.append("-Og")
     commonCompileFlags.append("-g")
     commonLinkFlags.append("-O0")
@@ -396,6 +388,10 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cxxCompiler, cmd
       commonCompileFlags.append("-march=native")
       commonCompileFlags.append("-O3")
       commonLinkFlags.append("-O3")
+    else:
+      commonCompileFlags.append("-mtune=generic")
+      commonCompileFlags.append("-O2")
+      commonLinkFlags.append("-O2")
     if getCommandLineOption("optimizations-lto", cmdOptions):
       commonCompileFlags.append("-fuse-linker-plugin")
       commonCompileFlags.append("-flto-report")
