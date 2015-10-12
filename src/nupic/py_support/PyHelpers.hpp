@@ -350,7 +350,7 @@ namespace nupic { namespace py
     // Get an instance attribute. Equivalent to:
     //
     // return instance.name
-    PyObject * getAttr(std::string name);
+    PyObject * getAttr(std::string name) const;
 
     // Set an instance attribute. Equivalent to:
     //
@@ -367,7 +367,7 @@ namespace nupic { namespace py
     // return instance.method(*args, **kwargs)
     PyObject * invoke(std::string method, 
                       PyObject * args,
-                      PyObject * kwargs = NULL);
+                      PyObject * kwargs = NULL) const;
   private:
     PyObject * createInstance_(PyObject * pClass,
                                PyObject * args,
