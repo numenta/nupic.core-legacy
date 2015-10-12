@@ -44,29 +44,16 @@ endif()
 #
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake)
 
-#
-# Identify platform
-#
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  set(PLATFORM "darwin")
   set(STDLIB "-stdlib=libc++")
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-  set(PLATFORM "linux")
   set(STDLIB "")
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-  set(PLATFORM "windows")
   set(STDLIB "")
 endif()
-string(TOUPPER ${PLATFORM} PLATFORM_UPPERCASE)
 
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
    set(STDLIB "${STDLIB} -static-libgcc -static-libstdc++")
-endif()
-
-if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-  set(BITNESS 64)
-else()
-  set(BITNESS 32)
 endif()
 
 # Compiler `-D*` definitions
@@ -129,12 +116,11 @@ find_package(PythonInterp REQUIRED)
 execute_process(COMMAND "${PYTHON_EXECUTABLE}" "-c"
                         "import numpy; import os; import sys; sys.stdout.write(os.path.dirname(numpy.get_include()))"
                          OUTPUT_VARIABLE NUMPY_CORE)
-include_directories(BEFORE SYSTEM
-                    "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/include"
-                    "${REPOSITORY_DIR}/external/common/include"
-                    "${PROJECT_SOURCE_DIR}"
-                    "${PROJECT_BINARY_DIR}"
-                    "${NUMPY_CORE}/include")
+include_directories(SYSTEM
+                    ${NUMPY_CORE}/include
+                    ${PROJECT_BINARY_DIR})
+
+include_directories(${PROJECT_SOURCE_DIR})
 
 #
 # Set linker (ld)
@@ -297,7 +283,7 @@ add_library(${LIB_STATIC_Z} STATIC IMPORTED GLOBAL)
 # Setup for python
 #
 find_package(PythonLibs REQUIRED)
-include_directories(BEFORE SYSTEM ${PYTHON_INCLUDE_DIRS})
+include_directories(SYSTEM ${PYTHON_INCLUDE_DIRS})
 
 # List all .capnp files here. The C++ files will be generated and included
 # when compiling later on.
