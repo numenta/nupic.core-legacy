@@ -24,6 +24,20 @@ project(nupic_core_main CXX)
 
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 
+# Identify platform name.
+string(TOLOWER ${CMAKE_SYSTEM_NAME} PLATFORM)
+string(TOUPPER ${PLATFORM} PLATFORM_UPPERCASE)
+
+# Identify platform "bitness".
+if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+  set(BITNESS 64)
+else()
+  set(BITNESS 32)
+endif()
+
+# Make sure we can link against any specified paths.
+include_directories(SYSTEM ${CMAKE_INCLUDE_PATH})
+
 set(EP_BASE ${CMAKE_BINARY_DIR}/ThirdParty)
 
 # Set up external dependencies.
@@ -39,11 +53,7 @@ set(EP_BASE ${CMAKE_BINARY_DIR}/ThirdParty)
 #   create_capnpc_target - Creates target that generates C++ files from
 #       .capnp schema files.
 add_subdirectory(external)
-
-# Make sure we can link against any new external libraries.
-include_directories(AFTER SYSTEM ${EXTERNAL_INCLUDE_DIRS})
-# Make sure we can link against any specified paths.
-include_directories(BEFORE SYSTEM ${CMAKE_INCLUDE_PATH})
+include_directories(SYSTEM ${EXTERNAL_INCLUDE_DIRS})
 
 # Now build nupic_core project.
 add_subdirectory(src)
