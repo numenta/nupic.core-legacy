@@ -50,6 +50,8 @@
 #include <iostream>
 #include <stdexcept>
 
+#include <capnp/message.h>
+
 bool ignore_negative_tests = false;
 #define SHOULDFAIL(statement) \
   { \
@@ -330,6 +332,17 @@ void testUnregisterRegion()
 
 }
 
+void testWriteRead()
+{
+  Network n;
+  n.addRegion("rw", "py.TestNode", "");
+
+  capnp::MallocMessageBuilder message;
+  NetworkProto::Builder proto = message.initRoot<NetworkProto>();
+
+  n.write(proto);
+}
+
 int realmain(bool leakTest)
 {
   // verbose == true turns on extra output that is useful for
@@ -394,6 +407,7 @@ int realmain(bool leakTest)
     //testNuPIC1x();
     //testPynode1xLinking();
   }
+  testWriteRead();
 
   // testUnregisterRegion needs to be the last test run as it will unregister
   // the region 'TestNode'.
