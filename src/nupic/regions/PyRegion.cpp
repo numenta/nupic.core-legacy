@@ -28,11 +28,13 @@
 #include <memory>
 
 #include <capnp/any.h>
+#include <capnp/dynamic.h>
 
 #include <nupic/engine/Spec.hpp>
 #include <nupic/engine/Region.hpp>
 #include <nupic/engine/Input.hpp>
 #include <nupic/engine/Output.hpp>
+#include <nupic/proto/PyRegionProto.capnp.h>
 #include <nupic/utils/Log.hpp>
 #include <nupic/ntypes/ObjectModel.hpp> // IWrite/ReadBuffer
 #include <nupic/ntypes/Value.hpp>
@@ -42,9 +44,11 @@
 #include <nupic/ntypes/BundleIO.hpp>
 #include <nupic/utils/Log.hpp>
 #include <nupic/os/Path.hpp>
+#include <nupic/py_support/CapnpToPycapnp.hpp>
 #include <nupic/py_support/PyArray.hpp>
 
 using namespace nupic;
+using ::capnp::DynamicStruct;
 
 #define LAST_ERROR_LENGTH 1024
 static char lastError[LAST_ERROR_LENGTH];
@@ -431,12 +435,24 @@ void PyRegion::deserialize(BundleIO& bundle)
 
 void PyRegion::write(capnp::AnyPointer::Builder& proto) const
 {
-  NTA_THROW << "Unimplemented method PyRegion::write.";
+  py::Ptr parent(Py_None);
+  PyRegionProto::Builder pyRegionProto = proto.getAs<PyRegionProto>();
+  PyObject* pyBuilder = createBuilder(capnp::toDynamic(pyRegionProto),
+                                      parent);
+  py::Tuple args(1);
+  args.setItem(0, pyBuilder);
+  py::Ptr _none(node_.invoke("write", args));
 }
 
 void PyRegion::read(capnp::AnyPointer::Reader& proto)
 {
-  NTA_THROW << "Unimplemented method PyRegion::read.";
+  py::Ptr parent(Py_None);
+  PyRegionProto::Reader pyRegionProto = proto.getAs<PyRegionProto>();
+  PyObject* pyReader = createReader(capnp::toDynamic(pyRegionProto),
+                                    parent);
+  py::Tuple args(1);
+  args.setItem(0, pyReader);
+  py::Ptr _none(node_.invoke("read", args));
 }
 
 const Spec & PyRegion::getSpec()

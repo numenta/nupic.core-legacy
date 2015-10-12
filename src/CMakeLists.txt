@@ -294,6 +294,7 @@ set(CAPNP_SPECS_REL
   nupic/proto/LinkProto.capnp
   nupic/proto/Map.capnp
   nupic/proto/NetworkProto.capnp
+  nupic/proto/PyRegionProto.capnp
   nupic/proto/RandomProto.capnp
   nupic/proto/RegionProto.capnp
   nupic/proto/SparseBinaryMatrixProto.capnp
@@ -323,11 +324,19 @@ set_source_files_properties(${CAPNP_SRCS} ${CAPNP_HDRS} PROPERTIES
 # Python support
 #
 set (PY_SUPPORT_FILES
+     nupic/py_support/CapnpToPycapnp.cpp
      nupic/py_support/NumpyVector.cpp
      nupic/py_support/PyArray.cpp
      nupic/py_support/PyHelpers.cpp
      nupic/py_support/PythonStream.cpp
 )
+
+#
+# Add the pycapnp Python package to includes
+execute_process(COMMAND "${PYTHON_EXECUTABLE}" "-c"
+                        "import capnp; import os; import sys; sys.stdout.write(os.path.dirname(os.path.dirname(capnp.__file__)))"
+                        OUTPUT_VARIABLE PYCAPNP)
+include_directories(SYSTEM ${PYCAPNP})
 
 #
 # Setup libnupic_core
