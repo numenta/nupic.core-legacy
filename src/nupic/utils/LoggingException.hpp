@@ -63,9 +63,8 @@ namespace nupic
     {
       lmessageValid_ = false;
       ss_ << "[";
-      std::vector<unsigned int>::iterator iter;
-      for (iter = v.begin(); iter != v.end(); iter++)
-        ss_ << *iter << " ";
+      for(auto & elem : v)
+        ss_ << elem << " ";
       ss_ << "]";
       return *this;
     } 

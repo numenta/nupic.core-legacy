@@ -111,7 +111,6 @@ elseif(MSVC OR MSYS OR MINGW)
                   -DNDEBUG
                   -DCAPNP_LITE=1
                   -D_VARIADIC_MAX=10
-                  -DNTA_DOUBLE_PRECISION
                   -DNOMINMAX)
   set(CAPNP_LITE 1)
   if(MSYS OR MINGW)
