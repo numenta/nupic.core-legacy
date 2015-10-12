@@ -36,6 +36,11 @@ set(INCLUDE_PRE ${EP_BASE}/Install/include)
 # The full prefix path for binaries.
 set(BIN_PRE ${EP_BASE}/Install/bin)
 
+# Add vendored prebuilt library include paths.
+list(APPEND EXTERNAL_INCLUDE_DIRS
+     "${PROJECT_SOURCE_DIR}/${PLATFORM}${BITNESS}/include"
+     "${PROJECT_SOURCE_DIR}/common/include")
+
 include(ExternalProject)
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
@@ -43,4 +48,6 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
 include(CapnProto)
 
 # Convenience variable that wraps all external include directories.
-set(EXTERNAL_INCLUDE_DIRS ${CAPNP_INCLUDE_DIRS} PARENT_SCOPE)
+list(APPEND EXTERNAL_INCLUDE_DIRS ${CAPNP_INCLUDE_DIRS})
+
+set(EXTERNAL_INCLUDE_DIRS ${EXTERNAL_INCLUDE_DIRS} PARENT_SCOPE)
