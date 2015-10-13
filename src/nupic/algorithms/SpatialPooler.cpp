@@ -619,8 +619,7 @@ void SpatialPooler::compute(UInt inputArray[], bool learn,
   if (learn) {
     boostOverlaps_(overlaps_, boostedOverlaps_);
   } else {
-    for (auto overlap : overlaps_)
-      boostedOverlaps_.push_back(overlap);
+    boostedOverlaps_ = overlaps_;
   }
 
   inhibitColumns_(boostedOverlaps_, activeColumns_);
