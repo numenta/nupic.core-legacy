@@ -305,7 +305,7 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cxxCompiler, cmd
       ("_MBCS", None),
       ("_CRT_SECURE_NO_WARNINGS", None),
       ("NDEBUG", None),
-      ("CAPNP_LITE", "1"),
+      ("CAPNP_LITE", "CAPNP_LITE"),
       ("_VARIADIC_MAX", "10"),
       ("NOMINMAX", None)])
   else:

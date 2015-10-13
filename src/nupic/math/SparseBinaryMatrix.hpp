@@ -1257,9 +1257,9 @@ namespace nupic {
 
       for (size_type row = 0; row != nRows(); ++row) {
 	size_type nnzr = nNonZerosOnRow(row);
-	n += sprintf(buffer, "%d ", nnzr);
+	n += sprintf(buffer, "%ld ", nnzr);
 	for (nz_index_type j = 0; j != nnzr; ++j)
-	  n += sprintf(buffer, "%d ", ind_[row][j]);
+	  n += sprintf(buffer, "%ld ", ind_[row][j]);
       }
 
       return n;
@@ -2006,11 +2006,13 @@ namespace nupic {
       for (InputIterator it = begin; it != end; ++it)
       {
         if (it != begin)
+        {
           NTA_ASSERT(*last < *it)
             << "SparseBinaryMatrix::" << where << ": "
             << "Invalid indices: " << *last
             << " and: " << *it
             << " - Indices need to be in strictly increasing order";
+        }
         last = it;
       }
     }

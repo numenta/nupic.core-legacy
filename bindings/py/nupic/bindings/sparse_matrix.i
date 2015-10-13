@@ -488,20 +488,20 @@ def __div__(self, other):
 
   inline void write(PyObject* pyBuilder) const
   {
-#ifndef CAPNP_LITE
+  %#ifndef CAPNP_LITE
     SparseMatrixProto::Builder proto =
         nupic::getBuilder<SparseMatrixProto>(pyBuilder);
     self->write(proto);
-#endif
+  %#endif
   }
 
   inline void read(PyObject* pyReader)
   {
-#ifndef CAPNP_LITE
+  %#ifndef CAPNP_LITE
     SparseMatrixProto::Reader proto =
         nupic::getReader<SparseMatrixProto>(pyReader);
     self->read(proto);
-#endif
+  %#endif
   }
 
   void addRow(PyObject *row)
@@ -2900,20 +2900,20 @@ def __setstate__(self, inString):
 
   inline void write(PyObject* pyBuilder) const
   {
-#ifndef CAPNP_LITE
+  %#ifndef CAPNP_LITE
     SparseBinaryMatrixProto::Builder proto =
         nupic::getBuilder<SparseBinaryMatrixProto>(pyBuilder);
     self->write(proto);
-#endif
+  %#endif
   }
 
   inline void read(PyObject* pyReader)
   {
-#ifndef CAPNP_LITE
+  %#ifndef CAPNP_LITE
     SparseBinaryMatrixProto::Reader proto =
         nupic::getReader<SparseBinaryMatrixProto>(pyReader);
     self->read(proto);
-#endif
+  %#endif
   }
 
   inline void fromSparseVector(nupic::UInt32 nrows, nupic::UInt16 ncols,
@@ -3419,20 +3419,20 @@ def __setstate__(self, inString):
 
   inline void write(PyObject* pyBuilder) const
   {
-#ifndef CAPNP_LITE
+  %#ifndef CAPNP_LITE
     SparseBinaryMatrixProto::Builder proto =
         nupic::getBuilder<SparseBinaryMatrixProto>(pyBuilder);
     self->write(proto);
-#endif
+  %#endif
   }
 
   inline void read(PyObject* pyReader)
   {
-#ifndef CAPNP_LITE
+  %#ifndef CAPNP_LITE
     SparseBinaryMatrixProto::Reader proto =
         nupic::getReader<SparseBinaryMatrixProto>(pyReader);
     self->read(proto);
-#endif
+  %#endif
   }
 
   inline void fromSparseVector(nupic::UInt32 nrows, nupic::UInt32 ncols,
