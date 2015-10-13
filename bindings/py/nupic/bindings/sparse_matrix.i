@@ -489,20 +489,18 @@ def __div__(self, other):
   inline void write(PyObject* pyBuilder) const
   {
 #ifndef CAPNP_LITE
-// Commenting out due to the #ifndef not working in math.i
-//    SparseMatrixProto::Builder proto =
-//        nupic::getBuilder<SparseMatrixProto>(pyBuilder);
-//    self->write(proto);
+    SparseMatrixProto::Builder proto =
+        nupic::getBuilder<SparseMatrixProto>(pyBuilder);
+    self->write(proto);
 #endif
   }
 
   inline void read(PyObject* pyReader)
   {
 #ifndef CAPNP_LITE
-// Commenting out due to the #ifndef not working in math.i
-//    SparseMatrixProto::Reader proto =
-//        nupic::getReader<SparseMatrixProto>(pyReader);
-//    self->read(proto);
+    SparseMatrixProto::Reader proto =
+        nupic::getReader<SparseMatrixProto>(pyReader);
+    self->read(proto);
 #endif
   }
 
