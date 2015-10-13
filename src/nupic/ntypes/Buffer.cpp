@@ -685,6 +685,10 @@ namespace nupic
     OMemStream::exceptions(std::ostream::failbit | std::ostream::badbit);
   }
 
+  WriteBuffer::~WriteBuffer()
+  {
+  }
+
   Int32 WriteBuffer::write(Byte value)
   {
     return writeT(value);
