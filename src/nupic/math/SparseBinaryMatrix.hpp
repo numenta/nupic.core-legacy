@@ -1254,14 +1254,21 @@ namespace nupic {
 	<< nCols() << " ";
 
       size_type n = b.str().size();
-
+#ifdef NTA_OS_WINDOWS
       for (size_type row = 0; row != nRows(); ++row) {
 	size_type nnzr = nNonZerosOnRow(row);
 	n += sprintf(buffer, "%ld ", nnzr);
 	for (nz_index_type j = 0; j != nnzr; ++j)
 	  n += sprintf(buffer, "%ld ", ind_[row][j]);
       }
-
+#else
+      for (size_type row = 0; row != nRows(); ++row) {
+	size_type nnzr = nNonZerosOnRow(row);
+	n += sprintf(buffer, "%d ", nnzr);
+	for (nz_index_type j = 0; j != nnzr; ++j)
+	  n += sprintf(buffer, "%d ", ind_[row][j]);
+      }
+#endif
       return n;
     }
 

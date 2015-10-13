@@ -1133,19 +1133,19 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
 
   inline void write(PyObject* pyBuilder) const
   {
-#ifndef CAPNP_LITE
+  %#ifndef CAPNP_LITE
     SpatialPoolerProto::Builder proto =
         getBuilder<SpatialPoolerProto>(pyBuilder);
     self->write(proto);
-#endif
+  %#endif
   }
 
   inline void read(PyObject* pyReader)
   {
-#ifndef CAPNP_LITE
+  %#ifndef CAPNP_LITE
     SpatialPoolerProto::Reader proto = getReader<SpatialPoolerProto>(pyReader);
     self->read(proto);
-#endif
+  %#endif
   }
 
   void loadFromString(const std::string& inString)

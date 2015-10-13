@@ -370,18 +370,18 @@ inline PyObject* shuffle(PyObject* obj)
 
 inline void write(PyObject* pyBuilder) const
 {
-#ifndef CAPNP_LITE
+%#ifndef CAPNP_LITE
   RandomProto::Builder proto = nupic::getBuilder<RandomProto>(pyBuilder);
   self->write(proto);
-#endif
+%#endif
 }
 
 inline void read(PyObject* pyReader)
 {
-#ifndef CAPNP_LITE
+%#ifndef CAPNP_LITE
   RandomProto::Reader proto = nupic::getReader<RandomProto>(pyReader);
   self->read(proto);
-#endif
+%#endif
 }
 
 } // End extend nupic::Random.
