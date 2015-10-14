@@ -334,12 +334,11 @@ void testUnregisterRegion()
 
 void testWriteRead()
 {
+  Int32 int32Param = 42;
+
   Network n1;
   Region* region1 = n1.addRegion("rw1", "py.TestNode", "");
-
-  std::cout << region1->getParameterInt32("int32Param") << std::endl;
-  region1->setParameterInt32("int32Param", 42);
-  std::cout << region1->getParameterInt32("int32Param") << std::endl;
+  region1->setParameterInt32("int32Param", int32Param);
 
   Network n2;
 
@@ -347,7 +346,11 @@ void testWriteRead()
   n1.write(ss);
   n2.read(ss);
 
-  // TODO: Check value of int32Param in n2 region
+  const Collection<Region*>& regions = n2.getRegions();
+  const std::pair<std::string, Region*>& regionPair = regions.getByIndex(0);
+  Region* region2 = regionPair.second;
+
+  NTA_CHECK(region2->getParameterInt32("int32Param") == int32Param);
 }
 
 int realmain(bool leakTest)
