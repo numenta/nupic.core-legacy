@@ -1247,28 +1247,26 @@ namespace nupic {
     inline size_type CSRSize() const
     {
       std::stringstream b;
-      char buffer[32];
+      char buffer[128];
 
       b << getVersion() << " "
 	<< nRows() << " " 
 	<< nCols() << " ";
 
+      // Rely on operator<< to deal with differing size_type
       size_type n = b.str().size();
-#ifdef NTA_OS_WINDOWS
       for (size_type row = 0; row != nRows(); ++row) {
 	size_type nnzr = nNonZerosOnRow(row);
-	n += sprintf(buffer, "%ld ", nnzr);
-	for (nz_index_type j = 0; j != nnzr; ++j)
-	  n += sprintf(buffer, "%ld ", ind_[row][j]);
+        std::ostringstream oss_nnzr;
+        oss_nnzr << nnzr;
+	n += sprintf(buffer, "%s ", oss_nnzr.str().c_str());
+
+	for (nz_index_type j = 0; j != nnzr; ++j) {
+          std::ostringstream oss_row;
+          oss_row << ind_[row][j];
+	  n += sprintf(buffer, "%s ", oss_row.str().c_str());
+        }
       }
-#else
-      for (size_type row = 0; row != nRows(); ++row) {
-	size_type nnzr = nNonZerosOnRow(row);
-	n += sprintf(buffer, "%d ", nnzr);
-	for (nz_index_type j = 0; j != nnzr; ++j)
-	  n += sprintf(buffer, "%d ", ind_[row][j]);
-      }
-#endif
       return n;
     }
 
