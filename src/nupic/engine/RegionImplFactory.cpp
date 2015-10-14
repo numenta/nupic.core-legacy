@@ -122,6 +122,7 @@ namespace nupic
     typedef int (*destroySpecFunc)(const char *, const char *);
     typedef void * (*createPyNodeFunc)(const char *, void *, void *, void **, const char *);
     typedef void * (*deserializePyNodeFunc)(const char *, void *, void *, void *, const char *);
+    typedef void * (*deserializePyNodeProtoFunc)(const char *, void *, void *, void *, const char *);
   public:
     DynamicPythonLibrary() :
       initPython_(nullptr),
@@ -134,6 +135,7 @@ namespace nupic
       finalizePython_ = (finalizePythonFunc) PyRegion::NTA_finalizePython;
       createPyNode_ = (createPyNodeFunc) PyRegion::NTA_createPyNode;
       deserializePyNode_ = (deserializePyNodeFunc) PyRegion::NTA_deserializePyNode;
+      deserializePyNodeProto_ = (deserializePyNodeProtoFunc) PyRegion::NTA_deserializePyNodeProto;
       createSpec_ = (createSpecFunc) PyRegion::NTA_createSpec;
       destroySpec_ = (destroySpecFunc) PyRegion::NTA_destroySpec;
 
@@ -188,6 +190,20 @@ namespace nupic
                                    className.c_str());
     }
 
+    void * deserializePyNodeProto(const std::string& nodeType,
+                                  capnp::AnyPointer::Reader* proto,
+                                  Region * region,
+                                  void ** exception,
+                                  const std::string& className)
+    {
+      //NTA_DEBUG << "RegionImplFactory::deserializePyNode(" << nodeType << ")";
+      return (*deserializePyNodeProto_)(nodeType.c_str(),
+                                        reinterpret_cast<void*>(proto),
+                                        reinterpret_cast<void*>(region),
+                                        exception,
+                                        className.c_str());
+    }
+
     const std::string& getRootDir() const
     {
       return rootDir_;
@@ -202,6 +218,7 @@ namespace nupic
     destroySpecFunc destroySpec_;
     createPyNodeFunc createPyNode_;
     deserializePyNodeFunc deserializePyNode_;
+    deserializePyNodeProtoFunc deserializePyNodeProto_;
   };
 
 RegionImplFactory & RegionImplFactory::getInstance()
@@ -281,6 +298,33 @@ static RegionImpl * deserializePyNode(DynamicPythonLibrary * pyLib,
 
 }
 
+static RegionImpl * deserializePyNode(DynamicPythonLibrary * pyLib,
+                                      const std::string & nodeType,
+                                      capnp::AnyPointer::Reader& proto,
+                                      Region * region)
+{
+  std::string className(nodeType.c_str() + 3);
+  for (auto pyr=pyRegions.begin(); pyr!=pyRegions.end(); pyr++)
+  {
+    const std::string module = pyr->first;
+    std::set<std::string> classes = pyr->second;
+
+    // This module contains the class
+    if (classes.find(className) != classes.end())
+    {
+      void * exception = nullptr;
+      void * node = pyLib->deserializePyNodeProto(module, &proto, region, &exception, className);
+      if (node)
+      {
+        return static_cast<RegionImpl*>(node);
+      }
+    }
+  }
+
+  NTA_THROW << "Unable to deserialize region " << region->getName() << " of type " << className;
+  return nullptr;
+}
+
 RegionImpl* RegionImplFactory::createRegionImpl(const std::string nodeType,
                                                 const std::string nodeParams,
                                                 Region* region)
@@ -351,14 +395,10 @@ RegionImpl* RegionImplFactory::deserializeRegionImpl(
   }
   else if (StringUtils::startsWith(nodeType, "py."))
   {
-    NTA_THROW << "Python regions not yet supported for Cap'n Proto "
-      << "deserialization.";
-    // Temporarily disabled for Cap'n Proto serialization until PyRegion in
-    // nupic defines the new RegionImpl functions.
-    //if (!pyLib_)
-    //  pyLib_ = boost::shared_ptr<DynamicPythonLibrary>(new DynamicPythonLibrary());
+    if (!pyLib_)
+     pyLib_ = boost::shared_ptr<DynamicPythonLibrary>(new DynamicPythonLibrary());
 
-    //impl = deserializePyNode(pyLib_.get(), nodeType, proto, region);
+    impl = deserializePyNode(pyLib_.get(), nodeType, proto, region);
   }
   else
   {

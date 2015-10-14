@@ -153,6 +153,30 @@ extern "C"
     }
   }
 
+  void * PyRegion::NTA_deserializePyNodeProto(const char * module, void * proto,
+      void * region, void ** exception, const char* className)
+  {
+    try
+    {
+      NTA_CHECK(region != NULL);
+
+      Region * r = static_cast<nupic::Region*>(region);
+      capnp::AnyPointer::Reader *c = static_cast<capnp::AnyPointer::Reader*>(proto);
+      RegionImpl * p = NULL;
+      p = new PyRegion(module, *c, r, className);
+      return p;
+    }
+    catch (nupic::Exception & e)
+    {
+      *exception = new nupic::Exception(e);
+      return NULL;
+    }
+    catch (...)
+    {
+      return NULL;
+    }
+  }
+
   // getLastError() returns the last error message
   const char * PyRegion::NTA_getLastError()
   {
@@ -344,6 +368,32 @@ PyRegion::PyRegion(const char* module, BundleIO& bundle, Region * region, const
   // XXX ADD CHECK TO MAKE SURE THE TYPE MATCHES!
 }
 
+PyRegion::PyRegion(const char * module,
+                   capnp::AnyPointer::Reader& proto,
+                   Region * region,
+                   const char* className):
+  RegionImpl(region),
+  module_(module),
+  className_(className)
+{
+  NTA_CHECK(region != NULL);
+
+  std::string realClassName(className);
+  if (realClassName.empty())
+  {
+    realClassName = Path::getExtension(module_);
+  }
+
+  py::Tuple args((Py_ssize_t)0);
+  py::Dict kwargs;
+
+  // Instantiate a node and assign it  to the node_ member
+  node_.assign(py::Instance(module_, realClassName, args, kwargs));
+  NTA_CHECK(node_);
+
+  read(proto);
+}
+
 PyRegion::~PyRegion()
 {
   for (std::map<std::string, Array*>::iterator i = inputArrays_.begin();
@@ -435,6 +485,7 @@ void PyRegion::deserialize(BundleIO& bundle)
 
 void PyRegion::write(capnp::AnyPointer::Builder& proto) const
 {
+  initcreate_example();
   py::Ptr parent(Py_None);
   PyRegionProto::Builder pyRegionProto = proto.getAs<PyRegionProto>();
   PyObject* pyBuilder = createBuilder(capnp::toDynamic(pyRegionProto),
@@ -446,6 +497,7 @@ void PyRegion::write(capnp::AnyPointer::Builder& proto) const
 
 void PyRegion::read(capnp::AnyPointer::Reader& proto)
 {
+  initcreate_example();
   py::Ptr parent(Py_None);
   PyRegionProto::Reader pyRegionProto = proto.getAs<PyRegionProto>();
   PyObject* pyReader = createReader(capnp::toDynamic(pyRegionProto),

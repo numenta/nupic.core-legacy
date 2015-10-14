@@ -334,13 +334,20 @@ void testUnregisterRegion()
 
 void testWriteRead()
 {
-  Network n;
-  n.addRegion("rw", "py.TestNode", "");
+  Network n1;
+  Region* region1 = n1.addRegion("rw1", "py.TestNode", "");
 
-  capnp::MallocMessageBuilder message;
-  NetworkProto::Builder proto = message.initRoot<NetworkProto>();
+  std::cout << region1->getParameterInt32("int32Param") << std::endl;
+  region1->setParameterInt32("int32Param", 42);
+  std::cout << region1->getParameterInt32("int32Param") << std::endl;
 
-  n.write(proto);
+  Network n2;
+
+  std::stringstream ss;
+  n1.write(ss);
+  n2.read(ss);
+
+  // TODO: Check value of int32Param in n2 region
 }
 
 int realmain(bool leakTest)
