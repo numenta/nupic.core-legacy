@@ -181,7 +181,7 @@ if(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
   endif()
 else()
   # clang/gcc
-  set(COMMON_COMPILE_FLAGS "-fPIC -std=c++11 -m${BITNESS} ${STDLIB} -fvisibility=hidden -Werror -Wall -Wextra -Wreturn-type -Wunused -Wno-unused-parameter -Wno-missing-field-initializers")
+  set(COMMON_COMPILE_FLAGS "-fPIC -std=c++11 -m${BITNESS} ${STDLIB} -fvisibility=hidden -Werror -Wall -Wextra -Wreturn-type -Wunused -Wno-unused-parameter -Wno-missing-field-initializers -Wno-deprecated-register")
   set(COMMON_LINK_FLAGS "-m${BITNESS} ${STDLIB}")
   if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} -static-libstdc++")
@@ -649,6 +649,51 @@ else()
                             ${EXECUTABLE_HELLOSPTP}
                     VERBATIM)
 endif()
+
+#
+# Call SWIG to generate wrapper code for Python.
+#
+find_package(SWIG REQUIRED)
+include(${SWIG_USE_FILE})
+
+include_directories(${REPOSITORY_DIR}/bindings/py)
+
+set(SWIG_SUPPORT_FILES
+    nupic/py_support/NumpyVector.cpp
+    nupic/py_support/PyArray.cpp
+    nupic/py_support/PyHelpers.cpp
+    nupic/py_support/PythonStream.cpp
+)
+
+# Algorithms
+set(SWIG_ALGORITHMS_FILES
+    ${REPOSITORY_DIR}/bindings/py/nupic/bindings/algorithms.i)
+set_source_files_properties(${SWIG_ALGORITHMS_FILES} PROPERTIES
+                            SWIG_MODULE_NAME algorithms)
+set_source_files_properties(${SWIG_ALGORITHMS_FILES} PROPERTIES
+                            CPLUSPLUS ON)
+set(SWIG_ALGORITHMS algorithms)
+swig_add_module(${SWIG_ALGORITHMS} python
+                ${SWIG_SUPPORT_FILES}
+                ${SWIG_ALGORITHMS_FILES})
+list(APPEND SWIG_GENERATED_FILES ${swig_generated_file_fullname})
+swig_link_libraries(${SWIG_ALGORITHMS}
+                    ${LIB_STATIC_NUPICCORE}
+                    ${CAPNP_LIBRARIES}
+                    ${PYTHON_LIBRARIES})
+
+set_source_files_properties(${SWIG_GENERATED_FILES} ${SWIG_SUPPORT_FILES}
+                            PROPERTIES
+                            COMPILE_FLAGS ${COMMON_COMPILE_FLAGS}
+                            LINK_FLAGS ${COMMON_LINK_FLAGS})
+
+install(TARGETS
+        ${SWIG_MODULE_${SWIG_ALGORITHMS}_REAL_NAME}
+        LIBRARY DESTINATION ${REPOSITORY_DIR}/bindings/py/nupic/bindings)
+install(FILES
+        ${PROJECT_BINARY_DIR}/algorithms.py
+        DESTINATION ${REPOSITORY_DIR}/bindings/py/nupic/bindings/)
+
 
 #
 # Install targets into CMAKE_INSTALL_PREFIX
