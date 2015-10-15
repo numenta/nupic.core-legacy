@@ -668,10 +668,9 @@ set(SWIG_SUPPORT_FILES
 # Algorithms
 set(SWIG_ALGORITHMS_FILES
     ${REPOSITORY_DIR}/bindings/py/nupic/bindings/algorithms.i)
+list(APPEND SWIG_FILES ${SWIG_ALGORITHMS_FILES})
 set_source_files_properties(${SWIG_ALGORITHMS_FILES} PROPERTIES
                             SWIG_MODULE_NAME algorithms)
-set_source_files_properties(${SWIG_ALGORITHMS_FILES} PROPERTIES
-                            CPLUSPLUS ON)
 set(SWIG_ALGORITHMS algorithms)
 swig_add_module(${SWIG_ALGORITHMS} python
                 ${SWIG_SUPPORT_FILES}
@@ -682,6 +681,24 @@ swig_link_libraries(${SWIG_ALGORITHMS}
                     ${CAPNP_LIBRARIES}
                     ${PYTHON_LIBRARIES})
 
+# Engine
+set(SWIG_ENGINE_FILES
+    ${REPOSITORY_DIR}/bindings/py/nupic/bindings/engine_internal.i)
+list(APPEND SWIG_FILES ${SWIG_ENGINE_FILES})
+set_source_files_properties(${SWIG_ENGINE_FILES} PROPERTIES
+                            SWIG_MODULE_NAME engine_internal)
+set(SWIG_ENGINE engine_internal)
+swig_add_module(${SWIG_ENGINE} python
+                ${SWIG_SUPPORT_FILES}
+                ${SWIG_ENGINE_FILES})
+list(APPEND SWIG_GENERATED_FILES ${swig_generated_file_fullname})
+swig_link_libraries(${SWIG_ENGINE}
+                    ${LIB_STATIC_NUPICCORE}
+                    ${CAPNP_LIBRARIES}
+                    ${PYTHON_LIBRARIES})
+
+set_source_files_properties(${SWIG_FILES} PROPERTIES
+                            CPLUSPLUS ON)
 set_source_files_properties(${SWIG_GENERATED_FILES} ${SWIG_SUPPORT_FILES}
                             PROPERTIES
                             COMPILE_FLAGS ${COMMON_COMPILE_FLAGS}
@@ -689,9 +706,11 @@ set_source_files_properties(${SWIG_GENERATED_FILES} ${SWIG_SUPPORT_FILES}
 
 install(TARGETS
         ${SWIG_MODULE_${SWIG_ALGORITHMS}_REAL_NAME}
+        ${SWIG_MODULE_${SWIG_ENGINE}_REAL_NAME}
         LIBRARY DESTINATION ${REPOSITORY_DIR}/bindings/py/nupic/bindings)
 install(FILES
         ${PROJECT_BINARY_DIR}/algorithms.py
+        ${PROJECT_BINARY_DIR}/engine_internal.py
         DESTINATION ${REPOSITORY_DIR}/bindings/py/nupic/bindings/)
 
 
