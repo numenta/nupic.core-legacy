@@ -366,7 +366,7 @@ int realmain(bool leakTest)
   std::cout << "Region count is " << n.getRegions().getCount() << "" << std::endl;
 
   std::cout << "Adding a PyNode region..." << std::endl;
-  Network::registerPyRegion("nupic.regions.TestNode", "TestNode");
+  Network::registerPyRegion("nupic.bindings.regions.TestNode", "TestNode");
   Region* level2 = n.addRegion("level2", "py.TestNode", "{int32Param: 444}");
 
   std::cout << "Region count is " << n.getRegions().getCount() << "" << std::endl;
