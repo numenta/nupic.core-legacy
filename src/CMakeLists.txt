@@ -658,6 +658,33 @@ include(${SWIG_USE_FILE})
 
 include_directories(${REPOSITORY_DIR}/bindings/py)
 
+# SWIG options from:
+# https://github.com/swig/swig/blob/master/Source/Modules/python.cxx#L111
+set(SWIG_FLAGS
+    -features
+    autodoc=0,directors=0
+    -noproxyimport
+    -keyword
+    -modern
+    -modernargs
+    -noproxydel
+    -fvirtual
+    -fastunpack
+    -nofastproxy
+    -fastquery
+    -outputtuple
+    -castmode
+    -nosafecstrings
+    -w402
+    -w503
+    -w511
+    -w302
+    -w362
+    -w312
+    -w389
+    -DSWIG_PYTHON_LEGACY_BOOL
+)
+
 set(SWIG_SUPPORT_FILES
     nupic/py_support/NumpyVector.cpp
     nupic/py_support/PyArray.cpp
@@ -673,6 +700,8 @@ set_source_files_properties(${SWIG_ALGORITHMS_FILES} PROPERTIES
                             CPLUSPLUS ON)
 set_source_files_properties(${SWIG_ALGORITHMS_FILES} PROPERTIES
                             SWIG_MODULE_NAME algorithms)
+set_source_files_properties(${SWIG_ALGORITHMS_FILES} PROPERTIES
+                            SWIG_FLAGS "${SWIG_FLAGS}")
 set(SWIG_ALGORITHMS algorithms)
 swig_add_module(${SWIG_ALGORITHMS} python
                 ${SWIG_SUPPORT_FILES}
@@ -690,6 +719,8 @@ set_source_files_properties(${SWIG_ENGINE_FILES} PROPERTIES
                             CPLUSPLUS ON)
 set_source_files_properties(${SWIG_ENGINE_FILES} PROPERTIES
                             SWIG_MODULE_NAME engine_internal)
+set_source_files_properties(${SWIG_ENGINE_FILES} PROPERTIES
+                            SWIG_FLAGS "${SWIG_FLAGS}")
 set(SWIG_ENGINE engine_internal)
 swig_add_module(${SWIG_ENGINE} python
                 ${SWIG_SUPPORT_FILES}
@@ -707,6 +738,8 @@ set_source_files_properties(${SWIG_MATH_FILES} PROPERTIES
                             CPLUSPLUS ON)
 set_source_files_properties(${SWIG_MATH_FILES} PROPERTIES
                             SWIG_MODULE_NAME math)
+set_source_files_properties(${SWIG_MATH_FILES} PROPERTIES
+                            SWIG_FLAGS "${SWIG_FLAGS}")
 set(SWIG_MATH math)
 swig_add_module(${SWIG_MATH} python
                 ${SWIG_SUPPORT_FILES}
