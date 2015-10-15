@@ -663,6 +663,7 @@ set(SWIG_SUPPORT_FILES
     nupic/py_support/PyArray.cpp
     nupic/py_support/PyHelpers.cpp
     nupic/py_support/PythonStream.cpp
+    ${REPOSITORY_DIR}/bindings/py/nupic/bindings/PySparseTensor.cpp
 )
 
 # Algorithms
@@ -695,6 +696,23 @@ swig_add_module(${SWIG_ENGINE} python
                 ${SWIG_ENGINE_FILES})
 list(APPEND SWIG_GENERATED_FILES ${swig_generated_file_fullname})
 swig_link_libraries(${SWIG_ENGINE}
+                    ${LIB_STATIC_NUPICCORE}
+                    ${CAPNP_LIBRARIES}
+                    ${PYTHON_LIBRARIES})
+
+# Math
+set(SWIG_MATH_FILES
+    ${REPOSITORY_DIR}/bindings/py/nupic/bindings/math.i)
+set_source_files_properties(${SWIG_MATH_FILES} PROPERTIES
+                            CPLUSPLUS ON)
+set_source_files_properties(${SWIG_MATH_FILES} PROPERTIES
+                            SWIG_MODULE_NAME math)
+set(SWIG_MATH math)
+swig_add_module(${SWIG_MATH} python
+                ${SWIG_SUPPORT_FILES}
+                ${SWIG_MATH_FILES})
+list(APPEND SWIG_GENERATED_FILES ${swig_generated_file_fullname})
+swig_link_libraries(${SWIG_MATH}
                     ${LIB_STATIC_NUPICCORE}
                     ${CAPNP_LIBRARIES}
                     ${PYTHON_LIBRARIES})
