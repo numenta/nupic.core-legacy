@@ -755,14 +755,19 @@ set_source_files_properties(${SWIG_GENERATED_FILES} ${SWIG_SUPPORT_FILES}
                             COMPILE_FLAGS ${COMMON_COMPILE_FLAGS}
                             LINK_FLAGS ${COMMON_LINK_FLAGS})
 
-install(TARGETS
-        ${SWIG_MODULE_${SWIG_ALGORITHMS}_REAL_NAME}
-        ${SWIG_MODULE_${SWIG_ENGINE}_REAL_NAME}
-        LIBRARY DESTINATION ${REPOSITORY_DIR}/bindings/py/nupic/bindings)
-install(FILES
-        ${PROJECT_BINARY_DIR}/algorithms.py
-        ${PROJECT_BINARY_DIR}/engine_internal.py
-        DESTINATION ${REPOSITORY_DIR}/bindings/py/nupic/bindings/)
+# If a path is specified, copy extensions files to proper location.
+if (PY_EXTENSIONS_DIR)
+  install(TARGETS
+          ${SWIG_MODULE_${SWIG_ALGORITHMS}_REAL_NAME}
+          ${SWIG_MODULE_${SWIG_ENGINE}_REAL_NAME}
+          ${SWIG_MODULE_${SWIG_MATH}_REAL_NAME}
+          LIBRARY DESTINATION ${PY_EXTENSIONS_DIR})
+  install(FILES
+          ${PROJECT_BINARY_DIR}/algorithms.py
+          ${PROJECT_BINARY_DIR}/engine_internal.py
+          ${PROJECT_BINARY_DIR}/math.py
+          DESTINATION ${PY_EXTENSIONS_DIR})
+endif(PY_EXTENSIONS_DIR)
 
 
 #
