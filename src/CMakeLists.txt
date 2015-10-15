@@ -668,7 +668,8 @@ set(SWIG_SUPPORT_FILES
 # Algorithms
 set(SWIG_ALGORITHMS_FILES
     ${REPOSITORY_DIR}/bindings/py/nupic/bindings/algorithms.i)
-list(APPEND SWIG_FILES ${SWIG_ALGORITHMS_FILES})
+set_source_files_properties(${SWIG_ALGORITHMS_FILES} PROPERTIES
+                            CPLUSPLUS ON)
 set_source_files_properties(${SWIG_ALGORITHMS_FILES} PROPERTIES
                             SWIG_MODULE_NAME algorithms)
 set(SWIG_ALGORITHMS algorithms)
@@ -684,7 +685,8 @@ swig_link_libraries(${SWIG_ALGORITHMS}
 # Engine
 set(SWIG_ENGINE_FILES
     ${REPOSITORY_DIR}/bindings/py/nupic/bindings/engine_internal.i)
-list(APPEND SWIG_FILES ${SWIG_ENGINE_FILES})
+set_source_files_properties(${SWIG_ENGINE_FILES} PROPERTIES
+                            CPLUSPLUS ON)
 set_source_files_properties(${SWIG_ENGINE_FILES} PROPERTIES
                             SWIG_MODULE_NAME engine_internal)
 set(SWIG_ENGINE engine_internal)
@@ -697,8 +699,6 @@ swig_link_libraries(${SWIG_ENGINE}
                     ${CAPNP_LIBRARIES}
                     ${PYTHON_LIBRARIES})
 
-set_source_files_properties(${SWIG_FILES} PROPERTIES
-                            CPLUSPLUS ON)
 set_source_files_properties(${SWIG_GENERATED_FILES} ${SWIG_SUPPORT_FILES}
                             PROPERTIES
                             COMPILE_FLAGS ${COMMON_COMPILE_FLAGS}
