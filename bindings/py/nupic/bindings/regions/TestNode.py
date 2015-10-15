@@ -25,6 +25,9 @@ import numpy
 
 from nupic.bindings.regions.PyRegion import PyRegion
 
+import capnp
+from nupic.proto.TestNodeProto_capnp import TestNodeProto
+
 
 class TestNode(PyRegion):
 
@@ -299,8 +302,11 @@ class TestNode(PyRegion):
 
 
   def write(self, proto):
-    pass
-
+    regionImpl = proto.regionImpl.as_struct(TestNodeProto)
+    regionImpl.int32Param = self.getParameter('int32Param', 0)
+    # TODO: Write remaining params
 
   def read(self, proto):
-    pass
+    regionImpl = proto.regionImpl.as_struct(TestNodeProto)
+    self.setParameter('int32Param', 0, regionImpl.int32Param)
+    # TODO: Read remaining params
