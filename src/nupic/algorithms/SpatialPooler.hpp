@@ -37,6 +37,8 @@
 #include <nupic/proto/SpatialPoolerProto.capnp.h>
 #include <nupic/types/Types.hpp>
 
+#define DEFAULT_RNG_SEED 42
+
 using namespace std;
 
 namespace nupic {
@@ -84,7 +86,7 @@ namespace nupic {
                         Real minPctActiveDutyCycles=0.001,
                         UInt dutyCyclePeriod=1000,
                         Real maxBoost=10.0,
-                        Int seed=-1,
+                        Int seed=DEFAULT_RNG_SEED,
                         UInt spVerbosity=0,
                         bool wrapAround=true);
 
@@ -215,7 +217,8 @@ namespace nupic {
 
           @param seed Seed for our random number generator. If seed is < 0
                 a randomly generated seed is used. The behavior of the spatial
-                pooler is deterministic once the seed is set.
+                pooler is deterministic once the seed is set. The default seed
+                DEFAULT_RNG_SEED (42) is used. 
 
           @param spVerbosity spVerbosity level: 0, 1, 2, or 3
 
@@ -239,7 +242,7 @@ namespace nupic {
                                   Real minPctActiveDutyCycles=0.001,
                                   UInt dutyCyclePeriod=1000,
                                   Real maxBoost=10.0,
-                                  Int seed=-1,
+                                  Int seed=DEFAULT_RNG_SEED,
                                   UInt spVerbosity=0,
                                   bool wrapAround=true);
 
