@@ -231,8 +231,8 @@ void __Pyx_call_destructor(T* x) {
 #define _USE_MATH_DEFINES
 #endif
 #include <math.h>
-#define __PYX_HAVE__create_example
-#define __PYX_HAVE_API__create_example
+#define __PYX_HAVE__capnpToPycapnp
+#define __PYX_HAVE_API__capnpToPycapnp
 #include "capnp/helpers/checkCompiler.h"
 #include "stdint.h"
 //#include "capnp/helpers/capabilityHelper.h"
@@ -448,7 +448,7 @@ static const char *__pyx_filename;
 
 
 static const char *__pyx_f[] = {
-  "create_example.pyx",
+  "capnpToPycapnp.pyx",
   "capnp.pxd",
 };
 
@@ -1167,13 +1167,13 @@ static PyTypeObject *__pyx_ptype_5capnp_3lib_5capnp__InterfaceSchema = 0;
 static PyTypeObject *__pyx_ptype_5capnp_3lib_5capnp__DynamicEnum = 0;
 static PyTypeObject *__pyx_ptype_5capnp_3lib_5capnp__DynamicListBuilder = 0;
 
-/* Module declarations from 'create_example' */
+/* Module declarations from 'capnpToPycapnp' */
 __PYX_EXTERN_C DL_EXPORT(PyObject) *createReader( ::capnp::DynamicStruct::Reader, PyObject *); /*proto*/
 __PYX_EXTERN_C DL_EXPORT(PyObject) *createBuilder( ::capnp::DynamicStruct::Builder, PyObject *); /*proto*/
-#define __Pyx_MODULE_NAME "create_example"
-int __pyx_module_is_main_create_example = 0;
+#define __Pyx_MODULE_NAME "capnpToPycapnp"
+int __pyx_module_is_main_capnpToPycapnp = 0;
 
-/* Implementation of 'create_example' */
+/* Implementation of 'capnpToPycapnp' */
 static char __pyx_k_main[] = "__main__";
 static char __pyx_k_test[] = "__test__";
 static char __pyx_k_pyx_vtable[] = "__pyx_vtable__";
@@ -1181,7 +1181,7 @@ static PyObject *__pyx_n_s_main;
 static PyObject *__pyx_n_s_pyx_vtable;
 static PyObject *__pyx_n_s_test;
 
-/* "create_example.pyx":8
+/* "capnpToPycapnp.pyx":8
  * from capnp.lib.capnp cimport _DynamicStructReader, _DynamicStructBuilder
  * 
  * cdef public PyObject * createReader(DynamicStruct.Reader other, PyObject * _parent):             # <<<<<<<<<<<<<<
@@ -1200,7 +1200,7 @@ PyObject *createReader( ::capnp::DynamicStruct::Reader __pyx_v_other, PyObject *
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("createReader", 0);
 
-  /* "create_example.pyx":9
+  /* "capnpToPycapnp.pyx":9
  * 
  * cdef public PyObject * createReader(DynamicStruct.Reader other, PyObject * _parent):
  *   parent = <object>_parent             # <<<<<<<<<<<<<<
@@ -1212,7 +1212,7 @@ PyObject *createReader( ::capnp::DynamicStruct::Reader __pyx_v_other, PyObject *
   __pyx_v_parent = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "create_example.pyx":11
+  /* "capnpToPycapnp.pyx":11
  *   parent = <object>_parent
  * 
  *   ret = _DynamicStructReader()             # <<<<<<<<<<<<<<
@@ -1224,7 +1224,7 @@ PyObject *createReader( ::capnp::DynamicStruct::Reader __pyx_v_other, PyObject *
   __pyx_v_ret = ((struct __pyx_obj_5capnp_3lib_5capnp__DynamicStructReader *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "create_example.pyx":12
+  /* "capnpToPycapnp.pyx":12
  * 
  *   ret = _DynamicStructReader()
  *   ret._init(other, parent)             # <<<<<<<<<<<<<<
@@ -1235,7 +1235,7 @@ PyObject *createReader( ::capnp::DynamicStruct::Reader __pyx_v_other, PyObject *
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "create_example.pyx":13
+  /* "capnpToPycapnp.pyx":13
  *   ret = _DynamicStructReader()
  *   ret._init(other, parent)
  *   Py_INCREF(ret)             # <<<<<<<<<<<<<<
@@ -1244,7 +1244,7 @@ PyObject *createReader( ::capnp::DynamicStruct::Reader __pyx_v_other, PyObject *
  */
   Py_INCREF(((PyObject *)__pyx_v_ret));
 
-  /* "create_example.pyx":14
+  /* "capnpToPycapnp.pyx":14
  *   ret._init(other, parent)
  *   Py_INCREF(ret)
  *   return <PyObject *>ret             # <<<<<<<<<<<<<<
@@ -1254,7 +1254,7 @@ PyObject *createReader( ::capnp::DynamicStruct::Reader __pyx_v_other, PyObject *
   __pyx_r = ((PyObject *)__pyx_v_ret);
   goto __pyx_L0;
 
-  /* "create_example.pyx":8
+  /* "capnpToPycapnp.pyx":8
  * from capnp.lib.capnp cimport _DynamicStructReader, _DynamicStructBuilder
  * 
  * cdef public PyObject * createReader(DynamicStruct.Reader other, PyObject * _parent):             # <<<<<<<<<<<<<<
@@ -1265,7 +1265,7 @@ PyObject *createReader( ::capnp::DynamicStruct::Reader __pyx_v_other, PyObject *
   /* function exit code */
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_WriteUnraisable("create_example.createReader", __pyx_clineno, __pyx_lineno, __pyx_filename, 0);
+  __Pyx_WriteUnraisable("capnpToPycapnp.createReader", __pyx_clineno, __pyx_lineno, __pyx_filename, 0);
   __pyx_r = 0;
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v_parent);
@@ -1274,7 +1274,7 @@ PyObject *createReader( ::capnp::DynamicStruct::Reader __pyx_v_other, PyObject *
   return __pyx_r;
 }
 
-/* "create_example.pyx":17
+/* "capnpToPycapnp.pyx":17
  * 
  * 
  * cdef public PyObject * createBuilder(DynamicStruct_Builder other, PyObject * _parent):             # <<<<<<<<<<<<<<
@@ -1293,7 +1293,7 @@ PyObject *createBuilder( ::capnp::DynamicStruct::Builder __pyx_v_other, PyObject
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("createBuilder", 0);
 
-  /* "create_example.pyx":18
+  /* "capnpToPycapnp.pyx":18
  * 
  * cdef public PyObject * createBuilder(DynamicStruct_Builder other, PyObject * _parent):
  *   parent = <object>_parent             # <<<<<<<<<<<<<<
@@ -1305,7 +1305,7 @@ PyObject *createBuilder( ::capnp::DynamicStruct::Builder __pyx_v_other, PyObject
   __pyx_v_parent = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "create_example.pyx":20
+  /* "capnpToPycapnp.pyx":20
  *   parent = <object>_parent
  * 
  *   ret = _DynamicStructBuilder()             # <<<<<<<<<<<<<<
@@ -1317,7 +1317,7 @@ PyObject *createBuilder( ::capnp::DynamicStruct::Builder __pyx_v_other, PyObject
   __pyx_v_ret = ((struct __pyx_obj_5capnp_3lib_5capnp__DynamicStructBuilder *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "create_example.pyx":21
+  /* "capnpToPycapnp.pyx":21
  * 
  *   ret = _DynamicStructBuilder()
  *   ret._init(other, parent)             # <<<<<<<<<<<<<<
@@ -1328,7 +1328,7 @@ PyObject *createBuilder( ::capnp::DynamicStruct::Builder __pyx_v_other, PyObject
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "create_example.pyx":22
+  /* "capnpToPycapnp.pyx":22
  *   ret = _DynamicStructBuilder()
  *   ret._init(other, parent)
  *   Py_INCREF(ret)             # <<<<<<<<<<<<<<
@@ -1336,7 +1336,7 @@ PyObject *createBuilder( ::capnp::DynamicStruct::Builder __pyx_v_other, PyObject
  */
   Py_INCREF(((PyObject *)__pyx_v_ret));
 
-  /* "create_example.pyx":23
+  /* "capnpToPycapnp.pyx":23
  *   ret._init(other, parent)
  *   Py_INCREF(ret)
  *   return <PyObject *>ret             # <<<<<<<<<<<<<<
@@ -1344,7 +1344,7 @@ PyObject *createBuilder( ::capnp::DynamicStruct::Builder __pyx_v_other, PyObject
   __pyx_r = ((PyObject *)__pyx_v_ret);
   goto __pyx_L0;
 
-  /* "create_example.pyx":17
+  /* "capnpToPycapnp.pyx":17
  * 
  * 
  * cdef public PyObject * createBuilder(DynamicStruct_Builder other, PyObject * _parent):             # <<<<<<<<<<<<<<
@@ -1355,7 +1355,7 @@ PyObject *createBuilder( ::capnp::DynamicStruct::Builder __pyx_v_other, PyObject
   /* function exit code */
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_WriteUnraisable("create_example.createBuilder", __pyx_clineno, __pyx_lineno, __pyx_filename, 0);
+  __Pyx_WriteUnraisable("capnpToPycapnp.createBuilder", __pyx_clineno, __pyx_lineno, __pyx_filename, 0);
   __pyx_r = 0;
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v_parent);
@@ -1375,7 +1375,7 @@ static struct PyModuleDef __pyx_moduledef = {
   #else
     PyModuleDef_HEAD_INIT,
   #endif
-    "create_example",
+    "capnpToPycapnp",
     0, /* m_doc */
     -1, /* m_size */
     __pyx_methods /* m_methods */,
@@ -1414,8 +1414,8 @@ static int __Pyx_InitGlobals(void) {
 PyMODINIT_FUNC initCapnpToPycapnp(void); /*proto*/
 PyMODINIT_FUNC initCapnpToPycapnp(void)
 #else
-PyMODINIT_FUNC PyInit_create_example(void); /*proto*/
-PyMODINIT_FUNC PyInit_create_example(void)
+PyMODINIT_FUNC PyInit_capnpToPycapnp(void); /*proto*/
+PyMODINIT_FUNC PyInit_capnpToPycapnp(void)
 #endif
 {
   PyObject *__pyx_t_1 = NULL;
@@ -1432,7 +1432,7 @@ PyMODINIT_FUNC PyInit_create_example(void)
           Py_FatalError("failed to import 'refnanny' module");
   }
   #endif
-  __Pyx_RefNannySetupContext("PyMODINIT_FUNC PyInit_create_example(void)", 0);
+  __Pyx_RefNannySetupContext("PyMODINIT_FUNC PyInit_capnpToPycapnp(void)", 0);
   if ( __Pyx_check_binary_version() < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_empty_tuple = PyTuple_New(0); if (unlikely(!__pyx_empty_tuple)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_empty_bytes = PyBytes_FromStringAndSize("", 0); if (unlikely(!__pyx_empty_bytes)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -1454,7 +1454,7 @@ PyMODINIT_FUNC PyInit_create_example(void)
   #endif
   /*--- Module creation code ---*/
   #if PY_MAJOR_VERSION < 3
-  __pyx_m = Py_InitModule4("create_example", __pyx_methods, 0, 0, PYTHON_API_VERSION); Py_XINCREF(__pyx_m);
+  __pyx_m = Py_InitModule4("capnpToPycapnp", __pyx_methods, 0, 0, PYTHON_API_VERSION); Py_XINCREF(__pyx_m);
   #else
   __pyx_m = PyModule_Create(&__pyx_moduledef);
   #endif
@@ -1471,14 +1471,14 @@ PyMODINIT_FUNC PyInit_create_example(void)
   #if PY_MAJOR_VERSION < 3 && (__PYX_DEFAULT_STRING_ENCODING_IS_ASCII || __PYX_DEFAULT_STRING_ENCODING_IS_DEFAULT)
   if (__Pyx_init_sys_getdefaultencoding_params() < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   #endif
-  if (__pyx_module_is_main_create_example) {
+  if (__pyx_module_is_main_capnpToPycapnp) {
     if (PyObject_SetAttrString(__pyx_m, "__name__", __pyx_n_s_main) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
   }
   #if PY_MAJOR_VERSION >= 3
   {
     PyObject *modules = PyImport_GetModuleDict(); if (unlikely(!modules)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    if (!PyDict_GetItemString(modules, "create_example")) {
-      if (unlikely(PyDict_SetItemString(modules, "create_example", __pyx_m) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    if (!PyDict_GetItemString(modules, "capnpToPycapnp")) {
+      if (unlikely(PyDict_SetItemString(modules, "capnpToPycapnp", __pyx_m) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     }
   }
   #endif
@@ -1513,7 +1513,7 @@ PyMODINIT_FUNC PyInit_create_example(void)
   /*--- Function import code ---*/
   /*--- Execution code ---*/
 
-  /* "create_example.pyx":1
+  /* "capnpToPycapnp.pyx":1
  * # distutils: include_dirs = /usr/local/lib/python2.7/site-packages             # <<<<<<<<<<<<<<
  * 
  * from cpython.ref cimport PyObject, Py_INCREF, Py_DECREF
@@ -1530,11 +1530,11 @@ PyMODINIT_FUNC PyInit_create_example(void)
   __Pyx_XDECREF(__pyx_t_1);
   if (__pyx_m) {
     if (__pyx_d) {
-      __Pyx_AddTraceback("init create_example", __pyx_clineno, __pyx_lineno, __pyx_filename);
+      __Pyx_AddTraceback("init capnpToPycapnp", __pyx_clineno, __pyx_lineno, __pyx_filename);
     }
     Py_DECREF(__pyx_m); __pyx_m = 0;
   } else if (!PyErr_Occurred()) {
-    PyErr_SetString(PyExc_ImportError, "init create_example");
+    PyErr_SetString(PyExc_ImportError, "init capnpToPycapnp");
   }
   __pyx_L0:;
   __Pyx_RefNannyFinishContext();

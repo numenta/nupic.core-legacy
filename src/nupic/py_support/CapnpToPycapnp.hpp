@@ -1,8 +1,8 @@
-#ifndef __PYX_HAVE__create_example
-#define __PYX_HAVE__create_example
+#ifndef __PYX_HAVE__capnpToPycapnp
+#define __PYX_HAVE__capnpToPycapnp
 
 
-#ifndef __PYX_HAVE_API__create_example
+#ifndef __PYX_HAVE_API__capnpToPycapnp
 
 #ifndef __PYX_EXTERN_C
   #ifdef __cplusplus
@@ -21,12 +21,12 @@
 __PYX_EXTERN_C DL_IMPORT(PyObject) *createReader( ::capnp::DynamicStruct::Reader, PyObject *);
 __PYX_EXTERN_C DL_IMPORT(PyObject) *createBuilder( ::capnp::DynamicStruct::Builder, PyObject *);
 
-#endif /* !__PYX_HAVE_API__create_example */
+#endif /* !__PYX_HAVE_API__capnpToPycapnp */
 
 #if PY_MAJOR_VERSION < 3
 PyMODINIT_FUNC initCapnpToPycapnp(void);
 #else
-PyMODINIT_FUNC PyInit_create_example(void);
+PyMODINIT_FUNC PyInit_capnpToPycapnp(void);
 #endif
 
-#endif /* !__PYX_HAVE__create_example */
+#endif /* !__PYX_HAVE__capnpToPycapnp */
