@@ -351,6 +351,8 @@ void testWriteRead()
   Region* region2 = regionPair.second;
 
   NTA_CHECK(region2->getParameterInt32("int32Param") == int32Param);
+
+  // TODO: check other params as well
 }
 
 int realmain(bool leakTest)
