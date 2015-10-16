@@ -144,14 +144,12 @@ namespace nupic
 
     ~DynamicPythonLibrary()
     {
-      //NTA_DEBUG << "In DynamicPythonLibrary Destructor";
       if (finalizePython_)
         finalizePython_();
     }
 
     void * createSpec(std::string nodeType, void ** exception, std::string className)
     {
-      //NTA_DEBUG << "RegionImplFactory::createSpec(" << nodeType << ")";
       return (*createSpec_)(nodeType.c_str(), exception, className.c_str());
     }
 
@@ -167,7 +165,6 @@ namespace nupic
                         void ** exception,
                         const std::string& className)
     {
-      //NTA_DEBUG << "RegionImplFactory::createPyNode(" << nodeType << ")";
       return (*createPyNode_)(nodeType.c_str(),
                               reinterpret_cast<void *>(nodeParams),
                               reinterpret_cast<void*>(region),
@@ -182,7 +179,6 @@ namespace nupic
                              void ** exception,
                              const std::string& className)
     {
-      //NTA_DEBUG << "RegionImplFactory::deserializePyNode(" << nodeType << ")";
       return (*deserializePyNode_)(nodeType.c_str(),
                                    reinterpret_cast<void*>(bundle),
                                    reinterpret_cast<void*>(region),
@@ -196,7 +192,6 @@ namespace nupic
                                   void ** exception,
                                   const std::string& className)
     {
-      //NTA_DEBUG << "RegionImplFactory::deserializePyNode(" << nodeType << ")";
       return (*deserializePyNodeProto_)(nodeType.c_str(),
                                         reinterpret_cast<void*>(proto),
                                         reinterpret_cast<void*>(region),
