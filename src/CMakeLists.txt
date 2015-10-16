@@ -106,7 +106,7 @@ endif()
 #
 # Setup include paths
 #
-get_filename_component(REPOSITORY_DIR ${PROJECT_SOURCE_DIR} DIRECTORY)
+get_filename_component(REPOSITORY_DIR ${PROJECT_SOURCE_DIR} PATH)
 
 if("${PROJECT_BUILD_ARTIFACTS_DIR}" STREQUAL "")
   set(PROJECT_BUILD_ARTIFACTS_DIR "${PROJECT_BINARY_DIR}/artifacts")
