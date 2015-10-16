@@ -308,7 +308,8 @@ static RegionImpl * deserializePyNode(DynamicPythonLibrary * pyLib,
     if (classes.find(className) != classes.end())
     {
       void * exception = nullptr;
-      void * node = pyLib->deserializePyNodeProto(module, &proto, region, &exception, className);
+      void * node = pyLib->deserializePyNodeProto(module, &proto, region,
+                                                  &exception, className);
       if (node)
       {
         return static_cast<RegionImpl*>(node);
@@ -316,7 +317,8 @@ static RegionImpl * deserializePyNode(DynamicPythonLibrary * pyLib,
     }
   }
 
-  NTA_THROW << "Unable to deserialize region " << region->getName() << " of type " << className;
+  NTA_THROW << "Unable to deserialize region " << region->getName() <<
+            " of type " << className;
   return nullptr;
 }
 
