@@ -653,6 +653,8 @@ endif()
 #
 # Call SWIG to generate wrapper code for Python.
 #
+set(SWIG_EXECUTABLE ${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/bin/swig)
+set(SWIG_DIR ${REPOSITORY_DIR}/external/common/share/swig/3.0.2)
 find_package(SWIG REQUIRED)
 include(${SWIG_USE_FILE})
 
@@ -683,6 +685,8 @@ set(SWIG_FLAGS
     -w312
     -w389
     -DSWIG_PYTHON_LEGACY_BOOL
+    -I${SWIG_DIR}/python
+    -I${SWIG_DIR}
 )
 
 set(SWIG_SUPPORT_FILES
