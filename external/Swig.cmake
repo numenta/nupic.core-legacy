@@ -29,13 +29,17 @@ if (NOT SWIG_FOUND)
   # Build SWIG from source.
   ExternalProject_Add(
     Swig
-    GIT_REPOSITORY https://github.com/swig/swig.git
-    GIT_TAG rel-3.0.2
+    URL http://prdownloads.sourceforge.net/swig/swig-3.0.2.tar.gz
     UPDATE_COMMAND ""
     CONFIGURE_COMMAND
-        ./configure --prefix=${EP_PREFIX}/Install
+    ${EP_BASE}/Source/Swig/configure --prefix=${EP_BASE}/Install
   )
+  set(SWIG_EXECUTABLE ${EP_BASE}/Install/bin/swig)
+  set(SWIG_DIR ${EP_BASE}/Install/share/swig/3.0.2)
 else()
   # Create a dummy target to depend on.
   add_custom_target(Swig)
 endif()
+
+set(SWIG_EXECUTABLE ${SWIG_EXECUTABLE} PARENT_SCOPE)
+set(SWIG_DIR ${SWIG_DIR} PARENT_SCOPE)

@@ -653,10 +653,7 @@ endif()
 #
 # Call SWIG to generate wrapper code for Python.
 #
-set(SWIG_EXECUTABLE ${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/bin/swig)
-set(SWIG_DIR ${REPOSITORY_DIR}/external/common/share/swig/3.0.2)
-find_package(SWIG REQUIRED)
-include(${SWIG_USE_FILE})
+include(UseSWIG)
 
 include_directories(${REPOSITORY_DIR}/bindings/py)
 
@@ -802,12 +799,8 @@ install(DIRECTORY ${REPOSITORY_DIR}/external/common/include/gtest
         FILES_MATCHING PATTERN "*.h*")
 install(FILES ${PROJECT_BINARY_DIR}/Version.hpp
         DESTINATION include/nupic/)
-install(DIRECTORY "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/bin/"
-        DESTINATION bin USE_SOURCE_PERMISSIONS)
 install(DIRECTORY "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/lib/"
         DESTINATION lib)
-install(DIRECTORY "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/bin/"
-        DESTINATION bin USE_SOURCE_PERMISSIONS)
 install(DIRECTORY "${REPOSITORY_DIR}/external/common/include/"
         DESTINATION include)
 install(DIRECTORY "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/include/"
