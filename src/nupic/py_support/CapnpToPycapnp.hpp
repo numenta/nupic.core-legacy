@@ -24,7 +24,7 @@ __PYX_EXTERN_C DL_IMPORT(PyObject) *createBuilder( ::capnp::DynamicStruct::Build
 #endif /* !__PYX_HAVE_API__create_example */
 
 #if PY_MAJOR_VERSION < 3
-PyMODINIT_FUNC initcreate_example(void);
+PyMODINIT_FUNC initCapnpToPycapnp(void);
 #else
 PyMODINIT_FUNC PyInit_create_example(void);
 #endif

@@ -1411,8 +1411,8 @@ static int __Pyx_InitGlobals(void) {
 }
 
 #if PY_MAJOR_VERSION < 3
-PyMODINIT_FUNC initcreate_example(void); /*proto*/
-PyMODINIT_FUNC initcreate_example(void)
+PyMODINIT_FUNC initCapnpToPycapnp(void); /*proto*/
+PyMODINIT_FUNC initCapnpToPycapnp(void)
 #else
 PyMODINIT_FUNC PyInit_create_example(void); /*proto*/
 PyMODINIT_FUNC PyInit_create_example(void)

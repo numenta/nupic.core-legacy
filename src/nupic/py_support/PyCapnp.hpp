@@ -102,7 +102,7 @@ namespace nupic
   PyObject* getPyReader(capnp::DynamicStruct::Reader reader)
   {
     if (!initialized) {
-      initcreate_example();
+      initCapnpToPycapnp();
       initialized = true;
     }
     py::Ptr parent(Py_None);
@@ -112,7 +112,7 @@ namespace nupic
   PyObject* getPyBuilder(capnp::DynamicStruct::Builder builder)
   {
     if (!initialized) {
-      initcreate_example();
+      initCapnpToPycapnp();
       initialized = true;
     }
     py::Ptr parent(Py_None);
