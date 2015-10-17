@@ -24,36 +24,30 @@ project(nupic_core_main CXX)
 
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 
-# Identify platform name.
-string(TOLOWER ${CMAKE_SYSTEM_NAME} PLATFORM)
-string(TOUPPER ${PLATFORM} PLATFORM_UPPERCASE)
+set_directory_properties(PROPERTIES EP_BASE "${EP_BASE}")
 
-# Identify platform "bitness".
-if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-  set(BITNESS 64)
-else()
-  set(BITNESS 32)
-endif()
+# Shorter aliases for static library prefix and suffix.
+set(STATIC_PRE ${CMAKE_STATIC_LIBRARY_PREFIX})
+set(STATIC_SUF ${CMAKE_STATIC_LIBRARY_SUFFIX})
+# This is the library prefix path.
+set(LIB_PRE ${EP_BASE}/Install/lib)
+# This is the include path.
+set(INCLUDE_PRE ${EP_BASE}/Install/include)
+# The full prefix path for binaries.
+set(BIN_PRE ${EP_BASE}/Install/bin)
 
-# Make sure we can link against any specified paths.
-include_directories(SYSTEM ${CMAKE_INCLUDE_PATH})
+# Add vendored prebuilt library include paths.
+list(APPEND EXTERNAL_INCLUDE_DIRS
+     "${PROJECT_SOURCE_DIR}/${PLATFORM}${BITNESS}/include"
+     "${PROJECT_SOURCE_DIR}/common/include")
 
-set(EP_BASE ${CMAKE_BINARY_DIR}/ThirdParty)
+include(ExternalProject)
 
-# Set up external dependencies.
-#
-# This will try find_library and find_program and if that fails use
-# ExternalProject to fetch and build the libraries.
-#
-# Sets the following variables:
-#   CAPNP_LIBRARIES
-#   EXTERNAL_INCLUDE_DIRS
-#
-# Defines the follow functions:
-#   create_capnpc_target - Creates target that generates C++ files from
-#       .capnp schema files.
-add_subdirectory(external)
-include_directories(SYSTEM ${EXTERNAL_INCLUDE_DIRS})
+set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
 
-# Now build nupic_core project.
-add_subdirectory(src)
+include(CapnProto)
+
+# Convenience variable that wraps all external include directories.
+list(APPEND EXTERNAL_INCLUDE_DIRS ${CAPNP_INCLUDE_DIRS})
+
+set(EXTERNAL_INCLUDE_DIRS ${EXTERNAL_INCLUDE_DIRS} PARENT_SCOPE)

@@ -360,28 +360,12 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cxxCompiler, cmd
     commonLinkFlags = [
       "-m" + bitness,
       "-fPIC",
-      "-L" + nupicCoreReleaseDir + "/lib",
-      # for Cap'n'Proto serialization
-      "-lkj",
-      "-lcapnp",
-      "-lcapnpc",
+      "-L" + fixPath(nupicCoreReleaseDir + "/lib"),
       # optimization (safe defaults)
       "-O2"]
 
   if platform == "darwin":
     commonCompileFlags.append("-stdlib=libc++")
-
-  commonLinkFlags = [
-    "-m" + bitness,
-    "-fPIC",
-    "-L" + fixPath(nupicCoreReleaseDir + "/lib"),
-    # for Cap'n'Proto serialization
-    "-lkj",
-    "-lcapnp",
-    "-lcapnpc",
-    # optimization (safe defaults)
-    "-O2"
-  ]
 
   # Optimizations
   if getCommandLineOption("debug", cmdOptions):
@@ -405,7 +389,8 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cxxCompiler, cmd
     "dl",
     "kj",
     "capnp",
-    "capnpc"]
+    "capnpc",
+  ]
   if platform == "linux":
     commonLibraries.extend(["pthread"])
   elif platform in WINDOWS_PLATFORMS:
@@ -561,7 +546,7 @@ if __name__ == "__main__":
     setup(
       name="nupic.bindings",
       ext_modules=extensions,
-      version="0.2.1",
+      version="0.2.2",
       namespace_packages=["nupic"],
       install_requires=findRequirements(),
       description="Numenta Platform for Intelligent Computing - bindings",

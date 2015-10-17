@@ -31,10 +31,10 @@ if( POLICY CMP0046 )
   # is not found. The old policy didn't care and continued through configuration
   cmake_policy(SET CMP0046 OLD)
 endif()
-  
+
 if( POLICY CMP0054 )
-  # The OLD behavior for this policy is to dereference variables and interpret 
-  # keywords even if they are quoted or bracketed. The NEW behavior is to not 
+  # The OLD behavior for this policy is to dereference variables and interpret
+  # keywords even if they are quoted or bracketed. The NEW behavior is to not
   # dereference variables or interpret keywords that have been quoted or bracketed.
   cmake_policy(SET CMP0054 OLD)
 endif()
@@ -42,32 +42,18 @@ endif()
 #
 # Include extra CMake files
 #
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
-                      "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake)
 
-#
-# Identify platform
-#
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  set(PLATFORM "darwin")
   set(STDLIB "-stdlib=libc++")
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-  set(PLATFORM "linux")
   set(STDLIB "")
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-  set(PLATFORM "windows")
   set(STDLIB "")
 endif()
-string(TOUPPER ${PLATFORM} PLATFORM_UPPERCASE)
 
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
    set(STDLIB "${STDLIB} -static-libgcc -static-libstdc++")
-endif()
-
-if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-  set(BITNESS 64)
-else()
-  set(BITNESS 32)
 endif()
 
 # Compiler `-D*` definitions
@@ -127,15 +113,14 @@ if("${PROJECT_BUILD_ARTIFACTS_DIR}" STREQUAL "")
 endif()
 
 find_package(PythonInterp REQUIRED)
-execute_process(COMMAND "${PYTHON_EXECUTABLE}" "-c" 
+execute_process(COMMAND "${PYTHON_EXECUTABLE}" "-c"
                         "import numpy; import os; import sys; sys.stdout.write(os.path.dirname(numpy.get_include()))"
                          OUTPUT_VARIABLE NUMPY_CORE)
 include_directories(SYSTEM
-                    "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/include"
-                    "${REPOSITORY_DIR}/external/common/include"
-                    "${PROJECT_SOURCE_DIR}"
-                    "${PROJECT_BINARY_DIR}"
-                    "${NUMPY_CORE}/include")
+                    ${NUMPY_CORE}/include
+                    ${PROJECT_BINARY_DIR})
+
+include_directories(${PROJECT_SOURCE_DIR})
 
 #
 # Set linker (ld)
@@ -300,40 +285,39 @@ add_library(${LIB_STATIC_Z} STATIC IMPORTED GLOBAL)
 find_package(PythonLibs REQUIRED)
 include_directories(SYSTEM ${PYTHON_INCLUDE_DIRS})
 
-#
-# Find and add capnp and kj and generate Cap'n Proto C++ files
-#
-set(CAPNPC_OUTPUT_DIR ${CMAKE_BINARY_DIR})
-set(CAPNPC_IMPORT_DIRS
-    ${CAPNPC_IMPORT_DIRS}
-    ${REPOSITORY_DIR}/src)
-find_package(CapnProto REQUIRED)
-include_directories(SYSTEM ${CAPNP_INCLUDE_DIRS})
-add_definitions(${CAPNP_DEFINITIONS})
-
-# libcapnpc must be manually added since it isn't included by default.
-find_library(CAPNPC_LIB capnpc)
-list(APPEND CAPNP_LIBRARIES ${CAPNPC_LIB})
-
 # List all .capnp files here. The C++ files will be generated and included
 # when compiling later on.
-set(CAPNP_SPECS
-    nupic/proto/BitHistory.capnp
-    nupic/proto/ClaClassifier.capnp
-    nupic/proto/ConnectionsProto.capnp
-    nupic/proto/LinkProto.capnp
-    nupic/proto/Map.capnp
-    nupic/proto/NetworkProto.capnp
-    nupic/proto/RandomProto.capnp
-    nupic/proto/RegionProto.capnp
-    nupic/proto/SparseBinaryMatrixProto.capnp
-    nupic/proto/SparseMatrixProto.capnp
-    nupic/proto/SpatialPoolerProto.capnp
-    nupic/proto/TemporalMemoryProto.capnp
-    nupic/proto/TestNodeProto.capnp
-    nupic/proto/VectorFileSensorProto.capnp
+set(CAPNP_SPECS_REL
+  nupic/proto/BitHistory.capnp
+  nupic/proto/ClaClassifier.capnp
+  nupic/proto/ConnectionsProto.capnp
+  nupic/proto/LinkProto.capnp
+  nupic/proto/Map.capnp
+  nupic/proto/NetworkProto.capnp
+  nupic/proto/RandomProto.capnp
+  nupic/proto/RegionProto.capnp
+  nupic/proto/SparseBinaryMatrixProto.capnp
+  nupic/proto/SparseMatrixProto.capnp
+  nupic/proto/SpatialPoolerProto.capnp
+  nupic/proto/TemporalMemoryProto.capnp
+  nupic/proto/TestNodeProto.capnp
+  nupic/proto/VectorFileSensorProto.capnp
 )
-capnp_generate_cpp(CAPNP_SRCS CAPNP_HDRS ${CAPNP_SPECS})
+
+foreach(spec ${CAPNP_SPECS_REL})
+  list(APPEND CAPNP_SPECS ${PROJECT_SOURCE_DIR}/${spec})
+  list(APPEND CAPNP_HDRS ${PROJECT_BINARY_DIR}/${spec}.h)
+  list(APPEND CAPNP_SRCS ${PROJECT_BINARY_DIR}/${spec}.c++)
+endforeach(spec)
+
+# Create custom target for generating C++ code from .capnp schema files.
+create_capnpc_target(generate_capnp_cpp
+                     "${CAPNP_SPECS}"
+                     ${PROJECT_SOURCE_DIR}
+                     ${PROJECT_SOURCE_DIR}
+                     ${PROJECT_BINARY_DIR})
+set_source_files_properties(${CAPNP_SRCS} ${CAPNP_HDRS} PROPERTIES
+                            GENERATED TRUE)
 
 #
 # Python support
@@ -433,7 +417,6 @@ set(LIB_STATIC_NUPICCORE_SRCS
     nupic/utils/TRandom.cpp
     nupic/utils/Watcher.cpp)
 set(LIB_STATIC_NUPICCORE_LINK_LIBS
-    ${LIB_STATIC_NUPICCORE}
     ${LIB_STATIC_YAML_CPP_LOC}
     ${LIB_STATIC_YAML_LOC}
     ${LIB_STATIC_APR1_LOC}
@@ -447,36 +430,13 @@ set(LIB_STATIC_NUPICCORE_LINK_FLAGS
     "${COMMON_LINK_FLAGS} -static")
 
 add_library(${LIB_STATIC_NUPICCORE} STATIC ${LIB_STATIC_NUPICCORE_SRCS})
-target_link_libraries(${LIB_STATIC_NUPICCORE_LINK_LIBS})
+target_link_libraries(${LIB_STATIC_NUPICCORE}
+                      ${LIB_STATIC_NUPICCORE_LINK_LIBS})
+add_dependencies(${LIB_STATIC_NUPICCORE} generate_capnp_cpp CapnProto)
 set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES COMPILE_FLAGS
                       ${LIB_STATIC_NUPICCORE_COMPILE_FLAGS})
 set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES LINK_FLAGS
                       ${LIB_STATIC_NUPICCORE_LINK_FLAGS})
-
-#
-# Write out Python file defining an Extension for the setup.py to import.
-# This rebuilds everything from source so that Python source distributions
-# don't require CMake.
-#
-# TODO: Should we be using COMMON_COMPILE_FLAGS to exclude -Inumpy/include
-# or should that be removed from NUPICCORE_COMPILE_FLAGS?
-set(EXTENSIONS_YML "${PROJECT_BINARY_DIR}/extensions.yml")
-string(REPLACE " " ";" COMPILE_FLAGS_LIST ${LIB_STATIC_NUPICCORE_COMPILE_FLAGS})
-string(REPLACE " " ";" LINK_FLAGS_LIST ${LIB_STATIC_NUPICCORE_LINK_FLAGS})
-get_property(CXX_DEFINES DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-             PROPERTY COMPILE_DEFINITIONS )
-get_property(INCLUDE_DIRS DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-             PROPERTY INCLUDE_DIRECTORIES)
-get_property(LINK_DIRS DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY LINK_DIRECTORIES)
-find_package(Extensions REQUIRED)
-write_extensions(${EXTENSIONS_YML}
-                 "${COMPILE_FLAGS_LIST}"
-                 "${LINK_FLAGS_LIST}"
-                 "${COMMON_LIBS}"
-                 "${CXX_DEFINES}"
-                 "${INCLUDE_DIRS}"
-                 "${LINK_DIRS}"
-                 "${CMAKE_PREFIX_PATH}")
 
 #
 # Setup test_cpp_region
@@ -711,14 +671,12 @@ install(DIRECTORY nupic/ DESTINATION include/nupic
         PATTERN "*.hpp.in" EXCLUDE)
 install(DIRECTORY nupic/ DESTINATION include/nupic
         FILES_MATCHING PATTERN "*.capnp")
-install(DIRECTORY ${CMAKE_BINARY_DIR}/nupic/ DESTINATION include/nupic
+install(DIRECTORY ${PROJECT_BINARY_DIR}/nupic/ DESTINATION include/nupic/
         FILES_MATCHING PATTERN "*.capnp.h")
-install(DIRECTORY "${REPOSITORY_DIR}/external/common/include/gtest"
+install(DIRECTORY ${REPOSITORY_DIR}/external/common/include/gtest
         DESTINATION include/gtest
         FILES_MATCHING PATTERN "*.h*")
-install(FILES "${PROJECT_BINARY_DIR}/Version.hpp"
-        DESTINATION include/nupic/)
-install(FILES "${EXTENSIONS_YML}"
+install(FILES ${PROJECT_BINARY_DIR}/Version.hpp
         DESTINATION include/nupic/)
 install(DIRECTORY "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/bin/"
         DESTINATION bin USE_SOURCE_PERMISSIONS)
@@ -734,14 +692,6 @@ install(DIRECTORY "${NUMPY_CORE}/lib/"
         DESTINATION lib)
 install(DIRECTORY "${NUMPY_CORE}/include/"
         DESTINATION include)
-install(FILES ${CAPNP_LIBRARIES}
-        DESTINATION lib)
-foreach(directory ${CAPNP_INCLUDE_DIRS})
-  install(DIRECTORY "${directory}/capnp"
-          DESTINATION include)
-  install(DIRECTORY "${directory}/kj"
-          DESTINATION include)
-endforeach()
 if(UNIX)
   install(FILES "${PROJECT_BINARY_DIR}/libnupic_core.a"
           DESTINATION lib)
