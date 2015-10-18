@@ -89,10 +89,10 @@ namespace nupic
               std::string message,
               std::string stacktrace = "") :
       std::runtime_error(""),
-      filename_(filename),
+      filename_(std::move(filename)),
       lineno_(lineno),
-      message_(message),
-      stackTrace_(stacktrace)
+      message_(std::move(message)),
+      stackTrace_(std::move(stacktrace))
     {
     }
     

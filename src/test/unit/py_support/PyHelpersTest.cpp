@@ -24,11 +24,6 @@
  * Implementation of PyHelpers test
  */
 
-// The Python.h #include MUST always be #included first in every
-// compilation unit (.c or .cpp file). That means that PyHelpers.hpp
-// must be #included first and transitively every .hpp file that 
-// #includes directly or indirectly PyHelpers.hpp must be #included
-// first.
 #include <nupic/py_support/PyHelpers.hpp>
 #include "PyHelpersTest.hpp"
 #include <limits>

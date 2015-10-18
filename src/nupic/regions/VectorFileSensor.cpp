@@ -167,14 +167,14 @@ void VectorFileSensor::compute()
 
   if (hasCategoryOut_)
   {
-    Real * categoryOut = reinterpret_cast<Real *>(categoryOut_.getBuffer());
+    Real32 * categoryOut = reinterpret_cast<Real32 *>(categoryOut_.getBuffer());
     vectorFile_.getRawVector((nupic::UInt)curVector_, categoryOut, offset, 1);
     offset++;
   }
 
   if (hasResetOut_)
   {
-    Real * resetOut = reinterpret_cast<Real *>(resetOut_.getBuffer());
+    Real32 * resetOut = reinterpret_cast<Real32 *>(resetOut_.getBuffer());
     vectorFile_.getRawVector((nupic::UInt)curVector_, resetOut, offset, 1);
     offset++;
   }
