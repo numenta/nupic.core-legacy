@@ -33,10 +33,7 @@ init:
   - git config --global core.autocrlf input
 
 clone_folder: c:\projects\nupic-core
-
-# Can't have a shallow clone because the CMake process will be
-# calling into git to write the current SHA into the binaries.
-shallow_clone: false
+clone_depth: 150
 
 environment:
   PYTHON_ARCH: "64"
