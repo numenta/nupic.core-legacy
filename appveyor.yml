@@ -170,6 +170,9 @@ install:
       -DCAPNP_EXECUTABLE=%REPO_DIR%\external\windows64\bin\capnp.exe 
       -DCAPNPC_CXX_EXECUTABLE=%REPO_DIR%\external\windows64\bin\capnpc-c++.exe 
       -DCAPNPC_LIB=%EXT_LIBS%\libcapnp.a 
+      -DLIB_KJ=%EXT_LIBS%\libkj.a 
+      -DLIB_CAPNP=%EXT_LIBS%\libcapnp.a 
+      -DLIB_CAPNPC=%EXT_LIBS%\libcapnp.a 
       -DCAPNP_LIB_KJ=%EXT_LIBS%\libkj.a 
       -DCAPNP_LIB_CAPNP=%EXT_LIBS%\libcapnp.a 
       -DCAPNP_LIB_KJ-ASYNC=%EXT_LIBS%\libkj.a 
