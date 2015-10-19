@@ -539,7 +539,7 @@ namespace nupic { namespace py
   // This code is identical to Instance::invoke
   PyObject * Module::invoke(std::string method, 
                     PyObject * args,
-                    PyObject * kwargs)
+                    PyObject * kwargs) const
   {
     NTA_CHECK(p_);
     PyObject * pMethod = getAttr(method);
@@ -556,7 +556,7 @@ namespace nupic { namespace py
   //
   // return module.name
   // This code is identical to Instance::getAttr
-  PyObject * Module::getAttr(std::string name)
+  PyObject * Module::getAttr(std::string name) const
   {
     NTA_CHECK(p_);
     PyObject * attr = PyObject_GetAttrString(p_, name.c_str());
@@ -669,7 +669,7 @@ namespace nupic { namespace py
   // Get an instance attribute. Equivalent to:
   //
   // return instance.name
-  PyObject * Instance::getAttr(std::string name)
+  PyObject * Instance::getAttr(std::string name) const
   {
     NTA_CHECK(p_);
     PyObject * attr = PyObject_GetAttrString(p_, name.c_str());
@@ -709,7 +709,7 @@ namespace nupic { namespace py
   // return instance.method(*args, **kwargs)
   PyObject * Instance::invoke(std::string method, 
                     PyObject * args,
-                    PyObject * kwargs)
+                    PyObject * kwargs) const
   {
     NTA_CHECK(p_);
     PyObject * pMethod = getAttr(method);

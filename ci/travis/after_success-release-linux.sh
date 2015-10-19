@@ -48,8 +48,6 @@ ls -l bindings/py/dist
 
 echo "Uploading Linux egg to PyPi..."
 twine upload bindings/py/dist/nupic.bindings-*.egg -u "${PYPI_USERNAME}" -p "${PYPI_PASSWD}"
-echo "Uploading source package to PyPi..."
-twine upload bindings/py/dist/nupic.bindings-*.tar.gz -u "${PYPI_USERNAME}" -p "${PYPI_PASSWD}"
 
 # We can't upload the wheel to PyPi because PyPi rejects linux platform wheel
 # files. So we'll push it up into S3.

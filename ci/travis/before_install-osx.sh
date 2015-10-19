@@ -41,12 +41,3 @@ echo "Installing wheel..."
 pip install wheel --user || exit
 echo "Installing Python dependencies"
 pip install --use-wheel --user -r bindings/py/requirements.txt --quiet || exit
-
-echo "Installing Cap'n Proto..."
-curl -O https://capnproto.org/capnproto-c++-0.5.2.tar.gz
-tar zxf capnproto-c++-0.5.2.tar.gz
-pushd capnproto-c++-0.5.2
-CXXFLAGS="-fPIC -std=c++11 -m64 -fvisibility=hidden -Wall -Wreturn-type -Wunused -Wno-unused-parameter" ./configure --prefix=${TRAVIS_BUILD_DIR} --disable-shared
-make
-make install
-popd

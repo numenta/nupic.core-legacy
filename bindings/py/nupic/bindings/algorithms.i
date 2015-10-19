@@ -27,7 +27,7 @@
 %pythoncode %{
 # ----------------------------------------------------------------------
 # Numenta Platform for Intelligent Computing (NuPIC)
-# Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
+# Copyright (C) 2013-2015, Numenta, Inc.  Unless you have an agreement
 # with Numenta, Inc., for a separate license for this software code, the
 # following terms and conditions apply:
 #
@@ -55,7 +55,7 @@ _ALGORITHMS = _algorithms
 %{
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
+ * Copyright (C) 2013-2015, Numenta, Inc.  Unless you have an agreement
  * with Numenta, Inc., for a separate license for this software code, the
  * following terms and conditions apply:
  *
@@ -95,6 +95,7 @@ _ALGORITHMS = _algorithms
 #include <nupic/algorithms/Svm.hpp>
 #include <nupic/algorithms/Linear.hpp>
 #include <nupic/algorithms/SpatialPooler.hpp>
+#include <nupic/algorithms/TemporalMemory.hpp>
 
 #include <nupic/algorithms/Cell.hpp>
 #include <nupic/algorithms/Cells4.hpp>
@@ -106,6 +107,7 @@ _ALGORITHMS = _algorithms
 #include <nupic/algorithms/SegmentUpdate.hpp>
 
 #include <nupic/proto/SpatialPoolerProto.capnp.h>
+#include <nupic/proto/TemporalMemoryProto.capnp.h>
 
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include <numpy/arrayobject.h>
@@ -127,6 +129,8 @@ _ALGORITHMS = _algorithms
 /// %template(Segment3_32) nupic::algorithms::Cells3::Segment<nupic::UInt32, nupic::Real32>;
 /// %template(Cell3_32) nupic::algorithms::Cells3::Cell<nupic::UInt32, nupic::Real32>;
 /// %template(Cells3_32) nupic::algorithms::Cells3::Cells3<nupic::UInt32, nupic::Real32>;
+using namespace nupic::algorithms::connections;
+using namespace nupic::algorithms::temporal_memory;
 using namespace nupic::algorithms::Cells4;
 using namespace nupic::algorithms::cla_classifier;
 using namespace nupic;
@@ -1494,4 +1498,97 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
       return str(self)
 
   %}
+}
+
+
+//--------------------------------------------------------------------------------
+// Temporal Memory
+//--------------------------------------------------------------------------------
+%include <nupic/algorithms/TemporalMemory.hpp>
+
+%extend nupic::algorithms::temporal_memory::TemporalMemory
+{
+  %pythoncode %{
+    import numpy
+
+    def __init__(self,
+                 columnDimensions=(2048,),
+                 cellsPerColumn=32,
+                 activationThreshold=13,
+                 initialPermanence=0.21,
+                 connectedPermanence=0.50,
+                 minThreshold=10,
+                 maxNewSynapseCount=20,
+                 permanenceIncrement=0.10,
+                 permanenceDecrement=0.10,
+                 predictedSegmentDecrement=0.00,
+                 seed=-1):
+      self.this = _ALGORITHMS.new_TemporalMemory()
+      _ALGORITHMS.TemporalMemory_initialize(
+        self, columnDimensions, cellsPerColumn, activationThreshold,
+        initialPermanence, connectedPermanence,
+        minThreshold, maxNewSynapseCount, permanenceIncrement,
+        permanenceDecrement, predictedSegmentDecrement, seed)
+
+    def __getstate__(self):
+      # Save the local attributes but override the C++ temporal memory with the
+      # string representation.
+      d = dict(self.__dict__)
+      d["this"] = self.getCState()
+      return d
+
+    def __setstate__(self, state):
+      # Create an empty C++ temporal memory and populate it from the serialized
+      # string.
+      self.this = _ALGORITHMS.new_TemporalMemory()
+      if isinstance(state, str):
+        self.loadFromString(state)
+        self.valueToCategory = {}
+      else:
+        self.loadFromString(state["this"])
+        # Use the rest of the state to set local Python attributes.
+        del state["this"]
+        self.__dict__.update(state)
+  %}
+
+  inline void compute(PyObject *py_x, bool learn)
+  {
+    PyArrayObject* _x = (PyArrayObject*) py_x;
+
+    nupic::UInt32  len = (nupic::UInt32)PyArray_DIMS(_x)[0];
+    nupic::UInt32* data = (nupic::UInt32*)PyArray_DATA(_x);
+
+    self->compute(len, data, learn);
+  }
+
+  inline void write(PyObject* pyBuilder) const
+  {
+    TemporalMemoryProto::Builder proto =
+        getBuilder<TemporalMemoryProto>(pyBuilder);
+    self->write(proto);
+  }
+
+  inline void read(PyObject* pyReader)
+  {
+    TemporalMemoryProto::Reader proto =
+        getReader<TemporalMemoryProto>(pyReader);
+    self->read(proto);
+  }
+
+  void loadFromString(const std::string& inString)
+  {
+    std::istringstream inStream(inString);
+    self->load(inStream);
+  }
+
+  PyObject* getCState()
+  {
+    SharedPythonOStream py_s(self->persistentSize());
+    std::ostream& s = py_s.getStream();
+    // TODO: Consider writing floats as binary instead.
+    s.flags(ios::scientific);
+    s.precision(numeric_limits<double>::digits10 + 1);
+    self->save(s);
+    return py_s.close();
+  }
 }

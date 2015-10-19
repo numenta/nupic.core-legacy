@@ -359,16 +359,13 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cxxCompiler, cmd
       "-Wno-unused-parameter"]
     commonLinkFlags = [
       "-m" + bitness,
-      "-L" + nupicCoreReleaseDir + "/lib",
-      # for Cap'n'Proto serialization
-      "-lkj",
-      "-lcapnp"]
+      "-L" + fixPath(nupicCoreReleaseDir + "/lib"),
+      "-O2"]
 
     if cxxCompiler != "MinGW":
       # `Position Independent Code`, required for shared libraries
       commonCompileFlags.append("-fPIC")
       commonLinkFlags.append("-fPIC")
-      commonLinkFlags.append("-lcapnpc")
 
     if cxxCompiler == "MinGW":
       commonCompileFlags.append("-Wno-unused-local-typedefs")
@@ -402,7 +399,9 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cxxCompiler, cmd
   commonLibraries = [
     pythonLib,
     "kj",
-    "capnp"]
+    "capnp",
+    "capnpc",
+  ]
   if platform == "linux":
     commonLibraries.extend(["capnpc","dl","pthread"])
   elif platform in WINDOWS_PLATFORMS:
@@ -562,7 +561,7 @@ if __name__ == "__main__":
     setup(
       name="nupic.bindings",
       ext_modules=extensions,
-      version="0.1.5",
+      version="0.2.2",
       namespace_packages=["nupic"],
       install_requires=findRequirements(),
       description="Numenta Platform for Intelligent Computing - bindings",
