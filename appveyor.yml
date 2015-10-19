@@ -179,7 +179,7 @@ install:
       -DLIB_STATIC_YAML_CPP_LOC=%EXT_LIBS%\libyaml-cpp.a 
       -DLIB_STATIC_YAML_LOC=%EXT_LIBS%\libyaml.a 
       -DLIB_STATIC_Z_LOC=%EXT_LIBS%\libz.a 
-      %REPO_DIR%\src
+      %REPO_DIR%
   #   -DCMAKE_EXPORT_COMPILE_COMMAND=ON Only for 'Unix Makefiles' and 'Ninja' generators
   #   -DCMAKE_USER_MAKE_RULES_OVERRIDE="%REPO_DIR%\ci\appveyor\ClangOverrides.txt"
   #   -D_CMAKE_TOOLCHAIN_PREFIX=llvm-

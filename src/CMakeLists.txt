@@ -188,9 +188,9 @@ if(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
 
 else()
   # LLVM Clang / Gnu GCC
-  set(COMMON_COMPILE_FLAGS "-std=c++11 -m${BITNESS} ${STDLIB} -Werror -Wall -Wextra -Wreturn-type -Wunused -Wno-unused-variable -Wno-unused-parameter -Wno-missing-field-initializers")
+  set(COMMON_COMPILE_FLAGS "-std=c++11 -m${BITNESS} ${STDLIB} -Wextra -Wreturn-type -Wunused -Wno-unused-variable -Wno-unused-parameter -Wno-missing-field-initializers")
   if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    set(COMMON_COMPILE_FLAGS "-fPIC ${COMMON_COMPILE_FLAGS}")
+    set(COMMON_COMPILE_FLAGS "-Werror -Wall -fPIC ${COMMON_COMPILE_FLAGS}")
   endif()
   set(COMMON_LINK_FLAGS "-m${BITNESS} ${STDLIB}")
 endif()
@@ -467,7 +467,8 @@ set(LIB_STATIC_NUPICCORE_LINK_LIBS
     ${LIB_STATIC_APRUTIL1_LOC}
     ${LIB_STATIC_Z_LOC}
     ${CAPNP_LIBRARIES}
-    ${PYTHON_LIBRARIES})
+    ${PYTHON_LIBRARIES}
+    ${COMMON_OS_LIBS})
 set(LIB_STATIC_NUPICCORE_COMPILE_FLAGS
     "${COMMON_COMPILE_FLAGS} -I${NUMPY_CORE}/include")
 set(LIB_STATIC_NUPICCORE_LINK_FLAGS
@@ -475,25 +476,12 @@ set(LIB_STATIC_NUPICCORE_LINK_FLAGS
 
 add_library(${LIB_STATIC_NUPICCORE} STATIC ${LIB_STATIC_NUPICCORE_SRCS})
 target_link_libraries(${LIB_STATIC_NUPICCORE}
-<<<<<<< HEAD
-                      ${LIB_STATIC_YAML_CPP_LOC}
-                      ${LIB_STATIC_YAML_LOC}
-                      ${LIB_STATIC_APR1_LOC}
-                      ${LIB_STATIC_APRUTIL1_LOC}
-                      ${LIB_STATIC_Z_LOC}
-                      ${CAPNP_LIBRARIES}
-                      ${PYTHON_LIBRARIES}
-                      ${COMMON_OS_LIBS})
-set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES COMPILE_FLAGS "${COMMON_COMPILE_FLAGS} -I${NUMPY_CORE}/include")
-set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS} -static")
-=======
                       ${LIB_STATIC_NUPICCORE_LINK_LIBS})
 add_dependencies(${LIB_STATIC_NUPICCORE} generate_capnp_cpp CapnProto)
 set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES COMPILE_FLAGS
                       ${LIB_STATIC_NUPICCORE_COMPILE_FLAGS})
 set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES LINK_FLAGS
                       ${LIB_STATIC_NUPICCORE_LINK_FLAGS})
->>>>>>> master
 
 #
 # Setup test_cpp_region
@@ -501,19 +489,12 @@ set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES LINK_FLAGS
 set(EXECUTABLE_CPPREGIONTEST cpp_region_test)
 add_executable(${EXECUTABLE_CPPREGIONTEST} test/integration/CppRegionTest.cpp)
 target_link_libraries(${EXECUTABLE_CPPREGIONTEST} ${COMMON_LIBS})
-<<<<<<< HEAD
-set_target_properties(${EXECUTABLE_CPPREGIONTEST}
-                      PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
-set_target_properties(${EXECUTABLE_CPPREGIONTEST}
-                      PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
+set_target_properties(${EXECUTABLE_CPPREGIONTEST} PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
+set_target_properties(${EXECUTABLE_CPPREGIONTEST} PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
 add_custom_target(tests_cpp_region
                   COMMAND ${EXECUTABLE_CPPREGIONTEST}
                   DEPENDS ${EXECUTABLE_CPPREGIONTEST}
                   VERBATIM)
-=======
-set_target_properties(${EXECUTABLE_CPPREGIONTEST} PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
-set_target_properties(${EXECUTABLE_CPPREGIONTEST} PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
->>>>>>> master
 
 #
 # Setup test_py_region
@@ -687,7 +668,6 @@ endforeach()
 file(WRITE "${PROJECT_BINARY_DIR}/AddTests.hpp" "${tests_file_content}")
 file(WRITE "${PROJECT_BINARY_DIR}/AddTestHeaders.hpp" "${headers_file_content}")
 
-<<<<<<< HEAD
 #
 # tests_all just calls other targets
 #
@@ -731,24 +711,6 @@ if(UNIX OR MSYS OR MINGW)
                               ${EXECUTABLE_GTESTS}
                               ${EXECUTABLE_HELLOSPTP})
   endif()
-=======
-if(UNIX)
-  add_custom_target(combined ALL
-                    COMMAND ${CMAKE_AR} -x $<TARGET_FILE:${LIB_STATIC_NUPICCORE}>
-                    COMMAND ${CMAKE_AR} -x ${LIB_STATIC_YAML_CPP_LOC}
-                    COMMAND ${CMAKE_AR} -x ${LIB_STATIC_YAML_LOC}
-                    COMMAND ${CMAKE_AR} -x ${LIB_STATIC_APRUTIL1_LOC}
-                    COMMAND ${CMAKE_AR} -x ${LIB_STATIC_APR1_LOC}
-                    COMMAND ${CMAKE_AR} -x ${LIB_STATIC_Z_LOC}
-                    COMMAND ${CMAKE_AR} rcs libnupic_core.a *.o
-                    DEPENDS ${LIB_STATIC_NUPICCORE}
-                            ${LIB_STATIC_GTEST}
-                            ${EXECUTABLE_HELLOREGION}
-                            ${EXECUTABLE_CPPREGIONTEST}
-                            ${EXECUTABLE_CONNECTIONSPERFORMANCETEST}
-                            ${EXECUTABLE_GTESTS}
-                            ${EXECUTABLE_HELLOSPTP})
->>>>>>> master
 else()
   add_custom_target(combined ALL
                     COMMAND lib.exe /OUT:nupic_core.lib
@@ -810,7 +772,6 @@ install(DIRECTORY "${NUMPY_CORE}/lib/"
         DESTINATION lib)
 install(DIRECTORY "${NUMPY_CORE}/include/"
         DESTINATION include)
-<<<<<<< HEAD
 install(FILES ${CAPNP_LIBRARIES}
         DESTINATION lib)
 foreach(directory ${CAPNP_INCLUDE_DIRS})
@@ -820,9 +781,6 @@ foreach(directory ${CAPNP_INCLUDE_DIRS})
           DESTINATION include)
 endforeach()
 if(UNIX OR MSYS OR MINGW)
-=======
-if(UNIX)
->>>>>>> master
   install(FILES "${PROJECT_BINARY_DIR}/libnupic_core.a"
           DESTINATION lib)
 else()
@@ -843,4 +801,3 @@ install(DIRECTORY nupic DESTINATION include/nupic
 set(CPACK_GENERATOR "TGZ")
 set(CPACK_PACKAGE_FILE_NAME "nupic_core-${NUPIC_CORE_VERSION}-${PLATFORM}${BITNESS}")
 include(CPack)
-

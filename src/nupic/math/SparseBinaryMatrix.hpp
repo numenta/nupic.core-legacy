@@ -1101,35 +1101,30 @@ public:
       }
     }
 
-    //--------------------------------------------------------------------------------
-    inline size_type CSRSize() const
-    {
-      std::stringstream b;
-      char buffer[128];
+    return true;
+  }
 
   inline size_type CSRSize() const {
     std::stringstream b;
     char buffer[32];
 
-      // Rely on operator<< to deal with differing size_type
-      size_type n = b.str().size();
-      for (size_type row = 0; row != nRows(); ++row) {
-        size_type nnzr = nNonZerosOnRow(row);
-        std::ostringstream oss_nnzr;
-        oss_nnzr << nnzr;
-        n += sprintf(buffer, "%s ", oss_nnzr.str().c_str());
+    b << getVersion() << " " << nRows() << " " << nCols() << " ";
 
-        for (nz_index_type j = 0; j != nnzr; ++j) {
-          std::ostringstream oss_row;
-          oss_row << ind_[row][j];
-          n += sprintf(buffer, "%s ", oss_row.str().c_str());
-        }
+    // Rely on operator<< to deal with differing size_type
+    size_type n = b.str().size();
+    for (size_type row = 0; row != nRows(); ++row) {
+      size_type nnzr = nNonZerosOnRow(row);
+      std::ostringstream oss_nnzr;
+      oss_nnzr << nnzr;
+      n += sprintf(buffer, "%s ", oss_nnzr.str().c_str());
+      for (nz_index_type j = 0; j != nnzr; ++j) {
+        std::ostringstream oss_row;
+        oss_row << ind_[row][j];
+        n += sprintf(buffer, "%s ", oss_row.str().c_str());
       }
-      return n;
     }
-
     return n;
-  }
+   }
 
   inline void fromCSR(std::istream &inStream) {
     const std::string where = "SparseBinaryMatrix::readState: ";
@@ -1787,38 +1782,36 @@ public:
       }
     }
 
-  private:
-    //--------------------------------------------------------------------------------
-    template <typename InputIterator>
-    inline void sparse_row_invariants_(InputIterator begin, InputIterator end,
-                                       const char* where) const
-    {
-      NTA_ASSERT(0 <= end - begin)
-        << "SparseBinaryMatrix::" << where << ": "
-        << "Mismatched iterators";
+    for (size_type i = 0; i != nCols(); ++i)
+      if (y[i] == (value_type)-std::numeric_limits<value_type>::max())
+        y[i] = 0;
+  }
 
-      NTA_ASSERT((size_type)(end - begin) <= nCols())
+private:
+  template <typename InputIterator>
+  inline void sparse_row_invariants_(InputIterator begin, InputIterator end,
+                                     const char *where) const {
+    NTA_ASSERT(0 <= end - begin) << "SparseBinaryMatrix::" << where << ": "
+                                 << "Mismatched iterators";
+
+    NTA_ASSERT((size_type)(end - begin) <= nCols())
         << "SparseBinaryMatrix::" << where << ": "
         << "Invalid sparse vector size: " << (size_type)(end - begin)
         << " - Should be less than number of columns: " << nCols();
 
-      for (InputIterator it = begin; it != end; ++it)
-        NTA_ASSERT(/*0 <= *it &&*/ *it <= nCols())
+    for (InputIterator it = begin; it != end; ++it)
+      NTA_ASSERT(/*0 <= *it &&*/ *it <= nCols())
           << "SparseBinaryMatrix::" << where << ": "
           << "Invalid index: " << *it
           << " - Should be >= 0 and < number of columns:" << nCols();
 
-      InputIterator last = begin;
-      for (InputIterator it = begin; it != end; ++it)
-      {
-        if (it != begin)
-        {
-          NTA_ASSERT(*last < *it)
+    InputIterator last = begin;
+    for (InputIterator it = begin; it != end; ++it) {
+      if (it != begin) {
+        NTA_ASSERT(*last < *it)
             << "SparseBinaryMatrix::" << where << ": "
             << "Invalid indices: " << *last << " and: " << *it
             << " - Indices need to be in strictly increasing order";
-        }
-        last = it;
       }
       last = it;
     }
