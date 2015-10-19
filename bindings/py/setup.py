@@ -359,18 +359,20 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cxxCompiler, cmd
       "-Wno-unused-parameter"]
     commonLinkFlags = [
       "-m" + bitness,
-      "-L" + fixPath(nupicCoreReleaseDir + "/lib"),
-      "-O2"]
+      "-L" + fixPath(nupicCoreReleaseDir + "/lib")]
 
     if cxxCompiler != "MinGW":
       # `Position Independent Code`, required for shared libraries
-      commonCompileFlags.append("-fPIC")
+      commonCompileFlags.append("-fPIC -Wall")
       commonLinkFlags.append("-fPIC")
 
     if cxxCompiler == "MinGW":
       commonCompileFlags.append("-Wno-unused-local-typedefs")
       commonCompileFlags.append("-Wno-unused-variable")
       commonCompileFlags.append("-Wno-unused-function")
+      # Apply these earlier in the link
+      commonLinkFlags.append("-lkj")
+      commonLinkFlags.append("-lcapnp")
 
   if platform == "darwin":
     commonCompileFlags.append("-stdlib=libc++")
@@ -399,19 +401,13 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cxxCompiler, cmd
   commonLibraries = [
     pythonLib,
     "kj",
-    "capnp",
-    "capnpc",
+    "capnp"
   ]
   if platform == "linux":
     commonLibraries.extend(["capnpc","dl","pthread"])
   elif platform in WINDOWS_PLATFORMS:
     commonLibraries.extend([
-      "psapi",
-      "ws2_32",
-      "shell32",
-      "advapi32",
-      "wsock32",
-      "rpcrt4"])
+      "psapi", "ws2_32", "shell32", "advapi32", "wsock32", "rpcrt4"])
     if cxxCompiler != "MinGW":
       commonLibraries.append("oldnames")
 

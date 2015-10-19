@@ -187,8 +187,8 @@ install:
 build_script:
   - cd %REPO_DIR%\build\scripts
 
-  - mingw32-make -f Makefile
-  - mingw32-make -f Makefile tests_all
+  #- mingw32-make -f Makefile
+  #- mingw32-make -f Makefile tests_all
   - mingw32-make -f Makefile install | findstr /C:"Install" /I /V
 
   - cd %REPO_DIR%
