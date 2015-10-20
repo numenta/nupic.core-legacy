@@ -361,7 +361,8 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cxxCompiler, cmd
 
     if cxxCompiler != "MinGW":
       # `Position Independent Code`, required for shared libraries
-      commonCompileFlags.append("-fPIC -Wall")
+      commonCompileFlags.append("-fPIC")
+      commonCompileFlags.append("-Wall")
       commonLinkFlags.append("-fPIC")
 
     if cxxCompiler == "MinGW":
