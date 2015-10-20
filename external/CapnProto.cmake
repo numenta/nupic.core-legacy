@@ -73,7 +73,8 @@ function(CREATE_CAPNPC_TARGET
     COMMAND ${CAPNP_EXECUTABLE}
         compile -o ${CAPNPC_CXX_EXECUTABLE}:${TARGET_DIR}
         --src-prefix ${SRC_PREFIX} -I ${INCLUDE_DIR}
-        ${CAPNP_SPECS}
+        ${SPEC_FILES}
+    SOURCES ${SPEC_FILES}
     DEPENDS CapnProto
     COMMENT "Executing Cap'n Proto compiler"
   )
