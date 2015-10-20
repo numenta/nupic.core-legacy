@@ -66,19 +66,19 @@ else()
   add_custom_target(CapnProto)
 endif()
 
-function(CREATE_CAPNPC_TARGET
-         TARGET_NAME SPEC_FILES SRC_PREFIX INCLUDE_DIR TARGET_DIR)
-  add_custom_target(
-    ${TARGET_NAME}
+function(CREATE_CAPNPC_COMMAND
+         GROUP_NAME SPEC_FILES SRC_PREFIX INCLUDE_DIR TARGET_DIR OUTPUT_FILES)
+  add_custom_command(
+    OUTPUT ${OUTPUT_FILES}
     COMMAND ${CAPNP_EXECUTABLE}
         compile -o ${CAPNPC_CXX_EXECUTABLE}:${TARGET_DIR}
         --src-prefix ${SRC_PREFIX} -I ${INCLUDE_DIR}
         ${SPEC_FILES}
-    SOURCES ${SPEC_FILES}
     DEPENDS CapnProto
     COMMENT "Executing Cap'n Proto compiler"
   )
-endfunction(CREATE_CAPNPC_TARGET)
+  add_custom_target(${GROUP_NAME} ALL SOURCES ${CAPNP_SPECS})
+endfunction(CREATE_CAPNPC_COMMAND)
 
 # Set the relevant variables in the parent scope.
 set(CAPNP_LIBRARIES ${CAPNP_LIBRARIES} PARENT_SCOPE)

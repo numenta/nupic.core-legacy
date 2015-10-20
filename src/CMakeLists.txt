@@ -309,15 +309,15 @@ foreach(spec ${CAPNP_SPECS_REL})
   list(APPEND CAPNP_HDRS ${PROJECT_BINARY_DIR}/${spec}.h)
   list(APPEND CAPNP_SRCS ${PROJECT_BINARY_DIR}/${spec}.c++)
 endforeach(spec)
+set(CAPNP_ALL "${CAPNP_HDRS};${CAPNP_SRCS}")
 
 # Create custom target for generating C++ code from .capnp schema files.
-create_capnpc_target(generate_capnp_cpp
-                     "${CAPNP_SPECS}"
-                     ${PROJECT_SOURCE_DIR}
-                     ${PROJECT_SOURCE_DIR}
-                     ${PROJECT_BINARY_DIR})
-set_source_files_properties(${CAPNP_SRCS} ${CAPNP_HDRS} PROPERTIES
-                            GENERATED TRUE)
+create_capnpc_command(capnp_specs
+                      "${CAPNP_SPECS}"
+                      ${PROJECT_SOURCE_DIR}
+                      ${PROJECT_SOURCE_DIR}
+                      ${PROJECT_BINARY_DIR}
+                      "${CAPNP_ALL}")
 
 #
 # Python support
@@ -432,7 +432,6 @@ set(LIB_STATIC_NUPICCORE_LINK_FLAGS
 add_library(${LIB_STATIC_NUPICCORE} STATIC ${LIB_STATIC_NUPICCORE_SRCS})
 target_link_libraries(${LIB_STATIC_NUPICCORE}
                       ${LIB_STATIC_NUPICCORE_LINK_LIBS})
-add_dependencies(${LIB_STATIC_NUPICCORE} generate_capnp_cpp CapnProto)
 set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES COMPILE_FLAGS
                       ${LIB_STATIC_NUPICCORE_COMPILE_FLAGS})
 set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES LINK_FLAGS
