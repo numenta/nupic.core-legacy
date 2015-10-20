@@ -59,7 +59,7 @@ namespace nupic
     }
 
     // for Index.hpp: // because stringstream cant take << vector
-    template <typename T> LoggingException& operator<<(std::vector<T, std::allocator<T> >  v)
+    LoggingException& operator<<(std::vector<nupic::UInt32, std::allocator<nupic::UInt32>> v)
     {
       lmessageValid_ = false;
       ss_ << "[";
