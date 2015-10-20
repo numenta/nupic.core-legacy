@@ -1110,17 +1110,21 @@ public:
 
     b << getVersion() << " " << nRows() << " " << nCols() << " ";
 
+    // Rely on operator<< to deal with differing size_type
     size_type n = b.str().size();
-
     for (size_type row = 0; row != nRows(); ++row) {
       size_type nnzr = nNonZerosOnRow(row);
-      n += sprintf(buffer, "%d ", nnzr);
-      for (nz_index_type j = 0; j != nnzr; ++j)
-        n += sprintf(buffer, "%d ", ind_[row][j]);
+      std::ostringstream oss_nnzr;
+      oss_nnzr << nnzr;
+      n += sprintf(buffer, "%s ", oss_nnzr.str().c_str());
+      for (nz_index_type j = 0; j != nnzr; ++j) {
+        std::ostringstream oss_row;
+        oss_row << ind_[row][j];
+        n += sprintf(buffer, "%s ", oss_row.str().c_str());
+      }
     }
-
     return n;
-  }
+   }
 
   inline void fromCSR(std::istream &inStream) {
     const std::string where = "SparseBinaryMatrix::readState: ";

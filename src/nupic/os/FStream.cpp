@@ -39,7 +39,7 @@
 #include "nupic/os/Env.hpp"
 #include <fstream>
 #include <cstdlib>
-#if defined(NTA_OS_WINDOWS)
+#if defined(NTA_OS_WINDOWS) && !defined(NTA_COMPILER_GNU)
   #include <fcntl.h>
   #include <sys/stat.h>
 #else
@@ -90,7 +90,7 @@ void IFStream::diagnostics(const char* filename)
 /////////////////////////////////////////////////////////////////////////
 void IFStream::open(const char * filename, ios_base::openmode mode)
 {
-#if defined(NTA_OS_WINDOWS)
+#if defined(NTA_OS_WINDOWS) && !defined(NTA_COMPILER_GNU)
   std::wstring pathW = Path::utf8ToUnicode(filename);
   std::ifstream::open(pathW.c_str(), mode);
 #else
@@ -115,7 +115,7 @@ void IFStream::open(const char * filename, ios_base::openmode mode)
 /////////////////////////////////////////////////////////////////////////
 void OFStream::open(const char * filename, ios_base::openmode mode)
 {
-#if defined(NTA_OS_WINDOWS)
+#if defined(NTA_OS_WINDOWS) && !defined(NTA_COMPILER_GNU)
   std::wstring pathW = Path::utf8ToUnicode(filename);
   std::ofstream::open(pathW.c_str(), mode);
 #else
@@ -127,7 +127,7 @@ void OFStream::open(const char * filename, ios_base::openmode mode)
     IFStream::diagnostics(filename);
     // On unix, running nfs, we occasionally get errors opening a file on an nfs drive
     // and it seems that simply doing a retry makes it successful
-    #if !defined(NTA_OS_WINDOWS)
+    #if !(defined(NTA_OS_WINDOWS) && !defined(NTA_COMPILER_GNU))
       std::ofstream::clear();
       std::ofstream::open(filename, mode);
     #endif
@@ -139,7 +139,7 @@ void *ZLib::fopen(const std::string &filename, const std::string &mode,
 {
   if(mode.empty()) throw std::invalid_argument("Mode may not be empty.");
 
-#if defined(NTA_OS_WINDOWS)
+#if defined(NTA_OS_WINDOWS) && !defined(NTA_COMPILER_GNU)
   std::wstring wfilename(Path::utf8ToUnicode(filename));
   int cflags = _O_BINARY;
   int pflags = 0;

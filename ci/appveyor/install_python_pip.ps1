@@ -74,15 +74,21 @@ function InstallPip ($python_home) {
 }
 
 function main () {
-    InstallPython $env:PYTHON_VERSION $env:PYTHON_ARCH $env:PYTHON
-    InstallPip $env:PYTHON
+    InstallPython $env:PYTHON_VERSION $env:PYTHON_ARCH $env:PYTHONPATH
+    InstallPip $env:PYTHONPATH
 
-    $pip_path = $env:PYTHON + "/Scripts/pip.exe"
+    Write-Host "python -m pip install --upgrade pip"
+    $python_path = $env:PYTHONPATH + "/python.exe"
+    & $python_path -m pip install --upgrade pip
+
+    $pip_path = $env:PYTHONPATH + "/Scripts/pip.exe"
     Write-Host "pip install " wheel
     & $pip_path install wheel
 
     Write-Host "pip install " numpy==1.9.2
-    & $pip_path install -i https://pypi.numenta.com/pypi numpy==1.9.2
+    #& $pip_path install -i https://pypi.numenta.com/pypi numpy==1.9.2
+    & $pip_path install "numpy-1.9.2+mkl-cp27-none-win_amd64.whl"
+
 }
 
 main
