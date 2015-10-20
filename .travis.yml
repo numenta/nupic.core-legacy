@@ -26,9 +26,6 @@ addons:
       - xsltproc
       - python-numpy
 
-git:
-  depth: 150
-
 env:
   global:
     - NUPICCORE = ${TRAVIS_BUILD_DIR}

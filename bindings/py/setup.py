@@ -99,7 +99,7 @@ def getCommandLineOptions():
   optionsDesc.append(
     ["compiler",
     "value",
-    "(optional) compile name to use"]
+    "(optional) compiler name to use"]
   )
   optionsDesc.append(
     ["optimizations-native",
@@ -177,17 +177,15 @@ def getPlatformInfo():
   else:
     bitness = "32"
 
-  print "Platform: ",platform,bitness
   return platform, bitness
 
 
 
-def getCompilerInfo(options):
+def getCompilerInfo(cxxCompiler):
   """
   Identify compiler
   """
 
-  cxxCompiler = getCommandLineOption("compiler", options)
   if cxxCompiler is None:
     cxxCompiler = ccompiler.get_default_compiler()
   
@@ -519,7 +517,7 @@ if __name__ == "__main__":
 
   options = getCommandLineOptions()
   platform, bitness = getPlatformInfo()
-  cxxCompiler = getCompilerInfo(options)
+  cxxCompiler = getCompilerInfo(getCommandLineOption("compiler", options))
 
   print "NumPy version: {}".format(numpy.__version__)
   print "Bindings directory: {}".format(PY_BINDINGS)

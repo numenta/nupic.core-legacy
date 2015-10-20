@@ -39,10 +39,12 @@ if( POLICY CMP0054 )
   cmake_policy(SET CMP0054 OLD)
 endif()
 
+get_filename_component(REPOSITORY_DIR ${PROJECT_SOURCE_DIR}/.. ABSOLUTE)
+
 #
 # Include extra CMake files
 #
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${REPOSITORY_DIR}/external)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   set(STDLIB "-stdlib=libc++")
@@ -129,8 +131,6 @@ get_filename_component(NUMPY_CORE ${NUMPY_CORE}/include/.. ABSOLUTE)
 #
 # Setup include paths
 #
-get_filename_component(REPOSITORY_DIR ${PROJECT_SOURCE_DIR}/.. ABSOLUTE)
-
 if("${PROJECT_BUILD_ARTIFACTS_DIR}" STREQUAL "")
   set(PROJECT_BUILD_ARTIFACTS_DIR "${PROJECT_BINARY_DIR}/artifacts")
 endif()
