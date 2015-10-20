@@ -41,11 +41,6 @@ endif()
 
 get_filename_component(REPOSITORY_DIR ${PROJECT_SOURCE_DIR}/.. ABSOLUTE)
 
-#
-# Include extra CMake files
-#
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${REPOSITORY_DIR}/external)
-
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   set(STDLIB "-stdlib=libc++")
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
@@ -62,19 +57,6 @@ if($ENV{NUPIC_DEPLOYMENT_BUILD})
   message("Doing a deployment build in TravisCI")
 else()
   message("Doing a local build")
-endif()
-
-if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-  set(BITNESS 64)
-else()
-  set(BITNESS 32)
-endif()
-
-# Check the architecture and set CMAKE_LIBRARY_ARCHITECTURE accordingly
-if(UNIX)
-  if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-    set(CMAKE_LIBRARY_ARCHITECTURE "x86_64-linux-gnu")
-  endif()
 endif()
 
 # Compiler `-D*` definitions
@@ -313,19 +295,6 @@ message(STATUS "PYTHON_EXECUTABLE   = ${PYTHON_EXECUTABLE}")
 message(STATUS "PYTHON_INCLUDE_DIRS = ${PYTHON_INCLUDE_DIRS}")
 message(STATUS "PYTHON_LIBRARIES    = ${PYTHON_LIBRARIES}")
 
-#
-# Find and add capnp and kj and generate Cap'n Proto C++ files
-#
-set(CAPNPC_OUTPUT_DIR ${CMAKE_BINARY_DIR})
-set(CAPNPC_IMPORT_DIRS ${CAPNPC_IMPORT_DIRS} ${REPOSITORY_DIR}/src)
-find_package(CapnProto REQUIRED)
-include_directories(SYSTEM ${CAPNP_INCLUDE_DIRS})
-add_definitions(${CAPNP_DEFINITIONS})
-
-# libcapnpc must be manually added since it isn't included by default.
-find_library(CAPNPC_LIB capnpc)
-list(APPEND CAPNP_LIBRARIES ${CAPNPC_LIB})
-
 # List all .capnp files here. The C++ files will be generated and included
 # when compiling later on.
 set(CAPNP_SPECS_REL
@@ -370,15 +339,15 @@ message(STATUS "CAPNP_LIBRARIES_LITE= ${CAPNP_LIBRARIES_LITE}")
 #
 set(LIB_STATIC_NUPICCORE nupic_core_solo)
 
-if(CAPNP_LITE)
-  set(COMMON_LIBS ${LIB_STATIC_NUPICCORE}
-                  ${PYTHON_LIBRARIES}
-                  ${CAPNP_LIBRARIES_LITE})
-else()
-  set(COMMON_LIBS ${LIB_STATIC_NUPICCORE}
-                  ${PYTHON_LIBRARIES}
-                  ${CAPNP_LIBRARIES})
-endif()
+#if(CAPNP_LITE)
+#  set(COMMON_LIBS ${LIB_STATIC_NUPICCORE}
+#                  ${PYTHON_LIBRARIES}
+#                  ${CAPNP_LIBRARIES_LITE})
+#else()
+set(COMMON_LIBS ${LIB_STATIC_NUPICCORE}
+                ${PYTHON_LIBRARIES}
+                ${CAPNP_LIBRARIES})
+#endif()
 
 if("${PLATFORM}" STREQUAL "linux")
   list(APPEND COMMON_OS_LIBS pthread dl)
