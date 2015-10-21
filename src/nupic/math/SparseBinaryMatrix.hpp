@@ -1106,22 +1106,16 @@ public:
 
   inline size_type CSRSize() const {
     std::stringstream b;
-    char buffer[32];
+    char buffer[64];
 
     b << getVersion() << " " << nRows() << " " << nCols() << " ";
 
-    // Rely on operator<< to deal with differing size_type
     size_type n = b.str().size();
     for (size_type row = 0; row != nRows(); ++row) {
       size_type nnzr = nNonZerosOnRow(row);
-      std::ostringstream oss_nnzr;
-      oss_nnzr << nnzr;
-      n += sprintf(buffer, "%s ", oss_nnzr.str().c_str());
-      for (nz_index_type j = 0; j != nnzr; ++j) {
-        std::ostringstream oss_row;
-        oss_row << ind_[row][j];
-        n += sprintf(buffer, "%s ", oss_row.str().c_str());
-      }
+      n += sprintf(buffer, "%ld ", (long)nnzr);
+      for (nz_index_type j = 0; j != nnzr; ++j)
+        n += sprintf(buffer, "%ld ", (long)ind_[row][j]);
     }
     return n;
    }

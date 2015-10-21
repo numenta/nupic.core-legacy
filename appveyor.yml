@@ -190,16 +190,20 @@ install:
 build_script:
   - cd %REPO_DIR%\build\scripts
 
-  #- mingw32-make -f Makefile
-  #- mingw32-make -f Makefile tests_all
+  - mingw32-make -f Makefile
   - mingw32-make -f Makefile install | findstr /C:"Install" /I /V
 
   - cd %REPO_DIR%
   - python setup.py install --user --debug --compiler=mingw --nupic-core-dir=%NUPIC_CORE_RELEASE%
 
 after_build:
-  - cd %REPO_DIR%\build\Release
-  - set PROJECT_BUILD_ARTIFACTS_DIR=%REPO_DIR%\build\artifacts
+  - mkdir %REPO_DIR%\build\artifacts
+  - set ARTIFACTS_DIR=%REPO_DIR%\build\artifacts
+
+  # legacy binary tests
+  - cd %REPO_DIR%\build\release
+  - cpp_region_test
+  - unit_tests --gtest_output=xml:%ARTIFACTS_DIR%\unit_tests_report.xml"
 
   - ps: >-
       if($env:DEPLOY_TO_NUGET -eq 1) {
