@@ -45,7 +45,9 @@
 #include <nupic/utils/Log.hpp>
 #include <nupic/os/Path.hpp>
 #include <nupic/py_support/PyArray.hpp>
+#ifndef CAPNP_LITE
 #include <nupic/py_support/PyCapnp.hpp>
+#endif
 
 using namespace nupic;
 using ::capnp::DynamicStruct;
@@ -485,20 +487,24 @@ void PyRegion::deserialize(BundleIO& bundle)
 
 void PyRegion::write(capnp::AnyPointer::Builder& proto) const
 {
+  #ifndef CAPNP_LITE
   PyRegionProto::Builder pyRegionProto = proto.getAs<PyRegionProto>();
   PyObject* pyBuilder = getPyBuilder(capnp::toDynamic(pyRegionProto));
   py::Tuple args(1);
   args.setItem(0, pyBuilder);
   py::Ptr _none(node_.invoke("write", args));
+  #endif
 }
 
 void PyRegion::read(capnp::AnyPointer::Reader& proto)
 {
+  #ifndef CAPNP_LITE
   PyRegionProto::Reader pyRegionProto = proto.getAs<PyRegionProto>();
   PyObject* pyReader = getPyReader(capnp::toDynamic(pyRegionProto));
   py::Tuple args(1);
   args.setItem(0, pyReader);
   py::Ptr _none(node_.invoke("read", args));
+  #endif
 }
 
 const Spec & PyRegion::getSpec()
