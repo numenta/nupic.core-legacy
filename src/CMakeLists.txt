@@ -349,7 +349,7 @@ message(STATUS "CAPNP_LIBRARIES_LITE= ${CAPNP_LIBRARIES_LITE}")
 #
 # Add the pycapnp Python package to includes
 execute_process(COMMAND "${PYTHON_EXECUTABLE}" "-c"
-                        "import capnp; import os; import sys; sys.stdout.write(os.path.dirname(os.path.dirname(capnp.__file__)))"
+                        "import capnp; import os; import sys; sys.stdout.write((os.path.dirname(capnp.__file__)))"
                         OUTPUT_VARIABLE PYCAPNP)
 include_directories(SYSTEM ${PYCAPNP})
 
