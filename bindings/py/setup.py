@@ -1,4 +1,4 @@
-# ----------------------------------------------------------------------
+﻿# ----------------------------------------------------------------------
 # Numenta Platform for Intelligent Computing (NuPIC)
 # Copyright (C) 2015, Numenta, Inc.  Unless you have an agreement
 # with Numenta, Inc., for a separate license for this software code, the
@@ -113,6 +113,11 @@ def getCommandLineOptions():
      "Absolute path to nupic.core binary release directory"]
   )
   optionsDesc.append(
+    ["compiler",
+    "value",
+    "(optional) compiler name to use"]
+  )
+  optionsDesc.append(
     ["optimizations-native",
     "value",
     "(optional) enable aggressive compiler optimizations"]
@@ -208,11 +213,12 @@ def generateExtensions():
 if __name__ == "__main__":
   cwd = os.getcwd()
   os.chdir(PY_BINDINGS)
+
   options = getCommandLineOptions()
   platform = getPlatformInfo()
 
-  print "Python Bindings directory: {}".format(PY_BINDINGS)
-  print "NUMPY VERSION: {}".format(numpy.__version__)
+  print "NumPy version: {}".format(numpy.__version__)
+  print "Bindings directory: {}".format(PY_BINDINGS)
 
   try:
     if platform == DARWIN_PLATFORM and not "ARCHFLAGS" in os.environ:
