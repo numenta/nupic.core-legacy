@@ -1106,21 +1106,19 @@ public:
 
   inline size_type CSRSize() const {
     std::stringstream b;
-    char buffer[32];
+    char buffer[64];
 
     b << getVersion() << " " << nRows() << " " << nCols() << " ";
 
     size_type n = b.str().size();
-
     for (size_type row = 0; row != nRows(); ++row) {
       size_type nnzr = nNonZerosOnRow(row);
-      n += sprintf(buffer, "%d ", nnzr);
+      n += sprintf(buffer, "%ld ", (long)nnzr);
       for (nz_index_type j = 0; j != nnzr; ++j)
-        n += sprintf(buffer, "%d ", ind_[row][j]);
+        n += sprintf(buffer, "%ld ", (long)ind_[row][j]);
     }
-
     return n;
-  }
+   }
 
   inline void fromCSR(std::istream &inStream) {
     const std::string where = "SparseBinaryMatrix::readState: ";
