@@ -348,12 +348,12 @@ message(STATUS "CAPNP_LIBRARIES_LITE= ${CAPNP_LIBRARIES_LITE}")
 
 #
 # Add the pycapnp Python package to includes
-execute_process(COMMAND "${PYTHON_EXECUTABLE}" "-c"
-                        "import capnp; import os; import sys; sys.stdout.write(os.path.dirname(os.path.dirname(capnp.__file__)))"
-                        OUTPUT_VARIABLE PYCAPNP)
-include_directories(SYSTEM ${PYCAPNP})
-
-MESSAGE(STATUS "pycapnp location: ${PYCAPNP}")
+if(NOT "${PLATFORM}" STREQUAL "windows")
+  execute_process(COMMAND "${PYTHON_EXECUTABLE}" "-c"
+                          "import capnp; import os; import sys; sys.stdout.write(os.path.dirname(os.path.dirname(capnp.__file__)))"
+                  OUTPUT_VARIABLE PYCAPNP)
+  include_directories(SYSTEM ${PYCAPNP})
+endif()
 
 #
 # Setup libnupic_core
