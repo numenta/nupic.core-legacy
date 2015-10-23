@@ -103,7 +103,7 @@ endif()
 # And NumPy core directory
 #
 find_package(PythonInterp 2.7 REQUIRED)
-execute_process(COMMAND "${PYTHON_EXECUTABLE}" "-c"
+execute_process(COMMAND "${PYTHON_EXECUTABLE}" "-c" 
                         "import numpy; import os; import sys; sys.stdout.write(os.path.dirname(numpy.get_include()))"
                          OUTPUT_VARIABLE NUMPY_CORE)
 
@@ -351,6 +351,7 @@ message(STATUS "CAPNP_LIBRARIES_LITE= ${CAPNP_LIBRARIES_LITE}")
 execute_process(COMMAND "${PYTHON_EXECUTABLE}" "-c"
                         "import capnp; import os; import sys; sys.stdout.write((os.path.dirname(capnp.__file__)))"
                         OUTPUT_VARIABLE PYCAPNP)
+include_directories(SYSTEM ${PYCAPNP})
 
 #
 # Setup libnupic_core
@@ -758,12 +759,6 @@ install(DIRECTORY "${NUMPY_CORE}/lib/"
         DESTINATION lib)
 install(DIRECTORY "${NUMPY_CORE}/include/"
         DESTINATION include)
-install(DIRECTORY "${PYCAPNP}/helpers/"
-        DESTINATION helpers)
-install(DIRECTORY "${PYCAPNP}/includes/"
-        DESTINATION includes)
-install(DIRECTORY "${PYCAPNP}/lib/"
-        DESTINATION lib)
 install(FILES ${CAPNP_LIBRARIES}
         DESTINATION lib)
 foreach(directory ${CAPNP_INCLUDE_DIRS})
