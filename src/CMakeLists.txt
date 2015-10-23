@@ -103,7 +103,7 @@ endif()
 # And NumPy core directory
 #
 find_package(PythonInterp 2.7 REQUIRED)
-execute_process(COMMAND "${PYTHON_EXECUTABLE}" "-c" 
+execute_process(COMMAND "${PYTHON_EXECUTABLE}" "-c"
                         "import numpy; import os; import sys; sys.stdout.write(os.path.dirname(numpy.get_include()))"
                          OUTPUT_VARIABLE NUMPY_CORE)
 
@@ -352,6 +352,8 @@ execute_process(COMMAND "${PYTHON_EXECUTABLE}" "-c"
                         "import capnp; import os; import sys; sys.stdout.write(os.path.dirname(os.path.dirname(capnp.__file__)))"
                         OUTPUT_VARIABLE PYCAPNP)
 include_directories(SYSTEM ${PYCAPNP})
+
+MESSAGE(STATUS "pycapnp location: ${PYCAPNP}")
 
 #
 # Setup libnupic_core
