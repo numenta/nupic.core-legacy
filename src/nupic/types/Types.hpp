@@ -102,7 +102,7 @@ namespace nupic
   /**
    * @name Flexible types
    * 
-   * The following are flexible types depending on `NTA_DOUBLE_PROCESION` and `NTA_BIG_INTEGER`.
+   * The following are flexible types depending on `NTA_DOUBLE_PRECISION` and `NTA_BIG_INTEGER`.
    *
    * @{
    * 
@@ -111,7 +111,7 @@ namespace nupic
   /**
    * Represents a real number(a floating-point number).
    *
-   * Same as nupic::Real64 if `NTA_DOUBLE_PROCESION` is defined, nupic::Real32 otherwise.
+   * Same as nupic::Real64 if `NTA_DOUBLE_PRECISION` is defined, nupic::Real32 otherwise.
    */
   typedef NTA_Real Real;
 

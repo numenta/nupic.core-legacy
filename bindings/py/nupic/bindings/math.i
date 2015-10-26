@@ -83,7 +83,9 @@ _MATH = _math
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include <numpy/arrayobject.h>
 
+#ifndef CAPNP_LITE
 #include <nupic/py_support/PyCapnp.hpp>
+#endif
 %}
 
 %naturalvar;
@@ -169,7 +171,7 @@ import_array();
 		  x_min, x_max, 1, 65535);
     return y.forPython();
   }
-  */			 
+  */ 
 
   PyObject* winnerTakesAll_3(size_t k, size_t seg_size, PyObject* py_x)
   {
@@ -368,14 +370,18 @@ inline PyObject* shuffle(PyObject* obj)
 
 inline void write(PyObject* pyBuilder) const
 {
+%#ifndef CAPNP_LITE
   RandomProto::Builder proto = nupic::getBuilder<RandomProto>(pyBuilder);
   self->write(proto);
+%#endif
 }
 
 inline void read(PyObject* pyReader)
 {
+%#ifndef CAPNP_LITE
   RandomProto::Reader proto = nupic::getReader<RandomProto>(pyReader);
   self->read(proto);
+%#endif
 }
 
 } // End extend nupic::Random.
