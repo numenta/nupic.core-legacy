@@ -334,12 +334,14 @@ create_capnpc_command(capnp_specs
 # Python support
 #
 set (PY_SUPPORT_FILES
-     nupic/py_support/CapnpToPycapnp.cpp
      nupic/py_support/NumpyVector.cpp
      nupic/py_support/PyArray.cpp
      nupic/py_support/PyHelpers.cpp
      nupic/py_support/PythonStream.cpp
 )
+if(NOT "${PLATFORM}" STREQUAL "windows")
+  list(APPEND PY_SUPPORT_FILES nupic/py_support/CapnpToPycapnp.cpp)
+endif()
 
 message(STATUS "CAPNP_DEFINITIONS   = ${CAPNP_DEFINITIONS}")
 message(STATUS "CAPNP_INCLUDE_DIRS  = ${CAPNP_INCLUDE_DIRS}")
