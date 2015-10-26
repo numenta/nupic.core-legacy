@@ -28,7 +28,9 @@
 #include <memory>
 
 #include <capnp/any.h>
+#ifndef CAPNP_LITE
 #include <capnp/dynamic.h>
+#endif
 
 #include <nupic/engine/Spec.hpp>
 #include <nupic/engine/Region.hpp>
