@@ -335,10 +335,22 @@ void testUnregisterRegion()
 void testWriteRead()
 {
   Int32 int32Param = 42;
+  UInt32 uint32Param = 43;
+  Int64 int64Param = 44;
+  UInt64 uint64Param = 45;
+  Real32 real32Param = 46;
+  Real64 real64Param = 46;
+  std::string stringParam = "hello";
 
   Network n1;
   Region* region1 = n1.addRegion("rw1", "py.TestNode", "");
   region1->setParameterInt32("int32Param", int32Param);
+  region1->setParameterUInt32("uint32Param", uint32Param);
+  region1->setParameterInt64("int64Param", int64Param);
+  region1->setParameterUInt64("uint64Param", uint64Param);
+  region1->setParameterReal32("real32Param", real32Param);
+  region1->setParameterReal64("real64Param", real64Param);
+  region1->setParameterString("stringParam", stringParam.c_str());
 
   Network n2;
 
@@ -351,6 +363,12 @@ void testWriteRead()
   Region* region2 = regionPair.second;
 
   NTA_CHECK(region2->getParameterInt32("int32Param") == int32Param);
+  NTA_CHECK(region2->getParameterUInt32("uint32Param") == uint32Param);
+  NTA_CHECK(region2->getParameterInt64("int64Param") == int64Param);
+  NTA_CHECK(region2->getParameterUInt64("uint64Param") == uint64Param);
+  NTA_CHECK(region2->getParameterReal32("real32Param") == real32Param);
+  NTA_CHECK(region2->getParameterReal64("real64Param") == real64Param);
+  NTA_CHECK(region2->getParameterString("stringParam") == stringParam.c_str());
 
   // TODO: check other params as well
 }

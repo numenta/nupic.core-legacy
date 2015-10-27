@@ -304,10 +304,24 @@ class TestNode(PyRegion):
   def write(self, proto):
     regionImpl = proto.regionImpl.as_struct(TestNodeProto)
     regionImpl.int32Param = self.getParameter("int32Param", 0)
+    regionImpl.uint32Param = self.getParameter("uint32Param", 0);
+    regionImpl.int64Param = self.getParameter("int64Param", 0);
+    regionImpl.uint64Param = self.getParameter("uint64Param", 0);
+    regionImpl.real32Param = self.getParameter("real32Param", 0);
+    regionImpl.real64Param = self.getParameter("real64Param", 0);
+    regionImpl.stringParam = self.getParameter("stringParam", 0);
+
     # TODO: Write remaining params
 
 
   def read(self, proto):
     regionImpl = proto.regionImpl.as_struct(TestNodeProto)
     self.setParameter("int32Param", 0, regionImpl.int32Param)
+    self.setParameter("uint32Param", 0, regionImpl.uint32Param)
+    self.setParameter("int64Param", 0, regionImpl.int64Param)
+    self.setParameter("uint64Param", 0, regionImpl.uint64Param)
+    self.setParameter("real32Param", 0, regionImpl.real32Param)
+    self.setParameter("real64Param", 0, regionImpl.real64Param)
+    self.setParameter("stringParam", 0, regionImpl.stringParam)
+
     # TODO: Read remaining params
