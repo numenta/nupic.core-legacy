@@ -56,16 +56,17 @@ def fixPath(path):
 
 
 
-def findRequirements():
+def findRequirements(platform):
   """
   Read the requirements.txt file and parse into requirements for setup's
   install_requirements option.
   """
+  includePycapnp = platform not in WINDOWS_PLATFORMS
   requirementsPath = fixPath(os.path.join(PY_BINDINGS, "requirements.txt"))
   return [
     line.strip()
     for line in open(requirementsPath).readlines()
-    if not line.startswith("#")
+    if not line.startswith("#") and (not line.startswith("pycapnp") or includePycapnp)
   ]
 
 
@@ -558,7 +559,7 @@ if __name__ == "__main__":
       ext_modules=extensions,
       version="0.2.2",
       namespace_packages=["nupic"],
-      install_requires=findRequirements(),
+      install_requires=findRequirements(platform),
       description="Numenta Platform for Intelligent Computing - bindings",
       author="Numenta",
       author_email="help@numenta.org",
