@@ -80,7 +80,7 @@ install:
   - set NUPIC_CORE_RELEASE=%REPO_DIR%\build\release
   - set EXT_LIBS=%REPO_DIR%\external\windows64-gcc\lib
   - set ARTIFACTS_DIR=%REPO_DIR%\build\artifacts
-  - for /f %%i in ('"python ci\appveyor\parse_version.py"') set BINDINGS_VERSION=%%i
+  - for /f %%i in ('"python ci\appveyor\parse_version.py"') do set BINDINGS_VERSION=%%i
 
   #- ECHO "Installed Windows SDKs:"
   #- ps: "ls \"C:/Program Files/Microsoft SDKs/Windows\""
