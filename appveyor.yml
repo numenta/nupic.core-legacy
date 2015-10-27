@@ -8,7 +8,6 @@ version: 0.3.0.{build}
 branches:
   only:
     - master
-    - appveyor-build
 
   except:
     - gh-pages
@@ -79,6 +78,8 @@ install:
   - set REPO_DIR=c:\projects\nupic-core
   - set NUPIC_CORE_RELEASE=%REPO_DIR%\build\release
   - set EXT_LIBS=%REPO_DIR%\external\windows64-gcc\lib
+  - set ARTIFACTS_DIR=%REPO_DIR%\build\artifacts
+  - for /f %%i in ('"python ci\appveyor\parse_version.py"') set BINDINGS_VERSION=%%i
 
   #- ECHO "Installed Windows SDKs:"
   #- ps: "ls \"C:/Program Files/Microsoft SDKs/Windows\""
@@ -194,11 +195,11 @@ build_script:
   - mingw32-make -f Makefile install | findstr /C:"Install" /I /V
 
   - cd %REPO_DIR%
-  - python setup.py install --user --debug --compiler=mingw --nupic-core-dir=%NUPIC_CORE_RELEASE%
+  - python setup.py bdist_wheel --debug --compiler=mingw --nupic-core-dir=%NUPIC_CORE_RELEASE%
 
 after_build:
-  - mkdir %REPO_DIR%\build\artifacts
-  - set ARTIFACTS_DIR=%REPO_DIR%\build\artifacts
+  - mkdir %ARTIFACTS_DIR%
+  - echo Binding version = %BINDINGS_VERSION%
 
   # legacy binary tests
   - cd %REPO_DIR%\build\release\bin
@@ -238,6 +239,7 @@ after_build:
 
 artifacts:
   - path: '**\*.tar.gz' # find all Gz(ip) packages recursively
+  - path: '**\*.whl' # find all Wheel archives recursively
 
 deploy:
   # Amazon S3 deployment provider settings
@@ -249,7 +251,7 @@ deploy:
     bucket: "artifacts.numenta.org"
     region: us-west-2
     set_public: true
-    artifact: "nupic_core-$(APPVEYOR_REPO_COMMIT)-windows64.tar.gz"
+    artifact: "nupic.bindings-$(BINDINGS_VERSION)-cp27-none-win_amd64.whl"
     folder: "numenta/nupic.core"
     on:
       branch: master
