@@ -47,7 +47,7 @@ namespace capnp {
 // MSVC only supports "lite" mode for now, due to missing C++11 features.
 #endif
 
-#ifndef CAPNP_LITE
+#if !CAPNP_LITE
 #define CAPNP_LITE 0
 #endif
 
