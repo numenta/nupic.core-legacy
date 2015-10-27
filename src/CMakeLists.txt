@@ -281,16 +281,6 @@ add_library(${LIB_STATIC_Z} STATIC IMPORTED GLOBAL)
 find_package(PythonLibs REQUIRED)
 include_directories(SYSTEM ${PYTHON_INCLUDE_DIRS})
 
-#
-# Python support
-#
-set (PY_SUPPORT_FILES
-     nupic/py_support/NumpyVector.cpp
-     nupic/py_support/PyArray.cpp
-     nupic/py_support/PyHelpers.cpp
-     nupic/py_support/PythonStream.cpp
-)
-
 message(STATUS "PYTHON_EXECUTABLE   = ${PYTHON_EXECUTABLE}")
 message(STATUS "PYTHON_INCLUDE_DIRS = ${PYTHON_INCLUDE_DIRS}")
 message(STATUS "PYTHON_LIBRARIES    = ${PYTHON_LIBRARIES}")
