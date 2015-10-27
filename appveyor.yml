@@ -70,8 +70,8 @@ nuget:
 configuration: Release
 
 cache:
-  - mingwpy_amd64_vc90.7z
-  - libpython-cp27-none-win_amd64.7z
+  - C:\mingwpy_amd64_vc90.7z
+  - C:\libpython-cp27-none-win_amd64.7z
 
 install:
   - set NUPIC_DEPLOYMENT_BUILD=1
