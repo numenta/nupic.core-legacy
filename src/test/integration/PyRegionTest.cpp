@@ -342,6 +342,10 @@ void testWriteRead()
   Real64 real64Param = 46;
   std::string stringParam = "hello";
 
+  std::vector<Int64> int64ArrayParamBuff(4);
+  for (int i = 0; i < 4; i++) int64ArrayParamBuff[i] = i + 1;
+  Array int64ArrayParam(NTA_BasicType_Int64, &int64ArrayParamBuff[0], int64ArrayParamBuff.size());
+
   Network n1;
   Region* region1 = n1.addRegion("rw1", "py.TestNode", "");
   region1->setParameterInt32("int32Param", int32Param);
@@ -351,6 +355,7 @@ void testWriteRead()
   region1->setParameterReal32("real32Param", real32Param);
   region1->setParameterReal64("real64Param", real64Param);
   region1->setParameterString("stringParam", stringParam.c_str());
+  region1->setParameterArray("int64ArrayParam", int64ArrayParam);
 
   Network n2;
 
@@ -369,6 +374,12 @@ void testWriteRead()
   NTA_CHECK(region2->getParameterReal32("real32Param") == real32Param);
   NTA_CHECK(region2->getParameterReal64("real64Param") == real64Param);
   NTA_CHECK(region2->getParameterString("stringParam") == stringParam.c_str());
+
+  Array int64Array(NTA_BasicType_Int64);
+  region2->getParameterArray("int64ArrayParam", int64Array);
+  Int64 * int64ArrayBuff = (Int64 *)int64Array.getBuffer();
+  NTA_CHECK(int64ArrayParam.getCount() == int64Array.getCount());
+  for (int i = 0; i < int(int64ArrayParam.getCount()); i++) NTA_CHECK(int64ArrayBuff[i] == int64ArrayParamBuff[i]);
 
   // TODO: check other params as well
 }

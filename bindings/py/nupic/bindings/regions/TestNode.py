@@ -311,6 +311,13 @@ class TestNode(PyRegion):
     regionImpl.real64Param = self.getParameter("real64Param", 0);
     regionImpl.stringParam = self.getParameter("stringParam", 0);
 
+    int64ArrayParamCount = self.getParameterArrayCount("int64ArrayParam", 0)
+    int64ArrayParam = numpy.zeros(int64ArrayParamCount, dtype='Int64')
+    self.getParameterArray("int64ArrayParam", 0, int64ArrayParam)
+    int64ArrayParamField = regionImpl.init('int64ArrayParam', int64ArrayParamCount)
+    for i in range(int64ArrayParamCount):
+      int64ArrayParamField[i] = int(int64ArrayParam[i])
+
     # TODO: Write remaining params
 
 
@@ -323,5 +330,11 @@ class TestNode(PyRegion):
     self.setParameter("real32Param", 0, regionImpl.real32Param)
     self.setParameter("real64Param", 0, regionImpl.real64Param)
     self.setParameter("stringParam", 0, regionImpl.stringParam)
+
+    int64ArrayParamCount = len(regionImpl.int64ArrayParam)
+    int64ArrayParam = numpy.zeros(int64ArrayParamCount, dtype='Int64')
+    for i in range(int64ArrayParamCount):
+      int64ArrayParam[i] = regionImpl.int64ArrayParam[i]
+    self.setParameter("int64ArrayParam", 0, int64ArrayParam)
 
     # TODO: Read remaining params
