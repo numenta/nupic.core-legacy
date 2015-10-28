@@ -83,7 +83,7 @@ _MATH = _math
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include <numpy/arrayobject.h>
 
-#ifndef CAPNP_LITE
+#if !CAPNP_LITE
 #include <nupic/py_support/PyCapnp.hpp>
 #endif
 %}
@@ -370,7 +370,7 @@ inline PyObject* shuffle(PyObject* obj)
 
 inline void write(PyObject* pyBuilder) const
 {
-%#ifndef CAPNP_LITE
+%#if !CAPNP_LITE
   RandomProto::Builder proto = nupic::getBuilder<RandomProto>(pyBuilder);
   self->write(proto);
 %#endif
@@ -378,7 +378,7 @@ inline void write(PyObject* pyBuilder) const
 
 inline void read(PyObject* pyReader)
 {
-%#ifndef CAPNP_LITE
+%#if !CAPNP_LITE
   RandomProto::Reader proto = nupic::getReader<RandomProto>(pyReader);
   self->read(proto);
 %#endif
