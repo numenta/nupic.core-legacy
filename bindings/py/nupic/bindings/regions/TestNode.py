@@ -301,6 +301,15 @@ class TestNode(PyRegion):
     return None
 
 
+  def writeArray(self, regionImpl, name, dtype, castFn):
+    count = self.getParameterArrayCount(name, 0)
+    param = numpy.zeros(count, dtype=dtype)
+    self.getParameterArray(name, 0, param)
+    field = regionImpl.init(name, count)
+    for i in range(count):
+      field[i] = castFn(param[i])
+
+
   def write(self, proto):
     regionImpl = proto.regionImpl.as_struct(TestNodeProto)
     regionImpl.int32Param = self.getParameter("int32Param", 0)
@@ -311,14 +320,17 @@ class TestNode(PyRegion):
     regionImpl.real64Param = self.getParameter("real64Param", 0);
     regionImpl.stringParam = self.getParameter("stringParam", 0);
 
-    int64ArrayParamCount = self.getParameterArrayCount("int64ArrayParam", 0)
-    int64ArrayParam = numpy.zeros(int64ArrayParamCount, dtype='Int64')
-    self.getParameterArray("int64ArrayParam", 0, int64ArrayParam)
-    int64ArrayParamField = regionImpl.init('int64ArrayParam', int64ArrayParamCount)
-    for i in range(int64ArrayParamCount):
-      int64ArrayParamField[i] = int(int64ArrayParam[i])
+    self.writeArray(regionImpl, "int64ArrayParam", "Int64", lambda x: int(x))
+    self.writeArray(regionImpl, "real32ArrayParam", "Float32", lambda x: float(x))
 
-    # TODO: Write remaining params
+
+  def readArray(self, regionImpl, name, dtype):
+    field = getattr(regionImpl, name)
+    count = len(field)
+    param = numpy.zeros(count, dtype=dtype)
+    for i in range(count):
+      param[i] = field[i]
+    self.setParameter(name, 0, param)
 
 
   def read(self, proto):
@@ -331,10 +343,5 @@ class TestNode(PyRegion):
     self.setParameter("real64Param", 0, regionImpl.real64Param)
     self.setParameter("stringParam", 0, regionImpl.stringParam)
 
-    int64ArrayParamCount = len(regionImpl.int64ArrayParam)
-    int64ArrayParam = numpy.zeros(int64ArrayParamCount, dtype='Int64')
-    for i in range(int64ArrayParamCount):
-      int64ArrayParam[i] = regionImpl.int64ArrayParam[i]
-    self.setParameter("int64ArrayParam", 0, int64ArrayParam)
-
-    # TODO: Read remaining params
+    self.readArray(regionImpl, "int64ArrayParam", "Int64")
+    self.readArray(regionImpl, "real32ArrayParam", "Float32")
