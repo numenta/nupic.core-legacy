@@ -50,6 +50,8 @@
 #include <iostream>
 #include <stdexcept>
 
+#include <capnp/message.h>
+
 bool ignore_negative_tests = false;
 #define SHOULDFAIL(statement) \
   { \
@@ -330,6 +332,29 @@ void testUnregisterRegion()
 
 }
 
+void testWriteRead()
+{
+  Int32 int32Param = 42;
+
+  Network n1;
+  Region* region1 = n1.addRegion("rw1", "py.TestNode", "");
+  region1->setParameterInt32("int32Param", int32Param);
+
+  Network n2;
+
+  std::stringstream ss;
+  n1.write(ss);
+  n2.read(ss);
+
+  const Collection<Region*>& regions = n2.getRegions();
+  const std::pair<std::string, Region*>& regionPair = regions.getByIndex(0);
+  Region* region2 = regionPair.second;
+
+  NTA_CHECK(region2->getParameterInt32("int32Param") == int32Param);
+
+  // TODO: check other params as well
+}
+
 int realmain(bool leakTest)
 {
   // verbose == true turns on extra output that is useful for
@@ -343,7 +368,7 @@ int realmain(bool leakTest)
   std::cout << "Region count is " << n.getRegions().getCount() << "" << std::endl;
 
   std::cout << "Adding a PyNode region..." << std::endl;
-  Network::registerPyRegion("nupic.regions.TestNode", "TestNode");
+  Network::registerPyRegion("nupic.bindings.regions.TestNode", "TestNode");
   Region* level2 = n.addRegion("level2", "py.TestNode", "{int32Param: 444}");
 
   std::cout << "Region count is " << n.getRegions().getCount() << "" << std::endl;
@@ -394,6 +419,7 @@ int realmain(bool leakTest)
     //testNuPIC1x();
     //testPynode1xLinking();
   }
+  testWriteRead();
 
   // testUnregisterRegion needs to be the last test run as it will unregister
   // the region 'TestNode'.

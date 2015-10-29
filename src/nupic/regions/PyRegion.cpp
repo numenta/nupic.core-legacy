@@ -28,11 +28,15 @@
 #include <memory>
 
 #include <capnp/any.h>
+#ifndef CAPNP_LITE
+#include <capnp/dynamic.h>
+#endif
 
 #include <nupic/engine/Spec.hpp>
 #include <nupic/engine/Region.hpp>
 #include <nupic/engine/Input.hpp>
 #include <nupic/engine/Output.hpp>
+#include <nupic/proto/PyRegionProto.capnp.h>
 #include <nupic/utils/Log.hpp>
 #include <nupic/ntypes/ObjectModel.hpp> // IWrite/ReadBuffer
 #include <nupic/ntypes/Value.hpp>
@@ -43,8 +47,12 @@
 #include <nupic/utils/Log.hpp>
 #include <nupic/os/Path.hpp>
 #include <nupic/py_support/PyArray.hpp>
+#ifndef CAPNP_LITE
+#include <nupic/py_support/PyCapnp.hpp>
+#endif
 
 using namespace nupic;
+using ::capnp::DynamicStruct;
 
 #define LAST_ERROR_LENGTH 1024
 static char lastError[LAST_ERROR_LENGTH];
@@ -136,6 +144,30 @@ extern "C"
       BundleIO *b = static_cast<nupic::BundleIO*>(bundle);
       RegionImpl * p = NULL;
       p = new PyRegion(module, *b, r, className);
+      return p;
+    }
+    catch (nupic::Exception & e)
+    {
+      *exception = new nupic::Exception(e);
+      return NULL;
+    }
+    catch (...)
+    {
+      return NULL;
+    }
+  }
+
+  void * PyRegion::NTA_deserializePyNodeProto(const char * module, void * proto,
+      void * region, void ** exception, const char* className)
+  {
+    try
+    {
+      NTA_CHECK(region != NULL);
+
+      Region * r = static_cast<nupic::Region*>(region);
+      capnp::AnyPointer::Reader *c = static_cast<capnp::AnyPointer::Reader*>(proto);
+      RegionImpl * p = NULL;
+      p = new PyRegion(module, *c, r, className);
       return p;
     }
     catch (nupic::Exception & e)
@@ -340,6 +372,32 @@ PyRegion::PyRegion(const char* module, BundleIO& bundle, Region * region, const
   // XXX ADD CHECK TO MAKE SURE THE TYPE MATCHES!
 }
 
+PyRegion::PyRegion(const char * module,
+                   capnp::AnyPointer::Reader& proto,
+                   Region * region,
+                   const char* className):
+  RegionImpl(region),
+  module_(module),
+  className_(className)
+{
+  NTA_CHECK(region != NULL);
+
+  std::string realClassName(className);
+  if (realClassName.empty())
+  {
+    realClassName = Path::getExtension(module_);
+  }
+
+  py::Tuple args((Py_ssize_t)0);
+  py::Dict kwargs;
+
+  // Instantiate a node and assign it  to the node_ member
+  node_.assign(py::Instance(module_, realClassName, args, kwargs));
+  NTA_CHECK(node_);
+
+  read(proto);
+}
+
 PyRegion::~PyRegion()
 {
   for (std::map<std::string, Array*>::iterator i = inputArrays_.begin();
@@ -431,12 +489,24 @@ void PyRegion::deserialize(BundleIO& bundle)
 
 void PyRegion::write(capnp::AnyPointer::Builder& proto) const
 {
-  NTA_THROW << "Unimplemented method PyRegion::write.";
+  #ifndef CAPNP_LITE
+  PyRegionProto::Builder pyRegionProto = proto.getAs<PyRegionProto>();
+  PyObject* pyBuilder = getPyBuilder(capnp::toDynamic(pyRegionProto));
+  py::Tuple args(1);
+  args.setItem(0, pyBuilder);
+  py::Ptr _none(node_.invoke("write", args));
+  #endif
 }
 
 void PyRegion::read(capnp::AnyPointer::Reader& proto)
 {
-  NTA_THROW << "Unimplemented method PyRegion::read.";
+  #ifndef CAPNP_LITE
+  PyRegionProto::Reader pyRegionProto = proto.getAs<PyRegionProto>();
+  PyObject* pyReader = getPyReader(capnp::toDynamic(pyRegionProto));
+  py::Tuple args(1);
+  args.setItem(0, pyReader);
+  py::Ptr _none(node_.invoke("read", args));
+  #endif
 }
 
 const Spec & PyRegion::getSpec()
