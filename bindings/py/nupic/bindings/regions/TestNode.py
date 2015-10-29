@@ -319,6 +319,8 @@ class TestNode(PyRegion):
     regionImpl.real32Param = self.getParameter("real32Param", 0);
     regionImpl.real64Param = self.getParameter("real64Param", 0);
     regionImpl.stringParam = self.getParameter("stringParam", 0);
+    regionImpl.delta = self._delta
+    regionImpl.iterations = self._iter
 
     self.writeArray(regionImpl, "int64ArrayParam", "Int64", lambda x: int(x))
     self.writeArray(regionImpl, "real32ArrayParam", "Float32", lambda x: float(x))
@@ -342,6 +344,8 @@ class TestNode(PyRegion):
     self.setParameter("real32Param", 0, regionImpl.real32Param)
     self.setParameter("real64Param", 0, regionImpl.real64Param)
     self.setParameter("stringParam", 0, regionImpl.stringParam)
+    self._delta = regionImpl.delta
+    self._iter = regionImpl.iterations
 
     self.readArray(regionImpl, "int64ArrayParam", "Int64")
     self.readArray(regionImpl, "real32ArrayParam", "Float32")

@@ -391,8 +391,6 @@ void testWriteRead()
   Real32 * real32ArrayBuff = (Real32 *)real32Array.getBuffer();
   NTA_CHECK(real32ArrayParam.getCount() == real32Array.getCount());
   for (int i = 0; i < int(real32ArrayParam.getCount()); i++) NTA_CHECK(real32ArrayBuff[i] == real32ArrayParamBuff[i]);
-
-  // TODO: check other params as well
 }
 
 int realmain(bool leakTest)
