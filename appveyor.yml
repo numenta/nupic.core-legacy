@@ -8,7 +8,7 @@ version: 0.3.0.{build}
 branches:
   only:
     - master
-    - windows-wheel-support
+    - wheel-s3-upload
 
   except:
     - gh-pages
@@ -86,14 +86,14 @@ install:
   #- ps: "ls \"C:/Program Files/Microsoft SDKs/Windows\""
 
   # Reference: https://bitbucket.org/carlkl/mingw-w64-for-python/downloads/mingwpy-2015-04-readme.md
-  - ECHO "Installing MinGW-w64 for Python:"
   - ps: $dwntool=New-Object System.Net.WebClient
-  - ps: $dwntool.DownloadFile("https://bitbucket.org/carlkl/mingw-w64-for-python/downloads/mingwpy_amd64_vc90.7z", "C:\\mingwpy_amd64_vc90.7z")
+
+  - ECHO "Installing MinGW-w64 for Python:"
+  - ps: if (-Not (Test-Path "C:\\mingwpy_amd64_vc90.7z")) { $dwntool.DownloadFile("https://bitbucket.org/carlkl/mingw-w64-for-python/downloads/mingwpy_amd64_vc90.7z", "C:\\mingwpy_amd64_vc90.7z") }
   - 7z x C:\\mingwpy_amd64_vc90.7z -oC:\ > null
 
   - ECHO "Installing MinGW-w64 Python 2.7.x libs:"
-  - ps: $dwntool=New-Object System.Net.WebClient
-  - ps: $dwntool.DownloadFile("https://bitbucket.org/carlkl/mingw-w64-for-python/downloads/libpython-cp27-none-win_amd64.7z", "C:\\libpython-cp27-none-win_amd64.7z")
+  - ps: if (-Not (Test-Path "C:\\libpython-cp27-none-win_amd64.7z")) { $dwntool.DownloadFile("https://bitbucket.org/carlkl/mingw-w64-for-python/downloads/libpython-cp27-none-win_amd64.7z", "C:\\libpython-cp27-none-win_amd64.7z") }
   - 7z x C:\\libpython-cp27-none-win_amd64.7z -oC:\Python27-x64\ > null
 
   - set CC=gcc
@@ -159,6 +159,7 @@ install:
 
   # Remove sh.exe from the paths
   - set PATH=%PATH:C:\Program Files (x86)\Git\bin;=%
+  - set PATH=%PATH:C:\Program Files\Git\usr\bin;=%
   - set PATH=%PATH:C:\MinGW\msys\1.0\bin;=%
 
   # Fake KJ-Async and Capnp-RPC libs, not needed in Lite mode
@@ -246,15 +247,15 @@ deploy:
   # Amazon S3 deployment provider settings
   - provider: S3
     access_key_id:
-      secure: /9U0mCHp3k1U8Y5CY/kDqwCKG2gqchG/T/UlVWo8SME=
+      secure: D942gmPEB3lICGqL4M1HhaEqkBxr+DP7sb4pUc8UXqI=
     secret_access_key:
-      secure: /8wO17Gir0XAiecJkHeE3jxOJzvyl0+uWcl7BKCuN0FC795golsL8905VmNuRl1o
+      secure: 1wvNyHZO/6LKqNmAHcGEDxBHRjOC0iXUhSkXjZq6CGL0Cx5Kjtxnxhkz63ohknOH
     bucket: "artifacts.numenta.org"
     region: us-west-2
     set_public: true
-    artifact: "nupic.bindings-$(BINDINGS_VERSION)-cp27-none-win_amd64.whl"
+    artifact: "bindings\\py\\dist\\nupic.bindings-$(BINDINGS_VERSION)-cp27-none-win_amd64.whl"
     folder: "numenta/nupic.core"
     on:
-      branch: master
+      branch: wheel-s3-upload
 
 test: off
