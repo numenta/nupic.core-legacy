@@ -255,6 +255,6 @@ deploy:
     artifact: "nupic.bindings-$(BINDINGS_VERSION)-cp27-none-win_amd64.whl"
     folder: "numenta/nupic.core"
     on:
-      branch: master
+      branch: wheel-s3-upload
 
 test: off
