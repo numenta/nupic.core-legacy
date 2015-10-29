@@ -8,7 +8,7 @@ version: 0.3.0.{build}
 branches:
   only:
     - master
-    - windows-wheel-support
+    - wheel-s3-upload
 
   except:
     - gh-pages
@@ -246,9 +246,9 @@ deploy:
   # Amazon S3 deployment provider settings
   - provider: S3
     access_key_id:
-      secure: /9U0mCHp3k1U8Y5CY/kDqwCKG2gqchG/T/UlVWo8SME=
+      secure: D942gmPEB3lICGqL4M1HhaEqkBxr+DP7sb4pUc8UXqI=
     secret_access_key:
-      secure: /8wO17Gir0XAiecJkHeE3jxOJzvyl0+uWcl7BKCuN0FC795golsL8905VmNuRl1o
+      secure: 1wvNyHZO/6LKqNmAHcGEDxBHRjOC0iXUhSkXjZq6CGL0Cx5Kjtxnxhkz63ohknOH
     bucket: "artifacts.numenta.org"
     region: us-west-2
     set_public: true
