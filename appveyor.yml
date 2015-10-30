@@ -252,7 +252,7 @@ deploy:
     bucket: "artifacts.numenta.org"
     region: us-west-2
     set_public: true
-    artifact: "nupic.bindings-$(BINDINGS_VERSION)-cp27-none-win_amd64.whl"
+    artifact: "bindings\py\dist\nupic.bindings-$(BINDINGS_VERSION)-cp27-none-win_amd64.whl"
     folder: "numenta/nupic.core"
     on:
       branch: wheel-s3-upload
