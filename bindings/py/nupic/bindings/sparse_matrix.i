@@ -27,7 +27,7 @@
 #include <nupic/math/NearestNeighbor.hpp>
 #include <nupic/proto/SparseMatrixProto.capnp.h>
 #include <nupic/proto/SparseBinaryMatrixProto.capnp.h>
-#ifndef CAPNP_LITE
+#if !defined(CAPNP_LITE)
 #include <nupic/py_support/PyCapnp.hpp>
 #endif
 #include <nupic/py_support/NumpyVector.hpp>
@@ -488,7 +488,7 @@ def __div__(self, other):
 
   inline void write(PyObject* pyBuilder) const
   {
-  %#ifndef CAPNP_LITE
+  %#if !defined(CAPNP_LITE)
     SparseMatrixProto::Builder proto =
         nupic::getBuilder<SparseMatrixProto>(pyBuilder);
     self->write(proto);
@@ -497,7 +497,7 @@ def __div__(self, other):
 
   inline void read(PyObject* pyReader)
   {
-  %#ifndef CAPNP_LITE
+  %#if !defined(CAPNP_LITE)
     SparseMatrixProto::Reader proto =
         nupic::getReader<SparseMatrixProto>(pyReader);
     self->read(proto);
@@ -2900,7 +2900,7 @@ def __setstate__(self, inString):
 
   inline void write(PyObject* pyBuilder) const
   {
-  %#ifndef CAPNP_LITE
+  %#if !defined(CAPNP_LITE)
     SparseBinaryMatrixProto::Builder proto =
         nupic::getBuilder<SparseBinaryMatrixProto>(pyBuilder);
     self->write(proto);
@@ -2909,7 +2909,7 @@ def __setstate__(self, inString):
 
   inline void read(PyObject* pyReader)
   {
-  %#ifndef CAPNP_LITE
+  %#if !defined(CAPNP_LITE)
     SparseBinaryMatrixProto::Reader proto =
         nupic::getReader<SparseBinaryMatrixProto>(pyReader);
     self->read(proto);
@@ -3419,7 +3419,7 @@ def __setstate__(self, inString):
 
   inline void write(PyObject* pyBuilder) const
   {
-  %#ifndef CAPNP_LITE
+  %#if !defined(CAPNP_LITE)
     SparseBinaryMatrixProto::Builder proto =
         nupic::getBuilder<SparseBinaryMatrixProto>(pyBuilder);
     self->write(proto);
@@ -3428,7 +3428,7 @@ def __setstate__(self, inString):
 
   inline void read(PyObject* pyReader)
   {
-  %#ifndef CAPNP_LITE
+  %#if !defined(CAPNP_LITE)
     SparseBinaryMatrixProto::Reader proto =
         nupic::getReader<SparseBinaryMatrixProto>(pyReader);
     self->read(proto);

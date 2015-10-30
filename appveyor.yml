@@ -159,6 +159,7 @@ install:
 
   # Remove sh.exe from the paths
   - set PATH=%PATH:C:\Program Files (x86)\Git\bin;=%
+  - set PATH=%PATH:C:\Program Files\Git\usr\bin;=%
   - set PATH=%PATH:C:\MinGW\msys\1.0\bin;=%
 
   # Fake KJ-Async and Capnp-RPC libs, not needed in Lite mode
