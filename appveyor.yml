@@ -8,7 +8,6 @@ version: 0.3.0.{build}
 branches:
   only:
     - master
-    - wheel-s3-upload
 
   except:
     - gh-pages
@@ -181,6 +180,6 @@ deploy:
     artifact: "nupic.bindings-$(BINDINGS_VERSION)-cp27-none-win_amd64.whl"
     folder: "numenta/nupic.core/releases/nupic.bindings"
     on:
-      branch: wheel-s3-upload
+      branch: master
 
 test: off
