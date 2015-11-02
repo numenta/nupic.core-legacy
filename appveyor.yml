@@ -164,8 +164,8 @@ after_build:
   - ps: cp .\bindings\py\dist\nupic.bindings-$env:BINDINGS_VERSION-cp27-none-win_amd64.whl .
 
 artifacts:
-  - path: 'nupic_core-$(APPVEYOR_REPO_COMMIT)-windows64.tar.gz'
-  - path: 'nupic.bindings-$(BINDINGS_VERSION)-cp27-none-win_amd64.whl'
+  - path: '**\*.tar.gz'
+  - path: '**\*.whl'
 
 deploy:
   # Amazon S3 deployment provider settings
