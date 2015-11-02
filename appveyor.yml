@@ -162,7 +162,7 @@ after_build:
   - ps: 7z a -tgzip -y -bd ..\..\nupic_core-$env:APPVEYOR_REPO_COMMIT-windows64.tar.gz nupic_core-$env:APPVEYOR_REPO_COMMIT-windows64.tar
 
   - cd %REPO_DIR%
-  - copy bindings\py\dist\nupic.bindings-$(BINDINGS_VERSION)-cp27-none-win_amd64.whl .
+  - ps: cp .\bindings\py\dist\nupic.bindings-$env:BINDINGS_VERSION-cp27-none-win_amd64.whl .
 
 artifacts:
   - path: 'nupic_core-$(APPVEYOR_REPO_COMMIT)-windows64.tar.gz'
