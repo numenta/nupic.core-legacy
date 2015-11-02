@@ -157,11 +157,12 @@ after_build:
   - unit_tests.exe --gtest_output=xml:%ARTIFACTS_DIR%\unit_tests_report.xml"
 
   # Package up nupic.core C++ library
+  - cd %REPO_DIR%\build\release
   - ps: 7z a -ttar -y -bd nupic_core-$env:APPVEYOR_REPO_COMMIT-windows64.tar . | findstr /b /c:"Everything is Ok" /c:"Scanning" /c:"Creating archive"
   - ps: 7z a -tgzip -y -bd ..\..\nupic_core-$env:APPVEYOR_REPO_COMMIT-windows64.tar.gz nupic_core-$env:APPVEYOR_REPO_COMMIT-windows64.tar
 
   - cd %REPO_DIR%
-  - ps: cp .\bindings\py\dist\nupic.bindings-$env:BINDINGS_VERSION-cp27-none-win_amd64.whl .
+  - ps: move .\bindings\py\dist\nupic.bindings-$env:BINDINGS_VERSION-cp27-none-win_amd64.whl .
 
 artifacts:
   - path: '**\*.tar.gz'
