@@ -45,23 +45,6 @@ environment:
   matrix:
     - PYTHON_VERSION: "2.7.9"
       PYTHONPATH: "C:\\Python27-x64"
-      DEPLOY_TO_NUGET: 0
-
-    #- PYTHON_VERSION: "3.5.0rc2"
-    #  PYTHONPATH: "C:\\Python35-x64"
-    #  DEPLOY_TO_NUGET: 0
-
-matrix:
-  fast_finish: false
-  allow_failures:
-    - PYTHON_VERSION: "3.5.0rc2"
-      
-nuget:
-  account_feed: true
-  project_feed: true
-  disable_publish_on_pr: true
-  # disable publishing of .nupkg artifacts to
-  # account/project feeds for pull request builds
 
 #---------------------------------#
 #       build configuration       #
@@ -72,6 +55,7 @@ configuration: Release
 cache:
   - C:\mingwpy_amd64_vc90.7z
   - C:\libpython-cp27-none-win_amd64.7z
+  - C:\numpy-1.9.1+openblas-cp27-none-win_amd64.whl
 
 install:
   - set NUPIC_DEPLOYMENT_BUILD=1
@@ -81,9 +65,7 @@ install:
   - set EXT_LIBS=%REPO_DIR%\external\windows64-gcc\lib
   - set ARTIFACTS_DIR=%REPO_DIR%\build\artifacts
   - for /f %%i in ('"python ci\appveyor\parse_version.py"') do set BINDINGS_VERSION=%%i
-
-  #- ECHO "Installed Windows SDKs:"
-  #- ps: "ls \"C:/Program Files/Microsoft SDKs/Windows\""
+  - echo Binding version = %BINDINGS_VERSION%
 
   # Reference: https://bitbucket.org/carlkl/mingw-w64-for-python/downloads/mingwpy-2015-04-readme.md
   - ps: $dwntool=New-Object System.Net.WebClient
@@ -96,40 +78,15 @@ install:
   - ps: if (-Not (Test-Path "C:\\libpython-cp27-none-win_amd64.7z")) { $dwntool.DownloadFile("https://bitbucket.org/carlkl/mingw-w64-for-python/downloads/libpython-cp27-none-win_amd64.7z", "C:\\libpython-cp27-none-win_amd64.7z") }
   - 7z x C:\\libpython-cp27-none-win_amd64.7z -oC:\Python27-x64\ > null
 
-  - set CC=gcc
-  - set CXX=g++
   - set PATH=C:\mingwpy\bin;%PATH%
 
-  # Patch up LTO plugins (only needed for certain MinGW-w64 GCC toolchain)
+  # Patch up LTO plugins (only needed for certain MinGW-w64 GCC toolchains)
   #- mkdir C:\mingw64\lib\bfd-plugins
   #- cp C:\mingw64\libexec\gcc\x86_64-w64-mingw32\4.9.3\liblto_plugin-0.dll C:\mingw64\lib\bfd-plugins\liblto_plugin-0.dll
 
+  # Install Python 2.7.x, Pip, Wheel, and NumPy
   - cd %REPO_DIR%\ci\appveyor
-
-  # Install Python 2.7.x or 3.5.0rc2
-  - ps: >-
-      if ($env:PYTHON_VERSION -Match "3.5.0rc2") {
-        if (-Not (Test-Path "python-3.5.0rc2-amd64.exe")) {
-          $url  = "https://www.python.org/ftp/python/3.5.0/python-3.5.0rc2-amd64.exe"
-
-          Invoke-WebRequest -UserAgent wget -Uri $url -OutFile python-3.5.0rc2-amd64.exe
-
-        }
-
-        ECHO "Installing Python 3.5.0 RC2:"
-
-        python-3.5.0rc2-amd64.exe /p /q CompileAll=1 PrependPath=0 Include_test=0 TargetDir=$env:PYTHONPATH
-
-        ECHO "Installing NumPy 1.9.2:"
-
-        pip install "numpy-1.9.2+mkl-cp35-none-win_amd64.whl"
-
-      } else {
-        ECHO "Installing Python 2.7.x:"
-
-        .\install_python_pip.ps1
-
-      }
+  - ps: .\install_python_pip.ps1
 
   - set PYTHONPATH=%PYTHONPATH%
   - set PATH=%PYTHONPATH%;%PYTHONPATH%\Scripts;%PATH%
@@ -137,8 +94,8 @@ install:
   # Setup MinGW-w64 GCC as a valid distutils compiler
   - cp %REPO_DIR%\external\windows64-gcc\bin\distutils.cfg %PYTHONPATH%\Lib\distutils\distutils.cfg
 
-  - ECHO "PATH is now:"
-  - echo %PATH%
+  #- ECHO "PATH is now:"
+  #- echo %PATH%
 
   # Check that we have the expected version and architecture for Python
   - "python --version"
@@ -146,9 +103,6 @@ install:
 
   # Check NumPy installed correctly
   - cmd: pip list
-
-  #- ECHO "Filesystem root:"
-  #- ps: "ls \"C:/\""
 
   - cd %REPO_DIR%
   - mkdir %REPO_DIR%\build\
@@ -186,9 +140,6 @@ install:
       -DLIB_STATIC_YAML_LOC=%EXT_LIBS%\libyaml.a 
       -DLIB_STATIC_Z_LOC=%EXT_LIBS%\libz.a 
       %REPO_DIR%
-  #   -DCMAKE_EXPORT_COMPILE_COMMAND=ON Only for 'Unix Makefiles' and 'Ninja' generators
-  #   -DCMAKE_USER_MAKE_RULES_OVERRIDE="%REPO_DIR%\ci\appveyor\ClangOverrides.txt"
-  #   -D_CMAKE_TOOLCHAIN_PREFIX=llvm-
 
 build_script:
   - cd %REPO_DIR%\build\scripts
@@ -201,47 +152,22 @@ build_script:
 
 after_build:
   - mkdir %ARTIFACTS_DIR%
-  - echo Binding version = %BINDINGS_VERSION%
 
   # legacy binary tests
   - cd %REPO_DIR%\build\release\bin
   - cpp_region_test.exe
   - unit_tests.exe --gtest_output=xml:%ARTIFACTS_DIR%\unit_tests_report.xml"
 
-  - ps: >-
-      if($env:DEPLOY_TO_NUGET -eq 1) {
-        $root = $env:APPVEYOR_BUILD_FOLDER
+  - 7z a -ttar -y -bd nupic_core-$env:APPVEYOR_REPO_COMMIT-windows64.tar . | findstr /b /c:"Everything is Ok" /c:"Scanning" /c:"Creating archive"
 
-        $versionStr = $env:APPVEYOR_BUILD_VERSION
+  - 7z a -tgzip -y -bd ..\..\nupic_core-$env:APPVEYOR_REPO_COMMIT-windows64.tar.gz nupic_core-$env:APPVEYOR_REPO_COMMIT-windows64.tar
 
-        Write-Host $root
-
-        Write-Host "Setting Package.nuspec version tag to $versionStr"
-
-        $content = (Get-Content $root\ci\appveyor\Package.nuspec) 
-
-        $content = $content -replace '\$version\$',$versionStr
-
-        $content | Out-File $root\ci\appveyor\Package.nuspec
-
-        copy $env:REPO_DIR\ci\appveyor\Package.nuspec .
-
-        nuget pack -version $env:APPVEYOR_BUILD_VERSION
-
-        nuget push *.nupkg 30618afb-ecf6-4476-8e61-a5b823ad9892
-        # NOTE: Push to nuget is here, rather than normal AV deployment
-
-      }
-
-      # This packages via CMakeList CPack settings
-
-      7z a -ttar -y -bd nupic_core-$env:APPVEYOR_REPO_COMMIT-windows64.tar . | findstr /b /c:"Everything is Ok" /c:"Scanning" /c:"Creating archive"
-
-      7z a -tgzip -y -bd ..\..\nupic_core-$env:APPVEYOR_REPO_COMMIT-windows64.tar.gz nupic_core-$env:APPVEYOR_REPO_COMMIT-windows64.tar
+  - cd %REPO_DIR%
+  - cp bindings\py\dist\nupic.bindings-$(BINDINGS_VERSION)-cp27-none-win_amd64.whl .
 
 artifacts:
-  - path: '**\*.tar.gz' # find all Gz(ip) packages recursively
-  - path: '**\*.whl' # find all Wheel archives recursively
+  - path: 'nupic_core-$env:APPVEYOR_REPO_COMMIT-windows64.tar.gz'
+  - path: 'nupic.bindings-$(BINDINGS_VERSION)-cp27-none-win_amd64.whl'
 
 deploy:
   # Amazon S3 deployment provider settings
@@ -253,8 +179,8 @@ deploy:
     bucket: "artifacts.numenta.org"
     region: us-west-2
     set_public: true
-    artifact: "bindings\\py\\dist\\nupic.bindings-$(BINDINGS_VERSION)-cp27-none-win_amd64.whl"
-    folder: "numenta/nupic.core"
+    artifact: "nupic.bindings-$(BINDINGS_VERSION)-cp27-none-win_amd64.whl"
+    folder: "numenta/nupic.core/releases/nupic.bindings"
     on:
       branch: wheel-s3-upload
 
