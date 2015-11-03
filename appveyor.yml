@@ -24,17 +24,14 @@ skip_commits:
 # http://www.appveyor.com/docs/environment-variables
 # http://www.appveyor.com/docs/installed-software
 
-# Build VM template
-#os: Windows Server 2012
-# http://www.appveyor.com/blog/2015/06/23/new-oss-build-environment-and-xamarin-support
-
 init:
   - git config --global core.autocrlf input
 
 clone_folder: c:\projects\nupic-core
 clone_depth: 50
-# Can't have a shallow clone because the CMake process will be calling into
-# git to write the current SHA into the binaries.
+
+# Can't have a shallow clone because the CMake process will be
+# calling into git to write the current SHA into the binaries.
 shallow_clone: false
 
 environment:
@@ -60,8 +57,9 @@ install:
   - set NUPIC_DEPLOYMENT_BUILD=1
 
   - set REPO_DIR=c:\projects\nupic-core
-  - set NUPIC_CORE_RELEASE=%REPO_DIR%\build\release
+  - set NUPIC_CORE_DIR=%REPO_DIR%\build\release
   - set EXT_LIBS=%REPO_DIR%\external\windows64-gcc\lib
+
   - set ARTIFACTS_DIR=%REPO_DIR%\build\artifacts
   - for /f %%i in ('"python ci\appveyor\parse_version.py"') do set BINDINGS_VERSION=%%i
   - echo Binding version = %BINDINGS_VERSION%
@@ -93,9 +91,6 @@ install:
   # Setup MinGW-w64 GCC as a valid distutils compiler
   - cp %REPO_DIR%\external\windows64-gcc\bin\distutils.cfg %PYTHONPATH%\Lib\distutils\distutils.cfg
 
-  #- ECHO "PATH is now:"
-  #- echo %PATH%
-
   # Check that we have the expected version and architecture for Python
   - "python --version"
   - "python -c \"import struct; print(struct.calcsize('P') * 8)\""
@@ -106,17 +101,16 @@ install:
   - cd %REPO_DIR%
   - mkdir %REPO_DIR%\build\
   - mkdir %REPO_DIR%\build\release
-
   - mkdir %REPO_DIR%\build\scripts
-  - cd %REPO_DIR%\build\scripts
 
-  # Remove sh.exe from the paths
+  # Remove sh.exe from the paths (CMake doesn't like it)
   - set PATH=%PATH:C:\Program Files (x86)\Git\bin;=%
   - set PATH=%PATH:C:\Program Files\Git\usr\bin;=%
   - set PATH=%PATH:C:\MinGW\msys\1.0\bin;=%
 
   # Fake KJ-Async and Capnp-RPC libs, not needed in Lite mode
   # http://www.cmake.org/Wiki/CmakeMingw
+  - cd %REPO_DIR%\build\scripts
   - cmake -G "MinGW Makefiles" 
       -DCMAKE_BUILD_TYPE=Debug 
       -DCMAKE_INSTALL_PREFIX=%REPO_DIR%\build\release 
@@ -142,11 +136,13 @@ install:
 build_script:
   - cd %REPO_DIR%\build\scripts
 
-  - mingw32-make -f Makefile
+  - mingw32-make -f Makefile -j3
   - mingw32-make -f Makefile install | findstr /C:"Install" /I /V
 
   - cd %REPO_DIR%
-  - python setup.py bdist_wheel --debug --compiler=mingw --nupic-core-dir=%NUPIC_CORE_RELEASE%
+
+  - python setup.py bdist_wheel --debug --compiler=mingw --nupic-core-dir=%NUPIC_CORE_DIR%
+  - ps: move .\bindings\py\dist\nupic.bindings-$env:BINDINGS_VERSION-cp27-none-win_amd64.whl .
 
 after_build:
   - mkdir %ARTIFACTS_DIR%
@@ -156,20 +152,22 @@ after_build:
   - cpp_region_test.exe
   - unit_tests.exe --gtest_output=xml:%ARTIFACTS_DIR%\unit_tests_report.xml"
 
-  # Package up nupic.core C++ library
-  - cd %REPO_DIR%\build\release
-  - ps: 7z a -ttar -y -bd nupic_core-$env:APPVEYOR_REPO_COMMIT-windows64.tar . | findstr /b /c:"Everything is Ok" /c:"Scanning" /c:"Creating archive"
-  - ps: 7z a -tgzip -y -bd ..\..\nupic_core-$env:APPVEYOR_REPO_COMMIT-windows64.tar.gz nupic_core-$env:APPVEYOR_REPO_COMMIT-windows64.tar
+  - ps: >-
+      if ($env:APPVEYOR_REPO_COMMIT -eq "master") {
+        cd $env:REPO_DIR\build\release
 
-  - cd %REPO_DIR%
-  - ps: move .\bindings\py\dist\nupic.bindings-$env:BINDINGS_VERSION-cp27-none-win_amd64.whl .
+        7z a -ttar -y -bd nupic_core-$env:APPVEYOR_REPO_COMMIT-windows64.tar . | findstr /b /c:"Everything is Ok" /c:"Scanning" /c:"Creating archive"
+
+        7z a -tgzip -y -bd ..\..\nupic_core-$env:APPVEYOR_REPO_COMMIT-windows64.tar.gz nupic_core-$env:APPVEYOR_REPO_COMMIT-windows64.tar
+
+      }
 
 artifacts:
   - path: '**\*.tar.gz'
   - path: '**\*.whl'
 
 deploy:
-  # Amazon S3 deployment provider settings
+  # Iterative builds
   - provider: S3
     access_key_id:
       secure: D942gmPEB3lICGqL4M1HhaEqkBxr+DP7sb4pUc8UXqI=
@@ -180,7 +178,20 @@ deploy:
     set_public: true
     artifact: "nupic.bindings-$(BINDINGS_VERSION)-cp27-none-win_amd64.whl"
     folder: "numenta/nupic.core/releases/nupic.bindings"
+
+  # Github tagged builds
+  - provider: S3
+    access_key_id:
+      secure: D942gmPEB3lICGqL4M1HhaEqkBxr+DP7sb4pUc8UXqI=
+    secret_access_key:
+      secure: 1wvNyHZO/6LKqNmAHcGEDxBHRjOC0iXUhSkXjZq6CGL0Cx5Kjtxnxhkz63ohknOH
+    bucket: "artifacts.numenta.org"
+    region: us-west-2
+    set_public: true
+    artifact: "nupic_core-$(APPVEYOR_REPO_COMMIT)-windows64.tar.gz"
+    folder: "numenta/nupic.core"
     on:
       branch: master
+      appveyor_repo_tag: true
 
 test: off
