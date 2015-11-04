@@ -77,9 +77,9 @@ function main () {
     InstallPython $env:PYTHON_VERSION $env:PYTHON_ARCH $env:PYTHONPATH
     InstallPip $env:PYTHONPATH
 
-    Write-Host "python -m pip install --upgrade pip"
+    Write-Host "python -m pip install --ignore-installed --upgrade pip>=7.1.2"
     $python_path = $env:PYTHONPATH + "/python.exe"
-    & $python_path -m pip install --ignore-installed --upgrade pip
+    & $python_path -m pip install --ignore-installed --upgrade pip>=7.1.2
 
     $pip_path = $env:PYTHONPATH + "/Scripts/pip.exe"
     Write-Host "pip install " wheel
