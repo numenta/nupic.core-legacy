@@ -103,7 +103,7 @@ endif()
 # And NumPy core directory
 #
 find_package(PythonInterp 2.7 REQUIRED)
-execute_process(COMMAND "${PYTHON_EXECUTABLE}" "-c" 
+execute_process(COMMAND "${PYTHON_EXECUTABLE}" "-c"
                         "import numpy; import os; import sys; sys.stdout.write(os.path.dirname(numpy.get_include()))"
                          OUTPUT_VARIABLE NUMPY_CORE)
 
@@ -281,16 +281,6 @@ add_library(${LIB_STATIC_Z} STATIC IMPORTED GLOBAL)
 find_package(PythonLibs REQUIRED)
 include_directories(SYSTEM ${PYTHON_INCLUDE_DIRS})
 
-#
-# Python support
-#
-set (PY_SUPPORT_FILES
-     nupic/py_support/NumpyVector.cpp
-     nupic/py_support/PyArray.cpp
-     nupic/py_support/PyHelpers.cpp
-     nupic/py_support/PythonStream.cpp
-)
-
 message(STATUS "PYTHON_EXECUTABLE   = ${PYTHON_EXECUTABLE}")
 message(STATUS "PYTHON_INCLUDE_DIRS = ${PYTHON_INCLUDE_DIRS}")
 message(STATUS "PYTHON_LIBRARIES    = ${PYTHON_LIBRARIES}")
@@ -304,6 +294,7 @@ set(CAPNP_SPECS_REL
   nupic/proto/LinkProto.capnp
   nupic/proto/Map.capnp
   nupic/proto/NetworkProto.capnp
+  nupic/proto/PyRegionProto.capnp
   nupic/proto/RandomProto.capnp
   nupic/proto/RegionProto.capnp
   nupic/proto/SparseBinaryMatrixProto.capnp
@@ -329,10 +320,32 @@ create_capnpc_command(capnp_specs
                       ${PROJECT_BINARY_DIR}
                       "${CAPNP_ALL}")
 
+#
+# Python support
+#
+set (PY_SUPPORT_FILES
+     nupic/py_support/NumpyVector.cpp
+     nupic/py_support/PyArray.cpp
+     nupic/py_support/PyHelpers.cpp
+     nupic/py_support/PythonStream.cpp
+)
+if(NOT "${PLATFORM}" STREQUAL "windows")
+  list(APPEND PY_SUPPORT_FILES nupic/py_support/CapnpToPycapnp.cpp)
+endif()
+
 message(STATUS "CAPNP_DEFINITIONS   = ${CAPNP_DEFINITIONS}")
 message(STATUS "CAPNP_INCLUDE_DIRS  = ${CAPNP_INCLUDE_DIRS}")
 message(STATUS "CAPNP_LIBRARIES     = ${CAPNP_LIBRARIES}")
 message(STATUS "CAPNP_LIBRARIES_LITE= ${CAPNP_LIBRARIES_LITE}")
+
+#
+# Add the pycapnp Python package to includes
+if(NOT "${PLATFORM}" STREQUAL "windows")
+  execute_process(COMMAND "${PYTHON_EXECUTABLE}" "-c"
+                          "import capnp; import os; import sys; sys.stdout.write(os.path.dirname(os.path.dirname(capnp.__file__)))"
+                  OUTPUT_VARIABLE PYCAPNP)
+  include_directories(SYSTEM ${PYCAPNP})
+endif()
 
 #
 # Setup libnupic_core

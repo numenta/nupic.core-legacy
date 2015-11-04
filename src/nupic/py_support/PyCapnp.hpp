@@ -21,7 +21,8 @@
  */
 
 // This file contains utility functions for converting from pycapnp schema to
-// compiled in schema. It requires linking to both libcapnp and libcapnpc.
+// compiled in schema and vice versa.
+// It requires linking to both libcapnp and libcapnpc.
 
 #ifndef NTA_PY_CAPNP_HPP
 #define NTA_PY_CAPNP_HPP
@@ -33,8 +34,11 @@
 #include <capnp/message.h>
 #include <capnp/schema-parser.h>
 
+#include <nupic/py_support/CapnpToPycapnp.hpp>
+
 namespace nupic
 {
+  bool initialized = false;
 
   struct pycapnp_SchemaParser {
     PyObject_HEAD
@@ -93,6 +97,26 @@ namespace nupic
     capnp::DynamicStruct::Reader& reader = dynamicStruct->thisptr;
     typename T::Reader proto = reader.as<T>();
     return proto;
+  }
+
+  PyObject* getPyReader(capnp::DynamicStruct::Reader reader)
+  {
+    if (!initialized) {
+      initCapnpToPycapnp();
+      initialized = true;
+    }
+    py::Ptr parent(Py_None);
+    return createReader(reader, parent);
+  }
+
+  PyObject* getPyBuilder(capnp::DynamicStruct::Builder builder)
+  {
+    if (!initialized) {
+      initCapnpToPycapnp();
+      initialized = true;
+    }
+    py::Ptr parent(Py_None);
+    return createBuilder(builder, parent);
   }
 
 }  // namespace nupic

@@ -50,6 +50,8 @@
 #include <iostream>
 #include <stdexcept>
 
+#include <capnp/message.h>
+
 bool ignore_negative_tests = false;
 #define SHOULDFAIL(statement) \
   { \
@@ -330,6 +332,83 @@ void testUnregisterRegion()
 
 }
 
+void testWriteRead()
+{
+  Int32 int32Param = 42;
+  UInt32 uint32Param = 43;
+  Int64 int64Param = 44;
+  UInt64 uint64Param = 45;
+  Real32 real32Param = 46;
+  Real64 real64Param = 46;
+  std::string stringParam = "hello";
+
+  std::vector<Int64> int64ArrayParamBuff(4);
+  for (int i = 0; i < 4; i++)
+  {
+    int64ArrayParamBuff[i] = i + 1;
+  }
+  Array int64ArrayParam(NTA_BasicType_Int64,
+                        &int64ArrayParamBuff[0],
+                        int64ArrayParamBuff.size());
+
+  std::vector<Real32> real32ArrayParamBuff(4);
+  for (int i = 0; i < 4; i++)
+  {
+    real32ArrayParamBuff[i] = i + 1;
+  }
+  Array real32ArrayParam(NTA_BasicType_Real32,
+                         &real32ArrayParamBuff[0],
+                         real32ArrayParamBuff.size());
+
+  Network n1;
+  Region* region1 = n1.addRegion("rw1", "py.TestNode", "");
+  region1->setParameterInt32("int32Param", int32Param);
+  region1->setParameterUInt32("uint32Param", uint32Param);
+  region1->setParameterInt64("int64Param", int64Param);
+  region1->setParameterUInt64("uint64Param", uint64Param);
+  region1->setParameterReal32("real32Param", real32Param);
+  region1->setParameterReal64("real64Param", real64Param);
+  region1->setParameterString("stringParam", stringParam.c_str());
+  region1->setParameterArray("int64ArrayParam", int64ArrayParam);
+  region1->setParameterArray("real32ArrayParam", real32ArrayParam);
+
+  Network n2;
+
+  std::stringstream ss;
+  n1.write(ss);
+  n2.read(ss);
+
+  const Collection<Region*>& regions = n2.getRegions();
+  const std::pair<std::string, Region*>& regionPair = regions.getByIndex(0);
+  Region* region2 = regionPair.second;
+
+  NTA_CHECK(region2->getParameterInt32("int32Param") == int32Param);
+  NTA_CHECK(region2->getParameterUInt32("uint32Param") == uint32Param);
+  NTA_CHECK(region2->getParameterInt64("int64Param") == int64Param);
+  NTA_CHECK(region2->getParameterUInt64("uint64Param") == uint64Param);
+  NTA_CHECK(region2->getParameterReal32("real32Param") == real32Param);
+  NTA_CHECK(region2->getParameterReal64("real64Param") == real64Param);
+  NTA_CHECK(region2->getParameterString("stringParam") == stringParam.c_str());
+
+  Array int64Array(NTA_BasicType_Int64);
+  region2->getParameterArray("int64ArrayParam", int64Array);
+  Int64 * int64ArrayBuff = (Int64 *)int64Array.getBuffer();
+  NTA_CHECK(int64ArrayParam.getCount() == int64Array.getCount());
+  for (int i = 0; i < int(int64ArrayParam.getCount()); i++)
+  {
+    NTA_CHECK(int64ArrayBuff[i] == int64ArrayParamBuff[i]);
+  }
+
+  Array real32Array(NTA_BasicType_Real32);
+  region2->getParameterArray("real32ArrayParam", real32Array);
+  Real32 * real32ArrayBuff = (Real32 *)real32Array.getBuffer();
+  NTA_CHECK(real32ArrayParam.getCount() == real32Array.getCount());
+  for (int i = 0; i < int(real32ArrayParam.getCount()); i++)
+  {
+    NTA_CHECK(real32ArrayBuff[i] == real32ArrayParamBuff[i]);
+  }
+}
+
 int realmain(bool leakTest)
 {
   // verbose == true turns on extra output that is useful for
@@ -343,7 +422,7 @@ int realmain(bool leakTest)
   std::cout << "Region count is " << n.getRegions().getCount() << "" << std::endl;
 
   std::cout << "Adding a PyNode region..." << std::endl;
-  Network::registerPyRegion("nupic.regions.TestNode", "TestNode");
+  Network::registerPyRegion("nupic.bindings.regions.TestNode", "TestNode");
   Region* level2 = n.addRegion("level2", "py.TestNode", "{int32Param: 444}");
 
   std::cout << "Region count is " << n.getRegions().getCount() << "" << std::endl;
@@ -394,6 +473,7 @@ int realmain(bool leakTest)
     //testNuPIC1x();
     //testPynode1xLinking();
   }
+  testWriteRead();
 
   // testUnregisterRegion needs to be the last test run as it will unregister
   // the region 'TestNode'.
