@@ -2,5 +2,5 @@
 pytest==2.5.1
 pytest-cov==1.6
 pytest-xdist==1.8
-numpy==1.9.2
-pycapnp==0.5.5
+numpy==1.9.2; 'win32' not in sys_platform
+pycapnp==0.5.5; 'win32' not in sys_platform
