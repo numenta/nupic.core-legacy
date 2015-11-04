@@ -1,5 +1,6 @@
 #See http://www.pip-installer.org/en/latest/requirements.html for details
 pip>=7.1.2
+distribute>=0.7.3
 pytest==2.5.1
 pytest-cov==1.6
 pytest-xdist==1.8
