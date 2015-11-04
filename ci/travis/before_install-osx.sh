@@ -38,9 +38,9 @@ export PATH=$HOME/Library/Python/2.7/bin:$PATH
 export PYTHONPATH=$HOME/Library/Python/2.7/lib/python/site-packages:$PYTHONPATH
 
 echo "Installing latest pip"
-pip install --ignore-installed --user setuptools
-pip install --ignore-installed --user --upgrade pip>=7.1.2
-pip install --ignore-installed --user --upgrade distribute>=0.7.3
+pip install --ignore-installed setuptools
+pip install --ignore-installed --upgrade pip>=7.1.2
+pip install --ignore-installed --upgrade distribute>=0.7.3
 
 echo "Installing wheel..."
 pip install wheel --user || exit

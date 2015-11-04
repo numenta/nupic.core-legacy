@@ -79,7 +79,7 @@ function main () {
 
     Write-Host "python -m pip install --upgrade pip"
     $python_path = $env:PYTHONPATH + "/python.exe"
-    & $python_path -m pip install --upgrade pip
+    & $python_path -m pip install --ignore-installed --upgrade pip
 
     $pip_path = $env:PYTHONPATH + "/Scripts/pip.exe"
     Write-Host "pip install " wheel
