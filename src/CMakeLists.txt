@@ -40,7 +40,6 @@ if( POLICY CMP0054 )
 endif()
 
 get_filename_component(REPOSITORY_DIR ${PROJECT_SOURCE_DIR}/.. ABSOLUTE)
-MESSAGE(STATUS "REPOSITORY_DIR: ${REPOSITORY_DIR}")
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   set(STDLIB "-stdlib=libc++")
@@ -765,14 +764,15 @@ set(SWIG_SUPPORT_FILES
 
 # Algorithms
 set(SWIG_ALGORITHMS_FILES
-    ${REPOSITORY_DIR}/bindings/py/nupic/bindings/algorithms.i)
+    ../bindings/py/nupic/bindings/algorithms.i)
 set_source_files_properties(${SWIG_ALGORITHMS_FILES} PROPERTIES
-                            CPLUSPLUS ON)
-set_source_files_properties(${SWIG_ALGORITHMS_FILES} PROPERTIES
-                            SWIG_MODULE_NAME algorithms)
-set_source_files_properties(${SWIG_ALGORITHMS_FILES} PROPERTIES
+                            CPLUSPLUS ON
+                            SWIG_MODULE_NAME algorithms
                             SWIG_FLAGS "${SWIG_FLAGS}")
 set(SWIG_ALGORITHMS algorithms)
+# Make sure we don't attempt to execute the swig executable until it is built.
+set(SWIG_MODULE_${SWIG_ALGORITHMS}_EXTRA_DEPS Swig)
+# Create custom command for generating files from SWIG.
 swig_add_module(${SWIG_ALGORITHMS} python
                 ${SWIG_SUPPORT_FILES}
                 ${SWIG_ALGORITHMS_FILES})
@@ -784,14 +784,15 @@ swig_link_libraries(${SWIG_ALGORITHMS}
 
 # Engine
 set(SWIG_ENGINE_FILES
-    ${REPOSITORY_DIR}/bindings/py/nupic/bindings/engine_internal.i)
+    ../bindings/py/nupic/bindings/engine_internal.i)
 set_source_files_properties(${SWIG_ENGINE_FILES} PROPERTIES
-                            CPLUSPLUS ON)
-set_source_files_properties(${SWIG_ENGINE_FILES} PROPERTIES
-                            SWIG_MODULE_NAME engine_internal)
-set_source_files_properties(${SWIG_ENGINE_FILES} PROPERTIES
+                            CPLUSPLUS ON
+                            SWIG_MODULE_NAME engine_internal
                             SWIG_FLAGS "${SWIG_FLAGS}")
 set(SWIG_ENGINE engine_internal)
+# Make sure we don't attempt to execute the swig executable until it is built.
+set(SWIG_MODULE_${SWIG_ENGINE}_EXTRA_DEPS Swig)
+# Create custom command for generating files from SWIG.
 swig_add_module(${SWIG_ENGINE} python
                 ${SWIG_SUPPORT_FILES}
                 ${SWIG_ENGINE_FILES})
@@ -803,14 +804,15 @@ swig_link_libraries(${SWIG_ENGINE}
 
 # Math
 set(SWIG_MATH_FILES
-    ${REPOSITORY_DIR}/bindings/py/nupic/bindings/math.i)
+    ../bindings/py/nupic/bindings/math.i)
 set_source_files_properties(${SWIG_MATH_FILES} PROPERTIES
-                            CPLUSPLUS ON)
-set_source_files_properties(${SWIG_MATH_FILES} PROPERTIES
-                            SWIG_MODULE_NAME math)
-set_source_files_properties(${SWIG_MATH_FILES} PROPERTIES
+                            CPLUSPLUS ON
+                            SWIG_MODULE_NAME math
                             SWIG_FLAGS "${SWIG_FLAGS}")
 set(SWIG_MATH math)
+# Make sure we don't attempt to execute the swig executable until it is built.
+set(SWIG_MODULE_${SWIG_MATH}_EXTRA_DEPS Swig)
+# Create custom command for generating files from SWIG.
 swig_add_module(${SWIG_MATH} python
                 ${SWIG_SUPPORT_FILES}
                 ${SWIG_MATH_FILES})
@@ -820,6 +822,8 @@ swig_link_libraries(${SWIG_MATH}
                     ${CAPNP_LIBRARIES}
                     ${PYTHON_LIBRARIES})
 
+set_source_files_properties(${SWIG_GENERATED_FILES} PROPERTIES
+                            GENERATED TRUE)
 set_source_files_properties(${SWIG_GENERATED_FILES} ${SWIG_SUPPORT_FILES}
                             PROPERTIES
                             COMPILE_FLAGS ${COMMON_COMPILE_FLAGS}

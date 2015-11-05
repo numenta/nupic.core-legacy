@@ -34,7 +34,7 @@ if (NOT SWIG_FOUND)
     CONFIGURE_COMMAND
       curl -OL http://downloads.sourceforge.net/project/pcre/pcre/8.37/pcre-8.37.tar.gz &&
       ${EP_BASE}/Source/Swig/Tools/pcre-build.sh &&
-      ${EP_BASE}/Source/Swig/configure --prefix=${EP_BASE}/Install
+      ${EP_BASE}/Source/Swig/configure --prefix=${EP_BASE}/Install --enable-cpp11-testing
   )
   set(SWIG_EXECUTABLE ${EP_BASE}/Install/bin/swig)
   set(SWIG_DIR ${EP_BASE}/Install/share/swig/3.0.2)
