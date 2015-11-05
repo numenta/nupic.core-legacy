@@ -759,12 +759,11 @@ set(SWIG_SUPPORT_FILES
     nupic/py_support/PyArray.cpp
     nupic/py_support/PyHelpers.cpp
     nupic/py_support/PythonStream.cpp
-    ${REPOSITORY_DIR}/bindings/py/nupic/bindings/PySparseTensor.cpp
+    nupic/bindings/PySparseTensor.cpp
 )
 
 # Algorithms
-set(SWIG_ALGORITHMS_FILES
-    ../bindings/py/nupic/bindings/algorithms.i)
+set(SWIG_ALGORITHMS_FILES nupic/bindings/algorithms.i)
 set_source_files_properties(${SWIG_ALGORITHMS_FILES} PROPERTIES
                             CPLUSPLUS ON
                             SWIG_MODULE_NAME algorithms
@@ -783,8 +782,7 @@ swig_link_libraries(${SWIG_ALGORITHMS}
                     ${PYTHON_LIBRARIES})
 
 # Engine
-set(SWIG_ENGINE_FILES
-    ../bindings/py/nupic/bindings/engine_internal.i)
+set(SWIG_ENGINE_FILES nupic/bindings/engine_internal.i)
 set_source_files_properties(${SWIG_ENGINE_FILES} PROPERTIES
                             CPLUSPLUS ON
                             SWIG_MODULE_NAME engine_internal
@@ -803,8 +801,7 @@ swig_link_libraries(${SWIG_ENGINE}
                     ${PYTHON_LIBRARIES})
 
 # Math
-set(SWIG_MATH_FILES
-    ../bindings/py/nupic/bindings/math.i)
+set(SWIG_MATH_FILES nupic/bindings/math.i)
 set_source_files_properties(${SWIG_MATH_FILES} PROPERTIES
                             CPLUSPLUS ON
                             SWIG_MODULE_NAME math
