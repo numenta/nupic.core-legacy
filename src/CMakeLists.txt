@@ -40,6 +40,7 @@ if( POLICY CMP0054 )
 endif()
 
 get_filename_component(REPOSITORY_DIR ${PROJECT_SOURCE_DIR}/.. ABSOLUTE)
+MESSAGE(STATUS "REPOSITORY_DIR: ${REPOSITORY_DIR}")
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   set(STDLIB "-stdlib=libc++")
@@ -174,7 +175,7 @@ else()
   if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set(COMMON_COMPILE_FLAGS "-Werror -Wall -fPIC ${COMMON_COMPILE_FLAGS}")
   endif()
-  set(COMMON_LINK_FLAGS "-m${BITNESS} ${STDLIB} -Wl,--no-undefined")
+  set(COMMON_LINK_FLAGS "-m${BITNESS} ${STDLIB}")
 endif()
 
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
@@ -189,6 +190,13 @@ if(MINGW)
   # This is for GCC 4.8.x
   # http://stackoverflow.com/questions/10660524/error-building-boost-1-49-0-with-gcc-4-7-0
   set(COMMON_COMPILE_FLAGS "${COMMON_COMPILE_FLAGS} -include cmath")
+endif()
+
+# Set compiler-specific options.
+if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
+  set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} -Wl,--no-undefined")
+elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
+  set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} -Wl,-undefined,error")
 endif()
 
 #

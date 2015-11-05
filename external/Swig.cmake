@@ -32,7 +32,9 @@ if (NOT SWIG_FOUND)
     URL http://prdownloads.sourceforge.net/swig/swig-3.0.2.tar.gz
     UPDATE_COMMAND ""
     CONFIGURE_COMMAND
-    ${EP_BASE}/Source/Swig/configure --prefix=${EP_BASE}/Install
+      curl -OL http://downloads.sourceforge.net/project/pcre/pcre/8.37/pcre-8.37.tar.gz &&
+      ${EP_BASE}/Source/Swig/Tools/pcre-build.sh &&
+      ${EP_BASE}/Source/Swig/configure --prefix=${EP_BASE}/Install
   )
   set(SWIG_EXECUTABLE ${EP_BASE}/Install/bin/swig)
   set(SWIG_DIR ${EP_BASE}/Install/share/swig/3.0.2)
