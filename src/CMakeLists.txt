@@ -723,7 +723,11 @@ endif()
 #
 include(UseSWIG)
 
-include_directories(${REPOSITORY_DIR}/bindings/py)
+# Set the output location for the language modules that are created.
+set(CMAKE_SWIG_OUTDIR ${PROJECT_BINARY_DIR})
+
+# Make sure the directory exists for the generated C++ files.
+file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/nupic/bindings)
 
 # SWIG options from:
 # https://github.com/swig/swig/blob/master/Source/Modules/python.cxx#L111
@@ -770,14 +774,16 @@ set_source_files_properties(${SWIG_ALGORITHMS_FILES} PROPERTIES
                             SWIG_FLAGS "${SWIG_FLAGS}")
 set(SWIG_ALGORITHMS algorithms)
 # Make sure we don't attempt to execute the swig executable until it is built.
-set(SWIG_MODULE_${SWIG_ALGORITHMS}_EXTRA_DEPS Swig)
+set(SWIG_MODULE_${SWIG_ALGORITHMS}_EXTRA_DEPS Swig combined)
 # Create custom command for generating files from SWIG.
 swig_add_module(${SWIG_ALGORITHMS} python
                 ${SWIG_SUPPORT_FILES}
                 ${SWIG_ALGORITHMS_FILES})
 list(APPEND SWIG_GENERATED_FILES ${swig_generated_file_fullname})
+#TODO add_dependencies(${SWIG_MODULE_${SWIG_ALGORITHMS}_REAL_NAME}
 swig_link_libraries(${SWIG_ALGORITHMS}
-                    ${LIB_STATIC_NUPICCORE}
+                    #${LIB_STATIC_NUPICCORE}
+                    ${PROJECT_BINARY_DIR}/libnupic_core.a
                     ${CAPNP_LIBRARIES}
                     ${PYTHON_LIBRARIES})
 
@@ -789,14 +795,15 @@ set_source_files_properties(${SWIG_ENGINE_FILES} PROPERTIES
                             SWIG_FLAGS "${SWIG_FLAGS}")
 set(SWIG_ENGINE engine_internal)
 # Make sure we don't attempt to execute the swig executable until it is built.
-set(SWIG_MODULE_${SWIG_ENGINE}_EXTRA_DEPS Swig)
+set(SWIG_MODULE_${SWIG_ENGINE}_EXTRA_DEPS Swig combined)
 # Create custom command for generating files from SWIG.
 swig_add_module(${SWIG_ENGINE} python
                 ${SWIG_SUPPORT_FILES}
                 ${SWIG_ENGINE_FILES})
 list(APPEND SWIG_GENERATED_FILES ${swig_generated_file_fullname})
 swig_link_libraries(${SWIG_ENGINE}
-                    ${LIB_STATIC_NUPICCORE}
+                    #${LIB_STATIC_NUPICCORE}
+                    ${PROJECT_BINARY_DIR}/libnupic_core.a
                     ${CAPNP_LIBRARIES}
                     ${PYTHON_LIBRARIES})
 
@@ -808,14 +815,15 @@ set_source_files_properties(${SWIG_MATH_FILES} PROPERTIES
                             SWIG_FLAGS "${SWIG_FLAGS}")
 set(SWIG_MATH math)
 # Make sure we don't attempt to execute the swig executable until it is built.
-set(SWIG_MODULE_${SWIG_MATH}_EXTRA_DEPS Swig)
+set(SWIG_MODULE_${SWIG_MATH}_EXTRA_DEPS Swig combined)
 # Create custom command for generating files from SWIG.
 swig_add_module(${SWIG_MATH} python
                 ${SWIG_SUPPORT_FILES}
                 ${SWIG_MATH_FILES})
 list(APPEND SWIG_GENERATED_FILES ${swig_generated_file_fullname})
 swig_link_libraries(${SWIG_MATH}
-                    ${LIB_STATIC_NUPICCORE}
+                    #${LIB_STATIC_NUPICCORE}
+                    ${PROJECT_BINARY_DIR}/libnupic_core.a
                     ${CAPNP_LIBRARIES}
                     ${PYTHON_LIBRARIES})
 
