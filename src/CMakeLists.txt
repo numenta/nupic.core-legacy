@@ -174,7 +174,7 @@ else()
   if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set(COMMON_COMPILE_FLAGS "-Werror -Wall -fPIC ${COMMON_COMPILE_FLAGS}")
   endif()
-  set(COMMON_LINK_FLAGS "-m${BITNESS} ${STDLIB}")
+  set(COMMON_LINK_FLAGS "-m${BITNESS} ${STDLIB} -Wl,--no-undefined")
 endif()
 
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
