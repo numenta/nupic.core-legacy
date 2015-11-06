@@ -1092,14 +1092,15 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
                  dutyCyclePeriod=1000,
                  maxBoost=10.0,
                  seed=-1,
-                 spVerbosity=0):
+                 spVerbosity=0,
+                 wrapAround=True):
       self.this = _ALGORITHMS.new_SpatialPooler()
       _ALGORITHMS.SpatialPooler_initialize(
         self, inputDimensions, columnDimensions, potentialRadius, potentialPct,
         globalInhibition, localAreaDensity, numActiveColumnsPerInhArea,
         stimulusThreshold, synPermInactiveDec, synPermActiveInc, synPermConnected,
         minPctOverlapDutyCycle, minPctActiveDutyCycle, dutyCyclePeriod, maxBoost,
-        seed, spVerbosity)
+        seed, spVerbosity, wrapAround)
 
     def __getstate__(self):
       # Save the local attributes but override the C++ spatial pooler with the
@@ -1120,6 +1121,13 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
         # Use the rest of the state to set local Python attributes.
         del state["this"]
         self.__dict__.update(state)
+
+    def _updateBookeepingVars(self, learn):
+      self.updateBookeepingVars(learn)
+
+    def _calculateOverlap(self, inputVector):
+      return self.calculateOverlap(inputVector)
+
   %}
 
   inline void compute(PyObject *py_x, bool learn, PyObject *py_y)
@@ -1265,6 +1273,23 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
   {
     PyArrayObject* x = (PyArrayObject*) py_x;
     self->getConnectedCounts((nupic::UInt*) PyArray_DATA(x));
+  }
+
+  inline void updateBookeepingVars(bool learn)
+  {
+    self->updateBookeepingVars_(learn);
+  }
+
+  inline PyObject* calculateOverlap(PyObject* py_inputVector)
+  {
+    PyArrayObject* inputVector = (PyArrayObject*) py_inputVector;
+    std::vector<nupic::UInt> overlapVector;
+    self->calculateOverlap_((nupic::UInt*) PyArray_DATA(inputVector),
+                            overlapVector);
+
+    nupic::NumpyVectorT<nupic::UInt> overlap(self->getNumColumns(),
+                                             &overlapVector[0]);
+    return overlap.forPython();
   }
 
 }
