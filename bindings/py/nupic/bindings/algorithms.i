@@ -1123,10 +1123,10 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
         self.__dict__.update(state)
 
     def _updateBookeepingVars(self, learn):
-      self.updateBookeepingVars(learn)
+      self.updateBookeepingVars_(learn)
 
     def _calculateOverlap(self, inputVector):
-      return self.calculateOverlap(inputVector)
+      return self.calculateOverlap_(inputVector)
 
   %}
 
@@ -1275,12 +1275,7 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
     self->getConnectedCounts((nupic::UInt*) PyArray_DATA(x));
   }
 
-  inline void updateBookeepingVars(bool learn)
-  {
-    self->updateBookeepingVars_(learn);
-  }
-
-  inline PyObject* calculateOverlap(PyObject* py_inputVector)
+  inline PyObject* calculateOverlap_(PyObject* py_inputVector)
   {
     PyArrayObject* inputVector = (PyArrayObject*) py_inputVector;
     std::vector<nupic::UInt> overlapVector;
