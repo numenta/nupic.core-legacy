@@ -376,15 +376,17 @@ endif()
 #
 set(LIB_STATIC_NUPICCORE nupic_core_solo)
 
-#if(CAPNP_LITE)
-#  set(COMMON_LIBS ${LIB_STATIC_NUPICCORE}
-#                  ${PYTHON_LIBRARIES}
-#                  ${CAPNP_LIBRARIES_LITE})
-#else()
-set(COMMON_LIBS ${LIB_STATIC_NUPICCORE}
-                ${PYTHON_LIBRARIES}
-                ${CAPNP_LIBRARIES})
-#endif()
+if(CAPNP_LITE)
+  set(COMMON_LIBS
+      ${LIB_STATIC_NUPICCORE}
+      ${PYTHON_LIBRARIES}
+      ${CAPNP_LIBRARIES_LITE})
+else()
+  set(COMMON_LIBS
+      ${LIB_STATIC_NUPICCORE}
+      ${PYTHON_LIBRARIES}
+      ${CAPNP_LIBRARIES})
+endif()
 
 if("${PLATFORM}" STREQUAL "linux")
   list(APPEND COMMON_OS_LIBS pthread dl)
@@ -472,8 +474,7 @@ set(LIB_STATIC_NUPICCORE_LINK_LIBS
     ${LIB_STATIC_APR1_LOC}
     ${LIB_STATIC_APRUTIL1_LOC}
     ${LIB_STATIC_Z_LOC}
-    ${CAPNP_LIBRARIES}
-    ${PYTHON_LIBRARIES}
+    ${COMMON_LIBS}
     ${COMMON_OS_LIBS})
 set(LIB_STATIC_NUPICCORE_COMPILE_FLAGS
     "${COMMON_COMPILE_FLAGS} -I${NUMPY_CORE}/include")
@@ -787,17 +788,13 @@ set(SWIG_SUPPORT_FILES
 
 set(SWIG_LINK_LIBRARIES
     ${PROJECT_BINARY_DIR}/libnupic_core.a
-    ${PYTHON_LIBRARIES})
+    ${PYTHON_LIBRARIES}
+    ${COMMON_OS_LIBS})
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   set(SWIG_LINK_LIBRARIES
       ${SWIG_LINK_LIBRARIES}
-      psapi
-      ws2_32
-      shell32
-      advapi32
-      wsock32
-      rpcrt4)
+      ${CAPNP_LIBRARIES_LITE})
 else()
   set(SWIG_LINK_LIBRARIES
       ${SWIG_LINK_LIBRARIES}
