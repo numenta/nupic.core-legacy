@@ -27,17 +27,22 @@ endif ()
 
 if (NOT SWIG_FOUND)
   # Build SWIG from source.
-  ExternalProject_Add(
-    Swig
-    URL http://prdownloads.sourceforge.net/swig/swig-3.0.2.tar.gz
-    UPDATE_COMMAND ""
-    CONFIGURE_COMMAND
-      curl -OL http://downloads.sourceforge.net/project/pcre/pcre/8.37/pcre-8.37.tar.gz &&
-      ${EP_BASE}/Source/Swig/Tools/pcre-build.sh &&
-      ${EP_BASE}/Source/Swig/configure --prefix=${EP_BASE}/Install --enable-cpp11-testing
-  )
-  set(SWIG_EXECUTABLE ${EP_BASE}/Install/bin/swig)
-  set(SWIG_DIR ${EP_BASE}/Install/share/swig/3.0.2)
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    set(SWIG_EXECUTABLE
+        ${PROJECT_SOURCE_DIR}/${PLATFORM}${BITNESS}/bin/swig.exe)
+  else()
+    ExternalProject_Add(
+      Swig
+      URL http://prdownloads.sourceforge.net/swig/swig-3.0.2.tar.gz
+      UPDATE_COMMAND ""
+      CONFIGURE_COMMAND
+        curl -OL http://downloads.sourceforge.net/project/pcre/pcre/8.37/pcre-8.37.tar.gz &&
+        ${EP_BASE}/Source/Swig/Tools/pcre-build.sh &&
+        ${EP_BASE}/Source/Swig/configure --prefix=${EP_BASE}/Install --enable-cpp11-testing
+    )
+    set(SWIG_EXECUTABLE ${EP_BASE}/Install/bin/swig)
+    set(SWIG_DIR ${EP_BASE}/Install/share/swig/3.0.2)
+  endif()
 else()
   # Create a dummy target to depend on.
   add_custom_target(Swig)
