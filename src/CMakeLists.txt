@@ -90,8 +90,7 @@ elseif(MSVC OR MSYS OR MINGW)
   if(MSYS OR MINGW)
     set(COMPILER_DEFINITIONS
         ${COMPILER_DEFINITIONS}
-        -DHAVE_UNISTD_H
-        -DNTA_COMPILER_GNU)
+        -DHAVE_UNISTD_H)
   endif()
 endif()
 
