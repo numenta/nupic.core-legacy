@@ -60,43 +60,56 @@ else()
 endif()
 
 # Compiler `-D*` definitions
-add_definitions(-DNTA_OS_${PLATFORM_UPPERCASE}
-                -DNTA_ARCH_${BITNESS}
-                -DHAVE_CONFIG_H
-                -DNTA_INTERNAL
-                -DBOOST_NO_WREGEX
-                -DNUPIC2
-                -DNTA_ASSERTIONS_ON
-                -DNTA_ASM)
+set(COMPILER_DEFINITIONS
+    -DNTA_OS_${PLATFORM_UPPERCASE}
+    -DNTA_ARCH_${BITNESS}
+    -DHAVE_CONFIG_H
+    -DNTA_INTERNAL
+    -DBOOST_NO_WREGEX
+    -DNUPIC2
+    -DNTA_ASSERTIONS_ON
+    -DNTA_ASM)
 if(UNIX) # or UNIX like (i.e. APPLE and CYGWIN)
-  add_definitions(-DHAVE_UNISTD_H)
+  set(COMPILER_DEFINITIONS ${COMPILER_DEFINITIONS} -DHAVE_UNISTD_H)
 elseif(MSVC OR MSYS OR MINGW)
-  add_definitions(-DPSAPI_VERSION=1
-                  -DAPR_DECLARE_STATIC
-                  -DAPU_DECLARE_STATIC
-                  -DZLIB_WINAPI
-                  -DWIN32
-                  -D_WINDOWS
-                  -D_MBCS
-                  -D_CRT_SECURE_NO_WARNINGS
-                  -DNDEBUG
-                  -DCAPNP_LITE=1
-                  -D_VARIADIC_MAX=10
-                  -DNOMINMAX)
+  set(COMPILER_DEFINITIONS
+      ${COMPILER_DEFINITIONS}
+      -DPSAPI_VERSION=1
+      -DAPR_DECLARE_STATIC
+      -DAPU_DECLARE_STATIC
+      -DZLIB_WINAPI
+      -DWIN32
+      -D_WINDOWS
+      -D_MBCS
+      -D_CRT_SECURE_NO_WARNINGS
+      -DNDEBUG
+      -DCAPNP_LITE=1
+      -D_VARIADIC_MAX=10
+      -DNOMINMAX)
   set(CAPNP_LITE 1)
   if(MSYS OR MINGW)
-    add_definitions(-DHAVE_UNISTD_H
-                    -DNTA_COMPILER_GNU)
+    set(COMPILER_DEFINITIONS
+        ${COMPILER_DEFINITIONS}
+        -DHAVE_UNISTD_H
+        -DNTA_COMPILER_GNU)
   endif()
 endif()
 
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
-  add_definitions(-DNTA_COMPILER_GNU)
+  set(COMPILER_DEFINITIONS
+      ${COMPILER_DEFINITIONS}
+      -DNTA_COMPILER_GNU)
 elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
-  add_definitions(-DNTA_COMPILER_CLANG)
+  set(COMPILER_DEFINITIONS
+      ${COMPILER_DEFINITIONS}
+      -DNTA_COMPILER_CLANG)
 elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
-  add_definitions(-DNTA_COMPILER_MSVC)
+  set(COMPILER_DEFINITIONS
+      ${COMPILER_DEFINITIONS}
+      -DNTA_COMPILER_MSVC)
 endif()
+
+add_definitions(${COMPILER_DEFINITIONS})
 
 #
 # Find Python Interp, min. v2.7
@@ -756,7 +769,12 @@ set(SWIG_FLAGS
     -DSWIG_PYTHON_LEGACY_BOOL
     -I${SWIG_DIR}/python
     -I${SWIG_DIR}
+    ${COMPILER_DEFINITIONS}
 )
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+  set(SWIG_FLAGS "${SWIG_FLAGS} -DNTA_OS_WINDOWS")
+endif()
 
 set(SWIG_SUPPORT_FILES
     nupic/py_support/NumpyVector.cpp
