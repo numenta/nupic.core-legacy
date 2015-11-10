@@ -1506,8 +1506,13 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
 {
   %pythoncode %{
 
-    def __init__(self, *args, **kwargs):
-      self.this = _ALGORITHMS.new_Connections(*args, **kwargs)
+    def __init__(self,
+                 numCells,
+                 maxSegmentsPerCell=255,
+                 maxSynapsesPerSegment=255):
+      self.this = _ALGORITHMS.new_Connections(numCells,
+                                              maxSegmentsPerCell,
+                                              maxSynapsesPerSegment)
 
     def mostActiveSegmentForCells(self, cells, input, synapseThreshold):
       segment = ConnectionsSegment()
