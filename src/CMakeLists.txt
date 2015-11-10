@@ -777,10 +777,6 @@ set(SWIG_FLAGS
     -DCAPNP_LITE=CAPNP_LITE
 )
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-  set(SWIG_FLAGS "${SWIG_FLAGS} -DNTA_OS_WINDOWS")
-endif()
-
 set(SWIG_SUPPORT_FILES
     nupic/py_support/NumpyVector.cpp
     nupic/py_support/PyArray.cpp
