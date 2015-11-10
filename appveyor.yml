@@ -136,7 +136,7 @@ install:
 build_script:
   - cd %REPO_DIR%\build\scripts
 
-  - mingw32-make -f Makefile -j3
+  - mingw32-make -f Makefile -j3 --debug=v
   - mingw32-make -f Makefile install | findstr /C:"Install" /I /V
 
   - cd %REPO_DIR%
