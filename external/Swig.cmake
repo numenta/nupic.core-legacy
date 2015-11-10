@@ -31,6 +31,7 @@ if (NOT SWIG_FOUND)
     add_custom_target(Swig)
     set(SWIG_EXECUTABLE
         ${PROJECT_SOURCE_DIR}/${PLATFORM}${BITNESS}/bin/swig.exe)
+    set(SWIG_DIR ${PROJECT_SOURCE_DIR}/common/share/swig/3.0.2)
   else()
     ExternalProject_Add(
       Swig
