@@ -28,6 +28,7 @@ endif ()
 if (NOT SWIG_FOUND)
   # Build SWIG from source.
   if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    add_custom_target(Swig)
     set(SWIG_EXECUTABLE
         ${PROJECT_SOURCE_DIR}/${PLATFORM}${BITNESS}/bin/swig.exe)
   else()
