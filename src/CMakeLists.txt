@@ -109,7 +109,8 @@ elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
 elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "MinGW")
   set(COMPILER_DEFINITIONS
       ${COMPILER_DEFINITIONS}
-      -DNTA_COMPILER_GNU)
+      -DNTA_COMPILER_GNU
+      -D_hypot=hypot)
 endif()
 
 add_definitions(${COMPILER_DEFINITIONS})
@@ -787,6 +788,25 @@ set(SWIG_SUPPORT_FILES
     nupic/bindings/PySparseTensor.cpp
 )
 
+set(SWIG_LINK_LIBRARIES
+    ${PROJECT_BINARY_DIR}/libnupic_core.a
+    ${PYTHON_LIBRARIES})
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+  set(SWIG_LINK_LIBRARIES
+      ${SWIG_LINK_LIBRARIES}
+      psapi
+      ws2_32
+      shell32
+      advapi32
+      wsock32
+      rpcrt4)
+else()
+  set(SWIG_LINK_LIBRARIES
+      ${SWIG_LINK_LIBRARIES}
+      ${CAPNP_LIBRARIES})
+endif()
+
 # Algorithms
 set(SWIG_ALGORITHMS_FILES nupic/bindings/algorithms.i)
 set_source_files_properties(${SWIG_ALGORITHMS_FILES} PROPERTIES
@@ -803,10 +823,7 @@ swig_add_module(${SWIG_ALGORITHMS} python
 list(APPEND SWIG_GENERATED_FILES ${swig_generated_file_fullname})
 #TODO add_dependencies(${SWIG_MODULE_${SWIG_ALGORITHMS}_REAL_NAME}
 swig_link_libraries(${SWIG_ALGORITHMS}
-                    #${LIB_STATIC_NUPICCORE}
-                    ${PROJECT_BINARY_DIR}/libnupic_core.a
-                    ${CAPNP_LIBRARIES}
-                    ${PYTHON_LIBRARIES})
+                    ${SWIG_LINK_LIBRARIES})
 
 # Engine
 set(SWIG_ENGINE_FILES nupic/bindings/engine_internal.i)
@@ -823,10 +840,7 @@ swig_add_module(${SWIG_ENGINE} python
                 ${SWIG_ENGINE_FILES})
 list(APPEND SWIG_GENERATED_FILES ${swig_generated_file_fullname})
 swig_link_libraries(${SWIG_ENGINE}
-                    #${LIB_STATIC_NUPICCORE}
-                    ${PROJECT_BINARY_DIR}/libnupic_core.a
-                    ${CAPNP_LIBRARIES}
-                    ${PYTHON_LIBRARIES})
+                    ${SWIG_LINK_LIBRARIES})
 
 # Math
 set(SWIG_MATH_FILES nupic/bindings/math.i)
@@ -843,10 +857,7 @@ swig_add_module(${SWIG_MATH} python
                 ${SWIG_MATH_FILES})
 list(APPEND SWIG_GENERATED_FILES ${swig_generated_file_fullname})
 swig_link_libraries(${SWIG_MATH}
-                    #${LIB_STATIC_NUPICCORE}
-                    ${PROJECT_BINARY_DIR}/libnupic_core.a
-                    ${CAPNP_LIBRARIES}
-                    ${PYTHON_LIBRARIES})
+                    ${SWIG_LINK_LIBRARIES})
 
 set_source_files_properties(${SWIG_GENERATED_FILES} PROPERTIES
                             GENERATED TRUE)
