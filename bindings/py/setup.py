@@ -581,6 +581,7 @@ if __name__ == "__main__":
       packages=find_packages(),
       package_data={"nupic.proto": ["*.capnp"]},
       zip_safe=False,
+      extras_require = {"capnp": ["pycapnp==0.5.5"]},
     )
   finally:
     os.chdir(cwd)
