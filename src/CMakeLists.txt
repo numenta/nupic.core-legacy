@@ -378,12 +378,10 @@ set(LIB_STATIC_NUPICCORE nupic_core_solo)
 
 if(CAPNP_LITE)
   set(COMMON_LIBS
-      ${LIB_STATIC_NUPICCORE}
       ${PYTHON_LIBRARIES}
       ${CAPNP_LIBRARIES_LITE})
 else()
   set(COMMON_LIBS
-      ${LIB_STATIC_NUPICCORE}
       ${PYTHON_LIBRARIES}
       ${CAPNP_LIBRARIES})
 endif()
@@ -488,6 +486,9 @@ set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES COMPILE_FLAGS
                       ${LIB_STATIC_NUPICCORE_COMPILE_FLAGS})
 set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES LINK_FLAGS
                       ${LIB_STATIC_NUPICCORE_LINK_FLAGS})
+
+# Add new library to common libs for rest of targets.
+set(COMMON_LIBS ${COMMON_LIBS} ${LIB_STATIC_NUPICCORE})
 
 #
 # Setup test_cpp_region
