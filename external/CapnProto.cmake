@@ -32,12 +32,13 @@ endif ()
 
 if (NOT CAPNP_FOUND)
   # Build Cap'n Proto from source.
-  if(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set(CAPNP_ARGS "-DCAPNP_LITE=1")
+    set(CAPNP_CXX_FLAGS "-std=c++11 -m${BITNESS}")
   else()
     set(CAPNP_ARGS "")
+    set(CAPNP_CXX_FLAGS "-fPIC -std=c++11 -m${BITNESS}")
   endif()
-  set(CAPNP_CXX_FLAGS "-fPIC -std=c++11 -m64")
   ExternalProject_Add(
     CapnProto
     GIT_REPOSITORY https://github.com/sandstorm-io/capnproto.git
@@ -58,6 +59,7 @@ if (NOT CAPNP_FOUND)
   set(LIB_CAPNP ${LIB_PRE}/${STATIC_PRE}capnp${STATIC_SUF})
   set(LIB_CAPNPC ${LIB_PRE}/${STATIC_PRE}capnpc${STATIC_SUF})
   set(CAPNP_LIBRARIES ${LIB_KJ} ${LIB_CAPNP} ${LIB_CAPNPC})
+  set(CAPNP_LIBRARIES_LITE ${LIB_KJ} ${LIB_CAPNP})
   set(CAPNP_INCLUDE_DIRS ${INCLUDE_PRE})
   set(CAPNP_EXECUTABLE ${BIN_PRE}/capnp)
   set(CAPNPC_CXX_EXECUTABLE ${BIN_PRE}/capnpc-c++)
@@ -82,6 +84,7 @@ endfunction(CREATE_CAPNPC_COMMAND)
 
 # Set the relevant variables in the parent scope.
 set(CAPNP_LIBRARIES ${CAPNP_LIBRARIES} PARENT_SCOPE)
+set(CAPNP_LIBRARIES_LITE ${CAPNP_LIBRARIES_LITE} PARENT_SCOPE)
 set(CAPNP_INCLUDE_DIRS ${CAPNP_INCLUDE_DIRS} PARENT_SCOPE)
 set(CAPNP_EXECUTABLE ${CAPNP_EXECUTABLE} PARENT_SCOPE)
 set(CAPNPC_CXX_EXECUTABLE ${CAPNPC_CXX_EXECUTABLE} PARENT_SCOPE)
