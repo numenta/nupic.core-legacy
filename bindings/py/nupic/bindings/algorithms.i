@@ -1126,16 +1126,16 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
       self.updateBookeepingVars_(learn)
 
     def _calculateOverlap(self, inputVector):
-      return self.calculateOverlap_(inputVector)
+      return self.calculateOverlap_(inputVector.astype("uint32"))
 
     def _inhibitColumns(self, overlaps):
-      return self.inhibitColumns_(overlaps)
+      return self.inhibitColumns_(overlaps.astype("float32"))
 
     def _updatePermanencesForColumn(self, perm, column, raisePerm=True):
       self.updatePermanencesForColumn_(perm, column, raisePerm)
 
     def _updateDutyCycles(self, overlaps, activeArray):
-      self.updateDutyCycles_(overlaps, activeArray)
+      self.updateDutyCycles_(overlaps.astype("uint32"), activeArray)
 
     def _bumpUpWeakColumns(self):
       self.bumpUpWeakColumns_();
