@@ -251,6 +251,7 @@ if __name__ == "__main__":
           "nupic.proto": ["*.capnp"],
           "nupic.bindings": ["*.so", "*.dll"],
       },
+      extras_require = {"capnp": ["pycapnp==0.5.5"]},
       zip_safe=False,
       description="Numenta Platform for Intelligent Computing - bindings",
       author="Numenta",
