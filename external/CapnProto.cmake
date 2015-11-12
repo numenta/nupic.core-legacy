@@ -72,10 +72,11 @@ function(CREATE_CAPNPC_COMMAND
          GROUP_NAME SPEC_FILES SRC_PREFIX INCLUDE_DIR TARGET_DIR OUTPUT_FILES)
   add_custom_command(
     OUTPUT ${OUTPUT_FILES}
-    COMMAND ${CAPNP_EXECUTABLE}
-        compile -o ${CAPNPC_CXX_EXECUTABLE}:${TARGET_DIR}
-        --src-prefix ${SRC_PREFIX} -I ${INCLUDE_DIR}
-        ${SPEC_FILES}
+    COMMAND dir ${BIN_PRE}
+    #COMMAND ${CAPNP_EXECUTABLE}
+    #    compile -o ${CAPNPC_CXX_EXECUTABLE}:${TARGET_DIR}
+    #    --src-prefix ${SRC_PREFIX} -I ${INCLUDE_DIR}
+    #    ${SPEC_FILES}
     DEPENDS CapnProto
     COMMENT "Executing Cap'n Proto compiler"
   )
