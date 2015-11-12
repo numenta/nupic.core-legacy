@@ -145,6 +145,13 @@ using namespace nupic;
 //   from bindings import math
 // %}
 
+%pythoncode %{
+  from nupic.bindings.math import GetNTAReal
+
+  uintDType = "uint32"
+  realDType = GetNTAReal()
+%}
+
 %naturalvar;
 
 
@@ -1071,10 +1078,6 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
 %extend nupic::algorithms::spatial_pooler::SpatialPooler
 {
   %pythoncode %{
-    import numpy
-    from nupic.bindings.math import (SM32 as SparseMatrix,
-                                     SM_01_32_32 as SparseBinaryMatrix)
-
     def __init__(self,
                  inputDimensions=[32,32],
                  columnDimensions=[64,64],
@@ -1126,17 +1129,17 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
       self.updateBookeepingVars_(learn)
 
     def _calculateOverlap(self, inputVector):
-      return self.calculateOverlap_(inputVector.astype("uint32"))
+      return self.calculateOverlap_(inputVector.astype(uintDType))
 
     def _inhibitColumns(self, overlaps):
-      return self.inhibitColumns_(overlaps.astype("float32"))
+      return self.inhibitColumns_(overlaps.astype(realDType))
 
     def _updatePermanencesForColumn(self, perm, column, raisePerm=True):
       self.updatePermanencesForColumn_(perm, column, raisePerm)
 
     def _updateDutyCycles(self, overlaps, activeArray):
-      self.updateDutyCycles_(overlaps.astype("uint32"),
-                             activeArray.astype("uint32"))
+      self.updateDutyCycles_(overlaps.astype(uintDType),
+                             activeArray.astype(uintDType))
 
     def _bumpUpWeakColumns(self):
       self.bumpUpWeakColumns_();
