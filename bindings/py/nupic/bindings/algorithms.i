@@ -1135,7 +1135,8 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
       self.updatePermanencesForColumn_(perm, column, raisePerm)
 
     def _updateDutyCycles(self, overlaps, activeArray):
-      self.updateDutyCycles_(overlaps.astype("uint32"), activeArray)
+      self.updateDutyCycles_(overlaps.astype("uint32"),
+                             activeArray.astype("uint32"))
 
     def _bumpUpWeakColumns(self):
       self.bumpUpWeakColumns_();
