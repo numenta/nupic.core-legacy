@@ -62,7 +62,7 @@ if (NOT CAPNP_FOUND)
   set(CAPNP_LIBRARIES_LITE ${LIB_KJ} ${LIB_CAPNP})
   set(CAPNP_INCLUDE_DIRS ${INCLUDE_PRE})
   set(CAPNP_EXECUTABLE ${BIN_PRE}/capnp${CMAKE_EXECUTABLE_SUFFIX})
-  set(CAPNPC_CXX_EXECUTABLE ${BIN_PRE}/capnpc-c++)
+  set(CAPNPC_CXX_EXECUTABLE ${BIN_PRE}/capnpc-c++${CMAKE_EXECUTABLE_SUFFIX})
 else()
   # Create a dummy target to depend on.
   add_custom_target(CapnProto)
