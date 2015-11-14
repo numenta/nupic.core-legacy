@@ -41,3 +41,5 @@ echo "Installing wheel..."
 pip install wheel --user || exit
 echo "Installing Python dependencies"
 pip install --use-wheel --user -r bindings/py/requirements.txt --quiet || exit
+
+pip install pycapnp --user || exit
