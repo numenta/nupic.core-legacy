@@ -37,7 +37,9 @@ shallow_clone: false
 environment:
   PYTHON_ARCH: "64"
   COMPILER_FAMILY: GCC
-      
+  AWS_ACCESS_KEY_ID: AKIAIGHYSEHV3WFKOWNQ
+  AWS_SECRET_ACCESS_KEY: "Ixm9TYZAZbCQicUTIZTY7XKNK82WF+f1jsaGtIxnGQmn0LKhKBjQnsZmhzQ7LDQeLUjRY3wM6xrX3YdP5T7WWiiqBiNCRz8oFxl/fBSm7LyuNo2CEGD9rsG6ZAY/sKKYNX5TuG78giJXwYZpq4LbVwy3W5ZlC626H7iXLQ6xDxw="
+
   matrix:
     - PYTHON_VERSION: "2.7.9"
       PYTHONPATH: "C:\\Python27-x64"
@@ -162,36 +164,12 @@ after_build:
 
       }
 
+  - cd %REPO_DIR%
+  - ps: echo "Deploying nupic.bindings-$env:BINDINGS_VERSION-cp27-none-win_amd64.whl to S3..."
+  - ps: python ci/deploy-wheel-to-s3.py nupic.bindings-$env:BINDINGS_VERSION-cp27-none-win_amd64.whl
+
 artifacts:
-  - path: '**\*.tar.gz'
-  - path: '**\*.whl'
-
-deploy:
-  # Iterative builds
-  - provider: S3
-    access_key_id:
-      secure: D942gmPEB3lICGqL4M1HhaEqkBxr+DP7sb4pUc8UXqI=
-    secret_access_key:
-      secure: 1wvNyHZO/6LKqNmAHcGEDxBHRjOC0iXUhSkXjZq6CGL0Cx5Kjtxnxhkz63ohknOH
-    bucket: "artifacts.numenta.org"
-    region: us-west-2
-    set_public: true
-    artifact: "nupic.bindings-$(BINDINGS_VERSION)-cp27-none-win_amd64.whl"
-    folder: "numenta/nupic.core/releases/nupic.bindings"
-
-  # Github tagged builds
-  - provider: S3
-    access_key_id:
-      secure: D942gmPEB3lICGqL4M1HhaEqkBxr+DP7sb4pUc8UXqI=
-    secret_access_key:
-      secure: 1wvNyHZO/6LKqNmAHcGEDxBHRjOC0iXUhSkXjZq6CGL0Cx5Kjtxnxhkz63ohknOH
-    bucket: "artifacts.numenta.org"
-    region: us-west-2
-    set_public: true
-    artifact: "nupic_core-$(APPVEYOR_REPO_COMMIT)-windows64.tar.gz"
-    folder: "numenta/nupic.core"
-    on:
-      branch: master
-      appveyor_repo_tag: true
+  - path: nupic_core-$env:APPVEYOR_REPO_COMMIT-windows64.tar.gz
+  - path: nupic.bindings-$env:BINDINGS_VERSION-cp27-none-win_amd64.whl
 
 test: off

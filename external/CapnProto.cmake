@@ -32,7 +32,7 @@ endif ()
 
 if (NOT CAPNP_FOUND)
   # Build Cap'n Proto from source.
-  if(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set(CAPNP_ARGS "-DCAPNP_LITE=1")
   else()
     set(CAPNP_ARGS "")
