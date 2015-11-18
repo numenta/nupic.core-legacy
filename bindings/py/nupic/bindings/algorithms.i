@@ -145,13 +145,6 @@ using namespace nupic;
 //   from bindings import math
 // %}
 
-%pythoncode %{
-  from nupic.bindings.math import GetNTAReal
-
-  uintDType = "uint32"
-  realDType = GetNTAReal()
-%}
-
 %naturalvar;
 
 
@@ -1129,17 +1122,16 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
       self.updateBookeepingVars_(learn)
 
     def _calculateOverlap(self, inputVector):
-      return self.calculateOverlap_(inputVector.astype(uintDType))
+      return self.calculateOverlap_(inputVector)
 
     def _inhibitColumns(self, overlaps):
-      return self.inhibitColumns_(overlaps.astype(realDType))
+      return self.inhibitColumns_(overlaps)
 
     def _updatePermanencesForColumn(self, perm, column, raisePerm=True):
       self.updatePermanencesForColumn_(perm, column, raisePerm)
 
     def _updateDutyCycles(self, overlaps, activeArray):
-      self.updateDutyCycles_(overlaps.astype(uintDType),
-                             activeArray.astype(uintDType))
+      self.updateDutyCycles_(overlaps, activeArray)
 
     def _bumpUpWeakColumns(self):
       self.bumpUpWeakColumns_();
