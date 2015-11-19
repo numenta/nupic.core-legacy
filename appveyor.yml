@@ -167,11 +167,40 @@ after_build:
       }
 
   - cd %REPO_DIR%
-  - ps: echo "Deploying nupic.bindings-$env:BINDINGS_VERSION-cp27-none-win_amd64.whl to S3..."
-  - ps: python ci/deploy-wheel-to-s3.py nupic.bindings-$env:BINDINGS_VERSION-cp27-none-win_amd64.whl
+
+  #- ps: echo "Deploying nupic.bindings-$env:BINDINGS_VERSION-cp27-none-win_amd64.whl to S3..."
+  # Secure keys cannot be passed into Boto
+  # https://ci.appveyor.com/tools/encrypt
+  #- ps: python ci/deploy-wheel-to-s3.py nupic.bindings-$env:BINDINGS_VERSION-cp27-none-win_amd64.whl
+
+test: off
 
 artifacts:
   - path: nupic_core-$env:APPVEYOR_REPO_COMMIT-windows64.tar.gz
   - path: nupic.bindings-$env:BINDINGS_VERSION-cp27-none-win_amd64.whl
 
-test: off
+deploy:
+  # Iterative builds
+  - provider: S3
+    access_key_id: AKIAIGHYSEHV3WFKOWNQ
+    secret_access_key:
+      secure: /8wO17Gir0XAiecJkHeE3jxOJzvyl0+uWcl7BKCuN0FC795golsL8905VmNuRl1o
+    bucket: "artifacts.numenta.org"
+    region: us-west-2
+    set_public: true
+    artifact: "nupic.bindings-$(BINDINGS_VERSION)-cp27-none-win_amd64.whl"
+    folder: "numenta/nupic.core/releases/nupic.bindings"
+
+  # Github tagged builds
+  - provider: S3
+    access_key_id: AKIAIGHYSEHV3WFKOWNQ
+    secret_access_key:
+      secure: /8wO17Gir0XAiecJkHeE3jxOJzvyl0+uWcl7BKCuN0FC795golsL8905VmNuRl1o
+    bucket: "artifacts.numenta.org"
+    region: us-west-2
+    set_public: true
+    artifact: "nupic_core-$(APPVEYOR_REPO_COMMIT)-windows64.tar.gz"
+    folder: "numenta/nupic.core"
+    on:
+      branch: master
+      appveyor_repo_tag: true
