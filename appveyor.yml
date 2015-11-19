@@ -176,8 +176,9 @@ after_build:
 test: off
 
 artifacts:
-  - path: nupic_core-$env:APPVEYOR_REPO_COMMIT-windows64.tar.gz
-  - path: nupic.bindings-$env:BINDINGS_VERSION-cp27-none-win_amd64.whl
+  # Non-recursive search in build folder for Wheels and GZips
+  - path: '*.tar.gz'
+  - path: '*.whl'
 
 deploy:
   # Iterative builds
