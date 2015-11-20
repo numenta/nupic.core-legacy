@@ -366,6 +366,42 @@ void RandomTest::RunTests()
   }
 
   {
+    // tests for getUInt64
+    Random r1(1);
+    TESTEQUAL2("check getUInt64, seed 1, first call",
+               3723745761376425000, r1.getUInt64());
+    TESTEQUAL2("check getUInt64, seed 1, second call",
+               7464235991977222558, r1.getUInt64());
+
+    Random r2(2);
+    TESTEQUAL2("check getUInt64, seed 2, first call",
+               7543924162171776743, r2.getUInt64());
+    TESTEQUAL2("check getUInt64, seed 2, second call",
+               1206857364816002550, r2.getUInt64());
+
+    Random r3(7464235991977222558);
+    TESTEQUAL2("check getUInt64, big seed, first call",
+               3609339244249306794, r3.getUInt64());
+    TESTEQUAL2("check getUInt64, big seed, second call",
+               4084830275585779078, r3.getUInt64());
+  }
+
+  {
+    // tests for getReal64
+    Random r1(1);
+    TESTEQUAL_FLOAT(0.40250281741114691, r1.getReal64());
+    TESTEQUAL_FLOAT(0.29331049250469476, r1.getReal64());
+
+    Random r2(2);
+    TESTEQUAL_FLOAT(0.40256278127972323, r2.getReal64());
+    TESTEQUAL_FLOAT(0.6186683429386548, r2.getReal64());
+
+    Random r3(7464235991977222558);
+    TESTEQUAL_FLOAT(0.94890447597450844, r3.getReal64());
+    TESTEQUAL_FLOAT(0.23239565201722456, r3.getReal64());
+  }
+
+  {
     // tests for sampling
 
     UInt32 population[] = {1, 2, 3, 4};
