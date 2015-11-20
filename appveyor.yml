@@ -37,7 +37,11 @@ shallow_clone: false
 environment:
   PYTHON_ARCH: "64"
   COMPILER_FAMILY: GCC
-      
+  AWS_ACCESS_KEY_ID:
+    secure: /9U0mCHp3k1U8Y5CY/kDqwCKG2gqchG/T/UlVWo8SME=
+  AWS_SECRET_ACCESS_KEY:
+    secure: /8wO17Gir0XAiecJkHeE3jxOJzvyl0+uWcl7BKCuN0FC795golsL8905VmNuRl1o
+
   matrix:
     - PYTHON_VERSION: "2.7.9"
       PYTHONPATH: "C:\\Python27-x64"
@@ -152,17 +156,26 @@ after_build:
 
       }
 
+  - cd %REPO_DIR%
+
+  #- ps: echo "Deploying nupic.bindings-$env:BINDINGS_VERSION-cp27-none-win_amd64.whl to S3..."
+  # Secure keys cannot be passed into Boto
+  # https://ci.appveyor.com/tools/encrypt
+  #- ps: python ci/deploy-wheel-to-s3.py nupic.bindings-$env:BINDINGS_VERSION-cp27-none-win_amd64.whl
+
+test: off
+
 artifacts:
-  - path: '**\*.tar.gz'
-  - path: '**\*.whl'
+  # Non-recursive search in build folder for Wheels and GZips
+  - path: '*.tar.gz'
+  - path: '*.whl'
 
 deploy:
   # Iterative builds
   - provider: S3
-    access_key_id:
-      secure: D942gmPEB3lICGqL4M1HhaEqkBxr+DP7sb4pUc8UXqI=
+    access_key_id: AKIAIGHYSEHV3WFKOWNQ
     secret_access_key:
-      secure: 1wvNyHZO/6LKqNmAHcGEDxBHRjOC0iXUhSkXjZq6CGL0Cx5Kjtxnxhkz63ohknOH
+      secure: /8wO17Gir0XAiecJkHeE3jxOJzvyl0+uWcl7BKCuN0FC795golsL8905VmNuRl1o
     bucket: "artifacts.numenta.org"
     region: us-west-2
     set_public: true
@@ -171,10 +184,9 @@ deploy:
 
   # Github tagged builds
   - provider: S3
-    access_key_id:
-      secure: D942gmPEB3lICGqL4M1HhaEqkBxr+DP7sb4pUc8UXqI=
+    access_key_id: AKIAIGHYSEHV3WFKOWNQ
     secret_access_key:
-      secure: 1wvNyHZO/6LKqNmAHcGEDxBHRjOC0iXUhSkXjZq6CGL0Cx5Kjtxnxhkz63ohknOH
+      secure: /8wO17Gir0XAiecJkHeE3jxOJzvyl0+uWcl7BKCuN0FC795golsL8905VmNuRl1o
     bucket: "artifacts.numenta.org"
     region: us-west-2
     set_public: true
@@ -183,5 +195,3 @@ deploy:
     on:
       branch: master
       appveyor_repo_tag: true
-
-test: off
