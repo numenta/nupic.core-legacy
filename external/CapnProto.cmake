@@ -22,7 +22,9 @@
 option(SOURCE_CAPNP "Build Cap'n Proto from source even if it is found." OFF)
 
 if (NOT ${SOURCE_CAPNP})
-  find_package(CapnProto)
+  # The PATHS is included so that incremental builds can find the already-built
+  # Cap'n Proto files from the ExternalProject build.
+  find_package(CapnProto PATHS ${EP_BASE}/Install)
   # Find static libraries
   find_library(LIB_KJ ${STATIC_PRE}kj${STATIC_SUF})
   find_library(LIB_CAPNP ${STATIC_PRE}capnp${STATIC_SUF})
