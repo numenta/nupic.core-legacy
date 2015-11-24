@@ -55,4 +55,4 @@ twine upload bindings/py/dist/nupic.bindings-*.egg -u "${PYPI_USERNAME}" -p "${P
 
 wheel_file=`ls bindings/py/dist/*.whl`
 echo "Deploying ${wheel_file} to S3..."
-python ci/travis/deploy-wheel-to-s3.py "${wheel_file}"
+python ci/deploy-wheel-to-s3.py "${wheel_file}"

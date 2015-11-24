@@ -90,6 +90,12 @@ function main () {
     Write-Host "pip install " wheel
     & $pip_path install wheel
 
+    Write-Host "pip install " boto
+    & $pip_path install boto
+
+    Write-Host "pip install " twine
+    & $pip_path install twine
+
     Write-Host "pip install " numpy==1.9.1
     #& $pip_path install -i https://pypi.numenta.com/pypi numpy==1.9.1
     # Check AppVeyor cloud cache for NumPy wheel
