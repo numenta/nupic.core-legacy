@@ -304,8 +304,9 @@ RandomImpl::RandomImpl(UInt64 seed)
      *
      *	2^31-1 (prime) = 2147483647 = 127773*16807+2836
      */
-    ldiv_t val = ldiv(state_[i-1], 127773);
-    long test = 16807 * val.rem - 2836 * val.quot;
+    Int32 quot = state_[i-1] / 127773;
+    Int32 rem = state_[i-1] % 127773;
+    Int32 test = 16807 * rem - 2836 * quot;
     state_[i] = (UInt32)((test + (test < 0 ? 2147483647 : 0)) % Random::MAX32);
   }
   fptr_ = sep_;
