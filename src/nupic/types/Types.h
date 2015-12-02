@@ -179,15 +179,15 @@ typedef uintptr_t      NTA_UIntPtr;
     * Represents a 64-bit unsigned integer.
     */
     typedef unsigned long long    NTA_UInt64;
-  #else // 64bit
+  #else // 64bit (LLP64 data models)
     /**
     * Represents a 32-bit signed integer.
     */
-    typedef long                  NTA_Int32;
+    typedef int                   NTA_Int32;
     /**
     * Represents a 32-bit unsigned integer.
     */
-    typedef unsigned long         NTA_UInt32;
+    typedef unsigned int          NTA_UInt32;
     /**
     * Represents a 64-bit signed integer.
     */
