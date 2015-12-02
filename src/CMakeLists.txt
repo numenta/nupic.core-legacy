@@ -344,6 +344,7 @@ if(NOT "${PLATFORM}" STREQUAL "windows")
   execute_process(COMMAND "${PYTHON_EXECUTABLE}" "-c"
                           "import capnp; import os; import sys; sys.stdout.write(os.path.dirname(os.path.dirname(capnp.__file__)))"
                   OUTPUT_VARIABLE PYCAPNP)
+  message(STATUS "PYCAPNP             = ${PYCAPNP}")
   include_directories(SYSTEM ${PYCAPNP})
 endif()
 

@@ -1071,10 +1071,6 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
 %extend nupic::algorithms::spatial_pooler::SpatialPooler
 {
   %pythoncode %{
-    import numpy
-    from nupic.bindings.math import (SM32 as SparseMatrix,
-                                     SM_01_32_32 as SparseBinaryMatrix)
-
     def __init__(self,
                  inputDimensions=[32,32],
                  columnDimensions=[64,64],
@@ -1092,14 +1088,15 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
                  dutyCyclePeriod=1000,
                  maxBoost=10.0,
                  seed=-1,
-                 spVerbosity=0):
+                 spVerbosity=0,
+                 wrapAround=True):
       self.this = _ALGORITHMS.new_SpatialPooler()
       _ALGORITHMS.SpatialPooler_initialize(
         self, inputDimensions, columnDimensions, potentialRadius, potentialPct,
         globalInhibition, localAreaDensity, numActiveColumnsPerInhArea,
         stimulusThreshold, synPermInactiveDec, synPermActiveInc, synPermConnected,
         minPctOverlapDutyCycle, minPctActiveDutyCycle, dutyCyclePeriod, maxBoost,
-        seed, spVerbosity)
+        seed, spVerbosity, wrapAround)
 
     def __getstate__(self):
       # Save the local attributes but override the C++ spatial pooler with the
@@ -1120,6 +1117,37 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
         # Use the rest of the state to set local Python attributes.
         del state["this"]
         self.__dict__.update(state)
+
+    def _updateBookeepingVars(self, learn):
+      self.updateBookeepingVars_(learn)
+
+    def _calculateOverlap(self, inputVector):
+      return self.calculateOverlap_(inputVector)
+
+    def _inhibitColumns(self, overlaps):
+      return self.inhibitColumns_(overlaps)
+
+    def _updatePermanencesForColumn(self, perm, column, raisePerm=True):
+      self.updatePermanencesForColumn_(perm, column, raisePerm)
+
+    def _updateDutyCycles(self, overlaps, activeArray):
+      self.updateDutyCycles_(overlaps, activeArray)
+
+    def _bumpUpWeakColumns(self):
+      self.bumpUpWeakColumns_();
+
+    def _updateBoostFactors(self):
+      self.updateBoostFactors_();
+
+    def _isUpdateRound(self):
+      return self.isUpdateRound_();
+
+    def _updateInhibitionRadius(self):
+      self.updateInhibitionRadius_();
+
+    def _updateMinDutyCycles(self):
+      self.updateMinDutyCycles_();
+
   %}
 
   inline void compute(PyObject *py_x, bool learn, PyObject *py_y)
@@ -1265,6 +1293,62 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
   {
     PyArrayObject* x = (PyArrayObject*) py_x;
     self->getConnectedCounts((nupic::UInt*) PyArray_DATA(x));
+  }
+
+  inline PyObject* calculateOverlap_(PyObject* py_inputVector)
+  {
+    PyArrayObject* inputVector = (PyArrayObject*) py_inputVector;
+    std::vector<nupic::UInt> overlapVector;
+
+    self->calculateOverlap_((nupic::UInt*) PyArray_DATA(inputVector),
+                            overlapVector);
+
+    nupic::NumpyVectorT<nupic::UInt> overlap(overlapVector.size(),
+                                             &overlapVector[0]);
+    return overlap.forPython();
+  }
+
+  inline PyObject* inhibitColumns_(PyObject *py_overlaps)
+  {
+    PyArrayObject* overlaps = (PyArrayObject*) py_overlaps;
+    nupic::UInt overlapsLen = (nupic::UInt)PyArray_DIMS(overlaps)[0];
+    nupic::Real* overlapsData = (nupic::Real*)PyArray_DATA(overlaps);
+    std::vector<nupic::Real> overlapsVector;
+    overlapsVector.assign(overlapsData, overlapsData + overlapsLen);
+
+    std::vector<nupic::UInt> activeColumnsVector;
+
+    self->inhibitColumns_(overlapsVector, activeColumnsVector);
+
+    nupic::NumpyVectorT<nupic::UInt> activeColumns(activeColumnsVector.size(),
+                                                   &activeColumnsVector[0]);
+    return activeColumns.forPython();
+  }
+
+  inline void updatePermanencesForColumn_(PyObject *py_perm, UInt column,
+                                          bool raisePerm)
+  {
+    PyArrayObject* perm = (PyArrayObject*) py_perm;
+    nupic::UInt permLen = (nupic::UInt)PyArray_DIMS(perm)[0];
+    nupic::Real* permData = (nupic::Real*)PyArray_DATA(perm);
+    std::vector<nupic::Real> permVector;
+    permVector.assign(permData, permData + permLen);
+
+    self->updatePermanencesForColumn_(permVector, column, raisePerm);
+  }
+
+  inline void updateDutyCycles_(PyObject* py_overlaps, PyObject* py_activeArray)
+  {
+    PyArrayObject* overlaps = (PyArrayObject*) py_overlaps;
+    nupic::UInt overlapsLen = (nupic::UInt)PyArray_DIMS(overlaps)[0];
+    nupic::UInt* overlapsData = (nupic::UInt*)PyArray_DATA(overlaps);
+    std::vector<nupic::UInt> overlapsVector;
+    overlapsVector.assign(overlapsData, overlapsData + overlapsLen);
+
+    PyArrayObject* activeArray = (PyArrayObject*) py_activeArray;
+
+    self->updateDutyCycles_(overlapsVector,
+                           (nupic::UInt*) PyArray_DATA(activeArray));
   }
 
 }
