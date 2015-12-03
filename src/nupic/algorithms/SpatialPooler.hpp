@@ -32,12 +32,14 @@
 #include <string>
 #include <vector>
 #include <capnp/message.h>
+#include <nupic/base/Serializable.hpp>
 #include <nupic/math/SparseBinaryMatrix.hpp>
 #include <nupic/math/SparseMatrix.hpp>
 #include <nupic/proto/SpatialPoolerProto.capnp.h>
 #include <nupic/types/Types.hpp>
 
 using namespace std;
+using namespace nupic::base::serializable;
 
 namespace nupic {
   namespace algorithms {
@@ -66,7 +68,7 @@ namespace nupic {
        *     }
        *
        */
-      class SpatialPooler {
+      class SpatialPooler : public Serializable<SpatialPoolerProto> {
         public:
           SpatialPooler();
           SpatialPooler(vector<UInt> inputDimensions,
@@ -306,8 +308,8 @@ namespace nupic {
            */
           virtual void save(ostream& outStream) const;
 
-          virtual void write(ostream& stream) const;
-          virtual void write(SpatialPoolerProto::Builder& proto) const;
+          using Serializable::write;
+          virtual void write(SpatialPoolerProto::Builder& proto) const override;
 
           /**
           Load (deserialize) and initialize the spatial pooler from the
