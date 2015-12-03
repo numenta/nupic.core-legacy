@@ -63,6 +63,8 @@ namespace nupic {
 
       virtual void write(typename ProtoT::Builder& proto) const = 0;
       virtual void read(typename ProtoT::Reader& proto) = 0;
+
+      virtual ~Serializable() {}
   };
 
 } // end namespace nupic
