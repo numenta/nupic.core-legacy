@@ -1696,17 +1696,8 @@ void SpatialPooler::write(SpatialPoolerProto::Builder& proto) const
 }
 
 // Implementation note: this method sets up the instance using data from
-// inStream. This method does not call initialize. As such we have to be careful
+// proto. This method does not call initialize. As such we have to be careful
 // that everything in initialize is handled properly here.
-void SpatialPooler::read(istream& stream)
-{
-  kj::std::StdInputStream in(stream);
-
-  capnp::InputStreamMessageReader message(in);
-  SpatialPoolerProto::Reader proto = message.getRoot<SpatialPoolerProto>();
-  read(proto);
-}
-
 void SpatialPooler::read(SpatialPoolerProto::Reader& proto)
 {
   auto randomProto = proto.getRandom();

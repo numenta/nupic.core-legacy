@@ -55,7 +55,16 @@ namespace nupic {
             capnp::writeMessage(out, message);
           }
 
+          void read(istream& stream) {
+            kj::std::StdInputStream in(stream);
+
+            capnp::InputStreamMessageReader message(in);
+            typename ProtoT::Reader proto = message.getRoot<ProtoT>();
+            read(proto);
+          }
+
           virtual void write(typename ProtoT::Builder& proto) const = 0;
+          virtual void read(typename ProtoT::Reader& proto) = 0;
       };
 
     } // end namespace serializable

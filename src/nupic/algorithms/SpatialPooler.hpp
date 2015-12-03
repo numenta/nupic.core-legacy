@@ -319,8 +319,8 @@ namespace nupic {
            */
           virtual void load(istream& inStream);
 
-          virtual void read(istream& stream);
-          virtual void read(SpatialPoolerProto::Reader& proto);
+          using Serializable::read;
+          virtual void read(SpatialPoolerProto::Reader& proto) override;
 
           /**
           Returns the number of bytes that a save operation would result in.
