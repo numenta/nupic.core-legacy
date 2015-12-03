@@ -29,10 +29,6 @@
 #include <string>
 #include <vector>
 
-#include <capnp/message.h>
-#include <capnp/serialize.h>
-#include <kj/std/iostream.h>
-
 #include <nupic/algorithms/SpatialPooler.hpp>
 #include <nupic/math/Math.hpp>
 #include <nupic/proto/SpatialPoolerProto.capnp.h>
