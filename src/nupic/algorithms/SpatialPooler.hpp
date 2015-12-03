@@ -67,7 +67,7 @@ namespace nupic {
        *     }
        *
        */
-      class SpatialPooler : public nupic::Serializable<SpatialPoolerProto> {
+      class SpatialPooler : public Serializable<SpatialPoolerProto> {
         public:
           SpatialPooler();
           SpatialPooler(vector<UInt> inputDimensions,
