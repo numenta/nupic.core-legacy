@@ -46,7 +46,8 @@ namespace nupic {
       template <class ProtoT>
       class Serializable {
         public:
-          void write(ostream& stream) const {
+          void write(ostream& stream) const
+          {
             capnp::MallocMessageBuilder message;
             typename ProtoT::Builder proto = message.initRoot<ProtoT>();
             write(proto);
@@ -55,7 +56,8 @@ namespace nupic {
             capnp::writeMessage(out, message);
           }
 
-          void read(istream& stream) {
+          void read(istream& stream)
+          {
             kj::std::StdInputStream in(stream);
 
             capnp::InputStreamMessageReader message(in);
