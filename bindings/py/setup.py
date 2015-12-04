@@ -398,22 +398,30 @@ def getExtensionModules(nupicCoreReleaseDir, platform, bitness, cxxCompiler, cmd
       commonCompileFlags.append("-flto")
       commonLinkFlags.append("-flto")
 
-  commonLibraries = [
-    pythonLib,
-    "kj",
-    "capnp"
+  commonLibraries = [pythonLib]
+  commonObjects = [
+    fixPath(nupicCoreReleaseDir + "/lib/" +
+            getLibPrefix(platform) + "kj" + getStaticLibExtension(platform)),
+    fixPath(nupicCoreReleaseDir + "/lib/" +
+            getLibPrefix(platform) + "capnp" + getStaticLibExtension(platform))
   ]
+
   if platform == "linux":
-    commonLibraries.extend(["capnpc","dl","pthread"])
+    commonLibraries.extend(["dl", "pthread"])
+    commonObjects.extend([
+      fixPath(nupicCoreReleaseDir + "/lib/" +
+              getLibPrefix(platform) + "capnpc" +
+              getStaticLibExtension(platform))])
   elif platform in WINDOWS_PLATFORMS:
     commonLibraries.extend([
       "psapi", "ws2_32", "shell32", "advapi32", "wsock32", "rpcrt4"])
     if cxxCompiler != "MinGW":
       commonLibraries.append("oldnames")
 
-  commonObjects = [
+  commonObjects.extend([
     fixPath(nupicCoreReleaseDir + "/lib/" +
-      getLibPrefix(platform) + "nupic_core" + getStaticLibExtension(platform))]
+            getLibPrefix(platform) + "nupic_core" +
+            getStaticLibExtension(platform))])
 
   supportFiles = [
     os.path.normpath(fixPath("../../src/nupic/py_support/NumpyVector.cpp")),
