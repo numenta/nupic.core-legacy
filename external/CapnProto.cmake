@@ -21,14 +21,17 @@
 
 option(SOURCE_CAPNP "Build Cap'n Proto from source even if it is found." OFF)
 
-if (NOT ${SOURCE_CAPNP})
-  find_package(CapnProto)
-  # Find static libraries
-  find_library(LIB_KJ ${STATIC_PRE}kj${STATIC_SUF})
-  find_library(LIB_CAPNP ${STATIC_PRE}capnp${STATIC_SUF})
-  find_library(LIB_CAPNPC ${STATIC_PRE}capnpc${STATIC_SUF})
-  set(CAPNP_LIBRARIES ${LIB_KJ} ${LIB_CAPNP} ${LIB_CAPNPC})
-endif ()
+# TODO: Enable discovery of capnp/kj locally.
+#if (NOT ${SOURCE_CAPNP})
+#  find_package(CapnProto)
+#  # Find static libraries
+#  find_library(LIB_KJ ${STATIC_PRE}kj${STATIC_SUF})
+#  find_library(LIB_CAPNP ${STATIC_PRE}capnp${STATIC_SUF})
+#  find_library(LIB_CAPNPC ${STATIC_PRE}capnpc${STATIC_SUF})
+#  set(CAPNP_LIBRARIES ${LIB_KJ} ${LIB_CAPNP} ${LIB_CAPNPC})
+#  set(CAPNP_LIBRARIES_LITE ${LIB_KJ} ${LIB_CAPNP})
+#  # TODO: Lookup CAPNP_INCLUDE_DIRS, CAPNP_EXECUTABLE, and CAPCP_CXX_EXECUTABLE.
+#endif ()
 
 if (NOT CAPNP_FOUND)
   # Build Cap'n Proto from source.
@@ -89,7 +92,7 @@ set(CAPNP_INCLUDE_DIRS ${CAPNP_INCLUDE_DIRS} PARENT_SCOPE)
 set(CAPNP_EXECUTABLE ${CAPNP_EXECUTABLE} PARENT_SCOPE)
 set(CAPNPC_CXX_EXECUTABLE ${CAPNPC_CXX_EXECUTABLE} PARENT_SCOPE)
 
-# Install headers.
+# Install headers and libraries.
 foreach (INCLUDE_DIR ${CAPNP_INCLUDE_DIRS})
   install(DIRECTORY ${INCLUDE_DIR}/kj
           DESTINATION include/)
