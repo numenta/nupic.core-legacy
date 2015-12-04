@@ -89,7 +89,10 @@ namespace nupic
     void serialize(BundleIO& bundle) override;
     void deserialize(BundleIO& bundle) override;
 
+    using RegionImpl::write;
     virtual void write(capnp::AnyPointer::Builder& anyProto) const override;
+
+    using RegionImpl::read;
     virtual void read(capnp::AnyPointer::Reader& anyProto) override;
 
     /* -----------  Optional RegionImpl Interface methods ------- */
