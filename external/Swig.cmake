@@ -33,6 +33,8 @@ if (NOT SWIG_FOUND)
         ${PROJECT_SOURCE_DIR}/${PLATFORM}${BITNESS}/bin/swig.exe)
     set(SWIG_DIR ${PROJECT_SOURCE_DIR}/common/share/swig/3.0.2)
   else()
+    # TODO: Remove dependency on curl by using native CMake functionality for
+    # fetching pcre.
     ExternalProject_Add(
       Swig
       URL http://prdownloads.sourceforge.net/swig/swig-3.0.2.tar.gz
