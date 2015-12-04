@@ -1111,18 +1111,12 @@ void SpatialPooler::inhibitColumns_(vector<Real>& overlaps,
     density = min(density, (Real) 0.5);
   }
 
-  vector<Real> overlapsWithNoise;
-  overlapsWithNoise.resize(numColumns_);
-  for (UInt i = 0; i < numColumns_; i++) {
-    overlapsWithNoise[i] = overlaps[i] + tieBreaker_[i];
-  }
-
   if (globalInhibition_ ||
       inhibitionRadius_ > *max_element(columnDimensions_.begin(),
                                        columnDimensions_.end())) {
-    inhibitColumnsGlobal_(overlapsWithNoise, density, activeColumns);
+    inhibitColumnsGlobal_(overlaps, density, activeColumns);
   } else {
-    inhibitColumnsLocal_(overlapsWithNoise, density, activeColumns);
+    inhibitColumnsLocal_(overlaps, density, activeColumns);
   }
 }
 
@@ -1133,7 +1127,7 @@ bool SpatialPooler::isWinner_(Real score, vector<pair<UInt, Real> >& winners,
     return true;
   }
 
-  if (score > winners[numWinners-1].second) {
+  if (score >= winners[numWinners-1].second) {
     return true;
   }
 
@@ -1146,7 +1140,7 @@ void SpatialPooler::addToWinners_(UInt index, Real score,
   pair<UInt, Real> val = make_pair(index, score);
   for (auto it = winners.begin();
        it != winners.end(); it++) {
-    if (score > it->second) {
+    if (score >= it->second) {
       winners.insert(it, val);
       return;
     }
