@@ -35,6 +35,7 @@
 #include <nupic/math/SparseBinaryMatrix.hpp>
 #include <nupic/math/SparseMatrix.hpp>
 #include <nupic/proto/SpatialPoolerProto.capnp.h>
+#include <nupic/types/Serializable.hpp>
 #include <nupic/types/Types.hpp>
 
 using namespace std;
@@ -66,7 +67,7 @@ namespace nupic {
        *     }
        *
        */
-      class SpatialPooler {
+      class SpatialPooler : public Serializable<SpatialPoolerProto> {
         public:
           SpatialPooler();
           SpatialPooler(vector<UInt> inputDimensions,
@@ -306,8 +307,8 @@ namespace nupic {
            */
           virtual void save(ostream& outStream) const;
 
-          virtual void write(ostream& stream) const;
-          virtual void write(SpatialPoolerProto::Builder& proto) const;
+          using Serializable::write;
+          virtual void write(SpatialPoolerProto::Builder& proto) const override;
 
           /**
           Load (deserialize) and initialize the spatial pooler from the
@@ -317,8 +318,8 @@ namespace nupic {
            */
           virtual void load(istream& inStream);
 
-          virtual void read(istream& stream);
-          virtual void read(SpatialPoolerProto::Reader& proto);
+          using Serializable::read;
+          virtual void read(SpatialPoolerProto::Reader& proto) override;
 
           /**
           Returns the number of bytes that a save operation would result in.

@@ -390,16 +390,6 @@ void Connections::save(ostream& outStream) const
   outStream << "~Connections" << endl;
 }
 
-void Connections::write(ostream& stream) const
-{
-  capnp::MallocMessageBuilder message;
-  ConnectionsProto::Builder proto = message.initRoot<ConnectionsProto>();
-  write(proto);
-
-  kj::std::StdOutputStream out(stream);
-  capnp::writeMessage(out, message);
-}
-
 void Connections::write(ConnectionsProto::Builder& proto) const
 {
   proto.setVersion(Connections::VERSION);
@@ -489,15 +479,6 @@ void Connections::load(istream& inStream)
 
   inStream >> marker;
   NTA_CHECK(marker == "~Connections");
-}
-
-void Connections::read(istream& stream)
-{
-  kj::std::StdInputStream in(stream);
-
-  capnp::InputStreamMessageReader message(in);
-  ConnectionsProto::Reader proto = message.getRoot<ConnectionsProto>();
-  read(proto);
 }
 
 void Connections::read(ConnectionsProto::Reader& proto)

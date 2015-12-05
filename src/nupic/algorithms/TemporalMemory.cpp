@@ -969,28 +969,9 @@ void TemporalMemory::write(TemporalMemoryProto::Builder& proto) const
   }
 }
 
-void TemporalMemory::write(ostream& stream) const
-{
-  capnp::MallocMessageBuilder message;
-  TemporalMemoryProto::Builder proto = message.initRoot<TemporalMemoryProto>();
-  write(proto);
-
-  kj::std::StdOutputStream out(stream);
-  capnp::writeMessage(out, message);
-}
-
 // Implementation note: this method sets up the instance using data from
-// inStream. This method does not call initialize. As such we have to be careful
+// proto. This method does not call initialize. As such we have to be careful
 // that everything in initialize is handled properly here.
-void TemporalMemory::read(istream& stream)
-{
-  kj::std::StdInputStream in(stream);
-
-  capnp::InputStreamMessageReader message(in);
-  TemporalMemoryProto::Reader proto = message.getRoot<TemporalMemoryProto>();
-  read(proto);
-}
-
 void TemporalMemory::read(TemporalMemoryProto::Reader& proto)
 {
   UInt index;

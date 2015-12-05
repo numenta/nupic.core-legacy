@@ -301,7 +301,10 @@ namespace nupic
     // ---
     virtual void deserialize(BundleIO& bundle) override;
 
+    using RegionImpl::write;
     virtual void write(capnp::AnyPointer::Builder& anyProto) const override;
+
+    using RegionImpl::read;
     virtual void read(capnp::AnyPointer::Reader& anyProto) override;
 
     void compute() override;

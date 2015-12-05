@@ -42,6 +42,7 @@
 #include <nupic/ntypes/MemParser.hpp>
 #include <nupic/ntypes/MemStream.hpp>
 #include <nupic/proto/SparseMatrixProto.capnp.h>
+#include <nupic/types/Serializable.hpp>
 
 namespace nupic {
 
@@ -113,7 +114,7 @@ struct SparseMatrixAlgorithms;
 template <typename UI = nupic::UInt32, typename Real_stor = nupic::Real32,
           typename I = nupic::Int32, typename Real_prec = nupic::Real64,
           typename DTZ = nupic::DistanceToZero<Real_stor>>
-class SparseMatrix {
+class SparseMatrix : Serializable<SparseMatrixProto> {
   // TODO find boost config flag to enable ullong as UnsignedInteger
   // BOOST_CLASS_REQUIRE(UI, boost, UnsignedIntegerConcept);
   BOOST_CLASS_REQUIRE(I, boost, SignedIntegerConcept);
@@ -2743,6 +2744,8 @@ public:
   /**
    * Write to a Cap'n Proto object.
    */
+  using Serializable::write;
+
   inline void write(SparseMatrixProto::Builder &proto) const {
     proto.setNumRows(nrows_);
     proto.setNumColumns(ncols_);
@@ -2765,6 +2768,8 @@ public:
   /**
    * Read from a Cap'n Proto object.
    */
+  using Serializable::read;
+
   inline void read(SparseMatrixProto::Reader &proto) {
     auto nrows = proto.getNumRows();
     auto ncols = proto.getNumColumns();

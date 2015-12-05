@@ -95,16 +95,6 @@ Random::Random(const Random& r)
   impl_ = new RandomImpl(*r.impl_);
 }
 
-void Random::write(std::ostream& stream) const
-{
-  capnp::MallocMessageBuilder message;
-  auto proto = message.initRoot<RandomProto>();
-  write(proto);
-
-  kj::std::StdOutputStream out(stream);
-  capnp::writeMessage(out, message);
-}
-
 void Random::write(RandomProto::Builder& proto) const
 {
   // save Random state
@@ -113,14 +103,6 @@ void Random::write(RandomProto::Builder& proto) const
   // save RandomImpl state
   auto implProto = proto.initImpl();
   impl_->write(implProto);
-}
-
-void Random::read(std::istream& stream)
-{
-  kj::std::StdInputStream in(stream);
-  capnp::InputStreamMessageReader message(in);
-  RandomProto::Reader proto = message.getRoot<RandomProto>();
-  read(proto);
 }
 
 void Random::read(RandomProto::Reader& proto)
