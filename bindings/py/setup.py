@@ -19,6 +19,8 @@
 # http://numenta.org/licenses/
 # ----------------------------------------------------------------------
 
+"""This file builds and installs the NuPIC Core Python bindings."""
+
 import argparse
 import glob
 import numpy
@@ -31,13 +33,8 @@ import tempfile
 from distutils import ccompiler
 from setuptools import setup, find_packages, Extension
 
-"""
-This file builds and installs the NuPIC Core bindings
-"""
-
-
-
 PY_BINDINGS = os.path.dirname(os.path.realpath(__file__))
+REPO_DIR = os.path.abspath(os.path.join(PY_BINDINGS, os.pardir, os.pardir))
 DARWIN_PLATFORM = "darwin"
 LINUX_PLATFORM = "linux"
 UNIX_PLATFORMS = [LINUX_PLATFORM, DARWIN_PLATFORM]
