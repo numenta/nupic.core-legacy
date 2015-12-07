@@ -83,7 +83,7 @@ _MATH = _math
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include <numpy/arrayobject.h>
 
-#if !defined(CAPNP_LITE)
+#if !CAPNP_LITE
 #include <nupic/py_support/PyCapnp.hpp>
 #endif
 %}
@@ -370,17 +370,23 @@ inline PyObject* shuffle(PyObject* obj)
 
 inline void write(PyObject* pyBuilder) const
 {
-%#if !defined(CAPNP_LITE)
+%#if !CAPNP_LITE
   RandomProto::Builder proto = nupic::getBuilder<RandomProto>(pyBuilder);
   self->write(proto);
+%#else
+  throw std::logic_error(
+      "Random.write is not implemented when compiled with CAPNP_LITE=1.")
 %#endif
 }
 
 inline void read(PyObject* pyReader)
 {
-%#if !defined(CAPNP_LITE)
+%#if !CAPNP_LITE
   RandomProto::Reader proto = nupic::getReader<RandomProto>(pyReader);
   self->read(proto);
+%#else
+  throw std::logic_error(
+      "Random.read is not implemented when compiled with CAPNP_LITE=1.")
 %#endif
 }
 

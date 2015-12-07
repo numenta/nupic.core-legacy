@@ -24,22 +24,22 @@ option(SOURCE_CAPNP "Build Cap'n Proto from source even if it is found." OFF)
 # TODO: Enable discovery of capnp/kj locally.
 #if (NOT ${SOURCE_CAPNP})
 #  find_package(CapnProto)
-#  # Find static libraries
+#  # Most CAPNP* variables are set correctly but make sure we have the
+#  # static libraries.
 #  find_library(LIB_KJ ${STATIC_PRE}kj${STATIC_SUF})
 #  find_library(LIB_CAPNP ${STATIC_PRE}capnp${STATIC_SUF})
 #  find_library(LIB_CAPNPC ${STATIC_PRE}capnpc${STATIC_SUF})
 #  set(CAPNP_LIBRARIES ${LIB_KJ} ${LIB_CAPNP} ${LIB_CAPNPC})
 #  set(CAPNP_LIBRARIES_LITE ${LIB_KJ} ${LIB_CAPNP})
-#  # TODO: Lookup CAPNP_INCLUDE_DIRS, CAPNP_EXECUTABLE, and CAPCP_CXX_EXECUTABLE.
 #endif ()
 
 if (NOT CAPNP_FOUND)
   # Build Cap'n Proto from source.
   if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    set(CAPNP_ARGS "-DCAPNP_LITE=1")
+    set(CAPNP_DEFINITIONS "-DCAPNP_LITE=1")
     set(CAPNP_CXX_FLAGS "-std=c++11 -m${BITNESS}")
   else()
-    set(CAPNP_ARGS "")
+    set(CAPNP_DEFINITIONS "-DCAPNP_LITE=0")
     set(CAPNP_CXX_FLAGS "-fPIC -std=c++11 -m${BITNESS}")
   endif()
   ExternalProject_Add(
@@ -49,7 +49,7 @@ if (NOT CAPNP_FOUND)
     UPDATE_COMMAND ""
     CONFIGURE_COMMAND
         ${CMAKE_COMMAND}
-        ${CAPNP_ARGS}
+        ${CAPNP_DEFINITIONS}
         -DCMAKE_CXX_FLAGS=${CAPNP_CXX_FLAGS}
         -DBUILD_TESTING=OFF
         -DBUILD_SHARED_LIBS=OFF
@@ -91,6 +91,7 @@ set(CAPNP_LIBRARIES_LITE ${CAPNP_LIBRARIES_LITE} PARENT_SCOPE)
 set(CAPNP_INCLUDE_DIRS ${CAPNP_INCLUDE_DIRS} PARENT_SCOPE)
 set(CAPNP_EXECUTABLE ${CAPNP_EXECUTABLE} PARENT_SCOPE)
 set(CAPNPC_CXX_EXECUTABLE ${CAPNPC_CXX_EXECUTABLE} PARENT_SCOPE)
+set(CAPNP_DEFINITIONS ${CAPNP_DEFINITIONS} PARENT_SCOPE)
 
 # Install headers and libraries.
 foreach (INCLUDE_DIR ${CAPNP_INCLUDE_DIRS})
