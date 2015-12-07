@@ -37,10 +37,10 @@ if (NOT CAPNP_FOUND)
   # Build Cap'n Proto from source.
   if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set(CAPNP_DEFINITIONS "-DCAPNP_LITE=1")
-    set(CAPNP_CXX_FLAGS "-std=c++11 -m${BITNESS}")
+    set(CAPNP_CXX_FLAGS "-m${BITNESS}")
   else()
     set(CAPNP_DEFINITIONS "-DCAPNP_LITE=0")
-    set(CAPNP_CXX_FLAGS "-fPIC -std=c++11 -m${BITNESS}")
+    set(CAPNP_CXX_FLAGS "-fPIC -m${BITNESS}")
   endif()
   ExternalProject_Add(
     CapnProto
