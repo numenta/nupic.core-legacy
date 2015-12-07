@@ -489,7 +489,7 @@ set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES LINK_FLAGS
                       ${LIB_STATIC_NUPICCORE_LINK_FLAGS})
 
 # Add new library to common libs for rest of targets.
-set(COMMON_LIBS ${COMMON_LIBS} ${LIB_STATIC_NUPICCORE})
+set(COMMON_LIBS ${LIB_STATIC_NUPICCORE} ${COMMON_LIBS})
 
 #
 # Setup test_cpp_region
@@ -621,8 +621,8 @@ add_executable(${EXECUTABLE_GTESTS}
                test/unit/utils/RandomTest.cpp
                test/unit/utils/WatcherTest.cpp)
 target_link_libraries(${EXECUTABLE_GTESTS}
-                      ${COMMON_LIBS}
-                      ${LIB_STATIC_GTEST})
+                      ${LIB_STATIC_GTEST}
+                      ${COMMON_LIBS})
 set_target_properties(${EXECUTABLE_GTESTS}
                       PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS}
                                  LINK_FLAGS "${COMMON_LINK_FLAGS}")
