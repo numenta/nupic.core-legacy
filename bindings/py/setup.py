@@ -232,4 +232,9 @@ if __name__ == "__main__":
       "Intended Audience :: Science/Research",
       "Topic :: Scientific/Engineering :: Artificial Intelligence"
     ],
+    entry_points = {
+      "console_scripts": [
+        "nupic-check-bindings = nupic.bindings.check:printImportBindingsMessage",
+      ],
+    },
   )
