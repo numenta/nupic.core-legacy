@@ -21,17 +21,16 @@
 
 option(SOURCE_CAPNP "Build Cap'n Proto from source even if it is found." OFF)
 
-# TODO: Enable discovery of capnp/kj locally.
-#if (NOT ${SOURCE_CAPNP})
-#  find_package(CapnProto)
-#  # Most CAPNP* variables are set correctly but make sure we have the
-#  # static libraries.
-#  find_library(LIB_KJ ${STATIC_PRE}kj${STATIC_SUF})
-#  find_library(LIB_CAPNP ${STATIC_PRE}capnp${STATIC_SUF})
-#  find_library(LIB_CAPNPC ${STATIC_PRE}capnpc${STATIC_SUF})
-#  set(CAPNP_LIBRARIES ${LIB_KJ} ${LIB_CAPNP} ${LIB_CAPNPC})
-#  set(CAPNP_LIBRARIES_LITE ${LIB_KJ} ${LIB_CAPNP})
-#endif ()
+if (NOT ${SOURCE_CAPNP})
+  find_package(CapnProto)
+  # Most CAPNP* variables are set correctly but make sure we have the
+  # static libraries.
+  find_library(LIB_KJ ${STATIC_PRE}kj${STATIC_SUF})
+  find_library(LIB_CAPNP ${STATIC_PRE}capnp${STATIC_SUF})
+  find_library(LIB_CAPNPC ${STATIC_PRE}capnpc${STATIC_SUF})
+  set(CAPNP_LIBRARIES ${LIB_KJ} ${LIB_CAPNP} ${LIB_CAPNPC})
+  set(CAPNP_LIBRARIES_LITE ${LIB_KJ} ${LIB_CAPNP})
+endif ()
 
 if (NOT CAPNP_FOUND)
   # Build Cap'n Proto from source.
