@@ -124,12 +124,11 @@ install:
 build_script:
   - cd %REPO_DIR%\build\scripts
 
-  - mingw32-make -f Makefile -j3
   - mingw32-make -f Makefile install | findstr /C:"Install" /I /V
 
   - cd %REPO_DIR%
 
-  - python setup.py bdist_wheel --debug --compiler=mingw --nupic-core-dir=%NUPIC_CORE_DIR%
+  - python setup.py bdist_wheel --debug
   - ps: move .\bindings\py\dist\nupic.bindings-$env:BINDINGS_VERSION-cp27-none-win_amd64.whl .
 
 after_build:
