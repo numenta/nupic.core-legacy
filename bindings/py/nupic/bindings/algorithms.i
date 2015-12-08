@@ -112,7 +112,7 @@ _ALGORITHMS = _algorithms
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include <numpy/arrayobject.h>
 #include <nupic/py_support/NumpyVector.hpp>
-#if !defined(CAPNP_LITE)
+#if !CAPNP_LITE
 #include <nupic/py_support/PyCapnp.hpp>
 #endif
 #include <nupic/py_support/PythonStream.hpp>
@@ -1165,7 +1165,7 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
 
   inline void write(PyObject* pyBuilder) const
   {
-  %#if !defined(CAPNP_LITE)
+  %#if !CAPNP_LITE
     SpatialPoolerProto::Builder proto =
         getBuilder<SpatialPoolerProto>(pyBuilder);
     self->write(proto);
@@ -1174,7 +1174,7 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
 
   inline void read(PyObject* pyReader)
   {
-  %#if !defined(CAPNP_LITE)
+  %#if !CAPNP_LITE
     SpatialPoolerProto::Reader proto = getReader<SpatialPoolerProto>(pyReader);
     self->read(proto);
   %#endif
@@ -1652,7 +1652,7 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
 
   inline void write(PyObject* pyBuilder) const
   {
-  %#if !defined(CAPNP_LITE)
+  %#if !CAPNP_LITE
     TemporalMemoryProto::Builder proto =
         getBuilder<TemporalMemoryProto>(pyBuilder);
     self->write(proto);
@@ -1661,7 +1661,7 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
 
   inline void read(PyObject* pyReader)
   {
-  %#if !defined(CAPNP_LITE)
+  %#if !CAPNP_LITE
     TemporalMemoryProto::Reader proto =
         getReader<TemporalMemoryProto>(pyReader);
     self->read(proto);
