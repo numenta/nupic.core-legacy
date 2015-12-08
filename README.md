@@ -31,11 +31,13 @@ The Python depedencies (NumPy and pycapnp) can be installed with `pip`:
 
     mkdir -p $NUPIC_CORE/build/scripts
     cd $NUPIC_CORE/build/scripts
-    cmake $NUPIC_CORE -DCMAKE_INSTALL_PREFIX=../release
+    cmake $NUPIC_CORE -DCMAKE_INSTALL_PREFIX=../release -DPY_EXTENSIONS_DIR=$NUPIC_CORE/bindings/py/nupic/bindings
 
 > **Note**: If you have dependencies precompiled but not in standard system locations then you can specify where to find them with `-DCMAKE_PREFIX_PATH` (for bin/lib) and `-DCMAKE_INCLUDE_PATH` (for header files).
 
 > **Note**: The `-DCMAKE_INSTALL_PREFIX=../release` option shown above is optional, and specifies the location where `nupic.core` should be installed. If omitted, `nupic.core` will be installed in a system location. Using this option is useful when testing versions of `nupic.core` with `nupic` (see [NuPIC's Dependency on nupic.core](https://github.com/numenta/nupic/wiki/NuPIC's-Dependency-on-nupic.core)).
+
+> **Note**: Setting PY_EXTENSIONS_DIR copies the Python exension files to the specified directory. If the extensions aren't present when the Python build/installation is invoked then the setup.py file will run the cmake/make process to generate them.
 
 #### Build:
 
@@ -55,12 +57,12 @@ The Python depedencies (NumPy and pycapnp) can be installed with `pip`:
     ./cpp_region_test
     ./unit_tests
 
-#### Install nupic.bindings for nupic:
+#### Install nupic.bindings Python library:
 
     cd $NUPIC_CORE
-    python setup.py install --nupic-core-dir=$NUPIC_CORE/build/release
+    python setup.py install
 
-> **Note**: set `--nupic-core-dir` to the location where `nupic.core` was installed.
+> **Note**: If the extensions haven't been built already then this will call the cmake/make process to generate them.
 
 If you get a gcc exit code 1, you may consider running this instead:
 
