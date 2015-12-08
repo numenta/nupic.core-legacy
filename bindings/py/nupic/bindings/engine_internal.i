@@ -91,6 +91,12 @@
 #include <nupic/engine/NuPIC.hpp>
 #include <nupic/engine/Network.hpp>
 
+#include <nupic/proto/NetworkProto.capnp.h>
+
+#if !CAPNP_LITE
+#include <nupic/py_support/PyCapnp.hpp>
+#endif
+
 #include <nupic/engine/Spec.hpp>
 #include <nupic/utils/Watcher.hpp>
 #include <nupic/engine/Region.hpp>
@@ -170,7 +176,6 @@
 %template(Real32ArrayRef) nupic::PyArrayRef<nupic::Real32>;
 %template(Real64ArrayRef) nupic::PyArrayRef<nupic::Real64>;
 
-
 %extend nupic::Timer
 {
   // Extend here (engine_internal) rather than nupic.engine because
@@ -205,6 +210,26 @@
   }
 }
 
+%extend nupic::Network
+{
+  inline void write(PyObject* pyBuilder) const
+  {
+  %#if !CAPNP_LITE
+    NetworkProto::Builder proto =
+        nupic::getBuilder<NetworkProto>(pyBuilder);
+    self->write(proto);
+  %#endif
+  }
+
+  inline void read(PyObject* pyReader)
+  {
+  %#if !CAPNP_LITE
+    NetworkProto::Reader proto =
+        nupic::getReader<NetworkProto>(pyReader);
+    self->read(proto);
+  %#endif
+  }
+}
 
 %{
 #include <nupic/os/OS.hpp>
