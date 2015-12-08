@@ -219,12 +219,12 @@ endif()
 #
 set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH}
                       ${REPOSITORY_DIR}/external/common/
-                      ${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/
+                      ${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}/
                       ${NUMPY_CORE}/)
 #
 # Make sure the Cap'n Proto generation scripts are on the PATH.
 #
-set(ENV{PATH} "$ENV{PATH}:${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/bin")
+set(ENV{PATH} "$ENV{PATH}:${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}/bin")
 
 #
 # Extract current git sha and record in nupic/Version.hpp
@@ -254,7 +254,7 @@ set_target_properties(${LIB_STATIC_GTEST}
 set(LIB_STATIC_APR1 apr-1)
 find_library(LIB_STATIC_APR1_LOC
              ${LIB_STATIC_APR1}
-             "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/lib/"
+             "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}/lib/"
              NO_DEFAULT_PATH)
 add_library(${LIB_STATIC_APR1} STATIC IMPORTED GLOBAL)
 
@@ -264,7 +264,7 @@ add_library(${LIB_STATIC_APR1} STATIC IMPORTED GLOBAL)
 set(LIB_STATIC_APRUTIL1 aprutil-1)
 find_library(LIB_STATIC_APRUTIL1_LOC
              ${LIB_STATIC_APRUTIL1}
-             "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/lib/"
+             "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}/lib/"
              NO_DEFAULT_PATH)
 add_library(${LIB_STATIC_APRUTIL1} STATIC IMPORTED GLOBAL)
 
@@ -274,7 +274,7 @@ add_library(${LIB_STATIC_APRUTIL1} STATIC IMPORTED GLOBAL)
 set(LIB_STATIC_YAML yaml)
 find_library(LIB_STATIC_YAML_LOC
              ${LIB_STATIC_YAML}
-             "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/lib/"
+             "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}/lib/"
              NO_DEFAULT_PATH)
 add_library(${LIB_STATIC_YAML} STATIC IMPORTED GLOBAL)
 
@@ -284,7 +284,7 @@ add_library(${LIB_STATIC_YAML} STATIC IMPORTED GLOBAL)
 set(LIB_STATIC_YAML_CPP yaml-cpp)
 find_library(LIB_STATIC_YAML_CPP_LOC
              ${LIB_STATIC_YAML_CPP}
-             "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/lib/"
+             "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}/lib/"
              NO_DEFAULT_PATH)
 add_library(${LIB_STATIC_YAML_CPP} STATIC IMPORTED GLOBAL)
 
@@ -294,7 +294,7 @@ add_library(${LIB_STATIC_YAML_CPP} STATIC IMPORTED GLOBAL)
 set(LIB_STATIC_Z z)
 find_library(LIB_STATIC_Z_LOC
              ${LIB_STATIC_Z}
-             "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/lib/"
+             "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}/lib/"
              NO_DEFAULT_PATH)
 add_library(${LIB_STATIC_Z} STATIC IMPORTED GLOBAL)
 
@@ -391,10 +391,11 @@ if("${PLATFORM}" STREQUAL "linux")
   list(APPEND COMMON_OS_LIBS pthread dl)
 elseif("${PLATFORM}" STREQUAL "darwin")
   list(APPEND COMMON_OS_LIBS c++abi)
-elseif(MSYS OR MINGW)
-  list(APPEND COMMON_OS_LIBS psapi ws2_32 wsock32 rpcrt4)
 elseif("${PLATFORM}" STREQUAL "windows")
-  list(APPEND COMMON_OS_LIBS oldnames.lib psapi.lib ws2_32.lib)
+  list(APPEND COMMON_OS_LIBS psapi ws2_32 shell32 advapi32 wsock32 rpcrt4)
+  if(MSVC)
+    list(APPEND COMMON_OS_LIBS oldnames)
+  endif()
 endif()
 
 set(LIB_STATIC_NUPICCORE_SRCS
@@ -904,7 +905,7 @@ install(DIRECTORY ${REPOSITORY_DIR}/external/common/include/gtest
         FILES_MATCHING PATTERN "*.h*")
 install(FILES ${PROJECT_BINARY_DIR}/Version.hpp
         DESTINATION include/nupic/)
-install(DIRECTORY "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/lib/"
+install(DIRECTORY "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}/lib/"
         DESTINATION lib)
 install(DIRECTORY "${REPOSITORY_DIR}/external/common/include/"
         DESTINATION include)
@@ -937,9 +938,9 @@ install(DIRECTORY nupic DESTINATION include/nupic
 
 #
 # `make package` results in
-# nupic_core-${NUPIC_CORE_VERSION}-${PLATFORM}${BITNESS}.tar.gz binary release
+# nupic_core-${NUPIC_CORE_VERSION}-${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}.tar.gz binary release
 #
 
 set(CPACK_GENERATOR "TGZ")
-set(CPACK_PACKAGE_FILE_NAME "nupic_core-${NUPIC_CORE_VERSION}-${PLATFORM}${BITNESS}")
+set(CPACK_PACKAGE_FILE_NAME "nupic_core-${NUPIC_CORE_VERSION}-${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}")
 include(CPack)

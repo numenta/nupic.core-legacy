@@ -44,7 +44,7 @@ if (NOT CAPNP_FOUND)
   ExternalProject_Add(
     CapnProto
     GIT_REPOSITORY https://github.com/sandstorm-io/capnproto.git
-    GIT_TAG v0.5.2
+    GIT_TAG v0.5.3
     UPDATE_COMMAND ""
     CONFIGURE_COMMAND
         ${CMAKE_COMMAND}
@@ -56,6 +56,22 @@ if (NOT CAPNP_FOUND)
         -G "${CMAKE_GENERATOR}"
         ${EP_BASE}/Source/CapnProto/c++
   )
+
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    # Download and install Cap'n Proto compilers
+    ExternalProject_Add(
+      CapnProtoTools
+      DEPENDS CapnProto
+      URL https://capnproto.org/capnproto-c++-win32-0.5.3.zip
+      CONFIGURE_COMMAND ""
+      BUILD_COMMAND
+        ${CMAKE_COMMAND} -E make_directory ${BIN_PRE}
+      INSTALL_COMMAND
+        ${CMAKE_COMMAND} -E copy_directory
+          "${EP_BASE}/Source/CapnProtoTools/capnproto-tools-win32-0.5.3"
+          ${BIN_PRE}
+    )
+  endif()
 
   set(LIB_KJ ${LIB_PRE}/${STATIC_PRE}kj${STATIC_SUF})
   set(LIB_CAPNP ${LIB_PRE}/${STATIC_PRE}capnp${STATIC_SUF})

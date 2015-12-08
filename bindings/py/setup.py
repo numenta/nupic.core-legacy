@@ -111,11 +111,6 @@ def getCommandLineOptions():
      "Absolute path to nupic.core binary release directory"]
   )
   optionsDesc.append(
-    ["compiler",
-    "value",
-    "(optional) compiler name to use"]
-  )
-  optionsDesc.append(
     ["optimizations-native",
     "value",
     "(optional) enable aggressive compiler optimizations"]
@@ -170,7 +165,7 @@ def getCommandLineOption(name, options):
 
 def getExtensionFiles(platform):
   if platform in WINDOWS_PLATFORMS:
-    libExtension = "dll"
+    libExtension = "a"
   else:
     libExtension = "so"
   libNames = ("algorithms", "engine_internal", "math")
@@ -197,11 +192,19 @@ def generateExtensions():
     pyExtensionsDir = os.path.join(PY_BINDINGS, "nupic", "bindings")
     os.mkdir(scriptsDir)
     os.chdir(scriptsDir)
-    subprocess.check_call(
-        ["cmake", REPO_DIR, "-DCMAKE_INSTALL_PREFIX={}".format(releaseDir),
-         "-DPY_EXTENSIONS_DIR={}".format(pyExtensionsDir)])
-    subprocess.check_call(["make", "-j3"])
-    subprocess.check_call(["make", "install"])
+    if platform in WINDOWS_PLATFORMS:
+      subprocess.check_call(
+          ["cmake", REPO_DIR, "-DCMAKE_INSTALL_PREFIX={}".format(releaseDir),
+           "-DPY_EXTENSIONS_DIR={}".format(pyExtensionsDir),
+           "-G \"MinGW Makefiles\""])
+      subprocess.check_call(["mingw32-make", "-f Makefile -j3"])
+      subprocess.check_call(["mingw32-make", "-f Makefile install"])
+    else:
+      subprocess.check_call(
+          ["cmake", REPO_DIR, "-DCMAKE_INSTALL_PREFIX={}".format(releaseDir),
+           "-DPY_EXTENSIONS_DIR={}".format(pyExtensionsDir)])
+      subprocess.check_call(["make", "-j3"])
+      subprocess.check_call(["make", "install"])
   finally:
     shutil.rmtree(tmpDir, ignore_errors=True)
     os.chdir(cwd)
@@ -246,7 +249,7 @@ if __name__ == "__main__":
       packages=find_packages(),
       package_data={
           "nupic.proto": ["*.capnp"],
-          "nupic.bindings": ["*.so", "*.dll"],
+          "nupic.bindings": ["*.so", "*.pyd"],
       },
       extras_require = {"capnp": ["pycapnp==0.5.5"]},
       zip_safe=False,
