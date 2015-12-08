@@ -41,8 +41,8 @@ if [ "${TRAVIS_BRANCH}" = "master" ]; then
     # Build all NuPIC and all required python packages into dist/wheels as .whl
     # files.
     pip wheel --wheel-dir=dist/wheels -r requirements.txt
-    python setup.py bdist_wheel -d dist/wheels --nupic-core-dir=${TRAVIS_BUILD_DIR}/build/release
-    python setup.py bdist_egg -d dist --nupic-core-dir=${TRAVIS_BUILD_DIR}/build/release
+    python setup.py bdist_wheel -d dist/wheels
+    python setup.py bdist_egg -d dist
     # The dist/wheels folder is expected to be deployed to S3.
 
 # If this is a tag, we're doing a release deployment, so we want to build docs
