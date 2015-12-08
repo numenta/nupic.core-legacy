@@ -75,7 +75,10 @@ namespace nupic
     // Capnp serialization methods - not yet implemented for PyRegions. This
     // method will replace serialize/deserialize once fully implemented
     // throughout codebase.
+    using RegionImpl::write;
     void write(capnp::AnyPointer::Builder& proto) const override;
+
+    using RegionImpl::read;
     void read(capnp::AnyPointer::Reader& proto) override;
 
     const Spec & getSpec();

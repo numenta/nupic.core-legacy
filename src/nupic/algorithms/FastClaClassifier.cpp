@@ -518,16 +518,6 @@ namespace nupic
         proto.setVerbosity(verbosity_);
       }
 
-      void FastCLAClassifier::write(ostream& stream) const
-      {
-        capnp::MallocMessageBuilder message;
-        auto proto = message.initRoot<ClaClassifierProto>();
-        write(proto);
-
-        kj::std::StdOutputStream out(stream);
-        capnp::writeMessage(out, message);
-      }
-
       void FastCLAClassifier::read(ClaClassifierProto::Reader& proto)
       {
         // Clean up the existing data structures before loading
@@ -595,15 +585,6 @@ namespace nupic
 
         version_ = proto.getVersion();
         verbosity_ = proto.getVerbosity();
-      }
-
-      void FastCLAClassifier::read(istream& stream)
-      {
-        kj::std::StdInputStream in(stream);
-
-        capnp::InputStreamMessageReader message(in);
-        auto proto = message.getRoot<ClaClassifierProto>();
-        read(proto);
       }
 
       bool FastCLAClassifier::operator==(const FastCLAClassifier& other) const

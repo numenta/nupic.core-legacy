@@ -28,6 +28,7 @@
 #define NTA_TEMPORAL_MEMORY_HPP
 
 #include <vector>
+#include <nupic/types/Serializable.hpp>
 #include <nupic/types/Types.hpp>
 #include <nupic/utils/Random.hpp>
 #include <nupic/algorithms/Connections.hpp>
@@ -64,7 +65,7 @@ namespace nupic {
        *     }
        *
        */
-      class TemporalMemory {
+      class TemporalMemory : Serializable<TemporalMemoryProto> {
       public:
         TemporalMemory();
 
@@ -565,8 +566,8 @@ namespace nupic {
          */
         virtual void save(ostream& outStream) const;
 
-        virtual void write(ostream& stream) const;
-        virtual void write(TemporalMemoryProto::Builder& proto) const;
+        using Serializable::write;
+        virtual void write(TemporalMemoryProto::Builder& proto) const override;
 
         /**
          * Load (deserialize) and initialize the spatial pooler from the
@@ -576,8 +577,8 @@ namespace nupic {
          */
         virtual void load(istream& inStream);
 
-        virtual void read(istream& stream);
-        virtual void read(TemporalMemoryProto::Reader& proto);
+        using Serializable::read;
+        virtual void read(TemporalMemoryProto::Reader& proto) override;
 
         /**
          * Returns the number of bytes that a save operation would result in.

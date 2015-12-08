@@ -47,6 +47,8 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
 
 include(CapnProto)
 
+include(Swig)
+
 # Convenience variable that wraps all external include directories.
 list(APPEND EXTERNAL_INCLUDE_DIRS ${CAPNP_INCLUDE_DIRS})
 

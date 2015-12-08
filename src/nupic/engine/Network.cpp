@@ -992,25 +992,6 @@ void Network::loadFromBundle(const std::string& name)
 
 }
 
-void Network::write(std::ostream& stream) const
-{
-  capnp::MallocMessageBuilder message;
-  NetworkProto::Builder proto = message.initRoot<NetworkProto>();
-  write(proto);
-
-  kj::std::StdOutputStream out(stream);
-  capnp::writeMessage(out, message);
-}
-
-void Network::read(std::istream& stream)
-{
-  kj::std::StdInputStream in(stream);
-
-  capnp::InputStreamMessageReader message(in);
-  NetworkProto::Reader proto = message.getRoot<NetworkProto>();
-  read(proto);
-}
-
 void Network::write(NetworkProto::Builder& proto) const
 {
   // Aggregate links from all of the regions

@@ -23,21 +23,24 @@ option(SOURCE_CAPNP "Build Cap'n Proto from source even if it is found." OFF)
 
 if (NOT ${SOURCE_CAPNP})
   find_package(CapnProto)
-  # Find static libraries
+  # Most CAPNP* variables are set correctly but make sure we have the
+  # static libraries.
   find_library(LIB_KJ ${STATIC_PRE}kj${STATIC_SUF})
   find_library(LIB_CAPNP ${STATIC_PRE}capnp${STATIC_SUF})
   find_library(LIB_CAPNPC ${STATIC_PRE}capnpc${STATIC_SUF})
   set(CAPNP_LIBRARIES ${LIB_KJ} ${LIB_CAPNP} ${LIB_CAPNPC})
+  set(CAPNP_LIBRARIES_LITE ${LIB_KJ} ${LIB_CAPNP})
 endif ()
 
 if (NOT CAPNP_FOUND)
   # Build Cap'n Proto from source.
   if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    set(CAPNP_ARGS "-DCAPNP_LITE=1")
+    set(CAPNP_DEFINITIONS "-DCAPNP_LITE=1")
+    set(CAPNP_CXX_FLAGS "-m${BITNESS}")
   else()
-    set(CAPNP_ARGS "")
+    set(CAPNP_DEFINITIONS "-DCAPNP_LITE=0")
+    set(CAPNP_CXX_FLAGS "-fPIC -m${BITNESS}")
   endif()
-  set(CAPNP_CXX_FLAGS "-fPIC -std=c++11 -m64")
   ExternalProject_Add(
     CapnProto
     GIT_REPOSITORY https://github.com/sandstorm-io/capnproto.git
@@ -45,7 +48,7 @@ if (NOT CAPNP_FOUND)
     UPDATE_COMMAND ""
     CONFIGURE_COMMAND
         ${CMAKE_COMMAND}
-        ${CAPNP_ARGS}
+        ${CAPNP_DEFINITIONS}
         -DCMAKE_CXX_FLAGS=${CAPNP_CXX_FLAGS}
         -DBUILD_TESTING=OFF
         -DBUILD_SHARED_LIBS=OFF
@@ -58,9 +61,10 @@ if (NOT CAPNP_FOUND)
   set(LIB_CAPNP ${LIB_PRE}/${STATIC_PRE}capnp${STATIC_SUF})
   set(LIB_CAPNPC ${LIB_PRE}/${STATIC_PRE}capnpc${STATIC_SUF})
   set(CAPNP_LIBRARIES ${LIB_KJ} ${LIB_CAPNP} ${LIB_CAPNPC})
+  set(CAPNP_LIBRARIES_LITE ${LIB_KJ} ${LIB_CAPNP})
   set(CAPNP_INCLUDE_DIRS ${INCLUDE_PRE})
-  set(CAPNP_EXECUTABLE ${BIN_PRE}/capnp)
-  set(CAPNPC_CXX_EXECUTABLE ${BIN_PRE}/capnpc-c++)
+  set(CAPNP_EXECUTABLE ${BIN_PRE}/capnp${CMAKE_EXECUTABLE_SUFFIX})
+  set(CAPNPC_CXX_EXECUTABLE ${BIN_PRE}/capnpc-c++${CMAKE_EXECUTABLE_SUFFIX})
 else()
   # Create a dummy target to depend on.
   add_custom_target(CapnProto)
@@ -82,11 +86,13 @@ endfunction(CREATE_CAPNPC_COMMAND)
 
 # Set the relevant variables in the parent scope.
 set(CAPNP_LIBRARIES ${CAPNP_LIBRARIES} PARENT_SCOPE)
+set(CAPNP_LIBRARIES_LITE ${CAPNP_LIBRARIES_LITE} PARENT_SCOPE)
 set(CAPNP_INCLUDE_DIRS ${CAPNP_INCLUDE_DIRS} PARENT_SCOPE)
 set(CAPNP_EXECUTABLE ${CAPNP_EXECUTABLE} PARENT_SCOPE)
 set(CAPNPC_CXX_EXECUTABLE ${CAPNPC_CXX_EXECUTABLE} PARENT_SCOPE)
+set(CAPNP_DEFINITIONS ${CAPNP_DEFINITIONS} PARENT_SCOPE)
 
-# Install headers.
+# Install headers and libraries.
 foreach (INCLUDE_DIR ${CAPNP_INCLUDE_DIRS})
   install(DIRECTORY ${INCLUDE_DIR}/kj
           DESTINATION include/)
