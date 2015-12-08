@@ -21,17 +21,14 @@
 
 """This file builds and installs the NuPIC Core Python bindings."""
 
-import argparse
 import glob
-import numpy
 import os
 import shutil
 import subprocess
 import sys
 import tempfile
 
-from distutils import ccompiler
-from setuptools import setup, find_packages, Extension
+from setuptools import Command, find_packages, setup
 
 PY_BINDINGS = os.path.dirname(os.path.realpath(__file__))
 REPO_DIR = os.path.abspath(os.path.join(PY_BINDINGS, os.pardir, os.pardir))
@@ -39,6 +36,32 @@ DARWIN_PLATFORM = "darwin"
 LINUX_PLATFORM = "linux"
 UNIX_PLATFORMS = [LINUX_PLATFORM, DARWIN_PLATFORM]
 WINDOWS_PLATFORMS = ["windows"]
+
+
+
+class CleanCommand(Command):
+  """Command for cleaning up intermediate build files."""
+
+  description = "Command for cleaning up generated extension files."
+  user_options = []
+
+
+  def initialize_options(self):
+    pass
+
+
+  def finalize_options(self):
+    pass
+
+
+  def run(self):
+    platform = getPlatformInfo()
+    files = getExtensionFileNames(platform)
+    for f in files:
+      try:
+        os.remove(f)
+      except OSError:
+        pass
 
 
 
@@ -84,91 +107,7 @@ def getPlatformInfo():
 
 
 
-def printOptions(optionsDesc):
-  """
-  Print command line options.
-  """
-
-  print "Options:\n"
-
-  for option in optionsDesc:
-    optionUsage = "--" + option[0]
-    if option[1] != "":
-      optionUsage += "=[" + option[1] + "]"
-
-    optionDesc = option[2]
-    print "    " + optionUsage.ljust(30) + " = " + optionDesc
-
-
-
-def getCommandLineOptions():
-
-  # optionDesc = [name, value, description]
-  optionsDesc = []
-  optionsDesc.append(
-    ["nupic-core-dir",
-     "dir",
-     "Absolute path to nupic.core binary release directory"]
-  )
-  optionsDesc.append(
-    ["compiler",
-    "value",
-    "(optional) compiler name to use"]
-  )
-  optionsDesc.append(
-    ["optimizations-native",
-    "value",
-    "(optional) enable aggressive compiler optimizations"]
-  )
-  optionsDesc.append(
-    ["optimizations-lto",
-    "value",
-    "(optional) enable link-time optimizations (LTO); currently only for gcc and linker ld.gold"]
-  )
-  optionsDesc.append(
-    ["debug",
-    "value",
-    "(optional) compile in mode suitable for debugging; overrides any optimizations"]
-  )
-
-  # Read command line options looking for extra options
-  # For example, an user could type:
-  #   python setup.py install --nupic-core-dir="path/to/release"
-  # which will set the nupic.core release dir
-  optionsValues = dict()
-  for arg in sys.argv[:]:
-    optionFound = False
-    for option in optionsDesc:
-      name = option[0]
-      if "--" + name in arg:
-        value = None
-        hasValue = (option[1] != "")
-        if hasValue:
-          value = arg.partition("=")[2]
-
-        optionsValues[name] = value
-        sys.argv.remove(arg)
-        optionFound = True
-        break
-
-    if not optionFound:
-      if ("--help-nupic" in arg):
-        printOptions(optionsDesc)
-        sys.exit()
-
-  return optionsValues
-
-
-
-def getCommandLineOption(name, options):
-  if name is None or options is None:
-    return False
-  if name in options:
-    return options[name]
-
-
-
-def getExtensionFiles(platform):
+def getExtensionFileNames(platform):
   if platform in WINDOWS_PLATFORMS:
     libExtension = "dll"
   else:
@@ -178,7 +117,12 @@ def getExtensionFiles(platform):
   swigLibFiles = ["_{}.{}".format(name, libExtension) for name in libNames]
   files = [os.path.join(PY_BINDINGS, "nupic", "bindings", name)
            for name in list(swigPythonFiles + swigLibFiles)]
+  return files
 
+
+
+def getExtensionFiles(platform):
+  files = getExtensionFileNames(platform)
   for f in files:
     if not os.path.exists(f):
       generateExtensions()
@@ -209,65 +153,51 @@ def generateExtensions():
 
 
 if __name__ == "__main__":
-  cwd = os.getcwd()
-  os.chdir(PY_BINDINGS)
-
-  options = getCommandLineOptions()
   platform = getPlatformInfo()
 
-  print "NumPy version: {}".format(numpy.__version__)
-  print "Bindings directory: {}".format(PY_BINDINGS)
+  if platform == DARWIN_PLATFORM and not "ARCHFLAGS" in os.environ:
+    raise Exception("To build NuPIC Core bindings in OS X, you must "
+                    "`export ARCHFLAGS=\"-arch x86_64\"`.")
 
-  try:
-    if platform == DARWIN_PLATFORM and not "ARCHFLAGS" in os.environ:
-      raise Exception("To build NuPIC Core bindings in OS X, you must "
-                      "`export ARCHFLAGS=\"-arch x86_64\"`.")
+  # Run CMake if extension files are missing.
+  getExtensionFiles(platform)
 
-    buildEgg = False
-    for arg in sys.argv[:]:
-      if arg == "bdist_egg":
-        buildEgg = True
+  # Copy the proto files into the proto Python package.
+  destDir = os.path.relpath(os.path.join("nupic", "proto"))
+  for protoPath in glob.glob(os.path.relpath(os.path.join(
+      "..", "..", "src", "nupic", "proto", "*.capnp"))):
+    shutil.copy(protoPath, destDir)
 
-    # Run CMake if extension files are missing.
-    getExtensionFiles(platform)
-
-    # Copy the proto files into the proto Python package.
-    destDir = os.path.relpath(os.path.join("nupic", "proto"))
-    for protoPath in glob.glob(os.path.relpath(os.path.join(
-        "..", "..", "src", "nupic", "proto", "*.capnp"))):
-      shutil.copy(protoPath, destDir)
-
-    print "\nSetup SWIG Python module"
-    setup(
-      name="nupic.bindings",
-      version="0.2.2",
-      namespace_packages=["nupic"],
-      install_requires=findRequirements(platform),
-      packages=find_packages(),
-      package_data={
-          "nupic.proto": ["*.capnp"],
-          "nupic.bindings": ["*.so", "*.dll"],
-      },
-      extras_require = {"capnp": ["pycapnp==0.5.5"]},
-      zip_safe=False,
-      description="Numenta Platform for Intelligent Computing - bindings",
-      author="Numenta",
-      author_email="help@numenta.org",
-      url="https://github.com/numenta/nupic.core",
-      long_description = "Python bindings for nupic core.",
-      classifiers=[
-        "Programming Language :: Python",
-        "Programming Language :: Python :: 2",
-        "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
-        "Operating System :: MacOS :: MacOS X",
-        "Operating System :: POSIX :: Linux",
-        "Operating System :: Microsoft :: Windows",
-        # It has to be "5 - Production/Stable" or else pypi rejects it!
-        "Development Status :: 5 - Production/Stable",
-        "Environment :: Console",
-        "Intended Audience :: Science/Research",
-        "Topic :: Scientific/Engineering :: Artificial Intelligence"
-      ],
-    )
-  finally:
-    os.chdir(cwd)
+  print "\nSetup SWIG Python module"
+  setup(
+    name="nupic.bindings",
+    version="0.2.2",
+    namespace_packages=["nupic"],
+    install_requires=findRequirements(platform),
+    packages=find_packages(),
+    package_data={
+        "nupic.proto": ["*.capnp"],
+        "nupic.bindings": ["*.so", "*.dll"],
+    },
+    extras_require = {"capnp": ["pycapnp==0.5.5"]},
+    zip_safe=False,
+    cmdclass={"clean": CleanCommand},
+    description="Numenta Platform for Intelligent Computing - bindings",
+    author="Numenta",
+    author_email="help@numenta.org",
+    url="https://github.com/numenta/nupic.core",
+    long_description = "Python bindings for nupic core.",
+    classifiers=[
+      "Programming Language :: Python",
+      "Programming Language :: Python :: 2",
+      "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
+      "Operating System :: MacOS :: MacOS X",
+      "Operating System :: POSIX :: Linux",
+      "Operating System :: Microsoft :: Windows",
+      # It has to be "5 - Production/Stable" or else pypi rejects it!
+      "Development Status :: 5 - Production/Stable",
+      "Environment :: Console",
+      "Intended Audience :: Science/Research",
+      "Topic :: Scientific/Engineering :: Artificial Intelligence"
+    ],
+  )
