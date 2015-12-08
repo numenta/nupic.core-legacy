@@ -1064,59 +1064,6 @@ namespace nupic {
 
   //--------------------------------------------------------------------------------
   /**
-   * Having those here allows to hides some STL syntax complexity, and 
-   * also allows to intercept v for checks (in dividesVal).
-   * It also makes writing/reading code easier, not having to deal with 
-   * the hairy STL type names.
-   */
-  template <typename T>
-  inline std::binder2nd<nupic::Assign<T> > AssignVal(const T& v)
-  {
-    return std::bind2nd(nupic::Assign<T>(), v);
-  }
-
-  template <typename T>
-  inline std::binder2nd<nupic::Plus<T> > PlusVal(const T& v)
-  {
-    return std::bind2nd(nupic::Plus<T>(), v);
-  }
-
-  template <typename T>
-  inline std::binder2nd<nupic::Minus<T> > MinusVal(const T& v)
-  {
-    return std::bind2nd(nupic::Minus<T>(), v);
-  }
-
-  template <typename T>
-  inline std::binder2nd<nupic::Multiplies<T> > MultipliesByVal(const T& v)
-  {
-    return std::bind2nd(nupic::Multiplies<T>(), v);
-  }
-
-  template <typename T>
-  inline std::binder2nd<nupic::Divides<T> > DividesByVal(const T& v)
-  {
-    NTA_ASSERT(!nupic::nearlyZero(v))
-      << "dividesByVal: "
-      << "Division by zero";
-
-    return std::bind2nd(nupic::Divides<T>(), v);
-  }
-
-  template <typename T>
-  inline std::binder2nd<nupic::Pow<T> > PowVal(const T& v)
-  {
-    return std::bind2nd(nupic::Pow<T>(), v);
-  }
-
-  template <typename T>
-  inline std::binder2nd<nupic::Logk<T> > LogkVal(const T& v)
-  {
-    return std::bind2nd(nupic::Logk<T>(), v);
-  }
-
-  //--------------------------------------------------------------------------------
-  /**
    *  When dividing by a value less than min_exponent10, inf will be generated.
    *   numeric_limits<float>::min_exponent10 = -37
    *   numeric_limits<double>::min_exponent10 = -307
