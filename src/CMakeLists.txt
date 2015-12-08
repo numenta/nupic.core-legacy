@@ -908,7 +908,7 @@ install(DIRECTORY "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/lib/"
         DESTINATION lib)
 install(DIRECTORY "${REPOSITORY_DIR}/external/common/include/"
         DESTINATION include)
-install(DIRECTORY "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/include/"
+install(DIRECTORY "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}/include/"
         DESTINATION include)
 install(DIRECTORY "${NUMPY_CORE}/lib/"
         DESTINATION lib)
