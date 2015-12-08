@@ -125,6 +125,7 @@ install:
       -DLIB_STATIC_YAML_CPP_LOC=%EXT_LIBS%\libyaml-cpp.a 
       -DLIB_STATIC_YAML_LOC=%EXT_LIBS%\libyaml.a 
       -DLIB_STATIC_Z_LOC=%EXT_LIBS%\libz.a 
+      -DPY_EXTENSIONS_DIR=%REPO_DIR%\bindings\py\nupic\bindings 
       %REPO_DIR%
 
 build_script:
@@ -135,7 +136,7 @@ build_script:
 
   - cd %REPO_DIR%
 
-  - python setup.py bdist_wheel --debug --compiler=mingw --nupic-core-dir=%NUPIC_CORE_DIR%
+  - python setup.py bdist_wheel --debug --compiler=mingw
   - ps: move .\bindings\py\dist\nupic.bindings-$env:BINDINGS_VERSION-cp27-none-win_amd64.whl .
 
 after_build:
