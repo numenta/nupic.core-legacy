@@ -30,12 +30,14 @@ if (NOT ${SOURCE_CAPNP})
   find_library(LIB_CAPNPC ${STATIC_PRE}capnpc${STATIC_SUF})
   set(CAPNP_LIBRARIES ${LIB_CAPNPC} ${LIB_CAPNP} ${LIB_KJ})
   set(CAPNP_LIBRARIES_LITE ${LIB_CAPNP} ${LIB_KJ})
+  set(CAPNP_EXECUTABLE ${BIN_PRE}/capnp${CMAKE_EXECUTABLE_SUFFIX})
+  set(CAPNPC_CXX_EXECUTABLE ${BIN_PRE}/capnpc-c++${CMAKE_EXECUTABLE_SUFFIX})
 endif ()
 
 if (NOT CAPNP_FOUND)
   # Build Cap'n Proto from source.
   if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    set(CAPNP_DEFINITIONS "-DCAPNP_LITE=1")
+    set(CAPNP_DEFINITIONS "-DCAPNP_LITE=1 -DEXTERNAL_CAPNP=1")
     set(CAPNP_CXX_FLAGS "-m${BITNESS}")
   else()
     set(CAPNP_DEFINITIONS "-DCAPNP_LITE=0")
@@ -99,5 +101,10 @@ foreach (INCLUDE_DIR ${CAPNP_INCLUDE_DIRS})
   install(DIRECTORY ${INCLUDE_DIR}/capnp
           DESTINATION include/)
 endforeach ()
-install(FILES ${CAPNP_LIBRARIES}
-        DESTINATION lib/)
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+  install(FILES ${CAPNP_LIBRARIES_LITE}
+          DESTINATION lib/)
+else()
+  install(FILES ${CAPNP_LIBRARIES}
+          DESTINATION lib/)
+endif()
