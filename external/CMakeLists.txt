@@ -38,7 +38,7 @@ set(BIN_PRE ${EP_BASE}/Install/bin)
 
 # Add vendored prebuilt library include paths.
 list(APPEND EXTERNAL_INCLUDE_DIRS
-     "${PROJECT_SOURCE_DIR}/${PLATFORM}${BITNESS}/include"
+     "${PROJECT_SOURCE_DIR}/${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}/include"
      "${PROJECT_SOURCE_DIR}/common/include")
 
 include(ExternalProject)

@@ -68,6 +68,9 @@ install:
   - for /f %%i in ('"python ci\appveyor\parse_version.py"') do set BINDINGS_VERSION=%%i
   - echo Binding version = %BINDINGS_VERSION%
 
+  - for /f %%i in ('"python ci\appveyor\parse_capnp_version.py"') do set CAPNP_VERSION=%%i
+  - echo CapnProto version = %CAPNP_VERSION%
+
   # Reference: https://bitbucket.org/carlkl/mingw-w64-for-python/downloads/mingwpy-2015-04-readme.md
   - ps: $dwntool=New-Object System.Net.WebClient
 
@@ -80,10 +83,6 @@ install:
   - 7z x C:\\libpython-cp27-none-win_amd64.7z -oC:\Python27-x64\ > null
 
   - set PATH=C:\mingwpy\bin;%PATH%
-
-  # Patch up LTO plugins (only needed for certain MinGW-w64 GCC toolchains)
-  #- mkdir C:\mingw64\lib\bfd-plugins
-  #- cp C:\mingw64\libexec\gcc\x86_64-w64-mingw32\4.9.3\liblto_plugin-0.dll C:\mingw64\lib\bfd-plugins\liblto_plugin-0.dll
 
   # Install Python 2.7.x, Pip, Wheel, and NumPy
   - cd %REPO_DIR%\ci\appveyor
@@ -118,25 +117,17 @@ install:
   - cmake -G "MinGW Makefiles" 
       -DCMAKE_BUILD_TYPE=Debug 
       -DCMAKE_INSTALL_PREFIX=%REPO_DIR%\build\release 
-      -DPYTHON_LIBRARY=%PYTHONPATH%\libs\libpython27.dll.a 
-      -DPYTHON_INCLUDE_DIR=%PYTHONPATH%\include 
-      -DLIB_STATIC_APR1_LOC=%EXT_LIBS%\libapr-1.a 
-      -DLIB_STATIC_APRUTIL1_LOC=%EXT_LIBS%\libaprutil-1.a 
-      -DLIB_STATIC_YAML_CPP_LOC=%EXT_LIBS%\libyaml-cpp.a 
-      -DLIB_STATIC_YAML_LOC=%EXT_LIBS%\libyaml.a 
-      -DLIB_STATIC_Z_LOC=%EXT_LIBS%\libz.a 
       -DPY_EXTENSIONS_DIR=%REPO_DIR%\bindings\py\nupic\bindings 
       %REPO_DIR%
 
 build_script:
   - cd %REPO_DIR%\build\scripts
 
-  - mingw32-make -f Makefile -j3
   - mingw32-make -f Makefile install | findstr /C:"Install" /I /V
 
   - cd %REPO_DIR%
 
-  - python setup.py bdist_wheel --debug --compiler=mingw
+  - python setup.py bdist_wheel --debug
   - ps: move .\bindings\py\dist\nupic.bindings-$env:BINDINGS_VERSION-cp27-none-win_amd64.whl .
 
 after_build:
@@ -151,9 +142,9 @@ after_build:
       if ($env:APPVEYOR_REPO_COMMIT -eq "master") {
         cd $env:REPO_DIR\build\release
 
-        7z a -ttar -y -bd nupic_core-$env:APPVEYOR_REPO_COMMIT-windows64.tar . | findstr /b /c:"Everything is Ok" /c:"Scanning" /c:"Creating archive"
+        7z a -ttar -y -bd nupic_core-$env:APPVEYOR_REPO_COMMIT-windows64-gcc.tar . | findstr /b /c:"Everything is Ok" /c:"Scanning" /c:"Creating archive"
 
-        7z a -tgzip -y -bd ..\..\nupic_core-$env:APPVEYOR_REPO_COMMIT-windows64.tar.gz nupic_core-$env:APPVEYOR_REPO_COMMIT-windows64.tar
+        7z a -tgzip -y -bd ..\..\nupic_core-$env:APPVEYOR_REPO_COMMIT-windows64-gcc.tar.gz nupic_core-$env:APPVEYOR_REPO_COMMIT-windows64-gcc.tar
 
       }
 
@@ -191,7 +182,7 @@ deploy:
     bucket: "artifacts.numenta.org"
     region: us-west-2
     set_public: true
-    artifact: "nupic_core-$(APPVEYOR_REPO_COMMIT)-windows64.tar.gz"
+    artifact: "nupic_core-$(APPVEYOR_REPO_COMMIT)-windows64-gcc.tar.gz"
     folder: "numenta/nupic.core"
     on:
       branch: master

@@ -109,7 +109,7 @@ def getPlatformInfo():
 
 def getExtensionFileNames(platform):
   if platform in WINDOWS_PLATFORMS:
-    libExtension = "dll"
+    libExtension = "pyd"
   else:
     libExtension = "so"
   libNames = ("algorithms", "engine_internal", "math")
@@ -177,7 +177,7 @@ if __name__ == "__main__":
     packages=find_packages(),
     package_data={
         "nupic.proto": ["*.capnp"],
-        "nupic.bindings": ["*.so", "*.dll"],
+        "nupic.bindings": ["*.so", "*.pyd"],
     },
     extras_require = {"capnp": ["pycapnp==0.5.5"]},
     zip_safe=False,
