@@ -65,7 +65,7 @@ namespace nupic {
        *     }
        *
        */
-      class TemporalMemory : Serializable<TemporalMemoryProto> {
+      class TemporalMemory : public Serializable<TemporalMemoryProto> {
       public:
         TemporalMemory();
 
