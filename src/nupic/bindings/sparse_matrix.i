@@ -492,6 +492,9 @@ def __div__(self, other):
     SparseMatrixProto::Builder proto =
         nupic::getBuilder<SparseMatrixProto>(pyBuilder);
     self->write(proto);
+  %#else
+    throw std::logic_error(
+        "SparseMatrix.write is not implemented when compiled with CAPNP_LITE=1.");
   %#endif
   }
 
@@ -501,6 +504,9 @@ def __div__(self, other):
     SparseMatrixProto::Reader proto =
         nupic::getReader<SparseMatrixProto>(pyReader);
     self->read(proto);
+  %#else
+    throw std::logic_error(
+        "SparseMatrix.read is not implemented when compiled with CAPNP_LITE=1.");
   %#endif
   }
 
@@ -2904,6 +2910,9 @@ def __setstate__(self, inString):
     SparseBinaryMatrixProto::Builder proto =
         nupic::getBuilder<SparseBinaryMatrixProto>(pyBuilder);
     self->write(proto);
+  %#else
+    throw std::logic_error(
+        "SparseBinaryMatrix.write is not implemented when compiled with CAPNP_LITE=1.");
   %#endif
   }
 
@@ -2913,6 +2922,9 @@ def __setstate__(self, inString):
     SparseBinaryMatrixProto::Reader proto =
         nupic::getReader<SparseBinaryMatrixProto>(pyReader);
     self->read(proto);
+  %#else
+    throw std::logic_error(
+        "SparseBinaryMatrix.read is not implemented when compiled with CAPNP_LITE=1.");
   %#endif
   }
 
@@ -3423,6 +3435,9 @@ def __setstate__(self, inString):
     SparseBinaryMatrixProto::Builder proto =
         nupic::getBuilder<SparseBinaryMatrixProto>(pyBuilder);
     self->write(proto);
+  %#else
+    throw std::logic_error(
+        "SparseBinaryMatrix.write is not implemented when compiled with CAPNP_LITE=1.");
   %#endif
   }
 
@@ -3432,6 +3447,9 @@ def __setstate__(self, inString):
     SparseBinaryMatrixProto::Reader proto =
         nupic::getReader<SparseBinaryMatrixProto>(pyReader);
     self->read(proto);
+  %#else
+    throw std::logic_error(
+        "SparseBinaryMatrix.read is not implemented when compiled with CAPNP_LITE=1.");
   %#endif
   }
 
