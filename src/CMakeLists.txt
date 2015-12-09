@@ -629,7 +629,6 @@ set_target_properties(${EXECUTABLE_GTESTS}
                                  LINK_FLAGS "${COMMON_LINK_FLAGS}")
 add_dependencies(${EXECUTABLE_GTESTS} ${LIB_STATIC_GTEST} ${COMMON_LIBS})
 set(TEST_HEADERS
-    test/unit/algorithms/CondProbTableTest.hpp
     test/unit/algorithms/ConnectionsTest.hpp
     test/unit/algorithms/NearestNeighborUnitTest.hpp
     test/unit/algorithms/SpatialPoolerTest.hpp

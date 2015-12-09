@@ -26,14 +26,27 @@
 
 #include <nupic/algorithms/CondProbTable.hpp>
 #include <nupic/math/StlIo.hpp>
-#include "CondProbTableTest.hpp"
 #include <fstream>
 #include <boost/numeric/ublas/storage.hpp>
-#include <boost/numeric/ublas/matrix_proxy.hpp>
+#include "gtest/gtest.h"
+
 
 using namespace std;
 using namespace boost;
-namespace nupic {
+using namespace nupic;
+
+
+namespace {
+  
+  // Size of the table we construct
+  Size numRows() {return 4;}
+  Size numCols() {return 3;}
+
+
+  // Run tests on the given table
+  void testTable (const std::string& testName, CondProbTable& table,
+    const std::vector<std::vector<Real> > & rows);
+
 
   static vector<Real> makeRow(Real a, Real b, Real c)
   { 
@@ -44,6 +57,7 @@ namespace nupic {
   
     return result;
   }
+  
   static vector<Real> makeCol(Real a, Real b, Real c, Real d)
   { 
     vector<Real> result(4);
@@ -55,8 +69,8 @@ namespace nupic {
     return result;
   }
 
-  void CondProbTableTest::testVectors(const string& testName, const vector<Real>& v1,
-                                      const vector<Real>& v2)
+  void testVectors(const string& testName, const vector<Real>& v1,
+                   const vector<Real>& v2)
   {
     stringstream s1, s2;
     s1 << v1;
@@ -66,19 +80,7 @@ namespace nupic {
 
 
   //----------------------------------------------------------------------
-  CondProbTableTest::CondProbTableTest()
-  {
-  }
-
-
-  //----------------------------------------------------------------------
-  CondProbTableTest::~CondProbTableTest()
-  {
-  }
-
-
-  //----------------------------------------------------------------------
-  void CondProbTableTest::RunTests()
+  TEST(CondProbTableTest, Basic)
   {
     // Our 4 rows
     vector<vector<Real> > rows;
@@ -180,13 +182,13 @@ namespace nupic {
 
 
   //----------------------------------------------------------------------
-  void CondProbTableTest::testTable(const string& testName, CondProbTable& table, 
-                                    const vector<vector<Real> > & rows)
+  void testTable(const string& testName, CondProbTable& table, 
+                 const vector<vector<Real> > & rows)
   {
   
     // Test the numRows(), numCols() calls
-    TESTEQUAL(numRows(), table.numRows());
-    TESTEQUAL(numCols(), table.numColumns());
+    ASSERT_EQ(numRows(), table.numRows());
+    ASSERT_EQ(numCols(), table.numColumns());
 
     // See if they got added right
     vector<Real>  testRow(numCols());
@@ -292,6 +294,6 @@ namespace nupic {
   }
   
   //----------------------------------------------------------------------
-} // end namespace nupic
+} // end namespace
 
 
