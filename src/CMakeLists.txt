@@ -60,43 +60,59 @@ else()
 endif()
 
 # Compiler `-D*` definitions
-add_definitions(-DNTA_OS_${PLATFORM_UPPERCASE}
-                -DNTA_ARCH_${BITNESS}
-                -DHAVE_CONFIG_H
-                -DNTA_INTERNAL
-                -DBOOST_NO_WREGEX
-                -DNUPIC2
-                -DNTA_ASSERTIONS_ON
-                -DNTA_ASM)
+set(COMPILER_DEFINITIONS
+    -DNTA_OS_${PLATFORM_UPPERCASE}
+    -DNTA_ARCH_${BITNESS}
+    -DHAVE_CONFIG_H
+    -DNTA_INTERNAL
+    -DBOOST_NO_WREGEX
+    -DNUPIC2
+    -DNTA_ASSERTIONS_ON
+    -DNTA_ASM
+    ${CAPNP_DEFINITIONS})
 if(UNIX) # or UNIX like (i.e. APPLE and CYGWIN)
-  add_definitions(-DHAVE_UNISTD_H)
+  set(COMPILER_DEFINITIONS ${COMPILER_DEFINITIONS} -DHAVE_UNISTD_H)
 elseif(MSVC OR MSYS OR MINGW)
-  add_definitions(-DPSAPI_VERSION=1
-                  -DAPR_DECLARE_STATIC
-                  -DAPU_DECLARE_STATIC
-                  -DZLIB_WINAPI
-                  -DWIN32
-                  -D_WINDOWS
-                  -D_MBCS
-                  -D_CRT_SECURE_NO_WARNINGS
-                  -DNDEBUG
-                  -DCAPNP_LITE=1
-                  -D_VARIADIC_MAX=10
-                  -DNOMINMAX)
-  set(CAPNP_LITE 1)
+  set(COMPILER_DEFINITIONS
+      ${COMPILER_DEFINITIONS}
+      -DPSAPI_VERSION=1
+      -DAPR_DECLARE_STATIC
+      -DAPU_DECLARE_STATIC
+      -DZLIB_WINAPI
+      -DWIN32
+      -D_WINDOWS
+      -D_MBCS
+      -D_CRT_SECURE_NO_WARNINGS
+      -DNDEBUG
+      -D_VARIADIC_MAX=10
+      -DNOMINMAX)
   if(MSYS OR MINGW)
-    add_definitions(-DHAVE_UNISTD_H
-                    -DNTA_COMPILER_GNU)
+    set(COMPILER_DEFINITIONS
+        ${COMPILER_DEFINITIONS}
+        -DHAVE_UNISTD_H)
   endif()
 endif()
 
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
-  add_definitions(-DNTA_COMPILER_GNU)
+  set(COMPILER_DEFINITIONS
+      ${COMPILER_DEFINITIONS}
+      -DNTA_COMPILER_GNU)
 elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
-  add_definitions(-DNTA_COMPILER_CLANG)
+  set(COMPILER_DEFINITIONS
+      ${COMPILER_DEFINITIONS}
+      -DNTA_COMPILER_CLANG)
 elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
-  add_definitions(-DNTA_COMPILER_MSVC)
+  set(COMPILER_DEFINITIONS
+      ${COMPILER_DEFINITIONS}
+      -DNTA_COMPILER_MSVC)
+elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "MinGW")
+  set(COMPILER_DEFINITIONS
+      ${COMPILER_DEFINITIONS}
+      -DNTA_COMPILER_GNU
+      -D_hypot=hypot)
 endif()
+
+add_definitions(${COMPILER_DEFINITIONS})
 
 #
 # Find Python Interp, min. v2.7
@@ -172,7 +188,7 @@ else()
   # LLVM Clang / Gnu GCC
   set(COMMON_COMPILE_FLAGS "-std=c++11 -m${BITNESS} ${STDLIB} -Wextra -Wreturn-type -Wunused -Wno-unused-variable -Wno-unused-parameter -Wno-missing-field-initializers")
   if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    set(COMMON_COMPILE_FLAGS "-Werror -Wall -fPIC ${COMMON_COMPILE_FLAGS}")
+    set(COMMON_COMPILE_FLAGS "-Werror -Wall -fPIC ${COMMON_COMPILE_FLAGS} -Wno-deprecated-register")
   endif()
   set(COMMON_LINK_FLAGS "-m${BITNESS} ${STDLIB}")
 endif()
@@ -189,6 +205,13 @@ if(MINGW)
   # This is for GCC 4.8.x
   # http://stackoverflow.com/questions/10660524/error-building-boost-1-49-0-with-gcc-4-7-0
   set(COMMON_COMPILE_FLAGS "${COMMON_COMPILE_FLAGS} -include cmath")
+endif()
+
+# Set compiler-specific options.
+if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
+  set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} -Wl,--no-undefined")
+elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
+  set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} -Wl,-undefined,error")
 endif()
 
 #
@@ -333,6 +356,7 @@ if(NOT "${PLATFORM}" STREQUAL "windows")
   list(APPEND PY_SUPPORT_FILES nupic/py_support/CapnpToPycapnp.cpp)
 endif()
 
+message(STATUS "CAPNP_EXECUTABLE   = ${CAPNP_EXECUTABLE}")
 message(STATUS "CAPNP_DEFINITIONS   = ${CAPNP_DEFINITIONS}")
 message(STATUS "CAPNP_INCLUDE_DIRS  = ${CAPNP_INCLUDE_DIRS}")
 message(STATUS "CAPNP_LIBRARIES     = ${CAPNP_LIBRARIES}")
@@ -353,15 +377,15 @@ endif()
 #
 set(LIB_STATIC_NUPICCORE nupic_core_solo)
 
-#if(CAPNP_LITE)
-#  set(COMMON_LIBS ${LIB_STATIC_NUPICCORE}
-#                  ${PYTHON_LIBRARIES}
-#                  ${CAPNP_LIBRARIES_LITE})
-#else()
-set(COMMON_LIBS ${LIB_STATIC_NUPICCORE}
-                ${PYTHON_LIBRARIES}
-                ${CAPNP_LIBRARIES})
-#endif()
+if(MSVC OR MSYS OR MINGW)
+  set(COMMON_LIBS
+      ${PYTHON_LIBRARIES}
+      ${CAPNP_LIBRARIES_LITE})
+else()
+  set(COMMON_LIBS
+      ${PYTHON_LIBRARIES}
+      ${CAPNP_LIBRARIES})
+endif()
 
 if("${PLATFORM}" STREQUAL "linux")
   list(APPEND COMMON_OS_LIBS pthread dl)
@@ -449,8 +473,7 @@ set(LIB_STATIC_NUPICCORE_LINK_LIBS
     ${LIB_STATIC_APR1_LOC}
     ${LIB_STATIC_APRUTIL1_LOC}
     ${LIB_STATIC_Z_LOC}
-    ${CAPNP_LIBRARIES}
-    ${PYTHON_LIBRARIES}
+    ${COMMON_LIBS}
     ${COMMON_OS_LIBS})
 set(LIB_STATIC_NUPICCORE_COMPILE_FLAGS
     "${COMMON_COMPILE_FLAGS} -I${NUMPY_CORE}/include")
@@ -464,6 +487,9 @@ set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES COMPILE_FLAGS
                       ${LIB_STATIC_NUPICCORE_COMPILE_FLAGS})
 set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES LINK_FLAGS
                       ${LIB_STATIC_NUPICCORE_LINK_FLAGS})
+
+# Add new library to common libs for rest of targets.
+set(COMMON_LIBS ${LIB_STATIC_NUPICCORE} ${COMMON_LIBS})
 
 #
 # Setup test_cpp_region
@@ -595,8 +621,8 @@ add_executable(${EXECUTABLE_GTESTS}
                test/unit/utils/RandomTest.cpp
                test/unit/utils/WatcherTest.cpp)
 target_link_libraries(${EXECUTABLE_GTESTS}
-                      ${COMMON_LIBS}
-                      ${LIB_STATIC_GTEST})
+                      ${LIB_STATIC_GTEST}
+                      ${COMMON_LIBS})
 set_target_properties(${EXECUTABLE_GTESTS}
                       PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS}
                                  LINK_FLAGS "${COMMON_LINK_FLAGS}")
@@ -713,6 +739,144 @@ else()
 endif()
 
 #
+# Call SWIG to generate wrapper code for Python.
+#
+include(UseSWIG)
+
+# Set the output location for the language modules that are created.
+set(CMAKE_SWIG_OUTDIR ${PROJECT_BINARY_DIR})
+
+# Make sure the directory exists for the generated C++ files.
+file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/nupic/bindings)
+
+# SWIG options from:
+# https://github.com/swig/swig/blob/master/Source/Modules/python.cxx#L111
+set(SWIG_FLAGS
+    -features
+    autodoc=0,directors=0
+    -noproxyimport
+    -keyword
+    -modern
+    -modernargs
+    -noproxydel
+    -fvirtual
+    -fastunpack
+    -nofastproxy
+    -fastquery
+    -outputtuple
+    -castmode
+    -nosafecstrings
+    -w402
+    -w503
+    -w511
+    -w302
+    -w362
+    -w312
+    -w389
+    -DSWIG_PYTHON_LEGACY_BOOL
+    -I${SWIG_DIR}/python
+    -I${SWIG_DIR}
+    ${COMPILER_DEFINITIONS}
+)
+
+set(SWIG_SUPPORT_FILES
+    nupic/py_support/NumpyVector.cpp
+    nupic/py_support/PyArray.cpp
+    nupic/py_support/PyHelpers.cpp
+    nupic/py_support/PythonStream.cpp
+    nupic/bindings/PySparseTensor.cpp
+)
+
+set(SWIG_LINK_LIBRARIES
+    ${COMMON_OS_LIBS}
+    ${PYTHON_LIBRARIES}
+    ${PROJECT_BINARY_DIR}/libnupic_core.a)
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+  set(SWIG_LINK_LIBRARIES
+      ${CAPNP_LIBRARIES_LITE}
+      ${SWIG_LINK_LIBRARIES})
+else()
+  set(SWIG_LINK_LIBRARIES
+      ${CAPNP_LIBRARIES}
+      ${SWIG_LINK_LIBRARIES})
+endif()
+
+# Algorithms
+set(SWIG_ALGORITHMS_FILES nupic/bindings/algorithms.i)
+set_source_files_properties(${SWIG_ALGORITHMS_FILES} PROPERTIES
+                            CPLUSPLUS ON
+                            SWIG_MODULE_NAME algorithms
+                            SWIG_FLAGS "${SWIG_FLAGS}")
+set(SWIG_ALGORITHMS algorithms)
+# Make sure we don't attempt to execute the swig executable until it is built.
+set(SWIG_MODULE_${SWIG_ALGORITHMS}_EXTRA_DEPS Swig combined)
+# Create custom command for generating files from SWIG.
+swig_add_module(${SWIG_ALGORITHMS} python
+                ${SWIG_SUPPORT_FILES}
+                ${SWIG_ALGORITHMS_FILES})
+list(APPEND SWIG_GENERATED_FILES ${swig_generated_file_fullname})
+#TODO add_dependencies(${SWIG_MODULE_${SWIG_ALGORITHMS}_REAL_NAME}
+swig_link_libraries(${SWIG_ALGORITHMS}
+                    ${SWIG_LINK_LIBRARIES})
+
+# Engine
+set(SWIG_ENGINE_FILES nupic/bindings/engine_internal.i)
+set_source_files_properties(${SWIG_ENGINE_FILES} PROPERTIES
+                            CPLUSPLUS ON
+                            SWIG_MODULE_NAME engine_internal
+                            SWIG_FLAGS "${SWIG_FLAGS}")
+set(SWIG_ENGINE engine_internal)
+# Make sure we don't attempt to execute the swig executable until it is built.
+set(SWIG_MODULE_${SWIG_ENGINE}_EXTRA_DEPS Swig combined)
+# Create custom command for generating files from SWIG.
+swig_add_module(${SWIG_ENGINE} python
+                ${SWIG_SUPPORT_FILES}
+                ${SWIG_ENGINE_FILES})
+list(APPEND SWIG_GENERATED_FILES ${swig_generated_file_fullname})
+swig_link_libraries(${SWIG_ENGINE}
+                    ${SWIG_LINK_LIBRARIES})
+
+# Math
+set(SWIG_MATH_FILES nupic/bindings/math.i)
+set_source_files_properties(${SWIG_MATH_FILES} PROPERTIES
+                            CPLUSPLUS ON
+                            SWIG_MODULE_NAME math
+                            SWIG_FLAGS "${SWIG_FLAGS}")
+set(SWIG_MATH math)
+# Make sure we don't attempt to execute the swig executable until it is built.
+set(SWIG_MODULE_${SWIG_MATH}_EXTRA_DEPS Swig combined)
+# Create custom command for generating files from SWIG.
+swig_add_module(${SWIG_MATH} python
+                ${SWIG_SUPPORT_FILES}
+                ${SWIG_MATH_FILES})
+list(APPEND SWIG_GENERATED_FILES ${swig_generated_file_fullname})
+swig_link_libraries(${SWIG_MATH}
+                    ${SWIG_LINK_LIBRARIES})
+
+set_source_files_properties(${SWIG_GENERATED_FILES} PROPERTIES
+                            GENERATED TRUE)
+set_source_files_properties(${SWIG_GENERATED_FILES} ${SWIG_SUPPORT_FILES}
+                            PROPERTIES
+                            COMPILE_FLAGS ${COMMON_COMPILE_FLAGS}
+                            LINK_FLAGS ${COMMON_LINK_FLAGS})
+
+# If a path is specified, copy extensions files to proper location.
+if (PY_EXTENSIONS_DIR)
+  install(TARGETS
+          ${SWIG_MODULE_${SWIG_ALGORITHMS}_REAL_NAME}
+          ${SWIG_MODULE_${SWIG_ENGINE}_REAL_NAME}
+          ${SWIG_MODULE_${SWIG_MATH}_REAL_NAME}
+          LIBRARY DESTINATION ${PY_EXTENSIONS_DIR})
+  install(FILES
+          ${PROJECT_BINARY_DIR}/algorithms.py
+          ${PROJECT_BINARY_DIR}/engine_internal.py
+          ${PROJECT_BINARY_DIR}/math.py
+          DESTINATION ${PY_EXTENSIONS_DIR})
+endif(PY_EXTENSIONS_DIR)
+
+
+#
 # Install targets into CMAKE_INSTALL_PREFIX
 #
 install(TARGETS
@@ -740,12 +904,8 @@ install(DIRECTORY ${REPOSITORY_DIR}/external/common/include/gtest
         FILES_MATCHING PATTERN "*.h*")
 install(FILES ${PROJECT_BINARY_DIR}/Version.hpp
         DESTINATION include/nupic/)
-install(DIRECTORY "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/bin/"
-        DESTINATION bin USE_SOURCE_PERMISSIONS)
 install(DIRECTORY "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/lib/"
         DESTINATION lib)
-install(DIRECTORY "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/bin/"
-        DESTINATION bin USE_SOURCE_PERMISSIONS)
 install(DIRECTORY "${REPOSITORY_DIR}/external/common/include/"
         DESTINATION include)
 install(DIRECTORY "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}/include/"
