@@ -53,7 +53,7 @@ namespace nupic
        * TODO: Support serialization and deserialization.
        *
        */
-      class BitHistory : Serializable<BitHistoryProto>
+      class BitHistory : public Serializable<BitHistoryProto>
       {
         public:
           /**

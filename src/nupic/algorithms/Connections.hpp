@@ -217,7 +217,7 @@ namespace nupic
        * compute the activity of cells due to input over the connections.
        *
        */
-      class Connections : Serializable<ConnectionsProto>
+      class Connections : public Serializable<ConnectionsProto>
       {
       public:
         static const UInt16 VERSION = 1;

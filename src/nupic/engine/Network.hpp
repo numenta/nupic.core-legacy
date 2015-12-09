@@ -53,7 +53,7 @@ namespace nupic
    *
    * @nosubgrouping
    */
-  class Network : Serializable<NetworkProto>
+  class Network : public Serializable<NetworkProto>
   {
   public:
 

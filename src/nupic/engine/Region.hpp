@@ -69,7 +69,7 @@ namespace nupic
    * Internally regions are created and owned by Network.
    *
    */
-  class Region : Serializable<RegionProto>
+  class Region : public Serializable<RegionProto>
   {
   public:
 

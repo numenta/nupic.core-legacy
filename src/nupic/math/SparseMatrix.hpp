@@ -114,7 +114,7 @@ struct SparseMatrixAlgorithms;
 template <typename UI = nupic::UInt32, typename Real_stor = nupic::Real32,
           typename I = nupic::Int32, typename Real_prec = nupic::Real64,
           typename DTZ = nupic::DistanceToZero<Real_stor>>
-class SparseMatrix : Serializable<SparseMatrixProto> {
+class SparseMatrix : public Serializable<SparseMatrixProto> {
   // TODO find boost config flag to enable ullong as UnsignedInteger
   // BOOST_CLASS_REQUIRE(UI, boost, UnsignedIntegerConcept);
   BOOST_CLASS_REQUIRE(I, boost, SignedIntegerConcept);

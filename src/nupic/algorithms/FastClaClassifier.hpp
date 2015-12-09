@@ -63,7 +63,7 @@ namespace nupic
        * cycles are stored in BitHistory objects in activeBitHistory_.
        *
        */
-      class FastCLAClassifier : Serializable<ClaClassifierProto>
+      class FastCLAClassifier : public Serializable<ClaClassifierProto>
       {
         public:
 
