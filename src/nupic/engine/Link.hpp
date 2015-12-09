@@ -49,7 +49,7 @@ namespace nupic
    * @nosubgrouping
    *
    */
-  class Link : Serializable<LinkProto>
+  class Link : public Serializable<LinkProto>
   {
   public:
 

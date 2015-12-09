@@ -78,7 +78,7 @@ namespace nupic {
    */
   class RandomImpl;
 
-  class Random : Serializable<RandomProto>
+  class Random : public Serializable<RandomProto>
   {
   public:
     /**
