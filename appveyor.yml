@@ -124,7 +124,7 @@ build_script:
 
   - cd %REPO_DIR%
 
-  - python setup.py bdist_wheel --debug
+  - python setup.py bdist_wheel
   - ps: move .\bindings\py\dist\nupic.bindings-$env:BINDINGS_VERSION-cp27-none-win_amd64.whl .
 
 after_build:
