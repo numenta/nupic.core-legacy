@@ -38,7 +38,6 @@
 
 namespace nupic
 {
-  bool initialized = false;
 
   struct pycapnp_SchemaParser {
     PyObject_HEAD

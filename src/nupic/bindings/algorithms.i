@@ -1652,20 +1652,28 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
 
   inline void write(PyObject* pyBuilder) const
   {
-  %#if !CAPNP_LITE
+%#if !CAPNP_LITE
     TemporalMemoryProto::Builder proto =
         getBuilder<TemporalMemoryProto>(pyBuilder);
     self->write(proto);
-  %#endif
+%#else
+    throw std::logic_error(
+        "TemporalMemory::write is not implemented because NuPIC was "
+        "compiled with CAPNP_LITE=1.");
+%#endif
   }
 
   inline void read(PyObject* pyReader)
   {
-  %#if !CAPNP_LITE
+%#if !CAPNP_LITE
     TemporalMemoryProto::Reader proto =
         getReader<TemporalMemoryProto>(pyReader);
     self->read(proto);
-  %#endif
+%#else
+    throw std::logic_error(
+        "TemporalMemory::read is not implemented because NuPIC was "
+        "compiled with CAPNP_LITE=1.");
+%#endif
   }
 
   void loadFromString(const std::string& inString)

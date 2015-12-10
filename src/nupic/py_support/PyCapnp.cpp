@@ -23,24 +23,28 @@
 #include <nupic/py_support/PyCapnp.hpp>
 #include <nupic/py_support/PyHelpers.hpp>
 
-using namespace nupic;
-
-PyObject* getPyReader(capnp::DynamicStruct::Reader reader)
+namespace nupic
 {
-  if (!initialized) {
-    initCapnpToPycapnp();
-    initialized = true;
-  }
-  py::Ptr parent(Py_None);
-  return createReader(reader, parent);
-}
+  bool pyCapnpInitialized = false;
 
-PyObject* getPyBuilder(capnp::DynamicStruct::Builder builder)
-{
-  if (!initialized) {
-    initCapnpToPycapnp();
-    initialized = true;
+  PyObject* getPyReader(capnp::DynamicStruct::Reader reader)
+  {
+    if (!pyCapnpInitialized) {
+      initCapnpToPycapnp();
+      pyCapnpInitialized = true;
+    }
+    py::Ptr parent(Py_None);
+    return createReader(reader, parent);
   }
-  py::Ptr parent(Py_None);
-  return createBuilder(builder, parent);
-}
+
+  PyObject* getPyBuilder(capnp::DynamicStruct::Builder builder)
+  {
+    if (!pyCapnpInitialized) {
+      initCapnpToPycapnp();
+      pyCapnpInitialized = true;
+    }
+    py::Ptr parent(Py_None);
+    return createBuilder(builder, parent);
+  }
+
+} // namespace nupic
