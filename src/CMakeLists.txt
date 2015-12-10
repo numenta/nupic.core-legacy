@@ -68,8 +68,7 @@ set(COMPILER_DEFINITIONS
     -DBOOST_NO_WREGEX
     -DNUPIC2
     -DNTA_ASSERTIONS_ON
-    -DNTA_ASM
-    ${CAPNP_DEFINITIONS})
+    -DNTA_ASM)
 if(UNIX) # or UNIX like (i.e. APPLE and CYGWIN)
   set(COMPILER_DEFINITIONS ${COMPILER_DEFINITIONS} -DHAVE_UNISTD_H)
 elseif(MSVC OR MSYS OR MINGW)
@@ -85,7 +84,8 @@ elseif(MSVC OR MSYS OR MINGW)
       -D_CRT_SECURE_NO_WARNINGS
       -DNDEBUG
       -D_VARIADIC_MAX=10
-      -DNOMINMAX)
+      -DNOMINMAX
+      -DCAPNP_LITE=1)
   if(MSYS OR MINGW)
     set(COMPILER_DEFINITIONS
         ${COMPILER_DEFINITIONS}
@@ -914,8 +914,13 @@ install(DIRECTORY "${NUMPY_CORE}/lib/"
         DESTINATION lib)
 install(DIRECTORY "${NUMPY_CORE}/include/"
         DESTINATION include)
-install(FILES ${CAPNP_LIBRARIES}
-        DESTINATION lib)
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+  install(FILES ${CAPNP_LIBRARIES_LITE}
+          DESTINATION lib)
+else()
+  install(FILES ${CAPNP_LIBRARIES}
+          DESTINATION lib)
+endif()
 foreach(directory ${CAPNP_INCLUDE_DIRS})
   install(DIRECTORY "${directory}/capnp"
           DESTINATION include)
