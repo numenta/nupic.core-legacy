@@ -56,7 +56,7 @@ namespace nupic
   class NodeSet;
   class BundleIO;
 
-  class RegionImpl : Serializable<capnp::AnyPointer>
+  class RegionImpl : public Serializable<capnp::AnyPointer>
   {
   public:
 

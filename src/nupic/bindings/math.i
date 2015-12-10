@@ -375,7 +375,7 @@ inline void write(PyObject* pyBuilder) const
   self->write(proto);
 %#else
   throw std::logic_error(
-      "Random.write is not implemented when compiled with CAPNP_LITE=1.")
+      "Random.write is not implemented when compiled with CAPNP_LITE=1.");
 %#endif
 }
 
@@ -386,7 +386,7 @@ inline void read(PyObject* pyReader)
   self->read(proto);
 %#else
   throw std::logic_error(
-      "Random.read is not implemented when compiled with CAPNP_LITE=1.")
+      "Random.read is not implemented when compiled with CAPNP_LITE=1.");
 %#endif
 }
 

@@ -46,7 +46,7 @@ namespace nupic {
  *
  */
 template <typename UI1 = nupic::UInt32, typename UI2 = nupic::UInt32>
-class SparseBinaryMatrix : Serializable<SparseBinaryMatrixProto> {
+class SparseBinaryMatrix : public Serializable<SparseBinaryMatrixProto> {
 public:
   typedef UI1 size_type;
   typedef UI2 nz_index_type;

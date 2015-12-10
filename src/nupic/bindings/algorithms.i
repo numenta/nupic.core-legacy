@@ -1169,6 +1169,9 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
     SpatialPoolerProto::Builder proto =
         getBuilder<SpatialPoolerProto>(pyBuilder);
     self->write(proto);
+  %#else
+    throw std::logic_error(
+        "SpatialPooler.write is not implemented when compiled with CAPNP_LITE=1.");
   %#endif
   }
 
@@ -1177,6 +1180,9 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
   %#if !CAPNP_LITE
     SpatialPoolerProto::Reader proto = getReader<SpatialPoolerProto>(pyReader);
     self->read(proto);
+  %#else
+    throw std::logic_error(
+        "SpatialPooler.read is not implemented when compiled with CAPNP_LITE=1.");
   %#endif
   }
 
@@ -1656,6 +1662,9 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
     TemporalMemoryProto::Builder proto =
         getBuilder<TemporalMemoryProto>(pyBuilder);
     self->write(proto);
+  %#else
+    throw std::logic_error(
+        "TemporalMemory.write is not implemented when compiled with CAPNP_LITE=1.");
   %#endif
   }
 
@@ -1665,6 +1674,9 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
     TemporalMemoryProto::Reader proto =
         getReader<TemporalMemoryProto>(pyReader);
     self->read(proto);
+  %#else
+    throw std::logic_error(
+        "TemporalMemory.read is not implemented when compiled with CAPNP_LITE=1.");
   %#endif
   }
 

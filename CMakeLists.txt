@@ -35,6 +35,12 @@ else()
   set(BITNESS 32)
 endif()
 
+# Define a platform suffix, eg ${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}
+if (MSYS OR MINGW)
+  set(PLATFORM_SUFFIX -gcc)
+endif()
+
+
 # Make sure we can link against any specified paths.
 include_directories(SYSTEM ${CMAKE_INCLUDE_PATH})
 
