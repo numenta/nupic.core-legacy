@@ -29,6 +29,8 @@ import sys
 import tempfile
 
 from setuptools import Command, find_packages, setup
+from setuptools.command.test import test as BaseTestCommand
+
 
 PY_BINDINGS = os.path.dirname(os.path.realpath(__file__))
 REPO_DIR = os.path.abspath(os.path.join(PY_BINDINGS, os.pardir, os.pardir))
@@ -89,6 +91,33 @@ def findRequirements(platform):
     for line in open(requirementsPath).readlines()
     if not line.startswith("#") and (not line.startswith("pycapnp") or includePycapnp)
   ]
+
+
+
+class TestCommand(BaseTestCommand):
+  user_options = [("pytest-args=", "a", "Arguments to pass to py.test")]
+
+
+  def initialize_options(self):
+    BaseTestCommand.initialize_options(self)
+    self.pytest_args = [] # pylint: disable=W0201
+
+
+  def finalize_options(self):
+    BaseTestCommand.finalize_options(self)
+    self.test_args = []
+    self.test_suite = True
+
+
+  def run_tests(self):
+    import pytest
+    cwd = os.getcwd()
+    try:
+      os.chdir("tests")
+      errno = pytest.main(self.pytest_args)
+    finally:
+      os.chdir(cwd)
+    sys.exit(errno)
 
 
 
@@ -181,7 +210,10 @@ if __name__ == "__main__":
     },
     extras_require = {"capnp": ["pycapnp==0.5.5"]},
     zip_safe=False,
-    cmdclass={"clean": CleanCommand},
+    cmdclass={
+      "clean": CleanCommand,
+      "test": TestCommand,
+    },
     description="Numenta Platform for Intelligent Computing - bindings",
     author="Numenta",
     author_email="help@numenta.org",
