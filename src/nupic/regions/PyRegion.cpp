@@ -489,24 +489,32 @@ void PyRegion::deserialize(BundleIO& bundle)
 
 void PyRegion::write(capnp::AnyPointer::Builder& proto) const
 {
-  #if !CAPNP_LITE
+#if !CAPNP_LITE
   PyRegionProto::Builder pyRegionProto = proto.getAs<PyRegionProto>();
   PyObject* pyBuilder = getPyBuilder(capnp::toDynamic(pyRegionProto));
   py::Tuple args(1);
   args.setItem(0, pyBuilder);
   py::Ptr _none(node_.invoke("write", args));
-  #endif
+#else
+  throw std::logic_error(
+      "PyRegion::write is not implemented because NuPIC was compiled with "
+      "CAPNP_LITE=1.");
+#endif
 }
 
 void PyRegion::read(capnp::AnyPointer::Reader& proto)
 {
-  #if !CAPNP_LITE
+#if !CAPNP_LITE
   PyRegionProto::Reader pyRegionProto = proto.getAs<PyRegionProto>();
   PyObject* pyReader = getPyReader(capnp::toDynamic(pyRegionProto));
   py::Tuple args(1);
   args.setItem(0, pyReader);
   py::Ptr _none(node_.invoke("read", args));
-  #endif
+#else
+  throw std::logic_error(
+      "PyRegion::read is not implemented because NuPIC was compiled with "
+      "CAPNP_LITE=1.");
+#endif
 }
 
 const Spec & PyRegion::getSpec()
