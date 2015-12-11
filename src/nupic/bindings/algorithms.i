@@ -1658,7 +1658,7 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
 
   inline void write(PyObject* pyBuilder) const
   {
-  %#if !CAPNP_LITE
+%#if !CAPNP_LITE
     TemporalMemoryProto::Builder proto =
         getBuilder<TemporalMemoryProto>(pyBuilder);
     self->write(proto);
@@ -1670,7 +1670,7 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
 
   inline void read(PyObject* pyReader)
   {
-  %#if !CAPNP_LITE
+%#if !CAPNP_LITE
     TemporalMemoryProto::Reader proto =
         getReader<TemporalMemoryProto>(pyReader);
     self->read(proto);

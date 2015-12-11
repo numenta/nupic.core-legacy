@@ -351,6 +351,7 @@ set (PY_SUPPORT_FILES
      nupic/py_support/PyArray.cpp
      nupic/py_support/PyHelpers.cpp
      nupic/py_support/PythonStream.cpp
+     nupic/py_support/PyCapnp.cpp
 )
 if(NOT "${PLATFORM}" STREQUAL "windows")
   list(APPEND PY_SUPPORT_FILES nupic/py_support/CapnpToPycapnp.cpp)
