@@ -26,7 +26,8 @@
 
 #include <fstream>
 #include <iostream>
-#include "ConnectionsTest.hpp"
+#include <nupic/algorithms/Connections.hpp>
+#include "gtest/gtest.h"
 
 using namespace std;
 using namespace nupic;
@@ -34,31 +35,16 @@ using namespace nupic::algorithms::connections;
 
 #define EPSILON 0.0000001
 
-namespace nupic {
+namespace {
 
-  void ConnectionsTest::RunTests()
-  {
-    testCreateSegment();
-    testCreateSegmentReuse();
-    testCreateSynapse();
-    testDestroySegment();
-    testDestroySynapse();
-    testUpdateSynapsePermanence();
-    testMostActiveSegmentForCells();
-    testMostActiveSegmentForCellsNone();
-    testLeastRecentlyUsedSegment();
-    testComputeActivity();
-    testActiveSegments();
-    testNumSegments();
-    testNumSynapses();
-    testWriteRead();
-    testSaveLoad();
-  }
+  // Forward definitions
+  void setupSampleConnections(Connections &connections);
+  Activity computeSampleActivity(Connections &connections);
 
   /**
    * Creates a segment, and makes sure that it got created on the correct cell.
    */
-  void ConnectionsTest::testCreateSegment()
+  TEST(ConnectionsTest, testCreateSegment)
   {
     Connections connections(1024);
     Segment segment;
@@ -86,7 +72,7 @@ namespace nupic {
    * another segment, and checks that it destroyed the least recently used
    * segment and created a new one in its place.
    */
-  void ConnectionsTest::testCreateSegmentReuse()
+  TEST(ConnectionsTest, testCreateSegmentReuse)
   {
     Connections connections(1024, 2);
     Cell cell;
@@ -123,7 +109,7 @@ namespace nupic {
    * Creates a synapse, and makes sure that it got created on the correct
    * segment, and that its data was correctly stored.
    */
-  void ConnectionsTest::testCreateSynapse()
+  TEST(ConnectionsTest, testCreateSynapse)
   {
     Connections connections(1024);
     Cell cell(10), presynapticCell;
@@ -164,7 +150,7 @@ namespace nupic {
    * Creates a segment, destroys it, and makes sure it got destroyed along with
    * all of its synapses.
    */
-  void ConnectionsTest::testDestroySegment()
+  TEST(ConnectionsTest, testDestroySegment)
   {
     Connections connections(1024);
     Cell cell;
@@ -191,7 +177,7 @@ namespace nupic {
    * Creates a segment, creates a number of synapses on it, destroys a synapse,
    * and makes sure it got destroyed.
    */
-  void ConnectionsTest::testDestroySynapse()
+  TEST(ConnectionsTest, testDestroySynapse)
   {
     Connections connections(1024);
     Cell cell;
@@ -224,7 +210,7 @@ namespace nupic {
    * Creates a synapse and updates its permanence, and makes sure that its
    * data was correctly updated.
    */
-  void ConnectionsTest::testUpdateSynapsePermanence()
+  TEST(ConnectionsTest, testUpdateSynapsePermanence)
   {
     Connections connections(1024);
     Cell cell(10), presynapticCell(50);
@@ -241,7 +227,7 @@ namespace nupic {
    * Creates a sample set of connections, and makes sure that getting the most
    * active segment for a collection of cells returns the right segment.
    */
-  void ConnectionsTest::testMostActiveSegmentForCells()
+  TEST(ConnectionsTest, testMostActiveSegmentForCells)
   {
     Connections connections(1024);
     Segment segment;
@@ -279,7 +265,7 @@ namespace nupic {
    * active segment for a collection of cells with no activity returns
    * no segment.
    */
-  void ConnectionsTest::testMostActiveSegmentForCellsNone()
+  TEST(ConnectionsTest, testMostActiveSegmentForCellsNone)
   {
     Connections connections(1024);
     Segment segment;
@@ -318,7 +304,7 @@ namespace nupic {
    * creates another segment, and checks that the least recently used segment
    * is not the newly created one.
    */
-  void ConnectionsTest::testLeastRecentlyUsedSegment()
+  TEST(ConnectionsTest, testLeastRecentlyUsedSegment)
   {
     Connections connections(1024);
     Cell cell;
@@ -357,7 +343,7 @@ namespace nupic {
    * activity for a collection of cells with no activity returns the right
    * activity data.
    */
-  void ConnectionsTest::testComputeActivity()
+  TEST(ConnectionsTest, testComputeActivity)
   {
     Connections connections(1024);
     Cell cell;
@@ -386,7 +372,7 @@ namespace nupic {
    * Creates a sample set of connections, and makes sure that we can get the
    * active segments from the computed activity.
    */
-  void ConnectionsTest::testActiveSegments()
+  TEST(ConnectionsTest, testActiveSegments)
   {
     Connections connections(1024);
     Cell cell;
@@ -407,7 +393,7 @@ namespace nupic {
    * Creates a sample set of connections, and makes sure that we can get the
    * active cells from the computed activity.
    */
-  void ConnectionsTest::testActiveCells()
+  TEST(ConnectionsTest, testActiveCells)
   {
     Connections connections(1024);
     Cell cell;
@@ -426,7 +412,7 @@ namespace nupic {
    * Creates a sample set of connections, and makes sure that we can get the
    * correct number of segments.
    */
-  void ConnectionsTest::testNumSegments()
+  TEST(ConnectionsTest, testNumSegments)
   {
     Connections connections(1024);
     setupSampleConnections(connections);
@@ -438,7 +424,7 @@ namespace nupic {
    * Creates a sample set of connections, and makes sure that we can get the
    * correct number of synapses.
    */
-  void ConnectionsTest::testNumSynapses()
+  TEST(ConnectionsTest, testNumSynapses)
   {
     Connections connections(1024);
     setupSampleConnections(connections);
@@ -451,7 +437,7 @@ namespace nupic {
    * computes sample activity, and makes sure that we can write to a
    * filestream and read it back correctly.
    */
-  void ConnectionsTest::testWriteRead()
+  TEST(ConnectionsTest, testWriteRead)
   {
     const char* filename = "ConnectionsSerialization.tmp";
     Connections c1(1024, 1024, 1024), c2;
@@ -482,7 +468,7 @@ namespace nupic {
     NTA_CHECK(ret == 0) << "Failed to delete " << filename;
   }
 
-  void ConnectionsTest::testSaveLoad()
+  TEST(ConnectionsTest, testSaveLoad)
   {
     Connections c1(1024, 1024, 1024), c2;
     setupSampleConnections(c1);
@@ -504,7 +490,7 @@ namespace nupic {
     ASSERT_EQ(c1, c2);
   }
 
-  void ConnectionsTest::setupSampleConnections(Connections &connections)
+  void setupSampleConnections(Connections &connections)
   {
     Segment segment;
     Synapse synapse;
@@ -539,7 +525,7 @@ namespace nupic {
     synapse = connections.createSynapse(segment, presynapticCell, 0.15);
   }
 
-  Activity ConnectionsTest::computeSampleActivity(Connections &connections)
+  Activity computeSampleActivity(Connections &connections)
   {
     Cell cell;
     vector<Cell> input;
