@@ -23,6 +23,8 @@
 #include <nupic/py_support/PyCapnp.hpp>
 #include <nupic/py_support/PyHelpers.hpp>
 
+#if !CAPNP_LITE
+
 namespace nupic
 {
   bool pyCapnpInitialized = false;
@@ -48,3 +50,5 @@ namespace nupic
   }
 
 } // namespace nupic
+
+#endif // !CAPNP_LITE
