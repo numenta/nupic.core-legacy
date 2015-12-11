@@ -26,10 +26,6 @@ RUN pip install \
         --cache-dir /usr/local/src/nupic.core/pip-cache \
         --build /usr/local/src/nupic.core/pip-build \
         --no-clean \
+        pycapnp==0.5.5 \
         -r bindings/py/requirements.txt && \
-    mkdir -p build/scripts && \
-    cd build/scripts && \
-    cmake ../.. -DCMAKE_INSTALL_PREFIX=/usr/local && \
-    make install && \
-    cd ../../bindings/py && \
-    python setup.py bdist bdist_dumb bdist_wheel sdist --nupic-core-dir=/usr/local
+    python setup.py bdist bdist_dumb bdist_wheel sdist
