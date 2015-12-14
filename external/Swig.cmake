@@ -19,13 +19,14 @@
 # http://numenta.org/licenses/
 # -----------------------------------------------------------------------------
 
-option(SOURCE_SWIG "Build SWIG from source even if it is found." OFF)
+option(FIND_SWIG "Use preinstalled SWIG." OFF)
 
-if (NOT ${SOURCE_SWIG})
+if (${FIND_SWIG})
   find_package(SWIG)
-endif ()
+  # Create a dummy target to depend on.
+  add_custom_target(Swig)
 
-if (NOT SWIG_FOUND)
+else ()
   # Build SWIG from source.
   if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     add_custom_target(Swig)
@@ -47,10 +48,7 @@ if (NOT SWIG_FOUND)
     set(SWIG_EXECUTABLE ${EP_BASE}/Install/bin/swig)
     set(SWIG_DIR ${EP_BASE}/Install/share/swig/3.0.2)
   endif()
-else()
-  # Create a dummy target to depend on.
-  add_custom_target(Swig)
-endif()
+endif ()
 
 set(SWIG_EXECUTABLE ${SWIG_EXECUTABLE} PARENT_SCOPE)
 set(SWIG_DIR ${SWIG_DIR} PARENT_SCOPE)
