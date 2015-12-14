@@ -26,11 +26,12 @@
 
 #include <nupic/math/StlIo.hpp>
 #include <nupic/math/NearestNeighbor.hpp>
-#include "NearestNeighborUnitTest.hpp"
+#include "../math/SparseMatrixUnitTest.hpp"
+
 
 using namespace std;
 
-namespace nupic {
+namespace {
 
 #define TEST_LOOP(M)                                  \
   for (nrows = 1, ncols = M, zr = 15;                 \
@@ -493,17 +494,6 @@ namespace nupic {
 //    }
 //  }
 //
-  //--------------------------------------------------------------------------------
-  void NearestNeighborUnitTest::RunTests()
-  {
-    /*
-    unit_test_rowLpDist();
-    unit_test_LpDist();
-    unit_test_LpNearest();
-    */
-    //unit_test_dotNearest();  
-  }
-    
   //--------------------------------------------------------------------------------
 } // end namespace nupic
 
