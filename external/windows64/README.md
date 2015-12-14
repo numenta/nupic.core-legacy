@@ -11,6 +11,8 @@ It describes how the C++ library is linked to other languages using SWIG, such a
 - `%NUPIC_CORE%/release/lib/nupic_core_solo.lib` contains _only_ the core library
 - `%NUPIC_CORE%/release/lib/nupic_core.lib` contains the core and external support libraries
 
+Where `%NUPIC_CORE%` is an optional environment variable that points to the git cloned directory.
+
 CMake based build files are used to define the entire build process. The nupic.bindings SWIG side uses Python distutil and setuptools. The [CMake-GUI](http://www.cmake.org/) application _can_ be used to generate MinGW Makefiles, and/or Visual Studio 2015 Win64 solution and project files. The `%NUPIC_CORE%\appveyor.yml` script file shows how the AppVeyor automated build system progresses through building, packaging, and deployment.
 
 ## Python wheel installation
@@ -23,6 +25,11 @@ pip install %DOWNLOAD_LOCATION%/nupic.bindings/nupic.bindings-0.2.2-py2-none-win
 </pre>
 
 Just make sure that the latest nupic.bindings version is used. To find the latest version, point your browser to https://s3-us-west-2.amazonaws.com/artifacts.numenta.org/ and search the web page for `win_amd64.whl`. In the above example it is version `0.2.2`
+
+Once it is installed, you can import NuPIC bindings library to your python script using:
+<pre>
+import nupic.bindings
+</pre>
 
 If you need to make changes to the nupic.core code follow the remaining sections to see how to rebuild using CMake.
 
@@ -59,8 +66,6 @@ The following table shows example CMake common settings;
 
 </center>
 
-Where `NUPIC_CORE` is an optional environment variable that points to the git cloned directory.
-
 ### NuPIC C++ Core and Python SWIG bindings
 
 For rebuilding ALL of NuPIC.core you need to use the `MinGW Makefiles` generator. For example;
@@ -90,6 +95,12 @@ cd ..\..
 python setup.py install
 </pre>
 
+You can run the nupic.bindings tests with py.test:
+<pre>
+cd %NUPIC_CORE%
+py.test --pyargs nupic.bindings
+</pre>
+
 ### NuPIC C++ Core only (via MSVC)
 
 To produce a solution and project files for use with Microsoft Visual Studio, you must use the `Visual Studio 14 2015 Win64` cmake generator.
@@ -109,6 +120,16 @@ cmake -G "Visual Studio 14 2015 Win64"
 </pre>
 
 The resulting .sln file can then be loaded into MSVC 2015. This will only build the C++ libraries. It will never be able to build the Python SWIG binding libraries, for that you must use the MinGWPy GCC compilers.
+
+## Run C++ tests
+
+After building and installing, the following can run C++ related tests;
+
+<pre>
+cd %NUPIC_CORE%\build\release\bin
+cpp_region_test
+unit_tests
+</pre>
 
 ## Build notes
 

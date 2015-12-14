@@ -11,6 +11,8 @@ Important notes:
  * Platform specific Readme.md text files exist in some `external/` subdirectories
  * See the main [wiki](https://github.com/numenta/nupic.core/wiki) for more build notes
 
+The following sub-sections are related to Linux and OSX. For _Windows_ refer to the `external\windows64\README.md` and/or `external\windows64-gcc\README.md` files.
+
 ### Using command line
 
 #### Install Dependencies
