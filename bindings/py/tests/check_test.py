@@ -1,6 +1,6 @@
 # ----------------------------------------------------------------------
 # Numenta Platform for Intelligent Computing (NuPIC)
-# Copyright (C) 2014-2015, Numenta, Inc.  Unless you have an agreement
+# Copyright (C) 2015, Numenta, Inc.  Unless you have an agreement
 # with Numenta, Inc., for a separate license for this software code, the
 # following terms and conditions apply:
 #
@@ -20,14 +20,18 @@
 # ----------------------------------------------------------------------
 
 import unittest
+import nupic.bindings.check as check
 
 
 
 class LoadBindingsTest(unittest.TestCase):
 
 
-  def testLoadBindings(self):
-    """Test that we can load nupic.bindings as implemented in the check.py file"""
-    import nupic.bindings.check as check
-    self.assertTrue(check.checkImportBindings())
+  def testImportBindingsInstalled(self):
+    """Test that we can import nupic.bindings"""
+    self.assertTrue(check.checkImportBindingsInstalled())
 
+
+  def testImportBindingsExtensions(self):
+    """Test that we can load C extensions under nupic.binding"""
+    self.assertTrue(check.checkImportBindingsExtensions())

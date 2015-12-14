@@ -21,22 +21,40 @@
 
 
 
-def checkImportBindings():
+def checkImportBindingsInstalled():
   try:
-    import nupic.bindings.math
-    import nupic.bindings.algorithms
-    import nupic.bindings.regions
-    import nupic.bindings.engine_internal
-  except:
+    import nupic.bindings
+  except ImportError:
     return False
   else:
     return True
 
 
 
-def printImportBindingsMessage():
-  if checkImportBindings():
-    print "Nupic bindings could be successfully imported."
+def checkImportBindingsExtensions():
+  try:
+    import nupic.bindings.math
+    import nupic.bindings.algorithms
+    import nupic.bindings.engine_internal
+  except ImportError:
+    return False
   else:
-    print "ERROR: Unable to import nupic bindings."
+    return True
 
+
+
+def checkMain():
+  """
+  This script performs two checks. First it tries to import nupic.bindings
+  to check that it is correctly installed. Then it tries to import the C
+  extensions under nupic.bindings. Appropriate user-friendly status messages 
+  are printed depend on the outcome.
+  """
+  if checkImportBindingsInstalled():
+    if checkImportBindingsExtensions():
+      print "Nupic bindings could be successfully imported."
+    else:
+      print ("Could not import C extensions for nupic.bindings. " +
+        "Make sure that the package was properly installed.")
+  else:
+    print "Could not import nupic.bindings. It must be installed before use."

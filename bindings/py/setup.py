@@ -234,7 +234,7 @@ if __name__ == "__main__":
     ],
     entry_points = {
       "console_scripts": [
-        "nupic-check-bindings = nupic.bindings.check:printImportBindingsMessage",
+        "nupic-bindings-check = nupic.bindings.check:checkMain",
       ],
     },
   )
