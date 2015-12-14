@@ -25,8 +25,12 @@ import numpy
 
 from nupic.bindings.regions.PyRegion import PyRegion
 
-import capnp
-from nupic.proto.TestNodeProto_capnp import TestNodeProto
+try:
+  import capnp
+except ImportError:
+  capnp = None
+if capnp:
+  from nupic.proto.TestNodeProto_capnp import TestNodeProto
 
 
 class TestNode(PyRegion):
