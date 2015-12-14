@@ -20,10 +20,10 @@
  * ---------------------------------------------------------------------
  */
 
+#if !CAPNP_LITE
+
 #include <nupic/py_support/PyCapnp.hpp>
 #include <nupic/py_support/PyHelpers.hpp>
-
-#if !CAPNP_LITE
 
 namespace nupic
 {
