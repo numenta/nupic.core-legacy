@@ -20,6 +20,18 @@
 # http://numenta.org/licenses/
 # ----------------------------------------------------------------------
 
-cd build/scripts
-make tests_htm 
-make tests_unit
+NUPIC_CORE=`pwd`
+
+if [ ! -d $NUPIC_CORE/build/scripts ]; then
+    mkdir -p $NUPIC_CORE/build/scripts
+fi
+
+cd $NUPIC_CORE/build/scripts
+cmake $NUPIC_CORE -DCMAKE_INSTALL_PREFIX=../release -DPY_EXTENSIONS_DIR=$NUPIC_CORE/bindings/py/nupic/bindings
+make -j4
+make install
+
+cd $NUPIC_CORE/build/release/bin
+./cpp_region_test
+./unit_tests
+
