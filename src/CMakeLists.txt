@@ -634,7 +634,6 @@ set(TEST_HEADERS
     test/unit/algorithms/NearestNeighborUnitTest.hpp
     test/unit/algorithms/SpatialPoolerTest.hpp
     test/unit/algorithms/TemporalMemoryTest.hpp
-    test/unit/engine/UniformLinkPolicyTest.hpp
     test/unit/engine/YAMLUtilsTest.hpp
     test/unit/math/DenseTensorUnitTest.hpp
     test/unit/math/DomainUnitTest.hpp
