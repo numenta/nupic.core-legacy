@@ -40,6 +40,14 @@ UNIX_PLATFORMS = [LINUX_PLATFORM, DARWIN_PLATFORM]
 WINDOWS_PLATFORMS = ["windows"]
 
 
+def getVersion():
+  """
+  Get version from local file.
+  """
+  with open(os.path.join(REPO_DIR, "VERSION"), "r") as versionFile:
+    return versionFile.read().strip()
+
+
 
 class CleanCommand(Command):
   """Command for cleaning up intermediate build files."""
@@ -200,7 +208,7 @@ if __name__ == "__main__":
   print "\nSetup SWIG Python module"
   setup(
     name="nupic.bindings",
-    version="0.2.2",
+    version=getVersion(),
     namespace_packages=["nupic"],
     install_requires=findRequirements(platform),
     packages=find_packages(),
