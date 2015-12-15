@@ -30,6 +30,7 @@ import tempfile
 
 from setuptools import Command, find_packages, setup
 from setuptools.command.test import test as BaseTestCommand
+from distutils.core import Extension
 
 
 PY_BINDINGS = os.path.dirname(os.path.realpath(__file__))
@@ -209,6 +210,7 @@ if __name__ == "__main__":
   setup(
     name="nupic.bindings",
     version=getVersion(),
+    ext_modules=[Extension('fake', sources=[])],
     namespace_packages=["nupic"],
     install_requires=findRequirements(platform),
     packages=find_packages(),
