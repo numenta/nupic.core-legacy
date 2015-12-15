@@ -1,4 +1,5 @@
 FROM ubuntu:14.04
+
 RUN apt-get update && \
     apt-get install -y \
     curl \
@@ -17,11 +18,18 @@ RUN apt-get update && \
 RUN wget https://raw.github.com/pypa/pip/master/contrib/get-pip.py -O - | python
 RUN pip install --upgrade setuptools
 RUN pip install wheel
+
 ENV CC gcc
 ENV CXX g++
-ENV USER docker
+
 ADD . /usr/local/src/nupic.core
+
 WORKDIR /usr/local/src/nupic.core
+
+# Explicitly specify --cache-dir, --build, and --no-clean so that build
+# artifacts may be extracted from the container later.  Final built python
+# packages can be found in /usr/local/src/nupic.core/bindings/py/dist
+
 RUN pip install \
         --cache-dir /usr/local/src/nupic.core/pip-cache \
         --build /usr/local/src/nupic.core/pip-build \
