@@ -29,8 +29,6 @@
 #include <nupic/engine/YAMLUtils.hpp>
 #include <nupic/engine/Spec.hpp>
 
-#include "NetworkTest.hpp"
-
 using namespace nupic;
 
 void YAMLUtilsTest::RunTests()
