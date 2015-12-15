@@ -282,8 +282,7 @@ class PyRegion(object):
 
 
   def write(self, proto):
-    """This method is called during network serialization with a proto object
-    so that this region can write its data to it.
+    """Write state to proto object.
 
     proto: PyRegionProto capnproto object
     """
