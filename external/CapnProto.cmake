@@ -19,9 +19,9 @@
 # http://numenta.org/licenses/
 # -----------------------------------------------------------------------------
 
-option(SOURCE_CAPNP "Build Cap'n Proto from source even if it is found." OFF)
+option(FIND_CAPNP "Use preinstalled Cap'n Proto." OFF)
 
-if (NOT ${SOURCE_CAPNP})
+if (${FIND_CAPNP})
   find_package(CapnProto)
   # Most CAPNP* variables are set correctly but make sure we have the
   # static libraries.
@@ -30,11 +30,11 @@ if (NOT ${SOURCE_CAPNP})
   find_library(LIB_CAPNPC ${STATIC_PRE}capnpc${STATIC_SUF})
   set(CAPNP_LIBRARIES ${LIB_CAPNPC} ${LIB_CAPNP} ${LIB_KJ})
   set(CAPNP_LIBRARIES_LITE ${LIB_CAPNP} ${LIB_KJ})
-  set(CAPNP_EXECUTABLE ${BIN_PRE}/capnp${CMAKE_EXECUTABLE_SUFFIX})
-  set(CAPNPC_CXX_EXECUTABLE ${BIN_PRE}/capnpc-c++${CMAKE_EXECUTABLE_SUFFIX})
-endif ()
 
-if (NOT CAPNP_FOUND)
+  # Create a dummy target to depend on.
+  add_custom_target(CapnProto)
+
+else ()
   # Build Cap'n Proto from source.
   if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set(CAPNP_DEFINITIONS "-DCAPNP_LITE=1 -DEXTERNAL_CAPNP=1")
@@ -83,10 +83,7 @@ if (NOT CAPNP_FOUND)
   set(CAPNP_INCLUDE_DIRS ${INCLUDE_PRE})
   set(CAPNP_EXECUTABLE ${BIN_PRE}/capnp${CMAKE_EXECUTABLE_SUFFIX})
   set(CAPNPC_CXX_EXECUTABLE ${BIN_PRE}/capnpc-c++${CMAKE_EXECUTABLE_SUFFIX})
-else()
-  # Create a dummy target to depend on.
-  add_custom_target(CapnProto)
-endif()
+endif ()
 
 function(CREATE_CAPNPC_COMMAND
          GROUP_NAME SPEC_FILES SRC_PREFIX INCLUDE_DIR TARGET_DIR OUTPUT_FILES)

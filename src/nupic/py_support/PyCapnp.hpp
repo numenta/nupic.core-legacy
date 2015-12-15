@@ -27,6 +27,7 @@
 #ifndef NTA_PY_CAPNP_HPP
 #define NTA_PY_CAPNP_HPP
 
+#if !CAPNP_LITE
 #include <Python.h>
 
 #include <capnp/any.h>
@@ -102,5 +103,7 @@ namespace nupic
   PyObject* getPyBuilder(capnp::DynamicStruct::Builder builder);
 
 }  // namespace nupic
+
+#endif // !CAPNP_LITE
 
 #endif  // NTA_PY_CAPNP_HPP

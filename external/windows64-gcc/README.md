@@ -257,3 +257,4 @@ In CMake-GUI, `%NUPIC_CORE%/build/yaml-cpp/` can be used for Source and Build di
 ##### Z Lib
 
 In `zlib-1.2.8\contrib\vstudio` there are solutions for Visual Studio 9, 10, and 11. The vc11 solution can be used with Visual Studio 2015. A x64 platform solution needs to be added to this imported solution. The zlibstat is the library we need to to build, and copy the rebuilt library over the z.lib file in directory `%NUPIC_CORE%/external/windows64/lib`
+

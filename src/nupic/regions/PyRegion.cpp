@@ -382,19 +382,6 @@ PyRegion::PyRegion(const char * module,
 {
   NTA_CHECK(region != NULL);
 
-  std::string realClassName(className);
-  if (realClassName.empty())
-  {
-    realClassName = Path::getExtension(module_);
-  }
-
-  py::Tuple args((Py_ssize_t)0);
-  py::Dict kwargs;
-
-  // Instantiate a node and assign it  to the node_ member
-  node_.assign(py::Instance(module_, realClassName, args, kwargs));
-  NTA_CHECK(node_);
-
   read(proto);
 }
 
@@ -505,11 +492,26 @@ void PyRegion::write(capnp::AnyPointer::Builder& proto) const
 void PyRegion::read(capnp::AnyPointer::Reader& proto)
 {
 #if !CAPNP_LITE
+  std::string realClassName(className_);
+  if (realClassName.empty())
+  {
+    realClassName = Path::getExtension(module_);
+  }
+
   PyRegionProto::Reader pyRegionProto = proto.getAs<PyRegionProto>();
   PyObject* pyReader = getPyReader(capnp::toDynamic(pyRegionProto));
   py::Tuple args(1);
   args.setItem(0, pyReader);
-  py::Ptr _none(node_.invoke("read", args));
+
+  py::Dict kwargs;
+
+  // Instantiate a class and assign it  to the node_ member
+  py::Class *cls = new py::Class(module_, realClassName);
+
+  // Call the classmethod "read" on it and assign the created instance to the node_ member
+  node_.assign(cls->invoke("read", args, kwargs));
+
+  NTA_CHECK(node_);
 #else
   throw std::logic_error(
       "PyRegion::read is not implemented because NuPIC was compiled with "

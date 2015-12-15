@@ -25,8 +25,12 @@ import numpy
 
 from nupic.bindings.regions.PyRegion import PyRegion
 
-import capnp
-from nupic.proto.TestNodeProto_capnp import TestNodeProto
+try:
+  import capnp
+except ImportError:
+  capnp = None
+if capnp:
+  from nupic.proto.TestNodeProto_capnp import TestNodeProto
 
 
 class TestNode(PyRegion):
@@ -335,17 +339,22 @@ class TestNode(PyRegion):
     self.setParameter(name, 0, param)
 
 
-  def read(self, proto):
-    regionImpl = proto.regionImpl.as_struct(TestNodeProto)
-    self.setParameter("int32Param", 0, regionImpl.int32Param)
-    self.setParameter("uint32Param", 0, regionImpl.uint32Param)
-    self.setParameter("int64Param", 0, regionImpl.int64Param)
-    self.setParameter("uint64Param", 0, regionImpl.uint64Param)
-    self.setParameter("real32Param", 0, regionImpl.real32Param)
-    self.setParameter("real64Param", 0, regionImpl.real64Param)
-    self.setParameter("stringParam", 0, regionImpl.stringParam)
-    self._delta = regionImpl.delta
-    self._iter = regionImpl.iterations
+  @classmethod
+  def read(cls, proto):
+    instance = cls()
 
-    self.readArray(regionImpl, "int64ArrayParam", "Int64")
-    self.readArray(regionImpl, "real32ArrayParam", "Float32")
+    regionImpl = proto.regionImpl.as_struct(TestNodeProto)
+    instance.setParameter("int32Param", 0, regionImpl.int32Param)
+    instance.setParameter("uint32Param", 0, regionImpl.uint32Param)
+    instance.setParameter("int64Param", 0, regionImpl.int64Param)
+    instance.setParameter("uint64Param", 0, regionImpl.uint64Param)
+    instance.setParameter("real32Param", 0, regionImpl.real32Param)
+    instance.setParameter("real64Param", 0, regionImpl.real64Param)
+    instance.setParameter("stringParam", 0, regionImpl.stringParam)
+    instance._delta = regionImpl.delta
+    instance._iter = regionImpl.iterations
+
+    instance.readArray(regionImpl, "int64ArrayParam", "Int64")
+    instance.readArray(regionImpl, "real32ArrayParam", "Float32")
+
+    return instance
