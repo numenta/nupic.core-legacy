@@ -99,7 +99,8 @@ namespace {
         table.updateRow((UInt)i, rows[i]);
       
       // Test it
-      testTable ("Dynamic columns:", table, rows);
+      ASSERT_NO_FATAL_FAILURE(
+        testTable ("Dynamic columns:", table, rows));
     }
 
 
@@ -122,7 +123,8 @@ namespace {
         table.updateRow((UInt)i, rows[i]);
       
       // Test it
-      testTable ("Growing columns:", table, rows);
+      ASSERT_NO_FATAL_FAILURE(
+        testTable ("Growing columns:", table, rows));
     }
 
 
@@ -135,7 +137,8 @@ namespace {
         table.updateRow((UInt)i, rows[i]);
       
       // Test it
-      testTable ("Fixed columns:", table, rows);
+      ASSERT_NO_FATAL_FAILURE(
+        testTable ("Fixed columns:", table, rows));
     }
   
   
@@ -153,7 +156,8 @@ namespace {
     
       CondProbTable newTable;
       newTable.readState (state);
-      testTable ("Restored from state:", newTable, rows);
+      ASSERT_NO_FATAL_FAILURE(
+        testTable ("Restored from state:", newTable, rows));
     }
   
         
@@ -174,7 +178,8 @@ namespace {
         newTable.updateRow((UInt)i, rows[i]);
       
       // Test it
-      testTable ("Restored from empty state:", newTable, rows);
+      ASSERT_NO_FATAL_FAILURE(
+        testTable ("Restored from empty state:", newTable, rows));
     }
 
 
@@ -197,7 +202,8 @@ namespace {
       ss << "updateRow " << i;
     
       table.getRow((UInt)i, testRow);
-      testVectors(testName+ss.str(), rows[i], testRow);
+      ASSERT_NO_FATAL_FAILURE(
+        testVectors(testName+ss.str(), rows[i], testRow));
     }
 
 
@@ -208,19 +214,23 @@ namespace {
   
     // Row 0 matches row 3, so we get half and half hits on those rows
     table.inferRow (rows[0], output, CondProbTable::inferMarginal);
-    testVectors(testName+"row 0 infer", makeCol((Real).16, (Real)0, (Real)0, (Real).24), output);
+    ASSERT_NO_FATAL_FAILURE(
+      testVectors(testName+"row 0 infer", makeCol((Real).16, (Real)0, (Real)0, (Real).24), output));
   
     // Row 1 matches only row 1
     table.inferRow (rows[1], output, CondProbTable::inferMarginal);
-    testVectors(testName+"row 1 infer", makeCol((Real)0, 1, (Real)0, (Real)0), output);
+    ASSERT_NO_FATAL_FAILURE(
+      testVectors(testName+"row 1 infer", makeCol((Real)0, 1, (Real)0, (Real)0), output));
 
     // Row 2 matches only row 2 and 3
     table.inferRow (rows[2], output, CondProbTable::inferMarginal);
-    testVectors(testName+"row 2 infer", makeCol((Real)0, (Real)0, (Real).36, (Real).24), output);
+    ASSERT_NO_FATAL_FAILURE(
+      testVectors(testName+"row 2 infer", makeCol((Real)0, (Real)0, (Real).36, (Real).24), output));
 
     // Row 3 matches row 0 & row 2 halfway, and row 3 exactly
     table.inferRow (rows[3], output, CondProbTable::inferMarginal);
-    testVectors(testName+"row 3 infer", makeCol((Real).24, (Real)0, (Real).24, (Real).52), output);
+    ASSERT_NO_FATAL_FAILURE(
+      testVectors(testName+"row 3 infer", makeCol((Real).24, (Real)0, (Real).24, (Real).52), output));
   
   
     // --------------------------------------------------------------------
@@ -228,19 +238,23 @@ namespace {
   
     // Row 0 matches row 0 and half row 3, so we get half and half hits on those rows
     table.inferRow (rows[0], output, CondProbTable::inferRowEvidence);
-    testVectors(testName+"row 0 inferEvidence", makeCol((Real).4, (Real)0, (Real)0, (Real).24), output);
+    ASSERT_NO_FATAL_FAILURE(
+      testVectors(testName+"row 0 inferEvidence", makeCol((Real).4, (Real)0, (Real)0, (Real).24), output));
   
     // Row 1 matches only row 1
     table.inferRow (rows[1], output, CondProbTable::inferRowEvidence);
-    testVectors(testName+"row 1 inferEvidence", makeCol((Real)0, 1, (Real)0, (Real)0), output);
+    ASSERT_NO_FATAL_FAILURE(
+      testVectors(testName+"row 1 inferEvidence", makeCol((Real)0, 1, (Real)0, (Real)0), output));
 
     // Row 2 matches only row 2 and half row 3
     table.inferRow (rows[2], output, CondProbTable::inferRowEvidence);
-    testVectors(testName+"row 2 inferEvidence", makeCol((Real)0, (Real)0, (Real).6, (Real).24), output);
+    ASSERT_NO_FATAL_FAILURE(
+      testVectors(testName+"row 2 inferEvidence", makeCol((Real)0, (Real)0, (Real).6, (Real).24), output));
 
     // Row 3 matches row 0 & row 2 halfway, and row 3 exactly
     table.inferRow (rows[3], output, CondProbTable::inferRowEvidence);
-    testVectors(testName+"row 3 inferEvidence", makeCol((Real).6, (Real)0, (Real).4, (Real).52), output);
+    ASSERT_NO_FATAL_FAILURE(
+      testVectors(testName+"row 3 inferEvidence", makeCol((Real).6, (Real)0, (Real).4, (Real).52), output));
   
   
     // --------------------------------------------------------------------
@@ -248,19 +262,23 @@ namespace {
   
     // Row 0 matches row 0 and half row 3, so we get half and half hits on those rows
     table.inferRow (rows[0], output, CondProbTable::inferMaxProd);
-    testVectors(testName+"row 0 inferMaxProd", makeCol((Real).16, (Real)0, (Real)0, (Real).24), output);
+    ASSERT_NO_FATAL_FAILURE(
+      testVectors(testName+"row 0 inferMaxProd", makeCol((Real).16, (Real)0, (Real)0, (Real).24), output));
   
     // Row 1 matches only row 1
     table.inferRow (rows[1], output, CondProbTable::inferMaxProd);
-    testVectors(testName+"row 1 inferMaxProd", makeCol((Real)0, 1, (Real)0, (Real)0), output);
+    ASSERT_NO_FATAL_FAILURE(
+      testVectors(testName+"row 1 inferMaxProd", makeCol((Real)0, 1, (Real)0, (Real)0), output));
 
     // Row 2 matches only row 2 and half row 3
     table.inferRow (rows[2], output, CondProbTable::inferMaxProd);
-    testVectors(testName+"row 2 inferMaxProd", makeCol((Real)0, (Real)0, (Real).36, (Real).24), output);
+    ASSERT_NO_FATAL_FAILURE(
+      testVectors(testName+"row 2 inferMaxProd", makeCol((Real)0, (Real)0, (Real).36, (Real).24), output));
 
     // Row 3 matches row 0 & row 2 halfway, and row 3 exactly
     table.inferRow (rows[3], output, CondProbTable::inferMaxProd);
-    testVectors(testName+"row 3 inferMaxProd", makeCol((Real).24, (Real)0, (Real).24, (Real).36), output);
+    ASSERT_NO_FATAL_FAILURE(
+      testVectors(testName+"row 3 inferMaxProd", makeCol((Real).24, (Real)0, (Real).24, (Real).36), output));
   
   
     // --------------------------------------------------------------------
@@ -268,19 +286,23 @@ namespace {
   
     // Row 0 matches row 0 and half row 3, so we get half and half hits on those rows
     table.inferRow (rows[0], output, CondProbTable::inferViterbi);
-    testVectors(testName+"row 0 inferViterbi", makeCol((Real)0, (Real)0, (Real)0, (Real).4), output);
+    ASSERT_NO_FATAL_FAILURE(
+      testVectors(testName+"row 0 inferViterbi", makeCol((Real)0, (Real)0, (Real)0, (Real).4), output));
   
     // Row 1 matches only row 1
     table.inferRow (rows[1], output, CondProbTable::inferViterbi);
-    testVectors(testName+"row 1 inferViterbi", makeCol((Real)0, 1, (Real)0, (Real)0), output);
+    ASSERT_NO_FATAL_FAILURE(
+      testVectors(testName+"row 1 inferViterbi", makeCol((Real)0, 1, (Real)0, (Real)0), output));
 
     // Row 2 matches only row 2 and half row 3
     table.inferRow (rows[2], output, CondProbTable::inferViterbi);
-    testVectors(testName+"row 2 inferViterbi", makeCol((Real)0, (Real)0, (Real).6, (Real)0), output);
+    ASSERT_NO_FATAL_FAILURE(
+      testVectors(testName+"row 2 inferViterbi", makeCol((Real)0, (Real)0, (Real).6, (Real)0), output));
 
     // Row 3 matches row 0 & row 2 halfway, and row 3 exactly
     table.inferRow (rows[3], output, CondProbTable::inferViterbi);
-    testVectors(testName+"row 3 inferViterbi", makeCol((Real)0, (Real)0, (Real).4, (Real).6), output);
+    ASSERT_NO_FATAL_FAILURE(
+      testVectors(testName+"row 3 inferViterbi", makeCol((Real)0, (Real)0, (Real).4, (Real).6), output));
   
   
     // Add a row a second time, the row should double in value
@@ -289,7 +311,8 @@ namespace {
     for (Size i=0; i<numCols(); i++)
       expValue[i] *= 2;
     table.getRow(0, testRow);
-    testVectors(testName+"row 0 update#2", expValue, testRow);
+    ASSERT_NO_FATAL_FAILURE(
+      testVectors(testName+"row 0 update#2", expValue, testRow));
   
   }
   

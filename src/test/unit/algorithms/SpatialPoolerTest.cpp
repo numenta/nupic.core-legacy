@@ -2497,7 +2497,8 @@ namespace {
     sp2.load(infile);
     infile.close();
 
-    check_spatial_eq(sp1, sp2);
+    ASSERT_NO_FATAL_FAILURE(
+      check_spatial_eq(sp1, sp2));
 
     int ret = ::remove(filename);
     ASSERT_TRUE(ret == 0) << "Failed to delete " << filename;
@@ -2519,7 +2520,8 @@ namespace {
     sp2.read(is);
     is.close();
 
-    check_spatial_eq(sp1, sp2);
+    ASSERT_NO_FATAL_FAILURE(
+      check_spatial_eq(sp1, sp2));
 
     int ret = ::remove(filename);
     ASSERT_TRUE(ret == 0) << "Failed to delete " << filename;
