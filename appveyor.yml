@@ -128,7 +128,7 @@ build_script:
   - cd %REPO_DIR%
 
   - python setup.py sdist bdist bdist_wheel
-  - ps: move .\bindings\py\dist\nupic.bindings-$env:BINDINGS_VERSION-py2-none-any.whl .\nupic.bindings-$env:BINDINGS_VERSION-py2-none-win_amd64.whl
+  - copy .\bindings\py\dist\nupic.bindings-$env:BINDINGS_VERSION-cp27-none-win_amd64.whl .
 
 after_build:
   - mkdir %ARTIFACTS_DIR%
@@ -148,18 +148,10 @@ after_build:
 
       }
 
-  - cd %REPO_DIR%
-
-  #- ps: echo "Deploying nupic.bindings-$env:BINDINGS_VERSION-cp27-none-win_amd64.whl to S3..."
-  # Secure keys cannot be passed into Boto
-  # https://ci.appveyor.com/tools/encrypt
-  #- ps: python ci/deploy-wheel-to-s3.py nupic.bindings-$env:BINDINGS_VERSION-cp27-none-win_amd64.whl
-
 test: off
 
 artifacts:
   # Non-recursive search in build folder for Wheels and GZips
-  - path: '*.zip'
   - path: '*.tar.gz'
   - path: '*.whl'
 
@@ -179,7 +171,7 @@ deploy:
     bucket: "artifacts.numenta.org"
     region: us-west-2
     set_public: true
-    artifact: "nupic.bindings-$(BINDINGS_VERSION)-py2-none-win_amd64.whl"
+    artifact: "nupic.bindings-$(BINDINGS_VERSION)-cp27-none-win_amd64.whl"
     folder: "numenta/nupic.core/releases/nupic.bindings"
 
   # Github tagged builds
