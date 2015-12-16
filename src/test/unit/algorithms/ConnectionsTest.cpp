@@ -37,9 +37,57 @@ using namespace nupic::algorithms::connections;
 
 namespace {
 
-  // Forward definitions
-  void setupSampleConnections(Connections &connections);
-  Activity computeSampleActivity(Connections &connections);
+  void setupSampleConnections(Connections &connections)
+  {
+    Segment segment;
+    Synapse synapse;
+    Cell cell, presynapticCell;
+
+    cell.idx = 10;
+    segment = connections.createSegment(cell);
+
+    presynapticCell.idx = 150;
+    synapse = connections.createSynapse(segment, presynapticCell, 0.85);
+    presynapticCell.idx = 151;
+    synapse = connections.createSynapse(segment, presynapticCell, 0.15);
+
+    cell.idx = 20;
+    segment = connections.createSegment(cell);
+
+    presynapticCell.idx = 80;
+    synapse = connections.createSynapse(segment, presynapticCell, 0.85);
+    presynapticCell.idx = 81;
+    synapse = connections.createSynapse(segment, presynapticCell, 0.85);
+    presynapticCell.idx = 82;
+    synapse = connections.createSynapse(segment, presynapticCell, 0.85);
+    connections.updateSynapsePermanence(synapse, 0.15);
+
+    segment = connections.createSegment(cell);
+
+    presynapticCell.idx = 50;
+    synapse = connections.createSynapse(segment, presynapticCell, 0.85);
+    presynapticCell.idx = 51;
+    synapse = connections.createSynapse(segment, presynapticCell, 0.85);
+    presynapticCell.idx = 52;
+    synapse = connections.createSynapse(segment, presynapticCell, 0.15);
+  }
+
+  Activity computeSampleActivity(Connections &connections)
+  {
+    Cell cell;
+    vector<Cell> input;
+
+    cell.idx = 150; input.push_back(cell);
+    cell.idx = 151; input.push_back(cell);
+    cell.idx = 50; input.push_back(cell);
+    cell.idx = 52; input.push_back(cell);
+    cell.idx = 80; input.push_back(cell);
+    cell.idx = 81; input.push_back(cell);
+    cell.idx = 82; input.push_back(cell);
+
+    Activity activity = connections.computeActivity(input, 0.50, 2);
+    return activity;
+  }
 
   /**
    * Creates a segment, and makes sure that it got created on the correct cell.
@@ -488,58 +536,6 @@ namespace {
     }
 
     ASSERT_EQ(c1, c2);
-  }
-
-  void setupSampleConnections(Connections &connections)
-  {
-    Segment segment;
-    Synapse synapse;
-    Cell cell, presynapticCell;
-
-    cell.idx = 10;
-    segment = connections.createSegment(cell);
-
-    presynapticCell.idx = 150;
-    synapse = connections.createSynapse(segment, presynapticCell, 0.85);
-    presynapticCell.idx = 151;
-    synapse = connections.createSynapse(segment, presynapticCell, 0.15);
-
-    cell.idx = 20;
-    segment = connections.createSegment(cell);
-
-    presynapticCell.idx = 80;
-    synapse = connections.createSynapse(segment, presynapticCell, 0.85);
-    presynapticCell.idx = 81;
-    synapse = connections.createSynapse(segment, presynapticCell, 0.85);
-    presynapticCell.idx = 82;
-    synapse = connections.createSynapse(segment, presynapticCell, 0.85);
-    connections.updateSynapsePermanence(synapse, 0.15);
-
-    segment = connections.createSegment(cell);
-
-    presynapticCell.idx = 50;
-    synapse = connections.createSynapse(segment, presynapticCell, 0.85);
-    presynapticCell.idx = 51;
-    synapse = connections.createSynapse(segment, presynapticCell, 0.85);
-    presynapticCell.idx = 52;
-    synapse = connections.createSynapse(segment, presynapticCell, 0.15);
-  }
-
-  Activity computeSampleActivity(Connections &connections)
-  {
-    Cell cell;
-    vector<Cell> input;
-
-    cell.idx = 150; input.push_back(cell);
-    cell.idx = 151; input.push_back(cell);
-    cell.idx = 50; input.push_back(cell);
-    cell.idx = 52; input.push_back(cell);
-    cell.idx = 80; input.push_back(cell);
-    cell.idx = 81; input.push_back(cell);
-    cell.idx = 82; input.push_back(cell);
-
-    Activity activity = connections.computeActivity(input, 0.50, 2);
-    return activity;
   }
 
 } // end namespace nupic

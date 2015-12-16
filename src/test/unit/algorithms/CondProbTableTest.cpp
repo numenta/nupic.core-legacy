@@ -42,12 +42,6 @@ namespace {
   Size numRows() {return 4;}
   Size numCols() {return 3;}
 
-
-  // Run tests on the given table
-  void testTable (const std::string& testName, CondProbTable& table,
-    const std::vector<std::vector<Real> > & rows);
-
-
   static vector<Real> makeRow(Real a, Real b, Real c)
   { 
     vector<Real> result(3);
@@ -78,115 +72,6 @@ namespace {
     EXPECT_EQ(s1.str(), s2.str());
   }
 
-
-  //----------------------------------------------------------------------
-  TEST(CondProbTableTest, Basic)
-  {
-    // Our 4 rows
-    vector<vector<Real> > rows;
-    rows.resize(numRows());
-    rows[0] = makeRow((Real)0.0, (Real)0.4, (Real)0.0);
-    rows[1] = makeRow((Real)1.0, (Real)0.0, (Real)0.0);
-    rows[2] = makeRow((Real)0.0, (Real)0.0, (Real)0.6);
-    rows[3] = makeRow((Real)0.0, (Real)0.6, (Real)0.4);
-
-    // Test constructing without # of columns
-    {
-      CondProbTable table;
-      
-      // Add the 4 rows
-      for (Size i=0; i<numRows(); i++)
-        table.updateRow((UInt)i, rows[i]);
-      
-      // Test it
-      ASSERT_NO_FATAL_FAILURE(
-        testTable ("Dynamic columns:", table, rows));
-    }
-
-
-    // Test constructing and growing the columns dynamically
-    {
-      CondProbTable table;
-      
-      // Add the 2nd row first which has just 1 column
-      vector<Real> row1(1);
-      row1[0] = rows[1][0];
-      table.updateRow(1, row1);
-    
-      // Add the first row first with just 2 columns
-      vector<Real> row0(2);
-      row0[0] = rows[0][0];
-      row0[1] = rows[0][1];
-      table.updateRow(0, row0);
-    
-      for (Size i=2; i<numRows(); i++)
-        table.updateRow((UInt)i, rows[i]);
-      
-      // Test it
-      ASSERT_NO_FATAL_FAILURE(
-        testTable ("Growing columns:", table, rows));
-    }
-
-
-    // Make a table with 3 columns
-    {
-      CondProbTable table((UInt)numCols());
-    
-      // Add the 4 rows
-      for (Size i=0; i<numRows(); i++)
-        table.updateRow((UInt)i, rows[i]);
-      
-      // Test it
-      ASSERT_NO_FATAL_FAILURE(
-        testTable ("Fixed columns:", table, rows));
-    }
-  
-  
-    // Make a table, save to stream, then reload and test
-    {
-      CondProbTable table((UInt)numCols());
-    
-      // Add the 4 rows
-      for (Size i=0; i<numRows(); i++)
-        table.updateRow((UInt)i, rows[i]);
-      
-      // Save it
-      stringstream state;
-      table.saveState (state);
-    
-      CondProbTable newTable;
-      newTable.readState (state);
-      ASSERT_NO_FATAL_FAILURE(
-        testTable ("Restored from state:", newTable, rows));
-    }
-  
-        
-    // Test saving an empty table
-    {
-      CondProbTable table;
-      
-      // Save it
-      stringstream state;
-      table.saveState (state);
-    
-      // Read it in
-      CondProbTable newTable;
-      newTable.readState (state);
-
-      // Add the 4 rows
-      for (Size i=0; i<numRows(); i++)
-        newTable.updateRow((UInt)i, rows[i]);
-      
-      // Test it
-      ASSERT_NO_FATAL_FAILURE(
-        testTable ("Restored from empty state:", newTable, rows));
-    }
-
-
-  }
-
-
-  //----------------------------------------------------------------------
   void testTable(const string& testName, CondProbTable& table, 
                  const vector<vector<Real> > & rows)
   {
@@ -314,6 +199,112 @@ namespace {
     ASSERT_NO_FATAL_FAILURE(
       testVectors(testName+"row 0 update#2", expValue, testRow));
   
+  }
+
+  //----------------------------------------------------------------------
+  TEST(CondProbTableTest, Basic)
+  {
+    // Our 4 rows
+    vector<vector<Real> > rows;
+    rows.resize(numRows());
+    rows[0] = makeRow((Real)0.0, (Real)0.4, (Real)0.0);
+    rows[1] = makeRow((Real)1.0, (Real)0.0, (Real)0.0);
+    rows[2] = makeRow((Real)0.0, (Real)0.0, (Real)0.6);
+    rows[3] = makeRow((Real)0.0, (Real)0.6, (Real)0.4);
+
+    // Test constructing without # of columns
+    {
+      CondProbTable table;
+      
+      // Add the 4 rows
+      for (Size i=0; i<numRows(); i++)
+        table.updateRow((UInt)i, rows[i]);
+      
+      // Test it
+      ASSERT_NO_FATAL_FAILURE(
+        testTable ("Dynamic columns:", table, rows));
+    }
+
+
+    // Test constructing and growing the columns dynamically
+    {
+      CondProbTable table;
+      
+      // Add the 2nd row first which has just 1 column
+      vector<Real> row1(1);
+      row1[0] = rows[1][0];
+      table.updateRow(1, row1);
+    
+      // Add the first row first with just 2 columns
+      vector<Real> row0(2);
+      row0[0] = rows[0][0];
+      row0[1] = rows[0][1];
+      table.updateRow(0, row0);
+    
+      for (Size i=2; i<numRows(); i++)
+        table.updateRow((UInt)i, rows[i]);
+      
+      // Test it
+      ASSERT_NO_FATAL_FAILURE(
+        testTable ("Growing columns:", table, rows));
+    }
+
+
+    // Make a table with 3 columns
+    {
+      CondProbTable table((UInt)numCols());
+    
+      // Add the 4 rows
+      for (Size i=0; i<numRows(); i++)
+        table.updateRow((UInt)i, rows[i]);
+      
+      // Test it
+      ASSERT_NO_FATAL_FAILURE(
+        testTable ("Fixed columns:", table, rows));
+    }
+  
+  
+    // Make a table, save to stream, then reload and test
+    {
+      CondProbTable table((UInt)numCols());
+    
+      // Add the 4 rows
+      for (Size i=0; i<numRows(); i++)
+        table.updateRow((UInt)i, rows[i]);
+      
+      // Save it
+      stringstream state;
+      table.saveState (state);
+    
+      CondProbTable newTable;
+      newTable.readState (state);
+      ASSERT_NO_FATAL_FAILURE(
+        testTable ("Restored from state:", newTable, rows));
+    }
+  
+        
+    // Test saving an empty table
+    {
+      CondProbTable table;
+      
+      // Save it
+      stringstream state;
+      table.saveState (state);
+    
+      // Read it in
+      CondProbTable newTable;
+      newTable.readState (state);
+
+      // Add the 4 rows
+      for (Size i=0; i<numRows(); i++)
+        newTable.updateRow((UInt)i, rows[i]);
+      
+      // Test it
+      ASSERT_NO_FATAL_FAILURE(
+        testTable ("Restored from empty state:", newTable, rows));
+    }
+
+
   }
   
   //----------------------------------------------------------------------
