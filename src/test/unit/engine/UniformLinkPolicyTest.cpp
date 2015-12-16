@@ -133,8 +133,6 @@ namespace nupic {
           testBounds = test.getInputBoundsForNode(elem.coord,
                                                   elem.dimension);
 
-          EXPECT_TRUE(testBounds == elem.bounds);
-
           if(testBounds != elem.bounds)
           {
             allBoundsEqual = false;
