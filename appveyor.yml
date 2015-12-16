@@ -125,7 +125,7 @@ build_script:
   - cd %REPO_DIR%
 
   - python setup.py sdist bdist bdist_wheel
-  - ps: move .\bindings\py\dist\nupic.bindings-$env:BINDINGS_VERSION-py2-none-any.whl .\nupic.bindings-$env:BINDINGS_VERSION-py2-none-win_amd64.whl
+  - ps: copy .\bindings\py\dist\nupic.bindings-$env:BINDINGS_VERSION-cp27-none-win_amd64.whl .
 
 after_build:
   - mkdir %ARTIFACTS_DIR%
