@@ -65,7 +65,7 @@ install:
   - set EXT_LIBS=%REPO_DIR%\external\windows64-gcc\lib
 
   - set ARTIFACTS_DIR=%REPO_DIR%\build\artifacts
-  - for /f %%i in ('"python ci\appveyor\parse_version.py"') do set BINDINGS_VERSION=%%i
+  - for /f %%i in ('type VERSION') do set BINDINGS_VERSION=%%i
   - echo Binding version = %BINDINGS_VERSION%
 
   # Reference: https://bitbucket.org/carlkl/mingw-w64-for-python/downloads/mingwpy-2015-04-readme.md
