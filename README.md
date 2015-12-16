@@ -2,20 +2,27 @@
 
 This repository contains the C++ source code for the Numenta Platform for Intelligent Computing ([NuPIC](http://numenta.org/nupic.html)). It will eventually contain all algorithms for NuPIC, but is currently in a transition period. For details on building NuPIC within the python environment, please see http://github.com/numenta/nupic.
 
-## Build and test NuPIC Core:
+## Installing from a Release
+
+You can install the `nupic.bindings` Python package from PyPI:
+
+    pip install nupic.bindings
+    
+Optionally include `--user` or other flags to determine where the package is installed.
+
+> **Note**: On Linux this will do a source installation and will require that the prerequisites specified below are installed.
+
+## Building from Source
 
 Important notes:
 
- * For developers (contributing to NuPIC Core) please follow the [Development Workflow](https://github.com/numenta/nupic.core/wiki/Development-Workflow) steps.
  * `$NUPIC_CORE` is the current location of the repository that you downloaded from GitHub.
  * Platform specific Readme.md text files exist in some `external/` subdirectories
  * See the main [wiki](https://github.com/numenta/nupic.core/wiki) for more build notes
 
 The following sub-sections are related to Linux and OSX. For _Windows_ refer to the `external\windows64\README.md` and/or `external\windows64-gcc\README.md` files.
 
-### Using command line
-
-#### Install Dependencies
+### Prerequisites
 
 - Python - We recommend you use the system version where possibly.
     - Version 2.7
@@ -28,6 +35,24 @@ The following sub-sections are related to Linux and OSX. For _Windows_ refer to 
 The Python depedencies (NumPy and pycapnp) can be installed with `pip`:
 
     pip install -r bindings/py/requirements.txt
+    
+### Simple Source Installation (does not support incremental builds)
+
+The easiest way to build from source is as follows. This does not support incremental builds.
+
+    python setup.py install
+
+Optionally include `--user` or other flags to determine where the package is installed.
+
+### Testing the Installation
+
+Regardless of how you install `nupic.bindings`, the `nupic-bindings-check` command-line script should be installed. Make sure that you include the Python `bin` installation location in your `PATH` environment variable and then execute the script:
+
+    nupic-bindings-check
+
+### Developer Installation
+
+This option is for developers that would like the ability to do incremental builds of the C++ or for those that are using the C++ libraries directly.
 
 #### Configure and generate C++ build files:
 
@@ -39,7 +64,7 @@ The Python depedencies (NumPy and pycapnp) can be installed with `pip`:
 
 > **Note**: The `-DCMAKE_INSTALL_PREFIX=../release` option shown above is optional, and specifies the location where `nupic.core` should be installed. If omitted, `nupic.core` will be installed in a system location. Using this option is useful when testing versions of `nupic.core` with `nupic` (see [NuPIC's Dependency on nupic.core](https://github.com/numenta/nupic/wiki/NuPIC's-Dependency-on-nupic.core)).
 
-> **Note**: Setting PY_EXTENSIONS_DIR copies the Python exension files to the specified directory. If the extensions aren't present when the Python build/installation is invoked then the setup.py file will run the cmake/make process to generate them.
+> **Note**: Setting `-DPY_EXTENSIONS_DIR` copies the Python exension files to the specified directory. If the extensions aren't present when the Python build/installation is invoked then the setup.py file will run the cmake/make process to generate them. Make sure to include this flag if you want to do incremental builds of the Python extensions.
 
 #### Build:
 
@@ -62,21 +87,21 @@ The Python depedencies (NumPy and pycapnp) can be installed with `pip`:
 #### Install nupic.bindings Python library:
 
     cd $NUPIC_CORE
-    python setup.py install
+    python setup.py develop
 
 > **Note**: If the extensions haven't been built already then this will call the cmake/make process to generate them.
 
 If you get a gcc exit code 1, you may consider running this instead:
 
-     CC=clang CXX=clang++ python setup.py install --user
+     python setup.py develop --user
 
 If you are installing on Mac OS X, you must add the instruction `ARCHFLAGS="-arch x86_64"` before the python call:
 
-    ARCHFLAGS="-arch x86_64" python setup.py install
+    ARCHFLAGS="-arch x86_64" python setup.py develop
 
-Alternatively, you can use the `develop` command to link to Python source code in place. This is useful if you are changing Python code because you don't need to recompile between changes.
+Alternatively, you can use the `install` command (as opposed to `develop`) to copy the installation files rather than link to the source location.
 
-    python setup.py develop
+    python setup.py install
 
 > _Note_: If you get a "permission denied" error when using the setup commands above, you may add the `--user` flag to install to a location in your home directory, which should resolve any permissions issues. Doing this, you may need to add this location to your PATH and PYTHONPATH.
 
@@ -84,9 +109,9 @@ Once it is installed, you can import NuPIC bindings library to your python scrip
 
     import nupic.bindings
 
-You can run the nupic.bindings tests with `py.test`:
+You can run the nupic.bindings tests via `setup.py`:
 
-    py.test --pyargs nupic.bindings
+    python setup.py test
 
 ### Using graphical interface
 
