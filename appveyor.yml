@@ -164,12 +164,11 @@ artifacts:
   - path: '*.whl'
 
 on_success:
-  - ps: |
-  if($env:APPVEYOR_REPO_TAG -eq "true" -or $env:APPVEYOR_REPO_TAG -eq "True")
-  {
-    pip install twine
-    twine upload -u $env:PYPI_USERNAME -p $env:PYPI_PASSWORD  -r pypi bindings/py/dist/*
-  }
+  - ps: >-
+      If ($env:APPVEYOR_REPO_TAG -eq "true" -or $env:APPVEYOR_REPO_TAG -eq "True") {
+        pip install twine
+        twine upload -u $env:PYPI_USERNAME -p $env:PYPI_PASSWORD  -r pypi bindings/py/dist/*
+      }
 
 deploy:
   # Iterative builds
