@@ -210,6 +210,9 @@ if __name__ == "__main__":
   setup(
     name="nupic.bindings",
     version=getVersion(),
+    # This distribution contains platform-specific C++ libraries, but they are not
+    # built with distutils. So we must create a dummy Extension object to fake it
+    # to so when we create a binary file it knows to make it platform-specific.
     ext_modules=[Extension('fake', sources=[])],
     namespace_packages=["nupic"],
     install_requires=findRequirements(platform),
