@@ -245,4 +245,9 @@ if __name__ == "__main__":
       "Intended Audience :: Science/Research",
       "Topic :: Scientific/Engineering :: Artificial Intelligence"
     ],
+    entry_points = {
+      "console_scripts": [
+        "nupic-bindings-check = nupic.bindings.check:checkMain",
+      ],
+    },
   )

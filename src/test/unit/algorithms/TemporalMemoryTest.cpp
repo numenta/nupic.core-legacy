@@ -31,80 +31,60 @@
 #include <nupic/types/Types.hpp>
 #include <nupic/utils/Log.hpp>
 
-#include "TemporalMemoryTest.hpp"
+#include <nupic/algorithms/TemporalMemory.hpp>
+#include "gtest/gtest.h"
 
+using namespace nupic::algorithms::temporal_memory;
 using namespace std;
 
-namespace nupic {
+namespace {
+  TemporalMemory tm;
 
-  void TemporalMemoryTest::setup(TemporalMemory& tm, UInt numColumns)
+  // Forward declarations
+  bool check_vector_eq(vector<Cell>& vec1, vector<Cell>& vec2);
+  bool check_vector_eq(vector<Segment>& vec1, vector<Segment>& vec2);
+  bool check_set_eq(set<UInt>& vec1, set<UInt>& vec2);
+  bool check_set_eq(set<Cell>& vec1, set<Cell>& vec2);
+
+  void check_spatial_eq(
+    const TemporalMemory& tm1, 
+    const TemporalMemory& tm2);
+
+  void check_spatial_eq(const TemporalMemory& tm1, const TemporalMemory& tm2)
+  {
+    ASSERT_TRUE(tm1.numberOfColumns() == tm2.numberOfColumns());
+    ASSERT_TRUE(tm1.getCellsPerColumn() == tm2.getCellsPerColumn());
+    ASSERT_TRUE(tm1.getActivationThreshold() == tm2.getActivationThreshold());
+    ASSERT_TRUE(tm1.getMinThreshold() == tm2.getMinThreshold());
+    ASSERT_TRUE(tm1.getMaxNewSynapseCount() == tm2.getMaxNewSynapseCount());
+    ASSERT_TRUE(nupic::nearlyEqual(tm1.getInitialPermanence(), tm2.getInitialPermanence()));
+    ASSERT_TRUE(nupic::nearlyEqual(tm1.getConnectedPermanence(), tm2.getConnectedPermanence()));
+    ASSERT_TRUE(nupic::nearlyEqual(tm1.getPermanenceIncrement(), tm2.getPermanenceIncrement()));
+    ASSERT_TRUE(nupic::nearlyEqual(tm1.getPermanenceDecrement(), tm2.getPermanenceDecrement()));
+  }
+
+  void setup(TemporalMemory& tm, UInt numColumns)
   {
     vector<UInt> columnDim;
     columnDim.push_back(numColumns);
     tm.initialize(columnDim);
   }
 
-  void TemporalMemoryTest::RunTests()
+  TEST(TemporalMemoryTest, testInitInvalidParams)
   {
     setup(tm, 2048);
-
-    testInitInvalidParams();
-    testActivateCorrectlyPredictiveCells();
-    testActivateCorrectlyPredictiveCellsEmpty();
-    testActivateCorrectlyPredictiveCellsOrphan();
-    testBurstColumns();
-    testBurstColumnsEmpty();
-    testLearnOnSegments();
-    testComputePredictiveCells();
-    testBestMatchingCell();
-    testBestMatchingCellFewestSegments();
-    testBestMatchingSegment();
-    testLeastUsedCell();
-    testAdaptSegment();
-    testAdaptSegmentToMax();
-    testAdaptSegmentToMin();
-    testPickCellsToLearnOn();
-    testPickCellsToLearnOnAvoidDuplicates();
-    testColumnForCell1D();
-    testColumnForCell2D();
-    testColumnForCellInvalidCell();
-    testCellsForColumn1D();
-    testCellsForColumn2D();
-    testCellsForColumnInvalidColumn();
-    testNumberOfColumns();
-    testNumberOfCells();
-    testMapCellsToColumns();
-    testWrite();
-    testSaveLoad();
-
-  }
-
-  void TemporalMemoryTest::check_spatial_eq(const TemporalMemory& tm1, const TemporalMemory& tm2)
-  {
-    NTA_CHECK(tm1.numberOfColumns() == tm2.numberOfColumns());
-    NTA_CHECK(tm1.getCellsPerColumn() == tm2.getCellsPerColumn());
-    NTA_CHECK(tm1.getActivationThreshold() == tm2.getActivationThreshold());
-    NTA_CHECK(tm1.getMinThreshold() == tm2.getMinThreshold());
-    NTA_CHECK(tm1.getMaxNewSynapseCount() == tm2.getMaxNewSynapseCount());
-    TEST(nupic::nearlyEqual(tm1.getInitialPermanence(), tm2.getInitialPermanence()));
-    TEST(nupic::nearlyEqual(tm1.getConnectedPermanence(), tm2.getConnectedPermanence()));
-    TEST(nupic::nearlyEqual(tm1.getPermanenceIncrement(), tm2.getPermanenceIncrement()));
-    TEST(nupic::nearlyEqual(tm1.getPermanenceDecrement(), tm2.getPermanenceDecrement()));
-  }
-
-  void TemporalMemoryTest::testInitInvalidParams()
-  {
+    
     // Invalid columnDimensions
     vector<UInt> columnDim = {};
     TemporalMemory tm1;
-    SHOULDFAIL(tm1.initialize(columnDim, 32));
+    EXPECT_THROW(tm1.initialize(columnDim, 32), exception);
 
     // Invalid cellsPerColumn
     columnDim.push_back(2048);
-    SHOULDFAIL(tm1.initialize(columnDim, 0));
+    EXPECT_THROW(tm1.initialize(columnDim, 0), exception);
   }
 
-  void TemporalMemoryTest::testActivateCorrectlyPredictiveCells()
+  TEST(TemporalMemoryTest, testActivateCorrectlyPredictiveCells)
   {
     set<Cell> prevPredictiveCells = { Cell(0), Cell(237), Cell(1026), Cell(26337), Cell(26339), Cell(55536) };
     set<Cell> prevMatchingCells;
@@ -122,13 +102,13 @@ namespace nupic {
     set<Cell> expectedCells = { Cell(1026), Cell(26337), Cell(26339) };
     set<UInt> expectedCols = { 32, 823 };
     set<Cell> expectedInactiveCells;
-    NTA_CHECK(check_set_eq(activeCells, expectedCells));
-    NTA_CHECK(check_set_eq(winnerCells, expectedCells));
-    NTA_CHECK(check_set_eq(predictedColumns, expectedCols));
-    NTA_CHECK(check_set_eq(predictedInactiveCells, expectedInactiveCells));
+    ASSERT_TRUE(check_set_eq(activeCells, expectedCells));
+    ASSERT_TRUE(check_set_eq(winnerCells, expectedCells));
+    ASSERT_TRUE(check_set_eq(predictedColumns, expectedCols));
+    ASSERT_TRUE(check_set_eq(predictedInactiveCells, expectedInactiveCells));
   }
 
-  void TemporalMemoryTest::testActivateCorrectlyPredictiveCellsEmpty()
+  TEST(TemporalMemoryTest, testActivateCorrectlyPredictiveCellsEmpty)
   {
     {
       set<Cell> prevPredictiveCells;
@@ -147,10 +127,10 @@ namespace nupic {
       set<Cell> expectedCells;
       set<UInt> expectedCols;
       set<Cell> expectedInactiveCells;
-      NTA_CHECK(check_set_eq(activeCells, expectedCells));
-      NTA_CHECK(check_set_eq(winnerCells, expectedCells));
-      NTA_CHECK(check_set_eq(predictedColumns, expectedCols));
-      NTA_CHECK(check_set_eq(predictedInactiveCells, expectedInactiveCells));
+      ASSERT_TRUE(check_set_eq(activeCells, expectedCells));
+      ASSERT_TRUE(check_set_eq(winnerCells, expectedCells));
+      ASSERT_TRUE(check_set_eq(predictedColumns, expectedCols));
+      ASSERT_TRUE(check_set_eq(predictedInactiveCells, expectedInactiveCells));
     }
 
     // No previous predictive cells, with active columns
@@ -172,10 +152,10 @@ namespace nupic {
       set<Cell> expectedCells;
       set<UInt> expectedCols;
       set<Cell> expectedInactiveCells;
-      NTA_CHECK(check_set_eq(activeCells, expectedCells));
-      NTA_CHECK(check_set_eq(winnerCells, expectedCells));
-      NTA_CHECK(check_set_eq(predictedColumns, expectedCols));
-      NTA_CHECK(check_set_eq(predictedInactiveCells, expectedInactiveCells));
+      ASSERT_TRUE(check_set_eq(activeCells, expectedCells));
+      ASSERT_TRUE(check_set_eq(winnerCells, expectedCells));
+      ASSERT_TRUE(check_set_eq(predictedColumns, expectedCols));
+      ASSERT_TRUE(check_set_eq(predictedInactiveCells, expectedInactiveCells));
     }
 
     // No active columns, with previously predictive cells
@@ -197,14 +177,14 @@ namespace nupic {
       set<Cell> expectedCells;
       set<UInt> expectedCols;
       set<Cell> expectedInactiveCells;
-      NTA_CHECK(check_set_eq(activeCells, expectedCells));
-      NTA_CHECK(check_set_eq(winnerCells, expectedCells));
-      NTA_CHECK(check_set_eq(predictedColumns, expectedCols));
-      NTA_CHECK(check_set_eq(predictedInactiveCells, expectedInactiveCells));
+      ASSERT_TRUE(check_set_eq(activeCells, expectedCells));
+      ASSERT_TRUE(check_set_eq(winnerCells, expectedCells));
+      ASSERT_TRUE(check_set_eq(predictedColumns, expectedCols));
+      ASSERT_TRUE(check_set_eq(predictedInactiveCells, expectedInactiveCells));
     }
   }
 
-  void TemporalMemoryTest::testActivateCorrectlyPredictiveCellsOrphan()
+  TEST(TemporalMemoryTest, testActivateCorrectlyPredictiveCellsOrphan)
   {
     TemporalMemory tm;
     tm.initialize();
@@ -228,13 +208,13 @@ namespace nupic {
     set<Cell> expectedCells;
     set<UInt> expectedCols;
     set<Cell> expectedInactiveCells = { 32, 47 };
-    NTA_CHECK(check_set_eq(activeCells, expectedCells));
-    NTA_CHECK(check_set_eq(winnerCells, expectedCells));
-    NTA_CHECK(check_set_eq(predictedColumns, expectedCols));
-    NTA_CHECK(check_set_eq(predictedInactiveCells, expectedInactiveCells));
+    ASSERT_TRUE(check_set_eq(activeCells, expectedCells));
+    ASSERT_TRUE(check_set_eq(winnerCells, expectedCells));
+    ASSERT_TRUE(check_set_eq(predictedColumns, expectedCols));
+    ASSERT_TRUE(check_set_eq(predictedInactiveCells, expectedInactiveCells));
   }
 
-  void TemporalMemoryTest::testBurstColumns()
+  TEST(TemporalMemoryTest, testBurstColumns)
   {
     TemporalMemory tm;
     tm.initialize(vector<UInt>{2048}, 4);
@@ -272,17 +252,17 @@ namespace nupic {
     set<Cell> expectedActiveCells = { Cell(0), Cell(1), Cell(2), Cell(3), Cell(4), Cell(5), Cell(6), Cell(7) };
     set<Cell> expectedWinnerCells = { Cell(0), Cell(4) }; // 4 is randomly chosen cell
     vector<Segment> expectedLearningSegments = { Segment(0, Cell(0)), Segment(0, Cell(4)) };
-    NTA_CHECK(check_set_eq(activeCells, expectedActiveCells));
-    NTA_CHECK(check_set_eq(winnerCells, expectedWinnerCells));
-    NTA_CHECK(check_vector_eq(learningSegments, expectedLearningSegments));
+    ASSERT_TRUE(check_set_eq(activeCells, expectedActiveCells));
+    ASSERT_TRUE(check_set_eq(winnerCells, expectedWinnerCells));
+    ASSERT_TRUE(check_vector_eq(learningSegments, expectedLearningSegments));
 
     // Check that new segment was added to winner cell(4) in column 1
     vector<Segment> segments = connections.segmentsForCell(4);
     vector<Segment> expectedSegments = { Segment(0, Cell(4)) };
-    NTA_CHECK(check_vector_eq(segments, expectedSegments));
+    ASSERT_TRUE(check_vector_eq(segments, expectedSegments));
   }
 
-  void TemporalMemoryTest::testBurstColumnsEmpty()
+  TEST(TemporalMemoryTest, testBurstColumnsEmpty)
   {
     set<UInt> activeColumns;
     set<UInt> predictiveCols;
@@ -300,12 +280,12 @@ namespace nupic {
     set<Cell> expectedActiveCells;
     set<Cell> expectedWinnerCells;
     vector<Segment> expectedLearningSegments;
-    NTA_CHECK(check_set_eq(activeCells, expectedActiveCells));
-    NTA_CHECK(check_set_eq(winnerCells, expectedWinnerCells));
-    NTA_CHECK(check_vector_eq(learningSegments, expectedLearningSegments));
+    ASSERT_TRUE(check_set_eq(activeCells, expectedActiveCells));
+    ASSERT_TRUE(check_set_eq(winnerCells, expectedWinnerCells));
+    ASSERT_TRUE(check_vector_eq(learningSegments, expectedLearningSegments));
   }
 
-  void TemporalMemoryTest::testLearnOnSegments()
+  TEST(TemporalMemoryTest, testLearnOnSegments)
   {
     vector<Synapse> synapses;
     bool eq;
@@ -371,7 +351,7 @@ namespace nupic {
     ASSERT_EQ(synapses.size(), 2);
   }
 
-  void TemporalMemoryTest::testComputePredictiveCells()
+  TEST(TemporalMemoryTest, testComputePredictiveCells)
   {
     TemporalMemory tm;
     setup(tm, 2048);
@@ -412,13 +392,13 @@ namespace nupic {
     set<Cell> expectedPredictiveCells = { Cell(0) };
     vector<Segment> expectedMatchingSegments = { Segment(0, Cell(0)), Segment(0, Cell(1)) };
     set<Cell> expectedMatchingCells = { Cell(0), Cell(1) };
-    NTA_CHECK(check_vector_eq(activeSegments, expectedActiveSegments));
-    NTA_CHECK(check_set_eq(predictiveCells, expectedPredictiveCells));
-    NTA_CHECK(check_vector_eq(matchingSegments, expectedMatchingSegments));
-    NTA_CHECK(check_set_eq(matchingCells, expectedMatchingCells));
+    ASSERT_TRUE(check_vector_eq(activeSegments, expectedActiveSegments));
+    ASSERT_TRUE(check_set_eq(predictiveCells, expectedPredictiveCells));
+    ASSERT_TRUE(check_vector_eq(matchingSegments, expectedMatchingSegments));
+    ASSERT_TRUE(check_set_eq(matchingCells, expectedMatchingCells));
   }
 
-  void TemporalMemoryTest::testBestMatchingCell()
+  TEST(TemporalMemoryTest, testBestMatchingCell)
   {
     bool foundCell, foundSegment;
     Cell bestCell;
@@ -468,7 +448,7 @@ namespace nupic {
     ASSERT_EQ(bestCell, Cell(31979)); // Random cell from column
   }
 
-  void TemporalMemoryTest::testBestMatchingCellFewestSegments()
+  TEST(TemporalMemoryTest, testBestMatchingCellFewestSegments)
   {
     bool foundCell, foundSegment;
     Cell cell;
@@ -495,7 +475,7 @@ namespace nupic {
     }
   }
 
-  void TemporalMemoryTest::testBestMatchingSegment()
+  TEST(TemporalMemoryTest, testBestMatchingSegment)
   {
     Int numActiveSynapses;
     Segment bestSegment;
@@ -545,7 +525,7 @@ namespace nupic {
     ASSERT_EQ(found, false);
   }
 
-  void TemporalMemoryTest::testLeastUsedCell()
+  TEST(TemporalMemoryTest, testLeastUsedCell)
   {
     TemporalMemory tm;
     tm.initialize(vector<UInt>{2}, 2);
@@ -569,7 +549,7 @@ namespace nupic {
     }
   }
 
-  void TemporalMemoryTest::testAdaptSegment()
+  TEST(TemporalMemoryTest, testAdaptSegment)
   {
     vector<Synapse> synapses;
     bool eq;
@@ -593,7 +573,7 @@ namespace nupic {
     EXPECT_TRUE(eq);
   }
 
-  void TemporalMemoryTest::testAdaptSegmentToMax()
+  TEST(TemporalMemoryTest, testAdaptSegmentToMax)
   {
     vector<Synapse> synapses;
     bool eq;
@@ -616,7 +596,7 @@ namespace nupic {
     EXPECT_TRUE(eq);
   }
 
-  void TemporalMemoryTest::testAdaptSegmentToMin()
+  TEST(TemporalMemoryTest, testAdaptSegmentToMin)
   {
     vector<Synapse> synapses;
 
@@ -631,7 +611,7 @@ namespace nupic {
     ASSERT_EQ(synapses.size(), 0);
   }
 
-  void TemporalMemoryTest::testPickCellsToLearnOn()
+  TEST(TemporalMemoryTest, testPickCellsToLearnOn)
   {
     TemporalMemory tm;
     setup(tm, 2048);
@@ -645,18 +625,18 @@ namespace nupic {
 
     expectedCells = set<Cell>{ Cell(4), Cell(93) }; // Randomly picked
     learningCells = tm.pickCellsToLearnOn(2, segment, winnerCells, connections);
-    NTA_CHECK(check_set_eq(learningCells, expectedCells));
+    ASSERT_TRUE(check_set_eq(learningCells, expectedCells));
 
     expectedCells = set<Cell>{ Cell(4), Cell(47), Cell(58), Cell(93) };
     learningCells = tm.pickCellsToLearnOn(100, segment, winnerCells, connections);
-    NTA_CHECK(check_set_eq(learningCells, expectedCells));
+    ASSERT_TRUE(check_set_eq(learningCells, expectedCells));
 
     expectedCells = set<Cell>{};
     learningCells = tm.pickCellsToLearnOn(0, segment, winnerCells, connections);
-    NTA_CHECK(check_set_eq(learningCells, expectedCells));
+    ASSERT_TRUE(check_set_eq(learningCells, expectedCells));
   }
 
-  void TemporalMemoryTest::testPickCellsToLearnOnAvoidDuplicates()
+  TEST(TemporalMemoryTest, testPickCellsToLearnOnAvoidDuplicates)
   {
     TemporalMemory tm;
     setup(tm, 2048);
@@ -670,10 +650,10 @@ namespace nupic {
     // Ensure that no additional(duplicate) cells were picked
     set<Cell> expectedCells;
     set<Cell> learningCells = tm.pickCellsToLearnOn(2, segment, winnerCells, connections);
-    NTA_CHECK(check_set_eq(learningCells, expectedCells));
+    ASSERT_TRUE(check_set_eq(learningCells, expectedCells));
   }
 
-  void TemporalMemoryTest::testColumnForCell1D()
+  TEST(TemporalMemoryTest, testColumnForCell1D)
   {
     TemporalMemory tm;
     tm.initialize(vector<UInt>{2048}, 5);
@@ -681,16 +661,16 @@ namespace nupic {
     Cell cell;
 
     cell.idx = 0;
-    TEST(tm.columnForCell(cell) == 0);
+    ASSERT_TRUE(tm.columnForCell(cell) == 0);
     cell.idx = 4;
-    TEST(tm.columnForCell(cell) == 0);
+    ASSERT_TRUE(tm.columnForCell(cell) == 0);
     cell.idx = 5;
-    TEST(tm.columnForCell(cell) == 1);
+    ASSERT_TRUE(tm.columnForCell(cell) == 1);
     cell.idx = 10239;
-    TEST(tm.columnForCell(cell) == 2047);
+    ASSERT_TRUE(tm.columnForCell(cell) == 2047);
   }
 
-  void TemporalMemoryTest::testColumnForCell2D()
+  TEST(TemporalMemoryTest, testColumnForCell2D)
   {
     TemporalMemory tm;
     tm.initialize(vector<UInt>{64, 64}, 4);
@@ -698,16 +678,16 @@ namespace nupic {
     Cell cell;
 
     cell.idx = 0;
-    TEST(tm.columnForCell(cell) == 0);
+    ASSERT_TRUE(tm.columnForCell(cell) == 0);
     cell.idx = 3;
-    TEST(tm.columnForCell(cell) == 0);
+    ASSERT_TRUE(tm.columnForCell(cell) == 0);
     cell.idx = 4;
-    TEST(tm.columnForCell(cell) == 1);
+    ASSERT_TRUE(tm.columnForCell(cell) == 1);
     cell.idx = 16383;
-    TEST(tm.columnForCell(cell) == 4095);
+    ASSERT_TRUE(tm.columnForCell(cell) == 4095);
   }
 
-  void TemporalMemoryTest::testColumnForCellInvalidCell()
+  TEST(TemporalMemoryTest, testColumnForCellInvalidCell)
   {
     TemporalMemory tm;
     tm.initialize(vector<UInt>{64, 64}, 4);
@@ -722,27 +702,27 @@ namespace nupic {
     EXPECT_THROW(tm.columnForCell(cell), std::exception);
   }
 
-  void TemporalMemoryTest::testCellsForColumn1D()
+  TEST(TemporalMemoryTest, testCellsForColumn1D)
   {
     TemporalMemory tm;
     tm.initialize(vector<UInt>{2048}, 5);
 
     vector<Cell> expectedCells = { Cell(5), Cell(6), Cell(7), Cell(8), Cell(9) };
     vector<Cell> cellsForColumn = tm.cellsForColumn(1);
-    NTA_CHECK(check_vector_eq(cellsForColumn, expectedCells));
+    ASSERT_TRUE(check_vector_eq(cellsForColumn, expectedCells));
   }
 
-  void TemporalMemoryTest::testCellsForColumn2D()
+  TEST(TemporalMemoryTest, testCellsForColumn2D)
   {
     TemporalMemory tm;
     tm.initialize(vector<UInt>{64, 64}, 4);
 
     vector<Cell> expectedCells = { Cell(256), Cell(257), Cell(258), Cell(259) };
     vector<Cell> cellsForColumn = tm.cellsForColumn(64);
-    NTA_CHECK(check_vector_eq(cellsForColumn, expectedCells));
+    ASSERT_TRUE(check_vector_eq(cellsForColumn, expectedCells));
   }
 
-  void TemporalMemoryTest::testCellsForColumnInvalidColumn()
+  TEST(TemporalMemoryTest, testCellsForColumnInvalidColumn)
   {
     TemporalMemory tm;
     tm.initialize(vector<UInt>{64, 64}, 4);
@@ -752,7 +732,7 @@ namespace nupic {
     EXPECT_THROW(tm.cellsForColumn(-1), std::exception);
   }
 
-  void TemporalMemoryTest::testNumberOfColumns()
+  TEST(TemporalMemoryTest, testNumberOfColumns)
   {
     TemporalMemory tm;
     tm.initialize(vector<UInt>{64, 64}, 32);
@@ -761,7 +741,7 @@ namespace nupic {
     ASSERT_EQ(numOfColumns, 64 * 64);
   }
 
-  void TemporalMemoryTest::testNumberOfCells()
+  TEST(TemporalMemoryTest, testNumberOfCells)
   {
     TemporalMemory tm;
     tm.initialize(vector<UInt>{64, 64}, 32);
@@ -770,7 +750,7 @@ namespace nupic {
     ASSERT_EQ(numberOfCells, 64 * 64 * 32);
   }
 
-  void TemporalMemoryTest::testMapCellsToColumns()
+  TEST(TemporalMemoryTest, testMapCellsToColumns)
   {
     TemporalMemory tm;
     tm.initialize(vector<UInt>{100}, 4);
@@ -779,14 +759,14 @@ namespace nupic {
     map<Int, set<Cell>> columnsForCells = tm.mapCellsToColumns(cells);
 
     set<Cell> expectedCells = { Cell(0), Cell(1), Cell(2) };
-    NTA_CHECK(check_set_eq(columnsForCells[0], expectedCells));
+    ASSERT_TRUE(check_set_eq(columnsForCells[0], expectedCells));
     expectedCells = { Cell(5) };
-    NTA_CHECK(check_set_eq(columnsForCells[1], expectedCells));
+    ASSERT_TRUE(check_set_eq(columnsForCells[1], expectedCells));
     expectedCells = { Cell(399) };
-    NTA_CHECK(check_set_eq(columnsForCells[99], expectedCells));
+    ASSERT_TRUE(check_set_eq(columnsForCells[99], expectedCells));
   }
 
-  void TemporalMemoryTest::testSaveLoad()
+  TEST(TemporalMemoryTest, testSaveLoad)
   {
     const char* filename = "TemporalMemorySerialization.tmp";
     TemporalMemory tm1, tm2;
@@ -808,10 +788,10 @@ namespace nupic {
     check_spatial_eq(tm1, tm2);
 
     int ret = ::remove(filename);
-    NTA_CHECK(ret == 0) << "Failed to delete " << filename;
+    ASSERT_TRUE(ret == 0) << "Failed to delete " << filename;
   }
 
-  void TemporalMemoryTest::testWrite()
+  TEST(TemporalMemoryTest, testWrite)
   {
     TemporalMemory tm1, tm2;
 
@@ -860,85 +840,7 @@ namespace nupic {
     ASSERT_EQ(tm1.connections, tm2.connections);
   }
 
-  void TemporalMemoryTest::print_vec(UInt arr[], UInt n)
-  {
-    for (UInt i = 0; i < n; i++) {
-      cout << arr[i] << " ";
-    }
-    cout << endl;
-  }
-
-  void TemporalMemoryTest::print_vec(Real arr[], UInt n)
-  {
-    for (UInt i = 0; i < n; i++) {
-      cout << arr[i] << " ";
-    }
-    cout << endl;
-  }
-
-  void TemporalMemoryTest::print_vec(vector<UInt>& vec)
-  {
-    for (auto & elem : vec) {
-      cout << elem << " ";
-    }
-    cout << endl;
-  }
-
-  void TemporalMemoryTest::print_vec(vector<Real>& vec)
-  {
-    for (auto & elem : vec) {
-      cout << elem << " ";
-    }
-    cout << endl;
-  }
-
-  bool TemporalMemoryTest::almost_eq(Real a, Real b)
-  {
-    Real diff = a - b;
-    return (diff > -1e-5 && diff < 1e-5);
-  }
-
-  bool TemporalMemoryTest::check_vector_eq(UInt arr[], vector<UInt>& vec)
-  {
-    for (UInt i = 0; i < vec.size(); i++) {
-      if (arr[i] != vec[i]) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  bool TemporalMemoryTest::check_vector_eq(Real arr[], vector<Real>& vec)
-  {
-    for (UInt i = 0; i < vec.size(); i++) {
-      if (!almost_eq(arr[i], vec[i])) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  bool TemporalMemoryTest::check_vector_eq(UInt arr1[], UInt arr2[], UInt n)
-  {
-    for (UInt i = 0; i < n; i++) {
-      if (arr1[i] != arr2[i]) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  bool TemporalMemoryTest::check_vector_eq(Real arr1[], Real arr2[], UInt n)
-  {
-    for (UInt i = 0; i < n; i++) {
-      if (!almost_eq(arr1[i], arr2[i])) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  bool TemporalMemoryTest::check_set_eq(set<UInt>& vec1, set<UInt>& vec2)
+  bool check_set_eq(set<UInt>& vec1, set<UInt>& vec2)
   {
     if (vec1.size() != vec2.size()) {
       return false;
@@ -951,7 +853,7 @@ namespace nupic {
     return true;
   }
 
-  bool TemporalMemoryTest::check_set_eq(set<Cell>& vec1, set<Cell>& vec2)
+  bool check_set_eq(set<Cell>& vec1, set<Cell>& vec2)
   {
     if (vec1.size() != vec2.size()) {
       return false;
@@ -964,20 +866,7 @@ namespace nupic {
     return true;
   }
 
-  bool TemporalMemoryTest::check_vector_eq(vector<UInt>& vec1, vector<UInt>& vec2)
-  {
-    if (vec1.size() != vec2.size()) {
-      return false;
-    }
-    for (UInt i = 0; i < vec1.size(); i++) {
-      if (vec1[i] != vec2[i]) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  bool TemporalMemoryTest::check_vector_eq(vector<Cell>& vec1, vector<Cell>& vec2)
+  bool check_vector_eq(vector<Cell>& vec1, vector<Cell>& vec2)
   {
     if (vec1.size() != vec2.size()) {
       return false;
@@ -990,26 +879,13 @@ namespace nupic {
     return true;
   }
 
-  bool TemporalMemoryTest::check_vector_eq(vector<Segment>& vec1, vector<Segment>& vec2)
+  bool check_vector_eq(vector<Segment>& vec1, vector<Segment>& vec2)
   {
     if (vec1.size() != vec2.size()) {
       return false;
     }
     for (UInt i = 0; i < vec1.size(); i++) {
       if (vec1[i].idx != vec2[i].idx || vec1[i].cell.idx != vec2[i].cell.idx) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  bool TemporalMemoryTest::check_vector_eq(vector<Segment*>& vec1, vector<Segment>& vec2)
-  {
-    if (vec1.size() != vec2.size()) {
-      return false;
-    }
-    for (UInt i = 0; i < vec1.size(); i++) {
-      if (vec1[i]->idx != vec2[i].idx || vec1[i]->cell.idx != vec2[i].cell.idx) {
         return false;
       }
     }
