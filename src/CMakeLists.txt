@@ -629,10 +629,6 @@ set_target_properties(${EXECUTABLE_GTESTS}
                                  LINK_FLAGS "${COMMON_LINK_FLAGS}")
 add_dependencies(${EXECUTABLE_GTESTS} ${LIB_STATIC_GTEST} ${COMMON_LIBS})
 set(TEST_HEADERS
-    test/unit/engine/InputTest.hpp
-    test/unit/engine/NetworkTest.hpp
-    test/unit/engine/UniformLinkPolicyTest.hpp
-    test/unit/engine/YAMLUtilsTest.hpp
     test/unit/math/DenseTensorUnitTest.hpp
     test/unit/math/DomainUnitTest.hpp
     test/unit/math/IndexUnitTest.hpp
