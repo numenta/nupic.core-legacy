@@ -1490,6 +1490,31 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
     }
     return d;
   }
+
+  inline void write(PyObject* pyBuilder) const
+  {
+  %#if !CAPNP_LITE
+    ClaClassifierProto::Builder proto =
+        getBuilder<ClaClassifierProto>(pyBuilder);
+    self->write(proto);
+  %#else
+    throw std::logic_error(
+        "FastCLAClassifier.write is not implemented when compiled with CAPNP_LITE=1.");
+  %#endif
+  }
+
+  inline void read(PyObject* pyReader)
+  {
+  %#if !CAPNP_LITE
+    ClaClassifierProto::Reader proto =
+        getReader<ClaClassifierProto>(pyReader);
+    self->read(proto);
+  %#else
+    throw std::logic_error(
+        "FastCLAClassifier.read is not implemented when compiled with CAPNP_LITE=1.");
+  %#endif
+  }
+
 }
 
 //--------------------------------------------------------------------------------
