@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.4
+
+* Working out issues with the release process.
+
 ## 0.2.3
 
 * Windows Support!
