@@ -1767,31 +1767,37 @@ void SpatialPooler::read(SpatialPoolerProto::Reader& proto)
     updatePermanencesForColumn_(colPerms, i, false);
   }
 
+  tieBreaker_.clear();
   for (auto value : proto.getTieBreaker())
   {
     tieBreaker_.push_back(value);
   }
 
+  overlapDutyCycles_.clear();
   for (auto value : proto.getOverlapDutyCycles())
   {
     overlapDutyCycles_.push_back(value);
   }
 
+  activeDutyCycles_.clear();
   for (auto value : proto.getActiveDutyCycles())
   {
     activeDutyCycles_.push_back(value);
   }
 
+  minOverlapDutyCycles_.clear();
   for (auto value : proto.getMinOverlapDutyCycles())
   {
     minOverlapDutyCycles_.push_back(value);
   }
 
+  minActiveDutyCycles_.clear();
   for (auto value : proto.getMinActiveDutyCycles())
   {
     minActiveDutyCycles_.push_back(value);
   }
 
+  boostFactors_.clear();
   for (auto value : proto.getBoostFactors())
   {
     boostFactors_.push_back(value);
