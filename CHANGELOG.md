@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.6
+
+* Fixed incorrect binary path for twine.
+
 ## 0.2.5
 
 * Fixing twine upload of windows binary.
