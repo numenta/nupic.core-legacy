@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.7
+
+* Full filename for twine.
+* Absolute path for twine's binary file upload.
+
 ## 0.2.6
 
 * Fixed incorrect binary path for twine.
