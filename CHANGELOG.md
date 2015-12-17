@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.5
+
+* Fixing twine upload of windows binary.
+
 ## 0.2.4
 
 * Working out issues with the release process.
