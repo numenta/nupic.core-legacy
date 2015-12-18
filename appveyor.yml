@@ -6,9 +6,6 @@
 version: 0.3.0.{build}
 
 branches:
-  only:
-    - master
-
   except:
     - gh-pages
 
@@ -41,6 +38,9 @@ environment:
     secure: /9U0mCHp3k1U8Y5CY/kDqwCKG2gqchG/T/UlVWo8SME=
   AWS_SECRET_ACCESS_KEY:
     secure: /8wO17Gir0XAiecJkHeE3jxOJzvyl0+uWcl7BKCuN0FC795golsL8905VmNuRl1o
+  PYPI_USERNAME: numenta
+  PYPI_PASSWORD:
+    secure: UgABryPYZg823OcD1XRosA==
 
   matrix:
     - PYTHON_VERSION: "2.7.9"
@@ -65,7 +65,7 @@ install:
   - set EXT_LIBS=%REPO_DIR%\external\windows64-gcc\lib
 
   - set ARTIFACTS_DIR=%REPO_DIR%\build\artifacts
-  - for /f %%i in ('"python ci\appveyor\parse_version.py"') do set BINDINGS_VERSION=%%i
+  - for /f %%i in ('type VERSION') do set BINDINGS_VERSION=%%i
   - echo Binding version = %BINDINGS_VERSION%
 
   # Reference: https://bitbucket.org/carlkl/mingw-w64-for-python/downloads/mingwpy-2015-04-readme.md
@@ -125,7 +125,7 @@ build_script:
   - cd %REPO_DIR%
 
   - python setup.py sdist bdist bdist_wheel
-  - ps: move .\bindings\py\dist\nupic.bindings-$env:BINDINGS_VERSION-py2-none-any.whl .\nupic.bindings-$env:BINDINGS_VERSION-py2-none-win_amd64.whl
+  - ps: copy .\bindings\py\dist\nupic.bindings-$env:BINDINGS_VERSION-cp27-none-win_amd64.whl .
 
 after_build:
   - mkdir %ARTIFACTS_DIR%
@@ -145,20 +145,19 @@ after_build:
 
       }
 
-  - cd %REPO_DIR%
-
-  #- ps: echo "Deploying nupic.bindings-$env:BINDINGS_VERSION-cp27-none-win_amd64.whl to S3..."
-  # Secure keys cannot be passed into Boto
-  # https://ci.appveyor.com/tools/encrypt
-  #- ps: python ci/deploy-wheel-to-s3.py nupic.bindings-$env:BINDINGS_VERSION-cp27-none-win_amd64.whl
-
 test: off
 
 artifacts:
   # Non-recursive search in build folder for Wheels and GZips
-  - path: '*.zip'
   - path: '*.tar.gz'
   - path: '*.whl'
+
+on_success:
+  - ps: >-
+      If ($env:APPVEYOR_REPO_TAG -eq "true" -or $env:APPVEYOR_REPO_TAG -eq "True") {
+        pip install httplib requests twine --upgrade
+        twine upload -u $env:PYPI_USERNAME -p $env:PYPI_PASSWORD -r pypi $env:REPO_DIR\bindings\py\dist\nupic.bindings-$env:BINDINGS_VERSION-cp27-none-win_amd64.whl
+      }
 
 deploy:
   # Iterative builds
@@ -169,7 +168,7 @@ deploy:
     bucket: "artifacts.numenta.org"
     region: us-west-2
     set_public: true
-    artifact: "nupic.bindings-$(BINDINGS_VERSION)-py2-none-win_amd64.whl"
+    artifact: "nupic.bindings-$(BINDINGS_VERSION)-cp27-none-win_amd64.whl"
     folder: "numenta/nupic.core/releases/nupic.bindings"
 
   # Github tagged builds

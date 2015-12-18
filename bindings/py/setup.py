@@ -30,6 +30,7 @@ import tempfile
 
 from setuptools import Command, find_packages, setup
 from setuptools.command.test import test as BaseTestCommand
+from distutils.core import Extension
 
 
 PY_BINDINGS = os.path.dirname(os.path.realpath(__file__))
@@ -209,6 +210,10 @@ if __name__ == "__main__":
   setup(
     name="nupic.bindings",
     version=getVersion(),
+    # This distribution contains platform-specific C++ libraries, but they are not
+    # built with distutils. So we must create a dummy Extension object so when we
+    # create a binary file it knows to make it platform-specific.
+    ext_modules=[Extension('nupic.dummy', sources = ['dummy.c'])], 
     namespace_packages=["nupic"],
     install_requires=findRequirements(platform),
     packages=find_packages(),
@@ -240,4 +245,9 @@ if __name__ == "__main__":
       "Intended Audience :: Science/Research",
       "Topic :: Scientific/Engineering :: Artificial Intelligence"
     ],
+    entry_points = {
+      "console_scripts": [
+        "nupic-bindings-check = nupic.bindings.check:checkMain",
+      ],
+    },
   )

@@ -67,7 +67,7 @@ namespace nupic
     // calculations and splitter map generation without requiring the rest of
     // the NuPIC infrastructure.
     // ---
-    friend struct UniformLinkPolicyTest;
+    friend class UniformLinkPolicyInspector;
 
   public:
     UniformLinkPolicy(const std::string params, Link* link);
