@@ -50,7 +50,7 @@ The following table shows example CMake common settings;
 
 For rebuilding nupic.core and nupic.bindings you need to use the `MinGW Makefiles` generator. For example;
 
-<pre>
+```
 rem Clone the repo
 git clone https://github.com/numenta/nupic.core.git
 cd nupic.core
@@ -77,24 +77,24 @@ mingw32-make -f Makefile install
 rem Install Python SWIG nupic.bindings
 cd %NUPIC_CORE%
 python setup.py install
-</pre>
+```
 
 ## Running tests
 
 After building and installing, the following can run C++ related tests;
 
-<pre>
+```
 cd %NUPIC_CORE%\build\release\bin
 cpp_region_test
 unit_tests
-</pre>
+```
 
 You can run the nupic.bindings tests with py.test;
 
-<pre>
+```
 cd %NUPIC_CORE%
 py.test --pyargs nupic.bindings
-</pre>
+```
 
 ## Build notes
 

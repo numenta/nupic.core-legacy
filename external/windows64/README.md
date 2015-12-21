@@ -53,7 +53,7 @@ The following table shows example CMake common settings;
 
 To produce a solution and project files for use with Microsoft Visual Studio, you must use the `Visual Studio 14 2015 Win64` cmake generator.
   
-<pre>
+```
 rem Clone the repo
 git clone https://github.com/numenta/nupic.core.git
 
@@ -68,7 +68,7 @@ cmake -G "Visual Studio 14 2015 Win64"
 	-DCMAKE_INSTALL_PREFIX=..\release
 	-DPY_EXTENSIONS_DIR=..\..\bindings\py\nupic\bindings
 	..\..
-</pre>
+```
 
 The resulting .sln file can then be loaded into MSVC 2015. This will _only_ allow building of the C++ libraries. It will _never_ be able to build the Python nupic.bindings, for that you must use the MinGWPy GCC compilers. See the `external\windows64-gcc\README.md` text file for details.
 
@@ -78,20 +78,20 @@ The `INSTALL` project has to be built after building the main library. External 
 
 After building the C++ library a manual install can be performed using the following command line;
 
-<pre>
+```
 cd %NUPIC_CORE%\build\scripts
 cmake.exe -DBUILD_TYPE=Release -P cmake_install.cmake
-</pre>
+```
 
 ## Run C++ tests
 
 After building and installing, the following can run C++ related tests;
 
-<pre>
+```
 cd %NUPIC_CORE%\build\release\bin
 cpp_region_test
 unit_tests
-</pre>
+```
 
 ## Build notes
 
@@ -158,7 +158,7 @@ Download version **0.5.3** from https://capnproto.org/capnproto-c++-win32-0.5.3.
 
 Install instructions can be found at https://capnproto.org/install.html Below is an example Visual Studio Command Prompt instructions to invoke cmake and generator a solution and project files for Cap'n Proto.
 
-<pre>
+```
 cd %NUPIC_CORE%\build\capnproto-c++-win32-0.5.3\capnproto-c++-0.5.3  
 vcvarsall.bat  
 cmake -G "Visual Studio 14 2015 Win64"  
@@ -169,7 +169,7 @@ cmake -G "Visual Studio 14 2015 Win64"
 	-DCAPNP_LIB_CAPNP=.\lib  
 	-DCAPNP_EXECUTABLE="..\capnproto-tools-win32-0.5.3\capnp.exe"  
 	-DCAPNPC_CXX_EXECUTABLE="..\capnproto-tools-win32-0.5.3\capnpc-c++.exe"
-</pre>
+```
 
 Building the test programs may halt a full build. But enough will be built for an Install, and finally copy of the new capnp.lib and kj.lib libraries.
 
