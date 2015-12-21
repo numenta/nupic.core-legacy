@@ -20,8 +20,6 @@ Important notes:
  * Platform specific Readme.md text files exist in some `external/` subdirectories
  * See the main [wiki](https://github.com/numenta/nupic.core/wiki) for more build notes
 
-The following sub-sections are related to Linux and OSX. For _Windows_ refer to the `external\windows64\README.md` and/or `external\windows64-gcc\README.md` files.
-
 ### Prerequisites
 
 - Python - We recommend you use the system version where possibly.
@@ -29,13 +27,15 @@ The following sub-sections are related to Linux and OSX. For _Windows_ refer to 
 - [NumPy](http://www.numpy.org/) - Can be installed through some system package managers or via [pip](https://pip.pypa.io/)
     - Version 1.9.2
 - [pycapnp](http://jparyani.github.io/pycapnp/)
-    - Version 0.5.5
+    - Version 0.5.5 (_Linux and OSX only_)
 - [CMake](http://www.cmake.org/)
 
-The Python depedencies (NumPy and pycapnp) can be installed with `pip`:
+> **Note**: On Windows, Python package dependencies require the following compiler package to be installed: [Microsoft Visual C++ Compiler for Python 2.7](https://www.microsoft.com/en-gb/download/details.aspx?id=44266)
+
+The Python dependencies (NumPy and pycapnp) can be installed with `pip`:
 
     pip install -r bindings/py/requirements.txt
-    
+
 ### Simple Source Installation (does not support incremental builds)
 
 The easiest way to build from source is as follows. This does not support incremental builds.
@@ -53,6 +53,8 @@ Regardless of how you install `nupic.bindings`, the `nupic-bindings-check` comma
 ### Developer Installation
 
 This option is for developers that would like the ability to do incremental builds of the C++ or for those that are using the C++ libraries directly.
+
+> **Note**: The following sub-sections are related to Linux and OSX only. For Windows refer to the `external\windows64-gcc\README.md` file.
 
 #### Configure and generate C++ build files:
 
