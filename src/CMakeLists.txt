@@ -653,7 +653,6 @@ set(TEST_HEADERS
     test/unit/os/TimerTest.hpp
     test/unit/py_support/PyHelpersTest.hpp
     test/unit/test/TesterTest.hpp
-    test/unit/types/BasicTypeTest.hpp
     test/unit/types/ExceptionTest.hpp
     test/unit/types/FractionTest.hpp
     test/unit/utils/RandomTest.hpp
