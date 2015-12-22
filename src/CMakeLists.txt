@@ -645,7 +645,6 @@ set(TEST_HEADERS
     test/unit/ntypes/NodeSetTest.hpp
     test/unit/ntypes/ScalarTest.hpp
     test/unit/ntypes/ValueTest.hpp
-    test/unit/os/TimerTest.hpp
     test/unit/py_support/PyHelpersTest.hpp
     test/unit/test/TesterTest.hpp
     test/unit/types/BasicTypeTest.hpp
