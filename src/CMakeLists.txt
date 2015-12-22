@@ -636,7 +636,6 @@ set(TEST_HEADERS
     test/unit/math/SparseMatrix01UnitTest.hpp
     test/unit/math/SparseMatrixUnitTest.hpp
     test/unit/math/SparseTensorUnitTest.hpp
-    test/unit/ntypes/ArrayTest.hpp
     test/unit/ntypes/BufferTest.hpp
     test/unit/ntypes/CollectionTest.hpp
     test/unit/ntypes/DimensionsTest.hpp
