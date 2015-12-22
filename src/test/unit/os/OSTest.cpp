@@ -24,19 +24,16 @@
  * @file
  */
 
-#include "OSTest.hpp"
+#include <nupic/os/OS.hpp>
 #include <nupic/os/Env.hpp>
 #include <nupic/os/Path.hpp>
 #include <nupic/os/Directory.hpp>
+#include <gtest/gtest.h>
 
 using namespace nupic;
 
-OSTest::OSTest() {};
 
-OSTest::~OSTest() {};
-
-
-void OSTest::RunTests()
+TEST(OSTest, Basic)
 {
 #if defined(NTA_OS_WINDOWS)
 
@@ -49,7 +46,7 @@ void OSTest::RunTests()
   Env::set("USER", "user1");
   Env::set("LOGNAME", "logname1");
   
-  TESTEQUAL2_STR("OS::getHomeDir", "/home1/myhome", OS::getHomeDir().c_str());
+  EXPECT_STREQ("/home1/myhome", OS::getHomeDir().c_str()) << "OS::getHomeDir";
   bool caughtException = false;
   Env::unset("HOME");
   std::string dummy;
@@ -58,7 +55,7 @@ void OSTest::RunTests()
   } catch (...) {
     caughtException = true;
   }
-  TEST2("getHomeDir -- HOME not set", caughtException == true);
+  ASSERT_TRUE(caughtException) << "getHomeDir -- HOME not set";
   // restore HOME
   if (isHomeSet) {
     Env::set("HOME", savedHOME);
@@ -71,23 +68,23 @@ void OSTest::RunTests()
   {
 #if defined(NTA_OS_WINDOWS)
     Env::set("USERNAME", "123");
-    TEST(OS::getUserName() == "123");    
+    ASSERT_TRUE(OS::getUserName() == "123");    
 #else
     // case 1 - USER defined
     Env::set("USER", "123");
-    TEST(OS::getUserName() == "123");
+    ASSERT_TRUE(OS::getUserName() == "123");
 
     // case 2 - USER not defined, LOGNAME defined
     Env::unset("USER");
     Env::set("LOGNAME", "456");
-    TEST(OS::getUserName() == "456");
+    ASSERT_TRUE(OS::getUserName() == "456");
 
     // case 3 - USER and LOGNAME not defined
     Env::unset("LOGNAME");
     
     std::stringstream ss("");
     ss << getuid();
-    TEST(OS::getUserName() == ss.str());
+    ASSERT_TRUE(OS::getUserName() == ss.str());
 #endif
   }
   
@@ -96,10 +93,10 @@ void OSTest::RunTests()
   {
 #if defined(NTA_OS_WINDOWS)
 //    std::string stackTrace = OS::getStackTrace();
-//    TEST(!stackTrace.empty());  
+//    ASSERT_TRUE(!stackTrace.empty());  
 //
 //    stackTrace = OS::getStackTrace();
-//    TEST(!stackTrace.empty());
+//    ASSERT_TRUE(!stackTrace.empty());
 #endif  
   }
 
@@ -107,7 +104,7 @@ void OSTest::RunTests()
   {
     std::string output = OS::executeCommand("echo ABCDefg");
 
-    TEST(output == "ABCDefg\n");
+    ASSERT_TRUE(output == "ABCDefg\n");
   }
 
 

@@ -645,7 +645,6 @@ set(TEST_HEADERS
     test/unit/ntypes/NodeSetTest.hpp
     test/unit/ntypes/ScalarTest.hpp
     test/unit/ntypes/ValueTest.hpp
-    test/unit/os/OSTest.hpp
     test/unit/os/PathTest.hpp
     test/unit/os/RegexTest.hpp
     test/unit/os/TimerTest.hpp
