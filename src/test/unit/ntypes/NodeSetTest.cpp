@@ -24,67 +24,69 @@
  * Implementation of BasicType test
  */
 
-#include "NodeSetTest.hpp"
+#include <nupic/utils/Log.hpp> // Only required because of issue #802
 #include <nupic/ntypes/NodeSet.hpp>
+#include <gtest/gtest.h>
+
 
 using namespace nupic;
 
-void NodeSetTest::RunTests()
+TEST(NodeSetTest, Basic)
 {
   NodeSet ns(4);
   
-  TEST(ns.begin() == ns.end());
+  ASSERT_TRUE(ns.begin() == ns.end());
   ns.allOn();
   auto i = ns.begin();
-  TEST(*i == 0);
+  ASSERT_TRUE(*i == 0);
   ++i;
-  TEST(*i == 1);
+  ASSERT_TRUE(*i == 1);
   ++i;
-  TEST(*i == 2);
+  ASSERT_TRUE(*i == 2);
   ++i;
-  TEST(*i == 3);
+  ASSERT_TRUE(*i == 3);
   ++i;
-  TEST(i == ns.end());
+  ASSERT_TRUE(i == ns.end());
   
   ns.allOff();
-  TEST(ns.begin() == ns.end());
+  ASSERT_TRUE(ns.begin() == ns.end());
   
   ns.add(1);
   ns.add(3);
   i = ns.begin();
-  TEST(*i == 1);
+  ASSERT_TRUE(*i == 1);
   ++i;
-  TEST(*i == 3);
+  ASSERT_TRUE(*i == 3);
   ++i;
-  TEST(i == ns.end());
+  ASSERT_TRUE(i == ns.end());
 
   ns.add(4);
   i = ns.begin();
-  TEST(*i == 1);
+  ASSERT_TRUE(*i == 1);
   ++i;
-  TEST(*i == 3);
+  ASSERT_TRUE(*i == 3);
   ++i;
-  TEST(*i == 4);
+  ASSERT_TRUE(*i == 4);
   ++i;
-  TEST(i == ns.end());
+  ASSERT_TRUE(i == ns.end());
   
-  SHOULDFAIL(ns.add(5));
+  ASSERT_ANY_THROW(ns.add(5));
   
   ns.remove(3);
   i = ns.begin();
-  TEST(*i == 1);
+  ASSERT_TRUE(*i == 1);
   ++i;
-  TEST(*i == 4);
+  ASSERT_TRUE(*i == 4);
   ++i;
-  TEST(i == ns.end());
+  ASSERT_TRUE(i == ns.end());
 
   // this should have no effect since 3 has already been removed
   ns.remove(3);
   i = ns.begin();
-  TEST(*i == 1);
+  ASSERT_TRUE(*i == 1);
   ++i;
-  TEST(*i == 4);
+  ASSERT_TRUE(*i == 4);
   ++i;
-  TEST(i == ns.end());
+  ASSERT_TRUE(i == ns.end());
 
 }
