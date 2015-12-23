@@ -639,7 +639,6 @@ set(TEST_HEADERS
     test/unit/ntypes/BufferTest.hpp
     test/unit/ntypes/DimensionsTest.hpp
     test/unit/ntypes/MemStreamTest.hpp
-    test/unit/ntypes/ScalarTest.hpp
     test/unit/ntypes/ValueTest.hpp
     test/unit/os/DirectoryTest.hpp
     test/unit/os/EnvTest.hpp
