@@ -39,12 +39,12 @@
 
 #include <nupic/utils/Watcher.hpp>
 
-#include "WatcherTest.hpp"
+#include <gtest/gtest.h>
 
 using namespace nupic;
 
 
-void WatcherTest::RunTests()
+TEST(WatcherTest, SampleNetwork)
 {
   //generate sample network
   Network n;
@@ -68,10 +68,10 @@ void WatcherTest::RunTests()
 
   //test uint32Params
   unsigned int id1 = w.watchParam("level1", "uint32Param");
-  TESTEQUAL(id1, (unsigned int)1);
+  ASSERT_EQ(id1, (unsigned int)1);
   //test uint64Params
   unsigned int id2 = w.watchParam("level1", "uint64Param");
-  TESTEQUAL(id2, (unsigned int)2);
+  ASSERT_EQ(id2, (unsigned int)2);
   //test int32Params
   w.watchParam("level1", "int32Param");
   //test int64Params
@@ -118,34 +118,37 @@ void WatcherTest::RunTests()
 
   //test to make sure data is flushed when Watcher is deleted
   delete w2;
+}
   
+TEST(WatcherTest, FileTest1)
+{
   //test file output
   IFStream inStream("testfile");
   std::string tempString;
   if (inStream.is_open())
   {
     getline(inStream, tempString);
-    TESTEQUAL("Info: watchID, regionName, nodeType, nodeIndex, varName", tempString);
+    ASSERT_EQ("Info: watchID, regionName, nodeType, nodeIndex, varName", tempString);
     getline(inStream, tempString);
-    TESTEQUAL("1, level1, TestNode, -1, uint32Param", tempString);
+    ASSERT_EQ("1, level1, TestNode, -1, uint32Param", tempString);
     getline(inStream, tempString);
-    TESTEQUAL("2, level1, TestNode, -1, uint64Param", tempString);
+    ASSERT_EQ("2, level1, TestNode, -1, uint64Param", tempString);
     getline(inStream, tempString);
-    TESTEQUAL("3, level1, TestNode, -1, int32Param", tempString);
+    ASSERT_EQ("3, level1, TestNode, -1, int32Param", tempString);
     getline(inStream, tempString);
-    TESTEQUAL("4, level1, TestNode, -1, int64Param", tempString);
+    ASSERT_EQ("4, level1, TestNode, -1, int64Param", tempString);
     getline(inStream, tempString);
-    TESTEQUAL("5, level1, TestNode, -1, real32Param", tempString);
+    ASSERT_EQ("5, level1, TestNode, -1, real32Param", tempString);
     getline(inStream, tempString);
-    TESTEQUAL("6, level1, TestNode, -1, real64Param", tempString);
+    ASSERT_EQ("6, level1, TestNode, -1, real64Param", tempString);
     getline(inStream, tempString);
-    TESTEQUAL("7, level1, TestNode, -1, stringParam", tempString);
+    ASSERT_EQ("7, level1, TestNode, -1, stringParam", tempString);
     getline(inStream, tempString);
-    TESTEQUAL("8, level1, TestNode, 0, unclonedParam", tempString);
+    ASSERT_EQ("8, level1, TestNode, 0, unclonedParam", tempString);
     getline(inStream, tempString);
-    TESTEQUAL("9, level1, TestNode, 1, unclonedParam", tempString);
+    ASSERT_EQ("9, level1, TestNode, 1, unclonedParam", tempString);
     getline(inStream, tempString);
-    TESTEQUAL("Data: watchID, iteration, paramValue", tempString);
+    ASSERT_EQ("Data: watchID, iteration, paramValue", tempString);
     
     unsigned int i = 1;
     while (! inStream.eof() )
@@ -198,30 +201,32 @@ void WatcherTest::RunTests()
       }
     
       value = stream.str();
-      TESTEQUAL(value, tempString);
+      ASSERT_EQ(value, tempString);
     }
     inStream.close();
   }
 
-  
-  
   Path::remove("testfile");
-
+}
+  
+TEST(WatcherTest, FileTest2)
+{
   IFStream inStream2("testfile2");
+  std::string tempString;
   if (inStream2.is_open())
   {
     getline(inStream2, tempString);
-    TESTEQUAL("Info: watchID, regionName, nodeType, nodeIndex, varName", tempString);
+    ASSERT_EQ("Info: watchID, regionName, nodeType, nodeIndex, varName", tempString);
     getline(inStream2, tempString);
-    TESTEQUAL("1, level1, TestNode, -1, int64ArrayParam", tempString);
+    ASSERT_EQ("1, level1, TestNode, -1, int64ArrayParam", tempString);
     getline(inStream2, tempString);
-    TESTEQUAL("2, level1, TestNode, -1, real32ArrayParam", tempString);
+    ASSERT_EQ("2, level1, TestNode, -1, real32ArrayParam", tempString);
     getline(inStream2, tempString);
-    TESTEQUAL("3, level1, TestNode, -1, bottomUpOut", tempString);
+    ASSERT_EQ("3, level1, TestNode, -1, bottomUpOut", tempString);
     getline(inStream2, tempString);
-    TESTEQUAL("4, level1, TestNode, -1, int64ArrayParam", tempString);
+    ASSERT_EQ("4, level1, TestNode, -1, int64ArrayParam", tempString);
     getline(inStream2, tempString);
-    TESTEQUAL("Data: watchID, iteration, paramValue", tempString);
+    ASSERT_EQ("Data: watchID, iteration, paramValue", tempString);
     
     unsigned int i = 1;
     while (! inStream2.eof() )
@@ -266,7 +271,7 @@ void WatcherTest::RunTests()
       }
       
       value = stream.str();
-      TESTEQUAL(value, tempString);
+      ASSERT_EQ(value, tempString);
     }
   }
   inStream2.close();
