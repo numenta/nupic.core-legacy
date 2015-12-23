@@ -112,7 +112,6 @@ install:
   # http://www.cmake.org/Wiki/CmakeMingw
   - cd %REPO_DIR%\build\scripts
   - cmake -G "MinGW Makefiles" 
-      -DCMAKE_BUILD_TYPE=Debug 
       -DCMAKE_INSTALL_PREFIX=%REPO_DIR%\build\release 
       -DPY_EXTENSIONS_DIR=%REPO_DIR%\bindings\py\nupic\bindings 
       %REPO_DIR%
