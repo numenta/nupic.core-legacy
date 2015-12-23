@@ -23,6 +23,8 @@
 #ifndef NTA_NODESET_HPP
 #define NTA_NODESET_HPP
 
+#include "nupic/utils/Log.hpp"
+
 #include <set>
 
 namespace nupic
