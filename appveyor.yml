@@ -85,8 +85,9 @@ install:
   - cd %REPO_DIR%\ci\appveyor
   - ps: .\install_python_pip.ps1
 
-  - set PYTHONPATH=%PYTHONPATH%
-  - set PATH=%PYTHONPATH%;%PYTHONPATH%\Scripts;%PATH%
+  - set PYTHONHOME=%PYTHONPATH%
+  - set PATH=%PYTHONPATH%\Scripts;%PYTHONPATH%;%PATH%
+  - echo %PATH%
 
   # Setup MinGW-w64 GCC as a valid distutils compiler
   - cp %REPO_DIR%\external\windows64-gcc\bin\distutils.cfg %PYTHONPATH%\Lib\distutils\distutils.cfg
@@ -132,7 +133,7 @@ after_build:
   # legacy binary tests
   - cd %REPO_DIR%\build\release\bin
   - cpp_region_test.exe
-  - unit_tests.exe --gtest_output=xml:%ARTIFACTS_DIR%\unit_tests_report.xml"
+  - unit_tests.exe --gtest_output=xml:%ARTIFACTS_DIR%\unit_tests_report.xml
 
   - ps: >-
       if ($env:APPVEYOR_REPO_COMMIT -eq "master") {
