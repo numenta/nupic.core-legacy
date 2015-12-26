@@ -627,6 +627,10 @@ target_link_libraries(${EXECUTABLE_GTESTS}
 set_target_properties(${EXECUTABLE_GTESTS}
                       PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS}
                                  LINK_FLAGS "${COMMON_LINK_FLAGS}")
+add_custom_target(tests_unit
+                  COMMAND ${EXECUTABLE_GTESTS}
+                  DEPENDS ${EXECUTABLE_GTESTS}
+                  VERBATIM)
 add_dependencies(${EXECUTABLE_GTESTS} ${LIB_STATIC_GTEST} ${COMMON_LIBS})
 set(TEST_HEADERS
     test/unit/math/DenseTensorUnitTest.hpp
