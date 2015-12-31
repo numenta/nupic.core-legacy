@@ -650,9 +650,7 @@ set(TEST_HEADERS
     test/unit/test/TesterTest.hpp
     test/unit/types/BasicTypeTest.hpp
     test/unit/types/ExceptionTest.hpp
-    test/unit/types/FractionTest.hpp
-    test/unit/utils/RandomTest.hpp
-    test/unit/utils/WatcherTest.hpp)
+    test/unit/types/FractionTest.hpp)
 set(tests_file_content "")
 set(headers_file_content "")
 foreach(file ${TEST_HEADERS})
