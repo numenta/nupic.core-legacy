@@ -640,15 +640,6 @@ set(TEST_HEADERS
     test/unit/math/SparseMatrix01UnitTest.hpp
     test/unit/math/SparseMatrixUnitTest.hpp
     test/unit/math/SparseTensorUnitTest.hpp
-    test/unit/ntypes/ArrayTest.hpp
-    test/unit/ntypes/BufferTest.hpp
-    test/unit/ntypes/CollectionTest.hpp
-    test/unit/ntypes/DimensionsTest.hpp
-    test/unit/ntypes/MemParserTest.hpp
-    test/unit/ntypes/MemStreamTest.hpp
-    test/unit/ntypes/NodeSetTest.hpp
-    test/unit/ntypes/ScalarTest.hpp
-    test/unit/ntypes/ValueTest.hpp
     test/unit/os/DirectoryTest.hpp
     test/unit/os/EnvTest.hpp
     test/unit/os/OSTest.hpp

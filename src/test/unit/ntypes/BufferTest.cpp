@@ -24,7 +24,6 @@
  * Implementation for Buffer unit tests
  */
 
-#include "BufferTest.hpp"
 #include <nupic/math/Math.hpp>
 #include <nupic/utils/Log.hpp>
 #include <cstring> // strlen
@@ -35,10 +34,11 @@
 #undef private
 
 #include <algorithm>
+#include <gtest/gtest.h>
 
 using namespace nupic;
 
-void BufferTest::testReadBytes_VariableSizeBuffer(Size buffSize)
+void testReadBytes_VariableSizeBufferHelper(Size buffSize)
 {
   std::vector<Byte> in;
   std::vector<Byte> out;
@@ -50,8 +50,8 @@ void BufferTest::testReadBytes_VariableSizeBuffer(Size buffSize)
   
   for (Size i = 0; i <= buffSize; ++i)
   {
-    TEST(in[i] == 'I');
-    TEST(out[i] == 'O');
+    ASSERT_TRUE(in[i] == 'I');
+    ASSERT_TRUE(out[i] == 'O');
   }
   
   // Populate the ReadBuffer with the input
@@ -69,26 +69,45 @@ void BufferTest::testReadBytes_VariableSizeBuffer(Size buffSize)
   while (size == CHUNK_SIZE)
   {
     Int32 res = r.read(&out[index], size);
-    TEST(res == 0);
+    ASSERT_TRUE(res == 0);
     index += size;
   }
   
   // Verify that last index and last read size are correct
-  TEST(index == buffSize);
-  TEST(size == buffSize % CHUNK_SIZE);
+  ASSERT_TRUE(index == buffSize);
+  ASSERT_TRUE(size == buffSize % CHUNK_SIZE);
   
   // Check corner cases
-  TEST(out[0] == 'I');
-  TEST(out[buffSize-1] == 'I');
-  TEST(out[buffSize] == 'O');
+  ASSERT_TRUE(out[0] == 'I');
+  ASSERT_TRUE(out[buffSize-1] == 'I');
+  ASSERT_TRUE(out[buffSize] == 'O');
   
   // Check that all other values have been read correctly
   Size i;
   for (i = 1; i < buffSize-1; ++i)
-    TEST(out[i] == 'I');
+    ASSERT_TRUE(out[i] == 'I');
 }
 
-void BufferTest::testReadBytes_SmallBuffer()
+TEST(BufferTest, testReadBytes_VariableSizeBuffer)
+{
+  ASSERT_NO_FATAL_FAILURE(
+    testReadBytes_VariableSizeBufferHelper(5));
+  
+//  testReadBytes_VariableSizeBufferHelpter(128);
+//  testReadBytes_VariableSizeBufferHelpter(227);
+//  testReadBytes_VariableSizeBufferHelpter(228);
+//  testReadBytes_VariableSizeBufferHelpter(229);
+//  testReadBytes_VariableSizeBufferHelpter(315);
+//  testReadBytes_VariableSizeBufferHelpter(482);
+//  testReadBytes_VariableSizeBufferHelpter(483);
+//  testReadBytes_VariableSizeBufferHelpter(484);
+//  testReadBytes_VariableSizeBufferHelpter(512);
+//  testReadBytes_VariableSizeBufferHelpter(2000);
+//  testReadBytes_VariableSizeBufferHelpter(20000);
+}
+
+
+TEST(BufferTest, testReadBytes_SmallBuffer)
 {
   ReadBuffer b((const Byte *)"123", 3);
 
@@ -100,39 +119,39 @@ void BufferTest::testReadBytes_SmallBuffer()
   
   size = 2;
   res = reader.read(out, size);
-  TEST2("BufferTest::testReadBuffer(), reader.read(2) failed", res == 0);
-  TEST2("BufferTest::testReadBuffer(), reader.read(2) failed", size == 2);
-  TEST2("BufferTest::testReadBuffer(), out[0] should be 1 after reading 1,2", out[0] == '1'); 
-  TEST2("BufferTest::testReadBuffer(), out[1] should be 2 after reading 1,2", out[1] == '2');
+  ASSERT_TRUE(res == 0) << "BufferTest::testReadBuffer(), reader.read(2) failed";
+  ASSERT_TRUE(size == 2) << "BufferTest::testReadBuffer(), reader.read(2) failed";
+  ASSERT_TRUE(out[0] == '1') << "BufferTest::testReadBuffer(), out[0] should be 1 after reading 1,2"; 
+  ASSERT_TRUE(out[1] == '2') << "BufferTest::testReadBuffer(), out[1] should be 2 after reading 1,2";
   
   size = 2;
   res = reader.read(out+2, size);
-  TEST2("BufferTest::testReadBuffer(), reader.read(2) failed", res == 0);
-  TEST2("BufferTest::testReadBuffer(), reader.read(2) failed", size == 1);
-  TEST2("BufferTest::testReadBuffer(), out[0] should be 1 after reading 3", out[0] == '1'); 
-  TEST2("BufferTest::testReadBuffer(), out[1] should be 2 after reading 3", out[1] == '2');
-  TEST2("BufferTest::testReadBuffer(), out[2] should be 3 after reading 3", out[2] == '3');  
+  ASSERT_TRUE(res == 0) << "BufferTest::testReadBuffer(), reader.read(2) failed";
+  ASSERT_TRUE(size == 1) << "BufferTest::testReadBuffer(), reader.read(2) failed";
+  ASSERT_TRUE(out[0] == '1') << "BufferTest::testReadBuffer(), out[0] should be 1 after reading 3"; 
+  ASSERT_TRUE(out[1] == '2') << "BufferTest::testReadBuffer(), out[1] should be 2 after reading 3";
+  ASSERT_TRUE(out[2] == '3') << "BufferTest::testReadBuffer(), out[2] should be 3 after reading 3";  
 }
 
-void BufferTest::testWriteBytes()
+TEST(BufferTest, testWriteBytes)
 {
   WriteBuffer b;
   Byte out[5] = { 1, 2, 3, 4, 5 };
   IWriteBuffer & writer = b;   
-  TEST2("BufferTest::testWriteBuffer(), writer.getSize() should be 0 before putting anything in", writer.getSize() == 0);
+  ASSERT_TRUE(writer.getSize() == 0) << "BufferTest::testWriteBuffer(), writer.getSize() should be 0 before putting anything in";
   Size size = 3;
   writer.write(out, size);
-  TEST2("BufferTest::testWriteBuffer(), writer.getSize() should be 3 after writing 1,2,3", writer.getSize() == 3);
+  ASSERT_TRUE(writer.getSize() == 3) << "BufferTest::testWriteBuffer(), writer.getSize() should be 3 after writing 1,2,3";
   size = 2;
   writer.write(out+3, size);
-  TEST2("BufferTest::testWriteBuffer(), writer.getSize() should be 5 after writing 4,5", writer.getSize() == 5);
+  ASSERT_TRUE(writer.getSize() == 5) << "BufferTest::testWriteBuffer(), writer.getSize() should be 5 after writing 4,5";
   const Byte * s = writer.getData();
   size = writer.getSize();
   //NTA_INFO << "s=" << string(s, size) << ", size=" << size;
-  TEST2("BufferTest::testWriteBuffer(), writer.str() == 12345", std::string(s, size) == std::string("\1\2\3\4\5"));
+  ASSERT_TRUE(std::string(s, size) == std::string("\1\2\3\4\5")) << "BufferTest::testWriteBuffer(), writer.str() == 12345";
 }
 
-void BufferTest::testEvenMoreComplicatedSerialization()
+TEST(BufferTest, testEvenMoreComplicatedSerialization)
 {
   struct X
   {
@@ -166,7 +185,7 @@ void BufferTest::testEvenMoreComplicatedSerialization()
   xi[1].f[0] = -999;  
   // Write the two Xs to a buffer
   WriteBuffer wb;
-  TEST2("BufferTest::testComplicatedSerialization(), empty WriteBuffer should have 0 size", wb.getSize() == 0);
+  ASSERT_TRUE(wb.getSize() == 0) << "BufferTest::testComplicatedSerialization(), empty WriteBuffer should have 0 size";
   
   // Write the number of Xs
   UInt32 size = 2;
@@ -196,8 +215,8 @@ void BufferTest::testEvenMoreComplicatedSerialization()
     rb.read(xo[i].c);
     Size len = 4;
     Int32 res = rb.read(xo[i].d, len);
-    TEST2("BufferTest::testComplicatedSerialization(), rb.read(xi[i].d, 4) failed", res == 0);
-    TEST2("BufferTest::testComplicatedSerialization(), rb.read(xi[i].d, 4) == 4", len == 4);
+    ASSERT_TRUE(res == 0) << "BufferTest::testComplicatedSerialization(), rb.read(xi[i].d, 4) failed";
+    ASSERT_TRUE(len == 4) << "BufferTest::testComplicatedSerialization(), rb.read(xi[i].d, 4) == 4";
     rb.read(xo[i].e);
     len = 3;
     rb.read(xo[i].f, len);
@@ -210,26 +229,26 @@ void BufferTest::testEvenMoreComplicatedSerialization()
              ;
   }
   
-  TEST2("BufferTest::testComplicatedSerialization(), xo[0].a == 8.8", nearlyEqual(xo[0].a, nupic::Real(8.8)));
-  TEST2("BufferTest::testComplicatedSerialization(), xo[0].b == 6", xo[0].b == 6);
-  TEST2("BufferTest::testComplicatedSerialization(), xo[0].c == 'c'", xo[0].c == 'c');
-  TEST2("BufferTest::testComplicatedSerialization(), xo[0].d == ABCD", std::string(xo[0].d, 4) == std::string("ABCD"));
-  TEST2("BufferTest::testComplicatedSerialization(), xo[0].e == -0.04", nearlyEqual(xo[0].e, nupic::Real(-0.04)));
-  TEST2("BufferTest::testComplicatedSerialization(), xo[0].f[0] == 100", xo[0].f[0] == 100);
-  TEST2("BufferTest::testComplicatedSerialization(), xo[0].f[1] == 101", xo[0].f[1] == 101);
-  TEST2("BufferTest::testComplicatedSerialization(), xo[0].f[2] == 102", xo[0].f[2] == 102);
+  ASSERT_TRUE(nearlyEqual(xo[0].a, nupic::Real(8.8))) << "BufferTest::testComplicatedSerialization(), xo[0].a == 8.8";
+  ASSERT_TRUE(xo[0].b == 6) << "BufferTest::testComplicatedSerialization(), xo[0].b == 6";
+  ASSERT_TRUE(xo[0].c == 'c') << "BufferTest::testComplicatedSerialization(), xo[0].c == 'c'";
+  ASSERT_TRUE(std::string(xo[0].d, 4) == std::string("ABCD")) << "BufferTest::testComplicatedSerialization(), xo[0].d == ABCD";
+  ASSERT_TRUE(nearlyEqual(xo[0].e, nupic::Real(-0.04))) << "BufferTest::testComplicatedSerialization(), xo[0].e == -0.04";
+  ASSERT_TRUE(xo[0].f[0] == 100) << "BufferTest::testComplicatedSerialization(), xo[0].f[0] == 100";
+  ASSERT_TRUE(xo[0].f[1] == 101) << "BufferTest::testComplicatedSerialization(), xo[0].f[1] == 101";
+  ASSERT_TRUE(xo[0].f[2] == 102) << "BufferTest::testComplicatedSerialization(), xo[0].f[2] == 102";
   
-  TEST2("BufferTest::testComplicatedSerialization(), xo[1].a == 4.5", xo[1].a == nupic::Real(4.5));
-  TEST2("BufferTest::testComplicatedSerialization(), xo[1].b == 6", xo[1].b == 6);
-  TEST2("BufferTest::testComplicatedSerialization(), xo[1].c == 't'", xo[1].c == 't');
-  TEST2("BufferTest::testComplicatedSerialization(), xo[1].d == XBCD", std::string(xo[1].d, 4) == std::string("XBCD"));
-  TEST2("BufferTest::testComplicatedSerialization(), xo[1].e == 3.14", nearlyEqual(xo[1].e, nupic::Real(3.14)));
-  TEST2("BufferTest::testComplicatedSerialization(), xo[1].f[0] == -999", xo[1].f[0] == -999);
-  TEST2("BufferTest::testComplicatedSerialization(), xo[1].f[1] == 101", xo[1].f[1] == 101);
-  TEST2("BufferTest::testComplicatedSerialization(), xo[1].f[2] == 102", xo[1].f[2] == 102);
+  ASSERT_TRUE(xo[1].a == nupic::Real(4.5)) << "BufferTest::testComplicatedSerialization(), xo[1].a == 4.5";
+  ASSERT_TRUE(xo[1].b == 6) << "BufferTest::testComplicatedSerialization(), xo[1].b == 6";
+  ASSERT_TRUE(xo[1].c == 't') << "BufferTest::testComplicatedSerialization(), xo[1].c == 't'";
+  ASSERT_TRUE(std::string(xo[1].d, 4) == std::string("XBCD")) << "BufferTest::testComplicatedSerialization(), xo[1].d == XBCD";
+  ASSERT_TRUE(nearlyEqual(xo[1].e, nupic::Real(3.14))) << "BufferTest::testComplicatedSerialization(), xo[1].e == 3.14";
+  ASSERT_TRUE(xo[1].f[0] == -999) << "BufferTest::testComplicatedSerialization(), xo[1].f[0] == -999";
+  ASSERT_TRUE(xo[1].f[1] == 101) << "BufferTest::testComplicatedSerialization(), xo[1].f[1] == 101";
+  ASSERT_TRUE(xo[1].f[2] == 102) << "BufferTest::testComplicatedSerialization(), xo[1].f[2] == 102";
 }
 
-void BufferTest::testComplicatedSerialization()
+TEST(BufferTest, testComplicatedSerialization)
 {
   struct X
   {
@@ -259,7 +278,7 @@ void BufferTest::testComplicatedSerialization()
   
   // Write the two Xs to a buffer
   WriteBuffer wb;
-  TEST2("BufferTest::testComplicatedSerialization(), empty WriteBuffer should have 0 size", wb.getSize() == 0);
+  ASSERT_TRUE(wb.getSize() == 0) << "BufferTest::testComplicatedSerialization(), empty WriteBuffer should have 0 size";
   
   // Write the number of Xs
   UInt32 size = 2;
@@ -287,8 +306,8 @@ void BufferTest::testComplicatedSerialization()
     rb.read(xo[i].c);
     Size size = 4;
     Int32 res = rb.read(xo[i].d, size);
-    TEST2("BufferTest::testComplicatedSerialization(), rb.read(xi[i].d, 4) failed", res == 0);
-    TEST2("BufferTest::testComplicatedSerialization(), rb.read(xi[i].d, 4) == 4", size == 4);
+    ASSERT_TRUE(res == 0) << "BufferTest::testComplicatedSerialization(), rb.read(xi[i].d, 4) failed";
+    ASSERT_TRUE(size == 4) << "BufferTest::testComplicatedSerialization(), rb.read(xi[i].d, 4) == 4";
     rb.read(xo[i].e);
     NTA_INFO << "xo[" << i << "]={" << xo[i].a << " "
              << xo[i].b << " " 
@@ -298,20 +317,20 @@ void BufferTest::testComplicatedSerialization()
              ;
   }
   
-  TEST2("BufferTest::testComplicatedSerialization(), xo[0].a == 8.8", nearlyEqual(xo[0].a, nupic::Real(8.8)));
-  TEST2("BufferTest::testComplicatedSerialization(), xo[0].b == 6", xo[0].b == 6);
-  TEST2("BufferTest::testComplicatedSerialization(), xo[0].c == 'c'", xo[0].c == 'c');
-  TEST2("BufferTest::testComplicatedSerialization(), xo[0].d == ABCD", std::string(xo[0].d, 4) == std::string("ABCD"));
-  TEST2("BufferTest::testComplicatedSerialization(), xo[0].e == -0.04", nearlyEqual(xo[0].e, nupic::Real(-0.04)));
+  ASSERT_TRUE(nearlyEqual(xo[0].a, nupic::Real(8.8))) << "BufferTest::testComplicatedSerialization(), xo[0].a == 8.8";
+  ASSERT_TRUE(xo[0].b == 6) << "BufferTest::testComplicatedSerialization(), xo[0].b == 6";
+  ASSERT_TRUE(xo[0].c == 'c') << "BufferTest::testComplicatedSerialization(), xo[0].c == 'c'";
+  ASSERT_TRUE(std::string(xo[0].d, 4) == std::string("ABCD")) << "BufferTest::testComplicatedSerialization(), xo[0].d == ABCD";
+  ASSERT_TRUE(nearlyEqual(xo[0].e, nupic::Real(-0.04))) << "BufferTest::testComplicatedSerialization(), xo[0].e == -0.04";
 
-  TEST2("BufferTest::testComplicatedSerialization(), xo[1].a == 4.5", xo[1].a == nupic::Real(4.5));
-  TEST2("BufferTest::testComplicatedSerialization(), xo[1].b == 6", xo[1].b == 6);
-  TEST2("BufferTest::testComplicatedSerialization(), xo[1].c == 't'", xo[1].c == 't');
-  TEST2("BufferTest::testComplicatedSerialization(), xo[1].d == XBCD", std::string(xo[1].d, 4) == std::string("XBCD"));
-  TEST2("BufferTest::testComplicatedSerialization(), xo[1].e == 3.14", nearlyEqual(xo[1].e, nupic::Real(3.14)));
+  ASSERT_TRUE(xo[1].a == nupic::Real(4.5)) << "BufferTest::testComplicatedSerialization(), xo[1].a == 4.5";
+  ASSERT_TRUE(xo[1].b == 6) << "BufferTest::testComplicatedSerialization(), xo[1].b == 6";
+  ASSERT_TRUE(xo[1].c == 't') << "BufferTest::testComplicatedSerialization(), xo[1].c == 't'";
+  ASSERT_TRUE(std::string(xo[1].d, 4) == std::string("XBCD")) << "BufferTest::testComplicatedSerialization(), xo[1].d == XBCD";
+  ASSERT_TRUE(nearlyEqual(xo[1].e, nupic::Real(3.14))) << "BufferTest::testComplicatedSerialization(), xo[1].e == 3.14";
 }
 
-void BufferTest::testArrayMethods()
+TEST(BufferTest, testArrayMethods)
 {
   // Test read UInt32 array
   {
@@ -323,18 +342,18 @@ void BufferTest::testArrayMethods()
     std::fill(result, result+4, 0);
     for (auto & elem : result)
     {
-      TEST(elem== 0);
+      ASSERT_TRUE(elem== 0);
     }
   
     reader.read((UInt32 *)result, 3);
     for (UInt32 i = 0; i < 3; ++i)
     {
-      TEST(result[i] == i+1);
+      ASSERT_TRUE(result[i] == i+1);
     }
 
     UInt32 val = 0;
     reader.read(val);
-    TEST(val == 444);
+    ASSERT_TRUE(val == 444);
   }
   
   // Test read Int32 array
@@ -347,18 +366,18 @@ void BufferTest::testArrayMethods()
     std::fill(result, result+4, 0);
     for (auto & elem : result)
     {
-      TEST(elem== 0);
+      ASSERT_TRUE(elem== 0);
     }
   
     reader.read((Int32 *)result, 3);
     for (Int32 i = 0; i < 3; ++i)
     {
-      TEST(result[i] == -i-1);
+      ASSERT_TRUE(result[i] == -i-1);
     }
 
     Int32 val = 0;
     reader.read(val);
-    TEST(val == 444);
+    ASSERT_TRUE(val == 444);
   }
   
   // Test read Real32 array
@@ -371,44 +390,18 @@ void BufferTest::testArrayMethods()
     std::fill(result, result+4, (Real32)0);
     for (auto & elem : result)
     {
-      TEST(elem== 0);
+      ASSERT_TRUE(elem== 0);
     }
   
     reader.read((Real32 *)result, 3);
     for (UInt32 i = 0; i < 3; ++i)
     {
-      TEST(result[i] == i+1.5);
+      ASSERT_TRUE(result[i] == i+1.5);
     }
 
     Real32 val = 0;
     reader.read(val);
-    TEST(nearlyEqual(val, Real32(444.555)));
+    ASSERT_TRUE(nearlyEqual(val, Real32(444.555)));
   }
 }
-
-//----------------------------------------------------------------------
-void BufferTest::RunTests()
-{
-
-  testReadBytes_SmallBuffer();
-  testReadBytes_VariableSizeBuffer(5);
-//  testReadBytes_VariableSizeBuffer(128);
-//  testReadBytes_VariableSizeBuffer(227);
-//  testReadBytes_VariableSizeBuffer(228);
-//  testReadBytes_VariableSizeBuffer(229);
-//  testReadBytes_VariableSizeBuffer(315);
-//  testReadBytes_VariableSizeBuffer(482);
-//  testReadBytes_VariableSizeBuffer(483);
-//  testReadBytes_VariableSizeBuffer(484);
-//  testReadBytes_VariableSizeBuffer(512);
-//  testReadBytes_VariableSizeBuffer(2000);
-//  testReadBytes_VariableSizeBuffer(20000);
-  
-  
-  testWriteBytes();
-  testComplicatedSerialization();
-  testEvenMoreComplicatedSerialization();
-  testArrayMethods();
-}
-    
 
