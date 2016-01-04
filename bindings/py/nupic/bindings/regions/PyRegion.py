@@ -292,6 +292,27 @@ class PyRegion(object):
 
 
   def write(self, proto):
+    """Calls writeToProto on subclass after converting proto to specific type
+    using getProtoType().
+
+    proto: PyRegionProto capnproto object
+    """
+    regionImpl = proto.regionImpl.as_struct(self.getProtoType())
+    self.writeToProto(regionImpl)
+
+
+  @classmethod
+  def read(cls, proto):
+    """Calls readFromProto on subclass after converting proto to specific type
+    using getProtoType().
+
+    proto: PyRegionProto capnproto object
+    """
+    regionImpl = proto.regionImpl.as_struct(cls.getProtoType())
+    return cls.readFromProto(regionImpl)
+
+
+  def writeToProto(self, proto):
     """Write state to proto object.
 
     The type of proto is determined by getProtoType().
@@ -300,7 +321,7 @@ class PyRegion(object):
 
 
   @classmethod
-  def read(cls, proto):
+  def readFromProto(cls, proto):
     """Read state from proto object.
 
     The type of proto is determined by getProtoType().
