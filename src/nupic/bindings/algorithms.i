@@ -1681,6 +1681,12 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
         # Use the rest of the state to set local Python attributes.
         del state["this"]
         self.__dict__.update(state)
+
+    @classmethod
+    def read(cls, proto):
+      instance = cls()
+      instance.convertedRead(proto)
+      return instance
   %}
 
   inline void compute(PyObject *py_x, bool learn)
@@ -1705,7 +1711,7 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
   %#endif
   }
 
-  inline void read(PyObject* pyReader)
+  inline void convertedRead(PyObject* pyReader)
   {
 %#if !CAPNP_LITE
     TemporalMemoryProto::Reader proto =
