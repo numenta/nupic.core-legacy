@@ -640,12 +640,6 @@ set(TEST_HEADERS
     test/unit/math/SparseMatrix01UnitTest.hpp
     test/unit/math/SparseMatrixUnitTest.hpp
     test/unit/math/SparseTensorUnitTest.hpp
-    test/unit/os/DirectoryTest.hpp
-    test/unit/os/EnvTest.hpp
-    test/unit/os/OSTest.hpp
-    test/unit/os/PathTest.hpp
-    test/unit/os/RegexTest.hpp
-    test/unit/os/TimerTest.hpp
     test/unit/test/TesterTest.hpp)
 set(tests_file_content "")
 set(headers_file_content "")
