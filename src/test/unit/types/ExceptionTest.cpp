@@ -24,12 +24,12 @@
  * Implementation of Fraction test
  */
 
-#include "ExceptionTest.hpp"
 #include <nupic/types/Exception.hpp>
+#include <gtest/gtest.h>
 
 using namespace nupic;
 
-void ExceptionTest::RunTests()
+TEST(ExceptionTest, Basic)
 {
   try
   {
@@ -37,10 +37,10 @@ void ExceptionTest::RunTests()
   }
   catch (const Exception & e)
   {
-    TEST(std::string(e.getFilename()) == std::string("FFF"));
-    TEST(e.getLineNumber() == 123);
-    TEST(std::string(e.getMessage()) == std::string("MMM"));
-    TEST(std::string(e.getStackTrace()) == std::string(""));
+    ASSERT_EQ(std::string(e.getFilename()), std::string("FFF"));
+    ASSERT_EQ(e.getLineNumber(), 123);
+    ASSERT_EQ(std::string(e.getMessage()), std::string("MMM"));
+    ASSERT_EQ(std::string(e.getStackTrace()), std::string(""));
   }
 
   try
@@ -49,10 +49,10 @@ void ExceptionTest::RunTests()
   }
   catch (const Exception & e)
   {
-    TEST(std::string(e.getFilename()) == std::string("FFF"));
-    TEST(e.getLineNumber() == 123);
-    TEST(std::string(e.getMessage()) == std::string("MMM"));
-    TEST(std::string(e.getStackTrace()) == std::string("TB"));
+    ASSERT_EQ(std::string(e.getFilename()), std::string("FFF"));
+    ASSERT_EQ(e.getLineNumber(), 123);
+    ASSERT_EQ(std::string(e.getMessage()), std::string("MMM"));
+    ASSERT_EQ(std::string(e.getStackTrace()), std::string("TB"));
   }  
 }
 

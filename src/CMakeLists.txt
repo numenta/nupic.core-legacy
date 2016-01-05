@@ -640,10 +640,7 @@ set(TEST_HEADERS
     test/unit/math/SparseMatrix01UnitTest.hpp
     test/unit/math/SparseMatrixUnitTest.hpp
     test/unit/math/SparseTensorUnitTest.hpp
-    test/unit/test/TesterTest.hpp
-    test/unit/types/BasicTypeTest.hpp
-    test/unit/types/ExceptionTest.hpp
-    test/unit/types/FractionTest.hpp)
+    test/unit/test/TesterTest.hpp)
 set(tests_file_content "")
 set(headers_file_content "")
 foreach(file ${TEST_HEADERS})
