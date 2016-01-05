@@ -163,7 +163,7 @@ if(NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
   set(OPTIMIZATION_FLAGS_CC "-pipe ${OPTIMIZATION_FLAGS_CC}") #TODO use -Ofast instead of -O3
   set(OPTIMIZATION_FLAGS_LT "-O2 ${OPTIMIZATION_FLAGS_LT}")
 
-  if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
+  if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" AND NOT MINGW)
     set(OPTIMIZATION_FLAGS_CC "${OPTIMIZATION_FLAGS_CC} -fuse-linker-plugin -flto-report")
     set(OPTIMIZATION_FLAGS_CC "${OPTIMIZATION_FLAGS_CC} -flto -fuse-ld=gold") #TODO fix LTO for clang
     set(OPTIMIZATION_FLAGS_LT "${OPTIMIZATION_FLAGS_LT} -flto") #TODO LTO for clang too
@@ -627,6 +627,10 @@ target_link_libraries(${EXECUTABLE_GTESTS}
 set_target_properties(${EXECUTABLE_GTESTS}
                       PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS}
                                  LINK_FLAGS "${COMMON_LINK_FLAGS}")
+add_custom_target(tests_unit
+                  COMMAND ${EXECUTABLE_GTESTS}
+                  DEPENDS ${EXECUTABLE_GTESTS}
+                  VERBATIM)
 add_dependencies(${EXECUTABLE_GTESTS} ${LIB_STATIC_GTEST} ${COMMON_LIBS})
 set(TEST_HEADERS
     test/unit/math/DenseTensorUnitTest.hpp
@@ -636,22 +640,10 @@ set(TEST_HEADERS
     test/unit/math/SparseMatrix01UnitTest.hpp
     test/unit/math/SparseMatrixUnitTest.hpp
     test/unit/math/SparseTensorUnitTest.hpp
-    test/unit/ntypes/ArrayTest.hpp
-    test/unit/ntypes/BufferTest.hpp
-    test/unit/ntypes/CollectionTest.hpp
-    test/unit/ntypes/DimensionsTest.hpp
-    test/unit/ntypes/MemParserTest.hpp
-    test/unit/ntypes/MemStreamTest.hpp
-    test/unit/ntypes/NodeSetTest.hpp
-    test/unit/ntypes/ScalarTest.hpp
-    test/unit/ntypes/ValueTest.hpp
-    test/unit/py_support/PyHelpersTest.hpp
     test/unit/test/TesterTest.hpp
     test/unit/types/BasicTypeTest.hpp
     test/unit/types/ExceptionTest.hpp
-    test/unit/types/FractionTest.hpp
-    test/unit/utils/RandomTest.hpp
-    test/unit/utils/WatcherTest.hpp)
+    test/unit/types/FractionTest.hpp)
 set(tests_file_content "")
 set(headers_file_content "")
 foreach(file ${TEST_HEADERS})
@@ -672,56 +664,40 @@ add_custom_target(tests_all
                   VERBATIM)
 
 if(UNIX OR MSYS OR MINGW)
+  set(LIB_STATIC_NUPICCORE_COMBINED "${PROJECT_BINARY_DIR}/libnupic_core.a")
   if(MSYS OR MINGW)
-    add_custom_target(combined ALL
-                      COMMAND ${CMAKE_AR} -x $<TARGET_FILE:${LIB_STATIC_NUPICCORE}>
-                      COMMAND ${CMAKE_AR} -x ${LIB_STATIC_YAML_CPP_LOC}
-                      COMMAND ${CMAKE_AR} -x ${LIB_STATIC_YAML_LOC}
-                      COMMAND ${CMAKE_AR} -x ${LIB_STATIC_APRUTIL1_LOC}
-                      COMMAND ${CMAKE_AR} -x ${LIB_STATIC_APR1_LOC}
-                      COMMAND ${CMAKE_AR} -x ${LIB_STATIC_Z_LOC}
-                      COMMAND ${CMAKE_AR} rcs libnupic_core.a *.o *.obj
-                      DEPENDS ${LIB_STATIC_NUPICCORE}
-                              ${LIB_STATIC_GTEST}
-                              ${EXECUTABLE_HELLOREGION}
-                              ${EXECUTABLE_CPPREGIONTEST}
-                              ${EXECUTABLE_CONNECTIONSPERFORMANCETEST}
-                              ${EXECUTABLE_GTESTS}
-                              ${EXECUTABLE_HELLOSPTP})
+    add_custom_command(OUTPUT ${LIB_STATIC_NUPICCORE_COMBINED}
+                       COMMAND ${CMAKE_AR} -x $<TARGET_FILE:${LIB_STATIC_NUPICCORE}>
+                       COMMAND ${CMAKE_AR} -x ${LIB_STATIC_YAML_CPP_LOC}
+                       COMMAND ${CMAKE_AR} -x ${LIB_STATIC_YAML_LOC}
+                       COMMAND ${CMAKE_AR} -x ${LIB_STATIC_APRUTIL1_LOC}
+                       COMMAND ${CMAKE_AR} -x ${LIB_STATIC_APR1_LOC}
+                       COMMAND ${CMAKE_AR} -x ${LIB_STATIC_Z_LOC}
+                       COMMAND ${CMAKE_AR} rcs ${LIB_STATIC_NUPICCORE_COMBINED} *.o *.obj
+                       DEPENDS ${LIB_STATIC_NUPICCORE})
   else()
-    add_custom_target(combined ALL
-                      COMMAND ${CMAKE_AR} -x $<TARGET_FILE:${LIB_STATIC_NUPICCORE}>
-                      COMMAND ${CMAKE_AR} -x ${LIB_STATIC_YAML_CPP_LOC}
-                      COMMAND ${CMAKE_AR} -x ${LIB_STATIC_YAML_LOC}
-                      COMMAND ${CMAKE_AR} -x ${LIB_STATIC_APRUTIL1_LOC}
-                      COMMAND ${CMAKE_AR} -x ${LIB_STATIC_APR1_LOC}
-                      COMMAND ${CMAKE_AR} -x ${LIB_STATIC_Z_LOC}
-                      COMMAND ${CMAKE_AR} rcs libnupic_core.a *.o
-                      DEPENDS ${LIB_STATIC_NUPICCORE}
-                              ${LIB_STATIC_GTEST}
-                              ${EXECUTABLE_HELLOREGION}
-                              ${EXECUTABLE_CPPREGIONTEST}
-                              ${EXECUTABLE_CONNECTIONSPERFORMANCETEST}
-                              ${EXECUTABLE_GTESTS}
-                              ${EXECUTABLE_HELLOSPTP})
+    add_custom_command(OUTPUT ${LIB_STATIC_NUPICCORE_COMBINED}
+                       COMMAND ${CMAKE_AR} -x $<TARGET_FILE:${LIB_STATIC_NUPICCORE}>
+                       COMMAND ${CMAKE_AR} -x ${LIB_STATIC_YAML_CPP_LOC}
+                       COMMAND ${CMAKE_AR} -x ${LIB_STATIC_YAML_LOC}
+                       COMMAND ${CMAKE_AR} -x ${LIB_STATIC_APRUTIL1_LOC}
+                       COMMAND ${CMAKE_AR} -x ${LIB_STATIC_APR1_LOC}
+                       COMMAND ${CMAKE_AR} -x ${LIB_STATIC_Z_LOC}
+                       COMMAND ${CMAKE_AR} rcs ${LIB_STATIC_NUPICCORE_COMBINED} *.o
+                       DEPENDS ${LIB_STATIC_NUPICCORE})
   endif()
 else()
-  add_custom_target(combined ALL
-                    COMMAND lib.exe /OUT:nupic_core.lib
-                            $<TARGET_FILE:${LIB_STATIC_NUPICCORE}>
-                            ${LIB_STATIC_YAML_CPP_LOC}
-                            ${LIB_STATIC_YAML_LOC}
-                            ${LIB_STATIC_APRUTIL1_LOC}
-                            ${LIB_STATIC_APR1_LOC}
-                            ${LIB_STATIC_Z_LOC}
-                    DEPENDS ${LIB_STATIC_NUPICCORE}
-                            ${LIB_STATIC_GTEST}
-                            ${EXECUTABLE_HELLOREGION}
-                            ${EXECUTABLE_CPPREGIONTEST}
-                            ${EXECUTABLE_CONNECTIONSPERFORMANCETEST}
-                            ${EXECUTABLE_GTESTS}
-                            ${EXECUTABLE_HELLOSPTP}
-                    VERBATIM)
+  set(LIB_STATIC_NUPICCORE_COMBINED "${PROJECT_BINARY_DIR}/nupic_core.lib")
+  add_custom_command(OUTPUT ${LIB_STATIC_NUPICCORE_COMBINED}
+                     COMMAND lib.exe /OUT:${LIB_STATIC_NUPICCORE_COMBINED}
+                             $<TARGET_FILE:${LIB_STATIC_NUPICCORE}>
+                             ${LIB_STATIC_YAML_CPP_LOC}
+                             ${LIB_STATIC_YAML_LOC}
+                             ${LIB_STATIC_APRUTIL1_LOC}
+                             ${LIB_STATIC_APR1_LOC}
+                             ${LIB_STATIC_Z_LOC}
+                     DEPENDS ${LIB_STATIC_NUPICCORE}
+                     VERBATIM)
 endif()
 
 #
@@ -774,7 +750,7 @@ set(SWIG_SUPPORT_FILES
 )
 
 set(SWIG_LINK_LIBRARIES
-    ${PROJECT_BINARY_DIR}/libnupic_core.a
+    ${LIB_STATIC_NUPICCORE_COMBINED}
     ${PYTHON_LIBRARIES}
     ${COMMON_OS_LIBS})
 
@@ -796,13 +772,12 @@ set_source_files_properties(${SWIG_ALGORITHMS_FILES} PROPERTIES
                             SWIG_FLAGS "${SWIG_FLAGS}")
 set(SWIG_ALGORITHMS algorithms)
 # Make sure we don't attempt to execute the swig executable until it is built.
-set(SWIG_MODULE_${SWIG_ALGORITHMS}_EXTRA_DEPS Swig combined)
+set(SWIG_MODULE_${SWIG_ALGORITHMS}_EXTRA_DEPS Swig ${LIB_STATIC_NUPICCORE_COMBINED})
 # Create custom command for generating files from SWIG.
 swig_add_module(${SWIG_ALGORITHMS} python
                 ${SWIG_SUPPORT_FILES}
                 ${SWIG_ALGORITHMS_FILES})
 list(APPEND SWIG_GENERATED_FILES ${swig_generated_file_fullname})
-#TODO add_dependencies(${SWIG_MODULE_${SWIG_ALGORITHMS}_REAL_NAME}
 swig_link_libraries(${SWIG_ALGORITHMS}
                     ${SWIG_LINK_LIBRARIES})
 
@@ -814,7 +789,7 @@ set_source_files_properties(${SWIG_ENGINE_FILES} PROPERTIES
                             SWIG_FLAGS "${SWIG_FLAGS}")
 set(SWIG_ENGINE engine_internal)
 # Make sure we don't attempt to execute the swig executable until it is built.
-set(SWIG_MODULE_${SWIG_ENGINE}_EXTRA_DEPS Swig combined)
+set(SWIG_MODULE_${SWIG_ENGINE}_EXTRA_DEPS Swig ${LIB_STATIC_NUPICCORE_COMBINED})
 # Create custom command for generating files from SWIG.
 swig_add_module(${SWIG_ENGINE} python
                 ${SWIG_SUPPORT_FILES}
@@ -831,7 +806,7 @@ set_source_files_properties(${SWIG_MATH_FILES} PROPERTIES
                             SWIG_FLAGS "${SWIG_FLAGS}")
 set(SWIG_MATH math)
 # Make sure we don't attempt to execute the swig executable until it is built.
-set(SWIG_MODULE_${SWIG_MATH}_EXTRA_DEPS Swig combined)
+set(SWIG_MODULE_${SWIG_MATH}_EXTRA_DEPS Swig ${LIB_STATIC_NUPICCORE_COMBINED})
 # Create custom command for generating files from SWIG.
 swig_add_module(${SWIG_MATH} python
                 ${SWIG_SUPPORT_FILES}
@@ -913,13 +888,8 @@ foreach(directory ${CAPNP_INCLUDE_DIRS})
   install(DIRECTORY "${directory}/kj"
           DESTINATION include)
 endforeach()
-if(UNIX OR MSYS OR MINGW)
-  install(FILES "${PROJECT_BINARY_DIR}/libnupic_core.a"
-          DESTINATION lib)
-else()
-  install(FILES "${PROJECT_BINARY_DIR}/nupic_core.lib"
-          DESTINATION lib)
-endif()
+install(FILES ${LIB_STATIC_NUPICCORE_COMBINED}
+        DESTINATION lib)
 
 install(DIRECTORY nupic/py_support DESTINATION include/nupic
         FILES_MATCHING PATTERN "*.c*")
