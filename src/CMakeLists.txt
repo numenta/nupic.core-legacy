@@ -646,10 +646,7 @@ set(TEST_HEADERS
     test/unit/os/PathTest.hpp
     test/unit/os/RegexTest.hpp
     test/unit/os/TimerTest.hpp
-    test/unit/test/TesterTest.hpp
-    test/unit/types/BasicTypeTest.hpp
-    test/unit/types/ExceptionTest.hpp
-    test/unit/types/FractionTest.hpp)
+    test/unit/test/TesterTest.hpp)
 set(tests_file_content "")
 set(headers_file_content "")
 foreach(file ${TEST_HEADERS})
