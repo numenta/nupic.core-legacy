@@ -24,6 +24,7 @@
  * Implementation for Path test
  */
 
+#include <nupic/os/Directory.hpp>
 #include <nupic/os/Path.hpp>
 #include <nupic/os/OS.hpp>
 #include <nupic/os/FStream.hpp>
@@ -33,25 +34,35 @@
 using namespace std;
 using namespace nupic;
 
-namespace PathTest {
-  string sep(Path::sep);
-}
-string testOutputDir_ = Path::makeAbsolute("TestEverything.out");
 
-string fromTestOutputDir(const string& path) {
-  Path testoutputpath(testOutputDir_);
-  if (path != "")
-    testoutputpath += path;
-  return string(testoutputpath);
-}
+class PathTest : public ::testing::Test {
+public:
+  string testOutputDir_ = Path::makeAbsolute("TestEverything.out");
 
+  PathTest() {
+    // Create if it doesn't exist
+    if (!Path::exists(testOutputDir_)) {
+      std::cout << "Tester -- creating output directory " << std::string(testOutputDir_) << "\n";
+      // will throw if unsuccessful. 
+      Directory::create(string(testOutputDir_));
+    } 
+  }
+
+  string fromTestOutputDir(const string& path) {
+    Path testoutputpath(testOutputDir_);
+    if (path != "")
+      testoutputpath += path;
+    return string(testoutputpath);
+  }
+
+};
 
 // test static exists()
-TEST(PathTest, exists)
+TEST_F(PathTest, exists)
 {
 }
 
-TEST(PathTest, getParent)
+TEST_F(PathTest, getParent)
 {
 #if defined(NTA_OS_WINDOWS)
 // no tests defined
@@ -104,13 +115,13 @@ TEST(PathTest, getParent)
 }
 
 // test static getFilename()
-TEST(PathTest, getFilename)
+TEST_F(PathTest, getFilename)
 
 {
 }
 
 // test static getBasename()
-TEST(PathTest, getBasename)
+TEST_F(PathTest, getBasename)
 {
 #if defined(NTA_OS_WINDOWS)
 // no tests defined
@@ -124,14 +135,15 @@ TEST(PathTest, getBasename)
 }
 
 // test static getExtension()
-TEST(PathTest, getExtension)
+TEST_F(PathTest, getExtension)
 {
-  std::string ext = Path::getExtension("abc" + PathTest::sep + "def.ext");
+  string sep(Path::sep);
+  std::string ext = Path::getExtension("abc" + sep + "def.ext");
   ASSERT_TRUE(ext == "ext");
 }
 
 // test static normalize()
-TEST(PathTest, normalize)
+TEST_F(PathTest, normalize)
 {
 #if defined(NTA_OS_WINDOWS)
 // no tests defined
@@ -149,12 +161,12 @@ TEST(PathTest, normalize)
 }
 
 // test static makeAbsolute()
-TEST(PathTest, makeAbsolute)
+TEST_F(PathTest, makeAbsolute)
 {
 }
 
 // test static split()
-TEST(PathTest, split)
+TEST_F(PathTest, split)
 {
 #if defined(NTA_OS_WINDOWS)
 // no tests defined
@@ -195,22 +207,22 @@ TEST(PathTest, split)
 }
 
 // test static join()
-TEST(PathTest, join)
+TEST_F(PathTest, join)
 {
 }
 
 // test static remove()
-TEST(PathTest, remove)
+TEST_F(PathTest, remove)
 {
 }
 
 // test static rename()
-TEST(PathTest, rename)
+TEST_F(PathTest, rename)
 {
 }
 
 // test static copy()
-TEST(PathTest, copy)
+TEST_F(PathTest, copy)
 {
   {
     OFStream f("a.txt");
@@ -243,7 +255,7 @@ TEST(PathTest, copy)
 }    
 
 // test static copy() in temp directory
-TEST(PathTest, copyInTemp)
+TEST_F(PathTest, copyInTemp)
 {
   {
     OFStream f("a.txt");
@@ -278,12 +290,12 @@ TEST(PathTest, copyInTemp)
 }    
 
 //test static isRootdir()
-TEST(PathTest, isRootDir)
+TEST_F(PathTest, isRootDir)
 {
 }
 
 //test static isAbsolute()
-TEST(PathTest, isAbsolute)
+TEST_F(PathTest, isAbsolute)
 {
 #if defined(NTA_OS_WINDOWS)
   ASSERT_TRUE(Path::isAbsolute("c:"));
@@ -312,7 +324,7 @@ TEST(PathTest, isAbsolute)
 #endif 
 }
 
-TEST(PathTest, getExecutablePath)
+TEST_F(PathTest, getExecutablePath)
 { 
   // test static getExecutablePath
   std::string path = Path::getExecutablePath();
