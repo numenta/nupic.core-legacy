@@ -25,15 +25,15 @@
  */
 
 //#include <nupic/common/utils.hpp>
-#include <nupic/math/ArrayAlgo.hpp>
-
-#include "MathsTest.hpp"
-
-#include <nupic/math/Math.hpp>
-
-using namespace std;
-
-namespace nupic {
+// #include <nupic/math/ArrayAlgo.hpp>
+//
+// #include "MathsTest.hpp"
+//
+// #include <nupic/math/Math.hpp>
+//
+// using namespace std;
+//
+// namespace nupic {
 
 //  //--------------------------------------------------------------------------------
 //  void MathsTest::unitTestNearlyZero()
@@ -564,8 +564,8 @@ namespace nupic {
 //  }
 //
   //--------------------------------------------------------------------------------
-  void MathsTest::RunTests()
-  {
+  // void MathsTest::RunTests()
+  // {
     //
     //unitTestNearlyZero();
     //unitTestNearlyEqual();
@@ -576,9 +576,9 @@ namespace nupic {
     //unitTestWinnerTakesAll();
     //unitTestScale();
     ////unitTestQSI(); // HEAP CORRUPTION on Windows
-  }
+  // }
   
   //----------------------------------------------------------------------
-} // end namespace nupic
+// } // end namespace nupic
 
 

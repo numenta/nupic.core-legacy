@@ -25,15 +25,15 @@
  */  
               
 //#include <nupic/common/version.hpp>
-#include "DomainUnitTest.hpp"
-
-using namespace std;  
-
-namespace nupic {
-
-  //--------------------------------------------------------------------------------
-  void DomainUnitTest::RunTests()
-  {
+// #include "DomainUnitTest.hpp"
+//
+// using namespace std;
+//
+// namespace nupic {
+//
+//   //--------------------------------------------------------------------------------
+//   void DomainUnitTest::RunTests()
+//   {
 //
 //    {
 //      /* Doesn't work on shona ???!???
@@ -255,10 +255,10 @@ namespace nupic {
 //      Domain<UInt> d31(I3(0, 1, 2), I3(10, 9, 8));
 //      Test("Domain size_elts 5", d31.size_elts(), (UInt)480);
 //    }
-  } 
+  // } 
 
   //--------------------------------------------------------------------------------
   
-} // namespace nupic
+// } // namespace nupic
 
 

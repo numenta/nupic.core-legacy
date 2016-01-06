@@ -25,12 +25,12 @@
  */  
               
 //#include <nupic/common/version.hpp>
-#include <nupic/math/StlIo.hpp>
-#include "DenseTensorUnitTest.hpp"
-
-using namespace std;  
-
-namespace nupic {
+// #include <nupic/math/StlIo.hpp>
+// #include "DenseTensorUnitTest.hpp"
+//
+// using namespace std;
+//
+// namespace nupic {
 //
 //  //--------------------------------------------------------------------------------
 //  void DenseTensorUnitTest::unitTestConstructor()
@@ -699,8 +699,8 @@ namespace nupic {
 //  }
 //
   //--------------------------------------------------------------------------------
-  void DenseTensorUnitTest::RunTests()
-  {
+  // void DenseTensorUnitTest::RunTests()
+  // {
 
     //unitTestConstructor();
     //unitTestGetSet();
@@ -715,10 +715,10 @@ namespace nupic {
     //unitTestOuterProduct();
     //unitTestContract();
     //unitTestInnerProduct();
-  } 
+  // } 
 
   //--------------------------------------------------------------------------------
   
-} // namespace nupic
+// } // namespace nupic
 
 

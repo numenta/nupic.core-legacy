@@ -25,19 +25,19 @@
  */  
               
 //#include <nupic/common/version.hpp>
-#include <nupic/math/StlIo.hpp>
-#include "SparseMatrixUnitTest.hpp"
+// #include <nupic/math/StlIo.hpp>
+// #include "SparseMatrixUnitTest.hpp"
     
-using namespace std;  
+// using namespace std;
 
-namespace nupic {
-   
+// namespace nupic {
+//
 #define TEST_LOOP(M)                                  \
   for (nrows = 0, ncols = M, zr = 15;                 \
        nrows < M;                                     \
        nrows += M/10, ncols -= M/10, zr = ncols/10)   \
-
-#define M 64
+//
+// #define M 64
 //
 //  //--------------------------------------------------------------------------------
 //  void SparseMatrixUnitTest::unit_test_construction()
@@ -3824,8 +3824,8 @@ namespace nupic {
 //  } 
 //     
   //--------------------------------------------------------------------------------
-  void SparseMatrixUnitTest::RunTests()
-  {
+  // void SparseMatrixUnitTest::RunTests()
+  // {
 
     //unit_test_construction();  
     //unit_test_copy();
@@ -3864,10 +3864,10 @@ namespace nupic {
     //unit_test_extract();
     //unit_test_deleteRow();
     ////unit_test_usage();
-  } 
+  // } 
 
   //--------------------------------------------------------------------------------
   
-} // namespace nupic
+// } // namespace nupic
 
 
