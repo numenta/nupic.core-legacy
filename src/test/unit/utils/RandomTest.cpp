@@ -25,20 +25,17 @@
  */
 
 
-#include "RandomTest.hpp"
 #include <nupic/os/Env.hpp>
 #include <nupic/ntypes/MemStream.hpp>
 #include <nupic/utils/LoggingException.hpp>
+#include <nupic/utils/Random.hpp>
 #include <fstream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sstream>
+#include <gtest/gtest.h>
 
 using namespace nupic;
-
-RandomTest::RandomTest() {};
-
-RandomTest::~RandomTest() {};
 
 #include "RandomPrivateOrig.c"
 
@@ -249,7 +246,8 @@ UInt32 expected[1000] =
 2136458386, 2053335639, 592456662, 973903415, 711240072
 };
 
-void RandomTest::RunTests()
+
+TEST(RandomTest, Seeding)
 {
   // make sure the global instance is seeded from time()
   // in the test situation, we can be sure we were seeded less than 100000 seconds ago
@@ -258,205 +256,250 @@ void RandomTest::RunTests()
   // an unused variable
   Random r;
   UInt64 x = r.getUInt64();
-  TEST(x != 0);
+  ASSERT_TRUE(x != 0);
 
   // test getSeed
   {
     Random r(98765);
-    TESTEQUAL(98765U, r.getSeed());
+    ASSERT_EQ(98765U, r.getSeed());
   }
+}
 
+TEST(RandomTest, CopyConstructor)
+{
+  // test copy constructor.
+  Random r1(289436);
+  int i;
+  for (i = 0; i < 100; i++)
+    r1.getUInt32();
+  Random r2(r1);
+
+  UInt32 v1, v2;
+  for (i = 0; i < 100; i++)
   {
-    // test copy constructor.
-    Random r1(289436);
-    int i;
-    for (i = 0; i < 100; i++)
-      r1.getUInt32();
-    Random r2(r1);
-
-    UInt32 v1, v2;
-    for (i = 0; i < 100; i++)
-    {
-      v1 = r1.getUInt32();
-      v2 = r2.getUInt32();
-      if (v1 != v2)
-        break;
-    }
-    TEST2("copy constructor", v1 == v2);
-  }
-
-  {
-    // test operator=
-    Random r1(289436);
-    int i;
-    for (i = 0; i < 100; i++)
-      r1.getUInt32();
-    Random r2(86726008);
-    for (i = 0; i < 100; i++)
-      r2.getUInt32();
-
-    r2 = r1;
-    UInt32 v1, v2;
-    for (i = 0; i < 100; i++)
-    {
-      v1 = r1.getUInt32();
-      v2 = r2.getUInt32();
-      if (v1 != v2)
-        break;
-    }
-    TEST2("operator=", v1 == v2);
-  }
-
-  {
-    // test serialization/deserialization
-    Random r1(862973);
-    int i;
-    for (i = 0; i < 100; i++)
-      r1.getUInt32();
-
-    // serialize
-    OMemStream ostream;
-    ostream << r1;
-
-    // print out serialization for debugging
-    std::string x(ostream.str(), ostream.pcount());
-    NTA_INFO << "random serialize string: '" << x << "'";
-    // Serialization should be deterministic and platform independent
-    std::string expectedString = "random-v1 862973 RandomImpl 2 31 4241808047 927171440 115246761 3188485113 2358188524 3270869522 282383075 1082613868 441984109 995051899 2794036324 2239422562 898636415 2372250535 3369849014 2122900843 1895341779 2450525880 394177447 3199534303 3887683026 656347524 48907782 1135809043 334191338 2900562231 197628021 1265227140 569581351 466443697 843098206 7 10 endrandom-v1";
-    TESTEQUAL(expectedString, x);
-
-
-    // deserialize into r2
-    std::string s(ostream.str(), ostream.pcount());
-    std::stringstream ss(s);
-    Random r2;
-    ss >> r2;
-
-    // r1 and r2 should be identical
-    TESTEQUAL(r1.getSeed(), r2.getSeed());
-
-    UInt32 v1, v2;
-    for (i = 0; i < 100; i++)
-    {
-      v1 = r1.getUInt32();
-      v2 = r2.getUInt32();
-      NTA_CHECK(v1 == v2);
-    }
-    TESTEQUAL2("serialization", v1, v2);
-  }
-
-  {
-    // make sure that we are returning values in the correct range
-    // @todo perform statistical tests
-    Random r;
-    UInt32 seed = r.getSeed();
-    TEST2("seed not zero", seed != 0);
-    int i;
-    UInt32 max32 = 10000000;
-    UInt64 max64 = (UInt64)max32 * (UInt64)max32;
-    for (i = 0; i < 200; i++)
-    {
-      UInt32 i32 = r.getUInt32(max32);
-      TEST2("UInt32",  i32 < max32);
-      UInt64 i64 = r.getUInt64(max64);
-      TEST2("UInt64",  i64 < max64);
-      Real64 r64 = r.getReal64();
-      TEST2("Real64", r64 >= 0.0 && r64 < 1.0);
-    }
-  }
-
-  {
-    // tests for sampling
-
-    UInt32 population[] = {1, 2, 3, 4};
-    Random r(42);
-
-    {
-      // choose some elements
-      UInt32 choices[2];
-      r.sample(population, 4, choices, 2);
-      TESTEQUAL2("check element 0", 1, choices[0]);
-      TESTEQUAL2("check element 1", 3, choices[1]);
-    }
-
-    {
-      // choose all elements
-      UInt32 choices[4];
-      r.sample(population, 4, choices, 4);
-      TESTEQUAL2("check element 0", 1, choices[0]);
-      TESTEQUAL2("check element 1", 2, choices[1]);
-      TESTEQUAL2("check element 2", 3, choices[2]);
-      TESTEQUAL2("check element 3", 4, choices[3]);
-    }
-
-    {
-      // nChoices > nPopulation
-      UInt32 choices[5];
-      bool caught = false;
-      try
-      {
-        r.sample(population, 4, choices, 5);
-      }
-      catch (LoggingException& exc)
-      {
-        caught = true;
-      }
-      TEST2("checking for exception from population too small", caught);
-    }
-  }
-
-  {
-    // tests for shuffling
-    Random r(42);
-    UInt32 arr[] = {1, 2, 3, 4};
-
-    UInt32* start = arr;
-    UInt32* end = start + 4;
-    r.shuffle(start, end);
-
-    TESTEQUAL2("check element 0", 1, arr[0]);
-    TESTEQUAL2("check element 1", 4, arr[1]);
-    TESTEQUAL2("check element 2", 3, arr[2]);
-    TESTEQUAL2("check element 3", 2, arr[3]);
-  }
-
-  {
-    // tests for Cap'n Proto serialization
-    Random r1, r2;
-    UInt32 v1, v2;
-
-    const char* outputPath = "RandomTest1.temp";
-
-    {
-      std::ofstream out(outputPath, std::ios::binary);
-      r1.write(out);
-      out.close();
-    }
-    {
-      std::ifstream in(outputPath, std::ios::binary);
-      r2.read(in);
-      in.close();
-    }
     v1 = r1.getUInt32();
     v2 = r2.getUInt32();
-    TESTEQUAL2("check serialization for unused Random object", v1, v2);
+    if (v1 != v2)
+      break;
+  }
+  ASSERT_TRUE(v1 == v2) << "copy constructor";
+}
 
-    {
-      std::ofstream out(outputPath, std::ios::binary);
-      r1.write(out);
-      out.close();
-    }
-    {
-      std::ifstream in(outputPath, std::ios::binary);
-      r2.read(in);
-      in.close();
-    }
+TEST(RandomTest, OperatorEquals)
+{
+  // test operator=
+  Random r1(289436);
+  int i;
+  for (i = 0; i < 100; i++)
+    r1.getUInt32();
+  Random r2(86726008);
+  for (i = 0; i < 100; i++)
+    r2.getUInt32();
+
+  r2 = r1;
+  UInt32 v1, v2;
+  for (i = 0; i < 100; i++)
+  {
     v1 = r1.getUInt32();
     v2 = r2.getUInt32();
-    TESTEQUAL2("check serialization for used Random object", v1, v2);
+    if (v1 != v2)
+      break;
+  }
+  ASSERT_TRUE(v1 == v2) << "operator=";
+}
 
-    // clean up
-    remove(outputPath);
+TEST(RandomTest, SerializationDeserialization)
+{
+  // test serialization/deserialization
+  Random r1(862973);
+  int i;
+  for (i = 0; i < 100; i++)
+    r1.getUInt32();
+
+  // serialize
+  OMemStream ostream;
+  ostream << r1;
+
+  // print out serialization for debugging
+  std::string x(ostream.str(), ostream.pcount());
+  NTA_INFO << "random serialize string: '" << x << "'";
+  // Serialization should be deterministic and platform independent
+  std::string expectedString = "random-v1 862973 RandomImpl 2 31 4241808047 927171440 115246761 3188485113 2358188524 3270869522 282383075 1082613868 441984109 995051899 2794036324 2239422562 898636415 2372250535 3369849014 2122900843 1895341779 2450525880 394177447 3199534303 3887683026 656347524 48907782 1135809043 334191338 2900562231 197628021 1265227140 569581351 466443697 843098206 7 10 endrandom-v1";
+  ASSERT_EQ(expectedString, x);
+
+
+  // deserialize into r2
+  std::string s(ostream.str(), ostream.pcount());
+  std::stringstream ss(s);
+  Random r2;
+  ss >> r2;
+
+  // r1 and r2 should be identical
+  ASSERT_EQ(r1.getSeed(), r2.getSeed());
+
+  UInt32 v1, v2;
+  for (i = 0; i < 100; i++)
+  {
+    v1 = r1.getUInt32();
+    v2 = r2.getUInt32();
+    NTA_CHECK(v1 == v2);
+  }
+  ASSERT_EQ(v1, v2) << "serialization";
+}
+
+TEST(RandomTest, ReturnInCorrectRange)
+{
+  // make sure that we are returning values in the correct range
+  // @todo perform statistical tests
+  Random r;
+  UInt32 seed = r.getSeed();
+  ASSERT_TRUE(seed != 0) << "seed not zero";
+  int i;
+  UInt32 max32 = 10000000;
+  UInt64 max64 = (UInt64)max32 * (UInt64)max32;
+  for (i = 0; i < 200; i++)
+  {
+    UInt32 i32 = r.getUInt32(max32);
+    ASSERT_TRUE(i32 < max32) << "UInt32";
+    UInt64 i64 = r.getUInt64(max64);
+    ASSERT_TRUE(i64 < max64) << "UInt64";
+    Real64 r64 = r.getReal64();
+    ASSERT_TRUE(r64 >= 0.0 && r64 < 1.0) << "Real64";
+  }
+}
+
+TEST(RandomTest, getUInt64)
+{
+  // tests for getUInt64
+  Random r1(1);
+  ASSERT_EQ(3723745761376425000, r1.getUInt64()) 
+    << "check getUInt64, seed 1, first call";
+  ASSERT_EQ(7464235991977222558, r1.getUInt64())
+    << "check getUInt64, seed 1, second call";
+
+  Random r2(2);
+  ASSERT_EQ(7543924162171776743, r2.getUInt64())
+    << "check getUInt64, seed 2, first call";
+  ASSERT_EQ(1206857364816002550, r2.getUInt64())
+    << "check getUInt64, seed 2, second call";
+
+  Random r3(7464235991977222558);
+  ASSERT_EQ(3609339244249306794, r3.getUInt64())
+    << "check getUInt64, big seed, first call";
+  ASSERT_EQ(4084830275585779078, r3.getUInt64())
+    << "check getUInt64, big seed, second call";
+}
+
+TEST(RandomTest, getReal64)
+{
+  // tests for getReal64
+  Random r1(1);
+  ASSERT_FLOAT_EQ(0.40250281741114691, r1.getReal64());
+  ASSERT_FLOAT_EQ(0.29331049250469476, r1.getReal64());
+
+  Random r2(2);
+  ASSERT_FLOAT_EQ(0.40256278127972323, r2.getReal64());
+  ASSERT_FLOAT_EQ(0.6186683429386548, r2.getReal64());
+
+  Random r3(7464235991977222558);
+  ASSERT_FLOAT_EQ(0.94890447597450844, r3.getReal64());
+  ASSERT_FLOAT_EQ(0.23239565201722456, r3.getReal64());
+}
+
+TEST(RandomTest, Sampling)
+{
+  // tests for sampling
+
+  UInt32 population[] = {1, 2, 3, 4};
+  Random r(42);
+
+  {
+    // choose some elements
+    UInt32 choices[2];
+    r.sample(population, 4, choices, 2);
+    ASSERT_EQ(1, choices[0]) << "check element 0";
+    ASSERT_EQ(3, choices[1]) << "check element 1";
   }
 
+  {
+    // choose all elements
+    UInt32 choices[4];
+    r.sample(population, 4, choices, 4);
+    ASSERT_EQ(1, choices[0]) << "check element 0";
+    ASSERT_EQ(2, choices[1]) << "check element 1";
+    ASSERT_EQ(3, choices[2]) << "check element 2";
+    ASSERT_EQ(4, choices[3]) << "check element 3";
+  }
+
+  {
+    // nChoices > nPopulation
+    UInt32 choices[5];
+    bool caught = false;
+    try
+    {
+      r.sample(population, 4, choices, 5);
+    }
+    catch (LoggingException& exc)
+    {
+      caught = true;
+    }
+    ASSERT_TRUE(caught)
+      << "checking for exception from population too small";
+  }
+}
+
+TEST(RandomTest, Shuffling)
+{
+  // tests for shuffling
+  Random r(42);
+  UInt32 arr[] = {1, 2, 3, 4};
+
+  UInt32* start = arr;
+  UInt32* end = start + 4;
+  r.shuffle(start, end);
+
+  ASSERT_EQ(1, arr[0]) << "check element 0";
+  ASSERT_EQ(4, arr[1]) << "check element 1";
+  ASSERT_EQ(3, arr[2]) << "check element 2";
+  ASSERT_EQ(2, arr[3]) << "check element 3";
+}
+
+TEST(RandomTest, CapnpSerialization)
+{
+  // tests for Cap'n Proto serialization
+  Random r1, r2;
+  UInt32 v1, v2;
+
+  const char* outputPath = "RandomTest1.temp";
+
+  {
+    std::ofstream out(outputPath, std::ios::binary);
+    r1.write(out);
+    out.close();
+  }
+  {
+    std::ifstream in(outputPath, std::ios::binary);
+    r2.read(in);
+    in.close();
+  }
+  v1 = r1.getUInt32();
+  v2 = r2.getUInt32();
+  ASSERT_EQ(v1, v2) << "check serialization for unused Random object";
+
+  {
+    std::ofstream out(outputPath, std::ios::binary);
+    r1.write(out);
+    out.close();
+  }
+  {
+    std::ifstream in(outputPath, std::ios::binary);
+    r2.read(in);
+    in.close();
+  }
+  v1 = r1.getUInt32();
+  v2 = r2.getUInt32();
+  ASSERT_EQ(v1, v2) << "check serialization for used Random object";
+
+  // clean up
+  remove(outputPath);
 }

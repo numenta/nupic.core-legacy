@@ -25,15 +25,15 @@
  */     
               
 //#include <nupic/common/version.hpp>
-#include <nupic/math/ArrayAlgo.hpp>
-
-#include "IndexUnitTest.hpp"
-
-#include <boost/timer.hpp>       
-   
-using namespace std;  
-
-namespace nupic {
+// #include <nupic/math/ArrayAlgo.hpp>
+//
+// #include "IndexUnitTest.hpp"
+//
+// #include <boost/timer.hpp>
+//
+// using namespace std;
+//
+// namespace nupic {
 //
 //  //--------------------------------------------------------------------------------
 //  void IndexUnitTest::unitTestFixedIndex()
@@ -554,15 +554,15 @@ namespace nupic {
 //  }
 //
   //--------------------------------------------------------------------------------
-  void IndexUnitTest::RunTests()
-  {
+  // void IndexUnitTest::RunTests()
+  // {
 
     //unitTestFixedIndex();
     //unitTestDynamicIndex();
-  }
+  // }
 
   //--------------------------------------------------------------------------------
   
-} // namespace nupic
+// } // namespace nupic
 
 

@@ -291,12 +291,28 @@ class PyRegion(object):
     raise NotImplementedError()
 
 
-  @classmethod
-  def convertProto(cls, pyRegionProto):
-    return pyRegionProto.regionImpl.cast_as(cls.getProtoType())
-
-
   def write(self, proto):
+    """Calls writeToProto on subclass after converting proto to specific type
+    using getProtoType().
+
+    proto: PyRegionProto capnproto object
+    """
+    regionImpl = proto.regionImpl.as_struct(self.getProtoType())
+    self.writeToProto(regionImpl)
+
+
+  @classmethod
+  def read(cls, proto):
+    """Calls readFromProto on subclass after converting proto to specific type
+    using getProtoType().
+
+    proto: PyRegionProto capnproto object
+    """
+    regionImpl = proto.regionImpl.as_struct(cls.getProtoType())
+    return cls.readFromProto(regionImpl)
+
+
+  def writeToProto(self, proto):
     """Write state to proto object.
 
     The type of proto is determined by getProtoType().
@@ -304,34 +320,13 @@ class PyRegion(object):
     raise NotImplementedError()
 
 
-  def read(self, proto):
+  @classmethod
+  def readFromProto(cls, proto):
     """Read state from proto object.
 
     The type of proto is determined by getProtoType().
     """
     raise NotImplementedError()
-
-
-  def writePyRegion(self, pyRegionProto):
-    """Write state to generic PyRegionProto instance.
-
-    This is called by the C code. It converts the input to the proto type
-    understood by the region implementation and passes it to that subclass's
-    write method.
-    """
-    proto = self.convertProto(pyRegionProto)
-    self.write(proto)
-
-
-  def readPyRegion(self, pyRegionProto):
-    """Read state from generic PyRegionProto instance.
-
-    This is called by the C code. It converts the input to the proto type
-    understood by the region implementation and passes it to that subclass's
-    read method.
-    """
-    proto = self.convertProto(pyRegionProto)
-    self.read(proto)
 
 
   def executeMethod(self, methodName, args):

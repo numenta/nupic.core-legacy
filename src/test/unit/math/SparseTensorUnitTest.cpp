@@ -24,17 +24,17 @@
  * Implementation of unit testing for class SparseTensor
  */      
               
-#include "SparseTensorUnitTest.hpp"
-
-#include <boost/tuple/tuple.hpp>
-#include <boost/timer.hpp>
-#include <boost/lambda/lambda.hpp>
-
-using namespace std;      
-using namespace boost; 
-using namespace boost::lambda;    
-
-namespace nupic {
+// #include "SparseTensorUnitTest.hpp"
+//
+// #include <boost/tuple/tuple.hpp>
+// #include <boost/timer.hpp>
+// #include <boost/lambda/lambda.hpp>
+//
+// using namespace std;
+// using namespace boost;
+// using namespace boost::lambda;
+//
+// namespace nupic {
 //
 //  //--------------------------------------------------------------------------------
 //  template <typename I, typename I2, typename F>
@@ -3263,8 +3263,8 @@ namespace nupic {
 //  }
 //
   //--------------------------------------------------------------------------------
-  void SparseTensorUnitTest::RunTests()
-  {
+  // void SparseTensorUnitTest::RunTests()
+  // {
     //
     //unitTestConstruction();
     //unitTestGetSet();
@@ -3293,10 +3293,10 @@ namespace nupic {
     //unitTestMultiply();
     ////unitTestNumericalStability();
     ////unitTestPerformance();
-  } 
+  // } 
 
   //--------------------------------------------------------------------------------
   
-} // namespace nupic
+// } // namespace nupic
 
 

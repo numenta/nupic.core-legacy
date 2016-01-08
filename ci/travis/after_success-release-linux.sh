@@ -36,7 +36,7 @@ pip install twine --user || exit
 echo "Creating distribution files..."
 # This release build creates the source distribution. All other release builds
 # should not.
-python setup.py sdist bdist bdist_wheel --nupic-core-dir=${TRAVIS_BUILD_DIR}/build/release -d dist || exit
+python setup.py sdist bdist bdist_wheel -d dist || exit
 
 echo "Created the following distribution files:"
 ls -l bindings/py/dist
@@ -55,4 +55,4 @@ twine upload bindings/py/dist/nupic.bindings-*.egg -u "${PYPI_USERNAME}" -p "${P
 
 wheel_file=`ls bindings/py/dist/*.whl`
 echo "Deploying ${wheel_file} to S3..."
-python ci/travis/deploy-wheel-to-s3.py "${wheel_file}"
+python ci/deploy-wheel-to-s3.py "${wheel_file}"

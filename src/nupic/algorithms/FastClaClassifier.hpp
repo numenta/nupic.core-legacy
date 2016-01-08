@@ -35,9 +35,8 @@
 
 #include <nupic/algorithms/BitHistory.hpp>
 #include <nupic/proto/ClaClassifier.capnp.h>
+#include <nupic/types/Serializable.hpp>
 #include <nupic/types/Types.hpp>
-
-using namespace std;
 
 namespace nupic
 {
@@ -64,7 +63,7 @@ namespace nupic
        * cycles are stored in BitHistory objects in activeBitHistory_.
        *
        */
-      class FastCLAClassifier
+      class FastCLAClassifier : public Serializable<ClaClassifierProto>
       {
         public:
 
@@ -126,32 +125,32 @@ namespace nupic
           /**
            * Save the state to the ostream.
            */
-          void save(ostream& outStream) const;
+          void save(std::ostream& outStream) const;
 
           /**
            * Load state from istream.
            */
-          void load(istream& inStream);
+          void load(std::istream& inStream);
 
           /**
            * Save the state to the builder.
            */
-          void write(ClaClassifierProto::Builder& proto) const;
+          void write(ClaClassifierProto::Builder& proto) const override;
 
           /**
            * Save the state to the stream.
            */
-          void write(ostream& proto) const;
+          using Serializable::write;
 
           /**
            * Load state from reader.
            */
-          void read(ClaClassifierProto::Reader& proto);
+          void read(ClaClassifierProto::Reader& proto) override;
 
           /**
            * Load state from stream.
            */
-          void read(istream& stream);
+          using Serializable::read;
 
           /**
            * Compare the other instance to this one.

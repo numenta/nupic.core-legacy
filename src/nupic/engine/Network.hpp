@@ -38,6 +38,7 @@
 #include <nupic/proto/NetworkProto.capnp.h>
 #include <nupic/proto/RegionProto.capnp.h>
 #include <nupic/types/Types.hpp>
+#include <nupic/types/Serializable.hpp>
 
 namespace nupic
 {
@@ -52,7 +53,7 @@ namespace nupic
    *
    * @nosubgrouping
    */
-  class Network
+  class Network : public Serializable<NetworkProto>
   {
   public:
 
@@ -386,10 +387,10 @@ namespace nupic
     resetProfiling();
 
     // Capnp serialization methods
-    void write(std::ostream& stream) const;
-    void read(std::istream& stream);
-    void write(NetworkProto::Builder& proto) const;
-    void read(NetworkProto::Reader& proto);
+    using Serializable::write;
+    virtual void write(NetworkProto::Builder& proto) const override;
+    using Serializable::read;
+    virtual void read(NetworkProto::Reader& proto) override;
 
     /**
      * @}

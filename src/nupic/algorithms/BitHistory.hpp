@@ -32,6 +32,7 @@
 #include <vector>
 
 #include <nupic/proto/BitHistory.capnp.h>
+#include <nupic/types/Serializable.hpp>
 #include <nupic/types/Types.hpp>
 
 using namespace std;
@@ -52,7 +53,7 @@ namespace nupic
        * TODO: Support serialization and deserialization.
        *
        */
-      class BitHistory
+      class BitHistory : public Serializable<BitHistoryProto>
       {
         public:
           /**
@@ -108,11 +109,13 @@ namespace nupic
           /**
            * Save the state to the builder.
            */
+          using Serializable::write;
           void write(BitHistoryProto::Builder& builder) const;
 
           /**
            * Load state from reader.
            */
+          using Serializable::read;
           void read(BitHistoryProto::Reader& proto);
 
           /**

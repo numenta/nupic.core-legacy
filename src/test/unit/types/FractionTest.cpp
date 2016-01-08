@@ -24,14 +24,15 @@
  * Implementation of Fraction test
  */
 
-#include "FractionTest.hpp"
 #include <nupic/types/Fraction.hpp>
 #include <sstream>
 #include <limits>
+#include <nupic/types/Types.hpp>
+#include <gtest/gtest.h>
 
 using namespace nupic;
 
-void FractionTest::RunTests()
+TEST(FractionTest, All)
 {
   //create fractions
   Fraction(1);
@@ -46,239 +47,239 @@ void FractionTest::RunTests()
   // Current overflow cutoff of 10 million
   const static int tooLarge = 20000000;
 
-  SHOULDFAIL(Fraction(3, 0));
-  SHOULDFAIL(Fraction(-3, 0));
-  SHOULDFAIL(Fraction(0, 0));
-  SHOULDFAIL(Fraction(tooLarge, 0));
-  SHOULDFAIL(Fraction(tooLarge, 1));
-  SHOULDFAIL(Fraction(0, tooLarge));
+  ASSERT_ANY_THROW(Fraction(3, 0));
+  ASSERT_ANY_THROW(Fraction(-3, 0));
+  ASSERT_ANY_THROW(Fraction(0, 0));
+  ASSERT_ANY_THROW(Fraction(tooLarge, 0));
+  ASSERT_ANY_THROW(Fraction(tooLarge, 1));
+  ASSERT_ANY_THROW(Fraction(0, tooLarge));
   // There is some strange interaction with the SHOULDFAIL macro here. 
   // Without this syntax, the compiler thinks we're declaring a new variable
   // tooLarge of type Fraction (which masks the old tooLarge). 
-  SHOULDFAIL(Fraction x(tooLarge));
-  SHOULDFAIL(Fraction(20000000));
-  SHOULDFAIL(Fraction(-tooLarge));
-  SHOULDFAIL(Fraction(-tooLarge, 0));
-  SHOULDFAIL(Fraction(0, -tooLarge));
-  SHOULDFAIL(Fraction(-tooLarge));
-  SHOULDFAIL(new Fraction(std::numeric_limits<int>::max()));
-  SHOULDFAIL(new Fraction(std::numeric_limits<int>::min()));
+  ASSERT_ANY_THROW(Fraction x(tooLarge));
+  ASSERT_ANY_THROW(Fraction(20000000));
+  ASSERT_ANY_THROW(Fraction(-tooLarge));
+  ASSERT_ANY_THROW(Fraction(-tooLarge, 0));
+  ASSERT_ANY_THROW(Fraction(0, -tooLarge));
+  ASSERT_ANY_THROW(Fraction(-tooLarge));
+  ASSERT_ANY_THROW(new Fraction(std::numeric_limits<int>::max()));
+  ASSERT_ANY_THROW(new Fraction(std::numeric_limits<int>::min()));
     
   //Test isNaturalNumber() (natural numbers must be nonnegative)
-  TEST(Fraction(1).isNaturalNumber());
-  TEST(Fraction(0).isNaturalNumber());
-  TEST(!Fraction(-1).isNaturalNumber());
-  TEST(!Fraction(1, 2).isNaturalNumber());
-  TEST(Fraction(2, 1).isNaturalNumber());
-  TEST(!Fraction(-1, 2).isNaturalNumber());
-  TEST(!Fraction(-2, 1).isNaturalNumber());
-  TEST(!Fraction(3, 2).isNaturalNumber());
-  TEST(!Fraction(-3, 2).isNaturalNumber());
+  ASSERT_TRUE(Fraction(1).isNaturalNumber());
+  ASSERT_TRUE(Fraction(0).isNaturalNumber());
+  ASSERT_TRUE(!Fraction(-1).isNaturalNumber());
+  ASSERT_TRUE(!Fraction(1, 2).isNaturalNumber());
+  ASSERT_TRUE(Fraction(2, 1).isNaturalNumber());
+  ASSERT_TRUE(!Fraction(-1, 2).isNaturalNumber());
+  ASSERT_TRUE(!Fraction(-2, 1).isNaturalNumber());
+  ASSERT_TRUE(!Fraction(3, 2).isNaturalNumber());
+  ASSERT_TRUE(!Fraction(-3, 2).isNaturalNumber());
 
   //Test getNumerator()
-  TESTEQUAL(2, Fraction(2, 1).getNumerator());
-  TESTEQUAL(0, Fraction(0, 1).getNumerator());
-  TESTEQUAL(-2, Fraction(-2, 1).getNumerator());
-  TESTEQUAL(2, Fraction(2, -2).getNumerator());
-  TESTEQUAL(0, Fraction(0, -2).getNumerator());
-  TESTEQUAL(-2, Fraction(-2, -2).getNumerator());
+  ASSERT_EQ(2, Fraction(2, 1).getNumerator());
+  ASSERT_EQ(0, Fraction(0, 1).getNumerator());
+  ASSERT_EQ(-2, Fraction(-2, 1).getNumerator());
+  ASSERT_EQ(2, Fraction(2, -2).getNumerator());
+  ASSERT_EQ(0, Fraction(0, -2).getNumerator());
+  ASSERT_EQ(-2, Fraction(-2, -2).getNumerator());
 
   //Test getDenominator()
-  TESTEQUAL(1, Fraction(0).getDenominator());
-  TESTEQUAL(1, Fraction(2).getDenominator());
-  TESTEQUAL(-2, Fraction(0, -2).getDenominator());
-  TESTEQUAL(-2, Fraction(-2, -2).getDenominator());
+  ASSERT_EQ(1, Fraction(0).getDenominator());
+  ASSERT_EQ(1, Fraction(2).getDenominator());
+  ASSERT_EQ(-2, Fraction(0, -2).getDenominator());
+  ASSERT_EQ(-2, Fraction(-2, -2).getDenominator());
   
   //Test setNumerator()
   Fraction b(1);
   b.setNumerator(0);
-  TESTEQUAL(0, b.getNumerator());
+  ASSERT_EQ(0, b.getNumerator());
   b = Fraction(2, 3);
   b.setNumerator(-2);
-  TESTEQUAL(-2, b.getNumerator());
+  ASSERT_EQ(-2, b.getNumerator());
   b = Fraction(2, -3);
   b.setNumerator(2);
-  TESTEQUAL(2, b.getNumerator());
+  ASSERT_EQ(2, b.getNumerator());
 
   //Test setDenominator()
-  SHOULDFAIL(Fraction(1).setDenominator(0));
+  ASSERT_ANY_THROW(Fraction(1).setDenominator(0));
   b = Fraction(1);
   b.setDenominator(2);
-  TESTEQUAL(2, b.getDenominator());
+  ASSERT_EQ(2, b.getDenominator());
   b = Fraction(-2, 3);
   b.setDenominator(5);
-  TESTEQUAL(5, b.getDenominator());
+  ASSERT_EQ(5, b.getDenominator());
 
   //Test setFraction()
-  SHOULDFAIL(Fraction(1).setFraction(1, 0));
-  SHOULDFAIL(Fraction(-2).setFraction(-3, 0));
+  ASSERT_ANY_THROW(Fraction(1).setFraction(1, 0));
+  ASSERT_ANY_THROW(Fraction(-2).setFraction(-3, 0));
   b = Fraction(2);
   b.setFraction(1, 1);
-  TEST(Fraction(1) == b);
+  ASSERT_TRUE(Fraction(1) == b);
   b = Fraction(1);
   b.setFraction(-1, 2);
-  TEST(Fraction(-1, 2) == b);
+  ASSERT_TRUE(Fraction(-1, 2) == b);
   b = Fraction(0);
   b.setFraction(-6, 4);
-  TEST(Fraction(-6, 4) == b);
+  ASSERT_TRUE(Fraction(-6, 4) == b);
   
   //Test computeGCD()
-  TESTEQUAL((UInt32)5, Fraction::computeGCD(5, 10));
-  TESTEQUAL((UInt32)1, Fraction::computeGCD(1, 1));
-  TESTEQUAL((UInt32)1, Fraction::computeGCD(0, 1));
-  TESTEQUAL((UInt32)3, Fraction::computeGCD(3, 0));
-  TESTEQUAL((UInt32)1, Fraction::computeGCD(1, 0));
-  TESTEQUAL((UInt32)1, Fraction::computeGCD(1, -1));
+  ASSERT_EQ((UInt32)5, Fraction::computeGCD(5, 10));
+  ASSERT_EQ((UInt32)1, Fraction::computeGCD(1, 1));
+  ASSERT_EQ((UInt32)1, Fraction::computeGCD(0, 1));
+  ASSERT_EQ((UInt32)3, Fraction::computeGCD(3, 0));
+  ASSERT_EQ((UInt32)1, Fraction::computeGCD(1, 0));
+  ASSERT_EQ((UInt32)1, Fraction::computeGCD(1, -1));
 
   //Test computeLCM
-  TESTEQUAL((UInt32)10, Fraction::computeLCM(5, 2));
-  TESTEQUAL((UInt32)1, Fraction::computeLCM(1, 1));
-  TESTEQUAL((UInt32)0, Fraction::computeLCM(0, 0));
-  TESTEQUAL((UInt32)0, Fraction::computeLCM(0, -1));
-  TESTEQUAL((UInt32)0 , Fraction::computeLCM(-1, 2));
+  ASSERT_EQ((UInt32)10, Fraction::computeLCM(5, 2));
+  ASSERT_EQ((UInt32)1, Fraction::computeLCM(1, 1));
+  ASSERT_EQ((UInt32)0, Fraction::computeLCM(0, 0));
+  ASSERT_EQ((UInt32)0, Fraction::computeLCM(0, -1));
+  ASSERT_EQ((UInt32)0 , Fraction::computeLCM(-1, 2));
   
   //Test reduce()
   Fraction a = Fraction(1);
   a.reduce();
-  TESTEQUAL(1, a.getNumerator());
-  TESTEQUAL(1, a.getDenominator());
+  ASSERT_EQ(1, a.getNumerator());
+  ASSERT_EQ(1, a.getDenominator());
   a = Fraction(2, 2);
   a.reduce();
-  TESTEQUAL(1, a.getNumerator());
-  TESTEQUAL(1, a.getDenominator());
+  ASSERT_EQ(1, a.getNumerator());
+  ASSERT_EQ(1, a.getDenominator());
   a = Fraction(-1);
   a.reduce();
-  TESTEQUAL(-1, a.getNumerator());
-  TESTEQUAL(1, a.getDenominator());
+  ASSERT_EQ(-1, a.getNumerator());
+  ASSERT_EQ(1, a.getDenominator());
   a = Fraction(-1, -1);
   a.reduce();
-  TESTEQUAL(1, a.getNumerator());
-  TESTEQUAL(1, a.getDenominator());
+  ASSERT_EQ(1, a.getNumerator());
+  ASSERT_EQ(1, a.getDenominator());
   a = Fraction(2, -2);
   a.reduce();
-  TESTEQUAL(-1, a.getNumerator());
-  TESTEQUAL(1, a.getDenominator());
+  ASSERT_EQ(-1, a.getNumerator());
+  ASSERT_EQ(1, a.getDenominator());
   a = Fraction(-2, 2);
   a.reduce();
-  TESTEQUAL(-1, a.getNumerator());
-  TESTEQUAL(1, a.getDenominator());
+  ASSERT_EQ(-1, a.getNumerator());
+  ASSERT_EQ(1, a.getDenominator());
   a = Fraction(20, 6);
   a.reduce();
-  TESTEQUAL(10, a.getNumerator());
-  TESTEQUAL(3, a.getDenominator());
+  ASSERT_EQ(10, a.getNumerator());
+  ASSERT_EQ(3, a.getDenominator());
   a = Fraction(-2, 6);
   a.reduce();
-  TESTEQUAL(-1, a.getNumerator());
-  TESTEQUAL(3, a.getDenominator());
+  ASSERT_EQ(-1, a.getNumerator());
+  ASSERT_EQ(3, a.getDenominator());
 
   //Test *
   Fraction one = Fraction(1);
   Fraction zero = Fraction(0);
   Fraction neg_one = Fraction(-1);
-  TEST(one == one*one);
-  TEST(one == neg_one*neg_one);
-  TEST(zero == zero*one);
-  TEST(zero == zero*zero);
-  TEST(zero == zero*neg_one);
-  TEST(neg_one == one*neg_one);
-  TEST(neg_one == neg_one*one);
-  TEST(Fraction(10) == one*Fraction(20, 2));
+  ASSERT_TRUE(one == one*one);
+  ASSERT_TRUE(one == neg_one*neg_one);
+  ASSERT_TRUE(zero == zero*one);
+  ASSERT_TRUE(zero == zero*zero);
+  ASSERT_TRUE(zero == zero*neg_one);
+  ASSERT_TRUE(neg_one == one*neg_one);
+  ASSERT_TRUE(neg_one == neg_one*one);
+  ASSERT_TRUE(Fraction(10) == one*Fraction(20, 2));
 
-  TEST(one == one*1);
-  TEST(one == one*1);
-  TEST(zero == zero*1);
-  TEST(zero == zero*1);
-  TEST(zero == zero*-1);
-  TEST(zero == zero*-1);
-  TEST(-1 == one*-1);
-  TEST(-1 == neg_one*1);
-  TEST(Fraction(10) == one*10);
-  TEST(Fraction(10) == neg_one*-10);
+  ASSERT_TRUE(one == one*1);
+  ASSERT_TRUE(one == one*1);
+  ASSERT_TRUE(zero == zero*1);
+  ASSERT_TRUE(zero == zero*1);
+  ASSERT_TRUE(zero == zero*-1);
+  ASSERT_TRUE(zero == zero*-1);
+  ASSERT_TRUE(-1 == one*-1);
+  ASSERT_TRUE(-1 == neg_one*1);
+  ASSERT_TRUE(Fraction(10) == one*10);
+  ASSERT_TRUE(Fraction(10) == neg_one*-10);
   
   //Test /
-  TEST(one == one/one);
-  TEST(zero == zero/one);
-  TEST(zero == zero/neg_one);
-  TEST(Fraction(-0) == zero/neg_one);
-  SHOULDFAIL(one/zero);
-  TEST(Fraction(3, 2) == Fraction(3)/Fraction(2));
-  TEST(Fraction(2, -3) == Fraction(2)/Fraction(-3));
+  ASSERT_TRUE(one == one/one);
+  ASSERT_TRUE(zero == zero/one);
+  ASSERT_TRUE(zero == zero/neg_one);
+  ASSERT_TRUE(Fraction(-0) == zero/neg_one);
+  ASSERT_ANY_THROW(one/zero);
+  ASSERT_TRUE(Fraction(3, 2) == Fraction(3)/Fraction(2));
+  ASSERT_TRUE(Fraction(2, -3) == Fraction(2)/Fraction(-3));
 
   //Test -
-  TEST(zero == one - one);
-  TEST(neg_one == zero - one);
-  TEST(one == zero - neg_one);
-  TEST(zero == neg_one - neg_one);
-  TEST(Fraction(1, 2) == Fraction(3, 2) - one);
-  TEST(Fraction(-1, 2) == Fraction(-3, 2) - neg_one);
+  ASSERT_TRUE(zero == one - one);
+  ASSERT_TRUE(neg_one == zero - one);
+  ASSERT_TRUE(one == zero - neg_one);
+  ASSERT_TRUE(zero == neg_one - neg_one);
+  ASSERT_TRUE(Fraction(1, 2) == Fraction(3, 2) - one);
+  ASSERT_TRUE(Fraction(-1, 2) == Fraction(-3, 2) - neg_one);
 
   //Test +
-  TEST(zero == neg_one + one);
-  TEST(one == zero + one);
-  TEST(one == (neg_one + one) + one);
-  TEST(one == one + zero);
-  TEST(Fraction(-2) == neg_one + neg_one);
-  TEST(Fraction(1, 2) == Fraction(-1, 2) + one);
-  TEST(Fraction(-3, 2) == neg_one + Fraction(-1, 2));
+  ASSERT_TRUE(zero == neg_one + one);
+  ASSERT_TRUE(one == zero + one);
+  ASSERT_TRUE(one == (neg_one + one) + one);
+  ASSERT_TRUE(one == one + zero);
+  ASSERT_TRUE(Fraction(-2) == neg_one + neg_one);
+  ASSERT_TRUE(Fraction(1, 2) == Fraction(-1, 2) + one);
+  ASSERT_TRUE(Fraction(-3, 2) == neg_one + Fraction(-1, 2));
 
   //Test %
-  TEST(Fraction(1, 2) == Fraction(3, 2) % one);
-  TEST(Fraction(-1, 2) == Fraction(-1, 2) % one);
-  TEST(Fraction(3, 2) == Fraction(7, 2) % Fraction(2));
-  TEST(Fraction(-1, 2) == Fraction(-3, 2) % one);
-  TEST(Fraction(-1, 2) == Fraction(-3, 2) % neg_one);
-  TEST(Fraction(1, 2) == Fraction(3, 2) % neg_one);
-  SHOULDFAIL(Fraction(1, 2) % Fraction(0));
-  SHOULDFAIL(Fraction(-3,2) % Fraction(0, -2));
+  ASSERT_TRUE(Fraction(1, 2) == Fraction(3, 2) % one);
+  ASSERT_TRUE(Fraction(-1, 2) == Fraction(-1, 2) % one);
+  ASSERT_TRUE(Fraction(3, 2) == Fraction(7, 2) % Fraction(2));
+  ASSERT_TRUE(Fraction(-1, 2) == Fraction(-3, 2) % one);
+  ASSERT_TRUE(Fraction(-1, 2) == Fraction(-3, 2) % neg_one);
+  ASSERT_TRUE(Fraction(1, 2) == Fraction(3, 2) % neg_one);
+  ASSERT_ANY_THROW(Fraction(1, 2) % Fraction(0));
+  ASSERT_ANY_THROW(Fraction(-3,2) % Fraction(0, -2));
 
   //Test <
-  TEST(zero < one);
-  TEST(!(one < zero));
-  TEST(!(zero < zero));
-  TEST(!(one < one));
-  TEST(Fraction(1, 2) < one);
-  TEST(Fraction(-3, 2) < Fraction(1, -2));
-  TEST(Fraction(-1, 2) < Fraction(3, 2));
+  ASSERT_TRUE(zero < one);
+  ASSERT_TRUE(!(one < zero));
+  ASSERT_TRUE(!(zero < zero));
+  ASSERT_TRUE(!(one < one));
+  ASSERT_TRUE(Fraction(1, 2) < one);
+  ASSERT_TRUE(Fraction(-3, 2) < Fraction(1, -2));
+  ASSERT_TRUE(Fraction(-1, 2) < Fraction(3, 2));
 
   //Test >
-  TEST(one > zero);
-  TEST(!(zero > zero));
-  TEST(!(one > one));
-  TEST(!(zero > one));
-  TEST(one > Fraction(1, 2));
-  TEST(Fraction(1, -2) > Fraction(-3, 2));
-  TEST(Fraction(1, 2) > Fraction(-3, 2));
+  ASSERT_TRUE(one > zero);
+  ASSERT_TRUE(!(zero > zero));
+  ASSERT_TRUE(!(one > one));
+  ASSERT_TRUE(!(zero > one));
+  ASSERT_TRUE(one > Fraction(1, 2));
+  ASSERT_TRUE(Fraction(1, -2) > Fraction(-3, 2));
+  ASSERT_TRUE(Fraction(1, 2) > Fraction(-3, 2));
 
   //Test <=
-  TEST(zero <= one);
-  TEST(!(one <= zero));
-  TEST(Fraction(1, 2) <= one);
-  TEST(Fraction(-3, 2) <= Fraction(1, -2));
-  TEST(Fraction(-1, 2) <= Fraction(3, 2));
-  TEST(zero <= zero);
-  TEST(one <= one);
-  TEST(neg_one <= neg_one);
-  TEST(Fraction(-7, 4) <= Fraction(14, -8));
+  ASSERT_TRUE(zero <= one);
+  ASSERT_TRUE(!(one <= zero));
+  ASSERT_TRUE(Fraction(1, 2) <= one);
+  ASSERT_TRUE(Fraction(-3, 2) <= Fraction(1, -2));
+  ASSERT_TRUE(Fraction(-1, 2) <= Fraction(3, 2));
+  ASSERT_TRUE(zero <= zero);
+  ASSERT_TRUE(one <= one);
+  ASSERT_TRUE(neg_one <= neg_one);
+  ASSERT_TRUE(Fraction(-7, 4) <= Fraction(14, -8));
 
   //Test >=
-  TEST(one >= zero);
-  TEST(!(zero >= one));
-  TEST(one >= Fraction(1, 2));
-  TEST(Fraction(1, -2) >= Fraction(-3, 2));
-  TEST(Fraction(1, 2) >= Fraction(-3, 2));
-  TEST(zero >= zero);
-  TEST(one >= one);
-  TEST(neg_one >= neg_one);
-  TEST(Fraction(-7, 4) >= Fraction(14, -8));
+  ASSERT_TRUE(one >= zero);
+  ASSERT_TRUE(!(zero >= one));
+  ASSERT_TRUE(one >= Fraction(1, 2));
+  ASSERT_TRUE(Fraction(1, -2) >= Fraction(-3, 2));
+  ASSERT_TRUE(Fraction(1, 2) >= Fraction(-3, 2));
+  ASSERT_TRUE(zero >= zero);
+  ASSERT_TRUE(one >= one);
+  ASSERT_TRUE(neg_one >= neg_one);
+  ASSERT_TRUE(Fraction(-7, 4) >= Fraction(14, -8));
 
   //Test ==
-  TEST(one == one);
-  TEST(zero == zero);
-  TEST(!(one == zero));
-  TEST(Fraction(1, 2) == Fraction(2, 4));
-  TEST(Fraction(-1, 2) == Fraction(2, -4));
-  TEST(Fraction(0, 1) == Fraction(0, -1));
-  TEST(Fraction(0, 1) == Fraction(0, 2));
+  ASSERT_TRUE(one == one);
+  ASSERT_TRUE(zero == zero);
+  ASSERT_TRUE(!(one == zero));
+  ASSERT_TRUE(Fraction(1, 2) == Fraction(2, 4));
+  ASSERT_TRUE(Fraction(-1, 2) == Fraction(2, -4));
+  ASSERT_TRUE(Fraction(0, 1) == Fraction(0, -1));
+  ASSERT_TRUE(Fraction(0, 1) == Fraction(0, 2));
 
   //Test <<
   std::stringstream ss;
@@ -317,29 +318,29 @@ void FractionTest::RunTests()
   ss.str("");
 
   //Test fromDouble()
-  TEST(one == Fraction::fromDouble(1.0));
-  TEST(zero == Fraction::fromDouble(0.0));
-  TEST(Fraction(1, 2) == Fraction::fromDouble(0.5));
-  TEST(Fraction(-1, 2) == Fraction::fromDouble(-0.5));
-  TEST(Fraction(333, 1000) == Fraction::fromDouble(.333));
-  TEST(Fraction(1, 3) == Fraction::fromDouble(.3333333));
-  TEST(Fraction(1, -3) == Fraction::fromDouble(-.33333333));
-  SHOULDFAIL(Fraction::fromDouble((double)(tooLarge)));
-  SHOULDFAIL(Fraction::fromDouble(1.0/(double)(tooLarge)));
-  SHOULDFAIL(Fraction::fromDouble(-(double)tooLarge));
-  SHOULDFAIL(Fraction::fromDouble(-1.0/(double)(tooLarge)));
-  SHOULDFAIL(Fraction::fromDouble(std::numeric_limits<double>::max()));
-  SHOULDFAIL(Fraction::fromDouble(std::numeric_limits<double>::min()));
-  SHOULDFAIL(Fraction::fromDouble(-std::numeric_limits<double>::max()));
-  SHOULDFAIL(Fraction::fromDouble(-std::numeric_limits<double>::min()));
+  ASSERT_TRUE(one == Fraction::fromDouble(1.0));
+  ASSERT_TRUE(zero == Fraction::fromDouble(0.0));
+  ASSERT_TRUE(Fraction(1, 2) == Fraction::fromDouble(0.5));
+  ASSERT_TRUE(Fraction(-1, 2) == Fraction::fromDouble(-0.5));
+  ASSERT_TRUE(Fraction(333, 1000) == Fraction::fromDouble(.333));
+  ASSERT_TRUE(Fraction(1, 3) == Fraction::fromDouble(.3333333));
+  ASSERT_TRUE(Fraction(1, -3) == Fraction::fromDouble(-.33333333));
+  ASSERT_ANY_THROW(Fraction::fromDouble((double)(tooLarge)));
+  ASSERT_ANY_THROW(Fraction::fromDouble(1.0/(double)(tooLarge)));
+  ASSERT_ANY_THROW(Fraction::fromDouble(-(double)tooLarge));
+  ASSERT_ANY_THROW(Fraction::fromDouble(-1.0/(double)(tooLarge)));
+  ASSERT_ANY_THROW(Fraction::fromDouble(std::numeric_limits<double>::max()));
+  ASSERT_ANY_THROW(Fraction::fromDouble(std::numeric_limits<double>::min()));
+  ASSERT_ANY_THROW(Fraction::fromDouble(-std::numeric_limits<double>::max()));
+  ASSERT_ANY_THROW(Fraction::fromDouble(-std::numeric_limits<double>::min()));
 
   //Test toDouble()
-  TESTEQUAL(0.0, Fraction(0).toDouble());
-  TESTEQUAL(0.0, Fraction(-0).toDouble());
-  TESTEQUAL(0.0, Fraction(0, 1).toDouble());
-  TESTEQUAL(0.5, Fraction(1, 2).toDouble());
-  TESTEQUAL(-0.5, Fraction(-1, 2).toDouble());
-  TESTEQUAL(-0.5, Fraction(1, -2).toDouble());
-  TESTEQUAL(0.5, Fraction(-1, -2).toDouble());
+  ASSERT_EQ(0.0, Fraction(0).toDouble());
+  ASSERT_EQ(0.0, Fraction(-0).toDouble());
+  ASSERT_EQ(0.0, Fraction(0, 1).toDouble());
+  ASSERT_EQ(0.5, Fraction(1, 2).toDouble());
+  ASSERT_EQ(-0.5, Fraction(-1, 2).toDouble());
+  ASSERT_EQ(-0.5, Fraction(1, -2).toDouble());
+  ASSERT_EQ(0.5, Fraction(-1, -2).toDouble());
 
 }

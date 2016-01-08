@@ -309,23 +309,4 @@ const Dimensions& RegionImpl::getDimensions()
   return region_->getDimensions();
 }
 
-void RegionImpl::writeToStream(std::ostream& stream) const
-{
-  capnp::MallocMessageBuilder message;
-  capnp::AnyPointer::Builder proto = message.initRoot<capnp::AnyPointer>();
-  this->write(proto);
-
-  kj::std::StdOutputStream out(stream);
-  capnp::writeMessage(out, message);
-}
-
-void RegionImpl::readFromStream(std::istream& stream)
-{
-  kj::std::StdInputStream in(stream);
-
-  capnp::InputStreamMessageReader message(in);
-  capnp::AnyPointer::Reader proto = message.getRoot<capnp::AnyPointer>();
-  this->read(proto);
-}
-
 }

@@ -42,6 +42,7 @@
 #include <nupic/ntypes/MemParser.hpp>
 #include <nupic/ntypes/MemStream.hpp>
 #include <nupic/proto/SparseMatrixProto.capnp.h>
+#include <nupic/types/Serializable.hpp>
 
 namespace nupic {
 
@@ -113,7 +114,7 @@ struct SparseMatrixAlgorithms;
 template <typename UI = nupic::UInt32, typename Real_stor = nupic::Real32,
           typename I = nupic::Int32, typename Real_prec = nupic::Real64,
           typename DTZ = nupic::DistanceToZero<Real_stor>>
-class SparseMatrix {
+class SparseMatrix : public Serializable<SparseMatrixProto> {
   // TODO find boost config flag to enable ullong as UnsignedInteger
   // BOOST_CLASS_REQUIRE(UI, boost, UnsignedIntegerConcept);
   BOOST_CLASS_REQUIRE(I, boost, SignedIntegerConcept);
@@ -2743,6 +2744,8 @@ public:
   /**
    * Write to a Cap'n Proto object.
    */
+  using Serializable::write;
+
   inline void write(SparseMatrixProto::Builder &proto) const {
     proto.setNumRows(nrows_);
     proto.setNumColumns(ncols_);
@@ -2765,6 +2768,8 @@ public:
   /**
    * Read from a Cap'n Proto object.
    */
+  using Serializable::read;
+
   inline void read(SparseMatrixProto::Reader &proto) {
     auto nrows = proto.getNumRows();
     auto ncols = proto.getNumColumns();
@@ -6693,7 +6698,8 @@ public:
       assert_valid_row_(row, "thresholdRow");
     } // End pre-conditions
 
-    filterRow(row, std::bind2nd(std::greater_equal<value_type>(), threshold));
+    filterRow(row, std::bind(std::greater_equal<value_type>(),
+                             std::placeholders::_1, threshold));
   }
 
   template <typename OutputIterator1, typename OutputIterator2>
@@ -6704,7 +6710,8 @@ public:
     } // End pre-conditions
 
     return filterRow(row,
-                     std::bind2nd(std::greater_equal<value_type>(), threshold),
+                     std::bind(std::greater_equal<value_type>(),
+                               std::placeholders::_1, threshold),
                      cut_j, cut_nz);
   }
 
@@ -6726,7 +6733,8 @@ public:
       assert_valid_col_(col, "thresholdCol");
     } // End pre-conditions
 
-    filterCol(col, std::bind2nd(std::greater_equal<value_type>(), threshold));
+    filterCol(col, std::bind(std::greater_equal<value_type>(),
+                             std::placeholders::_1, threshold));
   }
 
   /**
@@ -6741,13 +6749,15 @@ public:
    *  @li None.
    */
   inline void threshold(const value_type &threshold = nupic::Epsilon) {
-    filter(std::bind2nd(std::greater_equal<value_type>(), threshold));
+    filter(std::bind(std::greater_equal<value_type>(),
+                     std::placeholders::_1, threshold));
   }
 
   template <typename OutputIterator1, typename OutputIterator2>
   inline size_type threshold(const value_type &threshold, OutputIterator1 cut_i,
                              OutputIterator1 cut_j, OutputIterator2 cut_nz) {
-    return filter(std::bind2nd(std::greater_equal<value_type>(), threshold),
+    return filter(std::bind(std::greater_equal<value_type>(),
+                            std::placeholders::_1, threshold),
                   cut_i, cut_j, cut_nz);
   }
 
@@ -7029,7 +7039,8 @@ public:
     } // End pre-conditions
 
     return countWhere(begin_row, end_row, begin_col, end_col,
-                      std::bind2nd(std::equal_to<value_type>(), value));
+                      std::bind(std::equal_to<value_type>(),
+                                std::placeholders::_1, value));
   }
 
   /**
@@ -7064,8 +7075,9 @@ public:
     } // End pre-conditions
 
     findIndices(begin_row, end_row, begin_col, end_col,
-                std::bind2nd(std::equal_to<value_type>(), value), row_it,
-                col_it);
+                std::bind(std::equal_to<value_type>(),
+                          std::placeholders::_1, value),
+                row_it, col_it);
   }
 
   /**
@@ -7094,7 +7106,8 @@ public:
     } // End pre-conditions
 
     return countWhere(begin_row, end_row, begin_col, end_col,
-                      std::bind2nd(std::greater<value_type>(), value));
+                      std::bind(std::greater<value_type>(),
+                                std::placeholders::_1, value));
   }
 
   /**
@@ -7129,8 +7142,9 @@ public:
     } // End pre-conditions
 
     findIndices(begin_row, end_row, begin_col, end_col,
-                std::bind2nd(std::greater<value_type>(), value), row_it,
-                col_it);
+                std::bind(std::greater<value_type>(),
+                          std::placeholders::_1, value),
+                row_it, col_it);
   }
 
   /**
@@ -7161,7 +7175,8 @@ public:
     } // End pre-conditions
 
     return countWhere(begin_row, end_row, begin_col, end_col,
-                      std::bind2nd(std::greater_equal<value_type>(), value));
+                      std::bind(std::greater_equal<value_type>(),
+                                std::placeholders::_1, value));
   }
 
   /**
@@ -7196,8 +7211,9 @@ public:
     } // End pre-conditions
 
     findIndices(begin_row, end_row, begin_col, end_col,
-                std::bind2nd(std::greater_equal<value_type>(), value), row_it,
-                col_it);
+                std::bind(std::greater_equal<value_type>(),
+                          std::placeholders::_1, value),
+                row_it, col_it);
   }
 
   /**
@@ -7819,7 +7835,8 @@ public:
     if (isZero_(sum))
       return sum;
 
-    elementRowNZApply(row, nupic::MultipliesByVal<value_type>(val / sum));
+    elementRowNZApply(row, std::bind(nupic::Multiplies<value_type>(),
+                                     std::placeholders::_1, val / sum));
 
     if (exact)
       normalizeRow(row, val, false);
@@ -7858,7 +7875,8 @@ public:
     if (isZero_(sum))
       return sum;
 
-    elementColNZApply(col, nupic::MultipliesByVal<value_type>(val / sum));
+    elementColNZApply(col, std::bind(nupic::Multiplies<value_type>(),
+                                     std::placeholders::_1, val / sum));
 
     if (exact)
       normalizeCol(col, val, false);
@@ -9975,7 +9993,8 @@ public:
     } // End pre-conditions
 
     this->applyOuter(row_begin, row_end, col_begin, col_end,
-                     nupic::PlusVal(val));
+                     std::bind(nupic::Plus<value_type>(),
+                               std::placeholders::_1, val));
   }
 
   /**
@@ -10086,7 +10105,8 @@ public:
    * Replaces the non-zeros by the specified value.
    */
   inline void replaceNZ(const value_type &val = 1.0) {
-    elementNZApply(nupic::AssignVal(val));
+    elementNZApply(std::bind(nupic::Assign<value_type>(),
+                             std::placeholders::_1, val));
   }
 
   /**
@@ -10252,7 +10272,8 @@ public:
   inline void elementNZExp() { elementNZApply(nupic::Exp<value_type>()); }
 
   inline void elementRowMultiply(size_type row, const value_type &val) {
-    elementRowNZApply(row, nupic::MultipliesByVal(val));
+    elementRowNZApply(row, std::bind(nupic::Multiplies<value_type>(),
+                                     std::placeholders::_1, val));
   }
 
   template <typename InputIterator>
@@ -10273,7 +10294,8 @@ public:
   }
 
   inline void elementColMultiply(size_type col, const value_type &val) {
-    elementColNZApply(col, nupic::MultipliesByVal(val));
+    elementColNZApply(col, std::bind(nupic::Multiplies<value_type>(),
+                                     std::placeholders::_1, val));
   }
 
   template <typename InputIterator>
@@ -10294,15 +10316,18 @@ public:
   }
 
   inline void multiply(const value_type &val) {
-    elementNZApply(nupic::MultipliesByVal(val));
+    elementNZApply(std::bind(nupic::Multiplies<value_type>(),
+                             std::placeholders::_1, val));
   }
 
   inline void elementRowDivide(size_type idx, const value_type &val) {
-    elementRowNZApply(idx, nupic::DividesByVal(val));
+    elementRowNZApply(idx, std::bind(nupic::Divides<value_type>(),
+                                     std::placeholders::_1, val));
   }
 
   inline void elementColDivide(size_type idx, const value_type &val) {
-    elementColNZApply(idx, nupic::DividesByVal(val));
+    elementColNZApply(idx, std::bind(nupic::Divides<value_type>(),
+                                     std::placeholders::_1, val));
   }
 
   inline void divide(const value_type &val) {
@@ -10310,31 +10335,38 @@ public:
       NTA_ASSERT(!isZero_(val)) << "divide: Division by zero";
     } // End pre-conditions
 
-    elementNZApply(nupic::DividesByVal(val));
+    elementNZApply(std::bind(nupic::Divides<value_type>(),
+                             std::placeholders::_1, val));
   }
 
   inline void elementRowNZPow(size_type idx, const value_type &val) {
-    elementRowNZApply(idx, nupic::PowVal(val));
+    elementRowNZApply(idx, std::bind(nupic::Pow<value_type>(),
+                                     std::placeholders::_1, val));
   }
 
   inline void elementColNZPow(size_type idx, const value_type &val) {
-    elementColNZApply(idx, nupic::PowVal(val));
+    elementColNZApply(idx, std::bind(nupic::Pow<value_type>(),
+                                     std::placeholders::_1, val));
   }
 
   inline void elementNZPow(const value_type &val) {
-    elementNZApply(nupic::PowVal(val));
+    elementNZApply(std::bind(nupic::Pow<value_type>(),
+                             std::placeholders::_1, val));
   }
 
   inline void elementRowNZLogk(size_type idx, const value_type &val) {
-    elementRowNZApply(idx, nupic::LogkVal(val));
+    elementRowNZApply(idx, std::bind(nupic::Logk<value_type>(),
+                                     std::placeholders::_1, val));
   }
 
   inline void elementColNZLogk(size_type idx, const value_type &val) {
-    elementColNZApply(idx, nupic::LogkVal(val));
+    elementColNZApply(idx, std::bind(nupic::Logk<value_type>(),
+                                     std::placeholders::_1, val));
   }
 
   inline void elementNZLogk(const value_type &val) {
-    elementNZApply(nupic::LogkVal(val));
+    elementNZApply(std::bind(nupic::Logk<value_type>(),
+                             std::placeholders::_1, val));
   }
 
   template <typename InputIterator>
@@ -10368,29 +10400,38 @@ public:
   }
 
   inline void rowAdd(size_type idx, const value_type &val) {
-    elementRowApply(idx, nupic::PlusVal(val));
+    elementRowApply(idx, std::bind(nupic::Plus<value_type>(),
+                                   std::placeholders::_1, val));
   }
 
   inline void colAdd(size_type idx, const value_type &val) {
-    elementColApply(idx, nupic::PlusVal(val));
+    elementColApply(idx, std::bind(nupic::Plus<value_type>(),
+                                   std::placeholders::_1, val));
   }
 
-  inline void add(const value_type &val) { elementApply(nupic::PlusVal(val)); }
+  inline void add(const value_type &val) {
+    elementApply(std::bind(nupic::Plus<value_type>(),
+                           std::placeholders::_1, val));
+  }
 
   inline void elementNZAdd(const value_type &val) {
-    elementNZApply(nupic::PlusVal(val));
+    elementNZApply(std::bind(nupic::Plus<value_type>(),
+                             std::placeholders::_1, val));
   }
 
   inline void rowSubtract(size_type idx, const value_type &val) {
-    elementRowApply(idx, nupic::MinusVal(val));
+    elementRowApply(idx, std::bind(nupic::Minus<value_type>(),
+                                   std::placeholders::_1, val));
   }
 
   inline void colSubtract(size_type idx, const value_type &val) {
-    elementColApply(idx, nupic::MinusVal(val));
+    elementColApply(idx, std::bind(nupic::Minus<value_type>(),
+                                   std::placeholders::_1, val));
   }
 
   inline void subtract(const value_type &val) {
-    elementApply(nupic::MinusVal(val));
+    elementApply(std::bind(nupic::Minus<value_type>(),
+                           std::placeholders::_1, val));
   }
 
   inline void elementNZMultiply(const SparseMatrix &other) {

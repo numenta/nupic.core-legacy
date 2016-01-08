@@ -25,16 +25,13 @@
  */
 
 
-#include "EnvTest.hpp"
+#include <nupic/os/Env.hpp>
+#include <gtest/gtest.h>
 
 using namespace nupic;
 
-EnvTest::EnvTest() {};
 
-EnvTest::~EnvTest() {};
-
-
-void EnvTest::RunTests()
+TEST(EnvTest, Basic)
 {
   std::string name;
   std::string value;
@@ -43,14 +40,14 @@ void EnvTest::RunTests()
   // get value that is not set
   value = "DONTCHANGEME";
   result = Env::get("NOTDEFINED", value);
-  TESTEQUAL2("get not set result", false, result);
-  TESTEQUAL2_STR("get not set value", "DONTCHANGEME", value.c_str());
+  ASSERT_FALSE(result);
+  EXPECT_STREQ("DONTCHANGEME", value.c_str());
   
   // get value that should be set
   value = "";
   result = Env::get("PATH", value);
-  TESTEQUAL2("get PATH result", true, result);
-  TEST2("get path value", value.length() > 0);
+  ASSERT_TRUE(result);
+  ASSERT_TRUE(value.length() > 0) << "get path value";
   
   // set a value
   name = "myname";
@@ -60,8 +57,8 @@ void EnvTest::RunTests()
   // retrieve it
   value = "";
   result = Env::get(name, value);
-  TESTEQUAL2("get value just set -- result", true, result);
-  TESTEQUAL2_STR("get value just set -- value", "myvalue", value.c_str());
+  ASSERT_TRUE(result);
+  EXPECT_STREQ("myvalue", value.c_str());
   
   // set it to something different
   value = "mynewvalue";
@@ -69,15 +66,15 @@ void EnvTest::RunTests()
   
   // retrieve the new value
   result = Env::get(name, value);
-  TESTEQUAL2("get second value just set -- result", true, result);
-  TESTEQUAL2_STR("get second value just set -- value", "mynewvalue", value.c_str());
+  ASSERT_TRUE(result);
+  EXPECT_STREQ("mynewvalue", value.c_str());
   
   // delete the value
   value = "DONTCHANGEME";
   Env::unset(name);
   result = Env::get(name, value);
-  TESTEQUAL2("get after delete -- result", false, result);
-  TESTEQUAL2_STR("get after delete -- value", "DONTCHANGEME", value.c_str());
+  ASSERT_FALSE(result);
+  EXPECT_STREQ("DONTCHANGEME", value.c_str());
   
   // delete a value that is not set
   // APR response is not documented. Will see a warning if 

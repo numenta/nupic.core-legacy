@@ -3,8 +3,12 @@
 # License: CC0 1.0 Universal: http://creativecommons.org/publicdomain/zero/1.0/
 
 $BASE_URL = "https://www.python.org/ftp/python/"
+
 $GET_PIP_URL = "https://bootstrap.pypa.io/get-pip.py"
 $GET_PIP_PATH = "C:\get-pip.py"
+
+$GET_NUMPY_URL = "https://bitbucket.org/carlkl/mingw-w64-for-python/downloads/numpy-1.9.1+openblas-cp27-none-win_amd64.whl"
+$GET_NUMPY_PATH = "C:\numpy-1.9.1+openblas-cp27-none-win_amd64.whl"
 
 
 function DownloadPython ($python_version, $platform_suffix) {
@@ -74,15 +78,33 @@ function InstallPip ($python_home) {
 }
 
 function main () {
-    InstallPython $env:PYTHON_VERSION $env:PYTHON_ARCH $env:PYTHON
-    InstallPip $env:PYTHON
+    InstallPython $env:PYTHON_VERSION $env:PYTHON_ARCH $env:PYTHONPATH
+    InstallPip $env:PYTHONPATH
 
-    $pip_path = $env:PYTHON + "/Scripts/pip.exe"
+    $python_path = $env:PYTHONPATH + "/python.exe"
+    $pip_path = $env:PYTHONPATH + "/Scripts/pip.exe"
+
+    Write-Host "python -m pip install --upgrade pip"
+    & $python_path -m pip install --upgrade pip
+
     Write-Host "pip install " wheel
     & $pip_path install wheel
 
-    Write-Host "pip install " numpy==1.9.2
-    & $pip_path install -i https://pypi.numenta.com/pypi numpy==1.9.2
+    Write-Host "pip install " boto
+    & $pip_path install boto
+
+    Write-Host "pip install " twine
+    & $pip_path install twine
+
+    Write-Host "pip install " numpy==1.9.1
+    #& $pip_path install -i https://pypi.numenta.com/pypi numpy==1.9.1
+    # Check AppVeyor cloud cache for NumPy wheel
+    if (-Not (Test-Path $GET_NUMPY_PATH)) {
+        $webclient = New-Object System.Net.WebClient
+        $webclient.DownloadFile($GET_NUMPY_URL, $GET_NUMPY_PATH)
+    }
+    & $pip_path install $GET_NUMPY_PATH
+
 }
 
 main

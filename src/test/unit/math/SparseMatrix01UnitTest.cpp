@@ -26,15 +26,15 @@
               
 //#include <nupic/common/version.hpp>
 
-#include <nupic/math/ArrayAlgo.hpp>
-#include "SparseMatrix01UnitTest.hpp"
-
-#include <boost/timer.hpp>
-    
-using namespace std;     
-
-namespace nupic {
-       
+// #include <nupic/math/ArrayAlgo.hpp>
+// #include "SparseMatrix01UnitTest.hpp"
+//
+// #include <boost/timer.hpp>
+//
+// using namespace std;
+//
+// namespace nupic {
+//
 #define TEST_LOOP(M)                                  \
   for (nrows = 0, ncols = M, zr = 15;                 \
        nrows < M;                                     \
@@ -2395,8 +2395,8 @@ namespace nupic {
 //  } 
 //
   //--------------------------------------------------------------------------------
-  void SparseMatrix01UnitTest::RunTests()
-  {         
+  // void SparseMatrix01UnitTest::RunTests()
+  // {
            
     //unit_test_construction();   
     //unit_test_fromDense();      
@@ -2421,10 +2421,10 @@ namespace nupic {
     //unit_test_print();
     ////unit_test_usage();
     ////unit_test_numerical_accuracy();
-  } 
+  // } 
 
   //--------------------------------------------------------------------------------
   
-} // namespace nupic
+// } // namespace nupic
 
 

@@ -29,10 +29,6 @@
 #include <string>
 #include <vector>
 
-#include <capnp/message.h>
-#include <capnp/serialize.h>
-#include <kj/std/iostream.h>
-
 #include <nupic/algorithms/SpatialPooler.hpp>
 #include <nupic/math/Math.hpp>
 #include <nupic/proto/SpatialPoolerProto.capnp.h>
@@ -1111,18 +1107,12 @@ void SpatialPooler::inhibitColumns_(vector<Real>& overlaps,
     density = min(density, (Real) 0.5);
   }
 
-  vector<Real> overlapsWithNoise;
-  overlapsWithNoise.resize(numColumns_);
-  for (UInt i = 0; i < numColumns_; i++) {
-    overlapsWithNoise[i] = overlaps[i] + tieBreaker_[i];
-  }
-
   if (globalInhibition_ ||
       inhibitionRadius_ > *max_element(columnDimensions_.begin(),
                                        columnDimensions_.end())) {
-    inhibitColumnsGlobal_(overlapsWithNoise, density, activeColumns);
+    inhibitColumnsGlobal_(overlaps, density, activeColumns);
   } else {
-    inhibitColumnsLocal_(overlapsWithNoise, density, activeColumns);
+    inhibitColumnsLocal_(overlaps, density, activeColumns);
   }
 }
 
@@ -1133,7 +1123,7 @@ bool SpatialPooler::isWinner_(Real score, vector<pair<UInt, Real> >& winners,
     return true;
   }
 
-  if (score > winners[numWinners-1].second) {
+  if (score >= winners[numWinners-1].second) {
     return true;
   }
 
@@ -1146,7 +1136,7 @@ void SpatialPooler::addToWinners_(UInt index, Real score,
   pair<UInt, Real> val = make_pair(index, score);
   for (auto it = winners.begin();
        it != winners.end(); it++) {
-    if (score > it->second) {
+    if (score >= it->second) {
       winners.insert(it, val);
       return;
     }
@@ -1705,28 +1695,9 @@ void SpatialPooler::write(SpatialPoolerProto::Builder& proto) const
   }
 }
 
-void SpatialPooler::write(ostream& stream) const
-{
-  capnp::MallocMessageBuilder message;
-  SpatialPoolerProto::Builder proto = message.initRoot<SpatialPoolerProto>();
-  write(proto);
-
-  kj::std::StdOutputStream out(stream);
-  capnp::writeMessage(out, message);
-}
-
 // Implementation note: this method sets up the instance using data from
-// inStream. This method does not call initialize. As such we have to be careful
+// proto. This method does not call initialize. As such we have to be careful
 // that everything in initialize is handled properly here.
-void SpatialPooler::read(istream& stream)
-{
-  kj::std::StdInputStream in(stream);
-
-  capnp::InputStreamMessageReader message(in);
-  SpatialPoolerProto::Reader proto = message.getRoot<SpatialPoolerProto>();
-  read(proto);
-}
-
 void SpatialPooler::read(SpatialPoolerProto::Reader& proto)
 {
   auto randomProto = proto.getRandom();
@@ -1796,31 +1767,37 @@ void SpatialPooler::read(SpatialPoolerProto::Reader& proto)
     updatePermanencesForColumn_(colPerms, i, false);
   }
 
+  tieBreaker_.clear();
   for (auto value : proto.getTieBreaker())
   {
     tieBreaker_.push_back(value);
   }
 
+  overlapDutyCycles_.clear();
   for (auto value : proto.getOverlapDutyCycles())
   {
     overlapDutyCycles_.push_back(value);
   }
 
+  activeDutyCycles_.clear();
   for (auto value : proto.getActiveDutyCycles())
   {
     activeDutyCycles_.push_back(value);
   }
 
+  minOverlapDutyCycles_.clear();
   for (auto value : proto.getMinOverlapDutyCycles())
   {
     minOverlapDutyCycles_.push_back(value);
   }
 
+  minActiveDutyCycles_.clear();
   for (auto value : proto.getMinActiveDutyCycles())
   {
     minActiveDutyCycles_.push_back(value);
   }
 
+  boostFactors_.clear();
   for (auto value : proto.getBoostFactors())
   {
     boostFactors_.push_back(value);

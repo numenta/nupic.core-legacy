@@ -179,15 +179,15 @@ typedef uintptr_t      NTA_UIntPtr;
     * Represents a 64-bit unsigned integer.
     */
     typedef unsigned long long    NTA_UInt64;
-  #else // 64bit
+  #else // 64bit (LLP64 data models)
     /**
     * Represents a 32-bit signed integer.
     */
-    typedef long                  NTA_Int32;
+    typedef int                   NTA_Int32;
     /**
     * Represents a 32-bit unsigned integer.
     */
-    typedef unsigned long         NTA_UInt32;
+    typedef unsigned int          NTA_UInt32;
     /**
     * Represents a 64-bit signed integer.
     */
@@ -241,7 +241,7 @@ typedef uintptr_t      NTA_UIntPtr;
 /**
  * @name Flexible types
  * 
- * The following are flexible types depending on `NTA_DOUBLE_PROCESION` and `NTA_BIG_INTEGER`.
+ * The following are flexible types depending on `NTA_DOUBLE_PRECISION` and `NTA_BIG_INTEGER`.
  *
  * @{
  * 
@@ -251,7 +251,7 @@ typedef uintptr_t      NTA_UIntPtr;
   /**
    * Represents a real number(a floating-point number).
    *
-   * Same as NTA_Real64 if `NTA_DOUBLE_PROCESION` is defined, NTA_Real32 otherwise.
+   * Same as NTA_Real64 if `NTA_DOUBLE_PRECISION` is defined, NTA_Real32 otherwise.
    */
   typedef NTA_Real64 NTA_Real;
   #define NTA_REAL_TYPE_STRING "NTA_Real64"
@@ -259,7 +259,7 @@ typedef uintptr_t      NTA_UIntPtr;
   /**
    * Represents a real number(a floating-point number).
    *
-   * Same as NTA_Real64 if `NTA_DOUBLE_PROCESION` is defined, NTA_Real32 otherwise.
+   * Same as NTA_Real64 if `NTA_DOUBLE_PRECISION` is defined, NTA_Real32 otherwise.
    */
   typedef NTA_Real32 NTA_Real;
   #define NTA_REAL_TYPE_STRING "NTA_Real32"

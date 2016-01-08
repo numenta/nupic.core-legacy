@@ -52,6 +52,7 @@ namespace nupic
     
     PyRegion(const char * module, const ValueMap & nodeParams, Region * region, const char* className="");
     PyRegion(const char * module, BundleIO& bundle, Region * region, const char* className="");
+    PyRegion(const char * module, capnp::AnyPointer::Reader& proto, Region * region, const char* className="");
     virtual ~PyRegion();
 
     // DynamicPythonLibrary functions. Originally used NTA_EXPORT
@@ -60,6 +61,8 @@ namespace nupic
     static void * NTA_createPyNode(const char * module, void * nodeParams,
       void * region, void ** exception, const char* className="");
     static void * NTA_deserializePyNode(const char * module, void * bundle,
+      void * region, void ** exception, const char* className="");
+    static void * NTA_deserializePyNodeProto(const char * module, void * proto,
       void * region, void ** exception, const char* className="");
     static const char * NTA_getLastError();
     static void * NTA_createSpec(const char * nodeType, void ** exception, const char* className="");
@@ -72,7 +75,10 @@ namespace nupic
     // Capnp serialization methods - not yet implemented for PyRegions. This
     // method will replace serialize/deserialize once fully implemented
     // throughout codebase.
+    using RegionImpl::write;
     void write(capnp::AnyPointer::Builder& proto) const override;
+
+    using RegionImpl::read;
     void read(capnp::AnyPointer::Reader& proto) override;
 
     const Spec & getSpec();

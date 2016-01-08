@@ -33,6 +33,7 @@
 #include <nupic/engine/Input.hpp> // needed for splitter map
 #include <nupic/ntypes/Dimensions.hpp>
 #include <nupic/proto/LinkProto.capnp.h>
+#include <nupic/types/Serializable.hpp>
 #include <nupic/types/Types.hpp>
 
 namespace nupic
@@ -48,7 +49,7 @@ namespace nupic
    * @nosubgrouping
    *
    */
-  class Link
+  class Link : public Serializable<LinkProto>
   {
   public:
 
@@ -355,7 +356,10 @@ namespace nupic
      */
     friend std::ostream& operator<<(std::ostream& f, const Link& link);
 
+    using Serializable::write;
     void write(LinkProto::Builder& proto) const;
+
+    using Serializable::read;
     void read(LinkProto::Reader& proto);
 
 

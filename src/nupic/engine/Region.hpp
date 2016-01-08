@@ -40,6 +40,7 @@
 #include <nupic/ntypes/Dimensions.hpp>
 #include <nupic/os/Timer.hpp>
 #include <nupic/proto/RegionProto.capnp.h>
+#include <nupic/types/Serializable.hpp>
 #include <nupic/types/Types.hpp>
 
 namespace nupic
@@ -68,7 +69,7 @@ namespace nupic
    * Internally regions are created and owned by Network.
    *
    */
-  class Region
+  class Region : public Serializable<RegionProto>
   {
   public:
 
@@ -729,7 +730,10 @@ namespace nupic
     void
     serializeImpl(BundleIO& bundle);
 
+    using Serializable::write;
     void write(RegionProto::Builder& proto) const;
+
+    using Serializable::read;
     void read(RegionProto::Reader& proto);
 
 

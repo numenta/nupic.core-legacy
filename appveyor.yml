@@ -6,22 +6,8 @@
 version: 0.3.0.{build}
 
 branches:
-  only:
-    - master
-
   except:
     - gh-pages
-
-environment:
-  matrix:
-    # Must add CLang, or GCC
-    # i.e. - COMPILER_FAMILY: GNU
-    - COMPILER_FAMILY: MSVC
-      DEPLOY_TO_NUGET: 0
-      DEPLOY_BUILD: 0
-      PYTHON: "C:\\Python27"
-      PYTHON_VERSION: "2.7.x" # currently 2.7.9
-      PYTHON_ARCH: "32"
 
 skip_commits:
   # Add [av skip] to commit messages to skip AppVeyor building
@@ -32,130 +18,169 @@ skip_commits:
 #    environment configuration    #
 #---------------------------------#
 
-# Operating system (build VM template)
-os: Visual Studio 2015 CTP
+# http://www.appveyor.com/docs/environment-variables
+# http://www.appveyor.com/docs/installed-software
 
 init:
   - git config --global core.autocrlf input
 
 clone_folder: c:\projects\nupic-core
 clone_depth: 50
-# Can't have a shallow clone because the CMake process will be calling into
-# git to write the current SHA into the binaries.
+
+# Can't have a shallow clone because the CMake process will be
+# calling into git to write the current SHA into the binaries.
 shallow_clone: false
+
+environment:
+  PYTHON_ARCH: "64"
+  COMPILER_FAMILY: GCC
+  AWS_ACCESS_KEY_ID:
+    secure: /9U0mCHp3k1U8Y5CY/kDqwCKG2gqchG/T/UlVWo8SME=
+  AWS_SECRET_ACCESS_KEY:
+    secure: /8wO17Gir0XAiecJkHeE3jxOJzvyl0+uWcl7BKCuN0FC795golsL8905VmNuRl1o
+  PYPI_USERNAME: numenta
+  PYPI_PASSWORD:
+    secure: UgABryPYZg823OcD1XRosA==
+
+  matrix:
+    - PYTHON_VERSION: "2.7.9"
+      PYTHONPATH: "C:\\Python27-x64"
 
 #---------------------------------#
 #       build configuration       #
 #---------------------------------#
 
-nuget:
-  account_feed: true
-  project_feed: true
-  disable_publish_on_pr: true     # disable publishing of .nupkg artifacts to
-                                  # account/project feeds for pull request builds
-
 configuration: Release
 
+cache:
+  - C:\mingwpy_amd64_vc90.7z
+  - C:\libpython-cp27-none-win_amd64.7z
+  - C:\numpy-1.9.1+openblas-cp27-none-win_amd64.whl
+
 install:
-  - set REPO_DIR=c:\projects\nupic-core
   - set NUPIC_DEPLOYMENT_BUILD=1
 
+  - set REPO_DIR=c:\projects\nupic-core
+  - set NUPIC_CORE_DIR=%REPO_DIR%\build\release
+  - set EXT_LIBS=%REPO_DIR%\external\windows64-gcc\lib
+
+  - set ARTIFACTS_DIR=%REPO_DIR%\build\artifacts
+  - for /f %%i in ('type VERSION') do set BINDINGS_VERSION=%%i
+  - echo Binding version = %BINDINGS_VERSION%
+
+  # Reference: https://bitbucket.org/carlkl/mingw-w64-for-python/downloads/mingwpy-2015-04-readme.md
+  - ps: $dwntool=New-Object System.Net.WebClient
+
+  - ECHO "Installing MinGW-w64 for Python:"
+  - ps: if (-Not (Test-Path "C:\\mingwpy_amd64_vc90.7z")) { $dwntool.DownloadFile("https://bitbucket.org/carlkl/mingw-w64-for-python/downloads/mingwpy_amd64_vc90.7z", "C:\\mingwpy_amd64_vc90.7z") }
+  - 7z x C:\\mingwpy_amd64_vc90.7z -oC:\ > null
+
+  - ECHO "Installing MinGW-w64 Python 2.7.x libs:"
+  - ps: if (-Not (Test-Path "C:\\libpython-cp27-none-win_amd64.7z")) { $dwntool.DownloadFile("https://bitbucket.org/carlkl/mingw-w64-for-python/downloads/libpython-cp27-none-win_amd64.7z", "C:\\libpython-cp27-none-win_amd64.7z") }
+  - 7z x C:\\libpython-cp27-none-win_amd64.7z -oC:\Python27-x64\ > null
+
+  - set PATH=C:\mingwpy\bin;%PATH%
+
+  # Install Python 2.7.x, Pip, Wheel, and NumPy
+  - cd %REPO_DIR%\ci\appveyor
+  - ps: .\install_python_pip.ps1
+
+  - set PYTHONHOME=%PYTHONPATH%
+  - set PATH=%PYTHONPATH%\Scripts;%PYTHONPATH%;%PATH%
+  - echo %PATH%
+
+  # Setup MinGW-w64 GCC as a valid distutils compiler
+  - cp %REPO_DIR%\external\windows64-gcc\bin\distutils.cfg %PYTHONPATH%\Lib\distutils\distutils.cfg
+
+  # Check that we have the expected version and architecture for Python
+  - "python --version"
+  - "python -c \"import struct; print(struct.calcsize('P') * 8)\""
+
+  # Check NumPy installed correctly
+  - cmd: pip list
+
+  - cd %REPO_DIR%
   - mkdir %REPO_DIR%\build\
   - mkdir %REPO_DIR%\build\release
   - mkdir %REPO_DIR%\build\scripts
-  - cd %REPO_DIR%\build\scripts
 
-  # Need at least version 3.1.0 for the VS 2015 generator
-  - ps: Start-FileDownload 'http://www.cmake.org/files/v3.1/cmake-3.1.0-win32-x86.zip'
-  - ps: Write-Host '7z x cmake-3.1.0-win32-x86.zip'
-  - ps: Start-Process -FilePath "7z" -ArgumentList "x -y cmake-3.1.0-win32-x86.zip" -Wait -Passthru
-  - set PATH="%REPO_DIR%\build\scripts\cmake-3.1.0-win32-x86\bin";%PATH%
-  - set PATH="C:\Program Files (x86)\MSBuild\14.0\Bin";%PATH%
-  # https://github.com/ogrisel/python-appveyor-demo/blob/master/appveyor.yml
-  # Install Python (from the official .msi of http://python.org) and pip when
-  # not already installed.
-  - "powershell %REPO_DIR%\\ci\\appveyor\\install_python_pip.ps1"
+  # Remove sh.exe from the paths (CMake doesn't like it)
+  - set PATH=%PATH:C:\Program Files (x86)\Git\bin;=%
+  - set PATH=%PATH:C:\Program Files\Git\usr\bin;=%
+  - set PATH=%PATH:C:\MinGW\msys\1.0\bin;=%
 
+  # Fake KJ-Async and Capnp-RPC libs, not needed in Lite mode
+  # http://www.cmake.org/Wiki/CmakeMingw
   - cd %REPO_DIR%\build\scripts
-  - set EXT_LIBS=%REPO_DIR%\external\windows64\lib
-  - cmake %REPO_DIR%\src
-     -G "Visual Studio 14 2015 Win64" -Wno-dev
-     -DCMAKE_BUILD_TYPE=Release 
-     -DCMAKE_INSTALL_PREFIX=%REPO_DIR%\build\Release
-     -DLIB_STATIC_APR1_LOC=%EXT_LIBS%\apr-1.lib
-     -DLIB_STATIC_APRUTIL1_LOC=%EXT_LIBS%\aprutil-1.lib
-     -DLIB_STATIC_YAML_CPP_LOC=%EXT_LIBS%\yaml-cpp.lib
-     -DLIB_STATIC_YAML_LOC=%EXT_LIBS%\yaml.lib
-     -DLIB_STATIC_Z_LOC=%EXT_LIBS%\z.lib
-     -DLIB_STATIC_CAPNP_LOC=%EXT_LIBS%\capnp.lib
-     -DLIB_STATIC_KJ_LOC=%EXT_LIBS%\kj.lib
+  - cmake -G "MinGW Makefiles" 
+      -DCMAKE_INSTALL_PREFIX=%REPO_DIR%\build\release 
+      -DPY_EXTENSIONS_DIR=%REPO_DIR%\bindings\py\nupic\bindings 
+      %REPO_DIR%
 
 build_script:
   - cd %REPO_DIR%\build\scripts
 
-  - ps: >-
-      $root = $env:APPVEYOR_BUILD_FOLDER
+  - mingw32-make -f Makefile install | findstr /C:"Install" /I /V
 
-      $versionStr = $env:APPVEYOR_BUILD_VERSION
-
-      Write-Host $root
-
-      Write-Host "Setting Package.nuspec version tag to $versionStr"
-
-      $content = (Get-Content $root\Package.nuspec) 
-
-      $content = $content -replace '\$version\$',$versionStr
-
-      $content | Out-File $root\Package.nuspec
-
-  - set MSBuildLogger="C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
-  - set MSBuildOptions=/v:m /p:Configuration=Release /logger:%MSBuildLogger%
-
-  - msbuild %MSBuildOptions% nupic_core.sln
-  - set MSBuildOptions=/v:q /p:Configuration=Release /logger:%MSBuildLogger%
-  - msbuild %MSBuildOptions% INSTALL.vcxproj
   - cd %REPO_DIR%
-  - set INCLUDE='C:\Program Files (x86)\MSBuild\14.0\Include';%INCLUDE%
-  - python setup.py install --user --nupic-core-dir=%REPO_DIR%\build\Release
 
-test: off
+  - python setup.py sdist bdist bdist_wheel
+  - ps: copy .\bindings\py\dist\nupic.bindings-$env:BINDINGS_VERSION-cp27-none-win_amd64.whl .
 
 after_build:
-  - cd %REPO_DIR%\build\Release
-  - set PROJECT_BUILD_ARTIFACTS_DIR=%REPO_DIR%\build\artifacts
+  - mkdir %ARTIFACTS_DIR%
+
+  # legacy binary tests
+  - cd %REPO_DIR%\build\release\bin
+  - cpp_region_test.exe
+  - unit_tests.exe --gtest_output=xml:%ARTIFACTS_DIR%\unit_tests_report.xml
 
   - ps: >-
-      if($env:DEPLOY_TO_NUGET -eq 1) {
-        copy $env:REPO_DIR\Package.nuspec .
+      if ($env:APPVEYOR_REPO_COMMIT -eq "master") {
+        cd $env:REPO_DIR\build\release
 
-        nuget pack -version $env:APPVEYOR_BUILD_VERSION
+        7z a -ttar -y -bd nupic_core-$env:APPVEYOR_REPO_COMMIT-windows64-gcc.tar . | findstr /b /c:"Everything is Ok" /c:"Scanning" /c:"Creating archive"
 
-        nuget push *.nupkg 30618afb-ecf6-4476-8e61-a5b823ad9892
-        # NOTE: Push to nuget is here, rather than normal AV deployment
+        7z a -tgzip -y -bd ..\..\nupic_core-$env:APPVEYOR_REPO_COMMIT-windows64-gcc.tar.gz nupic_core-$env:APPVEYOR_REPO_COMMIT-windows64-gcc.tar
 
       }
 
-      # This packages via CMakeList CPack settings (Tar.Gzip for SW upload)
-      # msbuild $env:MSBuildOptions PACKAGE.vcxproj
-
-      7z a -ttar -y -bd nupic_core-$env:APPVEYOR_REPO_COMMIT-windows64.tar . | findstr /b /c:"Everything is Ok" /c:"Scanning" /c:"Creating archive"
-
-      7z a -tgzip -y -bd ..\..\nupic_core-$env:APPVEYOR_REPO_COMMIT-windows64.tar.gz nupic_core-$env:APPVEYOR_REPO_COMMIT-windows64.tar
+test: off
 
 artifacts:
-  - path: '**\*.tar.gz' # find all Gz(ip) packages recursively
+  # Non-recursive search in build folder for Wheels and GZips
+  - path: '*.tar.gz'
+  - path: '*.whl'
+
+on_success:
+  - ps: >-
+      If ($env:APPVEYOR_REPO_TAG -eq "true" -or $env:APPVEYOR_REPO_TAG -eq "True") {
+        pip install httplib requests twine --upgrade
+        twine upload -u $env:PYPI_USERNAME -p $env:PYPI_PASSWORD -r pypi $env:REPO_DIR\bindings\py\dist\nupic.bindings-$env:BINDINGS_VERSION-cp27-none-win_amd64.whl
+      }
 
 deploy:
-  # Amazon S3 deployment provider settings
+  # Iterative builds
   - provider: S3
-    access_key_id:
-      secure: /9U0mCHp3k1U8Y5CY/kDqwCKG2gqchG/T/UlVWo8SME=
+    access_key_id: AKIAIGHYSEHV3WFKOWNQ
     secret_access_key:
       secure: /8wO17Gir0XAiecJkHeE3jxOJzvyl0+uWcl7BKCuN0FC795golsL8905VmNuRl1o
     bucket: "artifacts.numenta.org"
     region: us-west-2
     set_public: true
-    artifact: "nupic_core-$(APPVEYOR_REPO_COMMIT)-windows64.tar.gz"
+    artifact: "nupic.bindings-$(BINDINGS_VERSION)-cp27-none-win_amd64.whl"
+    folder: "numenta/nupic.core/releases/nupic.bindings"
+
+  # Github tagged builds
+  - provider: S3
+    access_key_id: AKIAIGHYSEHV3WFKOWNQ
+    secret_access_key:
+      secure: /8wO17Gir0XAiecJkHeE3jxOJzvyl0+uWcl7BKCuN0FC795golsL8905VmNuRl1o
+    bucket: "artifacts.numenta.org"
+    region: us-west-2
+    set_public: true
+    artifact: "nupic_core-$(APPVEYOR_REPO_COMMIT)-windows64-gcc.tar.gz"
     folder: "numenta/nupic.core"
     on:
       branch: master
+      appveyor_repo_tag: true

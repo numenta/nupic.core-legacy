@@ -24,278 +24,319 @@
  * Implementation for Path test
  */
 
+#include <nupic/os/Directory.hpp>
 #include <nupic/os/Path.hpp>
 #include <nupic/os/OS.hpp>
 #include <nupic/os/FStream.hpp>
 #include <nupic/utils/Log.hpp>
-
-#include "PathTest.hpp"
+#include <gtest/gtest.h>
 
 using namespace std;
 using namespace nupic;
 
-void PathTest::RunTests()
+
+class PathTest : public ::testing::Test {
+public:
+  string testOutputDir_ = Path::makeAbsolute("TestEverything.out");
+
+  PathTest() {
+    // Create if it doesn't exist
+    if (!Path::exists(testOutputDir_)) {
+      std::cout << "Tester -- creating output directory " << std::string(testOutputDir_) << "\n";
+      // will throw if unsuccessful. 
+      Directory::create(string(testOutputDir_));
+    } 
+  }
+
+  string fromTestOutputDir(const string& path) {
+    Path testoutputpath(testOutputDir_);
+    if (path != "")
+      testoutputpath += path;
+    return string(testoutputpath);
+  }
+
+};
+
+// test static exists()
+TEST_F(PathTest, exists)
 {
-  std::string sep(Path::sep);
-  
-  // test static exists()
-  {
-  }
+}
 
-  // test static getParent()
-  {
+TEST_F(PathTest, getParent)
+{
 #if defined(NTA_OS_WINDOWS)
 // no tests defined
 #else
-    std::string g = "/a/b/c/g.ext";
-    g = Path::getParent(g);
-    TESTEQUAL2_STR("getParent1", "/a/b/c", g.c_str());
+  std::string g = "/a/b/c/g.ext";
+  g = Path::getParent(g);
+  EXPECT_STREQ("/a/b/c", g.c_str()) << "getParent1";
 
-    g = Path::getParent(g);
-    TESTEQUAL2_STR("getParent2", "/a/b", g.c_str());
+  g = Path::getParent(g);
+  EXPECT_STREQ("/a/b", g.c_str()) << "getParent2";
 
-    g = Path::getParent(g);
-    TESTEQUAL2_STR("getParent3", "/a", g.c_str());
+  g = Path::getParent(g);
+  EXPECT_STREQ("/a", g.c_str()) << "getParent3";
 
-    g = Path::getParent(g);
-    TESTEQUAL2_STR("getParent4", "/", g.c_str());
+  g = Path::getParent(g);
+  EXPECT_STREQ("/", g.c_str()) << "getParent4";
 
-    g = Path::getParent(g);
-    TESTEQUAL2_STR("getParent5", "/", g.c_str());
-    
-    // Parent should normalize first, to avoid parent(a/b/..)->(a/b)
-    g = "/a/b/..";
-    TESTEQUAL2_STR("getParent6", "/", Path::getParent(g).c_str());
+  g = Path::getParent(g);
+  EXPECT_STREQ("/", g.c_str()) << "getParent5";
+  
+  // Parent should normalize first, to avoid parent(a/b/..)->(a/b)
+  g = "/a/b/..";
+  EXPECT_STREQ("/", Path::getParent(g).c_str()) << "getParent6";
 
-    // getParent() of a relative directory may be a bit non-intuitive
-    g = "a/b";
-    TESTEQUAL2_STR("getParent7", "a", Path::getParent(g).c_str());
+  // getParent() of a relative directory may be a bit non-intuitive
+  g = "a/b";
+  EXPECT_STREQ("a", Path::getParent(g).c_str()) << "getParent7";
 
-    g = "a";
-    TESTEQUAL2_STR("getParent8", ".", Path::getParent(g).c_str());
-    
-    // getParent() of a relative directory above us should work
-    g = "../../a";
-    TESTEQUAL2_STR("getParent9", "../..", Path::getParent(g).c_str());
+  g = "a";
+  EXPECT_STREQ(".", Path::getParent(g).c_str()) << "getParent8";
+  
+  // getParent() of a relative directory above us should work
+  g = "../../a";
+  EXPECT_STREQ("../..", Path::getParent(g).c_str()) << "getParent9";
 
-    g = ".";
-    TESTEQUAL2_STR("getParent10", "..", Path::getParent(g).c_str());
-    
+  g = ".";
+  EXPECT_STREQ("..", Path::getParent(g).c_str()) << "getParent10";
+  
 #endif
 
-    
-    std::string x = Path::join("someDir", "X");
-    x = Path::makeAbsolute(x);
-    std::string y = Path::join(x, "Y");
-
-    
-    std::string parent = Path::getParent(y);
-    TEST(x == parent);
-
-  }
-
-  // test static getFilename()
-  {
-  }
-
-  // test static getBasename()
-  {
-#if defined(NTA_OS_WINDOWS)
-// no tests defined
-#else
-    TESTEQUAL2_STR("basename1", "bar", Path::getBasename("/foo/bar").c_str());
-    TESTEQUAL2_STR("basename2", "", Path::getBasename("/foo/bar/").c_str());
-    TESTEQUAL2_STR("basename3", "bar.ext", Path::getBasename("/this is a long dir / foo$/bar.ext").c_str());
-#endif
-  }
   
-  // test static getExtension()
-  {
-    std::string ext = Path::getExtension("abc" + sep + "def.ext");
-    TEST(ext == "ext");
-  }
+  std::string x = Path::join("someDir", "X");
+  x = Path::makeAbsolute(x);
+  std::string y = Path::join(x, "Y");
 
-  // test static normalize()
-  {
+  
+  std::string parent = Path::getParent(y);
+  ASSERT_TRUE(x == parent);
+
+}
+
+// test static getFilename()
+TEST_F(PathTest, getFilename)
+
+{
+}
+
+// test static getBasename()
+TEST_F(PathTest, getBasename)
+{
 #if defined(NTA_OS_WINDOWS)
 // no tests defined
 #else
-    TESTEQUAL2_STR("normalize1", "/foo/bar", Path::normalize("//foo/quux/..//bar").c_str());
-    TESTEQUAL2_STR("normalize2", "/foo/contains a lot of spaces", 
-         Path::normalize("///foo/a/b/c/../../d/../../contains a lot of spaces/g.tgz/..").c_str());
-    TESTEQUAL2_STR("normalize3", "../..", Path::normalize("../foo/../..").c_str());
-    TESTEQUAL2_STR("normalize4", "/", Path::normalize("/../..").c_str());
+  EXPECT_STREQ("bar", Path::getBasename("/foo/bar").c_str()) << "basename1";
+  EXPECT_STREQ("", Path::getBasename("/foo/bar/").c_str()) << "basename2";
+  EXPECT_STREQ("bar.ext",
+    Path::getBasename("/this is a long dir / foo$/bar.ext").c_str())
+    << "basename3";
+#endif
+}
+
+// test static getExtension()
+TEST_F(PathTest, getExtension)
+{
+  string sep(Path::sep);
+  std::string ext = Path::getExtension("abc" + sep + "def.ext");
+  ASSERT_TRUE(ext == "ext");
+}
+
+// test static normalize()
+TEST_F(PathTest, normalize)
+{
+#if defined(NTA_OS_WINDOWS)
+// no tests defined
+#else
+  EXPECT_STREQ("/foo/bar", Path::normalize("//foo/quux/..//bar").c_str())
+    << "normalize1";
+  EXPECT_STREQ("/foo/contains a lot of spaces", 
+       Path::normalize("///foo/a/b/c/../../d/../../contains a lot of spaces/g.tgz/..").c_str())
+    << "normalize2";
+  EXPECT_STREQ("../..", Path::normalize("../foo/../..").c_str()) 
+    << "normalize3";
+  EXPECT_STREQ("/", Path::normalize("/../..").c_str()) << "normalize4";
 #endif         
 
-  }
+}
 
-  // test static makeAbsolute()
-  {
-  }
+// test static makeAbsolute()
+TEST_F(PathTest, makeAbsolute)
+{
+}
 
-  // test static split()
-  {
+// test static split()
+TEST_F(PathTest, split)
+{
 #if defined(NTA_OS_WINDOWS)
 // no tests defined
 #else
-    Path::StringVec sv;
-    sv = Path::split("/foo/bar");
-    TESTEQUAL2("split1 size", 3U, sv.size());
-    if (sv.size() == 3) {
-      TESTEQUAL2("split1.1", sv[0], "/");
-      TESTEQUAL2("split1.2", sv[1], "foo");
-      TESTEQUAL2("split1.3", sv[2], "bar");
-    }
-    TESTEQUAL2_STR("split1.4", "/foo/bar", Path::join(sv.begin(), sv.end()).c_str());
+  Path::StringVec sv;
+  sv = Path::split("/foo/bar");
+  ASSERT_EQ(3U, sv.size()) << "split1 size";
+  if (sv.size() == 3) {
+    ASSERT_EQ(sv[0], "/") << "split1.1";
+    ASSERT_EQ(sv[1], "foo") << "split1.2";
+    ASSERT_EQ(sv[2], "bar") << "split1.3";
+  }
+  EXPECT_STREQ("/foo/bar", Path::join(sv.begin(), sv.end()).c_str()) << "split1.4";
 
-    sv = Path::split("foo/bar");
-    TESTEQUAL2("split2 size", 2U, sv.size());
-    if (sv.size() == 2) 
-    {
-      TESTEQUAL2("split2.2", sv[0], "foo");
-      TESTEQUAL2("split2.3", sv[1], "bar");
-    }
-    TESTEQUAL2_STR("split2.3", "foo/bar", Path::join(sv.begin(), sv.end()).c_str());
+  sv = Path::split("foo/bar");
+  ASSERT_EQ(2U, sv.size()) << "split2 size";
+  if (sv.size() == 2) 
+  {
+    ASSERT_EQ(sv[0], "foo") << "split2.2";
+    ASSERT_EQ(sv[1], "bar") << "split2.3";
+  }
+  EXPECT_STREQ("foo/bar", Path::join(sv.begin(), sv.end()).c_str())
+    << "split2.3";
 
-    sv = Path::split("foo//bar/");
-    TESTEQUAL2("split3 size", 2U, sv.size());
-    if (sv.size() == 2) 
-    {
-      TESTEQUAL2("split3.2", sv[0], "foo");
-      TESTEQUAL2("split3.3", sv[1], "bar");
-    }
-    TESTEQUAL2_STR("split3.4", "foo/bar", Path::join(sv.begin(), sv.end()).c_str());
+  sv = Path::split("foo//bar/");
+  ASSERT_EQ(2U, sv.size()) << "split3 size";
+  if (sv.size() == 2) 
+  {
+    ASSERT_EQ(sv[0], "foo") << "split3.2";
+    ASSERT_EQ(sv[1], "bar") << "split3.3";
+  }
+  EXPECT_STREQ("foo/bar", Path::join(sv.begin(), sv.end()).c_str())
+    << "split3.4";
 
 #endif 
 
 
-  }
-
-  // test static join()
-  {
-  }
-
-  // test static remove()
-  {
-  }
-
-  // test static rename()
-  {
-  }
-  
-  // test static copy()
-  {
-    {
-      OFStream f("a.txt");
-      f << "12345";
-    }
-
-    {
-      std::string s;
-      IFStream f("a.txt");
-      f >> s;
-      TEST(s == "12345");
-    }
-    
-    {
-      if (Path::exists("b.txt"))
-        Path::remove("b.txt");
-      TEST(!Path::exists("b.txt"));
-      Path::copy("a.txt", "b.txt");
-      TEST(Path::exists("b.txt"));
-      std::string s;
-      IFStream f("b.txt");
-      f >> s;
-      TEST(s == "12345");
-    }
-    
-    Path::remove("a.txt");
-    Path::remove("b.txt");
-    TEST(!Path::exists("a.txt"));
-    TEST(!Path::exists("b.txt"));
-  }    
-
-  // test static copy() in temp directory
-  {
-    {
-      OFStream f("a.txt");
-      f << "12345";
-    }
-
-    {
-      std::string s;
-      IFStream f("a.txt");
-      f >> s;
-      TEST(s == "12345");
-    }
-    
-    string destination = fromTestOutputDir("pathtest_dir");
-    {
-      destination += "b.txt";
-      if (Path::exists(destination))
-        Path::remove(destination);
-      TEST(!Path::exists(destination));
-      Path::copy("a.txt", destination);
-      TEST(Path::exists(destination));
-      std::string s;
-      IFStream f(destination.c_str());
-      f >> s;
-      TEST(s == "12345");
-    }
-    
-    Path::remove("a.txt");
-    Path::remove(destination);
-    TEST(!Path::exists("a.txt"));
-    TEST(!Path::exists(destination));
-  }    
-  
-  //test static isRootdir()
-  {
-  }
-
-  //test static isAbsolute()
-  {
-  #if defined(NTA_OS_WINDOWS)
-    TEST(Path::isAbsolute("c:"));
-    TEST(Path::isAbsolute("c:\\"));
-    TEST(Path::isAbsolute("c:\\foo\\"));
-    TEST(Path::isAbsolute("c:\\foo\\bar"));    
-    
-    TEST(Path::isAbsolute("\\\\foo"));    
-    TEST(Path::isAbsolute("\\\\foo\\"));    
-    TEST(Path::isAbsolute("\\\\foo\\bar"));
-    TEST(Path::isAbsolute("\\\\foo\\bar\\baz"));
-       
-    TEST(!Path::isAbsolute("foo"));        
-    TEST(!Path::isAbsolute("foo\\bar"));        
-    TEST(!Path::isAbsolute("\\"));
-    TEST(!Path::isAbsolute("\\\\"));
-    TEST(!Path::isAbsolute("\\foo"));
-  #else
-    TEST(Path::isAbsolute("/"));
-    TEST(Path::isAbsolute("/foo"));
-    TEST(Path::isAbsolute("/foo/"));
-    TEST(Path::isAbsolute("/foo/bar"));    
-        
-    TEST(!Path::isAbsolute("foo"));        
-    TEST(!Path::isAbsolute("foo/bar"));        
-  #endif 
-  }
-
-  { 
-    // test static getExecutablePath
-    std::string path = Path::getExecutablePath();
-    std::cout << "Executable path: '" << path << "'\n";
-    TEST(Path::exists(path));
-
-    std::string basename = Path::getBasename(path);
-#if defined(NTA_OS_WINDOWS)
-    TESTEQUAL2_STR("basename should be unit_tests", basename.c_str(), "unit_tests.exe");
-#else
-    TESTEQUAL2_STR("basename should be unit_tests", basename.c_str(), "unit_tests");
-#endif
-  }    
-
-
 }
 
+// test static join()
+TEST_F(PathTest, join)
+{
+}
+
+// test static remove()
+TEST_F(PathTest, remove)
+{
+}
+
+// test static rename()
+TEST_F(PathTest, rename)
+{
+}
+
+// test static copy()
+TEST_F(PathTest, copy)
+{
+  {
+    OFStream f("a.txt");
+    f << "12345";
+  }
+
+  {
+    std::string s;
+    IFStream f("a.txt");
+    f >> s;
+    ASSERT_TRUE(s == "12345");
+  }
+  
+  {
+    if (Path::exists("b.txt"))
+      Path::remove("b.txt");
+    ASSERT_TRUE(!Path::exists("b.txt"));
+    Path::copy("a.txt", "b.txt");
+    ASSERT_TRUE(Path::exists("b.txt"));
+    std::string s;
+    IFStream f("b.txt");
+    f >> s;
+    ASSERT_TRUE(s == "12345");
+  }
+  
+  Path::remove("a.txt");
+  Path::remove("b.txt");
+  ASSERT_TRUE(!Path::exists("a.txt"));
+  ASSERT_TRUE(!Path::exists("b.txt"));
+}    
+
+// test static copy() in temp directory
+TEST_F(PathTest, copyInTemp)
+{
+  {
+    OFStream f("a.txt");
+    f << "12345";
+  }
+
+  {
+    std::string s;
+    IFStream f("a.txt");
+    f >> s;
+    ASSERT_TRUE(s == "12345");
+  }
+  
+  string destination = fromTestOutputDir("pathtest_dir");
+  {
+    destination += "b.txt";
+    if (Path::exists(destination))
+      Path::remove(destination);
+    ASSERT_FALSE(Path::exists(destination));
+    Path::copy("a.txt", destination);
+    ASSERT_TRUE(Path::exists(destination));
+    std::string s;
+    IFStream f(destination.c_str());
+    f >> s;
+    ASSERT_TRUE(s == "12345");
+  }
+  
+  Path::remove("a.txt");
+  Path::remove(destination);
+  ASSERT_TRUE(!Path::exists("a.txt"));
+  ASSERT_TRUE(!Path::exists(destination));
+}    
+
+//test static isRootdir()
+TEST_F(PathTest, isRootDir)
+{
+}
+
+//test static isAbsolute()
+TEST_F(PathTest, isAbsolute)
+{
+#if defined(NTA_OS_WINDOWS)
+  ASSERT_TRUE(Path::isAbsolute("c:"));
+  ASSERT_TRUE(Path::isAbsolute("c:\\"));
+  ASSERT_TRUE(Path::isAbsolute("c:\\foo\\"));
+  ASSERT_TRUE(Path::isAbsolute("c:\\foo\\bar"));    
+  
+  ASSERT_TRUE(Path::isAbsolute("\\\\foo"));    
+  ASSERT_TRUE(Path::isAbsolute("\\\\foo\\"));    
+  ASSERT_TRUE(Path::isAbsolute("\\\\foo\\bar"));
+  ASSERT_TRUE(Path::isAbsolute("\\\\foo\\bar\\baz"));
+     
+  ASSERT_TRUE(!Path::isAbsolute("foo"));        
+  ASSERT_TRUE(!Path::isAbsolute("foo\\bar"));        
+  ASSERT_TRUE(!Path::isAbsolute("\\"));
+  ASSERT_TRUE(!Path::isAbsolute("\\\\"));
+  ASSERT_TRUE(!Path::isAbsolute("\\foo"));
+#else
+  ASSERT_TRUE(Path::isAbsolute("/"));
+  ASSERT_TRUE(Path::isAbsolute("/foo"));
+  ASSERT_TRUE(Path::isAbsolute("/foo/"));
+  ASSERT_TRUE(Path::isAbsolute("/foo/bar"));    
+      
+  ASSERT_TRUE(!Path::isAbsolute("foo"));        
+  ASSERT_TRUE(!Path::isAbsolute("foo/bar"));        
+#endif 
+}
+
+TEST_F(PathTest, getExecutablePath)
+{ 
+  // test static getExecutablePath
+  std::string path = Path::getExecutablePath();
+  std::cout << "Executable path: '" << path << "'\n";
+  ASSERT_TRUE(Path::exists(path));
+
+  std::string basename = Path::getBasename(path);
+#if defined(NTA_OS_WINDOWS)
+  EXPECT_STREQ(basename.c_str(), "unit_tests.exe")
+     << "basename should be unit_tests";
+#else
+  EXPECT_STREQ(basename.c_str(), "unit_tests")
+    << "basename should be unit_tests";
+#endif
+}    

@@ -33,71 +33,67 @@
 #include <nupic/proto/SparseBinaryMatrixProto.capnp.h>
 #include <nupic/types/Types.h>
 
-namespace nupic
+
+using namespace nupic;
+
+TEST(SparseBinaryMatrixReadWrite, EmptyMatrix)
 {
-  namespace
-  {
+  SparseBinaryMatrix<UInt32, UInt32> m1, m2;
 
-    TEST(SparseBinaryMatrixReadWrite, EmptyMatrix)
-    {
-      SparseBinaryMatrix<UInt32, UInt32> m1, m2;
+  m1.resize(3, 4);
 
-      m1.resize(3, 4);
+  std::stringstream ss;
 
-      std::stringstream ss;
+  // write
+  capnp::MallocMessageBuilder message1;
+  SparseBinaryMatrixProto::Builder protoBuilder = message1.initRoot<SparseBinaryMatrixProto>();
+  m1.write(protoBuilder);
+  kj::std::StdOutputStream out(ss);
+  capnp::writeMessage(out, message1);
 
-      // write
-      capnp::MallocMessageBuilder message1;
-      SparseBinaryMatrixProto::Builder protoBuilder = message1.initRoot<SparseBinaryMatrixProto>();
-      m1.write(protoBuilder);
-      kj::std::StdOutputStream out(ss);
-      capnp::writeMessage(out, message1);
+  // read
+  kj::std::StdInputStream in(ss);
+  capnp::InputStreamMessageReader message2(in);
+  SparseBinaryMatrixProto::Reader protoReader = message2.getRoot<SparseBinaryMatrixProto>();
+  m2.read(protoReader);
 
-      // read
-      kj::std::StdInputStream in(ss);
-      capnp::InputStreamMessageReader message2(in);
-      SparseBinaryMatrixProto::Reader protoReader = message2.getRoot<SparseBinaryMatrixProto>();
-      m2.read(protoReader);
+  // compare
+  ASSERT_EQ(m1.nRows(), m2.nRows()) << "Number of rows don't match";
+  ASSERT_EQ(m1.nCols(), m2.nCols()) << "Number of columns don't match";
+}
 
-      // compare
-      ASSERT_EQ(m1.nRows(), m2.nRows()) << "Number of rows don't match";
-      ASSERT_EQ(m1.nCols(), m2.nCols()) << "Number of columns don't match";
-    }
+TEST(SparseBinaryMatrixReadWrite, Basic)
+{
+  SparseBinaryMatrix<UInt, Real> m1, m2;
 
-    TEST(SparseBinaryMatrixReadWrite, Basic)
-    {
-      SparseBinaryMatrix<UInt, Real> m1, m2;
+  m1.resize(3, 4);
+  m1.set(1, 1, 1);
 
-      m1.resize(3, 4);
-      m1.set(1, 1, 1);
+  std::stringstream ss;
 
-      std::stringstream ss;
+  // write
+  capnp::MallocMessageBuilder message1;
+  SparseBinaryMatrixProto::Builder protoBuilder = message1.initRoot<SparseBinaryMatrixProto>();
+  m1.write(protoBuilder);
+  kj::std::StdOutputStream out(ss);
+  capnp::writeMessage(out, message1);
 
-      // write
-      capnp::MallocMessageBuilder message1;
-      SparseBinaryMatrixProto::Builder protoBuilder = message1.initRoot<SparseBinaryMatrixProto>();
-      m1.write(protoBuilder);
-      kj::std::StdOutputStream out(ss);
-      capnp::writeMessage(out, message1);
+  // read
+  kj::std::StdInputStream in(ss);
+  capnp::InputStreamMessageReader message2(in);
+  SparseBinaryMatrixProto::Reader protoReader = message2.getRoot<SparseBinaryMatrixProto>();
+  m2.read(protoReader);
 
-      // read
-      kj::std::StdInputStream in(ss);
-      capnp::InputStreamMessageReader message2(in);
-      SparseBinaryMatrixProto::Reader protoReader = message2.getRoot<SparseBinaryMatrixProto>();
-      m2.read(protoReader);
+  // compare
+  ASSERT_EQ(m1.nRows(), m2.nRows()) << "Number of rows don't match";
+  ASSERT_EQ(m1.nCols(), m2.nCols()) << "Number of columns don't match";
 
-      // compare
-      ASSERT_EQ(m1.nRows(), m2.nRows()) << "Number of rows don't match";
-      ASSERT_EQ(m1.nCols(), m2.nCols()) << "Number of columns don't match";
+  auto m1r1 = m1.getSparseRow(1);
+  ASSERT_EQ(m1r1.size(), 1) << "Invalid # of elements in original matrix";
+  auto m2r1 = m2.getSparseRow(1);
+  ASSERT_EQ(m2r1.size(), 1) << "Invalid # of elements in copied matrix";
 
-      auto m1r1 = m1.getSparseRow(1);
-      ASSERT_EQ(m1r1.size(), 1) << "Invalid # of elements in original matrix";
-      auto m2r1 = m2.getSparseRow(1);
-      ASSERT_EQ(m2r1.size(), 1) << "Invalid # of elements in copied matrix";
+  ASSERT_EQ(m1r1[0], 1) << "Invalid col index in original matrix";
+  ASSERT_EQ(m1r1[0], m2r1[0]) << "Invalid col index in copied matrix";
+}
 
-      ASSERT_EQ(m1r1[0], 1) << "Invalid col index in original matrix";
-      ASSERT_EQ(m1r1[0], m2r1[0]) << "Invalid col index in copied matrix";
-    }
-
-  }  // namespace
-}  // namespace nupic

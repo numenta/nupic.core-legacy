@@ -34,6 +34,7 @@
 #include <nupic/math/StlIo.hpp>
 #include <nupic/math/ArrayAlgo.hpp>
 #include <nupic/proto/SparseBinaryMatrixProto.capnp.h>
+#include <nupic/types/Serializable.hpp>
 
 namespace nupic {
 
@@ -45,7 +46,7 @@ namespace nupic {
  *
  */
 template <typename UI1 = nupic::UInt32, typename UI2 = nupic::UInt32>
-class SparseBinaryMatrix {
+class SparseBinaryMatrix : public Serializable<SparseBinaryMatrixProto> {
 public:
   typedef UI1 size_type;
   typedef UI2 nz_index_type;
@@ -1106,21 +1107,19 @@ public:
 
   inline size_type CSRSize() const {
     std::stringstream b;
-    char buffer[32];
+    char buffer[64];
 
     b << getVersion() << " " << nRows() << " " << nCols() << " ";
 
     size_type n = b.str().size();
-
     for (size_type row = 0; row != nRows(); ++row) {
       size_type nnzr = nNonZerosOnRow(row);
-      n += sprintf(buffer, "%d ", nnzr);
+      n += sprintf(buffer, "%ld ", (long)nnzr);
       for (nz_index_type j = 0; j != nnzr; ++j)
-        n += sprintf(buffer, "%d ", ind_[row][j]);
+        n += sprintf(buffer, "%ld ", (long)ind_[row][j]);
     }
-
     return n;
-  }
+   }
 
   inline void fromCSR(std::istream &inStream) {
     const std::string where = "SparseBinaryMatrix::readState: ";
@@ -1296,6 +1295,8 @@ public:
     }
   }
 
+  using Serializable::write;
+
   inline void write(SparseBinaryMatrixProto::Builder &proto) const {
     proto.setNumRows(nRows());
     proto.setNumColumns(nCols());
@@ -1308,6 +1309,8 @@ public:
       }
     }
   }
+
+  using Serializable::read;
 
   inline void read(SparseBinaryMatrixProto::Reader &proto) {
     auto rows = proto.getNumRows();
