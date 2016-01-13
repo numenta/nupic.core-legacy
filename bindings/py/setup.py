@@ -219,7 +219,7 @@ if __name__ == "__main__":
     packages=find_packages(),
     package_data={
         "nupic.proto": ["*.capnp"],
-        "nupic.bindings": ["*.so", "*.pyd"],
+        "nupic.bindings": ["*.so", "*.pyd", "*.dylib"],
     },
     extras_require = {"capnp": ["pycapnp==0.5.5"]},
     zip_safe=False,
