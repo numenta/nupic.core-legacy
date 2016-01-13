@@ -29,9 +29,9 @@ class LoadBindingsTest(unittest.TestCase):
 
   def testImportBindingsInstalled(self):
     """Test that we can import nupic.bindings"""
-    self.assertTrue(check.checkImportBindingsInstalled())
+    self.assertIsNone(check.checkImportBindingsInstalled())
 
 
   def testImportBindingsExtensions(self):
     """Test that we can load C extensions under nupic.binding"""
-    self.assertTrue(check.checkImportBindingsExtensions())
+    self.assertIsNone(check.checkImportBindingsExtensions())
