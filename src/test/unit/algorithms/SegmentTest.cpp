@@ -42,13 +42,14 @@ void setUpSegment(Segment &segment,
                                 0.8, 0.1, 0.2, 0.3, 0.2}; // inactive synapses
 
   set<UInt> srcCells;
-  for (uint i = 0; i < permanences.size(); i++) {
+  for (uint i = 0; i < permanences.size(); i++)
+  {
     srcCells.clear();
     srcCells.insert(i);
 
     segment.addSynapses(srcCells, permanences[i], 0.5);
 
-    if(i < 5)
+    if (i < 5)
     {
       inactiveSegmentIndices.push_back(i);
       inactiveSynapseIndices.push_back(0);
@@ -63,9 +64,9 @@ void setUpSegment(Segment &segment,
 
 /*
 * Test that synapses are removed from inactive first even when there
-* are active synapses with lower permanence
+* are active synapses with lower permanence.
 */
-TEST(SegmentTest, freeNSynapsesInactiveFrst)
+TEST(SegmentTest, freeNSynapsesInactiveFirst)
 {
   Segment segment;
 
