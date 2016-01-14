@@ -42,7 +42,7 @@ void setUpSegment(Segment &segment,
                                 0.8, 0.1, 0.2, 0.3, 0.2}; // inactive synapses
 
   set<UInt> srcCells;
-  for (uint i = 0; i < permanences.size(); i++)
+  for (UInt i = 0; i < permanences.size(); i++)
   {
     srcCells.clear();
     srcCells.insert(i);
