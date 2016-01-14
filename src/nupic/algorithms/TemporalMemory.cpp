@@ -358,6 +358,7 @@ void TemporalMemory::learnOnSegments(
   vector<Segment>& prevMatchingSegments)
 {
   vector<Segment> _allSegments;
+  vector<Segment> segmentsMarkedForDeletion;
 
   for (auto segment : prevActiveSegments)
     _allSegments.push_back(segment);
@@ -397,6 +398,9 @@ void TemporalMemory::learnOnSegments(
           segment, presynapticCell, initialPermanence_);
       }
     }
+
+    if (_connections.dataForSegment(segment).synapses.size() == 0)
+      segmentsMarkedForDeletion.push_back(segment);
   }
 
   if (predictedSegmentDecrement_ > 0.0)
@@ -415,8 +419,16 @@ void TemporalMemory::learnOnSegments(
         adaptSegment(segment, activeSynapses, _connections,
           -predictedSegmentDecrement_, 0.0);
       }
+
+      if (_connections.dataForSegment(segment).synapses.size() == 0)
+        segmentsMarkedForDeletion.push_back(segment);
+      
     }
   }
+
+  for (Segment segment : segmentsMarkedForDeletion)
+    if (!_connections.dataForSegment(segment).destroyed)
+      connections.destroySegment(segment);
 }
 
 tuple<vector<Segment>, set<Cell>, vector<Segment>, set<Cell>>
