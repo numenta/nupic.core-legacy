@@ -26,40 +26,40 @@
 
 
 #include <nupic/os/Regex.hpp>
-#include "RegexTest.hpp"
+#include <gtest/gtest.h>
 
 using namespace std;
 using namespace nupic;
 
 
-void RegexTest::RunTests()
+TEST(RegexTest, Basic)
 {
   
-  TEST(regex::match(".*", ""));
-  TEST(regex::match(".*", "dddddfsdsgregegr"));
-  TEST(regex::match("d.*", "d"));  
-  TEST(regex::match("^d.*", "ddsfffdg"));
-  TEST(!regex::match("d.*", ""));
-  TEST(!regex::match("d.*", "a"));
-  TEST(!regex::match("^d.*", "ad"));
-  TEST(!regex::match("Sensor", "CategorySensor"));
+  ASSERT_TRUE(regex::match(".*", ""));
+  ASSERT_TRUE(regex::match(".*", "dddddfsdsgregegr"));
+  ASSERT_TRUE(regex::match("d.*", "d"));  
+  ASSERT_TRUE(regex::match("^d.*", "ddsfffdg"));
+  ASSERT_TRUE(!regex::match("d.*", ""));
+  ASSERT_TRUE(!regex::match("d.*", "a"));
+  ASSERT_TRUE(!regex::match("^d.*", "ad"));
+  ASSERT_TRUE(!regex::match("Sensor", "CategorySensor"));
   
   
-  TEST(regex::match("\\\\", "\\"));  
+  ASSERT_TRUE(regex::match("\\\\", "\\"));  
                 
-//  TEST(regex::match("\\w", "a"));  
-//  TEST(regex::match("\\d", "3"));    
-//  TEST(regex::match("\\w{3}", "abc"));
-//  TEST(regex::match("^\\w{3}$", "abc"));  
-//  TEST(regex::match("[\\w]{3}", "abc"));  
+//  ASSERT_TRUE(regex::match("\\w", "a"));  
+//  ASSERT_TRUE(regex::match("\\d", "3"));    
+//  ASSERT_TRUE(regex::match("\\w{3}", "abc"));
+//  ASSERT_TRUE(regex::match("^\\w{3}$", "abc"));  
+//  ASSERT_TRUE(regex::match("[\\w]{3}", "abc"));  
   
-  TEST(regex::match("[A-Za-z0-9_]{3}", "abc"));
+  ASSERT_TRUE(regex::match("[A-Za-z0-9_]{3}", "abc"));
   
   // Invalid expression tests (should throw)
   try
   {
-    TEST(regex::match("", ""));
-    TEST(false);
+    ASSERT_TRUE(regex::match("", ""));
+    ASSERT_TRUE(false);
   }
   catch (...)
   {
@@ -67,8 +67,8 @@ void RegexTest::RunTests()
    
   try
   {
-    TEST(regex::match("xyz[", ""));
-    TEST(false);
+    ASSERT_TRUE(regex::match("xyz[", ""));
+    ASSERT_TRUE(false);
   }
   catch (...)
   {

@@ -212,6 +212,14 @@
 
 %extend nupic::Network
 {
+  %pythoncode %{
+    @classmethod
+    def read(cls, proto):
+      instance = cls()
+      instance.convertedRead(proto)
+      return instance
+  %}
+
   inline void write(PyObject* pyBuilder) const
   {
   %#if !CAPNP_LITE
@@ -221,7 +229,7 @@
   %#endif
   }
 
-  inline void read(PyObject* pyReader)
+  inline void convertedRead(PyObject* pyReader)
   {
   %#if !CAPNP_LITE
     NetworkProto::Reader proto =

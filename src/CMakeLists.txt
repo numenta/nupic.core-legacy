@@ -459,7 +459,6 @@ set(LIB_STATIC_NUPICCORE_SRCS
     nupic/regions/VectorFile.cpp
     nupic/regions/VectorFileEffector.cpp
     nupic/regions/VectorFileSensor.cpp
-    nupic/test/Tester.cpp
     nupic/types/BasicType.cpp
     nupic/types/Fraction.cpp
     nupic/utils/LoggingException.cpp
@@ -583,6 +582,7 @@ add_executable(${EXECUTABLE_GTESTS}
                test/unit/algorithms/ConnectionsTest.cpp
                test/unit/algorithms/FastCLAClassifierTest.cpp
                test/unit/algorithms/NearestNeighborUnitTest.cpp
+               test/unit/algorithms/SegmentTest.cpp
                test/unit/algorithms/SpatialPoolerTest.cpp
                test/unit/algorithms/TemporalMemoryTest.cpp
                test/unit/engine/InputTest.cpp
@@ -614,7 +614,6 @@ add_executable(${EXECUTABLE_GTESTS}
                test/unit/os/RegexTest.cpp
                test/unit/os/TimerTest.cpp
                test/unit/py_support/PyHelpersTest.cpp
-               test/unit/test/TesterTest.cpp
                test/unit/types/BasicTypeTest.cpp
                test/unit/types/ExceptionTest.cpp
                test/unit/types/FractionTest.cpp
@@ -632,33 +631,6 @@ add_custom_target(tests_unit
                   DEPENDS ${EXECUTABLE_GTESTS}
                   VERBATIM)
 add_dependencies(${EXECUTABLE_GTESTS} ${LIB_STATIC_GTEST} ${COMMON_LIBS})
-set(TEST_HEADERS
-    test/unit/math/DenseTensorUnitTest.hpp
-    test/unit/math/DomainUnitTest.hpp
-    test/unit/math/IndexUnitTest.hpp
-    test/unit/math/MathsTest.hpp
-    test/unit/math/SparseMatrix01UnitTest.hpp
-    test/unit/math/SparseMatrixUnitTest.hpp
-    test/unit/math/SparseTensorUnitTest.hpp
-    test/unit/os/DirectoryTest.hpp
-    test/unit/os/EnvTest.hpp
-    test/unit/os/OSTest.hpp
-    test/unit/os/PathTest.hpp
-    test/unit/os/RegexTest.hpp
-    test/unit/os/TimerTest.hpp
-    test/unit/test/TesterTest.hpp
-    test/unit/types/BasicTypeTest.hpp
-    test/unit/types/ExceptionTest.hpp
-    test/unit/types/FractionTest.hpp)
-set(tests_file_content "")
-set(headers_file_content "")
-foreach(file ${TEST_HEADERS})
-  get_filename_component(test ${file} NAME_WE)
-  set(tests_file_content "${tests_file_content}ADD_TEST(${test});\n")
-  set(headers_file_content "${headers_file_content}#include \"${file}\"\n")
-endforeach()
-file(WRITE "${PROJECT_BINARY_DIR}/AddTests.hpp" "${tests_file_content}")
-file(WRITE "${PROJECT_BINARY_DIR}/AddTestHeaders.hpp" "${headers_file_content}")
 
 #
 # tests_all just calls other targets

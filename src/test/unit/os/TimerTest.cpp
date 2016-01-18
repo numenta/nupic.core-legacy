@@ -26,15 +26,15 @@
 
 #define SLEEP_MICROSECONDS (100 * 1000)
 
-#include "TimerTest.hpp"
 #include <nupic/utils/Log.hpp>
 #include <nupic/os/Timer.hpp>
 #include <math.h> // fabs
 #include <apr-1/apr_time.h>
+#include <gtest/gtest.h>
 
 using namespace nupic;
 
-void TimerTest::RunTests()
+TEST(TimerTest, Basic)
 {
 // Tests are minimal because we have no way to run performance-sensitive tests in a controlled
 // environment.
@@ -42,16 +42,16 @@ void TimerTest::RunTests()
   Timer t1;
   Timer t2(/* startme= */ true);
 
-  TEST(!t1.isStarted());
-  TEST(t1.getElapsed() == 0.0);
-  TEST(t1.getStartCount() == 0);
+  ASSERT_FALSE(t1.isStarted());
+  ASSERT_EQ(t1.getElapsed(), 0.0);
+  ASSERT_EQ(t1.getStartCount(), 0);
   EXPECT_STREQ("[Elapsed: 0 Starts: 0]", t1.toString().c_str());
 
   apr_sleep(SLEEP_MICROSECONDS);
 
-  TEST(t2.isStarted());
-  TEST(t2.getStartCount() == 1);
-  TEST(t2.getElapsed() > 0);
+  ASSERT_TRUE(t2.isStarted());
+  ASSERT_EQ(t2.getStartCount(), 1);
+  ASSERT_GT(t2.getElapsed(), 0);
   Real64 t2elapsed = t2.getElapsed();
 
   t1.start();
@@ -59,12 +59,12 @@ void TimerTest::RunTests()
   t1.stop();
 
   t2.stop();
-  TEST(t1.getStartCount() == 1);
-  TEST(t1.getElapsed() > 0);
-  TEST(t2.getElapsed() > t2elapsed);
-  TEST(t2.getElapsed() > t1.getElapsed());
+  ASSERT_EQ(t1.getStartCount(), 1);
+  ASSERT_GT(t1.getElapsed(), 0);
+  ASSERT_GT(t2.getElapsed(), t2elapsed);
+  ASSERT_GT(t2.getElapsed(), t1.getElapsed());
 
   t1.start();
   t1.stop();
-  TEST(t1.getStartCount() == 2);
+  ASSERT_EQ(t1.getStartCount(), 2);
 }
