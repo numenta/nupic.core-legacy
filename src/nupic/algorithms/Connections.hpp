@@ -370,6 +370,17 @@ namespace nupic
         bool leastRecentlyUsedSegment(const Cell& cell,
                                       Segment& retSegment) const;
 
+         /**
+          * Gets the synapse with the lowest permanence on the segment.
+          *
+          * @param segment       Segment whose synapses to consider.
+          * @param retSynapse    Synapse with the lowest permanence.
+          *
+          * @retval False if segment has no synapses.
+          */
+         bool minPermanenceSynapse(const Segment& segment,
+                                   Synapse& retSynapse) const;
+
         /**
          * Forward-propagates input to synapses, dendrites, and cells, to
          * compute their activity.

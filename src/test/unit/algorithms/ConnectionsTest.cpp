@@ -195,6 +195,51 @@ namespace {
   }
 
   /**
+  * Creates a synapse over the synapses per segment limit, and verifies
+  * that the lowest permanence synapse is removed to make room for the new
+  * synapse.
+  */
+  TEST(ConnectionsTest, testSynapseReuse)
+  {
+    // Limit to only two synapses per segment
+    Connections connections(1024, 1024, 2);
+    Cell cell(10), presynapticCell;
+    Segment segment = connections.createSegment(cell);
+    Synapse synapse;
+    vector<Synapse> synapses;
+    SynapseData synapseData;
+
+    presynapticCell.idx = 50;
+    synapse = connections.createSynapse(segment, presynapticCell, 0.34);
+    presynapticCell.idx = 51;
+    synapse = connections.createSynapse(segment, presynapticCell, 0.48);
+
+    // Verify that the synapses we added are there
+    synapses = connections.synapsesForSegment(segment);
+    ASSERT_EQ(synapses.size(), 2);
+    synapseData = connections.dataForSynapse(synapses[0]);
+    ASSERT_EQ(synapseData.presynapticCell.idx, 50);
+    ASSERT_NEAR(synapseData.permanence, (Permanence)0.34, EPSILON);
+    synapseData = connections.dataForSynapse(synapses[1]);
+    ASSERT_EQ(synapseData.presynapticCell.idx, 51);
+    ASSERT_NEAR(synapseData.permanence, (Permanence)0.48, EPSILON);
+
+    // Add an additional synapse over the limit
+    presynapticCell.idx = 52;
+    synapse = connections.createSynapse(segment, presynapticCell, 0.52);
+
+    // Verify that the lowest permanence synapse was removed
+    synapses = connections.synapsesForSegment(segment);
+    ASSERT_EQ(synapses.size(), 2);
+    synapseData = connections.dataForSynapse(synapses[0]);
+    ASSERT_EQ(synapseData.presynapticCell.idx, 51);
+    ASSERT_NEAR(synapseData.permanence, (Permanence)0.48, EPSILON);
+    synapseData = connections.dataForSynapse(synapses[1]);
+    ASSERT_EQ(synapseData.presynapticCell.idx, 52);
+    ASSERT_NEAR(synapseData.permanence, (Permanence)0.52, EPSILON);
+  }
+
+  /**
    * Creates a segment, destroys it, and makes sure it got destroyed along with
    * all of its synapses.
    */
