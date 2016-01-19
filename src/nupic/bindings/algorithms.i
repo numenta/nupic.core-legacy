@@ -106,6 +106,7 @@ _ALGORITHMS = _algorithms
 #include <nupic/algorithms/OutSynapse.hpp>
 #include <nupic/algorithms/SegmentUpdate.hpp>
 
+#include <nupic/proto/ConnectionsProto.capnp.h>
 #include <nupic/proto/SpatialPoolerProto.capnp.h>
 #include <nupic/proto/TemporalMemoryProto.capnp.h>
 
@@ -1563,7 +1564,38 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
       """Used by TemporalMemory.learnOnSegments"""
       return segment.cell
 
+    @classmethod
+    def read(cls, proto):
+      instance = cls()
+      instance.convertedRead(proto)
+      return instance
+
   %}
+
+  inline void write(PyObject* pyBuilder) const
+  {
+%#if !CAPNP_LITE
+    ConnectionsProto::Builder proto =
+        getBuilder<ConnectionsProto>(pyBuilder);
+    self->write(proto);
+  %#else
+    throw std::logic_error(
+        "Connections.write is not implemented when compiled with CAPNP_LITE=1.");
+  %#endif
+  }
+
+  inline void convertedRead(PyObject* pyReader)
+  {
+%#if !CAPNP_LITE
+    ConnectionsProto::Reader proto =
+        getReader<ConnectionsProto>(pyReader);
+    self->read(proto);
+  %#else
+    throw std::logic_error(
+        "Connections.read is not implemented when compiled with CAPNP_LITE=1.");
+  %#endif
+  }
+
 }
 
 %extend nupic::algorithms::connections::Cell
@@ -1682,6 +1714,11 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
         del state["this"]
         self.__dict__.update(state)
 
+
+    def compute(self, activeColumns, learn=True):
+      return self.convertedCompute(activeColumns, learn)
+
+
     @classmethod
     def read(cls, proto):
       instance = cls()
@@ -1689,7 +1726,7 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
       return instance
   %}
 
-  inline void compute(PyObject *py_x, bool learn)
+  inline void convertedCompute(PyObject *py_x, bool learn)
   {
     PyArrayObject* _x = (PyArrayObject*) py_x;
 
