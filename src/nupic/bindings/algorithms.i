@@ -106,6 +106,7 @@ _ALGORITHMS = _algorithms
 #include <nupic/algorithms/OutSynapse.hpp>
 #include <nupic/algorithms/SegmentUpdate.hpp>
 
+#include <nupic/proto/ConnectionsProto.capnp.h>
 #include <nupic/proto/SpatialPoolerProto.capnp.h>
 #include <nupic/proto/TemporalMemoryProto.capnp.h>
 
@@ -1567,7 +1568,38 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
       """Used by TemporalMemory.learnOnSegments"""
       return segment.cell
 
+    @classmethod
+    def read(cls, proto):
+      instance = cls()
+      instance.convertedRead(proto)
+      return instance
+
   %}
+
+  inline void write(PyObject* pyBuilder) const
+  {
+%#if !CAPNP_LITE
+    ConnectionsProto::Builder proto =
+        getBuilder<ConnectionsProto>(pyBuilder);
+    self->write(proto);
+  %#else
+    throw std::logic_error(
+        "Connections.write is not implemented when compiled with CAPNP_LITE=1.");
+  %#endif
+  }
+
+  inline void convertedRead(PyObject* pyReader)
+  {
+%#if !CAPNP_LITE
+    ConnectionsProto::Reader proto =
+        getReader<ConnectionsProto>(pyReader);
+    self->read(proto);
+  %#else
+    throw std::logic_error(
+        "Connections.read is not implemented when compiled with CAPNP_LITE=1.");
+  %#endif
+  }
+
 }
 
 %extend nupic::algorithms::connections::Cell
