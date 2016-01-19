@@ -385,7 +385,7 @@ endif()
 set_target_properties(${LIB_SHARED_NUPIC_CAPNP_SCHEMA} PROPERTIES COMPILE_FLAGS
                       ${COMMON_COMPILE_FLAGS})
 set_target_properties(${LIB_SHARED_NUPIC_CAPNP_SCHEMA} PROPERTIES LINK_FLAGS
-                      "${COMMON_LINK_FLAGS} -static")
+                      ${COMMON_LINK_FLAGS})
 
 
 #
