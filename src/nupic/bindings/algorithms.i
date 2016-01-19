@@ -1685,9 +1685,7 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
         self.__dict__.update(state)
 
     def compute(self, activeColumns, learn=True):
-      activeColumnsArray = numpy.zeros(self.numberOfColumns(), dtype=uintDType)
-      activeColumnsArray[list(activeColumns)] = 1
-
+      activeColumnsArray = numpy.array(list(activeColumns), dtype=uintDType)
       self.convertedCompute(activeColumnsArray, learn)
 
     @classmethod
