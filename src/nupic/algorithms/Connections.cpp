@@ -85,7 +85,9 @@ Synapse Connections::createSynapse(const Segment& segment,
   vector<SynapseData>& synapses = cells_[segment.cell.idx].segments[segment.idx].synapses;
   if (synapses.size() == maxSynapsesPerSegment_)
   {
-    NTA_THROW << "Cannot create synapse: segment has reached maximum number of synapses.";
+    Synapse minSynapse;
+    minPermanenceSynapse(segment, minSynapse);
+    destroySynapse(minSynapse);
   }
   Synapse synapse(synapses.size(), segment);
 
@@ -282,6 +284,31 @@ bool Connections::leastRecentlyUsedSegment(const Cell& cell,
   }
 
   return found;
+}
+
+bool Connections::minPermanenceSynapse(const Segment& segment,
+                                       Synapse& retSynapse) const
+{
+  const vector<SynapseData>& synapses =
+    cells_[segment.cell.idx].segments[segment.idx].synapses;
+
+  if (synapses.size() == 0)
+  {
+    return false;
+  }
+
+  vector<SynapseData>::const_iterator minSynapseIterator = min_element(
+    synapses.begin(),
+    synapses.end(),
+    [](const SynapseData &a, const SynapseData &b) -> bool
+    {
+      return a.permanence < b.permanence;
+    });
+
+  SynapseIdx minSynapseIdx = distance(synapses.begin(), minSynapseIterator);
+  retSynapse = Synapse(minSynapseIdx, segment);
+
+  return true;
 }
 
 Activity Connections::computeActivity(const vector<Cell>& input,
