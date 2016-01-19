@@ -1717,8 +1717,7 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
         self.__dict__.update(state)
 
     def compute(self, activeColumns, learn=True):
-      activeColumnsArray = numpy.array(list(activeColumns), dtype=uintDType)
-      self.convertedCompute(activeColumnsArray, learn)
+      self.convertedCompute(activeColumns, learn)
 
     @classmethod
     def read(cls, proto):
@@ -1729,10 +1728,21 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
 
   inline void convertedCompute(PyObject *py_x, bool learn)
   {
-    PyArrayObject* _x = (PyArrayObject*) py_x;
+    nupic::UInt32 len = PySet_Size(py_x);
+    nupic::UInt32 data[len];
 
-    nupic::UInt32  len = (nupic::UInt32)PyArray_DIMS(_x)[0];
-    nupic::UInt32* data = (nupic::UInt32*)PyArray_DATA(_x);
+    PyObject* iter = PyObject_GetIter(py_x);
+    PyObject *item;
+
+    nupic::UInt32 i = 0;
+    while ((item = PyIter_Next(iter))) {
+      data[i] = PyInt_AsLong(item);
+
+      Py_DECREF(item);
+      i++;
+    }
+
+    Py_DECREF(iter);
 
     self->compute(len, data, learn);
   }
