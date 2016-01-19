@@ -145,6 +145,10 @@ using namespace nupic;
 //   from bindings import math
 // %}
 
+%pythoncode %{
+  uintDType = "uint32"
+%}
+
 %naturalvar;
 
 
@@ -1641,8 +1645,6 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
 %extend nupic::algorithms::temporal_memory::TemporalMemory
 {
   %pythoncode %{
-    import numpy
-
     def __init__(self,
                  columnDimensions=(2048,),
                  cellsPerColumn=32,
@@ -1682,6 +1684,12 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
         del state["this"]
         self.__dict__.update(state)
 
+    def compute(self, activeColumns, learn=True):
+      activeColumnsArray = numpy.zeros(self.numberOfColumns(), dtype=uintDType)
+      activeColumnsArray[list(activeColumns)] = 1
+
+      self.convertedCompute(activeColumnsArray, learn)
+
     @classmethod
     def read(cls, proto):
       instance = cls()
@@ -1689,7 +1697,7 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
       return instance
   %}
 
-  inline void compute(PyObject *py_x, bool learn)
+  inline void convertedCompute(PyObject *py_x, bool learn)
   {
     PyArrayObject* _x = (PyArrayObject*) py_x;
 
