@@ -216,9 +216,6 @@ void TemporalMemory::compute(UInt activeColumnsSize, UInt activeColumns[], bool 
     _matchingSegments, _matchingCells) =
     computePredictiveCells(activeCells, connections);
 
-  activeCells = _activeCells;
-  winnerCells = _winnerCells;
-
   activeSegments = _activeSegments;
   predictiveCells.clear();
   for (Cell c : _predictiveCells)
