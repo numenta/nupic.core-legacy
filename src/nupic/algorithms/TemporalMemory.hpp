@@ -437,6 +437,34 @@ namespace nupic {
         UInt numberOfCells(void);
 
         /**
+        * Returns the indices of the active cells.
+        *
+        * @returns (std::vector<CellIdx>) Vector of indices of active cells.
+        */
+        vector<CellIdx> getActiveCells() const;
+
+        /**
+        * Returns the indices of the predictive cells.
+        *
+        * @returns (std::vector<CellIdx>) Vector of indices of predictive cells.
+        */
+        vector<CellIdx> getPredictiveCells() const;
+
+        /**
+        * Returns the indices of the winner cells.
+        *
+        * @returns (std::vector<CellIdx>) Vector of indices of winner cells.
+        */
+        vector<CellIdx> getWinnerCells() const;
+
+        /**
+        * Returns the indices of the matching cells.
+        *
+        * @returns (std::vector<CellIdx>) Vector of indices of matching cells.
+        */
+        vector<CellIdx> getMatchingCells() const;
+
+        /**
          * Maps cells to the columns they belong to
          *
          * @param cells Cells
@@ -529,6 +557,17 @@ namespace nupic {
          */
         Permanence getPredictedSegmentDecrement() const;
         void setPredictedSegmentDecrement(Permanence);
+
+       /**
+        * Extracts a vector<CellIdx> from a Iterable of Cells.
+        *
+        * @param Iterable<Cell> Iterable of Cells
+        *                       (.e.g. set<Cell>, vector<Cell>).
+        *
+        * @returns vector<CellIdx> The indices of the Cells in the Iterable.
+        */
+        template <typename Iterable>
+        vector<CellIdx> _cellsToIndices(const Iterable &cellSet) const;
 
         /**
          * Raises an error if column index is invalid.

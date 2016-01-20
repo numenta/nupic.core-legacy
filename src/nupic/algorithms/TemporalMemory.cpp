@@ -666,6 +666,26 @@ UInt TemporalMemory::numberOfCells(void)
   return numberOfColumns() * cellsPerColumn_;
 }
 
+vector<CellIdx> TemporalMemory::getActiveCells() const
+{
+  return _cellsToIndices(activeCells);
+}
+
+vector<CellIdx> TemporalMemory::getPredictiveCells() const
+{
+  return _cellsToIndices(predictiveCells);
+}
+
+vector<CellIdx> TemporalMemory::getWinnerCells() const
+{
+  return _cellsToIndices(winnerCells);
+}
+
+vector<CellIdx> TemporalMemory::getMatchingCells() const
+{
+  return _cellsToIndices(matchingCells);
+}
+
 UInt TemporalMemory::numberOfColumns() const
 {
   return numColumns_;
@@ -682,6 +702,18 @@ map<Int, set<Cell>> TemporalMemory::mapCellsToColumns(set<Cell>& cells)
   }
 
   return cellsForColumns;
+}
+
+template <typename Iterable>
+vector<CellIdx> TemporalMemory::_cellsToIndices(const Iterable &cellSet) const
+{
+  vector<CellIdx> idxVector;
+  idxVector.reserve(cellSet.size());
+  for (Cell cell : cellSet)
+  {
+    idxVector.push_back(cell.idx);
+  }
+  return idxVector;
 }
 
 bool TemporalMemory::_validateColumn(UInt column)
