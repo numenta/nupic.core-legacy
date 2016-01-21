@@ -1672,7 +1672,19 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
 //--------------------------------------------------------------------------------
 // Temporal Memory
 //--------------------------------------------------------------------------------
-%include <nupic/algorithms/TemporalMemory.hpp>
+%inline %{
+  template <typename IntType>
+  inline PyObject* vectorToList(const vector<IntType> &cellIdxs)
+  {
+    PyObject *list = PyList_New(cellIdxs.size());
+    for (size_t i = 0; i < cellIdxs.size(); i++)
+    {
+      PyObject *pyIdx = PyInt_FromLong(cellIdxs[i]);
+      PyList_SET_ITEM(list, i, pyIdx);
+    }
+    return list;
+  }
+%}
 
 %extend nupic::algorithms::temporal_memory::TemporalMemory
 {
@@ -1727,6 +1739,30 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
       return instance
   %}
 
+  inline PyObject* getActiveCells()
+  {
+    const vector<CellIdx> cellIdxs = self->getActiveCells();
+    return vectorToList(cellIdxs);
+  }
+
+  inline PyObject* getPredictiveCells()
+  {
+    const vector<CellIdx> cellIdxs = self->getPredictiveCells();
+    return vectorToList(cellIdxs);
+  }
+
+  inline PyObject* getWinnerCells()
+  {
+    const vector<CellIdx> cellIdxs = self->getWinnerCells();
+    return vectorToList(cellIdxs);
+  }
+
+  inline PyObject* getMatchingCells()
+  {
+    const vector<CellIdx> cellIdxs = self->getMatchingCells();
+    return vectorToList(cellIdxs);
+  }
+
   inline void convertedCompute(PyObject *py_x, bool learn)
   {
     PyArrayObject* _x = (PyArrayObject*) py_x;
@@ -1778,3 +1814,10 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
     return py_s.close();
   }
 }
+
+%ignore nupic::algorithms::temporal_memory::TemporalMemory::getActiveCells;
+%ignore nupic::algorithms::temporal_memory::TemporalMemory::getPredictiveCells;
+%ignore nupic::algorithms::temporal_memory::TemporalMemory::getWinnerCells;
+%ignore nupic::algorithms::temporal_memory::TemporalMemory::getMatchingCells;
+
+%include <nupic/algorithms/TemporalMemory.hpp>
