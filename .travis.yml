@@ -115,7 +115,7 @@ script:
   - "otool -L /Users/travis/build/numenta/nupic.core/bindings/py/nupic/bindings/_math.so"
   - "otool -l /Users/travis/build/numenta/nupic.core/bindings/py/nupic/bindings/_math.so | grep LC_RPATH -A2"
   # run python tests
-  - "DYLD_LIBRARY_PATH=/Users/travis/build/numenta/nupic.core/bindings/py/nupic/bindings py.test ${TRAVIS_BUILD_DIR}/bindings/py/tests"
+  - "export DYLD_PRINT_LIBRARIES=y py.test ${TRAVIS_BUILD_DIR}/bindings/py/tests"
   # output unit tests report
   - "cd $TRAVIS_BUILD_DIR/build/artifacts/"
   # transform the JUnit-style xml report to html
