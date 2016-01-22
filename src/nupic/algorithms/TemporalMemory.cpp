@@ -309,6 +309,9 @@ tuple<set<Cell>, set<Cell>, vector<Segment>> TemporalMemory::burstColumns(
     _unpredictedColumns.resize(it - _unpredictedColumns.begin());
   }
 
+  // Sort unpredictedActiveColumns before iterating for python compatibility
+  sort(_unpredictedColumns.begin(), _unpredictedColumns.end());
+
   for (Int column : _unpredictedColumns)
   {
     Segment bestSegment;
