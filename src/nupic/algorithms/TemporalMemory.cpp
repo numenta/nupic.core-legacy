@@ -347,6 +347,10 @@ tuple<set<Cell>, set<Cell>, vector<Segment>> TemporalMemory::burstColumns(
   return make_tuple(_activeCells, _winnerCells, _learningSegments);
 }
 
+bool sortSegmentsByCells(Segment i, Segment j) {
+  return i.cell.idx < j.cell.idx;
+}
+
 void TemporalMemory::learnOnSegments(
   vector<Segment>& prevActiveSegments,
   vector<Segment>& learningSegments,
@@ -363,6 +367,9 @@ void TemporalMemory::learnOnSegments(
     _allSegments.push_back(segment);
   for (auto segment : learningSegments)
     _allSegments.push_back(segment);
+
+  // Sort segments before iterating for python compatibility
+  sort(_allSegments.begin(), _allSegments.end(), sortSegmentsByCells);
 
   for (Segment segment : _allSegments)
   {
