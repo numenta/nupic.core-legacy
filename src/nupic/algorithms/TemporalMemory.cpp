@@ -348,7 +348,14 @@ tuple<set<Cell>, set<Cell>, vector<Segment>> TemporalMemory::burstColumns(
 }
 
 bool sortSegmentsByCells(Segment i, Segment j) {
-  return i.cell.idx < j.cell.idx;
+  if (i.cell.idx == j.cell.idx) {
+    // secondary sort on segment idx
+    return i.idx < j.idx;
+  }
+  else {
+    // primary sort on cell idx
+    return i.cell.idx < j.cell.idx;
+  }
 }
 
 void TemporalMemory::learnOnSegments(
