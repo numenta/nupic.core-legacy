@@ -1700,7 +1700,7 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
                  permanenceIncrement=0.10,
                  permanenceDecrement=0.10,
                  predictedSegmentDecrement=0.00,
-                 seed=-1):
+                 seed=42):
       self.this = _ALGORITHMS.new_TemporalMemory()
       _ALGORITHMS.TemporalMemory_initialize(
         self, columnDimensions, cellsPerColumn, activationThreshold,

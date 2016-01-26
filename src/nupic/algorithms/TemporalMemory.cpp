@@ -216,9 +216,6 @@ void TemporalMemory::compute(UInt activeColumnsSize, UInt activeColumns[], bool 
     _matchingSegments, _matchingCells) =
     computePredictiveCells(activeCells, connections);
 
-  activeCells = _activeCells;
-  winnerCells = _winnerCells;
-
   activeSegments = _activeSegments;
   predictiveCells.clear();
   for (Cell c : _predictiveCells)
@@ -312,6 +309,9 @@ tuple<set<Cell>, set<Cell>, vector<Segment>> TemporalMemory::burstColumns(
     _unpredictedColumns.resize(it - _unpredictedColumns.begin());
   }
 
+  // Sort unpredictedActiveColumns before iterating for python compatibility
+  sort(_unpredictedColumns.begin(), _unpredictedColumns.end());
+
   for (Int column : _unpredictedColumns)
   {
     Segment bestSegment;
@@ -347,6 +347,17 @@ tuple<set<Cell>, set<Cell>, vector<Segment>> TemporalMemory::burstColumns(
   return make_tuple(_activeCells, _winnerCells, _learningSegments);
 }
 
+bool sortSegmentsByCells(Segment i, Segment j) {
+  if (i.cell.idx == j.cell.idx) {
+    // secondary sort on segment idx
+    return i.idx < j.idx;
+  }
+  else {
+    // primary sort on cell idx
+    return i.cell.idx < j.cell.idx;
+  }
+}
+
 void TemporalMemory::learnOnSegments(
   vector<Segment>& prevActiveSegments,
   vector<Segment>& learningSegments,
@@ -363,6 +374,9 @@ void TemporalMemory::learnOnSegments(
     _allSegments.push_back(segment);
   for (auto segment : learningSegments)
     _allSegments.push_back(segment);
+
+  // Sort segments before iterating for python compatibility
+  sort(_allSegments.begin(), _allSegments.end(), sortSegmentsByCells);
 
   for (Segment segment : _allSegments)
   {
