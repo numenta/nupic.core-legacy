@@ -1763,6 +1763,19 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
     return vectorToList(cellIdxs);
   }
 
+  inline PyObject* cellsForColumn(UInt columnIdx)
+  {
+    const vector<CellIdx> cellIdxs = self->_cellsToIndices(
+      self->cellsForColumn(columnIdx));
+    return vectorToList(cellIdxs);
+  }
+
+  UInt columnForCell(UInt cellIdx)
+  {
+    nupic::algorithms::connections::Cell cell(cellIdx);
+    return self->columnForCell(cell);
+  }
+
   inline void convertedCompute(PyObject *py_x, bool learn)
   {
     PyArrayObject* _x = (PyArrayObject*) py_x;
@@ -1819,5 +1832,8 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
 %ignore nupic::algorithms::temporal_memory::TemporalMemory::getPredictiveCells;
 %ignore nupic::algorithms::temporal_memory::TemporalMemory::getWinnerCells;
 %ignore nupic::algorithms::temporal_memory::TemporalMemory::getMatchingCells;
+%ignore nupic::algorithms::temporal_memory::TemporalMemory::cellsForColumn;
+%ignore nupic::algorithms::temporal_memory::TemporalMemory::columnForCell;
+
 
 %include <nupic/algorithms/TemporalMemory.hpp>
