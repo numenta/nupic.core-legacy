@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.1
+
+* Secondary sort on segment idx
+* Sort segments before iterating for python compatibility
+* Sort unpredictedActiveColumns before iterating for python compatibility
+
 ## 0.3.0
 
 * Updated SWIG bindings for accessors
