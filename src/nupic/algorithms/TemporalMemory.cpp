@@ -62,7 +62,9 @@ TemporalMemory::TemporalMemory(
   Permanence permanenceIncrement,
   Permanence permanenceDecrement,
   Permanence predictedSegmentDecrement,
-  Int seed)
+  Int seed,
+  UInt maxSegmentsPerCell,
+  UInt maxSynapsesPerSegment)
 {
   initialize(
     columnDimensions,
@@ -75,7 +77,9 @@ TemporalMemory::TemporalMemory(
     permanenceIncrement,
     permanenceDecrement,
     predictedSegmentDecrement,
-    seed);
+    seed,
+    maxSegmentsPerCell,
+    maxSynapsesPerSegment);
 }
 
 TemporalMemory::~TemporalMemory()
@@ -93,7 +97,9 @@ void TemporalMemory::initialize(
   Permanence permanenceIncrement,
   Permanence permanenceDecrement,
   Permanence predictedSegmentDecrement,
-  Int seed)
+  Int seed,
+  UInt maxSegmentsPerCell,
+  UInt maxSynapsesPerSegment)
 {
   // Validate all input parameters
 
@@ -129,7 +135,10 @@ void TemporalMemory::initialize(
   predictedSegmentDecrement_ = predictedSegmentDecrement;
 
   // Initialize member variables
-  connections = Connections(numberOfCells());
+  connections = Connections(
+    numberOfCells(),
+    maxSegmentsPerCell,
+    maxSynapsesPerSegment);
   seed_((UInt64)(seed < 0 ? rand() : seed));
 
   activeCells.clear();
