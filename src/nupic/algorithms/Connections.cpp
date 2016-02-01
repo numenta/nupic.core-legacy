@@ -330,7 +330,9 @@ Activity Connections::computeActivity(const vector<Cell>& input,
       // TODO: Possible optimization - define constant variable here?
       synapseData = dataForSynapse(synapse);
 
-      if (synapseData.permanence >= permanenceThreshold)
+      // Ignore any synapses with permanence 0
+      if (synapseData.permanence >= permanenceThreshold &&
+          synapseData.permanence > 0)
       {
         activity.numActiveSynapsesForSegment[synapse.segment] += 1;
 
