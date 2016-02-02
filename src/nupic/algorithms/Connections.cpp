@@ -37,6 +37,8 @@ using namespace std;
 using namespace nupic;
 using namespace nupic::algorithms::connections;
 
+#define EPSILON 0.0000001
+
 Connections::Connections(CellIdx numCells,
                          SegmentIdx maxSegmentsPerCell,
                          SynapseIdx maxSynapsesPerSegment)
@@ -330,8 +332,9 @@ Activity Connections::computeActivity(const vector<Cell>& input,
       // TODO: Possible optimization - define constant variable here?
       synapseData = dataForSynapse(synapse);
 
+      // Add epsilon to permanence before comparing to avoid rounding edge cases
       // Ignore any synapses with permanence 0
-      if (synapseData.permanence >= permanenceThreshold &&
+      if (synapseData.permanence + EPSILON >= permanenceThreshold &&
           synapseData.permanence > 0)
       {
         activity.numActiveSynapsesForSegment[synapse.segment] += 1;
