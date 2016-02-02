@@ -1765,8 +1765,7 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
 
   inline PyObject* cellsForColumn(UInt columnIdx)
   {
-    const vector<CellIdx> cellIdxs = self->_cellsToIndices(
-      self->cellsForColumn(columnIdx));
+    const vector<CellIdx> cellIdxs = self->cellsForColumn(columnIdx);
     return vectorToList(cellIdxs);
   }
 
