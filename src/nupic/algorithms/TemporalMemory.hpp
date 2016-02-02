@@ -424,14 +424,23 @@ namespace nupic {
          */
         Int columnForCell(Cell& cell);
 
+       /**
+        * Returns the Cell objects that belong to a column.
+        *
+        * @param column Column index
+        *
+        * @return (vector<Cell>) Cell objects
+        */
+       vector<Cell> cellsForColumnCell(Int column);
+
         /**
          * Returns the indices of cells that belong to a column.
          *
          * @param column Column index
          *
-         * @return (set) Cell indices
+         * @return (vector<CellIdx>) Cell indices
          */
-        vector<Cell> cellsForColumn(Int column);
+        vector<CellIdx> cellsForColumn(Int column);
 
         /**
          * Returns the number of cells in this layer.

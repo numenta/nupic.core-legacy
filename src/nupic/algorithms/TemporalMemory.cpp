@@ -328,7 +328,7 @@ tuple<set<Cell>, set<Cell>, vector<Segment>> TemporalMemory::burstColumns(
     bool foundCell = false;
     bool foundSegment = false;
 
-    vector<Cell> cells = cellsForColumn(column);
+    vector<Cell> cells = cellsForColumnCell(column);
 
     for (auto cell : cells)
       _activeCells.insert(cell);
@@ -668,7 +668,7 @@ Int TemporalMemory::columnForCell(Cell& cell)
   return cell.idx / cellsPerColumn_;
 }
 
-vector<Cell> TemporalMemory::cellsForColumn(Int column)
+vector<Cell> TemporalMemory::cellsForColumnCell(Int column)
 {
   _validateColumn(column);
 
@@ -682,6 +682,11 @@ vector<Cell> TemporalMemory::cellsForColumn(Int column)
   }
 
   return cellsInColumn;
+}
+
+vector<CellIdx> TemporalMemory::cellsForColumn(Int column)
+{
+  return _cellsToIndices(cellsForColumnCell(column));
 }
 
 UInt TemporalMemory::numberOfCells(void)
