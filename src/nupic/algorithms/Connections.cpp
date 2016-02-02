@@ -333,7 +333,9 @@ Activity Connections::computeActivity(const vector<Cell>& input,
       synapseData = dataForSynapse(synapse);
 
       // Add epsilon to permanence before comparing to avoid rounding edge cases
-      if (synapseData.permanence + EPSILON >= permanenceThreshold)
+      // Ignore any synapses with permanence 0
+      if (synapseData.permanence + EPSILON >= permanenceThreshold &&
+          synapseData.permanence > 0)
       {
         activity.numActiveSynapsesForSegment[synapse.segment] += 1;
 
