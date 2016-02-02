@@ -456,7 +456,7 @@ TemporalMemory::computePredictiveCells(
   vector<Cell> predictiveCellsVec = _connections.activeCells(activity);
   set<Cell> _predictiveCells(predictiveCellsVec.begin(), predictiveCellsVec.end());
 
-  Activity matchingActivity = _connections.computeActivity(activeCells, 0.0, minThreshold_);
+  Activity matchingActivity = _connections.computeActivity(activeCells, 0.0, minThreshold_, false);
 
   vector<Segment> _matchingSegments = _connections.activeSegments(matchingActivity);
   vector<Cell> matchingCellsVec = _connections.activeCells(matchingActivity);
