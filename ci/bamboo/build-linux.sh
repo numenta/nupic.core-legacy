@@ -21,6 +21,10 @@ pip install --upgrade setuptools
 pip install wheel
 export CC=gcc
 export CXX=g++
-printenv | sort
-pwd
-ls -laFh
+pip install \
+    --cache-dir /usr/local/src/nupic.core/pip-cache \
+    --build /usr/local/src/nupic.core/pip-build \
+    --no-clean \
+    pycapnp==0.5.5 \
+    -r bindings/py/requirements.txt
+python setup.py bdist bdist_dumb bdist_wheel sdist
