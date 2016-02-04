@@ -452,13 +452,18 @@ TemporalMemory::computePredictiveCells(
   map<Segment, int> numActiveSynapsesForSegment;
   vector<Cell> activeCells(_activeCells.begin(), _activeCells.end());
 
-  Activity activity = _connections.computeActivity(activeCells, connectedPermanence_, activationThreshold_);
+  // Reduce permanence threshold by epsilon before comparing
+  // to avoid rounding edge cases
+  Permanence connectedPermanence = connectedPermanence_ - EPSILON;
+  Permanence minThreshold = minThreshold_ - EPSILON;
+
+  Activity activity = _connections.computeActivity(activeCells, connectedPermanence, activationThreshold_);
 
   vector<Segment> _activeSegments = _connections.activeSegments(activity);
   vector<Cell> predictiveCellsVec = _connections.activeCells(activity);
   set<Cell> _predictiveCells(predictiveCellsVec.begin(), predictiveCellsVec.end());
 
-  Activity matchingActivity = _connections.computeActivity(activeCells, 0.0, minThreshold_, false);
+  Activity matchingActivity = _connections.computeActivity(activeCells, 0.0, minThreshold, false);
 
   vector<Segment> _matchingSegments = _connections.activeSegments(matchingActivity);
   vector<Cell> matchingCellsVec = _connections.activeCells(matchingActivity);
