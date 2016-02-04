@@ -106,6 +106,7 @@ _ALGORITHMS = _algorithms
 #include <nupic/algorithms/OutSynapse.hpp>
 #include <nupic/algorithms/SegmentUpdate.hpp>
 
+#include <nupic/proto/ConnectionsProto.capnp.h>
 #include <nupic/proto/SpatialPoolerProto.capnp.h>
 #include <nupic/proto/TemporalMemoryProto.capnp.h>
 
@@ -144,6 +145,10 @@ using namespace nupic;
 //   import numpy
 //   from bindings import math
 // %}
+
+%pythoncode %{
+  uintDType = "uint32"
+%}
 
 %naturalvar;
 
@@ -1563,7 +1568,38 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
       """Used by TemporalMemory.learnOnSegments"""
       return segment.cell
 
+    @classmethod
+    def read(cls, proto):
+      instance = cls()
+      instance.convertedRead(proto)
+      return instance
+
   %}
+
+  inline void write(PyObject* pyBuilder) const
+  {
+%#if !CAPNP_LITE
+    ConnectionsProto::Builder proto =
+        getBuilder<ConnectionsProto>(pyBuilder);
+    self->write(proto);
+  %#else
+    throw std::logic_error(
+        "Connections.write is not implemented when compiled with CAPNP_LITE=1.");
+  %#endif
+  }
+
+  inline void convertedRead(PyObject* pyReader)
+  {
+%#if !CAPNP_LITE
+    ConnectionsProto::Reader proto =
+        getReader<ConnectionsProto>(pyReader);
+    self->read(proto);
+  %#else
+    throw std::logic_error(
+        "Connections.read is not implemented when compiled with CAPNP_LITE=1.");
+  %#endif
+  }
+
 }
 
 %extend nupic::algorithms::connections::Cell
@@ -1636,13 +1672,23 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
 //--------------------------------------------------------------------------------
 // Temporal Memory
 //--------------------------------------------------------------------------------
-%include <nupic/algorithms/TemporalMemory.hpp>
+%inline %{
+  template <typename IntType>
+  inline PyObject* vectorToList(const vector<IntType> &cellIdxs)
+  {
+    PyObject *list = PyList_New(cellIdxs.size());
+    for (size_t i = 0; i < cellIdxs.size(); i++)
+    {
+      PyObject *pyIdx = PyInt_FromLong(cellIdxs[i]);
+      PyList_SET_ITEM(list, i, pyIdx);
+    }
+    return list;
+  }
+%}
 
 %extend nupic::algorithms::temporal_memory::TemporalMemory
 {
   %pythoncode %{
-    import numpy
-
     def __init__(self,
                  columnDimensions=(2048,),
                  cellsPerColumn=32,
@@ -1654,7 +1700,9 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
                  permanenceIncrement=0.10,
                  permanenceDecrement=0.10,
                  predictedSegmentDecrement=0.00,
-                 seed=-1):
+                 maxSegmentsPerCell=MAX_SEGMENTS_PER_CELL,
+                 maxSynapsesPerSegment=MAX_SYNAPSES_PER_SEGMENT,
+                 seed=42):
       self.this = _ALGORITHMS.new_TemporalMemory()
       _ALGORITHMS.TemporalMemory_initialize(
         self, columnDimensions, cellsPerColumn, activationThreshold,
@@ -1682,6 +1730,10 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
         del state["this"]
         self.__dict__.update(state)
 
+    def compute(self, activeColumns, learn=True):
+      activeColumnsArray = numpy.array(list(activeColumns), dtype=uintDType)
+      self.convertedCompute(activeColumnsArray, learn)
+
     @classmethod
     def read(cls, proto):
       instance = cls()
@@ -1689,7 +1741,43 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
       return instance
   %}
 
-  inline void compute(PyObject *py_x, bool learn)
+  inline PyObject* getActiveCells()
+  {
+    const vector<CellIdx> cellIdxs = self->getActiveCells();
+    return vectorToList(cellIdxs);
+  }
+
+  inline PyObject* getPredictiveCells()
+  {
+    const vector<CellIdx> cellIdxs = self->getPredictiveCells();
+    return vectorToList(cellIdxs);
+  }
+
+  inline PyObject* getWinnerCells()
+  {
+    const vector<CellIdx> cellIdxs = self->getWinnerCells();
+    return vectorToList(cellIdxs);
+  }
+
+  inline PyObject* getMatchingCells()
+  {
+    const vector<CellIdx> cellIdxs = self->getMatchingCells();
+    return vectorToList(cellIdxs);
+  }
+
+  inline PyObject* cellsForColumn(UInt columnIdx)
+  {
+    const vector<CellIdx> cellIdxs = self->cellsForColumn(columnIdx);
+    return vectorToList(cellIdxs);
+  }
+
+  UInt columnForCell(UInt cellIdx)
+  {
+    nupic::algorithms::connections::Cell cell(cellIdx);
+    return self->columnForCell(cell);
+  }
+
+  inline void convertedCompute(PyObject *py_x, bool learn)
   {
     PyArrayObject* _x = (PyArrayObject*) py_x;
 
@@ -1740,3 +1828,13 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
     return py_s.close();
   }
 }
+
+%ignore nupic::algorithms::temporal_memory::TemporalMemory::getActiveCells;
+%ignore nupic::algorithms::temporal_memory::TemporalMemory::getPredictiveCells;
+%ignore nupic::algorithms::temporal_memory::TemporalMemory::getWinnerCells;
+%ignore nupic::algorithms::temporal_memory::TemporalMemory::getMatchingCells;
+%ignore nupic::algorithms::temporal_memory::TemporalMemory::cellsForColumn;
+%ignore nupic::algorithms::temporal_memory::TemporalMemory::columnForCell;
+
+
+%include <nupic/algorithms/TemporalMemory.hpp>
