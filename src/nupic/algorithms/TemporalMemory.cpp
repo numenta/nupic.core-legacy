@@ -619,7 +619,7 @@ void TemporalMemory::adaptSegment(
     if (permanence < 0.0)
       permanence = 0.0;
 
-    if (permanence < EPSILON)
+    if (permanence < 10 * EPSILON)
       _connections.destroySynapse(synapse);
     else
       _connections.updateSynapsePermanence(synapse, permanence);
