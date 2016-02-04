@@ -45,6 +45,8 @@ using namespace nupic::algorithms::connections;
 using namespace nupic::algorithms::temporal_memory;
 
 #define EPSILON 0.0000001
+// The permanence threshold under which synapse is treated as 0 permanence
+#define EPSILON_THRESHOLD (10 * EPSILON)
 
 TemporalMemory::TemporalMemory()
 {
@@ -619,7 +621,7 @@ void TemporalMemory::adaptSegment(
     if (permanence < 0.0)
       permanence = 0.0;
 
-    if (permanence < 10 * EPSILON)
+    if (permanence < EPSILON_THRESHOLD)
       _connections.destroySynapse(synapse);
     else
       _connections.updateSynapsePermanence(synapse, permanence);
