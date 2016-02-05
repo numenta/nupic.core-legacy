@@ -28,5 +28,4 @@ pip install \
     pycapnp==0.5.5 \
     -r bindings/py/requirements.txt
 python setup.py bdist bdist_dumb bdist_wheel sdist
-pwd
-ls -laFh
+ls -laFh bindings/py/dist
