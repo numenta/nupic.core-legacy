@@ -84,11 +84,11 @@ function main () {
     $python_path = $env:PYTHONPATH + "/python.exe"
     $pip_path = $env:PYTHONPATH + "/Scripts/pip.exe"
 
-    Write-Host "python -m pip install --upgrade pip"
-    & $python_path -m pip install --upgrade pip
+    #Write-Host "python -m pip install --upgrade pip"
+    #& $python_path -m pip install --upgrade pip
 
-    Write-Host "pip install " wheel
-    & $pip_path install wheel
+    Write-Host "pip install " wheel==0.25.0
+    & $pip_path install wheel==0.25.0
 
     Write-Host "pip install " boto
     & $pip_path install boto
