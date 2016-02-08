@@ -45,6 +45,8 @@ using namespace nupic::algorithms::connections;
 using namespace nupic::algorithms::temporal_memory;
 
 #define EPSILON 0.0000001
+// The permanence threshold under which synapse is treated as 0 permanence
+#define EPSILON_THRESHOLD (10 * EPSILON)
 
 TemporalMemory::TemporalMemory()
 {
@@ -450,7 +452,10 @@ TemporalMemory::computePredictiveCells(
   map<Segment, int> numActiveSynapsesForSegment;
   vector<Cell> activeCells(_activeCells.begin(), _activeCells.end());
 
-  Activity activity = _connections.computeActivity(activeCells, connectedPermanence_, activationThreshold_);
+  // Reduce permanence threshold by epsilon before comparing
+  // to avoid rounding edge cases
+  Permanence connectedPermanence = connectedPermanence_ - EPSILON;
+  Activity activity = _connections.computeActivity(activeCells, connectedPermanence, activationThreshold_);
 
   vector<Segment> _activeSegments = _connections.activeSegments(activity);
   vector<Cell> predictiveCellsVec = _connections.activeCells(activity);
@@ -529,8 +534,9 @@ TemporalMemory::bestMatchingSegment(
     {
       SynapseData synapseData = _connections.dataForSynapse(synapse);
 
-      if (find(activeCells.begin(), activeCells.end(),
-        synapseData.presynapticCell) != activeCells.end())
+      if (synapseData.permanence > 0 &&
+          find(activeCells.begin(), activeCells.end(),
+            synapseData.presynapticCell) != activeCells.end())
       {
         numActiveSynapses += 1;
       }
@@ -618,7 +624,7 @@ void TemporalMemory::adaptSegment(
     if (permanence < 0.0)
       permanence = 0.0;
 
-    if (permanence < EPSILON)
+    if (permanence < EPSILON_THRESHOLD)
       _connections.destroySynapse(synapse);
     else
       _connections.updateSynapsePermanence(synapse, permanence);
