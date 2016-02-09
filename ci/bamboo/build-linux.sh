@@ -3,17 +3,25 @@ set -o errexit
 set -o xtrace
 
 # Environment defaults w/ defaults
-${USER:="docker"}
+if [ -z "${USER}" ]; then
+    USER="docker"
+fi
 export USER
 
-${CC:="gcc"}
+if [ -z "${CC}" ]; then
+    CC="gcc"
+fi
 export CC
 
 if [ "${CC}" = "clang" ]; then
-    ${CXX:=clang++}
+    if [ -z "${CXX}" ]; then
+        CXX="clang++"
+    fi
     COMPILER_PACKAGES="clang-3.4"
 else
-    ${CXX:=g++}
+    if [ -z "${CXX}" ]; then
+        CXX="g++"
+    fi
     COMPILER_PACKAGES="${CC} ${CXX}"
 fi
 export CXX
