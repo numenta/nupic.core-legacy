@@ -48,5 +48,10 @@ pip install \
     pycapnp==0.5.5 \
     -r bindings/py/requirements.txt
 
+# Build and install nupic.core
+mkdir -p build/scripts
+cmake . -DNTA_COV_ENABLED=ON -DCMAKE_INSTALL_PREFIX=`pwd`/build/release -DPY_EXTENSIONS_DIR=`pwd`/bindings/py/nupic/bindings
+make install
+
 # Build installable python packages
 python setup.py bdist bdist_dumb bdist_wheel sdist
