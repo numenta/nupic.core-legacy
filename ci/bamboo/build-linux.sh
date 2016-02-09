@@ -54,6 +54,10 @@ pip install \
 mkdir -p build/scripts
 cmake . -DNTA_COV_ENABLED=ON -DCMAKE_INSTALL_PREFIX=`pwd`/build/release -DPY_EXTENSIONS_DIR=`pwd`/bindings/py/nupic/bindings
 make install
+./build/release/bin/unit_tests
+./build/release/bin/cpp_region_test
+./build/release/bin/unit_tests
 
 # Build installable python packages
 python setup.py bdist bdist_dumb bdist_wheel sdist
+py.test bindings/py/tests
