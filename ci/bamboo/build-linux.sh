@@ -31,6 +31,7 @@ export CXX
 apt-get update
 apt-get install -y \
     wget \
+    git-core \
     ${COMPILER_PACKAGES} \
     cmake \
     python \
