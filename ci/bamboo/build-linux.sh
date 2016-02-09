@@ -37,8 +37,8 @@ apt-get install -y \
     cmake \
     python \
     python2.7 \
-    python2.7-dev \
-    python-pip
+    python2.7-dev
+wget https://bootstrap.pypa.io/get-pip.py -O - | python
 pip install --upgrade setuptools
 pip install wheel
 
