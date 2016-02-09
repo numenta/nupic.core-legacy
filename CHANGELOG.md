@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.3.1
+
+* Secondary sort on segment idx
+* Sort segments before iterating for python compatibility
+* Sort unpredictedActiveColumns before iterating for python compatibility
+
+## 0.3.0
+
+* Updated SWIG bindings for accessors
+* Added TemporalMemory accessors
+* Update bindings for C++ Connections to expose 'read' class method
+* Destroy lowest permanence synapse when synapse limit is reached
+* Fix for bug in Segment::freeNSynapses
+* Added initialization code from Tester::init into PathTest::PathTest that is required for PathTest::copyInTemp to run successfully.
+* Remove references to Tester from UnitTestMain.cpp
+* Deleted Tester class and TesterTest files
+* Update SWIG binding of Network to add read class method
+* Refactor PyRegion subclasses to take specific proto object in read
+* Update SWIG binding of TemporalPooler to add read class method
+* Enable basic building with ninja (cmake -GNinja)
+* Added include of Log.hpp in NodeSet.hpp
+* Update SWIG bindings of SpatialPooler and CLAClassifier to add read class methods to C++ classes
+
 ## 0.2.7
 
 * Full filename for twine.

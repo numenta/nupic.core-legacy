@@ -874,7 +874,6 @@ std::string PyRegion::executeCommand(const std::vector<std::string>& args, Int64
   py::String s(res.invoke("__str__", py::Tuple()));
   const char * ss = (const char *)s;
   std::string result(ss);
-  NTA_DEBUG << "Result of PyRegion::executeCommand : '" << result << "'";
 
   return ss;
 }

@@ -428,7 +428,7 @@ namespace {
     connections.createSynapse(segment, Cell(486), 0.9);
 
     set<Cell> activeCells = { Cell(23), Cell(37), Cell(49), Cell(733) };
-    vector<Cell> cellsForColumn = tm.cellsForColumn(0);
+    vector<Cell> cellsForColumn = tm.cellsForColumnCell(0);
 
     tie(foundCell, bestCell, foundSegment, bestSegment) =
       tm.bestMatchingCell(cellsForColumn, activeCells, connections);
@@ -436,12 +436,12 @@ namespace {
     ASSERT_EQ(bestCell, Cell(0));
     ASSERT_EQ(bestSegment, Segment(0, Cell(0)));
 
-    cellsForColumn = tm.cellsForColumn(3);
+    cellsForColumn = tm.cellsForColumnCell(3);
     tie(foundCell, bestCell, foundSegment, bestSegment) =
       tm.bestMatchingCell(cellsForColumn, activeCells, connections);
     ASSERT_EQ(bestCell, Cell(103)); // Random cell from column
 
-    cellsForColumn = tm.cellsForColumn(999);
+    cellsForColumn = tm.cellsForColumnCell(999);
     tie(foundCell, bestCell, foundSegment, bestSegment) =
       tm.bestMatchingCell(cellsForColumn, activeCells, connections);
 
@@ -468,7 +468,7 @@ namespace {
     for (int i = 0; i < 100; i++)
     {
       // Never pick cell 0, always pick cell 1
-      vector<Cell> cellsForColumn = tm.cellsForColumn(0);
+      vector<Cell> cellsForColumn = tm.cellsForColumnCell(0);
       tie(foundCell, cell, foundSegment, segment) =
         tm.bestMatchingCell(cellsForColumn, activeSynapsesForSegment, connections);
       ASSERT_EQ(cell, Cell(1));
@@ -542,7 +542,7 @@ namespace {
     for (int i = 0; i < 100; i++)
     {
       // Never pick cell 0, always pick cell 1
-      vector<Cell> cellsForColumn = tm.cellsForColumn(0);
+      vector<Cell> cellsForColumn = tm.cellsForColumnCell(0);
       tie(foundCell, cell, foundSegment, segment) =
         tm.bestMatchingCell(cellsForColumn, cells, connections);
       ASSERT_EQ(cell, Cell(1));
@@ -708,7 +708,7 @@ namespace {
     tm.initialize(vector<UInt>{2048}, 5);
 
     vector<Cell> expectedCells = { Cell(5), Cell(6), Cell(7), Cell(8), Cell(9) };
-    vector<Cell> cellsForColumn = tm.cellsForColumn(1);
+    vector<Cell> cellsForColumn = tm.cellsForColumnCell(1);
     ASSERT_TRUE(check_vector_eq(cellsForColumn, expectedCells));
   }
 
@@ -718,7 +718,7 @@ namespace {
     tm.initialize(vector<UInt>{64, 64}, 4);
 
     vector<Cell> expectedCells = { Cell(256), Cell(257), Cell(258), Cell(259) };
-    vector<Cell> cellsForColumn = tm.cellsForColumn(64);
+    vector<Cell> cellsForColumn = tm.cellsForColumnCell(64);
     ASSERT_TRUE(check_vector_eq(cellsForColumn, expectedCells));
   }
 
@@ -727,9 +727,9 @@ namespace {
     TemporalMemory tm;
     tm.initialize(vector<UInt>{64, 64}, 4);
 
-    EXPECT_NO_THROW(tm.cellsForColumn(4095));
-    EXPECT_THROW(tm.cellsForColumn(4096), std::exception);
-    EXPECT_THROW(tm.cellsForColumn(-1), std::exception);
+    EXPECT_NO_THROW(tm.cellsForColumnCell(4095));
+    EXPECT_THROW(tm.cellsForColumnCell(4096), std::exception);
+    EXPECT_THROW(tm.cellsForColumnCell(-1), std::exception);
   }
 
   TEST(TemporalMemoryTest, testNumberOfColumns)
