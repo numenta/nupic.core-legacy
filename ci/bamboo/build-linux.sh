@@ -2,7 +2,7 @@
 set -o errexit
 set -o xtrace
 
-# Environment defaults w/ defaults
+# Environment defaults
 if [ -z "${USER}" ]; then
     USER="docker"
 fi
@@ -37,8 +37,8 @@ apt-get install -y \
     cmake \
     python \
     python2.7 \
-    python2.7-dev
-wget https://bootstrap.pypa.io/get-pip.py -O - | python
+    python2.7-dev \
+    python-pip
 pip install --upgrade setuptools
 pip install wheel
 
@@ -54,7 +54,6 @@ pip install \
 mkdir -p build/scripts
 cmake . -DNTA_COV_ENABLED=ON -DCMAKE_INSTALL_PREFIX=`pwd`/build/release -DPY_EXTENSIONS_DIR=`pwd`/bindings/py/nupic/bindings
 make install
-./build/release/bin/unit_tests
 ./build/release/bin/cpp_region_test
 ./build/release/bin/unit_tests
 
