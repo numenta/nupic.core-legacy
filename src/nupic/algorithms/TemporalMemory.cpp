@@ -44,7 +44,7 @@ using namespace nupic;
 using namespace nupic::algorithms::connections;
 using namespace nupic::algorithms::temporal_memory;
 
-#define EPSILON 0.0000001
+#define EPSILON 0.000001
 
 TemporalMemory::TemporalMemory()
 {
