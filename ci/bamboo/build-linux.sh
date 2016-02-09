@@ -3,7 +3,7 @@ set -o errexit
 set -o xtrace
 
 # Environment defaults w/ defaults
-${USER:=docker}
+${USER:="docker"}
 export USER
 
 ${CC:="gcc"}
