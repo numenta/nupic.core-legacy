@@ -1708,7 +1708,8 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
         self, columnDimensions, cellsPerColumn, activationThreshold,
         initialPermanence, connectedPermanence,
         minThreshold, maxNewSynapseCount, permanenceIncrement,
-        permanenceDecrement, predictedSegmentDecrement, seed)
+        permanenceDecrement, predictedSegmentDecrement, seed,
+        maxSegmentsPerCell, maxSynapsesPerSegment)
 
     def __getstate__(self):
       # Save the local attributes but override the C++ temporal memory with the
