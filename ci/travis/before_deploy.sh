@@ -30,8 +30,8 @@ set -o xtrace
 # wheels ourselves for deployment to S3. No need to build docs.
 if [ "${TRAVIS_BRANCH}" = "master" ]; then
 
-    # Assuming pip 1.5.X is installed.
-    pip install wheel --user
+    # Assuming pip 1.5.X+ is installed.
+    pip install wheel==0.25.0 --user
 
     cd ${TRAVIS_BUILD_DIR}/bindings/py
 

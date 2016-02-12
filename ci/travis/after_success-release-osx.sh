@@ -27,7 +27,7 @@ echo
 cd ${TRAVIS_BUILD_DIR}
 
 echo "Installing wheel..."
-pip install wheel --user || exit
+pip install wheel==0.25.0 --user || exit
 echo "Installing twine..."
 pip install twine --user -v || exit
 

@@ -43,7 +43,7 @@ export PYTHONPATH=$HOME/.local/lib/python2.7/site-packages:$PYTHONPATH
 pip install --ignore-installed --user setuptools
 
 echo "Installing wheel..."
-pip install wheel --user || exit
+pip install wheel==0.25.0 --user || exit
 echo "Installing Python dependencies"
 pip install --use-wheel --user -r bindings/py/requirements.txt --quiet || exit
 
