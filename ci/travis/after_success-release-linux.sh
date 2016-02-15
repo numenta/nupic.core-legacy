@@ -29,7 +29,7 @@ cd ${TRAVIS_BUILD_DIR}
 echo "Installing boto..."
 pip install boto --user || exit
 echo "Installing wheel..."
-pip install wheel --user || exit
+pip install wheel==0.25.0 --user || exit
 echo "Installing twine..."
 pip install twine --user || exit
 

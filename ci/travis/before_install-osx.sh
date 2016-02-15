@@ -38,7 +38,7 @@ export PATH=$HOME/Library/Python/2.7/bin:$PATH
 export PYTHONPATH=$HOME/Library/Python/2.7/lib/python/site-packages:$PYTHONPATH
 
 echo "Installing wheel..."
-pip install wheel --user || exit
+pip install wheel==0.25.0 --user || exit
 echo "Installing Python dependencies"
 pip install --use-wheel --user -r bindings/py/requirements.txt --quiet || exit
 
