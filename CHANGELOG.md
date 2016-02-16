@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.4.0
+
+* Reduce EPSILON threshold for TM to minitage compatibility issues.
+* Updates AV yaml to push a commit-sha'd wheel to AWS
+* Reduce permanence threshold by epsilon before comparing to avoid rounding edge cases
+* Make threshold for destroying synapses larger to catch roundoff errors
+* Make comparison identical to python
+* Add accessors for TM columnForCell and cellsForColumn
+* Temporal Memory: recordIteration should be false in second call to computeActivity
+* Fix: Incompatibility in Connections.computeActivity with python
+* Change TM init parameters to accept segment and synapse limit.
+
 ## 0.3.1
 
 * Secondary sort on segment idx
