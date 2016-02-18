@@ -183,7 +183,7 @@ vector<Synapse> Connections::synapsesForSegment(const Segment& segment)
     synapse.segment = segment;
     synapseData = dataForSynapse(synapse);
 
-    if (!synapseData.destroyed && synapseData.permanence > 0)
+    if (!synapseData.destroyed)
     {
       synapses.push_back(synapse);
     }

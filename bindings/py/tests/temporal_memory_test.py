@@ -1,7 +1,6 @@
-#!/bin/bash
 # ----------------------------------------------------------------------
 # Numenta Platform for Intelligent Computing (NuPIC)
-# Copyright (C) 2013-5, Numenta, Inc.  Unless you have an agreement
+# Copyright (C) 2014-2015, Numenta, Inc.  Unless you have an agreement
 # with Numenta, Inc., for a separate license for this software code, the
 # following terms and conditions apply:
 #
@@ -20,26 +19,14 @@
 # http://numenta.org/licenses/
 # ----------------------------------------------------------------------
 
-echo
-echo Running before_install-osx.sh...
-echo
+import unittest
 
-if [ $CC = 'gcc' ]; then
-    export CC='gcc-4.8'
-    export CXX='g++-4.8'
-fi
+class TemporalMemoryBindingsTest(unittest.TestCase):
+  @staticmethod
+  def testIssue807():
+    # The following should silently pass.  Previous versions segfaulted.
+    # See https://github.com/numenta/nupic.core/issues/807 for context
+    from nupic.bindings.algorithms import TemporalMemory
 
-if [ $CC = 'clang' ]; then
-    export CC='clang'
-    export CXX='clang++'
-fi
-
-export PATH=$HOME/Library/Python/2.7/bin:$PATH
-export PYTHONPATH=$HOME/Library/Python/2.7/lib/python/site-packages:$PYTHONPATH
-
-echo "Installing wheel..."
-pip install wheel==0.25.0 --user || exit
-echo "Installing Python dependencies"
-pip install --use-wheel --user -r bindings/py/requirements.txt --quiet || exit
-
-pip install pycapnp --user || exit
+    tm = TemporalMemory()
+    tm.compute(set(), True)

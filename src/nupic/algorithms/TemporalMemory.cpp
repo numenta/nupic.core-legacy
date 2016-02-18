@@ -44,7 +44,7 @@ using namespace nupic;
 using namespace nupic::algorithms::connections;
 using namespace nupic::algorithms::temporal_memory;
 
-#define EPSILON 0.0000001
+#define EPSILON 0.000001
 
 TemporalMemory::TemporalMemory()
 {
@@ -529,8 +529,9 @@ TemporalMemory::bestMatchingSegment(
     {
       SynapseData synapseData = _connections.dataForSynapse(synapse);
 
-      if (find(activeCells.begin(), activeCells.end(),
-        synapseData.presynapticCell) != activeCells.end())
+      if (synapseData.permanence > 0 &&
+          find(activeCells.begin(), activeCells.end(),
+               synapseData.presynapticCell) != activeCells.end())
       {
         numActiveSynapses += 1;
       }
