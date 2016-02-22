@@ -51,10 +51,27 @@ typedef struct _SCALAR_VALUE_CASE {
   std::vector<UInt> expectedOutput;
 } SCALAR_VALUE_CASE;
 
-typedef struct _SCALAR_COMPARE_CASE {
-  Real64 a;
-  Real64 b;
-} SCALAR_COMPARE_CASE;
+std::vector<UInt> patternFromNZ(int n, std::vector<size_t> patternNZ) {
+  auto v = std::vector<UInt>(n, 0);
+  for (auto it = patternNZ.begin(); it != patternNZ.end(); it++) {
+    v[*it] = 1;
+  }
+  return v;
+}
+
+void doScalarValueCases(Encoder& e, std::vector<SCALAR_VALUE_CASE> cases) {
+  for (auto c = cases.begin(); c != cases.end(); c++) {
+    auto actualOutput = getEncoding(e, c->input);
+    for (int i = 0; i < e.getWidth(); i++) {
+      EXPECT_EQ(c->expectedOutput[i], actualOutput[i])
+        << "For input " << c->input << " and index " << i << std::endl
+        << "EXPECTED:" << std::endl
+        << vec2str(c->expectedOutput) << std::endl
+        << "ACTUAL:" << std::endl
+        << vec2str(actualOutput);
+    }
+  }
+}
 
 TEST(ScalarEncoder, ValidScalarInputs) {
   const int n = 10;
@@ -83,7 +100,6 @@ TEST(ScalarEncoder, ValidScalarInputs) {
   }
 }
 
-
 TEST(PeriodicScalarEncoder, ValidScalarInputs) {
   const int n = 10;
   const int w = 2;
@@ -99,97 +115,60 @@ TEST(PeriodicScalarEncoder, ValidScalarInputs) {
   EXPECT_THROW(getEncoding(encoder, 20.0), std::exception);
 }
 
-TEST(PeriodicScalarEncoderTest, BottomUpEncodingPeriodicEncoder)
-{
-  int n = 14;
-  int w = 3;
-  double minval = 1;
-  double maxval = 8;
-  double radius = 0;
-  double resolution = 0;
-  PeriodicScalarEncoder encoder(w, minval, maxval, n, radius, resolution);
+TEST(ScalarEncoder, RoundToNearestMultipleOfResolution) {
+  const int n_in = 0;
+  const int w = 3;
+  const double minval = 10;
+  const double maxval = 20;
+  const double radius = 0;
+  const double resolution = 1;
+  const bool clipInput = false;
+  ScalarEncoder encoder(w, minval, maxval, n_in, radius, resolution, clipInput);
 
-  {
-    std::vector<SCALAR_VALUE_CASE> cases =
-      {{3,
-        {0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0}},
-       {3.5,
-        {0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0}},
-       {4,
-        {0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0}},
-       {1,
-        {1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}},
-       {1.5,
-        {1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}},
-       {7,
-        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1}},
-       {7.5,
-        {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1}}};
+  const int n = 13;
+  ASSERT_EQ(n, encoder.getWidth());
 
-    for (auto c = cases.begin(); c != cases.end(); c++) {
-      auto actualOutput = getEncoding(encoder, c->input);
-      for (int i = 0; i < n; i++) {
-        ASSERT_EQ(c->expectedOutput[i], actualOutput[i])
-          << "For input " << c->input << " and index " << i << std::endl
-          << "EXPECTED:" << std::endl
-          << vec2str(c->expectedOutput) << std::endl
-          << "ACTUAL:" << std::endl
-          << vec2str(actualOutput);
-      }
-    }
-  }
+  std::vector<SCALAR_VALUE_CASE> cases =
+    {{10.00, patternFromNZ(n, {0, 1, 2})},
+     {10.49, patternFromNZ(n, {0, 1, 2})},
+     {10.50, patternFromNZ(n, {1, 2, 3})},
+     {11.49, patternFromNZ(n, {1, 2, 3})},
+     {11.50, patternFromNZ(n, {2, 3, 4})},
+     {14.49, patternFromNZ(n, {4, 5, 6})},
+     {14.50, patternFromNZ(n, {5, 6, 7})},
+     {15.49, patternFromNZ(n, {5, 6, 7})},
+     {15.50, patternFromNZ(n, {6, 7, 8})},
+     {19.49, patternFromNZ(n, {9, 10, 11})},
+     {19.50, patternFromNZ(n, {10, 11, 12})},
+     {20.00, patternFromNZ(n, {10, 11, 12})}};
 
-  {
-    std::vector<SCALAR_COMPARE_CASE> cases =
-      {{3.1, 3},
-       {3.6, 3.5},
-       {3.7, 3.5}};
-
-    for (auto c = cases.begin(); c != cases.end(); c++) {
-      auto outputA = getEncoding(encoder, c->a);
-      auto outputB = getEncoding(encoder, c->b);
-      for (int i = 0; i < n; i++) {
-        ASSERT_EQ(outputA[i], outputB[i])
-          << "For inputs " << c->a << " and " << c->b << std::endl
-          << "A:" << std::endl
-          << vec2str(outputA) << std::endl
-          << "B:" << std::endl
-          << vec2str(outputB);
-      }
-    }
-  }
+  doScalarValueCases(encoder, cases);
 }
 
-TEST(ScalarEncoderTest, NonPeriodicBottomUp)
-{
-  int n = 14;
-  int w = 5;
-  double minval = 1;
-  double maxval = 10;
-  double radius = 0;
-  double resolution = 0;
-  bool clipInput = false;
-  ScalarEncoder encoder(w, minval, maxval, n, radius, resolution, clipInput);
+TEST(PeriodicScalarEncoder, FloorToNearestMultipleOfResolution) {
+  const int n_in = 0;
+  const int w = 3;
+  const double minval = 10;
+  const double maxval = 20;
+  const double radius = 0;
+  const double resolution = 1;
+  PeriodicScalarEncoder encoder(w, minval, maxval, n_in, radius, resolution);
 
-  {
-    std::vector<SCALAR_VALUE_CASE> cases =
-      {{1,
-        {1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0}},
-       {2,
-        {0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0}},
-       {10,
-        {0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1}},};
+  const int n = 10;
+  ASSERT_EQ(n, encoder.getWidth());
 
-    for (auto c = cases.begin(); c != cases.end(); c++) {
-      auto actualOutput = getEncoding(encoder, c->input);
-      for (int i = 0; i < n; i++) {
-        ASSERT_EQ(c->expectedOutput[i], actualOutput[i])
-          << "For input " << c->input << " and index " << i << std::endl
-          << "EXPECTED:" << std::endl
-          << vec2str(c->expectedOutput) << std::endl
-          << "ACTUAL:" << std::endl
-          << vec2str(actualOutput);
-      }
-    }
-  }
+  std::vector<SCALAR_VALUE_CASE> cases =
+    {{10.00, patternFromNZ(n, {9, 0, 1})},
+     {10.99, patternFromNZ(n, {9, 0, 1})},
+     {11.00, patternFromNZ(n, {0, 1, 2})},
+     {11.99, patternFromNZ(n, {0, 1, 2})},
+     {12.00, patternFromNZ(n, {1, 2, 3})},
+     {14.00, patternFromNZ(n, {3, 4, 5})},
+     {14.99, patternFromNZ(n, {3, 4, 5})},
+     {15.00, patternFromNZ(n, {4, 5, 6})},
+     {15.99, patternFromNZ(n, {4, 5, 6})},
+     {19.00, patternFromNZ(n, {8, 9, 0})},
+     {19.99, patternFromNZ(n, {8, 9, 0})}};
+
+  doScalarValueCases(encoder, cases);
 }

@@ -103,9 +103,9 @@ namespace nupic
       }
     }
 
-    const int nBuckets = n_ - (w_ - 1);
-    const double progress = (scalar - minval_) / (maxval_ - minval_);
-    const int firstBit = (int)round(progress * (nBuckets - 1));
+    const int iBucket = round((scalar - minval_) / resolution_);
+
+    const int firstBit = iBucket;
 
     memset(output, 0, n_*sizeof(output[0]));
     for (int i = 0; i < w_; i++) {
@@ -163,11 +163,20 @@ namespace nupic
     }
 
     const int iBucket = (int)((scalar - minval_) / resolution_);
-    const int firstBit = (iBucket - (int)((w_-1)/2) + n_) % n_;
+
+    const int middleBit = iBucket;
+    const double reach = (w_ - 1) / 2.0;
+    const int left = floor(reach);
+    const int right = ceil(reach);
 
     memset(output, 0, n_*sizeof(output[0]));
-    for (int i = 0; i < w_; i++) {
-      output[(firstBit + i) % n_] = 1;
+    output[middleBit] = 1;
+    for (int i = 1; i <= left; i++) {
+      const int index = middleBit - i;
+      output[(index < 0) ? index + n_ : index] = 1;
+    }
+    for (int i = 1; i <= right; i++) {
+      output[(middleBit + i) % n_] = 1;
     }
   }
 }
