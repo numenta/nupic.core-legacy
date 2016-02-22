@@ -89,8 +89,8 @@ namespace nupic
         scalar = minval_;
       }
       else {
-        NTA_THROW << "input (" << scalar << ") less than range (" << minval_ <<
-          " - " << maxval_ << ")";
+        NTA_THROW << "input (" << scalar << ") less than range [" << minval_ <<
+          ", " << maxval_ << "]";
       }
     }
     else if (scalar > maxval_) {
@@ -98,8 +98,8 @@ namespace nupic
         scalar = maxval_;
       }
       else {
-        NTA_THROW << "input (" << scalar << ") greater than range (" << minval_ <<
-          " - " << maxval_ << ")";
+        NTA_THROW << "input (" << scalar << ") greater than range [" << minval_ <<
+          ", " << maxval_ << "]";
       }
     }
 
@@ -157,9 +157,9 @@ namespace nupic
   {
     Real64 scalar = extractScalar(input);
 
-    if (scalar < minval_ || scalar > maxval_) {
-      NTA_THROW << "input (" << scalar << ") not within range (" << minval_ <<
-        " - " << maxval_ << ")";
+    if (scalar < minval_ || scalar >= maxval_) {
+      NTA_THROW << "input " << scalar << " not within range [" << minval_ <<
+        ", " << maxval_ << ")";
     }
 
     const int iBucket = (int)((scalar - minval_) / resolution_);

@@ -56,6 +56,49 @@ typedef struct _SCALAR_COMPARE_CASE {
   Real64 b;
 } SCALAR_COMPARE_CASE;
 
+TEST(ScalarEncoder, ValidScalarInputs) {
+  const int n = 10;
+  const int w = 2;
+  const double minval = 10;
+  const double maxval = 20;
+  const double radius = 0;
+  const double resolution = 0;
+
+  {
+    const bool clipInput = false;
+    ScalarEncoder encoder(w, minval, maxval, n, radius, resolution, clipInput);
+
+    EXPECT_THROW(getEncoding(encoder, 9.9), std::exception);
+    EXPECT_NO_THROW(getEncoding(encoder, 10.0));
+    EXPECT_NO_THROW(getEncoding(encoder, 20.0));
+    EXPECT_THROW(getEncoding(encoder, 20.1), std::exception);
+  }
+
+  {
+    const bool clipInput = true;
+    ScalarEncoder encoder(w, minval, maxval, n, radius, resolution, clipInput);
+
+    EXPECT_NO_THROW(getEncoding(encoder, 9.9));
+    EXPECT_NO_THROW(getEncoding(encoder, 20.1));
+  }
+}
+
+
+TEST(PeriodicScalarEncoder, ValidScalarInputs) {
+  const int n = 10;
+  const int w = 2;
+  const double minval = 10;
+  const double maxval = 20;
+  const double radius = 0;
+  const double resolution = 0;
+  PeriodicScalarEncoder encoder(w, minval, maxval, n, radius, resolution);
+
+  EXPECT_THROW(getEncoding(encoder, 9.9), std::exception);
+  EXPECT_NO_THROW(getEncoding(encoder, 10.0));
+  EXPECT_NO_THROW(getEncoding(encoder, 19.9));
+  EXPECT_THROW(getEncoding(encoder, 20.0), std::exception);
+}
+
 TEST(PeriodicScalarEncoderTest, BottomUpEncodingPeriodicEncoder)
 {
   int n = 14;
