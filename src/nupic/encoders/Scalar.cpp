@@ -83,28 +83,23 @@ namespace nupic
         "Only one of n/radius/resolution can be specified for a ScalarEncoder.";
     }
 
-    if (minValue > maxValue)
+    const int extentWidth = maxValue - minValue;
+    if (extentWidth <= 0)
     {
-      NTA_THROW << "minValue must be <= maxValue. minValue=" << minValue <<
+      NTA_THROW << "minValue must be < maxValue. minValue=" << minValue <<
         " maxValue=" << maxValue;
     }
-
-    const int extentWidth = maxValue - minValue;
 
     if (n != 0)
     {
       n_ = n;
-      if (extentWidth != 0)
-      {
-        // Distribute nBuckets points along the domain [minValue, maxValue],
-        // including the endpoints. The resolution is the width of each band
-        // between the points.
-        const int nBuckets = n - (w - 1);
-        const int nBands = nBuckets - 1;
-        bucketsPerUnit_ = nBands / extentWidth;
-      } else {
-        bucketsPerUnit_ = 0;
-      }
+
+      // Distribute nBuckets points along the domain [minValue, maxValue],
+      // including the endpoints. The resolution is the width of each band
+      // between the points.
+      const int nBuckets = n - (w - 1);
+      const int nBands = nBuckets - 1;
+      bucketsPerUnit_ = nBands / extentWidth;
     } else {
       const double inferredResolution = resolution || radius / w;
       if (inferredResolution == 0)
@@ -178,25 +173,21 @@ namespace nupic
         "Only one of n/radius/resolution can be specified for a ScalarEncoder.";
     }
 
-    if (minValue > maxValue)
-    {
-      NTA_THROW << "minValue must be <= maxValue.";
-    }
-
     const int extentWidth = maxValue - minValue;
+    if (extentWidth <= 0)
+    {
+      NTA_THROW << "minValue must be < maxValue. minValue=" << minValue <<
+        " maxValue=" << maxValue;
+    }
 
     if (n != 0)
     {
       n_ = n;
-      if (extentWidth != 0)
-      {
-        // Distribute nBuckets equal-width bands within the domain [minValue, maxValue].
-        // The resolution is the width of each band.
-        const int nBuckets = n;
-        bucketsPerUnit_ = nBuckets / extentWidth;
-      } else {
-        bucketsPerUnit_ = 0;
-      }
+
+      // Distribute nBuckets equal-width bands within the domain [minValue, maxValue].
+      // The resolution is the width of each band.
+      const int nBuckets = n;
+      bucketsPerUnit_ = nBuckets / extentWidth;
     } else {
       const double inferredResolution = resolution || radius / w;
       if (inferredResolution == 0)
