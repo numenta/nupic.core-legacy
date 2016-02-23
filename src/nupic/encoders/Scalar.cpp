@@ -80,6 +80,11 @@ namespace nupic
         "Only one of n/radius/resolution can be specified for a ScalarEncoder.";
     }
 
+    if (minValue > maxValue) {
+      NTA_THROW << "minValue must be <= maxValue. minValue=" << minValue <<
+        " maxValue=" << maxValue;
+    }
+
     const int extentWidth = maxValue - minValue;
 
     if (n != 0) {
@@ -107,6 +112,10 @@ namespace nupic
       const int neededBands = ceil(extentWidth * bucketsPerUnit_);
       const int neededBuckets =  neededBands + 1;
       n_ = neededBuckets + (w - 1);
+    }
+
+    if (w_ < 1 || w_ > n_) {
+      NTA_THROW << "w must be within the range [1, n]. w=" << w_ << " n=" << n_;
     }
   }
 
@@ -161,6 +170,10 @@ namespace nupic
         "Only one of n/radius/resolution can be specified for a ScalarEncoder.";
     }
 
+    if (minValue > maxValue) {
+      NTA_THROW << "minValue must be <= maxValue.";
+    }
+
     const int extentWidth = maxValue - minValue;
 
     if (n != 0) {
@@ -185,6 +198,10 @@ namespace nupic
 
       const int neededBuckets = ceil((maxValue - minValue) * bucketsPerUnit_);
       n_ = neededBuckets;
+    }
+
+    if (w_ < 1 || w_ > n_) {
+      NTA_THROW << "w must be within the range [1, n]. w=" << w_ << " n=" << n_;
     }
   }
 
