@@ -31,8 +31,10 @@
 
 namespace nupic
 {
-  static Real64 extractScalar(const ArrayBase & input) {
-    switch (input.getType()) {
+  static Real64 extractScalar(const ArrayBase & input)
+  {
+    switch (input.getType())
+    {
     case NTA_BasicType_Byte:
       return ((Byte*) input.getBuffer())[0];
       break;
@@ -75,35 +77,38 @@ namespace nupic
   {
     if ((n != 0 && (radius != 0 || resolution != 0)) ||
         (radius != 0 && (n != 0 || resolution != 0)) ||
-        (resolution != 0 && (n != 0 || radius != 0))) {
+        (resolution != 0 && (n != 0 || radius != 0)))
+    {
       NTA_THROW <<
         "Only one of n/radius/resolution can be specified for a ScalarEncoder.";
     }
 
-    if (minValue > maxValue) {
+    if (minValue > maxValue)
+    {
       NTA_THROW << "minValue must be <= maxValue. minValue=" << minValue <<
         " maxValue=" << maxValue;
     }
 
     const int extentWidth = maxValue - minValue;
 
-    if (n != 0) {
+    if (n != 0)
+    {
       n_ = n;
-      if (extentWidth != 0) {
+      if (extentWidth != 0)
+      {
         // Distribute nBuckets points along the domain [minValue, maxValue],
         // including the endpoints. The resolution is the width of each band
         // between the points.
         const int nBuckets = n - (w - 1);
         const int nBands = nBuckets - 1;
         bucketsPerUnit_ = nBands / extentWidth;
-      }
-      else {
+      } else {
         bucketsPerUnit_ = 0;
       }
-    }
-    else {
+    } else {
       const double inferredResolution = resolution || radius / w;
-      if (inferredResolution == 0) {
+      if (inferredResolution == 0)
+      {
         NTA_THROW << "One of n/radius/resolution must be nonzero.";
       }
 
@@ -114,7 +119,8 @@ namespace nupic
       n_ = neededBuckets + (w - 1);
     }
 
-    if (w_ < 1 || w_ > n_) {
+    if (w_ < 1 || w_ > n_)
+    {
       NTA_THROW << "w must be within the range [1, n]. w=" << w_ << " n=" << n_;
     }
   }
@@ -124,24 +130,24 @@ namespace nupic
   }
 
   void ScalarEncoder::encodeIntoArray(
-      const ArrayBase & input, UInt output[], bool learn)
+    const ArrayBase & input, UInt output[], bool learn)
   {
     Real64 scalar = extractScalar(input);
 
-    if (scalar < minValue_) {
-      if (clipInput_) {
+    if (scalar < minValue_)
+    {
+      if (clipInput_)
+      {
         scalar = minValue_;
-      }
-      else {
+      } else {
         NTA_THROW << "input (" << scalar << ") less than range [" << minValue_ <<
           ", " << maxValue_ << "]";
       }
-    }
-    else if (scalar > maxValue_) {
-      if (clipInput_) {
+    } else if (scalar > maxValue_) {
+      if (clipInput_)
+      {
         scalar = maxValue_;
-      }
-      else {
+      } else {
         NTA_THROW << "input (" << scalar << ") greater than range [" << minValue_ <<
           ", " << maxValue_ << "]";
       }
@@ -152,7 +158,8 @@ namespace nupic
     const int firstBit = iBucket;
 
     memset(output, 0, n_*sizeof(output[0]));
-    for (int i = 0; i < w_; i++) {
+    for (int i = 0; i < w_; i++)
+    {
       output[firstBit + i] = 1;
     }
   }
@@ -165,32 +172,35 @@ namespace nupic
   {
     if ((n != 0 && (radius != 0 || resolution != 0)) ||
         (radius != 0 && (n != 0 || resolution != 0)) ||
-        (resolution != 0 && (n != 0 || radius != 0))) {
+        (resolution != 0 && (n != 0 || radius != 0)))
+    {
       NTA_THROW <<
         "Only one of n/radius/resolution can be specified for a ScalarEncoder.";
     }
 
-    if (minValue > maxValue) {
+    if (minValue > maxValue)
+    {
       NTA_THROW << "minValue must be <= maxValue.";
     }
 
     const int extentWidth = maxValue - minValue;
 
-    if (n != 0) {
+    if (n != 0)
+    {
       n_ = n;
-      if (extentWidth != 0) {
+      if (extentWidth != 0)
+      {
         // Distribute nBuckets equal-width bands within the domain [minValue, maxValue].
         // The resolution is the width of each band.
         const int nBuckets = n;
         bucketsPerUnit_ = nBuckets / extentWidth;
-      }
-      else {
+      } else {
         bucketsPerUnit_ = 0;
       }
-    }
-    else {
+    } else {
       const double inferredResolution = resolution || radius / w;
-      if (inferredResolution == 0) {
+      if (inferredResolution == 0)
+      {
         NTA_THROW << "One of n/radius/resolution must be nonzero.";
       }
 
@@ -200,7 +210,8 @@ namespace nupic
       n_ = neededBuckets;
     }
 
-    if (w_ < 1 || w_ > n_) {
+    if (w_ < 1 || w_ > n_)
+    {
       NTA_THROW << "w must be within the range [1, n]. w=" << w_ << " n=" << n_;
     }
   }
@@ -214,7 +225,8 @@ namespace nupic
   {
     Real64 scalar = extractScalar(input);
 
-    if (scalar < minValue_ || scalar >= maxValue_) {
+    if (scalar < minValue_ || scalar >= maxValue_)
+    {
       NTA_THROW << "input " << scalar << " not within range [" << minValue_ <<
         ", " << maxValue_ << ")";
     }
@@ -228,11 +240,13 @@ namespace nupic
 
     memset(output, 0, n_*sizeof(output[0]));
     output[middleBit] = 1;
-    for (int i = 1; i <= left; i++) {
+    for (int i = 1; i <= left; i++)
+    {
       const int index = middleBit - i;
       output[(index < 0) ? index + n_ : index] = 1;
     }
-    for (int i = 1; i <= right; i++) {
+    for (int i = 1; i <= right; i++)
+    {
       output[(middleBit + i) % n_] = 1;
     }
   }

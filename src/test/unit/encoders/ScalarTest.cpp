@@ -33,14 +33,16 @@
 using namespace nupic;
 
 template <typename T>
-std::string vec2str(std::vector<T> vec) {
+std::string vec2str(std::vector<T> vec)
+{
   std::ostringstream oss("");
   for (size_t i = 0; i < vec.size(); i++)
     oss << vec[i];
   return oss.str();
 }
 
-std::vector<UInt> getEncoding(Encoder& e, Real64 input) {
+std::vector<UInt> getEncoding(Encoder& e, Real64 input)
+{
   Array inputArray = Array(NTA_BasicType_Real64);
   inputArray.allocateBuffer(1);
   ((Real64*) inputArray.getBuffer())[0] = input;
@@ -50,34 +52,41 @@ std::vector<UInt> getEncoding(Encoder& e, Real64 input) {
   return actualOutput;
 }
 
-typedef struct _SCALAR_VALUE_CASE {
+typedef struct _SCALAR_VALUE_CASE
+{
   Real64 input;
   std::vector<UInt> expectedOutput;
 } SCALAR_VALUE_CASE;
 
-std::vector<UInt> patternFromNZ(int n, std::vector<size_t> patternNZ) {
+std::vector<UInt> patternFromNZ(int n, std::vector<size_t> patternNZ)
+{
   auto v = std::vector<UInt>(n, 0);
-  for (auto it = patternNZ.begin(); it != patternNZ.end(); it++) {
-    v[*it] = 1;
-  }
+  for (auto it = patternNZ.begin(); it != patternNZ.end(); it++)
+    {
+      v[*it] = 1;
+    }
   return v;
 }
 
-void doScalarValueCases(Encoder& e, std::vector<SCALAR_VALUE_CASE> cases) {
-  for (auto c = cases.begin(); c != cases.end(); c++) {
-    auto actualOutput = getEncoding(e, c->input);
-    for (int i = 0; i < e.getWidth(); i++) {
-      EXPECT_EQ(c->expectedOutput[i], actualOutput[i])
-        << "For input " << c->input << " and index " << i << std::endl
-        << "EXPECTED:" << std::endl
-        << vec2str(c->expectedOutput) << std::endl
-        << "ACTUAL:" << std::endl
-        << vec2str(actualOutput);
+void doScalarValueCases(Encoder& e, std::vector<SCALAR_VALUE_CASE> cases)
+{
+  for (auto c = cases.begin(); c != cases.end(); c++)
+    {
+      auto actualOutput = getEncoding(e, c->input);
+      for (int i = 0; i < e.getWidth(); i++)
+        {
+          EXPECT_EQ(c->expectedOutput[i], actualOutput[i])
+            << "For input " << c->input << " and index " << i << std::endl
+            << "EXPECTED:" << std::endl
+            << vec2str(c->expectedOutput) << std::endl
+            << "ACTUAL:" << std::endl
+            << vec2str(actualOutput);
+        }
     }
-  }
 }
 
-TEST(ScalarEncoder, ValidScalarInputs) {
+TEST(ScalarEncoder, ValidScalarInputs)
+{
   const int n = 10;
   const int w = 2;
   const double minval = 10;
@@ -104,7 +113,8 @@ TEST(ScalarEncoder, ValidScalarInputs) {
   }
 }
 
-TEST(PeriodicScalarEncoder, ValidScalarInputs) {
+TEST(PeriodicScalarEncoder, ValidScalarInputs)
+{
   const int n = 10;
   const int w = 2;
   const double minval = 10;
@@ -119,7 +129,8 @@ TEST(PeriodicScalarEncoder, ValidScalarInputs) {
   EXPECT_THROW(getEncoding(encoder, 20.0), std::exception);
 }
 
-TEST(ScalarEncoder, RoundToNearestMultipleOfResolution) {
+TEST(ScalarEncoder, RoundToNearestMultipleOfResolution)
+{
   const int n_in = 0;
   const int w = 3;
   const double minval = 10;
@@ -149,7 +160,8 @@ TEST(ScalarEncoder, RoundToNearestMultipleOfResolution) {
   doScalarValueCases(encoder, cases);
 }
 
-TEST(PeriodicScalarEncoder, FloorToNearestMultipleOfResolution) {
+TEST(PeriodicScalarEncoder, FloorToNearestMultipleOfResolution)
+{
   const int n_in = 0;
   const int w = 3;
   const double minval = 10;
