@@ -134,7 +134,7 @@ namespace nupic
      */
     PeriodicScalarEncoder(int w, double minValue, double maxValue, int n,
                           double radius, double resolution);
-    ~PeriodicScalarEncoder() override;
+    virtual ~PeriodicScalarEncoder() override;
 
     virtual void encodeIntoArray(const ArrayBase & input, UInt output[],
                                  bool learn) override;
