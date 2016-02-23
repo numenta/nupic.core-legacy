@@ -24,7 +24,8 @@
  * Implementations of the ScalarEncoder and PeriodicScalarEncoder
  */
 
-#include <math.h>
+#include <cstring> // memset
+#include <cmath>
 #include <nupic/encoders/Scalar.hpp>
 #include <nupic/utils/Log.hpp>
 
