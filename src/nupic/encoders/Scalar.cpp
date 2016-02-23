@@ -64,8 +64,9 @@ namespace nupic
     }
   }
 
-  ScalarEncoder::ScalarEncoder(int w, double minval, double maxval, int n,
-                               double radius, double resolution, bool clipInput)
+  ScalarEncoder::ScalarEncoder(
+    int w, double minval, double maxval, int n, double radius,
+    double resolution, bool clipInput)
     :w_(w),
      minval_(minval),
      maxval_(maxval),
@@ -74,7 +75,8 @@ namespace nupic
     if ((n != 0 && (radius != 0 || resolution != 0)) ||
         (radius != 0 && (n != 0 || resolution != 0)) ||
         (resolution != 0 && (n != 0 || radius != 0))) {
-      NTA_THROW << "Only one of n/radius/resolution can be specified for a ScalarEncoder.";
+      NTA_THROW <<
+        "Only one of n/radius/resolution can be specified for a ScalarEncoder.";
     }
 
     if (n != 0) {
@@ -104,8 +106,8 @@ namespace nupic
   {
   }
 
-  void ScalarEncoder::encodeIntoArray(const ArrayBase & input, UInt output[],
-                                      bool learn)
+  void ScalarEncoder::encodeIntoArray(
+      const ArrayBase & input, UInt output[], bool learn)
   {
     Real64 scalar = extractScalar(input);
 
@@ -138,8 +140,8 @@ namespace nupic
     }
   }
 
-  PeriodicScalarEncoder::PeriodicScalarEncoder(int w, double minval, double maxval,
-                                               int n, double radius, double resolution)
+  PeriodicScalarEncoder::PeriodicScalarEncoder(
+    int w, double minval, double maxval, int n, double radius, double resolution)
     :w_(w),
      minval_(minval),
      maxval_(maxval)
@@ -147,7 +149,8 @@ namespace nupic
     if ((n != 0 && (radius != 0 || resolution != 0)) ||
         (radius != 0 && (n != 0 || resolution != 0)) ||
         (resolution != 0 && (n != 0 || radius != 0))) {
-      NTA_THROW << "Only one of n/radius/resolution can be specified for a ScalarEncoder.";
+      NTA_THROW <<
+        "Only one of n/radius/resolution can be specified for a ScalarEncoder.";
     }
 
     if (n != 0) {
@@ -177,8 +180,8 @@ namespace nupic
   {
   }
 
-  void PeriodicScalarEncoder::encodeIntoArray(const ArrayBase & input, UInt output[],
-                                              bool learn)
+  void PeriodicScalarEncoder::encodeIntoArray(
+    const ArrayBase & input, UInt output[], bool learn)
   {
     Real64 scalar = extractScalar(input);
 
@@ -204,4 +207,4 @@ namespace nupic
       output[(middleBit + i) % n_] = 1;
     }
   }
-}
+} // end namespace nupic

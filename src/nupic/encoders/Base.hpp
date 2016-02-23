@@ -48,9 +48,10 @@ namespace nupic
     virtual ~Encoder()
     {}
 
-    virtual void encodeIntoArray(const ArrayBase & input, UInt output[], bool learn) = 0;
+    virtual void encodeIntoArray(const ArrayBase & input, UInt output[],
+                                 bool learn) = 0;
     virtual int getWidth() const = 0;
   };
-}
+} // end namespace nupic
 
 #endif // NTA_ENCODERS_BASE

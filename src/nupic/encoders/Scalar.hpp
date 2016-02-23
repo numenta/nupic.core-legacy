@@ -77,7 +77,8 @@ namespace nupic
                   double resolution, bool clipInput);
     ~ScalarEncoder() override;
 
-    virtual void encodeIntoArray(const ArrayBase & input, UInt output[], bool learn) override;
+    virtual void encodeIntoArray(const ArrayBase & input, UInt output[],
+                                 bool learn) override;
     virtual int getWidth() const override { return n_; }
 
   private:
@@ -119,10 +120,11 @@ namespace nupic
      * @param maxval The maximum value of the input signal, exclusive. All
      *   inputs will be strictly less than this value.
      *
-     * There are three mutually exclusive parameters that determine the overall size of
-     * of the output. Only one of these should be nonzero:
+     * There are three mutually exclusive parameters that determine the overall
+     * size of the output. Only one of these should be nonzero:
      *
-     * @param n The number of bits in the output. Must be greater than or equal to w.
+     * @param n The number of bits in the output. Must be greater than or equal
+     *   to w.
      * @param radius Two inputs separated by more than the radius have
      *   non-overlapping representations. Two inputs separated by less than the
      *   radius will in general overlap in at least some of their bits. You can
@@ -134,7 +136,8 @@ namespace nupic
                           double radius, double resolution);
     ~PeriodicScalarEncoder() override;
 
-    virtual void encodeIntoArray(const ArrayBase & input, UInt output[], bool learn) override;
+    virtual void encodeIntoArray(const ArrayBase & input, UInt output[],
+                                 bool learn) override;
     virtual int getWidth() const override { return n_; }
 
   private:
@@ -144,6 +147,6 @@ namespace nupic
     double maxval_;
     double resolution_;
   }; // end class PeriodicScalarEncoder
-} // end namespace nta
+} // end namespace nupic
 
 #endif // NTA_ENCODERS_SCALAR
