@@ -80,25 +80,32 @@ namespace nupic
         "Only one of n/radius/resolution can be specified for a ScalarEncoder.";
     }
 
+    const int extentWidth = maxValue - minValue;
+
     if (n != 0) {
       n_ = n;
-      const int nBuckets = n - (w - 1);
-      // Distribute nBuckets points along the domain [minValue, maxValue], including
-      // the endpoints. The resolution is the distance between points.
-      resolution_ = (maxValue - minValue) / (nBuckets - 1);
-    }
-    else {
-      if (resolution != 0) {
-        resolution_ = resolution;
-      }
-      else if (radius != 0) {
-        resolution_ = radius / w;
+      if (extentWidth != 0) {
+        // Distribute nBuckets points along the domain [minValue, maxValue],
+        // including the endpoints. The resolution is the width of each band
+        // between the points.
+        const int nBuckets = n - (w - 1);
+        const int nBands = nBuckets - 1;
+        bucketsPerUnit_ = nBands / extentWidth;
       }
       else {
+        bucketsPerUnit_ = 0;
+      }
+    }
+    else {
+      const double inferredResolution = resolution || radius / w;
+      if (inferredResolution == 0) {
         NTA_THROW << "One of n/radius/resolution must be nonzero.";
       }
 
-      const int neededBuckets = ceil((maxValue - minValue) / resolution_) + 1;
+      bucketsPerUnit_ = 1 / inferredResolution;
+
+      const int neededBands = ceil(extentWidth * bucketsPerUnit_);
+      const int neededBuckets =  neededBands + 1;
       n_ = neededBuckets + (w - 1);
     }
   }
@@ -131,7 +138,7 @@ namespace nupic
       }
     }
 
-    const int iBucket = round((scalar - minValue_) / resolution_);
+    const int iBucket = round((scalar - minValue_) * bucketsPerUnit_);
 
     const int firstBit = iBucket;
 
@@ -154,25 +161,29 @@ namespace nupic
         "Only one of n/radius/resolution can be specified for a ScalarEncoder.";
     }
 
+    const int extentWidth = maxValue - minValue;
+
     if (n != 0) {
       n_ = n;
-      const int nBuckets = n;
-      // Distribute nBuckets equal-width bands within the domain [minValue, maxValue].
-      // The resolution is the width of each band.
-      resolution_ = (maxValue - minValue) / nBuckets;
-    }
-    else {
-      if (resolution != 0) {
-        resolution_ = resolution;
-      }
-      else if (radius != 0) {
-        resolution_ = radius / w;
+      if (extentWidth != 0) {
+        // Distribute nBuckets equal-width bands within the domain [minValue, maxValue].
+        // The resolution is the width of each band.
+        const int nBuckets = n;
+        bucketsPerUnit_ = nBuckets / extentWidth;
       }
       else {
+        bucketsPerUnit_ = 0;
+      }
+    }
+    else {
+      const double inferredResolution = resolution || radius / w;
+      if (inferredResolution == 0) {
         NTA_THROW << "One of n/radius/resolution must be nonzero.";
       }
 
-      const int neededBuckets = ceil((maxValue - minValue) / resolution_);
+      bucketsPerUnit_ = 1 / inferredResolution;
+
+      const int neededBuckets = ceil((maxValue - minValue) * bucketsPerUnit_);
       n_ = neededBuckets;
     }
   }
@@ -191,7 +202,7 @@ namespace nupic
         ", " << maxValue_ << ")";
     }
 
-    const int iBucket = (int)((scalar - minValue_) / resolution_);
+    const int iBucket = (int)((scalar - minValue_) * bucketsPerUnit_);
 
     const int middleBit = iBucket;
     const double reach = (w_ - 1) / 2.0;

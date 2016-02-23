@@ -86,7 +86,7 @@ namespace nupic
     int n_;
     double minValue_;
     double maxValue_;
-    double resolution_;
+    double bucketsPerUnit_; // 1/resolution, guarding for divide-by-zero
     bool clipInput_;
   }; // end class ScalarEncoder
 
@@ -145,7 +145,7 @@ namespace nupic
     int n_;
     double minValue_;
     double maxValue_;
-    double resolution_;
+    double bucketsPerUnit_; // 1/resolution, guarding for divide-by-zero
   }; // end class PeriodicScalarEncoder
 } // end namespace nupic
 
