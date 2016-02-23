@@ -20,6 +20,10 @@
  * ---------------------------------------------------------------------
  */
 
+/** @file
+ * Unit tests for the ScalarEncoder and PeriodicScalarEncoder
+ */
+
 #include <string>
 #include <vector>
 #include <nupic/ntypes/Array.hpp>

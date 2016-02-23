@@ -20,6 +20,10 @@
  * ---------------------------------------------------------------------
  */
 
+/** @file
+ * Defines the abstract Encoder base class
+ */
+
 #ifndef NTA_ENCODERS_BASE
 #define NTA_ENCODERS_BASE
 
@@ -28,12 +32,21 @@
 
 namespace nupic
 {
+  /** An encoder converts a value to a sparse distributed representation.
+   *
+   * @b Description
+   * This is the base class for encoders.
+   *
+   * Methods that must be implemented by subclasses:
+   * - getWidth() - returns the output width, in bits
+   * - encodeIntoArray() - encodes input and puts the encoded value into the
+   *   output, which is an array of length returned by getWidth()
+   */
   class Encoder
   {
   public:
     virtual ~Encoder()
-    {
-    }
+    {}
 
     virtual void encodeIntoArray(const ArrayBase & input, UInt output[], bool learn) = 0;
     virtual int getWidth() const = 0;

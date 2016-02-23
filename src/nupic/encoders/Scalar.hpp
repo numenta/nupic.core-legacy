@@ -20,6 +20,10 @@
  * ---------------------------------------------------------------------
  */
 
+/** @file
+ * Define the ScalarEncoder and PeriodicScalarEncoder
+ */
+
 #ifndef NTA_ENCODERS_SCALAR
 #define NTA_ENCODERS_SCALAR
 
@@ -27,9 +31,48 @@
 
 namespace nupic
 {
+  /** Encodes a floating point number as a contiguous block of 1s.
+   *
+   * @b Description
+   * A ScalarEncoder encodes a numeric (floating point) value into an array
+   * of bits. The output is 0's except for a contiguous block of 1's. The
+   * location of this contiguous block varies continuously with the input value.
+   *
+   * Conceptually, the set of possible outputs is a set of "buckets". If there
+   * are m buckets, the ScalarEncoder distributes m points along the domain
+   * [minval, maxval], including the endpoints. To figure out the bucket index
+   * of an input, it rounds the input to the nearest of these points.
+   *
+   * This approach is different from the PeriodicScalarEncoder because two
+   * buckets, the first and last, are half as wide as the rest, since fewer
+   * numbers in the input domain will round to these endpoints. This behavior
+   * makes sense because, for example, with the input space [1, 10] and 10
+   * buckets, 1.49 is in the first bucket and 1.51 is in the second.
+   */
   class ScalarEncoder : public Encoder
   {
   public:
+    /**
+     * Constructs a ScalarEncoder
+     *
+     * @param w The number of bits that are set to encode a single value -- the
+     *   "width" of the output signal
+     * @param minval The minimum value of the input signal, inclusive.
+     * @param maxval The maximum value of the input signal, inclusive.
+     * @param clipInput Whether to allow input values outside the [minval, maxval] range.
+     *   If true, the input will be clipped to minval or maxval.
+     *
+     * There are three mutually exclusive parameters that determine the overall size of
+     * of the output. Only one of these should be nonzero:
+     *
+     * @param n The number of bits in the output. Must be greater than or equal to w.
+     * @param radius Two inputs separated by more than the radius have
+     *   non-overlapping representations. Two inputs separated by less than the
+     *   radius will in general overlap in at least some of their bits. You can
+     *   think of this as the radius of the input.
+     * @param resolution Two inputs separated by greater than, or equal to the
+     *   resolution are guaranteed to have different representations.
+     */
     ScalarEncoder(int w, double minval, double maxval, int n, double radius,
                   double resolution, bool clipInput);
     ~ScalarEncoder() override;
@@ -44,11 +87,49 @@ namespace nupic
     double maxval_;
     double resolution_;
     bool clipInput_;
-  };
+  }; // end class ScalarEncoder
 
+  /** Encodes a floating point number as a block of 1s that might wrap around.
+   *
+   * @b Description
+   * A PeriodicScalarEncoder encodes a numeric (floating point) value into an
+   * array of bits. The output is 0's except for a contiguous block of 1's that
+   * may wrap around the edge. The location of this contiguous block varies
+   * continuously with the input value.
+   *
+   * Conceptually, the set of possible outputs is a set of "buckets". If there
+   * are m buckets, the PeriodicScalarEncoder plots m equal-width bands along
+   * the domain [minval, maxval]. The bucket index of an input is simply its
+   * band index.
+   *
+   * Because of the equal-width buckets, the rounding differs from the
+   * ScalarEncoder. In cases where the ScalarEncoder would put 1.49 in the first
+   * bucket and 1.51 in the second, the PeriodicScalarEncoder will put 1.99 in
+   * the first bucket and 2.0 in the second.
+   */
   class PeriodicScalarEncoder : public Encoder
   {
   public:
+    /**
+     * Constructs a PeriodicScalarEncoder
+     *
+     * @param w The number of bits that are set to encode a single value -- the
+     *   "width" of the output signal
+     * @param minval The minimum value of the input signal, inclusive.
+     * @param maxval The maximum value of the input signal, exclusive. All
+     *   inputs will be strictly less than this value.
+     *
+     * There are three mutually exclusive parameters that determine the overall size of
+     * of the output. Only one of these should be nonzero:
+     *
+     * @param n The number of bits in the output. Must be greater than or equal to w.
+     * @param radius Two inputs separated by more than the radius have
+     *   non-overlapping representations. Two inputs separated by less than the
+     *   radius will in general overlap in at least some of their bits. You can
+     *   think of this as the radius of the input.
+     * @param resolution Two inputs separated by greater than, or equal to the
+     *   resolution are guaranteed to have different representations.
+     */
     PeriodicScalarEncoder(int w, double minval, double maxval, int n,
                           double radius, double resolution);
     ~PeriodicScalarEncoder() override;
@@ -62,7 +143,7 @@ namespace nupic
     double minval_;
     double maxval_;
     double resolution_;
-  };
-}
+  }; // end class PeriodicScalarEncoder
+} // end namespace nta
 
 #endif // NTA_ENCODERS_SCALAR
