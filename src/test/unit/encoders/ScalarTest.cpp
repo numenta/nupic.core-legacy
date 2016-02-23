@@ -89,14 +89,14 @@ TEST(ScalarEncoder, ValidScalarInputs)
 {
   const int n = 10;
   const int w = 2;
-  const double minval = 10;
-  const double maxval = 20;
+  const double minValue = 10;
+  const double maxValue = 20;
   const double radius = 0;
   const double resolution = 0;
 
   {
     const bool clipInput = false;
-    ScalarEncoder encoder(w, minval, maxval, n, radius, resolution, clipInput);
+    ScalarEncoder encoder(w, minValue, maxValue, n, radius, resolution, clipInput);
 
     EXPECT_THROW(getEncoding(encoder, 9.9), std::exception);
     EXPECT_NO_THROW(getEncoding(encoder, 10.0));
@@ -106,7 +106,7 @@ TEST(ScalarEncoder, ValidScalarInputs)
 
   {
     const bool clipInput = true;
-    ScalarEncoder encoder(w, minval, maxval, n, radius, resolution, clipInput);
+    ScalarEncoder encoder(w, minValue, maxValue, n, radius, resolution, clipInput);
 
     EXPECT_NO_THROW(getEncoding(encoder, 9.9));
     EXPECT_NO_THROW(getEncoding(encoder, 20.1));
@@ -117,11 +117,11 @@ TEST(PeriodicScalarEncoder, ValidScalarInputs)
 {
   const int n = 10;
   const int w = 2;
-  const double minval = 10;
-  const double maxval = 20;
+  const double minValue = 10;
+  const double maxValue = 20;
   const double radius = 0;
   const double resolution = 0;
-  PeriodicScalarEncoder encoder(w, minval, maxval, n, radius, resolution);
+  PeriodicScalarEncoder encoder(w, minValue, maxValue, n, radius, resolution);
 
   EXPECT_THROW(getEncoding(encoder, 9.9), std::exception);
   EXPECT_NO_THROW(getEncoding(encoder, 10.0));
@@ -133,12 +133,12 @@ TEST(ScalarEncoder, RoundToNearestMultipleOfResolution)
 {
   const int n_in = 0;
   const int w = 3;
-  const double minval = 10;
-  const double maxval = 20;
+  const double minValue = 10;
+  const double maxValue = 20;
   const double radius = 0;
   const double resolution = 1;
   const bool clipInput = false;
-  ScalarEncoder encoder(w, minval, maxval, n_in, radius, resolution, clipInput);
+  ScalarEncoder encoder(w, minValue, maxValue, n_in, radius, resolution, clipInput);
 
   const int n = 13;
   ASSERT_EQ(n, encoder.getWidth());
@@ -164,11 +164,11 @@ TEST(PeriodicScalarEncoder, FloorToNearestMultipleOfResolution)
 {
   const int n_in = 0;
   const int w = 3;
-  const double minval = 10;
-  const double maxval = 20;
+  const double minValue = 10;
+  const double maxValue = 20;
   const double radius = 0;
   const double resolution = 1;
-  PeriodicScalarEncoder encoder(w, minval, maxval, n_in, radius, resolution);
+  PeriodicScalarEncoder encoder(w, minValue, maxValue, n_in, radius, resolution);
 
   const int n = 10;
   ASSERT_EQ(n, encoder.getWidth());
