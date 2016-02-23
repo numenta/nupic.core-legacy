@@ -27,16 +27,37 @@
 namespace nupic
 {
   static Real64 extractScalar(const ArrayBase & input) {
-    Real64 scalar;
     switch (input.getType()) {
+    case NTA_BasicType_Byte:
+      return ((Byte*) input.getBuffer())[0];
+      break;
+    case NTA_BasicType_Int16:
+      return ((Int16*) input.getBuffer())[0];
+      break;
+    case NTA_BasicType_UInt16:
+      return ((UInt16*) input.getBuffer())[0];
+      break;
+    case NTA_BasicType_Int32:
+      return ((Int32*) input.getBuffer())[0];
+      break;
+    case NTA_BasicType_UInt32:
+      return ((UInt32*) input.getBuffer())[0];
+      break;
+    case NTA_BasicType_Int64:
+      return ((Int64*) input.getBuffer())[0];
+      break;
+    case NTA_BasicType_UInt64:
+      return ((UInt64*) input.getBuffer())[0];
+      break;
+    case NTA_BasicType_Real32:
+      return ((Real32*) input.getBuffer())[0];
+      break;
     case NTA_BasicType_Real64:
-      scalar = ((Real64*) input.getBuffer())[0];
+      return ((Real64*) input.getBuffer())[0];
       break;
     default:
-      NTA_THROW << "ScalarEncoder: Unsupported type " << input.getType();
+      NTA_THROW << "extractScalar: Unsupported type " << input.getType();
     }
-
-    return scalar;
   }
 
   ScalarEncoder::ScalarEncoder(int w, double minval, double maxval, int n,
