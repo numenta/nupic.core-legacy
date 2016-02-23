@@ -1,6 +1,6 @@
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
+ * Copyright (C) 2016, Numenta, Inc.  Unless you have an agreement
  * with Numenta, Inc., for a separate license for this software code, the
  * following terms and conditions apply:
  *
@@ -66,11 +66,11 @@ namespace nupic
   }
 
   ScalarEncoder::ScalarEncoder(
-    int w, double minval, double maxval, int n, double radius,
+    int w, double minValue, double maxValue, int n, double radius,
     double resolution, bool clipInput)
     :w_(w),
-     minval_(minval),
-     maxval_(maxval),
+     minValue_(minValue),
+     maxValue_(maxValue),
      clipInput_(clipInput)
   {
     if ((n != 0 && (radius != 0 || resolution != 0)) ||
@@ -83,9 +83,9 @@ namespace nupic
     if (n != 0) {
       n_ = n;
       const int nBuckets = n - (w - 1);
-      // Distribute nBuckets points along the domain [minval, maxval], including
+      // Distribute nBuckets points along the domain [minValue, maxValue], including
       // the endpoints. The resolution is the distance between points.
-      resolution_ = (maxval - minval) / (nBuckets - 1);
+      resolution_ = (maxValue - minValue) / (nBuckets - 1);
     }
     else {
       if (resolution != 0) {
@@ -98,7 +98,7 @@ namespace nupic
         NTA_THROW << "One of n/radius/resolution must be nonzero.";
       }
 
-      const int neededBuckets = ceil((maxval - minval) / resolution_) + 1;
+      const int neededBuckets = ceil((maxValue - minValue) / resolution_) + 1;
       n_ = neededBuckets + (w - 1);
     }
   }
@@ -112,26 +112,26 @@ namespace nupic
   {
     Real64 scalar = extractScalar(input);
 
-    if (scalar < minval_) {
+    if (scalar < minValue_) {
       if (clipInput_) {
-        scalar = minval_;
+        scalar = minValue_;
       }
       else {
-        NTA_THROW << "input (" << scalar << ") less than range [" << minval_ <<
-          ", " << maxval_ << "]";
+        NTA_THROW << "input (" << scalar << ") less than range [" << minValue_ <<
+          ", " << maxValue_ << "]";
       }
     }
-    else if (scalar > maxval_) {
+    else if (scalar > maxValue_) {
       if (clipInput_) {
-        scalar = maxval_;
+        scalar = maxValue_;
       }
       else {
-        NTA_THROW << "input (" << scalar << ") greater than range [" << minval_ <<
-          ", " << maxval_ << "]";
+        NTA_THROW << "input (" << scalar << ") greater than range [" << minValue_ <<
+          ", " << maxValue_ << "]";
       }
     }
 
-    const int iBucket = round((scalar - minval_) / resolution_);
+    const int iBucket = round((scalar - minValue_) / resolution_);
 
     const int firstBit = iBucket;
 
@@ -142,10 +142,10 @@ namespace nupic
   }
 
   PeriodicScalarEncoder::PeriodicScalarEncoder(
-    int w, double minval, double maxval, int n, double radius, double resolution)
+    int w, double minValue, double maxValue, int n, double radius, double resolution)
     :w_(w),
-     minval_(minval),
-     maxval_(maxval)
+     minValue_(minValue),
+     maxValue_(maxValue)
   {
     if ((n != 0 && (radius != 0 || resolution != 0)) ||
         (radius != 0 && (n != 0 || resolution != 0)) ||
@@ -157,9 +157,9 @@ namespace nupic
     if (n != 0) {
       n_ = n;
       const int nBuckets = n;
-      // Distribute nBuckets equal-width bands within the domain [minval, maxval].
+      // Distribute nBuckets equal-width bands within the domain [minValue, maxValue].
       // The resolution is the width of each band.
-      resolution_ = (maxval - minval) / nBuckets;
+      resolution_ = (maxValue - minValue) / nBuckets;
     }
     else {
       if (resolution != 0) {
@@ -172,7 +172,7 @@ namespace nupic
         NTA_THROW << "One of n/radius/resolution must be nonzero.";
       }
 
-      const int neededBuckets = ceil((maxval - minval) / resolution_);
+      const int neededBuckets = ceil((maxValue - minValue) / resolution_);
       n_ = neededBuckets;
     }
   }
@@ -186,12 +186,12 @@ namespace nupic
   {
     Real64 scalar = extractScalar(input);
 
-    if (scalar < minval_ || scalar >= maxval_) {
-      NTA_THROW << "input " << scalar << " not within range [" << minval_ <<
-        ", " << maxval_ << ")";
+    if (scalar < minValue_ || scalar >= maxValue_) {
+      NTA_THROW << "input " << scalar << " not within range [" << minValue_ <<
+        ", " << maxValue_ << ")";
     }
 
-    const int iBucket = (int)((scalar - minval_) / resolution_);
+    const int iBucket = (int)((scalar - minValue_) / resolution_);
 
     const int middleBit = iBucket;
     const double reach = (w_ - 1) / 2.0;

@@ -1,6 +1,6 @@
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
+ * Copyright (C) 2016, Numenta, Inc.  Unless you have an agreement
  * with Numenta, Inc., for a separate license for this software code, the
  * following terms and conditions apply:
  *
@@ -40,8 +40,8 @@ namespace nupic
    *
    * Conceptually, the set of possible outputs is a set of "buckets". If there
    * are m buckets, the ScalarEncoder distributes m points along the domain
-   * [minval, maxval], including the endpoints. To figure out the bucket index
-   * of an input, it rounds the input to the nearest of these points.
+   * [minValue, maxValue], including the endpoints. To figure out the bucket
+   * index of an input, it rounds the input to the nearest of these points.
    *
    * This approach is different from the PeriodicScalarEncoder because two
    * buckets, the first and last, are half as wide as the rest, since fewer
@@ -57,13 +57,13 @@ namespace nupic
      *
      * @param w The number of bits that are set to encode a single value -- the
      *   "width" of the output signal
-     * @param minval The minimum value of the input signal, inclusive.
-     * @param maxval The maximum value of the input signal, inclusive.
-     * @param clipInput Whether to allow input values outside the [minval, maxval] range.
-     *   If true, the input will be clipped to minval or maxval.
+     * @param minValue The minimum value of the input signal, inclusive.
+     * @param maxValue The maximum value of the input signal, inclusive.
+     * @param clipInput Whether to allow input values outside the [minValue, maxValue]
+     *   range.  If true, the input will be clipped to minValue or maxValue.
      *
-     * There are three mutually exclusive parameters that determine the overall size of
-     * of the output. Only one of these should be nonzero:
+     * There are three mutually exclusive parameters that determine the overall
+     * size of of the output. Only one of these should be nonzero:
      *
      * @param n The number of bits in the output. Must be greater than or equal to w.
      * @param radius Two inputs separated by more than the radius have
@@ -73,7 +73,7 @@ namespace nupic
      * @param resolution Two inputs separated by greater than, or equal to the
      *   resolution are guaranteed to have different representations.
      */
-    ScalarEncoder(int w, double minval, double maxval, int n, double radius,
+    ScalarEncoder(int w, double minValue, double maxValue, int n, double radius,
                   double resolution, bool clipInput);
     ~ScalarEncoder() override;
 
@@ -84,8 +84,8 @@ namespace nupic
   private:
     int w_;
     int n_;
-    double minval_;
-    double maxval_;
+    double minValue_;
+    double maxValue_;
     double resolution_;
     bool clipInput_;
   }; // end class ScalarEncoder
@@ -100,7 +100,7 @@ namespace nupic
    *
    * Conceptually, the set of possible outputs is a set of "buckets". If there
    * are m buckets, the PeriodicScalarEncoder plots m equal-width bands along
-   * the domain [minval, maxval]. The bucket index of an input is simply its
+   * the domain [minValue, maxValue]. The bucket index of an input is simply its
    * band index.
    *
    * Because of the equal-width buckets, the rounding differs from the
@@ -116,8 +116,8 @@ namespace nupic
      *
      * @param w The number of bits that are set to encode a single value -- the
      *   "width" of the output signal
-     * @param minval The minimum value of the input signal, inclusive.
-     * @param maxval The maximum value of the input signal, exclusive. All
+     * @param minValue The minimum value of the input signal, inclusive.
+     * @param maxValue The maximum value of the input signal, exclusive. All
      *   inputs will be strictly less than this value.
      *
      * There are three mutually exclusive parameters that determine the overall
@@ -132,7 +132,7 @@ namespace nupic
      * @param resolution Two inputs separated by greater than, or equal to the
      *   resolution are guaranteed to have different representations.
      */
-    PeriodicScalarEncoder(int w, double minval, double maxval, int n,
+    PeriodicScalarEncoder(int w, double minValue, double maxValue, int n,
                           double radius, double resolution);
     ~PeriodicScalarEncoder() override;
 
@@ -143,8 +143,8 @@ namespace nupic
   private:
     int w_;
     int n_;
-    double minval_;
-    double maxval_;
+    double minValue_;
+    double maxValue_;
     double resolution_;
   }; // end class PeriodicScalarEncoder
 } // end namespace nupic
