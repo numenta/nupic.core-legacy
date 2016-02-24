@@ -94,29 +94,27 @@ namespace nupic
     {
       n_ = n;
 
+      if (w_ < 1 || w_ >= n_)
+      {
+        NTA_THROW << "w must be within the range [1, n). w=" << w_ << " n=" << n_;
+      }
+
       // Distribute nBuckets points along the domain [minValue, maxValue],
       // including the endpoints. The resolution is the width of each band
       // between the points.
       const int nBuckets = n - (w - 1);
       const int nBands = nBuckets - 1;
-      bucketsPerUnit_ = nBands / extentWidth;
+      bucketWidth_ = extentWidth / nBands;
     } else {
-      const double inferredResolution = resolution || radius / w;
-      if (inferredResolution == 0)
+      bucketWidth_ = resolution || radius / w;
+      if (bucketWidth_ == 0)
       {
         NTA_THROW << "One of n/radius/resolution must be nonzero.";
       }
 
-      bucketsPerUnit_ = 1 / inferredResolution;
-
-      const int neededBands = ceil(extentWidth * bucketsPerUnit_);
+      const int neededBands = ceil(extentWidth / bucketWidth_);
       const int neededBuckets =  neededBands + 1;
       n_ = neededBuckets + (w - 1);
-    }
-
-    if (w_ < 1 || w_ > n_)
-    {
-      NTA_THROW << "w must be within the range [1, n]. w=" << w_ << " n=" << n_;
     }
   }
 
@@ -148,7 +146,7 @@ namespace nupic
       }
     }
 
-    const int iBucket = round((scalar - minValue_) * bucketsPerUnit_);
+    const int iBucket = round((scalar - minValue_) / bucketWidth_);
 
     const int firstBit = iBucket;
 
@@ -184,26 +182,24 @@ namespace nupic
     {
       n_ = n;
 
+      if (w_ < 1 || w_ >= n_)
+      {
+        NTA_THROW << "w must be within the range [1, n). w=" << w_ << " n=" << n_;
+      }
+
       // Distribute nBuckets equal-width bands within the domain [minValue, maxValue].
       // The resolution is the width of each band.
       const int nBuckets = n;
-      bucketsPerUnit_ = nBuckets / extentWidth;
+      bucketWidth_ = extentWidth / nBuckets;
     } else {
-      const double inferredResolution = resolution || radius / w;
-      if (inferredResolution == 0)
+      bucketWidth_ = resolution || radius / w;
+      if (bucketWidth_ == 0)
       {
         NTA_THROW << "One of n/radius/resolution must be nonzero.";
       }
 
-      bucketsPerUnit_ = 1 / inferredResolution;
-
-      const int neededBuckets = ceil((maxValue - minValue) * bucketsPerUnit_);
-      n_ = neededBuckets;
-    }
-
-    if (w_ < 1 || w_ > n_)
-    {
-      NTA_THROW << "w must be within the range [1, n]. w=" << w_ << " n=" << n_;
+      const int neededBuckets = ceil((maxValue - minValue) / bucketWidth_);
+      n_ = (neededBuckets > w_) ? neededBuckets : w_ + 1;
     }
   }
 
@@ -222,7 +218,7 @@ namespace nupic
         ", " << maxValue_ << ")";
     }
 
-    const int iBucket = (int)((scalar - minValue_) * bucketsPerUnit_);
+    const int iBucket = (int)((scalar - minValue_) / bucketWidth_);
 
     const int middleBit = iBucket;
     const double reach = (w_ - 1) / 2.0;
