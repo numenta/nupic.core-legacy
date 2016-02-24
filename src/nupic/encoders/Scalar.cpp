@@ -105,7 +105,9 @@ namespace nupic
       const int nBuckets = n - (w - 1);
       const int nBands = nBuckets - 1;
       bucketWidth_ = extentWidth / nBands;
-    } else {
+    }
+    else
+    {
       bucketWidth_ = resolution || radius / w;
       if (bucketWidth_ == 0)
       {
@@ -132,7 +134,9 @@ namespace nupic
       if (clipInput_)
       {
         scalar = minValue_;
-      } else {
+      }
+      else
+      {
         NTA_THROW << "input (" << scalar << ") less than range [" << minValue_ <<
           ", " << maxValue_ << "]";
       }
@@ -140,7 +144,9 @@ namespace nupic
       if (clipInput_)
       {
         scalar = maxValue_;
-      } else {
+      }
+      else
+      {
         NTA_THROW << "input (" << scalar << ") greater than range [" << minValue_ <<
           ", " << maxValue_ << "]";
       }
@@ -191,7 +197,9 @@ namespace nupic
       // The resolution is the width of each band.
       const int nBuckets = n;
       bucketWidth_ = extentWidth / nBuckets;
-    } else {
+    }
+    else
+    {
       bucketWidth_ = resolution || radius / w;
       if (bucketWidth_ == 0)
       {
