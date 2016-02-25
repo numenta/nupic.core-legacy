@@ -32,7 +32,7 @@
 
 namespace nupic
 {
-  /** An encoder converts a value to a sparse distributed representation.
+  /** An encoder converts a value to an array of bits.
    *
    * @b Description
    * This is the base class for encoders.
