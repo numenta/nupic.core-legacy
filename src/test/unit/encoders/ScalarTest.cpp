@@ -129,6 +129,41 @@ TEST(PeriodicScalarEncoder, ValidScalarInputs)
   EXPECT_THROW(getEncoding(encoder, 20.0), std::exception);
 }
 
+TEST(ScalarEncoder, NonIntegerBucketWidth)
+{
+  const int n = 7;
+  const int w = 3;
+  const double minValue = 10;
+  const double maxValue = 20;
+  const double radius = 0;
+  const double resolution = 0;
+  const bool clipInput = false;
+  ScalarEncoder encoder(w, minValue, maxValue, n, radius, resolution, clipInput);
+
+  std::vector<SCALAR_VALUE_CASE> cases =
+    {{10.0, patternFromNZ(n, {0, 1, 2})},
+     {20.0, patternFromNZ(n, {4, 5, 6})}};
+
+  doScalarValueCases(encoder, cases);
+}
+
+TEST(PeriodicScalarEncoder, NonIntegerBucketWidth)
+{
+  const int n = 7;
+  const int w = 3;
+  const double minValue = 10;
+  const double maxValue = 20;
+  const double radius = 0;
+  const double resolution = 0;
+  PeriodicScalarEncoder encoder(w, minValue, maxValue, n, radius, resolution);
+
+  std::vector<SCALAR_VALUE_CASE> cases =
+    {{10.0, patternFromNZ(n, {6, 0, 1})},
+     {19.9, patternFromNZ(n, {5, 6, 0})}};
+
+  doScalarValueCases(encoder, cases);
+}
+
 TEST(ScalarEncoder, RoundToNearestMultipleOfResolution)
 {
   const int n_in = 0;

@@ -83,7 +83,7 @@ namespace nupic
         "Only one of n/radius/resolution can be specified for a ScalarEncoder.";
     }
 
-    const int extentWidth = maxValue - minValue;
+    const double extentWidth = maxValue - minValue;
     if (extentWidth <= 0)
     {
       NTA_THROW << "minValue must be < maxValue. minValue=" << minValue <<
@@ -177,7 +177,7 @@ namespace nupic
         "Only one of n/radius/resolution can be specified for a ScalarEncoder.";
     }
 
-    const int extentWidth = maxValue - minValue;
+    const double extentWidth = maxValue - minValue;
     if (extentWidth <= 0)
     {
       NTA_THROW << "minValue must be < maxValue. minValue=" << minValue <<
