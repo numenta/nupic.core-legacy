@@ -418,6 +418,7 @@ set(LIB_STATIC_NUPICCORE_SRCS
     nupic/algorithms/SpatialPooler.cpp
     nupic/algorithms/TemporalMemory.cpp
     nupic/algorithms/Svm.cpp
+    nupic/encoders/Scalar.cpp
     nupic/engine/Collections.cpp
     nupic/engine/Input.cpp
     nupic/engine/Link.cpp
@@ -585,6 +586,7 @@ add_executable(${EXECUTABLE_GTESTS}
                test/unit/algorithms/SegmentTest.cpp
                test/unit/algorithms/SpatialPoolerTest.cpp
                test/unit/algorithms/TemporalMemoryTest.cpp
+               test/unit/encoders/ScalarTest.cpp
                test/unit/engine/InputTest.cpp
                test/unit/engine/NetworkTest.cpp
                test/unit/engine/UniformLinkPolicyTest.cpp
