@@ -52,11 +52,11 @@ std::vector<UInt> getEncoding(Encoder& e, Real64 input)
   return actualOutput;
 }
 
-typedef struct _SCALAR_VALUE_CASE
+struct ScalarValueCase
 {
   Real64 input;
   std::vector<UInt> expectedOutput;
-} SCALAR_VALUE_CASE;
+};
 
 std::vector<UInt> patternFromNZ(int n, std::vector<size_t> patternNZ)
 {
@@ -68,7 +68,7 @@ std::vector<UInt> patternFromNZ(int n, std::vector<size_t> patternNZ)
   return v;
 }
 
-void doScalarValueCases(Encoder& e, std::vector<SCALAR_VALUE_CASE> cases)
+void doScalarValueCases(Encoder& e, std::vector<ScalarValueCase> cases)
 {
   for (auto c = cases.begin(); c != cases.end(); c++)
     {
@@ -140,7 +140,7 @@ TEST(ScalarEncoder, NonIntegerBucketWidth)
   const bool clipInput = false;
   ScalarEncoder encoder(w, minValue, maxValue, n, radius, resolution, clipInput);
 
-  std::vector<SCALAR_VALUE_CASE> cases =
+  std::vector<ScalarValueCase> cases =
     {{10.0, patternFromNZ(n, {0, 1, 2})},
      {20.0, patternFromNZ(n, {4, 5, 6})}};
 
@@ -157,7 +157,7 @@ TEST(PeriodicScalarEncoder, NonIntegerBucketWidth)
   const double resolution = 0;
   PeriodicScalarEncoder encoder(w, minValue, maxValue, n, radius, resolution);
 
-  std::vector<SCALAR_VALUE_CASE> cases =
+  std::vector<ScalarValueCase> cases =
     {{10.0, patternFromNZ(n, {6, 0, 1})},
      {19.9, patternFromNZ(n, {5, 6, 0})}};
 
@@ -178,7 +178,7 @@ TEST(ScalarEncoder, RoundToNearestMultipleOfResolution)
   const int n = 13;
   ASSERT_EQ(n, encoder.getWidth());
 
-  std::vector<SCALAR_VALUE_CASE> cases =
+  std::vector<ScalarValueCase> cases =
     {{10.00, patternFromNZ(n, {0, 1, 2})},
      {10.49, patternFromNZ(n, {0, 1, 2})},
      {10.50, patternFromNZ(n, {1, 2, 3})},
@@ -208,7 +208,7 @@ TEST(PeriodicScalarEncoder, FloorToNearestMultipleOfResolution)
   const int n = 10;
   ASSERT_EQ(n, encoder.getWidth());
 
-  std::vector<SCALAR_VALUE_CASE> cases =
+  std::vector<ScalarValueCase> cases =
     {{10.00, patternFromNZ(n, {9, 0, 1})},
      {10.99, patternFromNZ(n, {9, 0, 1})},
      {11.00, patternFromNZ(n, {0, 1, 2})},
