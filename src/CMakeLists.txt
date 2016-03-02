@@ -401,6 +401,7 @@ endif()
 set(LIB_STATIC_NUPICCORE_SRCS
     ${CAPNP_SRCS}
     ${PY_SUPPORT_FILES}
+    nupic/algorithms/Anomaly.cpp
     nupic/algorithms/BitHistory.cpp
     nupic/algorithms/Cell.cpp
     nupic/algorithms/Cells4.cpp
@@ -580,6 +581,7 @@ add_dependencies(${EXECUTABLE_HELLOSPTP} ${COMMON_LIBS})
 #
 set(EXECUTABLE_GTESTS unit_tests)
 add_executable(${EXECUTABLE_GTESTS}
+               test/unit/algorithms/AnomalyTest.cpp
                test/unit/algorithms/CondProbTableTest.cpp
                test/unit/algorithms/ConnectionsTest.cpp
                test/unit/algorithms/FastCLAClassifierTest.cpp
