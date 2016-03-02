@@ -464,6 +464,7 @@ set(LIB_STATIC_NUPICCORE_SRCS
     nupic/types/Fraction.cpp
     nupic/utils/LoggingException.cpp
     nupic/utils/LogItem.cpp
+    nupic/utils/MovingAverage.cpp
     nupic/utils/Random.cpp
     nupic/utils/StringUtils.cpp
     nupic/utils/TRandom.cpp
@@ -620,6 +621,7 @@ add_executable(${EXECUTABLE_GTESTS}
                test/unit/types/ExceptionTest.cpp
                test/unit/types/FractionTest.cpp
                test/unit/UnitTestMain.cpp
+               test/unit/utils/MovingAverageTest.cpp
                test/unit/utils/RandomTest.cpp
                test/unit/utils/WatcherTest.cpp)
 target_link_libraries(${EXECUTABLE_GTESTS}
