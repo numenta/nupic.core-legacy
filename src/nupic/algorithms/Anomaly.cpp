@@ -31,7 +31,13 @@
 //#define NTA_ASSERT(condition) if (condition) {} else throw "Error";
 
 using namespace std;
-using namespace nupic::algorithms::anomaly;
+
+namespace nupic
+{
+  namespace algorithms
+  {
+    namespace anomaly
+    { //FIXME for some reason googletests fail if using namespace nupic::algorithms::anomaly; is used instead!
 
 
 /**
@@ -149,3 +155,5 @@ float Anomaly::compute(const vector<UInt>& active, const vector<UInt>& predicted
 
   return score;
 }
+
+}}} //namespaces
