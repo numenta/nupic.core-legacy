@@ -22,58 +22,61 @@
 
 
 #include "nupic/utils/MovingAverage.hpp"
+#include "nupic/utils/Log.hpp"
 #include <algorithm>
 
 using namespace std;
 using namespace nupic::util;
 
 
-MovingAverage::MovingAverage(int w_size, const vector<float>& historical_values) :
-	window_size(w_size)
+MovingAverage::MovingAverage(int wSize, const vector<float>& historicalValues) :
+	windowSize_(wSize)
 {
-  // TODO: Fail if window size is negative.
-  if (historical_values.size() != 0) {
+  NTA_ASSERT(wSize > 0) << "wSize must be > 0";
+  if (historicalValues.size() != 0)
+  {
     copy(
-      historical_values.begin() + historical_values.size() - w_size,
-      historical_values.end(),
-      back_inserter(this->sliding_window));
+      historicalValues.begin() + historicalValues.size() - wSize,
+      historicalValues.end(),
+      back_inserter(this->slidingWindow_));
   }
-  this->total = float(accumulate(this->sliding_window.begin(), this->sliding_window.end(), 0)); 
+  this->total_ = float(accumulate(this->slidingWindow_.begin(), this->slidingWindow_.end(), 0)); 
 }
 
 
-MovingAverage::MovingAverage(int w_size) : window_size(w_size), total(0) {}
+MovingAverage::MovingAverage(int wSize) : windowSize_(wSize), total_(0) {}
 
 
-std::tuple<float, float> MovingAverage::compute(std::vector<float>& sliding_window, 
-  float total, float new_val, unsigned int window_size)
+std::tuple<float, float> MovingAverage::compute(std::vector<float>& slidingWindow, 
+  float total, float newVal, unsigned int windowSize)
 {
-  if (sliding_window.size() == window_size) {
-    total -= sliding_window.front();
-    sliding_window.erase(sliding_window.begin()); // pop front element.
+  if (slidingWindow.size() == windowSize) 
+  {
+    total -= slidingWindow.front();
+    slidingWindow.erase(slidingWindow.begin()); // pop front element.
   }
 
-  sliding_window.push_back(new_val);
-  total += new_val;
+  slidingWindow.push_back(newVal);
+  total += newVal;
 
-  return std::make_tuple(total / float(sliding_window.size()), total);
+  return std::make_tuple(total / float(slidingWindow.size()), total);
 }
 
-std::vector<float> MovingAverage::get_sliding_window()
+std::vector<float> MovingAverage::getSlidingWindow()
 {
-  return this->sliding_window;
+  return this->slidingWindow_;
 }
 
-float MovingAverage::get_current_avg()
+float MovingAverage::getCurrentAvg()
 {
-  return float(this->total) / float(this->sliding_window.size());
+  return float(this->total_) / float(this->slidingWindow_.size());
 }
 
 float MovingAverage::next(float newValue)
 {
   float newAverage;
-  std::tie(newAverage, this->total) = this->compute(this->sliding_window,
-    this->total, newValue, this->window_size);
+  std::tie(newAverage, this->total_) = this->compute(this->slidingWindow_,
+    this->total_, newValue, this->windowSize_);
   return newAverage;
 }
 
@@ -83,31 +86,9 @@ bool MovingAverage::operator==(MovingAverage& r2)
   return true;
 }
 
-float MovingAverage::get_total()
+float MovingAverage::getTotal()
 {
-  return this->total;
+  return this->total_;
 }
 
-/*
-  def __eq__(self, o):
-    return (isinstance(o, MovingAverage) and
-            o.slidingWindow == self.slidingWindow and
-            o.total == self.total and
-            o.windowSize == self.windowSize)
 
-  def __call__(self, value):
-    return self.next(value)
-
-  @classmethod
-  def read(cls, proto):
-    movingAverage = object.__new__(cls)
-    movingAverage.windowSize = proto.windowSize
-    movingAverage.slidingWindow = list(proto.slidingWindow)
-    movingAverage.total = proto.total
-    return movingAverage
-
-  def write(self, proto):
-    proto.windowSize = self.windowSize
-    proto.slidingWindow = self.slidingWindow
-    proto.total = self.total
-*/

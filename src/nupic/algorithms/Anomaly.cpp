@@ -24,10 +24,15 @@
 #include <vector>
 #include <numeric>
 #include <algorithm>
+#include <set>
+
 #include "nupic/algorithms/Anomaly.hpp"
+#include "nupic/utils/Log.hpp"
+//#define NTA_ASSERT(condition) if (condition) {} else throw "Error";
 
 using namespace std;
 using namespace nupic::algorithms::anomaly;
+
 
 /**
 Computes the raw anomaly score.
@@ -38,23 +43,26 @@ The raw anomaly score is the fraction of active columns not predicted.
 @param prevPredictedColumns: array of columns indices predicted in prev step
 @return anomaly score 0..1 (float)
 */
-float computeRawAnomalyScore(const vector<int>& active, const vector<int>& predicted)
+float computeRawAnomalyScore(const vector<UInt>& active, const vector<UInt>& predicted)
 {
+
+  	
   // Return 0 if no active columns are present
-  if (active.size() == 0) {
+  if (active.size() == 0)
+  {
     return 0.0f;
   }
-	
-  // Count active columns that were predicted
-  int score = accumulate(active.begin(), active.end(), 0,
-			 [predicted](int accum, int curr) -> int { 
-			   return ((find(predicted.begin(), predicted.end(), curr) != predicted.end()) 
-						? accum + 1 : accum); 
-			        }
-			 );
-			
+
+  set<UInt> active_set {active.begin(), active.end()};
+  set<UInt> predicted_set{predicted.begin(), predicted.end()};
+  vector<UInt> res;
+
   // Calculate and return percent of active columns that were not predicted.
-  return (active.size() - score) / float(active.size());
+  set_intersection(active_set.begin(), active_set.end(),
+		           predicted_set.begin(), predicted_set.end(),
+                   back_inserter(res));
+
+  return (active.size() - res.size()) / float(active.size());
 }
 
 
@@ -82,17 +90,20 @@ Utility class for generating anomaly scores in different ways.
          will be discretized to 1/0 (1 if >= binaryAnomalyThreshold)
          The transformation is applied after moving average is computed.
 */
-Anomaly::Anomaly(int slidingWindowSize, AnomalyMode mode, float binary_anomaly_threshold) :
-				binary_threshold(binary_anomaly_threshold) /*, moving_average(nullptr) */
+Anomaly::Anomaly(int slidingWindowSize, AnomalyMode mode, float binaryAnomalyThreshold) :
+				binaryThreshold_(binaryAnomalyThreshold) /*, moving_average(nullptr) */
 {
-// TODO: Raise an Exception if the threshold value is not > 0 && < 1
-  this->mode = mode;
-  if (slidingWindowSize != 0) {
-    this->moving_average.reset(new nupic::util::MovingAverage(slidingWindowSize));
+  NTA_ASSERT(binaryAnomalyThreshold >= 0 && binaryAnomalyThreshold <= 1) << "binaryAnomalyThreshold must be within [0.0,1.0]";
+  this->mode_ = mode;
+  if (slidingWindowSize > 0) 
+  {
+    this->movingAverage_.reset(new nupic::util::MovingAverage(slidingWindowSize));
   }
 
-  if (this->mode  == AnomalyMode::LIKELIHOOD || this->mode == AnomalyMode::WEIGHTED) {
-  // Not implemented
+  if (this->mode_  == AnomalyMode::LIKELIHOOD || this->mode_ == AnomalyMode::WEIGHTED)
+  {
+    // Not implemented. Fail.
+    NTA_ASSERT(this->mode_ == AnomalyMode::PURE) << "C++ Anomaly implemented only for PURE mode!";
   }
 }
 
@@ -109,27 +120,31 @@ Compute the anomaly score as the percent of active columns not predicted.
                                 (used in anomaly-likelihood)
     @return the computed anomaly score; float 0..1
 */
-float Anomaly::compute(vector<int>& active, vector<int>& predicted,
+float Anomaly::compute(const vector<UInt>& active, const vector<UInt>& predicted,
 		       int inputValue, int timestamp)
 {
-  float score;
-  float anomaly_score = computeRawAnomalyScore(active, predicted);
-  switch(this->mode) {
+  float anomalyScore = computeRawAnomalyScore(active, predicted);
+  float score = anomalyScore;
+  switch(this->mode_) 
+  {
     case AnomalyMode::PURE:
-      score = anomaly_score;
+      score = anomalyScore;
       break;
     case AnomalyMode::LIKELIHOOD:
     case AnomalyMode::WEIGHTED:
-      // Not implemented
+      // Not implemented. Fail
+      NTA_ASSERT(this->mode_ == AnomalyMode::PURE) << "C++ Anomaly implemented only for PURE mode!";
       break;
-}
-
-  if (this->moving_average) {
-    score = this->moving_average->next(score);
   }
 
-  if (this->binary_threshold) {
-    score = (score >= this->binary_threshold) ? 1.0 : 0.0;
+  if (this->movingAverage_) 
+  {
+    score = this->movingAverage_->next(score);
+  }
+
+  if (this->binaryThreshold_) 
+  {
+    score = (score >= this->binaryThreshold_) ? 1.0 : 0.0;
   }
 
   return score;

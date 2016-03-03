@@ -28,33 +28,33 @@ using namespace nupic::util;
 
 TEST(moving_average, testMovingAverage)
 {
-  std::vector<float> historical_values {};
+  std::vector<float> historicalValues {};
   float total = 0;
-  int window_size = 3;
-  float new_average = 0;
+  int windowSize = 3;
+  float newAverage = 0;
 
-  std::vector<float> expected_historical{3.0};
-  std::tie(new_average, total) = MovingAverage::compute(historical_values, total, 3, window_size);
-  ASSERT_EQ(new_average, 3.0);
-  ASSERT_EQ(historical_values, expected_historical);
+  std::vector<float> expectedHistorical{3.0};
+  std::tie(newAverage, total) = MovingAverage::compute(historicalValues, total, 3, windowSize);
+  ASSERT_EQ(newAverage, 3.0);
+  ASSERT_EQ(historicalValues, expectedHistorical);
   ASSERT_FLOAT_EQ(total, 3.0);
 
-  expected_historical = {3.0, 4.0};
-  std::tie(new_average, total) = MovingAverage::compute(historical_values, total, 4, window_size);
-  ASSERT_EQ(new_average, 3.5);
-  ASSERT_EQ(historical_values, expected_historical);
+  expectedHistorical = {3.0, 4.0};
+  std::tie(newAverage, total) = MovingAverage::compute(historicalValues, total, 4, windowSize);
+  ASSERT_EQ(newAverage, 3.5);
+  ASSERT_EQ(historicalValues, expectedHistorical);
   ASSERT_EQ(total, 7.0);
 
-  expected_historical = {3.0, 4.0, 5.0};
-  std::tie(new_average, total) = MovingAverage::compute(historical_values, total, 5, window_size);
-  ASSERT_EQ(new_average, 4.0);
-  ASSERT_EQ(historical_values, expected_historical);
+  expectedHistorical = {3.0, 4.0, 5.0};
+  std::tie(newAverage, total) = MovingAverage::compute(historicalValues, total, 5, windowSize);
+  ASSERT_EQ(newAverage, 4.0);
+  ASSERT_EQ(historicalValues, expectedHistorical);
   ASSERT_EQ(total, 12.0);
 
-  expected_historical = {4.0, 5.0, 6.0};
-  std::tie(new_average, total) = MovingAverage::compute(historical_values, total, 6, window_size);
-  ASSERT_EQ(new_average, 5.0);
-  ASSERT_EQ(historical_values, expected_historical);
+  expectedHistorical = {4.0, 5.0, 6.0};
+  std::tie(newAverage, total) = MovingAverage::compute(historicalValues, total, 6, windowSize);
+  ASSERT_EQ(newAverage, 5.0);
+  ASSERT_EQ(historicalValues, expectedHistorical);
   ASSERT_EQ(total, 15.0);
 };
 
@@ -62,44 +62,44 @@ TEST(moving_average, testMovingAverage)
 TEST(moving_average, instance)
 {
   MovingAverage m{3};
-  float new_average;
-  std::vector<float> expected_window;
+  float newAverage;
+  std::vector<float> expectedWindow;
 
-  expected_window = {3.0};
-  new_average = m.next(3);
-  ASSERT_EQ(new_average, 3.0);
-  ASSERT_EQ(m.get_sliding_window(), expected_window);
-  ASSERT_EQ(m.get_total(), 3.0);
+  expectedWindow = {3.0};
+  newAverage = m.next(3);
+  ASSERT_EQ(newAverage, 3.0);
+  ASSERT_EQ(m.getSlidingWindow(), expectedWindow);
+  ASSERT_EQ(m.getTotal(), 3.0);
 
-  expected_window = {3.0, 4.0};
-  new_average = m.next(4);
-  ASSERT_EQ(new_average, 3.5);
-  ASSERT_EQ(m.get_sliding_window(), expected_window);
-  ASSERT_EQ(m.get_total(), 7.0);
+  expectedWindow = {3.0, 4.0};
+  newAverage = m.next(4);
+  ASSERT_EQ(newAverage, 3.5);
+  ASSERT_EQ(m.getSlidingWindow(), expectedWindow);
+  ASSERT_EQ(m.getTotal(), 7.0);
 
-  expected_window = {3.0, 4.0, 5.0};
-  new_average = m.next(5);
-  ASSERT_EQ(new_average, 4.0);
-  ASSERT_EQ(m.get_sliding_window(), expected_window);
-  ASSERT_EQ(m.get_total(), 12.0);
+  expectedWindow = {3.0, 4.0, 5.0};
+  newAverage = m.next(5);
+  ASSERT_EQ(newAverage, 4.0);
+  ASSERT_EQ(m.getSlidingWindow(), expectedWindow);
+  ASSERT_EQ(m.getTotal(), 12.0);
 
-  expected_window = {4.0, 5.0, 6.0};
-  new_average = m.next(6);
-  ASSERT_EQ(new_average, 5.0);
-  ASSERT_EQ(m.get_sliding_window(), expected_window);
-  ASSERT_EQ(m.get_total(), 15.0);
+  expectedWindow = {4.0, 5.0, 6.0};
+  newAverage = m.next(6);
+  ASSERT_EQ(newAverage, 5.0);
+  ASSERT_EQ(m.getSlidingWindow(), expectedWindow);
+  ASSERT_EQ(m.getTotal(), 15.0);
 };
 
 
 TEST(moving_average, SlidingWindowInit)
 {
-  std::vector<float> existing_historical {3.0, 4.0, 5.0};
-  MovingAverage m{3, existing_historical};
-  ASSERT_EQ(m.get_sliding_window(), existing_historical);
+  std::vector<float> existingHistorical {3.0, 4.0, 5.0};
+  MovingAverage m{3, existingHistorical};
+  ASSERT_EQ(m.getSlidingWindow(), existingHistorical);
 
   MovingAverage m2{3};
-  std::vector<float> empty_vector;
-  ASSERT_EQ(m2.get_sliding_window(), empty_vector);
+  std::vector<float> emptyVector;
+  ASSERT_EQ(m2.getSlidingWindow(), emptyVector);
 }
 
 /*

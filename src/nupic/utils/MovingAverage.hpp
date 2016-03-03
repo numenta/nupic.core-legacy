@@ -33,20 +33,20 @@ namespace nupic {
     class MovingAverage
     {
       private:
-        int window_size;
-        std::vector<float> sliding_window;
-        float total;
+        int windowSize_;
+        std::vector<float> slidingWindow_;
+        float total_;
         bool operator==(MovingAverage& r2);
       public:
-        MovingAverage(int w_size, const std::vector<float>& historical_values);
-        MovingAverage(int w_size);
-        static std::tuple<float, float> compute(std::vector<float>& sliding_window, 
+        MovingAverage(int wSize, const std::vector<float>& historicalValues);
+        MovingAverage(int wSize);
+        static std::tuple<float, float> compute(std::vector<float>& slidingWindow, 
                                                 float total, float newVal,
                                                 unsigned int windowSize);
-        std::vector<float> get_sliding_window();
-        float get_current_avg();
+        std::vector<float> getSlidingWindow();
+        float getCurrentAvg();
         float next(float newValue);
-        float get_total();
+        float getTotal();
     };
   }
 }

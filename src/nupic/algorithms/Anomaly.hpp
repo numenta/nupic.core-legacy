@@ -28,15 +28,17 @@
 #include <numeric>
 #include <algorithm>
 #include <memory>
+#include <nupic/types/Types.hpp>
 #include "nupic/utils/MovingAverage.hpp"
 
 using namespace std;
+using namespace nupic;
 
 namespace nupic {
   namespace algorithms {
     namespace anomaly {
 
-      float computeRawAnomalyScore(const vector<int>& active, const vector<int>& predicted);
+      float computeRawAnomalyScore(const vector<UInt>& active, const vector<UInt>& predicted);
 
 
       enum class AnomalyMode { PURE, LIKELIHOOD, WEIGHTED };
@@ -45,13 +47,13 @@ namespace nupic {
       class Anomaly
       {
         private:
-          AnomalyMode mode;
-          float binary_threshold;
-          unique_ptr<nupic::util::MovingAverage> moving_average;
+          AnomalyMode mode_;
+          float binaryThreshold_;
+          unique_ptr<nupic::util::MovingAverage> movingAverage_;
         public:
           Anomaly(int slidingWindowSize=0, AnomalyMode mode=AnomalyMode::PURE, 
                   float binaryAnomalyThreshold=0);
-          float compute(vector<int>& active, vector<int>& predicted, 
+          float compute(const vector<UInt>& active, const vector<UInt>& predicted, 
                         int inputValue=0, int timestamp=0);
       };
     }
