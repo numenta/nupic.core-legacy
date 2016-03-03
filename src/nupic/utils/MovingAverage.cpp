@@ -24,6 +24,7 @@
 #include "nupic/utils/MovingAverage.hpp"
 #include "nupic/utils/Log.hpp"
 #include <algorithm>
+#include <numeric>
 
 using namespace std;
 using namespace nupic::util;
