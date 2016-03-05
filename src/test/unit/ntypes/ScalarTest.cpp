@@ -119,4 +119,14 @@ TEST(ScalarTest, All)
   ASSERT_EQ('a', a.getValue<Byte>());
   a.value.byte++;
   ASSERT_EQ('b', a.getValue<Byte>());
+
+  //Test Bool
+  a = Scalar(NTA_BasicType_Bool);
+  ASSERT_ANY_THROW(a.getValue<UInt64>());
+  ASSERT_EQ(false, a.getValue<bool>());
+  ASSERT_EQ(NTA_BasicType_Bool, a.getType());
+  a.value.boolean = true;
+  ASSERT_EQ(true, a.getValue<bool>());
+  a.value.boolean = false;
+  ASSERT_EQ(false, a.getValue<bool>());
 }

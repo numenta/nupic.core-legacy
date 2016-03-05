@@ -177,6 +177,7 @@ namespace nupic
   template Real32 Value::getScalarT<Real32>() const;
   template Real64 Value::getScalarT<Real64>() const;
   template Handle Value::getScalarT<Handle>() const;
+  template bool Value::getScalarT<bool>() const;
 }
 
 ValueMap::ValueMap() 
@@ -330,5 +331,5 @@ namespace nupic
   template Real32 ValueMap::getScalarT(const std::string& key) const;
   template Real64 ValueMap::getScalarT(const std::string& key) const;
   template Handle ValueMap::getScalarT(const std::string& key) const;
+  template bool ValueMap::getScalarT(const std::string& key) const;
 }
-

@@ -57,6 +57,7 @@ namespace nupic
       NTA_UInt64 uint64;
       NTA_Real32 real32;
       NTA_Real64 real64;
+      bool boolean;
     } value;
 
 
