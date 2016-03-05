@@ -420,6 +420,7 @@ set(LIB_STATIC_NUPICCORE_SRCS
     nupic/algorithms/Svm.cpp
     nupic/encoders/ScalarEncoder.cpp
     nupic/engine/Collections.cpp
+    nupic/engine/FloatSensor.cpp
     nupic/engine/Input.cpp
     nupic/engine/Link.cpp
     nupic/engine/LinkPolicyFactory.cpp
