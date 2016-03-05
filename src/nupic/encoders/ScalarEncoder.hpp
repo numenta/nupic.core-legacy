@@ -27,7 +27,7 @@
 #ifndef NTA_ENCODERS_SCALAR
 #define NTA_ENCODERS_SCALAR
 
-#include <nupic/encoders/Base.hpp>
+#include <nupic/encoders/EncoderBase.hpp>
 
 namespace nupic
 {
@@ -49,7 +49,7 @@ namespace nupic
    * makes sense because, for example, with the input space [1, 10] and 10
    * buckets, 1.49 is in the first bucket and 1.51 is in the second.
    */
-  class ScalarEncoder : public Encoder
+  class ScalarEncoder : public FloatEncoder
   {
   public:
     /**
@@ -77,9 +77,8 @@ namespace nupic
                   double resolution, bool clipInput);
     ~ScalarEncoder() override;
 
-    virtual void encodeIntoArray(const ArrayBase & input, UInt output[],
-                                 bool learn) override;
-    virtual int getWidth() const override { return n_; }
+    virtual int encodeIntoArray(Real64 input, Real32 output[]) override;
+    virtual int getOutputWidth() const override { return n_; }
 
   private:
     int w_;
@@ -108,7 +107,7 @@ namespace nupic
    * bucket and 1.51 in the second, the PeriodicScalarEncoder will put 1.99 in
    * the first bucket and 2.0 in the second.
    */
-  class PeriodicScalarEncoder : public Encoder
+  class PeriodicScalarEncoder : public FloatEncoder
   {
   public:
     /**
@@ -136,9 +135,8 @@ namespace nupic
                           double radius, double resolution);
     virtual ~PeriodicScalarEncoder() override;
 
-    virtual void encodeIntoArray(const ArrayBase & input, UInt output[],
-                                 bool learn) override;
-    virtual int getWidth() const override { return n_; }
+    virtual int encodeIntoArray(Real64 input, Real32 output[]) override;
+    virtual int getOutputWidth() const override { return n_; }
 
   private:
     int w_;

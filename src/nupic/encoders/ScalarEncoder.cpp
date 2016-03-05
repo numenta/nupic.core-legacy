@@ -26,47 +26,11 @@
 
 #include <cstring> // memset
 #include <cmath>
-#include <nupic/encoders/Scalar.hpp>
+#include <nupic/encoders/ScalarEncoder.hpp>
 #include <nupic/utils/Log.hpp>
 
 namespace nupic
 {
-  static Real64 extractScalar(const ArrayBase & input)
-  {
-    switch (input.getType())
-    {
-    case NTA_BasicType_Byte:
-      return ((Byte*) input.getBuffer())[0];
-      break;
-    case NTA_BasicType_Int16:
-      return ((Int16*) input.getBuffer())[0];
-      break;
-    case NTA_BasicType_UInt16:
-      return ((UInt16*) input.getBuffer())[0];
-      break;
-    case NTA_BasicType_Int32:
-      return ((Int32*) input.getBuffer())[0];
-      break;
-    case NTA_BasicType_UInt32:
-      return ((UInt32*) input.getBuffer())[0];
-      break;
-    case NTA_BasicType_Int64:
-      return ((Int64*) input.getBuffer())[0];
-      break;
-    case NTA_BasicType_UInt64:
-      return ((UInt64*) input.getBuffer())[0];
-      break;
-    case NTA_BasicType_Real32:
-      return ((Real32*) input.getBuffer())[0];
-      break;
-    case NTA_BasicType_Real64:
-      return ((Real64*) input.getBuffer())[0];
-      break;
-    default:
-      NTA_THROW << "extractScalar: Unsupported type " << input.getType();
-    }
-  }
-
   ScalarEncoder::ScalarEncoder(
     int w, double minValue, double maxValue, int n, double radius,
     double resolution, bool clipInput)
@@ -124,35 +88,32 @@ namespace nupic
   {
   }
 
-  void ScalarEncoder::encodeIntoArray(
-    const ArrayBase & input, UInt output[], bool learn)
+  int ScalarEncoder::encodeIntoArray(Real64 input, Real32 output[])
   {
-    Real64 scalar = extractScalar(input);
-
-    if (scalar < minValue_)
+    if (input < minValue_)
     {
       if (clipInput_)
       {
-        scalar = minValue_;
+        input = minValue_;
       }
       else
       {
-        NTA_THROW << "input (" << scalar << ") less than range [" << minValue_ <<
+        NTA_THROW << "input (" << input << ") less than range [" << minValue_ <<
           ", " << maxValue_ << "]";
       }
-    } else if (scalar > maxValue_) {
+    } else if (input > maxValue_) {
       if (clipInput_)
       {
-        scalar = maxValue_;
+        input = maxValue_;
       }
       else
       {
-        NTA_THROW << "input (" << scalar << ") greater than range [" << minValue_ <<
+        NTA_THROW << "input (" << input << ") greater than range [" << minValue_ <<
           ", " << maxValue_ << "]";
       }
     }
 
-    const int iBucket = round((scalar - minValue_) / bucketWidth_);
+    const int iBucket = round((input - minValue_) / bucketWidth_);
 
     const int firstBit = iBucket;
 
@@ -161,6 +122,8 @@ namespace nupic
     {
       output[firstBit + i] = 1;
     }
+
+    return iBucket;
   }
 
   PeriodicScalarEncoder::PeriodicScalarEncoder(
@@ -215,18 +178,15 @@ namespace nupic
   {
   }
 
-  void PeriodicScalarEncoder::encodeIntoArray(
-    const ArrayBase & input, UInt output[], bool learn)
+  int PeriodicScalarEncoder::encodeIntoArray(Real64 input, Real32 output[])
   {
-    Real64 scalar = extractScalar(input);
-
-    if (scalar < minValue_ || scalar >= maxValue_)
+    if (input < minValue_ || input >= maxValue_)
     {
-      NTA_THROW << "input " << scalar << " not within range [" << minValue_ <<
+      NTA_THROW << "input " << input << " not within range [" << minValue_ <<
         ", " << maxValue_ << ")";
     }
 
-    const int iBucket = (int)((scalar - minValue_) / bucketWidth_);
+    const int iBucket = (int)((input - minValue_) / bucketWidth_);
 
     const int middleBit = iBucket;
     const double reach = (w_ - 1) / 2.0;
@@ -244,5 +204,7 @@ namespace nupic
     {
       output[(middleBit + i) % n_] = 1;
     }
+
+    return iBucket;
   }
 } // end namespace nupic

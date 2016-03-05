@@ -21,36 +21,44 @@
  */
 
 /** @file
- * Defines the abstract Encoder base class
+ * Defines the abstract Encoder base classes.
+ * An encoder converts a value to an array of bits.
  */
 
 #ifndef NTA_ENCODERS_BASE
 #define NTA_ENCODERS_BASE
 
-#include <nupic/ntypes/ArrayBase.hpp>
 #include <nupic/types/Types.hpp>
 
 namespace nupic
 {
-  /** An encoder converts a value to an array of bits.
-   *
+  /**
    * @b Description
-   * This is the base class for encoders.
-   *
-   * Methods that must be implemented by subclasses:
-   * - getWidth() - returns the output width, in bits
-   * - encodeIntoArray() - encodes input and puts the encoded value into the
-   *   output, which is an array of length returned by getWidth()
+   * Base class for encoders that encode a single floating point number.
    */
-  class Encoder
+  class FloatEncoder
   {
   public:
-    virtual ~Encoder()
-    {}
+    virtual ~FloatEncoder()
+      {}
 
-    virtual void encodeIntoArray(const ArrayBase & input, UInt output[],
-                                 bool learn) = 0;
-    virtual int getWidth() const = 0;
+    /**
+     * Encodes input, puts the encoded value into output, and returns the a
+     * bucket number for the encoding.
+     *
+     * The bucket number is essentially the input encoded into an integer rather
+     * than an array. A bucket number is easier to "decode" or to use inside a
+     * classifier.
+     *
+     * @param input The value to encode
+     * @param output Should have length of at least getOutputWidth()
+     */
+    virtual int encodeIntoArray(Real64 input, Real32 output[]) = 0;
+
+    /**
+     * Returns the output width, in bits.
+     */
+    virtual int getOutputWidth() const = 0;
   };
 } // end namespace nupic
 
