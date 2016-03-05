@@ -51,7 +51,7 @@ namespace nupic
      * classifier.
      *
      * @param input The value to encode
-     * @param output Should have length of at least getOutputWidth().
+     * @param output Should have length of at least getOutputWidth()
      */
     virtual int encodeIntoArray(Real64 input, Real32 output[]) = 0;
 
