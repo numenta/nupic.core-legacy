@@ -419,6 +419,7 @@ set(LIB_STATIC_NUPICCORE_SRCS
     nupic/algorithms/TemporalMemory.cpp
     nupic/algorithms/Svm.cpp
     nupic/encoders/ScalarEncoder.cpp
+    nupic/encoders/ScalarSensor.cpp
     nupic/engine/Collections.cpp
     nupic/engine/Input.cpp
     nupic/engine/Link.cpp
