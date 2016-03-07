@@ -226,10 +226,12 @@ namespace nupic
                                        Int64 index,
                                        IWriteBuffer& value)
   {
-    if (name == "sensedValue") {
+    if (name == "sensedValue")
+    {
       value.write(sensedValue_);
     }
-    else {
+    else
+    {
       NTA_THROW << "ScalarSensor::getParameter -- Unknown parameter " << name;
     }
   }
@@ -239,10 +241,12 @@ namespace nupic
                                        Int64 index,
                                        IReadBuffer& value)
   {
-    if (name == "sensedValue") {
+    if (name == "sensedValue")
+    {
       value.read(sensedValue_);
     }
-    else {
+    else
+    {
       NTA_THROW << "ScalarSensor::setParameter -- Unknown parameter " << name;
     }
   }
