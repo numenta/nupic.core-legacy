@@ -27,6 +27,9 @@
 #include <string>
 #include <vector>
 #include <nupic/encoders/ScalarEncoder.hpp>
+#include <nupic/engine/Network.hpp>
+#include <nupic/engine/Region.hpp>
+#include <nupic/ntypes/ArrayRef.hpp>
 #include "gtest/gtest.h"
 
 using namespace nupic;
@@ -38,6 +41,15 @@ std::string vec2str(std::vector<T> vec)
   for (size_t i = 0; i < vec.size(); i++)
     oss << vec[i];
   return oss.str();
+}
+
+std::vector<Real32> array2vec(const ArrayBase& array)
+{
+  size_t size = array.getCount();
+  auto vec = std::vector<Real32>(size);
+  Real32* buf = (Real32*)array.getBuffer();
+  vec.assign(buf, buf + size);
+  return vec;
 }
 
 std::vector<Real32> getEncoding(FloatEncoder& e, Real64 input)
@@ -63,12 +75,15 @@ std::vector<Real32> patternFromNZ(int n, std::vector<size_t> patternNZ)
   return v;
 }
 
-void doScalarValueCases(FloatEncoder& e, std::vector<ScalarValueCase> cases)
+void doScalarValueCases(Network& network, Region* sensor, std::vector<ScalarValueCase> cases)
 {
   for (auto c = cases.begin(); c != cases.end(); c++)
     {
-      auto actualOutput = getEncoding(e, c->input);
-      for (int i = 0; i < e.getOutputWidth(); i++)
+      sensor->setParameterReal64("sensedValue", c->input);
+      network.run(1);
+      std::vector<Real32> actualOutput = array2vec(sensor->getOutputData("encoded"));
+      ASSERT_EQ(c->expectedOutput.size(), actualOutput.size());
+      for (size_t i = 0; i < actualOutput.size(); i++)
         {
           EXPECT_EQ(c->expectedOutput[i], actualOutput[i])
             << "For input " << c->input << " and index " << i << std::endl
@@ -126,52 +141,44 @@ TEST(PeriodicScalarEncoder, ValidScalarInputs)
 
 TEST(ScalarEncoder, NonIntegerBucketWidth)
 {
+  Network network = Network();
+  Region* sensor = network.addRegion(
+    "floatSensor", "FloatSensor",
+    "{type: 'ScalarEncoder', w: 3, n: 7, minValue: 10, maxValue: 20}");
+
   const int n = 7;
-  const int w = 3;
-  const double minValue = 10;
-  const double maxValue = 20;
-  const double radius = 0;
-  const double resolution = 0;
-  const bool clipInput = false;
-  ScalarEncoder encoder(w, minValue, maxValue, n, radius, resolution, clipInput);
 
   std::vector<ScalarValueCase> cases =
     {{10.0, patternFromNZ(n, {0, 1, 2})},
      {20.0, patternFromNZ(n, {4, 5, 6})}};
 
-  doScalarValueCases(encoder, cases);
+  doScalarValueCases(network, sensor, cases);
 }
 
 TEST(PeriodicScalarEncoder, NonIntegerBucketWidth)
 {
+  Network network = Network();
+  Region* sensor = network.addRegion(
+    "floatSensor", "FloatSensor",
+    "{type: 'ScalarEncoder', w: 3, n: 7, minValue: 10, maxValue: 20, periodic: true}");
+
   const int n = 7;
-  const int w = 3;
-  const double minValue = 10;
-  const double maxValue = 20;
-  const double radius = 0;
-  const double resolution = 0;
-  PeriodicScalarEncoder encoder(w, minValue, maxValue, n, radius, resolution);
 
   std::vector<ScalarValueCase> cases =
     {{10.0, patternFromNZ(n, {6, 0, 1})},
      {19.9, patternFromNZ(n, {5, 6, 0})}};
 
-  doScalarValueCases(encoder, cases);
+  doScalarValueCases(network, sensor, cases);
 }
 
 TEST(ScalarEncoder, RoundToNearestMultipleOfResolution)
 {
-  const int n_in = 0;
-  const int w = 3;
-  const double minValue = 10;
-  const double maxValue = 20;
-  const double radius = 0;
-  const double resolution = 1;
-  const bool clipInput = false;
-  ScalarEncoder encoder(w, minValue, maxValue, n_in, radius, resolution, clipInput);
+  Network network = Network();
+  Region* sensor = network.addRegion(
+    "floatSensor", "FloatSensor",
+    "{type: 'ScalarEncoder', w: 3, minValue: 10, maxValue: 20, resolution: 1}");
 
   const int n = 13;
-  ASSERT_EQ(n, encoder.getOutputWidth());
 
   std::vector<ScalarValueCase> cases =
     {{10.00, patternFromNZ(n, {0, 1, 2})},
@@ -187,21 +194,17 @@ TEST(ScalarEncoder, RoundToNearestMultipleOfResolution)
      {19.50, patternFromNZ(n, {10, 11, 12})},
      {20.00, patternFromNZ(n, {10, 11, 12})}};
 
-  doScalarValueCases(encoder, cases);
+  doScalarValueCases(network, sensor, cases);
 }
 
 TEST(PeriodicScalarEncoder, FloorToNearestMultipleOfResolution)
 {
-  const int n_in = 0;
-  const int w = 3;
-  const double minValue = 10;
-  const double maxValue = 20;
-  const double radius = 0;
-  const double resolution = 1;
-  PeriodicScalarEncoder encoder(w, minValue, maxValue, n_in, radius, resolution);
+  Network network = Network();
+  Region* sensor = network.addRegion(
+    "floatSensor", "FloatSensor",
+    "{type: 'ScalarEncoder', w: 3, minValue: 10, maxValue: 20, resolution: 1, periodic: true}");
 
   const int n = 10;
-  ASSERT_EQ(n, encoder.getOutputWidth());
 
   std::vector<ScalarValueCase> cases =
     {{10.00, patternFromNZ(n, {9, 0, 1})},
@@ -216,5 +219,5 @@ TEST(PeriodicScalarEncoder, FloorToNearestMultipleOfResolution)
      {19.00, patternFromNZ(n, {8, 9, 0})},
      {19.99, patternFromNZ(n, {8, 9, 0})}};
 
-  doScalarValueCases(encoder, cases);
+  doScalarValueCases(network, sensor, cases);
 }
