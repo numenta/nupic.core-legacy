@@ -414,7 +414,6 @@ set(LIB_STATIC_NUPICCORE_SRCS
     nupic/algorithms/GaborNode.cpp
     nupic/algorithms/ImageSensorLite.cpp
     nupic/algorithms/InSynapse.cpp
-    nupic/algorithms/Linear.cpp
     nupic/algorithms/OutSynapse.cpp
     nupic/algorithms/Segment.cpp
     nupic/algorithms/SegmentUpdate.cpp
