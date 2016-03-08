@@ -65,8 +65,8 @@ namespace nupic
     }
     else
     {
-      encoder_ =new ScalarEncoder(w, minValue, maxValue, n, radius, resolution,
-                                  clipInput);
+      encoder_ = new ScalarEncoder(w, minValue, maxValue, n, radius, resolution,
+                                   clipInput);
     }
 
     sensedValue_ = params.getScalarT<Real64>("sensedValue");
@@ -286,24 +286,24 @@ namespace nupic
 
   void ScalarSensor::serialize(BundleIO& bundle)
   {
-    // TODO
+    NTA_THROW << "ScalarSensor::serialize -- Not implemented";
   }
 
 
   void ScalarSensor::deserialize(BundleIO& bundle)
   {
-    // TODO
+    NTA_THROW << "ScalarSensor::deserialize -- Not implemented";
   }
 
 
   void ScalarSensor::write(AnyPointer::Builder& anyProto) const
   {
-    // TODO
+    NTA_THROW << "ScalarSensor::write -- Not implemented";
   }
 
 
   void ScalarSensor::read(AnyPointer::Reader& anyProto)
   {
-    // TODO
+    NTA_THROW << "ScalarSensor::read -- Not implemented";
   }
 }
