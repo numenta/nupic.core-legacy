@@ -204,7 +204,7 @@ namespace nupic
         "Encoded value",
         NTA_BasicType_Real32,
         0, // elementCount
-        false, // isRegionLevel
+        true, // isRegionLevel
         true // isDefaultOutput
         ));
 
@@ -214,7 +214,7 @@ namespace nupic
         "Bucket number for this sensedValue",
         NTA_BasicType_Int32,
         0, // elementCount
-        false, // isRegionLevel
+        true, // isRegionLevel
         false // isDefaultOutput
         ));
 
@@ -229,6 +229,10 @@ namespace nupic
     if (name == "sensedValue")
     {
       value.write(sensedValue_);
+    }
+    else if (name == "n")
+    {
+      value.write(encoder_->getOutputWidth());
     }
     else
     {
