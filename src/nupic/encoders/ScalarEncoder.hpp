@@ -27,10 +27,39 @@
 #ifndef NTA_ENCODERS_SCALAR
 #define NTA_ENCODERS_SCALAR
 
-#include <nupic/encoders/EncoderBase.hpp>
+#include <nupic/types/Types.hpp>
 
 namespace nupic
 {
+  /**
+   * @b Description
+   * Base class for ScalarEncoders
+   */
+  class ScalarEncoderBase
+  {
+  public:
+    virtual ~ScalarEncoderBase()
+      {}
+
+    /**
+     * Encodes input, puts the encoded value into output, and returns the a
+     * bucket number for the encoding.
+     *
+     * The bucket number is essentially the input encoded into an integer rather
+     * than an array. A bucket number is easier to "decode" or to use inside a
+     * classifier.
+     *
+     * @param input The value to encode
+     * @param output Should have length of at least getOutputWidth()
+     */
+    virtual int encodeIntoArray(Real64 input, Real32 output[]) = 0;
+
+    /**
+     * Returns the output width, in bits.
+     */
+    virtual int getOutputWidth() const = 0;
+  };
+
   /** Encodes a floating point number as a contiguous block of 1s.
    *
    * @b Description
@@ -49,7 +78,7 @@ namespace nupic
    * makes sense because, for example, with the input space [1, 10] and 10
    * buckets, 1.49 is in the first bucket and 1.51 is in the second.
    */
-  class ScalarEncoder : public FloatEncoder
+  class ScalarEncoder : public ScalarEncoderBase
   {
   public:
     /**
@@ -107,7 +136,7 @@ namespace nupic
    * bucket and 1.51 in the second, the PeriodicScalarEncoder will put 1.99 in
    * the first bucket and 2.0 in the second.
    */
-  class PeriodicScalarEncoder : public FloatEncoder
+  class PeriodicScalarEncoder : public ScalarEncoderBase
   {
   public:
     /**

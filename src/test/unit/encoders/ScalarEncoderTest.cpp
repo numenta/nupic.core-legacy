@@ -40,7 +40,7 @@ std::string vec2str(std::vector<T> vec)
   return oss.str();
 }
 
-std::vector<Real32> getEncoding(FloatEncoder& e, Real64 input)
+std::vector<Real32> getEncoding(ScalarEncoderBase& e, Real64 input)
 {
   auto actualOutput = std::vector<Real32>(e.getOutputWidth());
   e.encodeIntoArray(input, &actualOutput[0]);
@@ -63,7 +63,7 @@ std::vector<Real32> patternFromNZ(int n, std::vector<size_t> patternNZ)
   return v;
 }
 
-void doScalarValueCases(FloatEncoder& e, std::vector<ScalarValueCase> cases)
+void doScalarValueCases(ScalarEncoderBase& e, std::vector<ScalarValueCase> cases)
 {
   for (auto c = cases.begin(); c != cases.end(); c++)
     {
