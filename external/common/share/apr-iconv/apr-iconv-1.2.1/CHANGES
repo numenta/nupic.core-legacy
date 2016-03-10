@@ -1,0 +1,81 @@
+                                                     -*- coding: utf-8 -*-
+Changes with APR-ICONV 1.2.1
+
+  *) Build schema fixes for win32 including VC8 precompiled header files,
+     NT and 9x specific builds, and x86_64 P64 model.  [William Rowe]
+
+  *) Build schema fixes for unix including default --prefix, vpath builds,  
+     and decorated lib name.  [Davi Arnaut, William Rowe, Henry Jen]
+
+Changes with APR-ICONV 1.2.0
+
+  *) Install 'iconv' utility as bin/apriconv to avoid colliding with
+     system provided iconv, install public headers to include/apr-1/
+     per convention.  [William Rowe]
+
+  *) Fixes for Mingw builds and normalize to the APR conventions (e.g.
+     apriconv-1.so library name).  [Kouhei Sutou <kou cozmixng.org>]
+
+  *) Fix compiler emits for char <-> 2byte unicode pointer assignments.
+     [William Rowe]
+
+  *) Correct from_ucs zero width joiner/byte order mark to be injected
+     only at the *start* of stream (when state is still 0).  
+     PR 24387 [Kohn Emil Dan <emild cs.technion.ac.il>]
+
+  *) Fix build on GCC 4.0
+     [William Barker <william.barker wilshire.com>]
+
+Changes with APR-ICONV 1.1.0
+
+  *) Correctly resolve to APR-1.0, never APR-0.9 in ./buildconf
+     [William Rowe]
+
+  *) APR_ICONV1_PATH distinguishes between our apr-iconv 0.9 and 1.x
+     flavors (the pool arguments to several internal functions changed
+     in 1.0, so the loadable charset modules are not binary compatible.)
+     To maintain APR-iconv 1.0 compatibility, first APR_ICONV1 is used,
+     if it is set then the older 0.9 flavor APR_ICONV_PATH won't be 
+     searched.  apr-iconv 0.9 and 1.0 will only coexist if both the
+     APR_ICONV1_PATH and APR_ICONV_PATH variables are both set to their
+     respective charset directories.  [William Rowe]
+
+Changes with APR-ICONV 1.0.2
+
+  *) Fix libapriconv.rc for Win32 builds [William Rowe, Justin Erenkrantz]
+
+Changes with APR-ICONV 1.0.1
+
+Changes with APR-ICONV 1.0.0
+
+  *) Add the possiblity of a DESTDIR prefix to Makefile.in to make it
+     consistent with the behaviour of apr and apr-util. [Graham Leggett]
+
+Changes with APR-ICONV 0.9.5
+
+Changes with APR-ICONV 0.9.4
+
+  *) Add -v option to iconv program. [Justin Erenkrantz]
+
+  *) Add api_version.h. [Justin Erenkrantz]
+
+  *) A fourth pass at a build system. [Justin Erenkrantz]
+
+  *) A third pass at a build system. [Justin Erenkrantz]
+
+Changes with APR-ICONV 0.9.3
+
+Changes with APR-ICONV 0.9.2
+
+  *) A second pass at a working build system - now builds on linux,
+     some namespace protection added.
+     [jean-frederic clere <jfrederic.clere@fujitsu-siemens.com>]
+
+  *) A first blush at a working build system.
+     [jean-frederic clere <jfrederic.clere@fujitsu-siemens.com>]
+
+  *) First set of changes for APR compatibility (eliminated __inline).
+     [jean-frederic clere <jfrederic.clere@fujitsu-siemens.com>]
+
+  *) Source moved from the apr library into it's own repository
+     due to size concerns.  Still requires portability overhaul.

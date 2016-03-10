@@ -1,0 +1,111 @@
+# Microsoft Developer Studio Generated Dependency File, included by libapriconv.mak
+
+.\lib\iconv.c : \
+	"..\apr\include\apr.h"\
+	"..\apr\include\apr_allocator.h"\
+	"..\apr\include\apr_errno.h"\
+	"..\apr\include\apr_general.h"\
+	"..\apr\include\apr_pools.h"\
+	"..\apr\include\apr_thread_mutex.h"\
+	"..\apr\include\apr_want.h"\
+	".\include\apr_iconv.h"\
+	".\lib\iconv.h"\
+	
+
+.\lib\iconv_ces.c : \
+	"..\apr\include\apr.h"\
+	"..\apr\include\apr_allocator.h"\
+	"..\apr\include\apr_errno.h"\
+	"..\apr\include\apr_general.h"\
+	"..\apr\include\apr_pools.h"\
+	"..\apr\include\apr_thread_mutex.h"\
+	"..\apr\include\apr_want.h"\
+	".\include\apr_iconv.h"\
+	".\lib\iconv.h"\
+	
+
+.\lib\iconv_ces_euc.c : \
+	"..\apr\include\apr.h"\
+	"..\apr\include\apr_allocator.h"\
+	"..\apr\include\apr_errno.h"\
+	"..\apr\include\apr_general.h"\
+	"..\apr\include\apr_pools.h"\
+	"..\apr\include\apr_thread_mutex.h"\
+	"..\apr\include\apr_want.h"\
+	".\include\apr_iconv.h"\
+	".\lib\iconv.h"\
+	
+
+.\lib\iconv_ces_iso2022.c : \
+	"..\apr\include\apr.h"\
+	"..\apr\include\apr_allocator.h"\
+	"..\apr\include\apr_errno.h"\
+	"..\apr\include\apr_general.h"\
+	"..\apr\include\apr_pools.h"\
+	"..\apr\include\apr_thread_mutex.h"\
+	"..\apr\include\apr_want.h"\
+	".\include\apr_iconv.h"\
+	".\lib\iconv.h"\
+	
+
+.\lib\iconv_int.c : \
+	"..\apr\include\apr.h"\
+	"..\apr\include\apr_allocator.h"\
+	"..\apr\include\apr_errno.h"\
+	"..\apr\include\apr_general.h"\
+	"..\apr\include\apr_pools.h"\
+	"..\apr\include\apr_thread_mutex.h"\
+	"..\apr\include\apr_want.h"\
+	".\include\apr_iconv.h"\
+	".\lib\iconv.h"\
+	
+
+.\lib\iconv_module.c : \
+	"..\apr\include\apr.h"\
+	"..\apr\include\apr_allocator.h"\
+	"..\apr\include\apr_dso.h"\
+	"..\apr\include\apr_env.h"\
+	"..\apr\include\apr_errno.h"\
+	"..\apr\include\apr_file_info.h"\
+	"..\apr\include\apr_file_io.h"\
+	"..\apr\include\apr_general.h"\
+	"..\apr\include\apr_inherit.h"\
+	"..\apr\include\apr_lib.h"\
+	"..\apr\include\apr_pools.h"\
+	"..\apr\include\apr_strings.h"\
+	"..\apr\include\apr_tables.h"\
+	"..\apr\include\apr_thread_mutex.h"\
+	"..\apr\include\apr_time.h"\
+	"..\apr\include\apr_user.h"\
+	"..\apr\include\apr_version.h"\
+	"..\apr\include\apr_want.h"\
+	".\include\api_version.h"\
+	".\include\apr_iconv.h"\
+	".\lib\charset_alias.h"\
+	".\lib\iconv.h"\
+	
+
+.\lib\iconv_uc.c : \
+	"..\apr\include\apr.h"\
+	"..\apr\include\apr_allocator.h"\
+	"..\apr\include\apr_errno.h"\
+	"..\apr\include\apr_general.h"\
+	"..\apr\include\apr_pools.h"\
+	"..\apr\include\apr_thread_mutex.h"\
+	"..\apr\include\apr_want.h"\
+	".\include\apr_iconv.h"\
+	".\lib\iconv.h"\
+	
+
+.\libapriconv.rc : \
+	"..\apr\include\apr.h"\
+	"..\apr\include\apr_allocator.h"\
+	"..\apr\include\apr_errno.h"\
+	"..\apr\include\apr_general.h"\
+	"..\apr\include\apr_pools.h"\
+	"..\apr\include\apr_thread_mutex.h"\
+	"..\apr\include\apr_version.h"\
+	"..\apr\include\apr_want.h"\
+	".\include\api_version.h"\
+	".\include\apr_iconv.h"\
+	

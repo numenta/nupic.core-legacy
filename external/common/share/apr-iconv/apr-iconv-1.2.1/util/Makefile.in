@@ -1,0 +1,15 @@
+VPATH = @srcdir@
+INCLUDES = @API_INCLUDES@ @APR_INCLUDES@
+
+PROGRAMS = apriconv
+TARGETS  = $(PROGRAMS)
+
+# bring in rules.mk for standard functionality
+@INCLUDE_RULES@
+
+iconv_OBJECTS = iconv.lo iconv_stream.lo
+iconv_LDADD   = ../lib/lib@API_LIBNAME@.la
+APR_LIBS      = @APR_LIBS@
+
+apriconv:	$(iconv_OBJECTS) $(iconv_LDADD)
+	$(LINK) -o $@ $(iconv_OBJECTS) $(iconv_LDADD) $(LIBS) $(APR_LIBS)
