@@ -25,6 +25,7 @@ project(nupic_core CXX)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set(CMAKE_VERBOSE_MAKEFILE OFF) # toggle for cmake debug
 
+
 if( POLICY CMP0046 )
   cmake_policy(VERSION 2.8)
   # The new policy for add_dependencies is to now error if a dependency target
@@ -39,59 +40,38 @@ if( POLICY CMP0054 )
   cmake_policy(SET CMP0054 OLD)
 endif()
 
+
 get_filename_component(REPOSITORY_DIR ${PROJECT_SOURCE_DIR}/.. ABSOLUTE)
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  set(STDLIB "-stdlib=libc++")
-elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-  set(STDLIB "")
-elseif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-  set(STDLIB "")
+
+set(src_compile_flags "${COMMON_CXX_FLAGS}")
+if(NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
+    set(src_compile_flags "${src_compile_flags} -Werror")
 endif()
 
-#
-# Identify build type - local or deployment (Travis)
-# the variable NUPIC_DEPLOYMENT_BUILD must be set in travis CI scripts
-#
-if($ENV{NUPIC_DEPLOYMENT_BUILD})
-  message("Doing a deployment build in TravisCI")
-else()
-  message("Doing a local build")
+if(MINGW)
+  # This is for GCC 4.8.x
+  # http://stackoverflow.com/questions/10660524/error-building-boost-1-49-0-with-gcc-4-7-0
+  set(src_compile_flags "${src_compile_flags} -include cmath")
 endif()
 
-# Compiler `-D*` definitions
+
+string(TOUPPER ${PLATFORM} platform_uppercase)
+
+# Compiler definitions specific to nupic.core code
 set(COMPILER_DEFINITIONS
-    -DNTA_OS_${PLATFORM_UPPERCASE}
+    ${COMMON_COMPILER_DEFINITIONS}
+    -DNTA_OS_${platform_uppercase}
     -DNTA_ARCH_${BITNESS}
     -DHAVE_CONFIG_H
     -DNTA_INTERNAL
     -DBOOST_NO_WREGEX
     -DNUPIC2
     -DNTA_ASSERTIONS_ON
-    -DNTA_ASM)
-if(UNIX) # or UNIX like (i.e. APPLE and CYGWIN)
-  set(COMPILER_DEFINITIONS ${COMPILER_DEFINITIONS} -DHAVE_UNISTD_H)
-elseif(MSVC OR MSYS OR MINGW)
-  set(COMPILER_DEFINITIONS
-      ${COMPILER_DEFINITIONS}
-      -DPSAPI_VERSION=1
-      -DAPR_DECLARE_STATIC
-      -DAPU_DECLARE_STATIC
-      -DZLIB_WINAPI
-      -DWIN32
-      -D_WINDOWS
-      -D_MBCS
-      -D_CRT_SECURE_NO_WARNINGS
-      -DNDEBUG
-      -D_VARIADIC_MAX=10
-      -DNOMINMAX
-      -DCAPNP_LITE=1)
-  if(MSYS OR MINGW)
-    set(COMPILER_DEFINITIONS
-        ${COMPILER_DEFINITIONS}
-        -DHAVE_UNISTD_H)
-  endif()
-endif()
+    -DNTA_ASM
+    -DAPR_DECLARE_STATIC
+    -DAPU_DECLARE_STATIC)
+
 
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
   set(COMPILER_DEFINITIONS
@@ -112,13 +92,16 @@ elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "MinGW")
       -D_hypot=hypot)
 endif()
 
+
 add_definitions(${COMPILER_DEFINITIONS})
+
 
 #
 # Find Python Interp, min. v2.7
 # And NumPy core directory
 #
 find_package(PythonInterp 2.7 REQUIRED)
+message(STATUS "CMAKE Found python interpreter ${PYTHON_EXECUTABLE} version=%{PYTHON_VERSION_STRING}")
 execute_process(COMMAND "${PYTHON_EXECUTABLE}" "-c"
                         "import numpy; import os; import sys; sys.stdout.write(os.path.dirname(numpy.get_include()))"
                          OUTPUT_VARIABLE NUMPY_CORE)
@@ -138,84 +121,6 @@ include_directories(SYSTEM
                     ${PROJECT_BINARY_DIR})
 
 include_directories(${PROJECT_SOURCE_DIR})
-
-#
-# Set linker (ld)
-# use ld.gold if available
-#
-execute_process(COMMAND ld.gold --version RESULT_VARIABLE EXIT_CODE)
-if(EXIT_CODE EQUAL 0)
-  message("Using ld.gold as LINKER.")
-  set(CMAKE_LINKER "ld.gold")
-endif()
-
-if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
-   set(STDLIB "${STDLIB} -static-libgcc -static-libstdc++")
-endif()
-
-#
-# Enable Optimization flags here
-# These are quite aggresive flags, if your code misbehaves
-# for strange reasons, try compiling without them.
-#
-if(NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
-  set(OPTIMIZATION_FLAGS_CC "${OPTIMIZATION_FLAGS_CC} -mtune=generic -O2")
-  set(OPTIMIZATION_FLAGS_CC "-pipe ${OPTIMIZATION_FLAGS_CC}") #TODO use -Ofast instead of -O3
-  set(OPTIMIZATION_FLAGS_LT "-O2 ${OPTIMIZATION_FLAGS_LT}")
-
-  if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" AND NOT MINGW)
-    set(OPTIMIZATION_FLAGS_CC "${OPTIMIZATION_FLAGS_CC} -fuse-linker-plugin -flto-report")
-    set(OPTIMIZATION_FLAGS_CC "${OPTIMIZATION_FLAGS_CC} -flto -fuse-ld=gold") #TODO fix LTO for clang
-    set(OPTIMIZATION_FLAGS_LT "${OPTIMIZATION_FLAGS_LT} -flto") #TODO LTO for clang too
-  endif()
-endif()
-
-
-#
-# compiler specific settings here
-#
-if(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
-  # MS Visual C
-  set(COMMON_COMPILE_FLAGS "/TP /Zc:wchar_t /Gm- /fp:precise /errorReport:prompt /W1 /WX- /GR /Gd /GS /Oy- /EHs /analyze- /nologo")
-  set(COMMON_LINK_FLAGS "/NOLOGO /SAFESEH:NO /NODEFAULTLIB:LIBCMT")
-  if("${BITNESS}" STREQUAL "32")
-    set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} /MACHINE:X86")
-  else()
-    set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} /MACHINE:X${BITNESS}")
-  endif()
-
-else()
-  # LLVM Clang / Gnu GCC
-  set(COMMON_COMPILE_FLAGS "-std=c++11 -m${BITNESS} ${STDLIB} -Wextra -Wreturn-type -Wunused -Wno-unused-variable -Wno-unused-parameter -Wno-missing-field-initializers")
-  if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    set(COMMON_COMPILE_FLAGS "-Werror -Wall -fPIC ${COMMON_COMPILE_FLAGS} -Wno-deprecated-register")
-  endif()
-  set(COMMON_LINK_FLAGS "-m${BITNESS} ${STDLIB}")
-endif()
-
-if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-  set(COMMON_COMPILE_FLAGS "${COMMON_COMPILE_FLAGS} -g")
-  set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} -O0")
-  if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" OR MINGW)
-    set(COMMON_COMPILE_FLAGS "${COMMON_COMPILE_FLAGS} -Og")
-  endif()
-else()
-  set(COMMON_COMPILE_FLAGS "${COMMON_COMPILE_FLAGS} ${OPTIMIZATION_FLAGS_CC}")
-  set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} ${OPTIMIZATION_FLAGS_LT}")
-endif()
-
-if(MINGW)
-  # This is for GCC 4.8.x
-  # http://stackoverflow.com/questions/10660524/error-building-boost-1-49-0-with-gcc-4-7-0
-  set(COMMON_COMPILE_FLAGS "${COMMON_COMPILE_FLAGS} -include cmath")
-endif()
-
-# Set compiler-specific options.
-if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
-  set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} -Wl,--no-undefined")
-elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
-  set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} -Wl,-undefined,error")
-endif()
 
 #
 # Let CMake know where all of the external files are.
@@ -247,59 +152,8 @@ add_library(${LIB_STATIC_GTEST}
             STATIC
             ${REPOSITORY_DIR}/external/common/src/gtest/gtest-all.cpp)
 set_target_properties(${LIB_STATIC_GTEST}
-                      PROPERTIES COMPILE_FLAGS "${COMMON_COMPILE_FLAGS}"
-                      LINK_FLAGS "${COMMON_LINK_FLAGS}")
-
-
-#
-# Find and add libapr1
-#
-set(LIB_STATIC_APR1 apr-1)
-find_library(LIB_STATIC_APR1_LOC
-             ${LIB_STATIC_APR1}
-             "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}/lib/"
-             NO_DEFAULT_PATH)
-add_library(${LIB_STATIC_APR1} STATIC IMPORTED GLOBAL)
-
-#
-# Find and add libaprutil-1
-#
-set(LIB_STATIC_APRUTIL1 aprutil-1)
-find_library(LIB_STATIC_APRUTIL1_LOC
-             ${LIB_STATIC_APRUTIL1}
-             "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}/lib/"
-             NO_DEFAULT_PATH)
-add_library(${LIB_STATIC_APRUTIL1} STATIC IMPORTED GLOBAL)
-
-#
-# Find and add libyaml
-#
-set(LIB_STATIC_YAML yaml)
-find_library(LIB_STATIC_YAML_LOC
-             ${LIB_STATIC_YAML}
-             "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}/lib/"
-             NO_DEFAULT_PATH)
-add_library(${LIB_STATIC_YAML} STATIC IMPORTED GLOBAL)
-
-#
-# Find and add libyaml-cpp
-#
-set(LIB_STATIC_YAML_CPP yaml-cpp)
-find_library(LIB_STATIC_YAML_CPP_LOC
-             ${LIB_STATIC_YAML_CPP}
-             "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}/lib/"
-             NO_DEFAULT_PATH)
-add_library(${LIB_STATIC_YAML_CPP} STATIC IMPORTED GLOBAL)
-
-#
-# Find and add libz
-#
-set(LIB_STATIC_Z z)
-find_library(LIB_STATIC_Z_LOC
-             ${LIB_STATIC_Z}
-             "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}/lib/"
-             NO_DEFAULT_PATH)
-add_library(${LIB_STATIC_Z} STATIC IMPORTED GLOBAL)
+                      PROPERTIES COMPILE_FLAGS "${src_compile_flags}"
+                      LINK_FLAGS "${COMMON_LINKER_FLAGS}")
 
 #
 # Setup for python
@@ -471,6 +325,7 @@ set(LIB_STATIC_NUPICCORE_SRCS
     nupic/utils/StringUtils.cpp
     nupic/utils/TRandom.cpp
     nupic/utils/Watcher.cpp)
+
 set(LIB_STATIC_NUPICCORE_LINK_LIBS
     ${LIB_STATIC_YAML_CPP_LOC}
     ${LIB_STATIC_YAML_LOC}
@@ -479,12 +334,21 @@ set(LIB_STATIC_NUPICCORE_LINK_LIBS
     ${LIB_STATIC_Z_LOC}
     ${COMMON_LIBS}
     ${COMMON_OS_LIBS})
+
 set(LIB_STATIC_NUPICCORE_COMPILE_FLAGS
-    "${COMMON_COMPILE_FLAGS} -I${NUMPY_CORE}/include")
+    "${src_compile_flags} -I${NUMPY_CORE}/include")
 set(LIB_STATIC_NUPICCORE_LINK_FLAGS
-    "${COMMON_LINK_FLAGS} -static")
+    "${COMMON_LINKER_FLAGS} -static")
 
 add_library(${LIB_STATIC_NUPICCORE} STATIC ${LIB_STATIC_NUPICCORE_SRCS})
+add_dependencies(${LIB_STATIC_NUPICCORE}
+                 Apr1StaticLib
+                 AprUtil1StaticLib
+                 ZStaticLib
+                 YamlStaticLib
+                 YamlCppStaticLib
+)
+
 target_link_libraries(${LIB_STATIC_NUPICCORE}
                       ${LIB_STATIC_NUPICCORE_LINK_LIBS})
 set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES COMPILE_FLAGS
@@ -501,8 +365,8 @@ set(COMMON_LIBS ${LIB_STATIC_NUPICCORE} ${COMMON_LIBS})
 set(EXECUTABLE_CPPREGIONTEST cpp_region_test)
 add_executable(${EXECUTABLE_CPPREGIONTEST} test/integration/CppRegionTest.cpp)
 target_link_libraries(${EXECUTABLE_CPPREGIONTEST} ${COMMON_LIBS})
-set_target_properties(${EXECUTABLE_CPPREGIONTEST} PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
-set_target_properties(${EXECUTABLE_CPPREGIONTEST} PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
+set_target_properties(${EXECUTABLE_CPPREGIONTEST} PROPERTIES COMPILE_FLAGS ${src_compile_flags})
+set_target_properties(${EXECUTABLE_CPPREGIONTEST} PROPERTIES LINK_FLAGS "${COMMON_LINKER_FLAGS}")
 add_custom_target(tests_cpp_region
                   COMMAND ${EXECUTABLE_CPPREGIONTEST}
                   DEPENDS ${EXECUTABLE_CPPREGIONTEST}
@@ -515,9 +379,9 @@ set(EXECUTABLE_PYREGIONTEST py_region_test)
 add_executable(${EXECUTABLE_PYREGIONTEST} test/integration/PyRegionTest.cpp)
 target_link_libraries(${EXECUTABLE_PYREGIONTEST} ${COMMON_LIBS})
 set_target_properties(${EXECUTABLE_PYREGIONTEST}
-                      PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
+                      PROPERTIES COMPILE_FLAGS ${src_compile_flags})
 set_target_properties(${EXECUTABLE_PYREGIONTEST}
-                      PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
+                      PROPERTIES LINK_FLAGS "${COMMON_LINKER_FLAGS}")
 add_custom_target(tests_py_region
                   COMMAND ${EXECUTABLE_PYREGIONTEST}
                   DEPENDS ${EXECUTABLE_PYREGIONTEST}
@@ -532,9 +396,9 @@ add_executable(${EXECUTABLE_CONNECTIONSPERFORMANCETEST}
                test/integration/ConnectionsPerformanceTest.cpp)
 target_link_libraries(${EXECUTABLE_CONNECTIONSPERFORMANCETEST} ${COMMON_LIBS})
 set_target_properties(${EXECUTABLE_CONNECTIONSPERFORMANCETEST}
-                      PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
+                      PROPERTIES COMPILE_FLAGS ${src_compile_flags})
 set_target_properties(${EXECUTABLE_CONNECTIONSPERFORMANCETEST}
-                      PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
+                      PROPERTIES LINK_FLAGS "${COMMON_LINKER_FLAGS}")
 add_custom_target(tests_connections_performance
                   COMMAND ${EXECUTABLE_CONNECTIONSPERFORMANCETEST}
                   DEPENDS ${EXECUTABLE_CONNECTIONSPERFORMANCETEST}
@@ -547,9 +411,9 @@ set(EXECUTABLE_HELLOREGION helloregion)
 add_executable(${EXECUTABLE_HELLOREGION} examples/regions/HelloRegions.cpp)
 target_link_libraries(${EXECUTABLE_HELLOREGION} ${COMMON_LIBS})
 set_target_properties(${EXECUTABLE_HELLOREGION}
-                      PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
+                      PROPERTIES COMPILE_FLAGS ${src_compile_flags})
 set_target_properties(${EXECUTABLE_HELLOREGION}
-                      PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
+                      PROPERTIES LINK_FLAGS "${COMMON_LINKER_FLAGS}")
 add_dependencies(${EXECUTABLE_HELLOREGION} ${COMMON_LIBS})
 
 #
@@ -559,9 +423,9 @@ set(EXECUTABLE_PROTOTEST prototest)
 add_executable(${EXECUTABLE_PROTOTEST} examples/prototest.cpp)
 target_link_libraries(${EXECUTABLE_PROTOTEST} ${COMMON_LIBS})
 set_target_properties(${EXECUTABLE_PROTOTEST}
-                      PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
+                      PROPERTIES COMPILE_FLAGS ${src_compile_flags})
 set_target_properties(${EXECUTABLE_PROTOTEST}
-                      PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
+                      PROPERTIES LINK_FLAGS "${COMMON_LINKER_FLAGS}")
 add_dependencies(${EXECUTABLE_PROTOTEST} ${COMMON_LIBS})
 
 #
@@ -571,9 +435,9 @@ set(EXECUTABLE_HELLOSPTP hello_sp_tp)
 add_executable(${EXECUTABLE_HELLOSPTP} examples/algorithms/HelloSP_TP.cpp)
 target_link_libraries(${EXECUTABLE_HELLOSPTP} ${COMMON_LIBS})
 set_target_properties(${EXECUTABLE_HELLOSPTP}
-                      PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
+                      PROPERTIES COMPILE_FLAGS ${src_compile_flags})
 set_target_properties(${EXECUTABLE_HELLOSPTP}
-                      PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
+                      PROPERTIES LINK_FLAGS "${COMMON_LINKER_FLAGS}")
 add_dependencies(${EXECUTABLE_HELLOSPTP} ${COMMON_LIBS})
 
 
@@ -629,8 +493,8 @@ target_link_libraries(${EXECUTABLE_GTESTS}
                       ${LIB_STATIC_GTEST}
                       ${COMMON_LIBS})
 set_target_properties(${EXECUTABLE_GTESTS}
-                      PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS}
-                                 LINK_FLAGS "${COMMON_LINK_FLAGS}")
+                      PROPERTIES COMPILE_FLAGS ${src_compile_flags}
+                                 LINK_FLAGS "${COMMON_LINKER_FLAGS}")
 add_custom_target(tests_unit
                   COMMAND ${EXECUTABLE_GTESTS}
                   DEPENDS ${EXECUTABLE_GTESTS}
@@ -646,6 +510,15 @@ add_custom_target(tests_all
                   COMMENT "Running all tests"
                   VERBATIM)
 
+# Dependencies of the combined nupic.core static lib
+set(NUPICCORE_COMBINED_DEPS
+    ${LIB_STATIC_NUPICCORE}
+    Apr1StaticLib
+    AprUtil1StaticLib
+    ZStaticLib
+    YamlStaticLib
+    YamlCppStaticLib)
+
 if(UNIX OR MSYS OR MINGW)
   set(LIB_STATIC_NUPICCORE_COMBINED "${PROJECT_BINARY_DIR}/libnupic_core.a")
   if(MSYS OR MINGW)
@@ -656,8 +529,8 @@ if(UNIX OR MSYS OR MINGW)
                        COMMAND ${CMAKE_AR} -x ${LIB_STATIC_APRUTIL1_LOC}
                        COMMAND ${CMAKE_AR} -x ${LIB_STATIC_APR1_LOC}
                        COMMAND ${CMAKE_AR} -x ${LIB_STATIC_Z_LOC}
-                       COMMAND ${CMAKE_AR} rcs ${LIB_STATIC_NUPICCORE_COMBINED} *.o *.obj
-                       DEPENDS ${LIB_STATIC_NUPICCORE})
+                       COMMAND ${CMAKE_AR} rcs ${LIB_STATIC_NUPICCORE_COMBINED} *.obj
+                       DEPENDS ${NUPICCORE_COMBINED_DEPS})
   else()
     add_custom_command(OUTPUT ${LIB_STATIC_NUPICCORE_COMBINED}
                        COMMAND ${CMAKE_AR} -x $<TARGET_FILE:${LIB_STATIC_NUPICCORE}>
@@ -667,7 +540,7 @@ if(UNIX OR MSYS OR MINGW)
                        COMMAND ${CMAKE_AR} -x ${LIB_STATIC_APR1_LOC}
                        COMMAND ${CMAKE_AR} -x ${LIB_STATIC_Z_LOC}
                        COMMAND ${CMAKE_AR} rcs ${LIB_STATIC_NUPICCORE_COMBINED} *.o
-                       DEPENDS ${LIB_STATIC_NUPICCORE})
+                       DEPENDS ${NUPICCORE_COMBINED_DEPS})
   endif()
 else()
   set(LIB_STATIC_NUPICCORE_COMBINED "${PROJECT_BINARY_DIR}/nupic_core.lib")
@@ -679,9 +552,17 @@ else()
                              ${LIB_STATIC_APRUTIL1_LOC}
                              ${LIB_STATIC_APR1_LOC}
                              ${LIB_STATIC_Z_LOC}
-                     DEPENDS ${LIB_STATIC_NUPICCORE}
+                     DEPENDS ${NUPICCORE_COMBINED_DEPS}
                      VERBATIM)
 endif()
+
+
+# Wrap nupic.core combined lib output in custom target to avoid conflict from
+# other dependent targets that may execute in parallel. NOTE Other targets MUST
+# use LibStaticNupicCoreCombinedTarget as a dependency instead of
+# ${LIB_STATIC_NUPICCORE_COMBINED}
+add_custom_target(LibStaticNupicCoreCombinedTarget
+                  DEPENDS ${LIB_STATIC_NUPICCORE_COMBINED})
 
 #
 # Call SWIG to generate wrapper code for Python.
@@ -737,6 +618,7 @@ set(SWIG_LINK_LIBRARIES
     ${PYTHON_LIBRARIES}
     ${COMMON_OS_LIBS})
 
+
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   set(SWIG_LINK_LIBRARIES
       ${SWIG_LINK_LIBRARIES}
@@ -755,7 +637,7 @@ set_source_files_properties(${SWIG_ALGORITHMS_FILES} PROPERTIES
                             SWIG_FLAGS "${SWIG_FLAGS}")
 set(SWIG_ALGORITHMS algorithms)
 # Make sure we don't attempt to execute the swig executable until it is built.
-set(SWIG_MODULE_${SWIG_ALGORITHMS}_EXTRA_DEPS Swig ${LIB_STATIC_NUPICCORE_COMBINED})
+set(SWIG_MODULE_${SWIG_ALGORITHMS}_EXTRA_DEPS Swig LibStaticNupicCoreCombinedTarget)
 # Create custom command for generating files from SWIG.
 swig_add_module(${SWIG_ALGORITHMS} python
                 ${SWIG_SUPPORT_FILES}
@@ -772,7 +654,7 @@ set_source_files_properties(${SWIG_ENGINE_FILES} PROPERTIES
                             SWIG_FLAGS "${SWIG_FLAGS}")
 set(SWIG_ENGINE engine_internal)
 # Make sure we don't attempt to execute the swig executable until it is built.
-set(SWIG_MODULE_${SWIG_ENGINE}_EXTRA_DEPS Swig ${LIB_STATIC_NUPICCORE_COMBINED})
+set(SWIG_MODULE_${SWIG_ENGINE}_EXTRA_DEPS Swig LibStaticNupicCoreCombinedTarget)
 # Create custom command for generating files from SWIG.
 swig_add_module(${SWIG_ENGINE} python
                 ${SWIG_SUPPORT_FILES}
@@ -789,7 +671,7 @@ set_source_files_properties(${SWIG_MATH_FILES} PROPERTIES
                             SWIG_FLAGS "${SWIG_FLAGS}")
 set(SWIG_MATH math)
 # Make sure we don't attempt to execute the swig executable until it is built.
-set(SWIG_MODULE_${SWIG_MATH}_EXTRA_DEPS Swig ${LIB_STATIC_NUPICCORE_COMBINED})
+set(SWIG_MODULE_${SWIG_MATH}_EXTRA_DEPS Swig LibStaticNupicCoreCombinedTarget)
 # Create custom command for generating files from SWIG.
 swig_add_module(${SWIG_MATH} python
                 ${SWIG_SUPPORT_FILES}
@@ -798,12 +680,28 @@ list(APPEND SWIG_GENERATED_FILES ${swig_generated_file_fullname})
 swig_link_libraries(${SWIG_MATH}
                     ${SWIG_LINK_LIBRARIES})
 
+
+set(swig_generated_file_compile_flags "${src_compile_flags}")
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows" AND "${CMAKE_BUILD_TYPE}" STREQUAL "Debug" AND
+   NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
+    # Suppress treating warnings as errors for windows GCC Debug builds of Swig-generated
+    # files. Compilation of those files produces many "maybe-uninitialized" warnings
+    # that would fail the build with the -Werror flag. Reference
+    # https://github.com/numenta/nupic.core/issues/887
+    set(swig_generated_file_compile_flags "${swig_generated_file_compile_flags} -Wno-error")
+endif()
+
 set_source_files_properties(${SWIG_GENERATED_FILES} PROPERTIES
                             GENERATED TRUE)
-set_source_files_properties(${SWIG_GENERATED_FILES} ${SWIG_SUPPORT_FILES}
+set_source_files_properties(${SWIG_GENERATED_FILES}
                             PROPERTIES
-                            COMPILE_FLAGS ${COMMON_COMPILE_FLAGS}
-                            LINK_FLAGS ${COMMON_LINK_FLAGS})
+                            COMPILE_FLAGS ${swig_generated_file_compile_flags}
+                            LINK_FLAGS ${COMMON_LINKER_FLAGS})
+
+set_source_files_properties(${SWIG_SUPPORT_FILES}
+                            PROPERTIES
+                            COMPILE_FLAGS ${src_compile_flags}
+                            LINK_FLAGS ${COMMON_LINKER_FLAGS})
 
 # If a path is specified, copy extensions files to proper location.
 if (PY_EXTENSIONS_DIR)
@@ -848,11 +746,7 @@ install(DIRECTORY ${REPOSITORY_DIR}/external/common/include/gtest
         FILES_MATCHING PATTERN "*.h*")
 install(FILES ${PROJECT_BINARY_DIR}/Version.hpp
         DESTINATION include/nupic/)
-install(DIRECTORY "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}/lib/"
-        DESTINATION lib)
 install(DIRECTORY "${REPOSITORY_DIR}/external/common/include/"
-        DESTINATION include)
-install(DIRECTORY "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}/include/"
         DESTINATION include)
 install(DIRECTORY "${NUMPY_CORE}/lib/"
         DESTINATION lib)

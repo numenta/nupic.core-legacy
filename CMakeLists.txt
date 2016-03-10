@@ -22,18 +22,39 @@
 cmake_minimum_required(VERSION 2.8)
 project(nupic_core_main CXX)
 
+set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}")
+
 set(CMAKE_VERBOSE_MAKEFILE OFF)
+
+
+if( POLICY CMP0046 )
+  cmake_policy(VERSION 2.8)
+  # The new policy for add_dependencies is to now error if a dependency target
+  # is not found. The old policy didn't care and continued through configuration
+  cmake_policy(SET CMP0046 OLD)
+endif()
+
+if( POLICY CMP0054 )
+  # The OLD behavior for this policy is to dereference variables and interpret
+  # keywords even if they are quoted or bracketed. The NEW behavior is to not
+  # dereference variables or interpret keywords that have been quoted or bracketed.
+  cmake_policy(SET CMP0054 OLD)
+endif()
+
+
+#
+# Identify build type - local or deployment (Travis)
+# the variable NUPIC_DEPLOYMENT_BUILD must be set in travis CI scripts
+#
+if($ENV{NUPIC_DEPLOYMENT_BUILD})
+  message("Doing a deployment build in TravisCI")
+else()
+  message("Doing a local build")
+endif()
+
 
 # Identify platform name.
 string(TOLOWER ${CMAKE_SYSTEM_NAME} PLATFORM)
-string(TOUPPER ${PLATFORM} PLATFORM_UPPERCASE)
-
-# Identify platform "bitness".
-if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-  set(BITNESS 64)
-else()
-  set(BITNESS 32)
-endif()
 
 # Define a platform suffix, eg ${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}
 if (MSYS OR MINGW)
@@ -45,6 +66,9 @@ endif()
 include_directories(SYSTEM ${CMAKE_INCLUDE_PATH})
 
 set(EP_BASE ${CMAKE_BINARY_DIR}/ThirdParty)
+
+# Determine common toolchain settings, compiler and link flags
+include(CommonCompilerConfig)
 
 # Set up external dependencies.
 #
