@@ -77,7 +77,6 @@ elseif(MSVC OR MSYS OR MINGW)
       -DPSAPI_VERSION=1
       -DAPR_DECLARE_STATIC
       -DAPU_DECLARE_STATIC
-      -DZLIB_WINAPI
       -DWIN32
       -D_WINDOWS
       -D_MBCS
@@ -651,7 +650,7 @@ if(UNIX OR MSYS OR MINGW)
                        COMMAND ${CMAKE_AR} -x ${LIB_STATIC_APRUTIL1_LOC}
                        COMMAND ${CMAKE_AR} -x ${LIB_STATIC_APR1_LOC}
                        COMMAND ${CMAKE_AR} -x ${LIB_STATIC_Z_LOC}
-                       COMMAND ${CMAKE_AR} rcs ${LIB_STATIC_NUPICCORE_COMBINED} *.o *.obj
+                       COMMAND ${CMAKE_AR} rcs ${LIB_STATIC_NUPICCORE_COMBINED} *.obj
                        DEPENDS ${LIB_STATIC_NUPICCORE})
   else()
     add_custom_command(OUTPUT ${LIB_STATIC_NUPICCORE_COMBINED}
@@ -731,6 +730,7 @@ set(SWIG_LINK_LIBRARIES
     ${LIB_STATIC_NUPICCORE_COMBINED}
     ${PYTHON_LIBRARIES}
     ${COMMON_OS_LIBS})
+
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   set(SWIG_LINK_LIBRARIES
