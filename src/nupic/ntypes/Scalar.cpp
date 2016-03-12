@@ -98,6 +98,11 @@ namespace nupic {
     NTA_CHECK(theType_ == NTA_BasicType_Real64);
     return value.real64;
   }
+  template <> bool Scalar::getValue<bool>() const
+  {
+    NTA_CHECK(theType_ == NTA_BasicType_Bool);
+    return value.boolean;
+  }
 }
 
 

@@ -93,7 +93,6 @@ _ALGORITHMS = _algorithms
 #include <nupic/math/SparseMatrix.hpp>
 #include <nupic/math/SparseBinaryMatrix.hpp>
 #include <nupic/algorithms/Svm.hpp>
-#include <nupic/algorithms/Linear.hpp>
 #include <nupic/algorithms/SpatialPooler.hpp>
 #include <nupic/algorithms/TemporalMemory.hpp>
 
@@ -203,52 +202,6 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
                   NULL           // int * pnAlphaAddress
   );
 }
-}
-
-//--------------------------------------------------------------------------------
-// LINEAR
-//--------------------------------------------------------------------------------
-%include <nupic/algorithms/Linear.hpp>
-
-%extend nupic::algorithms::linear::linear
-{
-  inline void create_problem(int size, int n_dims,
-                 PyObject* labelsIn, PyObject* samplesIn,
-                 float bias = -1.0)
-  {
-    PyArrayObject* labels = (PyArrayObject*)labelsIn;
-    PyArrayObject* samples = (PyArrayObject*)samplesIn;
-
-    self->create_problem(size, n_dims,
-             (float*)(PyArray_DATA(labels)), (float*)(PyArray_DATA(samples)),
-             bias);
-  }
-
-  inline void cross_validation(int nr_fold, PyObject* py_target)
-  {
-    PyArrayObject* target = (PyArrayObject*)py_target;
-    self->cross_validation(nr_fold, (int*)PyArray_DATA(target));
-  }
-
-  inline int predict_values(PyObject* py_x, PyObject* py_dec_values)
-  {
-    PyArrayObject* x = (PyArrayObject*)py_x;
-    PyArrayObject* dec_values = (PyArrayObject*)py_dec_values;
-    return self->predict_values((float*)PyArray_DATA(x), (float*)PyArray_DATA(dec_values));
-  }
-
-  inline int predict(PyObject* py_x)
-  {
-    PyArrayObject* x = (PyArrayObject*)py_x;
-    return self->predict((float*)PyArray_DATA(x));
-  }
-
-  inline int predict_probability(PyObject* py_x, PyObject* py_prob_estimates)
-  {
-    PyArrayObject* x = (PyArrayObject*)py_x;
-    PyArrayObject* prob_estimates = (PyArrayObject*)py_prob_estimates;
-    return self->predict_probability((float*)PyArray_DATA(x), (float*)PyArray_DATA(prob_estimates));
-  }
 }
 
 //--------------------------------------------------------------------------------

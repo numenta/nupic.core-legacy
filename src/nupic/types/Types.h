@@ -98,7 +98,15 @@ typedef enum NTA_BasicType
      * Represents a opaque handle/pointer, same as `void *`
      */
     NTA_BasicType_Handle,
-    
+
+    /**
+     * Represents a boolean. The size is compiler-defined.
+     *
+     * There is no typedef'd "Bool" or "NTA_Bool". We just need a way to refer
+     * to bools with a NTA_BasicType.
+     */
+    NTA_BasicType_Bool,
+
     /** 
      * @note This is not an actual type, just a marker for validation purposes
      */
