@@ -28,7 +28,6 @@
 
 #include "nupic/algorithms/Anomaly.hpp"
 #include "nupic/utils/Log.hpp"
-//#define NTA_ASSERT(condition) if (condition) {} else throw "Error";
 
 using namespace std;
 
@@ -37,21 +36,11 @@ namespace nupic
   namespace algorithms
   {
     namespace anomaly
-    { //FIXME for some reason googletests fail if using namespace nupic::algorithms::anomaly; is used instead!
+    {
 
 
-/**
-Computes the raw anomaly score.
-
-The raw anomaly score is the fraction of active columns not predicted.
-
-@param activeColumns: array of active column indices
-@param prevPredictedColumns: array of columns indices predicted in prev step
-@return anomaly score 0..1 (float)
-*/
 float computeRawAnomalyScore(const vector<UInt>& active, const vector<UInt>& predicted)
 {
-
   	
   // Return 0 if no active columns are present
   if (active.size() == 0)
@@ -59,43 +48,19 @@ float computeRawAnomalyScore(const vector<UInt>& active, const vector<UInt>& pre
     return 0.0f;
   }
 
-  set<UInt> active_set {active.begin(), active.end()};
-  set<UInt> predicted_set{predicted.begin(), predicted.end()};
-  vector<UInt> res;
+  set<UInt> active_ {active.begin(), active.end()};
+  set<UInt> predicted_ {predicted.begin(), predicted.end()};
+  vector<UInt> predictedActiveCols;
 
   // Calculate and return percent of active columns that were not predicted.
-  set_intersection(active_set.begin(), active_set.end(),
-		           predicted_set.begin(), predicted_set.end(),
-                   back_inserter(res));
+  set_intersection(active_.begin(), active_.end(),
+		           predicted_.begin(), predicted_.end(),
+                   back_inserter(predictedActiveCols));
 
-  return (active.size() - res.size()) / float(active.size());
+  return (active.size() - predictedActiveCols.size()) / float(active.size());
 }
 
 
-/**
-Utility class for generating anomaly scores in different ways.
-
-  Supported modes:
-    MODE_PURE - the raw anomaly score as computed by computeRawAnomalyScore
-    MODE_LIKELIHOOD - uses the AnomalyLikelihood class on top of the raw
-        anomaly scores
-    MODE_WEIGHTED - multiplies the likelihood result with the raw anomaly score
-        that was used to generate the likelihood
-
-    @param slidingWindowSize (optional) - how many elements are summed up;
-        enables moving average on final anomaly score; int >= 0
-    @param mode (optional) - (string) how to compute anomaly;
-        possible values are:
-          - "pure" - the default, how much anomal the value is;
-              float 0..1 where 1=totally unexpected
-          - "likelihood" - uses the anomaly_likelihood code;
-              models probability of receiving this value and anomalyScore
-          - "weighted" - "pure" anomaly weighted by "likelihood"
-              (anomaly * likelihood)
-    @param binaryAnomalyThreshold (optional) - if set [0,1] anomaly score
-         will be discretized to 1/0 (1 if >= binaryAnomalyThreshold)
-         The transformation is applied after moving average is computed.
-*/
 Anomaly::Anomaly(int slidingWindowSize, AnomalyMode mode, float binaryAnomalyThreshold) :
 				binaryThreshold_(binaryAnomalyThreshold) /*, moving_average(nullptr) */
 {
@@ -113,19 +78,7 @@ Anomaly::Anomaly(int slidingWindowSize, AnomalyMode mode, float binaryAnomalyThr
   }
 }
 
-/**
-Compute the anomaly score as the percent of active columns not predicted.
 
-    @param activeColumns: array of active column indices
-    @param predictedColumns: array of columns indices predicted in this step
-                             (used for anomaly in step T+1)
-    @param inputValue: (optional) value of current input to encoders
-                                (eg "cat" for category encoder)
-                                (used in anomaly-likelihood)
-    @param timestamp: (optional) date timestamp when the sample occured
-                                (used in anomaly-likelihood)
-    @return the computed anomaly score; float 0..1
-*/
 float Anomaly::compute(const vector<UInt>& active, const vector<UInt>& predicted,
 		       int inputValue, int timestamp)
 {
