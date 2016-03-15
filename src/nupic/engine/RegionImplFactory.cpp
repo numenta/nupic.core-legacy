@@ -35,6 +35,7 @@
 #include <nupic/os/Env.hpp>
 #include <nupic/ntypes/Value.hpp>
 #include <nupic/ntypes/BundleIO.hpp>
+#include <nupic/encoders/ScalarSensor.hpp>
 #include <nupic/engine/YAMLUtils.hpp>
 #include <nupic/engine/TestNode.hpp>
 #include <nupic/regions/PyRegion.hpp>
@@ -224,6 +225,7 @@ RegionImplFactory & RegionImplFactory::getInstance()
   if (!initializedRegions)
   {
     // Create C++ regions
+    cppRegions["ScalarSensor"] = new RegisteredRegionImpl<ScalarSensor>();
     cppRegions["TestNode"] = new RegisteredRegionImpl<TestNode>();
     cppRegions["VectorFileEffector"] = new RegisteredRegionImpl<VectorFileEffector>();
     cppRegions["VectorFileSensor"] = new RegisteredRegionImpl<VectorFileSensor>();

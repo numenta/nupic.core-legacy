@@ -77,6 +77,9 @@ static void _toScalar(const YAML::Node& node, boost::shared_ptr<Scalar>& s)
   case NTA_BasicType_Real64:
     node >> s->value.real64;
     break;
+  case NTA_BasicType_Bool:
+    node >> s->value.boolean;
+    break;
   case NTA_BasicType_Handle:
     NTA_THROW << "Attempt to specify a YAML value for a scalar of type Handle";
     break;
@@ -128,6 +131,9 @@ static void _toArray(const YAML::Node& node, boost::shared_ptr<Array>& a)
       break;
     case NTA_BasicType_Real64:
       item.Read<Real64>(((Real64*)buffer)[i]);
+      break;
+    case NTA_BasicType_Bool:
+      item.Read<bool>(((bool*)buffer)[i]);
       break;
     default:
       // should not happen

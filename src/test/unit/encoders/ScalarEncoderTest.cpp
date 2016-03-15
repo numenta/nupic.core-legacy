@@ -26,8 +26,7 @@
 
 #include <string>
 #include <vector>
-#include <nupic/ntypes/Array.hpp>
-#include <nupic/encoders/Scalar.hpp>
+#include <nupic/encoders/ScalarEncoder.hpp>
 #include "gtest/gtest.h"
 
 using namespace nupic;
@@ -41,26 +40,22 @@ std::string vec2str(std::vector<T> vec)
   return oss.str();
 }
 
-std::vector<UInt> getEncoding(Encoder& e, Real64 input)
+std::vector<Real32> getEncoding(ScalarEncoderBase& e, Real64 input)
 {
-  Array inputArray = Array(NTA_BasicType_Real64);
-  inputArray.allocateBuffer(1);
-  ((Real64*) inputArray.getBuffer())[0] = input;
-
-  auto actualOutput = std::vector<UInt>(e.getWidth());
-  e.encodeIntoArray(inputArray, &actualOutput[0], false);
+  auto actualOutput = std::vector<Real32>(e.getOutputWidth());
+  e.encodeIntoArray(input, &actualOutput[0]);
   return actualOutput;
 }
 
 struct ScalarValueCase
 {
   Real64 input;
-  std::vector<UInt> expectedOutput;
+  std::vector<Real32> expectedOutput;
 };
 
-std::vector<UInt> patternFromNZ(int n, std::vector<size_t> patternNZ)
+std::vector<Real32> patternFromNZ(int n, std::vector<size_t> patternNZ)
 {
-  auto v = std::vector<UInt>(n, 0);
+  auto v = std::vector<Real32>(n, 0);
   for (auto it = patternNZ.begin(); it != patternNZ.end(); it++)
     {
       v[*it] = 1;
@@ -68,12 +63,12 @@ std::vector<UInt> patternFromNZ(int n, std::vector<size_t> patternNZ)
   return v;
 }
 
-void doScalarValueCases(Encoder& e, std::vector<ScalarValueCase> cases)
+void doScalarValueCases(ScalarEncoderBase& e, std::vector<ScalarValueCase> cases)
 {
   for (auto c = cases.begin(); c != cases.end(); c++)
     {
       auto actualOutput = getEncoding(e, c->input);
-      for (int i = 0; i < e.getWidth(); i++)
+      for (int i = 0; i < e.getOutputWidth(); i++)
         {
           EXPECT_EQ(c->expectedOutput[i], actualOutput[i])
             << "For input " << c->input << " and index " << i << std::endl
@@ -176,7 +171,7 @@ TEST(ScalarEncoder, RoundToNearestMultipleOfResolution)
   ScalarEncoder encoder(w, minValue, maxValue, n_in, radius, resolution, clipInput);
 
   const int n = 13;
-  ASSERT_EQ(n, encoder.getWidth());
+  ASSERT_EQ(n, encoder.getOutputWidth());
 
   std::vector<ScalarValueCase> cases =
     {{10.00, patternFromNZ(n, {0, 1, 2})},
@@ -206,7 +201,7 @@ TEST(PeriodicScalarEncoder, FloorToNearestMultipleOfResolution)
   PeriodicScalarEncoder encoder(w, minValue, maxValue, n_in, radius, resolution);
 
   const int n = 10;
-  ASSERT_EQ(n, encoder.getWidth());
+  ASSERT_EQ(n, encoder.getOutputWidth());
 
   std::vector<ScalarValueCase> cases =
     {{10.00, patternFromNZ(n, {9, 0, 1})},
