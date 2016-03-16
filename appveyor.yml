@@ -12,7 +12,7 @@ branches:
 skip_commits:
   # Add [av skip] to commit messages to skip AppVeyor building
   # Add [ci skip] to skip Travis and AppVeyor building
-  message: /\[av skip\]/ 
+  message: /\[av skip\]/
 
 #---------------------------------#
 #    environment configuration    #
@@ -112,9 +112,9 @@ install:
   # Fake KJ-Async and Capnp-RPC libs, not needed in Lite mode
   # http://www.cmake.org/Wiki/CmakeMingw
   - cd %REPO_DIR%\build\scripts
-  - cmake -G "MinGW Makefiles" 
-      -DCMAKE_INSTALL_PREFIX=%REPO_DIR%\build\release 
-      -DPY_EXTENSIONS_DIR=%REPO_DIR%\bindings\py\nupic\bindings 
+  - cmake -G "MinGW Makefiles"
+      -DCMAKE_INSTALL_PREFIX=%REPO_DIR%\build\release
+      -DPY_EXTENSIONS_DIR=%REPO_DIR%\bindings\py\nupic\bindings
       %REPO_DIR%
 
 build_script:
@@ -163,3 +163,7 @@ deploy:
     folder: "numenta/nupic.core/releases/nupic.bindings"
     on:
       branch: master
+
+
+# Disable deployment while implementing and debugging win32 build
+deploy: off
