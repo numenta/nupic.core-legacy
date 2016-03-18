@@ -150,19 +150,19 @@ on_success:
         twine upload -u $env:PYPI_USERNAME -p $env:PYPI_PASSWORD -r pypi $env:REPO_DIR\bindings\py\dist\nupic.bindings-$env:BINDINGS_VERSION-cp27-none-win_amd64.whl
       }
 
-deploy:
-  # Iterative builds
-  - provider: S3
-    access_key_id: AKIAIGHYSEHV3WFKOWNQ
-    secret_access_key:
-      secure: /8wO17Gir0XAiecJkHeE3jxOJzvyl0+uWcl7BKCuN0FC795golsL8905VmNuRl1o
-    bucket: "artifacts.numenta.org"
-    region: us-west-2
-    set_public: true
-    artifact: "nupic.bindings-$(APPVEYOR_REPO_COMMIT)-cp27-none-win_amd64.whl"
-    folder: "numenta/nupic.core/releases/nupic.bindings"
-    on:
-      branch: master
+#deploy:
+#  # Iterative builds
+#  - provider: S3
+#    access_key_id: AKIAIGHYSEHV3WFKOWNQ
+#    secret_access_key:
+#      secure: /8wO17Gir0XAiecJkHeE3jxOJzvyl0+uWcl7BKCuN0FC795golsL8905VmNuRl1o
+#    bucket: "artifacts.numenta.org"
+#    region: us-west-2
+#    set_public: true
+#    artifact: "nupic.bindings-$(APPVEYOR_REPO_COMMIT)-cp27-none-win_amd64.whl"
+#    folder: "numenta/nupic.core/releases/nupic.bindings"
+#    on:
+#      branch: master
 
 
 # Disable deployment while implementing and debugging win32 build
