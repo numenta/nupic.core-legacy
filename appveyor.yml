@@ -52,10 +52,10 @@ environment:
 
 configuration: Release
 
-cache:
+#cache:
 #  - C:\mingwpy_amd64_vc90.7z
 #  - C:\libpython-cp27-none-win_amd64.7z
-  - C:\numpy-1.9.1+openblas-cp27-none-win_amd64.whl
+#  - C:\numpy-1.9.1+openblas-cp27-none-win_amd64.whl
 
 install:
   - set NUPIC_DEPLOYMENT_BUILD=1

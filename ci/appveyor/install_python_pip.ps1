@@ -2,13 +2,16 @@
 # Authors: Olivier Grisel and Kyle Kastner
 # License: CC0 1.0 Universal: http://creativecommons.org/publicdomain/zero/1.0/
 
+# Abort the script on any failure
+$ErrorActionPreference = "Stop"
+
 $BASE_URL = "https://www.python.org/ftp/python/"
 
 $GET_PIP_URL = "https://bootstrap.pypa.io/get-pip.py"
 $GET_PIP_PATH = "C:\get-pip.py"
 
-$GET_NUMPY_URL = "https://bitbucket.org/carlkl/mingw-w64-for-python/downloads/numpy-1.9.1+openblas-cp27-none-win_amd64.whl"
-$GET_NUMPY_PATH = "C:\numpy-1.9.1+openblas-cp27-none-win_amd64.whl"
+#$GET_NUMPY_URL = "https://bitbucket.org/carlkl/mingw-w64-for-python/downloads/numpy-1.9.1+openblas-cp27-none-win_amd64.whl"
+#$GET_NUMPY_PATH = "C:\numpy-1.9.1+openblas-cp27-none-win_amd64.whl"
 
 
 function DownloadPython ($python_version, $platform_suffix) {
