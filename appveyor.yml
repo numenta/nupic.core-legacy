@@ -44,7 +44,7 @@ environment:
 
   matrix:
     - PYTHON_VERSION: "2.7.9"
-      PYTHONPATH: "C:\\Python27-x64"
+      PYTHONHOME: "C:\\Python27-x64"
 
 #---------------------------------#
 #       build configuration       #
@@ -54,7 +54,7 @@ configuration: Release
 
 cache:
 #  - C:\mingwpy_amd64_vc90.7z
-  - C:\libpython-cp27-none-win_amd64.7z
+#  - C:\libpython-cp27-none-win_amd64.7z
   - C:\numpy-1.9.1+openblas-cp27-none-win_amd64.whl
 
 install:
@@ -68,13 +68,14 @@ install:
   - for /f %%i in ('type VERSION') do set BINDINGS_VERSION=%%i
   - echo Binding version = %BINDINGS_VERSION%
 
+  - set PYTHONPATH=%PYTHONHOME%
+  - set PATH=%PYTHONHOME%\Scripts;%PYTHONHOME%;%PATH%
+  - echo %PATH%
+
   # Install Python 2.7.x, Pip, Wheel, and NumPy
   - cd %REPO_DIR%\ci\appveyor
   - ps: .\install_python_pip.ps1
 
-  - set PYTHONHOME=%PYTHONPATH%
-  - set PATH=%PYTHONPATH%\Scripts;%PYTHONPATH%;%PATH%
-  - echo %PATH%
 
 
 #  # Reference: https://bitbucket.org/carlkl/mingw-w64-for-python/downloads/mingwpy-2015-04-readme.md
@@ -90,10 +91,10 @@ install:
 
   - ECHO "Installing MinGW-w64 for Python:"
 
-  # This installs mingwpy that generates targets compatible with the installed python (Win32 vs. Win64)
+  # Install the version of mingwpy toolchain that generates targets compatible
+  # with the installed python (Win32 vs. Win64). The compiler tools are
+  # installed into %PYTHONHOME%/Scripts/
   - cmd: "%PYTHONPATH%\\Scripts\\pip.exe install -i https://pypi.anaconda.org/carlkl/simple mingwpy"
-  - cmd: "where g++"
-  - set PATH=C:\mingwpy\bin;%PATH%
   - cmd: "where g++"
 
   # Setup MinGW-w64 GCC as a valid distutils compiler
@@ -103,7 +104,7 @@ install:
   - "python --version"
   - "python -c \"import struct; print(struct.calcsize('P') * 8)\""
 
-  # Check NumPy installed correctly
+  # Check NumPy, etc. installed correctly
   - cmd: pip list
 
   - cd %REPO_DIR%

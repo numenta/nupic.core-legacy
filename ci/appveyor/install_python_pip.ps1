@@ -78,11 +78,11 @@ function InstallPip ($python_home) {
 }
 
 function main () {
-    InstallPython $env:PYTHON_VERSION $env:PYTHON_ARCH $env:PYTHONPATH
-    InstallPip $env:PYTHONPATH
+    InstallPython $env:PYTHON_VERSION $env:PYTHON_ARCH $env:PYTHONHOME
+    InstallPip $env:PYTHONHOME
 
-    $python_path = $env:PYTHONPATH + "/python.exe"
-    $pip_path = $env:PYTHONPATH + "/Scripts/pip.exe"
+    $python_path = $env:PYTHONHOME + "/python.exe"
+    $pip_path = $env:PYTHONHOME + "/Scripts/pip.exe"
 
     #Write-Host "python -m pip install --upgrade pip"
     #& $python_path -m pip install --upgrade pip
@@ -96,14 +96,17 @@ function main () {
     Write-Host "pip install " twine
     & $pip_path install twine
 
-    Write-Host "pip install " numpy==1.9.1
-    #& $pip_path install -i https://pypi.numenta.com/pypi numpy==1.9.1
-    # Check AppVeyor cloud cache for NumPy wheel
-    if (-Not (Test-Path $GET_NUMPY_PATH)) {
-        $webclient = New-Object System.Net.WebClient
-        $webclient.DownloadFile($GET_NUMPY_URL, $GET_NUMPY_PATH)
-    }
-    & $pip_path install $GET_NUMPY_PATH
+    Write-Host "pip install " numpy==1.9.2
+    & $pip_path -i https://pypi.anaconda.org/mingwpy/simple numpy==1.9.2
+
+#    Write-Host "pip install " numpy==1.9.1
+#    #& $pip_path install -i https://pypi.numenta.com/pypi numpy==1.9.1
+#    # Check AppVeyor cloud cache for NumPy wheel
+#    if (-Not (Test-Path $GET_NUMPY_PATH)) {
+#        $webclient = New-Object System.Net.WebClient
+#        $webclient.DownloadFile($GET_NUMPY_URL, $GET_NUMPY_PATH)
+#    }
+#    & $pip_path install $GET_NUMPY_PATH
 
 }
 
