@@ -89,10 +89,13 @@ install:
 #  - 7z x C:\\libpython-cp27-none-win_amd64.7z -oC:\Python27-x64\ > null
 
   - ECHO "Installing MinGW-w64 for Python:"
+  - cmd: "where g++"
+  - set PATH=C:\mingwpy\bin;%PATH%
+  - cmd: "where g++"
+
   # This installs mingwpy that generates targets compatible with the installed python (Win32 vs. Win64)
   - cmd: "%PYTHONPATH%\\Scripts\\pip.exe install -i https://pypi.anaconda.org/carlkl/simple mingwpy"
-
-  - set PATH=C:\mingwpy\bin;%PATH%
+  - cmd: "where g++"
 
   # Setup MinGW-w64 GCC as a valid distutils compiler
   - cp %REPO_DIR%\external\windows64-gcc\bin\distutils.cfg %PYTHONPATH%\Lib\distutils\distutils.cfg
