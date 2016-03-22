@@ -88,6 +88,7 @@ namespace nupic
     virtual Real32 getParameterReal32(const std::string& name, Int64 index);
     virtual Real64 getParameterReal64(const std::string& name, Int64 index);
     virtual Handle getParameterHandle(const std::string& name, Int64 index);
+    virtual bool getParameterBool(const std::string& name, Int64 index);
 
     virtual void setParameterInt32(const std::string& name, Int64 index, Int32 value);
     virtual void setParameterUInt32(const std::string& name, Int64 index, UInt32 value);
@@ -96,6 +97,7 @@ namespace nupic
     virtual void setParameterReal32(const std::string& name, Int64 index, Real32 value);
     virtual void setParameterReal64(const std::string& name, Int64 index, Real64 value);
     virtual void setParameterHandle(const std::string& name, Int64 index, Handle value);
+    virtual void setParameterBool(const std::string& name, Int64 index, bool value);
 
     virtual void getParameterArray(const std::string& name, Int64 index, Array & array);
     virtual void setParameterArray(const std::string& name, Int64 index, const Array & array);
