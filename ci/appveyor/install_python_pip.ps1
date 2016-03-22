@@ -68,8 +68,10 @@ function InstallPip ($python_home) {
     $pip_path = $python_home + "/Scripts/pip.exe"
     $python_path = $python_home + "/python.exe"
     if ( $(Try { Test-Path $pip_path.trim() } Catch { $false }) ) {
-        Write-Host "pip already installed at " $pip_path ", upgrading..."
-        $python_path "-m pip install -U pip"
+        Write-Host "pip already installed at " $pip_path
+
+        # Upgrade it to avoid error exit code during usage
+        & $python_path -m pip install --upgrade pip
 
         return $false
     }
