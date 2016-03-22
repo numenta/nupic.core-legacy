@@ -68,8 +68,8 @@ function InstallPip ($python_home) {
     $pip_path = $python_home + "/Scripts/pip.exe"
     $python_path = $python_home + "/python.exe"
     if ( $(Try { Test-Path $pip_path.trim() } Catch { $false }) ) {
-        Write-Host "pip already installed at " $pip_path ", upgrading"
-        $python_path -m pip install -U pip
+        Write-Host "pip already installed at " $pip_path ", upgrading..."
+        $python_path "-m pip install -U pip"
 
         return $false
     }
@@ -88,9 +88,6 @@ function main () {
 
     $python_path = $env:PYTHONHOME + "/python.exe"
     $pip_path = $env:PYTHONHOME + "/Scripts/pip.exe"
-
-    #Write-Host "python -m pip install --upgrade pip"
-    #& $python_path -m pip install --upgrade pip
 
     Write-Host "pip install " wheel==0.25.0
     & $pip_path install wheel==0.25.0
