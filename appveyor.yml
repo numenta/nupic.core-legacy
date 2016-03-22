@@ -53,7 +53,7 @@ environment:
 configuration: Release
 
 cache:
-  - C:\mingwpy_amd64_vc90.7z
+#  - C:\mingwpy_amd64_vc90.7z
   - C:\libpython-cp27-none-win_amd64.7z
   - C:\numpy-1.9.1+openblas-cp27-none-win_amd64.whl
 
@@ -68,19 +68,6 @@ install:
   - for /f %%i in ('type VERSION') do set BINDINGS_VERSION=%%i
   - echo Binding version = %BINDINGS_VERSION%
 
-  # Reference: https://bitbucket.org/carlkl/mingw-w64-for-python/downloads/mingwpy-2015-04-readme.md
-  - ps: $dwntool=New-Object System.Net.WebClient
-
-  - ECHO "Installing MinGW-w64 for Python:"
-  - ps: if (-Not (Test-Path "C:\\mingwpy_amd64_vc90.7z")) { $dwntool.DownloadFile("https://bitbucket.org/carlkl/mingw-w64-for-python/downloads/mingwpy_amd64_vc90.7z", "C:\\mingwpy_amd64_vc90.7z") }
-  - 7z x C:\\mingwpy_amd64_vc90.7z -oC:\ > null
-
-  - ECHO "Installing MinGW-w64 Python 2.7.x libs:"
-  - ps: if (-Not (Test-Path "C:\\libpython-cp27-none-win_amd64.7z")) { $dwntool.DownloadFile("https://bitbucket.org/carlkl/mingw-w64-for-python/downloads/libpython-cp27-none-win_amd64.7z", "C:\\libpython-cp27-none-win_amd64.7z") }
-  - 7z x C:\\libpython-cp27-none-win_amd64.7z -oC:\Python27-x64\ > null
-
-  - set PATH=C:\mingwpy\bin;%PATH%
-
   # Install Python 2.7.x, Pip, Wheel, and NumPy
   - cd %REPO_DIR%\ci\appveyor
   - ps: .\install_python_pip.ps1
@@ -88,6 +75,24 @@ install:
   - set PYTHONHOME=%PYTHONPATH%
   - set PATH=%PYTHONPATH%\Scripts;%PYTHONPATH%;%PATH%
   - echo %PATH%
+
+
+#  # Reference: https://bitbucket.org/carlkl/mingw-w64-for-python/downloads/mingwpy-2015-04-readme.md
+#  - ps: $dwntool=New-Object System.Net.WebClient
+#
+#  - ECHO "Installing MinGW-w64 for Python:"
+#  - ps: if (-Not (Test-Path "C:\\mingwpy_amd64_vc90.7z")) { $dwntool.DownloadFile("https://bitbucket.org/carlkl/mingw-w64-for-python/downloads/mingwpy_amd64_vc90.7z", "C:\\mingwpy_amd64_vc90.7z") }
+#  - 7z x C:\\mingwpy_amd64_vc90.7z -oC:\ > null
+#
+#  - ECHO "Installing MinGW-w64 Python 2.7.x libs:"
+#  - ps: if (-Not (Test-Path "C:\\libpython-cp27-none-win_amd64.7z")) { $dwntool.DownloadFile("https://bitbucket.org/carlkl/mingw-w64-for-python/downloads/libpython-cp27-none-win_amd64.7z", "C:\\libpython-cp27-none-win_amd64.7z") }
+#  - 7z x C:\\libpython-cp27-none-win_amd64.7z -oC:\Python27-x64\ > null
+
+  - ECHO "Installing MinGW-w64 for Python:"
+  # This installs mingwpy that generates targets compatible with the installed python (Win32 vs. Win64)
+  - cmd: %PYTHONPATH%\Scripts\pip.exe install -i https://pypi.anaconda.org/carlkl/simple mingwpy
+
+  - set PATH=C:\mingwpy\bin;%PATH%
 
   # Setup MinGW-w64 GCC as a valid distutils compiler
   - cp %REPO_DIR%\external\windows64-gcc\bin\distutils.cfg %PYTHONPATH%\Lib\distutils\distutils.cfg

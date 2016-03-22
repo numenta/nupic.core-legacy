@@ -37,6 +37,7 @@ set(INCLUDE_PRE ${EP_BASE}/Install/include)
 set(BIN_PRE ${EP_BASE}/Install/bin)
 
 # Add vendored prebuilt library include paths.
+# ZZZ need to use generated includes instead of PLATFORM_SUFFIX includes
 list(APPEND EXTERNAL_INCLUDE_DIRS
      "${PROJECT_SOURCE_DIR}/${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}/include"
      "${PROJECT_SOURCE_DIR}/common/include")
@@ -53,3 +54,24 @@ include(Swig)
 list(APPEND EXTERNAL_INCLUDE_DIRS ${CAPNP_INCLUDE_DIRS})
 
 set(EXTERNAL_INCLUDE_DIRS ${EXTERNAL_INCLUDE_DIRS} PARENT_SCOPE)
+
+
+## Set up apr dependency
+#add_subdirectory(common/share/apr/apr-1.5.2)
+## TODO add to EXTERNAL_INCLUDE_DIRS
+#
+## Set up apr-util dependency
+#add_subdirectory(common/share/apr-util/apr-util-1.5.4)
+## TODO add to EXTERNAL_INCLUDE_DIRS
+#
+## Set up yaml dependency
+#add_subdirectory(common/share/yaml/yaml-0.1.5)
+## TODO add to EXTERNAL_INCLUDE_DIRS
+#
+## Set up yaml-cpp dependency
+#add_subdirectory(common/share/yaml-cpp/yaml-cpp-release-0.3.0)
+## TODO add to EXTERNAL_INCLUDE_DIRS
+#
+## Set up zlib dependency
+#add_subdirectory(common/share/zlib/zlib-1.2.8)
+## TODO add to EXTERNAL_INCLUDE_DIRS
