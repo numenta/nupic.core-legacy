@@ -3,7 +3,7 @@
 # License: CC0 1.0 Universal: http://creativecommons.org/publicdomain/zero/1.0/
 
 # Abort the script on any failure
-$ErrorActionPreference = "Stop"
+#$ErrorActionPreference = "Stop"
 
 $BASE_URL = "https://www.python.org/ftp/python/"
 
@@ -68,7 +68,7 @@ function InstallPip ($python_home) {
     $pip_path = $python_home + "/Scripts/pip.exe"
     $python_path = $python_home + "/python.exe"
     if ( $(Try { Test-Path $pip_path.trim() } Catch { $false }) ) {
-        Write-Host "pip already installed at " $pip_path
+        Write-Host "pip already installed at " $pip_path ". Upgrading..."
 
         # Upgrade it to avoid error exit code during usage
         & $python_path -m pip install --upgrade pip
