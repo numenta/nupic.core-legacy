@@ -50,6 +50,8 @@ include(CapnProto)
 
 include(Swig)
 
+include(Zlib)
+
 # Convenience variable that wraps all external include directories.
 list(APPEND EXTERNAL_INCLUDE_DIRS ${CAPNP_INCLUDE_DIRS})
 

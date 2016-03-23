@@ -651,7 +651,7 @@ if(UNIX OR MSYS OR MINGW)
                        COMMAND ${CMAKE_AR} -x ${LIB_STATIC_APR1_LOC}
                        COMMAND ${CMAKE_AR} -x ${LIB_STATIC_Z_LOC}
                        COMMAND ${CMAKE_AR} rcs ${LIB_STATIC_NUPICCORE_COMBINED} *.o *.obj
-                       DEPENDS ${LIB_STATIC_NUPICCORE})
+                       DEPENDS ${LIB_STATIC_NUPICCORE} ZlibStaticLib)
   else()
     add_custom_command(OUTPUT ${LIB_STATIC_NUPICCORE_COMBINED}
                        COMMAND ${CMAKE_AR} -x $<TARGET_FILE:${LIB_STATIC_NUPICCORE}>
@@ -661,7 +661,7 @@ if(UNIX OR MSYS OR MINGW)
                        COMMAND ${CMAKE_AR} -x ${LIB_STATIC_APR1_LOC}
                        COMMAND ${CMAKE_AR} -x ${LIB_STATIC_Z_LOC}
                        COMMAND ${CMAKE_AR} rcs ${LIB_STATIC_NUPICCORE_COMBINED} *.o
-                       DEPENDS ${LIB_STATIC_NUPICCORE})
+                       DEPENDS ${LIB_STATIC_NUPICCORE} ZlibStaticLib)
   endif()
 else()
   set(LIB_STATIC_NUPICCORE_COMBINED "${PROJECT_BINARY_DIR}/nupic_core.lib")
@@ -673,7 +673,7 @@ else()
                              ${LIB_STATIC_APRUTIL1_LOC}
                              ${LIB_STATIC_APR1_LOC}
                              ${LIB_STATIC_Z_LOC}
-                     DEPENDS ${LIB_STATIC_NUPICCORE}
+                     DEPENDS ${LIB_STATIC_NUPICCORE} ZlibStaticLib
                      VERBATIM)
 endif()
 
