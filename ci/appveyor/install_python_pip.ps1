@@ -3,7 +3,7 @@
 # License: CC0 1.0 Universal: http://creativecommons.org/publicdomain/zero/1.0/
 
 # Abort the script on any failure
-#$ErrorActionPreference = "Stop"
+$ErrorActionPreference = "Stop"
 
 $BASE_URL = "https://www.python.org/ftp/python/"
 
@@ -101,7 +101,7 @@ function main () {
     & $pip_path install twine
 
     Write-Host "pip install " numpy==1.9.2
-    & $pip_path -i https://pypi.anaconda.org/mingwpy/simple numpy==1.9.2
+    & $pip_path install -i https://pypi.anaconda.org/mingwpy/simple numpy==1.9.2
 
 #    Write-Host "pip install " numpy==1.9.1
 #    #& $pip_path install -i https://pypi.numenta.com/pypi numpy==1.9.1
