@@ -143,7 +143,7 @@ Install the 64 bit version of MSys2 - http://sourceforge.net/p/msys2/wiki/MSYS2%
 
 From the MSys2 command line run the `update-core` script followed by `pacman -Su`, to make sure MSys2 is up to date.
 
-Building the Apr-iconv library is _not_ required and can be skipped. 
+Explicit building of the Apr-iconv library is _not_ required and can be skipped. It's referenced and should be built as part of the apr/apr-util build process. 
 
 All support libraries are need to be built for x64. 
 

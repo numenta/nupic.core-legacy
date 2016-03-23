@@ -75,13 +75,13 @@ const NodeSet& RegionImpl::getEnabledNodes() const
 // templated methods can't be virtual and thus can't be
 // overridden by subclasses.
 
-#define getParameterT(Type) \
-Type RegionImpl::getParameter##Type(const std::string& name, Int64 index) \
+#define getParameterInternalT(MethodT,Type)                             \
+Type RegionImpl::getParameter##MethodT(const std::string& name, Int64 index) \
 {\
   if (! region_->getSpec()->parameters.contains(name))     \
     NTA_THROW << "getParameter" #Type ": parameter " << name << " does not exist in nodespec"; \
   ParameterSpec p = region_->getSpec()->parameters.getByName(name); \
-  if (p.dataType != NTA_BasicType_ ## Type) \
+  if (p.dataType != NTA_BasicType_ ## MethodT) \
     NTA_THROW << "getParameter" #Type ": parameter " << name << " is of type " \
               << BasicType::getName(p.dataType) << " not " #Type; \
   WriteBuffer wb; \
@@ -97,16 +97,20 @@ Type RegionImpl::getParameter##Type(const std::string& name, Int64 index) \
   return val; \
 }
 
+#define getParameterT(Type) getParameterInternalT(Type,Type)
+
 getParameterT(Int32);
 getParameterT(UInt32);
 getParameterT(Int64);
 getParameterT(UInt64)
 getParameterT(Real32);
 getParameterT(Real64);
+getParameterInternalT(Bool, bool);
 
 
-#define setParameterT(Type) \
-void RegionImpl::setParameter##Type(const std::string& name, Int64 index, Type value) \
+
+#define setParameterInternalT(MethodT, Type) \
+void RegionImpl::setParameter##MethodT(const std::string& name, Int64 index, Type value) \
 { \
   WriteBuffer wb; \
   wb.write((Type)value); \
@@ -114,12 +118,15 @@ void RegionImpl::setParameter##Type(const std::string& name, Int64 index, Type v
   setParameterFromBuffer(name, index, rb); \
 }
 
+#define setParameterT(Type) setParameterInternalT(Type,Type)
+
 setParameterT(Int32);
 setParameterT(UInt32);
 setParameterT(Int64);
 setParameterT(UInt64)
 setParameterT(Real32);
 setParameterT(Real64);
+setParameterInternalT(Bool, bool);
 
 // buffer mechanism can't handle Handles. RegionImpl must override these methods.
 Handle RegionImpl::getParameterHandle(const std::string& name, Int64 index)

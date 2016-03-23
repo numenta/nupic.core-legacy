@@ -112,6 +112,14 @@ class TestNode(PyRegion):
           defaultValue='64.1',
           accessMode='ReadWrite'
         ),
+        boolParam=dict(
+          description='bool parameter',
+          dataType='Bool',
+          count=1,
+          constraints='',
+          defaultValue='false',
+          accessMode='ReadWrite'
+        ),
         real32arrayParam=dict(
           description='Real32 array parameter',
           dataType='Real32',
@@ -123,6 +131,14 @@ class TestNode(PyRegion):
         int64arrayParam=dict(
           description='Int64 array parameter',
           dataType='Int64',
+          count=0, # array
+          constraints='',
+          defaultValue='',
+          accessMode='ReadWrite'
+        ),
+        boolArrayParam=dict(
+          description='bool array parameter',
+          dataType='Bool',
           count=0, # array
           constraints='',
           defaultValue='',
@@ -178,10 +194,12 @@ class TestNode(PyRegion):
       uint64Param=65,
       real32Param=32.1,
       real64Param=64.1,
+      boolParam=False,
       real32ArrayParam=numpy.arange(10).astype('float32'),
       real64ArrayParam=numpy.arange(10).astype('float64'),
       # Construct int64 array in the same way as in C++
       int64ArrayParam=numpy.arange(4).astype('int64'),
+      boolArrayParam=numpy.array([False]*4),
       stringParam="nodespec value")
 
     for key in kwargs:
@@ -322,12 +340,14 @@ class TestNode(PyRegion):
     regionImpl.uint64Param = self.getParameter("uint64Param", 0);
     regionImpl.real32Param = self.getParameter("real32Param", 0);
     regionImpl.real64Param = self.getParameter("real64Param", 0);
+    regionImpl.boolParam = self.getParameter("boolParam", 0);
     regionImpl.stringParam = self.getParameter("stringParam", 0);
     regionImpl.delta = self._delta
     regionImpl.iterations = self._iter
 
     self.writeArray(regionImpl, "int64ArrayParam", "Int64", lambda x: int(x))
     self.writeArray(regionImpl, "real32ArrayParam", "Float32", lambda x: float(x))
+    self.writeArray(regionImpl, "boolArrayParam", "Bool", lambda x: bool(x))
 
 
   def readArray(self, regionImpl, name, dtype):
@@ -350,11 +370,13 @@ class TestNode(PyRegion):
     instance.setParameter("uint64Param", 0, regionImpl.uint64Param)
     instance.setParameter("real32Param", 0, regionImpl.real32Param)
     instance.setParameter("real64Param", 0, regionImpl.real64Param)
+    instance.setParameter("boolParam", 0, regionImpl.boolParam)
     instance.setParameter("stringParam", 0, regionImpl.stringParam)
     instance._delta = regionImpl.delta
     instance._iter = regionImpl.iterations
 
     instance.readArray(regionImpl, "int64ArrayParam", "Int64")
     instance.readArray(regionImpl, "real32ArrayParam", "Float32")
+    instance.readArray(regionImpl, "boolArrayParam", "Bool")
 
     return instance

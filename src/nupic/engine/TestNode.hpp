@@ -119,11 +119,13 @@ namespace nupic
     UInt64 uint64Param_;
     Real32 real32Param_;
     Real64 real64Param_;
+    bool boolParam_;
     std::string stringParam_;
     computeCallbackFunc computeCallback_;
 
     std::vector<Real32> real32ArrayParam_;
     std::vector<Int64> int64ArrayParam_;
+    std::vector<bool> boolArrayParam_;
 
     // read-only count of iterations since initialization
     UInt64 iter_;

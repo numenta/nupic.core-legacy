@@ -42,6 +42,7 @@ TEST(BasicTypeTest, isValid)
   ASSERT_TRUE(BasicType::isValid(NTA_BasicType_Real64));
   ASSERT_TRUE(BasicType::isValid(NTA_BasicType_Real));
   ASSERT_TRUE(BasicType::isValid(NTA_BasicType_Handle));
+  ASSERT_TRUE(BasicType::isValid(NTA_BasicType_Bool));
 
   
   ASSERT_TRUE(!BasicType::isValid(NTA_BasicType_Last));
@@ -59,7 +60,8 @@ TEST(BasicTypeTest, getSize)
   ASSERT_TRUE(BasicType::getSize(NTA_BasicType_Int64) == 8);
   ASSERT_TRUE(BasicType::getSize(NTA_BasicType_UInt64) == 8);
   ASSERT_TRUE(BasicType::getSize(NTA_BasicType_Real32) == 4);
-  ASSERT_TRUE(BasicType::getSize(NTA_BasicType_Real64) == 8);        
+  ASSERT_TRUE(BasicType::getSize(NTA_BasicType_Real64) == 8);
+  ASSERT_TRUE(BasicType::getSize(NTA_BasicType_Bool) == sizeof(bool));
   #ifdef NTA_DOUBLE_PRECISION
     ASSERT_TRUE(BasicType::getSize(NTA_BasicType_Real) == 8); // Real64
   #else
@@ -85,6 +87,7 @@ TEST(BasicTypeTest, getName)
     ASSERT_TRUE(BasicType::getName(NTA_BasicType_Real) == std::string("Real32"));
   #endif      
   ASSERT_TRUE(BasicType::getName(NTA_BasicType_Handle) == std::string("Handle"));
+  ASSERT_TRUE(BasicType::getName(NTA_BasicType_Bool) == std::string("Bool"));
 }
 
 TEST(BasicTypeTest, parse)
@@ -100,5 +103,5 @@ TEST(BasicTypeTest, parse)
   ASSERT_TRUE(BasicType::parse("Real64") == NTA_BasicType_Real64);
   ASSERT_TRUE(BasicType::parse("Real") == NTA_BasicType_Real);
   ASSERT_TRUE(BasicType::parse("Handle") == NTA_BasicType_Handle);
+  ASSERT_TRUE(BasicType::parse("Bool") == NTA_BasicType_Bool);
 }
-

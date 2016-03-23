@@ -127,8 +127,15 @@ build_script:
   - cd %REPO_DIR%
 
   - python setup.py sdist bdist bdist_wheel
+
+  # Copy final wheel to REPO_DIR, so that AppVeyor can see it as an artifact
   - ps: copy .\bindings\py\dist\nupic.bindings-$env:BINDINGS_VERSION-cp27-none-$env:wheel_name_suffix.whl .
-  - ps: copy .\nupic.bindings-$env:BINDINGS_VERSION-cp27-none-$env:wheel_name_suffix.whl .\nupic.bindings-$env:APPVEYOR_REPO_COMMIT-cp27-none-$env:wheel_name_suffix.whl
+
+  # Copy final wheel, to appropriately named wheel for use with NuPIC
+  # iterative builds (via nupic\.nupic_modules long-SHA reference).
+  # Ties in with this Pip regex;
+  # https://github.com/pypa/pip/blob/develop/pip/wheel.py#L616
+  - ps: copy .\nupic.bindings-$env:BINDINGS_VERSION-cp27-none-$env:wheel_name_suffix.whl .\nupic.bindings-$env:BINDINGS_VERSION.$env:APPVEYOR_REPO_COMMIT-cp27-none-$env:wheel_name_suffix.whl
 
 after_build:
   - mkdir %ARTIFACTS_DIR%
@@ -163,11 +170,10 @@ on_success:
 #    bucket: "artifacts.numenta.org"
 #    region: us-west-2
 #    set_public: true
-#    artifact: "nupic.bindings-$(APPVEYOR_REPO_COMMIT)-cp27-none-$env:wheel_name_suffix.whl"
+#    artifact: "nupic.bindings-$(BINDINGS_VERSION).$(APPVEYOR_REPO_COMMIT)-cp27-none-$(wheel_name_suffix).whl"
 #    folder: "numenta/nupic.core/releases/nupic.bindings"
 #    on:
 #      branch: master
-
 
 # ZZZ Disable deployment while implementing and debugging win32 build
 deploy: off

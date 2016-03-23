@@ -70,6 +70,9 @@
 //   to a Python float. It provides a constructor and conversion operator.
 //   Python has just one floating point type (not including numpy and 
 //   the complex type).
+//
+// Bool:
+//   A boolean class that maps a C bool to a Python bool.
 // 
 // String: 
 //   A string type that maps to the Python string and provides
@@ -217,6 +220,15 @@ namespace nupic { namespace py
     operator double();
     static double getMax();
     static double getMin();
+  };
+
+  // Bool
+  class Bool : public Ptr
+  {
+  public:
+    Bool(bool b);
+    Bool(PyObject * p);
+    operator bool();
   };
 
   // Tuple
