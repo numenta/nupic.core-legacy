@@ -95,6 +95,7 @@ install:
 
   # Check that we have the expected version and architecture for Python
   - "python --version"
+  - "where python"
   - "python -c \"import struct; print(struct.calcsize('P') * 8)\""
 
   # Check NumPy, etc. installed correctly
