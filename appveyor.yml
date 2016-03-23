@@ -32,7 +32,6 @@ clone_depth: 50
 shallow_clone: false
 
 environment:
-  PYTHON_ARCH: "64"
   COMPILER_FAMILY: GCC
   AWS_ACCESS_KEY_ID:
     secure: /9U0mCHp3k1U8Y5CY/kDqwCKG2gqchG/T/UlVWo8SME=
@@ -43,8 +42,12 @@ environment:
     secure: UgABryPYZg823OcD1XRosA==
 
   matrix:
+    # Win64
     - PYTHON_VERSION: "2.7.9"
+      PYTHON_ARCH: "64"
       PYTHONHOME: "C:\\Python27-x64"
+      external_static_subdir: "windows64-gcc"
+      wheel_name_suffix: "win_amd64"
 
 #---------------------------------#
 #       build configuration       #
@@ -52,17 +55,13 @@ environment:
 
 configuration: Release
 
-#cache:
-#  - C:\mingwpy_amd64_vc90.7z
-#  - C:\libpython-cp27-none-win_amd64.7z
-#  - C:\numpy-1.9.1+openblas-cp27-none-win_amd64.whl
-
 install:
   - set NUPIC_DEPLOYMENT_BUILD=1
 
   - set REPO_DIR=c:\projects\nupic-core
   - set NUPIC_CORE_DIR=%REPO_DIR%\build\release
-  - set EXT_LIBS=%REPO_DIR%\external\windows64-gcc\lib
+  - set EXTERNAL_WINDOWS_DIR=%REPO_DIR%\external\%external_static_subdir%
+  - set EXT_LIBS=%EXTERNAL_WINDOWS_DIR%\lib
 
   - set ARTIFACTS_DIR=%REPO_DIR%\build\artifacts
   - for /f %%i in ('type VERSION') do set BINDINGS_VERSION=%%i
@@ -76,29 +75,15 @@ install:
   - cd %REPO_DIR%\ci\appveyor
   - ps: .\install_python_pip.ps1
 
-
-
-#  # Reference: https://bitbucket.org/carlkl/mingw-w64-for-python/downloads/mingwpy-2015-04-readme.md
-#  - ps: $dwntool=New-Object System.Net.WebClient
-#
-#  - ECHO "Installing MinGW-w64 for Python:"
-#  - ps: if (-Not (Test-Path "C:\\mingwpy_amd64_vc90.7z")) { $dwntool.DownloadFile("https://bitbucket.org/carlkl/mingw-w64-for-python/downloads/mingwpy_amd64_vc90.7z", "C:\\mingwpy_amd64_vc90.7z") }
-#  - 7z x C:\\mingwpy_amd64_vc90.7z -oC:\ > null
-#
-#  - ECHO "Installing MinGW-w64 Python 2.7.x libs:"
-#  - ps: if (-Not (Test-Path "C:\\libpython-cp27-none-win_amd64.7z")) { $dwntool.DownloadFile("https://bitbucket.org/carlkl/mingw-w64-for-python/downloads/libpython-cp27-none-win_amd64.7z", "C:\\libpython-cp27-none-win_amd64.7z") }
-#  - 7z x C:\\libpython-cp27-none-win_amd64.7z -oC:\Python27-x64\ > null
-
-  - ECHO "Installing MinGW-w64 for Python:"
-
+  - ECHO "Installing MinGW toolchain for Python:"
   # Install the version of mingwpy toolchain that generates targets compatible
   # with the installed python (Win32 vs. Win64). The compiler tools are
   # installed into %PYTHONHOME%/Scripts/
-  - cmd: "%PYTHONPATH%\\Scripts\\pip.exe install -i https://pypi.anaconda.org/carlkl/simple mingwpy"
+  - cmd: "%PYTHONHOME%\\Scripts\\pip.exe install -i https://pypi.anaconda.org/carlkl/simple mingwpy"
   - cmd: "where g++"
 
-  # Setup MinGW-w64 GCC as a valid distutils compiler
-  - cp %REPO_DIR%\external\windows64-gcc\bin\distutils.cfg %PYTHONPATH%\Lib\distutils\distutils.cfg
+  # Setup MinGW GCC as a valid distutils compiler
+  - cp %EXTERNAL_WINDOWS_DIR%\bin\distutils.cfg %PYTHONHOME%\Lib\distutils\distutils.cfg
 
   # Check that we have the expected version and architecture for Python
   - "python --version"
@@ -133,8 +118,8 @@ build_script:
   - cd %REPO_DIR%
 
   - python setup.py sdist bdist bdist_wheel
-  - ps: copy .\bindings\py\dist\nupic.bindings-$env:BINDINGS_VERSION-cp27-none-win_amd64.whl .
-  - ps: copy .\nupic.bindings-$env:BINDINGS_VERSION-cp27-none-win_amd64.whl .\nupic.bindings-$env:APPVEYOR_REPO_COMMIT-cp27-none-win_amd64.whl
+  - ps: copy .\bindings\py\dist\nupic.bindings-$env:BINDINGS_VERSION-cp27-none-$env:wheel_name_suffix.whl .
+  - ps: copy .\nupic.bindings-$env:BINDINGS_VERSION-cp27-none-$env:wheel_name_suffix.whl .\nupic.bindings-$env:APPVEYOR_REPO_COMMIT-cp27-none-$env:wheel_name_suffix.whl
 
 after_build:
   - mkdir %ARTIFACTS_DIR%
@@ -152,10 +137,12 @@ artifacts:
 
 on_success:
   # Github tagged builds
+  - cmd: echo "executing on_success"
   - ps: >-
       If ($env:APPVEYOR_REPO_TAG -eq "true" -or $env:APPVEYOR_REPO_TAG -eq "True") {
+        Write-Host "Uploading bindings to PYPI"
         pip install httplib requests twine --upgrade
-        twine upload -u $env:PYPI_USERNAME -p $env:PYPI_PASSWORD -r pypi $env:REPO_DIR\bindings\py\dist\nupic.bindings-$env:BINDINGS_VERSION-cp27-none-win_amd64.whl
+        twine upload -u $env:PYPI_USERNAME -p $env:PYPI_PASSWORD -r pypi $env:REPO_DIR\bindings\py\dist\nupic.bindings-$env:BINDINGS_VERSION-cp27-none-$env:wheel_name_suffix.whl
       }
 
 #deploy:
@@ -167,11 +154,11 @@ on_success:
 #    bucket: "artifacts.numenta.org"
 #    region: us-west-2
 #    set_public: true
-#    artifact: "nupic.bindings-$(APPVEYOR_REPO_COMMIT)-cp27-none-win_amd64.whl"
+#    artifact: "nupic.bindings-$(APPVEYOR_REPO_COMMIT)-cp27-none-$env:wheel_name_suffix.whl"
 #    folder: "numenta/nupic.core/releases/nupic.bindings"
 #    on:
 #      branch: master
 
 
-# Disable deployment while implementing and debugging win32 build
+# ZZZ Disable deployment while implementing and debugging win32 build
 deploy: off
