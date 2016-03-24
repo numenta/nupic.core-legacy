@@ -290,15 +290,15 @@ find_library(LIB_STATIC_YAML_CPP_LOC
              NO_DEFAULT_PATH)
 add_library(${LIB_STATIC_YAML_CPP} STATIC IMPORTED GLOBAL)
 
-#
-# Find and add libz
-#
-set(LIB_STATIC_Z z)
-find_library(LIB_STATIC_Z_LOC
-             ${LIB_STATIC_Z}
-             "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}/lib/"
-             NO_DEFAULT_PATH)
-add_library(${LIB_STATIC_Z} STATIC IMPORTED GLOBAL)
+##
+## Find and add libz
+##
+#set(LIB_STATIC_Z z)
+#find_library(LIB_STATIC_Z_LOC
+#             ${LIB_STATIC_Z}
+#             "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}/lib/"
+#             NO_DEFAULT_PATH)
+#add_library(${LIB_STATIC_Z} STATIC IMPORTED GLOBAL)
 
 #
 # Setup for python

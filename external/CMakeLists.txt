@@ -36,12 +36,6 @@ set(INCLUDE_PRE ${EP_BASE}/Install/include)
 # The full prefix path for binaries.
 set(BIN_PRE ${EP_BASE}/Install/bin)
 
-# Add vendored prebuilt library include paths.
-# ZZZ need to use generated includes instead of PLATFORM_SUFFIX includes
-list(APPEND EXTERNAL_INCLUDE_DIRS
-     "${PROJECT_SOURCE_DIR}/${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}/include"
-     "${PROJECT_SOURCE_DIR}/common/include")
-
 include(ExternalProject)
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
@@ -51,6 +45,13 @@ include(CapnProto)
 include(Swig)
 
 include(Zlib)
+list(APPEND EXTERNAL_INCLUDE_DIRS ${LIB_STATIC_Z_INC_DIR})
+
+# Add vendored prebuilt library include paths.
+# ZZZ need to use generated includes instead of PLATFORM_SUFFIX includes
+list(APPEND EXTERNAL_INCLUDE_DIRS
+     "${PROJECT_SOURCE_DIR}/${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}/include"
+     "${PROJECT_SOURCE_DIR}/common/include")
 
 # Convenience variable that wraps all external include directories.
 list(APPEND EXTERNAL_INCLUDE_DIRS ${CAPNP_INCLUDE_DIRS})
