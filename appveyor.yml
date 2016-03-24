@@ -121,7 +121,7 @@ install:
       -DPY_EXTENSIONS_DIR=%REPO_DIR%\bindings\py\nupic\bindings
       %REPO_DIR%
 
-  if defined VCVARS call "%VCVARS%"
+  if defined VCVARS call "%vcvars%"
 
 build_script:
   - cd %REPO_DIR%\build\scripts
