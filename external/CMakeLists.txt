@@ -44,6 +44,8 @@ include(CapnProto)
 
 include(Swig)
 
+include(YamlLib)
+
 include(Zlib)
 list(APPEND EXTERNAL_INCLUDE_DIRS ${LIB_STATIC_Z_INC_DIR})
 

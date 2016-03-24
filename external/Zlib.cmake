@@ -19,6 +19,11 @@
 # http://numenta.org/licenses/
 # -----------------------------------------------------------------------------
 
+# Creates ExternalProject for building z lib static library
+#
+# Exports:
+#   LIB_STATIC_Z_INC_DIR: directory of installed z lib headers
+#   LIB_STATIC_Z_LOC: path to installed static z lib
 
 get_filename_component(REPOSITORY_DIR ${PROJECT_SOURCE_DIR}/.. ABSOLUTE)
 
@@ -35,7 +40,7 @@ else()
 endif()
 
 
-# Export directory of z lib headers to parent
+# Export directory of installed z lib headers to parent
 set(LIB_STATIC_Z_INC_DIR ${ZLIB_INSTALL_INC_DIR} PARENT_SCOPE)
 
 # Export path to installed static z lib to parent
