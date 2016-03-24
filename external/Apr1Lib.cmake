@@ -39,8 +39,7 @@ set(LIB_STATIC_APR1_INC_DIR ${LIB_STATIC_APR1_INC_DIR} PARENT_SCOPE)
 # Export path to installed static apr-1 lib to parent
 set(LIB_STATIC_APR1_LOC ${APRLIB_INSTALL_LIB_DIR}/${STATIC_PRE}apr-1${STATIC_SUF} PARENT_SCOPE)
 
-ExternalProject_Add(
-    Apr1StaticLib
+ExternalProject_Add(Apr1StaticLib
     SOURCE_DIR ${APRLIB_SOURCE_DIR}
     UPDATE_COMMAND ""
 

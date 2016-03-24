@@ -35,8 +35,7 @@ set(YAMLLIB_INSTALL_LIB_DIR ${YAMLLIB_INSTALL_PREFIX}/lib)
 # Export path to installed static yaml lib to parent
 set(LIB_STATIC_YAML_LOC ${YAMLLIB_BUILD_DIR}/${STATIC_PRE}yaml${STATIC_SUF} PARENT_SCOPE)
 
-ExternalProject_Add(
-    YamlStaticLib
+ExternalProject_Add(YamlStaticLib
     SOURCE_DIR ${YAMLLIB_SOURCE_DIR}
     UPDATE_COMMAND ""
 

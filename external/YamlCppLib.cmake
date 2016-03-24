@@ -38,8 +38,8 @@ set(LIB_STATIC_YAML_CPP_INC_DIR ${LIB_STATIC_YAML_CPP_INC_DIR} PARENT_SCOPE)
 # Export path to installed static yaml-cpp to parent
 set(LIB_STATIC_YAML_CPP_LOC ${YAMLCPPLIB_INSTALL_LIB_DIR}/${STATIC_PRE}yaml-cpp${STATIC_SUF} PARENT_SCOPE)
 
-ExternalProject_Add(
-    YamlCppStaticLib
+ExternalProject_Add(YamlCppStaticLib
+    DEPENDS YamlStaticLib
     SOURCE_DIR ${YAMLCPPLIB_SOURCE_DIR}
     UPDATE_COMMAND ""
 

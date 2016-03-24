@@ -39,8 +39,8 @@ set(LIB_STATIC_APRUTIL1_INC_DIR ${LIB_STATIC_APRUTIL1_INC_DIR} PARENT_SCOPE)
 # Export path to installed static aprutil-1 lib to parent
 set(LIB_STATIC_APRUTIL1_LOC ${APRUTILLIB_INSTALL_LIB_DIR}/${STATIC_PRE}aprutil-1${STATIC_SUF} PARENT_SCOPE)
 
-ExternalProject_Add(
-    AprUtil1StaticLib
+ExternalProject_Add(AprUtil1StaticLib
+    DEPENDS Apr1StaticLib
     SOURCE_DIR ${APRUTILLIB_SOURCE_DIR}
     UPDATE_COMMAND ""
 
