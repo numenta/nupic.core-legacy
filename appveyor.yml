@@ -48,7 +48,6 @@ environment:
       PYTHONHOME: "C:\\Python27-x64"
       external_static_subdir: "windows64-gcc"
       wheel_name_suffix: "win_amd64"
-      vcvars: "C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\bin\\amd64\\vcvars64.bat"
 
     # Win32
     - PYTHON_VERSION: "2.7.9"
@@ -56,7 +55,6 @@ environment:
       PYTHONHOME: "C:\\Python27"
       external_static_subdir: "windows32-gcc"
       wheel_name_suffix: "win32"
-      vcvars: "C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\bin\\vcvars32.bat"
 
 #---------------------------------#
 #       build configuration       #
@@ -121,7 +119,6 @@ install:
       -DPY_EXTENSIONS_DIR=%REPO_DIR%\bindings\py\nupic\bindings
       %REPO_DIR%
 
-  - cmd: CALL "%vcvars%"
 
 build_script:
   - cd %REPO_DIR%\build\scripts
