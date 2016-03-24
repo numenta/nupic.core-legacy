@@ -49,6 +49,6 @@ ExternalProject_Add(Apr1StaticLib
     # (reference: https://bz.apache.org/bugzilla/show_bug.cgi?id=56342)
     CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
         #-DBUILD_SHARED_LIBS=OFF
-        #-DCMAKE_C_FLAGS="-DCOM_NO_WINDOWS_H"
+        -DCMAKE_C_FLAGS="-DCOM_NO_WINDOWS_H"
         -DCMAKE_INSTALL_PREFIX=${APRLIB_INSTALL_PREFIX}
 )
