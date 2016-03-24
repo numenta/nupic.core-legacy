@@ -249,57 +249,6 @@ set_target_properties(${LIB_STATIC_GTEST}
                       PROPERTIES COMPILE_FLAGS "${COMMON_COMPILE_FLAGS}"
                       LINK_FLAGS "${COMMON_LINK_FLAGS}")
 
-
-#
-# Find and add libapr1
-#
-set(LIB_STATIC_APR1 apr-1)
-find_library(LIB_STATIC_APR1_LOC
-             ${LIB_STATIC_APR1}
-             "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}/lib/"
-             NO_DEFAULT_PATH)
-add_library(${LIB_STATIC_APR1} STATIC IMPORTED GLOBAL)
-
-#
-# Find and add libaprutil-1
-#
-set(LIB_STATIC_APRUTIL1 aprutil-1)
-find_library(LIB_STATIC_APRUTIL1_LOC
-             ${LIB_STATIC_APRUTIL1}
-             "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}/lib/"
-             NO_DEFAULT_PATH)
-add_library(${LIB_STATIC_APRUTIL1} STATIC IMPORTED GLOBAL)
-
-##
-## Find and add libyaml
-##
-#set(LIB_STATIC_YAML yaml)
-#find_library(LIB_STATIC_YAML_LOC
-#             ${LIB_STATIC_YAML}
-#             "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}/lib/"
-#             NO_DEFAULT_PATH)
-#add_library(${LIB_STATIC_YAML} STATIC IMPORTED GLOBAL)
-
-##
-## Find and add libyaml-cpp
-##
-#set(LIB_STATIC_YAML_CPP yaml-cpp)
-#find_library(LIB_STATIC_YAML_CPP_LOC
-#             ${LIB_STATIC_YAML_CPP}
-#             "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}/lib/"
-#             NO_DEFAULT_PATH)
-#add_library(${LIB_STATIC_YAML_CPP} STATIC IMPORTED GLOBAL)
-
-##
-## Find and add libz
-##
-#set(LIB_STATIC_Z z)
-#find_library(LIB_STATIC_Z_LOC
-#             ${LIB_STATIC_Z}
-#             "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}/lib/"
-#             NO_DEFAULT_PATH)
-#add_library(${LIB_STATIC_Z} STATIC IMPORTED GLOBAL)
-
 #
 # Setup for python
 #
@@ -648,6 +597,8 @@ add_custom_target(tests_all
 # Dependencies of the combined nupic.core static lib
 set(NUPICCORE_COMBINED_DEPS
     ${LIB_STATIC_NUPICCORE}
+    Apr1StaticLib
+    AprUtil1StaticLib
     ZStaticLib
     YamlStaticLib
     YamlCppStaticLib)

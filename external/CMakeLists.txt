@@ -44,6 +44,14 @@ include(CapnProto)
 
 include(Swig)
 
+include(Apr1Lib)
+list(APPEND EXTERNAL_INCLUDE_DIRS ${LIB_STATIC_APR1_INC_DIR})
+
+# AprUtil1Lib MUST be imported after Apr1Lib due to depencies on exported
+# properties
+include(AprUtil1Lib)
+list(APPEND EXTERNAL_INCLUDE_DIRS ${LIB_STATIC_APRUTIL1_INC_DIR})
+
 include(YamlLib)
 
 include(YamlCppLib)
@@ -53,9 +61,7 @@ include(Zlib)
 list(APPEND EXTERNAL_INCLUDE_DIRS ${LIB_STATIC_Z_INC_DIR})
 
 # Add vendored prebuilt library include paths.
-# ZZZ need to use generated includes instead of PLATFORM_SUFFIX includes
 list(APPEND EXTERNAL_INCLUDE_DIRS
-     "${PROJECT_SOURCE_DIR}/${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}/include"
      "${PROJECT_SOURCE_DIR}/common/include")
 
 # Convenience variable that wraps all external include directories.
