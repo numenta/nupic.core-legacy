@@ -41,7 +41,8 @@ endif()
 
 
 # Export directory of installed z lib headers to parent
-set(LIB_STATIC_Z_INC_DIR ${ZLIB_INSTALL_INC_DIR} PARENT_SCOPE)
+set(LIB_STATIC_Z_INC_DIR ${ZLIB_INSTALL_INC_DIR})
+set(LIB_STATIC_Z_INC_DIR ${LIB_STATIC_Z_INC_DIR} PARENT_SCOPE)
 
 # Export path to installed static z lib to parent
 set(LIB_STATIC_Z_LOC ${ZLIB_INSTALL_LIB_DIR}/${STATIC_PRE}${ZLIB_OUTPUT_ROOT}${STATIC_SUF} PARENT_SCOPE)
