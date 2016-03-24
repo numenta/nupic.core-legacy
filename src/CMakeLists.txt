@@ -280,15 +280,15 @@ add_library(${LIB_STATIC_APRUTIL1} STATIC IMPORTED GLOBAL)
 #             NO_DEFAULT_PATH)
 #add_library(${LIB_STATIC_YAML} STATIC IMPORTED GLOBAL)
 
-#
-# Find and add libyaml-cpp
-#
-set(LIB_STATIC_YAML_CPP yaml-cpp)
-find_library(LIB_STATIC_YAML_CPP_LOC
-             ${LIB_STATIC_YAML_CPP}
-             "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}/lib/"
-             NO_DEFAULT_PATH)
-add_library(${LIB_STATIC_YAML_CPP} STATIC IMPORTED GLOBAL)
+##
+## Find and add libyaml-cpp
+##
+#set(LIB_STATIC_YAML_CPP yaml-cpp)
+#find_library(LIB_STATIC_YAML_CPP_LOC
+#             ${LIB_STATIC_YAML_CPP}
+#             "${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}/lib/"
+#             NO_DEFAULT_PATH)
+#add_library(${LIB_STATIC_YAML_CPP} STATIC IMPORTED GLOBAL)
 
 ##
 ## Find and add libz
@@ -645,7 +645,7 @@ add_custom_target(tests_all
                   COMMENT "Running all tests"
                   VERBATIM)
 
-set(EXTERNAL_STATIC_LIB_DEPS ZlibStaticLib YamlLibStaticLib)
+set(EXTERNAL_STATIC_LIB_DEPS ZlibStaticLib YamlLibStaticLib YamlCppLibStaticLib)
 
 if(UNIX OR MSYS OR MINGW)
   set(LIB_STATIC_NUPICCORE_COMBINED "${PROJECT_BINARY_DIR}/libnupic_core.a")

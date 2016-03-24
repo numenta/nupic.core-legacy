@@ -46,6 +46,9 @@ include(Swig)
 
 include(YamlLib)
 
+include(YamlCppLib)
+list(APPEND EXTERNAL_INCLUDE_DIRS ${LIB_STATIC_YAML_CPP_INC_DIR})
+
 include(Zlib)
 list(APPEND EXTERNAL_INCLUDE_DIRS ${LIB_STATIC_Z_INC_DIR})
 
