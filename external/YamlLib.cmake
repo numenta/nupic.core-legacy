@@ -29,14 +29,14 @@ get_filename_component(REPOSITORY_DIR ${PROJECT_SOURCE_DIR}/.. ABSOLUTE)
 
 set(YAMLLIB_SOURCE_DIR ${REPOSITORY_DIR}/external/common/share/yaml/yaml-0.1.5)
 # NOTE Yaml lib doesn't have an install target and leaves artifacts in build dir
-set(YAMLLIB_BUILD_DIR ${EP_BASE}/Build/YamlLibStaticLib)
+set(YAMLLIB_BUILD_DIR ${EP_BASE}/Build/YamlStaticLib)
 set(YAMLLIB_INSTALL_LIB_DIR ${YAMLLIB_INSTALL_PREFIX}/lib)
 
 # Export path to installed static yaml lib to parent
 set(LIB_STATIC_YAML_LOC ${YAMLLIB_BUILD_DIR}/${STATIC_PRE}yaml${STATIC_SUF} PARENT_SCOPE)
 
 ExternalProject_Add(
-    YamlLibStaticLib
+    YamlStaticLib
     SOURCE_DIR ${YAMLLIB_SOURCE_DIR}
     UPDATE_COMMAND ""
 

@@ -645,7 +645,12 @@ add_custom_target(tests_all
                   COMMENT "Running all tests"
                   VERBATIM)
 
-set(EXTERNAL_STATIC_LIB_DEPS ZlibStaticLib YamlLibStaticLib YamlCppLibStaticLib)
+# Dependencies of the combined nupic.core static lib
+set(NUPICCORE_COMBINED_DEPS
+    ${LIB_STATIC_NUPICCORE}
+    ZStaticLib
+    YamlStaticLib
+    YamlCppStaticLib)
 
 if(UNIX OR MSYS OR MINGW)
   set(LIB_STATIC_NUPICCORE_COMBINED "${PROJECT_BINARY_DIR}/libnupic_core.a")
@@ -658,7 +663,7 @@ if(UNIX OR MSYS OR MINGW)
                        COMMAND ${CMAKE_AR} -x ${LIB_STATIC_APR1_LOC}
                        COMMAND ${CMAKE_AR} -x ${LIB_STATIC_Z_LOC}
                        COMMAND ${CMAKE_AR} rcs ${LIB_STATIC_NUPICCORE_COMBINED} *.o *.obj
-                       DEPENDS ${LIB_STATIC_NUPICCORE} ${EXTERNAL_STATIC_LIB_DEPS})
+                       DEPENDS ${NUPICCORE_COMBINED_DEPS})
   else()
     add_custom_command(OUTPUT ${LIB_STATIC_NUPICCORE_COMBINED}
                        COMMAND ${CMAKE_AR} -x $<TARGET_FILE:${LIB_STATIC_NUPICCORE}>
@@ -668,7 +673,7 @@ if(UNIX OR MSYS OR MINGW)
                        COMMAND ${CMAKE_AR} -x ${LIB_STATIC_APR1_LOC}
                        COMMAND ${CMAKE_AR} -x ${LIB_STATIC_Z_LOC}
                        COMMAND ${CMAKE_AR} rcs ${LIB_STATIC_NUPICCORE_COMBINED} *.o
-                       DEPENDS ${LIB_STATIC_NUPICCORE} ${EXTERNAL_STATIC_LIB_DEPS})
+                       DEPENDS ${NUPICCORE_COMBINED_DEPS})
   endif()
 else()
   set(LIB_STATIC_NUPICCORE_COMBINED "${PROJECT_BINARY_DIR}/nupic_core.lib")
@@ -680,7 +685,7 @@ else()
                              ${LIB_STATIC_APRUTIL1_LOC}
                              ${LIB_STATIC_APR1_LOC}
                              ${LIB_STATIC_Z_LOC}
-                     DEPENDS ${LIB_STATIC_NUPICCORE} ${EXTERNAL_STATIC_LIB_DEPS}
+                     DEPENDS ${NUPICCORE_COMBINED_DEPS}
                      VERBATIM)
 endif()
 
