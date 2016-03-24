@@ -690,6 +690,13 @@ else()
 endif()
 
 
+# Wrap nupic.core combined lib output in custom target to avoid conflict from
+# other dependent targets that may execute in parallel. NOTE Other targets MUST
+# use LibStaticNupicCoreCombinedTarget as a dependency instead of
+# ${LIB_STATIC_NUPICCORE_COMBINED}
+add_custom_target(LibStaticNupicCoreCombinedTarget
+                  DEPENDS ${LIB_STATIC_NUPICCORE_COMBINED})
+
 #
 # Call SWIG to generate wrapper code for Python.
 #
@@ -763,7 +770,7 @@ set_source_files_properties(${SWIG_ALGORITHMS_FILES} PROPERTIES
                             SWIG_FLAGS "${SWIG_FLAGS}")
 set(SWIG_ALGORITHMS algorithms)
 # Make sure we don't attempt to execute the swig executable until it is built.
-set(SWIG_MODULE_${SWIG_ALGORITHMS}_EXTRA_DEPS Swig ${LIB_STATIC_NUPICCORE_COMBINED})
+set(SWIG_MODULE_${SWIG_ALGORITHMS}_EXTRA_DEPS Swig LibStaticNupicCoreCombinedTarget)
 # Create custom command for generating files from SWIG.
 swig_add_module(${SWIG_ALGORITHMS} python
                 ${SWIG_SUPPORT_FILES}
@@ -780,7 +787,7 @@ set_source_files_properties(${SWIG_ENGINE_FILES} PROPERTIES
                             SWIG_FLAGS "${SWIG_FLAGS}")
 set(SWIG_ENGINE engine_internal)
 # Make sure we don't attempt to execute the swig executable until it is built.
-set(SWIG_MODULE_${SWIG_ENGINE}_EXTRA_DEPS Swig ${LIB_STATIC_NUPICCORE_COMBINED})
+set(SWIG_MODULE_${SWIG_ENGINE}_EXTRA_DEPS Swig LibStaticNupicCoreCombinedTarget)
 # Create custom command for generating files from SWIG.
 swig_add_module(${SWIG_ENGINE} python
                 ${SWIG_SUPPORT_FILES}
@@ -797,7 +804,7 @@ set_source_files_properties(${SWIG_MATH_FILES} PROPERTIES
                             SWIG_FLAGS "${SWIG_FLAGS}")
 set(SWIG_MATH math)
 # Make sure we don't attempt to execute the swig executable until it is built.
-set(SWIG_MODULE_${SWIG_MATH}_EXTRA_DEPS Swig ${LIB_STATIC_NUPICCORE_COMBINED})
+set(SWIG_MODULE_${SWIG_MATH}_EXTRA_DEPS Swig LibStaticNupicCoreCombinedTarget)
 # Create custom command for generating files from SWIG.
 swig_add_module(${SWIG_MATH} python
                 ${SWIG_SUPPORT_FILES}
