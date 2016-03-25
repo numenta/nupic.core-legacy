@@ -116,7 +116,7 @@ install:
   # Fake KJ-Async and Capnp-RPC libs, not needed in Lite mode
   # http://www.cmake.org/Wiki/CmakeMingw
   - cd %REPO_DIR%\build\scripts
-  - cmake --debug-output --trace -G "MinGW Makefiles"
+  - cmake -G "MinGW Makefiles"
       -DCMAKE_BUILD_TYPE=Release
       -DCMAKE_INSTALL_PREFIX=%REPO_DIR%\build\release
       -DPY_EXTENSIONS_DIR=%REPO_DIR%\bindings\py\nupic\bindings
