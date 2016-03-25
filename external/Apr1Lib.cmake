@@ -67,19 +67,20 @@ if (UNIX)
                 CFLAGS=${APRLIB_CFLAGS}
 
         BUILD_COMMAND
-            make all
+            make  -f Makefile all
 
         INSTALL_COMMAND
-            make install
+            make  -f Makefile install
     )
 
     ExternalProject_Add_Step(Apr1StaticLib unix_post_install
         COMMENT "Unix/Linux/MacOS Apr1StaticLib install completed"
+        DEPENDEES install
+        ALWAYS 1
+
         COMMAND echo listing ${LIB_STATIC_APR1_INC_DIR} COMMAND ls ${LIB_STATIC_APR1_INC_DIR}
         COMMAND echo listing ${LIB_STATIC_APR1_INC_DIR}/apr-1 COMMAND ls ${LIB_STATIC_APR1_INC_DIR}/apr-1
         COMMAND echo listing ${LIB_STATIC_APR1_LOC} COMMAND ls ${LIB_STATIC_APR1_LOC}
-        DEPENDEES install
-        ALWAYS 1
     )
 
 else()
@@ -98,6 +99,9 @@ else()
             -DAPR_HAVE_IPV6=OFF
             -DCMAKE_C_FLAGS=${APRLIB_CFLAGS}
             -DCMAKE_INSTALL_PREFIX=${APRLIB_INSTALL_PREFIX}
+
+        INSTALL_COMMAND
+            mingw32-make -f Makefile install
     )
 
     set(LIST_TOP_APR1_INC_DIR_CMD "dir ${LIB_STATIC_APR1_INC_DIR}")
@@ -106,13 +110,14 @@ else()
 
     ExternalProject_Add_Step(Apr1StaticLib windows_post_install
         COMMENT "Windows Apr1StaticLib install completed"
+        DEPENDEES install
+        ALWAYS 1
+
         COMMAND echo "Executing ${LIST_TOP_APR1_INC_DIR_CMD}"
         #COMMAND ${LIST_TOP_APR1_INC_DIR_CMD}
         COMMAND echo "Executing ${LIST_INNER_APR1_INC_DIR_CMD}"
         #COMMAND ${LIST_INNER_APR1_INC_DIR_CMD}
         COMMAND echo "Executing ${LIST_LIB_STATIC_APR1_LOC_CMD}"
         #COMMAND ${LIST_LIB_STATIC_APR1_LOC_CMD}
-        DEPENDEES install
-        ALWAYS 1
     )
 endif()
