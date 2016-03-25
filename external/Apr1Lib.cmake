@@ -107,10 +107,12 @@ else()
     set(LIST_INNER_APR1_INC_DIR_CMD "dir ${LIB_STATIC_APR1_INC_DIR}/apr-1")
     set(LIST_LIB_STATIC_APR1_LOC_CMD "dir ${LIB_STATIC_APR1_LOC}")
 
-    ExternalProject_Add_Step(Apr1StaticLib windows_post_build
+    ExternalProject_Add_Step(Apr1StaticLib windows_post_bld
         COMMENT "Windows Apr1StaticLib build completed"
 
-        COMMAND echo "Installing from ${CMAKE_BINARY_DIR}" COMMAND mingw32-make -f Makefile install
+        COMMAND echo "Installing from ${CMAKE_BINARY_DIR}"
+
+        #COMMAND mingw32-make -f Makefile install
 
 #        COMMAND echo "Executing ${LIST_TOP_APR1_INC_DIR_CMD}"
 #        #COMMAND ${LIST_TOP_APR1_INC_DIR_CMD}
@@ -120,5 +122,6 @@ else()
 #        #COMMAND ${LIST_LIB_STATIC_APR1_LOC_CMD}
 
         DEPENDEES build
+        ALWAYS 0
     )
 endif()
