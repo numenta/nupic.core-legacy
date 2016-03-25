@@ -42,19 +42,19 @@ environment:
     secure: UgABryPYZg823OcD1XRosA==
 
   matrix:
-#    # Win64
-#    - PYTHON_VERSION: "2.7.9"
-#      PYTHON_ARCH: "64"
-#      PYTHONHOME: "C:\\Python27-x64"
-#      external_static_subdir: "windows64-gcc"
-#      wheel_name_suffix: "win_amd64"
-
-    # Win32
+    # Win64
     - PYTHON_VERSION: "2.7.9"
-      PYTHON_ARCH: "32"
-      PYTHONHOME: "C:\\Python27"
-      external_static_subdir: "windows32-gcc"
-      wheel_name_suffix: "win32"
+      PYTHON_ARCH: "64"
+      PYTHONHOME: "C:\\Python27-x64"
+      external_static_subdir: "windows64-gcc"
+      wheel_name_suffix: "win_amd64"
+
+#    # Win32
+#    - PYTHON_VERSION: "2.7.9"
+#      PYTHON_ARCH: "32"
+#      PYTHONHOME: "C:\\Python27"
+#      external_static_subdir: "windows32-gcc"
+#      wheel_name_suffix: "win32"
 
 #---------------------------------#
 #       build configuration       #
