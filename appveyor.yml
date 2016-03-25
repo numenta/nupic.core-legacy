@@ -90,7 +90,7 @@ install:
   - cmd: "%PYTHONHOME%\\Scripts\\pip.exe install -i https://pypi.anaconda.org/carlkl/simple mingwpy"
   - cmd: "where g++"
 
-  - cmd: "dir C:\\Python27\\share\\mingwpy\\i686-w64-mingw32\\lib"
+  - cmd: "dir %PYTHONHOME%\\share\\mingwpy"
 
   # Setup MinGW GCC as a valid distutils compiler
   - cp %EXTERNAL_WINDOWS_DIR%\bin\distutils.cfg %PYTHONHOME%\Lib\distutils\distutils.cfg
