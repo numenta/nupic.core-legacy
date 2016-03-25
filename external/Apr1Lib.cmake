@@ -107,11 +107,11 @@ else()
     ExternalProject_Add_Step(Apr1StaticLib windows_post_install
         COMMENT "Windows Apr1StaticLib install completed"
         COMMAND echo "Executing ${LIST_TOP_APR1_INC_DIR_CMD}"
-        COMMAND ${LIST_TOP_APR1_INC_DIR_CMD}
+        #COMMAND ${LIST_TOP_APR1_INC_DIR_CMD}
         COMMAND echo "Executing ${LIST_INNER_APR1_INC_DIR_CMD}"
-        COMMAND ${LIST_INNER_APR1_INC_DIR_CMD}
+        #COMMAND ${LIST_INNER_APR1_INC_DIR_CMD}
         COMMAND echo "Executing ${LIST_LIB_STATIC_APR1_LOC_CMD}"
-        COMMAND ${LIST_LIB_STATIC_APR1_LOC_CMD}
+        #COMMAND ${LIST_LIB_STATIC_APR1_LOC_CMD}
         DEPENDEES install
         ALWAYS 1
     )
