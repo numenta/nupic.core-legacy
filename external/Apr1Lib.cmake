@@ -106,5 +106,6 @@ else()
         COMMAND dir ${LIB_STATIC_APR1_INC_DIR}/apr-1
         COMMAND dir ${LIB_STATIC_APR1_LOC}
         DEPENDEES install
+        ALWAYS 1
     )
 endif()
