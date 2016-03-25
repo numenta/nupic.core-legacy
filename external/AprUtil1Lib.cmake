@@ -91,7 +91,7 @@ else()
             -DAPR_HAS_LDAP=OFF
             -DAPU_HAVE_ODBC=OFF
             -DAPR_INCLUDE_DIR=${LIB_STATIC_APR1_INC_DIR}
-            -DAPR_LIBRARIES=""
+            -DAPR_LIBRARIES=${LIB_STATIC_APR1_LOC}
             -DTEST_STATIC_LIBS=ON
     )
 endif()
