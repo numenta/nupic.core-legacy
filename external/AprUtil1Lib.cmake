@@ -84,6 +84,7 @@ else()
 
         CMAKE_GENERATOR ${CMAKE_GENERATOR}
 
+        # TODO Figure out what to do with INSTALL_PDB. We disabled it because our manual INSTALL_COMMAND was not finding the pdb file and failing.
         CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
             -DBUILD_SHARED_LIBS=OFF
             -DCMAKE_C_FLAGS=${APRUTILLIB_CFLAGS}
@@ -93,5 +94,6 @@ else()
             -DAPR_INCLUDE_DIR=${LIB_STATIC_APR1_INC_DIR}
             -DAPR_LIBRARIES=${LIB_STATIC_APR1_INC_DIR}/../lib/liblibapr-1.dll.a
             -DTEST_STATIC_LIBS=ON
+            -DINSTALL_PDB=OFF
     )
 endif()
