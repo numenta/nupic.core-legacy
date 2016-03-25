@@ -38,11 +38,11 @@ set(LIB_STATIC_APR1_INC_DIR ${LIB_STATIC_APR1_INC_DIR} PARENT_SCOPE)
 # Export path to installed static apr-1 lib to parent
 set(LIB_STATIC_APR1_LOC ${APRLIB_INSTALL_LIB_DIR}/${STATIC_PRE}apr-1${STATIC_SUF} PARENT_SCOPE)
 
+# NOTE -DCOM_NO_WINDOWS_H fixes a bunch of OLE-related build errors on Win32
+# (reference: https://bz.apache.org/bugzilla/show_bug.cgi?id=56342)
 set(APRLIB_CFLAGS "-DCOM_NO_WINDOWS_H")
 
 if (UNIX)
-    set(APRLIB_SOURCE_DIR ${REPOSITORY_DIR}/external/common/share/apr/unix/apr-1.5.2)
-
     set(APRLIB_CONFIG_OPTIONS
         "--enable-static"
         "--disable-shared"
@@ -56,12 +56,13 @@ if (UNIX)
 
 
     ExternalProject_Add(Apr1StaticLib
-        URL ${APRLIB_SOURCE_DIR}
+        URL ${REPOSITORY_DIR}/external/common/share/apr/unix/apr-1.5.2.tar.gz
         UPDATE_COMMAND ""
 
         CONFIGURE_COMMAND
             ${EP_BASE}/Source/Apr1StaticLib/configure
-                --prefix=${APRLIB_INSTALL_PREFIX} ${APRLIB_CONFIG_OPTIONS}
+                --prefix=${APRLIB_INSTALL_PREFIX}
+                ${APRLIB_CONFIG_OPTIONS}
                 CFLAGS=${APRLIB_CFLAGS}
 
         BUILD_COMMAND
@@ -82,8 +83,6 @@ else()
 
         CMAKE_GENERATOR ${CMAKE_GENERATOR}
 
-        # NOTE -DCOM_NO_WINDOWS_H fixes a bunch of OLE-related build errors on Win32
-        # (reference: https://bz.apache.org/bugzilla/show_bug.cgi?id=56342)
         CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
             -DBUILD_SHARED_LIBS=OFF
             -DAPR_HAVE_IPV6=OFF
