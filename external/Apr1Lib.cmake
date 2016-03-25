@@ -29,14 +29,15 @@
 get_filename_component(REPOSITORY_DIR ${PROJECT_SOURCE_DIR}/.. ABSOLUTE)
 
 set(APRLIB_INSTALL_PREFIX ${EP_BASE}/Install/Apr1StaticLib)
-set(LIB_STATIC_APR1_INC_DIR ${APRLIB_INSTALL_PREFIX}/include)
 set(APRLIB_INSTALL_LIB_DIR ${APRLIB_INSTALL_PREFIX}/lib)
+set(LIB_STATIC_APR1_INC_DIR ${APRLIB_INSTALL_PREFIX}/include)
+set(LIB_STATIC_APR1_LOC ${APRLIB_INSTALL_LIB_DIR}/${STATIC_PRE}apr-1${STATIC_SUF})
 
 # Export directory of installed apr-1 lib headers to parent
 set(LIB_STATIC_APR1_INC_DIR ${LIB_STATIC_APR1_INC_DIR} PARENT_SCOPE)
 
 # Export path to installed static apr-1 lib to parent
-set(LIB_STATIC_APR1_LOC ${APRLIB_INSTALL_LIB_DIR}/${STATIC_PRE}apr-1${STATIC_SUF} PARENT_SCOPE)
+set(LIB_STATIC_APR1_LOC ${LIB_STATIC_APR1_LOC} PARENT_SCOPE)
 
 # NOTE -DCOM_NO_WINDOWS_H fixes a bunch of OLE-related build errors on Win32
 # (reference: https://bz.apache.org/bugzilla/show_bug.cgi?id=56342)
@@ -72,6 +73,15 @@ if (UNIX)
             make install
     )
 
+    ExternalProject_Add_Step(Apr1StaticLib unix_post_install
+        COMMENT "Unix/Linux/MacOS Apr1StaticLib install completed"
+        COMMAND echo listing ${LIB_STATIC_APR1_INC_DIR} COMMAND ls ${LIB_STATIC_APR1_INC_DIR}
+        COMMAND echo listing ${LIB_STATIC_APR1_INC_DIR}/apr-1 COMMAND ls ${LIB_STATIC_APR1_INC_DIR}/apr-1
+        COMMAND echo listing ${LIB_STATIC_APR1_LOC} COMMAND ls ${LIB_STATIC_APR1_LOC}
+        DEPENDEES install
+        ALWAYS 1
+    )
+
 else()
     # NOT UNIX - i.e., Windows
 
@@ -88,5 +98,13 @@ else()
             -DAPR_HAVE_IPV6=OFF
             -DCMAKE_C_FLAGS=${APRLIB_CFLAGS}
             -DCMAKE_INSTALL_PREFIX=${APRLIB_INSTALL_PREFIX}
+    )
+
+    ExternalProject_Add_Step(Apr1StaticLib windows_post_install
+        COMMENT "Windows Apr1StaticLib install completed"
+        COMMAND dir ${LIB_STATIC_APR1_INC_DIR}
+        COMMAND dir ${LIB_STATIC_APR1_INC_DIR}/apr-1
+        COMMAND dir ${LIB_STATIC_APR1_LOC}
+        DEPENDEES install
     )
 endif()
