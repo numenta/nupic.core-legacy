@@ -66,10 +66,10 @@ if (UNIX)
                 CFLAGS=${APRUTILLIB_CFLAGS}
 
         BUILD_COMMAND
-            make all
+            make -f Makefile all
 
         INSTALL_COMMAND
-            make install
+            make -f Makefile install
     )
 
 else()

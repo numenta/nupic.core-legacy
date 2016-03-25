@@ -67,10 +67,10 @@ if (UNIX)
                 CFLAGS=${APRLIB_CFLAGS}
 
         BUILD_COMMAND
-            make  -f Makefile all
+            make -f Makefile all
 
         INSTALL_COMMAND
-            make  -f Makefile install
+            make -f Makefile install
     )
 
     ExternalProject_Add_Step(Apr1StaticLib unix_post_install
@@ -108,9 +108,9 @@ else()
     set(LIST_INNER_APR1_INC_DIR_CMD "dir ${LIB_STATIC_APR1_INC_DIR}/apr-1")
     set(LIST_LIB_STATIC_APR1_LOC_CMD "dir ${LIB_STATIC_APR1_LOC}")
 
-    ExternalProject_Add_Step(Apr1StaticLib windows_post_install
-        COMMENT "Windows Apr1StaticLib install completed"
-        DEPENDEES install
+    ExternalProject_Add_Step(Apr1StaticLib windows_post_build
+        COMMENT "Windows Apr1StaticLib build completed"
+        DEPENDEES build
         ALWAYS 1
 
         COMMAND echo "Executing ${LIST_TOP_APR1_INC_DIR_CMD}"
