@@ -110,7 +110,7 @@ else()
     ExternalProject_Add_Step(Apr1StaticLib windows_post_bld
         COMMENT "Windows Apr1StaticLib build completed"
 
-        COMMAND echo "Installing from ${CMAKE_BINARY_DIR}"
+        COMMAND echo "Installing: CMAKE_BINARY_DIR=${CMAKE_BINARY_DIR} CMAKE_CURRENT_BINARY_DIR=${CMAKE_CURRENT_BINARY_DIR} CMAKE_SOURCE_DIR=${CMAKE_SOURCE_DIR}"
 
         #COMMAND mingw32-make -f Makefile install
 
