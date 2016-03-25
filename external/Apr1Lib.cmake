@@ -102,9 +102,9 @@ else()
 
     ExternalProject_Add_Step(Apr1StaticLib windows_post_install
         COMMENT "Windows Apr1StaticLib install completed"
-        COMMAND dir ${LIB_STATIC_APR1_INC_DIR}
-        COMMAND dir ${LIB_STATIC_APR1_INC_DIR}/apr-1
-        COMMAND dir ${LIB_STATIC_APR1_LOC}
+        COMMAND "dir ${LIB_STATIC_APR1_INC_DIR}"
+        COMMAND "dir ${LIB_STATIC_APR1_INC_DIR}/apr-1"
+        COMMAND "dir ${LIB_STATIC_APR1_LOC}"
         DEPENDEES install
         ALWAYS 1
     )
