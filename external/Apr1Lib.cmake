@@ -28,7 +28,6 @@
 
 get_filename_component(REPOSITORY_DIR ${PROJECT_SOURCE_DIR}/.. ABSOLUTE)
 
-set(APRLIB_SOURCE_DIR ${REPOSITORY_DIR}/external/common/share/apr/apr-1.5.2)
 set(APRLIB_INSTALL_PREFIX ${EP_BASE}/Install/Apr1StaticLib)
 set(LIB_STATIC_APR1_INC_DIR ${APRLIB_INSTALL_PREFIX}/include)
 set(APRLIB_INSTALL_LIB_DIR ${APRLIB_INSTALL_PREFIX}/lib)
@@ -39,37 +38,56 @@ set(LIB_STATIC_APR1_INC_DIR ${LIB_STATIC_APR1_INC_DIR} PARENT_SCOPE)
 # Export path to installed static apr-1 lib to parent
 set(LIB_STATIC_APR1_LOC ${APRLIB_INSTALL_LIB_DIR}/${STATIC_PRE}apr-1${STATIC_SUF} PARENT_SCOPE)
 
-message(STATUS "ZZZ Apr1Lib.cmake CMAKE_BUILD_TYPE   = ${CMAKE_BUILD_TYPE}")
-message(STATUS "Apr1Lib.cmake APRLIB_SOURCE_DIR   = ${APRLIB_SOURCE_DIR}")
-message(STATUS "Apr1Lib.cmake CMAKE_GENERATOR   = ${CMAKE_GENERATOR}")
-message(STATUS "Apr1Lib.cmake CMAKE_C_COMPILER   = ${CMAKE_C_COMPILER}")
-message(STATUS "Apr1Lib.cmake CMAKE_C_FLAGS   = ${CMAKE_C_FLAGS}")
-message(STATUS "Apr1Lib.cmake CMAKE_C_FLAGS_DEBUG   = ${CMAKE_C_FLAGS_DEBUG}")
-message(STATUS "Apr1Lib.cmake CMAKE_C_FLAGS_RELEASE   = ${CMAKE_C_FLAGS_RELEASE}")
-message(STATUS "Apr1Lib.cmake CMAKE_C_STANDARD_LIBRARIES   = ${CMAKE_C_STANDARD_LIBRARIES}")
-message(STATUS "Apr1Lib.cmake CMAKE_EXE_LINKER_FLAGS   = ${CMAKE_EXE_LINKER_FLAGS}")
-message(STATUS "Apr1Lib.cmake CMAKE_INSTALL_PREFIX   = ${CMAKE_INSTALL_PREFIX}")
-message(STATUS "Apr1Lib.cmake CMAKE_LINKER   = ${CMAKE_LINKER}")
-message(STATUS "Apr1Lib.cmake CMAKE_MAKE_PROGRAM   = ${CMAKE_MAKE_PROGRAM}")
-message(STATUS "Apr1Lib.cmake CMAKE_NM   = ${CMAKE_NM}")
-message(STATUS "Apr1Lib.cmake CMAKE_OBJCOPY   = ${CMAKE_OBJCOPY}")
-message(STATUS "Apr1Lib.cmake CMAKE_OBJDUMP   = ${CMAKE_OBJDUMP}")
-message(STATUS "Apr1Lib.cmake CMAKE_RANLIB   = ${CMAKE_RANLIB}")
-message(STATUS "Apr1Lib.cmake CMAKE_RC_CMPILER   = ${CMAKE_RC_CMPILER}")
-message(STATUS "Apr1Lib.cmake CMAKE_SH   = ${CMAKE_SH}")
-message(STATUS "Apr1Lib.cmake CMAKE_STRIP   = ${CMAKE_STRIP}")
-message(STATUS "Apr1Lib.cmake CMAKE_STRIP   = ${CMAKE_STRIP}")
+set(APRLIB_CFLAGS "-DCOM_NO_WINDOWS_H")
 
-ExternalProject_Add(Apr1StaticLib
-    SOURCE_DIR ${APRLIB_SOURCE_DIR}
-    UPDATE_COMMAND ""
+if (UNIX)
+    set(APRLIB_SOURCE_DIR ${REPOSITORY_DIR}/external/common/share/apr/unix/apr-1.5.2)
 
-    CMAKE_GENERATOR ${CMAKE_GENERATOR}
+    set(APRLIB_CONFIG_OPTIONS
+        "--enable-static"
+        "--disable-shared"
+        "--disable-ipv6")
 
-    # NOTE -DCOM_NO_WINDOWS_H fixes a bunch of OLE-related build errors on Win32
-    # (reference: https://bz.apache.org/bugzilla/show_bug.cgi?id=56342)
-    CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-        -DBUILD_SHARED_LIBS=OFF
-        -DCMAKE_C_FLAGS="-DCOM_NO_WINDOWS_H"
-        -DCMAKE_INSTALL_PREFIX=${APRLIB_INSTALL_PREFIX}
-)
+    if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+        set(APRLIB_CONFIG_OPTIONS
+            ${APRLIB_CONFIG_OPTIONS}
+            "--enable-debug")
+    endif()
+
+
+    ExternalProject_Add(Apr1StaticLib
+        URL ${APRLIB_SOURCE_DIR}
+        UPDATE_COMMAND ""
+
+        CONFIGURE_COMMAND
+            ${EP_BASE}/Source/Apr1StaticLib/configure
+                --prefix=${APRLIB_INSTALL_PREFIX} ${APRLIB_CONFIG_OPTIONS}
+                CFLAGS=${APRLIB_CFLAGS}
+
+        BUILD_COMMAND
+            make all
+
+        INSTALL_COMMAND
+            make install
+    )
+
+else()
+    # NOT UNIX - i.e., Windows
+
+    set(APRLIB_SOURCE_DIR ${REPOSITORY_DIR}/external/common/share/apr/win/apr-1.5.2)
+
+    ExternalProject_Add(Apr1StaticLib
+        SOURCE_DIR ${APRLIB_SOURCE_DIR}
+        UPDATE_COMMAND ""
+
+        CMAKE_GENERATOR ${CMAKE_GENERATOR}
+
+        # NOTE -DCOM_NO_WINDOWS_H fixes a bunch of OLE-related build errors on Win32
+        # (reference: https://bz.apache.org/bugzilla/show_bug.cgi?id=56342)
+        CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+            -DBUILD_SHARED_LIBS=OFF
+            -DAPR_HAVE_IPV6=OFF
+            -DCMAKE_C_FLAGS=${APRLIB_CFLAGS}
+            -DCMAKE_INSTALL_PREFIX=${APRLIB_INSTALL_PREFIX}
+    )
+endif()
