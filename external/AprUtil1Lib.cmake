@@ -79,7 +79,7 @@ else()
 
     ExternalProject_Add(AprUtil1StaticLib
         DEPENDS Apr1StaticLib
-        SOURCE_DIR ${APRUTILLIB_SOURCE_DIR}
+        URL ${APRUTILLIB_SOURCE_DIR}
         UPDATE_COMMAND ""
 
         CMAKE_GENERATOR ${CMAKE_GENERATOR}
@@ -95,5 +95,7 @@ else()
             -DAPR_LIBRARIES=${LIB_STATIC_APR1_INC_DIR}/../lib/liblibapr-1.dll.a
             -DTEST_STATIC_LIBS=ON
             -DINSTALL_PDB=OFF
+
+        LOG_INSTALL 1
     )
 endif()

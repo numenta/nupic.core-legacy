@@ -89,7 +89,7 @@ else()
     set(APRLIB_SOURCE_DIR ${REPOSITORY_DIR}/external/common/share/apr/win/apr-1.5.2)
 
     ExternalProject_Add(Apr1StaticLib
-        SOURCE_DIR ${APRLIB_SOURCE_DIR}
+        URL ${APRLIB_SOURCE_DIR}
         UPDATE_COMMAND ""
 
         CMAKE_GENERATOR ${CMAKE_GENERATOR}
@@ -105,6 +105,8 @@ else()
         INSTALL_COMMAND echo "INSTALL_COMMAND: EP_BASE=${EP_BASE} CMAKE_BINARY_DIR=${CMAKE_BINARY_DIR} CMAKE_CURRENT_BINARY_DIR=${CMAKE_CURRENT_BINARY_DIR} CMAKE_SOURCE_DIR=${CMAKE_SOURCE_DIR}"
             COMMAND echo "SOURCE_DIR=<SOURCE_DIR>, BINARY_DIR=<BINARY_DIR>, INSTALL_DIR=<INSTALL_DIR>, and TMP_DIR=<TMP_DIR>"
             COMMAND echo "Installing from <BINARY_DIR>" COMMAND mingw32-make -f <BINARY_DIR>/Makefile install
+
+        LOG_INSTALL 1
     )
 
     set(LIST_TOP_APR1_INC_DIR_CMD "dir ${LIB_STATIC_APR1_INC_DIR}")
@@ -128,5 +130,7 @@ else()
 
         DEPENDEES build
         ALWAYS 0
+
+        LOG 1
     )
 endif()

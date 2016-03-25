@@ -100,6 +100,9 @@ install:
   - "where python"
   - "python -c \"import struct; print(struct.calcsize('P') * 8)\""
 
+  # It's useful to know our cmake version
+  - cmd: cmake --version
+
   # Check NumPy, etc. installed correctly
   - cmd: pip list
 
