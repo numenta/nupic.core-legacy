@@ -39,6 +39,27 @@ set(LIB_STATIC_APR1_INC_DIR ${LIB_STATIC_APR1_INC_DIR} PARENT_SCOPE)
 # Export path to installed static apr-1 lib to parent
 set(LIB_STATIC_APR1_LOC ${APRLIB_INSTALL_LIB_DIR}/${STATIC_PRE}apr-1${STATIC_SUF} PARENT_SCOPE)
 
+message(STATUS "ZZZ Apr1Lib.cmake CMAKE_BUILD_TYPE   = ${CMAKE_BUILD_TYPE}")
+message(STATUS "Apr1Lib.cmake APRLIB_SOURCE_DIR   = ${APRLIB_SOURCE_DIR}")
+message(STATUS "Apr1Lib.cmake CMAKE_GENERATOR   = ${CMAKE_GENERATOR}")
+message(STATUS "Apr1Lib.cmake CMAKE_C_COMPILER   = ${CMAKE_C_COMPILER}")
+message(STATUS "Apr1Lib.cmake CMAKE_C_FLAGS   = ${CMAKE_C_FLAGS}")
+message(STATUS "Apr1Lib.cmake CMAKE_C_FLAGS_DEBUG   = ${CMAKE_C_FLAGS_DEBUG}")
+message(STATUS "Apr1Lib.cmake CMAKE_C_FLAGS_RELEASE   = ${CMAKE_C_FLAGS_RELEASE}")
+message(STATUS "Apr1Lib.cmake CMAKE_C_STANDARD_LIBRARIES   = ${CMAKE_C_STANDARD_LIBRARIES}")
+message(STATUS "Apr1Lib.cmake CMAKE_EXE_LINKER_FLAGS   = ${CMAKE_EXE_LINKER_FLAGS}")
+message(STATUS "Apr1Lib.cmake CMAKE_INSTALL_PREFIX   = ${CMAKE_INSTALL_PREFIX}")
+message(STATUS "Apr1Lib.cmake CMAKE_LINKER   = ${CMAKE_LINKER}")
+message(STATUS "Apr1Lib.cmake CMAKE_MAKE_PROGRAM   = ${CMAKE_MAKE_PROGRAM}")
+message(STATUS "Apr1Lib.cmake CMAKE_NM   = ${CMAKE_NM}")
+message(STATUS "Apr1Lib.cmake CMAKE_OBJCOPY   = ${CMAKE_OBJCOPY}")
+message(STATUS "Apr1Lib.cmake CMAKE_OBJDUMP   = ${CMAKE_OBJDUMP}")
+message(STATUS "Apr1Lib.cmake CMAKE_RANLIB   = ${CMAKE_RANLIB}")
+message(STATUS "Apr1Lib.cmake CMAKE_RC_CMPILER   = ${CMAKE_RC_CMPILER}")
+message(STATUS "Apr1Lib.cmake CMAKE_SH   = ${CMAKE_SH}")
+message(STATUS "Apr1Lib.cmake CMAKE_STRIP   = ${CMAKE_STRIP}")
+message(STATUS "Apr1Lib.cmake CMAKE_STRIP   = ${CMAKE_STRIP}")
+
 ExternalProject_Add(Apr1StaticLib
     SOURCE_DIR ${APRLIB_SOURCE_DIR}
     UPDATE_COMMAND ""
