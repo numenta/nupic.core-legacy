@@ -99,6 +99,8 @@ else()
             -DAPR_HAVE_IPV6=OFF
             -DCMAKE_C_FLAGS=${APRLIB_CFLAGS}
             -DCMAKE_INSTALL_PREFIX=${APRLIB_INSTALL_PREFIX}
+
+        INSTALL_COMMAND ""
     )
 
     set(LIST_TOP_APR1_INC_DIR_CMD "dir ${LIB_STATIC_APR1_INC_DIR}")
@@ -110,14 +112,13 @@ else()
 
         COMMAND echo "Installing from ${CMAKE_BINARY_DIR}" COMMAND mingw32-make -f Makefile install
 
-        COMMAND echo "Executing ${LIST_TOP_APR1_INC_DIR_CMD}"
-        #COMMAND ${LIST_TOP_APR1_INC_DIR_CMD}
-        COMMAND echo "Executing ${LIST_INNER_APR1_INC_DIR_CMD}"
-        #COMMAND ${LIST_INNER_APR1_INC_DIR_CMD}
-        COMMAND echo "Executing ${LIST_LIB_STATIC_APR1_LOC_CMD}"
-        #COMMAND ${LIST_LIB_STATIC_APR1_LOC_CMD}
+#        COMMAND echo "Executing ${LIST_TOP_APR1_INC_DIR_CMD}"
+#        #COMMAND ${LIST_TOP_APR1_INC_DIR_CMD}
+#        COMMAND echo "Executing ${LIST_INNER_APR1_INC_DIR_CMD}"
+#        #COMMAND ${LIST_INNER_APR1_INC_DIR_CMD}
+#        COMMAND echo "Executing ${LIST_LIB_STATIC_APR1_LOC_CMD}"
+#        #COMMAND ${LIST_LIB_STATIC_APR1_LOC_CMD}
 
         DEPENDEES build
-        ALWAYS 1
     )
 endif()
