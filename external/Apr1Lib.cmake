@@ -100,11 +100,18 @@ else()
             -DCMAKE_INSTALL_PREFIX=${APRLIB_INSTALL_PREFIX}
     )
 
+    set(LIST_TOP_APR1_INC_DIR_CMD "dir ${LIB_STATIC_APR1_INC_DIR}")
+    set(LIST_INNER_APR1_INC_DIR_CMD "dir ${LIB_STATIC_APR1_INC_DIR}/apr-1")
+    set(LIST_LIB_STATIC_APR1_LOC_CMD "dir ${LIB_STATIC_APR1_LOC}")
+
     ExternalProject_Add_Step(Apr1StaticLib windows_post_install
         COMMENT "Windows Apr1StaticLib install completed"
-        COMMAND "dir ${LIB_STATIC_APR1_INC_DIR}"
-        COMMAND "dir ${LIB_STATIC_APR1_INC_DIR}/apr-1"
-        COMMAND "dir ${LIB_STATIC_APR1_LOC}"
+        COMMAND echo "Executing ${LIST_TOP_APR1_INC_DIR_CMD}"
+        COMMAND ${LIST_TOP_APR1_INC_DIR_CMD}
+        COMMAND echo "Executing ${LIST_INNER_APR1_INC_DIR_CMD}"
+        COMMAND ${LIST_INNER_APR1_INC_DIR_CMD}
+        COMMAND echo "Executing ${LIST_LIB_STATIC_APR1_LOC_CMD}"
+        COMMAND ${LIST_LIB_STATIC_APR1_LOC_CMD}
         DEPENDEES install
         ALWAYS 1
     )
