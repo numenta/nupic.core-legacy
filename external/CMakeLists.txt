@@ -47,7 +47,7 @@ include(Swig)
 include(Apr1Lib)
 list(APPEND EXTERNAL_INCLUDE_DIRS
      ${LIB_STATIC_APR1_INC_DIR}
-     ${LIB_STATIC_APR1_INC_DIR}/apr-1
+     "${LIB_STATIC_APR1_INC_DIR}/apr-1"
 )
 
 # AprUtil1Lib MUST be imported after Apr1Lib due to depencies on exported

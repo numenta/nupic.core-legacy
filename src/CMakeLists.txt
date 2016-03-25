@@ -419,6 +419,7 @@ set(LIB_STATIC_NUPICCORE_SRCS
     nupic/utils/StringUtils.cpp
     nupic/utils/TRandom.cpp
     nupic/utils/Watcher.cpp)
+
 set(LIB_STATIC_NUPICCORE_LINK_LIBS
     ${LIB_STATIC_YAML_CPP_LOC}
     ${LIB_STATIC_YAML_LOC}
@@ -427,12 +428,21 @@ set(LIB_STATIC_NUPICCORE_LINK_LIBS
     ${LIB_STATIC_Z_LOC}
     ${COMMON_LIBS}
     ${COMMON_OS_LIBS})
+
 set(LIB_STATIC_NUPICCORE_COMPILE_FLAGS
     "${COMMON_COMPILE_FLAGS} -I${NUMPY_CORE}/include")
 set(LIB_STATIC_NUPICCORE_LINK_FLAGS
     "${COMMON_LINK_FLAGS} -static")
 
 add_library(${LIB_STATIC_NUPICCORE} STATIC ${LIB_STATIC_NUPICCORE_SRCS})
+add_dependencies(${LIB_STATIC_NUPICCORE}
+                 Apr1StaticLib
+                 AprUtil1StaticLib
+                 ZStaticLib
+                 YamlStaticLib
+                 YamlCppStaticLib
+)
+
 target_link_libraries(${LIB_STATIC_NUPICCORE}
                       ${LIB_STATIC_NUPICCORE_LINK_LIBS})
 set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES COMPILE_FLAGS
