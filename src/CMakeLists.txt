@@ -623,7 +623,7 @@ if(UNIX OR MSYS OR MINGW)
                        COMMAND ${CMAKE_AR} -x ${LIB_STATIC_APRUTIL1_LOC}
                        COMMAND ${CMAKE_AR} -x ${LIB_STATIC_APR1_LOC}
                        COMMAND ${CMAKE_AR} -x ${LIB_STATIC_Z_LOC}
-                       COMMAND ${CMAKE_AR} rcs ${LIB_STATIC_NUPICCORE_COMBINED} *.o *.obj
+                       COMMAND ${CMAKE_AR} rcs ${LIB_STATIC_NUPICCORE_COMBINED} *.obj
                        DEPENDS ${NUPICCORE_COMBINED_DEPS})
   else()
     add_custom_command(OUTPUT ${LIB_STATIC_NUPICCORE_COMBINED}
