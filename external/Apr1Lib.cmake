@@ -115,16 +115,17 @@ else()
     ExternalProject_Add_Step(Apr1StaticLib move_installed_headers_to_apr_1
         COMMENT "Windows: moving installed apr headers to include/apr-1, as expected by nupic.core"
 
+        # Move the installed ${LIB_STATIC_APR1_INC_DIR}/*.h to
+        # ${LIB_STATIC_APR1_INC_DIR}/apr-1
         COMMAND
-            # Move the installed ${LIB_STATIC_APR1_INC_DIR}/*.h to
-            # ${LIB_STATIC_APR1_INC_DIR}/apr-1
             ${CMAKE_COMMAND} -DGLOBBING_EXPR=${LIB_STATIC_APR1_INC_DIR}/*.h
                 -DDEST_DIR_PATH=${LIB_STATIC_APR1_INC_DIR}/apr-1
                 -P ${CMAKE_SOURCE_DIR}/external/MoveFilesToNewDir.cmake
-
-            # Copy ${EP_BASE}/Source/Apr1StaticLib/include/arch to
-            # ${LIB_STATIC_APR1_INC_DIR}/apr-1 as expected by nupic.core
+        # Copy ${EP_BASE}/Source/Apr1StaticLib/include/arch to
+        # ${LIB_STATIC_APR1_INC_DIR}/apr-1 as expected by nupic.core
+        COMMAND
             ${CMAKE_COMMAND} -E make_directory ${LIB_STATIC_APR1_INC_DIR}/apr-1/arch
+        COMMAND
             ${CMAKE_COMMAND} -E copy_directory ${EP_BASE}/Source/Apr1StaticLib/include/arch ${LIB_STATIC_APR1_INC_DIR}/apr-1/arch
 
 #        COMMAND echo "\"windows_post_bld: EP_BASE=${EP_BASE} CMAKE_BINARY_DIR=${CMAKE_BINARY_DIR} CMAKE_CURRENT_BINARY_DIR=${CMAKE_CURRENT_BINARY_DIR} CMAKE_SOURCE_DIR=${CMAKE_SOURCE_DIR}\""
