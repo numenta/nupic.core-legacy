@@ -91,7 +91,7 @@ else()
             -DCMAKE_INSTALL_PREFIX=${APRUTILLIB_INSTALL_PREFIX}
             -DAPR_HAS_LDAP=OFF
             -DAPU_HAVE_ODBC=OFF
-            -DAPR_INCLUDE_DIR=${LIB_STATIC_APR1_INC_DIR}
+            -DAPR_INCLUDE_DIR=${LIB_STATIC_APR1_INC_DIR}/apr-1
             -DAPR_LIBRARIES=${LIB_STATIC_APR1_INC_DIR}/../lib/liblibapr-1.dll.a
             -DTEST_STATIC_LIBS=ON
             -DINSTALL_PDB=OFF
