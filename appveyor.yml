@@ -49,12 +49,12 @@ environment:
       external_static_subdir: "windows64-gcc"
       wheel_name_suffix: "win_amd64"
 
-#    # Win32
-#    - PYTHON_VERSION: "2.7.9"
-#      PYTHON_ARCH: "32"
-#      PYTHONHOME: "C:\\Python27"
-#      external_static_subdir: "windows32-gcc"
-#      wheel_name_suffix: "win32"
+    # Win32
+    - PYTHON_VERSION: "2.7.9"
+      PYTHON_ARCH: "32"
+      PYTHONHOME: "C:\\Python27"
+      external_static_subdir: "windows32-gcc"
+      wheel_name_suffix: "win32"
 
 #---------------------------------#
 #       build configuration       #
