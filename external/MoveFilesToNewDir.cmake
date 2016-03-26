@@ -30,6 +30,7 @@
 
 function(move_files_to_new_dir GLOBBING_EXPR DEST_DIR_PATH)
     file(GLOB FILE_PATHS ${GLOBBING_EXPR})
+    string(REPLACE ";" " " FILE_PATHS "${FILE_PATHS}")
     file(MAKE_DIRECTORY ${DEST_DIR_PATH})
     file(COPY ${FILE_PATHS} DESTINATION ${DEST_DIR_PATH})
     file(REMOVE ${FILE_PATHS})
