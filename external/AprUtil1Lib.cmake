@@ -98,4 +98,21 @@ else()
 
         LOG_INSTALL 1
     )
+
+
+    ExternalProject_Add_Step(AprUtil1StaticLib move_installed_headers_to_apr_1
+        COMMENT "Windows: moving installed apr-util headers to include/apr-1, as expected by nupic.core"
+
+        # Move the installed ${LIB_STATIC_APRUTIL1_INC_DIR}/*.h to
+        # ${LIB_STATIC_APRUTIL1_INC_DIR}/apr-1
+        COMMAND
+            ${CMAKE_COMMAND} -DGLOBBING_EXPR=${LIB_STATIC_APRUTIL1_INC_DIR}/*.h
+                -DDEST_DIR_PATH=${LIB_STATIC_APRUTIL1_INC_DIR}/apr-1
+                -P ${CMAKE_SOURCE_DIR}/external/MoveFilesToNewDir.cmake
+
+        DEPENDEES install
+        ALWAYS 0
+
+        #LOG 1
+    )
 endif()
