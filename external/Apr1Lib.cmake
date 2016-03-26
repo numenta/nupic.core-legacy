@@ -115,13 +115,17 @@ else()
     set(LIST_INNER_APR1_INC_DIR_CMD "dir ${LIB_STATIC_APR1_INC_DIR}/apr-1")
     set(LIST_LIB_STATIC_APR1_LOC_CMD "dir ${LIB_STATIC_APR1_LOC}")
 
-    ExternalProject_Add_Step(Apr1StaticLib windows_post_bld
-        COMMENT "Windows Apr1StaticLib build completed"
+    ExternalProject_Add_Step(Apr1StaticLib move_installed_headers_to_apr_1
+        COMMENT "Windows: moving installed apr headers to include/apr-1, as expected by nupic.core"
+
+        COMMAND file(GLOB APR1_HEADERS ${LIB_STATIC_APR1_INC_DIR} *.h)
+            COMMAND file(MAKE_DIRECTORY ${LIB_STATIC_APR1_INC_DIR}/apr-1)
+            COMMAND file(COPY ${APR1_HEADERS} DESTINATION ${LIB_STATIC_APR1_INC_DIR}/apr-1)
+            COMMAND file(REMOVE ${APR1_HEADERS})
 
 #        COMMAND echo "\"windows_post_bld: EP_BASE=${EP_BASE} CMAKE_BINARY_DIR=${CMAKE_BINARY_DIR} CMAKE_CURRENT_BINARY_DIR=${CMAKE_CURRENT_BINARY_DIR} CMAKE_SOURCE_DIR=${CMAKE_SOURCE_DIR}\""
-        COMMAND ${CMAKE_COMMAND} -E echo "\"SOURCE_DIR=<SOURCE_DIR>, BINARY_DIR=<BINARY_DIR>, INSTALL_DIR=<INSTALL_DIR>, and TMP_DIR=<TMP_DIR>\""
+        #COMMAND ${CMAKE_COMMAND} -E echo "\"SOURCE_DIR=<SOURCE_DIR>, BINARY_DIR=<BINARY_DIR>, INSTALL_DIR=<INSTALL_DIR>, and TMP_DIR=<TMP_DIR>\""
 
-        #COMMAND mingw32-make -f Makefile install
 
 #        COMMAND echo "Executing ${LIST_TOP_APR1_INC_DIR_CMD}"
 #        #COMMAND ${LIST_TOP_APR1_INC_DIR_CMD}
@@ -130,7 +134,7 @@ else()
 #        COMMAND echo "Executing ${LIST_LIB_STATIC_APR1_LOC_CMD}"
 #        #COMMAND ${LIST_LIB_STATIC_APR1_LOC_CMD}
 
-        DEPENDEES build
+        DEPENDEES install
         ALWAYS 0
 
         #LOG 1
