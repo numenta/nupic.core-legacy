@@ -116,9 +116,8 @@ else()
         COMMENT "Windows: moving installed apr headers to include/apr-1, as expected by nupic.core"
 
         COMMAND
-            ${CMAKE_COMMAND} -DSRC_DIR_PATH=${LIB_STATIC_APR1_INC_DIR}
-                -DGLOBBING_EXPR="*.h"
-                -DDEST_DIR_PATH="${LIB_STATIC_APR1_INC_DIR}/apr-1"
+            ${CMAKE_COMMAND} -DGLOBBING_EXPR=${LIB_STATIC_APR1_INC_DIR}/*.h
+                -DDEST_DIR_PATH=${LIB_STATIC_APR1_INC_DIR}/apr-1
                 -P MoveFilesToNewDir.cmake
 
 #        COMMAND echo "\"windows_post_bld: EP_BASE=${EP_BASE} CMAKE_BINARY_DIR=${CMAKE_BINARY_DIR} CMAKE_CURRENT_BINARY_DIR=${CMAKE_CURRENT_BINARY_DIR} CMAKE_SOURCE_DIR=${CMAKE_SOURCE_DIR}\""

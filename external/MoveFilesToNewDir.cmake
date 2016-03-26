@@ -24,17 +24,16 @@
 
 # ARGS:
 #
-#  SRC_DIR_PATH
 #  GLOBBING_EXPR
 #  DEST_DIR_PATH
 
 
-function(move_files_to_new_dir SRC_DIR_PATH GLOBBING_EXPR DEST_DIR_PATH)
-    file(GLOB FILE_PATHS ${SRC_DIR_PATH} ${GLOBBING_EXPR})
+function(move_files_to_new_dir GLOBBING_EXPR DEST_DIR_PATH)
+    file(GLOB FILE_PATHS ${GLOBBING_EXPR})
     file(MAKE_DIRECTORY ${DEST_DIR_PATH})
     file(COPY ${FILE_PATHS} DESTINATION ${DEST_DIR_PATH})
     file(REMOVE ${FILE_PATHS})
 endfunction(move_files_to_new_dir)
 
 
-move_files_to_new_dir(${SRC_DIR_PATH} ${GLOBBING_EXPR} ${DEST_DIR_PATH})
+move_files_to_new_dir(${GLOBBING_EXPR} ${DEST_DIR_PATH})
