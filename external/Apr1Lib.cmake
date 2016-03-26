@@ -118,10 +118,11 @@ else()
     ExternalProject_Add_Step(Apr1StaticLib move_installed_headers_to_apr_1
         COMMENT "Windows: moving installed apr headers to include/apr-1, as expected by nupic.core"
 
-        COMMAND file(GLOB APR1_HEADERS ${LIB_STATIC_APR1_INC_DIR} *.h)
-            COMMAND file(MAKE_DIRECTORY ${LIB_STATIC_APR1_INC_DIR}/apr-1)
-            COMMAND file(COPY ${APR1_HEADERS} DESTINATION ${LIB_STATIC_APR1_INC_DIR}/apr-1)
-            COMMAND file(REMOVE ${APR1_HEADERS})
+        COMMAND
+            file(GLOB APR1_HEADERS ${LIB_STATIC_APR1_INC_DIR} *.h)
+            file(MAKE_DIRECTORY ${LIB_STATIC_APR1_INC_DIR}/apr-1)
+            file(COPY ${APR1_HEADERS} DESTINATION ${LIB_STATIC_APR1_INC_DIR}/apr-1)
+            file(REMOVE ${APR1_HEADERS})
 
 #        COMMAND echo "\"windows_post_bld: EP_BASE=${EP_BASE} CMAKE_BINARY_DIR=${CMAKE_BINARY_DIR} CMAKE_CURRENT_BINARY_DIR=${CMAKE_CURRENT_BINARY_DIR} CMAKE_SOURCE_DIR=${CMAKE_SOURCE_DIR}\""
         #COMMAND ${CMAKE_COMMAND} -E echo "\"SOURCE_DIR=<SOURCE_DIR>, BINARY_DIR=<BINARY_DIR>, INSTALL_DIR=<INSTALL_DIR>, and TMP_DIR=<TMP_DIR>\""
