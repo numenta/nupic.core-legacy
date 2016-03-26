@@ -33,7 +33,7 @@ function(move_files_to_new_dir GLOBBING_EXPR DEST_DIR_PATH)
     file(MAKE_DIRECTORY ${DEST_DIR_PATH})
 
     foreach(FILEPATH ${FILE_PATHS})
-            file(COPY ${FILEPATH} DESTINATION ${DEST_DIR_PATH}
+            file(COPY ${FILEPATH} DESTINATION ${DEST_DIR_PATH})
     endforeach()
 
     foreach(FILEPATH ${FILE_PATHS})
