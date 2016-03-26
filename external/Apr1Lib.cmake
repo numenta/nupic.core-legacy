@@ -115,9 +115,10 @@ else()
 
     ExternalProject_Add_Step(Apr1StaticLib windows_post_bld
         COMMENT "Windows Apr1StaticLib build completed"
+        COMMAND echo windows_post_bld is running
 
-        COMMAND echo "\"windows_post_bld: EP_BASE=${EP_BASE} CMAKE_BINARY_DIR=${CMAKE_BINARY_DIR} CMAKE_CURRENT_BINARY_DIR=${CMAKE_CURRENT_BINARY_DIR} CMAKE_SOURCE_DIR=${CMAKE_SOURCE_DIR}\""
-        COMMAND echo "\"SOURCE_DIR=<SOURCE_DIR>, BINARY_DIR=<BINARY_DIR>, INSTALL_DIR=<INSTALL_DIR>, and TMP_DIR=<TMP_DIR>\""
+#        COMMAND echo "\"windows_post_bld: EP_BASE=${EP_BASE} CMAKE_BINARY_DIR=${CMAKE_BINARY_DIR} CMAKE_CURRENT_BINARY_DIR=${CMAKE_CURRENT_BINARY_DIR} CMAKE_SOURCE_DIR=${CMAKE_SOURCE_DIR}\""
+#        COMMAND echo "\"SOURCE_DIR=<SOURCE_DIR>, BINARY_DIR=<BINARY_DIR>, INSTALL_DIR=<INSTALL_DIR>, and TMP_DIR=<TMP_DIR>\""
 
         #COMMAND mingw32-make -f Makefile install
 
