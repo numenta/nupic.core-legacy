@@ -22,24 +22,32 @@
 
 
 def checkImportBindingsInstalled():
+  """Check if nupic.bindings can be imported.
+
+  :returns: None if successful, the import error message if not succesful.
+  """
   try:
     import nupic.bindings
-  except ImportError:
-    return False
+  except ImportError as e:
+    return e.message
   else:
-    return True
+    return None
 
 
 
 def checkImportBindingsExtensions():
+  """Check if bindings libraries can be imported.
+
+  :returns: None if successful, the import error message if not succesful.
+  """
   try:
     import nupic.bindings.math
     import nupic.bindings.algorithms
     import nupic.bindings.engine_internal
-  except ImportError:
-    return False
+  except ImportError as e:
+    return e.message
   else:
-    return True
+    return None
 
 
 
@@ -50,11 +58,17 @@ def checkMain():
   extensions under nupic.bindings. Appropriate user-friendly status messages 
   are printed depend on the outcome.
   """
-  if checkImportBindingsInstalled():
-    if checkImportBindingsExtensions():
-      print "Nupic bindings could be successfully imported."
-    else:
-      print ("Could not import C extensions for nupic.bindings. " +
-        "Make sure that the package was properly installed.")
-  else:
-    print "Could not import nupic.bindings. It must be installed before use."
+  msg = checkImportBindingsInstalled()
+  if msg is not None:
+    print ("Could not import nupic.bindings. It must be installed before use. "
+           "Error message:{}{}".format(os.linesep, msg))
+    return
+
+  msg = checkImportBindingsExtensions()
+  if msg is not None:
+    print ("Could not import C extensions for nupic.bindings. Make sure that "
+           "the package was properly installed. Error message:{}{}".format(
+               os.linesep, msg))
+    return
+
+  print "NuPIC bindings could be successfully imported."

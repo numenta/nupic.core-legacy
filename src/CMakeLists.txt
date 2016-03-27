@@ -41,9 +41,15 @@ endif()
 
 get_filename_component(REPOSITORY_DIR ${PROJECT_SOURCE_DIR}/.. ABSOLUTE)
 
+set(CMAKE_MACOSX_RPATH ON)
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH ON)
+
+
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+  set(CMAKE_INSTALL_RPATH "@loader_path")
   set(STDLIB "-stdlib=libc++")
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+  set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_RPATH}:$ORIGIN")
   set(STDLIB "")
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   set(STDLIB "")
@@ -346,6 +352,46 @@ create_capnpc_command(capnp_specs
                       ${PROJECT_BINARY_DIR}
                       "${CAPNP_ALL}")
 
+message(STATUS "CAPNP_EXECUTABLE     = ${CAPNP_EXECUTABLE}")
+message(STATUS "CAPNP_DEFINITIONS    = ${CAPNP_DEFINITIONS}")
+message(STATUS "CAPNP_INCLUDE_DIRS   = ${CAPNP_INCLUDE_DIRS}")
+message(STATUS "CAPNP_LIBRARIES      = ${CAPNP_LIBRARIES}")
+message(STATUS "CAPNP_LIBRARIES_LITE = ${CAPNP_LIBRARIES_LITE}")
+
+#
+# Static library with Cap'n Proto schema for use in executables and C++
+# clients.
+#
+set(LIB_STATIC_NUPIC_CAPNP_SCHEMA static_nupic_capnp_schema)
+add_library(${LIB_STATIC_NUPIC_CAPNP_SCHEMA} STATIC ${CAPNP_SRCS})
+if(MSVC OR MSYS OR MINGW)
+  target_link_libraries(${LIB_STATIC_NUPIC_CAPNP_SCHEMA} ${CAPNP_LIBRARIES_LITE})
+else()
+  target_link_libraries(${LIB_STATIC_NUPIC_CAPNP_SCHEMA} ${CAPNP_LIBRARIES})
+endif()
+set_target_properties(${LIB_STATIC_NUPIC_CAPNP_SCHEMA} PROPERTIES COMPILE_FLAGS
+                      ${COMMON_COMPILE_FLAGS})
+set_target_properties(${LIB_STATIC_NUPIC_CAPNP_SCHEMA} PROPERTIES LINK_FLAGS
+                      "${COMMON_LINK_FLAGS} -static")
+
+#
+# Shared library with Cap'n Proto schema for use in Python shared libraries.
+# This prevents duplicate schema issues when multiple Python shared libraries
+# link against the same schema.
+#
+set(LIB_SHARED_NUPIC_CAPNP_SCHEMA nupic_capnp_schema)
+add_library(${LIB_SHARED_NUPIC_CAPNP_SCHEMA} SHARED ${CAPNP_SRCS})
+if(MSVC OR MSYS OR MINGW)
+  target_link_libraries(${LIB_SHARED_NUPIC_CAPNP_SCHEMA} ${CAPNP_LIBRARIES_LITE})
+else()
+  target_link_libraries(${LIB_SHARED_NUPIC_CAPNP_SCHEMA} ${CAPNP_LIBRARIES})
+endif()
+set_target_properties(${LIB_SHARED_NUPIC_CAPNP_SCHEMA} PROPERTIES COMPILE_FLAGS
+                      ${COMMON_COMPILE_FLAGS})
+set_target_properties(${LIB_SHARED_NUPIC_CAPNP_SCHEMA} PROPERTIES LINK_FLAGS
+                      ${COMMON_LINK_FLAGS})
+
+
 #
 # Python support
 #
@@ -359,12 +405,6 @@ set (PY_SUPPORT_FILES
 if(NOT "${PLATFORM}" STREQUAL "windows")
   list(APPEND PY_SUPPORT_FILES nupic/py_support/CapnpToPycapnp.cpp)
 endif()
-
-message(STATUS "CAPNP_EXECUTABLE   = ${CAPNP_EXECUTABLE}")
-message(STATUS "CAPNP_DEFINITIONS   = ${CAPNP_DEFINITIONS}")
-message(STATUS "CAPNP_INCLUDE_DIRS  = ${CAPNP_INCLUDE_DIRS}")
-message(STATUS "CAPNP_LIBRARIES     = ${CAPNP_LIBRARIES}")
-message(STATUS "CAPNP_LIBRARIES_LITE= ${CAPNP_LIBRARIES_LITE}")
 
 #
 # Add the pycapnp Python package to includes
@@ -384,10 +424,12 @@ set(LIB_STATIC_NUPICCORE nupic_core_solo)
 if(MSVC OR MSYS OR MINGW)
   set(COMMON_LIBS
       ${PYTHON_LIBRARIES}
+      ${LIB_STATIC_NUPIC_CAPNP_SCHEMA}
       ${CAPNP_LIBRARIES_LITE})
 else()
   set(COMMON_LIBS
       ${PYTHON_LIBRARIES}
+      ${LIB_STATIC_NUPIC_CAPNP_SCHEMA}
       ${CAPNP_LIBRARIES})
 endif()
 
@@ -402,7 +444,6 @@ elseif("${PLATFORM}" STREQUAL "windows")
 endif()
 
 set(LIB_STATIC_NUPICCORE_SRCS
-    ${CAPNP_SRCS}
     ${PY_SUPPORT_FILES}
     nupic/algorithms/BitHistory.cpp
     nupic/algorithms/Cell.cpp
@@ -734,6 +775,7 @@ set(SWIG_SUPPORT_FILES
 
 set(SWIG_LINK_LIBRARIES
     ${LIB_STATIC_NUPICCORE_COMBINED}
+    ${LIB_SHARED_NUPIC_CAPNP_SCHEMA}
     ${PYTHON_LIBRARIES}
     ${COMMON_OS_LIBS})
 
@@ -808,6 +850,7 @@ set_source_files_properties(${SWIG_GENERATED_FILES} ${SWIG_SUPPORT_FILES}
 # If a path is specified, copy extensions files to proper location.
 if (PY_EXTENSIONS_DIR)
   install(TARGETS
+          ${LIB_SHARED_NUPIC_CAPNP_SCHEMA}
           ${SWIG_MODULE_${SWIG_ALGORITHMS}_REAL_NAME}
           ${SWIG_MODULE_${SWIG_ENGINE}_REAL_NAME}
           ${SWIG_MODULE_${SWIG_MATH}_REAL_NAME}
@@ -825,6 +868,8 @@ endif(PY_EXTENSIONS_DIR)
 #
 install(TARGETS
         ${LIB_STATIC_NUPICCORE}
+        ${LIB_STATIC_NUPIC_CAPNP_SCHEMA}
+        ${LIB_SHARED_NUPIC_CAPNP_SCHEMA}
         ${LIB_STATIC_GTEST}
         ${EXECUTABLE_HELLOREGION}
         ${EXECUTABLE_CPPREGIONTEST}
