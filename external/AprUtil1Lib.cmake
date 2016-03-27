@@ -90,7 +90,7 @@ else()
             -DAPR_HAS_LDAP=OFF
             -DAPU_HAVE_ODBC=OFF
             -DAPR_INCLUDE_DIR=${LIB_STATIC_APR1_INC_DIR}/apr-1
-            -DAPR_LIBRARIES=${LIB_STATIC_APR1_INC_DIR}/../lib/liblibapr-1.dll.a
+            -DAPR_LIBRARIES=${LIB_STATIC_APR1_INC_DIR}/../lib/libapr-1.a
             -DINSTALL_PDB=OFF
             #-DCMAKE_STATIC_LINKER_FLAGS=${COMMON_LINK_FLAGS}
 
