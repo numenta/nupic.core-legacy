@@ -25,42 +25,16 @@ project(nupic_core CXX)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set(CMAKE_VERBOSE_MAKEFILE OFF) # toggle for cmake debug
 
-if( POLICY CMP0046 )
-  cmake_policy(VERSION 2.8)
-  # The new policy for add_dependencies is to now error if a dependency target
-  # is not found. The old policy didn't care and continued through configuration
-  cmake_policy(SET CMP0046 OLD)
-endif()
-
-if( POLICY CMP0054 )
-  # The OLD behavior for this policy is to dereference variables and interpret
-  # keywords even if they are quoted or bracketed. The NEW behavior is to not
-  # dereference variables or interpret keywords that have been quoted or bracketed.
-  cmake_policy(SET CMP0054 OLD)
-endif()
-
 get_filename_component(REPOSITORY_DIR ${PROJECT_SOURCE_DIR}/.. ABSOLUTE)
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  set(STDLIB "-stdlib=libc++")
-elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-  set(STDLIB "")
-elseif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-  set(STDLIB "")
+set(COMMON_COMPILE_FLAGS "${COMMON_CXX_FLAGS}")
+if(NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
+    set(COMMON_COMPILE_FLAGS "${COMMON_COMPILE_FLAGS} -Werror")
 endif()
 
-#
-# Identify build type - local or deployment (Travis)
-# the variable NUPIC_DEPLOYMENT_BUILD must be set in travis CI scripts
-#
-if($ENV{NUPIC_DEPLOYMENT_BUILD})
-  message("Doing a deployment build in TravisCI")
-else()
-  message("Doing a local build")
-endif()
-
-# Compiler `-D*` definitions
+# Compiler definitions specific to nupic.core code
 set(COMPILER_DEFINITIONS
+    ${COMMON_COMPILER_DEFINITIONS}
     -DNTA_OS_${PLATFORM_UPPERCASE}
     -DNTA_ARCH_${BITNESS}
     -DHAVE_CONFIG_H
@@ -68,29 +42,10 @@ set(COMPILER_DEFINITIONS
     -DBOOST_NO_WREGEX
     -DNUPIC2
     -DNTA_ASSERTIONS_ON
-    -DNTA_ASM)
-if(UNIX) # or UNIX like (i.e. APPLE and CYGWIN)
-  set(COMPILER_DEFINITIONS ${COMPILER_DEFINITIONS} -DHAVE_UNISTD_H)
-elseif(MSVC OR MSYS OR MINGW)
-  set(COMPILER_DEFINITIONS
-      ${COMPILER_DEFINITIONS}
-      -DPSAPI_VERSION=1
-      -DAPR_DECLARE_STATIC
-      -DAPU_DECLARE_STATIC
-      -DWIN32
-      -D_WINDOWS
-      -D_MBCS
-      -D_CRT_SECURE_NO_WARNINGS
-      -DNDEBUG
-      -D_VARIADIC_MAX=10
-      -DNOMINMAX
-      -DCAPNP_LITE=1)
-  if(MSYS OR MINGW)
-    set(COMPILER_DEFINITIONS
-        ${COMPILER_DEFINITIONS}
-        -DHAVE_UNISTD_H)
-  endif()
-endif()
+    -DNTA_ASM
+    -DAPR_DECLARE_STATIC
+    -DAPU_DECLARE_STATIC)
+
 
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
   set(COMPILER_DEFINITIONS
@@ -111,7 +66,9 @@ elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "MinGW")
       -D_hypot=hypot)
 endif()
 
+
 add_definitions(${COMPILER_DEFINITIONS})
+
 
 #
 # Find Python Interp, min. v2.7
@@ -137,84 +94,6 @@ include_directories(SYSTEM
                     ${PROJECT_BINARY_DIR})
 
 include_directories(${PROJECT_SOURCE_DIR})
-
-#
-# Set linker (ld)
-# use ld.gold if available
-#
-execute_process(COMMAND ld.gold --version RESULT_VARIABLE EXIT_CODE)
-if(EXIT_CODE EQUAL 0)
-  message("Using ld.gold as LINKER.")
-  set(CMAKE_LINKER "ld.gold")
-endif()
-
-if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
-   set(STDLIB "${STDLIB} -static-libgcc -static-libstdc++")
-endif()
-
-#
-# Enable Optimization flags here
-# These are quite aggresive flags, if your code misbehaves
-# for strange reasons, try compiling without them.
-#
-if(NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
-  set(OPTIMIZATION_FLAGS_CC "${OPTIMIZATION_FLAGS_CC} -mtune=generic -O2")
-  set(OPTIMIZATION_FLAGS_CC "-pipe ${OPTIMIZATION_FLAGS_CC}") #TODO use -Ofast instead of -O3
-  set(OPTIMIZATION_FLAGS_LT "-O2 ${OPTIMIZATION_FLAGS_LT}")
-
-  if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" AND NOT MINGW)
-    set(OPTIMIZATION_FLAGS_CC "${OPTIMIZATION_FLAGS_CC} -fuse-linker-plugin -flto-report")
-    set(OPTIMIZATION_FLAGS_CC "${OPTIMIZATION_FLAGS_CC} -flto -fuse-ld=gold") #TODO fix LTO for clang
-    set(OPTIMIZATION_FLAGS_LT "${OPTIMIZATION_FLAGS_LT} -flto") #TODO LTO for clang too
-  endif()
-endif()
-
-
-#
-# compiler specific settings here
-#
-if(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
-  # MS Visual C
-  set(COMMON_COMPILE_FLAGS "/TP /Zc:wchar_t /Gm- /fp:precise /errorReport:prompt /W1 /WX- /GR /Gd /GS /Oy- /EHs /analyze- /nologo")
-  set(COMMON_LINK_FLAGS "/NOLOGO /SAFESEH:NO /NODEFAULTLIB:LIBCMT")
-  if("${BITNESS}" STREQUAL "32")
-    set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} /MACHINE:X86")
-  else()
-    set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} /MACHINE:X${BITNESS}")
-  endif()
-
-else()
-  # LLVM Clang / Gnu GCC
-  set(COMMON_COMPILE_FLAGS "-std=c++11 -m${BITNESS} ${STDLIB} -Wextra -Wreturn-type -Wunused -Wno-unused-variable -Wno-unused-parameter -Wno-missing-field-initializers")
-  if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    set(COMMON_COMPILE_FLAGS "-Werror -Wall -fPIC ${COMMON_COMPILE_FLAGS} -Wno-deprecated-register")
-  endif()
-  set(COMMON_LINK_FLAGS "-m${BITNESS} ${STDLIB}")
-endif()
-
-if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-  set(COMMON_COMPILE_FLAGS "${COMMON_COMPILE_FLAGS} -g")
-  set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} -O0")
-  if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" OR MINGW)
-    set(COMMON_COMPILE_FLAGS "${COMMON_COMPILE_FLAGS} -Og")
-  endif()
-else()
-  set(COMMON_COMPILE_FLAGS "${COMMON_COMPILE_FLAGS} ${OPTIMIZATION_FLAGS_CC}")
-  set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} ${OPTIMIZATION_FLAGS_LT}")
-endif()
-
-if(MINGW)
-  # This is for GCC 4.8.x
-  # http://stackoverflow.com/questions/10660524/error-building-boost-1-49-0-with-gcc-4-7-0
-  set(COMMON_COMPILE_FLAGS "${COMMON_COMPILE_FLAGS} -include cmath")
-endif()
-
-# Set compiler-specific options.
-if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
-  set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} -Wl,--no-undefined")
-elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
-  set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} -Wl,-undefined,error")
-endif()
 
 #
 # Let CMake know where all of the external files are.

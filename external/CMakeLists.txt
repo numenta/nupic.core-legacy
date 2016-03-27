@@ -38,7 +38,7 @@ set(BIN_PRE ${EP_BASE}/Install/bin)
 
 include(ExternalProject)
 
-set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
+set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}")
 
 include(CapnProto)
 

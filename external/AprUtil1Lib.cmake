@@ -28,30 +28,27 @@
 
 get_filename_component(REPOSITORY_DIR ${PROJECT_SOURCE_DIR}/.. ABSOLUTE)
 
-set(APRUTILLIB_INSTALL_PREFIX ${EP_BASE}/Install/AprUtil1StaticLib)
-set(LIB_STATIC_APRUTIL1_INC_DIR ${APRUTILLIB_INSTALL_PREFIX}/include)
-set(APRUTILLIB_INSTALL_LIB_DIR ${APRUTILLIB_INSTALL_PREFIX}/lib)
+set(APRUTILLIB_INSTALL_PREFIX "${EP_BASE}/Install/AprUtil1StaticLib")
+set(LIB_STATIC_APRUTIL1_INC_DIR "${APRUTILLIB_INSTALL_PREFIX}/include")
+set(APRUTILLIB_INSTALL_LIB_DIR "${APRUTILLIB_INSTALL_PREFIX}/lib")
 
 # Export directory of installed aprutil-1 lib headers to parent
-set(LIB_STATIC_APRUTIL1_INC_DIR ${LIB_STATIC_APRUTIL1_INC_DIR} PARENT_SCOPE)
+set(LIB_STATIC_APRUTIL1_INC_DIR "${LIB_STATIC_APRUTIL1_INC_DIR}" PARENT_SCOPE)
 
 # Export path to installed static aprutil-1 lib to parent
-set(LIB_STATIC_APRUTIL1_LOC ${APRUTILLIB_INSTALL_LIB_DIR}/${STATIC_PRE}aprutil-1${STATIC_SUF} PARENT_SCOPE)
+set(LIB_STATIC_APRUTIL1_LOC "${APRUTILLIB_INSTALL_LIB_DIR}/${STATIC_PRE}aprutil-1${STATIC_SUF}" PARENT_SCOPE)
 
 # NOTE -DCOM_NO_WINDOWS_H fixes a bunch of OLE-related build errors in apr-1
 # on Win32 (reference: https://bz.apache.org/bugzilla/show_bug.cgi?id=56342)
-set(APRUTILLIB_CFLAGS "-DCOM_NO_WINDOWS_H")
-
+set(APRUTILLIB_CFLAGS "-DCOM_NO_WINDOWS_H -DAPR_DECLARE_STATIC -DAPU_DECLARE_STATIC")
+set(APRUTILLIB_CFLAGS "${COMMON_C_FLAGS} ${COMMON_COMPILER_DEFINITIONS_STR} ${APRUTILLIB_CFLAGS}")
 
 if (UNIX)
     set(APRUTILLIB_CONFIG_OPTIONS
-        "--disable-util-dso"
-        "--with-apr=${LIB_STATIC_APR1_INC_DIR}/..")
+        --disable-util-dso --with-apr=${LIB_STATIC_APR1_INC_DIR}/..)
 
     if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-        set(APRUTILLIB_CONFIG_OPTIONS
-            ${APRUTILLIB_CONFIG_OPTIONS}
-            "--enable-debug")
+        set(APRUTILLIB_CONFIG_OPTIONS ${APRUTILLIB_CONFIG_OPTIONS} --enable-debug)
     endif()
 
 
@@ -64,6 +61,7 @@ if (UNIX)
                 --prefix=${APRUTILLIB_INSTALL_PREFIX}
                 ${APRUTILLIB_CONFIG_OPTIONS}
                 CFLAGS=${APRUTILLIB_CFLAGS}
+                LDFLAGS=${COMMON_LINK_FLAGS}
 
         BUILD_COMMAND
             make -f Makefile all
@@ -75,7 +73,7 @@ if (UNIX)
 else()
     # NOT UNIX - i.e., Windows
 
-    set(APRUTILLIB_SOURCE_DIR ${REPOSITORY_DIR}/external/common/share/apr-util/win/apr-util-1.5.4)
+    set(APRUTILLIB_SOURCE_DIR "${REPOSITORY_DIR}/external/common/share/apr-util/win/apr-util-1.5.4")
 
     ExternalProject_Add(AprUtil1StaticLib
         DEPENDS Apr1StaticLib
@@ -89,11 +87,11 @@ else()
             -DBUILD_SHARED_LIBS=OFF
             -DCMAKE_C_FLAGS=${APRUTILLIB_CFLAGS}
             -DCMAKE_INSTALL_PREFIX=${APRUTILLIB_INSTALL_PREFIX}
+            -DCMAKE_STATIC_LINKER_FLAGS=${COMMON_LINK_FLAGS}
             -DAPR_HAS_LDAP=OFF
             -DAPU_HAVE_ODBC=OFF
             -DAPR_INCLUDE_DIR=${LIB_STATIC_APR1_INC_DIR}/apr-1
             -DAPR_LIBRARIES=${LIB_STATIC_APR1_INC_DIR}/../lib/liblibapr-1.dll.a
-            -DTEST_STATIC_LIBS=ON
             -DINSTALL_PDB=OFF
 
         LOG_INSTALL 1

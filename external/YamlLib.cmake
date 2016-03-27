@@ -27,13 +27,18 @@
 
 get_filename_component(REPOSITORY_DIR ${PROJECT_SOURCE_DIR}/.. ABSOLUTE)
 
-set(YAMLLIB_SOURCE_DIR ${REPOSITORY_DIR}/external/common/share/yaml/yaml-0.1.5)
+set(YAMLLIB_SOURCE_DIR "${REPOSITORY_DIR}/external/common/share/yaml/yaml-0.1.5")
 # NOTE Yaml lib doesn't have an install target and leaves artifacts in build dir
-set(YAMLLIB_BUILD_DIR ${EP_BASE}/Build/YamlStaticLib)
-set(YAMLLIB_INSTALL_LIB_DIR ${YAMLLIB_INSTALL_PREFIX}/lib)
+set(YAMLLIB_BUILD_DIR "${EP_BASE}/Build/YamlStaticLib")
+set(YAMLLIB_INSTALL_LIB_DIR "${YAMLLIB_INSTALL_PREFIX}/lib")
 
 # Export path to installed static yaml lib to parent
-set(LIB_STATIC_YAML_LOC ${YAMLLIB_BUILD_DIR}/${STATIC_PRE}yaml${STATIC_SUF} PARENT_SCOPE)
+set(LIB_STATIC_YAML_LOC "${YAMLLIB_BUILD_DIR}/${STATIC_PRE}yaml${STATIC_SUF}" PARENT_SCOPE)
+
+set(C_FLAGS "${COMMON_C_FLAGS} ${COMMON_COMPILER_DEFINITIONS_STR}")
+
+message(STATUS "ZZZ C_FLAGS=${C_FLAGS}")
+message(STATUS "ZZZ COMMON_LINK_FLAGS=${COMMON_LINK_FLAGS}")
 
 ExternalProject_Add(YamlStaticLib
     SOURCE_DIR ${YAMLLIB_SOURCE_DIR}
@@ -46,5 +51,7 @@ ExternalProject_Add(YamlStaticLib
 
     CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
         -DBUILD_SHARED_LIBS=OFF
+        -DCMAKE_C_FLAGS=${C_FLAGS}
         -DCMAKE_INSTALL_PREFIX=${YAMLLIB_BUILD_DIR}
+        #-DCMAKE_STATIC_LINKER_FLAGS=${COMMON_LINK_FLAGS}
 )
