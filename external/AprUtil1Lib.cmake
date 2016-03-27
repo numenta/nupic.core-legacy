@@ -61,7 +61,7 @@ if (UNIX)
                 --prefix=${APRUTILLIB_INSTALL_PREFIX}
                 ${APRUTILLIB_CONFIG_OPTIONS}
                 CFLAGS=${APRUTILLIB_CFLAGS}
-                LDFLAGS=${COMMON_LINK_FLAGS}
+                #LDFLAGS=${COMMON_LINK_FLAGS}
 
         BUILD_COMMAND
             make -f Makefile all
@@ -87,7 +87,7 @@ else()
             -DBUILD_SHARED_LIBS=OFF
             -DCMAKE_C_FLAGS=${APRUTILLIB_CFLAGS}
             -DCMAKE_INSTALL_PREFIX=${APRUTILLIB_INSTALL_PREFIX}
-            -DCMAKE_STATIC_LINKER_FLAGS=${COMMON_LINK_FLAGS}
+            #-DCMAKE_STATIC_LINKER_FLAGS=${COMMON_LINK_FLAGS}
             -DAPR_HAS_LDAP=OFF
             -DAPU_HAVE_ODBC=OFF
             -DAPR_INCLUDE_DIR=${LIB_STATIC_APR1_INC_DIR}/apr-1
