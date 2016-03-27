@@ -43,6 +43,7 @@ set(aprutillib_cflags "-DCOM_NO_WINDOWS_H -DAPR_DECLARE_STATIC -DAPU_DECLARE_STA
 set(aprutillib_cflags "${COMMON_C_FLAGS} ${COMMON_COMPILER_DEFINITIONS_STR} ${aprutillib_cflags}")
 
 if (UNIX)
+    message(STATUS "ZZZ AprUtil1StaticLib LIB_STATIC_APR1_INC_DIR=${LIB_STATIC_APR1_INC_DIR}")
     set(aprutillib_config_options
         --disable-util-dso --with-apr=${LIB_STATIC_APR1_INC_DIR}/..)
 
@@ -57,7 +58,7 @@ if (UNIX)
 
         CONFIGURE_COMMAND
             ${EP_BASE}/Source/AprUtil1StaticLib/configure
-                --prefix=${APRUTILLIB_INSTALL_PREFIX}
+                --prefix=${aprutillib_install_prefix}
                 ${aprutillib_config_options}
                 CFLAGS=${aprutillib_cflags}
                 #LDFLAGS=${COMMON_LINK_FLAGS}
