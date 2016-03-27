@@ -64,7 +64,6 @@ if (UNIX)
                 --prefix=${aprlib_install_prefix}
                 ${aprlib_config_options}
                 CFLAGS=${aprlib_cflags}
-                #LDFLAGS=${COMMON_LINK_FLAGS}
 
         BUILD_COMMAND
             make -f Makefile all
@@ -101,7 +100,6 @@ else()
             -DCMAKE_C_FLAGS=${aprlib_cflags}
             -DCMAKE_INSTALL_PREFIX=${aprlib_install_prefix}
             -DINSTALL_PDB=OFF
-            #-DCMAKE_STATIC_LINKER_FLAGS=${COMMON_LINK_FLAGS}
 
         #COMMAND ${CMAKE_COMMAND} -E echo "\"INSTALL_COMMAND: EP_BASE=${EP_BASE} CMAKE_BINARY_DIR=${CMAKE_BINARY_DIR} CMAKE_CURRENT_BINARY_DIR=${CMAKE_CURRENT_BINARY_DIR} CMAKE_SOURCE_DIR=${CMAKE_SOURCE_DIR}\""
         #COMMAND ${CMAKE_COMMAND} -E echo "\"SOURCE_DIR=<SOURCE_DIR>, BINARY_DIR=<BINARY_DIR>, INSTALL_DIR=<INSTALL_DIR>, and TMP_DIR=<TMP_DIR>\""

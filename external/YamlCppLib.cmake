@@ -52,5 +52,4 @@ ExternalProject_Add(YamlCppStaticLib
         -DCMAKE_C_FLAGS=${c_flags}
         -DCMAKE_CXX_FLAGS=${cxx_flags}
         -DCMAKE_INSTALL_PREFIX=${yamlcpplib_install_prefix}
-        #-DCMAKE_STATIC_LINKER_FLAGS=${COMMON_LINK_FLAGS}
 )

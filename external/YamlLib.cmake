@@ -52,5 +52,4 @@ ExternalProject_Add(YamlStaticLib
         -DBUILD_SHARED_LIBS=OFF
         -DCMAKE_C_FLAGS=${c_flags}
         -DCMAKE_INSTALL_PREFIX=${yamllib_build_dir}
-        #-DCMAKE_STATIC_LINKER_FLAGS=${COMMON_LINK_FLAGS}
 )
