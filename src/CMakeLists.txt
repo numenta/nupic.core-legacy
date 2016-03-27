@@ -25,12 +25,36 @@ project(nupic_core CXX)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set(CMAKE_VERBOSE_MAKEFILE OFF) # toggle for cmake debug
 
+
+if( POLICY CMP0046 )
+  cmake_policy(VERSION 2.8)
+  # The new policy for add_dependencies is to now error if a dependency target
+  # is not found. The old policy didn't care and continued through configuration
+  cmake_policy(SET CMP0046 OLD)
+endif()
+
+if( POLICY CMP0054 )
+  # The OLD behavior for this policy is to dereference variables and interpret
+  # keywords even if they are quoted or bracketed. The NEW behavior is to not
+  # dereference variables or interpret keywords that have been quoted or bracketed.
+  cmake_policy(SET CMP0054 OLD)
+endif()
+
+
 get_filename_component(REPOSITORY_DIR ${PROJECT_SOURCE_DIR}/.. ABSOLUTE)
+
 
 set(COMMON_COMPILE_FLAGS "${COMMON_CXX_FLAGS}")
 if(NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
     set(COMMON_COMPILE_FLAGS "${COMMON_COMPILE_FLAGS} -Werror")
 endif()
+
+if(MINGW)
+  # This is for GCC 4.8.x
+  # http://stackoverflow.com/questions/10660524/error-building-boost-1-49-0-with-gcc-4-7-0
+  set(COMMON_COMPILE_FLAGS "${COMMON_COMPILE_FLAGS} -include cmath")
+endif()
+
 
 # Compiler definitions specific to nupic.core code
 set(COMPILER_DEFINITIONS

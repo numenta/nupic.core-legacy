@@ -165,12 +165,6 @@ else()
   set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} ${OPTIMIZATION_FLAGS_LT}")
 endif()
 
-if(MINGW)
-  # This is for GCC 4.8.x
-  # http://stackoverflow.com/questions/10660524/error-building-boost-1-49-0-with-gcc-4-7-0
-  set(SHARED_COMPILE_FLAGS "${SHARED_COMPILE_FLAGS} -include cmath")
-endif()
-
 # Set compiler-specific options.
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
   set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} -Wl,--no-undefined")
