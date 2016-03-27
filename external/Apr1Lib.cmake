@@ -28,29 +28,27 @@
 
 get_filename_component(REPOSITORY_DIR ${PROJECT_SOURCE_DIR}/.. ABSOLUTE)
 
-set(APRLIB_INSTALL_PREFIX "${EP_BASE}/Install/Apr1StaticLib")
-set(APRLIB_INSTALL_LIB_DIR "${APRLIB_INSTALL_PREFIX}/lib")
-set(LIB_STATIC_APR1_INC_DIR "${APRLIB_INSTALL_PREFIX}/include")
-set(LIB_STATIC_APR1_LOC "${APRLIB_INSTALL_LIB_DIR}/${STATIC_PRE}apr-1${STATIC_SUF}")
+set(aprlib_install_prefix "${EP_BASE}/Install/Apr1StaticLib")
+set(aprlib_install_lib_dir "${aprlib_install_prefix}/lib")
 
 # Export directory of installed apr-1 lib headers to parent
-set(LIB_STATIC_APR1_INC_DIR "${LIB_STATIC_APR1_INC_DIR}" PARENT_SCOPE)
+set(LIB_STATIC_APR1_INC_DIR "${aprlib_install_prefix}/include")
 
 # Export path to installed static apr-1 lib to parent
-set(LIB_STATIC_APR1_LOC "${LIB_STATIC_APR1_LOC}" PARENT_SCOPE)
+set(LIB_STATIC_APR1_LOC "${aprlib_install_lib_dir}/${STATIC_PRE}apr-1${STATIC_SUF}")
 
 # NOTE -DCOM_NO_WINDOWS_H fixes a bunch of OLE-related build errors on Win32
 # (reference: https://bz.apache.org/bugzilla/show_bug.cgi?id=56342)
-set(APRLIB_CFLAGS "-DCOM_NO_WINDOWS_H -DAPR_DECLARE_STATIC")
-set(APRLIB_CFLAGS "${COMMON_C_FLAGS} ${COMMON_COMPILER_DEFINITIONS_STR} ${APRLIB_CFLAGS}")
+set(aprlib_cflags "-DCOM_NO_WINDOWS_H -DAPR_DECLARE_STATIC")
+set(aprlib_cflags "${COMMON_C_FLAGS} ${COMMON_COMPILER_DEFINITIONS_STR} ${aprlib_cflags}")
 
-message(STATUS "ZZZ APRLIB_CFLAGS=${APRLIB_CFLAGS}")
+message(STATUS "ZZZ aprlib_cflags=${aprlib_cflags}")
 
 if (UNIX)
-    set(APRLIB_CONFIG_OPTIONS --enable-static --disable-shared --disable-ipv6)
+    set(aprlib_config_options --enable-static --disable-shared --disable-ipv6)
 
     if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-        set(APRLIB_CONFIG_OPTIONS ${APRLIB_CONFIG_OPTIONS} --enable-debug)
+        set(aprlib_config_options ${aprlib_config_options} --enable-debug)
     endif()
 
     # PROBLEMS:
@@ -63,9 +61,9 @@ if (UNIX)
 
         CONFIGURE_COMMAND
             ${EP_BASE}/Source/Apr1StaticLib/configure
-                --prefix=${APRLIB_INSTALL_PREFIX}
-                ${APRLIB_CONFIG_OPTIONS}
-                CFLAGS=${APRLIB_CFLAGS}
+                --prefix=${aprlib_install_prefix}
+                ${aprlib_config_options}
+                CFLAGS=${aprlib_cflags}
                 #LDFLAGS=${COMMON_LINK_FLAGS}
 
         BUILD_COMMAND
@@ -88,10 +86,10 @@ if (UNIX)
 else()
     # NOT UNIX - i.e., Windows
 
-    set(APRLIB_SOURCE_DIR "${REPOSITORY_DIR}/external/common/share/apr/win/apr-1.5.2")
+    set(aprlib_source_dir "${REPOSITORY_DIR}/external/common/share/apr/win/apr-1.5.2")
 
     ExternalProject_Add(Apr1StaticLib
-        URL ${APRLIB_SOURCE_DIR}
+        URL ${aprlib_source_dir}
         UPDATE_COMMAND ""
 
         CMAKE_GENERATOR ${CMAKE_GENERATOR}
@@ -100,8 +98,8 @@ else()
         CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
             -DBUILD_SHARED_LIBS=OFF
             -DAPR_HAVE_IPV6=OFF
-            -DCMAKE_C_FLAGS=${APRLIB_CFLAGS}
-            -DCMAKE_INSTALL_PREFIX=${APRLIB_INSTALL_PREFIX}
+            -DCMAKE_C_FLAGS=${aprlib_cflags}
+            -DCMAKE_INSTALL_PREFIX=${aprlib_install_prefix}
             -DINSTALL_PDB=OFF
             #-DCMAKE_STATIC_LINKER_FLAGS=${COMMON_LINK_FLAGS}
 

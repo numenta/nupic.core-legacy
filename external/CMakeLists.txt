@@ -45,6 +45,7 @@ include(CapnProto)
 include(Swig)
 
 include(Apr1Lib)
+message(STATUS "ZZZ LIB_STATIC_APR1_INC_DIR=${LIB_STATIC_APR1_INC_DIR}")
 list(APPEND EXTERNAL_INCLUDE_DIRS
      ${LIB_STATIC_APR1_INC_DIR}
      "${LIB_STATIC_APR1_INC_DIR}/apr-1"

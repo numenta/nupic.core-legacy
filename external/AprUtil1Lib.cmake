@@ -28,27 +28,26 @@
 
 get_filename_component(REPOSITORY_DIR ${PROJECT_SOURCE_DIR}/.. ABSOLUTE)
 
-set(APRUTILLIB_INSTALL_PREFIX "${EP_BASE}/Install/AprUtil1StaticLib")
-set(LIB_STATIC_APRUTIL1_INC_DIR "${APRUTILLIB_INSTALL_PREFIX}/include")
-set(APRUTILLIB_INSTALL_LIB_DIR "${APRUTILLIB_INSTALL_PREFIX}/lib")
+set(aprutillib_install_prefix "${EP_BASE}/Install/AprUtil1StaticLib")
+set(aprutillib_install_lib_dir "${aprutillib_install_prefix}/lib")
 
 # Export directory of installed aprutil-1 lib headers to parent
-set(LIB_STATIC_APRUTIL1_INC_DIR "${LIB_STATIC_APRUTIL1_INC_DIR}" PARENT_SCOPE)
+set(LIB_STATIC_APRUTIL1_INC_DIR "${aprutillib_install_prefix}/include")
 
 # Export path to installed static aprutil-1 lib to parent
-set(LIB_STATIC_APRUTIL1_LOC "${APRUTILLIB_INSTALL_LIB_DIR}/${STATIC_PRE}aprutil-1${STATIC_SUF}" PARENT_SCOPE)
+set(LIB_STATIC_APRUTIL1_LOC "${aprutillib_install_lib_dir}/${STATIC_PRE}aprutil-1${STATIC_SUF}")
 
 # NOTE -DCOM_NO_WINDOWS_H fixes a bunch of OLE-related build errors in apr-1
 # on Win32 (reference: https://bz.apache.org/bugzilla/show_bug.cgi?id=56342)
-set(APRUTILLIB_CFLAGS "-DCOM_NO_WINDOWS_H -DAPR_DECLARE_STATIC -DAPU_DECLARE_STATIC")
-set(APRUTILLIB_CFLAGS "${COMMON_C_FLAGS} ${COMMON_COMPILER_DEFINITIONS_STR} ${APRUTILLIB_CFLAGS}")
+set(aprutillib_cflags "-DCOM_NO_WINDOWS_H -DAPR_DECLARE_STATIC -DAPU_DECLARE_STATIC")
+set(aprutillib_cflags "${COMMON_C_FLAGS} ${COMMON_COMPILER_DEFINITIONS_STR} ${aprutillib_cflags}")
 
 if (UNIX)
-    set(APRUTILLIB_CONFIG_OPTIONS
+    set(aprutillib_config_options
         --disable-util-dso --with-apr=${LIB_STATIC_APR1_INC_DIR}/..)
 
     if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-        set(APRUTILLIB_CONFIG_OPTIONS ${APRUTILLIB_CONFIG_OPTIONS} --enable-debug)
+        set(aprutillib_config_options ${aprutillib_config_options} --enable-debug)
     endif()
 
 
@@ -59,8 +58,8 @@ if (UNIX)
         CONFIGURE_COMMAND
             ${EP_BASE}/Source/AprUtil1StaticLib/configure
                 --prefix=${APRUTILLIB_INSTALL_PREFIX}
-                ${APRUTILLIB_CONFIG_OPTIONS}
-                CFLAGS=${APRUTILLIB_CFLAGS}
+                ${aprutillib_config_options}
+                CFLAGS=${aprutillib_cflags}
                 #LDFLAGS=${COMMON_LINK_FLAGS}
 
         BUILD_COMMAND
@@ -73,11 +72,11 @@ if (UNIX)
 else()
     # NOT UNIX - i.e., Windows
 
-    set(APRUTILLIB_SOURCE_DIR "${REPOSITORY_DIR}/external/common/share/apr-util/win/apr-util-1.5.4")
+    set(aprutillib_source_dir "${REPOSITORY_DIR}/external/common/share/apr-util/win/apr-util-1.5.4")
 
     ExternalProject_Add(AprUtil1StaticLib
         DEPENDS Apr1StaticLib
-        URL ${APRUTILLIB_SOURCE_DIR}
+        URL ${aprutillib_source_dir}
         UPDATE_COMMAND ""
 
         CMAKE_GENERATOR ${CMAKE_GENERATOR}
@@ -85,8 +84,8 @@ else()
         # TODO Figure out what to do with INSTALL_PDB. We disabled it because our manual INSTALL_COMMAND was not finding the pdb file and failing.
         CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
             -DBUILD_SHARED_LIBS=OFF
-            -DCMAKE_C_FLAGS=${APRUTILLIB_CFLAGS}
-            -DCMAKE_INSTALL_PREFIX=${APRUTILLIB_INSTALL_PREFIX}
+            -DCMAKE_C_FLAGS=${aprutillib_cflags}
+            -DCMAKE_INSTALL_PREFIX=${aprutillib_install_prefix}
             -DAPR_HAS_LDAP=OFF
             -DAPU_HAVE_ODBC=OFF
             -DAPR_INCLUDE_DIR=${LIB_STATIC_APR1_INC_DIR}/apr-1

@@ -27,31 +27,30 @@
 
 get_filename_component(REPOSITORY_DIR ${PROJECT_SOURCE_DIR}/.. ABSOLUTE)
 
-set(YAMLCPPLIB_SOURCE_DIR "${REPOSITORY_DIR}/external/common/share/yaml-cpp/yaml-cpp-release-0.3.0")
-set(YAMLCPPLIB_INSTALL_PREFIX "${EP_BASE}/Install/YamlCppStaticLib")
-set(LIB_STATIC_YAML_CPP_INC_DIR "${YAMLCPPLIB_INSTALL_PREFIX}/include")
-set(YAMLCPPLIB_INSTALL_LIB_DIR "${YAMLCPPLIB_INSTALL_PREFIX}/lib")
+set(yamlcpplib_source_dir "${REPOSITORY_DIR}/external/common/share/yaml-cpp/yaml-cpp-release-0.3.0")
+set(yamlcpplib_install_prefix "${EP_BASE}/Install/YamlCppStaticLib")
+set(yamlcpplib_install_lib_dir "${yamlcpplib_install_prefix}/lib")
 
 # Export directory of installed yaml-cpp lib headers to parent
-set(LIB_STATIC_YAML_CPP_INC_DIR "${LIB_STATIC_YAML_CPP_INC_DIR}" PARENT_SCOPE)
+set(LIB_STATIC_YAML_CPP_INC_DIR "${yamlcpplib_install_prefix}/include")
 
 # Export path to installed static yaml-cpp to parent
-set(LIB_STATIC_YAML_CPP_LOC "${YAMLCPPLIB_INSTALL_LIB_DIR}/${STATIC_PRE}yaml-cpp${STATIC_SUF}" PARENT_SCOPE)
+set(LIB_STATIC_YAML_CPP_LOC "${yamlcpplib_install_lib_dir}/${STATIC_PRE}yaml-cpp${STATIC_SUF}")
 
-set(C_FLAGS "${COMMON_C_FLAGS} ${COMMON_COMPILER_DEFINITIONS_STR}")
-set(CXX_FLAGS "${COMMON_CXX_FLAGS} ${COMMON_COMPILER_DEFINITIONS_STR}")
+set(c_flags "${COMMON_C_FLAGS} ${COMMON_COMPILER_DEFINITIONS_STR}")
+set(cxx_flags "${COMMON_CXX_FLAGS} ${COMMON_COMPILER_DEFINITIONS_STR}")
 
 ExternalProject_Add(YamlCppStaticLib
     DEPENDS YamlStaticLib
-    SOURCE_DIR ${YAMLCPPLIB_SOURCE_DIR}
+    SOURCE_DIR ${yamlcpplib_source_dir}
     UPDATE_COMMAND ""
 
     CMAKE_GENERATOR ${CMAKE_GENERATOR}
 
     CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
         -DBUILD_SHARED_LIBS=OFF
-        -DCMAKE_C_FLAGS=${C_FLAGS}
-        -DCMAKE_CXX_FLAGS=${CXX_FLAGS}
-        -DCMAKE_INSTALL_PREFIX=${YAMLCPPLIB_INSTALL_PREFIX}
+        -DCMAKE_C_FLAGS=${c_flags}
+        -DCMAKE_CXX_FLAGS=${cxx_flags}
+        -DCMAKE_INSTALL_PREFIX=${yamlcpplib_install_prefix}
         #-DCMAKE_STATIC_LINKER_FLAGS=${COMMON_LINK_FLAGS}
 )

@@ -27,45 +27,39 @@
 
 get_filename_component(REPOSITORY_DIR ${PROJECT_SOURCE_DIR}/.. ABSOLUTE)
 
-set(ZLIB_SOURCE_DIR "${REPOSITORY_DIR}/external/common/share/zlib/zlib-1.2.8")
-set(ZLIB_INSTALL_PREFIX "${EP_BASE}/Install/ZStaticLib")
-set(ZLIB_INSTALL_INC_DIR "${ZLIB_INSTALL_PREFIX}/include")
-set(ZLIB_INSTALL_LIB_DIR "${ZLIB_INSTALL_PREFIX}/lib")
+set(zlib_source_dir "${REPOSITORY_DIR}/external/common/share/zlib/zlib-1.2.8")
+set(zlib_install_prefix "${EP_BASE}/Install/ZStaticLib")
+set(zlib_install_lib_dir "${zlib_install_prefix}/lib")
 
 if(UNIX)
     # On unix-like platforms the library is almost always called libz
-   set(ZLIB_OUTPUT_ROOT z)
+   set(zlib_output_root z)
 else()
-   set(ZLIB_OUTPUT_ROOT zlibstatic)
+   set(zlib_output_root zlibstatic)
 endif()
 
 
 # Export directory of installed z lib headers to parent
-set(LIB_STATIC_Z_INC_DIR "${ZLIB_INSTALL_INC_DIR}")
-set(LIB_STATIC_Z_INC_DIR "${LIB_STATIC_Z_INC_DIR}" PARENT_SCOPE)
+set(LIB_STATIC_Z_INC_DIR "${zlib_install_prefix}/include")
 
 # Export path to installed static z lib to parent
-set(LIB_STATIC_Z_LOC "${ZLIB_INSTALL_LIB_DIR}/${STATIC_PRE}${ZLIB_OUTPUT_ROOT}${STATIC_SUF}" PARENT_SCOPE)
+set(LIB_STATIC_Z_LOC "${zlib_install_lib_dir}/${STATIC_PRE}${zlib_output_root}${STATIC_SUF}")
 
-set(C_FLAGS "${COMMON_C_FLAGS} ${COMMON_COMPILER_DEFINITIONS_STR}")
-
-set(LINKER_FLAGS ${COMMON_LINK_FLAGS})
+set(c_flags "${COMMON_C_FLAGS} ${COMMON_COMPILER_DEFINITIONS_STR}")
 
 ExternalProject_Add(ZStaticLib
-    SOURCE_DIR ${ZLIB_SOURCE_DIR}
+    SOURCE_DIR ${zlib_source_dir}
     UPDATE_COMMAND ""
 
     CMAKE_GENERATOR ${CMAKE_GENERATOR}
 
     CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
         -DBUILD_SHARED_LIBS=OFF
-        -DCMAKE_C_FLAGS=${C_FLAGS}
-        -DCMAKE_INSTALL_PREFIX=${ZLIB_INSTALL_PREFIX}
-        -DINSTALL_BIN_DIR=${ZLIB_INSTALL_PREFIX}/bin
-        -DINSTALL_INC_DIR=${ZLIB_INSTALL_INC_DIR}
-        -DINSTALL_LIB_DIR=${ZLIB_INSTALL_LIB_DIR}
-        -DINSTALL_MAN_DIR=${ZLIB_INSTALL_PREFIX}/man
-        -DINSTALL_PKGCONFIG_DIR=${ZLIB_INSTALL_PREFIX}/pkgconfig
-        #-DCMAKE_STATIC_LINKER_FLAGS=${LINKER_FLAGS}
-
+        -DCMAKE_C_FLAGS=${c_flags}
+        -DCMAKE_INSTALL_PREFIX=${zlib_install_prefix}
+        -DINSTALL_BIN_DIR=${zlib_install_prefix}/bin
+        -DINSTALL_INC_DIR=${LIB_STATIC_Z_INC_DIR}
+        -DINSTALL_LIB_DIR=${zlib_install_lib_dir}
+        -DINSTALL_MAN_DIR=${zlib_install_prefix}/man
+        -DINSTALL_PKGCONFIG_DIR=${zlib_install_prefix}/pkgconfig
 )
