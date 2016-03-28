@@ -39,7 +39,7 @@ set(LIB_STATIC_APRUTIL1_LOC "${aprutillib_install_lib_dir}/${STATIC_PRE}aprutil-
 
 # NOTE -DCOM_NO_WINDOWS_H fixes a bunch of OLE-related build errors in apr-1
 # on Win32 (reference: https://bz.apache.org/bugzilla/show_bug.cgi?id=56342)
-set(aprutillib_cflags "-DCOM_NO_WINDOWS_H -DAPR_DECLARE_STATIC -DAPU_DECLARE_STATIC")
+set(aprutillib_cflags "-DCOM_NO_WINDOWS_H -DAPR_DECLARE_STATIC")
 set(aprutillib_cflags "${aprutillib_cflags} -I${LIB_STATIC_APR1_INC_DIR}/apr-1")
 set(aprutillib_cflags "${COMMON_C_FLAGS} ${COMMON_COMPILER_DEFINITIONS_STR} ${aprutillib_cflags}")
 

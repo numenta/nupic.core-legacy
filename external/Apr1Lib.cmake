@@ -39,7 +39,7 @@ set(LIB_STATIC_APR1_LOC "${aprlib_install_lib_dir}/${STATIC_PRE}apr-1${STATIC_SU
 
 # NOTE -DCOM_NO_WINDOWS_H fixes a bunch of OLE-related build errors on Win32
 # (reference: https://bz.apache.org/bugzilla/show_bug.cgi?id=56342)
-set(aprlib_cflags "-DCOM_NO_WINDOWS_H -DAPR_DECLARE_STATIC")
+set(aprlib_cflags "-DCOM_NO_WINDOWS_H")
 set(aprlib_cflags "${COMMON_C_FLAGS} ${COMMON_COMPILER_DEFINITIONS_STR} ${aprlib_cflags}")
 
 message(STATUS "ZZZ aprlib_cflags=${aprlib_cflags}")
