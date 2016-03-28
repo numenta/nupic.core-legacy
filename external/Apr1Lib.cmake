@@ -85,10 +85,12 @@ if (UNIX)
 else()
     # NOT UNIX - i.e., Windows
 
-    set(aprlib_source_dir "${REPOSITORY_DIR}/external/common/share/apr/win/apr-1.5.2")
+    #set(aprlib_source_dir "${REPOSITORY_DIR}/external/common/share/apr/win/apr-1.5.2")
 
     ExternalProject_Add(Apr1StaticLib
-        URL ${aprlib_source_dir}
+        #URL ${aprlib_source_dir}
+        URL ${REPOSITORY_DIR}/external/common/share/apr/unix/apr-1.5.2.tar.gz
+
         UPDATE_COMMAND ""
 
         CMAKE_GENERATOR ${CMAKE_GENERATOR}
