@@ -116,10 +116,16 @@ install:
   - mkdir %REPO_DIR%\build\release
   - mkdir %REPO_DIR%\build\scripts
 
+  # ZZZ Debugging: check if patch is available on appveyor
+  - "where patch"
+
   # Remove sh.exe from the paths (CMake doesn't like it)
   - set PATH=%PATH:C:\Program Files (x86)\Git\bin;=%
   - set PATH=%PATH:C:\Program Files\Git\usr\bin;=%
   - set PATH=%PATH:C:\MinGW\msys\1.0\bin;=%
+
+  # ZZZ Debugging: check if patch is available on appveyor
+  - "where patch"
 
   # Fake KJ-Async and Capnp-RPC libs, not needed in Lite mode
   # http://www.cmake.org/Wiki/CmakeMingw
