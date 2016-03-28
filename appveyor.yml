@@ -42,17 +42,27 @@ environment:
     secure: UgABryPYZg823OcD1XRosA==
 
   matrix:
-    # Win64
+    # Win64-gcc
     - PYTHON_VERSION: "2.7.9"
       PYTHON_ARCH: "64"
       PYTHONHOME: "C:\\Python27-x64"
+      CMAKE_GENERATOR: "MinGW Makefiles"
       external_static_subdir: "windows64-gcc"
       wheel_name_suffix: "win_amd64"
 
-    # Win32
+    # Win64-Visual Studio
+    - PYTHON_VERSION: "2.7.9"
+      PYTHON_ARCH: "64"
+      PYTHONHOME: "C:\\Python27-x64"
+      CMAKE_GENERATOR: "Visual Studio 14 2015 Win64"
+      external_static_subdir: "windows64-gcc"
+      wheel_name_suffix: "win_amd64"
+
+    # Win32-gcc
     - PYTHON_VERSION: "2.7.9"
       PYTHON_ARCH: "32"
       PYTHONHOME: "C:\\Python27"
+      CMAKE_GENERATOR: "MinGW Makefiles"
       external_static_subdir: "windows32-gcc"
       wheel_name_suffix: "win32"
 
@@ -60,6 +70,7 @@ environment:
 matrix:
   allow_failures:
     - PYTHON_ARCH: 32
+    - CMAKE_GENERATOR: "Visual Studio 14 2015 Win64"
 
 #---------------------------------#
 #       build configuration       #
@@ -141,7 +152,7 @@ install:
   # Fake KJ-Async and Capnp-RPC libs, not needed in Lite mode
   # http://www.cmake.org/Wiki/CmakeMingw
   - cd %REPO_DIR%\build\scripts
-  - cmake -G "MinGW Makefiles"
+  - cmake -G %CMAKE_GENERATOR%
       -DCMAKE_BUILD_TYPE=Release
       -DCMAKE_INSTALL_PREFIX=%REPO_DIR%\build\release
       -DPY_EXTENSIONS_DIR=%REPO_DIR%\bindings\py\nupic\bindings
