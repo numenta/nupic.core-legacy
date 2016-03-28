@@ -85,6 +85,7 @@ install:
   # we remove from PATH) to another directory and adding it to PATH
   - mkdir "C:\Program Files\PatchFromGit"
   - ps: copy "C:\Program Files\Git\usr\bin\patch.exe" "C:\Program Files\PatchFromGit"
+  - ps: copy "C:\Program Files\Git\usr\bin\msys*.dll" "C:\Program Files\PatchFromGit"
   - set PATH=C:\Program Files\PatchFromGit;%PATH%
 
   - echo %PATH%
