@@ -44,15 +44,15 @@ endif()
 get_filename_component(REPOSITORY_DIR ${PROJECT_SOURCE_DIR}/.. ABSOLUTE)
 
 
-set(COMMON_COMPILE_FLAGS "${COMMON_CXX_FLAGS}")
+set(src_compile_flags "${COMMON_CXX_FLAGS}")
 if(NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
-    set(COMMON_COMPILE_FLAGS "${COMMON_COMPILE_FLAGS} -Werror")
+    set(src_compile_flags "${src_compile_flags} -Werror")
 endif()
 
 if(MINGW)
   # This is for GCC 4.8.x
   # http://stackoverflow.com/questions/10660524/error-building-boost-1-49-0-with-gcc-4-7-0
-  set(COMMON_COMPILE_FLAGS "${COMMON_COMPILE_FLAGS} -include cmath")
+  set(src_compile_flags "${src_compile_flags} -include cmath")
 endif()
 
 
@@ -149,7 +149,7 @@ add_library(${LIB_STATIC_GTEST}
             STATIC
             ${REPOSITORY_DIR}/external/common/src/gtest/gtest-all.cpp)
 set_target_properties(${LIB_STATIC_GTEST}
-                      PROPERTIES COMPILE_FLAGS "${COMMON_COMPILE_FLAGS}"
+                      PROPERTIES COMPILE_FLAGS "${src_compile_flags}"
                       LINK_FLAGS "${COMMON_LINK_FLAGS}")
 
 #
@@ -333,7 +333,7 @@ set(LIB_STATIC_NUPICCORE_LINK_LIBS
     ${COMMON_OS_LIBS})
 
 set(LIB_STATIC_NUPICCORE_COMPILE_FLAGS
-    "${COMMON_COMPILE_FLAGS} -I${NUMPY_CORE}/include")
+    "${src_compile_flags} -I${NUMPY_CORE}/include")
 set(LIB_STATIC_NUPICCORE_LINK_FLAGS
     "${COMMON_LINK_FLAGS} -static")
 
@@ -362,7 +362,7 @@ set(COMMON_LIBS ${LIB_STATIC_NUPICCORE} ${COMMON_LIBS})
 set(EXECUTABLE_CPPREGIONTEST cpp_region_test)
 add_executable(${EXECUTABLE_CPPREGIONTEST} test/integration/CppRegionTest.cpp)
 target_link_libraries(${EXECUTABLE_CPPREGIONTEST} ${COMMON_LIBS})
-set_target_properties(${EXECUTABLE_CPPREGIONTEST} PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
+set_target_properties(${EXECUTABLE_CPPREGIONTEST} PROPERTIES COMPILE_FLAGS ${src_compile_flags})
 set_target_properties(${EXECUTABLE_CPPREGIONTEST} PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
 add_custom_target(tests_cpp_region
                   COMMAND ${EXECUTABLE_CPPREGIONTEST}
@@ -376,7 +376,7 @@ set(EXECUTABLE_PYREGIONTEST py_region_test)
 add_executable(${EXECUTABLE_PYREGIONTEST} test/integration/PyRegionTest.cpp)
 target_link_libraries(${EXECUTABLE_PYREGIONTEST} ${COMMON_LIBS})
 set_target_properties(${EXECUTABLE_PYREGIONTEST}
-                      PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
+                      PROPERTIES COMPILE_FLAGS ${src_compile_flags})
 set_target_properties(${EXECUTABLE_PYREGIONTEST}
                       PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
 add_custom_target(tests_py_region
@@ -393,7 +393,7 @@ add_executable(${EXECUTABLE_CONNECTIONSPERFORMANCETEST}
                test/integration/ConnectionsPerformanceTest.cpp)
 target_link_libraries(${EXECUTABLE_CONNECTIONSPERFORMANCETEST} ${COMMON_LIBS})
 set_target_properties(${EXECUTABLE_CONNECTIONSPERFORMANCETEST}
-                      PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
+                      PROPERTIES COMPILE_FLAGS ${src_compile_flags})
 set_target_properties(${EXECUTABLE_CONNECTIONSPERFORMANCETEST}
                       PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
 add_custom_target(tests_connections_performance
@@ -408,7 +408,7 @@ set(EXECUTABLE_HELLOREGION helloregion)
 add_executable(${EXECUTABLE_HELLOREGION} examples/regions/HelloRegions.cpp)
 target_link_libraries(${EXECUTABLE_HELLOREGION} ${COMMON_LIBS})
 set_target_properties(${EXECUTABLE_HELLOREGION}
-                      PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
+                      PROPERTIES COMPILE_FLAGS ${src_compile_flags})
 set_target_properties(${EXECUTABLE_HELLOREGION}
                       PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
 add_dependencies(${EXECUTABLE_HELLOREGION} ${COMMON_LIBS})
@@ -420,7 +420,7 @@ set(EXECUTABLE_PROTOTEST prototest)
 add_executable(${EXECUTABLE_PROTOTEST} examples/prototest.cpp)
 target_link_libraries(${EXECUTABLE_PROTOTEST} ${COMMON_LIBS})
 set_target_properties(${EXECUTABLE_PROTOTEST}
-                      PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
+                      PROPERTIES COMPILE_FLAGS ${src_compile_flags})
 set_target_properties(${EXECUTABLE_PROTOTEST}
                       PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
 add_dependencies(${EXECUTABLE_PROTOTEST} ${COMMON_LIBS})
@@ -432,7 +432,7 @@ set(EXECUTABLE_HELLOSPTP hello_sp_tp)
 add_executable(${EXECUTABLE_HELLOSPTP} examples/algorithms/HelloSP_TP.cpp)
 target_link_libraries(${EXECUTABLE_HELLOSPTP} ${COMMON_LIBS})
 set_target_properties(${EXECUTABLE_HELLOSPTP}
-                      PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS})
+                      PROPERTIES COMPILE_FLAGS ${src_compile_flags})
 set_target_properties(${EXECUTABLE_HELLOSPTP}
                       PROPERTIES LINK_FLAGS "${COMMON_LINK_FLAGS}")
 add_dependencies(${EXECUTABLE_HELLOSPTP} ${COMMON_LIBS})
@@ -490,7 +490,7 @@ target_link_libraries(${EXECUTABLE_GTESTS}
                       ${LIB_STATIC_GTEST}
                       ${COMMON_LIBS})
 set_target_properties(${EXECUTABLE_GTESTS}
-                      PROPERTIES COMPILE_FLAGS ${COMMON_COMPILE_FLAGS}
+                      PROPERTIES COMPILE_FLAGS ${src_compile_flags}
                                  LINK_FLAGS "${COMMON_LINK_FLAGS}")
 add_custom_target(tests_unit
                   COMMAND ${EXECUTABLE_GTESTS}
@@ -677,11 +677,27 @@ list(APPEND SWIG_GENERATED_FILES ${swig_generated_file_fullname})
 swig_link_libraries(${SWIG_MATH}
                     ${SWIG_LINK_LIBRARIES})
 
+
+set(swig_generated_file_compile_flags "${src_compile_flags}")
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows" AND "${CMAKE_BUILD_TYPE}" STREQUAL "Debug" AND
+   NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
+    # Suppress treating warnings as errors for windows GCC Debug builds of Swig-generated
+    # files. Compilation of those files produces many "maybe-uninitialized" warnings
+    # that would fail the build with the -Werror flag. Reference
+    # https://github.com/numenta/nupic.core/issues/887
+    set(swig_generated_file_compile_flags "${swig_generated_file_compile_flags} -Wno-error")
+endif()
+
 set_source_files_properties(${SWIG_GENERATED_FILES} PROPERTIES
                             GENERATED TRUE)
-set_source_files_properties(${SWIG_GENERATED_FILES} ${SWIG_SUPPORT_FILES}
+set_source_files_properties(${SWIG_GENERATED_FILES}
                             PROPERTIES
-                            COMPILE_FLAGS ${COMMON_COMPILE_FLAGS}
+                            COMPILE_FLAGS ${swig_generated_file_compile_flags}
+                            LINK_FLAGS ${COMMON_LINK_FLAGS})
+
+set_source_files_properties(${SWIG_SUPPORT_FILES}
+                            PROPERTIES
+                            COMPILE_FLAGS ${src_compile_flags}
                             LINK_FLAGS ${COMMON_LINK_FLAGS})
 
 # If a path is specified, copy extensions files to proper location.

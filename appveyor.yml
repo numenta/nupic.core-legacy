@@ -81,8 +81,11 @@ install:
   - set PYTHONPATH=%PYTHONHOME%
   - set PATH=%PYTHONHOME%\Scripts;%PYTHONHOME%;%PATH%
 
-  # Make patch.exe available to the build by copying it from Git\usr\bin (that
-  # we remove from PATH) to another directory and adding it to PATH
+  # Make unix-compatible patch.exe available to the build by copying it from
+  # Git\usr\bin (that we remove from PATH) to another directory and adding it to
+  # PATH; the reason we copy it is that logic below removes
+  # C:\Program Files\Git\usr\bin from Path to avoid build issue resulting from
+  # sh.exe being on the path.
   - mkdir "C:\Program Files\PatchFromGit"
   - ps: copy "C:\Program Files\Git\usr\bin\patch.exe" "C:\Program Files\PatchFromGit"
   - ps: copy "C:\Program Files\Git\usr\bin\msys*.dll" "C:\Program Files\PatchFromGit"

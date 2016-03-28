@@ -88,7 +88,8 @@ else()
 
         CMAKE_GENERATOR ${CMAKE_GENERATOR}
 
-        # TODO Figure out what to do with INSTALL_PDB. We disabled it because our manual INSTALL_COMMAND was not finding the pdb file and failing.
+        # TODO Figure out what to do with INSTALL_PDB. We disabled it because
+        # our manual INSTALL_COMMAND was not finding the pdb file and failing.
         CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
             -DBUILD_SHARED_LIBS=OFF
             -DCMAKE_C_FLAGS=${aprutillib_cflags}
