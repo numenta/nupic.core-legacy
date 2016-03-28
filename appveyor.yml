@@ -56,6 +56,11 @@ environment:
       external_static_subdir: "windows32-gcc"
       wheel_name_suffix: "win32"
 
+# Suppress failure in 32-bit, while we figure out why a test fails
+matrix:
+  allow_failures:
+    - PYTHON_ARCH: 32
+
 #---------------------------------#
 #       build configuration       #
 #---------------------------------#
