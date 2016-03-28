@@ -164,7 +164,10 @@ install:
 build_script:
   - cd %REPO_DIR%\build\scripts
 
-  - mingw32-make -f Makefile install | findstr /C:"Install" /I /V
+  #- mingw32-make -f Makefile install | findstr /C:"Install" /I /V
+
+  # Using portable, toolchain-agnostic mechanism to build the install target
+  - cmake.exe -DBUILD_TYPE=Release -P cmake_install.cmake
 
   - cd %REPO_DIR%
 
