@@ -80,6 +80,13 @@ install:
 
   - set PYTHONPATH=%PYTHONHOME%
   - set PATH=%PYTHONHOME%\Scripts;%PYTHONHOME%;%PATH%
+
+  # Make patch.exe available to the build by copying it from Git\usr\bin (that
+  # we remove from PATH) to another directory and adding it to PATH
+  - mkdir "C:\Program Files\PatchFromGit"
+  - ps: copy "C:\Program Files\Git\usr\bin\patch.exe" "C:\Program Files\PatchFromGit"
+  - set PATH=C:\Program Files\PatchFromGit;%PATH%
+
   - echo %PATH%
 
   # Install Python 2.7.x, Pip, Wheel, and NumPy
@@ -117,10 +124,12 @@ install:
   # ZZZ Debugging: check if patch is available on appveyor
   - "where patch"
 
+
   # Remove sh.exe from the paths (CMake doesn't like it)
   - set PATH=%PATH:C:\Program Files (x86)\Git\bin;=%
   - set PATH=%PATH:C:\Program Files\Git\usr\bin;=%
   - set PATH=%PATH:C:\MinGW\msys\1.0\bin;=%
+
 
   # ZZZ Debugging: check if patch is available on appveyor
   - "where patch"

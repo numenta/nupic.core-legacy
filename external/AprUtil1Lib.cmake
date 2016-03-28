@@ -55,6 +55,8 @@ if (UNIX)
 
 
     ExternalProject_Add(AprUtil1StaticLib
+        DEPENDS Apr1StaticLib
+
         URL ${aprutillib_url}
 
         UPDATE_COMMAND ""
