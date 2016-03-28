@@ -43,8 +43,9 @@ set(aprutillib_cflags "-DCOM_NO_WINDOWS_H -DAPR_DECLARE_STATIC")
 set(aprutillib_cflags "${aprutillib_cflags} -I${LIB_STATIC_APR1_INC_DIR}/apr-1")
 set(aprutillib_cflags "${COMMON_C_FLAGS} ${COMMON_COMPILER_DEFINITIONS_STR} ${aprutillib_cflags}")
 
+set(aprutillib_url "${REPOSITORY_DIR}/external/common/share/apr-util/unix/apr-util-1.5.4.tar.gz")
+
 if (UNIX)
-    message(STATUS "ZZZ AprUtil1StaticLib LIB_STATIC_APR1_INC_DIR=${LIB_STATIC_APR1_INC_DIR}")
     set(aprutillib_config_options
         --disable-util-dso --with-apr=${LIB_STATIC_APR1_INC_DIR}/..)
 
@@ -54,11 +55,13 @@ if (UNIX)
 
 
     ExternalProject_Add(AprUtil1StaticLib
-        URL ${REPOSITORY_DIR}/external/common/share/apr-util/unix/apr-util-1.5.4.tar.gz
+        URL ${aprutillib_url}
+
         UPDATE_COMMAND ""
+        PATCH_COMMAND ""
 
         CONFIGURE_COMMAND
-            ${EP_BASE}/Source/AprUtil1StaticLib/configure
+            <SOURCE_DIR>/configure
                 --prefix=${aprutillib_install_prefix}
                 ${aprutillib_config_options}
                 CFLAGS=${aprutillib_cflags}
@@ -73,12 +76,13 @@ if (UNIX)
 else()
     # NOT UNIX - i.e., Windows
 
-    set(aprutillib_source_dir "${REPOSITORY_DIR}/external/common/share/apr-util/win/apr-util-1.5.4")
-
     ExternalProject_Add(AprUtil1StaticLib
         DEPENDS Apr1StaticLib
-        URL ${aprutillib_source_dir}
+
+        URL ${aprutillib_url}
+
         UPDATE_COMMAND ""
+        PATCH_COMMAND ""
 
         CMAKE_GENERATOR ${CMAKE_GENERATOR}
 
@@ -97,8 +101,18 @@ else()
     )
 
 
+    #
+    # Add step to organize apr-util headers under include/apr-1 subdirectory
+    # NOTE the unix configure-based installation does that and nupic.core
+    #      depends on this include directory organization.
+    #
+
     ExternalProject_Add_Step(AprUtil1StaticLib move_installed_headers_to_apr_1
         COMMENT "Windows: moving installed apr-util headers to include/apr-1, as expected by nupic.core"
+
+        DEPENDEES install
+        ALWAYS 0
+        #LOG 1
 
         # Move the installed ${LIB_STATIC_APRUTIL1_INC_DIR}/*.h to
         # ${LIB_STATIC_APRUTIL1_INC_DIR}/apr-1
@@ -107,9 +121,27 @@ else()
                 -DDEST_DIR_PATH=${LIB_STATIC_APRUTIL1_INC_DIR}/apr-1
                 -P ${CMAKE_SOURCE_DIR}/external/MoveFilesToNewDir.cmake
 
-        DEPENDEES install
-        ALWAYS 0
-
-        #LOG 1
     )
 endif()
+
+
+#
+# Add step to patch aprutil-1 sources
+#
+
+# Patch file path
+set(aprutillib_patch_file "${CMAKE_SOURCE_DIR}/external/common/share/apr-util/apru.patch")
+
+ExternalProject_Add_Step(AprUtil1StaticLib patch_sources
+    COMMENT "Patching aprutil-1 sources"
+
+    DEPENDEES update
+    DEPENDERS configure
+    ALWAYS 0
+    #LOG 1
+
+    COMMAND
+        ${CMAKE_COMMAND} -E echo "Patching <SOURCE_DIR> via ${aprutillib_patch_file}"
+    COMMAND
+        patch -f -p1 --directory=<SOURCE_DIR> --input=${aprutillib_patch_file}
+)

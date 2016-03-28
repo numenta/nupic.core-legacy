@@ -42,8 +42,10 @@ set(LIB_STATIC_APR1_LOC "${aprlib_install_lib_dir}/${STATIC_PRE}apr-1${STATIC_SU
 set(aprlib_cflags "-DCOM_NO_WINDOWS_H")
 set(aprlib_cflags "${COMMON_C_FLAGS} ${COMMON_COMPILER_DEFINITIONS_STR} ${aprlib_cflags}")
 
-message(STATUS "ZZZ aprlib_cflags=${aprlib_cflags}")
+# Location of apr sources
+set(aprlib_url "${REPOSITORY_DIR}/external/common/share/apr/unix/apr-1.5.2.tar.gz")
 
+# Get it built!
 if (UNIX)
     set(aprlib_config_options --enable-static --disable-shared --disable-ipv6)
 
@@ -51,16 +53,14 @@ if (UNIX)
         set(aprlib_config_options ${aprlib_config_options} --enable-debug)
     endif()
 
-    # PROBLEMS:
-    # -std=c++11
-    # -Werror: checking which type to use for apr_off_t... configure: error: could not determine the size of off_t
-
     ExternalProject_Add(Apr1StaticLib
-        URL ${REPOSITORY_DIR}/external/common/share/apr/unix/apr-1.5.2.tar.gz
+        URL ${aprlib_url}
+
         UPDATE_COMMAND ""
+        PATCH_COMMAND ""
 
         CONFIGURE_COMMAND
-            ${EP_BASE}/Source/Apr1StaticLib/configure
+            <SOURCE_DIR>/configure
                 --prefix=${aprlib_install_prefix}
                 ${aprlib_config_options}
                 CFLAGS=${aprlib_cflags}
@@ -77,6 +77,7 @@ if (UNIX)
         DEPENDEES install
         ALWAYS 1
 
+        # TODO ZZZ remove these
         COMMAND echo listing ${LIB_STATIC_APR1_INC_DIR} COMMAND ls ${LIB_STATIC_APR1_INC_DIR}
         COMMAND echo listing ${LIB_STATIC_APR1_INC_DIR}/apr-1 COMMAND ls ${LIB_STATIC_APR1_INC_DIR}/apr-1
         COMMAND echo listing ${LIB_STATIC_APR1_LOC} COMMAND ls ${LIB_STATIC_APR1_LOC}
@@ -85,13 +86,11 @@ if (UNIX)
 else()
     # NOT UNIX - i.e., Windows
 
-    #set(aprlib_source_dir "${REPOSITORY_DIR}/external/common/share/apr/win/apr-1.5.2")
-
     ExternalProject_Add(Apr1StaticLib
-        #URL ${aprlib_source_dir}
-        URL ${REPOSITORY_DIR}/external/common/share/apr/unix/apr-1.5.2.tar.gz
+        URL ${aprlib_url}
 
         UPDATE_COMMAND ""
+        PATCH_COMMAND ""
 
         CMAKE_GENERATOR ${CMAKE_GENERATOR}
 
@@ -103,15 +102,24 @@ else()
             -DCMAKE_INSTALL_PREFIX=${aprlib_install_prefix}
             -DINSTALL_PDB=OFF
 
-        #COMMAND ${CMAKE_COMMAND} -E echo "\"INSTALL_COMMAND: EP_BASE=${EP_BASE} CMAKE_BINARY_DIR=${CMAKE_BINARY_DIR} CMAKE_CURRENT_BINARY_DIR=${CMAKE_CURRENT_BINARY_DIR} CMAKE_SOURCE_DIR=${CMAKE_SOURCE_DIR}\""
-        #COMMAND ${CMAKE_COMMAND} -E echo "\"SOURCE_DIR=<SOURCE_DIR>, BINARY_DIR=<BINARY_DIR>, INSTALL_DIR=<INSTALL_DIR>, and TMP_DIR=<TMP_DIR>\""
 
         #LOG_INSTALL 1
     )
 
 
+    #
+    # Add step to organize generic and architecture-specific apr headers under
+    # include/apr-1 subdirectory
+    # NOTE the unix configure-based installation does that and nupic.core
+    #      depends on this include directory organization.
+    #
+
     ExternalProject_Add_Step(Apr1StaticLib move_installed_headers_to_apr_1
         COMMENT "Windows: moving installed apr headers to include/apr-1, as expected by nupic.core"
+
+        DEPENDEES install
+        ALWAYS 0
+        #LOG 1
 
         # Move the installed ${LIB_STATIC_APR1_INC_DIR}/*.h to
         # ${LIB_STATIC_APR1_INC_DIR}/apr-1
@@ -119,16 +127,33 @@ else()
             ${CMAKE_COMMAND} -DGLOBBING_EXPR=${LIB_STATIC_APR1_INC_DIR}/*.h
                 -DDEST_DIR_PATH=${LIB_STATIC_APR1_INC_DIR}/apr-1
                 -P ${CMAKE_SOURCE_DIR}/external/MoveFilesToNewDir.cmake
-        # Copy ${EP_BASE}/Source/Apr1StaticLib/include/arch to
-        # ${LIB_STATIC_APR1_INC_DIR}/apr-1 as expected by nupic.core
+        # Copy <SOURCE_DIR>/include/arch to ${LIB_STATIC_APR1_INC_DIR}/apr-1 as
+        # expected by nupic.core
         COMMAND
             ${CMAKE_COMMAND} -E make_directory ${LIB_STATIC_APR1_INC_DIR}/apr-1/arch
         COMMAND
-            ${CMAKE_COMMAND} -E copy_directory ${EP_BASE}/Source/Apr1StaticLib/include/arch ${LIB_STATIC_APR1_INC_DIR}/apr-1/arch
-
-        DEPENDEES install
-        ALWAYS 0
-
-        #LOG 1
+            ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/include/arch ${LIB_STATIC_APR1_INC_DIR}/apr-1/arch
     )
 endif()
+
+
+#
+# Add step to patch apr-1 sources
+#
+
+# Patch file path
+set(aprlib_patch_file "${CMAKE_SOURCE_DIR}/external/common/share/apr/apr.patch")
+
+ExternalProject_Add_Step(Apr1StaticLib patch_sources
+    COMMENT "Patching apr-1 sources"
+
+    DEPENDEES update
+    DEPENDERS configure
+    ALWAYS 0
+    #LOG 1
+
+    COMMAND
+        ${CMAKE_COMMAND} -E echo "Patching <SOURCE_DIR> via ${aprlib_patch_file}"
+    COMMAND
+        patch -f -p1 --directory=<SOURCE_DIR> --input=${aprlib_patch_file}
+)

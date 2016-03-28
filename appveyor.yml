@@ -73,8 +73,6 @@ install:
   - set REPO_DIR=c:\projects\nupic-core
   - set NUPIC_CORE_DIR=%REPO_DIR%\build\release
   - set EXTERNAL_WINDOWS_DIR=%REPO_DIR%\external\%external_static_subdir%
-  # TODO ZZZ nothing seems to be using EXT_LIBS env var
-  #- set EXT_LIBS=%EXTERNAL_WINDOWS_DIR%\lib
 
   - set ARTIFACTS_DIR=%REPO_DIR%\build\artifacts
   - for /f %%i in ('type VERSION') do set BINDINGS_VERSION=%%i

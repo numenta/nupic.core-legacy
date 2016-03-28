@@ -36,9 +36,6 @@ set(LIB_STATIC_YAML_LOC "${yamllib_build_dir}/${STATIC_PRE}yaml${STATIC_SUF}")
 
 set(c_flags "${COMMON_C_FLAGS} ${COMMON_COMPILER_DEFINITIONS_STR}")
 
-message(STATUS "ZZZ c_flags=${c_flags}")
-message(STATUS "ZZZ COMMON_LINK_FLAGS=${COMMON_LINK_FLAGS}")
-
 ExternalProject_Add(YamlStaticLib
     SOURCE_DIR ${yamllib_source_dir}
     UPDATE_COMMAND ""
