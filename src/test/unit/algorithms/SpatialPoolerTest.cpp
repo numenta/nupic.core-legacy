@@ -539,7 +539,7 @@ namespace {
     colDim.assign(colDim1, colDim1+4);
     sp.initialize(inputDim, colDim);
     Real result = sp.avgColumnsPerInput_();
-    ASSERT_EQ(result, trueAvgColumnPerInput1);
+    ASSERT_TRUE(result == trueAvgColumnPerInput1);
 
     UInt colDim2[4] =   {2, 2, 2, 2};
     UInt inputDim2[4] = {7, 5, 1, 3};
@@ -559,7 +559,7 @@ namespace {
     colDim.assign(colDim3, colDim3+2);
     sp.initialize(inputDim, colDim);
     result = sp.avgColumnsPerInput_();
-    ASSERT_EQ(result, trueAvgColumnPerInput3);
+    ASSERT_TRUE(result == trueAvgColumnPerInput3);
 
 
     UInt colDim4[1] =   {25};
@@ -570,7 +570,7 @@ namespace {
     colDim.assign(colDim4, colDim4+1);
     sp.initialize(inputDim, colDim);
     result = sp.avgColumnsPerInput_();
-    ASSERT_EQ(result, trueAvgColumnPerInput4);
+    ASSERT_TRUE(result == trueAvgColumnPerInput4);
 
     UInt colDim5[7] =   {3, 5, 6};
     UInt inputDim5[7] = {3, 5, 6};
@@ -580,7 +580,7 @@ namespace {
     colDim.assign(colDim5, colDim5+3);
     sp.initialize(inputDim, colDim);
     result = sp.avgColumnsPerInput_();
-    ASSERT_EQ(result, trueAvgColumnPerInput5);
+    ASSERT_TRUE(result == trueAvgColumnPerInput5);
 
     UInt colDim6[4] =   {2, 4, 6, 8};
     UInt inputDim6[4] = {2, 2, 2, 2};
@@ -591,7 +591,7 @@ namespace {
     colDim.assign(colDim6, colDim6+4);
     sp.initialize(inputDim, colDim);
     result = sp.avgColumnsPerInput_();
-    ASSERT_EQ(result, trueAvgColumnPerInput6);
+    ASSERT_TRUE(result == trueAvgColumnPerInput6);
   }
 
   TEST(SpatialPoolerTest, testAvgConnectedSpanForColumn1D)
