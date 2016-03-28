@@ -549,7 +549,7 @@ namespace {
     colDim.assign(colDim2, colDim2+4);
     sp.initialize(inputDim, colDim);
     result = sp.avgColumnsPerInput_();
-    ASSERT_TRUE(result == trueAvgColumnPerInput2);
+    ASSERT_EQ(result, trueAvgColumnPerInput2);
 
     UInt colDim3[2] =   {3, 3};
     UInt inputDim3[2] = {3, 3};
