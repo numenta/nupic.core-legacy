@@ -549,7 +549,6 @@ namespace {
     colDim.assign(colDim2, colDim2+4);
     sp.initialize(inputDim, colDim);
     result = sp.avgColumnsPerInput_();
-    GTEST_LOG_(INFO) << "trueAvgColumnPerInput2=" << trueAvgColumnPerInput2 << "; result=" << result;
     ASSERT_TRUE(result == trueAvgColumnPerInput2);
 
     UInt colDim3[2] =   {3, 3};
