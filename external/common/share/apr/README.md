@@ -1,3 +1,5 @@
+unix/apr-1.5.2.tar.gz from https://apr.apache.org/
+
 We use the apr unix sources for both unix (linux, Mac OS X) and windows builds.
 apr provides CMakeLists.txt for Windows builds; it uses configure-based builds for unix (and friends).
 

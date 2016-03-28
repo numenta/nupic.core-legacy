@@ -27,6 +27,7 @@
 
 get_filename_component(REPOSITORY_DIR ${PROJECT_SOURCE_DIR}/.. ABSOLUTE)
 
+set(zlib_url "${REPOSITORY_DIR}/external/common/share/zlib/zlib-1.2.8.tar.gz")
 set(zlib_source_dir "${REPOSITORY_DIR}/external/common/share/zlib/zlib-1.2.8")
 set(zlib_install_prefix "${EP_BASE}/Install/ZStaticLib")
 set(zlib_install_lib_dir "${zlib_install_prefix}/lib")
@@ -48,7 +49,8 @@ set(LIB_STATIC_Z_LOC "${zlib_install_lib_dir}/${STATIC_PRE}${zlib_output_root}${
 set(c_flags "${COMMON_C_FLAGS} ${COMMON_COMPILER_DEFINITIONS_STR}")
 
 ExternalProject_Add(ZStaticLib
-    SOURCE_DIR ${zlib_source_dir}
+    URL ${zlib_url}
+
     UPDATE_COMMAND ""
 
     CMAKE_GENERATOR ${CMAKE_GENERATOR}

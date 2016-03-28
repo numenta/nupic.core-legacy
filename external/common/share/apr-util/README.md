@@ -1,3 +1,5 @@
+unix/apr-util-1.5.4.tar.gz from https://apr.apache.org/
+
 We use the apr-util unix sources for both unix (linux, Mac OS X) and windows builds.
 apr-util provides CMakeLists.txt for Windows builds; it uses configure-based builds for unix (and friends).
 

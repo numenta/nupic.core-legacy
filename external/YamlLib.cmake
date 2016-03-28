@@ -27,7 +27,8 @@
 
 get_filename_component(REPOSITORY_DIR ${PROJECT_SOURCE_DIR}/.. ABSOLUTE)
 
-set(yamllib_source_dir "${REPOSITORY_DIR}/external/common/share/yaml/yaml-0.1.5")
+set(yamllib_url "${REPOSITORY_DIR}/external/common/share/yaml/yaml-0.1.5.tar.gz")
+
 # NOTE Yaml lib doesn't have an install target and leaves artifacts in build dir
 set(yamllib_build_dir "${EP_BASE}/Build/YamlStaticLib")
 
@@ -37,7 +38,8 @@ set(LIB_STATIC_YAML_LOC "${yamllib_build_dir}/${STATIC_PRE}yaml${STATIC_SUF}")
 set(c_flags "${COMMON_C_FLAGS} ${COMMON_COMPILER_DEFINITIONS_STR}")
 
 ExternalProject_Add(YamlStaticLib
-    SOURCE_DIR ${yamllib_source_dir}
+    URL ${yamllib_url}
+
     UPDATE_COMMAND ""
 
     # NOTE Yaml provides no rule for install

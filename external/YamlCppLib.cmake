@@ -27,7 +27,7 @@
 
 get_filename_component(REPOSITORY_DIR ${PROJECT_SOURCE_DIR}/.. ABSOLUTE)
 
-set(yamlcpplib_source_dir "${REPOSITORY_DIR}/external/common/share/yaml-cpp/yaml-cpp-release-0.3.0")
+set(yamlcpplib_url "${REPOSITORY_DIR}/external/common/share/yaml-cpp/yaml-cpp-release-0.3.0.tar.gz")
 set(yamlcpplib_install_prefix "${EP_BASE}/Install/YamlCppStaticLib")
 set(yamlcpplib_install_lib_dir "${yamlcpplib_install_prefix}/lib")
 
@@ -42,7 +42,9 @@ set(cxx_flags "${COMMON_CXX_FLAGS} ${COMMON_COMPILER_DEFINITIONS_STR}")
 
 ExternalProject_Add(YamlCppStaticLib
     DEPENDS YamlStaticLib
-    SOURCE_DIR ${yamlcpplib_source_dir}
+
+    URL ${yamlcpplib_url}
+
     UPDATE_COMMAND ""
 
     CMAKE_GENERATOR ${CMAKE_GENERATOR}
