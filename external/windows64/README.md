@@ -6,19 +6,7 @@ The NuPIC Core C++ library can be built with MinGWPy GCC compilers or Microsoft 
 
 > **Note:** To use the C++ library with [NuPIC Python](https://github.com/numenta/nupic) you must build the library with the MinGWPy GCC tools. See the `external\windows64-gcc\README.md` text file for more details.
 
-NuPIC's dependency on the Core library can be found here - https://github.com/numenta/nupic/wiki/NuPIC's-Dependency-on-nupic.core
-
-It describes how the C++ library is linked to other languages using SWIG, such as Python x64. This nupic.core repository consist of two parts;
-
-- Main C++ core library, and
-- Python SWIG based bindings.
-
-The C++ library file is built into two files;
-
-- `%NUPIC_CORE%/release/lib/nupic_core_solo.lib` contains _only_ the nupic.core C++ library
-- `%NUPIC_CORE%/release/lib/nupic_core.lib` contains the C++ nupic.core and external support libraries
-
-Where `NUPIC_CORE` is an environment variable that points to the git cloned directory.
+Refer to nupic.core/external/README.md for an overview of NuPIC Core library build and dependencies.
 
 [CMake](http://www.cmake.org) based build files are used to define the entire build process. The [CMake-GUI](http://www.cmake.org/) application _can_ be used to generate _Visual Studio 14 2015 Win64_ solution and project files.
 
@@ -103,39 +91,6 @@ The `%NUPIC_CORE%\.gitignore` file has a rule that ignores any directory called 
 * The solution file (v140 platform toolset) has an `ALL_BUILD` project that can rebuild the x64 Release version of the core library and test programs.
 * The `INSTALL` project has to be built after building the main library. External libraries (x64 release) are stored in the Git repository, and packaged into the deployed version. The `INSTALL` project copies the binaries, headers, and library files into the `CMAKE_INSTALL_PREFIX` directory.
 * The `PACKAGE` project implements the `src\CmakeLists.txt` file CPack packaging instructions. It takes the post-INSTALL release files and makes a tape archive file (tar format), that is then compressed (gzip format) into a single file.
-
-## External libraries
-
-The C++ Core library depends on a handful of support libraries that are distributed within the GitHub repository. The following sub-sections can be used as a guide if you require changes to these pre-built libraries, such as creating MSVC Debug versions.
-
-The Microsoft Visual Studio _x64 Release_ support libraries can be found in `%NUPIC_CORE%\external\windows64\lib`
-
-### Obtaining the library sources
-
-The following libraries are embedded into the `%NUPIC_CORE%/lib/nupic_core` library.
-
-| Library | Version | Filename |  Website |
-|:------- |:------- |:-------- | :------- |
-| APR | **1.5.1** | apr-**1.5.1**-win32-src.zip | https://apr.apache.org/ |
-| Apr Iconv | **1.2.1** | apr-iconv-**1.2.1**-win32-src-r2.zip | https://apr.apache.org/ |
-| Apr Util | **1.5.4** | apr-util-**1.5.4**-win32-src.zip | https://apr.apache.org/ |
-| CapnProto | **0.5.3** | capnproto-c++-win32-**0.5.3**.zip | https://capnproto.org |
-| Yaml | **0.1.5** | yaml-**0.1.5**.tar.gz | http://pyyaml.org/wiki/LibYAML |
-| Yaml Cpp | **0.3.0** | yaml-cpp-**0.3.0**.tar.gz | https://code.google.com/p/yaml-cpp/ |
-| Z Lib | **1.2.8** | zlib-**1.2.8**.tar.gz | http://www.zlib.net/ |
-
-
-### Building the external libraries
-
-Most of the libraries have a CMakeList.txt file, and possibly older workspace (DSW) or solution (DSP) files to convert using Visual Studio 2015. A CMakeList.txt file allows the use of the **CMake-GUI** application. Which can make it easy to tweak build variables, e.g. the required update of the `CMAKE_INSTALL_PREFIX` for each library; and advanced options such as compiler settings.
-
-Remember to set the configuration to Debug or Release, and setup a clone configuration of Win32 for **x64**. All support libraries are build for x64.
-
-If a solution contains an INSTALL project, the install scripts are placed inside a file called `cmake_install.cmake` An INSTALL project tries to execute the following command;
-
-> cmake.exe -DBUILD_TYPE=Release -P cmake_install.cmake
-
-This implies that your `PATH` environment variable has a directory to the cmake.exe (typically "C:\Program Files (x86)\CMake\bin").
 
 ##### NumPy
 
