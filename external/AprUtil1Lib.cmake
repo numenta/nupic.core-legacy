@@ -97,7 +97,7 @@ else()
             -DAPR_HAS_LDAP=OFF
             -DAPU_HAVE_ODBC=OFF
             -DAPR_INCLUDE_DIR=${LIB_STATIC_APR1_INC_DIR}/apr-1
-            -DAPR_LIBRARIES=${LIB_STATIC_APR1_INC_DIR}/../lib/libapr-1.a
+            -DAPR_LIBRARIES=${LIB_STATIC_APR1_LOC}
             -DINSTALL_PDB=OFF
 
         LOG_INSTALL 1

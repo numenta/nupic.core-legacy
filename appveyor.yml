@@ -42,6 +42,14 @@ environment:
     secure: UgABryPYZg823OcD1XRosA==
 
   matrix:
+    # Win64-Visual Studio
+    - PYTHON_VERSION: "2.7.9"
+      PYTHON_ARCH: "64"
+      PYTHONHOME: "C:\\Python27-x64"
+      NC_CMAKE_GENERATOR: "Visual Studio 14 2015 Win64"
+      external_static_subdir: "windows64-gcc"
+      wheel_name_suffix: "win_amd64"
+
     # Win32-gcc
     - PYTHON_VERSION: "2.7.9"
       PYTHON_ARCH: "32"
@@ -57,14 +65,6 @@ environment:
       NC_CMAKE_GENERATOR: "MinGW Makefiles"
       external_static_subdir: "windows64-gcc"
       wheel_name_suffix: "win_amd64"
-
-#    # Win64-Visual Studio
-#    - PYTHON_VERSION: "2.7.9"
-#      PYTHON_ARCH: "64"
-#      PYTHONHOME: "C:\\Python27-x64"
-#      NC_CMAKE_GENERATOR: "Visual Studio 14 2015 Win64"
-#      external_static_subdir: "windows64-gcc"
-#      wheel_name_suffix: "win_amd64"
 
 matrix:
   allow_failures:
@@ -138,17 +138,13 @@ install:
   - mkdir %REPO_DIR%\build\release
   - mkdir %REPO_DIR%\build\scripts
 
-  # ZZZ Debugging: check if patch is available on appveyor
-  - "where patch"
-
-
   # Remove sh.exe from the paths (CMake doesn't like it)
   - set PATH=%PATH:C:\Program Files (x86)\Git\bin;=%
   - set PATH=%PATH:C:\Program Files\Git\usr\bin;=%
   - set PATH=%PATH:C:\MinGW\msys\1.0\bin;=%
 
 
-  # ZZZ Debugging: check if patch is available on appveyor
+  # Verify that patch command is available
   - "where patch"
 
   # Fake KJ-Async and Capnp-RPC libs, not needed in Lite mode
