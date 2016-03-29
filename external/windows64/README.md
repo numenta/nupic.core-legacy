@@ -124,8 +124,6 @@ The following libraries are embedded into the `%NUPIC_CORE%/lib/nupic_core` libr
 | Yaml Cpp | **0.3.0** | yaml-cpp-**0.3.0**.tar.gz | https://code.google.com/p/yaml-cpp/ |
 | Z Lib | **1.2.8** | zlib-**1.2.8**.tar.gz | http://www.zlib.net/ |
 
-Extract them all into `%NUPIC_CORE%/build` directory. You may need to un-nest some of the directories.
-
 
 ### Building the external libraries
 

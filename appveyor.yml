@@ -42,14 +42,6 @@ environment:
     secure: UgABryPYZg823OcD1XRosA==
 
   matrix:
-    # Win64-Visual Studio
-    - PYTHON_VERSION: "2.7.9"
-      PYTHON_ARCH: "64"
-      PYTHONHOME: "C:\\Python27-x64"
-      NC_CMAKE_GENERATOR: "Visual Studio 14 2015 Win64"
-      external_static_subdir: "windows64-gcc"
-      wheel_name_suffix: "win_amd64"
-
     # Win32-gcc
     - PYTHON_VERSION: "2.7.9"
       PYTHON_ARCH: "32"
@@ -65,6 +57,14 @@ environment:
       NC_CMAKE_GENERATOR: "MinGW Makefiles"
       external_static_subdir: "windows64-gcc"
       wheel_name_suffix: "win_amd64"
+
+#    # Win64-Visual Studio
+#    - PYTHON_VERSION: "2.7.9"
+#      PYTHON_ARCH: "64"
+#      PYTHONHOME: "C:\\Python27-x64"
+#      NC_CMAKE_GENERATOR: "Visual Studio 14 2015 Win64"
+#      external_static_subdir: "windows64-gcc"
+#      wheel_name_suffix: "win_amd64"
 
 matrix:
   allow_failures:
@@ -164,10 +164,13 @@ install:
 build_script:
   - cd %REPO_DIR%\build\scripts
 
-  #- mingw32-make -f Makefile install | findstr /C:"Install" /I /V
+  ## Using portable, toolchain-agnostic mechanism to kick off the build
+  # This results in error: file INSTALL cannot find "C:/projects/nupic-core/build/scripts/ThirdParty/Install/include/kj"
+  # HOTE It's desirable to figure this out, so we can support different
+  # toolchains generically
+  #- cmake.exe -DBUILD_TYPE=Release -P cmake_install.cmake
 
-  # Using portable, toolchain-agnostic mechanism to build the install target
-  - cmake.exe -DBUILD_TYPE=Release -P cmake_install.cmake
+  - mingw32-make -f Makefile install | findstr /C:"Install" /I /V
 
   - cd %REPO_DIR%
 
