@@ -164,13 +164,10 @@ install:
 build_script:
   - cd %REPO_DIR%\build\scripts
 
-  ## Using portable, toolchain-agnostic mechanism to kick off the build
-  # This results in error: file INSTALL cannot find "C:/projects/nupic-core/build/scripts/ThirdParty/Install/include/kj"
-  # HOTE It's desirable to figure this out, so we can support different
-  # toolchains generically
-  #- cmake.exe -DBUILD_TYPE=Release -P cmake_install.cmake
+  # Run build, using portable, toolchain-agnostic mechanism to start it
+  - cmake.exe --build "%REPO_DIR%\build\scripts" --target install | findstr /C:"Install" /I /V
+  #- mingw32-make -f Makefile install | findstr /C:"Install" /I /V
 
-  - mingw32-make -f Makefile install | findstr /C:"Install" /I /V
 
   - cd %REPO_DIR%
 
