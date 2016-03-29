@@ -1,5 +1,19 @@
 # Introduction
 
+The bin components for Win32 GCC build via mingw toolchain
+
+- bin/distutils.cfg
+
+ To set up MinGW GCC as a valid distutils compiler:
+
+ > Copy bin/ distutils.cfg %PYTHONHOME%\Lib\distutils\distutils.cfg
+
+
+- bin/swig.exe
+
+ The prebuilt win32 swig.gcc tool that we use to create nupic bindings.
+
+
 The NuPIC Core C++ library can be built with MinGWPy GCC or Microsoft (MS) Visual C compilers. The Python nupic.bindings can **ONLY** be built with the MinGWPy GCC compiler. To use the C++ library with the [NuPIC Python](https://github.com/numenta/nupic) project you must build the library with the MinGW-Py GCC tools, as described below.
 
 Refer to nupic.core/external/README.md for an overview of NuPIC Core library build and dependencies.
@@ -15,7 +29,7 @@ If you need to make changes to the nupic.core C++ code and/or Python SWIG bindin
 The following applications are required when rebuilding the core C++ library, Python SWIG bindings, and if required the external support libraries;
 
 - [CMake](http://www.cmake.org/) - version 3.1+
-- [Python 2.7.9+](https://www.python.org/downloads/windows/) - x86-64 version
+- [Python 2.7.9+](https://www.python.org/downloads/windows/) - x86 version (32-bit)
 - [MinGW GCC for Python](`%PYTHONHOME%\\Scripts\\pip.exe install -i https://pypi.anaconda.org/carlkl/simple mingwpy`)
 - [NumPy C++ headers](`%PYTHONHOME%\\Scripts\\pip.exe install -i https://pypi.anaconda.org/mingwpy/simple numpy==1.9.2`)
 
@@ -41,8 +55,8 @@ rem Clone the repo
 git clone https://github.com/numenta/nupic.core.git
 cd nupic.core
 
-rem Setup Python x64 to use MinGWPy GCC compilers
-copy nupic.core\external\windows64-gcc\bin\distutils.cfg C:\Python27-x64\Lib\distutils
+rem Setup Python x86 to use MinGWPy GCC compilers
+copy nupic.core\external\windows32-gcc\bin\distutils.cfg C:\Python27\Lib\distutils
 
 rem Setup nupic.core and a place to store build files
 cd nupic.core
@@ -52,10 +66,10 @@ cd build\scripts
 
 rem Run cmake to generator MinGW Makefiles
 cmake -G "MinGW Makefiles"
-	-DCMAKE_BUILD_TYPE=Debug
-	-DCMAKE_INSTALL_PREFIX=..\release
-	-DPY_EXTENSIONS_DIR=..\..\bindings\py\nupic\bindings
-	..\..
+    -DCMAKE_BUILD_TYPE=Debug
+    -DCMAKE_INSTALL_PREFIX=..\release
+    -DPY_EXTENSIONS_DIR=..\..\bindings\py\nupic\bindings
+    ..\..
 
 rem Build and install NuPIC.core, and build SWIG binding libraries
 mingw32-make -f Makefile install
@@ -86,9 +100,9 @@ py.test --pyargs nupic.bindings
 
 The `%NUPIC_CORE%\.gitignore` file has a rule that ignores any directory called `build/` from Git. Making that directory a handy place to store build dependencies.
 
-* The toolchain __must__ be the amd64 vc90 version to match up with the Python 2.7.9+ x64 version. Install the mingwpy python toolchain via
- `%PYTHONHOME%\\Scripts\\pip.exe install -i https://pypi.anaconda.org/carlkl/simple mingwpy`. Other MinGW x64 GCC toolchains do not work.
-* Make sure to copy `%NUPIC_CORE%\external\windows64-gcc\bin\distutils.cfg` into the `C:\Python27-x64\Lib\distutils` directory.
+* The toolchain __must__ be the x86 vc90 version to match up with the Python 2.7.9+ x86 version. Install the mingwpy python toolchain via
+ `%PYTHONHOME%\\Scripts\\pip.exe install -i https://pypi.anaconda.org/carlkl/simple mingwpy`. Other MinGW x86 GCC toolchains do not work.
+* Make sure to copy `%NUPIC_CORE%\external\windows32-gcc\bin\distutils.cfg` into the `C:\Python27\Lib\distutils` directory.
 * `mingw32-make` is used with the CMake generated Makefiles.
 
 Your `PATH` environment variable must include a directory of the cmake.exe (typically "C:\Program Files (x86)\CMake\bin") tool.
@@ -98,3 +112,4 @@ Your `PATH` environment variable must include a directory of the cmake.exe (typi
 
 The C++ headers from NumPy can be installed via a pre-built NumPy Python package. For example:
 > `%PYTHONHOME%\\Scripts\\pip.exe install -i https://pypi.anaconda.org/mingwpy/simple numpy==1.9.2`.
+

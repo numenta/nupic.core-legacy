@@ -12,7 +12,7 @@ branches:
 skip_commits:
   # Add [av skip] to commit messages to skip AppVeyor building
   # Add [ci skip] to skip Travis and AppVeyor building
-  message: /\[av skip\]/ 
+  message: /\[av skip\]/
 
 #---------------------------------#
 #    environment configuration    #
@@ -32,7 +32,6 @@ clone_depth: 50
 shallow_clone: false
 
 environment:
-  PYTHON_ARCH: "64"
   COMPILER_FAMILY: GCC
   AWS_ACCESS_KEY_ID:
     secure: /9U0mCHp3k1U8Y5CY/kDqwCKG2gqchG/T/UlVWo8SME=
@@ -43,8 +42,39 @@ environment:
     secure: UgABryPYZg823OcD1XRosA==
 
   matrix:
+    # Win32-gcc
     - PYTHON_VERSION: "2.7.9"
-      PYTHONPATH: "C:\\Python27-x64"
+      PYTHON_ARCH: "32"
+      PYTHONHOME: "C:\\Python27"
+      NC_CMAKE_GENERATOR: "MinGW Makefiles"
+      external_static_subdir: "windows32-gcc"
+      wheel_name_suffix: "win32"
+
+    # Win64-gcc
+    - PYTHON_VERSION: "2.7.9"
+      PYTHON_ARCH: "64"
+      PYTHONHOME: "C:\\Python27-x64"
+      NC_CMAKE_GENERATOR: "MinGW Makefiles"
+      external_static_subdir: "windows64-gcc"
+      wheel_name_suffix: "win_amd64"
+
+    # Win64-Visual Studio
+    - PYTHON_VERSION: "2.7.9"
+      PYTHON_ARCH: "64"
+      PYTHONHOME: "C:\\Python27-x64"
+      NC_CMAKE_GENERATOR: "Visual Studio 14 2015 Win64"
+      external_static_subdir: "windows64-gcc"
+      wheel_name_suffix: "win_amd64"
+
+
+matrix:
+  allow_failures:
+    # Suppress failure in 32-bit, while we figure out why a test fails
+    - PYTHON_ARCH: 32
+
+    # Checking if Visual Studio build is possible
+    - NC_CMAKE_GENERATOR: "Visual Studio 14 2015 Win64"
+
 
 #---------------------------------#
 #       build configuration       #
@@ -52,51 +82,57 @@ environment:
 
 configuration: Release
 
-cache:
-  - C:\mingwpy_amd64_vc90.7z
-  - C:\libpython-cp27-none-win_amd64.7z
-  - C:\numpy-1.9.1+openblas-cp27-none-win_amd64.whl
-
 install:
   - set NUPIC_DEPLOYMENT_BUILD=1
 
   - set REPO_DIR=c:\projects\nupic-core
   - set NUPIC_CORE_DIR=%REPO_DIR%\build\release
-  - set EXT_LIBS=%REPO_DIR%\external\windows64-gcc\lib
+  - set EXTERNAL_WINDOWS_DIR=%REPO_DIR%\external\%external_static_subdir%
 
   - set ARTIFACTS_DIR=%REPO_DIR%\build\artifacts
   - for /f %%i in ('type VERSION') do set BINDINGS_VERSION=%%i
   - echo Binding version = %BINDINGS_VERSION%
 
-  # Reference: https://bitbucket.org/carlkl/mingw-w64-for-python/downloads/mingwpy-2015-04-readme.md
-  - ps: $dwntool=New-Object System.Net.WebClient
+  - set PYTHONPATH=%PYTHONHOME%
+  - set PATH=%PYTHONHOME%\Scripts;%PYTHONHOME%;%PATH%
 
-  - ECHO "Installing MinGW-w64 for Python:"
-  - ps: if (-Not (Test-Path "C:\\mingwpy_amd64_vc90.7z")) { $dwntool.DownloadFile("https://bitbucket.org/carlkl/mingw-w64-for-python/downloads/mingwpy_amd64_vc90.7z", "C:\\mingwpy_amd64_vc90.7z") }
-  - 7z x C:\\mingwpy_amd64_vc90.7z -oC:\ > null
+  # Make unix-compatible patch.exe available to the build by copying it from
+  # Git\usr\bin (that we remove from PATH) to another directory and adding it to
+  # PATH; the reason we copy it is that logic below removes
+  # C:\Program Files\Git\usr\bin from Path to avoid build issue resulting from
+  # sh.exe being on the path.
+  - mkdir "C:\Program Files\PatchFromGit"
+  - ps: copy "C:\Program Files\Git\usr\bin\patch.exe" "C:\Program Files\PatchFromGit"
+  - ps: copy "C:\Program Files\Git\usr\bin\msys*.dll" "C:\Program Files\PatchFromGit"
+  - set PATH=C:\Program Files\PatchFromGit;%PATH%
 
-  - ECHO "Installing MinGW-w64 Python 2.7.x libs:"
-  - ps: if (-Not (Test-Path "C:\\libpython-cp27-none-win_amd64.7z")) { $dwntool.DownloadFile("https://bitbucket.org/carlkl/mingw-w64-for-python/downloads/libpython-cp27-none-win_amd64.7z", "C:\\libpython-cp27-none-win_amd64.7z") }
-  - 7z x C:\\libpython-cp27-none-win_amd64.7z -oC:\Python27-x64\ > null
-
-  - set PATH=C:\mingwpy\bin;%PATH%
+  - echo %PATH%
 
   # Install Python 2.7.x, Pip, Wheel, and NumPy
   - cd %REPO_DIR%\ci\appveyor
   - ps: .\install_python_pip.ps1
 
-  - set PYTHONHOME=%PYTHONPATH%
-  - set PATH=%PYTHONPATH%\Scripts;%PYTHONPATH%;%PATH%
-  - echo %PATH%
+  - ECHO "Installing MinGW toolchain for Python:"
+  # Install the version of mingwpy toolchain that generates targets compatible
+  # with the installed python (Win32 vs. Win64). The compiler tools are
+  # installed into %PYTHONHOME%/Scripts/
+  - cmd: "%PYTHONHOME%\\Scripts\\pip.exe install -i https://pypi.anaconda.org/carlkl/simple mingwpy"
+  - cmd: "where g++"
 
-  # Setup MinGW-w64 GCC as a valid distutils compiler
-  - cp %REPO_DIR%\external\windows64-gcc\bin\distutils.cfg %PYTHONPATH%\Lib\distutils\distutils.cfg
+  - cmd: "dir %PYTHONHOME%\\share\\mingwpy"
+
+  # Setup MinGW GCC as a valid distutils compiler
+  - cp %EXTERNAL_WINDOWS_DIR%\bin\distutils.cfg %PYTHONHOME%\Lib\distutils\distutils.cfg
 
   # Check that we have the expected version and architecture for Python
   - "python --version"
+  - "where python"
   - "python -c \"import struct; print(struct.calcsize('P') * 8)\""
 
-  # Check NumPy installed correctly
+  # It's useful to know our cmake version
+  - cmd: cmake --version
+
+  # Check NumPy, etc. installed correctly
   - cmd: pip list
 
   - cd %REPO_DIR%
@@ -109,38 +145,49 @@ install:
   - set PATH=%PATH:C:\Program Files\Git\usr\bin;=%
   - set PATH=%PATH:C:\MinGW\msys\1.0\bin;=%
 
+
+  # Verify that patch command is available
+  - "where patch"
+
   # Fake KJ-Async and Capnp-RPC libs, not needed in Lite mode
   # http://www.cmake.org/Wiki/CmakeMingw
   - cd %REPO_DIR%\build\scripts
-  - cmake -G "MinGW Makefiles" 
-      -DCMAKE_INSTALL_PREFIX=%REPO_DIR%\build\release 
-      -DPY_EXTENSIONS_DIR=%REPO_DIR%\bindings\py\nupic\bindings 
+  - cmake -G "%NC_CMAKE_GENERATOR%"
+      -DCMAKE_BUILD_TYPE=Release
+      -DCMAKE_INSTALL_PREFIX=%REPO_DIR%\build\release
+      -DPY_EXTENSIONS_DIR=%REPO_DIR%\bindings\py\nupic\bindings
       %REPO_DIR%
+
 
 build_script:
   - cd %REPO_DIR%\build\scripts
 
-  - mingw32-make -f Makefile install | findstr /C:"Install" /I /V
+  # Run build, using portable, toolchain-agnostic mechanism to start it
+  - cmake.exe --build "%REPO_DIR%\build\scripts" --target install --config Release
 
   - cd %REPO_DIR%
 
   - python setup.py sdist bdist bdist_wheel
 
   # Copy final wheel to REPO_DIR, so that AppVeyor can see it as an artifact
-  - ps: copy .\bindings\py\dist\nupic.bindings-$env:BINDINGS_VERSION-cp27-none-win_amd64.whl .
+  - ps: copy .\bindings\py\dist\nupic.bindings-$env:BINDINGS_VERSION-cp27-none-$env:wheel_name_suffix.whl .
 
   # Copy final wheel, to appropriately named wheel for use with NuPIC
   # iterative builds (via nupic\.nupic_modules long-SHA reference).
   # Ties in with this Pip regex;
   # https://github.com/pypa/pip/blob/develop/pip/wheel.py#L616
-  - ps: copy .\nupic.bindings-$env:BINDINGS_VERSION-cp27-none-win_amd64.whl .\nupic.bindings-$env:BINDINGS_VERSION.$env:APPVEYOR_REPO_COMMIT-cp27-none-win_amd64.whl
+  - ps: copy .\nupic.bindings-$env:BINDINGS_VERSION-cp27-none-$env:wheel_name_suffix.whl .\nupic.bindings-$env:BINDINGS_VERSION.$env:APPVEYOR_REPO_COMMIT-cp27-none-$env:wheel_name_suffix.whl
 
 after_build:
   - mkdir %ARTIFACTS_DIR%
 
   # legacy binary tests
   - cd %REPO_DIR%\build\release\bin
+  - connections_performance_test.exe
   - cpp_region_test.exe
+  - helloregion.exe
+  - hello_sp_tp.exe
+  - prototest.exe
   - unit_tests.exe --gtest_output=xml:%ARTIFACTS_DIR%\unit_tests_report.xml
 
 test: off
@@ -151,10 +198,12 @@ artifacts:
 
 on_success:
   # Github tagged builds
+  - cmd: echo "executing on_success"
   - ps: >-
       If ($env:APPVEYOR_REPO_TAG -eq "true" -or $env:APPVEYOR_REPO_TAG -eq "True") {
+        Write-Host "Uploading bindings to PYPI"
         pip install httplib requests twine --upgrade
-        twine upload -u $env:PYPI_USERNAME -p $env:PYPI_PASSWORD -r pypi $env:REPO_DIR\bindings\py\dist\nupic.bindings-$env:BINDINGS_VERSION-cp27-none-win_amd64.whl
+        twine upload -u $env:PYPI_USERNAME -p $env:PYPI_PASSWORD -r pypi $env:REPO_DIR\bindings\py\dist\nupic.bindings-$env:BINDINGS_VERSION-cp27-none-$env:wheel_name_suffix.whl
       }
 
 deploy:
@@ -166,7 +215,9 @@ deploy:
     bucket: "artifacts.numenta.org"
     region: us-west-2
     set_public: true
-    artifact: "nupic.bindings-$(BINDINGS_VERSION).$(APPVEYOR_REPO_COMMIT)-cp27-none-win_amd64.whl"
+    artifact: "nupic.bindings-$(BINDINGS_VERSION).$(APPVEYOR_REPO_COMMIT)-cp27-none-$(wheel_name_suffix).whl"
     folder: "numenta/nupic.core/releases/nupic.bindings"
     on:
       branch: master
+
+#deploy: off
