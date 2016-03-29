@@ -161,7 +161,7 @@ build_script:
   - cd %REPO_DIR%\build\scripts
 
   # Run build, using portable, toolchain-agnostic mechanism to start it
-  - cmake.exe --build "%REPO_DIR%\build\scripts" --target install | findstr /C:"Install" /I /V
+  - cmake.exe --build "%REPO_DIR%\build\scripts" --target install --config Release | findstr /C:"Install" /I /V
   #- mingw32-make -f Makefile install | findstr /C:"Install" /I /V
 
 
