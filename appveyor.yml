@@ -163,7 +163,7 @@ build_script:
   - cd %REPO_DIR%\build\scripts
 
   # Run build, using portable, toolchain-agnostic mechanism to start it
-  - cmake.exe --build "%REPO_DIR%\build\scripts" --target install --config Release | findstr /C:"Install" /I /V
+  - cmake.exe --build "%REPO_DIR%\build\scripts" --target install --config Release
 
   - cd %REPO_DIR%
 
@@ -183,6 +183,7 @@ after_build:
 
   # legacy binary tests
   - cd %REPO_DIR%\build\release\bin
+  - connections_performance_test.exe
   - cpp_region_test.exe
   - helloregion.exe
   - hello_sp_tp.exe
