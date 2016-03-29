@@ -20,6 +20,9 @@
 # -----------------------------------------------------------------------------
 
 # Build Cap'n Proto from source.
+
+get_filename_component(REPOSITORY_DIR ${PROJECT_SOURCE_DIR}/.. ABSOLUTE)
+
 set(capnprotolib_url "${REPOSITORY_DIR}/external/common/share/capnproto/capnproto-c++-0.5.3.tar.gz")
 set(capnproto_win32_tools_url "${REPOSITORY_DIR}/external/common/share/capnproto/capnproto-c++-win32-0.5.3.zip")
 
