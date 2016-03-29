@@ -19,71 +19,64 @@
 # http://numenta.org/licenses/
 # -----------------------------------------------------------------------------
 
-option(FIND_CAPNP "Use preinstalled Cap'n Proto." OFF)
+# Build Cap'n Proto from source.
+set(capnprotolib_url "${REPOSITORY_DIR}/external/common/share/capnproto/capnproto-c++-0.5.3.tar.gz")
+set(capnproto_win32_tools_url "${REPOSITORY_DIR}/external/common/share/capnproto/capnproto-c++-win32-0.5.3.zip")
 
-if (${FIND_CAPNP})
-  find_package(CapnProto)
-  # Most CAPNP* variables are set correctly but make sure we have the
-  # static libraries.
-  find_library(LIB_KJ ${STATIC_PRE}kj${STATIC_SUF})
-  find_library(LIB_CAPNP ${STATIC_PRE}capnp${STATIC_SUF})
-  find_library(LIB_CAPNPC ${STATIC_PRE}capnpc${STATIC_SUF})
-  set(CAPNP_LIBRARIES ${LIB_CAPNPC} ${LIB_CAPNP} ${LIB_KJ})
-  set(CAPNP_LIBRARIES_LITE ${LIB_CAPNP} ${LIB_KJ})
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+  set(CAPNP_DEFINITIONS "-DCAPNP_LITE=1 -DEXTERNAL_CAPNP=1")
+else()
+  set(CAPNP_DEFINITIONS "-DCAPNP_LITE=0")
+endif()
 
-  # Create a dummy target to depend on.
-  add_custom_target(CapnProto)
+set(capnp_c_flags "${COMMON_C_FLAGS} ${COMMON_COMPILER_DEFINITIONS_STR}")
+set(capnp_cxx_flags "${COMMON_CXX_FLAGS} ${COMMON_COMPILER_DEFINITIONS_STR}")
 
-else ()
-  # Build Cap'n Proto from source.
-  if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    set(CAPNP_DEFINITIONS "-DCAPNP_LITE=1 -DEXTERNAL_CAPNP=1")
-    set(CAPNP_CXX_FLAGS "-m${BITNESS}")
-  else()
-    set(CAPNP_DEFINITIONS "-DCAPNP_LITE=0")
-    set(CAPNP_CXX_FLAGS "-fPIC -m${BITNESS}")
-  endif()
-  ExternalProject_Add(
-    CapnProto
-    GIT_REPOSITORY https://github.com/sandstorm-io/capnproto.git
-    GIT_TAG v0.5.3
-    UPDATE_COMMAND ""
-    CONFIGURE_COMMAND
-        ${CMAKE_COMMAND}
-        ${CAPNP_DEFINITIONS}
-        -DCMAKE_CXX_FLAGS=${CAPNP_CXX_FLAGS}
-        -DBUILD_TESTING=OFF
-        -DBUILD_SHARED_LIBS=OFF
-        -DCMAKE_INSTALL_PREFIX=${EP_BASE}/Install
-        -G "${CMAKE_GENERATOR}"
-        ${EP_BASE}/Source/CapnProto/c++
+ExternalProject_Add(CapnProto
+  #GIT_REPOSITORY https://github.com/sandstorm-io/capnproto.git
+  #GIT_TAG v0.5.3
+  URL ${capnprotolib_url}
+
+  UPDATE_COMMAND ""
+
+  CMAKE_GENERATOR ${CMAKE_GENERATOR}
+
+  CMAKE_ARGS
+      ${CAPNP_DEFINITIONS}
+      -DBUILD_SHARED_LIBS=OFF
+      -DBUILD_TESTING=OFF
+      -DCMAKE_C_FLAGS=${capnp_c_flags}
+      -DCMAKE_CXX_FLAGS=${capnp_cxx_flags}
+      -DCMAKE_INSTALL_PREFIX=${EP_BASE}/Install
+)
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+  # Install prebuilt Cap'n Proto compilers for Windows
+  ExternalProject_Add(CapnProtoTools
+    DEPENDS CapnProto
+
+    #URL https://capnproto.org/capnproto-c++-win32-0.5.3.zip
+    URL ${capnproto_win32_tools_url}
+
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND
+      ${CMAKE_COMMAND} -E make_directory ${BIN_PRE}
+    INSTALL_COMMAND
+      ${CMAKE_COMMAND} -E copy_directory
+        "<SOURCE_DIR>/capnproto-tools-win32-0.5.3"
+        ${BIN_PRE}
   )
+endif()
 
-  if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    # Download and install Cap'n Proto compilers
-    ExternalProject_Add(
-      CapnProtoTools
-      DEPENDS CapnProto
-      URL https://capnproto.org/capnproto-c++-win32-0.5.3.zip
-      CONFIGURE_COMMAND ""
-      BUILD_COMMAND
-        ${CMAKE_COMMAND} -E make_directory ${BIN_PRE}
-      INSTALL_COMMAND
-        ${CMAKE_COMMAND} -E copy_directory
-          "${EP_BASE}/Source/CapnProtoTools/capnproto-tools-win32-0.5.3"
-          ${BIN_PRE}
-    )
-  endif()
+set(LIB_KJ ${LIB_PRE}/${STATIC_PRE}kj${STATIC_SUF})
+set(LIB_CAPNP ${LIB_PRE}/${STATIC_PRE}capnp${STATIC_SUF})
+set(LIB_CAPNPC ${LIB_PRE}/${STATIC_PRE}capnpc${STATIC_SUF})
+set(CAPNP_LIBRARIES ${LIB_CAPNPC} ${LIB_CAPNP} ${LIB_KJ})
+set(CAPNP_LIBRARIES_LITE ${LIB_CAPNP} ${LIB_KJ})
+set(CAPNP_INCLUDE_DIRS ${INCLUDE_PRE})
+set(CAPNP_EXECUTABLE ${BIN_PRE}/capnp${CMAKE_EXECUTABLE_SUFFIX})
+set(CAPNPC_CXX_EXECUTABLE ${BIN_PRE}/capnpc-c++${CMAKE_EXECUTABLE_SUFFIX})
 
-  set(LIB_KJ ${LIB_PRE}/${STATIC_PRE}kj${STATIC_SUF})
-  set(LIB_CAPNP ${LIB_PRE}/${STATIC_PRE}capnp${STATIC_SUF})
-  set(LIB_CAPNPC ${LIB_PRE}/${STATIC_PRE}capnpc${STATIC_SUF})
-  set(CAPNP_LIBRARIES ${LIB_CAPNPC} ${LIB_CAPNP} ${LIB_KJ})
-  set(CAPNP_LIBRARIES_LITE ${LIB_CAPNP} ${LIB_KJ})
-  set(CAPNP_INCLUDE_DIRS ${INCLUDE_PRE})
-  set(CAPNP_EXECUTABLE ${BIN_PRE}/capnp${CMAKE_EXECUTABLE_SUFFIX})
-  set(CAPNPC_CXX_EXECUTABLE ${BIN_PRE}/capnpc-c++${CMAKE_EXECUTABLE_SUFFIX})
-endif ()
 
 function(CREATE_CAPNPC_COMMAND
          GROUP_NAME SPEC_FILES SRC_PREFIX INCLUDE_DIR TARGET_DIR OUTPUT_FILES)
@@ -114,6 +107,7 @@ foreach (INCLUDE_DIR ${CAPNP_INCLUDE_DIRS})
   install(DIRECTORY ${INCLUDE_DIR}/capnp
           DESTINATION include/)
 endforeach ()
+
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   install(FILES ${CAPNP_LIBRARIES_LITE}
           DESTINATION lib/)
