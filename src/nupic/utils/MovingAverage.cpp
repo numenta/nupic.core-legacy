@@ -23,6 +23,7 @@
 
 #include "nupic/utils/MovingAverage.hpp"
 #include "nupic/utils/Log.hpp"
+
 #include <algorithm>
 #include <numeric>
 
@@ -30,10 +31,9 @@ using namespace std;
 using namespace nupic::util;
 
 
-MovingAverage::MovingAverage(int wSize, const vector<float>& historicalValues) :
+MovingAverage::MovingAverage(UInt wSize, const vector<float>& historicalValues) :
 	windowSize_(wSize)
 {
-  NTA_ASSERT(wSize > 0) << "wSize must be > 0";
   if (historicalValues.size() != 0)
   {
     copy(
@@ -45,7 +45,7 @@ MovingAverage::MovingAverage(int wSize, const vector<float>& historicalValues) :
 }
 
 
-MovingAverage::MovingAverage(int wSize) : windowSize_(wSize), total_(0) {}
+MovingAverage::MovingAverage(UInt wSize) : windowSize_(wSize), total_(0) {}
 
 
 float MovingAverage::compute(float newVal)

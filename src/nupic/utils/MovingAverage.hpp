@@ -25,6 +25,8 @@
 
 #include <vector>
 
+#include <nupic/types/Types.hpp>
+
 
 namespace nupic {
   namespace util {
@@ -32,13 +34,13 @@ namespace nupic {
     class MovingAverage
     {
       private:
-        int windowSize_;
+        std::vector<float>::size_type windowSize_;
         std::vector<float> slidingWindow_;
         float total_;
         float compute(float newVal);
       public:
-        MovingAverage(int wSize, const std::vector<float>& historicalValues);
-        MovingAverage(int wSize);
+        MovingAverage(UInt wSize, const std::vector<float>& historicalValues);
+        MovingAverage(UInt wSize);
         std::vector<float> getSlidingWindow() const;
         float getCurrentAvg() const;
         void next(float newValue);
