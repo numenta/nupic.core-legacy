@@ -20,21 +20,21 @@
  * ---------------------------------------------------------------------
  */
 
-#ifndef ANOMALY_HPP
-#define ANOMALY_HPP
+#ifndef NUPIC_ALGORITHMS_ANOMALY_HPP
+#define NUPIC_ALGORITHMS_ANOMALY_HPP
 
 
 #include <vector>
-#include <numeric>
-#include <algorithm>
-#include <memory>
+#include <memory> // Needed for smart pointer templates
+#include <nupic/utils/MovingAverage.hpp> // Needed for for smart pointer templates
 #include <nupic/types/Types.hpp>
-#include "nupic/utils/MovingAverage.hpp"
-
-using namespace std;
-using namespace nupic;
 
 namespace nupic {
+
+  namespace util {
+    class MovingAverage; // Forward declaration
+  }
+
   namespace algorithms {
     namespace anomaly {
 
@@ -47,7 +47,7 @@ namespace nupic {
        * @param prevPredictedColumns: array of columns indices predicted in prev step
        * @return anomaly score 0..1 (float)
        */
-      float computeRawAnomalyScore(const vector<UInt>& active, const vector<UInt>& predicted);
+      float computeRawAnomalyScore(const std::vector<UInt>& active, const std::vector<UInt>& predicted);
 
 
       enum class AnomalyMode { PURE, LIKELIHOOD, WEIGHTED };
@@ -58,7 +58,7 @@ namespace nupic {
         private:
           AnomalyMode mode_;
           float binaryThreshold_;
-          unique_ptr<nupic::util::MovingAverage> movingAverage_;
+          std::unique_ptr<nupic::util::MovingAverage> movingAverage_;
         public:
          /**
           * Utility class for generating anomaly scores in different ways.
@@ -100,7 +100,7 @@ namespace nupic {
           *                   (used in anomaly-likelihood)
           * @return the computed anomaly score; float 0..1
           */
-          float compute(const vector<UInt>& active, const vector<UInt>& predicted, 
+          float compute(const std::vector<UInt>& active, const std::vector<UInt>& predicted, 
                         int inputValue=0, int timestamp=0);
       };
     }

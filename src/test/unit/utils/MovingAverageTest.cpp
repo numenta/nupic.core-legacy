@@ -26,39 +26,6 @@
 
 using namespace nupic::util;
 
-TEST(moving_average, testMovingAverage)
-{
-  std::vector<float> historicalValues {};
-  float total = 0;
-  int windowSize = 3;
-  float newAverage = 0;
-
-  std::vector<float> expectedHistorical{3.0};
-  std::tie(newAverage, total) = MovingAverage::compute(historicalValues, total, 3, windowSize);
-  ASSERT_EQ(newAverage, 3.0);
-  ASSERT_EQ(historicalValues, expectedHistorical);
-  ASSERT_FLOAT_EQ(total, 3.0);
-
-  expectedHistorical = {3.0, 4.0};
-  std::tie(newAverage, total) = MovingAverage::compute(historicalValues, total, 4, windowSize);
-  ASSERT_EQ(newAverage, 3.5);
-  ASSERT_EQ(historicalValues, expectedHistorical);
-  ASSERT_EQ(total, 7.0);
-
-  expectedHistorical = {3.0, 4.0, 5.0};
-  std::tie(newAverage, total) = MovingAverage::compute(historicalValues, total, 5, windowSize);
-  ASSERT_EQ(newAverage, 4.0);
-  ASSERT_EQ(historicalValues, expectedHistorical);
-  ASSERT_EQ(total, 12.0);
-
-  expectedHistorical = {4.0, 5.0, 6.0};
-  std::tie(newAverage, total) = MovingAverage::compute(historicalValues, total, 6, windowSize);
-  ASSERT_EQ(newAverage, 5.0);
-  ASSERT_EQ(historicalValues, expectedHistorical);
-  ASSERT_EQ(total, 15.0);
-};
-
-
 TEST(moving_average, instance)
 {
   MovingAverage m{3};
@@ -66,25 +33,29 @@ TEST(moving_average, instance)
   std::vector<float> expectedWindow;
 
   expectedWindow = {3.0};
-  newAverage = m.next(3);
+  m.next(3);
+  newAverage = m.getCurrentAvg();
   ASSERT_EQ(newAverage, 3.0);
   ASSERT_EQ(m.getSlidingWindow(), expectedWindow);
   ASSERT_EQ(m.getTotal(), 3.0);
 
   expectedWindow = {3.0, 4.0};
-  newAverage = m.next(4);
+  m.next(4);
+  newAverage = m.getCurrentAvg();
   ASSERT_EQ(newAverage, 3.5);
   ASSERT_EQ(m.getSlidingWindow(), expectedWindow);
   ASSERT_EQ(m.getTotal(), 7.0);
 
   expectedWindow = {3.0, 4.0, 5.0};
-  newAverage = m.next(5);
+  m.next(5);
+  newAverage = m.getCurrentAvg();
   ASSERT_EQ(newAverage, 4.0);
   ASSERT_EQ(m.getSlidingWindow(), expectedWindow);
   ASSERT_EQ(m.getTotal(), 12.0);
 
   expectedWindow = {4.0, 5.0, 6.0};
-  newAverage = m.next(6);
+  m.next(6);
+  newAverage = m.getCurrentAvg();
   ASSERT_EQ(newAverage, 5.0);
   ASSERT_EQ(m.getSlidingWindow(), expectedWindow);
   ASSERT_EQ(m.getTotal(), 15.0);
@@ -102,62 +73,21 @@ TEST(moving_average, SlidingWindowInit)
   ASSERT_EQ(m2.getSlidingWindow(), emptyVector);
 }
 
-/*
-  @unittest.skipUnless(
-      capnp, "pycapnp is not installed, skipping serialization test.")
-  def testMovingAverageReadWrite(self):
-    ma = MovingAverage(windowSize=3)
+TEST(moving_average, EqualsOperator)
+{
 
-    ma.next(3)
-    ma.next(4.5)
-    ma.next(5)
+    MovingAverage ma{3};
+    MovingAverage maP{3};
+    ASSERT_EQ(ma, maP);
 
-    proto1 = MovingAverageProto.new_message()
-    ma.write(proto1)
+    MovingAverage maN{10};
+    //    ASSERT_NE(ma, maN);
 
-    # Write the proto to a temp file and read it back into a new proto
-    with tempfile.TemporaryFile() as f:
-      proto1.write(f)
-      f.seek(0)
-      proto2 = MovingAverageProto.read(f)
+    MovingAverage mb{2, std::vector<float> {3.0, 4.0, 5.0} };
+    MovingAverage mbP{2, std::vector<float> {3.0, 4.0, 5.0} };
+    ASSERT_EQ(mb, mbP);
 
-    resurrectedMa = MovingAverage.read(proto2)
-
-    newAverage = ma.next(6)
-    self.assertEqual(newAverage, resurrectedMa.next(6))
-    self.assertListEqual(ma.getSlidingWindow(),
-                         resurrectedMa.getSlidingWindow())
-    self.assertEqual(ma.total, resurrectedMa.total)
-    self.assertTrue(ma, resurrectedMa) #using the __eq__ method
-
-
-  def testSerialization(self):
-    """serialization using pickle"""
-    ma = MovingAverage(windowSize=3)
-
-    ma.next(3)
-    ma.next(4.5)
-    ma.next(5)
-
-    stored = pickle.dumps(ma)
-    restored = pickle.loads(stored)
-    self.assertEqual(restored, ma) 
-    self.assertEqual(ma.next(6), restored.next(6))
-
-
-  def testEquals(self):
-    ma = MovingAverage(windowSize=3)
-    maP = MovingAverage(windowSize=3)
-    self.assertEqual(ma, maP)
-    
-    maN = MovingAverage(windowSize=10)
-    self.assertNotEqual(ma, maN)
-
-    ma = MovingAverage(windowSize=2, existingHistoricalValues=[3.0, 4.0, 5.0])
-    maP = MovingAverage(windowSize=2, existingHistoricalValues=[3.0, 4.0, 5.0])
-    self.assertEqual(ma, maP)
-    maP.next(6)
-    self.assertNotEqual(ma, maP)
-    ma.next(6)
-    self.assertEqual(ma, maP)
-*/
+    mbP.next(6);
+    mb.next(6);
+    ASSERT_EQ(mb, mbP);   
+}

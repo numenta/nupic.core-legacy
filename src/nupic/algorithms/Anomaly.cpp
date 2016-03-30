@@ -28,6 +28,7 @@
 
 #include "nupic/algorithms/Anomaly.hpp"
 #include "nupic/utils/Log.hpp"
+#include "nupic/utils/MovingAverage.hpp"
 
 using namespace std;
 
@@ -98,7 +99,8 @@ float Anomaly::compute(const vector<UInt>& active, const vector<UInt>& predicted
 
   if (this->movingAverage_) 
   {
-    score = this->movingAverage_->next(score);
+    this->movingAverage_->next(score);
+    score = this->movingAverage_->getCurrentAvg();
   }
 
   if (this->binaryThreshold_) 

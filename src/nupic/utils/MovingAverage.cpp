@@ -48,48 +48,52 @@ MovingAverage::MovingAverage(int wSize, const vector<float>& historicalValues) :
 MovingAverage::MovingAverage(int wSize) : windowSize_(wSize), total_(0) {}
 
 
-std::tuple<float, float> MovingAverage::compute(std::vector<float>& slidingWindow, 
-  float total, float newVal, unsigned int windowSize)
+float MovingAverage::compute(float newVal)
 {
-  if (slidingWindow.size() == windowSize) 
-  {
-    total -= slidingWindow.front();
-    slidingWindow.erase(slidingWindow.begin()); // pop front element.
-  }
-
-  slidingWindow.push_back(newVal);
-  total += newVal;
-
-  return std::make_tuple(total / float(slidingWindow.size()), total);
+  return total_ + newVal;
 }
 
-std::vector<float> MovingAverage::getSlidingWindow()
+
+void MovingAverage::next(float newVal)
+{
+  if (windowSize_ == slidingWindow_.size())
+  {
+    total_ -= slidingWindow_.front();
+    slidingWindow_.erase(slidingWindow_.begin()); // pop front element.
+  }
+
+  slidingWindow_.push_back(newVal);
+  total_ = compute(newVal);
+}
+
+
+std::vector<float> MovingAverage::getSlidingWindow() const
 {
   return this->slidingWindow_;
 }
 
-float MovingAverage::getCurrentAvg()
+
+float MovingAverage::getCurrentAvg() const
 {
   return float(this->total_) / float(this->slidingWindow_.size());
 }
 
-float MovingAverage::next(float newValue)
+
+bool MovingAverage::operator==(const MovingAverage& r2) const
 {
-  float newAverage;
-  std::tie(newAverage, this->total_) = this->compute(this->slidingWindow_,
-    this->total_, newValue, this->windowSize_);
-  return newAverage;
+  return (this->windowSize_ == r2.windowSize_ &&
+          this->slidingWindow_ == r2.slidingWindow_ &&
+          this->total_ == r2.total_);
 }
 
-bool MovingAverage::operator==(MovingAverage& r2)
+
+bool MovingAverage::operator!=(const MovingAverage& r2) const
 {
-  // TODO
-  return true;
+  return !(*this == r2);
 }
 
-float MovingAverage::getTotal()
+
+float MovingAverage::getTotal() const
 {
   return this->total_;
 }
-
-

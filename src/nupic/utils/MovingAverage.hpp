@@ -20,10 +20,9 @@
  * ---------------------------------------------------------------------
  */
 
-#ifndef UTIL_HPP
-#define UTIL_HPP
+#ifndef NUPIC_UTIL_MOVING_AVERAGE_HPP
+#define NUPIC_UTIL_MOVING_AVERAGE_HPP
 
-#include <tuple>
 #include <vector>
 
 
@@ -36,17 +35,16 @@ namespace nupic {
         int windowSize_;
         std::vector<float> slidingWindow_;
         float total_;
-        bool operator==(MovingAverage& r2);
+        float compute(float newVal);
       public:
         MovingAverage(int wSize, const std::vector<float>& historicalValues);
         MovingAverage(int wSize);
-        static std::tuple<float, float> compute(std::vector<float>& slidingWindow, 
-                                                float total, float newVal,
-                                                unsigned int windowSize);
-        std::vector<float> getSlidingWindow();
-        float getCurrentAvg();
-        float next(float newValue);
-        float getTotal();
+        std::vector<float> getSlidingWindow() const;
+        float getCurrentAvg() const;
+        void next(float newValue);
+        float getTotal() const;
+        bool operator==(const MovingAverage& r2) const;
+        bool operator!=(const MovingAverage& r2) const;
     };
   }
 }
