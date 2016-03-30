@@ -23,3 +23,6 @@ html/
 bindings/py/nupic/bindings/*.cxx
 bindings/py/nupic/bindings/*.py
 bindings/py/nupic/bindings/*.so
+
+# examples' output
+src/examples/algorithms/anomaly_out.csv
