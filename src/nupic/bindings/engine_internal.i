@@ -165,6 +165,7 @@
 %template(UInt64Array) nupic::PyArray<nupic::UInt64>;
 %template(Real32Array) nupic::PyArray<nupic::Real32>;
 %template(Real64Array) nupic::PyArray<nupic::Real64>;
+%template(BoolArray) nupic::PyArray<bool>;
 
 %template(ByteArrayRef) nupic::PyArrayRef<nupic::Byte>;
 %template(Int16ArrayRef) nupic::PyArrayRef<nupic::Int16>;
@@ -174,7 +175,7 @@
 %template(Int64ArrayRef) nupic::PyArrayRef<nupic::Int64>;
 %template(UInt64ArrayRef) nupic::PyArrayRef<nupic::UInt64>;
 %template(Real32ArrayRef) nupic::PyArrayRef<nupic::Real32>;
-%template(Real64ArrayRef) nupic::PyArrayRef<nupic::Real64>;
+%template(BoolArrayRef) nupic::PyArrayRef<bool>;
 
 %extend nupic::Timer
 {

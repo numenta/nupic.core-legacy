@@ -87,7 +87,7 @@ TEST(BasicTypeTest, getName)
     ASSERT_TRUE(BasicType::getName(NTA_BasicType_Real) == std::string("Real32"));
   #endif      
   ASSERT_TRUE(BasicType::getName(NTA_BasicType_Handle) == std::string("Handle"));
-  ASSERT_TRUE(BasicType::getName(NTA_BasicType_Bool) == std::string("bool"));
+  ASSERT_TRUE(BasicType::getName(NTA_BasicType_Bool) == std::string("Bool"));
 }
 
 TEST(BasicTypeTest, parse)
@@ -103,5 +103,5 @@ TEST(BasicTypeTest, parse)
   ASSERT_TRUE(BasicType::parse("Real64") == NTA_BasicType_Real64);
   ASSERT_TRUE(BasicType::parse("Real") == NTA_BasicType_Real);
   ASSERT_TRUE(BasicType::parse("Handle") == NTA_BasicType_Handle);
-  ASSERT_TRUE(BasicType::parse("bool") == NTA_BasicType_Bool);
+  ASSERT_TRUE(BasicType::parse("Bool") == NTA_BasicType_Bool);
 }

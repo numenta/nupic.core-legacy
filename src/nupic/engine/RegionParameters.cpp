@@ -72,6 +72,11 @@ void Region::setParameterHandle(const std::string& name, Handle value)
   impl_->setParameterHandle(name, (Int64)-1, value);
 }
 
+void Region::setParameterBool(const std::string& name, bool value)
+{
+  impl_->setParameterBool(name, (Int64)-1, value);
+}
+
 
 // getParameter
 
@@ -109,6 +114,11 @@ Real64 Region::getParameterReal64(const std::string& name) const
 Handle Region::getParameterHandle(const std::string& name) const
 {
   return impl_->getParameterHandle(name, (Int64)-1);
+}
+
+bool Region::getParameterBool(const std::string& name) const
+{
+  return impl_->getParameterBool(name, (Int64)-1);
 }
 
 

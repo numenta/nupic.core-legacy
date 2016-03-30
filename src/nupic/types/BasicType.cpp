@@ -45,7 +45,7 @@ const char * BasicType::getName(NTA_BasicType t)
       "Real32", 
       "Real64",
       "Handle",
-      "bool",
+      "Bool",
     };
   
   if (!isValid(t))
@@ -219,7 +219,7 @@ NTA_BasicType BasicType::parse(const std::string & s)
     return NTA_BasicType_Real;
   else if (s == std::string("Handle"))
     return NTA_BasicType_Handle;
-  else if (s == std::string("bool"))
+  else if (s == std::string("Bool"))
     return NTA_BasicType_Bool;
   else
     throw Exception(__FILE__, __LINE__, std::string("Invalid basic type name: ") + s);

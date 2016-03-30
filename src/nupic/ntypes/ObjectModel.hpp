@@ -153,9 +153,9 @@ namespace nupic
    /**
     * Read 'size' Int32 elements into the 'value' array and advance 
     * the internal pointer.
-    * If the buffer contains less than 'size' bytes it will read 
-    * as much as possible and write the number of elements actually read
-    * into the 'size' argument.
+    *
+    * If the remaining buffer isn't long enough to contain 'size' elements, read
+    * as much as possible.
     *
     * @param value   the output buffer. Must not be NULL
     * @param size    the size of the output buffer. Must be >0.
@@ -175,13 +175,12 @@ namespace nupic
    /**
     * Read 'size' UInt32 elements into the 'value' array and advance 
     * the internal pointer.
-    * If the buffer contains less than 'size' bytes it will read 
-    * as much as possible and write the number of elements actually read
-    * into the 'size' argument.
+    *
+    * If the remaining buffer isn't long enough to contain 'size' elements, read
+    * as much as possible.
     *
     * @param value   the output buffer. Must not be NULL
-    * @param size    the size of the output buffer. Must be >0. Receives
-    *                the actual number of elements read if success or 0
+    * @param size    the size of the output buffer. Must be >0.
     * @retval        0 for success, -1 for failure, 1 for EOF
     */    
     virtual Int32 read(UInt32 * value, Size size) const = 0;
@@ -198,13 +197,12 @@ namespace nupic
    /**
     * Read 'size' Int64 elements into the 'value' array and advance 
     * the internal pointer.
-    * If the buffer contains less than 'size' bytes it will read 
-    * as much as possible and write the number of elements actually read
-    * into the 'size' argument.
+    *
+    * If the remaining buffer isn't long enough to contain 'size' elements, read
+    * as much as possible.
     *
     * @param value   the output buffer. Must not be NULL
-    * @param size    the size of the output buffer. Must be >0. Receives
-    *                the actual number of elements read if success or 0
+    * @param size    the size of the output buffer. Must be >0.
     * @retval        0 for success, -1 for failure, 1 for EOF
     */    
     virtual Int32 read(Int64 * value, Size size) const = 0;
@@ -221,13 +219,12 @@ namespace nupic
    /**
     * Read 'size' UInt64 elements into the 'value' array and advance 
     * the internal pointer.
-    * If the buffer contains less than 'size' bytes it will read 
-    * as much as possible and write the number of elements actually read
-    * into the 'size' argument.
+    *
+    * If the remaining buffer isn't long enough to contain 'size' elements, read
+    * as much as possible.
     *
     * @param value   the output buffer. Must not be NULL
-    * @param size    the size of the output buffer. Must be >0. Receives
-    *                the actual number of elements read if success or 0
+    * @param size    the size of the output buffer. Must be >0.
     * @retval        0 for success, -1 for failure, 1 for EOF
     */    
     virtual Int32 read(UInt64 * value, Size size) const = 0;
@@ -245,13 +242,12 @@ namespace nupic
    /**
     * Read 'size' Real32 elements into the 'value' array and advance 
     * the internal pointer.
-    * If the buffer contains less than 'size' bytes it will read 
-    * as much as possible and write the number of elements actually read
-    * into the 'size' argument.
+    *
+    * If the remaining buffer isn't long enough to contain 'size' elements, read
+    * as much as possible.
     *
     * @param value   the output buffer. Must not be NULL
-    * @param size    the size of the output buffer. Must be >0. Receives
-    *                the actual number of elements read if success or 0
+    * @param size    the size of the output buffer. Must be >0.
     * @retval        0 for success, -1 for failure, 1 for EOF
     */    
     virtual Int32 read(Real32 * value, Size size) const = 0;
@@ -268,17 +264,37 @@ namespace nupic
    /**
     * Read 'size' Real64 elements into the 'value' array and advance 
     * the internal pointer.
-    * If the buffer contains less than 'size' bytes it will read 
-    * as much as possible and write the number of elements actually read
-    * into the 'size' argument.
+    *
+    * If the remaining buffer isn't long enough to contain 'size' elements, read
+    * as much as possible.
     *
     * @param value   the output buffer. Must not be NULL
-    * @param size    the size of the output buffer. Must be >0. Receives
-    *                the actual number of elements read if success or 0
+    * @param size    the size of the output buffer. Must be >0.
     * @retval        0 for success, -1 for failure, 1 for EOF
     */    
     virtual Int32 read(Real64 * value, Size size) const = 0;
-    
+
+    /**
+    * Read a single bool (size is compiler-defined) into 'value' and advance the
+    * internal pointer.
+    *
+    * @param value   the output bool.
+    * @retval        0 for success, -1 for failure, 1 for EOF
+    */
+    virtual Int32 read(bool & value) const = 0;
+
+   /**
+    * Read 'size' bool elements into the 'value' array and advance
+    * the internal pointer.
+    *
+    * If the remaining buffer isn't long enough to contain 'size' elements, read
+    * as much as possible.
+    *
+    * @param value   the output buffer. Must not be NULL
+    * @param size    the size of the output buffer. Must be >0.
+    * @retval        0 for success, -1 for failure, 1 for EOF
+    */
+    virtual Int32 read(bool * value, Size size) const = 0;
   };
 
   //--------------------------------------------------------------------------- 
@@ -484,7 +500,24 @@ namespace nupic
     * @retval        0 for success, -1 for failure
     */    
     virtual Int32 write(const Real64 * value, Size size) = 0;
-        
+
+   /**
+    * Write a bool (size is compiler-defined) into the internal buffer.
+    *
+    * @param value   the input bool.
+    * @retval        0 for success, -1 for failure
+    */
+    virtual Int32 write(bool value) = 0;
+
+   /**
+    * Write array of bool elements into the internal buffer.
+    *
+    * @param value   the input array.
+    * @param size    how many bytes to write
+    * @retval        0 for success, -1 for failure
+    */
+    virtual Int32 write(const bool * value, Size size) = 0;
+
    /**
     * Get the size in bytes of the contents of the internal 
     * buffer.

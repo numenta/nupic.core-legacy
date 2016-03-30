@@ -95,6 +95,8 @@ namespace nupic
     Int32 read(Real32 * value, Size size) const override;
     Int32 read(Real64 & value) const override;
     Int32 read(Real64 * value, Size size) const override;
+    Int32 read(bool & value) const override;
+    Int32 read(bool * value, Size size) const override;
     Int32 readString(
         NTA_Byte * &value, 
         NTA_UInt32 &size,
@@ -206,6 +208,8 @@ namespace nupic
     Int32 write(const Real32 * value, Size size) override;
     Int32 write(Real64 value) override;  
     Int32 write(const Real64 * value, Size size) override;
+    Int32 write(bool value) override;
+    Int32 write(const bool * value, Size size) override;
     Int32 writeString(const Byte * value, Size size) override;
     
     Size getSize() override;

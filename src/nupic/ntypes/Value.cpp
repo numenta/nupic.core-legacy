@@ -320,6 +320,7 @@ namespace nupic
   template Real32 ValueMap::getScalarT(const std::string& key, Real32 defaultValue) const;
   template Real64 ValueMap::getScalarT(const std::string& key, Real64 defaultValue) const;
   template Handle ValueMap::getScalarT(const std::string& key, Handle defaultValue) const;
+  template bool ValueMap::getScalarT(const std::string& key, bool defaultValue) const;
 
   template Byte ValueMap::getScalarT(const std::string& key) const;
   template UInt16 ValueMap::getScalarT(const std::string& key) const;

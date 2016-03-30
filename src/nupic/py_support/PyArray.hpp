@@ -58,6 +58,7 @@ NTA_BasicType getBasicType(NTA_Int64);
 NTA_BasicType getBasicType(NTA_UInt64);
 NTA_BasicType getBasicType(NTA_Real32);
 NTA_BasicType getBasicType(NTA_Real64);
+NTA_BasicType getBasicType(bool);
 
 // -------------------------------------
 //
