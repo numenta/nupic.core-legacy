@@ -53,6 +53,7 @@ namespace nupic
   NTA_BasicType getBasicType(NTA_UInt64) { return NTA_BasicType_UInt64; }
   NTA_BasicType getBasicType(NTA_Real32) { return NTA_BasicType_Real32; }
   NTA_BasicType getBasicType(NTA_Real64) { return NTA_BasicType_Real64; }
+  NTA_BasicType getBasicType(bool) { return NTA_BasicType_Bool; }
 
   // -------------------------------------
   //
@@ -103,7 +104,10 @@ namespace nupic
       break;      
     case NTA_BasicType_Real64: 
       dtype = NPY_FLOAT64;
-      break;      
+      break;
+    case NTA_BasicType_Bool:
+      dtype = NPY_BOOL;
+      break;
     default:
       NTA_THROW << "Unknown basic type: " << t;
     };
@@ -335,6 +339,7 @@ namespace nupic
   template class PyArray<NTA_UInt64>;
   template class PyArray<NTA_Real32>;
   template class PyArray<NTA_Real64>;
+  template class PyArray<bool>;
   
   template class PyArrayRef<NTA_Byte>;
   template class PyArrayRef<NTA_Int16>;
@@ -345,5 +350,6 @@ namespace nupic
   template class PyArrayRef<NTA_UInt64>;
   template class PyArrayRef<NTA_Real32>;
   template class PyArrayRef<NTA_Real64>;  
+  template class PyArrayRef<bool>;
 }
 

@@ -114,6 +114,8 @@ namespace nupic
         override;
     virtual Handle getParameterHandle(const std::string& name, Int64 index)
         override;
+    virtual bool getParameterBool(const std::string& name, Int64 index)
+        override;
     virtual std::string getParameterString(
         const std::string& name, Int64 index) override;
 
@@ -133,6 +135,8 @@ namespace nupic
         const std::string& name, Int64 index, Real64 value) override;
     virtual void setParameterHandle(
         const std::string& name, Int64 index, Handle value) override;
+    virtual void setParameterBool(
+        const std::string& name, Int64 index, bool value) override;
     virtual void setParameterString(
         const std::string& name, Int64 index, const std::string& value)
         override;

@@ -194,8 +194,11 @@ else()
 endif()
 
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-  set(COMMON_COMPILE_FLAGS "${COMMON_COMPILE_FLAGS} -Og -g")
+  set(COMMON_COMPILE_FLAGS "${COMMON_COMPILE_FLAGS} -g")
   set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} -O0")
+  if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" OR MINGW)
+    set(COMMON_COMPILE_FLAGS "${COMMON_COMPILE_FLAGS} -Og")
+  endif()
 else()
   set(COMMON_COMPILE_FLAGS "${COMMON_COMPILE_FLAGS} ${OPTIMIZATION_FLAGS_CC}")
   set(COMMON_LINK_FLAGS "${COMMON_LINK_FLAGS} ${OPTIMIZATION_FLAGS_LT}")
@@ -411,13 +414,14 @@ set(LIB_STATIC_NUPICCORE_SRCS
     nupic/algorithms/GaborNode.cpp
     nupic/algorithms/ImageSensorLite.cpp
     nupic/algorithms/InSynapse.cpp
-    nupic/algorithms/Linear.cpp
     nupic/algorithms/OutSynapse.cpp
     nupic/algorithms/Segment.cpp
     nupic/algorithms/SegmentUpdate.cpp
     nupic/algorithms/SpatialPooler.cpp
     nupic/algorithms/TemporalMemory.cpp
     nupic/algorithms/Svm.cpp
+    nupic/encoders/ScalarEncoder.cpp
+    nupic/encoders/ScalarSensor.cpp
     nupic/engine/Collections.cpp
     nupic/engine/Input.cpp
     nupic/engine/Link.cpp
@@ -582,8 +586,10 @@ add_executable(${EXECUTABLE_GTESTS}
                test/unit/algorithms/ConnectionsTest.cpp
                test/unit/algorithms/FastCLAClassifierTest.cpp
                test/unit/algorithms/NearestNeighborUnitTest.cpp
+               test/unit/algorithms/SegmentTest.cpp
                test/unit/algorithms/SpatialPoolerTest.cpp
                test/unit/algorithms/TemporalMemoryTest.cpp
+               test/unit/encoders/ScalarEncoderTest.cpp
                test/unit/engine/InputTest.cpp
                test/unit/engine/NetworkTest.cpp
                test/unit/engine/UniformLinkPolicyTest.cpp

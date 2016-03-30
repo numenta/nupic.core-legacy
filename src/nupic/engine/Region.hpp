@@ -259,6 +259,17 @@ namespace nupic
     getParameterHandle(const std::string& name) const;
 
     /**
+     * Get a bool parameter.
+     *
+     * @param name
+     *        The name of the parameter
+     *
+     * @returns The value of the parameter
+     */
+    bool
+    getParameterBool(const std::string& name) const;
+
+    /**
      * Set the parameter to an Int32 value.
      *
      * @param name
@@ -341,6 +352,18 @@ namespace nupic
      */
     void
     setParameterHandle(const std::string& name, Handle value);
+
+    /**
+     * Set the parameter to a bool value.
+     *
+     * @param name
+     *        The name of the parameter
+     *
+     * @param value
+     *        The value of the parameter
+     */
+    void
+    setParameterBool(const std::string& name, bool value);
 
     /**
      * Get the parameter as an @c Array value.

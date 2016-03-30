@@ -45,6 +45,7 @@ const char * BasicType::getName(NTA_BasicType t)
       "Real32", 
       "Real64",
       "Handle",
+      "Bool",
     };
   
   if (!isValid(t))
@@ -108,6 +109,11 @@ namespace nupic
     return getName(NTA_BasicType_Handle);
   }
 
+  template <> const char* BasicType::getName<bool>()
+  {
+    return getName(NTA_BasicType_Bool);
+  }
+
 
   // getType<T>
   template <> NTA_BasicType BasicType::getType<Byte>()
@@ -159,6 +165,11 @@ namespace nupic
   {
     return NTA_BasicType_Handle;
   }
+
+  template <> NTA_BasicType BasicType::getType<bool>()
+  {
+    return NTA_BasicType_Bool;
+  }
 }      
 
 // Return the size in bits of a basic type
@@ -175,7 +186,8 @@ size_t BasicType::getSize(NTA_BasicType t)
       sizeof(NTA_UInt64), 
       sizeof(NTA_Real32),
       sizeof(NTA_Real64),
-      sizeof(NTA_Handle)
+      sizeof(NTA_Handle),
+      sizeof(bool),
     };
   
   if (!isValid(t))
@@ -193,8 +205,7 @@ NTA_BasicType BasicType::parse(const std::string & s)
     return NTA_BasicType_UInt16;
   else if (s == std::string("Int32") || s == std::string("int"))
     return NTA_BasicType_Int32;
-  else if (s == std::string("UInt32") || s == std::string("bool") || s == std::string("uint"))
-
+  else if (s == std::string("UInt32") || s == std::string("uint"))
     return NTA_BasicType_UInt32;
   else if (s == std::string("Int64"))
     return NTA_BasicType_Int64;
@@ -208,6 +219,8 @@ NTA_BasicType BasicType::parse(const std::string & s)
     return NTA_BasicType_Real;
   else if (s == std::string("Handle"))
     return NTA_BasicType_Handle;
+  else if (s == std::string("Bool"))
+    return NTA_BasicType_Bool;
   else
     throw Exception(__FILE__, __LINE__, std::string("Invalid basic type name: ") + s);
 }

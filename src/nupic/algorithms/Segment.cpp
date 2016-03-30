@@ -373,7 +373,7 @@ void Segment::freeNSynapses(UInt numToFree,
   {
     // Put in *segment indices*, not source cell indices
     candidates.push_back(InSynapse(inactiveSegmentIndices[i],
-                                   _synapses[i].permanence()));
+      _synapses[inactiveSegmentIndices[i]].permanence()));
   }
 
   // If we need more, choose from active synapses in order of increasing
@@ -384,7 +384,7 @@ void Segment::freeNSynapses(UInt numToFree,
     {
       // Put in *segment indices*, not source cell indices
       candidates.push_back(InSynapse(activeSegmentIndices[i],
-                                     _synapses[i].permanence() + permMax));
+        _synapses[activeSegmentIndices[i]].permanence() + permMax));
     }
   }
 

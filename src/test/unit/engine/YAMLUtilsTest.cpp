@@ -75,6 +75,19 @@ TEST(YAMLUtilsTest, toValueTestByte)
   EXPECT_STREQ(s1, s.c_str());
 }
 
+TEST(YAMLUtilsTest, toValueTestBool)
+{
+  const char* s1 = "true";
+  Value v = YAMLUtils::toValue(s1, NTA_BasicType_Bool);
+  EXPECT_TRUE(v.isScalar()) << "assertion v.isScalar() failed at "
+                            << __FILE__ << ":" << __LINE__ ;
+  ASSERT_EQ(v.getType(), NTA_BasicType_Bool);
+  bool b = v.getScalarT<bool>();
+  ASSERT_EQ(true, b);
+  boost::shared_ptr<Scalar> s = v.getScalar();
+  b = s->value.boolean;
+  ASSERT_EQ(true, b);
+}
 
 TEST(YAMLUtilsTest, ParameterSpec)
 {
@@ -179,6 +192,16 @@ TEST(YAMLUtilsTest, ParameterSpec)
       "default value", 
       ParameterSpec::ReadWriteAccess));
 
+  ps.add(
+    "boolParam",
+    ParameterSpec(
+      "bool parameter",
+      NTA_BasicType_Bool,
+      1,
+      "",
+      "false",
+      ParameterSpec::ReadWriteAccess));
+
   NTA_DEBUG << "ps count: " << ps.getCount();
 
   ValueMap vm = YAMLUtils::toValueMap("", ps);
@@ -186,6 +209,11 @@ TEST(YAMLUtilsTest, ParameterSpec)
     << "assertion vm.contains(\"int32Param\") failed at "
     << __FILE__ << ":" << __LINE__ ;
   ASSERT_EQ((Int32)32, vm.getScalarT<Int32>("int32Param"));
+
+  EXPECT_TRUE(vm.contains("boolParam"))
+    << "assertion vm.contains(\"boolParam\") failed at "
+    << __FILE__ << ":" << __LINE__ ;
+  ASSERT_EQ(false, vm.getScalarT<bool>("boolParam"));
 
   // disabled until we fix default string params
   // TEST(vm.contains("stringParam"));

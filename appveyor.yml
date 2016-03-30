@@ -125,7 +125,15 @@ build_script:
   - cd %REPO_DIR%
 
   - python setup.py sdist bdist bdist_wheel
+
+  # Copy final wheel to REPO_DIR, so that AppVeyor can see it as an artifact
   - ps: copy .\bindings\py\dist\nupic.bindings-$env:BINDINGS_VERSION-cp27-none-win_amd64.whl .
+
+  # Copy final wheel, to appropriately named wheel for use with NuPIC
+  # iterative builds (via nupic\.nupic_modules long-SHA reference).
+  # Ties in with this Pip regex;
+  # https://github.com/pypa/pip/blob/develop/pip/wheel.py#L616
+  - ps: copy .\nupic.bindings-$env:BINDINGS_VERSION-cp27-none-win_amd64.whl .\nupic.bindings-$env:BINDINGS_VERSION.$env:APPVEYOR_REPO_COMMIT-cp27-none-win_amd64.whl
 
 after_build:
   - mkdir %ARTIFACTS_DIR%
@@ -135,24 +143,14 @@ after_build:
   - cpp_region_test.exe
   - unit_tests.exe --gtest_output=xml:%ARTIFACTS_DIR%\unit_tests_report.xml
 
-  - ps: >-
-      if ($env:APPVEYOR_REPO_COMMIT -eq "master") {
-        cd $env:REPO_DIR\build\release
-
-        7z a -ttar -y -bd nupic_core-$env:APPVEYOR_REPO_COMMIT-windows64-gcc.tar . | findstr /b /c:"Everything is Ok" /c:"Scanning" /c:"Creating archive"
-
-        7z a -tgzip -y -bd ..\..\nupic_core-$env:APPVEYOR_REPO_COMMIT-windows64-gcc.tar.gz nupic_core-$env:APPVEYOR_REPO_COMMIT-windows64-gcc.tar
-
-      }
-
 test: off
 
 artifacts:
-  # Non-recursive search in build folder for Wheels and GZips
-  - path: '*.tar.gz'
+  # Non-recursive search in build folder for Wheels
   - path: '*.whl'
 
 on_success:
+  # Github tagged builds
   - ps: >-
       If ($env:APPVEYOR_REPO_TAG -eq "true" -or $env:APPVEYOR_REPO_TAG -eq "True") {
         pip install httplib requests twine --upgrade
@@ -168,19 +166,7 @@ deploy:
     bucket: "artifacts.numenta.org"
     region: us-west-2
     set_public: true
-    artifact: "nupic.bindings-$(BINDINGS_VERSION)-cp27-none-win_amd64.whl"
+    artifact: "nupic.bindings-$(BINDINGS_VERSION).$(APPVEYOR_REPO_COMMIT)-cp27-none-win_amd64.whl"
     folder: "numenta/nupic.core/releases/nupic.bindings"
-
-  # Github tagged builds
-  - provider: S3
-    access_key_id: AKIAIGHYSEHV3WFKOWNQ
-    secret_access_key:
-      secure: /8wO17Gir0XAiecJkHeE3jxOJzvyl0+uWcl7BKCuN0FC795golsL8905VmNuRl1o
-    bucket: "artifacts.numenta.org"
-    region: us-west-2
-    set_public: true
-    artifact: "nupic_core-$(APPVEYOR_REPO_COMMIT)-windows64-gcc.tar.gz"
-    folder: "numenta/nupic.core"
     on:
       branch: master
-      appveyor_repo_tag: true

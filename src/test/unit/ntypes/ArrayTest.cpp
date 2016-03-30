@@ -449,7 +449,9 @@ void ArrayTest::setupArrayTests()
   testCases_["NTA_BasicType_Real32"] =
     ArrayTestParameters(NTA_BasicType_Real32, 4, 10, "Real32", false);
   testCases_["NTA_BasicType_Real64"] =
-    ArrayTestParameters(NTA_BasicType_Real64, 8, 10, "Real64", false);  
+    ArrayTestParameters(NTA_BasicType_Real64, 8, 10, "Real64", false);
+  testCases_["NTA_BasicType_Bool"] =
+    ArrayTestParameters(NTA_BasicType_Bool, sizeof(bool), 10, "Bool", false);
 #ifdef NTA_DOUBLE_PRECISION 
   testCases_["NTA_BasicType_Real"] =
     ArrayTestParameters(NTA_BasicType_Real, 8, 10, "Real64", false);
@@ -460,4 +462,3 @@ void ArrayTest::setupArrayTests()
   testCases_["Non-existent NTA_BasicType"] =
     ArrayTestParameters((NTA_BasicType) -1, 0, 10, "N/A", true);
 }
-

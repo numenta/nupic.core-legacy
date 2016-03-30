@@ -381,6 +381,16 @@ namespace nupic
     return readT(value, size);
   }
 
+  Int32 ReadBuffer::read(bool & value) const
+  {
+    return readT(value);
+  }
+
+  Int32 ReadBuffer::read(bool * value, Size size) const
+  {
+    return readT(value, size);
+  }
+
   inline Int32 findWithLeadingWhitespace(const ReadBuffer &r, char c, int maxSearch) 
   {
     char dummy;
@@ -763,6 +773,16 @@ namespace nupic
   }
 
   Int32 WriteBuffer::write(const Real64 * value, Size size)
+  {
+    return writeT(value, size);
+  }
+
+  Int32 WriteBuffer::write(bool value)
+  {
+    return writeT(value);
+  }
+
+  Int32 WriteBuffer::write(const bool * value, Size size)
   {
     return writeT(value, size);
   }

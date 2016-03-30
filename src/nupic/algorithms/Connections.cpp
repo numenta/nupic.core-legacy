@@ -85,7 +85,9 @@ Synapse Connections::createSynapse(const Segment& segment,
   vector<SynapseData>& synapses = cells_[segment.cell.idx].segments[segment.idx].synapses;
   if (synapses.size() == maxSynapsesPerSegment_)
   {
-    NTA_THROW << "Cannot create synapse: segment has reached maximum number of synapses.";
+    Synapse minSynapse;
+    minPermanenceSynapse(segment, minSynapse);
+    destroySynapse(minSynapse);
   }
   Synapse synapse(synapses.size(), segment);
 
@@ -181,7 +183,7 @@ vector<Synapse> Connections::synapsesForSegment(const Segment& segment)
     synapse.segment = segment;
     synapseData = dataForSynapse(synapse);
 
-    if (!synapseData.destroyed && synapseData.permanence > 0)
+    if (!synapseData.destroyed)
     {
       synapses.push_back(synapse);
     }
@@ -284,6 +286,31 @@ bool Connections::leastRecentlyUsedSegment(const Cell& cell,
   return found;
 }
 
+bool Connections::minPermanenceSynapse(const Segment& segment,
+                                       Synapse& retSynapse) const
+{
+  const vector<SynapseData>& synapses =
+    cells_[segment.cell.idx].segments[segment.idx].synapses;
+
+  if (synapses.size() == 0)
+  {
+    return false;
+  }
+
+  vector<SynapseData>::const_iterator minSynapseIterator = min_element(
+    synapses.begin(),
+    synapses.end(),
+    [](const SynapseData &a, const SynapseData &b) -> bool
+    {
+      return a.permanence < b.permanence;
+    });
+
+  SynapseIdx minSynapseIdx = distance(synapses.begin(), minSynapseIterator);
+  retSynapse = Synapse(minSynapseIdx, segment);
+
+  return true;
+}
+
 Activity Connections::computeActivity(const vector<Cell>& input,
                                       Permanence permanenceThreshold,
                                       SynapseIdx synapseThreshold,
@@ -303,7 +330,9 @@ Activity Connections::computeActivity(const vector<Cell>& input,
       // TODO: Possible optimization - define constant variable here?
       synapseData = dataForSynapse(synapse);
 
-      if (synapseData.permanence >= permanenceThreshold)
+      // Ignore any synapses with permanence 0
+      if (synapseData.permanence >= permanenceThreshold &&
+          synapseData.permanence > 0)
       {
         activity.numActiveSynapsesForSegment[synapse.segment] += 1;
 

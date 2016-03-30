@@ -32,9 +32,8 @@ if [ "${TRAVIS_BRANCH}" = "master" ]; then
 
     # Upgrading pip
     pip install --upgrade pip
-
-    # Assuming pip 1.5.X is installed.
-    pip install wheel --user
+    # Assuming pip 1.5.X+ is installed.
+    pip install wheel==0.25.0 --user
 
     cd ${TRAVIS_BUILD_DIR}/bindings/py
 

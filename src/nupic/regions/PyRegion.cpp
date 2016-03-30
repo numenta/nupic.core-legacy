@@ -734,6 +734,11 @@ Handle PyRegion::getParameterHandle(const std::string& name, Int64 index)
   return getParameterT<Handle, py::Ptr>(name, index);  
 }
 
+bool PyRegion::getParameterBool(const std::string& name, Int64 index)
+{
+  return getParameterT<bool, py::Bool>(name, index);
+}
+
 void PyRegion::setParameterByte(const std::string& name, Int64 index, Byte value)
 {
   setParameterT<Byte, py::Int>(name, index, value);   
@@ -772,6 +777,11 @@ void PyRegion::setParameterReal64(const std::string& name, Int64 index, Real64 v
 void PyRegion::setParameterHandle(const std::string& name, Int64 index, Handle value)
 {
   setParameterT<PyObject *, py::Ptr>(name, index, (PyObject *)value);   
+}
+
+void PyRegion::setParameterBool(const std::string& name, Int64 index, bool value)
+{
+  setParameterT<bool, py::Bool>(name, index, value);
 }
 
 void PyRegion::getParameterArray(const std::string& name, Int64 index, Array & a)
@@ -874,7 +884,6 @@ std::string PyRegion::executeCommand(const std::vector<std::string>& args, Int64
   py::String s(res.invoke("__str__", py::Tuple()));
   const char * ss = (const char *)s;
   std::string result(ss);
-  NTA_DEBUG << "Result of PyRegion::executeCommand : '" << result << "'";
 
   return ss;
 }
