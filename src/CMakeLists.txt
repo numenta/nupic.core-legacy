@@ -41,15 +41,27 @@ if( POLICY CMP0054 )
 endif()
 
 
+#
+# Set up compile flags for internal sources and for swig-generated sources
+#
+
 set(src_compile_flags "${COMMON_CXX_FLAGS_OPTIMIZED}")
-if(NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
-    set(src_compile_flags "${src_compile_flags} -Werror")
-endif()
 
 if(MINGW)
   # This is for GCC 4.8.x
   # http://stackoverflow.com/questions/10660524/error-building-boost-1-49-0-with-gcc-4-7-0
   set(src_compile_flags "${src_compile_flags} -include cmath")
+endif()
+
+
+# NOTE We don't want -Werror flag for compiling swig-generated sources.
+# Compilation of those files produces many "maybe-uninitialized" warnings
+# that would fail the build with the -Werror flag
+set(swig_generated_file_compile_flags "${src_compile_flags}")
+
+
+if(NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
+    set(src_compile_flags "${src_compile_flags} -Werror")
 endif()
 
 
@@ -665,11 +677,6 @@ swig_add_module(${src_swig_math} python
 list(APPEND src_swig_generated_files ${swig_generated_file_fullname})
 swig_link_libraries(${src_swig_math}
                     ${src_swig_link_libraries})
-
-# NOTE We don't want -Werror flag for compiling swig-generated sources.
-# Compilation of those files produces many "maybe-uninitialized" warnings
-# that would fail the build with the -Werror flag
-set(swig_generated_file_compile_flags "${COMMON_CXX_FLAGS_OPTIMIZED}")
 
 set_source_files_properties(${src_swig_generated_files} PROPERTIES
                             GENERATED TRUE)
