@@ -68,6 +68,7 @@ namespace {
     vector<UInt> columnDim;
     columnDim.push_back(numColumns);
     tm.initialize(columnDim);
+    tm.seed_(42);
   }
 
   TEST(TemporalMemoryTest, testInitInvalidParams)
@@ -189,6 +190,7 @@ namespace {
     TemporalMemory tm;
     tm.initialize();
     tm.setPredictedSegmentDecrement(0.001);
+    tm.seed_(42);
 
     set<Cell> prevPredictiveCells;
     set<UInt> activeColumns = { 32, 47, 823 };
@@ -220,6 +222,7 @@ namespace {
     tm.initialize(vector<UInt>{2048}, 4);
     tm.setConnectedPermanence(0.50);
     tm.setMinThreshold(1);
+    tm.seed_(42);
 
     Connections connections = tm.connections;
     Segment segment = connections.createSegment(Cell(0));
@@ -293,6 +296,7 @@ namespace {
     TemporalMemory tm;
     setup(tm, 2048);
     tm.setMaxNewSynapseCount(2);
+    tm.seed_(42);
 
     Connections connections = tm.connections;
     Segment segment0 = connections.createSegment(Cell(0));
@@ -358,6 +362,7 @@ namespace {
     tm.setActivationThreshold(2);
     tm.setMinThreshold(2);
     tm.setPredictedSegmentDecrement(0.004);
+    tm.seed_(42);
 
     Connections connections = tm.connections;
     Segment segment = connections.createSegment(Cell(0));
@@ -484,6 +489,7 @@ namespace {
     TemporalMemory tm;
     setup(tm, 2048);
     tm.setMinThreshold(1);
+    tm.seed_(42);
 
     Connections connections = tm.connections;
 
@@ -640,6 +646,7 @@ namespace {
   {
     TemporalMemory tm;
     setup(tm, 2048);
+    tm.seed_(42);
 
     Connections connections = tm.connections;
     Segment segment = connections.createSegment(Cell(0));
@@ -657,6 +664,7 @@ namespace {
   {
     TemporalMemory tm;
     tm.initialize(vector<UInt>{2048}, 5);
+    tm.seed_(42);
 
     Cell cell;
 
@@ -674,6 +682,7 @@ namespace {
   {
     TemporalMemory tm;
     tm.initialize(vector<UInt>{64, 64}, 4);
+    tm.seed_(42);
 
     Cell cell;
 
@@ -691,6 +700,7 @@ namespace {
   {
     TemporalMemory tm;
     tm.initialize(vector<UInt>{64, 64}, 4);
+    tm.seed_(42);
 
     Cell cell;
 
@@ -706,6 +716,7 @@ namespace {
   {
     TemporalMemory tm;
     tm.initialize(vector<UInt>{2048}, 5);
+    tm.seed_(42);
 
     vector<Cell> expectedCells = { Cell(5), Cell(6), Cell(7), Cell(8), Cell(9) };
     vector<Cell> cellsForColumn = tm.cellsForColumnCell(1);
@@ -716,6 +727,7 @@ namespace {
   {
     TemporalMemory tm;
     tm.initialize(vector<UInt>{64, 64}, 4);
+    tm.seed_(42);
 
     vector<Cell> expectedCells = { Cell(256), Cell(257), Cell(258), Cell(259) };
     vector<Cell> cellsForColumn = tm.cellsForColumnCell(64);
@@ -726,6 +738,7 @@ namespace {
   {
     TemporalMemory tm;
     tm.initialize(vector<UInt>{64, 64}, 4);
+    tm.seed_(42);
 
     EXPECT_NO_THROW(tm.cellsForColumnCell(4095));
     EXPECT_THROW(tm.cellsForColumnCell(4096), std::exception);
@@ -736,6 +749,7 @@ namespace {
   {
     TemporalMemory tm;
     tm.initialize(vector<UInt>{64, 64}, 32);
+    tm.seed_(42);
 
     int numOfColumns = tm.numberOfColumns();
     ASSERT_EQ(numOfColumns, 64 * 64);
@@ -745,6 +759,7 @@ namespace {
   {
     TemporalMemory tm;
     tm.initialize(vector<UInt>{64, 64}, 32);
+    tm.seed_(42);
 
     Int numberOfCells = tm.numberOfCells();
     ASSERT_EQ(numberOfCells, 64 * 64 * 32);
@@ -754,6 +769,7 @@ namespace {
   {
     TemporalMemory tm;
     tm.initialize(vector<UInt>{100}, 4);
+    tm.seed_(42);
 
     set<Cell> cells = { Cell(0), Cell(1), Cell(2), Cell(5), Cell(399) };
     map<Int, set<Cell>> columnsForCells = tm.mapCellsToColumns(cells);
