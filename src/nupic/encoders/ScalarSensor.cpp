@@ -232,7 +232,8 @@ namespace nupic
     }
     else if (name == "n")
     {
-      value.write(encoder_->getOutputWidth());
+      // Cast to UInt32 to avoid call resolution ambiguity on the write() method
+      value.write((UInt32)encoder_->getOutputWidth());
     }
     else
     {

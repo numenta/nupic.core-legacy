@@ -451,7 +451,7 @@ void ArrayTest::setupArrayTests()
   testCases_["NTA_BasicType_Real64"] =
     ArrayTestParameters(NTA_BasicType_Real64, 8, 10, "Real64", false);
   testCases_["NTA_BasicType_Bool"] =
-    ArrayTestParameters(NTA_BasicType_Bool, sizeof(bool), 10, "bool", false);
+    ArrayTestParameters(NTA_BasicType_Bool, sizeof(bool), 10, "Bool", false);
 #ifdef NTA_DOUBLE_PRECISION 
   testCases_["NTA_BasicType_Real"] =
     ArrayTestParameters(NTA_BasicType_Real, 8, 10, "Real64", false);

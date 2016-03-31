@@ -340,6 +340,7 @@ void testWriteRead()
   UInt64 uint64Param = 45;
   Real32 real32Param = 46;
   Real64 real64Param = 46;
+  bool boolParam = true;
   std::string stringParam = "hello";
 
   std::vector<Int64> int64ArrayParamBuff(4);
@@ -360,6 +361,15 @@ void testWriteRead()
                          &real32ArrayParamBuff[0],
                          real32ArrayParamBuff.size());
 
+  bool boolArrayParamBuff[4];
+  for (int i = 0; i < 4; i++)
+  {
+    boolArrayParamBuff[i] = (i % 2) == 1;
+  }
+  Array boolArrayParam(NTA_BasicType_Bool,
+                       boolArrayParamBuff,
+                       4);
+
   Network n1;
   Region* region1 = n1.addRegion("rw1", "py.TestNode", "");
   region1->setParameterInt32("int32Param", int32Param);
@@ -368,9 +378,11 @@ void testWriteRead()
   region1->setParameterUInt64("uint64Param", uint64Param);
   region1->setParameterReal32("real32Param", real32Param);
   region1->setParameterReal64("real64Param", real64Param);
+  region1->setParameterBool("boolParam", boolParam);
   region1->setParameterString("stringParam", stringParam.c_str());
   region1->setParameterArray("int64ArrayParam", int64ArrayParam);
   region1->setParameterArray("real32ArrayParam", real32ArrayParam);
+  region1->setParameterArray("boolArrayParam", boolArrayParam);
 
   Network n2;
 
@@ -388,6 +400,7 @@ void testWriteRead()
   NTA_CHECK(region2->getParameterUInt64("uint64Param") == uint64Param);
   NTA_CHECK(region2->getParameterReal32("real32Param") == real32Param);
   NTA_CHECK(region2->getParameterReal64("real64Param") == real64Param);
+  NTA_CHECK(region2->getParameterBool("boolParam") == boolParam);
   NTA_CHECK(region2->getParameterString("stringParam") == stringParam.c_str());
 
   Array int64Array(NTA_BasicType_Int64);
@@ -406,6 +419,15 @@ void testWriteRead()
   for (int i = 0; i < int(real32ArrayParam.getCount()); i++)
   {
     NTA_CHECK(real32ArrayBuff[i] == real32ArrayParamBuff[i]);
+  }
+
+  Array boolArray(NTA_BasicType_Bool);
+  region2->getParameterArray("boolArrayParam", boolArray);
+  bool * boolArrayBuff = (bool *)boolArray.getBuffer();
+  NTA_CHECK(boolArrayParam.getCount() == boolArray.getCount());
+  for (int i = 0; i < int(boolArrayParam.getCount()); i++)
+  {
+    NTA_CHECK(boolArrayBuff[i] == boolArrayParamBuff[i]);
   }
 }
 

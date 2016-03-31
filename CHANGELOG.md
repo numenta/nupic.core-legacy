@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.4.1
+
+* Cast arg to UInt32 to avoid call resolution ambiguity on the value.write() method on Win32 platform.
+* Finish adding support for the Bool type
+* Expose encoder's 'n' so other regions' inputWidth is calculable from the outside
+* Remove reference to deleted Linear.cpp.
+* Run nupic.core encoders via boilerplate Sensor wrapper
+* Removes Linear.hpp, Linear.cpp, and reference in algorithms.i since it doesn't appear to be used anywhere.
+* Support Debug builds in Clang, put them in README
+* Add a NTA_BasicType_Bool so that we can parse bools in YAML
+* FloatEncoder base, no more common Encoder, new signature
+* Prepends BINDINGS_VERSION plus dot separater to wheel filename
+* Fix integer division bug, add tests that would catch this bug
+* Don't divide by a constant. Multiply. Dodges divide-by-0.
+* Explicitly mark all derived virtual methods as virtual.
+* Fix gcc build issue
+* C++ Encoder base + ScalarEncoder + ported unit tests
+
 ## 0.4.0
 
 * Reduce EPSILON threshold for TM to minitage compatibility issues.
