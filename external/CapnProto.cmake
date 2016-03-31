@@ -48,6 +48,7 @@ set(CAPNP_COMPILER_DEFINITIONS)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   set(CAPNP_CMAKE_DEFINITIONS -DCAPNP_LITE=1 -DEXTERNAL_CAPNP=1 -DBUILD_TOOLS=OFF)
+  # NOTE nupic.core's swig wraps depend on the macro CAPNP_LITE to have a value
   set(CAPNP_COMPILER_DEFINITIONS ${CAPNP_COMPILER_DEFINITIONS} -DCAPNP_LITE=1)
   set(CAPNP_LINK_LIBRARIES ${capnproto_lib_capnp} ${capnproto_lib_kj})
 else()
