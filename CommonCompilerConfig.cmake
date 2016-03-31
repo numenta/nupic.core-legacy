@@ -36,17 +36,31 @@
 #                               source files; e.g., for cmake `add_definitions()`
 # COMMON_COMPILER_DEFINITIONS_STR: string variant of COMMON_COMPILER_DEFINITIONS
 #
-# COMMON_C_FLAGS: string of common C flags
+# COMMON_C_FLAGS_UNOPTIMIZED: string of common C flags without explicit optimization flags.
 #
-# COMMON_CXX_FLAGS: string of common C++ flags (COMMON_C_FLAGS + C++ flags)
+# COMMON_C_FLAGS_OPTIMIZED: COMMON_C_FLAGS_UNOPTIMIZED plus optimizations
 #
-# COMMON_LINKER_FLAGS: string of linker flags for linking executables and shared
-#                      libraries (DLLs)
+# COMMON_CXX_FLAGS_UNOPTIMIZED: string of common C++ flags without explicit optimization flags.
+#
+# COMMON_CXX_FLAGS_OPTIMIZED: COMMON_CXX_FLAGS_UNOPTIMIZED plus optimizations
+#
+# COMMON_LINKER_FLAGS_UNOPTIMIZED: string of linker flags for linking executables
+#                      and shared libraries (DLLs) without explicit optimizations
+#                      settings. This property is for use with
+#                      COMMON_C_FLAGS_UNOPTIMIZED and COMMON_CXX_FLAGS_UNOPTIMIZED
+#
+# COMMON_LINKER_FLAGS_OPTIMIZED: string of linker flags for linking executables
+#                      and shared libraries (DLLs) with optimizations that are
+#                      compatible with COMMON_C_FLAGS_OPTIMIZED and
+#                      COMMON_CXX_FLAGS_OPTIMIZED
 #
 # CMAKE_LINKER: updated, if needed; use ld.gold if available. See cmake
 #               documentation
+#
+# NOTE The XXX_OPTIMIZED flags are quite aggresive - if your code misbehaves for
+# strange reasons, try compiling without them.
 
-# NOTE: much of the code below was factored out of the old src/CMakeLists.txt
+# NOTE much of the code below was factored out from src/CMakeLists.txt
 
 if(NOT DEFINED PLATFORM)
     message(FATAL_ERROR "PLATFORM property not defined: PLATFORM=${PLATFORM}")
@@ -56,9 +70,12 @@ endif()
 # Init exported properties
 set(COMMON_COMPILER_DEFINITIONS)
 set(COMMON_COMPILER_DEFINITIONS_STR)
-set(COMMON_C_FLAGS)
-set(COMMON_CXX_FLAGS)
-set(COMMON_LINKER_FLAGS)
+set(COMMON_C_FLAGS_OPTIMIZED)
+set(COMMON_C_FLAGS_UNOPTIMIZED)
+set(COMMON_CXX_FLAGS_OPTIMIZED)
+set(COMMON_CXX_FLAGS_UNOPTIMIZED)
+set(COMMON_LINKER_FLAGS_OPTIMIZED)
+set(COMMON_LINKER_FLAGS_UNOPTIMIZED)
 
 
 # Identify platform "bitness".
@@ -69,13 +86,6 @@ else()
 endif()
 
 message(STATUS "CMAKE BITNESS=${BITNESS}")
-
-set(stdlib_cxx "")
-set(stdlib_common "")
-
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  set(stdlib_cxx "${stdlib_cxx} -stdlib=libc++")
-endif()
 
 
 # Compiler `-D*` definitions
@@ -93,8 +103,7 @@ elseif(MSVC OR MSYS OR MINGW)
       -D_CRT_SECURE_NO_WARNINGS
       -DNDEBUG
       -D_VARIADIC_MAX=10
-      -DNOMINMAX
-      -DCAPNP_LITE=1)
+      -DNOMINMAX)
   if(MSYS OR MINGW)
     set(COMMON_COMPILER_DEFINITIONS
         ${COMMON_COMPILER_DEFINITIONS}
@@ -113,6 +122,17 @@ if(EXIT_CODE EQUAL 0)
   set(CMAKE_LINKER "ld.gold")
 endif()
 
+
+#
+# Determine stdlib settings
+#
+set(stdlib_cxx "")
+set(stdlib_common "")
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+  set(stdlib_cxx "${stdlib_cxx} -stdlib=libc++")
+endif()
+
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
    set(stdlib_common "${stdlib_common} -static-libgcc")
    set(stdlib_cxx "${stdlib_cxx} -static-libstdc++")
@@ -120,9 +140,9 @@ endif()
 
 
 #
-# Enable Optimization flags here
-# These are quite aggresive flags, if your code misbehaves
-# for strange reasons, try compiling without them.
+# Determine Optimization flags here
+# These are quite aggresive flags, if your code misbehaves for strange reasons,
+# try compiling without them.
 #
 if(NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
   set(optimization_flags_cc "${optimization_flags_cc} -mtune=generic -O2")
@@ -142,21 +162,20 @@ endif()
 #
 # compiler specific settings here
 #
-set(COMMON_CXX_FLAGS "")
 
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
   # MS Visual C
   set(shared_compile_flags "/TP /Zc:wchar_t /Gm- /fp:precise /errorReport:prompt /W1 /WX- /GR /Gd /GS /Oy- /EHs /analyze- /nologo")
-  set(COMMON_LINKER_FLAGS "/NOLOGO /SAFESEH:NO /NODEFAULTLIB:LIBCMT")
+  set(COMMON_LINKER_FLAGS_UNOPTIMIZED "/NOLOGO /SAFESEH:NO /NODEFAULTLIB:LIBCMT")
   if("${BITNESS}" STREQUAL "32")
-    set(COMMON_LINKER_FLAGS "${COMMON_LINKER_FLAGS} /MACHINE:X86")
+    set(COMMON_LINKER_FLAGS_UNOPTIMIZED "${COMMON_LINKER_FLAGS_UNOPTIMIZED} /MACHINE:X86")
   else()
-    set(COMMON_LINKER_FLAGS "${COMMON_LINKER_FLAGS} /MACHINE:X${BITNESS}")
+    set(COMMON_LINKER_FLAGS_UNOPTIMIZED "${COMMON_LINKER_FLAGS_UNOPTIMIZED} /MACHINE:X${BITNESS}")
   endif()
 
 else()
   # LLVM Clang / Gnu GCC
-  set(COMMON_CXX_FLAGS "${COMMON_CXX_FLAGS} -std=c++11")
+  set(COMMON_CXX_FLAGS_UNOPTIMIZED "${COMMON_CXX_FLAGS_UNOPTIMIZED} ${stdlib_cxx} -std=c++11")
 
   set(shared_compile_flags "-m${BITNESS} ${stdlib_common} -Wextra -Wreturn-type -Wunused -Wno-unused-variable -Wno-unused-parameter -Wno-missing-field-initializers")
   if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -165,30 +184,56 @@ else()
         set(shared_compile_flags "${shared_compile_flags} -Wno-deprecated-register")
     endif()
   endif()
-  set(COMMON_LINKER_FLAGS "-m${BITNESS} ${stdlib_common} ${stdlib_cxx}")
+  set(COMMON_LINKER_FLAGS_UNOPTIMIZED "-m${BITNESS} ${stdlib_common} ${stdlib_cxx}")
 endif()
+
+
+if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
+  set(COMMON_LINKER_FLAGS_UNOPTIMIZED "${COMMON_LINKER_FLAGS_UNOPTIMIZED} -Wl,--no-undefined")
+elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
+  set(COMMON_LINKER_FLAGS_UNOPTIMIZED "${COMMON_LINKER_FLAGS_UNOPTIMIZED} -Wl,-undefined,error")
+endif()
+
+
+#
+# Set up Debug vs. Release options
+#
+set(build_type_specific_compile_flags)
+set(build_type_specific_linker_flags)
 
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-  set(shared_compile_flags "${shared_compile_flags} -g")
-  set(COMMON_LINKER_FLAGS "${COMMON_LINKER_FLAGS} -O0")
+  set (build_type_specific_compile_flags "${build_type_specific_compile_flags} -g")
+
+  set(build_type_specific_linker_flags "${build_type_specific_linker_flags} -O0")
+
   if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" OR MINGW)
-    set(shared_compile_flags "${shared_compile_flags} -Og")
+    #set(shared_compile_flags "${shared_compile_flags} -Og")
+    set (build_type_specific_compile_flags "${build_type_specific_compile_flags} -Og")
   endif()
-else()
-  set(shared_compile_flags "${shared_compile_flags} ${optimization_flags_cc}")
-  set(COMMON_LINKER_FLAGS "${COMMON_LINKER_FLAGS} ${optimization_flags_lt}")
+
+  # Disable optimizations
+  set(optimization_flags_cc)
+  set(optimization_flags_lt)
 endif()
 
-# Set compiler-specific options.
-if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
-  set(COMMON_LINKER_FLAGS "${COMMON_LINKER_FLAGS} -Wl,--no-undefined")
-elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
-  set(COMMON_LINKER_FLAGS "${COMMON_LINKER_FLAGS} -Wl,-undefined,error")
-endif()
 
-set(COMMON_C_FLAGS "${shared_compile_flags}")
+#
+# Assemble compiler and linker properties
+#
+set(COMMON_C_FLAGS_UNOPTIMIZED "${build_type_specific_compile_flags} ${shared_compile_flags}")
+set(COMMON_C_FLAGS_OPTIMIZED "${COMMON_C_FLAGS_UNOPTIMIZED} ${optimization_flags_cc}")
 
-set(COMMON_CXX_FLAGS "${COMMON_CXX_FLAGS} ${shared_compile_flags} ${stdlib_cxx}")
+set(COMMON_CXX_FLAGS_UNOPTIMIZED "${build_type_specific_compile_flags} ${shared_compile_flags} ${COMMON_CXX_FLAGS_UNOPTIMIZED}")
+set(COMMON_CXX_FLAGS_OPTIMIZED "${COMMON_CXX_FLAGS_UNOPTIMIZED} ${optimization_flags_cc}")
 
-# Provide a string variant of COMMON_COMPILER_DEFINITIONS list
-string (REPLACE ";" " " COMMON_COMPILER_DEFINITIONS_STR "${COMMON_COMPILER_DEFINITIONS}")
+set(COMMON_LINKER_FLAGS_UNOPTIMIZED "${build_type_specific_linker_flags} ${COMMON_LINKER_FLAGS_UNOPTIMIZED}")
+set(COMMON_LINKER_FLAGS_OPTIMIZED "${COMMON_LINKER_FLAGS_UNOPTIMIZED} ${optimization_flags_lt}")
+
+
+#
+# Provide a string variant of the COMMON_COMPILER_DEFINITIONS list
+#
+set(COMMON_COMPILER_DEFINITIONS_STR)
+foreach(compiler_definition ${COMMON_COMPILER_DEFINITIONS})
+  set(COMMON_COMPILER_DEFINITIONS_STR "${COMMON_COMPILER_DEFINITIONS_STR} ${compiler_definition}")
+endforeach()

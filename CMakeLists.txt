@@ -26,6 +26,8 @@ set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}")
 
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 
+get_filename_component(REPOSITORY_DIR ${PROJECT_SOURCE_DIR} ABSOLUTE)
+
 
 if( POLICY CMP0046 )
   cmake_policy(VERSION 2.8)
@@ -76,7 +78,7 @@ include(CommonCompilerConfig)
 # ExternalProject to fetch and build the libraries.
 #
 # Sets the following variables:
-#   CAPNP_LIBRARIES
+#   CAPNP_LINK_LIBRARIES
 #   EXTERNAL_INCLUDE_DIRS
 #
 # Defines the follow functions:

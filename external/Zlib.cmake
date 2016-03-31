@@ -25,8 +25,6 @@
 #   LIB_STATIC_Z_INC_DIR: directory of installed z lib headers
 #   LIB_STATIC_Z_LOC: path to installed static z lib
 
-get_filename_component(REPOSITORY_DIR ${PROJECT_SOURCE_DIR}/.. ABSOLUTE)
-
 set(zlib_url "${REPOSITORY_DIR}/external/common/share/zlib/zlib-1.2.8.tar.gz")
 set(zlib_source_dir "${REPOSITORY_DIR}/external/common/share/zlib/zlib-1.2.8")
 set(zlib_install_prefix "${EP_BASE}/Install/ZStaticLib")
@@ -46,7 +44,7 @@ set(LIB_STATIC_Z_INC_DIR "${zlib_install_prefix}/include")
 # Export path to installed static z lib to parent
 set(LIB_STATIC_Z_LOC "${zlib_install_lib_dir}/${STATIC_PRE}${zlib_output_root}${STATIC_SUF}")
 
-set(c_flags "${COMMON_C_FLAGS} ${COMMON_COMPILER_DEFINITIONS_STR}")
+set(c_flags "${COMMON_C_FLAGS_OPTIMIZED} ${COMMON_COMPILER_DEFINITIONS_STR}")
 
 ExternalProject_Add(ZStaticLib
     URL ${zlib_url}

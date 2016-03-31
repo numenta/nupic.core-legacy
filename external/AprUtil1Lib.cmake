@@ -26,8 +26,6 @@
 #   LIB_STATIC_APRUTIL1_INC_DIR: directory of installed aprutil-1 lib headers
 #   LIB_STATIC_APRUTIL1_LOC: path to installed static aprutil-1 lib
 
-get_filename_component(REPOSITORY_DIR ${PROJECT_SOURCE_DIR}/.. ABSOLUTE)
-
 set(aprutillib_install_prefix "${EP_BASE}/Install/AprUtil1StaticLib")
 set(aprutillib_install_lib_dir "${aprutillib_install_prefix}/lib")
 
@@ -41,18 +39,13 @@ set(LIB_STATIC_APRUTIL1_LOC "${aprutillib_install_lib_dir}/${STATIC_PRE}aprutil-
 # on Win32 (reference: https://bz.apache.org/bugzilla/show_bug.cgi?id=56342)
 set(aprutillib_cflags "-DCOM_NO_WINDOWS_H -DAPR_DECLARE_STATIC")
 set(aprutillib_cflags "${aprutillib_cflags} -I${LIB_STATIC_APR1_INC_DIR}/apr-1")
-set(aprutillib_cflags "${COMMON_C_FLAGS} ${COMMON_COMPILER_DEFINITIONS_STR} ${aprutillib_cflags}")
+set(aprutillib_cflags "${COMMON_C_FLAGS_OPTIMIZED} ${COMMON_COMPILER_DEFINITIONS_STR} ${aprutillib_cflags}")
 
 set(aprutillib_url "${REPOSITORY_DIR}/external/common/share/apr-util/unix/apr-util-1.5.4.tar.gz")
 
 if (UNIX)
     set(aprutillib_config_options
         --disable-util-dso --with-apr=${LIB_STATIC_APR1_INC_DIR}/..)
-
-    if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-        set(aprutillib_config_options ${aprutillib_config_options} --enable-debug)
-    endif()
-
 
     ExternalProject_Add(AprUtil1StaticLib
         DEPENDS Apr1StaticLib

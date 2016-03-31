@@ -41,10 +41,7 @@ if( POLICY CMP0054 )
 endif()
 
 
-get_filename_component(REPOSITORY_DIR ${PROJECT_SOURCE_DIR}/.. ABSOLUTE)
-
-
-set(src_compile_flags "${COMMON_CXX_FLAGS}")
+set(src_compile_flags "${COMMON_CXX_FLAGS_OPTIMIZED}")
 if(NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
     set(src_compile_flags "${src_compile_flags} -Werror")
 endif()
@@ -59,8 +56,9 @@ endif()
 string(TOUPPER ${PLATFORM} platform_uppercase)
 
 # Compiler definitions specific to nupic.core code
-set(COMPILER_DEFINITIONS
+set(src_compiler_definitions
     ${COMMON_COMPILER_DEFINITIONS}
+    ${CAPNP_COMPILER_DEFINITIONS}
     -DNTA_OS_${platform_uppercase}
     -DNTA_ARCH_${BITNESS}
     -DHAVE_CONFIG_H
@@ -74,26 +72,26 @@ set(COMPILER_DEFINITIONS
 
 
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
-  set(COMPILER_DEFINITIONS
-      ${COMPILER_DEFINITIONS}
+  set(src_compiler_definitions
+      ${src_compiler_definitions}
       -DNTA_COMPILER_GNU)
 elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
-  set(COMPILER_DEFINITIONS
-      ${COMPILER_DEFINITIONS}
+  set(src_compiler_definitions
+      ${src_compiler_definitions}
       -DNTA_COMPILER_CLANG)
 elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
-  set(COMPILER_DEFINITIONS
-      ${COMPILER_DEFINITIONS}
+  set(src_compiler_definitions
+      ${src_compiler_definitions}
       -DNTA_COMPILER_MSVC)
 elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "MinGW")
-  set(COMPILER_DEFINITIONS
-      ${COMPILER_DEFINITIONS}
+  set(src_compiler_definitions
+      ${src_compiler_definitions}
       -DNTA_COMPILER_GNU
       -D_hypot=hypot)
 endif()
 
 
-add_definitions(${COMPILER_DEFINITIONS})
+add_definitions(${src_compiler_definitions})
 
 
 #
@@ -104,10 +102,10 @@ find_package(PythonInterp 2.7 REQUIRED)
 message(STATUS "CMAKE Found python interpreter ${PYTHON_EXECUTABLE} version=%{PYTHON_VERSION_STRING}")
 execute_process(COMMAND "${PYTHON_EXECUTABLE}" "-c"
                         "import numpy; import os; import sys; sys.stdout.write(os.path.dirname(numpy.get_include()))"
-                         OUTPUT_VARIABLE NUMPY_CORE)
+                         OUTPUT_VARIABLE src_numpy_core)
 
 # Quick way to fixup directory paths to NumPy
-get_filename_component(NUMPY_CORE ${NUMPY_CORE}/include/.. ABSOLUTE)
+get_filename_component(src_numpy_core ${src_numpy_core}/include/.. ABSOLUTE)
 
 #
 # Setup include paths
@@ -117,7 +115,7 @@ if("${PROJECT_BUILD_ARTIFACTS_DIR}" STREQUAL "")
 endif()
 
 include_directories(SYSTEM
-                    ${NUMPY_CORE}/include
+                    ${src_numpy_core}/include
                     ${PROJECT_BINARY_DIR})
 
 include_directories(${PROJECT_SOURCE_DIR})
@@ -128,7 +126,7 @@ include_directories(${PROJECT_SOURCE_DIR})
 set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH}
                       ${REPOSITORY_DIR}/external/common/
                       ${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}/
-                      ${NUMPY_CORE}/)
+                      ${src_numpy_core}/)
 #
 # Make sure the Cap'n Proto generation scripts are on the PATH.
 #
@@ -147,13 +145,13 @@ configure_file(
 #
 # Setup gtest
 #
-set(LIB_STATIC_GTEST gtest)
-add_library(${LIB_STATIC_GTEST}
+set(src_lib_static_gtest gtest)
+add_library(${src_lib_static_gtest}
             STATIC
             ${REPOSITORY_DIR}/external/common/src/gtest/gtest-all.cpp)
-set_target_properties(${LIB_STATIC_GTEST}
+set_target_properties(${src_lib_static_gtest}
                       PROPERTIES COMPILE_FLAGS "${src_compile_flags}"
-                      LINK_FLAGS "${COMMON_LINKER_FLAGS}")
+                      LINK_FLAGS "${COMMON_LINKER_FLAGS_OPTIMIZED}")
 
 #
 # Setup for python
@@ -167,7 +165,7 @@ message(STATUS "PYTHON_LIBRARIES    = ${PYTHON_LIBRARIES}")
 
 # List all .capnp files here. The C++ files will be generated and included
 # when compiling later on.
-set(CAPNP_SPECS_REL
+set(src_capnp_specs_rel
   nupic/proto/BitHistory.capnp
   nupic/proto/ClaClassifier.capnp
   nupic/proto/ConnectionsProto.capnp
@@ -185,25 +183,25 @@ set(CAPNP_SPECS_REL
   nupic/proto/VectorFileSensorProto.capnp
 )
 
-foreach(spec ${CAPNP_SPECS_REL})
-  list(APPEND CAPNP_SPECS ${PROJECT_SOURCE_DIR}/${spec})
-  list(APPEND CAPNP_HDRS ${PROJECT_BINARY_DIR}/${spec}.h)
-  list(APPEND CAPNP_SRCS ${PROJECT_BINARY_DIR}/${spec}.c++)
+foreach(spec ${src_capnp_specs_rel})
+  list(APPEND src_capnp_specs ${PROJECT_SOURCE_DIR}/${spec})
+  list(APPEND src_capnp_hdrs ${PROJECT_BINARY_DIR}/${spec}.h)
+  list(APPEND src_capnp_srcs ${PROJECT_BINARY_DIR}/${spec}.c++)
 endforeach(spec)
-set(CAPNP_ALL "${CAPNP_HDRS};${CAPNP_SRCS}")
+set(src_capnp_all_spec_hdrs_and_srcs "${src_capnp_hdrs};${src_capnp_srcs}")
 
 # Create custom target for generating C++ code from .capnp schema files.
 create_capnpc_command(capnp_specs
-                      "${CAPNP_SPECS}"
+                      "${src_capnp_specs}"
                       ${PROJECT_SOURCE_DIR}
                       ${PROJECT_SOURCE_DIR}
                       ${PROJECT_BINARY_DIR}
-                      "${CAPNP_ALL}")
+                      "${src_capnp_all_spec_hdrs_and_srcs}")
 
 #
 # Python support
 #
-set (PY_SUPPORT_FILES
+set (src_py_support_files
      nupic/py_support/NumpyVector.cpp
      nupic/py_support/PyArray.cpp
      nupic/py_support/PyHelpers.cpp
@@ -211,53 +209,46 @@ set (PY_SUPPORT_FILES
      nupic/py_support/PyCapnp.cpp
 )
 if(NOT "${PLATFORM}" STREQUAL "windows")
-  list(APPEND PY_SUPPORT_FILES nupic/py_support/CapnpToPycapnp.cpp)
+  list(APPEND src_py_support_files nupic/py_support/CapnpToPycapnp.cpp)
 endif()
 
-message(STATUS "CAPNP_EXECUTABLE   = ${CAPNP_EXECUTABLE}")
-message(STATUS "CAPNP_DEFINITIONS   = ${CAPNP_DEFINITIONS}")
-message(STATUS "CAPNP_INCLUDE_DIRS  = ${CAPNP_INCLUDE_DIRS}")
-message(STATUS "CAPNP_LIBRARIES     = ${CAPNP_LIBRARIES}")
-message(STATUS "CAPNP_LIBRARIES_LITE= ${CAPNP_LIBRARIES_LITE}")
+message(STATUS "CAPNP_EXECUTABLE          = ${CAPNP_EXECUTABLE}")
+message(STATUS "CAPNP_CMAKE_DEFINITIONS   = ${CAPNP_CMAKE_DEFINITIONS}")
+message(STATUS "CAPNP_INCLUDE_DIRS        = ${CAPNP_INCLUDE_DIRS}")
+message(STATUS "CAPNP_LINK_LIBRARIES      = ${CAPNP_LINK_LIBRARIES}")
 
 #
 # Add the pycapnp Python package to includes
 if(NOT "${PLATFORM}" STREQUAL "windows")
   execute_process(COMMAND "${PYTHON_EXECUTABLE}" "-c"
                           "import capnp; import os; import sys; sys.stdout.write(os.path.dirname(os.path.dirname(capnp.__file__)))"
-                  OUTPUT_VARIABLE PYCAPNP)
-  message(STATUS "PYCAPNP             = ${PYCAPNP}")
-  include_directories(SYSTEM ${PYCAPNP})
+                  OUTPUT_VARIABLE src_pycapnp_include_dir)
+  message(STATUS "src_pycapnp_include_dir      = ${src_pycapnp_include_dir}")
+  include_directories(SYSTEM ${src_pycapnp_include_dir})
 endif()
 
 #
 # Setup libnupic_core
 #
-set(LIB_STATIC_NUPICCORE nupic_core_solo)
+set(src_lib_static_nupiccore_solo nupic_core_solo)
 
-if(MSVC OR MSYS OR MINGW)
-  set(COMMON_LIBS
-      ${PYTHON_LIBRARIES}
-      ${CAPNP_LIBRARIES_LITE})
-else()
-  set(COMMON_LIBS
-      ${PYTHON_LIBRARIES}
-      ${CAPNP_LIBRARIES})
-endif()
+set(src_common_libs
+  ${PYTHON_LIBRARIES}
+  ${CAPNP_LINK_LIBRARIES})
 
 if("${PLATFORM}" STREQUAL "linux")
-  list(APPEND COMMON_OS_LIBS pthread dl)
+  list(APPEND src_common_os_libs pthread dl)
 elseif("${PLATFORM}" STREQUAL "darwin")
-  list(APPEND COMMON_OS_LIBS c++abi)
+  list(APPEND src_common_os_libs c++abi)
 elseif(MSYS OR MINGW)
-  list(APPEND COMMON_OS_LIBS psapi ws2_32 wsock32 rpcrt4)
+  list(APPEND src_common_os_libs psapi ws2_32 wsock32 rpcrt4)
 elseif("${PLATFORM}" STREQUAL "windows")
-  list(APPEND COMMON_OS_LIBS oldnames.lib psapi.lib ws2_32.lib)
+  list(APPEND src_common_os_libs oldnames.lib psapi.lib ws2_32.lib)
 endif()
 
-set(LIB_STATIC_NUPICCORE_SRCS
-    ${CAPNP_SRCS}
-    ${PY_SUPPORT_FILES}
+set(src_lib_static_nupiccore_srcs
+    ${src_capnp_srcs}
+    ${src_py_support_files}
     nupic/algorithms/BitHistory.cpp
     nupic/algorithms/Cell.cpp
     nupic/algorithms/Cells4.cpp
@@ -326,22 +317,23 @@ set(LIB_STATIC_NUPICCORE_SRCS
     nupic/utils/TRandom.cpp
     nupic/utils/Watcher.cpp)
 
-set(LIB_STATIC_NUPICCORE_LINK_LIBS
+set(src_lib_static_nupiccore_solo_link_libs
     ${LIB_STATIC_YAML_CPP_LOC}
     ${LIB_STATIC_YAML_LOC}
     ${LIB_STATIC_APR1_LOC}
     ${LIB_STATIC_APRUTIL1_LOC}
     ${LIB_STATIC_Z_LOC}
-    ${COMMON_LIBS}
-    ${COMMON_OS_LIBS})
+    ${src_common_libs}
+    ${src_common_os_libs})
 
-set(LIB_STATIC_NUPICCORE_COMPILE_FLAGS
-    "${src_compile_flags} -I${NUMPY_CORE}/include")
-set(LIB_STATIC_NUPICCORE_LINK_FLAGS
-    "${COMMON_LINKER_FLAGS} -static")
+set(src_lib_static_nupiccore_compile_flags
+    "${src_compile_flags} -I${src_numpy_core}/include")
+# TODO Does the static library nupiccore_solo need the flags from COMMON_LINKER_FLAGS_OPTIMIZED?
+set(src_lib_static_nupiccore_link_flags
+    "${COMMON_LINKER_FLAGS_OPTIMIZED} -static")
 
-add_library(${LIB_STATIC_NUPICCORE} STATIC ${LIB_STATIC_NUPICCORE_SRCS})
-add_dependencies(${LIB_STATIC_NUPICCORE}
+add_library(${src_lib_static_nupiccore_solo} STATIC ${src_lib_static_nupiccore_srcs})
+add_dependencies(${src_lib_static_nupiccore_solo}
                  Apr1StaticLib
                  AprUtil1StaticLib
                  ZStaticLib
@@ -349,103 +341,103 @@ add_dependencies(${LIB_STATIC_NUPICCORE}
                  YamlCppStaticLib
 )
 
-target_link_libraries(${LIB_STATIC_NUPICCORE}
-                      ${LIB_STATIC_NUPICCORE_LINK_LIBS})
-set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES COMPILE_FLAGS
-                      ${LIB_STATIC_NUPICCORE_COMPILE_FLAGS})
-set_target_properties(${LIB_STATIC_NUPICCORE} PROPERTIES LINK_FLAGS
-                      ${LIB_STATIC_NUPICCORE_LINK_FLAGS})
+target_link_libraries(${src_lib_static_nupiccore_solo}
+                      ${src_lib_static_nupiccore_solo_link_libs})
+set_target_properties(${src_lib_static_nupiccore_solo} PROPERTIES COMPILE_FLAGS
+                      ${src_lib_static_nupiccore_compile_flags})
+set_target_properties(${src_lib_static_nupiccore_solo} PROPERTIES LINK_FLAGS
+                      ${src_lib_static_nupiccore_link_flags})
 
 # Add new library to common libs for rest of targets.
-set(COMMON_LIBS ${LIB_STATIC_NUPICCORE} ${COMMON_LIBS})
+set(src_common_libs ${src_lib_static_nupiccore_solo} ${src_common_libs})
 
 #
 # Setup test_cpp_region
 #
-set(EXECUTABLE_CPPREGIONTEST cpp_region_test)
-add_executable(${EXECUTABLE_CPPREGIONTEST} test/integration/CppRegionTest.cpp)
-target_link_libraries(${EXECUTABLE_CPPREGIONTEST} ${COMMON_LIBS})
-set_target_properties(${EXECUTABLE_CPPREGIONTEST} PROPERTIES COMPILE_FLAGS ${src_compile_flags})
-set_target_properties(${EXECUTABLE_CPPREGIONTEST} PROPERTIES LINK_FLAGS "${COMMON_LINKER_FLAGS}")
+set(src_executable_cppregiontest cpp_region_test)
+add_executable(${src_executable_cppregiontest} test/integration/CppRegionTest.cpp)
+target_link_libraries(${src_executable_cppregiontest} ${src_common_libs})
+set_target_properties(${src_executable_cppregiontest} PROPERTIES COMPILE_FLAGS ${src_compile_flags})
+set_target_properties(${src_executable_cppregiontest} PROPERTIES LINK_FLAGS "${COMMON_LINKER_FLAGS_OPTIMIZED}")
 add_custom_target(tests_cpp_region
-                  COMMAND ${EXECUTABLE_CPPREGIONTEST}
-                  DEPENDS ${EXECUTABLE_CPPREGIONTEST}
+                  COMMAND ${src_executable_cppregiontest}
+                  DEPENDS ${src_executable_cppregiontest}
                   VERBATIM)
 
 #
 # Setup test_py_region
 #
-set(EXECUTABLE_PYREGIONTEST py_region_test)
-add_executable(${EXECUTABLE_PYREGIONTEST} test/integration/PyRegionTest.cpp)
-target_link_libraries(${EXECUTABLE_PYREGIONTEST} ${COMMON_LIBS})
-set_target_properties(${EXECUTABLE_PYREGIONTEST}
+set(src_executable_pyregiontest py_region_test)
+add_executable(${src_executable_pyregiontest} test/integration/PyRegionTest.cpp)
+target_link_libraries(${src_executable_pyregiontest} ${src_common_libs})
+set_target_properties(${src_executable_pyregiontest}
                       PROPERTIES COMPILE_FLAGS ${src_compile_flags})
-set_target_properties(${EXECUTABLE_PYREGIONTEST}
-                      PROPERTIES LINK_FLAGS "${COMMON_LINKER_FLAGS}")
+set_target_properties(${src_executable_pyregiontest}
+                      PROPERTIES LINK_FLAGS "${COMMON_LINKER_FLAGS_OPTIMIZED}")
 add_custom_target(tests_py_region
-                  COMMAND ${EXECUTABLE_PYREGIONTEST}
-                  DEPENDS ${EXECUTABLE_PYREGIONTEST}
+                  COMMAND ${src_executable_pyregiontest}
+                  DEPENDS ${src_executable_pyregiontest}
                   VERBATIM)
 
 
 #
 # Setup test_connections_performance
 #
-set(EXECUTABLE_CONNECTIONSPERFORMANCETEST connections_performance_test)
-add_executable(${EXECUTABLE_CONNECTIONSPERFORMANCETEST}
+set(src_executable_connectionsperformancetest connections_performance_test)
+add_executable(${src_executable_connectionsperformancetest}
                test/integration/ConnectionsPerformanceTest.cpp)
-target_link_libraries(${EXECUTABLE_CONNECTIONSPERFORMANCETEST} ${COMMON_LIBS})
-set_target_properties(${EXECUTABLE_CONNECTIONSPERFORMANCETEST}
+target_link_libraries(${src_executable_connectionsperformancetest} ${src_common_libs})
+set_target_properties(${src_executable_connectionsperformancetest}
                       PROPERTIES COMPILE_FLAGS ${src_compile_flags})
-set_target_properties(${EXECUTABLE_CONNECTIONSPERFORMANCETEST}
-                      PROPERTIES LINK_FLAGS "${COMMON_LINKER_FLAGS}")
+set_target_properties(${src_executable_connectionsperformancetest}
+                      PROPERTIES LINK_FLAGS "${COMMON_LINKER_FLAGS_OPTIMIZED}")
 add_custom_target(tests_connections_performance
-                  COMMAND ${EXECUTABLE_CONNECTIONSPERFORMANCETEST}
-                  DEPENDS ${EXECUTABLE_CONNECTIONSPERFORMANCETEST}
+                  COMMAND ${src_executable_connectionsperformancetest}
+                  DEPENDS ${src_executable_connectionsperformancetest}
                   VERBATIM)
 
 #
 # Setup helloregion example
 #
-set(EXECUTABLE_HELLOREGION helloregion)
-add_executable(${EXECUTABLE_HELLOREGION} examples/regions/HelloRegions.cpp)
-target_link_libraries(${EXECUTABLE_HELLOREGION} ${COMMON_LIBS})
-set_target_properties(${EXECUTABLE_HELLOREGION}
+set(src_executable_helloregion helloregion)
+add_executable(${src_executable_helloregion} examples/regions/HelloRegions.cpp)
+target_link_libraries(${src_executable_helloregion} ${src_common_libs})
+set_target_properties(${src_executable_helloregion}
                       PROPERTIES COMPILE_FLAGS ${src_compile_flags})
-set_target_properties(${EXECUTABLE_HELLOREGION}
-                      PROPERTIES LINK_FLAGS "${COMMON_LINKER_FLAGS}")
-add_dependencies(${EXECUTABLE_HELLOREGION} ${COMMON_LIBS})
+set_target_properties(${src_executable_helloregion}
+                      PROPERTIES LINK_FLAGS "${COMMON_LINKER_FLAGS_OPTIMIZED}")
+add_dependencies(${src_executable_helloregion} ${src_common_libs})
 
 #
 # Setup prototest example
 #
-set(EXECUTABLE_PROTOTEST prototest)
-add_executable(${EXECUTABLE_PROTOTEST} examples/prototest.cpp)
-target_link_libraries(${EXECUTABLE_PROTOTEST} ${COMMON_LIBS})
-set_target_properties(${EXECUTABLE_PROTOTEST}
+set(src_executable_prototest prototest)
+add_executable(${src_executable_prototest} examples/prototest.cpp)
+target_link_libraries(${src_executable_prototest} ${src_common_libs})
+set_target_properties(${src_executable_prototest}
                       PROPERTIES COMPILE_FLAGS ${src_compile_flags})
-set_target_properties(${EXECUTABLE_PROTOTEST}
-                      PROPERTIES LINK_FLAGS "${COMMON_LINKER_FLAGS}")
-add_dependencies(${EXECUTABLE_PROTOTEST} ${COMMON_LIBS})
+set_target_properties(${src_executable_prototest}
+                      PROPERTIES LINK_FLAGS "${COMMON_LINKER_FLAGS_OPTIMIZED}")
+add_dependencies(${src_executable_prototest} ${src_common_libs})
 
 #
 # Setup HelloSP_TP example
 #
-set(EXECUTABLE_HELLOSPTP hello_sp_tp)
-add_executable(${EXECUTABLE_HELLOSPTP} examples/algorithms/HelloSP_TP.cpp)
-target_link_libraries(${EXECUTABLE_HELLOSPTP} ${COMMON_LIBS})
-set_target_properties(${EXECUTABLE_HELLOSPTP}
+set(src_executable_hellosptp hello_sp_tp)
+add_executable(${src_executable_hellosptp} examples/algorithms/HelloSP_TP.cpp)
+target_link_libraries(${src_executable_hellosptp} ${src_common_libs})
+set_target_properties(${src_executable_hellosptp}
                       PROPERTIES COMPILE_FLAGS ${src_compile_flags})
-set_target_properties(${EXECUTABLE_HELLOSPTP}
-                      PROPERTIES LINK_FLAGS "${COMMON_LINKER_FLAGS}")
-add_dependencies(${EXECUTABLE_HELLOSPTP} ${COMMON_LIBS})
+set_target_properties(${src_executable_hellosptp}
+                      PROPERTIES LINK_FLAGS "${COMMON_LINKER_FLAGS_OPTIMIZED}")
+add_dependencies(${src_executable_hellosptp} ${src_common_libs})
 
 
 #
 # Setup gtests
 #
-set(EXECUTABLE_GTESTS unit_tests)
-add_executable(${EXECUTABLE_GTESTS}
+set(src_executable_gtests unit_tests)
+add_executable(${src_executable_gtests}
                test/unit/algorithms/CondProbTableTest.cpp
                test/unit/algorithms/ConnectionsTest.cpp
                test/unit/algorithms/FastCLAClassifierTest.cpp
@@ -489,17 +481,17 @@ add_executable(${EXECUTABLE_GTESTS}
                test/unit/UnitTestMain.cpp
                test/unit/utils/RandomTest.cpp
                test/unit/utils/WatcherTest.cpp)
-target_link_libraries(${EXECUTABLE_GTESTS}
-                      ${LIB_STATIC_GTEST}
-                      ${COMMON_LIBS})
-set_target_properties(${EXECUTABLE_GTESTS}
+target_link_libraries(${src_executable_gtests}
+                      ${src_lib_static_gtest}
+                      ${src_common_libs})
+set_target_properties(${src_executable_gtests}
                       PROPERTIES COMPILE_FLAGS ${src_compile_flags}
-                                 LINK_FLAGS "${COMMON_LINKER_FLAGS}")
+                                 LINK_FLAGS "${COMMON_LINKER_FLAGS_OPTIMIZED}")
 add_custom_target(tests_unit
-                  COMMAND ${EXECUTABLE_GTESTS}
-                  DEPENDS ${EXECUTABLE_GTESTS}
+                  COMMAND ${src_executable_gtests}
+                  DEPENDS ${src_executable_gtests}
                   VERBATIM)
-add_dependencies(${EXECUTABLE_GTESTS} ${LIB_STATIC_GTEST} ${COMMON_LIBS})
+add_dependencies(${src_executable_gtests} ${src_lib_static_gtest} ${src_common_libs})
 
 #
 # tests_all just calls other targets
@@ -511,8 +503,8 @@ add_custom_target(tests_all
                   VERBATIM)
 
 # Dependencies of the combined nupic.core static lib
-set(NUPICCORE_COMBINED_DEPS
-    ${LIB_STATIC_NUPICCORE}
+set(src_nupiccore_combined_deps
+    ${src_lib_static_nupiccore_solo}
     Apr1StaticLib
     AprUtil1StaticLib
     ZStaticLib
@@ -520,39 +512,39 @@ set(NUPICCORE_COMBINED_DEPS
     YamlCppStaticLib)
 
 if(UNIX OR MSYS OR MINGW)
-  set(LIB_STATIC_NUPICCORE_COMBINED "${PROJECT_BINARY_DIR}/libnupic_core.a")
+  set(src_lib_static_nupiccore_combined "${PROJECT_BINARY_DIR}/libnupic_core.a")
   if(MSYS OR MINGW)
-    add_custom_command(OUTPUT ${LIB_STATIC_NUPICCORE_COMBINED}
-                       COMMAND ${CMAKE_AR} -x $<TARGET_FILE:${LIB_STATIC_NUPICCORE}>
+    add_custom_command(OUTPUT ${src_lib_static_nupiccore_combined}
+                       COMMAND ${CMAKE_AR} -x $<TARGET_FILE:${src_lib_static_nupiccore_solo}>
                        COMMAND ${CMAKE_AR} -x ${LIB_STATIC_YAML_CPP_LOC}
                        COMMAND ${CMAKE_AR} -x ${LIB_STATIC_YAML_LOC}
                        COMMAND ${CMAKE_AR} -x ${LIB_STATIC_APRUTIL1_LOC}
                        COMMAND ${CMAKE_AR} -x ${LIB_STATIC_APR1_LOC}
                        COMMAND ${CMAKE_AR} -x ${LIB_STATIC_Z_LOC}
-                       COMMAND ${CMAKE_AR} rcs ${LIB_STATIC_NUPICCORE_COMBINED} *.obj
-                       DEPENDS ${NUPICCORE_COMBINED_DEPS})
+                       COMMAND ${CMAKE_AR} rcs ${src_lib_static_nupiccore_combined} *.obj
+                       DEPENDS ${src_nupiccore_combined_deps})
   else()
-    add_custom_command(OUTPUT ${LIB_STATIC_NUPICCORE_COMBINED}
-                       COMMAND ${CMAKE_AR} -x $<TARGET_FILE:${LIB_STATIC_NUPICCORE}>
+    add_custom_command(OUTPUT ${src_lib_static_nupiccore_combined}
+                       COMMAND ${CMAKE_AR} -x $<TARGET_FILE:${src_lib_static_nupiccore_solo}>
                        COMMAND ${CMAKE_AR} -x ${LIB_STATIC_YAML_CPP_LOC}
                        COMMAND ${CMAKE_AR} -x ${LIB_STATIC_YAML_LOC}
                        COMMAND ${CMAKE_AR} -x ${LIB_STATIC_APRUTIL1_LOC}
                        COMMAND ${CMAKE_AR} -x ${LIB_STATIC_APR1_LOC}
                        COMMAND ${CMAKE_AR} -x ${LIB_STATIC_Z_LOC}
-                       COMMAND ${CMAKE_AR} rcs ${LIB_STATIC_NUPICCORE_COMBINED} *.o
-                       DEPENDS ${NUPICCORE_COMBINED_DEPS})
+                       COMMAND ${CMAKE_AR} rcs ${src_lib_static_nupiccore_combined} *.o
+                       DEPENDS ${src_nupiccore_combined_deps})
   endif()
 else()
-  set(LIB_STATIC_NUPICCORE_COMBINED "${PROJECT_BINARY_DIR}/nupic_core.lib")
-  add_custom_command(OUTPUT ${LIB_STATIC_NUPICCORE_COMBINED}
-                     COMMAND lib.exe /OUT:${LIB_STATIC_NUPICCORE_COMBINED}
-                             $<TARGET_FILE:${LIB_STATIC_NUPICCORE}>
+  set(src_lib_static_nupiccore_combined "${PROJECT_BINARY_DIR}/nupic_core.lib")
+  add_custom_command(OUTPUT ${src_lib_static_nupiccore_combined}
+                     COMMAND lib.exe /OUT:${src_lib_static_nupiccore_combined}
+                             $<TARGET_FILE:${src_lib_static_nupiccore_solo}>
                              ${LIB_STATIC_YAML_CPP_LOC}
                              ${LIB_STATIC_YAML_LOC}
                              ${LIB_STATIC_APRUTIL1_LOC}
                              ${LIB_STATIC_APR1_LOC}
                              ${LIB_STATIC_Z_LOC}
-                     DEPENDS ${NUPICCORE_COMBINED_DEPS}
+                     DEPENDS ${src_nupiccore_combined_deps}
                      VERBATIM)
 endif()
 
@@ -560,9 +552,9 @@ endif()
 # Wrap nupic.core combined lib output in custom target to avoid conflict from
 # other dependent targets that may execute in parallel. NOTE Other targets MUST
 # use LibStaticNupicCoreCombinedTarget as a dependency instead of
-# ${LIB_STATIC_NUPICCORE_COMBINED}
+# ${src_lib_static_nupiccore_combined}
 add_custom_target(LibStaticNupicCoreCombinedTarget
-                  DEPENDS ${LIB_STATIC_NUPICCORE_COMBINED})
+                  DEPENDS ${src_lib_static_nupiccore_combined})
 
 #
 # Call SWIG to generate wrapper code for Python.
@@ -577,7 +569,7 @@ file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/nupic/bindings)
 
 # SWIG options from:
 # https://github.com/swig/swig/blob/master/Source/Modules/python.cxx#L111
-set(SWIG_FLAGS
+set(src_swig_flags
     -features
     autodoc=0,directors=0
     -noproxyimport
@@ -602,10 +594,10 @@ set(SWIG_FLAGS
     -DSWIG_PYTHON_LEGACY_BOOL
     -I${SWIG_DIR}/python
     -I${SWIG_DIR}
-    ${COMPILER_DEFINITIONS}
+    ${src_compiler_definitions}
 )
 
-set(SWIG_SUPPORT_FILES
+set(src_swig_support_files
     nupic/py_support/NumpyVector.cpp
     nupic/py_support/PyArray.cpp
     nupic/py_support/PyHelpers.cpp
@@ -613,72 +605,66 @@ set(SWIG_SUPPORT_FILES
     nupic/bindings/PySparseTensor.cpp
 )
 
-set(SWIG_LINK_LIBRARIES
-    ${LIB_STATIC_NUPICCORE_COMBINED}
+set(src_swig_link_libraries
+    ${src_lib_static_nupiccore_combined}
     ${PYTHON_LIBRARIES}
-    ${COMMON_OS_LIBS})
+    ${src_common_os_libs})
 
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-  set(SWIG_LINK_LIBRARIES
-      ${SWIG_LINK_LIBRARIES}
-      ${CAPNP_LIBRARIES_LITE})
-else()
-  set(SWIG_LINK_LIBRARIES
-      ${SWIG_LINK_LIBRARIES}
-      ${CAPNP_LIBRARIES})
-endif()
+set(src_swig_link_libraries
+    ${src_swig_link_libraries}
+    ${CAPNP_LINK_LIBRARIES})
 
 # Algorithms
-set(SWIG_ALGORITHMS_FILES nupic/bindings/algorithms.i)
-set_source_files_properties(${SWIG_ALGORITHMS_FILES} PROPERTIES
+set(src_swig_algorithms_files nupic/bindings/algorithms.i)
+set_source_files_properties(${src_swig_algorithms_files} PROPERTIES
                             CPLUSPLUS ON
                             SWIG_MODULE_NAME algorithms
-                            SWIG_FLAGS "${SWIG_FLAGS}")
-set(SWIG_ALGORITHMS algorithms)
+                            SWIG_FLAGS "${src_swig_flags}")
+set(src_swig_algorithms algorithms)
 # Make sure we don't attempt to execute the swig executable until it is built.
-set(SWIG_MODULE_${SWIG_ALGORITHMS}_EXTRA_DEPS Swig LibStaticNupicCoreCombinedTarget)
+set(SWIG_MODULE_${src_swig_algorithms}_EXTRA_DEPS Swig LibStaticNupicCoreCombinedTarget)
 # Create custom command for generating files from SWIG.
-swig_add_module(${SWIG_ALGORITHMS} python
-                ${SWIG_SUPPORT_FILES}
-                ${SWIG_ALGORITHMS_FILES})
-list(APPEND SWIG_GENERATED_FILES ${swig_generated_file_fullname})
-swig_link_libraries(${SWIG_ALGORITHMS}
-                    ${SWIG_LINK_LIBRARIES})
+swig_add_module(${src_swig_algorithms} python
+                ${src_swig_support_files}
+                ${src_swig_algorithms_files})
+list(APPEND src_swig_generated_files ${swig_generated_file_fullname})
+swig_link_libraries(${src_swig_algorithms}
+                    ${src_swig_link_libraries})
 
 # Engine
-set(SWIG_ENGINE_FILES nupic/bindings/engine_internal.i)
-set_source_files_properties(${SWIG_ENGINE_FILES} PROPERTIES
+set(src_swig_engine_files nupic/bindings/engine_internal.i)
+set_source_files_properties(${src_swig_engine_files} PROPERTIES
                             CPLUSPLUS ON
                             SWIG_MODULE_NAME engine_internal
-                            SWIG_FLAGS "${SWIG_FLAGS}")
-set(SWIG_ENGINE engine_internal)
+                            SWIG_FLAGS "${src_swig_flags}")
+set(src_swig_engine engine_internal)
 # Make sure we don't attempt to execute the swig executable until it is built.
-set(SWIG_MODULE_${SWIG_ENGINE}_EXTRA_DEPS Swig LibStaticNupicCoreCombinedTarget)
+set(SWIG_MODULE_${src_swig_engine}_EXTRA_DEPS Swig LibStaticNupicCoreCombinedTarget)
 # Create custom command for generating files from SWIG.
-swig_add_module(${SWIG_ENGINE} python
-                ${SWIG_SUPPORT_FILES}
-                ${SWIG_ENGINE_FILES})
-list(APPEND SWIG_GENERATED_FILES ${swig_generated_file_fullname})
-swig_link_libraries(${SWIG_ENGINE}
-                    ${SWIG_LINK_LIBRARIES})
+swig_add_module(${src_swig_engine} python
+                ${src_swig_support_files}
+                ${src_swig_engine_files})
+list(APPEND src_swig_generated_files ${swig_generated_file_fullname})
+swig_link_libraries(${src_swig_engine}
+                    ${src_swig_link_libraries})
 
 # Math
-set(SWIG_MATH_FILES nupic/bindings/math.i)
-set_source_files_properties(${SWIG_MATH_FILES} PROPERTIES
+set(src_swig_math_files nupic/bindings/math.i)
+set_source_files_properties(${src_swig_math_files} PROPERTIES
                             CPLUSPLUS ON
                             SWIG_MODULE_NAME math
-                            SWIG_FLAGS "${SWIG_FLAGS}")
-set(SWIG_MATH math)
+                            SWIG_FLAGS "${src_swig_flags}")
+set(src_swig_math math)
 # Make sure we don't attempt to execute the swig executable until it is built.
-set(SWIG_MODULE_${SWIG_MATH}_EXTRA_DEPS Swig LibStaticNupicCoreCombinedTarget)
+set(SWIG_MODULE_${src_swig_math}_EXTRA_DEPS Swig LibStaticNupicCoreCombinedTarget)
 # Create custom command for generating files from SWIG.
-swig_add_module(${SWIG_MATH} python
-                ${SWIG_SUPPORT_FILES}
-                ${SWIG_MATH_FILES})
-list(APPEND SWIG_GENERATED_FILES ${swig_generated_file_fullname})
-swig_link_libraries(${SWIG_MATH}
-                    ${SWIG_LINK_LIBRARIES})
+swig_add_module(${src_swig_math} python
+                ${src_swig_support_files}
+                ${src_swig_math_files})
+list(APPEND src_swig_generated_files ${swig_generated_file_fullname})
+swig_link_libraries(${src_swig_math}
+                    ${src_swig_link_libraries})
 
 
 set(swig_generated_file_compile_flags "${src_compile_flags}")
@@ -691,24 +677,24 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows" AND "${CMAKE_BUILD_TYPE}" STREQUAL "De
     set(swig_generated_file_compile_flags "${swig_generated_file_compile_flags} -Wno-error")
 endif()
 
-set_source_files_properties(${SWIG_GENERATED_FILES} PROPERTIES
+set_source_files_properties(${src_swig_generated_files} PROPERTIES
                             GENERATED TRUE)
-set_source_files_properties(${SWIG_GENERATED_FILES}
+set_source_files_properties(${src_swig_generated_files}
                             PROPERTIES
                             COMPILE_FLAGS ${swig_generated_file_compile_flags}
-                            LINK_FLAGS ${COMMON_LINKER_FLAGS})
+                            LINK_FLAGS ${COMMON_LINKER_FLAGS_OPTIMIZED})
 
-set_source_files_properties(${SWIG_SUPPORT_FILES}
+set_source_files_properties(${src_swig_support_files}
                             PROPERTIES
                             COMPILE_FLAGS ${src_compile_flags}
-                            LINK_FLAGS ${COMMON_LINKER_FLAGS})
+                            LINK_FLAGS ${COMMON_LINKER_FLAGS_OPTIMIZED})
 
 # If a path is specified, copy extensions files to proper location.
 if (PY_EXTENSIONS_DIR)
   install(TARGETS
-          ${SWIG_MODULE_${SWIG_ALGORITHMS}_REAL_NAME}
-          ${SWIG_MODULE_${SWIG_ENGINE}_REAL_NAME}
-          ${SWIG_MODULE_${SWIG_MATH}_REAL_NAME}
+          ${SWIG_MODULE_${src_swig_algorithms}_REAL_NAME}
+          ${SWIG_MODULE_${src_swig_engine}_REAL_NAME}
+          ${SWIG_MODULE_${src_swig_math}_REAL_NAME}
           LIBRARY DESTINATION ${PY_EXTENSIONS_DIR})
   install(FILES
           ${PROJECT_BINARY_DIR}/algorithms.py
@@ -722,18 +708,19 @@ endif(PY_EXTENSIONS_DIR)
 # Install targets into CMAKE_INSTALL_PREFIX
 #
 install(TARGETS
-        ${LIB_STATIC_NUPICCORE}
-        ${LIB_STATIC_GTEST}
-        ${EXECUTABLE_HELLOREGION}
-        ${EXECUTABLE_CPPREGIONTEST}
-        ${EXECUTABLE_PYREGIONTEST}
-        ${EXECUTABLE_CONNECTIONSPERFORMANCETEST}
-        ${EXECUTABLE_HELLOSPTP}
-        ${EXECUTABLE_PROTOTEST}
-        ${EXECUTABLE_GTESTS}
+        ${src_lib_static_nupiccore_solo}
+        ${src_lib_static_gtest}
+        ${src_executable_helloregion}
+        ${src_executable_cppregiontest}
+        ${src_executable_pyregiontest}
+        ${src_executable_connectionsperformancetest}
+        ${src_executable_hellosptp}
+        ${src_executable_prototest}
+        ${src_executable_gtests}
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)
+
 install(DIRECTORY nupic/ DESTINATION include/nupic
         FILES_MATCHING PATTERN "*.h*"
         PATTERN "*.hpp.in" EXCLUDE)
@@ -741,31 +728,32 @@ install(DIRECTORY nupic/ DESTINATION include/nupic
         FILES_MATCHING PATTERN "*.capnp")
 install(DIRECTORY ${PROJECT_BINARY_DIR}/nupic/ DESTINATION include/nupic/
         FILES_MATCHING PATTERN "*.capnp.h")
+
 install(DIRECTORY ${REPOSITORY_DIR}/external/common/include/gtest
         DESTINATION include/gtest
         FILES_MATCHING PATTERN "*.h*")
+
 install(FILES ${PROJECT_BINARY_DIR}/Version.hpp
         DESTINATION include/nupic/)
+
 install(DIRECTORY "${REPOSITORY_DIR}/external/common/include/"
         DESTINATION include)
-install(DIRECTORY "${NUMPY_CORE}/lib/"
+
+install(DIRECTORY "${src_numpy_core}/lib/"
         DESTINATION lib)
-install(DIRECTORY "${NUMPY_CORE}/include/"
+install(DIRECTORY "${src_numpy_core}/include/"
         DESTINATION include)
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-  install(FILES ${CAPNP_LIBRARIES_LITE}
-          DESTINATION lib)
-else()
-  install(FILES ${CAPNP_LIBRARIES}
-          DESTINATION lib)
-endif()
+
+install(FILES ${CAPNP_LINK_LIBRARIES}
+        DESTINATION lib)
 foreach(directory ${CAPNP_INCLUDE_DIRS})
   install(DIRECTORY "${directory}/capnp"
           DESTINATION include)
   install(DIRECTORY "${directory}/kj"
           DESTINATION include)
 endforeach()
-install(FILES ${LIB_STATIC_NUPICCORE_COMBINED}
+
+install(FILES ${src_lib_static_nupiccore_combined}
         DESTINATION lib)
 
 install(DIRECTORY nupic/py_support DESTINATION include/nupic
