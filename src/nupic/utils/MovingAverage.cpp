@@ -31,7 +31,7 @@ using namespace std;
 using namespace nupic::util;
 
 
-MovingAverage::MovingAverage(UInt wSize, const vector<T>& historicalValues) :
+MovingAverage::MovingAverage(UInt wSize, const vector<float>& historicalValues) :
 	windowSize_(wSize)
 {
   if (historicalValues.size() != 0)
@@ -48,13 +48,13 @@ MovingAverage::MovingAverage(UInt wSize, const vector<T>& historicalValues) :
 MovingAverage::MovingAverage(UInt wSize) : windowSize_(wSize), total_(0) {}
 
 
-T MovingAverage::compute(T newVal)
+float MovingAverage::compute(float newVal)
 {
   return total_ + newVal;
 }
 
 
-void MovingAverage::next(T newVal)
+void MovingAverage::next(float newVal)
 {
   if (windowSize_ == slidingWindow_.size())
   {
@@ -67,7 +67,7 @@ void MovingAverage::next(T newVal)
 }
 
 
-std::vector<T> MovingAverage::getSlidingWindow() const
+std::vector<float> MovingAverage::getSlidingWindow() const
 {
   return this->slidingWindow_;
 }
@@ -75,7 +75,7 @@ std::vector<T> MovingAverage::getSlidingWindow() const
 
 float MovingAverage::getCurrentAvg() const
 {
-  return T(this->total_) / T(this->slidingWindow_.size());
+  return float(this->total_) / float(this->slidingWindow_.size());
 }
 
 
@@ -93,7 +93,7 @@ bool MovingAverage::operator!=(const MovingAverage& r2) const
 }
 
 
-T MovingAverage::getTotal() const
+float MovingAverage::getTotal() const
 {
   return this->total_;
 }
