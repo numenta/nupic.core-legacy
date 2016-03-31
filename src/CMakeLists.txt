@@ -666,16 +666,10 @@ list(APPEND src_swig_generated_files ${swig_generated_file_fullname})
 swig_link_libraries(${src_swig_math}
                     ${src_swig_link_libraries})
 
-
-set(swig_generated_file_compile_flags "${src_compile_flags}")
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows" AND "${CMAKE_BUILD_TYPE}" STREQUAL "Debug" AND
-   NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
-    # Suppress treating warnings as errors for windows GCC Debug builds of Swig-generated
-    # files. Compilation of those files produces many "maybe-uninitialized" warnings
-    # that would fail the build with the -Werror flag. Reference
-    # https://github.com/numenta/nupic.core/issues/887
-    set(swig_generated_file_compile_flags "${swig_generated_file_compile_flags} -Wno-error")
-endif()
+# NOTE We don't want -Werror flag for compiling swig-generated sources.
+# Compilation of those files produces many "maybe-uninitialized" warnings
+# that would fail the build with the -Werror flag
+set(swig_generated_file_compile_flags "${COMMON_CXX_FLAGS_OPTIMIZED}")
 
 set_source_files_properties(${src_swig_generated_files} PROPERTIES
                             GENERATED TRUE)
