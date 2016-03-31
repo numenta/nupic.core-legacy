@@ -82,7 +82,7 @@ namespace nupic {
          * @param permanenceIncrement  Amount by which permanences of synapses are incremented during learning.
          * @param permanenceDecrement  Amount by which permanences of synapses are decremented during learning.
          * @param predictedSegmentDecrement Amount by which active permanences of synapses of previously predicted but inactive segments are decremented.
-         * @param seed                 Seed for the random number generator.
+         * @param seed                 Seed for the random number generator. Default 0 = fixed
          *
          * Notes:
          *
@@ -102,7 +102,7 @@ namespace nupic {
           Permanence permanenceIncrement = 0.10,
           Permanence permanenceDecrement = 0.10,
           Permanence predictedSegmentDecrement = 0.0,
-          Int seed = 42,
+          Int seed = 0,
           UInt maxSegmentsPerCell=MAX_SEGMENTS_PER_CELL,
           UInt maxSynapsesPerSegment=MAX_SYNAPSES_PER_SEGMENT);
 
@@ -117,7 +117,7 @@ namespace nupic {
           Permanence permanenceIncrement = 0.10,
           Permanence permanenceDecrement = 0.10,
           Permanence predictedSegmentDecrement = 0.0,
-          Int seed = 42,
+          Int seed = 0,
           UInt maxSegmentsPerCell=MAX_SEGMENTS_PER_CELL,
           UInt maxSynapsesPerSegment=MAX_SYNAPSES_PER_SEGMENT);
 

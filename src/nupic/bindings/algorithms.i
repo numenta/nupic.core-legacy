@@ -291,7 +291,7 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
     def __init__(self, *args, **kwargs):
       """
       __init__(self, kernel=0, n_dims=0, threshold=.9, cache_size=100, shrinking=1,
-        probability=False, seed=-1) -> svm_dense
+        probability=False, seed=0) -> svm_dense
 
       nupic::algorithms::svm::svm_dense::svm_dense(int kernel=0, int n_dims=0,
       float threshold=.9, int cache_size=100, int shrinking=1, bool
@@ -722,7 +722,7 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
 inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 ncols,
                                           nupic::UInt32 nnzpr, nupic::UInt32 rf_x,
                                           nupic::Real32 sigma,
-                                          nupic::Int32 seed =-1,
+                                          nupic::Int32 seed =0,
                                           bool sorted =true)
 {
   std::vector<std::pair<nupic::UInt32, nupic::Real32> > x;
@@ -1045,7 +1045,7 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
                  minPctActiveDutyCycle=0.001,
                  dutyCyclePeriod=1000,
                  maxBoost=10.0,
-                 seed=-1,
+                 seed=0,
                  spVerbosity=0,
                  wrapAround=True):
       self.this = _ALGORITHMS.new_SpatialPooler()
@@ -1655,7 +1655,7 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
                  predictedSegmentDecrement=0.00,
                  maxSegmentsPerCell=MAX_SEGMENTS_PER_CELL,
                  maxSynapsesPerSegment=MAX_SYNAPSES_PER_SEGMENT,
-                 seed=42):
+                 seed=0):
       self.this = _ALGORITHMS.new_TemporalMemory()
       _ALGORITHMS.TemporalMemory_initialize(
         self, columnDimensions, cellsPerColumn, activationThreshold,

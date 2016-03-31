@@ -407,7 +407,7 @@ namespace nupic {
                Real permInc =.1,
                Real globalDecay =0,
                bool doPooling =false,
-               int seed =-1,
+               int seed =0,
                bool initFromCpp =false,
                bool checkSynapseConsistency =false);
 

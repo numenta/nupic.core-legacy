@@ -68,7 +68,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <algorithm>
 
 #ifdef NTA_OS_WINDOWS // to align support vectors for SSE
-#include <malloc.h>
+  #include <malloc.h>
 #endif
 
 #include <nupic/utils/Random.hpp>
@@ -77,6 +77,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <nupic/math/Array2D.hpp>
 #include <nupic/math/ArrayAlgo.hpp> // for int checkSSE()
 
+
 namespace nupic {
   namespace algorithms {
     namespace svm {
@@ -84,6 +85,8 @@ namespace nupic {
       //--------------------------------------------------------------------------------
 #define INF float(1e20)
 #define TAU float(1e-12)
+#define RANDOM_SEED -1
+
 
       template <typename label_type, typename feature_type>
       struct sample
@@ -905,10 +908,10 @@ namespace nupic {
 		   int cache_size =100,
 		   int shrinking =1,
 		   bool probability =false,
-		   int seed =-1)
+		   int seed =0)
 	  : param_(kernel, probability, gamma, C, eps, cache_size, shrinking),
 	    problem_(new problem_type(n_dims, true, threshold)),
-	    model_(nullptr), rng_(seed != -1 ? seed : 0),
+	    model_(nullptr), rng_(seed != RANDOM_SEED ? seed : 0),
 	    x_tmp_(nullptr), dec_values_(nullptr),
             with_sse(checkSSE())
 	{}
@@ -1014,7 +1017,7 @@ namespace nupic {
 			 int cache_size =100,
 			 int shrinking =1,
 			 bool probability =false,
-			 int seed =-1)
+			 int seed =0)
 	  : svm_(kernel, n_dims, 1, 1, threshold, 1, 
 		 cache_size, shrinking, probability, seed)
 	{
@@ -1097,7 +1100,7 @@ namespace nupic {
 		      int cache_size =100,
 		      int shrinking =1,
 		      bool probability =false,
-		      int seed =-1)
+		      int seed =0)
 	  : svm_(kernel, n_dims, 1, 1, threshold, 1, 
 		 cache_size, shrinking, probability, seed)
 	{
