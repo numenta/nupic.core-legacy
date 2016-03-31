@@ -100,8 +100,9 @@ namespace nupic {
           *                   (used in anomaly-likelihood)
           * @return the computed anomaly score; float 0..1
           */
+          template<typename T>
           float compute(const std::vector<UInt>& active, const std::vector<UInt>& predicted, 
-                        int inputValue=0, int timestamp=0);
+                        T inputValue=NULL, int timestamp=0);
       };
     }
   }

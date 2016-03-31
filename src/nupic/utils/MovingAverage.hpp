@@ -30,21 +30,21 @@
 
 namespace nupic {
   namespace util {
-
+    template<typename T> //numeric types
     class MovingAverage
     {
       private:
-        std::vector<float>::size_type windowSize_;
-        std::vector<float> slidingWindow_;
-        float total_;
-        float compute(float newVal);
+        std::vector<T>::size_type windowSize_;
+        std::vector<T> slidingWindow_;
+        T total_;
+        T compute(T newVal);
       public:
-        MovingAverage(UInt wSize, const std::vector<float>& historicalValues);
+        MovingAverage(UInt wSize, const std::vector<T>& historicalValues);
         MovingAverage(UInt wSize);
-        std::vector<float> getSlidingWindow() const;
-        float getCurrentAvg() const;
-        void next(float newValue);
-        float getTotal() const;
+        std::vector<T> getSlidingWindow() const;
+        T getCurrentAvg() const;
+        void next(T newValue);
+        T getTotal() const;
         bool operator==(const MovingAverage& r2) const;
         bool operator!=(const MovingAverage& r2) const;
     };
