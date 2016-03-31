@@ -65,9 +65,12 @@ if(NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
 endif()
 
 
+#
+# Compiler definitions specific to nupic.core code
+#
+
 string(TOUPPER ${PLATFORM} platform_uppercase)
 
-# Compiler definitions specific to nupic.core code
 set(src_compiler_definitions
     ${COMMON_COMPILER_DEFINITIONS}
     ${CAPNP_COMPILER_DEFINITIONS}
