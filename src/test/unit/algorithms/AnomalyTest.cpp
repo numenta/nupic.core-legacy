@@ -145,25 +145,3 @@ TEST(Anomaly, SelectModePure)
   std::vector<UInt> predicted {3, 5, 7};
   ASSERT_FLOAT_EQ(a.compute(active, predicted), 2.0 / 3.0);
 };
-
-// Not implemented.
-/*
-
-  def testEquals(self):
-    an = Anomaly()
-    anP = Anomaly()
-    self.assertEqual(an, anP, "default constructors equal")
-
-    anN = Anomaly(mode=Anomaly.MODE_LIKELIHOOD)
-    self.assertNotEqual(an, anN)
-    an = Anomaly(mode=Anomaly.MODE_LIKELIHOOD)
-    self.assertEqual(an, anN)
-
-    an = Anomaly(slidingWindowSize=5, mode=Anomaly.MODE_WEIGHTED, binaryAnomalyThreshold=0.9)
-    anP = Anomaly(slidingWindowSize=5, mode=Anomaly.MODE_WEIGHTED, binaryAnomalyThreshold=0.9)
-    anN = Anomaly(slidingWindowSize=4, mode=Anomaly.MODE_WEIGHTED, binaryAnomalyThreshold=0.9)
-    self.assertEqual(an, anP)
-    self.assertNotEqual(an, anN)
-    anN = Anomaly(slidingWindowSize=5, mode=Anomaly.MODE_WEIGHTED, binaryAnomalyThreshold=0.5)
-    self.assertNotEqual(an, anN)
-*/

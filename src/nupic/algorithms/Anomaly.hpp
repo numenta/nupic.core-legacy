@@ -84,7 +84,7 @@ namespace nupic {
           *         will be discretized to 1/0 (1 if >= binaryAnomalyThreshold)
           *         The transformation is applied after moving average is computed.
           */
-          Anomaly(int slidingWindowSize=0, AnomalyMode mode=AnomalyMode::PURE, 
+          Anomaly(UInt slidingWindowSize=0, AnomalyMode mode=AnomalyMode::PURE, 
                   float binaryAnomalyThreshold=0);
 
          /**
