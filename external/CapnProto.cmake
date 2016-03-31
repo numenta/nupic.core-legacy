@@ -124,15 +124,15 @@ set(CAPNPC_CXX_EXECUTABLE ${CAPNPC_CXX_EXECUTABLE} PARENT_SCOPE)
 set(CAPNP_CMAKE_DEFINITIONS ${CAPNP_CMAKE_DEFINITIONS} PARENT_SCOPE)
 set(CAPNP_COMPILER_DEFINITIONS ${CAPNP_COMPILER_DEFINITIONS} PARENT_SCOPE)
 
-# Install headers and libraries.
-# TODO It's confusing that these same INC and LIB installation steps are duplicated
-#      in src/CMakeLists.txt
-foreach (INCLUDE_DIR ${CAPNP_INCLUDE_DIRS})
-  install(DIRECTORY ${INCLUDE_DIR}/kj
-          DESTINATION include/)
-  install(DIRECTORY ${INCLUDE_DIR}/capnp
-          DESTINATION include/)
-endforeach ()
-
-install(FILES ${CAPNP_LINK_LIBRARIES}
-        DESTINATION lib/)
+## Install headers and libraries.
+## TODO It's confusing that these same INC and LIB installation steps are duplicated
+##      in src/CMakeLists.txt
+#foreach (INCLUDE_DIR ${CAPNP_INCLUDE_DIRS})
+#  install(DIRECTORY ${INCLUDE_DIR}/kj
+#          DESTINATION include/)
+#  install(DIRECTORY ${INCLUDE_DIR}/capnp
+#          DESTINATION include/)
+#endforeach ()
+#
+#install(FILES ${CAPNP_LINK_LIBRARIES}
+#        DESTINATION lib/)
