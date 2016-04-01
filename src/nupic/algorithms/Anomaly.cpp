@@ -97,8 +97,7 @@ Real32 Anomaly::compute(const vector<UInt>& active, const vector<UInt>& predicte
 
   if (this->movingAverage_) 
   {
-    this->movingAverage_->compute(score);
-    score = this->movingAverage_->getCurrentAvg();
+    score = this->movingAverage_->compute(score);
   }
 
   if (this->binaryThreshold_) 

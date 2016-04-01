@@ -49,7 +49,7 @@ MovingAverage::MovingAverage(UInt wSize, const vector<Real32>& historicalValues)
 MovingAverage::MovingAverage(UInt wSize) : windowSize_(wSize), total_(0) {}
 
 
-void MovingAverage::compute(Real32 newVal)
+Real32 MovingAverage::compute(Real32 newVal)
 {
   if (windowSize_ == slidingWindow_.size())
   {
@@ -59,6 +59,7 @@ void MovingAverage::compute(Real32 newVal)
 
   slidingWindow_.push_back(newVal);
   total_ += newVal;
+  return this->getCurrentAvg();
 }
 
 

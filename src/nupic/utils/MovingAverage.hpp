@@ -38,7 +38,7 @@ class MovingAverage
     MovingAverage(UInt wSize);
     std::vector<Real32> getSlidingWindow() const;
     Real32 getCurrentAvg() const;
-    void compute(Real32 newValue);
+    Real32 compute(Real32 newValue);
     Real32 getTotal() const;
     bool operator==(const MovingAverage& r2) const;
     bool operator!=(const MovingAverage& r2) const;
