@@ -36,18 +36,45 @@ set(INCLUDE_PRE ${EP_BASE}/Install/include)
 # The full prefix path for binaries.
 set(BIN_PRE ${EP_BASE}/Install/bin)
 
-# Add vendored prebuilt library include paths.
-list(APPEND EXTERNAL_INCLUDE_DIRS
-     "${PROJECT_SOURCE_DIR}/${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}/include"
-     "${PROJECT_SOURCE_DIR}/common/include")
-
 include(ExternalProject)
 
-set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
+set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}")
 
 include(CapnProto)
 
 include(Swig)
+
+include(Apr1Lib)
+set(LIB_STATIC_APR1_LOC ${LIB_STATIC_APR1_LOC} PARENT_SCOPE)
+set(LIB_STATIC_APR1_INC_DIR ${LIB_STATIC_APR1_INC_DIR} PARENT_SCOPE)
+list(APPEND EXTERNAL_INCLUDE_DIRS
+     ${LIB_STATIC_APR1_INC_DIR}
+     "${LIB_STATIC_APR1_INC_DIR}/apr-1"
+)
+
+# AprUtil1Lib MUST be imported after Apr1Lib due to depencies on exported
+# properties
+include(AprUtil1Lib)
+set(LIB_STATIC_APRUTIL1_LOC ${LIB_STATIC_APRUTIL1_LOC} PARENT_SCOPE)
+set(LIB_STATIC_APRUTIL1_INC_DIR ${LIB_STATIC_APRUTIL1_INC_DIR} PARENT_SCOPE)
+list(APPEND EXTERNAL_INCLUDE_DIRS ${LIB_STATIC_APRUTIL1_INC_DIR})
+
+include(YamlLib)
+set(LIB_STATIC_YAML_LOC ${LIB_STATIC_YAML_LOC} PARENT_SCOPE)
+
+include(YamlCppLib)
+set(LIB_STATIC_YAML_CPP_LOC ${LIB_STATIC_YAML_CPP_LOC} PARENT_SCOPE)
+set(LIB_STATIC_YAML_CPP_INC_DIR ${LIB_STATIC_YAML_CPP_INC_DIR} PARENT_SCOPE)
+list(APPEND EXTERNAL_INCLUDE_DIRS ${LIB_STATIC_YAML_CPP_INC_DIR})
+
+include(Zlib)
+set(LIB_STATIC_Z_LOC ${LIB_STATIC_Z_LOC} PARENT_SCOPE)
+set(LIB_STATIC_Z_INC_DIR ${LIB_STATIC_Z_INC_DIR} PARENT_SCOPE)
+list(APPEND EXTERNAL_INCLUDE_DIRS ${LIB_STATIC_Z_INC_DIR})
+
+# Add vendored prebuilt library include paths.
+list(APPEND EXTERNAL_INCLUDE_DIRS
+     "${PROJECT_SOURCE_DIR}/common/include")
 
 # Convenience variable that wraps all external include directories.
 list(APPEND EXTERNAL_INCLUDE_DIRS ${CAPNP_INCLUDE_DIRS})
