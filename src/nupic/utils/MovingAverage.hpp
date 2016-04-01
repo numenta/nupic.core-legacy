@@ -31,23 +31,22 @@
 namespace nupic {
   namespace util {
 
-    class MovingAverage
-    {
-      private:
-        std::vector<float>::size_type windowSize_;
-        std::vector<float> slidingWindow_;
-        float total_;
-        float compute(float newVal);
-      public:
-        MovingAverage(UInt wSize, const std::vector<float>& historicalValues);
-        MovingAverage(UInt wSize);
-        std::vector<float> getSlidingWindow() const;
-        float getCurrentAvg() const;
-        void next(float newValue);
-        float getTotal() const;
-        bool operator==(const MovingAverage& r2) const;
-        bool operator!=(const MovingAverage& r2) const;
-    };
+class MovingAverage
+{
+  public:
+    MovingAverage(UInt wSize, const std::vector<Real32>& historicalValues);
+    MovingAverage(UInt wSize);
+    std::vector<Real32> getSlidingWindow() const;
+    Real32 getCurrentAvg() const;
+    void compute(Real32 newValue);
+    Real32 getTotal() const;
+    bool operator==(const MovingAverage& r2) const;
+    bool operator!=(const MovingAverage& r2) const;
+  private:
+    std::vector<Real32>::size_type windowSize_;
+    std::vector<Real32> slidingWindow_;
+    Real32 total_;
+};
   }
 }
 

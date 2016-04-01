@@ -28,11 +28,12 @@
 #include <numeric>
 
 using namespace std;
+using namespace::nupic;
 using namespace nupic::util;
 
 
-MovingAverage::MovingAverage(UInt wSize, const vector<float>& historicalValues) :
-	windowSize_(wSize)
+MovingAverage::MovingAverage(UInt wSize, const vector<Real32>& historicalValues) :
+  windowSize_(wSize)
 {
   if (historicalValues.size() != 0)
   {
@@ -41,20 +42,14 @@ MovingAverage::MovingAverage(UInt wSize, const vector<float>& historicalValues) 
       historicalValues.end(),
       back_inserter(this->slidingWindow_));
   }
-  this->total_ = float(accumulate(this->slidingWindow_.begin(), this->slidingWindow_.end(), 0)); 
+  this->total_ = Real32(accumulate(this->slidingWindow_.begin(), this->slidingWindow_.end(), 0)); 
 }
 
 
 MovingAverage::MovingAverage(UInt wSize) : windowSize_(wSize), total_(0) {}
 
 
-float MovingAverage::compute(float newVal)
-{
-  return total_ + newVal;
-}
-
-
-void MovingAverage::next(float newVal)
+void MovingAverage::compute(Real32 newVal)
 {
   if (windowSize_ == slidingWindow_.size())
   {
@@ -63,19 +58,19 @@ void MovingAverage::next(float newVal)
   }
 
   slidingWindow_.push_back(newVal);
-  total_ = compute(newVal);
+  total_ += newVal;
 }
 
 
-std::vector<float> MovingAverage::getSlidingWindow() const
+std::vector<Real32> MovingAverage::getSlidingWindow() const
 {
   return this->slidingWindow_;
 }
 
 
-float MovingAverage::getCurrentAvg() const
+Real32 MovingAverage::getCurrentAvg() const
 {
-  return float(this->total_) / float(this->slidingWindow_.size());
+  return Real32(this->total_) / float(this->slidingWindow_.size());
 }
 
 
@@ -93,7 +88,7 @@ bool MovingAverage::operator!=(const MovingAverage& r2) const
 }
 
 
-float MovingAverage::getTotal() const
+Real32 MovingAverage::getTotal() const
 {
   return this->total_;
 }

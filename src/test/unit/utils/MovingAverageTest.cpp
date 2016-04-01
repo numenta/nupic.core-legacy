@@ -33,28 +33,28 @@ TEST(moving_average, instance)
   std::vector<float> expectedWindow;
 
   expectedWindow = {3.0};
-  m.next(3);
+  m.compute(3);
   newAverage = m.getCurrentAvg();
   ASSERT_EQ(newAverage, 3.0);
   ASSERT_EQ(m.getSlidingWindow(), expectedWindow);
   ASSERT_EQ(m.getTotal(), 3.0);
 
   expectedWindow = {3.0, 4.0};
-  m.next(4);
+  m.compute(4);
   newAverage = m.getCurrentAvg();
   ASSERT_EQ(newAverage, 3.5);
   ASSERT_EQ(m.getSlidingWindow(), expectedWindow);
   ASSERT_EQ(m.getTotal(), 7.0);
 
   expectedWindow = {3.0, 4.0, 5.0};
-  m.next(5);
+  m.compute(5);
   newAverage = m.getCurrentAvg();
   ASSERT_EQ(newAverage, 4.0);
   ASSERT_EQ(m.getSlidingWindow(), expectedWindow);
   ASSERT_EQ(m.getTotal(), 12.0);
 
   expectedWindow = {4.0, 5.0, 6.0};
-  m.next(6);
+  m.compute(6);
   newAverage = m.getCurrentAvg();
   ASSERT_EQ(newAverage, 5.0);
   ASSERT_EQ(m.getSlidingWindow(), expectedWindow);
@@ -87,7 +87,7 @@ TEST(moving_average, EqualsOperator)
     MovingAverage mbP{2, std::vector<float> {3.0, 4.0, 5.0} };
     ASSERT_EQ(mb, mbP);
 
-    mbP.next(6);
-    mb.next(6);
+    mbP.compute(6);
+    mb.compute(6);
     ASSERT_EQ(mb, mbP);   
 }

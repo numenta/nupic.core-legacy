@@ -145,3 +145,5 @@ TEST(Anomaly, SelectModePure)
   std::vector<UInt> predicted {3, 5, 7};
   ASSERT_FLOAT_EQ(a.compute(active, predicted), 2.0 / 3.0);
 };
+
+

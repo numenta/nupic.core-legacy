@@ -40,9 +40,9 @@ namespace anomaly
 {
 
 
-float computeRawAnomalyScore(const vector<UInt>& active, const vector<UInt>& predicted)
+Real32 computeRawAnomalyScore(const vector<UInt>& active, const vector<UInt>& predicted)
 {
-  	
+    
   // Return 0 if no active columns are present
   if (active.size() == 0)
   {
@@ -55,18 +55,18 @@ float computeRawAnomalyScore(const vector<UInt>& active, const vector<UInt>& pre
 
   // Calculate and return percent of active columns that were not predicted.
   set_intersection(active_.begin(), active_.end(),
-                   predicted_.begin(), predicted_.end(),
+               predicted_.begin(), predicted_.end(),
                    back_inserter(predictedActiveCols));
 
-  return (active.size() - predictedActiveCols.size()) / float(active.size());
+  return (active.size() - predictedActiveCols.size()) / Real32(active.size());
 }
 
 
-Anomaly::Anomaly(UInt slidingWindowSize, AnomalyMode mode, float binaryAnomalyThreshold) :
-                 binaryThreshold_(binaryAnomalyThreshold) /*, moving_average(nullptr) */
+Anomaly::Anomaly(UInt slidingWindowSize, AnomalyMode mode, Real32 binaryAnomalyThreshold) :
+        binaryThreshold_(binaryAnomalyThreshold) /*, moving_average(nullptr) */
 {
   NTA_ASSERT(binaryAnomalyThreshold >= 0 && binaryAnomalyThreshold <= 1) 
-    << "binaryAnomalyThreshold must be within [0.0,1.0]";
+      << "binaryAnomalyThreshold must be within [0.0,1.0]";
   this->mode_ = mode;
   if (slidingWindowSize > 0) 
   {
@@ -78,11 +78,11 @@ Anomaly::Anomaly(UInt slidingWindowSize, AnomalyMode mode, float binaryAnomalyTh
 }
 
 
-float Anomaly::compute(const vector<UInt>& active, const vector<UInt>& predicted,
-                       int inputValue, int timestamp)
+Real32 Anomaly::compute(const vector<UInt>& active, const vector<UInt>& predicted,
+           Real64 inputValue, UInt timestamp)
 {
-  float anomalyScore = computeRawAnomalyScore(active, predicted);
-  float score = anomalyScore;
+  Real32 anomalyScore = computeRawAnomalyScore(active, predicted);
+  Real32 score = anomalyScore;
   switch(this->mode_) 
   {
     case AnomalyMode::PURE:
@@ -97,7 +97,7 @@ float Anomaly::compute(const vector<UInt>& active, const vector<UInt>& predicted
 
   if (this->movingAverage_) 
   {
-    this->movingAverage_->next(score);
+    this->movingAverage_->compute(score);
     score = this->movingAverage_->getCurrentAvg();
   }
 
