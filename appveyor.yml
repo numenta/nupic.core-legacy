@@ -69,9 +69,6 @@ environment:
 
 matrix:
   allow_failures:
-    # Suppress failure in 32-bit, while we figure out why a test fails
-    - PYTHON_ARCH: 32
-
     # Checking if Visual Studio build is possible
     - NC_CMAKE_GENERATOR: "Visual Studio 14 2015 Win64"
 
