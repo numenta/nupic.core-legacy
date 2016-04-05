@@ -261,9 +261,9 @@ elseif("${PLATFORM}" STREQUAL "windows")
   list(APPEND src_common_os_libs oldnames.lib psapi.lib ws2_32.lib)
 endif()
 
-set(LIB_STATIC_NUPICCORE_SRCS
-    ${CAPNP_SRCS}
-    ${PY_SUPPORT_FILES}
+set(src_lib_static_nupiccore_srcs
+    ${src_capnp_srcs}
+    ${src_py_support_files}
     nupic/algorithms/Anomaly.cpp
     nupic/algorithms/BitHistory.cpp
     nupic/algorithms/Cell.cpp
@@ -453,8 +453,8 @@ add_dependencies(${src_executable_hellosptp} ${src_common_libs})
 #
 # Setup gtests
 #
-set(EXECUTABLE_GTESTS unit_tests)
-add_executable(${EXECUTABLE_GTESTS}
+set(src_executable_gtests unit_tests)
+add_executable(${src_executable_gtests}
                test/unit/algorithms/AnomalyTest.cpp
                test/unit/algorithms/CondProbTableTest.cpp
                test/unit/algorithms/ConnectionsTest.cpp

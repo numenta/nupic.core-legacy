@@ -42,7 +42,6 @@ namespace anomaly
 
 Real32 computeRawAnomalyScore(const vector<UInt>& active, const vector<UInt>& predicted)
 {
-    
   // Return 0 if no active columns are present
   if (active.size() == 0)
   {
