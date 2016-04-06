@@ -43,23 +43,23 @@ int RandomNumber01 () { return (rand()%2); } // returns random (binary) numbers 
 
 int main(int argc, const char * argv[])
 {
-const UInt DIM = 2048; // number of columns in SP, TP
+const UInt COLS = 2048; // number of columns in SP, TP
 const UInt DIM_INPUT = 10000;
-const UInt TP_CELLS_PER_COL = 10; // cells per column in TP
+const UInt CELLS = 10; // cells per column in TP
 const UInt EPOCHS = pow(10, 4); // number of iterations (calls to SP/TP compute() )
 
   vector<UInt> inputDim = {DIM_INPUT};
-  vector<UInt> colDim = {DIM};
+  vector<UInt> colDim = {COLS};
 
   // initialize SP, TP
   SpatialPooler sp(inputDim, colDim);
-  Cells4 tp(DIM, TP_CELLS_PER_COL, 12, 8, 15, 5, .5, .8, 1.0, .1, .1, 0.0, false, 42, true, false);
+  Cells4 tp(COLS, CELLS, 12, 8, 15, 5, .5, .8, 1.0, .1, .1, 0.0, false, 42, true, false);
 
   // generate random input
   vector<UInt> input(DIM_INPUT);
-  vector<UInt> outSP(DIM); // active array, output of SP/TP
+  vector<UInt> outSP(COLS); // active array, output of SP/TP
   vector<UInt> outTP(tp.nCells());
-  vector<Real> rIn(DIM); // input for TP (must be Reals)
+  vector<Real> rIn(COLS); // input for TP (must be Reals)
   vector<Real> rOut(tp.nCells());
 
   // Start a stopwatch timer
@@ -74,14 +74,14 @@ const UInt EPOCHS = pow(10, 4); // number of iterations (calls to SP/TP compute(
     sp.stripUnlearnedColumns(outSP.data());
 
     rIn = VectorHelpers::castVectorType<UInt, Real>(outSP);
-    tp.compute(rIn, rOut, true, true);
+    tp.compute(rIn.data(), rOut.data(), true, true);
     outTP = VectorHelpers::castVectorType<Real, UInt>(rOut);
 
     // print
     if (e == EPOCHS-1) {
       cout << "Epoch = " << e << endl;
-      cout << "SP=" << VectorHelpers::print_vector(outSP, ",") << endl;
-      cout << "TP=" << VectorHelpers::print_vector(outTP, ",") << endl;
+      VectorHelpers::print_vector(VectorHelpers::binaryToSparse<UInt>(outSP), ",", "SP= ");
+      VectorHelpers::print_vector(VectorHelpers::binaryToSparse<UInt>(VectorHelpers::cellsToColumns(outTP, CELLS)), ",", "TP= ");
     }
   }
 
