@@ -495,7 +495,8 @@ add_executable(${src_executable_gtests}
                test/unit/types/FractionTest.cpp
                test/unit/UnitTestMain.cpp
                test/unit/utils/RandomTest.cpp
-               test/unit/utils/WatcherTest.cpp)
+               test/unit/utils/WatcherTest.cpp
+               test/unit/utils/VectorHelpersTest.cpp)
 target_link_libraries(${src_executable_gtests}
                       ${src_lib_static_gtest}
                       ${src_common_libs})
