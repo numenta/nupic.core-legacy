@@ -227,7 +227,7 @@ namespace {
     // Add an additional synapse over the limit
     presynapticCell.idx = 52;
     synapse = connections.createSynapse(segment, presynapticCell, 0.52);
-    EXPECT_LT(synapse.idx, 2);
+    EXPECT_EQ(0, synapse.idx);
 
     // Verify that the lowest permanence synapse was removed
     synapses = connections.synapsesForSegment(segment);

@@ -146,10 +146,7 @@ void Connections::destroySegment(const Segment& segment)
 {
   SegmentData& segmentData = dataForSegment(segment);
 
-  if (segmentData.destroyed)
-  {
-    NTA_THROW << "Segment already destroyed.";
-  }
+  NTA_CHECK(!segmentData.destroyed);
 
   for (SynapseIdx i = 0; i < segmentData.synapses.size(); i++)
   {
@@ -184,10 +181,7 @@ void Connections::destroySynapse(const Synapse& synapse)
 {
   SynapseData& synapseData = dataForSynapse(synapse);
 
-  if (synapseData.destroyed)
-  {
-    NTA_THROW << "Synapse already destroyed.";
-  }
+  NTA_CHECK(!synapseData.destroyed);
 
   vector<Synapse>& presynapticSynapses =
     synapsesForPresynapticCell_.at(synapseData.presynapticCell);
