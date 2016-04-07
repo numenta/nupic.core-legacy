@@ -160,6 +160,7 @@ namespace nupic
       struct SegmentData
       {
         std::vector<SynapseData> synapses;
+        UInt32 numDestroyedSynapses;
         bool destroyed;
         Iteration lastUsedIteration;
       };
@@ -177,6 +178,7 @@ namespace nupic
       struct CellData
       {
         std::vector<SegmentData> segments;
+        UInt32 numDestroyedSegments;
       };
 
       /**
@@ -322,7 +324,7 @@ namespace nupic
          *
          * @retval Segment data.
          */
-        SegmentData dataForSegment(const Segment& segment) const;
+        SegmentData& dataForSegment(const Segment& segment);
 
         /**
          * Gets the data for a synapse.
@@ -331,7 +333,7 @@ namespace nupic
          *
          * @retval Synapse data.
          */
-        SynapseData dataForSynapse(const Synapse& synapse) const;
+        SynapseData& dataForSynapse(const Synapse& synapse);
 
         /**
          * Returns the synapses for the source cell that they synapse on.
@@ -363,23 +365,19 @@ namespace nupic
          * segments on the given cell.
          *
          * @param cell       Cell whose segments to consider.
-         * @param retSegment Segment to return.
          *
-         * @retval False if cell has no segments.
+         * @retval The least recently used segment.
          */
-        bool leastRecentlyUsedSegment(const Cell& cell,
-                                      Segment& retSegment) const;
+        Segment leastRecentlyUsedSegment(const Cell& cell) const;
 
          /**
           * Gets the synapse with the lowest permanence on the segment.
           *
           * @param segment       Segment whose synapses to consider.
-          * @param retSynapse    Synapse with the lowest permanence.
           *
-          * @retval False if segment has no synapses.
+          * @retval Synapse with the lowest permanence.
           */
-         bool minPermanenceSynapse(const Segment& segment,
-                                   Synapse& retSynapse) const;
+        Synapse minPermanenceSynapse(const Segment& segment) const;
 
         /**
          * Forward-propagates input to synapses, dendrites, and cells, to
@@ -456,11 +454,25 @@ namespace nupic
         UInt numSegments() const;
 
         /**
+         * Gets the number of segments on a cell.
+         *
+         * @retval Number of segments.
+         */
+        UInt numSegments(const Cell& cell) const;
+
+        /**
          * Gets the number of synapses.
          *
          * @retval Number of synapses.
          */
         UInt numSynapses() const;
+
+        /**
+         * Gets the number of synapses on a segment.
+         *
+         * @retval Number of synapses.
+         */
+        UInt numSynapses(const Segment& segment) const;
 
         /**
          * Comparison operator.
