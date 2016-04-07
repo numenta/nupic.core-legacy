@@ -549,45 +549,6 @@ namespace {
   }
 
   /**
-   * Creates a sample set of connections, computes some activity for it,
-   * and checks that we can get the correct least recently used segment
-   * for a number of cells.
-   *
-   * Then, destroys the least recently used segment, computes more activity,
-   * creates another segment, and checks that the least recently used segment
-   * is not the newly created one.
-   */
-  TEST(ConnectionsTest, testLeastRecentlyUsedSegment)
-  {
-    Connections connections(1024);
-    Cell cell;
-
-    setupSampleConnections(connections);
-
-    cell.idx = 5;
-    ASSERT_THROW(connections.leastRecentlyUsedSegment(cell), std::exception);
-
-    cell.idx = 20;
-
-    ASSERT_EQ(connections.leastRecentlyUsedSegment(cell), Segment(0, cell));
-
-    computeSampleActivity(connections);
-
-    Segment segment = connections.leastRecentlyUsedSegment(cell);
-    ASSERT_EQ(segment, Segment(1, cell));
-
-    connections.destroySegment(segment);
-
-    ASSERT_EQ(connections.leastRecentlyUsedSegment(cell), Segment(0, cell));
-
-    computeSampleActivity(connections);
-
-    connections.createSegment(cell);
-
-    ASSERT_EQ(connections.leastRecentlyUsedSegment(cell), Segment(0, cell));
-  }
-
-  /**
    * Creates a sample set of connections, and makes sure that computing the
    * activity for a collection of cells with no activity returns the right
    * activity data.

@@ -324,7 +324,7 @@ namespace nupic
          *
          * @retval Segment data.
          */
-        SegmentData& dataForSegment(const Segment& segment);
+        SegmentData dataForSegment(const Segment& segment) const;
 
         /**
          * Gets the data for a synapse.
@@ -333,7 +333,7 @@ namespace nupic
          *
          * @retval Synapse data.
          */
-        SynapseData& dataForSynapse(const Synapse& synapse);
+        SynapseData dataForSynapse(const Synapse& synapse) const;
 
         /**
          * Returns the synapses for the source cell that they synapse on.
@@ -359,25 +359,6 @@ namespace nupic
                                        std::vector<Cell> input,
                                        SynapseIdx synapseThreshold,
                                        Segment& retSegment) const;
-
-        /**
-         * Gets the segment that was least recently used from among all the
-         * segments on the given cell.
-         *
-         * @param cell       Cell whose segments to consider.
-         *
-         * @retval The least recently used segment.
-         */
-        Segment leastRecentlyUsedSegment(const Cell& cell) const;
-
-         /**
-          * Gets the synapse with the lowest permanence on the segment.
-          *
-          * @param segment       Segment whose synapses to consider.
-          *
-          * @retval Synapse with the lowest permanence.
-          */
-        Synapse minPermanenceSynapse(const Segment& segment) const;
 
         /**
          * Forward-propagates input to synapses, dendrites, and cells, to
@@ -478,6 +459,45 @@ namespace nupic
          * Comparison operator.
          */
         bool operator==(const Connections &other) const;
+
+      protected:
+
+        /**
+         * Gets the segment that was least recently used from among all the
+         * segments on the given cell.
+         *
+         * @param cell Cell whose segments to consider.
+         *
+         * @retval The least recently used segment.
+         */
+        Segment leastRecentlyUsedSegment_(const Cell& cell) const;
+
+         /**
+          * Gets the synapse with the lowest permanence on the segment.
+          *
+          * @param segment Segment whose synapses to consider.
+          *
+          * @retval Synapse with the lowest permanence.
+          */
+        Synapse minPermanenceSynapse_(const Segment& segment) const;
+
+        /**
+         * Gets a reference to the data for a segment.
+         *
+         * @param segment Segment to get data for.
+         *
+         * @retval Editable segment data.
+         */
+        SegmentData& dataForSegment_(const Segment& segment);
+
+        /**
+         * Gets a reference to the data for a synapse.
+         *
+         * @param synapse Synapse to get data for.
+         *
+         * @retval Editable synapse data.
+         */
+        SynapseData& dataForSynapse_(const Synapse& synapse);
 
       private:
         std::vector<CellData> cells_;
