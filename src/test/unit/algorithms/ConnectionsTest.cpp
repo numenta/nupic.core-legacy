@@ -227,16 +227,17 @@ namespace {
     // Add an additional synapse over the limit
     presynapticCell.idx = 52;
     synapse = connections.createSynapse(segment, presynapticCell, 0.52);
+    EXPECT_EQ(0, synapse.idx);
 
     // Verify that the lowest permanence synapse was removed
     synapses = connections.synapsesForSegment(segment);
     ASSERT_EQ(synapses.size(), 2);
     synapseData = connections.dataForSynapse(synapses[0]);
-    ASSERT_EQ(synapseData.presynapticCell.idx, 51);
-    ASSERT_NEAR(synapseData.permanence, (Permanence)0.48, EPSILON);
+    ASSERT_EQ(52, synapseData.presynapticCell.idx);
+    ASSERT_NEAR((Permanence)0.52, synapseData.permanence, EPSILON);
     synapseData = connections.dataForSynapse(synapses[1]);
-    ASSERT_EQ(synapseData.presynapticCell.idx, 52);
-    ASSERT_NEAR(synapseData.permanence, (Permanence)0.52, EPSILON);
+    ASSERT_EQ(51, synapseData.presynapticCell.idx);
+    ASSERT_NEAR((Permanence)0.48, synapseData.permanence, EPSILON);
   }
 
   /**
@@ -297,6 +298,165 @@ namespace {
 
     segment.cell.idx = 20; segment.idx = 0;
     ASSERT_EQ(activity.numActiveSynapsesForSegment[segment], 1);
+  }
+
+  /**
+   * Creates segments and synapses, then destroys segments and synapses on
+   * either side of them and verifies that existing Segment and Synapse
+   * instances still point to the same segment / synapse as before.
+   */
+  TEST(ConnectionsTest, PathsNotInvalidatedByOtherDestroys)
+  {
+    Connections connections(1024);
+
+    Segment segment1 = connections.createSegment(Cell(11));
+    /*      segment2*/ connections.createSegment(Cell(12));
+
+    Segment segment3 = connections.createSegment(Cell(13));
+    Synapse synapse1 = connections.createSynapse(segment3, Cell(201), 0.85);
+    /*      synapse2*/ connections.createSynapse(segment3, Cell(202), 0.85);
+    Synapse synapse3 = connections.createSynapse(segment3, Cell(203), 0.85);
+    /*      synapse4*/ connections.createSynapse(segment3, Cell(204), 0.85);
+    Synapse synapse5 = connections.createSynapse(segment3, Cell(205), 0.85);
+
+    /*      segment4*/ connections.createSegment(Cell(14));
+    Segment segment5 = connections.createSegment(Cell(15));
+
+    ASSERT_EQ(203, connections.dataForSynapse(synapse3).presynapticCell.idx);
+    connections.destroySynapse(synapse1);
+    EXPECT_EQ(203, connections.dataForSynapse(synapse3).presynapticCell.idx);
+    connections.destroySynapse(synapse5);
+    EXPECT_EQ(203, connections.dataForSynapse(synapse3).presynapticCell.idx);
+
+    connections.destroySegment(segment1);
+    EXPECT_EQ(3, connections.synapsesForSegment(segment3).size());
+    connections.destroySegment(segment5);
+    EXPECT_EQ(3, connections.synapsesForSegment(segment3).size());
+    EXPECT_EQ(203, connections.dataForSynapse(synapse3).presynapticCell.idx);
+  }
+
+  /**
+   * Destroy a segment that has a destroyed synapse and a non-destroyed synapse.
+   * Make sure nothing gets double-destroyed.
+   */
+  TEST(ConnectionsTest, DestroySegmentWithDestroyedSynapses)
+  {
+    Connections connections(1024);
+
+    Segment segment1 = connections.createSegment(Cell(11));
+    Segment segment2 = connections.createSegment(Cell(12));
+
+    /*      synapse1_1*/ connections.createSynapse(segment1, Cell(101), 0.85);
+    Synapse synapse2_1 = connections.createSynapse(segment2, Cell(201), 0.85);
+    /*      synapse2_2*/ connections.createSynapse(segment2, Cell(202), 0.85);
+
+    ASSERT_EQ(3, connections.numSynapses());
+
+    connections.destroySynapse(synapse2_1);
+
+    ASSERT_EQ(2, connections.numSegments());
+    ASSERT_EQ(2, connections.numSynapses());
+
+    connections.destroySegment(segment2);
+
+    EXPECT_EQ(1, connections.numSegments());
+    EXPECT_EQ(1, connections.numSynapses());
+  }
+
+  /**
+   * Destroy some segments then verify that the maxSegmentsPerCell is still
+   * correctly applied.
+   */
+  TEST(ConnectionsTest, DestroySegmentsThenReachLimit)
+  {
+    Connections connections(1024, 2, 2);
+
+    {
+      Segment segment1 = connections.createSegment(Cell(11));
+      Segment segment2 = connections.createSegment(Cell(11));
+      ASSERT_EQ(2, connections.numSegments());
+      connections.destroySegment(segment1);
+      connections.destroySegment(segment2);
+      ASSERT_EQ(0, connections.numSegments());
+    }
+
+    {
+      connections.createSegment(Cell(11));
+      EXPECT_EQ(1, connections.numSegments());
+      connections.createSegment(Cell(11));
+      EXPECT_EQ(2, connections.numSegments());
+      Segment segment = connections.createSegment(Cell(11));
+      EXPECT_LT(segment.idx, 2);
+      EXPECT_EQ(2, connections.numSegments());
+    }
+  }
+
+  /**
+   * Destroy some synapses then verify that the maxSynapsesPerSegment is still
+   * correctly applied.
+   */
+  TEST(ConnectionsTest, DestroySynapsesThenReachLimit)
+  {
+    Connections connections(1024, 2, 2);
+
+    Segment segment = connections.createSegment(Cell(10));
+
+    {
+      Synapse synapse1 = connections.createSynapse(segment, Cell(201), 0.85);
+      Synapse synapse2 = connections.createSynapse(segment, Cell(202), 0.85);
+      ASSERT_EQ(2, connections.numSynapses());
+      connections.destroySynapse(synapse1);
+      connections.destroySynapse(synapse2);
+      ASSERT_EQ(0, connections.numSynapses());
+    }
+
+    {
+      connections.createSynapse(segment, Cell(201), 0.85);
+      EXPECT_EQ(1, connections.numSynapses());
+      connections.createSynapse(segment, Cell(202), 0.90);
+      EXPECT_EQ(2, connections.numSynapses());
+      Synapse synapse = connections.createSynapse(segment, Cell(203), 0.80);
+      EXPECT_LT(synapse.idx, 2);
+      EXPECT_EQ(2, connections.numSynapses());
+    }
+  }
+
+  /**
+   * Hit the maxSegmentsPerCell threshold multiple times. Make sure it works
+   * more than once.
+   */
+  TEST(ConnectionsTest, ReachSegmentLimitMultipleTimes)
+  {
+    Connections connections(1024, 2, 2);
+
+    connections.createSegment(Cell(10));
+    ASSERT_EQ(1, connections.numSegments());
+    connections.createSegment(Cell(10));
+    ASSERT_EQ(2, connections.numSegments());
+    connections.createSegment(Cell(10));
+    ASSERT_EQ(2, connections.numSegments());
+    connections.createSegment(Cell(10));
+    EXPECT_EQ(2, connections.numSegments());
+  }
+
+  /**
+   * Hit the maxSynapsesPerSegment threshold multiple times. Make sure it works
+   * more than once.
+   */
+  TEST(ConnectionsTest, ReachSynapseLimitMultipleTimes)
+  {
+    Connections connections(1024, 2, 2);
+
+    Segment segment = connections.createSegment(Cell(10));
+    connections.createSynapse(segment, Cell(201), 0.85);
+    ASSERT_EQ(1, connections.numSynapses());
+    connections.createSynapse(segment, Cell(202), 0.90);
+    ASSERT_EQ(2, connections.numSynapses());
+    connections.createSynapse(segment, Cell(203), 0.80);
+    ASSERT_EQ(2, connections.numSynapses());
+    Synapse synapse = connections.createSynapse(segment, Cell(204), 0.80);
+    EXPECT_LT(synapse.idx, 2);
+    EXPECT_EQ(2, connections.numSynapses());
   }
 
   /**
@@ -386,49 +546,6 @@ namespace {
       cells, input, 2, segment);
 
     ASSERT_EQ(result, false);
-  }
-
-  /**
-   * Creates a sample set of connections, computes some activity for it,
-   * and checks that we can get the correct least recently used segment
-   * for a number of cells.
-   *
-   * Then, destroys the least recently used segment, computes more activity,
-   * creates another segment, and checks that the least recently used segment
-   * is not the newly created one.
-   */
-  TEST(ConnectionsTest, testLeastRecentlyUsedSegment)
-  {
-    Connections connections(1024);
-    Cell cell;
-    Segment segment;
-
-    setupSampleConnections(connections);
-
-    cell.idx = 5;
-    ASSERT_EQ(connections.leastRecentlyUsedSegment(cell, segment), false);
-
-    cell.idx = 20;
-
-    ASSERT_EQ(connections.leastRecentlyUsedSegment(cell, segment), true);
-    ASSERT_EQ(segment.idx, 0);
-
-    computeSampleActivity(connections);
-
-    ASSERT_EQ(connections.leastRecentlyUsedSegment(cell, segment), true);
-    ASSERT_EQ(segment.idx, 1);
-
-    connections.destroySegment(segment);
-
-    ASSERT_EQ(connections.leastRecentlyUsedSegment(cell, segment), true);
-    ASSERT_EQ(segment.idx, 0);
-
-    computeSampleActivity(connections);
-
-    segment = connections.createSegment(cell);
-
-    ASSERT_EQ(connections.leastRecentlyUsedSegment(cell, segment), true);
-    ASSERT_EQ(segment.idx, 0);
   }
 
   /**
