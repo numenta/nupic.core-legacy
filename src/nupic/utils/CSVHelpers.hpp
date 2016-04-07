@@ -9,6 +9,7 @@
 #include <fstream>
 
 #include <nupic/types/Types.hpp>
+//#include "nupic/utils/VectorHelpers.hpp"
 
 namespace nupic {
 namespace utils {
@@ -17,6 +18,7 @@ namespace utils {
 */
 namespace csv {
 
+//using namespace nupic::utils;
 // read
 template<class T>
 class CSVReader
@@ -39,7 +41,7 @@ class CSVReader
         /**
         * read a line/row as a vector of separate column elements
         */
-        std::vector<T> getLine()
+        std::vector<std::string> getLine()
 {
     // Read the CSV file into a couple of vectors
     std::string line;
@@ -49,8 +51,8 @@ class CSVReader
     boost::tokenizer<boost::escaped_list_separator<char>> tok(line);
     std::vector<std::string> tokens(tok.begin(), tok.end());
 
-    std::vector<float> stof = VectorHelpers::stringToFloatVector(tokens); //force string format
-    return VectorHelpers::castVectorType<float, T>(stof);
+//    std::vector<float> stof = VectorHelpers::stringToFloatVector(tokens); //force string format
+    return tokens; //VectorHelpers::castVectorType<float, T>(stof);
 }
 
 
@@ -113,7 +115,7 @@ class CSVWriter
 
         void writeLine(const std::vector<T>& cells, std::string separator=",")
 {
-  VectorHelpers::print_vector(cells, separator, "", *(this->fp_));
+  //VectorHelpers::print_vector(cells, separator, "", *(this->fp_)); FIXME later
 }
 
 
