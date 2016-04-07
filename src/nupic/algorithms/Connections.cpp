@@ -65,7 +65,7 @@ Segment Connections::createSegment(const Cell& cell)
   }
 
   CellData& cellData = cells_[cell.idx];
-  SegmentIdx segmentIdx;
+  SegmentIdx segmentIdx = (SegmentIdx)-1;
   if (cellData.numDestroyedSegments > 0)
   {
     bool found = false;
@@ -107,7 +107,7 @@ Synapse Connections::createSynapse(const Segment& segment,
   }
 
   SegmentData& segmentData = dataForSegment(segment);
-  SynapseIdx synapseIdx;
+  SynapseIdx synapseIdx = (SynapseIdx)-1;
   if (segmentData.numDestroyedSynapses > 0)
   {
     bool found = false;

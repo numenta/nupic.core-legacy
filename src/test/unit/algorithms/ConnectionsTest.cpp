@@ -319,7 +319,7 @@ namespace {
     /*      synapse4*/ connections.createSynapse(segment3, Cell(204), 0.85);
     Synapse synapse5 = connections.createSynapse(segment3, Cell(205), 0.85);
 
-    /*      synapse5*/ connections.createSegment(Cell(14));
+    /*      segment4*/ connections.createSegment(Cell(14));
     Segment segment5 = connections.createSegment(Cell(15));
 
     ASSERT_EQ(203, connections.dataForSynapse(synapse3).presynapticCell.idx);
@@ -385,7 +385,8 @@ namespace {
       EXPECT_EQ(1, connections.numSegments());
       connections.createSegment(Cell(11));
       EXPECT_EQ(2, connections.numSegments());
-      connections.createSegment(Cell(11));
+      Segment segment = connections.createSegment(Cell(11));
+      EXPECT_LT(segment.idx, 2);
       EXPECT_EQ(2, connections.numSegments());
     }
   }
@@ -414,7 +415,8 @@ namespace {
       EXPECT_EQ(1, connections.numSynapses());
       connections.createSynapse(segment, Cell(202), 0.90);
       EXPECT_EQ(2, connections.numSynapses());
-      connections.createSynapse(segment, Cell(203), 0.80);
+      Synapse synapse = connections.createSynapse(segment, Cell(203), 0.80);
+      EXPECT_LT(synapse.idx, 2);
       EXPECT_EQ(2, connections.numSynapses());
     }
   }
@@ -452,7 +454,8 @@ namespace {
     ASSERT_EQ(2, connections.numSynapses());
     connections.createSynapse(segment, Cell(203), 0.80);
     ASSERT_EQ(2, connections.numSynapses());
-    connections.createSynapse(segment, Cell(204), 0.80);
+    Synapse synapse = connections.createSynapse(segment, Cell(204), 0.80);
+    EXPECT_LT(synapse.idx, 2);
     EXPECT_EQ(2, connections.numSynapses());
   }
 
