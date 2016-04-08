@@ -376,7 +376,7 @@ Activity Connections::computeActivity(const vector<Cell>& input,
                                       SynapseIdx synapseThreshold,
                                       bool recordIteration)
 {
-  Activity activity = {{},
+  Activity activity = {map< Cell, std::vector<Segment> >(),
                        vector<UInt32>(nextFlatIdx_, 0)};
 
   for (const Cell& cell : input)
