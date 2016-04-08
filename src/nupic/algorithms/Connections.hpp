@@ -155,6 +155,7 @@ namespace nupic
        * @param synapses          Data for synapses that this segment contains.
        * @param destroyed         Whether this segment has been destroyed.
        * @param lastUsedIteration The iteration that this segment was last used at.
+       * @param flatIdx           This segment's index in flattened lists of all segments
        *
        */
       struct SegmentData
@@ -163,6 +164,7 @@ namespace nupic
         UInt32 numDestroyedSynapses;
         bool destroyed;
         Iteration lastUsedIteration;
+        UInt32 flatIdx;
       };
 
       /**
@@ -193,7 +195,7 @@ namespace nupic
       struct Activity
       {
         std::map< Cell, std::vector<Segment> > activeSegmentsForCell;
-        std::map<Segment, SynapseIdx> numActiveSynapsesForSegment;
+        std::vector<UInt32> numActiveSynapsesForSegment;
       };
 
       /**
@@ -334,6 +336,15 @@ namespace nupic
          * @retval Synapse data.
          */
         SynapseData dataForSynapse(const Synapse& synapse) const;
+
+        /**
+         * Do a reverse-lookup of a segment from its flatIdx.
+         *
+         * @param flatIdx the flatIdx of the segment
+         *
+         * @retval Segment
+         */
+        Segment segmentForFlatIdx(UInt32 flatIdx) const;
 
         /**
          * Returns the synapses for the source cell that they synapse on.
@@ -505,6 +516,8 @@ namespace nupic
         std::map< Cell, std::vector<Synapse> > synapsesForPresynapticCell_;
         UInt numSegments_;
         UInt numSynapses_;
+        std::vector<Segment> segmentForFlatIdx_;
+        UInt nextFlatIdx_;
         SegmentIdx maxSegmentsPerCell_;
         SynapseIdx maxSynapsesPerSegment_;
         Iteration iteration_;

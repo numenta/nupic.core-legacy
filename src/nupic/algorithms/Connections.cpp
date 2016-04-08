@@ -51,6 +51,7 @@ void Connections::initialize(CellIdx numCells,
   cells_ = vector<CellData>(numCells);
   numSegments_ = 0;
   numSynapses_ = 0;
+  nextFlatIdx_ = 0;
   maxSegmentsPerCell_ = maxSegmentsPerCell;
   maxSynapsesPerSegment_ = maxSynapsesPerSegment;
   iteration_ = 0;
@@ -65,7 +66,7 @@ Segment Connections::createSegment(const Cell& cell)
   }
 
   CellData& cellData = cells_[cell.idx];
-  SegmentIdx segmentIdx = (SegmentIdx)-1;
+  Segment segment = {(SegmentIdx)-1, cell};
   if (cellData.numDestroyedSegments > 0)
   {
     bool found = false;
@@ -73,25 +74,26 @@ Segment Connections::createSegment(const Cell& cell)
     {
       if (cellData.segments[i].destroyed)
       {
-        segmentIdx = i;
+        segment.idx = i;
         found = true;
       }
     }
 
     NTA_CHECK(found);
 
-    cellData.segments[segmentIdx].destroyed = false;
+    cellData.segments[segment.idx].destroyed = false;
     cellData.numDestroyedSegments--;
   }
   else
   {
-    segmentIdx = cellData.segments.size();
+    segment.idx = cellData.segments.size();
     cellData.segments.push_back(SegmentData());
+    cellData.segments[segment.idx].flatIdx = nextFlatIdx_++;
+    segmentForFlatIdx_.push_back(segment);
   }
 
-  cellData.segments[segmentIdx].lastUsedIteration = iteration_;
+  cellData.segments[segment.idx].lastUsedIteration = iteration_;
 
-  Segment segment = {segmentIdx, cell};
   numSegments_++;
   return segment;
 }
@@ -270,6 +272,11 @@ SynapseData& Connections::dataForSynapse_(const Synapse& synapse)
   return segmentData.synapses[synapse.idx];
 }
 
+Segment Connections::segmentForFlatIdx(UInt32 flatIdx) const
+{
+  return segmentForFlatIdx_[flatIdx];
+}
+
 std::vector<Synapse> Connections::synapsesForPresynapticCell(const Cell& presynapticCell) const
 {
   if (synapsesForPresynapticCell_.find(presynapticCell) ==
@@ -369,7 +376,8 @@ Activity Connections::computeActivity(const vector<Cell>& input,
                                       SynapseIdx synapseThreshold,
                                       bool recordIteration)
 {
-  Activity activity;
+  Activity activity = {{},
+                       vector<UInt32>(nextFlatIdx_, 0)};
 
   for (const Cell& cell : input)
   {
@@ -382,9 +390,11 @@ Activity Connections::computeActivity(const vector<Cell>& input,
       if (synapseData.permanence >= permanenceThreshold &&
           synapseData.permanence > 0)
       {
-        activity.numActiveSynapsesForSegment[synapse.segment] += 1;
+        const SegmentData& segmentData = dataForSegment_(synapse.segment);
+        const auto numActiveSynapses =
+          ++activity.numActiveSynapsesForSegment[segmentData.flatIdx];
 
-        if (activity.numActiveSynapsesForSegment[synapse.segment] == synapseThreshold)
+        if (numActiveSynapses == synapseThreshold)
         {
           activity.activeSegmentsForCell[synapse.segment.cell].push_back(synapse.segment);
 
@@ -527,6 +537,8 @@ void Connections::load(istream& inStream)
     for (UInt j = 0; j < numSegments; j++) {
       inStream >> cellData.segments[j].destroyed;
       inStream >> cellData.segments[j].lastUsedIteration;
+      cellData.segments[j].flatIdx = nextFlatIdx_++;
+      segmentForFlatIdx_.push_back(Segment(j, Cell(i)));
 
       UInt numSynapses;
       inStream >> numSynapses;
@@ -588,8 +600,10 @@ void Connections::read(ConnectionsProto::Reader& proto)
       SegmentData segmentData = {vector<SynapseData>(),
                                  0,
                                  protoSegments[j].getDestroyed(),
-                                 protoSegments[j].getLastUsedIteration()};
+                                 protoSegments[j].getLastUsedIteration(),
+                                 nextFlatIdx_++};
       segments.push_back(segmentData);
+      segmentForFlatIdx_.push_back(Segment(j, Cell(i)));
 
       auto protoSynapses = protoSegments[j].getSynapses();
       vector<SynapseData>& synapses = segments[j].synapses;

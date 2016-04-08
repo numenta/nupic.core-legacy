@@ -187,7 +187,7 @@ namespace nupic
     {
       sdr = randomSDR(numInputs, w);
       activity = connections.computeActivity(sdr, 0.5, 0);
-      winnerCells = computeSPWinnerCells(numWinners, activity);
+      winnerCells = computeSPWinnerCells(connections, numWinners, activity);
 
       for (Cell winnerCell : winnerCells)
       {
@@ -226,7 +226,7 @@ namespace nupic
     {
       sdr = randomSDR(numInputs, w);
       activity = connections.computeActivity(sdr, 0.5, 0);
-      winnerCells = computeSPWinnerCells(numWinners, activity);
+      winnerCells = computeSPWinnerCells(connections, numWinners, activity);
     }
 
     checkpoint(timer, label + ": initialize + learn + test");
@@ -271,24 +271,17 @@ namespace nupic
   }
 
   vector<Cell> ConnectionsPerformanceTest::computeSPWinnerCells(
-    UInt numCells, Activity& activity)
+    Connections& connections, UInt numCells, Activity& activity)
   {
-    vector< pair<Segment, SynapseIdx> > numActiveSynapsesList;
+    vector<UInt32> numActiveSynapsesList = activity.numActiveSynapsesForSegment;
     vector<Cell>winnerCells;
 
-    numActiveSynapsesList.assign(activity.numActiveSynapsesForSegment.begin(),
-                                 activity.numActiveSynapsesForSegment.end());
-
-    sort(numActiveSynapsesList.begin(), numActiveSynapsesList.end(),
-         [](const pair<Segment, SynapseIdx>& left,
-            const pair<Segment, SynapseIdx>& right)
-         {
-           return left.second > right.second;
-         });
+    std::sort(numActiveSynapsesList.begin(), numActiveSynapsesList.end(),
+              std::greater<int>());
 
     for (UInt j = 0; j < min(numCells, (UInt)numActiveSynapsesList.size()); j++)
     {
-      winnerCells.push_back(numActiveSynapsesList[j].first.cell);
+      winnerCells.push_back(connections.segmentForFlatIdx(j).cell);
     }
 
     return winnerCells;
