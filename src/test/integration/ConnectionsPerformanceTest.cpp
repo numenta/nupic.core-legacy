@@ -211,9 +211,14 @@ namespace nupic
           permanence = max(permanence, (Permanence)0);
           permanence = min(permanence, (Permanence)1);
 
-          // TODO (Question): Remove synapses with 0 permanence?
-
-          connections.updateSynapsePermanence(synapse, permanence);
+          if (permanence == 0)
+          {
+            connections.destroySynapse(synapse);
+          }
+          else
+          {
+            connections.updateSynapsePermanence(synapse, permanence);
+          }
         }
       }
     }
