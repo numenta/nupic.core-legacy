@@ -40,6 +40,7 @@ using namespace nupic::algorithms::temporal_memory;
 using namespace nupic::algorithms::connections;
 
 #define SEED 42
+#define EPSILON 0.000001
 
 namespace nupic
 {
@@ -171,7 +172,9 @@ namespace nupic
 
       for (UInt i = 0; i < numInputs; i++)
       {
-        connections.createSynapse(segment, i, (Permanence)(rand()+1)/RAND_MAX);
+        const Permanence permanence = max((Permanence)EPSILON,
+                                          (Permanence)rand()/RAND_MAX);
+        connections.createSynapse(segment, i, permanence);
       }
     }
 
