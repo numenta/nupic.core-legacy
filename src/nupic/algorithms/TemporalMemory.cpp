@@ -445,16 +445,16 @@ TemporalMemory::computePredictiveCells(
   map<Segment, int> numActiveSynapsesForSegment;
   vector<Cell> activeCells(_activeCells.begin(), _activeCells.end());
 
-  Activity activity = _connections.computeActivity(activeCells, connectedPermanence_, activationThreshold_);
+  Activity activity = _connections.computeActivity(activeCells,
+                                                   connectedPermanence_, activationThreshold_,
+                                                   0.0, minThreshold_);
 
   vector<Segment> _activeSegments = _connections.activeSegments(activity);
   vector<Cell> predictiveCellsVec = _connections.activeCells(activity);
   set<Cell> _predictiveCells(predictiveCellsVec.begin(), predictiveCellsVec.end());
 
-  Activity matchingActivity = _connections.computeActivity(activeCells, 0.0, minThreshold_, false);
-
-  vector<Segment> _matchingSegments = _connections.activeSegments(matchingActivity);
-  vector<Cell> matchingCellsVec = _connections.activeCells(matchingActivity);
+  vector<Segment> _matchingSegments = _connections.matchingSegments(activity);
+  vector<Cell> matchingCellsVec = _connections.matchingCells(activity);
   set<Cell> _matchingCells(matchingCellsVec.begin(), matchingCellsVec.end());
 
   return make_tuple(_activeSegments, _predictiveCells, 

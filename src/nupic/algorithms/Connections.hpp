@@ -196,6 +196,8 @@ namespace nupic
       {
         std::map< Cell, std::vector<Segment> > activeSegmentsForCell;
         std::vector<UInt32> numActiveSynapsesForSegment;
+        std::map< Cell, std::vector<Segment> > matchingSegmentsForCell;
+        std::vector<UInt32> numMatchingSynapsesForSegment;
       };
 
       /**
@@ -375,15 +377,28 @@ namespace nupic
          * Forward-propagates input to synapses, dendrites, and cells, to
          * compute their activity.
          *
-         * @param input               Active cells in the input.
-         * @param permanenceThreshold Only consider synapses with permanences greater than this threshold.
-         * @param synapseThreshold    Only consider segments with number of active synapses greater than this threshold.
+         * @param input
+         * Active cells in the input.
+         *
+         * @param activePermanenceThreshold
+         * Minimum permanence for a synapse to contribute to an active segment
+         *
+         * @param activeSynapseThreshold
+         * Minimum number of synapses to mark a segment as "active"
+         *
+         * @param matchingPermanenceThreshold
+         * Minimum permanence for a synapse to contribute to an matching segment
+         *
+         * @param matchingSynapseThreshold
+         * Minimum number of synapses to mark a segment as "matching"
          *
          * @retval Activity to return.
          */
         Activity computeActivity(const std::vector<Cell>& input,
-                                 Permanence permanenceThreshold,
-                                 SynapseIdx synapseThreshold,
+                                 Permanence activePermanenceThreshold,
+                                 SynapseIdx activeSynapseThreshold,
+                                 Permanence matchingPermanenceThreshold,
+                                 SynapseIdx matchingSynapseThreshold,
                                  bool recordIteration=true);
 
         /**
@@ -403,6 +418,24 @@ namespace nupic
          * @retval Active cells.
          */
         std::vector<Cell> activeCells(const Activity& activity);
+
+        /**
+         * Gets the matching segments from activity.
+         *
+         * @param activity Activity.
+         *
+         * @retval Matching segments.
+         */
+        std::vector<Segment> matchingSegments(const Activity& activity);
+
+        /**
+         * Gets the matching cells from activity.
+         *
+         * @param activity Activity.
+         *
+         * @retval Matching cells.
+         */
+        std::vector<Cell> matchingCells(const Activity& activity);
 
         // Serialization
 

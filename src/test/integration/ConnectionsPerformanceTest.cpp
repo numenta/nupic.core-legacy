@@ -186,7 +186,7 @@ namespace nupic
     for (int i = 0; i < 500; i++)
     {
       sdr = randomSDR(numInputs, w);
-      activity = connections.computeActivity(sdr, 0.5, 0);
+      activity = connections.computeActivity(sdr, 0.5, 0, 0.25, 0);
       winnerCells = computeSPWinnerCells(connections, numWinners, activity);
 
       for (Cell winnerCell : winnerCells)
@@ -225,7 +225,7 @@ namespace nupic
     for (int i = 0; i < 500; i++)
     {
       sdr = randomSDR(numInputs, w);
-      activity = connections.computeActivity(sdr, 0.5, 0);
+      activity = connections.computeActivity(sdr, 0.5, 0, 0.25, 0);
       winnerCells = computeSPWinnerCells(connections, numWinners, activity);
     }
 
