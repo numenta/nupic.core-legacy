@@ -264,7 +264,16 @@ namespace {
     Activity activity = computeSampleActivity(connections);
 
     ASSERT_EQ(activity.activeSegmentsForCell.size(), 0);
-    ASSERT_EQ(activity.numActiveSynapsesForSegment.size(), 2);
+
+    UInt32 numSegmentsWithActivesynapses = 0;
+    for (UInt32 numActiveSynapses : activity.numActiveSynapsesForSegment)
+    {
+      if (numActiveSynapses > 0)
+      {
+        numSegmentsWithActivesynapses++;
+      }
+    }
+    ASSERT_EQ(2, numSegmentsWithActivesynapses);
   }
 
   /**
@@ -296,8 +305,9 @@ namespace {
 
     ASSERT_EQ(activity.activeSegmentsForCell.size(), 0);
 
-    segment.cell.idx = 20; segment.idx = 0;
-    ASSERT_EQ(activity.numActiveSynapsesForSegment[segment], 1);
+    ASSERT_EQ(1, activity.numActiveSynapsesForSegment[
+                connections.dataForSegment(Segment(0, Cell(20))).flatIdx
+                ]);
   }
 
   /**
@@ -570,12 +580,18 @@ namespace {
     ASSERT_EQ(segment.cell.idx, 20);
 
     ASSERT_EQ(activity.numActiveSynapsesForSegment.size(), 3);
-    segment.cell.idx = 10; segment.idx = 0;
-    ASSERT_EQ(activity.numActiveSynapsesForSegment[segment], 1);
-    segment.cell.idx = 20; segment.idx = 0;
-    ASSERT_EQ(activity.numActiveSynapsesForSegment[segment], 2);
-    segment.cell.idx = 20; segment.idx = 1;
-    ASSERT_EQ(activity.numActiveSynapsesForSegment[segment], 1);
+    ASSERT_EQ(1,
+              activity.numActiveSynapsesForSegment[
+                connections.dataForSegment(Segment(0, Cell(10))).flatIdx
+                ]);
+    ASSERT_EQ(2,
+              activity.numActiveSynapsesForSegment[
+                connections.dataForSegment(Segment(0, Cell(20))).flatIdx
+                ]);
+    ASSERT_EQ(1,
+              activity.numActiveSynapsesForSegment[
+                connections.dataForSegment(Segment(1, Cell(20))).flatIdx
+                ]);
   }
 
   /**
