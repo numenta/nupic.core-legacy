@@ -171,7 +171,7 @@ namespace nupic
 
       for (UInt i = 0; i < numInputs; i++)
       {
-        connections.createSynapse(segment, i, (Permanence)rand()/RAND_MAX);
+        connections.createSynapse(segment, i, (Permanence)(rand()+1)/RAND_MAX);
       }
     }
 

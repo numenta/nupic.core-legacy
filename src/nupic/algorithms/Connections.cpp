@@ -103,6 +103,7 @@ Synapse Connections::createSynapse(const Segment& segment,
                                    Permanence permanence)
 {
   NTA_CHECK(maxSynapsesPerSegment_ > 0);
+  NTA_CHECK(permanence > 0);
   while (numSynapses(segment) >= maxSynapsesPerSegment_)
   {
     destroySynapse(minPermanenceSynapse_(segment));
