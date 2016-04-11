@@ -24,16 +24,16 @@
 def checkImportBindingsInstalled():
   """Check that nupic.bindings is installed (can be imported).
 
-  Returns the error message on failure and None if successful.
+  Throws ImportError on failure.
   """
   import nupic.bindings
 
 
 
 def checkImportBindingsExtensions():
-  """Check that nupic.bindings extensions can be imported.
+  """Check that nupic.bindings extension libraries can be imported.
 
-  Returns the error message on failure and None if successful.
+  Throws ImportError on failure.
   """
   import nupic.bindings.math
   import nupic.bindings.algorithms
