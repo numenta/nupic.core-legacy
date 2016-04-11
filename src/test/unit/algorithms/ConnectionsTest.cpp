@@ -39,53 +39,57 @@ namespace {
 
   void setupSampleConnections(Connections &connections)
   {
-    Segment segment;
-    Synapse synapse;
-    Cell cell, presynapticCell;
+    // Cell with 1 segment.
+    // Segment with:
+    // - 1 active synapse
+    // - 2 matching synapses
+    const Segment segment1_1 = connections.createSegment(Cell(10));
+    connections.createSynapse(segment1_1, Cell(150), 0.85);
+    connections.createSynapse(segment1_1, Cell(151), 0.15);
 
-    cell.idx = 10;
-    segment = connections.createSegment(cell);
-
-    presynapticCell.idx = 150;
-    synapse = connections.createSynapse(segment, presynapticCell, 0.85);
-    presynapticCell.idx = 151;
-    synapse = connections.createSynapse(segment, presynapticCell, 0.15);
-
-    cell.idx = 20;
-    segment = connections.createSegment(cell);
-
-    presynapticCell.idx = 80;
-    synapse = connections.createSynapse(segment, presynapticCell, 0.85);
-    presynapticCell.idx = 81;
-    synapse = connections.createSynapse(segment, presynapticCell, 0.85);
-    presynapticCell.idx = 82;
-    synapse = connections.createSynapse(segment, presynapticCell, 0.85);
+    // Cell with 2 segments.
+    // Segment with:
+    // - 2 active synapses
+    // - 3 matching synapses
+    const Segment segment2_1 = connections.createSegment(Cell(20));
+    connections.createSynapse(segment2_1, Cell(80), 0.85);
+    connections.createSynapse(segment2_1, Cell(81), 0.85);
+    Synapse synapse = connections.createSynapse(segment2_1, Cell(82), 0.85);
     connections.updateSynapsePermanence(synapse, 0.15);
 
-    segment = connections.createSegment(cell);
+    // Segment with:
+    // - 2 active synapses (1 inactive)
+    // - 3 matching synapses (1 inactive)
+    // - 1 non-matching synapse
+    const Segment segment2_2 = connections.createSegment(Cell(20));
+    connections.createSynapse(segment2_2, Cell(50), 0.85);
+    connections.createSynapse(segment2_2, Cell(51), 0.85);
+    connections.createSynapse(segment2_2, Cell(52), 0.15);
+    connections.createSynapse(segment2_2, Cell(53), 0.05);
 
-    presynapticCell.idx = 50;
-    synapse = connections.createSynapse(segment, presynapticCell, 0.85);
-    presynapticCell.idx = 51;
-    synapse = connections.createSynapse(segment, presynapticCell, 0.85);
-    presynapticCell.idx = 52;
-    synapse = connections.createSynapse(segment, presynapticCell, 0.15);
+    // Cell with one segment.
+    // Segment with:
+    // - 1 non-matching synapse
+    const Segment segment3_1 = connections.createSegment(Cell(30));
+    connections.createSynapse(segment3_1, Cell(53), 0.05);
   }
 
   Activity computeSampleActivity(Connections &connections)
   {
-    Cell cell;
     vector<Cell> input;
 
-    cell.idx = 150; input.push_back(cell);
-    cell.idx = 151; input.push_back(cell);
-    cell.idx = 50; input.push_back(cell);
-    cell.idx = 52; input.push_back(cell);
-    cell.idx = 80; input.push_back(cell);
-    cell.idx = 81; input.push_back(cell);
-    cell.idx = 82; input.push_back(cell);
+    input.push_back(Cell(150));
+    input.push_back(Cell(151));
+    input.push_back(Cell(50));
+    input.push_back(Cell(52));
+    input.push_back(Cell(53));
+    input.push_back(Cell(80));
+    input.push_back(Cell(81));
+    input.push_back(Cell(82));
 
-    Activity activity = connections.computeActivity(input, 0.50, 2);
+    Activity activity = connections.computeActivity(input,
+                                                    0.50, 2,
+                                                    0.10, 1);
     return activity;
   }
 
@@ -579,7 +583,8 @@ namespace {
     ASSERT_EQ(segment.idx, 0);
     ASSERT_EQ(segment.cell.idx, 20);
 
-    ASSERT_EQ(activity.numActiveSynapsesForSegment.size(), 3);
+    ASSERT_EQ(activity.numActiveSynapsesForSegment.size(), 4);
+    ASSERT_EQ(activity.numMatchingSynapsesForSegment.size(), 4);
     ASSERT_EQ(1,
               activity.numActiveSynapsesForSegment[
                 connections.dataForSegment(Segment(0, Cell(10))).flatIdx
@@ -588,9 +593,25 @@ namespace {
               activity.numActiveSynapsesForSegment[
                 connections.dataForSegment(Segment(0, Cell(20))).flatIdx
                 ]);
+    ASSERT_EQ(3,
+              activity.numMatchingSynapsesForSegment[
+                connections.dataForSegment(Segment(0, Cell(20))).flatIdx
+                ]);
     ASSERT_EQ(1,
               activity.numActiveSynapsesForSegment[
                 connections.dataForSegment(Segment(1, Cell(20))).flatIdx
+                ]);
+    ASSERT_EQ(2,
+              activity.numMatchingSynapsesForSegment[
+                connections.dataForSegment(Segment(1, Cell(20))).flatIdx
+                ]);
+    ASSERT_EQ(0,
+              activity.numActiveSynapsesForSegment[
+                connections.dataForSegment(Segment(0, Cell(30))).flatIdx
+                ]);
+    ASSERT_EQ(0,
+              activity.numMatchingSynapsesForSegment[
+                connections.dataForSegment(Segment(0, Cell(30))).flatIdx
                 ]);
   }
 
@@ -643,7 +664,7 @@ namespace {
     Connections connections(1024);
     setupSampleConnections(connections);
 
-    ASSERT_EQ(connections.numSegments(), 3);
+    ASSERT_EQ(4, connections.numSegments());
   }
 
   /**
@@ -655,7 +676,7 @@ namespace {
     Connections connections(1024);
     setupSampleConnections(connections);
 
-    ASSERT_EQ(connections.numSynapses(), 8);
+    ASSERT_EQ(10, connections.numSynapses());
   }
 
   /**

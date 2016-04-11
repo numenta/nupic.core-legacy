@@ -103,6 +103,7 @@ Synapse Connections::createSynapse(const Segment& segment,
                                    Permanence permanence)
 {
   NTA_CHECK(maxSynapsesPerSegment_ > 0);
+  NTA_CHECK(permanence > 0);
   while (numSynapses(segment) >= maxSynapsesPerSegment_)
   {
     destroySynapse(minPermanenceSynapse_(segment));
@@ -372,12 +373,18 @@ Synapse Connections::minPermanenceSynapse_(const Segment& segment) const
 }
 
 Activity Connections::computeActivity(const vector<Cell>& input,
-                                      Permanence permanenceThreshold,
-                                      SynapseIdx synapseThreshold,
+                                      Permanence activePermanenceThreshold,
+                                      SynapseIdx activeSynapseThreshold,
+                                      Permanence matchingPermanenceThreshold,
+                                      SynapseIdx matchingSynapseThreshold,
                                       bool recordIteration)
 {
   Activity activity = {map< Cell, std::vector<Segment> >(),
+                       vector<UInt32>(nextFlatIdx_, 0),
+                       map< Cell, std::vector<Segment> >(),
                        vector<UInt32>(nextFlatIdx_, 0)};
+
+  NTA_CHECK(matchingPermanenceThreshold <= activePermanenceThreshold);
 
   for (const Cell& cell : input)
   {
@@ -387,20 +394,33 @@ Activity Connections::computeActivity(const vector<Cell>& input,
     {
       const SynapseData& synapseData = dataForSynapse_(synapse);
 
-      if (synapseData.permanence >= permanenceThreshold &&
-          synapseData.permanence > 0)
+      NTA_ASSERT(synapseData.permanence > 0);
+
+      if (synapseData.permanence >= matchingPermanenceThreshold)
       {
         const SegmentData& segmentData = dataForSegment_(synapse.segment);
-        const auto numActiveSynapses =
-          ++activity.numActiveSynapsesForSegment[segmentData.flatIdx];
 
-        if (numActiveSynapses == synapseThreshold)
+        const auto numMatchingSynapses =
+          ++activity.numMatchingSynapsesForSegment[segmentData.flatIdx];
+        if (numMatchingSynapses == matchingSynapseThreshold)
         {
-          activity.activeSegmentsForCell[synapse.segment.cell].push_back(synapse.segment);
+          activity.matchingSegmentsForCell[synapse.segment.cell]
+            .push_back(synapse.segment);
+        }
 
-          if (recordIteration)
+        if (synapseData.permanence >= activePermanenceThreshold)
+        {
+          const auto numActiveSynapses =
+            ++activity.numActiveSynapsesForSegment[segmentData.flatIdx];
+          if (numActiveSynapses == activeSynapseThreshold)
           {
-            dataForSegment_(synapse.segment).lastUsedIteration++;
+            activity.activeSegmentsForCell[synapse.segment.cell]
+              .push_back(synapse.segment);
+
+            if (recordIteration)
+            {
+              dataForSegment_(synapse.segment).lastUsedIteration++;
+            }
           }
         }
       }
@@ -418,6 +438,7 @@ Activity Connections::computeActivity(const vector<Cell>& input,
 vector<Segment> Connections::activeSegments(const Activity& activity)
 {
   vector<Segment> segments;
+  segments.reserve(activity.activeSegmentsForCell.size()); // lower bound
 
   for (auto i : activity.activeSegmentsForCell)
   {
@@ -430,8 +451,35 @@ vector<Segment> Connections::activeSegments(const Activity& activity)
 vector<Cell> Connections::activeCells(const Activity& activity)
 {
   vector<Cell> cells;
+  cells.reserve(activity.activeSegmentsForCell.size());
 
   for (auto i : activity.activeSegmentsForCell)
+  {
+    cells.push_back(i.first);
+  }
+
+  return cells;
+}
+
+vector<Segment> Connections::matchingSegments(const Activity& activity)
+{
+  vector<Segment> segments;
+  segments.reserve(activity.matchingSegmentsForCell.size()); // lower bound
+
+  for (auto i : activity.matchingSegmentsForCell)
+  {
+    segments.insert(segments.end(), i.second.begin(), i.second.end());
+  }
+
+  return segments;
+}
+
+vector<Cell> Connections::matchingCells(const Activity& activity)
+{
+  vector<Cell> cells;
+  cells.reserve(activity.matchingSegmentsForCell.size());
+
+  for (auto i : activity.matchingSegmentsForCell)
   {
     cells.push_back(i.first);
   }
