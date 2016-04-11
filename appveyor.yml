@@ -187,7 +187,7 @@ after_build:
   - hello_sp_tp.exe
   - prototest.exe
   - unit_tests.exe --gtest_output=xml:%ARTIFACTS_DIR%\unit_tests_report.xml
-  - py.test %REPO_DIR%\bindings\py\tests
+  - python setup.py test
 
 test: off
 
