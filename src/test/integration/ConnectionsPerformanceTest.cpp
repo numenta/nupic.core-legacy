@@ -160,7 +160,6 @@ namespace nupic
     Cell cell;
     Segment segment;
     vector<Cell> sdr;
-    Activity activity;
 
     // Initialize
 
@@ -188,8 +187,11 @@ namespace nupic
     for (int i = 0; i < 500; i++)
     {
       sdr = randomSDR(numInputs, w);
-      activity = connections.computeActivity(sdr, 0.5, 0, 0.25, 0);
-      winnerCells = computeSPWinnerCells(connections, numWinners, activity);
+      vector<SegmentOverlap> activeSegments;
+      vector<SegmentOverlap> matchingSegments;
+      connections.computeActivity(sdr, 0.5, 0, 0.25, 0,
+                                  activeSegments, matchingSegments);
+      winnerCells = computeSPWinnerCells(connections, numWinners, activeSegments);
 
       for (Cell winnerCell : winnerCells)
       {
@@ -232,8 +234,11 @@ namespace nupic
     for (int i = 0; i < 500; i++)
     {
       sdr = randomSDR(numInputs, w);
-      activity = connections.computeActivity(sdr, 0.5, 0, 0.25, 0);
-      winnerCells = computeSPWinnerCells(connections, numWinners, activity);
+      vector<SegmentOverlap> activeSegments;
+      vector<SegmentOverlap> matchingSegments;
+      connections.computeActivity(sdr, 0.5, 0, 0.25, 0,
+                                  activeSegments, matchingSegments);
+      winnerCells = computeSPWinnerCells(connections, numWinners, activeSegments);
     }
 
     checkpoint(timer, label + ": initialize + learn + test");
@@ -278,20 +283,27 @@ namespace nupic
   }
 
   vector<Cell> ConnectionsPerformanceTest::computeSPWinnerCells(
-    Connections& connections, UInt numCells, Activity& activity)
+    Connections& connections, UInt numCells,
+    vector<SegmentOverlap> activeSegments)
   {
-    vector<UInt32> numActiveSynapsesList = activity.numActiveSynapsesForSegment;
-    vector<Cell>winnerCells;
+    set<Cell> winnerCells;
 
-    std::sort(numActiveSynapsesList.begin(), numActiveSynapsesList.end(),
-              std::greater<int>());
+    std::sort(activeSegments.begin(), activeSegments.end(),
+              [](const SegmentOverlap& a, const SegmentOverlap&b)
+              {
+                return a.overlap > b.overlap;
+              });
 
-    for (UInt j = 0; j < min(numCells, (UInt)numActiveSynapsesList.size()); j++)
+    for (const SegmentOverlap& segOverlap : activeSegments)
     {
-      winnerCells.push_back(connections.segmentForFlatIdx(j).cell);
+      winnerCells.insert(segOverlap.segment.cell);
+      if (winnerCells.size() >= numCells)
+      {
+        break;
+      }
     }
 
-    return winnerCells;
+    return vector<Cell>(winnerCells.begin(), winnerCells.end());
   }
 
 } // end namespace nupic
