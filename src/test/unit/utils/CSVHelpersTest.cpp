@@ -49,3 +49,20 @@ TEST(CSVHelpers, getLine)
  }
 };
 
+
+TEST(CSVHelpers, readColumn)
+{
+ CSVReader<float> reader(
+   std::string(std::getenv("NUPIC_CORE"))
+   + std::string("/src/examples/algorithms/csv.csv"), 3); //demo data
+ vector<string> expected1 = {"1", "2", "4"};
+ vector<string> expected2 = {"0.2", "1.3", "-1.1"};
+
+ auto col1 = reader.readColumn(0);
+ auto col2 = reader.readColumn(1); //FIXME readColumn() needs to use reset_ properly in multiple calls
+
+ for(UInt i = 0; i < col1.size(); i++) {
+  ASSERT_EQ(col1[i], expected1[i]); //cast to float TODO use vector_helpers
+  ASSERT_EQ(col2[i], expected2[i]);
+ }
+};
