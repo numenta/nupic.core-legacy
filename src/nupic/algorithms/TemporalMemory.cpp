@@ -262,8 +262,7 @@ TemporalMemory::activateCorrectlyPredictiveCells(
   {
     UInt column = columnForCell(cell);
 
-    if (find(activeColumns.begin(), activeColumns.end(), column)
-      != activeColumns.end())
+    if (activeColumns.find(column) != activeColumns.end())
     {
       _activeCells.insert(cell);
       _winnerCells.insert(cell);
@@ -277,8 +276,7 @@ TemporalMemory::activateCorrectlyPredictiveCells(
     {
       UInt column = columnForCell(cell);
 
-      if (find(activeColumns.begin(), activeColumns.end(), column)
-        == activeColumns.end())
+      if (activeColumns.find(column) == activeColumns.end())
       {
         _predictedInactiveCells.insert(cell);
       }
@@ -393,9 +391,7 @@ void TemporalMemory::learnOnSegments(
       learningSegments.begin(), learningSegments.end(),
       segment) != learningSegments.end());
 
-    bool isFromWinnerCell = (find(
-      winnerCells.begin(), winnerCells.end(),
-      segment.cell) != winnerCells.end());
+    bool isFromWinnerCell = winnerCells.find(segment.cell) != winnerCells.end();
 
     vector<Synapse> activeSynapses(activeSynapsesForSegment(
       segment, prevActiveCells, _connections));
@@ -426,9 +422,8 @@ void TemporalMemory::learnOnSegments(
   {
     for (Segment segment : prevMatchingSegments)
     {
-      bool isPredictedInactiveCell = (find(
-        predictedInactiveCells.begin(), predictedInactiveCells.end(),
-        segment.cell) != predictedInactiveCells.end());
+      bool isPredictedInactiveCell = (predictedInactiveCells.find(segment.cell)
+                                      != predictedInactiveCells.end());
 
       vector<Synapse> activeSynapses(activeSynapsesForSegment(
         segment, prevActiveCells, _connections));
@@ -450,16 +445,16 @@ TemporalMemory::computePredictiveCells(
   map<Segment, int> numActiveSynapsesForSegment;
   vector<Cell> activeCells(_activeCells.begin(), _activeCells.end());
 
-  Activity activity = _connections.computeActivity(activeCells, connectedPermanence_, activationThreshold_);
+  Activity activity = _connections.computeActivity(activeCells,
+                                                   connectedPermanence_, activationThreshold_,
+                                                   0.0, minThreshold_);
 
   vector<Segment> _activeSegments = _connections.activeSegments(activity);
   vector<Cell> predictiveCellsVec = _connections.activeCells(activity);
   set<Cell> _predictiveCells(predictiveCellsVec.begin(), predictiveCellsVec.end());
 
-  Activity matchingActivity = _connections.computeActivity(activeCells, 0.0, minThreshold_, false);
-
-  vector<Segment> _matchingSegments = _connections.activeSegments(matchingActivity);
-  vector<Cell> matchingCellsVec = _connections.activeCells(matchingActivity);
+  vector<Segment> _matchingSegments = _connections.matchingSegments(activity);
+  vector<Cell> matchingCellsVec = _connections.matchingCells(activity);
   set<Cell> _matchingCells(matchingCellsVec.begin(), matchingCellsVec.end());
 
   return make_tuple(_activeSegments, _predictiveCells, 
@@ -530,8 +525,7 @@ TemporalMemory::bestMatchingSegment(
       SynapseData synapseData = _connections.dataForSynapse(synapse);
 
       if (synapseData.permanence > 0 &&
-          find(activeCells.begin(), activeCells.end(),
-               synapseData.presynapticCell) != activeCells.end())
+          activeCells.find(synapseData.presynapticCell) != activeCells.end())
       {
         numActiveSynapses += 1;
       }
@@ -585,8 +579,7 @@ vector<Synapse> TemporalMemory::activeSynapsesForSegment(
   {
     SynapseData synapseData = _connections.dataForSynapse(synapse);
 
-    if (find(activeCells.begin(), activeCells.end(),
-      synapseData.presynapticCell) != activeCells.end())
+    if (activeCells.find(synapseData.presynapticCell) != activeCells.end())
     {
       synapses.push_back(synapse);
     }

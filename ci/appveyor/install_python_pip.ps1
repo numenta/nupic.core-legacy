@@ -2,13 +2,13 @@
 # Authors: Olivier Grisel and Kyle Kastner
 # License: CC0 1.0 Universal: http://creativecommons.org/publicdomain/zero/1.0/
 
+# Abort the script on any failure
+$ErrorActionPreference = "Stop"
+
 $BASE_URL = "https://www.python.org/ftp/python/"
 
 $GET_PIP_URL = "https://bootstrap.pypa.io/get-pip.py"
 $GET_PIP_PATH = "C:\get-pip.py"
-
-$GET_NUMPY_URL = "https://bitbucket.org/carlkl/mingw-w64-for-python/downloads/numpy-1.9.1+openblas-cp27-none-win_amd64.whl"
-$GET_NUMPY_PATH = "C:\numpy-1.9.1+openblas-cp27-none-win_amd64.whl"
 
 
 function DownloadPython ($python_version, $platform_suffix) {
@@ -65,7 +65,11 @@ function InstallPip ($python_home) {
     $pip_path = $python_home + "/Scripts/pip.exe"
     $python_path = $python_home + "/python.exe"
     if ( $(Try { Test-Path $pip_path.trim() } Catch { $false }) ) {
-        Write-Host "pip already installed at " $pip_path
+        Write-Host "pip already installed at " $pip_path ". Upgrading..."
+
+        # Upgrade it to avoid error exit code during usage
+        & $python_path -m pip install --upgrade pip
+
         return $false
     }
 
@@ -78,14 +82,11 @@ function InstallPip ($python_home) {
 }
 
 function main () {
-    InstallPython $env:PYTHON_VERSION $env:PYTHON_ARCH $env:PYTHONPATH
-    InstallPip $env:PYTHONPATH
+    InstallPython $env:PYTHON_VERSION $env:PYTHON_ARCH $env:PYTHONHOME
+    InstallPip $env:PYTHONHOME
 
-    $python_path = $env:PYTHONPATH + "/python.exe"
-    $pip_path = $env:PYTHONPATH + "/Scripts/pip.exe"
-
-    #Write-Host "python -m pip install --upgrade pip"
-    #& $python_path -m pip install --upgrade pip
+    $python_path = $env:PYTHONHOME + "/python.exe"
+    $pip_path = $env:PYTHONHOME + "/Scripts/pip.exe"
 
     Write-Host "pip install " wheel==0.25.0
     & $pip_path install wheel==0.25.0
@@ -96,15 +97,8 @@ function main () {
     Write-Host "pip install " twine
     & $pip_path install twine
 
-    Write-Host "pip install " numpy==1.9.1
-    #& $pip_path install -i https://pypi.numenta.com/pypi numpy==1.9.1
-    # Check AppVeyor cloud cache for NumPy wheel
-    if (-Not (Test-Path $GET_NUMPY_PATH)) {
-        $webclient = New-Object System.Net.WebClient
-        $webclient.DownloadFile($GET_NUMPY_URL, $GET_NUMPY_PATH)
-    }
-    & $pip_path install $GET_NUMPY_PATH
-
+    Write-Host "pip install " numpy==1.9.2
+    & $pip_path install -i https://pypi.anaconda.org/mingwpy/simple numpy==1.9.2
 }
 
 main
