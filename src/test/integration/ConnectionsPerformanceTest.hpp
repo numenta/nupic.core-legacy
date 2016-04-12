@@ -82,7 +82,9 @@ namespace nupic
                 std::vector<algorithms::connections::Cell> sdr,
                 bool learn = true);
     std::vector<algorithms::connections::Cell> computeSPWinnerCells(
-      UInt numCells, algorithms::connections::Activity& activity);
+      Connections& connections,
+      UInt numCells,
+      algorithms::connections::Activity& activity);
 
   }; // end class ConnectionsPerformanceTest
 
