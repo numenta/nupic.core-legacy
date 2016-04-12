@@ -43,6 +43,9 @@ class CSVReader
         */
         std::vector<std::string> getLine()
 {
+    if(this->eof()) {
+      return std::vector<std::string>();
+    }
     // Read the CSV file into a couple of vectors
     std::string line;
     getline(*(this->lineIterator_), line);
@@ -73,15 +76,6 @@ class CSVReader
 
 
         /**
-        * end of file
-        */
-        bool eof()
-{
-    return (*(this->lineIterator_)).eof();
-}
-
-
-        /**
         * return min/max value in the CSV for given column
         */
         const T maxValue(UInt column)
@@ -99,6 +93,14 @@ class CSVReader
 
     private:
         std::unique_ptr<std::ifstream> lineIterator_;
+        /**
+        * end of file
+        */
+        bool eof()
+{
+    return (*(this->lineIterator_)).eof();
+}
+
 };
 
 //write
