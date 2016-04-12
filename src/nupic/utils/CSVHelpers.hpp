@@ -30,6 +30,7 @@ class CSVReader
     if (!this->lineIterator_->is_open()) {
         throw "Invalid file";
     }
+    this->reset_ = this->lineIterator_;
     // skip N header rows
     for(UInt i=0; i< skipNHeaderLines; i++) {
       std::string line;
@@ -62,15 +63,16 @@ class CSVReader
         /**
         * read a whole column of the CSV file
         */
-        std::vector<T> readColumn(UInt index)
+        std::vector<std::string> readColumn(UInt index)
 {
-  std::vector<T> column;
+  std::vector<std::string> column;
   while (!this->eof()) {
     auto row = this->getLine();
     if (row.size() > 0) {
       column.push_back(row[index]);
     }
   }
+  this->lineIterator_ = this->reset_;
   return column;
 }
 
@@ -93,6 +95,7 @@ class CSVReader
 
     private:
         std::unique_ptr<std::ifstream> lineIterator_;
+        const std::unique_ptr<std::ifstream> reset_; //always points to the start of the file
         /**
         * end of file
         */
