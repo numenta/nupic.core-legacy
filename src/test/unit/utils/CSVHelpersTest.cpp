@@ -43,12 +43,9 @@ TEST(CSVHelpers, getLine)
  vector<string> expected2 = {"0.2", "1.3", "-1.1"};
  vector<string> res = {};
  UInt i = 0;
- while(!reader.eof()) {
-  res = reader.getLine();
-  // VectorHelpers::print_vector(reader.getLine(),", ");
-  ASSERT_EQ(res[0], expected1[i]);
-  i++;
-  cout << i; 
+ while((res = reader.getLine()).size() > 0) {
+  // VectorHelpers::print_vector(res,", ");
+  ASSERT_EQ(res[0], expected1[i++]);
  }
 };
 
