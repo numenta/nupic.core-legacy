@@ -155,13 +155,16 @@ namespace nupic
        * @param synapses          Data for synapses that this segment contains.
        * @param destroyed         Whether this segment has been destroyed.
        * @param lastUsedIteration The iteration that this segment was last used at.
+       * @param flatIdx           This segment's index in flattened lists of all segments
        *
        */
       struct SegmentData
       {
         std::vector<SynapseData> synapses;
+        UInt32 numDestroyedSynapses;
         bool destroyed;
         Iteration lastUsedIteration;
+        UInt32 flatIdx;
       };
 
       /**
@@ -177,6 +180,7 @@ namespace nupic
       struct CellData
       {
         std::vector<SegmentData> segments;
+        UInt32 numDestroyedSegments;
       };
 
       /**
@@ -191,7 +195,9 @@ namespace nupic
       struct Activity
       {
         std::map< Cell, std::vector<Segment> > activeSegmentsForCell;
-        std::map<Segment, SynapseIdx> numActiveSynapsesForSegment;
+        std::vector<UInt32> numActiveSynapsesForSegment;
+        std::map< Cell, std::vector<Segment> > matchingSegmentsForCell;
+        std::vector<UInt32> numMatchingSynapsesForSegment;
       };
 
       /**
@@ -334,6 +340,15 @@ namespace nupic
         SynapseData dataForSynapse(const Synapse& synapse) const;
 
         /**
+         * Do a reverse-lookup of a segment from its flatIdx.
+         *
+         * @param flatIdx the flatIdx of the segment
+         *
+         * @retval Segment
+         */
+        Segment segmentForFlatIdx(UInt32 flatIdx) const;
+
+        /**
          * Returns the synapses for the source cell that they synapse on.
          *
          * @param presynapticCell(int) Source cell index
@@ -359,41 +374,31 @@ namespace nupic
                                        Segment& retSegment) const;
 
         /**
-         * Gets the segment that was least recently used from among all the
-         * segments on the given cell.
-         *
-         * @param cell       Cell whose segments to consider.
-         * @param retSegment Segment to return.
-         *
-         * @retval False if cell has no segments.
-         */
-        bool leastRecentlyUsedSegment(const Cell& cell,
-                                      Segment& retSegment) const;
-
-         /**
-          * Gets the synapse with the lowest permanence on the segment.
-          *
-          * @param segment       Segment whose synapses to consider.
-          * @param retSynapse    Synapse with the lowest permanence.
-          *
-          * @retval False if segment has no synapses.
-          */
-         bool minPermanenceSynapse(const Segment& segment,
-                                   Synapse& retSynapse) const;
-
-        /**
          * Forward-propagates input to synapses, dendrites, and cells, to
          * compute their activity.
          *
-         * @param input               Active cells in the input.
-         * @param permanenceThreshold Only consider synapses with permanences greater than this threshold.
-         * @param synapseThreshold    Only consider segments with number of active synapses greater than this threshold.
+         * @param input
+         * Active cells in the input.
+         *
+         * @param activePermanenceThreshold
+         * Minimum permanence for a synapse to contribute to an active segment
+         *
+         * @param activeSynapseThreshold
+         * Minimum number of synapses to mark a segment as "active"
+         *
+         * @param matchingPermanenceThreshold
+         * Minimum permanence for a synapse to contribute to an matching segment
+         *
+         * @param matchingSynapseThreshold
+         * Minimum number of synapses to mark a segment as "matching"
          *
          * @retval Activity to return.
          */
         Activity computeActivity(const std::vector<Cell>& input,
-                                 Permanence permanenceThreshold,
-                                 SynapseIdx synapseThreshold,
+                                 Permanence activePermanenceThreshold,
+                                 SynapseIdx activeSynapseThreshold,
+                                 Permanence matchingPermanenceThreshold,
+                                 SynapseIdx matchingSynapseThreshold,
                                  bool recordIteration=true);
 
         /**
@@ -413,6 +418,24 @@ namespace nupic
          * @retval Active cells.
          */
         std::vector<Cell> activeCells(const Activity& activity);
+
+        /**
+         * Gets the matching segments from activity.
+         *
+         * @param activity Activity.
+         *
+         * @retval Matching segments.
+         */
+        std::vector<Segment> matchingSegments(const Activity& activity);
+
+        /**
+         * Gets the matching cells from activity.
+         *
+         * @param activity Activity.
+         *
+         * @retval Matching cells.
+         */
+        std::vector<Cell> matchingCells(const Activity& activity);
 
         // Serialization
 
@@ -456,6 +479,13 @@ namespace nupic
         UInt numSegments() const;
 
         /**
+         * Gets the number of segments on a cell.
+         *
+         * @retval Number of segments.
+         */
+        UInt numSegments(const Cell& cell) const;
+
+        /**
          * Gets the number of synapses.
          *
          * @retval Number of synapses.
@@ -463,9 +493,55 @@ namespace nupic
         UInt numSynapses() const;
 
         /**
+         * Gets the number of synapses on a segment.
+         *
+         * @retval Number of synapses.
+         */
+        UInt numSynapses(const Segment& segment) const;
+
+        /**
          * Comparison operator.
          */
         bool operator==(const Connections &other) const;
+
+      protected:
+
+        /**
+         * Gets the segment that was least recently used from among all the
+         * segments on the given cell.
+         *
+         * @param cell Cell whose segments to consider.
+         *
+         * @retval The least recently used segment.
+         */
+        Segment leastRecentlyUsedSegment_(const Cell& cell) const;
+
+         /**
+          * Gets the synapse with the lowest permanence on the segment.
+          *
+          * @param segment Segment whose synapses to consider.
+          *
+          * @retval Synapse with the lowest permanence.
+          */
+        Synapse minPermanenceSynapse_(const Segment& segment) const;
+
+        /**
+         * Gets a reference to the data for a segment.
+         *
+         * @param segment Segment to get data for.
+         *
+         * @retval Editable segment data.
+         */
+        SegmentData& dataForSegment_(const Segment& segment);
+
+        /**
+         * Gets a reference to the data for a synapse.
+         *
+         * @param synapse Synapse to get data for.
+         *
+         * @retval Editable synapse data.
+         */
+        SynapseData& dataForSynapse_(const Synapse& synapse);
 
       private:
         std::vector<CellData> cells_;
@@ -473,6 +549,8 @@ namespace nupic
         std::map< Cell, std::vector<Synapse> > synapsesForPresynapticCell_;
         UInt numSegments_;
         UInt numSynapses_;
+        std::vector<Segment> segmentForFlatIdx_;
+        UInt nextFlatIdx_;
         SegmentIdx maxSegmentsPerCell_;
         SynapseIdx maxSynapsesPerSegment_;
         Iteration iteration_;

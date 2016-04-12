@@ -171,7 +171,9 @@ namespace nupic
 
       for (UInt i = 0; i < numInputs; i++)
       {
-        connections.createSynapse(segment, i, (Permanence)rand()/RAND_MAX);
+        const Permanence permanence = max((Permanence)0.000001,
+                                          (Permanence)rand()/RAND_MAX);
+        connections.createSynapse(segment, i, permanence);
       }
     }
 
@@ -186,8 +188,8 @@ namespace nupic
     for (int i = 0; i < 500; i++)
     {
       sdr = randomSDR(numInputs, w);
-      activity = connections.computeActivity(sdr, 0.5, 0);
-      winnerCells = computeSPWinnerCells(numWinners, activity);
+      activity = connections.computeActivity(sdr, 0.5, 0, 0.25, 0);
+      winnerCells = computeSPWinnerCells(connections, numWinners, activity);
 
       for (Cell winnerCell : winnerCells)
       {
@@ -211,9 +213,14 @@ namespace nupic
           permanence = max(permanence, (Permanence)0);
           permanence = min(permanence, (Permanence)1);
 
-          // TODO (Question): Remove synapses with 0 permanence?
-
-          connections.updateSynapsePermanence(synapse, permanence);
+          if (permanence == 0)
+          {
+            connections.destroySynapse(synapse);
+          }
+          else
+          {
+            connections.updateSynapsePermanence(synapse, permanence);
+          }
         }
       }
     }
@@ -225,8 +232,8 @@ namespace nupic
     for (int i = 0; i < 500; i++)
     {
       sdr = randomSDR(numInputs, w);
-      activity = connections.computeActivity(sdr, 0.5, 0);
-      winnerCells = computeSPWinnerCells(numWinners, activity);
+      activity = connections.computeActivity(sdr, 0.5, 0, 0.25, 0);
+      winnerCells = computeSPWinnerCells(connections, numWinners, activity);
     }
 
     checkpoint(timer, label + ": initialize + learn + test");
@@ -271,24 +278,17 @@ namespace nupic
   }
 
   vector<Cell> ConnectionsPerformanceTest::computeSPWinnerCells(
-    UInt numCells, Activity& activity)
+    Connections& connections, UInt numCells, Activity& activity)
   {
-    vector< pair<Segment, SynapseIdx> > numActiveSynapsesList;
+    vector<UInt32> numActiveSynapsesList = activity.numActiveSynapsesForSegment;
     vector<Cell>winnerCells;
 
-    numActiveSynapsesList.assign(activity.numActiveSynapsesForSegment.begin(),
-                                 activity.numActiveSynapsesForSegment.end());
-
-    sort(numActiveSynapsesList.begin(), numActiveSynapsesList.end(),
-         [](const pair<Segment, SynapseIdx>& left,
-            const pair<Segment, SynapseIdx>& right)
-         {
-           return left.second > right.second;
-         });
+    std::sort(numActiveSynapsesList.begin(), numActiveSynapsesList.end(),
+              std::greater<int>());
 
     for (UInt j = 0; j < min(numCells, (UInt)numActiveSynapsesList.size()); j++)
     {
-      winnerCells.push_back(numActiveSynapsesList[j].first.cell);
+      winnerCells.push_back(connections.segmentForFlatIdx(j).cell);
     }
 
     return winnerCells;
