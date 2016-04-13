@@ -42,21 +42,25 @@ environment:
     secure: UgABryPYZg823OcD1XRosA==
 
   matrix:
-    # Win32-gcc
-    - PYTHON_VERSION: "2.7.9"
-      PYTHON_ARCH: "32"
-      PYTHONHOME: "C:\\Python27"
-      NC_CMAKE_GENERATOR: "MinGW Makefiles"
-      external_static_subdir: "windows32-gcc"
-      wheel_name_suffix: "win32"
-
     # Win64-gcc
     - PYTHON_VERSION: "2.7.9"
       PYTHON_ARCH: "64"
       PYTHONHOME: "C:\\Python27-x64"
       NC_CMAKE_GENERATOR: "MinGW Makefiles"
+      mingwpy_archive_name: mingwpy_amd64_vc90.7z
+      libpython_archive_name: libpython-cp27-none-win_amd64.7z
       external_static_subdir: "windows64-gcc"
       wheel_name_suffix: "win_amd64"
+
+    # Win32-gcc
+    - PYTHON_VERSION: "2.7.9"
+      PYTHON_ARCH: "32"
+      PYTHONHOME: "C:\\Python27"
+      NC_CMAKE_GENERATOR: "MinGW Makefiles"
+      mingwpy_archive_name: mingwpy_win32_vc90.7z
+      libpython_archive_name: libpython-cp27-none-win32.7z
+      external_static_subdir: "windows32-gcc"
+      wheel_name_suffix: "win32"
 
 #    # Win64-Visual Studio
 #    - PYTHON_VERSION: "2.7.9"
@@ -77,7 +81,21 @@ matrix:
 #       build configuration       #
 #---------------------------------#
 
+# configuration values must be compatible with CMAKE_BUILD_TYPE: Debug or Release
 configuration: Release
+
+# To work around issue #913, we're getting mingwpy toolchain from bitbucket,
+# which apparently imposes bandwidth limitations, so we need to cache those
+# artifacts
+#
+# NOTE apparently, saving cache is disabled in Pull Request buids per
+# http://help.appveyor.com/discussions/problems/4048-build-cache-not-restored
+cache:
+  - C:\mingwpy_win32_vc90.7z
+  - C:\libpython-cp27-none-win32.7z
+  - C:\mingwpy_amd64_vc90.7z
+  - C:\libpython-cp27-none-win_amd64.7z
+
 
 install:
   - set NUPIC_DEPLOYMENT_BUILD=1
@@ -105,18 +123,37 @@ install:
 
   - echo %PATH%
 
+  #
   # Install Python 2.7.x, Pip, Wheel, and NumPy
+  #
   - cd %REPO_DIR%\ci\appveyor
   - ps: .\install_python_pip.ps1
 
-  - ECHO "Installing MinGW toolchain for Python:"
-  # Install the version of mingwpy toolchain that generates targets compatible
-  # with the installed python (Win32 vs. Win64). The compiler tools are
-  # installed into %PYTHONHOME%/Scripts/
-  - cmd: "%PYTHONHOME%\\Scripts\\pip.exe install -i https://pypi.anaconda.org/carlkl/simple mingwpy"
-  - cmd: "where g++"
+  #
+  # Install mingwpy toolchain
+  #
+  - ECHO "Installing MinGW toolchain for Python"
+  # This would have been easier, but was resulting in issue #913
+  #- cmd: "%PYTHONHOME%\\Scripts\\pip.exe install -i https://pypi.anaconda.org/carlkl/simple mingwpy
 
-  - cmd: "dir %PYTHONHOME%\\share\\mingwpy"
+  # Reference: https://bitbucket.org/carlkl/mingw-w64-for-python/downloads/mingwpy-2015-04-readme.md
+
+  # List contents of C:\ to help debug caching of the artifacts
+  - DIR C:\
+
+  - ps: $dwntool=New-Object System.Net.WebClient
+
+  - ECHO "Installing MinGW-w64 for Python via archive %mingwpy_archive_name%:"
+  - ps: if (-Not (Test-Path "C:\\$env:mingwpy_archive_name")) { $dwntool.DownloadFile("https://bitbucket.org/carlkl/mingw-w64-for-python/downloads/$env:mingwpy_archive_name", "C:\\$env:mingwpy_archive_name") } else { Write-Host "Found" $env:mingwpy_archive_name "in cache." }
+  - 7z x C:\\%mingwpy_archive_name% -oC:\ > null
+
+  - ECHO "Installing MinGW-w64 Python 2.7.x libs via archive %libpython_archive_name% into %PYTHONHOME%:"
+  - ps: if (-Not (Test-Path "C:\\$env:libpython_archive_name")) { $dwntool.DownloadFile("https://bitbucket.org/carlkl/mingw-w64-for-python/downloads/$env:libpython_archive_name", "C:\\$env:libpython_archive_name") } else { Write-Host "Found" $env:libpython_archive_name "in cache." }
+  - 7z x C:\\%libpython_archive_name% -o%PYTHONHOME%\ > null
+
+  - set PATH=C:\mingwpy\bin;%PATH%
+
+  - cmd: "where g++"
 
   # Setup MinGW GCC as a valid distutils compiler
   - cp %EXTERNAL_WINDOWS_DIR%\bin\distutils.cfg %PYTHONHOME%\Lib\distutils\distutils.cfg
@@ -151,7 +188,7 @@ install:
   # http://www.cmake.org/Wiki/CmakeMingw
   - cd %REPO_DIR%\build\scripts
   - cmake -G "%NC_CMAKE_GENERATOR%"
-      -DCMAKE_BUILD_TYPE=Release
+      -DCMAKE_BUILD_TYPE=%configuration%
       -DCMAKE_INSTALL_PREFIX=%REPO_DIR%\build\release
       -DPY_EXTENSIONS_DIR=%REPO_DIR%\bindings\py\nupic\bindings
       %REPO_DIR%
@@ -161,7 +198,7 @@ build_script:
   - cd %REPO_DIR%\build\scripts
 
   # Run build, using portable, toolchain-agnostic mechanism to start it
-  - cmake.exe --build "%REPO_DIR%\build\scripts" --target install --config Release
+  - cmake.exe --build "%REPO_DIR%\build\scripts" --target install --config %configuration%
 
   - cd %REPO_DIR%
 
@@ -190,6 +227,7 @@ after_build:
   - cd %REPO_DIR%
   - python setup.py test
 
+# Disable automatic tests
 test: off
 
 artifacts:
@@ -219,5 +257,3 @@ deploy:
     folder: "numenta/nupic.core/releases/nupic.bindings"
     on:
       branch: master
-
-#deploy: off
