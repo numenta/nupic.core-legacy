@@ -51,6 +51,7 @@ echo "WHEREIS PIP: $(whereis pip)"
 /usr/local/bin/pip --version
 /usr/local/bin/pip2.7 --version
 echo "PATH=$PATH"
+find $HOME -name pip
 
 echo "Installing wheel..."
 pip install wheel==0.25.0 --user || exit
