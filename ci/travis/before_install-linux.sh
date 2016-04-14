@@ -40,13 +40,14 @@ fi
 export PATH=$HOME/.local/bin:$PATH
 export PYTHONPATH=$HOME/.local/lib/python2.7/site-packages:$PYTHONPATH
 
-echo "Upgrading pip"
-sudo -H pip install --upgrade pip
-echo "pip upgrade completed with exitcode=$?"
-
 echo "Upgrading setuptools"
 sudo -H pip install --upgrade setuptools
 echo "setuptools upgrade completed with exitcode=$?"
+python -c "import setuptools; print 'setuptools version=', setuptools.__version__"
+
+echo "Upgrading pip"
+sudo -H pip install --upgrade pip
+echo "pip upgrade completed with exitcode=$?"
 
 # Print diagnostic info to help debug why we're not picking up the latest pip
 pip --version
