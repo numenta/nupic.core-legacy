@@ -91,10 +91,8 @@ configuration: Release
 # NOTE apparently, saving cache is disabled in Pull Request buids per
 # http://help.appveyor.com/discussions/problems/4048-build-cache-not-restored
 cache:
-  - C:\mingwpy_win32_vc90.7z
-  - C:\libpython-cp27-none-win32.7z
-  - C:\mingwpy_amd64_vc90.7z
-  - C:\libpython-cp27-none-win_amd64.7z
+  - C:\%mingwpy_archive_name%
+  - C:\%libpython_archive_name%
 
 
 install:
@@ -145,11 +143,11 @@ install:
 
   - ECHO "Installing MinGW-w64 for Python via archive %mingwpy_archive_name%:"
   - ps: if (-Not (Test-Path "C:\\$env:mingwpy_archive_name")) { $dwntool.DownloadFile("https://bitbucket.org/carlkl/mingw-w64-for-python/downloads/$env:mingwpy_archive_name", "C:\\$env:mingwpy_archive_name") } else { Write-Host "Found" $env:mingwpy_archive_name "in cache." }
-  - 7z x C:\\%mingwpy_archive_name% -oC:\ > null
+  - 7z x C:\%mingwpy_archive_name% -oC:\ > null
 
   - ECHO "Installing MinGW-w64 Python 2.7.x libs via archive %libpython_archive_name% into %PYTHONHOME%:"
   - ps: if (-Not (Test-Path "C:\\$env:libpython_archive_name")) { $dwntool.DownloadFile("https://bitbucket.org/carlkl/mingw-w64-for-python/downloads/$env:libpython_archive_name", "C:\\$env:libpython_archive_name") } else { Write-Host "Found" $env:libpython_archive_name "in cache." }
-  - 7z x C:\\%libpython_archive_name% -o%PYTHONHOME%\ > null
+  - 7z x C:\%libpython_archive_name% -o%PYTHONHOME%\ > null
 
   - set PATH=C:\mingwpy\bin;%PATH%
 
