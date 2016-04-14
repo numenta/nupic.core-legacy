@@ -41,8 +41,8 @@ export PATH=$HOME/.local/bin:$PATH
 export PYTHONPATH=$HOME/.local/lib/python2.7/site-packages:$PYTHONPATH
 
 echo "Installing latest pip"
-pip install --upgrade --ignore-installed --user setuptools
-pip install --upgrade --ignore-installed --user pip
+sudo pip install --upgrade setuptools
+sudo pip install --upgrade pip
 
 # Print diagnostic info to help debug why we're not picking up the latest pip
 pip --version
