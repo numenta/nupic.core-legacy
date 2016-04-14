@@ -50,6 +50,8 @@ echo "WHICH PIP: $(which pip)"
 echo "WHEREIS PIP: $(whereis pip)"
 /usr/local/bin/pip --version
 /usr/local/bin/pip2.7 --version
+/home/travis/.local/bin/pip --version
+/home/travis/.local/lib/python2.7/site-packages/pip --version
 echo "PATH=$PATH"
 find $HOME -name pip
 
