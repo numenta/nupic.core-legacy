@@ -2276,7 +2276,6 @@ def SM_assignNoAlloc(sm, right):
   $1 = (nupic::Real64) PyFloat_AsDouble($input);
 }
 
-#endif
 */
 //--------------------------------------------------------------------------------
 %template(_NearestNeighbor32) nupic::NearestNeighbor<nupic::SparseMatrix<nupic::UInt32,nupic::Real32,nupic::Int32,nupic::Real64,nupic::DistanceToZero<nupic::Real32 > > >;

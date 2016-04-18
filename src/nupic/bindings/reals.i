@@ -66,7 +66,7 @@ def GetNumpyDataType(typeName):
   if typeName == "NTA_Real": return numpy.float64
   elif typeName == "NTA_Real32": return numpy.float32
   elif typeName == "NTA_Real64": return numpy.float64
-  else: raise RuntimeError("Unsupported type name.")
+  else: raise RuntimeError("Unsupported type name: {}".format(typeName))
 %}
 #else
 // Note, when changing the documentation or implementation, make sure to 
