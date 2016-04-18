@@ -162,26 +162,6 @@ void MemParser::get(double& val)
   startP_ = endP;
 }  
 
-#ifdef NTA_QUAD_PRECISION
-////////////////////////////////////////////////////////////////////////////
-// Read a triple-precision float out
-//////////////////////////////////////////////////////////////////////////////
-void MemParser::get(long double& val) 
-{
-  const char* prefix = "MemParser::get(long double&) - ";
-  char* endP;
-  
-  NTA_CHECK (startP_ < endP_) << prefix << "EOF";
-
-  val = ::strtold (startP_, &endP);
-  
-  NTA_CHECK (endP != startP_ && endP <= endP_) << prefix
-      << "parse error, not a valid floating point value";
-    
-  startP_ = endP;
-}  
-#endif 
-
 ////////////////////////////////////////////////////////////////////////////
 // Read a single-precision float out
 //////////////////////////////////////////////////////////////////////////////
