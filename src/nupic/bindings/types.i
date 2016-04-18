@@ -62,10 +62,6 @@
 %template(PairUInt32Real64) std::pair<nupic::UInt32,nupic::Real64>;
 %template(VectorOfPairsUInt32Real32) std::vector<std::pair<nupic::UInt32,nupic::Real32> >;
 %template(VectorOfPairsUInt32Real64) std::vector<std::pair<nupic::UInt32,nupic::Real64> >;
-#ifdef NTA_QUAD_PRECISION
-%template(PairUInt32Real128) std::pair<nupic::UInt32,nupic::Real128>;
-%template(SizeTReal128Vector) std::vector<std::pair<nupic::UInt32,nupic::Real128> >;
-#endif
 
 
 
