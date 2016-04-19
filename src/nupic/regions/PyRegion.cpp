@@ -950,6 +950,7 @@ void PyRegion::compute()
      
   // Prepare the outputs dict
   py::Dict outputs;
+  std::map<std::string, PyObject*> outputsBackup;
   for (size_t i = 0; i < ns.outputs.getCount(); ++i)
   {
     // Get the current OutputSpec object
@@ -968,6 +969,7 @@ void PyRegion::compute()
   
     // Insert the buffer to the outputs py::Dict
     outputs.setItem(p.first, numpyArray);
+    outputsBackup[p.first] = numpyArray;
   }
   
   // Call the Python compute() method
@@ -977,6 +979,23 @@ void PyRegion::compute()
 
   // Need to put the None result in py::Ptr to decrement the ref count
   py::Ptr none(node_.invoke("compute", args));
+
+  // Support expected Python behavior.
+  // If any dict values were reassigned, try to grab the data.
+  for (const std::pair<std::string, PyObject*> backup : outputsBackup)
+  {
+    PyArrayObject* original = reinterpret_cast<PyArrayObject*>(backup.second);
+    PyArrayObject* after = reinterpret_cast<PyArrayObject*>(outputs.getItem(backup.first));
+    if (original != after)
+    {
+      auto failed = PyArray_CopyInto(original, after);
+      NTA_CHECK(!failed)
+        << "The Python region assigned dict key " << backup.first <<
+        " to a different object rather than changing it in place. " <<
+        "Attempt to copy the new object into the original array failed: " <<
+        failed;
+    }
+  }
 }
 
 
