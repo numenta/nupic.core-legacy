@@ -184,6 +184,7 @@ set(src_capnp_specs_rel
   nupic/proto/SparseBinaryMatrixProto.capnp
   nupic/proto/SparseMatrixProto.capnp
   nupic/proto/SpatialPoolerProto.capnp
+  nupic/proto/SdrClassifier.capnp
   nupic/proto/TemporalMemoryProto.capnp
   nupic/proto/TestNodeProto.capnp
   nupic/proto/VectorFileSensorProto.capnp
