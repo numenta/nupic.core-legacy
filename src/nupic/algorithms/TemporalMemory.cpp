@@ -201,6 +201,18 @@ static void columnSegmentWalk(
   FuncB onUnpredictedColumnActive,
   FuncC onPredictedColumnsInactive)
 {
+  NTA_ASSERT(std::is_sorted(activeColumns.begin(), activeColumns.end()));
+  NTA_ASSERT(std::is_sorted(activeSegments.begin(), activeSegments.end(),
+                            [](const SegmentOverlap& a, const SegmentOverlap& b)
+                            {
+                              return a.segment < b.segment;
+                            }));
+  NTA_ASSERT(std::is_sorted(matchingSegments.begin(), matchingSegments.end(),
+                            [](const SegmentOverlap& a, const SegmentOverlap& b)
+                            {
+                              return a.segment < b.segment;
+                            }));
+
   auto active = activeSegments.begin();
   auto matching = matchingSegments.begin();
 
