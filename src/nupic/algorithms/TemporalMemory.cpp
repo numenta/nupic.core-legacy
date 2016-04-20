@@ -210,28 +210,28 @@ static void columnSegmentWalk(
     const Cell lastInColumn = Cell((activeColumn+1)*cellsPerColumn - 1);
 
     // Report segments before this active column.
-    const auto wrongActiveBegin = active;
-    const auto wrongMatchingBegin = matching;
-
-    while (active != activeSegments.end() &&
-           active->segment.cell < firstInColumn)
     {
-      active++;
+      const auto wrongActiveBegin = active;
+      const auto wrongMatchingBegin = matching;
+
+      while (active != activeSegments.end() &&
+             active->segment.cell < firstInColumn)
+      {
+        active++;
+      }
+
+      while (matching != matchingSegments.end() &&
+             matching->segment.cell < firstInColumn)
+      {
+        matching++;
+      }
+
+      onPredictedColumnsInactive(wrongActiveBegin, active,
+                                 wrongMatchingBegin, matching);
     }
 
-    while (matching != matchingSegments.end() &&
-           matching->segment.cell < firstInColumn)
+    // Report segments within this active column.
     {
-      matching++;
-    }
-
-    onPredictedColumnsInactive(wrongActiveBegin, active,
-                               wrongMatchingBegin, matching);
-
-    if (active != activeSegments.end() &&
-        active->segment.cell <= lastInColumn)
-    {
-      // Column has one or more predicted cell.
       const auto correctActiveBegin = active;
       const auto correctMatchingBegin = matching;
 
@@ -247,22 +247,18 @@ static void columnSegmentWalk(
         matching++;
       }
 
-      onPredictedColumnActive(activeColumn,
-                              correctActiveBegin, active,
-                              correctMatchingBegin, matching);
-    }
-    else
-    {
-      // Column has no predicted cells.
-      const auto correctMatchingBegin = matching;
-
-      while (matching != matchingSegments.end() &&
-             matching->segment.cell <= lastInColumn)
+      if (correctActiveBegin != active)
       {
-        matching++;
+        // Column has one or more predicted cell.
+        onPredictedColumnActive(activeColumn,
+                                correctActiveBegin, active,
+                                correctMatchingBegin, matching);
       }
-
-      onUnpredictedColumnActive(activeColumn, correctMatchingBegin, matching);
+      else
+      {
+        // Column has no predicted cells.
+        onUnpredictedColumnActive(activeColumn, correctMatchingBegin, matching);
+      }
     }
   }
 
