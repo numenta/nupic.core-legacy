@@ -112,6 +112,12 @@ namespace nupic {
          * @param seed
          * Seed for the random number generator.
          *
+         * @param maxSegmentsPerCell
+         * The maximum number of segments per cell.
+         *
+         * @param maxSynapsesPerSegment
+         * The maximum number of synapses per segment.
+         *
          * Notes:
          *
          * predictedSegmentDecrement: A good value is just a bit larger than
@@ -417,7 +423,7 @@ namespace nupic {
         void growSynapses_(
           Segment segment,
           const vector<Cell>& prevWinnerCells,
-          UInt32 n);
+          UInt32 nDesiredNewSynapses);
 
         UInt numColumns_;
         vector<UInt> columnDimensions_;

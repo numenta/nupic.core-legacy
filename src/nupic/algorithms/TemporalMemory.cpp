@@ -357,10 +357,10 @@ void TemporalMemory::compute(UInt activeColumnsSize,
           adaptSegment_(bestMatch->segment, prevActiveCells,
                         permanenceIncrement_, permanenceDecrement_);
 
-          const UInt32 nGrow = maxNewSynapseCount_ - bestMatch->overlap;
-          if (nGrow > 0)
+          const UInt32 nGrowDesired = maxNewSynapseCount_ - bestMatch->overlap;
+          if (nGrowDesired > 0)
           {
-            growSynapses_(bestMatch->segment, prevWinnerCells, nGrow);
+            growSynapses_(bestMatch->segment, prevWinnerCells, nGrowDesired);
           }
         }
       }
@@ -371,12 +371,14 @@ void TemporalMemory::compute(UInt activeColumnsSize,
 
         if (learn)
         {
-          const UInt32 nGrow = min(maxNewSynapseCount_,
-                                   (UInt32)prevWinnerCells.size());
-          if (nGrow > 0)
+          // Don't grow a segment that will never match.
+          const UInt32 nGrowExact = std::min(maxNewSynapseCount_,
+                                             (UInt32)prevWinnerCells.size());
+          if (nGrowExact > 0)
           {
             const Segment segment = connections.createSegment(winnerCell);
-            growSynapses_(segment, prevWinnerCells, nGrow);
+            growSynapses_(segment, prevWinnerCells, nGrowExact);
+            NTA_ASSERT(connections.numSynapses(segment) == nGrowExact);
           }
         }
       }
@@ -405,7 +407,8 @@ void TemporalMemory::compute(UInt activeColumnsSize,
   connections.computeActivity(activeCells,
                               connectedPermanence_, activationThreshold_,
                               0.0, minThreshold_,
-                              activeSegments, matchingSegments);
+                              activeSegments, matchingSegments,
+                              learn);
 }
 
 void TemporalMemory::reset(void)
@@ -484,12 +487,17 @@ void TemporalMemory::adaptSegment_(
       connections.updateSynapsePermanence(synapse, permanence);
     }
   }
+
+  if (connections.numSynapses(segment) == 0)
+  {
+    connections.destroySegment(segment);
+  }
 }
 
 void TemporalMemory::growSynapses_(
   Segment segment,
   const vector<Cell>& prevWinnerCells,
-  UInt32 n)
+  UInt32 nDesiredNewSynapses)
 {
   vector<Cell> candidates(prevWinnerCells.begin(), prevWinnerCells.end());
 
@@ -509,8 +517,12 @@ void TemporalMemory::growSynapses_(
     }
   }
 
-  // Pick n cells randomly.
-  for (UInt32 c = 0; c < n && eligibleEnd != candidates.begin(); c++)
+  const UInt32 nActual =
+    std::min(nDesiredNewSynapses,
+             (UInt32)std::distance(candidates.begin(), eligibleEnd));
+
+  // Pick nActual cells randomly.
+  for (UInt32 c = 0; c < nActual; c++)
   {
     size_t i = _rng.getUInt32(std::distance(candidates.begin(), eligibleEnd));;
     connections.createSynapse(segment, candidates[i], initialPermanence_);
