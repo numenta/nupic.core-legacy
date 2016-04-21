@@ -71,11 +71,15 @@ set(src_compiler_definitions
     -DNTA_INTERNAL
     -DBOOST_NO_WREGEX
     -DNUPIC2
-    -DNTA_ASSERTIONS_ON
     -DNTA_ASM
     -DAPR_DECLARE_STATIC
     -DAPU_DECLARE_STATIC)
 
+if(NOT "${CMAKE_BUILD_TYPE}" STREQUAL "Release")
+  set(src_compiler_definitions
+      ${src_compiler_definitions}
+      -DNTA_ASSERTIONS_ON)
+endif()
 
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
   set(src_compiler_definitions
