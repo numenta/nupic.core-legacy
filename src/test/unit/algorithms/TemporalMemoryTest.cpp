@@ -258,7 +258,7 @@ namespace {
     tm.compute(1, activeColumns, false);
 
     vector<CellIdx> winnerCells = tm.getWinnerCells();
-    EXPECT_EQ(1, winnerCells.size());
+    ASSERT_EQ(1, winnerCells.size());
     EXPECT_TRUE(burstingCells.find(winnerCells[0]) != burstingCells.end());
   }
 

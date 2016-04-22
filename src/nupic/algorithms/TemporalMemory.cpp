@@ -146,151 +146,192 @@ void TemporalMemory::initialize(
   matchingSegments.clear();
 }
 
-/**
- * Walk the lists of active columns, active segments, and matching segments,
- * finding each case of "predicted column active", "unpredicted column active",
- * and "predicted column inactive". Each list is traversed exactly once.
- *
- * @param activeColumns
- * A sorted list of active columns.
- *
- * @param cellsPerColumn
- * The number of cells per column.
- *
- * @param activeSegments
- * A sorted list of segment-overlap pairs. Sorted by segment.
- *
- * @param matchingSegments
- * A sorted list of segment-overlap pairs. Sorted by segment.
- *
- * @param onPredictedColumnActive
- * A callback that receives 5 parameters:
- *
- * - the column
- * - begin and end iterators for active segments in this column
- * - begin and end iterators for matching segments in this column
- *
- * It gets called for every active column that has at least one active segment.
- *
- * @param onUnpredictedColumnActive
- * A callback that receives 3 parameters:
- *
- * - the column
- * - begin and end iterators for active segments in this column
- * - begin and end iterators for matching segments in this column
- *
- * It gets called for every active column that has zero active segments.
- *
- * @param onPredictedColumnsInactive
- * A callback that receives 4 parameters:
- *
- * - begin and end iterators for active segments in this column
- * - begin and end iterators for matching segments in this column
- *
- * It gets called for every range of active / matching segments that aren't
- * within active columns. The ranges may contain multiple columns. The ranges
- * may be empty.
- */
-template <typename FuncA, typename FuncB, typename FuncC>
-static void columnSegmentWalk(
-  const vector<UInt>& activeColumns,
-  UInt cellsPerColumn,
-  const vector<SegmentOverlap>& activeSegments,
-  const vector<SegmentOverlap>& matchingSegments,
-  FuncA onPredictedColumnActive,
-  FuncB onUnpredictedColumnActive,
-  FuncC onPredictedColumnsInactive)
+struct ExcitedColumnData
 {
-  NTA_ASSERT(std::is_sorted(activeColumns.begin(), activeColumns.end()));
-  NTA_ASSERT(std::is_sorted(activeSegments.begin(), activeSegments.end(),
-                            [](const SegmentOverlap& a, const SegmentOverlap& b)
-                            {
-                              return a.segment < b.segment;
-                            }));
-  NTA_ASSERT(std::is_sorted(matchingSegments.begin(), matchingSegments.end(),
-                            [](const SegmentOverlap& a, const SegmentOverlap& b)
-                            {
-                              return a.segment < b.segment;
-                            }));
+  UInt column;
+  bool isActiveColumn;
+  vector<SegmentOverlap>::const_iterator activeSegmentsBegin;
+  vector<SegmentOverlap>::const_iterator activeSegmentsEnd;
+  vector<SegmentOverlap>::const_iterator matchingSegmentsBegin;
+  vector<SegmentOverlap>::const_iterator matchingSegmentsEnd;
+};
 
-  auto active = activeSegments.begin();
-  auto matching = matchingSegments.begin();
+/**
+ * Walk the sorted lists of active columns, active segments, and matching
+ * segments, grouping them by column. Each list is traversed exactly once.
+ *
+ * Perform the walk by using iterators.
+ */
+class ExcitedColumns
+{
+public:
 
-  for (UInt activeColumn : activeColumns)
+  ExcitedColumns(const vector<UInt>& activeColumns,
+                 const vector<SegmentOverlap>& activeSegments,
+                 const vector<SegmentOverlap>& matchingSegments,
+                 UInt cellsPerColumn)
+    :activeColumns_(activeColumns),
+     cellsPerColumn_(cellsPerColumn),
+     activeSegments_(activeSegments),
+     matchingSegments_(matchingSegments)
   {
-    const Cell firstInColumn = Cell(activeColumn*cellsPerColumn);
-    const Cell lastInColumn = Cell((activeColumn+1)*cellsPerColumn - 1);
+    NTA_ASSERT(std::is_sorted(activeColumns.begin(), activeColumns.end()));
+    NTA_ASSERT(std::is_sorted(activeSegments.begin(), activeSegments.end(),
+                              [](const SegmentOverlap& a, const SegmentOverlap& b)
+                              {
+                                return a.segment < b.segment;
+                              }));
+    NTA_ASSERT(std::is_sorted(matchingSegments.begin(), matchingSegments.end(),
+                              [](const SegmentOverlap& a, const SegmentOverlap& b)
+                              {
+                                return a.segment < b.segment;
+                              }));
+  }
 
-    // Report segments before this active column.
+  class Iterator
+  {
+  public:
+    Iterator(vector<UInt>::const_iterator activeColumn,
+             vector<UInt>::const_iterator activeColumnsEnd,
+             vector<SegmentOverlap>::const_iterator activeSegment,
+             vector<SegmentOverlap>::const_iterator activeSegmentsEnd,
+             vector<SegmentOverlap>::const_iterator matchingSegment,
+             vector<SegmentOverlap>::const_iterator matchingSegmentsEnd,
+             UInt cellsPerColumn)
+      :activeColumn_(activeColumn),
+       activeColumnsEnd_(activeColumnsEnd),
+       activeSegment_(activeSegment),
+       activeSegmentsEnd_(activeSegmentsEnd),
+       matchingSegment_(matchingSegment),
+       matchingSegmentsEnd_(matchingSegmentsEnd),
+       cellsPerColumn_(cellsPerColumn),
+       finished_(false)
     {
-      const auto wrongActiveBegin = active;
-      const auto wrongMatchingBegin = matching;
-
-      while (active != activeSegments.end() &&
-             active->segment.cell < firstInColumn)
-      {
-        active++;
-      }
-
-      while (matching != matchingSegments.end() &&
-             matching->segment.cell < firstInColumn)
-      {
-        matching++;
-      }
-
-      onPredictedColumnsInactive(wrongActiveBegin, active,
-                                 wrongMatchingBegin, matching);
+      calculateNext_();
     }
 
-    // Report segments within this active column.
+    bool operator !=(const Iterator& other)
     {
-      const auto correctActiveBegin = active;
-      const auto correctMatchingBegin = matching;
+      return finished_ != other.finished_ ||
+        activeColumn_ != other.activeColumn_ ||
+        activeSegment_ != other.activeSegment_ ||
+        matchingSegment_ != other.matchingSegment_;
+    }
 
-      while (active != activeSegments.end() &&
-             active->segment.cell <= lastInColumn)
-      {
-        active++;
-      }
+    const ExcitedColumnData& operator*() const
+    {
+      NTA_ASSERT(!finished_);
+      return current_;
+    }
 
-      while (matching != matchingSegments.end() &&
-             matching->segment.cell <= lastInColumn)
-      {
-        matching++;
-      }
+    const Iterator& operator++()
+    {
+      NTA_ASSERT(!finished_);
+      calculateNext_();
+      return *this;
+    }
 
-      if (correctActiveBegin != active)
+  private:
+
+    UInt columnOf_(const SegmentOverlap& segmentOverlap) const
+    {
+      return segmentOverlap.segment.cell.idx / cellsPerColumn_;
+    }
+
+    void calculateNext_()
+    {
+      if (activeColumn_ != activeColumnsEnd_ ||
+          activeSegment_ != activeSegmentsEnd_ ||
+          matchingSegment_ != matchingSegmentsEnd_)
       {
-        // Column has one or more predicted cell.
-        onPredictedColumnActive(activeColumn,
-                                correctActiveBegin, active,
-                                correctMatchingBegin, matching);
+        current_.column = UINT_MAX;
+
+        if (activeSegment_ != activeSegmentsEnd_)
+        {
+          current_.column = std::min(current_.column,
+                                     columnOf_(*activeSegment_));
+        }
+
+        if (matchingSegment_ != matchingSegmentsEnd_)
+        {
+          current_.column = std::min(current_.column,
+                                     columnOf_(*matchingSegment_));
+        }
+
+        if (activeColumn_ != activeColumnsEnd_ &&
+            *activeColumn_ <= current_.column)
+        {
+          current_.column = *activeColumn_;
+          current_.isActiveColumn = true;
+          activeColumn_++;
+        }
+        else
+        {
+          current_.isActiveColumn = false;
+        }
+
+        current_.activeSegmentsBegin = activeSegment_;
+        while (activeSegment_ != activeSegmentsEnd_ &&
+               columnOf_(*activeSegment_) == current_.column)
+        {
+          activeSegment_++;
+        }
+        current_.activeSegmentsEnd = activeSegment_;
+
+        current_.matchingSegmentsBegin = matchingSegment_;
+        while (matchingSegment_ != matchingSegmentsEnd_ &&
+               columnOf_(*matchingSegment_) == current_.column)
+        {
+          matchingSegment_++;
+        }
+        current_.matchingSegmentsEnd = matchingSegment_;
       }
       else
       {
-        // Column has no predicted cells.
-        onUnpredictedColumnActive(activeColumn, correctMatchingBegin, matching);
+        finished_ = true;
       }
     }
-  }
 
-  // Report remaining segments after the last active column.
-  auto wrongActiveBegin = active;
-  auto wrongMatchingBegin = matching;
+    vector<UInt>::const_iterator activeColumn_;
+    vector<UInt>::const_iterator activeColumnsEnd_;
+    vector<SegmentOverlap>::const_iterator activeSegment_;
+    vector<SegmentOverlap>::const_iterator activeSegmentsEnd_;
+    vector<SegmentOverlap>::const_iterator matchingSegment_;
+    vector<SegmentOverlap>::const_iterator matchingSegmentsEnd_;
+    const UInt cellsPerColumn_;
 
-  while (active != activeSegments.end())
+    bool finished_;
+    ExcitedColumnData current_;
+  };
+
+  Iterator begin()
   {
-    active++;
+    return Iterator(activeColumns_.begin(),
+                    activeColumns_.end(),
+                    activeSegments_.begin(),
+                    activeSegments_.end(),
+                    matchingSegments_.begin(),
+                    matchingSegments_.end(),
+                    cellsPerColumn_);
   }
 
-  while (matching != matchingSegments.end())
+  Iterator end()
   {
-    matching++;
+    return  Iterator(activeColumns_.end(),
+                     activeColumns_.end(),
+                     activeSegments_.end(),
+                     activeSegments_.end(),
+                     matchingSegments_.end(),
+                     matchingSegments_.end(),
+                     cellsPerColumn_);
   }
 
-  onPredictedColumnsInactive(wrongActiveBegin, active,
-                             wrongMatchingBegin, matching);
-}
+private:
+  const vector<UInt>& activeColumns_;
+  const UInt cellsPerColumn_;
+  const vector<SegmentOverlap>& activeSegments_;
+  const vector<SegmentOverlap>& matchingSegments_;
+};
 
 void TemporalMemory::compute(UInt activeColumnsSize,
                              const UInt activeColumnsUnsorted[],
@@ -306,109 +347,103 @@ void TemporalMemory::compute(UInt activeColumnsSize,
   activeCells.clear();
   winnerCells.clear();
 
-  columnSegmentWalk(
-    activeColumns, cellsPerColumn_,
-    activeSegments, matchingSegments,
-
-    /*onPredictedColumnActive*/
-    [&](UInt column,
-        vector<SegmentOverlap>::const_iterator activeSegmentsBegin,
-        vector<SegmentOverlap>::const_iterator activeSegmentsEnd,
-        vector<SegmentOverlap>::const_iterator matchingSegmentsBegin,
-        vector<SegmentOverlap>::const_iterator matchingSegmentsEnd)
+  for (const ExcitedColumnData& excitedColumn : ExcitedColumns(activeColumns,
+                                                               activeSegments,
+                                                               matchingSegments,
+                                                               cellsPerColumn_))
+  {
+    if (excitedColumn.isActiveColumn)
     {
-      auto active = activeSegmentsBegin;
-      while (active != activeSegmentsEnd)
+      if (excitedColumn.activeSegmentsBegin != excitedColumn.activeSegmentsEnd)
       {
-        Cell cell(active->segment.cell);
-        activeCells.push_back(cell);
-        winnerCells.push_back(cell);
-
-        // This cell might have multiple active segments.
-        do
+        // Predicted active column.
+        auto active = excitedColumn.activeSegmentsBegin;
+        while (active != excitedColumn.activeSegmentsEnd)
         {
-          if (learn)
+          Cell cell(active->segment.cell);
+          activeCells.push_back(cell);
+          winnerCells.push_back(cell);
+
+          // This cell might have multiple active segments.
+          do
           {
-            adaptSegment_(active->segment, prevActiveCells,
-                          permanenceIncrement_, permanenceDecrement_);
-          }
-          active++;
-        } while (active != activeSegmentsEnd && active->segment.cell == cell);
-      }
-    },
-
-    /*onUnpredictedColumnActive*/
-    [&](UInt column,
-        vector<SegmentOverlap>::const_iterator matchingSegmentsBegin,
-        vector<SegmentOverlap>::const_iterator matchingSegmentsEnd)
-    {
-      const CellIdx start = column * cellsPerColumn_;
-      const CellIdx end = start + cellsPerColumn_;
-      for (CellIdx i = start; i < end; i++)
-      {
-        activeCells.push_back(Cell(i));
-      }
-
-      if (matchingSegmentsBegin != matchingSegmentsEnd)
-      {
-        auto bestMatch = std::max_element(
-          matchingSegmentsBegin, matchingSegmentsEnd,
-          [](const SegmentOverlap& a, const SegmentOverlap& b)
-          {
-            return a.overlap < b.overlap;
-          });
-
-        winnerCells.push_back(bestMatch->segment.cell);
-
-        if (learn)
-        {
-          adaptSegment_(bestMatch->segment, prevActiveCells,
-                        permanenceIncrement_, permanenceDecrement_);
-
-          const UInt32 nGrowDesired = maxNewSynapseCount_ - bestMatch->overlap;
-          if (nGrowDesired > 0)
-          {
-            growSynapses_(bestMatch->segment, prevWinnerCells, nGrowDesired);
-          }
+            if (learn)
+            {
+              adaptSegment_(active->segment, prevActiveCells,
+                            permanenceIncrement_, permanenceDecrement_);
+            }
+            active++;
+          } while (active != excitedColumn.activeSegmentsEnd && active->segment.cell == cell);
         }
       }
       else
       {
-        const Cell winnerCell = getLeastUsedCell_(column);
-        winnerCells.push_back(winnerCell);
-
-        if (learn)
+        // Bursting column.
+        const CellIdx start = excitedColumn.column * cellsPerColumn_;
+        const CellIdx end = start + cellsPerColumn_;
+        for (CellIdx i = start; i < end; i++)
         {
-          // Don't grow a segment that will never match.
-          const UInt32 nGrowExact = std::min(maxNewSynapseCount_,
-                                             (UInt32)prevWinnerCells.size());
-          if (nGrowExact > 0)
+          activeCells.push_back(Cell(i));
+        }
+
+        if (excitedColumn.matchingSegmentsBegin != excitedColumn.matchingSegmentsEnd)
+        {
+          auto bestMatch = std::max_element(
+            excitedColumn.matchingSegmentsBegin, excitedColumn.matchingSegmentsEnd,
+            [](const SegmentOverlap& a, const SegmentOverlap& b)
+            {
+              return a.overlap < b.overlap;
+            });
+
+          winnerCells.push_back(bestMatch->segment.cell);
+
+          if (learn)
           {
-            const Segment segment = connections.createSegment(winnerCell);
-            growSynapses_(segment, prevWinnerCells, nGrowExact);
-            NTA_ASSERT(connections.numSynapses(segment) == nGrowExact);
+            adaptSegment_(bestMatch->segment, prevActiveCells,
+                          permanenceIncrement_, permanenceDecrement_);
+
+            const UInt32 nGrowDesired = maxNewSynapseCount_ - bestMatch->overlap;
+            if (nGrowDesired > 0)
+            {
+              growSynapses_(bestMatch->segment, prevWinnerCells, nGrowDesired);
+            }
+          }
+        }
+        else
+        {
+          const Cell winnerCell = getLeastUsedCell_(excitedColumn.column);
+          winnerCells.push_back(winnerCell);
+
+          if (learn)
+          {
+            // Don't grow a segment that will never match.
+            const UInt32 nGrowExact = std::min(maxNewSynapseCount_,
+                                               (UInt32)prevWinnerCells.size());
+            if (nGrowExact > 0)
+            {
+              const Segment segment = connections.createSegment(winnerCell);
+              growSynapses_(segment, prevWinnerCells, nGrowExact);
+              NTA_ASSERT(connections.numSynapses(segment) == nGrowExact);
+            }
           }
         }
       }
-    },
-
-    /*onPredictedColumnsInactive*/
-    [&](vector<SegmentOverlap>::const_iterator activeSegmentsBegin,
-        vector<SegmentOverlap>::const_iterator activeSegmentsEnd,
-        vector<SegmentOverlap>::const_iterator matchingSegmentsBegin,
-        vector<SegmentOverlap>::const_iterator matchingSegmentsEnd)
+    }
+    else
     {
+      // Predicted inactive column.
       if (learn && predictedSegmentDecrement_ > 0.0)
       {
-        for (auto matching = matchingSegmentsBegin;
-             matching != matchingSegmentsEnd;
+        for (auto matching = excitedColumn.matchingSegmentsBegin;
+             matching != excitedColumn.matchingSegmentsEnd;
              matching++)
         {
           adaptSegment_(matching->segment, prevActiveCells,
                         -predictedSegmentDecrement_, 0.0);
         }
       }
-    });
+    }
+  }
 
   activeSegments.clear();
   matchingSegments.clear();
