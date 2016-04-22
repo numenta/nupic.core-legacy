@@ -20,74 +20,86 @@
  * ---------------------------------------------------------------------
  */
 
-#include "nupic/utils/MovingAverage.hpp"
-#include "gtest/gtest.h"
 #include <tuple>
 
+#include "gtest/gtest.h"
+
+#include "nupic/types/Types.hpp"
+#include "nupic/utils/MovingAverage.hpp"
+
+using namespace nupic;
 using namespace nupic::util;
 
-TEST(moving_average, instance)
+
+TEST(MovingAverage, Instance)
 {
-  MovingAverage m{3};
-  float newAverage;
-  std::vector<float> expectedWindow;
+  MovingAverage m(3);
+  Real32 newAverage;
 
-  expectedWindow = {3.0};
-  m.compute(3);
-  newAverage = m.getCurrentAvg();
-  ASSERT_EQ(newAverage, 3.0);
-  ASSERT_EQ(m.getSlidingWindow(), expectedWindow);
-  ASSERT_EQ(m.getTotal(), 3.0);
+  {
+    std::vector<Real32> expectedWindow = {3.0};
+    m.compute(3);
+    newAverage = m.getCurrentAvg();
+    ASSERT_EQ(newAverage, 3.0);
+    ASSERT_EQ(m.getSlidingWindow(), expectedWindow);
+    ASSERT_EQ(m.getTotal(), 3.0);
+  }
 
-  expectedWindow = {3.0, 4.0};
-  m.compute(4);
-  newAverage = m.getCurrentAvg();
-  ASSERT_EQ(newAverage, 3.5);
-  ASSERT_EQ(m.getSlidingWindow(), expectedWindow);
-  ASSERT_EQ(m.getTotal(), 7.0);
+  {
+    std::vector<Real32> expectedWindow = {3.0, 4.0};
+    m.compute(4);
+    newAverage = m.getCurrentAvg();
+    ASSERT_EQ(newAverage, 3.5);
+    ASSERT_EQ(m.getSlidingWindow(), expectedWindow);
+    ASSERT_EQ(m.getTotal(), 7.0);
+  }
 
-  expectedWindow = {3.0, 4.0, 5.0};
-  m.compute(5);
-  newAverage = m.getCurrentAvg();
-  ASSERT_EQ(newAverage, 4.0);
-  ASSERT_EQ(m.getSlidingWindow(), expectedWindow);
-  ASSERT_EQ(m.getTotal(), 12.0);
+  {
+    std::vector<Real32> expectedWindow = {3.0, 4.0, 5.0};
+    m.compute(5);
+    newAverage = m.getCurrentAvg();
+    ASSERT_EQ(newAverage, 4.0);
+    ASSERT_EQ(m.getSlidingWindow(), expectedWindow);
+    ASSERT_EQ(m.getTotal(), 12.0);
+  }
 
-  expectedWindow = {4.0, 5.0, 6.0};
-  m.compute(6);
-  newAverage = m.getCurrentAvg();
-  ASSERT_EQ(newAverage, 5.0);
-  ASSERT_EQ(m.getSlidingWindow(), expectedWindow);
-  ASSERT_EQ(m.getTotal(), 15.0);
+  {
+    std::vector<Real32> expectedWindow = {4.0, 5.0, 6.0};
+    m.compute(6);
+    newAverage = m.getCurrentAvg();
+    ASSERT_EQ(newAverage, 5.0);
+    ASSERT_EQ(m.getSlidingWindow(), expectedWindow);
+    ASSERT_EQ(m.getTotal(), 15.0);
+  }
 };
 
 
-TEST(moving_average, SlidingWindowInit)
+TEST(MovingAverage, SlidingWindowInit)
 {
-  std::vector<float> existingHistorical {3.0, 4.0, 5.0};
-  MovingAverage m{3, existingHistorical};
+  std::vector<Real32> existingHistorical = {3.0, 4.0, 5.0};
+  MovingAverage m(3, existingHistorical);
   ASSERT_EQ(m.getSlidingWindow(), existingHistorical);
 
-  MovingAverage m2{3};
-  std::vector<float> emptyVector;
+  MovingAverage m2(3);
+  std::vector<Real32> emptyVector;
   ASSERT_EQ(m2.getSlidingWindow(), emptyVector);
 }
 
-TEST(moving_average, EqualsOperator)
+
+TEST(MovingAverage, EqualsOperator)
 {
+  MovingAverage ma(3);
+  MovingAverage maP(3);
+  ASSERT_EQ(ma, maP);
 
-    MovingAverage ma{3};
-    MovingAverage maP{3};
-    ASSERT_EQ(ma, maP);
+  MovingAverage maN(10);
+  ASSERT_NE(ma, maN);
 
-    MovingAverage maN{10};
-    //    ASSERT_NE(ma, maN);
+  MovingAverage mb(2, {3.0, 4.0, 5.0});
+  MovingAverage mbP(2, {3.0, 4.0, 5.0});
+  ASSERT_EQ(mb, mbP);
 
-    MovingAverage mb{2, std::vector<float> {3.0, 4.0, 5.0} };
-    MovingAverage mbP{2, std::vector<float> {3.0, 4.0, 5.0} };
-    ASSERT_EQ(mb, mbP);
-
-    mbP.compute(6);
-    mb.compute(6);
-    ASSERT_EQ(mb, mbP);   
+  mbP.compute(6);
+  mb.compute(6);
+  ASSERT_EQ(mb, mbP);
 }
