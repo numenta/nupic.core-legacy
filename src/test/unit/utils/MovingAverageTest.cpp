@@ -33,7 +33,7 @@ using namespace nupic::util;
 
 TEST(MovingAverage, Instance)
 {
-  MovingAverage m(3);
+  MovingAverage m{3};
   Real32 newAverage;
 
   {
@@ -77,10 +77,10 @@ TEST(MovingAverage, Instance)
 TEST(MovingAverage, SlidingWindowInit)
 {
   std::vector<Real32> existingHistorical = {3.0, 4.0, 5.0};
-  MovingAverage m(3, existingHistorical);
+  MovingAverage m{3, existingHistorical};
   ASSERT_EQ(m.getSlidingWindow(), existingHistorical);
 
-  MovingAverage m2(3);
+  MovingAverage m2{3};
   std::vector<Real32> emptyVector;
   ASSERT_EQ(m2.getSlidingWindow(), emptyVector);
 }
@@ -88,15 +88,15 @@ TEST(MovingAverage, SlidingWindowInit)
 
 TEST(MovingAverage, EqualsOperator)
 {
-  MovingAverage ma(3);
-  MovingAverage maP(3);
+  MovingAverage ma{3};
+  MovingAverage maP{3};
   ASSERT_EQ(ma, maP);
 
-  MovingAverage maN(10);
+  MovingAverage maN{10};
   ASSERT_NE(ma, maN);
 
-  MovingAverage mb(2, {3.0, 4.0, 5.0});
-  MovingAverage mbP(2, {3.0, 4.0, 5.0});
+  MovingAverage mb{2, {3.0, 4.0, 5.0}};
+  MovingAverage mbP{2, {3.0, 4.0, 5.0}};
   ASSERT_EQ(mb, mbP);
 
   mbP.compute(6);

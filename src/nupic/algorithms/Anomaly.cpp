@@ -50,8 +50,8 @@ Real32 computeRawAnomalyScore(const vector<UInt>& active,
     return 0.0f;
   }
 
-  set<UInt> active_(active.begin(), active.end());
-  set<UInt> predicted_(predicted.begin(), predicted.end());
+  set<UInt> active_{active.begin(), active.end()};
+  set<UInt> predicted_{predicted.begin(), predicted.end()};
   vector<UInt> predictedActiveCols;
 
   // Calculate and return percent of active columns that were not predicted.
