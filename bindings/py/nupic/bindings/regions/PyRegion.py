@@ -24,11 +24,28 @@ This file defines the base class for Python regions.
 """
 
 import numpy
+import collections
 
 RealNumpyDType = numpy.float32
 from abc import ABCMeta, abstractmethod
 
+class DictReadOnlyWrapper(collections.Mapping):
+  """
+  Provides read-only access to a dict. When dict items are mutable, they can
+  still be mutated in-place, but dict items can't be reassigned.
+  """
 
+  def __init__(self, d):
+    self._d = d
+
+  def __iter__(self):
+    return iter(self._d)
+
+  def __len__(self):
+    return len(self._d)
+
+  def __getitem__(self, key):
+    return self._d[key]
 
 class PyRegion(object):
   """
@@ -150,6 +167,15 @@ class PyRegion(object):
     inputs: dict of numpy arrays (one per input)
     outputs: dict of numpy arrays (one per output)
     """
+
+
+  def guardedCompute(self, inputs, outputs):
+    """The C++ entry point to compute.
+
+    inputs: dict of numpy arrays (one per input)
+    outputs: dict of numpy arrays (one per output)
+    """
+    return self.compute(inputs, DictReadOnlyWrapper(outputs))
 
 
   def getOutputElementCount(self, name):
