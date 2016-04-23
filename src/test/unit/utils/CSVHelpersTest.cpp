@@ -32,11 +32,12 @@
 
 using namespace nupic::utils::csv;
 using nupic::UInt;
+using nupic::Real;
 using namespace std;
 
 TEST(CSVHelpers, getLine) 
 {
- CSVReader<float> reader(
+ CSVReader<Real> reader(
    std::string(std::getenv("NUPIC_CORE"))
    + std::string("/src/examples/algorithms/csv.csv"), 3); //demo data
  vector<string> expected1 = {"1", "2", "4"};
@@ -52,7 +53,7 @@ TEST(CSVHelpers, getLine)
 
 TEST(CSVHelpers, readColumn)
 {
- CSVReader<float> reader(
+ CSVReader<Real> reader(
    std::string(std::getenv("NUPIC_CORE"))
    + std::string("/src/examples/algorithms/csv.csv"), 3); //demo data
  vector<string> expected1 = {"1", "2", "4"};
