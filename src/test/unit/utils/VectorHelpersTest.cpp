@@ -35,8 +35,11 @@ using namespace std;
 TEST(VectorHelpers, print_vector) 
 {
   std::vector<float> v{1.2, 0.2, 1, 2.2, 0.1};
-  VectorHelpers::print_vector(v);
-  VectorHelpers::print_vector(v," , ", "Hi there:\n");
+  VectorHelpers::print_vector<float>(v);
+  VectorHelpers::print_vector<float>(v," , ", "Hi there:\n");
+  ASSERT_FLOAT_EQ(0.0, 0.0);
+  vector<string> str = {"a", "b", "c"};
+  VectorHelpers::print_vector<string>(str);
   ASSERT_FLOAT_EQ(0.0, 0.0);
 };
 
