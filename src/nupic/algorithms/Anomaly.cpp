@@ -20,7 +20,6 @@
  * ---------------------------------------------------------------------
  */
 
-
 #include <vector>
 #include <numeric>
 #include <algorithm>
@@ -34,13 +33,16 @@ using namespace std;
 
 namespace nupic
 {
+
 namespace algorithms
 {
+
 namespace anomaly
 {
 
 
-Real32 computeRawAnomalyScore(const vector<UInt>& active, const vector<UInt>& predicted)
+Real32 computeRawAnomalyScore(const vector<UInt>& active,
+                              const vector<UInt>& predicted)
 {
   // Return 0 if no active columns are present
   if (active.size() == 0)
@@ -48,41 +50,44 @@ Real32 computeRawAnomalyScore(const vector<UInt>& active, const vector<UInt>& pr
     return 0.0f;
   }
 
-  set<UInt> active_ {active.begin(), active.end()};
-  set<UInt> predicted_ {predicted.begin(), predicted.end()};
+  set<UInt> active_{active.begin(), active.end()};
+  set<UInt> predicted_{predicted.begin(), predicted.end()};
   vector<UInt> predictedActiveCols;
 
   // Calculate and return percent of active columns that were not predicted.
   set_intersection(active_.begin(), active_.end(),
-               predicted_.begin(), predicted_.end(),
+                   predicted_.begin(), predicted_.end(),
                    back_inserter(predictedActiveCols));
 
   return (active.size() - predictedActiveCols.size()) / Real32(active.size());
 }
 
 
-Anomaly::Anomaly(UInt slidingWindowSize, AnomalyMode mode, Real32 binaryAnomalyThreshold) :
-        binaryThreshold_(binaryAnomalyThreshold) /*, moving_average(nullptr) */
+Anomaly::Anomaly(UInt slidingWindowSize, AnomalyMode mode,
+                 Real32 binaryAnomalyThreshold)
+    : binaryThreshold_(binaryAnomalyThreshold)
 {
-  NTA_ASSERT(binaryAnomalyThreshold >= 0 && binaryAnomalyThreshold <= 1) 
+  NTA_ASSERT(binaryAnomalyThreshold >= 0 && binaryAnomalyThreshold <= 1)
       << "binaryAnomalyThreshold must be within [0.0,1.0]";
-  this->mode_ = mode;
-  if (slidingWindowSize > 0) 
+  mode_ = mode;
+  if (slidingWindowSize > 0)
   {
-    this->movingAverage_.reset(new nupic::util::MovingAverage(slidingWindowSize));
+    movingAverage_.reset(new nupic::util::MovingAverage(slidingWindowSize));
   }
 
   // Not implemented. Fail.
-  NTA_ASSERT(this->mode_ == AnomalyMode::PURE) << "C++ Anomaly implemented only for PURE mode!";
+  NTA_ASSERT(mode_ == AnomalyMode::PURE)
+      << "C++ Anomaly implemented only for PURE mode!";
 }
 
 
-Real32 Anomaly::compute(const vector<UInt>& active, const vector<UInt>& predicted,
-           Real64 inputValue, UInt timestamp)
+Real32 Anomaly::compute(
+    const vector<UInt>& active, const vector<UInt>& predicted,
+    Real64 inputValue, UInt timestamp)
 {
   Real32 anomalyScore = computeRawAnomalyScore(active, predicted);
   Real32 score = anomalyScore;
-  switch(this->mode_) 
+  switch(mode_)
   {
     case AnomalyMode::PURE:
       score = anomalyScore;
@@ -90,21 +95,26 @@ Real32 Anomaly::compute(const vector<UInt>& active, const vector<UInt>& predicte
     case AnomalyMode::LIKELIHOOD:
     case AnomalyMode::WEIGHTED:
       // Not implemented. Fail
-      NTA_ASSERT(this->mode_ == AnomalyMode::PURE) << "C++ Anomaly implemented only for PURE mode!";
+      NTA_ASSERT(mode_ == AnomalyMode::PURE)
+          << "C++ Anomaly implemented only for PURE mode!";
       break;
   }
 
-  if (this->movingAverage_) 
+  if (movingAverage_)
   {
-    score = this->movingAverage_->compute(score);
+    score = movingAverage_->compute(score);
   }
 
-  if (this->binaryThreshold_) 
+  if (binaryThreshold_)
   {
-    score = (score >= this->binaryThreshold_) ? 1.0 : 0.0;
+    score = (score >= binaryThreshold_) ? 1.0 : 0.0;
   }
 
   return score;
 }
 
-}}} //namespaces
+} // namespace anomaly
+
+} // namespace algorithms
+
+} // namespace nupic
