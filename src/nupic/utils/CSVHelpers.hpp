@@ -26,16 +26,9 @@ class CSVReader
     public:
         CSVReader(std::string filename, UInt skipNHeaderLines=0)
 {
-    this->filename_ = filename;
-    reset();
-    if (!this->lineIterator_->is_open()) {
-        throw "Invalid file";
-    }
-    // skip N header rows
-    for(UInt i=0; i< skipNHeaderLines; i++) {
-      std::string line;
-      getline(*(this->lineIterator_), line); // why "" does not work, while 'line' does?
-    }
+    filename_ = filename;
+    curRow_ = 0;
+    reset(skipNHeaderLines);
 }
 
 
@@ -50,6 +43,7 @@ class CSVReader
     // Read the CSV file into a couple of vectors
     std::string line;
     getline(*(this->lineIterator_), line);
+    curRow_++;
 
     // Use a boost tokenizer to parse a CSV line
     boost::tokenizer<boost::escaped_list_separator<char>> tok(line);
@@ -65,6 +59,7 @@ class CSVReader
         */
         std::vector<std::string> readColumn(UInt index)
 {
+  auto curRowBackup = curRow_; //backup, as this will be altered during getLine()
   std::vector<std::string> column;
   while (!this->eof()) {
     auto row = this->getLine();
@@ -72,7 +67,7 @@ class CSVReader
       column.push_back(row[index]);
     }
   }
-  reset();
+  reset(curRowBackup);
   return column;
 }
 
@@ -96,6 +91,7 @@ class CSVReader
     private:
         std::unique_ptr<std::ifstream> lineIterator_;
         const std::string filename_;
+        UInt curRow_; //current row number
         /**
         * end of file
         */
@@ -103,10 +99,19 @@ class CSVReader
 {
     return (*(this->lineIterator_)).eof();
 }
-        /** reset **/
-        void reset()
+        /** reset
+        param : UInt nRow - skip to Nth row
+        **/
+        void reset(UInt nRow)
 {
   lineIterator_.reset(new std::ifstream(filename_.c_str()));
+    if (!lineIterator_->is_open()) {
+        throw "Invalid file";
+    }
+    // skip N header rows
+    for(UInt i=0; i< nRow; i++) {
+      getline();
+    }
 }
 
 };
