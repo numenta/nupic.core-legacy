@@ -35,8 +35,8 @@ set(LIB_STATIC_YAML_CPP_INC_DIR "${yamlcpplib_install_prefix}/include")
 # Export path to installed static yaml-cpp to parent
 set(LIB_STATIC_YAML_CPP_LOC "${yamlcpplib_install_lib_dir}/${STATIC_PRE}yaml-cpp${STATIC_SUF}")
 
-set(c_flags "${COMMON_C_FLAGS_OPTIMIZED} ${COMMON_COMPILER_DEFINITIONS_STR}")
-set(cxx_flags "${COMMON_CXX_FLAGS_OPTIMIZED} ${COMMON_COMPILER_DEFINITIONS_STR}")
+set(c_flags "${EXTERNAL_C_FLAGS_OPTIMIZED} ${COMMON_COMPILER_DEFINITIONS_STR}")
+set(cxx_flags "${EXTERNAL_CXX_FLAGS_OPTIMIZED} ${COMMON_COMPILER_DEFINITIONS_STR}")
 
 ExternalProject_Add(YamlCppStaticLib
     DEPENDS YamlStaticLib
