@@ -38,7 +38,7 @@ set(LIB_STATIC_APR1_LOC "${aprlib_install_lib_dir}/${STATIC_PRE}apr-1${STATIC_SU
 # NOTE -DCOM_NO_WINDOWS_H fixes a bunch of OLE-related build errors on Win32
 # (reference: https://bz.apache.org/bugzilla/show_bug.cgi?id=56342)
 set(aprlib_cflags "-DCOM_NO_WINDOWS_H")
-set(aprlib_cflags "${COMMON_C_FLAGS_OPTIMIZED} ${COMMON_COMPILER_DEFINITIONS_STR} ${aprlib_cflags}")
+set(aprlib_cflags "${EXTERNAL_C_FLAGS_OPTIMIZED} ${COMMON_COMPILER_DEFINITIONS_STR} ${aprlib_cflags}")
 
 # Location of apr sources
 set(aprlib_url "${REPOSITORY_DIR}/external/common/share/apr/unix/apr-1.5.2.tar.gz")

@@ -33,7 +33,7 @@ set(yamllib_build_dir "${EP_BASE}/Build/YamlStaticLib")
 # Export path to installed static yaml lib to parent
 set(LIB_STATIC_YAML_LOC "${yamllib_build_dir}/${STATIC_PRE}yaml${STATIC_SUF}")
 
-set(c_flags "${COMMON_C_FLAGS_OPTIMIZED} ${COMMON_COMPILER_DEFINITIONS_STR}")
+set(c_flags "${EXTERNAL_C_FLAGS_OPTIMIZED} ${COMMON_COMPILER_DEFINITIONS_STR}")
 
 ExternalProject_Add(YamlStaticLib
     URL ${yamllib_url}

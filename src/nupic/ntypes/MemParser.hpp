@@ -103,14 +103,6 @@ public:
   ///////////////////////////////////////////////////////////////////////////////////
   void get(float& val);
 
-#ifdef NTA_QUAD_PRECISION
-  /////////////////////////////////////////////////////////////////////////////////////
-  /// Read a triple precision floating point number out of the stream
-  ///
-  ///////////////////////////////////////////////////////////////////////////////////
-  void get(long double& val);
-#endif
-  
   /////////////////////////////////////////////////////////////////////////////////////
   /// Read a string out of the stream
   ///
@@ -166,14 +158,6 @@ public:
     in.get(val);
     return in;
   }
-
-#ifdef NTA_QUAD_PRECISION
-  friend MemParser& operator>>(MemParser& in, long double& val)
-  {  
-    in.get(val);
-    return in;
-  }
-#endif
 
   friend MemParser& operator>>(MemParser& in, std::string& val)
   {  

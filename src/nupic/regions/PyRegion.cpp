@@ -976,7 +976,7 @@ void PyRegion::compute()
   args.setItem(1, outputs);
 
   // Need to put the None result in py::Ptr to decrement the ref count
-  py::Ptr none(node_.invoke("compute", args));
+  py::Ptr none(node_.invoke("guardedCompute", args));
 }
 
 
