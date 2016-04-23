@@ -25,7 +25,11 @@ class VectorHelpers
 {
   os << prefix;
   for (auto it=v.cbegin(); it != v.cend(); ++it) {
-    os << std::to_string(*it);
+    if (T == std::string) {
+      os << *it;
+    } else {
+      os << std::to_string(*it);
+    }
     if ( ((it + 1) != v.cend()) &&  (sep != "") ) {
       os << sep;
     }
