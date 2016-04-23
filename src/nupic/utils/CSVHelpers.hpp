@@ -26,7 +26,7 @@ class CSVReader
     public:
         CSVReader(std::string filename, UInt skipNHeaderLines=0)
 {
-    filename_ = filename;
+    filename_ = filename.c_str();
     curRow_ = 0;
     reset(skipNHeaderLines);
 }
@@ -77,20 +77,20 @@ class CSVReader
         */
         const T maxValue(UInt column)
 {
-  std::vector<T> col = this->readColumn(column);
+  std::vector<T> col = {10} ;//FIXME this->readColumn(column); //does not work, needs VectorUtils' castVectorType()
   return *std::max_element(col.begin(), col.end());
 }
 
 
         const T minValue(UInt column)
 {
-  std::vector<T> col = this->readColumn(column);
+  std::vector<T> col = {0}; //FIXME this->readColumn(column); //does not work, needs VectorUtils' castVectorType()
   return *std::min_element(col.begin(), col.end());
 }
 
     private:
         std::unique_ptr<std::ifstream> lineIterator_;
-        const std::string filename_;
+        std::string filename_; //TODO make const?
         UInt curRow_; //current row number
         /**
         * end of file
@@ -110,7 +110,7 @@ class CSVReader
     }
     // skip N header rows
     for(UInt i=0; i< nRow; i++) {
-      getline();
+      getLine();
     }
 }
 
