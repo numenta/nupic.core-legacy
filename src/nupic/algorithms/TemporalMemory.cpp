@@ -317,13 +317,13 @@ public:
 
   Iterator end()
   {
-    return  Iterator(activeColumns_.end(),
-                     activeColumns_.end(),
-                     activeSegments_.end(),
-                     activeSegments_.end(),
-                     matchingSegments_.end(),
-                     matchingSegments_.end(),
-                     cellsPerColumn_);
+    return Iterator(activeColumns_.end(),
+                    activeColumns_.end(),
+                    activeSegments_.end(),
+                    activeSegments_.end(),
+                    matchingSegments_.end(),
+                    matchingSegments_.end(),
+                    cellsPerColumn_);
   }
 
 private:
@@ -333,9 +333,10 @@ private:
   const vector<SegmentOverlap>& matchingSegments_;
 };
 
-void TemporalMemory::compute(UInt activeColumnsSize,
-                             const UInt activeColumnsUnsorted[],
-                             bool learn)
+void TemporalMemory::compute(
+  UInt activeColumnsSize,
+  const UInt activeColumnsUnsorted[],
+  bool learn)
 {
   const vector<Cell> prevActiveCells = activeCells;
   const vector<Cell> prevWinnerCells = winnerCells;
@@ -373,7 +374,8 @@ void TemporalMemory::compute(UInt activeColumnsSize,
                             permanenceIncrement_, permanenceDecrement_);
             }
             active++;
-          } while (active != excitedColumn.activeSegmentsEnd && active->segment.cell == cell);
+          } while (active != excitedColumn.activeSegmentsEnd &&
+                   active->segment.cell == cell);
         }
       }
       else
@@ -386,10 +388,12 @@ void TemporalMemory::compute(UInt activeColumnsSize,
           activeCells.push_back(Cell(i));
         }
 
-        if (excitedColumn.matchingSegmentsBegin != excitedColumn.matchingSegmentsEnd)
+        if (excitedColumn.matchingSegmentsBegin !=
+            excitedColumn.matchingSegmentsEnd)
         {
           auto bestMatch = std::max_element(
-            excitedColumn.matchingSegmentsBegin, excitedColumn.matchingSegmentsEnd,
+            excitedColumn.matchingSegmentsBegin,
+            excitedColumn.matchingSegmentsEnd,
             [](const SegmentOverlap& a, const SegmentOverlap& b)
             {
               return a.overlap < b.overlap;
@@ -402,7 +406,8 @@ void TemporalMemory::compute(UInt activeColumnsSize,
             adaptSegment_(bestMatch->segment, prevActiveCells,
                           permanenceIncrement_, permanenceDecrement_);
 
-            const UInt32 nGrowDesired = maxNewSynapseCount_ - bestMatch->overlap;
+            const UInt32 nGrowDesired =
+              maxNewSynapseCount_ - bestMatch->overlap;
             if (nGrowDesired > 0)
             {
               growSynapses_(bestMatch->segment, prevWinnerCells, nGrowDesired);
