@@ -99,7 +99,6 @@ install:
   - set NUPIC_DEPLOYMENT_BUILD=1
 
   - set NUPIC_CORE=c:\projects\nupic-core
-  - set NUPIC_CORE_DIR=%NUPIC_CORE%\build\release #FIXME can be removed? not used anywhere
   - set EXTERNAL_WINDOWS_DIR=%NUPIC_CORE%\external\%external_static_subdir%
 
   - set ARTIFACTS_DIR=%NUPIC_CORE%\build\artifacts
