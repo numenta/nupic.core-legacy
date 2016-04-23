@@ -91,10 +91,6 @@ NTA_DEF_NUMPY_DTYPE_TRAIT(nupic::UInt64, NPY_UINT64);
 NTA_DEF_NUMPY_DTYPE_TRAIT(nupic::Real32, NPY_FLOAT32);
 NTA_DEF_NUMPY_DTYPE_TRAIT(nupic::Real64, NPY_FLOAT64);
 
-#ifdef NTA_QUAD_PRECISION
-NTA_DEF_NUMPY_DTYPE_TRAIT(nupic::Real128, NPY_FLOAT128);
-#endif
-
 // --------------------------------------------------------------
 
 

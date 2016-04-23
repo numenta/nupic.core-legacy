@@ -60,11 +60,9 @@
 %template(_DistanceToZero32) nupic::DistanceToZero<nupic::Real32>;
 
 //%template(_DistanceToZero64) nupic::DistanceToZero<nupic::Real64>;
-//%template(_DistanceToZero128) nupic::DistanceToZero<nupic::Real128>;
 
 %template(_SparseMatrix32) nupic::SparseMatrix<nupic::UInt32,nupic::Real32,nupic::Int32,nupic::Real64,nupic::DistanceToZero<nupic::Real32 > >;
 //%template(_SparseMatrix64) nupic::SparseMatrix<nupic::UInt32,nupic::Real64,nupic::Int32,nupic::Real64,nupic::DistanceToZero<nupic::Real64 > >;
-//%template(_SparseMatrix128) nupic::SparseMatrix<nupic::UInt32,nupic::Real128,nupic::Int32,nupic::Real128,nupic::DistanceToZero<nupic::Real128 > >;
 
 //%template(_SM_01_32_16) nupic::SparseBinaryMatrix<nupic::UInt32, nupic::UInt16>;
 %template(_SM_01_32_32) nupic::SparseBinaryMatrix<nupic::UInt32, nupic::UInt32>;
@@ -2278,25 +2276,12 @@ def SM_assignNoAlloc(sm, right):
   $1 = (nupic::Real64) PyFloat_AsDouble($input);
 }
 
-#ifdef NTA_QUAD_PRECISION
-%typemap(in) nupic::NearestNeighbor<nupic::SparseMatrix<nupic::UInt32,nupic::Real128,nupic::Int32,nupic::Real128,nupic::DistanceToZero<nupic::Real128 > > >::size_type {
-  $1 = (nupic::UInt32) PyLong_AsLong($input);
-}
-
-%typemap(in) nupic::NearestNeighbor<nupic::SparseMatrix<nupic::UInt32,nupic::Real128,nupic::Int32,nupic::Real128,nupic::DistanceToZero<nupic::Real128 > > >::value_type {
-  $1 = (nupic::Real128) PyFloat_AsDouble($input);
-}
-#endif
 */
 //--------------------------------------------------------------------------------
 %template(_NearestNeighbor32) nupic::NearestNeighbor<nupic::SparseMatrix<nupic::UInt32,nupic::Real32,nupic::Int32,nupic::Real64,nupic::DistanceToZero<nupic::Real32 > > >;
 
 /*
 %template(_NearestNeighbor64) nupic::NearestNeighbor<nupic::SparseMatrix<nupic::UInt32,nupic::Real64,nupic::Int32,nupic::Real64,nupic::DistanceToZero<nupic::Real64 > > >;
-
-#ifdef NTA_QUAD_PRECISION
-%template(_NearestNeighbor128) nupic::NearestNeighbor<nupic::SparseMatrix<nupic::UInt32,nupic::Real128,nupic::Int32,nupic::Real128,nupic::DistanceToZero<nupic::Real128 > > >;
-#endif
 */
 //--------------------------------------------------------------------------------
 %define NearestNeighbor_(N1, N2, N3, N4)
