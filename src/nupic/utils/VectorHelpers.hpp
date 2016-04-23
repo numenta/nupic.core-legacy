@@ -5,6 +5,7 @@
 #include <string>
 #include <iostream>
 #include <sstream>
+#include <typeinfo>
 
 #include <algorithm>
 
@@ -25,7 +26,7 @@ class VectorHelpers
 {
   os << prefix;
   for (auto it=v.cbegin(); it != v.cend(); ++it) {
-    if (T == std::string) {
+    if (typeid(T) == typeid(std::string)) {
       os << *it;
     } else {
       os << std::to_string(*it);
