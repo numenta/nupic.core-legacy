@@ -378,6 +378,31 @@ namespace {
   }
 
   /**
+   * Destroy a segment that has a destroyed synapse and a non-destroyed synapse.
+   * Create a new segment in the same place. Make sure its synapse count is
+   * correct.
+   */
+  TEST(ConnectionsTest, ReuseSegmentWithDestroyedSynapses)
+  {
+    Connections connections(1024);
+
+    Segment segment = connections.createSegment(Cell(11));
+
+    Synapse synapse1 = connections.createSynapse(segment, Cell(201), 0.85);
+    /*      synapse2*/ connections.createSynapse(segment, Cell(202), 0.85);
+
+    connections.destroySynapse(synapse1);
+
+    ASSERT_EQ(1, connections.numSynapses(segment));
+
+    connections.destroySegment(segment);
+    Segment reincarnated = connections.createSegment(Cell(11));
+
+    EXPECT_EQ(0, connections.numSynapses(reincarnated));
+    EXPECT_EQ(0, connections.synapsesForSegment(reincarnated).size());
+  }
+
+  /**
    * Destroy some segments then verify that the maxSegmentsPerCell is still
    * correctly applied.
    */
