@@ -419,7 +419,7 @@ Activity Connections::computeActivity(const vector<Cell>& input,
 
             if (recordIteration)
             {
-              dataForSegment_(synapse.segment).lastUsedIteration++;
+              dataForSegment_(synapse.segment).lastUsedIteration = iteration_;
             }
           }
         }
