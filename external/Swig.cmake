@@ -30,8 +30,6 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
       ${PROJECT_SOURCE_DIR}/${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}/bin/swig.exe)
   set(swig_dir ${PROJECT_SOURCE_DIR}/common/share/swig/3.0.2)
 else()
-  # TODO: Remove dependency on curl by using native CMake functionality for
-  # fetching pcre.
   ExternalProject_Add(
     Swig
     URL ${swig_download_url}
