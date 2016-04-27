@@ -17,7 +17,7 @@ pip install \
 
 # Build and install nupic.core
 mkdir -p build/scripts
-cmake . -DNTA_COV_ENABLED=ON -DCMAKE_INSTALL_PREFIX=`pwd`/build/release -DPY_EXTENSIONS_DIR=`pwd`/bindings/py/nupic/bindings
+cmake -DCMAKE_INSTALL_PREFIX=`pwd`/build/release -DPY_EXTENSIONS_DIR=`pwd`/bindings/py/nupic/bindings .
 make install
 ./build/release/bin/cpp_region_test
 ./build/release/bin/unit_tests
