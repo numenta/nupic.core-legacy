@@ -19,10 +19,8 @@
 # http://numenta.org/licenses/
 # -----------------------------------------------------------------------------
 
-set(swig_download_url
-    "${REPOSITORY_DIR}/external/common/src/swig-3.0.2.tar.gz")
-set(pcre_download_url
-    "${REPOSITORY_DIR}/external/common/src/pcre-8.37.tar.gz")
+set(swig_path "${REPOSITORY_DIR}/external/common/src/swig-3.0.2.tar.gz")
+set(pcre_path "${REPOSITORY_DIR}/external/common/src/pcre-8.37.tar.gz")
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   add_custom_target(Swig)
@@ -32,11 +30,11 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 else()
   ExternalProject_Add(
     Swig
-    URL ${swig_download_url}
+    URL ${swig_path}
     UPDATE_COMMAND ""
     CONFIGURE_COMMAND
       mkdir -p ${EP_BASE}/Source/Swig/Tools/ &&
-      cp ${pcre_download_url} ${EP_BASE}/Build/Swig/ &&
+      cp ${pcre_path} ${EP_BASE}/Build/Swig/ &&
       ${EP_BASE}/Source/Swig/Tools/pcre-build.sh &&
       ${EP_BASE}/Source/Swig/configure --prefix=${EP_BASE}/Install --enable-cpp11-testing
   )
