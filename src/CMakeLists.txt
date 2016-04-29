@@ -450,7 +450,7 @@ add_dependencies(${src_executable_hellosptp} ${src_common_libs})
 # Setup Anomaly example
 #
 set(src_executable_anomaly anomaly_example)
-add_executable(${src_executable_anomaly} examples/algorithms/Anomaly.cpp)
+add_executable(${src_executable_anomaly} examples/algorithms/AnomalyDetection.cpp)
 target_link_libraries(${src_executable_anomaly} ${src_common_libs})
 set_target_properties(${src_executable_anomaly}
                       PROPERTIES COMPILE_FLAGS ${src_compile_flags})
