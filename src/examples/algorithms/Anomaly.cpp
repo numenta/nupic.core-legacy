@@ -6,6 +6,7 @@
 #include <iterator>
 #include <boost/tokenizer.hpp>
 #include <cstdlib>
+#include <fast_cpp_csv_parser/csv.h>
 
 #include "nupic/encoders/ScalarEncoder.hpp"
 #include "nupic/algorithms/SpatialPooler.hpp"
@@ -13,7 +14,6 @@
 #include "nupic/algorithms/Anomaly.hpp"
 #include "nupic/os/Timer.hpp"
 #include "nupic/utils/VectorHelpers.hpp"
-#include "nupic/utils/CSVHelpers.hpp"
 
 using namespace std; // generic namespaces are included here
 using namespace nupic;
@@ -136,27 +136,24 @@ int main()
 {
     using namespace nupic;
     using namespace nupic::utils;
-    using namespace nupic::utils::csv;
 
     // initialize
     // CSV I/O
-    const UInt HEADER_ROWS = 4; //will be skipped
-    const UInt WORKING_COL = 0; // in this example we work on 1st column
-    CSVReader<Real> reader(
-            std::string(std::getenv("NUPIC_CORE"))
-            + std::string("/src/examples/algorithms/hotgym.csv"),
-            HEADER_ROWS); //runs the temporal/hotgym data
+    const UInt WORKING_COL = 2; // number of cols we want to read, in this example only 1st
+    io::CSVReader<WORKING_COL> in(
+               std::string(std::getenv("NUPIC_CORE"))
+             + std::string("/src/examples/algorithms/hotgym.csv")); // CSV parser, see external/common/include/fast_cpp_csv_parser for usage.
+    in.read_header(io::ignore_extra_column, "timestamp", "consumption"); //which column(s) we work on
+    in.next_line(); in.next_line(); //skip the 2 meta rows in our header
+    std::string timestamp;
+    Real consumption;
+    // write output to a file (don't forget to close later)
+    std::ofstream outFile;
+    outFile.open (
+               std::string(std::getenv("NUPIC_CORE"))
+             + std::string("/src/examples/algorithms/anomaly_out.csv"));
+    outFile << "anomaly_score" << std::endl;
 
-    CSVWriter<Real> writer(
-            std::string(std::getenv("NUPIC_CORE"))
-            + std::string("/src/examples/algorithms/anomaly_out.csv"));
-
-    if (DEBUG_LEVEL > 0) {
-      std::vector<std::string> column1 = reader.readColumn(WORKING_COL);
-      std::cout << "Whole input: ";
-      VectorHelpers::print_vector(column1, " ");
-      std::cout << std::endl;
-    }
     // the running example class above
     AnomalyDetection runner;
     // timer
@@ -164,19 +161,18 @@ int main()
 
     // run through the data
     UInt iteration = 0;
-    vector<string> row = {};
-    while ((row = reader.getLine()).size() > 0) {
-        auto elem = stof(row[WORKING_COL]);
+    while (in.read_row(timestamp, consumption)) {
         // measure the HTM computation only (excluding time for CSV processing, disk I/O etc
         stopwatch.start();
-        Real result = runner.compute(elem); // do the anomaly computation
+        Real result = runner.compute(consumption); // do the anomaly computation
         stopwatch.stop();
-        writer.writeLine(std::vector<Real>{result});
+        outFile << result << std::endl;
         ++iteration;
         if (DEBUG_LEVEL > 1) {
           std::cout << "--------------------------------------------------------\n\n";
         }
     }
     std::cout << "Total elapsed time = " << stopwatch.getElapsed() << " seconds" << std::endl;
+    outFile.close();
     return 0;
 }
