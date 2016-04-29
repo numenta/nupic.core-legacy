@@ -435,6 +435,18 @@ set_target_properties(${src_executable_prototest}
 add_dependencies(${src_executable_prototest} ${src_common_libs})
 
 #
+# Setup HelloSP_TP example
+#
+set(src_executable_hellosptp hello_sp_tp)
+add_executable(${src_executable_hellosptp} examples/algorithms/HelloSP_TP.cpp)
+target_link_libraries(${src_executable_hellosptp} ${src_common_libs})
+set_target_properties(${src_executable_hellosptp}
+                      PROPERTIES COMPILE_FLAGS ${src_compile_flags})
+set_target_properties(${src_executable_hellosptp}
+                      PROPERTIES LINK_FLAGS "${INTERNAL_LINKER_FLAGS_OPTIMIZED}")
+add_dependencies(${src_executable_hellosptp} ${src_common_libs})
+
+#
 # Setup Anomaly example
 #
 set(src_executable_anomaly anomaly_example)
