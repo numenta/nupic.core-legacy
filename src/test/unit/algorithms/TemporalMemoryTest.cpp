@@ -1313,29 +1313,18 @@ namespace {
 
     tm1.compute(sequence[0].size(), sequence[0].data());
     tm2.compute(sequence[0].size(), sequence[0].data());
-    ASSERT_EQ(tm1.activeCells, tm2.activeCells);
-    ASSERT_EQ(tm1.winnerCells, tm2.winnerCells);
+    ASSERT_EQ(tm1.getActiveCells(), tm2.getActiveCells());
+    ASSERT_EQ(tm1.getWinnerCells(), tm2.getWinnerCells());
     ASSERT_EQ(tm1.connections, tm2.connections);
 
     tm1.compute(sequence[3].size(), sequence[3].data());
     tm2.compute(sequence[3].size(), sequence[3].data());
-    ASSERT_EQ(tm1.activeCells, tm2.activeCells);
+    ASSERT_EQ(tm1.getActiveCells(), tm2.getActiveCells());
 
-    ASSERT_EQ(tm1.activeSegments.size(), tm2.activeSegments.size());
-    for (size_t i = 0; i < tm1.activeSegments.size(); i++)
-    {
-      ASSERT_EQ(tm1.activeSegments[i].segment, tm2.activeSegments[i].segment);
-      ASSERT_EQ(tm1.activeSegments[i].overlap, tm2.activeSegments[i].overlap);
-    }
+    ASSERT_EQ(tm1.getActiveSegments(), tm2.getActiveSegments());
+    ASSERT_EQ(tm1.getMatchingSegments(), tm2.getMatchingSegments());
 
-    ASSERT_EQ(tm1.matchingSegments.size(), tm2.matchingSegments.size());
-    for (size_t i = 0; i < tm1.matchingSegments.size(); i++)
-    {
-      ASSERT_EQ(tm1.matchingSegments[i].segment, tm2.matchingSegments[i].segment);
-      ASSERT_EQ(tm1.matchingSegments[i].overlap, tm2.matchingSegments[i].overlap);
-    }
-
-    ASSERT_EQ(tm1.winnerCells, tm2.winnerCells);
+    ASSERT_EQ(tm1.getWinnerCells(), tm2.getWinnerCells());
     ASSERT_EQ(tm1.connections, tm2.connections);
 
     check_tm_eq(tm1, tm2);

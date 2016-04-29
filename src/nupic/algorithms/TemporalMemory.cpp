@@ -140,10 +140,10 @@ void TemporalMemory::initialize(
     maxSynapsesPerSegment);
   seed_((UInt64)(seed < 0 ? rand() : seed));
 
-  activeCells.clear();
-  activeSegments.clear();
-  winnerCells.clear();
-  matchingSegments.clear();
+  activeCells_.clear();
+  activeSegments_.clear();
+  winnerCells_.clear();
+  matchingSegments_.clear();
 }
 
 struct ExcitedColumnData
@@ -580,33 +580,33 @@ void TemporalMemory::compute(
   const UInt activeColumnsUnsorted[],
   bool learn)
 {
-  const vector<Cell> prevActiveCells = activeCells;
-  const vector<Cell> prevWinnerCells = winnerCells;
+  const vector<Cell> prevActiveCells = activeCells_;
+  const vector<Cell> prevWinnerCells = winnerCells_;
 
   vector<UInt> activeColumns(activeColumnsUnsorted,
                              activeColumnsUnsorted + activeColumnsSize);
   std::sort(activeColumns.begin(), activeColumns.end());
 
-  activeCells.clear();
-  winnerCells.clear();
+  activeCells_.clear();
+  winnerCells_.clear();
 
   for (const ExcitedColumnData& excitedColumn : ExcitedColumns(activeColumns,
-                                                               activeSegments,
-                                                               matchingSegments,
+                                                               activeSegments_,
+                                                               matchingSegments_,
                                                                cellsPerColumn_))
   {
     if (excitedColumn.isActiveColumn)
     {
       if (excitedColumn.activeSegmentsBegin != excitedColumn.activeSegmentsEnd)
       {
-        activatePredictedColumn(activeCells, winnerCells, connections,
+        activatePredictedColumn(activeCells_, winnerCells_, connections,
                                 excitedColumn, learn,
                                 prevActiveCells,
                                 permanenceIncrement_, permanenceDecrement_);
       }
       else
       {
-        burstColumn(activeCells, winnerCells, connections, _rng,
+        burstColumn(activeCells_, winnerCells_, connections, rng_,
                     excitedColumn, learn,
                     prevActiveCells, prevWinnerCells,
                     cellsPerColumn_, initialPermanence_, maxNewSynapseCount_,
@@ -625,21 +625,21 @@ void TemporalMemory::compute(
     }
   }
 
-  activeSegments.clear();
-  matchingSegments.clear();
-  connections.computeActivity(activeCells,
+  activeSegments_.clear();
+  matchingSegments_.clear();
+  connections.computeActivity(activeCells_,
                               connectedPermanence_, activationThreshold_,
                               0.0, minThreshold_,
-                              activeSegments, matchingSegments,
+                              activeSegments_, matchingSegments_,
                               learn);
 }
 
 void TemporalMemory::reset(void)
 {
-  activeCells.clear();
-  activeSegments.clear();
-  matchingSegments.clear();
-  winnerCells.clear();
+  activeCells_.clear();
+  activeSegments_.clear();
+  matchingSegments_.clear();
+  winnerCells_.clear();
 }
 
 // ==============================
@@ -674,18 +674,18 @@ UInt TemporalMemory::numberOfCells(void)
 
 vector<CellIdx> TemporalMemory::getActiveCells() const
 {
-  return _cellsToIndices(activeCells);
+  return _cellsToIndices(activeCells_);
 }
 
 vector<CellIdx> TemporalMemory::getPredictiveCells() const
 {
   vector<CellIdx> predictiveCells;
 
-  for (auto segOverlap = activeSegments.begin();
-       segOverlap != activeSegments.end();
+  for (auto segOverlap = activeSegments_.begin();
+       segOverlap != activeSegments_.end();
        segOverlap++)
   {
-    if (segOverlap == activeSegments.begin() ||
+    if (segOverlap == activeSegments_.begin() ||
         segOverlap->segment.cell.idx != predictiveCells.back())
     {
       predictiveCells.push_back(segOverlap->segment.cell.idx);
@@ -697,18 +697,18 @@ vector<CellIdx> TemporalMemory::getPredictiveCells() const
 
 vector<CellIdx> TemporalMemory::getWinnerCells() const
 {
-  return _cellsToIndices(winnerCells);
+  return _cellsToIndices(winnerCells_);
 }
 
 vector<CellIdx> TemporalMemory::getMatchingCells() const
 {
   vector<CellIdx> matchingCells;
 
-  for (auto segOverlap = matchingSegments.begin();
-       segOverlap != matchingSegments.end();
+  for (auto segOverlap = matchingSegments_.begin();
+       segOverlap != matchingSegments_.end();
        segOverlap++)
   {
-    if (segOverlap == matchingSegments.begin() ||
+    if (segOverlap == matchingSegments_.begin() ||
         segOverlap->segment.cell.idx != matchingCells.back())
     {
       matchingCells.push_back(segOverlap->segment.cell.idx);
@@ -716,6 +716,28 @@ vector<CellIdx> TemporalMemory::getMatchingCells() const
   }
 
   return matchingCells;
+}
+
+vector<Segment> TemporalMemory::getActiveSegments() const
+{
+  vector<Segment> ret;
+  ret.reserve(activeSegments_.size());
+  for (const SegmentOverlap& segmentOverlap : activeSegments_)
+  {
+    ret.push_back(segmentOverlap.segment);
+  }
+  return ret;
+}
+
+vector<Segment> TemporalMemory::getMatchingSegments() const
+{
+  vector<Segment> ret;
+  ret.reserve(matchingSegments_.size());
+  for (const SegmentOverlap& segmentOverlap : matchingSegments_)
+  {
+    ret.push_back(segmentOverlap.segment);
+  }
+  return ret;
 }
 
 UInt TemporalMemory::numberOfColumns() const
@@ -839,7 +861,7 @@ void TemporalMemory::setPredictedSegmentDecrement(Permanence predictedSegmentDec
 */
 void TemporalMemory::seed_(UInt64 seed)
 {
-  _rng = Random(seed);
+  rng_ = Random(seed);
 }
 
 UInt TemporalMemory::persistentSize() const
@@ -873,7 +895,7 @@ void TemporalMemory::save(ostream& outStream) const
   connections.save(outStream);
   outStream << endl;
 
-  outStream << _rng << endl;
+  outStream << rng_ << endl;
 
   outStream << columnDimensions_.size() << " ";
   for (auto & elem : columnDimensions_) {
@@ -881,28 +903,28 @@ void TemporalMemory::save(ostream& outStream) const
   }
   outStream << endl;
 
-  outStream << activeCells.size() << " ";
-  for (Cell elem : activeCells) {
+  outStream << activeCells_.size() << " ";
+  for (Cell elem : activeCells_) {
     outStream << elem.idx << " ";
   }
   outStream << endl;
 
-  outStream << winnerCells.size() << " ";
-  for (Cell elem : winnerCells) {
+  outStream << winnerCells_.size() << " ";
+  for (Cell elem : winnerCells_) {
     outStream << elem.idx << " ";
   }
   outStream << endl;
 
-  outStream << activeSegments.size() << " ";
-  for (SegmentOverlap elem : activeSegments) {
+  outStream << activeSegments_.size() << " ";
+  for (SegmentOverlap elem : activeSegments_) {
     outStream << elem.segment.idx << " ";
     outStream << elem.segment.cell.idx << " ";
     outStream << elem.overlap << " ";
   }
   outStream << endl;
 
-  outStream << matchingSegments.size() << " ";
-  for (SegmentOverlap elem : matchingSegments) {
+  outStream << matchingSegments_.size() << " ";
+  for (SegmentOverlap elem : matchingSegments_) {
     outStream << elem.segment.idx << " ";
     outStream << elem.segment.cell.idx << " ";
     outStream << elem.overlap << " ";
@@ -934,40 +956,40 @@ void TemporalMemory::write(TemporalMemoryProto::Builder& proto) const
   connections.write(_connections);
 
   auto random = proto.initRandom();
-  _rng.write(random);
+  rng_.write(random);
 
-  auto _activeCells = proto.initActiveCells(activeCells.size());
+  auto activeCells = proto.initActiveCells(activeCells_.size());
   UInt i = 0;
-  for (Cell c : activeCells)
+  for (Cell c : activeCells_)
   {
-    _activeCells.set(i++, c.idx);
+    activeCells.set(i++, c.idx);
   }
 
-  auto _activeSegmentOverlaps =
-    proto.initActiveSegmentOverlaps(activeSegments.size());
-  for (UInt i = 0; i < activeSegments.size(); ++i)
+  auto activeSegmentOverlaps =
+    proto.initActiveSegmentOverlaps(activeSegments_.size());
+  for (UInt i = 0; i < activeSegments_.size(); ++i)
   {
-    Segment segment = activeSegments[i].segment;
-    _activeSegmentOverlaps[i].setCell(segment.cell.idx);
-    _activeSegmentOverlaps[i].setSegment(segment.idx);
-    _activeSegmentOverlaps[i].setOverlap(activeSegments[i].overlap);
+    Segment segment = activeSegments_[i].segment;
+    activeSegmentOverlaps[i].setCell(segment.cell.idx);
+    activeSegmentOverlaps[i].setSegment(segment.idx);
+    activeSegmentOverlaps[i].setOverlap(activeSegments_[i].overlap);
   }
 
-  auto _winnerCells = proto.initWinnerCells(winnerCells.size());
+  auto winnerCells = proto.initWinnerCells(winnerCells_.size());
   i = 0;
-  for (Cell c : winnerCells)
+  for (Cell c : winnerCells_)
   {
-    _winnerCells.set(i++, c.idx);
+    winnerCells.set(i++, c.idx);
   }
 
-  auto _matchingSegmentOverlaps =
-    proto.initMatchingSegmentOverlaps(matchingSegments.size());
-  for (UInt i = 0; i < matchingSegments.size(); ++i)
+  auto matchingSegmentOverlaps =
+    proto.initMatchingSegmentOverlaps(matchingSegments_.size());
+  for (UInt i = 0; i < matchingSegments_.size(); ++i)
   {
-    Segment segment = matchingSegments[i].segment;
-    _matchingSegmentOverlaps[i].setCell(segment.cell.idx);
-    _matchingSegmentOverlaps[i].setSegment(segment.idx);
-    _matchingSegmentOverlaps[i].setOverlap(matchingSegments[i].overlap);
+    Segment segment = matchingSegments_[i].segment;
+    matchingSegmentOverlaps[i].setCell(segment.cell.idx);
+    matchingSegmentOverlaps[i].setSegment(segment.idx);
+    matchingSegmentOverlaps[i].setOverlap(matchingSegments_[i].overlap);
   }
 }
 
@@ -998,12 +1020,12 @@ void TemporalMemory::read(TemporalMemoryProto::Reader& proto)
   connections.read(_connections);
 
   auto random = proto.getRandom();
-  _rng.read(random);
+  rng_.read(random);
 
-  activeCells.clear();
+  activeCells_.clear();
   for (auto value : proto.getActiveCells())
   {
-    activeCells.push_back(Cell(value));
+    activeCells_.push_back(Cell(value));
   }
 
   if (proto.getActiveSegments().size())
@@ -1013,18 +1035,18 @@ void TemporalMemory::read(TemporalMemoryProto::Reader& proto)
              << "TemporalMemory results will be goofy for one timestep.";
   }
 
-  activeSegments.clear();
+  activeSegments_.clear();
   for (auto value : proto.getActiveSegmentOverlaps())
   {
     Segment segment = {(SegmentIdx)value.getSegment(),
                        {(CellIdx)value.getCell()}};
-    activeSegments.push_back({segment, value.getOverlap()});
+    activeSegments_.push_back({segment, value.getOverlap()});
   }
 
-  winnerCells.clear();
+  winnerCells_.clear();
   for (auto value : proto.getWinnerCells())
   {
-    winnerCells.push_back(Cell(value));
+    winnerCells_.push_back(Cell(value));
   }
 
   if (proto.getMatchingSegments().size())
@@ -1034,12 +1056,12 @@ void TemporalMemory::read(TemporalMemoryProto::Reader& proto)
              << "TemporalMemory results will be goofy for one timestep.";
   }
 
-  matchingSegments.clear();
+  matchingSegments_.clear();
   for (auto value : proto.getMatchingSegmentOverlaps())
   {
     Segment segment = {(SegmentIdx)value.getSegment(),
                        {(CellIdx)value.getCell()}};
-    matchingSegments.push_back({segment, value.getOverlap()});
+    matchingSegments_.push_back({segment, value.getOverlap()});
   }
 }
 
@@ -1069,7 +1091,7 @@ void TemporalMemory::load(istream& inStream)
 
   connections.load(inStream);
 
-  inStream >> _rng;
+  inStream >> rng_;
 
   // Retrieve vectors.
   UInt numColumnDimensions;
@@ -1087,7 +1109,7 @@ void TemporalMemory::load(istream& inStream)
   for (UInt i = 0; i < numActiveCells; i++)
   {
     inStream >> cellIndex;
-    activeCells.push_back(Cell(cellIndex));
+    activeCells_.push_back(Cell(cellIndex));
   }
 
   if (version < 2)
@@ -1104,24 +1126,24 @@ void TemporalMemory::load(istream& inStream)
   {
     UInt numActiveSegments;
     inStream >> numActiveSegments;
-    activeSegments.resize(numActiveSegments);
+    activeSegments_.resize(numActiveSegments);
     for (UInt i = 0; i < numActiveSegments; i++)
     {
-      inStream >> activeSegments[i].segment.idx;
-      inStream >> activeSegments[i].segment.cell.idx;
-      activeSegments[i].overlap = 0; // Unknown
+      inStream >> activeSegments_[i].segment.idx;
+      inStream >> activeSegments_[i].segment.cell.idx;
+      activeSegments_[i].overlap = 0; // Unknown
     }
   }
   else
   {
     UInt numActiveSegments;
     inStream >> numActiveSegments;
-    activeSegments.resize(numActiveSegments);
+    activeSegments_.resize(numActiveSegments);
     for (UInt i = 0; i < numActiveSegments; i++)
     {
-      inStream >> activeSegments[i].segment.idx;
-      inStream >> activeSegments[i].segment.cell.idx;
-      inStream >> activeSegments[i].overlap;
+      inStream >> activeSegments_[i].segment.idx;
+      inStream >> activeSegments_[i].segment.cell.idx;
+      inStream >> activeSegments_[i].overlap;
     }
   }
 
@@ -1130,31 +1152,31 @@ void TemporalMemory::load(istream& inStream)
   for (UInt i = 0; i < numWinnerCells; i++)
   {
     inStream >> cellIndex;
-    winnerCells.push_back(Cell(cellIndex));
+    winnerCells_.push_back(Cell(cellIndex));
   }
 
   if (version < 2)
   {
     UInt numMatchingSegments;
     inStream >> numMatchingSegments;
-    matchingSegments.resize(numMatchingSegments);
+    matchingSegments_.resize(numMatchingSegments);
     for (UInt i = 0; i < numMatchingSegments; i++)
     {
-      inStream >> matchingSegments[i].segment.idx;
-      inStream >> matchingSegments[i].segment.cell.idx;
-      matchingSegments[i].overlap = 0; // Unknown
+      inStream >> matchingSegments_[i].segment.idx;
+      inStream >> matchingSegments_[i].segment.cell.idx;
+      matchingSegments_[i].overlap = 0; // Unknown
     }
   }
   else
   {
     UInt numMatchingSegments;
     inStream >> numMatchingSegments;
-    matchingSegments.resize(numMatchingSegments);
+    matchingSegments_.resize(numMatchingSegments);
     for (UInt i = 0; i < numMatchingSegments; i++)
     {
-      inStream >> matchingSegments[i].segment.idx;
-      inStream >> matchingSegments[i].segment.cell.idx;
-      inStream >> matchingSegments[i].overlap;
+      inStream >> matchingSegments_[i].segment.idx;
+      inStream >> matchingSegments_[i].segment.cell.idx;
+      inStream >> matchingSegments_[i].overlap;
     }
   }
 

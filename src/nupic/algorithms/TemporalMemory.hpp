@@ -248,6 +248,9 @@ namespace nupic {
         */
         vector<CellIdx> getMatchingCells() const;
 
+        vector<Segment> getActiveSegments() const;
+        vector<Segment> getMatchingSegments() const;
+
         /**
          * Returns the dimensions of the columns in the region.
          *
@@ -423,14 +426,15 @@ namespace nupic {
         Permanence permanenceDecrement_;
         Permanence predictedSegmentDecrement_;
 
+        vector<Cell> activeCells_;
+        vector<Cell> winnerCells_;
+        vector<SegmentOverlap> activeSegments_;
+        vector<SegmentOverlap> matchingSegments_;
+
         UInt version_;
-        Random _rng;
+        Random rng_;
 
       public:
-        vector<Cell> activeCells;
-        vector<Cell> winnerCells;
-        vector<SegmentOverlap> activeSegments;
-        vector<SegmentOverlap> matchingSegments;
         Connections connections;
       };
 
