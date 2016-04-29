@@ -116,6 +116,7 @@ namespace nupic
         AnomalyMode mode_;
         Real32 binaryThreshold_;
         std::unique_ptr<nupic::util::MovingAverage> movingAverage_;
+        const Real PRECISION = 10000; // 10^4 = we care only to about 4th decimal place
 
       };
     } // namespace anomaly
