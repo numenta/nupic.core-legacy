@@ -411,20 +411,6 @@ namespace nupic {
         void printState(vector<Real> &state);
 
       protected:
-
-        Cell getLeastUsedCell_(UInt column);
-
-        void adaptSegment_(
-          Segment segment,
-          const vector<Cell>& prevActiveCells,
-          Permanence permanenceIncrement,
-          Permanence permanenceDecrement);
-
-        void growSynapses_(
-          Segment segment,
-          const vector<Cell>& prevWinnerCells,
-          UInt32 nDesiredNewSynapses);
-
         UInt numColumns_;
         vector<UInt> columnDimensions_;
         UInt cellsPerColumn_;
