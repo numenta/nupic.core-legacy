@@ -81,10 +81,7 @@ class AnomalyDetection
         // vector is created with the required type, and the elements
         // are converted.
         auto uint_scalar = VectorHelpers::castVectorType<Real32, UInt>(scalar);
-        if (DEBUG_LEVEL > 0) 
-        {
-          std::cout << x << ":\n";
-        } else if (DEBUG_LEVEL > 1) {
+        if (DEBUG_LEVEL > 1) {
           std::cout << "Scalar encoder: ";
           VectorHelpers::print_vector(uint_scalar);
         }
@@ -121,11 +118,10 @@ class AnomalyDetection
         lastTPOutput = VectorHelpers::cellsToColumns(uintTpOutput, CELLS);
 
         if(DEBUG_LEVEL > 0) {
-        std::cout << "Anomaly: "
-                  << anScore << "\n\n";
+          std::cout << "Input:\t" << x << "\tAnomaly: " << anScore << std::endl;
         } else if (DEBUG_LEVEL > 4) {
-        std::cout << "Normalized TP Output: ";
-        VectorHelpers::print_vector(lastTPOutput);
+          std::cout << "Normalized TP Output: ";
+          VectorHelpers::print_vector(lastTPOutput);
         }
 
         return anScore;
