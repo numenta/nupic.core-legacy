@@ -260,6 +260,7 @@ endif()
 set(src_lib_static_nupiccore_srcs
     ${src_capnp_srcs}
     ${src_py_support_files}
+    nupic/algorithms/Anomaly.cpp
     nupic/algorithms/BitHistory.cpp
     nupic/algorithms/Cell.cpp
     nupic/algorithms/Cells4.cpp
@@ -323,6 +324,7 @@ set(src_lib_static_nupiccore_srcs
     nupic/types/Fraction.cpp
     nupic/utils/LoggingException.cpp
     nupic/utils/LogItem.cpp
+    nupic/utils/MovingAverage.cpp
     nupic/utils/Random.cpp
     nupic/utils/StringUtils.cpp
     nupic/utils/TRandom.cpp
@@ -449,6 +451,7 @@ add_dependencies(${src_executable_hellosptp} ${src_common_libs})
 #
 set(src_executable_gtests unit_tests)
 add_executable(${src_executable_gtests}
+               test/unit/algorithms/AnomalyTest.cpp
                test/unit/algorithms/CondProbTableTest.cpp
                test/unit/algorithms/ConnectionsTest.cpp
                test/unit/algorithms/FastCLAClassifierTest.cpp
@@ -490,6 +493,7 @@ add_executable(${src_executable_gtests}
                test/unit/types/ExceptionTest.cpp
                test/unit/types/FractionTest.cpp
                test/unit/UnitTestMain.cpp
+               test/unit/utils/MovingAverageTest.cpp
                test/unit/utils/RandomTest.cpp
                test/unit/utils/WatcherTest.cpp
                test/unit/utils/VectorHelpersTest.cpp)

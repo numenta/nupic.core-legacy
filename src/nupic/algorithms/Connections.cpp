@@ -174,6 +174,7 @@ void Connections::destroySegment(const Segment& segment)
     }
   }
   segmentData.synapses.clear();
+  segmentData.numDestroyedSynapses = 0;
 
   segmentData.destroyed = true;
   cells_[segment.cell.idx].numDestroyedSegments++;
