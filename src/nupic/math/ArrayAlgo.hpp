@@ -42,6 +42,8 @@
 #include <nupic/math/Math.hpp>
 #include <nupic/math/Types.hpp>
 
+#define RANDOM_SEED -1
+
 namespace nupic {
 
   //--------------------------------------------------------------------------------
@@ -2246,7 +2248,7 @@ namespace nupic {
   random_pair_sample(size_t nrows, size_t ncols, size_t nnzpr, 
                      std::vector<std::pair<T1, T2> >& a, 
                      const T2& init_nz_val,
-                     int seed =-1,
+                     int seed =0,
                      bool sorted =true)
   {
     {
@@ -2257,9 +2259,9 @@ namespace nupic {
     a.resize(nrows * nnzpr);
 
 #if defined(NTA_ARCH_32) && defined(NTA_OS_DARWIN)
-    nupic::Random rng(seed == -1 ? arc4random() : seed);
+    nupic::Random rng(seed == RANDOM_SEED ? arc4random() : seed);
 #else
-    nupic::Random rng(seed == -1 ? rand() : seed);
+    nupic::Random rng(seed == RANDOM_SEED ? rand() : seed);
 #endif
 
     std::vector<size_t> x(ncols); 
@@ -2298,7 +2300,7 @@ namespace nupic {
                           T2 sigma,
                           std::vector<std::pair<T1, T2> >& a, 
                           const T2& init_nz_val,
-                          int seed =-1,
+                          int seed =0,
                           bool sorted =true)
   {
     {
@@ -2310,9 +2312,9 @@ namespace nupic {
     a.resize(nrows * nnzpr);
 
 #if defined(NTA_ARCH_32) && defined(NTA_OS_DARWIN)
-    nupic::Random rng(seed == -1 ? arc4random() : seed);
+    nupic::Random rng(seed == RANDOM_SEED ? arc4random() : seed);
 #else
-    nupic::Random rng(seed == -1 ? rand() : seed);
+    nupic::Random rng(seed == RANDOM_SEED ? rand() : seed);
 #endif
 
     size_t rf_y = ncols / rf_x;

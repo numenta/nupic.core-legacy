@@ -1149,7 +1149,7 @@ public:
    * mode = 0 means uniform distribution of the non-zeros, all starting at 1.
    */
   inline void initializeWithFixedNNZR(size_type nnzr, value_type v = 1,
-                                      size_type mode = 0, size_type seed = 42) {
+                                      size_type mode = 0, size_type seed = 0) {
     { NTA_ASSERT(nnzr <= nCols()); }
 
     nupic::Random rng(seed);

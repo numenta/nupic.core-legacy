@@ -946,7 +946,8 @@ namespace {
     for (UInt i = 0; i < numColumns; i++) {
       Real perm[8];
       sp.getPermanence(i, perm);
-      ASSERT_TRUE(check_vector_eq(truePermArr[i], perm, numInputs));
+      NTA_CHECK(check_vector_eq(truePermArr[i], perm, numInputs)) << 
+        "Failing: " << truePermArr[i] << " vs. " << perm;
     }
 
   }

@@ -394,7 +394,8 @@ namespace nupic {
         /**
          * Default constructor needed when lifting from persistence.
          */
-        Cells4(UInt nColumns =0, UInt nCellsPerCol =0,
+        Cells4(UInt nColumns =2048,
+               UInt nCellsPerCol =0,
                UInt activationThreshold =1,
                UInt minThreshold =1,
                UInt newSynapseCount =1,
@@ -406,7 +407,7 @@ namespace nupic {
                Real permInc =.1,
                Real globalDecay =0,
                bool doPooling =false,
-               int seed =-1,
+               int seed =0,
                bool initFromCpp =false,
                bool checkSynapseConsistency =false);
 
@@ -416,7 +417,8 @@ namespace nupic {
          * This also called when lifting from persistence.
          */
         void
-        initialize(UInt nColumns =0, UInt nCellsPerCol =0,
+        initialize(UInt nColumns =2048,
+                   UInt nCellsPerCol =0,
                    UInt activationThreshold =1,
                    UInt minThreshold =1,
                    UInt newSynapseCount =1,

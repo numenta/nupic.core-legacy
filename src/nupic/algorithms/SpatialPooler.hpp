@@ -38,6 +38,7 @@
 #include <nupic/types/Serializable.hpp>
 #include <nupic/types/Types.hpp>
 
+
 using namespace std;
 
 namespace nupic {
@@ -78,14 +79,14 @@ namespace nupic {
                         Real localAreaDensity=-1.0,
                         UInt numActiveColumnsPerInhArea=10,
                         UInt stimulusThreshold=0,
-                        Real synPermInactiveDec=0.008,
-                        Real synPermActiveInc=0.05,
+                        Real synPermInactiveDec=0.01,
+                        Real synPermActiveInc=0.1,
                         Real synPermConnected=0.1,
                         Real minPctOverlapDutyCycles=0.001,
                         Real minPctActiveDutyCycles=0.001,
                         UInt dutyCyclePeriod=1000,
                         Real maxBoost=10.0,
-                        Int seed=1,
+                        Int seed=0,
                         UInt spVerbosity=0,
                         bool wrapAround=true);
 
@@ -216,7 +217,7 @@ namespace nupic {
 
           @param seed Seed for our random number generator. If seed is < 0
                 a randomly generated seed is used. The behavior of the spatial
-                pooler is deterministic once the seed is set.
+                pooler is deterministic once the seed is set. The default is 0.
 
           @param spVerbosity spVerbosity level: 0, 1, 2, or 3
 
@@ -226,7 +227,7 @@ namespace nupic {
 
            */
           virtual void initialize(vector<UInt> inputDimensions,
-                                  vector<UInt> columnDimensions,
+                                  vector<UInt> columnDimensions = { 2048 },
                                   UInt potentialRadius=16,
                                   Real potentialPct=0.5,
                                   bool globalInhibition=true,
@@ -240,7 +241,7 @@ namespace nupic {
                                   Real minPctActiveDutyCycles=0.001,
                                   UInt dutyCyclePeriod=1000,
                                   Real maxBoost=10.0,
-                                  Int seed=1,
+                                  Int seed=0,
                                   UInt spVerbosity=0,
                                   bool wrapAround=true);
 
@@ -329,6 +330,11 @@ namespace nupic {
           @returns Integer number of bytes
            */
           virtual UInt persistentSize() const;
+
+
+          UInt getPrecision() const {
+            return 5;
+          }
 
           /**
           Returns the dimensions of the columns in the region.
