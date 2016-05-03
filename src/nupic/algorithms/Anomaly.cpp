@@ -114,6 +114,11 @@ Real32 Anomaly::compute(
   return score;
 }
 
+Real Anomaly::getPrecision()
+{
+  return 1.0/PRECISION;
+}
+
 } // namespace anomaly
 
 } // namespace algorithms

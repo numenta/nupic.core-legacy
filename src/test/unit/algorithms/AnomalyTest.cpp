@@ -113,7 +113,7 @@ TEST(Anomaly, ComputeScorePartialMatch)
   std::vector<UInt> active = {2, 3, 6};
   std::vector<UInt> predicted = {3, 5, 7};
   Anomaly a;
-  ASSERT_NEAR(a.compute(active, predicted), 2.0 / 3.0, Anomaly::PRECISION);
+  ASSERT_NEAR(a.compute(active, predicted), 2.0 / 3.0, Anomaly::getPrecision());
 }
 
 
@@ -140,7 +140,7 @@ TEST(Anomaly, Cumulative)
 
   for (int index = 0; index < TEST_COUNT; index++)
   {
-    ASSERT_NEAR(a.compute(acts[index],  preds[index]), expected[index], Anomaly::PRECISION);
+    ASSERT_NEAR(a.compute(acts[index],  preds[index]), expected[index], Anomaly::getPrecision());
   }
 }
 
@@ -150,5 +150,5 @@ TEST(Anomaly, SelectModePure)
   Anomaly a{0, AnomalyMode::PURE, 0};
   std::vector<UInt> active = {2, 3, 6};
   std::vector<UInt> predicted = {3, 5, 7};
-  ASSERT_NEAR(a.compute(active, predicted), 2.0 / 3.0, Anomaly::PRECISION);
+  ASSERT_NEAR(a.compute(active, predicted), 2.0 / 3.0, Anomaly::getPrecision());
 };
