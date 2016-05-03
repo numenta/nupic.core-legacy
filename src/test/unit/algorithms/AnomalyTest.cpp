@@ -113,7 +113,7 @@ TEST(Anomaly, ComputeScorePartialMatch)
   std::vector<UInt> active = {2, 3, 6};
   std::vector<UInt> predicted = {3, 5, 7};
   Anomaly a;
-  ASSERT_FLOAT_EQ(a.compute(active, predicted), 2.0 / 3.0);
+  ASSERT_NEAR(a.compute(active, predicted), 2.0 / 3.0, Anomaly::PRECISION);
 }
 
 
@@ -121,9 +121,9 @@ TEST(Anomaly, Cumulative)
 {
   const int TEST_COUNT = 9;
   Anomaly a{3};
-  std::vector< std::vector<UInt> > preds{TEST_COUNT, {1, 2, 6}};
+  std::vector< std::vector<UInt> > preds{TEST_COUNT, {1, 2, 6}}; // predicted
 
-  std::vector< std::vector<UInt> > acts = {
+  std::vector< std::vector<UInt> > acts = { //active
     {1, 2, 6},
     {1, 2, 6},
     {1, 4, 6},
@@ -140,7 +140,7 @@ TEST(Anomaly, Cumulative)
 
   for (int index = 0; index < TEST_COUNT; index++)
   {
-    ASSERT_FLOAT_EQ(a.compute(acts[index],  preds[index]), expected[index]);
+    ASSERT_NEAR(a.compute(acts[index],  preds[index]), expected[index], Anomaly::PRECISION);
   }
 }
 
@@ -150,5 +150,5 @@ TEST(Anomaly, SelectModePure)
   Anomaly a{0, AnomalyMode::PURE, 0};
   std::vector<UInt> active = {2, 3, 6};
   std::vector<UInt> predicted = {3, 5, 7};
-  ASSERT_FLOAT_EQ(a.compute(active, predicted), 2.0 / 3.0);
+  ASSERT_NEAR(a.compute(active, predicted), 2.0 / 3.0, Anomaly::PRECISION);
 };

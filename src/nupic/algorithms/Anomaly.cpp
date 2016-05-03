@@ -109,7 +109,7 @@ Real32 Anomaly::compute(
     score = (score >= binaryThreshold_) ? 1.0 : 0.0;
   }
   // round result (to avoid near zero rounding errors)
-  score = roundf((score*PRECISION))/PRECISION;
+  score = roundf(score*(1/PRECISION))/PRECISION;
 
   return score;
 }
