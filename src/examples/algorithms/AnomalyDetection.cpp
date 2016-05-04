@@ -48,12 +48,13 @@
 #include <string>
 #include <cstdlib>
 
-#include <csv.h> // external CSV parser
-
 #include "nupic/encoders/ScalarEncoder.hpp"
 #include "nupic/algorithms/SpatialPooler.hpp"
-#include "nupic/algorithms/Cells4.hpp"
+#include "nupic/algorithms/Cells4.hpp" // TP
+#include <nupic/algorithms/TemporalMemory.hpp> // TM
 #include "nupic/algorithms/Anomaly.hpp"
+
+#include <csv.h> // external CSV parser
 #include "nupic/os/Timer.hpp"
 #include "nupic/utils/VectorHelpers.hpp"
 
@@ -62,9 +63,11 @@ using namespace nupic;
 using namespace nupic::utils;
 using namespace nupic::algorithms::spatial_pooler;
 using namespace nupic::algorithms::Cells4;
+using namespace nupic::algorithms::temporal_memory;
 using namespace nupic::algorithms::anomaly;
 
 const int DEBUG_LEVEL =1; //0=no debug (also disabled timer), ..
+const string tmImpl = "TM"; //"TM","TP" //TODO make param
 
 class AnomalyDetection
 {
@@ -73,6 +76,7 @@ class AnomalyDetection
     ScalarEncoder encoder;
     SpatialPooler sp;
     Cells4 tp;
+    TemporalMemory tm;
     Anomaly anomaly; 
     std::vector<UInt> lastTPOutput_;
 
@@ -102,8 +106,19 @@ class AnomalyDetection
 
         // The temporal pooler uses Real32, so the vector must be converted again
         auto tpInput = VectorHelpers::castVectorType<UInt, Real>(spOutput);
-        std::vector<Real> tpOutput(tp.nCells());
-        tp.compute(tpInput.data(), tpOutput.data(), true, true);
+        auto nCells = 0;
+        if (tmImpl == "TP") {
+          nCells = tp.nCells(); //TODO fix API of (SP)/TM/TP to same format, so this can be avoided
+        else { 
+          nCells = tm.numberOfCells();
+        }
+        std::vector<Real> tpOutput(nCells);
+        if (tmImpl == "TP") {
+          tp.compute(tpInput.data(), tpOutput.data(), true, true);
+        else {
+          tm.compute(tpInput.size(), tpInput.data(), true);
+          tpOutput = tm.getActiveCells(); //FIXME do union with getPredictedCells() , like TP.outputMode="both"
+        }
 
         // And the result is converted ONCE again to UInts for pretty printing to stdout.
         auto uintTpOutput = VectorHelpers::castVectorType<Real32, UInt>(tpOutput);
@@ -120,6 +135,12 @@ class AnomalyDetection
           0
         );
         // Save the output of the TP for the next iteration...
+        if (tmImpl == "TP") {
+          lastTPOutput_ = VectorHelpers::cellsToColumns(uintTpOutput, tp.nCellsPerCol());
+        else {
+          lastTPOutput_ = VectorHelpers::cellsToColumns(uintTpOutput, tm.getCellsPerCol());
+        }
+
         lastTPOutput_ = VectorHelpers::cellsToColumns(uintTpOutput, tp.nCellsPerCol());
         if (DEBUG_LEVEL > 4) {
           std::cout << "Normalized TP Output: ";
@@ -137,10 +158,16 @@ class AnomalyDetection
       UInt nCols = 2048, UInt nCells = 4, UInt anomalyWindowSize = 2) : 
         encoder{25, inputMin, inputMax, 0, 0, inputResolution, false},
         sp{std::vector<UInt>{static_cast<UInt>(encoder.getOutputWidth())}, std::vector<UInt>{nCols}},
-        tp{sp.getNumColumns(), nCells, 12, 8, 15, 5, .5, .8, 1.0, .1, .1, 0.0, false, 42, true, false},
         anomaly{anomalyWindowSize, AnomalyMode::PURE, 0},
         lastTPOutput_(nCols)
     {
+        if (tmImpl == "TP") {
+          this->tp{sp.getNumColumns(), nCells, 12, 8, 15, 5, .5, .8, 1.0, .1, .1, 0.0, false, 42, true, false};
+          this->tm = NULL;
+        else {
+          this->tm{{sp.getNumColumns()}, nCells}; //FIXME ensure same params TP/TM
+          this->tp = NULL;
+        }
     }
 };
 
