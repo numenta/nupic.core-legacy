@@ -42,6 +42,18 @@ endif()
 
 
 #
+# NuPIC CMake options
+#
+option(NUPIC_IWYU "Enable IWYU")
+if(${NUPIC_IWYU})
+  find_program(iwyu_path NAMES include-what-you-use iwyu)
+  if(NOT iwyu_path)
+    message(FATAL_ERROR "Could not find the program include-what-you-use")
+  endif()
+endif()
+
+
+#
 # Set up compile flags for internal sources and for swig-generated sources
 #
 
@@ -258,9 +270,7 @@ elseif("${PLATFORM}" STREQUAL "windows")
   list(APPEND src_common_os_libs oldnames.lib psapi.lib ws2_32.lib)
 endif()
 
-set(src_lib_static_nupiccore_srcs
-    ${src_capnp_srcs}
-    ${src_py_support_files}
+set(src_nupiccore_srcs
     nupic/algorithms/Anomaly.cpp
     nupic/algorithms/BitHistory.cpp
     nupic/algorithms/Cell.cpp
@@ -331,6 +341,11 @@ set(src_lib_static_nupiccore_srcs
     nupic/utils/TRandom.cpp
     nupic/utils/Watcher.cpp)
 
+set(src_lib_static_nupiccore_srcs
+    ${src_capnp_srcs}
+    ${src_py_support_files}
+    ${src_nupiccore_srcs})
+
 set(src_lib_static_nupiccore_solo_link_libs
     ${LIB_STATIC_YAML_CPP_LOC}
     ${LIB_STATIC_YAML_LOC}
@@ -361,6 +376,10 @@ set_target_properties(${src_lib_static_nupiccore_solo} PROPERTIES COMPILE_FLAGS
                       ${src_lib_static_nupiccore_compile_flags})
 set_target_properties(${src_lib_static_nupiccore_solo} PROPERTIES LINK_FLAGS
                       ${src_lib_static_nupiccore_link_flags})
+if(${NUPIC_IWYU})
+  set_target_properties(${src_lib_static_nupiccore_solo}
+    PROPERTIES CXX_INCLUDE_WHAT_YOU_USE ${iwyu_path})
+endif()
 
 # Add new library to common libs for rest of targets.
 set(src_common_libs ${src_lib_static_nupiccore_solo} ${src_common_libs})
