@@ -44,9 +44,9 @@ endif()
 #
 # NuPIC CMake options
 #
-option(NUPIC_IWYU "Enable include-what-you-use \
-(http://include-what-you-use.org/). This requires the iwyu binary to be \
-discoverable by CMake's find_program.")
+option(NUPIC_IWYU "Enable include-what-you-use
+  (http://include-what-you-use.org/). This requires the iwyu binary to be
+  discoverable by CMake's find_program.")
 if(${NUPIC_IWYU})
   find_program(iwyu_path NAMES include-what-you-use iwyu)
   if(NOT iwyu_path)
