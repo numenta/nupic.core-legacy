@@ -44,7 +44,9 @@ endif()
 #
 # NuPIC CMake options
 #
-option(NUPIC_IWYU "Enable IWYU")
+option(NUPIC_IWYU "Enable include-what-you-use
+  (http://include-what-you-use.org/). This requires the iwyu binary to be
+  discoverable by CMake's find_program.")
 if(${NUPIC_IWYU})
   find_program(iwyu_path NAMES include-what-you-use iwyu)
   if(NOT iwyu_path)
@@ -377,6 +379,9 @@ set_target_properties(${src_lib_static_nupiccore_solo} PROPERTIES COMPILE_FLAGS
 set_target_properties(${src_lib_static_nupiccore_solo} PROPERTIES LINK_FLAGS
                       ${src_lib_static_nupiccore_link_flags})
 if(${NUPIC_IWYU})
+  # TODO: Create a target that doesn't include the generated capnp schema files
+  # since we don't want to run iwyu on them and iwyu can only be applied to
+  # CMake targets (not source files directly).
   set_target_properties(${src_lib_static_nupiccore_solo}
     PROPERTIES CXX_INCLUDE_WHAT_YOU_USE ${iwyu_path})
 endif()
