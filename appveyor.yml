@@ -84,6 +84,10 @@ configuration: Release
 install:
   - set NUPIC_DEPLOYMENT_BUILD=1
 
+  # Dump appveyor build vars for diagnostics
+  - "ECHO APPVEYOR_FORCED_BUILD: %APPVEYOR_FORCED_BUILD%"
+  - "ECHO APPVEYOR_RE_BUILD: %APPVEYOR_RE_BUILD%"
+
   - set NUPIC_CORE=c:\projects\nupic-core
   - set EXTERNAL_WINDOWS_DIR=%NUPIC_CORE%\external\%external_static_subdir%
 
