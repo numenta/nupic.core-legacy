@@ -1,6 +1,6 @@
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2014, Numenta, Inc.  Unless you have an agreement
+ * Copyright (C) 2014-2016, Numenta, Inc.  Unless you have an agreement
  * with Numenta, Inc., for a separate license for this software code, the
  * following terms and conditions apply:
  *
@@ -41,7 +41,7 @@ namespace {
   {
     // Cell with 1 segment.
     // Segment with:
-    // - 1 active synapse
+    // - 1 connected synapse: active
     // - 2 matching synapses
     const Segment segment1_1 = connections.createSegment(Cell(10));
     connections.createSynapse(segment1_1, Cell(150), 0.85);
@@ -49,8 +49,8 @@ namespace {
 
     // Cell with 2 segments.
     // Segment with:
-    // - 2 active synapses
-    // - 3 matching synapses
+    // - 2 connected synapses: 2 active
+    // - 3 matching synapses: 3 active
     const Segment segment2_1 = connections.createSegment(Cell(20));
     connections.createSynapse(segment2_1, Cell(80), 0.85);
     connections.createSynapse(segment2_1, Cell(81), 0.85);
@@ -58,9 +58,9 @@ namespace {
     connections.updateSynapsePermanence(synapse, 0.15);
 
     // Segment with:
-    // - 2 active synapses (1 inactive)
-    // - 3 matching synapses (1 inactive)
-    // - 1 non-matching synapse
+    // - 2 connected synapses: 1 active, 1 inactive
+    // - 3 matching synapses: 2 active, 1 inactive
+    // - 1 non-matching synapse: 1 active
     const Segment segment2_2 = connections.createSegment(Cell(20));
     connections.createSynapse(segment2_2, Cell(50), 0.85);
     connections.createSynapse(segment2_2, Cell(51), 0.85);
@@ -69,28 +69,22 @@ namespace {
 
     // Cell with one segment.
     // Segment with:
-    // - 1 non-matching synapse
+    // - 1 non-matching synapse: 1 active
     const Segment segment3_1 = connections.createSegment(Cell(30));
     connections.createSynapse(segment3_1, Cell(53), 0.05);
   }
 
-  Activity computeSampleActivity(Connections &connections)
+  void computeSampleActivity(Connections &connections)
   {
-    vector<Cell> input;
+    vector<Cell> input = {{50}, {52}, {53},
+                          {80}, {81}, {82},
+                          {150}, {151}};
 
-    input.push_back(Cell(150));
-    input.push_back(Cell(151));
-    input.push_back(Cell(50));
-    input.push_back(Cell(52));
-    input.push_back(Cell(53));
-    input.push_back(Cell(80));
-    input.push_back(Cell(81));
-    input.push_back(Cell(82));
-
-    Activity activity = connections.computeActivity(input,
-                                                    0.50, 2,
-                                                    0.10, 1);
-    return activity;
+    vector<SegmentOverlap> activeSegments;
+    vector<SegmentOverlap> matchingSegments;
+    connections.computeActivity(input,
+                                0.5, 2, 0.10, 1,
+                                activeSegments, matchingSegments);
   }
 
   /**
@@ -134,7 +128,7 @@ namespace {
     setupSampleConnections(connections);
 
     auto numSegments = connections.numSegments();
-    Activity activity = computeSampleActivity(connections);
+    computeSampleActivity(connections);
 
     cell.idx = 20;
 
@@ -251,33 +245,33 @@ namespace {
   TEST(ConnectionsTest, testDestroySegment)
   {
     Connections connections(1024);
-    Cell cell;
-    Segment segment;
 
-    setupSampleConnections(connections);
-    auto numSegments = connections.numSegments();
+    /*      segment1*/ connections.createSegment(Cell(10));
+    Segment segment2 = connections.createSegment(Cell(20));
+    /*      segment3*/ connections.createSegment(Cell(20));
+    /*      segment4*/ connections.createSegment(Cell(30));
 
-    cell.idx = 20;
-    segment.cell = cell;
-    segment.idx = 0;
-    connections.destroySegment(segment);
+    connections.createSynapse(segment2, Cell(80), 0.85);
+    connections.createSynapse(segment2, Cell(81), 0.85);
+    connections.createSynapse(segment2, Cell(82), 0.15);
 
-    ASSERT_EQ(connections.numSegments(), numSegments-1);
-    ASSERT_THROW(connections.synapsesForSegment(segment);, runtime_error);
+    ASSERT_EQ(4, connections.numSegments());
+    ASSERT_EQ(3, connections.numSynapses());
 
-    Activity activity = computeSampleActivity(connections);
+    connections.destroySegment(segment2);
 
-    ASSERT_EQ(activity.activeSegmentsForCell.size(), 0);
+    ASSERT_EQ(3, connections.numSegments());
+    ASSERT_EQ(0, connections.numSynapses());
+    ASSERT_THROW(connections.synapsesForSegment(segment2);, runtime_error);
 
-    UInt32 numSegmentsWithActivesynapses = 0;
-    for (UInt32 numActiveSynapses : activity.numActiveSynapsesForSegment)
-    {
-      if (numActiveSynapses > 0)
-      {
-        numSegmentsWithActivesynapses++;
-      }
-    }
-    ASSERT_EQ(2, numSegmentsWithActivesynapses);
+    vector<SegmentOverlap> activeSegments;
+    vector<SegmentOverlap> matchingSegments;
+    connections.computeActivity({{80}, {81}, {82}},
+                                0.5, 2, 0.0, 1,
+                                activeSegments, matchingSegments);
+
+    ASSERT_EQ(0, activeSegments.size());
+    ASSERT_EQ(0, matchingSegments.size());
   }
 
   /**
@@ -287,31 +281,28 @@ namespace {
   TEST(ConnectionsTest, testDestroySynapse)
   {
     Connections connections(1024);
-    Cell cell;
-    Segment segment;
-    Synapse synapse;
 
-    setupSampleConnections(connections);
-    auto numSynapses = connections.numSynapses();
+    Segment segment = connections.createSegment(Cell(20));
+    /*      synapse1*/ connections.createSynapse(segment, Cell(80), 0.85);
+    Synapse synapse2 = connections.createSynapse(segment, Cell(81), 0.85);
+    /*      synapse3*/ connections.createSynapse(segment, Cell(82), 0.15);
 
-    cell.idx = 20;
-    segment.cell = cell;
-    segment.idx = 0;
-    synapse.segment = segment;
-    synapse.idx = 0;
-    connections.destroySynapse(synapse);
+    ASSERT_EQ(3, connections.numSynapses());
 
-    ASSERT_EQ(connections.numSynapses(), numSynapses-1);
-    vector<Synapse> synapses = connections.synapsesForSegment(segment);
-    ASSERT_EQ(synapses.size(), 2);
+    connections.destroySynapse(synapse2);
 
-    Activity activity = computeSampleActivity(connections);
+    ASSERT_EQ(2, connections.numSynapses());
+    ASSERT_EQ(2, connections.synapsesForSegment(segment).size());
 
-    ASSERT_EQ(activity.activeSegmentsForCell.size(), 0);
+    vector<SegmentOverlap> activeSegments;
+    vector<SegmentOverlap> matchingSegments;
+    connections.computeActivity({{80}, {81}, {82}},
+                                0.5, 2, 0.0, 1,
+                                activeSegments, matchingSegments);
 
-    ASSERT_EQ(1, activity.numActiveSynapsesForSegment[
-                connections.dataForSegment(Segment(0, Cell(20))).flatIdx
-                ]);
+    ASSERT_EQ(0, activeSegments.size());
+    ASSERT_EQ(1, matchingSegments.size());
+    ASSERT_EQ(2, matchingSegments[0].overlap);
   }
 
   /**
@@ -375,6 +366,31 @@ namespace {
 
     EXPECT_EQ(1, connections.numSegments());
     EXPECT_EQ(1, connections.numSynapses());
+  }
+
+  /**
+   * Destroy a segment that has a destroyed synapse and a non-destroyed synapse.
+   * Create a new segment in the same place. Make sure its synapse count is
+   * correct.
+   */
+  TEST(ConnectionsTest, ReuseSegmentWithDestroyedSynapses)
+  {
+    Connections connections(1024);
+
+    Segment segment = connections.createSegment(Cell(11));
+
+    Synapse synapse1 = connections.createSynapse(segment, Cell(201), 0.85);
+    /*      synapse2*/ connections.createSynapse(segment, Cell(202), 0.85);
+
+    connections.destroySynapse(synapse1);
+
+    ASSERT_EQ(1, connections.numSynapses(segment));
+
+    connections.destroySegment(segment);
+    Segment reincarnated = connections.createSegment(Cell(11));
+
+    EXPECT_EQ(0, connections.numSynapses(reincarnated));
+    EXPECT_EQ(0, connections.synapsesForSegment(reincarnated).size());
   }
 
   /**
@@ -570,89 +586,62 @@ namespace {
   TEST(ConnectionsTest, testComputeActivity)
   {
     Connections connections(1024);
-    Cell cell;
-    Segment segment;
 
-    setupSampleConnections(connections);
-    Activity activity = computeSampleActivity(connections);
+    // Cell with 1 segment.
+    // Segment with:
+    // - 1 connected synapse: active
+    // - 2 matching synapses
+    const Segment segment1_1 = connections.createSegment(Cell(10));
+    connections.createSynapse(segment1_1, Cell(150), 0.85);
+    connections.createSynapse(segment1_1, Cell(151), 0.15);
 
-    ASSERT_EQ(activity.activeSegmentsForCell.size(), 1);
-    cell.idx = 20;
-    ASSERT_EQ(activity.activeSegmentsForCell[cell].size(), 1);
-    segment = activity.activeSegmentsForCell[cell][0];
-    ASSERT_EQ(segment.idx, 0);
-    ASSERT_EQ(segment.cell.idx, 20);
+    // Cell with 2 segments.
+    // Segment with:
+    // - 2 connected synapses: 2 active
+    // - 3 matching synapses: 3 active
+    const Segment segment2_1 = connections.createSegment(Cell(20));
+    connections.createSynapse(segment2_1, Cell(80), 0.85);
+    connections.createSynapse(segment2_1, Cell(81), 0.85);
+    Synapse synapse = connections.createSynapse(segment2_1, Cell(82), 0.85);
+    connections.updateSynapsePermanence(synapse, 0.15);
 
-    ASSERT_EQ(activity.numActiveSynapsesForSegment.size(), 4);
-    ASSERT_EQ(activity.numMatchingSynapsesForSegment.size(), 4);
-    ASSERT_EQ(1,
-              activity.numActiveSynapsesForSegment[
-                connections.dataForSegment(Segment(0, Cell(10))).flatIdx
-                ]);
-    ASSERT_EQ(2,
-              activity.numActiveSynapsesForSegment[
-                connections.dataForSegment(Segment(0, Cell(20))).flatIdx
-                ]);
-    ASSERT_EQ(3,
-              activity.numMatchingSynapsesForSegment[
-                connections.dataForSegment(Segment(0, Cell(20))).flatIdx
-                ]);
-    ASSERT_EQ(1,
-              activity.numActiveSynapsesForSegment[
-                connections.dataForSegment(Segment(1, Cell(20))).flatIdx
-                ]);
-    ASSERT_EQ(2,
-              activity.numMatchingSynapsesForSegment[
-                connections.dataForSegment(Segment(1, Cell(20))).flatIdx
-                ]);
-    ASSERT_EQ(0,
-              activity.numActiveSynapsesForSegment[
-                connections.dataForSegment(Segment(0, Cell(30))).flatIdx
-                ]);
-    ASSERT_EQ(0,
-              activity.numMatchingSynapsesForSegment[
-                connections.dataForSegment(Segment(0, Cell(30))).flatIdx
-                ]);
-  }
+    // Segment with:
+    // - 2 connected synapses: 1 active, 1 inactive
+    // - 3 matching synapses: 2 active, 1 inactive
+    // - 1 non-matching synapse: 1 active
+    const Segment segment2_2 = connections.createSegment(Cell(20));
+    connections.createSynapse(segment2_2, Cell(50), 0.85);
+    connections.createSynapse(segment2_2, Cell(51), 0.85);
+    connections.createSynapse(segment2_2, Cell(52), 0.15);
+    connections.createSynapse(segment2_2, Cell(53), 0.05);
 
-  /**
-   * Creates a sample set of connections, and makes sure that we can get the
-   * active segments from the computed activity.
-   */
-  TEST(ConnectionsTest, testActiveSegments)
-  {
-    Connections connections(1024);
-    Cell cell;
-    Segment segment;
+    // Cell with one segment.
+    // Segment with:
+    // - 1 non-matching synapse: 1 active
+    const Segment segment3_1 = connections.createSegment(Cell(30));
+    connections.createSynapse(segment3_1, Cell(53), 0.05);
 
-    setupSampleConnections(connections);
-    Activity activity = computeSampleActivity(connections);
+    vector<Cell> input = {{50}, {52}, {53},
+                          {80}, {81}, {82},
+                          {150}, {151}};
 
-    vector<Segment> activeSegments = connections.activeSegments(activity);
+    vector<SegmentOverlap> activeSegments;
+    vector<SegmentOverlap> matchingSegments;
+    connections.computeActivity(input,
+                                0.5, 2, 0.10, 1,
+                                activeSegments, matchingSegments);
 
-    ASSERT_EQ(activeSegments.size(), 1);
-    segment = activeSegments[0];
-    ASSERT_EQ(segment.idx, 0);
-    ASSERT_EQ(segment.cell.idx, 20);
-  }
+    ASSERT_EQ(1, activeSegments.size());
+    ASSERT_EQ(segment2_1, activeSegments[0].segment);
+    ASSERT_EQ(2, activeSegments[0].overlap);
 
-  /**
-   * Creates a sample set of connections, and makes sure that we can get the
-   * active cells from the computed activity.
-   */
-  TEST(ConnectionsTest, testActiveCells)
-  {
-    Connections connections(1024);
-    Cell cell;
-    Segment segment;
-
-    setupSampleConnections(connections);
-    Activity activity = computeSampleActivity(connections);
-
-    vector<Cell> activeCells = connections.activeCells(activity);
-
-    ASSERT_EQ(activeCells.size(), 1);
-    ASSERT_EQ(activeCells[0].idx, 20);
+    ASSERT_EQ(3, matchingSegments.size());
+    ASSERT_EQ(segment1_1, matchingSegments[0].segment);
+    ASSERT_EQ(2, matchingSegments[0].overlap);
+    ASSERT_EQ(segment2_1, matchingSegments[1].segment);
+    ASSERT_EQ(3, matchingSegments[1].overlap);
+    ASSERT_EQ(segment2_2, matchingSegments[2].segment);
+    ASSERT_EQ(2, matchingSegments[2].overlap);
   }
 
   /**

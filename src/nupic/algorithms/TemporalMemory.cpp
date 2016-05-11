@@ -1,6 +1,6 @@
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2013-2015, Numenta, Inc.  Unless you have an agreement
+ * Copyright (C) 2013-2016, Numenta, Inc.  Unless you have an agreement
  * with Numenta, Inc., for a separate license for this software code, the
  * following terms and conditions apply:
  *
@@ -30,7 +30,6 @@
 #include <string>
 #include <iterator>
 #include <vector>
-#include <boost/tuple/tuple.hpp>
 
 #include <capnp/message.h>
 #include <capnp/serialize.h>
@@ -48,7 +47,7 @@ using namespace nupic::algorithms::temporal_memory;
 
 TemporalMemory::TemporalMemory()
 {
-  version_ = 1;
+  version_ = 2;
 }
 
 TemporalMemory::TemporalMemory(
@@ -141,418 +140,213 @@ void TemporalMemory::initialize(
     maxSynapsesPerSegment);
   seed_((UInt64)(seed < 0 ? rand() : seed));
 
-  activeCells.clear();
-  activeSegments.clear();
-  winnerCells.clear();
-  predictiveCells.clear();
-  matchingSegments.clear();
-  matchingCells.clear();
+  activeCells_.clear();
+  activeSegments_.clear();
+  winnerCells_.clear();
+  matchingSegments_.clear();
 }
 
-void TemporalMemory::compute(UInt activeColumnsSize, UInt activeColumns[], bool learn)
+struct ExcitedColumnData
 {
-  set<Cell> prevPredictiveCells(predictiveCells.begin(), predictiveCells.end());
-  vector<Segment> prevActiveSegments(activeSegments);
-  set<Cell> prevActiveCells(activeCells);
-  set<Cell> prevWinnerCells(winnerCells);
-  vector<Segment> prevMatchingSegments(matchingSegments);
-  set<Cell> prevMatchingCells(matchingCells.begin(), matchingCells.end());
+  UInt column;
+  bool isActiveColumn;
+  vector<SegmentOverlap>::const_iterator activeSegmentsBegin;
+  vector<SegmentOverlap>::const_iterator activeSegmentsEnd;
+  vector<SegmentOverlap>::const_iterator matchingSegmentsBegin;
+  vector<SegmentOverlap>::const_iterator matchingSegmentsEnd;
+};
 
-  set<UInt> _activeColumns;
-  set<UInt> _predictedColumns;
-  set<Cell> _predictedInactiveCells;
-  set<Cell> _activeCells;
-  set<Cell> _winnerCells;
-  vector<Segment> _learningSegments;
+/**
+ * Walk the sorted lists of active columns, active segments, and matching
+ * segments, grouping them by column. Each list is traversed exactly once.
+ *
+ * Perform the walk by using iterators.
+ */
+class ExcitedColumns
+{
+public:
 
-  for (UInt i = 0; i < activeColumnsSize; i++)
+  ExcitedColumns(const vector<UInt>& activeColumns,
+                 const vector<SegmentOverlap>& activeSegments,
+                 const vector<SegmentOverlap>& matchingSegments,
+                 UInt cellsPerColumn)
+    :activeColumns_(activeColumns),
+     cellsPerColumn_(cellsPerColumn),
+     activeSegments_(activeSegments),
+     matchingSegments_(matchingSegments)
   {
-    _activeColumns.insert(activeColumns[i]);
+    NTA_ASSERT(std::is_sorted(activeColumns.begin(), activeColumns.end()));
+    NTA_ASSERT(std::is_sorted(activeSegments.begin(), activeSegments.end(),
+                              [](const SegmentOverlap& a, const SegmentOverlap& b)
+                              {
+                                return a.segment < b.segment;
+                              }));
+    NTA_ASSERT(std::is_sorted(matchingSegments.begin(), matchingSegments.end(),
+                              [](const SegmentOverlap& a, const SegmentOverlap& b)
+                              {
+                                return a.segment < b.segment;
+                              }));
   }
 
-  activeCells.clear();
-  winnerCells.clear();
-
-  tie(
-    _activeCells,
-    _winnerCells,
-    _predictedColumns,
-    _predictedInactiveCells) =
-    activateCorrectlyPredictiveCells(
-      prevPredictiveCells,
-      prevMatchingCells,
-      _activeColumns);
-
-  for (Cell cell : _activeCells)
-    activeCells.insert(cell);
-  for (Cell cell : _winnerCells)
-    winnerCells.insert(cell);
-
-  tie(
-    _activeCells,
-    _winnerCells,
-    _learningSegments) = burstColumns(
-      _activeColumns,
-      _predictedColumns,
-      prevActiveCells,
-      prevWinnerCells,
-      connections);
-
-  for (Cell cell : _activeCells)
-    activeCells.insert(cell);
-  for (Cell cell : _winnerCells)
-    winnerCells.insert(cell);
-
-  if (learn)
+  class Iterator
   {
-    learnOnSegments(
-      prevActiveSegments,
-      _learningSegments,
-      prevActiveCells,
-      winnerCells,
-      prevWinnerCells,
-      connections,
-      _predictedInactiveCells,
-      prevMatchingSegments);
-  }
-
-  vector<Segment> _activeSegments;
-  set<Cell> _predictiveCells;
-  vector<Segment> _matchingSegments;
-  set<Cell> _matchingCells;
-
-  tie(_activeSegments, _predictiveCells,
-    _matchingSegments, _matchingCells) =
-    computePredictiveCells(activeCells, connections);
-
-  activeSegments = _activeSegments;
-  predictiveCells.clear();
-  for (Cell c : _predictiveCells)
-    predictiveCells.push_back(c);
-  matchingSegments = _matchingSegments;
-  matchingCells.clear();
-  for (Cell c : _matchingCells)
-    matchingCells.push_back(c);
-}
-
-void TemporalMemory::reset(void)
-{
-  activeCells.clear();
-  predictiveCells.clear();
-  activeSegments.clear();
-  winnerCells.clear();
-}
-
-// ==============================
-//  Phases
-// ==============================
-
-tuple<set<Cell>, set<Cell>, set<UInt>, set<Cell>>
-TemporalMemory::activateCorrectlyPredictiveCells(
-  set<Cell>& prevPredictiveCells,
-  set<Cell>& prevMatchingCells,
-  set<UInt>& activeColumns)
-{
-  set<Cell> _activeCells;
-  set<Cell> _winnerCells;
-  set<UInt> _predictedColumns;
-  set<Cell> _predictedInactiveCells;
-
-  for (Cell cell : prevPredictiveCells)
-  {
-    UInt column = columnForCell(cell);
-
-    if (activeColumns.find(column) != activeColumns.end())
+  public:
+    Iterator(vector<UInt>::const_iterator activeColumn,
+             vector<UInt>::const_iterator activeColumnsEnd,
+             vector<SegmentOverlap>::const_iterator activeSegment,
+             vector<SegmentOverlap>::const_iterator activeSegmentsEnd,
+             vector<SegmentOverlap>::const_iterator matchingSegment,
+             vector<SegmentOverlap>::const_iterator matchingSegmentsEnd,
+             UInt cellsPerColumn)
+      :activeColumn_(activeColumn),
+       activeColumnsEnd_(activeColumnsEnd),
+       activeSegment_(activeSegment),
+       activeSegmentsEnd_(activeSegmentsEnd),
+       matchingSegment_(matchingSegment),
+       matchingSegmentsEnd_(matchingSegmentsEnd),
+       cellsPerColumn_(cellsPerColumn),
+       finished_(false)
     {
-      _activeCells.insert(cell);
-      _winnerCells.insert(cell);
-      _predictedColumns.insert(column);
+      calculateNext_();
     }
-  }
 
-  if (predictedSegmentDecrement_ > 0.0)
-  {
-    for (Cell cell : prevMatchingCells)
+    bool operator !=(const Iterator& other)
     {
-      UInt column = columnForCell(cell);
+      return finished_ != other.finished_ ||
+        activeColumn_ != other.activeColumn_ ||
+        activeSegment_ != other.activeSegment_ ||
+        matchingSegment_ != other.matchingSegment_;
+    }
 
-      if (activeColumns.find(column) == activeColumns.end())
+    const ExcitedColumnData& operator*() const
+    {
+      NTA_ASSERT(!finished_);
+      return current_;
+    }
+
+    const Iterator& operator++()
+    {
+      NTA_ASSERT(!finished_);
+      calculateNext_();
+      return *this;
+    }
+
+  private:
+
+    UInt columnOf_(const SegmentOverlap& segmentOverlap) const
+    {
+      return segmentOverlap.segment.cell.idx / cellsPerColumn_;
+    }
+
+    void calculateNext_()
+    {
+      if (activeColumn_ != activeColumnsEnd_ ||
+          activeSegment_ != activeSegmentsEnd_ ||
+          matchingSegment_ != matchingSegmentsEnd_)
       {
-        _predictedInactiveCells.insert(cell);
+        current_.column = UINT_MAX;
+
+        if (activeSegment_ != activeSegmentsEnd_)
+        {
+          current_.column = std::min(current_.column,
+                                     columnOf_(*activeSegment_));
+        }
+
+        if (matchingSegment_ != matchingSegmentsEnd_)
+        {
+          current_.column = std::min(current_.column,
+                                     columnOf_(*matchingSegment_));
+        }
+
+        if (activeColumn_ != activeColumnsEnd_ &&
+            *activeColumn_ <= current_.column)
+        {
+          current_.column = *activeColumn_;
+          current_.isActiveColumn = true;
+          activeColumn_++;
+        }
+        else
+        {
+          current_.isActiveColumn = false;
+        }
+
+        current_.activeSegmentsBegin = activeSegment_;
+        while (activeSegment_ != activeSegmentsEnd_ &&
+               columnOf_(*activeSegment_) == current_.column)
+        {
+          activeSegment_++;
+        }
+        current_.activeSegmentsEnd = activeSegment_;
+
+        current_.matchingSegmentsBegin = matchingSegment_;
+        while (matchingSegment_ != matchingSegmentsEnd_ &&
+               columnOf_(*matchingSegment_) == current_.column)
+        {
+          matchingSegment_++;
+        }
+        current_.matchingSegmentsEnd = matchingSegment_;
       }
-    }
-  }
-
-  return make_tuple(_activeCells, _winnerCells,
-    _predictedColumns, _predictedInactiveCells);
-}
-
-tuple<set<Cell>, set<Cell>, vector<Segment>> TemporalMemory::burstColumns(
-  set<UInt>& activeColumns,
-  set<UInt>& predictedColumns,
-  set<Cell>& prevActiveCells,
-  set<Cell>& prevWinnerCells,
-  Connections& _connections)
-{
-  set<Cell> _activeCells;
-  set<Cell> _winnerCells;
-  vector<Segment> _learningSegments;
-
-  vector<UInt> _unpredictedColumns(activeColumns.begin(), activeColumns.end());
-
-  if (predictedColumns.size() > 0)
-  {
-    // Resize to the worst case usage
-    _unpredictedColumns.resize(activeColumns.size() + predictedColumns.size());
-
-    // Remove the predicted columns from the 
-    // currently active columns
-    vector<UInt>::iterator it = set_difference(
-      activeColumns.begin(), activeColumns.end(),
-      predictedColumns.begin(), predictedColumns.end(),
-      _unpredictedColumns.begin());
-
-    // Trim remainer of set
-    _unpredictedColumns.resize(it - _unpredictedColumns.begin());
-  }
-
-  // Sort unpredictedActiveColumns before iterating for python compatibility
-  sort(_unpredictedColumns.begin(), _unpredictedColumns.end());
-
-  for (Int column : _unpredictedColumns)
-  {
-    Segment bestSegment;
-    Cell bestCell;
-    bool foundCell = false;
-    bool foundSegment = false;
-
-    vector<Cell> cells = cellsForColumnCell(column);
-
-    for (auto cell : cells)
-      _activeCells.insert(cell);
-
-    tie(foundCell, bestCell, foundSegment, bestSegment) =
-      bestMatchingCell(cells, prevActiveCells, _connections);
-
-    if (foundCell)
-    {
-      _winnerCells.insert(bestCell);
-    }
-
-    if (!foundSegment && prevWinnerCells.size())
-    {
-      bestSegment = _connections.createSegment(bestCell);
-      foundSegment = true;
-    }
-
-    if (foundSegment)
-    {
-      _learningSegments.push_back(bestSegment);
-    }
-  }
-
-  return make_tuple(_activeCells, _winnerCells, _learningSegments);
-}
-
-bool sortSegmentsByCells(Segment i, Segment j) {
-  if (i.cell.idx == j.cell.idx) {
-    // secondary sort on segment idx
-    return i.idx < j.idx;
-  }
-  else {
-    // primary sort on cell idx
-    return i.cell.idx < j.cell.idx;
-  }
-}
-
-void TemporalMemory::learnOnSegments(
-  vector<Segment>& prevActiveSegments,
-  vector<Segment>& learningSegments,
-  set<Cell>& prevActiveCells,
-  set<Cell>& winnerCells,
-  set<Cell>& prevWinnerCells,
-  Connections& _connections,
-  set<Cell>& predictedInactiveCells,
-  vector<Segment>& prevMatchingSegments)
-{
-  vector<Segment> _allSegments;
-
-  for (auto segment : prevActiveSegments)
-    _allSegments.push_back(segment);
-  for (auto segment : learningSegments)
-    _allSegments.push_back(segment);
-
-  // Sort segments before iterating for python compatibility
-  sort(_allSegments.begin(), _allSegments.end(), sortSegmentsByCells);
-
-  for (Segment segment : _allSegments)
-  {
-    bool isLearningSegment = (find(
-      learningSegments.begin(), learningSegments.end(),
-      segment) != learningSegments.end());
-
-    bool isFromWinnerCell = winnerCells.find(segment.cell) != winnerCells.end();
-
-    vector<Synapse> activeSynapses(activeSynapsesForSegment(
-      segment, prevActiveCells, _connections));
-
-    if (isLearningSegment || isFromWinnerCell)
-    {
-      adaptSegment(segment, activeSynapses, _connections,
-        permanenceIncrement_, permanenceDecrement_);
-    }
-
-    if (isLearningSegment)
-    {
-      Int n = maxNewSynapseCount_ - Int(activeSynapses.size());
-
-      set<Cell> learningCells = pickCellsToLearnOn(
-        n, segment,
-        prevWinnerCells, _connections);
-
-      for (Cell presynapticCell : learningCells)
+      else
       {
-        _connections.createSynapse(
-          segment, presynapticCell, initialPermanence_);
-      }
-    }
-  }
-
-  if (predictedSegmentDecrement_ > 0.0)
-  {
-    for (Segment segment : prevMatchingSegments)
-    {
-      bool isPredictedInactiveCell = (predictedInactiveCells.find(segment.cell)
-                                      != predictedInactiveCells.end());
-
-      vector<Synapse> activeSynapses(activeSynapsesForSegment(
-        segment, prevActiveCells, _connections));
-
-      if (isPredictedInactiveCell)
-      {
-        adaptSegment(segment, activeSynapses, _connections,
-          -predictedSegmentDecrement_, 0.0);
-      }
-    }
-  }
-}
-
-tuple<vector<Segment>, set<Cell>, vector<Segment>, set<Cell>>
-TemporalMemory::computePredictiveCells(
-  set<Cell>& _activeCells, Connections& _connections)
-{
-  map<Segment, int> numActiveConnectedSynapsesForSegment;
-  map<Segment, int> numActiveSynapsesForSegment;
-  vector<Cell> activeCells(_activeCells.begin(), _activeCells.end());
-
-  Activity activity = _connections.computeActivity(activeCells,
-                                                   connectedPermanence_, activationThreshold_,
-                                                   0.0, minThreshold_);
-
-  vector<Segment> _activeSegments = _connections.activeSegments(activity);
-  vector<Cell> predictiveCellsVec = _connections.activeCells(activity);
-  set<Cell> _predictiveCells(predictiveCellsVec.begin(), predictiveCellsVec.end());
-
-  vector<Segment> _matchingSegments = _connections.matchingSegments(activity);
-  vector<Cell> matchingCellsVec = _connections.matchingCells(activity);
-  set<Cell> _matchingCells(matchingCellsVec.begin(), matchingCellsVec.end());
-
-  return make_tuple(_activeSegments, _predictiveCells, 
-                    _matchingSegments, _matchingCells);
-}
-
-// ==============================
-//  Helper functions
-// ==============================
-
-tuple<bool, Cell, bool, Segment>
-TemporalMemory::bestMatchingCell(
-  vector<Cell>& cells,
-  set<Cell>& activeCells,
-  Connections& _connections)
-{
-  Int maxSynapses = 0;
-  Int numActiveSynapses;
-  Cell bestCell;
-  Segment bestSegment;
-  bool foundCell = false;
-  bool foundSegment = false;
-
-  Segment segment;
-  for (Cell cell : cells)
-  {
-    bool found;
-    tie(found, segment, numActiveSynapses) =
-      bestMatchingSegment(cell, activeCells, _connections);
-
-    if (found && numActiveSynapses > maxSynapses)
-    {
-      maxSynapses = numActiveSynapses;
-      foundCell = true;
-      bestCell = cell;
-      foundSegment = true;
-      bestSegment = segment;
-    }
-  }
-
-  if (!foundCell)
-  {
-    bestCell = leastUsedCell(cells, _connections);
-    foundCell = true;
-    foundSegment = false;
-  }
-
-  return make_tuple(foundCell, bestCell, foundSegment, bestSegment);
-}
-
-tuple<bool, Segment, Int>
-TemporalMemory::bestMatchingSegment(
-  Cell& cell,
-  set<Cell>& activeCells,
-  Connections& _connections)
-{
-  Int maxSynapses = minThreshold_;
-  Int bestNumActiveSynapses = 0;
-  Segment bestSegment;
-  bool found = false;
-
-  for (Segment segment : _connections.segmentsForCell(cell))
-  {
-    Int numActiveSynapses = 0;
-
-    for (auto synapse : _connections.synapsesForSegment(segment))
-    {
-      SynapseData synapseData = _connections.dataForSynapse(synapse);
-
-      if (synapseData.permanence > 0 &&
-          activeCells.find(synapseData.presynapticCell) != activeCells.end())
-      {
-        numActiveSynapses += 1;
+        finished_ = true;
       }
     }
 
-    if (numActiveSynapses >= maxSynapses)
-    {
-      maxSynapses = numActiveSynapses;
-      bestSegment = segment;
-      bestNumActiveSynapses = numActiveSynapses;
-      found = true;
-    }
+    vector<UInt>::const_iterator activeColumn_;
+    vector<UInt>::const_iterator activeColumnsEnd_;
+    vector<SegmentOverlap>::const_iterator activeSegment_;
+    vector<SegmentOverlap>::const_iterator activeSegmentsEnd_;
+    vector<SegmentOverlap>::const_iterator matchingSegment_;
+    vector<SegmentOverlap>::const_iterator matchingSegmentsEnd_;
+    const UInt cellsPerColumn_;
+
+    bool finished_;
+    ExcitedColumnData current_;
+  };
+
+  Iterator begin()
+  {
+    return Iterator(activeColumns_.begin(),
+                    activeColumns_.end(),
+                    activeSegments_.begin(),
+                    activeSegments_.end(),
+                    matchingSegments_.begin(),
+                    matchingSegments_.end(),
+                    cellsPerColumn_);
   }
 
-  return make_tuple(found, bestSegment, bestNumActiveSynapses);
-}
+  Iterator end()
+  {
+    return Iterator(activeColumns_.end(),
+                    activeColumns_.end(),
+                    activeSegments_.end(),
+                    activeSegments_.end(),
+                    matchingSegments_.end(),
+                    matchingSegments_.end(),
+                    cellsPerColumn_);
+  }
 
-Cell TemporalMemory::leastUsedCell(
-  vector<Cell>& cells,
-  Connections& _connections)
+private:
+  const vector<UInt>& activeColumns_;
+  const UInt cellsPerColumn_;
+  const vector<SegmentOverlap>& activeSegments_;
+  const vector<SegmentOverlap>& matchingSegments_;
+};
+
+static Cell getLeastUsedCell(
+  Connections& connections,
+  Random& rng,
+  UInt column,
+  UInt cellsPerColumn)
 {
   vector<Cell> leastUsedCells;
-  Int minNumSegments = INT_MAX;
-
-  for (Cell cell : cells)
+  UInt32 minNumSegments = UINT_MAX;
+  const CellIdx start = column * cellsPerColumn;
+  const CellIdx end = start + cellsPerColumn;
+  for (CellIdx i = start; i < end; i++)
   {
-    Int numSegments = (Int)_connections.segmentsForCell(cell).size();
+    Cell cell(i);
+    UInt32 numSegments = connections.segmentsForCell(cell).size();
 
     if (numSegments < minNumSegments)
     {
@@ -561,99 +355,296 @@ Cell TemporalMemory::leastUsedCell(
     }
 
     if (numSegments == minNumSegments)
-      leastUsedCells.push_back(cell);
-  }
-
-  Int i = _rng.getUInt32((UInt32)leastUsedCells.size());
-  return leastUsedCells[i];
-}
-
-vector<Synapse> TemporalMemory::activeSynapsesForSegment(
-  Segment& segment,
-  set<Cell>& activeCells,
-  Connections& _connections)
-{
-  vector<Synapse> synapses;
-
-  for (Synapse synapse : _connections.synapsesForSegment(segment))
-  {
-    SynapseData synapseData = _connections.dataForSynapse(synapse);
-
-    if (activeCells.find(synapseData.presynapticCell) != activeCells.end())
     {
-      synapses.push_back(synapse);
+      leastUsedCells.push_back(cell);
     }
   }
-  return synapses;
+
+  return leastUsedCells[rng.getUInt32(leastUsedCells.size())];
 }
 
-void TemporalMemory::adaptSegment(
-  Segment& segment,
-  vector<Synapse>& activeSynapses,
-  Connections& _connections,
-  Permanence _permanenceIncrement,
-  Permanence _permanenceDecrement)
+static void adaptSegment(
+  Connections& connections,
+  Segment segment,
+  const vector<Cell>& prevActiveCells,
+  Permanence permanenceIncrement,
+  Permanence permanenceDecrement)
 {
-  vector<Synapse> synapses = _connections.synapsesForSegment(segment);
+  vector<Synapse> synapses = connections.synapsesForSegment(segment);
+
   for (Synapse synapse : synapses)
   {
-    SynapseData synapseData = _connections.dataForSynapse(synapse);
+    const SynapseData synapseData = connections.dataForSynapse(synapse);
+    const bool isActive =
+      std::binary_search(prevActiveCells.begin(), prevActiveCells.end(),
+                         synapseData.presynapticCell);
     Permanence permanence = synapseData.permanence;
 
-    if (find(activeSynapses.begin(), activeSynapses.end(),
-      synapse) != activeSynapses.end())
-      permanence += _permanenceIncrement;
+    if (isActive)
+    {
+      permanence += permanenceIncrement;
+    }
     else
-      permanence -= _permanenceDecrement;
+    {
+      permanence -= permanenceDecrement;
+    }
 
-    // Keep permanence within min / max bounds
-    if (permanence > 1.0)
-      permanence = 1.0;
-    if (permanence < 0.0)
-      permanence = 0.0;
+    permanence = min(permanence, (Permanence)1.0);
+    permanence = max(permanence, (Permanence)0.0);
 
     if (permanence < EPSILON)
-      _connections.destroySynapse(synapse);
-    else
-      _connections.updateSynapsePermanence(synapse, permanence);
-  }
-}
-
-set<Cell> TemporalMemory::pickCellsToLearnOn(
-  Int iN,
-  Segment& segment,
-  set<Cell>& _winnerCells,
-  Connections& _connections)
-{
-  vector<Cell> candidates(_winnerCells.begin(), _winnerCells.end());
-
-  // Remove cells that are already synapsed on by this segment
-  for (auto synapse : _connections.synapsesForSegment(segment))
-  {
-    SynapseData synapseData = _connections.dataForSynapse(synapse);
-    Cell presynapticCell = synapseData.presynapticCell;
-
-    if (find(candidates.begin(), candidates.end(),
-      presynapticCell) != candidates.end())
     {
-      candidates.erase(find(candidates.begin(), candidates.end(), presynapticCell));
+      connections.destroySynapse(synapse);
+    }
+    else
+    {
+      connections.updateSynapsePermanence(synapse, permanence);
     }
   }
 
-  // Pick n cells randomly
-  Int n = min(iN, (Int)candidates.size());
-  sort(candidates.begin(), candidates.end());
-
-  set<Cell> cells;
-  for (int c = 0; c < n; c++)
+  if (connections.numSynapses(segment) == 0)
   {
-    Int i = _rng.getUInt32((UInt32)candidates.size());
-    cells.insert(candidates[i]);
-    candidates.erase(find(candidates.begin(), candidates.end(), candidates[i]));
+    connections.destroySegment(segment);
+  }
+}
+
+static void growSynapses(
+  Connections& connections,
+  Random& rng,
+  Segment segment,
+  UInt32 nDesiredNewSynapses,
+  const vector<Cell>& prevWinnerCells,
+  Permanence initialPermanence)
+{
+  vector<Cell> candidates(prevWinnerCells.begin(), prevWinnerCells.end());
+
+  // Instead of erasing candidates, swap them to the end, and remember where the
+  // "eligible" candidates end.
+  auto eligibleEnd = candidates.end();
+
+  // Remove cells that are already synapsed on by this segment
+  for (Synapse synapse : connections.synapsesForSegment(segment))
+  {
+    Cell presynapticCell = connections.dataForSynapse(synapse).presynapticCell;
+    auto ineligible = find(candidates.begin(), eligibleEnd, presynapticCell);
+    if (ineligible != eligibleEnd)
+    {
+      eligibleEnd--;
+      std::iter_swap(ineligible, eligibleEnd);
+    }
   }
 
-  return cells;
+  const UInt32 nActual =
+    std::min(nDesiredNewSynapses,
+             (UInt32)std::distance(candidates.begin(), eligibleEnd));
+
+  // Pick nActual cells randomly.
+  for (UInt32 c = 0; c < nActual; c++)
+  {
+    size_t i = rng.getUInt32(std::distance(candidates.begin(), eligibleEnd));;
+    connections.createSynapse(segment, candidates[i], initialPermanence);
+    eligibleEnd--;
+    std::swap(candidates[i], *eligibleEnd);
+  }
 }
+
+static void activatePredictedColumn(
+  vector<Cell>& activeCells,
+  vector<Cell>& winnerCells,
+  Connections& connections,
+  const ExcitedColumnData& excitedColumn,
+  bool learn,
+  const vector<Cell>& prevActiveCells,
+  Permanence permanenceIncrement,
+  Permanence permanenceDecrement)
+{
+  auto active = excitedColumn.activeSegmentsBegin;
+  do
+  {
+    Cell cell(active->segment.cell);
+    activeCells.push_back(cell);
+    winnerCells.push_back(cell);
+
+    // This cell might have multiple active segments.
+    do
+    {
+      if (learn)
+      {
+        adaptSegment(connections,
+                     active->segment,
+                     prevActiveCells,
+                     permanenceIncrement, permanenceDecrement);
+      }
+      active++;
+    } while (active != excitedColumn.activeSegmentsEnd &&
+             active->segment.cell == cell);
+  } while (active != excitedColumn.activeSegmentsEnd);
+}
+
+static void burstColumn(
+  vector<Cell>& activeCells,
+  vector<Cell>& winnerCells,
+  Connections& connections,
+  Random& rng,
+  const ExcitedColumnData& excitedColumn,
+  bool learn,
+  const vector<Cell>& prevActiveCells,
+  const vector<Cell>& prevWinnerCells,
+  UInt cellsPerColumn,
+  Permanence initialPermanence,
+  UInt maxNewSynapseCount,
+  Permanence permanenceIncrement,
+  Permanence permanenceDecrement)
+{
+  const CellIdx start = excitedColumn.column * cellsPerColumn;
+  const CellIdx end = start + cellsPerColumn;
+  for (CellIdx i = start; i < end; i++)
+  {
+    activeCells.push_back(Cell(i));
+  }
+
+  if (excitedColumn.matchingSegmentsBegin != excitedColumn.matchingSegmentsEnd)
+  {
+    auto bestMatch = std::max_element(
+      excitedColumn.matchingSegmentsBegin,
+      excitedColumn.matchingSegmentsEnd,
+      [](const SegmentOverlap& a, const SegmentOverlap& b)
+      {
+        return a.overlap < b.overlap;
+      });
+
+    winnerCells.push_back(bestMatch->segment.cell);
+
+    if (learn)
+    {
+      adaptSegment(connections,
+                   bestMatch->segment,
+                   prevActiveCells,
+                   permanenceIncrement, permanenceDecrement);
+
+      const UInt32 nGrowDesired = maxNewSynapseCount - bestMatch->overlap;
+      if (nGrowDesired > 0)
+      {
+        growSynapses(connections, rng,
+                     bestMatch->segment, nGrowDesired,
+                     prevWinnerCells,
+                     initialPermanence);
+      }
+    }
+  }
+  else
+  {
+    const Cell winnerCell = getLeastUsedCell(connections, rng,
+                                             excitedColumn.column,
+                                             cellsPerColumn);
+    winnerCells.push_back(winnerCell);
+
+    if (learn)
+    {
+      // Don't grow a segment that will never match.
+      const UInt32 nGrowExact = std::min(maxNewSynapseCount,
+                                         (UInt32)prevWinnerCells.size());
+      if (nGrowExact > 0)
+      {
+        const Segment segment = connections.createSegment(winnerCell);
+        growSynapses(connections, rng,
+                     segment, nGrowExact,
+                     prevWinnerCells,
+                     initialPermanence);
+        NTA_ASSERT(connections.numSynapses(segment) == nGrowExact);
+      }
+    }
+  }
+}
+
+static void punishPredictedColumn(
+  Connections& connections,
+  const ExcitedColumnData& excitedColumn,
+  const vector<Cell>& prevActiveCells,
+  Permanence predictedSegmentDecrement)
+{
+  if (predictedSegmentDecrement > 0.0)
+  {
+    for (auto matching = excitedColumn.matchingSegmentsBegin;
+         matching != excitedColumn.matchingSegmentsEnd;
+         matching++)
+    {
+      adaptSegment(connections, matching->segment, prevActiveCells,
+                   -predictedSegmentDecrement, 0.0);
+    }
+  }
+}
+
+void TemporalMemory::compute(
+  UInt activeColumnsSize,
+  const UInt activeColumnsUnsorted[],
+  bool learn)
+{
+  const vector<Cell> prevActiveCells = activeCells_;
+  const vector<Cell> prevWinnerCells = winnerCells_;
+
+  vector<UInt> activeColumns(activeColumnsUnsorted,
+                             activeColumnsUnsorted + activeColumnsSize);
+  std::sort(activeColumns.begin(), activeColumns.end());
+
+  activeCells_.clear();
+  winnerCells_.clear();
+
+  for (const ExcitedColumnData& excitedColumn : ExcitedColumns(activeColumns,
+                                                               activeSegments_,
+                                                               matchingSegments_,
+                                                               cellsPerColumn_))
+  {
+    if (excitedColumn.isActiveColumn)
+    {
+      if (excitedColumn.activeSegmentsBegin != excitedColumn.activeSegmentsEnd)
+      {
+        activatePredictedColumn(activeCells_, winnerCells_, connections,
+                                excitedColumn, learn,
+                                prevActiveCells,
+                                permanenceIncrement_, permanenceDecrement_);
+      }
+      else
+      {
+        burstColumn(activeCells_, winnerCells_, connections, rng_,
+                    excitedColumn, learn,
+                    prevActiveCells, prevWinnerCells,
+                    cellsPerColumn_, initialPermanence_, maxNewSynapseCount_,
+                    permanenceIncrement_, permanenceDecrement_);
+      }
+    }
+    else
+    {
+      if (learn)
+      {
+        punishPredictedColumn(connections,
+                              excitedColumn,
+                              prevActiveCells,
+                              predictedSegmentDecrement_);
+      }
+    }
+  }
+
+  activeSegments_.clear();
+  matchingSegments_.clear();
+  connections.computeActivity(activeCells_,
+                              connectedPermanence_, activationThreshold_,
+                              0.0, minThreshold_,
+                              activeSegments_, matchingSegments_,
+                              learn);
+}
+
+void TemporalMemory::reset(void)
+{
+  activeCells_.clear();
+  activeSegments_.clear();
+  matchingSegments_.clear();
+  winnerCells_.clear();
+}
+
+// ==============================
+//  Helper functions
+// ==============================
 
 Int TemporalMemory::columnForCell(Cell& cell)
 {
@@ -662,25 +653,18 @@ Int TemporalMemory::columnForCell(Cell& cell)
   return cell.idx / cellsPerColumn_;
 }
 
-vector<Cell> TemporalMemory::cellsForColumnCell(Int column)
+vector<CellIdx> TemporalMemory::cellsForColumn(Int column)
 {
-  _validateColumn(column);
+  const CellIdx start = cellsPerColumn_ * column;
+  const CellIdx end = start + cellsPerColumn_;
 
-  Int start = cellsPerColumn_ * column;
-  Int end = start + cellsPerColumn_;
-
-  vector<Cell> cellsInColumn;
-  for (Int i = start; i < end; i++)
+  vector<CellIdx> cellsInColumn;
+  for (CellIdx i = start; i < end; i++)
   {
-    cellsInColumn.push_back(Cell(i));
+    cellsInColumn.push_back(i);
   }
 
   return cellsInColumn;
-}
-
-vector<CellIdx> TemporalMemory::cellsForColumn(Int column)
-{
-  return _cellsToIndices(cellsForColumnCell(column));
 }
 
 UInt TemporalMemory::numberOfCells(void)
@@ -690,40 +674,75 @@ UInt TemporalMemory::numberOfCells(void)
 
 vector<CellIdx> TemporalMemory::getActiveCells() const
 {
-  return _cellsToIndices(activeCells);
+  return _cellsToIndices(activeCells_);
 }
 
 vector<CellIdx> TemporalMemory::getPredictiveCells() const
 {
-  return _cellsToIndices(predictiveCells);
+  vector<CellIdx> predictiveCells;
+
+  for (auto segOverlap = activeSegments_.begin();
+       segOverlap != activeSegments_.end();
+       segOverlap++)
+  {
+    if (segOverlap == activeSegments_.begin() ||
+        segOverlap->segment.cell.idx != predictiveCells.back())
+    {
+      predictiveCells.push_back(segOverlap->segment.cell.idx);
+    }
+  }
+
+  return predictiveCells;
 }
 
 vector<CellIdx> TemporalMemory::getWinnerCells() const
 {
-  return _cellsToIndices(winnerCells);
+  return _cellsToIndices(winnerCells_);
 }
 
 vector<CellIdx> TemporalMemory::getMatchingCells() const
 {
-  return _cellsToIndices(matchingCells);
+  vector<CellIdx> matchingCells;
+
+  for (auto segOverlap = matchingSegments_.begin();
+       segOverlap != matchingSegments_.end();
+       segOverlap++)
+  {
+    if (segOverlap == matchingSegments_.begin() ||
+        segOverlap->segment.cell.idx != matchingCells.back())
+    {
+      matchingCells.push_back(segOverlap->segment.cell.idx);
+    }
+  }
+
+  return matchingCells;
+}
+
+vector<Segment> TemporalMemory::getActiveSegments() const
+{
+  vector<Segment> ret;
+  ret.reserve(activeSegments_.size());
+  for (const SegmentOverlap& segmentOverlap : activeSegments_)
+  {
+    ret.push_back(segmentOverlap.segment);
+  }
+  return ret;
+}
+
+vector<Segment> TemporalMemory::getMatchingSegments() const
+{
+  vector<Segment> ret;
+  ret.reserve(matchingSegments_.size());
+  for (const SegmentOverlap& segmentOverlap : matchingSegments_)
+  {
+    ret.push_back(segmentOverlap.segment);
+  }
+  return ret;
 }
 
 UInt TemporalMemory::numberOfColumns() const
 {
   return numColumns_;
-}
-
-map<Int, set<Cell>> TemporalMemory::mapCellsToColumns(set<Cell>& cells)
-{
-  map<Int, set<Cell>> cellsForColumns;
-
-  for (Cell cell : cells)
-  {
-    Int column = columnForCell(cell);
-    cellsForColumns[column].insert(cell);
-  }
-
-  return cellsForColumns;
 }
 
 template <typename Iterable>
@@ -738,15 +757,6 @@ vector<CellIdx> TemporalMemory::_cellsToIndices(const Iterable &cellSet) const
   return idxVector;
 }
 
-bool TemporalMemory::_validateColumn(UInt column)
-{
-  if (column < numberOfColumns())
-    return true;
-
-  NTA_THROW << "Invalid column " << column;
-  return false;
-}
-
 bool TemporalMemory::_validateCell(Cell& cell)
 {
   if (cell.idx < numberOfCells())
@@ -754,30 +764,6 @@ bool TemporalMemory::_validateCell(Cell& cell)
 
   NTA_THROW << "Invalid cell " << cell.idx;
   return false;
-}
-
-bool TemporalMemory::_validateSegment(Segment& segment)
-{
-  if (activeSegments.size() == 0 && segment.idx <= MAX_SEGMENTS_PER_CELL &&
-    _validateCell(segment.cell))
-    return true;
-
-  if (find(activeSegments.begin(), activeSegments.end(), segment)
-    != activeSegments.end())
-    return true;
-
-  NTA_THROW << "Invalid segment" << segment.idx;
-  return false;
-}
-
-bool TemporalMemory::_validatePermanence(Real permanence)
-{
-  if (permanence < 0.0 || permanence > 1.0)
-  {
-    NTA_THROW << "Invalid permanence " << permanence;
-    return false;
-  }
-  return true;
 }
 
 vector<UInt> TemporalMemory::getColumnDimensions() const
@@ -875,7 +861,7 @@ void TemporalMemory::setPredictedSegmentDecrement(Permanence predictedSegmentDec
 */
 void TemporalMemory::seed_(UInt64 seed)
 {
-  _rng = Random(seed);
+  rng_ = Random(seed);
 }
 
 UInt TemporalMemory::persistentSize() const
@@ -909,7 +895,7 @@ void TemporalMemory::save(ostream& outStream) const
   connections.save(outStream);
   outStream << endl;
 
-  outStream << _rng << endl;
+  outStream << rng_ << endl;
 
   outStream << columnDimensions_.size() << " ";
   for (auto & elem : columnDimensions_) {
@@ -917,41 +903,31 @@ void TemporalMemory::save(ostream& outStream) const
   }
   outStream << endl;
 
-  outStream << activeCells.size() << " ";
-  for (Cell elem : activeCells) {
+  outStream << activeCells_.size() << " ";
+  for (Cell elem : activeCells_) {
     outStream << elem.idx << " ";
   }
   outStream << endl;
 
-  outStream << predictiveCells.size() << " ";
-  for (Cell elem : predictiveCells) {
+  outStream << winnerCells_.size() << " ";
+  for (Cell elem : winnerCells_) {
     outStream << elem.idx << " ";
   }
   outStream << endl;
 
-  outStream << winnerCells.size() << " ";
-  for (Cell elem : winnerCells) {
-    outStream << elem.idx << " ";
+  outStream << activeSegments_.size() << " ";
+  for (SegmentOverlap elem : activeSegments_) {
+    outStream << elem.segment.idx << " ";
+    outStream << elem.segment.cell.idx << " ";
+    outStream << elem.overlap << " ";
   }
   outStream << endl;
 
-  outStream << activeSegments.size() << " ";
-  for (Segment elem : activeSegments) {
-    outStream << elem.idx << " ";
-    outStream << elem.cell.idx << " ";
-  }
-  outStream << endl;
-
-  outStream << matchingSegments.size() << " ";
-  for (Segment elem : matchingSegments) {
-    outStream << elem.idx << " ";
-    outStream << elem.cell.idx << " ";
-  }
-  outStream << endl;
-
-  outStream << matchingCells.size() << " ";
-  for (Cell elem : matchingCells) {
-    outStream << elem.idx << " ";
+  outStream << matchingSegments_.size() << " ";
+  for (SegmentOverlap elem : matchingSegments_) {
+    outStream << elem.segment.idx << " ";
+    outStream << elem.segment.cell.idx << " ";
+    outStream << elem.overlap << " ";
   }
   outStream << endl;
 
@@ -980,46 +956,40 @@ void TemporalMemory::write(TemporalMemoryProto::Builder& proto) const
   connections.write(_connections);
 
   auto random = proto.initRandom();
-  _rng.write(random);
+  rng_.write(random);
 
-  auto _activeCells = proto.initActiveCells(activeCells.size());
+  auto activeCells = proto.initActiveCells(activeCells_.size());
   UInt i = 0;
-  for (Cell c : activeCells)
+  for (Cell c : activeCells_)
   {
-    _activeCells.set(i++, c.idx);
+    activeCells.set(i++, c.idx);
   }
 
-  auto _predictiveCells = proto.initPredictiveCells(predictiveCells.size());
+  auto activeSegmentOverlaps =
+    proto.initActiveSegmentOverlaps(activeSegments_.size());
+  for (UInt i = 0; i < activeSegments_.size(); ++i)
+  {
+    Segment segment = activeSegments_[i].segment;
+    activeSegmentOverlaps[i].setCell(segment.cell.idx);
+    activeSegmentOverlaps[i].setSegment(segment.idx);
+    activeSegmentOverlaps[i].setOverlap(activeSegments_[i].overlap);
+  }
+
+  auto winnerCells = proto.initWinnerCells(winnerCells_.size());
   i = 0;
-  for (Cell c : predictiveCells)
+  for (Cell c : winnerCells_)
   {
-    _predictiveCells.set(i++, c.idx);
+    winnerCells.set(i++, c.idx);
   }
 
-  auto _activeSegments = proto.initActiveSegments(activeSegments.size());
-  for (UInt i = 0; i < activeSegments.size(); ++i)
+  auto matchingSegmentOverlaps =
+    proto.initMatchingSegmentOverlaps(matchingSegments_.size());
+  for (UInt i = 0; i < matchingSegments_.size(); ++i)
   {
-    _activeSegments.set(i, activeSegments[i].cell.idx);
-  }
-
-  auto _winnerCells = proto.initWinnerCells(winnerCells.size());
-  i = 0;
-  for (Cell c : winnerCells)
-  {
-    _winnerCells.set(i++, c.idx);
-  }
-
-  auto _matchingSegments = proto.initMatchingSegments(matchingSegments.size());
-  for (UInt i = 0; i < matchingSegments.size(); ++i)
-  {
-    _matchingSegments.set(i, matchingSegments[i].cell.idx);
-  }
-
-  auto _matchingCells = proto.initMatchingCells(matchingCells.size());
-  i = 0;
-  for (Cell c : matchingCells)
-  {
-    _matchingCells.set(i++, c.idx);
+    Segment segment = matchingSegments_[i].segment;
+    matchingSegmentOverlaps[i].setCell(segment.cell.idx);
+    matchingSegmentOverlaps[i].setSegment(segment.idx);
+    matchingSegmentOverlaps[i].setOverlap(matchingSegments_[i].overlap);
   }
 }
 
@@ -1028,8 +998,6 @@ void TemporalMemory::write(TemporalMemoryProto::Builder& proto) const
 // that everything in initialize is handled properly here.
 void TemporalMemory::read(TemporalMemoryProto::Reader& proto)
 {
-  UInt index;
-
   numColumns_ = 1;
   columnDimensions_.clear();
   for (UInt dimension : proto.getColumnDimensions())
@@ -1052,52 +1020,53 @@ void TemporalMemory::read(TemporalMemoryProto::Reader& proto)
   connections.read(_connections);
 
   auto random = proto.getRandom();
-  _rng.read(random);
+  rng_.read(random);
 
-  activeCells.clear();
+  activeCells_.clear();
   for (auto value : proto.getActiveCells())
   {
-    activeCells.insert(Cell(value));
+    activeCells_.push_back(Cell(value));
   }
 
-  predictiveCells.clear();
-  for (auto value : proto.getPredictiveCells())
+  if (proto.getActiveSegments().size())
   {
-    predictiveCells.push_back(Cell(value));
+    // There's no way to convert a UInt32 to a segment. It never worked.
+    NTA_WARN << "TemporalMemory::read :: Obsolete field 'activeSegments' isn't usable. "
+             << "TemporalMemory results will be goofy for one timestep.";
   }
 
-  activeSegments.clear();
-  index = 0;
-  for (auto value : proto.getActiveSegments())
+  activeSegments_.clear();
+  for (auto value : proto.getActiveSegmentOverlaps())
   {
-    activeSegments.push_back(Segment(index++, value));
+    Segment segment = {(SegmentIdx)value.getSegment(),
+                       {(CellIdx)value.getCell()}};
+    activeSegments_.push_back({segment, value.getOverlap()});
   }
 
-  winnerCells.clear();
+  winnerCells_.clear();
   for (auto value : proto.getWinnerCells())
   {
-    winnerCells.insert(Cell(value));
+    winnerCells_.push_back(Cell(value));
   }
 
-  matchingSegments.clear();
-  index = 0;
-  for (auto value : proto.getMatchingSegments())
+  if (proto.getMatchingSegments().size())
   {
-    matchingSegments.push_back(Segment(index++, value));
+    // There's no way to convert a UInt32 to a segment. It never worked.
+    NTA_WARN << "TemporalMemory::read :: Obsolete field 'matchingSegments' isn't usable. "
+             << "TemporalMemory results will be goofy for one timestep.";
   }
 
-  matchingCells.clear();
-  for (auto value : proto.getMatchingCells())
+  matchingSegments_.clear();
+  for (auto value : proto.getMatchingSegmentOverlaps())
   {
-    matchingCells.push_back(Cell(value));
+    Segment segment = {(SegmentIdx)value.getSegment(),
+                       {(CellIdx)value.getCell()}};
+    matchingSegments_.push_back({segment, value.getOverlap()});
   }
 }
 
 void TemporalMemory::load(istream& inStream)
 {
-  // Current version
-  version_ = 1;
-
   // Check the marker
   string marker;
   inStream >> marker;
@@ -1122,13 +1091,14 @@ void TemporalMemory::load(istream& inStream)
 
   connections.load(inStream);
 
-  inStream >> _rng;
+  inStream >> rng_;
 
   // Retrieve vectors.
   UInt numColumnDimensions;
   inStream >> numColumnDimensions;
   columnDimensions_.resize(numColumnDimensions);
-  for (UInt i = 0; i < numColumnDimensions; i++) {
+  for (UInt i = 0; i < numColumnDimensions; i++)
+  {
     inStream >> columnDimensions_[i];
   }
 
@@ -1136,46 +1106,87 @@ void TemporalMemory::load(istream& inStream)
 
   UInt numActiveCells;
   inStream >> numActiveCells;
-  for (UInt i = 0; i < numActiveCells; i++) {
+  for (UInt i = 0; i < numActiveCells; i++)
+  {
     inStream >> cellIndex;
-    activeCells.insert(Cell(cellIndex));
+    activeCells_.push_back(Cell(cellIndex));
   }
 
-  UInt numPredictiveCells;
-  inStream >> numPredictiveCells;
-  for (UInt i = 0; i < numPredictiveCells; i++) {
-    inStream >> cellIndex;
-    predictiveCells.push_back(Cell(cellIndex));
+  if (version < 2)
+  {
+    UInt numPredictiveCells;
+    inStream >> numPredictiveCells;
+    for (UInt i = 0; i < numPredictiveCells; i++)
+    {
+      inStream >> cellIndex; // Ignore
+    }
   }
 
-  UInt numActiveSegments;
-  inStream >> numActiveSegments;
-  activeSegments.resize(numActiveSegments);
-  for (UInt i = 0; i < numActiveSegments; i++) {
-    inStream >> activeSegments[i].idx;
-    inStream >> activeSegments[i].cell.idx;
+  if (version < 2)
+  {
+    UInt numActiveSegments;
+    inStream >> numActiveSegments;
+    activeSegments_.resize(numActiveSegments);
+    for (UInt i = 0; i < numActiveSegments; i++)
+    {
+      inStream >> activeSegments_[i].segment.idx;
+      inStream >> activeSegments_[i].segment.cell.idx;
+      activeSegments_[i].overlap = 0; // Unknown
+    }
+  }
+  else
+  {
+    UInt numActiveSegments;
+    inStream >> numActiveSegments;
+    activeSegments_.resize(numActiveSegments);
+    for (UInt i = 0; i < numActiveSegments; i++)
+    {
+      inStream >> activeSegments_[i].segment.idx;
+      inStream >> activeSegments_[i].segment.cell.idx;
+      inStream >> activeSegments_[i].overlap;
+    }
   }
 
   UInt numWinnerCells;
   inStream >> numWinnerCells;
-  for (UInt i = 0; i < numWinnerCells; i++) {
+  for (UInt i = 0; i < numWinnerCells; i++)
+  {
     inStream >> cellIndex;
-    winnerCells.insert(Cell(cellIndex));
+    winnerCells_.push_back(Cell(cellIndex));
   }
 
-  UInt numMatchingSegments;
-  inStream >> numMatchingSegments;
-  matchingSegments.resize(numMatchingSegments);
-  for (UInt i = 0; i < numMatchingSegments; i++) {
-    inStream >> matchingSegments[i].idx;
-    inStream >> matchingSegments[i].cell.idx;
+  if (version < 2)
+  {
+    UInt numMatchingSegments;
+    inStream >> numMatchingSegments;
+    matchingSegments_.resize(numMatchingSegments);
+    for (UInt i = 0; i < numMatchingSegments; i++)
+    {
+      inStream >> matchingSegments_[i].segment.idx;
+      inStream >> matchingSegments_[i].segment.cell.idx;
+      matchingSegments_[i].overlap = 0; // Unknown
+    }
+  }
+  else
+  {
+    UInt numMatchingSegments;
+    inStream >> numMatchingSegments;
+    matchingSegments_.resize(numMatchingSegments);
+    for (UInt i = 0; i < numMatchingSegments; i++)
+    {
+      inStream >> matchingSegments_[i].segment.idx;
+      inStream >> matchingSegments_[i].segment.cell.idx;
+      inStream >> matchingSegments_[i].overlap;
+    }
   }
 
-  UInt numMatchingCells;
-  inStream >> numMatchingCells;
-  for (UInt i = 0; i < numMatchingCells; i++) {
-    inStream >> cellIndex;
-    matchingCells.push_back(Cell(cellIndex));
+  if (version < 2)
+  {
+    UInt numMatchingCells;
+    inStream >> numMatchingCells;
+    for (UInt i = 0; i < numMatchingCells; i++) {
+      inStream >> cellIndex; // Ignore
+    }
   }
 
   inStream >> marker;
