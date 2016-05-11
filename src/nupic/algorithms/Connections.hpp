@@ -1,6 +1,6 @@
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2014, Numenta, Inc.  Unless you have an agreement
+ * Copyright (C) 2014-2016, Numenta, Inc.  Unless you have an agreement
  * with Numenta, Inc., for a separate license for this software code, the
  * following terms and conditions apply:
  *
@@ -71,6 +71,7 @@ namespace nupic
         Cell() {}
 
         bool operator==(const Cell &other) const;
+        bool operator!=(const Cell &other) const;
         bool operator<=(const Cell &other) const;
         bool operator<(const Cell &other) const;
         bool operator>=(const Cell &other) const;
@@ -184,20 +185,17 @@ namespace nupic
       };
 
       /**
-       * Activity class used in Connections.
+       * A segment + overlap pair.
        *
        * @b Description
-       * The Activity class is a data structure that represents the
-       * activity of a collection of cells, as computed by propagating
-       * input through connections.
-       *
+       * The "overlap" describes the number of active synapses on the segment.
+       * Depending on the use case, these synapses may have a permanence below
+       * the connected threshold.
        */
-      struct Activity
+      struct SegmentOverlap
       {
-        std::map< Cell, std::vector<Segment> > activeSegmentsForCell;
-        std::vector<UInt32> numActiveSynapsesForSegment;
-        std::map< Cell, std::vector<Segment> > matchingSegmentsForCell;
-        std::vector<UInt32> numMatchingSynapsesForSegment;
+        Segment segment;
+        UInt32 overlap;
       };
 
       /**
@@ -430,50 +428,22 @@ namespace nupic
          * @param matchingSynapseThreshold
          * Minimum number of synapses to mark a segment as "matching"
          *
-         * @retval Activity to return.
+         * @param outActiveSegments
+         * An output vector.
+         * On return, filled with active segments and overlaps.
+         *
+         * @param outActiveSegments
+         * An output vector.
+         * On return, filled with matching segments and overlaps.
          */
-        Activity computeActivity(const std::vector<Cell>& input,
-                                 Permanence activePermanenceThreshold,
-                                 SynapseIdx activeSynapseThreshold,
-                                 Permanence matchingPermanenceThreshold,
-                                 SynapseIdx matchingSynapseThreshold,
-                                 bool recordIteration=true);
-
-        /**
-         * Gets the active segments from activity.
-         *
-         * @param activity Activity.
-         *
-         * @retval Active segments.
-         */
-        std::vector<Segment> activeSegments(const Activity& activity);
-
-        /**
-         * Gets the active cells from activity.
-         *
-         * @param activity Activity.
-         *
-         * @retval Active cells.
-         */
-        std::vector<Cell> activeCells(const Activity& activity);
-
-        /**
-         * Gets the matching segments from activity.
-         *
-         * @param activity Activity.
-         *
-         * @retval Matching segments.
-         */
-        std::vector<Segment> matchingSegments(const Activity& activity);
-
-        /**
-         * Gets the matching cells from activity.
-         *
-         * @param activity Activity.
-         *
-         * @retval Matching cells.
-         */
-        std::vector<Cell> matchingCells(const Activity& activity);
+        void computeActivity(const std::vector<Cell>& input,
+                             Permanence activePermanenceThreshold,
+                             SynapseIdx activeSynapseThreshold,
+                             Permanence matchingPermanenceThreshold,
+                             SynapseIdx matchingSynapseThreshold,
+                             std::vector<SegmentOverlap>& outActiveSegments,
+                             std::vector<SegmentOverlap>& outMatchingSegments,
+                             bool recordIteration=true);
 
         // Serialization
 

@@ -47,8 +47,6 @@ environment:
       PYTHON_ARCH: "64"
       PYTHONHOME: "C:\\Python27-x64"
       NC_CMAKE_GENERATOR: "MinGW Makefiles"
-      mingwpy_archive_name: mingwpy_amd64_vc90.7z
-      libpython_archive_name: libpython-cp27-none-win_amd64.7z
       external_static_subdir: "windows64-gcc"
       wheel_name_suffix: "win_amd64"
 
@@ -57,8 +55,6 @@ environment:
       PYTHON_ARCH: "32"
       PYTHONHOME: "C:\\Python27"
       NC_CMAKE_GENERATOR: "MinGW Makefiles"
-      mingwpy_archive_name: mingwpy_win32_vc90.7z
-      libpython_archive_name: libpython-cp27-none-win32.7z
       external_static_subdir: "windows32-gcc"
       wheel_name_suffix: "win32"
 
@@ -84,25 +80,18 @@ matrix:
 # configuration values must be compatible with CMAKE_BUILD_TYPE: Debug or Release
 configuration: Release
 
-# To work around issue #913, we're getting mingwpy toolchain from bitbucket,
-# which apparently imposes bandwidth limitations, so we need to cache those
-# artifacts
-#
-# NOTE apparently, saving cache is disabled in Pull Request buids per
-# http://help.appveyor.com/discussions/problems/4048-build-cache-not-restored
-cache:
-  - C:\%mingwpy_archive_name%
-  - C:\%libpython_archive_name%
-
 
 install:
   - set NUPIC_DEPLOYMENT_BUILD=1
 
-  - set REPO_DIR=c:\projects\nupic-core
-  - set NUPIC_CORE_DIR=%REPO_DIR%\build\release
-  - set EXTERNAL_WINDOWS_DIR=%REPO_DIR%\external\%external_static_subdir%
+  # Dump appveyor build vars for diagnostics
+  - "ECHO APPVEYOR_FORCED_BUILD: %APPVEYOR_FORCED_BUILD%"
+  - "ECHO APPVEYOR_RE_BUILD: %APPVEYOR_RE_BUILD%"
 
-  - set ARTIFACTS_DIR=%REPO_DIR%\build\artifacts
+  - set NUPIC_CORE=c:\projects\nupic-core
+  - set EXTERNAL_WINDOWS_DIR=%NUPIC_CORE%\external\%external_static_subdir%
+
+  - set ARTIFACTS_DIR=%NUPIC_CORE%\build\artifacts
   - for /f %%i in ('type VERSION') do set BINDINGS_VERSION=%%i
   - echo Binding version = %BINDINGS_VERSION%
 
@@ -124,39 +113,25 @@ install:
   #
   # Install Python 2.7.x, Pip, Wheel, and NumPy
   #
-  - cd %REPO_DIR%\ci\appveyor
+  - cd %NUPIC_CORE%\ci\appveyor
   - ps: .\install_python_pip.ps1
 
   #
   # Install mingwpy toolchain
   #
   - ECHO "Installing MinGW toolchain for Python"
-  # This would have been easier, but was resulting in issue #913
-  #- cmd: "%PYTHONHOME%\\Scripts\\pip.exe install -i https://pypi.anaconda.org/carlkl/simple mingwpy
-
-  # Reference: https://bitbucket.org/carlkl/mingw-w64-for-python/downloads/mingwpy-2015-04-readme.md
-
-  # List contents of C:\ to help debug caching of the artifacts
-  - DIR C:\
-
-  - ps: $dwntool=New-Object System.Net.WebClient
-
-  - ECHO "Installing MinGW-w64 for Python via archive %mingwpy_archive_name%:"
-  - ps: if (-Not (Test-Path "C:\\$env:mingwpy_archive_name")) { $dwntool.DownloadFile("https://bitbucket.org/carlkl/mingw-w64-for-python/downloads/$env:mingwpy_archive_name", "C:\\$env:mingwpy_archive_name") } else { Write-Host "Found" $env:mingwpy_archive_name "in cache." }
-  - 7z x C:\%mingwpy_archive_name% -oC:\ > null
-
-  - ECHO "Installing MinGW-w64 Python 2.7.x libs via archive %libpython_archive_name% into %PYTHONHOME%:"
-  - ps: if (-Not (Test-Path "C:\\$env:libpython_archive_name")) { $dwntool.DownloadFile("https://bitbucket.org/carlkl/mingw-w64-for-python/downloads/$env:libpython_archive_name", "C:\\$env:libpython_archive_name") } else { Write-Host "Found" $env:libpython_archive_name "in cache." }
-  - 7z x C:\%libpython_archive_name% -o%PYTHONHOME%\ > null
-
-  - set PATH=C:\mingwpy\bin;%PATH%
-
+  # Install the version of mingwpy toolchain that generates targets compatible
+  # with the installed python (Win32 vs. Win64). The compiler tools are
+  # installed into %PYTHONHOME%/Scripts/
+  - cmd: "%PYTHONHOME%\\Scripts\\pip.exe install -i https://pypi.anaconda.org/carlkl/simple mingwpy==0.1.0b3"
   - cmd: "where g++"
+  - cmd: "g++ --version"
+  - cmd: "dir %PYTHONHOME%\\share\\mingwpy"
 
   # Setup MinGW GCC as a valid distutils compiler
   - cp %EXTERNAL_WINDOWS_DIR%\bin\distutils.cfg %PYTHONHOME%\Lib\distutils\distutils.cfg
 
-  # Check that we have the expected version and architecture for Python
+  # Display the version and architecture for Python to help with diagnostics
   - "python --version"
   - "where python"
   - "python -c \"import struct; print(struct.calcsize('P') * 8)\""
@@ -168,10 +143,10 @@ install:
   # Check NumPy, etc. installed correctly
   - cmd: pip list
 
-  - cd %REPO_DIR%
-  - mkdir %REPO_DIR%\build\
-  - mkdir %REPO_DIR%\build\release
-  - mkdir %REPO_DIR%\build\scripts
+  - cd %NUPIC_CORE%
+  - mkdir %NUPIC_CORE%\build\
+  - mkdir %NUPIC_CORE%\build\release
+  - mkdir %NUPIC_CORE%\build\scripts
 
   # Remove sh.exe from the paths (CMake doesn't like it)
   - set PATH=%PATH:C:\Program Files (x86)\Git\bin;=%
@@ -184,25 +159,25 @@ install:
 
   # Fake KJ-Async and Capnp-RPC libs, not needed in Lite mode
   # http://www.cmake.org/Wiki/CmakeMingw
-  - cd %REPO_DIR%\build\scripts
+  - cd %NUPIC_CORE%\build\scripts
   - cmake -G "%NC_CMAKE_GENERATOR%"
       -DCMAKE_BUILD_TYPE=%configuration%
-      -DCMAKE_INSTALL_PREFIX=%REPO_DIR%\build\release
-      -DPY_EXTENSIONS_DIR=%REPO_DIR%\bindings\py\nupic\bindings
-      %REPO_DIR%
+      -DCMAKE_INSTALL_PREFIX=%NUPIC_CORE%\build\release
+      -DPY_EXTENSIONS_DIR=%NUPIC_CORE%\bindings\py\nupic\bindings
+      %NUPIC_CORE%
 
 
 build_script:
-  - cd %REPO_DIR%\build\scripts
+  - cd %NUPIC_CORE%\build\scripts
 
   # Run build, using portable, toolchain-agnostic mechanism to start it
-  - cmake.exe --build "%REPO_DIR%\build\scripts" --target install --config %configuration%
+  - cmake.exe --build "%NUPIC_CORE%\build\scripts" --target install --config %configuration%
 
-  - cd %REPO_DIR%
+  - cd %NUPIC_CORE%
 
   - python setup.py sdist bdist bdist_wheel
 
-  # Copy final wheel to REPO_DIR, so that AppVeyor can see it as an artifact
+  # Copy final wheel to NUPIC_CORE, so that AppVeyor can see it as an artifact
   - ps: copy .\bindings\py\dist\nupic.bindings-$env:BINDINGS_VERSION-cp27-none-$env:wheel_name_suffix.whl .
 
   # Copy final wheel, to appropriately named wheel for use with NuPIC
@@ -215,14 +190,14 @@ after_build:
   - mkdir %ARTIFACTS_DIR%
 
   # legacy binary tests
-  - cd %REPO_DIR%\build\release\bin
+  - cd %NUPIC_CORE%\build\release\bin
   - connections_performance_test.exe
   - cpp_region_test.exe
   - helloregion.exe
   - hello_sp_tp.exe
   - prototest.exe
   - unit_tests.exe --gtest_output=xml:%ARTIFACTS_DIR%\unit_tests_report.xml
-  - cd %REPO_DIR%
+  - cd %NUPIC_CORE%
   - python setup.py test
 
 # Disable automatic tests
@@ -239,7 +214,7 @@ on_success:
       If ($env:APPVEYOR_REPO_TAG -eq "true" -or $env:APPVEYOR_REPO_TAG -eq "True") {
         Write-Host "Uploading bindings to PYPI"
         pip install httplib requests twine --upgrade
-        twine upload -u $env:PYPI_USERNAME -p $env:PYPI_PASSWORD -r pypi $env:REPO_DIR\bindings\py\dist\nupic.bindings-$env:BINDINGS_VERSION-cp27-none-$env:wheel_name_suffix.whl
+        twine upload -u $env:PYPI_USERNAME -p $env:PYPI_PASSWORD -r pypi $env:NUPIC_CORE\bindings\py\dist\nupic.bindings-$env:BINDINGS_VERSION-cp27-none-$env:wheel_name_suffix.whl
       }
 
 deploy:

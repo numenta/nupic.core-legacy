@@ -2,9 +2,10 @@
 
 # TODO: Use absolute path
 using import "/nupic/proto/ConnectionsProto.capnp".ConnectionsProto;
+using import "/nupic/proto/ConnectionsProto.capnp".ConnectionsProto.SegmentOverlapProto;
 using import "/nupic/proto/RandomProto.capnp".RandomProto;
 
-# Next ID: 19
+# Next ID: 21
 struct TemporalMemoryProto {
 
   columnDimensions @0 :List(UInt32);
@@ -23,10 +24,22 @@ struct TemporalMemoryProto {
 
   # Lists of indices
   activeCells @12 :List(UInt32);
+
+  # Obsolete, information contained in activeSegmentOverlaps
   predictiveCells @13 :List(UInt32);
+
+  # Obsolete, replaced by activeSegmentOverlaps
   activeSegments @14 :List(UInt32);
+
   winnerCells @15 :List(UInt32);
+
+  # Obsolete, replaced by matchingSegmentOverlaps
   matchingSegments @16 :List(UInt32);
+
+  # Obsolete, information contained in matchingSegmentOverlaps
   matchingCells @17 :List(UInt32);
+
   predictedSegmentDecrement @18 :Float32;
+  activeSegmentOverlaps @19 :List(SegmentOverlapProto);
+  matchingSegmentOverlaps @20 :List(SegmentOverlapProto);
 }
