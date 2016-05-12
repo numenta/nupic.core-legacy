@@ -431,7 +431,7 @@ void Connections::computeActivity(const vector<Cell>& input,
 
       if (recordIteration)
       {
-        dataForSegment_(segmentForFlatIdx_[i]).lastUsedIteration++;
+        dataForSegment_(segmentForFlatIdx_[i]).lastUsedIteration = iteration_;
       }
     }
   }

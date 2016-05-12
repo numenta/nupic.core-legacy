@@ -121,34 +121,36 @@ namespace {
   TEST(ConnectionsTest, testCreateSegmentReuse)
   {
     Connections connections(1024, 2);
-    Cell cell;
-    Segment segment;
-    vector<Segment> segments;
 
-    setupSampleConnections(connections);
+    Segment segment1 = connections.createSegment(Cell(42));
+    connections.createSynapse(segment1, Cell(1), 0.5);
+    connections.createSynapse(segment1, Cell(2), 0.5);
 
-    auto numSegments = connections.numSegments();
-    computeSampleActivity(connections);
+    // Let some time pass.
+    vector<SegmentOverlap> activeSegments;
+    vector<SegmentOverlap> matchingSegments;
+    connections.computeActivity({},
+                                0.5, 2, 0.10, 1,
+                                activeSegments, matchingSegments);
+    connections.computeActivity({},
+                                0.5, 2, 0.10, 1,
+                                activeSegments, matchingSegments);
+    connections.computeActivity({},
+                                0.5, 2, 0.10, 1,
+                                activeSegments, matchingSegments);
 
-    cell.idx = 20;
+    Segment segment2 = connections.createSegment(Cell(42));
 
-    segment = connections.createSegment(cell);
-    // Should have reused segment with index 1
-    ASSERT_EQ(segment.idx, 1);
+    // Give the first segment some activity.
+    connections.computeActivity({Cell(1), Cell(2)},
+                                0.5, 2, 0.10, 1,
+                                activeSegments, matchingSegments);
+    ASSERT_EQ(1, activeSegments.size());
+    ASSERT_EQ(segment1, activeSegments[0].segment);
 
-    segments = connections.segmentsForCell(cell);
-    ASSERT_EQ(segments.size(), 2);
+    Segment segment3 = connections.createSegment(Cell(42));
 
-    ASSERT_EQ(numSegments, connections.numSegments());
-
-    segment = connections.createSegment(cell);
-    // Should have reused segment with index 0
-    ASSERT_EQ(segment.idx, 0);
-
-    segments = connections.segmentsForCell(cell);
-    ASSERT_EQ(segments.size(), 2);
-
-    ASSERT_EQ(numSegments, connections.numSegments());
+    EXPECT_EQ(segment2.idx, segment3.idx);
   }
 
   /**
