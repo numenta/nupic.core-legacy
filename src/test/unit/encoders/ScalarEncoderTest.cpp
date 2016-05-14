@@ -57,20 +57,23 @@ std::vector<Real32> patternFromNZ(int n, std::vector<size_t> patternNZ) {
   return v;
 }
 
-void doScalarValueCases(ScalarEncoderBase &e,
-                        std::vector<ScalarValueCase> cases) {
-  for (auto c = cases.begin(); c != cases.end(); c++) {
-    auto actualOutput = getEncoding(e, c->input);
-    for (int i = 0; i < e.getOutputWidth(); i++) {
-      EXPECT_EQ(c->expectedOutput[i], actualOutput[i])
-          << "For input " << c->input << " and index " << i << std::endl
-          << "EXPECTED:" << std::endl
-          << vec2str(c->expectedOutput) << std::endl
-          << "ACTUAL:" << std::endl
-          << vec2str(actualOutput);
+void doScalarValueCases(ScalarEncoderBase& e, std::vector<ScalarValueCase> cases)
+{
+  for (auto c = cases.begin(); c != cases.end(); c++)
+    {
+      auto actualOutput = getEncoding(e, c->input);
+      for (UInt i = 0; i < e.getOutputWidth(); i++)
+        {
+          EXPECT_EQ(c->expectedOutput[i], actualOutput[i])
+            << "For input " << c->input << " and index " << i << std::endl
+            << "EXPECTED:" << std::endl
+            << vec2str(c->expectedOutput) << std::endl
+            << "ACTUAL:" << std::endl
+            << vec2str(actualOutput);
+        }
     }
-  }
 }
+
 
 TEST(ScalarEncoder, ValidScalarInputs) {
   const int n = 10;
