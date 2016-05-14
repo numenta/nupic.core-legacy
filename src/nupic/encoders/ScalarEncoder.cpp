@@ -71,9 +71,8 @@ ScalarEncoder::ScalarEncoder(int w, double minValue, double maxValue, int n,
   }
 }
 
-ScalarEncoder::~ScalarEncoder() {}
 
-int ScalarEncoder::encodeIntoArray(Real64 input, Real32 output[]) {
+int ScalarEncoder::encodeIntoArray(Real64 input, UInt output[]) {
   if (input < minValue_) {
     if (clipInput_) {
       input = minValue_;
@@ -98,9 +97,9 @@ int ScalarEncoder::encodeIntoArray(Real64 input, Real32 output[]) {
   for (int i = 0; i < w_; i++) {
     output[firstBit + i] = 1;
   }
-
   return iBucket;
 }
+
 
 PeriodicScalarEncoder::PeriodicScalarEncoder(int w, double minValue,
                                              double maxValue, int n,
@@ -141,9 +140,15 @@ PeriodicScalarEncoder::PeriodicScalarEncoder(int w, double minValue,
   }
 }
 
-PeriodicScalarEncoder::~PeriodicScalarEncoder() {}
+std::vector<UInt> ScalarEncoderBase::encode(Real input)
+{
+    std::vector<UInt> output(getOutputWidth());
+    encodeIntoArray(input, output.data());
+    return output;
+}
 
-int PeriodicScalarEncoder::encodeIntoArray(Real64 input, Real32 output[]) {
+
+int PeriodicScalarEncoder::encodeIntoArray(Real64 input, UInt output[]) {
   if (input < minValue_ || input >= maxValue_) {
     NTA_THROW << "input " << input << " not within range [" << minValue_ << ", "
               << maxValue_ << ")";
