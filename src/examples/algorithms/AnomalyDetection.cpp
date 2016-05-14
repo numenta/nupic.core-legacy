@@ -104,27 +104,22 @@ class AnomalyDetection
           std::cout << std::endl;
         }
 
-        // The temporal pooler uses Real32, so the vector must be converted again
-        auto tpInput = VectorHelpers::castVectorType<UInt, Real>(spOutput);
-        auto nCells = 0;
+        std::vector<UInt> tpOutput;
         if (tmImpl == "TP") {
-          nCells = tp.nCells(); //TODO fix API of (SP)/TM/TP to same format, so this can be avoided
-        } else { 
-          nCells = tm.numberOfCells();
-        }
-        std::vector<Real> tpOutput(nCells);
-        if (tmImpl == "TP") {
-          tp.compute(tpInput.data(), tpOutput.data(), true, true);
+          std::vector<Real> rTpOutput(tp.nCells());
+          // The temporal pooler uses Real32, so the vector must be converted again
+          auto tpInput = VectorHelpers::castVectorType<UInt, Real>(spOutput);
+          tp.compute(tpInput.data(), rTpOutput.data(), true, true);
+          // And the result is converted ONCE again to UInts
+          tpOutput = VectorHelpers::castVectorType<Real32, UInt>(rTpOutput);
         } else {
-          tm.compute(tpInput.size(), tpInput.data(), true);
+          tm.compute(spOutput.size(), spOutput.data(), true);
           tpOutput = tm.getActiveCells(); //FIXME do union with getPredictedCells() , like TP.outputMode="both"
         }
 
-        // And the result is converted ONCE again to UInts for pretty printing to stdout.
-        auto uintTpOutput = VectorHelpers::castVectorType<Real32, UInt>(tpOutput);
         if (DEBUG_LEVEL > 3) {
           std::cout << "Output of temporal pooler: ";
-          VectorHelpers::print_vector(VectorHelpers::binaryToSparse<UInt>(uintTpOutput), ",");
+          VectorHelpers::print_vector(VectorHelpers::binaryToSparse<UInt>(tpOutput), ",");
           std::cout << std::endl;
         }
 
@@ -136,9 +131,9 @@ class AnomalyDetection
         );
         // Save the output of the TP for the next iteration...
         if (tmImpl == "TP") {
-          lastTPOutput_ = VectorHelpers::cellsToColumns(uintTpOutput, tp.nCellsPerCol());
+          lastTPOutput_ = VectorHelpers::cellsToColumns(tpOutput, tp.nCellsPerCol());
         } else {
-          lastTPOutput_ = VectorHelpers::cellsToColumns(uintTpOutput, tm.getCellsPerColumn());
+          lastTPOutput_ = VectorHelpers::cellsToColumns(tpOutput, tm.getCellsPerColumn());
         }
 
         if (DEBUG_LEVEL > 4) {
