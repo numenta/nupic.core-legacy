@@ -69,7 +69,7 @@ namespace nupic
                                    clipInput);
     }
 
-    sensedValue_ = params.getScalarT<Real64>("sensedValue");
+    sensedValue_ = params.getScalarT<Real>("sensedValue");
   }
 
   ScalarSensor::ScalarSensor(BundleIO& bundle, Region* region) :
@@ -94,7 +94,12 @@ namespace nupic
   void ScalarSensor::compute()
   {
     Real32* array = (Real32*)encodedOutput_->getData().getBuffer();
-    const Int32 iBucket = encoder_->encodeIntoArray(sensedValue_, array);
+    UInt uintArray[encoder_->getOutputWidth()];
+    for(UInt i=0; i<encoder_->getOutputWidth(); i++) //FIXME optimize
+    {
+      uintArray[i] = (UInt)array[i];
+    }
+    const Int32 iBucket = encoder_->encodeIntoArray(sensedValue_, uintArray);
     ((Int32*)bucketOutput_->getData().getBuffer())[0] = iBucket;
   }
 
