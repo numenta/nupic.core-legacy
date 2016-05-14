@@ -1,6 +1,6 @@
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2014, Numenta, Inc.  Unless you have an agreement
+ * Copyright (C) 2014-2016, Numenta, Inc.  Unless you have an agreement
  * with Numenta, Inc., for a separate license for this software code, the
  * following terms and conditions apply:
  *
@@ -373,17 +373,22 @@ Synapse Connections::minPermanenceSynapse_(const Segment& segment) const
   return Synapse(minIdx, segment);
 }
 
-Activity Connections::computeActivity(const vector<Cell>& input,
-                                      Permanence activePermanenceThreshold,
-                                      SynapseIdx activeSynapseThreshold,
-                                      Permanence matchingPermanenceThreshold,
-                                      SynapseIdx matchingSynapseThreshold,
-                                      bool recordIteration)
+bool segmentIncreasingOrder(const SegmentOverlap& a, const SegmentOverlap& b)
 {
-  Activity activity = {map< Cell, std::vector<Segment> >(),
-                       vector<UInt32>(nextFlatIdx_, 0),
-                       map< Cell, std::vector<Segment> >(),
-                       vector<UInt32>(nextFlatIdx_, 0)};
+  return a.segment < b.segment;
+}
+
+void Connections::computeActivity(const vector<Cell>& input,
+                                  Permanence activePermanenceThreshold,
+                                  SynapseIdx activeSynapseThreshold,
+                                  Permanence matchingPermanenceThreshold,
+                                  SynapseIdx matchingSynapseThreshold,
+                                  vector<SegmentOverlap>& outActiveSegments,
+                                  vector<SegmentOverlap>& outMatchingSegments,
+                                  bool recordIteration)
+{
+  vector<UInt32> numActiveSynapsesForSegment(nextFlatIdx_, 0);
+  vector<UInt32> numMatchingSynapsesForSegment(nextFlatIdx_, 0);
 
   NTA_CHECK(matchingPermanenceThreshold <= activePermanenceThreshold);
 
@@ -401,28 +406,11 @@ Activity Connections::computeActivity(const vector<Cell>& input,
       {
         const SegmentData& segmentData = dataForSegment_(synapse.segment);
 
-        const auto numMatchingSynapses =
-          ++activity.numMatchingSynapsesForSegment[segmentData.flatIdx];
-        if (numMatchingSynapses == matchingSynapseThreshold)
-        {
-          activity.matchingSegmentsForCell[synapse.segment.cell]
-            .push_back(synapse.segment);
-        }
+        ++numMatchingSynapsesForSegment[segmentData.flatIdx];
 
         if (synapseData.permanence >= activePermanenceThreshold)
         {
-          const auto numActiveSynapses =
-            ++activity.numActiveSynapsesForSegment[segmentData.flatIdx];
-          if (numActiveSynapses == activeSynapseThreshold)
-          {
-            activity.activeSegmentsForCell[synapse.segment.cell]
-              .push_back(synapse.segment);
-
-            if (recordIteration)
-            {
-              dataForSegment_(synapse.segment).lastUsedIteration++;
-            }
-          }
+          ++numActiveSynapsesForSegment[segmentData.flatIdx];
         }
       }
     }
@@ -433,59 +421,35 @@ Activity Connections::computeActivity(const vector<Cell>& input,
     iteration_++;
   }
 
-  return activity;
-}
-
-vector<Segment> Connections::activeSegments(const Activity& activity)
-{
-  vector<Segment> segments;
-  segments.reserve(activity.activeSegmentsForCell.size()); // lower bound
-
-  for (auto i : activity.activeSegmentsForCell)
+  for (size_t i = 0; i < numActiveSynapsesForSegment.size(); i++)
   {
-    segments.insert(segments.end(), i.second.begin(), i.second.end());
+    if (numActiveSynapsesForSegment[i] >= activeSynapseThreshold)
+    {
+      const SegmentOverlap segmentOverlap =
+        {segmentForFlatIdx_[i], numActiveSynapsesForSegment[i]};
+      outActiveSegments.push_back(segmentOverlap);
+
+      if (recordIteration)
+      {
+        dataForSegment_(segmentForFlatIdx_[i]).lastUsedIteration = iteration_;
+      }
+    }
   }
 
-  return segments;
-}
-
-vector<Cell> Connections::activeCells(const Activity& activity)
-{
-  vector<Cell> cells;
-  cells.reserve(activity.activeSegmentsForCell.size());
-
-  for (auto i : activity.activeSegmentsForCell)
+  for (size_t i = 0; i < numMatchingSynapsesForSegment.size(); i++)
   {
-    cells.push_back(i.first);
+    if (numMatchingSynapsesForSegment[i] >= matchingSynapseThreshold)
+    {
+      const SegmentOverlap segmentOverlap =
+        {segmentForFlatIdx_[i], numMatchingSynapsesForSegment[i]};
+      outMatchingSegments.push_back(segmentOverlap);
+    }
   }
 
-  return cells;
-}
-
-vector<Segment> Connections::matchingSegments(const Activity& activity)
-{
-  vector<Segment> segments;
-  segments.reserve(activity.matchingSegmentsForCell.size()); // lower bound
-
-  for (auto i : activity.matchingSegmentsForCell)
-  {
-    segments.insert(segments.end(), i.second.begin(), i.second.end());
-  }
-
-  return segments;
-}
-
-vector<Cell> Connections::matchingCells(const Activity& activity)
-{
-  vector<Cell> cells;
-  cells.reserve(activity.matchingSegmentsForCell.size());
-
-  for (auto i : activity.matchingSegmentsForCell)
-  {
-    cells.push_back(i.first);
-  }
-
-  return cells;
+  std::sort(outActiveSegments.begin(), outActiveSegments.end(),
+            segmentIncreasingOrder);
+  std::sort(outMatchingSegments.begin(), outMatchingSegments.end(),
+            segmentIncreasingOrder);
 }
 
 void Connections::save(ostream& outStream) const
@@ -781,6 +745,11 @@ bool Cell::operator==(const Cell &other) const
   return idx == other.idx;
 }
 
+bool Cell::operator!=(const Cell &other) const
+{
+  return idx != other.idx;
+}
+
 bool Cell::operator<=(const Cell &other) const
 {
   return idx <= other.idx;
@@ -808,22 +777,50 @@ bool Segment::operator==(const Segment &other) const
 
 bool Segment::operator<=(const Segment &other) const
 {
-  return idx == other.idx ? cell <= other.cell : idx <= other.idx;
+  if (cell != other.cell)
+  {
+    return cell <= other.cell;
+  }
+  else
+  {
+    return idx <= other.idx;
+  }
 }
 
 bool Segment::operator<(const Segment &other) const
 {
-  return idx == other.idx ? cell < other.cell : idx < other.idx;
+  if (cell != other.cell)
+  {
+    return cell < other.cell;
+  }
+  else
+  {
+    return idx < other.idx;
+  }
 }
 
 bool Segment::operator>=(const Segment &other) const
 {
-  return idx == other.idx ? cell >= other.cell : idx >= other.idx;
+  if (cell != other.cell)
+  {
+    return cell >= other.cell;
+  }
+  else
+  {
+    return idx >= other.idx;
+  }
 }
 
 bool Segment::operator>(const Segment &other) const
 {
-  return idx == other.idx ? cell > other.cell : idx > other.idx;
+  if (cell != other.cell)
+  {
+    return cell > other.cell;
+  }
+  else
+  {
+    return idx > other.idx;
+  }
 }
 
 bool Synapse::operator==(const Synapse &other) const
