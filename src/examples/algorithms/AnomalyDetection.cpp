@@ -109,13 +109,13 @@ class AnomalyDetection
         auto nCells = 0;
         if (tmImpl == "TP") {
           nCells = tp.nCells(); //TODO fix API of (SP)/TM/TP to same format, so this can be avoided
-        else { 
+        } else { 
           nCells = tm.numberOfCells();
         }
         std::vector<Real> tpOutput(nCells);
         if (tmImpl == "TP") {
           tp.compute(tpInput.data(), tpOutput.data(), true, true);
-        else {
+        } else {
           tm.compute(tpInput.size(), tpInput.data(), true);
           tpOutput = tm.getActiveCells(); //FIXME do union with getPredictedCells() , like TP.outputMode="both"
         }
@@ -137,11 +137,10 @@ class AnomalyDetection
         // Save the output of the TP for the next iteration...
         if (tmImpl == "TP") {
           lastTPOutput_ = VectorHelpers::cellsToColumns(uintTpOutput, tp.nCellsPerCol());
-        else {
-          lastTPOutput_ = VectorHelpers::cellsToColumns(uintTpOutput, tm.getCellsPerCol());
+        } else {
+          lastTPOutput_ = VectorHelpers::cellsToColumns(uintTpOutput, tm.getCellsPerColumn());
         }
 
-        lastTPOutput_ = VectorHelpers::cellsToColumns(uintTpOutput, tp.nCellsPerCol());
         if (DEBUG_LEVEL > 4) {
           std::cout << "Normalized TP Output: ";
           VectorHelpers::print_vector(VectorHelpers::binaryToSparse<UInt>(lastTPOutput_), ",");
@@ -158,16 +157,11 @@ class AnomalyDetection
       UInt nCols = 2048, UInt nCells = 4, UInt anomalyWindowSize = 2) : 
         encoder{25, inputMin, inputMax, 0, 0, inputResolution, false},
         sp{std::vector<UInt>{static_cast<UInt>(encoder.getOutputWidth())}, std::vector<UInt>{nCols}},
+        tp{sp.getNumColumns(), nCells, 12, 8, 15, 5, .5, .8, 1.0, .1, .1, 0.0, false, 42, true, false}, //FIXME tp & tm should not be initialized both, but I dont know how to conditionally initialize based on impl.
+        tm({sp.getNumColumns()}, nCells), //FIXME ensure same params TP/TM
         anomaly{anomalyWindowSize, AnomalyMode::PURE, 0},
         lastTPOutput_(nCols)
     {
-        if (tmImpl == "TP") {
-          this->tp{sp.getNumColumns(), nCells, 12, 8, 15, 5, .5, .8, 1.0, .1, .1, 0.0, false, 42, true, false};
-          this->tm = NULL;
-        else {
-          this->tm{{sp.getNumColumns()}, nCells}; //FIXME ensure same params TP/TM
-          this->tp = NULL;
-        }
     }
 };
 
