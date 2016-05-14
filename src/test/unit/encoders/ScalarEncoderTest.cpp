@@ -33,27 +33,31 @@ using namespace nupic;
 
 template <typename T> std::string vec2str(std::vector<T> vec) {
   std::ostringstream oss("");
-  for (size_t i = 0; i < vec.size(); i++)
+  for (size_t i = 0; i < vec.size(); i++) //FIXME VectorHelper would have been used eg. here
     oss << vec[i];
   return oss.str();
 }
 
-std::vector<Real32> getEncoding(ScalarEncoderBase &e, Real64 input) {
-  auto actualOutput = std::vector<Real32>(e.getOutputWidth());
+std::vector<UInt> getEncoding(ScalarEncoderBase& e, Real input)
+{
+  auto actualOutput = std::vector<UInt>(e.getOutputWidth());
   e.encodeIntoArray(input, &actualOutput[0]);
   return actualOutput;
 }
 
-struct ScalarValueCase {
-  Real64 input;
-  std::vector<Real32> expectedOutput;
+struct ScalarValueCase
+{
+  Real input;
+  std::vector<UInt> expectedOutput;
 };
 
-std::vector<Real32> patternFromNZ(int n, std::vector<size_t> patternNZ) {
-  auto v = std::vector<Real32>(n, 0);
-  for (auto it = patternNZ.begin(); it != patternNZ.end(); it++) {
-    v[*it] = 1;
-  }
+std::vector<UInt> patternFromNZ(int n, std::vector<size_t> patternNZ)
+{
+  auto v = std::vector<UInt>(n, 0);
+  for (auto it = patternNZ.begin(); it != patternNZ.end(); it++)
+    {
+      v[*it] = 1;
+    }
   return v;
 }
 
