@@ -57,7 +57,7 @@ namespace nupic
     /**
      * Returns the output width, in bits.
      */
-    virtual int getOutputWidth() const = 0;
+    virtual UInt getOutputWidth() const = 0;
   };
 
   /** Encodes a floating point number as a contiguous block of 1s.
@@ -107,7 +107,7 @@ namespace nupic
     ~ScalarEncoder() override;
 
     virtual int encodeIntoArray(Real64 input, Real32 output[]) override;
-    virtual int getOutputWidth() const override { return n_; }
+    virtual UInt getOutputWidth() const override { return n_; }
 
   private:
     int w_;
@@ -165,7 +165,7 @@ namespace nupic
     virtual ~PeriodicScalarEncoder() override;
 
     virtual int encodeIntoArray(Real64 input, Real32 output[]) override;
-    virtual int getOutputWidth() const override { return n_; }
+    virtual UInt getOutputWidth() const override { return n_; }
 
   private:
     int w_;

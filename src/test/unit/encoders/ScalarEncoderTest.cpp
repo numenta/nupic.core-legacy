@@ -68,7 +68,7 @@ void doScalarValueCases(ScalarEncoderBase& e, std::vector<ScalarValueCase> cases
   for (auto c = cases.begin(); c != cases.end(); c++)
     {
       auto actualOutput = getEncoding(e, c->input);
-      for (int i = 0; i < e.getOutputWidth(); i++)
+      for (UInt i = 0; i < e.getOutputWidth(); i++)
         {
           EXPECT_EQ(c->expectedOutput[i], actualOutput[i])
             << "For input " << c->input << " and index " << i << std::endl
