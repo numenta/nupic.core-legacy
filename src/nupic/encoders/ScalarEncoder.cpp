@@ -88,7 +88,7 @@ namespace nupic
   {
   }
 
-  int ScalarEncoder::encodeIntoArray(Real64 input, Real32 output[])
+  int ScalarEncoder::encodeIntoArray(Real input, UInt output[])
   {
     if (input < minValue_)
     {
@@ -124,6 +124,13 @@ namespace nupic
     }
 
     return iBucket;
+  }
+
+  std::vector<UInt> ScalarEncoderBase::encode(Real input)
+  {
+    std::vector<UInt> output(getOutputWidth());
+    encodeIntoArray(input, output.data());
+    return output;
   }
 
   PeriodicScalarEncoder::PeriodicScalarEncoder(
@@ -178,7 +185,7 @@ namespace nupic
   {
   }
 
-  int PeriodicScalarEncoder::encodeIntoArray(Real64 input, Real32 output[])
+  int PeriodicScalarEncoder::encodeIntoArray(Real input, UInt output[])
   {
     if (input < minValue_ || input >= maxValue_)
     {
