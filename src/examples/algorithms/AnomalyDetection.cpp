@@ -56,7 +56,7 @@
 
 #include <csv.h> // external CSV parser
 #include "nupic/os/Timer.hpp"
-#include "nupic/utils/VectorHelpers.hpp"
+#include "VectorHelpers.hpp"
 
 using namespace std; // generic namespaces are included here
 using namespace nupic;
