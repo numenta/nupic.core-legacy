@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.4.2
+
+* Define and use environment variables containing compiler and linker flags specifically for 3rd-party source code.
+* Revert to installing mingwpy toolchains from https://bitbucket.org/carlkl/mingw-w64-for-python/downloads.
+* Better rand() approach, won't ever be greater than 1
+* Stop computing overlaps twice per timestep. 4% faster.
+* Stop storing segment overlap counts in a map. Now 56% faster.
+* Enable errors for windows32 build in the matrix.
+* Use proper float comparisons to avoid issues on 32 vs 64 bit machines.
+* Perf: When using sets, use std::set::find, not std::find
+* Swig needs `-include cmath` when building with mingw toolchain.
+* Initialize swig_generated_file_compile_flags directly from COMMON_CXX_FLAGS_OPTIMIZED to avoid -Werror.
+* Comment out header and binary install targets in CapnProto.cmake, since this is a duplicate of the exact same steps in srce/CMakeLists.txt, which installs other externals as well.
+* Attempt to fix execution of helloregion test from Travis build by modifying .travis.yml to change directory to build/release/bin just as instructed by nupic.core/README.md.
+* Added a comment about nupic.core's swig wraps relying on the macro CAPNP_LITE to have a value.
+* Fix windows build of nupic.core's Swig wraps that expects CAPNP_LITE not only to be defined (capnp recommends just defining it), but to actually have a value (non-zero).
+* Invoke additional nupic.core tests in Travis to make sure that things get tested and tests don't get broken again unnoticed:   connections_performance_test   helloregion   hello_sp_tp   prototest
+* Refactored CommonCompilerConfig.cmake to exposed optimized and unoptimized flag sets. Fixed linux GCC build of CapnProto components by changing its configuration to use unoptimized versions of common flags. Cleaned up use of local variables in src/CMakeFiles.txt. nupic.core/CmakeLists.txt is now the only place that defines REPOSITORY_DIR for use by other modules. Fixed dependency in add_custom_command function inside CREATE_CAPNPC_COMMAND to use passed-in arg SPEC_FILES instead of a property from src/CMakeLists.txt.
+* Add BITNESS to Swig.cmake
+
 ## 0.4.1
 
 * Cast arg to UInt32 to avoid call resolution ambiguity on the value.write() method on Win32 platform.

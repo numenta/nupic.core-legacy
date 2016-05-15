@@ -608,12 +608,6 @@ namespace nupic {
     inline double operator()(const double& x) const { return sqrt(x); }
   };
 
-  template <>
-  struct Sqrt<long double> : public std::unary_function<long double,long double>
-  {
-    inline long double operator()(const long double& x) const { return sqrtl(x); }
-  };
-
   template <typename T>
   struct Exp : public std::unary_function<T,T>
   {};
@@ -636,12 +630,6 @@ namespace nupic {
     inline double operator()(const double& x) const { return exp(x); }
   };
 
-  template <>
-  struct Exp<long double> : public std::unary_function<long double,long double>
-  {
-    inline long double operator()(const long double& x) const { return expl(x); }
-  };
-
   template <typename T>
   struct Log : public std::unary_function<T,T>
   {};
@@ -656,12 +644,6 @@ namespace nupic {
   struct Log<double> : public std::unary_function<double,double>
   {
     inline double operator()(const double& x) const { return log(x); }
-  };
-
-  template <>
-  struct Log<long double> : public std::unary_function<long double,long double>
-  {
-    inline long double operator()(const long double& x) const { return logl(x); }
   };
 
   template <typename T>
@@ -690,19 +672,6 @@ namespace nupic {
       return log(x) / log(2.0);
 #else
       return log2(x); 
-#endif
-    }
-  };
-
-  template <>
-  struct Log2<long double> : public std::unary_function<long double,long double>
-  {
-    inline long double operator()(const long double& x) const 
-    { 
-#if defined(NTA_OS_WINDOWS)
-      return log(x) / log(2.0);
-#else
-      return log2l(x); 
 #endif
     }
   };
@@ -737,19 +706,6 @@ namespace nupic {
     }
   };
 
-  template <>
-  struct Log10<long double> : public std::unary_function<long double,long double>
-  {
-    inline long double operator()(const long double& x) const 
-    { 
-#if defined(NTA_OS_WINDOWS)
-      return log(x) / log(10.0);
-#else
-      return log10l(x); 
-#endif
-    }
-  };
-
   template <typename T>
   struct Log1p : public std::unary_function<T,T>
   {};
@@ -776,19 +732,6 @@ namespace nupic {
       return log(1.0 + x);
 #else
       return log1p(x); 
-#endif
-    }
-  };
-
-  template <>
-  struct Log1p<long double> : public std::unary_function<long double,long double>
-  {
-    inline long double operator()(const long double& x) const 
-    { 
-#if defined(NTA_OS_WINDOWS)
-      return log(1.0 + x);
-#else
-      return log1pl(x); 
 #endif
     }
   };
@@ -869,16 +812,6 @@ namespace nupic {
     }
   };
 
-  template <>
-  struct Pow<long double>
-    : public std::binary_function<long double,long double,long double>
-  {
-    inline long double operator()(const long double& x, const long double& y) const
-    { 
-      return powl(x,y); 
-    }
-  };
-
   template <typename T>
   struct Logk : public std::binary_function<T,T,T>
   {};
@@ -898,16 +831,6 @@ namespace nupic {
     inline double operator()(const double& x, const double& y) const
     {
       return log(x)/log(y); 
-    }
-  };
-
-  template <>
-  struct Logk<long double>
-    : public std::binary_function<long double,long double,long double>
-  {
-    inline long double operator()(const long double& x, const long double& y) const
-    { 
-      return logl(x)/logl(y); 
     }
   };
 

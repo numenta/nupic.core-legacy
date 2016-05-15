@@ -42,14 +42,6 @@ environment:
     secure: UgABryPYZg823OcD1XRosA==
 
   matrix:
-    # Win32-gcc
-    - PYTHON_VERSION: "2.7.9"
-      PYTHON_ARCH: "32"
-      PYTHONHOME: "C:\\Python27"
-      NC_CMAKE_GENERATOR: "MinGW Makefiles"
-      external_static_subdir: "windows32-gcc"
-      wheel_name_suffix: "win32"
-
     # Win64-gcc
     - PYTHON_VERSION: "2.7.9"
       PYTHON_ARCH: "64"
@@ -57,6 +49,14 @@ environment:
       NC_CMAKE_GENERATOR: "MinGW Makefiles"
       external_static_subdir: "windows64-gcc"
       wheel_name_suffix: "win_amd64"
+
+    # Win32-gcc
+    - PYTHON_VERSION: "2.7.9"
+      PYTHON_ARCH: "32"
+      PYTHONHOME: "C:\\Python27"
+      NC_CMAKE_GENERATOR: "MinGW Makefiles"
+      external_static_subdir: "windows32-gcc"
+      wheel_name_suffix: "win32"
 
 #    # Win64-Visual Studio
 #    - PYTHON_VERSION: "2.7.9"
@@ -77,16 +77,21 @@ matrix:
 #       build configuration       #
 #---------------------------------#
 
+# configuration values must be compatible with CMAKE_BUILD_TYPE: Debug or Release
 configuration: Release
+
 
 install:
   - set NUPIC_DEPLOYMENT_BUILD=1
 
-  - set REPO_DIR=c:\projects\nupic-core
-  - set NUPIC_CORE_DIR=%REPO_DIR%\build\release
-  - set EXTERNAL_WINDOWS_DIR=%REPO_DIR%\external\%external_static_subdir%
+  # Dump appveyor build vars for diagnostics
+  - "ECHO APPVEYOR_FORCED_BUILD: %APPVEYOR_FORCED_BUILD%"
+  - "ECHO APPVEYOR_RE_BUILD: %APPVEYOR_RE_BUILD%"
 
-  - set ARTIFACTS_DIR=%REPO_DIR%\build\artifacts
+  - set NUPIC_CORE=c:\projects\nupic-core
+  - set EXTERNAL_WINDOWS_DIR=%NUPIC_CORE%\external\%external_static_subdir%
+
+  - set ARTIFACTS_DIR=%NUPIC_CORE%\build\artifacts
   - for /f %%i in ('type VERSION') do set BINDINGS_VERSION=%%i
   - echo Binding version = %BINDINGS_VERSION%
 
@@ -105,23 +110,28 @@ install:
 
   - echo %PATH%
 
+  #
   # Install Python 2.7.x, Pip, Wheel, and NumPy
-  - cd %REPO_DIR%\ci\appveyor
+  #
+  - cd %NUPIC_CORE%\ci\appveyor
   - ps: .\install_python_pip.ps1
 
-  - ECHO "Installing MinGW toolchain for Python:"
+  #
+  # Install mingwpy toolchain
+  #
+  - ECHO "Installing MinGW toolchain for Python"
   # Install the version of mingwpy toolchain that generates targets compatible
   # with the installed python (Win32 vs. Win64). The compiler tools are
   # installed into %PYTHONHOME%/Scripts/
-  - cmd: "%PYTHONHOME%\\Scripts\\pip.exe install -i https://pypi.anaconda.org/carlkl/simple mingwpy"
+  - cmd: "%PYTHONHOME%\\Scripts\\pip.exe install -i https://pypi.anaconda.org/carlkl/simple mingwpy==0.1.0b3"
   - cmd: "where g++"
-
+  - cmd: "g++ --version"
   - cmd: "dir %PYTHONHOME%\\share\\mingwpy"
 
   # Setup MinGW GCC as a valid distutils compiler
   - cp %EXTERNAL_WINDOWS_DIR%\bin\distutils.cfg %PYTHONHOME%\Lib\distutils\distutils.cfg
 
-  # Check that we have the expected version and architecture for Python
+  # Display the version and architecture for Python to help with diagnostics
   - "python --version"
   - "where python"
   - "python -c \"import struct; print(struct.calcsize('P') * 8)\""
@@ -133,10 +143,10 @@ install:
   # Check NumPy, etc. installed correctly
   - cmd: pip list
 
-  - cd %REPO_DIR%
-  - mkdir %REPO_DIR%\build\
-  - mkdir %REPO_DIR%\build\release
-  - mkdir %REPO_DIR%\build\scripts
+  - cd %NUPIC_CORE%
+  - mkdir %NUPIC_CORE%\build\
+  - mkdir %NUPIC_CORE%\build\release
+  - mkdir %NUPIC_CORE%\build\scripts
 
   # Remove sh.exe from the paths (CMake doesn't like it)
   - set PATH=%PATH:C:\Program Files (x86)\Git\bin;=%
@@ -149,25 +159,25 @@ install:
 
   # Fake KJ-Async and Capnp-RPC libs, not needed in Lite mode
   # http://www.cmake.org/Wiki/CmakeMingw
-  - cd %REPO_DIR%\build\scripts
+  - cd %NUPIC_CORE%\build\scripts
   - cmake -G "%NC_CMAKE_GENERATOR%"
-      -DCMAKE_BUILD_TYPE=Release
-      -DCMAKE_INSTALL_PREFIX=%REPO_DIR%\build\release
-      -DPY_EXTENSIONS_DIR=%REPO_DIR%\bindings\py\nupic\bindings
-      %REPO_DIR%
+      -DCMAKE_BUILD_TYPE=%configuration%
+      -DCMAKE_INSTALL_PREFIX=%NUPIC_CORE%\build\release
+      -DPY_EXTENSIONS_DIR=%NUPIC_CORE%\bindings\py\nupic\bindings
+      %NUPIC_CORE%
 
 
 build_script:
-  - cd %REPO_DIR%\build\scripts
+  - cd %NUPIC_CORE%\build\scripts
 
   # Run build, using portable, toolchain-agnostic mechanism to start it
-  - cmake.exe --build "%REPO_DIR%\build\scripts" --target install --config Release
+  - cmake.exe --build "%NUPIC_CORE%\build\scripts" --target install --config %configuration%
 
-  - cd %REPO_DIR%
+  - cd %NUPIC_CORE%
 
   - python setup.py sdist bdist bdist_wheel
 
-  # Copy final wheel to REPO_DIR, so that AppVeyor can see it as an artifact
+  # Copy final wheel to NUPIC_CORE, so that AppVeyor can see it as an artifact
   - ps: copy .\bindings\py\dist\nupic.bindings-$env:BINDINGS_VERSION-cp27-none-$env:wheel_name_suffix.whl .
 
   # Copy final wheel, to appropriately named wheel for use with NuPIC
@@ -180,16 +190,17 @@ after_build:
   - mkdir %ARTIFACTS_DIR%
 
   # legacy binary tests
-  - cd %REPO_DIR%\build\release\bin
+  - cd %NUPIC_CORE%\build\release\bin
   - connections_performance_test.exe
   - cpp_region_test.exe
   - helloregion.exe
   - hello_sp_tp.exe
   - prototest.exe
   - unit_tests.exe --gtest_output=xml:%ARTIFACTS_DIR%\unit_tests_report.xml
-  - cd %REPO_DIR%
+  - cd %NUPIC_CORE%
   - python setup.py test
 
+# Disable automatic tests
 test: off
 
 artifacts:
@@ -203,7 +214,7 @@ on_success:
       If ($env:APPVEYOR_REPO_TAG -eq "true" -or $env:APPVEYOR_REPO_TAG -eq "True") {
         Write-Host "Uploading bindings to PYPI"
         pip install httplib requests twine --upgrade
-        twine upload -u $env:PYPI_USERNAME -p $env:PYPI_PASSWORD -r pypi $env:REPO_DIR\bindings\py\dist\nupic.bindings-$env:BINDINGS_VERSION-cp27-none-$env:wheel_name_suffix.whl
+        twine upload -u $env:PYPI_USERNAME -p $env:PYPI_PASSWORD -r pypi $env:NUPIC_CORE\bindings\py\dist\nupic.bindings-$env:BINDINGS_VERSION-cp27-none-$env:wheel_name_suffix.whl
       }
 
 deploy:
@@ -219,5 +230,3 @@ deploy:
     folder: "numenta/nupic.core/releases/nupic.bindings"
     on:
       branch: master
-
-#deploy: off

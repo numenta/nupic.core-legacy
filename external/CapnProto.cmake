@@ -60,8 +60,8 @@ endif()
 # NOTE Capnproto link fails with segfault on Travis and Ubuntu when using
 # a combination -flto optimization together with -O2
 # Reference https://github.com/sandstorm-io/capnproto/issues/300
-set(capnp_cxx_flags "${COMMON_CXX_FLAGS_UNOPTIMIZED} ${COMMON_COMPILER_DEFINITIONS_STR}")
-set(capnp_linker_flags "${COMMON_LINKER_FLAGS_UNOPTIMIZED}")
+set(capnp_cxx_flags "${EXTERNAL_CXX_FLAGS_UNOPTIMIZED} ${COMMON_COMPILER_DEFINITIONS_STR}")
+set(capnp_linker_flags "${EXTERNAL_LINKER_FLAGS_UNOPTIMIZED}")
 
 
 # Print diagnostic info to debug whether -fuse-linker-plugin is being suppressed

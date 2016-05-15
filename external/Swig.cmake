@@ -19,36 +19,28 @@
 # http://numenta.org/licenses/
 # -----------------------------------------------------------------------------
 
-option(FIND_SWIG "Use preinstalled SWIG." OFF)
+set(swig_path "${REPOSITORY_DIR}/external/common/src/swig-3.0.2.tar.gz")
+set(pcre_path "${REPOSITORY_DIR}/external/common/src/pcre-8.37.tar.gz")
 
-if (${FIND_SWIG})
-  find_package(SWIG)
-  # Create a dummy target to depend on.
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   add_custom_target(Swig)
+  set(swig_executable
+      ${PROJECT_SOURCE_DIR}/${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}/bin/swig.exe)
+  set(swig_dir ${PROJECT_SOURCE_DIR}/common/share/swig/3.0.2)
+else()
+  ExternalProject_Add(
+    Swig
+    URL ${swig_path}
+    UPDATE_COMMAND ""
+    CONFIGURE_COMMAND
+      mkdir -p ${EP_BASE}/Source/Swig/Tools/ &&
+      cp ${pcre_path} ${EP_BASE}/Build/Swig/ &&
+      ${EP_BASE}/Source/Swig/Tools/pcre-build.sh &&
+      ${EP_BASE}/Source/Swig/configure --prefix=${EP_BASE}/Install --enable-cpp11-testing
+  )
+  set(swig_executable ${EP_BASE}/Install/bin/swig)
+  set(swig_dir ${EP_BASE}/Install/share/swig/3.0.2)
+endif()
 
-else ()
-  # Build SWIG from source.
-  if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    add_custom_target(Swig)
-    set(SWIG_EXECUTABLE
-	    ${PROJECT_SOURCE_DIR}/${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}/bin/swig.exe)
-    set(SWIG_DIR ${PROJECT_SOURCE_DIR}/common/share/swig/3.0.2)
-  else()
-    # TODO: Remove dependency on curl by using native CMake functionality for
-    # fetching pcre.
-    ExternalProject_Add(
-      Swig
-      URL http://prdownloads.sourceforge.net/swig/swig-3.0.2.tar.gz
-      UPDATE_COMMAND ""
-      CONFIGURE_COMMAND
-        curl -OL http://downloads.sourceforge.net/project/pcre/pcre/8.37/pcre-8.37.tar.gz &&
-        ${EP_BASE}/Source/Swig/Tools/pcre-build.sh &&
-        ${EP_BASE}/Source/Swig/configure --prefix=${EP_BASE}/Install --enable-cpp11-testing
-    )
-    set(SWIG_EXECUTABLE ${EP_BASE}/Install/bin/swig)
-    set(SWIG_DIR ${EP_BASE}/Install/share/swig/3.0.2)
-  endif()
-endif ()
-
-set(SWIG_EXECUTABLE ${SWIG_EXECUTABLE} PARENT_SCOPE)
-set(SWIG_DIR ${SWIG_DIR} PARENT_SCOPE)
+set(SWIG_EXECUTABLE ${swig_executable} PARENT_SCOPE)
+set(SWIG_DIR ${swig_dir} PARENT_SCOPE)

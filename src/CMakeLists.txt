@@ -42,26 +42,31 @@ endif()
 
 
 #
+# NuPIC CMake options
+#
+option(NUPIC_IWYU "Enable include-what-you-use
+  (http://include-what-you-use.org/). This requires the iwyu binary to be
+  discoverable by CMake's find_program.")
+if(${NUPIC_IWYU})
+  find_program(iwyu_path NAMES include-what-you-use iwyu)
+  if(NOT iwyu_path)
+    message(FATAL_ERROR "Could not find the program include-what-you-use")
+  endif()
+endif()
+
+
+#
 # Set up compile flags for internal sources and for swig-generated sources
 #
 
-set(src_compile_flags "${COMMON_CXX_FLAGS_OPTIMIZED}")
+set(src_compile_flags "${INTERNAL_CXX_FLAGS_OPTIMIZED}")
+set(swig_generated_file_compile_flags "${EXTERNAL_CXX_FLAGS_OPTIMIZED}")
 
 if(MINGW)
   # This is for GCC 4.8.x
   # http://stackoverflow.com/questions/10660524/error-building-boost-1-49-0-with-gcc-4-7-0
   set(src_compile_flags "${src_compile_flags} -include cmath")
-endif()
-
-
-# NOTE We don't want -Werror flag for compiling swig-generated sources.
-# Compilation of those files produces many "maybe-uninitialized" warnings
-# that would fail the build with the -Werror flag
-set(swig_generated_file_compile_flags "${src_compile_flags}")
-
-
-if(NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
-    set(src_compile_flags "${src_compile_flags} -Werror")
+  set(swig_generated_file_compile_flags "${swig_generated_file_compile_flags} -include cmath")
 endif()
 
 
@@ -78,13 +83,18 @@ set(src_compiler_definitions
     -DNTA_ARCH_${BITNESS}
     -DHAVE_CONFIG_H
     -DNTA_INTERNAL
+    -DBOOST_MATH_NO_LONG_DOUBLE_MATH_FUNCTIONS
     -DBOOST_NO_WREGEX
     -DNUPIC2
-    -DNTA_ASSERTIONS_ON
     -DNTA_ASM
     -DAPR_DECLARE_STATIC
     -DAPU_DECLARE_STATIC)
 
+if(NOT "${CMAKE_BUILD_TYPE}" STREQUAL "Release")
+  set(src_compiler_definitions
+      ${src_compiler_definitions}
+      -DNTA_ASSERTIONS_ON)
+endif()
 
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
   set(src_compiler_definitions
@@ -166,7 +176,7 @@ add_library(${src_lib_static_gtest}
             ${REPOSITORY_DIR}/external/common/src/gtest/gtest-all.cpp)
 set_target_properties(${src_lib_static_gtest}
                       PROPERTIES COMPILE_FLAGS "${src_compile_flags}"
-                      LINK_FLAGS "${COMMON_LINKER_FLAGS_OPTIMIZED}")
+                      LINK_FLAGS "${INTERNAL_LINKER_FLAGS_OPTIMIZED}")
 
 #
 # Setup for python
@@ -193,6 +203,7 @@ set(src_capnp_specs_rel
   nupic/proto/SparseBinaryMatrixProto.capnp
   nupic/proto/SparseMatrixProto.capnp
   nupic/proto/SpatialPoolerProto.capnp
+  nupic/proto/SdrClassifier.capnp
   nupic/proto/TemporalMemoryProto.capnp
   nupic/proto/TestNodeProto.capnp
   nupic/proto/VectorFileSensorProto.capnp
@@ -261,9 +272,8 @@ elseif("${PLATFORM}" STREQUAL "windows")
   list(APPEND src_common_os_libs oldnames.lib psapi.lib ws2_32.lib)
 endif()
 
-set(src_lib_static_nupiccore_srcs
-    ${src_capnp_srcs}
-    ${src_py_support_files}
+set(src_nupiccore_srcs
+    nupic/algorithms/Anomaly.cpp
     nupic/algorithms/BitHistory.cpp
     nupic/algorithms/Cell.cpp
     nupic/algorithms/Cells4.cpp
@@ -327,10 +337,16 @@ set(src_lib_static_nupiccore_srcs
     nupic/types/Fraction.cpp
     nupic/utils/LoggingException.cpp
     nupic/utils/LogItem.cpp
+    nupic/utils/MovingAverage.cpp
     nupic/utils/Random.cpp
     nupic/utils/StringUtils.cpp
     nupic/utils/TRandom.cpp
     nupic/utils/Watcher.cpp)
+
+set(src_lib_static_nupiccore_srcs
+    ${src_capnp_srcs}
+    ${src_py_support_files}
+    ${src_nupiccore_srcs})
 
 set(src_lib_static_nupiccore_solo_link_libs
     ${LIB_STATIC_YAML_CPP_LOC}
@@ -343,9 +359,9 @@ set(src_lib_static_nupiccore_solo_link_libs
 
 set(src_lib_static_nupiccore_compile_flags
     "${src_compile_flags} -I${src_numpy_core}/include")
-# TODO Does the static library nupiccore_solo need the flags from COMMON_LINKER_FLAGS_OPTIMIZED?
+# TODO Does the static library nupiccore_solo need the flags from INTERNAL_LINKER_FLAGS_OPTIMIZED?
 set(src_lib_static_nupiccore_link_flags
-    "${COMMON_LINKER_FLAGS_OPTIMIZED} -static")
+    "${INTERNAL_LINKER_FLAGS_OPTIMIZED} -static")
 
 add_library(${src_lib_static_nupiccore_solo} STATIC ${src_lib_static_nupiccore_srcs})
 add_dependencies(${src_lib_static_nupiccore_solo}
@@ -362,6 +378,13 @@ set_target_properties(${src_lib_static_nupiccore_solo} PROPERTIES COMPILE_FLAGS
                       ${src_lib_static_nupiccore_compile_flags})
 set_target_properties(${src_lib_static_nupiccore_solo} PROPERTIES LINK_FLAGS
                       ${src_lib_static_nupiccore_link_flags})
+if(${NUPIC_IWYU})
+  # TODO: Create a target that doesn't include the generated capnp schema files
+  # since we don't want to run iwyu on them and iwyu can only be applied to
+  # CMake targets (not source files directly).
+  set_target_properties(${src_lib_static_nupiccore_solo}
+    PROPERTIES CXX_INCLUDE_WHAT_YOU_USE ${iwyu_path})
+endif()
 
 # Add new library to common libs for rest of targets.
 set(src_common_libs ${src_lib_static_nupiccore_solo} ${src_common_libs})
@@ -373,7 +396,7 @@ set(src_executable_cppregiontest cpp_region_test)
 add_executable(${src_executable_cppregiontest} test/integration/CppRegionTest.cpp)
 target_link_libraries(${src_executable_cppregiontest} ${src_common_libs})
 set_target_properties(${src_executable_cppregiontest} PROPERTIES COMPILE_FLAGS ${src_compile_flags})
-set_target_properties(${src_executable_cppregiontest} PROPERTIES LINK_FLAGS "${COMMON_LINKER_FLAGS_OPTIMIZED}")
+set_target_properties(${src_executable_cppregiontest} PROPERTIES LINK_FLAGS "${INTERNAL_LINKER_FLAGS_OPTIMIZED}")
 add_custom_target(tests_cpp_region
                   COMMAND ${src_executable_cppregiontest}
                   DEPENDS ${src_executable_cppregiontest}
@@ -388,7 +411,7 @@ target_link_libraries(${src_executable_pyregiontest} ${src_common_libs})
 set_target_properties(${src_executable_pyregiontest}
                       PROPERTIES COMPILE_FLAGS ${src_compile_flags})
 set_target_properties(${src_executable_pyregiontest}
-                      PROPERTIES LINK_FLAGS "${COMMON_LINKER_FLAGS_OPTIMIZED}")
+                      PROPERTIES LINK_FLAGS "${INTERNAL_LINKER_FLAGS_OPTIMIZED}")
 add_custom_target(tests_py_region
                   COMMAND ${src_executable_pyregiontest}
                   DEPENDS ${src_executable_pyregiontest}
@@ -405,7 +428,7 @@ target_link_libraries(${src_executable_connectionsperformancetest} ${src_common_
 set_target_properties(${src_executable_connectionsperformancetest}
                       PROPERTIES COMPILE_FLAGS ${src_compile_flags})
 set_target_properties(${src_executable_connectionsperformancetest}
-                      PROPERTIES LINK_FLAGS "${COMMON_LINKER_FLAGS_OPTIMIZED}")
+                      PROPERTIES LINK_FLAGS "${INTERNAL_LINKER_FLAGS_OPTIMIZED}")
 add_custom_target(tests_connections_performance
                   COMMAND ${src_executable_connectionsperformancetest}
                   DEPENDS ${src_executable_connectionsperformancetest}
@@ -420,7 +443,7 @@ target_link_libraries(${src_executable_helloregion} ${src_common_libs})
 set_target_properties(${src_executable_helloregion}
                       PROPERTIES COMPILE_FLAGS ${src_compile_flags})
 set_target_properties(${src_executable_helloregion}
-                      PROPERTIES LINK_FLAGS "${COMMON_LINKER_FLAGS_OPTIMIZED}")
+                      PROPERTIES LINK_FLAGS "${INTERNAL_LINKER_FLAGS_OPTIMIZED}")
 add_dependencies(${src_executable_helloregion} ${src_common_libs})
 
 #
@@ -432,7 +455,7 @@ target_link_libraries(${src_executable_prototest} ${src_common_libs})
 set_target_properties(${src_executable_prototest}
                       PROPERTIES COMPILE_FLAGS ${src_compile_flags})
 set_target_properties(${src_executable_prototest}
-                      PROPERTIES LINK_FLAGS "${COMMON_LINKER_FLAGS_OPTIMIZED}")
+                      PROPERTIES LINK_FLAGS "${INTERNAL_LINKER_FLAGS_OPTIMIZED}")
 add_dependencies(${src_executable_prototest} ${src_common_libs})
 
 #
@@ -444,7 +467,7 @@ target_link_libraries(${src_executable_hellosptp} ${src_common_libs})
 set_target_properties(${src_executable_hellosptp}
                       PROPERTIES COMPILE_FLAGS ${src_compile_flags})
 set_target_properties(${src_executable_hellosptp}
-                      PROPERTIES LINK_FLAGS "${COMMON_LINKER_FLAGS_OPTIMIZED}")
+                      PROPERTIES LINK_FLAGS "${INTERNAL_LINKER_FLAGS_OPTIMIZED}")
 add_dependencies(${src_executable_hellosptp} ${src_common_libs})
 
 
@@ -453,6 +476,7 @@ add_dependencies(${src_executable_hellosptp} ${src_common_libs})
 #
 set(src_executable_gtests unit_tests)
 add_executable(${src_executable_gtests}
+               test/unit/algorithms/AnomalyTest.cpp
                test/unit/algorithms/CondProbTableTest.cpp
                test/unit/algorithms/ConnectionsTest.cpp
                test/unit/algorithms/FastCLAClassifierTest.cpp
@@ -494,6 +518,7 @@ add_executable(${src_executable_gtests}
                test/unit/types/ExceptionTest.cpp
                test/unit/types/FractionTest.cpp
                test/unit/UnitTestMain.cpp
+               test/unit/utils/MovingAverageTest.cpp
                test/unit/utils/RandomTest.cpp
                test/unit/utils/WatcherTest.cpp)
 target_link_libraries(${src_executable_gtests}
@@ -501,7 +526,7 @@ target_link_libraries(${src_executable_gtests}
                       ${src_common_libs})
 set_target_properties(${src_executable_gtests}
                       PROPERTIES COMPILE_FLAGS ${src_compile_flags}
-                                 LINK_FLAGS "${COMMON_LINKER_FLAGS_OPTIMIZED}")
+                                 LINK_FLAGS "${INTERNAL_LINKER_FLAGS_OPTIMIZED}")
 add_custom_target(tests_unit
                   COMMAND ${src_executable_gtests}
                   DEPENDS ${src_executable_gtests}
@@ -686,12 +711,12 @@ set_source_files_properties(${src_swig_generated_files} PROPERTIES
 set_source_files_properties(${src_swig_generated_files}
                             PROPERTIES
                             COMPILE_FLAGS ${swig_generated_file_compile_flags}
-                            LINK_FLAGS ${COMMON_LINKER_FLAGS_OPTIMIZED})
+                            LINK_FLAGS ${EXTERNAL_LINKER_FLAGS_OPTIMIZED})
 
 set_source_files_properties(${src_swig_support_files}
                             PROPERTIES
                             COMPILE_FLAGS ${src_compile_flags}
-                            LINK_FLAGS ${COMMON_LINKER_FLAGS_OPTIMIZED})
+                            LINK_FLAGS ${EXTERNAL_LINKER_FLAGS_OPTIMIZED})
 
 # If a path is specified, copy extensions files to proper location.
 if (PY_EXTENSIONS_DIR)

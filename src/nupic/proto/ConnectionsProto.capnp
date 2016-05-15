@@ -22,6 +22,13 @@ struct ConnectionsProto {
     segments @0 :List(SegmentProto);
   }
 
+  # Next ID: 3
+  struct SegmentOverlapProto {
+    cell @0 :UInt32;
+    segment @1 :UInt32;
+    overlap @2 :UInt32;
+  }
+
   cells @0 :List(CellProto);
   maxSegmentsPerCell @1 :UInt16;
   iteration @2 :UInt64;

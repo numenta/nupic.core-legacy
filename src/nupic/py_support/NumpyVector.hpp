@@ -44,9 +44,6 @@ namespace nupic {
   extern int LookupNumpyDType(const nupic::UInt64 *);
   extern int LookupNumpyDType(const nupic::Real32 *);
   extern int LookupNumpyDType(const nupic::Real64 *);
-#if defined(NTA_QUAD_PRECISION)
-  extern int LookupNumpyDType(const nupic::Real128 *);
-#endif
   /**
    * Concrete Numpy multi-d array wrapper who's implementation cannot be visible
    * due to the specifics of dynamically loading the Numpy C function API.
