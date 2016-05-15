@@ -84,14 +84,8 @@ class AnomalyDetection
 
   public:
     Real compute(Real x) {
-        auto scalar = std::vector<Real32>(encoder.getOutputWidth());
-        encoder.encodeIntoArray(x, scalar.data());
+        auto uint_scalar = encoder.encode(x);
 
-        // For some reason, the ScalarEncoder outputs a Real32 vector,
-        // which is incomaptible with the SpatialPooler's input, hence a new
-        // vector is created with the required type, and the elements
-        // are converted.
-        auto uint_scalar = VectorHelpers::castVectorType<Real32, UInt>(scalar);
         if (DEBUG_LEVEL > 1) {
           std::cout << "Scalar encoder: ";
           VectorHelpers::print_vector(uint_scalar);
