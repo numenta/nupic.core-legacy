@@ -45,6 +45,7 @@
 #include <iostream>
 #include <fstream> // for file output
 #include <vector>
+#include <set>
 #include <string>
 #include <cstdlib>
 
@@ -115,7 +116,12 @@ class AnomalyDetection
           tpOutput = VectorHelpers::castVectorType<Real32, UInt>(rTpOutput);
         } else {
           tm.compute(spOutput.size(), spOutput.data(), true);
-          tpOutput = tm.getActiveCells(); //FIXME do union with getPredictedCells() , like TP.outputMode="both"
+          set<UInt> both;
+          auto active = tm.getActiveCells();
+          auto pred = tm.getPredictiveCells();
+          both.insert(active.begin(), active.end());
+          both.insert(pred.begin(), pred.end());
+          tpOutput.assign(both.begin(), both.end()); //union, like TP.outputType = both
         }
 
         if (DEBUG_LEVEL > 3) {
