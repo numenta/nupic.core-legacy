@@ -86,9 +86,14 @@ set(src_compiler_definitions
     -DBOOST_MATH_NO_LONG_DOUBLE_MATH_FUNCTIONS
     -DBOOST_NO_WREGEX
     -DNUPIC2
-    -DNTA_ASM
     -DAPR_DECLARE_STATIC
     -DAPU_DECLARE_STATIC)
+
+if(NOT "${PLATFORM_TYPE}" STREQUAL "arm")
+  set(src_compiler_definitions
+      ${src_compiler_definitions}
+      -DNTA_ASM)
+endif()
 
 if(NOT "${CMAKE_BUILD_TYPE}" STREQUAL "Release")
   set(src_compiler_definitions

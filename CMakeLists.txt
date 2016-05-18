@@ -54,6 +54,10 @@ else()
   message("Doing a local build")
 endif()
 
+if($ENV{NUPIC_ARM_BUILD})
+  message("Building for ARM")
+  set(PLATFORM_TYPE arm)
+endif()
 
 # Identify platform name.
 string(TOLOWER ${CMAKE_SYSTEM_NAME} PLATFORM)
