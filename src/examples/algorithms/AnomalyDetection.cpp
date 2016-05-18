@@ -189,7 +189,7 @@ int main()
     outFile << "anomaly_score" << std::endl;
 
     // the running example class above
-    AnomalyDetection runner {0.0, 55.0, 0.1, 2048, 8, 2}; //parameters; TODO optimize
+    AnomalyDetection runner {0.0, 55.0, 0.1, 2048, 8, 2, "TM"}; //parameters; TODO optimize
     // timer
     Timer stopwatch;
 
