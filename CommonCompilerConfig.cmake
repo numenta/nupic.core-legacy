@@ -159,16 +159,16 @@ endif()
 # try compiling without them.
 #
 if(NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
-  set(optimization_flags_cc "${optimization_flags_cc} -mtune=generic -O2")
+  set(optimization_flags_cc "${optimization_flags_cc}")
   set(optimization_flags_cc "-pipe ${optimization_flags_cc}") #TODO use -Ofast instead of -O3
-  set(optimization_flags_lt "-O2 ${optimization_flags_lt}")
+  set(optimization_flags_lt "${optimization_flags_lt}")
 
   if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" AND NOT MINGW)
     set(optimization_flags_cc "${optimization_flags_cc} -fuse-ld=gold")
     # NOTE -flto must go together in both cc and ld flags; also, it's presently incompatible
     # with the -g option in at least some GNU compilers (saw in `man gcc` on Ubuntu)
-    set(optimization_flags_cc "${optimization_flags_cc} -fuse-linker-plugin -flto-report -flto") #TODO fix LTO for clang
-    set(optimization_flags_lt "${optimization_flags_lt} -flto") #TODO LTO for clang too
+    set(optimization_flags_cc "${optimization_flags_cc}") #TODO fix LTO for clang
+    set(optimization_flags_lt "${optimization_flags_lt}") #TODO LTO for clang too
   endif()
 endif()
 
@@ -197,8 +197,8 @@ else()
   # LLVM Clang / Gnu GCC
   set(cxx_flags_unoptimized "${cxx_flags_unoptimized} ${stdlib_cxx} -std=c++11")
 
-  set(shared_compile_flags "${shared_compile_flags} -m${BITNESS} ${stdlib_common} -fdiagnostics-show-option")
-  set (internal_compiler_warning_flags "${internal_compiler_warning_flags} -Werror -Wextra -Wreturn-type -Wunused -Wno-unused-variable -Wno-unused-parameter -Wno-missing-field-initializers")
+  set(shared_compile_flags "${shared_compile_flags} ${stdlib_common} -fdiagnostics-show-option")
+  set (internal_compiler_warning_flags "${internal_compiler_warning_flags} -Werror -Wextra -Wunused -Wno-unused-variable -Wno-unused-parameter -Wno-missing-field-initializers")
   set (external_compiler_warning_flags "${external_compiler_warning_flags} -Wno-unused-variable -Wno-unused-parameter -Wno-incompatible-pointer-types -Wno-deprecated-declarations")
 
   if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -210,7 +210,7 @@ else()
     endif()
   endif()
 
-  set(shared_linker_flags_unoptimized "${shared_linker_flags_unoptimized} -m${BITNESS} ${stdlib_common} ${stdlib_cxx}")
+  set(shared_linker_flags_unoptimized "${shared_linker_flags_unoptimized} ${stdlib_common} ${stdlib_cxx}")
 endif()
 
 
