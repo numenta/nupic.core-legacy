@@ -4977,7 +4977,7 @@ namespace nupic {
 
     // See comments in count_gt. We need both conditional compilation and 
     // SSE_LEVEL check.
-#if !defined(NTA_OS_WINDOWS)
+#if !defined(NTA_OS_WINDOWS) && defined(NTA_ASM)
 
     if (SSE_LEVEL >= 3) {
 
@@ -5100,7 +5100,7 @@ namespace nupic {
 
     // See comments in count_gt. We need conditional compilation
     // _AND_ SSE_LEVEL check.
-#if defined(NTA_OS_LINUX) || defined(NTA_OS_DARWIN)
+#if (defined(NTA_OS_LINUX) || defined(NTA_OS_DARWIN)) && defined(NTA_ASM)
 
     if (SSE_LEVEL >= 3) {
 
