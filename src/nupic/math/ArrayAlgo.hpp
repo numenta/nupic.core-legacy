@@ -65,8 +65,7 @@ namespace nupic {
             SSE3  = 1<<0,
             SSE41 = 1<<19,
             SSE42 = 1<<20;
-//#ifdef NTA_ASM
-#if !defined(NTA_ASM)
+#ifdef NTA_ASM
   #if defined(NTA_ARCH_32)
     #if defined(NTA_OS_WINDOWS) && defined(NTA_COMPILER_MSVC)
 
@@ -251,7 +250,7 @@ namespace nupic {
     if (SSE_LEVEL >= 41) { // ptest is a SSE 4.1 instruction
 
     // On win32, the asm syntax is not correct.
-#if !defined(NTA_ASM) && defined(NTA_ARCH_32) && !defined(NTA_OS_WINDOWS)
+#if defined(NTA_ASM) && defined(NTA_ARCH_32) && !defined(NTA_OS_WINDOWS)
 
       // n is the total number of floats to process.
       // n1 is the number of floats we can process in parallel using SSE.
@@ -317,7 +316,7 @@ namespace nupic {
           return false;
       return true;
 
-#elif !defined(NTA_ASM) && defined(NTA_ARCH_64) && !defined(NTA_OS_WINDOWS)
+#elif defined(NTA_ASM) && defined(NTA_ARCH_64) && !defined(NTA_OS_WINDOWS)
 
       // n is the total number of floats to process.
       // n1 is the number of floats we can process in parallel using SSE.
@@ -416,7 +415,7 @@ namespace nupic {
     // const int SSE_LEVEL. 
     if (SSE_LEVEL >= 41) { // ptest is a SSE 4.1 instruction
 
-#if !defined(NTA_ASM) && defined(NTA_ARCH_32) && !defined(NTA_OS_WINDOWS)
+#if defined(NTA_ASM) && defined(NTA_ARCH_32) && !defined(NTA_OS_WINDOWS)
 
       // n is the total number of floats to process.
       // n1 is the number of floats we can process in parallel using SSE.
@@ -482,7 +481,7 @@ namespace nupic {
           return false;
       return true;
 
-#elif !defined(NTA_ASM) && !defined(NTA_OS_WINDOWS)
+#elif defined(NTA_ASM) && !defined(NTA_OS_WINDOWS)
 
       // n is the total number of floats to process.
       // n1 is the number of floats we can process in parallel using SSE.
