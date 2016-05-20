@@ -68,3 +68,16 @@ TEST(TimerTest, Basic)
   t1.stop();
   ASSERT_EQ(t1.getStartCount(), 2);
 }
+
+TEST(TimerTest, Drift)
+{
+// Test start/stop delay accumulation
+  Timer t;
+  const UInt EPOCHS = 1000000; // 1M
+  const UInt EPSILON = 5; // tolerate 5us drift on 1M restarts
+  for(UInt i=0; i<EPOCHS; i++){
+    t.start();
+    t.stop(); //immediately
+  }
+  ASSERT_LT(t.getElapsed(), EPSILON);
+}
