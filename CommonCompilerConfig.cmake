@@ -73,6 +73,8 @@ if(NOT DEFINED PLATFORM)
     message(FATAL_ERROR "PLATFORM property not defined: PLATFORM=${PLATFORM}")
 endif()
 
+include(CheckCXXCompilerFlag)
+
 
 # Init exported properties
 set(COMMON_COMPILER_DEFINITIONS)
@@ -125,6 +127,12 @@ elseif(MSVC OR MSYS OR MINGW)
   endif()
 endif()
 
+if(NOT "${PLATFORM_TYPE}" STREQUAL "arm")
+  set(src_compiler_definitions
+      ${src_compiler_definitions}
+      -DNTA_ASM)
+endif()
+
 
 #
 # Set linker (ld)
@@ -159,16 +167,30 @@ endif()
 # try compiling without them.
 #
 if(NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
-  set(optimization_flags_cc "${optimization_flags_cc} -mtune=generic -O2")
+  set(optimization_flags_cc "${optimization_flags_cc}")
   set(optimization_flags_cc "-pipe ${optimization_flags_cc}") #TODO use -Ofast instead of -O3
-  set(optimization_flags_lt "-O2 ${optimization_flags_lt}")
+  set(optimization_flags_lt "${optimization_flags_lt}")
+
+  CHECK_CXX_COMPILER_FLAG(-mtune=generic COMPILER_SUPPORTS_GENERIC_TUNING)
+  if (COMPILER_SUPPORTS_GENERIC_TUNING)
+    set(optimization_flags_cc "${optimization_flags_cc} -mtune=generic")
+  endif()
+
+  if(NOT "${PLATFORM_TYPE}" STREQUAL "arm")
+    set(optimization_flags_cc "${optimization_flags_cc} -O2")
+    set(optimization_flags_lt "${optimization_flags_lt} -O2")
+  endif()
 
   if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" AND NOT MINGW)
     set(optimization_flags_cc "${optimization_flags_cc} -fuse-ld=gold")
-    # NOTE -flto must go together in both cc and ld flags; also, it's presently incompatible
-    # with the -g option in at least some GNU compilers (saw in `man gcc` on Ubuntu)
-    set(optimization_flags_cc "${optimization_flags_cc} -fuse-linker-plugin -flto-report -flto") #TODO fix LTO for clang
-    set(optimization_flags_lt "${optimization_flags_lt} -flto") #TODO LTO for clang too
+
+    if(NOT "${PLATFORM_TYPE}" STREQUAL "arm")
+      # NOTE -flto must go together in both cc and ld flags; also, it's presently incompatible
+      # with the -g option in at least some GNU compilers (saw in `man gcc` on Ubuntu)
+      #TODO fix LTO for clang
+      set(optimization_flags_cc "${optimization_flags_cc} -fuse-linker-plugin -flto-report -flto")
+      set(optimization_flags_lt "${optimization_flags_lt} -flto") #TODO LTO for clang too
+    endif()
   endif()
 endif()
 
@@ -200,6 +222,16 @@ else()
   set(shared_compile_flags "${shared_compile_flags} -m${BITNESS} ${stdlib_common} -fdiagnostics-show-option")
   set (internal_compiler_warning_flags "${internal_compiler_warning_flags} -Werror -Wextra -Wreturn-type -Wunused -Wno-unused-variable -Wno-unused-parameter -Wno-missing-field-initializers")
   set (external_compiler_warning_flags "${external_compiler_warning_flags} -Wno-unused-variable -Wno-unused-parameter -Wno-incompatible-pointer-types -Wno-deprecated-declarations")
+
+  CHECK_CXX_COMPILER_FLAG(-Wreturn-type COMPILER_SUPPORTS_WARNING_RETURN_TYPE)
+  if (COMPILER_SUPPORTS_WARNING_RETURN_TYPE)
+    set(internal_compiler_warning_flags "${internal_compiler_warning_flags} -Wreturn-type")
+  endif()
+
+  CHECK_CXX_COMPILER_FLAG(-m${BITNESS} COMPILER_SUPPORTS_MACHINE_OPTION)
+  if (COMPILER_SUPPORTS_MACHINE_OPTION)
+    set(shared_compile_flags "${shared_compile_flags} -m${BITNESS}")
+  endif()
 
   if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set(shared_compile_flags "${shared_compile_flags} -fPIC")
