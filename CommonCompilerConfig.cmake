@@ -219,8 +219,8 @@ else()
   # LLVM Clang / Gnu GCC
   set(cxx_flags_unoptimized "${cxx_flags_unoptimized} ${stdlib_cxx} -std=c++11")
 
-  set(shared_compile_flags "${shared_compile_flags} -m${BITNESS} ${stdlib_common} -fdiagnostics-show-option")
-  set (internal_compiler_warning_flags "${internal_compiler_warning_flags} -Werror -Wextra -Wreturn-type -Wunused -Wno-unused-variable -Wno-unused-parameter -Wno-missing-field-initializers")
+  set(shared_compile_flags "${shared_compile_flags} ${stdlib_common} -fdiagnostics-show-option")
+  set (internal_compiler_warning_flags "${internal_compiler_warning_flags} -Werror -Wextra -Wunused -Wno-unused-variable -Wno-unused-parameter -Wno-missing-field-initializers")
   set (external_compiler_warning_flags "${external_compiler_warning_flags} -Wno-unused-variable -Wno-unused-parameter -Wno-incompatible-pointer-types -Wno-deprecated-declarations")
 
   CHECK_CXX_COMPILER_FLAG(-Wreturn-type COMPILER_SUPPORTS_WARNING_RETURN_TYPE)
@@ -231,6 +231,7 @@ else()
   CHECK_CXX_COMPILER_FLAG(-m${BITNESS} COMPILER_SUPPORTS_MACHINE_OPTION)
   if (COMPILER_SUPPORTS_MACHINE_OPTION)
     set(shared_compile_flags "${shared_compile_flags} -m${BITNESS}")
+    set(shared_linker_flags_unoptimized "${shared_linker_flags_unoptimized} -m${BITNESS}")
   endif()
 
   if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -242,7 +243,7 @@ else()
     endif()
   endif()
 
-  set(shared_linker_flags_unoptimized "${shared_linker_flags_unoptimized} -m${BITNESS} ${stdlib_common} ${stdlib_cxx}")
+  set(shared_linker_flags_unoptimized "${shared_linker_flags_unoptimized} ${stdlib_common} ${stdlib_cxx}")
 endif()
 
 
