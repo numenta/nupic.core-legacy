@@ -81,6 +81,11 @@ deploy:
       - "( ${TRAVIS_OS_NAME}--${CC} = 'linux--gcc-4.8' ) || ( ${TRAVIS_OS_NAME}--${CC} = 'linux--gcc' ) || ( ${TRAVIS_OS_NAME}--${CC} = 'osx--clang' )"
 
 notifications:
+  email:
+    recipients:
+      - "discourse-nupic-developers@numenta.org"
+    on_success: change
+    on_failure: change
   irc:
     channels:
       - "irc.freenode.net#nupic-hackers"
