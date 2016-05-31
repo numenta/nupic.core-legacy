@@ -478,7 +478,7 @@ add_executable(${src_executable_anomaly} examples/algorithms/AnomalyDetection.cp
 target_link_libraries(${src_executable_anomaly} ${src_common_libs})
 if("${PLATFORM}" STREQUAL "windows")
   set_target_properties(${src_executable_anomaly}
-                      PROPERTIES COMPILE_FLAGS ${src_compile_flags} "-DCSV_IO_NO_THREAD") #Otherwise CSV lib fails on Windows
+                      PROPERTIES COMPILE_FLAGS "${src_compile_flags} -DCSV_IO_NO_THREAD") #Otherwise CSV lib fails on Windows
 else()
   set_target_properties(${src_executable_anomaly}
                       PROPERTIES COMPILE_FLAGS ${src_compile_flags})
