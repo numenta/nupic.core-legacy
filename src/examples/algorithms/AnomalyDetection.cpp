@@ -115,7 +115,8 @@ class AnomalyDetection
           // And the result is converted ONCE again to UInts
           tpOutput = VectorHelpers::castVectorType<Real32, UInt>(rTpOutput);
         } else {
-          tm.compute(spOutput.size(), spOutput.data(), true);
+          auto sparseData = VectorHelpers::binaryToSparse<UInt>(spOutput); // need to convert dense to sparse representation here
+          tm.compute(sparseData.size(), sparseData.data(), true);
           set<UInt> both;
           auto active = tm.getActiveCells();
           auto pred = tm.getPredictiveCells();
