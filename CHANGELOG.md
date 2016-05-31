@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.4.3
+
+* Adds include-what-you-use option in CMake configuration.
+* Use the supported mingwpy toolchain from pypi.anaconda.org/carlkl/simple
+* Define BOOST_MATH_NO_LONG_DOUBLE_MATH_FUNCTIONS for nupic.core source build in attempt to make build work with official mingwpy toolchain
+* Protect all public member variables (except connections)
+* Move algorithm details out of the compute method
+* Split bamboo linux build into debug and release.
+* Move common environment setup for Bamboo into separate script.
+* Update SWIG to use local tarfile rather than download from sourceforge.
+* Store the new lastUsedIteration, don't just increment old one
+* Unit test: destroyed synapse + segment reuse
+* Bugfix: Keep the destroyed synapses count in sync.
+* Walk the columns and segments via ExcitedColumns iterator
+* Fail loudly when Python regions reassign an output
+* Disable asserts in release builds
+* De-duplicate a loop.
+* Removes 'long double', NTA_QUAD_PRECISION, and Real128 references from our code.
+* Add Proto for SDR Classifier
+* TemporalMemory: replace phases with "columnSegmentWalk". Much faster.
+* MovingAverage.compute() returns updated value
+
 ## 0.4.2
 
 * Define and use environment variables containing compiler and linker flags specifically for 3rd-party source code.
