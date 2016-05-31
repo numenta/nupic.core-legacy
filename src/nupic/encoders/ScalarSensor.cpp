@@ -104,12 +104,12 @@ ScalarSensor::ScalarSensor(BundleIO &bundle, Region *region)
   {
     Real32* array = (Real32*)encodedOutput_->getData().getBuffer();
     UInt uintArray[encoder_->getOutputWidth()];
-    for(UInt i=0; i<encoder_->getOutputWidth(); i++) //FIXME optimize
-    {
-      uintArray[i] = (UInt)array[i];
-    }
     const Int32 iBucket = encoder_->encodeIntoArray(sensedValue_, uintArray);
     ((Int32*)bucketOutput_->getData().getBuffer())[0] = iBucket;
+    for(UInt i=0; i<encoder_->getOutputWidth(); i++) //FIXME optimize
+    {
+      array[i] = (Real32)uintArray[i]; // copy values back to SP's 'array' array
+    }
   }
 
 ScalarSensor::~ScalarSensor() { delete encoder_; }
