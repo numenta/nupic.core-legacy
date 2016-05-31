@@ -159,9 +159,9 @@ endif()
 # try compiling without them.
 #
 if(NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
-  set(optimization_flags_cc "${optimization_flags_cc}")
+  set(optimization_flags_cc "${optimization_flags_cc} -O2")
   set(optimization_flags_cc "-pipe ${optimization_flags_cc}") #TODO use -Ofast instead of -O3
-  set(optimization_flags_lt "${optimization_flags_lt}")
+  set(optimization_flags_lt "-O2 ${optimization_flags_lt}")
 
   if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" AND NOT MINGW)
     set(optimization_flags_cc "${optimization_flags_cc} -fuse-ld=gold")
@@ -198,7 +198,7 @@ else()
   set(cxx_flags_unoptimized "${cxx_flags_unoptimized} ${stdlib_cxx} -std=c++11")
 
   set(shared_compile_flags "${shared_compile_flags} ${stdlib_common} -fdiagnostics-show-option")
-  set (internal_compiler_warning_flags "${internal_compiler_warning_flags} -Werror -Wextra -Wunused -Wno-unused-variable -Wno-unused-parameter -Wno-missing-field-initializers")
+  set (internal_compiler_warning_flags "${internal_compiler_warning_flags} -Werror -Wextra -Wreturn-type -Wunused -Wno-unused-variable -Wno-unused-parameter -Wno-missing-field-initializers")
   set (external_compiler_warning_flags "${external_compiler_warning_flags} -Wno-unused-variable -Wno-unused-parameter -Wno-incompatible-pointer-types -Wno-deprecated-declarations")
 
   if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
