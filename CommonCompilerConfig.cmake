@@ -104,6 +104,22 @@ endif()
 message(STATUS "CMAKE BITNESS=${BITNESS}")
 
 
+# Check memory limits (in megabytes)
+if(CMAKE_MAJOR_VERSION GREATER 2)
+  cmake_host_system_information(RESULT total_physical_memory QUERY TOTAL_PHYSICAL_MEMORY)
+  cmake_host_system_information(RESULT total_virtual_memory QUERY TOTAL_VIRTUAL_MEMORY)
+  math(EXPR total_memory "${total_physical_memory}+${total_virtual_memory}")
+  message(STATUS "CMAKE MEMORY=${total_memory}")
+
+  # Python bindings (particularly mathPYTHON_wrap.cxx) requires more than 
+  # 1GB of memory for compiling with GCC. Send a warning if total memory
+  # (physical plus virtual(swap)) is less than 1GB 
+  if(${total_memory} LESS 1024)
+    message(WARNING "Less than 1GB of memory found, compilation may run out of memory!")
+  endif()
+endif()
+
+
 # Compiler `-D*` definitions
 if(UNIX) # or UNIX like (i.e. APPLE and CYGWIN)
   set(COMMON_COMPILER_DEFINITIONS
@@ -167,17 +183,16 @@ endif()
 # try compiling without them.
 #
 if(NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
-  set(optimization_flags_cc "${optimization_flags_cc}")
-  set(optimization_flags_cc "-pipe ${optimization_flags_cc}") #TODO use -Ofast instead of -O3
+  set(optimization_flags_cc "-pipe ${optimization_flags_cc}")
   set(optimization_flags_lt "${optimization_flags_lt}")
 
   CHECK_CXX_COMPILER_FLAG(-mtune=generic COMPILER_SUPPORTS_GENERIC_TUNING)
-  if (COMPILER_SUPPORTS_GENERIC_TUNING)
+  if(COMPILER_SUPPORTS_GENERIC_TUNING)
     set(optimization_flags_cc "${optimization_flags_cc} -mtune=generic")
   endif()
 
   if(NOT "${PLATFORM_TYPE}" STREQUAL "arm")
-    set(optimization_flags_cc "${optimization_flags_cc} -O2")
+    set(optimization_flags_cc "${optimization_flags_cc} -O2") #TODO use -Ofast instead of -O3
     set(optimization_flags_lt "${optimization_flags_lt} -O2")
   endif()
 
@@ -187,7 +202,6 @@ if(NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
     if(NOT "${PLATFORM_TYPE}" STREQUAL "arm")
       # NOTE -flto must go together in both cc and ld flags; also, it's presently incompatible
       # with the -g option in at least some GNU compilers (saw in `man gcc` on Ubuntu)
-      #TODO fix LTO for clang
       set(optimization_flags_cc "${optimization_flags_cc} -fuse-linker-plugin -flto-report -flto")
       set(optimization_flags_lt "${optimization_flags_lt} -flto") #TODO LTO for clang too
     endif()
@@ -232,6 +246,10 @@ else()
   if (COMPILER_SUPPORTS_MACHINE_OPTION)
     set(shared_compile_flags "${shared_compile_flags} -m${BITNESS}")
     set(shared_linker_flags_unoptimized "${shared_linker_flags_unoptimized} -m${BITNESS}")
+  endif()
+  if("${PLATFORM_TYPE}" STREQUAL "arm")
+    set(shared_compile_flags "${shared_compile_flags} -marm")
+    set(shared_linker_flags_unoptimized "${shared_linker_flags_unoptimized} -marm")
   endif()
 
   if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
