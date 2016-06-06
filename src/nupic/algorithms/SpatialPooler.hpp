@@ -815,6 +815,16 @@ namespace nupic {
            */
           void printParameters() const;
 
+          /**
+          Returns the overlap score for each column.
+           */
+          const vector<UInt>& getOverlaps() const;
+
+          /**
+          Returns the boosted overlap score for each column.
+           */
+          const vector<Real>& getBoostedOverlaps() const;
+
 
           ///////////////////////////////////////////////////////////
           //
