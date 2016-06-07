@@ -1024,6 +1024,12 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
   }
 }
 
+// In these SWIG wrapper methods, don't use the `const` qualifier. There has to
+// be some difference in the method signature so that C++ function overloading
+// can happen. Expose the internal `const` methods with a different name.
+%rename(getOverlapsTuple) nupic::algorithms::spatial_pooler::SpatialPooler::getOverlaps() const;
+%rename(getBoostedOverlapsTuple) nupic::algorithms::spatial_pooler::SpatialPooler::getBoostedOverlaps() const;
+
 %include <nupic/algorithms/SpatialPooler.hpp>
 
 %extend nupic::algorithms::spatial_pooler::SpatialPooler
@@ -1263,6 +1269,20 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
   {
     PyArrayObject* x = (PyArrayObject*) py_x;
     self->getConnectedCounts((nupic::UInt*) PyArray_DATA(x));
+  }
+
+  PyObject* getOverlaps()
+  {
+    const std::vector<nupic::UInt>& overlaps = self->getOverlaps();
+    nupic::NumpyVectorT<nupic::UInt> npOverlaps(overlaps.size(), overlaps.data());
+    return npOverlaps.forPython();
+  }
+
+  PyObject* getBoostedOverlaps()
+  {
+    const std::vector<nupic::Real>& overlaps = self->getBoostedOverlaps();
+    nupic::NumpyVectorT<nupic::Real> npOverlaps(overlaps.size(), overlaps.data());
+    return npOverlaps.forPython();
   }
 
   inline PyObject* calculateOverlap_(PyObject* py_inputVector)

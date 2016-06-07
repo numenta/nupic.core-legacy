@@ -495,7 +495,15 @@ void SpatialPooler::getConnectedCounts(UInt connectedCounts[]) const
   copy(connectedCounts_.begin(), connectedCounts_.end(), connectedCounts);
 }
 
+const vector<UInt>& SpatialPooler::getOverlaps() const
+{
+  return overlaps_;
+}
 
+const vector<Real>& SpatialPooler::getBoostedOverlaps() const
+{
+  return boostedOverlaps_;
+}
 
 void SpatialPooler::initialize(vector<UInt> inputDimensions,
   vector<UInt> columnDimensions,
