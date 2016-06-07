@@ -199,6 +199,44 @@ namespace nupic
       };
 
       /**
+       * A base class for Connections event handlers.
+       *
+       * @b Description
+       * This acts as a plug-in point for visualizations.
+       */
+      class ConnectionsEventHandler
+      {
+      public:
+        virtual ~ConnectionsEventHandler() {}
+
+        /**
+         * Called after a segment is created.
+         */
+        virtual void onCreateSegment(Segment segment) {}
+
+        /**
+         * Called before a segment is destroyed.
+         */
+        virtual void onDestroySegment(Segment segment) {}
+
+        /**
+         * Called after a synapse is created.
+         */
+        virtual void onCreateSynapse(Synapse synapse) {}
+
+        /**
+         * Called before a synapse is destroyed.
+         */
+        virtual void onDestroySynapse(Synapse synapse) {}
+
+        /**
+         * Called before a synapse's permanence is changed.
+         */
+        virtual void onUpdateSynapsePermanence(Synapse synapse,
+                                               Permanence permanence) {}
+      };
+
+      /**
        * Connections implementation in C++.
        *
        * @b Description
@@ -207,7 +245,7 @@ namespace nupic
        * learning algorithms to store and access data related to the
        * connectivity of cells.
        *
-       * It's main utility is to provide a common, optimized data structure
+       * Its main utility is to provide a common, optimized data structure
        * that all HTM learning algorithms can use. It is flexible enough to
        * support any learning algorithm that operates on a collection of cells.
        *
@@ -474,6 +512,30 @@ namespace nupic
          */
         bool operator==(const Connections &other) const;
 
+        /**
+         * Add a connections events handler.
+         *
+         * The Connections instance takes ownership of the eventHandlers
+         * object. Don't delete it. When calling from Python, call
+         * eventHandlers.__disown__() to avoid garbage-collecting the object
+         * while this instance is still using it. It will be deleted on
+         * `unsubscribe`.
+         *
+         * @param handler
+         * An object implementing the ConnectionsEventHandler interface
+         *
+         * @retval Unsubscribe token
+         */
+        UInt32 subscribe(ConnectionsEventHandler* handler);
+
+        /**
+         * Remove an event handler.
+         *
+         * @param token
+         * The return value of `subscribe`.
+         */
+        void unsubscribe(UInt32 token);
+
       protected:
 
         /**
@@ -524,6 +586,8 @@ namespace nupic
         SegmentIdx maxSegmentsPerCell_;
         SynapseIdx maxSynapsesPerSegment_;
         Iteration iteration_;
+        UInt32 nextEventToken_;
+        std::map<UInt32, ConnectionsEventHandler*> eventHandlers_;
       }; // end class Connections
 
     } // end namespace connections

@@ -20,7 +20,7 @@
  * ---------------------------------------------------------------------
  */
 
-%module(package="bindings") algorithms
+%module(package="bindings", directors="1") algorithms
 %include <nupic/bindings/exception.i>
 %import <nupic/bindings/math.i>
 
@@ -1515,6 +1515,7 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
 %template(ConnectionsSynapseVector) vector<nupic::algorithms::connections::Synapse>;
 %template(ConnectionsSegmentVector) vector<nupic::algorithms::connections::Segment>;
 %template(ConnectionsCellVector) vector<nupic::algorithms::connections::Cell>;
+%feature("director") nupic::algorithms::connections::ConnectionsEventHandler;
 %include <nupic/algorithms/Connections.hpp>
 
 
