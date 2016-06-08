@@ -160,8 +160,8 @@ class AnomalyDetection
       UInt nCols = 2048, UInt nCells = 4, UInt anomalyWindowSize = 2, std::string tmImpl = "TM") : 
         encoder{25, inputMin, inputMax, 0, 0, inputResolution, false},
         sp{std::vector<UInt>{static_cast<UInt>(encoder.getOutputWidth())}, std::vector<UInt>{nCols}},
-        tp{sp.getNumColumns(), nCells, 12, 8, 15, 5, .5, .8, 1.0, .1, .1, 0.0, false, 42, true, false}, //FIXME tp & tm should not be initialized both, but I dont know how to conditionally initialize based on impl.
-        tm({sp.getNumColumns()}, nCells), //FIXME ensure same params TP/TM
+        tp{sp.getNumColumns(), nCells}, //FIXME tp & tm should not be initialized both, but I dont know how to conditionally initialize based on impl.
+        tm({sp.getNumColumns()}, nCells),
         anomaly{anomalyWindowSize, AnomalyMode::PURE, 0},
         lastTPOutput_(nCols),
         tmImpl(tmImpl)
