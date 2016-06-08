@@ -55,6 +55,20 @@ void Connections::initialize(CellIdx numCells,
   maxSegmentsPerCell_ = maxSegmentsPerCell;
   maxSynapsesPerSegment_ = maxSynapsesPerSegment;
   iteration_ = 0;
+  nextEventToken_ = 0;
+}
+
+UInt32 Connections::subscribe(ConnectionsEventHandler* handler)
+{
+  UInt32 token = nextEventToken_++;
+  eventHandlers_[token] = handler;
+  return token;
+}
+
+void Connections::unsubscribe(UInt32 token)
+{
+  delete eventHandlers_.at(token);
+  eventHandlers_.erase(token);
 }
 
 Segment Connections::createSegment(const Cell& cell)
@@ -93,8 +107,13 @@ Segment Connections::createSegment(const Cell& cell)
   }
 
   cellData.segments[segment.idx].lastUsedIteration = iteration_;
-
   numSegments_++;
+
+  for (auto h : eventHandlers_)
+  {
+    h.second->onCreateSegment(segment);
+  }
+
   return segment;
 }
 
@@ -142,11 +161,22 @@ Synapse Connections::createSynapse(const Segment& segment,
   Synapse synapse = {synapseIdx, segment};
   synapsesForPresynapticCell_[presynapticCell].push_back(synapse);
   numSynapses_++;
+
+  for (auto h : eventHandlers_)
+  {
+    h.second->onCreateSynapse(synapse);
+  }
+
   return synapse;
 }
 
 void Connections::destroySegment(const Segment& segment)
 {
+  for (auto h : eventHandlers_)
+  {
+    h.second->onDestroySegment(segment);
+  }
+
   SegmentData& segmentData = dataForSegment_(segment);
 
   NTA_CHECK(!segmentData.destroyed) << "Segment already destroyed.";
@@ -183,6 +213,11 @@ void Connections::destroySegment(const Segment& segment)
 
 void Connections::destroySynapse(const Synapse& synapse)
 {
+  for (auto h : eventHandlers_)
+  {
+    h.second->onDestroySynapse(synapse);
+  }
+
   SynapseData& synapseData = dataForSynapse_(synapse);
 
   NTA_CHECK(!synapseData.destroyed) << "Synapse already destroyed.";
@@ -208,6 +243,11 @@ void Connections::destroySynapse(const Synapse& synapse)
 void Connections::updateSynapsePermanence(const Synapse& synapse,
                                           Permanence permanence)
 {
+  for (auto h : eventHandlers_)
+  {
+    h.second->onUpdateSynapsePermanence(synapse, permanence);
+  }
+
   dataForSynapse_(synapse).permanence = permanence;
 }
 

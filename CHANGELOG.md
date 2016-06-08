@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.4
+
+* Timer: test drift
+* add CSV parser library
+
 ## 0.4.3
 
 * Adds include-what-you-use option in CMake configuration.
