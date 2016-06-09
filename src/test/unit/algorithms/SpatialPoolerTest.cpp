@@ -2480,6 +2480,41 @@ namespace {
     }
   }
 
+  TEST(SpatialPoolerTest, getOverlaps)
+  {
+    SpatialPooler sp;
+    const vector<UInt> inputDim = {5};
+    const vector<UInt> columnDim = {3};
+    sp.initialize(inputDim, columnDim);
+
+    UInt potential[5] = {1, 1, 1, 1, 1};
+    sp.setPotential(0, potential);
+    sp.setPotential(1, potential);
+    sp.setPotential(2, potential);
+
+    Real permanence0[5] = {0.0, 0.0, 0.0, 0.0, 0.0};
+    sp.setPermanence(0, permanence0);
+    Real permanence1[5] = {1.0, 1.0, 1.0, 0.0, 0.0};
+    sp.setPermanence(1, permanence1);
+    Real permanence2[5] = {1.0, 1.0, 1.0, 1.0, 1.0};
+    sp.setPermanence(2, permanence2);
+
+    vector<Real> boostFactors = {1.0, 2.0, 3.0};
+    sp.setBoostFactors(boostFactors.data());
+
+    vector<UInt> input = {1, 1, 1, 1, 1};
+    vector<UInt> activeColumns = {0, 0, 0};
+    sp.compute(input.data(), true, activeColumns.data());
+
+    const vector<UInt>& overlaps = sp.getOverlaps();
+    const vector<UInt> expectedOverlaps = {0, 3, 5};
+    EXPECT_EQ(expectedOverlaps, overlaps);
+
+    const vector<Real>& boostedOverlaps = sp.getBoostedOverlaps();
+    const vector<Real> expectedBoostedOverlaps = {0.0, 6.0, 15.0};
+    EXPECT_EQ(expectedBoostedOverlaps, boostedOverlaps);
+  }
+
   TEST(SpatialPoolerTest, testSaveLoad)
   {
     const char* filename = "SpatialPoolerSerialization.tmp";
