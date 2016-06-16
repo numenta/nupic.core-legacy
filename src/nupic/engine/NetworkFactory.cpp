@@ -42,18 +42,18 @@ namespace nupic
     {
       NTA_THROW << "(" << path << ") is not a yaml file.";
     }
-    return (createNetworkFromYAML(path));
-  }
 
-   
-  Network* NetworkFactory::createNetworkFromYAML(const std::string& path)
-  {
     std::string fullPath = Path::normalize(Path::makeAbsolute(path));
-
     if (! Path::exists(fullPath))
       NTA_THROW << "Path " << fullPath << " does not exist";
 
-    std::ifstream f(fullPath.c_str());
+    return (createNetworkFromYAML_(fullPath));
+  }
+
+   
+  Network* NetworkFactory::createNetworkFromYAML_(const std::string& path)
+  {
+    std::ifstream f(path.c_str());
 
     YAML::Parser parser(f);
     YAML::Node doc;
@@ -61,7 +61,7 @@ namespace nupic
     bool success = parser.GetNextDocument(doc);
     if (!success)
       NTA_THROW << "Unable to find YAML document in the specified path "
-                << fullPath;
+                << path;
      
     if (doc.Type() != YAML::NodeType::Map)
       NTA_THROW << "Invalid network structure file -- does not contain a map";
@@ -119,7 +119,7 @@ namespace nupic
     }
 
     const YAML::Node *links = doc.FindValue("Links");
-    const Collection<Region*> regionList = n->getRegions();
+    const Collection<Region*> regionList = n->getRegions(); // regions in the network.
 
     if (links == nullptr)
       NTA_THROW << "Invalid network structure file -- no links";

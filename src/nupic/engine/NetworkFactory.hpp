@@ -24,14 +24,22 @@
  * Definition of the NetworkFactory API
  */
 
+#ifndef NTA_NETWORK_FACTORY_HPP
+#define NTA_NETWORK_FACTORY_HPP
+
 #include <string>
 #include <yaml-cpp/yaml.h>
 
 namespace nupic
 {
-
-  class Network; 
-
+  class Network;
+  
+  /** Factory for creating Network instances from YAML files.
+   *
+   * @b Description
+   * Specify the structure of a Network in YAML file and use
+   * this factory to create that network using the Network API.
+   */
   class NetworkFactory
   {
   public:
@@ -40,16 +48,41 @@ namespace nupic
 
     ~NetworkFactory() {};
 
-    // Return a Network based on the yaml file passed in. Calls
-    // createNetworkFromYaml after passing in the yaml string from 
-    // the file specified by path.
+    /** Create a Network instance based on the yaml file passed in. 
+     *
+     *  Calls createNetworkFromYaml after ensuring the path has a yaml extension and
+     *  exists.
+     *
+     *  the file specified by path is expected to be a .yaml file with the outer
+     *  most element a map of two elements (Regions and Links).
+     *
+     *  Region:
+     *    - name       : string
+     *      nodeType   : string
+     *      nodeParams : string
+     *    ...
+     *  Links:
+     *    - srcRegion  : string
+     *      destRegion : string
+     *      type       : string
+     *      params     : string
+     *      srcOutput  : string
+     *      destInput  : string
+     *  ...
+     * @param path the .yaml file path
+     * @retval A pointer to the Network object specified by the yaml.
+     */
     Network* createNetwork(const std::string &path);
 
-    // Create a Network as specified by the YAML string passed in.
-    Network* createNetworkFromYAML(const std::string &path);
-
   private:
-
+    /** Internal method to parse the yaml and return the Network Instance.
+     *
+     * @param path - path to .yaml file with the correct format.
+     * @retval - a pointer to the Network object instance specified by the yaml.
+     */
+    Network* createNetworkFromYAML_(const std::string &path);
   };
 
 } // namespace nupic
+
+#endif // NTA_NETWORK_FACTORY_HPP

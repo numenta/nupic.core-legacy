@@ -49,8 +49,6 @@ using namespace nupic;
     EXPECT_EQ(true, caughtException) << "statement '" #statement "' should fail"; \
   }
 
-
-
 TEST(NetworkFactory, ValidYamlTest)
 {
   NetworkFactory nf;
