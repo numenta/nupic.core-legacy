@@ -118,5 +118,3 @@ TEST(NetworkFactory, NoLinksFile)
   SHOULDFAIL_WITH_MESSAGE(nf.createNetwork("../../src/test/unit/engine/fixtures/no-links.yaml"),
    "Invalid network structure file -- no links");
 }
-
-

@@ -37,16 +37,17 @@
 namespace nupic
 {
   Network* NetworkFactory::createNetwork(const std::string& path)
-  { 
+  {
     if (!StringUtils::endsWith(path, ".yaml"))
     {
       NTA_THROW << "(" << path << ") is not a yaml file.";
     }
 
     std::string fullPath = Path::normalize(Path::makeAbsolute(path));
-    if (! Path::exists(fullPath))
+    if (! Path::exists(fullPath)) 
+    {
       NTA_THROW << "Path " << fullPath << " does not exist";
-
+    }
     return (createNetworkFromYAML_(fullPath));
   }
 
@@ -59,26 +60,35 @@ namespace nupic
     YAML::Node doc;
 
     bool success = parser.GetNextDocument(doc);
-    if (!success)
+    if (!success) 
+    {
       NTA_THROW << "Unable to find YAML document in the specified path "
                 << path;
-     
-    if (doc.Type() != YAML::NodeType::Map)
-      NTA_THROW << "Invalid network structure file -- does not contain a map";
+    } 
 
+    if (doc.Type() != YAML::NodeType::Map)
+    {
+      NTA_THROW << "Invalid network structure file -- does not contain a map";
+    }
+      
     // Should contain Regions and Links only
     if (doc.size() != 2)
+    {
       NTA_THROW << "Invalid network structure file -- contains "
                 << doc.size() << " elements when it should contain 2.";
+    }
 
     // Regions
     const YAML::Node *regions = doc.FindValue("Regions");
     const YAML::Node *node;
-    if (regions == nullptr)
+    if (regions == nullptr) {
       NTA_THROW << "Invalid network structure file -- no regions";
+    }
 
-    if (regions->Type() != YAML::NodeType::Sequence)
+    if (regions->Type() != YAML::NodeType::Sequence) 
+    {
       NTA_THROW << "Invalid network structure file -- regions element is not a list";
+    }
 
     auto n = new Network(); // Network to be instantiated by the yaml file.
 
@@ -86,31 +96,44 @@ namespace nupic
     {
       // Each region is a map -- extract the 3 values in the map
       if ((*region).Type() != YAML::NodeType::Map)
+      {
         NTA_THROW << "Invalid network structure file -- bad region (not a map)";
+      }
 
       if ((*region).size() != 3)
+      {
         NTA_THROW << "Invalid network structure file -- bad region (wrong size)";
+      }
 
       // 1. name
       node = (*region).FindValue("name");
       if (node == nullptr)
+      {
         NTA_THROW << "Invalid network structure file -- region has no name";
+      }
+
       std::string name;
       *node >> name;
 
       // 2. nodeType
       node = (*region).FindValue("nodeType");
       if (node == nullptr)
-        NTA_THROW << "Invalid network structure file -- region "
+      {
+         NTA_THROW << "Invalid network structure file -- region "
                   << name << " has no node type";
+      }
+       
       std::string nodeType;
       *node >> nodeType;
 
       // 3. nodeParams
       node = (*region).FindValue("nodeParams");
       if (node == nullptr)
+      {
         NTA_THROW << "Invalid network structure file -- region"
                   << name << "has no nodeParams";
+      }
+
       std::string nodeParams;
       *node >> nodeParams;
       
@@ -122,77 +145,112 @@ namespace nupic
     const Collection<Region*> regionList = n->getRegions(); // regions in the network.
 
     if (links == nullptr)
-      NTA_THROW << "Invalid network structure file -- no links";
-
+    {
+       NTA_THROW << "Invalid network structure file -- no links";
+    }
+     
     if (links->Type() != YAML::NodeType::Sequence)
+    {
       NTA_THROW << "Invalid network structure file -- links element is not a list";
-
+    }
+     
     for (YAML::Iterator link = links->begin(); link != links->end(); link++)
     {
       // Each link is a map -- extract the 5 values in the map
       if ((*link).Type() != YAML::NodeType::Map)
+      {
         NTA_THROW << "Invalid network structure file -- bad link (not a map)";
+      }
 
       if ((*link).size() != 6)
+      {
         NTA_THROW << "Invalid network structure file -- bad link (wrong size)";
+      }
 
       // 1. type
       node = (*link).FindValue("type");
       if (node == nullptr)
+      {
         NTA_THROW << "Invalid network structure file -- link does not have a type";
+      }
       std::string linkType;
       *node >> linkType;
 
       // 2. params
       node = (*link).FindValue("params");
       if (node == nullptr)
+      {
         NTA_THROW << "Invalid network structure file -- link does not have params";
+      }
+
       std::string params;
       *node >> params;
 
       // 3. srcRegion (name)
       node = (*link).FindValue("srcRegion");
       if (node == nullptr)
+      {
         NTA_THROW << "Invalid network structure file -- link does not have a srcRegion";
+      }
+
       std::string srcRegionName;
       *node >> srcRegionName;
 
       // 4. srcOutput
       node = (*link).FindValue("srcOutput");
       if (node == nullptr)
+      {
         NTA_THROW << "Invalid network structure file -- link does not have a srcOutput";
+      }
+
       std::string srcOutputName;
       *node >> srcOutputName;
 
       // 5. destRegion
       node = (*link).FindValue("destRegion");
       if (node == nullptr)
+      {
         NTA_THROW << "Invalid network structure file -- link does not have a destRegion";
+      }
+
       std::string destRegionName;
       *node >> destRegionName;
 
       // 6. destInput
       node = (*link).FindValue("destInput");
       if (node == nullptr)
+      {
         NTA_THROW << "Invalid network structure file -- link does not have a destInput";
+      }
+
       std::string destInputName;
       *node >> destInputName;
 
       if (!regionList.contains(srcRegionName))
+      {
         NTA_THROW << "Invalid network structure file -- link specifies source region '" << srcRegionName << "' but no such region exists";
+      }
+
       Region* srcRegion = regionList.getByName(srcRegionName);
 
       if (!regionList.contains(destRegionName))
+      {
         NTA_THROW << "Invalid network structure file -- link specifies destination region '" << destRegionName << "' but no such region exists";
+      }
+
       Region* destRegion = regionList.getByName(destRegionName);
 
       Output* srcOutput = srcRegion->getOutput(srcOutputName);
       if (srcOutput == nullptr)
+      {
         NTA_THROW << "Invalid network structure file -- link specifies source output '" << srcOutputName << "' but no such name exists";
+      }
 
       Input* destInput = destRegion->getInput(destInputName);
       if (destInput == nullptr)
+      {
         NTA_THROW << "Invalid network structure file -- link specifies destination input '" << destInputName << "' but no such name exists";
+      }
 
       // Create the link itself
       n->link(srcRegionName, destRegionName, linkType, params, srcOutputName, destInputName);
