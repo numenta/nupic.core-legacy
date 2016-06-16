@@ -297,6 +297,7 @@ set(src_nupiccore_srcs
     nupic/engine/Link.cpp
     nupic/engine/LinkPolicyFactory.cpp
     nupic/engine/Network.cpp
+    nupic/engine/NetworkFactory.cpp
     nupic/engine/NuPIC.cpp
     nupic/engine/Output.cpp
     nupic/engine/Region.cpp
@@ -487,6 +488,7 @@ add_executable(${src_executable_gtests}
                test/unit/encoders/ScalarEncoderTest.cpp
                test/unit/engine/InputTest.cpp
                test/unit/engine/NetworkTest.cpp
+               test/unit/engine/NetworkFactoryTest.cpp
                test/unit/engine/UniformLinkPolicyTest.cpp
                test/unit/engine/YAMLUtilsTest.cpp
                test/unit/math/DenseTensorUnitTest.cpp
