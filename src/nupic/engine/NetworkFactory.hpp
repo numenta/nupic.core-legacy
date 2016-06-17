@@ -1,6 +1,6 @@
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
+ * Copyright (C) 2016, Numenta, Inc.  Unless you have an agreement
  * with Numenta, Inc., for a separate license for this software code, the
  * following terms and conditions apply:
  *
@@ -77,10 +77,10 @@ namespace nupic
   private:
     /** Internal method to parse the yaml and return the Network Instance.
      *
-     * @param path - path to .yaml file with the correct format.
+     * @param parser - parser of the .yaml
      * @retval - a pointer to the Network object instance specified by the yaml.
      */
-    Network* createNetworkFromYAML_(const std::string &path);
+    Network* createNetworkFromYAML_(const std::string& path);
   };
 
 } // namespace nupic

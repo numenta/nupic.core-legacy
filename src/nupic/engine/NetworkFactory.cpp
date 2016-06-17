@@ -1,6 +1,6 @@
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
+ * Copyright (C) 2016, Numenta, Inc.  Unless you have an agreement
  * with Numenta, Inc., for a separate license for this software code, the
  * following terms and conditions apply:
  *
@@ -42,7 +42,7 @@ namespace nupic
     {
       NTA_THROW << "(" << path << ") is not a yaml file.";
     }
-
+ 
     std::string fullPath = Path::normalize(Path::makeAbsolute(path));
     if (! Path::exists(fullPath)) 
     {
@@ -53,17 +53,14 @@ namespace nupic
 
    
   Network* NetworkFactory::createNetworkFromYAML_(const std::string& path)
-  {
+  { 
     std::ifstream f(path.c_str());
-
     YAML::Parser parser(f);
     YAML::Node doc;
-
     bool success = parser.GetNextDocument(doc);
     if (!success) 
     {
-      NTA_THROW << "Unable to find YAML document in the specified path "
-                << path;
+      NTA_THROW << "Unable to parse YAML document in the specified path.";
     } 
 
     if (doc.Type() != YAML::NodeType::Map)
@@ -81,7 +78,8 @@ namespace nupic
     // Regions
     const YAML::Node *regions = doc.FindValue("Regions");
     const YAML::Node *node;
-    if (regions == nullptr) {
+    if (regions == nullptr)
+    {
       NTA_THROW << "Invalid network structure file -- no regions";
     }
 

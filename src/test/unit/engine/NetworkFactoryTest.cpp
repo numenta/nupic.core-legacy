@@ -1,6 +1,6 @@
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
+ * Copyright (C) 2016, Numenta, Inc.  Unless you have an agreement
  * with Numenta, Inc., for a separate license for this software code, the
  * following terms and conditions apply:
  *
@@ -34,21 +34,6 @@
 
 using namespace nupic;
 
-#define SHOULDFAIL_WITH_MESSAGE(statement, message) \
-  { \
-    bool caughtException = false; \
-    try { \
-      statement; \
-    } catch(nupic::LoggingException& e) { \
-      caughtException = true; \
-      EXPECT_STREQ(message, e.getMessage()) << "statement '" #statement "' should fail with message \"" \
-      << message << "\", but failed with message \"" << e.getMessage() << "\""; \
-    } catch(...) { \
-      FAIL() << "statement '" #statement "' did not generate a logging exception"; \
-    } \
-    EXPECT_EQ(true, caughtException) << "statement '" #statement "' should fail"; \
-  }
-
 TEST(NetworkFactory, ValidYamlTest)
 {
   NetworkFactory nf;
@@ -78,43 +63,37 @@ TEST(NetworkFactory, ValidYamlTest)
 
 }
 
-TEST(NetworkFactory, InvalidYamlPath)
-{
-  NetworkFactory nf;
-  SHOULDFAIL_WITH_MESSAGE(nf.createNetwork("blah.txt"), "(blah.txt) is not a yaml file.");
-}
-
 TEST(NetworkFactory, MissingLinkFieldsFile)
 {
   NetworkFactory nf;
-  SHOULDFAIL_WITH_MESSAGE(nf.createNetwork("../../src/test/unit/engine/fixtures/missing-link-fields.yaml"),
-   "Invalid network structure file -- bad link (wrong size)");
+  EXPECT_THROW(nf.createNetwork("../../src/test/unit/engine/fixtures/missing-link-fields.yaml"),
+    std::exception);
 }
 
 TEST(NetworkFactory, MissingRegionFieldsFile)
 {
   NetworkFactory nf;
-  SHOULDFAIL_WITH_MESSAGE(nf.createNetwork("../../src/test/unit/engine/fixtures/missing-region-fields.yaml"),
-   "Invalid network structure file -- bad region (wrong size)");
+  EXPECT_THROW(nf.createNetwork("../../src/test/unit/engine/fixtures/missing-region-fields.yaml"),
+    std::exception);
 }
 
 TEST(NetworkFactory, ExtraFieldFile)
 {
   NetworkFactory nf;
-  SHOULDFAIL_WITH_MESSAGE(nf.createNetwork("../../src/test/unit/engine/fixtures/extra-yaml-fields.yaml"),
-   "Invalid network structure file -- contains 3 elements when it should contain 2.");
+  EXPECT_THROW(nf.createNetwork("../../src/test/unit/engine/fixtures/extra-yaml-fields.yaml"),
+    std::exception);
 }
 
 TEST(NetworkFactory, NoRegionsFile)
 {
   NetworkFactory nf;
-  SHOULDFAIL_WITH_MESSAGE(nf.createNetwork("../../src/test/unit/engine/fixtures/no-regions.yaml"),
-   "Invalid network structure file -- no regions");
+  EXPECT_THROW(nf.createNetwork("../../src/test/unit/engine/fixtures/no-regions.yaml"),
+    std::exception);
 }
 
 TEST(NetworkFactory, NoLinksFile)
 {
   NetworkFactory nf;
-  SHOULDFAIL_WITH_MESSAGE(nf.createNetwork("../../src/test/unit/engine/fixtures/no-links.yaml"),
-   "Invalid network structure file -- no links");
+  EXPECT_THROW(nf.createNetwork("../../src/test/unit/engine/fixtures/no-links.yaml"),
+    std::exception);
 }
