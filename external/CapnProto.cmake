@@ -81,6 +81,14 @@ ExternalProject_Add(CapnProto
       -DCMAKE_CXX_FLAGS=${capnp_cxx_flags}
       -DCMAKE_EXE_LINKER_FLAGS=${capnp_linker_flags}
       -DCMAKE_INSTALL_PREFIX=${EP_BASE}/Install
+      # gcc v4.9 requires its own binutils-wrappers for LTO (flag -flto)
+      # fixes #981
+      IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+  	IF(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 4.9 OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 4.9)
+            CMAKE_ARGS ${CMAKE_ARGS} -DCMAKE_AR=/usr/bin/gcc-ar
+             -DCMAKE_RANLIB=/usr/bin/gcc-ranlib
+	ENDIF()
+      ENDIF()
 )
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
