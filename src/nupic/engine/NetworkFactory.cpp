@@ -90,18 +90,21 @@ namespace nupic
       // Each region is a map -- extract the 3 values in the map
       if ((*region).Type() != YAML::NodeType::Map)
       {
+        delete n;
         NTA_THROW << "Invalid network structure file -- bad region (not a map)";
       }
 
       if ((*region).size() != 3)
       {
+        delete n;
         NTA_THROW << "Invalid network structure file -- bad region (wrong size)";
       }
 
       // 1. name
       node = (*region).FindValue("name");
       if (node == nullptr)
-      {
+      { 
+        delete n;
         NTA_THROW << "Invalid network structure file -- region has no name";
       }
 
@@ -111,7 +114,8 @@ namespace nupic
       // 2. nodeType
       node = (*region).FindValue("nodeType");
       if (node == nullptr)
-      {
+      {  
+         delete n;
          NTA_THROW << "Invalid network structure file -- region "
                   << name << " has no node type";
       }
@@ -122,7 +126,8 @@ namespace nupic
       // 3. nodeParams
       node = (*region).FindValue("nodeParams");
       if (node == nullptr)
-      {
+      { 
+        delete n;
         NTA_THROW << "Invalid network structure file -- region"
                   << name << "has no nodeParams";
       }
@@ -138,12 +143,14 @@ namespace nupic
     const Collection<Region*> regionList = n->getRegions(); // regions in the network.
 
     if (links == nullptr)
-    {
+    {  
+       delete n;
        NTA_THROW << "Invalid network structure file -- no links";
     }
      
     if (links->Type() != YAML::NodeType::Sequence)
-    {
+    { 
+      delete n;
       NTA_THROW << "Invalid network structure file -- links element is not a list";
     }
      
@@ -151,12 +158,14 @@ namespace nupic
     {
       // Each link is a map -- extract the 5 values in the map
       if ((*link).Type() != YAML::NodeType::Map)
-      {
+      { 
+        delete n;
         NTA_THROW << "Invalid network structure file -- bad link (not a map)";
       }
 
       if ((*link).size() != 6)
-      {
+      { 
+        delete n;
         NTA_THROW << "Invalid network structure file -- bad link (wrong size)";
       }
 
@@ -164,6 +173,7 @@ namespace nupic
       node = (*link).FindValue("type");
       if (node == nullptr)
       {
+        delete n;
         NTA_THROW << "Invalid network structure file -- link does not have a type";
       }
       std::string linkType;
@@ -173,6 +183,7 @@ namespace nupic
       node = (*link).FindValue("params");
       if (node == nullptr)
       {
+        delete n;
         NTA_THROW << "Invalid network structure file -- link does not have params";
       }
 
@@ -183,6 +194,7 @@ namespace nupic
       node = (*link).FindValue("srcRegion");
       if (node == nullptr)
       {
+        delete n;
         NTA_THROW << "Invalid network structure file -- link does not have a srcRegion";
       }
 
@@ -193,6 +205,7 @@ namespace nupic
       node = (*link).FindValue("srcOutput");
       if (node == nullptr)
       {
+        delete n;
         NTA_THROW << "Invalid network structure file -- link does not have a srcOutput";
       }
 
@@ -203,6 +216,7 @@ namespace nupic
       node = (*link).FindValue("destRegion");
       if (node == nullptr)
       {
+        delete n;
         NTA_THROW << "Invalid network structure file -- link does not have a destRegion";
       }
 
@@ -213,6 +227,7 @@ namespace nupic
       node = (*link).FindValue("destInput");
       if (node == nullptr)
       {
+        delete n;
         NTA_THROW << "Invalid network structure file -- link does not have a destInput";
       }
 
@@ -221,6 +236,7 @@ namespace nupic
 
       if (!regionList.contains(srcRegionName))
       {
+        delete n;
         NTA_THROW << "Invalid network structure file -- link specifies source region '" << srcRegionName << "' but no such region exists";
       }
 
@@ -228,6 +244,7 @@ namespace nupic
 
       if (!regionList.contains(destRegionName))
       {
+        delete n;
         NTA_THROW << "Invalid network structure file -- link specifies destination region '" << destRegionName << "' but no such region exists";
       }
 
@@ -236,12 +253,14 @@ namespace nupic
       Output* srcOutput = srcRegion->getOutput(srcOutputName);
       if (srcOutput == nullptr)
       {
+        delete n;
         NTA_THROW << "Invalid network structure file -- link specifies source output '" << srcOutputName << "' but no such name exists";
       }
 
       Input* destInput = destRegion->getInput(destInputName);
       if (destInput == nullptr)
       {
+        delete n;
         NTA_THROW << "Invalid network structure file -- link specifies destination input '" << destInputName << "' but no such name exists";
       }
 
