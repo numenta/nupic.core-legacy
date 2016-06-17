@@ -30,15 +30,23 @@
 #include <nupic/engine/Network.hpp>
 #include <nupic/engine/NuPIC.hpp>
 #include <nupic/engine/Region.hpp>
+#include <nupic/os/Path.hpp>
 #include <nupic/utils/Log.hpp>
 
 using namespace nupic;
+
+// macro to ease nesting
+#define GP Path::getParent
+
+const std::string UNIT_TESTS_EXECUTABLE_PATH = Path::getExecutablePath();
+const std::string NUPIC_CORE_PATH =  GP(GP(GP(GP(UNIT_TESTS_EXECUTABLE_PATH))));
+const std::string PATH_TO_FIXTURES = Path::join(NUPIC_CORE_PATH, "/src/test/unit/engine/fixtures");
 
 TEST(NetworkFactory, ValidYamlTest)
 {
   NetworkFactory nf;
   Network *n;
-  n = nf.createNetwork("../../src/test/unit/engine/fixtures/network.yaml");
+  n = nf.createNetwork(Path::join(PATH_TO_FIXTURES, "network.yaml"));
 
   const Collection<Region*> regionList = n->getRegions();
   ASSERT_EQ((UInt32)3, regionList.getCount());
@@ -66,34 +74,34 @@ TEST(NetworkFactory, ValidYamlTest)
 TEST(NetworkFactory, MissingLinkFieldsFile)
 {
   NetworkFactory nf;
-  EXPECT_THROW(nf.createNetwork("../../src/test/unit/engine/fixtures/missing-link-fields.yaml"),
+  EXPECT_THROW(nf.createNetwork(Path::join(PATH_TO_FIXTURES, "missing-link-fields.yaml")),
     std::exception);
 }
 
 TEST(NetworkFactory, MissingRegionFieldsFile)
 {
   NetworkFactory nf;
-  EXPECT_THROW(nf.createNetwork("../../src/test/unit/engine/fixtures/missing-region-fields.yaml"),
+  EXPECT_THROW(nf.createNetwork(Path::join(PATH_TO_FIXTURES, "missing-region-fields.yaml")),
     std::exception);
 }
 
 TEST(NetworkFactory, ExtraFieldFile)
 {
   NetworkFactory nf;
-  EXPECT_THROW(nf.createNetwork("../../src/test/unit/engine/fixtures/extra-yaml-fields.yaml"),
+  EXPECT_THROW(nf.createNetwork(Path::join(PATH_TO_FIXTURES, "extra-yaml-fields.yaml")),
     std::exception);
 }
 
 TEST(NetworkFactory, NoRegionsFile)
 {
   NetworkFactory nf;
-  EXPECT_THROW(nf.createNetwork("../../src/test/unit/engine/fixtures/no-regions.yaml"),
+  EXPECT_THROW(nf.createNetwork(Path::join(PATH_TO_FIXTURES, "no-regions.yaml")),
     std::exception);
 }
 
 TEST(NetworkFactory, NoLinksFile)
 {
   NetworkFactory nf;
-  EXPECT_THROW(nf.createNetwork("../../src/test/unit/engine/fixtures/no-links.yaml"),
+  EXPECT_THROW(nf.createNetwork(Path::join(PATH_TO_FIXTURES, "no-links.yaml")),
     std::exception);
 }

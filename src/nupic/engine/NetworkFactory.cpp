@@ -37,12 +37,7 @@
 namespace nupic
 {
   Network* NetworkFactory::createNetwork(const std::string& path)
-  {
-    if (!StringUtils::endsWith(path, ".yaml"))
-    {
-      NTA_THROW << "(" << path << ") is not a yaml file.";
-    }
- 
+  { 
     std::string fullPath = Path::normalize(Path::makeAbsolute(path));
     if (! Path::exists(fullPath)) 
     {
