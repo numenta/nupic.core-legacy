@@ -1057,18 +1057,25 @@ void PyRegion::createSpec(const char * nodeType, Spec & ns, const char* classNam
     NTA_ASSERT(input.getItem("required") != nullptr)
         << inputMessagePrefix.str() << "required";
     bool required = py::Int(input.getItem("required")) != 0;
-
-    NTA_ASSERT(input.getItem("regionLevel") != nullptr)
-        << inputMessagePrefix.str() << "regionLevel";
-    bool regionLevel = py::Int(input.getItem("regionLevel")) != 0;
+    
+    // make regionLevel optional and default to true.
+    bool regionLevel = true;
+    if (input.getItem("regionLevel") != nullptr)
+    {
+       regionLevel = py::Int(input.getItem("regionLevel")) != 0;
+    }
 
     NTA_ASSERT(input.getItem("isDefaultInput") != nullptr)
         << inputMessagePrefix.str() << "isDefaultInput";
     bool isDefaultInput = py::Int(input.getItem("isDefaultInput")) != 0;
+    
+    // make requireSplitterMap optional and default to false.
+    bool requireSplitterMap = false;
+    if (input.getItem("requireSplitterMap") != nullptr)
+    {
+      requireSplitterMap =  py::Int(input.getItem("requireSplitterMap")) != 0;
+    }
 
-    NTA_ASSERT(input.getItem("requireSplitterMap") != nullptr)
-        << inputMessagePrefix.str() << "requireSplitterMap";
-    bool requireSplitterMap = py::Int(input.getItem("requireSplitterMap")) != 0;
     ns.inputs.add(
       name,
       InputSpec(
@@ -1112,9 +1119,12 @@ void PyRegion::createSpec(const char * nodeType, Spec & ns, const char* classNam
         << outputMessagePrefix.str() << "count";
     UInt32 count = py::Int(output.getItem("count"));
 
-    NTA_ASSERT(output.getItem("regionLevel") != nullptr)
-        << outputMessagePrefix.str() << "regionLevel";
-    bool regionLevel = py::Int(output.getItem("regionLevel")) != 0;
+    // make regionLevel optional and default to true.
+    bool regionLevel = true;
+    if (output.getItem("regionLevel") != nullptr)
+    {
+       regionLevel = py::Int(output.getItem("regionLevel")) != 0;
+    }
 
     NTA_ASSERT(output.getItem("isDefaultOutput") != nullptr)
         << outputMessagePrefix.str() << "isDefaultOutput";
