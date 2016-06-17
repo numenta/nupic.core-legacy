@@ -62,4 +62,12 @@ ExternalProject_Add(ZStaticLib
         -DINSTALL_LIB_DIR=${zlib_install_lib_dir}
         -DINSTALL_MAN_DIR=${zlib_install_prefix}/man
         -DINSTALL_PKGCONFIG_DIR=${zlib_install_prefix}/pkgconfig
+        # gcc v4.9 requires its own binutils-wrappers for LTO (flag -flto)
+	# fixes #981
+	IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+  	  IF(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 4.9 OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 4.9)
+            CMAKE_ARGS ${CMAKE_ARGS} -DCMAKE_AR=/usr/bin/gcc-ar
+             -DCMAKE_RANLIB=/usr/bin/gcc-ranlib
+	  ENDIF()
+	ENDIF()
 )

@@ -49,4 +49,12 @@ ExternalProject_Add(YamlStaticLib
         -DBUILD_SHARED_LIBS=OFF
         -DCMAKE_C_FLAGS=${c_flags}
         -DCMAKE_INSTALL_PREFIX=${yamllib_build_dir}
+        # gcc v4.9 requires its own binutils-wrappers for LTO (flag -flto)
+	# fixes #981
+	IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+  	  IF(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 4.9 OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 4.9)
+            CMAKE_ARGS ${CMAKE_ARGS} -DCMAKE_AR=/usr/bin/gcc-ar
+             -DCMAKE_RANLIB=/usr/bin/gcc-ranlib
+	  ENDIF()
+	ENDIF()
 )
