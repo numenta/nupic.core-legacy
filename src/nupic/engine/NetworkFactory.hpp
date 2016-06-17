@@ -80,7 +80,7 @@ namespace nupic
      * @param parser - parser of the .yaml
      * @retval - a pointer to the Network object instance specified by the yaml.
      */
-    Network* createNetworkFromYAML_(const std::string& path);
+    Network* createNetworkFromYAML_(YAML::Parser *p);
   };
 
 } // namespace nupic

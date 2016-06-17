@@ -43,16 +43,16 @@ namespace nupic
     {
       NTA_THROW << "Path " << fullPath << " does not exist";
     }
-    return (createNetworkFromYAML_(fullPath));
+    std::ifstream f(fullPath.c_str());
+    YAML::Parser parser(f);
+    return (createNetworkFromYAML_(&parser));
   }
 
    
-  Network* NetworkFactory::createNetworkFromYAML_(const std::string& path)
+  Network* NetworkFactory::createNetworkFromYAML_(YAML::Parser *parser)
   { 
-    std::ifstream f(path.c_str());
-    YAML::Parser parser(f);
     YAML::Node doc;
-    bool success = parser.GetNextDocument(doc);
+    bool success = parser->GetNextDocument(doc);
     if (!success) 
     {
       NTA_THROW << "Unable to parse YAML document in the specified path.";
