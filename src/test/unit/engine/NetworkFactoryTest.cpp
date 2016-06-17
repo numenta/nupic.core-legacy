@@ -69,6 +69,7 @@ TEST(NetworkFactory, ValidYamlTest)
   ASSERT_TRUE(l2->getInput("bottomUpIn"));
   ASSERT_TRUE(l3->getInput("bottomUpIn"));
 
+  delete n;  //make sure to unregister the network.
 }
 
 TEST(NetworkFactory, MissingLinkFieldsFile)
