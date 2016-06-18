@@ -43,7 +43,34 @@ set(aprutillib_cflags "${EXTERNAL_C_FLAGS_OPTIMIZED} ${COMMON_COMPILER_DEFINITIO
 
 set(aprutillib_url "${REPOSITORY_DIR}/external/common/share/apr-util/unix/apr-util-1.5.4.tar.gz")
 
-if (UNIX)
+# gcc v4.9 requires its own binutils-wrappers for LTO (flag -flto)
+# fixes #981
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "4.9" OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "4.9"))
+	set(aprutillib_config_options
+        --disable-util-dso --with-apr=${LIB_STATIC_APR1_INC_DIR}/..)
+
+    ExternalProject_Add(AprUtil1StaticLib
+        DEPENDS Apr1StaticLib
+
+        URL ${aprutillib_url}
+
+        UPDATE_COMMAND ""
+        PATCH_COMMAND ""
+
+        CONFIGURE_COMMAND
+            <SOURCE_DIR>/configure AR=gcc-ar NM=gcc-nm RANLIB=gcc-ranlib 
+                --prefix=${aprutillib_install_prefix}
+                ${aprutillib_config_options}
+                CFLAGS=${aprutillib_cflags}
+
+        BUILD_COMMAND
+            make -f Makefile all
+
+        INSTALL_COMMAND
+            make -f Makefile install
+    )
+
+elseif (UNIX)
     set(aprutillib_config_options
         --disable-util-dso --with-apr=${LIB_STATIC_APR1_INC_DIR}/..)
 
@@ -93,14 +120,6 @@ else()
             -DAPR_INCLUDE_DIR=${LIB_STATIC_APR1_INC_DIR}/apr-1
             -DAPR_LIBRARIES=${LIB_STATIC_APR1_LOC}
             -DINSTALL_PDB=OFF
-	# gcc v4.9 requires its own binutils-wrappers for LTO (flag -flto)
-	# fixes #981
-	IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-  	  IF(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 4.9 OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 4.9)
-            CMAKE_ARGS ${CMAKE_ARGS} -DCMAKE_AR=/usr/bin/gcc-ar
-             -DCMAKE_RANLIB=/usr/bin/gcc-ranlib
-	  ENDIF()
-	ENDIF()
 
         #LOG_INSTALL 1
     )

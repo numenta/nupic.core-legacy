@@ -43,8 +43,35 @@ set(aprlib_cflags "${EXTERNAL_C_FLAGS_OPTIMIZED} ${COMMON_COMPILER_DEFINITIONS_S
 # Location of apr sources
 set(aprlib_url "${REPOSITORY_DIR}/external/common/share/apr/unix/apr-1.5.2.tar.gz")
 
+# gcc v4.9 requires its own binutils-wrappers for LTO (flag -flto)
+# fixes #981
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "4.9" OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "4.9"))
+	set(aprlib_config_options --enable-static --disable-shared --disable-ipv6)
+
+    if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+        set(aprlib_config_options ${aprlib_config_options} --enable-debug)
+    endif()
+
+    ExternalProject_Add(Apr1StaticLib
+        URL ${aprlib_url}
+
+        UPDATE_COMMAND ""
+        PATCH_COMMAND ""
+
+        CONFIGURE_COMMAND
+            <SOURCE_DIR>/configure AR=gcc-ar NM=gcc-nm RANLIB=gcc-ranlib
+                --prefix=${aprlib_install_prefix} 
+                ${aprlib_config_options}
+                CFLAGS=${aprlib_cflags}
+
+        BUILD_COMMAND
+            make -f Makefile all
+
+        INSTALL_COMMAND
+            make -f Makefile install
+    )
 # Get it built!
-if (UNIX)
+elseif (UNIX)
     set(aprlib_config_options --enable-static --disable-shared --disable-ipv6)
 
     if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
@@ -88,14 +115,6 @@ else()
             -DCMAKE_C_FLAGS=${aprlib_cflags}
             -DCMAKE_INSTALL_PREFIX=${aprlib_install_prefix}
             -DINSTALL_PDB=OFF
-         # gcc v4.9 requires its own binutils-wrappers for LTO (flag -flto)
-	 # fixes #981
-	IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-  	  IF(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 4.9 OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 4.9)
-            CMAKE_ARGS ${CMAKE_ARGS} -DCMAKE_AR=/usr/bin/gcc-ar
-             -DCMAKE_RANLIB=/usr/bin/gcc-ranlib
-	  ENDIF()
-	ENDIF()
 
         #LOG_INSTALL 1
     )
