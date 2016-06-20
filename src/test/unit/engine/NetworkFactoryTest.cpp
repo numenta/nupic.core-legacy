@@ -111,5 +111,9 @@ TEST(NetworkFactory, NoLinksFile)
 TEST(NetworkFactory, EmptyRegions)
 {
   NetworkFactory nf;
-  EXPECT_NO_THROW(nf.createNetwork(Path::join(PATH_TO_FIXTURES, "empty-regions.yaml")););
+  Network *n;
+  n = nf.createNetwork(Path::join(PATH_TO_FIXTURES, "empty-regions.yaml"));
+  const Collection<Region*> regionList = n->getRegions();
+  ASSERT_EQ((UInt32)0, regionList.getCount());
+  delete n;
 }
