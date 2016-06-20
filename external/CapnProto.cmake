@@ -69,7 +69,7 @@ message(STATUS "CapnProto CXX_FLAGS=${capnp_cxx_flags}")
 
 # gcc v4.9 requires its own binutils-wrappers for LTO (flag -flto)
 # fixes #981
-IF(UNIX AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "4.9" OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "4.9"))
+IF(UNIX AND CMAKE_COMPILER_IS_GNUCXX AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "4.9" OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "4.9"))
 	ExternalProject_Add(CapnProto
   		URL ${capnproto_lib_url}
 
