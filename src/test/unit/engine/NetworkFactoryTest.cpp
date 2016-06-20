@@ -33,6 +33,7 @@
 #include <nupic/os/Path.hpp>
 #include <nupic/utils/Log.hpp>
 
+
 using namespace nupic;
 
 // macro to ease nesting
@@ -40,7 +41,7 @@ using namespace nupic;
 
 const std::string UNIT_TESTS_EXECUTABLE_PATH = Path::getExecutablePath();
 const std::string NUPIC_CORE_PATH =  GP(GP(GP(GP(UNIT_TESTS_EXECUTABLE_PATH))));
-const std::string PATH_TO_FIXTURES = Path::join(NUPIC_CORE_PATH, "/src/test/unit/engine/fixtures");
+const std::string PATH_TO_FIXTURES = Path::join(NUPIC_CORE_PATH, "src/test/unit/engine/fixtures");
 
 TEST(NetworkFactory, ValidYamlTest)
 {
