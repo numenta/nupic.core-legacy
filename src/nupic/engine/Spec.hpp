@@ -33,7 +33,7 @@ Definition of Spec data structures
 #include <map>
 
 namespace nupic
-{
+{ 
   class InputSpec
   {
   public:  
@@ -54,15 +54,16 @@ namespace nupic
     UInt32 count; 
     // TBD. Omit? what is "required"? Is it ok to be zero length?
     bool required;
-    bool regionLevel;
+    bool regionLevel; // As of 6/20/16, optional and default value is true
     bool isDefaultInput;
-    bool requireSplitterMap; // 
+    bool requireSplitterMap; // As of 6/20/16, optional and default value is false
   };
 
   class OutputSpec
   {
   public:
     OutputSpec() {}
+    // 6/20/16 regionLevel is optional and has a default value of true.
     OutputSpec(std::string description, const 
                NTA_BasicType dataType, size_t count, bool regionLevel, bool isDefaultOutput);
 
