@@ -1076,8 +1076,6 @@ void PyRegion::createSpec(const char * nodeType, Spec & ns, const char* classNam
       requireSplitterMap =  py::Int(input.getItem("requireSplitterMap")) != 0;
     }
     
-    // As of 6/20/16 regionLevel and require SplitterMap are optional parameters
-    // and have default values of true and false respectively.
     ns.inputs.add(
       name,
       InputSpec(
@@ -1132,7 +1130,6 @@ void PyRegion::createSpec(const char * nodeType, Spec & ns, const char* classNam
         << outputMessagePrefix.str() << "isDefaultOutput";
     bool isDefaultOutput = py::Int(output.getItem("isDefaultOutput")) != 0;
     
-    // As of 6/20/16 regionLevel is optional and defaults to true.
     ns.outputs.add(
       name,
       OutputSpec(
