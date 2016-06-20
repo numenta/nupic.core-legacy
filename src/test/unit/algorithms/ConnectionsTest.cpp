@@ -646,6 +646,107 @@ namespace {
     ASSERT_EQ(2, matchingSegments[2].overlap);
   }
 
+
+
+  bool TEST_EVENT_HANDLER_DESTRUCTED = false;
+
+  class TestConnectionsEventHandler : public ConnectionsEventHandler
+  {
+  public:
+    TestConnectionsEventHandler()
+      :didCreateSegment(false),
+       didDestroySegment(false),
+       didCreateSynapse(false),
+       didDestroySynapse(false),
+       didUpdateSynapsePermanence(false)
+    {
+    }
+
+    virtual ~TestConnectionsEventHandler()
+    {
+      TEST_EVENT_HANDLER_DESTRUCTED = true;
+    }
+
+    virtual void onCreateSegment(Segment segment)
+    {
+      didCreateSegment = true;
+    }
+
+    virtual void onDestroySegment(Segment segment)
+    {
+      didDestroySegment = true;
+    }
+
+    virtual void onCreateSynapse(Synapse synapse)
+    {
+      didCreateSynapse = true;
+    }
+
+    virtual void onDestroySynapse(Synapse synapse)
+    {
+      didDestroySynapse = true;
+    }
+
+    virtual void onUpdateSynapsePermanence(Synapse synapse,
+                                           Permanence permanence)
+    {
+      didUpdateSynapsePermanence = true;
+    }
+
+    bool didCreateSegment;
+    bool didDestroySegment;
+    bool didCreateSynapse;
+    bool didDestroySynapse;
+    bool didUpdateSynapsePermanence;
+  };
+
+  /**
+   * Make sure each event handler gets called.
+   */
+  TEST(ConnectionsTest, subscribe)
+  {
+    Connections connections(1024);
+
+    TestConnectionsEventHandler* handler = new TestConnectionsEventHandler();
+    auto token = connections.subscribe(handler);
+
+    ASSERT_FALSE(handler->didCreateSegment);
+    Segment segment = connections.createSegment(Cell(42));
+    EXPECT_TRUE(handler->didCreateSegment);
+
+    ASSERT_FALSE(handler->didCreateSynapse);
+    Synapse synapse = connections.createSynapse(segment, Cell(41), 0.50);
+    EXPECT_TRUE(handler->didCreateSynapse);
+
+    ASSERT_FALSE(handler->didUpdateSynapsePermanence);
+    connections.updateSynapsePermanence(synapse, 0.60);
+    EXPECT_TRUE(handler->didUpdateSynapsePermanence);
+
+    ASSERT_FALSE(handler->didDestroySynapse);
+    connections.destroySynapse(synapse);
+    EXPECT_TRUE(handler->didDestroySynapse);
+
+    ASSERT_FALSE(handler->didDestroySegment);
+    connections.destroySegment(segment);
+    EXPECT_TRUE(handler->didDestroySegment);
+
+    connections.unsubscribe(token);
+  }
+
+  /**
+   * Make sure the event handler is destructed on unsubscribe.
+   */
+  TEST(ConnectionsTest, unsubscribe)
+  {
+    Connections connections(1024);
+    TestConnectionsEventHandler* handler = new TestConnectionsEventHandler();
+    auto token = connections.subscribe(handler);
+
+    TEST_EVENT_HANDLER_DESTRUCTED = false;
+    connections.unsubscribe(token);
+    EXPECT_TRUE(TEST_EVENT_HANDLER_DESTRUCTED);
+  }
+
   /**
    * Creates a sample set of connections, and makes sure that we can get the
    * correct number of segments.
