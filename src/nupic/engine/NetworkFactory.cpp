@@ -21,21 +21,24 @@
  */
 
 #include <iostream>
+#include <string>
 
-#include <nupic/engine/Input.hpp>
-#include <nupic/engine/Output.hpp> 
 #include <nupic/engine/Network.hpp>
 #include <nupic/engine/NetworkFactory.hpp>
 #include <nupic/engine/Region.hpp>
-#include <nupic/os/Env.hpp>
-#include <nupic/os/FStream.hpp>
-#include <nupic/os/OS.hpp>
 #include <nupic/os/Path.hpp>
+#include <nupic/os/FStream.hpp>
 #include <nupic/utils/Log.hpp>
-#include <nupic/utils/StringUtils.hpp>
+#include <nupic/utils/LoggingException.hpp>
+#include <nupic/ntypes/Collection.hpp>
+#include <yaml-cpp/yaml.h>
+
 
 namespace nupic
 {
+  class Input;
+  class Output;
+
   Network* NetworkFactory::createNetwork(const std::string& path)
   { 
     std::string fullPath = Path::normalize(Path::makeAbsolute(path));
@@ -45,11 +48,11 @@ namespace nupic
     }
     std::ifstream f(fullPath.c_str());
     YAML::Parser parser(f);
-    return (createNetworkFromYAML_(&parser));
+    return (createNetworkFromYAML(&parser));
   }
 
    
-  Network* NetworkFactory::createNetworkFromYAML_(YAML::Parser *parser)
+  Network* NetworkFactory::createNetworkFromYAML(YAML::Parser *parser)
   { 
     YAML::Node doc;
     bool success = parser->GetNextDocument(doc);

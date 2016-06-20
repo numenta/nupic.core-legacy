@@ -27,8 +27,8 @@
 #ifndef NTA_NETWORK_FACTORY_HPP
 #define NTA_NETWORK_FACTORY_HPP
 
-#include <string>
-#include <yaml-cpp/yaml.h>
+#include <iosfwd>  // for string
+namespace YAML { class Parser; }
 
 namespace nupic
 {
@@ -74,13 +74,15 @@ namespace nupic
      */
     Network* createNetwork(const std::string &path);
 
-  private:
     /** Internal method to parse the yaml and return the Network Instance.
      *
      * @param parser - parser of the .yaml
      * @retval - a pointer to the Network object instance specified by the yaml.
      */
-    Network* createNetworkFromYAML_(YAML::Parser *p);
+    Network* createNetworkFromYAML(YAML::Parser *p);
+
+  private:
+
   };
 
 } // namespace nupic
