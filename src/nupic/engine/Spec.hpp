@@ -33,7 +33,7 @@ Definition of Spec data structures
 #include <map>
 
 namespace nupic
-{ 
+{
   class InputSpec
   {
   public:  
