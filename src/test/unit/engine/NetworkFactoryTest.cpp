@@ -107,3 +107,9 @@ TEST(NetworkFactory, NoLinksFile)
   EXPECT_THROW(nf.createNetwork(Path::join(PATH_TO_FIXTURES, "no-links.yaml")),
     std::exception);
 }
+
+TEST(NetworkFactory, EmptyRegions)
+{
+  NetworkFactory nf;
+  EXPECT_NO_THROW(nf.createNetwork(Path::join(PATH_TO_FIXTURES, "empty-regions.yaml")););
+}
