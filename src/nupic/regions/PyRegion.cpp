@@ -1129,7 +1129,7 @@ void PyRegion::createSpec(const char * nodeType, Spec & ns, const char* classNam
     NTA_ASSERT(output.getItem("isDefaultOutput") != nullptr)
         << outputMessagePrefix.str() << "isDefaultOutput";
     bool isDefaultOutput = py::Int(output.getItem("isDefaultOutput")) != 0;
-    
+
     ns.outputs.add(
       name,
       OutputSpec(
