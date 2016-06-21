@@ -38,40 +38,19 @@ set(LIB_STATIC_YAML_CPP_LOC "${yamlcpplib_install_lib_dir}/${STATIC_PRE}yaml-cpp
 set(c_flags "${EXTERNAL_C_FLAGS_OPTIMIZED} ${COMMON_COMPILER_DEFINITIONS_STR}")
 set(cxx_flags "${EXTERNAL_CXX_FLAGS_OPTIMIZED} ${COMMON_COMPILER_DEFINITIONS_STR}")
 
-# gcc v4.9 requires its own binutils-wrappers for LTO (flag -flto)
-# fixes #981
-IF(UNIX AND CMAKE_COMPILER_IS_GNUCXX AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "4.9" OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "4.9"))
-	ExternalProject_Add(YamlCppStaticLib
-    	DEPENDS YamlStaticLib
+ExternalProject_Add(YamlCppStaticLib
+    DEPENDS YamlStaticLib
 
-    	URL ${yamlcpplib_url}
+    URL ${yamlcpplib_url}
 
-    	UPDATE_COMMAND ""
+    UPDATE_COMMAND ""
 
-    	CMAKE_GENERATOR ${CMAKE_GENERATOR}
+    CMAKE_GENERATOR ${CMAKE_GENERATOR}
 
-    	CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-        	-DBUILD_SHARED_LIBS=OFF
-        	-DCMAKE_C_FLAGS=${c_flags}
-        	-DCMAKE_CXX_FLAGS=${cxx_flags}
-        	-DCMAKE_INSTALL_PREFIX=${yamlcpplib_install_prefix}
-		-DCMAKE_AR=/usr/bin/gcc-ar
-           	-DCMAKE_RANLIB=/usr/bin/gcc-ranlib
-	)
-ELSE()
-	ExternalProject_Add(YamlCppStaticLib
-    	DEPENDS YamlStaticLib
-
-    	URL ${yamlcpplib_url}
-
-    	UPDATE_COMMAND ""
-
-    	CMAKE_GENERATOR ${CMAKE_GENERATOR}
-
-    	CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-        	-DBUILD_SHARED_LIBS=OFF
-        	-DCMAKE_C_FLAGS=${c_flags}
-        	-DCMAKE_CXX_FLAGS=${cxx_flags}
-        	-DCMAKE_INSTALL_PREFIX=${yamlcpplib_install_prefix}
-	)
-ENDIF()
+    CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+        -DBUILD_SHARED_LIBS=OFF
+        -DCMAKE_C_FLAGS=${c_flags}
+        -DCMAKE_CXX_FLAGS=${cxx_flags}
+        -DCMAKE_INSTALL_PREFIX=${yamlcpplib_install_prefix}
+        ${COMMON_STATICLIB_CMAKE_DEFINITIONS_OPTIMIZED}
+)

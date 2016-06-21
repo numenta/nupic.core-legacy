@@ -35,40 +35,19 @@ set(LIB_STATIC_YAML_LOC "${yamllib_build_dir}/${STATIC_PRE}yaml${STATIC_SUF}")
 
 set(c_flags "${EXTERNAL_C_FLAGS_OPTIMIZED} ${COMMON_COMPILER_DEFINITIONS_STR}")
 
-# gcc v4.9 requires its own binutils-wrappers for LTO (flag -flto)
-# fixes #981
-IF(UNIX AND CMAKE_COMPILER_IS_GNUCXX AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "4.9" OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "4.9"))
-	ExternalProject_Add(YamlStaticLib
-    	URL ${yamllib_url}
+ExternalProject_Add(YamlStaticLib
+    URL ${yamllib_url}
 
-    	UPDATE_COMMAND ""
+    UPDATE_COMMAND ""
 
-    	# NOTE Yaml provides no rule for install
-    	INSTALL_COMMAND ""
+    # NOTE Yaml provides no rule for install
+    INSTALL_COMMAND ""
 
-    	CMAKE_GENERATOR ${CMAKE_GENERATOR}
+    CMAKE_GENERATOR ${CMAKE_GENERATOR}
 
-    	CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-        	-DBUILD_SHARED_LIBS=OFF
-        	-DCMAKE_C_FLAGS=${c_flags}
-        	-DCMAKE_INSTALL_PREFIX=${yamllib_build_dir}
-			-DCMAKE_AR=/usr/bin/gcc-ar
-        	-DCMAKE_RANLIB=/usr/bin/gcc-ranlib
-	)
-ELSE()
-	ExternalProject_Add(YamlStaticLib
-    	URL ${yamllib_url}
-
-    	UPDATE_COMMAND ""
-
-    	# NOTE Yaml provides no rule for install
-    	INSTALL_COMMAND ""
-
-    	CMAKE_GENERATOR ${CMAKE_GENERATOR}
-
-    	CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-        	-DBUILD_SHARED_LIBS=OFF
-        	-DCMAKE_C_FLAGS=${c_flags}
-        	-DCMAKE_INSTALL_PREFIX=${yamllib_build_dir}
-	)
-ENDIF()
+    CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+        -DBUILD_SHARED_LIBS=OFF
+        -DCMAKE_C_FLAGS=${c_flags}
+        -DCMAKE_INSTALL_PREFIX=${yamllib_build_dir}
+        ${COMMON_STATICLIB_CMAKE_DEFINITIONS_OPTIMIZED}
+)

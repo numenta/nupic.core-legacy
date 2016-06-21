@@ -91,6 +91,8 @@ set(EXTERNAL_CXX_FLAGS_OPTIMIZED)
 set(EXTERNAL_LINKER_FLAGS_UNOPTIMIZED)
 set(EXTERNAL_LINKER_FLAGS_OPTIMIZED)
 
+set(COMMON_STATICLIB_CMAKE_DEFINITIONS_OPTIMIZED)
+set(COMMON_STATICLIB_CONFIGURE_DEFINITIONS_OPTIMIZED_STR "")
 
 # Identify platform "bitness".
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
@@ -220,6 +222,12 @@ elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
   set(shared_linker_flags_unoptimized "${shared_linker_flags_unoptimized} -Wl,-undefined,error")
 endif()
 
+# Compatibility with gcc >= 4.9 which requires the use of gcc's own wrappers for ar and ranlib in combination with LTO
+# works also with LTO disabled
+IF(UNIX AND CMAKE_COMPILER_IS_GNUCXX AND (NOT "${CMAKE_BUILD_TYPE}" STREQUAL "Debug") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "4.9" OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "4.9"))
+    set(COMMON_STATICLIB_CMAKE_DEFINITIONS_OPTIMIZED -DCMAKE_AR:PATH=gcc-ar -DCMAKE_RANLIB:PATH=gcc-ranlib)
+    set(COMMON_STATICLIB_CONFIGURE_DEFINITIONS_OPTIMIZED_STR AR=gcc-ar RANLIB=gcc-ranlib)
+ENDIF()
 
 #
 # Set up Debug vs. Release options

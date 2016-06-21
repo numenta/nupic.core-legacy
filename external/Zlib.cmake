@@ -46,44 +46,21 @@ set(LIB_STATIC_Z_LOC "${zlib_install_lib_dir}/${STATIC_PRE}${zlib_output_root}${
 
 set(c_flags "${EXTERNAL_C_FLAGS_OPTIMIZED} ${COMMON_COMPILER_DEFINITIONS_STR}")
 
-# gcc v4.9 requires its own binutils-wrappers for LTO (flag -flto)
-# fixes #981
-IF(UNIX AND CMAKE_COMPILER_IS_GNUCXX AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "4.9" OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "4.9"))
-	ExternalProject_Add(ZStaticLib
-    	URL ${zlib_url}
+ExternalProject_Add(ZStaticLib
+    URL ${zlib_url}
 
-    	UPDATE_COMMAND ""
+    UPDATE_COMMAND ""
 
-    	CMAKE_GENERATOR ${CMAKE_GENERATOR}
+    CMAKE_GENERATOR ${CMAKE_GENERATOR}
 
-    	CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-        	-DBUILD_SHARED_LIBS=OFF
-        	-DCMAKE_C_FLAGS=${c_flags}
-        	-DCMAKE_INSTALL_PREFIX=${zlib_install_prefix}
-        	-DINSTALL_BIN_DIR=${zlib_install_prefix}/bin
-        	-DINSTALL_INC_DIR=${LIB_STATIC_Z_INC_DIR}
-        	-DINSTALL_LIB_DIR=${zlib_install_lib_dir}
-        	-DINSTALL_MAN_DIR=${zlib_install_prefix}/man
-        	-DINSTALL_PKGCONFIG_DIR=${zlib_install_prefix}/pkgconfig
-			-DCMAKE_AR=/usr/bin/gcc-ar
-            -DCMAKE_RANLIB=/usr/bin/gcc-ranlib
-	)
-ELSE()
-	ExternalProject_Add(ZStaticLib
-    	URL ${zlib_url}
-
-    	UPDATE_COMMAND ""
-
-    	CMAKE_GENERATOR ${CMAKE_GENERATOR}
-
-    	CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-        	-DBUILD_SHARED_LIBS=OFF
-        	-DCMAKE_C_FLAGS=${c_flags}
-        	-DCMAKE_INSTALL_PREFIX=${zlib_install_prefix}
-        	-DINSTALL_BIN_DIR=${zlib_install_prefix}/bin
-        	-DINSTALL_INC_DIR=${LIB_STATIC_Z_INC_DIR}
-        	-DINSTALL_LIB_DIR=${zlib_install_lib_dir}
-        	-DINSTALL_MAN_DIR=${zlib_install_prefix}/man
-        	-DINSTALL_PKGCONFIG_DIR=${zlib_install_prefix}/pkgconfig
-	)
-ENDIF()
+    CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+        -DBUILD_SHARED_LIBS=OFF
+        -DCMAKE_C_FLAGS=${c_flags}
+        -DCMAKE_INSTALL_PREFIX=${zlib_install_prefix}
+        -DINSTALL_BIN_DIR=${zlib_install_prefix}/bin
+        -DINSTALL_INC_DIR=${LIB_STATIC_Z_INC_DIR}
+        -DINSTALL_LIB_DIR=${zlib_install_lib_dir}
+        -DINSTALL_MAN_DIR=${zlib_install_prefix}/man
+        -DINSTALL_PKGCONFIG_DIR=${zlib_install_prefix}/pkgconfig
+        ${COMMON_STATICLIB_CMAKE_DEFINITIONS_OPTIMIZED}
+)

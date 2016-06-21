@@ -51,47 +51,24 @@ if (UNIX)
         set(aprlib_config_options ${aprlib_config_options} --enable-debug)
     endif()
 
-    # gcc v4.9 requires its own binutils-wrappers for LTO (flag -flto)
-    # fixes #981
-    if(CMAKE_COMPILER_IS_GNUCXX AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "4.9" OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "4.9"))
-        ExternalProject_Add(Apr1StaticLib
-        	URL ${aprlib_url}
+    ExternalProject_Add(Apr1StaticLib
+        URL ${aprlib_url}
 
-        	UPDATE_COMMAND ""
-        	PATCH_COMMAND ""
+        UPDATE_COMMAND ""
+        PATCH_COMMAND ""
 
-        	CONFIGURE_COMMAND
-            	<SOURCE_DIR>/configure AR=gcc-ar NM=gcc-nm RANLIB=gcc-ranlib
-                	--prefix=${aprlib_install_prefix}
-                	${aprlib_config_options}
-                	CFLAGS=${aprlib_cflags}
+        CONFIGURE_COMMAND
+            <SOURCE_DIR>/configure ${COMMON_STATICLIB_CONFIGURE_DEFINITIONS_OPTIMIZED_STR}
+                --prefix=${aprlib_install_prefix}
+                ${aprlib_config_options}
+                CFLAGS=${aprlib_cflags}
 
-        	BUILD_COMMAND
-            	make -f Makefile all
+        BUILD_COMMAND
+            make -f Makefile all
 
-        	INSTALL_COMMAND
-            	make -f Makefile install
-    	)
-    else()
-		ExternalProject_Add(Apr1StaticLib
-        	URL ${aprlib_url}
-
-        	UPDATE_COMMAND ""
-        	PATCH_COMMAND ""
-
-        	CONFIGURE_COMMAND
-            	<SOURCE_DIR>/configure
-                	--prefix=${aprlib_install_prefix}
-                	${aprlib_config_options}
-                	CFLAGS=${aprlib_cflags}
-
-        	BUILD_COMMAND
-            	make -f Makefile all
-
-        	INSTALL_COMMAND
-            	make -f Makefile install
-    	)
-	endif()
+        INSTALL_COMMAND
+            make -f Makefile install
+    )
 else()
     # NOT UNIX - i.e., Windows
 
@@ -111,6 +88,7 @@ else()
             -DCMAKE_C_FLAGS=${aprlib_cflags}
             -DCMAKE_INSTALL_PREFIX=${aprlib_install_prefix}
             -DINSTALL_PDB=OFF
+
 
         #LOG_INSTALL 1
     )

@@ -28,11 +28,10 @@ set(CMAKE_VERBOSE_MAKEFILE OFF)
 
 get_filename_component(REPOSITORY_DIR ${PROJECT_SOURCE_DIR} ABSOLUTE)
 
-# gcc v4.9 requires its own binutils-wrappers for LTO (flag -flto)
-# fixes #981
+# gcc >= v4.9 requires its own binutils-wrappers for LTO (flag -flto)
 IF(UNIX AND CMAKE_COMPILER_IS_GNUCXX AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "4.9" OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "4.9"))
-    set(CMAKE_AR "/usr/bin/gcc-ar")
-    set(CMAKE_RANLIB "/usr/bin/gcc-ranlib")
+    set(CMAKE_AR "gcc-ar")
+    set(CMAKE_RANLIB "gcc-ranlib")
 ENDIF()
 
 if( POLICY CMP0046 )

@@ -67,44 +67,21 @@ set(capnp_linker_flags "${EXTERNAL_LINKER_FLAGS_UNOPTIMIZED}")
 # Print diagnostic info to debug whether -fuse-linker-plugin is being suppressed
 message(STATUS "CapnProto CXX_FLAGS=${capnp_cxx_flags}")
 
-# gcc v4.9 requires its own binutils-wrappers for LTO (flag -flto)
-# fixes #981
-IF(UNIX AND CMAKE_COMPILER_IS_GNUCXX AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "4.9" OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "4.9"))
-	ExternalProject_Add(CapnProto
-  		URL ${capnproto_lib_url}
+ExternalProject_Add(CapnProto
+  URL ${capnproto_lib_url}
 
-  		UPDATE_COMMAND ""
+  UPDATE_COMMAND ""
 
-  		CMAKE_GENERATOR ${CMAKE_GENERATOR}
+  CMAKE_GENERATOR ${CMAKE_GENERATOR}
 
-  		CMAKE_ARGS
-      		${CAPNP_CMAKE_DEFINITIONS}
-      		-DBUILD_SHARED_LIBS=OFF
-      		-DBUILD_TESTING=OFF
-      		-DCMAKE_CXX_FLAGS=${capnp_cxx_flags}
-      		-DCMAKE_EXE_LINKER_FLAGS=${capnp_linker_flags}
-      		-DCMAKE_INSTALL_PREFIX=${EP_BASE}/Install
-      		-DCMAKE_AR=/usr/bin/gcc-ar
-      		-DCMAKE_RANLIB=/usr/bin/gcc-ranlib
-	)
-ELSE()
-	ExternalProject_Add(CapnProto
-  		URL ${capnproto_lib_url}
-
-  		UPDATE_COMMAND ""
-
-  		CMAKE_GENERATOR ${CMAKE_GENERATOR}
-
-  		CMAKE_ARGS
-      		${CAPNP_CMAKE_DEFINITIONS}
-      		-DBUILD_SHARED_LIBS=OFF
-      		-DBUILD_TESTING=OFF
-      		-DCMAKE_CXX_FLAGS=${capnp_cxx_flags}
-      		-DCMAKE_EXE_LINKER_FLAGS=${capnp_linker_flags}
-      		-DCMAKE_INSTALL_PREFIX=${EP_BASE}/Install
-	)
-ENDIF()
-
+  CMAKE_ARGS
+      ${CAPNP_CMAKE_DEFINITIONS}
+      -DBUILD_SHARED_LIBS=OFF
+      -DBUILD_TESTING=OFF
+      -DCMAKE_CXX_FLAGS=${capnp_cxx_flags}
+      -DCMAKE_EXE_LINKER_FLAGS=${capnp_linker_flags}
+      -DCMAKE_INSTALL_PREFIX=${EP_BASE}/Install
+)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   # Install prebuilt Cap'n Proto compilers for Windows

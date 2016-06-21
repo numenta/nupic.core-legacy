@@ -47,51 +47,27 @@ if (UNIX)
     set(aprutillib_config_options
         --disable-util-dso --with-apr=${LIB_STATIC_APR1_INC_DIR}/..)
 
-	# gcc v4.9 requires its own binutils-wrappers for LTO (flag -flto)
-	# fixes #981
-	if(CMAKE_COMPILER_IS_GNUCXX AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "4.9" OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "4.9"))
-    	ExternalProject_Add(AprUtil1StaticLib
-        	DEPENDS Apr1StaticLib
+    ExternalProject_Add(AprUtil1StaticLib
+        DEPENDS Apr1StaticLib
 
-        	URL ${aprutillib_url}
+        URL ${aprutillib_url}
 
-        	UPDATE_COMMAND ""
-        	PATCH_COMMAND ""
+        UPDATE_COMMAND ""
+        PATCH_COMMAND ""
 
-        	CONFIGURE_COMMAND
-            	<SOURCE_DIR>/configure AR=gcc-ar NM=gcc-nm RANLIB=gcc-ranlib
-                	--prefix=${aprutillib_install_prefix}
-                	${aprutillib_config_options}
-                	CFLAGS=${aprutillib_cflags}
+        CONFIGURE_COMMAND
+            <SOURCE_DIR>/configure ${COMMON_STATICLIB_CONFIGURE_DEFINITIONS_OPTIMIZED_STR}
+                --prefix=${aprutillib_install_prefix}
+                ${aprutillib_config_options}
+                CFLAGS=${aprutillib_cflags}
 
-        	BUILD_COMMAND
-            	make -f Makefile all
+        BUILD_COMMAND
+            make -f Makefile all
 
-        	INSTALL_COMMAND
-            	make -f Makefile install
-    	)
-	else()
-		ExternalProject_Add(AprUtil1StaticLib
-        	DEPENDS Apr1StaticLib
+        INSTALL_COMMAND
+            make -f Makefile install
+    )
 
-        	URL ${aprutillib_url}
-
-        	UPDATE_COMMAND ""
-        	PATCH_COMMAND ""
-
-        	CONFIGURE_COMMAND
-            	<SOURCE_DIR>/configure
-                	--prefix=${aprutillib_install_prefix}
-                	${aprutillib_config_options}
-                	CFLAGS=${aprutillib_cflags}
-
-        	BUILD_COMMAND
-            	make -f Makefile all
-
-        	INSTALL_COMMAND
-            	make -f Makefile install
-    	)
-	endif()
 else()
     # NOT UNIX - i.e., Windows
 
