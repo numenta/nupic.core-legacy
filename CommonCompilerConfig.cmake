@@ -143,12 +143,6 @@ elseif(MSVC OR MSYS OR MINGW)
   endif()
 endif()
 
-if(NOT "${PLATFORM_TYPE}" STREQUAL "arm")
-  set(src_compiler_definitions
-      ${src_compiler_definitions}
-      -DNTA_ASM)
-endif()
-
 
 #
 # Set linker (ld)
@@ -187,15 +181,14 @@ if(NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
   set(optimization_flags_cc "-pipe ${optimization_flags_cc}") #TODO use -Ofast instead of -O3
   set(optimization_flags_lt "-O2 ${optimization_flags_lt}")
 
-  CHECK_CXX_COMPILER_FLAG(-mtune=generic COMPILER_SUPPORTS_GENERIC_TUNING)
-  if(COMPILER_SUPPORTS_GENERIC_TUNING)
+  if(NOT ${CMAKE_SYSTEM_PROCESSOR} STREQUAL "armv7l")
     set(optimization_flags_cc "${optimization_flags_cc} -mtune=generic")
   endif()
 
   if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" AND NOT MINGW)
     set(optimization_flags_cc "${optimization_flags_cc} -fuse-ld=gold")
 
-    if(NOT "${PLATFORM_TYPE}" STREQUAL "arm")
+    if(NOT "${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "armv7l")
       # NOTE -flto must go together in both cc and ld flags; also, it's presently incompatible
       # with the -g option in at least some GNU compilers (saw in `man gcc` on Ubuntu)
       set(optimization_flags_cc "${optimization_flags_cc} -fuse-linker-plugin -flto-report -flto")
@@ -238,7 +231,7 @@ else()
     set(shared_compile_flags "${shared_compile_flags} -m${BITNESS}")
     set(shared_linker_flags_unoptimized "${shared_linker_flags_unoptimized} -m${BITNESS}")
   endif()
-  if("${PLATFORM_TYPE}" STREQUAL "arm")
+  if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "armv7l")
     set(shared_compile_flags "${shared_compile_flags} -marm")
     set(shared_linker_flags_unoptimized "${shared_linker_flags_unoptimized} -marm")
   endif()

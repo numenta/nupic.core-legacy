@@ -89,6 +89,12 @@ set(src_compiler_definitions
     -DAPR_DECLARE_STATIC
     -DAPU_DECLARE_STATIC)
 
+if(NOT "${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "armv7l")
+  set(src_compiler_definitions
+      ${src_compiler_definitions}
+      -DNTA_ASM)
+endif()
+
 if(NOT "${CMAKE_BUILD_TYPE}" STREQUAL "Release")
   set(src_compiler_definitions
       ${src_compiler_definitions}
