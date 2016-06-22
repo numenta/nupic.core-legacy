@@ -67,6 +67,10 @@
 # INTERNAL_LINKER_FLAGS_OPTIMIZED: string of linker flags for linking internal executables
 #                      and shared libraries (DLLs) with optimizations that are
 #                      compatible with INTERNAL_CXX_FLAGS_OPTIMIZED
+#
+# CMAKE_AR: Name of archiving tool (ar) for static libraries. See cmake documentation
+#
+# CMAKE_RANLIB: Name of randomizing tool (ranlib) for static libraries. See cmake documentation
 #                    
 # CMAKE_LINKER: updated, if needed; use ld.gold if available. See cmake
 #               documentation
