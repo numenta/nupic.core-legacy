@@ -61,6 +61,13 @@
 #                      and shared libraries (DLLs) with optimizations that are
 #                      compatible with INTERNAL_CXX_FLAGS_OPTIMIZED
 #
+# COMMON_STATICLIB_CMAKE_DEFINITIONS_OPTIMIZED: list of DMAKE_AR and DMAKE_RANLIB flags required for gcc >= 4.9
+#                      in combination with Link Time Optimization (-flto) 
+#
+# COMMON_STATICLIB_CONFIGURE_DEFINITIONS_OPTIMIZED_STR: string containing environment variables required for
+#                      gcc >= 4.9 in combination with Link Time Optimization (-flto). Used for non-cmake
+#                      builds only.
+#                      
 # CMAKE_LINKER: updated, if needed; use ld.gold if available. See cmake
 #               documentation
 #
