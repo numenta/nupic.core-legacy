@@ -62,4 +62,5 @@ ExternalProject_Add(ZStaticLib
         -DINSTALL_LIB_DIR=${zlib_install_lib_dir}
         -DINSTALL_MAN_DIR=${zlib_install_prefix}/man
         -DINSTALL_PKGCONFIG_DIR=${zlib_install_prefix}/pkgconfig
+        ${EXTERNAL_STATICLIB_CMAKE_DEFINITIONS_OPTIMIZED}
 )
