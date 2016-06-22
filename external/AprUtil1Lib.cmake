@@ -56,7 +56,7 @@ if (UNIX)
         PATCH_COMMAND ""
 
         CONFIGURE_COMMAND
-            <SOURCE_DIR>/configure ${COMMON_STATICLIB_CONFIGURE_DEFINITIONS_OPTIMIZED_STR}
+            <SOURCE_DIR>/configure ${EXTERNAL_STATICLIB_CONFIGURE_DEFINITIONS_OPTIMIZED_STR}
                 --prefix=${aprutillib_install_prefix}
                 ${aprutillib_config_options}
                 CFLAGS=${aprutillib_cflags}
