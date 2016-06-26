@@ -55,12 +55,23 @@
 #                      and shared libraries (DLLs) with optimizations that are
 #                      compatible with EXTERNAL_C_FLAGS_OPTIMIZED and EXTERNAL_CXX_FLAGS_OPTIMIZED
 #
+# EXTERNAL_STATICLIB_CMAKE_DEFINITIONS_OPTIMIZED: list of -D cmake definitions corresponding to
+#                      EXTERNAL_C_FLAGS_OPTIMIZED (e. g. use of gcc-ar and gcc-ranlib wrappers for gcc >= 4.9 
+#                      in combination with Link Time Optimization)                       
+#
+# EXTERNAL_STATICLIB_CONFIGURE_DEFINITIONS_OPTIMIZED_STR: string variant of EXTERNAL_STATICLIB_CMAKE_DEFINITIONS_OPTIMIZED
+#                      used for non-cmake builds
+#  
 # INTERNAL_CXX_FLAGS_OPTIMIZED: string of C++ flags with explicit optimization flags for internal sources
 #
 # INTERNAL_LINKER_FLAGS_OPTIMIZED: string of linker flags for linking internal executables
 #                      and shared libraries (DLLs) with optimizations that are
 #                      compatible with INTERNAL_CXX_FLAGS_OPTIMIZED
 #
+# CMAKE_AR: Name of archiving tool (ar) for static libraries. See cmake documentation
+#
+# CMAKE_RANLIB: Name of randomizing tool (ranlib) for static libraries. See cmake documentation
+#                    
 # CMAKE_LINKER: updated, if needed; use ld.gold if available. See cmake
 #               documentation
 #
@@ -93,6 +104,8 @@ set(EXTERNAL_CXX_FLAGS_OPTIMIZED)
 set(EXTERNAL_LINKER_FLAGS_UNOPTIMIZED)
 set(EXTERNAL_LINKER_FLAGS_OPTIMIZED)
 
+set(EXTERNAL_STATICLIB_CMAKE_DEFINITIONS_OPTIMIZED)
+set(EXTERNAL_STATICLIB_CONFIGURE_DEFINITIONS_OPTIMIZED_STR "")
 
 # Identify platform "bitness".
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
@@ -255,6 +268,17 @@ elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
   set(shared_linker_flags_unoptimized "${shared_linker_flags_unoptimized} -Wl,-undefined,error")
 endif()
 
+# Compatibility with gcc >= 4.9 which requires the use of gcc's own wrappers for ar and ranlib in combination with LTO
+# works also with LTO disabled
+IF(UNIX AND CMAKE_COMPILER_IS_GNUCXX AND (NOT "${CMAKE_BUILD_TYPE}" STREQUAL "Debug") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "4.9" OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "4.9"))
+    set(CMAKE_AR "gcc-ar")
+    set(CMAKE_RANLIB "gcc-ranlib")
+    # EXTERNAL_STATICLIB_CMAKE_DEFINITIONS_OPTIMIZED contains duplicate settings for CMAKE_AR and CMAKE_RANLIB
+    # This is a workaround for a CMAKE bug (https://gitlab.kitware.com/cmake/cmake/issues/15547) that prevents
+    # the correct propagation of CMAKE_AR and CMAKE_RANLIB variables to all externals
+    set(EXTERNAL_STATICLIB_CMAKE_DEFINITIONS_OPTIMIZED -DCMAKE_AR:PATH=gcc-ar -DCMAKE_RANLIB:PATH=gcc-ranlib)
+    set(EXTERNAL_STATICLIB_CONFIGURE_DEFINITIONS_OPTIMIZED_STR AR=gcc-ar RANLIB=gcc-ranlib)
+ENDIF()
 
 #
 # Set up Debug vs. Release options
