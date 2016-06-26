@@ -55,30 +55,6 @@ namespace nupic
       static const UInt16 MAX_SYNAPSES_PER_SEGMENT = 255;
 
       /**
-       * Cell class used in Connections.
-       *
-       * @b Description
-       * The Cell class is a data structure that points to a particular cell.
-       *
-       * @param idx Index of cell.
-       *
-       */
-      struct Cell
-      {
-        CellIdx idx;
-
-        Cell(CellIdx idx) : idx(idx) {}
-        Cell() {}
-
-        bool operator==(const Cell &other) const;
-        bool operator!=(const Cell &other) const;
-        bool operator<=(const Cell &other) const;
-        bool operator<(const Cell &other) const;
-        bool operator>=(const Cell &other) const;
-        bool operator>(const Cell &other) const;
-      };
-
-      /**
        * Segment class used in Connections.
        *
        * @b Description
@@ -92,9 +68,9 @@ namespace nupic
       struct Segment
       {
         SegmentIdx idx;
-        Cell cell;
+        CellIdx cell;
 
-        Segment(SegmentIdx idx, Cell cell) : idx(idx), cell(std::move(cell)) {}
+        Segment(SegmentIdx idx, CellIdx cell) : idx(idx), cell(cell) {}
         Segment() {}
 
         bool operator==(const Segment &other) const;
@@ -121,7 +97,7 @@ namespace nupic
         SynapseIdx idx;
         Segment segment;
 
-        Synapse(SynapseIdx idx, Segment segment) : idx(idx), segment(std::move(segment)) {}
+        Synapse(SynapseIdx idx, Segment segment) : idx(idx), segment(segment) {}
         Synapse() {}
 
         bool operator==(const Synapse &other) const;
@@ -141,7 +117,7 @@ namespace nupic
        */
       struct SynapseData
       {
-        Cell presynapticCell;
+        CellIdx presynapticCell;
         Permanence permanence;
         bool destroyed;
       };
@@ -301,7 +277,7 @@ namespace nupic
          *
          * @retval Created segment.
          */
-        Segment createSegment(const Cell& cell);
+        Segment createSegment(CellIdx cell);
 
         /**
          * Creates a synapse on the specified segment.
@@ -313,7 +289,7 @@ namespace nupic
          * @reval Created synapse.
          */
         Synapse createSynapse(const Segment& segment,
-                              const Cell& presynapticCell,
+                              CellIdx presynapticCell,
                               Permanence permanence);
 
         /**
@@ -346,7 +322,7 @@ namespace nupic
          *
          * @retval Segments on cell.
          */
-        std::vector<Segment> segmentsForCell(const Cell& cell) const;
+        std::vector<Segment> segmentsForCell(CellIdx cell) const;
 
         /**
          * Gets the synapses for a segment.
@@ -391,23 +367,8 @@ namespace nupic
          *
          * @return (set)Synapse indices
          */
-        std::vector<Synapse> synapsesForPresynapticCell(const Cell& presynapticCell) const;
-
-        /**
-         * Gets the segment with the most active synapses due to given input,
-         * from among all the segments on all the given cells.
-         *
-         * @param cells            Cells to look among.
-         * @param input            Active cells in the input.
-         * @param synapseThreshold Only consider segments with number of active synapses greater than this threshold.
-         * @param retSegment       Segment to return.
-         *
-         * @retval Segment found?
-         */
-        bool mostActiveSegmentForCells(const std::vector<Cell>& cells,
-                                       std::vector<Cell> input,
-                                       SynapseIdx synapseThreshold,
-                                       Segment& retSegment) const;
+        std::vector<Synapse> synapsesForPresynapticCell(CellIdx presynapticCell)
+          const;
 
         /**
          * Forward-propagates input to synapses, dendrites, and cells, to
@@ -436,7 +397,7 @@ namespace nupic
          * An output vector.
          * On return, filled with matching segments and overlaps.
          */
-        void computeActivity(const std::vector<Cell>& input,
+        void computeActivity(const std::vector<CellIdx>& input,
                              Permanence activePermanenceThreshold,
                              SynapseIdx activeSynapseThreshold,
                              Permanence matchingPermanenceThreshold,
@@ -491,7 +452,7 @@ namespace nupic
          *
          * @retval Number of segments.
          */
-        UInt numSegments(const Cell& cell) const;
+        UInt numSegments(CellIdx cell) const;
 
         /**
          * Gets the number of synapses.
@@ -546,7 +507,7 @@ namespace nupic
          *
          * @retval The least recently used segment.
          */
-        Segment leastRecentlyUsedSegment_(const Cell& cell) const;
+        Segment leastRecentlyUsedSegment_(CellIdx cell) const;
 
          /**
           * Gets the synapse with the lowest permanence on the segment.
@@ -578,7 +539,7 @@ namespace nupic
       private:
         std::vector<CellData> cells_;
         // Mapping (presynaptic cell => synapses) used in forward propagation
-        std::map< Cell, std::vector<Synapse> > synapsesForPresynapticCell_;
+        std::map<CellIdx, std::vector<Synapse> > synapsesForPresynapticCell_;
         UInt numSegments_;
         UInt numSynapses_;
         std::vector<Segment> segmentForFlatIdx_;

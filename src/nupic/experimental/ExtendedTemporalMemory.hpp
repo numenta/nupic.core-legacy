@@ -337,23 +337,12 @@ namespace nupic {
         Permanence getPredictedSegmentDecrement() const;
         void setPredictedSegmentDecrement(Permanence);
 
-       /**
-        * Extracts a vector<CellIdx> from a Iterable of Cells.
-        *
-        * @param Iterable<Cell> Iterable of Cells
-        *                       (.e.g. set<Cell>, vector<Cell>).
-        *
-        * @returns vector<CellIdx> The indices of the Cells in the Iterable.
-        */
-        template <typename Iterable>
-        vector<CellIdx> _cellsToIndices(const Iterable &cellSet) const;
-
         /**
          * Raises an error if cell index is invalid.
          *
          * @param cell Cell index
          */
-        bool _validateCell(Cell& cell);
+        bool _validateCell(CellIdx cell);
 
         /**
          * Save (serialize) the current state of the spatial pooler to the
@@ -403,7 +392,7 @@ namespace nupic {
          *
          * @return (int) Column index
          */
-        Int columnForCell(Cell& cell);
+        Int columnForCell(CellIdx cell);
 
         /**
          * Print the given UInt array in a nice format
@@ -428,8 +417,8 @@ namespace nupic {
         Permanence permanenceDecrement_;
         Permanence predictedSegmentDecrement_;
 
-        vector<Cell> activeCells_;
-        vector<Cell> winnerCells_;
+        vector<CellIdx> activeCells_;
+        vector<CellIdx> winnerCells_;
         vector<SegmentOverlap> activeSegments_;
         vector<SegmentOverlap> matchingSegments_;
 
