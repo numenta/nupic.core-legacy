@@ -61,6 +61,7 @@ ExtendedTemporalMemory::ExtendedTemporalMemory(
   Permanence permanenceIncrement,
   Permanence permanenceDecrement,
   Permanence predictedSegmentDecrement,
+  bool formInternalConnections,
   Int seed,
   UInt maxSegmentsPerCell,
   UInt maxSynapsesPerSegment)
@@ -76,6 +77,7 @@ ExtendedTemporalMemory::ExtendedTemporalMemory(
     permanenceIncrement,
     permanenceDecrement,
     predictedSegmentDecrement,
+    formInternalConnections,
     seed,
     maxSegmentsPerCell,
     maxSynapsesPerSegment);
@@ -96,6 +98,7 @@ void ExtendedTemporalMemory::initialize(
   Permanence permanenceIncrement,
   Permanence permanenceDecrement,
   Permanence predictedSegmentDecrement,
+  bool formInternalConnections,
   Int seed,
   UInt maxSegmentsPerCell,
   UInt maxSynapsesPerSegment)
@@ -129,6 +132,7 @@ void ExtendedTemporalMemory::initialize(
   connectedPermanence_ = connectedPermanence;
   minThreshold_ = minThreshold;
   maxNewSynapseCount_ = maxNewSynapseCount;
+  formInternalConnections_ = formInternalConnections;
   permanenceIncrement_ = permanenceIncrement;
   permanenceDecrement_ = permanenceDecrement;
   predictedSegmentDecrement_ = predictedSegmentDecrement;
@@ -423,12 +427,22 @@ static void growSynapses(
   UInt32 nDesiredNewSynapses,
   const vector<CellIdx>& internalCandidates,
   const vector<CellIdx>& externalCandidates,
-  Permanence initialPermanence)
+  Permanence initialPermanence,
+  bool formInternalConnections)
 {
   vector<CellIdx> candidates;
-  candidates.reserve(internalCandidates.size() + externalCandidates.size());
-  candidates.insert(candidates.begin(), internalCandidates.begin(),
-                    internalCandidates.end());
+
+  if (formInternalConnections)
+  {
+    candidates.reserve(internalCandidates.size() + externalCandidates.size());
+    candidates.insert(candidates.begin(), internalCandidates.begin(),
+                      internalCandidates.end());
+  }
+  else
+  {
+    candidates.reserve(externalCandidates.size());
+  }
+
   for (CellIdx cell : externalCandidates)
   {
     candidates.push_back(cell + connections.numCells());
@@ -513,7 +527,8 @@ static void burstColumn(
   Permanence initialPermanence,
   UInt maxNewSynapseCount,
   Permanence permanenceIncrement,
-  Permanence permanenceDecrement)
+  Permanence permanenceDecrement,
+  bool formInternalConnections)
 {
   const CellIdx start = excitedColumn.column * cellsPerColumn;
   const CellIdx end = start + cellsPerColumn;
@@ -547,7 +562,7 @@ static void burstColumn(
         growSynapses(connections, rng,
                      bestMatch->segment, nGrowDesired,
                      prevWinnerCells, prevActiveExternalCells,
-                     initialPermanence);
+                     initialPermanence, formInternalConnections);
       }
     }
   }
@@ -570,7 +585,7 @@ static void burstColumn(
         growSynapses(connections, rng,
                      segment, nGrowExact,
                      prevWinnerCells, prevActiveExternalCells,
-                     initialPermanence);
+                     initialPermanence, formInternalConnections);
         NTA_ASSERT(connections.numSynapses(segment) == nGrowExact);
       }
     }
@@ -629,7 +644,8 @@ void ExtendedTemporalMemory::activateCells(
                     prevActiveInternalCells, prevActiveExternalCells,
                     prevWinnerCells,
                     cellsPerColumn_, initialPermanence_, maxNewSynapseCount_,
-                    permanenceIncrement_, permanenceDecrement_);
+                    permanenceIncrement_, permanenceDecrement_,
+                    formInternalConnections_);
       }
     }
     else
@@ -869,6 +885,17 @@ UInt ExtendedTemporalMemory::getMaxNewSynapseCount() const
 void ExtendedTemporalMemory::setMaxNewSynapseCount(UInt maxNewSynapseCount)
 {
   maxNewSynapseCount_ = maxNewSynapseCount;
+}
+
+bool ExtendedTemporalMemory::getFormInternalConnections() const
+{
+  return formInternalConnections_;
+}
+
+void ExtendedTemporalMemory::setFormInternalConnections(
+  bool formInternalConnections)
+{
+  formInternalConnections_ = formInternalConnections;
 }
 
 Permanence ExtendedTemporalMemory::getPermanenceIncrement() const

@@ -146,6 +146,7 @@ using namespace nupic;
                  permanenceIncrement=0.10,
                  permanenceDecrement=0.10,
                  predictedSegmentDecrement=0.00,
+                 formInternalConnections=True,
                  maxSegmentsPerCell=255,
                  maxSynapsesPerSegment=255,
                  seed=42):
@@ -154,8 +155,8 @@ using namespace nupic;
         self, columnDimensions, cellsPerColumn, activationThreshold,
         initialPermanence, connectedPermanence,
         minThreshold, maxNewSynapseCount, permanenceIncrement,
-        permanenceDecrement, predictedSegmentDecrement, seed,
-        maxSegmentsPerCell, maxSynapsesPerSegment)
+        permanenceDecrement, predictedSegmentDecrement, formInternalConnections,
+        seed, maxSegmentsPerCell, maxSynapsesPerSegment)
 
     def __getstate__(self):
       # Save the local attributes but override the C++ temporal memory with the

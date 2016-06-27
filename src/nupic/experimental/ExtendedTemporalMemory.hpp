@@ -119,6 +119,7 @@ namespace nupic {
           Permanence permanenceIncrement = 0.10,
           Permanence permanenceDecrement = 0.10,
           Permanence predictedSegmentDecrement = 0.0,
+          bool formInternalConnections = true,
           Int seed = 42,
           UInt maxSegmentsPerCell=255,
           UInt maxSynapsesPerSegment=255);
@@ -134,6 +135,7 @@ namespace nupic {
           Permanence permanenceIncrement = 0.10,
           Permanence permanenceDecrement = 0.10,
           Permanence predictedSegmentDecrement = 0.0,
+          bool formInternalConnections = true,
           Int seed = 42,
           UInt maxSegmentsPerCell=255,
           UInt maxSynapsesPerSegment=255);
@@ -341,6 +343,14 @@ namespace nupic {
         void setMaxNewSynapseCount(UInt);
 
         /**
+         * Returns whether to form internal connections between cells.
+         *
+         * @returns the formInternalConnections parameter
+         */
+        bool getFormInternalConnections() const;
+        void setFormInternalConnections(bool formInternalConnections);
+
+        /**
          * Returns the permanence increment.
          *
          * @returns Returns the Permanence increment
@@ -438,6 +448,7 @@ namespace nupic {
         UInt activationThreshold_;
         UInt minThreshold_;
         UInt maxNewSynapseCount_;
+        bool formInternalConnections_;
         Permanence initialPermanence_;
         Permanence connectedPermanence_;
         Permanence permanenceIncrement_;
