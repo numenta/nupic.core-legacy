@@ -580,15 +580,12 @@ void TemporalMemory::compute(
   const UInt activeColumnsUnsorted[],
   bool learn)
 {
-  const vector<CellIdx> prevActiveCells = activeCells_;
-  const vector<CellIdx> prevWinnerCells = winnerCells_;
+  const vector<CellIdx> prevActiveCells = std::move(activeCells_);
+  const vector<CellIdx> prevWinnerCells = std::move(winnerCells_);
 
   vector<UInt> activeColumns(activeColumnsUnsorted,
                              activeColumnsUnsorted + activeColumnsSize);
   std::sort(activeColumns.begin(), activeColumns.end());
-
-  activeCells_.clear();
-  winnerCells_.clear();
 
   for (const ExcitedColumnData& excitedColumn : ExcitedColumns(activeColumns,
                                                                activeSegments_,
