@@ -632,8 +632,17 @@ void ExtendedTemporalMemory::compute(
   connections.computeActivity(activeCells_,
                               connectedPermanence_, activationThreshold_,
                               0.0, minThreshold_,
-                              activeSegments_, matchingSegments_,
-                              learn);
+                              activeSegments_, matchingSegments_);
+
+  if (learn)
+  {
+    for (const SegmentOverlap& segmentOverlap : activeSegments_)
+    {
+      connections.recordSegmentActivity(segmentOverlap.segment);
+    }
+
+    connections.startNewIteration();
+  }
 }
 
 void ExtendedTemporalMemory::reset(void)

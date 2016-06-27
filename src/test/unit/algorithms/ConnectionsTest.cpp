@@ -127,26 +127,16 @@ namespace {
     connections.createSynapse(segment1, 2, 0.5);
 
     // Let some time pass.
-    vector<SegmentOverlap> activeSegments;
-    vector<SegmentOverlap> matchingSegments;
-    connections.computeActivity({},
-                                0.5, 2, 0.10, 1,
-                                activeSegments, matchingSegments);
-    connections.computeActivity({},
-                                0.5, 2, 0.10, 1,
-                                activeSegments, matchingSegments);
-    connections.computeActivity({},
-                                0.5, 2, 0.10, 1,
-                                activeSegments, matchingSegments);
+    connections.startNewIteration();
+    connections.startNewIteration();
+    connections.startNewIteration();
 
     Segment segment2 = connections.createSegment(42);
 
+    connections.startNewIteration();
+
     // Give the first segment some activity.
-    connections.computeActivity({1, 2},
-                                0.5, 2, 0.10, 1,
-                                activeSegments, matchingSegments);
-    ASSERT_EQ(1, activeSegments.size());
-    ASSERT_EQ(segment1, activeSegments[0].segment);
+    connections.recordSegmentActivity(segment1);
 
     Segment segment3 = connections.createSegment(42);
 

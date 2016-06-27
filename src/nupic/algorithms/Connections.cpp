@@ -301,6 +301,11 @@ SegmentData& Connections::dataForSegment_(const Segment& segment)
   return cells_[segment.cell].segments[segment.idx];
 }
 
+const SegmentData& Connections::dataForSegment_(const Segment& segment) const
+{
+  return cells_[segment.cell].segments[segment.idx];
+}
+
 SynapseData Connections::dataForSynapse(const Synapse& synapse) const
 {
   return cells_[synapse.segment.cell]
@@ -311,6 +316,12 @@ SynapseData Connections::dataForSynapse(const Synapse& synapse) const
 SynapseData& Connections::dataForSynapse_(const Synapse& synapse)
 {
   SegmentData& segmentData = dataForSegment_(synapse.segment);
+  return segmentData.synapses[synapse.idx];
+}
+
+const SynapseData& Connections::dataForSynapse_(const Synapse& synapse) const
+{
+  const SegmentData& segmentData = dataForSegment_(synapse.segment);
   return segmentData.synapses[synapse.idx];
 }
 
@@ -378,78 +389,35 @@ bool segmentIncreasingOrder(const SegmentOverlap& a, const SegmentOverlap& b)
   return a.segment < b.segment;
 }
 
-void Connections::computeActivity(const vector<UInt32>& input,
+void Connections::computeActivity(const vector<CellIdx>& input,
                                   Permanence activePermanenceThreshold,
                                   SynapseIdx activeSynapseThreshold,
                                   Permanence matchingPermanenceThreshold,
                                   SynapseIdx matchingSynapseThreshold,
-                                  vector<SegmentOverlap>& outActiveSegments,
-                                  vector<SegmentOverlap>& outMatchingSegments,
-                                  bool recordIteration)
+                                  vector<SegmentOverlap>& activeSegmentsOut,
+                                  vector<SegmentOverlap>& matchingSegmentsOut)
+  const
 {
-  vector<UInt32> numActiveSynapsesForSegment(nextFlatIdx_, 0);
-  vector<UInt32> numMatchingSynapsesForSegment(nextFlatIdx_, 0);
+  SegmentExcitationTally excitations(*this, activePermanenceThreshold,
+                                     matchingPermanenceThreshold);
 
-  NTA_CHECK(matchingPermanenceThreshold <= activePermanenceThreshold);
-
-  for (UInt32 cell : input)
+  for (CellIdx cell : input)
   {
-    if (!synapsesForPresynapticCell_.count(cell)) continue;
-
-    for (const Synapse& synapse : synapsesForPresynapticCell_.at(cell))
-    {
-      const SynapseData& synapseData = dataForSynapse_(synapse);
-
-      NTA_ASSERT(synapseData.permanence > 0);
-
-      if (synapseData.permanence >= matchingPermanenceThreshold)
-      {
-        const SegmentData& segmentData = dataForSegment_(synapse.segment);
-
-        ++numMatchingSynapsesForSegment[segmentData.flatIdx];
-
-        if (synapseData.permanence >= activePermanenceThreshold)
-        {
-          ++numActiveSynapsesForSegment[segmentData.flatIdx];
-        }
-      }
-    }
+    excitations.addActivePresynapticCell(cell);
   }
 
-  if (recordIteration)
-  {
-    iteration_++;
-  }
+  excitations.getResults(activeSynapseThreshold, matchingSynapseThreshold,
+                         activeSegmentsOut, matchingSegmentsOut);
+}
 
-  for (size_t i = 0; i < numActiveSynapsesForSegment.size(); i++)
-  {
-    if (numActiveSynapsesForSegment[i] >= activeSynapseThreshold)
-    {
-      const SegmentOverlap segmentOverlap =
-        {segmentForFlatIdx_[i], numActiveSynapsesForSegment[i]};
-      outActiveSegments.push_back(segmentOverlap);
+void Connections::recordSegmentActivity(Segment segment)
+{
+  dataForSegment_(segment).lastUsedIteration = iteration_;
+}
 
-      if (recordIteration)
-      {
-        dataForSegment_(segmentForFlatIdx_[i]).lastUsedIteration = iteration_;
-      }
-    }
-  }
-
-  for (size_t i = 0; i < numMatchingSynapsesForSegment.size(); i++)
-  {
-    if (numMatchingSynapsesForSegment[i] >= matchingSynapseThreshold)
-    {
-      const SegmentOverlap segmentOverlap =
-        {segmentForFlatIdx_[i], numMatchingSynapsesForSegment[i]};
-      outMatchingSegments.push_back(segmentOverlap);
-    }
-  }
-
-  std::sort(outActiveSegments.begin(), outActiveSegments.end(),
-            segmentIncreasingOrder);
-  std::sort(outMatchingSegments.begin(), outMatchingSegments.end(),
-            segmentIncreasingOrder);
+void Connections::startNewIteration()
+{
+  iteration_++;
 }
 
 void Connections::save(ostream& outStream) const
@@ -742,6 +710,77 @@ bool Connections::operator==(const Connections &other) const
   if (iteration_ != other.iteration_) return false;
 
   return true;
+}
+
+SegmentExcitationTally::SegmentExcitationTally(
+  const Connections& connections,
+  Permanence activePermanenceThreshold,
+  Permanence matchingPermanenceThreshold)
+  :connections_(connections),
+   activePermanenceThreshold_(activePermanenceThreshold),
+   matchingPermanenceThreshold_(matchingPermanenceThreshold),
+   numActiveSynapsesForSegment_(connections.nextFlatIdx_, 0),
+   numMatchingSynapsesForSegment_(connections.nextFlatIdx_, 0)
+{
+}
+
+void SegmentExcitationTally::addActivePresynapticCell(CellIdx cell)
+{
+  if (connections_.synapsesForPresynapticCell_.count(cell))
+  {
+    for (const Synapse& synapse :
+           connections_.synapsesForPresynapticCell_.at(cell))
+    {
+      const SynapseData& synapseData = connections_.dataForSynapse_(synapse);
+
+      NTA_ASSERT(synapseData.permanence > 0);
+
+      if (synapseData.permanence >= matchingPermanenceThreshold_)
+      {
+        const SegmentData& segmentData =
+          connections_.dataForSegment_(synapse.segment);
+
+        ++numMatchingSynapsesForSegment_[segmentData.flatIdx];
+
+        if (synapseData.permanence >= activePermanenceThreshold_)
+        {
+          ++numActiveSynapsesForSegment_[segmentData.flatIdx];
+        }
+      }
+    }
+  }
+}
+
+void SegmentExcitationTally::getResults(
+  SynapseIdx activeSynapseThreshold,
+  SynapseIdx matchingSynapseThreshold,
+  vector<SegmentOverlap>& activeSegmentsOut,
+  vector<SegmentOverlap>& matchingSegmentsOut) const
+{
+  for (size_t i = 0; i < numActiveSynapsesForSegment_.size(); i++)
+  {
+    if (numActiveSynapsesForSegment_[i] >= activeSynapseThreshold)
+    {
+      const SegmentOverlap segmentOverlap =
+        {connections_.segmentForFlatIdx_[i], numActiveSynapsesForSegment_[i]};
+      activeSegmentsOut.push_back(segmentOverlap);
+    }
+  }
+
+  for (size_t i = 0; i < numMatchingSynapsesForSegment_.size(); i++)
+  {
+    if (numMatchingSynapsesForSegment_[i] >= matchingSynapseThreshold)
+    {
+      const SegmentOverlap segmentOverlap =
+        {connections_.segmentForFlatIdx_[i], numMatchingSynapsesForSegment_[i]};
+      matchingSegmentsOut.push_back(segmentOverlap);
+    }
+  }
+
+  std::sort(activeSegmentsOut.begin(), activeSegmentsOut.end(),
+            segmentIncreasingOrder);
+  std::sort(matchingSegmentsOut.begin(), matchingSegmentsOut.end(),
+            segmentIncreasingOrder);
 }
 
 bool Segment::operator==(const Segment &other) const

@@ -237,6 +237,8 @@ namespace nupic
        */
       class Connections : public Serializable<ConnectionsProto>
       {
+        friend class SegmentExcitationTally;
+
       public:
         static const UInt16 VERSION = 1;
 
@@ -371,8 +373,7 @@ namespace nupic
           const;
 
         /**
-         * Forward-propagates input to synapses, dendrites, and cells, to
-         * compute their activity.
+         * Compute the segment excitations for a vector of cells.
          *
          * @param input
          * Active cells in the input.
@@ -402,9 +403,24 @@ namespace nupic
                              SynapseIdx activeSynapseThreshold,
                              Permanence matchingPermanenceThreshold,
                              SynapseIdx matchingSynapseThreshold,
-                             std::vector<SegmentOverlap>& outActiveSegments,
-                             std::vector<SegmentOverlap>& outMatchingSegments,
-                             bool recordIteration=true);
+                             std::vector<SegmentOverlap>& activeSegmentsOut,
+                             std::vector<SegmentOverlap>& matchingSegmentsOut)
+          const;
+
+        /**
+         * Record the fact that a segment had some activity. This information is
+         * used during segment cleanup.
+         *
+         * @param segment
+         * The segment that had some activity.
+         */
+        void recordSegmentActivity(Segment segment);
+
+        /**
+         * Mark the passage of time. This information is used during segment
+         * cleanup.
+         */
+        void startNewIteration();
 
         // Serialization
 
@@ -528,6 +544,15 @@ namespace nupic
         SegmentData& dataForSegment_(const Segment& segment);
 
         /**
+         * Gets a reference to the data for a segment.
+         *
+         * @param segment Segment to get data for.
+         *
+         * @retval Read-only segment data.
+         */
+        const SegmentData& dataForSegment_(const Segment& segment) const;
+
+        /**
          * Gets a reference to the data for a synapse.
          *
          * @param synapse Synapse to get data for.
@@ -535,6 +560,15 @@ namespace nupic
          * @retval Editable synapse data.
          */
         SynapseData& dataForSynapse_(const Synapse& synapse);
+
+        /**
+         * Gets a reference to the data for a synapse.
+         *
+         * @param synapse Synapse to get data for.
+         *
+         * @retval Read-only synapse data.
+         */
+        const SynapseData& dataForSynapse_(const Synapse& synapse) const;
 
       private:
         std::vector<CellData> cells_;
@@ -550,6 +584,40 @@ namespace nupic
         UInt32 nextEventToken_;
         std::map<UInt32, ConnectionsEventHandler*> eventHandlers_;
       }; // end class Connections
+
+      /**
+       * Takes a Connections instance and a set of active cells, and calculates
+       * the excited columns.
+       *
+       * This is essentially part of the Connections class. It accesses
+       * Connections internals to perform this calculation quickly.
+       *
+       * This is implemented as a class rather than a Connections method because
+       * this allows callers to provide the "active presynaptic cells" without
+       * imposing requirements on how these cells are stored. The cells might be
+       * stored in a vector, in multiple vectors, as a list of indices, as a
+       * list of zeros and ones, etc., so we expose a "Tally" class and require
+       * the caller to do the iteration.
+       */
+      class SegmentExcitationTally
+      {
+      public:
+        SegmentExcitationTally(const Connections& connections,
+                               Permanence activePermanenceThreshold,
+                               Permanence matchingPermanenceThreshold);
+        void addActivePresynapticCell(CellIdx cellIdx);
+        void getResults(SynapseIdx activeSynapseThreshold,
+                        SynapseIdx matchingSynapseThreshold,
+                        std::vector<SegmentOverlap>& activeSegmentsOut,
+                        std::vector<SegmentOverlap>& matchingSegmentsOut)
+          const;
+      private:
+        const Connections& connections_;
+        const Permanence activePermanenceThreshold_;
+        const Permanence matchingPermanenceThreshold_;
+        std::vector<UInt32> numActiveSynapsesForSegment_;
+        std::vector<UInt32> numMatchingSynapsesForSegment_;
+      };
 
     } // end namespace connections
 
