@@ -627,6 +627,11 @@ void Connections::read(ConnectionsProto::Reader& proto)
   iteration_ = proto.getIteration();
 }
 
+CellIdx Connections::numCells() const
+{
+  return cells_.size();
+}
+
 UInt Connections::numSegments() const
 {
   return numSegments_;

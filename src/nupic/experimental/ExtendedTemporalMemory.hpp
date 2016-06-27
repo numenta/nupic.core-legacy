@@ -44,25 +44,7 @@ namespace nupic {
     namespace extended_temporal_memory {
 
       /**
-       * CLA temporal memory implementation in C++.
-       *
-       * The primary public interfaces to this function are the "initialize"
-       * and "compute" methods.
-       *
-       * Example usage:
-       *
-       *     SpatialPooler sp;
-       *     sp.initialize(inputDimensions, columnDimensions, <parameters>);
-       *
-       *     ExtendedTemporalMemory tm;
-       *     tm.initialize(columnDimensions, <parameters>);
-       *
-       *     while (true) {
-       *        <get input vector, streaming spatiotemporal information>
-       *        sp.compute(inputVector, learn, activeColumns)
-       *        tm.compute(number of activeColumns, activeColumns, learn)
-       *        <do something with output, e.g. classify it>
-       *     }
+       * Extended Temporal Memory implementation in C++.
        *
        */
       class ExtendedTemporalMemory :
@@ -185,20 +167,65 @@ namespace nupic {
         virtual void reset();
 
         /**
+         * Calculate the active cells, using the current active columns and
+         * dendrite segments. Grow and reinforce synapses.
+         *
+         * @param activeColumns
+         * A sorted list of active column indices.
+         *
+         * @param prevActiveExternalCells
+         * The external cells that were used to calculate the current segment
+         * excitation. This class doesn't save a copy of these cells because the
+         * caller is more flexible to find ways of keeping this list available
+         * without extra copying.
+         *
+         * @param learn
+         * If true, reinforce / punish / grow synapses.
+         */
+        void activateCells(
+          const vector<UInt>& activeColumns,
+          const vector<CellIdx>& prevActiveExternalCells,
+          bool learn = true);
+
+        /**
+         * Calculate dendrite segment activity, using the current active cells.
+         *
+         * @param activeExternalCells
+         * Active external cells that should be used for activating dendrites in
+         * this timestep.
+         *
+         * @param learn
+         * If true, segment activations will be recorded. This information is
+         * used during segment cleanup.
+         */
+        void activateDendrites(
+          const vector<CellIdx>& activeExternalCells,
+          bool learn = true);
+
+        /**
          * Feeds input record through TM, performing inference and learning.
          *
-         * @param activeColumnsSize Number of active columns
-         * @param activeColumns     Indices of active columns
-         * @param learn             Whether or not learning is enabled
+         * @param activeColumnsUnsorted
+         * A list of active column indices.
          *
-         * Updates member variables:
-         * - `activeCells`
-         * - `winnerCells`
-         * - `activeSegments`
-         * - `matchingSegments`
+         * @param prevActiveExternalCells
+         * The external cells that were used to calculate the current segment
+         * excitation. This class doesn't save a copy of these cells because the
+         * caller is more flexible to find ways of keeping this list available
+         * without extra copying.
+         *
+         * @param activeExternalCells
+         * Active external cells that should be used for activating dendrites in
+         * this timestep.
+         *
+         * @param learn
+         * Whether or not learning is enabled
          */
         virtual void compute(
-          UInt activeColumnsSize, const UInt activeColumns[], bool learn = true);
+          const vector<UInt>& activeColumnsUnsorted,
+          const vector<CellIdx>& prevActiveExternalCells,
+          const vector<CellIdx>& activeExternalCells,
+          bool learn = true);
 
 
         // ==============================

@@ -457,6 +457,13 @@ namespace nupic
         // Debugging
 
         /**
+         * Gets the number of cells.
+         *
+         * @retval Number of cells.
+         */
+        CellIdx numCells() const;
+
+        /**
          * Gets the number of segments.
          *
          * @retval Number of segments.
