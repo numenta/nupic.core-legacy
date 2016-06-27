@@ -40,7 +40,7 @@ using namespace nupic::algorithms::connections;
 #include <nupic/proto/ExtendedTemporalMemoryProto.capnp.h>
 
 namespace nupic {
-  namespace algorithms {
+  namespace experimental {
     namespace extended_temporal_memory {
 
       /**

@@ -41,7 +41,7 @@
 using namespace std;
 using namespace nupic;
 using namespace nupic::algorithms::connections;
-using namespace nupic::algorithms::extended_temporal_memory;
+using namespace nupic::experimental::extended_temporal_memory;
 
 #define EPSILON 0.000001
 
