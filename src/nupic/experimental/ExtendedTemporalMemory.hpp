@@ -120,8 +120,8 @@ namespace nupic {
           Permanence permanenceDecrement = 0.10,
           Permanence predictedSegmentDecrement = 0.0,
           Int seed = 42,
-          UInt maxSegmentsPerCell=MAX_SEGMENTS_PER_CELL,
-          UInt maxSynapsesPerSegment=MAX_SYNAPSES_PER_SEGMENT);
+          UInt maxSegmentsPerCell=255,
+          UInt maxSynapsesPerSegment=255);
 
         virtual void initialize(
           vector<UInt> columnDimensions = { 2048 },
@@ -135,8 +135,8 @@ namespace nupic {
           Permanence permanenceDecrement = 0.10,
           Permanence predictedSegmentDecrement = 0.0,
           Int seed = 42,
-          UInt maxSegmentsPerCell=MAX_SEGMENTS_PER_CELL,
-          UInt maxSynapsesPerSegment=MAX_SYNAPSES_PER_SEGMENT);
+          UInt maxSegmentsPerCell=255,
+          UInt maxSynapsesPerSegment=255);
 
         virtual ~ExtendedTemporalMemory();
 

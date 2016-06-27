@@ -1644,8 +1644,8 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
                  permanenceIncrement=0.10,
                  permanenceDecrement=0.10,
                  predictedSegmentDecrement=0.00,
-                 maxSegmentsPerCell=MAX_SEGMENTS_PER_CELL,
-                 maxSynapsesPerSegment=MAX_SYNAPSES_PER_SEGMENT,
+                 maxSegmentsPerCell=255,
+                 maxSynapsesPerSegment=255,
                  seed=42):
       self.this = _ALGORITHMS.new_TemporalMemory()
       _ALGORITHMS.TemporalMemory_initialize(

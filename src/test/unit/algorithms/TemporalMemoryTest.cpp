@@ -837,7 +837,7 @@ namespace {
       /*permanenceDecrement*/ 0.02,
       /*predictedSegmentDecrement*/ 0.0,
       /*seed*/ 42,
-      /*maxSegmentsPerCell*/ MAX_SEGMENTS_PER_CELL,
+      /*maxSegmentsPerCell*/ 255,
       /*maxSynapsesPerSegment*/ 3
       );
 

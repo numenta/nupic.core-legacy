@@ -50,10 +50,6 @@ namespace nupic
       typedef Real32 Permanence;
       typedef UInt64 Iteration;
 
-      // Defaults
-      static const UInt16 MAX_SEGMENTS_PER_CELL = 255;
-      static const UInt16 MAX_SYNAPSES_PER_SEGMENT = 255;
-
       /**
        * Segment class used in Connections.
        *
@@ -256,8 +252,8 @@ namespace nupic
          * @param maxSynapsesPerSegment Maximum number of synapses per segment.
          */
         Connections(CellIdx numCells,
-                    SegmentIdx maxSegmentsPerCell=MAX_SEGMENTS_PER_CELL,
-                    SynapseIdx maxSynapsesPerSegment=MAX_SYNAPSES_PER_SEGMENT);
+                    SegmentIdx maxSegmentsPerCell=255,
+                    SynapseIdx maxSynapsesPerSegment=255);
 
         virtual ~Connections() {}
 
