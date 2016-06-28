@@ -119,16 +119,16 @@ message(STATUS "CMAKE BITNESS=${BITNESS}")
 
 # Check memory limits (in megabytes)
 if(CMAKE_MAJOR_VERSION GREATER 2)
-  cmake_host_system_information(RESULT total_physical_memory QUERY TOTAL_PHYSICAL_MEMORY)
-  cmake_host_system_information(RESULT total_virtual_memory QUERY TOTAL_VIRTUAL_MEMORY)
-  math(EXPR total_memory "${total_physical_memory}+${total_virtual_memory}")
-  message(STATUS "CMAKE MEMORY=${total_memory}")
+  cmake_host_system_information(RESULT available_physical_memory QUERY AVAILABLE_PHYSICAL_MEMORY)
+  cmake_host_system_information(RESULT available_virtual_memory QUERY AVAILABLE_VIRTUAL_MEMORY)
+  math(EXPR available_memory "${available_physical_memory}+${available_virtual_memory}")
+  message(STATUS "CMAKE MEMORY=${available_memory}")
 
   # Python bindings (particularly mathPYTHON_wrap.cxx) requires more than 
-  # 1GB of memory for compiling with GCC. Send a warning if total memory
+  # 1GB of memory for compiling with GCC. Send a warning if available memory
   # (physical plus virtual(swap)) is less than 1GB 
-  if(${total_memory} LESS 1024)
-    message(WARNING "Less than 1GB of memory found, compilation may run out of memory!")
+  if(${available_memory} LESS 1024)
+    message(WARNING "Less than 1GB of memory available, compilation may run out of memory!")
   endif()
 endif()
 
@@ -201,12 +201,10 @@ if(NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
   if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" AND NOT MINGW)
     set(optimization_flags_cc "${optimization_flags_cc} -fuse-ld=gold")
 
-    if(NOT "${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "armv7l")
-      # NOTE -flto must go together in both cc and ld flags; also, it's presently incompatible
-      # with the -g option in at least some GNU compilers (saw in `man gcc` on Ubuntu)
-      set(optimization_flags_cc "${optimization_flags_cc} -fuse-linker-plugin -flto-report -flto")
-      set(optimization_flags_lt "${optimization_flags_lt} -flto") #TODO LTO for clang too
-    endif()
+    # NOTE -flto must go together in both cc and ld flags; also, it's presently incompatible
+    # with the -g option in at least some GNU compilers (saw in `man gcc` on Ubuntu)
+    set(optimization_flags_cc "${optimization_flags_cc} -fuse-linker-plugin -flto-report -flto")
+    set(optimization_flags_lt "${optimization_flags_lt} -flto") #TODO LTO for clang too
   endif()
 endif()
 
@@ -239,8 +237,8 @@ else()
   set (internal_compiler_warning_flags "${internal_compiler_warning_flags} -Werror -Wextra -Wreturn-type -Wunused -Wno-unused-variable -Wno-unused-parameter -Wno-missing-field-initializers")
   set (external_compiler_warning_flags "${external_compiler_warning_flags} -Wno-unused-variable -Wno-unused-parameter -Wno-incompatible-pointer-types -Wno-deprecated-declarations")
 
-  CHECK_CXX_COMPILER_FLAG(-m${BITNESS} COMPILER_SUPPORTS_MACHINE_OPTION)
-  if (COMPILER_SUPPORTS_MACHINE_OPTION)
+  CHECK_CXX_COMPILER_FLAG(-m${BITNESS} compiler_supports_machine_option)
+  if (compiler_supports_machine_option)
     set(shared_compile_flags "${shared_compile_flags} -m${BITNESS}")
     set(shared_linker_flags_unoptimized "${shared_linker_flags_unoptimized} -m${BITNESS}")
   endif()

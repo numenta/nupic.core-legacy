@@ -29,7 +29,6 @@ set(yamllib_url "${REPOSITORY_DIR}/external/common/share/yaml/yaml-0.1.5.tar.gz"
 
 # NOTE Yaml lib doesn't have an install target and leaves artifacts in build dir
 set(yamllib_build_dir "${EP_BASE}/Build/YamlStaticLib")
-set(yamllib_source_dir "${EP_BASE}/Source/YamlStaticLib")
 
 # Export path to installed static yaml lib to parent
 set(LIB_STATIC_YAML_LOC "${yamllib_build_dir}/${STATIC_PRE}yaml${STATIC_SUF}")
