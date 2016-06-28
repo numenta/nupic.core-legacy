@@ -202,7 +202,7 @@ if(NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
     set(optimization_flags_cc "${optimization_flags_cc} -fuse-ld=gold")
     # NOTE -flto must go together in both cc and ld flags; also, it's presently incompatible
     # with the -g option in at least some GNU compilers (saw in `man gcc` on Ubuntu)
-    set(optimization_flags_cc "${optimization_flags_cc} -fuse-linker-plugin -flto-report -flto")#TODO fix LTO for clang
+    set(optimization_flags_cc "${optimization_flags_cc} -fuse-linker-plugin -flto-report -flto") #TODO fix LTO for clang
     set(optimization_flags_lt "${optimization_flags_lt} -flto") #TODO LTO for clang too
   endif()
 endif()
