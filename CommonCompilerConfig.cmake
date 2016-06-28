@@ -84,6 +84,8 @@ if(NOT DEFINED PLATFORM)
     message(FATAL_ERROR "PLATFORM property not defined: PLATFORM=${PLATFORM}")
 endif()
 
+include(CheckCXXCompilerFlag)
+
 
 # Init exported properties
 set(COMMON_COMPILER_DEFINITIONS)
@@ -113,6 +115,22 @@ else()
 endif()
 
 message(STATUS "CMAKE BITNESS=${BITNESS}")
+
+
+# Check memory limits (in megabytes)
+if(CMAKE_MAJOR_VERSION GREATER 2)
+  cmake_host_system_information(RESULT available_physical_memory QUERY AVAILABLE_PHYSICAL_MEMORY)
+  cmake_host_system_information(RESULT available_virtual_memory QUERY AVAILABLE_VIRTUAL_MEMORY)
+  math(EXPR available_memory "${available_physical_memory}+${available_virtual_memory}")
+  message(STATUS "CMAKE MEMORY=${available_memory}")
+
+  # Python bindings (particularly mathPYTHON_wrap.cxx) requires more than 
+  # 1GB of memory for compiling with GCC. Send a warning if available memory
+  # (physical plus virtual(swap)) is less than 1GB 
+  if(${available_memory} LESS 1024)
+    message(WARNING "Less than 1GB of memory available, compilation may run out of memory!")
+  endif()
+endif()
 
 
 # Compiler `-D*` definitions
@@ -172,9 +190,13 @@ endif()
 # try compiling without them.
 #
 if(NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
-  set(optimization_flags_cc "${optimization_flags_cc} -mtune=generic -O2")
+  set(optimization_flags_cc "${optimization_flags_cc} -O2")
   set(optimization_flags_cc "-pipe ${optimization_flags_cc}") #TODO use -Ofast instead of -O3
   set(optimization_flags_lt "-O2 ${optimization_flags_lt}")
+
+  if(NOT ${CMAKE_SYSTEM_PROCESSOR} STREQUAL "armv7l")
+    set(optimization_flags_cc "${optimization_flags_cc} -mtune=generic")
+  endif()
 
   if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" AND NOT MINGW)
     set(optimization_flags_cc "${optimization_flags_cc} -fuse-ld=gold")
@@ -210,9 +232,19 @@ else()
   # LLVM Clang / Gnu GCC
   set(cxx_flags_unoptimized "${cxx_flags_unoptimized} ${stdlib_cxx} -std=c++11")
 
-  set(shared_compile_flags "${shared_compile_flags} -m${BITNESS} ${stdlib_common} -fdiagnostics-show-option")
+  set(shared_compile_flags "${shared_compile_flags} ${stdlib_common} -fdiagnostics-show-option")
   set (internal_compiler_warning_flags "${internal_compiler_warning_flags} -Werror -Wextra -Wreturn-type -Wunused -Wno-unused-variable -Wno-unused-parameter -Wno-missing-field-initializers")
   set (external_compiler_warning_flags "${external_compiler_warning_flags} -Wno-unused-variable -Wno-unused-parameter -Wno-incompatible-pointer-types -Wno-deprecated-declarations")
+
+  CHECK_CXX_COMPILER_FLAG(-m${BITNESS} compiler_supports_machine_option)
+  if (compiler_supports_machine_option)
+    set(shared_compile_flags "${shared_compile_flags} -m${BITNESS}")
+    set(shared_linker_flags_unoptimized "${shared_linker_flags_unoptimized} -m${BITNESS}")
+  endif()
+  if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "armv7l")
+    set(shared_compile_flags "${shared_compile_flags} -marm")
+    set(shared_linker_flags_unoptimized "${shared_linker_flags_unoptimized} -marm")
+  endif()
 
   if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set(shared_compile_flags "${shared_compile_flags} -fPIC")
@@ -223,7 +255,7 @@ else()
     endif()
   endif()
 
-  set(shared_linker_flags_unoptimized "${shared_linker_flags_unoptimized} -m${BITNESS} ${stdlib_common} ${stdlib_cxx}")
+  set(shared_linker_flags_unoptimized "${shared_linker_flags_unoptimized} ${stdlib_common} ${stdlib_cxx}")
 endif()
 
 
