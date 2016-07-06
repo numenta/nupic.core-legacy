@@ -28,7 +28,6 @@ set(CMAKE_VERBOSE_MAKEFILE OFF)
 
 get_filename_component(REPOSITORY_DIR ${PROJECT_SOURCE_DIR} ABSOLUTE)
 
-
 if( POLICY CMP0046 )
   cmake_policy(VERSION 2.8)
   # The new policy for add_dependencies is to now error if a dependency target
