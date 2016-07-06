@@ -247,7 +247,7 @@
 
 %extend nupic::NetworkFactory
 {
-  Network * createNetworkFromYAMLString(const std::string yamlstr)
+  Network createNetworkFromYAMLString(const std::string yamlstr)
   {
     std::stringstream ss(yamlstr);
     YAML::Parser parser(ss);

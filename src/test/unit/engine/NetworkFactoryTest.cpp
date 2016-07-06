@@ -46,17 +46,18 @@ const std::string PATH_TO_FIXTURES = Path::join(NUPIC_CORE_PATH, "src/test/unit/
 TEST(NetworkFactory, ValidYamlTest)
 {
   NetworkFactory nf;
-  Network *n;
-  n = nf.createNetwork(Path::join(PATH_TO_FIXTURES, "network.yaml"));
+  Network n = nf.createNetwork(Path::join(PATH_TO_FIXTURES, "network.yaml"));
 
-  const Collection<Region*> regionList = n->getRegions();
+  const Collection<Region*> regionList = n.getRegions();
   ASSERT_EQ((UInt32)3, regionList.getCount());
-  
+
   // make sure no region specified in the yaml is null.
   Region *l1, *l2, *l3;
   l1 = regionList.getByName("level 1");
   l2 = regionList.getByName("level 2");
   l3 = regionList.getByName("level 3");
+
+  l2->removeAllIncomingLinks();
 
   ASSERT_TRUE(l1);
   ASSERT_TRUE(l2);
@@ -65,12 +66,9 @@ TEST(NetworkFactory, ValidYamlTest)
   ASSERT_TRUE(l1->getOutput("bottomUpOut"));
   ASSERT_TRUE(l2->getOutput("bottomUpOut"));
   ASSERT_TRUE(l3->getOutput("bottomUpOut"));
-
   ASSERT_TRUE(l1->getInput("bottomUpIn"));
   ASSERT_TRUE(l2->getInput("bottomUpIn"));
   ASSERT_TRUE(l3->getInput("bottomUpIn"));
-
-  delete n;  //make sure to unregister the network.
 }
 
 TEST(NetworkFactory, MissingLinkFieldsFile)
@@ -111,9 +109,8 @@ TEST(NetworkFactory, NoLinksFile)
 TEST(NetworkFactory, EmptyRegions)
 {
   NetworkFactory nf;
-  Network *n;
+  Network n;
   n = nf.createNetwork(Path::join(PATH_TO_FIXTURES, "empty-regions.yaml"));
-  const Collection<Region*> regionList = n->getRegions();
+  const Collection<Region*> regionList = n.getRegions();
   ASSERT_EQ((UInt32)0, regionList.getCount());
-  delete n;
 }
