@@ -48,7 +48,7 @@ namespace nupic
     }
     std::ifstream f(fullPath.c_str());
     YAML::Parser parser(f);
-    return (createNetworkFromYAML(&parser));
+    return createNetworkFromYAML(&parser);
   }
 
    
@@ -252,6 +252,6 @@ namespace nupic
 
       n.link(srcRegionName, destRegionName, linkType, params, srcOutputName, destInputName);
     }
-    return(n);
+    return n;
   }
 } // namespace nupic
