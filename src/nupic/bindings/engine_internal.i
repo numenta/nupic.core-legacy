@@ -251,7 +251,7 @@
   {
     std::stringstream ss(yamlstr);
     YAML::Parser parser(ss);
-    return self->createNetworkFromYAML(&parser);
+    return self->createNetworkFromYAML(parser);
   }
 }
 

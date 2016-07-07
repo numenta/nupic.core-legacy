@@ -72,14 +72,14 @@ namespace nupic
      * @param path the .yaml file path
      * @retval A pointer to the Network object specified by the yaml.
      */
-    Network createNetwork(const std::string &path);
+    Network createNetwork(const std::string& path);
 
     /** Internal method to parse the yaml and return the Network Instance.
      *
      * @param parser - parser of the .yaml
      * @retval - a pointer to the Network object instance specified by the yaml.
      */
-    Network createNetworkFromYAML(YAML::Parser *p);
+    Network createNetworkFromYAML(YAML::Parser& p);
 
   private:
 
