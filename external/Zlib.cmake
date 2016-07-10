@@ -46,8 +46,12 @@ set(LIB_STATIC_Z_LOC "${zlib_install_lib_dir}/${STATIC_PRE}${zlib_output_root}${
 
 set(c_flags "${EXTERNAL_C_FLAGS_OPTIMIZED} ${COMMON_COMPILER_DEFINITIONS_STR}")
 
+set(zlib_patch_file "${CMAKE_SOURCE_DIR}/external/common/share/zlib/zlib.patch")
+
 ExternalProject_Add(ZStaticLib
     URL ${zlib_url}
+
+    PATCH_COMMAND patch -f -p1 --directory=<SOURCE_DIR> --input=${zlib_patch_file}
 
     UPDATE_COMMAND ""
 
