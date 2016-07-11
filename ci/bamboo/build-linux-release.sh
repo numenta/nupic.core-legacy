@@ -24,4 +24,4 @@ make install
 
 # Build installable python packages
 python setup.py bdist bdist_dumb bdist_wheel sdist
-py.test --junitxml bindings/py/linux-clang-debug-results-${bamboo.buildResultKey}.xml --cov nupic.bindings bindings/py/tests
+py.test --junitxml bindings/py/linux-clang-debug-results-${bamboo_buildResultKey}.xml --cov nupic.bindings bindings/py/tests
