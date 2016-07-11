@@ -2,16 +2,19 @@
 set -o errexit
 set -o xtrace
 
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+# Install pip
+python ci/bamboo/get-pip.py --user
 
-# Run the common setup
-${DIR}/setup-dependencies-linux.sh
-
-# Install nupic.core dependencies
+# Install python dependencies w/ pip
 python -m pip install \
-    --cache-dir /usr/local/src/nupic.core/pip-cache \
-    --build /usr/local/src/nupic.core/pip-build \
+    --upgrade \
+    --ignore-installed \
+    --user \
+    --cache-dir /shared/pip-cache \
+    --build /shared/pip-build \
     --no-clean \
+    setuptools \
+    wheel \
     pycapnp==0.5.8 \
     -r bindings/py/requirements.txt
 
@@ -22,6 +25,6 @@ make install
 ./build/release/bin/cpp_region_test
 ./build/release/bin/unit_tests
 
-# Build installable python packages
-python setup.py bdist_wheel
+# Build wheel
+ARCHFLAGS="-arch x86_64" python setup.py bdist_wheel
 python -m pytest bindings/py/tests
