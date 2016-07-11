@@ -24,5 +24,5 @@ make install
 ./build/release/bin/unit_tests
 
 # Build installable python packages
-python setup.py bdist_wheel
-python -m pytest bindings/py/tests
+python setup.py install
+python -m pytest --junitxml bindings/py/linux-clang-debug-results-${bamboo_buildResultKey}.xml --cov nupic.bindings bindings/py/tests
