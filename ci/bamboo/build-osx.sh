@@ -3,10 +3,10 @@ set -o errexit
 set -o xtrace
 
 # Install pip
-python ci/bamboo/get-pip.py --user
+python ci/bamboo/get-pip.py
 
 # Install python dependencies w/ pip
-python -m pip install \
+pip install \
     --upgrade \
     --ignore-installed \
     --user \
@@ -27,4 +27,4 @@ make install
 
 # Build wheel
 ARCHFLAGS="-arch x86_64" python setup.py bdist_wheel
-python -m pytest bindings/py/tests
+py.test bindings/py/tests

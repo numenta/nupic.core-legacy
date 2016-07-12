@@ -37,6 +37,6 @@ apt-get install -y \
     python2.7-dev
 
 # Install pip
-python ci/bamboo/get-pip.py --user
-python -m pip install --upgrade --ignore-installed setuptools
-python -m pip install wheel
+python ci/bamboo/get-pip.py
+pip install --upgrade --ignore-installed setuptools
+pip install wheel

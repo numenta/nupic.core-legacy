@@ -8,7 +8,7 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 ${DIR}/setup-dependencies-linux.sh
 
 # Install nupic.core dependencies
-python -m pip install \
+pip install \
     --cache-dir /usr/local/src/nupic.core/pip-cache \
     --build /usr/local/src/nupic.core/pip-build \
     --no-clean \
@@ -24,4 +24,4 @@ make install
 
 # Build installable python packages
 python setup.py bdist_wheel
-python -m pytest --junitxml bindings/py/linux-clang-debug-results-${bamboo_buildResultKey}.xml --cov nupic.bindings bindings/py/tests
+py.test --junitxml bindings/py/linux-clang-debug-results-${bamboo_buildResultKey}.xml --cov nupic.bindings bindings/py/tests
