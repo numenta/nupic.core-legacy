@@ -6,7 +6,7 @@ set -o xtrace
 export PATH=${HOME}/Library/Python/2.7/bin:${PATH}
 
 # Install pip
-python ci/bamboo/get-pip.py --user
+python ci/bamboo/get-pip.py --user --ignore-installed
 
 # Install python dependencies w/ pip
 pip install \
