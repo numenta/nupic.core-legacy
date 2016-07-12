@@ -2,6 +2,9 @@
 set -o errexit
 set -o xtrace
 
+# Fixup $PATH for --user installation
+export PATH=${HOME}/Library/Python/2.7/site-packages:${PATH}
+
 # Install pip
 python ci/bamboo/get-pip.py --user
 
