@@ -9,7 +9,6 @@ python ci/bamboo/get-pip.py
 pip install \
     --upgrade \
     --ignore-installed \
-    --user \
     --cache-dir /shared/pip-cache \
     --build /shared/pip-build \
     --no-clean \

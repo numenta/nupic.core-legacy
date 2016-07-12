@@ -41,6 +41,6 @@ apt-get install -y \
     python2.7-dev
 
 # Install pip
-python ${DIR}/get-pip.py
+python ${DIR}/get-pip.py --ignore-installed
 pip install --upgrade --ignore-installed setuptools
 pip install wheel
