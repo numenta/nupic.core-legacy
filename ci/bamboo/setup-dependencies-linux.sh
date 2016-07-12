@@ -1,4 +1,8 @@
 #!/bin/bash
+set -o errexit
+set -o xtrace
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 # Environment defaults
 if [ -z "${USER}" ]; then
@@ -37,6 +41,6 @@ apt-get install -y \
     python2.7-dev
 
 # Install pip
-python ci/bamboo/get-pip.py
+python ${DIR}/get-pip.py
 pip install --upgrade --ignore-installed setuptools
 pip install wheel
