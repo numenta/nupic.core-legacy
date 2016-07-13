@@ -5,7 +5,7 @@ set -o xtrace
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 # Run the common setup
-${DIR}/setup-dependencies.sh
+${DIR}/setup-dependencies-linux.sh
 apt-get install -y iwyu
 
 # Install nupic.core dependencies

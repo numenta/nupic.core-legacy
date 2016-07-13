@@ -29,13 +29,14 @@ export CXX
 apt-get update
 apt-get install -y \
     curl \
-    wget \
     git-core \
     ${COMPILER_PACKAGES} \
     cmake \
     python \
     python2.7 \
     python2.7-dev
-wget https://bootstrap.pypa.io/get-pip.py -O - | python
+
+# Install pip
+python ci/bamboo/get-pip.py --user
 pip install --upgrade --ignore-installed setuptools
 pip install wheel
