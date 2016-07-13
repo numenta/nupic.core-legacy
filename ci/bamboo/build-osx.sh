@@ -2,13 +2,17 @@
 set -o errexit
 set -o xtrace
 
+# Fixup $PATH for --user installation
+export PATH=${HOME}/Library/Python/2.7/bin:${PATH}
+
 # Install pip
-python ci/bamboo/get-pip.py
+python ci/bamboo/get-pip.py --user --ignore-installed
 
 # Install python dependencies w/ pip
 pip install \
     --upgrade \
     --ignore-installed \
+    --user \
     --cache-dir /shared/pip-cache \
     --build /shared/pip-build \
     --no-clean \
