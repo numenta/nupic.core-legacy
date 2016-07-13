@@ -56,7 +56,7 @@ namespace nupic
     bool required;
     bool regionLevel;
     bool isDefaultInput;
-    bool requireSplitterMap; // 
+    bool requireSplitterMap;
   };
 
   class OutputSpec
