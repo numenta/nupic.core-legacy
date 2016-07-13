@@ -44,10 +44,10 @@ using namespace nupic::algorithms::connections;
 using namespace nupic::experimental::extended_temporal_memory;
 
 #define EPSILON 0.000001
+#define EXTENDED_TM_VERSION 1
 
 ExtendedTemporalMemory::ExtendedTemporalMemory()
 {
-  version_ = 2;
 }
 
 ExtendedTemporalMemory::ExtendedTemporalMemory(
@@ -106,10 +106,14 @@ void ExtendedTemporalMemory::initialize(
   // Validate all input parameters
 
   if (columnDimensions.size() <= 0)
+  {
     NTA_THROW << "Number of column dimensions must be greater than 0";
+  }
 
   if (cellsPerColumn <= 0)
+  {
     NTA_THROW << "Number of cells per column must be greater than 0";
+  }
 
   NTA_CHECK(initialPermanence >= 0.0 && initialPermanence <= 1.0);
   NTA_CHECK(connectedPermanence >= 0.0 && connectedPermanence <= 1.0);
@@ -382,13 +386,21 @@ static void adaptSegment(
   {
     const SynapseData synapseData = connections.dataForSynapse(synapse);
 
-    const bool isActive = (synapseData.presynapticCell < connections.numCells())
-      ? std::binary_search(prevActiveInternalCells.begin(),
-                           prevActiveInternalCells.end(),
-                           synapseData.presynapticCell)
-      : std::binary_search(prevActiveExternalCells.begin(),
-                           prevActiveExternalCells.end(),
-                           synapseData.presynapticCell - connections.numCells());
+    bool isActive;
+    if (synapseData.presynapticCell < connections.numCells())
+    {
+      isActive = std::binary_search(
+        prevActiveInternalCells.begin(),
+        prevActiveInternalCells.end(),
+        synapseData.presynapticCell);
+    }
+    else
+    {
+      isActive = std::binary_search(
+        prevActiveExternalCells.begin(),
+        prevActiveExternalCells.end(),
+        synapseData.presynapticCell - connections.numCells());
+    }
 
     Permanence permanence = synapseData.permanence;
 
@@ -931,6 +943,11 @@ void ExtendedTemporalMemory::setPredictedSegmentDecrement(
   predictedSegmentDecrement_ = predictedSegmentDecrement;
 }
 
+UInt ExtendedTemporalMemory::version() const
+{
+  return EXTENDED_TM_VERSION;
+}
+
 /**
 * Create a RNG with given seed
 */
@@ -953,7 +970,7 @@ void ExtendedTemporalMemory::save(ostream& outStream) const
 {
   // Write a starting marker and version.
   outStream << "ExtendedTemporalMemory" << endl;
-  outStream << version_ << endl;
+  outStream << EXTENDED_TM_VERSION << endl;
 
   outStream << numColumns_ << " "
     << cellsPerColumn_ << " "
@@ -1148,7 +1165,7 @@ void ExtendedTemporalMemory::load(istream& inStream)
   // Check the saved version.
   UInt version;
   inStream >> version;
-  NTA_CHECK(version <= version_);
+  NTA_CHECK(version <= EXTENDED_TM_VERSION);
 
   // Retrieve simple variables
   inStream >> numColumns_
@@ -1278,7 +1295,7 @@ void ExtendedTemporalMemory::printParameters()
 {
   std::cout << "------------CPP ExtendedTemporalMemory Parameters ------------------\n";
   std::cout
-    << "version                   = " << version_ << std::endl
+    << "version                   = " << EXTENDED_TM_VERSION << std::endl
     << "numColumns                = " << numberOfColumns() << std::endl
     << "cellsPerColumn            = " << getCellsPerColumn() << std::endl
     << "activationThreshold       = " << getActivationThreshold() << std::endl

@@ -151,9 +151,7 @@ namespace nupic {
          *
          * @returns Integer version number.
          */
-        virtual UInt version() const {
-          return version_;
-        };
+        virtual UInt version() const;
 
         /**
          * This *only* updates _rng to a new Random using seed.
@@ -460,7 +458,6 @@ namespace nupic {
         vector<SegmentOverlap> activeSegments_;
         vector<SegmentOverlap> matchingSegments_;
 
-        UInt version_;
         Random rng_;
 
       public:

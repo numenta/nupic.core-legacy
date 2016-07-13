@@ -44,10 +44,10 @@ using namespace nupic::algorithms::connections;
 using namespace nupic::algorithms::temporal_memory;
 
 #define EPSILON 0.000001
+#define TM_VERSION 2
 
 TemporalMemory::TemporalMemory()
 {
-  version_ = 2;
 }
 
 TemporalMemory::TemporalMemory(
@@ -103,10 +103,14 @@ void TemporalMemory::initialize(
   // Validate all input parameters
 
   if (columnDimensions.size() <= 0)
+  {
     NTA_THROW << "Number of column dimensions must be greater than 0";
+  }
 
   if (cellsPerColumn <= 0)
+  {
     NTA_THROW << "Number of cells per column must be greater than 0";
+  }
 
   NTA_CHECK(initialPermanence >= 0.0 && initialPermanence <= 1.0);
   NTA_CHECK(connectedPermanence >= 0.0 && connectedPermanence <= 1.0);
@@ -850,6 +854,11 @@ void TemporalMemory::setPredictedSegmentDecrement(Permanence predictedSegmentDec
   predictedSegmentDecrement_ = predictedSegmentDecrement;
 }
 
+UInt TemporalMemory::version() const
+{
+  return TM_VERSION;
+}
+
 /**
 * Create a RNG with given seed
 */
@@ -872,7 +881,7 @@ void TemporalMemory::save(ostream& outStream) const
 {
   // Write a starting marker and version.
   outStream << "TemporalMemory" << endl;
-  outStream << version_ << endl;
+  outStream << TM_VERSION << endl;
 
   outStream << numColumns_ << " "
     << cellsPerColumn_ << " "
@@ -1067,7 +1076,7 @@ void TemporalMemory::load(istream& inStream)
   // Check the saved version.
   UInt version;
   inStream >> version;
-  NTA_CHECK(version <= version_);
+  NTA_CHECK(version <= TM_VERSION);
 
   // Retrieve simple variables
   inStream >> numColumns_
@@ -1197,7 +1206,7 @@ void TemporalMemory::printParameters()
 {
   std::cout << "------------CPP TemporalMemory Parameters ------------------\n";
   std::cout
-    << "version                   = " << version_ << std::endl
+    << "version                   = " << TM_VERSION << std::endl
     << "numColumns                = " << numberOfColumns() << std::endl
     << "cellsPerColumn            = " << getCellsPerColumn() << std::endl
     << "activationThreshold       = " << getActivationThreshold() << std::endl
