@@ -1,4 +1,8 @@
 #!/bin/bash
+set -o errexit
+set -o xtrace
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 # Environment defaults
 if [ -z "${USER}" ]; then
@@ -29,13 +33,14 @@ export CXX
 apt-get update
 apt-get install -y \
     curl \
-    wget \
     git-core \
     ${COMPILER_PACKAGES} \
     cmake \
     python \
     python2.7 \
     python2.7-dev
-wget https://bootstrap.pypa.io/get-pip.py -O - | python
+
+# Install pip
+python ${DIR}/get-pip.py --ignore-installed
 pip install --upgrade --ignore-installed setuptools
 pip install wheel
