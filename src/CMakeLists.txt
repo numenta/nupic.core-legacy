@@ -293,6 +293,7 @@ set(src_nupiccore_srcs
     nupic/algorithms/OutSynapse.cpp
     nupic/algorithms/Segment.cpp
     nupic/algorithms/SegmentUpdate.cpp
+    nupic/algorithms/SDRClassifier.cpp
     nupic/algorithms/SpatialPooler.cpp
     nupic/algorithms/TemporalMemory.cpp
     nupic/algorithms/Svm.cpp
