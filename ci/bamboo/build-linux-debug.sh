@@ -5,7 +5,7 @@ set -o xtrace
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 # Run the common setup
-${DIR}/setup-dependencies.sh
+${DIR}/setup-dependencies-linux.sh
 apt-get install -y iwyu
 
 # Install nupic.core dependencies
@@ -13,7 +13,7 @@ pip install \
     --cache-dir /usr/local/src/nupic.core/pip-cache \
     --build /usr/local/src/nupic.core/pip-build \
     --no-clean \
-    pycapnp==0.5.5 \
+    pycapnp==0.5.8 \
     -r bindings/py/requirements.txt
 
 # Build and install nupic.core
@@ -25,4 +25,4 @@ make install
 
 # Build installable python packages
 python setup.py install
-py.test bindings/py/tests
+py.test --junitxml bindings/py/linux-clang-debug-results-${bamboo_buildResultKey}.xml --cov nupic.bindings bindings/py/tests

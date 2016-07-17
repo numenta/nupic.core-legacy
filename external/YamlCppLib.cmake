@@ -49,7 +49,10 @@ ExternalProject_Add(YamlCppStaticLib
 
     CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
         -DBUILD_SHARED_LIBS=OFF
+        -DYAML_CPP_BUILD_TOOLS=OFF
+        -DYAML_CPP_BUILD_CONTRIB=OFF
         -DCMAKE_C_FLAGS=${c_flags}
         -DCMAKE_CXX_FLAGS=${cxx_flags}
         -DCMAKE_INSTALL_PREFIX=${yamlcpplib_install_prefix}
+        ${EXTERNAL_STATICLIB_CMAKE_DEFINITIONS_OPTIMIZED}
 )

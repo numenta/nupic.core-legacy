@@ -90,6 +90,7 @@
 
 #include <nupic/engine/NuPIC.hpp>
 #include <nupic/engine/Network.hpp>
+#include <nupic/engine/NetworkFactory.hpp>
 
 #include <nupic/proto/NetworkProto.capnp.h>
 
@@ -101,6 +102,8 @@
 #include <nupic/utils/Watcher.hpp>
 #include <nupic/engine/Region.hpp>
 #include <nupic/os/Timer.hpp>
+
+#include <yaml-cpp/yaml.h>
 %}
 
 %include "std_pair.i"
@@ -138,6 +141,8 @@
 
 %include <nupic/engine/NuPIC.hpp>
 %include <nupic/engine/Network.hpp>
+%ignore nupic::NetworkFactory::createNetworkFromYAML;
+%include <nupic/engine/NetworkFactory.hpp>
 %ignore nupic::Region::getInputData;
 %ignore nupic::Region::getOutputData;
 %include <nupic/engine/Region.hpp>
@@ -239,6 +244,17 @@
   %#endif
   }
 }
+
+%extend nupic::NetworkFactory
+{
+  Network createNetworkFromYAMLString(const std::string yamlstr)
+  {
+    std::stringstream ss(yamlstr);
+    YAML::Parser parser(ss);
+    return self->createNetworkFromYAML(parser);
+  }
+}
+
 
 %{
 #include <nupic/os/OS.hpp>

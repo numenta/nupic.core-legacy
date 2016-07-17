@@ -55,12 +55,23 @@
 #                      and shared libraries (DLLs) with optimizations that are
 #                      compatible with EXTERNAL_C_FLAGS_OPTIMIZED and EXTERNAL_CXX_FLAGS_OPTIMIZED
 #
+# EXTERNAL_STATICLIB_CMAKE_DEFINITIONS_OPTIMIZED: list of -D cmake definitions corresponding to
+#                      EXTERNAL_C_FLAGS_OPTIMIZED (e. g. use of gcc-ar and gcc-ranlib wrappers for gcc >= 4.9 
+#                      in combination with Link Time Optimization)                       
+#
+# EXTERNAL_STATICLIB_CONFIGURE_DEFINITIONS_OPTIMIZED_STR: string variant of EXTERNAL_STATICLIB_CMAKE_DEFINITIONS_OPTIMIZED
+#                      used for non-cmake builds
+#  
 # INTERNAL_CXX_FLAGS_OPTIMIZED: string of C++ flags with explicit optimization flags for internal sources
 #
 # INTERNAL_LINKER_FLAGS_OPTIMIZED: string of linker flags for linking internal executables
 #                      and shared libraries (DLLs) with optimizations that are
 #                      compatible with INTERNAL_CXX_FLAGS_OPTIMIZED
 #
+# CMAKE_AR: Name of archiving tool (ar) for static libraries. See cmake documentation
+#
+# CMAKE_RANLIB: Name of randomizing tool (ranlib) for static libraries. See cmake documentation
+#                    
 # CMAKE_LINKER: updated, if needed; use ld.gold if available. See cmake
 #               documentation
 #
@@ -72,6 +83,8 @@
 if(NOT DEFINED PLATFORM)
     message(FATAL_ERROR "PLATFORM property not defined: PLATFORM=${PLATFORM}")
 endif()
+
+include(CheckCXXCompilerFlag)
 
 
 # Init exported properties
@@ -91,6 +104,8 @@ set(EXTERNAL_CXX_FLAGS_OPTIMIZED)
 set(EXTERNAL_LINKER_FLAGS_UNOPTIMIZED)
 set(EXTERNAL_LINKER_FLAGS_OPTIMIZED)
 
+set(EXTERNAL_STATICLIB_CMAKE_DEFINITIONS_OPTIMIZED)
+set(EXTERNAL_STATICLIB_CONFIGURE_DEFINITIONS_OPTIMIZED_STR "")
 
 # Identify platform "bitness".
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
@@ -100,6 +115,22 @@ else()
 endif()
 
 message(STATUS "CMAKE BITNESS=${BITNESS}")
+
+
+# Check memory limits (in megabytes)
+if(CMAKE_MAJOR_VERSION GREATER 2)
+  cmake_host_system_information(RESULT available_physical_memory QUERY AVAILABLE_PHYSICAL_MEMORY)
+  cmake_host_system_information(RESULT available_virtual_memory QUERY AVAILABLE_VIRTUAL_MEMORY)
+  math(EXPR available_memory "${available_physical_memory}+${available_virtual_memory}")
+  message(STATUS "CMAKE MEMORY=${available_memory}")
+
+  # Python bindings (particularly mathPYTHON_wrap.cxx) requires more than 
+  # 1GB of memory for compiling with GCC. Send a warning if available memory
+  # (physical plus virtual(swap)) is less than 1GB 
+  if(${available_memory} LESS 1024)
+    message(WARNING "Less than 1GB of memory available, compilation may run out of memory!")
+  endif()
+endif()
 
 
 # Compiler `-D*` definitions
@@ -159,9 +190,13 @@ endif()
 # try compiling without them.
 #
 if(NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
-  set(optimization_flags_cc "${optimization_flags_cc} -mtune=generic -O2")
+  set(optimization_flags_cc "${optimization_flags_cc} -O2")
   set(optimization_flags_cc "-pipe ${optimization_flags_cc}") #TODO use -Ofast instead of -O3
   set(optimization_flags_lt "-O2 ${optimization_flags_lt}")
+
+  if(NOT ${CMAKE_SYSTEM_PROCESSOR} STREQUAL "armv7l")
+    set(optimization_flags_cc "${optimization_flags_cc} -mtune=generic")
+  endif()
 
   if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" AND NOT MINGW)
     set(optimization_flags_cc "${optimization_flags_cc} -fuse-ld=gold")
@@ -197,9 +232,19 @@ else()
   # LLVM Clang / Gnu GCC
   set(cxx_flags_unoptimized "${cxx_flags_unoptimized} ${stdlib_cxx} -std=c++11")
 
-  set(shared_compile_flags "${shared_compile_flags} -m${BITNESS} ${stdlib_common} -fdiagnostics-show-option")
+  set(shared_compile_flags "${shared_compile_flags} ${stdlib_common} -fdiagnostics-show-option")
   set (internal_compiler_warning_flags "${internal_compiler_warning_flags} -Werror -Wextra -Wreturn-type -Wunused -Wno-unused-variable -Wno-unused-parameter -Wno-missing-field-initializers")
   set (external_compiler_warning_flags "${external_compiler_warning_flags} -Wno-unused-variable -Wno-unused-parameter -Wno-incompatible-pointer-types -Wno-deprecated-declarations")
+
+  CHECK_CXX_COMPILER_FLAG(-m${BITNESS} compiler_supports_machine_option)
+  if (compiler_supports_machine_option)
+    set(shared_compile_flags "${shared_compile_flags} -m${BITNESS}")
+    set(shared_linker_flags_unoptimized "${shared_linker_flags_unoptimized} -m${BITNESS}")
+  endif()
+  if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "armv7l")
+    set(shared_compile_flags "${shared_compile_flags} -marm")
+    set(shared_linker_flags_unoptimized "${shared_linker_flags_unoptimized} -marm")
+  endif()
 
   if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set(shared_compile_flags "${shared_compile_flags} -fPIC")
@@ -210,7 +255,7 @@ else()
     endif()
   endif()
 
-  set(shared_linker_flags_unoptimized "${shared_linker_flags_unoptimized} -m${BITNESS} ${stdlib_common} ${stdlib_cxx}")
+  set(shared_linker_flags_unoptimized "${shared_linker_flags_unoptimized} ${stdlib_common} ${stdlib_cxx}")
 endif()
 
 
@@ -220,6 +265,17 @@ elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
   set(shared_linker_flags_unoptimized "${shared_linker_flags_unoptimized} -Wl,-undefined,error")
 endif()
 
+# Compatibility with gcc >= 4.9 which requires the use of gcc's own wrappers for ar and ranlib in combination with LTO
+# works also with LTO disabled
+IF(UNIX AND CMAKE_COMPILER_IS_GNUCXX AND (NOT "${CMAKE_BUILD_TYPE}" STREQUAL "Debug") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "4.9" OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "4.9"))
+    set(CMAKE_AR "gcc-ar")
+    set(CMAKE_RANLIB "gcc-ranlib")
+    # EXTERNAL_STATICLIB_CMAKE_DEFINITIONS_OPTIMIZED contains duplicate settings for CMAKE_AR and CMAKE_RANLIB
+    # This is a workaround for a CMAKE bug (https://gitlab.kitware.com/cmake/cmake/issues/15547) that prevents
+    # the correct propagation of CMAKE_AR and CMAKE_RANLIB variables to all externals
+    set(EXTERNAL_STATICLIB_CMAKE_DEFINITIONS_OPTIMIZED -DCMAKE_AR:PATH=gcc-ar -DCMAKE_RANLIB:PATH=gcc-ranlib)
+    set(EXTERNAL_STATICLIB_CONFIGURE_DEFINITIONS_OPTIMIZED_STR AR=gcc-ar RANLIB=gcc-ranlib)
+ENDIF()
 
 #
 # Set up Debug vs. Release options

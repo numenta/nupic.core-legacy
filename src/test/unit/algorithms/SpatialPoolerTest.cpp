@@ -1849,13 +1849,15 @@ namespace {
                 xc < 0 || xc >= (Int) dimensions[3]) {
               continue;
             }
-// gcc 4.6 / 4.7 has a bug here, issues warning -Warray-bounds which is not true, see *), so suppress it
-#if (__GNUC__ == 4 && ( __GNUC_MINOR__ == 6 || __GNUC_MINOR__ == 7) )
+// gcc 4.6 / 4.7 / 5.3 has a bug here, issues warning -Warray-bounds which is not true, see *), so suppress it
+#if ((__GNUC__ == 4 && (__GNUC_MINOR__ == 6 || __GNUC_MINOR__ == 7)) || \
+     (__GNUC__ == 5 && (__GNUC_MINOR__ == 3)))
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Warray-bounds"
 #endif
             trueNeighbors2[wc][zc][yc][xc] = 1;
-#if (__GNUC__ == 4 && ( __GNUC_MINOR__ == 6 || __GNUC_MINOR__ == 7) )
+#if ((__GNUC__ == 4 && (__GNUC_MINOR__ == 6 || __GNUC_MINOR__ == 7)) || \
+     (__GNUC__ == 5 && (__GNUC_MINOR__ == 3)))
 #pragma GCC diagnostic pop
 #endif
           }

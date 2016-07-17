@@ -1,8 +1,8 @@
 #!/bin/bash
 # ----------------------------------------------------------------------
 # Numenta Platform for Intelligent Computing (NuPIC)
-# Copyright (C) 2013-5, Numenta, Inc.  Unless you have an agreement
-# with Numenta, Inc., for a separate license for this software code, the
+# Copyright (C) 2016, Numenta, Inc.  Unless you have purchased from
+# Numenta, Inc. a separate commercial license for this software code, the
 # following terms and conditions apply:
 #
 # This program is free software: you can redistribute it and/or modify
@@ -20,26 +20,17 @@
 # http://numenta.org/licenses/
 # ----------------------------------------------------------------------
 
-echo
-echo Running before_install-osx.sh...
-echo
+set -o verbose
+set -o xtrace
 
-if [ $CC = 'gcc' ]; then
-    export CC='gcc-4.8'
-    export CXX='g++-4.8'
-fi
+# Update brew
+rm /usr/local/share/man/man1/brew-cask.1
+sudo -u vagrant -i brew tap --repair
+sudo -u vagrant -i brew update
 
-if [ $CC = 'clang' ]; then
-    export CC='clang'
-    export CXX='clang++'
-fi
+# Initialize .bashrc with PATH
+sudo -u vagrant /usr/libexec/path_helper -s >> /Users/vagrant/.bashrc
+sudo -u vagrant ln -s .bashrc .bash_profile
 
-export PATH=$HOME/Library/Python/2.7/bin:$PATH
-export PYTHONPATH=$HOME/Library/Python/2.7/lib/python/site-packages:$PYTHONPATH
-
-echo "Installing wheel..."
-pip install wheel==0.25.0 --user || exit
-echo "Installing Python dependencies"
-pip install --use-wheel --user -r bindings/py/requirements.txt --quiet || exit
-
-pip install pycapnp==0.5.8 --user || exit
+# Install cmake with homebrew
+sudo -u vagrant -i brew install cmake
