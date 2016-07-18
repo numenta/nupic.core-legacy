@@ -36,7 +36,7 @@
 #include <nupic/proto/SDRClassifier.capnp.h>
 #include <nupic/types/Serializable.hpp>
 #include <nupic/types/Types.hpp>
-#include <nupic/math/Array2D.hpp>
+#include <nupic/math/DenseMatrix.hpp>
 
 namespace nupic 
 {
@@ -47,7 +47,9 @@ namespace nupic
 
 			const UInt Version = 1;
 
-			class cla_classifier::ClassifierResult;  // FIXME?
+			typedef DenseMatrix<UInt, Real64> Matrix;
+
+			class cla_classifier::ClassifierResult;
 
 			class SDRClassifier : public Serializable<SdrClassifierProto>
 			{
@@ -169,7 +171,11 @@ namespace nupic
 
 	      	// Helper function to compute the likelihoods at a single step
 	      	vector<Real64> inferSingleStep_(const vector<UInt>& patternNZ,
-	      		const map< UInt, vector<Real64> > weights) const;
+	      		const Matrix weights) const;
+
+	      	// Helper function to compute the error signal in learning mode
+	      	vector<Real64> calculateError_(UInt bucketIdx, 
+	      		Real64 actValue, UInt step) const;
 
 	        // The list of prediction steps to learn and infer.
 	        vector<UInt> steps_;
@@ -197,8 +203,8 @@ namespace nupic
 	        deque< vector<UInt> > patternNZHistory_;
 	        deque<UInt> iterationNumHistory_;
 
-	        // Weight matrix for the classifier.
-	        map< UInt, map< UInt, vector<Real64> > > weightMatrix_;
+	        // Weight matrices for the classifier (one per prediction step)
+	        map<UInt, Matrix> weightMatrix_;
 
 	        // The highest input bit that the classifier has seen so far.
 	        UInt maxInputIdx_;
