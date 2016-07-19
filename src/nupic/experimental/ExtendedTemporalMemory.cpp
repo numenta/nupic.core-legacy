@@ -21,7 +21,7 @@
  */
 
 /** @file
- * Implementation of TemporalMemory
+ * Implementation of ExtendedTemporalMemory
  */
 
 #include <cstring>
@@ -36,21 +36,21 @@
 #include <kj/std/iostream.h>
 
 #include <nupic/algorithms/Connections.hpp>
-#include <nupic/algorithms/TemporalMemory.hpp>
+#include <nupic/experimental/ExtendedTemporalMemory.hpp>
 
 using namespace std;
 using namespace nupic;
 using namespace nupic::algorithms::connections;
-using namespace nupic::algorithms::temporal_memory;
+using namespace nupic::experimental::extended_temporal_memory;
 
 static const Permanence EPSILON = 0.000001;
-static const UInt TM_VERSION = 2;
+static const UInt EXTENDED_TM_VERSION = 1;
 
-TemporalMemory::TemporalMemory()
+ExtendedTemporalMemory::ExtendedTemporalMemory()
 {
 }
 
-TemporalMemory::TemporalMemory(
+ExtendedTemporalMemory::ExtendedTemporalMemory(
   vector<UInt> columnDimensions,
   UInt cellsPerColumn,
   UInt activationThreshold,
@@ -61,6 +61,7 @@ TemporalMemory::TemporalMemory(
   Permanence permanenceIncrement,
   Permanence permanenceDecrement,
   Permanence predictedSegmentDecrement,
+  bool formInternalConnections,
   Int seed,
   UInt maxSegmentsPerCell,
   UInt maxSynapsesPerSegment)
@@ -76,16 +77,17 @@ TemporalMemory::TemporalMemory(
     permanenceIncrement,
     permanenceDecrement,
     predictedSegmentDecrement,
+    formInternalConnections,
     seed,
     maxSegmentsPerCell,
     maxSynapsesPerSegment);
 }
 
-TemporalMemory::~TemporalMemory()
+ExtendedTemporalMemory::~ExtendedTemporalMemory()
 {
 }
 
-void TemporalMemory::initialize(
+void ExtendedTemporalMemory::initialize(
   vector<UInt> columnDimensions,
   UInt cellsPerColumn,
   UInt activationThreshold,
@@ -96,6 +98,7 @@ void TemporalMemory::initialize(
   Permanence permanenceIncrement,
   Permanence permanenceDecrement,
   Permanence predictedSegmentDecrement,
+  bool formInternalConnections,
   Int seed,
   UInt maxSegmentsPerCell,
   UInt maxSynapsesPerSegment)
@@ -133,6 +136,7 @@ void TemporalMemory::initialize(
   connectedPermanence_ = connectedPermanence;
   minThreshold_ = minThreshold;
   maxNewSynapseCount_ = maxNewSynapseCount;
+  formInternalConnections_ = formInternalConnections;
   permanenceIncrement_ = permanenceIncrement;
   permanenceDecrement_ = permanenceDecrement;
   predictedSegmentDecrement_ = predictedSegmentDecrement;
@@ -181,12 +185,14 @@ public:
   {
     NTA_ASSERT(std::is_sorted(activeColumns.begin(), activeColumns.end()));
     NTA_ASSERT(std::is_sorted(activeSegments.begin(), activeSegments.end(),
-                              [](const SegmentOverlap& a, const SegmentOverlap& b)
+                              [](const SegmentOverlap& a,
+                                 const SegmentOverlap& b)
                               {
                                 return a.segment < b.segment;
                               }));
     NTA_ASSERT(std::is_sorted(matchingSegments.begin(), matchingSegments.end(),
-                              [](const SegmentOverlap& a, const SegmentOverlap& b)
+                              [](const SegmentOverlap& a,
+                                 const SegmentOverlap& b)
                               {
                                 return a.segment < b.segment;
                               }));
@@ -369,7 +375,8 @@ static CellIdx getLeastUsedCell(
 static void adaptSegment(
   Connections& connections,
   Segment segment,
-  const vector<CellIdx>& prevActiveCells,
+  const vector<CellIdx>& prevActiveInternalCells,
+  const vector<CellIdx>& prevActiveExternalCells,
   Permanence permanenceIncrement,
   Permanence permanenceDecrement)
 {
@@ -378,9 +385,23 @@ static void adaptSegment(
   for (Synapse synapse : synapses)
   {
     const SynapseData synapseData = connections.dataForSynapse(synapse);
-    const bool isActive =
-      std::binary_search(prevActiveCells.begin(), prevActiveCells.end(),
-                         synapseData.presynapticCell);
+
+    bool isActive;
+    if (synapseData.presynapticCell < connections.numCells())
+    {
+      isActive = std::binary_search(
+        prevActiveInternalCells.begin(),
+        prevActiveInternalCells.end(),
+        synapseData.presynapticCell);
+    }
+    else
+    {
+      isActive = std::binary_search(
+        prevActiveExternalCells.begin(),
+        prevActiveExternalCells.end(),
+        synapseData.presynapticCell - connections.numCells());
+    }
+
     Permanence permanence = synapseData.permanence;
 
     if (isActive)
@@ -416,10 +437,28 @@ static void growSynapses(
   Random& rng,
   Segment segment,
   UInt32 nDesiredNewSynapses,
-  const vector<CellIdx>& prevWinnerCells,
-  Permanence initialPermanence)
+  const vector<CellIdx>& internalCandidates,
+  const vector<CellIdx>& externalCandidates,
+  Permanence initialPermanence,
+  bool formInternalConnections)
 {
-  vector<CellIdx> candidates(prevWinnerCells.begin(), prevWinnerCells.end());
+  vector<CellIdx> candidates;
+
+  if (formInternalConnections)
+  {
+    candidates.reserve(internalCandidates.size() + externalCandidates.size());
+    candidates.insert(candidates.begin(), internalCandidates.begin(),
+                      internalCandidates.end());
+  }
+  else
+  {
+    candidates.reserve(externalCandidates.size());
+  }
+
+  for (CellIdx cell : externalCandidates)
+  {
+    candidates.push_back(cell + connections.numCells());
+  }
 
   // Instead of erasing candidates, swap them to the end, and remember where the
   // "eligible" candidates end.
@@ -458,7 +497,8 @@ static void activatePredictedColumn(
   Connections& connections,
   const ExcitedColumnData& excitedColumn,
   bool learn,
-  const vector<CellIdx>& prevActiveCells,
+  const vector<CellIdx>& prevActiveInternalCells,
+  const vector<CellIdx>& prevActiveExternalCells,
   Permanence permanenceIncrement,
   Permanence permanenceDecrement)
 {
@@ -476,7 +516,7 @@ static void activatePredictedColumn(
       {
         adaptSegment(connections,
                      active->segment,
-                     prevActiveCells,
+                     prevActiveInternalCells, prevActiveExternalCells,
                      permanenceIncrement, permanenceDecrement);
       }
       active++;
@@ -492,13 +532,15 @@ static void burstColumn(
   Random& rng,
   const ExcitedColumnData& excitedColumn,
   bool learn,
-  const vector<CellIdx>& prevActiveCells,
+  const vector<CellIdx>& prevActiveInternalCells,
+  const vector<CellIdx>& prevActiveExternalCells,
   const vector<CellIdx>& prevWinnerCells,
   UInt cellsPerColumn,
   Permanence initialPermanence,
   UInt maxNewSynapseCount,
   Permanence permanenceIncrement,
-  Permanence permanenceDecrement)
+  Permanence permanenceDecrement,
+  bool formInternalConnections)
 {
   const CellIdx start = excitedColumn.column * cellsPerColumn;
   const CellIdx end = start + cellsPerColumn;
@@ -523,7 +565,7 @@ static void burstColumn(
     {
       adaptSegment(connections,
                    bestMatch->segment,
-                   prevActiveCells,
+                   prevActiveInternalCells, prevActiveExternalCells,
                    permanenceIncrement, permanenceDecrement);
 
       const UInt32 nGrowDesired = maxNewSynapseCount - bestMatch->overlap;
@@ -531,8 +573,8 @@ static void burstColumn(
       {
         growSynapses(connections, rng,
                      bestMatch->segment, nGrowDesired,
-                     prevWinnerCells,
-                     initialPermanence);
+                     prevWinnerCells, prevActiveExternalCells,
+                     initialPermanence, formInternalConnections);
       }
     }
   }
@@ -546,15 +588,16 @@ static void burstColumn(
     if (learn)
     {
       // Don't grow a segment that will never match.
-      const UInt32 nGrowExact = std::min(maxNewSynapseCount,
-                                         (UInt32)prevWinnerCells.size());
+      const UInt32 nGrowExact =
+        std::min(maxNewSynapseCount, (UInt32)(prevWinnerCells.size() +
+                                              prevActiveExternalCells.size()));
       if (nGrowExact > 0)
       {
         const Segment segment = connections.createSegment(winnerCell);
         growSynapses(connections, rng,
                      segment, nGrowExact,
-                     prevWinnerCells,
-                     initialPermanence);
+                     prevWinnerCells, prevActiveExternalCells,
+                     initialPermanence, formInternalConnections);
         NTA_ASSERT(connections.numSynapses(segment) == nGrowExact);
       }
     }
@@ -564,7 +607,8 @@ static void burstColumn(
 static void punishPredictedColumn(
   Connections& connections,
   const ExcitedColumnData& excitedColumn,
-  const vector<CellIdx>& prevActiveCells,
+  const vector<CellIdx>& prevActiveInternalCells,
+  const vector<CellIdx>& prevActiveExternalCells,
   Permanence predictedSegmentDecrement)
 {
   if (predictedSegmentDecrement > 0.0)
@@ -573,23 +617,22 @@ static void punishPredictedColumn(
          matching != excitedColumn.matchingSegmentsEnd;
          matching++)
     {
-      adaptSegment(connections, matching->segment, prevActiveCells,
+      adaptSegment(connections, matching->segment,
+                   prevActiveInternalCells, prevActiveExternalCells,
                    -predictedSegmentDecrement, 0.0);
     }
   }
 }
 
-void TemporalMemory::compute(
-  UInt activeColumnsSize,
-  const UInt activeColumnsUnsorted[],
+void ExtendedTemporalMemory::activateCells(
+  const vector<UInt>& activeColumns,
+  const vector<CellIdx>& prevActiveExternalCells,
   bool learn)
 {
-  const vector<CellIdx> prevActiveCells = std::move(activeCells_);
-  const vector<CellIdx> prevWinnerCells = std::move(winnerCells_);
+  NTA_ASSERT(std::is_sorted(activeColumns.begin(), activeColumns.end()));
 
-  vector<UInt> activeColumns(activeColumnsUnsorted,
-                             activeColumnsUnsorted + activeColumnsSize);
-  std::sort(activeColumns.begin(), activeColumns.end());
+  const vector<CellIdx> prevActiveInternalCells = std::move(activeCells_);
+  const vector<CellIdx> prevWinnerCells = std::move(winnerCells_);
 
   for (const ExcitedColumnData& excitedColumn : ExcitedColumns(activeColumns,
                                                                activeSegments_,
@@ -602,16 +645,19 @@ void TemporalMemory::compute(
       {
         activatePredictedColumn(activeCells_, winnerCells_, connections,
                                 excitedColumn, learn,
-                                prevActiveCells,
+                                prevActiveInternalCells,
+                                prevActiveExternalCells,
                                 permanenceIncrement_, permanenceDecrement_);
       }
       else
       {
         burstColumn(activeCells_, winnerCells_, connections, rng_,
                     excitedColumn, learn,
-                    prevActiveCells, prevWinnerCells,
+                    prevActiveInternalCells, prevActiveExternalCells,
+                    prevWinnerCells,
                     cellsPerColumn_, initialPermanence_, maxNewSynapseCount_,
-                    permanenceIncrement_, permanenceDecrement_);
+                    permanenceIncrement_, permanenceDecrement_,
+                    formInternalConnections_);
       }
     }
     else
@@ -620,18 +666,32 @@ void TemporalMemory::compute(
       {
         punishPredictedColumn(connections,
                               excitedColumn,
-                              prevActiveCells,
+                              prevActiveInternalCells,
+                              prevActiveExternalCells,
                               predictedSegmentDecrement_);
       }
     }
   }
+}
+
+void ExtendedTemporalMemory::activateDendrites(
+  const vector<CellIdx>& activeExternalCells,
+  bool learn)
+{
+  SegmentExcitationTally excitations(connections, connectedPermanence_, 0.0);
+  for (CellIdx cell : activeCells_)
+  {
+    excitations.addActivePresynapticCell(cell);
+  }
+  for (CellIdx cell : activeExternalCells)
+  {
+    excitations.addActivePresynapticCell(cell);
+  }
 
   activeSegments_.clear();
   matchingSegments_.clear();
-  connections.computeActivity(activeCells_,
-                              connectedPermanence_, activationThreshold_,
-                              0.0, minThreshold_,
-                              activeSegments_, matchingSegments_);
+  excitations.getResults(activationThreshold_, minThreshold_,
+                         activeSegments_, matchingSegments_);
 
   if (learn)
   {
@@ -644,7 +704,21 @@ void TemporalMemory::compute(
   }
 }
 
-void TemporalMemory::reset(void)
+void ExtendedTemporalMemory::compute(
+  const vector<UInt>& activeColumnsUnsorted,
+  const vector<CellIdx>& prevActiveExternalCells,
+  const vector<CellIdx>& activeExternalCells,
+  bool learn)
+{
+  vector<UInt> activeColumns(activeColumnsUnsorted.begin(),
+                             activeColumnsUnsorted.end());
+  std::sort(activeColumns.begin(), activeColumns.end());
+
+  activateCells(activeColumns, prevActiveExternalCells, learn);
+  activateDendrites(activeExternalCells, learn);
+}
+
+void ExtendedTemporalMemory::reset(void)
 {
   activeCells_.clear();
   activeSegments_.clear();
@@ -656,14 +730,14 @@ void TemporalMemory::reset(void)
 //  Helper functions
 // ==============================
 
-Int TemporalMemory::columnForCell(CellIdx cell)
+Int ExtendedTemporalMemory::columnForCell(CellIdx cell)
 {
   _validateCell(cell);
 
   return cell / cellsPerColumn_;
 }
 
-vector<CellIdx> TemporalMemory::cellsForColumn(Int column)
+vector<CellIdx> ExtendedTemporalMemory::cellsForColumn(Int column)
 {
   const CellIdx start = cellsPerColumn_ * column;
   const CellIdx end = start + cellsPerColumn_;
@@ -677,17 +751,17 @@ vector<CellIdx> TemporalMemory::cellsForColumn(Int column)
   return cellsInColumn;
 }
 
-UInt TemporalMemory::numberOfCells(void)
+UInt ExtendedTemporalMemory::numberOfCells(void)
 {
   return numberOfColumns() * cellsPerColumn_;
 }
 
-vector<CellIdx> TemporalMemory::getActiveCells() const
+vector<CellIdx> ExtendedTemporalMemory::getActiveCells() const
 {
   return activeCells_;
 }
 
-vector<CellIdx> TemporalMemory::getPredictiveCells() const
+vector<CellIdx> ExtendedTemporalMemory::getPredictiveCells() const
 {
   vector<CellIdx> predictiveCells;
 
@@ -705,12 +779,12 @@ vector<CellIdx> TemporalMemory::getPredictiveCells() const
   return predictiveCells;
 }
 
-vector<CellIdx> TemporalMemory::getWinnerCells() const
+vector<CellIdx> ExtendedTemporalMemory::getWinnerCells() const
 {
   return winnerCells_;
 }
 
-vector<CellIdx> TemporalMemory::getMatchingCells() const
+vector<CellIdx> ExtendedTemporalMemory::getMatchingCells() const
 {
   vector<CellIdx> matchingCells;
 
@@ -728,7 +802,7 @@ vector<CellIdx> TemporalMemory::getMatchingCells() const
   return matchingCells;
 }
 
-vector<Segment> TemporalMemory::getActiveSegments() const
+vector<Segment> ExtendedTemporalMemory::getActiveSegments() const
 {
   vector<Segment> ret;
   ret.reserve(activeSegments_.size());
@@ -739,7 +813,7 @@ vector<Segment> TemporalMemory::getActiveSegments() const
   return ret;
 }
 
-vector<Segment> TemporalMemory::getMatchingSegments() const
+vector<Segment> ExtendedTemporalMemory::getMatchingSegments() const
 {
   vector<Segment> ret;
   ret.reserve(matchingSegments_.size());
@@ -750,12 +824,12 @@ vector<Segment> TemporalMemory::getMatchingSegments() const
   return ret;
 }
 
-UInt TemporalMemory::numberOfColumns() const
+UInt ExtendedTemporalMemory::numberOfColumns() const
 {
   return numColumns_;
 }
 
-bool TemporalMemory::_validateCell(CellIdx cell)
+bool ExtendedTemporalMemory::_validateCell(CellIdx cell)
 {
   if (cell < numberOfCells())
     return true;
@@ -764,110 +838,125 @@ bool TemporalMemory::_validateCell(CellIdx cell)
   return false;
 }
 
-vector<UInt> TemporalMemory::getColumnDimensions() const
+vector<UInt> ExtendedTemporalMemory::getColumnDimensions() const
 {
   return columnDimensions_;
 }
 
-UInt TemporalMemory::getCellsPerColumn() const
+UInt ExtendedTemporalMemory::getCellsPerColumn() const
 {
   return cellsPerColumn_;
 }
 
-UInt TemporalMemory::getActivationThreshold() const
+UInt ExtendedTemporalMemory::getActivationThreshold() const
 {
   return activationThreshold_;
 }
 
-void TemporalMemory::setActivationThreshold(UInt activationThreshold)
+void ExtendedTemporalMemory::setActivationThreshold(UInt activationThreshold)
 {
   activationThreshold_ = activationThreshold;
 }
 
-Permanence TemporalMemory::getInitialPermanence() const
+Permanence ExtendedTemporalMemory::getInitialPermanence() const
 {
   return initialPermanence_;
 }
 
-void TemporalMemory::setInitialPermanence(Permanence initialPermanence)
+void ExtendedTemporalMemory::setInitialPermanence(Permanence initialPermanence)
 {
   initialPermanence_ = initialPermanence;
 }
 
-Permanence TemporalMemory::getConnectedPermanence() const
+Permanence ExtendedTemporalMemory::getConnectedPermanence() const
 {
   return connectedPermanence_;
 }
 
-void TemporalMemory::setConnectedPermanence(Permanence connectedPermanence)
+void ExtendedTemporalMemory::setConnectedPermanence(
+  Permanence connectedPermanence)
 {
   connectedPermanence_ = connectedPermanence;
 }
 
-UInt TemporalMemory::getMinThreshold() const
+UInt ExtendedTemporalMemory::getMinThreshold() const
 {
   return minThreshold_;
 }
 
-void TemporalMemory::setMinThreshold(UInt minThreshold)
+void ExtendedTemporalMemory::setMinThreshold(UInt minThreshold)
 {
   minThreshold_ = minThreshold;
 }
 
-UInt TemporalMemory::getMaxNewSynapseCount() const
+UInt ExtendedTemporalMemory::getMaxNewSynapseCount() const
 {
   return maxNewSynapseCount_;
 }
 
-void TemporalMemory::setMaxNewSynapseCount(UInt maxNewSynapseCount)
+void ExtendedTemporalMemory::setMaxNewSynapseCount(UInt maxNewSynapseCount)
 {
   maxNewSynapseCount_ = maxNewSynapseCount;
 }
 
-Permanence TemporalMemory::getPermanenceIncrement() const
+bool ExtendedTemporalMemory::getFormInternalConnections() const
+{
+  return formInternalConnections_;
+}
+
+void ExtendedTemporalMemory::setFormInternalConnections(
+  bool formInternalConnections)
+{
+  formInternalConnections_ = formInternalConnections;
+}
+
+Permanence ExtendedTemporalMemory::getPermanenceIncrement() const
 {
   return permanenceIncrement_;
 }
 
-void TemporalMemory::setPermanenceIncrement(Permanence permanenceIncrement)
+void ExtendedTemporalMemory::setPermanenceIncrement(
+  Permanence permanenceIncrement)
 {
   permanenceIncrement_ = permanenceIncrement;
 }
 
-Permanence TemporalMemory::getPermanenceDecrement() const
+Permanence ExtendedTemporalMemory::getPermanenceDecrement() const
 {
   return permanenceDecrement_;
 }
 
-void TemporalMemory::setPermanenceDecrement(Permanence permanenceDecrement)
+void ExtendedTemporalMemory::setPermanenceDecrement(
+  Permanence permanenceDecrement)
 {
   permanenceDecrement_ = permanenceDecrement;
 }
 
-Permanence TemporalMemory::getPredictedSegmentDecrement() const
+Permanence ExtendedTemporalMemory::getPredictedSegmentDecrement() const
 {
   return predictedSegmentDecrement_;
 }
 
-void TemporalMemory::setPredictedSegmentDecrement(Permanence predictedSegmentDecrement)
+void ExtendedTemporalMemory::setPredictedSegmentDecrement(
+  Permanence predictedSegmentDecrement)
 {
   predictedSegmentDecrement_ = predictedSegmentDecrement;
 }
 
-UInt TemporalMemory::version() const
+UInt ExtendedTemporalMemory::version() const
 {
-  return TM_VERSION;
+  return EXTENDED_TM_VERSION;
 }
 
 /**
 * Create a RNG with given seed
 */
-void TemporalMemory::seed_(UInt64 seed)
+void ExtendedTemporalMemory::seed_(UInt64 seed)
 {
   rng_ = Random(seed);
 }
 
-UInt TemporalMemory::persistentSize() const
+UInt ExtendedTemporalMemory::persistentSize() const
 {
   // TODO: this won't scale!
   stringstream s;
@@ -877,11 +966,11 @@ UInt TemporalMemory::persistentSize() const
   return s.str().size();
 }
 
-void TemporalMemory::save(ostream& outStream) const
+void ExtendedTemporalMemory::save(ostream& outStream) const
 {
   // Write a starting marker and version.
-  outStream << "TemporalMemory" << endl;
-  outStream << TM_VERSION << endl;
+  outStream << "ExtendedTemporalMemory" << endl;
+  outStream << EXTENDED_TM_VERSION << endl;
 
   outStream << numColumns_ << " "
     << cellsPerColumn_ << " "
@@ -934,10 +1023,10 @@ void TemporalMemory::save(ostream& outStream) const
   }
   outStream << endl;
 
-  outStream << "~TemporalMemory" << endl;
+  outStream << "~ExtendedTemporalMemory" << endl;
 }
 
-void TemporalMemory::write(TemporalMemoryProto::Builder& proto) const
+void ExtendedTemporalMemory::write(ExtendedTemporalMemoryProto::Builder& proto) const
 {
   auto columnDims = proto.initColumnDimensions(columnDimensions_.size());
   for (UInt i = 0; i < columnDimensions_.size(); i++)
@@ -999,7 +1088,7 @@ void TemporalMemory::write(TemporalMemoryProto::Builder& proto) const
 // Implementation note: this method sets up the instance using data from
 // proto. This method does not call initialize. As such we have to be careful
 // that everything in initialize is handled properly here.
-void TemporalMemory::read(TemporalMemoryProto::Reader& proto)
+void ExtendedTemporalMemory::read(ExtendedTemporalMemoryProto::Reader& proto)
 {
   numColumns_ = 1;
   columnDimensions_.clear();
@@ -1034,7 +1123,7 @@ void TemporalMemory::read(TemporalMemoryProto::Reader& proto)
   if (proto.getActiveSegments().size())
   {
     // There's no way to convert a UInt32 to a segment. It never worked.
-    NTA_WARN << "TemporalMemory::read :: Obsolete field 'activeSegments' isn't usable. "
+    NTA_WARN << "ExtendedTemporalMemory::read :: Obsolete field 'activeSegments' isn't usable. "
              << "TemporalMemory results will be goofy for one timestep.";
   }
 
@@ -1054,8 +1143,8 @@ void TemporalMemory::read(TemporalMemoryProto::Reader& proto)
   if (proto.getMatchingSegments().size())
   {
     // There's no way to convert a UInt32 to a segment. It never worked.
-    NTA_WARN << "TemporalMemory::read :: Obsolete field 'matchingSegments' isn't usable. "
-             << "TemporalMemory results will be goofy for one timestep.";
+    NTA_WARN << "Obsolete field 'matchingSegments' isn't usable."
+             << "ExtendedTemporalMemory results will be goofy for one timestep.";
   }
 
   matchingSegments_.clear();
@@ -1066,17 +1155,17 @@ void TemporalMemory::read(TemporalMemoryProto::Reader& proto)
   }
 }
 
-void TemporalMemory::load(istream& inStream)
+void ExtendedTemporalMemory::load(istream& inStream)
 {
   // Check the marker
   string marker;
   inStream >> marker;
-  NTA_CHECK(marker == "TemporalMemory");
+  NTA_CHECK(marker == "ExtendedTemporalMemory");
 
   // Check the saved version.
   UInt version;
   inStream >> version;
-  NTA_CHECK(version <= TM_VERSION);
+  NTA_CHECK(version <= EXTENDED_TM_VERSION);
 
   // Retrieve simple variables
   inStream >> numColumns_
@@ -1193,7 +1282,7 @@ void TemporalMemory::load(istream& inStream)
   }
 
   inStream >> marker;
-  NTA_CHECK(marker == "~TemporalMemory");
+  NTA_CHECK(marker == "~ExtendedTemporalMemory");
 
 }
 
@@ -1202,11 +1291,11 @@ void TemporalMemory::load(istream& inStream)
 //----------------------------------------------------------------------
 
 // Print the main TM creation parameters
-void TemporalMemory::printParameters()
+void ExtendedTemporalMemory::printParameters()
 {
-  std::cout << "------------CPP TemporalMemory Parameters ------------------\n";
+  std::cout << "------------CPP ExtendedTemporalMemory Parameters ------------------\n";
   std::cout
-    << "version                   = " << TM_VERSION << std::endl
+    << "version                   = " << EXTENDED_TM_VERSION << std::endl
     << "numColumns                = " << numberOfColumns() << std::endl
     << "cellsPerColumn            = " << getCellsPerColumn() << std::endl
     << "activationThreshold       = " << getActivationThreshold() << std::endl
@@ -1219,7 +1308,7 @@ void TemporalMemory::printParameters()
     << "predictedSegmentDecrement = " << getPredictedSegmentDecrement() << std::endl;
 }
 
-void TemporalMemory::printState(vector<UInt> &state)
+void ExtendedTemporalMemory::printState(vector<UInt> &state)
 {
   std::cout << "[  ";
   for (UInt i = 0; i != state.size(); ++i) {
@@ -1231,7 +1320,7 @@ void TemporalMemory::printState(vector<UInt> &state)
   std::cout << "]\n";
 }
 
-void TemporalMemory::printState(vector<Real> &state)
+void ExtendedTemporalMemory::printState(vector<Real> &state)
 {
   std::cout << "[  ";
   for (UInt i = 0; i != state.size(); ++i) {

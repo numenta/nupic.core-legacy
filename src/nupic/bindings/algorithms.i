@@ -1511,10 +1511,8 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
 // Data structures (Connections)
 %rename(ConnectionsSynapse) nupic::algorithms::connections::Synapse;
 %rename(ConnectionsSegment) nupic::algorithms::connections::Segment;
-%rename(ConnectionsCell) nupic::algorithms::connections::Cell;
 %template(ConnectionsSynapseVector) vector<nupic::algorithms::connections::Synapse>;
 %template(ConnectionsSegmentVector) vector<nupic::algorithms::connections::Segment>;
-%template(ConnectionsCellVector) vector<nupic::algorithms::connections::Cell>;
 %feature("director") nupic::algorithms::connections::ConnectionsEventHandler;
 %include <nupic/algorithms/Connections.hpp>
 
@@ -1531,12 +1529,6 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
       self.this = _ALGORITHMS.new_Connections(numCells,
                                               maxSegmentsPerCell,
                                               maxSynapsesPerSegment)
-
-    def mostActiveSegmentForCells(self, cells, input, synapseThreshold):
-      segment = ConnectionsSegment()
-      result = _ALGORITHMS.Connections_mostActiveSegmentForCells(
-        self, cells, input, synapseThreshold, segment)
-      return segment if result else None
 
     def cellForSegment(self, segment):
       """Used by TemporalMemory.learnOnSegments"""
@@ -1574,28 +1566,6 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
   %#endif
   }
 
-}
-
-%extend nupic::algorithms::connections::Cell
-{
-  %pythoncode %{
-
-    def __key(self):
-      return (self.idx,)
-
-    def __eq__(x, y):
-      return x.__key() == y.__key()
-
-    def __hash__(self):
-      return hash(self.__key())
-
-    def __str__(self):
-      return str(self.idx)
-
-    def __repr__(self):
-      return str(self)
-
-  %}
 }
 
 %extend nupic::algorithms::connections::Segment
@@ -1674,8 +1644,8 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
                  permanenceIncrement=0.10,
                  permanenceDecrement=0.10,
                  predictedSegmentDecrement=0.00,
-                 maxSegmentsPerCell=MAX_SEGMENTS_PER_CELL,
-                 maxSynapsesPerSegment=MAX_SYNAPSES_PER_SEGMENT,
+                 maxSegmentsPerCell=255,
+                 maxSynapsesPerSegment=255,
                  seed=42):
       self.this = _ALGORITHMS.new_TemporalMemory()
       _ALGORITHMS.TemporalMemory_initialize(
@@ -1744,12 +1714,6 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
   {
     const vector<CellIdx> cellIdxs = self->cellsForColumn(columnIdx);
     return vectorToList(cellIdxs);
-  }
-
-  UInt columnForCell(UInt cellIdx)
-  {
-    nupic::algorithms::connections::Cell cell(cellIdx);
-    return self->columnForCell(cell);
   }
 
   inline void convertedCompute(PyObject *py_x, bool learn)

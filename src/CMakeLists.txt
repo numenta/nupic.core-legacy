@@ -199,6 +199,7 @@ set(src_capnp_specs_rel
   nupic/proto/BitHistory.capnp
   nupic/proto/ClaClassifier.capnp
   nupic/proto/ConnectionsProto.capnp
+  nupic/proto/ExtendedTemporalMemoryProto.capnp
   nupic/proto/LinkProto.capnp
   nupic/proto/Map.capnp
   nupic/proto/NetworkProto.capnp
@@ -315,6 +316,7 @@ set(src_nupiccore_srcs
     nupic/engine/TestNode.cpp
     nupic/engine/UniformLinkPolicy.cpp
     nupic/engine/YAMLUtils.cpp
+    nupic/experimental/ExtendedTemporalMemory.cpp
     nupic/math/SparseMatrixAlgorithms.cpp
     nupic/math/StlIo.cpp
     nupic/ntypes/ArrayBase.cpp
@@ -696,6 +698,23 @@ list(APPEND src_swig_generated_files ${swig_generated_file_fullname})
 swig_link_libraries(${src_swig_engine}
                     ${src_swig_link_libraries})
 
+# Experimental
+set(src_swig_experimental_files nupic/bindings/experimental.i)
+set_source_files_properties(${src_swig_experimental_files} PROPERTIES
+                            CPLUSPLUS ON
+                            SWIG_MODULE_NAME experimental
+                            SWIG_FLAGS "${src_swig_flags}")
+set(src_swig_experimental experimental)
+# Make sure we don't attempt to execute the swig executable until it is built.
+set(SWIG_MODULE_${src_swig_experimental}_EXTRA_DEPS Swig LibStaticNupicCoreCombinedTarget)
+# Create custom command for generating files from SWIG.
+swig_add_module(${src_swig_experimental} python
+                ${src_swig_support_files}
+                ${src_swig_experimental_files})
+list(APPEND src_swig_generated_files ${swig_generated_file_fullname})
+swig_link_libraries(${src_swig_experimental}
+                    ${src_swig_link_libraries})
+
 # Math
 set(src_swig_math_files nupic/bindings/math.i)
 set_source_files_properties(${src_swig_math_files} PROPERTIES
@@ -730,11 +749,13 @@ if (PY_EXTENSIONS_DIR)
   install(TARGETS
           ${SWIG_MODULE_${src_swig_algorithms}_REAL_NAME}
           ${SWIG_MODULE_${src_swig_engine}_REAL_NAME}
+          ${SWIG_MODULE_${src_swig_experimental}_REAL_NAME}
           ${SWIG_MODULE_${src_swig_math}_REAL_NAME}
           LIBRARY DESTINATION ${PY_EXTENSIONS_DIR})
   install(FILES
           ${PROJECT_BINARY_DIR}/algorithms.py
           ${PROJECT_BINARY_DIR}/engine_internal.py
+          ${PROJECT_BINARY_DIR}/experimental.py
           ${PROJECT_BINARY_DIR}/math.py
           DESTINATION ${PY_EXTENSIONS_DIR})
 endif(PY_EXTENSIONS_DIR)
