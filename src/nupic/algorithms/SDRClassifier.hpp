@@ -40,25 +40,25 @@
 
 namespace nupic 
 {
-	namespace algorithms
-	{
+  namespace algorithms
+  {
 
-		typedef cla_classifier::ClassifierResult ClassifierResult;
+    typedef cla_classifier::ClassifierResult ClassifierResult;
 
-		namespace sdr_classifier
-		{
+    namespace sdr_classifier
+    {
 
-			const UInt Version = 1;
+      const UInt Version = 1;
 
-			typedef Dense<UInt, Real64> Matrix;
+      typedef Dense<UInt, Real64> Matrix;
 
-			class SDRClassifier : public Serializable<SdrClassifierProto>
-			{
-				public:
+      class SDRClassifier : public Serializable<SdrClassifierProto>
+      {
+        public:
           /**
            * Constructor for use when deserializing.
            */
-					SDRClassifier() {}
+          SDRClassifier() {}
 
           /**
            * Constructor.
@@ -69,14 +69,14 @@ namespace nupic
            *                      values for each bucket.
            * @param verbosity The logging verbosity.
            */
-					SDRClassifier(
-		        const vector<UInt>& steps, Real64 alpha, Real64 actValueAlpha,
-		        UInt verbosity);
+          SDRClassifier(
+            const vector<UInt>& steps, Real64 alpha, Real64 actValueAlpha,
+            UInt verbosity);
 
           /**
            * Destructor.
            */
-					virtual ~SDRClassifier();
+          virtual ~SDRClassifier();
 
           /**
            * Compute the likelihoods for each bucket.
@@ -95,135 +95,135 @@ namespace nupic
            *               values for key 0 correspond to the actual values to
            *               used when predicting each bucket.
            */
-					virtual void compute(
-		        UInt recordNum, const vector<UInt>& patternNZ, UInt bucketIdx,
-		        Real64 actValue, bool category, bool learn, bool infer,
-		        ClassifierResult* result);
+          virtual void compute(
+            UInt recordNum, const vector<UInt>& patternNZ, UInt bucketIdx,
+            Real64 actValue, bool category, bool learn, bool infer,
+            ClassifierResult* result);
 
-	        UInt version() const
-	        {
-	          return version_;
-	        }
+          UInt version() const
+          {
+            return version_;
+          }
 
-	        /**
-	         * Getter and setter for number of prediction steps.
-	         */
-	        UInt getMaxSteps() const;
-	        void setMaxSteps(UInt maxSteps);
+          /**
+           * Getter and setter for number of prediction steps.
+           */
+          UInt getMaxSteps() const;
+          void setMaxSteps(UInt maxSteps);
 
-	        /**
-	         * Getter and setter for verbosity level.
-	         */
-	        UInt getVerbosity() const;
-	        void setVerbosity(UInt verbosity);
+          /**
+           * Getter and setter for verbosity level.
+           */
+          UInt getVerbosity() const;
+          void setVerbosity(UInt verbosity);
 
-	        /**
-	         * Getter for learning rate.
-	         */
-	        UInt getAlpha() const;
+          /**
+           * Getter for learning rate.
+           */
+          UInt getAlpha() const;
 
-	        /**
-	         * Get the size of the string needed for the serialized state.
-	         */
-	        UInt persistentSize() const;
+          /**
+           * Get the size of the string needed for the serialized state.
+           */
+          UInt persistentSize() const;
 
-	        /**
-	         * Save the state to the ostream.
-	         */
-	        void save(std::ostream& outStream) const;
+          /**
+           * Save the state to the ostream.
+           */
+          void save(std::ostream& outStream) const;
 
-	        /**
-	         * Load state from istream.
-	         */
-	        void load(std::istream& inStream);
+          /**
+           * Load state from istream.
+           */
+          void load(std::istream& inStream);
 
-	        /**
-	         * Save the state to the builder.
-	         */
-	        void write(SdrClassifierProto::Builder& proto) const override;
+          /**
+           * Save the state to the builder.
+           */
+          void write(SdrClassifierProto::Builder& proto) const override;
 
-	        /**
-	         * Save the state to the stream.
-	         */
-	        using Serializable::write;
+          /**
+           * Save the state to the stream.
+           */
+          using Serializable::write;
 
-	        /**
-	         * Load state from reader.
-	         */
-	        void read(SdrClassifierProto::Reader& proto) override;
+          /**
+           * Load state from reader.
+           */
+          void read(SdrClassifierProto::Reader& proto) override;
 
-	        /**
-	         * Load state from stream.
-	         */
-	        using Serializable::read;
+          /**
+           * Load state from stream.
+           */
+          using Serializable::read;
 
-	        /**
-	         * Compare the other instance to this one.
-	         *
-	         * @param other Another instance of SDRClassifier to compare to.
-	         * @returns true iff other is identical to this instance.
-	         */
-	        virtual bool operator==(const SDRClassifier& other) const;
+          /**
+           * Compare the other instance to this one.
+           *
+           * @param other Another instance of SDRClassifier to compare to.
+           * @returns true iff other is identical to this instance.
+           */
+          virtual bool operator==(const SDRClassifier& other) const;
 
-	      private:
-	      	// Helper function for inference mode
-	      	void infer_(const vector<UInt>& patternNZ, UInt bucketIdx,
-		        Real64 actValue, ClassifierResult* result);
+        private:
+          // Helper function for inference mode
+          void infer_(const vector<UInt>& patternNZ, UInt bucketIdx,
+            Real64 actValue, ClassifierResult* result);
 
-	      	// Helper function to compute the error signal in learning mode
-	      	vector<Real64> calculateError_(UInt bucketIdx, const vector<UInt>, 
-	      		UInt step);
+          // Helper function to compute the error signal in learning mode
+          vector<Real64> calculateError_(UInt bucketIdx, const vector<UInt>, 
+            UInt step);
 
-	        // The list of prediction steps to learn and infer.
-	        vector<UInt> steps_;
+          // The list of prediction steps to learn and infer.
+          vector<UInt> steps_;
 
-	        // The alpha used to decay the duty cycles in the BitHistorys.
-	        Real64 alpha_;
+          // The alpha used to decay the duty cycles in the BitHistorys.
+          Real64 alpha_;
 
-	        // The alpha used to decay the actual values used for each bucket.
-	        Real64 actValueAlpha_;
+          // The alpha used to decay the actual values used for each bucket.
+          Real64 actValueAlpha_;
 
-	        // An incrementing count of the number of learning iterations that
-	        // have been performed.
-	        UInt learnIteration_;
+          // An incrementing count of the number of learning iterations that
+          // have been performed.
+          UInt learnIteration_;
 
-	        // This contains the offset between the recordNum (provided by
-	        // caller) and learnIteration (internal only, always starts at 0).
-	        UInt recordNumMinusLearnIteration_;
-	        bool recordNumMinusLearnIterationSet_;
+          // This contains the offset between the recordNum (provided by
+          // caller) and learnIteration (internal only, always starts at 0).
+          UInt recordNumMinusLearnIteration_;
+          bool recordNumMinusLearnIterationSet_;
 
-	        // The maximum number of the prediction steps.
-	        UInt maxSteps_;
+          // The maximum number of the prediction steps.
+          UInt maxSteps_;
 
-	        // Stores the input pattern history, starting with the previous input
-	        // and containing _maxSteps total input patterns.
-	        deque< vector<UInt> > patternNZHistory_;
-	        deque<UInt> iterationNumHistory_;
+          // Stores the input pattern history, starting with the previous input
+          // and containing _maxSteps total input patterns.
+          deque< vector<UInt> > patternNZHistory_;
+          deque<UInt> iterationNumHistory_;
 
-	        // Weight matrices for the classifier (one per prediction step)
-	        map<UInt, Matrix> weightMatrix_;
+          // Weight matrices for the classifier (one per prediction step)
+          map<UInt, Matrix> weightMatrix_;
 
-	        // The highest input bit that the classifier has seen so far.
-	        UInt maxInputIdx_;
+          // The highest input bit that the classifier has seen so far.
+          UInt maxInputIdx_;
 
-	        // The highest bucket index that the classifier has been seen so far.
-	        UInt maxBucketIdx_;
+          // The highest bucket index that the classifier has been seen so far.
+          UInt maxBucketIdx_;
 
-	        // The current actual values used for each bucket index. The index of
-	        // the actual value matches the index of the bucket.
-	        vector<Real64> actualValues_;
+          // The current actual values used for each bucket index. The index of
+          // the actual value matches the index of the bucket.
+          vector<Real64> actualValues_;
 
-	        // A boolean that distinguishes between actual values that have been
-	        // seen and those that have not.
-	        vector<bool> actualValuesSet_;
+          // A boolean that distinguishes between actual values that have been
+          // seen and those that have not.
+          vector<bool> actualValuesSet_;
 
-	        // Version and verbosity.
-	        UInt version_;
-	        UInt verbosity_;
-	    };  // end of SDRClassifier class
+          // Version and verbosity.
+          UInt version_;
+          UInt verbosity_;
+      };  // end of SDRClassifier class
 
-		}  // end of namespace sdr_classifier
-	}  // end of namespace algorithms
+    }  // end of namespace sdr_classifier
+  }  // end of namespace algorithms
 }  // end of name space nupic
 
 #endif 

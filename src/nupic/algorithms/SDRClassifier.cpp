@@ -44,71 +44,71 @@ using namespace std;
 
 namespace nupic
 {
-	namespace algorithms 
-	{
-	  namespace sdr_classifier
-	  {
+  namespace algorithms 
+  {
+    namespace sdr_classifier
+    {
 
-	    SDRClassifier::SDRClassifier(
-	        const vector<UInt>& steps, Real64 alpha, Real64 actValueAlpha,
-	        UInt verbosity) : alpha_(alpha), actValueAlpha_(actValueAlpha),
-	        learnIteration_(0), recordNumMinusLearnIteration_(0), 
-	        maxInputIdx_(0), maxBucketIdx_(0), version_(Version), 
-	        verbosity_(verbosity)
-	    {
-	      for (const auto& step : steps)
-	      {
-	        steps_.push_back(step);
-	      }
-	      recordNumMinusLearnIterationSet_ = false;
-	      maxSteps_ = 0;
-	      for (auto& elem : steps_)
-	      {
-	        UInt current = elem + 1;
-	        if (current > maxSteps_)
-	        {
-	          maxSteps_ = current;
-	        }
-	      }
-	      actualValues_.push_back(0.0);
-	      actualValuesSet_.push_back(false);
+      SDRClassifier::SDRClassifier(
+          const vector<UInt>& steps, Real64 alpha, Real64 actValueAlpha,
+          UInt verbosity) : alpha_(alpha), actValueAlpha_(actValueAlpha),
+          learnIteration_(0), recordNumMinusLearnIteration_(0), 
+          maxInputIdx_(0), maxBucketIdx_(0), version_(Version), 
+          verbosity_(verbosity)
+      {
+        for (const auto& step : steps)
+        {
+          steps_.push_back(step);
+        }
+        recordNumMinusLearnIterationSet_ = false;
+        maxSteps_ = 0;
+        for (auto& elem : steps_)
+        {
+          UInt current = elem + 1;
+          if (current > maxSteps_)
+          {
+            maxSteps_ = current;
+          }
+        }
+        actualValues_.push_back(0.0);
+        actualValuesSet_.push_back(false);
 
-	      // TODO: insert maxBucketIdx / maxInputIdx hint as parameter?
-	      // There can be great overhead reallocating the array every time a new
-	      // input is seen, especially if we start at (0, 0). The client will
-	      // usually know what is the final maxInputIdx (typically the number
-	      // of columns?), and we can have heuristics using the encoder's 
-	      // settings to get an good approximate of the maxBucketIdx, thus having
-	      // to reallocate this matrix only a few times, even never if we use
-	      // lower bounds
-	      for (const auto& step : steps_)
-	      {
-	      	Matrix weights = Matrix(maxInputIdx_ + 1, maxBucketIdx_ + 1);
-	      	weightMatrix_.insert(pair<UInt, Matrix>(step, weights));
-	      }
-	    }
+        // TODO: insert maxBucketIdx / maxInputIdx hint as parameter?
+        // There can be great overhead reallocating the array every time a new
+        // input is seen, especially if we start at (0, 0). The client will
+        // usually know what is the final maxInputIdx (typically the number
+        // of columns?), and we can have heuristics using the encoder's 
+        // settings to get an good approximate of the maxBucketIdx, thus having
+        // to reallocate this matrix only a few times, even never if we use
+        // lower bounds
+        for (const auto& step : steps_)
+        {
+          Matrix weights = Matrix(maxInputIdx_ + 1, maxBucketIdx_ + 1);
+          weightMatrix_.insert(pair<UInt, Matrix>(step, weights));
+        }
+      }
 
-	    SDRClassifier::~SDRClassifier()
-	    {
-	    }
+      SDRClassifier::~SDRClassifier()
+      {
+      }
 
-	    void SDRClassifier::compute(
-	      UInt recordNum, const vector<UInt>& patternNZ, UInt bucketIdx,
-	      Real64 actValue, bool category, bool learn, bool infer,
-	      ClassifierResult* result)
-	    {
-	    	// save the offset between recordNum and learnIteration_ if this
-	    	// was not set (first call to compute)
-	    	if (!recordNumMinusLearnIterationSet_)
-	    	{
-	    		recordNumMinusLearnIteration_ = recordNum - learnIteration_;
-	    		recordNumMinusLearnIterationSet_ = true;
-	    	}
+      void SDRClassifier::compute(
+        UInt recordNum, const vector<UInt>& patternNZ, UInt bucketIdx,
+        Real64 actValue, bool category, bool learn, bool infer,
+        ClassifierResult* result)
+      {
+        // save the offset between recordNum and learnIteration_ if this
+        // was not set (first call to compute)
+        if (!recordNumMinusLearnIterationSet_)
+        {
+          recordNumMinusLearnIteration_ = recordNum - learnIteration_;
+          recordNumMinusLearnIterationSet_ = true;
+        }
 
-	    	// update learnIteration_
-	    	learnIteration_ = recordNum - recordNumMinusLearnIteration_;
+        // update learnIteration_
+        learnIteration_ = recordNum - recordNumMinusLearnIteration_;
 
-	    	// update pattern history
+        // update pattern history
         patternNZHistory_.emplace_front(patternNZ.begin(), patternNZ.end());
         iterationNumHistory_.push_front(learnIteration_);
         if (patternNZHistory_.size() > maxSteps_)
@@ -122,35 +122,35 @@ namespace nupic
         UInt maxInputIdx = *max_element(patternNZ.begin(), patternNZ.end());
         if (maxInputIdx > maxBucketIdx_)
         {
-        	maxInputIdx_ = maxInputIdx;
-        	for (const auto& step : steps_)
-        	{	
-	        	weightMatrix_[step].resize(maxInputIdx_ + 1, maxBucketIdx_ + 1);
+          maxInputIdx_ = maxInputIdx;
+          for (const auto& step : steps_)
+          { 
+            weightMatrix_[step].resize(maxInputIdx_ + 1, maxBucketIdx_ + 1);
           }
         }
 
         // if in inference mode, compute likelihood and update return value
         if (infer)
         {
-        		infer_(patternNZ, bucketIdx, actValue, result);
+            infer_(patternNZ, bucketIdx, actValue, result);
         }
 
         // update weights if in learning mode
         if (learn)
         {
-        	// if bucket is greater, updated maxBucketIdx_ and augment weight
-        	// matrix with zero-padding
-        	if (bucketIdx > maxBucketIdx_) 
-        	{
-        		maxBucketIdx_ = bucketIdx;
-        		for (const auto& step : steps_)
-        		{
-		        	weightMatrix_[step].resize(maxInputIdx_ + 1, maxBucketIdx_ + 1);
-        		}
-        	}
+          // if bucket is greater, updated maxBucketIdx_ and augment weight
+          // matrix with zero-padding
+          if (bucketIdx > maxBucketIdx_) 
+          {
+            maxBucketIdx_ = bucketIdx;
+            for (const auto& step : steps_)
+            {
+              weightMatrix_[step].resize(maxInputIdx_ + 1, maxBucketIdx_ + 1);
+            }
+          }
 
-        	// update rolling averages of bucket values
-        	while (actualValues_.size() <= maxBucketIdx_)
+          // update rolling averages of bucket values
+          while (actualValues_.size() <= maxBucketIdx_)
           {
             actualValues_.push_back(0.0);
             actualValuesSet_.push_back(false);
@@ -179,22 +179,22 @@ namespace nupic
             // update weights
             if (binary_search(steps_.begin(), steps_.end(), nSteps))
             {
-            	vector<Real64> error = calculateError_(bucketIdx, 
-            		patternNZ, nSteps);
+              vector<Real64> error = calculateError_(bucketIdx, 
+                patternNZ, nSteps);
               for (auto& bit : learnPatternNZ)
               {
-              	for (UInt bucket = 0; bucket < maxBucketIdx_; ++bucket)
-              	{
-              		weightMatrix_[nSteps].at(bit, 
-              			bucket) += alpha_ * error[bucket];
-              	}
+                for (UInt bucket = 0; bucket < maxBucketIdx_; ++bucket)
+                {
+                  weightMatrix_[nSteps].at(bit, 
+                    bucket) += alpha_ * error[bucket];
+                }
               }
             }
           }
 
         }
 
-	    }
+      }
 
       UInt SDRClassifier::persistentSize() const
       {
@@ -205,10 +205,10 @@ namespace nupic
         return s.str().size();
       }
 
-	    void SDRClassifier::infer_(const vector<UInt>& patternNZ, UInt bucketIdx, 
-	    	Real64 actValue, ClassifierResult* result)
-	    {
-    	  // add the actual values to the return value. For buckets that haven't
+      void SDRClassifier::infer_(const vector<UInt>& patternNZ, UInt bucketIdx, 
+        Real64 actValue, ClassifierResult* result)
+      {
+        // add the actual values to the return value. For buckets that haven't
         // been seen yet, the actual value doesn't matter since it will have
         // zero likelihood.
         vector<Real64>* actValueVector = result->createVector(
@@ -232,44 +232,44 @@ namespace nupic
 
         for (auto nSteps = steps_.begin(); nSteps!=steps_.end(); ++nSteps)
         {
-        	vector<Real64>* likelihoods = result->createVector(*nSteps, 
-        		maxBucketIdx_ + 1, 1.0 / actualValues_.size());
-        	for (auto& bit : patternNZ)
-        	{
-        		Matrix weights = weightMatrix_[*nSteps];
-        		add(likelihoods->begin(), likelihoods->end(), weights.begin(bit),
-        			weights.begin(bit + 1));
-        	}
-        	// compute softmax of raw scores
-        	// TODO: fix potential overflow problem by shifting scores by their
-        	// maximal value across buckets
-      		range_exp(1.0, *likelihoods);
-        	normalize(*likelihoods, 1.0, 1.0);
+          vector<Real64>* likelihoods = result->createVector(*nSteps, 
+            maxBucketIdx_ + 1, 1.0 / actualValues_.size());
+          for (auto& bit : patternNZ)
+          {
+            Matrix weights = weightMatrix_[*nSteps];
+            add(likelihoods->begin(), likelihoods->end(), weights.begin(bit),
+              weights.begin(bit + 1));
+          }
+          // compute softmax of raw scores
+          // TODO: fix potential overflow problem by shifting scores by their
+          // maximal value across buckets
+          range_exp(1.0, *likelihoods);
+          normalize(*likelihoods, 1.0, 1.0);
         }
-	    }
+      }
 
-	    vector<Real64> SDRClassifier::calculateError_(UInt bucketIdx, 
-      	const vector<UInt> patternNZ, UInt step)
+      vector<Real64> SDRClassifier::calculateError_(UInt bucketIdx, 
+        const vector<UInt> patternNZ, UInt step)
       {
-      	// compute predicted likelihoods
-    	  vector<Real64> likelihoods (maxBucketIdx_ + 1, 
-    	  	1.0 / actualValues_.size());
+        // compute predicted likelihoods
+        vector<Real64> likelihoods (maxBucketIdx_ + 1, 
+          1.0 / actualValues_.size());
 
-      	for (auto& bit : patternNZ)
-      	{
-      		Matrix weights = weightMatrix_[step];
-      		add(likelihoods.begin(), likelihoods.end(), weights.begin(bit),
-      			weights.begin(bit + 1));
-      	}
-    		range_exp(1.0, likelihoods);
-      	normalize(likelihoods, 1.0, 1.0);
+        for (auto& bit : patternNZ)
+        {
+          Matrix weights = weightMatrix_[step];
+          add(likelihoods.begin(), likelihoods.end(), weights.begin(bit),
+            weights.begin(bit + 1));
+        }
+        range_exp(1.0, likelihoods);
+        normalize(likelihoods, 1.0, 1.0);
 
-      	// compute target likelihoods
-      	vector<Real64> targetDistribution (maxBucketIdx_ + 1, 0.0);
-      	targetDistribution[bucketIdx] = 1.0;
+        // compute target likelihoods
+        vector<Real64> targetDistribution (maxBucketIdx_ + 1, 0.0);
+        targetDistribution[bucketIdx] = 1.0;
 
-      	axby(-1.0, likelihoods, 1.0, targetDistribution);
-      	return likelihoods;
+        axby(-1.0, likelihoods, 1.0, targetDistribution);
+        return likelihoods;
       }
 
       void SDRClassifier::save(ostream& outStream) const
@@ -426,10 +426,10 @@ namespace nupic
           weightMatrix_[step] = Matrix(maxInputIdx_ + 1, maxBucketIdx_ + 1);
           for (UInt i = 0; i <= maxInputIdx_; ++i)
           {
-          	for (UInt j = 0; j <= maxBucketIdx_; ++j)
-          	{
-          		inStream >> weightMatrix_[step].at(i, j);
-          	}
+            for (UInt j = 0; j <= maxBucketIdx_; ++j)
+            {
+              inStream >> weightMatrix_[step].at(i, j);
+            }
           }
         }
 
@@ -454,8 +454,8 @@ namespace nupic
         version_ = Version;
       }
 
-			void SDRClassifier::write(SdrClassifierProto::Builder& proto) const 
-			{
+      void SDRClassifier::write(SdrClassifierProto::Builder& proto) const 
+      {
         auto stepsProto = proto.initSteps(steps_.size());
         for (UInt i = 0; i < steps_.size(); i++)
         {
@@ -500,17 +500,17 @@ namespace nupic
           auto stepWeightMatrixProto = weightMatrixProtos[k];
           stepWeightMatrixProto.setSteps(stepWeightMatrix.first);
           auto weightProto = stepWeightMatrixProto.initWeight(
-          	(maxInputIdx_ + 1) * (maxBucketIdx_ + 1)
-          	);
+            (maxInputIdx_ + 1) * (maxBucketIdx_ + 1)
+            );
           // flatten weight matrix, serialized as a list of floats
           UInt idx = 0;
           for (UInt i = 0; i <= maxInputIdx_; ++i)
           {
-          	for (UInt j = 0; j <= maxBucketIdx_; ++j)
-          	{
-							weightProto.set(k, stepWeightMatrix.second.at(i, j));
-							idx++;
-          	}
+            for (UInt j = 0; j <= maxBucketIdx_; ++j)
+            {
+              weightProto.set(k, stepWeightMatrix.second.at(i, j));
+              idx++;
+            }
           }
           k++;
         }
@@ -585,11 +585,11 @@ namespace nupic
           // un-flatten weight matrix, serialized as a list of floats
           for (UInt row = 0; row <= maxInputIdx_; ++row)
           {
-	          for (UInt col = 0; col <= maxBucketIdx_; ++col)
-	          {
-	          	weightMatrix_[steps].at(row, col) = weights[j];
-	          	j++;
-	          }
+            for (UInt col = 0; col <= maxBucketIdx_; ++col)
+            {
+              weightMatrix_[steps].at(row, col) = weights[j];
+              j++;
+            }
           }
         }
 
@@ -607,120 +607,120 @@ namespace nupic
         verbosity_ = proto.getVerbosity();
       }
 
-			bool SDRClassifier::operator==(const SDRClassifier& other) const
-			{
-			  if (steps_.size() != other.steps_.size())
-			  {
-			    return false;
-			  }
-			  for (UInt i = 0; i < steps_.size(); i++)
-			  {
-			    if (steps_.at(i) != other.steps_.at(i))
-			    {
-			      return false;
-			    }
-			  }
+      bool SDRClassifier::operator==(const SDRClassifier& other) const
+      {
+        if (steps_.size() != other.steps_.size())
+        {
+          return false;
+        }
+        for (UInt i = 0; i < steps_.size(); i++)
+        {
+          if (steps_.at(i) != other.steps_.at(i))
+          {
+            return false;
+          }
+        }
 
-			  if (fabs(alpha_ - other.alpha_) > 0.000001 ||
-			      fabs(actValueAlpha_ - other.actValueAlpha_) > 0.000001 ||
-			      learnIteration_ != other.learnIteration_ ||
-			      recordNumMinusLearnIteration_ !=
-			          other.recordNumMinusLearnIteration_  ||
-			      recordNumMinusLearnIterationSet_ !=
-			          other.recordNumMinusLearnIterationSet_  ||
-			      maxSteps_ != other.maxSteps_)
-			  {
-			    return false;
-			  }
+        if (fabs(alpha_ - other.alpha_) > 0.000001 ||
+            fabs(actValueAlpha_ - other.actValueAlpha_) > 0.000001 ||
+            learnIteration_ != other.learnIteration_ ||
+            recordNumMinusLearnIteration_ !=
+                other.recordNumMinusLearnIteration_  ||
+            recordNumMinusLearnIterationSet_ !=
+                other.recordNumMinusLearnIterationSet_  ||
+            maxSteps_ != other.maxSteps_)
+        {
+          return false;
+        }
 
-			  if (patternNZHistory_.size() != other.patternNZHistory_.size())
-			  {
-			    return false;
-			  }
-			  for (UInt i = 0; i < patternNZHistory_.size(); i++)
-			  {
-			    if (patternNZHistory_.at(i).size() !=
-			        other.patternNZHistory_.at(i).size())
-			    {
-			      return false;
-			    }
-			    for (UInt j = 0; j < patternNZHistory_.at(i).size(); j++)
-			    {
-			      if (patternNZHistory_.at(i).at(j) !=
-			          other.patternNZHistory_.at(i).at(j))
-			      {
-			        return false;
-			      }
-			    }
-			  }
+        if (patternNZHistory_.size() != other.patternNZHistory_.size())
+        {
+          return false;
+        }
+        for (UInt i = 0; i < patternNZHistory_.size(); i++)
+        {
+          if (patternNZHistory_.at(i).size() !=
+              other.patternNZHistory_.at(i).size())
+          {
+            return false;
+          }
+          for (UInt j = 0; j < patternNZHistory_.at(i).size(); j++)
+          {
+            if (patternNZHistory_.at(i).at(j) !=
+                other.patternNZHistory_.at(i).at(j))
+            {
+              return false;
+            }
+          }
+        }
 
-			  if (iterationNumHistory_.size() !=
-			      other.iterationNumHistory_.size())
-			  {
-			    return false;
-			  }
-			  for (UInt i = 0; i < iterationNumHistory_.size(); i++)
-			  {
-			    if (iterationNumHistory_.at(i) !=
-			        other.iterationNumHistory_.at(i))
-			    {
-			      return false;
-			    }
-			  }
+        if (iterationNumHistory_.size() !=
+            other.iterationNumHistory_.size())
+        {
+          return false;
+        }
+        for (UInt i = 0; i < iterationNumHistory_.size(); i++)
+        {
+          if (iterationNumHistory_.at(i) !=
+              other.iterationNumHistory_.at(i))
+          {
+            return false;
+          }
+        }
 
-			  if (maxBucketIdx_ != other.maxBucketIdx_)
-			  {
-			    return false;
-			  }
+        if (maxBucketIdx_ != other.maxBucketIdx_)
+        {
+          return false;
+        }
 
-			  if (maxInputIdx_ != other.maxInputIdx_)
-			  {
-			  	return false;
-			  }
+        if (maxInputIdx_ != other.maxInputIdx_)
+        {
+          return false;
+        }
 
-			  if (weightMatrix_.size() != other.weightMatrix_.size())
-			  {
-			  	return false;
-			  }
-			  for (auto it = weightMatrix_.begin(); it != weightMatrix_.end(); it++)
-			  {
-			  	Matrix thisWeights = it->second;
-			  	Matrix otherWeights = other.weightMatrix_.at(it->first);
-			    for (UInt i = 0; i <= maxInputIdx_; ++i)
-			    {
-			    	for (UInt j = 0; j <= maxBucketIdx_; ++j)
-			    	{
-			    		if (thisWeights.at(i, j) != otherWeights.at(i, j))
-			    		{
-			    			return false;
-			    		}
-			    	}
-			    }
-			  }
+        if (weightMatrix_.size() != other.weightMatrix_.size())
+        {
+          return false;
+        }
+        for (auto it = weightMatrix_.begin(); it != weightMatrix_.end(); it++)
+        {
+          Matrix thisWeights = it->second;
+          Matrix otherWeights = other.weightMatrix_.at(it->first);
+          for (UInt i = 0; i <= maxInputIdx_; ++i)
+          {
+            for (UInt j = 0; j <= maxBucketIdx_; ++j)
+            {
+              if (thisWeights.at(i, j) != otherWeights.at(i, j))
+              {
+                return false;
+              }
+            }
+          }
+        }
 
-			  if (actualValues_.size() != other.actualValues_.size() ||
-			      actualValuesSet_.size() != other.actualValuesSet_.size())
-			  {
-			    return false;
-			  }
-			  for (UInt i = 0; i < actualValues_.size(); i++)
-			  {
-			    if (fabs(actualValues_[i] - other.actualValues_[i]) > 0.000001 ||
-			        actualValuesSet_[i] != other.actualValuesSet_[i])
-			    {
-			      return false;
-			    }
-			  }
+        if (actualValues_.size() != other.actualValues_.size() ||
+            actualValuesSet_.size() != other.actualValuesSet_.size())
+        {
+          return false;
+        }
+        for (UInt i = 0; i < actualValues_.size(); i++)
+        {
+          if (fabs(actualValues_[i] - other.actualValues_[i]) > 0.000001 ||
+              actualValuesSet_[i] != other.actualValuesSet_[i])
+          {
+            return false;
+          }
+        }
 
-			  if (version_ != other.version_ ||
-			      verbosity_ != other.verbosity_)
-			  {
-			    return false;
-			  }
+        if (version_ != other.version_ ||
+            verbosity_ != other.verbosity_)
+        {
+          return false;
+        }
 
-			  return true;
-			}
+        return true;
+      }
 
-	  } 	 
-	}
+    }    
+  }
 }
