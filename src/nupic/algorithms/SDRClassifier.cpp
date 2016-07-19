@@ -188,11 +188,10 @@ namespace nupic
               	}
               }
             }
-
           }
-
         }
-	    }  // end of compute method
+
+	    }
 
       UInt SDRClassifier::persistentSize() const
       {
@@ -241,7 +240,31 @@ namespace nupic
       		range_exp(1.0, *likelihoods);
         	normalize(*likelihoods, 1.0, 1.0);
         }
-	    }  // end of infer_ method
+	    }
+
+	    vector<Real64> SDRClassifier::calculateError_(UInt bucketIdx, 
+      	const vector<UInt> patternNZ, UInt step)
+      {
+      	// compute predicted likelihoods
+    	  vector<Real64> likelihoods (maxBucketIdx_ + 1, 
+    	  	1.0 / actualValues_.size());
+
+      	for (auto& bit : patternNZ)
+      	{
+      		Matrix weights = weightMatrix_[step];
+      		add(likelihoods.begin(), likelihoods.end(), weights.begin(bit),
+      			weights.begin(bit + 1));
+      	}
+    		range_exp(1.0, likelihoods);
+      	normalize(likelihoods, 1.0, 1.0);
+
+      	// compute target likelihoods
+      	vector<Real64> targetDistribution (maxBucketIdx_ + 1, 0.0);
+      	targetDistribution[bucketIdx] = 1.0;
+
+      	axby(-1.0, likelihoods, 1.0, targetDistribution);
+      	return likelihoods;
+      }
 
       void SDRClassifier::save(ostream& outStream) const
       {
@@ -290,6 +313,21 @@ namespace nupic
         }
         outStream << endl;
 
+        // Store weight matrix
+        outStream << weightMatrix_.size() << " ";
+        for (const auto& elem : weightMatrix_)
+        {
+          outStream << elem.first << " ";
+          for (UInt i = 0; i <= maxInputIdx_; ++i)
+          {
+          	for (UInt j = 0; j <= maxBucketIdx_; ++j)
+          	{
+          		outStream << elem.second.at(i, j) << " ";
+          	}
+          }
+        }
+        outStream << endl;
+
         // Store the actual values for each bucket.
         outStream << actualValues_.size() << " ";
         for (UInt i = 0; i < actualValues_.size(); ++i)
@@ -299,47 +337,241 @@ namespace nupic
         }
         outStream << endl;
 
-        // SAVE WEIGHT MATRIX
-
         // Write an ending marker.
         outStream << "~SDRClassifier" << endl;
       }
 
-      void SDRClassifier::load(std::istream& inStream) {}
+
+      void SDRClassifier::load(istream& inStream)
+      {
+        // Clean up the existing data structures before loading
+        steps_.clear();
+        iterationNumHistory_.clear();
+        patternNZHistory_.clear();
+        actualValues_.clear();
+        actualValuesSet_.clear();
+        weightMatrix_.clear();
+
+        // Check the starting marker.
+        string marker;
+        inStream >> marker;
+        NTA_CHECK(marker == "SDRClassifier");
+
+        // Check the version.
+        UInt version;
+        inStream >> version;
+        NTA_CHECK(version <= 1);
+
+        // Load the simple variables.
+        inStream >> version_
+                 >> alpha_
+                 >> actValueAlpha_
+                 >> learnIteration_
+                 >> maxSteps_
+                 >> maxBucketIdx_
+                 >> maxInputIdx_
+                 >> verbosity_;
+
+        UInt numIterationHistory;
+        UInt curIterationNum;
+        if (version == 1)
+        {
+          inStream >> recordNumMinusLearnIteration_
+                   >> recordNumMinusLearnIterationSet_;
+          inStream >> numIterationHistory;
+          for (UInt i = 0; i < numIterationHistory; ++i)
+          {
+            inStream >> curIterationNum;
+            iterationNumHistory_.push_back(curIterationNum);
+          }
+        } else {
+          recordNumMinusLearnIterationSet_ = false;
+        }
+
+        // Load the prediction steps.
+        UInt size;
+        UInt step;
+        inStream >> size;
+        for (UInt i = 0; i < size; ++i)
+        {
+          inStream >> step;
+          steps_.push_back(step);
+        }
+
+        // Load the input pattern history.
+        inStream >> size;
+        UInt vSize;
+        for (UInt i = 0; i < size; ++i)
+        {
+          inStream >> vSize;
+          patternNZHistory_.emplace_back(vSize);
+          for (UInt j = 0; j < vSize; ++j)
+          {
+            inStream >> patternNZHistory_[i][j];
+          }
+          if (version == 0)
+          {
+            iterationNumHistory_.push_back(
+                learnIteration_ - (size - i));
+          }
+        }
+
+        // Load weight matrix.
+        UInt numSteps;
+        inStream >> numSteps;
+        for (UInt s = 0; s < numSteps; ++s)
+        {
+          inStream >> step;
+          // Insert the step to initialize the weight matrix
+          weightMatrix_[step] = Matrix(maxInputIdx_ + 1, maxBucketIdx_ + 1);
+          for (UInt i = 0; i <= maxInputIdx_; ++i)
+          {
+          	for (UInt j = 0; j <= maxBucketIdx_; ++j)
+          	{
+          		inStream >> weightMatrix_[step].at(i, j);
+          	}
+          }
+        }
+
+        // Load the actual values for each bucket.
+        UInt numBuckets;
+        Real64 actualValue;
+        bool actualValueSet;
+        inStream >> numBuckets;
+        for (UInt i = 0; i < numBuckets; ++i)
+        {
+          inStream >> actualValue;
+          actualValues_.push_back(actualValue);
+          inStream >> actualValueSet;
+          actualValuesSet_.push_back(actualValueSet);
+        }
+
+        // Check for the end marker.
+        inStream >> marker;
+        NTA_CHECK(marker == "~SDRClassifier");
+
+        // Update the version number.
+        version_ = Version;
+      }
 
 			void SDRClassifier::write(SdrClassifierProto::Builder& proto) const {}
 
 			void SDRClassifier::read(SdrClassifierProto::Reader& proto) {}
 
-			bool SDRClassifier::operator==(const SDRClassifier& other) const { return false; }
-
-      // Private methods
-
-      vector<Real64> SDRClassifier::calculateError_(UInt bucketIdx, 
-      	const vector<UInt> patternNZ, UInt step)
+     bool SDRClassifier::operator==(const SDRClassifier& other) const
       {
-      	// compute predicted likelihoods
-    	  vector<Real64> likelihoods (maxBucketIdx_ + 1, 
-    	  	1.0 / actualValues_.size());
+        if (steps_.size() != other.steps_.size())
+        {
+          return false;
+        }
+        for (UInt i = 0; i < steps_.size(); i++)
+        {
+          if (steps_.at(i) != other.steps_.at(i))
+          {
+            return false;
+          }
+        }
 
-      	for (auto& bit : patternNZ)
-      	{
-      		Matrix weights = weightMatrix_[step];
-      		add(likelihoods.begin(), likelihoods.end(), weights.begin(bit),
-      			weights.begin(bit + 1)); // ???
-      	}
-    		range_exp(1.0, likelihoods);
-      	normalize(likelihoods, 1.0, 1.0);
+        if (fabs(alpha_ - other.alpha_) > 0.000001 ||
+            fabs(actValueAlpha_ - other.actValueAlpha_) > 0.000001 ||
+            learnIteration_ != other.learnIteration_ ||
+            recordNumMinusLearnIteration_ !=
+                other.recordNumMinusLearnIteration_  ||
+            recordNumMinusLearnIterationSet_ !=
+                other.recordNumMinusLearnIterationSet_  ||
+            maxSteps_ != other.maxSteps_)
+        {
+          return false;
+        }
 
-      	// compute target likelihoods
-      	vector<Real64> targetDistribution (maxBucketIdx_ + 1, 0.0);
-      	targetDistribution[bucketIdx] = 1.0;
+        if (patternNZHistory_.size() != other.patternNZHistory_.size())
+        {
+          return false;
+        }
+        for (UInt i = 0; i < patternNZHistory_.size(); i++)
+        {
+          if (patternNZHistory_.at(i).size() !=
+              other.patternNZHistory_.at(i).size())
+          {
+            return false;
+          }
+          for (UInt j = 0; j < patternNZHistory_.at(i).size(); j++)
+          {
+            if (patternNZHistory_.at(i).at(j) !=
+                other.patternNZHistory_.at(i).at(j))
+            {
+              return false;
+            }
+          }
+        }
 
-      	axby(-1.0, likelihoods, 1.0, targetDistribution);
-      	return likelihoods;
+        if (iterationNumHistory_.size() !=
+            other.iterationNumHistory_.size())
+        {
+          return false;
+        }
+        for (UInt i = 0; i < iterationNumHistory_.size(); i++)
+        {
+          if (iterationNumHistory_.at(i) !=
+              other.iterationNumHistory_.at(i))
+          {
+            return false;
+          }
+        }
+
+        if (maxBucketIdx_ != other.maxBucketIdx_)
+        {
+          return false;
+        }
+
+        if (maxInputIdx_ != other.maxInputIdx_)
+        {
+        	return false;
+        }
+
+        if (weightMatrix_.size() != other.weightMatrix_.size())
+        {
+        	return false;
+        }
+        for (auto it = weightMatrix_.begin(); it != weightMatrix_.end(); it++)
+        {
+        	Matrix thisWeights = it->second;
+        	Matrix otherWeights = other.weightMatrix_.at(it->first);
+          for (UInt i = 0; i <= maxInputIdx_; ++i)
+          {
+          	for (UInt j = 0; j <= maxBucketIdx_; ++j)
+          	{
+          		if (thisWeights.at(i, j) != otherWeights.at(i, j))
+          		{
+          			return false;
+          		}
+          	}
+          }
+        }
+
+        if (actualValues_.size() != other.actualValues_.size() ||
+            actualValuesSet_.size() != other.actualValuesSet_.size())
+        {
+          return false;
+        }
+        for (UInt i = 0; i < actualValues_.size(); i++)
+        {
+          if (fabs(actualValues_[i] - other.actualValues_[i]) > 0.000001 ||
+              actualValuesSet_[i] != other.actualValuesSet_[i])
+          {
+            return false;
+          }
+        }
+
+        if (version_ != other.version_ ||
+            verbosity_ != other.verbosity_)
+        {
+          return false;
+        }
+
+        return true;
       }
 
 	  } 	 
 	}
 }
-
