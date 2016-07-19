@@ -43,8 +43,8 @@ using namespace nupic;
 using namespace nupic::algorithms::connections;
 using namespace nupic::algorithms::temporal_memory;
 
-#define EPSILON 0.000001
-#define TM_VERSION 2
+static const Permanence EPSILON = 0.000001;
+static const UInt TM_VERSION = 2;
 
 TemporalMemory::TemporalMemory()
 {
