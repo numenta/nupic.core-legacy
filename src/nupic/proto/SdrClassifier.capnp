@@ -23,6 +23,7 @@ struct SdrClassifierProto {
   # Next ID: 2
   struct StepWeightMatrix {
     steps @0 :UInt32;
+    # weight matrices are flattened before serialization
     weight @1 :List(Float64);
   }
 }

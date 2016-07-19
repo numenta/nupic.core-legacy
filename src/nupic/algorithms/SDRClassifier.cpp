@@ -97,7 +97,7 @@ namespace nupic
 	      Real64 actValue, bool category, bool learn, bool infer,
 	      ClassifierResult* result)
 	    {
-	    	// Save the offset between recordNum and learnIteration_ if this
+	    	// save the offset between recordNum and learnIteration_ if this
 	    	// was not set (first call to compute)
 	    	if (!recordNumMinusLearnIterationSet_)
 	    	{
@@ -105,10 +105,10 @@ namespace nupic
 	    		recordNumMinusLearnIterationSet_ = true;
 	    	}
 
-	    	// Update learnIteration_
+	    	// update learnIteration_
 	    	learnIteration_ = recordNum - recordNumMinusLearnIteration_;
 
-	    	// Update pattern history
+	    	// update pattern history
         patternNZHistory_.emplace_front(patternNZ.begin(), patternNZ.end());
         iterationNumHistory_.push_front(learnIteration_);
         if (patternNZHistory_.size() > maxSteps_)
@@ -117,7 +117,7 @@ namespace nupic
           iterationNumHistory_.pop_back();
         }
 
-        // If input pattern has greater index than previously seen, update 
+        // if input pattern has greater index than previously seen, update 
         // maxInputIdx and augment weight matrix with zero padding
         UInt maxInputIdx = *max_element(patternNZ.begin(), patternNZ.end());
         if (maxInputIdx > maxBucketIdx_)
@@ -129,16 +129,16 @@ namespace nupic
           }
         }
 
-        // If in inference mode, compute likelihood and update return value
+        // if in inference mode, compute likelihood and update return value
         if (infer)
         {
         		infer_(patternNZ, bucketIdx, actValue, result);
         }
 
-        // Update weights if in learning mode
+        // update weights if in learning mode
         if (learn)
         {
-        	// If bucket is greater, updated maxBucketIdx_ and augment weight
+        	// if bucket is greater, updated maxBucketIdx_ and augment weight
         	// matrix with zero-padding
         	if (bucketIdx > maxBucketIdx_) 
         	{
@@ -149,7 +149,7 @@ namespace nupic
         		}
         	}
 
-        	// Update rolling averages of values
+        	// update rolling averages of bucket values
         	while (actualValues_.size() <= maxBucketIdx_)
           {
             actualValues_.push_back(0.0);
@@ -164,6 +164,8 @@ namespace nupic
                 ((1.0 - actValueAlpha_) * actualValues_[bucketIdx]) +
                 (actValueAlpha_ * actValue);
           }
+
+          // compute errors and update weights
           deque<vector<UInt>>::const_iterator patternIteration =
               patternNZHistory_.begin();
           for (deque<UInt>::const_iterator learnIteration =
@@ -174,7 +176,7 @@ namespace nupic
             const vector<UInt> learnPatternNZ = *patternIteration;
             UInt nSteps = learnIteration_ - *learnIteration;
 
-            // Update weights
+            // update weights
             if (binary_search(steps_.begin(), steps_.end(), nSteps))
             {
             	vector<Real64> error = calculateError_(bucketIdx, 
@@ -189,6 +191,7 @@ namespace nupic
               }
             }
           }
+
         }
 
 	    }
@@ -205,7 +208,7 @@ namespace nupic
 	    void SDRClassifier::infer_(const vector<UInt>& patternNZ, UInt bucketIdx, 
 	    	Real64 actValue, ClassifierResult* result)
 	    {
-    	  // Add the actual values to the return value. For buckets that haven't
+    	  // add the actual values to the return value. For buckets that haven't
         // been seen yet, the actual value doesn't matter since it will have
         // zero likelihood.
         vector<Real64>* actValueVector = result->createVector(
@@ -235,8 +238,11 @@ namespace nupic
         	{
         		Matrix weights = weightMatrix_[*nSteps];
         		add(likelihoods->begin(), likelihoods->end(), weights.begin(bit),
-        			weights.begin(bit + 1)); // ???
+        			weights.begin(bit + 1));
         	}
+        	// compute softmax of raw scores
+        	// TODO: fix potential overflow problem by shifting scores by their
+        	// maximal value across buckets
       		range_exp(1.0, *likelihoods);
         	normalize(*likelihoods, 1.0, 1.0);
         }
@@ -496,7 +502,7 @@ namespace nupic
           auto weightProto = stepWeightMatrixProto.initWeight(
           	(maxInputIdx_ + 1) * (maxBucketIdx_ + 1)
           	);
-          // flatten weight matrix
+          // flatten weight matrix, serialized as a list of floats
           UInt idx = 0;
           for (UInt i = 0; i <= maxInputIdx_; ++i)
           {
@@ -576,7 +582,7 @@ namespace nupic
           weightMatrix_[steps] = Matrix(maxInputIdx_, maxBucketIdx_);
           auto weights = stepWeightMatrix.getWeight();
           UInt j = 0;
-          // un-flatten weight matrix
+          // un-flatten weight matrix, serialized as a list of floats
           for (UInt row = 0; row <= maxInputIdx_; ++row)
           {
 	          for (UInt col = 0; col <= maxBucketIdx_; ++col)
