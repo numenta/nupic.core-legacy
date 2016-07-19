@@ -42,14 +42,15 @@ namespace nupic
 {
 	namespace algorithms
 	{
+
+		typedef cla_classifier::ClassifierResult ClassifierResult;
+
 		namespace sdr_classifier
 		{
 
 			const UInt Version = 1;
 
-			typedef DenseMatrix<UInt, Real64> Matrix;
-
-			class cla_classifier::ClassifierResult;
+			typedef Dense<UInt, Real64> Matrix;
 
 			class SDRClassifier : public Serializable<SdrClassifierProto>
 			{
@@ -139,7 +140,7 @@ namespace nupic
 	        /**
 	         * Save the state to the builder.
 	         */
-	        void write(ClaClassifierProto::Builder& proto) const override;
+	        void write(SdrClassifierProto::Builder& proto) const override;
 
 	        /**
 	         * Save the state to the stream.
@@ -149,7 +150,7 @@ namespace nupic
 	        /**
 	         * Load state from reader.
 	         */
-	        void read(ClaClassifierProto::Reader& proto) override;
+	        void read(SdrClassifierProto::Reader& proto) override;
 
 	        /**
 	         * Load state from stream.
@@ -169,13 +170,9 @@ namespace nupic
 	      	void infer_(const vector<UInt>& patternNZ, UInt bucketIdx,
 		        Real64 actValue, ClassifierResult* result);
 
-	      	// Helper function to compute the likelihoods at a single step
-	      	vector<Real64> inferSingleStep_(const vector<UInt>& patternNZ,
-	      		const Matrix weights) const;
-
 	      	// Helper function to compute the error signal in learning mode
-	      	vector<Real64> calculateError_(UInt bucketIdx, 
-	      		Real64 actValue, UInt step) const;
+	      	vector<Real64> calculateError_(UInt bucketIdx, const vector<UInt>, 
+	      		UInt step);
 
 	        // The list of prediction steps to learn and infer.
 	        vector<UInt> steps_;
