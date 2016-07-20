@@ -33,7 +33,7 @@
 #include <string>
 #include <vector>
 
-#include <nupic/proto/SDRClassifier.capnp.h>
+#include <nupic/proto/SdrClassifier.capnp.h>
 #include <nupic/types/Serializable.hpp>
 #include <nupic/types/Types.hpp>
 #include <nupic/math/DenseMatrix.hpp>
