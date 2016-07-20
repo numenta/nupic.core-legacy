@@ -579,7 +579,7 @@ namespace nupic
         {
           auto stepWeightMatrix = weightMatrixProto[i];
           UInt steps = stepWeightMatrix.getSteps();
-          weightMatrix_[steps] = Matrix(maxInputIdx_, maxBucketIdx_);
+          weightMatrix_[steps] = Matrix(maxInputIdx_ + 1, maxBucketIdx_ + 1);
           auto weights = stepWeightMatrix.getWeight();
           UInt j = 0;
           // un-flatten weight matrix, serialized as a list of floats
