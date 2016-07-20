@@ -123,9 +123,7 @@ namespace
 
     {
       stringstream ss;
-      cout << "Saving.\n";
       c1.save(ss);
-      cout << "Loading.\n";
       c2.load(ss);
     }
 

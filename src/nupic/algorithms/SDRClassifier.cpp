@@ -272,6 +272,26 @@ namespace nupic
         return likelihoods;
       }
 
+      UInt SDRClassifier::version() const
+      {
+        return version_;
+      }
+
+      UInt SDRClassifier::getVerbosity() const
+      {
+        return verbosity_;
+      }
+
+      void SDRClassifier::setVerbosity(UInt verbosity)
+      {
+        verbosity_ = verbosity;
+      }
+
+      UInt SDRClassifier::getAlpha() const
+      {
+        return alpha_;
+      }
+
       void SDRClassifier::save(ostream& outStream) const
       {
         // Write a starting marker and version.
@@ -340,7 +360,6 @@ namespace nupic
         // Write an ending marker.
         outStream << "~SDRClassifier" << endl;
       }
-
 
       void SDRClassifier::load(istream& inStream)
       {

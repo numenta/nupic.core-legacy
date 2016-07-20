@@ -100,16 +100,10 @@ namespace nupic
             Real64 actValue, bool category, bool learn, bool infer,
             ClassifierResult* result);
 
-          UInt version() const
-          {
-            return version_;
-          }
-
           /**
-           * Getter and setter for number of prediction steps.
+           * Gets the version number
            */
-          UInt getMaxSteps() const;
-          void setMaxSteps(UInt maxSteps);
+          UInt version() const;
 
           /**
            * Getter and setter for verbosity level.
@@ -118,7 +112,7 @@ namespace nupic
           void setVerbosity(UInt verbosity);
 
           /**
-           * Getter for learning rate.
+           * Gets the learning rate
            */
           UInt getAlpha() const;
 
