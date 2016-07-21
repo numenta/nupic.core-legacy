@@ -1773,7 +1773,6 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
 %ignore nupic::algorithms::temporal_memory::TemporalMemory::getWinnerCells;
 %ignore nupic::algorithms::temporal_memory::TemporalMemory::getMatchingCells;
 %ignore nupic::algorithms::temporal_memory::TemporalMemory::cellsForColumn;
-%ignore nupic::algorithms::temporal_memory::TemporalMemory::columnForCell;
 
 
 %include <nupic/algorithms/TemporalMemory.hpp>
