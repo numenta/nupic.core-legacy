@@ -35,6 +35,7 @@ Important notes:
 The Python dependencies (NumPy and pycapnp) can be installed with `pip`:
 
     pip install -r bindings/py/requirements.txt
+    pip install pycapnp==0.5.8
 
 ### Simple Source Installation (does not support incremental builds)
 
