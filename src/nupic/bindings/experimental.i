@@ -262,6 +262,5 @@ using namespace nupic;
 %ignore nupic::experimental::extended_temporal_memory::ExtendedTemporalMemory::getWinnerCells;
 %ignore nupic::experimental::extended_temporal_memory::ExtendedTemporalMemory::getMatchingCells;
 %ignore nupic::experimental::extended_temporal_memory::ExtendedTemporalMemory::cellsForColumn;
-%ignore nupic::experimental::extended_temporal_memory::ExtendedTemporalMemory::columnForCell;
 
 %include <nupic/experimental/ExtendedTemporalMemory.hpp>
