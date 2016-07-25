@@ -87,7 +87,7 @@ namespace
           ASSERT_EQ(false, found1)
             << "Already found key 1 in classifier result";
           found1 = true;
-          ASSERT_EQ((long unsigned int)5, it->second->size())
+          ASSERT_EQ(5, it->second->size())
             << "Expected five bucket predictions";
           ASSERT_LT(fabs(it->second->at(0) - 0.2), 0.000001)
             << "Incorrect prediction for bucket 0";

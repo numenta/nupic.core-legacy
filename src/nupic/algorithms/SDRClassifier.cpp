@@ -52,16 +52,11 @@ namespace nupic
       SDRClassifier::SDRClassifier(
           const vector<UInt>& steps, Real64 alpha, Real64 actValueAlpha,
           UInt verbosity) : steps_(steps), alpha_(alpha),
-          actValueAlpha_(actValueAlpha), learnIteration_(0),
-          recordNumMinusLearnIteration_(0),
-          recordNumMinusLearnIterationSet_(false), maxInputIdx_(0),
-          maxBucketIdx_(0), actualValues_({0.0}), actualValuesSet_({false}),
-          version_(Version), verbosity_(verbosity)
+          actValueAlpha_(actValueAlpha), maxInputIdx_(0), maxBucketIdx_(0),
+          actualValues_({0.0}), actualValuesSet_({false}), version_(Version),
+          verbosity_(verbosity)
       {
-        if (!is_sorted(steps_))
-        {
-          sort(steps_.begin(), steps_.end());
-        }
+        sort(steps_.begin(), steps_.end());
         if (steps_.size() > 0)
         {
           maxSteps_ = steps_.at(steps_.size() - 1) + 1;
@@ -93,24 +88,13 @@ namespace nupic
         Real64 actValue, bool category, bool learn, bool infer,
         ClassifierResult* result)
       {
-        // save the offset between recordNum and learnIteration_ if this
-        // was not set (first call to compute)
-        if (!recordNumMinusLearnIterationSet_)
-        {
-          recordNumMinusLearnIteration_ = recordNum - learnIteration_;
-          recordNumMinusLearnIterationSet_ = true;
-        }
-
-        // update learnIteration_
-        learnIteration_ = recordNum - recordNumMinusLearnIteration_;
-
         // update pattern history
         patternNZHistory_.emplace_back(patternNZ.begin(), patternNZ.end());
-        iterationNumHistory_.push_back(learnIteration_);
+        recordNumHistory_.push_back(recordNum);
         if (patternNZHistory_.size() > maxSteps_)
         {
           patternNZHistory_.pop_front();
-          iterationNumHistory_.pop_front();
+          recordNumHistory_.pop_front();
         }
 
         // if input pattern has greater index than previously seen, update 
@@ -167,15 +151,13 @@ namespace nupic
           }
 
           // compute errors and update weights
-          deque<vector<UInt>>::const_iterator patternIteration =
-              patternNZHistory_.begin();
-          for (deque<UInt>::const_iterator learnIteration =
-               iterationNumHistory_.begin();
-               learnIteration != iterationNumHistory_.end();
-               learnIteration++, patternIteration++)
+          auto patternIteration = patternNZHistory_.begin();
+          for (auto learnRecord = recordNumHistory_.begin();
+               learnRecord != recordNumHistory_.end();
+               learnRecord++, patternIteration++)
           {
             const vector<UInt> learnPatternNZ = *patternIteration;
-            const UInt nSteps = learnIteration_ - *learnIteration;
+            const UInt nSteps = recordNum - *learnRecord;
 
             // update weights
             if (binary_search(steps_.begin(), steps_.end(), nSteps))
@@ -298,7 +280,6 @@ namespace nupic
         outStream << version() << " "
                   << alpha_ << " "
                   << actValueAlpha_ << " "
-                  << learnIteration_ << " "
                   << maxSteps_ << " "
                   << maxBucketIdx_ << " "
                   << maxInputIdx_ << " "
@@ -306,10 +287,8 @@ namespace nupic
                   << endl;
 
         // V1 additions.
-        outStream << recordNumMinusLearnIteration_ << " "
-                  << recordNumMinusLearnIterationSet_ << " ";
-        outStream << iterationNumHistory_.size() << " ";
-        for (const auto& elem : iterationNumHistory_)
+        outStream << recordNumHistory_.size() << " ";
+        for (const auto& elem : recordNumHistory_)
         {
           outStream << elem << " ";
         }
@@ -361,7 +340,7 @@ namespace nupic
       {
         // Clean up the existing data structures before loading
         steps_.clear();
-        iterationNumHistory_.clear();
+        recordNumHistory_.clear();
         patternNZHistory_.clear();
         actualValues_.clear();
         actualValuesSet_.clear();
@@ -381,26 +360,21 @@ namespace nupic
         inStream >> version_
                  >> alpha_
                  >> actValueAlpha_
-                 >> learnIteration_
                  >> maxSteps_
                  >> maxBucketIdx_
                  >> maxInputIdx_
                  >> verbosity_;
 
-        UInt numIterationHistory;
-        UInt curIterationNum;
+        UInt recordNumHistory;
+        UInt curRecordNum;
         if (version == 1)
         {
-          inStream >> recordNumMinusLearnIteration_
-                   >> recordNumMinusLearnIterationSet_;
-          inStream >> numIterationHistory;
-          for (UInt i = 0; i < numIterationHistory; ++i)
+          inStream >> recordNumHistory;
+          for (UInt i = 0; i < recordNumHistory; ++i)
           {
-            inStream >> curIterationNum;
-            iterationNumHistory_.push_back(curIterationNum);
+            inStream >> curRecordNum;
+            recordNumHistory_.push_back(curRecordNum);
           }
-        } else {
-          recordNumMinusLearnIterationSet_ = false;
         }
 
         // Load the prediction steps.
@@ -423,11 +397,6 @@ namespace nupic
           for (UInt j = 0; j < vSize; ++j)
           {
             inStream >> patternNZHistory_[i][j];
-          }
-          if (version == 0)
-          {
-            iterationNumHistory_.push_back(
-                learnIteration_ - (size - i));
           }
         }
 
@@ -479,10 +448,6 @@ namespace nupic
 
         proto.setAlpha(alpha_);
         proto.setActValueAlpha(actValueAlpha_);
-        proto.setLearnIteration(learnIteration_);
-        proto.setRecordNumMinusLearnIteration(recordNumMinusLearnIteration_);
-        proto.setRecordNumMinusLearnIterationSet(
-            recordNumMinusLearnIterationSet_);
         proto.setMaxSteps(maxSteps_);
 
         auto patternNZHistoryProto =
@@ -497,11 +462,11 @@ namespace nupic
           }
         }
 
-        auto iterationNumHistoryProto =
-          proto.initIterationNumHistory(iterationNumHistory_.size());
-        for (UInt i = 0; i < iterationNumHistory_.size(); i++)
+        auto recordNumHistoryProto =
+          proto.initRecordNumHistory(recordNumHistory_.size());
+        for (UInt i = 0; i < recordNumHistory_.size(); i++)
         {
-          iterationNumHistoryProto.set(i, iterationNumHistory_[i]);
+          recordNumHistoryProto.set(i, recordNumHistory_[i]);
         }
 
         proto.setMaxBucketIdx(maxBucketIdx_);
@@ -551,7 +516,7 @@ namespace nupic
       {
         // Clean up the existing data structures before loading
         steps_.clear();
-        iterationNumHistory_.clear();
+        recordNumHistory_.clear();
         patternNZHistory_.clear();
         actualValues_.clear();
         actualValuesSet_.clear();
@@ -564,10 +529,6 @@ namespace nupic
 
         alpha_ = proto.getAlpha();
         actValueAlpha_ = proto.getActValueAlpha();
-        learnIteration_ = proto.getLearnIteration();
-        recordNumMinusLearnIteration_ = proto.getRecordNumMinusLearnIteration();
-        recordNumMinusLearnIterationSet_ =
-          proto.getRecordNumMinusLearnIterationSet();
         maxSteps_ = proto.getMaxSteps();
 
         auto patternNZHistoryProto = proto.getPatternNZHistory();
@@ -580,10 +541,10 @@ namespace nupic
           }
         }
 
-        auto iterationNumHistoryProto = proto.getIterationNumHistory();
-        for (UInt i = 0; i < iterationNumHistoryProto.size(); i++)
+        auto recordNumHistoryProto = proto.getRecordNumHistory();
+        for (UInt i = 0; i < recordNumHistoryProto.size(); i++)
         {
-          iterationNumHistory_.push_back(iterationNumHistoryProto[i]);
+          recordNumHistory_.push_back(recordNumHistoryProto[i]);
         }
 
         maxBucketIdx_ = proto.getMaxBucketIdx();
@@ -638,11 +599,6 @@ namespace nupic
 
         if (fabs(alpha_ - other.alpha_) > 0.000001 ||
             fabs(actValueAlpha_ - other.actValueAlpha_) > 0.000001 ||
-            learnIteration_ != other.learnIteration_ ||
-            recordNumMinusLearnIteration_ !=
-                other.recordNumMinusLearnIteration_  ||
-            recordNumMinusLearnIterationSet_ !=
-                other.recordNumMinusLearnIterationSet_  ||
             maxSteps_ != other.maxSteps_)
         {
           return false;
@@ -669,15 +625,15 @@ namespace nupic
           }
         }
 
-        if (iterationNumHistory_.size() !=
-            other.iterationNumHistory_.size())
+        if (recordNumHistory_.size() !=
+            other.recordNumHistory_.size())
         {
           return false;
         }
-        for (UInt i = 0; i < iterationNumHistory_.size(); i++)
+        for (UInt i = 0; i < recordNumHistory_.size(); i++)
         {
-          if (iterationNumHistory_.at(i) !=
-              other.iterationNumHistory_.at(i))
+          if (recordNumHistory_.at(i) !=
+              other.recordNumHistory_.at(i))
           {
             return false;
           }

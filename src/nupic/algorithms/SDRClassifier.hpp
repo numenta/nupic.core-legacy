@@ -177,22 +177,13 @@ namespace nupic
           // The alpha used to decay the actual values used for each bucket.
           Real64 actValueAlpha_;
 
-          // An incrementing count of the number of learning iterations that
-          // have been performed.
-          UInt learnIteration_;
-
-          // This contains the offset between the recordNum (provided by
-          // caller) and learnIteration (internal only, always starts at 0).
-          UInt recordNumMinusLearnIteration_;
-          bool recordNumMinusLearnIterationSet_;
-
           // The maximum number of the prediction steps.
           UInt maxSteps_;
 
           // Stores the input pattern history, starting with the previous input
           // and containing _maxSteps total input patterns.
           deque< vector<UInt> > patternNZHistory_;
-          deque<UInt> iterationNumHistory_;
+          deque<UInt> recordNumHistory_;
 
           // Weight matrices for the classifier (one per prediction step)
           map<UInt, Matrix> weightMatrix_;
