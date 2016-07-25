@@ -77,7 +77,7 @@ namespace
           ASSERT_EQ(false, foundMinus1)
             << "already found key -1 in classifier result";
           foundMinus1 = true;
-          ASSERT_EQ((long unsigned int)5, it->second->size())
+          ASSERT_EQ(5, it->second->size())
             << "Expected five buckets since it has only seen bucket 4 (so it "
             << "has buckets 0-4).";
           ASSERT_TRUE(fabs(it->second->at(4) - 34.7) < 0.000001)

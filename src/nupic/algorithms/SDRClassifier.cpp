@@ -51,15 +51,11 @@ namespace nupic
 
       SDRClassifier::SDRClassifier(
           const vector<UInt>& steps, Real64 alpha, Real64 actValueAlpha,
-          UInt verbosity) : alpha_(alpha), actValueAlpha_(actValueAlpha),
-          learnIteration_(0), recordNumMinusLearnIteration_(0), 
-          maxInputIdx_(0), maxBucketIdx_(0), version_(Version), 
-          verbosity_(verbosity)
+          UInt verbosity) : steps_(steps), alpha_(alpha),
+          actValueAlpha_(actValueAlpha), learnIteration_(0),
+          recordNumMinusLearnIteration_(0), maxInputIdx_(0), maxBucketIdx_(0),
+          version_(Version), verbosity_(verbosity)
       {
-        for (const auto& step : steps)
-        {
-          steps_.push_back(step);
-        }
         recordNumMinusLearnIterationSet_ = false;
         maxSteps_ = 0;
         for (auto& elem : steps_)
@@ -83,8 +79,8 @@ namespace nupic
         // lower bounds
         for (const auto& step : steps_)
         {
-          Matrix weights = Matrix(maxInputIdx_ + 1, maxBucketIdx_ + 1);
-          weightMatrix_.insert(pair<UInt, Matrix>(step, weights));
+          weightMatrix_.emplace(step, Matrix(maxInputIdx_ + 1,
+            maxBucketIdx_ + 1));
         }
       }
 
@@ -138,7 +134,7 @@ namespace nupic
         // update weights if in learning mode
         if (learn)
         {
-          // if bucket is greater, updated maxBucketIdx_ and augment weight
+          // if bucket is greater, update maxBucketIdx_ and augment weight
           // matrix with zero-padding
           if (bucketIdx > maxBucketIdx_) 
           {
@@ -174,7 +170,7 @@ namespace nupic
                learnIteration++, patternIteration++)
           {
             const vector<UInt> learnPatternNZ = *patternIteration;
-            UInt nSteps = learnIteration_ - *learnIteration;
+            const UInt nSteps = learnIteration_ - *learnIteration;
 
             // update weights
             if (binary_search(steps_.begin(), steps_.end(), nSteps))
@@ -183,11 +179,7 @@ namespace nupic
                 patternNZ, nSteps);
               for (auto& bit : learnPatternNZ)
               {
-                for (UInt bucket = 0; bucket < maxBucketIdx_; ++bucket)
-                {
-                  weightMatrix_[nSteps].at(bit, 
-                    bucket) += alpha_ * error[bucket];
-                }
+                weightMatrix_[nSteps].axby(bit, 1.0, alpha_, error);
               }
             }
           }
@@ -236,7 +228,7 @@ namespace nupic
             maxBucketIdx_ + 1, 1.0 / actualValues_.size());
           for (auto& bit : patternNZ)
           {
-            Matrix weights = weightMatrix_[*nSteps];
+            const Matrix& weights = weightMatrix_.at(*nSteps);
             add(likelihoods->begin(), likelihoods->end(), weights.begin(bit),
               weights.begin(bit + 1));
           }
@@ -257,7 +249,7 @@ namespace nupic
 
         for (auto& bit : patternNZ)
         {
-          Matrix weights = weightMatrix_[step];
+          const Matrix& weights = weightMatrix_.at(step);
           add(likelihoods.begin(), likelihoods.end(), weights.begin(bit),
             weights.begin(bit + 1));
         }
