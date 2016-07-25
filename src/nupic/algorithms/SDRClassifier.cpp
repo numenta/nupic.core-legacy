@@ -53,21 +53,21 @@ namespace nupic
           const vector<UInt>& steps, Real64 alpha, Real64 actValueAlpha,
           UInt verbosity) : steps_(steps), alpha_(alpha),
           actValueAlpha_(actValueAlpha), learnIteration_(0),
-          recordNumMinusLearnIteration_(0), maxInputIdx_(0), maxBucketIdx_(0),
+          recordNumMinusLearnIteration_(0),
+          recordNumMinusLearnIterationSet_(false), maxInputIdx_(0),
+          maxBucketIdx_(0), actualValues_({0.0}), actualValuesSet_({false}),
           version_(Version), verbosity_(verbosity)
       {
-        recordNumMinusLearnIterationSet_ = false;
-        maxSteps_ = 0;
-        for (auto& elem : steps_)
+        if (!is_sorted(steps_))
         {
-          UInt current = elem + 1;
-          if (current > maxSteps_)
-          {
-            maxSteps_ = current;
-          }
+          sort(steps_.begin(), steps_.end());
         }
-        actualValues_.push_back(0.0);
-        actualValuesSet_.push_back(false);
+        if (steps_.size() > 0)
+        {
+          maxSteps_ = steps_.at(steps_.size() - 1) + 1;
+        } else {
+          maxSteps_ = 1;
+        }
 
         // TODO: insert maxBucketIdx / maxInputIdx hint as parameter?
         // There can be great overhead reallocating the array every time a new
@@ -105,23 +105,27 @@ namespace nupic
         learnIteration_ = recordNum - recordNumMinusLearnIteration_;
 
         // update pattern history
-        patternNZHistory_.emplace_front(patternNZ.begin(), patternNZ.end());
-        iterationNumHistory_.push_front(learnIteration_);
+        patternNZHistory_.emplace_back(patternNZ.begin(), patternNZ.end());
+        iterationNumHistory_.push_back(learnIteration_);
         if (patternNZHistory_.size() > maxSteps_)
         {
-          patternNZHistory_.pop_back();
-          iterationNumHistory_.pop_back();
+          patternNZHistory_.pop_front();
+          iterationNumHistory_.pop_front();
         }
 
         // if input pattern has greater index than previously seen, update 
         // maxInputIdx and augment weight matrix with zero padding
-        UInt maxInputIdx = *max_element(patternNZ.begin(), patternNZ.end());
-        if (maxInputIdx > maxBucketIdx_)
+        if (patternNZ.size() > 0)
         {
-          maxInputIdx_ = maxInputIdx;
-          for (const auto& step : steps_)
-          { 
-            weightMatrix_[step].resize(maxInputIdx_ + 1, maxBucketIdx_ + 1);
+          UInt maxInputIdx = *max_element(patternNZ.begin(), patternNZ.end());
+          if (maxInputIdx > maxInputIdx_)
+          {
+            maxInputIdx_ = maxInputIdx;
+            for (const auto& step : steps_)
+            {
+              Matrix& weights = weightMatrix_.at(step);
+              weights.resize(maxInputIdx_ + 1, maxBucketIdx_ + 1);
+            }
           }
         }
 
@@ -141,7 +145,8 @@ namespace nupic
             maxBucketIdx_ = bucketIdx;
             for (const auto& step : steps_)
             {
-              weightMatrix_[step].resize(maxInputIdx_ + 1, maxBucketIdx_ + 1);
+              Matrix& weights = weightMatrix_.at(step);
+              weights.resize(maxInputIdx_ + 1, maxBucketIdx_ + 1);
             }
           }
 
@@ -166,7 +171,7 @@ namespace nupic
               patternNZHistory_.begin();
           for (deque<UInt>::const_iterator learnIteration =
                iterationNumHistory_.begin();
-               learnIteration !=iterationNumHistory_.end();
+               learnIteration != iterationNumHistory_.end();
                learnIteration++, patternIteration++)
           {
             const vector<UInt> learnPatternNZ = *patternIteration;
@@ -176,14 +181,14 @@ namespace nupic
             if (binary_search(steps_.begin(), steps_.end(), nSteps))
             {
               vector<Real64> error = calculateError_(bucketIdx, 
-                patternNZ, nSteps);
+                learnPatternNZ, nSteps);
+              Matrix& weights = weightMatrix_.at(nSteps);
               for (auto& bit : learnPatternNZ)
               {
-                weightMatrix_[nSteps].axby(bit, 1.0, alpha_, error);
+                weights.axby(bit, 1.0, alpha_, error);
               }
             }
           }
-
         }
 
       }
@@ -203,8 +208,8 @@ namespace nupic
         // add the actual values to the return value. For buckets that haven't
         // been seen yet, the actual value doesn't matter since it will have
         // zero likelihood.
-        vector<Real64>* actValueVector = result->createVector(
-            -1, actualValues_.size(), 0.0);
+        vector<Real64>* actValueVector = result->createVector(-1,
+          actualValues_.size(), 0.0);
         for (UInt i = 0; i < actualValues_.size(); ++i)
         {
           if (actualValuesSet_[i])
@@ -225,7 +230,7 @@ namespace nupic
         for (auto nSteps = steps_.begin(); nSteps!=steps_.end(); ++nSteps)
         {
           vector<Real64>* likelihoods = result->createVector(*nSteps, 
-            maxBucketIdx_ + 1, 1.0 / actualValues_.size());
+            maxBucketIdx_ + 1, 0.0);
           for (auto& bit : patternNZ)
           {
             const Matrix& weights = weightMatrix_.at(*nSteps);
@@ -244,8 +249,7 @@ namespace nupic
         const vector<UInt> patternNZ, UInt step)
       {
         // compute predicted likelihoods
-        vector<Real64> likelihoods (maxBucketIdx_ + 1, 
-          1.0 / actualValues_.size());
+        vector<Real64> likelihoods (maxBucketIdx_ + 1, 0);
 
         for (auto& bit : patternNZ)
         {

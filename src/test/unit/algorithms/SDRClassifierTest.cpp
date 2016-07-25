@@ -75,35 +75,161 @@ namespace
         {
           // The -1 key is used for the actual values
           ASSERT_EQ(false, foundMinus1)
-            << "already found key -1 in classifier result";
+            << "Already found key -1 in classifier result";
           foundMinus1 = true;
           ASSERT_EQ(5, it->second->size())
             << "Expected five buckets since it has only seen bucket 4 (so it "
-            << "has buckets 0-4).";
+            << "Has buckets 0-4).";
           ASSERT_TRUE(fabs(it->second->at(4) - 34.7) < 0.000001)
             << "Incorrect actual value for bucket 4";
         } else if (it->first == 1) {
           // Check the one-step prediction
           ASSERT_EQ(false, found1)
-            << "already found key 1 in classifier result";
+            << "Already found key 1 in classifier result";
           found1 = true;
           ASSERT_EQ((long unsigned int)5, it->second->size())
-            << "expected five bucket predictions";
+            << "Expected five bucket predictions";
           ASSERT_LT(fabs(it->second->at(0) - 0.2), 0.000001)
-            << "incorrect prediction for bucket 0";
+            << "Incorrect prediction for bucket 0";
           ASSERT_LT(fabs(it->second->at(1) - 0.2), 0.000001)
-            << "incorrect prediction for bucket 1";
+            << "Incorrect prediction for bucket 1";
           ASSERT_LT(fabs(it->second->at(2) - 0.2), 0.000001)
-            << "incorrect prediction for bucket 2";
+            << "Incorrect prediction for bucket 2";
           ASSERT_LT(fabs(it->second->at(3) - 0.2), 0.000001)
-            << "incorrect prediction for bucket 3";
+            << "Incorrect prediction for bucket 3";
           ASSERT_LT(fabs(it->second->at(4) - 0.2), 0.000001)
-            << "incorrect prediction for bucket 4";
+            << "Incorrect prediction for bucket 4";
         }
       }
-      ASSERT_TRUE(foundMinus1) << "key -1 not found in classifier result";
+      ASSERT_TRUE(foundMinus1) << "Key -1 not found in classifier result";
       ASSERT_TRUE(found1) << "key 1 not found in classifier result";
     }
+  }
+
+  TEST(SDRClassifierTest, SingleValue)
+  {
+    // Feed the same input 10 times, the corresponding probability should be
+    // very high
+    vector<UInt> steps;
+    steps.push_back(1);
+    SDRClassifier c = SDRClassifier(steps, 0.1, 0.1, 0);
+
+    // Create a vector of input bit indices
+    vector<UInt> input1;
+    input1.push_back(1);
+    input1.push_back(5);
+    input1.push_back(9);
+    ClassifierResult result1;
+    for (UInt i = 0; i < 10; ++i)
+    {
+      ClassifierResult result1;
+      c.compute(i, input1, 4, 34.7, false, true, true, &result1);
+    }
+
+    {
+      for (auto it = result1.begin();
+           it != result1.end(); ++it)
+      {
+        if (it->first == -1)
+        {
+          ASSERT_TRUE(fabs(it->second->at(4) - 10.0) < 0.000001)
+            << "Incorrect actual value for bucket 4";
+        } else if (it->first == 1) {
+          ASSERT_GT(it->second->at(4), 0.9)
+            << "Incorrect prediction for bucket 4";
+        }
+      }
+    }
+
+  }
+
+  TEST(SDRClassifierTest, ComputeComplex)
+  {
+    // More complex classification
+    // This test is ported from the Python unit test
+    vector<UInt> steps;
+    steps.push_back(1);
+    SDRClassifier c = SDRClassifier(steps, 1.0, 0.1, 0);
+
+    // Create a input vectors
+    vector<UInt> input1;
+    input1.push_back(1);
+    input1.push_back(5);
+    input1.push_back(9);
+
+    // Create a input vectors
+    vector<UInt> input2;
+    input2.push_back(0);
+    input2.push_back(6);
+    input2.push_back(9);
+    input2.push_back(11);
+
+    // Create a input vectors
+    vector<UInt> input3;
+    input3.push_back(6);
+    input3.push_back(9);
+
+    ClassifierResult result1;
+    c.compute(0, input1, 4, 34.7, false, true, true, &result1);
+
+    ClassifierResult result2;
+    c.compute(1, input2, 5, 41.7, false, true, true, &result2);
+
+    ClassifierResult result3;
+    c.compute(2, input3, 5, 44.9, false, true, true, &result3);
+
+    ClassifierResult result4;
+    c.compute(3, input1, 4, 42.9, false, true, true, &result4);
+
+    ClassifierResult result5;
+    c.compute(4, input1, 4, 34.7, false, true, true, &result5);
+
+    {
+      bool foundMinus1 = false;
+      bool found1 = false;
+      for (auto it = result5.begin(); it != result5.end(); ++it)
+      {
+        ASSERT_TRUE(it->first == -1 || it->first == 1)
+          << "Result vector should only have -1 or 1 as key";
+        if (it->first == -1)
+        {
+          // The -1 key is used for the actual values
+          ASSERT_EQ(false, foundMinus1)
+            << "Already found key -1 in classifier result";
+          foundMinus1 = true;
+          ASSERT_EQ(6, it->second->size())
+            << "Expected six buckets since it has only seen bucket 4-5 (so it "
+            << "has buckets 0-5).";
+          ASSERT_TRUE(fabs(it->second->at(4) - 35.520000457763672) < 0.000001)
+            << "Incorrect actual value for bucket 4";
+          ASSERT_TRUE(fabs(it->second->at(5) - 42.020000457763672) < 0.000001)
+            << "Incorrect actual value for bucket 5";
+        } else if (it->first == 1) {
+          // Check the one-step prediction
+          ASSERT_EQ(false, found1)
+            << "Already found key 1 in classifier result";
+          found1 = true;
+
+          ASSERT_EQ(6, it->second->size())
+            << "Expected six bucket predictions";
+          ASSERT_LT(fabs(it->second->at(0) - 0.034234), 0.000001)
+            << "Incorrect prediction for bucket 0";
+          ASSERT_LT(fabs(it->second->at(1) - 0.034234), 0.000001)
+            << "Incorrect prediction for bucket 1";
+          ASSERT_LT(fabs(it->second->at(2) - 0.034234), 0.000001)
+            << "Incorrect prediction for bucket 2";
+          ASSERT_LT(fabs(it->second->at(3) - 0.034234), 0.000001)
+            << "Incorrect prediction for bucket 3";
+          ASSERT_LT(fabs(it->second->at(4) - 0.093058), 0.000001)
+            << "Incorrect prediction for bucket 4";
+          ASSERT_LT(fabs(it->second->at(5) - 0.770004), 0.000001)
+            << "Incorrect prediction for bucket 5";
+        }
+      }
+      ASSERT_TRUE(foundMinus1) << "Key -1 not found in classifier result";
+      ASSERT_TRUE(found1) << "Key 1 not found in classifier result";
+    }
+
   }
 
   TEST(SDRClassifierTest, SaveLoad)
