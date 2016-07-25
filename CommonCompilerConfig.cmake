@@ -19,6 +19,7 @@
 # http://numenta.org/licenses/
 # -----------------------------------------------------------------------------
 
+
 # Configures common compiler/linker/loader settings for internal and external
 # sources.
 #
