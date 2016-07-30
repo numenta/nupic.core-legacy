@@ -498,6 +498,7 @@ add_executable(${src_executable_gtests}
                test/unit/engine/NetworkFactoryTest.cpp
                test/unit/engine/UniformLinkPolicyTest.cpp
                test/unit/engine/YAMLUtilsTest.cpp
+               test/unit/experimental/ExtendedTemporalMemoryTest.cpp
                test/unit/math/DenseTensorUnitTest.cpp
                test/unit/math/DomainUnitTest.cpp
                test/unit/math/IndexUnitTest.cpp
