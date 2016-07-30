@@ -351,27 +351,44 @@ static CellIdx getLeastUsedCell(
   UInt column,
   UInt cellsPerColumn)
 {
-  vector<CellIdx> leastUsedCells;
-  UInt32 minNumSegments = UINT_MAX;
   const CellIdx start = column * cellsPerColumn;
   const CellIdx end = start + cellsPerColumn;
+
+  UInt32 minNumSegments = UINT_MAX;
+  UInt32 numTiedCells = 0;
   for (CellIdx cell = start; cell < end; cell++)
   {
-    UInt32 numSegments = connections.segmentsForCell(cell).size();
-
+    const UInt32 numSegments = connections.numSegments(cell);
     if (numSegments < minNumSegments)
     {
       minNumSegments = numSegments;
-      leastUsedCells.clear();
+      numTiedCells = 1;
     }
-
-    if (numSegments == minNumSegments)
+    else if (numSegments == minNumSegments)
     {
-      leastUsedCells.push_back(cell);
+      numTiedCells++;
     }
   }
 
-  return leastUsedCells[rng.getUInt32(leastUsedCells.size())];
+  const UInt32 tieWinnerIndex = rng.getUInt32(numTiedCells);
+
+  UInt32 tieIndex = 0;
+  for (CellIdx cell = start; cell < end; cell++)
+  {
+    if (connections.numSegments(cell) == minNumSegments)
+    {
+      if (tieIndex == tieWinnerIndex)
+      {
+        return cell;
+      }
+      else
+      {
+        tieIndex++;
+      }
+    }
+  }
+
+  NTA_THROW << "getLeastUsedCell failed to find a cell";
 }
 
 static void adaptSegment(
