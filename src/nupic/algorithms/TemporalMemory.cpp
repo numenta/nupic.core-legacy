@@ -926,25 +926,29 @@ void TemporalMemory::save(ostream& outStream) const
   outStream << rng_ << endl;
 
   outStream << columnDimensions_.size() << " ";
-  for (auto & elem : columnDimensions_) {
+  for (auto & elem : columnDimensions_)
+  {
     outStream << elem << " ";
   }
   outStream << endl;
 
   outStream << activeCells_.size() << " ";
-  for (CellIdx cell : activeCells_) {
+  for (CellIdx cell : activeCells_)
+  {
     outStream << cell << " ";
   }
   outStream << endl;
 
   outStream << winnerCells_.size() << " ";
-  for (CellIdx cell : winnerCells_) {
+  for (CellIdx cell : winnerCells_)
+  {
     outStream << cell << " ";
   }
   outStream << endl;
 
   outStream << activeSegments_.size() << " ";
-  for (SegmentOverlap elem : activeSegments_) {
+  for (SegmentOverlap elem : activeSegments_)
+  {
     outStream << elem.segment.idx << " ";
     outStream << elem.segment.cell << " ";
     outStream << elem.overlap << " ";
@@ -952,7 +956,8 @@ void TemporalMemory::save(ostream& outStream) const
   outStream << endl;
 
   outStream << matchingSegments_.size() << " ";
-  for (SegmentOverlap elem : matchingSegments_) {
+  for (SegmentOverlap elem : matchingSegments_)
+  {
     outStream << elem.segment.idx << " ";
     outStream << elem.segment.cell << " ";
     outStream << elem.overlap << " ";
@@ -1211,7 +1216,8 @@ void TemporalMemory::load(istream& inStream)
   {
     UInt numMatchingCells;
     inStream >> numMatchingCells;
-    for (UInt i = 0; i < numMatchingCells; i++) {
+    for (UInt i = 0; i < numMatchingCells; i++)
+    {
       CellIdx cell;
       inStream >> cell; // Ignore
     }
@@ -1247,8 +1253,10 @@ void TemporalMemory::printParameters()
 void TemporalMemory::printState(vector<UInt> &state)
 {
   std::cout << "[  ";
-  for (UInt i = 0; i != state.size(); ++i) {
-    if (i > 0 && i % 10 == 0) {
+  for (UInt i = 0; i != state.size(); ++i)
+  {
+    if (i > 0 && i % 10 == 0)
+    {
       std::cout << "\n   ";
     }
     std::cout << state[i] << " ";
@@ -1259,8 +1267,10 @@ void TemporalMemory::printState(vector<UInt> &state)
 void TemporalMemory::printState(vector<Real> &state)
 {
   std::cout << "[  ";
-  for (UInt i = 0; i != state.size(); ++i) {
-    if (i > 0 && i % 10 == 0) {
+  for (UInt i = 0; i != state.size(); ++i)
+  {
+    if (i > 0 && i % 10 == 0)
+    {
       std::cout << "\n   ";
     }
     std::printf("%6.3f ", state[i]);
