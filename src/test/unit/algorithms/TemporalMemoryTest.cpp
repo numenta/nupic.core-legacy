@@ -1224,26 +1224,51 @@ namespace {
   TEST(TemporalMemoryTest, testSaveLoad)
   {
     const char* filename = "TemporalMemorySerialization.tmp";
-    TemporalMemory tm1, tm2;
-    vector<UInt> columnDim;
-    UInt numColumns = 12;
 
-    columnDim.push_back(numColumns);
-    tm1.initialize(columnDim);
+    TemporalMemory tm(
+      /*columnDimensions*/ {32},
+      /*cellsPerColumn*/ 4,
+      /*activationThreshold*/ 3,
+      /*initialPermanence*/ 0.21,
+      /*connectedPermanence*/ 0.50,
+      /*minThreshold*/ 2,
+      /*maxNewSynapseCount*/ 3,
+      /*permanenceIncrement*/ 0.10,
+      /*permanenceDecrement*/ 0.10,
+      /*predictedSegmentDecrement*/ 0.0,
+      /*seed*/ 42
+      );
+
+    const UInt numActiveColumns = 1;
+    const UInt previousActiveColumns[1] = {0};
+    const vector<CellIdx> previousActiveCells = {0, 1, 2, 3};
+    const vector<CellIdx> expectedActiveCells = {4};
+
+    Segment activeSegment =
+      tm.connections.createSegment(expectedActiveCells[0]);
+    tm.connections.createSynapse(activeSegment, previousActiveCells[0], 0.5);
+    tm.connections.createSynapse(activeSegment, previousActiveCells[1], 0.5);
+    tm.connections.createSynapse(activeSegment, previousActiveCells[2], 0.5);
+    tm.connections.createSynapse(activeSegment, previousActiveCells[3], 0.5);
+
+    tm.compute(numActiveColumns, previousActiveColumns, true);
+    ASSERT_EQ(expectedActiveCells, tm.getPredictiveCells());
 
     ofstream outfile;
     outfile.open(filename, ios::binary);
-    tm1.save(outfile);
+    tm.save(outfile);
     outfile.close();
 
     ifstream infile(filename, ios::binary);
+
+    TemporalMemory tm2;
     tm2.load(infile);
     infile.close();
 
-    check_tm_eq(tm1, tm2);
+    check_tm_eq(tm, tm2);
 
     int ret = ::remove(filename);
-    ASSERT_TRUE(ret == 0) << "Failed to delete " << filename;
+    ASSERT_EQ(0, ret) << "Failed to delete " << filename;
   }
 
   TEST(TemporalMemoryTest, testWrite)

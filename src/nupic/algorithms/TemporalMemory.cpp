@@ -1148,6 +1148,15 @@ void TemporalMemory::load(istream& inStream)
     }
   }
 
+  UInt numWinnerCells;
+  inStream >> numWinnerCells;
+  for (UInt i = 0; i < numWinnerCells; i++)
+  {
+    CellIdx cell;
+    inStream >> cell;
+    winnerCells_.push_back(cell);
+  }
+
   if (version < 2)
   {
     UInt numActiveSegments;
@@ -1171,15 +1180,6 @@ void TemporalMemory::load(istream& inStream)
       inStream >> activeSegments_[i].segment.cell;
       inStream >> activeSegments_[i].overlap;
     }
-  }
-
-  UInt numWinnerCells;
-  inStream >> numWinnerCells;
-  for (UInt i = 0; i < numWinnerCells; i++)
-  {
-    CellIdx cell;
-    inStream >> cell;
-    winnerCells_.push_back(cell);
   }
 
   if (version < 2)
