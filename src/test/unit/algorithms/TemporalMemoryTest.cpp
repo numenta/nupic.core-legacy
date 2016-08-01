@@ -1117,6 +1117,52 @@ namespace {
   }
 
   /**
+   * When the best matching segment has more than maxNewSynapseCount matching
+   * synapses, don't grow new synapses. This test is specifically aimed at
+   * unexpected behavior with negative numbers and unsigned integers.
+   */
+  TEST(TemporalMemoryTest, MaxNewSynapseCountOverflow)
+  {
+    TemporalMemory tm(
+      /*columnDimensions*/ {32},
+      /*cellsPerColumn*/ 4,
+      /*activationThreshold*/ 3,
+      /*initialPermanence*/ 0.2,
+      /*connectedPermanence*/ 0.50,
+      /*minThreshold*/ 2,
+      /*maxNewSynapseCount*/ 4,
+      /*permanenceIncrement*/ 0.10,
+      /*permanenceDecrement*/ 0.10,
+      /*predictedSegmentDecrement*/ 0.02,
+      /*seed*/ 42
+      );
+
+    Segment segment = tm.connections.createSegment(8);
+    tm.connections.createSynapse(segment, 0, 0.2);
+    tm.connections.createSynapse(segment, 1, 0.2);
+    tm.connections.createSynapse(segment, 2, 0.2);
+    tm.connections.createSynapse(segment, 3, 0.2);
+    tm.connections.createSynapse(segment, 4, 0.2);
+    Synapse sampleSynapse = tm.connections.createSynapse(segment, 5, 0.2);
+    tm.connections.createSynapse(segment, 6, 0.2);
+    tm.connections.createSynapse(segment, 7, 0.2);
+
+    const UInt previousActiveColumns[4] = {0, 1, 3, 4};
+    tm.compute(4, previousActiveColumns);
+
+    ASSERT_EQ(1, tm.getMatchingSegments().size());
+
+    const UInt activeColumns[1] = {2};
+    tm.compute(1, activeColumns);
+
+    // Make sure the segment has learned.
+    ASSERT_NEAR(0.3, tm.connections.dataForSynapse(sampleSynapse).permanence,
+                EPSILON);
+
+    EXPECT_EQ(8, tm.connections.numSynapses(segment));
+  }
+
+  /**
    * With learning disabled, generate some predicted active columns, predicted
    * inactive columns, and nonpredicted active columns. The connections should
    * not change.
