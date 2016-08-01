@@ -48,7 +48,7 @@ namespace nupic
     namespace sdr_classifier
     {
 
-      const UInt Version = 1;
+      const UInt sdrClassifierVersion = 1;
 
       typedef Dense<UInt, Real64> Matrix;
 

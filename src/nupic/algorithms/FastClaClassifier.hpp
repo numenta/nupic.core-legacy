@@ -45,7 +45,7 @@ namespace nupic
     namespace cla_classifier
     {
 
-      const UInt Version = 1;
+      const UInt claClassifierVersion = 1;
 
       class BitHistory;
       class ClassifierResult;
