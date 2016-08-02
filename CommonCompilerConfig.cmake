@@ -19,6 +19,7 @@
 # http://numenta.org/licenses/
 # -----------------------------------------------------------------------------
 
+
 # Configures common compiler/linker/loader settings for internal and external
 # sources.
 #
@@ -43,35 +44,35 @@
 # EXTERNAL_CXX_FLAGS_UNOPTIMIZED: string of C++ flags without explicit optimization flags for 3rd-party sources.
 #
 # EXTERNAL_LINKER_FLAGS_UNOPTIMIZED: string of linker flags for linking 3rd-party executables
-#                      and shared libraries (DLLs) without explicit optimizations
+#                      and shared libraries (DLLs) without explicit optimization
 #                      settings. This property is for use with
 #                      EXTERNAL_C_FLAGS_UNOPTIMIZED and EXTERNAL_CXX_FLAGS_UNOPTIMIZED
-#
-# EXTERNAL_LINKER_FLAGS_UNOPTIMIZED: string of linker flags for linking 3rd-party executables
-#                      and shared libraries (DLLs) without optimizations that are
-#                      compatible with EXTERNAL_C_FLAGS_UNOPTIMIZED and EXTERNAL_CXX_FLAGS_UNOPTIMIZED
 #
 # EXTERNAL_LINKER_FLAGS_OPTIMIZED: string of linker flags for linking 3rd-party executables
 #                      and shared libraries (DLLs) with optimizations that are
 #                      compatible with EXTERNAL_C_FLAGS_OPTIMIZED and EXTERNAL_CXX_FLAGS_OPTIMIZED
 #
 # EXTERNAL_STATICLIB_CMAKE_DEFINITIONS_OPTIMIZED: list of -D cmake definitions corresponding to
-#                      EXTERNAL_C_FLAGS_OPTIMIZED (e. g. use of gcc-ar and gcc-ranlib wrappers for gcc >= 4.9 
-#                      in combination with Link Time Optimization)                       
+#                      EXTERNAL_C_FLAGS_OPTIMIZED (e. g. use of gcc-ar and gcc-ranlib wrappers for gcc >= 4.9
+#                      in combination with Link Time Optimization)
 #
 # EXTERNAL_STATICLIB_CONFIGURE_DEFINITIONS_OPTIMIZED_STR: string variant of EXTERNAL_STATICLIB_CMAKE_DEFINITIONS_OPTIMIZED
 #                      used for non-cmake builds
-#  
+#
 # INTERNAL_CXX_FLAGS_OPTIMIZED: string of C++ flags with explicit optimization flags for internal sources
 #
 # INTERNAL_LINKER_FLAGS_OPTIMIZED: string of linker flags for linking internal executables
 #                      and shared libraries (DLLs) with optimizations that are
 #                      compatible with INTERNAL_CXX_FLAGS_OPTIMIZED
 #
+# PYEXT_LINKER_FLAGS_OPTIMIZED: string of linker flags for linking python extension
+#                      shared libraries (DLLs) with optimizations that are
+#                      compatible with EXTERNAL_CXX_FLAGS_OPTIMIZED.
+#
 # CMAKE_AR: Name of archiving tool (ar) for static libraries. See cmake documentation
 #
 # CMAKE_RANLIB: Name of randomizing tool (ranlib) for static libraries. See cmake documentation
-#                    
+#
 # CMAKE_LINKER: updated, if needed; use ld.gold if available. See cmake
 #               documentation
 #
@@ -94,6 +95,7 @@ set(COMMON_COMPILER_DEFINITIONS_STR)
 set(INTERNAL_CXX_FLAGS_OPTIMIZED)
 set(INTERNAL_LINKER_FLAGS_OPTIMIZED)
 
+set(PYEXT_LINKER_FLAGS_OPTIMIZED)
 
 set(EXTERNAL_C_FLAGS_UNOPTIMIZED)
 set(EXTERNAL_C_FLAGS_OPTIMIZED)
@@ -124,9 +126,9 @@ if(CMAKE_MAJOR_VERSION GREATER 2)
   math(EXPR available_memory "${available_physical_memory}+${available_virtual_memory}")
   message(STATUS "CMAKE MEMORY=${available_memory}")
 
-  # Python bindings (particularly mathPYTHON_wrap.cxx) requires more than 
+  # Python bindings (particularly mathPYTHON_wrap.cxx) requires more than
   # 1GB of memory for compiling with GCC. Send a warning if available memory
-  # (physical plus virtual(swap)) is less than 1GB 
+  # (physical plus virtual(swap)) is less than 1GB
   if(${available_memory} LESS 1024)
     message(WARNING "Less than 1GB of memory available, compilation may run out of memory!")
   endif()
@@ -179,8 +181,18 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif()
 
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
-   set(stdlib_common "${stdlib_common} -static-libgcc")
-   set(stdlib_cxx "${stdlib_cxx} -static-libstdc++")
+  if (${NUPIC_BUILD_PYEXT_MODULES} AND "${PLATFORM}" STREQUAL "linux")
+    # For python extensions on Linux, we want shared libgcc and
+    # libstdc++ in order to avoid memory management issues and other
+    # side-effects of static versions of those libs on various distros.
+    # NOTE There is no `-shared-libstdc++` flag; shared libstdc++ is given
+    # priority over its static counterpart implicitly when `-static-libstdc++`
+    # is omitted.
+    set(stdlib_common "${stdlib_common} -shared-libgcc")
+  else()
+    set(stdlib_common "${stdlib_common} -static-libgcc")
+    set(stdlib_cxx "${stdlib_cxx} -static-libstdc++")
+  endif()
 endif()
 
 
@@ -217,6 +229,8 @@ set(internal_compiler_warning_flags "")
 set(external_compiler_warning_flags "")
 set(cxx_flags_unoptimized "")
 set(shared_linker_flags_unoptimized "")
+set(fail_link_on_undefined_symbols_flags "")
+set(allow_link_with_undefined_symbols_flags "")
 
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
   # MS Visual C
@@ -231,6 +245,13 @@ if(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
 else()
   # LLVM Clang / Gnu GCC
   set(cxx_flags_unoptimized "${cxx_flags_unoptimized} ${stdlib_cxx} -std=c++11")
+
+  if (${NUPIC_BUILD_PYEXT_MODULES})
+    # Hide all symbols in DLLs except the ones with explicit visibility;
+    # see https://gcc.gnu.org/wiki/Visibility
+    set(cxx_flags_unoptimized "${cxx_flags_unoptimized} -fvisibility-inlines-hidden")
+    set(shared_compile_flags "${shared_compile_flags} -fvisibility=hidden")
+  endif()
 
   set(shared_compile_flags "${shared_compile_flags} ${stdlib_common} -fdiagnostics-show-option")
   set (internal_compiler_warning_flags "${internal_compiler_warning_flags} -Werror -Wextra -Wreturn-type -Wunused -Wno-unused-variable -Wno-unused-parameter -Wno-missing-field-initializers")
@@ -258,23 +279,38 @@ else()
   set(shared_linker_flags_unoptimized "${shared_linker_flags_unoptimized} ${stdlib_common} ${stdlib_cxx}")
 endif()
 
-
+# Don't allow undefined symbols when linking executables
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
-  set(shared_linker_flags_unoptimized "${shared_linker_flags_unoptimized} -Wl,--no-undefined")
+  set(fail_link_on_undefined_symbols_flags "-Wl,--no-undefined")
 elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
-  set(shared_linker_flags_unoptimized "${shared_linker_flags_unoptimized} -Wl,-undefined,error")
+  set(fail_link_on_undefined_symbols_flags "-Wl,-undefined,error")
 endif()
+
+# Don't force python extensions to link to specific libpython during build:
+# python symbols are made available to extensions atomatically once loaded
+#
+# NOTE Windows DLLs are shared executables with their own main; they require
+# all symbols to resolve at link time.
+if(NOT "${PLATFORM}" STREQUAL "windows")
+  if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
+    set(allow_link_with_undefined_symbols_flags "-Wl,--allow-shlib-undefined")
+  elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
+    set(allow_link_with_undefined_symbols_flags "-Wl,-undefined,dynamic_lookup")
+  endif()
+endif()
+
 
 # Compatibility with gcc >= 4.9 which requires the use of gcc's own wrappers for ar and ranlib in combination with LTO
 # works also with LTO disabled
-IF(UNIX AND CMAKE_COMPILER_IS_GNUCXX AND (NOT "${CMAKE_BUILD_TYPE}" STREQUAL "Debug") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "4.9" OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "4.9"))
+IF(UNIX AND CMAKE_COMPILER_IS_GNUCXX AND (NOT "${CMAKE_BUILD_TYPE}" STREQUAL "Debug") AND
+      (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "4.9" OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "4.9"))
     set(CMAKE_AR "gcc-ar")
     set(CMAKE_RANLIB "gcc-ranlib")
     # EXTERNAL_STATICLIB_CMAKE_DEFINITIONS_OPTIMIZED contains duplicate settings for CMAKE_AR and CMAKE_RANLIB
     # This is a workaround for a CMAKE bug (https://gitlab.kitware.com/cmake/cmake/issues/15547) that prevents
     # the correct propagation of CMAKE_AR and CMAKE_RANLIB variables to all externals
     set(EXTERNAL_STATICLIB_CMAKE_DEFINITIONS_OPTIMIZED -DCMAKE_AR:PATH=gcc-ar -DCMAKE_RANLIB:PATH=gcc-ranlib)
-    set(EXTERNAL_STATICLIB_CONFIGURE_DEFINITIONS_OPTIMIZED_STR AR=gcc-ar RANLIB=gcc-ranlib)
+    set(EXTERNAL_STATICLIB_CONFIGURE_DEFINITIONS_OPTIMIZED_STR "AR=gcc-ar RANLIB=gcc-ranlib")
 ENDIF()
 
 #
@@ -290,6 +326,11 @@ if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
 
   if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" OR MINGW)
     set (build_type_specific_compile_flags "${build_type_specific_compile_flags} -Og")
+
+    # Enable diagnostic features of standard class templates, including ability
+    # to examine containers in gdb.
+    # See https://gcc.gnu.org/onlinedocs/libstdc++/manual/debug_mode_using.html
+    list(APPEND COMMON_COMPILER_DEFINITIONS -D_GLIBCXX_DEBUG)
   endif()
 
   # Disable optimizations
@@ -306,14 +347,18 @@ endif()
 set(INTERNAL_CXX_FLAGS_OPTIMIZED "${build_type_specific_compile_flags} ${shared_compile_flags} ${cxx_flags_unoptimized} ${internal_compiler_warning_flags} ${optimization_flags_cc}")
 
 set(complete_linker_flags_unoptimized "${build_type_specific_linker_flags} ${shared_linker_flags_unoptimized}")
+set(complete_linker_flags_unoptimized "${complete_linker_flags_unoptimized} ${fail_link_on_undefined_symbols_flags}")
 set(INTERNAL_LINKER_FLAGS_OPTIMIZED "${complete_linker_flags_unoptimized} ${optimization_flags_lt}")
-
 
 # Settings for third-party code and code generated by 3rd-party tools (e.g., Swig bindings)
 # (NOTE we omit the explicit compiler warning-related flags here to avoid
 #  polluting build output with warnings from code that we don't control)
 set(EXTERNAL_C_FLAGS_UNOPTIMIZED "${build_type_specific_compile_flags} ${shared_compile_flags} ${external_compiler_warning_flags}")
 set(EXTERNAL_C_FLAGS_OPTIMIZED "${EXTERNAL_C_FLAGS_UNOPTIMIZED} ${optimization_flags_cc}")
+
+set(PYEXT_LINKER_FLAGS_OPTIMIZED "${build_type_specific_linker_flags} ${shared_linker_flags_unoptimized}")
+set(PYEXT_LINKER_FLAGS_OPTIMIZED "${PYEXT_LINKER_FLAGS_OPTIMIZED} ${optimization_flags_lt}")
+set(PYEXT_LINKER_FLAGS_OPTIMIZED "${PYEXT_LINKER_FLAGS_OPTIMIZED} ${allow_link_with_undefined_symbols_flags}")
 
 set(EXTERNAL_CXX_FLAGS_UNOPTIMIZED "${build_type_specific_compile_flags} ${shared_compile_flags} ${external_compiler_warning_flags} ${cxx_flags_unoptimized}")
 set(EXTERNAL_CXX_FLAGS_OPTIMIZED "${EXTERNAL_CXX_FLAGS_UNOPTIMIZED} ${optimization_flags_cc}")
@@ -329,3 +374,17 @@ set(COMMON_COMPILER_DEFINITIONS_STR)
 foreach(compiler_definition ${COMMON_COMPILER_DEFINITIONS})
   set(COMMON_COMPILER_DEFINITIONS_STR "${COMMON_COMPILER_DEFINITIONS_STR} ${compiler_definition}")
 endforeach()
+
+message(STATUS "INTERNAL_CXX_FLAGS_OPTIMIZED=${INTERNAL_CXX_FLAGS_OPTIMIZED}")
+message(STATUS "INTERNAL_LINKER_FLAGS_OPTIMIZED=${INTERNAL_LINKER_FLAGS_OPTIMIZED}")
+message(STATUS "EXTERNAL_C_FLAGS_UNOPTIMIZED=${EXTERNAL_C_FLAGS_UNOPTIMIZED}")
+message(STATUS "EXTERNAL_C_FLAGS_OPTIMIZED=${EXTERNAL_C_FLAGS_OPTIMIZED}")
+message(STATUS "PYEXT_LINKER_FLAGS_OPTIMIZED=${PYEXT_LINKER_FLAGS_OPTIMIZED}")
+message(STATUS "EXTERNAL_CXX_FLAGS_UNOPTIMIZED=${EXTERNAL_CXX_FLAGS_UNOPTIMIZED}")
+message(STATUS "EXTERNAL_CXX_FLAGS_OPTIMIZED=${EXTERNAL_CXX_FLAGS_OPTIMIZED}")
+message(STATUS "EXTERNAL_LINKER_FLAGS_UNOPTIMIZED=${EXTERNAL_LINKER_FLAGS_UNOPTIMIZED}")
+message(STATUS "EXTERNAL_LINKER_FLAGS_OPTIMIZED=${EXTERNAL_LINKER_FLAGS_OPTIMIZED}")
+message(STATUS "COMMON_COMPILER_DEFINITIONS=${COMMON_COMPILER_DEFINITIONS}")
+message(STATUS "COMMON_COMPILER_DEFINITIONS_STR=${COMMON_COMPILER_DEFINITIONS_STR}")
+message(STATUS "EXTERNAL_STATICLIB_CMAKE_DEFINITIONS_OPTIMIZED=${EXTERNAL_STATICLIB_CMAKE_DEFINITIONS_OPTIMIZED}")
+message(STATUS "EXTERNAL_STATICLIB_CONFIGURE_DEFINITIONS_OPTIMIZED_STR=${EXTERNAL_STATICLIB_CONFIGURE_DEFINITIONS_OPTIMIZED_STR}")

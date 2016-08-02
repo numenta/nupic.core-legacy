@@ -526,7 +526,7 @@ static void burstColumn(
                    prevActiveCells,
                    permanenceIncrement, permanenceDecrement);
 
-      const UInt32 nGrowDesired = maxNewSynapseCount - bestMatch->overlap;
+      const Int32 nGrowDesired = maxNewSynapseCount - bestMatch->overlap;
       if (nGrowDesired > 0)
       {
         growSynapses(connections, rng,

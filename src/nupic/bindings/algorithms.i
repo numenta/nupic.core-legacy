@@ -101,6 +101,7 @@ _ALGORITHMS = _algorithms
 #include <nupic/algorithms/ClassifierResult.hpp>
 #include <nupic/algorithms/Connections.hpp>
 #include <nupic/algorithms/FastClaClassifier.hpp>
+#include <nupic/algorithms/SDRClassifier.hpp>
 #include <nupic/algorithms/InSynapse.hpp>
 #include <nupic/algorithms/OutSynapse.hpp>
 #include <nupic/algorithms/SegmentUpdate.hpp>
@@ -133,6 +134,7 @@ using namespace nupic::algorithms::connections;
 using namespace nupic::algorithms::temporal_memory;
 using namespace nupic::algorithms::Cells4;
 using namespace nupic::algorithms::cla_classifier;
+using namespace nupic::algorithms::sdr_classifier;
 using namespace nupic;
 
 #define CHECKSIZE(var) \
@@ -1502,6 +1504,170 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
   %#else
     throw std::logic_error(
         "FastCLAClassifier.read is not implemented when compiled with CAPNP_LITE=1.");
+  %#endif
+  }
+
+}
+
+
+%include <nupic/algorithms/SDRClassifier.hpp>
+
+%pythoncode %{
+  import numpy
+%}
+
+%extend nupic::algorithms::sdr_classifier::SDRClassifier
+{
+  %pythoncode %{
+    VERSION = 1
+
+    def __init__(self, steps=(1,), alpha=0.001, actValueAlpha=0.3, verbosity=0):
+      self.this = _ALGORITHMS.new_SDRClassifier(
+          steps, alpha, actValueAlpha, verbosity)
+      self.valueToCategory = {}
+      self.version = SDRClassifier.VERSION
+
+    def compute(self, recordNum, patternNZ, classification, learn, infer):
+      isNone = False
+      noneSentinel = 3.14159
+
+      if type(classification["actValue"]) in (int, float):
+        actValue = classification["actValue"]
+        category = False
+      elif classification["actValue"] is None:
+        # Use the sentinel value so we know if it gets used in actualValues
+        # returned.
+        actValue = noneSentinel
+        # Turn learning off this step.
+        learn = False
+        category = False
+        # This does not get used when learning is disabled anyway.
+        classification["bucketIdx"] = 0
+        isNone = True
+      else:
+        actValue = int(classification["bucketIdx"])
+        category = True
+
+      result = self.convertedCompute(
+          recordNum, patternNZ, int(classification["bucketIdx"]),
+          actValue, category, learn, infer)
+
+      if isNone:
+        for i, v in enumerate(result["actualValues"]):
+          if v - noneSentinel < 0.00001:
+            result["actualValues"][i] = None
+      arrayResult = dict((k, numpy.array(v)) if k != "actualValues" else (k, v)
+                         for k, v in result.iteritems())
+
+      if self.valueToCategory or isinstance(classification["actValue"], basestring):
+        # Convert the bucketIdx back to the original value.
+        for i in xrange(len(arrayResult["actualValues"])):
+          if arrayResult["actualValues"][i] is not None:
+            arrayResult["actualValues"][i] = self.valueToCategory.get(int(
+                arrayResult["actualValues"][i]), classification["actValue"])
+
+        self.valueToCategory[actValue] = classification["actValue"]
+
+      return arrayResult
+
+    def __getstate__(self):
+      # Save the local attributes but override the C++ classifier with the
+      # string representation.
+      d = dict(self.__dict__)
+      d["this"] = self.getCState()
+      return d
+
+    def __setstate__(self, state):
+      # Create an empty C++ classifier and populate it from the serialized
+      # string.
+      self.this = _ALGORITHMS.new_SDRClassifier()
+      if isinstance(state, str):
+        self.loadFromString(state)
+        self.valueToCategory = {}
+      else:
+        assert state["version"] == self.VERSION
+        self.loadFromString(state["this"])
+        # Use the rest of the state to set local Python attributes.
+        del state["this"]
+        self.__dict__.update(state)
+
+    @classmethod
+    def read(cls, proto):
+      instance = cls()
+      instance.convertedRead(proto)
+      return instance
+  %}
+
+  void loadFromString(const std::string& inString)
+  {
+    std::istringstream inStream(inString);
+    self->load(inStream);
+  }
+
+  PyObject* getCState()
+  {
+    SharedPythonOStream py_s(self->persistentSize());
+    std::ostream& s = py_s.getStream();
+    // TODO: Consider writing floats as binary instead.
+    s.flags(ios::scientific);
+    s.precision(numeric_limits<double>::digits10 + 1);
+    self->save(s);
+    return py_s.close();
+  }
+
+  PyObject* convertedCompute(UInt recordNum, const vector<UInt>& patternNZ,
+                             UInt bucketIdx, Real64 actValue, bool category,
+                             bool learn, bool infer)
+  {
+    ClassifierResult result;
+    self->compute(recordNum, patternNZ, bucketIdx, actValue, category,
+                  learn, infer, &result);
+    PyObject* d = PyDict_New();
+    for (map<Int, vector<Real64>*>::const_iterator it = result.begin();
+         it != result.end(); ++it)
+    {
+      PyObject* key;
+      if (it->first == -1)
+      {
+        key = PyString_FromString("actualValues");
+      } else {
+        key = PyInt_FromLong(it->first);
+      }
+
+      PyObject* value = PyList_New(it->second->size());
+      for (UInt i = 0; i < it->second->size(); ++i)
+      {
+        PyObject* pyActValue = PyFloat_FromDouble(it->second->at(i));
+        PyList_SetItem(value, i, pyActValue);
+      }
+
+      PyDict_SetItem(d, key, value);
+      Py_DECREF(value);
+    }
+    return d;
+  }
+
+  inline void write(PyObject* pyBuilder) const
+  {
+  %#if !CAPNP_LITE
+    SdrClassifierProto::Builder proto =
+        getBuilder<SdrClassifierProto>(pyBuilder);
+    self->write(proto);
+  %#else
+    throw std::logic_error(
+        "SDRClassifier.write is not implemented when compiled with CAPNP_LITE=1.");
+  %#endif
+  }
+
+  inline void convertedRead(PyObject* pyReader)
+  {
+  %#if !CAPNP_LITE
+    SdrClassifierProto::Reader proto =
+        getReader<SdrClassifierProto>(pyReader);
+    self->read(proto);
+  %#else
+    throw std::logic_error(
+        "SDRClassifier.read is not implemented when compiled with CAPNP_LITE=1.");
   %#endif
   }
 
