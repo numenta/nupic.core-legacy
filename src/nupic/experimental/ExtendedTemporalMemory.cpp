@@ -1284,13 +1284,17 @@ vector<CellIdx> ExtendedTemporalMemory::getPredictiveCells() const
 {
   vector<CellIdx> predictiveCells;
 
+  // Workaround: on mingwpy Release builds, passing in "{}" to ExcitedColumns
+  // constructor leads to a segfault.
+  vector<UInt> columnsNone = {};
+
   // Use ExcitedColumns to group segments by column and cell. Don't trust the
   // ExcitedColumnData's "isActiveColumn", since we're not providing it the
   // active columns.
   for (const ExcitedColumnData& excitedColumn :
-         ExcitedColumns({}, activeBasalSegments_, matchingBasalSegments_,
-                        activeApicalSegments_, matchingApicalSegments_,
-                        cellsPerColumn_))
+         ExcitedColumns(columnsNone, activeBasalSegments_,
+                        matchingBasalSegments_, activeApicalSegments_,
+                        matchingApicalSegments_, cellsPerColumn_))
   {
     UInt32 maxDepolarization = 0;
     for (const DepolarizedCellData& c : DepolarizedCells(excitedColumn))
