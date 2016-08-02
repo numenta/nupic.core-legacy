@@ -40,8 +40,8 @@ namespace nupic
    *
    * Both functions take a key function for each sequence.
    *
-   * These functions return an iterable object. The iterator returns a tuple
-   * containing the group_by key, followed by a begin and end iterator for each
+   * Both functions return an iterable object. The iterator returns a tuple
+   * containing the key, followed by a begin and end iterator for each
    * sequence. The sequences are traversed lazily as the iterator is advanced.
    *
    * Feel free to add new GroupBy7, GroupBy8, ..., GroupByN classes as needed.
