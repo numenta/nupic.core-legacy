@@ -488,7 +488,7 @@ namespace nupic
           {
             for (UInt j = 0; j <= maxBucketIdx_; ++j)
             {
-              weightProto.set(k, stepWeightMatrix.second.at(i, j));
+              weightProto.set(idx, stepWeightMatrix.second.at(i, j));
               idx++;
             }
           }
