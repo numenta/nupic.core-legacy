@@ -860,7 +860,7 @@ static void learnOnCell(
                  prevActiveCells, externalCandidates,
                  permanenceIncrement, permanenceDecrement);
 
-    const UInt32 nGrowDesired = maxNewSynapseCount - bestMatching.overlap;
+    const Int32 nGrowDesired = maxNewSynapseCount - bestMatching.overlap;
     if (nGrowDesired > 0)
     {
       growSynapses(connections, rng,
