@@ -1,4 +1,24 @@
 #!/bin/bash
+# ----------------------------------------------------------------------
+# Numenta Platform for Intelligent Computing (NuPIC)
+# Copyright (C) 2016, Numenta, Inc.  Unless you have purchased from
+# Numenta, Inc. a separate commercial license for this software code, the
+# following terms and conditions apply:
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero Public License version 3 as
+# published by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+# See the GNU Affero Public License for more details.
+#
+# You should have received a copy of the GNU Affero Public License
+# along with this program.  If not, see http://www.gnu.org/licenses.
+#
+# http://numenta.org/licenses/
+# ----------------------------------------------------------------------
 
 # This script builds the manylinux x86_64 wide-unicode wheel per PEP-513. It
 # runs inside the manylinux1_x86_64 docker container (see
@@ -6,12 +26,6 @@
 # container has mapped its nupic.core root directory as a volume in the
 # container.
 #
-
-# Additional packages installed by .travis.yml that we might need
-#
-# cmake-data
-# python-virtualenv
-# python-numpy
 
 set -o errexit
 set -o xtrace
@@ -35,7 +49,10 @@ CXX="g++"
 PYBIN="/opt/python/cp27-cp27mu/bin"
 PATH="${PYBIN}:${PATH}"
 
-# Help python executable find its shared lib
+# Help python executable find its shared lib; unlike the community manylinux
+# docker image that builds statically-linked python, our custom manylinux image
+# builds python with libpython.so python library, because our current C++ tests
+# of python interfaces depending on having libpython.so.
 LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:$(dirname ${PYBIN})/lib"
 
 # Install pycapnp to get the headers capnp/helpers/checkCompiler.h, etc.
