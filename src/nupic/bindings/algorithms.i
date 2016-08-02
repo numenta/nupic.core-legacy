@@ -1585,7 +1585,7 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
         self.loadFromString(state)
         self.valueToCategory = {}
       else:
-        assert state["version"] == 0
+        assert state["version"] == self.VERSION
         self.loadFromString(state["this"])
         # Use the rest of the state to set local Python attributes.
         del state["this"]
