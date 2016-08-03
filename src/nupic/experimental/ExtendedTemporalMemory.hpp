@@ -119,7 +119,7 @@ namespace nupic {
           Permanence permanenceIncrement = 0.10,
           Permanence permanenceDecrement = 0.10,
           Permanence predictedSegmentDecrement = 0.0,
-          bool formInternalConnections = true,
+          bool formInternalBasalConnections = true,
           Int seed = 42,
           UInt maxSegmentsPerCell=255,
           UInt maxSynapsesPerSegment=255);
@@ -135,7 +135,7 @@ namespace nupic {
           Permanence permanenceIncrement = 0.10,
           Permanence permanenceDecrement = 0.10,
           Permanence predictedSegmentDecrement = 0.0,
-          bool formInternalConnections = true,
+          bool formInternalBasalConnections = true,
           Int seed = 42,
           UInt maxSegmentsPerCell=255,
           UInt maxSynapsesPerSegment=255);
@@ -184,11 +184,13 @@ namespace nupic {
          */
         void activateCells(
           const vector<UInt>& activeColumns,
-          const vector<CellIdx>& prevActiveExternalCells,
-          bool learn = true);
+          const vector<CellIdx>& prevActiveExternalCellsBasal,
+          const vector<CellIdx>& prevActiveExternalCellsApical,
+          bool learn);
 
         /**
-         * Calculate dendrite segment activity, using the current active cells.
+         * Calculate basal dendrite segment activity, using the current active
+         * cells.
          *
          * @param activeExternalCells
          * Active external cells that should be used for activating dendrites in
@@ -198,9 +200,37 @@ namespace nupic {
          * If true, segment activations will be recorded. This information is
          * used during segment cleanup.
          */
-        void activateDendrites(
+        void activateBasalDendrites(
           const vector<CellIdx>& activeExternalCells,
           bool learn = true);
+
+        /**
+         * Calculate apical dendrite segment activity, using the current active
+         * cells.
+         *
+         * @param activeExternalCells
+         * Active external cells that should be used for activating dendrites in
+         * this timestep.
+         *
+         * @param learn
+         * If true, segment activations will be recorded. This information is
+         * used during segment cleanup.
+         */
+        void activateApicalDendrites(
+          const vector<CellIdx>& activeExternalCells,
+          bool learn = true);
+
+        /**
+         * For backward-compatibility with TemporalMemory unit tests.
+         *
+         * Feeds input record through TM, performing inference and learning.
+         *
+         * @param activeColumnsSize Number of active columns
+         * @param activeColumns     Indices of active columns
+         * @param learn             Whether or not learning is enabled
+         */
+        virtual void compute(
+          UInt activeColumnsSize, const UInt activeColumns[], bool learn = true);
 
         /**
          * Feeds input record through TM, performing inference and learning.
@@ -208,25 +238,36 @@ namespace nupic {
          * @param activeColumnsUnsorted
          * A list of active column indices.
          *
-         * @param prevActiveExternalCells
-         * The external cells that were used to calculate the current segment
-         * excitation. This class doesn't save a copy of these cells because the
-         * caller is more flexible to find ways of keeping this list available
-         * without extra copying.
+         * @param prevActiveExternalCellsBasal
+         * The external cells that were used to calculate the current basal
+         * segment excitation. This class doesn't save a copy of these cells
+         * because the caller is more flexible to find ways of keeping this list
+         * available without extra copying.
          *
-         * @param activeExternalCells
-         * Active external cells that should be used for activating dendrites in
-         * this timestep.
+         * @param activeExternalCellsBasal
+         * Active external cells that should be used for activating basal
+         * dendrites in this timestep.
+         *
+         * @param prevActiveExternalCellsApical
+         * The external cells that were used to calculate the current apical
+         * segment excitation. This class doesn't save a copy of these cells
+         * because the caller is more flexible to find ways of keeping this list
+         * available without extra copying.
+         *
+         * @param activeExternalCellsApical
+         * Active external cells that should be used for activating apical
+         * dendrites in this timestep.
          *
          * @param learn
          * Whether or not learning is enabled
          */
         virtual void compute(
           const vector<UInt>& activeColumnsUnsorted,
-          const vector<CellIdx>& prevActiveExternalCells,
-          const vector<CellIdx>& activeExternalCells,
+          const vector<CellIdx>& prevActiveExternalCellsBasal,
+          const vector<CellIdx>& activeExternalCellsBasal,
+          const vector<CellIdx>& prevActiveExternalCellsApical,
+          const vector<CellIdx>& activeExternalCellsApical,
           bool learn = true);
-
 
         // ==============================
         //  Helper functions
@@ -269,15 +310,10 @@ namespace nupic {
         */
         vector<CellIdx> getWinnerCells() const;
 
-        /**
-        * Returns the indices of the matching cells.
-        *
-        * @returns (std::vector<CellIdx>) Vector of indices of matching cells.
-        */
-        vector<CellIdx> getMatchingCells() const;
-
-        vector<Segment> getActiveSegments() const;
-        vector<Segment> getMatchingSegments() const;
+        vector<Segment> getActiveBasalSegments() const;
+        vector<Segment> getMatchingBasalSegments() const;
+        vector<Segment> getActiveApicalSegments() const;
+        vector<Segment> getMatchingApicalSegments() const;
 
         /**
          * Returns the dimensions of the columns in the region.
@@ -343,10 +379,10 @@ namespace nupic {
         /**
          * Returns whether to form internal connections between cells.
          *
-         * @returns the formInternalConnections parameter
+         * @returns the formInternalBasalConnections parameter
          */
-        bool getFormInternalConnections() const;
-        void setFormInternalConnections(bool formInternalConnections);
+        bool getFormInternalBasalConnections() const;
+        void setFormInternalBasalConnections(bool formInternalBasalConnections);
 
         /**
          * Returns the permanence increment.
@@ -446,7 +482,7 @@ namespace nupic {
         UInt activationThreshold_;
         UInt minThreshold_;
         UInt maxNewSynapseCount_;
-        bool formInternalConnections_;
+        bool formInternalBasalConnections_;
         Permanence initialPermanence_;
         Permanence connectedPermanence_;
         Permanence permanenceIncrement_;
@@ -455,17 +491,20 @@ namespace nupic {
 
         vector<CellIdx> activeCells_;
         vector<CellIdx> winnerCells_;
-        vector<SegmentOverlap> activeSegments_;
-        vector<SegmentOverlap> matchingSegments_;
+        vector<SegmentOverlap> activeBasalSegments_;
+        vector<SegmentOverlap> matchingBasalSegments_;
+        vector<SegmentOverlap> activeApicalSegments_;
+        vector<SegmentOverlap> matchingApicalSegments_;
 
         Random rng_;
 
       public:
-        Connections connections;
+        Connections basalConnections;
+        Connections apicalConnections;
       };
 
     } // end namespace extended_temporal_memory
   } // end namespace algorithms
-} // end namespace nta
+} // end namespace nupic
 
 #endif // NTA_EXTENDED_TEMPORAL_MEMORY_HPP

@@ -507,6 +507,7 @@ add_executable(${src_executable_gtests}
                test/unit/engine/NetworkFactoryTest.cpp
                test/unit/engine/UniformLinkPolicyTest.cpp
                test/unit/engine/YAMLUtilsTest.cpp
+               test/unit/experimental/ExtendedTemporalMemoryTest.cpp
                test/unit/math/DenseTensorUnitTest.cpp
                test/unit/math/DomainUnitTest.cpp
                test/unit/math/IndexUnitTest.cpp
@@ -536,6 +537,7 @@ add_executable(${src_executable_gtests}
                test/unit/types/ExceptionTest.cpp
                test/unit/types/FractionTest.cpp
                test/unit/UnitTestMain.cpp
+               test/unit/utils/GroupByTest.cpp
                test/unit/utils/MovingAverageTest.cpp
                test/unit/utils/RandomTest.cpp
                test/unit/utils/WatcherTest.cpp)

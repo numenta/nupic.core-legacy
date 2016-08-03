@@ -18,28 +18,19 @@ struct ExtendedTemporalMemoryProto {
   maxNewSynapseCount @7 :UInt32;
   permanenceIncrement @8 :Float32;
   permanenceDecrement @9 :Float32;
+  formInternalBasalConnections @10 :Bool;
 
-  connections @10 :ConnectionsProto;
-  random @11 :RandomProto;
+  basalConnections @11 :ConnectionsProto;
+  apicalConnections @12 :ConnectionsProto;
+  random @13 :RandomProto;
 
   # Lists of indices
-  activeCells @12 :List(UInt32);
-
-  # Obsolete, information contained in activeSegmentOverlaps
-  predictiveCells @13 :List(UInt32);
-
-  # Obsolete, replaced by activeSegmentOverlaps
-  activeSegments @14 :List(UInt32);
-
+  activeCells @14 :List(UInt32);
   winnerCells @15 :List(UInt32);
 
-  # Obsolete, replaced by matchingSegmentOverlaps
-  matchingSegments @16 :List(UInt32);
-
-  # Obsolete, information contained in matchingSegmentOverlaps
-  matchingCells @17 :List(UInt32);
-
-  predictedSegmentDecrement @18 :Float32;
-  activeSegmentOverlaps @19 :List(SegmentOverlapProto);
-  matchingSegmentOverlaps @20 :List(SegmentOverlapProto);
+  predictedSegmentDecrement @16 :Float32;
+  activeBasalSegmentOverlaps @17 :List(SegmentOverlapProto);
+  matchingBasalSegmentOverlaps @18 :List(SegmentOverlapProto);
+  activeApicalSegmentOverlaps @19 :List(SegmentOverlapProto);
+  matchingApicalSegmentOverlaps @20 :List(SegmentOverlapProto);
 }
