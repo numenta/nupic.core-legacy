@@ -24,6 +24,7 @@
 #define NTA_GROUP_BY_HPP
 
 #include <tuple>
+#include <algorithm> // is_sorted
 
 #include <nupic/utils/Log.hpp>
 
