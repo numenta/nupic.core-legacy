@@ -142,6 +142,10 @@ using namespace nupic;
 
 %}
 
+%pythoncode %{
+  import capnp
+%}
+
 // %pythoncode %{
 //   import numpy
 //   from bindings import math

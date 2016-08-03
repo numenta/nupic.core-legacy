@@ -110,6 +110,10 @@ using namespace nupic;
 %}
 
 %pythoncode %{
+  import capnp
+%}
+
+%pythoncode %{
   uintDType = "uint32"
 %}
 

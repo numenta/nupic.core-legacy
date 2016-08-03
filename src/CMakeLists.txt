@@ -215,6 +215,10 @@ set(src_capnp_specs_rel
   nupic/proto/VectorFileSensorProto.capnp
 )
 
+# TODO it seems that building of this information should be abstracted by the
+# implementation of function CREATE_CAPNPC_COMMAND in external/CapnpProto.cmake,
+# which would use an output variable to return the contents of src_capnp_srcs
+# for linking.
 foreach(spec ${src_capnp_specs_rel})
   list(APPEND src_capnp_specs ${PROJECT_SOURCE_DIR}/${spec})
   list(APPEND src_capnp_hdrs ${PROJECT_BINARY_DIR}/${spec}.h)
@@ -264,8 +268,8 @@ endif()
 #
 set(src_lib_static_nupiccore_solo nupic_core_solo)
 
-set(src_common_libs
-  ${CAPNP_LINK_LIBRARIES})
+#set(src_common_libs
+#  ${CAPNP_LINK_LIBRARIES})
 
 if("${PLATFORM}" STREQUAL "linux")
   list(APPEND src_common_os_libs pthread dl)
@@ -362,8 +366,16 @@ set(src_lib_static_nupiccore_solo_link_libs
     ${LIB_STATIC_APR1_LOC}
     ${LIB_STATIC_APRUTIL1_LOC}
     ${LIB_STATIC_Z_LOC}
-    ${src_common_libs}
     ${src_common_os_libs})
+
+# Add capnproto static libs to the nupic.core static lib; NOTE we skip this when
+# generating python extensions to force dynamic linkage to pycapnp's capnp
+# symbols at nupic.bindings load-time, thus avoiding the conflict from executing
+# the methods in our own compilation of capnproto (different compiler, flags,
+# etc.) on objects created by pycapnp's.
+if (NOT ${NUPIC_BUILD_PYEXT_MODULES})
+  list(APPEND src_lib_static_nupiccore_solo_link_libs ${CAPNP_LINK_LIBRARIES})
+endif() # ${NUPIC_BUILD_PYEXT_MODULES}
 
 set(src_lib_static_nupiccore_compile_flags
     "${src_compile_flags} -I${src_numpy_core}/include")
@@ -402,9 +414,16 @@ endif()
 # Common libs for test executables
 set(src_common_test_exe_libs
     ${src_lib_static_nupiccore_solo}
-    ${src_common_libs}
     ${PYTHON_LIBRARIES}
 )
+
+# Add capnproto static libs to our C/C++ test apps when building python
+# extensions, since capnproto is excluded from src_lib_static_nupiccore_solo to
+# avoid conflict with capnproto methods compiled into the pycapnp extension.
+if (${NUPIC_BUILD_PYEXT_MODULES})
+  list(APPEND src_common_test_exe_libs ${CAPNP_LINK_LIBRARIES})
+endif() # ${NUPIC_BUILD_PYEXT_MODULES}
+
 
 #
 # Setup test_cpp_region
@@ -679,6 +698,12 @@ if (${NUPIC_BUILD_PYEXT_MODULES})
 
   # NOTE Python extensions shouldn't be linking agains libpython; symbols should
   # be available automatically when python loads the extension.
+  #
+  # NOTE We don't link our python extensions with capnproto static libs to force
+  # dynamic linkage to pycapnp's capnp symbols at nupic.bindings load-time and
+  # avoid the conflict of executing the methods in our own compilation of
+  # capnproto (different compiler/version, flags, etc.) on objects created by
+  # pycapnp's.
   set(src_swig_link_libraries
       ${src_lib_static_nupiccore_combined}
       ${src_common_os_libs})
@@ -689,10 +714,6 @@ if (${NUPIC_BUILD_PYEXT_MODULES})
     # platform
     list(APPEND src_swig_link_libraries ${PYTHON_LIBRARIES})
   endif()
-
-  set(src_swig_link_libraries
-      ${src_swig_link_libraries}
-      ${CAPNP_LINK_LIBRARIES})
 
   message(STATUS "src_swig_link_libraries = ${src_swig_link_libraries}")
 

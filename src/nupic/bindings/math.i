@@ -88,6 +88,10 @@ _MATH = _math
 #endif
 %}
 
+%pythoncode %{
+	import capnp
+%}
+
 %naturalvar;
 
 %{
@@ -100,7 +104,7 @@ _MATH = _math
 
 // Perform necessary library initialization (in C++).
 import_array();
-  
+
 %}
 
 %include <nupic/bindings/types.i>
@@ -171,7 +175,7 @@ import_array();
 		  x_min, x_max, 1, 65535);
     return y.forPython();
   }
-  */ 
+  */
 
   PyObject* winnerTakesAll_3(size_t k, size_t seg_size, PyObject* py_x)
   {
