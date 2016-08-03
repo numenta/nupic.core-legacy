@@ -34,6 +34,12 @@ using std::vector;
 using nupic::group_by;
 using nupic::iter_group_by;
 
+// GCC warns that `key` might be uninitialized when initializing the
+// `actualValue`
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunknown-pragmas"
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+
 namespace {
 
   struct ReturnValue1 {
@@ -498,3 +504,5 @@ namespace {
     EXPECT_EQ(expectedValues.size(), i);
   }
 }
+
+#pragma GCC diagnostic pop
