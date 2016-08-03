@@ -20,9 +20,16 @@
  * ----------------------------------------------------------------------
  */
 
+#ifndef NTA_GROUP_BY_HPP
+#define NTA_GROUP_BY_HPP
+
 #include <tuple>
 
 #include <nupic/utils/Log.hpp>
+
+// GCC warns that `key` might be uninitialized in the `calculateNext_` methods.
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 
 namespace nupic
 {
@@ -1239,3 +1246,7 @@ namespace nupic
   }
 
 } // end namespace nupic
+
+#pragma GCC diagnostic pop
+
+#endif // NTA_GROUP_BY_HPP
