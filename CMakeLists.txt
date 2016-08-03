@@ -44,6 +44,12 @@ endif()
 
 
 #
+# Global NuPIC CMake options
+#
+option(NUPIC_BUILD_PYEXT_MODULES "Turn on building of python extension modules for nupic.bindings"
+       ON)
+
+#
 # Identify build type - local or deployment (Travis)
 # the variable NUPIC_DEPLOYMENT_BUILD must be set in travis CI scripts
 #

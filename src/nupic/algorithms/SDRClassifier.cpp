@@ -53,8 +53,8 @@ namespace nupic
           const vector<UInt>& steps, Real64 alpha, Real64 actValueAlpha,
           UInt verbosity) : steps_(steps), alpha_(alpha),
           actValueAlpha_(actValueAlpha), maxInputIdx_(0), maxBucketIdx_(0),
-          actualValues_({0.0}), actualValuesSet_({false}), version_(Version),
-          verbosity_(verbosity)
+          actualValues_({0.0}), actualValuesSet_({false}),
+          version_(sdrClassifierVersion), verbosity_(verbosity)
       {
         sort(steps_.begin(), steps_.end());
         if (steps_.size() > 0)
@@ -435,7 +435,7 @@ namespace nupic
         NTA_CHECK(marker == "~SDRClassifier");
 
         // Update the version number.
-        version_ = Version;
+        version_ = sdrClassifierVersion;
       }
 
       void SDRClassifier::write(SdrClassifierProto::Builder& proto) const 
@@ -488,7 +488,7 @@ namespace nupic
           {
             for (UInt j = 0; j <= maxBucketIdx_; ++j)
             {
-              weightProto.set(k, stepWeightMatrix.second.at(i, j));
+              weightProto.set(idx, stepWeightMatrix.second.at(i, j));
               idx++;
             }
           }

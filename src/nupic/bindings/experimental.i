@@ -132,6 +132,15 @@ using namespace nupic;
   }
 %}
 
+%pythoncode %{
+  import numpy
+
+  # Without this, Python scripts that haven't imported nupic.bindings.algorithms
+  # will get a SwigPyObject rather than a SWIG-wrapped Connections instance
+  # when accessing the ExtendedTemporalMemory's connections.
+  import nupic.bindings.algorithms
+%}
+
 %extend nupic::experimental::extended_temporal_memory::ExtendedTemporalMemory
 {
   %pythoncode %{
@@ -146,17 +155,25 @@ using namespace nupic;
                  permanenceIncrement=0.10,
                  permanenceDecrement=0.10,
                  predictedSegmentDecrement=0.00,
-                 formInternalConnections=True,
+                 formInternalBasalConnections=True,
                  maxSegmentsPerCell=255,
                  maxSynapsesPerSegment=255,
-                 seed=42):
-      self.this = _EXPERIMENTAL.new_ExtendedTemporalMemory()
-      _EXPERIMENTAL.ExtendedTemporalMemory_initialize(
-        self, columnDimensions, cellsPerColumn, activationThreshold,
+                 seed=42,
+                 learnOnOneCell=False):
+      if learnOnOneCell:
+        raise ValueError("learnOnOneCell is not supported")
+
+      self.this = _EXPERIMENTAL.new_ExtendedTemporalMemory(
+        columnDimensions, cellsPerColumn, activationThreshold,
         initialPermanence, connectedPermanence,
         minThreshold, maxNewSynapseCount, permanenceIncrement,
-        permanenceDecrement, predictedSegmentDecrement, formInternalConnections,
-        seed, maxSegmentsPerCell, maxSynapsesPerSegment)
+        permanenceDecrement, predictedSegmentDecrement,
+        formInternalBasalConnections, seed, maxSegmentsPerCell,
+        maxSynapsesPerSegment)
+
+      self.activeExternalCellsBasal = numpy.array([], dtype=uintDType)
+      self.activeExternalCellsApical = numpy.array([], dtype=uintDType)
+      self.connections = self.basalConnections
 
     def __getstate__(self):
       # Save the local attributes but override the C++ temporal memory with the
@@ -177,6 +194,38 @@ using namespace nupic;
         # Use the rest of the state to set local Python attributes.
         del state["this"]
         self.__dict__.update(state)
+
+    def compute(self,
+                activeColumns,
+                activeExternalCells=None,
+                activeApicalCells=None,
+                formInternalConnections=True,
+                learn=True):
+      activeColumnsArray = numpy.array(list(activeColumns), dtype=uintDType)
+      activeExternalCellsBasal = numpy.array((sorted(activeExternalCells)
+                                              if activeExternalCells is not None
+                                              else []),
+                                             dtype=uintDType)
+      activeExternalCellsApical = numpy.array((sorted(activeApicalCells)
+                                               if activeApicalCells is not None
+                                               else []),
+                                              dtype=uintDType)
+
+      _EXPERIMENTAL.ExtendedTemporalMemory_setFormInternalBasalConnections(
+        self, formInternalConnections)
+
+      _EXPERIMENTAL.ExtendedTemporalMemory_compute(
+        self, activeColumnsArray, self.activeExternalCellsBasal,
+        activeExternalCellsBasal, self.activeExternalCellsApical,
+        activeExternalCellsApical, learn)
+
+      self.activeExternalCellsBasal = activeExternalCellsBasal
+      self.activeExternalCellsApical = activeExternalCellsApical
+
+    def reset(self):
+      self.activeExternalCellsBasal = numpy.array([], dtype=uintDType)
+      self.activeExternalCellsApical = numpy.array([], dtype=uintDType)
+      _EXPERIMENTAL.ExtendedTemporalMemory_reset(self)
 
     @classmethod
     def read(cls, proto):
@@ -200,12 +249,6 @@ using namespace nupic;
   inline PyObject* getWinnerCells()
   {
     const vector<CellIdx> cellIdxs = self->getWinnerCells();
-    return vectorToList(cellIdxs);
-  }
-
-  inline PyObject* getMatchingCells()
-  {
-    const vector<CellIdx> cellIdxs = self->getMatchingCells();
     return vectorToList(cellIdxs);
   }
 
@@ -260,7 +303,6 @@ using namespace nupic;
 %ignore nupic::experimental::extended_temporal_memory::ExtendedTemporalMemory::getActiveCells;
 %ignore nupic::experimental::extended_temporal_memory::ExtendedTemporalMemory::getPredictiveCells;
 %ignore nupic::experimental::extended_temporal_memory::ExtendedTemporalMemory::getWinnerCells;
-%ignore nupic::experimental::extended_temporal_memory::ExtendedTemporalMemory::getMatchingCells;
 %ignore nupic::experimental::extended_temporal_memory::ExtendedTemporalMemory::cellsForColumn;
 
 %include <nupic/experimental/ExtendedTemporalMemory.hpp>
