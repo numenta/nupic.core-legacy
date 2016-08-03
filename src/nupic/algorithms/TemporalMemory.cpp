@@ -147,7 +147,10 @@ void TemporalMemory::initialize(
     maxSynapsesPerSegment);
   seed_((UInt64)(seed < 0 ? rand() : seed));
 
-  reset();
+  activeCells_.clear();
+  winnerCells_.clear();
+  activeSegments_.clear();
+  matchingSegments_.clear();
 }
 
 static CellIdx getLeastUsedCell(
@@ -499,9 +502,9 @@ void TemporalMemory::compute(
 void TemporalMemory::reset(void)
 {
   activeCells_.clear();
+  winnerCells_.clear();
   activeSegments_.clear();
   matchingSegments_.clear();
-  winnerCells_.clear();
 }
 
 // ==============================
