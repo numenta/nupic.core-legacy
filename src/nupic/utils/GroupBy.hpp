@@ -52,6 +52,9 @@ namespace nupic
    * containing the key, followed by a begin and end iterator for each
    * sequence. The sequences are traversed lazily as the iterator is advanced.
    *
+   * Note: It's called "group_by" and "iter_group_by" in snake_case because it's
+   * designed to feel like an STL function, like "is_sorted" or "iter_swap".
+   *
    * Feel free to add new GroupBy7, GroupBy8, ..., GroupByN classes as needed.
    */
 

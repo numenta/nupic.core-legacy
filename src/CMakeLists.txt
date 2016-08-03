@@ -537,6 +537,7 @@ add_executable(${src_executable_gtests}
                test/unit/types/ExceptionTest.cpp
                test/unit/types/FractionTest.cpp
                test/unit/UnitTestMain.cpp
+               test/unit/utils/GroupByTest.cpp
                test/unit/utils/MovingAverageTest.cpp
                test/unit/utils/RandomTest.cpp
                test/unit/utils/WatcherTest.cpp)
