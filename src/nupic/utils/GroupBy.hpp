@@ -29,7 +29,8 @@
 
 // GCC warns that `key` might be uninitialized in the `calculateNext_` methods.
 #pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wuninitialized"
+#pragma GCC diagnostic ignored "-Wunknown-pragmas"
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 
 namespace nupic
 {
