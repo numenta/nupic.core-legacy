@@ -37,7 +37,7 @@ using namespace std;
 using namespace nupic;
 using namespace nupic::algorithms::connections;
 
-#define EPSILON .00001
+static const Permanence EPSILON = 0.00001;
 
 Connections::Connections(UInt32 numCells,
                          SegmentIdx maxSegmentsPerCell,
@@ -742,14 +742,14 @@ void SegmentExcitationTally::addActivePresynapticCell(CellIdx cell)
 
       NTA_ASSERT(synapseData.permanence > 0);
 
-      if (synapseData.permanence - matchingPermanenceThreshold_ > -EPSILON)
+      if (synapseData.permanence >= matchingPermanenceThreshold_ - EPSILON)
       {
         const SegmentData& segmentData =
           connections_.dataForSegment_(synapse.segment);
 
         ++numMatchingSynapsesForSegment_[segmentData.flatIdx];
 
-        if (synapseData.permanence - activePermanenceThreshold_ > -EPSILON)
+        if (synapseData.permanence >= activePermanenceThreshold_ - EPSILON)
         {
           ++numActiveSynapsesForSegment_[segmentData.flatIdx];
         }
