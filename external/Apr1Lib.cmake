@@ -58,7 +58,8 @@ if (UNIX)
         PATCH_COMMAND ""
 
         CONFIGURE_COMMAND
-            <SOURCE_DIR>/configure ${EXTERNAL_STATICLIB_CONFIGURE_DEFINITIONS_OPTIMIZED_STR}
+            <SOURCE_DIR>/configure
+                ${EXTERNAL_STATICLIB_CONFIGURE_DEFINITIONS_OPTIMIZED}
                 --prefix=${aprlib_install_prefix}
                 ${aprlib_config_options}
                 CFLAGS=${aprlib_cflags}
