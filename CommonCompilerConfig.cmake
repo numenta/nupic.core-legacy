@@ -254,7 +254,7 @@ else()
   endif()
 
   set(shared_compile_flags "${shared_compile_flags} ${stdlib_common} -fdiagnostics-show-option")
-  set (internal_compiler_warning_flags "${internal_compiler_warning_flags} -Werror -Wextra -Wreturn-type -Wunused -Wno-unused-variable -Wno-unused-parameter -Wno-missing-field-initializers")
+  set (internal_compiler_warning_flags "${internal_compiler_warning_flags} -Werror -Wextra -Wreturn-type -Wunused -Wno-unused-variable -Wno-unused-parameter -Wno-missing-field-initializers -Wno-maybe-uninitialized")
   set (external_compiler_warning_flags "${external_compiler_warning_flags} -Wno-unused-variable -Wno-unused-parameter -Wno-incompatible-pointer-types -Wno-deprecated-declarations")
 
   CHECK_CXX_COMPILER_FLAG(-m${BITNESS} compiler_supports_machine_option)

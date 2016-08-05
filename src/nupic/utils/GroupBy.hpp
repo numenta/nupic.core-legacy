@@ -28,11 +28,6 @@
 
 #include <nupic/utils/Log.hpp>
 
-// GCC warns that `key` might be uninitialized in the `calculateNext_` methods.
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunknown-pragmas"
-#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
-
 namespace nupic
 {
   /** @file
@@ -1251,7 +1246,5 @@ namespace nupic
   }
 
 } // end namespace nupic
-
-#pragma GCC diagnostic pop
 
 #endif // NTA_GROUP_BY_HPP
