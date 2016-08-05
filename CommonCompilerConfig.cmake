@@ -56,8 +56,9 @@
 #                      EXTERNAL_C_FLAGS_OPTIMIZED (e. g. use of gcc-ar and gcc-ranlib wrappers for gcc >= 4.9
 #                      in combination with Link Time Optimization)
 #
-# EXTERNAL_STATICLIB_CONFIGURE_DEFINITIONS_OPTIMIZED_STR: string variant of EXTERNAL_STATICLIB_CMAKE_DEFINITIONS_OPTIMIZED
-#                      used for non-cmake builds
+# EXTERNAL_STATICLIB_CONFIGURE_DEFINITIONS_OPTIMIZED: variant of
+#                      EXTERNAL_STATICLIB_CMAKE_DEFINITIONS_OPTIMIZED used for
+#                      configure-based builds
 #
 # INTERNAL_CXX_FLAGS_OPTIMIZED: string of C++ flags with explicit optimization flags for internal sources
 #
@@ -107,7 +108,7 @@ set(EXTERNAL_LINKER_FLAGS_UNOPTIMIZED)
 set(EXTERNAL_LINKER_FLAGS_OPTIMIZED)
 
 set(EXTERNAL_STATICLIB_CMAKE_DEFINITIONS_OPTIMIZED)
-set(EXTERNAL_STATICLIB_CONFIGURE_DEFINITIONS_OPTIMIZED_STR "")
+set(EXTERNAL_STATICLIB_CONFIGURE_DEFINITIONS_OPTIMIZED)
 
 # Identify platform "bitness".
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
@@ -300,17 +301,24 @@ if(NOT "${PLATFORM}" STREQUAL "windows")
 endif()
 
 
-# Compatibility with gcc >= 4.9 which requires the use of gcc's own wrappers for ar and ranlib in combination with LTO
-# works also with LTO disabled
+# Compatibility with gcc >= 4.9 which requires the use of gcc's own wrappers for
+# ar and ranlib in combination with LTO works also with LTO disabled
 IF(UNIX AND CMAKE_COMPILER_IS_GNUCXX AND (NOT "${CMAKE_BUILD_TYPE}" STREQUAL "Debug") AND
-      (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "4.9" OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "4.9"))
+      (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "4.9" OR
+       CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "4.9"))
     set(CMAKE_AR "gcc-ar")
     set(CMAKE_RANLIB "gcc-ranlib")
-    # EXTERNAL_STATICLIB_CMAKE_DEFINITIONS_OPTIMIZED contains duplicate settings for CMAKE_AR and CMAKE_RANLIB
-    # This is a workaround for a CMAKE bug (https://gitlab.kitware.com/cmake/cmake/issues/15547) that prevents
-    # the correct propagation of CMAKE_AR and CMAKE_RANLIB variables to all externals
-    set(EXTERNAL_STATICLIB_CMAKE_DEFINITIONS_OPTIMIZED -DCMAKE_AR:PATH=gcc-ar -DCMAKE_RANLIB:PATH=gcc-ranlib)
-    set(EXTERNAL_STATICLIB_CONFIGURE_DEFINITIONS_OPTIMIZED_STR "AR=gcc-ar RANLIB=gcc-ranlib")
+    # EXTERNAL_STATICLIB_CMAKE_DEFINITIONS_OPTIMIZED duplicates settings for
+    # CMAKE_AR and CMAKE_RANLIB. This is a workaround for a CMAKE bug
+    # (https://gitlab.kitware.com/cmake/cmake/issues/15547) that prevents
+    # the correct propagation of CMAKE_AR and CMAKE_RANLIB variables to all
+    # externals
+    list(APPEND EXTERNAL_STATICLIB_CMAKE_DEFINITIONS_OPTIMIZED
+         -DCMAKE_AR:PATH=gcc-ar
+         -DCMAKE_RANLIB:PATH=gcc-ranlib)
+    list(APPEND EXTERNAL_STATICLIB_CONFIGURE_DEFINITIONS_OPTIMIZED
+         AR=gcc-ar
+         RANLIB=gcc-ranlib)
 ENDIF()
 
 #
@@ -387,4 +395,4 @@ message(STATUS "EXTERNAL_LINKER_FLAGS_OPTIMIZED=${EXTERNAL_LINKER_FLAGS_OPTIMIZE
 message(STATUS "COMMON_COMPILER_DEFINITIONS=${COMMON_COMPILER_DEFINITIONS}")
 message(STATUS "COMMON_COMPILER_DEFINITIONS_STR=${COMMON_COMPILER_DEFINITIONS_STR}")
 message(STATUS "EXTERNAL_STATICLIB_CMAKE_DEFINITIONS_OPTIMIZED=${EXTERNAL_STATICLIB_CMAKE_DEFINITIONS_OPTIMIZED}")
-message(STATUS "EXTERNAL_STATICLIB_CONFIGURE_DEFINITIONS_OPTIMIZED_STR=${EXTERNAL_STATICLIB_CONFIGURE_DEFINITIONS_OPTIMIZED_STR}")
+message(STATUS "EXTERNAL_STATICLIB_CONFIGURE_DEFINITIONS_OPTIMIZED=${EXTERNAL_STATICLIB_CONFIGURE_DEFINITIONS_OPTIMIZED}")
