@@ -88,7 +88,6 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   ExternalProject_Add(CapnProtoTools
     DEPENDS CapnProto
 
-    #URL https://capnproto.org/capnproto-c++-win32-0.5.3.zip
     URL ${capnproto_win32_tools_url}
 
     CONFIGURE_COMMAND ""
@@ -103,17 +102,26 @@ endif()
 
 function(CREATE_CAPNPC_COMMAND
          GROUP_NAME SPEC_FILES SRC_PREFIX INCLUDE_DIR TARGET_DIR OUTPUT_FILES)
+  # Creates the custom target named ${GROUP_NAME} that runs the capnp compiler
+  # on ${SPEC_FILES} and generates ${OUTPUT_FILES} in directory ${TARGET_DIR}
+
+  set(dependencies ${SPEC_FILES} CapnProto)
+
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    list(APPEND dependencies CapnProtoTools)
+  endif()
+
   add_custom_command(
     OUTPUT ${OUTPUT_FILES}
     COMMAND ${CAPNP_EXECUTABLE}
         compile -o ${CAPNPC_CXX_EXECUTABLE}:${TARGET_DIR}
         --src-prefix ${SRC_PREFIX} -I ${INCLUDE_DIR}
         ${SPEC_FILES}
-    DEPENDS CapnProto
+    DEPENDS ${dependencies}
     COMMENT "Executing Cap'n Proto compiler"
   )
 
-  add_custom_target(${GROUP_NAME} ALL SOURCES ${SPEC_FILES})
+  add_custom_target(${GROUP_NAME} DEPENDS ${OUTPUT_FILES} SOURCES ${SPEC_FILES})
 endfunction(CREATE_CAPNPC_COMMAND)
 
 # Set the relevant variables in the parent scope.

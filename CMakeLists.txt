@@ -46,8 +46,11 @@ endif()
 #
 # Global NuPIC CMake options
 #
-option(NUPIC_BUILD_PYEXT_MODULES "Turn on building of python extension modules for nupic.bindings"
+option(NUPIC_BUILD_PYEXT_MODULES
+       "Turn on building of python extension modules for nupic.bindings; turn off to build only static nupic_core lib with full symbol visibility."
        ON)
+
+message(STATUS "NUPIC_BUILD_PYEXT_MODULES = ${NUPIC_BUILD_PYEXT_MODULES}")
 
 #
 # Identify build type - local or deployment (Travis)

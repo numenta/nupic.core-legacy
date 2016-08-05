@@ -190,6 +190,16 @@ if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
     # priority over its static counterpart implicitly when `-static-libstdc++`
     # is omitted.
     set(stdlib_common "${stdlib_common} -shared-libgcc")
+
+#    # NOTE trying static versions, since using shared (particularly for
+#    # litstdc++) results in ABI mismatches when running the manylinux wheel
+#    # build on newer system with updated c++ ABI (read: some exceptions, such as
+#    # ios_base::failure, can't be caught when running manylinux wheel build on
+#    # newer distros that implement the c++11 ABI changes)
+#    # ZZZ this is work in progress to be completed immediately after this PR.
+#    set(stdlib_common "${stdlib_common} -static-libgcc")
+#    set(stdlib_cxx "${stdlib_cxx} -static-libstdc++")
+
   else()
     set(stdlib_common "${stdlib_common} -static-libgcc")
     set(stdlib_cxx "${stdlib_cxx} -static-libstdc++")
@@ -316,6 +326,7 @@ IF(UNIX AND CMAKE_COMPILER_IS_GNUCXX AND (NOT "${CMAKE_BUILD_TYPE}" STREQUAL "De
     list(APPEND EXTERNAL_STATICLIB_CMAKE_DEFINITIONS_OPTIMIZED
          -DCMAKE_AR:PATH=gcc-ar
          -DCMAKE_RANLIB:PATH=gcc-ranlib)
+    # And ditto for externals that use the configure-based build system
     list(APPEND EXTERNAL_STATICLIB_CONFIGURE_DEFINITIONS_OPTIMIZED
          AR=gcc-ar
          RANLIB=gcc-ranlib)
