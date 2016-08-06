@@ -254,7 +254,7 @@ else()
   endif()
 
   set(shared_compile_flags "${shared_compile_flags} ${stdlib_common} -fdiagnostics-show-option")
-  set (internal_compiler_warning_flags "${internal_compiler_warning_flags} -Werror -Wextra -Wreturn-type -Wunused -Wno-unused-variable -Wno-unused-parameter -Wno-missing-field-initializers -Wno-maybe-uninitialized")
+  set (internal_compiler_warning_flags "${internal_compiler_warning_flags} -Werror -Wextra -Wreturn-type -Wunused -Wno-unused-variable -Wno-unused-parameter -Wno-missing-field-initializers")
   set (external_compiler_warning_flags "${external_compiler_warning_flags} -Wno-unused-variable -Wno-unused-parameter -Wno-incompatible-pointer-types -Wno-deprecated-declarations")
 
   CHECK_CXX_COMPILER_FLAG(-m${BITNESS} compiler_supports_machine_option)
@@ -277,6 +277,15 @@ else()
   endif()
 
   set(shared_linker_flags_unoptimized "${shared_linker_flags_unoptimized} ${stdlib_common} ${stdlib_cxx}")
+endif()
+
+if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
+  # "maybe-uninitialized" has lots of false positives:
+  # http://stackoverflow.com/a/14132910/396534
+  #
+  # For example, in GroupBy.hpp it warns that "KeyType key;" might
+  # never be assigned anything, which is not true.
+  set (internal_compiler_warning_flags "${internal_compiler_warning_flags} -Wno-maybe-uninitialized")
 endif()
 
 # Don't allow undefined symbols when linking executables
