@@ -265,15 +265,8 @@ namespace nupic
 
           if (current0_ != end0_)
           {
-            if (found)
-            {
-              key = std::min(key, keyFn0_(*current0_));
-            }
-            else
-            {
-              key = keyFn0_(*current0_);
-              found = true;
-            }
+            key = keyFn0_(*current0_);
+            found = true;
           }
 
           if (current1_ != end1_)
@@ -466,15 +459,8 @@ namespace nupic
 
           if (current0_ != end0_)
           {
-            if (found)
-            {
-              key = std::min(key, keyFn0_(*current0_));
-            }
-            else
-            {
-              key = keyFn0_(*current0_);
-              found = true;
-            }
+            key = keyFn0_(*current0_);
+            found = true;
           }
 
           if (current1_ != end1_)
@@ -722,15 +708,8 @@ namespace nupic
 
           if (current0_ != end0_)
           {
-            if (found)
-            {
-              key = std::min(key, keyFn0_(*current0_));
-            }
-            else
-            {
-              key = keyFn0_(*current0_);
-              found = true;
-            }
+            key = keyFn0_(*current0_);
+            found = true;
           }
 
           if (current1_ != end1_)
@@ -1031,15 +1010,8 @@ namespace nupic
 
           if (current0_ != end0_)
           {
-            if (found)
-            {
-              key = std::min(key, keyFn0_(*current0_));
-            }
-            else
-            {
-              key = keyFn0_(*current0_);
-              found = true;
-            }
+            key = keyFn0_(*current0_);
+            found = true;
           }
 
           if (current1_ != end1_)
