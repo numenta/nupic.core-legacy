@@ -31,7 +31,7 @@
 // This file causes GCC "maybe-uninitialized" false positives.
 #ifdef __GNUC__
 #ifndef __clang__ // GCC
-#define GCC_UNINITIALIZED_VAR(x) x = x
+#define GCC_UNINITIALIZED_VAR(x) x = {}
 #else // clang
 #define GCC_UNINITIALIZED_VAR(x) x
 #endif
