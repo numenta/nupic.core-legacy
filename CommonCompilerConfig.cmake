@@ -279,15 +279,6 @@ else()
   set(shared_linker_flags_unoptimized "${shared_linker_flags_unoptimized} ${stdlib_common} ${stdlib_cxx}")
 endif()
 
-if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
-  # "maybe-uninitialized" has lots of false positives:
-  # http://stackoverflow.com/a/14132910/396534
-  #
-  # For example, in GroupBy.hpp it warns that "KeyType key;" might
-  # never be assigned anything, which is not true.
-  set (internal_compiler_warning_flags "${internal_compiler_warning_flags} -Wno-maybe-uninitialized")
-endif()
-
 # Don't allow undefined symbols when linking executables
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
   set(fail_link_on_undefined_symbols_flags "-Wl,--no-undefined")

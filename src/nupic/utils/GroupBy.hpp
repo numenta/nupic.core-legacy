@@ -28,6 +28,17 @@
 
 #include <nupic/utils/Log.hpp>
 
+// This file causes GCC "maybe-uninitialized" false positives.
+#ifdef __GNUC__
+#ifndef __clang__ // GCC
+#define GCC_UNINITIALIZED_VAR(x) x = x
+#else // clang
+#define GCC_UNINITIALIZED_VAR(x) x
+#endif
+#else // something else
+#define GCC_UNINITIALIZED_VAR(x) x
+#endif
+
 namespace nupic
 {
   /** @file
