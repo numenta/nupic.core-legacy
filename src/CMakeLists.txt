@@ -218,13 +218,13 @@ set(src_capnp_specs_rel
 # TODO it seems that building of this information (src_capnp_specs, etc.) should
 # be abstracted by the implementation of function CREATE_CAPNPC_COMMAND in
 # external/CapnpProto.cmake, which would use an output variable to return the
-# contents of src_capnp_srcs for linking.
+# contents of src_capnp_generated_srcs for linking.
 foreach(spec ${src_capnp_specs_rel})
   list(APPEND src_capnp_specs ${PROJECT_SOURCE_DIR}/${spec})
   list(APPEND src_capnp_hdrs ${PROJECT_BINARY_DIR}/${spec}.h)
-  list(APPEND src_capnp_srcs ${PROJECT_BINARY_DIR}/${spec}.c++)
+  list(APPEND src_capnp_generated_srcs ${PROJECT_BINARY_DIR}/${spec}.c++)
 endforeach(spec)
-set(src_capnp_all_spec_hdrs_and_srcs "${src_capnp_hdrs};${src_capnp_srcs}")
+set(src_capnp_all_spec_hdrs_and_srcs "${src_capnp_hdrs};${src_capnp_generated_srcs}")
 
 # Create custom target for generating C++ code from .capnp schema files.
 create_capnpc_command(capnp_specs
@@ -255,19 +255,29 @@ message(STATUS "CAPNP_INCLUDE_DIRS        = ${CAPNP_INCLUDE_DIRS}")
 message(STATUS "CAPNP_LINK_LIBRARIES      = ${CAPNP_LINK_LIBRARIES}")
 
 #
-# Add the pycapnp Python package to includes
+# Add the pycapnp Python package headers to includes
+#
 if(NOT "${PLATFORM}" STREQUAL "windows")
-  execute_process(COMMAND "${PYTHON_EXECUTABLE}" "-c"
-                          "import capnp; import os; import sys; sys.stdout.write(os.path.dirname(os.path.dirname(capnp.__file__)))"
-                  OUTPUT_VARIABLE src_pycapnp_include_dir)
+  execute_process(
+    COMMAND "${PYTHON_EXECUTABLE}" "-c"
+        "import capnp; import os; import sys; sys.stdout.write(os.path.dirname(os.path.dirname(capnp.__file__)))"
+        OUTPUT_VARIABLE src_pycapnp_include_dir)
+
   message(STATUS "src_pycapnp_include_dir      = ${src_pycapnp_include_dir}")
   include_directories(SYSTEM ${src_pycapnp_include_dir})
 endif()
 
+
 #
-# Setup nupic_core_solo static library
+# Setup nupic_core_solo static library, consisting of our own sources;
+#
+# this is an intermediate archive that will be merged with external static
+# libraries in a subsequent step to produce the nupic_core "combined" static
+# library.
 #
 set(src_lib_static_nupiccore_solo nupic_core_solo)
+
+set(src_common_os_libs)
 
 if("${PLATFORM}" STREQUAL "linux")
   list(APPEND src_common_os_libs pthread dl)
@@ -354,34 +364,13 @@ set(src_nupiccore_srcs
     nupic/utils/Watcher.cpp)
 
 set(src_lib_static_nupiccore_srcs
-    ${src_capnp_srcs}
+    ${src_capnp_generated_srcs}
     ${src_py_support_files}
     ${src_nupiccore_srcs})
 
-set(src_external_static_libs
-    ${LIB_STATIC_YAML_CPP_LOC}
-    ${LIB_STATIC_YAML_LOC}
-    ${LIB_STATIC_APR1_LOC}
-    ${LIB_STATIC_APRUTIL1_LOC}
-    ${LIB_STATIC_Z_LOC})
+set(src_lib_static_nupiccore_solo_link_libs ${src_common_os_libs})
 
-set(src_lib_static_nupiccore_solo_link_libs
-    ${src_external_static_libs}
-    ${src_common_os_libs})
-
-set(src_lib_static_nupiccore_solo_deps
-    Apr1StaticLib
-    AprUtil1StaticLib
-    ZStaticLib
-    YamlStaticLib
-    YamlCppStaticLib)
-
-# Add capnproto static libs when building nupic.core static lib without python
-# extensions
-if (NOT ${NUPIC_BUILD_PYEXT_MODULES})
-  list(APPEND src_lib_static_nupiccore_solo_deps CapnProto capnp_specs)
-  list(APPEND src_lib_static_nupiccore_solo_link_libs ${CAPNP_LINK_LIBRARIES})
-endif() # ${NUPIC_BUILD_PYEXT_MODULES}
+set(src_lib_static_nupiccore_solo_deps capnp_specs)
 
 set(src_lib_static_nupiccore_compile_flags
     "${src_compile_flags} -I${src_numpy_core}/include")
@@ -413,18 +402,120 @@ if(${NUPIC_IWYU})
     PROPERTIES CXX_INCLUDE_WHAT_YOU_USE ${iwyu_path})
 endif()
 
+
+if (OFF)
+  # Dependencies of the combined nupic.core static lib
+  set(src_nupiccore_combined_deps
+      ${src_lib_static_nupiccore_solo}
+      Apr1StaticLib
+      AprUtil1StaticLib
+      ZStaticLib
+      YamlStaticLib
+      YamlCppStaticLib)
+
+  if(UNIX OR MSYS OR MINGW)
+    set(src_lib_static_nupiccore_combined "${PROJECT_BINARY_DIR}/libnupic_core.a")
+    if(MSYS OR MINGW)
+      add_custom_command(OUTPUT ${src_lib_static_nupiccore_combined}
+                         COMMAND ${CMAKE_AR} -x $<TARGET_FILE:${src_lib_static_nupiccore_solo}>
+                         COMMAND ${CMAKE_AR} -x ${LIB_STATIC_YAML_CPP_LOC}
+                         COMMAND ${CMAKE_AR} -x ${LIB_STATIC_YAML_LOC}
+                         COMMAND ${CMAKE_AR} -x ${LIB_STATIC_APRUTIL1_LOC}
+                         COMMAND ${CMAKE_AR} -x ${LIB_STATIC_APR1_LOC}
+                         COMMAND ${CMAKE_AR} -x ${LIB_STATIC_Z_LOC}
+                         COMMAND ${CMAKE_AR} rcs ${src_lib_static_nupiccore_combined} *.obj
+                         DEPENDS ${src_nupiccore_combined_deps})
+    else()
+      add_custom_command(OUTPUT ${src_lib_static_nupiccore_combined}
+                         COMMAND ${CMAKE_AR} -x $<TARGET_FILE:${src_lib_static_nupiccore_solo}>
+                         COMMAND ${CMAKE_AR} -x ${LIB_STATIC_YAML_CPP_LOC}
+                         COMMAND ${CMAKE_AR} -x ${LIB_STATIC_YAML_LOC}
+                         COMMAND ${CMAKE_AR} -x ${LIB_STATIC_APRUTIL1_LOC}
+                         COMMAND ${CMAKE_AR} -x ${LIB_STATIC_APR1_LOC}
+                         COMMAND ${CMAKE_AR} -x ${LIB_STATIC_Z_LOC}
+                         COMMAND ${CMAKE_AR} rcs ${src_lib_static_nupiccore_combined} *.o
+                         DEPENDS ${src_nupiccore_combined_deps})
+    endif()
+  else()
+    set(src_lib_static_nupiccore_combined "${PROJECT_BINARY_DIR}/nupic_core.lib")
+    add_custom_command(OUTPUT ${src_lib_static_nupiccore_combined}
+                       COMMAND lib.exe /OUT:${src_lib_static_nupiccore_combined}
+                               $<TARGET_FILE:${src_lib_static_nupiccore_solo}>
+                               ${LIB_STATIC_YAML_CPP_LOC}
+                               ${LIB_STATIC_YAML_LOC}
+                               ${LIB_STATIC_APRUTIL1_LOC}
+                               ${LIB_STATIC_APR1_LOC}
+                               ${LIB_STATIC_Z_LOC}
+                       DEPENDS ${src_nupiccore_combined_deps}
+                       VERBATIM)
+  endif()
+
+
+  # Wrap nupic.core combined lib output in custom target to avoid conflict from
+  # other dependent targets that may execute in parallel (per add_custom_command
+  # documentation). NOTE Other targets MUST use LibStaticNupicCoreCombinedTarget
+  # as a dependency instead of ${src_lib_static_nupiccore_combined}
+  add_custom_target(LibStaticNupicCoreCombinedTarget
+                    DEPENDS ${src_lib_static_nupiccore_combined})
+else()
+
+  #
+  # Combine nupic_core_solo static lib with our external static libraries into
+  # the nupic_core static library
+  #
+
+  set(src_lib_static_nupiccore_combined nupic_core)
+
+  include(src/NupicLibraryUtils) # for MERGE_STATIC_LIBRARIES
+
+  set(src_external_static_lib_deps
+      Apr1StaticLib
+      AprUtil1StaticLib
+      ZStaticLib
+      YamlStaticLib
+      YamlCppStaticLib)
+
+  set(src_external_static_libs
+      ${LIB_STATIC_YAML_CPP_LOC}
+      ${LIB_STATIC_YAML_LOC}
+      ${LIB_STATIC_APR1_LOC}
+      ${LIB_STATIC_APRUTIL1_LOC}
+      ${LIB_STATIC_Z_LOC})
+
+  # Add capnproto static libs when building nupic.core static lib without python
+  # extensions
+  if (NOT ${NUPIC_BUILD_PYEXT_MODULES})
+    list(APPEND src_external_static_lib_deps CapnProto)
+    list(APPEND src_external_static_libs ${CAPNP_LINK_LIBRARIES})
+  endif() # ${NUPIC_BUILD_PYEXT_MODULES}
+
+  set(src_combined_nupiccore_source_archives
+      ${src_lib_static_nupiccore_solo}
+      ${src_external_static_libs})
+
+  # Create a top-level library target for the combined static lib
+  merge_static_libraries(${src_lib_static_nupiccore_combined}
+                         "${src_combined_nupiccore_source_archives}")
+  add_dependencies(${src_lib_static_nupiccore_combined}
+                   ${src_external_static_libs})
+endif()
+
+
+#
+# Build tests of the nupic_core combined static library
+#
+
 # Common libs for test executables
 set(src_common_test_exe_libs
-    ${src_lib_static_nupiccore_solo}
-    ${PYTHON_LIBRARIES}
-)
+    ${src_lib_static_nupiccore_combined}
+    ${PYTHON_LIBRARIES})
 
 # Common dependencies for test executables
 set(src_common_test_exe_deps)
 
 # Add capnproto static libs to our C/C++ test apps when building python
-# extensions, since capnproto is excluded from src_lib_static_nupiccore_solo to
-# avoid conflict with capnproto methods compiled into the pycapnp extension.
+# extensions, since capnproto objects are excluded from nupic_core combined lib
+# to avoid conflict with capnproto methods compiled into the pycapnp extension
 if (${NUPIC_BUILD_PYEXT_MODULES})
   list(APPEND src_common_test_exe_deps CapnProto)
   list(APPEND src_common_test_exe_libs ${CAPNP_LINK_LIBRARIES})
@@ -533,7 +624,7 @@ set_target_properties(${src_executable_hellosptp}
 
 
 #
-# Setup gtests
+# Setup unit tests
 #
 set(src_executable_gtests unit_tests)
 add_executable(${src_executable_gtests}
@@ -618,84 +709,6 @@ add_custom_target(tests_all
                   VERBATIM)
 
 
-if (OFF)
-  # Dependencies of the combined nupic.core static lib
-  set(src_nupiccore_combined_deps
-      ${src_lib_static_nupiccore_solo}
-      Apr1StaticLib
-      AprUtil1StaticLib
-      ZStaticLib
-      YamlStaticLib
-      YamlCppStaticLib)
-
-  if(UNIX OR MSYS OR MINGW)
-    set(src_lib_static_nupiccore_combined "${PROJECT_BINARY_DIR}/libnupic_core.a")
-    if(MSYS OR MINGW)
-      add_custom_command(OUTPUT ${src_lib_static_nupiccore_combined}
-                         COMMAND ${CMAKE_AR} -x $<TARGET_FILE:${src_lib_static_nupiccore_solo}>
-                         COMMAND ${CMAKE_AR} -x ${LIB_STATIC_YAML_CPP_LOC}
-                         COMMAND ${CMAKE_AR} -x ${LIB_STATIC_YAML_LOC}
-                         COMMAND ${CMAKE_AR} -x ${LIB_STATIC_APRUTIL1_LOC}
-                         COMMAND ${CMAKE_AR} -x ${LIB_STATIC_APR1_LOC}
-                         COMMAND ${CMAKE_AR} -x ${LIB_STATIC_Z_LOC}
-                         COMMAND ${CMAKE_AR} rcs ${src_lib_static_nupiccore_combined} *.obj
-                         DEPENDS ${src_nupiccore_combined_deps})
-    else()
-      add_custom_command(OUTPUT ${src_lib_static_nupiccore_combined}
-                         COMMAND ${CMAKE_AR} -x $<TARGET_FILE:${src_lib_static_nupiccore_solo}>
-                         COMMAND ${CMAKE_AR} -x ${LIB_STATIC_YAML_CPP_LOC}
-                         COMMAND ${CMAKE_AR} -x ${LIB_STATIC_YAML_LOC}
-                         COMMAND ${CMAKE_AR} -x ${LIB_STATIC_APRUTIL1_LOC}
-                         COMMAND ${CMAKE_AR} -x ${LIB_STATIC_APR1_LOC}
-                         COMMAND ${CMAKE_AR} -x ${LIB_STATIC_Z_LOC}
-                         COMMAND ${CMAKE_AR} rcs ${src_lib_static_nupiccore_combined} *.o
-                         DEPENDS ${src_nupiccore_combined_deps})
-    endif()
-  else()
-    set(src_lib_static_nupiccore_combined "${PROJECT_BINARY_DIR}/nupic_core.lib")
-    add_custom_command(OUTPUT ${src_lib_static_nupiccore_combined}
-                       COMMAND lib.exe /OUT:${src_lib_static_nupiccore_combined}
-                               $<TARGET_FILE:${src_lib_static_nupiccore_solo}>
-                               ${LIB_STATIC_YAML_CPP_LOC}
-                               ${LIB_STATIC_YAML_LOC}
-                               ${LIB_STATIC_APRUTIL1_LOC}
-                               ${LIB_STATIC_APR1_LOC}
-                               ${LIB_STATIC_Z_LOC}
-                       DEPENDS ${src_nupiccore_combined_deps}
-                       VERBATIM)
-  endif()
-
-
-  # Wrap nupic.core combined lib output in custom target to avoid conflict from
-  # other dependent targets that may execute in parallel (per add_custom_command
-  # documentation). NOTE Other targets MUST use LibStaticNupicCoreCombinedTarget
-  # as a dependency instead of ${src_lib_static_nupiccore_combined}
-  add_custom_target(LibStaticNupicCoreCombinedTarget
-                    DEPENDS ${src_lib_static_nupiccore_combined})
-else()
-  # TODO Not really clear why the "combined" library is being built in the first
-  # place, since it doesn't seem to add anything new to "solo"!
-#  set(src_lib_static_nupiccore_combined "${src_lib_static_nupiccore_solo}")
-#  message(STATUS "ZZZ Aliasing nupic core combined to solo")
-
-#  set(src_lib_static_nupiccore_combined nupic_core)
-#  message(STATUS "ZZZ Repackaging nupic core 'solo' static lib as 'combined'")
-#  add_library(${src_lib_static_nupiccore_combined} STATIC
-#              ${src_py_support_files})
-#  target_link_libraries(${src_lib_static_nupiccore_combined}
-#                        PRIVATE ${src_lib_static_nupiccore_solo})
-
-  include(src/NupicLibraryUtils) # for MERGE_STATIC_LIBRARIES
-
-  set(src_lib_static_nupiccore_combined nupic_core)
-  set(src_combined_nupiccore_source_archives
-      ${src_lib_static_nupiccore_solo}
-      ${src_external_static_libs})
-  merge_static_libraries(${src_lib_static_nupiccore_combined}
-                         "${src_combined_nupiccore_source_archives}")
-endif()
-
-
 #
 # Use SWIG to generate Python extensions.
 #
@@ -749,16 +762,8 @@ if (${NUPIC_BUILD_PYEXT_MODULES})
   # Tell swig which command-line options to use, allowing user to override
   set(CMAKE_SWIG_FLAGS ${src_swig_flags} ${CMAKE_SWIG_FLAGS})
 
-#  set(src_swig_support_files
-#      nupic/py_support/NumpyVector.cpp
-#      nupic/py_support/PyArray.cpp
-#      nupic/py_support/PyHelpers.cpp
-#      nupic/py_support/PythonStream.cpp
-#      nupic/bindings/PySparseTensor.cpp
-#  )
-  # TODO It's not clear why these files need to be added again here, since these
-  # files were already included in the nupic core "solo" archive!
-  set(src_swig_support_files ${src_py_support_files})
+  # Set up linker flags for python extension shared libraries
+  set(src_swig_extension_link_flags "${PYEXT_LINKER_FLAGS_OPTIMIZED}")
 
   # NOTE Python extensions shouldn't be linking agains libpython; symbols should
   # be available automatically when python loads the extension.
@@ -774,9 +779,6 @@ if (${NUPIC_BUILD_PYEXT_MODULES})
   set(src_swig_link_libraries
       ${src_common_os_libs}
       ${src_lib_static_nupiccore_combined})
-
-  # Set up linker flags for python extension shared libraries
-  set(src_swig_extension_link_flags "${PYEXT_LINKER_FLAGS_OPTIMIZED}")
 
   # Common dependencies for our python extensions for use with
   # SWIG_MODULE_name_EXTRA_DEPS
@@ -839,9 +841,7 @@ if (${NUPIC_BUILD_PYEXT_MODULES})
   #set(SWIG_MODULE_${src_swig_algorithms}_EXTRA_DEPS Swig LibStaticNupicCoreCombinedTarget)
   set(SWIG_MODULE_${src_swig_algorithms}_EXTRA_DEPS ${src_swig_extra_deps})
   # Create custom command for generating files from SWIG.
-  swig_add_module(${src_swig_algorithms} python
-                  ${src_swig_support_files}
-                  ${src_swig_algorithms_files})
+  swig_add_module(${src_swig_algorithms} python ${src_swig_algorithms_files})
   list(APPEND src_swig_generated_files ${swig_generated_file_fullname})
   swig_link_libraries(${src_swig_algorithms}
                       ${src_swig_link_libraries})
@@ -859,9 +859,7 @@ if (${NUPIC_BUILD_PYEXT_MODULES})
   #set(SWIG_MODULE_${src_swig_engine}_EXTRA_DEPS Swig LibStaticNupicCoreCombinedTarget)
   set(SWIG_MODULE_${src_swig_engine}_EXTRA_DEPS ${src_swig_extra_deps})
   # Create custom command for generating files from SWIG.
-  swig_add_module(${src_swig_engine} python
-                  ${src_swig_support_files}
-                  ${src_swig_engine_files})
+  swig_add_module(${src_swig_engine} python ${src_swig_engine_files})
   list(APPEND src_swig_generated_files ${swig_generated_file_fullname})
   swig_link_libraries(${src_swig_engine}
                       ${src_swig_link_libraries})
@@ -879,9 +877,7 @@ if (${NUPIC_BUILD_PYEXT_MODULES})
   #set(SWIG_MODULE_${src_swig_experimental}_EXTRA_DEPS Swig LibStaticNupicCoreCombinedTarget)
   set(SWIG_MODULE_${src_swig_experimental}_EXTRA_DEPS ${src_swig_extra_deps})
   # Create custom command for generating files from SWIG.
-  swig_add_module(${src_swig_experimental} python
-                  ${src_swig_support_files}
-                  ${src_swig_experimental_files})
+  swig_add_module(${src_swig_experimental} python ${src_swig_experimental_files})
   list(APPEND src_swig_generated_files ${swig_generated_file_fullname})
   swig_link_libraries(${src_swig_experimental}
                       ${src_swig_link_libraries})
@@ -899,9 +895,7 @@ if (${NUPIC_BUILD_PYEXT_MODULES})
   #set(SWIG_MODULE_${src_swig_math}_EXTRA_DEPS Swig LibStaticNupicCoreCombinedTarget)
   set(SWIG_MODULE_${src_swig_math}_EXTRA_DEPS ${src_swig_extra_deps})
   # Create custom command for generating files from SWIG.
-  swig_add_module(${src_swig_math} python
-                  ${src_swig_support_files}
-                  ${src_swig_math_files})
+  swig_add_module(${src_swig_math} python ${src_swig_math_files})
   list(APPEND src_swig_generated_files ${swig_generated_file_fullname})
   swig_link_libraries(${src_swig_math}
                       ${src_swig_link_libraries})
@@ -916,9 +910,6 @@ if (${NUPIC_BUILD_PYEXT_MODULES})
   set_source_files_properties(${src_swig_generated_files}
                               PROPERTIES
                               COMPILE_FLAGS ${swig_generated_file_compile_flags})
-  set_source_files_properties(${src_swig_support_files}
-                              PROPERTIES
-                              COMPILE_FLAGS ${src_compile_flags})
 
   # If a path is specified, copy extensions files to proper location.
   if (PY_EXTENSIONS_DIR)

@@ -30,7 +30,7 @@ project(nupic_core_library_utils C)
 # of the given static libraries
 #
 # :param LIB_TARGET: the name to use for the new library target to be
-#   given verbatim as the target arg to `ADD_LIBRARY`
+#   passed verbatim as the target arg to `ADD_LIBRARY`
 #
 # :param STATIC_LIBS: a list of static libraries to be merge. The
 #   elements of this list may be a combination of archive file paths and
