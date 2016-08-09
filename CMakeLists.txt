@@ -28,7 +28,6 @@ set(CMAKE_VERBOSE_MAKEFILE OFF)
 
 get_filename_component(REPOSITORY_DIR ${PROJECT_SOURCE_DIR} ABSOLUTE)
 
-
 if( POLICY CMP0046 )
   cmake_policy(VERSION 2.8)
   # The new policy for add_dependencies is to now error if a dependency target
@@ -43,6 +42,12 @@ if( POLICY CMP0054 )
   cmake_policy(SET CMP0054 OLD)
 endif()
 
+
+#
+# Global NuPIC CMake options
+#
+option(NUPIC_BUILD_PYEXT_MODULES "Turn on building of python extension modules for nupic.bindings"
+       ON)
 
 #
 # Identify build type - local or deployment (Travis)

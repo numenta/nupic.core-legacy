@@ -105,9 +105,9 @@ namespace nupic
 
     // Learn
 
-    vector< vector< vector<Cell> > >sequences;
-    vector< vector<Cell> >sequence;
-    vector<Cell> sdr;
+    vector< vector< vector<CellIdx> > >sequences;
+    vector< vector<CellIdx> >sequence;
+    vector<CellIdx> sdr;
 
     for (int i = 0; i < numSequences; i++)
     {
@@ -157,15 +157,13 @@ namespace nupic
     clock_t timer = clock();
 
     Connections connections(numCells, 1, numInputs);
-    Cell cell;
     Segment segment;
-    vector<Cell> sdr;
+    vector<CellIdx> sdr;
 
     // Initialize
 
     for (UInt c = 0; c < numCells; c++)
     {
-      cell = Cell(c);
       segment = connections.createSegment(c);
 
       for (UInt i = 0; i < numInputs; i++)
@@ -180,7 +178,7 @@ namespace nupic
 
     // Learn
 
-    vector<Cell> winnerCells;
+    vector<CellIdx> winnerCells;
     SynapseData synapseData;
     Permanence permanence;
 
@@ -193,7 +191,7 @@ namespace nupic
                                   activeSegments, matchingSegments);
       winnerCells = computeSPWinnerCells(connections, numWinners, activeSegments);
 
-      for (Cell winnerCell : winnerCells)
+      for (CellIdx winnerCell : winnerCells)
       {
         segment = Segment(0, winnerCell);
 
@@ -250,10 +248,10 @@ namespace nupic
     cout << duration << " in " << text << endl;
   }
 
-  vector<Cell> ConnectionsPerformanceTest::randomSDR(UInt n, UInt w)
+  vector<CellIdx> ConnectionsPerformanceTest::randomSDR(UInt n, UInt w)
   {
     set<UInt> sdrSet = set<UInt>();
-    vector<Cell> sdr = vector<Cell>();
+    vector<CellIdx> sdr;
 
     for (UInt i = 0; i < w; i++)
     {
@@ -262,31 +260,31 @@ namespace nupic
 
     for (UInt c : sdrSet)
     {
-      sdr.push_back(Cell(c));
+      sdr.push_back(c);
     }
 
     return sdr;
   }
 
   void ConnectionsPerformanceTest::feedTM(TemporalMemory &tm,
-                                          vector<Cell> sdr,
+                                          vector<CellIdx> sdr,
                                           bool learn)
   {
     vector<UInt> activeColumns;
 
     for (auto c : sdr)
     {
-      activeColumns.push_back(c.idx);
+      activeColumns.push_back(c);
     }
 
     tm.compute(activeColumns.size(), activeColumns.data(), learn);
   }
 
-  vector<Cell> ConnectionsPerformanceTest::computeSPWinnerCells(
+  vector<CellIdx> ConnectionsPerformanceTest::computeSPWinnerCells(
     Connections& connections, UInt numCells,
     vector<SegmentOverlap> activeSegments)
   {
-    set<Cell> winnerCells;
+    set<CellIdx> winnerCells;
 
     std::sort(activeSegments.begin(), activeSegments.end(),
               [](const SegmentOverlap& a, const SegmentOverlap&b)
@@ -303,7 +301,7 @@ namespace nupic
       }
     }
 
-    return vector<Cell>(winnerCells.begin(), winnerCells.end());
+    return vector<CellIdx>(winnerCells.begin(), winnerCells.end());
   }
 
 } // end namespace nupic

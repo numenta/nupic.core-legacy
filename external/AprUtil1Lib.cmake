@@ -57,6 +57,7 @@ if (UNIX)
 
         CONFIGURE_COMMAND
             <SOURCE_DIR>/configure
+                ${EXTERNAL_STATICLIB_CONFIGURE_DEFINITIONS_OPTIMIZED}
                 --prefix=${aprutillib_install_prefix}
                 ${aprutillib_config_options}
                 CFLAGS=${aprutillib_cflags}

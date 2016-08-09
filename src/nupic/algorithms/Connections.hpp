@@ -50,34 +50,6 @@ namespace nupic
       typedef Real32 Permanence;
       typedef UInt64 Iteration;
 
-      // Defaults
-      static const UInt16 MAX_SEGMENTS_PER_CELL = 255;
-      static const UInt16 MAX_SYNAPSES_PER_SEGMENT = 255;
-
-      /**
-       * Cell class used in Connections.
-       *
-       * @b Description
-       * The Cell class is a data structure that points to a particular cell.
-       *
-       * @param idx Index of cell.
-       *
-       */
-      struct Cell
-      {
-        CellIdx idx;
-
-        Cell(CellIdx idx) : idx(idx) {}
-        Cell() {}
-
-        bool operator==(const Cell &other) const;
-        bool operator!=(const Cell &other) const;
-        bool operator<=(const Cell &other) const;
-        bool operator<(const Cell &other) const;
-        bool operator>=(const Cell &other) const;
-        bool operator>(const Cell &other) const;
-      };
-
       /**
        * Segment class used in Connections.
        *
@@ -92,9 +64,9 @@ namespace nupic
       struct Segment
       {
         SegmentIdx idx;
-        Cell cell;
+        CellIdx cell;
 
-        Segment(SegmentIdx idx, Cell cell) : idx(idx), cell(std::move(cell)) {}
+        Segment(SegmentIdx idx, CellIdx cell) : idx(idx), cell(cell) {}
         Segment() {}
 
         bool operator==(const Segment &other) const;
@@ -121,7 +93,7 @@ namespace nupic
         SynapseIdx idx;
         Segment segment;
 
-        Synapse(SynapseIdx idx, Segment segment) : idx(idx), segment(std::move(segment)) {}
+        Synapse(SynapseIdx idx, Segment segment) : idx(idx), segment(segment) {}
         Synapse() {}
 
         bool operator==(const Synapse &other) const;
@@ -141,7 +113,7 @@ namespace nupic
        */
       struct SynapseData
       {
-        Cell presynapticCell;
+        CellIdx presynapticCell;
         Permanence permanence;
         bool destroyed;
       };
@@ -261,6 +233,8 @@ namespace nupic
        */
       class Connections : public Serializable<ConnectionsProto>
       {
+        friend class SegmentExcitationTally;
+
       public:
         static const UInt16 VERSION = 1;
 
@@ -278,8 +252,8 @@ namespace nupic
          * @param maxSynapsesPerSegment Maximum number of synapses per segment.
          */
         Connections(CellIdx numCells,
-                    SegmentIdx maxSegmentsPerCell=MAX_SEGMENTS_PER_CELL,
-                    SynapseIdx maxSynapsesPerSegment=MAX_SYNAPSES_PER_SEGMENT);
+                    SegmentIdx maxSegmentsPerCell=255,
+                    SynapseIdx maxSynapsesPerSegment=255);
 
         virtual ~Connections() {}
 
@@ -301,7 +275,7 @@ namespace nupic
          *
          * @retval Created segment.
          */
-        Segment createSegment(const Cell& cell);
+        Segment createSegment(CellIdx cell);
 
         /**
          * Creates a synapse on the specified segment.
@@ -313,7 +287,7 @@ namespace nupic
          * @reval Created synapse.
          */
         Synapse createSynapse(const Segment& segment,
-                              const Cell& presynapticCell,
+                              CellIdx presynapticCell,
                               Permanence permanence);
 
         /**
@@ -346,7 +320,7 @@ namespace nupic
          *
          * @retval Segments on cell.
          */
-        std::vector<Segment> segmentsForCell(const Cell& cell) const;
+        std::vector<Segment> segmentsForCell(CellIdx cell) const;
 
         /**
          * Gets the synapses for a segment.
@@ -391,27 +365,11 @@ namespace nupic
          *
          * @return (set)Synapse indices
          */
-        std::vector<Synapse> synapsesForPresynapticCell(const Cell& presynapticCell) const;
+        std::vector<Synapse> synapsesForPresynapticCell(CellIdx presynapticCell)
+          const;
 
         /**
-         * Gets the segment with the most active synapses due to given input,
-         * from among all the segments on all the given cells.
-         *
-         * @param cells            Cells to look among.
-         * @param input            Active cells in the input.
-         * @param synapseThreshold Only consider segments with number of active synapses greater than this threshold.
-         * @param retSegment       Segment to return.
-         *
-         * @retval Segment found?
-         */
-        bool mostActiveSegmentForCells(const std::vector<Cell>& cells,
-                                       std::vector<Cell> input,
-                                       SynapseIdx synapseThreshold,
-                                       Segment& retSegment) const;
-
-        /**
-         * Forward-propagates input to synapses, dendrites, and cells, to
-         * compute their activity.
+         * Compute the segment excitations for a vector of cells.
          *
          * @param input
          * Active cells in the input.
@@ -436,14 +394,29 @@ namespace nupic
          * An output vector.
          * On return, filled with matching segments and overlaps.
          */
-        void computeActivity(const std::vector<Cell>& input,
+        void computeActivity(const std::vector<CellIdx>& input,
                              Permanence activePermanenceThreshold,
                              SynapseIdx activeSynapseThreshold,
                              Permanence matchingPermanenceThreshold,
                              SynapseIdx matchingSynapseThreshold,
-                             std::vector<SegmentOverlap>& outActiveSegments,
-                             std::vector<SegmentOverlap>& outMatchingSegments,
-                             bool recordIteration=true);
+                             std::vector<SegmentOverlap>& activeSegmentsOut,
+                             std::vector<SegmentOverlap>& matchingSegmentsOut)
+          const;
+
+        /**
+         * Record the fact that a segment had some activity. This information is
+         * used during segment cleanup.
+         *
+         * @param segment
+         * The segment that had some activity.
+         */
+        void recordSegmentActivity(Segment segment);
+
+        /**
+         * Mark the passage of time. This information is used during segment
+         * cleanup.
+         */
+        void startNewIteration();
 
         // Serialization
 
@@ -480,6 +453,13 @@ namespace nupic
         // Debugging
 
         /**
+         * Gets the number of cells.
+         *
+         * @retval Number of cells.
+         */
+        CellIdx numCells() const;
+
+        /**
          * Gets the number of segments.
          *
          * @retval Number of segments.
@@ -491,7 +471,7 @@ namespace nupic
          *
          * @retval Number of segments.
          */
-        UInt numSegments(const Cell& cell) const;
+        UInt numSegments(CellIdx cell) const;
 
         /**
          * Gets the number of synapses.
@@ -546,7 +526,7 @@ namespace nupic
          *
          * @retval The least recently used segment.
          */
-        Segment leastRecentlyUsedSegment_(const Cell& cell) const;
+        Segment leastRecentlyUsedSegment_(CellIdx cell) const;
 
          /**
           * Gets the synapse with the lowest permanence on the segment.
@@ -567,6 +547,15 @@ namespace nupic
         SegmentData& dataForSegment_(const Segment& segment);
 
         /**
+         * Gets a reference to the data for a segment.
+         *
+         * @param segment Segment to get data for.
+         *
+         * @retval Read-only segment data.
+         */
+        const SegmentData& dataForSegment_(const Segment& segment) const;
+
+        /**
          * Gets a reference to the data for a synapse.
          *
          * @param synapse Synapse to get data for.
@@ -575,10 +564,19 @@ namespace nupic
          */
         SynapseData& dataForSynapse_(const Synapse& synapse);
 
+        /**
+         * Gets a reference to the data for a synapse.
+         *
+         * @param synapse Synapse to get data for.
+         *
+         * @retval Read-only synapse data.
+         */
+        const SynapseData& dataForSynapse_(const Synapse& synapse) const;
+
       private:
         std::vector<CellData> cells_;
         // Mapping (presynaptic cell => synapses) used in forward propagation
-        std::map< Cell, std::vector<Synapse> > synapsesForPresynapticCell_;
+        std::map<CellIdx, std::vector<Synapse> > synapsesForPresynapticCell_;
         UInt numSegments_;
         UInt numSynapses_;
         std::vector<Segment> segmentForFlatIdx_;
@@ -589,6 +587,40 @@ namespace nupic
         UInt32 nextEventToken_;
         std::map<UInt32, ConnectionsEventHandler*> eventHandlers_;
       }; // end class Connections
+
+      /**
+       * Takes a Connections instance and a set of active cells, and calculates
+       * the excited columns.
+       *
+       * This is essentially part of the Connections class. It accesses
+       * Connections internals to perform this calculation quickly.
+       *
+       * This is implemented as a class rather than a Connections method because
+       * this allows callers to provide the "active presynaptic cells" without
+       * imposing requirements on how these cells are stored. The cells might be
+       * stored in a vector, in multiple vectors, as a list of indices, as a
+       * list of zeros and ones, etc., so we expose a "Tally" class and require
+       * the caller to do the iteration.
+       */
+      class SegmentExcitationTally
+      {
+      public:
+        SegmentExcitationTally(const Connections& connections,
+                               Permanence activePermanenceThreshold,
+                               Permanence matchingPermanenceThreshold);
+        void addActivePresynapticCell(CellIdx cellIdx);
+        void getResults(SynapseIdx activeSynapseThreshold,
+                        SynapseIdx matchingSynapseThreshold,
+                        std::vector<SegmentOverlap>& activeSegmentsOut,
+                        std::vector<SegmentOverlap>& matchingSegmentsOut)
+          const;
+      private:
+        const Connections& connections_;
+        const Permanence activePermanenceThreshold_;
+        const Permanence matchingPermanenceThreshold_;
+        std::vector<UInt32> numActiveSynapsesForSegment_;
+        std::vector<UInt32> numMatchingSynapsesForSegment_;
+      };
 
     } // end namespace connections
 
