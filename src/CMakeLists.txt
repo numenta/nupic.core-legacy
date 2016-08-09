@@ -215,10 +215,11 @@ set(src_capnp_specs_rel
   nupic/proto/VectorFileSensorProto.capnp
 )
 
-# TODO it seems that building of this information (src_capnp_specs, etc.) should
-# be abstracted by the implementation of function CREATE_CAPNPC_COMMAND in
+# TODO it might be cleaner to abstract the building of src_capnp_specs, etc.
+# within the implementation of function CREATE_CAPNPC_COMMAND in
 # external/CapnpProto.cmake, which would use an output variable to return the
-# contents of src_capnp_generated_srcs for linking.
+# contents of src_capnp_generated_srcs for linking. These details are very
+# specific to capnproto and CapnpProto.cmake is our capnrpoto build abstraction.
 foreach(spec ${src_capnp_specs_rel})
   list(APPEND src_capnp_specs ${PROJECT_SOURCE_DIR}/${spec})
   list(APPEND src_capnp_hdrs ${PROJECT_BINARY_DIR}/${spec}.h)
@@ -502,10 +503,10 @@ endif()
 
 
 #
-# Build tests of the nupic_core combined static library
+# Build tests of the nupic_core "combined" static library
 #
 
-# Common libs for test executables
+# Common libs for test executables;
 set(src_common_test_exe_libs
     ${src_lib_static_nupiccore_combined}
     ${PYTHON_LIBRARIES})
@@ -934,7 +935,6 @@ endif() # ${NUPIC_BUILD_PYEXT_MODULES}
 # Install targets into CMAKE_INSTALL_PREFIX
 #
 install(TARGETS
-        ${src_lib_static_nupiccore_solo}
         ${src_lib_static_nupiccore_combined}
         ${src_lib_static_gtest}
         ${src_executable_helloregion}
