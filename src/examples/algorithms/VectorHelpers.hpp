@@ -1,5 +1,5 @@
-#ifndef NTA_UTILS_VECTORHELPERS
-#define NTA_UTILS_VECTORHELPERS
+#ifndef NTA_UTILS_VECTORHELPERS_HPP
+#define NTA_UTILS_VECTORHELPERS_HPP
 
 #include <vector>
 #include <string>

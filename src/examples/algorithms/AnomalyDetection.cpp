@@ -49,15 +49,15 @@
 #include <string>
 #include <cstdlib>
 
-#include "nupic/encoders/ScalarEncoder.hpp"
-#include "nupic/algorithms/SpatialPooler.hpp"
-#include "nupic/algorithms/Cells4.hpp" // TP
+#include <nupic/encoders/ScalarEncoder.hpp>
+#include <nupic/algorithms/SpatialPooler.hpp>
+#include <nupic/algorithms/Cells4.hpp> // TP
 #include <nupic/algorithms/TemporalMemory.hpp> // TM
-#include "nupic/algorithms/Anomaly.hpp"
+#include <nupic/algorithms/Anomaly.hpp>
 
 #include <csv.h> // external CSV parser
-#include "nupic/os/Timer.hpp"
-#include "VectorHelpers.hpp"
+#include <nupic/os/Timer.hpp>
+#include <VectorHelpers.hpp>
 
 using namespace std; // generic namespaces are included here
 using namespace nupic;
@@ -77,9 +77,9 @@ class AnomalyDetection
     SpatialPooler sp;
     Cells4 tp;
     TemporalMemory tm;
-    Anomaly anomaly; 
+    Anomaly anomaly;
     std::vector<UInt> lastTPOutput_;
-    const string tmImpl; //"TM","TP"
+    const string tmImpl; //"TM","TP" //TODO add "experimental TM"
 
 
   public:
