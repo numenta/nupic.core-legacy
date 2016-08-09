@@ -70,7 +70,7 @@ using namespace nupic::algorithms::temporal_memory;
 using namespace nupic::experimental::extended_temporal_memory;
 using namespace nupic::algorithms::anomaly;
 
-const int DEBUG_LEVEL =1; //0=no debug (also disabled timer), ..
+const int DEBUG_LEVEL =5; //0=no debug (also disabled timer), ..
 
 namespace nupic {
 namespace examples {
@@ -107,10 +107,9 @@ class AnomalyDetection
         std::vector<UInt> spOutput(sp.getNumColumns());
         sp.compute(uint_scalar.data(), true, spOutput.data());
         sp.stripUnlearnedColumns(spOutput.data());
+        auto spOutputS_ = VectorHelpers::binaryToSparse<UInt>(spOutput);
         if (DEBUG_LEVEL > 2) {
-          std::cout << "Spatial pooler: ";
-          VectorHelpers::printVector(VectorHelpers::binaryToSparse<UInt>(spOutput), ",");
-          std::cout << std::endl;
+          VectorHelpers::printVector(spOutputS_, ",", "Spatial pooler: ");
         }
 
         std::vector<UInt> tpOutput;
@@ -120,11 +119,10 @@ class AnomalyDetection
           auto tpInput = VectorHelpers::castVectorType<UInt, Real>(spOutput);
           tp.compute(tpInput.data(), rTpOutput.data(), true, true);
           // And the result is converted ONCE again to UInts
-          tpOutput = VectorHelpers::castVectorType<Real32, UInt>(rTpOutput);
+          tpOutput = VectorHelpers::binaryToSparse<UInt>(tpOutput); // to sparse active columns
         } else if (tmImpl == "TM") { //TODO improve the code duplication for TM/ETM (+TP?)
-          auto sparseData = VectorHelpers::binaryToSparse<UInt>(spOutput); // need to convert dense to sparse representation here
           set<UInt> both;
-          tm.compute(sparseData.size(), sparseData.data(), true);
+          tm.compute(spOutputS_.size(), spOutputS_.data(), true);
           auto active = tm.getActiveCells();
           auto pred = tm.getPredictiveCells();
           both.insert(active.begin(), active.end());
@@ -133,41 +131,34 @@ class AnomalyDetection
           //VectorHelpers::printVector(pred,",","act ");
           //VectorHelpers::printVector(active,",","pred ");
           //VectorHelpers::printVector(tpOutput,",","bot ");
-          tpOutput = VectorHelpers::sparseToBinary<UInt>(tpOutput, sp.getNumColumns()*tm.getCellsPerColumn());  //converts to binary "cells"-vector
+          tpOutput = VectorHelpers::sparseToBinary<UInt>(tpOutput, sp.getNumColumns()*tm.getCellsPerColumn());  //converts to binary "cells"-vector //FIXME optimize this!
+          tpOutput = VectorHelpers::cellsToColumns(tpOutput, tm.getCellsPerColumn()); // to columns
+          tpOutput = VectorHelpers::binaryToSparse<UInt>(tpOutput); // to sparse
         } else {
-          auto sparseData = VectorHelpers::binaryToSparse<UInt>(spOutput); // need to convert dense to sparse representation here
           set<UInt> both;
-          etm.compute(sparseData.size(), sparseData.data(), true);
+          etm.compute(spOutputS_.size(), spOutputS_.data(), true);
           auto active = etm.getActiveCells();
           auto pred = etm.getPredictiveCells();
           both.insert(active.begin(), active.end());
           both.insert(pred.begin(), pred.end());
           tpOutput.assign(both.begin(), both.end()); //union, like TP.outputType = both
-          tpOutput = VectorHelpers::sparseToBinary<UInt>(tpOutput, sp.getNumColumns()*etm.getCellsPerColumn());
+          tpOutput = VectorHelpers::sparseToBinary<UInt>(tpOutput, sp.getNumColumns()*etm.getCellsPerColumn());  //converts to binary "cells"-vector //FIXME optimize this!
+          tpOutput = VectorHelpers::cellsToColumns(tpOutput, etm.getCellsPerColumn()); // to columns
+          tpOutput = VectorHelpers::binaryToSparse<UInt>(tpOutput); // to sparse
         }
 
         if (DEBUG_LEVEL > 3) {
-            VectorHelpers::printVector(VectorHelpers::binaryToSparse<UInt>(tpOutput), ",", "Active cells of temporal memory: ");
+            VectorHelpers::printVector(tpOutput, ",", "Active columns of temporal memory: ");
         }
 
         Real anScore = anomaly.compute(
-          VectorHelpers::binaryToSparse<UInt>(spOutput),     // Spatial pooler (current active columns)
-          VectorHelpers::binaryToSparse<UInt>(lastTPOutput_), // Temporal pooler (previously predicted columns)
+          spOutputS_,     // Spatial pooler (current active columns)
+          lastTPOutput_, // Temporal pooler (previously predicted columns)
           0,
           0
         );
         // Save the output of the TP for the next iteration...
-        if (tmImpl == "TP") {
-          lastTPOutput_ = VectorHelpers::cellsToColumns(tpOutput, tp.nCellsPerCol());
-        } else if (tmImpl == "TM") {
-          lastTPOutput_ = VectorHelpers::cellsToColumns(tpOutput, tm.getCellsPerColumn());
-        } else {
-          lastTPOutput_ = VectorHelpers::cellsToColumns(tpOutput, etm.getCellsPerColumn());
-        }
-
-        if (DEBUG_LEVEL > 4) {
-            VectorHelpers::printVector(VectorHelpers::binaryToSparse<UInt>(lastTPOutput_), ",", "Active columns of temporal memory: ");
-        }
+        lastTPOutput_ = tpOutput;
 
         if(DEBUG_LEVEL > 0) {
           if (anScore < EPSILON) {
@@ -180,7 +171,7 @@ class AnomalyDetection
     }
     // constructor with default parameters
     AnomalyDetection(Real inputMin = 0.0, Real inputMax = 100.0, Real inputResolution = 0.1,
-      UInt nCols = 2048, UInt nCells = 4, UInt anomalyWindowSize = 2, std::string tmImpl = "TM") : 
+      UInt nCols = 2048, UInt nCells = 4, UInt anomalyWindowSize = 2, std::string tmImpl = "TP") : 
         encoder{25, inputMin, inputMax, 0, 0, inputResolution, false},
         sp{std::vector<UInt>{static_cast<UInt>(encoder.getOutputWidth())}, std::vector<UInt>{nCols}},
         anomaly{anomalyWindowSize, AnomalyMode::PURE, 0},
