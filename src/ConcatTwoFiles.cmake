@@ -29,10 +29,10 @@
 #  TARGET_FILE: path of target file
 
 
-function(concat_two_files SRC_FILE_1 SRC_FILE_2 TARGET_FILE)
+function(CONCAT_TWO_FILES SRC_FILE_1 SRC_FILE_2 TARGET_FILE)
     file(READ ${SRC_FILE_1} src_1_content)
     file(READ ${SRC_FILE_2} src_2_content)
     file(WRITE ${TARGET_FILE} "${src_1_content}${src_2_content}")
-endfunction(concat_two_files)
+endfunction(CONCAT_TWO_FILES)
 
 concat_two_files(${SRC_FILE_1} ${SRC_FILE_2} ${TARGET_FILE})

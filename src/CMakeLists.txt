@@ -358,12 +358,15 @@ set(src_lib_static_nupiccore_srcs
     ${src_py_support_files}
     ${src_nupiccore_srcs})
 
-set(src_lib_static_nupiccore_solo_link_libs
+set(src_external_static_libs
     ${LIB_STATIC_YAML_CPP_LOC}
     ${LIB_STATIC_YAML_LOC}
     ${LIB_STATIC_APR1_LOC}
     ${LIB_STATIC_APRUTIL1_LOC}
-    ${LIB_STATIC_Z_LOC}
+    ${LIB_STATIC_Z_LOC})
+
+set(src_lib_static_nupiccore_solo_link_libs
+    ${src_external_static_libs}
     ${src_common_os_libs})
 
 set(src_lib_static_nupiccore_solo_deps
@@ -397,7 +400,7 @@ add_library(${src_lib_static_nupiccore_solo} STATIC
 add_dependencies(${src_lib_static_nupiccore_solo}
                  src_lib_static_nupiccore_solo_deps)
 target_link_libraries(${src_lib_static_nupiccore_solo}
-                      PRIVATE ${src_lib_static_nupiccore_solo_link_libs})
+                      ${src_lib_static_nupiccore_solo_link_libs})
 set_target_properties(${src_lib_static_nupiccore_solo} PROPERTIES COMPILE_FLAGS
                       ${src_lib_static_nupiccore_compile_flags})
 #set_target_properties(${src_lib_static_nupiccore_solo} PROPERTIES LINK_FLAGS
@@ -614,6 +617,7 @@ add_custom_target(tests_all
                   COMMENT "Running all tests"
                   VERBATIM)
 
+
 if (OFF)
   # Dependencies of the combined nupic.core static lib
   set(src_nupiccore_combined_deps
@@ -673,12 +677,22 @@ else()
   # place, since it doesn't seem to add anything new to "solo"!
 #  set(src_lib_static_nupiccore_combined "${src_lib_static_nupiccore_solo}")
 #  message(STATUS "ZZZ Aliasing nupic core combined to solo")
+
+#  set(src_lib_static_nupiccore_combined nupic_core)
+#  message(STATUS "ZZZ Repackaging nupic core 'solo' static lib as 'combined'")
+#  add_library(${src_lib_static_nupiccore_combined} STATIC
+#              ${src_py_support_files})
+#  target_link_libraries(${src_lib_static_nupiccore_combined}
+#                        PRIVATE ${src_lib_static_nupiccore_solo})
+
+  include(src/NupicLibraryUtils) # for MERGE_STATIC_LIBRARIES
+
   set(src_lib_static_nupiccore_combined nupic_core)
-  message(STATUS "ZZZ Repackaging nupic core 'solo' static lib as 'combined'")
-  add_library(${src_lib_static_nupiccore_combined} STATIC
-              ${src_py_support_files})
-  target_link_libraries(${src_lib_static_nupiccore_combined}
-                        PRIVATE ${src_lib_static_nupiccore_solo})
+  set(src_combined_nupiccore_source_archives
+      ${src_lib_static_nupiccore_solo}
+      ${src_external_static_libs})
+  merge_static_libraries(${src_lib_static_nupiccore_combined}
+                         "${src_combined_nupiccore_source_archives}")
 endif()
 
 
