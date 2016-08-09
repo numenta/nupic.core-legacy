@@ -20,8 +20,8 @@
  * ----------------------------------------------------------------------
  */
 
-#ifndef NTA_GROUP_BY_HPP
-#define NTA_GROUP_BY_HPP
+#ifndef NTA_GROUPBY_HPP
+#define NTA_GROUPBY_HPP
 
 #include <tuple>
 #include <algorithm> // is_sorted
@@ -31,7 +31,7 @@
 namespace nupic
 {
   /** @file
-   * Implements a group_by function.
+   * Implements a groupBy function.
    *
    * This is modeled after Python's itertools.groupby, but with the added
    * ability to traverse multiple sequences. Similar to Python, it requires the
@@ -39,17 +39,14 @@ namespace nupic
    *
    * There are two functions:
    *
-   * - `group_by`, which takes in collections
-   * - `iter_group_by`, which takes in pairs of iterators
+   * - `groupBy`, which takes in collections
+   * - `iterGroupBy`, which takes in pairs of iterators
    *
    * Both functions take a key function for each sequence.
    *
    * Both functions return an iterable object. The iterator returns a tuple
    * containing the key, followed by a begin and end iterator for each
    * sequence. The sequences are traversed lazily as the iterator is advanced.
-   *
-   * Note: It's called "group_by" and "iter_group_by" in snake_case because it's
-   * designed to feel like an STL function, like "is_sorted" or "iter_swap".
    *
    * Note: The implementation includes this "minFrontKey" to avoid GCC
    * "maybe-initialized" false positives. This approach makes it very obvious to
@@ -174,14 +171,14 @@ namespace nupic
 
   template<typename Sequence0, typename KeyFn0>
   GroupBy1<typename Sequence0::const_iterator, KeyFn0>
-  group_by(const Sequence0& sequence0, KeyFn0 keyFn0)
+  groupBy(const Sequence0& sequence0, KeyFn0 keyFn0)
   {
     return {sequence0.begin(), sequence0.end(), keyFn0};
   }
 
   template<typename Iterator0, typename KeyFn0>
   GroupBy1<Iterator0, KeyFn0>
-  iter_group_by(Iterator0 begin0, Iterator0 end0, KeyFn0 keyFn0)
+  iterGroupBy(Iterator0 begin0, Iterator0 end0, KeyFn0 keyFn0)
   {
     return {begin0, end0, keyFn0};
   }
@@ -355,8 +352,8 @@ namespace nupic
            typename Sequence1, typename KeyFn1>
   GroupBy2<typename Sequence0::const_iterator, KeyFn0,
            typename Sequence1::const_iterator, KeyFn1>
-  group_by(const Sequence0& sequence0, KeyFn0 keyFn0,
-           const Sequence1& sequence1, KeyFn1 keyFn1)
+  groupBy(const Sequence0& sequence0, KeyFn0 keyFn0,
+          const Sequence1& sequence1, KeyFn1 keyFn1)
   {
     return {sequence0.begin(), sequence0.end(), keyFn0,
             sequence1.begin(), sequence1.end(), keyFn1};
@@ -366,8 +363,8 @@ namespace nupic
            typename Iterator1, typename KeyFn1>
   GroupBy2<Iterator0, KeyFn0,
            Iterator1, KeyFn1>
-  iter_group_by(Iterator0 begin0, Iterator0 end0, KeyFn0 keyFn0,
-                Iterator1 begin1, Iterator1 end1, KeyFn1 keyFn1)
+  iterGroupBy(Iterator0 begin0, Iterator0 end0, KeyFn0 keyFn0,
+              Iterator1 begin1, Iterator1 end1, KeyFn1 keyFn1)
   {
     return {begin0, end0, keyFn0,
             begin1, end1, keyFn1};
@@ -587,9 +584,9 @@ namespace nupic
   GroupBy3<typename Sequence0::const_iterator, KeyFn0,
            typename Sequence1::const_iterator, KeyFn1,
            typename Sequence2::const_iterator, KeyFn2>
-  group_by(const Sequence0& sequence0, KeyFn0 keyFn0,
-           const Sequence1& sequence1, KeyFn1 keyFn1,
-           const Sequence2& sequence2, KeyFn2 keyFn2)
+  groupBy(const Sequence0& sequence0, KeyFn0 keyFn0,
+          const Sequence1& sequence1, KeyFn1 keyFn1,
+          const Sequence2& sequence2, KeyFn2 keyFn2)
   {
     return {sequence0.begin(), sequence0.end(), keyFn0,
             sequence1.begin(), sequence1.end(), keyFn1,
@@ -602,7 +599,7 @@ namespace nupic
   GroupBy3<Iterator0, KeyFn0,
            Iterator1, KeyFn1,
            Iterator2, KeyFn2>
-  iter_group_by(
+  iterGroupBy(
     Iterator0 begin0, Iterator0 end0, KeyFn0 keyFn0,
     Iterator1 begin1, Iterator1 end1, KeyFn1 keyFn1,
     Iterator2 begin2, Iterator2 end2, KeyFn2 keyFn2)
@@ -875,10 +872,10 @@ namespace nupic
            typename Sequence1::const_iterator, KeyFn1,
            typename Sequence2::const_iterator, KeyFn2,
            typename Sequence3::const_iterator, KeyFn3>
-  group_by(const Sequence0& sequence0, KeyFn0 keyFn0,
-           const Sequence1& sequence1, KeyFn1 keyFn1,
-           const Sequence2& sequence2, KeyFn2 keyFn2,
-           const Sequence3& sequence3, KeyFn3 keyFn3)
+  groupBy(const Sequence0& sequence0, KeyFn0 keyFn0,
+          const Sequence1& sequence1, KeyFn1 keyFn1,
+          const Sequence2& sequence2, KeyFn2 keyFn2,
+          const Sequence3& sequence3, KeyFn3 keyFn3)
   {
     return {sequence0.begin(), sequence0.end(), keyFn0,
             sequence1.begin(), sequence1.end(), keyFn1,
@@ -894,7 +891,7 @@ namespace nupic
            Iterator1, KeyFn1,
            Iterator2, KeyFn2,
            Iterator3, KeyFn3>
-  iter_group_by(
+  iterGroupBy(
     Iterator0 begin0, Iterator0 end0, KeyFn0 keyFn0,
     Iterator1 begin1, Iterator1 end1, KeyFn1 keyFn1,
     Iterator2 begin2, Iterator2 end2, KeyFn2 keyFn2,
@@ -1218,11 +1215,11 @@ namespace nupic
            typename Sequence2::const_iterator, KeyFn2,
            typename Sequence3::const_iterator, KeyFn3,
            typename Sequence4::const_iterator, KeyFn4>
-  group_by(const Sequence0& sequence0, KeyFn0 keyFn0,
-           const Sequence1& sequence1, KeyFn1 keyFn1,
-           const Sequence2& sequence2, KeyFn2 keyFn2,
-           const Sequence3& sequence3, KeyFn3 keyFn3,
-           const Sequence4& sequence4, KeyFn4 keyFn4)
+  groupBy(const Sequence0& sequence0, KeyFn0 keyFn0,
+          const Sequence1& sequence1, KeyFn1 keyFn1,
+          const Sequence2& sequence2, KeyFn2 keyFn2,
+          const Sequence3& sequence3, KeyFn3 keyFn3,
+          const Sequence4& sequence4, KeyFn4 keyFn4)
   {
     return {sequence0.begin(), sequence0.end(), keyFn0,
             sequence1.begin(), sequence1.end(), keyFn1,
@@ -1241,7 +1238,7 @@ namespace nupic
            Iterator2, KeyFn2,
            Iterator3, KeyFn3,
            Iterator4, KeyFn4>
-  iter_group_by(
+  iterGroupBy(
     Iterator0 begin0, Iterator0 end0, KeyFn0 keyFn0,
     Iterator1 begin1, Iterator1 end1, KeyFn1 keyFn1,
     Iterator2 begin2, Iterator2 end2, KeyFn2 keyFn2,
@@ -1257,4 +1254,4 @@ namespace nupic
 
 } // end namespace nupic
 
-#endif // NTA_GROUP_BY_HPP
+#endif // NTA_GROUPBY_HPP

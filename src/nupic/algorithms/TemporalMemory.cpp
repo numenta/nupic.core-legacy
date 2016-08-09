@@ -428,9 +428,9 @@ void TemporalMemory::compute(
   const auto columnForSegment =
     [&](const SegmentOverlap& s) { return s.segment.cell / cellsPerColumn_; };
 
-  for (auto& columnData : group_by(activeColumns, identity<UInt>,
-                                   activeSegments_, columnForSegment,
-                                   matchingSegments_, columnForSegment))
+  for (auto& columnData : groupBy(activeColumns, identity<UInt>,
+                                  activeSegments_, columnForSegment,
+                                  matchingSegments_, columnForSegment))
   {
     UInt column;
     vector<UInt>::const_iterator
