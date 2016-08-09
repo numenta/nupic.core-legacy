@@ -104,6 +104,23 @@ class VectorHelpers
           return activeColumns;
         }
 
+
+        /**
+        * convert sparse representation of active cells to active columns.
+        * (This is faster than the binary/dense version of the method.)
+        * If any cell of a column is active (1), the column is considered active. See TP for details.
+        */
+        static std::vector<UInt> cellsToColumnsSparse(const std::vector<UInt>& activeCells, const UInt cellsPerColumn)
+        {
+          std::vector<UInt> activeColumns;
+          for (UInt act : activeCells) { // loop over the active cells
+            UInt col = (act -1) /* as the indices start from 0 */ / cellsPerColumn; /* whole integer division (both must be int, or use floor() */
+            activeColumns.push_back(col);
+          }
+          return activeColumns;
+        }
+
+
 };
 
 }
