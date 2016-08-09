@@ -51,7 +51,7 @@ namespace nupic
    * Note: It's called "group_by" and "iter_group_by" in snake_case because it's
    * designed to feel like an STL function, like "is_sorted" or "iter_swap".
    *
-   * Note: The implementation includes this "min_front_key" to avoid GCC
+   * Note: The implementation includes this "minFrontKey" to avoid GCC
    * "maybe-initialized" false positives. This approach makes it very obvious to
    * the compiler that the "key" variable always gets initialized.
    *
@@ -195,8 +195,8 @@ namespace nupic
            typename KeyType = typename std::result_of<
              KeyFn0(decltype(*std::declval<Iterator0>()))
                >::type>
-  static KeyType min_front_key(KeyType frontrunner,
-                               Iterator0 begin0, Iterator0 end0, KeyFn0 keyFn0)
+  static KeyType minFrontKey(KeyType frontrunner,
+                             Iterator0 begin0, Iterator0 end0, KeyFn0 keyFn0)
   {
     if (begin0 != end0)
     {
@@ -283,8 +283,8 @@ namespace nupic
           KeyType key;
           if (current0_ != end0_)
           {
-            key = min_front_key(keyFn0_(*current0_),
-                                current1_, end1_, keyFn1_);
+            key = minFrontKey(keyFn0_(*current0_),
+                              current1_, end1_, keyFn1_);
           }
           else
           {
@@ -382,9 +382,9 @@ namespace nupic
            typename KeyType = typename std::result_of<
              KeyFn0(decltype(*std::declval<Iterator0>()))
                >::type>
-  static KeyType min_front_key(KeyType frontrunner,
-                               Iterator0 begin0, Iterator0 end0, KeyFn0 keyFn0,
-                               Iterator1 begin1, Iterator1 end1, KeyFn1 keyFn1)
+  static KeyType minFrontKey(KeyType frontrunner,
+                             Iterator0 begin0, Iterator0 end0, KeyFn0 keyFn0,
+                             Iterator1 begin1, Iterator1 end1, KeyFn1 keyFn1)
   {
     KeyType ret = frontrunner;
 
@@ -489,14 +489,14 @@ namespace nupic
           KeyType key;
           if (current0_ != end0_)
           {
-            key = min_front_key(keyFn0_(*current0_),
-                                current1_, end1_, keyFn1_,
-                                current2_, end2_, keyFn2_);
+            key = minFrontKey(keyFn0_(*current0_),
+                              current1_, end1_, keyFn1_,
+                              current2_, end2_, keyFn2_);
           }
           else if (current1_ != end1_)
           {
-            key = min_front_key(keyFn1_(*current1_),
-                                current2_, end2_, keyFn2_);
+            key = minFrontKey(keyFn1_(*current1_),
+                              current2_, end2_, keyFn2_);
           }
           else
           {
@@ -623,10 +623,10 @@ namespace nupic
            typename KeyType = typename std::result_of<
              KeyFn0(decltype(*std::declval<Iterator0>()))
                >::type>
-  static KeyType min_front_key(KeyType frontrunner,
-                               Iterator0 begin0, Iterator0 end0, KeyFn0 keyFn0,
-                               Iterator1 begin1, Iterator1 end1, KeyFn1 keyFn1,
-                               Iterator2 begin2, Iterator2 end2, KeyFn2 keyFn2)
+  static KeyType minFrontKey(KeyType frontrunner,
+                             Iterator0 begin0, Iterator0 end0, KeyFn0 keyFn0,
+                             Iterator1 begin1, Iterator1 end1, KeyFn1 keyFn1,
+                             Iterator2 begin2, Iterator2 end2, KeyFn2 keyFn2)
   {
     KeyType ret = frontrunner;
 
@@ -750,21 +750,21 @@ namespace nupic
           KeyType key;
           if (current0_ != end0_)
           {
-            key = min_front_key(keyFn0_(*current0_),
-                                current1_, end1_, keyFn1_,
-                                current2_, end2_, keyFn2_,
-                                current3_, end3_, keyFn3_);
+            key = minFrontKey(keyFn0_(*current0_),
+                              current1_, end1_, keyFn1_,
+                              current2_, end2_, keyFn2_,
+                              current3_, end3_, keyFn3_);
           }
           else if (current1_ != end1_)
           {
-            key = min_front_key(keyFn1_(*current1_),
-                                current2_, end2_, keyFn2_,
-                                current3_, end3_, keyFn3_);
+            key = minFrontKey(keyFn1_(*current1_),
+                              current2_, end2_, keyFn2_,
+                              current3_, end3_, keyFn3_);
           }
           else if (current2_ != end2_)
           {
-            key = min_front_key(keyFn2_(*current2_),
-                                current3_, end3_, keyFn3_);
+            key = minFrontKey(keyFn2_(*current2_),
+                              current3_, end3_, keyFn3_);
           }
           else
           {
@@ -918,11 +918,11 @@ namespace nupic
            typename KeyType = typename std::result_of<
              KeyFn0(decltype(*std::declval<Iterator0>()))
                >::type>
-  static KeyType min_front_key(KeyType frontrunner,
-                               Iterator0 begin0, Iterator0 end0, KeyFn0 keyFn0,
-                               Iterator1 begin1, Iterator1 end1, KeyFn1 keyFn1,
-                               Iterator2 begin2, Iterator2 end2, KeyFn2 keyFn2,
-                               Iterator3 begin3, Iterator3 end3, KeyFn3 keyFn3)
+  static KeyType minFrontKey(KeyType frontrunner,
+                             Iterator0 begin0, Iterator0 end0, KeyFn0 keyFn0,
+                             Iterator1 begin1, Iterator1 end1, KeyFn1 keyFn1,
+                             Iterator2 begin2, Iterator2 end2, KeyFn2 keyFn2,
+                             Iterator3 begin3, Iterator3 end3, KeyFn3 keyFn3)
   {
     KeyType ret = frontrunner;
 
@@ -1065,29 +1065,29 @@ namespace nupic
           KeyType key;
           if (current0_ != end0_)
           {
-            key = min_front_key(keyFn0_(*current0_),
-                                current1_, end1_, keyFn1_,
-                                current2_, end2_, keyFn2_,
-                                current3_, end3_, keyFn3_,
-                                current4_, end4_, keyFn4_);
+            key = minFrontKey(keyFn0_(*current0_),
+                              current1_, end1_, keyFn1_,
+                              current2_, end2_, keyFn2_,
+                              current3_, end3_, keyFn3_,
+                              current4_, end4_, keyFn4_);
           }
           else if (current1_ != end1_)
           {
-            key = min_front_key(keyFn1_(*current1_),
-                                current2_, end2_, keyFn2_,
-                                current3_, end3_, keyFn3_,
-                                current4_, end4_, keyFn4_);
+            key = minFrontKey(keyFn1_(*current1_),
+                              current2_, end2_, keyFn2_,
+                              current3_, end3_, keyFn3_,
+                              current4_, end4_, keyFn4_);
           }
           else if (current2_ != end2_)
           {
-            key = min_front_key(keyFn2_(*current2_),
-                                current3_, end3_, keyFn3_,
-                                current4_, end4_, keyFn4_);
+            key = minFrontKey(keyFn2_(*current2_),
+                              current3_, end3_, keyFn3_,
+                              current4_, end4_, keyFn4_);
           }
           else if (current3_ != end3_)
           {
-            key = min_front_key(keyFn3_(*current3_),
-                                current4_, end4_, keyFn4_);
+            key = minFrontKey(keyFn3_(*current3_),
+                              current4_, end4_, keyFn4_);
           }
           else
           {
