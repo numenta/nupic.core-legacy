@@ -372,8 +372,8 @@ Synapse Connections::minPermanenceSynapse_(const Segment& segment) const
   Permanence minPermanence;
   for (SynapseIdx i = 0; i < synapses.size(); i++)
   {
-    if(!synapses[i].destroyed && (!found ||
-                                  synapses[i].permanence < minPermanence))
+    if(!synapses[i].destroyed &&
+       (!found || synapses[i].permanence < minPermanence - EPSILON))
     {
       minIdx = i;
       minPermanence = synapses[i].permanence;
