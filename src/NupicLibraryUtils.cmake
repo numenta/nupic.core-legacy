@@ -76,11 +76,11 @@ function(MERGE_STATIC_LIBRARIES LIB_TARGET STATIC_LIBS)
 
       # Collect its link interface
       get_target_property(link_iface ${lib} INTERFACE_LINK_LIBRARIES)
-      message(STATUS "ZZZ INTERFACE_LINK_LIBRARIES[${lib}] = ${link_iface}")
       if (link_iface)
         list(APPEND link_libs ${link_iface})
+        message(STATUS "INTERFACE_LINK_LIBRARIES[${lib}] = ${link_iface}")
       else()
-        message(WARNING "ZZZ Link interface not set on static lib target ${lib}!")
+        message(STATUS "Link interface not set on static lib target ${lib}!")
       endif()
     endif()
   endforeach()
