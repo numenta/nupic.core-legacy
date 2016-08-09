@@ -48,6 +48,7 @@
 #include <set>
 #include <string>
 #include <cstdlib>
+#include <cmath>
 
 #include <nupic/encoders/ScalarEncoder.hpp>
 #include <nupic/algorithms/SpatialPooler.hpp>
@@ -69,7 +70,7 @@ using namespace nupic::algorithms::temporal_memory;
 using namespace nupic::experimental::extended_temporal_memory;
 using namespace nupic::algorithms::anomaly;
 
-const int DEBUG_LEVEL =5; //0=no debug (also disabled timer), ..
+const int DEBUG_LEVEL =1; //0=no debug (also disabled timer), ..
 
 namespace nupic {
 namespace examples {
@@ -86,7 +87,7 @@ class AnomalyDetection
     Anomaly anomaly;
     std::vector<UInt> lastTPOutput_;
     const string tmImpl; //"TM","TP","ETM"
-
+    const float EPSILON = pow(10, -4); // limit for rounding error in anomaly scores
 
   public:
     Real compute(Real x) {
@@ -117,7 +118,7 @@ class AnomalyDetection
           std::vector<Real> rTpOutput(tp.nCells());
           // The temporal pooler uses Real32, so the vector must be converted again
           auto tpInput = VectorHelpers::castVectorType<UInt, Real>(spOutput);
-          tp.compute(tpInput.data(), rTpOutput.data(), true, true); //FIXME SIGSEGV here?!
+          tp.compute(tpInput.data(), rTpOutput.data(), true, true);
           // And the result is converted ONCE again to UInts
           tpOutput = VectorHelpers::castVectorType<Real32, UInt>(rTpOutput);
         } else if (tmImpl == "TM") { //TODO improve the code duplication for TM/ETM (+TP?)
@@ -169,7 +170,10 @@ class AnomalyDetection
         }
 
         if(DEBUG_LEVEL > 0) {
-          std::cout << "Input:\t" << x << "\tAnomaly: " << anScore << std::endl;
+          if (anScore < EPSILON) {
+            anScore = 0.0;
+          }
+          printf("Input: %g\tAnomaly: %1.2g\n", x, anScore);
         }
 
         return anScore;
