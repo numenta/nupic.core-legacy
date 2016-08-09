@@ -28,17 +28,6 @@
 
 #include <nupic/utils/Log.hpp>
 
-// This file causes GCC "maybe-uninitialized" false positives.
-#ifdef __GNUC__
-#ifndef __clang__ // GCC
-#define GCC_UNINITIALIZED_VAR(x) x = {}
-#else // clang
-#define GCC_UNINITIALIZED_VAR(x) x
-#endif
-#else // something else
-#define GCC_UNINITIALIZED_VAR(x) x
-#endif
-
 namespace nupic
 {
   /** @file
@@ -62,6 +51,10 @@ namespace nupic
    * Note: It's called "group_by" and "iter_group_by" in snake_case because it's
    * designed to feel like an STL function, like "is_sorted" or "iter_swap".
    *
+   * Note: The implementation includes this "min_front_key" to avoid GCC
+   * "maybe-initialized" false positives. This approach makes it very obvious to
+   * the compiler that the "key" variable always gets initialized.
+   *
    * Feel free to add new GroupBy7, GroupBy8, ..., GroupByN classes as needed.
    */
 
@@ -69,11 +62,11 @@ namespace nupic
   // 1 SEQUENCE
   // ==========================================================================
 
- template<typename Iterator0, typename KeyFn0,
+  template<typename Iterator0, typename KeyFn0,
            typename Element0 = decltype(*std::declval<Iterator0>()),
            typename KeyType = typename std::result_of<
              KeyFn0(decltype(*std::declval<Iterator0>()))
-             >::type>
+               >::type>
   class GroupBy1
   {
   public:
@@ -126,7 +119,7 @@ namespace nupic
       {
         if (current0_ != end0_)
         {
-          KeyType key = keyFn0_(*current0_);
+          const KeyType key = keyFn0_(*current0_);
           std::get<0>(v_) = key;
 
           // Find all elements with this key.
@@ -189,12 +182,29 @@ namespace nupic
   // ==========================================================================
 
   template<typename Iterator0, typename KeyFn0,
+           typename KeyType = typename std::result_of<
+             KeyFn0(decltype(*std::declval<Iterator0>()))
+               >::type>
+  static KeyType min_front_key(KeyType frontrunner,
+                               Iterator0 begin0, Iterator0 end0, KeyFn0 keyFn0)
+  {
+    if (begin0 != end0)
+    {
+      return std::min(frontrunner, keyFn0(*begin0));
+    }
+    else
+    {
+      return frontrunner;
+    }
+  }
+
+  template<typename Iterator0, typename KeyFn0,
            typename Iterator1, typename KeyFn1,
            typename Element0 = decltype(*std::declval<Iterator0>()),
            typename Element1 = decltype(*std::declval<Iterator1>()),
            typename KeyType = typename std::result_of<
              KeyFn0(decltype(*std::declval<Iterator0>()))
-             >::type>
+               >::type>
   class GroupBy2
   {
   public:
@@ -260,29 +270,17 @@ namespace nupic
             current1_ != end1_)
         {
           // Find the lowest key.
-          KeyType GCC_UNINITIALIZED_VAR(key);
-          bool found = false;
-
+          KeyType key;
           if (current0_ != end0_)
           {
-            key = keyFn0_(*current0_);
-            found = true;
+            key = min_front_key(keyFn0_(*current0_),
+                                current1_, end1_, keyFn1_);
           }
-
-          if (current1_ != end1_)
+          else
           {
-            if (found)
-            {
-              key = std::min(key, keyFn1_(*current1_));
-            }
-            else
-            {
-              key = keyFn1_(*current1_);
-              found = true;
-            }
+            key = keyFn1_(*current1_);
           }
 
-          NTA_ASSERT(found);
           std::get<0>(v_) = key;
 
           // Find all elements with this key.
@@ -371,13 +369,37 @@ namespace nupic
 
   template<typename Iterator0, typename KeyFn0,
            typename Iterator1, typename KeyFn1,
+           typename KeyType = typename std::result_of<
+             KeyFn0(decltype(*std::declval<Iterator0>()))
+               >::type>
+  static KeyType min_front_key(KeyType frontrunner,
+                               Iterator0 begin0, Iterator0 end0, KeyFn0 keyFn0,
+                               Iterator1 begin1, Iterator1 end1, KeyFn1 keyFn1)
+  {
+    KeyType ret = frontrunner;
+
+    if (begin0 != end0)
+    {
+      ret = std::min(ret, keyFn0(*begin0));
+    }
+
+    if (begin1 != end1)
+    {
+      ret = std::min(ret, keyFn1(*begin1));
+    }
+
+    return ret;
+  }
+
+  template<typename Iterator0, typename KeyFn0,
+           typename Iterator1, typename KeyFn1,
            typename Iterator2, typename KeyFn2,
            typename Element0 = decltype(*std::declval<Iterator0>()),
            typename Element1 = decltype(*std::declval<Iterator1>()),
            typename Element2 = decltype(*std::declval<Iterator2>()),
            typename KeyType = typename std::result_of<
              KeyFn0(decltype(*std::declval<Iterator0>()))
-             >::type>
+               >::type>
   class GroupBy3
   {
   public:
@@ -454,42 +476,23 @@ namespace nupic
             current2_ != end2_)
         {
           // Find the lowest key.
-          KeyType GCC_UNINITIALIZED_VAR(key);
-          bool found = false;
-
+          KeyType key;
           if (current0_ != end0_)
           {
-            key = keyFn0_(*current0_);
-            found = true;
+            key = min_front_key(keyFn0_(*current0_),
+                                current1_, end1_, keyFn1_,
+                                current2_, end2_, keyFn2_);
           }
-
-          if (current1_ != end1_)
+          else if (current1_ != end1_)
           {
-            if (found)
-            {
-              key = std::min(key, keyFn1_(*current1_));
-            }
-            else
-            {
-              key = keyFn1_(*current1_);
-              found = true;
-            }
+            key = min_front_key(keyFn1_(*current1_),
+                                current2_, end2_, keyFn2_);
           }
-
-          if (current2_ != end2_)
+          else
           {
-            if (found)
-            {
-              key = std::min(key, keyFn2_(*current2_));
-            }
-            else
-            {
-              key = keyFn2_(*current2_);
-              found = true;
-            }
+            key = keyFn2_(*current2_);
           }
 
-          NTA_ASSERT(found);
           std::get<0>(v_) = key;
 
           // Find all elements with this key.
@@ -607,6 +610,37 @@ namespace nupic
   template<typename Iterator0, typename KeyFn0,
            typename Iterator1, typename KeyFn1,
            typename Iterator2, typename KeyFn2,
+           typename KeyType = typename std::result_of<
+             KeyFn0(decltype(*std::declval<Iterator0>()))
+               >::type>
+  static KeyType min_front_key(KeyType frontrunner,
+                               Iterator0 begin0, Iterator0 end0, KeyFn0 keyFn0,
+                               Iterator1 begin1, Iterator1 end1, KeyFn1 keyFn1,
+                               Iterator2 begin2, Iterator2 end2, KeyFn2 keyFn2)
+  {
+    KeyType ret = frontrunner;
+
+    if (begin0 != end0)
+    {
+      ret = std::min(ret, keyFn0(*begin0));
+    }
+
+    if (begin1 != end1)
+    {
+      ret = std::min(ret, keyFn1(*begin1));
+    }
+
+    if (begin2 != end2)
+    {
+      ret = std::min(ret, keyFn2(*begin2));
+    }
+
+    return ret;
+  }
+
+  template<typename Iterator0, typename KeyFn0,
+           typename Iterator1, typename KeyFn1,
+           typename Iterator2, typename KeyFn2,
            typename Iterator3, typename KeyFn3,
            typename Element0 = decltype(*std::declval<Iterator0>()),
            typename Element1 = decltype(*std::declval<Iterator1>()),
@@ -614,7 +648,7 @@ namespace nupic
            typename Element3 = decltype(*std::declval<Iterator3>()),
            typename KeyType = typename std::result_of<
              KeyFn0(decltype(*std::declval<Iterator0>()))
-             >::type>
+               >::type>
   class GroupBy4
   {
   public:
@@ -703,55 +737,30 @@ namespace nupic
             current3_ != end3_)
         {
           // Find the lowest key.
-          KeyType GCC_UNINITIALIZED_VAR(key);
-          bool found = false;
-
+          KeyType key;
           if (current0_ != end0_)
           {
-            key = keyFn0_(*current0_);
-            found = true;
+            key = min_front_key(keyFn0_(*current0_),
+                                current1_, end1_, keyFn1_,
+                                current2_, end2_, keyFn2_,
+                                current3_, end3_, keyFn3_);
           }
-
-          if (current1_ != end1_)
+          else if (current1_ != end1_)
           {
-            if (found)
-            {
-              key = std::min(key, keyFn1_(*current1_));
-            }
-            else
-            {
-              key = keyFn1_(*current1_);
-              found = true;
-            }
+            key = min_front_key(keyFn1_(*current1_),
+                                current2_, end2_, keyFn2_,
+                                current3_, end3_, keyFn3_);
           }
-
-          if (current2_ != end2_)
+          else if (current2_ != end2_)
           {
-            if (found)
-            {
-              key = std::min(key, keyFn2_(*current2_));
-            }
-            else
-            {
-              key = keyFn2_(*current2_);
-              found = true;
-            }
+            key = min_front_key(keyFn2_(*current2_),
+                                current3_, end3_, keyFn3_);
           }
-
-          if (current3_ != end3_)
+          else
           {
-            if (found)
-            {
-              key = std::min(key, keyFn3_(*current3_));
-            }
-            else
-            {
-              key = keyFn3_(*current3_);
-              found = true;
-            }
+            key = keyFn3_(*current3_);
           }
 
-          NTA_ASSERT(found);
           std::get<0>(v_) = key;
 
           // Find all elements with this key.
@@ -896,6 +905,44 @@ namespace nupic
            typename Iterator1, typename KeyFn1,
            typename Iterator2, typename KeyFn2,
            typename Iterator3, typename KeyFn3,
+           typename KeyType = typename std::result_of<
+             KeyFn0(decltype(*std::declval<Iterator0>()))
+               >::type>
+  static KeyType min_front_key(KeyType frontrunner,
+                               Iterator0 begin0, Iterator0 end0, KeyFn0 keyFn0,
+                               Iterator1 begin1, Iterator1 end1, KeyFn1 keyFn1,
+                               Iterator2 begin2, Iterator2 end2, KeyFn2 keyFn2,
+                               Iterator3 begin3, Iterator3 end3, KeyFn3 keyFn3)
+  {
+    KeyType ret = frontrunner;
+
+    if (begin0 != end0)
+    {
+      ret = std::min(ret, keyFn0(*begin0));
+    }
+
+    if (begin1 != end1)
+    {
+      ret = std::min(ret, keyFn1(*begin1));
+    }
+
+    if (begin2 != end2)
+    {
+      ret = std::min(ret, keyFn2(*begin2));
+    }
+
+    if (begin3 != end3)
+    {
+      ret = std::min(ret, keyFn3(*begin3));
+    }
+
+    return ret;
+  }
+
+  template<typename Iterator0, typename KeyFn0,
+           typename Iterator1, typename KeyFn1,
+           typename Iterator2, typename KeyFn2,
+           typename Iterator3, typename KeyFn3,
            typename Iterator4, typename KeyFn4,
            typename Element0 = decltype(*std::declval<Iterator0>()),
            typename Element1 = decltype(*std::declval<Iterator1>()),
@@ -904,7 +951,7 @@ namespace nupic
            typename Element4 = decltype(*std::declval<Iterator4>()),
            typename KeyType = typename std::result_of<
              KeyFn0(decltype(*std::declval<Iterator0>()))
-             >::type>
+               >::type>
   class GroupBy5
   {
   public:
@@ -1005,68 +1052,38 @@ namespace nupic
             current4_ != end4_)
         {
           // Find the lowest key.
-          KeyType GCC_UNINITIALIZED_VAR(key);
-          bool found = false;
-
+          KeyType key;
           if (current0_ != end0_)
           {
-            key = keyFn0_(*current0_);
-            found = true;
+            key = min_front_key(keyFn0_(*current0_),
+                                current1_, end1_, keyFn1_,
+                                current2_, end2_, keyFn2_,
+                                current3_, end3_, keyFn3_,
+                                current4_, end4_, keyFn4_);
           }
-
-          if (current1_ != end1_)
+          else if (current1_ != end1_)
           {
-            if (found)
-            {
-              key = std::min(key, keyFn1_(*current1_));
-            }
-            else
-            {
-              key = keyFn1_(*current1_);
-              found = true;
-            }
+            key = min_front_key(keyFn1_(*current1_),
+                                current2_, end2_, keyFn2_,
+                                current3_, end3_, keyFn3_,
+                                current4_, end4_, keyFn4_);
           }
-
-          if (current2_ != end2_)
+          else if (current2_ != end2_)
           {
-            if (found)
-            {
-              key = std::min(key, keyFn2_(*current2_));
-            }
-            else
-            {
-              key = keyFn2_(*current2_);
-              found = true;
-            }
+            key = min_front_key(keyFn2_(*current2_),
+                                current3_, end3_, keyFn3_,
+                                current4_, end4_, keyFn4_);
           }
-
-          if (current3_ != end3_)
+          else if (current3_ != end3_)
           {
-            if (found)
-            {
-              key = std::min(key, keyFn3_(*current3_));
-            }
-            else
-            {
-              key = keyFn3_(*current3_);
-              found = true;
-            }
+            key = min_front_key(keyFn3_(*current3_),
+                                current4_, end4_, keyFn4_);
           }
-
-          if (current4_ != end4_)
+          else
           {
-            if (found)
-            {
-              key = std::min(key, keyFn4_(*current4_));
-            }
-            else
-            {
-              key = keyFn4_(*current4_);
-              found = true;
-            }
+            key = keyFn4_(*current4_);
           }
 
-          NTA_ASSERT(found);
           std::get<0>(v_) = key;
 
           // Find all elements with this key.
