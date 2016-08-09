@@ -21,7 +21,7 @@
  */
 
 /** @file
- * Implementation of unit tests for group_by
+ * Implementation of unit tests for groupBy
  */
 
 #include <nupic/utils/GroupBy.hpp>
@@ -31,14 +31,8 @@ using std::tuple;
 using std::tie;
 using std::vector;
 
-using nupic::group_by;
-using nupic::iter_group_by;
-
-// GCC warns that `key` might be uninitialized when initializing the
-// `actualValue`
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunknown-pragmas"
-#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+using nupic::groupBy;
+using nupic::iterGroupBy;
 
 namespace {
 
@@ -60,10 +54,10 @@ namespace {
     };
 
     //
-    // group_by
+    // groupBy
     //
     size_t i = 0;
-    for (auto data : group_by(sequence0, identity))
+    for (auto data : groupBy(sequence0, identity))
     {
       int key;
       vector<int>::const_iterator
@@ -82,10 +76,10 @@ namespace {
     }
 
     //
-    // iter_group_by
+    // iterGroupBy
     //
     i = 0;
-    for (auto data : iter_group_by(
+    for (auto data : iterGroupBy(
            sequence0.begin(), sequence0.end(), identity))
     {
       int key;
@@ -132,11 +126,11 @@ namespace {
     };
 
     //
-    // group_by
+    // groupBy
     //
     size_t i = 0;
-    for (auto data : group_by(sequence0, identity,
-                              sequence1, times3))
+    for (auto data : groupBy(sequence0, identity,
+                             sequence1, times3))
     {
       int key;
       vector<int>::const_iterator
@@ -158,10 +152,10 @@ namespace {
     }
 
     //
-    // iter_group_by
+    // iterGroupBy
     //
     i = 0;
-    for (auto data : iter_group_by(
+    for (auto data : iterGroupBy(
            sequence0.begin(), sequence0.end(), identity,
            sequence1.begin(), sequence1.end(), times3))
     {
@@ -216,12 +210,12 @@ namespace {
     };
 
     //
-    // group_by
+    // groupBy
     //
     size_t i = 0;
-    for (auto data : group_by(sequence0, identity,
-                              sequence1, times3,
-                              sequence2, times4))
+    for (auto data : groupBy(sequence0, identity,
+                             sequence1, times3,
+                             sequence2, times4))
     {
       int key;
       vector<int>::const_iterator
@@ -246,10 +240,10 @@ namespace {
     }
 
     //
-    // iter_group_by
+    // iterGroupBy
     //
     i = 0;
-    for (auto data : iter_group_by(
+    for (auto data : iterGroupBy(
            sequence0.begin(), sequence0.end(), identity,
            sequence1.begin(), sequence1.end(), times3,
            sequence2.begin(), sequence2.end(), times4))
@@ -311,13 +305,13 @@ namespace {
     };
 
     //
-    // group_by
+    // groupBy
     //
     size_t i = 0;
-    for (auto data : group_by(sequence0, identity,
-                              sequence1, times3,
-                              sequence2, times4,
-                              sequence3, times5))
+    for (auto data : groupBy(sequence0, identity,
+                             sequence1, times3,
+                             sequence2, times4,
+                             sequence3, times5))
     {
       int key;
       vector<int>::const_iterator
@@ -345,10 +339,10 @@ namespace {
     }
 
     //
-    // iter_group_by
+    // iterGroupBy
     //
     i = 0;
-    for (auto data : iter_group_by(
+    for (auto data : iterGroupBy(
            sequence0.begin(), sequence0.end(), identity,
            sequence1.begin(), sequence1.end(), times3,
            sequence2.begin(), sequence2.end(), times4,
@@ -419,14 +413,14 @@ namespace {
     };
 
     //
-    // group_by
+    // groupBy
     //
     size_t i = 0;
-    for (auto data : group_by(sequence0, identity,
-                              sequence1, times3,
-                              sequence2, times4,
-                              sequence3, times5,
-                              sequence4, times6))
+    for (auto data : groupBy(sequence0, identity,
+                             sequence1, times3,
+                             sequence2, times4,
+                             sequence3, times5,
+                             sequence4, times6))
     {
       int key;
       vector<int>::const_iterator
@@ -460,10 +454,10 @@ namespace {
     }
 
     //
-    // iter_group_by
+    // iterGroupBy
     //
     i = 0;
-    for (auto data : iter_group_by(
+    for (auto data : iterGroupBy(
            sequence0.begin(), sequence0.end(), identity,
            sequence1.begin(), sequence1.end(), times3,
            sequence2.begin(), sequence2.end(), times4,
@@ -504,5 +498,3 @@ namespace {
     EXPECT_EQ(expectedValues.size(), i);
   }
 }
-
-#pragma GCC diagnostic pop

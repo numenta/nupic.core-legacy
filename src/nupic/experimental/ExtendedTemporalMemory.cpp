@@ -444,7 +444,7 @@ static void activatePredictedColumn(
   bool formInternalBasalConnections,
   bool learn)
 {
-  for (auto& cellData : iter_group_by(
+  for (auto& cellData : iterGroupBy(
          columnActiveBasalBegin, columnActiveBasalEnd, cellForSegment,
          columnMatchingBasalBegin, columnMatchingBasalEnd, cellForSegment,
          columnActiveApicalBegin, columnActiveApicalEnd, cellForSegment,
@@ -644,16 +644,14 @@ void ExtendedTemporalMemory::activateCells(
   const vector<CellIdx> prevActiveCells = std::move(activeCells_);
   const vector<CellIdx> prevWinnerCells = std::move(winnerCells_);
 
-  const auto identity =
-    [](UInt c) { return c;};
   const auto columnForSegment =
     [&](const SegmentOverlap& s) { return s.segment.cell / cellsPerColumn_; };
 
-  for (auto& columnData : group_by(activeColumns, identity,
-                                   activeBasalSegments_, columnForSegment,
-                                   matchingBasalSegments_, columnForSegment,
-                                   activeApicalSegments_, columnForSegment,
-                                   matchingApicalSegments_, columnForSegment))
+  for (auto& columnData : groupBy(activeColumns, identity<UInt>,
+                                  activeBasalSegments_, columnForSegment,
+                                  matchingBasalSegments_, columnForSegment,
+                                  activeApicalSegments_, columnForSegment,
+                                  matchingApicalSegments_, columnForSegment))
   {
     UInt column;
     vector<UInt>::const_iterator
@@ -675,7 +673,7 @@ void ExtendedTemporalMemory::activateCells(
     {
       UInt32 maxPredictiveScore = 0;
 
-      for (auto& cellData : iter_group_by(
+      for (auto& cellData : iterGroupBy(
              columnActiveBasalBegin, columnActiveBasalEnd, cellForSegment,
              columnActiveApicalBegin, columnActiveApicalEnd, cellForSegment))
       {
@@ -882,8 +880,8 @@ vector<CellIdx> ExtendedTemporalMemory::getPredictiveCells() const
   const auto columnForSegment =
     [&](const SegmentOverlap& s) { return s.segment.cell / cellsPerColumn_; };
 
-  for (auto& columnData : group_by(activeBasalSegments_, columnForSegment,
-                                   activeApicalSegments_, columnForSegment))
+  for (auto& columnData : groupBy(activeBasalSegments_, columnForSegment,
+                                  activeApicalSegments_, columnForSegment))
   {
     UInt column;
     vector<SegmentOverlap>::const_iterator
@@ -893,7 +891,7 @@ vector<CellIdx> ExtendedTemporalMemory::getPredictiveCells() const
         columnActiveBasalBegin, columnActiveBasalEnd,
         columnActiveApicalBegin, columnActiveApicalEnd) = columnData;
 
-    const auto groupedByCell = iter_group_by(
+    const auto groupedByCell = iterGroupBy(
        columnActiveBasalBegin, columnActiveBasalEnd, cellForSegment,
        columnActiveApicalBegin, columnActiveApicalEnd, cellForSegment);
 
