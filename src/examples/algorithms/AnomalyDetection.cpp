@@ -147,7 +147,7 @@ class AnomalyDetection
         }
 
         if (DEBUG_LEVEL > 3) {
-            VectorHelpers::printVector(VectorHelpers::binaryToSparse<UInt>(tpOutput), ",", "Output of temporal pooler: ");
+            VectorHelpers::printVector(VectorHelpers::binaryToSparse<UInt>(tpOutput), ",", "Active cells of temporal memory: ");
         }
 
         Real anScore = anomaly.compute(
@@ -166,7 +166,7 @@ class AnomalyDetection
         }
 
         if (DEBUG_LEVEL > 4) {
-            VectorHelpers::printVector(VectorHelpers::binaryToSparse<UInt>(lastTPOutput_), ",", "Normalized TP Output: ");
+            VectorHelpers::printVector(VectorHelpers::binaryToSparse<UInt>(lastTPOutput_), ",", "Active columns of temporal memory: ");
         }
 
         if(DEBUG_LEVEL > 0) {
@@ -203,7 +203,7 @@ int main()
 {
     // initialize
     // CSV I/O
-    const int COUNT = 5000; //how many rows to process, -1 for whole file
+    const int COUNT = -1; //how many rows to process, -1 for whole file
     const UInt WORKING_COL = 2; // number of cols we want to read, in this example only 1st
     io::CSVReader<WORKING_COL> in(
                std::string(std::getenv("NUPIC_CORE"))
@@ -220,7 +220,7 @@ int main()
     outFile << "anomaly_score" << std::endl;
 
     // the running example class above
-    nupic::examples::AnomalyDetection runner {0.0, 55.0, 0.1, 2048, 8, 2, "TM"}; //parameters; TODO optimize
+    nupic::examples::AnomalyDetection runner {0.0, 55.0, 0.1, 2048, 8, 1, "TM"}; //parameters; TODO optimize
     // timer
     Timer stopwatch;
 
