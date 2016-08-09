@@ -70,7 +70,7 @@ using namespace nupic::algorithms::temporal_memory;
 using namespace nupic::experimental::extended_temporal_memory;
 using namespace nupic::algorithms::anomaly;
 
-const int DEBUG_LEVEL =5; //0=no debug (also disabled timer), ..
+const int DEBUG_LEVEL =1; //0=no debug (also disabled timer), ..
 
 namespace nupic {
 namespace examples {
@@ -131,9 +131,7 @@ class AnomalyDetection
           //VectorHelpers::printVector(pred,",","act ");
           //VectorHelpers::printVector(active,",","pred ");
           //VectorHelpers::printVector(tpOutput,",","bot ");
-          tpOutput = VectorHelpers::sparseToBinary<UInt>(tpOutput, sp.getNumColumns()*tm.getCellsPerColumn());  //converts to binary "cells"-vector //FIXME optimize this!
-          tpOutput = VectorHelpers::cellsToColumns(tpOutput, tm.getCellsPerColumn()); // to columns
-          tpOutput = VectorHelpers::binaryToSparse<UInt>(tpOutput); // to sparse
+          tpOutput = VectorHelpers::cellsToColumnsSparse(tpOutput, tm.getCellsPerColumn()); // to columns
         } else {
           set<UInt> both;
           etm.compute(spOutputS_.size(), spOutputS_.data(), true);
@@ -142,9 +140,7 @@ class AnomalyDetection
           both.insert(active.begin(), active.end());
           both.insert(pred.begin(), pred.end());
           tpOutput.assign(both.begin(), both.end()); //union, like TP.outputType = both
-          tpOutput = VectorHelpers::sparseToBinary<UInt>(tpOutput, sp.getNumColumns()*etm.getCellsPerColumn());  //converts to binary "cells"-vector //FIXME optimize this!
-          tpOutput = VectorHelpers::cellsToColumns(tpOutput, etm.getCellsPerColumn()); // to columns
-          tpOutput = VectorHelpers::binaryToSparse<UInt>(tpOutput); // to sparse
+          tpOutput = VectorHelpers::cellsToColumnsSparse(tpOutput, etm.getCellsPerColumn()); // to columns
         }
 
         if (DEBUG_LEVEL > 3) {
