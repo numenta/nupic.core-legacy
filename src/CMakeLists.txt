@@ -489,16 +489,16 @@ add_dependencies(${src_executable_hellosptp} ${src_common_test_exe_libs})
 #
 # Setup Anomaly example
 #
+set(csvlib_compile_flags "")
+if("${PLATFORM}" STREQUAL "windows")
+  set(csvlib_compile_flags "${csvlib_compile_flags} -DCSV_IO_NO_THREAD") #Otherwise CSV lib fails on Windows
+endif()
+
 set(src_executable_anomaly anomaly_example)
 add_executable(${src_executable_anomaly} examples/algorithms/AnomalyDetection.cpp)
 target_link_libraries(${src_executable_anomaly} ${src_common_test_exe_libs})
-if("${PLATFORM}" STREQUAL "windows")
-  set_target_properties(${src_executable_anomaly}
-                      PROPERTIES COMPILE_FLAGS "${src_compile_flags} -DCSV_IO_NO_THREAD") #Otherwise CSV lib fails on Windows
-else()
-  set_target_properties(${src_executable_anomaly}
-                      PROPERTIES COMPILE_FLAGS ${src_compile_flags})
-endif()
+set_target_properties(${src_executable_anomaly}
+                      PROPERTIES COMPILE_FLAGS "${src_compile_flags} ${csvlib_compile_flags}")
 set_target_properties(${src_executable_anomaly}
                       PROPERTIES LINK_FLAGS "${INTERNAL_LINKER_FLAGS_OPTIMIZED}")
 add_dependencies(${src_executable_anomaly} ${src_common_test_exe_libs})
