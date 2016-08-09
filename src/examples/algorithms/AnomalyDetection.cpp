@@ -53,6 +53,7 @@
 #include <nupic/algorithms/SpatialPooler.hpp>
 #include <nupic/algorithms/Cells4.hpp> // TP
 #include <nupic/algorithms/TemporalMemory.hpp> // TM
+#include <nupic/experimental/ExtendedTemporalMemory.hpp> // ETM
 #include <nupic/algorithms/Anomaly.hpp>
 
 #include <csv.h> // external CSV parser - see ${csvlibs_compile_flags} in CMakeLists for fixing Windows issue
@@ -65,6 +66,7 @@ using namespace nupic::utils;
 using namespace nupic::algorithms::spatial_pooler;
 using namespace nupic::algorithms::Cells4;
 using namespace nupic::algorithms::temporal_memory;
+using namespace nupic::experimental::extended_temporal_memory;
 using namespace nupic::algorithms::anomaly;
 
 const int DEBUG_LEVEL =1; //0=no debug (also disabled timer), ..
@@ -80,9 +82,10 @@ class AnomalyDetection
     SpatialPooler sp;
     Cells4 tp;
     TemporalMemory tm;
+    ExtendedTemporalMemory etm;
     Anomaly anomaly;
     std::vector<UInt> lastTPOutput_;
-    const string tmImpl; //"TM","TP" //TODO add "experimental TM"
+    const string tmImpl; //"TM","TP","ETM"
 
 
   public:
@@ -117,12 +120,21 @@ class AnomalyDetection
           tp.compute(tpInput.data(), rTpOutput.data(), true, true);
           // And the result is converted ONCE again to UInts
           tpOutput = VectorHelpers::castVectorType<Real32, UInt>(rTpOutput);
-        } else {
+        } else if (tmImpl == "TM") { //TODO improve the code duplication for TM/ETM (+TP?)
           auto sparseData = VectorHelpers::binaryToSparse<UInt>(spOutput); // need to convert dense to sparse representation here
-          tm.compute(sparseData.size(), sparseData.data(), true);
           set<UInt> both;
+          tm.compute(sparseData.size(), sparseData.data(), true);
           auto active = tm.getActiveCells();
           auto pred = tm.getPredictiveCells();
+          both.insert(active.begin(), active.end());
+          both.insert(pred.begin(), pred.end());
+          tpOutput.assign(both.begin(), both.end()); //union, like TP.outputType = both
+        } else {
+          auto sparseData = VectorHelpers::binaryToSparse<UInt>(spOutput); // need to convert dense to sparse representation here
+          set<UInt> both;
+          etm.compute(sparseData.size(), sparseData.data(), true);
+          auto active = etm.getActiveCells();
+          auto pred = etm.getPredictiveCells();
           both.insert(active.begin(), active.end());
           both.insert(pred.begin(), pred.end());
           tpOutput.assign(both.begin(), both.end()); //union, like TP.outputType = both
@@ -143,8 +155,10 @@ class AnomalyDetection
         // Save the output of the TP for the next iteration...
         if (tmImpl == "TP") {
           lastTPOutput_ = VectorHelpers::cellsToColumns(tpOutput, tp.nCellsPerCol());
-        } else {
+        } else if (tmImpl == "TM") {
           lastTPOutput_ = VectorHelpers::cellsToColumns(tpOutput, tm.getCellsPerColumn());
+        } else {
+          lastTPOutput_ = VectorHelpers::cellsToColumns(tpOutput, etm.getCellsPerColumn());
         }
 
         if (DEBUG_LEVEL > 4) {
@@ -169,8 +183,10 @@ class AnomalyDetection
     {
       if (tmImpl == "TM") {
         tm.initialize({sp.getNumColumns()}, nCells);
-      } else {
+      } else if (tmImpl == "TP") {
         tp.initialize(sp.getNumColumns(), nCells);
+      } else { // "ETM"
+        etm.initialize({sp.getNumColumns()}, nCells);
       }
     }
 };
@@ -198,7 +214,7 @@ int main()
     outFile << "anomaly_score" << std::endl;
 
     // the running example class above
-    nupic::examples::AnomalyDetection runner {0.0, 55.0, 0.1, 2048, 8, 2, "TM"}; //parameters; TODO optimize
+    nupic::examples::AnomalyDetection runner {0.0, 55.0, 0.1, 2048, 8, 2, "ETM"}; //parameters; TODO optimize
     // timer
     Timer stopwatch;
 
