@@ -644,12 +644,10 @@ void ExtendedTemporalMemory::activateCells(
   const vector<CellIdx> prevActiveCells = std::move(activeCells_);
   const vector<CellIdx> prevWinnerCells = std::move(winnerCells_);
 
-  const auto identity =
-    [](UInt c) { return c;};
   const auto columnForSegment =
     [&](const SegmentOverlap& s) { return s.segment.cell / cellsPerColumn_; };
 
-  for (auto& columnData : group_by(activeColumns, identity,
+  for (auto& columnData : group_by(activeColumns, identity<UInt>,
                                    activeBasalSegments_, columnForSegment,
                                    matchingBasalSegments_, columnForSegment,
                                    activeApicalSegments_, columnForSegment,
