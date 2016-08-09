@@ -69,7 +69,7 @@ using namespace nupic::algorithms::temporal_memory;
 using namespace nupic::experimental::extended_temporal_memory;
 using namespace nupic::algorithms::anomaly;
 
-const int DEBUG_LEVEL =1; //0=no debug (also disabled timer), ..
+const int DEBUG_LEVEL =5; //0=no debug (also disabled timer), ..
 
 namespace nupic {
 namespace examples {
@@ -117,7 +117,7 @@ class AnomalyDetection
           std::vector<Real> rTpOutput(tp.nCells());
           // The temporal pooler uses Real32, so the vector must be converted again
           auto tpInput = VectorHelpers::castVectorType<UInt, Real>(spOutput);
-          tp.compute(tpInput.data(), rTpOutput.data(), true, true);
+          tp.compute(tpInput.data(), rTpOutput.data(), true, true); //FIXME SIGSEGV here?!
           // And the result is converted ONCE again to UInts
           tpOutput = VectorHelpers::castVectorType<Real32, UInt>(rTpOutput);
         } else if (tmImpl == "TM") { //TODO improve the code duplication for TM/ETM (+TP?)
@@ -129,6 +129,10 @@ class AnomalyDetection
           both.insert(active.begin(), active.end());
           both.insert(pred.begin(), pred.end());
           tpOutput.assign(both.begin(), both.end()); //union, like TP.outputType = both
+          //VectorHelpers::print_vector(pred,",","act ");
+          //VectorHelpers::print_vector(active,",","pred ");
+          //VectorHelpers::print_vector(tpOutput,",","bot ");
+          tpOutput = VectorHelpers::sparseToBinary<UInt>(tpOutput, sp.getNumColumns()*tm.getCellsPerColumn());  //converts to binary "cells"-vector
         } else {
           auto sparseData = VectorHelpers::binaryToSparse<UInt>(spOutput); // need to convert dense to sparse representation here
           set<UInt> both;
@@ -138,12 +142,11 @@ class AnomalyDetection
           both.insert(active.begin(), active.end());
           both.insert(pred.begin(), pred.end());
           tpOutput.assign(both.begin(), both.end()); //union, like TP.outputType = both
+          tpOutput = VectorHelpers::sparseToBinary<UInt>(tpOutput, sp.getNumColumns()*etm.getCellsPerColumn());
         }
 
         if (DEBUG_LEVEL > 3) {
-          std::cout << "Output of temporal pooler: ";
-          VectorHelpers::print_vector(VectorHelpers::binaryToSparse<UInt>(tpOutput), ",");
-          std::cout << std::endl;
+            VectorHelpers::print_vector(VectorHelpers::binaryToSparse<UInt>(tpOutput), ",", "Output of temporal pooler: ");
         }
 
         Real anScore = anomaly.compute(
@@ -162,8 +165,7 @@ class AnomalyDetection
         }
 
         if (DEBUG_LEVEL > 4) {
-          std::cout << "Normalized TP Output: ";
-          VectorHelpers::print_vector(VectorHelpers::binaryToSparse<UInt>(lastTPOutput_), ",");
+            VectorHelpers::print_vector(VectorHelpers::binaryToSparse<UInt>(lastTPOutput_), ",", "Normalized TP Output: ");
         }
 
         if(DEBUG_LEVEL > 0) {
@@ -214,7 +216,7 @@ int main()
     outFile << "anomaly_score" << std::endl;
 
     // the running example class above
-    nupic::examples::AnomalyDetection runner {0.0, 55.0, 0.1, 2048, 8, 2, "ETM"}; //parameters; TODO optimize
+    nupic::examples::AnomalyDetection runner {0.0, 55.0, 0.1, 2048, 8, 2, "TM"}; //parameters; TODO optimize
     // timer
     Timer stopwatch;
 
