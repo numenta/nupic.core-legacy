@@ -57,7 +57,7 @@
 
 #include <csv.h> // external CSV parser
 #include <nupic/os/Timer.hpp>
-#include <VectorHelpers.hpp>
+#include <examples/algorithms/VectorHelpers.hpp>
 
 using namespace std; // generic namespaces are included here
 using namespace nupic;
@@ -68,6 +68,9 @@ using namespace nupic::algorithms::temporal_memory;
 using namespace nupic::algorithms::anomaly;
 
 const int DEBUG_LEVEL =1; //0=no debug (also disabled timer), ..
+
+namespace nupic {
+namespace examples {
 
 class AnomalyDetection
 {
@@ -169,6 +172,8 @@ class AnomalyDetection
     }
 };
 
+}} //namespace
+
 int main()
 {
     // initialize
@@ -190,7 +195,7 @@ int main()
     outFile << "anomaly_score" << std::endl;
 
     // the running example class above
-    AnomalyDetection runner {0.0, 55.0, 0.1, 2048, 8, 2, "TM"}; //parameters; TODO optimize
+    nupic::examples::AnomalyDetection runner {0.0, 55.0, 0.1, 2048, 8, 2, "TM"}; //parameters; TODO optimize
     // timer
     Timer stopwatch;
 
