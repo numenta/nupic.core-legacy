@@ -101,7 +101,7 @@ class AnomalyDetection
         auto uint_scalar = VectorHelpers::castVectorType<Real32, UInt>(scalar);
         if (DEBUG_LEVEL > 1) {
           std::cout << "Scalar encoder: ";
-          VectorHelpers::print_vector(uint_scalar);
+          VectorHelpers::printVector(uint_scalar);
         }
 
         std::vector<UInt> spOutput(sp.getNumColumns());
@@ -109,7 +109,7 @@ class AnomalyDetection
         sp.stripUnlearnedColumns(spOutput.data());
         if (DEBUG_LEVEL > 2) {
           std::cout << "Spatial pooler: ";
-          VectorHelpers::print_vector(VectorHelpers::binaryToSparse<UInt>(spOutput), ",");
+          VectorHelpers::printVector(VectorHelpers::binaryToSparse<UInt>(spOutput), ",");
           std::cout << std::endl;
         }
 
@@ -130,9 +130,9 @@ class AnomalyDetection
           both.insert(active.begin(), active.end());
           both.insert(pred.begin(), pred.end());
           tpOutput.assign(both.begin(), both.end()); //union, like TP.outputType = both
-          //VectorHelpers::print_vector(pred,",","act ");
-          //VectorHelpers::print_vector(active,",","pred ");
-          //VectorHelpers::print_vector(tpOutput,",","bot ");
+          //VectorHelpers::printVector(pred,",","act ");
+          //VectorHelpers::printVector(active,",","pred ");
+          //VectorHelpers::printVector(tpOutput,",","bot ");
           tpOutput = VectorHelpers::sparseToBinary<UInt>(tpOutput, sp.getNumColumns()*tm.getCellsPerColumn());  //converts to binary "cells"-vector
         } else {
           auto sparseData = VectorHelpers::binaryToSparse<UInt>(spOutput); // need to convert dense to sparse representation here
@@ -147,7 +147,7 @@ class AnomalyDetection
         }
 
         if (DEBUG_LEVEL > 3) {
-            VectorHelpers::print_vector(VectorHelpers::binaryToSparse<UInt>(tpOutput), ",", "Output of temporal pooler: ");
+            VectorHelpers::printVector(VectorHelpers::binaryToSparse<UInt>(tpOutput), ",", "Output of temporal pooler: ");
         }
 
         Real anScore = anomaly.compute(
@@ -166,7 +166,7 @@ class AnomalyDetection
         }
 
         if (DEBUG_LEVEL > 4) {
-            VectorHelpers::print_vector(VectorHelpers::binaryToSparse<UInt>(lastTPOutput_), ",", "Normalized TP Output: ");
+            VectorHelpers::printVector(VectorHelpers::binaryToSparse<UInt>(lastTPOutput_), ",", "Normalized TP Output: ");
         }
 
         if(DEBUG_LEVEL > 0) {
