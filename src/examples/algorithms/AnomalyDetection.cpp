@@ -55,7 +55,7 @@
 #include <nupic/algorithms/TemporalMemory.hpp> // TM
 #include <nupic/algorithms/Anomaly.hpp>
 
-#include <csv.h> // external CSV parser
+#include <csv.h> // external CSV parser - see ${csvlibs_compile_flags} in CMakeLists for fixing Windows issue
 #include <nupic/os/Timer.hpp>
 #include <examples/algorithms/VectorHelpers.hpp>
 
