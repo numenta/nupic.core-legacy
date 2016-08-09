@@ -1271,7 +1271,7 @@ namespace {
   {
     const char* filename = "TemporalMemorySerialization.tmp";
 
-    TemporalMemory tm(
+    TemporalMemory tm1(
       /*columnDimensions*/ {32},
       /*cellsPerColumn*/ 4,
       /*activationThreshold*/ 3,
@@ -1291,27 +1291,31 @@ namespace {
     const vector<CellIdx> expectedActiveCells = {4};
 
     Segment activeSegment =
-      tm.connections.createSegment(expectedActiveCells[0]);
-    tm.connections.createSynapse(activeSegment, previousActiveCells[0], 0.5);
-    tm.connections.createSynapse(activeSegment, previousActiveCells[1], 0.5);
-    tm.connections.createSynapse(activeSegment, previousActiveCells[2], 0.5);
-    tm.connections.createSynapse(activeSegment, previousActiveCells[3], 0.5);
+      tm1.connections.createSegment(expectedActiveCells[0]);
+    tm1.connections.createSynapse(activeSegment, previousActiveCells[0], 0.5);
+    tm1.connections.createSynapse(activeSegment, previousActiveCells[1], 0.5);
+    tm1.connections.createSynapse(activeSegment, previousActiveCells[2], 0.5);
+    tm1.connections.createSynapse(activeSegment, previousActiveCells[3], 0.5);
 
-    tm.compute(numActiveColumns, previousActiveColumns, true);
-    ASSERT_EQ(expectedActiveCells, tm.getPredictiveCells());
+    tm1.compute(numActiveColumns, previousActiveColumns, true);
+    ASSERT_EQ(expectedActiveCells, tm1.getPredictiveCells());
 
-    ofstream outfile;
-    outfile.open(filename, ios::binary);
-    tm.save(outfile);
-    outfile.close();
-
-    ifstream infile(filename, ios::binary);
+    {
+      ofstream outfile;
+      outfile.open(filename, ios::binary);
+      tm1.save(outfile);
+      outfile.close();
+    }
 
     TemporalMemory tm2;
-    tm2.load(infile);
-    infile.close();
 
-    check_tm_eq(tm, tm2);
+    {
+      ifstream infile(filename, ios::binary);
+      tm2.load(infile);
+      infile.close();
+    }
+
+    check_tm_eq(tm1, tm2);
 
     int ret = ::remove(filename);
     ASSERT_EQ(0, ret) << "Failed to delete " << filename;
