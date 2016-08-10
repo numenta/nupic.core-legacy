@@ -56,8 +56,7 @@ static const Real PERMANENCE_EPSILON = 0.000001;
 // platforms/implementations
 static Real round5_(const Real f)
 {
-  Real p = ((Real) ((Int) (f * 100000))) / 100000.0;
-  return p;
+  return ((Real) ((Int) (f * 100000))) / 100000.0;
 }
 
 
@@ -645,10 +644,8 @@ void SpatialPooler::toDense_(vector<UInt>& sparse,
                             UInt n)
 {
   std::fill(dense,dense+n, 0);
-  for (auto & elem : sparse)
-  {
-    UInt index = elem;
-    dense[index] = 1;
+  for (auto & elem : sparse) {
+    dense[elem] = 1;
   }
 }
 
@@ -710,10 +707,15 @@ vector<UInt> SpatialPooler::mapPotential_(UInt column, bool wrapAround)
   rng_.sample(&columnInputs.front(), columnInputs.size(),
               &selectedInputs.front(), numPotential);
 
+<<<<<<< HEAD
   vector<UInt> potential(numInputs_, 0);
   for (UInt input : selectedInputs)
   {
     potential[input] = 1;
+=======
+  for (UInt i : selectedIndices) {
+    potential[i] = 1;
+>>>>>>> 54ec0d5... SP cleanup - small
   }
 
   return potential;
@@ -785,7 +787,7 @@ void SpatialPooler::updatePermanencesForColumn_(vector<Real>& perm,
   }
 
   numConnected = 0;
-  for (UInt i = 0; i < perm.size(); ++i)
+  for (UInt i = 0; i < perm.size(); ++i) //TODO use binaryToSparse
   {
     if (perm[i] >= synPermConnected_ - PERMANENCE_EPSILON)
     {
@@ -819,7 +821,7 @@ UInt SpatialPooler::raisePermanencesToThreshold_(vector<Real>& perm,
 {
   clip_(perm, false);
   UInt numConnected;
-  while (true)
+  while (true) //TODO avoid the while-true loop, grow syns in 1 step
   {
     numConnected = countConnected_(perm);
     if (numConnected >= stimulusThreshold_)
