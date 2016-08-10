@@ -755,9 +755,6 @@ void SpatialPooler::updatePermanencesForColumn_(vector<Real>& perm,
                                                 UInt column,
                                                 bool raisePerm)
 {
-  vector<UInt> connectedSparse;
-
-  UInt numConnected;
   if (raisePerm) {
     vector<UInt> potential;
     potential.resize(numInputs_);
@@ -765,14 +762,8 @@ void SpatialPooler::updatePermanencesForColumn_(vector<Real>& perm,
     raisePermanencesToThreshold_(perm,potential);
   }
 
-  numConnected = 0;
-  for (UInt i = 0; i < perm.size(); ++i) //TODO use binaryToSparse
-  {
-    if (perm[i] >= synPermConnected_) {
-      connectedSparse.push_back(i);
-      ++numConnected;
-    }
-  }
+  vector<UInt> connectedSparse = VectorHelpers::binaryToSparse<Real>(perm, synPermConnected_);
+  UInt numConnected = connectedSparse.size();
 
   clip_(perm, true);
   connectedSynapses_.replaceSparseRow(column, connectedSparse.begin(),
