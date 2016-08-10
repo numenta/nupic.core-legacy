@@ -275,15 +275,16 @@ namespace
     input1.push_back(1);
     input1.push_back(5);
     input1.push_back(9);
-    ClassifierResult result;
-    c1.compute(0, input1, 4, 34.7, false, true, true, &result);
+    ClassifierResult trainResult1;
+    c1.compute(0, input1, 4, 34.7, false, true, true, &trainResult1);
 
         // Create a vector of input bit indices
     vector<UInt> input2;
     input2.push_back(0);
     input2.push_back(8);
     input2.push_back(9);
-    c1.compute(1, input2, 2, 24.7, false, true, true, &result);
+    ClassifierResult trainResult2;
+    c1.compute(1, input2, 2, 24.7, false, true, true, &trainResult2);
 
     {
       stringstream ss;
