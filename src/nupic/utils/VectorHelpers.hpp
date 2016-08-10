@@ -61,11 +61,11 @@ class VectorHelpers
         * convert binary to sparse representation
         */
         template<typename T>
-        static std::vector<UInt> binaryToSparse(const std::vector<T>& binaryVector)
+        static std::vector<UInt> binaryToSparse(const std::vector<T>& binaryVector, const T threshold)
         {
           std::vector<UInt> sparse;
           for (UInt index = 0; index < binaryVector.size(); index++) {
-            if (binaryVector[index] == (T)1) {
+            if (binaryVector[index] >= threshold) {
               sparse.push_back(index);
             }
           }
