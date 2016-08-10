@@ -981,8 +981,7 @@ void SpatialPooler::adaptSynapses_(UInt inputVector[],
     potential = potentialPools_.getSparseRow(column);
     permanences_.getRowToDense(column, perm);
     for (auto & elem : potential) {
-        UInt index = elem;
-        perm[index] += permChanges[index];
+        perm[elem] += permChanges[elem];
     }
     updatePermanencesForColumn_(perm, column, true);
   }
@@ -1000,8 +999,7 @@ void SpatialPooler::bumpUpWeakColumns_()
     potential = potentialPools_.getSparseRow(i);
     permanences_.getRowToDense(i, perm);
     for (auto & elem : potential) {
-      UInt index = elem;
-      perm[index] += synPermBelowStimulusInc_;
+      perm[elem] += synPermBelowStimulusInc_;
     }
     updatePermanencesForColumn_(perm, i, false);
   }
