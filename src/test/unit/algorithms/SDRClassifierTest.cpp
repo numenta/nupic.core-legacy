@@ -266,6 +266,7 @@ namespace
   {
     vector<UInt> steps;
     steps.push_back(1);
+    steps.push_back(2);
     SDRClassifier c1 = SDRClassifier(steps, 0.1, 0.1, 0);
     SDRClassifier c2 = SDRClassifier(steps, 0.1, 0.1, 0);
 
@@ -274,8 +275,16 @@ namespace
     input1.push_back(1);
     input1.push_back(5);
     input1.push_back(9);
-    ClassifierResult result;
-    c1.compute(0, input1, 4, 34.7, false, true, true, &result);
+    ClassifierResult trainResult1;
+    c1.compute(0, input1, 4, 34.7, false, true, true, &trainResult1);
+
+        // Create a vector of input bit indices
+    vector<UInt> input2;
+    input2.push_back(0);
+    input2.push_back(8);
+    input2.push_back(9);
+    ClassifierResult trainResult2;
+    c1.compute(1, input2, 2, 24.7, false, true, true, &trainResult2);
 
     {
       stringstream ss;
@@ -286,8 +295,8 @@ namespace
     ASSERT_TRUE(c1 == c2);
 
     ClassifierResult result1, result2;
-    c1.compute(1, input1, 4, 35.7, false, true, true, &result1);
-    c2.compute(1, input1, 4, 35.7, false, true, true, &result2);
+    c1.compute(2, input1, 4, 35.7, false, true, true, &result1);
+    c2.compute(2, input1, 4, 35.7, false, true, true, &result2);
 
     ASSERT_TRUE(result1 == result2);
   }
