@@ -831,10 +831,6 @@ namespace nupic {
           // Implementation methods. all methods below this line are
           // NOT part of the public API
 
-          void toDense_(vector<UInt>& sparse,
-                        UInt dense[],
-                        UInt n);
-
           void boostOverlaps_(vector<UInt>& overlaps,
                               vector<Real>& boostedOverlaps);
           void range_(Int start, Int end, UInt ubound, bool wrapAround,

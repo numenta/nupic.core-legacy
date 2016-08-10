@@ -30,11 +30,13 @@
 #include <vector>
 
 #include <nupic/algorithms/SpatialPooler.hpp>
+#include <nupic/utils/VectorHelpers.hpp>
 #include <nupic/math/Math.hpp>
 #include <nupic/proto/SpatialPoolerProto.capnp.h>
 
 using namespace std;
 using namespace nupic;
+using namespace nupic::utils;
 using namespace nupic::algorithms::spatial_pooler;
 
 // MSVC doesn't provide round() which only became standard in C99 or C++11
@@ -626,7 +628,7 @@ void SpatialPooler::compute(UInt inputArray[], bool learn,
   }
 
   inhibitColumns_(boostedOverlaps_, activeColumns_);
-  toDense_(activeColumns_, activeArray, numColumns_);
+  activeArray = VectorHelpers::sparseToBinary<UInt>(activeColumns_, numColumns_).data(); 
 
   if (learn) {
     adaptSynapses_(inputArray, activeColumns_);
@@ -649,16 +651,6 @@ void SpatialPooler::stripUnlearnedColumns(UInt activeArray[]) const
   }
 }
 
-
-void SpatialPooler::toDense_(vector<UInt>& sparse,
-                            UInt dense[],
-                            UInt n)
-{
-  std::fill(dense,dense+n, 0);
-  for (auto & elem : sparse) {
-    dense[elem] = 1;
-  }
-}
 
 void SpatialPooler::boostOverlaps_(vector<UInt>& overlaps,
                                    vector<Real>& boosted)
