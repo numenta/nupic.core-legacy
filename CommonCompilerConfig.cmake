@@ -190,16 +190,6 @@ if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
     # priority over its static counterpart implicitly when `-static-libstdc++`
     # is omitted.
     set(stdlib_common "${stdlib_common} -shared-libgcc")
-
-#    # NOTE trying static versions, since using shared (particularly for
-#    # litstdc++) results in ABI mismatches when running the manylinux wheel
-#    # build on newer system with updated c++ ABI (read: some exceptions, such as
-#    # ios_base::failure, can't be caught when running manylinux wheel build on
-#    # newer distros that implement the c++11 ABI changes)
-#    # ZZZ this is work in progress to be completed immediately after this PR.
-#    set(stdlib_common "${stdlib_common} -static-libgcc")
-#    set(stdlib_cxx "${stdlib_cxx} -static-libstdc++")
-
   else()
     set(stdlib_common "${stdlib_common} -static-libgcc")
     set(stdlib_cxx "${stdlib_cxx} -static-libstdc++")

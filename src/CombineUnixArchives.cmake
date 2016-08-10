@@ -39,18 +39,8 @@ function(COMBINE_UNIX_ARCHIVES
          BINARY_DIR
          CMAKE_AR)
 
-  message(STATUS "ZZZ COMBINE_UNIX_ARCHIVES called with "
-          "LIB_TARGET=${LIB_TARGET}, TARGET_LOCATION=${TARGET_LOCATION}, "
-          "SRC_LIB_LOCATIONS=${SRC_LIB_LOCATIONS}, "
-          "LIST_SEPARATOR=${LIST_SEPARATOR}, "
-          "BINARY_DIR=${BINARY_DIR}, "
-          "CMAKE_AR=${CMAKE_AR}")
-
   string(REPLACE ${LIST_SEPARATOR} ";"
          SRC_LIB_LOCATIONS "${SRC_LIB_LOCATIONS}")
-
-  message(STATUS "ZZZ COMBINE_UNIX_ARCHIVES: after separator substitution: "
-          "SRC_LIB_LOCATIONS=${SRC_LIB_LOCATIONS}")
 
   set(scratch_dir ${BINARY_DIR}/combine_unix_archives_${LIB_TARGET})
   file(MAKE_DIRECTORY ${scratch_dir})
@@ -58,7 +48,7 @@ function(COMBINE_UNIX_ARCHIVES
   # Extract archives into individual directories to avoid object file collisions
   set(all_object_locations)
   foreach(lib ${SRC_LIB_LOCATIONS})
-    message(STATUS "ZZZ COMBINE_UNIX_ARCHIVES: src-lib=${lib}")
+    message(STATUS "COMBINE_UNIX_ARCHIVES: LIB_TARGET=${LIB_TARGET}, src-lib=${lib}")
     # Create working directory for current source lib
     get_filename_component(basename ${lib} NAME)
     set(working_dir ${scratch_dir}/${basename}.dir)

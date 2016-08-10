@@ -108,7 +108,7 @@ install:
   # Configure bash such that a failure in any link in the pipe causes the whole pipe to fail
   - "set -o pipefail"
   - "VERBOSE=1 make|grep -v -F '\\-\\- Installing:'"
-  - "make --debug=j install 2>&1|grep -v -F 'Installing:'"
+  - "make install 2>&1|grep -v -F 'Installing:'"
   - "cd $TRAVIS_BUILD_DIR"
   - "python setup.py install --user"
 

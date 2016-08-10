@@ -36,9 +36,9 @@
 
 include(../src/NupicLibraryUtils) # for MERGE_STATIC_LIBRARIES
 
-# The name of the static library target containing all capnproto objects. This
-# is the one to use for linking.
-set(CAPNP_STATIC_LIB_TARGET capnp_all)
+
+# Output static library link target name
+set(CAPNP_STATIC_LIB_TARGET capnp-bundle)
 
 set(capnp_lib_url
     "${REPOSITORY_DIR}/external/common/share/capnproto/capnproto-c++-0.5.3.tar.gz")
@@ -78,7 +78,7 @@ set(capnp_linker_flags "${EXTERNAL_LINKER_FLAGS_UNOPTIMIZED}")
 # Print diagnostic info to debug whether -fuse-linker-plugin is being suppressed
 message(STATUS "CapnProto CXX_FLAGS=${capnp_cxx_flags}")
 
-ExternalProject_Add(_CapnProto
+ExternalProject_Add(CapnProto
   URL ${capnp_lib_url}
 
   UPDATE_COMMAND ""
@@ -99,13 +99,13 @@ ExternalProject_Add(_CapnProto
 # This creates an `add_library` static library target that serves as the
 # abstraction to all of capnproto library objects
 merge_static_libraries(${CAPNP_STATIC_LIB_TARGET} "${capnp_link_libraries}")
-add_dependencies(${CAPNP_STATIC_LIB_TARGET} _CapnProto)
+add_dependencies(${CAPNP_STATIC_LIB_TARGET} CapnProto)
 
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   # Install prebuilt Cap'n Proto compilers for Windows
-  ExternalProject_Add(_CapnProtoTools
-    DEPENDS _CapnProto
+  ExternalProject_Add(CapnProtoTools
+    DEPENDS CapnProto
 
     URL ${capnp_win32_tools_url}
 
@@ -125,10 +125,10 @@ function(CREATE_CAPNPC_COMMAND
   # Creates the custom command that runs the capnp compiler
   # on ${SPEC_FILES} and generates ${OUTPUT_FILES} in directory ${TARGET_DIR}
 
-  set(dependencies ${SPEC_FILES} _CapnProto)
+  set(dependencies ${SPEC_FILES} CapnProto)
 
   if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    list(APPEND dependencies _CapnProtoTools)
+    list(APPEND dependencies CapnProtoTools)
   endif()
 
   add_custom_command(
@@ -143,6 +143,7 @@ function(CREATE_CAPNPC_COMMAND
 endfunction(CREATE_CAPNPC_COMMAND)
 
 # Set the relevant variables in the parent scope.
+set(CAPNP_STATIC_LIB_TARGET ${CAPNP_STATIC_LIB_TARGET} PARENT_SCOPE)
 set(CAPNP_INCLUDE_DIRS ${CAPNP_INCLUDE_DIRS} PARENT_SCOPE)
 set(CAPNP_EXECUTABLE ${CAPNP_EXECUTABLE} PARENT_SCOPE)
 set(CAPNPC_CXX_EXECUTABLE ${CAPNPC_CXX_EXECUTABLE} PARENT_SCOPE)

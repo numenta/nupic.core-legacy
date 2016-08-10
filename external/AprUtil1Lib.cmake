@@ -22,33 +22,43 @@
 # Creates ExternalProject for building the aprutil-1 static library
 # (apache public runtime utilities)
 #
-# Exports:
-#   LIB_STATIC_APRUTIL1_INC_DIR: directory of installed aprutil-1 lib headers
-#   LIB_STATIC_APRUTIL1_LOC: path to installed static aprutil-1 lib
+# OUTPUT VARIABLES:
+#
+#   APRUTIL1_STATIC_LIB_TARGET: name of static library target that contains all
+#                               of the aprutil-1 library objects.
+#   APRUTIL1_STATIC_LIB_INC_DIR: directory of installed aprutil-1 lib headers
+
+include(../src/NupicLibraryUtils) # for MERGE_STATIC_LIBRARIES
+
+
+# Output static library link target name
+set(APRUTIL1_STATIC_LIB_TARGET aprutil-1-bundle)
+
 
 set(aprutillib_install_prefix "${EP_BASE}/Install/AprUtil1StaticLib")
 set(aprutillib_install_lib_dir "${aprutillib_install_prefix}/lib")
 
 # Export directory of installed aprutil-1 lib headers to parent
-set(LIB_STATIC_APRUTIL1_INC_DIR "${aprutillib_install_prefix}/include")
+set(APRUTIL1_STATIC_LIB_INC_DIR "${aprutillib_install_prefix}/include")
 
-# Export path to installed static aprutil-1 lib to parent
-set(LIB_STATIC_APRUTIL1_LOC "${aprutillib_install_lib_dir}/${STATIC_PRE}aprutil-1${STATIC_SUF}")
+# Path to static aprutil-1 lib installed by external project
+set(aprutillib_built_archive_file
+    "${aprutillib_install_lib_dir}/${STATIC_PRE}aprutil-1${STATIC_SUF}")
 
 # NOTE -DCOM_NO_WINDOWS_H fixes a bunch of OLE-related build errors in apr-1
 # on Win32 (reference: https://bz.apache.org/bugzilla/show_bug.cgi?id=56342)
 set(aprutillib_cflags "-DCOM_NO_WINDOWS_H -DAPR_DECLARE_STATIC")
-set(aprutillib_cflags "${aprutillib_cflags} -I${LIB_STATIC_APR1_INC_DIR}/apr-1")
+set(aprutillib_cflags "${aprutillib_cflags} -I${APR1_STATIC_LIB_INC_DIR}/apr-1")
 set(aprutillib_cflags "${EXTERNAL_C_FLAGS_OPTIMIZED} ${COMMON_COMPILER_DEFINITIONS_STR} ${aprutillib_cflags}")
 
 set(aprutillib_url "${REPOSITORY_DIR}/external/common/share/apr-util/unix/apr-util-1.5.4.tar.gz")
 
 if (UNIX)
     set(aprutillib_config_options
-        --disable-util-dso --with-apr=${LIB_STATIC_APR1_INC_DIR}/..)
+        --disable-util-dso --with-apr=${APR1_STATIC_LIB_INC_DIR}/..)
 
     ExternalProject_Add(AprUtil1StaticLib
-        DEPENDS Apr1StaticLib
+        DEPENDS ${APR1_STATIC_LIB_TARGET}
 
         URL ${aprutillib_url}
 
@@ -73,7 +83,7 @@ else()
     # NOT UNIX - i.e., Windows
 
     ExternalProject_Add(AprUtil1StaticLib
-        DEPENDS Apr1StaticLib
+        DEPENDS ${APR1_STATIC_LIB_TARGET}
 
         URL ${aprutillib_url}
 
@@ -91,8 +101,8 @@ else()
             -DCMAKE_INSTALL_PREFIX=${aprutillib_install_prefix}
             -DAPR_HAS_LDAP=OFF
             -DAPU_HAVE_ODBC=OFF
-            -DAPR_INCLUDE_DIR=${LIB_STATIC_APR1_INC_DIR}/apr-1
-            -DAPR_LIBRARIES=${LIB_STATIC_APR1_LOC}
+            -DAPR_INCLUDE_DIR=${APR1_STATIC_LIB_INC_DIR}/apr-1
+            -DAPR_LIBRARIES=$<TARGET_FILE:${APR1_STATIC_LIB_TARGET}>
             -DINSTALL_PDB=OFF
 
         #LOG_INSTALL 1
@@ -112,11 +122,11 @@ else()
         ALWAYS 0
         #LOG 1
 
-        # Move the installed ${LIB_STATIC_APRUTIL1_INC_DIR}/*.h to
-        # ${LIB_STATIC_APRUTIL1_INC_DIR}/apr-1
+        # Move the installed ${APRUTIL1_STATIC_LIB_INC_DIR}/*.h to
+        # ${APRUTIL1_STATIC_LIB_INC_DIR}/apr-1
         COMMAND
-            ${CMAKE_COMMAND} -DGLOBBING_EXPR=${LIB_STATIC_APRUTIL1_INC_DIR}/*.h
-                -DDEST_DIR_PATH=${LIB_STATIC_APRUTIL1_INC_DIR}/apr-1
+            ${CMAKE_COMMAND} -DGLOBBING_EXPR=${APRUTIL1_STATIC_LIB_INC_DIR}/*.h
+                -DDEST_DIR_PATH=${APRUTIL1_STATIC_LIB_INC_DIR}/apr-1
                 -P ${CMAKE_SOURCE_DIR}/external/MoveFilesToNewDir.cmake
 
     )
@@ -141,3 +151,9 @@ ExternalProject_Add_Step(AprUtil1StaticLib patch_sources
     COMMAND
         patch -f -p1 --directory=<SOURCE_DIR> --input=${aprutillib_patch_file}
 )
+
+
+# Wrap external project-generated static library in an `add_library` target.
+merge_static_libraries(${APRUTIL1_STATIC_LIB_TARGET}
+                       "${aprutillib_built_archive_file}")
+add_dependencies(${APRUTIL1_STATIC_LIB_TARGET} AprUtil1StaticLib)

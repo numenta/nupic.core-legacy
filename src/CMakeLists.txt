@@ -60,13 +60,14 @@ endif()
 #
 
 set(src_compile_flags "${INTERNAL_CXX_FLAGS_OPTIMIZED}")
-set(swig_generated_file_compile_flags "${EXTERNAL_CXX_FLAGS_OPTIMIZED}")
+set(src_swig_generated_file_compile_flags "${EXTERNAL_CXX_FLAGS_OPTIMIZED}")
 
 if(MINGW)
   # This is for GCC 4.8.x
   # http://stackoverflow.com/questions/10660524/error-building-boost-1-49-0-with-gcc-4-7-0
   set(src_compile_flags "${src_compile_flags} -include cmath")
-  set(swig_generated_file_compile_flags "${swig_generated_file_compile_flags} -include cmath")
+  set(src_swig_generated_file_compile_flags
+      "${src_swig_generated_file_compile_flags} -include cmath")
 endif()
 
 
@@ -383,6 +384,13 @@ message(STATUS "src_lib_static_nupiccore_compile_flags = ${src_lib_static_nupicc
 
 add_library(${src_lib_static_nupiccore_solo} STATIC
             ${src_lib_static_nupiccore_srcs})
+# nupic_core_solo sources depend on headers installed by these external projects
+add_dependencies(${src_lib_static_nupiccore_solo}
+                 ${YAML_CPP_STATIC_LIB_TARGET}
+                 ${YAML_STATIC_LIB_TARGET}
+                 ${APR1_STATIC_LIB_TARGET}
+                 ${APRUTIL1_STATIC_LIB_TARGET}
+                 ${Z_STATIC_LIB_TARGET})
 set_target_properties(${src_lib_static_nupiccore_solo} PROPERTIES COMPILE_FLAGS
                       ${src_lib_static_nupiccore_compile_flags})
 if(${NUPIC_IWYU})
@@ -398,28 +406,21 @@ endif()
 # Create the nupic_core "combined" static library by merging nupic_core_solo
 # with our external static libraries
 #
-#
 
 include(src/NupicLibraryUtils) # for MERGE_STATIC_LIBRARIES
 
 set(src_lib_static_nupiccore_combined nupic_core)
 
-set(src_external_static_lib_deps
-    Apr1StaticLib
-    AprUtil1StaticLib
-    ZStaticLib
-    YamlStaticLib
-    YamlCppStaticLib)
-
 set(src_external_static_libs
-    ${LIB_STATIC_YAML_CPP_LOC}
-    ${LIB_STATIC_YAML_LOC}
-    ${LIB_STATIC_APR1_LOC}
-    ${LIB_STATIC_APRUTIL1_LOC}
-    ${LIB_STATIC_Z_LOC})
+    ${YAML_CPP_STATIC_LIB_TARGET}
+    ${YAML_STATIC_LIB_TARGET}
+    ${APR1_STATIC_LIB_TARGET}
+    ${APRUTIL1_STATIC_LIB_TARGET}
+    ${Z_STATIC_LIB_TARGET})
 
 # Add capnproto static lib when building nupic_core static lib without python
-# extensions
+# extensions. The extensions have their own logic governing whether to include
+# it.
 if (NOT ${NUPIC_BUILD_PYEXT_MODULES})
   list(APPEND src_external_static_libs ${CAPNP_STATIC_LIB_TARGET})
 endif() # ${NUPIC_BUILD_PYEXT_MODULES}
@@ -431,8 +432,6 @@ set(src_combined_nupiccore_source_archives
 # Create a top-level library target for the combined static lib
 merge_static_libraries(${src_lib_static_nupiccore_combined}
                        "${src_combined_nupiccore_source_archives}")
-add_dependencies(${src_lib_static_nupiccore_combined}
-                 ${src_external_static_lib_deps})
 
 
 #
@@ -812,9 +811,10 @@ if (${NUPIC_BUILD_PYEXT_MODULES})
   # Set properties on swig-generated and support files
   set_source_files_properties(${src_swig_generated_files} PROPERTIES
                               GENERATED TRUE)
-  set_source_files_properties(${src_swig_generated_files}
-                              PROPERTIES
-                              COMPILE_FLAGS ${swig_generated_file_compile_flags})
+  set_source_files_properties(
+    ${src_swig_generated_files}
+    PROPERTIES
+    COMPILE_FLAGS ${src_swig_generated_file_compile_flags})
 
   # If a path is specified, copy extensions files to proper location.
   if (PY_EXTENSIONS_DIR)

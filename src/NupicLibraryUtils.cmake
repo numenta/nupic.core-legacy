@@ -21,13 +21,14 @@
 
 # Utilities for manipulating libraries
 
-project(nupic_core_library_utils C)
+cmake_minimum_required(VERSION 2.8)
+project(nupic_core_library_utils CXX)
 
 
 # function MERGE_STATIC_LIBRARIES
 #
 # Generate a new static library target that will build to include the objects
-# of the given static libraries
+# of the given static libraries.
 #
 # :param LIB_TARGET: the name to use for the new library target to be
 #   passed verbatim as the target arg to `ADD_LIBRARY`
@@ -39,18 +40,15 @@ project(nupic_core_library_utils C)
 
 function(MERGE_STATIC_LIBRARIES LIB_TARGET STATIC_LIBS)
 
-  message(STATUS "ZZZ MERGE_STATIC_LIBRARIES called with "
-          "LIB_TARGET=${LIB_TARGET}, STATIC_LIBS=${STATIC_LIBS}")
-
   # We need at least one source file for ADD_LIBRARY
-  set(dummy_source_file "${CMAKE_CURRENT_BINARY_DIR}/${LIB_TARGET}_dummy.c")
-
-  message(STATUS "ZZZ MERGE_STATIC_LIBRARIES using dummy ${dummy_source_file} ")
+  set(dummy_source_file "${CMAKE_CURRENT_BINARY_DIR}/${LIB_TARGET}_dummy.c++")
 
   # Define a static lib containing the dummy source file; we will subsequently
   # add a post-build custom step that will add the objects from the given static
   # libraries
-  add_library(${LIB_TARGET} STATIC "${dummy_source_file}")
+  add_library(${LIB_TARGET} STATIC ${dummy_source_file})
+  set_target_properties(${LIB_TARGET} PROPERTIES COMPILE_FLAGS
+                        ${INTERNAL_CXX_FLAGS_OPTIMIZED})
 
   set(static_lib_locations)
   set(dummy_dependencies)
@@ -60,27 +58,27 @@ function(MERGE_STATIC_LIBRARIES LIB_TARGET STATIC_LIBS)
     list(APPEND dummy_dependencies ${lib})
 
     if (NOT TARGET ${lib})
-      # Assuming an existing path of an externally-generated static library
+      # Assuming a path of an externally-generated static library
       list(APPEND static_lib_locations ${lib})
     else()
       # Assuming a cmake static library target
       get_target_property(lib_type ${lib} TYPE)
       if(NOT ${lib_type} STREQUAL "STATIC_LIBRARY")
-        message(ERROR "Expected static lib source object ${lib}, but got type=${lib_type}!")
+        message(FATAL_ERROR "Expected static lib source object ${lib}, but got type=${lib_type}!")
       endif()
 
-      #get_target_property(lib_location ${lib} LOCATION)
-      #list(APPEND static_lib_locations ${lib_location})
       list(APPEND static_lib_locations "$<TARGET_FILE:${lib}>")
-      add_dependencies(${LIB_TARGET} lib)
+      add_dependencies(${LIB_TARGET} ${lib})
 
       # Collect its link interface
       get_target_property(link_iface ${lib} INTERFACE_LINK_LIBRARIES)
       if (link_iface)
         list(APPEND link_libs ${link_iface})
-        message(STATUS "INTERFACE_LINK_LIBRARIES[${lib}] = ${link_iface}")
+        message(STATUS "MERGE_STATIC_LIBRARIES: "
+                "INTERFACE_LINK_LIBRARIES[${lib}] = ${link_iface}.")
       else()
-        message(STATUS "Link interface not set on static lib target ${lib}!")
+        message(STATUS "MERGE_STATIC_LIBRARIES: "
+                "Link interface not specified in source lib ${lib}.")
       endif()
     endif()
   endforeach()
@@ -110,7 +108,6 @@ function(MERGE_STATIC_LIBRARIES LIB_TARGET STATIC_LIBS)
     # UNIX OR MSYS OR MINGW: use post-build command to extract objects from
     # source libs and repack them for the target library
 
-    #get_target_property(target_location ${LIB_TARGET} LOCATION)
     set(target_location_gen "$<TARGET_FILE:${LIB_TARGET}>")
 
     # NOTE With cmake 2.8.11+, we could use "$<SEMICOLON>", but default Travis

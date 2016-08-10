@@ -21,8 +21,16 @@
 
 # Creates ExternalProject for building yaml lib static library
 #
-# Exports:
-#   LIB_STATIC_YAML_LOC: path to installed static yaml lib
+# OUTPUT VARIABLES:
+#
+#   YAML_STATIC_LIB_TARGET: name of static library target that contains all
+#                           of yaml library objects.
+
+include(../src/NupicLibraryUtils) # for MERGE_STATIC_LIBRARIES
+
+
+# Output static library link target name
+set(YAML_STATIC_LIB_TARGET yaml-bundle)
 
 
 set(yamllib_url "${REPOSITORY_DIR}/external/common/share/yaml/yaml-0.1.5.tar.gz")
@@ -30,8 +38,9 @@ set(yamllib_url "${REPOSITORY_DIR}/external/common/share/yaml/yaml-0.1.5.tar.gz"
 # NOTE Yaml lib doesn't have an install target and leaves artifacts in build dir
 set(yamllib_build_dir "${EP_BASE}/Build/YamlStaticLib")
 
-# Export path to installed static yaml lib to parent
-set(LIB_STATIC_YAML_LOC "${yamllib_build_dir}/${STATIC_PRE}yaml${STATIC_SUF}")
+# Path to static yaml installed by external project
+set(yamllib_built_archive_file
+    "${yamllib_build_dir}/${STATIC_PRE}yaml${STATIC_SUF}")
 
 set(c_flags "${EXTERNAL_C_FLAGS_OPTIMIZED} ${COMMON_COMPILER_DEFINITIONS_STR}")
 
@@ -51,3 +60,9 @@ ExternalProject_Add(YamlStaticLib
         -DCMAKE_INSTALL_PREFIX=${yamllib_build_dir}
         ${EXTERNAL_STATICLIB_CMAKE_DEFINITIONS_OPTIMIZED}
 )
+
+
+# Wrap external project-generated static library in an `add_library` target.
+merge_static_libraries(${YAML_STATIC_LIB_TARGET}
+                       "${yamllib_built_archive_file}")
+add_dependencies(${YAML_STATIC_LIB_TARGET} YamlStaticLib)

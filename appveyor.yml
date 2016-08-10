@@ -166,24 +166,11 @@ install:
       -DPY_EXTENSIONS_DIR=%NUPIC_CORE%\bindings\py\nupic\bindings
       %NUPIC_CORE%
 
-  # ZZZ Remove this debug dump statement
-  - echo "ZZZ Dumping link commands of _expermental.so extension for debugging of linking issue"
-  - type %NUPIC_CORE%\build\scripts\src\CMakeFiles\_experimental.dir\link.txt
-  - type %NUPIC_CORE%\build\scripts\src\CMakeFiles\_experimental.dir\objects1.rsp
-  - type %NUPIC_CORE%\build\scripts\src\CMakeFiles\_experimental.dir\linklibs.rsp
-
-  - type %NUPIC_CORE%\build\scripts\src\CMakeFiles\_math.dir\link.txt
-  - type %NUPIC_CORE%\build\scripts\src\CMakeFiles\_math.dir\objects1.rsp
-  - type %NUPIC_CORE%\build\scripts\src\CMakeFiles\_math.dir\linklibs.rsp
-
-  - type %NUPIC_CORE%\build\scripts\src\CMakeFiles\nupic_core.dir\link.txt
-  - type %NUPIC_CORE%\build\scripts\src\CMakeFiles\nupic_core_solo.dir\link.txt
-
 build_script:
   - cd %NUPIC_CORE%\build\scripts
 
   # Run build, using portable, toolchain-agnostic mechanism to start it
-  - cmake.exe --build "%NUPIC_CORE%\build\scripts" --target install --config %configuration% -- --debug=j
+  - cmake.exe --build "%NUPIC_CORE%\build\scripts" --target install --config %configuration%
 
   - cd %NUPIC_CORE%
 
