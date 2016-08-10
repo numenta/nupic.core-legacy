@@ -245,17 +245,18 @@ set(src_capnp_specs_rel
   nupic/proto/VectorFileSensorProto.capnp
 )
 
-# Create custom target for generating C++ code from .capnp schema files.
+# Create custom command for generating C++ code from .capnp schema files.
 
 foreach(spec ${src_capnp_specs_rel})
   list(APPEND src_capnp_specs ${PROJECT_SOURCE_DIR}/${spec})
-  list(APPEND src_capnp_hdrs ${PROJECT_BINARY_DIR}/${spec}.h)
+  list(APPEND src_capnp_generated_hdrs ${PROJECT_BINARY_DIR}/${spec}.h)
   list(APPEND src_capnp_generated_srcs ${PROJECT_BINARY_DIR}/${spec}.c++)
 endforeach(spec)
-set(src_capnp_all_spec_hdrs_and_srcs "${src_capnp_hdrs};${src_capnp_generated_srcs}")
+set(src_capnp_all_spec_hdrs_and_srcs
+    ${src_capnp_generated_hdrs}
+    ${src_capnp_generated_srcs})
 
-create_capnpc_command(capnp_specs
-                      "${src_capnp_specs}"
+create_capnpc_command("${src_capnp_specs}"
                       ${PROJECT_SOURCE_DIR}
                       ${PROJECT_SOURCE_DIR}
                       ${PROJECT_BINARY_DIR}
@@ -374,8 +375,6 @@ set(src_lib_static_nupiccore_srcs
     ${src_py_support_files}
     ${src_nupiccore_srcs})
 
-set(src_lib_static_nupiccore_solo_deps capnp_specs)
-
 set(src_lib_static_nupiccore_compile_flags
     "${src_compile_flags} -I${src_numpy_core}/include")
 
@@ -384,8 +383,6 @@ message(STATUS "src_lib_static_nupiccore_compile_flags = ${src_lib_static_nupicc
 
 add_library(${src_lib_static_nupiccore_solo} STATIC
             ${src_lib_static_nupiccore_srcs})
-add_dependencies(${src_lib_static_nupiccore_solo}
-                 ${src_lib_static_nupiccore_solo_deps})
 set_target_properties(${src_lib_static_nupiccore_solo} PROPERTIES COMPILE_FLAGS
                       ${src_lib_static_nupiccore_compile_flags})
 if(${NUPIC_IWYU})

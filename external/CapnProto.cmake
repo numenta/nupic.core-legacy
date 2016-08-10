@@ -101,8 +101,8 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 endif()
 
 function(CREATE_CAPNPC_COMMAND
-         GROUP_NAME SPEC_FILES SRC_PREFIX INCLUDE_DIR TARGET_DIR OUTPUT_FILES)
-  # Creates the custom target named ${GROUP_NAME} that runs the capnp compiler
+         SPEC_FILES SRC_PREFIX INCLUDE_DIR TARGET_DIR OUTPUT_FILES)
+  # Creates the custom command that runs the capnp compiler
   # on ${SPEC_FILES} and generates ${OUTPUT_FILES} in directory ${TARGET_DIR}
 
   set(dependencies ${SPEC_FILES} CapnProto)
@@ -120,8 +120,6 @@ function(CREATE_CAPNPC_COMMAND
     DEPENDS ${dependencies}
     COMMENT "Executing Cap'n Proto compiler"
   )
-
-  add_custom_target(${GROUP_NAME} DEPENDS ${OUTPUT_FILES} SOURCES ${SPEC_FILES})
 endfunction(CREATE_CAPNPC_COMMAND)
 
 # Set the relevant variables in the parent scope.
