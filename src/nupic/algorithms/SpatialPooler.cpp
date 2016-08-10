@@ -51,8 +51,7 @@ using namespace nupic::algorithms::spatial_pooler;
 // platforms/implementations
 static Real round5_(const Real f)
 {
-  Real p = ((Real) ((Int) (f * 100000))) / 100000.0;
-  return p;
+  return ((Real) ((Int) (f * 100000))) / 100000.0;
 }
 
 
@@ -657,8 +656,7 @@ void SpatialPooler::toDense_(vector<UInt>& sparse,
 {
   std::fill(dense,dense+n, 0);
   for (auto & elem : sparse) {
-    UInt index = elem;
-    dense[index] = 1;
+    dense[elem] = 1;
   }
 }
 
@@ -709,8 +707,8 @@ vector<UInt> SpatialPooler::mapPotential_(UInt column, bool wrapAround)
   rng_.sample(&indices.front(), indices.size(),
               &selectedIndices.front(), numPotential);
 
-  for (UInt i = 0; i < numPotential; i++) {
-    potential[selectedIndices[i]] = 1;
+  for (UInt i : selectedIndices) {
+    potential[i] = 1;
   }
 
   return potential;
@@ -776,7 +774,7 @@ void SpatialPooler::updatePermanencesForColumn_(vector<Real>& perm,
   }
 
   numConnected = 0;
-  for (UInt i = 0; i < perm.size(); ++i)
+  for (UInt i = 0; i < perm.size(); ++i) //TODO use binaryToSparse
   {
     if (perm[i] >= synPermConnected_) {
       connectedSparse.push_back(i);
@@ -807,7 +805,7 @@ UInt SpatialPooler::raisePermanencesToThreshold_(vector<Real>& perm,
 {
   clip_(perm, false);
   UInt numConnected;
-  while (true)
+  while (true) //TODO avoid the while-true loop, grow syns in 1 step
   {
     numConnected = countConnected_(perm);
     if (numConnected >= stimulusThreshold_)
