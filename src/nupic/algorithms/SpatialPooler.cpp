@@ -772,17 +772,6 @@ void SpatialPooler::updatePermanencesForColumn_(vector<Real>& perm,
   connectedCounts_[column] = numConnected;
 }
 
-UInt SpatialPooler::countConnected_(vector<Real>& perm)
-{
-  UInt numConnected = 0;
-  for (auto & elem : perm) {
-     if (elem > synPermConnected_) {
-       ++numConnected;
-     }
-   }
-  return numConnected;
-}
-
 UInt SpatialPooler::raisePermanencesToThreshold_(vector<Real>& perm,
                                                  vector<UInt>& potential)
 {
@@ -790,13 +779,12 @@ UInt SpatialPooler::raisePermanencesToThreshold_(vector<Real>& perm,
   UInt numConnected;
   while (true) //TODO avoid the while-true loop, grow syns in 1 step
   {
-    numConnected = countConnected_(perm);
+    numConnected = VectorHelpers::binaryToSparse<Real>(perm, synPermConnected_).size();
     if (numConnected >= stimulusThreshold_)
       break;
 
     for (auto & elem : potential) {
-      UInt index = elem;
-      perm[index] += synPermBelowStimulusInc_;
+      perm[elem] += synPermBelowStimulusInc_;
     }
   }
   return numConnected;
