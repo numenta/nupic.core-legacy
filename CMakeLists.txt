@@ -80,18 +80,7 @@ set(EP_BASE ${CMAKE_BINARY_DIR}/ThirdParty)
 # Determine common toolchain settings, compiler and link flags
 include(CommonCompilerConfig)
 
-# Set up external dependencies.
-#
-# This will try find_library and find_program and if that fails use
-# ExternalProject to fetch and build the libraries.
-#
-# Sets the following variables:
-#   CAPNP_LINK_LIBRARIES
-#   EXTERNAL_INCLUDE_DIRS
-#
-# Defines the follow functions:
-#   create_capnpc_target - Creates target that generates C++ files from
-#       .capnp schema files.
+# Set up builds of external dependencies.
 add_subdirectory(external)
 include_directories(SYSTEM ${EXTERNAL_INCLUDE_DIRS})
 

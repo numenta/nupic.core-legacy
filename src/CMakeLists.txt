@@ -266,7 +266,7 @@ create_capnpc_command("${src_capnp_specs}"
 message(STATUS "CAPNP_EXECUTABLE          = ${CAPNP_EXECUTABLE}")
 message(STATUS "CAPNP_CMAKE_DEFINITIONS   = ${CAPNP_CMAKE_DEFINITIONS}")
 message(STATUS "CAPNP_INCLUDE_DIRS        = ${CAPNP_INCLUDE_DIRS}")
-message(STATUS "CAPNP_LINK_LIBRARIES      = ${CAPNP_LINK_LIBRARIES}")
+message(STATUS "CAPNP_STATIC_LIB_TARGET   = ${CAPNP_STATIC_LIB_TARGET}")
 
 
 #
@@ -400,9 +400,9 @@ endif()
 #
 #
 
-set(src_lib_static_nupiccore_combined nupic_core)
-
 include(src/NupicLibraryUtils) # for MERGE_STATIC_LIBRARIES
+
+set(src_lib_static_nupiccore_combined nupic_core)
 
 set(src_external_static_lib_deps
     Apr1StaticLib
@@ -418,11 +418,10 @@ set(src_external_static_libs
     ${LIB_STATIC_APRUTIL1_LOC}
     ${LIB_STATIC_Z_LOC})
 
-# Add capnproto static libs when building nupic_core static lib without python
+# Add capnproto static lib when building nupic_core static lib without python
 # extensions
 if (NOT ${NUPIC_BUILD_PYEXT_MODULES})
-  list(APPEND src_external_static_lib_deps CapnProto)
-  list(APPEND src_external_static_libs ${CAPNP_LINK_LIBRARIES})
+  list(APPEND src_external_static_libs ${CAPNP_STATIC_LIB_TARGET})
 endif() # ${NUPIC_BUILD_PYEXT_MODULES}
 
 set(src_combined_nupiccore_source_archives
@@ -433,7 +432,7 @@ set(src_combined_nupiccore_source_archives
 merge_static_libraries(${src_lib_static_nupiccore_combined}
                        "${src_combined_nupiccore_source_archives}")
 add_dependencies(${src_lib_static_nupiccore_combined}
-                 ${src_external_static_libs})
+                 ${src_external_static_lib_deps})
 
 
 #
@@ -446,15 +445,11 @@ set(src_common_test_exe_libs
     ${PYTHON_LIBRARIES}
     ${src_common_os_libs})
 
-# Extra dependencies for test executables
-set(src_common_test_exe_deps)
-
-# Add capnproto static libs to our C/C++ test apps when building python
+# Add capnproto static lib to our C/C++ test apps when building python
 # extensions, since capnproto objects are excluded from nupic_core combined lib
 # to avoid conflict with capnproto methods compiled into the pycapnp extension
 if (${NUPIC_BUILD_PYEXT_MODULES})
-  list(APPEND src_common_test_exe_deps CapnProto)
-  list(APPEND src_common_test_exe_libs ${CAPNP_LINK_LIBRARIES})
+  list(APPEND src_common_test_exe_libs ${CAPNP_STATIC_LIB_TARGET})
 endif() # ${NUPIC_BUILD_PYEXT_MODULES}
 
 
@@ -463,7 +458,6 @@ endif() # ${NUPIC_BUILD_PYEXT_MODULES}
 #
 set(src_executable_cppregiontest cpp_region_test)
 add_executable(${src_executable_cppregiontest} test/integration/CppRegionTest.cpp)
-add_dependencies(${src_executable_cppregiontest} ${src_common_test_exe_deps})
 target_link_libraries(${src_executable_cppregiontest} ${src_common_test_exe_libs})
 set_target_properties(${src_executable_cppregiontest} PROPERTIES COMPILE_FLAGS ${src_compile_flags})
 set_target_properties(${src_executable_cppregiontest} PROPERTIES LINK_FLAGS "${INTERNAL_LINKER_FLAGS_OPTIMIZED}")
@@ -478,7 +472,6 @@ add_custom_target(tests_cpp_region
 #
 set(src_executable_pyregiontest py_region_test)
 add_executable(${src_executable_pyregiontest} test/integration/PyRegionTest.cpp)
-add_dependencies(${src_executable_pyregiontest} ${src_common_test_exe_deps})
 target_link_libraries(${src_executable_pyregiontest} ${src_common_test_exe_libs})
 set_target_properties(${src_executable_pyregiontest}
                       PROPERTIES COMPILE_FLAGS ${src_compile_flags})
@@ -496,8 +489,6 @@ add_custom_target(tests_py_region
 set(src_executable_connectionsperformancetest connections_performance_test)
 add_executable(${src_executable_connectionsperformancetest}
                test/integration/ConnectionsPerformanceTest.cpp)
-add_dependencies(${src_executable_connectionsperformancetest}
-                 ${src_common_test_exe_deps})
 target_link_libraries(${src_executable_connectionsperformancetest}
                       ${src_common_test_exe_libs})
 set_target_properties(${src_executable_connectionsperformancetest}
@@ -515,7 +506,6 @@ add_custom_target(tests_connections_performance
 #
 set(src_executable_helloregion helloregion)
 add_executable(${src_executable_helloregion} examples/regions/HelloRegions.cpp)
-add_dependencies(${src_executable_helloregion} ${src_common_test_exe_deps})
 target_link_libraries(${src_executable_helloregion} ${src_common_test_exe_libs})
 set_target_properties(${src_executable_helloregion}
                       PROPERTIES COMPILE_FLAGS ${src_compile_flags})
@@ -527,7 +517,6 @@ set_target_properties(${src_executable_helloregion}
 #
 set(src_executable_prototest prototest)
 add_executable(${src_executable_prototest} examples/prototest.cpp)
-add_dependencies(${src_executable_prototest} ${src_common_test_exe_deps})
 target_link_libraries(${src_executable_prototest} ${src_common_test_exe_libs})
 set_target_properties(${src_executable_prototest}
                       PROPERTIES COMPILE_FLAGS ${src_compile_flags})
@@ -539,7 +528,6 @@ set_target_properties(${src_executable_prototest}
 #
 set(src_executable_hellosptp hello_sp_tp)
 add_executable(${src_executable_hellosptp} examples/algorithms/HelloSP_TP.cpp)
-add_dependencies(${src_executable_hellosptp} ${src_common_test_exe_deps})
 target_link_libraries(${src_executable_hellosptp} ${src_common_test_exe_libs})
 set_target_properties(${src_executable_hellosptp}
                       PROPERTIES COMPILE_FLAGS ${src_compile_flags})
@@ -601,7 +589,6 @@ add_executable(${src_executable_gtests}
                test/unit/utils/MovingAverageTest.cpp
                test/unit/utils/RandomTest.cpp
                test/unit/utils/WatcherTest.cpp)
-add_dependencies(${src_executable_gtests} ${src_common_test_exe_deps})
 target_link_libraries(${src_executable_gtests}
                       ${src_lib_static_gtest}
                       ${src_common_test_exe_libs})
@@ -691,7 +678,7 @@ if (${NUPIC_BUILD_PYEXT_MODULES})
   # symbols should be available automatically when python loads the extension.
   #
   # NOTE We don't link our non-Windows python extensions with capnproto static
-  # libs to force runtime linkage to pycapnp's capnproto symbols in order to
+  # lib to force runtime linkage to pycapnp's capnproto symbols in order to
   # avoid the conflict of executing the methods in our own
   # compilation of capnproto (different compiler/STL/version, flags, etc.) on
   # objects created by pycapnp's. Instead, we force dynamic linkage to pycapnp's
@@ -718,9 +705,7 @@ if (${NUPIC_BUILD_PYEXT_MODULES})
   if("${PLATFORM}" STREQUAL "windows")
     list(APPEND src_swig_link_libraries
          ${PYTHON_LIBRARIES}
-         ${CAPNP_LINK_LIBRARIES})
-
-    list(APPEND src_swig_extra_deps CapnProto)
+         ${CAPNP_STATIC_LIB_TARGET})
   endif()
 
   message(STATUS "src_swig_extra_deps     = ${src_swig_extra_deps}")
@@ -890,8 +875,6 @@ install(DIRECTORY "${src_numpy_core}/lib/"
 install(DIRECTORY "${src_numpy_core}/include/"
         DESTINATION include)
 
-install(FILES ${CAPNP_LINK_LIBRARIES}
-        DESTINATION lib)
 foreach(directory ${CAPNP_INCLUDE_DIRS})
   install(DIRECTORY "${directory}/capnp"
           DESTINATION include)
