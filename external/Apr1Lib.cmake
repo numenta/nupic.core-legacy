@@ -160,5 +160,5 @@ ExternalProject_Add_Step(Apr1StaticLib patch_sources
 
 # Wrap external project-generated static library in an `add_library` target.
 merge_static_libraries(${APR1_STATIC_LIB_TARGET}
-                       "${aprlib_built_archive_file}")
+                       ${aprlib_built_archive_file})
 add_dependencies(${APR1_STATIC_LIB_TARGET} Apr1StaticLib)

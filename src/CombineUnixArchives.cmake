@@ -39,6 +39,15 @@ function(COMBINE_UNIX_ARCHIVES
          BINARY_DIR
          CMAKE_AR)
 
+  message(STATUS
+          "COMBINE_UNIX_ARCHIVES("
+          "  LIB_TARGET=${LIB_TARGET}, "
+          "  TARGET_LOCATION=${TARGET_LOCATION}, "
+          "  SRC_LIB_LOCATIONS=${SRC_LIB_LOCATIONS}, "
+          "  LIST_SEPARATOR=${LIST_SEPARATOR}, "
+          "  BINARY_DIR=${BINARY_DIR}, "
+          "  CMAKE_AR=${CMAKE_AR})")
+
   string(REPLACE ${LIST_SEPARATOR} ";"
          SRC_LIB_LOCATIONS "${SRC_LIB_LOCATIONS}")
 

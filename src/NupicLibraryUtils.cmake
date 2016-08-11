@@ -27,7 +27,7 @@ project(nupic_core_library_utils CXX)
 
 # function MERGE_STATIC_LIBRARIES
 #
-# Generate a new static library target that will build to include the objects
+# Generate a new static library target that will merge the objects
 # of the given static libraries.
 #
 # :param LIB_TARGET: the name to use for the new library target to be
@@ -39,6 +39,10 @@ project(nupic_core_library_utils CXX)
 #   add_library(xyz STATIC ...)).
 
 function(MERGE_STATIC_LIBRARIES LIB_TARGET STATIC_LIBS)
+
+  message(STATUS "MERGE_STATIC_LIBRARIES "
+          "LIB_TARGET=${LIB_TARGET}, "
+          "STATIC_LIBS = ${STATIC_LIBS}")
 
   # We need at least one source file for ADD_LIBRARY
   set(dummy_source_file "${CMAKE_CURRENT_BINARY_DIR}/${LIB_TARGET}_dummy.c++")

@@ -80,8 +80,8 @@ set(EP_BASE ${CMAKE_BINARY_DIR}/ThirdParty)
 # Determine common toolchain settings, compiler and link flags
 include(CommonCompilerConfig)
 
-# Set up builds of external dependencies and get get their exported settings.
-# (see individual external/*.cmake modules for exported settings)
+# Set up builds of external dependencies and get their exports.
+# (see individual external/*.cmake modules for exported settings and functions)
 add_subdirectory(external)
 include_directories(SYSTEM ${EXTERNAL_INCLUDE_DIRS})
 

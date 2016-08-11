@@ -58,7 +58,7 @@ if (UNIX)
         --disable-util-dso --with-apr=${APR1_STATIC_LIB_INC_DIR}/..)
 
     ExternalProject_Add(AprUtil1StaticLib
-        DEPENDS ${APR1_STATIC_LIB_TARGET}
+        DEPENDS Apr1StaticLib
 
         URL ${aprutillib_url}
 
@@ -83,7 +83,7 @@ else()
     # NOT UNIX - i.e., Windows
 
     ExternalProject_Add(AprUtil1StaticLib
-        DEPENDS ${APR1_STATIC_LIB_TARGET}
+        DEPENDS Apr1StaticLib
 
         URL ${aprutillib_url}
 
@@ -102,7 +102,7 @@ else()
             -DAPR_HAS_LDAP=OFF
             -DAPU_HAVE_ODBC=OFF
             -DAPR_INCLUDE_DIR=${APR1_STATIC_LIB_INC_DIR}/apr-1
-            -DAPR_LIBRARIES=$<TARGET_FILE:${APR1_STATIC_LIB_TARGET}>
+            -DAPR_LIBRARIES=
             -DINSTALL_PDB=OFF
 
         #LOG_INSTALL 1
@@ -155,5 +155,5 @@ ExternalProject_Add_Step(AprUtil1StaticLib patch_sources
 
 # Wrap external project-generated static library in an `add_library` target.
 merge_static_libraries(${APRUTIL1_STATIC_LIB_TARGET}
-                       "${aprutillib_built_archive_file}")
+                       ${aprutillib_built_archive_file})
 add_dependencies(${APRUTIL1_STATIC_LIB_TARGET} AprUtil1StaticLib)
