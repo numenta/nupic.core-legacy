@@ -30,7 +30,7 @@
 include(../src/NupicLibraryUtils) # for MERGE_STATIC_LIBRARIES
 
 
-# Output static library link target name
+# Output static library target for linking and dependencies
 set(Z_STATIC_LIB_TARGET z-bundle)
 
 

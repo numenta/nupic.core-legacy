@@ -29,7 +29,7 @@
 include(../src/NupicLibraryUtils) # for MERGE_STATIC_LIBRARIES
 
 
-# Output static library link target name
+# Output static library target for linking and dependencies
 set(YAML_STATIC_LIB_TARGET yaml-bundle)
 
 

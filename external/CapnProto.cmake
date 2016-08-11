@@ -23,21 +23,26 @@
 #
 # OUTPUT VARIABLES:
 #
-# CAPNP_STATIC_LIB_TARGET: name of static library target that contains all of
-#                          capnproto library objects.
+#   CAPNP_STATIC_LIB_TARGET: name of static library target that contains all of
+#                            capnproto library objects.
 #
-# CAPNP_INCLUDE_DIRS
-# CAPNP_EXECUTABLE
-# CAPNPC_CXX_EXECUTABLE
-# CAPNP_CMAKE_DEFINITIONS: informational; platform-specific cmake defintions
-#                          used by capnproto build
-# CAPNP_COMPILER_DEFINITIONS: list of -D compiler defintions needed by apps that
-#                             are built against this library (e.g., -DCAPNP_LITE)
+#   CAPNP_INCLUDE_DIRS
+#   CAPNP_EXECUTABLE
+#   CAPNPC_CXX_EXECUTABLE
+#   CAPNP_CMAKE_DEFINITIONS: informational; platform-specific cmake defintions
+#                            used by capnproto build
+#   CAPNP_COMPILER_DEFINITIONS: list of -D compiler defintions needed by apps
+#                               that are built against this library (e.g.,
+#                               -DCAPNP_LITE)
+#
+# EXPORTED FUNCTIONS:
+#
+#   CREATE_CAPNPC_COMMAND: Create a custom command that runs the capnp compiler.
 
 include(../src/NupicLibraryUtils) # for MERGE_STATIC_LIBRARIES
 
 
-# Output static library link target name
+# Output static library target for linking and dependencies
 set(CAPNP_STATIC_LIB_TARGET capnp-bundle)
 
 set(capnp_lib_url
@@ -122,8 +127,8 @@ endif()
 
 function(CREATE_CAPNPC_COMMAND
          SPEC_FILES SRC_PREFIX INCLUDE_DIR TARGET_DIR OUTPUT_FILES)
-  # Creates the custom command that runs the capnp compiler
-  # on ${SPEC_FILES} and generates ${OUTPUT_FILES} in directory ${TARGET_DIR}
+  # Create a custom command that runs the capnp compiler on ${SPEC_FILES} and
+  # generates ${OUTPUT_FILES} in directory ${TARGET_DIR}
 
   set(dependencies ${SPEC_FILES} CapnProto)
 

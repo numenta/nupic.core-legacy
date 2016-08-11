@@ -19,7 +19,9 @@
 # http://numenta.org/licenses/
 # -----------------------------------------------------------------------------
 
-# Combine multiple Unix static libraries into a single static library
+# Combine multiple Unix static libraries into a single static library.
+#
+# This script is intended to be invoked via `${CMAKE_COMMAND} -DLIB_TARGET= ...`.
 #
 # ARGS:
 #
@@ -27,7 +29,8 @@
 #   TARGET_LOCATION: Full path to the target library
 #   SRC_LIB_LOCATIONS: List of source static library paths
 #   LIST_SEPARATOR: separator string that separates paths in
-#     SRC_LIB_LOCATIONS; NOTE with cmake 2.8.11+, caller could use "$<SEMICOLON>"
+#     SRC_LIB_LOCATIONS; NOTE with cmake 2.8.11+, caller could use the generator
+#     "$<SEMICOLON>" in SRC_LIB_LOCATIONS, and this arg would be unnecessary.
 #   BINARY_DIR: The value of ${CMAKE_CURRENT_BINARY_DIR} from caller
 #   CMAKE_AR: The value of ${CMAKE_AR} from caller
 

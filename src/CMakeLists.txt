@@ -535,7 +535,7 @@ set_target_properties(${src_executable_hellosptp}
 
 
 #
-# Setup gtest-based unit tests
+# Setup gtests
 #
 set(src_executable_gtests unit_tests)
 add_executable(${src_executable_gtests}
@@ -677,14 +677,13 @@ if (${NUPIC_BUILD_PYEXT_MODULES})
   # symbols should be available automatically when python loads the extension.
   #
   # NOTE We don't link our non-Windows python extensions with capnproto static
-  # lib to force runtime linkage to pycapnp's capnproto symbols in order to
-  # avoid the conflict of executing the methods in our own
+  # lib in order to force runtime linkage to pycapnp's capnproto symbols thus
+  # avoiding the conflict of executing the methods in our own
   # compilation of capnproto (different compiler/STL/version, flags, etc.) on
-  # objects created by pycapnp's. Instead, we force dynamic linkage to pycapnp's
+  # objects created by pycapnp's. We force runtime linking to pycapnp's
   # capnproto symbols by preloading the pycapnp extension in our extension
   # python proxy modules, thus avoiding the conflict from executing the methods
-  # in our own compilation of capnproto (different compiler, flags, etc.) on
-  # objects created by pycapnp's.
+  # in our own compilation of capnproto on objects created by pycapnp's.
   set(src_swig_link_libraries
       ${src_lib_static_nupiccore_combined}
       ${src_common_os_libs})
@@ -699,8 +698,8 @@ if (${NUPIC_BUILD_PYEXT_MODULES})
   #
   # NOTE On Windows nupic.bindings builds, we include capnproto because we
   # presently build self-contained CAPNP_LITE on Windows, and Windows
-  # nupic/nupic.bindings presently have no dependency on pycapnp; however, all
-  # symbols have to resolve locally within each Windows Python extension DLL.
+  # nupic/nupic.bindings presently have no dependency on pycapnp. We also include
+  # PYTHON_LIBRARIES because all symbols have to resolve when building a DLL.
   if("${PLATFORM}" STREQUAL "windows")
     list(APPEND src_swig_link_libraries
          ${PYTHON_LIBRARIES}
@@ -881,9 +880,6 @@ foreach(directory ${CAPNP_INCLUDE_DIRS})
   install(DIRECTORY "${directory}/kj"
           DESTINATION include)
 endforeach()
-
-#install(FILES ${src_lib_static_nupiccore_combined}
-#        DESTINATION lib)
 
 install(DIRECTORY nupic/py_support DESTINATION include/nupic
         FILES_MATCHING PATTERN "*.c*")
