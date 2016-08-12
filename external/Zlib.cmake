@@ -21,9 +21,18 @@
 
 # Creates ExternalProject for building z lib static library
 #
-# Exports:
-#   LIB_STATIC_Z_INC_DIR: directory of installed z lib headers
-#   LIB_STATIC_Z_LOC: path to installed static z lib
+# OUTPUT VARIABLES:
+#
+#   Z_STATIC_LIB_TARGET: name of static library target that contains all
+#                        of the z library objects.
+#   Z_STATIC_LIB_INC_DIR: directory of installed z lib headers
+
+include(../src/NupicLibraryUtils) # for MERGE_STATIC_LIBRARIES
+
+
+# Output static library target for linking and dependencies
+set(Z_STATIC_LIB_TARGET z-bundle)
+
 
 set(zlib_url "${REPOSITORY_DIR}/external/common/share/zlib/zlib-1.2.8.tar.gz")
 set(zlib_source_dir "${REPOSITORY_DIR}/external/common/share/zlib/zlib-1.2.8")
@@ -39,10 +48,11 @@ endif()
 
 
 # Export directory of installed z lib headers to parent
-set(LIB_STATIC_Z_INC_DIR "${zlib_install_prefix}/include")
+set(Z_STATIC_LIB_INC_DIR "${zlib_install_prefix}/include")
 
-# Export path to installed static z lib to parent
-set(LIB_STATIC_Z_LOC "${zlib_install_lib_dir}/${STATIC_PRE}${zlib_output_root}${STATIC_SUF}")
+# Path to static z lib installed by external project
+set(zlib_built_archive_file
+    "${zlib_install_lib_dir}/${STATIC_PRE}${zlib_output_root}${STATIC_SUF}")
 
 set(c_flags "${EXTERNAL_C_FLAGS_OPTIMIZED} ${COMMON_COMPILER_DEFINITIONS_STR}")
 
@@ -62,9 +72,15 @@ ExternalProject_Add(ZStaticLib
         -DCMAKE_C_FLAGS=${c_flags}
         -DCMAKE_INSTALL_PREFIX=${zlib_install_prefix}
         -DINSTALL_BIN_DIR=${zlib_install_prefix}/bin
-        -DINSTALL_INC_DIR=${LIB_STATIC_Z_INC_DIR}
+        -DINSTALL_INC_DIR=${Z_STATIC_LIB_INC_DIR}
         -DINSTALL_LIB_DIR=${zlib_install_lib_dir}
         -DINSTALL_MAN_DIR=${zlib_install_prefix}/man
         -DINSTALL_PKGCONFIG_DIR=${zlib_install_prefix}/pkgconfig
         ${EXTERNAL_STATICLIB_CMAKE_DEFINITIONS_OPTIMIZED}
 )
+
+
+# Wrap external project-generated static library in an `add_library` target.
+merge_static_libraries(${Z_STATIC_LIB_TARGET}
+                       "${zlib_built_archive_file}")
+add_dependencies(${Z_STATIC_LIB_TARGET} ZStaticLib)

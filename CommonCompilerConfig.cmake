@@ -316,6 +316,7 @@ IF(UNIX AND CMAKE_COMPILER_IS_GNUCXX AND (NOT "${CMAKE_BUILD_TYPE}" STREQUAL "De
     list(APPEND EXTERNAL_STATICLIB_CMAKE_DEFINITIONS_OPTIMIZED
          -DCMAKE_AR:PATH=gcc-ar
          -DCMAKE_RANLIB:PATH=gcc-ranlib)
+    # And ditto for externals that use the configure-based build system
     list(APPEND EXTERNAL_STATICLIB_CONFIGURE_DEFINITIONS_OPTIMIZED
          AR=gcc-ar
          RANLIB=gcc-ranlib)
