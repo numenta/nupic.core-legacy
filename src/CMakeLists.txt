@@ -699,8 +699,7 @@ if (NUPIC_BUILD_PYEXT_MODULES)
   #
   # NOTE On Windows nupic.bindings builds, we include capnproto because we
   # presently build self-contained CAPNP_LITE on Windows, and Windows
-  # nupic/nupic.bindings presently have no dependency on pycapnp. We also include
-  # PYTHON_LIBRARIES because all symbols have to resolve when building a DLL.
+  # nupic/nupic.bindings presently have no dependency on pycapnp.
   if("${PLATFORM}" STREQUAL "windows")
     list(APPEND _SRC_SWIG_LINK_LIBRARIES
          ${PYTHON_LIBRARIES}
