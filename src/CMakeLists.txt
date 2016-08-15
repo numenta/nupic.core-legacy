@@ -158,10 +158,6 @@ set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH}
                       ${REPOSITORY_DIR}/external/common/
                       ${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}/
                       ${src_numpy_core}/)
-#
-# Make sure the Cap'n Proto generation scripts are on the PATH.
-#
-set(ENV{PATH} "$ENV{PATH}:${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}/bin")
 
 #
 # Extract current git sha and record in nupic/Version.hpp
