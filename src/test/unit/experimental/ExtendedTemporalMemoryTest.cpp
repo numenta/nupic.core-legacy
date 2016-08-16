@@ -84,6 +84,7 @@ namespace {
       /*permanenceDecrement*/ 0.10,
       /*predictedSegmentDecrement*/ 0.0,
       /*formInternalBasalConnections*/ true,
+      /*learnOnOneCell*/ false,
       /*seed*/ 42
       );
 
@@ -125,6 +126,7 @@ namespace {
       /*permanenceDecrement*/ 0.10,
       /*predictedSegmentDecrement*/ 0.0,
       /*formInternalBasalConnections*/ true,
+      /*learnOnOneCell*/ false,
       /*seed*/ 42
       );
 
@@ -155,6 +157,7 @@ namespace {
       /*permanenceDecrement*/ 0.10,
       /*predictedSegmentDecrement*/ 0.02,
       /*formInternalBasalConnections*/ true,
+      /*learnOnOneCell*/ false,
       /*seed*/ 42
       );
 
@@ -200,6 +203,7 @@ namespace {
       /*permanenceDecrement*/ 0.10,
       /*predictedSegmentDecrement*/ 0.0,
       /*formInternalBasalConnections*/ true,
+      /*learnOnOneCell*/ false,
       /*seed*/ 42
       );
 
@@ -245,6 +249,7 @@ namespace {
       /*permanenceDecrement*/ 0.10,
       /*predictedSegmentDecrement*/ 0.0,
       /*formInternalBasalConnections*/ true,
+      /*learnOnOneCell*/ false,
       /*seed*/ 42
       );
 
@@ -276,6 +281,7 @@ namespace {
       /*permanenceDecrement*/ 0.08,
       /*predictedSegmentDecrement*/ 0.02,
       /*formInternalBasalConnections*/ true,
+      /*learnOnOneCell*/ false,
       /*seed*/ 42
       );
 
@@ -326,6 +332,7 @@ namespace {
       /*permanenceDecrement*/ 0.10,
       /*predictedSegmentDecrement*/ 0.02,
       /*formInternalBasalConnections*/ true,
+      /*learnOnOneCell*/ false,
       /*seed*/ 42
       );
 
@@ -365,6 +372,7 @@ namespace {
       /*permanenceDecrement*/ 0.08,
       /*predictedSegmentDecrement*/ 0.0,
       /*formInternalBasalConnections*/ true,
+      /*learnOnOneCell*/ false,
       /*seed*/ 42
       );
 
@@ -430,6 +438,7 @@ namespace {
       /*permanenceDecrement*/ 0.08,
       /*predictedSegmentDecrement*/ 0.0,
       /*formInternalBasalConnections*/ true,
+      /*learnOnOneCell*/ false,
       /*seed*/ 42
       );
 
@@ -490,6 +499,7 @@ namespace {
       /*permanenceDecrement*/ 0.10,
       /*predictedSegmentDecrement*/ 0.0,
       /*formInternalBasalConnections*/ true,
+      /*learnOnOneCell*/ false,
       /*seed*/ 42
       );
 
@@ -556,6 +566,7 @@ namespace {
       /*permanenceDecrement*/ 0.10,
       /*predictedSegmentDecrement*/ 0.0,
       /*formInternalBasalConnections*/ true,
+      /*learnOnOneCell*/ false,
       /*seed*/ 42
       );
 
@@ -586,6 +597,7 @@ namespace {
       /*permanenceDecrement*/ 0.10,
       /*predictedSegmentDecrement*/ 0.0,
       /*formInternalBasalConnections*/ true,
+      /*learnOnOneCell*/ false,
       /*seed*/ 42
       );
 
@@ -634,6 +646,7 @@ namespace {
       /*permanenceDecrement*/ 0.10,
       /*predictedSegmentDecrement*/ 0.0,
       /*formInternalBasalConnections*/ true,
+      /*learnOnOneCell*/ false,
       /*seed*/ 42
       );
 
@@ -684,6 +697,7 @@ namespace {
       /*permanenceDecrement*/ 0.10,
       /*predictedSegmentDecrement*/ 0.0,
       /*formInternalBasalConnections*/ true,
+      /*learnOnOneCell*/ false,
       /*seed*/ 42
       );
 
@@ -732,6 +746,7 @@ namespace {
       /*permanenceDecrement*/ 0.10,
       /*predictedSegmentDecrement*/ 0.0,
       /*formInternalBasalConnections*/ true,
+      /*learnOnOneCell*/ false,
       /*seed*/ 42
       );
 
@@ -775,6 +790,7 @@ namespace {
       /*permanenceDecrement*/ 0.10,
       /*predictedSegmentDecrement*/ 0.02,
       /*formInternalBasalConnections*/ true,
+      /*learnOnOneCell*/ false,
       /*seed*/ 42
       );
 
@@ -815,6 +831,7 @@ namespace {
       /*permanenceDecrement*/ 0.10,
       /*predictedSegmentDecrement*/ 0.02,
       /*formInternalBasalConnections*/ true,
+      /*learnOnOneCell*/ false,
       /*seed*/ 42
       );
 
@@ -855,6 +872,7 @@ namespace {
       /*permanenceDecrement*/ 0.02,
       /*predictedSegmentDecrement*/ 0.0,
       /*formInternalBasalConnections*/ true,
+      /*learnOnOneCell*/ false,
       /*seed*/ 42,
       /*maxSegmentsPerCell*/ 255,
       /*maxSynapsesPerSegment*/ 3
@@ -904,6 +922,7 @@ namespace {
       /*permanenceDecrement*/ 0.02,
       /*predictedSegmentDecrement*/ 0.0,
       /*formInternalBasalConnections*/ true,
+      /*learnOnOneCell*/ false,
       /*seed*/ 42,
       /*maxSegmentsPerCell*/ 2
       );
@@ -962,6 +981,7 @@ namespace {
       /*permanenceDecrement*/ 0.10,
       /*predictedSegmentDecrement*/ 0.02,
       /*formInternalBasalConnections*/ true,
+      /*learnOnOneCell*/ false,
       /*seed*/ 42
       );
 
@@ -1007,6 +1027,7 @@ namespace {
       /*permanenceDecrement*/ 0.10,
       /*predictedSegmentDecrement*/ 0.02,
       /*formInternalBasalConnections*/ true,
+      /*learnOnOneCell*/ false,
       /*seed*/ 42
       );
 
@@ -1075,6 +1096,7 @@ namespace {
         /*permanenceDecrement*/ 0.10,
         /*predictedSegmentDecrement*/ 0.02,
         /*formInternalBasalConnections*/ true,
+      /*learnOnOneCell*/ false,
         /*seed*/ seed
         );
 
@@ -1158,6 +1180,7 @@ namespace {
       /*permanenceDecrement*/ 0.10,
       /*predictedSegmentDecrement*/ 0.02,
       /*formInternalBasalConnections*/ true,
+      /*learnOnOneCell*/ false,
       /*seed*/ 42
       );
 
@@ -1205,6 +1228,7 @@ namespace {
       /*permanenceDecrement*/ 0.10,
       /*predictedSegmentDecrement*/ 0.02,
       /*formInternalBasalConnections*/ true,
+      /*learnOnOneCell*/ false,
       /*seed*/ 42
       );
 
@@ -1308,6 +1332,7 @@ namespace {
       /*permanenceDecrement*/ 0.10,
       /*predictedSegmentDecrement*/ 0.0,
       /*formInternalBasalConnections*/ true,
+      /*learnOnOneCell*/ false,
       /*seed*/ 42
       );
 

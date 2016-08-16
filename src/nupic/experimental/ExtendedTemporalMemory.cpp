@@ -67,6 +67,7 @@ ExtendedTemporalMemory::ExtendedTemporalMemory(
   Permanence permanenceDecrement,
   Permanence predictedSegmentDecrement,
   bool formInternalBasalConnections,
+  bool learnOnOneCell,
   Int seed,
   UInt maxSegmentsPerCell,
   UInt maxSynapsesPerSegment)
@@ -83,6 +84,7 @@ ExtendedTemporalMemory::ExtendedTemporalMemory(
     permanenceDecrement,
     predictedSegmentDecrement,
     formInternalBasalConnections,
+    learnOnOneCell,
     seed,
     maxSegmentsPerCell,
     maxSynapsesPerSegment);
@@ -104,6 +106,7 @@ void ExtendedTemporalMemory::initialize(
   Permanence permanenceDecrement,
   Permanence predictedSegmentDecrement,
   bool formInternalBasalConnections,
+  bool learnOnOneCell,
   Int seed,
   UInt maxSegmentsPerCell,
   UInt maxSynapsesPerSegment)
@@ -142,6 +145,7 @@ void ExtendedTemporalMemory::initialize(
   minThreshold_ = minThreshold;
   maxNewSynapseCount_ = maxNewSynapseCount;
   formInternalBasalConnections_ = formInternalBasalConnections;
+  learnOnOneCell_ = learnOnOneCell;
   permanenceIncrement_ = permanenceIncrement;
   permanenceDecrement_ = permanenceDecrement;
   predictedSegmentDecrement_ = predictedSegmentDecrement;
@@ -162,6 +166,7 @@ void ExtendedTemporalMemory::initialize(
   matchingBasalSegments_.clear();
   activeApicalSegments_.clear();
   matchingApicalSegments_.clear();
+  chosenCellForColumn_.clear();
 }
 
 static UInt32 predictiveScore(
@@ -536,6 +541,7 @@ static void burstColumn(
   Connections& basalConnections,
   Connections& apicalConnections,
   Random& rng,
+  map<UInt, CellIdx>& chosenCellForColumn,
   UInt column,
   vector<SegmentOverlap>::const_iterator columnMatchingBasalBegin,
   vector<SegmentOverlap>::const_iterator columnMatchingBasalEnd,
@@ -551,6 +557,7 @@ static void burstColumn(
   Permanence permanenceIncrement,
   Permanence permanenceDecrement,
   bool formInternalBasalConnections,
+  bool learnOnOneCell,
   bool learn)
 {
   // Calculate the active cells.
@@ -567,24 +574,36 @@ static void burstColumn(
 
   // Calculate the winner cell.
   CellIdx winnerCell;
-  if (columnMatchingBasalBegin != columnMatchingBasalEnd)
+  if (learnOnOneCell && chosenCellForColumn.count(column))
   {
-    auto bestBasal = std::max_element(
-      columnMatchingBasalBegin, columnMatchingBasalEnd,
-      [](const SegmentOverlap& a, const SegmentOverlap& b)
-      {
-        return a.overlap < b.overlap;
-      });
-
-    basalCandidatesBegin = bestBasal;
-    basalCandidatesEnd = bestBasal + 1;
-
-    winnerCell = bestBasal->segment.cell;
+    winnerCell = chosenCellForColumn.at(column);
   }
   else
   {
-    winnerCell = getLeastUsedCell(basalConnections, rng, column,
-                                  cellsPerColumn);
+    if (columnMatchingBasalBegin != columnMatchingBasalEnd)
+    {
+      auto bestBasal = std::max_element(
+        columnMatchingBasalBegin, columnMatchingBasalEnd,
+        [](const SegmentOverlap& a, const SegmentOverlap& b)
+        {
+          return a.overlap < b.overlap;
+        });
+
+      basalCandidatesBegin = bestBasal;
+      basalCandidatesEnd = bestBasal + 1;
+
+      winnerCell = bestBasal->segment.cell;
+    }
+    else
+    {
+      winnerCell = getLeastUsedCell(basalConnections, rng, column,
+                                    cellsPerColumn);
+    }
+
+    if (learnOnOneCell)
+    {
+      chosenCellForColumn[column] = winnerCell;
+    }
   }
   winnerCells.push_back(winnerCell);
 
@@ -712,6 +731,7 @@ void ExtendedTemporalMemory::activateCells(
         burstColumn(
           activeCells_, winnerCells_,
           basalConnections, apicalConnections, rng_,
+          chosenCellForColumn_,
           column,
           columnMatchingBasalBegin, columnMatchingBasalEnd,
           columnMatchingApicalBegin, columnMatchingApicalEnd,
@@ -719,7 +739,7 @@ void ExtendedTemporalMemory::activateCells(
           prevActiveExternalCellsBasal, prevActiveExternalCellsApical,
           cellsPerColumn_, initialPermanence_, maxNewSynapseCount_,
           permanenceIncrement_, permanenceDecrement_,
-          formInternalBasalConnections_, learn);
+          formInternalBasalConnections_, learnOnOneCell_, learn);
       }
     }
     else
@@ -836,6 +856,7 @@ void ExtendedTemporalMemory::reset(void)
   matchingBasalSegments_.clear();
   activeApicalSegments_.clear();
   matchingApicalSegments_.clear();
+  chosenCellForColumn_.clear();
 }
 
 // ==============================
@@ -1072,6 +1093,16 @@ void ExtendedTemporalMemory::setFormInternalBasalConnections(
   formInternalBasalConnections_ = formInternalBasalConnections;
 }
 
+bool ExtendedTemporalMemory::getLearnOnOneCell() const
+{
+  return learnOnOneCell_;
+}
+
+void ExtendedTemporalMemory::setLearnOnOneCell(bool learnOnOneCell)
+{
+  learnOnOneCell_ = learnOnOneCell;
+}
+
 Permanence ExtendedTemporalMemory::getPermanenceIncrement() const
 {
   return permanenceIncrement_;
@@ -1300,6 +1331,11 @@ void ExtendedTemporalMemory::write(ExtendedTemporalMemoryProto::Builder& proto) 
     matchingApicalSegmentOverlaps[i].setOverlap(
       matchingApicalSegments_[i].overlap);
   }
+
+  NTA_CHECK(learnOnOneCell_ == false) <<
+    "Serialization is not supported for learnOnOneCell";
+  NTA_CHECK(chosenCellForColumn_.empty()) <<
+    "Serialization is not supported for learnOnOneCell";
 }
 
 // Implementation note: this method sets up the instance using data from
@@ -1374,6 +1410,9 @@ void ExtendedTemporalMemory::read(ExtendedTemporalMemoryProto::Reader& proto)
     Segment segment = {(SegmentIdx)value.getSegment(), value.getCell()};
     matchingApicalSegments_.push_back({segment, value.getOverlap()});
   }
+
+  learnOnOneCell_ = false;
+  chosenCellForColumn_.clear();
 }
 
 void ExtendedTemporalMemory::load(istream& inStream)
@@ -1473,6 +1512,9 @@ void ExtendedTemporalMemory::load(istream& inStream)
     inStream >> matchingApicalSegments_[i].overlap;
   }
 
+  learnOnOneCell_ = false;
+  chosenCellForColumn_.clear();
+
   inStream >> marker;
   NTA_CHECK(marker == "~ExtendedTemporalMemory");
 }
@@ -1494,6 +1536,8 @@ void ExtendedTemporalMemory::printParameters()
     << "connectedPermanence       = " << getConnectedPermanence() << std::endl
     << "minThreshold              = " << getMinThreshold() << std::endl
     << "maxNewSynapseCount        = " << getMaxNewSynapseCount() << std::endl
+    << "formInternalBasalConnections = " << getFormInternalBasalConnections() << std::endl
+    << "learnOnOneCell            = " << getLearnOnOneCell() << std::endl
     << "permanenceIncrement       = " << getPermanenceIncrement() << std::endl
     << "permanenceDecrement       = " << getPermanenceDecrement() << std::endl
     << "predictedSegmentDecrement = " << getPredictedSegmentDecrement() << std::endl;
