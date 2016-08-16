@@ -417,9 +417,9 @@ set(src_external_static_libs
 # Add capnproto static lib when building nupic_core static lib without python
 # extensions. The extensions have their own logic governing whether to include
 # it.
-if (NOT ${NUPIC_BUILD_PYEXT_MODULES})
+if (NOT NUPIC_BUILD_PYEXT_MODULES)
   list(APPEND src_external_static_libs ${CAPNP_STATIC_LIB_TARGET})
-endif() # ${NUPIC_BUILD_PYEXT_MODULES}
+endif()
 
 set(src_combined_nupiccore_source_archives
     ${src_lib_static_nupiccore_solo}
@@ -443,9 +443,9 @@ set(src_common_test_exe_libs
 # Add capnproto static lib to our C/C++ test apps when building python
 # extensions, since capnproto objects are excluded from nupic_core combined lib
 # to avoid conflict with capnproto methods compiled into the pycapnp extension
-if (${NUPIC_BUILD_PYEXT_MODULES})
+if (NUPIC_BUILD_PYEXT_MODULES)
   list(APPEND src_common_test_exe_libs ${CAPNP_STATIC_LIB_TARGET})
-endif() # ${NUPIC_BUILD_PYEXT_MODULES}
+endif()
 
 
 #
@@ -616,7 +616,7 @@ add_custom_target(tests_all
 #
 # Use SWIG to generate Python extensions.
 #
-if (${NUPIC_BUILD_PYEXT_MODULES})
+if (NUPIC_BUILD_PYEXT_MODULES)
   include(UseSWIG)
 
   message(STATUS "CMAKE_CXX_COMPILER_ID        = ${CMAKE_CXX_COMPILER_ID}")
@@ -667,7 +667,7 @@ if (${NUPIC_BUILD_PYEXT_MODULES})
   set(CMAKE_SWIG_FLAGS ${src_swig_flags} ${CMAKE_SWIG_FLAGS})
 
   # Set up linker flags for python extension shared libraries
-  set(src_swig_extension_link_flags "${PYEXT_LINKER_FLAGS_OPTIMIZED}")
+  set(_SRC_SWIG_EXTENSION_LINK_FLAGS "${PYEXT_LINKER_FLAGS_OPTIMIZED}")
 
   # NOTE Non-Windows Python extensions shouldn't be linking agains libpython;
   # symbols should be available automatically when python loads the extension.
@@ -680,13 +680,14 @@ if (${NUPIC_BUILD_PYEXT_MODULES})
   # capnproto symbols by preloading the pycapnp extension in our extension
   # python proxy modules, thus avoiding the conflict from executing the methods
   # in our own compilation of capnproto on objects created by pycapnp's.
-  set(src_swig_link_libraries
+  set(_SRC_SWIG_LINK_LIBRARIES
       ${src_lib_static_nupiccore_combined}
       ${src_common_os_libs})
 
   # Common dependencies for our python extensions for use with
   # SWIG_MODULE_name_EXTRA_DEPS
-  set(src_swig_extra_deps Swig)
+  # Make sure we don't execute the swig executable before it is built
+  set(_SRC_SWIG_EXTRA_DEPS Swig)
 
   # NOTE Windows DLLs are shared executables with their own main; they require
   # all symbols to resolve at link time, so we have to add libpython for this
@@ -694,34 +695,33 @@ if (${NUPIC_BUILD_PYEXT_MODULES})
   #
   # NOTE On Windows nupic.bindings builds, we include capnproto because we
   # presently build self-contained CAPNP_LITE on Windows, and Windows
-  # nupic/nupic.bindings presently have no dependency on pycapnp. We also include
-  # PYTHON_LIBRARIES because all symbols have to resolve when building a DLL.
+  # nupic/nupic.bindings presently have no dependency on pycapnp.
   if("${PLATFORM}" STREQUAL "windows")
-    list(APPEND src_swig_link_libraries
+    list(APPEND _SRC_SWIG_LINK_LIBRARIES
          ${PYTHON_LIBRARIES}
          ${CAPNP_STATIC_LIB_TARGET})
   endif()
 
-  message(STATUS "src_swig_extra_deps     = ${src_swig_extra_deps}")
-  message(STATUS "src_swig_link_libraries = ${src_swig_link_libraries}")
-  message(STATUS "src_swig_extension_link_flags= ${src_swig_extension_link_flags}")
+  message(STATUS "_SRC_SWIG_EXTRA_DEPS     = ${_SRC_SWIG_EXTRA_DEPS}")
+  message(STATUS "_SRC_SWIG_LINK_LIBRARIES = ${_SRC_SWIG_LINK_LIBRARIES}")
+  message(STATUS "_SRC_SWIG_EXTENSION_LINK_FLAGS= ${_SRC_SWIG_EXTENSION_LINK_FLAGS}")
   message(STATUS "CMAKE_SWIG_FLAGS        = ${CMAKE_SWIG_FLAGS}")
 
 
   function(PREPEND_BOILERPLATE_TO_PYTHON_PROXY_MODULE
-           PARENT_SWIG_TARGET)
-    # Add a custom command to the given Swig target to prepend boilerplate to
-    # the swig-generated python proxy module
-    # ${CMAKE_SWIG_OUTDIR}/${PARENT_SWIG_TARGET}.py. The boilerplate preloads
+           MODULE_NAME)
+    # Add a custom command to the Swig target to prepend boilerplate to the
+    # swig-generated python proxy module
+    # ${CMAKE_SWIG_OUTDIR}/${MODULE_NAME}.py. The boilerplate preloads
     # the pycapnp extension shared library on Unix platforms.
     #
-    # :param PARENT_SWIG_TARGET: the custom command will be added to this
-    #   swig_add_module target
+    # :param MODULE_NAME: the custom command will be added to the target
+    #   corresponding to this Swig module name.
     set(preamble_filepath "${CMAKE_SOURCE_DIR}/src/nupic/bindings/swig_proxy_preamble.py")
-    set(module_filepath "${CMAKE_SWIG_OUTDIR}/${PARENT_SWIG_TARGET}.py")
+    set(module_filepath "${CMAKE_SWIG_OUTDIR}/${MODULE_NAME}.py")
 
     add_custom_command(
-      TARGET ${SWIG_MODULE_${PARENT_SWIG_TARGET}_REAL_NAME}
+      TARGET ${SWIG_MODULE_${MODULE_NAME}_REAL_NAME}
       POST_BUILD
       COMMAND
         ${CMAKE_COMMAND}
@@ -734,100 +734,101 @@ if (${NUPIC_BUILD_PYEXT_MODULES})
   endfunction(PREPEND_BOILERPLATE_TO_PYTHON_PROXY_MODULE)
 
 
+  function(BUILD_EXTENSION MODULE_NAME)
+    # Create a nupic.bindings swig extension target with the given Swig module
+    # name. Also, if PY_EXTENSIONS_DIR is specified, request
+    # installation of the extension library and python proxy module.
+    #
+    # The real target name is ${SWIG_MODULE_${MODULE_NAME}_REAL_NAME}.
+
+    set(source_interface_file nupic/bindings/${MODULE_NAME}.i)
+
+    set_source_files_properties(${source_interface_file} PROPERTIES
+                                CPLUSPLUS ON
+                                SWIG_MODULE_NAME ${MODULE_NAME})
+
+    #
+    # Create custom command for generating files from SWIG
+    #
+
+    # Note: swig_add_module outputs ${swig_generated_file_fullname}
+    swig_add_module(${MODULE_NAME} python ${source_interface_file})
+
+    set_source_files_properties(
+      ${swig_generated_file_fullname} PROPERTIES
+      GENERATED TRUE
+      COMPILE_FLAGS ${src_swig_generated_file_compile_flags})
+
+    swig_link_libraries(${MODULE_NAME} ${_SRC_SWIG_LINK_LIBRARIES})
+
+    prepend_boilerplate_to_python_proxy_module(${MODULE_NAME})
+
+    set(real_target "${SWIG_MODULE_${MODULE_NAME}_REAL_NAME}")
+
+    set(extra_deps ${_SRC_SWIG_EXTRA_DEPS})
+    set(link_flags ${_SRC_SWIG_EXTENSION_LINK_FLAGS})
+
+    # Create an export map and update extra dependencies and link flags. This
+    # export map prevents runtime-link preemption of statically-linked
+    # libraries, such as -static-libstdc++, and limits the shared object's
+    # symbol visibility to only the python extension's init function. NOTE Not
+    # sure what, if anything, to do for MSVC at this time.
+    set(extension_init_func "init${real_target}")
+
+    if("${PLATFORM}" STREQUAL "darwin")
+      set(link_flags
+          "${link_flags} -Wl,-exported_symbol,_${extension_init_func}")
+
+    elseif("${PLATFORM}" STREQUAL "linux" OR MINGW)
+      set(export_map_file
+          "${CMAKE_CURRENT_BINARY_DIR}/${real_target}_generated.expmap")
+
+      list(APPEND extra_deps "${export_map_file}")
+      set(link_flags "${link_flags} -Wl,--version-script=${export_map_file}")
+
+      set(export_map_contents "{global: ${extension_init_func}; local: *;};")
+
+      message(STATUS "Writing export map file ${export_map_file} "
+              "(${export_map_contents}).")
+
+      file(WRITE ${export_map_file} "${export_map_contents}")
+    endif()
+
+
+    set(SWIG_MODULE_${MODULE_NAME}_EXTRA_DEPS ${extra_deps})
+    set_target_properties(${real_target} PROPERTIES
+                          LINK_FLAGS "${link_flags}")
+
+    # If a path is specified, copy extensions files to proper location.
+    if (PY_EXTENSIONS_DIR)
+      install(TARGETS
+              ${real_target}
+              LIBRARY DESTINATION ${PY_EXTENSIONS_DIR})
+      install(FILES
+              ${PROJECT_BINARY_DIR}/${MODULE_NAME}.py
+              DESTINATION ${PY_EXTENSIONS_DIR})
+    endif(PY_EXTENSIONS_DIR)
+
+    message(
+      STATUS
+      "Created Swig target ${real_target} for swig module ${MODULE_NAME}. "
+      "extra_deps=${extra_deps}, link_flags=${link_flags}")
+  endfunction(BUILD_EXTENSION)
+
+
   # Algorithms
-  set(src_swig_algorithms_files nupic/bindings/algorithms.i)
-  set_source_files_properties(${src_swig_algorithms_files} PROPERTIES
-                              CPLUSPLUS ON
-                              SWIG_MODULE_NAME algorithms)
-  set(src_swig_algorithms algorithms)
-  # Make sure we don't attempt to execute the swig executable until it is built.
-  set(SWIG_MODULE_${src_swig_algorithms}_EXTRA_DEPS ${src_swig_extra_deps})
-  # Create custom command for generating files from SWIG.
-  swig_add_module(${src_swig_algorithms} python ${src_swig_algorithms_files})
-  list(APPEND src_swig_generated_files ${swig_generated_file_fullname})
-  swig_link_libraries(${src_swig_algorithms}
-                      ${src_swig_link_libraries})
-  set_target_properties(${SWIG_MODULE_${src_swig_algorithms}_REAL_NAME} PROPERTIES
-                        LINK_FLAGS "${src_swig_extension_link_flags}")
-  prepend_boilerplate_to_python_proxy_module(${src_swig_algorithms})
+  build_extension("algorithms")
 
   # Engine
-  set(src_swig_engine_files nupic/bindings/engine_internal.i)
-  set_source_files_properties(${src_swig_engine_files} PROPERTIES
-                              CPLUSPLUS ON
-                              SWIG_MODULE_NAME engine_internal)
-  set(src_swig_engine engine_internal)
-  # Make sure we don't attempt to execute the swig executable until it is built.
-  set(SWIG_MODULE_${src_swig_engine}_EXTRA_DEPS ${src_swig_extra_deps})
-  # Create custom command for generating files from SWIG.
-  swig_add_module(${src_swig_engine} python ${src_swig_engine_files})
-  list(APPEND src_swig_generated_files ${swig_generated_file_fullname})
-  swig_link_libraries(${src_swig_engine}
-                      ${src_swig_link_libraries})
-  set_target_properties(${SWIG_MODULE_${src_swig_engine}_REAL_NAME} PROPERTIES
-                        LINK_FLAGS "${src_swig_extension_link_flags}")
-  prepend_boilerplate_to_python_proxy_module(${src_swig_engine})
+  build_extension("engine_internal")
 
   # Experimental
-  set(src_swig_experimental_files nupic/bindings/experimental.i)
-  set_source_files_properties(${src_swig_experimental_files} PROPERTIES
-                              CPLUSPLUS ON
-                              SWIG_MODULE_NAME experimental)
-  set(src_swig_experimental experimental)
-  # Make sure we don't attempt to execute the swig executable until it is built.
-  set(SWIG_MODULE_${src_swig_experimental}_EXTRA_DEPS ${src_swig_extra_deps})
-  # Create custom command for generating files from SWIG.
-  swig_add_module(${src_swig_experimental} python ${src_swig_experimental_files})
-  list(APPEND src_swig_generated_files ${swig_generated_file_fullname})
-  swig_link_libraries(${src_swig_experimental}
-                      ${src_swig_link_libraries})
-  set_target_properties(${SWIG_MODULE_${src_swig_experimental}_REAL_NAME} PROPERTIES
-                        LINK_FLAGS "${src_swig_extension_link_flags}")
-  prepend_boilerplate_to_python_proxy_module(${src_swig_experimental})
+  build_extension("experimental")
 
   # Math
-  set(src_swig_math_files nupic/bindings/math.i)
-  set_source_files_properties(${src_swig_math_files} PROPERTIES
-                              CPLUSPLUS ON
-                              SWIG_MODULE_NAME math)
-  set(src_swig_math math)
-  # Make sure we don't attempt to execute the swig executable until it is built.
-  set(SWIG_MODULE_${src_swig_math}_EXTRA_DEPS ${src_swig_extra_deps})
-  # Create custom command for generating files from SWIG.
-  swig_add_module(${src_swig_math} python ${src_swig_math_files})
-  list(APPEND src_swig_generated_files ${swig_generated_file_fullname})
-  swig_link_libraries(${src_swig_math}
-                      ${src_swig_link_libraries})
-  set_target_properties(${SWIG_MODULE_${src_swig_math}_REAL_NAME} PROPERTIES
-                        LINK_FLAGS "${src_swig_extension_link_flags}")
-  prepend_boilerplate_to_python_proxy_module(${src_swig_math})
+  build_extension("math")
 
-
-  # Set properties on swig-generated and support files
-  set_source_files_properties(${src_swig_generated_files} PROPERTIES
-                              GENERATED TRUE)
-  set_source_files_properties(
-    ${src_swig_generated_files}
-    PROPERTIES
-    COMPILE_FLAGS ${src_swig_generated_file_compile_flags})
-
-  # If a path is specified, copy extensions files to proper location.
-  if (PY_EXTENSIONS_DIR)
-    install(TARGETS
-            ${SWIG_MODULE_${src_swig_algorithms}_REAL_NAME}
-            ${SWIG_MODULE_${src_swig_engine}_REAL_NAME}
-            ${SWIG_MODULE_${src_swig_experimental}_REAL_NAME}
-            ${SWIG_MODULE_${src_swig_math}_REAL_NAME}
-            LIBRARY DESTINATION ${PY_EXTENSIONS_DIR})
-    install(FILES
-            ${PROJECT_BINARY_DIR}/algorithms.py
-            ${PROJECT_BINARY_DIR}/engine_internal.py
-            ${PROJECT_BINARY_DIR}/experimental.py
-            ${PROJECT_BINARY_DIR}/math.py
-            DESTINATION ${PY_EXTENSIONS_DIR})
-  endif(PY_EXTENSIONS_DIR)
-
-endif() # ${NUPIC_BUILD_PYEXT_MODULES}
+endif() # NUPIC_BUILD_PYEXT_MODULES
 
 
 #
