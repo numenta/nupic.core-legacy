@@ -1096,7 +1096,7 @@ namespace {
         /*permanenceDecrement*/ 0.10,
         /*predictedSegmentDecrement*/ 0.02,
         /*formInternalBasalConnections*/ true,
-      /*learnOnOneCell*/ false,
+        /*learnOnOneCell*/ false,
         /*seed*/ seed
         );
 
