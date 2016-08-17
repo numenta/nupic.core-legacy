@@ -138,15 +138,12 @@ using namespace nupic;
                  maxSynapsesPerSegment=255,
                  seed=42,
                  learnOnOneCell=False):
-      if learnOnOneCell:
-        raise ValueError("learnOnOneCell is not supported")
-
       self.this = _EXPERIMENTAL.new_ExtendedTemporalMemory(
         columnDimensions, cellsPerColumn, activationThreshold,
         initialPermanence, connectedPermanence,
         minThreshold, maxNewSynapseCount, permanenceIncrement,
         permanenceDecrement, predictedSegmentDecrement,
-        formInternalBasalConnections, seed, maxSegmentsPerCell,
+        formInternalBasalConnections, learnOnOneCell, seed, maxSegmentsPerCell,
         maxSynapsesPerSegment)
 
       self.activeExternalCellsBasal = numpy.array([], dtype=uintDType)

@@ -120,6 +120,7 @@ namespace nupic {
           Permanence permanenceDecrement = 0.10,
           Permanence predictedSegmentDecrement = 0.0,
           bool formInternalBasalConnections = true,
+          bool learnOnOneCell = false,
           Int seed = 42,
           UInt maxSegmentsPerCell=255,
           UInt maxSynapsesPerSegment=255);
@@ -136,6 +137,7 @@ namespace nupic {
           Permanence permanenceDecrement = 0.10,
           Permanence predictedSegmentDecrement = 0.0,
           bool formInternalBasalConnections = true,
+          bool learnOnOneCell = false,
           Int seed = 42,
           UInt maxSegmentsPerCell=255,
           UInt maxSynapsesPerSegment=255);
@@ -385,6 +387,15 @@ namespace nupic {
         void setFormInternalBasalConnections(bool formInternalBasalConnections);
 
         /**
+         * Returns whether to always choose the same cell when bursting a column
+         * until the next reset occurs.
+         *
+         * @returns the learnOnOneCell parameter
+         */
+        bool getLearnOnOneCell() const;
+        void setLearnOnOneCell(bool learnOnOneCell);
+
+        /**
          * Returns the permanence increment.
          *
          * @returns Returns the Permanence increment
@@ -495,6 +506,9 @@ namespace nupic {
         vector<SegmentOverlap> matchingBasalSegments_;
         vector<SegmentOverlap> activeApicalSegments_;
         vector<SegmentOverlap> matchingApicalSegments_;
+
+        bool learnOnOneCell_;
+        map<UInt, CellIdx> chosenCellForColumn_;
 
         Random rng_;
 
