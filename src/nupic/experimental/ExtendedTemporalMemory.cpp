@@ -1243,6 +1243,11 @@ void ExtendedTemporalMemory::save(ostream& outStream) const
   }
   outStream << endl;
 
+  NTA_CHECK(learnOnOneCell_ == false) <<
+    "Serialization is not supported for learnOnOneCell";
+  NTA_CHECK(chosenCellForColumn_.empty()) <<
+    "Serialization is not supported for learnOnOneCell";
+
   outStream << "~ExtendedTemporalMemory" << endl;
 }
 
