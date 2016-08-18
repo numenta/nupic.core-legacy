@@ -42,4 +42,4 @@ apt-get install -y \
 
 # Install pip
 curl --silent --show-error --retry 5 -O http://releases.numenta.org/pip/1ebd3cb7a5a3073058d0c9552ab074bd/get-pip.py
-python get-pip.py --upgrade --user --ignore-installed setuptools wheel
+python get-pip.py --upgrade --ignore-installed pip setuptools wheel
