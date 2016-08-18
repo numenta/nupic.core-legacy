@@ -41,6 +41,7 @@ apt-get install -y \
     python2.7-dev
 
 # Install pip
-python ${DIR}/get-pip.py --ignore-installed
+curl --silent --show-error --retry 5 -O http://releases.numenta.org/pip/1ebd3cb7a5a3073058d0c9552ab074bd/get-pip.py
+python get-pip.py --user --ignore-installed
 pip install --upgrade --ignore-installed setuptools
 pip install wheel

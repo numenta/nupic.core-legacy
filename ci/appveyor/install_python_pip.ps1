@@ -7,7 +7,7 @@ $ErrorActionPreference = "Stop"
 
 $BASE_URL = "https://www.python.org/ftp/python/"
 
-$GET_PIP_URL = "https://bootstrap.pypa.io/get-pip.py"
+$GET_PIP_URL = "http://releases.numenta.org/pip/1ebd3cb7a5a3073058d0c9552ab074bd/get-pip.py"
 $GET_PIP_PATH = "C:\get-pip.py"
 
 
