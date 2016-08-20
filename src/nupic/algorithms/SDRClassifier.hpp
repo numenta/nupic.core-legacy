@@ -1,6 +1,6 @@
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2013-2015, Numenta, Inc.  Unless you have an agreement
+ * Copyright (C) 2016, Numenta, Inc.  Unless you have an agreement
  * with Numenta, Inc., for a separate license for this software code, the
  * following terms and conditions apply:
  *
@@ -21,11 +21,11 @@
  */
 
 /** @file
- * Definitions for the CLAClassifier.
+ * Definitions for the SDRClassifier.
  */
 
-#ifndef NTA_fast_cla_classifier_HPP
-#define NTA_fast_cla_classifier_HPP
+#ifndef NTA_SDR_CLASSIFIER_HPP
+#define NTA_SDR_CLASSIFIER_HPP
 
 #include <deque>
 #include <iostream>
@@ -33,44 +33,32 @@
 #include <string>
 #include <vector>
 
-#include <nupic/algorithms/BitHistory.hpp>
-#include <nupic/proto/ClaClassifier.capnp.h>
+#include <nupic/proto/SdrClassifier.capnp.h>
 #include <nupic/types/Serializable.hpp>
 #include <nupic/types/Types.hpp>
+#include <nupic/math/DenseMatrix.hpp>
 
-namespace nupic
+namespace nupic 
 {
   namespace algorithms
   {
-    namespace cla_classifier
+
+    typedef cla_classifier::ClassifierResult ClassifierResult;
+
+    namespace sdr_classifier
     {
 
-      const UInt claClassifierVersion = 1;
+      const UInt sdrClassifierVersion = 1;
 
-      class BitHistory;
-      class ClassifierResult;
+      typedef Dense<UInt, Real64> Matrix;
 
-      /** CLA classifier implementation in C++.
-       *
-       * @b Responsibility
-       * The CLAClassifier is responsible for computing the likelihoods for
-       * each bucket when given an input pattern from the level below. This
-       * includes keeping track of past inputs and learning how each input bit
-       * history predicts future bucket values.
-       *
-       * @b Description
-       * The input pattern history is stored as patternNZHistory_ and the duty
-       * cycles are stored in BitHistory objects in activeBitHistory_.
-       *
-       */
-      class FastCLAClassifier : public Serializable<ClaClassifierProto>
+      class SDRClassifier : public Serializable<SdrClassifierProto>
       {
         public:
-
           /**
            * Constructor for use when deserializing.
            */
-          FastCLAClassifier() {}
+          SDRClassifier() {}
 
           /**
            * Constructor.
@@ -81,14 +69,14 @@ namespace nupic
            *                      values for each bucket.
            * @param verbosity The logging verbosity.
            */
-          FastCLAClassifier(
-              const vector<UInt>& steps, Real64 alpha, Real64 actValueAlpha,
-              UInt verbosity);
+          SDRClassifier(
+            const vector<UInt>& steps, Real64 alpha, Real64 actValueAlpha,
+            UInt verbosity);
 
           /**
            * Destructor.
            */
-          virtual ~FastCLAClassifier();
+          virtual ~SDRClassifier();
 
           /**
            * Compute the likelihoods for each bucket.
@@ -107,15 +95,26 @@ namespace nupic
            *               values for key 0 correspond to the actual values to
            *               used when predicting each bucket.
            */
-          virtual void fastCompute(
-              UInt recordNum, const vector<UInt>& patternNZ, UInt bucketIdx,
-              Real64 actValue, bool category, bool learn, bool infer,
-              ClassifierResult* result);
+          virtual void compute(
+            UInt recordNum, const vector<UInt>& patternNZ, UInt bucketIdx,
+            Real64 actValue, bool category, bool learn, bool infer,
+            ClassifierResult* result);
 
-          UInt version() const
-          {
-            return version_;
-          }
+          /**
+           * Gets the version number
+           */
+          UInt version() const;
+
+          /**
+           * Getter and setter for verbosity level.
+           */
+          UInt getVerbosity() const;
+          void setVerbosity(UInt verbosity);
+
+          /**
+           * Gets the learning rate
+           */
+          UInt getAlpha() const;
 
           /**
            * Get the size of the string needed for the serialized state.
@@ -135,7 +134,7 @@ namespace nupic
           /**
            * Save the state to the builder.
            */
-          void write(ClaClassifierProto::Builder& proto) const override;
+          void write(SdrClassifierProto::Builder& proto) const override;
 
           /**
            * Save the state to the stream.
@@ -145,7 +144,7 @@ namespace nupic
           /**
            * Load state from reader.
            */
-          void read(ClaClassifierProto::Reader& proto) override;
+          void read(SdrClassifierProto::Reader& proto) override;
 
           /**
            * Load state from stream.
@@ -155,49 +154,61 @@ namespace nupic
           /**
            * Compare the other instance to this one.
            *
-           * @param other Another instance of FastCLAClassifier to compare to.
+           * @param other Another instance of SDRClassifier to compare to.
            * @returns true iff other is identical to this instance.
            */
-          virtual bool operator==(const FastCLAClassifier& other) const;
+          virtual bool operator==(const SDRClassifier& other) const;
 
         private:
+          // Helper function for inference mode
+          void infer_(const vector<UInt>& patternNZ, UInt bucketIdx,
+            Real64 actValue, ClassifierResult* result);
+
+          // Helper function to compute the error signal in learning mode
+          vector<Real64> calculateError_(UInt bucketIdx, const vector<UInt>, 
+            UInt step);
+
           // The list of prediction steps to learn and infer.
           vector<UInt> steps_;
+
           // The alpha used to decay the duty cycles in the BitHistorys.
           Real64 alpha_;
+
           // The alpha used to decay the actual values used for each bucket.
           Real64 actValueAlpha_;
-          // An incrementing count of the number of learning iterations that
-          // have been performed.
-          UInt learnIteration_;
-          // This contains the offset between the recordNum (provided by
-          // caller) and learnIteration (internal only, always starts at 0).
-          UInt recordNumMinusLearnIteration_;
-          bool recordNumMinusLearnIterationSet_;
+
           // The maximum number of the prediction steps.
           UInt maxSteps_;
+
           // Stores the input pattern history, starting with the previous input
           // and containing _maxSteps total input patterns.
           deque< vector<UInt> > patternNZHistory_;
-          deque<UInt> iterationNumHistory_;
-          // Mapping from the number of steps in the future to predict to the
-          // input bit index to a BitHistory that contains the duty cycles for
-          // each bucket.
-          map< UInt, map<UInt, BitHistory> > activeBitHistory_;
-          // The highest bucket index that has been seen so far.
+          deque<UInt> recordNumHistory_;
+
+          // Weight matrices for the classifier (one per prediction step)
+          map<UInt, Matrix> weightMatrix_;
+
+          // The highest input bit that the classifier has seen so far.
+          UInt maxInputIdx_;
+
+          // The highest bucket index that the classifier has been seen so far.
           UInt maxBucketIdx_;
+
           // The current actual values used for each bucket index. The index of
           // the actual value matches the index of the bucket.
           vector<Real64> actualValues_;
+
           // A boolean that distinguishes between actual values that have been
           // seen and those that have not.
           vector<bool> actualValuesSet_;
+
+          // Version and verbosity.
           UInt version_;
           UInt verbosity_;
-      }; // end class FastCLAClassifier
+      };  // end of SDRClassifier class
 
-    } // end namespace cla_classifier
-  } // end namespace algorithms
-} // end namespace nupic
+    }  // end of namespace sdr_classifier
+  }  // end of namespace algorithms
+}  // end of name space nupic
 
-#endif // NTA_fast_cla_classifier_HPP
+#endif 

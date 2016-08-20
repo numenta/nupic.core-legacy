@@ -24,29 +24,7 @@
 %include <nupic/bindings/exception.i>
 
 %pythoncode %{
-# ----------------------------------------------------------------------
-# Numenta Platform for Intelligent Computing (NuPIC)
-# Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
-# with Numenta, Inc., for a separate license for this software code, the
-# following terms and conditions apply:
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero Public License version 3 as
-# published by the Free Software Foundation.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-# See the GNU Affero Public License for more details.
-#
-# You should have received a copy of the GNU Affero Public License
-# along with this program.  If not, see http://www.gnu.org/licenses.
-#
-# http://numenta.org/licenses/
-# ----------------------------------------------------------------------
-
 _MATH = _math
-
 %}
 
 %{
@@ -100,7 +78,7 @@ _MATH = _math
 
 // Perform necessary library initialization (in C++).
 import_array();
-  
+
 %}
 
 %include <nupic/bindings/types.i>
@@ -171,7 +149,7 @@ import_array();
 		  x_min, x_max, 1, 65535);
     return y.forPython();
   }
-  */ 
+  */
 
   PyObject* winnerTakesAll_3(size_t k, size_t seg_size, PyObject* py_x)
   {

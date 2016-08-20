@@ -1,5 +1,84 @@
 # Changelog
 
+## 0.4.5
+
+* Removed no longer used pre-built Swig executables for various flavors of Linux; nupic.core automatically builds Swig from embedded sources on non-Windows platforms.
+* DEVOPS-141 Apply an export map to OS X, Linux, and MINGW builds of nupic.bindings shared objects.
+* Refactor extension build steps into a function shared by algorithms, math, engine_internal, etc. in preparation for adding export maps.
+* Work around issue in cmake 2.8.7: have external project AprUtil1StaticLib depend directly on external project Apr1StaticLib instead of its library wrapper ${APR1_STATIC_LIB_TARGET}; the latter was incorrectly interperting the dependency as another external project instead of library; but worked correctly on cmake 2.8.12.
+* Completed wrapping of external static libs in `add_library` targets
+* Represent external build of capnproto as single static library with target name ${CAPNP_STATIC_LIB_TARGET} and containing all capnproto library objects.
+* No need for custom target in CREATE_CAPNPC_COMMAND function, since nupic_core_solo is the only consumer of the custom command's outputs.
+* Try building nupic_core_solo intermediate static library without specifying system libraries. It's a static library and shouldn't need additional linking information.
+* Removed nupic_core_solo from installed targets, since it's only an intermediate artifact and not intended to be an output product.
+* issue-1034 Reorganized build to link nupic_core static library tests against the "combined" nupic_core static library, which is considered an output artifact, instead of nupic_core_solo static lib, which is only an intermediate step.
+* Use library utils to correctly combine multiple static libraries into a single one.
+* DEVOPS-135 Implement a hacky work-around by preloading pycapnp's exteions DLL in RTLD_GLOBAL mode, which enables resultion of capnproto references when nupic.bidnings extensions are loaded.
+* Consider EPSILON while finding minPermanenceSynapse
+* Refactor to make GCC stop finding false positives
+* New implementation of GCC_UNINITIALIZED_VAR
+* DEVOPS-135 Remove capnproto from python extensions shared libs in order to avoid conflict with capnproto methods compiled into pycapnp, possibly compiled with a different compiler/version and with different compiler/linker flags. Instead, we rely on dynamic linking of the necessary symbols from capnproto in pycapnp.
+* Avoid clang error "unknown warning option '-Wno-maybe-uninitialized'"
+* Store EPSILON as a static const Permanence
+* Disable GCC's maybe-uninitialized warnings. Too many false positives.
+* Fixes nupic.core github issue #1031: rename EXTERNAL_STATICLIB_CONFIGURE_DEFINITIONS_OPTIMIZED_STR to EXTERNAL_STATICLIB_CONFIGURE_DEFINITIONS_OPTIMIZED and turn it into a list.
+* fixes floating point comparison bug
+* Use group_by in TemporalMemory. No more ExcitedColumns.
+* Work around another GCC maybe-uninitialized faulty error
+* Build error when including <GroupBy.hpp> without <algorithm>
+* a fresh look at ExcitedColumns: it's just a group_by
+* Fixed indexing bug in serialization
+* Fix the unsigned int underflow bug in the ETM
+* Workaround for a mingwpy issue
+* DEVOPS_116 Add stock Numenta file headers and improve some comments in manylinux wheel build scripts.
+* Fixed version bug in SDR classifier deserialization
+* Updated bindings to handle SDR classifier
+* Fix bug in TemporalMemory save / load
+* Make getLeastUsedCell non-allocating
+* Put ExcitedColumns in a namespace to avoid collisions
+* Add apical dendrites to ExtendedTemporalMemory
+* DEVOPS-116 Implement prototype manylinux wheel build using docker image numenta/manylinux1_x86_64:centos6.8
+* Stop implying pycapnp is in requirements.txt
+* Updated SDRClassifier to match header file on getters/setters
+* Fixed memory error (off-by-one in weight matrix creation)
+* Fixed include bug in SDRClassifier
+* Stable implementation of save/load for SDRClassifier
+* Ignore installed version of pip.
+* Make sure pip gets installed and that we get console output for everything.
+* DEVOPS-84 Add support for building nupic.bindings for OS X in bamboo
+* change heap allocation to stack allocation of Network
+* Merged upstream changes and backed out the disabling of link time optimizations since it now appears to work on the ARM.
+* Add a "formInternalConnections" parameter
+* Add new "experimental" SWIG module
+* Move ETM to "experimental" namespace
+* Support "external active cells" in the ETM
+* Use std::move to keep the previous active cells
+* Untangle the pieces that calculate segment excitation
+* Get rid of the Cell struct
+* Initial version of ExtendedTemporalMemory: copy-pasted TM
+* added blurps for CMAKE_AR and CMAKE_RANLIB
+* CMakeLists.txt cleaned up, vars renamed, docs updated
+* Updates pycapnp to 0.5.8.
+* network-factory adds missing newline to test file
+* network-factory updates test to ensure created network is unregistered.
+* deprecate-spec-vars moves documentation from Spec to PyRegion
+* network-factory adds a test to show that creating a network without any regions or links works
+* network-factory expose functions to bindings and extend functionality to accept a yaml string
+* network-factory cleans up includes and makes createNetworkFromYaml public
+* updated conditional cmake_args, fixes #981
+* network-factory passes yaml parser instead of path
+* network-factory ensure Network destructor is called on error
+* deprecate-spec-vars set defaults for regionLevel and requireSplitterMap and make them optional
+* Removed the duplicate conditional addition of the NTA_ASM compiler flag from src/CMakeLists.txt.  The original remains in CommonCompilerConfig.
+* Removed check for Wreturn-type compatibility
+* CMake warning if total memory is less than 1GB
+* Added back the -O2 flag and the -Wno-return-type flag
+* GCC Bitness handling
+* Remove NTA_ASM flag
+* Removed the inversion of the NTA_ASM logic made by @codedhard
+* 1. Added CMake flag to make arm specific changes to the build 2. Used new CMake flag to disable inline assembly in build 3. Added NTA_ASM conditional to parts of ArrayAlgo.hpp that didn't use it    to enable inline assembly
+* Add visualization event handlers to Connections class
+
 ## 0.4.4
 
 * Timer: test drift

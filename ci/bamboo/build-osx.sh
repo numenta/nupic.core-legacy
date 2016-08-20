@@ -6,7 +6,8 @@ set -o xtrace
 export PATH=${HOME}/Library/Python/2.7/bin:${PATH}
 
 # Install pip
-python ci/bamboo/get-pip.py --user --ignore-installed
+curl --silent --show-error --retry 5 -O http://releases.numenta.org/pip/1ebd3cb7a5a3073058d0c9552ab074bd/get-pip.py
+python get-pip.py --user --ignore-installed
 
 # Install python dependencies w/ pip
 pip install \

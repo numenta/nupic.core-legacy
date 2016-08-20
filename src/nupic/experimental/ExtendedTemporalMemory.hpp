@@ -21,11 +21,11 @@
  */
 
 /** @file
- * Definitions for the Temporal Memory in C++
+ * Definitions for the Extended Temporal Memory in C++
  */
 
-#ifndef NTA_TEMPORAL_MEMORY_HPP
-#define NTA_TEMPORAL_MEMORY_HPP
+#ifndef NTA_EXTENDED_TEMPORAL_MEMORY_HPP
+#define NTA_EXTENDED_TEMPORAL_MEMORY_HPP
 
 #include <vector>
 #include <nupic/types/Serializable.hpp>
@@ -33,41 +33,24 @@
 #include <nupic/utils/Random.hpp>
 #include <nupic/algorithms/Connections.hpp>
 
-#include <nupic/proto/TemporalMemoryProto.capnp.h>
-
 using namespace std;
 using namespace nupic;
 using namespace nupic::algorithms::connections;
 
+#include <nupic/proto/ExtendedTemporalMemoryProto.capnp.h>
+
 namespace nupic {
-  namespace algorithms {
-    namespace temporal_memory {
+  namespace experimental {
+    namespace extended_temporal_memory {
 
       /**
-       * CLA temporal memory implementation in C++.
-       *
-       * The primary public interfaces to this function are the "initialize"
-       * and "compute" methods.
-       *
-       * Example usage:
-       *
-       *     SpatialPooler sp;
-       *     sp.initialize(inputDimensions, columnDimensions, <parameters>);
-       *
-       *     TemporalMemory tm;
-       *     tm.initialize(columnDimensions, <parameters>);
-       *
-       *     while (true) {
-       *        <get input vector, streaming spatiotemporal information>
-       *        sp.compute(inputVector, learn, activeColumns)
-       *        tm.compute(number of activeColumns, activeColumns, learn)
-       *        <do something with output, e.g. classify it>
-       *     }
+       * Extended Temporal Memory implementation in C++.
        *
        */
-      class TemporalMemory : public Serializable<TemporalMemoryProto> {
+      class ExtendedTemporalMemory :
+        public Serializable<ExtendedTemporalMemoryProto> {
       public:
-        TemporalMemory();
+        ExtendedTemporalMemory();
 
         /**
          * Initialize the temporal memory (TM) using the given parameters.
@@ -125,7 +108,7 @@ namespace nupic {
          * sparsity is 2% and permanenceIncrement is 0.01, this parameter should be
          * something like 4% * 0.01 = 0.0004).
          */
-        TemporalMemory(
+        ExtendedTemporalMemory(
           vector<UInt> columnDimensions,
           UInt cellsPerColumn = 32,
           UInt activationThreshold = 13,
@@ -136,6 +119,8 @@ namespace nupic {
           Permanence permanenceIncrement = 0.10,
           Permanence permanenceDecrement = 0.10,
           Permanence predictedSegmentDecrement = 0.0,
+          bool formInternalBasalConnections = true,
+          bool learnOnOneCell = false,
           Int seed = 42,
           UInt maxSegmentsPerCell=255,
           UInt maxSynapsesPerSegment=255);
@@ -151,11 +136,13 @@ namespace nupic {
           Permanence permanenceIncrement = 0.10,
           Permanence permanenceDecrement = 0.10,
           Permanence predictedSegmentDecrement = 0.0,
+          bool formInternalBasalConnections = true,
+          bool learnOnOneCell = false,
           Int seed = 42,
           UInt maxSegmentsPerCell=255,
           UInt maxSynapsesPerSegment=255);
 
-        virtual ~TemporalMemory();
+        virtual ~ExtendedTemporalMemory();
 
         //----------------------------------------------------------------------
         //  Main functions
@@ -182,21 +169,107 @@ namespace nupic {
         virtual void reset();
 
         /**
+         * Calculate the active cells, using the current active columns and
+         * dendrite segments. Grow and reinforce synapses.
+         *
+         * @param activeColumns
+         * A sorted list of active column indices.
+         *
+         * @param prevActiveExternalCells
+         * The external cells that were used to calculate the current segment
+         * excitation. This class doesn't save a copy of these cells because the
+         * caller is more flexible to find ways of keeping this list available
+         * without extra copying.
+         *
+         * @param learn
+         * If true, reinforce / punish / grow synapses.
+         */
+        void activateCells(
+          const vector<UInt>& activeColumns,
+          const vector<CellIdx>& prevActiveExternalCellsBasal,
+          const vector<CellIdx>& prevActiveExternalCellsApical,
+          bool learn);
+
+        /**
+         * Calculate basal dendrite segment activity, using the current active
+         * cells.
+         *
+         * @param activeExternalCells
+         * Active external cells that should be used for activating dendrites in
+         * this timestep.
+         *
+         * @param learn
+         * If true, segment activations will be recorded. This information is
+         * used during segment cleanup.
+         */
+        void activateBasalDendrites(
+          const vector<CellIdx>& activeExternalCells,
+          bool learn = true);
+
+        /**
+         * Calculate apical dendrite segment activity, using the current active
+         * cells.
+         *
+         * @param activeExternalCells
+         * Active external cells that should be used for activating dendrites in
+         * this timestep.
+         *
+         * @param learn
+         * If true, segment activations will be recorded. This information is
+         * used during segment cleanup.
+         */
+        void activateApicalDendrites(
+          const vector<CellIdx>& activeExternalCells,
+          bool learn = true);
+
+        /**
+         * For backward-compatibility with TemporalMemory unit tests.
+         *
          * Feeds input record through TM, performing inference and learning.
          *
          * @param activeColumnsSize Number of active columns
          * @param activeColumns     Indices of active columns
          * @param learn             Whether or not learning is enabled
-         *
-         * Updates member variables:
-         * - `activeCells`
-         * - `winnerCells`
-         * - `activeSegments`
-         * - `matchingSegments`
          */
         virtual void compute(
           UInt activeColumnsSize, const UInt activeColumns[], bool learn = true);
 
+        /**
+         * Feeds input record through TM, performing inference and learning.
+         *
+         * @param activeColumnsUnsorted
+         * A list of active column indices.
+         *
+         * @param prevActiveExternalCellsBasal
+         * The external cells that were used to calculate the current basal
+         * segment excitation. This class doesn't save a copy of these cells
+         * because the caller is more flexible to find ways of keeping this list
+         * available without extra copying.
+         *
+         * @param activeExternalCellsBasal
+         * Active external cells that should be used for activating basal
+         * dendrites in this timestep.
+         *
+         * @param prevActiveExternalCellsApical
+         * The external cells that were used to calculate the current apical
+         * segment excitation. This class doesn't save a copy of these cells
+         * because the caller is more flexible to find ways of keeping this list
+         * available without extra copying.
+         *
+         * @param activeExternalCellsApical
+         * Active external cells that should be used for activating apical
+         * dendrites in this timestep.
+         *
+         * @param learn
+         * Whether or not learning is enabled
+         */
+        virtual void compute(
+          const vector<UInt>& activeColumnsUnsorted,
+          const vector<CellIdx>& prevActiveExternalCellsBasal,
+          const vector<CellIdx>& activeExternalCellsBasal,
+          const vector<CellIdx>& prevActiveExternalCellsApical,
+          const vector<CellIdx>& activeExternalCellsApical,
+          bool learn = true);
 
         // ==============================
         //  Helper functions
@@ -239,15 +312,10 @@ namespace nupic {
         */
         vector<CellIdx> getWinnerCells() const;
 
-        /**
-        * Returns the indices of the matching cells.
-        *
-        * @returns (std::vector<CellIdx>) Vector of indices of matching cells.
-        */
-        vector<CellIdx> getMatchingCells() const;
-
-        vector<Segment> getActiveSegments() const;
-        vector<Segment> getMatchingSegments() const;
+        vector<Segment> getActiveBasalSegments() const;
+        vector<Segment> getMatchingBasalSegments() const;
+        vector<Segment> getActiveApicalSegments() const;
+        vector<Segment> getMatchingApicalSegments() const;
 
         /**
          * Returns the dimensions of the columns in the region.
@@ -311,6 +379,23 @@ namespace nupic {
         void setMaxNewSynapseCount(UInt);
 
         /**
+         * Returns whether to form internal connections between cells.
+         *
+         * @returns the formInternalBasalConnections parameter
+         */
+        bool getFormInternalBasalConnections() const;
+        void setFormInternalBasalConnections(bool formInternalBasalConnections);
+
+        /**
+         * Returns whether to always choose the same cell when bursting a column
+         * until the next reset occurs.
+         *
+         * @returns the learnOnOneCell parameter
+         */
+        bool getLearnOnOneCell() const;
+        void setLearnOnOneCell(bool learnOnOneCell);
+
+        /**
          * Returns the permanence increment.
          *
          * @returns Returns the Permanence increment
@@ -350,7 +435,8 @@ namespace nupic {
         virtual void save(ostream& outStream) const;
 
         using Serializable::write;
-        virtual void write(TemporalMemoryProto::Builder& proto) const override;
+        virtual void write(
+          ExtendedTemporalMemoryProto::Builder& proto) const override;
 
         /**
          * Load (deserialize) and initialize the spatial pooler from the
@@ -361,7 +447,7 @@ namespace nupic {
         virtual void load(istream& inStream);
 
         using Serializable::read;
-        virtual void read(TemporalMemoryProto::Reader& proto) override;
+        virtual void read(ExtendedTemporalMemoryProto::Reader& proto) override;
 
         /**
          * Returns the number of bytes that a save operation would result in.
@@ -407,6 +493,7 @@ namespace nupic {
         UInt activationThreshold_;
         UInt minThreshold_;
         UInt maxNewSynapseCount_;
+        bool formInternalBasalConnections_;
         Permanence initialPermanence_;
         Permanence connectedPermanence_;
         Permanence permanenceIncrement_;
@@ -415,17 +502,23 @@ namespace nupic {
 
         vector<CellIdx> activeCells_;
         vector<CellIdx> winnerCells_;
-        vector<SegmentOverlap> activeSegments_;
-        vector<SegmentOverlap> matchingSegments_;
+        vector<SegmentOverlap> activeBasalSegments_;
+        vector<SegmentOverlap> matchingBasalSegments_;
+        vector<SegmentOverlap> activeApicalSegments_;
+        vector<SegmentOverlap> matchingApicalSegments_;
+
+        bool learnOnOneCell_;
+        map<UInt, CellIdx> chosenCellForColumn_;
 
         Random rng_;
 
       public:
-        Connections connections;
+        Connections basalConnections;
+        Connections apicalConnections;
       };
 
-    } // end namespace temporal_memory
+    } // end namespace extended_temporal_memory
   } // end namespace algorithms
-} // end namespace nta
+} // end namespace nupic
 
-#endif // NTA_TEMPORAL_MEMORY_HPP
+#endif // NTA_EXTENDED_TEMPORAL_MEMORY_HPP
