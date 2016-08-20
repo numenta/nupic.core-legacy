@@ -23,6 +23,7 @@
 #include <vector>
 #include <numeric>
 #include <algorithm>
+#include <iterator>
 #include <set>
 
 #include "nupic/algorithms/Anomaly.hpp"
