@@ -1177,9 +1177,9 @@ void SpatialPooler::inhibitColumnsLocal_(vector<Real>& overlaps, Real density,
   Real arbitration = *max_element(overlaps.begin(), overlaps.end()) / 1000.0;
   vector<UInt> neighbors;
   for (UInt column = 0; column < numColumns_; column++) {
-    getNeighborsND_(column, columnDimensions_, inhibitionRadius_, false,
-                    neighbors);
     if (overlaps[column] > 0) {
+      getNeighborsND_(column, columnDimensions_, inhibitionRadius_, false,
+                      neighbors);
       UInt numActive = (UInt) (0.5 + (density * (neighbors.size() + 1)));
       UInt numBigger = 0;
       for (auto & neighbor : neighbors) {
