@@ -1179,19 +1179,20 @@ void SpatialPooler::inhibitColumnsLocal_(vector<Real>& overlaps, Real density,
   for (UInt column = 0; column < numColumns_; column++) {
     getNeighborsND_(column, columnDimensions_, inhibitionRadius_, false,
                     neighbors);
-    UInt numActive = (UInt) (0.5 + (density * (neighbors.size() + 1)));
-    UInt numBigger = 0;
-    for (auto & neighbor : neighbors) {
-      if (overlaps[neighbor] > overlaps[column]) {
-        numBigger++;
+    if (overlaps[column] > 0) {
+      UInt numActive = (UInt) (0.5 + (density * (neighbors.size() + 1)));
+      UInt numBigger = 0;
+      for (auto & neighbor : neighbors) {
+        if (overlaps[neighbor] > overlaps[column]) {
+          numBigger++;
+        }
+      }
+
+      if (numBigger < numActive) {
+        activeColumns.push_back(column);
+        overlaps[column] += arbitration;
       }
     }
-
-    if (overlaps[column] > 0 && numBigger < numActive) {
-      activeColumns.push_back(column);
-      overlaps[column] += arbitration;
-    }
-
   }
 }
 
