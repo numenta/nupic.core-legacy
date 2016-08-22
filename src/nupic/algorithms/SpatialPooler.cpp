@@ -1187,7 +1187,7 @@ void SpatialPooler::inhibitColumnsLocal_(vector<Real>& overlaps, Real density,
       }
     }
 
-    if (numBigger < numActive) {
+    if (overlaps[column] > 0 && numBigger < numActive) {
       activeColumns.push_back(column);
       overlaps[column] += arbitration;
     }
