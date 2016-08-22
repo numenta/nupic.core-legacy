@@ -1376,10 +1376,6 @@ namespace {
     sp.inhibitColumnsLocal_(overlapsReal, density, activeColumnsLocal);
 
     for (auto & activeColumn : activeColumnsLocal) {
-      cout << "\n================================================";
-      cout << "\n" + std::to_string(activeColumn);
-      cout << "\n" + std::to_string(overlaps[activeColumn]);
-      cout << "\n================================================";
       ASSERT_TRUE(overlapsArray2[activeColumn] > 0);
     }
 
