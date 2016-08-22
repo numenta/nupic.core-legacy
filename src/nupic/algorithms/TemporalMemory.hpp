@@ -303,7 +303,8 @@ namespace nupic {
         void setMinThreshold(UInt);
 
         /**
-         * Returns the maximum new synapse count.
+         * Returns the maximum number of synapses that can be added to a segment
+         * in a single time step.
          *
          * @returns Integer number of maximum new synapse count
          */

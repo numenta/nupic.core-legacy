@@ -278,7 +278,7 @@ static void growSynapses(
   // Pick nActual cells randomly.
   for (UInt32 c = 0; c < nActual; c++)
   {
-    size_t i = rng.getUInt32(std::distance(candidates.begin(), eligibleEnd));;
+    size_t i = rng.getUInt32(std::distance(candidates.begin(), eligibleEnd));
     connections.createSynapse(segment, candidates[i], initialPermanence);
     eligibleEnd--;
     std::swap(candidates[i], *eligibleEnd);
@@ -289,34 +289,67 @@ static void activatePredictedColumn(
   vector<CellIdx>& activeCells,
   vector<CellIdx>& winnerCells,
   Connections& connections,
+  Random& rng,
   vector<SegmentOverlap>::const_iterator columnActiveSegmentsBegin,
   vector<SegmentOverlap>::const_iterator columnActiveSegmentsEnd,
+  vector<SegmentOverlap>::const_iterator columnMatchingSegmentsBegin,
+  vector<SegmentOverlap>::const_iterator columnMatchingSegmentsEnd,
   const vector<CellIdx>& prevActiveCells,
+  const vector<CellIdx>& prevWinnerCells,
+  UInt maxNewSynapseCount,
+  Permanence initialPermanence,
   Permanence permanenceIncrement,
   Permanence permanenceDecrement,
   bool learn)
 {
-  auto active = columnActiveSegmentsBegin;
-  do
-  {
-    const CellIdx cell = active->segment.cell;
-    activeCells.push_back(cell);
-    winnerCells.push_back(cell);
+  CellIdx previousCell = -1;
 
-    // This cell might have multiple active segments.
-    do
+  auto bySegment = [](const SegmentOverlap& x) { return x.segment; };
+
+  for (auto segmentData : iterGroupBy(
+         columnActiveSegmentsBegin, columnActiveSegmentsEnd, bySegment,
+         columnMatchingSegmentsBegin, columnMatchingSegmentsEnd, bySegment))
+  {
+    Segment segment;
+    vector<SegmentOverlap>::const_iterator
+      activeOverlapsBegin, activeOverlapsEnd,
+      matchingOverlapsBegin, matchingOverlapsEnd;
+    tie(segment,
+        activeOverlapsBegin, activeOverlapsEnd,
+        matchingOverlapsBegin, matchingOverlapsEnd) = segmentData;
+
+    if (activeOverlapsBegin != activeOverlapsEnd)
     {
+      NTA_ASSERT(std::distance(activeOverlapsBegin, activeOverlapsEnd) == 1);
+      NTA_ASSERT(std::distance(matchingOverlapsBegin, matchingOverlapsEnd) == 1);
+
+      if (segment.cell != previousCell)
+      {
+        activeCells.push_back(segment.cell);
+        winnerCells.push_back(segment.cell);
+        previousCell = segment.cell;
+      }
+
       if (learn)
       {
         adaptSegment(connections,
-                     active->segment,
+                     segment,
                      prevActiveCells,
                      permanenceIncrement, permanenceDecrement);
+
+        const Int32 nActivePotentialSynapses = matchingOverlapsBegin->overlap;
+        const Int32 nGrowDesired = (maxNewSynapseCount -
+                                    nActivePotentialSynapses);
+        if (nGrowDesired > 0)
+        {
+          growSynapses(connections, rng,
+                       segment, nGrowDesired,
+                       prevWinnerCells,
+                       initialPermanence);
+        }
       }
-      active++;
-    } while (active != columnActiveSegmentsEnd &&
-             active->segment.cell == cell);
-  } while (active != columnActiveSegmentsEnd);
+    }
+  }
 }
 
 static void burstColumn(
@@ -330,8 +363,8 @@ static void burstColumn(
   const vector<CellIdx>& prevActiveCells,
   const vector<CellIdx>& prevWinnerCells,
   UInt cellsPerColumn,
-  Permanence initialPermanence,
   UInt maxNewSynapseCount,
+  Permanence initialPermanence,
   Permanence permanenceIncrement,
   Permanence permanenceDecrement,
   bool learn)
@@ -449,10 +482,12 @@ void TemporalMemory::compute(
       if (columnActiveSegmentsBegin != columnActiveSegmentsEnd)
       {
         activatePredictedColumn(
-          activeCells_, winnerCells_, connections,
+          activeCells_, winnerCells_, connections, rng_,
           columnActiveSegmentsBegin, columnActiveSegmentsEnd,
-          prevActiveCells,
-          permanenceIncrement_, permanenceDecrement_,
+          columnMatchingSegmentsBegin, columnMatchingSegmentsEnd,
+          prevActiveCells, prevWinnerCells,
+          maxNewSynapseCount_,
+          initialPermanence_, permanenceIncrement_, permanenceDecrement_,
           learn);
       }
       else
@@ -461,8 +496,8 @@ void TemporalMemory::compute(
           activeCells_, winnerCells_, connections, rng_,
           column, columnMatchingSegmentsBegin, columnMatchingSegmentsEnd,
           prevActiveCells, prevWinnerCells,
-          cellsPerColumn_, initialPermanence_, maxNewSynapseCount_,
-          permanenceIncrement_, permanenceDecrement_,
+          cellsPerColumn_, maxNewSynapseCount_,
+          initialPermanence_, permanenceIncrement_, permanenceDecrement_,
           learn);
       }
     }
