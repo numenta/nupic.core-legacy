@@ -1383,10 +1383,6 @@ namespace {
       ASSERT_TRUE(overlapsArray2[activeColumn] > 0);
     }
 
-
-    // ASSERT_TRUE(!check_vector_eq(activeColumns, activeColumnsGlobal));
-    // ASSERT_TRUE(check_vector_eq(activeColumns, activeColumnsLocal));
-
   }
 
   TEST(SpatialPoolerTest, testInhibitColumnsGlobal)
