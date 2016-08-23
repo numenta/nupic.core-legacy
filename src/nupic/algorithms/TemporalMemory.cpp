@@ -470,17 +470,14 @@ static void punishPredictedColumn(
   }
 }
 
-void TemporalMemory::compute(
-  UInt activeColumnsSize,
-  const UInt activeColumnsUnsorted[],
+void TemporalMemory::activateCells(
+  const vector<UInt>& activeColumns,
   bool learn)
 {
+  NTA_ASSERT(std::is_sorted(activeColumns.begin(), activeColumns.end()));
+
   const vector<CellIdx> prevActiveCells = std::move(activeCells_);
   const vector<CellIdx> prevWinnerCells = std::move(winnerCells_);
-
-  vector<UInt> activeColumns(activeColumnsUnsorted,
-                             activeColumnsUnsorted + activeColumnsSize);
-  std::sort(activeColumns.begin(), activeColumns.end());
 
   const auto columnForSegment =
     [&](const SegmentOverlap& s) { return s.segment.cell / cellsPerColumn_; };
@@ -537,7 +534,10 @@ void TemporalMemory::compute(
       }
     }
   }
+}
 
+void TemporalMemory::activateDendrites(bool learn)
+{
   activeSegments_.clear();
   matchingSegments_.clear();
   connections.computeActivity(activeCells_,
@@ -554,6 +554,20 @@ void TemporalMemory::compute(
 
     connections.startNewIteration();
   }
+}
+
+void TemporalMemory::compute(
+  UInt activeColumnsSize,
+  const UInt activeColumnsUnsorted[],
+  bool learn)
+{
+  vector<UInt> activeColumns(activeColumnsUnsorted,
+                             activeColumnsUnsorted + activeColumnsSize);
+  std::sort(activeColumns.begin(), activeColumns.end());
+
+  activateCells(activeColumns, learn);
+
+  activateDendrites(learn);
 }
 
 void TemporalMemory::reset(void)

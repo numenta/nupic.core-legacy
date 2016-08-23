@@ -182,6 +182,28 @@ namespace nupic {
         virtual void reset();
 
         /**
+         * Calculate the active cells, using the current active columns and
+         * dendrite segments. Grow and reinforce synapses.
+         *
+         * @param activeColumns
+         * A sorted list of active column indices.
+         *
+         * @param learn
+         * If true, reinforce / punish / grow synapses.
+         */
+        void activateCells(
+          const vector<UInt>& activeColumns, bool learn = true);
+
+        /**
+         * Calculate dendrite segment activity, using the current active cells.
+         *
+         * @param learn
+         * If true, segment activations will be recorded. This information is
+         * used during segment cleanup.
+         */
+        void activateDendrites(bool learn = true);
+
+        /**
          * Feeds input record through TM, performing inference and learning.
          *
          * @param activeColumnsSize Number of active columns
