@@ -320,6 +320,7 @@ static void activatePredictedColumn(
 
     if (activeOverlapsBegin != activeOverlapsEnd)
     {
+      // Active segments are a superset of matching segments.
       NTA_ASSERT(std::distance(activeOverlapsBegin, activeOverlapsEnd) == 1);
       NTA_ASSERT(std::distance(matchingOverlapsBegin, matchingOverlapsEnd) == 1);
 

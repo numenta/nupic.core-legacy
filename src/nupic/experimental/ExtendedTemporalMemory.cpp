@@ -343,7 +343,7 @@ static void growSynapses(
   // Pick nActual cells randomly.
   for (UInt32 c = 0; c < nActual; c++)
   {
-    size_t i = rng.getUInt32(std::distance(candidates.begin(), eligibleEnd));;
+    size_t i = rng.getUInt32(std::distance(candidates.begin(), eligibleEnd));
     connections.createSynapse(segment, candidates[i], initialPermanence);
     eligibleEnd--;
     std::swap(candidates[i], *eligibleEnd);
@@ -357,6 +357,8 @@ static void learnOnCell(
   const vector<CellIdx>& prevActiveCells,
   const vector<CellIdx>& internalCandidates,
   const vector<CellIdx>& externalCandidates,
+  vector<SegmentOverlap>::const_iterator columnActiveSegmentsBegin,
+  vector<SegmentOverlap>::const_iterator columnActiveSegmentsEnd,
   vector<SegmentOverlap>::const_iterator columnMatchingSegmentsBegin,
   vector<SegmentOverlap>::const_iterator columnMatchingSegmentsEnd,
   Permanence initialPermanence,
@@ -364,28 +366,69 @@ static void learnOnCell(
   Permanence permanenceIncrement,
   Permanence permanenceDecrement)
 {
-  // Find the matching segments that are on this cell.
-  const auto cellMatchingBegin = std::find_if(
-    columnMatchingSegmentsBegin,
-    columnMatchingSegmentsEnd,
-    [&](const SegmentOverlap& a)
-    {
-      return a.segment.cell == cell;
-    });
+  // Find the segments that are on this cell.
+  auto isBegin = [&](const SegmentOverlap& x)
+    { return x.segment.cell == cell; };
+  auto isEnd = [&](const SegmentOverlap& x)
+    { return x.segment.cell != cell; };
 
-  if (cellMatchingBegin != columnMatchingSegmentsEnd)
+  const auto cellActiveBegin = std::find_if(
+    columnActiveSegmentsBegin, columnActiveSegmentsEnd, isBegin);
+  const auto cellActiveEnd = std::find_if(
+    cellActiveBegin, columnActiveSegmentsEnd, isEnd);
+  const auto cellMatchingBegin = std::find_if(
+    columnMatchingSegmentsBegin, columnMatchingSegmentsEnd, isBegin);
+  const auto cellMatchingEnd = std::find_if(
+    cellMatchingBegin, columnMatchingSegmentsEnd, isEnd);
+
+  if (cellActiveBegin != cellActiveEnd)
   {
-    const auto cellMatchingEnd = std::find_if(
-      cellMatchingBegin,
-      columnMatchingSegmentsEnd,
-      [&](const SegmentOverlap& a)
+    // Learn on every active segment.
+
+    auto bySegment = [](const SegmentOverlap& x) { return x.segment; };
+    for (auto segmentData : iterGroupBy(
+           cellActiveBegin, cellActiveEnd, bySegment,
+           cellMatchingBegin, cellMatchingEnd, bySegment))
+    {
+      // Find the active segment's corresponding "matching" overlap.
+      Segment segment;
+      vector<SegmentOverlap>::const_iterator
+        activeOverlapsBegin, activeOverlapsEnd,
+        matchingOverlapsBegin, matchingOverlapsEnd;
+      tie(segment,
+          activeOverlapsBegin, activeOverlapsEnd,
+          matchingOverlapsBegin, matchingOverlapsEnd) = segmentData;
+      if (activeOverlapsBegin != activeOverlapsEnd)
       {
-        return a.segment.cell != cell;
-      });
+        // Active segments are a superset of matching segments.
+        NTA_ASSERT(std::distance(activeOverlapsBegin, activeOverlapsEnd) == 1);
+        NTA_ASSERT(std::distance(matchingOverlapsBegin, matchingOverlapsEnd) == 1);
+
+        adaptSegment(connections,
+                     segment,
+                     prevActiveCells, externalCandidates,
+                     permanenceIncrement, permanenceDecrement);
+
+        const Int32 nActivePotentialSynapses = matchingOverlapsBegin->overlap;
+        const Int32 nGrowDesired = (maxNewSynapseCount -
+                                    nActivePotentialSynapses);
+        if (nGrowDesired > 0)
+        {
+          growSynapses(connections, rng,
+                       segment, nGrowDesired,
+                       internalCandidates, externalCandidates,
+                       initialPermanence);
+        }
+      }
+    }
+  }
+  else if (cellMatchingBegin != cellMatchingEnd)
+  {
+    // No active segments.
+    // Learn on the best matching segment.
 
     const SegmentOverlap& bestMatching = *std::max_element(
-      cellMatchingBegin,
-      cellMatchingEnd,
+      cellMatchingBegin, cellMatchingEnd,
       [](const SegmentOverlap& a, const SegmentOverlap& b)
       {
         return a.overlap < b.overlap;
@@ -407,6 +450,9 @@ static void learnOnCell(
   }
   else
   {
+    // No matching segments.
+    // Grow a new segment and learn on it.
+
     // Don't grow a segment that will never match.
     const UInt32 nGrowExact = std::min(maxNewSynapseCount,
                                        (UInt)(internalCandidates.size() +
@@ -476,60 +522,23 @@ static void activatePredictedColumn(
 
       if (learn)
       {
-        // Naive learning:
-        //
-        // - If the cell has no active basal segment, grow basal synapses.
-        // - If the cell has no active apical segment, grow apical synapses.
-        // - Always reinforce active segments. (Assumed to be a subset of the
-        //   matching segments)
-        //
-        // One reason this is naive: if multiple cells in the column are active,
-        // i.e. when there is a union of contexts, they probably shouldn't grow
-        // apical synapses until the actual context is resolved.
+        learnOnCell(basalConnections, rng,
+                    cell, prevActiveCells,
+                    (formInternalBasalConnections
+                     ? prevWinnerCells : CELLS_NONE),
+                    prevActiveExternalCellsBasal,
+                    cellActiveBasalBegin, cellActiveBasalEnd,
+                    cellMatchingBasalBegin, cellMatchingBasalEnd,
+                    initialPermanence, maxNewSynapseCount,
+                    permanenceIncrement, permanenceDecrement);
 
-        if (cellActiveBasalBegin == cellActiveBasalEnd)
-        {
-          learnOnCell(basalConnections, rng,
-                      cell, prevActiveCells,
-                      (formInternalBasalConnections
-                       ? prevWinnerCells : CELLS_NONE),
-                      prevActiveExternalCellsBasal,
-                      cellMatchingBasalBegin, cellMatchingBasalEnd,
-                      initialPermanence, maxNewSynapseCount,
-                      permanenceIncrement, permanenceDecrement);
-        }
-        else
-        {
-          for (auto basal = cellActiveBasalBegin;
-               basal != cellActiveBasalEnd; basal++)
-          {
-            adaptSegment(basalConnections,
-                         basal->segment,
-                         prevActiveCells, prevActiveExternalCellsBasal,
-                         permanenceIncrement, permanenceDecrement);
-          }
-        }
-
-        if (cellActiveApicalBegin == cellActiveApicalEnd)
-        {
-          learnOnCell(apicalConnections, rng,
-                      cell, prevActiveCells,
-                      CELLS_NONE, prevActiveExternalCellsApical,
-                      cellMatchingApicalBegin, cellMatchingApicalEnd,
-                      initialPermanence, maxNewSynapseCount,
-                      permanenceIncrement, permanenceDecrement);
-        }
-        else
-        {
-          for (auto apical = cellActiveApicalBegin;
-               apical != cellActiveApicalEnd; apical++)
-          {
-            adaptSegment(apicalConnections,
-                         apical->segment,
-                         prevActiveCells, prevActiveExternalCellsApical,
-                         permanenceIncrement, permanenceDecrement);
-          }
-        }
+        learnOnCell(apicalConnections, rng,
+                    cell, prevActiveCells,
+                    CELLS_NONE, prevActiveExternalCellsApical,
+                    cellActiveApicalBegin, cellActiveApicalEnd,
+                    cellMatchingApicalBegin, cellMatchingApicalEnd,
+                    initialPermanence, maxNewSynapseCount,
+                    permanenceIncrement, permanenceDecrement);
       }
     }
   }
@@ -543,8 +552,12 @@ static void burstColumn(
   Random& rng,
   map<UInt, CellIdx>& chosenCellForColumn,
   UInt column,
+  vector<SegmentOverlap>::const_iterator columnActiveBasalBegin,
+  vector<SegmentOverlap>::const_iterator columnActiveBasalEnd,
   vector<SegmentOverlap>::const_iterator columnMatchingBasalBegin,
   vector<SegmentOverlap>::const_iterator columnMatchingBasalEnd,
+  vector<SegmentOverlap>::const_iterator columnActiveApicalBegin,
+  vector<SegmentOverlap>::const_iterator columnActiveApicalEnd,
   vector<SegmentOverlap>::const_iterator columnMatchingApicalBegin,
   vector<SegmentOverlap>::const_iterator columnMatchingApicalEnd,
   const vector<CellIdx>& prevActiveCells,
@@ -615,6 +628,7 @@ static void burstColumn(
                 (formInternalBasalConnections
                  ? prevWinnerCells : CELLS_NONE),
                 prevActiveExternalCellsBasal,
+                columnActiveBasalBegin, columnActiveBasalEnd,
                 basalCandidatesBegin, basalCandidatesEnd,
                 initialPermanence, maxNewSynapseCount,
                 permanenceIncrement, permanenceDecrement);
@@ -622,6 +636,7 @@ static void burstColumn(
     learnOnCell(apicalConnections, rng,
                 winnerCell, prevActiveCells,
                 CELLS_NONE, prevActiveExternalCellsApical,
+                columnActiveApicalBegin, columnActiveApicalEnd,
                 columnMatchingApicalBegin, columnMatchingApicalEnd,
                 initialPermanence, maxNewSynapseCount,
                 permanenceIncrement, permanenceDecrement);
@@ -733,7 +748,9 @@ void ExtendedTemporalMemory::activateCells(
           basalConnections, apicalConnections, rng_,
           chosenCellForColumn_,
           column,
+          columnActiveBasalBegin, columnActiveBasalEnd,
           columnMatchingBasalBegin, columnMatchingBasalEnd,
+          columnActiveApicalBegin, columnActiveApicalEnd,
           columnMatchingApicalBegin, columnMatchingApicalEnd,
           prevActiveCells, prevWinnerCells,
           prevActiveExternalCellsBasal, prevActiveExternalCellsApical,
