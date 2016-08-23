@@ -795,7 +795,7 @@ if (NUPIC_BUILD_PYEXT_MODULES)
     endif()
 
 
-    set(SWIG_MODULE_${MODULE_NAME}_EXTRA_DEPS ${extra_deps})
+    add_dependencies(${real_target} ${extra_deps})
     set_target_properties(${real_target} PROPERTIES
                           LINK_FLAGS "${link_flags}")
 
