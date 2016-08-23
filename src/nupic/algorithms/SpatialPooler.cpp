@@ -1178,8 +1178,6 @@ void SpatialPooler::inhibitColumnsLocal_(vector<Real>& overlaps, Real density,
     arbitration = 0.001;
   }
 
-  vector<Real> tieBrokenOverlaps(overlaps.begin(), overlaps.end());
-
   vector<UInt> neighbors;
   for (UInt column = 0; column < numColumns_; column++) {
     if (overlaps[column] >= stimulusThreshold_) {
@@ -1188,14 +1186,14 @@ void SpatialPooler::inhibitColumnsLocal_(vector<Real>& overlaps, Real density,
       UInt numActive = (UInt) (0.5 + (density * (neighbors.size() + 1)));
       UInt numBigger = 0;
       for (auto & neighbor : neighbors) {
-        if (tieBrokenOverlaps[neighbor] > overlaps[column]) {
+        if (overlaps[neighbor] > overlaps[column]) {
           numBigger++;
         }
       }
 
       if (numBigger < numActive) {
         activeColumns.push_back(column);
-        tieBrokenOverlaps[column] += arbitration;
+        overlaps[column] += arbitration;
       }
     }
   }
