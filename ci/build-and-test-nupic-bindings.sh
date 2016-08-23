@@ -53,9 +53,8 @@ OUTPUTS:
                 test_results of the source tree's root directory with the
                 the following content:
 
-                cplusplus-test-results.txt
                 junit-test-results.xml
-                htmlcov-report/
+                htmlcov/
 
 "
 
@@ -101,11 +100,10 @@ pip install -r ${NUPIC_CORE_ROOT}/bindings/py/requirements.txt
 # Build nupic.bindings
 #
 
-# ZZZ debug statement to see if build/scripts was inherited from another job
-ls ${NUPIC_CORE_ROOT}/build/scripts || true
-# ZZZ end debug
+# NOTE without -p to force build failure upon pre-existing build side-effects
+mkdir ${NUPIC_CORE_ROOT}/build
+mkdir ${NUPIC_CORE_ROOT}/build/scripts
 
-mkdir -p ${NUPIC_CORE_ROOT}/build/scripts
 cd ${NUPIC_CORE_ROOT}/build/scripts
 
 # Configure nupic.core build
@@ -135,37 +133,24 @@ python setup.py bdist_wheel --dist-dir ${DEST_WHEELHOUSE} ${EXTRA_WHEEL_OPTIONS}
 # Test
 #
 
-# ZZZ debug statement to see if test_results was inherited from another job
-ls -R ${TEST_RESULTS_DIR} || true
-# ZZZ end debug
+# Run the nupic.core c++ tests
+cd ${NUPIC_CORE_ROOT}/build/release/bin
+./connections_performance_test
+./cpp_region_test
+./helloregion
+./hello_sp_tp
+./prototest
+./py_region_test
+./unit_tests
+
+
+# Run nupic.bindings python tests
+
+pip install --ignore-installed ${DEST_WHEELHOUSE}/nupic.bindings-*.whl
 
 mkdir ${TEST_RESULTS_DIR}
 
-# Install the wheel that we just built
-pip install --ignore-installed ${DEST_WHEELHOUSE}/nupic.bindings-*.whl
+cd ${TEST_RESULTS_DIR}    # so that py.test will deposit its artifacts here
 
-# Run the nupic.core C++ tests
-cd ${NUPIC_CORE_ROOT}/build/release/bin
-(
-  ./connections_performance_test
-  ./cpp_region_test
-  ./helloregion
-  ./hello_sp_tp
-  ./prototest
-  ./py_region_test
-  ./unit_tests
-) 2>&1 | tee "${TEST_RESULTS_DIR}/cplusplus-test-results.txt"
-
-
-py.test --verbose \
-  --junitxml \
-    "${TEST_RESULTS_DIR}/junit-test-results.xml" \
-  --cov nupic.bindings \
-  --cov-report html \
-  ${NUPIC_CORE_ROOT}/bindings/py/tests
-
-mv ./htmlcov ${TEST_RESULTS_DIR}/htmlcov-report
-
-# ZZZ Debug statement to see the final contents of test_results
-ls -R ${TEST_RESULTS_DIR}
-# ZZZ End debug
+# Run tests with pytest options per nupic.core/setup.cfg
+py.test ${NUPIC_CORE_ROOT}/bindings/py/tests
