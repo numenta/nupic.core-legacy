@@ -101,6 +101,10 @@ pip install -r ${NUPIC_CORE_ROOT}/bindings/py/requirements.txt
 # Build nupic.bindings
 #
 
+# ZZZ debug statement to see if build/scripts was inherited from another job
+ls ${NUPIC_CORE_ROOT}/build/scripts || true
+# ZZZ end debug
+
 mkdir -p ${NUPIC_CORE_ROOT}/build/scripts
 cd ${NUPIC_CORE_ROOT}/build/scripts
 
@@ -131,6 +135,10 @@ python setup.py bdist_wheel --dist-dir ${DEST_WHEELHOUSE} ${EXTRA_WHEEL_OPTIONS}
 # Test
 #
 
+# ZZZ debug statement to see if test_results was inherited from another job
+ls -R ${TEST_RESULTS_DIR} || true
+# ZZZ end debug
+
 mkdir ${TEST_RESULTS_DIR}
 
 # Install the wheel that we just built
@@ -157,3 +165,7 @@ py.test --verbose \
   ${NUPIC_CORE_ROOT}/bindings/py/tests
 
 mv ./htmlcov ${TEST_RESULTS_DIR}/htmlcov-report
+
+# ZZZ Debug statement to see the final contents of test_results
+ls -R ${TEST_RESULTS_DIR}
+# ZZZ End debug
