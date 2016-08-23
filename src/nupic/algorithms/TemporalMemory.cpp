@@ -119,6 +119,7 @@ void TemporalMemory::initialize(
   NTA_CHECK(connectedPermanence >= 0.0 && connectedPermanence <= 1.0);
   NTA_CHECK(permanenceIncrement >= 0.0 && permanenceIncrement <= 1.0);
   NTA_CHECK(permanenceDecrement >= 0.0 && permanenceDecrement <= 1.0);
+  NTA_CHECK(minThreshold <= activationThreshold);
 
   // Save member variables
 
@@ -151,6 +152,11 @@ void TemporalMemory::initialize(
   winnerCells_.clear();
   activeSegments_.clear();
   matchingSegments_.clear();
+}
+
+static CellIdx cellForSegment(const SegmentOverlap& s)
+{
+  return s.segment.cell;
 }
 
 static CellIdx getLeastUsedCell(
@@ -302,51 +308,65 @@ static void activatePredictedColumn(
   Permanence permanenceDecrement,
   bool learn)
 {
-  CellIdx previousCell = -1;
-
-  auto bySegment = [](const SegmentOverlap& x) { return x.segment; };
-
-  for (auto segmentData : iterGroupBy(
-         columnActiveSegmentsBegin, columnActiveSegmentsEnd, bySegment,
-         columnMatchingSegmentsBegin, columnMatchingSegmentsEnd, bySegment))
+  for (auto& cellData : iterGroupBy(
+         columnActiveSegmentsBegin, columnActiveSegmentsEnd, cellForSegment,
+         columnMatchingSegmentsBegin, columnMatchingSegmentsEnd, cellForSegment))
   {
-    Segment segment;
+    CellIdx cell;
     vector<SegmentOverlap>::const_iterator
-      activeOverlapsBegin, activeOverlapsEnd,
-      matchingOverlapsBegin, matchingOverlapsEnd;
-    tie(segment,
-        activeOverlapsBegin, activeOverlapsEnd,
-        matchingOverlapsBegin, matchingOverlapsEnd) = segmentData;
+      cellActiveSegmentsBegin, cellActiveSegmentsEnd,
+      cellMatchingSegmentsBegin, cellMatchingSegmentsEnd;
+    tie(cell,
+        cellActiveSegmentsBegin, cellActiveSegmentsEnd,
+        cellMatchingSegmentsBegin, cellMatchingSegmentsEnd) = cellData;
 
-    if (activeOverlapsBegin != activeOverlapsEnd)
+    if (cellActiveSegmentsBegin != cellActiveSegmentsEnd)
     {
-      // Active segments are a superset of matching segments.
-      NTA_ASSERT(std::distance(activeOverlapsBegin, activeOverlapsEnd) == 1);
-      NTA_ASSERT(std::distance(matchingOverlapsBegin, matchingOverlapsEnd) == 1);
-
-      if (segment.cell != previousCell)
-      {
-        activeCells.push_back(segment.cell);
-        winnerCells.push_back(segment.cell);
-        previousCell = segment.cell;
-      }
+      activeCells.push_back(cell);
+      winnerCells.push_back(cell);
 
       if (learn)
       {
-        adaptSegment(connections,
-                     segment,
-                     prevActiveCells,
-                     permanenceIncrement, permanenceDecrement);
+        // Learn on every active segment.
 
-        const Int32 nActivePotentialSynapses = matchingOverlapsBegin->overlap;
-        const Int32 nGrowDesired = (maxNewSynapseCount -
-                                    nActivePotentialSynapses);
-        if (nGrowDesired > 0)
+        auto bySegment = [](const SegmentOverlap& x) { return x.segment; };
+        for (auto segmentData : iterGroupBy(
+               cellActiveSegmentsBegin, cellActiveSegmentsEnd, bySegment,
+               cellMatchingSegmentsBegin, cellMatchingSegmentsEnd, bySegment))
         {
-          growSynapses(connections, rng,
-                       segment, nGrowDesired,
-                       prevWinnerCells,
-                       initialPermanence);
+          // Find the active segment's corresponding "matching" overlap.
+          Segment segment;
+          vector<SegmentOverlap>::const_iterator
+            activeOverlapsBegin, activeOverlapsEnd,
+            matchingOverlapsBegin, matchingOverlapsEnd;
+          tie(segment,
+              activeOverlapsBegin, activeOverlapsEnd,
+              matchingOverlapsBegin, matchingOverlapsEnd) = segmentData;
+          if (activeOverlapsBegin != activeOverlapsEnd)
+          {
+            // Active segments are a superset of matching segments.
+            NTA_ASSERT(std::distance(activeOverlapsBegin,
+                                     activeOverlapsEnd) == 1);
+            NTA_ASSERT(std::distance(matchingOverlapsBegin,
+                                     matchingOverlapsEnd) == 1);
+
+            adaptSegment(connections,
+                         segment,
+                         prevActiveCells,
+                         permanenceIncrement, permanenceDecrement);
+
+            const Int32 nActivePotentialSynapses =
+              matchingOverlapsBegin->overlap;
+            const Int32 nGrowDesired =
+              maxNewSynapseCount - nActivePotentialSynapses;
+            if (nGrowDesired > 0)
+            {
+              growSynapses(connections, rng,
+                           segment, nGrowDesired,
+                           prevWinnerCells,
+                           initialPermanence);
+            }
+          }
         }
       }
     }
@@ -370,6 +390,7 @@ static void burstColumn(
   Permanence permanenceDecrement,
   bool learn)
 {
+  // Calculate the active cells.
   const CellIdx start = column * cellsPerColumn;
   const CellIdx end = start + cellsPerColumn;
   for (CellIdx cell = start; cell < end; cell++)
@@ -377,42 +398,44 @@ static void burstColumn(
     activeCells.push_back(cell);
   }
 
-  if (columnMatchingSegmentsBegin != columnMatchingSegmentsEnd)
-  {
-    auto bestMatch = std::max_element(
-      columnMatchingSegmentsBegin, columnMatchingSegmentsEnd,
-      [](const SegmentOverlap& a, const SegmentOverlap& b)
-      {
-        return a.overlap < b.overlap;
-      });
-
-    winnerCells.push_back(bestMatch->segment.cell);
-
-    if (learn)
+  const auto bestMatching = std::max_element(
+    columnMatchingSegmentsBegin, columnMatchingSegmentsEnd,
+    [](const SegmentOverlap& a, const SegmentOverlap& b)
     {
+      return a.overlap < b.overlap;
+    });
+
+  const CellIdx winnerCell = (bestMatching != columnMatchingSegmentsEnd)
+    ? bestMatching->segment.cell
+    : getLeastUsedCell(connections, rng, column, cellsPerColumn);
+
+  winnerCells.push_back(winnerCell);
+
+  // Learn.
+  if (learn)
+  {
+    if (bestMatching != columnMatchingSegmentsEnd)
+    {
+      // Learn on the best matching segment.
       adaptSegment(connections,
-                   bestMatch->segment,
+                   bestMatching->segment,
                    prevActiveCells,
                    permanenceIncrement, permanenceDecrement);
 
-      const Int32 nGrowDesired = maxNewSynapseCount - bestMatch->overlap;
+      const Int32 nGrowDesired = maxNewSynapseCount - bestMatching->overlap;
       if (nGrowDesired > 0)
       {
         growSynapses(connections, rng,
-                     bestMatch->segment, nGrowDesired,
+                     bestMatching->segment, nGrowDesired,
                      prevWinnerCells,
                      initialPermanence);
       }
     }
-  }
-  else
-  {
-    const CellIdx winnerCell = getLeastUsedCell(connections, rng, column,
-                                                cellsPerColumn);
-    winnerCells.push_back(winnerCell);
-
-    if (learn)
+    else
     {
+      // No matching segments.
+      // Grow a new segment and learn on it.
+
       // Don't grow a segment that will never match.
       const UInt32 nGrowExact = std::min(maxNewSynapseCount,
                                          (UInt32)prevWinnerCells.size());
