@@ -28,6 +28,8 @@
 # ASUMPTIONS: Expects a pristine nupic.core source tree without any remnant
 #             build artifacts from prior build attempts. Otherwise, behavior is
 #             undefined.
+#
+# OUTPUTS: see nupic.core/ci/build-and-test-nupic-bindings.sh
 
 
 set -o errexit
@@ -38,7 +40,7 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 # Configure environment for manylinux build
 source ${DIR}/manylinux-build-env.rc
 
-# Build the manylinux wheel; see build-and-test-nupic-bindings.sh for
+# Build and test the manylinux wheel; see build-and-test-nupic-bindings.sh for
 # destination wheelhouse
 BUILD_TYPE="Release" \
 WHEEL_PLAT="manylinux1_x86_64" \

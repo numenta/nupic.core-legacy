@@ -133,6 +133,9 @@ python setup.py bdist_wheel --dist-dir ${DEST_WHEELHOUSE} ${EXTRA_WHEEL_OPTIONS}
 # Test
 #
 
+# Install nupic.bindings before running c++ tests; py_region_test depends on it
+pip install --ignore-installed ${DEST_WHEELHOUSE}/nupic.bindings-*.whl
+
 # Run the nupic.core c++ tests
 cd ${NUPIC_CORE_ROOT}/build/release/bin
 ./connections_performance_test
@@ -145,8 +148,6 @@ cd ${NUPIC_CORE_ROOT}/build/release/bin
 
 
 # Run nupic.bindings python tests
-
-pip install --ignore-installed ${DEST_WHEELHOUSE}/nupic.bindings-*.whl
 
 mkdir ${TEST_RESULTS_DIR}
 
