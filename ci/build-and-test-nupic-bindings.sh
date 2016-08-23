@@ -44,8 +44,19 @@ INPUT ENVIRONMENT VARIABLES:
   WHEEL_PLAT : Wheel platform name; pass manylinux1_x86_64 for manylinux build;
                leave undefined for all other builds.
 
-OUTPUT: On success, the resulting wheel will be located in the subdirectory
-        nupic_bindings_wheelhouse of the source tree's root directory.
+OUTPUTS:
+  nupic.bindings wheel: On success, the resulting wheel will be located in the
+                        subdirectory nupic_bindings_wheelhouse of the source
+                        tree's root directory.
+
+  test results: nupic.bindings test results will be located in the subdirectory
+                test_results of the source tree's root directory with the
+                the following content:
+
+                cplusplus-test-results.txt
+                junit-test-results.xml
+                htmlcov-report/
+
 "
 
 if [[ $1 == --help ]]; then
@@ -70,6 +81,8 @@ BUILD_TYPE=${BUILD_TYPE-"Release"}
 NUPIC_CORE_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 
 DEST_WHEELHOUSE="${NUPIC_CORE_ROOT}/nupic_bindings_wheelhouse"
+
+TEST_RESULTS_DIR="${NUPIC_CORE_ROOT}/test_results"
 
 echo "RUNNING NUPIC BINDINGS BUILD: BUILD_TYPE=${BUILD_TYPE}, " \
      "RESULT_KEY=${RESULT_KEY}, DEST_WHEELHOUSE=${DEST_WHEELHOUSE}" >&2
@@ -118,26 +131,29 @@ python setup.py bdist_wheel --dist-dir ${DEST_WHEELHOUSE} ${EXTRA_WHEEL_OPTIONS}
 # Test
 #
 
+mkdir ${TEST_RESULTS_DIR}
+
 # Install the wheel that we just built
 pip install --ignore-installed ${DEST_WHEELHOUSE}/nupic.bindings-*.whl
 
 # Run the nupic.core C++ tests
 cd ${NUPIC_CORE_ROOT}/build/release/bin
-./connections_performance_test
-./cpp_region_test
-./helloregion
-./hello_sp_tp
-./prototest
-./py_region_test
-./unit_tests
+(
+  ./connections_performance_test
+  ./cpp_region_test
+  ./helloregion
+  ./hello_sp_tp
+  ./prototest
+  ./py_region_test
+  ./unit_tests
+) 2>&1 | tee "${TEST_RESULTS_DIR}/cplusplus-test-results.txt"
 
-# Run the nupic.core python tests
-if [[ $RESULT_KEY ]]; then
-  SUFFIX="-${RESULT_KEY}"
-fi
 
 py.test --verbose \
   --junitxml \
-    "${NUPIC_CORE_ROOT}/bindings/py/$(uname)-${BUILD_TYPE}-results${SUFFIX}.xml" \
+    "${TEST_RESULTS_DIR}/junit-test-results.xml" \
   --cov nupic.bindings \
+  --cov-report html \
   ${NUPIC_CORE_ROOT}/bindings/py/tests
+
+mv ./htmlcov ${TEST_RESULTS_DIR}/htmlcov-report
