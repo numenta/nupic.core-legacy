@@ -67,6 +67,7 @@ namespace nupic
         CellIdx cell;
 
         Segment(SegmentIdx idx, CellIdx cell) : idx(idx), cell(cell) {}
+        Segment(const Segment& s) : idx(s.idx), cell(s.cell) {}
         Segment() {}
 
         bool operator==(const Segment &other) const;
