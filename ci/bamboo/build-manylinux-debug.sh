@@ -20,17 +20,32 @@
 # http://numenta.org/licenses/
 # ----------------------------------------------------------------------
 
-# Build nupic.bindings python extension using manylinux docker image.
+# This script runs inside numenta's custom manylinux docker image
+# quay.io/numenta/manylinux1_x86_64_centos6 and builds the debug manylinux
+# x86_64 wide-unicode nupic.bindings wheel per PEP-513. See
+# https://github.com/numenta/manylinux.
+#
+# ASUMPTIONS: Expects a pristine nupic.core source tree without any remnant
+#             build artifacts from prior build attempts. Otherwise, behavior is
+#             undefined.
+#
+# OUTPUTS: see nupic.core/ci/build-and-test-nupic-bindings.sh
+
 
 set -o errexit
 set -o xtrace
 
-NUPIC_CORE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/../.." && pwd )"
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-#echo "NUPIC_CORE_DIR=${NUPIC_CORE_DIR}"
+# Configure environment for manylinux build
+source ${DIR}/manylinux-build-env.rc
 
-DOCKER_IMAGE="quay.io/numenta/manylinux1_x86_64_centos6"
+# Install the Include What You Use tool used by debug build
+yum install -y iwyu
 
-docker run -ti --rm -v ${NUPIC_CORE_DIR}:/nupic.core ${DOCKER_IMAGE} \
-  /nupic.core/ci/bamboo/build-manylinux-prototype.sh
-
+# Build and test the manylinux wheel; see build-and-test-nupic-bindings.sh for
+# destination wheelhouse
+BUILD_TYPE="Debug" \
+WHEEL_PLAT="manylinux1_x86_64" \
+RESULT_KEY="${bamboo_buildResultKey}" \
+  ${DIR}/../build-and-test-nupic-bindings.sh "$@"

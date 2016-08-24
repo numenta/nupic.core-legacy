@@ -20,22 +20,23 @@
 # http://numenta.org/licenses/
 # ----------------------------------------------------------------------
 
-# ASUMPTIONS: Expects a pristine nupic.core source tree without any remnant
-#             build artifacts from prior build attempts. Otherwise, behavior is
-#             undefined.
-#
-# OUTPUTS: see nupic.core/ci/build-and-test-nupic-bindings.sh
-
+# This script sets up the common environment for bulding a manylinux x86_64
+# wide-unicode nupic.bindings wheel. It's intended to be sourced by the
+# build-type-specific manylinux build scripts.
 
 set -o errexit
 set -o xtrace
 
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+# Python prefix for this manylinux build (the common wide-unicode version)
+_PYTHON_PREFIX="/opt/python/cp27-cp27mu"
 
-# Run the common setup
-${DIR}/setup-dependencies-linux.sh
+# Add the python 2.7 binaries from manylinux image to PATH, overriding system
+# Python
+# NOTE unlike the community manylinux docker image that builds statically-linked
+# python, Numenta's custom manylinux image builds python with libpython.so
+# library, because some nupic.core C++ tests depend on having libpython.so.
+export PATH="${_PYTHON_PREFIX}/bin:${PATH}"
+export LD_LIBRARY_PATH="${_PYTHON_PREFIX}/lib:${LD_LIBRARY_PATH}"
 
-# Build and test
-BUILD_TYPE="Release" \
-RESULT_KEY="${bamboo_buildResultKey}" \
-  ${DIR}/../build-and-test-nupic-bindings.sh "$@"
+# Help cmake find the desired python, its libs, and headers
+export CMAKE_PREFIX_PATH=${_PYTHON_PREFIX}

@@ -20,6 +20,11 @@
 # http://numenta.org/licenses/
 # ----------------------------------------------------------------------
 
+# This script runs inside numenta's custom manylinux docker image
+# quay.io/numenta/manylinux1_x86_64_centos6 and builds the non-debug manylinux
+# x86_64 wide-unicode nupic.bindings wheel per PEP-513. See
+# https://github.com/numenta/manylinux.
+#
 # ASUMPTIONS: Expects a pristine nupic.core source tree without any remnant
 #             build artifacts from prior build attempts. Otherwise, behavior is
 #             undefined.
@@ -32,10 +37,12 @@ set -o xtrace
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-# Run the common setup
-${DIR}/setup-dependencies-linux.sh
+# Configure environment for manylinux build
+source ${DIR}/manylinux-build-env.rc
 
-# Build and test
+# Build and test the manylinux wheel; see build-and-test-nupic-bindings.sh for
+# destination wheelhouse
 BUILD_TYPE="Release" \
+WHEEL_PLAT="manylinux1_x86_64" \
 RESULT_KEY="${bamboo_buildResultKey}" \
   ${DIR}/../build-and-test-nupic-bindings.sh "$@"
