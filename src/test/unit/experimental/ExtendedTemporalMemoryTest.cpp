@@ -778,7 +778,7 @@ namespace {
    * The number of grown synapses is calculated from the "matching segment"
    * overlap, not the "active segment" overlap.
    */
-  TEST(TemporalMemoryTest, ActiveSegmentGrowSynapsesAccordingToPotentialOverlap)
+  TEST(ExtendedTemporalMemoryTest, ActiveSegmentGrowSynapsesAccordingToPotentialOverlap)
   {
     ExtendedTemporalMemory tm(
       /*columnDimensions*/ {32},
