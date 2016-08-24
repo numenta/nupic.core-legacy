@@ -320,7 +320,7 @@ namespace nupic
          *
          * @retval Segments on cell.
          */
-        std::vector<Segment> segmentsForCell(CellIdx cell) const;
+        std::vector<Segment> segmentsForCell(CellIdx cell);
 
         /**
          * Gets the synapses for a segment.
