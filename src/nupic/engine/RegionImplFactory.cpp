@@ -86,7 +86,7 @@ namespace nupic
   {
     if (cppRegions.find(name) != cppRegions.end())
     {
-      NTA_WARN << "A CPPRegion already exists with the name '" 
+      NTA_WARN << "A CPPRegion already exists with the name '"
                << name << "'. Overwriting it...";
     }
     cppRegions[name] = wrapper;
