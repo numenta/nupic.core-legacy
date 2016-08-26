@@ -742,6 +742,54 @@ namespace {
   }
 
   /**
+   * When a segment becomes active, grow synapses to previous winner cells.
+   *
+   * The number of grown synapses is calculated from the "matching segment"
+   * overlap, not the "active segment" overlap.
+   */
+  TEST(TemporalMemoryTest, ActiveSegmentGrowSynapsesAccordingToPotentialOverlap)
+  {
+    TemporalMemory tm(
+      /*columnDimensions*/ {32},
+      /*cellsPerColumn*/ 1,
+      /*activationThreshold*/ 2,
+      /*initialPermanence*/ 0.21,
+      /*connectedPermanence*/ 0.50,
+      /*minThreshold*/ 1,
+      /*maxNewSynapseCount*/ 4,
+      /*permanenceIncrement*/ 0.10,
+      /*permanenceDecrement*/ 0.10,
+      /*predictedSegmentDecrement*/ 0.0,
+      /*seed*/ 42
+      );
+
+    // Use 1 cell per column so that we have easy control over the winner cells.
+    const UInt previousActiveColumns[5] = {0, 1, 2, 3, 4};
+    const vector<CellIdx> prevWinnerCells = {0, 1, 2, 3, 4};
+    const UInt activeColumns[1] = {5};
+
+    Segment activeSegment = tm.connections.createSegment(5);
+    tm.connections.createSynapse(activeSegment, 0, 0.5);
+    tm.connections.createSynapse(activeSegment, 1, 0.5);
+    tm.connections.createSynapse(activeSegment, 2, 0.2);
+
+    tm.compute(5, previousActiveColumns);
+
+    ASSERT_EQ(prevWinnerCells, tm.getWinnerCells());
+
+    tm.compute(1, activeColumns);
+
+    vector<Synapse> synapses = tm.connections.synapsesForSegment(activeSegment);
+
+    ASSERT_EQ(4, synapses.size());
+
+    SynapseData synapseData = tm.connections.dataForSynapse(synapses[3]);
+    EXPECT_NEAR(0.21, synapseData.permanence, EPSILON);
+    EXPECT_TRUE(synapseData.presynapticCell == prevWinnerCells[3] ||
+                synapseData.presynapticCell == prevWinnerCells[4]);
+  }
+
+  /**
    * When a synapse is punished for contributing to a wrong prediction, if its
    * permanence falls to 0 it should be destroyed.
    */

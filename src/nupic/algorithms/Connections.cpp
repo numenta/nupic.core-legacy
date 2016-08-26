@@ -729,6 +729,7 @@ SegmentExcitationTally::SegmentExcitationTally(
    numActiveSynapsesForSegment_(connections.nextFlatIdx_, 0),
    numMatchingSynapsesForSegment_(connections.nextFlatIdx_, 0)
 {
+  NTA_ASSERT(matchingPermanenceThreshold <= activePermanenceThreshold);
 }
 
 void SegmentExcitationTally::addActivePresynapticCell(CellIdx cell)

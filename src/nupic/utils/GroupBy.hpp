@@ -71,9 +71,10 @@ namespace nupic
 
   template<typename Iterator0, typename KeyFn0,
            typename Element0 = decltype(*std::declval<Iterator0>()),
-           typename KeyType = typename std::result_of<
-             KeyFn0(decltype(*std::declval<Iterator0>()))
-               >::type>
+           typename KeyType = typename std::remove_const<
+             typename std::result_of<
+               KeyFn0(decltype(*std::declval<Iterator0>()))
+                 >::type >::type>
   class GroupBy1
   {
   public:
@@ -189,9 +190,10 @@ namespace nupic
   // ==========================================================================
 
   template<typename Iterator0, typename KeyFn0,
-           typename KeyType = typename std::result_of<
-             KeyFn0(decltype(*std::declval<Iterator0>()))
-               >::type>
+           typename KeyType = typename std::remove_const<
+             typename std::result_of<
+               KeyFn0(decltype(*std::declval<Iterator0>()))
+                 >::type >::type>
   static KeyType minFrontKey(KeyType frontrunner,
                              Iterator0 begin0, Iterator0 end0, KeyFn0 keyFn0)
   {
@@ -209,9 +211,10 @@ namespace nupic
            typename Iterator1, typename KeyFn1,
            typename Element0 = decltype(*std::declval<Iterator0>()),
            typename Element1 = decltype(*std::declval<Iterator1>()),
-           typename KeyType = typename std::result_of<
-             KeyFn0(decltype(*std::declval<Iterator0>()))
-               >::type>
+           typename KeyType = typename std::remove_const<
+             typename std::result_of<
+               KeyFn0(decltype(*std::declval<Iterator0>()))
+                 >::type >::type>
   class GroupBy2
   {
   public:
@@ -376,9 +379,10 @@ namespace nupic
 
   template<typename Iterator0, typename KeyFn0,
            typename Iterator1, typename KeyFn1,
-           typename KeyType = typename std::result_of<
-             KeyFn0(decltype(*std::declval<Iterator0>()))
-               >::type>
+           typename KeyType = typename std::remove_const<
+             typename std::result_of<
+               KeyFn0(decltype(*std::declval<Iterator0>()))
+                 >::type >::type>
   static KeyType minFrontKey(KeyType frontrunner,
                              Iterator0 begin0, Iterator0 end0, KeyFn0 keyFn0,
                              Iterator1 begin1, Iterator1 end1, KeyFn1 keyFn1)
@@ -404,9 +408,10 @@ namespace nupic
            typename Element0 = decltype(*std::declval<Iterator0>()),
            typename Element1 = decltype(*std::declval<Iterator1>()),
            typename Element2 = decltype(*std::declval<Iterator2>()),
-           typename KeyType = typename std::result_of<
-             KeyFn0(decltype(*std::declval<Iterator0>()))
-               >::type>
+           typename KeyType = typename std::remove_const<
+             typename std::result_of<
+               KeyFn0(decltype(*std::declval<Iterator0>()))
+                 >::type >::type>
   class GroupBy3
   {
   public:
@@ -617,9 +622,10 @@ namespace nupic
   template<typename Iterator0, typename KeyFn0,
            typename Iterator1, typename KeyFn1,
            typename Iterator2, typename KeyFn2,
-           typename KeyType = typename std::result_of<
-             KeyFn0(decltype(*std::declval<Iterator0>()))
-               >::type>
+           typename KeyType = typename std::remove_const<
+             typename std::result_of<
+               KeyFn0(decltype(*std::declval<Iterator0>()))
+                 >::type >::type>
   static KeyType minFrontKey(KeyType frontrunner,
                              Iterator0 begin0, Iterator0 end0, KeyFn0 keyFn0,
                              Iterator1 begin1, Iterator1 end1, KeyFn1 keyFn1,
@@ -653,9 +659,10 @@ namespace nupic
            typename Element1 = decltype(*std::declval<Iterator1>()),
            typename Element2 = decltype(*std::declval<Iterator2>()),
            typename Element3 = decltype(*std::declval<Iterator3>()),
-           typename KeyType = typename std::result_of<
-             KeyFn0(decltype(*std::declval<Iterator0>()))
-               >::type>
+           typename KeyType = typename std::remove_const<
+             typename std::result_of<
+               KeyFn0(decltype(*std::declval<Iterator0>()))
+                 >::type >::type>
   class GroupBy4
   {
   public:
@@ -912,9 +919,10 @@ namespace nupic
            typename Iterator1, typename KeyFn1,
            typename Iterator2, typename KeyFn2,
            typename Iterator3, typename KeyFn3,
-           typename KeyType = typename std::result_of<
-             KeyFn0(decltype(*std::declval<Iterator0>()))
-               >::type>
+           typename KeyType = typename std::remove_const<
+             typename std::result_of<
+               KeyFn0(decltype(*std::declval<Iterator0>()))
+                 >::type >::type>
   static KeyType minFrontKey(KeyType frontrunner,
                              Iterator0 begin0, Iterator0 end0, KeyFn0 keyFn0,
                              Iterator1 begin1, Iterator1 end1, KeyFn1 keyFn1,
@@ -956,9 +964,10 @@ namespace nupic
            typename Element2 = decltype(*std::declval<Iterator2>()),
            typename Element3 = decltype(*std::declval<Iterator3>()),
            typename Element4 = decltype(*std::declval<Iterator4>()),
-           typename KeyType = typename std::result_of<
-             KeyFn0(decltype(*std::declval<Iterator0>()))
-               >::type>
+           typename KeyType = typename std::remove_const<
+             typename std::result_of<
+               KeyFn0(decltype(*std::declval<Iterator0>()))
+                 >::type >::type>
   class GroupBy5
   {
   public:
