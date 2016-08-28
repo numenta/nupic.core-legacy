@@ -223,6 +223,26 @@ namespace nupic {
           bool learn = true);
 
         /**
+         * Calculate dendrite segment activity, using the current active cells.
+         *
+         * @param activeExternalCellsBasal
+         * Active external cells that should be used for activating basal
+         * dendrites in this timestep.
+         *
+         * @param activeExternalCellsApical
+         * Active external cells that should be used for activating apical
+         * dendrites in this timestep.
+         *
+         * @param learn
+         * If true, segment activations will be recorded. This information is
+         * used during segment cleanup.
+         */
+        void activateDendrites(
+          const vector<CellIdx>& activeExternalCellsBasal,
+          const vector<CellIdx>& activeExternalCellsApical,
+          bool learn = true);
+
+        /**
          * For backward-compatibility with TemporalMemory unit tests.
          *
          * Feeds input record through TM, performing inference and learning.
@@ -502,10 +522,16 @@ namespace nupic {
 
         vector<CellIdx> activeCells_;
         vector<CellIdx> winnerCells_;
-        vector<SegmentOverlap> activeBasalSegments_;
-        vector<SegmentOverlap> matchingBasalSegments_;
-        vector<SegmentOverlap> activeApicalSegments_;
-        vector<SegmentOverlap> matchingApicalSegments_;
+
+        vector<Segment> activeBasalSegments_;
+        vector<Segment> matchingBasalSegments_;
+        vector<UInt32> numActiveConnectedSynapsesForBasalSegment_;
+        vector<UInt32> numActivePotentialSynapsesForBasalSegment_;
+
+        vector<Segment> activeApicalSegments_;
+        vector<Segment> matchingApicalSegments_;
+        vector<UInt32> numActiveConnectedSynapsesForApicalSegment_;
+        vector<UInt32> numActivePotentialSynapsesForApicalSegment_;
 
         bool learnOnOneCell_;
         map<UInt, CellIdx> chosenCellForColumn_;

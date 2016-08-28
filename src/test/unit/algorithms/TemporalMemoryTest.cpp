@@ -303,43 +303,6 @@ namespace {
   }
 
   /**
-   * Active segments on predicted active cells should not grow new synapses.
-   */
-  TEST(TemporalMemoryTest, NoGrowthOnCorrectlyActiveSegments)
-  {
-    TemporalMemory tm(
-      /*columnDimensions*/ {32},
-      /*cellsPerColumn*/ 4,
-      /*activationThreshold*/ 3,
-      /*initialPermanence*/ 0.2,
-      /*connectedPermanence*/ 0.50,
-      /*minThreshold*/ 2,
-      /*maxNewSynapseCount*/ 4,
-      /*permanenceIncrement*/ 0.10,
-      /*permanenceDecrement*/ 0.10,
-      /*predictedSegmentDecrement*/ 0.02,
-      /*seed*/ 42
-      );
-
-    const UInt numActiveColumns = 1;
-    const UInt previousActiveColumns[1] = {0};
-    const vector<CellIdx> previousActiveCells = {0, 1, 2, 3};
-    const UInt activeColumns[1] = {1};
-    const vector<CellIdx> activeCells = {5};
-    const CellIdx activeCell = 5;
-
-    Segment activeSegment = tm.connections.createSegment(activeCell);
-    tm.connections.createSynapse(activeSegment, previousActiveCells[0], 0.5);
-    tm.connections.createSynapse(activeSegment, previousActiveCells[1], 0.5);
-    tm.connections.createSynapse(activeSegment, previousActiveCells[2], 0.5);
-
-    tm.compute(numActiveColumns, previousActiveColumns, true);
-    tm.compute(numActiveColumns, activeColumns, true);
-
-    EXPECT_EQ(3, tm.connections.numSynapses(activeSegment));
-  }
-
-  /**
    * The best matching segment in a bursting column should be reinforced. Active
    * synapses should be strengthened, and inactive synapses should be weakened.
    */

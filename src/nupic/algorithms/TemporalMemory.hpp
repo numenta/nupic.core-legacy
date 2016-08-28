@@ -90,9 +90,9 @@ namespace nupic {
          * is said to be connected.
          *
          * @param minThreshold
-         * If the number of synapses active on a segment is at least this
-         * threshold, it is selected as the best matching cell in a bursting
-         * column.
+         * If the number of potential synapses active on a segment is at least
+         * this threshold, it is said to be "matching" and is eligible for
+         * learning.
          *
          * @param maxNewSynapseCount
          * The maximum number of synapses added to a segment during learning.
@@ -106,8 +106,7 @@ namespace nupic {
          * learning.
          *
          * @param predictedSegmentDecrement
-         * Amount by which active permanences of synapses of previously
-         * predicted but inactive segments are decremented.
+         * Amount by which segments are punished for incorrect predictions.
          *
          * @param seed
          * Seed for the random number generator.
@@ -438,8 +437,10 @@ namespace nupic {
 
         vector<CellIdx> activeCells_;
         vector<CellIdx> winnerCells_;
-        vector<SegmentOverlap> activeSegments_;
-        vector<SegmentOverlap> matchingSegments_;
+        vector<Segment> activeSegments_;
+        vector<Segment> matchingSegments_;
+        vector<UInt32> numActiveConnectedSynapsesForSegment_;
+        vector<UInt32> numActivePotentialSynapsesForSegment_;
 
         Random rng_;
 

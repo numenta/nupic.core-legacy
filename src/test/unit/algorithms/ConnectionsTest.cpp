@@ -80,11 +80,14 @@ namespace {
                             80, 81, 82,
                             150, 151};
 
-    vector<SegmentOverlap> activeSegments;
-    vector<SegmentOverlap> matchingSegments;
-    connections.computeActivity(input,
-                                0.5, 2, 0.10, 1,
-                                activeSegments, matchingSegments);
+    vector<UInt32> numActiveConnectedSynapsesForSegment(
+      connections.segmentFlatListLength(), 0);
+    vector<UInt32> numActivePotentialSynapsesForSegment(
+      connections.segmentFlatListLength(), 0);
+    connections.computeActivity(numActiveConnectedSynapsesForSegment,
+                                numActivePotentialSynapsesForSegment,
+                                input,
+                                0.5);
   }
 
   /**
@@ -251,14 +254,17 @@ namespace {
     ASSERT_EQ(0, connections.numSynapses());
     ASSERT_THROW(connections.synapsesForSegment(segment2);, runtime_error);
 
-    vector<SegmentOverlap> activeSegments;
-    vector<SegmentOverlap> matchingSegments;
-    connections.computeActivity({80, 81, 82},
-                                0.5, 2, 0.0, 1,
-                                activeSegments, matchingSegments);
+    vector<UInt32> numActiveConnectedSynapsesForSegment(
+      connections.segmentFlatListLength(), 0);
+    vector<UInt32> numActivePotentialSynapsesForSegment(
+      connections.segmentFlatListLength(), 0);
+    connections.computeActivity(numActiveConnectedSynapsesForSegment,
+                                numActivePotentialSynapsesForSegment,
+                                {80, 81, 82},
+                                0.5);
 
-    ASSERT_EQ(0, activeSegments.size());
-    ASSERT_EQ(0, matchingSegments.size());
+    ASSERT_EQ(0, numActiveConnectedSynapsesForSegment[segment2.flatIdx]);
+    ASSERT_EQ(0, numActivePotentialSynapsesForSegment[segment2.flatIdx]);
   }
 
   /**
@@ -281,15 +287,17 @@ namespace {
     ASSERT_EQ(2, connections.numSynapses());
     ASSERT_EQ(2, connections.synapsesForSegment(segment).size());
 
-    vector<SegmentOverlap> activeSegments;
-    vector<SegmentOverlap> matchingSegments;
-    connections.computeActivity({80, 81, 82},
-                                0.5, 2, 0.0, 1,
-                                activeSegments, matchingSegments);
+    vector<UInt32> numActiveConnectedSynapsesForSegment(
+      connections.segmentFlatListLength(), 0);
+    vector<UInt32> numActivePotentialSynapsesForSegment(
+      connections.segmentFlatListLength(), 0);
+    connections.computeActivity(numActiveConnectedSynapsesForSegment,
+                                numActivePotentialSynapsesForSegment,
+                                {80, 81, 82},
+                                0.5);
 
-    ASSERT_EQ(0, activeSegments.size());
-    ASSERT_EQ(1, matchingSegments.size());
-    ASSERT_EQ(2, matchingSegments[0].overlap);
+    ASSERT_EQ(1, numActiveConnectedSynapsesForSegment[segment.flatIdx]);
+    ASSERT_EQ(2, numActivePotentialSynapsesForSegment[segment.flatIdx]);
   }
 
   /**
@@ -504,12 +512,12 @@ namespace {
     // Cell with 1 segment.
     // Segment with:
     // - 1 connected synapse: active
-    // - 2 matching synapses
+    // - 2 matching synapses: active
     const Segment segment1_1 = connections.createSegment(10);
     connections.createSynapse(segment1_1, 150, 0.85);
     connections.createSynapse(segment1_1, 151, 0.15);
 
-    // Cell with 2 segments.
+    // Cell with 1 segments.
     // Segment with:
     // - 2 connected synapses: 2 active
     // - 3 matching synapses: 3 active
@@ -519,43 +527,24 @@ namespace {
     Synapse synapse = connections.createSynapse(segment2_1, 82, 0.85);
     connections.updateSynapsePermanence(synapse, 0.15);
 
-    // Segment with:
-    // - 2 connected synapses: 1 active, 1 inactive
-    // - 3 matching synapses: 2 active, 1 inactive
-    // - 1 non-matching synapse: 1 active
-    const Segment segment2_2 = connections.createSegment(20);
-    connections.createSynapse(segment2_2, 50, 0.85);
-    connections.createSynapse(segment2_2, 51, 0.85);
-    connections.createSynapse(segment2_2, 52, 0.15);
-    connections.createSynapse(segment2_2, 53, 0.05);
-
-    // Cell with one segment.
-    // Segment with:
-    // - 1 non-matching synapse: 1 active
-    const Segment segment3_1 = connections.createSegment(30);
-    connections.createSynapse(segment3_1, 53, 0.05);
-
     vector<UInt32> input = {50, 52, 53,
                             80, 81, 82,
                             150, 151};
 
-    vector<SegmentOverlap> activeSegments;
-    vector<SegmentOverlap> matchingSegments;
-    connections.computeActivity(input,
-                                0.5, 2, 0.10, 1,
-                                activeSegments, matchingSegments);
+    vector<UInt32> numActiveConnectedSynapsesForSegment(
+      connections.segmentFlatListLength(), 0);
+    vector<UInt32> numActivePotentialSynapsesForSegment(
+      connections.segmentFlatListLength(), 0);
+    connections.computeActivity(numActiveConnectedSynapsesForSegment,
+                                numActivePotentialSynapsesForSegment,
+                                input,
+                                0.5);
 
-    ASSERT_EQ(1, activeSegments.size());
-    ASSERT_EQ(segment2_1, activeSegments[0].segment);
-    ASSERT_EQ(2, activeSegments[0].overlap);
+    ASSERT_EQ(1, numActiveConnectedSynapsesForSegment[segment1_1.flatIdx]);
+    ASSERT_EQ(2, numActivePotentialSynapsesForSegment[segment1_1.flatIdx]);
 
-    ASSERT_EQ(3, matchingSegments.size());
-    ASSERT_EQ(segment1_1, matchingSegments[0].segment);
-    ASSERT_EQ(2, matchingSegments[0].overlap);
-    ASSERT_EQ(segment2_1, matchingSegments[1].segment);
-    ASSERT_EQ(3, matchingSegments[1].overlap);
-    ASSERT_EQ(segment2_2, matchingSegments[2].segment);
-    ASSERT_EQ(2, matchingSegments[2].overlap);
+    ASSERT_EQ(2, numActiveConnectedSynapsesForSegment[segment2_1.flatIdx]);
+    ASSERT_EQ(3, numActivePotentialSynapsesForSegment[segment2_1.flatIdx]);
   }
 
 
