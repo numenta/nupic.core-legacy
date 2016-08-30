@@ -328,8 +328,8 @@ static void activatePredictedColumn(
                      prevActiveCells,
                      permanenceIncrement, permanenceDecrement);
 
-        const Int32 nGrowDesired =
-          maxNewSynapseCount - numActivePotentialSynapsesForSegment[activeSegment->flatIdx];
+        const Int32 nGrowDesired = maxNewSynapseCount -
+          numActivePotentialSynapsesForSegment[activeSegment->flatIdx];
         if (nGrowDesired > 0)
         {
           growSynapses(connections, rng,

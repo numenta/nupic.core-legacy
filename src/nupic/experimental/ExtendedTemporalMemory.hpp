@@ -175,11 +175,17 @@ namespace nupic {
          * @param activeColumns
          * A sorted list of active column indices.
          *
-         * @param prevActiveExternalCells
-         * The external cells that were used to calculate the current segment
-         * excitation. This class doesn't save a copy of these cells because the
-         * caller is more flexible to find ways of keeping this list available
-         * without extra copying.
+         * @param prevActiveExternalCellsBasal
+         * A sorted list of the external cells that were used to calculate the
+         * current basal segment excitation. This class doesn't save a copy of
+         * these cells because the caller is more flexible to find ways of
+         * keeping this list available without extra copying.
+         *
+         * @param prevActiveExternalCellsApical
+         * A sorted list of the external cells that were used to calculate the
+         * current apical segment excitation. This class doesn't save a copy of
+         * these cells because the caller is more flexible to find ways of
+         * keeping this list available without extra copying.
          *
          * @param learn
          * If true, reinforce / punish / grow synapses.
@@ -226,12 +232,10 @@ namespace nupic {
          * Calculate dendrite segment activity, using the current active cells.
          *
          * @param activeExternalCellsBasal
-         * Active external cells that should be used for activating basal
-         * dendrites in this timestep.
+         * Sorted list of active external cells for activating basal dendrites.
          *
          * @param activeExternalCellsApical
-         * Active external cells that should be used for activating apical
-         * dendrites in this timestep.
+         * Sorted list of active external cells for activating apical dendrites.
          *
          * @param learn
          * If true, segment activations will be recorded. This information is
@@ -267,8 +271,8 @@ namespace nupic {
          * available without extra copying.
          *
          * @param activeExternalCellsBasal
-         * Active external cells that should be used for activating basal
-         * dendrites in this timestep.
+         * Sorted list of active external cells that should be used for
+         * activating basal dendrites in this timestep.
          *
          * @param prevActiveExternalCellsApical
          * The external cells that were used to calculate the current apical
@@ -277,8 +281,8 @@ namespace nupic {
          * available without extra copying.
          *
          * @param activeExternalCellsApical
-         * Active external cells that should be used for activating apical
-         * dendrites in this timestep.
+         * Sorted list of active external cells that should be used for
+         * activating apical dendrites in this timestep.
          *
          * @param learn
          * Whether or not learning is enabled

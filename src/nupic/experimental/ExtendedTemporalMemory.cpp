@@ -489,8 +489,8 @@ static void activatePredictedColumn(
   const vector<CellIdx>& prevActiveExternalCellsApical,
   const vector<UInt32>& numActivePotentialSynapsesForBasalSegment,
   const vector<UInt32>& numActivePotentialSynapsesForApicalSegment,
-  Permanence initialPermanence,
   UInt maxNewSynapseCount,
+  Permanence initialPermanence,
   Permanence permanenceIncrement,
   Permanence permanenceDecrement,
   bool formInternalBasalConnections,
@@ -572,8 +572,8 @@ static void burstColumn(
   const vector<UInt32>& numActivePotentialSynapsesForBasalSegment,
   const vector<UInt32>& numActivePotentialSynapsesForApicalSegment,
   UInt cellsPerColumn,
-  Permanence initialPermanence,
   UInt maxNewSynapseCount,
+  Permanence initialPermanence,
   Permanence permanenceIncrement,
   Permanence permanenceDecrement,
   bool formInternalBasalConnections,
@@ -768,8 +768,8 @@ void ExtendedTemporalMemory::activateCells(
           prevActiveExternalCellsBasal, prevActiveExternalCellsApical,
           numActivePotentialSynapsesForBasalSegment_,
           numActivePotentialSynapsesForApicalSegment_,
-          initialPermanence_, maxNewSynapseCount_,
-          permanenceIncrement_, permanenceDecrement_,
+          maxNewSynapseCount_,
+          initialPermanence_, permanenceIncrement_, permanenceDecrement_,
           formInternalBasalConnections_, learn);
       }
       else
@@ -787,8 +787,8 @@ void ExtendedTemporalMemory::activateCells(
           prevActiveExternalCellsBasal, prevActiveExternalCellsApical,
           numActivePotentialSynapsesForBasalSegment_,
           numActivePotentialSynapsesForApicalSegment_,
-          cellsPerColumn_, initialPermanence_, maxNewSynapseCount_,
-          permanenceIncrement_, permanenceDecrement_,
+          cellsPerColumn_, maxNewSynapseCount_,
+          initialPermanence_, permanenceIncrement_, permanenceDecrement_,
           formInternalBasalConnections_, learnOnOneCell_, learn);
       }
     }
