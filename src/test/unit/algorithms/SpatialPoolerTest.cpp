@@ -1362,8 +1362,40 @@ namespace {
 
     ASSERT_TRUE(!check_vector_eq(activeColumns, activeColumnsGlobal));
     ASSERT_TRUE(check_vector_eq(activeColumns, activeColumnsLocal));
+
   }
 
+TEST(SpatialPoolerTest, testInhibitColumnsActivatesOnlyColumnsWithOverlap)
+  {
+    SpatialPooler sp;
+    setup(sp, 10,10);
+
+    vector<Real> overlapsReal;
+    vector<Real> overlaps;
+    vector<UInt> activeColumns;
+    vector<UInt> activeColumnsGlobal;
+    vector<UInt> activeColumnsLocal;
+    Real density;
+    UInt inhibitionRadius;
+    UInt numColumns;
+
+    // Assert that only columns with overlap are activated
+    numColumns = 16;
+    density = 0.5;
+    inhibitionRadius = 2;
+    Real overlapsArray2[16] = {1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0};
+
+    sp.setGlobalInhibition(false);
+    sp.setInhibitionRadius(inhibitionRadius);
+
+    overlapsReal.assign(&overlapsArray2[0], &overlapsArray2[numColumns]);
+    sp.inhibitColumnsLocal_(overlapsReal, density, activeColumnsLocal);
+
+    for (auto & activeColumn : activeColumnsLocal) {
+      ASSERT_TRUE(overlapsArray2[activeColumn] > 0);
+    }
+
+  }
   TEST(SpatialPoolerTest, testInhibitColumnsGlobal)
   {
     SpatialPooler sp;
