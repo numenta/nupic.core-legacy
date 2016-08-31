@@ -304,8 +304,8 @@ namespace nupic {
         Real _avgLearnedSeqLength;
         UInt _maxAge;
         UInt _verbosity;
-        Int  _maxSegmentsPerCell;
-        Int  _maxSynapsesPerSegment;
+        UInt  _maxSegmentsPerCell;
+        UInt  _maxSynapsesPerSegment;
         bool _checkSynapseConsistency;    // If true, will perform time
                                           // consuming invariance checks.
 
@@ -523,9 +523,10 @@ namespace nupic {
         UInt getMaxSeqLength() const        { return _maxSeqLength;}
         Real getAvgLearnedSeqLength() const { return _avgLearnedSeqLength;}
         UInt getNLrnIterations() const      { return _nLrnIterations;}
-        Int  getmaxSegmentsPerCell() const  { return _maxSegmentsPerCell;}
-        Int  getMaxSynapsesPerCell() const  { return _maxSynapsesPerSegment;}
+        UInt  getmaxSegmentsPerCell() const { return _maxSegmentsPerCell;}
+        UInt  getMaxSynapsesPerCell() const { return _maxSynapsesPerSegment;}
         bool getCheckSynapseConsistency()   { return _checkSynapseConsistency;}
+        bool isFixedSized()                 { return _maxSegmentsPerCell == 0 && _maxSynapsesPerSegment == 0; }
 
 
         //----------------------------------------------------------------------
@@ -540,27 +541,30 @@ namespace nupic {
         void setCheckSynapseConsistency(bool val)
                                           { _checkSynapseConsistency = val;}
 
-        void setMaxSegmentsPerCell(int maxSegs) {
-          if (maxSegs != -1) {
-            NTA_CHECK(maxSegs > 0);
-            NTA_CHECK(_globalDecay == 0.0);
-            NTA_CHECK(_maxAge == 0);
+        void setMaxSegmentsPerCell(UInt maxSegs) {
+          // fixed-sized CLA
+          if (maxSegs > 0) {
+            _globalDecay = 0.0;
+            _maxAge = 0;
+          } else { // growing -> also set maxSynapsesPerSegment to 0
+            _maxSynapsesPerSegment = 0;
           }
           _maxSegmentsPerCell = maxSegs;
         }
 
-        void setMaxSynapsesPerCell(int maxSyns) {
-          if (maxSyns != -1) {
-            NTA_CHECK(maxSyns > 0);
-            NTA_CHECK(_globalDecay == 0.0);
-            NTA_CHECK(_maxAge == 0);
+        void setMaxSynapsesPerSegment(UInt maxSyns) {
+          // fixed-sized CLA
+          if (maxSyns > 0) {
+            _globalDecay = 0.0;
+            _maxAge = 0;
+          } else { // growing -> also set other field to 0
+            _maxSegmentsPerCell = 0;
           }
           _maxSynapsesPerSegment = maxSyns;
         }
 
         void setPamLength(UInt pl)
         {
-          NTA_CHECK(pl > 0);
           _pamLength = pl;
           _pamCounter = _pamLength;
         }

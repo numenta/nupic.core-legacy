@@ -648,7 +648,7 @@ UInt Cells4::getCellForNewSegment(UInt colIdx)
   UInt candidateCellIdx = 0;
 
   // Not fixed size CLA, just choose a cell randomly
-  if (_maxSegmentsPerCell < 0) {
+  if (! isFixedSized()) {
     if (_nCellsPerCol > 1) {
       // Don't ever choose the start cell (cell # 0) in each column
       candidateCellIdx = _rng.getUInt32(_nCellsPerCol-1) + 1;
@@ -678,7 +678,7 @@ UInt Cells4::getCellForNewSegment(UInt colIdx)
   }
   for (UInt i = minIdx; i <= maxIdx; i++)
   {
-    Int numSegs = (Int) _cells[i].size();
+    UInt numSegs = _cells[i].size();
     if (numSegs < _maxSegmentsPerCell) {
       candidateCellIdxs.push_back(i);
     }
@@ -1659,9 +1659,8 @@ void Cells4::adaptSegment(const SegmentUpdate& update)
     // Add any new synapses, add these to Outlist, and update delta objects
 
     // If we have fixed resources, get rid of some old syns if necessary
-    if ( (_maxSynapsesPerSegment > 0) &&
-         (synapsesSet.size() + segment.size() > (UInt) _maxSynapsesPerSegment) ) {
-      UInt numToFree = synapsesSet.size() + segment.size() - _maxSynapsesPerSegment;
+    int numToFree = int(synapsesSet.size() + segment.size() - int(_maxSynapsesPerSegment));
+    if ( isFixedSized() && numToFree > 0) {
       segment.freeNSynapses(numToFree,
                             synToDec, inactiveSegmentIndices,
                             synToInc, activeSegmentIndices,
@@ -2276,8 +2275,8 @@ Cells4::initialize(UInt nColumns,
   _avgLearnedSeqLength = 0.0;
   _verbosity = 0;
   _maxAge = 0;
-  _maxSegmentsPerCell = -1;
-  _maxSynapsesPerSegment = -1;
+  setMaxSegmentsPerCell(0);
+  setMaxSynapsesPerSegment(0);
 
   _cells.resize(_nCells);
   Cell::setSegmentOrder(false);
