@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.4.6
+
+* Templates: Stop inferring const unnecessarily
+* Build error sometimes in clang -- need copy constructor
+* Check that minThreshold <= activationThreshold
+* Split compute into activateCells and activateDendrites
+* TM and ETM cleanup
+* ETM: Grow synapses on active segments, not just matching segments
+* Removal of MSVC TP compilation flag
+* Also do the learnOnOneCell serializaton check in ::save
+* Implement learnOnOneCell in the ETM
+
 ## 0.4.5
 
 * Removed no longer used pre-built Swig executables for various flavors of Linux; nupic.core automatically builds Swig from embedded sources on non-Windows platforms.
