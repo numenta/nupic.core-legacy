@@ -253,7 +253,7 @@ void Connections::updateSynapsePermanence(const Synapse& synapse,
   dataForSynapse_(synapse).permanence = permanence;
 }
 
-vector<Segment> Connections::segmentsForCell(UInt32 cell) const
+vector<Segment> Connections::segmentsForCell(CellIdx cell)
 {
   vector<Segment> segments;
   segments.reserve(numSegments(cell));
