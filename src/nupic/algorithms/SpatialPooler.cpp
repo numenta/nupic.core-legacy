@@ -30,11 +30,13 @@
 #include <vector>
 
 #include <nupic/algorithms/SpatialPooler.hpp>
+#include <nupic/utils/VectorHelpers.hpp>
 #include <nupic/math/Math.hpp>
 #include <nupic/proto/SpatialPoolerProto.capnp.h>
 
 using namespace std;
 using namespace nupic;
+using namespace nupic::utils;
 using namespace nupic::algorithms::spatial_pooler;
 
 // MSVC doesn't provide round() which only became standard in C99 or C++11
@@ -51,8 +53,7 @@ using namespace nupic::algorithms::spatial_pooler;
 // platforms/implementations
 static Real round5_(const Real f)
 {
-  Real p = ((Real) ((Int) (f * 100000))) / 100000.0;
-  return p;
+  return ((Real) ((Int) (f * 100000))) / 100000.0;
 }
 
 
@@ -627,7 +628,7 @@ void SpatialPooler::compute(UInt inputArray[], bool learn,
   }
 
   inhibitColumns_(boostedOverlaps_, activeColumns_);
-  toDense_(activeColumns_, activeArray, numColumns_);
+  activeArray = VectorHelpers::sparseToBinary<UInt>(activeColumns_, numColumns_).data(); 
 
   if (learn) {
     adaptSynapses_(inputArray, activeColumns_);
@@ -650,17 +651,6 @@ void SpatialPooler::stripUnlearnedColumns(UInt activeArray[]) const
   }
 }
 
-
-void SpatialPooler::toDense_(vector<UInt>& sparse,
-                            UInt dense[],
-                            UInt n)
-{
-  std::fill(dense,dense+n, 0);
-  for (auto & elem : sparse) {
-    UInt index = elem;
-    dense[index] = 1;
-  }
-}
 
 void SpatialPooler::boostOverlaps_(vector<UInt>& overlaps,
                                    vector<Real>& boosted)
@@ -709,8 +699,8 @@ vector<UInt> SpatialPooler::mapPotential_(UInt column, bool wrapAround)
   rng_.sample(&indices.front(), indices.size(),
               &selectedIndices.front(), numPotential);
 
-  for (UInt i = 0; i < numPotential; i++) {
-    potential[selectedIndices[i]] = 1;
+  for (UInt i : selectedIndices) {
+    potential[i] = 1;
   }
 
   return potential;
@@ -765,9 +755,6 @@ void SpatialPooler::updatePermanencesForColumn_(vector<Real>& perm,
                                                 UInt column,
                                                 bool raisePerm)
 {
-  vector<UInt> connectedSparse;
-
-  UInt numConnected;
   if (raisePerm) {
     vector<UInt> potential;
     potential.resize(numInputs_);
@@ -775,14 +762,8 @@ void SpatialPooler::updatePermanencesForColumn_(vector<Real>& perm,
     raisePermanencesToThreshold_(perm,potential);
   }
 
-  numConnected = 0;
-  for (UInt i = 0; i < perm.size(); ++i)
-  {
-    if (perm[i] >= synPermConnected_) {
-      connectedSparse.push_back(i);
-      ++numConnected;
-    }
-  }
+  vector<UInt> connectedSparse = VectorHelpers::binaryToSparse<Real>(perm, synPermConnected_);
+  UInt numConnected = connectedSparse.size();
 
   clip_(perm, true);
   connectedSynapses_.replaceSparseRow(column, connectedSparse.begin(),
@@ -791,31 +772,19 @@ void SpatialPooler::updatePermanencesForColumn_(vector<Real>& perm,
   connectedCounts_[column] = numConnected;
 }
 
-UInt SpatialPooler::countConnected_(vector<Real>& perm)
-{
-  UInt numConnected = 0;
-  for (auto & elem : perm) {
-     if (elem > synPermConnected_) {
-       ++numConnected;
-     }
-   }
-  return numConnected;
-}
-
 UInt SpatialPooler::raisePermanencesToThreshold_(vector<Real>& perm,
                                                  vector<UInt>& potential)
 {
   clip_(perm, false);
   UInt numConnected;
-  while (true)
+  while (true) //TODO avoid the while-true loop, grow syns in 1 step
   {
-    numConnected = countConnected_(perm);
+    numConnected = VectorHelpers::binaryToSparse<Real>(perm, synPermConnected_).size();
     if (numConnected >= stimulusThreshold_)
       break;
 
     for (auto & elem : potential) {
-      UInt index = elem;
-      perm[index] += synPermBelowStimulusInc_;
+      perm[elem] += synPermBelowStimulusInc_;
     }
   }
   return numConnected;
@@ -1012,8 +981,7 @@ void SpatialPooler::adaptSynapses_(UInt inputVector[],
     potential = potentialPools_.getSparseRow(column);
     permanences_.getRowToDense(column, perm);
     for (auto & elem : potential) {
-        UInt index = elem;
-        perm[index] += permChanges[index];
+        perm[elem] += permChanges[elem];
     }
     updatePermanencesForColumn_(perm, column, true);
   }
@@ -1031,8 +999,7 @@ void SpatialPooler::bumpUpWeakColumns_()
     potential = potentialPools_.getSparseRow(i);
     permanences_.getRowToDense(i, perm);
     for (auto & elem : potential) {
-      UInt index = elem;
-      perm[index] += synPermBelowStimulusInc_;
+      perm[elem] += synPermBelowStimulusInc_;
     }
     updatePermanencesForColumn_(perm, i, false);
   }
