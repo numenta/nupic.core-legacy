@@ -66,7 +66,7 @@ This option is for developers that would like the ability to do incremental buil
 Notes:
 
 - This will generate Release build files. For a debug build, change `-DCMAKE_BUILD_TYPE` to `Debug`.
-- To build nupic.core for generating the nupic.bindings python extension, pass `-DNUPIC_BUILD_PYEXT_MODULES=ON`.
+- To build nupic.core for generating the nupic.bindings python extension, pass `-DNUPIC_BUILD_PYEXT_MODULES=ON`; it is the default at this time.
 - To build nupic.core as a standalone static library, pass `-DNUPIC_BUILD_PYEXT_MODULES=OFF`.
 - If you have dependencies precompiled but not in standard system locations then you can specify where to find them with `-DCMAKE_PREFIX_PATH` (for bin/lib) and `-DCMAKE_INCLUDE_PATH` (for header files).
 - The `-DCMAKE_INSTALL_PREFIX=../release` option shown above is optional, and specifies the location where `nupic.core` should be installed. If omitted, `nupic.core` will be installed in a system location. Using this option is useful when testing versions of `nupic.core` with `nupic` (see [NuPIC's Dependency on nupic.core](https://github.com/numenta/nupic/wiki/NuPIC's-Dependency-on-nupic.core)).
@@ -90,6 +90,7 @@ Notes:
     cd $NUPIC_CORE/build/release/bin
     ./cpp_region_test
     ./unit_tests
+    ...
 
 #### Install nupic.bindings Python library:
 
