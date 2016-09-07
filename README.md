@@ -7,7 +7,7 @@ This repository contains the C++ source code for the Numenta Platform for Intell
 You can install the `nupic.bindings` Python package from PyPI:
 
     pip install nupic.bindings
-    
+
 Optionally include `--user` or other flags to determine where the package is installed.
 
 > **Note**: On Linux this will do a source installation and will require that the prerequisites specified below are installed.
@@ -66,6 +66,8 @@ This option is for developers that would like the ability to do incremental buil
 Notes:
 
 - This will generate Release build files. For a debug build, change `-DCMAKE_BUILD_TYPE` to `Debug`.
+- To build nupic.core for generating the nupic.bindings python extension, pass `-DNUPIC_BUILD_PYEXT_MODULES=ON`; it is the default at this time.
+- To build nupic.core as a standalone static library, pass `-DNUPIC_BUILD_PYEXT_MODULES=OFF`.
 - If you have dependencies precompiled but not in standard system locations then you can specify where to find them with `-DCMAKE_PREFIX_PATH` (for bin/lib) and `-DCMAKE_INCLUDE_PATH` (for header files).
 - The `-DCMAKE_INSTALL_PREFIX=../release` option shown above is optional, and specifies the location where `nupic.core` should be installed. If omitted, `nupic.core` will be installed in a system location. Using this option is useful when testing versions of `nupic.core` with `nupic` (see [NuPIC's Dependency on nupic.core](https://github.com/numenta/nupic/wiki/NuPIC's-Dependency-on-nupic.core)).
 - Setting `-DPY_EXTENSIONS_DIR` copies the Python exension files to the specified directory. If the extensions aren't present when the Python build/installation is invoked then the setup.py file will run the cmake/make process to generate them. Make sure to include this flag if you want to do incremental builds of the Python extensions.
@@ -88,6 +90,7 @@ Notes:
     cd $NUPIC_CORE/build/release/bin
     ./cpp_region_test
     ./unit_tests
+    ...
 
 #### Install nupic.bindings Python library:
 
