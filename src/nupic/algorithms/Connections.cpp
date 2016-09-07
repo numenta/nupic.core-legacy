@@ -515,7 +515,7 @@ void Connections::write(ConnectionsProto::Builder& proto) const
 
   auto protoCells = proto.initCells(cells_.size());
 
-  for (UInt32 i = 0; i < cells_.size(); ++i)
+  for (CellIdx i = 0; i < cells_.size(); ++i)
   {
     auto segments = cells_[i].segments;
     auto protoSegments = protoCells[i].initSegments(segments.size());

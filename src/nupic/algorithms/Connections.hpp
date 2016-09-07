@@ -209,7 +209,7 @@ namespace nupic
        * that all HTM learning algorithms can use. It is flexible enough to
        * support any learning algorithm that operates on a collection of cells.
        *
-       * Each type of connection (proximal, distal, apical) should be
+       * Each type of connection (proximal, distal basal, apical) should be
        * represented by a different instantiation of this class. This class
        * will help compute the activity along those connections due to active
        * input cells. The responsibility for what effect that activity has on
@@ -217,6 +217,12 @@ namespace nupic
        *
        * This class is optimized to store connections between cells, and
        * compute the activity of cells due to input over the connections.
+       *
+       * This class assigns each segment a unique "flatIdx" so that it's
+       * possible to use a simple vector to associate segments with values.
+       * Create a vector of length `connections.segmentFlatListLength()`,
+       * iterate over segments and update the vector at index `segment.flatIdx`,
+       * and then recover the segments using `connections.segmentForFlatIdx(i)`.
        *
        */
       class Connections : public Serializable<ConnectionsProto>
