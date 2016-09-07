@@ -59,15 +59,17 @@ namespace nupic
        *
        * @param idx     Index of segment.
        * @param cellIdx Index of cell.
+       * @param flatIdx This segment's index in flattened lists of all segments.
        *
        */
       struct Segment
       {
-        SegmentIdx idx;
         CellIdx cell;
+        SegmentIdx idx;
+        UInt32 flatIdx;
 
-        Segment(SegmentIdx idx, CellIdx cell) : idx(idx), cell(cell) {}
-        Segment() {}
+        Segment(CellIdx cell, SegmentIdx idx, UInt32 flatIdx);
+        Segment();
 
         bool operator==(const Segment &other) const;
         bool operator<=(const Segment &other) const;
@@ -128,7 +130,7 @@ namespace nupic
        * @param synapses          Data for synapses that this segment contains.
        * @param destroyed         Whether this segment has been destroyed.
        * @param lastUsedIteration The iteration that this segment was last used at.
-       * @param flatIdx           This segment's index in flattened lists of all segments
+       * @param flatIdx           This segment's index in flattened lists of all segments.
        *
        */
       struct SegmentData
@@ -154,20 +156,6 @@ namespace nupic
       {
         std::vector<SegmentData> segments;
         UInt32 numDestroyedSegments;
-      };
-
-      /**
-       * A segment + overlap pair.
-       *
-       * @b Description
-       * The "overlap" describes the number of active synapses on the segment.
-       * Depending on the use case, these synapses may have a permanence below
-       * the connected threshold.
-       */
-      struct SegmentOverlap
-      {
-        Segment segment;
-        UInt32 overlap;
       };
 
       /**
@@ -221,7 +209,7 @@ namespace nupic
        * that all HTM learning algorithms can use. It is flexible enough to
        * support any learning algorithm that operates on a collection of cells.
        *
-       * Each type of connection (proximal, distal, apical) should be
+       * Each type of connection (proximal, distal basal, apical) should be
        * represented by a different instantiation of this class. This class
        * will help compute the activity along those connections due to active
        * input cells. The responsibility for what effect that activity has on
@@ -230,11 +218,15 @@ namespace nupic
        * This class is optimized to store connections between cells, and
        * compute the activity of cells due to input over the connections.
        *
+       * This class assigns each segment a unique "flatIdx" so that it's
+       * possible to use a simple vector to associate segments with values.
+       * Create a vector of length `connections.segmentFlatListLength()`,
+       * iterate over segments and update the vector at index `segment.flatIdx`,
+       * and then recover the segments using `connections.segmentForFlatIdx(i)`.
+       *
        */
       class Connections : public Serializable<ConnectionsProto>
       {
-        friend class SegmentExcitationTally;
-
       public:
         static const UInt16 VERSION = 1;
 
@@ -329,7 +321,7 @@ namespace nupic
          *
          * @retval Synapses on segment.
          */
-        std::vector<Synapse> synapsesForSegment(const Segment& segment);
+        std::vector<Synapse> synapsesForSegment(const Segment& segment) const;
 
         /**
          * Gets the data for a segment.
@@ -350,6 +342,16 @@ namespace nupic
         SynapseData dataForSynapse(const Synapse& synapse) const;
 
         /**
+         * Get the segment at the specified cell and offset.
+         *
+         * @param cell The cell that the segment is on.
+         * @param idx The index of the segment on the cell.
+         *
+         * @retval Segment
+         */
+        Segment getSegment(CellIdx cell, SegmentIdx idx) const;
+
+        /**
          * Do a reverse-lookup of a segment from its flatIdx.
          *
          * @param flatIdx the flatIdx of the segment
@@ -357,6 +359,14 @@ namespace nupic
          * @retval Segment
          */
         Segment segmentForFlatIdx(UInt32 flatIdx) const;
+
+        /**
+         * Get the vector length needed to use the segments' flatIdx for
+         * indexing.
+         *
+         * @retval A vector length
+         */
+        UInt32 segmentFlatListLength() const;
 
         /**
          * Returns the synapses for the source cell that they synapse on.
@@ -369,39 +379,55 @@ namespace nupic
           const;
 
         /**
-         * Compute the segment excitations for a vector of cells.
+         * Compute the segment excitations for a vector of active presynaptic
+         * cells.
          *
-         * @param input
+         * The output vectors aren't grown or cleared. They must be
+         * preinitialized with the length returned by
+         * getSegmentFlatVectorLength().
+         *
+         * @param numActiveConnectedSynapsesForSegment
+         * An output vector for active connected synapse counts per segment.
+         *
+         * @param numActivePotentialSynapsesForSegment
+         * An output vector for active potential synapse counts per segment.
+         *
+         * @param activePresynapticCells
          * Active cells in the input.
          *
-         * @param activePermanenceThreshold
-         * Minimum permanence for a synapse to contribute to an active segment
-         *
-         * @param activeSynapseThreshold
-         * Minimum number of synapses to mark a segment as "active"
-         *
-         * @param matchingPermanenceThreshold
-         * Minimum permanence for a synapse to contribute to an matching segment
-         *
-         * @param matchingSynapseThreshold
-         * Minimum number of synapses to mark a segment as "matching"
-         *
-         * @param outActiveSegments
-         * An output vector.
-         * On return, filled with active segments and overlaps.
-         *
-         * @param outActiveSegments
-         * An output vector.
-         * On return, filled with matching segments and overlaps.
+         * @param connectedPermanence
+         * Minimum permanence for a synapse to be "connected".
          */
-        void computeActivity(const std::vector<CellIdx>& input,
-                             Permanence activePermanenceThreshold,
-                             SynapseIdx activeSynapseThreshold,
-                             Permanence matchingPermanenceThreshold,
-                             SynapseIdx matchingSynapseThreshold,
-                             std::vector<SegmentOverlap>& activeSegmentsOut,
-                             std::vector<SegmentOverlap>& matchingSegmentsOut)
-          const;
+        void computeActivity(
+          std::vector<UInt32>& numActiveConnectedSynapsesForSegment,
+          std::vector<UInt32>& numActivePotentialSynapsesForSegment,
+          const std::vector<CellIdx>& activePresynapticCells,
+          Permanence connectedPermanence) const;
+
+        /**
+         * Compute the segment excitations for a single active presynaptic cell.
+         *
+         * The output vectors aren't grown or cleared. They must be
+         * preinitialized with the length returned by
+         * getSegmentFlatVectorLength().
+         *
+         * @param numActiveConnectedSynapsesForSegment
+         * An output vector for active connected synapse counts per segment.
+         *
+         * @param numActivePotentialSynapsesForSegment
+         * An output vector for active potential synapse counts per segment.
+         *
+         * @param activePresynapticCells
+         * Active cells in the input.
+         *
+         * @param connectedPermanence
+         * Minimum permanence for a synapse to be "connected".
+         */
+        void computeActivity(
+          std::vector<UInt32>& numActiveConnectedSynapsesForSegment,
+          std::vector<UInt32>& numActivePotentialSynapsesForSegment,
+          CellIdx activePresynapticCell,
+          Permanence connectedPermanence) const;
 
         /**
          * Record the fact that a segment had some activity. This information is
@@ -587,40 +613,6 @@ namespace nupic
         UInt32 nextEventToken_;
         std::map<UInt32, ConnectionsEventHandler*> eventHandlers_;
       }; // end class Connections
-
-      /**
-       * Takes a Connections instance and a set of active cells, and calculates
-       * the excited columns.
-       *
-       * This is essentially part of the Connections class. It accesses
-       * Connections internals to perform this calculation quickly.
-       *
-       * This is implemented as a class rather than a Connections method because
-       * this allows callers to provide the "active presynaptic cells" without
-       * imposing requirements on how these cells are stored. The cells might be
-       * stored in a vector, in multiple vectors, as a list of indices, as a
-       * list of zeros and ones, etc., so we expose a "Tally" class and require
-       * the caller to do the iteration.
-       */
-      class SegmentExcitationTally
-      {
-      public:
-        SegmentExcitationTally(const Connections& connections,
-                               Permanence activePermanenceThreshold,
-                               Permanence matchingPermanenceThreshold);
-        void addActivePresynapticCell(CellIdx cellIdx);
-        void getResults(SynapseIdx activeSynapseThreshold,
-                        SynapseIdx matchingSynapseThreshold,
-                        std::vector<SegmentOverlap>& activeSegmentsOut,
-                        std::vector<SegmentOverlap>& matchingSegmentsOut)
-          const;
-      private:
-        const Connections& connections_;
-        const Permanence activePermanenceThreshold_;
-        const Permanence matchingPermanenceThreshold_;
-        std::vector<UInt32> numActiveSynapsesForSegment_;
-        std::vector<UInt32> numMatchingSynapsesForSegment_;
-      };
 
     } // end namespace connections
 

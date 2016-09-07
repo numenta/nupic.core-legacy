@@ -45,7 +45,7 @@ namespace nupic
 
     namespace connections
     {
-      struct SegmentOverlap;
+      struct Segment;
     }
   }
 
@@ -83,7 +83,7 @@ namespace nupic
     std::vector<CellIdx> computeSPWinnerCells(
       Connections& connections,
       UInt numCells,
-      vector<algorithms::connections::SegmentOverlap> activeSegments);
+      const vector<UInt>& numActiveSynapsesForSegment);
 
   }; // end class ConnectionsPerformanceTest
 
