@@ -7,13 +7,18 @@ struct ConnectionsProto {
   struct SynapseProto {
     presynapticCell @0 :UInt32;
     permanence @1 :Float32;
+
+    # Obsolete
     destroyed @2 :Bool;
   }
 
   # Next ID: 3
   struct SegmentProto {
     synapses @0 :List(SynapseProto);
+
+    # Obsolete
     destroyed @1 :Bool;
+
     lastUsedIteration @2 :UInt64;
   }
 

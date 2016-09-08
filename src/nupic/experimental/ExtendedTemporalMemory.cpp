@@ -200,27 +200,25 @@ static UInt32 predictiveScore(
   return score;
 }
 
-static CellIdx cellForSegment(Segment segment)
-{
-  return segment.cell;
-}
-
 static tuple<vector<Segment>::const_iterator,
              vector<Segment>::const_iterator>
 segmentsForCell(vector<Segment>::const_iterator segmentsStart,
                 vector<Segment>::const_iterator segmentsEnd,
-                CellIdx cell)
+                CellIdx cell,
+                const Connections& connections)
 {
-  const auto cellBegin = std::find_if(segmentsStart, segmentsEnd,
-                                      [&](Segment segment)
-                                      {
-                                        return segment.cell == cell;
-                                      });
-  const auto cellEnd = std::find_if(cellBegin, segmentsEnd,
-                                    [&](Segment segment)
-                                    {
-                                      return segment.cell != cell;
-                                    });
+  const auto cellBegin = std::find_if(
+    segmentsStart, segmentsEnd,
+    [&](Segment segment)
+    {
+      return connections.cellForSegment(segment) == cell;
+    });
+  const auto cellEnd = std::find_if(
+    cellBegin, segmentsEnd,
+    [&](Segment segment)
+    {
+      return connections.cellForSegment(segment) != cell;
+    });
   return std::make_tuple(cellBegin, cellEnd);
 }
 
@@ -339,6 +337,11 @@ static void growSynapses(
   const vector<CellIdx>& externalCandidates,
   Permanence initialPermanence)
 {
+  // It's possible to optimize this, swapping candidates to the end as
+  // they're used. But this is awkward to mimic in other
+  // implementations, especially because it requires iterating over
+  // the existing synapses in a particular order.
+
   vector<CellIdx> candidates;
   candidates.reserve(internalCandidates.size() + externalCandidates.size());
   candidates.insert(candidates.begin(), internalCandidates.begin(),
@@ -347,35 +350,30 @@ static void growSynapses(
   {
     candidates.push_back(cell + connections.numCells());
   }
-
-  // Instead of erasing candidates, swap them to the end, and remember where the
-  // "eligible" candidates end.
-  auto eligibleEnd = candidates.end();
+  NTA_ASSERT(std::is_sorted(candidates.begin(), candidates.end()));
 
   // Remove cells that are already synapsed on by this segment
   for (Synapse synapse : connections.synapsesForSegment(segment))
   {
     CellIdx presynapticCell =
       connections.dataForSynapse(synapse).presynapticCell;
-    auto ineligible = find(candidates.begin(), eligibleEnd, presynapticCell);
-    if (ineligible != eligibleEnd)
+    auto ineligible = std::lower_bound(candidates.begin(), candidates.end(),
+                                       presynapticCell);
+    if (ineligible != candidates.end() && *ineligible == presynapticCell)
     {
-      eligibleEnd--;
-      std::iter_swap(ineligible, eligibleEnd);
+      candidates.erase(ineligible);
     }
   }
 
-  const UInt32 nActual =
-    std::min(nDesiredNewSynapses,
-             (UInt32)std::distance(candidates.begin(), eligibleEnd));
+  const UInt32 nActual = std::min(nDesiredNewSynapses,
+                                  (UInt32)candidates.size());
 
   // Pick nActual cells randomly.
   for (UInt32 c = 0; c < nActual; c++)
   {
-    size_t i = rng.getUInt32(std::distance(candidates.begin(), eligibleEnd));
+    size_t i = rng.getUInt32(candidates.size());
     connections.createSynapse(segment, candidates[i], initialPermanence);
-    eligibleEnd--;
-    std::swap(candidates[i], *eligibleEnd);
+    candidates.erase(candidates.begin() + i);
   }
 }
 
@@ -496,11 +494,16 @@ static void activatePredictedColumn(
   bool formInternalBasalConnections,
   bool learn)
 {
+  const auto cellForBasalSegment = [&](Segment segment)
+    { return basalConnections.cellForSegment(segment); };
+  const auto cellForApicalSegment = [&](Segment segment)
+    { return apicalConnections.cellForSegment(segment); };
+
   for (auto& cellData : iterGroupBy(
-         columnActiveBasalBegin, columnActiveBasalEnd, cellForSegment,
-         columnMatchingBasalBegin, columnMatchingBasalEnd, cellForSegment,
-         columnActiveApicalBegin, columnActiveApicalEnd, cellForSegment,
-         columnMatchingApicalBegin, columnMatchingApicalEnd, cellForSegment))
+         columnActiveBasalBegin, columnActiveBasalEnd, cellForBasalSegment,
+         columnMatchingBasalBegin, columnMatchingBasalEnd, cellForBasalSegment,
+         columnActiveApicalBegin, columnActiveApicalEnd, cellForApicalSegment,
+         columnMatchingApicalBegin, columnMatchingApicalEnd, cellForApicalSegment))
   {
     CellIdx cell;
     vector<Segment>::const_iterator
@@ -613,7 +616,7 @@ static void burstColumn(
       basalCandidatesBegin = bestBasalSegment;
       basalCandidatesEnd = bestBasalSegment + 1;
 
-      winnerCell = bestBasalSegment->cell;
+      winnerCell = basalConnections.cellForSegment(*bestBasalSegment);
     }
     else
     {
@@ -638,15 +641,18 @@ static void burstColumn(
     tie(cellActiveApicalBegin,
         cellActiveApicalEnd) = segmentsForCell(columnActiveApicalBegin,
                                                columnActiveApicalEnd,
-                                               winnerCell);
+                                               winnerCell,
+                                               apicalConnections);
     tie(cellMatchingApicalBegin,
         cellMatchingApicalEnd) = segmentsForCell(columnMatchingApicalBegin,
                                                  columnMatchingApicalEnd,
-                                                 winnerCell);
+                                                 winnerCell,
+                                                 apicalConnections);
     tie(cellActiveBasalBegin,
         cellActiveBasalEnd) = segmentsForCell(columnActiveBasalBegin,
                                               columnActiveBasalEnd,
-                                              winnerCell);
+                                              winnerCell,
+                                              basalConnections);
 
     learnOnCell(basalConnections, rng,
                 winnerCell,
@@ -707,14 +713,16 @@ void ExtendedTemporalMemory::activateCells(
   const vector<CellIdx> prevActiveCells = std::move(activeCells_);
   const vector<CellIdx> prevWinnerCells = std::move(winnerCells_);
 
-  const auto columnForSegment =
-    [&](Segment segment) { return segment.cell / cellsPerColumn_; };
+  const auto columnForBasalSegment = [&](Segment segment)
+    { return basalConnections.cellForSegment(segment) / cellsPerColumn_; };
+  const auto columnForApicalSegment = [&](Segment segment)
+    { return apicalConnections.cellForSegment(segment) / cellsPerColumn_; };
 
   for (auto& columnData : groupBy(activeColumns, identity<UInt>,
-                                  activeBasalSegments_, columnForSegment,
-                                  matchingBasalSegments_, columnForSegment,
-                                  activeApicalSegments_, columnForSegment,
-                                  matchingApicalSegments_, columnForSegment))
+                                  activeBasalSegments_, columnForBasalSegment,
+                                  matchingBasalSegments_, columnForBasalSegment,
+                                  activeApicalSegments_, columnForApicalSegment,
+                                  matchingApicalSegments_, columnForApicalSegment))
   {
     UInt column;
     vector<UInt>::const_iterator
@@ -736,9 +744,14 @@ void ExtendedTemporalMemory::activateCells(
     {
       UInt32 maxPredictiveScore = 0;
 
+      const auto cellForBasalSegment = [&](Segment segment)
+        { return basalConnections.cellForSegment(segment); };
+      const auto cellForApicalSegment = [&](Segment segment)
+        { return apicalConnections.cellForSegment(segment); };
+
       for (auto& cellData : iterGroupBy(
-             columnActiveBasalBegin, columnActiveBasalEnd, cellForSegment,
-             columnActiveApicalBegin, columnActiveApicalEnd, cellForSegment))
+             columnActiveBasalBegin, columnActiveBasalEnd, cellForBasalSegment,
+             columnActiveApicalBegin, columnActiveApicalEnd, cellForApicalSegment))
       {
         CellIdx cell;
         vector<Segment>::const_iterator
@@ -847,7 +860,11 @@ static void calculateExcitation(
       activeSegments.push_back(connections.segmentForFlatIdx(i));
     }
   }
-  std::sort(activeSegments.begin(), activeSegments.end());
+  std::sort(activeSegments.begin(), activeSegments.end(),
+            [&](Segment a, Segment b)
+            {
+              return connections.compareSegments(a, b);
+            });
 
   // Matching segments, potential synapses.
   matchingSegments.clear();
@@ -858,7 +875,11 @@ static void calculateExcitation(
       matchingSegments.push_back(connections.segmentForFlatIdx(i));
     }
   }
-  std::sort(matchingSegments.begin(), matchingSegments.end());
+  std::sort(matchingSegments.begin(), matchingSegments.end(),
+            [&](Segment a, Segment b)
+            {
+              return connections.compareSegments(a, b);
+            });
 
   if (learn)
   {
@@ -985,11 +1006,13 @@ vector<CellIdx> ExtendedTemporalMemory::getPredictiveCells() const
 {
   vector<CellIdx> predictiveCells;
 
-  const auto columnForSegment =
-    [&](Segment segment) { return segment.cell / cellsPerColumn_; };
+  const auto columnForBasalSegment = [&](Segment segment)
+    { return basalConnections.cellForSegment(segment) / cellsPerColumn_; };
+  const auto columnForApicalSegment = [&](Segment segment)
+    { return apicalConnections.cellForSegment(segment) / cellsPerColumn_; };
 
-  for (auto& columnData : groupBy(activeBasalSegments_, columnForSegment,
-                                  activeApicalSegments_, columnForSegment))
+  for (auto& columnData : groupBy(activeBasalSegments_, columnForBasalSegment,
+                                  activeApicalSegments_, columnForApicalSegment))
   {
     UInt column;
     vector<Segment>::const_iterator
@@ -999,9 +1022,14 @@ vector<CellIdx> ExtendedTemporalMemory::getPredictiveCells() const
         columnActiveBasalBegin, columnActiveBasalEnd,
         columnActiveApicalBegin, columnActiveApicalEnd) = columnData;
 
+    const auto cellForBasalSegment = [&](Segment segment)
+      { return basalConnections.cellForSegment(segment); };
+    const auto cellForApicalSegment = [&](Segment segment)
+      { return apicalConnections.cellForSegment(segment); };
+
     const auto groupedByCell = iterGroupBy(
-       columnActiveBasalBegin, columnActiveBasalEnd, cellForSegment,
-       columnActiveApicalBegin, columnActiveApicalEnd, cellForSegment);
+      columnActiveBasalBegin, columnActiveBasalEnd, cellForBasalSegment,
+      columnActiveApicalBegin, columnActiveApicalEnd, cellForApicalSegment);
 
     UInt32 maxDepolarization = 0;
     for (auto& cellData : groupedByCell)
@@ -1273,8 +1301,15 @@ void ExtendedTemporalMemory::save(ostream& outStream) const
   outStream << activeBasalSegments_.size() << " ";
   for (Segment segment : activeBasalSegments_)
   {
-    outStream << segment.idx << " ";
-    outStream << segment.cell << " ";
+    const CellIdx cell = basalConnections.cellForSegment(segment);
+    const vector<Segment>& segments = basalConnections.segmentsForCell(cell);
+
+    SegmentIdx idx = std::distance(
+      segments.begin(),
+      std::find(segments.begin(), segments.end(), segment));
+
+    outStream << idx << " ";
+    outStream << cell << " ";
     outStream << numActiveConnectedSynapsesForBasalSegment_[segment.flatIdx]
               << " ";
   }
@@ -1283,8 +1318,15 @@ void ExtendedTemporalMemory::save(ostream& outStream) const
   outStream << matchingBasalSegments_.size() << " ";
   for (Segment segment : matchingBasalSegments_)
   {
-    outStream << segment.idx << " ";
-    outStream << segment.cell << " ";
+    const CellIdx cell = basalConnections.cellForSegment(segment);
+    const vector<Segment>& segments = basalConnections.segmentsForCell(cell);
+
+    SegmentIdx idx = std::distance(
+      segments.begin(),
+      std::find(segments.begin(), segments.end(), segment));
+
+    outStream << idx << " ";
+    outStream << cell << " ";
     outStream << numActivePotentialSynapsesForBasalSegment_[segment.flatIdx]
               << " ";
   }
@@ -1293,8 +1335,15 @@ void ExtendedTemporalMemory::save(ostream& outStream) const
   outStream << activeApicalSegments_.size() << " ";
   for (Segment segment : activeApicalSegments_)
   {
-    outStream << segment.idx << " ";
-    outStream << segment.cell << " ";
+    const CellIdx cell = apicalConnections.cellForSegment(segment);
+    const vector<Segment>& segments = apicalConnections.segmentsForCell(cell);
+
+    SegmentIdx idx = std::distance(
+      segments.begin(),
+      std::find(segments.begin(), segments.end(), segment));
+
+    outStream << idx << " ";
+    outStream << cell << " ";
     outStream << numActiveConnectedSynapsesForApicalSegment_[segment.flatIdx]
               << " ";
   }
@@ -1303,8 +1352,15 @@ void ExtendedTemporalMemory::save(ostream& outStream) const
   outStream << matchingApicalSegments_.size() << " ";
   for (Segment segment : matchingApicalSegments_)
   {
-    outStream << segment.idx << " ";
-    outStream << segment.cell << " ";
+    const CellIdx cell = apicalConnections.cellForSegment(segment);
+    const vector<Segment>& segments = apicalConnections.segmentsForCell(cell);
+
+    SegmentIdx idx = std::distance(
+      segments.begin(),
+      std::find(segments.begin(), segments.end(), segment));
+
+    outStream << idx << " ";
+    outStream << cell << " ";
     outStream << numActivePotentialSynapsesForApicalSegment_[segment.flatIdx]
               << " ";
   }
@@ -1364,9 +1420,16 @@ void ExtendedTemporalMemory::write(ExtendedTemporalMemoryProto::Builder& proto) 
     proto.initActiveBasalSegmentOverlaps(activeBasalSegments_.size());
   for (UInt i = 0; i < activeBasalSegments_.size(); ++i)
   {
-    Segment segment = activeBasalSegments_[i];
-    activeBasalSegmentOverlaps[i].setCell(segment.cell);
-    activeBasalSegmentOverlaps[i].setSegment(segment.idx);
+    const Segment segment = activeBasalSegments_[i];
+    const CellIdx cell = basalConnections.cellForSegment(segment);
+    const vector<Segment>& segments = basalConnections.segmentsForCell(cell);
+
+    SegmentIdx idx = std::distance(
+      segments.begin(),
+      std::find(segments.begin(), segments.end(), segment));
+
+    activeBasalSegmentOverlaps[i].setCell(cell);
+    activeBasalSegmentOverlaps[i].setSegment(idx);
     activeBasalSegmentOverlaps[i].setOverlap(
       numActiveConnectedSynapsesForBasalSegment_[segment.flatIdx]);
   }
@@ -1375,9 +1438,16 @@ void ExtendedTemporalMemory::write(ExtendedTemporalMemoryProto::Builder& proto) 
     proto.initMatchingBasalSegmentOverlaps(matchingBasalSegments_.size());
   for (UInt i = 0; i < matchingBasalSegments_.size(); ++i)
   {
-    Segment segment = matchingBasalSegments_[i];
-    matchingBasalSegmentOverlaps[i].setCell(segment.cell);
-    matchingBasalSegmentOverlaps[i].setSegment(segment.idx);
+    const Segment segment = matchingBasalSegments_[i];
+    const CellIdx cell = basalConnections.cellForSegment(segment);
+    const vector<Segment>& segments = basalConnections.segmentsForCell(cell);
+
+    SegmentIdx idx = std::distance(
+      segments.begin(),
+      std::find(segments.begin(), segments.end(), segment));
+
+    matchingBasalSegmentOverlaps[i].setCell(cell);
+    matchingBasalSegmentOverlaps[i].setSegment(idx);
     matchingBasalSegmentOverlaps[i].setOverlap(
       numActivePotentialSynapsesForBasalSegment_[segment.flatIdx]);
   }
@@ -1387,8 +1457,15 @@ void ExtendedTemporalMemory::write(ExtendedTemporalMemoryProto::Builder& proto) 
   for (UInt i = 0; i < activeApicalSegments_.size(); ++i)
   {
     Segment segment = activeApicalSegments_[i];
-    activeApicalSegmentOverlaps[i].setCell(segment.cell);
-    activeApicalSegmentOverlaps[i].setSegment(segment.idx);
+    const CellIdx cell = apicalConnections.cellForSegment(segment);
+    const vector<Segment>& segments = apicalConnections.segmentsForCell(cell);
+
+    SegmentIdx idx = std::distance(
+      segments.begin(),
+      std::find(segments.begin(), segments.end(), segment));
+
+    activeApicalSegmentOverlaps[i].setCell(cell);
+    activeApicalSegmentOverlaps[i].setSegment(idx);
     activeApicalSegmentOverlaps[i].setOverlap(
       numActiveConnectedSynapsesForApicalSegment_[segment.flatIdx]);
   }
@@ -1398,8 +1475,15 @@ void ExtendedTemporalMemory::write(ExtendedTemporalMemoryProto::Builder& proto) 
   for (UInt i = 0; i < matchingApicalSegments_.size(); ++i)
   {
     Segment segment = matchingApicalSegments_[i];
-    matchingApicalSegmentOverlaps[i].setCell(segment.cell);
-    matchingApicalSegmentOverlaps[i].setSegment(segment.idx);
+    const CellIdx cell = apicalConnections.cellForSegment(segment);
+    const vector<Segment>& segments = apicalConnections.segmentsForCell(cell);
+
+    SegmentIdx idx = std::distance(
+      segments.begin(),
+      std::find(segments.begin(), segments.end(), segment));
+
+    matchingApicalSegmentOverlaps[i].setCell(cell);
+    matchingApicalSegmentOverlaps[i].setSegment(idx);
     matchingApicalSegmentOverlaps[i].setOverlap(
       numActivePotentialSynapsesForApicalSegment_[segment.flatIdx]);
   }

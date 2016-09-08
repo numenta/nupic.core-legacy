@@ -311,7 +311,7 @@ namespace nupic
 
     for (Segment segment : activeSegments)
     {
-      winnerCells.insert(segment.cell);
+      winnerCells.insert(connections.cellForSegment(segment));
       if (winnerCells.size() >= numCells)
       {
         break;
