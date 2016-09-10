@@ -44,26 +44,26 @@ namespace nupic {
     namespace temporal_memory {
 
       /**
-       * CLA temporal memory implementation in C++.
-       *
-       * The primary public interfaces to this function are the "initialize"
-       * and "compute" methods.
+       * Temporal Memory implementation in C++.
        *
        * Example usage:
        *
-       *     SpatialPooler sp;
-       *     sp.initialize(inputDimensions, columnDimensions, <parameters>);
-       *
-       *     TemporalMemory tm;
-       *     tm.initialize(columnDimensions, <parameters>);
+       *     SpatialPooler sp(inputDimensions, columnDimensions, <parameters>);
+       *     TemporalMemory tm(columnDimensions, <parameters>);
        *
        *     while (true) {
        *        <get input vector, streaming spatiotemporal information>
        *        sp.compute(inputVector, learn, activeColumns)
        *        tm.compute(number of activeColumns, activeColumns, learn)
-       *        <do something with output, e.g. classify it>
+       *        <do something with the tm, e.g. classify tm.getActiveCells()>
        *     }
        *
+       * The public API uses C arrays, not std::vectors, as inputs. C arrays are
+       * a good lowest common denominator. You can get a C array from a vector,
+       * but you can't get a vector from a C array without copying it. This is
+       * important, for example, when using numpy arrays. The only way to
+       * convert a numpy array into a std::vector is to copy it, but you can
+       * access a numpy array's internal C array directly.
        */
       class TemporalMemory : public Serializable<TemporalMemoryProto> {
       public:
@@ -184,6 +184,9 @@ namespace nupic {
          * Calculate the active cells, using the current active columns and
          * dendrite segments. Grow and reinforce synapses.
          *
+         * @param activeColumnsSize
+         * Size of activeColumns.
+         *
          * @param activeColumns
          * A sorted list of active column indices.
          *
@@ -191,7 +194,9 @@ namespace nupic {
          * If true, reinforce / punish / grow synapses.
          */
         void activateCells(
-          const vector<UInt>& activeColumns, bool learn = true);
+          size_t activeColumnsSize,
+          const UInt activeColumns[],
+          bool learn = true);
 
         /**
          * Calculate dendrite segment activity, using the current active cells.
@@ -203,20 +208,26 @@ namespace nupic {
         void activateDendrites(bool learn = true);
 
         /**
-         * Feeds input record through TM, performing inference and learning.
+         * Perform one time step of the Temporal Memory algorithm.
          *
-         * @param activeColumnsSize Number of active columns
-         * @param activeColumns     Indices of active columns
-         * @param learn             Whether or not learning is enabled
+         * This method calls activateCells, then calls activateDendrites. Using
+         * the TemporalMemory via its compute method ensures that you'll always
+         * be able to call getPredictiveCells to get predictions for the next
+         * time step.
          *
-         * Updates member variables:
-         * - `activeCells`
-         * - `winnerCells`
-         * - `activeSegments`
-         * - `matchingSegments`
+         * @param activeColumnsSize
+         * Number of active columns.
+         *
+         * @param activeColumns
+         * Sorted list of indices of active columns.
+         *
+         * @param learn
+         * Whether or not learning is enabled.
          */
         virtual void compute(
-          UInt activeColumnsSize, const UInt activeColumns[], bool learn = true);
+          size_t activeColumnsSize,
+          const UInt activeColumns[],
+          bool learn = true);
 
 
         // ==============================

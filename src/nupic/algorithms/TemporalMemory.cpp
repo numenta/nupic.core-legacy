@@ -444,10 +444,12 @@ static void punishPredictedColumn(
 }
 
 void TemporalMemory::activateCells(
-  const vector<UInt>& activeColumns,
+  size_t activeColumnsSize,
+  const UInt activeColumns[],
   bool learn)
 {
-  NTA_ASSERT(std::is_sorted(activeColumns.begin(), activeColumns.end()));
+  NTA_ASSERT(std::is_sorted(activeColumns,
+                            activeColumns + activeColumnsSize));
 
   const vector<CellIdx> prevActiveCells = std::move(activeCells_);
   const vector<CellIdx> prevWinnerCells = std::move(winnerCells_);
@@ -455,13 +457,14 @@ void TemporalMemory::activateCells(
   const auto columnForSegment =
     [&](Segment segment) { return segment.cell / cellsPerColumn_; };
 
-  for (auto& columnData : groupBy(activeColumns, identity<UInt>,
-                                  activeSegments_, columnForSegment,
-                                  matchingSegments_, columnForSegment))
+  for (auto& columnData : iterGroupBy(
+         activeColumns, activeColumns + activeColumnsSize, identity<UInt>,
+         activeSegments_.begin(), activeSegments_.end(), columnForSegment,
+         matchingSegments_.begin(), matchingSegments_.end(), columnForSegment))
   {
     UInt column;
-    vector<UInt>::const_iterator
-      activeColumnsBegin, activeColumnsEnd;
+    const UInt* activeColumnsBegin;
+    const UInt* activeColumnsEnd;
     vector<Segment>::const_iterator
       columnActiveSegmentsBegin, columnActiveSegmentsEnd,
       columnMatchingSegmentsBegin, columnMatchingSegmentsEnd;
@@ -555,16 +558,11 @@ void TemporalMemory::activateDendrites(bool learn)
 }
 
 void TemporalMemory::compute(
-  UInt activeColumnsSize,
-  const UInt activeColumnsUnsorted[],
+  size_t activeColumnsSize,
+  const UInt activeColumns[],
   bool learn)
 {
-  vector<UInt> activeColumns(activeColumnsUnsorted,
-                             activeColumnsUnsorted + activeColumnsSize);
-  std::sort(activeColumns.begin(), activeColumns.end());
-
-  activateCells(activeColumns, learn);
-
+  activateCells(activeColumnsSize, activeColumns, learn);
   activateDendrites(learn);
 }
 

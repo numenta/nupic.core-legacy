@@ -1344,13 +1344,13 @@ namespace {
       SequenceMachine sequenceMachine = SequenceMachine(self.patternMachine);
       Sequence sequence = self.sequenceMachine.generateFromNumbers(range(5));
     */
-    vector<vector<UInt>> sequence = 
-      { 
-        { 83, 53, 70, 45 },
-        { 8, 65, 67, 59 },
-        { 25, 98, 99, 39 },
-        { 66, 11, 78, 14 },
-        { 96, 87, 69, 95 } };
+    vector<vector<UInt>> sequence =
+      {
+        { 45, 53, 70, 83 },
+        { 8, 59, 65, 67 },
+        { 25, 39, 98, 99 },
+        { 11, 14, 66, 78 },
+        { 69, 87, 95, 96 } };
 
     for (UInt i = 0; i < 3; i++)
     {

@@ -170,13 +170,104 @@ using namespace nupic;
         del state["this"]
         self.__dict__.update(state)
 
+
+    def activateCells(self,
+                      activeColumns,
+                      prevActiveExternalCellsBasal,
+                      prevActiveExternalCellsApical,
+                      learn=True):
+      """
+      Calculate the active cells, using the current active columns and dendrite
+      segments. Grow and reinforce synapses.
+
+      @param activeColumns (iterable)
+      Indices of active columns.
+
+      @param prevActiveExternalCellsBasal (iterable)
+      External cells that were used to calculate the current basal segment
+      excitation.
+
+      @param prevActiveExternalCellsApical (iterable)
+      External cells that were used to calculate the current apical segment
+      excitation.
+
+      @param learn (boolean)
+      Whether to grow / reinforce / punish synapses.
+      """
+      columnsArray = numpy.array(sorted(activeColumns), dtype=uintDType)
+      basalArray = numpy.array((sorted(prevActiveExternalCellsBasal)
+                                if prevActiveExternalCellsBasal is not None
+                                  else []),
+                               dtype=uintDType)
+      apicalArray = numpy.array((sorted(prevActiveExternalCellsApical)
+                                if prevActiveExternalCellsApical is not None
+                                  else []),
+                               dtype=uintDType)
+
+      self.convertedActivateCells(columnsArray, basalArray, apicalArray, learn)
+
+
+    def activateDendrites(self,
+                          activeExternalCellsBasal,
+                          activeExternalCellsApical,
+                          learn=True):
+      """
+      Calculate dendrite segment activity, using the current active cells.
+
+      @param activeExternalCellsBasal (iterable)
+      Active external cells for activating basal dendrites.
+
+      @param activeExternalCellsApical (iterable)
+      Active external cells for activating apical dendrites.
+
+      @param learn (boolean)
+      If true, segment activations will be recorded. This information is used
+      during segment cleanup.
+      """
+      basalArray = numpy.array((sorted(activeExternalCellsBasal)
+                                if activeExternalCellsBasal is not None
+                                  else []),
+                               dtype=uintDType)
+      apicalArray = numpy.array((sorted(activeExternalCellsApical)
+                                if activeExternalCellsApical is not None
+                                  else []),
+                               dtype=uintDType)
+
+      self.convertedActivateDendrites(basalArray, apicalArray, learn)
+
+
     def compute(self,
                 activeColumns,
                 activeExternalCells=None,
                 activeApicalCells=None,
                 formInternalConnections=True,
                 learn=True):
-      activeColumnsArray = numpy.array(list(activeColumns), dtype=uintDType)
+      """
+      Perform one time step of the Temporal Memory algorithm.
+
+      This method calls activateCells, then calls activateDendrites. Using
+      the TemporalMemory via its compute method ensures that you'll always
+      be able to call getPredictiveCells to get predictions for the next
+      time step.
+
+      @param activeColumns (iterable)
+      Indices of active columns.
+
+      @param activeExternalCellsBasal (iterable)
+      Active external cells that should be used for activating basal dendrites
+      in this timestep.
+
+      @param activeExternalCellsApical (iterable)
+      Active external cells that should be used for activating apical dendrites
+      in this timestep.
+
+      @param formInternalConnections (boolean)
+      Whether to grow synapses to other cells within this temporal memory.
+
+      @param learn (boolean)
+      Whether or not learning is enabled.
+      """
+      activeColumnsArray = numpy.array(sorted(activeColumns), dtype=uintDType)
       activeExternalCellsBasal = numpy.array((sorted(activeExternalCells)
                                               if activeExternalCells is not None
                                               else []),
@@ -189,10 +280,13 @@ using namespace nupic;
       _EXPERIMENTAL.ExtendedTemporalMemory_setFormInternalBasalConnections(
         self, formInternalConnections)
 
-      _EXPERIMENTAL.ExtendedTemporalMemory_compute(
-        self, activeColumnsArray, self.activeExternalCellsBasal,
-        activeExternalCellsBasal, self.activeExternalCellsApical,
-        activeExternalCellsApical, learn)
+      self.convertedCompute(
+        activeColumnsArray,
+        self.activeExternalCellsBasal,
+        activeExternalCellsBasal,
+        self.activeExternalCellsApical,
+        activeExternalCellsApical,
+        learn)
 
       self.activeExternalCellsBasal = activeExternalCellsBasal
       self.activeExternalCellsApical = activeExternalCellsApical
@@ -231,6 +325,121 @@ using namespace nupic;
   {
     const vector<CellIdx> cellIdxs = self->cellsForColumn(columnIdx);
     return vectorToList(cellIdxs);
+  }
+
+  inline void convertedActivateCells(PyObject *py_activeColumns,
+                                     PyObject *py_prevActiveExternalCellsBasal,
+                                     PyObject *py_prevActiveExternalCellsApical,
+                                     bool learn)
+  {
+    PyArrayObject* _activeColumns =
+      (PyArrayObject*) py_activeColumns;
+    size_t activeColumnsSize =
+      PyArray_DIMS(_activeColumns)[0];
+    UInt32* activeColumns =
+      (UInt32*)PyArray_DATA(_activeColumns);
+
+    PyArrayObject* _prevActiveExternalCellsBasal =
+      (PyArrayObject*) py_prevActiveExternalCellsBasal;
+    size_t prevActiveExternalCellsBasalSize =
+      PyArray_DIMS(_prevActiveExternalCellsBasal)[0];
+    CellIdx* prevActiveExternalCellsBasal =
+      (CellIdx*)PyArray_DATA(_prevActiveExternalCellsBasal);
+
+    PyArrayObject* _prevActiveExternalCellsApical =
+      (PyArrayObject*) py_prevActiveExternalCellsApical;
+    size_t prevActiveExternalCellsApicalSize =
+      PyArray_DIMS(_prevActiveExternalCellsApical)[0];
+    CellIdx* prevActiveExternalCellsApical =
+      (CellIdx*)PyArray_DATA(_prevActiveExternalCellsApical);
+
+    self->activateCells(activeColumnsSize,
+                        activeColumns,
+                        prevActiveExternalCellsBasalSize,
+                        prevActiveExternalCellsBasal,
+                        prevActiveExternalCellsApicalSize,
+                        prevActiveExternalCellsApical,
+                        learn);
+  }
+
+  inline void convertedActivateDendrites(PyObject *py_activeExternalCellsBasal,
+                                         PyObject *py_activeExternalCellsApical,
+                                         bool learn)
+{
+    PyArrayObject* _activeExternalCellsBasal =
+      (PyArrayObject*) py_activeExternalCellsBasal;
+    size_t activeExternalCellsBasalSize =
+      PyArray_DIMS(_activeExternalCellsBasal)[0];
+    CellIdx* activeExternalCellsBasal =
+      (CellIdx*)PyArray_DATA(_activeExternalCellsBasal);
+
+    PyArrayObject* _activeExternalCellsApical =
+      (PyArrayObject*) py_activeExternalCellsApical;
+    size_t activeExternalCellsApicalSize =
+      PyArray_DIMS(_activeExternalCellsApical)[0];
+    CellIdx* activeExternalCellsApical =
+      (CellIdx*)PyArray_DATA(_activeExternalCellsApical);
+
+    self->activateDendrites(activeExternalCellsBasalSize,
+                            activeExternalCellsBasal,
+                            activeExternalCellsApicalSize,
+                            activeExternalCellsApical,
+                            learn);
+  }
+
+  inline void convertedCompute(PyObject *py_activeColumns,
+                               PyObject *py_prevActiveExternalCellsBasal,
+                               PyObject *py_activeExternalCellsBasal,
+                               PyObject *py_prevActiveExternalCellsApical,
+                               PyObject *py_activeExternalCellsApical,
+                               bool learn)
+  {
+    PyArrayObject* _activeColumns =
+      (PyArrayObject*) py_activeColumns;
+    size_t activeColumnsSize =
+      PyArray_DIMS(_activeColumns)[0];
+    UInt32* activeColumns =
+      (UInt32*)PyArray_DATA(_activeColumns);
+
+    PyArrayObject* _prevActiveExternalCellsBasal =
+      (PyArrayObject*) py_prevActiveExternalCellsBasal;
+    size_t prevActiveExternalCellsBasalSize =
+      PyArray_DIMS(_prevActiveExternalCellsBasal)[0];
+    CellIdx* prevActiveExternalCellsBasal =
+      (CellIdx*)PyArray_DATA(_prevActiveExternalCellsBasal);
+
+    PyArrayObject* _activeExternalCellsBasal =
+      (PyArrayObject*) py_activeExternalCellsBasal;
+    size_t activeExternalCellsBasalSize =
+      PyArray_DIMS(_activeExternalCellsBasal)[0];
+    CellIdx* activeExternalCellsBasal =
+      (CellIdx*)PyArray_DATA(_activeExternalCellsBasal);
+
+    PyArrayObject* _prevActiveExternalCellsApical =
+      (PyArrayObject*) py_prevActiveExternalCellsApical;
+    size_t prevActiveExternalCellsApicalSize =
+      PyArray_DIMS(_prevActiveExternalCellsApical)[0];
+    CellIdx* prevActiveExternalCellsApical =
+      (CellIdx*)PyArray_DATA(_prevActiveExternalCellsApical);
+
+    PyArrayObject* _activeExternalCellsApical =
+      (PyArrayObject*) py_activeExternalCellsApical;
+    size_t activeExternalCellsApicalSize =
+      PyArray_DIMS(_activeExternalCellsApical)[0];
+    CellIdx* activeExternalCellsApical =
+      (CellIdx*)PyArray_DATA(_activeExternalCellsApical);
+
+    self->compute(activeColumnsSize,
+                  activeColumns,
+                  prevActiveExternalCellsBasalSize,
+                  prevActiveExternalCellsBasal,
+                  activeExternalCellsBasalSize,
+                  activeExternalCellsBasal,
+                  prevActiveExternalCellsApicalSize,
+                  prevActiveExternalCellsApical,
+                  activeExternalCellsApicalSize,
+                  activeExternalCellsApical,
+                  learn);
   }
 
   inline void write(PyObject* pyBuilder) const
