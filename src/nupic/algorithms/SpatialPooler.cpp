@@ -1172,6 +1172,10 @@ void SpatialPooler::inhibitColumnsLocal_(vector<Real>& overlaps, Real density,
                                          vector<UInt>& activeColumns)
 {
   activeColumns.clear();
+
+  // When a column is selected, add a small number to its overlap. If it was
+  // tied with other not-yet-processed columns, those columns will now lose the
+  // tie-breaker when they're processed.
   Real arbitration = *max_element(overlaps.begin(), overlaps.end()) / 1000.0;
   if (arbitration == 0)
   {
