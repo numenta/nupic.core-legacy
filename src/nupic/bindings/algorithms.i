@@ -1820,8 +1820,41 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
         del state["this"]
         self.__dict__.update(state)
 
+
+    def activateCells(self,
+                      activeColumns,
+                      learn=True):
+      """
+      Calculate the active cells, using the current active columns and dendrite
+      segments. Grow and reinforce synapses.
+
+      @param activeColumns (iterable)
+      Indices of active columns.
+
+      @param learn (boolean)
+      Whether to grow / reinforce / punish synapses.
+      """
+      columnsArray = numpy.array(sorted(activeColumns), dtype=uintDType)
+
+      self.convertedActivateCells(columnsArray, learn)
+
+
     def compute(self, activeColumns, learn=True):
-      activeColumnsArray = numpy.array(list(activeColumns), dtype=uintDType)
+      """
+      Perform one time step of the Temporal Memory algorithm.
+
+      This method calls activateCells, then calls activateDendrites. Using
+      the TemporalMemory via its compute method ensures that you'll always
+      be able to call getPredictiveCells to get predictions for the next
+      time step.
+
+      @param activeColumns (iterable)
+      Indices of active columns.
+
+      @param learn (boolean)
+      Whether or not learning is enabled.
+      """
+      activeColumnsArray = numpy.array(sorted(activeColumns), dtype=uintDType)
       self.convertedCompute(activeColumnsArray, learn)
 
     @classmethod
@@ -1861,14 +1894,32 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
     return vectorToList(cellIdxs);
   }
 
-  inline void convertedCompute(PyObject *py_x, bool learn)
+  inline void convertedActivateCells(PyObject *py_activeColumns,
+                                     bool learn)
   {
-    PyArrayObject* _x = (PyArrayObject*) py_x;
+    PyArrayObject* _activeColumns =
+      (PyArrayObject*) py_activeColumns;
+    size_t activeColumnsSize =
+      PyArray_DIMS(_activeColumns)[0];
+    UInt32* activeColumns =
+      (UInt32*)PyArray_DATA(_activeColumns);
 
-    nupic::UInt32  len = (nupic::UInt32)PyArray_DIMS(_x)[0];
-    nupic::UInt32* data = (nupic::UInt32*)PyArray_DATA(_x);
+    self->activateCells(activeColumnsSize,
+                        activeColumns,
+                        learn);
+  }
 
-    self->compute(len, data, learn);
+  inline void convertedCompute(PyObject *py_activeColumns,
+                               bool learn)
+  {
+    PyArrayObject* _activeColumns =
+      (PyArrayObject*) py_activeColumns;
+    size_t activeColumnsSize =
+      PyArray_DIMS(_activeColumns)[0];
+    UInt32* activeColumns =
+      (UInt32*)PyArray_DATA(_activeColumns);
+
+    self->compute(activeColumnsSize, activeColumns, learn);
   }
 
   inline void write(PyObject* pyBuilder) const
