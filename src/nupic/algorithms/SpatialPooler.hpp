@@ -972,23 +972,24 @@ namespace nupic {
                                             vector<UInt>& potential);
 
           /**
-              This function determines each column's overlap with the current input
-              vector.
+             This function determines each column's overlap with the current
+             input vector.
 
-              The overlap of a column is the number of synapses for that column
-              that are connected (permance value is greater than '_synPermConnected')
-              to input bits which are turned on. Overlap values that are lower than
-              the 'stimulusThreshold' are ignored. The implementation takes advantage of
-              the SpraseBinaryMatrix class to perform this calculation efficiently.
+             The overlap of a column is the number of synapses for that column
+             that are connected (permance value is greater than
+             '_synPermConnected') to input bits which are turned on. The
+             implementation takes advantage of the SpraseBinaryMatrix class to
+             perform this calculation efficiently.
 
+             @param inputVector
+             a int array of 0's and 1's that comprises the input to the spatial
+             pooler.
 
-              @param inputVector    a int array of 0's and 1's that comprises the input to
-                              the spatial pooler.
-
-              @param overlap       an int vector containing the overlap score for each  column.
-                    The overlap score for a column is defined as the number
-                    of synapses in a "connected state" (connected synapses)
-                    that are connected to input bits which are turned on.
+             @param overlap
+             an int vector containing the overlap score for each column. The
+             overlap score for a column is defined as the number of synapses in
+             a "connected state" (connected synapses) that are connected to
+             input bits which are turned on.
           */
           void calculateOverlap_(UInt inputVector[],
                                  vector<UInt>& overlap);
@@ -1019,46 +1020,54 @@ namespace nupic {
                                vector<UInt>& activeColumns);
 
           /**
-              Perform global inhibition.
+             Perform global inhibition.
 
-              Performing global inhibition entails picking the
-              top 'numActive' columns with the highest overlap score in the entire
-              region. At most half of the columns in a local neighborhood are allowed to
-              be active.
+             Performing global inhibition entails picking the top 'numActive'
+             columns with the highest overlap score in the entire region. At
+             most half of the columns in a local neighborhood are allowed to be
+             active. Columns with an overlap score below the 'stimulusThreshold'
+             are always inhibited.
 
-              @param overlaps       a real array containing the overlap score for each  column.
-                              The overlap score for a column is defined as the number
-                              of synapses in a "connected state" (connected synapses)
-                              that are connected to input bits which are turned on.
+             @param overlaps
+             a real array containing the overlap score for each column. The
+             overlap score for a column is defined as the number of synapses in
+             a "connected state" (connected synapses) that are connected to
+             input bits which are turned on.
 
-              @param density        a real number of the fraction of columns to survive inhibition.
+             @param density
+             a real number of the fraction of columns to survive inhibition.
 
-              @param activeColumns an int array containing the indices of the active columns.
-              */
+             @param activeColumns
+             an int array containing the indices of the active columns.
+          */
           void inhibitColumnsGlobal_(vector<Real>& overlaps, Real density,
                                      vector<UInt>& activeColumns);
 
           /**
-          Performs local inhibition.
+             Performs local inhibition.
 
-          Local inhibition is performed on a column by
-          column basis. Each column observes the overlaps of its neighbors and is
-          selected if its overlap score is within the top 'numActive' in its local
-          neighborhood. At most half of the columns in a local neighborhood are
-          allowed to be active.
+             Local inhibition is performed on a column by column basis. Each
+             column observes the overlaps of its neighbors and is selected if
+             its overlap score is within the top 'numActive' in its local
+             neighborhood. At most half of the columns in a local neighborhood
+             are allowed to be active. Columns with an overlap score below the
+             'stimulusThreshold' are always inhibited.
 
-          ----------------------------
-          @param overlaps       an array containing the overlap score for each  column.
-                          The overlap score for a column is defined as the number
-                          of synapses in a "connected state" (connected synapses)
-                          that are connected to input bits which are turned on.
+             ----------------------------
+             @param overlaps
+             an array containing the overlap score for each column. The overlap
+             score for a column is defined as the number of synapses in a
+             "connected state" (connected synapses) that are connected to input
+             bits which are turned on.
 
-          @param density        The fraction of columns to survive inhibition. This
-                          value is only an intended target. Since the surviving
-                          columns are picked in a local fashion, the exact fraction
-                          of survining columns is likely to vary.
+             @param density
+             The fraction of columns to survive inhibition. This value is only
+             an intended target. Since the surviving columns are picked in a
+             local fashion, the exact fraction of survining columns is likely to
+             vary.
 
-          @param activeColumns an int array containing the indices of the active columns.
+             @param activeColumns
+             an int array containing the indices of the active columns.
           */
           void inhibitColumnsLocal_(vector<Real>& overlaps, Real density,
                                     vector<UInt>& activeColumns);
