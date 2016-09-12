@@ -66,6 +66,56 @@ namespace {
   }
 
   /**
+   * If you call compute with unsorted input, it should throw an exception.
+   */
+  TEST(TemporalMemoryTest, testCheckInputs_UnsortedColumns)
+  {
+    TemporalMemory tm(
+      /*columnDimensions*/ {32},
+      /*cellsPerColumn*/ 4,
+      /*activationThreshold*/ 3,
+      /*initialPermanence*/ 0.21,
+      /*connectedPermanence*/ 0.50,
+      /*minThreshold*/ 2,
+      /*maxNewSynapseCount*/ 3,
+      /*permanenceIncrement*/ 0.10,
+      /*permanenceDecrement*/ 0.10,
+      /*predictedSegmentDecrement*/ 0.0,
+      /*seed*/ 42
+      );
+
+    const UInt activeColumns[4] = {1, 3, 2, 4};
+
+    EXPECT_THROW(tm.compute(4, activeColumns), exception);
+  }
+
+  /**
+   * If you call compute with a binary vector rather than a list of indices, it
+   * should throw an exception.
+   */
+  TEST(TemporalMemoryTest, testCheckInputs_BinaryArray)
+  {
+    TemporalMemory tm(
+      /*columnDimensions*/ {32},
+      /*cellsPerColumn*/ 4,
+      /*activationThreshold*/ 3,
+      /*initialPermanence*/ 0.21,
+      /*connectedPermanence*/ 0.50,
+      /*minThreshold*/ 2,
+      /*maxNewSynapseCount*/ 3,
+      /*permanenceIncrement*/ 0.10,
+      /*permanenceDecrement*/ 0.10,
+      /*predictedSegmentDecrement*/ 0.0,
+      /*seed*/ 42
+      );
+
+    // Use an input that will pass an `is_sorted` check.
+    const UInt activeColumns[5] = {0, 0, 0, 1, 1};
+
+    EXPECT_THROW(tm.compute(5, activeColumns), exception);
+  }
+
+  /**
    * When a predicted column is activated, only the predicted cells in the
    * columns should be activated.
    */

@@ -58,6 +58,28 @@ static const UInt TM_VERSION = 2;
 
 
 
+template<typename Iterator>
+bool isSortedWithoutDuplicates(Iterator begin, Iterator end)
+{
+  if (std::distance(begin, end) >= 2)
+  {
+    Iterator now = begin;
+    Iterator next = begin + 1;
+    while (next != end)
+    {
+      if (*now >= *next)
+      {
+        return false;
+      }
+
+      now = next++;
+    }
+  }
+
+  return true;
+}
+
+
 TemporalMemory::TemporalMemory()
 {
 }
@@ -448,8 +470,9 @@ void TemporalMemory::activateCells(
   const UInt activeColumns[],
   bool learn)
 {
-  NTA_ASSERT(std::is_sorted(activeColumns,
-                            activeColumns + activeColumnsSize));
+  NTA_CHECK(isSortedWithoutDuplicates(activeColumns,
+                                      activeColumns + activeColumnsSize))
+    << "The activeColumns must be a sorted list of indices without duplicates.";
 
   const vector<CellIdx> prevActiveCells = std::move(activeCells_);
   const vector<CellIdx> prevWinnerCells = std::move(winnerCells_);
