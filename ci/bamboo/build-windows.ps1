@@ -22,7 +22,7 @@
 # Builds and tests the nupic.bindings python extension using Release build
 # type.
 #
-# ASUMPTIONS:
+# ASSUMPTIONS:
 #          1. Building via Numenta Vagrant Task using Vagrant image
 #             bamboo-vagrant-windows-1.x.x.
 #
@@ -31,9 +31,6 @@
 #          3. Expects a pristine nupic.core source tree without any remnant
 #             build artifacts from prior build attempts. Otherwise, the
 #             behavior is undefined.
-#
-# NOTES: Based on examples in comments of
-#        https://github.com/NumentaCorp/infrastructure/pull/376
 #
 # OUTPUTS:
 #   nupic.bindings wheel: On success, the resulting wheel will be located in
