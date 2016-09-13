@@ -27,7 +27,7 @@
 
 #include <nupic/utils/LogItem.hpp>
 #include <nupic/types/Exception.hpp>
-#include <iostream>  // cout
+#include <iostream>  // cerr
 #include <stdexcept> // runtime_error
 
 using namespace nupic;
@@ -66,7 +66,7 @@ LogItem::~LogItem()
   }
 
   if (ostream_ == nullptr)
-    ostream_ = &(std::cout);
+    ostream_ = &(std::cerr);
 
   (*ostream_) << slevel << "  " << msg_.str();
 
