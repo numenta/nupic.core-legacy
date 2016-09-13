@@ -200,9 +200,11 @@ Write-Host "Running nupic.core C++ tests."
 
 pushd .\build\release\bin
 
+WrapCmd { .\import_numpy_test.exe }
+
 # TODO py_region_test.exe fails on windows;
 # https://github.com/numenta/nupic.core/issues/1075
-#WrapCmd { .\py_region_test.exe }
+WrapCmd { .\py_region_test.exe }
 
 WrapCmd { .\connections_performance_test.exe }
 WrapCmd { .\cpp_region_test.exe }

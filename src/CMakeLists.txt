@@ -481,6 +481,15 @@ add_custom_target(tests_cpp_region
                   VERBATIM)
 
 #
+# Setup import_numpy_test
+#
+set(src_executable_importnumpytest import_numpy_test)
+add_executable(${src_executable_importnumpytest} test/integration/ImportNumpyTest.cpp)
+target_link_libraries(${src_executable_importnumpytest} ${src_common_test_exe_libs})
+set_target_properties(${src_executable_importnumpytest} PROPERTIES COMPILE_FLAGS ${src_compile_flags})
+set_target_properties(${src_executable_importnumpytest} PROPERTIES LINK_FLAGS "${INTERNAL_LINKER_FLAGS_OPTIMIZED}")
+
+#
 # Setup test_py_region
 #
 set(src_executable_pyregiontest py_region_test)
@@ -853,6 +862,7 @@ install(TARGETS
         ${src_lib_static_nupiccore_combined}
         ${src_lib_static_gtest}
         ${src_executable_helloregion}
+        ${src_executable_importnumpytest}
         ${src_executable_cppregiontest}
         ${src_executable_pyregiontest}
         ${src_executable_connectionsperformancetest}
