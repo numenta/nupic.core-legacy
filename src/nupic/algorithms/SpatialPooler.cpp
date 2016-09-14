@@ -31,11 +31,13 @@
 
 #include <nupic/algorithms/SpatialPooler.hpp>
 #include <nupic/math/Math.hpp>
+#include <nupic/math/Topology.hpp>
 #include <nupic/proto/SpatialPoolerProto.capnp.h>
 
 using namespace std;
 using namespace nupic;
 using namespace nupic::algorithms::spatial_pooler;
+using namespace nupic::math::topology;
 
 // MSVC doesn't provide round() which only became standard in C99 or C++11
 #if defined(NTA_COMPILER_MSVC)
@@ -672,45 +674,57 @@ void SpatialPooler::boostOverlaps_(vector<UInt>& overlaps,
 
 UInt SpatialPooler::mapColumn_(UInt column)
 {
+  vector<UInt> columnCoords;
   CoordinateConverterND columnConv(columnDimensions_);
-  CoordinateConverterND inputConv(inputDimensions_);
-  vector<UInt> columnCoord, inputCoord;
+  columnConv.toCoord(column, columnCoords);
 
-  columnConv.toCoord(column, columnCoord);
+  vector<UInt> inputCoords;
+  inputCoords.reserve(columnCoords.size());
+  for (UInt i = 0; i < columnCoords.size(); i++)
+  {
+    const Real inputCoord =
+      ((Real)columnCoords[i] + 0.5) *
+      (inputDimensions_[i] / (Real)columnDimensions_[i]);
 
-  Real ratio;
-  UInt coord;
-  for (UInt i = 0; i < columnCoord.size(); i++) {
-    ratio = (Real)columnCoord[i] / columnDimensions_[i];
-    coord = inputDimensions_[i] * ratio;
-    coord += 0.5 * inputDimensions_[i] / columnDimensions_[i];
-    inputCoord.push_back(coord);
+    inputCoords.push_back(floor(inputCoord));
   }
 
-  return inputConv.toIndex(inputCoord);
+  CoordinateConverterND inputConv(inputDimensions_);
+  return inputConv.toIndex(inputCoords);
 }
 
 vector<UInt> SpatialPooler::mapPotential_(UInt column, bool wrapAround)
 {
+  const UInt centerInput = mapColumn_(column);
+
+  vector<UInt> columnInputs;
+  if (wrapAround)
+  {
+    for (UInt input : WrappingNeighborhood(centerInput, potentialRadius_,
+                                           inputDimensions_))
+    {
+      columnInputs.push_back(input);
+    }
+  }
+  else
+  {
+    for (UInt input : Neighborhood(centerInput, potentialRadius_,
+                                   inputDimensions_))
+    {
+      columnInputs.push_back(input);
+    }
+  }
+
+  UInt numPotential = round(columnInputs.size() * potentialPct_);
+
+  vector<UInt> selectedInputs(numPotential, 0);
+  rng_.sample(&columnInputs.front(), columnInputs.size(),
+              &selectedInputs.front(), numPotential);
+
   vector<UInt> potential(numInputs_, 0);
-  vector<UInt> indices;
-  UInt index;
-
-  index = mapColumn_(column);
-  getNeighborsND_(index, inputDimensions_, potentialRadius_, wrapAround, indices);
-  indices.push_back(index);
-
-  // TODO: See https://github.com/numenta/nupic.core/issues/128
-  sort(indices.begin(), indices.end());
-
-  UInt numPotential = round(indices.size() * potentialPct_);
-
-  vector<UInt> selectedIndices(numPotential, 0);
-  rng_.sample(&indices.front(), indices.size(),
-              &selectedIndices.front(), numPotential);
-
-  for (UInt i = 0; i < numPotential; i++) {
-    potential[selectedIndices[i]] = 1;
+  for (UInt input : selectedInputs)
+  {
+    potential[input] = 1;
   }
 
   return potential;
@@ -869,16 +883,12 @@ void SpatialPooler::updateMinDutyCyclesGlobal_()
 void SpatialPooler::updateMinDutyCyclesLocal_()
 {
   for (UInt i = 0; i < numColumns_; i++) {
-    vector<UInt> neighbors;
-
-    getNeighborsND_(i, columnDimensions_, inhibitionRadius_, false, neighbors);
-    neighbors.push_back(i);
     Real maxActiveDuty = 0;
     Real maxOverlapDuty = 0;
-    for (auto & neighbor : neighbors) {
-      UInt index = neighbor;
-      maxActiveDuty = max(maxActiveDuty, activeDutyCycles_[index]);
-      maxOverlapDuty = max(maxOverlapDuty, overlapDutyCycles_[index]);
+    for (UInt column : Neighborhood(i, inhibitionRadius_, columnDimensions_))
+    {
+      maxActiveDuty = max(maxActiveDuty, activeDutyCycles_[column]);
+      maxOverlapDuty = max(maxOverlapDuty, overlapDutyCycles_[column]);
     }
 
     minActiveDutyCycles_[i] = maxActiveDuty * minPctActiveDutyCycles_;
@@ -1183,162 +1193,32 @@ void SpatialPooler::inhibitColumnsLocal_(vector<Real>& overlaps, Real density,
   }
 
   vector<UInt> neighbors;
-  for (UInt column = 0; column < numColumns_; column++) {
+  for (UInt column = 0; column < numColumns_; column++)
+  {
     if (overlaps[column] >= stimulusThreshold_) {
-      getNeighborsND_(column, columnDimensions_, inhibitionRadius_, false,
-                      neighbors);
-      UInt numActive = (UInt) (0.5 + (density * (neighbors.size() + 1)));
+      UInt numNeighbors = 0;
       UInt numBigger = 0;
-      for (auto & neighbor : neighbors) {
-        if (overlaps[neighbor] > overlaps[column]) {
-          numBigger++;
+      for (UInt neighbor : Neighborhood(column, inhibitionRadius_,
+                                        columnDimensions_))
+      {
+        if (neighbor != column)
+        {
+          numNeighbors++;
+          if (overlaps[neighbor] > overlaps[column])
+          {
+            numBigger++;
+          }
         }
       }
 
-      if (numBigger < numActive) {
+      UInt numActive = (UInt) (0.5 + (density * (numNeighbors + 1)));
+      if (numBigger < numActive)
+      {
         activeColumns.push_back(column);
         overlaps[column] += arbitration;
       }
     }
   }
-}
-
-void SpatialPooler::getNeighbors1D_(UInt column, vector<UInt>& dimensions,
-                     UInt radius, bool wrapAround, vector<UInt>& neighbors)
-{
-  NTA_ASSERT(dimensions.size() == 1);
-  neighbors.clear();
-  for (Int i = (Int) column - (Int) radius;
-       i < (Int) column + (Int) radius + 1; i++) {
-
-    if (i == (Int) column) {
-      continue;
-    }
-
-    if (wrapAround) {
-      neighbors.push_back((i + (Int) numColumns_) % numColumns_);
-    } else if (i >= 0 && i < (Int) numColumns_) {
-      neighbors.push_back(i);
-    }
-  }
-}
-
-void SpatialPooler::getNeighbors2D_(UInt column, vector<UInt>& dimensions,
-                     UInt radius, bool wrapAround, vector<UInt>& neighbors)
-{
-  NTA_ASSERT(dimensions.size() == 2);
-  neighbors.clear();
-
-  UInt nrows = dimensions[0];
-  UInt ncols = dimensions[1];
-
-  CoordinateConverter2D conv(nrows,ncols);
-
-  Int row = (Int) conv.toRow(column);
-  Int col = (Int) conv.toCol(column);
-
-  for (Int r = row - (Int) radius; r <= row + (Int) radius; r++) {
-    for (Int c = col - (Int) radius; c <= col + (Int) radius; c++) {
-      if (r == row && c == col) {
-        continue;
-      }
-
-      if (wrapAround) {
-        UInt index = conv.toIndex((r + nrows) % nrows, (c + ncols) % ncols);
-        neighbors.push_back(index);
-      } else if (r >= 0 && r < (Int) nrows && c >= 0 && c < (Int) ncols) {
-        UInt index = conv.toIndex(r,c);
-        neighbors.push_back(index);
-      }
-    }
-  }
-}
-
-void SpatialPooler::cartesianProduct_(vector<vector<UInt> >& vecs,
-                                      vector<vector<UInt> >& product)
-{
-  if (vecs.empty()) {
-    return;
-  }
-
-  if (vecs.size() == 1) {
-    for (auto & elem : vecs[0]) {
-      vector<UInt> v;
-      v.push_back(elem);
-      product.push_back(v);
-    }
-    return;
-  }
-
-  vector<UInt> v = vecs[0];
-  vecs.erase(vecs.begin());
-
-  vector<vector<UInt> > prod;
-  cartesianProduct_(vecs, prod);
-  for (auto & elem : v) {
-    for (auto & prod_j : prod) {
-      vector<UInt> coord = prod_j;
-      coord.push_back(elem);
-      product.push_back(coord);
-    }
-  }
-}
-
-void SpatialPooler::range_(Int start, Int end, UInt ubound, bool wrapAround,
-                           vector<UInt>& rangeVector)
-{
-  vector<Int> range;
-  vector<Int>::iterator uniqueEnd;
-
-  // Generate indices within range, wrapping around as necessary
-  for (Int i = start; i <= end; i++) {
-    if (wrapAround) {
-      range.push_back(emod(i, (int) ubound));
-    } else if (i >= 0 && i < (Int) ubound) {
-      range.push_back(i);
-    }
-  }
-
-  // Add the unique range indices to rangeVector
-  sort(range.begin(), range.end());
-  uniqueEnd = unique(range.begin(), range.end());
-  range.resize(distance(range.begin(), uniqueEnd) );
-
-  rangeVector.clear();
-  rangeVector.insert(rangeVector.begin(), range.begin(), range.end());
-}
-
-void SpatialPooler::getNeighborsND_(
-    UInt column, vector<UInt>& dimensions, UInt radius, bool wrapAround,
-    vector<UInt>& neighbors)
-{
-
-  neighbors.clear();
-  CoordinateConverterND conv(dimensions);
-
-  vector<UInt> columnCoord;
-  conv.toCoord(column,columnCoord);
-
-  vector<vector<UInt> > rangeND;
-  vector<UInt> curRange;
-
-  for (UInt i = 0; i < dimensions.size(); i++) {
-    range_((Int) columnCoord[i] - (Int) radius,
-           (Int) columnCoord[i] + (Int) radius,
-           dimensions[i], wrapAround, curRange);
-
-    rangeND.insert(rangeND.begin(), curRange);
-  }
-
-  vector<vector<UInt> > neighborCoords;
-  cartesianProduct_(rangeND, neighborCoords);
-  for (auto & neighborCoord : neighborCoords) {
-    UInt index = conv.toIndex(neighborCoord);
-    if (index != column) {
-      neighbors.push_back(index);
-    }
-  }
-
 }
 
 bool SpatialPooler::isUpdateRound_()
