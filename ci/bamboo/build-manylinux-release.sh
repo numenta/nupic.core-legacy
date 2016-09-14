@@ -25,9 +25,9 @@
 # x86_64 wide-unicode nupic.bindings wheel per PEP-513. See
 # https://github.com/numenta/manylinux.
 #
-# ASUMPTIONS: Expects a pristine nupic.core source tree without any remnant
-#             build artifacts from prior build attempts. Otherwise, behavior is
-#             undefined.
+# ASSUMPTIONS: Expects a pristine nupic.core source tree without any remnant
+#              build artifacts from prior build attempts. Otherwise, behavior is
+#              undefined.
 #
 # OUTPUTS: see nupic.core/ci/build-and-test-nupic-bindings.sh
 
