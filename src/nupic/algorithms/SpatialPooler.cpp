@@ -1259,7 +1259,6 @@ void SpatialPooler::inhibitColumnsLocal_(vector<Real>& overlaps, Real density,
     arbitration = 0.001;
   }
 
-  vector<UInt> neighbors;
   for (UInt column = 0; column < numColumns_; column++)
   {
     if (overlaps[column] >= stimulusThreshold_)
