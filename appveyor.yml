@@ -188,6 +188,11 @@ build_script:
 after_build:
   - mkdir %ARTIFACTS_DIR%
 
+  # Install nupic.bindings and run python tests first. py_region_test.exe call
+  # below relies on having nupic.bindings installed.
+  - cd %NUPIC_CORE%
+  - python setup.py test
+
   # legacy binary tests
   - cd %NUPIC_CORE%\build\release\bin
   - py_region_test.exe
@@ -197,8 +202,6 @@ after_build:
   - hello_sp_tp.exe
   - prototest.exe
   - unit_tests.exe --gtest_output=xml:%ARTIFACTS_DIR%\unit_tests_report.xml
-  - cd %NUPIC_CORE%
-  - python setup.py test
 
 # Disable automatic tests
 test: off
