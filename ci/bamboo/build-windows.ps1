@@ -44,9 +44,11 @@
 #                 junit-test-results.xml
 #                 htmlcov/
 
-
 # Stop and fail script if any command fails
 $ErrorActionPreference = "Stop"
+
+Set-PsDebug -Trace
+
 
 
 $NupicCoreRootDir = $(get-location).Path
@@ -200,10 +202,7 @@ Write-Host "Running nupic.core C++ tests."
 
 pushd .\build\release\bin
 
-# TODO py_region_test.exe fails on windows;
-# https://github.com/numenta/nupic.core/issues/1075
-#WrapCmd { .\py_region_test.exe }
-
+WrapCmd { .\py_region_test.exe }
 WrapCmd { .\connections_performance_test.exe }
 WrapCmd { .\cpp_region_test.exe }
 WrapCmd { .\helloregion.exe }

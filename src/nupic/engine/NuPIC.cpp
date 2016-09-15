@@ -40,16 +40,14 @@ void NuPIC::init()
 {
   if (isInitialized())
     return;
-  
-  // internal consistency check. Nonzero should be impossible. 
+
+  // internal consistency check. Nonzero should be impossible.
   NTA_CHECK(networks_.size() == 0) << "Internal error in NuPIC::init()";
-  
-  // Initialize APR
-  int argc=1;
-  const char *argv[1] = {"NuPIC"};
+
+  // Initialize APR as a library client
   // TODO: move to OS::initialize()?
-  int result = apr_app_initialize(&argc, (const char* const **)&argv, nullptr /*env*/);
-  if (result) 
+  int result = apr_initialize();
+  if (result)
     NTA_THROW << "Error initializing APR (code " << result << ")";
 
   // TODO: license checking will be done in NuPIC::init()
@@ -67,7 +65,7 @@ void NuPIC::shutdown()
 
   if (!networks_.empty())
   {
-    NTA_THROW << "NuPIC::shutdown -- cannot shut down NuPIC because " 
+    NTA_THROW << "NuPIC::shutdown -- cannot shut down NuPIC because "
               << networks_.size() << " networks still exist.";
   }
 

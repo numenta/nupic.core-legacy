@@ -176,26 +176,33 @@ build_script:
 
   - python setup.py sdist bdist bdist_wheel
 
+  - set NUPIC_BINDINGS_WHEEL_NAME=nupic.bindings-%BINDINGS_VERSION%-cp27-none-%wheel_name_suffix%.whl
+
   # Copy final wheel to NUPIC_CORE, so that AppVeyor can see it as an artifact
-  - ps: copy .\bindings\py\dist\nupic.bindings-$env:BINDINGS_VERSION-cp27-none-$env:wheel_name_suffix.whl .
+  - ps: copy .\bindings\py\dist\$env:NUPIC_BINDINGS_WHEEL_NAME .
 
   # Copy final wheel, to appropriately named wheel for use with NuPIC
   # iterative builds (via nupic\.nupic_modules long-SHA reference).
   # Ties in with this Pip regex;
   # https://github.com/pypa/pip/blob/develop/pip/wheel.py#L616
-  - ps: copy .\nupic.bindings-$env:BINDINGS_VERSION-cp27-none-$env:wheel_name_suffix.whl .\nupic.bindings-$env:BINDINGS_VERSION.$env:APPVEYOR_REPO_COMMIT-cp27-none-$env:wheel_name_suffix.whl
+  - ps: copy .\$env:NUPIC_BINDINGS_WHEEL_NAME .\nupic.bindings-$env:BINDINGS_VERSION.$env:APPVEYOR_REPO_COMMIT-cp27-none-$env:wheel_name_suffix.whl
 
 after_build:
-  - mkdir %ARTIFACTS_DIR%
+  # Install nupic.bindings first, because py_region_test.exe depends on it.
+  - pip install .\%NUPIC_BINDINGS_WHEEL_NAME%
 
-  # legacy binary tests
+  # Run legacy binary tests
+  - mkdir %ARTIFACTS_DIR%
   - cd %NUPIC_CORE%\build\release\bin
+  - py_region_test.exe
   - connections_performance_test.exe
   - cpp_region_test.exe
   - helloregion.exe
   - hello_sp_tp.exe
   - prototest.exe
   - unit_tests.exe --gtest_output=xml:%ARTIFACTS_DIR%\unit_tests_report.xml
+
+  # Run python tests
   - cd %NUPIC_CORE%
   - python setup.py test
 
