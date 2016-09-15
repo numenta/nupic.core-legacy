@@ -44,10 +44,10 @@
 #                 junit-test-results.xml
 #                 htmlcov/
 
-Set-PsDebug -Trace
-
 # Stop and fail script if any command fails
 $ErrorActionPreference = "Stop"
+
+Set-PsDebug -Trace
 
 
 
