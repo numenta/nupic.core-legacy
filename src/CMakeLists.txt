@@ -138,6 +138,9 @@ execute_process(COMMAND "${PYTHON_EXECUTABLE}" "-c"
 # Quick way to fixup directory paths to NumPy
 get_filename_component(src_numpy_core ${src_numpy_core}/include/.. ABSOLUTE)
 
+message(STATUS "src_numpy_core   = ${src_numpy_core}")
+
+
 #
 # Setup include paths
 #
@@ -158,6 +161,8 @@ set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH}
                       ${REPOSITORY_DIR}/external/common/
                       ${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}/
                       ${src_numpy_core}/)
+
+message(STATUS "CMAKE_PREFIX_PATH   = ${CMAKE_PREFIX_PATH}")
 
 #
 # Extract current git sha and record in nupic/Version.hpp
@@ -458,6 +463,8 @@ if (NUPIC_BUILD_PYEXT_MODULES)
   list(APPEND src_common_test_exe_libs ${CAPNP_STATIC_LIB_TARGET})
 endif()
 
+message(STATUS "src_common_test_exe_libs = ${src_common_test_exe_libs}")
+
 
 #
 # Setup test_cpp_region
@@ -629,9 +636,6 @@ add_custom_target(tests_all
 #
 if (NUPIC_BUILD_PYEXT_MODULES)
   include(UseSWIG)
-
-  message(STATUS "CMAKE_CXX_COMPILER_ID        = ${CMAKE_CXX_COMPILER_ID}")
-  message(STATUS "PY_EXTENSIONS_DIR            = ${PY_EXTENSIONS_DIR}")
 
   # Set the output location for the language modules that are created.
   set(CMAKE_SWIG_OUTDIR ${PROJECT_BINARY_DIR})

@@ -101,9 +101,9 @@ namespace {
     tm.basalConnections.createSynapse(activeSegment, previousActiveCells[2], 0.5);
     tm.basalConnections.createSynapse(activeSegment, previousActiveCells[3], 0.5);
 
-    tm.compute(numActiveColumns, previousActiveColumns, true);
+    tm.compute(numActiveColumns, previousActiveColumns);
     ASSERT_EQ(expectedActiveCells, tm.getPredictiveCells());
-    tm.compute(numActiveColumns, activeColumns, true);
+    tm.compute(numActiveColumns, activeColumns);
 
     EXPECT_EQ(expectedActiveCells, tm.getActiveCells());
   }
@@ -133,7 +133,7 @@ namespace {
     const UInt activeColumns[1] = {0};
     const vector<CellIdx> burstingCells = {0, 1, 2, 3};
 
-    tm.compute(1, activeColumns, true);
+    tm.compute(1, activeColumns);
 
     EXPECT_EQ(burstingCells, tm.getActiveCells());
   }
@@ -172,13 +172,13 @@ namespace {
     tm.basalConnections.createSynapse(segment, previousActiveCells[2], 0.5);
     tm.basalConnections.createSynapse(segment, previousActiveCells[3], 0.5);
 
-    tm.compute(1, previousActiveColumns, true);
+    tm.compute(1, previousActiveColumns);
     ASSERT_FALSE(tm.getActiveCells().empty());
     ASSERT_FALSE(tm.getWinnerCells().empty());
     ASSERT_FALSE(tm.getPredictiveCells().empty());
 
     const UInt zeroColumns[0] = {};
-    tm.compute(0, zeroColumns, true);
+    tm.compute(0, zeroColumns);
 
     EXPECT_TRUE(tm.getActiveCells().empty());
     EXPECT_TRUE(tm.getWinnerCells().empty());
@@ -225,8 +225,12 @@ namespace {
     tm.basalConnections.createSynapse(activeSegment2, previousActiveCells[1], 0.5);
     tm.basalConnections.createSynapse(activeSegment2, previousActiveCells[2], 0.5);
 
-    tm.compute(numActiveColumns, previousActiveColumns, false);
-    tm.compute(numActiveColumns, activeColumns, false);
+    tm.compute(numActiveColumns, previousActiveColumns,
+               0, nullptr, 0, nullptr, 0, nullptr, 0, nullptr,
+               false);
+    tm.compute(numActiveColumns, activeColumns,
+               0, nullptr, 0, nullptr, 0, nullptr, 0, nullptr,
+               false);
 
     EXPECT_EQ(expectedWinnerCells, tm.getWinnerCells());
   }
@@ -256,7 +260,9 @@ namespace {
     const UInt activeColumns[1] = {0};
     const set<CellIdx> burstingCells = {0, 1, 2, 3};
 
-    tm.compute(1, activeColumns, false);
+    tm.compute(1, activeColumns,
+               0, nullptr, 0, nullptr, 0, nullptr, 0, nullptr,
+               false);
 
     vector<CellIdx> winnerCells = tm.getWinnerCells();
     ASSERT_EQ(1, winnerCells.size());
@@ -302,8 +308,8 @@ namespace {
     Synapse inactiveSynapse =
       tm.basalConnections.createSynapse(activeSegment, 81, 0.5);
 
-    tm.compute(numActiveColumns, previousActiveColumns, true);
-    tm.compute(numActiveColumns, activeColumns, true);
+    tm.compute(numActiveColumns, previousActiveColumns);
+    tm.compute(numActiveColumns, activeColumns);
 
     EXPECT_NEAR(0.6, tm.basalConnections.dataForSynapse(activeSynapse1).permanence,
                 EPSILON);
@@ -368,8 +374,8 @@ namespace {
     tm.basalConnections.createSynapse(otherMatchingSegment,
                                       81, 0.3);
 
-    tm.compute(numActiveColumns, previousActiveColumns, true);
-    tm.compute(numActiveColumns, activeColumns, true);
+    tm.compute(numActiveColumns, previousActiveColumns);
+    tm.compute(numActiveColumns, activeColumns);
 
     EXPECT_NEAR(0.4, tm.basalConnections.dataForSynapse(activeSynapse1).permanence,
                 EPSILON);
@@ -431,8 +437,8 @@ namespace {
       tm.basalConnections.createSynapse(otherMatchingSegment,
                                         81, 0.3);
 
-    tm.compute(1, previousActiveColumns, true);
-    tm.compute(1, activeColumns, true);
+    tm.compute(1, previousActiveColumns);
+    tm.compute(1, activeColumns);
 
     EXPECT_NEAR(0.3, tm.basalConnections.dataForSynapse(activeSynapse1).permanence,
                 EPSILON);
@@ -495,9 +501,9 @@ namespace {
       tm.basalConnections.createSynapse(matchingSegmentOnOtherCell,
                                         previousActiveCells[1], 0.3);
 
-    tm.compute(1, previousActiveColumns, true);
+    tm.compute(1, previousActiveColumns);
     ASSERT_EQ(expectedActiveCells, tm.getPredictiveCells());
-    tm.compute(1, activeColumns, true);
+    tm.compute(1, activeColumns);
 
     EXPECT_NEAR(0.3, tm.basalConnections.dataForSynapse(synapse1).permanence,
                 EPSILON);
@@ -819,8 +825,8 @@ namespace {
     // Weak synapse.
     tm.basalConnections.createSynapse(activeSegment, previousActiveCells[3], 0.015);
 
-    tm.compute(numActiveColumns, previousActiveColumns, true);
-    tm.compute(numActiveColumns, activeColumns, true);
+    tm.compute(numActiveColumns, previousActiveColumns);
+    tm.compute(numActiveColumns, activeColumns);
 
     EXPECT_EQ(3, tm.basalConnections.numSynapses(activeSegment));
   }
@@ -861,8 +867,8 @@ namespace {
     // Weak inactive synapse.
     tm.basalConnections.createSynapse(activeSegment, 81, 0.09);
 
-    tm.compute(numActiveColumns, previousActiveColumns, true);
-    tm.compute(numActiveColumns, activeColumns, true);
+    tm.compute(numActiveColumns, previousActiveColumns);
+    tm.compute(numActiveColumns, activeColumns);
 
     EXPECT_EQ(3, tm.basalConnections.numSynapses(activeSegment));
   }
@@ -1028,8 +1034,8 @@ namespace {
     tm.basalConnections.createSynapse(matchingSegment, previousActiveCells[2], 0.015);
     tm.basalConnections.createSynapse(matchingSegment, previousActiveCells[3], 0.015);
 
-    tm.compute(numActiveColumns, previousActiveColumns, true);
-    tm.compute(numActiveColumns, activeColumns, true);
+    tm.compute(numActiveColumns, previousActiveColumns);
+    tm.compute(numActiveColumns, activeColumns);
 
     EXPECT_EQ(0, tm.basalConnections.numSegments(expectedActiveCell));
   }
@@ -1085,8 +1091,8 @@ namespace {
     Synapse inactiveSynapse2 =
       tm.basalConnections.createSynapse(matchingSegment, previousInactiveCell, 0.5);
 
-    tm.compute(numActiveColumns, previousActiveColumns, true);
-    tm.compute(numActiveColumns, activeColumns, true);
+    tm.compute(numActiveColumns, previousActiveColumns);
+    tm.compute(numActiveColumns, activeColumns);
 
     EXPECT_NEAR(0.48, tm.basalConnections.dataForSynapse(activeSynapse1).permanence,
                 EPSILON);
@@ -1143,8 +1149,8 @@ namespace {
       Segment segment2 = tm.basalConnections.createSegment(nonmatchingCells[1]);
       tm.basalConnections.createSynapse(segment2, previousActiveCells[1], 0.5);
 
-      tm.compute(4, previousActiveColumns, true);
-      tm.compute(1, activeColumns, true);
+      tm.compute(4, previousActiveColumns);
+      tm.compute(1, activeColumns);
 
       ASSERT_EQ(activeCells, tm.getActiveCells());
 
@@ -1289,8 +1295,12 @@ namespace {
 
     Connections before = tm.basalConnections;
 
-    tm.compute(1, previousActiveColumns, false);
-    tm.compute(2, activeColumns, false);
+    tm.compute(1, previousActiveColumns,
+               0, nullptr, 0, nullptr, 0, nullptr, 0, nullptr,
+               false);
+    tm.compute(2, activeColumns,
+               0, nullptr, 0, nullptr, 0, nullptr, 0, nullptr,
+               false);
 
     EXPECT_EQ(before, tm.basalConnections);
   }
@@ -1381,7 +1391,7 @@ namespace {
     tm1.basalConnections.createSynapse(activeSegment, previousActiveCells[3],
                                        0.5);
 
-    tm1.compute(numActiveColumns, previousActiveColumns, true);
+    tm1.compute(numActiveColumns, previousActiveColumns);
     ASSERT_EQ(expectedActiveCells, tm1.getPredictiveCells());
 
     {
@@ -1419,11 +1429,11 @@ namespace {
     */
     vector<vector<UInt>> sequence =
       {
-        { 83, 53, 70, 45 },
-        { 8, 65, 67, 59 },
-        { 25, 98, 99, 39 },
-        { 66, 11, 78, 14 },
-        { 96, 87, 69, 95 } };
+        { 45, 53, 70, 83 },
+        { 8, 59, 65, 67 },
+        { 25, 39, 98, 99 },
+        { 11, 14, 66, 78 },
+        { 69, 87, 95, 96 } };
 
     for (UInt i = 0; i < 3; i++)
     {

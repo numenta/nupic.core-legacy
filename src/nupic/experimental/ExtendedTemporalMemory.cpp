@@ -272,7 +272,8 @@ static void adaptSegment(
   Connections& connections,
   Segment segment,
   const vector<CellIdx>& prevActiveCells,
-  const vector<CellIdx>& prevActiveExternalCells,
+  size_t prevActiveExternalCellsSize,
+  const CellIdx prevActiveExternalCells[],
   Permanence permanenceIncrement,
   Permanence permanenceDecrement)
 {
@@ -293,8 +294,8 @@ static void adaptSegment(
     else
     {
       isActive = std::binary_search(
-        prevActiveExternalCells.begin(),
-        prevActiveExternalCells.end(),
+        prevActiveExternalCells,
+        prevActiveExternalCells + prevActiveExternalCellsSize,
         synapseData.presynapticCell - connections.numCells());
     }
 
@@ -334,7 +335,8 @@ static void growSynapses(
   Segment segment,
   UInt32 nDesiredNewSynapses,
   const vector<CellIdx>& internalCandidates,
-  const vector<CellIdx>& externalCandidates,
+  size_t externalCandidatesSize,
+  const CellIdx externalCandidates[],
   Permanence initialPermanence)
 {
   // It's possible to optimize this, swapping candidates to the end as
@@ -343,11 +345,12 @@ static void growSynapses(
   // the existing synapses in a particular order.
 
   vector<CellIdx> candidates;
-  candidates.reserve(internalCandidates.size() + externalCandidates.size());
+  candidates.reserve(internalCandidates.size() + externalCandidatesSize);
   candidates.insert(candidates.begin(), internalCandidates.begin(),
                     internalCandidates.end());
-  for (CellIdx cell : externalCandidates)
+  for (size_t i = 0; i < externalCandidatesSize; i++)
   {
+    const CellIdx cell = externalCandidates[i];
     candidates.push_back(cell + connections.numCells());
   }
   NTA_ASSERT(std::is_sorted(candidates.begin(), candidates.end()));
@@ -387,7 +390,8 @@ static void learnOnCell(
   vector<Segment>::const_iterator cellMatchingSegmentsEnd,
   const vector<CellIdx>& prevActiveCells,
   const vector<CellIdx>& internalCandidates,
-  const vector<CellIdx>& externalCandidates,
+  size_t externalCandidatesSize,
+  const CellIdx externalCandidates[],
   const vector<UInt32>& numActivePotentialSynapsesForSegment,
   UInt maxNewSynapseCount,
   Permanence initialPermanence,
@@ -403,7 +407,8 @@ static void learnOnCell(
     {
       adaptSegment(connections,
                    *activeSegment,
-                   prevActiveCells, externalCandidates,
+                   prevActiveCells,
+                   externalCandidatesSize, externalCandidates,
                    permanenceIncrement, permanenceDecrement);
 
       const Int32 nGrowDesired = maxNewSynapseCount -
@@ -412,7 +417,8 @@ static void learnOnCell(
         {
           growSynapses(connections, rng,
                        *activeSegment, nGrowDesired,
-                       internalCandidates, externalCandidates,
+                       internalCandidates,
+                       externalCandidatesSize, externalCandidates,
                        initialPermanence);
         }
     } while (++activeSegment != cellActiveSegmentsEnd);
@@ -432,7 +438,8 @@ static void learnOnCell(
 
     adaptSegment(connections,
                  bestMatchingSegment,
-                 prevActiveCells, externalCandidates,
+                 prevActiveCells,
+                 externalCandidatesSize, externalCandidates,
                  permanenceIncrement, permanenceDecrement);
 
     const Int32 nGrowDesired = maxNewSynapseCount -
@@ -441,7 +448,8 @@ static void learnOnCell(
     {
       growSynapses(connections, rng,
                    bestMatchingSegment, nGrowDesired,
-                   internalCandidates, externalCandidates,
+                   internalCandidates,
+                   externalCandidatesSize, externalCandidates,
                    initialPermanence);
     }
   }
@@ -453,13 +461,14 @@ static void learnOnCell(
     // Don't grow a segment that will never match.
     const UInt32 nGrowExact = std::min(maxNewSynapseCount,
                                        (UInt)(internalCandidates.size() +
-                                              externalCandidates.size()));
+                                              externalCandidatesSize));
     if (nGrowExact > 0)
     {
       const Segment segment = connections.createSegment(cell);
       growSynapses(connections, rng,
                    segment, nGrowExact,
-                   internalCandidates, externalCandidates,
+                   internalCandidates,
+                   externalCandidatesSize, externalCandidates,
                    initialPermanence);
       NTA_ASSERT(connections.numSynapses(segment) == nGrowExact);
     }
@@ -483,8 +492,10 @@ static void activatePredictedColumn(
   UInt32 predictiveThreshold,
   const vector<CellIdx>& prevActiveCells,
   const vector<CellIdx>& prevWinnerCells,
-  const vector<CellIdx>& prevActiveExternalCellsBasal,
-  const vector<CellIdx>& prevActiveExternalCellsApical,
+  size_t prevActiveExternalCellsBasalSize,
+  const CellIdx prevActiveExternalCellsBasal[],
+  size_t prevActiveExternalCellsApicalSize,
+  const CellIdx prevActiveExternalCellsApical[],
   const vector<UInt32>& numActivePotentialSynapsesForBasalSegment,
   const vector<UInt32>& numActivePotentialSynapsesForApicalSegment,
   UInt maxNewSynapseCount,
@@ -533,6 +544,7 @@ static void activatePredictedColumn(
                     prevActiveCells,
                     (formInternalBasalConnections
                      ? prevWinnerCells : CELLS_NONE),
+                    prevActiveExternalCellsBasalSize,
                     prevActiveExternalCellsBasal,
                     numActivePotentialSynapsesForBasalSegment,
                     maxNewSynapseCount, initialPermanence,
@@ -543,7 +555,9 @@ static void activatePredictedColumn(
                     cellActiveApicalBegin, cellActiveApicalEnd,
                     cellMatchingApicalBegin, cellMatchingApicalEnd,
                     prevActiveCells,
-                    CELLS_NONE, prevActiveExternalCellsApical,
+                    CELLS_NONE,
+                    prevActiveExternalCellsApicalSize,
+                    prevActiveExternalCellsApical,
                     numActivePotentialSynapsesForApicalSegment,
                     maxNewSynapseCount, initialPermanence,
                     permanenceIncrement, permanenceDecrement);
@@ -570,8 +584,10 @@ static void burstColumn(
   vector<Segment>::const_iterator columnMatchingApicalEnd,
   const vector<CellIdx>& prevActiveCells,
   const vector<CellIdx>& prevWinnerCells,
-  const vector<CellIdx>& prevActiveExternalCellsBasal,
-  const vector<CellIdx>& prevActiveExternalCellsApical,
+  size_t prevActiveExternalCellsBasalSize,
+  const CellIdx prevActiveExternalCellsBasal[],
+  size_t prevActiveExternalCellsApicalSize,
+  const CellIdx prevActiveExternalCellsApical[],
   const vector<UInt32>& numActivePotentialSynapsesForBasalSegment,
   const vector<UInt32>& numActivePotentialSynapsesForApicalSegment,
   UInt cellsPerColumn,
@@ -661,6 +677,7 @@ static void burstColumn(
                 prevActiveCells,
                 (formInternalBasalConnections
                  ? prevWinnerCells : CELLS_NONE),
+                prevActiveExternalCellsBasalSize,
                 prevActiveExternalCellsBasal,
                 numActivePotentialSynapsesForBasalSegment,
                 maxNewSynapseCount, initialPermanence,
@@ -671,7 +688,9 @@ static void burstColumn(
                 cellActiveApicalBegin, cellActiveApicalEnd,
                 cellMatchingApicalBegin, cellMatchingApicalEnd,
                 prevActiveCells,
-                CELLS_NONE, prevActiveExternalCellsApical,
+                CELLS_NONE,
+                prevActiveExternalCellsApicalSize,
+                prevActiveExternalCellsApical,
                 numActivePotentialSynapsesForApicalSegment,
                 maxNewSynapseCount, initialPermanence,
                 permanenceIncrement, permanenceDecrement);
@@ -683,7 +702,8 @@ static void punishPredictedColumn(
   vector<Segment>::const_iterator matchingSegmentsBegin,
   vector<Segment>::const_iterator matchingSegmentsEnd,
   const vector<CellIdx>& prevActiveCells,
-  const vector<CellIdx>& prevActiveExternalCells,
+  size_t prevActiveExternalCellsSize,
+  const CellIdx prevActiveExternalCells[],
   Permanence predictedSegmentDecrement)
 {
   if (predictedSegmentDecrement > 0.0)
@@ -692,23 +712,33 @@ static void punishPredictedColumn(
          matchingSegment != matchingSegmentsEnd; matchingSegment++)
     {
       adaptSegment(connections, *matchingSegment,
-                   prevActiveCells, prevActiveExternalCells,
+                   prevActiveCells,
+                   prevActiveExternalCellsSize, prevActiveExternalCells,
                    -predictedSegmentDecrement, 0.0);
     }
   }
 }
 
 void ExtendedTemporalMemory::activateCells(
-  const vector<UInt>& activeColumns,
-  const vector<CellIdx>& prevActiveExternalCellsBasal,
-  const vector<CellIdx>& prevActiveExternalCellsApical,
+  size_t activeColumnsSize,
+  const UInt activeColumns[],
+
+  size_t prevActiveExternalCellsBasalSize,
+  const CellIdx prevActiveExternalCellsBasal[],
+
+  size_t prevActiveExternalCellsApicalSize,
+  const CellIdx prevActiveExternalCellsApical[],
+
   bool learn)
 {
-  NTA_ASSERT(std::is_sorted(activeColumns.begin(), activeColumns.end()));
-  NTA_ASSERT(std::is_sorted(prevActiveExternalCellsBasal.begin(),
-                            prevActiveExternalCellsBasal.end()));
-  NTA_ASSERT(std::is_sorted(prevActiveExternalCellsApical.begin(),
-                            prevActiveExternalCellsApical.end()));
+  NTA_ASSERT(std::is_sorted(activeColumns,
+                            activeColumns + activeColumnsSize));
+  NTA_ASSERT(std::is_sorted(prevActiveExternalCellsBasal,
+                            prevActiveExternalCellsBasal +
+                            prevActiveExternalCellsBasalSize));
+  NTA_ASSERT(std::is_sorted(prevActiveExternalCellsApical,
+                            prevActiveExternalCellsApical +
+                            prevActiveExternalCellsApicalSize));
 
   const vector<CellIdx> prevActiveCells = std::move(activeCells_);
   const vector<CellIdx> prevWinnerCells = std::move(winnerCells_);
@@ -718,15 +748,21 @@ void ExtendedTemporalMemory::activateCells(
   const auto columnForApicalSegment = [&](Segment segment)
     { return apicalConnections.cellForSegment(segment) / cellsPerColumn_; };
 
-  for (auto& columnData : groupBy(activeColumns, identity<UInt>,
-                                  activeBasalSegments_, columnForBasalSegment,
-                                  matchingBasalSegments_, columnForBasalSegment,
-                                  activeApicalSegments_, columnForApicalSegment,
-                                  matchingApicalSegments_, columnForApicalSegment))
+  for (auto& columnData : iterGroupBy(
+         activeColumns,
+         activeColumns + activeColumnsSize, identity<UInt>,
+         activeBasalSegments_.begin(),
+         activeBasalSegments_.end(), columnForBasalSegment,
+         matchingBasalSegments_.begin(),
+         matchingBasalSegments_.end(), columnForBasalSegment,
+         activeApicalSegments_.begin(),
+         activeApicalSegments_.end(), columnForApicalSegment,
+         matchingApicalSegments_.begin(),
+         matchingApicalSegments_.end(), columnForApicalSegment))
   {
     UInt column;
-    vector<UInt>::const_iterator
-      activeColumnsBegin, activeColumnsEnd;
+    const UInt* activeColumnsBegin;
+    const UInt* activeColumnsEnd;
     vector<Segment>::const_iterator
       columnActiveBasalBegin, columnActiveBasalEnd,
       columnMatchingBasalBegin, columnMatchingBasalEnd,
@@ -778,7 +814,8 @@ void ExtendedTemporalMemory::activateCells(
           columnMatchingApicalBegin, columnMatchingApicalEnd,
           maxPredictiveScore,
           prevActiveCells, prevWinnerCells,
-          prevActiveExternalCellsBasal, prevActiveExternalCellsApical,
+          prevActiveExternalCellsBasalSize, prevActiveExternalCellsBasal,
+          prevActiveExternalCellsApicalSize, prevActiveExternalCellsApical,
           numActivePotentialSynapsesForBasalSegment_,
           numActivePotentialSynapsesForApicalSegment_,
           maxNewSynapseCount_,
@@ -797,7 +834,8 @@ void ExtendedTemporalMemory::activateCells(
           columnActiveApicalBegin, columnActiveApicalEnd,
           columnMatchingApicalBegin, columnMatchingApicalEnd,
           prevActiveCells, prevWinnerCells,
-          prevActiveExternalCellsBasal, prevActiveExternalCellsApical,
+          prevActiveExternalCellsBasalSize, prevActiveExternalCellsBasal,
+          prevActiveExternalCellsApicalSize, prevActiveExternalCellsApical,
           numActivePotentialSynapsesForBasalSegment_,
           numActivePotentialSynapsesForApicalSegment_,
           cellsPerColumn_, maxNewSynapseCount_,
@@ -812,7 +850,8 @@ void ExtendedTemporalMemory::activateCells(
         punishPredictedColumn(
           basalConnections,
           columnMatchingBasalBegin, columnMatchingBasalEnd,
-          prevActiveCells, prevActiveExternalCellsBasal,
+          prevActiveCells,
+          prevActiveExternalCellsBasalSize, prevActiveExternalCellsBasal,
           predictedSegmentDecrement_);
 
         // Don't punish apical segments.
@@ -828,7 +867,8 @@ static void calculateExcitation(
   vector<Segment>& matchingSegments,
   Connections& connections,
   const vector<CellIdx>& activeCells,
-  const vector<CellIdx>& activeExternalCells,
+  size_t activeExternalCellsSize,
+  const CellIdx activeExternalCells[],
   Permanence connectedPermanence,
   UInt activationThreshold,
   UInt minThreshold,
@@ -843,8 +883,9 @@ static void calculateExcitation(
                               activeCells,
                               connectedPermanence);
 
-  for (CellIdx cell : activeExternalCells)
+  for (size_t i = 0; i < activeExternalCellsSize; i++)
   {
+    const CellIdx cell = activeExternalCells[i];
     connections.computeActivity(numActiveConnectedSynapsesForSegment,
                                 numActivePotentialSynapsesForSegment,
                                 cell + connections.numCells(),
@@ -892,68 +933,63 @@ static void calculateExcitation(
   }
 }
 
-void ExtendedTemporalMemory::activateBasalDendrites(
-  const vector<CellIdx>& activeExternalCells,
+void ExtendedTemporalMemory::activateDendrites(
+  size_t activeExternalCellsBasalSize,
+  const CellIdx activeExternalCellsBasal[],
+
+  size_t activeExternalCellsApicalSize,
+  const CellIdx activeExternalCellsApical[],
+
   bool learn)
 {
   calculateExcitation(
     numActiveConnectedSynapsesForBasalSegment_, activeBasalSegments_,
     numActivePotentialSynapsesForBasalSegment_, matchingBasalSegments_,
     basalConnections,
-    activeCells_, activeExternalCells,
+    activeCells_, activeExternalCellsBasalSize, activeExternalCellsBasal,
     connectedPermanence_, activationThreshold_, minThreshold_,
     learn);
-}
 
-void ExtendedTemporalMemory::activateApicalDendrites(
-  const vector<CellIdx>& activeExternalCells,
-  bool learn)
-{
   calculateExcitation(
     numActiveConnectedSynapsesForApicalSegment_, activeApicalSegments_,
     numActivePotentialSynapsesForApicalSegment_, matchingApicalSegments_,
     apicalConnections,
-    activeCells_, activeExternalCells,
+    activeCells_, activeExternalCellsApicalSize, activeExternalCellsApical,
     connectedPermanence_, activationThreshold_, minThreshold_,
     learn);
 }
 
-void ExtendedTemporalMemory::activateDendrites(
-  const vector<CellIdx>& activeExternalCellsBasal,
-  const vector<CellIdx>& activeExternalCellsApical,
+void ExtendedTemporalMemory::compute(
+  size_t activeColumnsSize,
+  const UInt activeColumns[],
+
+  size_t prevActiveExternalCellsBasalSize,
+  const CellIdx prevActiveExternalCellsBasal[],
+
+  size_t activeExternalCellsBasalSize,
+  const CellIdx activeExternalCellsBasal[],
+
+  size_t prevActiveExternalCellsApicalSize,
+  const CellIdx prevActiveExternalCellsApical[],
+
+  size_t activeExternalCellsApicalSize,
+  const CellIdx activeExternalCellsApical[],
+
   bool learn)
 {
-  activateBasalDendrites(activeExternalCellsBasal, learn);
-  activateApicalDendrites(activeExternalCellsApical, learn);
-}
-
-void ExtendedTemporalMemory::compute(
-  UInt activeColumnsSize, const UInt activeColumnsUnsorted[], bool learn)
-{
-  const vector<UInt> activeColumns(activeColumnsUnsorted,
-                                   activeColumnsUnsorted + activeColumnsSize);
-  compute(activeColumns, {}, {}, {}, {}, learn);
-}
-
-void ExtendedTemporalMemory::compute(
-  const vector<UInt>& activeColumnsUnsorted,
-  const vector<CellIdx>& prevActiveExternalCellsBasal,
-  const vector<CellIdx>& activeExternalCellsBasal,
-  const vector<CellIdx>& prevActiveExternalCellsApical,
-  const vector<CellIdx>& activeExternalCellsApical,
-  bool learn)
-{
-  vector<UInt> activeColumns(activeColumnsUnsorted.begin(),
-                             activeColumnsUnsorted.end());
-  std::sort(activeColumns.begin(), activeColumns.end());
-
-  activateCells(activeColumns,
+  activateCells(activeColumnsSize,
+                activeColumns,
+                prevActiveExternalCellsBasalSize,
                 prevActiveExternalCellsBasal,
+                prevActiveExternalCellsApicalSize,
                 prevActiveExternalCellsApical,
                 learn);
 
-  activateBasalDendrites(activeExternalCellsBasal, learn);
-  activateApicalDendrites(activeExternalCellsApical, learn);
+  activateDendrites(activeExternalCellsBasalSize,
+                    activeExternalCellsBasal,
+                    activeExternalCellsApicalSize,
+                    activeExternalCellsApical,
+                    learn);
 }
 
 void ExtendedTemporalMemory::reset(void)

@@ -23,6 +23,7 @@
 #include <nupic/regions/PyRegion.hpp>
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include <numpy/arrayobject.h>
+#include <Python.h>
 #include <iostream>
 #include <sstream>
 #include <memory>
@@ -37,7 +38,6 @@
 #include <nupic/engine/Input.hpp>
 #include <nupic/engine/Output.hpp>
 #include <nupic/proto/PyRegionProto.capnp.h>
-#include <nupic/utils/Log.hpp>
 #include <nupic/ntypes/ObjectModel.hpp> // IWrite/ReadBuffer
 #include <nupic/ntypes/Value.hpp>
 #include <nupic/ntypes/Array.hpp>
@@ -58,9 +58,9 @@ using ::capnp::DynamicStruct;
 static char lastError[LAST_ERROR_LENGTH];
 static bool finalizePython;
 
-extern "C" 
+extern "C"
 {
-  // NTA_initPython() must be called by the MultinodeFactory before any call to 
+  // NTA_initPython() must be called by the MultinodeFactory before any call to
   // NTA_createPyNode()
   void PyRegion::NTA_initPython()
   {
@@ -82,13 +82,22 @@ extern "C"
       // clear or restore Python exceptions (see NPC-113)
       py::setRunningUnderPython();
     }
-    
+
     // Important! the following statements must be outside the PyInitialize()
     // conditional block because Python may already be initialized if used
     // through the Python bindings.
 
-    // Initialize numpy.
-    import_array();
+    // NOTE we use the function _import_array directly (just like in
+    // NumpyVector.cpp) because import_array is a macro that incorporates a
+    // return statement on failure, intended to be used directly in
+    // a python extension's init function rather than deeply nested.
+    if (_import_array() != 0)
+    {
+      // _import_array sets PyErr on failure
+      PyErr_Print();
+
+      NTA_THROW << "numpy _import_array failed";
+    }
   }
 
   // NTA_finalizePython() must be called before unloading the pynode dynamic library
@@ -198,6 +207,8 @@ extern "C"
     }
     catch (nupic::Exception & e)
     {
+      NTA_WARN << "PyRegion::createSpec failed: " << exception;
+
       *exception = new nupic::Exception(e);
       return NULL;
     }
@@ -304,7 +315,7 @@ static PyObject * makePyValue(const Value & v)
     case NTA_BasicType_UInt32:
       return py::UnsignedLong(v.getScalarT<NTA_UInt32>()).release();
     case NTA_BasicType_UInt64:
-      return py::UnsignedLongLong(v.getScalarT<NTA_UInt64>()).release();      
+      return py::UnsignedLongLong(v.getScalarT<NTA_UInt64>()).release();
     case NTA_BasicType_Real32:
     {
       std::stringstream ss;
@@ -330,7 +341,7 @@ static void prepareCreationParams(const ValueMap & vm, py::Dict & d)
       py::Ptr v(makePyValue(*(it->second)));
       d.setItem(it->first, v);
     } catch (Exception& e) {
-      NTA_THROW << "Unable to create a Python object for parameter '" 
+      NTA_THROW << "Unable to create a Python object for parameter '"
                 << it->first << ": " << e.what();
     }
   }
@@ -342,7 +353,7 @@ PyRegion::PyRegion(const char * module, const ValueMap & nodeParams, Region *
   module_(module),
   className_(className)
 {
-  
+
   NTA_CHECK(region != NULL);
 
   std::string realClassName(className);
@@ -363,7 +374,7 @@ PyRegion::PyRegion(const char * module, const ValueMap & nodeParams, Region *
 
 PyRegion::PyRegion(const char* module, BundleIO& bundle, Region * region, const
                    char* className) :
-  RegionImpl(region), 
+  RegionImpl(region),
   module_(module),
   className_(className)
 
@@ -401,9 +412,9 @@ void PyRegion::serialize(BundleIO& bundle)
 {
   // 1. serialize main state using pickle
   // 2. call class method to serialize external state
-  
+
   // 1. Serialize main state
-  
+
   // f = open(path, "wb")
   py::Tuple args(2);
   std::string path = bundle.getPath("pkl");
@@ -424,16 +435,16 @@ void PyRegion::serialize(BundleIO& bundle)
   // f.close()
   py::Tuple args3(Py_ssize_t(0));
   py::Ptr none2(f.invoke("close", args3));
-  
+
   // 2. External state
   // Call the Python serializeExtraData() method
   std::string externalPath = bundle.getPath("xtra");
   py::Tuple args1(1);
   args1.setItem(0, py::String(externalPath));
-  
+
   // Need to put the None result in py::Ptr to decrement the ref count
   py::Ptr none1(node_.invoke("serializeExtraData", args1));
-  
+
 
 }
 
@@ -462,16 +473,16 @@ void PyRegion::deserialize(BundleIO& bundle)
   // f.close()
   py::Tuple args3((Py_ssize_t)0);
   py::Ptr none2(f.invoke("close", args3));
-  
+
   // 2. External state
   // Call the Python deSerializeExtraData() method
   std::string externalPath = bundle.getPath("xtra");
   py::Tuple args1(1);
   args1.setItem(0, py::String(externalPath));
-  
+
   // Need to put the None result in py::Ptr to decrement the ref count
   py::Ptr none1(node_.invoke("deSerializeExtraData", args1));
-  
+
 }
 
 void PyRegion::write(capnp::AnyPointer::Builder& proto) const
@@ -539,7 +550,7 @@ const Spec & PyRegion::getSpec()
 //  // Get the node spec from the Python class
 //  py::Dict nodeSpec(nodeClass.invoke("getSpec", py::Tuple()));
 //  //NTA_DEBUG << "'node spec' type: " << nodeSpec.getTypeName();
-//  
+//
 //  // Extract the 4 dicts from the node spec
 //  py::Dict inputs(nodeSpec.getItem("inputs", py::Dict()));
 //  py::Dict outputs(nodeSpec.getItem("outputs", py::Dict()));
@@ -555,7 +566,7 @@ const Spec & PyRegion::getSpec()
 //
 //  // Add inputs
 //  pos = 0;
-//  while (PyDict_Next(inputs, &pos, &key, &value)) 
+//  while (PyDict_Next(inputs, &pos, &key, &value))
 //  {
 //    // key and value are borrowed from the dict. Their ref count
 //    // must be incremented so they can be used with
@@ -590,7 +601,7 @@ const Spec & PyRegion::getSpec()
 //
 //  // Add outputs
 //  pos = 0;
-//  while (PyDict_Next(outputs, &pos, &key, &value)) 
+//  while (PyDict_Next(outputs, &pos, &key, &value))
 //  {
 //    // key and value are borrowed from the dict. Their ref count
 //    // must be incremented so they can be used with
@@ -620,7 +631,7 @@ const Spec & PyRegion::getSpec()
 //
 //  // Add parameters
 //  pos = 0;
-//  while (PyDict_Next(parameters, &pos, &key, &value)) 
+//  while (PyDict_Next(parameters, &pos, &key, &value))
 //  {
 //    // key and value are borrowed from the dict. Their ref count
 //    // must be incremented so they can be used with
@@ -640,7 +651,7 @@ const Spec & PyRegion::getSpec()
 //    std::string defaultValue(py::String(parameter.getItem("defaultValue")));
 //    if (defaultValue == "None")
 //      defaultValue = "";
-//    
+//
 //    ParameterSpec::AccessMode accessMode;
 //    std::string am(py::String(parameter.getItem("accessMode")));
 //    if (am == "Create")
@@ -672,7 +683,7 @@ T PyRegion::getParameterT(const std::string & name, Int64 index)
   args.setItem(1, py::LongLong(index));
 
   PyT result(node_.invoke("getParameter", args));
-  return T(result);    
+  return T(result);
 }
 
 template <typename T, typename PyT>
@@ -688,38 +699,38 @@ void PyRegion::setParameterT(const std::string & name, Int64 index, T value)
 
 Byte PyRegion::getParameterByte(const std::string& name, Int64 index)
 {
-  return getParameterT<Byte, py::Int>(name, index);   
+  return getParameterT<Byte, py::Int>(name, index);
 }
 
 Int32 PyRegion::getParameterInt32(const std::string& name, Int64 index)
 {
-  //return getParameterT<Int32, py::Long>(name, index);   
-  return getParameterT<Int32, py::Int>(name, index);   
+  //return getParameterT<Int32, py::Long>(name, index);
+  return getParameterT<Int32, py::Int>(name, index);
 }
 
 UInt32 PyRegion::getParameterUInt32(const std::string& name, Int64 index)
 {
-  return getParameterT<UInt32, py::UnsignedLong>(name, index);   
+  return getParameterT<UInt32, py::UnsignedLong>(name, index);
 }
 
 Int64 PyRegion::getParameterInt64(const std::string& name, Int64 index)
 {
-  return getParameterT<Int64, py::LongLong>(name, index);  
+  return getParameterT<Int64, py::LongLong>(name, index);
 }
 
 UInt64 PyRegion::getParameterUInt64(const std::string& name, Int64 index)
 {
-  return getParameterT<UInt64, py::LongLong>(name, index);  
+  return getParameterT<UInt64, py::LongLong>(name, index);
 }
 
 Real32 PyRegion::getParameterReal32(const std::string& name, Int64 index)
 {
-  return getParameterT<Real32, py::Float>(name, index);  
+  return getParameterT<Real32, py::Float>(name, index);
 }
 
 Real64 PyRegion::getParameterReal64(const std::string& name, Int64 index)
 {
-  return getParameterT<Real64, py::Float>(name, index);  
+  return getParameterT<Real64, py::Float>(name, index);
 }
 
 Handle PyRegion::getParameterHandle(const std::string& name, Int64 index)
@@ -731,7 +742,7 @@ Handle PyRegion::getParameterHandle(const std::string& name, Int64 index)
     return o;
   }
 
-  return getParameterT<Handle, py::Ptr>(name, index);  
+  return getParameterT<Handle, py::Ptr>(name, index);
 }
 
 bool PyRegion::getParameterBool(const std::string& name, Int64 index)
@@ -741,42 +752,42 @@ bool PyRegion::getParameterBool(const std::string& name, Int64 index)
 
 void PyRegion::setParameterByte(const std::string& name, Int64 index, Byte value)
 {
-  setParameterT<Byte, py::Int>(name, index, value);   
+  setParameterT<Byte, py::Int>(name, index, value);
 }
 
 void PyRegion::setParameterInt32(const std::string& name, Int64 index, Int32 value)
 {
-  setParameterT<Int32, py::Long>(name, index, value);   
+  setParameterT<Int32, py::Long>(name, index, value);
 }
 
 void PyRegion::setParameterUInt32(const std::string& name, Int64 index, UInt32 value)
 {
-  setParameterT<UInt32, py::UnsignedLong>(name, index, value);   
+  setParameterT<UInt32, py::UnsignedLong>(name, index, value);
 }
 
 void PyRegion::setParameterInt64(const std::string& name, Int64 index, Int64 value)
 {
-  setParameterT<Int64, py::LongLong>(name, index, value);   
+  setParameterT<Int64, py::LongLong>(name, index, value);
 }
 
 void PyRegion::setParameterUInt64(const std::string& name, Int64 index, UInt64 value)
 {
-  setParameterT<UInt64, py::UnsignedLongLong>(name, index, value);   
+  setParameterT<UInt64, py::UnsignedLongLong>(name, index, value);
 }
 
 void PyRegion::setParameterReal32(const std::string& name, Int64 index, Real32 value)
 {
-  setParameterT<Real32, py::Float>(name, index, value);   
+  setParameterT<Real32, py::Float>(name, index, value);
 }
 
 void PyRegion::setParameterReal64(const std::string& name, Int64 index, Real64 value)
 {
-  setParameterT<Real64, py::Float>(name, index, value);   
+  setParameterT<Real64, py::Float>(name, index, value);
 }
 
 void PyRegion::setParameterHandle(const std::string& name, Int64 index, Handle value)
 {
-  setParameterT<PyObject *, py::Ptr>(name, index, (PyObject *)value);   
+  setParameterT<PyObject *, py::Ptr>(name, index, (PyObject *)value);
 }
 
 void PyRegion::setParameterBool(const std::string& name, Int64 index, bool value)
@@ -794,7 +805,7 @@ void PyRegion::getParameterArray(const std::string& name, Int64 index, Array & a
   // Must catch the None return value and decrement
   py::Ptr none(node_.invoke("getParameterArray", args));
 }
- 
+
 void PyRegion::setParameterArray(const std::string& name, Int64 index, const Array & a)
 {
   py::Tuple args(3);
@@ -825,8 +836,8 @@ void PyRegion::setParameterString(const std::string& name, Int64 index, const st
   py::Ptr none(node_.invoke("setParameter", args));
 }
 
-void PyRegion::getParameterFromBuffer(const std::string& name, 
-                                     Int64 index, 
+void PyRegion::getParameterFromBuffer(const std::string& name,
+                                     Int64 index,
                                      IWriteBuffer& value)
 {
   // we override getParameterX for every type, so this should never
@@ -835,7 +846,7 @@ void PyRegion::getParameterFromBuffer(const std::string& name,
 }
 
 
-void PyRegion::setParameterFromBuffer(const std::string& name, 
+void PyRegion::setParameterFromBuffer(const std::string& name,
                             Int64 index,
                             IReadBuffer& value)
 {
@@ -896,7 +907,7 @@ void PyRegion::compute()
   for (size_t i = 0; i < ns.inputs.getCount(); ++i)
   {
     // Get the current InputSpec object
-    const std::pair<std::string, InputSpec> & p = 
+    const std::pair<std::string, InputSpec> & p =
       ns.inputs.getByIndex(i);
 
     // Get the corresponding input buffer
@@ -911,8 +922,8 @@ void PyRegion::compute()
       continue;
 
     // If the input requires a splitter map then
-    // Copy the original input array to the stored input array, which is larger 
-    // by one element and put 0 in the extra element. This is needed for splitter map 
+    // Copy the original input array to the stored input array, which is larger
+    // by one element and put 0 in the extra element. This is needed for splitter map
     // access.
     if (p.second.requireSplitterMap)
     {
@@ -922,7 +933,7 @@ void PyRegion::compute()
 
       // Verify that the stored input array is larger by 1  then the original input
       NTA_ASSERT(a.getCount() == pa->getCount() + 1);
-      
+
       // Work at the char * level because there is no good way
       // to work with the actual data type of the input (since the buffer is void *)
       size_t itemSize = BasicType::getSize(p.second.dataType);
@@ -941,21 +952,21 @@ void PyRegion::compute()
       pa = &a;
     }
 
-    // Create a numpy array from pa, which wil be either 
+    // Create a numpy array from pa, which wil be either
     // the original input array or a stored input array
     // (if a splitter map is needed)
     py::Ptr numpyArray(array2numpy(*pa));
     inputs.setItem(p.first, numpyArray);
   }
-     
+
   // Prepare the outputs dict
   py::Dict outputs;
   for (size_t i = 0; i < ns.outputs.getCount(); ++i)
   {
     // Get the current OutputSpec object
-    const std::pair<std::string, OutputSpec> & p = 
+    const std::pair<std::string, OutputSpec> & p =
       ns.outputs.getByIndex(i);
-  
+
     // Get the corresponding output buffer
     Output * out = region_->getOutput(p.first);
     // Skip optional outputs
@@ -963,13 +974,13 @@ void PyRegion::compute()
       continue;
 
     const Array & data = out->getData();
-  
+
     py::Ptr numpyArray(array2numpy(data));
-  
+
     // Insert the buffer to the outputs py::Dict
     outputs.setItem(p.first, numpyArray);
   }
-  
+
   // Call the Python compute() method
   py::Tuple args(2);
   args.setItem(0, inputs);
@@ -1025,7 +1036,7 @@ void PyRegion::createSpec(const char * nodeType, Spec & ns, const char* classNam
 
   // Add inputs
   pos = 0;
-  while (PyDict_Next(inputs, &pos, &key, &value)) 
+  while (PyDict_Next(inputs, &pos, &key, &value))
   {
     // key and value are borrowed from the dict. Their ref count
     // must be incremented so they can be used with
@@ -1057,7 +1068,7 @@ void PyRegion::createSpec(const char * nodeType, Spec & ns, const char* classNam
     NTA_ASSERT(input.getItem("required") != nullptr)
         << inputMessagePrefix.str() << "required";
     bool required = py::Int(input.getItem("required")) != 0;
-    
+
     // make regionLevel optional and default to true.
     bool regionLevel = true;
     if (input.getItem("regionLevel") != nullptr)
@@ -1068,14 +1079,14 @@ void PyRegion::createSpec(const char * nodeType, Spec & ns, const char* classNam
     NTA_ASSERT(input.getItem("isDefaultInput") != nullptr)
         << inputMessagePrefix.str() << "isDefaultInput";
     bool isDefaultInput = py::Int(input.getItem("isDefaultInput")) != 0;
-    
+
     // make requireSplitterMap optional and default to false.
     bool requireSplitterMap = false;
     if (input.getItem("requireSplitterMap") != nullptr)
     {
       requireSplitterMap =  py::Int(input.getItem("requireSplitterMap")) != 0;
     }
-    
+
     ns.inputs.add(
       name,
       InputSpec(
@@ -1090,7 +1101,7 @@ void PyRegion::createSpec(const char * nodeType, Spec & ns, const char* classNam
 
   // Add outputs
   pos = 0;
-  while (PyDict_Next(outputs, &pos, &key, &value)) 
+  while (PyDict_Next(outputs, &pos, &key, &value))
   {
     // key and value are borrowed from the dict. Their ref count
     // must be incremented so they can be used with
@@ -1142,7 +1153,7 @@ void PyRegion::createSpec(const char * nodeType, Spec & ns, const char* classNam
 
   // Add parameters
   pos = 0;
-  while (PyDict_Next(parameters, &pos, &key, &value)) 
+  while (PyDict_Next(parameters, &pos, &key, &value))
   {
     // key and value are borrowed from the dict. Their ref count
     // must be incremented so they can be used with
@@ -1230,7 +1241,7 @@ void PyRegion::createSpec(const char * nodeType, Spec & ns, const char* classNam
 
   // Add commands
   pos = 0;
-  while (PyDict_Next(commands, &pos, &key, &value)) 
+  while (PyDict_Next(commands, &pos, &key, &value))
   {
     // key and value are borrowed from the dict. Their ref count
     // must be incremented so they can be used with
@@ -1281,19 +1292,19 @@ void PyRegion::initialize()
   {
     dims.setItem(i, py::UnsignedLong(d[i]));
   }
-  
+
   // Prepare the splitter map dict - each input
   // gets its own splitter map. The splitter map
-  // for an input is represented as a tuple of 
+  // for an input is represented as a tuple of
   // tuples of longs in Python.
   const Spec & ns = getSpec();
-  
+
   // The dict that contains the input maps for all inputs
   py::Dict splitterMaps;
   for (size_t i = 0; i < ns.inputs.getCount(); ++i)
   {
     // Get the current InputSpec object
-    const std::pair<std::string, InputSpec> & p = 
+    const std::pair<std::string, InputSpec> & p =
       ns.inputs.getByIndex(i);
 
     // Skip splitter map generation if not required
@@ -1316,7 +1327,7 @@ void PyRegion::initialize()
 
     const nupic::Input::SplitterMap & sm = inp->getSplitterMap();
     size_t rawSize = getMaxInputCount(sm);
-    
+
     // The sentinel is padding each input raw
     // in the splitter map after the end of useful input
     UInt64 sentinel = inp->getData().getCount();
@@ -1335,14 +1346,14 @@ void PyRegion::initialize()
       //std::cout << std::endl;
 
       // Copy current raw into the splitter map
-      std::copy(sm[j].begin(), 
+      std::copy(sm[j].begin(),
                 sm[j].end(),
                 begin + j * rawSize);
 
       // Fill the rest of the raw (up to maxInputSize) with the sentinel
       std::fill(begin + j * rawSize + sm[j].size(),
                 begin + (j + 1) * rawSize,
-                sentinel);                
+                sentinel);
 
 
       //std::cout << "begin[j * rawSizse]:" << std::endl;
@@ -1359,7 +1370,7 @@ void PyRegion::initialize()
 
     // Create a numpy array version of the serialized splitter map
     py::Instance serialized(splitterMap->asNumpyArray());
-    
+
     // Reshape the array to the real shape of the padded splitter map
     py::Tuple args(2);
     args.setItem(0, py::UnsignedLong(sm.size()));
@@ -1374,7 +1385,7 @@ void PyRegion::initialize()
   py::Tuple args(2);
   args.setItem(0, dims);
   args.setItem(1, splitterMaps);
-  
+
 
   //py::Dict dd(args.getItem(1));
   //py::Ptr m(dd.getItem("bottomUpIn"));

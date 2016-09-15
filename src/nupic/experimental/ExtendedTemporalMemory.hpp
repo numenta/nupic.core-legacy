@@ -46,6 +46,12 @@ namespace nupic {
       /**
        * Extended Temporal Memory implementation in C++.
        *
+       * The public API uses C arrays, not std::vectors, as inputs. C arrays are
+       * a good lowest common denominator. You can get a C array from a vector,
+       * but you can't get a vector from a C array without copying it. This is
+       * important, for example, when using numpy arrays. The only way to
+       * convert a numpy array into a std::vector is to copy it, but you can
+       * access a numpy array's internal C array directly.
        */
       class ExtendedTemporalMemory :
         public Serializable<ExtendedTemporalMemoryProto> {
@@ -172,14 +178,23 @@ namespace nupic {
          * Calculate the active cells, using the current active columns and
          * dendrite segments. Grow and reinforce synapses.
          *
+         * @param activeColumnsSize
+         * Size of activeColumns.
+         *
          * @param activeColumns
          * A sorted list of active column indices.
+         *
+         * @param prevActiveExternalCellsBasalSize
+         * Size of prevActiveExternalCellsBasal.
          *
          * @param prevActiveExternalCellsBasal
          * A sorted list of the external cells that were used to calculate the
          * current basal segment excitation. This class doesn't save a copy of
          * these cells because the caller is more flexible to find ways of
          * keeping this list available without extra copying.
+         *
+         * @param prevActiveExternalCellsApicalSize
+         * Size of prevActiveExternalCellsApical.
          *
          * @param prevActiveExternalCellsApical
          * A sorted list of the external cells that were used to calculate the
@@ -191,48 +206,28 @@ namespace nupic {
          * If true, reinforce / punish / grow synapses.
          */
         void activateCells(
-          const vector<UInt>& activeColumns,
-          const vector<CellIdx>& prevActiveExternalCellsBasal,
-          const vector<CellIdx>& prevActiveExternalCellsApical,
+          size_t activeColumnsSize,
+          const UInt activeColumns[],
+
+          size_t prevActiveExternalCellsBasalSize,
+          const CellIdx prevActiveExternalCellsBasal[],
+
+          size_t activeExternalCellsApicalSize,
+          const CellIdx activeExternalCellsApical[],
+
           bool learn);
-
-        /**
-         * Calculate basal dendrite segment activity, using the current active
-         * cells.
-         *
-         * @param activeExternalCells
-         * Active external cells that should be used for activating dendrites in
-         * this timestep.
-         *
-         * @param learn
-         * If true, segment activations will be recorded. This information is
-         * used during segment cleanup.
-         */
-        void activateBasalDendrites(
-          const vector<CellIdx>& activeExternalCells,
-          bool learn = true);
-
-        /**
-         * Calculate apical dendrite segment activity, using the current active
-         * cells.
-         *
-         * @param activeExternalCells
-         * Active external cells that should be used for activating dendrites in
-         * this timestep.
-         *
-         * @param learn
-         * If true, segment activations will be recorded. This information is
-         * used during segment cleanup.
-         */
-        void activateApicalDendrites(
-          const vector<CellIdx>& activeExternalCells,
-          bool learn = true);
 
         /**
          * Calculate dendrite segment activity, using the current active cells.
          *
+         * @param activeExternalCellsBasalSize
+         * Size of activeExternalCellsBasal.
+         *
          * @param activeExternalCellsBasal
          * Sorted list of active external cells for activating basal dendrites.
+         *
+         * @param activeExternalCellsApicalSize
+         * Size of activeExternalCellsApical.
          *
          * @param activeExternalCellsApical
          * Sorted list of active external cells for activating apical dendrites.
@@ -242,27 +237,30 @@ namespace nupic {
          * used during segment cleanup.
          */
         void activateDendrites(
-          const vector<CellIdx>& activeExternalCellsBasal,
-          const vector<CellIdx>& activeExternalCellsApical,
+          size_t activeExternalCellsBasalSize,
+          const CellIdx activeExternalCellsBasal[],
+
+          size_t activeExternalCellsApicalSize,
+          const CellIdx activeExternalCellsApical[],
+
           bool learn = true);
 
         /**
-         * For backward-compatibility with TemporalMemory unit tests.
+         * Perform one time step of the Temporal Memory algorithm.
          *
-         * Feeds input record through TM, performing inference and learning.
+         * This method calls activateCells, then calls activateDendrites. Using
+         * the TemporalMemory via its compute method ensures that you'll always
+         * be able to call getPredictiveCells to get predictions for the next
+         * time step.
          *
-         * @param activeColumnsSize Number of active columns
-         * @param activeColumns     Indices of active columns
-         * @param learn             Whether or not learning is enabled
-         */
-        virtual void compute(
-          UInt activeColumnsSize, const UInt activeColumns[], bool learn = true);
-
-        /**
-         * Feeds input record through TM, performing inference and learning.
+         * @param activeColumnsSize
+         * Size of activeColumns.
          *
-         * @param activeColumnsUnsorted
-         * A list of active column indices.
+         * @param activeColumns
+         * Sorted list of indices of active columns.
+         *
+         * @param prevActiveExternalCellsBasalSize
+         * Size of prevActiveExternalCellsBasal.
          *
          * @param prevActiveExternalCellsBasal
          * The external cells that were used to calculate the current basal
@@ -270,9 +268,15 @@ namespace nupic {
          * because the caller is more flexible to find ways of keeping this list
          * available without extra copying.
          *
+         * @param activeExternalCellsBasalSize
+         * Size of activeExternalCellsBasal.
+         *
          * @param activeExternalCellsBasal
          * Sorted list of active external cells that should be used for
          * activating basal dendrites in this timestep.
+         *
+         * @param prevActiveExternalCellsApicalSize
+         * Size of prevActiveExternalCellsApical.
          *
          * @param prevActiveExternalCellsApical
          * The external cells that were used to calculate the current apical
@@ -280,19 +284,32 @@ namespace nupic {
          * because the caller is more flexible to find ways of keeping this list
          * available without extra copying.
          *
+         * @param activeExternalCellsApicalSize
+         * Size of activeExternalCellsApical.
+         *
          * @param activeExternalCellsApical
          * Sorted list of active external cells that should be used for
          * activating apical dendrites in this timestep.
          *
          * @param learn
-         * Whether or not learning is enabled
+         * Whether or not learning is enabled.
          */
         virtual void compute(
-          const vector<UInt>& activeColumnsUnsorted,
-          const vector<CellIdx>& prevActiveExternalCellsBasal,
-          const vector<CellIdx>& activeExternalCellsBasal,
-          const vector<CellIdx>& prevActiveExternalCellsApical,
-          const vector<CellIdx>& activeExternalCellsApical,
+          size_t activeColumnsSize,
+          const UInt activeColumns[],
+
+          size_t prevActiveExternalCellsBasalSize = 0,
+          const CellIdx prevActiveExternalCellsBasal[] = nullptr,
+
+          size_t activeExternalCellsBasalSize = 0,
+          const CellIdx activeExternalCellsBasal[] = nullptr,
+
+          size_t prevActiveExternalCellsApicalSize = 0,
+          const CellIdx prevActiveExternalCellsApical[] = nullptr,
+
+          size_t activeExternalCellsApicalSize = 0,
+          const CellIdx activeExternalCellsApical[] = nullptr,
+
           bool learn = true);
 
         // ==============================

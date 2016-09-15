@@ -1078,13 +1078,6 @@ void SpatialPooler::calculateOverlap_(UInt inputVector[],
   overlaps.assign(numColumns_,0);
   connectedSynapses_.rightVecSumAtNZ(inputVector,inputVector+numInputs_,
     overlaps.begin(),overlaps.end());
-  if (stimulusThreshold_ > 0) {
-    for (UInt i = 0; i < numColumns_; i++) {
-      if (overlaps[i] < stimulusThreshold_) {
-        overlaps[i] = 0;
-      }
-    }
-  }
 }
 
 void SpatialPooler::calculateOverlapPct_(vector<UInt>& overlaps,
@@ -1127,6 +1120,10 @@ void SpatialPooler::inhibitColumns_(vector<Real>& overlaps,
 bool SpatialPooler::isWinner_(Real score, vector<pair<UInt, Real> >& winners,
                               UInt numWinners)
 {
+  if (score < stimulusThreshold_) {
+    return false;
+  }
+
   if (winners.size() < numWinners) {
     return true;
   }
@@ -1156,42 +1153,53 @@ void SpatialPooler::inhibitColumnsGlobal_(vector<Real>& overlaps, Real density,
                                           vector<UInt>& activeColumns)
 {
   activeColumns.clear();
-  UInt numActive = (UInt) (density * numColumns_);
+  const UInt numDesired = (UInt) (density * numColumns_);
   vector<pair<UInt, Real> > winners;
   for (UInt i = 0; i < numColumns_; i++) {
-    if (isWinner_(overlaps[i], winners, numActive)) {
+    if (isWinner_(overlaps[i], winners, numDesired)) {
       addToWinners_(i,overlaps[i], winners);
     }
   }
 
-  for (UInt i = 0; i < numActive; i++) {
+  const UInt numActual = min(numDesired, (UInt)winners.size());
+  for (UInt i = 0; i < numActual; i++) {
     activeColumns.push_back(winners[i].first);
   }
 
 }
 
 void SpatialPooler::inhibitColumnsLocal_(vector<Real>& overlaps, Real density,
-                           vector<UInt>& activeColumns)
+                                         vector<UInt>& activeColumns)
 {
   activeColumns.clear();
+
+  // When a column is selected, add a small number to its overlap. If it was
+  // tied with other not-yet-processed columns, those columns will now lose the
+  // tie-breaker when they're processed.
   Real arbitration = *max_element(overlaps.begin(), overlaps.end()) / 1000.0;
+  if (arbitration == 0)
+  {
+    arbitration = 0.001;
+  }
+
   vector<UInt> neighbors;
   for (UInt column = 0; column < numColumns_; column++) {
-    getNeighborsND_(column, columnDimensions_, inhibitionRadius_, false,
-                    neighbors);
-    UInt numActive = (UInt) (0.5 + (density * (neighbors.size() + 1)));
-    UInt numBigger = 0;
-    for (auto & neighbor : neighbors) {
-      if (overlaps[neighbor] > overlaps[column]) {
-        numBigger++;
+    if (overlaps[column] >= stimulusThreshold_) {
+      getNeighborsND_(column, columnDimensions_, inhibitionRadius_, false,
+                      neighbors);
+      UInt numActive = (UInt) (0.5 + (density * (neighbors.size() + 1)));
+      UInt numBigger = 0;
+      for (auto & neighbor : neighbors) {
+        if (overlaps[neighbor] > overlaps[column]) {
+          numBigger++;
+        }
+      }
+
+      if (numBigger < numActive) {
+        activeColumns.push_back(column);
+        overlaps[column] += arbitration;
       }
     }
-
-    if (numBigger < numActive) {
-      activeColumns.push_back(column);
-      overlaps[column] += arbitration;
-    }
-
   }
 }
 

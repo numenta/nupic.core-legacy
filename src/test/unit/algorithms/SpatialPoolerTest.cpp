@@ -39,6 +39,20 @@ using namespace nupic;
 using namespace nupic::algorithms::spatial_pooler;
 
 namespace {
+  UInt countNonzero(const vector<UInt>& vec)
+  {
+    UInt count = 0;
+
+    for (UInt x : vec)
+    {
+      if (x > 0)
+      {
+        count++;
+      }
+    }
+
+    return count;
+  }
 
   bool almost_eq(Real a, Real b)
   {
@@ -1185,12 +1199,15 @@ namespace {
 
   TEST(SpatialPoolerTest, testIsWinner)
   {
-    SpatialPooler sp;
+    UInt numInputs = 10;
+    UInt numColumns = 5;
+    SpatialPooler sp({numInputs}, {numColumns});
+
     vector<pair<UInt, Real> > winners;
 
     UInt numWinners = 3;
     Real score = -5;
-    ASSERT_TRUE(sp.isWinner_(score,winners,numWinners));
+    ASSERT_FALSE(sp.isWinner_(score,winners,numWinners));
     score = 0;
     ASSERT_TRUE(sp.isWinner_(score,winners,numWinners));
 
@@ -2515,6 +2532,133 @@ namespace {
     const vector<Real>& boostedOverlaps = sp.getBoostedOverlaps();
     const vector<Real> expectedBoostedOverlaps = {0.0, 6.0, 15.0};
     EXPECT_EQ(expectedBoostedOverlaps, boostedOverlaps);
+  }
+
+  TEST(SpatialPoolerTest, ZeroOverlap_NoStimulusThreshold_GlobalInhibition)
+  {
+    const UInt inputSize = 10;
+    const UInt nColumns = 20;
+
+    SpatialPooler sp({inputSize},
+                     {nColumns},
+                     /*potentialRadius*/ 10,
+                     /*potentialPct*/ 0.5,
+                     /*globalInhibition*/ true,
+                     /*localAreaDensity*/ -1.0,
+                     /*numActiveColumnsPerInhArea*/ 3,
+                     /*stimulusThreshold*/ 0,
+                     /*synPermInactiveDec*/ 0.008,
+                     /*synPermActiveInc*/ 0.05,
+                     /*synPermConnected*/ 0.1,
+                     /*minPctOverlapDutyCycles*/ 0.001,
+                     /*minPctActiveDutyCycles*/ 0.001,
+                     /*dutyCyclePeriod*/ 1000,
+                     /*maxBoost*/ 10.0,
+                     /*seed*/ 1,
+                     /*spVerbosity*/ 0,
+                     /*wrapAround*/ true);
+
+    vector<UInt> input(inputSize, 0);
+    vector<UInt> activeColumns(nColumns, 0);
+    sp.compute(input.data(), true, activeColumns.data());
+
+    EXPECT_EQ(3, countNonzero(activeColumns));
+  }
+
+  TEST(SpatialPoolerTest, ZeroOverlap_StimulusThreshold_GlobalInhibition)
+  {
+    const UInt inputSize = 10;
+    const UInt nColumns = 20;
+
+    SpatialPooler sp({inputSize},
+                     {nColumns},
+                     /*potentialRadius*/ 5,
+                     /*potentialPct*/ 0.5,
+                     /*globalInhibition*/ true,
+                     /*localAreaDensity*/ -1.0,
+                     /*numActiveColumnsPerInhArea*/ 1,
+                     /*stimulusThreshold*/ 1,
+                     /*synPermInactiveDec*/ 0.008,
+                     /*synPermActiveInc*/ 0.05,
+                     /*synPermConnected*/ 0.1,
+                     /*minPctOverlapDutyCycles*/ 0.001,
+                     /*minPctActiveDutyCycles*/ 0.001,
+                     /*dutyCyclePeriod*/ 1000,
+                     /*maxBoost*/ 10.0,
+                     /*seed*/ 1,
+                     /*spVerbosity*/ 0,
+                     /*wrapAround*/ true);
+
+    vector<UInt> input(inputSize, 0);
+    vector<UInt> activeColumns(nColumns, 0);
+    sp.compute(input.data(), true, activeColumns.data());
+
+    EXPECT_EQ(0, countNonzero(activeColumns));
+  }
+
+  TEST(SpatialPoolerTest, ZeroOverlap_NoStimulusThreshold_LocalInhibition)
+  {
+    const UInt inputSize = 10;
+    const UInt nColumns = 20;
+
+    SpatialPooler sp({inputSize},
+                     {nColumns},
+                     /*potentialRadius*/ 5,
+                     /*potentialPct*/ 0.5,
+                     /*globalInhibition*/ false,
+                     /*localAreaDensity*/ -1.0,
+                     /*numActiveColumnsPerInhArea*/ 1,
+                     /*stimulusThreshold*/ 0,
+                     /*synPermInactiveDec*/ 0.008,
+                     /*synPermActiveInc*/ 0.05,
+                     /*synPermConnected*/ 0.1,
+                     /*minPctOverlapDutyCycles*/ 0.001,
+                     /*minPctActiveDutyCycles*/ 0.001,
+                     /*dutyCyclePeriod*/ 1000,
+                     /*maxBoost*/ 10.0,
+                     /*seed*/ 1,
+                     /*spVerbosity*/ 0,
+                     /*wrapAround*/ true);
+
+    vector<UInt> input(inputSize, 0);
+    vector<UInt> activeColumns(nColumns, 0);
+    sp.compute(input.data(), true, activeColumns.data());
+
+    // This exact number of active columns is determined by the inhibition
+    // radius, which changes based on the random synapses (i.e. weird math).
+    EXPECT_GT(countNonzero(activeColumns), 2);
+    EXPECT_LT(countNonzero(activeColumns), 10);
+  }
+
+  TEST(SpatialPoolerTest, ZeroOverlap_StimulusThreshold_LocalInhibition)
+  {
+    const UInt inputSize = 10;
+    const UInt nColumns = 20;
+
+    SpatialPooler sp({inputSize},
+                     {nColumns},
+                     /*potentialRadius*/ 10,
+                     /*potentialPct*/ 0.5,
+                     /*globalInhibition*/ false,
+                     /*localAreaDensity*/ -1.0,
+                     /*numActiveColumnsPerInhArea*/ 3,
+                     /*stimulusThreshold*/ 1,
+                     /*synPermInactiveDec*/ 0.008,
+                     /*synPermActiveInc*/ 0.05,
+                     /*synPermConnected*/ 0.1,
+                     /*minPctOverlapDutyCycles*/ 0.001,
+                     /*minPctActiveDutyCycles*/ 0.001,
+                     /*dutyCyclePeriod*/ 1000,
+                     /*maxBoost*/ 10.0,
+                     /*seed*/ 1,
+                     /*spVerbosity*/ 0,
+                     /*wrapAround*/ true);
+
+    vector<UInt> input(inputSize, 0);
+    vector<UInt> activeColumns(nColumns, 0);
+    sp.compute(input.data(), true, activeColumns.data());
+
+    EXPECT_EQ(0, countNonzero(activeColumns));
   }
 
   TEST(SpatialPoolerTest, testSaveLoad)

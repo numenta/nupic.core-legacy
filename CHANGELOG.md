@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.4.7
+
+* Check that TM input is sorted indices in Release builds
+* Update inhibition comments and docstrings.
+* Use C arrays in TemporalMemory. Allows numpy array reuse.
+* Added that `-DNUPIC_BUILD_PYEXT_MODULES=ON` is the default at this time.
+* Added information about usage of the NUPIC_BUILD_PYEXT_MODULES cmake property.
+* Describe flatIdx in Connections docstring
+* Consistent param ordering between implementations.
+* Store "numActivePotentialSynapses". No more "SegmentOverlap".
+
 ## 0.4.6
 
 * Templates: Stop inferring const unnecessarily
