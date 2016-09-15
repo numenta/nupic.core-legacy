@@ -89,11 +89,11 @@ echo "RUNNING NUPIC BINDINGS BUILD: BUILD_TYPE=${BUILD_TYPE}, " \
 # Install pycapnp to get the matching capnproto headers for nupic.core build
 # NOTE Conditional pycapnp dependency should be incorporated into
 # bindings/py/requirements.txt to abstract it from upstream scripts.
-pip install pycapnp==0.5.8
+pip install --user pycapnp==0.5.8
 
 # Install nupic.bindings dependencies; the nupic.core cmake build depends on
 # some of them (e.g., numpy).
-pip install -r ${NUPIC_CORE_ROOT}/bindings/py/requirements.txt
+pip install --user -r ${NUPIC_CORE_ROOT}/bindings/py/requirements.txt
 
 
 #
@@ -134,7 +134,7 @@ python setup.py bdist_wheel --dist-dir ${DEST_WHEELHOUSE} ${EXTRA_WHEEL_OPTIONS}
 #
 
 # Install nupic.bindings before running c++ tests; py_region_test depends on it
-pip install --ignore-installed ${DEST_WHEELHOUSE}/nupic.bindings-*.whl
+pip install --user --ignore-installed ${DEST_WHEELHOUSE}/nupic.bindings-*.whl
 
 # Run the nupic.core c++ tests
 cd ${NUPIC_CORE_ROOT}/build/release/bin
