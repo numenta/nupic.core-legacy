@@ -31,9 +31,12 @@ using std::vector;
 using namespace nupic;
 using namespace nupic::math::topology;
 
-namespace nupic {
-  namespace math {
-    namespace topology {
+namespace nupic
+{
+  namespace math
+  {
+    namespace topology
+    {
 
       vector<UInt> coordinatesFromIndex(
         UInt index,
@@ -53,7 +56,6 @@ namespace nupic {
 
         return coordinates;
       }
-
 
       UInt indexFromCoordinates(const vector<UInt>& coordinates,
                                 const vector<UInt>& dimensions)

@@ -31,9 +31,12 @@
 
 #include <nupic/types/Types.hpp>
 
-namespace nupic {
-  namespace math {
-    namespace topology {
+namespace nupic
+{
+  namespace math
+  {
+    namespace topology
+    {
 
       /**
        * Translate an index into coordinates, using the given coordinate system.
@@ -53,7 +56,6 @@ namespace nupic {
         UInt index,
         const std::vector<UInt>& dimensions);
 
-
       /**
        * Translate coordinates into an index, using the given coordinate system.
        *
@@ -71,7 +73,6 @@ namespace nupic {
       UInt indexFromCoordinates(
         const std::vector<UInt>& coordinates,
         const std::vector<UInt>& dimensions);
-
 
       /**
        * A class that lets you iterate over all points within the neighborhood
@@ -128,7 +129,8 @@ namespace nupic {
        * the loop returns a point in the neighborhood. Each point is expressed
        * as a single index.
        */
-      class Neighborhood {
+      class Neighborhood
+      {
       public:
         Neighborhood(UInt centerIndex, UInt radius,
                      const std::vector<UInt>& dimensions);
@@ -178,7 +180,8 @@ namespace nupic {
        * the loop returns a point in the neighborhood. Each point is expressed
        * as a single index.
        */
-      class WrappingNeighborhood {
+      class WrappingNeighborhood
+      {
       public:
         WrappingNeighborhood(UInt centerIndex, UInt radius,
                              const std::vector<UInt>& dimensions);

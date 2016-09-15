@@ -40,9 +40,12 @@
 
 using namespace std;
 
-namespace nupic {
-  namespace algorithms {
-    namespace spatial_pooler {
+namespace nupic
+{
+  namespace algorithms
+  {
+    namespace spatial_pooler
+    {
 
       /**
        * CLA spatial pooler implementation in C++.
@@ -67,7 +70,8 @@ namespace nupic {
        *     }
        *
        */
-      class SpatialPooler : public Serializable<SpatialPoolerProto> {
+      class SpatialPooler : public Serializable<SpatialPoolerProto>
+      {
         public:
           SpatialPooler();
           SpatialPooler(vector<UInt> inputDimensions,
@@ -1340,6 +1344,7 @@ namespace nupic {
           Random rng_;
 
       };
+
     } // end namespace spatial_pooler
   } // end namespace algorithms
 } // end namespace nupic
