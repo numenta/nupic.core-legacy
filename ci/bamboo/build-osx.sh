@@ -35,6 +35,12 @@ set -o xtrace
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
+# Use virtualenv to allow pip installs without --user in
+# build-and-test-nupic-bindings.sh
+pip install --user virtualenv
+virtualenv ./venv
+source ./venv/bin/activate
+
 # Build and test
 ARCHFLAGS="-arch x86_64" \
 BUILD_TYPE="Release" \
