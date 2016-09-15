@@ -495,7 +495,11 @@ int realmain(bool leakTest)
     //testNuPIC1x();
     //testPynode1xLinking();
   }
+#if !CAPNP_LITE
+  // PyRegion::write is implemented only when nupic.core is compiled with
+  // CAPNP_LITE=0
   testWriteRead();
+#endif
 
   // testUnregisterRegion needs to be the last test run as it will unregister
   // the region 'TestNode'.
