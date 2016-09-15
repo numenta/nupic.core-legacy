@@ -190,6 +190,7 @@ after_build:
 
   # legacy binary tests
   - cd %NUPIC_CORE%\build\release\bin
+  - py_region_test.exe
   - connections_performance_test.exe
   - cpp_region_test.exe
   - helloregion.exe
