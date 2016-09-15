@@ -85,8 +85,8 @@ struct MemoryMonitor
   {
     if (hasMemoryLeaks())
     {
-      NTA_DEBUG 
-        << "Memory leaks detected. " 
+      NTA_DEBUG
+        << "Memory leaks detected. "
         << "Real Memory: " << diff_rmem
         << ", Virtual Memory: " << diff_vmem;
     }
@@ -134,7 +134,7 @@ void testExceptionBug()
   } else {
     NTA_THROW << "testExceptionBug did not throw an exception as expected";
   }
-    
+
 }
 
 
@@ -149,7 +149,7 @@ void testPynodeInputOutputAccess(Region * level2)
   std::cout << "Element count in bottomUpOut is " << output.getCount() << "" << std::endl;
   Real64 *data_actual = (Real64*)output.getBuffer();
   // set the actual output
-  data_actual[12] = 54321;  
+  data_actual[12] = 54321;
 }
 
 void testPynodeArrayParameters(Region * level2)
@@ -163,7 +163,7 @@ void testPynodeArrayParameters(Region * level2)
   for (int i = 0; i < int(a.getCount()); ++i)
     std::cout << buff[i] << " ";
   std::cout << "]" << std::endl;
-  
+
   // --- test setParameterInt64Array ---
   std::cout << "Setting level2.int64ArrayParam to [ 1 2 3 4 ]" << std::endl;
   std::vector<Int64> v(4);
@@ -207,7 +207,7 @@ void testPynodeLinking()
   NTA_CHECK(r2dims.size() == 2) << " actual dims: " << r2dims.toString();
   NTA_CHECK(r2dims[0] == 3) << " actual dims: " << r2dims.toString();
   NTA_CHECK(r2dims[1] == 2) << " actual dims: " << r2dims.toString();
-  
+
   ArrayRef r1OutputArray = region1->getOutputData("bottomUpOut");
 
   region1->compute();
@@ -266,7 +266,7 @@ void testPynodeLinking()
     NTA_CHECK(r2NodeInput[4] == 0);
     NTA_CHECK(r2NodeInput[6] == 0);
     // these values are specific to the fanin2 link policy
-    NTA_CHECK(r2NodeInput[1] == row * 12    + col * 2) 
+    NTA_CHECK(r2NodeInput[1] == row * 12    + col * 2)
       << "row: " << row << " col: " << col << " val: " << r2NodeInput[1];
     NTA_CHECK(r2NodeInput[3] == row * 12    + col * 2 + 1)
       << "row: " << row << " col: " << col << " val: " << r2NodeInput[3];
@@ -434,13 +434,13 @@ void testWriteRead()
 int realmain(bool leakTest)
 {
   // verbose == true turns on extra output that is useful for
-  // debugging the test (e.g. when the TestNode compute() 
+  // debugging the test (e.g. when the TestNode compute()
   // algorithm changes)
 
 
   std::cout << "Creating network..." << std::endl;
   Network n;
-  
+
   std::cout << "Region count is " << n.getRegions().getCount() << "" << std::endl;
 
   std::cout << "Adding a PyNode region..." << std::endl;
@@ -450,7 +450,7 @@ int realmain(bool leakTest)
   std::cout << "Region count is " << n.getRegions().getCount() << "" << std::endl;
   std::cout << "Node type: " << level2->getType() << "" << std::endl;
   std::cout << "Nodespec is:\n"  << level2->getSpec()->toString() << "" << std::endl;
-  
+
   Real64 rval;
   std::string int64Param("int64Param");
   std::string real64Param("real64Param");
@@ -459,13 +459,13 @@ int realmain(bool leakTest)
 
   // --- Test getParameterReal64 of a PyNode
   rval = level2->getParameterReal64("real64Param");
-  NTA_CHECK(rval == 64.1); 
+  NTA_CHECK(rval == 64.1);
   std::cout << "level2 getParameterReal64() returned: " << rval << std::endl;
 
   // --- Test setParameterReal64 of a PyNode
   level2->setParameterReal64("real64Param", 77.7);
   rval = level2->getParameterReal64("real64Param");
-  NTA_CHECK(rval == 77.7); 
+  NTA_CHECK(rval == 77.7);
 
   // should fail because network has not been initialized
   SHOULDFAIL(n.run(1));
@@ -508,18 +508,18 @@ int realmain(bool leakTest)
 
 int main(int argc, char *argv[])
 {
-  
-  /* 
+
+  /*
    * Without arguments, this program is a simple end-to-end demo
-   * of NuPIC 2 functionality, used as a developer tool (when 
-   * we add a feature, we add it to this program. 
+   * of NuPIC 2 functionality, used as a developer tool (when
+   * we add a feature, we add it to this program.
    * With an integer argument N, runs the same test N times
    * and requires that memory use stay constant -- it can't
-   * grow by even one byte. 
+   * grow by even one byte.
    */
 
   // TODO: real argument parsing
-  // Optional arg is number of iterations to do. 
+  // Optional arg is number of iterations to do.
   NTA_CHECK(argc == 1 || argc == 2);
   size_t count = 1;
   if (argc == 2)
@@ -527,7 +527,7 @@ int main(int argc, char *argv[])
     std::stringstream ss(argv[1]);
     ss >> count;
   }
-  // Start checking memory usage after this many iterations. 
+  // Start checking memory usage after this many iterations.
 #if defined(NTA_OS_WINDOWS)
   // takes longer to settle down on win32
   size_t memoryLeakStartIter = 6000;
@@ -535,7 +535,7 @@ int main(int argc, char *argv[])
   size_t memoryLeakStartIter = 150;
 #endif
 
-  // This determines how frequently we check. 
+  // This determines how frequently we check.
   size_t memoryLeakDeltaIterCheck = 10;
 
   size_t minCount = memoryLeakStartIter + 5 * memoryLeakDeltaIterCheck;
@@ -546,7 +546,7 @@ int main(int argc, char *argv[])
     std::cout << "When run in leak detection mode, count must be at least " << minCount << "\n";
     ::exit(1);
   }
-   
+
 
   size_t initial_vmem = 0;
   size_t initial_rmem = 0;
@@ -576,7 +576,7 @@ int main(int argc, char *argv[])
           initial_rmem = current_rmem;
           initial_vmem = current_vmem;
         }
-        std::cout << "Memory usage: " << current_vmem << " (virtual) " 
+        std::cout << "Memory usage: " << current_vmem << " (virtual) "
                   << current_rmem << " (real) at iteration " << i << std::endl;
 
         if(i >= memoryLeakStartIter)
@@ -593,8 +593,8 @@ int main(int argc, char *argv[])
     }
 
   } catch (nupic::Exception& e) {
-    std::cout 
-      << "Exception: " << e.getMessage() 
+    std::cout
+      << "Exception: " << e.getMessage()
       << " at: " << e.getFilename() << ":" << e.getLineNumber()
       << std::endl;
     return 1;
