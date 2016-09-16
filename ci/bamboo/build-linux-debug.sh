@@ -40,5 +40,4 @@ apt-get install -y iwyu
 
 # Build and test
 BUILD_TYPE="Debug" \
-RESULT_KEY="${bamboo_buildResultKey}" \
   ${DIR}/../build-and-test-nupic-bindings.sh "$@"

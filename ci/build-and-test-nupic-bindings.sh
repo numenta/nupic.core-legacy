@@ -25,7 +25,7 @@ set -o errexit
 
 USAGE="Usage:
 
-[BUILD_TYPE=Release | Debug] [RESULT_KEY=key-string] [WHEEL_PLAT=platform] $( basename ${0} )
+[BUILD_TYPE=Release | Debug] [WHEEL_PLAT=platform] $( basename ${0} )
 
 This script builds and tests the nupic.bindings Python extension.
 
@@ -40,7 +40,6 @@ INPUT ENVIRONMENT VARIABLES:
 
   BUILD_TYPE : Specifies build type, which may be either Release or Debug;
                defaults to Release. [OPTIONAL]
-  RESULT_KEY : Build result key; used to decorate artifact names. [OPTIONAL]
   WHEEL_PLAT : Wheel platform name; pass manylinux1_x86_64 for manylinux build;
                leave undefined for all other builds.
 
@@ -84,7 +83,7 @@ DEST_WHEELHOUSE="${NUPIC_CORE_ROOT}/nupic_bindings_wheelhouse"
 TEST_RESULTS_DIR="${NUPIC_CORE_ROOT}/test_results"
 
 echo "RUNNING NUPIC BINDINGS BUILD: BUILD_TYPE=${BUILD_TYPE}, " \
-     "RESULT_KEY=${RESULT_KEY}, DEST_WHEELHOUSE=${DEST_WHEELHOUSE}" >&2
+     "DEST_WHEELHOUSE=${DEST_WHEELHOUSE}" >&2
 
 # Install pycapnp to get the matching capnproto headers for nupic.core build
 # NOTE Conditional pycapnp dependency should be incorporated into
