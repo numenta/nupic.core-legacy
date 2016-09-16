@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.8
+
+* Add missing argument to `Set-PsDebug -Trace`
+* Issue1075 fix py_region_test failure on windows (#1082)
+* Perf: Walk neighborhoods via iterators.
+
 ## 0.4.7
 
 * Check that TM input is sorted indices in Release builds
