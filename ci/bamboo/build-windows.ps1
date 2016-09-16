@@ -47,7 +47,8 @@
 # Stop and fail script if any command fails
 $ErrorActionPreference = "Stop"
 
-Set-PsDebug -Trace
+# Trace script lines as they run
+Set-PsDebug -Trace 1
 
 
 
