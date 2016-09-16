@@ -40,9 +40,12 @@
 
 using namespace std;
 
-namespace nupic {
-  namespace algorithms {
-    namespace spatial_pooler {
+namespace nupic
+{
+  namespace algorithms
+  {
+    namespace spatial_pooler
+    {
 
       /**
        * CLA spatial pooler implementation in C++.
@@ -67,7 +70,8 @@ namespace nupic {
        *     }
        *
        */
-      class SpatialPooler : public Serializable<SpatialPoolerProto> {
+      class SpatialPooler : public Serializable<SpatialPoolerProto>
+      {
         public:
           SpatialPooler();
           SpatialPooler(vector<UInt> inputDimensions,
@@ -837,8 +841,6 @@ namespace nupic {
 
           void boostOverlaps_(vector<UInt>& overlaps,
                               vector<Real>& boostedOverlaps);
-          void range_(Int start, Int end, UInt ubound, bool wrapAround,
-                      vector<UInt>& rangeVector);
 
           /**
             Maps a column to its respective input index, keeping to the topology of
@@ -1071,117 +1073,6 @@ namespace nupic {
           */
           void inhibitColumnsLocal_(vector<Real>& overlaps, Real density,
                                     vector<UInt>& activeColumns);
-
-          /**
-              Returns a list of indices corresponding to the neighbors of a given column.
-
-              In this variation of the method, which only supports a one dimensional
-              column toplogy, a column's neighbors are those neighbors who are 'radius'
-              indices away. This information is needed to perform inhibition. This method
-              is a subset of _getNeighborsND and is only included for illustration
-              purposes, and potentially enhanced performance for spatial pooler
-              implementations that only require a one-dimensional topology.
-
-              ----------------------------
-              @param column  An integer number. The index identifying a column in the permanence, potential
-                              and connectivity matrices.
-
-              @param  dimensions     An int array containg a dimensions for the column space. A 2x3
-                              grid will be represented by [2,3].
-
-              @param  radius      An integer number Indicates how far away from a given column are other
-                              columns to be considered its neighbors. In the previous 2x3
-                              example, each column with coordinates:
-                              [2+/-radius, 3+/-radius] is considered a neighbor.
-
-              @param  wrapAround     A boolean value indicating whether to consider columns at
-                              the border of a dimensions to be adjacent to columns at the
-                              other end of the dimension. For example, if the columns are
-                              layed out in one deimnsion, columns 1 and 10 will be
-                              considered adjacent if wrapAround is set to true:
-                              [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].
-
-              @param neighbors An int arrayof indices corresponding to the neighbors of a given column.
-          */
-          void getNeighbors1D_(UInt column, vector<UInt>& dimensions,
-                               UInt radius, bool wrapAround,
-                               vector<UInt>& neighbors);
-
-          /**
-              Returns a list of indices corresponding to the neighbors of a given column.
-
-              Since the permanence values are stored in such a way that information about
-              toplogy is lost, this method allows for reconstructing the toplogy of the
-              inputs, which are flattened to one array. Given a column's index, its
-              neighbors are defined as those columns that are 'radius' indices away from
-              it in each dimension. The method returns a list of the flat indices of
-              these columns. This method is a subset of _getNeighborsND and is only
-              included for illustration purposes, and potentially enhanced performance
-              for spatial pooler implementations that only require a two-dimensional
-              topology.
-
-              @param column   An integer number. The index identifying a column in the permanence, potential
-                              and connectivity matrices.
-
-              @param  dimensions     An int array containg a dimensions for the column space. A 2x3
-                              grid will be represented by [2,3].
-
-              @param  radius      An integer number Indicates how far away from a given column are other
-                              columns to be considered its neighbors. In the previous 2x3
-                              example, each column with coordinates:
-                              [2+/-radius, 3+/-radius] is considered a neighbor.
-
-              @param  wrapAround     A boolean value indicating whether to consider columns at
-                              the border of a dimensions to be adjacent to columns at the
-                              other end of the dimension. For example, if the columns are
-                              layed out in one deimnsion, columns 1 and 10 will be
-                              considered adjacent if wrapAround is set to true:
-                              [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].
-
-              @param neighbors An int array of indices corresponding to the neighbors of a given column.
-          */
-          void getNeighbors2D_(UInt column, vector<UInt>& dimensions,
-                               UInt radius, bool wrapAround,
-                               vector<UInt>& neighbors);
-          void cartesianProduct_(vector<vector<UInt> >& vecs,
-                                 vector<vector<UInt> >& product);
-
-          /**
-              Similar to _getNeighbors1D and _getNeighbors2D, this function returns a
-              list of indices corresponding to the neighbors of a given column.
-
-              Since the
-              permanence values are stored in such a way that information about toplogy
-              is lost. This method allows for reconstructing the toplogy of the inputs,
-              which are flattened to one array. Given a column's index, its neighbors are
-              defined as those columns that are 'radius' indices away from it in each
-              dimension. The method returns a list of the flat indices of these columns.
-
-              ----------------------------
-              @param column   An integer number. The index identifying a column in the permanence, potential
-                              and connectivity matrices.
-
-              @param  dimensions     An int array containg a dimensions for the column space. A 2x3
-                              grid will be represented by [2,3].
-
-              @param  radius      An integer number Indicates how far away from a given column are other
-                              columns to be considered its neighbors. In the previous 2x3
-                              example, each column with coordinates:
-                              [2+/-radius, 3+/-radius] is considered a neighbor.
-
-              @param  wrapAround     A boolean value indicating whether to consider columns at
-                              the border of a dimensions to be adjacent to columns at the
-                              other end of the dimension. For example, if the columns are
-                              layed out in one deimnsion, columns 1 and 10 will be
-                              considered adjacent if wrapAround is set to true:
-                              [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].
-
-              @param neighbors An int arrayof indices corresponding to the neighbors of a given column.
-          */
-          void getNeighborsND_(UInt column, vector<UInt>& dimensions,
-                               UInt radius, bool wrapAround,
-                               vector<UInt>& neighbors);
-
 
           /**
               The primary method in charge of learning.
@@ -1453,6 +1344,7 @@ namespace nupic {
           Random rng_;
 
       };
+
     } // end namespace spatial_pooler
   } // end namespace algorithms
 } // end namespace nupic

@@ -499,7 +499,7 @@ namespace {
     sp.getMinOverlapDutyCycles(resultMinOverlapArr);
 
     ASSERT_TRUE(check_vector_eq(resultMinOverlapArr, trueOverlapArr,
-                              numColumns));
+                                numColumns));
     ASSERT_TRUE(check_vector_eq(resultMinActiveArr, trueActiveArr, numColumns));
   }
 
@@ -1449,7 +1449,7 @@ namespace {
     UInt trueActive[5] = {1, 2, 5, 6, 9};
     sp.setInhibitionRadius(inhibitionRadius);
     sp.inhibitColumnsLocal_(overlaps, density, active);
-    ASSERT_TRUE(active.size() == 5);
+    ASSERT_EQ(5, active.size());
     ASSERT_TRUE(check_vector_eq(trueActive, active));
 
     Real overlapsArray2[10] = {1, 2, 7, 0, 3, 4, 16, 1, 1.5, 1.7};
@@ -1476,560 +1476,6 @@ namespace {
 
     ASSERT_TRUE(active.size() == 4);
     ASSERT_TRUE(check_vector_eq(trueActive3, active));
-
-  }
-
-  TEST(SpatialPoolerTest, testGetNeighbors1D)
-  {
-
-    SpatialPooler sp;
-    UInt numInputs = 5;
-    UInt numColumns = 8;
-    setup(sp,numInputs,numColumns);
-
-    UInt column;
-    UInt radius;
-    vector<UInt> dimensions;
-    vector<UInt> neighbors;
-    bool wrapAround;
-    vector<UInt> neighborsMap(numColumns, 0);
-
-    column = 3;
-    radius = 1;
-    wrapAround = true;
-    dimensions.push_back(8);
-    UInt trueNeighborsMap1[8] = {0, 0, 1, 0, 1, 0, 0, 0};
-    sp.getNeighbors1D_(column, dimensions, radius, wrapAround,
-                          neighbors);
-    neighborsMap.assign(numColumns, 0);
-    for (auto & neighbor : neighbors) {
-      neighborsMap[neighbor] = 1;
-    }
-    ASSERT_TRUE(check_vector_eq(trueNeighborsMap1, neighborsMap));
-
-    column = 3;
-    radius = 2;
-    wrapAround = false;
-    UInt trueNeighborsMap2[8] = {0, 1, 1, 0, 1, 1, 0, 0};
-    sp.getNeighbors1D_(column, dimensions, radius, wrapAround,
-                          neighbors);
-    neighborsMap.assign(numColumns, 0);
-    for (auto & neighbor : neighbors) {
-      neighborsMap[neighbor] = 1;
-    }
-    ASSERT_TRUE(check_vector_eq(trueNeighborsMap2, neighborsMap));
-
-    column = 0;
-    radius = 2;
-    wrapAround = true;
-    UInt trueNeighborsMap3[8] = {0, 1, 1, 0, 0, 0, 1, 1};
-    sp.getNeighbors1D_(column, dimensions, radius, wrapAround,
-                          neighbors);
-    neighborsMap.assign(numColumns, 0);
-    for (auto & neighbor : neighbors) {
-      neighborsMap[neighbor] = 1;
-    }
-    ASSERT_TRUE(check_vector_eq(trueNeighborsMap3, neighborsMap));
-  }
-
-  TEST(SpatialPoolerTest, testGetNeighbors2D)
-  {
-    UInt numColumns = 30;
-    vector<UInt> dimensions;
-    dimensions.push_back(6);
-    dimensions.push_back(5);
-    SpatialPooler sp;
-    vector<UInt> neighbors;
-    UInt column;
-    UInt radius;
-    bool wrapAround;
-    vector<UInt> neighborsMap;
-
-    UInt trueNeighborsMap1[30] =
-      {0, 0, 0, 0, 0,
-       0, 0, 0, 0, 0,
-       0, 1, 1, 1, 0,
-       0, 1, 0, 1, 0,
-       0, 1, 1, 1, 0,
-       0, 0, 0, 0, 0};
-
-    column = 3*5+2;
-    radius = 1;
-    wrapAround = false;
-    sp.getNeighbors2D_(column, dimensions, radius, wrapAround, neighbors);
-    neighborsMap.assign(numColumns, 0);
-    for (auto & neighbor : neighbors) {
-      neighborsMap[neighbor] = 1;
-    }
-    ASSERT_TRUE(check_vector_eq(trueNeighborsMap1, neighborsMap));
-
-    UInt trueNeighborsMap2[30] =
-      {0, 0, 0, 0, 0,
-       1, 1, 1, 1, 1,
-       1, 1, 1, 1, 1,
-       1, 1, 0, 1, 1,
-       1, 1, 1, 1, 1,
-       1, 1, 1, 1, 1};
-
-    column = 3*5+2;
-    radius = 2;
-    wrapAround = false;
-    sp.getNeighbors2D_(column, dimensions, radius, wrapAround, neighbors);
-    neighborsMap.assign(numColumns, 0);
-    for (auto & neighbor : neighbors) {
-      neighborsMap[neighbor] = 1;
-    }
-    ASSERT_TRUE(check_vector_eq(trueNeighborsMap2, neighborsMap));
-
-    UInt trueNeighborsMap3[30] =
-      {1, 1, 1, 1, 1,
-       1, 1, 1, 1, 1,
-       1, 1, 1, 1, 1,
-       1, 1, 0, 1, 1,
-       1, 1, 1, 1, 1,
-       1, 1, 1, 1, 1};
-
-    column = 3*5+2;
-    radius = 3;
-    wrapAround = false;
-    sp.getNeighbors2D_(column, dimensions, radius, wrapAround, neighbors);
-    neighborsMap.assign(numColumns, 0);
-    for (auto & neighbor : neighbors) {
-      neighborsMap[neighbor] = 1;
-    }
-    ASSERT_TRUE(check_vector_eq(trueNeighborsMap3, neighborsMap));
-
-    UInt trueNeighborsMap4[30] =
-      {1, 0, 0, 1, 1,
-       0, 0, 0, 0, 0,
-       0, 0, 0, 0, 0,
-       0, 0, 0, 0, 0,
-       1, 0, 0, 1, 1,
-       1, 0, 0, 1, 0};
-
-    column = 29;
-    radius = 1;
-    wrapAround = true;
-    sp.getNeighbors2D_(column, dimensions, radius, wrapAround, neighbors);
-    neighborsMap.assign(numColumns, 0);
-    for (auto & neighbor : neighbors) {
-      neighborsMap[neighbor] = 1;
-    }
-    ASSERT_TRUE(check_vector_eq(trueNeighborsMap4, neighborsMap));
-  }
-
-  bool findVector(UInt needle[], UInt n, vector<vector<UInt> > haystack)
-  {
-    for (auto & elem : haystack) {
-      vector<UInt> hay = elem;
-      if (hay.size() != n) {
-        continue;
-      }
-
-      bool match = true;
-      for (UInt j = 0; j < hay.size(); j++) {
-        if (hay[j] != needle[j]) {
-          match = false;
-          break;
-        }
-      }
-
-      if (match) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  TEST(SpatialPoolerTest, testCartesianProduct)
-  {
-    vector<vector<UInt> > vecs;
-    vector<vector<UInt> > prod;
-    UInt needle[3];
-    vector<UInt> v1, v2, v3;
-    SpatialPooler sp;
-
-    sp.cartesianProduct_(vecs, prod);
-    ASSERT_TRUE(prod.size() == 0);
-
-    v1.push_back(2);
-    v1.push_back(4);
-
-    v2.push_back(1);
-    v2.push_back(3);
-
-    vecs.push_back(v2);
-    vecs.push_back(v1);
-
-    sp.cartesianProduct_(vecs,prod);
-    ASSERT_TRUE(prod.size() == 4);
-    needle[0] = 2; needle[1] = 1;
-    ASSERT_TRUE(findVector(needle, 2, prod));
-    needle[0] = 2; needle[1] = 3;
-    ASSERT_TRUE(findVector(needle, 2, prod));
-    needle[0] = 4; needle[1] = 1;
-    ASSERT_TRUE(findVector(needle, 2, prod));
-    needle[0] = 4; needle[1] = 3;
-    ASSERT_TRUE(findVector(needle, 2, prod));
-
-
-    v1.clear();
-    v2.clear();
-    vecs.clear();
-    prod.clear();
-
-    v1.push_back(1);
-    v1.push_back(2);
-    v1.push_back(3);
-
-    v2.push_back(4);
-    v2.push_back(5);
-    v2.push_back(6);
-
-    v3.push_back(7);
-    v3.push_back(8);
-    v3.push_back(9);
-
-    vecs.push_back(v3);
-    vecs.push_back(v2);
-    vecs.push_back(v1);
-
-    sp.cartesianProduct_(vecs, prod);
-    ASSERT_TRUE(prod.size() == 27);
-    needle[0] = 1; needle[1] = 4; needle[2] = 7;
-    ASSERT_TRUE(findVector(needle,3,prod));
-    needle[0] = 1; needle[1] = 4; needle[2] = 8;
-    ASSERT_TRUE(findVector(needle,3,prod));
-    needle[0] = 1; needle[1] = 4; needle[2] = 9;
-    ASSERT_TRUE(findVector(needle,3,prod));
-
-    needle[0] = 1; needle[1] = 5; needle[2] = 7;
-    ASSERT_TRUE(findVector(needle,3,prod));
-    needle[0] = 1; needle[1] = 5; needle[2] = 8;
-    ASSERT_TRUE(findVector(needle,3,prod));
-    needle[0] = 1; needle[1] = 5; needle[2] = 9;
-    ASSERT_TRUE(findVector(needle,3,prod));
-
-    needle[0] = 1; needle[1] = 6; needle[2] = 7;
-    ASSERT_TRUE(findVector(needle,3,prod));
-    needle[0] = 1; needle[1] = 6; needle[2] = 8;
-    ASSERT_TRUE(findVector(needle,3,prod));
-    needle[0] = 1; needle[1] = 6; needle[2] = 9;
-    ASSERT_TRUE(findVector(needle,3,prod));
-
-    needle[0] = 2; needle[1] = 4; needle[2] = 7;
-    ASSERT_TRUE(findVector(needle,3,prod));
-    needle[0] = 2; needle[1] = 4; needle[2] = 8;
-    ASSERT_TRUE(findVector(needle,3,prod));
-    needle[0] = 2; needle[1] = 4; needle[2] = 9;
-    ASSERT_TRUE(findVector(needle,3,prod));
-
-    needle[0] = 2; needle[1] = 5; needle[2] = 7;
-    ASSERT_TRUE(findVector(needle,3,prod));
-    needle[0] = 2; needle[1] = 5; needle[2] = 8;
-    ASSERT_TRUE(findVector(needle,3,prod));
-    needle[0] = 2; needle[1] = 5; needle[2] = 9;
-    ASSERT_TRUE(findVector(needle,3,prod));
-
-    needle[0] = 2; needle[1] = 6; needle[2] = 7;
-    ASSERT_TRUE(findVector(needle,3,prod));
-    needle[0] = 2; needle[1] = 6; needle[2] = 8;
-    ASSERT_TRUE(findVector(needle,3,prod));
-    needle[0] = 2; needle[1] = 6; needle[2] = 9;
-    ASSERT_TRUE(findVector(needle,3,prod));
-
-    needle[0] = 3; needle[1] = 4; needle[2] = 7;
-    ASSERT_TRUE(findVector(needle,3,prod));
-    needle[0] = 3; needle[1] = 4; needle[2] = 8;
-    ASSERT_TRUE(findVector(needle,3,prod));
-    needle[0] = 3; needle[1] = 4; needle[2] = 9;
-    ASSERT_TRUE(findVector(needle,3,prod));
-
-    needle[0] = 3; needle[1] = 5; needle[2] = 7;
-    ASSERT_TRUE(findVector(needle,3,prod));
-    needle[0] = 3; needle[1] = 5; needle[2] = 8;
-    ASSERT_TRUE(findVector(needle,3,prod));
-    needle[0] = 3; needle[1] = 5; needle[2] = 9;
-    ASSERT_TRUE(findVector(needle,3,prod));
-
-    needle[0] = 3; needle[1] = 6; needle[2] = 7;
-    ASSERT_TRUE(findVector(needle,3,prod));
-    needle[0] = 3; needle[1] = 6; needle[2] = 8;
-    ASSERT_TRUE(findVector(needle,3,prod));
-    needle[0] = 3; needle[1] = 6; needle[2] = 9;
-    ASSERT_TRUE(findVector(needle,3,prod));
-
-  }
-
-  TEST(SpatialPoolerTest, testGetNeighborsND)
-  {
-    SpatialPooler sp;
-    UInt column;
-    vector<UInt> dimensions;
-    vector<UInt> nums;
-    vector<UInt> neighbors;
-    bool wrapAround;
-    UInt numColumns;
-
-    UInt radius;
-    UInt x,y,z,w;
-    dimensions.clear();
-    dimensions.push_back(4);
-    dimensions.push_back(5);
-    dimensions.push_back(7);
-
-    vector<UInt> neighborsMap;
-    UInt trueNeighbors1[4][5][7];
-    radius = 1;
-    wrapAround = false;
-    z = 1;
-    y = 2;
-    x = 5;
-    numColumns = (4 * 5 * 7);
-
-    for (auto & elem : trueNeighbors1) {
-      for (auto & elem_j : elem) {
-        for (UInt k = 0; k < 7; k++) {
-          elem_j[k] = 0;
-        }
-      }
-    }
-
-    for (Int i = -(Int)radius; i <= (Int)radius; i++) {
-      for (Int j = -(Int)radius; j <= (Int)radius; j++) {
-        for (Int k = -(Int)radius; k <= (Int)radius; k++) {
-          Int zc = (z + i + dimensions[0]) % dimensions[0];
-          Int yc = (y + j + dimensions[1]) % dimensions[1];
-          Int xc = (x + k + dimensions[2]) % dimensions[2];
-          if (i == 0 && j == 0 && k == 0) {
-            continue;
-          }
-          trueNeighbors1[zc][yc][xc] = 1;
-        }
-      }
-    }
-
-    column = (UInt) (&trueNeighbors1[z][y][x] - &trueNeighbors1[0][0][0]);
-    sp.getNeighborsND_(column, dimensions, radius, wrapAround,
-                       neighbors);
-
-    neighborsMap.assign(numColumns, 0);
-    for (auto & neighbor : neighbors) {
-      neighborsMap[neighbor] = 1;
-    }
-    ASSERT_TRUE(check_vector_eq((UInt*) trueNeighbors1, neighborsMap));
-
-    neighborsMap.clear();
-    w = 4;
-    z = 1;
-    y = 6;
-    x = 3;
-    dimensions.clear();
-    dimensions.push_back(5);
-    dimensions.push_back(6);
-    dimensions.push_back(8);
-    dimensions.push_back(4);
-
-    UInt trueNeighbors2[5][6][8][4];
-    UInt trueNeighbors2Wrap[5][6][8][4];
-    radius = 2;
-    numColumns = (5 * 6 * 8 * 4);
-
-    for (UInt i = 0; i < numColumns; i++) {
-      ((UInt*)trueNeighbors2)[i] = 0;
-      ((UInt*)trueNeighbors2Wrap)[i] = 0;
-    }
-
-    for (Int i = -(Int)radius; i <= (Int)radius; i++) {
-      for (Int j = -(Int)radius; j <= (Int)radius; j++) {
-        for (Int k = -(Int)radius; k <= (Int)radius; k++) {
-          for (Int m = -(Int) radius; m <= (Int) radius; m++) {
-            Int wc = (w + i);
-            Int zc = (z + j);
-            Int yc = (y + k);
-            Int xc = (x + m);
-
-            Int wc_ = emod((w + i), dimensions[0]);
-            Int zc_ = emod((z + j), dimensions[1]);
-            Int yc_ = emod((y + k), dimensions[2]);
-            Int xc_ = emod((x + m), dimensions[3]);
-
-            if (i == 0 && j == 0 && k == 0 && m == 0) {
-              continue;
-            }
-
-            trueNeighbors2Wrap[wc_][zc_][yc_][xc_] = 1;
-
-            if (wc < 0 || wc >= (Int) dimensions[0] ||  // *)
-                zc < 0 || zc >= (Int) dimensions[1] ||
-                yc < 0 || yc >= (Int) dimensions[2] ||
-                xc < 0 || xc >= (Int) dimensions[3]) {
-              continue;
-            }
-// gcc 4.6 / 4.7 / 5.3 has a bug here, issues warning -Warray-bounds which is not true, see *), so suppress it
-#if ((__GNUC__ == 4 && (__GNUC_MINOR__ == 6 || __GNUC_MINOR__ == 7)) || \
-     (__GNUC__ == 5 && (__GNUC_MINOR__ == 3)))
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Warray-bounds"
-#endif
-            trueNeighbors2[wc][zc][yc][xc] = 1;
-#if ((__GNUC__ == 4 && (__GNUC_MINOR__ == 6 || __GNUC_MINOR__ == 7)) || \
-     (__GNUC__ == 5 && (__GNUC_MINOR__ == 3)))
-#pragma GCC diagnostic pop
-#endif
-          }
-        }
-      }
-    }
-
-    column = (UInt) (&trueNeighbors2[w][z][y][x] -
-      &trueNeighbors2[0][0][0][0]);
-    sp.getNeighborsND_(column, dimensions, radius, false,
-                       neighbors);
-
-    neighborsMap.assign(numColumns, 0);
-    for (auto & neighbor : neighbors) {
-      neighborsMap[neighbor] = 1;
-    }
-
-    ASSERT_TRUE(check_vector_eq((UInt *) trueNeighbors2, neighborsMap));
-
-    sp.getNeighborsND_(column, dimensions, radius, true,
-                       neighbors);
-
-    neighborsMap.assign(numColumns, 0);
-    for (auto & neighbor : neighbors) {
-      neighborsMap[neighbor] = 1;
-    }
-    ASSERT_TRUE(check_vector_eq((UInt *) trueNeighbors2Wrap, neighborsMap));
-
-
-    // 2D tests repeated here
-    dimensions.clear();
-    dimensions.push_back(6);
-    dimensions.push_back(5);
-
-    numColumns = 30;
-    UInt trueNeighborsMap3[30] =
-      {0, 0, 0, 0, 0,
-       0, 0, 0, 0, 0,
-       0, 1, 1, 1, 0,
-       0, 1, 0, 1, 0,
-       0, 1, 1, 1, 0,
-       0, 0, 0, 0, 0};
-
-    column = 3*5+2;
-    radius = 1;
-    wrapAround = false;
-    sp.getNeighborsND_(column, dimensions, radius, wrapAround, neighbors);
-    neighborsMap.assign(numColumns, 0);
-    for (auto & neighbor : neighbors) {
-      neighborsMap[neighbor] = 1;
-    }
-    ASSERT_TRUE(check_vector_eq(trueNeighborsMap3, neighborsMap));
-
-    UInt trueNeighborsMap4[30] =
-      {0, 0, 0, 0, 0,
-       1, 1, 1, 1, 1,
-       1, 1, 1, 1, 1,
-       1, 1, 0, 1, 1,
-       1, 1, 1, 1, 1,
-       1, 1, 1, 1, 1};
-
-    column = 3*5+2;
-    radius = 2;
-    wrapAround = false;
-    sp.getNeighborsND_(column, dimensions, radius, wrapAround, neighbors);
-    neighborsMap.assign(numColumns, 0);
-    for (auto & neighbor : neighbors) {
-      neighborsMap[neighbor] = 1;
-    }
-    ASSERT_TRUE(check_vector_eq(trueNeighborsMap4, neighborsMap));
-
-    UInt trueNeighborsMap5[30] =
-      {1, 0, 0, 1, 1,
-       0, 0, 0, 0, 0,
-       0, 0, 0, 0, 0,
-       0, 0, 0, 0, 0,
-       1, 0, 0, 1, 1,
-       1, 0, 0, 1, 0};
-
-    column = 29;
-    radius = 1;
-    wrapAround = true;
-    sp.getNeighborsND_(column, dimensions, radius, wrapAround, neighbors);
-    neighborsMap.assign(numColumns, 0);
-    for (auto & neighbor : neighbors) {
-      neighborsMap[neighbor] = 1;
-    }
-    ASSERT_TRUE(check_vector_eq(trueNeighborsMap5, neighborsMap));
-
-    dimensions.clear();
-    dimensions.push_back(8);
-    numColumns = 8;
-
-    UInt trueNeighborsMap6[8] = { 0, 0, 1, 0, 1, 0, 0, 0 };
-    column = 3;
-    radius = 1;
-    wrapAround = true;
-    sp.getNeighborsND_(column, dimensions, radius, wrapAround,
-                          neighbors);
-    neighborsMap.assign(numColumns, 0);
-    for (auto & neighbor : neighbors) {
-      neighborsMap[neighbor] = 1;
-    }
-    ASSERT_TRUE(check_vector_eq(trueNeighborsMap6, neighborsMap));
-
-    UInt trueNeighborsMap7[8] = { 0, 1, 1, 0, 1, 1, 0, 0 };
-    column = 3;
-    radius = 2;
-    wrapAround = false;
-    sp.getNeighborsND_(column, dimensions, radius, wrapAround,
-                          neighbors);
-    neighborsMap.assign(numColumns, 0);
-    for (auto & neighbor : neighbors) {
-      neighborsMap[neighbor] = 1;
-    }
-    ASSERT_TRUE(check_vector_eq(trueNeighborsMap7, neighborsMap));
-
-    UInt trueNeighborsMap8[8] = { 0, 1, 1, 0, 0, 0, 1, 1 };
-    column = 0;
-    radius = 2;
-    wrapAround = true;
-    sp.getNeighborsND_(column, dimensions, radius, wrapAround,
-                          neighbors);
-    neighborsMap.assign(numColumns, 0);
-    for (auto & neighbor : neighbors) {
-      neighborsMap[neighbor] = 1;
-    }
-    ASSERT_TRUE(check_vector_eq(trueNeighborsMap8, neighborsMap));
-
-    // Test with radius larger than the dimension range
-    UInt trueNeighborsMap9[8] = { 0, 1, 1, 1, 1, 1, 1, 1 };
-    column = 0;
-    radius = 100;
-    wrapAround = false;
-    sp.getNeighborsND_(column, dimensions, radius, wrapAround,
-                          neighbors);
-    neighborsMap.assign(numColumns, 0);
-    for (auto & neighbor : neighbors) {
-      neighborsMap[neighbor] = 1;
-    }
-    ASSERT_TRUE(check_vector_eq(trueNeighborsMap9, neighborsMap));
-
-    // Test with radius larger than the dimension range,
-    // with wrapAround enabled
-    UInt trueNeighborsMap10[8] = { 0, 1, 1, 1, 1, 1, 1, 1 };
-    column = 0;
-    radius = 100;
-    wrapAround = true;
-    sp.getNeighborsND_(column, dimensions, radius, wrapAround,
-                          neighbors);
-    neighborsMap.assign(numColumns, 0);
-    for (auto & neighbor : neighbors) {
-      neighborsMap[neighbor] = 1;
-    }
-    ASSERT_TRUE(check_vector_eq(trueNeighborsMap10, neighborsMap));
 
   }
 
@@ -2271,60 +1717,62 @@ namespace {
 
   TEST(SpatialPoolerTest, testMapColumn)
   {
-    vector<UInt> inputDim, columnDim;
-    SpatialPooler sp;
+    {
+      // Test 1D.
+      SpatialPooler sp(
+        /*inputDimensions*/{12},
+        /*columnDimensions*/{4});
 
-    // Test 1D
-    inputDim.push_back(12);
-    columnDim.push_back(4);
-    sp.initialize(inputDim, columnDim);
+      EXPECT_EQ(1, sp.mapColumn_(0));
+      EXPECT_EQ(4, sp.mapColumn_(1));
+      EXPECT_EQ(7, sp.mapColumn_(2));
+      EXPECT_EQ(10, sp.mapColumn_(3));
+    }
 
-    NTA_ASSERT(sp.mapColumn_(0) == 1);
-    NTA_ASSERT(sp.mapColumn_(1) == 4);
-    NTA_ASSERT(sp.mapColumn_(2) == 7);
-    NTA_ASSERT(sp.mapColumn_(3) == 10);
+    {
+      // Test 1D with same dimensions of columns and inputs.
+      SpatialPooler sp(
+        /*inputDimensions*/{4},
+        /*columnDimensions*/{4});
 
-    columnDim.clear();
-    inputDim.clear();
+      EXPECT_EQ(0, sp.mapColumn_(0));
+      EXPECT_EQ(1, sp.mapColumn_(1));
+      EXPECT_EQ(2, sp.mapColumn_(2));
+      EXPECT_EQ(3, sp.mapColumn_(3));
+    }
 
-    // Test 1D with same dimensions of columns and inputs
-    inputDim.push_back(4);
-    columnDim.push_back(4);
-    sp.initialize(inputDim, columnDim);
+    {
+      // Test 1D with dimensions of length 1.
+      SpatialPooler sp(
+        /*inputDimensions*/{1},
+        /*columnDimensions*/{1});
 
-    NTA_ASSERT(sp.mapColumn_(0) == 0);
-    NTA_ASSERT(sp.mapColumn_(1) == 1);
-    NTA_ASSERT(sp.mapColumn_(2) == 2);
-    NTA_ASSERT(sp.mapColumn_(3) == 3);
+      EXPECT_EQ(0, sp.mapColumn_(0));
+    }
 
-    columnDim.clear();
-    inputDim.clear();
+    {
+      // Test 2D.
+      SpatialPooler sp(
+        /*inputDimensions*/{36, 12},
+        /*columnDimensions*/{12, 4});
 
-    // Test 1D with dimensions of length 1
-    inputDim.push_back(1);
-    columnDim.push_back(1);
-    sp.initialize(inputDim, columnDim);
+      EXPECT_EQ(13, sp.mapColumn_(0));
+      EXPECT_EQ(49, sp.mapColumn_(4));
+      EXPECT_EQ(52, sp.mapColumn_(5));
+      EXPECT_EQ(58, sp.mapColumn_(7));
+      EXPECT_EQ(418, sp.mapColumn_(47));
+    }
 
-    NTA_ASSERT(sp.mapColumn_(0) == 0);
+    {
+      // Test 2D, some input dimensions smaller than column dimensions.
+      SpatialPooler sp(
+        /*inputDimensions*/{3, 5},
+        /*columnDimensions*/{4, 4});
 
-    columnDim.clear();
-    inputDim.clear();
-
-    // Test 2D
-    inputDim.push_back(36);
-    inputDim.push_back(12);
-    columnDim.push_back(12);
-    columnDim.push_back(4);
-    sp.initialize(inputDim, columnDim);
-
-    NTA_ASSERT(sp.mapColumn_(0) == 13);
-    NTA_ASSERT(sp.mapColumn_(4) == 49);
-    NTA_ASSERT(sp.mapColumn_(5) == 52);
-    NTA_ASSERT(sp.mapColumn_(7) == 58);
-    NTA_ASSERT(sp.mapColumn_(47) == 418);
-
-    columnDim.clear();
-    inputDim.clear();
+      EXPECT_EQ(0, sp.mapColumn_(0));
+      EXPECT_EQ(4, sp.mapColumn_(3));
+      EXPECT_EQ(14, sp.mapColumn_(15));
+    }
   }
 
   TEST(SpatialPoolerTest, testMapPotential1D)
@@ -2366,7 +1814,7 @@ namespace {
     sp.setPotentialPct(0.5);
     UInt supersetMask1[12] = {1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1};
     mask = sp.mapPotential_(0, true);
-    NTA_ASSERT(sum(mask) == 3);
+    ASSERT_TRUE(sum(mask) == 3);
 
     UInt unionMask1[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     for (UInt i = 0; i < 12; i++) {
@@ -2708,4 +2156,4 @@ namespace {
     ASSERT_TRUE(ret == 0) << "Failed to delete " << filename;
   }
 
-} // end namespace nupic
+} // end anonymous namespace

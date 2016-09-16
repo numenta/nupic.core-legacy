@@ -351,6 +351,7 @@ set(src_nupiccore_srcs
     nupic/experimental/ExtendedTemporalMemory.cpp
     nupic/math/SparseMatrixAlgorithms.cpp
     nupic/math/StlIo.cpp
+    nupic/math/Topology.cpp
     nupic/ntypes/ArrayBase.cpp
     nupic/ntypes/Buffer.cpp
     nupic/ntypes/BundleIO.cpp
@@ -578,6 +579,7 @@ add_executable(${src_executable_gtests}
                test/unit/math/SparseMatrixTest.cpp
                test/unit/math/SparseMatrixUnitTest.cpp
                test/unit/math/SparseTensorUnitTest.cpp
+               test/unit/math/TopologyTest.cpp
                test/unit/ntypes/ArrayTest.cpp
                test/unit/ntypes/BufferTest.cpp
                test/unit/ntypes/CollectionTest.cpp
