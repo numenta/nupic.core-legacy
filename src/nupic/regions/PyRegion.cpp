@@ -324,6 +324,8 @@ static PyObject * makePyValue(const Value & v)
     }
     case NTA_BasicType_Real64:
       return py::Float(v.getScalarT<NTA_Real64>()).release();
+    case NTA_BasicType_Bool:
+      return py::Bool(v.getScalarT<bool>()).release();
     case NTA_BasicType_Handle:
       return (PyObject *)(v.getScalarT<NTA_Handle>());
     default:
