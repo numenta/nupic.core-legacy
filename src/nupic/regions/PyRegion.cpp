@@ -1061,7 +1061,15 @@ void PyRegion::createSpec(const char * nodeType, Spec & ns, const char* classNam
     NTA_ASSERT(input.getItem("dataType") != nullptr)
         << inputMessagePrefix.str() << "dataType";
     std::string dt(py::String(input.getItem("dataType")));
-    NTA_BasicType dataType(BasicType::parse(dt));
+    NTA_BasicType dataType;
+    try {
+      dataType = BasicType::parse(dt);
+    } catch (Exception &e) {
+      std::stringstream stream;
+      stream << "Invalid 'dataType' specificed for input '" << name
+             << "' when getting spec for region '" << realClassName << "'.";
+      throw Exception(__FILE__, __LINE__, stream.str());
+    }
 
     NTA_ASSERT(input.getItem("count") != nullptr)
         << inputMessagePrefix.str() << "count";
@@ -1126,7 +1134,15 @@ void PyRegion::createSpec(const char * nodeType, Spec & ns, const char* classNam
     NTA_ASSERT(output.getItem("dataType") != nullptr)
         << outputMessagePrefix.str() << "dataType";
     std::string dt(py::String(output.getItem("dataType")));
-    NTA_BasicType dataType(BasicType::parse(dt));
+    NTA_BasicType dataType;
+    try {
+      dataType = BasicType::parse(dt);
+    } catch (Exception &e) {
+      std::stringstream stream;
+      stream << "Invalid 'dataType' specificed for output '" << name
+             << "' when getting spec for region '" << realClassName << "'.";
+      throw Exception(__FILE__, __LINE__, stream.str());
+    }
 
     NTA_ASSERT(output.getItem("count") != nullptr)
         << outputMessagePrefix.str() << "count";
@@ -1178,7 +1194,15 @@ void PyRegion::createSpec(const char * nodeType, Spec & ns, const char* classNam
     NTA_ASSERT(parameter.getItem("dataType") != nullptr)
         << parameterMessagePrefix.str() << "dataType";
     std::string dt(py::String(parameter.getItem("dataType")));
-    NTA_BasicType dataType(BasicType::parse(dt));
+    NTA_BasicType dataType;
+    try {
+      dataType = BasicType::parse(dt);
+    } catch (Exception &e) {
+      std::stringstream stream;
+      stream << "Invalid 'dataType' specificed for parameter '" << name
+             << "' when getting spec for region '" << realClassName << "'.";
+      throw Exception(__FILE__, __LINE__, stream.str());
+    }
 
     NTA_ASSERT(parameter.getItem("count") != nullptr)
         << parameterMessagePrefix.str() << "count";

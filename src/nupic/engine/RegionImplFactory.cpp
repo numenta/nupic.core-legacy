@@ -421,6 +421,10 @@ static Spec * getPySpec(DynamicPythonLibrary * pyLib,
     {
       void * exception = nullptr;
       void * ns = pyLib->createSpec(module, &exception, className);
+      if (exception != nullptr)
+      {
+        throw *((Exception*)exception);
+      }
       if (ns)
       {
         return (Spec *)ns;

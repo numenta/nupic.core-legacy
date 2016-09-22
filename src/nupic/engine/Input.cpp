@@ -20,7 +20,7 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file 
+/** @file
  * Implementation of Input class
  *
  */
@@ -38,7 +38,7 @@ namespace nupic
 {
 
 Input::Input(Region& region, NTA_BasicType dataType, bool isRegionLevel) :
-  region_(region), isRegionLevel_(isRegionLevel), 
+  region_(region), isRegionLevel_(isRegionLevel),
   initialized_(false),  data_(dataType), name_("Unnamed")
 {
 }
@@ -57,7 +57,7 @@ void
 Input::addLink(const std::string& linkType, const std::string& linkParams, Output* srcOutput)
 {
   if (initialized_)
-    NTA_THROW << "Attempt to add link to input " << name_ 
+    NTA_THROW << "Attempt to add link to input " << name_
               << " on region " << region_.getName()
               << " when input is already initialized";
 
@@ -75,9 +75,9 @@ Input::addLink(const std::string& linkType, const std::string& linkParams, Outpu
 
   auto link = new Link(linkType, linkParams, srcOutput, this);
   links_.push_back(link);
-  
+
   srcOutput->addLink(link);
-  // Note -- link is not usable until we set the destOffset, which 
+  // Note -- link is not usable until we set the destOffset, which
   // is calculated at initialization time
 }
 
@@ -86,7 +86,7 @@ void
 Input::removeLink(Link*& link)
 {
 
-  // removeLink should only be called internally -- if it 
+  // removeLink should only be called internally -- if it
   // does not exist, it is a logic error
   auto linkiter = links_.begin();
   for(; linkiter!= links_.end(); linkiter++)
@@ -98,27 +98,27 @@ Input::removeLink(Link*& link)
   NTA_CHECK(linkiter != links_.end());
 
   if (region_.isInitialized())
-    NTA_THROW << "Cannot remove link " << link->toString() 
+    NTA_THROW << "Cannot remove link " << link->toString()
               << " because destination region " << region_.getName()
               << " is initialized. Remove the region first.";
 
   // We may have been initialized even if our containing region
-  // was not. If so, uninitialize. 
+  // was not. If so, uninitialize.
   uninitialize();
   link->getSrc().removeLink(link);
   links_.erase(linkiter);
   delete link;
   link = nullptr;
 }
-    
-Link* Input::findLink(const std::string& srcRegionName, 
+
+Link* Input::findLink(const std::string& srcRegionName,
                       const std::string& srcOutputName)
 {
   std::vector<Link*>::const_iterator linkiter = links_.begin();
   for (; linkiter != links_.end(); linkiter++)
   {
     Output& output = (*linkiter)->getSrc();
-    if (output.getName() == srcOutputName && 
+    if (output.getName() == srcOutputName &&
         output.getRegion().getName() == srcRegionName)
     {
       return *linkiter;
@@ -138,14 +138,14 @@ Input::prepare()
     (elem)->compute();
   }
 }
-    
+
 const Array &
 Input::getData() const
 {
   NTA_CHECK(initialized_);
   return data_;
 }
-    
+
 Region&
 Input::getRegion()
 {
@@ -163,18 +163,18 @@ Input::isRegionLevel()
 {
   return isRegionLevel_;
 }
-    
+
 
 // See header file for documentation
 size_t
 Input::evaluateLinks()
 {
   /**
-   * It is not an error to call evaluateLinks() on an initialized 
-   * input -- just report that no links remain to be evaluated. 
+   * It is not an error to call evaluateLinks() on an initialized
+   * input -- just report that no links remain to be evaluated.
    * This simplifies the logic in Region::evaluateLinks, which calls
-   * evaluateLinks on all its inputs at each iteration of network 
-   * initialization. 
+   * evaluateLinks on all its inputs at each iteration of network
+   * initialization.
    */
   if (initialized_)
     return 0;
@@ -187,13 +187,13 @@ Input::evaluateLinks()
     Region& destRegion = (*l)->getDest().getRegion();
 
     /**
-     * The link and region need to be consistent at both 
-     * ends of the link. 
+     * The link and region need to be consistent at both
+     * ends of the link.
      * - Region dimensions may be specified or unspecified
-     * - Link dimensions (at either end) may be specified, 
-     *   unspecified, or dontcare. 
+     * - Link dimensions (at either end) may be specified,
+     *   unspecified, or dontcare.
      * At each of the source and destination, we handle
-     * each of the six possible cases of Region/Link specification. 
+     * each of the six possible cases of Region/Link specification.
      */
 
     /* ------ look at the source side of the link ------- */
@@ -207,10 +207,10 @@ Input::evaluateLinks()
       if (srcLinkDims.isUnspecified())
       {
         // 1. link cares about src dimensions but they aren't set
-        // link is incomplete; 
-      } else if (srcLinkDims.isDontcare()) 
+        // link is incomplete;
+      } else if (srcLinkDims.isDontcare())
       {
-        // 2. Link doesn't care. We don't need to do anything. 
+        // 2. Link doesn't care. We don't need to do anything.
       } else {
         // 3. Link specifies src dimensions but src region dimensions
         // are unspecified. Induce dimensions on the source region.
@@ -241,8 +241,8 @@ Input::evaluateLinks()
       /* source region dimensions are specified */
       if (srcLinkDims.isDontcare())
       {
-        // 4. Link doesn't care. We don't need to do anything. 
-      } else if (srcLinkDims.isUnspecified()) 
+        // 4. Link doesn't care. We don't need to do anything.
+      } else if (srcLinkDims.isUnspecified())
       {
         // 5. srcRegion dims set link dims
 
@@ -267,8 +267,8 @@ Input::evaluateLinks()
           srcLinkDims = srcRegionDims;
         }
       } else {
-        // 6. Both region dims and link dims are specified. 
-        // Verify that srcRegion dims are the same as 
+        // 6. Both region dims and link dims are specified.
+        // Verify that srcRegion dims are the same as
         // link dims
         if (srcRegionDims != srcLinkDims)
         {
@@ -287,7 +287,7 @@ Input::evaluateLinks()
             if(srcLinkDims != d)
             {
               NTA_THROW << "Internal error while processing Region "
-                        << srcRegion.getName() << ".  The link " 
+                        << srcRegion.getName() << ".  The link "
                         << (*l)->toString() << " has a region level source "
                            "output, but the link dimensions are "
                         << srcLinkDims.toString() << " instead of [1]";
@@ -316,22 +316,22 @@ Input::evaluateLinks()
             NTA_THROW << "Inconsistent dimension specification encountered. Region "
                       << srcRegion.getName() << " has dimensions "
                       << srcRegionDims.toString() << " but link "
-                      << (*l)->toString() << " requires dimensions " 
-                      << srcLinkDims.toString() << ". Additional information on " 
+                      << (*l)->toString() << " requires dimensions "
+                      << srcLinkDims.toString() << ". Additional information on "
                       << "region dimensions: "
             << (srcRegion.getDimensionInfo() == "" ? "(none)" : srcRegion.getDimensionInfo());
           }
         }
       }
     }
-    
+
     /* ------ look at the destination side of the link ------- */
     Dimensions destLinkDims = (*l)->getDestDimensions();
     Dimensions destRegionDims = destRegion.getDimensions();
-    
-    // The logic here is similar to the logic for the source side 
-    // except for the case where the destination region dims are specified and the 
-    // link dims are unspecified -- see comment below. 
+
+    // The logic here is similar to the logic for the source side
+    // except for the case where the destination region dims are specified and the
+    // link dims are unspecified -- see comment below.
 
     /* dest region dimensions are unspecified */
     if (destRegionDims.isUnspecified())
@@ -339,13 +339,13 @@ Input::evaluateLinks()
       if (destLinkDims.isUnspecified())
       {
         // 1. link cares about dest dimensions but they aren't set
-        //    link is incomplete;  Nothing we can do. 
-      } else if (destLinkDims.isDontcare()) 
+        //    link is incomplete;  Nothing we can do.
+      } else if (destLinkDims.isDontcare())
       {
-        // 2. Link doesn't care. We don't need to do anything. 
+        // 2. Link doesn't care. We don't need to do anything.
       } else {
         // 3. Link specifies dest dimensions but region dimensions
-        // have not yet been set -- induce dimensions on the region. 
+        // have not yet been set -- induce dimensions on the region.
 
         // If dest region is initialized, this is a logic error
         NTA_CHECK(!destRegion.isInitialized());
@@ -371,9 +371,9 @@ Input::evaluateLinks()
       /* dest region dimensions are specified but src region dims are not */
       if (destLinkDims.isDontcare())
       {
-        // 4. Link doesn't care. We don't need to do anything. 
+        // 4. Link doesn't care. We don't need to do anything.
       } else if (destLinkDims.isUnspecified())  {
-        // 5. Region has dimensions -- set them on the link. 
+        // 5. Region has dimensions -- set them on the link.
 
         if((*l)->getDest().isRegionLevel())
         {
@@ -394,7 +394,7 @@ Input::evaluateLinks()
 
           (*l)->setDestDimensions(destRegionDims);
           destLinkDims = destRegionDims;
-          
+
           // Setting the link dest dimensions may set the src
           // dimensions. Since we have already evaluated the source
           // side of the link, we need to re-evaluate here
@@ -406,7 +406,7 @@ Input::evaluateLinks()
               // Induce. TODO: code is the same as on source side -- refactor?
               // If source region is initialized, this is a logic error
               NTA_CHECK(!srcRegion.isInitialized());
-              
+
               // Set the dimensions and record that we set them
               srcRegion.setDimensions(srcLinkDims);
               srcRegionDims = srcRegion.getDimensions();
@@ -418,15 +418,15 @@ Input::evaluateLinks()
             }
 
           } else {
-            // src region dims were already specified. Make sure they 
-            // are compatible with the link dims. 
+            // src region dims were already specified. Make sure they
+            // are compatible with the link dims.
             if (srcLinkDims != srcRegionDims)
             {
               NTA_THROW << "Inconsistent dimension specification encountered. Region "
                         << srcRegion.getName() << " has dimensions "
                         << srcRegionDims.toString() << " but link "
-                        << (*l)->toString() << " requires dimensions " 
-                        << srcLinkDims.toString() << ". Additional information on " 
+                        << (*l)->toString() << " requires dimensions "
+                        << srcLinkDims.toString() << ". Additional information on "
                         << "region dimensions: "
                         << (srcRegion.getDimensionInfo() == "" ? "(none)" : srcRegion.getDimensionInfo());
             }
@@ -435,9 +435,9 @@ Input::evaluateLinks()
         }
 
       } else {
-        // 6. link dims and region dims are specified. 
-        // verify that destRegion dims are the same as 
-        // link dims. 
+        // 6. link dims and region dims are specified.
+        // verify that destRegion dims are the same as
+        // link dims.
         //
 
         bool inconsistentDimensions = false;
@@ -451,7 +451,7 @@ Input::evaluateLinks()
           {
             if (! destLinkDims.isOnes())
               NTA_THROW << "Internal error while processing Region "
-                        << destRegion.getName() << ".  The link " 
+                        << destRegion.getName() << ".  The link "
                         << (*l)->toString() << " has a region level destination "
                         << "input, but the link dimensions are "
                         << destLinkDims.toString() << " instead of [1]";
@@ -479,8 +479,8 @@ Input::evaluateLinks()
             NTA_THROW << "Inconsistent dimension specification encountered. Region "
                       << destRegion.getName() << " has dimensions "
                       << destRegionDims.toString() << " but link "
-                      << (*l)->toString() << " requires dimensions " 
-                      << destLinkDims.toString() << ". Additional information on " 
+                      << (*l)->toString() << " requires dimensions "
+                      << destLinkDims.toString() << ". Additional information on "
                       << "region dimensions: "
             << (destRegion.getDimensionInfo() == "" ? "(none)" : destRegion.getDimensionInfo());
           }
@@ -489,18 +489,18 @@ Input::evaluateLinks()
     }
 
     bool linkIsIncomplete = true;
-    if (srcRegionDims.isSpecified() && destRegionDims.isSpecified()) 
+    if (srcRegionDims.isSpecified() && destRegionDims.isSpecified())
     {
       linkIsIncomplete = false;
       // link dims may be specified or dontcare (!isUnspecified)
-      NTA_CHECK(srcLinkDims.isSpecified() || srcLinkDims.isDontcare()) 
-        << "link: " << (*l)->toString() 
+      NTA_CHECK(srcLinkDims.isSpecified() || srcLinkDims.isDontcare())
+        << "link: " << (*l)->toString()
         << " src: " << srcRegionDims.toString()
         << " dest: " << destRegionDims.toString()
         << " srclinkdims: " << srcLinkDims.toString();
-      
+
       NTA_CHECK(destLinkDims.isSpecified() || destLinkDims.isDontcare())
-        << "link: " << (*l)->toString() 
+        << "link: " << (*l)->toString()
         << " src: " << srcRegionDims.toString()
         << " dest: " << destRegionDims.toString()
         << " destlinkdims: " << destLinkDims.toString();
@@ -514,10 +514,10 @@ Input::evaluateLinks()
   return nIncompleteLinks;
 }
 
-// Called after all links have been evaluated, and 
+// Called after all links have been evaluated, and
 // all inputs have been initialized. Now we can calculate
 // our size and set up any data structures needed
-// for copying data over a link. 
+// for copying data over a link.
 
 void Input::initialize()
 {
@@ -535,14 +535,14 @@ void Input::initialize()
   for (std::vector<Link*>::const_iterator l = links_.begin(); l != links_.end(); l++)
   {
     linkOffsets_.push_back(count);
-    // Setting the destination offset makes the link usable. 
-    // TODO: change 
+    // Setting the destination offset makes the link usable.
+    // TODO: change
     (*l)->initialize(count);
     count += (*l)->getSrc().getData().getCount();
   }
 
-  // Later we may optimize with the zeroCopyEnabled_ flag but 
-  // for now we always allocate our own buffer. 
+  // Later we may optimize with the zeroCopyEnabled_ flag but
+  // for now we always allocate our own buffer.
   data_.allocateBuffer(count);
 
   // Zero the inputs (required for inspectors)
@@ -555,9 +555,9 @@ void Input::initialize()
 
 
   NTA_CHECK(splitterMap_.size() == 0);
-        
+
   // create the splitter map by getting the contributions
-  // from each link. 
+  // from each link.
   if(isRegionLevel_)
   {
     splitterMap_.resize(1);
@@ -608,10 +608,10 @@ const std::string& Input::getName() const
 const std::vector< std::vector<size_t> >& Input::getSplitterMap() const
 {
   NTA_CHECK(initialized_);
-  // Originally the splitter map was created on demand in this method. 
-  // For now we have moved splitter map creation to initialize() because 
-  // we have dual heap/libstdc++ allocation/deallocation problems if 
-  // this method is called from a node DLL/.so (including pynode). 
+  // Originally the splitter map was created on demand in this method.
+  // For now we have moved splitter map creation to initialize() because
+  // we have dual heap/libstdc++ allocation/deallocation problems if
+  // this method is called from a node DLL/.so (including pynode).
 
   return splitterMap_;
 }
