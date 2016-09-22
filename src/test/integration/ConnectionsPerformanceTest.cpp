@@ -203,7 +203,7 @@ namespace nupic
 
         for (SynapseIdx i = 0; i < (SynapseIdx)synapses.size();)
         {
-          Synapse synapse = synapses[i];
+          const Synapse synapse = synapses[i];
           const SynapseData& synapseData = connections.dataForSynapse(synapse);
           permanence = synapseData.permanence;
 

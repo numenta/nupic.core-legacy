@@ -56,8 +56,13 @@ void Connections::initialize(CellIdx numCells,
   cells_ = vector<CellData>(numCells);
   maxSegmentsPerCell_ = maxSegmentsPerCell;
   maxSynapsesPerSegment_ = maxSynapsesPerSegment;
+
+  // Every time a segment or synapse is created, we assign it an ordinal and
+  // increment the nextOrdinal. Ordinals are never recycled, so they can be used
+  // to order segments or synapses by age.
   nextSegmentOrdinal_ = 0;
   nextSynapseOrdinal_ = 0;
+
   iteration_ = 0;
   nextEventToken_ = 0;
 }
