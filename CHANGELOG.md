@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.9
+
+* Bamboo deployment test.
+
 ## 0.4.8
 
 * Add missing argument to `Set-PsDebug -Trace`
