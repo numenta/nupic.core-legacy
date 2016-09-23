@@ -832,13 +832,14 @@ namespace {
     tm.connections.createSynapse(activeSegment, previousActiveCells[0], 0.5);
     tm.connections.createSynapse(activeSegment, previousActiveCells[1], 0.5);
     tm.connections.createSynapse(activeSegment, previousActiveCells[2], 0.5);
-    Synapse weakActiveSynapse =
-      tm.connections.createSynapse(activeSegment, previousActiveCells[3], 0.015);
+
+    // Weak synapse.
+    tm.connections.createSynapse(activeSegment, previousActiveCells[3], 0.015);
 
     tm.compute(numActiveColumns, previousActiveColumns, true);
     tm.compute(numActiveColumns, activeColumns, true);
 
-    EXPECT_TRUE(tm.connections.dataForSynapse(weakActiveSynapse).destroyed);
+    EXPECT_EQ(3, tm.connections.numSynapses(activeSegment));
   }
 
   /**
@@ -871,13 +872,14 @@ namespace {
     tm.connections.createSynapse(activeSegment, previousActiveCells[0], 0.5);
     tm.connections.createSynapse(activeSegment, previousActiveCells[1], 0.5);
     tm.connections.createSynapse(activeSegment, previousActiveCells[2], 0.5);
-    Synapse weakInactiveSynapse =
-      tm.connections.createSynapse(activeSegment, 81, 0.09);
+
+    // Weak inactive synapse.
+    tm.connections.createSynapse(activeSegment, 81, 0.09);
 
     tm.compute(numActiveColumns, previousActiveColumns, true);
     tm.compute(numActiveColumns, activeColumns, true);
 
-    EXPECT_TRUE(tm.connections.dataForSynapse(weakInactiveSynapse).destroyed);
+    EXPECT_EQ(3, tm.connections.numSynapses(activeSegment));
   }
 
   /**
@@ -910,9 +912,9 @@ namespace {
     Segment matchingSegment = tm.connections.createSegment(4);
     tm.connections.createSynapse(matchingSegment, 81, 0.6);
 
-    // Still the weakest after adding permanenceIncrement.
-    Synapse weakestSynapse =
-      tm.connections.createSynapse(matchingSegment, 0, 0.11);
+    // Create a synapse that is still the weakest after adding
+    // permanenceIncrement.
+    tm.connections.createSynapse(matchingSegment, 0, 0.11);
 
     tm.compute(3, previousActiveColumns);
 
@@ -920,12 +922,13 @@ namespace {
 
     tm.compute(1, activeColumns);
 
-    // Note that it destroys the weak active synapse, not the strong inactive
-    // synapse.
-    SynapseData synapseData = tm.connections.dataForSynapse(weakestSynapse);
-    EXPECT_NE(0, synapseData.presynapticCell);
-    EXPECT_FALSE(synapseData.destroyed);
-    EXPECT_NEAR(0.21, synapseData.permanence, EPSILON);
+    // There should now be 3 synapses, and none of them should be to cell 0.
+    const vector<Synapse>& synapses =
+      tm.connections.synapsesForSegment(matchingSegment);
+    ASSERT_EQ(3, synapses.size());
+    EXPECT_NE(0, tm.connections.dataForSynapse(synapses[0]).presynapticCell);
+    EXPECT_NE(0, tm.connections.dataForSynapse(synapses[1]).presynapticCell);
+    EXPECT_NE(0, tm.connections.dataForSynapse(synapses[2]).presynapticCell);
   }
 
   /**
@@ -966,23 +969,39 @@ namespace {
 
     ASSERT_EQ(2, tm.connections.numSegments(9));
 
+    set<CellIdx> oldPresynaptic;
+    for (Synapse synapse : tm.connections.synapsesForSegment(oldestSegment))
+    {
+      oldPresynaptic.insert(
+        tm.connections.dataForSynapse(synapse).presynapticCell);
+    }
+
     tm.reset();
     tm.compute(3, previousActiveColumns3);
     tm.compute(1, activeColumns);
 
     ASSERT_EQ(2, tm.connections.numSegments(9));
 
-    vector<Synapse> synapses = tm.connections.synapsesForSegment(oldestSegment);
-    ASSERT_EQ(3, synapses.size());
-    set<CellIdx> presynapticCells;
-    for (Synapse synapse : synapses)
-    {
-      SynapseData synapseData = tm.connections.dataForSynapse(synapse);
-      presynapticCells.insert(synapseData.presynapticCell);
-    }
+    // Verify none of the segments are connected to the cells the old segment
+    // was connected to.
 
-    const set<CellIdx> expected = {6, 7, 8};
-    EXPECT_EQ(expected, presynapticCells);
+    for (Segment segment : tm.connections.segmentsForCell(9))
+    {
+      set<CellIdx> newPresynaptic;
+      for (Synapse synapse : tm.connections.synapsesForSegment(segment))
+      {
+        newPresynaptic.insert(
+          tm.connections.dataForSynapse(synapse).presynapticCell);
+      }
+
+      vector<CellIdx> intersection;
+      std::set_intersection(oldPresynaptic.begin(), oldPresynaptic.end(),
+                            newPresynaptic.begin(), newPresynaptic.end(),
+                            std::back_inserter(intersection));
+
+      vector<CellIdx> expected = {};
+      EXPECT_EQ(expected, intersection);
+    }
   }
 
   /**
@@ -1020,7 +1039,6 @@ namespace {
     tm.compute(numActiveColumns, previousActiveColumns, true);
     tm.compute(numActiveColumns, activeColumns, true);
 
-    EXPECT_TRUE(tm.connections.dataForSegment(matchingSegment).destroyed);
     EXPECT_EQ(0, tm.connections.numSegments(expectedActiveCell));
   }
 
@@ -1140,7 +1158,6 @@ namespace {
       EXPECT_EQ(1, tm.connections.numSynapses(segment1));
       EXPECT_EQ(1, tm.connections.numSynapses(segment2));
 
-      Segment grownSegment;
       vector<Segment> segments = tm.connections.segmentsForCell(1);
       if (segments.empty())
       {
@@ -1328,10 +1345,157 @@ namespace {
     ASSERT_EQ(numberOfCells, 64 * 64 * 32);
   }
 
+  void serializationTestPrepare(TemporalMemory& tm)
+  {
+    // Create an active segment and a two matching segments.
+    // Destroy a few to exercise the code.
+    Segment destroyMe1 = tm.connections.createSegment(4);
+    tm.connections.destroySegment(destroyMe1);
+
+    Segment activeSegment = tm.connections.createSegment(4);
+    tm.connections.createSynapse(activeSegment, 0, 0.5);
+    tm.connections.createSynapse(activeSegment, 1, 0.5);
+    Synapse destroyMe2 = tm.connections.createSynapse(activeSegment, 42, 0.5);
+    tm.connections.destroySynapse(destroyMe2);
+    tm.connections.createSynapse(activeSegment, 2, 0.5);
+    tm.connections.createSynapse(activeSegment, 3, 0.5);
+
+    Segment matchingSegment1 = tm.connections.createSegment(8);
+    tm.connections.createSynapse(matchingSegment1, 0, 0.4);
+    tm.connections.createSynapse(matchingSegment1, 1, 0.4);
+    tm.connections.createSynapse(matchingSegment1, 2, 0.4);
+
+    Segment matchingSegment2 = tm.connections.createSegment(9);
+    tm.connections.createSynapse(matchingSegment2, 0, 0.4);
+    tm.connections.createSynapse(matchingSegment2, 1, 0.4);
+    tm.connections.createSynapse(matchingSegment2, 2, 0.4);
+    tm.connections.createSynapse(matchingSegment2, 3, 0.4);
+
+    UInt activeColumns[] = {0};
+    tm.compute(1, activeColumns);
+
+    ASSERT_EQ(1, tm.getActiveSegments().size());
+    ASSERT_EQ(3, tm.getMatchingSegments().size());
+  }
+
+  void serializationTestVerify(TemporalMemory& tm)
+  {
+    // Activate 3 columns. One has an active segment, one has two
+    // matching segments, and one has none. One column should be
+    // predicted, the others should burst, there should be four
+    // segments total, and they should have the correct permanences
+    // and synapse counts.
+
+    const vector<UInt> prevWinnerCells = tm.getWinnerCells();
+    ASSERT_EQ(1, prevWinnerCells.size());
+
+    UInt activeColumns[] = {1, 2, 3};
+    tm.compute(3, activeColumns);
+
+    // Verify the correct cells were activated.
+    EXPECT_EQ((vector<UInt>{4, 8, 9, 10, 11, 12, 13, 14, 15}),
+              tm.getActiveCells());
+    const vector<UInt> winnerCells = tm.getWinnerCells();
+    ASSERT_EQ(3, winnerCells.size());
+    EXPECT_EQ(4, winnerCells[0]);
+    EXPECT_EQ(9, winnerCells[1]);
+
+    EXPECT_EQ(4, tm.connections.numSegments());
+
+    // Verify the active segment learned.
+    ASSERT_EQ(1, tm.connections.numSegments(4));
+    Segment activeSegment = tm.connections.segmentsForCell(4)[0];
+    const vector<Synapse> syns1 =
+      tm.connections.synapsesForSegment(activeSegment);
+    ASSERT_EQ(4, syns1.size());
+    EXPECT_EQ(0,
+              tm.connections.dataForSynapse(syns1[0]).presynapticCell);
+    EXPECT_NEAR(0.6,
+                tm.connections.dataForSynapse(syns1[0]).permanence,
+                EPSILON);
+    EXPECT_EQ(1,
+              tm.connections.dataForSynapse(syns1[1]).presynapticCell);
+    EXPECT_NEAR(0.6,
+                tm.connections.dataForSynapse(syns1[1]).permanence,
+                EPSILON);
+    EXPECT_EQ(2,
+              tm.connections.dataForSynapse(syns1[2]).presynapticCell);
+    EXPECT_NEAR(0.6,
+                tm.connections.dataForSynapse(syns1[2]).permanence,
+                EPSILON);
+    EXPECT_EQ(3,
+              tm.connections.dataForSynapse(syns1[3]).presynapticCell);
+    EXPECT_NEAR(0.6,
+                tm.connections.dataForSynapse(syns1[3]).permanence,
+                EPSILON);
+
+    // Verify the non-best matching segment is unchanged.
+    ASSERT_EQ(1, tm.connections.numSegments(8));
+    Segment matchingSegment1 = tm.connections.segmentsForCell(8)[0];
+    const vector<Synapse> syns2 =
+      tm.connections.synapsesForSegment(matchingSegment1);
+    ASSERT_EQ(3, syns2.size());
+    EXPECT_EQ(0,
+              tm.connections.dataForSynapse(syns2[0]).presynapticCell);
+    EXPECT_NEAR(0.4,
+                tm.connections.dataForSynapse(syns2[0]).permanence,
+                EPSILON);
+    EXPECT_EQ(1,
+              tm.connections.dataForSynapse(syns2[1]).presynapticCell);
+    EXPECT_NEAR(0.4,
+                tm.connections.dataForSynapse(syns2[1]).permanence,
+                EPSILON);
+    EXPECT_EQ(2,
+              tm.connections.dataForSynapse(syns2[2]).presynapticCell);
+    EXPECT_NEAR(0.4,
+                tm.connections.dataForSynapse(syns2[2]).permanence,
+                EPSILON);
+
+    // Verify the best matching segment learned.
+    ASSERT_EQ(1, tm.connections.numSegments(9));
+    Segment matchingSegment2 = tm.connections.segmentsForCell(9)[0];
+    const vector<Synapse> syns3 =
+      tm.connections.synapsesForSegment(matchingSegment2);
+    ASSERT_EQ(4, syns3.size());
+    EXPECT_EQ(0,
+              tm.connections.dataForSynapse(syns3[0]).presynapticCell);
+    EXPECT_NEAR(0.5,
+                tm.connections.dataForSynapse(syns3[0]).permanence,
+                EPSILON);
+    EXPECT_EQ(1,
+              tm.connections.dataForSynapse(syns3[1]).presynapticCell);
+    EXPECT_NEAR(0.5,
+                tm.connections.dataForSynapse(syns3[1]).permanence,
+                EPSILON);
+    EXPECT_EQ(2,
+              tm.connections.dataForSynapse(syns3[2]).presynapticCell);
+    EXPECT_NEAR(0.5,
+                tm.connections.dataForSynapse(syns3[2]).permanence,
+                EPSILON);
+    EXPECT_EQ(3,
+              tm.connections.dataForSynapse(syns3[3]).presynapticCell);
+    EXPECT_NEAR(0.5,
+                tm.connections.dataForSynapse(syns3[3]).permanence,
+                EPSILON);
+
+    // Verify the winner cell in the last column grew a segment.
+    const UInt winnerCell = winnerCells[2];
+    EXPECT_GE(winnerCell, 12);
+    EXPECT_LT(winnerCell, 16);
+    ASSERT_EQ(1, tm.connections.numSegments(winnerCell));
+    Segment newSegment = tm.connections.segmentsForCell(winnerCell)[0];
+    const vector<Synapse> syns4 =
+      tm.connections.synapsesForSegment(newSegment);
+    ASSERT_EQ(1, syns4.size());
+    EXPECT_EQ(prevWinnerCells[0],
+              tm.connections.dataForSynapse(syns4[0]).presynapticCell);
+    EXPECT_NEAR(0.21,
+                tm.connections.dataForSynapse(syns4[0]).permanence,
+                EPSILON);
+  }
+
   TEST(TemporalMemoryTest, testSaveLoad)
   {
-    const char* filename = "TemporalMemorySerialization.tmp";
-
     TemporalMemory tm1(
       /*columnDimensions*/ {32},
       /*cellsPerColumn*/ 4,
@@ -1346,92 +1510,122 @@ namespace {
       /*seed*/ 42
       );
 
-    const UInt numActiveColumns = 1;
-    const UInt previousActiveColumns[1] = {0};
-    const vector<CellIdx> previousActiveCells = {0, 1, 2, 3};
-    const vector<CellIdx> expectedActiveCells = {4};
+    serializationTestPrepare(tm1);
 
-    Segment activeSegment =
-      tm1.connections.createSegment(expectedActiveCells[0]);
-    tm1.connections.createSynapse(activeSegment, previousActiveCells[0], 0.5);
-    tm1.connections.createSynapse(activeSegment, previousActiveCells[1], 0.5);
-    tm1.connections.createSynapse(activeSegment, previousActiveCells[2], 0.5);
-    tm1.connections.createSynapse(activeSegment, previousActiveCells[3], 0.5);
-
-    tm1.compute(numActiveColumns, previousActiveColumns, true);
-    ASSERT_EQ(expectedActiveCells, tm1.getPredictiveCells());
-
-    {
-      ofstream outfile;
-      outfile.open(filename, ios::binary);
-      tm1.save(outfile);
-      outfile.close();
-    }
+    stringstream ss;
+    tm1.save(ss);
 
     TemporalMemory tm2;
-
-    {
-      ifstream infile(filename, ios::binary);
-      tm2.load(infile);
-      infile.close();
-    }
+    tm2.load(ss);
 
     check_tm_eq(tm1, tm2);
 
-    int ret = ::remove(filename);
-    ASSERT_EQ(0, ret) << "Failed to delete " << filename;
+    serializationTestVerify(tm2);
   }
 
   TEST(TemporalMemoryTest, testWrite)
   {
-    TemporalMemory tm1, tm2;
+    TemporalMemory tm1(
+      /*columnDimensions*/ {32},
+      /*cellsPerColumn*/ 4,
+      /*activationThreshold*/ 3,
+      /*initialPermanence*/ 0.21,
+      /*connectedPermanence*/ 0.50,
+      /*minThreshold*/ 2,
+      /*maxNewSynapseCount*/ 3,
+      /*permanenceIncrement*/ 0.10,
+      /*permanenceDecrement*/ 0.10,
+      /*predictedSegmentDecrement*/ 0.0,
+      /*seed*/ 42
+      );
 
-    tm1.initialize({ 100 }, 4, 7, 0.37, 0.58, 4, 18, 0.23, 0.08, 0.0, 91);
-
-    // Run some data through before serializing
-    /*
-      PatternMachine patternMachine = PatternMachine(100, 4);
-      SequenceMachine sequenceMachine = SequenceMachine(self.patternMachine);
-      Sequence sequence = self.sequenceMachine.generateFromNumbers(range(5));
-    */
-    vector<vector<UInt>> sequence =
-      {
-        { 45, 53, 70, 83 },
-        { 8, 59, 65, 67 },
-        { 25, 39, 98, 99 },
-        { 11, 14, 66, 78 },
-        { 69, 87, 95, 96 } };
-
-    for (UInt i = 0; i < 3; i++)
-    {
-      for (vector<UInt> pattern : sequence)
-        tm1.compute(pattern.size(), pattern.data());
-    }
+    serializationTestPrepare(tm1);
 
     // Write and read back the proto
     stringstream ss;
     tm1.write(ss);
+
+    TemporalMemory tm2;
     tm2.read(ss);
 
     // Check that the two temporal memory objects have the same attributes
     check_tm_eq(tm1, tm2);
 
-    tm1.compute(sequence[0].size(), sequence[0].data());
-    tm2.compute(sequence[0].size(), sequence[0].data());
-    ASSERT_EQ(tm1.getActiveCells(), tm2.getActiveCells());
-    ASSERT_EQ(tm1.getWinnerCells(), tm2.getWinnerCells());
-    ASSERT_EQ(tm1.connections, tm2.connections);
-
-    tm1.compute(sequence[3].size(), sequence[3].data());
-    tm2.compute(sequence[3].size(), sequence[3].data());
-    ASSERT_EQ(tm1.getActiveCells(), tm2.getActiveCells());
-
-    ASSERT_EQ(tm1.getActiveSegments(), tm2.getActiveSegments());
-    ASSERT_EQ(tm1.getMatchingSegments(), tm2.getMatchingSegments());
-
-    ASSERT_EQ(tm1.getWinnerCells(), tm2.getWinnerCells());
-    ASSERT_EQ(tm1.connections, tm2.connections);
-
-    check_tm_eq(tm1, tm2);
+    serializationTestVerify(tm2);
   }
+
+  // Uncomment these tests individually to save/load from a file.
+  // This is useful for ad-hoc testing of backwards-compatibility.
+
+  // TEST(TemporalMemoryTest, saveTestFile)
+  // {
+  //   TemporalMemory tm(
+  //     /*columnDimensions*/ {32},
+  //     /*cellsPerColumn*/ 4,
+  //     /*activationThreshold*/ 3,
+  //     /*initialPermanence*/ 0.21,
+  //     /*connectedPermanence*/ 0.50,
+  //     /*minThreshold*/ 2,
+  //     /*maxNewSynapseCount*/ 3,
+  //     /*permanenceIncrement*/ 0.10,
+  //     /*permanenceDecrement*/ 0.10,
+  //     /*predictedSegmentDecrement*/ 0.0,
+  //     /*seed*/ 42
+  //     );
+  //
+  //   serializationTestPrepare(tm);
+  //
+  //   const char* filename = "TemporalMemorySerializationSave.tmp";
+  //   ofstream outfile;
+  //   outfile.open(filename, ios::binary);
+  //   tm.save(outfile);
+  //   outfile.close();
+  // }
+
+  // TEST(TemporalMemoryTest, loadTestFile)
+  // {
+  //   TemporalMemory tm;
+  //   const char* filename = "TemporalMemorySerializationSave.tmp";
+  //   ifstream infile(filename, ios::binary);
+  //   tm.load(infile);
+  //   infile.close();
+  //
+  //   serializationTestVerify(tm);
+  // }
+
+  // TEST(TemporalMemoryTest, writeTestFile)
+  // {
+  //   TemporalMemory tm(
+  //     /*columnDimensions*/ {32},
+  //     /*cellsPerColumn*/ 4,
+  //     /*activationThreshold*/ 3,
+  //     /*initialPermanence*/ 0.21,
+  //     /*connectedPermanence*/ 0.50,
+  //     /*minThreshold*/ 2,
+  //     /*maxNewSynapseCount*/ 3,
+  //     /*permanenceIncrement*/ 0.10,
+  //     /*permanenceDecrement*/ 0.10,
+  //     /*predictedSegmentDecrement*/ 0.0,
+  //     /*seed*/ 42
+  //     );
+
+  //   serializationTestPrepare(tm);
+
+  //   const char* filename = "TemporalMemorySerializationWrite.tmp";
+  //   ofstream outfile;
+  //   outfile.open(filename, ios::binary);
+  //   tm.write(outfile);
+  //   outfile.close();
+  // }
+
+  // TEST(TemporalMemoryTest, readTestFile)
+  // {
+  //   TemporalMemory tm;
+  //   const char* filename = "TemporalMemorySerializationWrite.tmp";
+  //   ifstream infile(filename, ios::binary);
+  //   tm.read(infile);
+  //   infile.close();
+
+  //   serializationTestVerify(tm);
+  // }
 } // end namespace nupic

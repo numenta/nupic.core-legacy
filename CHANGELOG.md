@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.9
+
+* Obey wrapAround paramater for columns, not just inputs
+* Make sure exceptions are properly exposed when parsing dataType in region spec.
+* Network API: allow Bools to be used as creation params
+* DEVOPS-157 Remove now-unused RESULT_KEY env var from the build-and-test-nupic-bindings.sh interface.
+* Handle new synapsesForSegment behavior in Connections perf test
+
 ## 0.4.8
 
 * Add missing argument to `Set-PsDebug -Trace`

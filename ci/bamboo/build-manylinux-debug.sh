@@ -47,5 +47,4 @@ yum install -y iwyu
 # destination wheelhouse
 BUILD_TYPE="Debug" \
 WHEEL_PLAT="manylinux1_x86_64" \
-RESULT_KEY="${bamboo_buildResultKey}" \
   ${DIR}/../build-and-test-nupic-bindings.sh "$@"

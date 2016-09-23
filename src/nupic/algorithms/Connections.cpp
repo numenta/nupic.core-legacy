@@ -54,11 +54,15 @@ void Connections::initialize(CellIdx numCells,
                              SynapseIdx maxSynapsesPerSegment)
 {
   cells_ = vector<CellData>(numCells);
-  numSegments_ = 0;
-  numSynapses_ = 0;
-  nextFlatIdx_ = 0;
   maxSegmentsPerCell_ = maxSegmentsPerCell;
   maxSynapsesPerSegment_ = maxSynapsesPerSegment;
+
+  // Every time a segment or synapse is created, we assign it an ordinal and
+  // increment the nextOrdinal. Ordinals are never recycled, so they can be used
+  // to order segments or synapses by age.
+  nextSegmentOrdinal_ = 0;
+  nextSynapseOrdinal_ = 0;
+
   iteration_ = 0;
   nextEventToken_ = 0;
 }
@@ -84,38 +88,26 @@ Segment Connections::createSegment(CellIdx cell)
     destroySegment(leastRecentlyUsedSegment_(cell));
   }
 
-  CellData& cellData = cells_[cell];
-  Segment segment = {cell, (SegmentIdx)-1, (UInt32)-1};
-  if (cellData.numDestroyedSegments > 0)
+  Segment segment;
+  if (destroyedSegments_.size() > 0)
   {
-    bool found = false;
-    for (SegmentIdx i = 0; i < cellData.segments.size(); i++)
-    {
-      if (cellData.segments[i].destroyed)
-      {
-        segment.idx = i;
-        found = true;
-      }
-    }
-
-    NTA_CHECK(found);
-
-    cellData.segments[segment.idx].destroyed = false;
-    cellData.numDestroyedSegments--;
+    segment = destroyedSegments_.back();
+    destroyedSegments_.pop_back();
   }
   else
   {
-    const UInt32 flatIdx = nextFlatIdx_++;
-    segment.idx = cellData.segments.size();
-    segment.flatIdx = flatIdx;
-    segmentForFlatIdx_.push_back(segment);
-
-    cellData.segments.push_back(SegmentData());
-    cellData.segments[segment.idx].flatIdx = flatIdx;
+    segment.flatIdx = segments_.size();
+    segments_.push_back(SegmentData());
+    segmentOrdinals_.push_back(0);
   }
 
-  cellData.segments[segment.idx].lastUsedIteration = iteration_;
-  numSegments_++;
+  SegmentData& segmentData = segments_[segment.flatIdx];
+  segmentData.cell = cell;
+  segmentData.lastUsedIteration = iteration_;
+
+  CellData& cellData = cells_[cell];
+  segmentOrdinals_[segment] = nextSegmentOrdinal_++;
+  cellData.segments.push_back(segment);
 
   for (auto h : eventHandlers_)
   {
@@ -125,7 +117,7 @@ Segment Connections::createSegment(CellIdx cell)
   return segment;
 }
 
-Synapse Connections::createSynapse(const Segment& segment,
+Synapse Connections::createSynapse(Segment segment,
                                    CellIdx presynapticCell,
                                    Permanence permanence)
 {
@@ -136,39 +128,29 @@ Synapse Connections::createSynapse(const Segment& segment,
     destroySynapse(minPermanenceSynapse_(segment));
   }
 
-  SegmentData& segmentData = dataForSegment_(segment);
-  SynapseIdx synapseIdx = (SynapseIdx)-1;
-  if (segmentData.numDestroyedSynapses > 0)
+  Synapse synapse;
+  if (destroyedSynapses_.size() > 0)
   {
-    bool found = false;
-    for(SynapseIdx i = 0; i < segmentData.synapses.size(); i++)
-    {
-      if (segmentData.synapses[i].destroyed)
-      {
-        synapseIdx = i;
-        found = true;
-        break;
-      }
-    }
-
-    NTA_CHECK(found);
-
-    segmentData.synapses[synapseIdx].destroyed = false;
-    segmentData.numDestroyedSynapses--;
+    synapse = destroyedSynapses_.back();
+    destroyedSynapses_.pop_back();
   }
   else
   {
-    synapseIdx = segmentData.synapses.size();
-    segmentData.synapses.push_back(SynapseData());
+    synapse.flatIdx = synapses_.size();
+    synapses_.push_back(SynapseData());
+    synapseOrdinals_.push_back(0);
   }
 
-  SynapseData& synapseData = segmentData.synapses[synapseIdx];
+  SynapseData& synapseData = synapses_[synapse];
+  synapseData.segment = segment;
   synapseData.presynapticCell = presynapticCell;
   synapseData.permanence = permanence;
 
-  Synapse synapse = {synapseIdx, segment};
+  SegmentData& segmentData = segments_[segment];
+  synapseOrdinals_[synapse] = nextSynapseOrdinal_++;
+  segmentData.synapses.push_back(synapse);
+
   synapsesForPresynapticCell_[presynapticCell].push_back(synapse);
-  numSynapses_++;
 
   for (auto h : eventHandlers_)
   {
@@ -178,77 +160,102 @@ Synapse Connections::createSynapse(const Segment& segment,
   return synapse;
 }
 
-void Connections::destroySegment(const Segment& segment)
+bool Connections::segmentExists_(Segment segment) const
 {
-  for (auto h : eventHandlers_)
-  {
-    h.second->onDestroySegment(segment);
-  }
-
-  SegmentData& segmentData = dataForSegment_(segment);
-
-  NTA_CHECK(!segmentData.destroyed) << "Segment already destroyed.";
-
-  for (SynapseIdx i = 0; i < segmentData.synapses.size(); i++)
-  {
-    Synapse synapse = {i, segment};
-    const SynapseData& synapseData = dataForSynapse_(synapse);
-
-    if (!synapseData.destroyed)
-    {
-      vector<Synapse>& presynapticSynapses =
-        synapsesForPresynapticCell_.at(synapseData.presynapticCell);
-
-      auto it = std::find(presynapticSynapses.begin(), presynapticSynapses.end(),
-                          synapse);
-      NTA_CHECK(it != presynapticSynapses.end());
-      presynapticSynapses.erase(it);
-
-      if (presynapticSynapses.size() == 0)
-      {
-        synapsesForPresynapticCell_.erase(synapseData.presynapticCell);
-      }
-      numSynapses_--;
-    }
-  }
-  segmentData.synapses.clear();
-  segmentData.numDestroyedSynapses = 0;
-
-  segmentData.destroyed = true;
-  cells_[segment.cell].numDestroyedSegments++;
-  numSegments_--;
+  const SegmentData& segmentData = segments_[segment];
+  const vector<Segment>& segmentsOnCell = cells_[segmentData.cell].segments;
+  return (std::find(segmentsOnCell.begin(), segmentsOnCell.end(), segment)
+          != segmentsOnCell.end());
 }
 
-void Connections::destroySynapse(const Synapse& synapse)
+bool Connections::synapseExists_(Synapse synapse) const
 {
-  for (auto h : eventHandlers_)
-  {
-    h.second->onDestroySynapse(synapse);
-  }
+  const SynapseData& synapseData = synapses_[synapse];
+  const vector<Synapse>& synapsesOnSegment = segments_[synapseData.segment].synapses;
+  return (std::find(synapsesOnSegment.begin(), synapsesOnSegment.end(), synapse)
+          != synapsesOnSegment.end());
+}
 
-  SynapseData& synapseData = dataForSynapse_(synapse);
-
-  NTA_CHECK(!synapseData.destroyed) << "Synapse already destroyed.";
-
+void Connections::removeSynapseFromPresynapticMap_(Synapse synapse)
+{
+  const SynapseData& synapseData = synapses_[synapse];
   vector<Synapse>& presynapticSynapses =
     synapsesForPresynapticCell_.at(synapseData.presynapticCell);
 
   auto it = std::find(presynapticSynapses.begin(), presynapticSynapses.end(),
                       synapse);
-  NTA_CHECK(it != presynapticSynapses.end());
+  NTA_ASSERT(it != presynapticSynapses.end());
   presynapticSynapses.erase(it);
 
   if (presynapticSynapses.size() == 0)
   {
     synapsesForPresynapticCell_.erase(synapseData.presynapticCell);
   }
-
-  synapseData.destroyed = true;
-  dataForSegment_(synapse.segment).numDestroyedSynapses++;
-  numSynapses_--;
 }
 
-void Connections::updateSynapsePermanence(const Synapse& synapse,
+void Connections::destroySegment(Segment segment)
+{
+  NTA_ASSERT(segmentExists_(segment));
+  for (auto h : eventHandlers_)
+  {
+    h.second->onDestroySegment(segment);
+  }
+
+  SegmentData& segmentData = segments_[segment];
+  for (Synapse synapse : segmentData.synapses)
+  {
+    // Don't call destroySynapse, since it's unnecessary to do index-shifting.
+    removeSynapseFromPresynapticMap_(synapse);
+    destroyedSynapses_.push_back(synapse);
+  }
+  segmentData.synapses.clear();
+
+  CellData& cellData = cells_[segmentData.cell];
+
+  const auto segmentOnCell =
+    std::lower_bound(cellData.segments.begin(), cellData.segments.end(),
+                     segment,
+                     [&](Segment a, Segment b)
+                     {
+                       return segmentOrdinals_[a] < segmentOrdinals_[b];
+                     });
+
+  NTA_ASSERT(segmentOnCell != cellData.segments.end());
+  NTA_ASSERT(*segmentOnCell == segment);
+
+  cellData.segments.erase(segmentOnCell);
+
+  destroyedSegments_.push_back(segment);
+}
+
+void Connections::destroySynapse(Synapse synapse)
+{
+  NTA_ASSERT(synapseExists_(synapse));
+  for (auto h : eventHandlers_)
+  {
+    h.second->onDestroySynapse(synapse);
+  }
+
+  removeSynapseFromPresynapticMap_(synapse);
+
+  SegmentData& segmentData = segments_[synapses_[synapse].segment];
+  const auto synapseOnSegment =
+    std::lower_bound(segmentData.synapses.begin(), segmentData.synapses.end(),
+                     synapse,
+                     [&](Synapse a, Synapse b)
+                     {
+                       return synapseOrdinals_[a] < synapseOrdinals_[b];
+                     });
+
+  NTA_ASSERT(synapseOnSegment != segmentData.synapses.end());
+  NTA_ASSERT(*synapseOnSegment == synapse);
+
+  segmentData.synapses.erase(synapseOnSegment);
+
+  destroyedSynapses_.push_back(synapse);
+}
+
+void Connections::updateSynapsePermanence(Synapse synapse,
                                           Permanence permanence)
 {
   for (auto h : eventHandlers_)
@@ -256,97 +263,70 @@ void Connections::updateSynapsePermanence(const Synapse& synapse,
     h.second->onUpdateSynapsePermanence(synapse, permanence);
   }
 
-  dataForSynapse_(synapse).permanence = permanence;
+  synapses_[synapse].permanence = permanence;
 }
 
-vector<Segment> Connections::segmentsForCell(CellIdx cell) const
+const vector<Segment>& Connections::segmentsForCell(CellIdx cell) const
 {
-  vector<Segment> segments;
-  segments.reserve(numSegments(cell));
-
-  const vector<SegmentData>& allSegments = cells_[cell].segments;
-
-  for (SegmentIdx i = 0; i < (SegmentIdx)allSegments.size(); i++)
-  {
-    if (!allSegments[i].destroyed)
-    {
-      segments.push_back({cell, i, allSegments[i].flatIdx});
-    }
-  }
-
-  return segments;
+  return cells_[cell].segments;
 }
 
 Segment Connections::getSegment(CellIdx cell, SegmentIdx idx) const
 {
-  const UInt32 flatIdx = cells_[cell].segments[idx].flatIdx;
-  return {cell, idx, flatIdx};
+  return cells_[cell].segments[idx];
 }
 
-vector<Synapse> Connections::synapsesForSegment(const Segment& segment) const
+const vector<Synapse>& Connections::synapsesForSegment(Segment segment) const
 {
-  vector<Synapse> synapses;
-  synapses.reserve(numSynapses(segment));
-
-  const SegmentData& segmentData = dataForSegment_(segment);
-  if (segmentData.destroyed)
-  {
-    NTA_THROW << "Attempting to access destroyed segment's synapses.";
-  }
-
-  for (SynapseIdx i = 0; i < segmentData.synapses.size(); i++)
-  {
-    if (!segmentData.synapses[i].destroyed)
-    {
-      synapses.push_back({i, segment});
-    }
-  }
-
-  return synapses;
+  return segments_[segment].synapses;
 }
 
-SegmentData Connections::dataForSegment(const Segment& segment) const
+CellIdx Connections::cellForSegment(Segment segment) const
 {
-  return cells_[segment.cell].segments[segment.idx];
+  return segments_[segment].cell;
 }
 
-SegmentData& Connections::dataForSegment_(const Segment& segment)
+Segment Connections::segmentForSynapse(Synapse synapse) const
 {
-  return cells_[segment.cell].segments[segment.idx];
+  return synapses_[synapse].segment;
 }
 
-const SegmentData& Connections::dataForSegment_(const Segment& segment) const
+const SegmentData& Connections::dataForSegment(Segment segment) const
 {
-  return cells_[segment.cell].segments[segment.idx];
+  return segments_[segment];
 }
 
-SynapseData Connections::dataForSynapse(const Synapse& synapse) const
+const SynapseData& Connections::dataForSynapse(Synapse synapse) const
 {
-  return cells_[synapse.segment.cell]
-    .segments[synapse.segment.idx]
-    .synapses[synapse.idx];
-}
-
-SynapseData& Connections::dataForSynapse_(const Synapse& synapse)
-{
-  SegmentData& segmentData = dataForSegment_(synapse.segment);
-  return segmentData.synapses[synapse.idx];
-}
-
-const SynapseData& Connections::dataForSynapse_(const Synapse& synapse) const
-{
-  const SegmentData& segmentData = dataForSegment_(synapse.segment);
-  return segmentData.synapses[synapse.idx];
+  return synapses_[synapse];
 }
 
 Segment Connections::segmentForFlatIdx(UInt32 flatIdx) const
 {
-  return segmentForFlatIdx_[flatIdx];
+  return {flatIdx};
 }
 
 UInt32 Connections::segmentFlatListLength() const
 {
-  return nextFlatIdx_;
+  return segments_.size();
+}
+
+bool Connections::compareSegments(Segment a, Segment b) const
+{
+  const SegmentData& aData = segments_[a];
+  const SegmentData& bData = segments_[b];
+  if (aData.cell < bData.cell)
+  {
+    return true;
+  }
+  else if (bData.cell < aData.cell)
+  {
+    return false;
+  }
+  else
+  {
+    return segmentOrdinals_[a] < segmentOrdinals_[b];
+  }
 }
 
 vector<Synapse> Connections::synapsesForPresynapticCell(
@@ -361,47 +341,37 @@ vector<Synapse> Connections::synapsesForPresynapticCell(
 
 Segment Connections::leastRecentlyUsedSegment_(CellIdx cell) const
 {
-  const vector<SegmentData>& segments = cells_[cell].segments;
-  bool found = false;
-  SegmentIdx minIdx;
-  Iteration minIteration;
-  for (SegmentIdx i = 0; i < segments.size(); i++)
-  {
-    if (!segments[i].destroyed && (!found ||
-                                   segments[i].lastUsedIteration < minIteration))
-    {
-      minIdx = i;
-      minIteration = segments[i].lastUsedIteration;
-      found = true;
-    }
-  }
-
-  NTA_CHECK(found);
-
-  return Segment(cell, minIdx, segments[minIdx].flatIdx);
+  const vector<Segment>& segments = cells_[cell].segments;
+  return *std::min_element(segments.begin(), segments.end(),
+                           [&](Segment a, Segment b)
+                           {
+                             return segments_[a].lastUsedIteration <
+                               segments_[b].lastUsedIteration;
+                           });
 }
 
-Synapse Connections::minPermanenceSynapse_(const Segment& segment) const
+Synapse Connections::minPermanenceSynapse_(Segment segment) const
 {
-  const vector<SynapseData>& synapses =
-    cells_[segment.cell].segments[segment.idx].synapses;
+  // Use special EPSILON logic to compensate for floating point differences
+  // between C++ and other environments.
+
   bool found = false;
-  SynapseIdx minIdx;
-  Permanence minPermanence;
-  for (SynapseIdx i = 0; i < synapses.size(); i++)
+  Permanence minPermanence = std::numeric_limits<Permanence>::max();
+  Synapse minSynapse;
+
+  for (Synapse synapse : segments_[segment].synapses)
   {
-    if(!synapses[i].destroyed &&
-       (!found || synapses[i].permanence < minPermanence - EPSILON))
+    if (synapses_[synapse].permanence < minPermanence - EPSILON)
     {
-      minIdx = i;
-      minPermanence = synapses[i].permanence;
+      minSynapse = synapse;
+      minPermanence = synapses_[synapse].permanence;
       found = true;
     }
   }
 
   NTA_CHECK(found);
 
-  return Synapse(minIdx, segment);
+  return minSynapse;
 }
 
 void Connections::computeActivity(
@@ -410,21 +380,21 @@ void Connections::computeActivity(
   CellIdx activePresynapticCell,
   Permanence connectedPermanence) const
 {
-  NTA_ASSERT(numActiveConnectedSynapsesForSegment.size() == nextFlatIdx_);
-  NTA_ASSERT(numActivePotentialSynapsesForSegment.size() == nextFlatIdx_);
+  NTA_ASSERT(numActiveConnectedSynapsesForSegment.size() == segments_.size());
+  NTA_ASSERT(numActivePotentialSynapsesForSegment.size() == segments_.size());
 
   if (synapsesForPresynapticCell_.count(activePresynapticCell))
   {
-    for (const Synapse& synapse :
+    for (Synapse synapse :
            synapsesForPresynapticCell_.at(activePresynapticCell))
     {
-      ++numActivePotentialSynapsesForSegment[synapse.segment.flatIdx];
+      const SynapseData& synapseData = synapses_[synapse];
+      ++numActivePotentialSynapsesForSegment[synapseData.segment];
 
-      const SynapseData& synapseData = dataForSynapse_(synapse);
       NTA_ASSERT(synapseData.permanence > 0);
       if (synapseData.permanence >= connectedPermanence - EPSILON)
       {
-        ++numActiveConnectedSynapsesForSegment[synapse.segment.flatIdx];
+        ++numActiveConnectedSynapsesForSegment[synapseData.segment];
       }
     }
   }
@@ -436,22 +406,22 @@ void Connections::computeActivity(
   const vector<CellIdx>& activePresynapticCells,
   Permanence connectedPermanence) const
 {
-  NTA_ASSERT(numActiveConnectedSynapsesForSegment.size() == nextFlatIdx_);
-  NTA_ASSERT(numActivePotentialSynapsesForSegment.size() == nextFlatIdx_);
+  NTA_ASSERT(numActiveConnectedSynapsesForSegment.size() == segments_.size());
+  NTA_ASSERT(numActivePotentialSynapsesForSegment.size() == segments_.size());
 
   for (CellIdx cell : activePresynapticCells)
   {
     if (synapsesForPresynapticCell_.count(cell))
     {
-      for (const Synapse& synapse : synapsesForPresynapticCell_.at(cell))
+      for (Synapse synapse : synapsesForPresynapticCell_.at(cell))
       {
-        ++numActivePotentialSynapsesForSegment[synapse.segment.flatIdx];
+        const SynapseData& synapseData = synapses_[synapse];
+        ++numActivePotentialSynapsesForSegment[synapseData.segment];
 
-        const SynapseData& synapseData = dataForSynapse_(synapse);
         NTA_ASSERT(synapseData.permanence > 0);
         if (synapseData.permanence >= connectedPermanence - EPSILON)
         {
-          ++numActiveConnectedSynapsesForSegment[synapse.segment.flatIdx];
+          ++numActiveConnectedSynapsesForSegment[synapseData.segment];
         }
       }
     }
@@ -460,7 +430,7 @@ void Connections::computeActivity(
 
 void Connections::recordSegmentActivity(Segment segment)
 {
-  dataForSegment_(segment).lastUsedIteration = iteration_;
+  segments_[segment].lastUsedIteration = iteration_;
 }
 
 void Connections::startNewIteration()
@@ -481,22 +451,23 @@ void Connections::save(std::ostream& outStream) const
 
   for (CellData cellData : cells_)
   {
-    auto segments = cellData.segments;
+    const vector<Segment>& segments = cellData.segments;
     outStream << segments.size() << " ";
 
-    for (SegmentData segment : segments)
+    for (Segment segment : segments)
     {
-      outStream << segment.destroyed << " ";
-      outStream << segment.lastUsedIteration << " ";
+      const SegmentData& segmentData = segments_[segment];
 
-      auto synapses = segment.synapses;
+      outStream << segmentData.lastUsedIteration << " ";
+
+      const vector<Synapse>& synapses = segmentData.synapses;
       outStream << synapses.size() << " ";
 
-      for (SynapseData synapse : synapses)
+      for (Synapse synapse : synapses)
       {
-        outStream << synapse.presynapticCell << " ";
-        outStream << synapse.permanence << " ";
-        outStream << synapse.destroyed << " ";
+        const SynapseData& synapseData = synapses_[synapse];
+        outStream << synapseData.presynapticCell << " ";
+        outStream << synapseData.permanence << " ";
       }
       outStream << endl;
     }
@@ -517,21 +488,25 @@ void Connections::write(ConnectionsProto::Builder& proto) const
 
   for (CellIdx i = 0; i < cells_.size(); ++i)
   {
-    auto segments = cells_[i].segments;
+    const vector<Segment>& segments = cells_[i].segments;
     auto protoSegments = protoCells[i].initSegments(segments.size());
 
     for (SegmentIdx j = 0; j < (SegmentIdx)segments.size(); ++j)
     {
-      auto synapses = segments[j].synapses;
+      const SegmentData& segmentData = segments_[segments[j]];
+      const vector<Synapse>& synapses = segmentData.synapses;
+
       auto protoSynapses = protoSegments[j].initSynapses(synapses.size());
-      protoSegments[j].setDestroyed(segments[j].destroyed);
-      protoSegments[j].setLastUsedIteration(segments[j].lastUsedIteration);
+      protoSegments[j].setLastUsedIteration(segmentData.lastUsedIteration);
+      protoSegments[j].setDestroyed(false);
 
       for (SynapseIdx k = 0; k < synapses.size(); ++k)
       {
-        protoSynapses[k].setPresynapticCell(synapses[k].presynapticCell);
-        protoSynapses[k].setPermanence(synapses[k].permanence);
-        protoSynapses[k].setDestroyed(synapses[k].destroyed);
+        const SynapseData& synapseData = synapses_[synapses[k]];
+
+        protoSynapses[k].setPresynapticCell(synapseData.presynapticCell);
+        protoSynapses[k].setPermanence(synapseData.permanence);
+        protoSynapses[k].setDestroyed(false);
       }
     }
   }
@@ -561,6 +536,8 @@ void Connections::load(std::istream& inStream)
 
   initialize(numCells, maxSegmentsPerCell_, maxSynapsesPerSegment_);
 
+  // This logic is complicated by the fact that old versions of the Connections
+  // serialized "destroyed" segments and synapses, which we now ignore.
   cells_.resize(numCells);
   for (UInt cell = 0; cell < numCells; cell++)
   {
@@ -569,47 +546,58 @@ void Connections::load(std::istream& inStream)
     UInt numSegments;
     inStream >> numSegments;
 
-    cellData.segments.resize(numSegments);
     for (SegmentIdx j = 0; j < numSegments; j++)
     {
-      inStream >> cellData.segments[j].destroyed;
-      inStream >> cellData.segments[j].lastUsedIteration;
-      const UInt32 flatIdx = nextFlatIdx_++;
-      cellData.segments[j].flatIdx = flatIdx;
-      const Segment segment = {cell, j, flatIdx};
-      segmentForFlatIdx_.push_back(segment);
+      bool destroyedSegment = false;
+      if (version < 2)
+      {
+        inStream >> destroyedSegment;
+      }
+
+      Segment segment = {(UInt32)-1};
+      {
+        SegmentData segmentData = {};
+        inStream >> segmentData.lastUsedIteration;
+        segmentData.cell = cell;
+
+        if (!destroyedSegment)
+        {
+          segment.flatIdx = segments_.size();
+          cellData.segments.push_back(segment);
+          segments_.push_back(segmentData);
+          segmentOrdinals_.push_back(nextSegmentOrdinal_++);
+        }
+      }
 
       UInt numSynapses;
       inStream >> numSynapses;
 
-      auto& synapses = cellData.segments[j].synapses;
-      synapses.resize(numSynapses);
-      for (UInt k = 0; k < numSynapses; k++)
+      for (SynapseIdx k = 0; k < numSynapses; k++)
       {
-        inStream >> synapses[k].presynapticCell;
-        inStream >> synapses[k].permanence;
-        inStream >> synapses[k].destroyed;
+        SynapseData synapseData = {};
+        inStream >> synapseData.presynapticCell;
+        inStream >> synapseData.permanence;
 
-        if (synapses[k].destroyed)
+        bool destroyedSynapse = false;
+        if (version < 2)
         {
-          cellData.segments[j].numDestroyedSynapses++;
+          inStream >> destroyedSynapse;
         }
-        else
+
+        if (!destroyedSegment && !destroyedSynapse)
         {
-          numSynapses_++;
+          synapseData.segment = segment;
 
-          Synapse synapse = Synapse(k, segment);
-          synapsesForPresynapticCell_[synapses[k].presynapticCell].push_back(synapse);
+          SegmentData& segmentData = segments_[segment];
+
+          Synapse synapse = {(UInt32)synapses_.size()};
+          segmentData.synapses.push_back(synapse);
+          synapses_.push_back(synapseData);
+          synapseOrdinals_.push_back(nextSynapseOrdinal_++);
+
+          synapsesForPresynapticCell_[synapseData.presynapticCell].push_back(
+            synapse);
         }
-      }
-
-      if (cellData.segments[j].destroyed)
-      {
-        cellData.numDestroyedSegments++;
-      }
-      else
-      {
-        numSegments_++;
       }
     }
   }
@@ -634,51 +622,49 @@ void Connections::read(ConnectionsProto::Reader& proto)
 
   for (CellIdx cell = 0; cell < protoCells.size(); ++cell)
   {
+    CellData& cellData = cells_[cell];
+
     auto protoSegments = protoCells[cell].getSegments();
-    vector<SegmentData>& segments = cells_[cell].segments;
 
     for (SegmentIdx j = 0; j < (SegmentIdx)protoSegments.size(); ++j)
     {
-      const SegmentData segmentData = {vector<SynapseData>(),
-                                       0,
-                                       protoSegments[j].getDestroyed(),
-                                       protoSegments[j].getLastUsedIteration(),
-                                       nextFlatIdx_++};
-      segments.push_back(segmentData);
-      const Segment segment = {cell, j, segmentData.flatIdx};
-      segmentForFlatIdx_.push_back(segment);
+      if (protoSegments[j].getDestroyed())
+      {
+        continue;
+      }
+
+      Segment segment;
+      {
+        const SegmentData segmentData = {vector<Synapse>(),
+                                         protoSegments[j].getLastUsedIteration(),
+                                         cell};
+        segment.flatIdx = segments_.size();
+        cellData.segments.push_back(segment);
+        segments_.push_back(segmentData);
+        segmentOrdinals_.push_back(nextSegmentOrdinal_++);
+      }
+
+      SegmentData& segmentData = segments_[segment];
 
       auto protoSynapses = protoSegments[j].getSynapses();
-      vector<SynapseData>& synapses = segments[j].synapses;
 
       for (SynapseIdx k = 0; k < protoSynapses.size(); ++k)
       {
+        if (protoSynapses[k].getDestroyed())
+        {
+          continue;
+        }
+
         CellIdx presynapticCell = protoSynapses[k].getPresynapticCell();
         SynapseData synapseData = {presynapticCell,
                                    protoSynapses[k].getPermanence(),
-                                   protoSynapses[k].getDestroyed()};
-        synapses.push_back(synapseData);
+                                   segment};
+        Synapse synapse = {(UInt32)synapses_.size()};
+        synapses_.push_back(synapseData);
+        synapseOrdinals_.push_back(nextSynapseOrdinal_++);
+        segmentData.synapses.push_back(synapse);
 
-        if (synapseData.destroyed)
-        {
-          segments[j].numDestroyedSynapses++;
-        }
-        else
-        {
-          numSynapses_++;
-
-          Synapse synapse = Synapse(k, segment);
-          synapsesForPresynapticCell_[presynapticCell].push_back(synapse);
-        }
-      }
-
-      if (segmentData.destroyed)
-      {
-        cells_[cell].numDestroyedSegments++;
-      }
-      else
-      {
-        numSegments_++;
+        synapsesForPresynapticCell_[presynapticCell].push_back(synapse);
       }
     }
   }
@@ -693,24 +679,22 @@ CellIdx Connections::numCells() const
 
 UInt Connections::numSegments() const
 {
-  return numSegments_;
+  return segments_.size() - destroyedSegments_.size();
 }
 
 UInt Connections::numSegments(CellIdx cell) const
 {
-  const CellData& cellData = cells_[cell];
-  return cellData.segments.size() - cellData.numDestroyedSegments;
+  return cells_[cell].segments.size();
 }
 
 UInt Connections::numSynapses() const
 {
-  return numSynapses_;
+  return synapses_.size() - destroyedSynapses_.size();
 }
 
-UInt Connections::numSynapses(const Segment& segment) const
+UInt Connections::numSynapses(Segment segment) const
 {
-  const SegmentData& segmentData = cells_[segment.cell].segments[segment.idx];
-  return segmentData.synapses.size() - segmentData.numDestroyedSynapses;
+  return segments_[segment].synapses.size();
 }
 
 bool Connections::operator==(const Connections &other) const
@@ -722,126 +706,78 @@ bool Connections::operator==(const Connections &other) const
 
   for (CellIdx i = 0; i < cells_.size(); ++i)
   {
-    auto segments = cells_[i].segments;
-    auto otherSegments = other.cells_[i].segments;
+    const CellData& cellData = cells_[i];
+    const CellData& otherCellData = other.cells_[i];
 
-    if (segments.size() != otherSegments.size()) return false;
-
-    for (SegmentIdx j = 0; j < (SegmentIdx)segments.size(); ++j)
+    if (cellData.segments.size() != otherCellData.segments.size())
     {
-      auto segment = segments[j];
-      auto otherSegment = otherSegments[j];
-      auto synapses = segment.synapses;
-      auto otherSynapses = otherSegment.synapses;
+      return false;
+    }
 
-      if (segment.destroyed != otherSegment.destroyed) return false;
-      if (segment.lastUsedIteration != otherSegment.lastUsedIteration) return false;
-      if (synapses.size() != otherSynapses.size()) return false;
+    for (SegmentIdx j = 0; j < (SegmentIdx)cellData.segments.size(); ++j)
+    {
+      Segment segment = cellData.segments[j];
+      const SegmentData& segmentData = segments_[segment];
+      Segment otherSegment = otherCellData.segments[j];
+      const SegmentData& otherSegmentData = other.segments_[otherSegment];
 
-      for (SynapseIdx k = 0; k < synapses.size(); ++k)
+      if (segmentData.synapses.size() != otherSegmentData.synapses.size() ||
+          segmentData.lastUsedIteration != otherSegmentData.lastUsedIteration ||
+          segmentData.cell != otherSegmentData.cell)
       {
-        auto synapse = synapses[k];
-        auto otherSynapse = synapses[k];
+        return false;
+      }
 
-        if (synapse.presynapticCell != otherSynapse.presynapticCell) return false;
-        if (synapse.permanence != otherSynapse.permanence) return false;
-        if (synapse.destroyed != otherSynapse.destroyed) return false;
+      for (SynapseIdx k = 0; k < (SynapseIdx)segmentData.synapses.size(); ++k)
+      {
+        Synapse synapse = segmentData.synapses[k];
+        const SynapseData& synapseData = synapses_[synapse];
+        Synapse otherSynapse = otherSegmentData.synapses[k];
+        const SynapseData& otherSynapseData = other.synapses_[otherSynapse];
+
+        if (synapseData.presynapticCell != otherSynapseData.presynapticCell ||
+            synapseData.permanence != otherSynapseData.permanence)
+        {
+          return false;
+        }
+
+        // Two functionally identical instances may have different flatIdxs.
+        NTA_ASSERT(synapseData.segment == segment);
+        NTA_ASSERT(otherSynapseData.segment == otherSegment);
       }
     }
   }
 
-  if (synapsesForPresynapticCell_.size() != other.synapsesForPresynapticCell_.size()) return false;
+  if (synapsesForPresynapticCell_.size() !=
+      other.synapsesForPresynapticCell_.size()) return false;
 
-  for (auto i = synapsesForPresynapticCell_.begin(); i != synapsesForPresynapticCell_.end(); ++i)
+  for (auto i = synapsesForPresynapticCell_.begin();
+       i != synapsesForPresynapticCell_.end(); ++i)
   {
-    auto synapses = i->second;
-    auto otherSynapses = other.synapsesForPresynapticCell_.at(i->first);
+    const vector<Synapse>& synapses = i->second;
+    const vector<Synapse>& otherSynapses =
+      other.synapsesForPresynapticCell_.at(i->first);
 
     if (synapses.size() != otherSynapses.size()) return false;
 
     for (SynapseIdx j = 0; j < synapses.size(); ++j)
     {
-      auto synapse = synapses[j];
-      auto otherSynapse = otherSynapses[j];
-      auto segment = synapse.segment;
-      auto otherSegment = otherSynapse.segment;
-      auto cell = segment.cell;
-      auto otherCell = otherSegment.cell;
+      Synapse synapse = synapses[j];
+      const SynapseData& synapseData = synapses_[synapse];
+      const SegmentData& segmentData = segments_[synapseData.segment];
+      Synapse otherSynapse = otherSynapses[j];
+      const SynapseData& otherSynapseData = other.synapses_[otherSynapse];
+      const SegmentData& otherSegmentData =
+        other.segments_[otherSynapseData.segment];
 
-      if (synapse.idx != otherSynapse.idx) return false;
-      if (segment.idx != otherSegment.idx) return false;
-      if (cell != otherCell) return false;
+      if (segmentData.cell != otherSegmentData.cell)
+      {
+        return false;
+      }
     }
   }
 
-  if (numSegments_ != other.numSegments_) return false;
-  if (numSynapses_ != other.numSynapses_) return false;
   if (iteration_ != other.iteration_) return false;
 
   return true;
-}
-
-Segment::Segment()
-{}
-
-Segment::Segment(CellIdx cell, SegmentIdx idx, UInt32 flatIdx)
-  : cell(cell), idx(idx), flatIdx(flatIdx)
-{}
-
-bool Segment::operator==(const Segment &other) const
-{
-  return idx == other.idx && cell == other.cell;
-}
-
-bool Segment::operator<=(const Segment &other) const
-{
-  if (cell != other.cell)
-  {
-    return cell <= other.cell;
-  }
-  else
-  {
-    return idx <= other.idx;
-  }
-}
-
-bool Segment::operator<(const Segment &other) const
-{
-  if (cell != other.cell)
-  {
-    return cell < other.cell;
-  }
-  else
-  {
-    return idx < other.idx;
-  }
-}
-
-bool Segment::operator>=(const Segment &other) const
-{
-  if (cell != other.cell)
-  {
-    return cell >= other.cell;
-  }
-  else
-  {
-    return idx >= other.idx;
-  }
-}
-
-bool Segment::operator>(const Segment &other) const
-{
-  if (cell != other.cell)
-  {
-    return cell > other.cell;
-  }
-  else
-  {
-    return idx > other.idx;
-  }
-}
-
-bool Synapse::operator==(const Synapse &other) const
-{
-  return idx == other.idx && segment == other.segment;
 }

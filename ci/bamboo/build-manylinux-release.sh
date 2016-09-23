@@ -44,5 +44,4 @@ source ${DIR}/manylinux-build-env.rc
 # destination wheelhouse
 BUILD_TYPE="Release" \
 WHEEL_PLAT="manylinux1_x86_64" \
-RESULT_KEY="${bamboo_buildResultKey}" \
   ${DIR}/../build-and-test-nupic-bindings.sh "$@"

@@ -1675,9 +1675,6 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
                                               maxSegmentsPerCell,
                                               maxSynapsesPerSegment)
 
-    def cellForSegment(self, segment):
-      """Used by TemporalMemory.learnOnSegments"""
-      return segment.cell
 
     @classmethod
     def read(cls, proto):
@@ -1718,7 +1715,7 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
   %pythoncode %{
 
     def __key(self):
-      return (self.idx, self.cell)
+      return self.flatIdx
 
     def __eq__(x, y):
       return x.__key() == y.__key()
@@ -1727,7 +1724,7 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
       return hash(self.__key())
 
     def __str__(self):
-      return "{0}-{1}".format(self.cell, self.idx)
+      return "{0}-{1}".format(self.flatIdx)
 
     def __repr__(self):
       return str(self)
@@ -1740,7 +1737,7 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
   %pythoncode %{
 
     def __key(self):
-      return (self.idx, self.segment)
+      return self.flatIdx
 
     def __eq__(x, y):
       return x.__key() == y.__key()
@@ -1749,7 +1746,7 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
       return hash(self.__key())
 
     def __str__(self):
-      return "{0}-{1}".format(self.segment, self.idx)
+      return "{0}".format(self.flatIdx)
 
     def __repr__(self):
       return str(self)

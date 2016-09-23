@@ -308,6 +308,29 @@ void testFailOnRegisterDuplicateRegion()
   }
 }
 
+void testCreationParamTypes()
+{
+  // Verify that parameters of all types can be passed in through the creation
+  // params.
+
+  Network n;
+  Region* region = n.addRegion("test", "py.TestNode",
+                               "{"
+                               "int32Param: -2000000000, uint32Param: 3000000000, "
+                               "int64Param: -5000000000, uint64Param: 5000000001, "
+                               "real32Param: 10.5, real64Param: 11.5, "
+                               "boolParam: true"
+                               "}");
+
+  NTA_CHECK(region->getParameterInt32("int32Param") == -2000000000);
+  NTA_CHECK(region->getParameterUInt32("uint32Param") == 3000000000);
+  NTA_CHECK(region->getParameterInt64("int64Param") == -5000000000);
+  NTA_CHECK(region->getParameterUInt64("uint64Param") == 5000000001);
+  NTA_CHECK(region->getParameterReal32("real32Param") == 10.5);
+  NTA_CHECK(region->getParameterReal64("real64Param") == 11.5);
+  NTA_CHECK(region->getParameterBool("boolParam") == true);
+}
+
 void testUnregisterRegion()
 {
   Network n;
@@ -490,6 +513,8 @@ int realmain(bool leakTest)
   testPynodeArrayParameters(level2);
   testPynodeLinking();
   testFailOnRegisterDuplicateRegion();
+  testCreationParamTypes();
+
   if (!leakTest)
   {
     //testNuPIC1x();

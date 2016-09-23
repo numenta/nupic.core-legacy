@@ -37,5 +37,4 @@ ${DIR}/setup-dependencies-linux.sh
 
 # Build and test
 BUILD_TYPE="Release" \
-RESULT_KEY="${bamboo_buildResultKey}" \
   ${DIR}/../build-and-test-nupic-bindings.sh "$@"

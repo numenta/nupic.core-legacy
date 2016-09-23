@@ -179,7 +179,6 @@ namespace nupic
     // Learn
 
     vector<CellIdx> winnerCells;
-    SynapseData synapseData;
     Permanence permanence;
 
     for (int i = 0; i < 500; i++)
@@ -199,9 +198,13 @@ namespace nupic
       {
         segment = connections.getSegment(winnerCell, 0);
 
-        for (Synapse synapse : connections.synapsesForSegment(segment))
+        const vector<Synapse>& synapses =
+          connections.synapsesForSegment(segment);
+
+        for (SynapseIdx i = 0; i < (SynapseIdx)synapses.size();)
         {
-          synapseData = connections.dataForSynapse(synapse);
+          const Synapse synapse = synapses[i];
+          const SynapseData& synapseData = connections.dataForSynapse(synapse);
           permanence = synapseData.permanence;
 
           if (find(sdr.begin(), sdr.end(), synapseData.presynapticCell) !=
@@ -220,10 +223,12 @@ namespace nupic
           if (permanence == 0)
           {
             connections.destroySynapse(synapse);
+            // The synapses list is updated in-place, so don't update `i`.
           }
           else
           {
             connections.updateSynapsePermanence(synapse, permanence);
+            i++;
           }
         }
       }
@@ -311,7 +316,7 @@ namespace nupic
 
     for (Segment segment : activeSegments)
     {
-      winnerCells.insert(segment.cell);
+      winnerCells.insert(connections.cellForSegment(segment));
       if (winnerCells.size() >= numCells)
       {
         break;

@@ -916,10 +916,22 @@ void SpatialPooler::updateMinDutyCyclesLocal_()
   {
     Real maxActiveDuty = 0;
     Real maxOverlapDuty = 0;
-    for (UInt column : Neighborhood(i, inhibitionRadius_, columnDimensions_))
+    if (wrapAround_)
     {
-      maxActiveDuty = max(maxActiveDuty, activeDutyCycles_[column]);
-      maxOverlapDuty = max(maxOverlapDuty, overlapDutyCycles_[column]);
+      for (UInt column : WrappingNeighborhood(i, inhibitionRadius_,
+                                              columnDimensions_))
+      {
+        maxActiveDuty = max(maxActiveDuty, activeDutyCycles_[column]);
+        maxOverlapDuty = max(maxOverlapDuty, overlapDutyCycles_[column]);
+      }
+    }
+    else
+    {
+      for (UInt column : Neighborhood(i, inhibitionRadius_, columnDimensions_))
+      {
+        maxActiveDuty = max(maxActiveDuty, activeDutyCycles_[column]);
+        maxOverlapDuty = max(maxOverlapDuty, overlapDutyCycles_[column]);
+      }
     }
 
     minActiveDutyCycles_[i] = maxActiveDuty * minPctActiveDutyCycles_;
@@ -1311,7 +1323,7 @@ void SpatialPooler::inhibitColumnsLocal_(vector<Real>& overlaps, Real density,
       if (wrapAround_)
       {
         for (UInt neighbor : WrappingNeighborhood(column, inhibitionRadius_,
-                                          columnDimensions_))
+                                                  columnDimensions_))
         {
           if (neighbor != column)
           {
