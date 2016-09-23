@@ -475,32 +475,129 @@ namespace {
 
   TEST(SpatialPoolerTest, testUpdateMinDutyCyclesLocal)
   {
-    SpatialPooler sp;
-    UInt numInputs = 5;
-    UInt numColumns = 8;
-    setup(sp, numInputs, numColumns);
+    // wrapAround=false
+    {
+      UInt numColumns = 8;
+      SpatialPooler sp(
+        /*inputDimensions*/{5},
+        /*columnDimensions*/ {numColumns},
+        /*potentialRadius*/ 16,
+        /*potentialPct*/ 0.5,
+        /*globalInhibition*/ false,
+        /*localAreaDensity*/ -1.0,
+        /*numActiveColumnsPerInhArea*/ 3,
+        /*stimulusThreshold*/ 1,
+        /*synPermInactiveDec*/ 0.008,
+        /*synPermActiveInc*/ 0.05,
+        /*synPermConnected*/ 0.1,
+        /*minPctOverlapDutyCycles*/ 0.001,
+        /*minPctActiveDutyCycles*/ 0.001,
+        /*dutyCyclePeriod*/ 1000,
+        /*maxBoost*/ 10.0,
+        /*seed*/ 1,
+        /*spVerbosity*/ 0,
+        /*wrapAround*/ false);
 
-    sp.setInhibitionRadius(1);
-    Real activeDutyArr[] = {0.9, 0.3, 0.5, 0.7, 0.1, 0.01, 0.08, 0.12};
-    Real overlapDutyArr[] = {0.7, 0.1, 0.5, 0.01, 0.78, 0.55, 0.1, 0.001};
-    sp.setOverlapDutyCycles(overlapDutyArr);
-    sp.setActiveDutyCycles(activeDutyArr);
-    sp.setMinPctActiveDutyCycles(0.1);
-    sp.setMinPctOverlapDutyCycles(0.2);
+      sp.setInhibitionRadius(1);
 
-    sp.updateMinDutyCyclesLocal_();
+      Real activeDutyArr[] = {0.9, 0.3, 0.5, 0.7, 0.1, 0.01, 0.08, 0.12};
+      sp.setActiveDutyCycles(activeDutyArr);
 
-    Real trueActiveArr[] = {0.09, 0.09, 0.07, 0.07, 0.07, 0.01, 0.012, 0.012};
-    Real trueOverlapArr[] = {0.14, 0.14, 0.1, 0.156, 0.156, 0.156, 0.11, 0.02};
+      Real overlapDutyArr[] = {0.7, 0.1, 0.5, 0.01, 0.78, 0.55, 0.1, 0.001};
+      sp.setOverlapDutyCycles(overlapDutyArr);
 
-    Real resultMinOverlapArr[8];
-    Real resultMinActiveArr[8];
-    sp.getMinActiveDutyCycles(resultMinActiveArr);
-    sp.getMinOverlapDutyCycles(resultMinOverlapArr);
+      sp.setMinPctActiveDutyCycles(0.1);
+      sp.setMinPctOverlapDutyCycles(0.2);
 
-    ASSERT_TRUE(check_vector_eq(resultMinOverlapArr, trueOverlapArr,
-                                numColumns));
-    ASSERT_TRUE(check_vector_eq(resultMinActiveArr, trueActiveArr, numColumns));
+      sp.updateMinDutyCyclesLocal_();
+
+      Real trueActiveArr[] = {0.1*0.9,
+                              0.1*0.9,
+                              0.1*0.7,
+                              0.1*0.7,
+                              0.1*0.7,
+                              0.1*0.1,
+                              0.1*0.12,
+                              0.1*0.12};
+      Real resultMinActiveArr[8];
+      sp.getMinActiveDutyCycles(resultMinActiveArr);
+      ASSERT_TRUE(check_vector_eq(resultMinActiveArr, trueActiveArr, numColumns));
+
+      Real trueOverlapArr[] = {0.2*0.7,
+                               0.2*0.7,
+                               0.2*0.5,
+                               0.2*0.78,
+                               0.2*0.78,
+                               0.2*0.78,
+                               0.2*0.55,
+                               0.2*0.1};
+      Real resultMinOverlapArr[8];
+      sp.getMinOverlapDutyCycles(resultMinOverlapArr);
+      ASSERT_TRUE(check_vector_eq(resultMinOverlapArr, trueOverlapArr,
+                                  numColumns));
+    }
+
+    // wrapAround=true
+    {
+      UInt numColumns = 8;
+      SpatialPooler sp(
+        /*inputDimensions*/{5},
+        /*columnDimensions*/ {numColumns},
+        /*potentialRadius*/ 16,
+        /*potentialPct*/ 0.5,
+        /*globalInhibition*/ false,
+        /*localAreaDensity*/ -1.0,
+        /*numActiveColumnsPerInhArea*/ 3,
+        /*stimulusThreshold*/ 1,
+        /*synPermInactiveDec*/ 0.008,
+        /*synPermActiveInc*/ 0.05,
+        /*synPermConnected*/ 0.1,
+        /*minPctOverlapDutyCycles*/ 0.001,
+        /*minPctActiveDutyCycles*/ 0.001,
+        /*dutyCyclePeriod*/ 1000,
+        /*maxBoost*/ 10.0,
+        /*seed*/ 1,
+        /*spVerbosity*/ 0,
+        /*wrapAround*/ true);
+
+      sp.setInhibitionRadius(1);
+
+      Real activeDutyArr[] = {0.9, 0.3, 0.5, 0.7, 0.1, 0.01, 0.08, 0.12};
+      sp.setActiveDutyCycles(activeDutyArr);
+
+      Real overlapDutyArr[] = {0.7, 0.1, 0.5, 0.01, 0.78, 0.55, 0.1, 0.001};
+      sp.setOverlapDutyCycles(overlapDutyArr);
+
+      sp.setMinPctActiveDutyCycles(0.1);
+      sp.setMinPctOverlapDutyCycles(0.2);
+
+      sp.updateMinDutyCyclesLocal_();
+
+      Real trueActiveArr[] = {0.1*0.9,
+                              0.1*0.9,
+                              0.1*0.7,
+                              0.1*0.7,
+                              0.1*0.7,
+                              0.1*0.1,
+                              0.1*0.12,
+                              0.1*0.9};
+      Real resultMinActiveArr[8];
+      sp.getMinActiveDutyCycles(resultMinActiveArr);
+      ASSERT_TRUE(check_vector_eq(resultMinActiveArr, trueActiveArr, numColumns));
+
+      Real trueOverlapArr[] = {0.2*0.7,
+                               0.2*0.7,
+                               0.2*0.5,
+                               0.2*0.78,
+                               0.2*0.78,
+                               0.2*0.78,
+                               0.2*0.55,
+                               0.2*0.7};
+      Real resultMinOverlapArr[8];
+      sp.getMinOverlapDutyCycles(resultMinOverlapArr);
+      ASSERT_TRUE(check_vector_eq(resultMinOverlapArr, trueOverlapArr,
+                                  numColumns));
+    }
   }
 
   TEST(SpatialPoolerTest, testUpdateDutyCycles)
@@ -1432,51 +1529,137 @@ namespace {
 
   TEST(SpatialPoolerTest, testInhibitColumnsLocal)
   {
-    SpatialPooler sp;
-    setup(sp,10,10);
-    Real density;
-    UInt inhibitionRadius;
+    // wrapAround = false
+    {
+      SpatialPooler sp(
+        /*inputDimensions*/{10},
+        /*columnDimensions*/ {10},
+        /*potentialRadius*/ 16,
+        /*potentialPct*/ 0.5,
+        /*globalInhibition*/ false,
+        /*localAreaDensity*/ -1.0,
+        /*numActiveColumnsPerInhArea*/ 3,
+        /*stimulusThreshold*/ 1,
+        /*synPermInactiveDec*/ 0.008,
+        /*synPermActiveInc*/ 0.05,
+        /*synPermConnected*/ 0.1,
+        /*minPctOverlapDutyCycles*/ 0.001,
+        /*minPctActiveDutyCycles*/ 0.001,
+        /*dutyCyclePeriod*/ 1000,
+        /*maxBoost*/ 10.0,
+        /*seed*/ 1,
+        /*spVerbosity*/ 0,
+        /*wrapAround*/ false);
 
-    vector<Real> overlaps;
-    vector<UInt> active;
+      Real density;
+      UInt inhibitionRadius;
 
-    Real overlapsArray1[10] = { 1, 2, 7, 0, 3, 4, 16, 1, 1.5, 1.7};
-                            //  L  W  W  L  L  W  W   L   L    W
+      vector<Real> overlaps;
+      vector<UInt> active;
 
-    inhibitionRadius = 2;
-    density = 0.5;
-    overlaps.assign(&overlapsArray1[0], &overlapsArray1[10]);
-    UInt trueActive[5] = {1, 2, 5, 6, 9};
-    sp.setInhibitionRadius(inhibitionRadius);
-    sp.inhibitColumnsLocal_(overlaps, density, active);
-    ASSERT_EQ(5, active.size());
-    ASSERT_TRUE(check_vector_eq(trueActive, active));
+      Real overlapsArray1[10] = { 1, 2, 7, 0, 3, 4, 16, 1, 1.5, 1.7};
+                              //  L  W  W  L  L  W  W   L   L    W
 
-    Real overlapsArray2[10] = {1, 2, 7, 0, 3, 4, 16, 1, 1.5, 1.7};
-                          //   L  W  W  L  L  W   W  L   L    W
-    overlaps.assign(&overlapsArray2[0], &overlapsArray2[10]);
-    UInt trueActive2[6] = {1, 2, 4, 5, 6, 9};
-    inhibitionRadius = 3;
-    density = 0.5;
-    sp.setInhibitionRadius(inhibitionRadius);
-    sp.inhibitColumnsLocal_(overlaps, density, active);
-    ASSERT_TRUE(active.size() == 6);
-    ASSERT_TRUE(check_vector_eq(trueActive2, active));
+      inhibitionRadius = 2;
+      density = 0.5;
+      overlaps.assign(&overlapsArray1[0], &overlapsArray1[10]);
+      UInt trueActive[5] = {1, 2, 5, 6, 9};
+      sp.setInhibitionRadius(inhibitionRadius);
+      sp.inhibitColumnsLocal_(overlaps, density, active);
+      ASSERT_EQ(5, active.size());
+      ASSERT_TRUE(check_vector_eq(trueActive, active));
 
-    // Test arbitration
+      Real overlapsArray2[10] = {1, 2, 7, 0, 3, 4, 16, 1, 1.5, 1.7};
+                            //   L  W  W  L  L  W   W  L   L    W
+      overlaps.assign(&overlapsArray2[0], &overlapsArray2[10]);
+      UInt trueActive2[6] = {1, 2, 4, 5, 6, 9};
+      inhibitionRadius = 3;
+      density = 0.5;
+      sp.setInhibitionRadius(inhibitionRadius);
+      sp.inhibitColumnsLocal_(overlaps, density, active);
+      ASSERT_TRUE(active.size() == 6);
+      ASSERT_TRUE(check_vector_eq(trueActive2, active));
 
-    Real overlapsArray3[10] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
-                            // W  L  W  L  W  L  W  L  L  L
-    overlaps.assign(&overlapsArray3[0], &overlapsArray3[10]);
-    UInt trueActive3[4] = {0, 2, 4, 6};
-    inhibitionRadius = 3;
-    density = 0.25;
-    sp.setInhibitionRadius(inhibitionRadius);
-    sp.inhibitColumnsLocal_(overlaps, density, active);
+      // Test arbitration
 
-    ASSERT_TRUE(active.size() == 4);
-    ASSERT_TRUE(check_vector_eq(trueActive3, active));
+      Real overlapsArray3[10] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+                              // W  L  W  L  W  L  W  L  L  L
+      overlaps.assign(&overlapsArray3[0], &overlapsArray3[10]);
+      UInt trueActive3[4] = {0, 2, 4, 6};
+      inhibitionRadius = 3;
+      density = 0.25;
+      sp.setInhibitionRadius(inhibitionRadius);
+      sp.inhibitColumnsLocal_(overlaps, density, active);
 
+      ASSERT_TRUE(active.size() == 4);
+      ASSERT_TRUE(check_vector_eq(trueActive3, active));
+    }
+
+    // wrapAround = true
+    {
+      SpatialPooler sp(
+        /*inputDimensions*/{10},
+        /*columnDimensions*/ {10},
+        /*potentialRadius*/ 16,
+        /*potentialPct*/ 0.5,
+        /*globalInhibition*/ false,
+        /*localAreaDensity*/ -1.0,
+        /*numActiveColumnsPerInhArea*/ 3,
+        /*stimulusThreshold*/ 1,
+        /*synPermInactiveDec*/ 0.008,
+        /*synPermActiveInc*/ 0.05,
+        /*synPermConnected*/ 0.1,
+        /*minPctOverlapDutyCycles*/ 0.001,
+        /*minPctActiveDutyCycles*/ 0.001,
+        /*dutyCyclePeriod*/ 1000,
+        /*maxBoost*/ 10.0,
+        /*seed*/ 1,
+        /*spVerbosity*/ 0,
+        /*wrapAround*/ true);
+
+      Real density;
+      UInt inhibitionRadius;
+
+      vector<Real> overlaps;
+      vector<UInt> active;
+
+      Real overlapsArray1[10] = { 1, 2, 7, 0, 3, 4, 16, 1, 1.5, 1.7};
+                              //  L  W  W  L  L  W  W   L   W    W
+
+      inhibitionRadius = 2;
+      density = 0.5;
+      overlaps.assign(&overlapsArray1[0], &overlapsArray1[10]);
+      UInt trueActive[6] = {1, 2, 5, 6, 8, 9};
+      sp.setInhibitionRadius(inhibitionRadius);
+      sp.inhibitColumnsLocal_(overlaps, density, active);
+      ASSERT_EQ(6, active.size());
+      ASSERT_TRUE(check_vector_eq(trueActive, active));
+
+      Real overlapsArray2[10] = {1, 2, 7, 0, 3, 4, 16, 1, 1.5, 1.7};
+                            //   L  W  W  L  W  W   W  L   L    W
+      overlaps.assign(&overlapsArray2[0], &overlapsArray2[10]);
+      UInt trueActive2[6] = {1, 2, 4, 5, 6, 9};
+      inhibitionRadius = 3;
+      density = 0.5;
+      sp.setInhibitionRadius(inhibitionRadius);
+      sp.inhibitColumnsLocal_(overlaps, density, active);
+      ASSERT_TRUE(active.size() == 6);
+      ASSERT_TRUE(check_vector_eq(trueActive2, active));
+
+      // Test arbitration
+
+      Real overlapsArray3[10] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+                              // W  W  L  L  W  W  L  L  L  W
+      overlaps.assign(&overlapsArray3[0], &overlapsArray3[10]);
+      UInt trueActive3[4] = {0, 1, 4, 5};
+      inhibitionRadius = 3;
+      density = 0.25;
+      sp.setInhibitionRadius(inhibitionRadius);
+      sp.inhibitColumnsLocal_(overlaps, density, active);
+
+      ASSERT_TRUE(active.size() == 4);
+      ASSERT_TRUE(check_vector_eq(trueActive3, active));
+    }
   }
 
   TEST(SpatialPoolerTest, testIsUpdateRound)
