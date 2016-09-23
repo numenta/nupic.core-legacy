@@ -916,10 +916,22 @@ void SpatialPooler::updateMinDutyCyclesLocal_()
   {
     Real maxActiveDuty = 0;
     Real maxOverlapDuty = 0;
-    for (UInt column : Neighborhood(i, inhibitionRadius_, columnDimensions_))
+    if (wrapAround_)
     {
-      maxActiveDuty = max(maxActiveDuty, activeDutyCycles_[column]);
-      maxOverlapDuty = max(maxOverlapDuty, overlapDutyCycles_[column]);
+      for (UInt column : WrappingNeighborhood(i, inhibitionRadius_,
+                                              columnDimensions_))
+      {
+        maxActiveDuty = max(maxActiveDuty, activeDutyCycles_[column]);
+        maxOverlapDuty = max(maxOverlapDuty, overlapDutyCycles_[column]);
+      }
+    }
+    else
+    {
+      for (UInt column : Neighborhood(i, inhibitionRadius_, columnDimensions_))
+      {
+        maxActiveDuty = max(maxActiveDuty, activeDutyCycles_[column]);
+        maxOverlapDuty = max(maxOverlapDuty, overlapDutyCycles_[column]);
+      }
     }
 
     minActiveDutyCycles_[i] = maxActiveDuty * minPctActiveDutyCycles_;
@@ -1265,15 +1277,33 @@ void SpatialPooler::inhibitColumnsLocal_(vector<Real>& overlaps, Real density,
     {
       UInt numNeighbors = 0;
       UInt numBigger = 0;
-      for (UInt neighbor : Neighborhood(column, inhibitionRadius_,
-                                        columnDimensions_))
+      if (wrapAround_)
       {
-        if (neighbor != column)
+        for (UInt neighbor : WrappingNeighborhood(column, inhibitionRadius_,
+                                                  columnDimensions_))
         {
-          numNeighbors++;
-          if (overlaps[neighbor] > overlaps[column])
+          if (neighbor != column)
           {
-            numBigger++;
+            numNeighbors++;
+            if (overlaps[neighbor] > overlaps[column])
+            {
+              numBigger++;
+            }
+          }
+        }
+      }
+      else
+      {
+        for (UInt neighbor : Neighborhood(column, inhibitionRadius_,
+                                          columnDimensions_))
+        {
+          if (neighbor != column)
+          {
+            numNeighbors++;
+            if (overlaps[neighbor] > overlaps[column])
+            {
+              numBigger++;
+            }
           }
         }
       }
