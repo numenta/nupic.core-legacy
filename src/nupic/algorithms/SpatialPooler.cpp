@@ -1108,20 +1108,62 @@ void SpatialPooler::updateDutyCyclesHelper_(vector<Real>& dutyCycles,
 
 void SpatialPooler::updateBoostFactors_()
 {
-  for (UInt i = 0; i < numColumns_; i++)
+  Real density = localAreaDensity_;
+  if (numActiveColumnsPerInhArea_ > 0)
   {
-    if (minActiveDutyCycles_[i] <= 0)
-    {
-      continue;
-    }
-    if (activeDutyCycles_[i] > minActiveDutyCycles_[i])
-    {
-      boostFactors_[i] = 1.0;
-      continue;
-    }
-    boostFactors_[i] = ((1 - maxBoost_) / minActiveDutyCycles_[i] *
-                        activeDutyCycles_[i]) + maxBoost_;
+    UInt inhibitionArea = pow((Real) (2 * inhibitionRadius_ + 1),
+                              (Real) columnDimensions_.size());
+    inhibitionArea = min(inhibitionArea, numColumns_);
+    density = ((Real) numActiveColumnsPerInhArea_) / inhibitionArea;
+    density = min(density, (Real) 0.5);
   }
+
+  vector<Real> targetDensity(numColumns_, 0);
+  if (globalInhibition_)
+  {
+    for (UInt i = 0; i < numColumns_; ++i)
+    {
+      targetDensity[i] = density;
+    }
+  }
+  else
+  {
+    for (UInt i = 0; i < numColumns_; ++i)
+    {
+      UInt numNeighbors = 0;
+      Real localActivityDensity = 0;
+      for (UInt neighbor : WrappingNeighborhood(i, inhibitionRadius_,
+                                      columnDimensions_))
+      {
+        if (neighbor != i)
+        {
+          localActivityDensity += activeDutyCycles_[neighbor];
+          numNeighbors += 1;
+        }
+
+      }
+      targetDensity[i] = localActivityDensity / numNeighbors;
+    }
+  }
+
+  for (UInt i = 0; i < numColumns_; ++i)
+  {
+    boostFactors_[i] = exp(-(activeDutyCycles_[i] - targetDensity[i]) * maxBoost_);
+  }
+//  for (UInt i = 0; i < numColumns_; i++)
+//  {
+//    if (minActiveDutyCycles_[i] <= 0)
+//    {
+//      continue;
+//    }
+//    if (activeDutyCycles_[i] > minActiveDutyCycles_[i])
+//    {
+//      boostFactors_[i] = 1.0;
+//      continue;
+//    }
+//    boostFactors_[i] = ((1 - maxBoost_) / minActiveDutyCycles_[i] *
+//                        activeDutyCycles_[i]) + maxBoost_;
+//  }
 }
 
 void SpatialPooler::updateBookeepingVars_(bool learn)
@@ -1265,18 +1307,38 @@ void SpatialPooler::inhibitColumnsLocal_(vector<Real>& overlaps, Real density,
     {
       UInt numNeighbors = 0;
       UInt numBigger = 0;
-      for (UInt neighbor : Neighborhood(column, inhibitionRadius_,
-                                        columnDimensions_))
+
+      if (wrapAround_)
       {
-        if (neighbor != column)
+        for (UInt neighbor : WrappingNeighborhood(column, inhibitionRadius_,
+                                          columnDimensions_))
         {
-          numNeighbors++;
-          if (overlaps[neighbor] > overlaps[column])
+          if (neighbor != column)
           {
-            numBigger++;
+            numNeighbors++;
+            if (overlaps[neighbor] > overlaps[column])
+            {
+              numBigger++;
+            }
           }
         }
       }
+      else
+      {
+        for (UInt neighbor : Neighborhood(column, inhibitionRadius_,
+                                          columnDimensions_))
+        {
+          if (neighbor != column)
+          {
+            numNeighbors++;
+            if (overlaps[neighbor] > overlaps[column])
+            {
+              numBigger++;
+            }
+          }
+        }
+      }
+
 
       UInt numActive = (UInt) (0.5 + (density * (numNeighbors + 1)));
       if (numBigger < numActive)
