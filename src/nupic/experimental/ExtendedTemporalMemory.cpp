@@ -834,35 +834,35 @@ void ExtendedTemporalMemory::activateCells(
 
     NTA_CHECK(std::all_of(activeColumns,
                           activeColumns + activeColumnsSize,
-                          [&](UInt c) { return c >= 0 && c < numColumns_; }))
+                          [&](UInt c) { return c < numColumns_; }))
       << "Values in activeColumns must be within the range "
       << "[0," << numColumns_ << ").";
     NTA_CHECK(std::all_of(
                 reinforceCandidatesExternalBasal,
                 reinforceCandidatesExternalBasal +
                 reinforceCandidatesExternalBasalSize,
-                [&](UInt c) { return c >= 0 && c < numBasalInputs_; }))
+                [&](UInt c) { return c < numBasalInputs_; }))
       << "Values in reinforceCandidatesExternalBasal must be within the range "
       << "[0," << numBasalInputs_ << ").";
     NTA_CHECK(std::all_of(
                 reinforceCandidatesExternalApical,
                 reinforceCandidatesExternalApical +
                 reinforceCandidatesExternalApicalSize,
-                [&](UInt c) { return c >= 0 && c < numApicalInputs_; }))
+                [&](UInt c) { return c < numApicalInputs_; }))
       << "Values in reinforceCandidatesExternalApical must be within the range "
       << "[0," << numApicalInputs_ << ").";
     NTA_CHECK(std::all_of(
                 growthCandidatesExternalBasal,
                 growthCandidatesExternalBasal +
                 growthCandidatesExternalBasalSize,
-                [&](UInt c) { return c >= 0 && c < numBasalInputs_; }))
+                [&](UInt c) { return c < numBasalInputs_; }))
       << "Values in growthCandidatesExternalBasal must be within the range " <<
       "[0," << numBasalInputs_ << ").";
     NTA_CHECK(std::all_of(
                 growthCandidatesExternalApical,
                 growthCandidatesExternalApical +
                 growthCandidatesExternalApicalSize,
-                [&](UInt c) { return c >= 0 && c < numApicalInputs_; }))
+                [&](UInt c) { return c < numApicalInputs_; }))
       << "Values in growthCandidatesExternalApical must be within the range "
       << "[0," << numApicalInputs_ << ").";
   }
@@ -1090,14 +1090,14 @@ void ExtendedTemporalMemory::depolarizeCells(
                 activeCellsExternalBasal,
                 activeCellsExternalBasal +
                 activeCellsExternalBasalSize,
-                [&](UInt c) { return c >= 0 && c < numBasalInputs_; }))
+                [&](UInt c) { return c < numBasalInputs_; }))
       << "Values in activeCellsExternalBasal must be within the range [0,"
       << numBasalInputs_ << ").";
     NTA_CHECK(std::all_of(
                 activeCellsExternalApical,
                 activeCellsExternalApical +
                 activeCellsExternalApicalSize,
-                [&](UInt c) { return c >= 0 && c < numApicalInputs_; }))
+                [&](UInt c) { return c < numApicalInputs_; }))
       << "Values in activeCellsExternalApical must be within the range [0,"
       << numApicalInputs_ << ").";
   }
