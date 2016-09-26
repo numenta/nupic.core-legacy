@@ -147,8 +147,8 @@ namespace nupic {
          */
         ExtendedTemporalMemory(
           vector<UInt> columnDimensions,
-          vector<UInt> basalInputDimensions = {},
-          vector<UInt> apicalInputDimensions = {},
+          vector<UInt> basalInputDimensions,
+          vector<UInt> apicalInputDimensions,
           UInt cellsPerColumn = 32,
           UInt activationThreshold = 13,
           Permanence initialPermanence = 0.21,
@@ -166,9 +166,9 @@ namespace nupic {
           bool checkInputs = true);
 
         virtual void initialize(
-          vector<UInt> columnDimensions = { 2048 },
-          vector<UInt> basalInputDimensions = {},
-          vector<UInt> apicalInputDimensions = {},
+          vector<UInt> columnDimensions,
+          vector<UInt> basalInputDimensions,
+          vector<UInt> apicalInputDimensions,
           UInt cellsPerColumn = 32,
           UInt activationThreshold = 13,
           Permanence initialPermanence = 0.21,
