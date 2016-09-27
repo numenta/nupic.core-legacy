@@ -50,7 +50,9 @@
 
 namespace nupic
 {
-  // Path from site-packages to packages that contain NuPIC Python regions
+  // Keys are Python modules and the values are sets of class names for the
+  // regions that have been registered in the corresponding module. E.g.
+  // pyRegions["nupic.regions.sample_region"] = "SampleRegion"
   static std::map<const std::string, std::set<std::string>> pyRegions;
 
   // Mappings for C++ regions
@@ -61,14 +63,21 @@ namespace nupic
   // Allows the user to add custom regions
   void RegionImplFactory::registerPyRegion(const std::string module, const std::string className)
   {
-    // Verify that no regions exist with the same className
+    // Verify that no regions exist with the same className in any module
     for (auto pyRegion : pyRegions)
     {
       if (pyRegion.second.find(className) != pyRegion.second.end())
       {
-        NTA_THROW << "A pyRegion with name '" << className << "' already exists. "
-                  << "Unregister the existing region or register the new region using a "
-                  << "different name.";
+        if (pyRegion.first != module)
+        {
+          // New region class name conflicts with previously registered region
+          NTA_THROW << "A pyRegion with name '" << className << "' already exists. "
+                    << "Unregister the existing region or register the new region using a "
+                    << "different name.";
+        } else {
+          // Same region registered again, ignore
+          return;
+        }
       }
     }
 
