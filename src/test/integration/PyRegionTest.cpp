@@ -505,7 +505,7 @@ int realmain(bool leakTest)
   testPynodeInputOutputAccess(level2);
   testPynodeArrayParameters(level2);
   testPynodeLinking();
-  testFailOnRegisterDuplicateRegion();
+  testRegionDuplicateRegister();
   testCreationParamTypes();
 
   if (!leakTest)
