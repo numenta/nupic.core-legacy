@@ -286,9 +286,8 @@ void testSecondTimeLeak()
   n.addRegion("r2", "py.TestNode", "");
 }
 
-void testFailOnRegisterDuplicateRegion()
+void testRegionDuplicateRegister()
 {
-  bool caughtException = false;
   Network::registerPyRegion("nupic.regions.TestDuplicateNodes",
                             "TestDuplicateNodes");
   try
@@ -296,16 +295,10 @@ void testFailOnRegisterDuplicateRegion()
     Network::registerPyRegion("nupic.regions.TestDuplicateNodes",
                               "TestDuplicateNodes");
   } catch (std::exception& e) {
-    NTA_DEBUG << "Caught exception as expected: '" << e.what() << "'";
-    caughtException = true;
+    NTA_THROW << "testRegionDuplicateRegister failed with exception: '"
+              << e.what() << "'";
   }
-  if (caughtException)
-  {
-    NTA_DEBUG << "testFailOnRegisterDuplicateRegion passed";
-  } else {
-    NTA_THROW << "testFailOnRegisterDuplicateRegion did not "
-              << "throw an exception as expected";
-  }
+  NTA_DEBUG << "testRegionDuplicateRegister passed";
 }
 
 void testCreationParamTypes()
