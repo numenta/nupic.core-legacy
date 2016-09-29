@@ -286,25 +286,30 @@ void testSecondTimeLeak()
   n.addRegion("r2", "py.TestNode", "");
 }
 
-void testFailOnRegisterDuplicateRegion()
+void testRegionDuplicateRegister()
 {
-  bool caughtException = false;
+  // Register a region
   Network::registerPyRegion("nupic.regions.TestDuplicateNodes",
                             "TestDuplicateNodes");
+  // Validate that the same region can be registered multiple times
   try
   {
     Network::registerPyRegion("nupic.regions.TestDuplicateNodes",
                               "TestDuplicateNodes");
   } catch (std::exception& e) {
-    NTA_DEBUG << "Caught exception as expected: '" << e.what() << "'";
-    caughtException = true;
+    NTA_THROW << "testRegionDuplicateRegister failed with exception: '"
+              << e.what() << "'";
   }
-  if (caughtException)
+  // Validate that a region from a different module but with the same name
+  // cannot be registered
+  try
   {
-    NTA_DEBUG << "testFailOnRegisterDuplicateRegion passed";
-  } else {
-    NTA_THROW << "testFailOnRegisterDuplicateRegion did not "
-              << "throw an exception as expected";
+    Network::registerPyRegion("nupic.regions.DifferentModule",
+                              "TestDuplicateNodes");
+    NTA_THROW << "testRegionDuplicateRegister failed to throw exception for "
+              << "region with same name but different module as existing "
+              << "registered region";
+  } catch (std::exception& e) {
   }
 }
 
@@ -512,7 +517,7 @@ int realmain(bool leakTest)
   testPynodeInputOutputAccess(level2);
   testPynodeArrayParameters(level2);
   testPynodeLinking();
-  testFailOnRegisterDuplicateRegion();
+  testRegionDuplicateRegister();
   testCreationParamTypes();
 
   if (!leakTest)
