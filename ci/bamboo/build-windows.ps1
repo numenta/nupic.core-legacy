@@ -204,12 +204,15 @@ Write-Host "Running nupic.core C++ tests."
 pushd .\build\release\bin
 
 WrapCmd { .\py_region_test.exe }
-WrapCmd { .\connections_performance_test.exe }
 WrapCmd { .\cpp_region_test.exe }
-WrapCmd { .\helloregion.exe }
-WrapCmd { .\hello_sp_tp.exe }
-WrapCmd { .\prototest.exe }
 WrapCmd { .\unit_tests.exe }
+
+# These executables aren't necessary for good test coverage. Leave them out
+# of regular build to reduce build time.
+#WrapCmd { .\helloregion.exe }
+#WrapCmd { .\hello_sp_tp.exe }
+#WrapCmd { .\prototest.exe }
+#WrapCmd { .\connections_performance_test.exe }
 popd
 
 

@@ -137,13 +137,16 @@ pip install --ignore-installed ${DEST_WHEELHOUSE}/nupic.bindings-*.whl
 
 # Run the nupic.core c++ tests
 cd ${NUPIC_CORE_ROOT}/build/release/bin
-./connections_performance_test
 ./cpp_region_test
-./helloregion
-./hello_sp_tp
-./prototest
 ./py_region_test
 ./unit_tests
+
+# These are utilities or demonstration executables so leave out of main build
+# to keep build times down.
+#./connections_performance_test
+#./hello_sp_tp
+#./helloregion
+#./prototest
 
 
 # Run nupic.bindings python tests
