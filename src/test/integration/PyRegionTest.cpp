@@ -288,8 +288,10 @@ void testSecondTimeLeak()
 
 void testRegionDuplicateRegister()
 {
+  // Register a region
   Network::registerPyRegion("nupic.regions.TestDuplicateNodes",
                             "TestDuplicateNodes");
+  // Validate that the same region can be registered multiple times
   try
   {
     Network::registerPyRegion("nupic.regions.TestDuplicateNodes",
@@ -298,7 +300,17 @@ void testRegionDuplicateRegister()
     NTA_THROW << "testRegionDuplicateRegister failed with exception: '"
               << e.what() << "'";
   }
-  NTA_DEBUG << "testRegionDuplicateRegister passed";
+  // Validate that a region from a different module but with the same name
+  // cannot be registered
+  try
+  {
+    Network::registerPyRegion("nupic.regions.DifferentModule",
+                              "TestDuplicateNodes");
+    NTA_THROW << "testRegionDuplicateRegister failed to throw exception for "
+              << "region with same name but different module as existing "
+              << "registered region";
+  } catch (std::exception& e) {
+  }
 }
 
 void testCreationParamTypes()
