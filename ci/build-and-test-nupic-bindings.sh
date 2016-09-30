@@ -32,6 +32,9 @@ This script builds and tests the nupic.bindings Python extension.
 In Debug builds, also
   - Turns on the Include What You Use check (assumes iwyu is installed)
 
+OPTIONS: If the --user option is passed to this script, it will also be used for
+   pip install commands.
+
 ASUMPTION: Expects a pristine nupic.core source tree without any remnant build
    artifacts from prior build attempts. Otherwise, behavior is undefined.
 
@@ -62,7 +65,10 @@ if [[ $1 == --help ]]; then
   exit 0
 fi
 
-if [[ $# > 0 ]]; then
+PIP_USER=""
+if [[ $# == 1 && $1 == --user ]]; then
+    PIP_USER="${1}"
+elif [[ $# > 0 ]]; then
   echo "ERROR Unexpected arguments: ${@}" >&2
   echo "${USAGE}" >&2
   exit 1
@@ -88,11 +94,11 @@ echo "RUNNING NUPIC BINDINGS BUILD: BUILD_TYPE=${BUILD_TYPE}, " \
 # Install pycapnp to get the matching capnproto headers for nupic.core build
 # NOTE Conditional pycapnp dependency should be incorporated into
 # bindings/py/requirements.txt to abstract it from upstream scripts.
-pip install pycapnp==0.5.8
+pip install "${PIP_USER}" pycapnp==0.5.8
 
 # Install nupic.bindings dependencies; the nupic.core cmake build depends on
 # some of them (e.g., numpy).
-pip install -r ${NUPIC_CORE_ROOT}/bindings/py/requirements.txt
+pip install "${PIP_USER}" -r ${NUPIC_CORE_ROOT}/bindings/py/requirements.txt
 
 
 #
@@ -133,7 +139,7 @@ python setup.py bdist_wheel --dist-dir ${DEST_WHEELHOUSE} ${EXTRA_WHEEL_OPTIONS}
 #
 
 # Install nupic.bindings before running c++ tests; py_region_test depends on it
-pip install --ignore-installed ${DEST_WHEELHOUSE}/nupic.bindings-*.whl
+pip install "${PIP_USER}" --ignore-installed ${DEST_WHEELHOUSE}/nupic.bindings-*.whl
 
 # Run the nupic.core c++ tests
 cd ${NUPIC_CORE_ROOT}/build/release/bin
