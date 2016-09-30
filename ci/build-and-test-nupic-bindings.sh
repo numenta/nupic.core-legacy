@@ -65,9 +65,9 @@ if [[ $1 == --help ]]; then
   exit 0
 fi
 
-PIP_USER=""
+PIP_USER=
 if [[ $# == 1 && $1 == --user ]]; then
-    PIP_USER="${1}"
+    PIP_USER="--user"
 elif [[ $# > 0 ]]; then
   echo "ERROR Unexpected arguments: ${@}" >&2
   echo "${USAGE}" >&2
@@ -94,11 +94,11 @@ echo "RUNNING NUPIC BINDINGS BUILD: BUILD_TYPE=${BUILD_TYPE}, " \
 # Install pycapnp to get the matching capnproto headers for nupic.core build
 # NOTE Conditional pycapnp dependency should be incorporated into
 # bindings/py/requirements.txt to abstract it from upstream scripts.
-pip install "${PIP_USER}" pycapnp==0.5.8
+pip install ${PIP_USER} pycapnp==0.5.8
 
 # Install nupic.bindings dependencies; the nupic.core cmake build depends on
 # some of them (e.g., numpy).
-pip install "${PIP_USER}" -r ${NUPIC_CORE_ROOT}/bindings/py/requirements.txt
+pip install ${PIP_USER} -r ${NUPIC_CORE_ROOT}/bindings/py/requirements.txt
 
 
 #
