@@ -40,5 +40,97 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 # Build and test the manylinux wheel; see build-and-test-nupic-bindings.sh for
 # destination wheelhouse
 BUILD_TYPE="Release" \
-WHEEL_PLAT="maxosx_10_9_intel" \
-  ${DIR}/../build-and-test-nupic-bindings.sh "$@"
+WHEEL_PLAT="maxosx_10_9_intel"
+
+if [[ $1 == --help ]]; then
+  echo "${USAGE}"
+  exit 0
+fi
+
+if [[ $# > 0 ]]; then
+  echo "ERROR Unexpected arguments: ${@}" >&2
+  echo "${USAGE}" >&2
+  exit 1
+fi
+
+
+set -o xtrace
+
+
+# Apply defaults
+BUILD_TYPE=${BUILD_TYPE-"Release"}
+
+
+NUPIC_CORE_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
+
+DEST_WHEELHOUSE="${NUPIC_CORE_ROOT}/nupic_bindings_wheelhouse"
+
+TEST_RESULTS_DIR="${NUPIC_CORE_ROOT}/test_results"
+
+echo "RUNNING NUPIC BINDINGS BUILD: BUILD_TYPE=${BUILD_TYPE}, " \
+     "DEST_WHEELHOUSE=${DEST_WHEELHOUSE}" >&2
+
+# Install pycapnp to get the matching capnproto headers for nupic.core build
+# NOTE Conditional pycapnp dependency should be incorporated into
+# bindings/py/requirements.txt to abstract it from upstream scripts.
+pip install --user pycapnp==0.5.8
+
+# Install nupic.bindings dependencies; the nupic.core cmake build depends on
+# some of them (e.g., numpy).
+pip install --user -r ${NUPIC_CORE_ROOT}/bindings/py/requirements.txt
+
+
+#
+# Build nupic.bindings
+#
+
+# NOTE without -p to force build failure upon pre-existing build side-effects
+mkdir ${NUPIC_CORE_ROOT}/build
+mkdir ${NUPIC_CORE_ROOT}/build/scripts
+
+cd ${NUPIC_CORE_ROOT}/build/scripts
+
+# Configure nupic.core build
+if [[ "$BUILD_TYPE" == "Debug" ]]; then
+  EXTRA_CMAKE_DEFINITIONS="-DNUPIC_IWYU=ON -DNTA_COV_ENABLED=ON"
+fi
+
+cmake ${NUPIC_CORE_ROOT} \
+    -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
+    ${EXTRA_CMAKE_DEFINITIONS} \
+    -DCMAKE_INSTALL_PREFIX=${NUPIC_CORE_ROOT}/build/release \
+    -DPY_EXTENSIONS_DIR=${NUPIC_CORE_ROOT}/bindings/py/nupic/bindings
+
+# Build nupic.core
+make install
+
+# Build nupic.bindings python extensions from nupic.core build artifacts
+if [[ $WHEEL_PLAT ]]; then
+  EXTRA_WHEEL_OPTIONS="--plat-name ${WHEEL_PLAT}"
+fi
+
+cd ${NUPIC_CORE_ROOT}
+python setup.py bdist_wheel --dist-dir ${DEST_WHEELHOUSE} ${EXTRA_WHEEL_OPTIONS}
+
+
+#
+# Test
+#
+
+# Install nupic.bindings before running c++ tests; py_region_test depends on it
+pip install --ignore-installed --user ${DEST_WHEELHOUSE}/nupic.bindings-*.whl
+
+# Run the nupic.core c++ tests
+cd ${NUPIC_CORE_ROOT}/build/release/bin
+./cpp_region_test
+./py_region_test
+./unit_tests
+
+# Run nupic.bindings python tests
+
+mkdir ${TEST_RESULTS_DIR}
+
+cd ${TEST_RESULTS_DIR}    # so that py.test will deposit its artifacts here
+
+# Run tests with pytest options per nupic.core/setup.cfg
+py.test ${NUPIC_CORE_ROOT}/bindings/py/tests
