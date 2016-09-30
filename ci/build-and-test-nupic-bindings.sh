@@ -63,11 +63,15 @@ if [[ $1 == --help ]]; then
   exit 0
 fi
 
-if [[ $# > 0 ]]; then
+PIP_USER=""
+if [[ $# == 1 && $1 == --user ]]; then
+    PIP_USER="${1}"
+elif [[ $# > 0 ]]; then
   echo "ERROR Unexpected arguments: ${@}" >&2
   echo "${USAGE}" >&2
   exit 1
 fi
+
 
 
 set -o xtrace
