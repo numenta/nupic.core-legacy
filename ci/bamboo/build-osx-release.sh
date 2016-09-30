@@ -35,33 +35,12 @@
 set -o errexit
 set -o xtrace
 
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
 # Build and test the manylinux wheel; see build-and-test-nupic-bindings.sh for
 # destination wheelhouse
 BUILD_TYPE="Release" \
 WHEEL_PLAT="maxosx_10_9_intel"
 
-if [[ $1 == --help ]]; then
-  echo "${USAGE}"
-  exit 0
-fi
-
-if [[ $# > 0 ]]; then
-  echo "ERROR Unexpected arguments: ${@}" >&2
-  echo "${USAGE}" >&2
-  exit 1
-fi
-
-
-set -o xtrace
-
-
-# Apply defaults
-BUILD_TYPE=${BUILD_TYPE-"Release"}
-
-
-NUPIC_CORE_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
+NUPIC_CORE_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/../.." && pwd )"
 
 DEST_WHEELHOUSE="${NUPIC_CORE_ROOT}/nupic_bindings_wheelhouse"
 
