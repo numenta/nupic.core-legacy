@@ -36,5 +36,5 @@ source ${DIR}/manylinux-build-env.rc
 # Build and test the manylinux wheel; see build-and-test-nupic-bindings.sh for
 # destination wheelhouse
 BUILD_TYPE="Release" \
-WHEEL_PLAT="manylinux1_x86_64" \
+WHEEL_PLAT="macosx_10_9_intel" \
   ${DIR}/../build-and-test-nupic-bindings.sh "$@"
