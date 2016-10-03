@@ -98,12 +98,7 @@ pip install ${PIP_USER} pycapnp==0.5.8
 
 # Install nupic.bindings dependencies; the nupic.core cmake build depends on
 # some of them (e.g., numpy).
-echo "TESTING PIP INSTALL OF BINDING DEPENDENCIES INDIVIDUALLY"
-# pip install ${PIP_USER} -r ${NUPIC_CORE_ROOT}/bindings/py/requirements.txt
-pip install ${PIP_USER} pytest==2.5.1
-pip install ${PIP_USER} pytest-cov==1.6
-pip install ${PIP_USER} pytest-xdist==1.8
-pip install ${PIP_USER} --ignore-installed numpy==1.9.2
+pip install --ignore-installed ${PIP_USER} -r ${NUPIC_CORE_ROOT}/bindings/py/requirements.txt
 
 #
 # Build nupic.bindings
