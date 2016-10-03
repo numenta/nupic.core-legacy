@@ -19,11 +19,13 @@
 #
 # http://numenta.org/licenses/
 # ----------------------------------------------------------------------
+#
+# OPTIONS:
+#  --user: If provided, will pass along the --user argument to any pip install
+#          commands that are run during the build.
 
 set -o errexit
 set -o xtrace
-
-export ARCHFLAGS="-arch x86_64"
 
 # Fixup $PATH for --user installation
 export PATH=${HOME}/Library/Python/2.7/bin:${PATH}
@@ -33,5 +35,6 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 # Build and test the manylinux wheel; see build-and-test-nupic-bindings.sh for
 # destination wheelhouse
 BUILD_TYPE="Release" \
-WHEEL_PLAT="macosx_10_9_intel" \
+  WHEEL_PLAT="macosx_10_9_intel" \
+  ARCHFLAGS="-arch x86_64" \
   ${DIR}/../build-and-test-nupic-bindings.sh "$@"
