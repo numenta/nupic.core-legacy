@@ -103,7 +103,7 @@ echo "TESTING PIP INSTALL OF BINDING DEPENDENCIES INDIVIDUALLY"
 pip install ${PIP_USER} pytest==2.5.1
 pip install ${PIP_USER} pytest-cov==1.6
 pip install ${PIP_USER} pytest-xdist==1.8
-pip install ${PIP_USER} numpy==1.9.2
+pip install ${PIP_USER} --ignore-installed numpy==1.9.2
 
 #
 # Build nupic.bindings
