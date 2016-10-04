@@ -98,7 +98,10 @@ pip install ${PIP_USER} pycapnp==0.5.8
 
 # Install nupic.bindings dependencies; the nupic.core cmake build depends on
 # some of them (e.g., numpy).
-pip install --ignore-installed ${PIP_USER} -r ${NUPIC_CORE_ROOT}/bindings/py/requirements.txt
+pip install ${PIP_USER} \
+    --ignore-installed \
+    --timeout=30 \
+    -r ${NUPIC_CORE_ROOT}/bindings/py/requirements.txt
 
 #
 # Build nupic.bindings
@@ -138,7 +141,9 @@ python setup.py bdist_wheel --dist-dir ${DEST_WHEELHOUSE} ${EXTRA_WHEEL_OPTIONS}
 #
 
 # Install nupic.bindings before running c++ tests; py_region_test depends on it
-pip install ${PIP_USER} --ignore-installed ${DEST_WHEELHOUSE}/nupic.bindings-*.whl
+pip install ${PIP_USER} \
+    --ignore-installed \
+    ${DEST_WHEELHOUSE}/nupic.bindings-*.whl
 
 # Run the nupic.core c++ tests
 cd ${NUPIC_CORE_ROOT}/build/release/bin
