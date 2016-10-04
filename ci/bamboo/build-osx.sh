@@ -19,10 +19,6 @@
 #
 # http://numenta.org/licenses/
 # ----------------------------------------------------------------------
-#
-# OPTIONS:
-#  --user: If provided, will pass along the --user argument to any pip install
-#          commands that are run during the build.
 
 set -o errexit
 set -o xtrace
@@ -37,4 +33,4 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 BUILD_TYPE="Release" \
   WHEEL_PLAT="macosx_10_9_intel" \
   ARCHFLAGS="-arch x86_64" \
-  ${DIR}/../build-and-test-nupic-bindings.sh "$@"
+  ${DIR}/../build-and-test-nupic-bindings.sh --user
