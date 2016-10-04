@@ -37,6 +37,8 @@ if [ $CC = 'clang' ]; then
     export CXX='clang++'
 fi
 
+export PIP_USER="--user"
+
 export PATH=$HOME/.local/bin:$PATH
 export PYTHONPATH=$HOME/.local/lib/python2.7/site-packages:$PYTHONPATH
 
