@@ -37,8 +37,6 @@ if [ $CC = 'clang' ]; then
     export CXX='clang++'
 fi
 
-export PIP_USER=--user
-
 export PATH=$HOME/.local/bin:$PATH
 export PYTHONPATH=$HOME/.local/lib/python2.7/site-packages:$PYTHONPATH
 
@@ -61,3 +59,5 @@ pip install --use-wheel --user -r bindings/py/requirements.txt --quiet || exit
 
 pip install --user pycapnp==0.5.8 || exit
 pip install cpp-coveralls --user
+
+export PIP_USER=--user
