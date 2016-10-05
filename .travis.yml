@@ -131,10 +131,9 @@ script:
   - "py.test ${TRAVIS_BUILD_DIR}/bindings/py/tests"
   # output unit tests report
   - "cd $TRAVIS_BUILD_DIR/build/artifacts/"
-  - "ls -l"
-  - "cat unit_tests_report.xml"
   # transform the JUnit-style xml report to html
-  - "xsltproc $TRAVIS_BUILD_DIR/doc/xunit.xslt unit_tests_report.xml > unit_tests_report.html"
+  # TODO: This broke in Travis-CI early Oct 2016, so removing cause we're moving to bamboo anyway
+  # - "xsltproc $TRAVIS_BUILD_DIR/doc/xunit.xslt unit_tests_report.xml > unit_tests_report.html"
 
 after_success:
   - "cd $TRAVIS_BUILD_DIR"
