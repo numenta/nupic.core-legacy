@@ -59,3 +59,5 @@ pip install --use-wheel --user -r bindings/py/requirements.txt --quiet || exit
 
 pip install --user pycapnp==0.5.8 || exit
 pip install cpp-coveralls --user
+
+export PIP_USER=--user
