@@ -33,4 +33,5 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 BUILD_TYPE="Release" \
   WHEEL_PLAT="macosx_10_9_intel" \
   ARCHFLAGS="-arch x86_64" \
-  ${DIR}/../build-and-test-nupic-bindings.sh --user
+  PIP_USER=1 \
+  ${DIR}/../build-and-test-nupic-bindings.sh
