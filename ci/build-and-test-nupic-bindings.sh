@@ -92,7 +92,7 @@ pip install pycapnp==0.5.8
 
 # Install nupic.bindings dependencies; the nupic.core cmake build depends on
 # some of them (e.g., numpy).
-pip install
+pip install \
     --ignore-installed \
     --timeout=30 \
     -r ${NUPIC_CORE_ROOT}/bindings/py/requirements.txt
