@@ -9,7 +9,6 @@ os:
 
 compiler:
   - clang
-  - gcc
 
 env:
   global:
@@ -29,12 +28,6 @@ env:
 
 virtualenv:
   system_site_packages: true
-
-matrix:
-  # This excludes OSX builds from the build matrix for gcc
-  exclude:
-    - os: osx
-      compiler: gcc
 
 # Successful builds are archived and uploaded to S3 for nupic builds.
 before_deploy:
