@@ -11,22 +11,6 @@ compiler:
   - clang
   - gcc
 
-addons:
-  apt:
-    sources:
-      - ubuntu-toolchain-r-test
-    packages:
-      # install gcc-4.8 for C++11 compatibility, #TODO remove when Travis has gcc>=4.8, (it's used for clang too, in coveralls)
-      - gcc-4.8
-      - g++-4.8
-      - cmake
-      - cmake-data
-      - python2.7
-      - python2.7-dev
-      - python-virtualenv
-      - xsltproc
-      - python-numpy
-
 env:
   global:
     - NUPICCORE = ${TRAVIS_BUILD_DIR}
