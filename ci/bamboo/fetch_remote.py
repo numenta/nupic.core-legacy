@@ -75,9 +75,11 @@ def _checkStatus(platform, sha):
 
 def _parseArgs():
   parser = argparse.ArgumentParser(__doc__)
-  parser.add_argument("--platform", required=True)
-  parser.add_argument("--sha", required=True)
-  parser.add_argument("--artifactDir", default="")
+  parser.add_argument("--platform", required=True, choices=PLATFORMS.keys())
+  parser.add_argument("--sha", required=True,
+                      help="Commit SHA to fetch artifacts for.")
+  parser.add_argument("--artifactDir", default="",
+                      help="Directory to download artifacts to.")
   args = parser.parse_args()
   platform = PLATFORMS[args.platform]
   sha = args.sha
