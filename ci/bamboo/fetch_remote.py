@@ -19,7 +19,7 @@
 # http://numenta.org/licenses/
 # ----------------------------------------------------------------------
 
-"""TODO"""
+"""Checks status and downloads artifacts from Travis/AppVeyor."""
 
 import argparse
 import os
@@ -74,7 +74,7 @@ def _checkStatus(platform, sha):
 
 
 def _parseArgs():
-  parser = argparse.ArgumentParser()
+  parser = argparse.ArgumentParser(__doc__)
   parser.add_argument("--platform", required=True)
   parser.add_argument("--sha", required=True)
   parser.add_argument("--artifactDir", default="")
