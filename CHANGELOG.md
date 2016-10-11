@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.4.10
+
+* Removes version as part of iterative artifact name
+* Deleted linux ci scripts for travis.
+* Removed calls to linux ci scripts, forced platform=darwin
+* Remove gcc builds from matrix.
+* Using image w/ same version of xcode as last passing master build
+* Remove some executables from test list that we don't want to run every build.
+* Complete test coverage for region registration.
+* Reduce build times by removing some executables from build.
+* Update py_region_test for new behavior and make sure the test is run in CI.
+* Fixes #1108 by only throwing exception when registering region with class name that is already registered if the new region is from a different module than the original.
+* Remove unused vagrant configuration
+* Remove default values for vectors because GCC can't handle it
+* gcc error: checking whether a UInt is positive
+* "depolarizeCells", "reinforceCandidates", "growthCandidates"
+
 ## 0.4.9
 
 * Obey wrapAround paramater for columns, not just inputs
