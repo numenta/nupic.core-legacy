@@ -57,13 +57,21 @@ namespace {
   TEST(ExtendedTemporalMemoryTest, testInitInvalidParams)
   {
     // Invalid columnDimensions
-    vector<UInt> columnDim = {};
     ExtendedTemporalMemory tm1;
-    EXPECT_THROW(tm1.initialize(columnDim, 32), exception);
+    EXPECT_THROW(tm1.initialize(
+                   /*columnDimensions*/ {},
+                   /*basalInputDimensions*/ {},
+                   /*apicalInputDimensions*/ {},
+                   /*cellsPerColumn*/ 32),
+                 exception);
 
     // Invalid cellsPerColumn
-    columnDim.push_back(2048);
-    EXPECT_THROW(tm1.initialize(columnDim, 0), exception);
+    EXPECT_THROW(tm1.initialize(
+                   /*columnDimensions*/ {},
+                   /*basalInputDimensions*/ {},
+                   /*apicalInputDimensions*/ {},
+                   /*cellsPerColumn*/ 0),
+                 exception);
   }
 
   /**
@@ -74,6 +82,8 @@ namespace {
   {
     ExtendedTemporalMemory tm(
       /*columnDimensions*/ {32},
+      /*basalInputDimensions*/ {},
+      /*apicalInputDimensions*/ {},
       /*cellsPerColumn*/ 4,
       /*activationThreshold*/ 3,
       /*initialPermanence*/ 0.21,
@@ -116,6 +126,8 @@ namespace {
   {
     ExtendedTemporalMemory tm(
       /*columnDimensions*/ {32},
+      /*basalInputDimensions*/ {},
+      /*apicalInputDimensions*/ {},
       /*cellsPerColumn*/ 4,
       /*activationThreshold*/ 3,
       /*initialPermanence*/ 0.21,
@@ -147,6 +159,8 @@ namespace {
   {
     ExtendedTemporalMemory tm(
       /*columnDimensions*/ {32},
+      /*basalInputDimensions*/ {},
+      /*apicalInputDimensions*/ {},
       /*cellsPerColumn*/ 4,
       /*activationThreshold*/ 3,
       /*initialPermanence*/ 0.21,
@@ -193,6 +207,8 @@ namespace {
   {
     ExtendedTemporalMemory tm(
       /*columnDimensions*/ {32},
+      /*basalInputDimensions*/ {},
+      /*apicalInputDimensions*/ {},
       /*cellsPerColumn*/ 4,
       /*activationThreshold*/ 3,
       /*initialPermanence*/ 0.21,
@@ -243,6 +259,8 @@ namespace {
   {
     ExtendedTemporalMemory tm(
       /*columnDimensions*/ {32},
+      /*basalInputDimensions*/ {},
+      /*apicalInputDimensions*/ {},
       /*cellsPerColumn*/ 4,
       /*activationThreshold*/ 3,
       /*initialPermanence*/ 0.21,
@@ -277,6 +295,8 @@ namespace {
   {
     ExtendedTemporalMemory tm(
       /*columnDimensions*/ {32},
+      /*basalInputDimensions*/ {},
+      /*apicalInputDimensions*/ {},
       /*cellsPerColumn*/ 4,
       /*activationThreshold*/ 3,
       /*initialPermanence*/ 0.2,
@@ -329,6 +349,8 @@ namespace {
   {
     ExtendedTemporalMemory tm(
       /*columnDimensions*/ {32},
+      /*basalInputDimensions*/ {},
+      /*apicalInputDimensions*/ {},
       /*cellsPerColumn*/ 4,
       /*activationThreshold*/ 3,
       /*initialPermanence*/ 0.21,
@@ -395,6 +417,8 @@ namespace {
   {
     ExtendedTemporalMemory tm(
       /*columnDimensions*/ {32},
+      /*basalInputDimensions*/ {},
+      /*apicalInputDimensions*/ {},
       /*cellsPerColumn*/ 4,
       /*activationThreshold*/ 3,
       /*initialPermanence*/ 0.21,
@@ -456,6 +480,8 @@ namespace {
   {
     ExtendedTemporalMemory tm(
       /*columnDimensions*/ {32},
+      /*basalInputDimensions*/ {},
+      /*apicalInputDimensions*/ {},
       /*cellsPerColumn*/ 4,
       /*activationThreshold*/ 3,
       /*initialPermanence*/ 0.21,
@@ -523,6 +549,8 @@ namespace {
   {
     ExtendedTemporalMemory tm(
       /*columnDimensions*/ {32},
+      /*basalInputDimensions*/ {},
+      /*apicalInputDimensions*/ {},
       /*cellsPerColumn*/ 4,
       /*activationThreshold*/ 3,
       /*initialPermanence*/ 0.21,
@@ -554,6 +582,8 @@ namespace {
   {
     ExtendedTemporalMemory tm(
       /*columnDimensions*/ {32},
+      /*basalInputDimensions*/ {},
+      /*apicalInputDimensions*/ {},
       /*cellsPerColumn*/ 4,
       /*activationThreshold*/ 3,
       /*initialPermanence*/ 0.21,
@@ -603,6 +633,8 @@ namespace {
   {
     ExtendedTemporalMemory tm(
       /*columnDimensions*/ {32},
+      /*basalInputDimensions*/ {},
+      /*apicalInputDimensions*/ {},
       /*cellsPerColumn*/ 4,
       /*activationThreshold*/ 3,
       /*initialPermanence*/ 0.21,
@@ -654,6 +686,8 @@ namespace {
   {
     ExtendedTemporalMemory tm(
       /*columnDimensions*/ {32},
+      /*basalInputDimensions*/ {},
+      /*apicalInputDimensions*/ {},
       /*cellsPerColumn*/ 1,
       /*activationThreshold*/ 3,
       /*initialPermanence*/ 0.21,
@@ -703,6 +737,8 @@ namespace {
   {
     ExtendedTemporalMemory tm(
       /*columnDimensions*/ {32},
+      /*basalInputDimensions*/ {},
+      /*apicalInputDimensions*/ {},
       /*cellsPerColumn*/ 1,
       /*activationThreshold*/ 3,
       /*initialPermanence*/ 0.21,
@@ -749,6 +785,8 @@ namespace {
   {
     ExtendedTemporalMemory tm(
       /*columnDimensions*/ {32},
+      /*basalInputDimensions*/ {},
+      /*apicalInputDimensions*/ {},
       /*cellsPerColumn*/ 1,
       /*activationThreshold*/ 2,
       /*initialPermanence*/ 0.21,
@@ -797,6 +835,8 @@ namespace {
   {
     ExtendedTemporalMemory tm(
       /*columnDimensions*/ {32},
+      /*basalInputDimensions*/ {},
+      /*apicalInputDimensions*/ {},
       /*cellsPerColumn*/ 4,
       /*activationThreshold*/ 3,
       /*initialPermanence*/ 0.2,
@@ -839,6 +879,8 @@ namespace {
   {
     ExtendedTemporalMemory tm(
       /*columnDimensions*/ {32},
+      /*basalInputDimensions*/ {},
+      /*apicalInputDimensions*/ {},
       /*cellsPerColumn*/ 4,
       /*activationThreshold*/ 3,
       /*initialPermanence*/ 0.2,
@@ -881,6 +923,8 @@ namespace {
   {
     ExtendedTemporalMemory tm(
       /*columnDimensions*/ {32},
+      /*basalInputDimensions*/ {},
+      /*apicalInputDimensions*/ {},
       /*cellsPerColumn*/ 1,
       /*activationThreshold*/ 3,
       /*initialPermanence*/ 0.21,
@@ -933,6 +977,8 @@ namespace {
   {
     ExtendedTemporalMemory tm(
       /*columnDimensions*/ {32},
+      /*basalInputDimensions*/ {},
+      /*apicalInputDimensions*/ {},
       /*cellsPerColumn*/ 1,
       /*activationThreshold*/ 3,
       /*initialPermanence*/ 0.50,
@@ -1008,6 +1054,8 @@ namespace {
   {
     ExtendedTemporalMemory tm(
       /*columnDimensions*/ {32},
+      /*basalInputDimensions*/ {},
+      /*apicalInputDimensions*/ {},
       /*cellsPerColumn*/ 4,
       /*activationThreshold*/ 3,
       /*initialPermanence*/ 0.2,
@@ -1053,6 +1101,8 @@ namespace {
   {
     ExtendedTemporalMemory tm(
       /*columnDimensions*/ {32},
+      /*basalInputDimensions*/ {},
+      /*apicalInputDimensions*/ {},
       /*cellsPerColumn*/ 4,
       /*activationThreshold*/ 3,
       /*initialPermanence*/ 0.2,
@@ -1122,6 +1172,8 @@ namespace {
     {
       ExtendedTemporalMemory tm(
         /*columnDimensions*/ {32},
+        /*basalInputDimensions*/ {},
+        /*apicalInputDimensions*/ {},
         /*cellsPerColumn*/ 4,
         /*activationThreshold*/ 3,
         /*initialPermanence*/ 0.2,
@@ -1205,6 +1257,8 @@ namespace {
   {
     ExtendedTemporalMemory tm(
       /*columnDimensions*/ {32},
+      /*basalInputDimensions*/ {},
+      /*apicalInputDimensions*/ {},
       /*cellsPerColumn*/ 4,
       /*activationThreshold*/ 3,
       /*initialPermanence*/ 0.2,
@@ -1253,6 +1307,8 @@ namespace {
   {
     ExtendedTemporalMemory tm(
       /*columnDimensions*/ {32},
+      /*basalInputDimensions*/ {},
+      /*apicalInputDimensions*/ {},
       /*cellsPerColumn*/ 4,
       /*activationThreshold*/ 3,
       /*initialPermanence*/ 0.2,
@@ -1296,10 +1352,12 @@ namespace {
     Connections before = tm.basalConnections;
 
     tm.compute(1, previousActiveColumns,
-               0, nullptr, 0, nullptr, 0, nullptr, 0, nullptr,
+               0, nullptr, 0, nullptr, 0, nullptr,
+               0, nullptr, 0, nullptr, 0, nullptr,
                false);
     tm.compute(2, activeColumns,
-               0, nullptr, 0, nullptr, 0, nullptr, 0, nullptr,
+               0, nullptr, 0, nullptr, 0, nullptr,
+               0, nullptr, 0, nullptr, 0, nullptr,
                false);
 
     EXPECT_EQ(before, tm.basalConnections);
@@ -1308,7 +1366,11 @@ namespace {
   TEST(ExtendedTemporalMemoryTest, testColumnForCell1D)
   {
     ExtendedTemporalMemory tm;
-    tm.initialize(vector<UInt>{2048}, 5);
+    tm.initialize(
+      /*columnDimensions*/ {2048},
+      /*basalInputDimensions*/ {},
+      /*apicalInputDimensions*/ {},
+      /*cellsPerColumn*/ 5);
 
     ASSERT_EQ(0, tm.columnForCell(0));
     ASSERT_EQ(0, tm.columnForCell(4));
@@ -1319,7 +1381,11 @@ namespace {
   TEST(ExtendedTemporalMemoryTest, testColumnForCell2D)
   {
     ExtendedTemporalMemory tm;
-    tm.initialize(vector<UInt>{64, 64}, 4);
+    tm.initialize(
+      /*columnDimensions*/ {64, 64},
+      /*basalInputDimensions*/ {},
+      /*apicalInputDimensions*/ {},
+      /*cellsPerColumn*/ 4);
 
     ASSERT_EQ(0, tm.columnForCell(0));
     ASSERT_EQ(0, tm.columnForCell(3));
@@ -1330,7 +1396,11 @@ namespace {
   TEST(ExtendedTemporalMemoryTest, testColumnForCellInvalidCell)
   {
     ExtendedTemporalMemory tm;
-    tm.initialize(vector<UInt>{64, 64}, 4);
+    tm.initialize(
+      /*columnDimensions*/ {64, 64},
+      /*basalInputDimensions*/ {},
+      /*apicalInputDimensions*/ {},
+      /*cellsPerColumn*/ 4);
 
     EXPECT_NO_THROW(tm.columnForCell(16383));
     EXPECT_THROW(tm.columnForCell(16384), std::exception);
@@ -1340,7 +1410,11 @@ namespace {
   TEST(ExtendedTemporalMemoryTest, testNumberOfColumns)
   {
     ExtendedTemporalMemory tm;
-    tm.initialize(vector<UInt>{64, 64}, 32);
+    tm.initialize(
+      /*columnDimensions*/ {64, 64},
+      /*basalInputDimensions*/ {},
+      /*apicalInputDimensions*/ {},
+      /*cellsPerColumn*/ 32);
 
     int numOfColumns = tm.numberOfColumns();
     ASSERT_EQ(numOfColumns, 64 * 64);
@@ -1349,7 +1423,11 @@ namespace {
   TEST(ExtendedTemporalMemoryTest, testNumberOfCells)
   {
     ExtendedTemporalMemory tm;
-    tm.initialize(vector<UInt>{64, 64}, 32);
+    tm.initialize(
+      /*columnDimensions*/ {64, 64},
+      /*basalInputDimensions*/ {},
+      /*apicalInputDimensions*/ {},
+      /*cellsPerColumn*/ 32);
 
     Int numberOfCells = tm.numberOfCells();
     ASSERT_EQ(numberOfCells, 64 * 64 * 32);
@@ -1361,6 +1439,8 @@ namespace {
 
     ExtendedTemporalMemory tm1(
       /*columnDimensions*/ {32},
+      /*basalInputDimensions*/ {},
+      /*apicalInputDimensions*/ {},
       /*cellsPerColumn*/ 4,
       /*activationThreshold*/ 3,
       /*initialPermanence*/ 0.21,
@@ -1419,7 +1499,22 @@ namespace {
   {
     ExtendedTemporalMemory tm1, tm2;
 
-    tm1.initialize({ 100 }, 4, 7, 0.37, 0.58, 4, 18, 0.23, 0.08, 0.0, 91);
+    tm1.initialize(
+      /*columnDimensions*/ { 100 },
+      /*basalInputDimensions*/ {},
+      /*apicalInputDimensions*/ {},
+      /*cellsPerColumn*/ 4,
+      /*activationThreshold*/ 7,
+      /*initialPermanence*/ 0.37,
+      /*connectedPermanence*/ 0.58,
+      /*minThreshold*/ 4,
+      /*maxNewSynapseCount*/ 18,
+      /*permanenceIncrement*/ 0.23,
+      /*permanenceDecrement*/ 0.08,
+      /*predictedSegmentDecrement*/ 0.0,
+      /*formInternalBasalConnections*/ true,
+      /*learnOnOneCell*/ false,
+      /*seed*/ 42);
 
     // Run some data through before serializing
     /*

@@ -185,7 +185,7 @@ build_script:
   # iterative builds (via nupic\.nupic_modules long-SHA reference).
   # Ties in with this Pip regex;
   # https://github.com/pypa/pip/blob/develop/pip/wheel.py#L616
-  - ps: copy .\$env:NUPIC_BINDINGS_WHEEL_NAME .\nupic.bindings-$env:BINDINGS_VERSION.$env:APPVEYOR_REPO_COMMIT-cp27-none-$env:wheel_name_suffix.whl
+  - ps: copy .\$env:NUPIC_BINDINGS_WHEEL_NAME .\nupic.bindings-$env:APPVEYOR_REPO_COMMIT-cp27-none-$env:wheel_name_suffix.whl
 
 after_build:
   # Install nupic.bindings first, because py_region_test.exe depends on it.
@@ -213,15 +213,18 @@ artifacts:
   # Non-recursive search in build folder for Wheels
   - path: '*.whl'
 
-on_success:
-  # Github tagged builds
-  - cmd: echo "executing on_success"
-  - ps: >-
-      If ($env:APPVEYOR_REPO_TAG -eq "true" -or $env:APPVEYOR_REPO_TAG -eq "True") {
-        Write-Host "Uploading bindings to PYPI"
-        pip install httplib requests twine --upgrade
-        twine upload -u $env:PYPI_USERNAME -p $env:PYPI_PASSWORD -r pypi $env:NUPIC_CORE\bindings\py\dist\nupic.bindings-$env:BINDINGS_VERSION-cp27-none-$env:wheel_name_suffix.whl
-      }
+# NOTE: This is turned off and will likely be removed once deployments of
+#       releases are controlled from a central authority. -- Matt
+# -----------------------------------------------------------------------
+# on_success:
+#   # Github tagged builds
+#   - cmd: echo "executing on_success"
+#   - ps: >-
+#       If ($env:APPVEYOR_REPO_TAG -eq "true" -or $env:APPVEYOR_REPO_TAG -eq "True") {
+#         Write-Host "Uploading bindings to PYPI"
+#         pip install httplib requests twine --upgrade
+#         twine upload -u $env:PYPI_USERNAME -p $env:PYPI_PASSWORD -r pypi $env:NUPIC_CORE\bindings\py\dist\nupic.bindings-$env:BINDINGS_VERSION-cp27-none-$env:wheel_name_suffix.whl
+#       }
 
 deploy:
   # Iterative builds
@@ -232,7 +235,7 @@ deploy:
     bucket: "artifacts.numenta.org"
     region: us-west-2
     set_public: true
-    artifact: "nupic.bindings-$(BINDINGS_VERSION).$(APPVEYOR_REPO_COMMIT)-cp27-none-$(wheel_name_suffix).whl"
+    artifact: "nupic.bindings-$(APPVEYOR_REPO_COMMIT)-cp27-none-$(wheel_name_suffix).whl"
     folder: "numenta/nupic.core/releases/nupic.bindings"
     on:
       branch: master
