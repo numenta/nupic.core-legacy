@@ -3978,6 +3978,221 @@ public:
     }
   }
 
+
+  /**
+   * Similar to incrementOnOuterWNZWThreshold with a threshold of 0, except:
+   * - It increments all nonzeros. It doesn't check the values.
+   * - It allows a delta of 0.
+   */
+  template <typename InputIterator1, typename InputIterator2>
+  inline void incrementNonZerosOnOuter(
+    InputIterator1 row_begin, InputIterator1 row_end,
+    InputIterator2 col_begin, InputIterator2 col_end,
+    value_type delta) {
+    { // Pre-conditions
+      ASSERT_INPUT_ITERATOR(InputIterator1);
+      ASSERT_INPUT_ITERATOR(InputIterator2);
+      assert_valid_sorted_index_range_(nRows(), row_begin, row_end,
+                                       "incrementNonZerosOnOuter");
+      assert_valid_sorted_index_range_(nCols(), col_begin, col_end,
+                                       "incrementNonZerosOnOuter");
+    } // End pre-conditions
+
+    for (InputIterator1 row = row_begin; row != row_end; ++row) {
+      size_type *ind = ind_begin_(*row);
+      size_type *ind_end = ind_end_(*row);
+      size_type *it = ind;
+
+      for (InputIterator2 col = col_begin; col != col_end; ++col) {
+        while (it != ind_end && *it <= *col) {
+          if (*it == *col) {
+            nz_[*row][it - ind] += delta;
+            ++it;
+            break;
+          } else {
+            ++it;
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * for each specified row:
+   *   for each column except the specified columns:
+   *     if it's nonzero:
+   *       add a constant to it
+   */
+  template <typename InputIterator1, typename InputIterator2>
+  inline void incrementNonZerosOnRowsExcludingCols(
+    InputIterator1 row_begin, InputIterator1 row_end,
+    InputIterator2 col_begin, InputIterator2 col_end,
+    value_type delta) {
+    { // Pre-conditions
+      ASSERT_INPUT_ITERATOR(InputIterator1);
+      ASSERT_INPUT_ITERATOR(InputIterator2);
+      assert_valid_sorted_index_range_(nRows(), row_begin, row_end,
+                                       "incrementNonZerosOnRowsExcludingCols");
+      assert_valid_sorted_index_range_(nCols(), col_begin, col_end,
+                                       "incrementNonZerosOnRowsExcludingCols");
+    } // End pre-conditions
+
+    for (InputIterator1 row = row_begin; row != row_end; ++row) {
+      size_type *ind = ind_begin_(*row);
+      size_type *ind_end = ind_end_(*row);
+      InputIterator2 col = col_begin;
+
+      for (size_type *it = ind; it != ind_end; ++it) {
+        while (col != col_end && *it > *col) {
+          ++col;
+        }
+
+        if (col != col_end && *it == *col) {
+          continue;
+        }
+
+        nz_[*row][it - ind] += delta;
+      }
+    }
+  }
+
+  /**
+   * For each specified row, clip every nonzero value to be within range [a, b].
+   */
+  template <typename InputIterator>
+  inline void clipRowsAboveAndBelow(
+    InputIterator row_begin, InputIterator row_end,
+    value_type a, value_type b) {
+    { // Pre-conditions
+      ASSERT_INPUT_ITERATOR(InputIterator);
+      assert_valid_row_it_range_(row_begin, row_end, "clipRowsAboveAndBelow");
+    } // End pre-conditions
+
+    for (InputIterator row = row_begin; row != row_end; ++row) {
+      clipRowAboveAndBelow(*row, a, b);
+    }
+  }
+
+  /**
+   * Convert 'numNewNonZerosPerRow' zeros per row to 'value', choosing randomly,
+   * restricting changes to the outer product of the ranges passed in.
+   */
+  template <typename InputIterator1, typename InputIterator2, typename Random>
+  inline void setRandomZerosOnOuter(
+    InputIterator1 row_begin, InputIterator1 row_end,
+    InputIterator2 col_begin, InputIterator2 col_end,
+    size_type numNewNonZerosPerRow, value_type value, Random& rng) {
+    { // Pre-conditions
+      ASSERT_INPUT_ITERATOR(InputIterator1);
+      ASSERT_INPUT_ITERATOR(InputIterator2);
+      assert_valid_sorted_index_range_(nRows(), row_begin, row_end,
+                                       "setRandomZerosOnOuter");
+      assert_valid_sorted_index_range_(nCols(), col_begin, col_end,
+                                       "setRandomZerosOnOuter");
+    } // End pre-conditions
+
+    for (InputIterator1 row = row_begin; row != row_end; ++row) {
+      // Count how many of these cols are zero.
+      size_type numZeros = 0;
+      {
+        size_type *ind = ind_begin_(*row);
+        size_type *ind_end = ind_end_(*row);
+        size_type *it = ind;
+        for (InputIterator2 col = col_begin; col != col_end; ++col) {
+          while (it != ind_end && *it < *col) {
+            ++it;
+          }
+
+          if (it == ind_end || *it > *col) {
+            ++numZeros;
+          }
+        }
+      }
+
+      // Set a random subset of them to 'value'.
+      size_type numRemainingToChoose = std::min(numNewNonZerosPerRow,
+                                                numZeros);
+      if (numRemainingToChoose > 0)
+      {
+        size_type numRemainingAvailable = numZeros;
+
+        size_type nnzr = (size_type)(nnzr_[*row] + numRemainingToChoose);
+        size_type *row_ind = new size_type[nnzr];
+        value_type *row_nz = new value_type[nnzr];
+
+        size_type *prev_ind_begin = ind_begin_(*row);
+        size_type *prev_ind_end = ind_end_(*row);
+
+        InputIterator2 selected_col = col_begin;
+        size_type *prev_it = prev_ind_begin;
+
+        size_type nextNonzeroCol = prev_it != prev_ind_end ?
+          *prev_it : std::numeric_limits<size_type>::max();
+        size_type nextSelectedCol = selected_col != col_end ?
+          *selected_col : std::numeric_limits<size_type>::max();
+
+        for (size_type pos = 0; pos < nnzr; ++pos) {
+          while (true) {
+            if (nextNonzeroCol < nextSelectedCol) {
+              // Before the next selected column, we found a nonzero column.
+              // Copy it.
+              row_ind[pos] = *prev_it;
+              row_nz[pos] = nz_[*row][prev_it - prev_ind_begin];
+
+              ++prev_it;
+              nextNonzeroCol = prev_it != prev_ind_end ?
+                *prev_it : std::numeric_limits<size_type>::max();
+              break;
+            } else if (nextNonzeroCol == nextSelectedCol) {
+              // The next selected column is nonzero.
+              // Copy it.
+              row_ind[pos] = *prev_it;
+              row_nz[pos] = nz_[*row][prev_it - prev_ind_begin];
+
+              ++prev_it;
+              ++selected_col;
+              nextNonzeroCol = prev_it != prev_ind_end ?
+                *prev_it : std::numeric_limits<size_type>::max();
+              nextSelectedCol = selected_col != col_end ?
+                *selected_col : std::numeric_limits<size_type>::max();
+              break;
+            } else {
+              // The next selected column is a zero.
+              // Maybe insert a nonzero.
+              const bool insertNonzero = (rng.getUInt32(numRemainingAvailable) <
+                                          numRemainingToChoose);
+              if (insertNonzero) {
+                row_ind[pos] = *selected_col;
+                row_nz[pos] = value;
+
+                --numRemainingToChoose;
+              }
+
+              --numRemainingAvailable;
+
+              ++selected_col;
+              nextSelectedCol = selected_col != col_end ?
+                *selected_col : std::numeric_limits<size_type>::max();
+
+              if (insertNonzero) {
+                break;
+              }
+            }
+          }
+        }
+
+        if (isCompact()) {
+          decompact();
+        }
+        delete[] ind_[*row];
+        delete[] nz_[*row];
+        ind_[*row] = row_ind;
+        nz_[*row] = row_nz;
+        nnzr_[*row] = nnzr;
+      }
+    }
+  }
+
   /**
    * Returns the value of the element at row index i and column index j.
    *

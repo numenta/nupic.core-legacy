@@ -820,6 +820,46 @@ def __div__(self, other):
                                         threshold, delta);
   }
 
+  void incrementNonZerosOnOuter(PyObject* py_i, PyObject* py_j,
+                                nupic::Real ## N2 delta)
+  {
+    nupic::NumpyVectorT<nupic::UInt ## N1> i(py_i);
+    nupic::NumpyVectorT<nupic::UInt ## N1> j(py_j);
+    self->incrementNonZerosOnOuter(i.begin(), i.end(),
+                                   j.begin(), j.end(),
+                                   delta);
+  }
+
+  void incrementNonZerosOnRowsExcludingCols(PyObject* py_i, PyObject* py_j,
+                                            nupic::Real ## N2 delta)
+  {
+    nupic::NumpyVectorT<nupic::UInt ## N1> i(py_i);
+    nupic::NumpyVectorT<nupic::UInt ## N1> j(py_j);
+    self->incrementNonZerosOnRowsExcludingCols(i.begin(), i.end(),
+                                               j.begin(), j.end(),
+                                               delta);
+  }
+
+  void setRandomZerosOnOuter(PyObject* py_i, PyObject* py_j,
+                             nupic::UInt ## N1 numNewNonZerosPerRow,
+                             nupic::Real ## N2 value,
+                             nupic::Random& rng)
+  {
+    nupic::NumpyVectorT<nupic::UInt ## N1> i(py_i);
+    nupic::NumpyVectorT<nupic::UInt ## N1> j(py_j);
+    self->setRandomZerosOnOuter(i.begin(), i.end(),
+                                j.begin(), j.end(),
+                                numNewNonZerosPerRow, value, rng);
+  }
+
+  void clipRowsAboveAndBelow(PyObject* py_i,
+                             nupic::Real ## N2 a,
+                             nupic::Real ## N2 b)
+  {
+    nupic::NumpyVectorT<nupic::UInt ## N1> i(py_i);
+    self->clipRowsAboveAndBelow(i.begin(), i.end(), a, b);
+  }
+
   // Returns the number of non-zeros per row, for all rows
   PyObject* nNonZerosPerRow() const
   {
