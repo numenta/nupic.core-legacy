@@ -852,12 +852,12 @@ def __div__(self, other):
                                 numNewNonZerosPerRow, value, rng);
   }
 
-  void clipRowsAboveAndBelow(PyObject* py_i,
+  void clipRowsBelowAndAbove(PyObject* py_i,
                              nupic::Real ## N2 a,
                              nupic::Real ## N2 b)
   {
     nupic::NumpyVectorT<nupic::UInt ## N1> i(py_i);
-    self->clipRowsAboveAndBelow(i.begin(), i.end(), a, b);
+    self->clipRowsBelowAndAbove(i.begin(), i.end(), a, b);
   }
 
   // Returns the number of non-zeros per row, for all rows

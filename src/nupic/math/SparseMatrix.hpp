@@ -4060,16 +4060,16 @@ public:
    * For each specified row, clip every nonzero value to be within range [a, b].
    */
   template <typename InputIterator>
-  inline void clipRowsAboveAndBelow(
+  inline void clipRowsBelowAndAbove(
     InputIterator row_begin, InputIterator row_end,
     value_type a, value_type b) {
     { // Pre-conditions
       ASSERT_INPUT_ITERATOR(InputIterator);
-      assert_valid_row_it_range_(row_begin, row_end, "clipRowsAboveAndBelow");
+      assert_valid_row_it_range_(row_begin, row_end, "clipRowsBelowAndAbove");
     } // End pre-conditions
 
     for (InputIterator row = row_begin; row != row_end; ++row) {
-      clipRowAboveAndBelow(*row, a, b);
+      clipRowBelowAndAbove(*row, a, b);
     }
   }
 
@@ -7010,9 +7010,9 @@ public:
   /**
    * Clip row both above and below given values.
    */
-  inline void clipRowAboveAndBelow(size_type row, value_type a, value_type b) {
+  inline void clipRowBelowAndAbove(size_type row, value_type a, value_type b) {
     { // Pre-conditions
-      assert_valid_row_(row, "clipRowAboveAndBelow");
+      assert_valid_row_(row, "clipRowBelowAndAbove");
       NTA_ASSERT(a <= b);
     } // End pre-conditions
 
@@ -7051,9 +7051,9 @@ public:
   /**
    * Clips col both above and below given values.
    */
-  inline void clipColAboveAndBelow(size_type col, value_type a, value_type b) {
+  inline void clipColBelowAndAbove(size_type col, value_type a, value_type b) {
     { // Pre-conditions
-      assert_valid_col_(col, "clipColAboveAndBelow");
+      assert_valid_col_(col, "clipColBelowAndAbove");
       NTA_ASSERT(a <= b);
     } // End pre-conditions
 
@@ -7081,9 +7081,9 @@ public:
   /**
    * Clips whole matrix below and above given values.
    */
-  inline void clipAboveAndBelow(value_type a, value_type b) {
+  inline void clipBelowAndAbove(value_type a, value_type b) {
     ITERATE_ON_ALL_ROWS
-    clipRowAboveAndBelow(row, a, b);
+    clipRowBelowAndAbove(row, a, b);
   }
 
   // FIND
