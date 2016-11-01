@@ -25,7 +25,7 @@ Important notes:
 - Python - We recommend you use the system version where possibly.
     - Version 2.7
 - [NumPy](http://www.numpy.org/) - Can be installed through some system package managers or via [pip](https://pip.pypa.io/)
-    - Version 1.9.2
+    - Version 1.11.2
 - [pycapnp](http://jparyani.github.io/pycapnp/)
     - Version 0.5.8 (_Linux and OSX only_)
 - [CMake](http://www.cmake.org/)
