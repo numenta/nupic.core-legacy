@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.11
+
+* Updated to numpy 1.11.2 everywhere.
+* Initialize timer variable in 'Regioncpp' file
+
 ## 0.4.10
 
 * Removes version as part of iterative artifact name
