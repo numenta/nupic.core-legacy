@@ -98,7 +98,7 @@ function main () {
     & $pip_path install twine
 
     Write-Host "pip install " numpy==1.11.2
-    & $pip_path install -i https://pypi.anaconda.org/mingwpy/simple numpy==1.11.2
+    & $pip_path install numpy==1.11.2
 }
 
 main
