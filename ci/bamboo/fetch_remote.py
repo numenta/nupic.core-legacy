@@ -30,8 +30,8 @@ import requests
 STATUS_URL = "http://nubot.numenta.org/hubot/ci-status?sha={sha}"
 
 PLATFORMS = {
-  "darwin": "TravisCI",
-  "windows": "AppVeyor",
+  "darwin": "continuous-integration/travis-ci/push",
+  "windows": "continuous-integration/appveyor/branch",
 }
 
 
@@ -68,7 +68,7 @@ def _checkStatus(platform, sha):
   overallStatus = nupicCoreStatus["status"]
 
   build = nupicCoreStatus["builds"][platform]
-  status = build["status"]
+  status = build["state"]
   artifacts = build["artifacts"]
   return status, artifacts
 
