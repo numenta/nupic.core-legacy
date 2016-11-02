@@ -1,9 +1,13 @@
 # Changelog
 
-## 0.4.11
+## 0.4.12
 
 * Updated to numpy 1.11.2 everywhere.
 * Initialize timer variable in 'Regioncpp' file
+
+## 0.4.11
+
+* Botched release, unavailable.
 
 ## 0.4.10
 
