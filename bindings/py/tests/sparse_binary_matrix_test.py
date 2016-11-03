@@ -26,7 +26,7 @@ import cPickle
 import os
 
 import numpy
-import unittest2 as unittest
+import unittest
 
 from nupic.bindings.math import SM32, SM_01_32_32
 

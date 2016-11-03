@@ -30,7 +30,7 @@ import os
 import cPickle
 import copy
 import time
-import unittest2 as unittest
+import unittest
 
 
 from nupic.bindings.math import *

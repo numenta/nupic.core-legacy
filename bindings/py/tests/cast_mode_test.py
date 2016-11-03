@@ -25,7 +25,7 @@
 import sys
 
 import numpy
-import unittest2 as unittest
+import unittest
 
 from nupic.bindings.math import SM32
 

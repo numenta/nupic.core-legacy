@@ -22,7 +22,7 @@
 
 """Unit tests for array algorithms."""
 
-import unittest2 as unittest
+import unittest
 
 import numpy
 
