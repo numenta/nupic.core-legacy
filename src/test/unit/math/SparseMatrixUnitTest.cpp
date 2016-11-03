@@ -19,15 +19,427 @@
  * http://numenta.org/licenses/
  * ---------------------------------------------------------------------
  */
-                       
+
 /** @file
- * Implementation of unit testing for class SparseMatrix
- */  
-              
+ * Unit tests for SparseMatrix class
+ */
+
+#include <string>
+#include <vector>
+
+#include <nupic/math/SparseMatrix.hpp>
+#include "gtest/gtest.h"
+
+using std::string;
+using std::vector;
+
+using namespace nupic;
+
+namespace
+{
+  struct IncrementNonZerosOnOuterTest
+  {
+    string name;
+    UInt32 nrows;
+    UInt32 ncols;
+    vector<Real32> before;
+    vector<UInt32> outerRows;
+    vector<UInt32> outerCols;
+    Real32 delta;
+    vector<Real32> expected;
+  };
+
+  TEST(SparseMatrixTest, incrementNonZerosOnOuter)
+  {
+    vector<IncrementNonZerosOnOuterTest> tests = {
+      {
+        "Test 1",
+        // Dimensions
+        4, 4,
+        // Before
+        {0, 1, 0, 1,
+         2, 0, 2, 0,
+         0, 1, 0, 1,
+         2, 0, 2, 0},
+        // Selection
+        {0, 2, 3},
+        {0, 1},
+        // Delta
+        40,
+        // Expected
+        {0, 41, 0, 1,
+         2, 0, 2, 0,
+         0, 41, 0, 1,
+         42, 0, 2, 0}
+      },
+      {
+        "Test 2",
+        // Dimensions
+        4, 4,
+        // Before
+        {1,1,1,1,
+         1,1,1,1,
+         1,1,1,1,
+         1,1,1,1},
+        // Selection
+        {0, 3},
+        {0, 3},
+        // Delta
+        41,
+        // Expected
+        {42,1,1,42,
+         1,1,1,1,
+         1,1,1,1,
+         42,1,1,42}
+      },
+      {
+        "Test 3",
+        // Dimensions
+        4, 4,
+        // Before
+        {0,1,1,0,
+         1,1,1,1,
+         1,1,1,1,
+         0,1,1,0},
+        // Selection
+        {0, 3},
+        {0, 3},
+        // Delta
+        41,
+        // Expected
+        {0,1,1,0,
+         1,1,1,1,
+         1,1,1,1,
+         0,1,1,0}
+      }
+    };
+
+    for (const IncrementNonZerosOnOuterTest& test : tests)
+    {
+      NTA_INFO << "Test: " << test.name;
+      SparseMatrix<> m(test.nrows, test.ncols, test.before.begin());
+
+      m.incrementNonZerosOnOuter(test.outerRows.begin(), test.outerRows.end(),
+                                 test.outerCols.begin(), test.outerCols.end(),
+                                 test.delta);
+
+      vector<Real32> actual(test.nrows * test.ncols);
+      m.toDense(actual.begin());
+
+      EXPECT_EQ(test.expected, actual);
+    }
+  }
+
+
+  struct IncrementNonZerosOnRowsExcludingColsTest
+  {
+    string name;
+    UInt32 nrows;
+    UInt32 ncols;
+    vector<Real32> before;
+    vector<UInt32> outerRows;
+    vector<UInt32> outerCols;
+    Real32 delta;
+    vector<Real32> expected;
+  };
+
+  TEST(SparseMatrixTest, incrementNonZerosOnRowsExcludingCols)
+  {
+    vector<IncrementNonZerosOnRowsExcludingColsTest> tests = {
+      {
+        "Test 1",
+        // Dimensions
+        4, 4,
+        // Before
+        {0, 1, 0, 1,
+         2, 0, 2, 0,
+         0, 1, 0, 1,
+         2, 0, 2, 0},
+        // Selection
+        {0, 2, 3},
+        {0, 1},
+        // Delta
+        40,
+        // Expected
+        {0, 1, 0, 41,
+         2, 0, 2, 0,
+         0, 1, 0, 41,
+         2, 0, 42, 0}
+      },
+      {
+        "Test 2",
+        // Dimensions
+        4, 4,
+        // Before
+        {1,1,1,1,
+         1,1,1,1,
+         1,1,1,1,
+         1,1,1,1},
+        // Selection
+        {0, 3},
+        {0, 3},
+        // Delta
+        41,
+        // Expected
+        {1,42,42,1,
+         1,1,1,1,
+         1,1,1,1,
+         1,42,42,1}
+      },
+      {
+        "Test 3",
+        // Dimensions
+        4, 4,
+        // Before
+        {1,0,0,1,
+         1,1,1,1,
+         1,1,1,1,
+         1,0,0,1},
+        // Selection
+        {0, 3},
+        {0, 3},
+        // Delta
+        41,
+        // Expected
+        {1,0,0,1,
+         1,1,1,1,
+         1,1,1,1,
+         1,0,0,1}
+      }
+    };
+
+    for (const IncrementNonZerosOnRowsExcludingColsTest& test : tests)
+    {
+      NTA_INFO << "Test: " << test.name;
+      SparseMatrix<> m(test.nrows, test.ncols, test.before.begin());
+
+      m.incrementNonZerosOnRowsExcludingCols(
+        test.outerRows.begin(), test.outerRows.end(),
+        test.outerCols.begin(), test.outerCols.end(),
+        test.delta);
+
+      vector<Real32> actual(test.nrows * test.ncols);
+      m.toDense(actual.begin());
+
+      EXPECT_EQ(test.expected, actual);
+    }
+  }
+
+
+  struct SetRandomZerosOnOuterTest
+  {
+    string name;
+    UInt32 nrows;
+    UInt32 ncols;
+    vector<Real32> before;
+    vector<UInt32> outerRows;
+    vector<UInt32> outerCols;
+    UInt32 numNewNonZerosPerRow;
+    Real32 value;
+  };
+
+  TEST(SparseMatrixTest, setRandomZerosOnOuter)
+  {
+    Random rng;
+
+    vector<SetRandomZerosOnOuterTest> tests = {
+      {
+        "Test 1",
+        // Dimensions
+        8, 6,
+        // Before
+        {1, 1, 0, 0, 1, 1,
+         0, 0, 1, 1, 0, 0,
+         0, 0, 1, 0, 0, 1,
+         1, 0, 1, 1, 0, 0,
+         0, 0, 0, 0, 0, 1,
+         0, 0, 0, 0, 0, 0,
+         1, 1, 1, 1, 1, 1,
+         0, 0, 1, 1, 0, 1},
+        // Selection
+        {0, 3, 4, 5, 6, 7},
+        {0, 3, 4},
+        // numNewNonZerosPerRow
+        2,
+        // value
+        42
+      },
+      {
+        "No selected rows",
+        // Dimensions
+        8, 6,
+        // Before
+        {1, 1, 0, 0, 1, 1,
+         0, 0, 1, 1, 0, 0,
+         0, 0, 1, 0, 0, 1,
+         1, 0, 1, 1, 0, 0,
+         0, 0, 0, 0, 0, 1,
+         0, 0, 0, 0, 0, 0,
+         1, 1, 1, 1, 1, 1,
+         0, 0, 1, 1, 0, 1},
+        // Selection
+        {},
+        {0, 3, 4},
+        // numNewNonZerosPerRow
+        2,
+        // value
+        42
+      },
+      {
+        "No selected cols",
+        // Dimensions
+        8, 6,
+        // Before
+        {1, 1, 0, 0, 1, 1,
+         0, 0, 1, 1, 0, 0,
+         0, 0, 1, 0, 0, 1,
+         1, 0, 1, 1, 0, 0,
+         0, 0, 0, 0, 0, 1,
+         0, 0, 0, 0, 0, 0,
+         1, 1, 1, 1, 1, 1,
+         0, 0, 1, 1, 0, 1},
+        // Selection
+        {0, 3, 4, 5, 6, 7},
+        {},
+        // numNewNonZerosPerRow
+        2,
+        // value
+        42
+      }
+    };
+
+    for (const SetRandomZerosOnOuterTest& test : tests)
+    {
+      NTA_INFO << "Test: " << test.name;
+
+      SparseMatrix<> m(test.nrows, test.ncols, test.before.begin());
+
+      m.setRandomZerosOnOuter(
+        test.outerRows.begin(), test.outerRows.end(),
+        test.outerCols.begin(), test.outerCols.end(),
+        test.numNewNonZerosPerRow, test.value, rng);
+
+      vector<Real32> actual(test.nrows*test.ncols);
+      m.toDense(actual.begin());
+
+      for (UInt32 row = 0; row < test.nrows; row++)
+      {
+        UInt32 numSelectedZeros = 0;
+        UInt32 numConvertedZeros = 0;
+
+        for (UInt32 col = 0; col < test.ncols; col++)
+        {
+          UInt32 i = row*test.ncols + col;
+          if (std::binary_search(test.outerRows.begin(), test.outerRows.end(), row) &&
+              std::binary_search(test.outerCols.begin(), test.outerCols.end(), col))
+          {
+            if (test.before[i] == 0)
+            {
+              numSelectedZeros++;
+
+              if (actual[i] != 0)
+              {
+                // Should replace zeros with the specified value.
+                EXPECT_EQ(test.value, actual[i]);
+                numConvertedZeros++;
+              }
+            }
+          }
+          else
+          {
+            // Every value not in the selection should be unchanged.
+            EXPECT_EQ(test.before[i], actual[i]);
+          }
+
+          if (test.before[i] != 0)
+          {
+            // Every value that was nonzero should not have changed.
+            EXPECT_EQ(test.before[i], actual[i]);
+          }
+        }
+
+        // Should replace numNewNonZerosPerRow, or all of them if there aren't
+        // that many.
+        EXPECT_EQ(std::min(test.numNewNonZerosPerRow, numSelectedZeros),
+                  numConvertedZeros);
+      }
+    }
+  }
+
+
+  struct ClipRowsBelowAndAboveTest
+  {
+    string name;
+    UInt32 nrows;
+    UInt32 ncols;
+    vector<Real32> before;
+    vector<UInt32> selectedRows;
+    Real32 lower;
+    Real32 upper;
+    vector<Real32> expected;
+  };
+
+  TEST(SparseMatrixTest, clipRowsBelowAndAbove)
+  {
+    vector<ClipRowsBelowAndAboveTest> tests = {
+      {
+        "Test 1",
+        // Dimensions
+        3, 5,
+        // Before
+        {-5, -4, 0.5, 4, 5,
+         -5, -4, 0.5, 4, 5,
+         -5, -4, 0.5, 4, 5},
+        // Selection
+        {0, 2},
+        // Boundaries
+        -4, 4,
+        // Expected
+        {-4, -4, 0.5, 4, 4,
+         -5, -4, 0.5, 4, 5,
+         -4, -4, 0.5, 4, 4}
+      },
+      {
+        "Test 2",
+        // Dimensions
+        3, 5,
+        // Before
+        {-5, -4, 0.5, 4, 5,
+         -5, -4, 0.5, 4, 5,
+         -5, -4, 0.5, 4, 5},
+        // Selection
+        {1, 2},
+        // Boundaries
+        0, 3,
+        // Expected
+        {-5, -4, 0.5, 4, 5,
+         0, 0, 0.5, 3, 3,
+         0, 0, 0.5, 3, 3}
+      }
+    };
+
+    for (const ClipRowsBelowAndAboveTest& test : tests)
+    {
+      NTA_INFO << "Test: " << test.name;
+      SparseMatrix<> m(test.nrows, test.ncols, test.before.begin());
+
+      m.clipRowsBelowAndAbove(
+        test.selectedRows.begin(), test.selectedRows.end(),
+        test.lower, test.upper);
+
+      vector<Real32> actual(test.nrows * test.ncols);
+      m.toDense(actual.begin());
+
+      EXPECT_EQ(test.expected, actual);
+    }
+  }
+} // end anonymous namespace
+
+
 //#include <nupic/common/version.hpp>
 // #include <nupic/math/StlIo.hpp>
 // #include "SparseMatrixUnitTest.hpp"
-    
+
 // using namespace std;
 
 // namespace nupic {
