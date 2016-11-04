@@ -4297,6 +4297,7 @@ public:
             } else {
               // The next selected column is a zero.
               // Maybe insert a nonzero.
+              NTA_ASSERT(numRemainingAvailable > 0);
               const bool insertNonzero = (rng.getUInt32(numRemainingAvailable) <
                                           numRemainingToChoose);
               if (insertNonzero) {
