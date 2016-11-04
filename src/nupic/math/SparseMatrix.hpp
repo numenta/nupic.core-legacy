@@ -4568,9 +4568,10 @@ public:
       size_type numZeros = nZerosInRowOnColumns_(*row, col_begin, col_end);
       difference_type numNonZeros = (col_end - col_begin) - numZeros;
       difference_type numDesiredNewNonZeros =
-        std::max(0, (difference_type)numDesiredNonzeros - numNonZeros);
+        std::max((difference_type)0,
+                 (difference_type)numDesiredNonzeros - numNonZeros);
       size_type numActualNewNonZeros =
-        std::min(numDesiredNewNonZeros, (difference_type)numZeros);
+        (size_type) std::min(numDesiredNewNonZeros, (difference_type)numZeros);
       if (numActualNewNonZeros > 0)
       {
         insertRandomNonZerosIntoColumns_(*row, col_begin, col_end,
