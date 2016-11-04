@@ -226,6 +226,101 @@ namespace
   }
 
 
+  struct SetZerosOnOuterTest
+  {
+    string name;
+    UInt32 nrows;
+    UInt32 ncols;
+    vector<Real32> before;
+    vector<UInt32> outerRows;
+    vector<UInt32> outerCols;
+    Real32 value;
+    vector<Real32> expected;
+  };
+
+  TEST(SparseMatrixTest, setZerosOnOuter)
+  {
+    vector<SetZerosOnOuterTest> tests = {
+      {
+        "Test 1",
+        // Dimensions
+        4, 4,
+        // Before
+        {0, 1, 0, 1,
+         2, 0, 2, 0,
+         0, 1, 0, 1,
+         2, 0, 2, 0},
+        // Selection
+        {0, 2, 3},
+        {0, 1},
+        // Value
+        42,
+        // Expected
+        {42, 1, 0, 1,
+         2,  0, 2, 0,
+         42, 1, 0, 1,
+         2, 42, 2, 0}
+      },
+      {
+        "Test 2",
+        // Dimensions
+        4, 4,
+        // Before
+        {1,1,1,1,
+         1,1,1,1,
+         1,1,1,1,
+         1,1,1,1},
+        // Selection
+        {0, 3},
+        {0, 3},
+        // Value
+        42,
+        // Expected
+        {1,1,1,1,
+         1,1,1,1,
+         1,1,1,1,
+         1,1,1,1}
+      },
+      {
+        "Test 3",
+        // Dimensions
+        4, 4,
+        // Before
+        {1,0,0,1,
+         1,1,1,1,
+         1,1,1,1,
+         1,0,0,1},
+        // Selection
+        {0, 3},
+        {1, 2},
+        // Value
+        42,
+        // Expected
+        {1,42,42,1,
+         1,1,1,1,
+         1,1,1,1,
+         1,42,42,1}
+      }
+    };
+
+    for (const SetZerosOnOuterTest& test : tests)
+    {
+      NTA_INFO << "Test: " << test.name;
+      SparseMatrix<> m(test.nrows, test.ncols, test.before.begin());
+
+      m.setZerosOnOuter(
+        test.outerRows.begin(), test.outerRows.end(),
+        test.outerCols.begin(), test.outerCols.end(),
+        test.value);
+
+      vector<Real32> actual(test.nrows * test.ncols);
+      m.toDense(actual.begin());
+
+      EXPECT_EQ(test.expected, actual);
+    }
+  }
+
+
   struct SetRandomZerosOnOuterTest
   {
     string name;
@@ -362,6 +457,164 @@ namespace
         // that many.
         EXPECT_EQ(std::min(test.numNewNonZerosPerRow, numSelectedZeros),
                   numConvertedZeros);
+      }
+    }
+  }
+
+
+  struct IncreaseRowNonZeroCountsOnOuterToTest
+  {
+    string name;
+    UInt32 nrows;
+    UInt32 ncols;
+    vector<Real32> before;
+    vector<UInt32> outerRows;
+    vector<UInt32> outerCols;
+    int numDesiredNonzeros;
+    Real32 value;
+  };
+
+  TEST(SparseMatrixTest, increaseRowNonZeroCountsOnOuterTo)
+  {
+    Random rng;
+
+    vector<IncreaseRowNonZeroCountsOnOuterToTest> tests = {
+      {
+        "Test 1",
+        // Dimensions
+        8, 6,
+        // Before
+        {1, 1, 0, 0, 1, 1,
+         0, 0, 1, 1, 0, 0,
+         0, 0, 1, 0, 0, 1,
+         1, 0, 1, 1, 0, 0,
+         0, 0, 0, 0, 0, 1,
+         0, 0, 0, 0, 0, 0,
+         1, 1, 1, 1, 1, 1,
+         0, 0, 1, 1, 0, 1},
+        // Selection
+        {0, 3, 4, 5, 6, 7},
+        {0, 3, 4},
+        // numDesiredNonzeros
+        2,
+        // value
+        42
+      },
+      {
+        "No selected rows",
+        // Dimensions
+        8, 6,
+        // Before
+        {1, 1, 0, 0, 1, 1,
+         0, 0, 1, 1, 0, 0,
+         0, 0, 1, 0, 0, 1,
+         1, 0, 1, 1, 0, 0,
+         0, 0, 0, 0, 0, 1,
+         0, 0, 0, 0, 0, 0,
+         1, 1, 1, 1, 1, 1,
+         0, 0, 1, 1, 0, 1},
+        // Selection
+        {},
+        {0, 3, 4},
+        // numDesiredNonzeros
+        2,
+        // value
+        42
+      },
+      {
+        "No selected cols",
+        // Dimensions
+        8, 6,
+        // Before
+        {1, 1, 0, 0, 1, 1,
+         0, 0, 1, 1, 0, 0,
+         0, 0, 1, 0, 0, 1,
+         1, 0, 1, 1, 0, 0,
+         0, 0, 0, 0, 0, 1,
+         0, 0, 0, 0, 0, 0,
+         1, 1, 1, 1, 1, 1,
+         0, 0, 1, 1, 0, 1},
+        // Selection
+        {0, 3, 4, 5, 6, 7},
+        {},
+        // numDesiredNonzeros
+        2,
+        // value
+        42
+      },
+      {
+        "Try to catch unsigned integer bugs",
+        // Dimensions
+        2, 4,
+        // Before
+        {1, 1, 0, 0,
+         1, 1, 1, 0},
+        // Selection
+        {0, 1},
+        {0, 1, 2, 3},
+        // numDesiredNonzeros
+        2,
+        // value
+        42
+      }
+    };
+
+    for (const IncreaseRowNonZeroCountsOnOuterToTest& test : tests)
+    {
+      NTA_INFO << "Test: " << test.name;
+
+      SparseMatrix<> m(test.nrows, test.ncols, test.before.begin());
+
+      m.increaseRowNonZeroCountsOnOuterTo(
+        test.outerRows.begin(), test.outerRows.end(),
+        test.outerCols.begin(), test.outerCols.end(),
+        test.numDesiredNonzeros, test.value, rng);
+
+      vector<Real32> actual(test.nrows*test.ncols);
+      m.toDense(actual.begin());
+
+      for (UInt32 row = 0; row < test.nrows; row++)
+      {
+        int numSelectedZeros = 0;
+        int numConvertedZeros = 0;
+
+        for (UInt32 col = 0; col < test.ncols; col++)
+        {
+          UInt32 i = row*test.ncols + col;
+          if (std::binary_search(test.outerRows.begin(), test.outerRows.end(), row) &&
+              std::binary_search(test.outerCols.begin(), test.outerCols.end(), col))
+          {
+            if (test.before[i] == 0)
+            {
+              numSelectedZeros++;
+
+              if (actual[i] != 0)
+              {
+                // Should replace zeros with the specified value.
+                EXPECT_EQ(test.value, actual[i]);
+                numConvertedZeros++;
+              }
+            }
+          }
+          else
+          {
+            // Every value not in the selection should be unchanged.
+            EXPECT_EQ(test.before[i], actual[i]);
+          }
+
+          if (test.before[i] != 0)
+          {
+            // Every value that was nonzero should not have changed.
+            EXPECT_EQ(test.before[i], actual[i]);
+          }
+        }
+
+        int numSelectedNonZeros = test.outerCols.size() - numSelectedZeros;
+        int numDesiredToAdd = std::max(0,
+                                       test.numDesiredNonzeros -
+                                       numSelectedNonZeros);
+        int numToAdd = std::min(numSelectedZeros, numDesiredToAdd);
+        EXPECT_EQ(numToAdd, numConvertedZeros);
       }
     }
   }

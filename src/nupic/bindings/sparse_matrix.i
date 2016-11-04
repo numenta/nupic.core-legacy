@@ -840,6 +840,15 @@ def __div__(self, other):
                                                delta);
   }
 
+  void setZerosOnOuter(PyObject* py_i, PyObject* py_j,
+                       nupic::Real ## N2 value)
+  {
+    nupic::NumpyVectorT<nupic::UInt ## N1> i(py_i);
+    nupic::NumpyVectorT<nupic::UInt ## N1> j(py_j);
+    self->setZerosOnOuter(i.begin(), i.end(),
+                          j.begin(), j.end(), value);
+  }
+
   void setRandomZerosOnOuter(PyObject* py_i, PyObject* py_j,
                              nupic::UInt ## N1 numNewNonZerosPerRow,
                              nupic::Real ## N2 value,
@@ -850,6 +859,19 @@ def __div__(self, other):
     self->setRandomZerosOnOuter(i.begin(), i.end(),
                                 j.begin(), j.end(),
                                 numNewNonZerosPerRow, value, rng);
+  }
+
+  void increaseRowNonZeroCountsOnOuterTo(PyObject* py_i, PyObject* py_j,
+                                         nupic::UInt ## N1 numDesiredNonzeros,
+                                         nupic::Real ## N2 initialValue,
+                                         nupic::Random& rng)
+  {
+    nupic::NumpyVectorT<nupic::UInt ## N1> i(py_i);
+    nupic::NumpyVectorT<nupic::UInt ## N1> j(py_j);
+    self->increaseRowNonZeroCountsOnOuterTo(i.begin(), i.end(),
+                                            j.begin(), j.end(),
+                                            numDesiredNonzeros, initialValue,
+                                            rng);
   }
 
   void clipRowsBelowAndAbove(PyObject* py_i,

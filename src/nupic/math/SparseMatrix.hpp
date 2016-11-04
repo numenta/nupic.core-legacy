@@ -915,6 +915,168 @@ protected:
     std::copy(nzb_, nzb_ + nnzr_[i], nz_[i]);
   }
 
+  /**
+   * Count the number of zeros within the specified set of columns in a given
+   * row.
+   *
+   * @param row
+   * The selected row
+   *
+   * @param col_begin, col_end
+   * Iterators for sorted list of selected columns
+   *
+   * @b Requirements
+   *   @li Columns must be sorted
+   */
+  template <typename InputIterator>
+  inline size_type nZerosInRowOnColumns_(
+    size_type row,
+    InputIterator col_begin, InputIterator col_end)
+  {
+    { // Pre-conditions
+      ASSERT_INPUT_ITERATOR(InputIterator);
+      assert_valid_row_(row, "nZerosInRowOnColumns_");
+      assert_valid_sorted_index_range_(nCols(), col_begin, col_end,
+                                       "nZerosInRowOnColumns_");
+    } // End pre-conditions
+
+    size_type numZeros = 0;
+
+    size_type *it = ind_begin_(row);
+    size_type *ind_end = ind_end_(row);
+    for (InputIterator col = col_begin; col != col_end; ++col) {
+      while (it != ind_end && *it < *col) {
+        ++it;
+      }
+
+      if (it == ind_end || *it > *col) {
+        ++numZeros;
+      }
+    }
+
+    return numZeros;
+  }
+
+  /**
+   * Randomly insert 'numToInsert' nonzeros into the specified set of columns
+   * in a given row.
+   *
+   * @param row
+   * The selected row
+   *
+   * @param col_begin, col_end
+   * Iterators for sorted list of selected columns
+   *
+   * @param numToInsert
+   * Number of new nonzeros to insert
+   *
+   * @param numZerosAvailable
+   * Total number of zeros in these positions
+   *
+   * @param value
+   * The value to insert at each zero
+   *
+   * @b Requirements
+   *   @li Columns must be sorted
+   *   @li The caller must correctly count the number of zeros in the selection
+   */
+  template <typename InputIterator, typename Random>
+  inline void insertRandomNonZerosIntoColumns_(
+    size_type row,
+    InputIterator col_begin, InputIterator col_end,
+    size_type numToInsert, size_type numZerosAvailable, value_type value,
+    Random& rng)
+  {
+    { // Pre-conditions
+      ASSERT_INPUT_ITERATOR(InputIterator);
+      NTA_ASSERT(numToInsert <= numZerosAvailable);
+      assert_valid_row_(row, "insertRandomNonZerosIntoColumns_");
+      assert_valid_sorted_index_range_(nCols(), col_begin, col_end,
+                                       "insertRandomNonZerosIntoColumns_");
+    } // End pre-conditions
+
+    size_type numRemainingAvailable = numZerosAvailable;
+    size_type numRemainingToChoose = numToInsert;
+
+    size_type nnzr = (size_type)(nnzr_[row] + numRemainingToChoose);
+    size_type *row_ind = new size_type[nnzr];
+    value_type *row_nz = new value_type[nnzr];
+
+    // Scope the references to the previous buffer.
+    {
+      size_type *prev_ind_begin = ind_begin_(row);
+      size_type *prev_ind_end = ind_end_(row);
+
+      InputIterator selected_col = col_begin;
+      size_type *prev_it = prev_ind_begin;
+
+      size_type nextNonzeroCol = prev_it != prev_ind_end ?
+        *prev_it : std::numeric_limits<size_type>::max();
+      size_type nextSelectedCol = selected_col != col_end ?
+        *selected_col : std::numeric_limits<size_type>::max();
+
+      for (size_type pos = 0; pos < nnzr; ++pos) {
+        while (true) {
+          if (nextNonzeroCol < nextSelectedCol) {
+            // Before the next selected column, we found a nonzero column.
+            // Copy it.
+            row_ind[pos] = *prev_it;
+            row_nz[pos] = nz_[row][prev_it - prev_ind_begin];
+
+            ++prev_it;
+            nextNonzeroCol = prev_it != prev_ind_end ?
+              *prev_it : std::numeric_limits<size_type>::max();
+            break;
+          } else if (nextNonzeroCol == nextSelectedCol) {
+            // The next selected column is nonzero.
+            // Copy it.
+            row_ind[pos] = *prev_it;
+            row_nz[pos] = nz_[row][prev_it - prev_ind_begin];
+
+            ++prev_it;
+            ++selected_col;
+            nextNonzeroCol = prev_it != prev_ind_end ?
+              *prev_it : std::numeric_limits<size_type>::max();
+            nextSelectedCol = selected_col != col_end ?
+              *selected_col : std::numeric_limits<size_type>::max();
+            break;
+          } else {
+            // The next selected column is a zero.
+            // Maybe insert a nonzero.
+            NTA_ASSERT(numRemainingAvailable > 0);
+            const bool insertNonzero = (rng.getUInt32(numRemainingAvailable) <
+                                        numRemainingToChoose);
+            if (insertNonzero) {
+              row_ind[pos] = *selected_col;
+              row_nz[pos] = value;
+
+              --numRemainingToChoose;
+            }
+
+            --numRemainingAvailable;
+
+            ++selected_col;
+            nextSelectedCol = selected_col != col_end ?
+              *selected_col : std::numeric_limits<size_type>::max();
+
+            if (insertNonzero) {
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    if (isCompact()) {
+      decompact();
+    }
+    delete[] ind_[row];
+    delete[] nz_[row];
+    ind_[row] = row_ind;
+    nz_[row] = row_nz;
+    nnzr_[row] = nnzr;
+  }
+
 public:
   // CONSTRUCTORS
 
@@ -4183,6 +4345,117 @@ public:
   }
 
   /**
+   * Set all zeros on the outer product of the ranges passed in.
+   *
+  * For example, calling on
+   * [[0, 2, 2, 0],
+   *  [0, 0, 2, 0],
+   *  [0, 0, 0, 0]]
+   *
+   * With [0, 1, 2] and [1, 2, 3], value=42,
+   * it will result in:
+   * [[0, 2, 2,42],
+   *  [0,42, 2,42],
+   *  [0,42,42, 42]]
+   *
+   * @param row_begin, row_end
+   * Iterators for sorted list of selected rows
+   *
+   * @param col_begin, col_end
+   * Iterators for sorted list of selected columns
+   *
+   * @param value
+   * The value to insert at each zero
+   *
+   * @b Requirements
+   *  @li Rows and columns must be sorted
+   */
+  template <typename InputIterator1, typename InputIterator2>
+  inline void setZerosOnOuter(
+    InputIterator1 row_begin, InputIterator1 row_end,
+    InputIterator2 col_begin, InputIterator2 col_end,
+    value_type value)
+  {
+    { // Pre-conditions
+      ASSERT_INPUT_ITERATOR(InputIterator1);
+      ASSERT_INPUT_ITERATOR(InputIterator2);
+      assert_valid_sorted_index_range_(nRows(), row_begin, row_end,
+                                       "setZerosOnOuter");
+      assert_valid_sorted_index_range_(nCols(), col_begin, col_end,
+                                       "setZerosOnOuter");
+    } // End pre-conditions
+
+    for (InputIterator1 row = row_begin; row != row_end; ++row) {
+
+      size_type *ind_begin = ind_begin_(*row);
+      size_type *ind_end = ind_end_(*row);
+
+      InputIterator2 selected_col = col_begin;
+      size_type *it = ind_begin;
+
+      size_type nextNonzeroCol = it != ind_end ?
+        *it : std::numeric_limits<size_type>::max();
+      size_type nextSelectedCol = selected_col != col_end ?
+        *selected_col : std::numeric_limits<size_type>::max();
+
+      size_type *indb_it = indb_;
+      value_type *nzb_it = nzb_;
+      for (; it != ind_end || selected_col != col_end; ++indb_it, ++nzb_it) {
+        if (nextNonzeroCol < nextSelectedCol) {
+          // Before the next selected column, we found a nonzero column.
+          // Copy it.
+          *indb_it = *it;
+          *nzb_it = nz_[*row][it - ind_begin];
+
+          ++it;
+          nextNonzeroCol = it != ind_end ?
+            *it : std::numeric_limits<size_type>::max();
+        } else if (nextNonzeroCol == nextSelectedCol) {
+          // The next selected column is nonzero.
+          // Copy it.
+          *indb_it = *it;
+          *nzb_it = nz_[*row][it - ind_begin];
+
+          ++it;
+          ++selected_col;
+          nextNonzeroCol = it != ind_end ?
+            *it : std::numeric_limits<size_type>::max();
+          nextSelectedCol = selected_col != col_end ?
+            *selected_col : std::numeric_limits<size_type>::max();
+        } else {
+          // The next selected column is a zero.
+          // Insert a nonzero.
+          *indb_it = *selected_col;
+          *nzb_it = value;
+
+          ++selected_col;
+          nextSelectedCol = selected_col != col_end ?
+            *selected_col : std::numeric_limits<size_type>::max();
+        }
+      }
+
+      const size_type nnzr = indb_it - indb_;
+
+      if (nnzr > nnzr_[*row]) {
+        // It changed. Commit the changes.
+
+        if (isCompact()) {
+          decompact();
+        }
+        delete[] ind_[*row];
+        delete[] nz_[*row];
+
+        ind_[*row] = new size_type[nnzr];
+        nz_[*row] = new value_type[nnzr];
+
+        nnzr_[*row] = nnzr;
+        std::copy(indb_, indb_ + nnzr, ind_[*row]);
+        std::copy(nzb_, nzb_ + nnzr, nz_[*row]);
+      }
+    }
+  }
+
+  /**
    * Convert 'numNewNonZerosPerRow' zeros per row to 'value', choosing randomly,
    * restricting changes to the outer product of the ranges passed in.
    *
@@ -4230,104 +4503,79 @@ public:
     } // End pre-conditions
 
     for (InputIterator1 row = row_begin; row != row_end; ++row) {
-      // Count how many of these cols are zero.
-      size_type numZeros = 0;
+      size_type numZeros = nZerosInRowOnColumns_(*row, col_begin, col_end);
+      size_type numNewNonZeros = std::min(numNewNonZerosPerRow, numZeros);
+      if (numNewNonZeros > 0)
       {
-        size_type *ind = ind_begin_(*row);
-        size_type *ind_end = ind_end_(*row);
-        size_type *it = ind;
-        for (InputIterator2 col = col_begin; col != col_end; ++col) {
-          while (it != ind_end && *it < *col) {
-            ++it;
-          }
-
-          if (it == ind_end || *it > *col) {
-            ++numZeros;
-          }
-        }
+        insertRandomNonZerosIntoColumns_(*row, col_begin, col_end,
+                                         numNewNonZeros, numZeros, value,
+                                         rng);
       }
+    }
+  }
 
-      // Set a random subset of them to 'value'.
-      size_type numRemainingToChoose = std::min(numNewNonZerosPerRow,
-                                                numZeros);
-      if (numRemainingToChoose > 0)
+  /**
+   * Maybe add nonzeros to each row. If the selected columns have fewer than
+   * 'numDesiredNonzeros' nonzeros, randomly add nonzeros to make up the
+   * difference, restricting changes to the outer product of the ranges passed
+   * in.
+   *
+   * For example, calling on
+   * [[2, 2, 2, 0],
+   *  [2, 0, 2, 0],
+   *  [2, 0, 0, 0]]
+   *
+   * With [0, 1, 2] and [1, 2, 3], numDesiredNonzeros=2, value=42,
+   * it might result in:
+   * [[2, 2, 2, 0],
+   *  [2, 0, 2,42],
+   *  [2,42,42, 0]]
+   *
+   * @param row_begin, row_end
+   * Iterators for sorted list of selected rows
+   *
+   * @param col_begin, col_end
+   * Iterators for sorted list of selected columns
+   *
+   * @param numDesiredNonzeros
+   * Total number of nonzeros that will be targeted per row
+   *
+   * @param value
+   * Initial value for a new nonzero
+   *
+   * @param rng
+   * A random number generator
+   *
+   * @b Requirements
+   *  @li Rows and columns must be sorted
+   */
+  template <typename InputIterator1, typename InputIterator2, typename Random>
+  inline void increaseRowNonZeroCountsOnOuterTo(
+    InputIterator1 row_begin, InputIterator1 row_end,
+    InputIterator2 col_begin, InputIterator2 col_end,
+    size_type numDesiredNonzeros, value_type initialValue, Random& rng)
+  {
+    { // Pre-conditions
+      ASSERT_INPUT_ITERATOR(InputIterator1);
+      ASSERT_INPUT_ITERATOR(InputIterator2);
+      assert_valid_sorted_index_range_(nRows(), row_begin, row_end,
+                                       "increaseRowNonZeroCountsOnOuterTo");
+      assert_valid_sorted_index_range_(nCols(), col_begin, col_end,
+                                       "increaseRowNonZeroCountsOnOuterTo");
+    } // End pre-conditions
+
+    for (InputIterator1 row = row_begin; row != row_end; ++row) {
+      size_type numZeros = nZerosInRowOnColumns_(*row, col_begin, col_end);
+      difference_type numNonZeros = (col_end - col_begin) - numZeros;
+      difference_type numDesiredNewNonZeros =
+        std::max(0, (difference_type)numDesiredNonzeros - numNonZeros);
+      size_type numActualNewNonZeros =
+        std::min(numDesiredNewNonZeros, (difference_type)numZeros);
+      if (numActualNewNonZeros > 0)
       {
-        size_type numRemainingAvailable = numZeros;
-
-        size_type nnzr = (size_type)(nnzr_[*row] + numRemainingToChoose);
-        size_type *row_ind = new size_type[nnzr];
-        value_type *row_nz = new value_type[nnzr];
-
-        size_type *prev_ind_begin = ind_begin_(*row);
-        size_type *prev_ind_end = ind_end_(*row);
-
-        InputIterator2 selected_col = col_begin;
-        size_type *prev_it = prev_ind_begin;
-
-        size_type nextNonzeroCol = prev_it != prev_ind_end ?
-          *prev_it : std::numeric_limits<size_type>::max();
-        size_type nextSelectedCol = selected_col != col_end ?
-          *selected_col : std::numeric_limits<size_type>::max();
-
-        for (size_type pos = 0; pos < nnzr; ++pos) {
-          while (true) {
-            if (nextNonzeroCol < nextSelectedCol) {
-              // Before the next selected column, we found a nonzero column.
-              // Copy it.
-              row_ind[pos] = *prev_it;
-              row_nz[pos] = nz_[*row][prev_it - prev_ind_begin];
-
-              ++prev_it;
-              nextNonzeroCol = prev_it != prev_ind_end ?
-                *prev_it : std::numeric_limits<size_type>::max();
-              break;
-            } else if (nextNonzeroCol == nextSelectedCol) {
-              // The next selected column is nonzero.
-              // Copy it.
-              row_ind[pos] = *prev_it;
-              row_nz[pos] = nz_[*row][prev_it - prev_ind_begin];
-
-              ++prev_it;
-              ++selected_col;
-              nextNonzeroCol = prev_it != prev_ind_end ?
-                *prev_it : std::numeric_limits<size_type>::max();
-              nextSelectedCol = selected_col != col_end ?
-                *selected_col : std::numeric_limits<size_type>::max();
-              break;
-            } else {
-              // The next selected column is a zero.
-              // Maybe insert a nonzero.
-              NTA_ASSERT(numRemainingAvailable > 0);
-              const bool insertNonzero = (rng.getUInt32(numRemainingAvailable) <
-                                          numRemainingToChoose);
-              if (insertNonzero) {
-                row_ind[pos] = *selected_col;
-                row_nz[pos] = value;
-
-                --numRemainingToChoose;
-              }
-
-              --numRemainingAvailable;
-
-              ++selected_col;
-              nextSelectedCol = selected_col != col_end ?
-                *selected_col : std::numeric_limits<size_type>::max();
-
-              if (insertNonzero) {
-                break;
-              }
-            }
-          }
-        }
-
-        if (isCompact()) {
-          decompact();
-        }
-        delete[] ind_[*row];
-        delete[] nz_[*row];
-        ind_[*row] = row_ind;
-        nz_[*row] = row_nz;
-        nnzr_[*row] = nnzr;
+        insertRandomNonZerosIntoColumns_(*row, col_begin, col_end,
+                                         numActualNewNonZeros, numZeros,
+                                         initialValue, rng);
       }
     }
   }
