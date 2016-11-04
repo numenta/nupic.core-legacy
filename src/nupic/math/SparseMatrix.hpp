@@ -3921,7 +3921,22 @@ public:
   }
 
   /**
-   * Expects sorted ranges of indices, possibly non-contiguous.
+   * Increment on the outer product of two sorted lists of indices.
+   *
+   * For example, calling on
+   * [[0,1,0],
+   *  [0,0,0],
+   *  [0,0,0]]
+   *
+   * With [0 1] and [1, 2] and delta 42, it will increment points
+   * [0, 1], [0, 2], [1, 1], [1, 2], resulting in:
+   * [[0,43,42],
+   *  [0,42,42],
+   *  [0, 0, 0]]
+   *
+   * @b Requirements
+   *  @li Rows and columns must be sorted
+   *  @li delta must not be 0
    */
   template <typename InputIterator>
   inline void incrementOnOuterWNZ(InputIterator i_begin, InputIterator i_end,
@@ -3951,7 +3966,35 @@ public:
   }
 
   /**
-   * Expects sorted ranges of indices, possibly non-contiguous.
+   * Increment nonzeros greater than 'delta' on the outer product of two sorted
+   * lists of indices.
+   *
+   * For example, calling on
+   * [[0,-2,-3],
+   *  [0, 0,-1],
+   *  [0, 0, 0]]
+   *
+   * With [0 1] and [1, 2], delta 42, and threshold -2, it will check points
+   * [0, 1], [0, 2], [1, 1], and [1, 2], resulting in:
+   * [[0,-2,-3],
+   *  [0, 0,41],
+   *  [0, 0, 0]]
+   *
+   * @param row_begin, row_end
+   * Iterators for sorted list of selected rows
+   *
+   * @param col_begin, col_end
+   * Iterators for sorted list of selected columns
+   *
+   * @param threshold
+   * Number that a nonzero must be greater than to be incremented
+   *
+   * @param delta
+   * Amount to add to each selected nonzero that is greater than threshold
+   *
+   * @b Requirements
+   *  @li Rows and columns must be sorted
+   *  @li delta must not be 0
    */
   template <typename InputIterator>
   inline void
@@ -3978,11 +4021,35 @@ public:
     }
   }
 
-
   /**
+   * Increment nonzeros on the outer product of the ranges passed in.
+   *
+   * For example, calling on
+   * [[2, 2, 2],
+   *  [0, 0, 1],
+   *  [0, 0, 1]]
+   *
+   * With [0, 1] and [1, 2], delta 42, it will check points
+   * [0, 1], [0, 2], [1, 1], and [1, 2], resulting in:
+   * [[2,44,44],
+   *  [0, 0,43],
+   *  [0, 0, 1]]
+   *
    * Similar to incrementOnOuterWNZWThreshold with a threshold of 0, except:
    * - It increments all nonzeros. It doesn't check the values.
    * - It allows a delta of 0.
+   *
+   * @param row_begin, row_end
+   * Iterators for sorted list of selected rows
+   *
+   * @param col_begin, col_end
+   * Iterators for sorted list of selected columns
+   *
+   * @param delta
+   * Amount to add to each selected nonzero
+   *
+   * @b Requirements
+   *  @li Rows and columns must be sorted
    */
   template <typename InputIterator1, typename InputIterator2>
   inline void incrementNonZerosOnOuter(
@@ -4018,10 +4085,29 @@ public:
   }
 
   /**
-   * for each specified row:
-   *   for each column except the specified columns:
-   *     if it's nonzero:
-   *       add a constant to it
+   * Increment nonzeros in the specified rows, ignoring the specified cols.
+   *
+   * For example, calling on
+   * [[1, 2, 2],
+   *  [2, 0, 1],
+   *  [0, 0, 1]]
+   *
+   * With [0, 1] and [1, 2], delta 42, it will result in:
+   * [[43, 2, 2],
+   *  [44, 0, 1],
+   *  [ 0, 0, 1]]
+   *
+   * @param row_begin, row_end
+   * Iterators for sorted list of selected rows
+   *
+   * @param col_begin, col_end
+   * Iterators for sorted list of excluded columns
+   *
+   * @param delta
+   * Amount to add to each selected nonzero
+   *
+   * @b Requirements
+   *  @li Rows and columns must be sorted
    */
   template <typename InputIterator1, typename InputIterator2>
   inline void incrementNonZerosOnRowsExcludingCols(
@@ -4058,6 +4144,29 @@ public:
 
   /**
    * For each specified row, clip every nonzero value to be within range [a, b].
+   *
+   * For example, calling on
+   * [[1, 4, 5],
+   *  [3, 0, 2],
+   *  [8, 0, 1]]
+   *
+   * With rows [0, 1], a=2, b=4, it will result in:
+   * [[2, 4, 4],
+   *  [3, 0, 2],
+   *  [8, 0, 1]]
+   *
+   * @param row_begin, row_end
+   * Iterators for sorted list of selected rows
+   *
+   * @param a
+   * Lower bound, inclusive
+   *
+   * @param b
+   * Upper bound, inclusive
+   *
+   * @b Requirements
+   *  @li Rows must be sorted
+   *  @li a <= b
    */
   template <typename InputIterator>
   inline void clipRowsBelowAndAbove(
@@ -4076,6 +4185,35 @@ public:
   /**
    * Convert 'numNewNonZerosPerRow' zeros per row to 'value', choosing randomly,
    * restricting changes to the outer product of the ranges passed in.
+   *
+   * For example, calling on
+   * [[0, 2, 2, 0],
+   *  [0, 0, 2, 0],
+   *  [0, 0, 0, 0]]
+   *
+   * With [0, 1, 2] and [1, 2, 3], numNewNonZerosPerRow=2, value=42,
+   * it might result in:
+   * [[0, 2, 2,42],
+   *  [0,42, 2,42],
+   *  [0,42,42, 0]]
+   *
+   * @param row_begin, row_end
+   * Iterators for sorted list of selected rows
+   *
+   * @param col_begin, col_end
+   * Iterators for sorted list of selected columns
+   *
+   * @param numNewNonZerosPerRow
+   * Number of new nonzeros that will be attempted per row
+   *
+   * @param value
+   * Initial value for a new nonzero
+   *
+   * @param rng
+   * A random number generator
+   *
+   * @b Requirements
+   *  @li Rows and columns must be sorted
    */
   template <typename InputIterator1, typename InputIterator2, typename Random>
   inline void setRandomZerosOnOuter(
