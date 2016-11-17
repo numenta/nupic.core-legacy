@@ -17,7 +17,7 @@ The following applications are required when rebuilding the core C++ library, Py
 - [CMake](http://www.cmake.org/) - version 3.1+
 - [Python 2.7.9+](https://www.python.org/downloads/windows/) - x86-64 version
 - [MinGW GCC for Python](`%PYTHONHOME%\\Scripts\\pip.exe install -i https://pypi.anaconda.org/carlkl/simple mingwpy`)
-- [NumPy C++ headers](`%PYTHONHOME%\\Scripts\\pip.exe install -i https://pypi.anaconda.org/mingwpy/simple numpy==1.9.2`)
+- [NumPy C++ headers](`%PYTHONHOME%\\Scripts\\pip.exe install numpy==1.11.2`)
 
 ## Rebuilding with CMake
 
@@ -97,4 +97,4 @@ Your `PATH` environment variable must include a directory of the cmake.exe (typi
 ##### NumPy Python package
 
 The C++ headers from NumPy can be installed via a pre-built NumPy Python package. For example:
-> `%PYTHONHOME%\\Scripts\\pip.exe install -i https://pypi.anaconda.org/mingwpy/simple numpy==1.9.2`.
+> `%PYTHONHOME%\\Scripts\\pip.exe install numpy==1.11.2`.
