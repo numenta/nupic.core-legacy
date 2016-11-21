@@ -1,5 +1,43 @@
 # Changelog
 
+## 0.4.13
+
+* Use VERSION file when generating docs.
+* 64-bit gcc on Windows build error
+* New: setZerosOnOuter, increaseRowNonZeroCountsOnOuterTo
+* Longer docstrings on new methods
+* Remove a nupic.math test that should stay in nupic
+* Use unittest, not unittest2, to match the nupic.core CI config
+* Add C++ unit tests for the new SparseMatrix methods
+* Finish moving nupic.bindings math tests to nupic.core
+* s/AboveAndBelow/BelowAndAbove
+* Unit tests for new SparseMatrix methods
+* Fix changes due to RNG change in nupic.core.
+* Changed all copyright headers on all files to AGPL.
+* Removes StdRandom class that was defined in math.i but never used.
+* Tests folder refactored
+* Update unit test for swigged shuffle function.
+* Remove assertSequenceEqual that doesn't work with 2.6
+* Python 2.6 fix
+* Removes use of with statement in tests.
+* switch back to regular unittest
+* Pull with statement in from future.
+* Update tests to use parameter name choices instead of sample.
+* Adds unit tests for swigged sample and shuffle methods.
+* Spelling fix ('tranpose' -> 'transpose').
+* Updated license verbiage in source code per #543.
+* Remove useStream references that are no longer used. Remove obselete sp_test.
+* Adds missing delta filter data for test.
+* Adds sparse matrix test.
+* Added sparse binary matrix test.
+* Adds NuPIC random module tests.
+* Adds lgamma_test.
+* Adds cast mode test.
+* Adds array_algorithsm_test.
+* Better method names: s/AboveAndBelow/BelowAndAbove
+* Four new SparseMatrix methods, enabling batch synapse learning
+* Expose the nrows,ncols SparseBinaryMatrix ctor in the bindings
+
 ## 0.4.12
 
 * Updated to numpy 1.11.2 everywhere.
