@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.4.13
+
+* Use VERSION file when generating docs.
+* 64-bit gcc on Windows build error
+* New: setZerosOnOuter, increaseRowNonZeroCountsOnOuterTo
+* Remove a nupic.math test that should stay in nupic
+* Use unittest, not unittest2, to match the nupic.core CI config
+* Add C++ unit tests for the new SparseMatrix methods
+* Finish moving nupic.bindings math tests to nupic.core
+* s/AboveAndBelow/BelowAndAbove
+* Moves some tests for SWIG bindings from nupic to nupic.core
+* Better method names: s/AboveAndBelow/BelowAndAbove
+* Four new SparseMatrix methods, enabling batch synapse learning
+* Expose the nrows,ncols SparseBinaryMatrix ctor in the bindings
+
 ## 0.4.12
 
 * Updated to numpy 1.11.2 everywhere.
