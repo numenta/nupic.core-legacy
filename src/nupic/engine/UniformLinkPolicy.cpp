@@ -44,8 +44,9 @@ static const size_t uninitializedElementCount = 987654321;
 UniformLinkPolicy::UniformLinkPolicy(const std::string params,
                                      Link* link) :
   link_(link),
-  elementCount_(uninitializedElementCount), 
+  elementCount_(uninitializedElementCount),
   parameterDimensionality_(0),
+  propagationDelay_(0),
   initialized_(false)
 {
   setValidParameters();
@@ -62,6 +63,9 @@ UniformLinkPolicy::~UniformLinkPolicy()
 void UniformLinkPolicy::readParameters(const std::string& params)
 {
   ValueMap paramMap = YAMLUtils::toValueMap(params.c_str(), parameters_);
+
+  propagationDelay_ = (size_t)paramMap.getScalarT<UInt32>(
+    "linkPropagationDelay");
 
   boost::shared_ptr<std::string> mappingStr = paramMap.getString("mapping");
 
@@ -191,7 +195,7 @@ void UniformLinkPolicy::validateParameterDimensionality()
   if(parametersAreInconsistent)
   {
     NTA_THROW << "The dimensionality of the parameters are inconsistent:"
-              << "\n\n" << parameterDimensionalityMsg.str(); 
+              << "\n\n" << parameterDimensionalityMsg.str();
   }
 }
 
@@ -297,6 +301,17 @@ void UniformLinkPolicy::copyRealVecToFractionVec(
 void UniformLinkPolicy::setValidParameters()
 {
   // ---
+  // Data propagation delay of the link
+  // ---
+  parameters_.add("linkPropagationDelay",
+                  ParameterSpec("Link data propagation delay",
+                                NTA_BasicType_UInt32,
+                                0,
+                                "interval:[0,...)",
+                                "[0]",
+                                ParameterSpec::ReadOnlyAccess));
+
+  // ---
   // The Network::link() method specifies the direction of the link (i.e.
   // source and destination regions), and this parameter specifies the
   // mapping of the receptive field topology with respect to those regions.
@@ -331,7 +346,7 @@ void UniformLinkPolicy::setValidParameters()
                                 "enumeration:in, out, full",
                                 "in",
                                 ParameterSpec::ReadWriteAccess));
-    
+
   // ---
   // Specifies the size of the receptive field topology.
   //
@@ -527,7 +542,7 @@ void UniformLinkPolicy::setValidParameters()
 void UniformLinkPolicy::setSrcDimensions(Dimensions& specifiedDims)
 {
 
-  if (elementCount_ == uninitializedElementCount) 
+  if (elementCount_ == uninitializedElementCount)
     NTA_THROW << "Internal error: output element count not initialized on link " << link_->toString();
 
   Dimensions dims = specifiedDims;
@@ -535,15 +550,15 @@ void UniformLinkPolicy::setSrcDimensions(Dimensions& specifiedDims)
     dims.promote(parameterDimensionality_);
 
   // This method should never be called if we've already been set
-  NTA_CHECK(srcDimensions_.isUnspecified()) << "Internal error on link " << 
+  NTA_CHECK(srcDimensions_.isUnspecified()) << "Internal error on link " <<
     link_->toString();
   NTA_CHECK(destDimensions_.isUnspecified()) << "Internal error on link " <<
     link_->toString();
 
   if(dims.isUnspecified())
-    NTA_THROW << "Invalid unspecified source dimensions for link " << 
+    NTA_THROW << "Invalid unspecified source dimensions for link " <<
       link_->toString();
-    
+
   if(dims.isDontcare())
     NTA_THROW << "Invalid dontcare source dimensions for link " <<
       link_->toString();
@@ -598,7 +613,7 @@ void UniformLinkPolicy::setSrcDimensions(Dimensions& specifiedDims)
         {
           Fraction validityCheck =
             (Fraction(dims[i]) +
-             workingParams_.overhang[i] * 2 - 
+             workingParams_.overhang[i] * 2 -
              workingParams_.rfSize[i]) % (workingParams_.rfSize[i] -
                                           workingParams_.rfOverlap[i]);
 
@@ -650,8 +665,8 @@ void UniformLinkPolicy::setSrcDimensions(Dimensions& specifiedDims)
         }
         else
         {
-          Fraction validityCheck = ((Fraction(dims[i])) + 
-                                    workingParams_.overhang[i] * 2) % 
+          Fraction validityCheck = ((Fraction(dims[i])) +
+                                    workingParams_.overhang[i] * 2) %
             workingParams_.span[i];
 
           if(validityCheck.getNumerator() != 0)
@@ -665,7 +680,7 @@ void UniformLinkPolicy::setSrcDimensions(Dimensions& specifiedDims)
               workingParams_.span[i] << ").";
           }
 
-          validityCheck = (workingParams_.span[i] - 
+          validityCheck = (workingParams_.span[i] -
                            workingParams_.rfSize[i]) %
             (workingParams_.rfSize[i] -
              workingParams_.rfOverlap[i]);
@@ -761,7 +776,7 @@ void UniformLinkPolicy::setSrcDimensions(Dimensions& specifiedDims)
 
           inducedDim = Fraction(numWholeSpans) * nodesPerSpan;
         }
-            
+
         inducedDims.push_back(inducedDim.getNumerator() /
                               inducedDim.getDenominator());
       }
@@ -782,7 +797,7 @@ void UniformLinkPolicy::setSrcDimensions(Dimensions& specifiedDims)
   destDimensions_ = inducedDims;
 }
 
-void UniformLinkPolicy::setDestDimensions(Dimensions& specifiedDims) 
+void UniformLinkPolicy::setDestDimensions(Dimensions& specifiedDims)
 {
 
   Dimensions dims = specifiedDims;
@@ -790,15 +805,15 @@ void UniformLinkPolicy::setDestDimensions(Dimensions& specifiedDims)
     dims.promote(parameterDimensionality_);
 
   // This method should never be called if we've already been set
-  NTA_CHECK(srcDimensions_.isUnspecified()) << "Internal error on link " << 
+  NTA_CHECK(srcDimensions_.isUnspecified()) << "Internal error on link " <<
     link_->toString();
   NTA_CHECK(destDimensions_.isUnspecified()) << "Internal error on link " <<
     link_->toString();
 
   if(dims.isUnspecified())
-    NTA_THROW << "Invalid unspecified destination dimensions for link " << 
+    NTA_THROW << "Invalid unspecified destination dimensions for link " <<
       link_->toString();
-    
+
   if(dims.isDontcare())
     NTA_THROW << "Invalid dontcare destination dimensions for link " <<
       link_->toString();
@@ -859,7 +874,7 @@ void UniformLinkPolicy::setDestDimensions(Dimensions& specifiedDims)
               "rfGranularity is set to elements.";
           }
 
-          Fraction validityCheck = 
+          Fraction validityCheck =
             workingParams_.rfSize[i] * elementCount_;
 
           if(!validityCheck.isNaturalNumber())
@@ -987,7 +1002,7 @@ void UniformLinkPolicy::setDestDimensions(Dimensions& specifiedDims)
               "dimension " << i+1 << ".";
           }
         }
-            
+
         if(inducedDim.isNaturalNumber())
         {
           inducedDims.push_back(inducedDim.getNumerator() /
@@ -1016,7 +1031,7 @@ void UniformLinkPolicy::setDestDimensions(Dimensions& specifiedDims)
   destDimensions_ = dims;
   srcDimensions_ = inducedDims;
 }
-  
+
 const Dimensions& UniformLinkPolicy::getSrcDimensions() const
 {
   return srcDimensions_;
@@ -1085,7 +1100,7 @@ UniformLinkPolicy::getInputBoundsForNode(Coordinate nodeCoordinate,
          workingParams_.rfOverlap[dimension]) -
         workingParams_.overhang[dimension];
 
-      upperIndex = lowerIndex + 
+      upperIndex = lowerIndex +
         workingParams_.rfSize[dimension] - Fraction(1);
     }
     else
@@ -1148,7 +1163,7 @@ UniformLinkPolicy::getInputBoundsForNode(Coordinate nodeCoordinate,
          workingParams_.rfOverlap[dimension]) -
         workingParams_.overhang[dimension];
 
-      upperIndex = lowerIndex + 
+      upperIndex = lowerIndex +
         effectiveRfSize - Fraction(1);
 
       if(rfGranularity_ == nodesGranularity)
@@ -1226,7 +1241,7 @@ void UniformLinkPolicy::getInputForNode(Coordinate nodeCoordinate,
   for(size_t d = 0; d < destDimensions_.size(); d++)
   {
     // get the bounds (inclusive) in Nodes for this dimension
-    std::pair<Fraction, Fraction> dimensionBounds = 
+    std::pair<Fraction, Fraction> dimensionBounds =
       getInputBoundsForNode(nodeCoordinate,d);
 
     // convert to an exclusive upper bound
@@ -1539,7 +1554,7 @@ void UniformLinkPolicy::populateInputElements(
       }
 
       size_t elementIndex = srcDimensions_.getIndex(nodeCoordinate);
-        
+
       for(size_t x = elementOffset.first; x < elementOffset.second; x++)
       {
         input.push_back(elementIndex * elementCount_ + x);
@@ -1660,6 +1675,11 @@ void UniformLinkPolicy::initialize()
   initialized_ = true;
 }
 
+size_t UniformLinkPolicy::getLinkPropagationDelay() const
+{
+  return propagationDelay_;
+}
+
 bool UniformLinkPolicy::isInitialized() const
 {
   return initialized_;
@@ -1677,13 +1697,13 @@ T UniformLinkPolicy::DefaultValuedVector<T>::operator[](const size_type index) c
 {
   return at(index);
 }
-    
+
 template <typename T>
 T& UniformLinkPolicy::DefaultValuedVector<T>::operator[](const size_type index)
 {
   return at(index);
 }
-    
+
 template <typename T>
 T UniformLinkPolicy::DefaultValuedVector<T>::at(const size_type index) const
 {
@@ -1696,7 +1716,7 @@ T UniformLinkPolicy::DefaultValuedVector<T>::at(const size_type index) const
     return std::vector<T>::at(index);
   }
 }
-    
+
 template <typename T>
 T& UniformLinkPolicy::DefaultValuedVector<T>::at(const size_type index)
 {

@@ -82,6 +82,7 @@ namespace nupic
     void setNodeOutputElementCount(size_t elementCount) override;
     void buildProtoSplitterMap(Input::SplitterMap& splitter) const override;
     void initialize() override;
+    size_t getLinkPropagationDelay() const override;
     bool isInitialized() const override;
 
   private:
@@ -148,7 +149,7 @@ namespace nupic
 
     void copyRealVecToFractionVec(const std::vector<Real64>& sourceVec,
                                   DefaultValuedVector<Fraction>& destVec);
-    
+
     template <typename T> void populateArrayParamVector(
                                  std::vector<T>& vec,
                                  const ValueMap& paramMap,
@@ -222,6 +223,11 @@ namespace nupic
     // parameterDimensionality_ to the maximum dimensionality.
     // ---
     size_t parameterDimensionality_;
+
+    // ---
+    // Data propagation delay of the link
+    // ---
+    size_t propagationDelay_;
 
     // ---
     // Set after a call to initialize whereupon the working parameters are

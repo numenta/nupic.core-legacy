@@ -29,8 +29,11 @@
 
 #include <string>
 
+#include <boost/circular_buffer.hpp>
+
 #include <nupic/engine/LinkPolicy.hpp>
 #include <nupic/engine/Input.hpp> // needed for splitter map
+#include <nupic/ntypes/Array.hpp>
 #include <nupic/ntypes/Dimensions.hpp>
 #include <nupic/proto/LinkProto.capnp.h>
 #include <nupic/types/Serializable.hpp>
@@ -435,6 +438,18 @@ namespace nupic
                                 const std::string& srcOutputName,
                                 const std::string& destInputName);
 
+
+    /**
+     * Get capacity of the source data buffer based on contents of linkParams.
+     *
+     * @param linkParams
+     *            The parameters of the link as passed to constructor.
+     *
+     * @returns
+     *         The capacity of the source data buffer
+     */
+    static int calcSourceBufferCapacity(const std::string& linkParams);
+
     // TODO: The strings with src/dest names are redundant with
     // the src_ and dest_ objects. For unit testing links,
     // and for deserializing networks, we need to be able to create
@@ -458,6 +473,9 @@ namespace nupic
 
     Output *src_;
     Input *dest_;
+
+    // Circular buffer for delayed source data buffering
+    boost::circular_buffer<Array> srcBuffer_;
 
     // Each link contributes a contiguous chunk of the destination
     // input. The link needs to know its offset within the destination
