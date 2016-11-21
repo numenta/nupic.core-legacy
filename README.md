@@ -140,3 +140,10 @@ You can run the nupic.bindings tests via `setup.py`:
 
  * Run any `tests_*` project from your IDE (check `output` panel to see the results).
 
+## Build Documentation
+
+Run doxygen, optionally specifying the version as an environment variable:
+
+    PROJECT_VERSION=`cat VERSION` doxygen
+
+The results will be written out to the `html` directory.
