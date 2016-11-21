@@ -12,7 +12,7 @@ successfully
 version
 5. Deploy the release in Bamboo. This will:
     - Validate that the Bamboo release number matches the wheel version
-    - Check that release notes are present for the version to be released
+    - (TODO) Check that release notes are present for the version to be released
     - Push the wheel to PyPI
-    - If successful, push a version tag to the repo
+    - (TODO) If successful, push a version tag to the repo
 6. Send announcement to the committer's lounge on discourse.numenta.org that the release is complete.
