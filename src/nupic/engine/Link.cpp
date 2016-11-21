@@ -24,7 +24,7 @@
  * Implementation of the Link class
  */
 
-#include <cstring> // memcpy
+#include <cstring> // memcpy,memset
 #include <nupic/engine/Link.hpp>
 #include <nupic/utils/Log.hpp>
 #include <nupic/engine/LinkPolicyFactory.hpp>
@@ -33,7 +33,7 @@
 #include <nupic/engine/Input.hpp>
 #include <nupic/engine/Output.hpp>
 #include <nupic/ntypes/Array.hpp>
-#include <nupic/ntypes/ArrayRef.hpp>
+#include <nupic/ntypes/ArrayRef.hpp> // @TODO ArrayRef doesn't seem to be used here
 #include <nupic/types/BasicType.hpp>
 
 namespace nupic
@@ -42,7 +42,8 @@ namespace nupic
 
 Link::Link(const std::string& linkType, const std::string& linkParams,
            const std::string& srcRegionName, const std::string& destRegionName,
-           const std::string& srcOutputName, const std::string& destInputName)
+           const std::string& srcOutputName, const std::string& destInputName):
+             srcBuffer_(0)
 {
   commonConstructorInit_(linkType, linkParams,
         srcRegionName, destRegionName,
@@ -51,7 +52,8 @@ Link::Link(const std::string& linkType, const std::string& linkParams,
 }
 
 Link::Link(const std::string& linkType, const std::string& linkParams,
-           Output* srcOutput, Input* destInput)
+           Output* srcOutput, Input* destInput):
+             srcBuffer_(calcSourceBufferCapacity(linkParams))
 {
   commonConstructorInit_(linkType, linkParams,
         srcOutput->getRegion().getName(),
@@ -82,6 +84,10 @@ void Link::commonConstructorInit_(const std::string& linkType, const std::string
 
 
   impl_ = LinkPolicyFactory().createLinkPolicy(linkType, linkParams, this);
+}
+
+static int Link::calcSourceBufferCapacity(const std::string& linkParams)
+{
 }
 
 Link::~Link()
@@ -161,6 +167,41 @@ void Link::initialize(size_t destinationOffset)
 
   destOffset_ = destinationOffset;
   impl_->initialize();
+
+  // ---
+  // Initialize the propagation delay buffer
+  // ---
+
+  auto propagationDelay = impl_.getLinkPropagationDelay();
+
+  // Establish capacity for the requested delay data elements plus one slot for
+  // the next output element
+  srcBuffer_.set_capacity(propagationDelay + 1);
+
+  // Initialize delay data elements
+  size_t dataElementCount = src_->getNodeOutputElementCount();
+  if(!src_->isRegionLevel())
+  {
+    dataElementCount *= src_->getRegion().getDimensions().getCount();
+  }
+
+  auto dataElementType = src_.getData().getType();
+  Array dataTemplate(dataElementType);
+
+  for(size_t i = 0; i < srcBuffer_.capacity(); i++)
+  {
+    srcBuffer_.push_back(dataTemplate);
+
+    if(dataElementCount != 0)
+    {
+      // Allocate 0-initialized data for current element
+      srcBuffer_[i].allocateBuffer(dataElementCount);
+      void *buffer = srcBuffer_[i].getBuffer();
+      size_t byteCount = dataElementCount * BasicType::getSize(dataElementType);
+      memset(buffer, 0, byteCount);
+    }
+  }
+
   initialized_ = true;
 
 }
@@ -263,6 +304,8 @@ void Link::connectToNetwork(Output *src, Input *dest)
 
   src_ = src;
   dest_ = dest;
+
+
 }
 
 
@@ -365,4 +408,3 @@ namespace nupic
 }
 
 }
-
