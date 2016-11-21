@@ -820,6 +820,68 @@ def __div__(self, other):
                                         threshold, delta);
   }
 
+  void incrementNonZerosOnOuter(PyObject* py_i, PyObject* py_j,
+                                nupic::Real ## N2 delta)
+  {
+    nupic::NumpyVectorT<nupic::UInt ## N1> i(py_i);
+    nupic::NumpyVectorT<nupic::UInt ## N1> j(py_j);
+    self->incrementNonZerosOnOuter(i.begin(), i.end(),
+                                   j.begin(), j.end(),
+                                   delta);
+  }
+
+  void incrementNonZerosOnRowsExcludingCols(PyObject* py_i, PyObject* py_j,
+                                            nupic::Real ## N2 delta)
+  {
+    nupic::NumpyVectorT<nupic::UInt ## N1> i(py_i);
+    nupic::NumpyVectorT<nupic::UInt ## N1> j(py_j);
+    self->incrementNonZerosOnRowsExcludingCols(i.begin(), i.end(),
+                                               j.begin(), j.end(),
+                                               delta);
+  }
+
+  void setZerosOnOuter(PyObject* py_i, PyObject* py_j,
+                       nupic::Real ## N2 value)
+  {
+    nupic::NumpyVectorT<nupic::UInt ## N1> i(py_i);
+    nupic::NumpyVectorT<nupic::UInt ## N1> j(py_j);
+    self->setZerosOnOuter(i.begin(), i.end(),
+                          j.begin(), j.end(), value);
+  }
+
+  void setRandomZerosOnOuter(PyObject* py_i, PyObject* py_j,
+                             nupic::UInt ## N1 numNewNonZerosPerRow,
+                             nupic::Real ## N2 value,
+                             nupic::Random& rng)
+  {
+    nupic::NumpyVectorT<nupic::UInt ## N1> i(py_i);
+    nupic::NumpyVectorT<nupic::UInt ## N1> j(py_j);
+    self->setRandomZerosOnOuter(i.begin(), i.end(),
+                                j.begin(), j.end(),
+                                numNewNonZerosPerRow, value, rng);
+  }
+
+  void increaseRowNonZeroCountsOnOuterTo(PyObject* py_i, PyObject* py_j,
+                                         nupic::UInt ## N1 numDesiredNonzeros,
+                                         nupic::Real ## N2 initialValue,
+                                         nupic::Random& rng)
+  {
+    nupic::NumpyVectorT<nupic::UInt ## N1> i(py_i);
+    nupic::NumpyVectorT<nupic::UInt ## N1> j(py_j);
+    self->increaseRowNonZeroCountsOnOuterTo(i.begin(), i.end(),
+                                            j.begin(), j.end(),
+                                            numDesiredNonzeros, initialValue,
+                                            rng);
+  }
+
+  void clipRowsBelowAndAbove(PyObject* py_i,
+                             nupic::Real ## N2 a,
+                             nupic::Real ## N2 b)
+  {
+    nupic::NumpyVectorT<nupic::UInt ## N1> i(py_i);
+    self->clipRowsBelowAndAbove(i.begin(), i.end(), a, b);
+  }
+
   // Returns the number of non-zeros per row, for all rows
   PyObject* nNonZerosPerRow() const
   {
@@ -2590,17 +2652,21 @@ inline PyObject *_find_connected_components2(const TSM &sm)
 %pythoncode %{
 
 def __init__(self, *args):
-    if isinstance(args[0], basestring):
-        self.this = _MATH.new__SM_01_32_16(1)
-        self.fromCSR(args[0])
-    elif isinstance(args[0], numpy.ndarray) or hasattr(args[0], '__iter__'):
-        self.this = _MATH.new__SM_01_32_16(1)
-        self.fromDense(numpy.asarray(args[0]))
-    elif isinstance(args[0], int):
-        self.this = _MATH.new__SM_01_32_16(args[0])
-    elif isinstance(args[0], _SM_01_32_16):
-        self.this = _MATH.new__SM_01_32_16(1)
-        self.copy(args[0])
+    if len(args) == 1:
+        if isinstance(args[0], basestring):
+            self.this = _MATH.new__SM_01_32_16(1)
+            self.fromCSR(args[0])
+        elif isinstance(args[0], numpy.ndarray) or hasattr(args[0], '__iter__'):
+            self.this = _MATH.new__SM_01_32_16(1)
+            self.fromDense(numpy.asarray(args[0]))
+        elif isinstance(args[0], int):
+            self.this = _MATH.new__SM_01_32_16(args[0])
+        elif isinstance(args[0], _SM_01_32_16):
+            self.this = _MATH.new__SM_01_32_16(1)
+            self.copy(args[0])
+    elif len(args) == 2:
+        if isinstance(args[0], int) and isinstance(args[1], int):
+            self.this = _MATH.new__SM_01_32_16(args[0], args[1])
 
 def __str__(self):
     return self.toDense().__str__()
@@ -3088,21 +3154,25 @@ def __setstate__(self, inString):
 {
 %pythoncode %{
 def __init__(self, *args):
-    if isinstance(args[0], basestring):
-        self.this = _MATH.new__SM_01_32_32(1)
-        self.fromCSR(args[0])
-    elif isinstance(args[0], numpy.ndarray) or hasattr(args[0], '__iter__'):
-        self.this = _MATH.new__SM_01_32_32(1)
-        self.fromDense(numpy.asarray(args[0]))
-    elif isinstance(args[0], int):
-        self.this = _MATH.new__SM_01_32_32(args[0])
-    elif isinstance(args[0], _SM_01_32_32):
-        self.this = _MATH.new__SM_01_32_32(1)
-        self.copy(args[0])
-    elif isinstance(args[0], _SparseMatrix32):
-        self.this = _MATH.new__SM_01_32_32(1)
-        nz_i,nz_j,nz_v = args[0].getAllNonZeros(True)
-        self.setAllNonZeros(args[0].nRows(), args[0].nCols(), nz_i, nz_j)
+    if len(args) == 1:
+        if isinstance(args[0], basestring):
+            self.this = _MATH.new__SM_01_32_32(1)
+            self.fromCSR(args[0])
+        elif isinstance(args[0], numpy.ndarray) or hasattr(args[0], '__iter__'):
+            self.this = _MATH.new__SM_01_32_32(1)
+            self.fromDense(numpy.asarray(args[0]))
+        elif isinstance(args[0], int):
+            self.this = _MATH.new__SM_01_32_32(args[0])
+        elif isinstance(args[0], _SM_01_32_32):
+            self.this = _MATH.new__SM_01_32_32(1)
+            self.copy(args[0])
+        elif isinstance(args[0], _SparseMatrix32):
+            self.this = _MATH.new__SM_01_32_32(1)
+            nz_i,nz_j,nz_v = args[0].getAllNonZeros(True)
+            self.setAllNonZeros(args[0].nRows(), args[0].nCols(), nz_i, nz_j)
+    elif len(args) == 2:
+        if isinstance(args[0], int) and isinstance(args[1], int):
+            self.this = _MATH.new__SM_01_32_32(args[0], args[1])
 
 def __str__(self):
     return self.toDense().__str__()
