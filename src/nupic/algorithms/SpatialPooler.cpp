@@ -1121,46 +1121,47 @@ void SpatialPooler::updateDutyCyclesHelper_(vector<Real>& dutyCycles,
 void SpatialPooler::updateBoostFactors_()
 {
 
-  vector<Real> targetDensity(numColumns_, 0);
-  if (globalInhibition_)
+  if (maxBoost_ > 1.0)
   {
-    Real density = localAreaDensity_;
-    if (numActiveColumnsPerInhArea_ > 0)
+    vector<Real> targetDensity(numColumns_, 0);
+    if (globalInhibition_)
     {
-      UInt inhibitionArea = pow((Real) (2 * inhibitionRadius_ + 1),
-                                (Real) columnDimensions_.size());
-      inhibitionArea = min(inhibitionArea, numColumns_);
-      density = ((Real) numActiveColumnsPerInhArea_) / inhibitionArea;
-      density = min(density, (Real) 0.5);
-    }
-
-    for (UInt i = 0; i < numColumns_; ++i)
-    {
-      targetDensity[i] = density;
-    }
-  }
-  else
-  {
-    for (UInt i = 0; i < numColumns_; ++i)
-    {
-//      NTA_INFO << "column : " << i ;
-      UInt numNeighbors = 0;
-      Real localActivityDensity = 0;
-      for (UInt neighbor : WrappingNeighborhood(i, inhibitionRadius_,
-                                      columnDimensions_))
+      Real density = localAreaDensity_;
+      if (numActiveColumnsPerInhArea_ > 0)
       {
-//          NTA_INFO << "neighbor : " << neighbor << " neighbor activeDutyCycle "<<activeDutyCycles_[neighbor];
-        localActivityDensity += activeDutyCycles_[neighbor];
-        numNeighbors += 1;
+        UInt inhibitionArea = pow((Real) (2 * inhibitionRadius_ + 1),
+                                  (Real) columnDimensions_.size());
+        inhibitionArea = min(inhibitionArea, numColumns_);
+        density = ((Real) numActiveColumnsPerInhArea_) / inhibitionArea;
+        density = min(density, (Real) 0.5);
       }
-      targetDensity[i] = localActivityDensity / numNeighbors;
-    }
-  }
 
-  for (UInt i = 0; i < numColumns_; ++i)
-  {
-    boostFactors_[i] = exp(-(activeDutyCycles_[i] - targetDensity[i])
-                            * maxBoost_);
+      for (UInt i = 0; i < numColumns_; ++i)
+      {
+        targetDensity[i] = density;
+      }
+    }
+    else
+    {
+      for (UInt i = 0; i < numColumns_; ++i)
+      {
+        UInt numNeighbors = 0;
+        Real localActivityDensity = 0;
+        for (UInt neighbor : WrappingNeighborhood(i, inhibitionRadius_,
+                                        columnDimensions_))
+        {
+          localActivityDensity += activeDutyCycles_[neighbor];
+          numNeighbors += 1;
+        }
+        targetDensity[i] = localActivityDensity / numNeighbors;
+      }
+    }
+
+    for (UInt i = 0; i < numColumns_; ++i)
+    {
+      boostFactors_[i] = exp(-(activeDutyCycles_[i] - targetDensity[i])
+                              * maxBoost_);
+    }    
   }
 }
 
