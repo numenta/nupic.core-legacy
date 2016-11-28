@@ -188,7 +188,7 @@ void Link::initialize(size_t destinationOffset)
   auto dataElementType = src_.getData().getType();
   Array dataTemplate(dataElementType);
 
-  for(size_t i = 0; i < srcBuffer_.capacity(); i++)
+  for(size_t i = 0; i < propagationDelay; i++)
   {
     srcBuffer_.push_back(dataTemplate);
 
@@ -360,13 +360,16 @@ Link::compute()
 {
   NTA_CHECK(initialized_);
 
+  // If first compute during current network run, append src to circular buffer
+  if (!srcBuffer_.full())
+  {
+    srcBuffer_.push_back(src_)
+  }
+
   // Copy data from source to destination.
-  // TBD: with zero-copy optimization, we won't do anything,
-  // but that isn't implemented yet.
-  const Array & src = src_->getData();
+  const Array & src = srcBuffer_[0].getData();
   const Array & dest = dest_->getData();
 
-  // TBD: use src offset and src size (only for certain types of links)
   size_t typeSize = BasicType::getSize(src.getType());
   size_t srcSize = src.getCount() * typeSize;
   size_t destByteOffset = destOffset_ * typeSize;

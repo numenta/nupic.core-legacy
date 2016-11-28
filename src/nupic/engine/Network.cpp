@@ -424,6 +424,9 @@ Network::run(int n)
 
   NTA_CHECK(maxEnabledPhase_ < phaseInfo_.size()) << "maxphase: " << maxEnabledPhase_ << " size: " << phaseInfo_.size();
 
+  // For tracking input links of enabled regions in this run
+  std::set<Link*> inputLinks;
+
   for(int iter = 0; iter < n; iter++)
   {
     iteration_++;
@@ -433,6 +436,7 @@ Network::run(int n)
     {
       for (auto r : phaseInfo_[phase])
       {
+        inputLinks += r.getInputLinks(); // TODO Region::getInputLinks()
 
         r->prepareInputs();
         r->compute();
@@ -445,6 +449,13 @@ Network::run(int n)
       callback.second.first(this, iteration_, callback.second.second);
     }
 
+  }
+
+  // Purge first element in each input link of regions used in this run
+  for (std::set<Link*>::iterator i = inputLinks.begin();
+       i != inputLinks.end(); i++)
+  {
+    i->purgeHead(); // TODO Link::purgeHead()
   }
 
   return;
