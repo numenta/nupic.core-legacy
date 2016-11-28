@@ -1118,72 +1118,74 @@ namespace {
   TEST(SpatialPoolerTest, testUpdateBoostFactors)
   {
     SpatialPooler sp;
-    setup(sp, 6, 6);
+    setup(sp, 5, 6);
 
-    Real initMinActiveDutyCycles1[] =
-      {1e-6, 1e-6, 1e-6, 1e-6, 1e-6, 1e-6 };
-    Real initActiveDutyCycles1[] =
-      {0.1, 0.3, 0.02, 0.04, 0.7, 0.12};
-    Real initBoostFactors1[] =
-      {0, 0, 0, 0, 0, 0};
-    Real trueBoostFactors1[] =
-      {1, 1, 1, 1, 1, 1};
+    Real initActiveDutyCycles1[] = {0.1, 0.1, 0.1, 0.1, 0.1, 0.1};
+    Real initBoostFactors1[] = {0, 0, 0, 0, 0, 0};
+    Real trueBoostFactors1[] = {1, 1, 1, 1, 1, 1};
     Real resultBoostFactors1[6];
+    sp.setGlobalInhibition(false);
     sp.setMaxBoost(10);
     sp.setBoostFactors(initBoostFactors1);
     sp.setActiveDutyCycles(initActiveDutyCycles1);
-    sp.setMinActiveDutyCycles(initMinActiveDutyCycles1);
     sp.updateBoostFactors_();
     sp.getBoostFactors(resultBoostFactors1);
     ASSERT_TRUE(check_vector_eq(trueBoostFactors1, resultBoostFactors1, 6));
 
-    Real initMinActiveDutyCycles2[] =
-      {0.1, 0.3, 0.02, 0.04, 0.7, 0.12};
     Real initActiveDutyCycles2[] =
-      {0.1 ,0.3, 0.02, 0.04, 0.7, 0.12};
+      {0.1, 0.3, 0.02, 0.04, 0.7, 0.12};
     Real initBoostFactors2[] =
       {0, 0, 0, 0, 0, 0};
     Real trueBoostFactors2[] =
-      {1, 1, 1, 1, 1, 1};
+      {3.105992732789097, 0.42035040622287317,
+      6.9125139504223041, 5.659487752291307,
+      0.0076989862471108653, 2.5429717691711562};
+
     Real resultBoostFactors2[6];
+    sp.setGlobalInhibition(false);
     sp.setMaxBoost(10);
     sp.setBoostFactors(initBoostFactors2);
     sp.setActiveDutyCycles(initActiveDutyCycles2);
-    sp.setMinActiveDutyCycles(initMinActiveDutyCycles2);
     sp.updateBoostFactors_();
     sp.getBoostFactors(resultBoostFactors2);
     ASSERT_TRUE(check_vector_eq(trueBoostFactors2, resultBoostFactors2, 6));
 
-     Real initMinActiveDutyCycles3[] =
-      {0.1, 0.3, 0.02, 0.04, 0.7, 0.12};
     Real initActiveDutyCycles3[] =
-      {0.01 ,0.03, 0.002, 0.004, 0.07, 0.012};
+      {0.1, 0.3, 0.02, 0.04, 0.7, 0.12};
     Real initBoostFactors3[] =
       {0, 0, 0, 0, 0, 0};
     Real trueBoostFactors3[] =
-      {9.1, 9.1, 9.1, 9.1, 9.1, 9.1};
+      {1.2544116739825764, 0.84085729105164408,
+      1.472065736117588, 1.4143452129997691,
+      0.37782153555864834, 1.2052254887118465};
     Real resultBoostFactors3[6];
-    sp.setMaxBoost(10);
+    sp.setWrapAround(true);
+    sp.setGlobalInhibition(false);
+    sp.setMaxBoost(2.0);
+    sp.setInhibitionRadius(5);
+    sp.setNumActiveColumnsPerInhArea(1);
     sp.setBoostFactors(initBoostFactors3);
     sp.setActiveDutyCycles(initActiveDutyCycles3);
-    sp.setMinActiveDutyCycles(initMinActiveDutyCycles3);
     sp.updateBoostFactors_();
     sp.getBoostFactors(resultBoostFactors3);
+
     ASSERT_TRUE(check_vector_eq(trueBoostFactors3, resultBoostFactors3, 6));
 
-     Real initMinActiveDutyCycles4[] =
-      {0.1, 0.3, 0.02, 0.04, 0.7, 0.12};
     Real initActiveDutyCycles4[] =
-      {0 ,0, 0, 0, 0, 0};
+      {0.1, 0.3, 0.02, 0.04, 0.7, 0.12};
     Real initBoostFactors4[] =
       {0, 0, 0, 0, 0, 0};
     Real trueBoostFactors4[] =
-      {10, 10, 10, 10, 10, 10};
+      {1.9477340410546755, 0.26359713811572677,
+      4.3347618261852094, 3.5490028143663039,
+      0.0048279499938314414, 1.5946697582283156};
     Real resultBoostFactors4[6];
+    sp.setGlobalInhibition(true);
     sp.setMaxBoost(10);
+    sp.setNumActiveColumnsPerInhArea(1);
+    sp.setInhibitionRadius(3);
     sp.setBoostFactors(initBoostFactors4);
     sp.setActiveDutyCycles(initActiveDutyCycles4);
-    sp.setMinActiveDutyCycles(initMinActiveDutyCycles4);
     sp.updateBoostFactors_();
     sp.getBoostFactors(resultBoostFactors4);
     ASSERT_TRUE(check_vector_eq(trueBoostFactors4, resultBoostFactors4, 6));
