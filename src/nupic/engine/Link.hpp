@@ -341,6 +341,15 @@ namespace nupic
     void
     buildSplitterMap(Input::SplitterMap& splitter);
 
+    /*
+     * FOR INTERNAL USE ONLY
+     *
+     * Remove head element of the propagation delay buffer
+     */
+    void
+    purgeHead();
+
+
     /**
      * Convert the Link to a human-readable string.
      *

@@ -424,24 +424,30 @@ Network::run(int n)
 
   NTA_CHECK(maxEnabledPhase_ < phaseInfo_.size()) << "maxphase: " << maxEnabledPhase_ << " size: " << phaseInfo_.size();
 
-  // For tracking input links of enabled regions in this run
-  std::set<Link*> inputLinks;
-
   for(int iter = 0; iter < n; iter++)
   {
     iteration_++;
+
+    // For tracking input links of enabled regions in this iteration
+    std::set<Link*> inputLinks;
 
     // compute on all enabled regions in phase order
     for (UInt32 phase = minEnabledPhase_; phase <= maxEnabledPhase_; phase++)
     {
       for (auto r : phaseInfo_[phase])
       {
-        inputLinks += r.getInputLinks(); // TODO Region::getInputLinks()
-
         r->prepareInputs();
         r->compute();
+
+        // Accummulate input links of computed regions
+        for (auto & input : r.getInputs())
+        {
+          auto links = input.second->getLinks();
+          inputLinks.insert(links.cbegin(), links.cend());
+        }
       }
     }
+
     // invoke callbacks
     for (UInt32 i = 0; i < callbacks_.getCount(); i++)
     {
@@ -449,13 +455,14 @@ Network::run(int n)
       callback.second.first(this, iteration_, callback.second.second);
     }
 
-  }
+    // Purge head element in each input link belonging to regions computed in
+    // this iteration. An empty slot in the source buffer signals to
+    // Link::compute() to append the source array to the buffer.
+    for (auto pLink : inputLinks)
+    {
+      pLink->purgeHead();
+    }
 
-  // Purge first element in each input link of regions used in this run
-  for (std::set<Link*>::iterator i = inputLinks.begin();
-       i != inputLinks.end(); i++)
-  {
-    i->purgeHead(); // TODO Link::purgeHead()
   }
 
   return;

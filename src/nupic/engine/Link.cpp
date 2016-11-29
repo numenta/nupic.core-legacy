@@ -179,26 +179,23 @@ void Link::initialize(size_t destinationOffset)
   srcBuffer_.set_capacity(propagationDelay + 1);
 
   // Initialize delay data elements
-  size_t dataElementCount = src_->getNodeOutputElementCount();
-  if(!src_->isRegionLevel())
-  {
-    dataElementCount *= src_->getRegion().getDimensions().getCount();
-  }
+  const Array & srcArray = src_->getData();
+  size_t dataElementCount = srcArray.getCount();
+  auto dataElementType = srcArray.getType();
+  size_t dataBufferSize = dataElementCount *
+                          BasicType::getSize(dataElementType);
 
-  auto dataElementType = src_.getData().getType();
-  Array dataTemplate(dataElementType);
+  Array arrayTemplate(dataElementType);
 
   for(size_t i = 0; i < propagationDelay; i++)
   {
-    srcBuffer_.push_back(dataTemplate);
+    srcBuffer_.push_back(arrayTemplate);
 
     if(dataElementCount != 0)
     {
       // Allocate 0-initialized data for current element
       srcBuffer_[i].allocateBuffer(dataElementCount);
-      void *buffer = srcBuffer_[i].getBuffer();
-      size_t byteCount = dataElementCount * BasicType::getSize(dataElementType);
-      memset(buffer, 0, byteCount);
+      ::memset(srcBuffer_[i].getBuffer(), 0, dataBufferSize);
     }
   }
 
@@ -360,10 +357,21 @@ Link::compute()
 {
   NTA_CHECK(initialized_);
 
-  // If first compute during current network run, append src to circular buffer
+  // If first compute during current network run iteration, append src to
+  // circular buffer
   if (!srcBuffer_.full())
   {
-    srcBuffer_.push_back(src_)
+    const Array & srcArray = src_->getData();
+    size_t elementCount = srcArray.getCount();
+    auto elementType = srcArray.getType();
+
+    Array array(elementType);
+    srcBuffer_.push_back(array);
+
+    auto lastElement = srcBuffer_.back();
+    lastElement.allocateBuffer(elementCount);
+    ::memcpy(lastElement.getBuffer(), srcArray.getBuffer(),
+             elementCount * BasicType::getSize(elementType));
   }
 
   // Copy data from source to destination.
@@ -374,6 +382,13 @@ Link::compute()
   size_t srcSize = src.getCount() * typeSize;
   size_t destByteOffset = destOffset_ * typeSize;
   ::memcpy((char*)(dest.getBuffer()) + destByteOffset, src.getBuffer(), srcSize);
+}
+
+void Link::purgeHead()
+{
+  NTA_CHECK(!srcBuffer_.empty());
+
+  srcBuffer_.pop_front();
 }
 
 void Link::write(LinkProto::Builder& proto) const
