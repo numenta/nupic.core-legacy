@@ -3549,9 +3549,9 @@ def __setstate__(self, inString):
   inline PyObject* rightVecSumAtNZ(PyObject* py_x) const
   {
     PyArrayObject* x = (PyArrayObject*) py_x;
-    nupic::Real32* x_begin = (nupic::Real32*)(PyArray_DATA(x));
-    nupic::Real32* x_end = x_begin + PyArray_DIMS(x)[0];
-    nupic::NumpyVectorT<nupic::Real32> y(self->nRows());
+    nupic::Real* x_begin = (nupic::Real*)(PyArray_DATA(x));
+    nupic::Real* x_end = x_begin + PyArray_DIMS(x)[0];
+    nupic::NumpyVectorT<nupic::Real> y(self->nRows());
     self->rightVecSumAtNZ(x_begin, x_end, y.begin(), y.end());
     return y.forPython();
   }
@@ -3562,11 +3562,11 @@ def __setstate__(self, inString):
   inline void rightVecSumAtNZ_fast(PyObject* py_x, PyObject* py_y) const
   {
     PyArrayObject* x = (PyArrayObject*) py_x;
-    nupic::Real32* x_begin = (nupic::Real32*)(PyArray_DATA(x));
-    nupic::Real32* x_end = x_begin + PyArray_DIMS(x)[0];
+    nupic::Real* x_begin = (nupic::Real*)(PyArray_DATA(x));
+    nupic::Real* x_end = x_begin + PyArray_DIMS(x)[0];
     PyArrayObject* y = (PyArrayObject*) py_y;
-    nupic::Real32* y_begin = (nupic::Real32*)(PyArray_DATA(y));
-    nupic::Real32* y_end = y_begin + PyArray_DIMS(y)[0];
+    nupic::Real* y_begin = (nupic::Real*)(PyArray_DATA(y));
+    nupic::Real* y_end = y_begin + PyArray_DIMS(y)[0];
     self->rightVecSumAtNZ(x_begin, x_end, y_begin, y_end);
   }
 
@@ -3576,9 +3576,9 @@ def __setstate__(self, inString):
   inline PyObject* leftVecSumAtNZ(PyObject* py_x) const
   {
     PyArrayObject* x = (PyArrayObject*) py_x;
-    nupic::Real32* x_begin = (nupic::Real32*)(PyArray_DATA(x));
-    nupic::Real32* x_end = x_begin + PyArray_DIMS(x)[0];
-    nupic::NumpyVectorT<nupic::Real32> y(self->nCols());
+    nupic::Real* x_begin = (nupic::Real*)(PyArray_DATA(x));
+    nupic::Real* x_end = x_begin + PyArray_DIMS(x)[0];
+    nupic::NumpyVectorT<nupic::Real> y(self->nCols());
     self->leftVecSumAtNZ(x_begin, x_end, y.begin(), y.end());
     return y.forPython();
   }
@@ -3589,11 +3589,11 @@ def __setstate__(self, inString):
   inline void leftVecSumAtNZ_fast(PyObject* py_x, PyObject* py_y) const
   {
     PyArrayObject* x = (PyArrayObject*) py_x;
-    nupic::Real32* x_begin = (nupic::Real32*)(PyArray_DATA(x));
-    nupic::Real32* x_end = x_begin + PyArray_DIMS(x)[0];
+    nupic::Real* x_begin = (nupic::Real*)(PyArray_DATA(x));
+    nupic::Real* x_end = x_begin + PyArray_DIMS(x)[0];
     PyArrayObject* y = (PyArrayObject*) py_y;
-    nupic::Real32* y_begin = (nupic::Real32*)(PyArray_DATA(y));
-    nupic::Real32* y_end = y_begin + PyArray_DIMS(y)[0];
+    nupic::Real* y_begin = (nupic::Real*)(PyArray_DATA(y));
+    nupic::Real* y_end = y_begin + PyArray_DIMS(y)[0];
     self->leftVecSumAtNZ(x_begin, x_end, y_begin, y_end);
   }
 
