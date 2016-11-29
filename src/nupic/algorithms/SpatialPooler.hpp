@@ -1018,8 +1018,9 @@ namespace nupic
 
               @param activeColumns an int array containing the indices of the active columns.
           */
-          void inhibitColumns_(vector<Real>& overlaps,
-                               vector<UInt>& activeColumns);
+          void inhibitColumns_(
+            const vector<Real>& overlaps,
+            vector<UInt>& activeColumns);
 
           /**
              Perform global inhibition.
@@ -1042,8 +1043,10 @@ namespace nupic
              @param activeColumns
              an int array containing the indices of the active columns.
           */
-          void inhibitColumnsGlobal_(vector<Real>& overlaps, Real density,
-                                     vector<UInt>& activeColumns);
+          void inhibitColumnsGlobal_(
+            const vector<Real>& overlaps,
+            Real density,
+            vector<UInt>& activeColumns);
 
           /**
              Performs local inhibition.
@@ -1071,8 +1074,10 @@ namespace nupic
              @param activeColumns
              an int array containing the indices of the active columns.
           */
-          void inhibitColumnsLocal_(vector<Real>& overlaps, Real density,
-                                    vector<UInt>& activeColumns);
+          void inhibitColumnsLocal_(
+            const vector<Real>& overlaps,
+            Real density,
+            vector<UInt>& activeColumns);
 
           /**
               The primary method in charge of learning.
