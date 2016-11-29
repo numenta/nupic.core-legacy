@@ -39,6 +39,8 @@ using namespace nupic;
 using namespace nupic::algorithms::spatial_pooler;
 using namespace nupic::math::topology;
 
+static const Real PERMANENCE_EPSILON = 0.000001;
+
 // MSVC doesn't provide round() which only became standard in C99 or C++11
 #if defined(NTA_COMPILER_MSVC)
   template<typename T>
@@ -813,7 +815,7 @@ void SpatialPooler::updatePermanencesForColumn_(vector<Real>& perm,
   numConnected = 0;
   for (UInt i = 0; i < perm.size(); ++i)
   {
-    if (perm[i] >= synPermConnected_)
+    if (perm[i] >= synPermConnected_ - PERMANENCE_EPSILON)
     {
       connectedSparse.push_back(i);
       ++numConnected;
@@ -832,7 +834,7 @@ UInt SpatialPooler::countConnected_(vector<Real>& perm)
   UInt numConnected = 0;
   for (auto & elem : perm)
   {
-     if (elem > synPermConnected_)
+     if (elem >= synPermConnected_ - PERMANENCE_EPSILON)
      {
        ++numConnected;
      }
@@ -1148,7 +1150,7 @@ void SpatialPooler::updateBoostFactors_()
         UInt numNeighbors = 0;
         Real localActivityDensity = 0;
         for (UInt neighbor : WrappingNeighborhood(i, inhibitionRadius_,
-                                        columnDimensions_))
+                                                  columnDimensions_))
         {
           localActivityDensity += activeDutyCycles_[neighbor];
           numNeighbors += 1;
@@ -1159,9 +1161,12 @@ void SpatialPooler::updateBoostFactors_()
 
     for (UInt i = 0; i < numColumns_; ++i)
     {
-      boostFactors_[i] = exp(-(activeDutyCycles_[i] - targetDensity[i])
-                              * maxBoost_);
-    }    
+      Real boostFactor = exp(-(activeDutyCycles_[i] - targetDensity[i])
+                             * maxBoost_);
+
+      // Avoid floating point mismatches between implementations.
+      boostFactors_[i] = round(boostFactor * 100.0) / 100.0;
+    }
   }
 }
 
