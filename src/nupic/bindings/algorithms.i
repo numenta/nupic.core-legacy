@@ -905,10 +905,10 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
                            (nupic::Byte*) PyArray_DATA(infActiveStateT1),
                            (nupic::Byte*) PyArray_DATA(infPredictedStateT),
                            (nupic::Byte*) PyArray_DATA(infPredictedStateT1),
-                           (nupic::Real32*) PyArray_DATA(colConfidenceT),
-                           (nupic::Real32*) PyArray_DATA(colConfidenceT1),
-                           (nupic::Real32*) PyArray_DATA(cellConfidenceT),
-                           (nupic::Real32*) PyArray_DATA(cellConfidenceT1));
+                           (nupic::Real*) PyArray_DATA(colConfidenceT),
+                           (nupic::Real*) PyArray_DATA(colConfidenceT1),
+                           (nupic::Real*) PyArray_DATA(cellConfidenceT),
+                           (nupic::Real*) PyArray_DATA(cellConfidenceT1));
   }
 
   inline PyObject* getStates() const
@@ -918,8 +918,8 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
 
     nupic::Byte* cpp_activeT, *cpp_activeT1;
     nupic::Byte* cpp_predT, *cpp_predT1;
-    nupic::Real32* cpp_colConfidenceT, *cpp_colConfidenceT1;
-    nupic::Real32* cpp_confidenceT, *cpp_confidenceT1;
+    nupic::Real* cpp_colConfidenceT, *cpp_colConfidenceT1;
+    nupic::Real* cpp_confidenceT, *cpp_confidenceT1;
 
     self->getStatePointers(cpp_activeT, cpp_activeT1,
                            cpp_predT, cpp_predT1,
@@ -930,10 +930,10 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
     nupic::NumpyVectorT<nupic::Byte> activeT1(nCells, cpp_activeT1);
     nupic::NumpyVectorT<nupic::Byte> predT(nCells, cpp_predT);
     nupic::NumpyVectorT<nupic::Byte> predT1(nCells, cpp_predT1);
-    nupic::NumpyVectorT<nupic::Real32> colConfidenceT(nColumns, cpp_colConfidenceT);
-    nupic::NumpyVectorT<nupic::Real32> colConfidenceT1(nColumns, cpp_colConfidenceT1);
-    nupic::NumpyVectorT<nupic::Real32> confidenceT(nCells, cpp_confidenceT);
-    nupic::NumpyVectorT<nupic::Real32> confidenceT1(nCells, cpp_confidenceT1);
+    nupic::NumpyVectorT<nupic::Real> colConfidenceT(nColumns, cpp_colConfidenceT);
+    nupic::NumpyVectorT<nupic::Real> colConfidenceT1(nColumns, cpp_colConfidenceT1);
+    nupic::NumpyVectorT<nupic::Real> confidenceT(nCells, cpp_confidenceT);
+    nupic::NumpyVectorT<nupic::Real> confidenceT1(nCells, cpp_confidenceT1);
 
     PyObject *result = PyTuple_New(8);
     PyTuple_SET_ITEM(result, 0, activeT.forPython());
@@ -999,8 +999,8 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
   inline PyObject* compute(PyObject* py_x, bool doInference, bool doLearning)
   {
     PyArrayObject* x = (PyArrayObject*) py_x;
-    nupic::NumpyVectorT<nupic::Real32> y(self->nCells());
-    self->compute((nupic::Real32*) PyArray_DATA(x), y.begin(), doInference, doLearning);
+    nupic::NumpyVectorT<nupic::Real> y(self->nCells());
+    self->compute((nupic::Real*) PyArray_DATA(x), y.begin(), doInference, doLearning);
     return y.forPython();
   }
 }
