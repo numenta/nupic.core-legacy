@@ -1172,9 +1172,9 @@ void SpatialPooler::calculateOverlapPct_(vector<UInt>& overlaps,
   }
 }
 
-// Makes a copy of overlaps
-void SpatialPooler::inhibitColumns_(vector<Real>& overlaps,
-                                    vector<UInt>& activeColumns)
+void SpatialPooler::inhibitColumns_(
+  const vector<Real>& overlaps,
+  vector<UInt>& activeColumns)
 {
   Real density = localAreaDensity_;
   if (numActiveColumnsPerInhArea_ > 0)
@@ -1235,8 +1235,10 @@ void SpatialPooler::addToWinners_(UInt index, Real score,
   winners.push_back(val);
 }
 
-void SpatialPooler::inhibitColumnsGlobal_(vector<Real>& overlaps, Real density,
-                                          vector<UInt>& activeColumns)
+void SpatialPooler::inhibitColumnsGlobal_(
+  const vector<Real>& overlaps,
+  Real density,
+  vector<UInt>& activeColumns)
 {
   activeColumns.clear();
   const UInt numDesired = (UInt) (density * numColumns_);
@@ -1257,19 +1259,16 @@ void SpatialPooler::inhibitColumnsGlobal_(vector<Real>& overlaps, Real density,
 
 }
 
-void SpatialPooler::inhibitColumnsLocal_(vector<Real>& overlaps, Real density,
-                                         vector<UInt>& activeColumns)
+void SpatialPooler::inhibitColumnsLocal_(
+  const vector<Real>& overlaps,
+  Real density,
+  vector<UInt>& activeColumns)
 {
   activeColumns.clear();
 
-  // When a column is selected, add a small number to its overlap. If it was
-  // tied with other not-yet-processed columns, those columns will now lose the
-  // tie-breaker when they're processed.
-  Real arbitration = *max_element(overlaps.begin(), overlaps.end()) / 1000.0;
-  if (arbitration == 0)
-  {
-    arbitration = 0.001;
-  }
+  // Tie-breaking: when overlaps are equal, columns that have already been
+  // selected are treated as "bigger".
+  vector<bool> activeColumnsDense(numColumns_, false);
 
   for (UInt column = 0; column < numColumns_; column++)
   {
@@ -1285,7 +1284,10 @@ void SpatialPooler::inhibitColumnsLocal_(vector<Real>& overlaps, Real density,
           if (neighbor != column)
           {
             numNeighbors++;
-            if (overlaps[neighbor] > overlaps[column])
+
+            const Real difference = overlaps[neighbor] - overlaps[column];
+            if (difference > 0 ||
+                (difference == 0 && activeColumnsDense[neighbor]))
             {
               numBigger++;
             }
@@ -1300,7 +1302,10 @@ void SpatialPooler::inhibitColumnsLocal_(vector<Real>& overlaps, Real density,
           if (neighbor != column)
           {
             numNeighbors++;
-            if (overlaps[neighbor] > overlaps[column])
+
+            const Real difference = overlaps[neighbor] - overlaps[column];
+            if (difference > 0 ||
+                (difference == 0 && activeColumnsDense[neighbor]))
             {
               numBigger++;
             }
@@ -1312,7 +1317,7 @@ void SpatialPooler::inhibitColumnsLocal_(vector<Real>& overlaps, Real density,
       if (numBigger < numActive)
       {
         activeColumns.push_back(column);
-        overlaps[column] += arbitration;
+        activeColumnsDense[column] = true;
       }
     }
   }
