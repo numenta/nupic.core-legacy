@@ -1122,52 +1122,86 @@ void SpatialPooler::updateDutyCyclesHelper_(vector<Real>& dutyCycles,
 
 void SpatialPooler::updateBoostFactors_()
 {
-
   if (maxBoost_ > 1.0)
-  {
-    vector<Real> targetDensity(numColumns_, 0);
+  {    
     if (globalInhibition_)
     {
-      Real density = localAreaDensity_;
-      if (numActiveColumnsPerInhArea_ > 0)
-      {
-        UInt inhibitionArea = pow((Real) (2 * inhibitionRadius_ + 1),
-                                  (Real) columnDimensions_.size());
-        inhibitionArea = min(inhibitionArea, numColumns_);
-        density = ((Real) numActiveColumnsPerInhArea_) / inhibitionArea;
-        density = min(density, (Real) 0.5);
-      }
-
-      for (UInt i = 0; i < numColumns_; ++i)
-      {
-        targetDensity[i] = density;
-      }
+      updateBoostFactorsGlobal_();
     }
     else
     {
-      for (UInt i = 0; i < numColumns_; ++i)
-      {
-        UInt numNeighbors = 0;
-        Real localActivityDensity = 0;
-        for (UInt neighbor : WrappingNeighborhood(i, inhibitionRadius_,
-                                                  columnDimensions_))
-        {
-          localActivityDensity += activeDutyCycles_[neighbor];
-          numNeighbors += 1;
-        }
-        targetDensity[i] = localActivityDensity / numNeighbors;
-      }
-    }
-
-    for (UInt i = 0; i < numColumns_; ++i)
-    {
-      Real boostFactor = exp(-(activeDutyCycles_[i] - targetDensity[i])
-                             * maxBoost_);
-
-      // Avoid floating point mismatches between implementations.
-      boostFactors_[i] = round(boostFactor * 100.0) / 100.0;
+      updateBoostFactorsLocal_();
     }
   }
+}
+
+void SpatialPooler::updateBoostFactorsGlobal_()
+{
+  Real targetDensity;
+  if (numActiveColumnsPerInhArea_ > 0)
+  {
+    UInt inhibitionArea = pow((Real) (2 * inhibitionRadius_ + 1),
+                              (Real) columnDimensions_.size());
+    inhibitionArea = min(inhibitionArea, numColumns_);
+    targetDensity = ((Real) numActiveColumnsPerInhArea_) / inhibitionArea;
+    targetDensity = min(targetDensity, (Real) 0.5);
+  }
+  else
+  {
+    targetDensity = localAreaDensity_;
+  }
+
+  for (UInt i = 0; i < numColumns_; ++i)
+  {
+    Real boostFactor = exp(-(activeDutyCycles_[i] - targetDensity)
+                           * maxBoost_);
+
+    // Avoid floating point mismatches between implementations.
+    boostFactors_[i] = round(boostFactor * 100.0) / 100.0;
+  }
+ 
+}
+
+void SpatialPooler::updateBoostFactorsLocal_()
+{
+  vector<Real> targetDensity(numColumns_, 0);
+  
+  for (UInt i = 0; i < numColumns_; ++i)
+  {
+    UInt numNeighbors = 0;
+    Real localActivityDensity = 0;
+
+    if (wrapAround_)
+    {
+      for (UInt neighbor : WrappingNeighborhood(i, inhibitionRadius_,
+                                                columnDimensions_))
+      {
+        localActivityDensity += activeDutyCycles_[neighbor];
+        numNeighbors += 1;
+      }      
+    }
+    else
+    {
+      for (UInt neighbor : Neighborhood(i, inhibitionRadius_,
+                                                columnDimensions_))
+      {
+        localActivityDensity += activeDutyCycles_[neighbor];
+        numNeighbors += 1;
+      }            
+    }
+    targetDensity[i] = localActivityDensity / numNeighbors;
+  }
+
+
+  for (UInt i = 0; i < numColumns_; ++i)
+  {
+    Real boostFactor = exp(-(activeDutyCycles_[i] - targetDensity[i])
+                           * maxBoost_);
+
+    // Avoid floating point mismatches between implementations.
+    boostFactors_[i] = round(boostFactor * 100.0) / 100.0;
+  }
+
 }
 
 void SpatialPooler::updateBookeepingVars_(bool learn)

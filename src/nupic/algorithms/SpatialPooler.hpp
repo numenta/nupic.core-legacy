@@ -1255,6 +1255,20 @@ namespace nupic
           void updateBoostFactors_();
 
           /**
+          Update boost factors when local inhibition is enabled. In this case,
+          the target activation level for each column is estimated as the
+          average activation level for columns in its neighborhood.
+          */
+          void updateBoostFactorsLocal_();
+
+          /**
+          Update boost factors when global inhibition is enabled. All columns
+          share the same target activation level in this case, which is the
+          sparsity of spatial pooler.
+          */
+          void updateBoostFactorsGlobal_();
+
+          /**
           Updates counter instance variables each round.
 
             @param learn          a boolean value indicating whether learning should be
