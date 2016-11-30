@@ -440,10 +440,10 @@ Network::run(int n)
         r->compute();
 
         // Accummulate input links of computed regions
-        for (auto & input : r.getInputs())
+        for (auto & input : r->getInputs())
         {
           auto links = input.second->getLinks();
-          inputLinks.insert(links.cbegin(), links.cend());
+          inputLinks.insert(links.begin(), links.end());
         }
       }
     }

@@ -53,7 +53,7 @@ Link::Link(const std::string& linkType, const std::string& linkParams,
 
 Link::Link(const std::string& linkType, const std::string& linkParams,
            Output* srcOutput, Input* destInput):
-             srcBuffer_(calcSourceBufferCapacity(linkParams))
+             srcBuffer_()
 {
   commonConstructorInit_(linkType, linkParams,
         srcOutput->getRegion().getName(),
@@ -84,10 +84,6 @@ void Link::commonConstructorInit_(const std::string& linkType, const std::string
 
 
   impl_ = LinkPolicyFactory().createLinkPolicy(linkType, linkParams, this);
-}
-
-static int Link::calcSourceBufferCapacity(const std::string& linkParams)
-{
 }
 
 Link::~Link()
@@ -172,7 +168,7 @@ void Link::initialize(size_t destinationOffset)
   // Initialize the propagation delay buffer
   // ---
 
-  auto propagationDelay = impl_.getLinkPropagationDelay();
+  auto propagationDelay = impl_->getLinkPropagationDelay();
 
   // Establish capacity for the requested delay data elements plus one slot for
   // the next output element
@@ -375,7 +371,7 @@ Link::compute()
   }
 
   // Copy data from source to destination.
-  const Array & src = srcBuffer_[0].getData();
+  const Array & src = srcBuffer_[0];
   const Array & dest = dest_->getData();
 
   size_t typeSize = BasicType::getSize(src.getType());
