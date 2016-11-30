@@ -1164,8 +1164,6 @@ void SpatialPooler::updateBoostFactorsGlobal_()
 
 void SpatialPooler::updateBoostFactorsLocal_()
 {
-  vector<Real> targetDensity(numColumns_, 0);
-  
   for (UInt i = 0; i < numColumns_; ++i)
   {
     UInt numNeighbors = 0;
@@ -1183,19 +1181,14 @@ void SpatialPooler::updateBoostFactorsLocal_()
     else
     {
       for (UInt neighbor : Neighborhood(i, inhibitionRadius_,
-                                                columnDimensions_))
+                                        columnDimensions_))
       {
         localActivityDensity += activeDutyCycles_[neighbor];
         numNeighbors += 1;
       }            
     }
-    targetDensity[i] = localActivityDensity / numNeighbors;
-  }
-
-
-  for (UInt i = 0; i < numColumns_; ++i)
-  {
-    Real boostFactor = exp(-(activeDutyCycles_[i] - targetDensity[i])
+    Real targetDensity = localActivityDensity / numNeighbors;
+    Real boostFactor = exp(-(activeDutyCycles_[i] - targetDensity)
                            * maxBoost_);
 
     // Avoid floating point mismatches between implementations.
