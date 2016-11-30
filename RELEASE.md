@@ -13,7 +13,7 @@ version
 5. Deploy the release in Bamboo. This will:
     - Validate that the Bamboo release number matches the wheel version
     - Push the wheel to PyPI
-6. Created a new Github "Release" at https://github.com/numenta/nupic.core/releases/new
+6. Create a new Github "Release" at https://github.com/numenta/nupic.core/releases/new
     - Along with the creation of the release, there is an option to create a git tag with the release. Name it "X.Y.Z" and point it to the commit SHA for the merged PR described in #2 above.
     - Release title should be "X.Y.Z"
     - Release description should be the latest changelog
