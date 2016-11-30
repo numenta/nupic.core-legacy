@@ -210,13 +210,13 @@ namespace nupic
                 boost. Shorter values make it potentially more unstable and
                 likely to oscillate.
 
-          @param maxBoost The maximum overlap boost factor. Each column's
-                overlap gets multiplied by a boost factor before it gets
-                considered for inhibition. The actual boost factor for a column
-                is a number between 1.0 and maxBoost. A boost factor of 1.0 is
-                used if the duty cycle is >= minOverlapDutyCycle, maxBoost is
-                used if the duty cycle is 0, and any duty cycle in between is
-                linearly extrapolated from these 2 endpoints.
+          @param maxBoost A number greater or equal than 1.0, used to control
+          the strength of boosting. No boosting is applied if maxBoost=1.0.
+          The strength of boosting increases as a function of maxBoost.
+          Boosting encourages columns to have similar activeDutyCycles as their
+          neighbors, which will lead to more efficient use of columns. However,
+          too much boosting may also lead to instability of SP outputs.
+
 
           @param seed Seed for our random number generator. If seed is < 0
                 a randomly generated seed is used. The behavior of the spatial
