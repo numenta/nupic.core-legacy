@@ -357,6 +357,8 @@ Link::compute()
   // circular buffer
   if (!srcBuffer_.full())
   {
+    NTA_INFO << "Link::compute: appening src_ to circular buffer";
+
     const Array & srcArray = src_->getData();
     size_t elementCount = srcArray.getCount();
     auto elementType = srcArray.getType();
@@ -364,7 +366,7 @@ Link::compute()
     Array array(elementType);
     srcBuffer_.push_back(array);
 
-    auto lastElement = srcBuffer_.back();
+    auto & lastElement = srcBuffer_.back();
     lastElement.allocateBuffer(elementCount);
     ::memcpy(lastElement.getBuffer(), srcArray.getBuffer(),
              elementCount * BasicType::getSize(elementType));
