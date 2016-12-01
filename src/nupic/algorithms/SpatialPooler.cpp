@@ -39,6 +39,8 @@ using namespace nupic;
 using namespace nupic::algorithms::spatial_pooler;
 using namespace nupic::math::topology;
 
+static const Real PERMANENCE_EPSILON = 0.000001;
+
 // MSVC doesn't provide round() which only became standard in C99 or C++11
 #if defined(NTA_COMPILER_MSVC)
   template<typename T>
@@ -813,7 +815,7 @@ void SpatialPooler::updatePermanencesForColumn_(vector<Real>& perm,
   numConnected = 0;
   for (UInt i = 0; i < perm.size(); ++i)
   {
-    if (perm[i] >= synPermConnected_)
+    if (perm[i] >= synPermConnected_ - PERMANENCE_EPSILON)
     {
       connectedSparse.push_back(i);
       ++numConnected;
@@ -832,7 +834,7 @@ UInt SpatialPooler::countConnected_(vector<Real>& perm)
   UInt numConnected = 0;
   for (auto & elem : perm)
   {
-     if (elem > synPermConnected_)
+     if (elem >= synPermConnected_ - PERMANENCE_EPSILON)
      {
        ++numConnected;
      }
@@ -1120,20 +1122,77 @@ void SpatialPooler::updateDutyCyclesHelper_(vector<Real>& dutyCycles,
 
 void SpatialPooler::updateBoostFactors_()
 {
-  for (UInt i = 0; i < numColumns_; i++)
-  {
-    if (minActiveDutyCycles_[i] <= 0)
+  if (maxBoost_ > 1.0)
+  {    
+    if (globalInhibition_)
     {
-      continue;
+      updateBoostFactorsGlobal_();
     }
-    if (activeDutyCycles_[i] > minActiveDutyCycles_[i])
+    else
     {
-      boostFactors_[i] = 1.0;
-      continue;
+      updateBoostFactorsLocal_();
     }
-    boostFactors_[i] = ((1 - maxBoost_) / minActiveDutyCycles_[i] *
-                        activeDutyCycles_[i]) + maxBoost_;
   }
+}
+
+void SpatialPooler::updateBoostFactorsGlobal_()
+{
+  Real targetDensity;
+  if (numActiveColumnsPerInhArea_ > 0)
+  {
+    UInt inhibitionArea = pow((Real) (2 * inhibitionRadius_ + 1),
+                              (Real) columnDimensions_.size());
+    inhibitionArea = min(inhibitionArea, numColumns_);
+    targetDensity = ((Real) numActiveColumnsPerInhArea_) / inhibitionArea;
+    targetDensity = min(targetDensity, (Real) 0.5);
+  }
+  else
+  {
+    targetDensity = localAreaDensity_;
+  }
+
+  for (UInt i = 0; i < numColumns_; ++i)
+  {
+    Real boostFactor = exp((targetDensity - activeDutyCycles_[i])* maxBoost_);
+
+    // Avoid floating point mismatches between implementations.
+    boostFactors_[i] = round(boostFactor * 100.0) / 100.0;
+  }
+ 
+}
+
+void SpatialPooler::updateBoostFactorsLocal_()
+{
+  for (UInt i = 0; i < numColumns_; ++i)
+  {
+    UInt numNeighbors = 0;
+    Real localActivityDensity = 0;
+
+    if (wrapAround_)
+    {
+      for (UInt neighbor : WrappingNeighborhood(i, inhibitionRadius_,
+                                                columnDimensions_))
+      {
+        localActivityDensity += activeDutyCycles_[neighbor];
+        numNeighbors += 1;
+      }      
+    }
+    else
+    {
+      for (UInt neighbor : Neighborhood(i, inhibitionRadius_,
+                                        columnDimensions_))
+      {
+        localActivityDensity += activeDutyCycles_[neighbor];
+        numNeighbors += 1;
+      }            
+    }
+    Real targetDensity = localActivityDensity / numNeighbors;
+    Real boostFactor = exp((targetDensity - activeDutyCycles_[i]) * maxBoost_);
+
+    // Avoid floating point mismatches between implementations.
+    boostFactors_[i] = round(boostFactor * 100.0) / 100.0;
+  }
+
 }
 
 void SpatialPooler::updateBookeepingVars_(bool learn)
@@ -1276,6 +1335,7 @@ void SpatialPooler::inhibitColumnsLocal_(
     {
       UInt numNeighbors = 0;
       UInt numBigger = 0;
+
       if (wrapAround_)
       {
         for (UInt neighbor : WrappingNeighborhood(column, inhibitionRadius_,
@@ -1312,6 +1372,7 @@ void SpatialPooler::inhibitColumnsLocal_(
           }
         }
       }
+
 
       UInt numActive = (UInt) (0.5 + (density * (numNeighbors + 1)));
       if (numBigger < numActive)

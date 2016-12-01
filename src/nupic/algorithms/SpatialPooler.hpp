@@ -210,13 +210,13 @@ namespace nupic
                 boost. Shorter values make it potentially more unstable and
                 likely to oscillate.
 
-          @param maxBoost The maximum overlap boost factor. Each column's
-                overlap gets multiplied by a boost factor before it gets
-                considered for inhibition. The actual boost factor for a column
-                is a number between 1.0 and maxBoost. A boost factor of 1.0 is
-                used if the duty cycle is >= minOverlapDutyCycle, maxBoost is
-                used if the duty cycle is 0, and any duty cycle in between is
-                linearly extrapolated from these 2 endpoints.
+          @param maxBoost A number greater or equal than 1.0, used to control
+          the strength of boosting. No boosting is applied if maxBoost=1.0.
+          The strength of boosting increases as a function of maxBoost.
+          Boosting encourages columns to have similar activeDutyCycles as their
+          neighbors, which will lead to more efficient use of columns. However,
+          too much boosting may also lead to instability of SP outputs.
+
 
           @param seed Seed for our random number generator. If seed is < 0
                 a randomly generated seed is used. The behavior of the spatial
@@ -872,7 +872,7 @@ namespace nupic
             what are the indices of the input vector that are located within the
             column's potential pool. The return value is a list containing the indices
             of the input bits. The current implementation of the base class only
-            supports a 1 dimensional topology of columsn with a 1 dimensional topology
+            supports a 1 dimensional topology of columns with a 1 dimensional topology
             of inputs. To extend this class to support 2-D topology you will need to
             override this method. Examples of the expected output of this method:
             * If the potentialRadius is greater than or equal to the entire input
@@ -890,8 +890,8 @@ namespace nupic
             @param column         An int index identifying a column in the permanence, potential
                             and connectivity matrices.
 
-            @param wrapAround     A boolean value indicating that boundaries should be
-                            region boundaries ignored.
+            @param wrapAround  A boolean value indicating that boundaries should be
+                               ignored.
           */
           vector<UInt> mapPotential_(UInt column, bool wrapAround);
 
@@ -944,11 +944,11 @@ namespace nupic
 
             The column is identified by its index, which reflects the row in
             the matrix, and the permanence is given in 'dense' form, i.e. a full
-            arrray containing all the zeros as well as the non-zero values. It is in
+            array containing all the zeros as well as the non-zero values. It is in
             charge of implementing 'clipping' - ensuring that the permanence values are
             always between 0 and 1 - and 'trimming' - enforcing sparsity by zeroing out
             all permanence values below '_synPermTrimThreshold'. It also maintains
-            the consistency between 'self._permanences' (the matrix storeing the
+            the consistency between 'self._permanences' (the matrix storing the
             permanence values), 'self._connectedSynapses', (the matrix storing the bits
             each column is connected to), and 'self._connectedCounts' (an array storing
             the number of input bits each column is connected to). Every method wishing
@@ -978,9 +978,9 @@ namespace nupic
              input vector.
 
              The overlap of a column is the number of synapses for that column
-             that are connected (permance value is greater than
+             that are connected (permanence value is greater than
              '_synPermConnected') to input bits which are turned on. The
-             implementation takes advantage of the SpraseBinaryMatrix class to
+             implementation takes advantage of the SparseBinaryMatrix class to
              perform this calculation efficiently.
 
              @param inputVector
@@ -1068,7 +1068,7 @@ namespace nupic
              @param density
              The fraction of columns to survive inhibition. This value is only
              an intended target. Since the surviving columns are picked in a
-             local fashion, the exact fraction of survining columns is likely to
+             local fashion, the exact fraction of surviving columns is likely to
              vary.
 
              @param activeColumns
@@ -1109,7 +1109,7 @@ namespace nupic
 
           /**
               Update the inhibition radius. The inhibition radius is a meausre of the
-              square (or hypersquare) of columns that each a column is "conencted to"
+              square (or hypersquare) of columns that each a column is "connected to"
               on average. Since columns are not connected to each other directly, we
               determine this quantity by first figuring out how many *inputs* a column is
               connected to, and then multiplying it by the total number of columns that
@@ -1133,7 +1133,7 @@ namespace nupic
           /**
               The range of connected synapses for column. This is used to
               calculate the inhibition radius. This variation of the function only
-              supports a 1 dimensional column toplogy.
+              supports a 1 dimensional column topology.
 
               @param column An int number identifying a column in the permanence, potential
                               and connectivity matrices.
@@ -1171,9 +1171,9 @@ namespace nupic
               Updates the minimum duty cycles in a global fashion. Sets the minimum duty
               cycles for the overlap and activation of all columns to be a percent of the
               maximum in the region, specified by minPctOverlapDutyCycle and
-              minPctActiveDutyCycle respectively. Functionaly it is equivalent to
+              minPctActiveDutyCycle respectively. Functionally it is equivalent to
               _updateMinDutyCyclesLocal, but this function exploits the globalilty of the
-              compuation to perform it in a straightforward, and more efficient manner.
+              computation to perform it in a straightforward, and more efficient manner.
           */
           void updateMinDutyCyclesGlobal_();
 
@@ -1258,6 +1258,20 @@ namespace nupic
               @endverbatim
             */
           void updateBoostFactors_();
+
+          /**
+          Update boost factors when local inhibition is enabled. In this case,
+          the target activation level for each column is estimated as the
+          average activation level for columns in its neighborhood.
+          */
+          void updateBoostFactorsLocal_();
+
+          /**
+          Update boost factors when global inhibition is enabled. All columns
+          share the same target activation level in this case, which is the
+          sparsity of spatial pooler.
+          */
+          void updateBoostFactorsGlobal_();
 
           /**
           Updates counter instance variables each round.
