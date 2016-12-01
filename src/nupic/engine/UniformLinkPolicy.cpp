@@ -306,9 +306,9 @@ void UniformLinkPolicy::setValidParameters()
   parameters_.add("linkPropagationDelay",
                   ParameterSpec("Link data propagation delay",
                                 NTA_BasicType_UInt32,
-                                0,
-                                "interval:[0,...)",
-                                "[0]",
+                                1,    // elementCount
+                                "",   // constraints
+                                "0",  // defaultValue
                                 ParameterSpec::ReadOnlyAccess));
 
   // ---
