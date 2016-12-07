@@ -42,24 +42,27 @@ namespace nupic
 
 Link::Link(const std::string& linkType, const std::string& linkParams,
            const std::string& srcRegionName, const std::string& destRegionName,
-           const std::string& srcOutputName, const std::string& destInputName):
+           const std::string& srcOutputName, const std::string& destInputName,
+           const size_t propagationDelay):
              srcBuffer_(0)
 {
   commonConstructorInit_(linkType, linkParams,
         srcRegionName, destRegionName,
-        srcOutputName, destInputName);
+        srcOutputName, destInputName,
+        propagationDelay);
 
 }
 
 Link::Link(const std::string& linkType, const std::string& linkParams,
-           Output* srcOutput, Input* destInput):
+           Output* srcOutput, Input* destInput, const size_t propagationDelay):
              srcBuffer_()
 {
   commonConstructorInit_(linkType, linkParams,
         srcOutput->getRegion().getName(),
         destInput->getRegion().getName(),
         srcOutput->getName(),
-        destInput->getName() );
+        destInput->getName(),
+        propagationDelay);
 
   connectToNetwork(srcOutput, destInput);
   // Note -- link is not usable until we set the destOffset, which happens at initialization time
@@ -67,7 +70,8 @@ Link::Link(const std::string& linkType, const std::string& linkParams,
 
 void Link::commonConstructorInit_(const std::string& linkType, const std::string& linkParams,
                  const std::string& srcRegionName, const std::string& destRegionName,
-                 const std::string& srcOutputName,  const std::string& destInputName)
+                 const std::string& srcOutputName,  const std::string& destInputName,
+                 const size_t propagationDelay)
 {
   linkType_ = linkType;
   linkParams_ = linkParams;
@@ -75,6 +79,7 @@ void Link::commonConstructorInit_(const std::string& linkType, const std::string
   srcOutputName_ = srcOutputName;
   destRegionName_ = destRegionName;
   destInputName_ = destInputName;
+  propagationDelay_ = propagationDelay;
   destOffset_ = 0;
   srcOffset_ = 0;
   srcSize_ = 0;
@@ -168,11 +173,9 @@ void Link::initialize(size_t destinationOffset)
   // Initialize the propagation delay buffer
   // ---
 
-  auto propagationDelay = impl_->getLinkPropagationDelay();
-
   // Establish capacity for the requested delay data elements plus one slot for
   // the next output element
-  srcBuffer_.set_capacity(propagationDelay + 1);
+  srcBuffer_.set_capacity(propagationDelay_ + 1);
 
   // Initialize delay data elements
   const Array & srcArray = src_->getData();
@@ -183,7 +186,7 @@ void Link::initialize(size_t destinationOffset)
 
   Array arrayTemplate(dataElementType);
 
-  for(size_t i = 0; i < propagationDelay; i++)
+  for(size_t i = 0; i < propagationDelay_; i++)
   {
     srcBuffer_.push_back(arrayTemplate);
 
@@ -404,7 +407,8 @@ void Link::read(LinkProto::Reader& proto)
   commonConstructorInit_(
       proto.getType().cStr(), proto.getParams().cStr(),
       proto.getSrcRegion().cStr(), proto.getDestRegion().cStr(),
-      proto.getSrcOutput().cStr(), proto.getDestInput().cStr());
+      proto.getSrcOutput().cStr(), proto.getDestInput().cStr(),
+      0/*propagationDelay ZZZ TODO get from proto*/);
 }
 
 namespace nupic

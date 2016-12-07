@@ -62,19 +62,6 @@ namespace nupic
     // srcNode sends its output to destNode.
     //
     virtual void buildProtoSplitterMap(Input::SplitterMap& splitter) const = 0;
-
-
-    /*
-     * Returns the data propagation delay of the link. @TODO better explanation
-     *
-     * @returns
-     *         Propagation delay of the link; defaults to 0 = no delay.
-     */
-    virtual size_t getLinkPropagationDelay() const
-    {
-      return 0;
-    }
-
   };
 
 

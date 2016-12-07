@@ -46,7 +46,6 @@ UniformLinkPolicy::UniformLinkPolicy(const std::string params,
   link_(link),
   elementCount_(uninitializedElementCount),
   parameterDimensionality_(0),
-  propagationDelay_(0),
   initialized_(false)
 {
   setValidParameters();
@@ -63,9 +62,6 @@ UniformLinkPolicy::~UniformLinkPolicy()
 void UniformLinkPolicy::readParameters(const std::string& params)
 {
   ValueMap paramMap = YAMLUtils::toValueMap(params.c_str(), parameters_);
-
-  propagationDelay_ = (size_t)paramMap.getScalarT<UInt32>(
-    "linkPropagationDelay");
 
   boost::shared_ptr<std::string> mappingStr = paramMap.getString("mapping");
 
@@ -300,17 +296,6 @@ void UniformLinkPolicy::copyRealVecToFractionVec(
 
 void UniformLinkPolicy::setValidParameters()
 {
-  // ---
-  // Data propagation delay of the link
-  // ---
-  parameters_.add("linkPropagationDelay",
-                  ParameterSpec("Link data propagation delay",
-                                NTA_BasicType_UInt32,
-                                1,    // elementCount
-                                "",   // constraints
-                                "0",  // defaultValue
-                                ParameterSpec::ReadOnlyAccess));
-
   // ---
   // The Network::link() method specifies the direction of the link (i.e.
   // source and destination regions), and this parameter specifies the
@@ -1673,11 +1658,6 @@ void UniformLinkPolicy::initialize()
   }
 
   initialized_ = true;
-}
-
-size_t UniformLinkPolicy::getLinkPropagationDelay() const
-{
-  return propagationDelay_;
 }
 
 bool UniformLinkPolicy::isInitialized() const

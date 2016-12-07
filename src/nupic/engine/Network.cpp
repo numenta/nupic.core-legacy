@@ -323,7 +323,8 @@ Network::removeRegion(const std::string& name)
 void
 Network::link(const std::string& srcRegionName, const std::string& destRegionName,
               const std::string& linkType, const std::string& linkParams,
-              const std::string& srcOutputName, const std::string& destInputName)
+              const std::string& srcOutputName, const std::string& destInputName,
+              const size_t propagationDelay)
 {
 
   // Find the regions
@@ -362,7 +363,7 @@ Network::link(const std::string& srcRegionName, const std::string& destRegionNam
   }
 
   // Create the link itself
-  destInput->addLink(linkType, linkParams, srcOutput);
+  destInput->addLink(linkType, linkParams, srcOutput, propagationDelay);
 
 }
 

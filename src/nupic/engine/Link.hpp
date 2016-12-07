@@ -97,6 +97,10 @@ namespace nupic
      *            The name of the source Output
      * @param destInputName
      *            The name of the destination Input
+     * @param propagationDelay
+     *            Propagation delay of the link as number of network run
+     *            iterations involving the link as input; the delay vectors, if
+     *            any, are initially populated with 0's. Defaults to 0=no delay
      *
      * @internal
      *
@@ -111,7 +115,9 @@ namespace nupic
      */
     Link(const std::string& linkType, const std::string& linkParams,
          const std::string& srcRegionName, const std::string& destRegionName,
-         const std::string& srcOutputName="", const std::string& destInputName="");
+         const std::string& srcOutputName="",
+         const std::string& destInputName="",
+         const size_t propagationDelay=0);
 
     /**
      * Initialization Phase 2: connecting inputs/outputs to
@@ -135,9 +141,13 @@ namespace nupic
      *            The source Output of the link
      * @param destInput
      *            The destination Input of the link
+     * @param propagationDelay
+     *            Propagation delay of the link as number of network run
+     *            iterations involving the link as input; the delay vectors, if
+     *            any, are initially populated with 0's. Defaults to 0=no delay
      */
     Link(const std::string& linkType, const std::string& linkParams,
-         Output* srcOutput, Input* destInput);
+         Output* srcOutput, Input* destInput, size_t propagationDelay=0);
 
     /**
      * Initialization Phase 3: set the Dimensions for the source Output, and
@@ -445,7 +455,8 @@ namespace nupic
                                 const std::string& srcRegionName,
                                 const std::string& destRegionName,
                                 const std::string& srcOutputName,
-                                const std::string& destInputName);
+                                const std::string& destInputName,
+                                const size_t propagationDelay);
 
     // TODO: The strings with src/dest names are redundant with
     // the src_ and dest_ objects. For unit testing links,
@@ -486,6 +497,8 @@ namespace nupic
     // may not equal the size of the source output.
     size_t srcOffset_;
     size_t srcSize_;
+
+    size_t propagationDelay_;
 
     // link must be initialized before it can compute()
     bool initialized_;
