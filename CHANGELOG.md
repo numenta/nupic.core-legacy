@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.15
+
+* SpatialPooler: Tweak the boost factor rounding to mimic numpy's rounding of float32s
+
 ## 0.4.14
 
 * SpatialPooler: New boosting algorithm
