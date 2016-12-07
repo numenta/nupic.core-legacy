@@ -66,7 +66,8 @@ static Real round5_(const Real f)
 // Storing the intermediate value causes the result to occasionally differ. For
 // example, 2.7549998760 seems like it would round down to 2.75, but when
 // multiplied by 100 it becomes 275.5, so it will round to 2.76. If you don't
-// store the intermediate value, the compiler might round it to 2.75.
+// store the intermediate value, the compiler might generate something that
+// rounds it to 2.75.
 //
 // We choose this approach because it mimics numpy.
 static Real round2LikeNumpy_(Real f)
