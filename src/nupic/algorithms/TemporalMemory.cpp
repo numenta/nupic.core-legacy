@@ -35,6 +35,7 @@
 
 #include <cstring>
 #include <climits>
+#include <iomanip>
 #include <iostream>
 #include <string>
 #include <iterator>
@@ -820,6 +821,14 @@ UInt TemporalMemory::persistentSize() const
   return s.str().size();
 }
 
+template<typename FloatType>
+static void saveFloat_(ostream& outStream, FloatType v)
+{
+  outStream << std::setprecision(std::numeric_limits<FloatType>::max_digits10)
+            << v
+            << " ";
+}
+
 void TemporalMemory::save(ostream& outStream) const
 {
   // Write a starting marker and version.
@@ -827,16 +836,20 @@ void TemporalMemory::save(ostream& outStream) const
   outStream << TM_VERSION << endl;
 
   outStream << numColumns_ << " "
-    << cellsPerColumn_ << " "
-    << activationThreshold_ << " "
-    << initialPermanence_ << " "
-    << connectedPermanence_ << " "
-    << minThreshold_ << " "
-    << maxNewSynapseCount_ << " "
-    << permanenceIncrement_ << " "
-    << permanenceDecrement_ << " "
-    << predictedSegmentDecrement_ << " "
-    << endl;
+            << cellsPerColumn_ << " "
+            << activationThreshold_ << " ";
+
+  saveFloat_(outStream, initialPermanence_);
+  saveFloat_(outStream, connectedPermanence_);
+
+  outStream << minThreshold_ << " "
+            << maxNewSynapseCount_ << " ";
+
+  saveFloat_(outStream, permanenceIncrement_);
+  saveFloat_(outStream, permanenceDecrement_);
+  saveFloat_(outStream, predictedSegmentDecrement_);
+
+  outStream << endl;
 
   connections.save(outStream);
   outStream << endl;
