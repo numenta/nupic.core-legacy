@@ -1951,7 +1951,7 @@ void SpatialPooler::printParameters() const
     << "minPctActiveDutyCycles      = "
                 << getMinPctActiveDutyCycles() << std::endl
     << "dutyCyclePeriod             = " << getDutyCyclePeriod() << std::endl
-    << "boostStrength            = " << getBoostStrength() << std::endl
+    << "boostStrength               = " << getBoostStrength() << std::endl
     << "spVerbosity                 = " << getSpVerbosity() << std::endl
     << "wrapAround                  = " << getWrapAround() << std::endl
     << "version                     = " << version() << std::endl;
