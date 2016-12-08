@@ -104,9 +104,8 @@ void testSP()
     UInt outputBaseline[numColumns];
     sp1.compute(input, true, outputBaseline);
 
-    UInt outputA[numColumns];
-
     // A - First do iostream version
+    UInt outputA[numColumns];
     {
       SpatialPooler spTemp;
 
@@ -134,42 +133,34 @@ void testSP()
       NTA_CHECK(outputBaseline[i] == outputA[i]);
     }
 
-    // TODO https://github.com/numenta/nupic.core/issues/1165
-    //
-    // Serializing and deserializing the active duty cycles causes
-    // little variations over time which eventually lead to columns
-    // having slightly different boost factors, causing different
-    // results.
-    //
-    // UInt outputC[numColumns];
-    //
-    // // C - Next do old version
-    // {
-    //   SpatialPooler spTemp;
+    // C - Next do old version
+    UInt outputC[numColumns];
+    {
+      SpatialPooler spTemp;
 
-    //   testTimer.start();
+      testTimer.start();
 
-    //   // Deserialize
-    //   ifstream is("outC.proto", ifstream::binary);
-    //   spTemp.load(is);
-    //   is.close();
+      // Deserialize
+      ifstream is("outC.proto", ifstream::binary);
+      spTemp.load(is);
+      is.close();
 
-    //   // Feed new record through
-    //   spTemp.compute(input, true, outputC);
+      // Feed new record through
+      spTemp.compute(input, true, outputC);
 
-    //   // Serialize
-    //   ofstream os("outC.proto", ofstream::binary);
-    //   spTemp.save(os);
-    //   os.close();
+      // Serialize
+      ofstream os("outC.proto", ofstream::binary);
+      spTemp.save(os);
+      os.close();
 
-    //   testTimer.stop();
-    //   timeC = timeC + testTimer.getElapsed();
-    // }
+      testTimer.stop();
+      timeC = timeC + testTimer.getElapsed();
+    }
 
-    // for (UInt i = 0; i < numColumns; ++i)
-    // {
-    //   NTA_CHECK(outputBaseline[i] == outputC[i]);
-    // }
+    for (UInt i = 0; i < numColumns; ++i)
+    {
+      NTA_CHECK(outputBaseline[i] == outputC[i]);
+    }
 
   }
 

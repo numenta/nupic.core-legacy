@@ -25,6 +25,7 @@
  */
 
 #include <climits>
+#include <iomanip>
 #include <iostream>
 
 #include <capnp/message.h>
@@ -438,6 +439,14 @@ void Connections::startNewIteration()
   iteration_++;
 }
 
+template<typename FloatType>
+static void saveFloat_(std::ostream& outStream, FloatType v)
+{
+  outStream << std::setprecision(std::numeric_limits<FloatType>::max_digits10)
+            << v
+            << " ";
+}
+
 void Connections::save(std::ostream& outStream) const
 {
   // Write a starting marker.
@@ -467,7 +476,7 @@ void Connections::save(std::ostream& outStream) const
       {
         const SynapseData& synapseData = synapses_[synapse];
         outStream << synapseData.presynapticCell << " ";
-        outStream << synapseData.permanence << " ";
+        saveFloat_(outStream, synapseData.permanence);
       }
       outStream << endl;
     }
