@@ -1149,7 +1149,8 @@ void SpatialPooler::updateBoostFactorsGlobal_()
 
   for (UInt i = 0; i < numColumns_; ++i)
   {
-    boostFactors_[i] = exp((targetDensity - activeDutyCycles_[i])* maxBoost_);
+    boostFactors_[i] = exp((targetDensity - activeDutyCycles_[i])
+                           * boostStrength_);
   }
 }
 
@@ -1180,7 +1181,8 @@ void SpatialPooler::updateBoostFactorsLocal_()
     }
 
     Real targetDensity = localActivityDensity / numNeighbors;
-    boostFactors_[i] = exp((targetDensity - activeDutyCycles_[i]) * maxBoost_);
+    boostFactors_[i] = exp((targetDensity - activeDutyCycles_[i]) 
+                           * boostStrength_);
   }
 
 }
