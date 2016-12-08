@@ -1843,9 +1843,9 @@ namespace {
     perm = sp.initPermanence_(potential, 0);
     for (UInt i = 0; i < 8; i++)
       if (potential[i])
-        ASSERT_TRUE(perm[i] <= synPermConnected);
-      else
-        ASSERT_TRUE(perm[i] < 1e-5);
+        ASSERT_LE(perm[i], synPermConnected);
+      else        
+        ASSERT_LT(perm[i], 1e-5);
 
     inputDim[0] = 100;
     sp.initialize(inputDim,columnDim);
@@ -1879,8 +1879,8 @@ namespace {
 
     for (UInt i = 0; i < 100; i++) {
       Real permVal = sp.initPermConnected_();
-      ASSERT_TRUE(permVal >= synPermConnected &&
-                permVal <= synPermMax);
+      ASSERT_GE(permVal, synPermConnected);
+      ASSERT_LE(permVal, synPermMax);
     }
   }
 
@@ -1891,8 +1891,8 @@ namespace {
     sp.setSynPermConnected(synPermConnected);
     for (UInt i = 0; i < 100; i++) {
       Real permVal = sp.initPermNonConnected_();
-      ASSERT_TRUE(permVal >= 0 &&
-                permVal <= synPermConnected);
+      ASSERT_GE(permVal, 0);
+      ASSERT_LE(permVal, synPermConnected);
     }
   }
 
