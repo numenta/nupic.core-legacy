@@ -86,7 +86,6 @@ namespace nupic
                         Real synPermActiveInc=0.05,
                         Real synPermConnected=0.1,
                         Real minPctOverlapDutyCycles=0.001,
-                        Real minPctActiveDutyCycles=0.001,
                         UInt dutyCyclePeriod=1000,
                         Real boostStrength=0.0,
                         Int seed=1,
@@ -193,18 +192,6 @@ namespace nupic
                 its previously learned inputs are no longer ever active, or when
                 the vast majority of them have been "hijacked" by other columns.
 
-          @param minPctActiveDutyCycles A number between 0 and 1.0, used to set
-                a floor on how often a column should be activate. Periodically,
-                each column looks at the activity duty cycle of all other
-                columns within its inhibition radius and sets its own internal
-                minimal acceptable duty cycle to:
-
-                    minPctDutyCycleAfterInh * max(other columns' duty cycles).
-
-                On each iteration, any column whose duty cycle after inhibition
-                falls below this computed value will get its internal boost
-                factor increased.
-
           @param dutyCyclePeriod The period used to calculate duty cycles.
                 Higher values make it take longer to respond to changes in
                 boost. Shorter values make it potentially more unstable and
@@ -241,7 +228,6 @@ namespace nupic
                                   Real synPermActiveInc=0.1,
                                   Real synPermConnected=0.1,
                                   Real minPctOverlapDutyCycles=0.001,
-                                  Real minPctActiveDutyCycles=0.001,
                                   UInt dutyCyclePeriod=1000,
                                   Real boostStrength=0.0,
                                   Int seed=1,
@@ -668,21 +654,6 @@ namespace nupic
           @param minPctOverlapDutyCycles real number of the minimum tolerated overlaps.
           */
           void setMinPctOverlapDutyCycles(Real minPctOverlapDutyCycles);
-
-          /**
-          Returns the minimum tolerated activity duty cycle, given as percent of
-          neighbors' activity duty cycle.
-
-          @returns minPctOverlapDutyCycles real number of the minimum tolerated activity duty cycle.
-          */
-          Real getMinPctActiveDutyCycles() const;
-          /**
-          Sets the minimum tolerated activity duty cycle, given as percent of
-          neighbors' activity duty cycle.
-
-          @param minPctActiveDutyCycles real number of the minimum tolerated activity duty cycle.
-          */
-          void setMinPctActiveDutyCycles(Real minPctActiveDutyCycles);
 
           /**
           Returns the boost factors for all columns. 'boostFactors' size must
@@ -1350,7 +1321,6 @@ namespace nupic
           vector<Real> minActiveDutyCycles_;
 
           Real minPctOverlapDutyCycles_;
-          Real minPctActiveDutyCycles_;
 
           SparseMatrix<UInt,Real,Int,Real64> permanences_;
           SparseBinaryMatrix<UInt, UInt> potentialPools_;
