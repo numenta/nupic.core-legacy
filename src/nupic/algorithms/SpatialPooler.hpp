@@ -88,7 +88,7 @@ namespace nupic
                         Real minPctOverlapDutyCycles=0.001,
                         Real minPctActiveDutyCycles=0.001,
                         UInt dutyCyclePeriod=1000,
-                        Real maxBoost=10.0,
+                        Real boostStrength=0.0,
                         Int seed=1,
                         UInt spVerbosity=0,
                         bool wrapAround=true);
@@ -210,9 +210,9 @@ namespace nupic
                 boost. Shorter values make it potentially more unstable and
                 likely to oscillate.
 
-          @param maxBoost A number greater or equal than 1.0, used to control
-          the strength of boosting. No boosting is applied if maxBoost=1.0.
-          The strength of boosting increases as a function of maxBoost.
+          @param boostStrength A number greater or equal than 0, used to 
+          control boosting strength. No boosting is applied if it is set to 0.
+          The strength of boosting increases as a function of boostStrength.
           Boosting encourages columns to have similar activeDutyCycles as their
           neighbors, which will lead to more efficient use of columns. However,
           too much boosting may also lead to instability of SP outputs.
@@ -243,7 +243,7 @@ namespace nupic
                                   Real minPctOverlapDutyCycles=0.001,
                                   Real minPctActiveDutyCycles=0.001,
                                   UInt dutyCyclePeriod=1000,
-                                  Real maxBoost=10.0,
+                                  Real boostStrength=0.0,
                                   Int seed=1,
                                   UInt spVerbosity=0,
                                   bool wrapAround=true);
@@ -480,14 +480,15 @@ namespace nupic
 
           @returns real number of the maximum boost value.
           */
-          Real getMaxBoost() const;
+          Real getBoostStrength() const;
 
           /**
-          Sets the maximum boost value.
+          Sets the strength of boost.
 
-          @param maxBoost real number of maximum boost value, must be larger than 1.0
+          @param boostStrength real number of boosting strength, 
+          must be larger than 0.0
           */
-          void setMaxBoost(Real maxBoost);
+          void setBoostStrength(Real boostStrength);
 
           /**
           Returns the iteration number.
@@ -1232,29 +1233,32 @@ namespace nupic
                                  UInt activeArray[]);
 
           /**
-              Update the boost factors for all columns. The boost factors are used to
-              increase the overlap of inactive columns to improve their chances of
-              becoming active. and hence encourage participation of more columns in the
-              learning process. This is a line defined as: y = mx + b boost =
-              (1-maxBoost)/minDuty * dutyCycle + maxFiringBoost. Intuitively this means
-              that columns that have been active enough have a boost factor of 1, meaning
-              their overlap is not boosted. Columns whose active duty cycle drops too much
-              below that of their neighbors are boosted depending on how infrequently they
-              have been active. The more infrequent, the more they are boosted. The exact
-              boost factor is linearly interpolated between the points (dutyCycle:0,
-              boost:maxFiringBoost) and (dutyCycle:minDuty, boost:1.0).
-              @verbatim
+            Update the boost factors for all columns. The boost factors are used to
+            increase the overlap of inactive columns to improve their chances of
+            becoming active, and hence encourage participation of more columns in the
+            learning process. The boosting function is a curve defined as:
+            boostFactors = exp[ - boostStrength * (dutyCycle - targetDensity)]
+            Intuitively this means that columns that have been active at the target
+            activation level have a boost factor of 1, meaning their overlap is not
+            boosted. Columns whose active duty cycle drops too much below that of their
+            neighbors are boosted depending on how infrequently they have been active.
+            Columns that has been active more than the target activation level have
+            a boost factor below 1, meaning their overlap is suppressed
 
-                      boostFactor
-                          ^
-              maxBoost _  |
-                          |\
-                          | \
-                    1  _  |  \ _ _ _ _ _ _ _
-                          |
-                          +--------------------> activeDutyCycle
-                             |
-                      minActiveDutyCycle
+            The boostFactor depends on the activeDutyCycle via an exponential function:
+
+                        boostFactor
+                        ^
+                        |
+                        |\
+                        | \
+                  1  _  |  \
+                        |    _
+                        |      _ _
+                        |          _ _ _ _
+                        +--------------------> activeDutyCycle
+                              |
+                        targetDensity
               @endverbatim
             */
           void updateBoostFactors_();
@@ -1324,7 +1328,7 @@ namespace nupic
           UInt stimulusThreshold_;
           UInt inhibitionRadius_;
           UInt dutyCyclePeriod_;
-          Real maxBoost_;
+          Real boostStrength_;
           UInt iterationNum_;
           UInt iterationLearnNum_;
           UInt spVerbosity_;

@@ -132,7 +132,7 @@ namespace {
     ASSERT_TRUE(sp1.getStimulusThreshold() ==
               sp2.getStimulusThreshold());
     ASSERT_TRUE(sp1.getDutyCyclePeriod() == sp2.getDutyCyclePeriod());
-    ASSERT_TRUE(almost_eq(sp1.getMaxBoost(), sp2.getMaxBoost()));
+    ASSERT_TRUE(almost_eq(sp1.getBoostStrength(), sp2.getBoostStrength()));
     ASSERT_TRUE(sp1.getIterationNum() == sp2.getIterationNum());
     ASSERT_TRUE(sp1.getIterationLearnNum() ==
               sp2.getIterationLearnNum());
@@ -493,7 +493,7 @@ namespace {
         /*minPctOverlapDutyCycles*/ 0.001,
         /*minPctActiveDutyCycles*/ 0.001,
         /*dutyCyclePeriod*/ 1000,
-        /*maxBoost*/ 10.0,
+        /*boostStrength*/ 0.0,
         /*seed*/ 1,
         /*spVerbosity*/ 0,
         /*wrapAround*/ false);
@@ -555,7 +555,7 @@ namespace {
         /*minPctOverlapDutyCycles*/ 0.001,
         /*minPctActiveDutyCycles*/ 0.001,
         /*dutyCyclePeriod*/ 1000,
-        /*maxBoost*/ 10.0,
+        /*boostStrength*/ 10.0,
         /*seed*/ 1,
         /*spVerbosity*/ 0,
         /*wrapAround*/ true);
@@ -1126,7 +1126,7 @@ namespace {
       {1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
     vector<Real> resultBoostFactors1(6, 0);
     sp.setGlobalInhibition(false);
-    sp.setMaxBoost(10);
+    sp.setBoostStrength(10);
     sp.setBoostFactors(initBoostFactors1);
     sp.setActiveDutyCycles(initActiveDutyCycles1);
     sp.updateBoostFactors_();
@@ -1141,7 +1141,7 @@ namespace {
       {3.11, 0.42, 6.91, 5.66, 0.01, 2.54};
     vector<Real> resultBoostFactors2(6, 0);
     sp.setGlobalInhibition(false);
-    sp.setMaxBoost(10);
+    sp.setBoostStrength(10);
     sp.setBoostFactors(initBoostFactors2);
     sp.setActiveDutyCycles(initActiveDutyCycles2);
     sp.updateBoostFactors_();
@@ -1158,7 +1158,7 @@ namespace {
     vector<Real> resultBoostFactors3(6, 0);
     sp.setWrapAround(true);
     sp.setGlobalInhibition(false);
-    sp.setMaxBoost(2.0);
+    sp.setBoostStrength(2.0);
     sp.setInhibitionRadius(5);
     sp.setNumActiveColumnsPerInhArea(1);
     sp.setBoostFactors(initBoostFactors3);
@@ -1176,7 +1176,7 @@ namespace {
       {1.95, 0.26, 4.33, 3.55, 0.00, 1.59};
     vector<Real> resultBoostFactors4(6, 0);
     sp.setGlobalInhibition(true);
-    sp.setMaxBoost(10);
+    sp.setBoostStrength(10);
     sp.setNumActiveColumnsPerInhArea(1);
     sp.setInhibitionRadius(3);
     sp.setBoostFactors(initBoostFactors4);
@@ -1544,7 +1544,7 @@ namespace {
         /*minPctOverlapDutyCycles*/ 0.001,
         /*minPctActiveDutyCycles*/ 0.001,
         /*dutyCyclePeriod*/ 1000,
-        /*maxBoost*/ 10.0,
+        /*boostStrength*/ 10.0,
         /*seed*/ 1,
         /*spVerbosity*/ 0,
         /*wrapAround*/ false);
@@ -1610,7 +1610,7 @@ namespace {
         /*minPctOverlapDutyCycles*/ 0.001,
         /*minPctActiveDutyCycles*/ 0.001,
         /*dutyCyclePeriod*/ 1000,
-        /*maxBoost*/ 10.0,
+        /*boostStrength*/ 10.0,
         /*seed*/ 1,
         /*spVerbosity*/ 0,
         /*wrapAround*/ true);
@@ -2182,7 +2182,7 @@ namespace {
                      /*minPctOverlapDutyCycles*/ 0.001,
                      /*minPctActiveDutyCycles*/ 0.001,
                      /*dutyCyclePeriod*/ 1000,
-                     /*maxBoost*/ 10.0,
+                     /*boostStrength*/ 10.0,
                      /*seed*/ 1,
                      /*spVerbosity*/ 0,
                      /*wrapAround*/ true);
@@ -2213,7 +2213,7 @@ namespace {
                      /*minPctOverlapDutyCycles*/ 0.001,
                      /*minPctActiveDutyCycles*/ 0.001,
                      /*dutyCyclePeriod*/ 1000,
-                     /*maxBoost*/ 10.0,
+                     /*boostStrength*/ 10.0,
                      /*seed*/ 1,
                      /*spVerbosity*/ 0,
                      /*wrapAround*/ true);
@@ -2244,7 +2244,7 @@ namespace {
                      /*minPctOverlapDutyCycles*/ 0.001,
                      /*minPctActiveDutyCycles*/ 0.001,
                      /*dutyCyclePeriod*/ 1000,
-                     /*maxBoost*/ 10.0,
+                     /*boostStrength*/ 10.0,
                      /*seed*/ 1,
                      /*spVerbosity*/ 0,
                      /*wrapAround*/ true);
@@ -2278,7 +2278,7 @@ namespace {
                      /*minPctOverlapDutyCycles*/ 0.001,
                      /*minPctActiveDutyCycles*/ 0.001,
                      /*dutyCyclePeriod*/ 1000,
-                     /*maxBoost*/ 10.0,
+                     /*boostStrength*/ 10.0,
                      /*seed*/ 1,
                      /*spVerbosity*/ 0,
                      /*wrapAround*/ true);
