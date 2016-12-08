@@ -61,22 +61,6 @@ static Real round5_(const Real f)
 }
 
 
-// Equivalent to numpy.round(f, decimals=2)
-//
-// Storing the intermediate value causes the result to occasionally differ. For
-// example, 2.7549998760 seems like it would round down to 2.75, but when
-// multiplied by 100 it becomes 275.5, so it will round to 2.76. If you don't
-// store the intermediate value, the compiler might generate something that
-// rounds it to 2.75.
-//
-// We choose this approach because it mimics numpy.
-static Real round2LikeNumpy_(Real f)
-{
-  Real intermediate = f * 100.0;
-  return round(intermediate) / 100.0;
-}
-
-
 class CoordinateConverter2D
 {
 
@@ -1168,10 +1152,7 @@ void SpatialPooler::updateBoostFactorsGlobal_()
 
   for (UInt i = 0; i < numColumns_; ++i)
   {
-    Real boostFactor = exp((targetDensity - activeDutyCycles_[i])* maxBoost_);
-
-    // Avoid floating point mismatches between implementations.
-    boostFactors_[i] = round2LikeNumpy_(boostFactor);
+    boostFactors_[i] = exp((targetDensity - activeDutyCycles_[i])* maxBoost_);
   }
 }
 
@@ -1200,11 +1181,9 @@ void SpatialPooler::updateBoostFactorsLocal_()
         numNeighbors += 1;
       }
     }
-    Real targetDensity = localActivityDensity / numNeighbors;
-    Real boostFactor = exp((targetDensity - activeDutyCycles_[i]) * maxBoost_);
 
-    // Avoid floating point mismatches between implementations.
-    boostFactors_[i] = round2LikeNumpy_(boostFactor);
+    Real targetDensity = localActivityDensity / numNeighbors;
+    boostFactors_[i] = exp((targetDensity - activeDutyCycles_[i]) * maxBoost_);
   }
 
 }

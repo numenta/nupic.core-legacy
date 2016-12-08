@@ -113,6 +113,19 @@ namespace {
     return true;
   }
 
+  bool check_vector_eq(vector<Real> vec1, vector<Real> vec2)
+  {
+    if (vec1.size() != vec2.size()) {
+      return false;
+    }
+    for (UInt i = 0; i < vec1.size(); i++) {
+      if (!almost_eq(vec1[i], vec2[i])) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   void check_spatial_eq(SpatialPooler sp1, SpatialPooler sp2)
   {
     UInt numColumns = sp1.getNumColumns();
@@ -1131,14 +1144,14 @@ namespace {
     sp.setActiveDutyCycles(initActiveDutyCycles1);
     sp.updateBoostFactors_();
     sp.getBoostFactors(resultBoostFactors1.data());
-    ASSERT_EQ(trueBoostFactors1, resultBoostFactors1);
+    ASSERT_TRUE(check_vector_eq(trueBoostFactors1, resultBoostFactors1));
 
     Real initActiveDutyCycles2[] =
       {0.1, 0.3, 0.02, 0.04, 0.7, 0.12};
     Real initBoostFactors2[] =
       {0, 0, 0, 0, 0, 0};
     vector<Real> trueBoostFactors2 =
-      {3.11, 0.42, 6.91, 5.66, 0.01, 2.54};
+      {3.10599, 0.42035, 6.91251, 5.65949, 0.00769898, 2.54297};
     vector<Real> resultBoostFactors2(6, 0);
     sp.setGlobalInhibition(false);
     sp.setMaxBoost(10);
@@ -1147,14 +1160,14 @@ namespace {
     sp.updateBoostFactors_();
     sp.getBoostFactors(resultBoostFactors2.data());
 
-    ASSERT_EQ(trueBoostFactors2, resultBoostFactors2);
+    ASSERT_TRUE(check_vector_eq(trueBoostFactors2, resultBoostFactors2));
 
     Real initActiveDutyCycles3[] =
       {0.1, 0.3, 0.02, 0.04, 0.7, 0.12};
     Real initBoostFactors3[] =
       {0, 0, 0, 0, 0, 0};
     vector<Real> trueBoostFactors3 =
-      {1.25, 0.84, 1.47, 1.41, 0.38, 1.21};
+      { 1.25441, 0.840857, 1.47207, 1.41435, 0.377822, 1.20523 };
     vector<Real> resultBoostFactors3(6, 0);
     sp.setWrapAround(true);
     sp.setGlobalInhibition(false);
@@ -1166,14 +1179,14 @@ namespace {
     sp.updateBoostFactors_();
     sp.getBoostFactors(resultBoostFactors3.data());
 
-    ASSERT_EQ(trueBoostFactors3, resultBoostFactors3);
+    ASSERT_TRUE(check_vector_eq(trueBoostFactors3, resultBoostFactors3));
 
     Real initActiveDutyCycles4[] =
       {0.1, 0.3, 0.02, 0.04, 0.7, 0.12};
     Real initBoostFactors4[] =
       {0, 0, 0, 0, 0, 0};
     vector<Real> trueBoostFactors4 =
-      {1.95, 0.26, 4.33, 3.55, 0.00, 1.59};
+      { 1.94773, 0.263597, 4.33476, 3.549, 0.00482795, 1.59467 };
     vector<Real> resultBoostFactors4(6, 0);
     sp.setGlobalInhibition(true);
     sp.setMaxBoost(10);
@@ -1184,7 +1197,7 @@ namespace {
     sp.updateBoostFactors_();
     sp.getBoostFactors(resultBoostFactors4.data());
 
-    ASSERT_EQ(trueBoostFactors4, resultBoostFactors4);
+    ASSERT_TRUE(check_vector_eq(trueBoostFactors3, resultBoostFactors3));
   }
 
   TEST(SpatialPoolerTest, testUpdateBookeepingVars)
