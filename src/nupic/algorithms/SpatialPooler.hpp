@@ -716,21 +716,6 @@ namespace nupic
           void setMinOverlapDutyCycles(Real minOverlapDutyCycles[]);
 
           /**
-          Returns the minimum activity duty cycles for all columns.
-          '_minActiveDutyCycles' size must match the number of columns.
-
-          @param minActiveDutyCycles real array to store the minimum activity duty cycles for all columns.
-          */
-          void getMinActiveDutyCycles(Real minActiveDutyCycles[]) const;
-          /**
-          Sets the minimum activity duty cycles for all columns.
-          '_minActiveDutyCycles' size must match the number of columns.
-
-          @param minActiveDutyCycles real array of the minimum activity duty cycles for all columns.
-          */
-          void setMinActiveDutyCycles(Real minActiveDutyCycles[]);
-
-          /**
           Returns the potential mapping for a given column. 'potential' size
           must match the number of inputs.
 

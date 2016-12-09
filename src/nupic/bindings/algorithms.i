@@ -1204,18 +1204,6 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
     self->getMinOverlapDutyCycles((nupic::Real*) PyArray_DATA(x));
   }
 
-  inline void setMinActiveDutyCycles(PyObject* py_x)
-  {
-    PyArrayObject* x = (PyArrayObject*) py_x;
-    self->setMinActiveDutyCycles((nupic::Real*) PyArray_DATA(x));
-  }
-
-  inline void getMinActiveDutyCycles(PyObject* py_x)
-  {
-    PyArrayObject* x = (PyArrayObject*) py_x;
-    self->getMinActiveDutyCycles((nupic::Real*) PyArray_DATA(x));
-  }
-
   inline void setPotential(UInt column, PyObject* py_x)
   {
     PyArrayObject* x = (PyArrayObject*) py_x;
