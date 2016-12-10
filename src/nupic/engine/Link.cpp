@@ -23,7 +23,6 @@
 /** @file
  * Implementation of the Link class
  */
-
 #include <cstring> // memcpy,memset
 #include <nupic/engine/Link.hpp>
 #include <nupic/utils/Log.hpp>
@@ -360,8 +359,6 @@ Link::compute()
   // circular buffer
   if (!srcBuffer_.full())
   {
-    NTA_INFO << "Link::compute: appening src_ to circular buffer";
-
     const Array & srcArray = src_->getData();
     size_t elementCount = srcArray.getCount();
     auto elementType = srcArray.getType();

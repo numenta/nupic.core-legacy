@@ -443,7 +443,7 @@ Network::run(int n)
         // Accummulate input links of computed regions
         for (auto & input : r->getInputs())
         {
-          auto links = input.second->getLinks();
+          auto & links = input.second->getLinks();
           inputLinks.insert(links.begin(), links.end());
         }
       }
