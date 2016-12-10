@@ -32,7 +32,6 @@
 #include <nupic/engine/Input.hpp>
 #include <nupic/engine/Output.hpp>
 #include <nupic/ntypes/Array.hpp>
-#include <nupic/ntypes/ArrayRef.hpp> // @TODO ArrayRef doesn't seem to be used here
 #include <nupic/types/BasicType.hpp>
 
 namespace nupic
