@@ -26,7 +26,7 @@ struct SpatialPoolerProto {
   minPctOverlapDutyCycles @15 :Float32;
   minPctActiveDutyCycles @16 :Float32;
   dutyCyclePeriod @17 :UInt16;
-  maxBoost @18 :Float32;
+  boostStrength @18 :Float32;
   wrapAround @36 :Bool;
   spVerbosity @19 :UInt8;
 

@@ -145,7 +145,7 @@ namespace {
     ASSERT_TRUE(sp1.getStimulusThreshold() ==
               sp2.getStimulusThreshold());
     ASSERT_TRUE(sp1.getDutyCyclePeriod() == sp2.getDutyCyclePeriod());
-    ASSERT_TRUE(almost_eq(sp1.getMaxBoost(), sp2.getMaxBoost()));
+    ASSERT_TRUE(almost_eq(sp1.getBoostStrength(), sp2.getBoostStrength()));
     ASSERT_TRUE(sp1.getIterationNum() == sp2.getIterationNum());
     ASSERT_TRUE(sp1.getIterationLearnNum() ==
               sp2.getIterationLearnNum());
@@ -506,7 +506,7 @@ namespace {
         /*minPctOverlapDutyCycles*/ 0.001,
         /*minPctActiveDutyCycles*/ 0.001,
         /*dutyCyclePeriod*/ 1000,
-        /*maxBoost*/ 10.0,
+        /*boostStrength*/ 0.0,
         /*seed*/ 1,
         /*spVerbosity*/ 0,
         /*wrapAround*/ false);
@@ -568,7 +568,7 @@ namespace {
         /*minPctOverlapDutyCycles*/ 0.001,
         /*minPctActiveDutyCycles*/ 0.001,
         /*dutyCyclePeriod*/ 1000,
-        /*maxBoost*/ 10.0,
+        /*boostStrength*/ 10.0,
         /*seed*/ 1,
         /*spVerbosity*/ 0,
         /*wrapAround*/ true);
@@ -1139,7 +1139,7 @@ namespace {
       {1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
     vector<Real> resultBoostFactors1(6, 0);
     sp.setGlobalInhibition(false);
-    sp.setMaxBoost(10);
+    sp.setBoostStrength(10);
     sp.setBoostFactors(initBoostFactors1);
     sp.setActiveDutyCycles(initActiveDutyCycles1);
     sp.updateBoostFactors_();
@@ -1154,7 +1154,7 @@ namespace {
       {3.10599, 0.42035, 6.91251, 5.65949, 0.00769898, 2.54297};
     vector<Real> resultBoostFactors2(6, 0);
     sp.setGlobalInhibition(false);
-    sp.setMaxBoost(10);
+    sp.setBoostStrength(10);
     sp.setBoostFactors(initBoostFactors2);
     sp.setActiveDutyCycles(initActiveDutyCycles2);
     sp.updateBoostFactors_();
@@ -1171,7 +1171,7 @@ namespace {
     vector<Real> resultBoostFactors3(6, 0);
     sp.setWrapAround(true);
     sp.setGlobalInhibition(false);
-    sp.setMaxBoost(2.0);
+    sp.setBoostStrength(2.0);
     sp.setInhibitionRadius(5);
     sp.setNumActiveColumnsPerInhArea(1);
     sp.setBoostFactors(initBoostFactors3);
@@ -1189,7 +1189,7 @@ namespace {
       { 1.94773, 0.263597, 4.33476, 3.549, 0.00482795, 1.59467 };
     vector<Real> resultBoostFactors4(6, 0);
     sp.setGlobalInhibition(true);
-    sp.setMaxBoost(10);
+    sp.setBoostStrength(10);
     sp.setNumActiveColumnsPerInhArea(1);
     sp.setInhibitionRadius(3);
     sp.setBoostFactors(initBoostFactors4);
@@ -1557,7 +1557,7 @@ namespace {
         /*minPctOverlapDutyCycles*/ 0.001,
         /*minPctActiveDutyCycles*/ 0.001,
         /*dutyCyclePeriod*/ 1000,
-        /*maxBoost*/ 10.0,
+        /*boostStrength*/ 10.0,
         /*seed*/ 1,
         /*spVerbosity*/ 0,
         /*wrapAround*/ false);
@@ -1623,7 +1623,7 @@ namespace {
         /*minPctOverlapDutyCycles*/ 0.001,
         /*minPctActiveDutyCycles*/ 0.001,
         /*dutyCyclePeriod*/ 1000,
-        /*maxBoost*/ 10.0,
+        /*boostStrength*/ 10.0,
         /*seed*/ 1,
         /*spVerbosity*/ 0,
         /*wrapAround*/ true);
@@ -1856,9 +1856,9 @@ namespace {
     perm = sp.initPermanence_(potential, 0);
     for (UInt i = 0; i < 8; i++)
       if (potential[i])
-        ASSERT_TRUE(perm[i] <= synPermConnected);
-      else
-        ASSERT_TRUE(perm[i] < 1e-5);
+        ASSERT_LE(perm[i], synPermConnected);
+      else        
+        ASSERT_LT(perm[i], 1e-5);
 
     inputDim[0] = 100;
     sp.initialize(inputDim,columnDim);
@@ -1892,8 +1892,8 @@ namespace {
 
     for (UInt i = 0; i < 100; i++) {
       Real permVal = sp.initPermConnected_();
-      ASSERT_TRUE(permVal >= synPermConnected &&
-                permVal <= synPermMax);
+      ASSERT_GE(permVal, synPermConnected);
+      ASSERT_LE(permVal, synPermMax);
     }
   }
 
@@ -1904,8 +1904,8 @@ namespace {
     sp.setSynPermConnected(synPermConnected);
     for (UInt i = 0; i < 100; i++) {
       Real permVal = sp.initPermNonConnected_();
-      ASSERT_TRUE(permVal >= 0 &&
-                permVal <= synPermConnected);
+      ASSERT_GE(permVal, 0);
+      ASSERT_LE(permVal, synPermConnected);
     }
   }
 
@@ -2195,7 +2195,7 @@ namespace {
                      /*minPctOverlapDutyCycles*/ 0.001,
                      /*minPctActiveDutyCycles*/ 0.001,
                      /*dutyCyclePeriod*/ 1000,
-                     /*maxBoost*/ 10.0,
+                     /*boostStrength*/ 10.0,
                      /*seed*/ 1,
                      /*spVerbosity*/ 0,
                      /*wrapAround*/ true);
@@ -2226,7 +2226,7 @@ namespace {
                      /*minPctOverlapDutyCycles*/ 0.001,
                      /*minPctActiveDutyCycles*/ 0.001,
                      /*dutyCyclePeriod*/ 1000,
-                     /*maxBoost*/ 10.0,
+                     /*boostStrength*/ 10.0,
                      /*seed*/ 1,
                      /*spVerbosity*/ 0,
                      /*wrapAround*/ true);
@@ -2257,7 +2257,7 @@ namespace {
                      /*minPctOverlapDutyCycles*/ 0.001,
                      /*minPctActiveDutyCycles*/ 0.001,
                      /*dutyCyclePeriod*/ 1000,
-                     /*maxBoost*/ 10.0,
+                     /*boostStrength*/ 10.0,
                      /*seed*/ 1,
                      /*spVerbosity*/ 0,
                      /*wrapAround*/ true);
@@ -2291,7 +2291,7 @@ namespace {
                      /*minPctOverlapDutyCycles*/ 0.001,
                      /*minPctActiveDutyCycles*/ 0.001,
                      /*dutyCyclePeriod*/ 1000,
-                     /*maxBoost*/ 10.0,
+                     /*boostStrength*/ 10.0,
                      /*seed*/ 1,
                      /*spVerbosity*/ 0,
                      /*wrapAround*/ true);

@@ -135,7 +135,7 @@ SpatialPooler::SpatialPooler(vector<UInt> inputDimensions,
                              Real minPctOverlapDutyCycles,
                              Real minPctActiveDutyCycles,
                              UInt dutyCyclePeriod,
-                             Real maxBoost,
+                             Real boostStrength,
                              Int seed,
                              UInt spVerbosity,
                              bool wrapAround) : SpatialPooler::SpatialPooler()
@@ -154,7 +154,7 @@ SpatialPooler::SpatialPooler(vector<UInt> inputDimensions,
              minPctOverlapDutyCycles,
              minPctActiveDutyCycles,
              dutyCyclePeriod,
-             maxBoost,
+             boostStrength,
              seed,
              spVerbosity,
              wrapAround);
@@ -266,14 +266,14 @@ void SpatialPooler::setDutyCyclePeriod(UInt dutyCyclePeriod)
   dutyCyclePeriod_ = dutyCyclePeriod;
 }
 
-Real SpatialPooler::getMaxBoost() const
+Real SpatialPooler::getBoostStrength() const
 {
-  return maxBoost_;
+  return boostStrength_;
 }
 
-void SpatialPooler::setMaxBoost(Real maxBoost)
+void SpatialPooler::setBoostStrength(Real boostStrength)
 {
-  maxBoost_ = maxBoost;
+  boostStrength_ = boostStrength;
 }
 
 UInt SpatialPooler::getIterationNum() const
@@ -526,7 +526,7 @@ void SpatialPooler::initialize(vector<UInt> inputDimensions,
   Real minPctOverlapDutyCycles,
   Real minPctActiveDutyCycles,
   UInt dutyCyclePeriod,
-  Real maxBoost,
+  Real boostStrength,
   Int seed,
   UInt spVerbosity,
   bool wrapAround)
@@ -571,7 +571,7 @@ void SpatialPooler::initialize(vector<UInt> inputDimensions,
   minPctOverlapDutyCycles_ = minPctOverlapDutyCycles;
   minPctActiveDutyCycles_ = minPctActiveDutyCycles;
   dutyCyclePeriod_ = dutyCyclePeriod;
-  maxBoost_ = maxBoost;
+  boostStrength_ = boostStrength;
   spVerbosity_ = spVerbosity;
   wrapAround_ = wrapAround;
   synPermMin_ = 0.0;
@@ -1121,16 +1121,13 @@ void SpatialPooler::updateDutyCyclesHelper_(vector<Real>& dutyCycles,
 
 void SpatialPooler::updateBoostFactors_()
 {
-  if (maxBoost_ > 1.0)
-  {    
-    if (globalInhibition_)
-    {
-      updateBoostFactorsGlobal_();
-    }
-    else
-    {
-      updateBoostFactorsLocal_();
-    }
+  if (globalInhibition_)
+  {
+    updateBoostFactorsGlobal_();
+  }
+  else
+  {
+    updateBoostFactorsLocal_();
   }
 }
 
@@ -1152,7 +1149,8 @@ void SpatialPooler::updateBoostFactorsGlobal_()
 
   for (UInt i = 0; i < numColumns_; ++i)
   {
-    boostFactors_[i] = exp((targetDensity - activeDutyCycles_[i])* maxBoost_);
+    boostFactors_[i] = exp((targetDensity - activeDutyCycles_[i])
+                           * boostStrength_);
   }
 }
 
@@ -1183,7 +1181,8 @@ void SpatialPooler::updateBoostFactorsLocal_()
     }
 
     Real targetDensity = localActivityDensity / numNeighbors;
-    boostFactors_[i] = exp((targetDensity - activeDutyCycles_[i]) * maxBoost_);
+    boostFactors_[i] = exp((targetDensity - activeDutyCycles_[i]) 
+                           * boostStrength_);
   }
 
 }
@@ -1429,7 +1428,7 @@ void SpatialPooler::save(ostream& outStream) const
             << inhibitionRadius_ << " "
             << dutyCyclePeriod_ << " ";
 
-  saveFloat_(outStream, maxBoost_);
+  saveFloat_(outStream, boostStrength_);
 
   outStream << iterationNum_ << " "
             << iterationLearnNum_ << " "
@@ -1567,7 +1566,7 @@ void SpatialPooler::load(istream& inStream)
            >> stimulusThreshold_
            >> inhibitionRadius_
            >> dutyCyclePeriod_
-           >> maxBoost_
+           >> boostStrength_
            >> iterationNum_
            >> iterationLearnNum_
            >> spVerbosity_
@@ -1723,7 +1722,7 @@ void SpatialPooler::write(SpatialPoolerProto::Builder& proto) const
   proto.setMinPctOverlapDutyCycles(minPctOverlapDutyCycles_);
   proto.setMinPctActiveDutyCycles(minPctActiveDutyCycles_);
   proto.setDutyCyclePeriod(dutyCyclePeriod_);
-  proto.setMaxBoost(maxBoost_);
+  proto.setBoostStrength(boostStrength_);
   proto.setWrapAround(wrapAround_);
   proto.setSpVerbosity(spVerbosity_);
 
@@ -1827,7 +1826,7 @@ void SpatialPooler::read(SpatialPoolerProto::Reader& proto)
   minPctOverlapDutyCycles_ = proto.getMinPctOverlapDutyCycles();
   minPctActiveDutyCycles_ = proto.getMinPctActiveDutyCycles();
   dutyCyclePeriod_ = proto.getDutyCyclePeriod();
-  maxBoost_ = proto.getMaxBoost();
+  boostStrength_ = proto.getBoostStrength();
   wrapAround_ = proto.getWrapAround();
   spVerbosity_ = proto.getSpVerbosity();
 
@@ -1931,7 +1930,7 @@ void SpatialPooler::printParameters() const
     << "minPctActiveDutyCycles      = "
                 << getMinPctActiveDutyCycles() << std::endl
     << "dutyCyclePeriod             = " << getDutyCyclePeriod() << std::endl
-    << "maxBoost                    = " << getMaxBoost() << std::endl
+    << "boostStrength               = " << getBoostStrength() << std::endl
     << "spVerbosity                 = " << getSpVerbosity() << std::endl
     << "wrapAround                  = " << getWrapAround() << std::endl
     << "version                     = " << version() << std::endl;
