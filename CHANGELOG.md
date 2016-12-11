@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.16
+
+* SpatialPooler: Stop rounding the boost factors
+* SpatialPooler: Rename "maxBoost" to "boostingStrength"
+* SpatialPooler: Remove minActiveDutyCycles and minPctActiveDutyCycles from spatial pooler
+
 ## 0.4.15
 
 * SpatialPooler: Tweak the boost factor rounding to mimic numpy's rounding of float32s
