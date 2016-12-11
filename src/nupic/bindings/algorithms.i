@@ -1029,7 +1029,6 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
                  synPermActiveInc=0.1,
                  synPermConnected=0.10,
                  minPctOverlapDutyCycle=0.001,
-                 minPctActiveDutyCycle=0.001,
                  dutyCyclePeriod=1000,
                  boostStrength=0.0,
                  seed=-1,
@@ -1040,7 +1039,7 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
         self, inputDimensions, columnDimensions, potentialRadius, potentialPct,
         globalInhibition, localAreaDensity, numActiveColumnsPerInhArea,
         stimulusThreshold, synPermInactiveDec, synPermActiveInc, synPermConnected,
-        minPctOverlapDutyCycle, minPctActiveDutyCycle, dutyCyclePeriod, 
+        minPctOverlapDutyCycle, dutyCyclePeriod,
         boostStrength, seed, spVerbosity, wrapAround)
 
     def __getstate__(self):
@@ -1202,18 +1201,6 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
   {
     PyArrayObject* x = (PyArrayObject*) py_x;
     self->getMinOverlapDutyCycles((nupic::Real*) PyArray_DATA(x));
-  }
-
-  inline void setMinActiveDutyCycles(PyObject* py_x)
-  {
-    PyArrayObject* x = (PyArrayObject*) py_x;
-    self->setMinActiveDutyCycles((nupic::Real*) PyArray_DATA(x));
-  }
-
-  inline void getMinActiveDutyCycles(PyObject* py_x)
-  {
-    PyArrayObject* x = (PyArrayObject*) py_x;
-    self->getMinActiveDutyCycles((nupic::Real*) PyArray_DATA(x));
   }
 
   inline void setPotential(UInt column, PyObject* py_x)
