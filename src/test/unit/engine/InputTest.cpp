@@ -286,7 +286,7 @@ TEST(InputTest, DelayedLink)
   {
     net.run(1);
 
-    //confirm that in2 is now all 10's
+    //confirm that in2 is now all 100's
     const ArrayBase * ai2 = &(in2->getData());
     Real64* idata = (Real64*)(ai2->getBuffer());
     //only test 4 instead of 64 to cut down on number of tests
