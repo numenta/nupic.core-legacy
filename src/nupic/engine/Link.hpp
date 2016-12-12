@@ -357,7 +357,7 @@ namespace nupic
      * Remove head element of the propagation delay buffer
      */
     void
-    purgeHead();
+    purgeBufferHead();
 
 
     /**

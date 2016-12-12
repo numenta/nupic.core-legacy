@@ -461,7 +461,7 @@ Network::run(int n)
     // Link::compute() to append the source array to the buffer.
     for (auto pLink : inputLinks)
     {
-      pLink->purgeHead();
+      pLink->purgeBufferHead();
     }
 
   }

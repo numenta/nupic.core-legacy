@@ -381,7 +381,7 @@ Link::compute()
   ::memcpy((char*)(dest.getBuffer()) + destByteOffset, src.getBuffer(), srcSize);
 }
 
-void Link::purgeHead()
+void Link::purgeBufferHead()
 {
   NTA_CHECK(!srcBuffer_.empty());
 
