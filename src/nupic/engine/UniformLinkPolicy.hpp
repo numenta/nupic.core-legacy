@@ -148,7 +148,7 @@ namespace nupic
 
     void copyRealVecToFractionVec(const std::vector<Real64>& sourceVec,
                                   DefaultValuedVector<Fraction>& destVec);
-    
+
     template <typename T> void populateArrayParamVector(
                                  std::vector<T>& vec,
                                  const ValueMap& paramMap,

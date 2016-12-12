@@ -323,7 +323,8 @@ Network::removeRegion(const std::string& name)
 void
 Network::link(const std::string& srcRegionName, const std::string& destRegionName,
               const std::string& linkType, const std::string& linkParams,
-              const std::string& srcOutputName, const std::string& destInputName)
+              const std::string& srcOutputName, const std::string& destInputName,
+              const size_t propagationDelay)
 {
 
   // Find the regions
@@ -362,7 +363,7 @@ Network::link(const std::string& srcRegionName, const std::string& destRegionNam
   }
 
   // Create the link itself
-  destInput->addLink(linkType, linkParams, srcOutput);
+  destInput->addLink(linkType, linkParams, srcOutput, propagationDelay);
 
 }
 
@@ -428,21 +429,39 @@ Network::run(int n)
   {
     iteration_++;
 
+    // For tracking input links of enabled regions in this iteration
+    std::set<Link*> inputLinks;
+
     // compute on all enabled regions in phase order
     for (UInt32 phase = minEnabledPhase_; phase <= maxEnabledPhase_; phase++)
     {
       for (auto r : phaseInfo_[phase])
       {
-
         r->prepareInputs();
         r->compute();
+
+        // Accummulate input links of computed regions
+        for (auto & input : r->getInputs())
+        {
+          auto & links = input.second->getLinks();
+          inputLinks.insert(links.begin(), links.end());
+        }
       }
     }
+
     // invoke callbacks
     for (UInt32 i = 0; i < callbacks_.getCount(); i++)
     {
       std::pair<std::string, callbackItem>& callback = callbacks_.getByIndex(i);
       callback.second.first(this, iteration_, callback.second.second);
+    }
+
+    // Purge head element in each input link belonging to regions computed in
+    // this iteration. An empty slot in the source buffer signals to
+    // Link::compute() to append the source array to the buffer.
+    for (auto pLink : inputLinks)
+    {
+      pLink->purgeBufferHead();
     }
 
   }

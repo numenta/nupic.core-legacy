@@ -29,6 +29,9 @@
 #include <nupic/ntypes/Dimensions.hpp>
 #include <nupic/engine/Region.hpp>
 #include <nupic/engine/Output.hpp>
+#include <nupic/engine/RegionImplFactory.hpp>
+#include <nupic/engine/RegisteredRegionImpl.hpp>
+#include <nupic/engine/TestNode.hpp>
 #include "gtest/gtest.h"
 
 using namespace nupic;
@@ -146,9 +149,9 @@ TEST(InputTest, Links)
   //uninitialize() is called internally from removeLink()
   {
     //can't remove link b/c region1 initialized
-    EXPECT_THROW(in2->removeLink(l2), std::exception); 
+    EXPECT_THROW(in2->removeLink(l2), std::exception);
     //can't remove region b/c region1 has links
-    EXPECT_THROW(net.removeRegion("region1"), std::exception); 
+    EXPECT_THROW(net.removeRegion("region1"), std::exception);
     region1->uninitialize();
     region2->uninitialize();
     EXPECT_THROW(in1->removeLink(l2), std::exception);
@@ -158,6 +161,141 @@ TEST(InputTest, Links)
     EXPECT_THROW(in1->removeLink(l1), std::exception);
   }
 }
+
+
+TEST(InputTest, DelayedLink)
+{
+  class MyTestNode : public TestNode
+  {
+  public:
+    MyTestNode(const ValueMap& params, Region *region)
+    :  TestNode(params, region)
+    {}
+
+    MyTestNode(BundleIO& bundle, Region* region)
+    :  TestNode(bundle, region)
+    {}
+
+    MyTestNode(capnp::AnyPointer::Reader& proto, Region* region)
+    :  TestNode(proto, region)
+    {}
+
+    void compute() override
+    {
+      // Replace with no-op to preserve output
+    }
+  };
+
+  RegionImplFactory::registerCPPRegion("MyTestNode",
+                                       new RegisteredRegionImpl<MyTestNode>());
+
+  Network net;
+  Region * region1 = net.addRegion("region1", "MyTestNode", "");
+  Region * region2 = net.addRegion("region2", "TestNode", "");
+
+  RegionImplFactory::unregisterCPPRegion("MyTestNode");
+
+  Dimensions d1;
+  d1.push_back(8);
+  d1.push_back(4);
+  region1->setDimensions(d1);
+
+  // NOTE: initial delayed values are set to all 0's
+  net.link("region1", "region2", "TestFanIn2", "", "", "",
+           2/*propagationDelay*/);
+
+  //test initialize(), which is called by net.initialize()
+  net.initialize();
+
+  Input * in1 = region1->getInput("bottomUpIn");
+  Input * in2 = region2->getInput("bottomUpIn");
+  Output * out1 = region1->getOutput("bottomUpOut");
+
+  //test isInitialized()
+  ASSERT_TRUE(in1->isInitialized());
+  ASSERT_TRUE(in2->isInitialized());
+
+  //test evaluateLinks(), in1 already initialized
+  ASSERT_EQ(0u, in1->evaluateLinks());
+  ASSERT_EQ(0u, in2->evaluateLinks());
+
+  //set in2 to all 1's, to detect if net.run fails to update the input.
+  {
+    const ArrayBase * ai2 = &(in2->getData());
+    Real64* idata = (Real64*)(ai2->getBuffer());
+    for (UInt i = 0; i < 64; i++)
+      idata[i] = 1;
+  }
+
+  //set out1 to all 10's
+  {
+    const ArrayBase * ao1 = &(out1->getData());
+    Real64* idata = (Real64*)(ao1->getBuffer());
+    for (UInt i = 0; i < 64; i++)
+      idata[i] = 10;
+  }
+
+  // Check extraction of first delayed value
+  {
+    // This run should also pick up the 10s
+    net.run(1);
+
+    //confirm that in2 is all zeroes
+    const ArrayBase * ai2 = &(in2->getData());
+    Real64* idata = (Real64*)(ai2->getBuffer());
+    //only test 4 instead of 64 to cut down on number of tests
+    for (UInt i = 0; i < 4; i++)
+      ASSERT_EQ(0, idata[i]);
+  }
+
+
+  //set out1 to all 100's
+  {
+    const ArrayBase * ao1 = &(out1->getData());
+    Real64* idata = (Real64*)(ao1->getBuffer());
+    for (UInt i = 0; i < 64; i++)
+      idata[i] = 100;
+  }
+
+
+  // Check extraction of second delayed value
+  {
+    net.run(1);
+
+    //confirm that in2 is all zeroes
+    const ArrayBase * ai2 = &(in2->getData());
+    Real64* idata = (Real64*)(ai2->getBuffer());
+    //only test 4 instead of 64 to cut down on number of tests
+    for (UInt i = 0; i < 4; i++)
+      ASSERT_EQ(0, idata[i]);
+  }
+
+  // Check extraction of first "generated" value
+  {
+    net.run(1);
+
+    //confirm that in2 is now all 10's
+    const ArrayBase * ai2 = &(in2->getData());
+    Real64* idata = (Real64*)(ai2->getBuffer());
+    //only test 4 instead of 64 to cut down on number of tests
+    for (UInt i = 0; i < 4; i++)
+      ASSERT_EQ(10, idata[i]);
+  }
+
+  // Check extraction of second "generated" value
+  {
+    net.run(1);
+
+    //confirm that in2 is now all 100's
+    const ArrayBase * ai2 = &(in2->getData());
+    Real64* idata = (Real64*)(ai2->getBuffer());
+    //only test 4 instead of 64 to cut down on number of tests
+    for (UInt i = 0; i < 4; i++)
+      ASSERT_EQ(100, idata[i]);
+  }
+
+}
+
 
 TEST(InputTest, SplitterMap)
 {
@@ -190,7 +328,7 @@ TEST(InputTest, SplitterMap)
   ASSERT_EQ(0u, in2->evaluateLinks());
 
   //test prepare
-  {    
+  {
     //set in2 to all zeroes
     const ArrayBase * ai2 = &(in2->getData());
     Real64* idata = (Real64*)(ai2->getBuffer());

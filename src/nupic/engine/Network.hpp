@@ -210,11 +210,16 @@ namespace nupic
      *        Name of the source output
      * @param destInput
      *        Name of the destination input
+     * @param propagationDelay
+     *            Propagation delay of the link as number of network run
+     *            iterations involving the link as input; the delay vectors, if
+     *            any, are initially populated with 0's. Defaults to 0=no delay
      */
     void
     link(const std::string& srcName, const std::string& destName,
          const std::string& linkType, const std::string& linkParams,
-         const std::string& srcOutput="", const std::string& destInput="");
+         const std::string& srcOutput="", const std::string& destInput="",
+         const size_t propagationDelay=0);
 
 
     /**

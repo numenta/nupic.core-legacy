@@ -20,7 +20,7 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file 
+/** @file
  * Implementation of Output class
  *
 */
@@ -44,21 +44,21 @@ Output::Output(Region& region, NTA_BasicType type, bool isRegionLevel) :
 
 Output::~Output()
 {
-  // If we have any outgoing links, then there has been an 
+  // If we have any outgoing links, then there has been an
   // error in the shutdown process. Not good to thow an exception
-  // from a destructor, but we need to catch this error, and it 
-  // should never occur if nupic internal logic is correct. 
+  // from a destructor, but we need to catch this error, and it
+  // should never occur if nupic internal logic is correct.
   NTA_CHECK(links_.size() == 0) << "Internal error in region deletion";
   delete data_;
 }
 
-// allaocate buffer
+// allocate buffer
 void
 Output::initialize(size_t count)
 {
   // reinitialization is ok
-  // might happen if initial initialization failed with an 
-  // exception (elsewhere) and was retried. 
+  // might happen if initial initialization failed with an
+  // exception (elsewhere) and was retried.
   if (data_->getBuffer() != nullptr)
     return;
 
@@ -71,7 +71,7 @@ Output::initialize(size_t count)
   if (dataCount != 0)
   {
     data_->allocateBuffer(dataCount);
-    // Zero the buffer because unitialized outputs can screw up inspectors, 
+    // Zero the buffer because unitialized outputs can screw up inspectors,
     // which look at the output before compute(). NPC-60
     void *buffer = data_->getBuffer();
     size_t byteCount = dataCount * BasicType::getSize(data_->getType());

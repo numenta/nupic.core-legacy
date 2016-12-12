@@ -20,7 +20,7 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file 
+/** @file
  * Interface for the internal Input class.
  *
  * @note This class is internal, and is not wrapped.
@@ -46,10 +46,10 @@ namespace nupic
 
   /**
    * Represents a named input to a Region. (e.g. bottomUpIn)
-   * 
-   * @note Input is not available in the public API, but is visible by 
+   *
+   * @note Input is not available in the public API, but is visible by
    * the RegionImpl.
-   * 
+   *
    * @todo identify methods that may be called by RegionImpl -- this
    * is the internal "public interface"
    */
@@ -59,7 +59,7 @@ namespace nupic
 
     /**
      * Constructor.
-     * 
+     *
      * @param region
      *        The region that the input belongs to.
      * @param type
@@ -72,96 +72,100 @@ namespace nupic
     /**
      *
      * Destructor.
-     * 
+     *
      */
     ~Input();
 
     /**
      *
      * Set the name for the input.
-     * 
+     *
      * Inputs need to know their own name for error messages.
-     * 
+     *
      * @param name
      *        The name of the input
-     * 
+     *
      */
     void setName(const std::string& name);
 
     /**
      * Get the name of the input.
-     * 
-     * @return 
-     *        The name of the input 
+     *
+     * @return
+     *        The name of the input
      */
     const std::string& getName() const;
 
     /**
      * Create a new Link between this input and the @a srcOutput.
-     * 
-     * The link will be added to this input and added to the list 
+     *
+     * The link will be added to this input and added to the list
      * of links on the output
-     * 
+     *
      * @param linkType
      *        The type of the link
      * @param linkParams
      *        The parameters of the link
      * @param srcOutput
      *        The output of previous Region, which is also the source of the input
+     * @param propagationDelay
+     *        Propagation delay of the link as number of network run
+     *        iterations involving the link as input; the delay vectors, if
+     *        any, are initially populated with 0's. Defaults to 0=no delay
      */
     void
-    addLink(const std::string& linkType, const std::string& linkParams, 
-            Output* srcOutput);
-    
+    addLink(const std::string& linkType, const std::string& linkParams,
+            Output* srcOutput, const size_t propagationDelay=0);
+
     /**
      * Locate an existing Link to the input.
-     * 
+     *
      * It's called by Network.removeLink() and internally when adding a link
-     * 
+     *
      * @param srcRegionName
      *            The name of the source Region
      * @param srcOutputName
      *            The name of the source Output
-     * 
+     *
      * @returns
      *     The link if found or @c NULL if no such link exists
      */
-    Link* 
-    findLink(const std::string& srcRegionName, 
+    Link*
+    findLink(const std::string& srcRegionName,
              const std::string& srcOutputName);
 
     /**
      * Removing an existing link from the input.
-     * 
+     *
      * It's called in four cases:
-     * 
+     *
      * 1. Network.removeLink()
      * 2. Network.removeRegion() when given @a srcRegion
      * 3. Network.removeRegion() when given @a destRegion
      * 4. Network.~Network()
-     * 
-     * It is an error to call this if our containing region 
-     * is uninitialized. 
-     * 
-     * @note This method will set the Link pointer to NULL on return (to avoid 
+     *
+     * It is an error to call this if our containing region
+     * is uninitialized.
+     *
+     * @note This method will set the Link pointer to NULL on return (to avoid
      * a dangling reference)
      *
      * @param link
-     *        The Link to remove, possibly retrieved by findLink(), note that 
+     *        The Link to remove, possibly retrieved by findLink(), note that
      *        it is a reference to the pointer, not the pointer itself.
      */
     void
     removeLink(Link*& link);
 
-    /** 
-     * Make input data available. 
-     * 
+    /**
+     * Make input data available.
+     *
      * Called by Region.prepareInputs()
      */
     void
     prepare();
-    
-    /** 
+
+    /**
      *
      * Get the data of the input.
      *
@@ -170,31 +174,31 @@ namespace nupic
      */
     const Array &
     getData() const;
-    
+
     /**
      *
      * Get the Region that the input belongs to.
-     * 
+     *
      * @returns
      *         The mutable reference to the Region that the input belongs to
      */
     Region&
     getRegion();
 
-    /** 
-     * 
+    /**
+     *
      * Get all the Link objects added to the input.
-     * 
+     *
      * @returns
      *         All the Link objects added to the input
      */
     const std::vector<Link*>&
     getLinks();
 
-    /** 
-     * 
+    /**
+     *
      * Tells whether the input is region level.
-     * 
+     *
      * @returns
      *     Whether the input is region level, i.e. TODO
      */
@@ -204,11 +208,11 @@ namespace nupic
     /**
      * Called by Region.evaluateLinks() as part
      * of network initialization.
-     * 
+     *
      * 1. Tries to make sure that dimensions at both ends
      *    of a link are specified by calling setSourceDimensions()
      *    if possible, and then calling getDestDimensions()
-     * 2. Ensures that region dimensions are consistent with 
+     * 2. Ensures that region dimensions are consistent with
      *    either by setting destination region dimensions (this is
      *    where links "induce" dimensions) or by raising an exception
      *    if they are inconsistent.
@@ -219,12 +223,12 @@ namespace nupic
     size_t
     evaluateLinks();
 
-    /** 
+    /**
      * Initialize the Input .
      *
-     * After the input has all the information it needs, it is initialized by 
+     * After the input has all the information it needs, it is initialized by
      * this method. Volatile data structures (e.g. the input buffer) are set up。
-     */ 
+     */
     void
     initialize();
 
@@ -241,15 +245,15 @@ namespace nupic
 
     /**
      *
-     * @see Link.buildSplitterMap() 
-     * 
+     * @see Link.buildSplitterMap()
+     *
      */
     typedef std::vector< std::vector<size_t> > SplitterMap;
 
     /**
-     * 
+     *
      * Get splitter map from an initialized input
-     * 
+     *
      * @returns
      *         The splitter map
      */
@@ -260,7 +264,7 @@ namespace nupic
 
   private:
     Region& region_;
-    // buffer is concatenation of input buffers (after prepare), or, 
+    // buffer is concatenation of input buffers (after prepare), or,
     // if zeroCopyEnabled it points to the connected output
     bool isRegionLevel_;
 
@@ -272,7 +276,7 @@ namespace nupic
     bool initialized_;
     Array data_;
 
-    /* 
+    /*
      * cached splitter map -- only created if requested
      * mutable because getSplitterMap() is const and logically
      * getting the splitter map doesn't change the Input
@@ -281,7 +285,7 @@ namespace nupic
 
 
     /*
-     * Cache of information about link offsets so we can 
+     * Cache of information about link offsets so we can
      * easily copy data from each link.
      * the first link starts at offset 0
      * the next link starts at offset 0 + size(link[0])
@@ -292,7 +296,7 @@ namespace nupic
     std::string name_;
 
     // Internal methods
-    
+
     /*
      * uninitialize is called by removeLink
      * and in our destructor. It is an error

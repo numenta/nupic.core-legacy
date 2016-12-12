@@ -23,8 +23,7 @@
 /** @file
  * Implementation of the Link class
  */
-
-#include <cstring> // memcpy
+#include <cstring> // memcpy,memset
 #include <nupic/engine/Link.hpp>
 #include <nupic/utils/Log.hpp>
 #include <nupic/engine/LinkPolicyFactory.hpp>
@@ -33,7 +32,6 @@
 #include <nupic/engine/Input.hpp>
 #include <nupic/engine/Output.hpp>
 #include <nupic/ntypes/Array.hpp>
-#include <nupic/ntypes/ArrayRef.hpp>
 #include <nupic/types/BasicType.hpp>
 
 namespace nupic
@@ -42,22 +40,27 @@ namespace nupic
 
 Link::Link(const std::string& linkType, const std::string& linkParams,
            const std::string& srcRegionName, const std::string& destRegionName,
-           const std::string& srcOutputName, const std::string& destInputName)
+           const std::string& srcOutputName, const std::string& destInputName,
+           const size_t propagationDelay):
+             srcBuffer_(0)
 {
   commonConstructorInit_(linkType, linkParams,
         srcRegionName, destRegionName,
-        srcOutputName, destInputName);
+        srcOutputName, destInputName,
+        propagationDelay);
 
 }
 
 Link::Link(const std::string& linkType, const std::string& linkParams,
-           Output* srcOutput, Input* destInput)
+           Output* srcOutput, Input* destInput, const size_t propagationDelay):
+             srcBuffer_()
 {
   commonConstructorInit_(linkType, linkParams,
         srcOutput->getRegion().getName(),
         destInput->getRegion().getName(),
         srcOutput->getName(),
-        destInput->getName() );
+        destInput->getName(),
+        propagationDelay);
 
   connectToNetwork(srcOutput, destInput);
   // Note -- link is not usable until we set the destOffset, which happens at initialization time
@@ -65,7 +68,8 @@ Link::Link(const std::string& linkType, const std::string& linkParams,
 
 void Link::commonConstructorInit_(const std::string& linkType, const std::string& linkParams,
                  const std::string& srcRegionName, const std::string& destRegionName,
-                 const std::string& srcOutputName,  const std::string& destInputName)
+                 const std::string& srcOutputName,  const std::string& destInputName,
+                 const size_t propagationDelay)
 {
   linkType_ = linkType;
   linkParams_ = linkParams;
@@ -73,6 +77,7 @@ void Link::commonConstructorInit_(const std::string& linkType, const std::string
   srcOutputName_ = srcOutputName;
   destRegionName_ = destRegionName;
   destInputName_ = destInputName;
+  propagationDelay_ = propagationDelay;
   destOffset_ = 0;
   srcOffset_ = 0;
   srcSize_ = 0;
@@ -161,6 +166,36 @@ void Link::initialize(size_t destinationOffset)
 
   destOffset_ = destinationOffset;
   impl_->initialize();
+
+  // ---
+  // Initialize the propagation delay buffer
+  // ---
+
+  // Establish capacity for the requested delay data elements plus one slot for
+  // the next output element
+  srcBuffer_.set_capacity(propagationDelay_ + 1);
+
+  // Initialize delay data elements
+  const Array & srcArray = src_->getData();
+  size_t dataElementCount = srcArray.getCount();
+  auto dataElementType = srcArray.getType();
+  size_t dataBufferSize = dataElementCount *
+                          BasicType::getSize(dataElementType);
+
+  Array arrayTemplate(dataElementType);
+
+  for(size_t i = 0; i < propagationDelay_; i++)
+  {
+    srcBuffer_.push_back(arrayTemplate);
+
+    if(dataElementCount != 0)
+    {
+      // Allocate 0-initialized data for current element
+      srcBuffer_[i].allocateBuffer(dataElementCount);
+      ::memset(srcBuffer_[i].getBuffer(), 0, dataBufferSize);
+    }
+  }
+
   initialized_ = true;
 
 }
@@ -263,6 +298,8 @@ void Link::connectToNetwork(Output *src, Input *dest)
 
   src_ = src;
   dest_ = dest;
+
+
 }
 
 
@@ -317,17 +354,38 @@ Link::compute()
 {
   NTA_CHECK(initialized_);
 
+  // If first compute during current network run iteration, append src to
+  // circular buffer
+  if (!srcBuffer_.full())
+  {
+    const Array & srcArray = src_->getData();
+    size_t elementCount = srcArray.getCount();
+    auto elementType = srcArray.getType();
+
+    Array array(elementType);
+    srcBuffer_.push_back(array);
+
+    auto & lastElement = srcBuffer_.back();
+    lastElement.allocateBuffer(elementCount);
+    ::memcpy(lastElement.getBuffer(), srcArray.getBuffer(),
+             elementCount * BasicType::getSize(elementType));
+  }
+
   // Copy data from source to destination.
-  // TBD: with zero-copy optimization, we won't do anything,
-  // but that isn't implemented yet.
-  const Array & src = src_->getData();
+  const Array & src = srcBuffer_[0];
   const Array & dest = dest_->getData();
 
-  // TBD: use src offset and src size (only for certain types of links)
   size_t typeSize = BasicType::getSize(src.getType());
   size_t srcSize = src.getCount() * typeSize;
   size_t destByteOffset = destOffset_ * typeSize;
   ::memcpy((char*)(dest.getBuffer()) + destByteOffset, src.getBuffer(), srcSize);
+}
+
+void Link::purgeBufferHead()
+{
+  NTA_CHECK(!srcBuffer_.empty());
+
+  srcBuffer_.pop_front();
 }
 
 void Link::write(LinkProto::Builder& proto) const
@@ -345,7 +403,8 @@ void Link::read(LinkProto::Reader& proto)
   commonConstructorInit_(
       proto.getType().cStr(), proto.getParams().cStr(),
       proto.getSrcRegion().cStr(), proto.getDestRegion().cStr(),
-      proto.getSrcOutput().cStr(), proto.getDestInput().cStr());
+      proto.getSrcOutput().cStr(), proto.getDestInput().cStr(),
+      0/*propagationDelay ZZZ TODO get from proto*/);
 }
 
 namespace nupic
@@ -365,4 +424,3 @@ namespace nupic
 }
 
 }
-
