@@ -482,9 +482,6 @@ namespace nupic
     Output *src_;
     Input *dest_;
 
-    // Circular buffer for delayed source data buffering
-    boost::circular_buffer<Array> srcBuffer_;
-
     // Each link contributes a contiguous chunk of the destination
     // input. The link needs to know its offset within the destination
     // input. This value is set at initialization time.
@@ -498,6 +495,9 @@ namespace nupic
     size_t srcOffset_;
     size_t srcSize_;
 
+    // Circular buffer for delayed source data buffering
+    boost::circular_buffer<Array> srcBuffer_;
+    // Number of delay slots
     size_t propagationDelay_;
 
     // link must be initialized before it can compute()
