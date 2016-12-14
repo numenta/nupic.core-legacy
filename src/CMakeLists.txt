@@ -239,6 +239,7 @@ endif()
 # List all .capnp files here. The C++ files will be generated and included
 # when compiling later on.
 set(src_capnp_specs_rel
+  nupic/proto/Array.capnp
   nupic/proto/BitHistory.capnp
   nupic/proto/ClaClassifier.capnp
   nupic/proto/ConnectionsProto.capnp
