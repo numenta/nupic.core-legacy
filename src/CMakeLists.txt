@@ -348,7 +348,6 @@ set(src_nupiccore_srcs
     nupic/engine/TestNode.cpp
     nupic/engine/UniformLinkPolicy.cpp
     nupic/engine/YAMLUtils.cpp
-    nupic/experimental/ExtendedTemporalMemory.cpp
     nupic/math/SparseMatrixAlgorithms.cpp
     nupic/math/StlIo.cpp
     nupic/math/Topology.cpp
@@ -569,7 +568,6 @@ add_executable(${src_executable_gtests}
                test/unit/engine/NetworkFactoryTest.cpp
                test/unit/engine/UniformLinkPolicyTest.cpp
                test/unit/engine/YAMLUtilsTest.cpp
-               test/unit/experimental/ExtendedTemporalMemoryTest.cpp
                test/unit/math/DenseTensorUnitTest.cpp
                test/unit/math/DomainUnitTest.cpp
                test/unit/math/IndexUnitTest.cpp
@@ -838,9 +836,6 @@ if (NUPIC_BUILD_PYEXT_MODULES)
 
   # Engine
   build_extension("engine_internal")
-
-  # Experimental
-  build_extension("experimental")
 
   # Math
   build_extension("math")
