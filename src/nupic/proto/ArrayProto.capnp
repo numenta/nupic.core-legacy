@@ -1,7 +1,7 @@
 @0xe06bf2673760a815;
 
-
-struct Array {
+# Represents an Output Array
+struct ArrayProto {
   union {
     byteArray   @0 :List(UInt8);   # NTA_BasicType_Byte ZZZ or is it Int8, or does it matter?
     int16Array  @1 :List(Int16);   # NTA_BasicType_Int16
@@ -12,6 +12,5 @@ struct Array {
     uint64Array @6 :List(UInt64);  # NTA_BasicType_UInt64
     real32Array @7 :List(Float32); # NTA_BasicType_Real32
     real64Array @8 :List(Float64); # NTA_BasicType_Real64
-    boolArray   @9 :List(Bool);    # NTA_BasicType_Bool
   }
 }
