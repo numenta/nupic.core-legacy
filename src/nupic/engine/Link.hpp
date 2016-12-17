@@ -458,6 +458,10 @@ namespace nupic
                                 const std::string& destInputName,
                                 const size_t propagationDelay);
 
+    // To be called after propagation delay value is known and link is
+    // connected to network.
+    void initPropagationDelayBuffer();
+
     // TODO: The strings with src/dest names are redundant with
     // the src_ and dest_ objects. For unit testing links,
     // and for deserializing networks, we need to be able to create

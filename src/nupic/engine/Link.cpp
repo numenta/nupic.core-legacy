@@ -94,6 +94,48 @@ Link::~Link()
   delete impl_;
 }
 
+
+void Link::initPropagationDelayBuffer()
+{
+  // To be called after propagation delay value is known and link is
+  // connected to network.
+
+  if (srcBuffer_.capacity() != 0)
+  {
+    // Already initialized; e.g., as result of serialization
+    return;
+  }
+
+  // Establish capacity for the requested delay data elements plus one slot for
+  // the next output element
+  srcBuffer_.set_capacity(propagationDelay_ + 1);
+
+  // Initialize delay data elements
+  const Array & srcArray = src_->getData();
+
+  size_t dataElementCount = srcArray.getCount();
+
+  auto dataElementType = srcArray.getType();
+
+  size_t dataBufferSize = dataElementCount *
+                          BasicType::getSize(dataElementType);
+
+  for(size_t i=0; i < propagationDelay_; i++)
+  {
+    Array arrayTemplate(dataElementType);
+
+    srcBuffer_.push_back(arrayTemplate);
+
+    if(dataElementCount != 0)
+    {
+      // Allocate 0-initialized data for current element
+      srcBuffer_[i].allocateBuffer(dataElementCount);
+      ::memset(srcBuffer_[i].getBuffer(), 0, dataBufferSize);
+    }
+  }
+}
+
+
 void Link::initialize(size_t destinationOffset)
 {
   // Make sure all information is specified and
@@ -170,31 +212,7 @@ void Link::initialize(size_t destinationOffset)
   // ---
   // Initialize the propagation delay buffer
   // ---
-
-  // Establish capacity for the requested delay data elements plus one slot for
-  // the next output element
-  srcBuffer_.set_capacity(propagationDelay_ + 1);
-
-  // Initialize delay data elements
-  const Array & srcArray = src_->getData();
-  size_t dataElementCount = srcArray.getCount();
-  auto dataElementType = srcArray.getType();
-  size_t dataBufferSize = dataElementCount *
-                          BasicType::getSize(dataElementType);
-
-  Array arrayTemplate(dataElementType);
-
-  for(size_t i = 0; i < propagationDelay_; i++)
-  {
-    srcBuffer_.push_back(arrayTemplate);
-
-    if(dataElementCount != 0)
-    {
-      // Allocate 0-initialized data for current element
-      srcBuffer_[i].allocateBuffer(dataElementCount);
-      ::memset(srcBuffer_[i].getBuffer(), 0, dataBufferSize);
-    }
-  }
+  initPropagationDelayBuffer();
 
   initialized_ = true;
 
@@ -399,6 +417,22 @@ void copyArrayToArrayProto(ST src, ABT builder, size_t elementCount)
 }
 
 
+template <typename DDT, typename ART>
+void copyArrayProtoToArray(ART reader, Array & dest,
+                           NTA_BasicType arrayType)
+{
+  NTA_CHECK(reader.size() == dest.getCount());
+  NTA_CHECK(dest.getType() == arrayType);
+
+  auto destData = (DDT*)dest.getBuffer();
+
+  for (auto entry: reader)
+  {
+    *destData++ = entry;
+  }
+}
+
+
 void Link::write(LinkProto::Builder& proto) const
 {
   proto.setType(linkType_.c_str());
@@ -424,47 +458,47 @@ void Link::write(LinkProto::Builder& proto) const
     {
     case NTA_BasicType_Byte:
       copyArrayToArrayProto((NTA_Byte*)array.getBuffer(),
-                            genericArrayBuilder.getByteArray(),
+                            genericArrayBuilder.initByteArray(elementCount),
                             elementCount);
       break;
     case NTA_BasicType_Int16:
       copyArrayToArrayProto((NTA_Int16*)array.getBuffer(),
-                            genericArrayBuilder.getInt16Array(),
+                            genericArrayBuilder.initInt16Array(elementCount),
                             elementCount);
       break;
     case NTA_BasicType_UInt16:
       copyArrayToArrayProto((NTA_UInt16*)array.getBuffer(),
-                            genericArrayBuilder.getUint16Array(),
+                            genericArrayBuilder.initUint16Array(elementCount),
                             elementCount);
       break;
     case NTA_BasicType_Int32:
       copyArrayToArrayProto((NTA_Int32*)array.getBuffer(),
-                            genericArrayBuilder.getInt32Array(),
+                            genericArrayBuilder.initInt32Array(elementCount),
                             elementCount);
       break;
     case NTA_BasicType_UInt32:
       copyArrayToArrayProto((NTA_UInt32*)array.getBuffer(),
-                            genericArrayBuilder.getUint32Array(),
+                            genericArrayBuilder.initUint32Array(elementCount),
                             elementCount);
       break;
     case NTA_BasicType_Int64:
       copyArrayToArrayProto((NTA_Int64*)array.getBuffer(),
-                            genericArrayBuilder.getInt64Array(),
+                            genericArrayBuilder.initInt64Array(elementCount),
                             elementCount);
       break;
     case NTA_BasicType_UInt64:
       copyArrayToArrayProto((NTA_UInt64*)array.getBuffer(),
-                            genericArrayBuilder.getUint64Array(),
+                            genericArrayBuilder.initUint64Array(elementCount),
                             elementCount);
       break;
     case NTA_BasicType_Real32:
       copyArrayToArrayProto((NTA_Real32*)array.getBuffer(),
-                            genericArrayBuilder.getReal32Array(),
+                            genericArrayBuilder.initReal32Array(elementCount),
                             elementCount);
       break;
     case NTA_BasicType_Real64:
       copyArrayToArrayProto((NTA_Real64*)array.getBuffer(),
-                            genericArrayBuilder.getReal64Array(),
+                            genericArrayBuilder.initReal64Array(elementCount),
                             elementCount);
       break;
     default:
@@ -475,29 +509,17 @@ void Link::write(LinkProto::Builder& proto) const
 }
 
 
-template <typename DDT, typename ART>
-void copyArrayProtoToArray(ART reader, Array & dest,
-                           NTA_BasicType arrayType)
-{
-  NTA_CHECK(reader.size() == dest.getCount());
-  NTA_CHECK(dest.getType() == arrayType);
-
-  auto destData = (DDT*)dest.getBuffer();
-
-  for (auto entry: reader)
-  {
-    *(destData++) = entry;
-  }
-}
-
-
 void Link::read(LinkProto::Reader& proto)
 {
+  std::cerr << "ZZZ Entering Link::read" << std::endl << std::flush;
   commonConstructorInit_(
       proto.getType().cStr(), proto.getParams().cStr(),
       proto.getSrcRegion().cStr(), proto.getDestRegion().cStr(),
       proto.getSrcOutput().cStr(), proto.getDestInput().cStr(),
       proto.getDelayedOutputs().size()/*propagationDelay*/);
+
+  // Initialize the propagation delay buffer
+  initPropagationDelayBuffer();
 
   // Populate delayed outputs
   const auto delayedOutputsReader = proto.getDelayedOutputs();
