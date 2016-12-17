@@ -4347,7 +4347,7 @@ public:
   /**
    * Set all zeros on the outer product of the ranges passed in.
    *
-  * For example, calling on
+   * For example, calling on
    * [[0, 2, 2, 0],
    *  [0, 0, 2, 0],
    *  [0, 0, 0, 0]]
@@ -4510,6 +4510,77 @@ public:
         insertRandomNonZerosIntoColumns_(*row, col_begin, col_end,
                                          numNewNonZeros, numZeros, value,
                                          rng);
+      }
+    }
+  }
+
+  /**
+   * Convert some zeros per row to 'value', choosing randomly,
+   * restricting changes to the outer product of the ranges passed in.
+   *
+   * For example, calling on
+   * [[0, 2, 2, 0],
+   *  [0, 0, 2, 0],
+   *  [0, 0, 0, 0]]
+   *
+   * With [0, 1, 2] and [1, 2, 3], numNew=[2, 2, 1], value=42,
+   * it might result in:
+   * [[0, 2, 2,42],
+   *  [0,42, 2,42],
+   *  [0, 0,42, 0]]
+   *
+   * @param row_begin, row_end
+   * Iterators for sorted list of selected rows
+   *
+   * @param col_begin, col_end
+   * Iterators for sorted list of selected columns
+   *
+   * @param numNew_begin, numNew_end
+   * Number of new nonzeros that will be attempted per row
+   *
+   * @param value
+   * Initial value for a new nonzero
+   *
+   * @param rng
+   * A random number generator
+   *
+   * @b Requirements
+   *  @li Columns must be sorted
+   */
+  template <typename InputIterator1, typename InputIterator2,
+            typename InputIterator3, typename Random>
+  inline void setRandomZerosOnOuter(
+    InputIterator1 row_begin, InputIterator1 row_end,
+    InputIterator2 col_begin, InputIterator2 col_end,
+    InputIterator3 numNew_begin, InputIterator3 numNew_end,
+    value_type value, Random& rng) {
+    { // Pre-conditions
+      ASSERT_INPUT_ITERATOR(InputIterator1);
+      ASSERT_INPUT_ITERATOR(InputIterator2);
+      ASSERT_INPUT_ITERATOR(InputIterator3);
+      assert_valid_row_it_range_(row_begin, row_end,
+                                 "setRandomZerosOnOuter");
+      assert_valid_sorted_index_range_(nCols(), col_begin, col_end,
+                                       "setRandomZerosOnOuter");
+
+      NTA_ASSERT(std::distance(row_begin, row_end) ==
+                 std::distance(numNew_begin, numNew_end));
+    } // End pre-conditions
+
+    InputIterator1 row;
+    InputIterator3 numNew;
+    for (row = row_begin, numNew = numNew_begin;
+         row != row_end;
+         ++row, ++numNew) {
+      if (*numNew > 0) {
+        size_type numZeros =  nZerosInRowOnColumns_(*row, col_begin, col_end);
+        size_type numNewNonZeros = std::min(*numNew, numZeros);
+        if (numNewNonZeros > 0)
+        {
+          insertRandomNonZerosIntoColumns_(*row, col_begin, col_end,
+                                           numNewNonZeros, numZeros, value,
+                                           rng);
+        }
       }
     }
   }
