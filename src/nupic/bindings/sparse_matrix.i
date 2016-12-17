@@ -820,67 +820,158 @@ def __div__(self, other):
                                         threshold, delta);
   }
 
-  void incrementNonZerosOnOuter(PyObject* py_i, PyObject* py_j,
-                                nupic::Real ## N2 delta)
+
+  %pythoncode %{
+    def incrementNonZerosOnOuter(self, rows, cols, delta):
+      self._incrementNonZerosOnOuter(numpy.asarray(rows, dtype="uint32"),
+                                     numpy.asarray(cols, dtype="uint32"),
+                                     delta)
+  %}
+
+  void _incrementNonZerosOnOuter(PyObject* py_rows, PyObject* py_cols,
+                                 nupic::Real ## N2 delta)
   {
-    nupic::NumpyVectorT<nupic::UInt ## N1> i(py_i);
-    nupic::NumpyVectorT<nupic::UInt ## N1> j(py_j);
-    self->incrementNonZerosOnOuter(i.begin(), i.end(),
-                                   j.begin(), j.end(),
+    PyArrayObject* npRows = (PyArrayObject*) py_rows;
+    size_t rowsSize = PyArray_DIMS(npRows)[0];
+    nupic::UInt32* rows = (nupic::UInt32*)PyArray_DATA(npRows);
+
+    PyArrayObject* npCols = (PyArrayObject*) py_cols;
+    size_t colsSize = PyArray_DIMS(npCols)[0];
+    nupic::UInt32* cols = (nupic::UInt32*)PyArray_DATA(npCols);
+
+    self->incrementNonZerosOnOuter(rows, rows + rowsSize,
+                                   cols, cols + colsSize,
                                    delta);
   }
 
-  void incrementNonZerosOnRowsExcludingCols(PyObject* py_i, PyObject* py_j,
-                                            nupic::Real ## N2 delta)
+
+  %pythoncode %{
+    def incrementNonZerosOnRowsExcludingCols(self, rows, cols, delta):
+      self._incrementNonZerosOnRowsExcludingCols(numpy.asarray(rows, dtype="uint32"),
+                                                 numpy.asarray(cols, dtype="uint32"),
+                                                 delta)
+  %}
+
+  void _incrementNonZerosOnRowsExcludingCols(PyObject* py_rows, PyObject* py_cols,
+                                             nupic::Real ## N2 delta)
   {
-    nupic::NumpyVectorT<nupic::UInt ## N1> i(py_i);
-    nupic::NumpyVectorT<nupic::UInt ## N1> j(py_j);
-    self->incrementNonZerosOnRowsExcludingCols(i.begin(), i.end(),
-                                               j.begin(), j.end(),
+    PyArrayObject* npRows = (PyArrayObject*) py_rows;
+    size_t rowsSize = PyArray_DIMS(npRows)[0];
+    nupic::UInt32* rows = (nupic::UInt32*)PyArray_DATA(npRows);
+
+    PyArrayObject* npCols = (PyArrayObject*) py_cols;
+    size_t colsSize = PyArray_DIMS(npCols)[0];
+    nupic::UInt32* cols = (nupic::UInt32*)PyArray_DATA(npCols);
+
+    self->incrementNonZerosOnRowsExcludingCols(rows, rows + rowsSize,
+                                               cols, cols + colsSize,
                                                delta);
   }
 
-  void setZerosOnOuter(PyObject* py_i, PyObject* py_j,
-                       nupic::Real ## N2 value)
+
+  %pythoncode %{
+    def setZerosOnOuter(self, rows, cols, value):
+      self._setZerosOnOuter(numpy.asarray(rows, dtype="uint32"),
+                            numpy.asarray(cols, dtype="uint32"),
+                            value)
+  %}
+
+  void _setZerosOnOuter(PyObject* py_rows, PyObject* py_cols,
+                        nupic::Real ## N2 value)
   {
-    nupic::NumpyVectorT<nupic::UInt ## N1> i(py_i);
-    nupic::NumpyVectorT<nupic::UInt ## N1> j(py_j);
-    self->setZerosOnOuter(i.begin(), i.end(),
-                          j.begin(), j.end(), value);
+    PyArrayObject* npRows = (PyArrayObject*) py_rows;
+    size_t rowsSize = PyArray_DIMS(npRows)[0];
+    nupic::UInt32* rows = (nupic::UInt32*)PyArray_DATA(npRows);
+
+    PyArrayObject* npCols = (PyArrayObject*) py_cols;
+    size_t colsSize = PyArray_DIMS(npCols)[0];
+    nupic::UInt32* cols = (nupic::UInt32*)PyArray_DATA(npCols);
+
+    self->setZerosOnOuter(rows, rows + rowsSize,
+                          cols, cols + colsSize,
+                          value);
   }
 
-  void setRandomZerosOnOuter(PyObject* py_i, PyObject* py_j,
-                             nupic::UInt ## N1 numNewNonZerosPerRow,
-                             nupic::Real ## N2 value,
-                             nupic::Random& rng)
+
+  %pythoncode %{
+    def setRandomZerosOnOuter(self, rows, cols, numNewNonZeros, value, rng):
+      self._setRandomZerosOnOuter(
+        numpy.asarray(rows, dtype="uint32"),
+        numpy.asarray(cols, dtype="uint32"),
+        numNewNonZeros,
+        value,
+        rng)
+  %}
+
+  void _setRandomZerosOnOuter(PyObject* py_rows,
+                              PyObject* py_cols,
+                              nupic::UInt ## N1 numNewNonZeros,
+                              nupic::Real ## N2 value,
+                              nupic::Random& rng)
   {
-    nupic::NumpyVectorT<nupic::UInt ## N1> i(py_i);
-    nupic::NumpyVectorT<nupic::UInt ## N1> j(py_j);
-    self->setRandomZerosOnOuter(i.begin(), i.end(),
-                                j.begin(), j.end(),
-                                numNewNonZerosPerRow, value, rng);
+    PyArrayObject* npRows = (PyArrayObject*) py_rows;
+    size_t rowsSize = PyArray_DIMS(npRows)[0];
+    nupic::UInt32* rows = (nupic::UInt32*)PyArray_DATA(npRows);
+
+    PyArrayObject* npCols = (PyArrayObject*) py_cols;
+    size_t colsSize = PyArray_DIMS(npCols)[0];
+    nupic::UInt32* cols = (nupic::UInt32*)PyArray_DATA(npCols);
+
+    self->setRandomZerosOnOuter(rows, rows + rowsSize,
+                                cols, cols + colsSize,
+                                numNewNonZeros,
+                                value, rng);
   }
 
-  void increaseRowNonZeroCountsOnOuterTo(PyObject* py_i, PyObject* py_j,
-                                         nupic::UInt ## N1 numDesiredNonzeros,
-                                         nupic::Real ## N2 initialValue,
-                                         nupic::Random& rng)
+
+  %pythoncode %{
+    def increaseRowNonZeroCountsOnOuterTo(self, rows, cols, numDesiredNonZeros,
+                                          initialValue, rng):
+      self._increaseRowNonZeroCountsOnOuterTo(
+        numpy.asarray(rows, dtype="uint32"),
+        numpy.asarray(cols, dtype="uint32"),
+        numDesiredNonZeros, initialValue, rng)
+  %}
+
+  void _increaseRowNonZeroCountsOnOuterTo(PyObject* py_rows, PyObject* py_cols,
+                                          nupic::UInt ## N1 numDesiredNonZeros,
+                                          nupic::Real ## N2 initialValue,
+                                          nupic::Random& rng)
   {
-    nupic::NumpyVectorT<nupic::UInt ## N1> i(py_i);
-    nupic::NumpyVectorT<nupic::UInt ## N1> j(py_j);
-    self->increaseRowNonZeroCountsOnOuterTo(i.begin(), i.end(),
-                                            j.begin(), j.end(),
-                                            numDesiredNonzeros, initialValue,
+    PyArrayObject* npRows = (PyArrayObject*) py_rows;
+    size_t rowsSize = PyArray_DIMS(npRows)[0];
+    nupic::UInt32* rows = (nupic::UInt32*)PyArray_DATA(npRows);
+
+    PyArrayObject* npCols = (PyArrayObject*) py_cols;
+    size_t colsSize = PyArray_DIMS(npCols)[0];
+    nupic::UInt32* cols = (nupic::UInt32*)PyArray_DATA(npCols);
+
+    self->increaseRowNonZeroCountsOnOuterTo(rows, rows + rowsSize,
+                                            cols, cols + colsSize,
+                                            numDesiredNonZeros, initialValue,
                                             rng);
   }
 
-  void clipRowsBelowAndAbove(PyObject* py_i,
-                             nupic::Real ## N2 a,
-                             nupic::Real ## N2 b)
+
+  %pythoncode %{
+    def clipRowsBelowAndAbove(self, rows, a, b):
+      self._clipRowsBelowAndAbove(numpy.asarray(rows, dtype="uint32"),
+                                  a,
+                                  b)
+  %}
+
+  void _clipRowsBelowAndAbove(PyObject* py_rows,
+                              nupic::Real ## N2 a,
+                              nupic::Real ## N2 b)
   {
-    nupic::NumpyVectorT<nupic::UInt ## N1> i(py_i);
-    self->clipRowsBelowAndAbove(i.begin(), i.end(), a, b);
+    PyArrayObject* npRows = (PyArrayObject*) py_rows;
+    size_t rowsSize = PyArray_DIMS(npRows)[0];
+    nupic::UInt32* rows = (nupic::UInt32*)PyArray_DATA(npRows);
+
+    self->clipRowsBelowAndAbove(rows, rows + rowsSize,
+                                a, b);
   }
+
 
   // Returns the number of non-zeros per row, for all rows
   PyObject* nNonZerosPerRow() const
