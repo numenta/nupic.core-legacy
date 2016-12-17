@@ -4211,7 +4211,7 @@ public:
    * Amount to add to each selected nonzero
    *
    * @b Requirements
-   *  @li Rows and columns must be sorted
+   *  @li Columns must be sorted
    */
   template <typename InputIterator1, typename InputIterator2>
   inline void incrementNonZerosOnOuter(
@@ -4221,8 +4221,8 @@ public:
     { // Pre-conditions
       ASSERT_INPUT_ITERATOR(InputIterator1);
       ASSERT_INPUT_ITERATOR(InputIterator2);
-      assert_valid_sorted_index_range_(nRows(), row_begin, row_end,
-                                       "incrementNonZerosOnOuter");
+      assert_valid_row_it_range_(row_begin, row_end,
+                                 "incrementNonZerosOnOuter");
       assert_valid_sorted_index_range_(nCols(), col_begin, col_end,
                                        "incrementNonZerosOnOuter");
     } // End pre-conditions
@@ -4269,7 +4269,7 @@ public:
    * Amount to add to each selected nonzero
    *
    * @b Requirements
-   *  @li Rows and columns must be sorted
+   *  @li Columns must be sorted
    */
   template <typename InputIterator1, typename InputIterator2>
   inline void incrementNonZerosOnRowsExcludingCols(
@@ -4279,8 +4279,8 @@ public:
     { // Pre-conditions
       ASSERT_INPUT_ITERATOR(InputIterator1);
       ASSERT_INPUT_ITERATOR(InputIterator2);
-      assert_valid_sorted_index_range_(nRows(), row_begin, row_end,
-                                       "incrementNonZerosOnRowsExcludingCols");
+      assert_valid_row_it_range_(row_begin, row_end,
+                                 "incrementNonZerosOnRowsExcludingCols");
       assert_valid_sorted_index_range_(nCols(), col_begin, col_end,
                                        "incrementNonZerosOnRowsExcludingCols");
     } // End pre-conditions
@@ -4368,7 +4368,7 @@ public:
    * The value to insert at each zero
    *
    * @b Requirements
-   *  @li Rows and columns must be sorted
+   *  @li Columns must be sorted
    */
   template <typename InputIterator1, typename InputIterator2>
   inline void setZerosOnOuter(
@@ -4379,8 +4379,8 @@ public:
     { // Pre-conditions
       ASSERT_INPUT_ITERATOR(InputIterator1);
       ASSERT_INPUT_ITERATOR(InputIterator2);
-      assert_valid_sorted_index_range_(nRows(), row_begin, row_end,
-                                       "setZerosOnOuter");
+      assert_valid_row_it_range_(row_begin, row_end,
+                                 "setZerosOnOuter");
       assert_valid_sorted_index_range_(nCols(), col_begin, col_end,
                                        "setZerosOnOuter");
     } // End pre-conditions
@@ -4486,7 +4486,7 @@ public:
    * A random number generator
    *
    * @b Requirements
-   *  @li Rows and columns must be sorted
+   *  @li Columns must be sorted
    */
   template <typename InputIterator1, typename InputIterator2, typename Random>
   inline void setRandomZerosOnOuter(
@@ -4496,8 +4496,8 @@ public:
     { // Pre-conditions
       ASSERT_INPUT_ITERATOR(InputIterator1);
       ASSERT_INPUT_ITERATOR(InputIterator2);
-      assert_valid_sorted_index_range_(nRows(), row_begin, row_end,
-                                       "setRandomZerosOnOuter");
+      assert_valid_row_it_range_(row_begin, row_end,
+                                 "setRandomZerosOnOuter");
       assert_valid_sorted_index_range_(nCols(), col_begin, col_end,
                                        "setRandomZerosOnOuter");
     } // End pre-conditions
@@ -4547,7 +4547,7 @@ public:
    * A random number generator
    *
    * @b Requirements
-   *  @li Rows and columns must be sorted
+   *  @li Columns must be sorted
    */
   template <typename InputIterator1, typename InputIterator2, typename Random>
   inline void increaseRowNonZeroCountsOnOuterTo(
@@ -4558,8 +4558,8 @@ public:
     { // Pre-conditions
       ASSERT_INPUT_ITERATOR(InputIterator1);
       ASSERT_INPUT_ITERATOR(InputIterator2);
-      assert_valid_sorted_index_range_(nRows(), row_begin, row_end,
-                                       "increaseRowNonZeroCountsOnOuterTo");
+      assert_valid_row_it_range_(row_begin, row_end,
+                                 "increaseRowNonZeroCountsOnOuterTo");
       assert_valid_sorted_index_range_(nCols(), col_begin, col_end,
                                        "increaseRowNonZeroCountsOnOuterTo");
     } // End pre-conditions

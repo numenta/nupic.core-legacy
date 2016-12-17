@@ -1,6 +1,6 @@
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
+ * Copyright (C) 2013-2016, Numenta, Inc.  Unless you have an agreement
  * with Numenta, Inc., for a separate license for this software code, the
  * following terms and conditions apply:
  *
@@ -4163,4 +4163,161 @@ def __setstate__(self, inString):
     return _Set(*args)
 %}
 
+
 //--------------------------------------------------------------------------------
+// Segment Sparse Matrix
+//--------------------------------------------------------------------------------
+
+%include <nupic/math/SegmentSparseMatrix.hpp>
+
+%{
+#include <nupic/math/SegmentSparseMatrix.hpp>
+%}
+
+%template(SegmentSparseMatrix32) nupic::SegmentSparseMatrix<nupic::UInt32,nupic::Real32,nupic::Int32,nupic::Real64,nupic::DistanceToZero<nupic::Real32 > >;
+
+%extend nupic::SegmentSparseMatrix<nupic::UInt32, nupic::Real32, nupic::Int32, nupic::Real64, nupic::DistanceToZero<nupic::Real32> >
+{
+  %pythoncode %{
+    def createSegments(self, cells):
+      cells = numpy.asarray(cells, dtype="uint32")
+      return self._createSegments(numpy.asarray(cells, dtype="uint32"))
+  %}
+
+  PyObject* _createSegments(PyObject *py_cells)
+  {
+    PyArrayObject* npCells = (PyArrayObject*) py_cells;
+    size_t cellsSize = PyArray_DIMS(npCells)[0];
+    nupic::UInt32* cells = (nupic::UInt32*)PyArray_DATA(npCells);
+
+    nupic::NumpyVectorT<nupic::UInt32> npSegmentsOut(cellsSize);
+    self->createSegments(cells, cells + cellsSize, npSegmentsOut.begin());
+
+    return npSegmentsOut.forPython();
+  }
+
+
+  %pythoncode %{
+    def destroySegments(self, segments):
+      self._destroySegments(numpy.asarray(segments,
+                                                  dtype="uint32"))
+  %}
+
+  void _destroySegments(PyObject *py_segments)
+  {
+    PyArrayObject* npSegments = (PyArrayObject*) py_segments;
+    size_t segmentsSize = PyArray_DIMS(npSegments)[0];
+    nupic::UInt32* segments = (nupic::UInt32*)PyArray_DATA(npSegments);
+
+    self->destroySegments(segments, segments + segmentsSize);
+  }
+
+
+  %pythoncode %{
+    def getSegmentCounts(self, cells):
+      cells = numpy.asarray(cells, dtype="uint32")
+      return self._getSegmentCounts(numpy.asarray(cells,
+                                                  dtype="uint32"))
+  %}
+
+  PyObject* _getSegmentCounts(PyObject *py_cells) const
+  {
+    PyArrayObject* npCells = (PyArrayObject*) py_cells;
+    size_t cellsSize = PyArray_DIMS(npCells)[0];
+    nupic::UInt32* cells = (nupic::UInt32*)PyArray_DATA(npCells);
+
+    nupic::NumpyVectorT<nupic::UInt32> npCountsOut(cellsSize);
+    self->getSegmentCounts(cells, cells + cellsSize, npCountsOut.begin());
+
+    return npCountsOut.forPython();
+  }
+
+
+  %pythoncode %{
+    def getSegmentsForCell(self, cell):
+      return self._getSegmentsForCell(cell)
+  %}
+
+  PyObject* _getSegmentsForCell(nupic::UInt32 cell) const
+  {
+    const std::vector<nupic::UInt32>& segments = self->getSegmentsForCell(cell);
+    nupic::NumpyVectorT<nupic::UInt32> npSegments(segments.size(),
+                                                  segments.data());
+    return npSegments.forPython();
+  }
+
+
+  %pythoncode %{
+    def sortSegmentsByCell(self, segments):
+      # Can't convert it, since we're sorting it in place.
+      assert segments.dtype == "uint32"
+      self._sortSegmentsByCell(segments)
+  %}
+
+  void _sortSegmentsByCell(PyObject *py_segments) const
+  {
+    PyArrayObject* npSegments = (PyArrayObject*) py_segments;
+    size_t segmentsSize = PyArray_DIMS(npSegments)[0];
+    nupic::UInt32* segments = (nupic::UInt32*)PyArray_DATA(npSegments);
+
+    self->sortSegmentsByCell(segments, segments + segmentsSize);
+  }
+
+
+  %pythoncode %{
+    def filterSegmentsByCell(self, segments, cells):
+      segments = numpy.asarray(segments, dtype="uint32")
+      cells = numpy.asarray(cells, dtype="uint32")
+      return self._filterSegmentsByCell(segments, cells)
+  %}
+
+  PyObject* _filterSegmentsByCell(PyObject *py_segments,
+                                  PyObject *py_cells) const
+  {
+    PyArrayObject* npSegments = (PyArrayObject*) py_segments;
+    size_t segmentsSize = PyArray_DIMS(npSegments)[0];
+    nupic::UInt32* segments = (nupic::UInt32*)PyArray_DATA(npSegments);
+
+    PyArrayObject* npCells = (PyArrayObject*) py_cells;
+    size_t cellsSize = PyArray_DIMS(npCells)[0];
+    nupic::UInt32* cells = (nupic::UInt32*)PyArray_DATA(npCells);
+
+    std::vector<nupic::UInt32> filtered =
+      self->filterSegmentsByCell(segments, segments + segmentsSize,
+                                 cells, cells + cellsSize);
+
+    nupic::NumpyVectorT<nupic::UInt32> npFiltered(filtered.size(),
+                                                  filtered.data());
+    return npFiltered.forPython();
+  }
+
+
+  %pythoncode %{
+    def mapSegmentsToCells(self, segments):
+      segments = numpy.asarray(segments, dtype="uint32")
+      return self._mapSegmentsToCells(segments)
+  %}
+
+  PyObject* _mapSegmentsToCells(PyObject *py_segments) const
+  {
+    PyArrayObject* npSegments = (PyArrayObject*) py_segments;
+    size_t segmentsSize = PyArray_DIMS(npSegments)[0];
+    nupic::UInt32* segments = (nupic::UInt32*)PyArray_DATA(npSegments);
+
+    nupic::NumpyVectorT<nupic::UInt32> npCellsOut(segmentsSize);
+    self->mapSegmentsToCells(segments, segments + segmentsSize,
+                             npCellsOut.begin());
+
+    return npCellsOut.forPython();
+  }
+
+} // End extend SegmentSparseMatrix
+
+%pythoncode %{
+  def SegmentSparseMatrix(*args, **kwargs):
+    if "dtype" in kwargs:
+      dtype = keywords.pop("dtype")
+      assert dtype == "Float32"
+
+    return SegmentSparseMatrix32(*args, **kwargs)
+%}

@@ -570,6 +570,7 @@ add_executable(${src_executable_gtests}
                test/unit/math/DomainUnitTest.cpp
                test/unit/math/IndexUnitTest.cpp
                test/unit/math/MathsTest.cpp
+               test/unit/math/SegmentSparseMatrixTest.cpp
                test/unit/math/SparseBinaryMatrixTest.cpp
                test/unit/math/SparseMatrix01UnitTest.cpp
                test/unit/math/SparseMatrixTest.cpp
