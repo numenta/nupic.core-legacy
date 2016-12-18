@@ -4211,7 +4211,7 @@ public:
    * Amount to add to each selected nonzero
    *
    * @b Requirements
-   *  @li Rows and columns must be sorted
+   *  @li Rows must be sorted
    */
   template <typename InputIterator1, typename InputIterator2>
   inline void incrementNonZerosOnOuter(
@@ -4223,24 +4223,24 @@ public:
       ASSERT_INPUT_ITERATOR(InputIterator2);
       assert_valid_sorted_index_range_(nRows(), row_begin, row_end,
                                        "incrementNonZerosOnOuter");
-      assert_valid_sorted_index_range_(nCols(), col_begin, col_end,
-                                       "incrementNonZerosOnOuter");
+      assert_valid_col_it_range_(col_begin, col_end,
+                                 "incrementNonZerosOnOuter");
     } // End pre-conditions
 
-    for (InputIterator1 row = row_begin; row != row_end; ++row) {
-      size_type *ind = ind_begin_(*row);
-      size_type *ind_end = ind_end_(*row);
-      size_type *it = ind;
+    std::fill(indb_, indb_ + nCols(), 0);
+    for (InputIterator2 col = col_begin; col != col_end; ++col) {
+      indb_[*col] = 1;
+    }
 
-      for (InputIterator2 col = col_begin; col != col_end; ++col) {
-        while (it != ind_end && *it <= *col) {
-          if (*it == *col) {
-            nz_[*row][it - ind] += delta;
-            ++it;
-            break;
-          } else {
-            ++it;
-          }
+    for (InputIterator1 row = row_begin; row != row_end; ++row) {
+      size_type *ind_begin = ind_begin_(*row);
+      size_type *ind_end = ind_end_(*row);
+
+      for (size_type *ind = ind_begin; ind != ind_end; ++ind)
+      {
+        if (indb_[*ind] == 1)
+        {
+          nz_[*row][ind - ind_begin] += delta;
         }
       }
     }
@@ -4269,7 +4269,7 @@ public:
    * Amount to add to each selected nonzero
    *
    * @b Requirements
-   *  @li Rows and columns must be sorted
+   *  @li Rows must be sorted
    */
   template <typename InputIterator1, typename InputIterator2>
   inline void incrementNonZerosOnRowsExcludingCols(
@@ -4281,25 +4281,25 @@ public:
       ASSERT_INPUT_ITERATOR(InputIterator2);
       assert_valid_sorted_index_range_(nRows(), row_begin, row_end,
                                        "incrementNonZerosOnRowsExcludingCols");
-      assert_valid_sorted_index_range_(nCols(), col_begin, col_end,
-                                       "incrementNonZerosOnRowsExcludingCols");
+      assert_valid_col_it_range_(col_begin, col_end,
+                                 "incrementNonZerosOnRowsExcludingCols");
     } // End pre-conditions
 
+    std::fill(indb_, indb_ + nCols(), 0);
+    for (InputIterator2 col = col_begin; col != col_end; ++col) {
+      indb_[*col] = 1;
+    }
+
     for (InputIterator1 row = row_begin; row != row_end; ++row) {
-      size_type *ind = ind_begin_(*row);
+      size_type *ind_begin = ind_begin_(*row);
       size_type *ind_end = ind_end_(*row);
-      InputIterator2 col = col_begin;
 
-      for (size_type *it = ind; it != ind_end; ++it) {
-        while (col != col_end && *it > *col) {
-          ++col;
+      for (size_type *ind = ind_begin; ind != ind_end; ++ind)
+      {
+        if (indb_[*ind] != 1)
+        {
+          nz_[*row][ind - ind_begin] += delta;
         }
-
-        if (col != col_end && *it == *col) {
-          continue;
-        }
-
-        nz_[*row][it - ind] += delta;
       }
     }
   }
