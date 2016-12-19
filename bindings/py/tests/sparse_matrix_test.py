@@ -657,6 +657,15 @@ class SparseMatrixTest(unittest.TestCase):
           [2,0,2,0],
           [0,41,0,1],
           [42,0,2,0]]),
+        ("Test 1, negative",
+         [[0,1,0,1],
+          [2,0,2,0],
+          [0,1,0,1],
+          [2,0,2,0]], [0,2,3], [0,1], -40,
+         [[0,-39,0,1],
+          [2,0,2,0],
+          [0,-39,0,1],
+          [-38,0,2,0]]),
         ("Test 2",
          [[1,1,1,1],
           [1,1,1,1],
@@ -699,6 +708,15 @@ class SparseMatrixTest(unittest.TestCase):
           [2,0,2,0],
           [0,1,0,41],
           [2,0,42,0]]),
+        ("Test 1, negative",
+         [[0,1,0,1],
+          [2,0,2,0],
+          [0,1,0,1],
+          [2,0,2,0]], [0,2,3], [0,1], -40,
+         [[0,1,0,-39],
+          [2,0,2,0],
+          [0,1,0,-39],
+          [2,0,-38,0]]),
         ("Test 2",
          [[1,1,1,1],
           [1,1,1,1],
@@ -769,9 +787,9 @@ class SparseMatrixTest(unittest.TestCase):
                                             str(actual), str(expectedArr)))
 
 
-  def test_setRandomZerosOnOuter(self):
+  def test_setRandomZerosOnOuter_single(self):
 
-    print "Testing setRandomZerosOnOuter"
+    print "Testing setRandomZerosOnOuter with a numerical numNewNonzeros"
 
     rng = Random()
 
@@ -865,6 +883,108 @@ class SparseMatrixTest(unittest.TestCase):
       for _ in xrange(5):
         m2 = SparseMatrix(before)
         m2.setRandomZerosOnOuter(rows, cols, numNew, value, rng)
+        if m2 != m:
+          success = True
+          break
+      self.assertTrue(success, "Should not produce the same result every time.")
+
+
+  def test_setRandomZerosOnOuter_multi(self):
+
+    print "Testing setRandomZerosOnOuter with multiple numNewNonzeros"
+
+    rng = Random()
+
+    for name, before, rows, cols, numNewByRow, value in (
+        ("Test 1",
+         numpy.array([[1, 1, 0, 0, 1, 1],
+                      [0, 0, 1, 1, 0, 0],
+                      [0, 0, 1, 0, 0, 1],
+                      [1, 0, 1, 1, 0, 0],
+                      [0, 0, 0, 0, 0, 1],
+                      [0, 0, 0, 0, 0, 0],
+                      [1, 1, 1, 1, 1, 1],
+                      [0, 0, 1, 1, 0, 1]], dtype="float32"),
+         [0, 3, 4, 5, 6, 7], [0, 3, 4],
+         [2, 1, 0, 10, 2, 0], 42),
+        ("No selected rows",
+         numpy.array([[1, 1, 0, 0, 1, 1],
+                      [0, 0, 1, 1, 0, 0],
+                      [0, 0, 1, 0, 0, 1],
+                      [1, 0, 1, 1, 0, 0],
+                      [0, 0, 0, 0, 0, 1],
+                      [0, 0, 0, 0, 0, 0],
+                      [1, 1, 1, 1, 1, 1],
+                      [0, 0, 1, 1, 0, 1]], dtype="float32"),
+         [], [0, 3, 4],
+         [], 42),
+        ("No selected cols",
+         numpy.array([[1, 1, 0, 0, 1, 1],
+                      [0, 0, 1, 1, 0, 0],
+                      [0, 0, 1, 0, 0, 1],
+                      [1, 0, 1, 1, 0, 0],
+                      [0, 0, 0, 0, 0, 1],
+                      [0, 0, 0, 0, 0, 0],
+                      [1, 1, 1, 1, 1, 1],
+                      [0, 0, 1, 1, 0, 1]], dtype="float32"),
+         [0, 3, 4, 5, 6, 7], [],
+         [2, 2, 2, 2, 2, 2], 42),
+    ):
+
+      numRows, numCols = before.shape
+
+      m = SparseMatrix(before)
+
+      m.setRandomZerosOnOuter(rows, cols, numNewByRow, value, rng)
+
+      after = m.toDense()
+
+      nonzeroBefore = before[before.nonzero()]
+      nonzeroBeforeUpdated = after[before.nonzero()]
+      self.assertTrue(numpy.array_equal(nonzeroBeforeUpdated, nonzeroBefore),
+                      ("Every value that was nonzero should not have changed."
+                       "%s != %s" % (nonzeroBeforeUpdated, nonzeroBefore)))
+
+      otherRows = [x for x in xrange(numRows) if x not in rows]
+      otherCols = [x for x in xrange(numCols) if x not in cols]
+      if len(otherRows) > 0 and len(otherCols) > 0:
+        unselectedBefore = before[numpy.ix_(otherRows, otherCols)]
+        unselectedAfter = after[numpy.ix_(otherRows, otherCols)]
+        self.assertTrue(numpy.array_equal(unselectedAfter, unselectedBefore),
+                        "Every value not in the selection should be unchanged.\n"
+                        "%s != %s" % (unselectedAfter, unselectedBefore))
+
+      if len(rows) > 0 and len(cols) > 0:
+        selectedBefore = before[numpy.ix_(rows, cols)]
+        selectedAfter = after[numpy.ix_(rows, cols)]
+        for rowBefore, rowAfter, numNew in zip(selectedBefore, selectedAfter, numNewByRow):
+          numZeros = numpy.count_nonzero(rowBefore == 0)
+          numReplaced = numpy.count_nonzero(rowAfter == value)
+
+          expected = min(numZeros, numNew)
+
+          self.assertEqual(numReplaced, expected,
+                           ("Should replace %d zeros. %s => %s" % (expected,
+                                                                   rowBefore,
+                                                                   rowAfter)))
+
+    for name, start, rows, cols, numNewByRow, value in (
+        ("Verify it's random",
+         numpy.array([[1, 1, 0, 0, 1, 1],
+                      [0, 0, 1, 1, 0, 0],
+                      [0, 0, 1, 0, 0, 1],
+                      [1, 0, 1, 1, 0, 0],
+                      [0, 0, 0, 0, 0, 1],
+                      [0, 0, 0, 0, 0, 0],
+                      [1, 1, 1, 1, 1, 1],
+                      [0, 0, 1, 1, 0, 1]], dtype="float32"),
+         [0, 3, 4, 5, 6, 7], [0, 3, 4],
+         [2, 2, 2, 2, 2, 2], 42),
+    ):
+      success = False
+      for _ in xrange(5):
+        m2 = SparseMatrix(before)
+        m2.setRandomZerosOnOuter(rows, cols, numNewByRow, value, rng)
         if m2 != m:
           success = True
           break
@@ -1404,25 +1524,197 @@ class SparseMatrixTest(unittest.TestCase):
     # relies on a pre-allocated buffer.
 
     for i in range(5):
-      m = rgen.randint(1,10)
-      n = rgen.randint(1,10)
-      a = rgen.randint(0,100,(m,n))
+      nRows = rgen.randint(1,10)
+      nCols = rgen.randint(1,10)
+      a = rgen.randint(0,100,(nRows,nCols))
       a[numpy.where(a < 75)] = 0
-      a[rgen.randint(0,m)] = 0
-      a[:,rgen.randint(0,n)] = 0
-      x = rgen.randint(0,100,(n)).astype(float32)
-      y = zeros((m))
-      a2 = array(a)
-      a2[where(a2 > 0)] = 1
-      yr = dot(a2,x)
+      a[rgen.randint(0, nRows)] = 0
+      a[:,rgen.randint(0, nCols)] = 0
       mat = SM32(a)
+
+      x = rgen.randint(2, size=nCols).astype(float32)
+
+      aNonzero = array(a)
+      aNonzero[where(aNonzero > 0)] = 1
+      expected = dot(aNonzero, x)
+
       y = mat.rightVecSumAtNZ(x)
-      if (y != yr).any():
-        error('rightVecSumAtNZ')
-      y2 = zeros((m)).astype(float32)
-      mat.rightVecSumAtNZ_fast(x, y2)
-      if (y2 != yr).any():
-        error('rightVecSumAtNZ_fast')
+      numpy.testing.assert_equal(y, expected, 'rightVecSumAtNZ')
+      y2 = zeros((nRows)).astype(float32)
+      mat.rightVecSumAtNZ(x, out=y2)
+      numpy.testing.assert_equal(y2, expected, 'rightVecSumAtNZ with out')
+
+
+  def test_rightVecSumAtNZSparse(self):
+
+    print 'Testing rightVecSumAtNZSparse'
+
+    # This is like rightVecSumAtNZ, but the right vector is described as a list
+    # of indices of the value 1.0.
+
+    for i in range(5):
+      nRows = rgen.randint(1,10)
+      nCols = rgen.randint(1,10)
+      a = rgen.randint(0,100,(nRows,nCols))
+      a[numpy.where(a < 75)] = 0
+      a[rgen.randint(0, nRows)] = 0
+      a[:,rgen.randint(0, nCols)] = 0
+      mat = SM32(a)
+
+      xDense = rgen.randint(2, size=nCols).astype(float32)
+      xSparse = flatnonzero(xDense)
+
+      aNonzero = array(a)
+      aNonzero[where(aNonzero > 0)] = 1
+      expected = dot(aNonzero, xDense)
+
+      y = mat.rightVecSumAtNZSparse(xSparse)
+      numpy.testing.assert_equal(y, expected, 'rightVecSumAtNZSparse')
+      y2 = zeros((nRows)).astype(float32)
+      mat.rightVecSumAtNZSparse(xSparse, out=y2)
+      numpy.testing.assert_equal(y2, expected, 'rightVecSumAtNZSparse with out')
+
+
+  def test_rightVecSumAtNZGtThreshold(self):
+
+    print 'Testing rightVecSumAtNZGtThreshold'
+
+    for name, matrix, rightVec, threshold, expected in (
+        ("Test 1",
+         [[  0.0,  0.49, 0.5, 0.51],
+          [  0.0,  0.0,  0.0, 0.0],
+          [100.0,-50.0, 75.0, 2.0],
+          [  1.0,  0.0,  0.0, 0.0]],
+         [1, 1, 1, 1],
+         0.5,
+         [1, 0, 3, 1]),
+        ("Use the values from rightVec",
+         [[  0.0,  0.49, 0.5, 0.51],
+          [  0.0,  0.0,  0.0, 0.0],
+          [100.0,-50.0, 75.0, 2.0],
+          [  1.0,  0.0,  0.0, 0.0]],
+         [1, 2, 3, 4],
+         0.5,
+         [4,
+          0,
+          1 + 3 + 4,
+          1]),
+        ):
+
+      rightVec = array(rightVec, dtype="float32")
+
+      mat = SM32(matrix)
+      result = mat.rightVecSumAtNZGtThreshold(rightVec, threshold)
+
+      numpy.testing.assert_almost_equal(result, expected,
+                                        err_msg=name)
+
+
+  def test_rightVecSumAtNZGtThresholdSparse(self):
+
+    print 'Testing rightVecSumAtNZGtThresholdSparse'
+
+    for name, matrix, sparseRightVec, threshold, expected in (
+        ("Test 1",
+         [[  0.0,  0.49, 0.5, 0.51],
+          [  0.0,  0.0,  0.0, 0.0],
+          [100.0,-50.0, 75.0, 2.0],
+          [  1.0,  0.0,  0.0, 0.0]],
+         [0, 1, 2, 3], # i.e. [1, 1, 1, 1]
+         0.5,
+         [1, 0, 3, 1]),
+        ("Zeros",
+         [[  0.0,  0.49, 0.5, 0.51],
+          [  0.0,  0.0,  0.0, 0.0],
+          [100.0,-50.0, 75.0, 2.0],
+          [  1.0,  0.0,  0.0, 0.0]],
+         [1, 2], # i.e. [0, 1, 1, 0]
+         0.5,
+         [0,
+          0,
+          1,
+          0]),
+        ):
+
+      mat = SM32(matrix)
+
+      sparseRightVec = array(sparseRightVec, dtype="uint32")
+
+      result = mat.rightVecSumAtNZGtThresholdSparse(sparseRightVec, threshold)
+
+      numpy.testing.assert_almost_equal(result, expected,
+                                        err_msg=name)
+
+
+  def test_rightVecSumAtNZGteThreshold(self):
+
+    print 'Testing rightVecSumAtNZGteThreshold'
+
+    for name, matrix, rightVec, threshold, expected in (
+        ("Test 1",
+         [[  0.0,  0.49, 0.5, 0.51],
+          [  0.0,  0.0,  0.0, 0.0],
+          [100.0,-50.0, 75.0, 2.0],
+          [  1.0,  0.0,  0.0, 0.0]],
+         [1, 1, 1, 1],
+         0.5,
+         [2, 0, 3, 1]),
+        ("Use the values from rightVec",
+         [[  0.0,  0.49, 0.5, 0.51],
+          [  0.0,  0.0,  0.0, 0.0],
+          [100.0,-50.0, 75.0, 2.0],
+          [  1.0,  0.0,  0.0, 0.0]],
+         [1, 2, 3, 4],
+         0.5,
+         [3 + 4,
+          0,
+          1 + 3 + 4,
+          1]),
+        ):
+
+      rightVec = array(rightVec, dtype="float32")
+
+      mat = SM32(matrix)
+      result = mat.rightVecSumAtNZGteThreshold(rightVec, threshold)
+
+      numpy.testing.assert_almost_equal(result, expected,
+                                        err_msg=name)
+
+
+  def test_rightVecSumAtNZGteThresholdSparse(self):
+
+    print 'Testing rightVecSumAtNZGteThresholdSparse'
+
+    for name, matrix, sparseRightVec, threshold, expected in (
+        ("Test 1",
+         [[  0.0,  0.49, 0.5, 0.51],
+          [  0.0,  0.0,  0.0, 0.0],
+          [100.0,-50.0, 75.0, 2.0],
+          [  1.0,  0.0,  0.0, 0.0]],
+         [0, 1, 2, 3], # i.e. [1, 1, 1, 1]
+         0.5,
+         [2, 0, 3, 1]),
+        ("Zeros",
+         [[  0.0,  0.49, 0.5, 0.51],
+          [  0.0,  0.0,  0.0, 0.0],
+          [100.0,-50.0, 75.0, 2.0],
+          [  1.0,  0.0,  0.0, 0.0]],
+         [1, 2], # i.e. [0, 1, 1, 0]
+         0.5,
+         [1,
+          0,
+          1,
+          0]),
+        ):
+
+      mat = SM32(matrix)
+
+      sparseRightVec = array(sparseRightVec, dtype="uint32")
+
+      result = mat.rightVecSumAtNZGteThresholdSparse(sparseRightVec, threshold)
+
+      numpy.testing.assert_almost_equal(result, expected,
+                                        err_msg=name)
 
 
   def test_leftVecSumAtNZ(self):
