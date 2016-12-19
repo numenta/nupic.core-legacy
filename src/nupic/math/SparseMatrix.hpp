@@ -10109,12 +10109,13 @@ public:
    * @param x [InputIterator<value_type>] input vector (size = number of
    * columns)
    * @param y [OutputIterator<value_type>] output vector (size = number of rows)
-   *
-   * @b Exceptions:
-   *  @li None
    */
   template <typename InputIterator, typename OutputIterator>
   inline void rightVecSumAtNZ(InputIterator x, OutputIterator y) const {
+    // Note:
+    // 'rightVecSumAtNZSparse' passes nzb_ in as x,
+    // so this method shouldn't explicitly touch nzb_.
+
     ITERATE_ON_ALL_ROWS {
 
       size_type nnzr = nnzr_[row];
@@ -10133,13 +10134,53 @@ public:
   }
 
   /**
-   * Same as above, except that we add to the sum only if the value of the
-   * non-zero
-   * is greater than the given threshold.
+   * Adds the values of x corresponding to non-zeros, for each row.
+   * The operation is:
+   *
+   *  for row in [0,nrows):
+   *   y[row] = sum(x[col], for col in [0,ncols) s.t. this[row,col] != 0)
+   *
+   * @param x_ones
+   * Indices of 1.0 in a vector of length nCols
+   *
+   * @param y
+   * Output vector (size = number of rows)
+   */
+  template <typename InputIterator, typename OutputIterator>
+  inline void rightVecSumAtNZSparse(InputIterator x_ones_begin,
+                                    InputIterator x_ones_end,
+                                    OutputIterator out_begin) const {
+    { // Pre-conditions
+      ASSERT_INPUT_ITERATOR(InputIterator);
+      ASSERT_OUTPUT_ITERATOR(OutputIterator, size_type);
+      assert_valid_col_it_range_(x_ones_begin, x_ones_end,
+                                 "rightVecSumAtNZSparse");
+    } // End pre-conditions
+
+    // One approach would be to walk a sorted list of ones for every row in the
+    // matrix. But x is queried for every nonzero in the matrix, so in practice
+    // it's much faster to create an x dense array and then perform simple
+    // lookups on the dense array.
+    std::fill(nzb_, nzb_ + nCols(), (value_type)0.0);
+    for (InputIterator x_one = x_ones_begin; x_one != x_ones_end; ++x_one) {
+      nzb_[*x_one] = 1.0;
+    }
+
+    rightVecSumAtNZ(nzb_, out_begin);
+  }
+
+
+  /**
+   * Like rightVecSumAtNZ, except that we add to the sum only if the value of
+   * the non-zero is > threshold.
    */
   template <typename InputIterator, typename OutputIterator>
   inline void rightVecSumAtNZGtThreshold(InputIterator x, OutputIterator y,
                                          value_type threshold) const {
+    // Note:
+    // 'rightVecSumAtNZGtThresholdSparse' passes nzb_ in as x,
+    // so this method shouldn't explicitly touch nzb_.
+
     ITERATE_ON_ALL_ROWS {
 
       size_type nnzr = nnzr_[row];
@@ -10153,6 +10194,78 @@ public:
 
       *y++ = val;
     }
+  }
+
+  /**
+   * Like rightVecSumAtNZSparse, except that we add to the sum only if the value
+   * of the non-zero is > threshold.
+   */
+  template <typename InputIterator, typename OutputIterator>
+  inline void rightVecSumAtNZGtThresholdSparse(
+    InputIterator x_ones_begin, InputIterator x_ones_end,
+    OutputIterator out_begin, value_type threshold) const {
+    { // Pre-conditions
+      ASSERT_INPUT_ITERATOR(InputIterator);
+      ASSERT_OUTPUT_ITERATOR(OutputIterator, size_type);
+      assert_valid_col_it_range_(x_ones_begin, x_ones_end,
+                                 "rightVecSumAtNZGtThresholdSparse");
+    } // End pre-conditions
+
+    std::fill(nzb_, nzb_ + nCols(), (value_type)0.0);
+    for (InputIterator x_one = x_ones_begin; x_one != x_ones_end; ++x_one) {
+      nzb_[*x_one] = 1.0;
+    }
+
+    rightVecSumAtNZGtThreshold(nzb_, out_begin, threshold);
+  }
+
+  /**
+   * Like rightVecSumAtNZ, except that we add to the sum only if the value of
+   * the non-zero is >= threshold.
+   */
+  template <typename InputIterator, typename OutputIterator>
+  inline void rightVecSumAtNZGteThreshold(InputIterator x, OutputIterator y,
+                                          value_type threshold) const {
+    // Note:
+    // 'rightVecSumAtNZGteThresholdSparse' passes nzb_ in as x,
+    // so this method shouldn't explicitly touch nzb_.
+
+    ITERATE_ON_ALL_ROWS {
+
+      size_type nnzr = nnzr_[row];
+      size_type *ind = ind_[row];
+      value_type *nz = nz_[row];
+      value_type val = 0.0;
+
+      for (size_type i = 0; i != nnzr; ++i)
+        if (nz[i] >= threshold)
+          val += x[ind[i]];
+
+      *y++ = val;
+    }
+  }
+
+  /**
+   * Like rightVecSumAtNZSparse, except that we add to the sum only if the value
+   * of the non-zero is >= threshold.
+   */
+  template <typename InputIterator, typename OutputIterator>
+  inline void rightVecSumAtNZGteThresholdSparse(
+    InputIterator x_ones_begin, InputIterator x_ones_end,
+    OutputIterator out_begin, value_type threshold) const {
+    { // Pre-conditions
+      ASSERT_INPUT_ITERATOR(InputIterator);
+      ASSERT_OUTPUT_ITERATOR(OutputIterator, size_type);
+      assert_valid_col_it_range_(x_ones_begin, x_ones_end,
+                                 "rightVecSumAtNZGteThresholdSparse");
+    } // End pre-conditions
+
+    std::fill(nzb_, nzb_ + nCols(), (value_type)0.0);
+    for (InputIterator x_one = x_ones_begin; x_one != x_ones_end; ++x_one) {
+      nzb_[*x_one] = 1.0;
+    }
+
+    rightVecSumAtNZGteThreshold(nzb_, out_begin, threshold);
   }
 
   /**

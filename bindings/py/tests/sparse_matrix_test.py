@@ -1422,25 +1422,197 @@ class SparseMatrixTest(unittest.TestCase):
     # relies on a pre-allocated buffer.
 
     for i in range(5):
-      m = rgen.randint(1,10)
-      n = rgen.randint(1,10)
-      a = rgen.randint(0,100,(m,n))
+      nRows = rgen.randint(1,10)
+      nCols = rgen.randint(1,10)
+      a = rgen.randint(0,100,(nRows,nCols))
       a[numpy.where(a < 75)] = 0
-      a[rgen.randint(0,m)] = 0
-      a[:,rgen.randint(0,n)] = 0
-      x = rgen.randint(0,100,(n)).astype(float32)
-      y = zeros((m))
-      a2 = array(a)
-      a2[where(a2 > 0)] = 1
-      yr = dot(a2,x)
+      a[rgen.randint(0, nRows)] = 0
+      a[:,rgen.randint(0, nCols)] = 0
       mat = SM32(a)
+
+      x = rgen.randint(2, size=nCols).astype(float32)
+
+      aNonzero = array(a)
+      aNonzero[where(aNonzero > 0)] = 1
+      expected = dot(aNonzero, x)
+
       y = mat.rightVecSumAtNZ(x)
-      if (y != yr).any():
-        error('rightVecSumAtNZ')
-      y2 = zeros((m)).astype(float32)
-      mat.rightVecSumAtNZ_fast(x, y2)
-      if (y2 != yr).any():
-        error('rightVecSumAtNZ_fast')
+      numpy.testing.assert_equal(y, expected, 'rightVecSumAtNZ')
+      y2 = zeros((nRows)).astype(float32)
+      mat.rightVecSumAtNZ(x, out=y2)
+      numpy.testing.assert_equal(y2, expected, 'rightVecSumAtNZ with out')
+
+
+  def test_rightVecSumAtNZSparse(self):
+
+    print 'Testing rightVecSumAtNZSparse'
+
+    # This is like rightVecSumAtNZ, but the right vector is described as a list
+    # of indices of the value 1.0.
+
+    for i in range(5):
+      nRows = rgen.randint(1,10)
+      nCols = rgen.randint(1,10)
+      a = rgen.randint(0,100,(nRows,nCols))
+      a[numpy.where(a < 75)] = 0
+      a[rgen.randint(0, nRows)] = 0
+      a[:,rgen.randint(0, nCols)] = 0
+      mat = SM32(a)
+
+      xDense = rgen.randint(2, size=nCols).astype(float32)
+      xSparse = flatnonzero(xDense)
+
+      aNonzero = array(a)
+      aNonzero[where(aNonzero > 0)] = 1
+      expected = dot(aNonzero, xDense)
+
+      y = mat.rightVecSumAtNZSparse(xSparse)
+      numpy.testing.assert_equal(y, expected, 'rightVecSumAtNZSparse')
+      y2 = zeros((nRows)).astype(float32)
+      mat.rightVecSumAtNZSparse(xSparse, out=y2)
+      numpy.testing.assert_equal(y2, expected, 'rightVecSumAtNZSparse with out')
+
+
+  def test_rightVecSumAtNZGtThreshold(self):
+
+    print 'Testing rightVecSumAtNZGtThreshold'
+
+    for name, matrix, rightVec, threshold, expected in (
+        ("Test 1",
+         [[  0.0,  0.49, 0.5, 0.51],
+          [  0.0,  0.0,  0.0, 0.0],
+          [100.0,-50.0, 75.0, 2.0],
+          [  1.0,  0.0,  0.0, 0.0]],
+         [1, 1, 1, 1],
+         0.5,
+         [1, 0, 3, 1]),
+        ("Use the values from rightVec",
+         [[  0.0,  0.49, 0.5, 0.51],
+          [  0.0,  0.0,  0.0, 0.0],
+          [100.0,-50.0, 75.0, 2.0],
+          [  1.0,  0.0,  0.0, 0.0]],
+         [1, 2, 3, 4],
+         0.5,
+         [4,
+          0,
+          1 + 3 + 4,
+          1]),
+        ):
+
+      rightVec = array(rightVec, dtype="float32")
+
+      mat = SM32(matrix)
+      result = mat.rightVecSumAtNZGtThreshold(rightVec, threshold)
+
+      numpy.testing.assert_almost_equal(result, expected,
+                                        err_msg=name)
+
+
+  def test_rightVecSumAtNZGtThresholdSparse(self):
+
+    print 'Testing rightVecSumAtNZGtThresholdSparse'
+
+    for name, matrix, sparseRightVec, threshold, expected in (
+        ("Test 1",
+         [[  0.0,  0.49, 0.5, 0.51],
+          [  0.0,  0.0,  0.0, 0.0],
+          [100.0,-50.0, 75.0, 2.0],
+          [  1.0,  0.0,  0.0, 0.0]],
+         [0, 1, 2, 3], # i.e. [1, 1, 1, 1]
+         0.5,
+         [1, 0, 3, 1]),
+        ("Zeros",
+         [[  0.0,  0.49, 0.5, 0.51],
+          [  0.0,  0.0,  0.0, 0.0],
+          [100.0,-50.0, 75.0, 2.0],
+          [  1.0,  0.0,  0.0, 0.0]],
+         [1, 2], # i.e. [0, 1, 1, 0]
+         0.5,
+         [0,
+          0,
+          1,
+          0]),
+        ):
+
+      mat = SM32(matrix)
+
+      sparseRightVec = array(sparseRightVec, dtype="uint32")
+
+      result = mat.rightVecSumAtNZGtThresholdSparse(sparseRightVec, threshold)
+
+      numpy.testing.assert_almost_equal(result, expected,
+                                        err_msg=name)
+
+
+  def test_rightVecSumAtNZGteThreshold(self):
+
+    print 'Testing rightVecSumAtNZGteThreshold'
+
+    for name, matrix, rightVec, threshold, expected in (
+        ("Test 1",
+         [[  0.0,  0.49, 0.5, 0.51],
+          [  0.0,  0.0,  0.0, 0.0],
+          [100.0,-50.0, 75.0, 2.0],
+          [  1.0,  0.0,  0.0, 0.0]],
+         [1, 1, 1, 1],
+         0.5,
+         [2, 0, 3, 1]),
+        ("Use the values from rightVec",
+         [[  0.0,  0.49, 0.5, 0.51],
+          [  0.0,  0.0,  0.0, 0.0],
+          [100.0,-50.0, 75.0, 2.0],
+          [  1.0,  0.0,  0.0, 0.0]],
+         [1, 2, 3, 4],
+         0.5,
+         [3 + 4,
+          0,
+          1 + 3 + 4,
+          1]),
+        ):
+
+      rightVec = array(rightVec, dtype="float32")
+
+      mat = SM32(matrix)
+      result = mat.rightVecSumAtNZGteThreshold(rightVec, threshold)
+
+      numpy.testing.assert_almost_equal(result, expected,
+                                        err_msg=name)
+
+
+  def test_rightVecSumAtNZGteThresholdSparse(self):
+
+    print 'Testing rightVecSumAtNZGteThresholdSparse'
+
+    for name, matrix, sparseRightVec, threshold, expected in (
+        ("Test 1",
+         [[  0.0,  0.49, 0.5, 0.51],
+          [  0.0,  0.0,  0.0, 0.0],
+          [100.0,-50.0, 75.0, 2.0],
+          [  1.0,  0.0,  0.0, 0.0]],
+         [0, 1, 2, 3], # i.e. [1, 1, 1, 1]
+         0.5,
+         [2, 0, 3, 1]),
+        ("Zeros",
+         [[  0.0,  0.49, 0.5, 0.51],
+          [  0.0,  0.0,  0.0, 0.0],
+          [100.0,-50.0, 75.0, 2.0],
+          [  1.0,  0.0,  0.0, 0.0]],
+         [1, 2], # i.e. [0, 1, 1, 0]
+         0.5,
+         [1,
+          0,
+          1,
+          0]),
+        ):
+
+      mat = SM32(matrix)
+
+      sparseRightVec = array(sparseRightVec, dtype="uint32")
+
+      result = mat.rightVecSumAtNZGteThresholdSparse(sparseRightVec, threshold)
+
+      numpy.testing.assert_almost_equal(result, expected,
+                                        err_msg=name)
 
 
   def test_leftVecSumAtNZ(self):
