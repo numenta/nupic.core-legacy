@@ -1,6 +1,6 @@
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
+ * Copyright (C) 2013-2016, Numenta, Inc.  Unless you have an agreement
  * with Numenta, Inc., for a separate license for this software code, the
  * following terms and conditions apply:
  *
@@ -321,7 +321,7 @@ namespace
   }
 
 
-  struct SetRandomZerosOnOuterTest
+  struct SetRandomZerosOnOuterTest_single
   {
     string name;
     UInt32 nrows;
@@ -333,11 +333,11 @@ namespace
     Real32 value;
   };
 
-  TEST(SparseMatrixTest, setRandomZerosOnOuter)
+  TEST(SparseMatrixTest, setRandomZerosOnOuter_single)
   {
     Random rng;
 
-    vector<SetRandomZerosOnOuterTest> tests = {
+    vector<SetRandomZerosOnOuterTest_single> tests = {
       {
         "Test 1",
         // Dimensions
@@ -403,7 +403,7 @@ namespace
       }
     };
 
-    for (const SetRandomZerosOnOuterTest& test : tests)
+    for (const SetRandomZerosOnOuterTest_single& test : tests)
     {
       NTA_INFO << "Test: " << test.name;
 
@@ -456,6 +456,155 @@ namespace
         // Should replace numNewNonZerosPerRow, or all of them if there aren't
         // that many.
         EXPECT_EQ(std::min(test.numNewNonZerosPerRow, numSelectedZeros),
+                  numConvertedZeros);
+      }
+    }
+  }
+
+
+  struct SetRandomZerosOnOuterTest_multi
+  {
+    string name;
+    UInt32 nrows;
+    UInt32 ncols;
+    vector<Real32> before;
+    vector<UInt32> outerRows;
+    vector<UInt32> outerCols;
+    vector<UInt32> numNewNonZerosPerRow;
+    Real32 value;
+  };
+
+  TEST(SparseMatrixTest, setRandomZerosOnOuter_multi)
+  {
+    Random rng;
+
+    vector<SetRandomZerosOnOuterTest_multi> tests = {
+      {
+        "Test 1",
+        // Dimensions
+        8, 6,
+        // Before
+        {1, 1, 0, 0, 1, 1,
+         0, 0, 1, 1, 0, 0,
+         0, 0, 1, 0, 0, 1,
+         1, 0, 1, 1, 0, 0,
+         0, 0, 0, 0, 0, 1,
+         0, 0, 0, 0, 0, 0,
+         1, 1, 1, 1, 1, 1,
+         0, 0, 1, 1, 0, 1},
+        // Selection
+        {0, 3, 4, 5, 6, 7},
+        {0, 3, 4},
+        // numNewNonZerosPerRow
+        {2, 2, 2, 2, 2, 2},
+        // value
+        42
+      },
+      {
+        "No selected rows",
+        // Dimensions
+        8, 6,
+        // Before
+        {1, 1, 0, 0, 1, 1,
+         0, 0, 1, 1, 0, 0,
+         0, 0, 1, 0, 0, 1,
+         1, 0, 1, 1, 0, 0,
+         0, 0, 0, 0, 0, 1,
+         0, 0, 0, 0, 0, 0,
+         1, 1, 1, 1, 1, 1,
+         0, 0, 1, 1, 0, 1},
+        // Selection
+        {},
+        {0, 3, 4},
+        // numNewNonZerosPerRow
+        {},
+        // value
+        42
+      },
+      {
+        "No selected cols",
+        // Dimensions
+        8, 6,
+        // Before
+        {1, 1, 0, 0, 1, 1,
+         0, 0, 1, 1, 0, 0,
+         0, 0, 1, 0, 0, 1,
+         1, 0, 1, 1, 0, 0,
+         0, 0, 0, 0, 0, 1,
+         0, 0, 0, 0, 0, 0,
+         1, 1, 1, 1, 1, 1,
+         0, 0, 1, 1, 0, 1},
+        // Selection
+        {0, 3, 4, 5, 6, 7},
+        {},
+        // numNewNonZerosPerRow
+        {2, 2, 2, 2, 2, 2},
+        // value
+        42
+      }
+    };
+
+    for (const SetRandomZerosOnOuterTest_multi& test : tests)
+    {
+      NTA_INFO << "Test: " << test.name;
+
+      SparseMatrix<> m(test.nrows, test.ncols, test.before.begin());
+
+      m.setRandomZerosOnOuter(
+        test.outerRows.begin(), test.outerRows.end(),
+        test.outerCols.begin(), test.outerCols.end(),
+        test.numNewNonZerosPerRow.begin(), test.numNewNonZerosPerRow.end(),
+        test.value, rng);
+
+      vector<Real32> actual(test.nrows*test.ncols);
+      m.toDense(actual.begin());
+
+      for (UInt32 row = 0; row < test.nrows; row++)
+      {
+        UInt32 numSelectedZeros = 0;
+        UInt32 numConvertedZeros = 0;
+
+        auto rowInSelection = std::find(test.outerRows.begin(),
+                                        test.outerRows.end(), row);
+        const UInt32 requestedNumNewZeros =
+          rowInSelection != test.outerRows.end()
+          ? test.numNewNonZerosPerRow[rowInSelection - test.outerRows.begin()]
+          : 0;
+
+        for (UInt32 col = 0; col < test.ncols; col++)
+        {
+          UInt32 i = row*test.ncols + col;
+          if (rowInSelection != test.outerRows.end() &&
+              std::binary_search(test.outerCols.begin(), test.outerCols.end(), col))
+          {
+            if (test.before[i] == 0)
+            {
+              numSelectedZeros++;
+
+              if (actual[i] != 0)
+              {
+                // Should replace zeros with the specified value.
+                EXPECT_EQ(test.value, actual[i]);
+                numConvertedZeros++;
+              }
+            }
+          }
+          else
+          {
+            // Every value not in the selection should be unchanged.
+            EXPECT_EQ(test.before[i], actual[i]);
+          }
+
+          if (test.before[i] != 0)
+          {
+            // Every value that was nonzero should not have changed.
+            EXPECT_EQ(test.before[i], actual[i]);
+          }
+        }
+
+        // Should replace numNewNonZerosPerRow, or all of them if there aren't
+        // that many.
+        EXPECT_EQ(std::min(requestedNumNewZeros, numSelectedZeros),
                   numConvertedZeros);
       }
     }

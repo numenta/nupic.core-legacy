@@ -35,6 +35,10 @@
 
 %}
 
+%pythoncode %{
+import numbers
+%}
+
 
 //--------------------------------------------------------------------------------
 // Global epsilon
@@ -849,17 +853,71 @@ def __div__(self, other):
                           j.begin(), j.end(), value);
   }
 
-  void setRandomZerosOnOuter(PyObject* py_i, PyObject* py_j,
-                             nupic::UInt ## N1 numNewNonZerosPerRow,
-                             nupic::Real ## N2 value,
-                             nupic::Random& rng)
+
+  %pythoncode %{
+    def setRandomZerosOnOuter(self, rows, cols, numNewNonZeros, value, rng):
+      if isinstance(numNewNonZeros, numbers.Number):
+        self._setRandomZerosOnOuter_singleCount(
+          numpy.asarray(rows, dtype="uint32"),
+          numpy.asarray(cols, dtype="uint32"),
+          numNewNonZeros,
+          value,
+          rng)
+      else:
+        self._setRandomZerosOnOuter_multipleCounts(
+          numpy.asarray(rows, dtype="uint32"),
+          numpy.asarray(cols, dtype="uint32"),
+          numpy.asarray(numNewNonZeros, dtype="uint32"),
+          value,
+          rng)
+  %}
+
+  void _setRandomZerosOnOuter_singleCount(PyObject* py_rows,
+                                          PyObject* py_cols,
+                                          nupic::UInt ## N1 numNewNonZeros,
+                                          nupic::Real ## N2 value,
+                                          nupic::Random& rng)
   {
-    nupic::NumpyVectorT<nupic::UInt ## N1> i(py_i);
-    nupic::NumpyVectorT<nupic::UInt ## N1> j(py_j);
-    self->setRandomZerosOnOuter(i.begin(), i.end(),
-                                j.begin(), j.end(),
-                                numNewNonZerosPerRow, value, rng);
+    PyArrayObject* npRows = (PyArrayObject*) py_rows;
+    size_t rowsSize = PyArray_DIMS(npRows)[0];
+    nupic::UInt32* rows = (nupic::UInt32*)PyArray_DATA(npRows);
+
+    PyArrayObject* npCols = (PyArrayObject*) py_cols;
+    size_t colsSize = PyArray_DIMS(npCols)[0];
+    nupic::UInt32* cols = (nupic::UInt32*)PyArray_DATA(npCols);
+
+    self->setRandomZerosOnOuter(rows, rows + rowsSize,
+                                cols, cols + colsSize,
+                                numNewNonZeros,
+                                value, rng);
   }
+
+  void _setRandomZerosOnOuter_multipleCounts(PyObject* py_rows,
+                                             PyObject* py_cols,
+                                             PyObject* py_newNonZeroCounts,
+                                             nupic::Real ## N2 value,
+                                             nupic::Random& rng)
+  {
+    PyArrayObject* npRows = (PyArrayObject*) py_rows;
+    size_t rowsSize = PyArray_DIMS(npRows)[0];
+    nupic::UInt32* rows = (nupic::UInt32*)PyArray_DATA(npRows);
+
+    PyArrayObject* npCols = (PyArrayObject*) py_cols;
+    size_t colsSize = PyArray_DIMS(npCols)[0];
+    nupic::UInt32* cols = (nupic::UInt32*)PyArray_DATA(npCols);
+
+    PyArrayObject* npNewNonZeroCounts = (PyArrayObject*) py_newNonZeroCounts;
+    size_t newNonZeroCountsSize = PyArray_DIMS(npNewNonZeroCounts)[0];
+    nupic::UInt32* newNonZeroCounts =
+      (nupic::UInt32*)PyArray_DATA(npNewNonZeroCounts);
+
+    self->setRandomZerosOnOuter(rows, rows + rowsSize,
+                                cols, cols + colsSize,
+                                newNonZeroCounts,
+                                newNonZeroCounts + newNonZeroCountsSize,
+                                value, rng);
+  }
+
 
   void increaseRowNonZeroCountsOnOuterTo(PyObject* py_i, PyObject* py_j,
                                          nupic::UInt ## N1 numDesiredNonzeros,
