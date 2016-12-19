@@ -35,6 +35,10 @@
 
 %}
 
+%pythoncode %{
+import numbers
+%}
+
 
 //--------------------------------------------------------------------------------
 // Global epsilon
@@ -849,17 +853,71 @@ def __div__(self, other):
                           j.begin(), j.end(), value);
   }
 
-  void setRandomZerosOnOuter(PyObject* py_i, PyObject* py_j,
-                             nupic::UInt ## N1 numNewNonZerosPerRow,
-                             nupic::Real ## N2 value,
-                             nupic::Random& rng)
+
+  %pythoncode %{
+    def setRandomZerosOnOuter(self, rows, cols, numNewNonZeros, value, rng):
+      if isinstance(numNewNonZeros, numbers.Number):
+        self._setRandomZerosOnOuter_singleCount(
+          numpy.asarray(rows, dtype="uint32"),
+          numpy.asarray(cols, dtype="uint32"),
+          numNewNonZeros,
+          value,
+          rng)
+      else:
+        self._setRandomZerosOnOuter_multipleCounts(
+          numpy.asarray(rows, dtype="uint32"),
+          numpy.asarray(cols, dtype="uint32"),
+          numpy.asarray(numNewNonZeros, dtype="uint32"),
+          value,
+          rng)
+  %}
+
+  void _setRandomZerosOnOuter_singleCount(PyObject* py_rows,
+                                          PyObject* py_cols,
+                                          nupic::UInt ## N1 numNewNonZeros,
+                                          nupic::Real ## N2 value,
+                                          nupic::Random& rng)
   {
-    nupic::NumpyVectorT<nupic::UInt ## N1> i(py_i);
-    nupic::NumpyVectorT<nupic::UInt ## N1> j(py_j);
-    self->setRandomZerosOnOuter(i.begin(), i.end(),
-                                j.begin(), j.end(),
-                                numNewNonZerosPerRow, value, rng);
+    PyArrayObject* npRows = (PyArrayObject*) py_rows;
+    size_t rowsSize = PyArray_DIMS(npRows)[0];
+    nupic::UInt32* rows = (nupic::UInt32*)PyArray_DATA(npRows);
+
+    PyArrayObject* npCols = (PyArrayObject*) py_cols;
+    size_t colsSize = PyArray_DIMS(npCols)[0];
+    nupic::UInt32* cols = (nupic::UInt32*)PyArray_DATA(npCols);
+
+    self->setRandomZerosOnOuter(rows, rows + rowsSize,
+                                cols, cols + colsSize,
+                                numNewNonZeros,
+                                value, rng);
   }
+
+  void _setRandomZerosOnOuter_multipleCounts(PyObject* py_rows,
+                                             PyObject* py_cols,
+                                             PyObject* py_newNonZeroCounts,
+                                             nupic::Real ## N2 value,
+                                             nupic::Random& rng)
+  {
+    PyArrayObject* npRows = (PyArrayObject*) py_rows;
+    size_t rowsSize = PyArray_DIMS(npRows)[0];
+    nupic::UInt32* rows = (nupic::UInt32*)PyArray_DATA(npRows);
+
+    PyArrayObject* npCols = (PyArrayObject*) py_cols;
+    size_t colsSize = PyArray_DIMS(npCols)[0];
+    nupic::UInt32* cols = (nupic::UInt32*)PyArray_DATA(npCols);
+
+    PyArrayObject* npNewNonZeroCounts = (PyArrayObject*) py_newNonZeroCounts;
+    size_t newNonZeroCountsSize = PyArray_DIMS(npNewNonZeroCounts)[0];
+    nupic::UInt32* newNonZeroCounts =
+      (nupic::UInt32*)PyArray_DATA(npNewNonZeroCounts);
+
+    self->setRandomZerosOnOuter(rows, rows + rowsSize,
+                                cols, cols + colsSize,
+                                newNonZeroCounts,
+                                newNonZeroCounts + newNonZeroCountsSize,
+                                value, rng);
+  }
+
 
   void increaseRowNonZeroCountsOnOuterTo(PyObject* py_i, PyObject* py_j,
                                          nupic::UInt ## N1 numDesiredNonzeros,
@@ -1433,40 +1491,200 @@ def __div__(self, other):
     return y.forPython();
   }
 
-  // Regular matrix vector multiplication, but assumes that all the non-zeros
-  // in the SparseMatrix are 1, so that we can save computing the multiplications:
-  // this routine just adds the values of xIn at the positions of the non-zeros
-  // on each row.
-  inline PyObject* rightVecSumAtNZ(PyObject* xIn) const
+
+  %pythoncode %{
+    def rightVecSumAtNZ(self, denseArray, out=None):
+      denseArray = numpy.asarray(denseArray, dtype="float32")
+
+      if out is None:
+        out = numpy.empty(self.nRows(), dtype="float32")
+      else:
+        assert out.dtype == "float32"
+
+      self._rightVecSumAtNZ(denseArray, out)
+
+      return out
+
+
+    def rightVecSumAtNZ_fast(self, denseArray, out):
+      """
+      Deprecated. Use rightVecSumAtNZ with an 'out' specified.
+      """
+      self.rightVecSumAtNZ(denseArray, out)
+  %}
+
+  inline void _rightVecSumAtNZ(PyObject* py_denseArray, PyObject* py_out) const
   {
-    nupic::NumpyVectorT<nupic::Real ## N2> x(xIn);
-    nupic::NumpyVectorT<nupic::Real ## N2> y(self->nRows());
-    self->rightVecSumAtNZ(x.begin(), y.begin());
-    return y.forPython();
+    PyArrayObject* npDenseArray = (PyArrayObject*) py_denseArray;
+    size_t denseArraySize = PyArray_DIMS(npDenseArray)[0];
+    nupic::Real ## N2 *denseArray = (nupic::Real ## N2 *) PyArray_DATA(npDenseArray);
+
+    PyArrayObject* npOut = (PyArrayObject*) py_out;
+    NTA_ASSERT(PyArray_DIMS(npOut)[0] >= self->nRows());
+    nupic::Real ## N2 *out = (nupic::Real ## N2 *) PyArray_DATA(npOut);
+
+    self->rightVecSumAtNZ(denseArray, out);
   }
 
-  inline PyObject*
-    rightVecSumAtNZGtThreshold(PyObject* xIn, nupic::Real ## 32 threshold) const
+
+  %pythoncode %{
+    def rightVecSumAtNZSparse(self, sparseBinaryArray, out=None):
+      sparseBinaryArray = numpy.asarray(sparseBinaryArray, dtype="uint32")
+
+      if out is None:
+        out = numpy.empty(self.nRows(), dtype="float32")
+      else:
+        assert out.dtype == "float32"
+
+      self._rightVecSumAtNZSparse(sparseBinaryArray, out)
+
+      return out
+  %}
+
+  inline void _rightVecSumAtNZSparse(PyObject* py_sparseBinaryArray,
+                                     PyObject* py_out) const
   {
-    nupic::NumpyVectorT<nupic::Real ## N2> x(xIn);
-    nupic::NumpyVectorT<nupic::Real ## N2> y(self->nRows());
-    self->rightVecSumAtNZGtThreshold(x.begin(), y.begin(), threshold);
-    return y.forPython();
+    PyArrayObject* npSparseArray = (PyArrayObject*) py_sparseBinaryArray;
+    size_t sparseArraySize = PyArray_DIMS(npSparseArray)[0];
+    nupic::UInt ## N1 *sparseArray = (nupic::UInt ## N1 *) PyArray_DATA(npSparseArray);
+
+    PyArrayObject* npOut = (PyArrayObject*) py_out;
+    NTA_ASSERT(PyArray_DIMS(npOut)[0] >= self->nRows());
+    nupic::Real ## N2 *out = (nupic::Real ## N2 *) PyArray_DATA(npOut);
+
+    self->rightVecSumAtNZSparse(sparseArray, sparseArray + sparseArraySize,
+                                out);
   }
 
-  // Regular matrix vector multiplication, without allocation of the result,
-  // and assuming that the values of the non-zeros are always 1 in the
-  // sparse matrix, so that we can save computing multiplications explicitly.
-  // Also fast because doesn't go through NumpyVectorT and doesn't allocate
-  // memory.
-  inline void rightVecSumAtNZ_fast(PyObject *xIn, PyObject *yOut) const
+
+  %pythoncode %{
+    def rightVecSumAtNZGtThreshold(self, denseArray, threshold, out=None):
+      denseArray = numpy.asarray(denseArray, dtype="float32")
+
+      if out is None:
+        out = numpy.empty(self.nRows(), dtype="float32")
+      else:
+        assert out.dtype == "float32"
+
+      self._rightVecSumAtNZGtThreshold(denseArray, threshold, out)
+
+      return out
+
+
+    def rightVecSumAtNZGtThreshold_fast(self, denseArray, threshold, out):
+      """
+      Deprecated. Use rightVecSumAtNZGtThreshold with an 'out' specified.
+      """
+      self.rightVecSumAtNZGtThreshold(denseArray, threshold, out)
+  %}
+
+  inline void _rightVecSumAtNZGtThreshold(PyObject* py_denseArray,
+                                          nupic::Real ## N2 threshold,
+                                          PyObject* py_out) const
   {
-    PyArrayObject* x = (PyArrayObject*) xIn;
-    nupic::Real ## N2* x_begin = (nupic::Real ## N2*)(PyArray_DATA(x));
-    PyArrayObject* y = (PyArrayObject*) yOut;
-    nupic::Real ## N2* y_begin = (nupic::Real ## N2*)(PyArray_DATA(y));
-    self->rightVecSumAtNZ(x_begin, y_begin);
+    PyArrayObject* npDenseArray = (PyArrayObject*) py_denseArray;
+    size_t denseArraySize = PyArray_DIMS(npDenseArray)[0];
+    nupic::Real ## N2 *denseArray = (nupic::Real ## N2 *) PyArray_DATA(npDenseArray);
+
+    PyArrayObject* npOut = (PyArrayObject*) py_out;
+    NTA_ASSERT(PyArray_DIMS(npOut)[0] >= self->nRows());
+    nupic::Real ## N2 *out = (nupic::Real ## N2 *) PyArray_DATA(npOut);
+
+    self->rightVecSumAtNZGtThreshold(denseArray, out, threshold);
   }
+
+
+  %pythoncode %{
+    def rightVecSumAtNZGtThresholdSparse(self, sparseBinaryArray, threshold, out=None):
+      sparseBinaryArray = numpy.asarray(sparseBinaryArray, dtype="uint32")
+
+      if out is None:
+        out = numpy.empty(self.nRows(), dtype="float32")
+      else:
+        assert out.dtype == "float32"
+
+      self._rightVecSumAtNZGtThresholdSparse(sparseBinaryArray, threshold, out)
+
+      return out
+  %}
+
+  inline void _rightVecSumAtNZGtThresholdSparse(PyObject* py_sparseArray,
+                                                nupic::Real ## N2 threshold,
+                                                PyObject* py_out) const
+  {
+    PyArrayObject* npSparseArray = (PyArrayObject*) py_sparseArray;
+    size_t sparseArraySize = PyArray_DIMS(npSparseArray)[0];
+    nupic::UInt ## N1 *sparseArray = (nupic::UInt ## N1 *) PyArray_DATA(npSparseArray);
+
+    PyArrayObject* npOut = (PyArrayObject*) py_out;
+    NTA_ASSERT(PyArray_DIMS(npOut)[0] >= self->nRows());
+    nupic::Real ## N2 *out = (nupic::Real ## N2 *) PyArray_DATA(npOut);
+
+    self->rightVecSumAtNZGtThresholdSparse(sparseArray, sparseArray + sparseArraySize,
+                                           out, threshold);
+  }
+
+
+  %pythoncode %{
+    def rightVecSumAtNZGteThreshold(self, denseArray, threshold, out=None):
+      denseArray = numpy.asarray(denseArray, dtype="float32")
+
+      if out is None:
+        out = numpy.empty(self.nRows(), dtype="float32")
+      else:
+        assert out.dtype == "float32"
+
+      self._rightVecSumAtNZGteThreshold(denseArray, threshold, out)
+
+      return out
+  %}
+
+  inline void _rightVecSumAtNZGteThreshold(PyObject* py_denseArray,
+                                          nupic::Real ## N2 threshold,
+                                          PyObject* py_out) const
+  {
+    PyArrayObject* npDenseArray = (PyArrayObject*) py_denseArray;
+    size_t denseArraySize = PyArray_DIMS(npDenseArray)[0];
+    nupic::Real ## N2 *denseArray = (nupic::Real ## N2 *) PyArray_DATA(npDenseArray);
+
+    PyArrayObject* npOut = (PyArrayObject*) py_out;
+    NTA_ASSERT(PyArray_DIMS(npOut)[0] >= self->nRows());
+    nupic::Real ## N2 *out = (nupic::Real ## N2 *) PyArray_DATA(npOut);
+
+    self->rightVecSumAtNZGteThreshold(denseArray, out, threshold);
+  }
+
+
+  %pythoncode %{
+    def rightVecSumAtNZGteThresholdSparse(self, sparseBinaryArray, threshold, out=None):
+      sparseBinaryArray = numpy.asarray(sparseBinaryArray, dtype="uint32")
+
+      if out is None:
+        out = numpy.empty(self.nRows(), dtype="float32")
+      else:
+        assert out.dtype == "float32"
+
+      self._rightVecSumAtNZGteThresholdSparse(sparseBinaryArray, threshold, out)
+
+      return out
+  %}
+
+  inline void _rightVecSumAtNZGteThresholdSparse(PyObject* py_sparseArray,
+                                                nupic::Real ## N2 threshold,
+                                                PyObject* py_out) const
+  {
+    PyArrayObject* npSparseArray = (PyArrayObject*) py_sparseArray;
+    size_t sparseArraySize = PyArray_DIMS(npSparseArray)[0];
+    nupic::UInt ## N1 *sparseArray = (nupic::UInt ## N1 *) PyArray_DATA(npSparseArray);
+
+    PyArrayObject* npOut = (PyArrayObject*) py_out;
+    NTA_ASSERT(PyArray_DIMS(npOut)[0] >= self->nRows());
+    nupic::Real ## N2 *out = (nupic::Real ## N2 *) PyArray_DATA(npOut);
+
+    self->rightVecSumAtNZGteThresholdSparse(sparseArray, sparseArray + sparseArraySize,
+                                            out, threshold);
+  }
+
 
   // Regular matrix vector multiplication on the left side, assuming that the
   // values of the non-zeros are all 1, so that we can save actually computing
@@ -1493,15 +1711,6 @@ def __div__(self, other):
     self->leftVecSumAtNZ(x_begin, y_begin);
   }
 
-   inline void
-    rightVecSumAtNZGtThreshold_fast(PyObject* xIn, PyObject *yOut, nupic::Real ## 32 threshold) const
-  {
-    PyArrayObject* x = (PyArrayObject*) xIn;
-    nupic::Real ## N2* x_begin = (nupic::Real ## N2*)(PyArray_DATA(x));
-    PyArrayObject* y = (PyArrayObject*) yOut;
-    nupic::Real ## N2* y_begin = (nupic::Real ## N2*)(PyArray_DATA(y));
-    self->rightVecSumAtNZGtThreshold(x_begin, y_begin, threshold);
-  }
 
   PyObject* rightDenseMatProdAtNZ(PyObject* mIn) const
   {
