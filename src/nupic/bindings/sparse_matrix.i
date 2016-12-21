@@ -4383,9 +4383,9 @@ def __setstate__(self, inString):
 #include <nupic/math/SegmentSparseMatrix.hpp>
 %}
 
-%template(SegmentSparseMatrix32) nupic::SegmentSparseMatrix<nupic::UInt32,nupic::Real32,nupic::Int32,nupic::Real64,nupic::DistanceToZero<nupic::Real32 > >;
+%template(SegmentSparseMatrix32) nupic::SegmentSparseMatrix<nupic::SparseMatrix<nupic::UInt32,nupic::Real32,nupic::Int32,nupic::Real64,nupic::DistanceToZero<nupic::Real32 > > >;
 
-%extend nupic::SegmentSparseMatrix<nupic::UInt32, nupic::Real32, nupic::Int32, nupic::Real64, nupic::DistanceToZero<nupic::Real32> >
+%extend nupic::SegmentSparseMatrix<nupic::SparseMatrix<nupic::UInt32, nupic::Real32, nupic::Int32, nupic::Real64, nupic::DistanceToZero<nupic::Real32> > >
 {
   %pythoncode %{
     def createSegments(self, cells):

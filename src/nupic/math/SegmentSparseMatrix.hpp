@@ -29,7 +29,6 @@
 
 #include <algorithm>
 #include <vector>
-#include <nupic/math/SparseMatrix.hpp>
 #include <nupic/types/Types.hpp>
 
 namespace nupic {
@@ -47,15 +46,10 @@ namespace nupic {
    * mappings between cells and segments, and providing batch lookups on those
    * mappings.
    */
-  template <typename UI = nupic::UInt32, typename Real_stor = nupic::Real32,
-            typename I = nupic::Int32, typename Real_prec = nupic::Real64,
-            typename DTZ = nupic::DistanceToZero<Real_stor>>
+  template <typename SparseMatrix>
   class SegmentSparseMatrix {
   public:
-    typedef UI size_type;              // unsigned integer for sizes
-    typedef I difference_type;         // signed integer for differences
-    typedef Real_stor value_type;      // floating-point storage type
-    typedef Real_prec prec_value_type; // floating-point precision type
+    typedef typename SparseMatrix::size_type size_type;
 
   public:
     SegmentSparseMatrix(size_type nCells, size_type nCols)
@@ -354,7 +348,7 @@ namespace nupic {
      *
      * Don't add or remove rows directly. Use createSegment / destroySegment.
      */
-    SparseMatrix<UI, Real_stor, I, Real_prec, DTZ> matrix;
+    SparseMatrix matrix;
 
   private:
 

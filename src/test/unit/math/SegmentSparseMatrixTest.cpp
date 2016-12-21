@@ -20,11 +20,13 @@
  * ----------------------------------------------------------------------
  */
 
+#include <nupic/math/SparseMatrix.hpp>
 #include <nupic/math/SegmentSparseMatrix.hpp>
 #include "gtest/gtest.h"
 
 using std::vector;
 using nupic::SegmentSparseMatrix;
+using nupic::SparseMatrix;
 using nupic::UInt32;
 
 namespace {
@@ -34,7 +36,7 @@ namespace {
    */
   TEST(SegmentSparseMatrixTest, addRows)
   {
-    SegmentSparseMatrix<> ssm(2048, 1000);
+    SegmentSparseMatrix<SparseMatrix<>> ssm(2048, 1000);
     EXPECT_EQ(0, ssm.matrix.nRows());
 
     ssm.createSegment(42);
@@ -56,7 +58,7 @@ namespace {
    */
   TEST(SegmentSparseMatrixTest, noRowLeaks)
   {
-    SegmentSparseMatrix<> ssm(2048, 1000);
+    SegmentSparseMatrix<SparseMatrix<>> ssm(2048, 1000);
 
     // Create 5 segments
     UInt32 cells1[] = {42, 43, 44, 45, 46};
@@ -96,7 +98,7 @@ namespace {
    */
   TEST(SegmentSparseMatrixTest, getSegmentCounts)
   {
-    SegmentSparseMatrix<> ssm(2048, 1000);
+    SegmentSparseMatrix<SparseMatrix<>> ssm(2048, 1000);
 
     ssm.createSegment(42);
 
@@ -122,7 +124,7 @@ namespace {
 
   TEST(SegmentSparseMatrixTest, sortSegmentsByCell)
   {
-    SegmentSparseMatrix<> ssm(2048, 1000);
+    SegmentSparseMatrix<SparseMatrix<>> ssm(2048, 1000);
 
     UInt32 segment1 = ssm.createSegment(42);
     UInt32 segment2 = ssm.createSegment(41);
@@ -150,7 +152,7 @@ namespace {
 
   TEST(SegmentSparseMatrixTest, filterSegmentsByCell)
   {
-    SegmentSparseMatrix<> ssm(2048, 1000);
+    SegmentSparseMatrix<SparseMatrix<>> ssm(2048, 1000);
 
     // Don't create them in order -- we don't want the segment numbers
     // to be ordered in a meaningful way.
@@ -198,7 +200,7 @@ namespace {
 
   TEST(SegmentSparseMatrixTest, mapSegmentsToCells)
   {
-    SegmentSparseMatrix<> ssm(2048, 1000);
+    SegmentSparseMatrix<SparseMatrix<>> ssm(2048, 1000);
 
     const vector<UInt32> cellsWithSegments =
       {42, 42, 42, 43, 44, 45};
