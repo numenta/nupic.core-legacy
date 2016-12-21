@@ -162,6 +162,70 @@ class SparseMatrixTest(unittest.TestCase):
         error('setAllNonZeros, out of order')
 
 
+  def test_nNonZerosPerRow_allRows(self):
+    for name, denseMatrix, expected in (
+        ("Test 1",
+         numpy.array([[1, 1, 0, 0, 1, 1],
+                      [0, 0, 1, 1, 0, 0],
+                      [0, 0, 1, 0, 0, 1],
+                      [1, 0, 1, 1, 0, 0],
+                      [0, 0, 0, 0, 0, 1],
+                      [0, 0, 0, 0, 0, 0],
+                      [1, 1, 1, 1, 1, 1],
+                      [0, 0, 1, 1, 0, 1]], dtype="float32"),
+         [4, 2, 2, 3, 1, 0, 6, 3]),
+        ("No rows",
+         numpy.zeros((0,0), dtype="float32"),
+         []),
+        ("Empty rows",
+         numpy.array([[],
+                      [],
+                      []], dtype="float32"),
+         [0, 0, 0]),
+    ):
+      m = SparseMatrix(denseMatrix)
+
+      numpy.testing.assert_equal(m.nNonZerosPerRow(),
+                                 expected,
+                                 err_msg=name)
+
+
+  def test_nNonZerosPerRow_subset(self):
+    for name, denseMatrix, rows, expected in (
+        ("Test 1",
+         numpy.array([[1, 1, 0, 0, 1, 1],
+                      [0, 0, 1, 1, 0, 0],
+                      [0, 0, 1, 0, 0, 1],
+                      [1, 0, 1, 1, 0, 0],
+                      [0, 0, 0, 0, 0, 1],
+                      [0, 0, 0, 0, 0, 0],
+                      [1, 1, 1, 1, 1, 1],
+                      [0, 0, 1, 1, 0, 1]], dtype="float32"),
+         [0, 5, 6, 7],
+         [4, 0, 6, 3]),
+        ("No selection",
+         numpy.array([[1, 1, 0, 0, 1, 1],
+                      [0, 0, 1, 1, 0, 0],
+                      [0, 0, 1, 0, 0, 1],
+                      [1, 0, 1, 1, 0, 0],
+                      [0, 0, 0, 0, 0, 1],
+                      [0, 0, 0, 0, 0, 0],
+                      [1, 1, 1, 1, 1, 1],
+                      [0, 0, 1, 1, 0, 1]], dtype="float32"),
+         [],
+         []),
+        ("No rows",
+         numpy.zeros((0,0), dtype="float32"),
+         [],
+         []),
+    ):
+      m = SparseMatrix(denseMatrix)
+
+      numpy.testing.assert_equal(m.nNonZerosPerRow(rows),
+                                 expected,
+                                 err_msg=name)
+
+
   def test_nNonZerosPerBox(self):
 
     print 'Testing nNonZerosPerBox'
