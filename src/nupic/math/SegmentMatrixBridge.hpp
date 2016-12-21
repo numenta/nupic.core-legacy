@@ -21,38 +21,36 @@
  */
 
 /** @file
- * SegmentSparseMatrix class
+ * SegmentMatrixBridge class
  */
 
-#ifndef NTA_SEGMENT_SPARSE_MATRIX_HPP
-#define NTA_SEGMENT_SPARSE_MATRIX_HPP
+#ifndef NTA_SEGMENT_MATRIX_BRIDGE_HPP
+#define NTA_SEGMENT_MATRIX_BRIDGE_HPP
 
 #include <algorithm>
 #include <vector>
 #include <nupic/types/Types.hpp>
 
 namespace nupic {
+
   /**
-   * A SparseMatrix-based data structure that supports multiple dendrite
-   * segments per cell. The SparseMatrix is part of this class's public API.
-   * Each row in the SparseMatrix represents a dendrite segment. This class
-   * stores the segments for each cell, and can get the cell for each segment.
+   * A data structure that stores dendrite segments as rows in a matrix.
+   * The matrix itself is part of this class's public API. This class stores the
+   * segments for each cell, and it can get the cell for each segment.
    *
    * This class is focused on Python consumers. C++ consumers could easily
-   * accomplish all of this directly with just a SparseMatrix, but Python
-   * consumers need a fast way of doing segment reads and writes in batches.
-   * The SparseMatrix allows batch operations on existing rows of synapses,
-   * while this class makes it possible to add rows in batch, maintaining
-   * mappings between cells and segments, and providing batch lookups on those
-   * mappings.
+   * accomplish all of this directly with a matrix class, but Python consumers
+   * need a fast way of doing segment reads and writes in batches. This class
+   * makes it possible to add rows in batch, maintaining mappings between cells
+   * and segments, and providing batch lookups on those mappings.
    */
-  template <typename SparseMatrix>
-  class SegmentSparseMatrix {
+  template <typename Matrix>
+  class SegmentMatrixBridge {
   public:
-    typedef typename SparseMatrix::size_type size_type;
+    typedef typename Matrix::size_type size_type;
 
   public:
-    SegmentSparseMatrix(size_type nCells, size_type nCols)
+    SegmentMatrixBridge(size_type nCells, size_type nCols)
       : matrix(0, nCols),
         segmentsForCell_(nCells)
     {
@@ -157,9 +155,9 @@ namespace nupic {
 
     /**
      * Destroy a segment. Remove it from its cell and remove all of its synapses
-     * in the SparseMatrix.
+     * in the Matrix.
      *
-     * This doesn't remove the segment's row from the SparseMatrix, so the other
+     * This doesn't remove the segment's row from the Matrix, so the other
      * segments' row numbers are unaffected.
      *
      * @param segment
@@ -344,11 +342,11 @@ namespace nupic {
   public:
 
     /**
-     * The underlying SparseMatrix. Each row is a segment.
+     * The underlying Matrix. Each row is a segment.
      *
      * Don't add or remove rows directly. Use createSegment / destroySegment.
      */
-    SparseMatrix matrix;
+    Matrix matrix;
 
   private:
 
@@ -356,11 +354,11 @@ namespace nupic {
     {
 #ifdef NTA_ASSERTIONS_ON
       NTA_ASSERT(segment < matrix.nRows())
-        << "SegmentSparseMatrix " << where << ": Invalid segment: " << segment
+        << "SegmentMatrixBridge " << where << ": Invalid segment: " << segment
         << " - Should be < " << matrix.nRows();
 
       NTA_ASSERT(cellForSegment_[segment] != (size_type)-1)
-        << "SegmentSparseMatrix " << where << ": Invalid segment: " << segment
+        << "SegmentMatrixBridge " << where << ": Invalid segment: " << segment
         << " -- This segment has been destroyed.";
 #endif
     }
@@ -396,7 +394,7 @@ namespace nupic {
         {
           NTA_ASSERT(cellForSegment_[*(segment - 1)] <=
                      cellForSegment_[*segment])
-            << "SegmentSparseMatrix " << where << ": Segments must be sorted "
+            << "SegmentMatrixBridge " << where << ": Segments must be sorted "
             << "by cell. Found cell " << cellForSegment_[*(segment - 1)]
             << " before cell " << cellForSegment_[*segment];
         }
@@ -407,7 +405,7 @@ namespace nupic {
     void assert_valid_cell_(size_type cell, const char *where) const {
 #ifdef NTA_ASSERTIONS_ON
       NTA_ASSERT(cell < nCells())
-        << "SegmentSparseMatrix " << where << ": Invalid cell: " << cell
+        << "SegmentMatrixBridge " << where << ": Invalid cell: " << cell
         << " - Should be < " << nCells();
 #endif
     }
@@ -438,7 +436,7 @@ namespace nupic {
         if (cell != cells_begin)
         {
           NTA_ASSERT(*(cell - 1) <= *cell)
-            << "SegmentSparseMatrix " << where << ": Cells must be sorted. "
+            << "SegmentMatrixBridge " << where << ": Cells must be sorted. "
             << "Found cell " << *(cell - 1) << " before cell " << *cell;
         }
       }
@@ -453,13 +451,13 @@ namespace nupic {
     // One-to-many mapping: cell -> segments
     std::vector<std::vector<size_type> > segmentsForCell_;
 
-    // Rather that deleting rows from the SparseMatrix, keep a list of rows
-    // that can be reused. Otherwise the segment numbers in the
-    // 'cellForSegment' and 'segmentsForCell' vectors would be invalidated
-    // every time a segment gets destroyed.
+    // Rather that deleting rows from the matrix, keep a list of rows that can
+    // be reused. Otherwise the segment numbers in the 'cellForSegment' and
+    // 'segmentsForCell' vectors would be invalidated every time a segment gets
+    // destroyed.
     std::vector<size_type> destroyedSegments_;
   };
 
 } // end namespace nupic
 
-#endif // NTA_SEGMENT_SPARSE_MATRIX_HPP
+#endif // NTA_SEGMENT_MATRIX_BRIDGE_HPP
