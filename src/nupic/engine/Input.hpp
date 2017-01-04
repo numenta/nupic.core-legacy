@@ -118,6 +118,17 @@ namespace nupic
             Output* srcOutput, const size_t propagationDelay=0);
 
     /**
+     * Add the given link to this input and to the list of links on the output
+     *
+     * @param link
+     *        The link to add.
+     * @param srcOutput
+     *        The output of previous Region, which is also the source of the input
+     */
+    void
+    addLink(Link* link, Output* srcOutput);
+
+    /**
      * Locate an existing Link to the input.
      *
      * It's called by Network.removeLink() and internally when adding a link

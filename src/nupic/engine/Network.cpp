@@ -1070,35 +1070,39 @@ void Network::read(NetworkProto::Reader& proto)
   // because the linked input and output need references to the new link.
   for (auto linkProto : proto.getLinks())
   {
-    if (!regions_.contains(linkProto.getSrcRegion().cStr()))
+    auto link = new Link();
+    link->read(linkProto);
+
+    if (!regions_.contains(link->getSrcRegionName()))
     {
       NTA_THROW << "Link references unknown region: "
-                << linkProto.getSrcRegion().cStr();
+                << link->getSrcRegionName();
     }
-    Region* srcRegion = regions_.getByName(linkProto.getSrcRegion().cStr());
-    Output* srcOutput = srcRegion->getOutput(linkProto.getSrcOutput().cStr());
+    Region* srcRegion = regions_.getByName(link->getSrcRegionName());
+    Output* srcOutput = srcRegion->getOutput(link->getSrcOutputName());
     if (srcOutput == nullptr)
     {
       NTA_THROW << "Link references unknown source output: "
-                << linkProto.getSrcOutput().cStr();
+                << link->getSrcOutputName();
     }
 
-    if (!regions_.contains(linkProto.getDestRegion().cStr()))
+    if (!regions_.contains(link->getDestRegionName()))
     {
       NTA_THROW << "Link references unknown region: "
-                << linkProto.getDestRegion().cStr();
+                << link->getDestRegionName();
     }
-    Region* destRegion = regions_.getByName(linkProto.getDestRegion().cStr());
-    Input* destInput = destRegion->getInput(linkProto.getDestInput().cStr());
+    Region* destRegion = regions_.getByName(link->getDestRegionName());
+    Input* destInput = destRegion->getInput(link->getDestInputName());
     if (destInput == nullptr)
     {
       NTA_THROW << "Link references unknown destination input: "
-                << linkProto.getDestInput().cStr();
+                << link->getDestInputName();
     }
 
-    // Actually create the link
-    destInput->addLink(
-        linkProto.getType().cStr(), linkProto.getParams().cStr(), srcOutput);
+    link->connectToNetwork(srcOutput, destInput);
+
+    // Add the link to the input and to the list of links on the output
+    destInput->addLink(link, srcOutput);
   }
 
   initialized_ = false;

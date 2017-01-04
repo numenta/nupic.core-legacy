@@ -57,6 +57,14 @@ void
 Input::addLink(const std::string& linkType, const std::string& linkParams,
                Output* srcOutput, const size_t propagationDelay)
 {
+  auto link = new Link(linkType, linkParams, srcOutput, this, propagationDelay);
+  addLink(link, srcOutput);
+}
+
+
+void
+Input::addLink(Link* link, Output* srcOutput)
+{
   if (initialized_)
     NTA_THROW << "Attempt to add link to input " << name_
               << " on region " << region_.getName()
@@ -74,7 +82,6 @@ Input::addLink(const std::string& linkType, const std::string& linkParams,
     }
   }
 
-  auto link = new Link(linkType, linkParams, srcOutput, this, propagationDelay);
   links_.push_back(link);
 
   srcOutput->addLink(link);

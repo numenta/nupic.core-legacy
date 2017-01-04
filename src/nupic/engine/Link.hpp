@@ -120,6 +120,16 @@ namespace nupic
          const size_t propagationDelay=0);
 
     /**
+     * De-serialization use case. Creates a "blank" link. The caller must follow
+     * up with Link::read and Link::connectToNetwork
+     *
+     * @param proto
+     *            LinkProto::Reader
+     */
+    Link();
+
+
+    /**
      * Initialization Phase 2: connecting inputs/outputs to
      * the Network.
      *

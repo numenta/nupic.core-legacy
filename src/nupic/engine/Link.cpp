@@ -37,7 +37,6 @@
 namespace nupic
 {
 
-
 Link::Link(const std::string& linkType, const std::string& linkParams,
            const std::string& srcRegionName, const std::string& destRegionName,
            const std::string& srcOutputName, const std::string& destInputName,
@@ -53,7 +52,7 @@ Link::Link(const std::string& linkType, const std::string& linkParams,
 
 Link::Link(const std::string& linkType, const std::string& linkParams,
            Output* srcOutput, Input* destInput, const size_t propagationDelay):
-             srcBuffer_()
+             srcBuffer_(0)
 {
   commonConstructorInit_(linkType, linkParams,
         srcOutput->getRegion().getName(),
@@ -65,6 +64,13 @@ Link::Link(const std::string& linkType, const std::string& linkParams,
   connectToNetwork(srcOutput, destInput);
   // Note -- link is not usable until we set the destOffset, which happens at initialization time
 }
+
+
+Link::Link():
+            srcBuffer_(0)
+{
+}
+
 
 void Link::commonConstructorInit_(const std::string& linkType, const std::string& linkParams,
                  const std::string& srcRegionName, const std::string& destRegionName,
@@ -308,7 +314,6 @@ const std::string Link::toString() const
   return ss.str();
 }
 
-// called only by Input::addLink()
 void Link::connectToNetwork(Output *src, Input *dest)
 {
   NTA_CHECK(src != nullptr);
@@ -316,8 +321,6 @@ void Link::connectToNetwork(Output *src, Input *dest)
 
   src_ = src;
   dest_ = dest;
-
-
 }
 
 
@@ -573,17 +576,19 @@ void Link::write(LinkProto::Builder& proto) const
 void Link::read(LinkProto::Reader& proto)
 {
   std::cerr << "ZZZ Entering Link::read" << std::endl << std::flush;
+
+  const auto delayedOutputsReader = proto.getDelayedOutputs();
+
   commonConstructorInit_(
       proto.getType().cStr(), proto.getParams().cStr(),
       proto.getSrcRegion().cStr(), proto.getDestRegion().cStr(),
       proto.getSrcOutput().cStr(), proto.getDestInput().cStr(),
-      proto.getDelayedOutputs().size()/*propagationDelay*/);
+      delayedOutputsReader.size()/*propagationDelay*/);
 
   // Initialize the propagation delay buffer
   initPropagationDelayBuffer();
 
   // Populate delayed outputs
-  const auto delayedOutputsReader = proto.getDelayedOutputs();
 
   for (size_t i=0; i < propagationDelay_; ++i)
   {
@@ -596,6 +601,9 @@ namespace nupic
 {
   std::ostream& operator<<(std::ostream& f, const Link& link)
   {
+    // TODO Shouldn't this be implemented in terms of Link::toString? (assuming
+    // Link::toString emits all the desired members. Shouldn't the two be in
+    // sync with respect to emitted info?)
     f << "<Link>\n";
     f << "  <type>" << link.getLinkType() << "</type>\n";
     f << "  <params>" << link.getLinkParams() << "</params>\n";
