@@ -97,27 +97,6 @@ namespace nupic
     const std::string& getName() const;
 
     /**
-     * Create a new Link between this input and the @a srcOutput.
-     *
-     * The link will be added to this input and added to the list
-     * of links on the output
-     *
-     * @param linkType
-     *        The type of the link
-     * @param linkParams
-     *        The parameters of the link
-     * @param srcOutput
-     *        The output of previous Region, which is also the source of the input
-     * @param propagationDelay
-     *        Propagation delay of the link as number of network run
-     *        iterations involving the link as input; the delay vectors, if
-     *        any, are initially populated with 0's. Defaults to 0=no delay
-     */
-    void
-    addLink(const std::string& linkType, const std::string& linkParams,
-            Output* srcOutput, const size_t propagationDelay=0);
-
-    /**
      * Add the given link to this input and to the list of links on the output
      *
      * @param link

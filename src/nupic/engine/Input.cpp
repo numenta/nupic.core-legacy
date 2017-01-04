@@ -53,14 +53,6 @@ Input::~Input()
   }
 }
 
-void
-Input::addLink(const std::string& linkType, const std::string& linkParams,
-               Output* srcOutput, const size_t propagationDelay)
-{
-  auto link = new Link(linkType, linkParams, srcOutput, this, propagationDelay);
-  addLink(link, srcOutput);
-}
-
 
 void
 Input::addLink(Link* link, Output* srcOutput)

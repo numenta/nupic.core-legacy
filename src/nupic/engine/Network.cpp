@@ -363,7 +363,9 @@ Network::link(const std::string& srcRegionName, const std::string& destRegionNam
   }
 
   // Create the link itself
-  destInput->addLink(linkType, linkParams, srcOutput, propagationDelay);
+  auto link = new Link(linkType, linkParams, srcOutput, destInput,
+                       propagationDelay);
+  destInput->addLink(link, srcOutput);
 
 }
 
@@ -1004,9 +1006,9 @@ void Network::loadFromBundle(const std::string& name)
       NTA_THROW << "Invalid network structure file -- link specifies destination input '" << destInputName << "' but no such name exists";
 
     // Create the link itself
-    destInput->addLink(linkType, params, srcOutput);
-
-
+    auto newLink = new Link(linkType, params, srcOutput, destInput,
+                         0/*propagationDelay*/);
+    destInput->addLink(newLink, srcOutput);
   } // links
 
 }
