@@ -408,7 +408,7 @@ void Link::purgeBufferHead()
 
 
 template <typename ST, typename ABT>
-void copyArrayToArrayProto(ST src, ABT builder, size_t elementCount)
+void _templatedCopyArrayToArrayProto(ST src, ABT builder, size_t elementCount)
 {
   for (size_t i=0; i < elementCount; ++i)
   {
@@ -417,9 +417,69 @@ void copyArrayToArrayProto(ST src, ABT builder, size_t elementCount)
 }
 
 
+static void _copyArrayToArrayProto(const Array& array,
+                                   ArrayProto::Builder genericArrayBuilder)
+{
+  const size_t elementCount = array.getCount();
+  const auto arrayType = array.getType();
+
+  switch (arrayType)
+  {
+  case NTA_BasicType_Byte:
+    _templatedCopyArrayToArrayProto((NTA_Byte*)array.getBuffer(),
+                                    genericArrayBuilder.initByteArray(elementCount),
+                                    elementCount);
+    break;
+  case NTA_BasicType_Int16:
+    _templatedCopyArrayToArrayProto((NTA_Int16*)array.getBuffer(),
+                                    genericArrayBuilder.initInt16Array(elementCount),
+                                    elementCount);
+    break;
+  case NTA_BasicType_UInt16:
+    _templatedCopyArrayToArrayProto((NTA_UInt16*)array.getBuffer(),
+                                    genericArrayBuilder.initUint16Array(elementCount),
+                                    elementCount);
+    break;
+  case NTA_BasicType_Int32:
+    _templatedCopyArrayToArrayProto((NTA_Int32*)array.getBuffer(),
+                                    genericArrayBuilder.initInt32Array(elementCount),
+                                    elementCount);
+    break;
+  case NTA_BasicType_UInt32:
+    _templatedCopyArrayToArrayProto((NTA_UInt32*)array.getBuffer(),
+                                    genericArrayBuilder.initUint32Array(elementCount),
+                                    elementCount);
+    break;
+  case NTA_BasicType_Int64:
+    _templatedCopyArrayToArrayProto((NTA_Int64*)array.getBuffer(),
+                                    genericArrayBuilder.initInt64Array(elementCount),
+                                    elementCount);
+    break;
+  case NTA_BasicType_UInt64:
+    _templatedCopyArrayToArrayProto((NTA_UInt64*)array.getBuffer(),
+                                    genericArrayBuilder.initUint64Array(elementCount),
+                                    elementCount);
+    break;
+  case NTA_BasicType_Real32:
+    _templatedCopyArrayToArrayProto((NTA_Real32*)array.getBuffer(),
+                                    genericArrayBuilder.initReal32Array(elementCount),
+                                    elementCount);
+    break;
+  case NTA_BasicType_Real64:
+    _templatedCopyArrayToArrayProto((NTA_Real64*)array.getBuffer(),
+                                    genericArrayBuilder.initReal64Array(elementCount),
+                                    elementCount);
+    break;
+  default:
+    NTA_THROW << "Unexpected Array Type: " << arrayType;
+    break;
+  }
+}
+
+
 template <typename DDT, typename ART>
-void copyArrayProtoToArray(ART reader, Array & dest,
-                           NTA_BasicType arrayType)
+void _templatedCopyArrayProtoToArray(ART reader, Array & dest,
+                                     NTA_BasicType arrayType)
 {
   NTA_CHECK(reader.size() == dest.getCount());
   NTA_CHECK(dest.getType() == arrayType);
@@ -433,6 +493,65 @@ void copyArrayProtoToArray(ART reader, Array & dest,
 }
 
 
+static void _copyArrayProtoToArray(const ArrayProto::Reader genericArrayReader,
+                                   Array& array)
+{
+  auto unionSelection = genericArrayReader.which();
+
+  switch (unionSelection)
+  {
+  case ArrayProto::BYTE_ARRAY:
+    _templatedCopyArrayProtoToArray<NTA_Byte>(genericArrayReader.getByteArray(),
+                                              array,
+                                              NTA_BasicType_Byte);
+    break;
+  case ArrayProto::INT16_ARRAY:
+    _templatedCopyArrayProtoToArray<NTA_Int16>(genericArrayReader.getInt16Array(),
+                                               array,
+                                               NTA_BasicType_Int16);
+    break;
+  case ArrayProto::UINT16_ARRAY:
+    _templatedCopyArrayProtoToArray<NTA_UInt16>(genericArrayReader.getUint16Array(),
+                                                array,
+                                                NTA_BasicType_UInt16);
+    break;
+  case ArrayProto::INT32_ARRAY:
+    _templatedCopyArrayProtoToArray<NTA_Int32>(genericArrayReader.getInt32Array(),
+                                               array,
+                                               NTA_BasicType_Int32);
+    break;
+  case ArrayProto::UINT32_ARRAY:
+    _templatedCopyArrayProtoToArray<NTA_UInt32>(genericArrayReader.getUint32Array(),
+                                                array,
+                                                NTA_BasicType_UInt32);
+    break;
+  case ArrayProto::INT64_ARRAY:
+    _templatedCopyArrayProtoToArray<NTA_Int64>(genericArrayReader.getInt64Array(),
+                                               array,
+                                               NTA_BasicType_Int64);
+    break;
+  case ArrayProto::UINT64_ARRAY:
+    _templatedCopyArrayProtoToArray<NTA_UInt64>(genericArrayReader.getUint64Array(),
+                                                array,
+                                                NTA_BasicType_UInt64);
+    break;
+  case ArrayProto::REAL32_ARRAY:
+    _templatedCopyArrayProtoToArray<NTA_Real32>(genericArrayReader.getReal32Array(),
+                                                array,
+                                                NTA_BasicType_Real32);
+    break;
+  case ArrayProto::REAL64_ARRAY:
+    _templatedCopyArrayProtoToArray<NTA_Real64>(genericArrayReader.getReal64Array(),
+                                                array,
+                                                NTA_BasicType_Real64);
+    break;
+  default:
+    NTA_THROW << "Unexpected ArrayProto union member";
+    break;
+  }
+}
+
+
 void Link::write(LinkProto::Builder& proto) const
 {
   proto.setType(linkType_.c_str());
@@ -442,69 +561,11 @@ void Link::write(LinkProto::Builder& proto) const
   proto.setDestRegion(destRegionName_.c_str());
   proto.setDestInput(destInputName_.c_str());
 
-  // Save dealayed outputs
+  // Save delayed outputs
   auto delayedOutputsBuilder = proto.initDelayedOutputs(propagationDelay_);
   for (size_t i=0; i < propagationDelay_; ++i)
   {
-    const Array & array = srcBuffer_[i];
-
-    auto genericArrayBuilder = delayedOutputsBuilder[i];
-
-    const size_t elementCount = array.getCount();
-
-    const auto arrayType = array.getType();
-
-    switch (arrayType)
-    {
-    case NTA_BasicType_Byte:
-      copyArrayToArrayProto((NTA_Byte*)array.getBuffer(),
-                            genericArrayBuilder.initByteArray(elementCount),
-                            elementCount);
-      break;
-    case NTA_BasicType_Int16:
-      copyArrayToArrayProto((NTA_Int16*)array.getBuffer(),
-                            genericArrayBuilder.initInt16Array(elementCount),
-                            elementCount);
-      break;
-    case NTA_BasicType_UInt16:
-      copyArrayToArrayProto((NTA_UInt16*)array.getBuffer(),
-                            genericArrayBuilder.initUint16Array(elementCount),
-                            elementCount);
-      break;
-    case NTA_BasicType_Int32:
-      copyArrayToArrayProto((NTA_Int32*)array.getBuffer(),
-                            genericArrayBuilder.initInt32Array(elementCount),
-                            elementCount);
-      break;
-    case NTA_BasicType_UInt32:
-      copyArrayToArrayProto((NTA_UInt32*)array.getBuffer(),
-                            genericArrayBuilder.initUint32Array(elementCount),
-                            elementCount);
-      break;
-    case NTA_BasicType_Int64:
-      copyArrayToArrayProto((NTA_Int64*)array.getBuffer(),
-                            genericArrayBuilder.initInt64Array(elementCount),
-                            elementCount);
-      break;
-    case NTA_BasicType_UInt64:
-      copyArrayToArrayProto((NTA_UInt64*)array.getBuffer(),
-                            genericArrayBuilder.initUint64Array(elementCount),
-                            elementCount);
-      break;
-    case NTA_BasicType_Real32:
-      copyArrayToArrayProto((NTA_Real32*)array.getBuffer(),
-                            genericArrayBuilder.initReal32Array(elementCount),
-                            elementCount);
-      break;
-    case NTA_BasicType_Real64:
-      copyArrayToArrayProto((NTA_Real64*)array.getBuffer(),
-                            genericArrayBuilder.initReal64Array(elementCount),
-                            elementCount);
-      break;
-    default:
-      NTA_THROW << "Unexpected propagation delay Array Type: " << arrayType;
-      break;
-    }
+    _copyArrayToArrayProto(srcBuffer_[i], delayedOutputsBuilder[i]);
   }
 }
 
@@ -526,63 +587,7 @@ void Link::read(LinkProto::Reader& proto)
 
   for (size_t i=0; i < propagationDelay_; ++i)
   {
-    auto genericArrayReader = delayedOutputsReader[i];
-
-    Array & array = srcBuffer_[i];
-
-    auto unionSelection = genericArrayReader.which();
-
-    switch (unionSelection)
-    {
-    case ArrayProto::BYTE_ARRAY:
-      copyArrayProtoToArray<NTA_Byte>(genericArrayReader.getByteArray(),
-                                      array,
-                                      NTA_BasicType_Byte);
-      break;
-    case ArrayProto::INT16_ARRAY:
-      copyArrayProtoToArray<NTA_Int16>(genericArrayReader.getInt16Array(),
-                                      array,
-                                      NTA_BasicType_Int16);
-      break;
-    case ArrayProto::UINT16_ARRAY:
-      copyArrayProtoToArray<NTA_UInt16>(genericArrayReader.getUint16Array(),
-                                      array,
-                                      NTA_BasicType_UInt16);
-      break;
-    case ArrayProto::INT32_ARRAY:
-      copyArrayProtoToArray<NTA_Int32>(genericArrayReader.getInt32Array(),
-                                      array,
-                                      NTA_BasicType_Int32);
-      break;
-    case ArrayProto::UINT32_ARRAY:
-      copyArrayProtoToArray<NTA_UInt32>(genericArrayReader.getUint32Array(),
-                                      array,
-                                      NTA_BasicType_UInt32);
-      break;
-    case ArrayProto::INT64_ARRAY:
-      copyArrayProtoToArray<NTA_Int64>(genericArrayReader.getInt64Array(),
-                                      array,
-                                      NTA_BasicType_Int64);
-      break;
-    case ArrayProto::UINT64_ARRAY:
-      copyArrayProtoToArray<NTA_UInt64>(genericArrayReader.getUint64Array(),
-                                      array,
-                                      NTA_BasicType_UInt64);
-      break;
-    case ArrayProto::REAL32_ARRAY:
-      copyArrayProtoToArray<NTA_Real32>(genericArrayReader.getReal32Array(),
-                                      array,
-                                      NTA_BasicType_Real32);
-      break;
-    case ArrayProto::REAL64_ARRAY:
-      copyArrayProtoToArray<NTA_Real64>(genericArrayReader.getReal64Array(),
-                                      array,
-                                      NTA_BasicType_Real64);
-      break;
-    default:
-      NTA_THROW << "Unexpected propagation delay proto union member";
-      break;
-    }
+    _copyArrayProtoToArray(delayedOutputsReader[i], srcBuffer_[i]);
   }
 }
 
