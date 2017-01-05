@@ -1007,7 +1007,7 @@ void Network::loadFromBundle(const std::string& name)
 
     // Create the link itself
     auto newLink = new Link(linkType, params, srcOutput, destInput,
-                         0/*propagationDelay*/);
+                            0/*propagationDelay*/);
     destInput->addLink(newLink, srcOutput);
   } // links
 
@@ -1068,8 +1068,6 @@ void Network::read(NetworkProto::Reader& proto)
     setPhases_(region, phases);
   }
 
-  // Add links. Note that we can't just pass the capnp struct to Link.read
-  // because the linked input and output need references to the new link.
   for (auto linkProto : proto.getLinks())
   {
     auto link = new Link();

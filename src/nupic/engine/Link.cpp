@@ -107,7 +107,7 @@ void Link::initPropagationDelayBuffer_(size_t propagationDelay,
 {
   if (srcBuffer_.capacity() != 0)
   {
-    // Already initialized; e.g., as result of serialization
+    // Already initialized; e.g., as result of de-serialization
     return;
   }
 
