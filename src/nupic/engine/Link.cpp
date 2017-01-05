@@ -101,11 +101,10 @@ Link::~Link()
 }
 
 
-void Link::initPropagationDelayBuffer()
+void Link::initPropagationDelayBuffer_(size_t propagationDelay,
+                                       NTA_BasicType dataElementType,
+                                       size_t dataElementCount)
 {
-  // To be called after propagation delay value is known and link is
-  // connected to network.
-
   if (srcBuffer_.capacity() != 0)
   {
     // Already initialized; e.g., as result of serialization
@@ -114,30 +113,21 @@ void Link::initPropagationDelayBuffer()
 
   // Establish capacity for the requested delay data elements plus one slot for
   // the next output element
-  srcBuffer_.set_capacity(propagationDelay_ + 1);
+  srcBuffer_.set_capacity(propagationDelay + 1);
 
   // Initialize delay data elements
-  const Array & srcArray = src_->getData();
-
-  size_t dataElementCount = srcArray.getCount();
-
-  auto dataElementType = srcArray.getType();
-
   size_t dataBufferSize = dataElementCount *
                           BasicType::getSize(dataElementType);
 
-  for(size_t i=0; i < propagationDelay_; i++)
+  for(size_t i=0; i < propagationDelay; i++)
   {
     Array arrayTemplate(dataElementType);
 
     srcBuffer_.push_back(arrayTemplate);
 
-    if(dataElementCount != 0)
-    {
-      // Allocate 0-initialized data for current element
-      srcBuffer_[i].allocateBuffer(dataElementCount);
-      ::memset(srcBuffer_[i].getBuffer(), 0, dataBufferSize);
-    }
+    // Allocate 0-initialized data for current element
+    srcBuffer_[i].allocateBuffer(dataElementCount);
+    ::memset(srcBuffer_[i].getBuffer(), 0, dataBufferSize);
   }
 }
 
@@ -218,7 +208,9 @@ void Link::initialize(size_t destinationOffset)
   // ---
   // Initialize the propagation delay buffer
   // ---
-  initPropagationDelayBuffer();
+  initPropagationDelayBuffer_(propagationDelay_,
+                              src_->getData().getType(),
+                              src_->getData().getCount());
 
   initialized_ = true;
 
@@ -410,8 +402,9 @@ void Link::purgeBufferHead()
 }
 
 
-template <typename ST, typename ABT>
-void _templatedCopyArrayToArrayProto(ST src, ABT builder, size_t elementCount)
+template <typename SourceT, typename ArrayBuilderT>
+void _templatedCopyArrayToArrayProto(SourceT src, ArrayBuilderT builder,
+                                     size_t elementCount)
 {
   for (size_t i=0; i < elementCount; ++i)
   {
@@ -480,14 +473,14 @@ static void _copyArrayToArrayProto(const Array& array,
 }
 
 
-template <typename DDT, typename ART>
-void _templatedCopyArrayProtoToArray(ART reader, Array & dest,
+template <typename DestDataT, typename ArrayReaderT>
+void _templatedCopyArrayProtoToArray(ArrayReaderT reader, Array & dest,
                                      NTA_BasicType arrayType)
 {
   NTA_CHECK(reader.size() == dest.getCount());
   NTA_CHECK(dest.getType() == arrayType);
 
-  auto destData = (DDT*)dest.getBuffer();
+  auto destData = (DestDataT*)dest.getBuffer();
 
   for (auto entry: reader)
   {
@@ -549,7 +542,7 @@ static void _copyArrayProtoToArray(const ArrayProto::Reader genericArrayReader,
                                                 NTA_BasicType_Real64);
     break;
   default:
-    NTA_THROW << "Unexpected ArrayProto union member";
+    NTA_THROW << "Unexpected ArrayProto union member" << (int)unionSelection;
     break;
   }
 }
@@ -563,6 +556,8 @@ void Link::write(LinkProto::Builder& proto) const
   proto.setSrcOutput(srcOutputName_.c_str());
   proto.setDestRegion(destRegionName_.c_str());
   proto.setDestInput(destInputName_.c_str());
+  proto.setOutputElementType(src_->getData().getType());
+  proto.setOutputElementCount(src_->getData().getCount());
 
   // Save delayed outputs
   auto delayedOutputsBuilder = proto.initDelayedOutputs(propagationDelay_);
@@ -575,8 +570,6 @@ void Link::write(LinkProto::Builder& proto) const
 
 void Link::read(LinkProto::Reader& proto)
 {
-  std::cerr << "ZZZ Entering Link::read" << std::endl << std::flush;
-
   const auto delayedOutputsReader = proto.getDelayedOutputs();
 
   commonConstructorInit_(
@@ -586,7 +579,9 @@ void Link::read(LinkProto::Reader& proto)
       delayedOutputsReader.size()/*propagationDelay*/);
 
   // Initialize the propagation delay buffer
-  initPropagationDelayBuffer();
+  initPropagationDelayBuffer_(propagationDelay_,
+                              (NTA_BasicType)proto.getOutputElementType(),
+                              proto.getOutputElementCount());
 
   // Populate delayed outputs
 
