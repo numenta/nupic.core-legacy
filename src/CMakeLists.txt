@@ -375,6 +375,7 @@ set(src_nupiccore_srcs
     nupic/regions/VectorFileSensor.cpp
     nupic/types/BasicType.cpp
     nupic/types/Fraction.cpp
+    nupic/utils/ArrayProtoUtils.cpp
     nupic/utils/LoggingException.cpp
     nupic/utils/LogItem.cpp
     nupic/utils/MovingAverage.cpp
