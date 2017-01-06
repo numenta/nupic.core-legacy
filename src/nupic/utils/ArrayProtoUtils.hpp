@@ -29,6 +29,7 @@
 
 #include <nupic/ntypes/Array.hpp>
 #include <nupic/proto/LinkProto.capnp.h>
+#include <nupic/types/BasicType.hpp>
 #include <nupic/types/Types.hpp>
 #include <stdlib.h> // for size_t
 
@@ -80,6 +81,7 @@ namespace nupic
     {
       NTA_CHECK(reader.size() == dest.getCount());
       NTA_CHECK(dest.getType() == arrayType);
+      NTA_CHECK(BasicType::getSize(arrayType) == sizeof(DestDataT));
 
       auto destData = (DestDataT*)dest.getBuffer();
 

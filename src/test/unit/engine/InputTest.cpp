@@ -182,6 +182,11 @@ TEST(InputTest, DelayedLink)
     :  TestNode(proto, region)
     {}
 
+    std::string getNodeType()
+    {
+      return "MyTestNode";
+    };
+
     void compute() override
     {
       // Replace with no-op to preserve output
@@ -318,6 +323,11 @@ TEST(InputTest, DelayedLinkCapnpSerialization)
     :  TestNode(proto, region)
     {}
 
+    std::string getNodeType()
+    {
+      return "MyTestNode";
+    };
+
     void compute() override
     {
       // Replace with no-op to preserve output
@@ -406,7 +416,7 @@ TEST(InputTest, DelayedLinkCapnpSerialization)
   }
 
 
-  // We should now have have two delayed array values: 10's and 100's
+  // We should now have two delayed array values: 10's and 100's
 
   // Serialize the current net
   std::stringstream ss;
@@ -415,6 +425,8 @@ TEST(InputTest, DelayedLinkCapnpSerialization)
   // De-serialize into a new net2
   Network net2;
   net2.read(ss);
+
+  net2.initialize();
 
   region1 = net2.getRegions().getByName("region1");
   region2 = net2.getRegions().getByName("region2");

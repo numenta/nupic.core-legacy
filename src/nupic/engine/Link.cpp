@@ -452,9 +452,6 @@ namespace nupic
 {
   std::ostream& operator<<(std::ostream& f, const Link& link)
   {
-    // TODO Shouldn't this be implemented in terms of Link::toString? (assuming
-    // Link::toString emits all the desired members. Shouldn't the two be in
-    // sync with respect to emitted info?)
     f << "<Link>\n";
     f << "  <type>" << link.getLinkType() << "</type>\n";
     f << "  <params>" << link.getLinkParams() << "</params>\n";

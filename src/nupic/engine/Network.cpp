@@ -1059,6 +1059,7 @@ void Network::read(NetworkProto::Reader& proto)
   {
     auto regionProto = entry.getValue();
     auto region = addRegionFromProto(entry.getKey().cStr(), regionProto);
+
     // Initialize the phases for the region
     std::set<UInt32> phases;
     for (auto phase : regionProto.getPhases())
