@@ -63,27 +63,31 @@ namespace nupic
                                       Array& array);
 
   private:
-    template <typename SourceT, typename ArrayBuilderT>
-    static void _templatedCopyArrayToArrayProto(SourceT src,
+    template <typename SourceElementT, typename ArrayBuilderT>
+    static void _templatedCopyArrayToArrayProto(const Array& src,
                                                 ArrayBuilderT builder,
                                                 size_t elementCount)
     {
+      NTA_CHECK(BasicType::getSize(src.getType()) == sizeof(SourceElementT));
+
+      auto srcData = (SourceElementT*)src.getBuffer();
+
       for (size_t i=0; i < elementCount; ++i)
       {
-        builder.set(i, src[i]);
+        builder.set(i, srcData[i]);
       }
     }
 
-    template <typename DestDataT, typename ArrayReaderT>
+    template <typename DestElementT, typename ArrayReaderT>
     static void _templatedCopyArrayProtoToArray(ArrayReaderT reader,
                                                 Array & dest,
                                                 NTA_BasicType arrayType)
     {
       NTA_CHECK(reader.size() == dest.getCount());
       NTA_CHECK(dest.getType() == arrayType);
-      NTA_CHECK(BasicType::getSize(arrayType) == sizeof(DestDataT));
+      NTA_CHECK(BasicType::getSize(arrayType) == sizeof(DestElementT));
 
-      auto destData = (DestDataT*)dest.getBuffer();
+      auto destData = (DestElementT*)dest.getBuffer();
 
       for (auto entry: reader)
       {

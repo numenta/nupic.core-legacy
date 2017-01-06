@@ -45,49 +45,58 @@ void ArrayProtoUtils::copyArrayToArrayProto(
   switch (arrayType)
   {
   case NTA_BasicType_Byte:
-    _templatedCopyArrayToArrayProto((NTA_Byte*)array.getBuffer(),
-                                    arrayBuilder.initByteArray(elementCount),
-                                    elementCount);
+    _templatedCopyArrayToArrayProto<NTA_Byte>(
+      array,
+      arrayBuilder.initByteArray(elementCount),
+      elementCount);
     break;
   case NTA_BasicType_Int16:
-    _templatedCopyArrayToArrayProto((NTA_Int16*)array.getBuffer(),
-                                    arrayBuilder.initInt16Array(elementCount),
-                                    elementCount);
+    _templatedCopyArrayToArrayProto<NTA_Int16>(
+      array,
+      arrayBuilder.initInt16Array(elementCount),
+      elementCount);
     break;
   case NTA_BasicType_UInt16:
-    _templatedCopyArrayToArrayProto((NTA_UInt16*)array.getBuffer(),
-                                    arrayBuilder.initUint16Array(elementCount),
-                                    elementCount);
+    _templatedCopyArrayToArrayProto<NTA_UInt16>(
+      array,
+      arrayBuilder.initUint16Array(elementCount),
+      elementCount);
     break;
   case NTA_BasicType_Int32:
-    _templatedCopyArrayToArrayProto((NTA_Int32*)array.getBuffer(),
-                                    arrayBuilder.initInt32Array(elementCount),
-                                    elementCount);
+    _templatedCopyArrayToArrayProto<NTA_Int32>(
+      array,
+      arrayBuilder.initInt32Array(elementCount),
+      elementCount);
     break;
   case NTA_BasicType_UInt32:
-    _templatedCopyArrayToArrayProto((NTA_UInt32*)array.getBuffer(),
-                                    arrayBuilder.initUint32Array(elementCount),
-                                    elementCount);
+    _templatedCopyArrayToArrayProto<NTA_UInt32>(
+      array,
+      arrayBuilder.initUint32Array(elementCount),
+      elementCount);
     break;
   case NTA_BasicType_Int64:
-    _templatedCopyArrayToArrayProto((NTA_Int64*)array.getBuffer(),
-                                    arrayBuilder.initInt64Array(elementCount),
-                                    elementCount);
+    _templatedCopyArrayToArrayProto<NTA_Int64>(
+      array,
+      arrayBuilder.initInt64Array(elementCount),
+      elementCount);
     break;
   case NTA_BasicType_UInt64:
-    _templatedCopyArrayToArrayProto((NTA_UInt64*)array.getBuffer(),
-                                    arrayBuilder.initUint64Array(elementCount),
-                                    elementCount);
+    _templatedCopyArrayToArrayProto<NTA_UInt64>(
+      array,
+      arrayBuilder.initUint64Array(elementCount),
+      elementCount);
     break;
   case NTA_BasicType_Real32:
-    _templatedCopyArrayToArrayProto((NTA_Real32*)array.getBuffer(),
-                                    arrayBuilder.initReal32Array(elementCount),
-                                    elementCount);
+    _templatedCopyArrayToArrayProto<NTA_Real32>(
+      array,
+      arrayBuilder.initReal32Array(elementCount),
+      elementCount);
     break;
   case NTA_BasicType_Real64:
-    _templatedCopyArrayToArrayProto((NTA_Real64*)array.getBuffer(),
-                                    arrayBuilder.initReal64Array(elementCount),
-                                    elementCount);
+    _templatedCopyArrayToArrayProto<NTA_Real64>(
+      array,
+      arrayBuilder.initReal64Array(elementCount),
+      elementCount);
     break;
   default:
     NTA_THROW << "Unexpected Array Type: " << arrayType;
