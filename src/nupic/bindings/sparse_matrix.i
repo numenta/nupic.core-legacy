@@ -4530,3 +4530,268 @@ def __setstate__(self, inString):
 
     return SegmentSparseMatrix32(*args, **kwargs)
 %}
+
+
+//--------------------------------------------------------------------------------
+// SparseMatrixConnections
+//--------------------------------------------------------------------------------
+
+%{
+#include <nupic/math/SparseMatrixConnections.hpp>
+%}
+
+%include <nupic/math/SparseMatrixConnections.hpp>
+
+
+%extend nupic::SparseMatrixConnections
+{
+
+  %pythoncode %{
+    def computeActivity(self, activeAxons, permanenceThreshold=None, out=None):
+      activeAxons = numpy.asarray(activeAxons, dtype="uint32")
+
+      if out is None:
+        out = numpy.empty(self.matrix.nRows(), dtype="uint32")
+      else:
+        assert out.dtype == "uint32"
+
+      if permanenceThreshold is None:
+        self._computeActivity(activeAxons, out)
+      else:
+        self._permanenceThresholdedComputeActivity(activeAxons,
+                                                   permanenceThreshold, out)
+
+      return out
+  %}
+
+  inline void _computeActivity(PyObject* py_activeAxons,
+                               PyObject* py_overlaps) const
+  {
+    PyArrayObject* npActiveAxons = (PyArrayObject*) py_activeAxons;
+    size_t activeAxonsSize = PyArray_DIMS(npActiveAxons)[0];
+    nupic::UInt32 *activeAxons = (nupic::UInt32 *) PyArray_DATA(npActiveAxons);
+
+    PyArrayObject* npOverlaps = (PyArrayObject*) py_overlaps;
+    NTA_ASSERT(PyArray_DIMS(npOverlaps)[0] >= self->matrix.nRows());
+    nupic::UInt32 *overlaps = (nupic::UInt32 *) PyArray_DATA(npOverlaps);
+
+    self->computeActivity(activeAxons, activeAxons + activeAxonsSize, overlaps);
+  }
+
+  inline void _permanenceThresholdedComputeActivity(
+    PyObject* py_activeAxons, nupic::Real32 permanenceThreshold,
+    PyObject* py_overlaps) const
+  {
+    PyArrayObject* npActiveAxons = (PyArrayObject*) py_activeAxons;
+    size_t activeAxonsSize = PyArray_DIMS(npActiveAxons)[0];
+    nupic::UInt32 *activeAxons = (nupic::UInt32 *) PyArray_DATA(npActiveAxons);
+
+    PyArrayObject* npOverlaps = (PyArrayObject*) py_overlaps;
+    NTA_ASSERT(PyArray_DIMS(npOverlaps)[0] >= self->matrix.nRows());
+    nupic::UInt32 *overlaps = (nupic::UInt32 *) PyArray_DATA(npOverlaps);
+
+    self->computeActivity(activeAxons, activeAxons + activeAxonsSize,
+                          permanenceThreshold, overlaps);
+  }
+
+
+  %pythoncode %{
+    def adjustSynapses(self, segments, activeAxons, activePermanenceDelta,
+                       inactivePermanenceDelta):
+      self._adjustSynapses(numpy.asarray(segments, dtype="uint32"),
+                           numpy.asarray(activeAxons, dtype="uint32"),
+                           activePermanenceDelta, inactivePermanenceDelta)
+  %}
+
+  void _adjustSynapses(PyObject* py_segments, PyObject* py_activeAxons,
+                       nupic::Real32 activePermanenceDelta,
+                       nupic::Real32 inactivePermanenceDelta)
+  {
+    PyArrayObject* npSegments = (PyArrayObject*) py_segments;
+    size_t segmentsSize = PyArray_DIMS(npSegments)[0];
+    nupic::UInt32* segments = (nupic::UInt32*)PyArray_DATA(npSegments);
+
+    PyArrayObject* npActiveAxons = (PyArrayObject*) py_activeAxons;
+    size_t activeAxonsSize = PyArray_DIMS(npActiveAxons)[0];
+    nupic::UInt32* activeAxons = (nupic::UInt32*)PyArray_DATA(npActiveAxons);
+
+    self->adjustSynapses(segments, segments + segmentsSize,
+                         activeAxons, activeAxons + activeAxonsSize,
+                         activePermanenceDelta, inactivePermanenceDelta);
+  }
+
+
+  %pythoncode %{
+    def adjustActiveSynapses(self, segments, activeAxons, permanenceDelta):
+      self._adjustActiveSynapses(numpy.asarray(segments, dtype="uint32"),
+                                 numpy.asarray(activeAxons, dtype="uint32"),
+                                 permanenceDelta)
+  %}
+
+  void _adjustActiveSynapses(PyObject* py_segments, PyObject* py_activeAxons,
+                             nupic::Real32 permanenceDelta)
+  {
+    PyArrayObject* npSegments = (PyArrayObject*) py_segments;
+    size_t segmentsSize = PyArray_DIMS(npSegments)[0];
+    nupic::UInt32* segments = (nupic::UInt32*)PyArray_DATA(npSegments);
+
+    PyArrayObject* npActiveAxons = (PyArrayObject*) py_activeAxons;
+    size_t activeAxonsSize = PyArray_DIMS(npActiveAxons)[0];
+    nupic::UInt32* activeAxons = (nupic::UInt32*)PyArray_DATA(npActiveAxons);
+
+    self->adjustActiveSynapses(segments, segments + segmentsSize,
+                               activeAxons, activeAxons + activeAxonsSize,
+                               permanenceDelta);
+  }
+
+
+  %pythoncode %{
+    def adjustInactiveSynapses(self, segments, activeAxons, permanenceDelta):
+      self._adjustInactiveSynapses(numpy.asarray(segments, dtype="uint32"),
+                                   numpy.asarray(activeAxons, dtype="uint32"),
+                                   permanenceDelta)
+  %}
+
+  void _adjustInactiveSynapses(PyObject* py_segments, PyObject* py_activeAxons,
+                               nupic::Real32 permanenceDelta)
+  {
+    PyArrayObject* npSegments = (PyArrayObject*) py_segments;
+    size_t segmentsSize = PyArray_DIMS(npSegments)[0];
+    nupic::UInt32* segments = (nupic::UInt32*)PyArray_DATA(npSegments);
+
+    PyArrayObject* npActiveAxons = (PyArrayObject*) py_activeAxons;
+    size_t activeAxonsSize = PyArray_DIMS(npActiveAxons)[0];
+    nupic::UInt32* activeAxons = (nupic::UInt32*)PyArray_DATA(npActiveAxons);
+
+    self->adjustInactiveSynapses(segments, segments + segmentsSize,
+                                 activeAxons, activeAxons + activeAxonsSize,
+                                 permanenceDelta);
+  }
+
+
+  %pythoncode %{
+    def growSynapses(self, segments, activeAxons, initialPermanence):
+      self._growSynapses(
+          numpy.asarray(segments, dtype="uint32"),
+          numpy.asarray(activeAxons, dtype="uint32"),
+          initialPermanence)
+  %}
+
+  void _growSynapses(PyObject* py_segments,
+                     PyObject* py_activeAxons,
+                     nupic::Real32 initialPermanence)
+  {
+    PyArrayObject* npSegments = (PyArrayObject*) py_segments;
+    size_t segmentsSize = PyArray_DIMS(npSegments)[0];
+    nupic::UInt32* segments = (nupic::UInt32*)PyArray_DATA(npSegments);
+
+    PyArrayObject* npActiveAxons = (PyArrayObject*) py_activeAxons;
+    size_t activeAxonsSize = PyArray_DIMS(npActiveAxons)[0];
+    nupic::UInt32* activeAxons = (nupic::UInt32*)PyArray_DATA(npActiveAxons);
+
+    self->growSynapses(segments, segments + segmentsSize,
+                       activeAxons, activeAxons + activeAxonsSize,
+                       initialPermanence);
+  }
+
+
+  %pythoncode %{
+    def growSynapsesToSample(self, segments, activeAxons, sampleSize,
+                             initialPermanence, rng):
+      if isinstance(sampleSize, numbers.Number):
+        self._growSynapsesToSample_singleCount(
+          numpy.asarray(segments, dtype="uint32"),
+          numpy.asarray(activeAxons, dtype="uint32"),
+          sampleSize,
+          initialPermanence,
+          rng)
+      else:
+        self._growSynapsesToSample_multipleCounts(
+          numpy.asarray(segments, dtype="uint32"),
+          numpy.asarray(activeAxons, dtype="uint32"),
+          numpy.asarray(sampleSize, dtype="uint32"),
+          initialPermanence,
+          rng)
+  %}
+
+  void _growSynapsesToSample_singleCount(PyObject* py_segments,
+                                         PyObject* py_activeAxons,
+                                         nupic::UInt32 sampleSize,
+                                         nupic::Real32 initialPermanence,
+                                         nupic::Random& rng)
+  {
+    PyArrayObject* npSegments = (PyArrayObject*) py_segments;
+    size_t segmentsSize = PyArray_DIMS(npSegments)[0];
+    nupic::UInt32* segments = (nupic::UInt32*)PyArray_DATA(npSegments);
+
+    PyArrayObject* npActiveAxons = (PyArrayObject*) py_activeAxons;
+    size_t activeAxonsSize = PyArray_DIMS(npActiveAxons)[0];
+    nupic::UInt32* activeAxons = (nupic::UInt32*)PyArray_DATA(npActiveAxons);
+
+    self->growSynapsesToSample(segments, segments + segmentsSize,
+                               activeAxons, activeAxons + activeAxonsSize,
+                               sampleSize,
+                               initialPermanence, rng);
+  }
+
+  void _growSynapsesToSample_multipleCounts(PyObject* py_segments,
+                                            PyObject* py_activeAxons,
+                                            PyObject* py_sampleSizes,
+                                            nupic::Real32 initialPermanence,
+                                            nupic::Random& rng)
+  {
+    PyArrayObject* npSegments = (PyArrayObject*) py_segments;
+    size_t segmentsSize = PyArray_DIMS(npSegments)[0];
+    nupic::UInt32* segments = (nupic::UInt32*)PyArray_DATA(npSegments);
+
+    PyArrayObject* npActiveAxons = (PyArrayObject*) py_activeAxons;
+    size_t activeAxonsSize = PyArray_DIMS(npActiveAxons)[0];
+    nupic::UInt32* activeAxons = (nupic::UInt32*)PyArray_DATA(npActiveAxons);
+
+    PyArrayObject* npNewNonZeroCounts = (PyArrayObject*) py_sampleSizes;
+    size_t sampleSizesSize = PyArray_DIMS(npNewNonZeroCounts)[0];
+    nupic::UInt32* sampleSizes =
+      (nupic::UInt32*)PyArray_DATA(npNewNonZeroCounts);
+
+    self->growSynapsesToSample(segments, segments + segmentsSize,
+                               activeAxons, activeAxons + activeAxonsSize,
+                               sampleSizes, sampleSizes + sampleSizesSize,
+                               initialPermanence, rng);
+  }
+
+
+  %pythoncode %{
+    def clipPermanences(self, segments):
+      self._clipPermanences(numpy.asarray(segments, dtype="uint32"))
+  %}
+
+  void _clipPermanences(PyObject* py_segments)
+  {
+    PyArrayObject* npSegments = (PyArrayObject*) py_segments;
+    size_t segmentsSize = PyArray_DIMS(npSegments)[0];
+    nupic::UInt32* segments = (nupic::UInt32*)PyArray_DATA(npSegments);
+
+    self->clipPermanences(segments, segments + segmentsSize);
+  }
+
+
+  %pythoncode %{
+    def mapSegmentsToSynapseCounts(self, segments):
+      return self._mapSegmentsToSynapseCounts(
+        numpy.asarray(segments, dtype="uint32"))
+  %}
+
+  PyObject* _mapSegmentsToSynapseCounts(PyObject* py_segments) const
+  {
+    PyArrayObject* npSegments = (PyArrayObject*) py_segments;
+    size_t segmentsSize = PyArray_DIMS(npSegments)[0];
+    nupic::UInt32* segments = (nupic::UInt32*)PyArray_DATA(npSegments);
+
+    nupic::NumpyVectorT<nupic::UInt32> out(segmentsSize);
+    self->mapSegmentsToSynapseCounts(segments, segments + segmentsSize,
+                                     out.begin());
+
+    return out.forPython();
+  }
+
+} // End extend SparseMatrixConnections

@@ -348,6 +348,7 @@ set(src_nupiccore_srcs
     nupic/engine/UniformLinkPolicy.cpp
     nupic/engine/YAMLUtils.cpp
     nupic/math/SparseMatrixAlgorithms.cpp
+    nupic/math/SparseMatrixConnections.cpp
     nupic/math/StlIo.cpp
     nupic/math/Topology.cpp
     nupic/ntypes/ArrayBase.cpp
