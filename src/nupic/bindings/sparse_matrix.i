@@ -1,6 +1,6 @@
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2013-2016, Numenta, Inc.  Unless you have an agreement
+ * Copyright (C) 2013-2017, Numenta, Inc.  Unless you have an agreement
  * with Numenta, Inc., for a separate license for this software code, the
  * following terms and conditions apply:
  *
@@ -1532,9 +1532,9 @@ def __div__(self, other):
       sparseBinaryArray = numpy.asarray(sparseBinaryArray, dtype="uint32")
 
       if out is None:
-        out = numpy.empty(self.nRows(), dtype="float32")
+        out = numpy.empty(self.nRows(), dtype="uint32")
       else:
-        assert out.dtype == "float32"
+        assert out.dtype == "uint32"
 
       self._rightVecSumAtNZSparse(sparseBinaryArray, out)
 
@@ -1550,7 +1550,7 @@ def __div__(self, other):
 
     PyArrayObject* npOut = (PyArrayObject*) py_out;
     NTA_ASSERT(PyArray_DIMS(npOut)[0] >= self->nRows());
-    nupic::Real ## N2 *out = (nupic::Real ## N2 *) PyArray_DATA(npOut);
+    nupic::UInt ## N1 *out = (nupic::UInt ## N1 *) PyArray_DATA(npOut);
 
     self->rightVecSumAtNZSparse(sparseArray, sparseArray + sparseArraySize,
                                 out);
@@ -1599,9 +1599,9 @@ def __div__(self, other):
       sparseBinaryArray = numpy.asarray(sparseBinaryArray, dtype="uint32")
 
       if out is None:
-        out = numpy.empty(self.nRows(), dtype="float32")
+        out = numpy.empty(self.nRows(), dtype="uint32")
       else:
-        assert out.dtype == "float32"
+        assert out.dtype == "uint32"
 
       self._rightVecSumAtNZGtThresholdSparse(sparseBinaryArray, threshold, out)
 
@@ -1618,7 +1618,7 @@ def __div__(self, other):
 
     PyArrayObject* npOut = (PyArrayObject*) py_out;
     NTA_ASSERT(PyArray_DIMS(npOut)[0] >= self->nRows());
-    nupic::Real ## N2 *out = (nupic::Real ## N2 *) PyArray_DATA(npOut);
+    nupic::UInt ## N1 *out = (nupic::UInt ## N1 *) PyArray_DATA(npOut);
 
     self->rightVecSumAtNZGtThresholdSparse(sparseArray, sparseArray + sparseArraySize,
                                            out, threshold);
@@ -1660,9 +1660,9 @@ def __div__(self, other):
       sparseBinaryArray = numpy.asarray(sparseBinaryArray, dtype="uint32")
 
       if out is None:
-        out = numpy.empty(self.nRows(), dtype="float32")
+        out = numpy.empty(self.nRows(), dtype="uint32")
       else:
-        assert out.dtype == "float32"
+        assert out.dtype == "uint32"
 
       self._rightVecSumAtNZGteThresholdSparse(sparseBinaryArray, threshold, out)
 
@@ -1679,7 +1679,7 @@ def __div__(self, other):
 
     PyArrayObject* npOut = (PyArrayObject*) py_out;
     NTA_ASSERT(PyArray_DIMS(npOut)[0] >= self->nRows());
-    nupic::Real ## N2 *out = (nupic::Real ## N2 *) PyArray_DATA(npOut);
+    nupic::UInt ## N1 *out = (nupic::UInt ## N1 *) PyArray_DATA(npOut);
 
     self->rightVecSumAtNZGteThresholdSparse(sparseArray, sparseArray + sparseArraySize,
                                             out, threshold);
