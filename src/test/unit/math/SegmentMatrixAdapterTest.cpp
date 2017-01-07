@@ -1,6 +1,6 @@
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2016, Numenta, Inc.  Unless you have an agreement
+ * Copyright (C) 2017, Numenta, Inc.  Unless you have an agreement
  * with Numenta, Inc., for a separate license for this software code, the
  * following terms and conditions apply:
  *
@@ -21,11 +21,11 @@
  */
 
 #include <nupic/math/SparseMatrix.hpp>
-#include <nupic/math/SegmentMatrixBridge.hpp>
+#include <nupic/math/SegmentMatrixAdapter.hpp>
 #include "gtest/gtest.h"
 
 using std::vector;
-using nupic::SegmentMatrixBridge;
+using nupic::SegmentMatrixAdapter;
 using nupic::SparseMatrix;
 using nupic::UInt32;
 
@@ -34,9 +34,9 @@ namespace {
   /**
    * The SparseMatrix should contain one row for each added segment.
    */
-  TEST(SegmentMatrixBridgeTest, addRows)
+  TEST(SegmentMatrixAdapterTest, addRows)
   {
-    SegmentMatrixBridge<SparseMatrix<>> ssm(2048, 1000);
+    SegmentMatrixAdapter<SparseMatrix<>> ssm(2048, 1000);
     EXPECT_EQ(0, ssm.matrix.nRows());
 
     ssm.createSegment(42);
@@ -52,13 +52,13 @@ namespace {
    * When you destroy a segment and then create a segment, the number of rows in
    * the SparseMatrix should stay constant.
    *
-   * This test doesn't prescribe whether the SegmentMatrixBridge should accomplish
-   * this by keeping a list of "destroyed segments" or by simply removing rows
-   * from the SparseMatrix.
+   * This test doesn't prescribe whether the SegmentMatrixAdapter should
+   * accomplish this by keeping a list of "destroyed segments" or by simply
+   * removing rows from the SparseMatrix.
    */
-  TEST(SegmentMatrixBridgeTest, noRowLeaks)
+  TEST(SegmentMatrixAdapterTest, noRowLeaks)
   {
-    SegmentMatrixBridge<SparseMatrix<>> ssm(2048, 1000);
+    SegmentMatrixAdapter<SparseMatrix<>> ssm(2048, 1000);
 
     // Create 5 segments
     UInt32 cells1[] = {42, 43, 44, 45, 46};
@@ -96,9 +96,9 @@ namespace {
    *
    * Verify that getSegmentCounts gets the up-to-date count for each.
    */
-  TEST(SegmentMatrixBridgeTest, getSegmentCounts)
+  TEST(SegmentMatrixAdapterTest, getSegmentCounts)
   {
-    SegmentMatrixBridge<SparseMatrix<>> ssm(2048, 1000);
+    SegmentMatrixAdapter<SparseMatrix<>> ssm(2048, 1000);
 
     ssm.createSegment(42);
 
@@ -122,9 +122,9 @@ namespace {
     EXPECT_EQ(expected, counts);
   }
 
-  TEST(SegmentMatrixBridgeTest, sortSegmentsByCell)
+  TEST(SegmentMatrixAdapterTest, sortSegmentsByCell)
   {
-    SegmentMatrixBridge<SparseMatrix<>> ssm(2048, 1000);
+    SegmentMatrixAdapter<SparseMatrix<>> ssm(2048, 1000);
 
     UInt32 segment1 = ssm.createSegment(42);
     UInt32 segment2 = ssm.createSegment(41);
@@ -150,9 +150,9 @@ namespace {
     EXPECT_EQ(sorted, mySegments);
   }
 
-  TEST(SegmentMatrixBridgeTest, filterSegmentsByCell)
+  TEST(SegmentMatrixAdapterTest, filterSegmentsByCell)
   {
-    SegmentMatrixBridge<SparseMatrix<>> ssm(2048, 1000);
+    SegmentMatrixAdapter<SparseMatrix<>> ssm(2048, 1000);
 
     // Don't create them in order -- we don't want the segment numbers
     // to be ordered in a meaningful way.
@@ -198,9 +198,9 @@ namespace {
                 subset2.begin(), subset2.end()));
   }
 
-  TEST(SegmentMatrixBridgeTest, mapSegmentsToCells)
+  TEST(SegmentMatrixAdapterTest, mapSegmentsToCells)
   {
-    SegmentMatrixBridge<SparseMatrix<>> ssm(2048, 1000);
+    SegmentMatrixAdapter<SparseMatrix<>> ssm(2048, 1000);
 
     const vector<UInt32> cellsWithSegments =
       {42, 42, 42, 43, 44, 45};

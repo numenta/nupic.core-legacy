@@ -1,6 +1,6 @@
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2016, Numenta, Inc.  Unless you have an agreement
+ * Copyright (C) 2017, Numenta, Inc.  Unless you have an agreement
  * with Numenta, Inc., for a separate license for this software code, the
  * following terms and conditions apply:
  *
@@ -21,11 +21,11 @@
  */
 
 /** @file
- * SegmentMatrixBridge class
+ * SegmentMatrixAdapter class
  */
 
-#ifndef NTA_SEGMENT_MATRIX_BRIDGE_HPP
-#define NTA_SEGMENT_MATRIX_BRIDGE_HPP
+#ifndef NTA_SEGMENT_MATRIX_ADAPTER_HPP
+#define NTA_SEGMENT_MATRIX_ADAPTER_HPP
 
 #include <algorithm>
 #include <vector>
@@ -45,12 +45,12 @@ namespace nupic {
    * and segments, and providing batch lookups on those mappings.
    */
   template <typename Matrix>
-  class SegmentMatrixBridge {
+  class SegmentMatrixAdapter {
   public:
     typedef typename Matrix::size_type size_type;
 
   public:
-    SegmentMatrixBridge(size_type nCells, size_type nCols)
+    SegmentMatrixAdapter(size_type nCells, size_type nCols)
       : matrix(0, nCols),
         segmentsForCell_(nCells)
     {
@@ -354,11 +354,11 @@ namespace nupic {
     {
 #ifdef NTA_ASSERTIONS_ON
       NTA_ASSERT(segment < matrix.nRows())
-        << "SegmentMatrixBridge " << where << ": Invalid segment: " << segment
+        << "SegmentMatrixAdapter " << where << ": Invalid segment: " << segment
         << " - Should be < " << matrix.nRows();
 
       NTA_ASSERT(cellForSegment_[segment] != (size_type)-1)
-        << "SegmentMatrixBridge " << where << ": Invalid segment: " << segment
+        << "SegmentMatrixAdapter " << where << ": Invalid segment: " << segment
         << " -- This segment has been destroyed.";
 #endif
     }
@@ -394,7 +394,7 @@ namespace nupic {
         {
           NTA_ASSERT(cellForSegment_[*(segment - 1)] <=
                      cellForSegment_[*segment])
-            << "SegmentMatrixBridge " << where << ": Segments must be sorted "
+            << "SegmentMatrixAdapter " << where << ": Segments must be sorted "
             << "by cell. Found cell " << cellForSegment_[*(segment - 1)]
             << " before cell " << cellForSegment_[*segment];
         }
@@ -405,7 +405,7 @@ namespace nupic {
     void assert_valid_cell_(size_type cell, const char *where) const {
 #ifdef NTA_ASSERTIONS_ON
       NTA_ASSERT(cell < nCells())
-        << "SegmentMatrixBridge " << where << ": Invalid cell: " << cell
+        << "SegmentMatrixAdapter " << where << ": Invalid cell: " << cell
         << " - Should be < " << nCells();
 #endif
     }
@@ -436,7 +436,7 @@ namespace nupic {
         if (cell != cells_begin)
         {
           NTA_ASSERT(*(cell - 1) <= *cell)
-            << "SegmentMatrixBridge " << where << ": Cells must be sorted. "
+            << "SegmentMatrixAdapter " << where << ": Cells must be sorted. "
             << "Found cell " << *(cell - 1) << " before cell " << *cell;
         }
       }
@@ -460,4 +460,4 @@ namespace nupic {
 
 } // end namespace nupic
 
-#endif // NTA_SEGMENT_MATRIX_BRIDGE_HPP
+#endif // NTA_SEGMENT_MATRIX_ADAPTER_HPP

@@ -4377,15 +4377,15 @@ def __setstate__(self, inString):
 // Segment Sparse Matrix
 //--------------------------------------------------------------------------------
 
-%include <nupic/math/SegmentMatrixBridge.hpp>
+%include <nupic/math/SegmentMatrixAdapter.hpp>
 
 %{
-#include <nupic/math/SegmentMatrixBridge.hpp>
+#include <nupic/math/SegmentMatrixAdapter.hpp>
 %}
 
-%template(SegmentSparseMatrix32) nupic::SegmentMatrixBridge<nupic::SparseMatrix<nupic::UInt32,nupic::Real32,nupic::Int32,nupic::Real64,nupic::DistanceToZero<nupic::Real32 > > >;
+%template(SegmentSparseMatrix32) nupic::SegmentMatrixAdapter<nupic::SparseMatrix<nupic::UInt32,nupic::Real32,nupic::Int32,nupic::Real64,nupic::DistanceToZero<nupic::Real32 > > >;
 
-%extend nupic::SegmentMatrixBridge<nupic::SparseMatrix<nupic::UInt32, nupic::Real32, nupic::Int32, nupic::Real64, nupic::DistanceToZero<nupic::Real32> > >
+%extend nupic::SegmentMatrixAdapter<nupic::SparseMatrix<nupic::UInt32, nupic::Real32, nupic::Int32, nupic::Real64, nupic::DistanceToZero<nupic::Real32> > >
 {
   %pythoncode %{
     def createSegments(self, cells):
@@ -4520,7 +4520,7 @@ def __setstate__(self, inString):
     return npCellsOut.forPython();
   }
 
-} // End extend SegmentMatrixBridge
+} // End extend SegmentMatrixAdapter
 
 %pythoncode %{
   def SegmentSparseMatrix(*args, **kwargs):
