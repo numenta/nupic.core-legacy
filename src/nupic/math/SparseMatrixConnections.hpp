@@ -69,7 +69,7 @@ namespace nupic {
      */
     void computeActivity(
       const UInt32* activeAxons_begin, const UInt32* activeAxons_end,
-      UInt32* overlaps_begin) const;
+      Int32* overlaps_begin) const;
 
     /**
      * Compute the number of active connected synapses on each segment.
@@ -87,7 +87,7 @@ namespace nupic {
      */
     void computeActivity(
       const UInt32* activeAxons_begin, const UInt32* activeAxons_end,
-      Real32 permanenceThreshold, UInt32* overlaps_begin) const;
+      Real32 permanenceThreshold, Int32* overlaps_begin) const;
 
     /**
      * For each specified segment, update the permanence of each synapse
@@ -187,7 +187,7 @@ namespace nupic {
     void growSynapsesToSample(
       const UInt32* segments_begin, const UInt32* segments_end,
       const UInt32* axons_begin, const UInt32* axons_end,
-      UInt32 sampleSize, Real32 initialPermanence, nupic::Random& rng);
+      Int32 sampleSize, Real32 initialPermanence, nupic::Random& rng);
 
     /**
      * For each specified segments, grow synapses to a random subset of the
@@ -212,7 +212,7 @@ namespace nupic {
     void growSynapsesToSample(
       const UInt32* segments_begin, const UInt32* segments_end,
       const UInt32* axons_begin, const UInt32* axons_end,
-      const UInt32* sampleSizes_begin, const UInt32* sampleSizes_end,
+      const Int32* sampleSizes_begin, const Int32* sampleSizes_end,
       Real32 initialPermanence, nupic::Random& rng);
 
     /**
@@ -237,7 +237,7 @@ namespace nupic {
      */
     void mapSegmentsToSynapseCounts(
       const UInt32* segments_begin, const UInt32* segments_end,
-      UInt32* out_begin) const;
+      Int32* out_begin) const;
   };
 
 };

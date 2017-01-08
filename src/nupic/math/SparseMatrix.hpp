@@ -4486,7 +4486,7 @@ public:
   inline void setRandomZerosOnOuter(
     InputIterator1 row_begin, InputIterator1 row_end,
     InputIterator2 col_begin, InputIterator2 col_end,
-    size_type numNewNonZerosPerRow, value_type value, Random& rng) {
+    difference_type numNewNonZerosPerRow, value_type value, Random& rng) {
     { // Pre-conditions
       ASSERT_INPUT_ITERATOR(InputIterator1);
       ASSERT_INPUT_ITERATOR(InputIterator2);
@@ -4498,7 +4498,8 @@ public:
 
     for (InputIterator1 row = row_begin; row != row_end; ++row) {
       size_type numZeros = nZerosInRowOnColumns_(*row, col_begin, col_end);
-      size_type numNewNonZeros = std::min(numNewNonZerosPerRow, numZeros);
+      difference_type numNewNonZeros = std::min(numNewNonZerosPerRow,
+                                                (difference_type)numZeros);
       if (numNewNonZeros > 0)
       {
         insertRandomNonZerosIntoColumns_(*row, col_begin, col_end,
@@ -4568,7 +4569,8 @@ public:
          ++row, ++numNew) {
       if (*numNew > 0) {
         size_type numZeros =  nZerosInRowOnColumns_(*row, col_begin, col_end);
-        size_type numNewNonZeros = std::min(*numNew, numZeros);
+        difference_type numNewNonZeros = std::min(*numNew,
+                                                  (difference_type)numZeros);
         if (numNewNonZeros > 0)
         {
           insertRandomNonZerosIntoColumns_(*row, col_begin, col_end,
@@ -4618,7 +4620,7 @@ public:
   inline void increaseRowNonZeroCountsOnOuterTo(
     InputIterator1 row_begin, InputIterator1 row_end,
     InputIterator2 col_begin, InputIterator2 col_end,
-    size_type numDesiredNonzeros, value_type initialValue, Random& rng)
+    difference_type numDesiredNonzeros, value_type initialValue, Random& rng)
   {
     { // Pre-conditions
       ASSERT_INPUT_ITERATOR(InputIterator1);
@@ -4632,15 +4634,15 @@ public:
     for (InputIterator1 row = row_begin; row != row_end; ++row) {
       size_type numZeros = nZerosInRowOnColumns_(*row, col_begin, col_end);
       difference_type numNonZeros = (col_end - col_begin) - numZeros;
-      difference_type numDesiredNewNonZeros =
-        std::max((difference_type)0,
-                 (difference_type)numDesiredNonzeros - numNonZeros);
+      size_type numDesiredNewNonZeros =
+        (size_type) std::max(0, numDesiredNonzeros - numNonZeros);
       size_type numActualNewNonZeros =
-        (size_type) std::min(numDesiredNewNonZeros, (difference_type)numZeros);
+        std::min(numDesiredNewNonZeros, numZeros);
       if (numActualNewNonZeros > 0)
       {
         insertRandomNonZerosIntoColumns_(*row, col_begin, col_end,
-                                         numActualNewNonZeros, numZeros,
+                                         (size_type)numActualNewNonZeros,
+                                         numZeros,
                                          initialValue, rng);
       }
     }
@@ -10214,7 +10216,7 @@ public:
                                     OutputIterator out_begin) const {
     { // Pre-conditions
       ASSERT_INPUT_ITERATOR(InputIterator);
-      ASSERT_OUTPUT_ITERATOR(OutputIterator, size_type);
+      ASSERT_OUTPUT_ITERATOR(OutputIterator, difference_type);
       assert_valid_col_it_range_(x_ones_begin, x_ones_end,
                                  "rightVecSumAtNZSparse");
     } // End pre-conditions
@@ -10234,7 +10236,7 @@ public:
 
       size_type *ind_begin = ind_[row];
       size_type *ind_end = ind_begin + nnzr_[row];
-      size_type sum = 0;
+      difference_type sum = 0;
 
       for (size_type *ind = ind_begin; ind != ind_end; ++ind)
       {
@@ -10283,7 +10285,7 @@ public:
     OutputIterator out_begin, value_type threshold) const {
     { // Pre-conditions
       ASSERT_INPUT_ITERATOR(InputIterator);
-      ASSERT_OUTPUT_ITERATOR(OutputIterator, size_type);
+      ASSERT_OUTPUT_ITERATOR(OutputIterator, difference_type);
       assert_valid_col_it_range_(x_ones_begin, x_ones_end,
                                  "rightVecSumAtNZGtThresholdSparse");
     } // End pre-conditions
@@ -10300,7 +10302,7 @@ public:
       size_type *ind_begin = ind_[row];
       size_type *ind_end = ind_begin + nnzr_[row];
       value_type *nz = nz_[row];
-      size_type sum = 0;
+      difference_type sum = 0;
 
       for (size_type *ind = ind_begin; ind != ind_end; ++ind)
       {
@@ -10348,7 +10350,7 @@ public:
     OutputIterator out_begin, value_type threshold) const {
     { // Pre-conditions
       ASSERT_INPUT_ITERATOR(InputIterator);
-      ASSERT_OUTPUT_ITERATOR(OutputIterator, size_type);
+      ASSERT_OUTPUT_ITERATOR(OutputIterator, difference_type);
       assert_valid_col_it_range_(x_ones_begin, x_ones_end,
                                  "rightVecSumAtNZGteThresholdSparse");
     } // End pre-conditions
@@ -10365,7 +10367,7 @@ public:
       size_type *ind_begin = ind_[row];
       size_type *ind_end = ind_begin + nnzr_[row];
       value_type *nz = nz_[row];
-      size_type sum = 0;
+      difference_type sum = 0;
 
       for (size_type *ind = ind_begin; ind != ind_end; ++ind)
       {

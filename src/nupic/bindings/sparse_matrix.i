@@ -867,14 +867,14 @@ def __div__(self, other):
         self._setRandomZerosOnOuter_multipleCounts(
           numpy.asarray(rows, dtype="uint32"),
           numpy.asarray(cols, dtype="uint32"),
-          numpy.asarray(numNewNonZeros, dtype="uint32"),
+          numpy.asarray(numNewNonZeros, dtype="int32"),
           value,
           rng)
   %}
 
   void _setRandomZerosOnOuter_singleCount(PyObject* py_rows,
                                           PyObject* py_cols,
-                                          nupic::UInt ## N1 numNewNonZeros,
+                                          nupic::Int ## N1 numNewNonZeros,
                                           nupic::Real ## N2 value,
                                           nupic::Random& rng)
   {
@@ -908,8 +908,8 @@ def __div__(self, other):
 
     PyArrayObject* npNewNonZeroCounts = (PyArrayObject*) py_newNonZeroCounts;
     size_t newNonZeroCountsSize = PyArray_DIMS(npNewNonZeroCounts)[0];
-    nupic::UInt32* newNonZeroCounts =
-      (nupic::UInt32*)PyArray_DATA(npNewNonZeroCounts);
+    nupic::Int32* newNonZeroCounts =
+      (nupic::Int32*)PyArray_DATA(npNewNonZeroCounts);
 
     self->setRandomZerosOnOuter(rows, rows + rowsSize,
                                 cols, cols + colsSize,
@@ -920,7 +920,7 @@ def __div__(self, other):
 
 
   void increaseRowNonZeroCountsOnOuterTo(PyObject* py_i, PyObject* py_j,
-                                         nupic::UInt ## N1 numDesiredNonzeros,
+                                         nupic::Int ## N1 numDesiredNonZeros,
                                          nupic::Real ## N2 initialValue,
                                          nupic::Random& rng)
   {
@@ -1532,9 +1532,9 @@ def __div__(self, other):
       sparseBinaryArray = numpy.asarray(sparseBinaryArray, dtype="uint32")
 
       if out is None:
-        out = numpy.empty(self.nRows(), dtype="uint32")
+        out = numpy.empty(self.nRows(), dtype="int32")
       else:
-        assert out.dtype == "uint32"
+        assert out.dtype == "int32"
 
       self._rightVecSumAtNZSparse(sparseBinaryArray, out)
 
@@ -1550,7 +1550,7 @@ def __div__(self, other):
 
     PyArrayObject* npOut = (PyArrayObject*) py_out;
     NTA_ASSERT(PyArray_DIMS(npOut)[0] >= self->nRows());
-    nupic::UInt ## N1 *out = (nupic::UInt ## N1 *) PyArray_DATA(npOut);
+    nupic::Int ## N1 *out = (nupic::Int ## N1 *) PyArray_DATA(npOut);
 
     self->rightVecSumAtNZSparse(sparseArray, sparseArray + sparseArraySize,
                                 out);
@@ -1599,9 +1599,9 @@ def __div__(self, other):
       sparseBinaryArray = numpy.asarray(sparseBinaryArray, dtype="uint32")
 
       if out is None:
-        out = numpy.empty(self.nRows(), dtype="uint32")
+        out = numpy.empty(self.nRows(), dtype="int32")
       else:
-        assert out.dtype == "uint32"
+        assert out.dtype == "int32"
 
       self._rightVecSumAtNZGtThresholdSparse(sparseBinaryArray, threshold, out)
 
@@ -1618,7 +1618,7 @@ def __div__(self, other):
 
     PyArrayObject* npOut = (PyArrayObject*) py_out;
     NTA_ASSERT(PyArray_DIMS(npOut)[0] >= self->nRows());
-    nupic::UInt ## N1 *out = (nupic::UInt ## N1 *) PyArray_DATA(npOut);
+    nupic::Int ## N1 *out = (nupic::Int ## N1 *) PyArray_DATA(npOut);
 
     self->rightVecSumAtNZGtThresholdSparse(sparseArray, sparseArray + sparseArraySize,
                                            out, threshold);
@@ -1660,9 +1660,9 @@ def __div__(self, other):
       sparseBinaryArray = numpy.asarray(sparseBinaryArray, dtype="uint32")
 
       if out is None:
-        out = numpy.empty(self.nRows(), dtype="uint32")
+        out = numpy.empty(self.nRows(), dtype="int32")
       else:
-        assert out.dtype == "uint32"
+        assert out.dtype == "int32"
 
       self._rightVecSumAtNZGteThresholdSparse(sparseBinaryArray, threshold, out)
 
@@ -1675,11 +1675,12 @@ def __div__(self, other):
   {
     PyArrayObject* npSparseArray = (PyArrayObject*) py_sparseArray;
     size_t sparseArraySize = PyArray_DIMS(npSparseArray)[0];
-    nupic::UInt ## N1 *sparseArray = (nupic::UInt ## N1 *) PyArray_DATA(npSparseArray);
+    nupic::UInt ## N1 *sparseArray =
+      (nupic::UInt ## N1 *) PyArray_DATA(npSparseArray);
 
     PyArrayObject* npOut = (PyArrayObject*) py_out;
     NTA_ASSERT(PyArray_DIMS(npOut)[0] >= self->nRows());
-    nupic::UInt ## N1 *out = (nupic::UInt ## N1 *) PyArray_DATA(npOut);
+    nupic::Int ## N1 *out = (nupic::Int ## N1 *) PyArray_DATA(npOut);
 
     self->rightVecSumAtNZGteThresholdSparse(sparseArray, sparseArray + sparseArraySize,
                                             out, threshold);
@@ -4551,9 +4552,9 @@ def __setstate__(self, inString):
       activeAxons = numpy.asarray(activeAxons, dtype="uint32")
 
       if out is None:
-        out = numpy.empty(self.matrix.nRows(), dtype="uint32")
+        out = numpy.empty(self.matrix.nRows(), dtype="int32")
       else:
-        assert out.dtype == "uint32"
+        assert out.dtype == "int32"
 
       if permanenceThreshold is None:
         self._computeActivity(activeAxons, out)
@@ -4573,7 +4574,7 @@ def __setstate__(self, inString):
 
     PyArrayObject* npOverlaps = (PyArrayObject*) py_overlaps;
     NTA_ASSERT(PyArray_DIMS(npOverlaps)[0] >= self->matrix.nRows());
-    nupic::UInt32 *overlaps = (nupic::UInt32 *) PyArray_DATA(npOverlaps);
+    nupic::Int32 *overlaps = (nupic::Int32 *) PyArray_DATA(npOverlaps);
 
     self->computeActivity(activeAxons, activeAxons + activeAxonsSize, overlaps);
   }
@@ -4588,7 +4589,7 @@ def __setstate__(self, inString):
 
     PyArrayObject* npOverlaps = (PyArrayObject*) py_overlaps;
     NTA_ASSERT(PyArray_DIMS(npOverlaps)[0] >= self->matrix.nRows());
-    nupic::UInt32 *overlaps = (nupic::UInt32 *) PyArray_DATA(npOverlaps);
+    nupic::Int32 *overlaps = (nupic::Int32 *) PyArray_DATA(npOverlaps);
 
     self->computeActivity(activeAxons, activeAxons + activeAxonsSize,
                           permanenceThreshold, overlaps);
@@ -4709,14 +4710,14 @@ def __setstate__(self, inString):
         self._growSynapsesToSample_multipleCounts(
           numpy.asarray(segments, dtype="uint32"),
           numpy.asarray(activeAxons, dtype="uint32"),
-          numpy.asarray(sampleSize, dtype="uint32"),
+          numpy.asarray(sampleSize, dtype="int32"),
           initialPermanence,
           rng)
   %}
 
   void _growSynapsesToSample_singleCount(PyObject* py_segments,
                                          PyObject* py_activeAxons,
-                                         nupic::UInt32 sampleSize,
+                                         nupic::Int32 sampleSize,
                                          nupic::Real32 initialPermanence,
                                          nupic::Random& rng)
   {
@@ -4750,8 +4751,8 @@ def __setstate__(self, inString):
 
     PyArrayObject* npNewNonZeroCounts = (PyArrayObject*) py_sampleSizes;
     size_t sampleSizesSize = PyArray_DIMS(npNewNonZeroCounts)[0];
-    nupic::UInt32* sampleSizes =
-      (nupic::UInt32*)PyArray_DATA(npNewNonZeroCounts);
+    nupic::Int32* sampleSizes =
+      (nupic::Int32*)PyArray_DATA(npNewNonZeroCounts);
 
     self->growSynapsesToSample(segments, segments + segmentsSize,
                                activeAxons, activeAxons + activeAxonsSize,
@@ -4787,7 +4788,7 @@ def __setstate__(self, inString):
     size_t segmentsSize = PyArray_DIMS(npSegments)[0];
     nupic::UInt32* segments = (nupic::UInt32*)PyArray_DATA(npSegments);
 
-    nupic::NumpyVectorT<nupic::UInt32> out(segmentsSize);
+    nupic::NumpyVectorT<nupic::Int32> out(segmentsSize);
     self->mapSegmentsToSynapseCounts(segments, segments + segmentsSize,
                                      out.begin());
 

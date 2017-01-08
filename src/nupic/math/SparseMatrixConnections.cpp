@@ -37,7 +37,7 @@ SparseMatrixConnections::SparseMatrixConnections(
 
 void SparseMatrixConnections::computeActivity(
   const UInt32* activeAxons_begin, const UInt32* activeAxons_end,
-  UInt32* overlaps_begin) const
+  Int32* overlaps_begin) const
 {
   matrix.rightVecSumAtNZSparse(
     activeAxons_begin, activeAxons_end,
@@ -46,7 +46,7 @@ void SparseMatrixConnections::computeActivity(
 
 void SparseMatrixConnections::computeActivity(
   const UInt32* activeAxons_begin, const UInt32* activeAxons_end,
-  Real32 permanenceThreshold, UInt32* overlaps_begin) const
+  Real32 permanenceThreshold, Int32* overlaps_begin) const
 {
   matrix.rightVecSumAtNZGteThresholdSparse(
     activeAxons_begin, activeAxons_end,
@@ -111,7 +111,7 @@ void SparseMatrixConnections::growSynapses(
 void SparseMatrixConnections::growSynapsesToSample(
   const UInt32* segments_begin, const UInt32* segments_end,
   const UInt32* axons_begin, const UInt32* axons_end,
-  UInt32 sampleSize, Real32 initialPermanence, nupic::Random& rng)
+  Int32 sampleSize, Real32 initialPermanence, nupic::Random& rng)
 {
   matrix.setRandomZerosOnOuter(
     segments_begin, segments_end,
@@ -124,7 +124,7 @@ void SparseMatrixConnections::growSynapsesToSample(
 void SparseMatrixConnections::growSynapsesToSample(
   const UInt32* segments_begin, const UInt32* segments_end,
   const UInt32* axons_begin, const UInt32* axons_end,
-  const UInt32* sampleSizes_begin, const UInt32* sampleSizes_end,
+  const Int32* sampleSizes_begin, const Int32* sampleSizes_end,
   Real32 initialPermanence, nupic::Random& rng)
 {
   NTA_ASSERT(std::distance(sampleSizes_begin, sampleSizes_end) ==
@@ -147,7 +147,7 @@ void SparseMatrixConnections::clipPermanences(
 
 void SparseMatrixConnections::mapSegmentsToSynapseCounts(
   const UInt32* segments_begin, const UInt32* segments_end,
-  UInt32* out_begin) const
+  Int32* out_begin) const
 {
   matrix.nNonZerosPerRow(segments_begin, segments_end, out_begin);
 }

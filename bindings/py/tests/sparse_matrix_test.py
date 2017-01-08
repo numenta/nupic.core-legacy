@@ -1570,7 +1570,7 @@ class SparseMatrixTest(unittest.TestCase):
 
       y = mat.rightVecSumAtNZSparse(xSparse)
       numpy.testing.assert_equal(y, expected, 'rightVecSumAtNZSparse')
-      y2 = zeros((nRows)).astype(uint32)
+      y2 = zeros((nRows)).astype(int32)
       mat.rightVecSumAtNZSparse(xSparse, out=y2)
       numpy.testing.assert_equal(y2, expected, 'rightVecSumAtNZSparse with out')
 
