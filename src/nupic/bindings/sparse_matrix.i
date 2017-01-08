@@ -4475,9 +4475,15 @@ def __setstate__(self, inString):
 
 
   %pythoncode %{
-    def filterSegmentsByCell(self, segments, cells):
+    def filterSegmentsByCell(self, segments, cells, assumeSorted=False):
       segments = numpy.asarray(segments, dtype="uint32")
       cells = numpy.asarray(cells, dtype="uint32")
+
+      if not assumeSorted:
+        segments = numpy.copy(segments)
+        self.sortSegmentsByCell(segments)
+        cells = numpy.sort(cells)
+
       return self._filterSegmentsByCell(segments, cells)
   %}
 
@@ -4671,7 +4677,11 @@ def __setstate__(self, inString):
 
 
   %pythoncode %{
-    def growSynapses(self, segments, activeAxons, initialPermanence):
+    def growSynapses(self, segments, activeAxons, initialPermanence,
+                     assumeAxonsSorted=False):
+      if not assumeAxonsSorted:
+        activeAxons = numpy.sort(activeAxons)
+
       self._growSynapses(
           numpy.asarray(segments, dtype="uint32"),
           numpy.asarray(activeAxons, dtype="uint32"),
@@ -4698,7 +4708,10 @@ def __setstate__(self, inString):
 
   %pythoncode %{
     def growSynapsesToSample(self, segments, activeAxons, sampleSize,
-                             initialPermanence, rng):
+                             initialPermanence, rng, assumeAxonsSorted=False):
+      if not assumeAxonsSorted:
+        activeAxons = numpy.sort(activeAxons)
+
       if isinstance(sampleSize, numbers.Number):
         self._growSynapsesToSample_singleCount(
           numpy.asarray(segments, dtype="uint32"),
