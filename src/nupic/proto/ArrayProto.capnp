@@ -3,7 +3,7 @@
 # Represents an Output Array
 struct ArrayProto {
   union {
-    byteArray   @0 :List(UInt8);   # NTA_BasicType_Byte ZZZ or is it Int8, or does it matter?
+    byteArray   @0 :List(UInt8);   # NTA_BasicType_Byte; picking UInt8 due to lack of char type in capnproto schema
     int16Array  @1 :List(Int16);   # NTA_BasicType_Int16
     uint16Array @2 :List(UInt16);  # NTA_BasicType_UInt16
     int32Array  @3 :List(Int32);   # NTA_BasicType_Int32
