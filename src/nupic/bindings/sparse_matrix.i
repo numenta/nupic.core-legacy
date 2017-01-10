@@ -4469,7 +4469,7 @@ def __setstate__(self, inString):
   {
     nupic::NumpyVectorWeakRefT<nupic::UInt32> cells(py_cells);
 
-    nupic::NumpyVectorT<nupic::UInt32> countsOut(cells.size());
+    nupic::NumpyVectorT<nupic::Int32> countsOut(cells.size());
     self->getSegmentCounts(cells.begin(), cells.end(), countsOut.begin());
 
     return countsOut.forPython();
