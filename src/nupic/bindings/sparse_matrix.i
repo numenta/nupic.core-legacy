@@ -937,7 +937,7 @@ def __div__(self, other):
     nupic::NumpyVectorT<nupic::UInt ## N1> j(py_j);
     self->increaseRowNonZeroCountsOnOuterTo(i.begin(), i.end(),
                                             j.begin(), j.end(),
-                                            numDesiredNonzeros, initialValue,
+                                            numDesiredNonZeros, initialValue,
                                             rng);
   }
 
