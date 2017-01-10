@@ -4666,7 +4666,9 @@ public:
       size_type numZeros = nZerosInRowOnColumns_(*row, col_begin, col_end);
       difference_type numNonZeros = (col_end - col_begin) - numZeros;
       size_type numDesiredNewNonZeros =
-        (size_type) std::max(0, numDesiredNonzeros - numNonZeros);
+        (size_type) std::max((difference_type)0,
+                             (difference_type)(numDesiredNonzeros -
+                                               numNonZeros));
       size_type numActualNewNonZeros =
         std::min(numDesiredNewNonZeros, numZeros);
       if (numActualNewNonZeros > 0)
