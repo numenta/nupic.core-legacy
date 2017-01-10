@@ -4433,7 +4433,6 @@ def __setstate__(self, inString):
 {
   %pythoncode %{
     def createSegments(self, cells):
-      cells = numpy.asarray(cells, dtype="uint32")
       return self._createSegments(numpy.asarray(cells, dtype="uint32"))
   %}
 
@@ -4450,8 +4449,7 @@ def __setstate__(self, inString):
 
   %pythoncode %{
     def destroySegments(self, segments):
-      self._destroySegments(numpy.asarray(segments,
-                                                  dtype="uint32"))
+      self._destroySegments(numpy.asarray(segments, dtype="uint32"))
   %}
 
   void _destroySegments(PyObject *py_segments)
@@ -4464,9 +4462,7 @@ def __setstate__(self, inString):
 
   %pythoncode %{
     def getSegmentCounts(self, cells):
-      cells = numpy.asarray(cells, dtype="uint32")
-      return self._getSegmentCounts(numpy.asarray(cells,
-                                                  dtype="uint32"))
+      return self._getSegmentCounts(numpy.asarray(cells, dtype="uint32"))
   %}
 
   PyObject* _getSegmentCounts(PyObject *py_cells) const
@@ -4530,7 +4526,7 @@ def __setstate__(self, inString):
 
     std::vector<nupic::UInt32> filtered =
       self->filterSegmentsByCell(segments.begin(), segments.end(),
-                                 cells.begin(), segments.end());
+                                 cells.begin(), cells.end());
 
     nupic::NumpyVectorT<nupic::UInt32> npFiltered(filtered.size(),
                                                   filtered.data());
@@ -4638,7 +4634,7 @@ def __setstate__(self, inString):
                        nupic::Real32 inactivePermanenceDelta)
   {
     nupic::NumpyVectorWeakRefT<nupic::UInt32> segments(py_segments);
-    nupic::NumpyVectorWeakRefT<nupic::UInt32> activeAxons(py_segments);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> activeAxons(py_activeAxons);
 
     self->adjustSynapses(segments.begin(), segments.end(),
                          activeAxons.begin(), activeAxons.end(),
@@ -4657,7 +4653,7 @@ def __setstate__(self, inString):
                              nupic::Real32 permanenceDelta)
   {
     nupic::NumpyVectorWeakRefT<nupic::UInt32> segments(py_segments);
-    nupic::NumpyVectorWeakRefT<nupic::UInt32> activeAxons(py_segments);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> activeAxons(py_activeAxons);
 
     self->adjustActiveSynapses(segments.begin(), segments.end(),
                                activeAxons.begin(), activeAxons.end(),
@@ -4676,7 +4672,7 @@ def __setstate__(self, inString):
                                nupic::Real32 permanenceDelta)
   {
     nupic::NumpyVectorWeakRefT<nupic::UInt32> segments(py_segments);
-    nupic::NumpyVectorWeakRefT<nupic::UInt32> activeAxons(py_segments);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> activeAxons(py_activeAxons);
 
     self->adjustInactiveSynapses(segments.begin(), segments.end(),
                                  activeAxons.begin(), activeAxons.end(),
@@ -4701,7 +4697,7 @@ def __setstate__(self, inString):
                      nupic::Real32 initialPermanence)
   {
     nupic::NumpyVectorWeakRefT<nupic::UInt32> segments(py_segments);
-    nupic::NumpyVectorWeakRefT<nupic::UInt32> activeAxons(py_segments);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> activeAxons(py_activeAxons);
 
     self->growSynapses(segments.begin(), segments.end(),
                        activeAxons.begin(), activeAxons.end(),
@@ -4738,7 +4734,7 @@ def __setstate__(self, inString):
                                          nupic::Random& rng)
   {
     nupic::NumpyVectorWeakRefT<nupic::UInt32> segments(py_segments);
-    nupic::NumpyVectorWeakRefT<nupic::UInt32> activeAxons(py_segments);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> activeAxons(py_activeAxons);
 
     self->growSynapsesToSample(segments.begin(), segments.end(),
                                activeAxons.begin(), activeAxons.end(),
@@ -4753,8 +4749,8 @@ def __setstate__(self, inString):
                                             nupic::Random& rng)
   {
     nupic::NumpyVectorWeakRefT<nupic::UInt32> segments(py_segments);
-    nupic::NumpyVectorWeakRefT<nupic::UInt32> activeAxons(py_segments);
-    nupic::NumpyVectorWeakRefT<nupic::Int32> sampleSizes(py_segments);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> activeAxons(py_activeAxons);
+    nupic::NumpyVectorWeakRefT<nupic::Int32> sampleSizes(py_sampleSizes);
 
     self->growSynapsesToSample(segments.begin(), segments.end(),
                                activeAxons.begin(), activeAxons.end(),
