@@ -958,13 +958,33 @@ def __div__(self, other):
   }
 
 
-  // Returns the number of non-zeros per row, for all rows
-  PyObject* nNonZerosPerRow() const
+  %pythoncode %{
+    def nNonZerosPerRow(self, rows=None):
+      if rows is None:
+        return self._nNonZerosPerRow_allRows()
+      else:
+        return self._nNonZerosPerRow(numpy.asarray(rows, dtype="uint32"))
+  %}
+
+  PyObject* _nNonZerosPerRow_allRows() const
   {
     nupic::NumpyVectorT<nupic::UInt ## N1> nnzpr(self->nRows());
     self->nNonZerosPerRow(nnzpr.begin());
     return nnzpr.forPython();
   }
+
+  PyObject* _nNonZerosPerRow(PyObject* py_rows)
+  {
+    PyArrayObject* npRows = (PyArrayObject*) py_rows;
+    size_t rowsSize = PyArray_DIMS(npRows)[0];
+    nupic::UInt32* rows = (nupic::UInt32*)PyArray_DATA(npRows);
+
+    nupic::NumpyVectorT<nupic::UInt ## N1> out(rowsSize);
+    self->nNonZerosPerRow(rows, rows + rowsSize, out.begin());
+
+    return out.forPython();
+  }
+
 
   // Returns the number of non-zeros per col, for all cols
   PyObject* nNonZerosPerCol() const
