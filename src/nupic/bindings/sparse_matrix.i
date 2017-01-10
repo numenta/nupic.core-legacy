@@ -919,6 +919,15 @@ def __div__(self, other):
   }
 
 
+  %pythoncode %{
+    def increaseRowNonZeroCountsOnOuterTo(self, rows, cols, numDesiredNonZeros,
+                                          initialValue, rng):
+      self._increaseRowNonZeroCountsOnOuterTo(
+        numpy.asarray(rows, dtype="uint32"),
+        numpy.asarray(cols, dtype="uint32"),
+        numDesiredNonZeros, initialValue, rng)
+  %}
+
   void increaseRowNonZeroCountsOnOuterTo(PyObject* py_i, PyObject* py_j,
                                          nupic::Int ## N1 numDesiredNonZeros,
                                          nupic::Real ## N2 initialValue,
@@ -932,6 +941,14 @@ def __div__(self, other):
                                             rng);
   }
 
+
+  %pythoncode %{
+    def clipRowsBelowAndAbove(self, rows, a, b):
+      self._clipRowsBelowAndAbove(numpy.asarray(rows, dtype="uint32"),
+                                  a,
+                                  b)
+  %}
+
   void clipRowsBelowAndAbove(PyObject* py_i,
                              nupic::Real ## N2 a,
                              nupic::Real ## N2 b)
@@ -939,6 +956,7 @@ def __div__(self, other):
     nupic::NumpyVectorT<nupic::UInt ## N1> i(py_i);
     self->clipRowsBelowAndAbove(i.begin(), i.end(), a, b);
   }
+
 
   // Returns the number of non-zeros per row, for all rows
   PyObject* nNonZerosPerRow() const
