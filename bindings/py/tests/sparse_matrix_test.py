@@ -162,6 +162,51 @@ class SparseMatrixTest(unittest.TestCase):
         error('setAllNonZeros, out of order')
 
 
+  def test_nNonZerosPerRow_allRows(self):
+
+    m = SparseMatrix([[1, 1, 0, 0, 1, 1],
+                      [0, 0, 1, 1, 0, 0],
+                      [0, 0, 1, 0, 0, 1],
+                      [1, 0, 1, 1, 0, 0],
+                      [0, 0, 0, 0, 0, 1],
+                      [0, 0, 0, 0, 0, 0],
+                      [1, 1, 1, 1, 1, 1],
+                      [0, 0, 1, 1, 0, 1]])
+
+    numpy.testing.assert_equal(m.nNonZerosPerRow(), [4, 2, 2, 3, 1, 0, 6, 3])
+
+    # No rows
+    m = SparseMatrix(numpy.zeros((0,0), dtype="float32"))
+    numpy.testing.assert_equal(m.nNonZerosPerRow(), [])
+
+    # Empty rows
+    m = SparseMatrix([[], [], []])
+    numpy.testing.assert_equal(m.nNonZerosPerRow(), [0, 0, 0])
+
+
+
+  def test_nNonZerosPerRow_subset(self):
+
+    m = SparseMatrix([[1, 1, 0, 0, 1, 1],
+                      [0, 0, 1, 1, 0, 0],
+                      [0, 0, 1, 0, 0, 1],
+                      [1, 0, 1, 1, 0, 0],
+                      [0, 0, 0, 0, 0, 1],
+                      [0, 0, 0, 0, 0, 0],
+                      [1, 1, 1, 1, 1, 1],
+                      [0, 0, 1, 1, 0, 1]])
+
+    numpy.testing.assert_equal(m.nNonZerosPerRow([0, 5, 6, 7]),
+                               [4, 0, 6, 3])
+
+    # No selection
+    numpy.testing.assert_equal(m.nNonZerosPerRow([]), [])
+
+    # No rows
+    m = SparseMatrix(numpy.zeros((0,0), dtype="float32"))
+    numpy.testing.assert_equal(m.nNonZerosPerRow([]), [])
+
+
   def test_nNonZerosPerBox(self):
 
     print 'Testing nNonZerosPerBox'
