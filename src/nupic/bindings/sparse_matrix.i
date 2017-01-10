@@ -835,16 +835,11 @@ def __div__(self, other):
   void _incrementNonZerosOnOuter(PyObject* py_rows, PyObject* py_cols,
                                  nupic::Real ## N2 delta)
   {
-    PyArrayObject* npRows = (PyArrayObject*) py_rows;
-    size_t rowsSize = PyArray_DIMS(npRows)[0];
-    nupic::UInt32* rows = (nupic::UInt32*)PyArray_DATA(npRows);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> rows(py_rows);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> cols(py_cols);
 
-    PyArrayObject* npCols = (PyArrayObject*) py_cols;
-    size_t colsSize = PyArray_DIMS(npCols)[0];
-    nupic::UInt32* cols = (nupic::UInt32*)PyArray_DATA(npCols);
-
-    self->incrementNonZerosOnOuter(rows, rows + rowsSize,
-                                   cols, cols + colsSize,
+    self->incrementNonZerosOnOuter(rows.begin(), rows.end(),
+                                   cols.begin(), cols.end(),
                                    delta);
   }
 
@@ -859,16 +854,11 @@ def __div__(self, other):
   void _incrementNonZerosOnRowsExcludingCols(PyObject* py_rows, PyObject* py_cols,
                                              nupic::Real ## N2 delta)
   {
-    PyArrayObject* npRows = (PyArrayObject*) py_rows;
-    size_t rowsSize = PyArray_DIMS(npRows)[0];
-    nupic::UInt32* rows = (nupic::UInt32*)PyArray_DATA(npRows);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> rows(py_rows);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> cols(py_cols);
 
-    PyArrayObject* npCols = (PyArrayObject*) py_cols;
-    size_t colsSize = PyArray_DIMS(npCols)[0];
-    nupic::UInt32* cols = (nupic::UInt32*)PyArray_DATA(npCols);
-
-    self->incrementNonZerosOnRowsExcludingCols(rows, rows + rowsSize,
-                                               cols, cols + colsSize,
+    self->incrementNonZerosOnRowsExcludingCols(rows.begin(), rows.end(),
+                                               cols.begin(), cols.end(),
                                                delta);
   }
 
@@ -883,16 +873,11 @@ def __div__(self, other):
   void _setZerosOnOuter(PyObject* py_rows, PyObject* py_cols,
                         nupic::Real ## N2 value)
   {
-    PyArrayObject* npRows = (PyArrayObject*) py_rows;
-    size_t rowsSize = PyArray_DIMS(npRows)[0];
-    nupic::UInt32* rows = (nupic::UInt32*)PyArray_DATA(npRows);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> rows(py_rows);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> cols(py_cols);
 
-    PyArrayObject* npCols = (PyArrayObject*) py_cols;
-    size_t colsSize = PyArray_DIMS(npCols)[0];
-    nupic::UInt32* cols = (nupic::UInt32*)PyArray_DATA(npCols);
-
-    self->setZerosOnOuter(rows, rows + rowsSize,
-                          cols, cols + colsSize,
+    self->setZerosOnOuter(rows.begin(), rows.end(),
+                          cols.begin(), cols.end(),
                           value);
   }
 
@@ -921,16 +906,11 @@ def __div__(self, other):
                                           nupic::Real ## N2 value,
                                           nupic::Random& rng)
   {
-    PyArrayObject* npRows = (PyArrayObject*) py_rows;
-    size_t rowsSize = PyArray_DIMS(npRows)[0];
-    nupic::UInt32* rows = (nupic::UInt32*)PyArray_DATA(npRows);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> rows(py_rows);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> cols(py_cols);
 
-    PyArrayObject* npCols = (PyArrayObject*) py_cols;
-    size_t colsSize = PyArray_DIMS(npCols)[0];
-    nupic::UInt32* cols = (nupic::UInt32*)PyArray_DATA(npCols);
-
-    self->setRandomZerosOnOuter(rows, rows + rowsSize,
-                                cols, cols + colsSize,
+    self->setRandomZerosOnOuter(rows.begin(), rows.end(),
+                                cols.begin(), cols.end(),
                                 numNewNonZeros,
                                 value, rng);
   }
@@ -941,23 +921,15 @@ def __div__(self, other):
                                              nupic::Real ## N2 value,
                                              nupic::Random& rng)
   {
-    PyArrayObject* npRows = (PyArrayObject*) py_rows;
-    size_t rowsSize = PyArray_DIMS(npRows)[0];
-    nupic::UInt32* rows = (nupic::UInt32*)PyArray_DATA(npRows);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> rows(py_rows);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> cols(py_cols);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32>
+      newNonZeroCounts(py_newNonZeroCounts);
 
-    PyArrayObject* npCols = (PyArrayObject*) py_cols;
-    size_t colsSize = PyArray_DIMS(npCols)[0];
-    nupic::UInt32* cols = (nupic::UInt32*)PyArray_DATA(npCols);
-
-    PyArrayObject* npNewNonZeroCounts = (PyArrayObject*) py_newNonZeroCounts;
-    size_t newNonZeroCountsSize = PyArray_DIMS(npNewNonZeroCounts)[0];
-    nupic::UInt32* newNonZeroCounts =
-      (nupic::UInt32*)PyArray_DATA(npNewNonZeroCounts);
-
-    self->setRandomZerosOnOuter(rows, rows + rowsSize,
-                                cols, cols + colsSize,
-                                newNonZeroCounts,
-                                newNonZeroCounts + newNonZeroCountsSize,
+    self->setRandomZerosOnOuter(rows.begin(), rows.end(),
+                                cols.begin(), cols.end(),
+                                newNonZeroCounts.begin(),
+                                newNonZeroCounts.end(),
                                 value, rng);
   }
 
@@ -975,16 +947,11 @@ def __div__(self, other):
                                           nupic::Real ## N2 initialValue,
                                           nupic::Random& rng)
   {
-    PyArrayObject* npRows = (PyArrayObject*) py_rows;
-    size_t rowsSize = PyArray_DIMS(npRows)[0];
-    nupic::UInt32* rows = (nupic::UInt32*)PyArray_DATA(npRows);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> rows(py_rows);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> cols(py_cols);
 
-    PyArrayObject* npCols = (PyArrayObject*) py_cols;
-    size_t colsSize = PyArray_DIMS(npCols)[0];
-    nupic::UInt32* cols = (nupic::UInt32*)PyArray_DATA(npCols);
-
-    self->increaseRowNonZeroCountsOnOuterTo(rows, rows + rowsSize,
-                                            cols, cols + colsSize,
+    self->increaseRowNonZeroCountsOnOuterTo(rows.begin(), rows.end(),
+                                            cols.begin(), cols.end(),
                                             numDesiredNonZeros, initialValue,
                                             rng);
   }
@@ -1001,11 +968,9 @@ def __div__(self, other):
                               nupic::Real ## N2 a,
                               nupic::Real ## N2 b)
   {
-    PyArrayObject* npRows = (PyArrayObject*) py_rows;
-    size_t rowsSize = PyArray_DIMS(npRows)[0];
-    nupic::UInt32* rows = (nupic::UInt32*)PyArray_DATA(npRows);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> rows(py_rows);
 
-    self->clipRowsBelowAndAbove(rows, rows + rowsSize,
+    self->clipRowsBelowAndAbove(rows.begin(), rows.end(),
                                 a, b);
   }
 
@@ -1027,12 +992,10 @@ def __div__(self, other):
 
   PyObject* _nNonZerosPerRow(PyObject* py_rows)
   {
-    PyArrayObject* npRows = (PyArrayObject*) py_rows;
-    size_t rowsSize = PyArray_DIMS(npRows)[0];
-    nupic::UInt32* rows = (nupic::UInt32*)PyArray_DATA(npRows);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> rows(py_rows);
 
-    nupic::NumpyVectorT<nupic::UInt ## N1> out(rowsSize);
-    self->nNonZerosPerRow(rows, rows + rowsSize, out.begin());
+    nupic::NumpyVectorT<nupic::UInt ## N1> out(rows.size());
+    self->nNonZerosPerRow(rows.begin(), rows.end(), out.begin());
 
     return out.forPython();
   }
@@ -1605,15 +1568,12 @@ def __div__(self, other):
 
   inline void _rightVecSumAtNZ(PyObject* py_denseArray, PyObject* py_out) const
   {
-    PyArrayObject* npDenseArray = (PyArrayObject*) py_denseArray;
-    size_t denseArraySize = PyArray_DIMS(npDenseArray)[0];
-    nupic::Real ## N2 *denseArray = (nupic::Real ## N2 *) PyArray_DATA(npDenseArray);
+    nupic::NumpyVectorWeakRefT<nupic::Real ## N2> denseArray(py_denseArray);
+    nupic::NumpyVectorWeakRefT<nupic::Real ## N2> out(py_out);
 
-    PyArrayObject* npOut = (PyArrayObject*) py_out;
-    NTA_ASSERT(PyArray_DIMS(npOut)[0] >= self->nRows());
-    nupic::Real ## N2 *out = (nupic::Real ## N2 *) PyArray_DATA(npOut);
+    NTA_ASSERT(out.size() >= self->nRows());
 
-    self->rightVecSumAtNZ(denseArray, out);
+    self->rightVecSumAtNZ(denseArray.begin(), out.begin());
   }
 
 
@@ -1634,16 +1594,15 @@ def __div__(self, other):
   inline void _rightVecSumAtNZSparse(PyObject* py_sparseBinaryArray,
                                      PyObject* py_out) const
   {
-    PyArrayObject* npSparseArray = (PyArrayObject*) py_sparseBinaryArray;
-    size_t sparseArraySize = PyArray_DIMS(npSparseArray)[0];
-    nupic::UInt ## N1 *sparseArray = (nupic::UInt ## N1 *) PyArray_DATA(npSparseArray);
+    nupic::NumpyVectorWeakRefT<nupic::UInt ## N1>
+      sparseBinaryArray(py_sparseBinaryArray);
+    nupic::NumpyVectorWeakRefT<nupic::Real ## N2> out(py_out);
 
-    PyArrayObject* npOut = (PyArrayObject*) py_out;
-    NTA_ASSERT(PyArray_DIMS(npOut)[0] >= self->nRows());
-    nupic::Real ## N2 *out = (nupic::Real ## N2 *) PyArray_DATA(npOut);
+    NTA_ASSERT(out.size() >= self->nRows());
 
-    self->rightVecSumAtNZSparse(sparseArray, sparseArray + sparseArraySize,
-                                out);
+    self->rightVecSumAtNZSparse(sparseBinaryArray.begin(),
+                                sparseBinaryArray.end(),
+                                out.begin());
   }
 
 
@@ -1672,15 +1631,13 @@ def __div__(self, other):
                                           nupic::Real ## N2 threshold,
                                           PyObject* py_out) const
   {
-    PyArrayObject* npDenseArray = (PyArrayObject*) py_denseArray;
-    size_t denseArraySize = PyArray_DIMS(npDenseArray)[0];
-    nupic::Real ## N2 *denseArray = (nupic::Real ## N2 *) PyArray_DATA(npDenseArray);
+    nupic::NumpyVectorWeakRefT<nupic::Real ## N2> denseArray(py_denseArray);
+    nupic::NumpyVectorWeakRefT<nupic::Real ## N2> out(py_out);
 
-    PyArrayObject* npOut = (PyArrayObject*) py_out;
-    NTA_ASSERT(PyArray_DIMS(npOut)[0] >= self->nRows());
-    nupic::Real ## N2 *out = (nupic::Real ## N2 *) PyArray_DATA(npOut);
+    NTA_ASSERT(out.size() >= self->nRows());
 
-    self->rightVecSumAtNZGtThreshold(denseArray, out, threshold);
+    self->rightVecSumAtNZGtThreshold(denseArray.begin(), out.begin(),
+                                     threshold);
   }
 
 
@@ -1698,20 +1655,19 @@ def __div__(self, other):
       return out
   %}
 
-  inline void _rightVecSumAtNZGtThresholdSparse(PyObject* py_sparseArray,
+  inline void _rightVecSumAtNZGtThresholdSparse(PyObject* py_sparseBinaryArray,
                                                 nupic::Real ## N2 threshold,
                                                 PyObject* py_out) const
   {
-    PyArrayObject* npSparseArray = (PyArrayObject*) py_sparseArray;
-    size_t sparseArraySize = PyArray_DIMS(npSparseArray)[0];
-    nupic::UInt ## N1 *sparseArray = (nupic::UInt ## N1 *) PyArray_DATA(npSparseArray);
+    nupic::NumpyVectorWeakRefT<nupic::UInt ## N1>
+      sparseBinaryArray(py_sparseBinaryArray);
+    nupic::NumpyVectorWeakRefT<nupic::Real ## N2> out(py_out);
 
-    PyArrayObject* npOut = (PyArrayObject*) py_out;
-    NTA_ASSERT(PyArray_DIMS(npOut)[0] >= self->nRows());
-    nupic::Real ## N2 *out = (nupic::Real ## N2 *) PyArray_DATA(npOut);
+    NTA_ASSERT(out.size() >= self->nRows());
 
-    self->rightVecSumAtNZGtThresholdSparse(sparseArray, sparseArray + sparseArraySize,
-                                           out, threshold);
+    self->rightVecSumAtNZGtThresholdSparse(sparseBinaryArray.begin(),
+                                           sparseBinaryArray.end(),
+                                           out.begin(), threshold);
   }
 
 
@@ -1733,15 +1689,13 @@ def __div__(self, other):
                                           nupic::Real ## N2 threshold,
                                           PyObject* py_out) const
   {
-    PyArrayObject* npDenseArray = (PyArrayObject*) py_denseArray;
-    size_t denseArraySize = PyArray_DIMS(npDenseArray)[0];
-    nupic::Real ## N2 *denseArray = (nupic::Real ## N2 *) PyArray_DATA(npDenseArray);
+    nupic::NumpyVectorWeakRefT<nupic::Real ## N2> denseArray(py_denseArray);
+    nupic::NumpyVectorWeakRefT<nupic::Real ## N2> out(py_out);
 
-    PyArrayObject* npOut = (PyArrayObject*) py_out;
-    NTA_ASSERT(PyArray_DIMS(npOut)[0] >= self->nRows());
-    nupic::Real ## N2 *out = (nupic::Real ## N2 *) PyArray_DATA(npOut);
+    NTA_ASSERT(out.size() >= self->nRows());
 
-    self->rightVecSumAtNZGteThreshold(denseArray, out, threshold);
+    self->rightVecSumAtNZGteThreshold(denseArray.begin(), out.begin(),
+                                      threshold);
   }
 
 
@@ -1759,20 +1713,19 @@ def __div__(self, other):
       return out
   %}
 
-  inline void _rightVecSumAtNZGteThresholdSparse(PyObject* py_sparseArray,
+  inline void _rightVecSumAtNZGteThresholdSparse(PyObject* py_sparseBinaryArray,
                                                 nupic::Real ## N2 threshold,
                                                 PyObject* py_out) const
   {
-    PyArrayObject* npSparseArray = (PyArrayObject*) py_sparseArray;
-    size_t sparseArraySize = PyArray_DIMS(npSparseArray)[0];
-    nupic::UInt ## N1 *sparseArray = (nupic::UInt ## N1 *) PyArray_DATA(npSparseArray);
+    nupic::NumpyVectorWeakRefT<nupic::UInt ## N1>
+      sparseBinaryArray(py_sparseBinaryArray);
+    nupic::NumpyVectorWeakRefT<nupic::Real ## N2> out(py_out);
 
-    PyArrayObject* npOut = (PyArrayObject*) py_out;
-    NTA_ASSERT(PyArray_DIMS(npOut)[0] >= self->nRows());
-    nupic::Real ## N2 *out = (nupic::Real ## N2 *) PyArray_DATA(npOut);
+    NTA_ASSERT(out.size() >= self->nRows());
 
-    self->rightVecSumAtNZGteThresholdSparse(sparseArray, sparseArray + sparseArraySize,
-                                            out, threshold);
+    self->rightVecSumAtNZGteThresholdSparse(sparseBinaryArray.begin(),
+                                            sparseBinaryArray.end(),
+                                            out.begin(), threshold);
   }
 
 
