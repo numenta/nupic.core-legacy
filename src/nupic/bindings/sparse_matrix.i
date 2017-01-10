@@ -824,33 +824,61 @@ def __div__(self, other):
                                         threshold, delta);
   }
 
-  void incrementNonZerosOnOuter(PyObject* py_i, PyObject* py_j,
-                                nupic::Real ## N2 delta)
+
+  %pythoncode %{
+    def incrementNonZerosOnOuter(self, rows, cols, delta):
+      self._incrementNonZerosOnOuter(numpy.asarray(rows, dtype="uint32"),
+                                     numpy.asarray(cols, dtype="uint32"),
+                                     delta)
+  %}
+
+  void _incrementNonZerosOnOuter(PyObject* py_rows, PyObject* py_cols,
+                                 nupic::Real ## N2 delta)
   {
-    nupic::NumpyVectorT<nupic::UInt ## N1> i(py_i);
-    nupic::NumpyVectorT<nupic::UInt ## N1> j(py_j);
-    self->incrementNonZerosOnOuter(i.begin(), i.end(),
-                                   j.begin(), j.end(),
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> rows(py_rows);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> cols(py_cols);
+
+    self->incrementNonZerosOnOuter(rows.begin(), rows.end(),
+                                   cols.begin(), cols.end(),
                                    delta);
   }
 
-  void incrementNonZerosOnRowsExcludingCols(PyObject* py_i, PyObject* py_j,
-                                            nupic::Real ## N2 delta)
+
+  %pythoncode %{
+    def incrementNonZerosOnRowsExcludingCols(self, rows, cols, delta):
+      self._incrementNonZerosOnRowsExcludingCols(numpy.asarray(rows, dtype="uint32"),
+                                                 numpy.asarray(cols, dtype="uint32"),
+                                                 delta)
+  %}
+
+  void _incrementNonZerosOnRowsExcludingCols(PyObject* py_rows, PyObject* py_cols,
+                                             nupic::Real ## N2 delta)
   {
-    nupic::NumpyVectorT<nupic::UInt ## N1> i(py_i);
-    nupic::NumpyVectorT<nupic::UInt ## N1> j(py_j);
-    self->incrementNonZerosOnRowsExcludingCols(i.begin(), i.end(),
-                                               j.begin(), j.end(),
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> rows(py_rows);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> cols(py_cols);
+
+    self->incrementNonZerosOnRowsExcludingCols(rows.begin(), rows.end(),
+                                               cols.begin(), cols.end(),
                                                delta);
   }
 
-  void setZerosOnOuter(PyObject* py_i, PyObject* py_j,
-                       nupic::Real ## N2 value)
+
+  %pythoncode %{
+    def setZerosOnOuter(self, rows, cols, value):
+      self._setZerosOnOuter(numpy.asarray(rows, dtype="uint32"),
+                            numpy.asarray(cols, dtype="uint32"),
+                            value)
+  %}
+
+  void _setZerosOnOuter(PyObject* py_rows, PyObject* py_cols,
+                        nupic::Real ## N2 value)
   {
-    nupic::NumpyVectorT<nupic::UInt ## N1> i(py_i);
-    nupic::NumpyVectorT<nupic::UInt ## N1> j(py_j);
-    self->setZerosOnOuter(i.begin(), i.end(),
-                          j.begin(), j.end(), value);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> rows(py_rows);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> cols(py_cols);
+
+    self->setZerosOnOuter(rows.begin(), rows.end(),
+                          cols.begin(), cols.end(),
+                          value);
   }
 
 
@@ -878,16 +906,11 @@ def __div__(self, other):
                                           nupic::Real ## N2 value,
                                           nupic::Random& rng)
   {
-    PyArrayObject* npRows = (PyArrayObject*) py_rows;
-    size_t rowsSize = PyArray_DIMS(npRows)[0];
-    nupic::UInt32* rows = (nupic::UInt32*)PyArray_DATA(npRows);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> rows(py_rows);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> cols(py_cols);
 
-    PyArrayObject* npCols = (PyArrayObject*) py_cols;
-    size_t colsSize = PyArray_DIMS(npCols)[0];
-    nupic::UInt32* cols = (nupic::UInt32*)PyArray_DATA(npCols);
-
-    self->setRandomZerosOnOuter(rows, rows + rowsSize,
-                                cols, cols + colsSize,
+    self->setRandomZerosOnOuter(rows.begin(), rows.end(),
+                                cols.begin(), cols.end(),
                                 numNewNonZeros,
                                 value, rng);
   }
@@ -898,23 +921,15 @@ def __div__(self, other):
                                              nupic::Real ## N2 value,
                                              nupic::Random& rng)
   {
-    PyArrayObject* npRows = (PyArrayObject*) py_rows;
-    size_t rowsSize = PyArray_DIMS(npRows)[0];
-    nupic::UInt32* rows = (nupic::UInt32*)PyArray_DATA(npRows);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> rows(py_rows);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> cols(py_cols);
+    nupic::NumpyVectorWeakRefT<nupic::Int32>
+      newNonZeroCounts(py_newNonZeroCounts);
 
-    PyArrayObject* npCols = (PyArrayObject*) py_cols;
-    size_t colsSize = PyArray_DIMS(npCols)[0];
-    nupic::UInt32* cols = (nupic::UInt32*)PyArray_DATA(npCols);
-
-    PyArrayObject* npNewNonZeroCounts = (PyArrayObject*) py_newNonZeroCounts;
-    size_t newNonZeroCountsSize = PyArray_DIMS(npNewNonZeroCounts)[0];
-    nupic::Int32* newNonZeroCounts =
-      (nupic::Int32*)PyArray_DATA(npNewNonZeroCounts);
-
-    self->setRandomZerosOnOuter(rows, rows + rowsSize,
-                                cols, cols + colsSize,
-                                newNonZeroCounts,
-                                newNonZeroCounts + newNonZeroCountsSize,
+    self->setRandomZerosOnOuter(rows.begin(), rows.end(),
+                                cols.begin(), cols.end(),
+                                newNonZeroCounts.begin(),
+                                newNonZeroCounts.end(),
                                 value, rng);
   }
 
@@ -928,15 +943,16 @@ def __div__(self, other):
         numDesiredNonZeros, initialValue, rng)
   %}
 
-  void increaseRowNonZeroCountsOnOuterTo(PyObject* py_i, PyObject* py_j,
-                                         nupic::Int ## N1 numDesiredNonZeros,
-                                         nupic::Real ## N2 initialValue,
-                                         nupic::Random& rng)
+  void _increaseRowNonZeroCountsOnOuterTo(PyObject* py_rows, PyObject* py_cols,
+                                          nupic::Int ## N1 numDesiredNonZeros,
+                                          nupic::Real ## N2 initialValue,
+                                          nupic::Random& rng)
   {
-    nupic::NumpyVectorT<nupic::UInt ## N1> i(py_i);
-    nupic::NumpyVectorT<nupic::UInt ## N1> j(py_j);
-    self->increaseRowNonZeroCountsOnOuterTo(i.begin(), i.end(),
-                                            j.begin(), j.end(),
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> rows(py_rows);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> cols(py_cols);
+
+    self->increaseRowNonZeroCountsOnOuterTo(rows.begin(), rows.end(),
+                                            cols.begin(), cols.end(),
                                             numDesiredNonZeros, initialValue,
                                             rng);
   }
@@ -949,12 +965,14 @@ def __div__(self, other):
                                   b)
   %}
 
-  void clipRowsBelowAndAbove(PyObject* py_i,
-                             nupic::Real ## N2 a,
-                             nupic::Real ## N2 b)
+  void _clipRowsBelowAndAbove(PyObject* py_rows,
+                              nupic::Real ## N2 a,
+                              nupic::Real ## N2 b)
   {
-    nupic::NumpyVectorT<nupic::UInt ## N1> i(py_i);
-    self->clipRowsBelowAndAbove(i.begin(), i.end(), a, b);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> rows(py_rows);
+
+    self->clipRowsBelowAndAbove(rows.begin(), rows.end(),
+                                a, b);
   }
 
 
@@ -975,12 +993,10 @@ def __div__(self, other):
 
   PyObject* _nNonZerosPerRow(PyObject* py_rows)
   {
-    PyArrayObject* npRows = (PyArrayObject*) py_rows;
-    size_t rowsSize = PyArray_DIMS(npRows)[0];
-    nupic::UInt32* rows = (nupic::UInt32*)PyArray_DATA(npRows);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> rows(py_rows);
 
-    nupic::NumpyVectorT<nupic::UInt ## N1> out(rowsSize);
-    self->nNonZerosPerRow(rows, rows + rowsSize, out.begin());
+    nupic::NumpyVectorT<nupic::UInt ## N1> out(rows.size());
+    self->nNonZerosPerRow(rows.begin(), rows.end(), out.begin());
 
     return out.forPython();
   }
@@ -1553,15 +1569,12 @@ def __div__(self, other):
 
   inline void _rightVecSumAtNZ(PyObject* py_denseArray, PyObject* py_out) const
   {
-    PyArrayObject* npDenseArray = (PyArrayObject*) py_denseArray;
-    size_t denseArraySize = PyArray_DIMS(npDenseArray)[0];
-    nupic::Real ## N2 *denseArray = (nupic::Real ## N2 *) PyArray_DATA(npDenseArray);
+    nupic::NumpyVectorWeakRefT<nupic::Real ## N2> denseArray(py_denseArray);
+    nupic::NumpyVectorWeakRefT<nupic::Real ## N2> out(py_out);
 
-    PyArrayObject* npOut = (PyArrayObject*) py_out;
-    NTA_ASSERT(PyArray_DIMS(npOut)[0] >= self->nRows());
-    nupic::Real ## N2 *out = (nupic::Real ## N2 *) PyArray_DATA(npOut);
+    NTA_ASSERT(out.size() >= self->nRows());
 
-    self->rightVecSumAtNZ(denseArray, out);
+    self->rightVecSumAtNZ(denseArray.begin(), out.begin());
   }
 
 
@@ -1582,16 +1595,15 @@ def __div__(self, other):
   inline void _rightVecSumAtNZSparse(PyObject* py_sparseBinaryArray,
                                      PyObject* py_out) const
   {
-    PyArrayObject* npSparseArray = (PyArrayObject*) py_sparseBinaryArray;
-    size_t sparseArraySize = PyArray_DIMS(npSparseArray)[0];
-    nupic::UInt ## N1 *sparseArray = (nupic::UInt ## N1 *) PyArray_DATA(npSparseArray);
+    nupic::NumpyVectorWeakRefT<nupic::UInt ## N1>
+      sparseBinaryArray(py_sparseBinaryArray);
+    nupic::NumpyVectorWeakRefT<nupic::Int ## N1> out(py_out);
 
-    PyArrayObject* npOut = (PyArrayObject*) py_out;
-    NTA_ASSERT(PyArray_DIMS(npOut)[0] >= self->nRows());
-    nupic::Int ## N1 *out = (nupic::Int ## N1 *) PyArray_DATA(npOut);
+    NTA_ASSERT(out.size() >= self->nRows());
 
-    self->rightVecSumAtNZSparse(sparseArray, sparseArray + sparseArraySize,
-                                out);
+    self->rightVecSumAtNZSparse(sparseBinaryArray.begin(),
+                                sparseBinaryArray.end(),
+                                out.begin());
   }
 
 
@@ -1620,15 +1632,13 @@ def __div__(self, other):
                                           nupic::Real ## N2 threshold,
                                           PyObject* py_out) const
   {
-    PyArrayObject* npDenseArray = (PyArrayObject*) py_denseArray;
-    size_t denseArraySize = PyArray_DIMS(npDenseArray)[0];
-    nupic::Real ## N2 *denseArray = (nupic::Real ## N2 *) PyArray_DATA(npDenseArray);
+    nupic::NumpyVectorWeakRefT<nupic::Real ## N2> denseArray(py_denseArray);
+    nupic::NumpyVectorWeakRefT<nupic::Real ## N2> out(py_out);
 
-    PyArrayObject* npOut = (PyArrayObject*) py_out;
-    NTA_ASSERT(PyArray_DIMS(npOut)[0] >= self->nRows());
-    nupic::Real ## N2 *out = (nupic::Real ## N2 *) PyArray_DATA(npOut);
+    NTA_ASSERT(out.size() >= self->nRows());
 
-    self->rightVecSumAtNZGtThreshold(denseArray, out, threshold);
+    self->rightVecSumAtNZGtThreshold(denseArray.begin(), out.begin(),
+                                     threshold);
   }
 
 
@@ -1646,20 +1656,19 @@ def __div__(self, other):
       return out
   %}
 
-  inline void _rightVecSumAtNZGtThresholdSparse(PyObject* py_sparseArray,
+  inline void _rightVecSumAtNZGtThresholdSparse(PyObject* py_sparseBinaryArray,
                                                 nupic::Real ## N2 threshold,
                                                 PyObject* py_out) const
   {
-    PyArrayObject* npSparseArray = (PyArrayObject*) py_sparseArray;
-    size_t sparseArraySize = PyArray_DIMS(npSparseArray)[0];
-    nupic::UInt ## N1 *sparseArray = (nupic::UInt ## N1 *) PyArray_DATA(npSparseArray);
+    nupic::NumpyVectorWeakRefT<nupic::UInt ## N1>
+      sparseBinaryArray(py_sparseBinaryArray);
+    nupic::NumpyVectorWeakRefT<nupic::Int ## N1> out(py_out);
 
-    PyArrayObject* npOut = (PyArrayObject*) py_out;
-    NTA_ASSERT(PyArray_DIMS(npOut)[0] >= self->nRows());
-    nupic::Int ## N1 *out = (nupic::Int ## N1 *) PyArray_DATA(npOut);
+    NTA_ASSERT(out.size() >= self->nRows());
 
-    self->rightVecSumAtNZGtThresholdSparse(sparseArray, sparseArray + sparseArraySize,
-                                           out, threshold);
+    self->rightVecSumAtNZGtThresholdSparse(sparseBinaryArray.begin(),
+                                           sparseBinaryArray.end(),
+                                           out.begin(), threshold);
   }
 
 
@@ -1681,15 +1690,13 @@ def __div__(self, other):
                                           nupic::Real ## N2 threshold,
                                           PyObject* py_out) const
   {
-    PyArrayObject* npDenseArray = (PyArrayObject*) py_denseArray;
-    size_t denseArraySize = PyArray_DIMS(npDenseArray)[0];
-    nupic::Real ## N2 *denseArray = (nupic::Real ## N2 *) PyArray_DATA(npDenseArray);
+    nupic::NumpyVectorWeakRefT<nupic::Real ## N2> denseArray(py_denseArray);
+    nupic::NumpyVectorWeakRefT<nupic::Real ## N2> out(py_out);
 
-    PyArrayObject* npOut = (PyArrayObject*) py_out;
-    NTA_ASSERT(PyArray_DIMS(npOut)[0] >= self->nRows());
-    nupic::Real ## N2 *out = (nupic::Real ## N2 *) PyArray_DATA(npOut);
+    NTA_ASSERT(out.size() >= self->nRows());
 
-    self->rightVecSumAtNZGteThreshold(denseArray, out, threshold);
+    self->rightVecSumAtNZGteThreshold(denseArray.begin(), out.begin(),
+                                      threshold);
   }
 
 
@@ -1707,21 +1714,19 @@ def __div__(self, other):
       return out
   %}
 
-  inline void _rightVecSumAtNZGteThresholdSparse(PyObject* py_sparseArray,
+  inline void _rightVecSumAtNZGteThresholdSparse(PyObject* py_sparseBinaryArray,
                                                 nupic::Real ## N2 threshold,
                                                 PyObject* py_out) const
   {
-    PyArrayObject* npSparseArray = (PyArrayObject*) py_sparseArray;
-    size_t sparseArraySize = PyArray_DIMS(npSparseArray)[0];
-    nupic::UInt ## N1 *sparseArray =
-      (nupic::UInt ## N1 *) PyArray_DATA(npSparseArray);
+    nupic::NumpyVectorWeakRefT<nupic::UInt ## N1>
+      sparseBinaryArray(py_sparseBinaryArray);
+    nupic::NumpyVectorWeakRefT<nupic::Int ## N1> out(py_out);
 
-    PyArrayObject* npOut = (PyArrayObject*) py_out;
-    NTA_ASSERT(PyArray_DIMS(npOut)[0] >= self->nRows());
-    nupic::Int ## N1 *out = (nupic::Int ## N1 *) PyArray_DATA(npOut);
+    NTA_ASSERT(out.size() >= self->nRows());
 
-    self->rightVecSumAtNZGteThresholdSparse(sparseArray, sparseArray + sparseArraySize,
-                                            out, threshold);
+    self->rightVecSumAtNZGteThresholdSparse(sparseBinaryArray.begin(),
+                                            sparseBinaryArray.end(),
+                                            out.begin(), threshold);
   }
 
 
@@ -4434,14 +4439,12 @@ def __setstate__(self, inString):
 
   PyObject* _createSegments(PyObject *py_cells)
   {
-    PyArrayObject* npCells = (PyArrayObject*) py_cells;
-    size_t cellsSize = PyArray_DIMS(npCells)[0];
-    nupic::UInt32* cells = (nupic::UInt32*)PyArray_DATA(npCells);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> cells(py_cells);
 
-    nupic::NumpyVectorT<nupic::UInt32> npSegmentsOut(cellsSize);
-    self->createSegments(cells, cells + cellsSize, npSegmentsOut.begin());
+    nupic::NumpyVectorT<nupic::UInt32> segmentsOut(cells.size());
+    self->createSegments(cells.begin(), cells.end(), segmentsOut.begin());
 
-    return npSegmentsOut.forPython();
+    return segmentsOut.forPython();
   }
 
 
@@ -4453,11 +4456,9 @@ def __setstate__(self, inString):
 
   void _destroySegments(PyObject *py_segments)
   {
-    PyArrayObject* npSegments = (PyArrayObject*) py_segments;
-    size_t segmentsSize = PyArray_DIMS(npSegments)[0];
-    nupic::UInt32* segments = (nupic::UInt32*)PyArray_DATA(npSegments);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> segments(py_segments);
 
-    self->destroySegments(segments, segments + segmentsSize);
+    self->destroySegments(segments.begin(), segments.end());
   }
 
 
@@ -4470,14 +4471,12 @@ def __setstate__(self, inString):
 
   PyObject* _getSegmentCounts(PyObject *py_cells) const
   {
-    PyArrayObject* npCells = (PyArrayObject*) py_cells;
-    size_t cellsSize = PyArray_DIMS(npCells)[0];
-    nupic::UInt32* cells = (nupic::UInt32*)PyArray_DATA(npCells);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> cells(py_cells);
 
-    nupic::NumpyVectorT<nupic::UInt32> npCountsOut(cellsSize);
-    self->getSegmentCounts(cells, cells + cellsSize, npCountsOut.begin());
+    nupic::NumpyVectorT<nupic::UInt32> countsOut(cells.size());
+    self->getSegmentCounts(cells.begin(), cells.end(), countsOut.begin());
 
-    return npCountsOut.forPython();
+    return countsOut.forPython();
   }
 
 
@@ -4504,11 +4503,9 @@ def __setstate__(self, inString):
 
   void _sortSegmentsByCell(PyObject *py_segments) const
   {
-    PyArrayObject* npSegments = (PyArrayObject*) py_segments;
-    size_t segmentsSize = PyArray_DIMS(npSegments)[0];
-    nupic::UInt32* segments = (nupic::UInt32*)PyArray_DATA(npSegments);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> segments(py_segments);
 
-    self->sortSegmentsByCell(segments, segments + segmentsSize);
+    self->sortSegmentsByCell(segments.begin(), segments.end());
   }
 
 
@@ -4528,17 +4525,12 @@ def __setstate__(self, inString):
   PyObject* _filterSegmentsByCell(PyObject *py_segments,
                                   PyObject *py_cells) const
   {
-    PyArrayObject* npSegments = (PyArrayObject*) py_segments;
-    size_t segmentsSize = PyArray_DIMS(npSegments)[0];
-    nupic::UInt32* segments = (nupic::UInt32*)PyArray_DATA(npSegments);
-
-    PyArrayObject* npCells = (PyArrayObject*) py_cells;
-    size_t cellsSize = PyArray_DIMS(npCells)[0];
-    nupic::UInt32* cells = (nupic::UInt32*)PyArray_DATA(npCells);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> segments(py_segments);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> cells(py_cells);
 
     std::vector<nupic::UInt32> filtered =
-      self->filterSegmentsByCell(segments, segments + segmentsSize,
-                                 cells, cells + cellsSize);
+      self->filterSegmentsByCell(segments.begin(), segments.end(),
+                                 cells.begin(), segments.end());
 
     nupic::NumpyVectorT<nupic::UInt32> npFiltered(filtered.size(),
                                                   filtered.data());
@@ -4554,15 +4546,13 @@ def __setstate__(self, inString):
 
   PyObject* _mapSegmentsToCells(PyObject *py_segments) const
   {
-    PyArrayObject* npSegments = (PyArrayObject*) py_segments;
-    size_t segmentsSize = PyArray_DIMS(npSegments)[0];
-    nupic::UInt32* segments = (nupic::UInt32*)PyArray_DATA(npSegments);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> segments(py_segments);
 
-    nupic::NumpyVectorT<nupic::UInt32> npCellsOut(segmentsSize);
-    self->mapSegmentsToCells(segments, segments + segmentsSize,
-                             npCellsOut.begin());
+    nupic::NumpyVectorT<nupic::UInt32> cellsOut(segments.size());
+    self->mapSegmentsToCells(segments.begin(), segments.end(),
+                             cellsOut.begin());
 
-    return npCellsOut.forPython();
+    return cellsOut.forPython();
   }
 
 } // End extend SegmentMatrixAdapter
@@ -4612,31 +4602,26 @@ def __setstate__(self, inString):
   inline void _computeActivity(PyObject* py_activeAxons,
                                PyObject* py_overlaps) const
   {
-    PyArrayObject* npActiveAxons = (PyArrayObject*) py_activeAxons;
-    size_t activeAxonsSize = PyArray_DIMS(npActiveAxons)[0];
-    nupic::UInt32 *activeAxons = (nupic::UInt32 *) PyArray_DATA(npActiveAxons);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> activeAxons(py_activeAxons);
+    nupic::NumpyVectorWeakRefT<nupic::Int32> overlaps(py_overlaps);
 
-    PyArrayObject* npOverlaps = (PyArrayObject*) py_overlaps;
-    NTA_ASSERT(PyArray_DIMS(npOverlaps)[0] >= self->matrix.nRows());
-    nupic::Int32 *overlaps = (nupic::Int32 *) PyArray_DATA(npOverlaps);
+    NTA_ASSERT(overlaps.size() >= self->matrix.nRows());
 
-    self->computeActivity(activeAxons, activeAxons + activeAxonsSize, overlaps);
+    self->computeActivity(activeAxons.begin(), activeAxons.end(),
+                          overlaps.begin());
   }
 
   inline void _permanenceThresholdedComputeActivity(
     PyObject* py_activeAxons, nupic::Real32 permanenceThreshold,
     PyObject* py_overlaps) const
   {
-    PyArrayObject* npActiveAxons = (PyArrayObject*) py_activeAxons;
-    size_t activeAxonsSize = PyArray_DIMS(npActiveAxons)[0];
-    nupic::UInt32 *activeAxons = (nupic::UInt32 *) PyArray_DATA(npActiveAxons);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> activeAxons(py_activeAxons);
+    nupic::NumpyVectorWeakRefT<nupic::Int32> overlaps(py_overlaps);
 
-    PyArrayObject* npOverlaps = (PyArrayObject*) py_overlaps;
-    NTA_ASSERT(PyArray_DIMS(npOverlaps)[0] >= self->matrix.nRows());
-    nupic::Int32 *overlaps = (nupic::Int32 *) PyArray_DATA(npOverlaps);
+    NTA_ASSERT(overlaps.size() >= self->matrix.nRows());
 
-    self->computeActivity(activeAxons, activeAxons + activeAxonsSize,
-                          permanenceThreshold, overlaps);
+    self->computeActivity(activeAxons.begin(), activeAxons.end(),
+                          permanenceThreshold, overlaps.begin());
   }
 
 
@@ -4652,16 +4637,11 @@ def __setstate__(self, inString):
                        nupic::Real32 activePermanenceDelta,
                        nupic::Real32 inactivePermanenceDelta)
   {
-    PyArrayObject* npSegments = (PyArrayObject*) py_segments;
-    size_t segmentsSize = PyArray_DIMS(npSegments)[0];
-    nupic::UInt32* segments = (nupic::UInt32*)PyArray_DATA(npSegments);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> segments(py_segments);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> activeAxons(py_segments);
 
-    PyArrayObject* npActiveAxons = (PyArrayObject*) py_activeAxons;
-    size_t activeAxonsSize = PyArray_DIMS(npActiveAxons)[0];
-    nupic::UInt32* activeAxons = (nupic::UInt32*)PyArray_DATA(npActiveAxons);
-
-    self->adjustSynapses(segments, segments + segmentsSize,
-                         activeAxons, activeAxons + activeAxonsSize,
+    self->adjustSynapses(segments.begin(), segments.end(),
+                         activeAxons.begin(), activeAxons.end(),
                          activePermanenceDelta, inactivePermanenceDelta);
   }
 
@@ -4676,16 +4656,11 @@ def __setstate__(self, inString):
   void _adjustActiveSynapses(PyObject* py_segments, PyObject* py_activeAxons,
                              nupic::Real32 permanenceDelta)
   {
-    PyArrayObject* npSegments = (PyArrayObject*) py_segments;
-    size_t segmentsSize = PyArray_DIMS(npSegments)[0];
-    nupic::UInt32* segments = (nupic::UInt32*)PyArray_DATA(npSegments);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> segments(py_segments);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> activeAxons(py_segments);
 
-    PyArrayObject* npActiveAxons = (PyArrayObject*) py_activeAxons;
-    size_t activeAxonsSize = PyArray_DIMS(npActiveAxons)[0];
-    nupic::UInt32* activeAxons = (nupic::UInt32*)PyArray_DATA(npActiveAxons);
-
-    self->adjustActiveSynapses(segments, segments + segmentsSize,
-                               activeAxons, activeAxons + activeAxonsSize,
+    self->adjustActiveSynapses(segments.begin(), segments.end(),
+                               activeAxons.begin(), activeAxons.end(),
                                permanenceDelta);
   }
 
@@ -4700,16 +4675,11 @@ def __setstate__(self, inString):
   void _adjustInactiveSynapses(PyObject* py_segments, PyObject* py_activeAxons,
                                nupic::Real32 permanenceDelta)
   {
-    PyArrayObject* npSegments = (PyArrayObject*) py_segments;
-    size_t segmentsSize = PyArray_DIMS(npSegments)[0];
-    nupic::UInt32* segments = (nupic::UInt32*)PyArray_DATA(npSegments);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> segments(py_segments);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> activeAxons(py_segments);
 
-    PyArrayObject* npActiveAxons = (PyArrayObject*) py_activeAxons;
-    size_t activeAxonsSize = PyArray_DIMS(npActiveAxons)[0];
-    nupic::UInt32* activeAxons = (nupic::UInt32*)PyArray_DATA(npActiveAxons);
-
-    self->adjustInactiveSynapses(segments, segments + segmentsSize,
-                                 activeAxons, activeAxons + activeAxonsSize,
+    self->adjustInactiveSynapses(segments.begin(), segments.end(),
+                                 activeAxons.begin(), activeAxons.end(),
                                  permanenceDelta);
   }
 
@@ -4730,16 +4700,11 @@ def __setstate__(self, inString):
                      PyObject* py_activeAxons,
                      nupic::Real32 initialPermanence)
   {
-    PyArrayObject* npSegments = (PyArrayObject*) py_segments;
-    size_t segmentsSize = PyArray_DIMS(npSegments)[0];
-    nupic::UInt32* segments = (nupic::UInt32*)PyArray_DATA(npSegments);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> segments(py_segments);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> activeAxons(py_segments);
 
-    PyArrayObject* npActiveAxons = (PyArrayObject*) py_activeAxons;
-    size_t activeAxonsSize = PyArray_DIMS(npActiveAxons)[0];
-    nupic::UInt32* activeAxons = (nupic::UInt32*)PyArray_DATA(npActiveAxons);
-
-    self->growSynapses(segments, segments + segmentsSize,
-                       activeAxons, activeAxons + activeAxonsSize,
+    self->growSynapses(segments.begin(), segments.end(),
+                       activeAxons.begin(), activeAxons.end(),
                        initialPermanence);
   }
 
@@ -4772,16 +4737,11 @@ def __setstate__(self, inString):
                                          nupic::Real32 initialPermanence,
                                          nupic::Random& rng)
   {
-    PyArrayObject* npSegments = (PyArrayObject*) py_segments;
-    size_t segmentsSize = PyArray_DIMS(npSegments)[0];
-    nupic::UInt32* segments = (nupic::UInt32*)PyArray_DATA(npSegments);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> segments(py_segments);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> activeAxons(py_segments);
 
-    PyArrayObject* npActiveAxons = (PyArrayObject*) py_activeAxons;
-    size_t activeAxonsSize = PyArray_DIMS(npActiveAxons)[0];
-    nupic::UInt32* activeAxons = (nupic::UInt32*)PyArray_DATA(npActiveAxons);
-
-    self->growSynapsesToSample(segments, segments + segmentsSize,
-                               activeAxons, activeAxons + activeAxonsSize,
+    self->growSynapsesToSample(segments.begin(), segments.end(),
+                               activeAxons.begin(), activeAxons.end(),
                                sampleSize,
                                initialPermanence, rng);
   }
@@ -4792,22 +4752,13 @@ def __setstate__(self, inString):
                                             nupic::Real32 initialPermanence,
                                             nupic::Random& rng)
   {
-    PyArrayObject* npSegments = (PyArrayObject*) py_segments;
-    size_t segmentsSize = PyArray_DIMS(npSegments)[0];
-    nupic::UInt32* segments = (nupic::UInt32*)PyArray_DATA(npSegments);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> segments(py_segments);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> activeAxons(py_segments);
+    nupic::NumpyVectorWeakRefT<nupic::Int32> sampleSizes(py_segments);
 
-    PyArrayObject* npActiveAxons = (PyArrayObject*) py_activeAxons;
-    size_t activeAxonsSize = PyArray_DIMS(npActiveAxons)[0];
-    nupic::UInt32* activeAxons = (nupic::UInt32*)PyArray_DATA(npActiveAxons);
-
-    PyArrayObject* npNewNonZeroCounts = (PyArrayObject*) py_sampleSizes;
-    size_t sampleSizesSize = PyArray_DIMS(npNewNonZeroCounts)[0];
-    nupic::Int32* sampleSizes =
-      (nupic::Int32*)PyArray_DATA(npNewNonZeroCounts);
-
-    self->growSynapsesToSample(segments, segments + segmentsSize,
-                               activeAxons, activeAxons + activeAxonsSize,
-                               sampleSizes, sampleSizes + sampleSizesSize,
+    self->growSynapsesToSample(segments.begin(), segments.end(),
+                               activeAxons.begin(), activeAxons.end(),
+                               sampleSizes.begin(), sampleSizes.end(),
                                initialPermanence, rng);
   }
 
@@ -4819,11 +4770,9 @@ def __setstate__(self, inString):
 
   void _clipPermanences(PyObject* py_segments)
   {
-    PyArrayObject* npSegments = (PyArrayObject*) py_segments;
-    size_t segmentsSize = PyArray_DIMS(npSegments)[0];
-    nupic::UInt32* segments = (nupic::UInt32*)PyArray_DATA(npSegments);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> segments(py_segments);
 
-    self->clipPermanences(segments, segments + segmentsSize);
+    self->clipPermanences(segments.begin(), segments.end());
   }
 
 
@@ -4835,12 +4784,10 @@ def __setstate__(self, inString):
 
   PyObject* _mapSegmentsToSynapseCounts(PyObject* py_segments) const
   {
-    PyArrayObject* npSegments = (PyArrayObject*) py_segments;
-    size_t segmentsSize = PyArray_DIMS(npSegments)[0];
-    nupic::UInt32* segments = (nupic::UInt32*)PyArray_DATA(npSegments);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> segments(py_segments);
 
-    nupic::NumpyVectorT<nupic::Int32> out(segmentsSize);
-    self->mapSegmentsToSynapseCounts(segments, segments + segmentsSize,
+    nupic::NumpyVectorT<nupic::Int32> out(segments.size());
+    self->mapSegmentsToSynapseCounts(segments.begin(), segments.end(),
                                      out.begin());
 
     return out.forPython();
