@@ -2,7 +2,7 @@
 
 using import "/nupic/proto/ArrayProto.capnp".ArrayProto;
 
-# Next ID: 8
+# Next ID: 7
 struct LinkProto {
   type @0 :Text;
   params @1 :Text;
@@ -13,6 +13,5 @@ struct LinkProto {
   destRegion @4 :Text;
   destInput @5 :Text;
 
-  outputElementType @6 :Int32; # NTA_BasicType: type of output elements in output array
-  delayedOutputs @7 :List(ArrayProto);
+  delayedOutputs @6 :List(ArrayProto);
 }

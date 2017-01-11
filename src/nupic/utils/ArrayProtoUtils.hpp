@@ -68,6 +68,15 @@ namespace nupic
                                       Array& array,
                                       bool allocArrayBuffer);
 
+    /**
+     * Return the NTA_BasicType corresponding to the given ArrayProto reader.
+     *
+     * @param arrayReader
+     *                capnproto array reader
+     */
+    static NTA_BasicType getArrayTypeFromArrayProtoReader(
+      const ArrayProto::Reader arrayReader);
+
   private:
     /**
      * Element type-specific templated function for copying an NTA Array to

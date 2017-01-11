@@ -410,7 +410,6 @@ void Link::write(LinkProto::Builder& proto) const
   proto.setSrcOutput(srcOutputName_.c_str());
   proto.setDestRegion(destRegionName_.c_str());
   proto.setDestInput(destInputName_.c_str());
-  proto.setOutputElementType(src_->getData().getType());
 
   // Save delayed outputs
   auto delayedOutputsBuilder = proto.initDelayedOutputs(propagationDelay_);
@@ -432,20 +431,24 @@ void Link::read(LinkProto::Reader& proto)
       proto.getSrcOutput().cStr(), proto.getDestInput().cStr(),
       delayedOutputsReader.size()/*propagationDelay*/);
 
-  // Initialize the propagation delay buffer with delay array buffers having 0
-  // elements that deserialization logic will replace with appropriately-sized
-  // buffers.
-  initPropagationDelayBuffer_(propagationDelay_,
-                              (NTA_BasicType)proto.getOutputElementType(),
-                              0);
-
-  // Populate delayed outputs
-
-  for (size_t i=0; i < propagationDelay_; ++i)
+  if (delayedOutputsReader.size())
   {
-    ArrayProtoUtils::copyArrayProtoToArray(delayedOutputsReader[i],
-                                           srcBuffer_[i],
-                                           true/*allocArrayBuffer*/);
+    // Initialize the propagation delay buffer with delay array buffers having 0
+    // elements that deserialization logic will replace with appropriately-sized
+    // buffers.
+    initPropagationDelayBuffer_(
+      propagationDelay_,
+      ArrayProtoUtils::getArrayTypeFromArrayProtoReader(delayedOutputsReader[0]),
+      0);
+
+    // Populate delayed outputs
+
+    for (size_t i=0; i < propagationDelay_; ++i)
+    {
+      ArrayProtoUtils::copyArrayProtoToArray(delayedOutputsReader[i],
+                                             srcBuffer_[i],
+                                             true/*allocArrayBuffer*/);
+    }
   }
 }
 

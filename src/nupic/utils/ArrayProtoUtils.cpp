@@ -164,3 +164,44 @@ void ArrayProtoUtils::copyArrayProtoToArray(
     break;
   }
 }
+
+
+NTA_BasicType ArrayProtoUtils::getArrayTypeFromArrayProtoReader(
+  const ArrayProto::Reader arrayReader)
+{
+  auto unionSelection = arrayReader.which();
+
+  switch (unionSelection)
+  {
+  case ArrayProto::BYTE_ARRAY:
+    return NTA_BasicType_Byte;
+    break;
+  case ArrayProto::INT16_ARRAY:
+    return NTA_BasicType_Int16;
+    break;
+  case ArrayProto::UINT16_ARRAY:
+    return NTA_BasicType_UInt16;
+    break;
+  case ArrayProto::INT32_ARRAY:
+    return NTA_BasicType_Int32;
+    break;
+  case ArrayProto::UINT32_ARRAY:
+    return NTA_BasicType_UInt32;
+    break;
+  case ArrayProto::INT64_ARRAY:
+    return NTA_BasicType_Int64;
+    break;
+  case ArrayProto::UINT64_ARRAY:
+    return NTA_BasicType_UInt64;
+    break;
+  case ArrayProto::REAL32_ARRAY:
+    return NTA_BasicType_Real32;
+    break;
+  case ArrayProto::REAL64_ARRAY:
+    return NTA_BasicType_Real64;
+    break;
+  default:
+    NTA_THROW << "Unexpected ArrayProto union member" << (int)unionSelection;
+    break;
+  }
+}
