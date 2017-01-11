@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.5.0
+
+* Link: Implemented delayed links. NOTE: this is not backwards compatible with CLAModel class, so Nupic will be updated as well.
+* SparseMatrix: Stop copying input vectors
+* Drop the declare_namespace call - Issue #1072
+* SparseMatrix: Add option to specify rows in nNonZerosPerRow
+* SparseMatrix: setRandomZerosOnOuter with list of counts
+* SparseMatrix: rightVecSumAtNZ cleanup
+* SparseMatrix: Put cols in dense array even when not necessary
+* Removes experimental code that will now live in nupic.research.core.
+* Removed unused, obsolete NetworkFactory class.
+
 ## 0.4.16
 
 * SpatialPooler: Stop rounding the boost factors
