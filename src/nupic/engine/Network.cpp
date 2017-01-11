@@ -1,6 +1,6 @@
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2013-2015, Numenta, Inc.  Unless you have an agreement
+ * Copyright (C) 2013-2017, Numenta, Inc.  Unless you have an agreement
  * with Numenta, Inc., for a separate license for this software code, the
  * following terms and conditions apply:
  *
@@ -363,7 +363,9 @@ Network::link(const std::string& srcRegionName, const std::string& destRegionNam
   }
 
   // Create the link itself
-  destInput->addLink(linkType, linkParams, srcOutput, propagationDelay);
+  auto link = new Link(linkType, linkParams, srcOutput, destInput,
+                       propagationDelay);
+  destInput->addLink(link, srcOutput);
 
 }
 
@@ -1004,9 +1006,9 @@ void Network::loadFromBundle(const std::string& name)
       NTA_THROW << "Invalid network structure file -- link specifies destination input '" << destInputName << "' but no such name exists";
 
     // Create the link itself
-    destInput->addLink(linkType, params, srcOutput);
-
-
+    auto newLink = new Link(linkType, params, srcOutput, destInput,
+                            0/*propagationDelay*/);
+    destInput->addLink(newLink, srcOutput);
   } // links
 
 }
@@ -1057,6 +1059,7 @@ void Network::read(NetworkProto::Reader& proto)
   {
     auto regionProto = entry.getValue();
     auto region = addRegionFromProto(entry.getKey().cStr(), regionProto);
+
     // Initialize the phases for the region
     std::set<UInt32> phases;
     for (auto phase : regionProto.getPhases())
@@ -1066,39 +1069,41 @@ void Network::read(NetworkProto::Reader& proto)
     setPhases_(region, phases);
   }
 
-  // Add links. Note that we can't just pass the capnp struct to Link.read
-  // because the linked input and output need references to the new link.
   for (auto linkProto : proto.getLinks())
   {
-    if (!regions_.contains(linkProto.getSrcRegion().cStr()))
+    auto link = new Link();
+    link->read(linkProto);
+
+    if (!regions_.contains(link->getSrcRegionName()))
     {
       NTA_THROW << "Link references unknown region: "
-                << linkProto.getSrcRegion().cStr();
+                << link->getSrcRegionName();
     }
-    Region* srcRegion = regions_.getByName(linkProto.getSrcRegion().cStr());
-    Output* srcOutput = srcRegion->getOutput(linkProto.getSrcOutput().cStr());
+    Region* srcRegion = regions_.getByName(link->getSrcRegionName());
+    Output* srcOutput = srcRegion->getOutput(link->getSrcOutputName());
     if (srcOutput == nullptr)
     {
       NTA_THROW << "Link references unknown source output: "
-                << linkProto.getSrcOutput().cStr();
+                << link->getSrcOutputName();
     }
 
-    if (!regions_.contains(linkProto.getDestRegion().cStr()))
+    if (!regions_.contains(link->getDestRegionName()))
     {
       NTA_THROW << "Link references unknown region: "
-                << linkProto.getDestRegion().cStr();
+                << link->getDestRegionName();
     }
-    Region* destRegion = regions_.getByName(linkProto.getDestRegion().cStr());
-    Input* destInput = destRegion->getInput(linkProto.getDestInput().cStr());
+    Region* destRegion = regions_.getByName(link->getDestRegionName());
+    Input* destInput = destRegion->getInput(link->getDestInputName());
     if (destInput == nullptr)
     {
       NTA_THROW << "Link references unknown destination input: "
-                << linkProto.getDestInput().cStr();
+                << link->getDestInputName();
     }
 
-    // Actually create the link
-    destInput->addLink(
-        linkProto.getType().cStr(), linkProto.getParams().cStr(), srcOutput);
+    link->connectToNetwork(srcOutput, destInput);
+
+    // Add the link to the input and to the list of links on the output
+    destInput->addLink(link, srcOutput);
   }
 
   initialized_ = false;

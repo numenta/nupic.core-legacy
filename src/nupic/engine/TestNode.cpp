@@ -1,6 +1,6 @@
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
+ * Copyright (C) 2013-2017, Numenta, Inc.  Unless you have an agreement
  * with Numenta, Inc., for a separate license for this software code, the
  * following terms and conditions apply:
  *
@@ -54,8 +54,11 @@ using capnp::AnyPointer;
 namespace nupic
 {
 
-  TestNode::TestNode(const ValueMap& params, Region *region) : RegionImpl(region),
-                                                               nodeCount_(1)
+  TestNode::TestNode(const ValueMap& params, Region *region) :
+    RegionImpl(region),
+    computeCallback_(nullptr),
+    nodeCount_(1)
+
   {
     // params for get/setParameter testing
     int32Param_ = params.getScalarT<Int32>("int32Param", 32);
@@ -69,8 +72,6 @@ namespace nupic
     shouldCloneParam_ = params.getScalarT<UInt32>("shouldCloneParam", 1) != 0;
 
     stringParam_ = *params.getString("stringParam");
-
-    computeCallback_ = nullptr;
 
     real32ArrayParam_.resize(8);
     for (size_t i = 0; i < 8; i++)
@@ -116,7 +117,9 @@ namespace nupic
 
 
   TestNode::TestNode(AnyPointer::Reader& proto, Region* region) :
-    RegionImpl(region)
+    RegionImpl(region),
+    computeCallback_(nullptr)
+
   {
     read(proto);
   }

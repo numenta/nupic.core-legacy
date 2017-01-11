@@ -1,6 +1,6 @@
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
+ * Copyright (C) 2013-2017, Numenta, Inc.  Unless you have an agreement
  * with Numenta, Inc., for a separate license for this software code, the
  * following terms and conditions apply:
  *
@@ -118,6 +118,16 @@ namespace nupic
          const std::string& srcOutputName="",
          const std::string& destInputName="",
          const size_t propagationDelay=0);
+
+    /**
+     * De-serialization use case. Creates a "blank" link. The caller must follow
+     * up with Link::read and Link::connectToNetwork
+     *
+     * @param proto
+     *            LinkProto::Reader
+     */
+    Link();
+
 
     /**
      * Initialization Phase 2: connecting inputs/outputs to
@@ -457,6 +467,10 @@ namespace nupic
                                 const std::string& srcOutputName,
                                 const std::string& destInputName,
                                 const size_t propagationDelay);
+
+    void initPropagationDelayBuffer_(size_t propagationDelay,
+                                     NTA_BasicType dataElementType,
+                                     size_t dataElementCount);
 
     // TODO: The strings with src/dest names are redundant with
     // the src_ and dest_ objects. For unit testing links,

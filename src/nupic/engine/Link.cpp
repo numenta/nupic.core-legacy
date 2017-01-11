@@ -1,6 +1,6 @@
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
+ * Copyright (C) 2013-2017, Numenta, Inc.  Unless you have an agreement
  * with Numenta, Inc., for a separate license for this software code, the
  * following terms and conditions apply:
  *
@@ -25,6 +25,7 @@
  */
 #include <cstring> // memcpy,memset
 #include <nupic/engine/Link.hpp>
+#include <nupic/utils/ArrayProtoUtils.hpp>
 #include <nupic/utils/Log.hpp>
 #include <nupic/engine/LinkPolicyFactory.hpp>
 #include <nupic/engine/LinkPolicy.hpp>
@@ -36,7 +37,6 @@
 
 namespace nupic
 {
-
 
 Link::Link(const std::string& linkType, const std::string& linkParams,
            const std::string& srcRegionName, const std::string& destRegionName,
@@ -53,7 +53,7 @@ Link::Link(const std::string& linkType, const std::string& linkParams,
 
 Link::Link(const std::string& linkType, const std::string& linkParams,
            Output* srcOutput, Input* destInput, const size_t propagationDelay):
-             srcBuffer_()
+             srcBuffer_(0)
 {
   commonConstructorInit_(linkType, linkParams,
         srcOutput->getRegion().getName(),
@@ -65,6 +65,13 @@ Link::Link(const std::string& linkType, const std::string& linkParams,
   connectToNetwork(srcOutput, destInput);
   // Note -- link is not usable until we set the destOffset, which happens at initialization time
 }
+
+
+Link::Link():
+            srcBuffer_(0)
+{
+}
+
 
 void Link::commonConstructorInit_(const std::string& linkType, const std::string& linkParams,
                  const std::string& srcRegionName, const std::string& destRegionName,
@@ -93,6 +100,38 @@ Link::~Link()
 {
   delete impl_;
 }
+
+
+void Link::initPropagationDelayBuffer_(size_t propagationDelay,
+                                       NTA_BasicType dataElementType,
+                                       size_t dataElementCount)
+{
+  if (srcBuffer_.capacity() != 0)
+  {
+    // Already initialized; e.g., as result of de-serialization
+    return;
+  }
+
+  // Establish capacity for the requested delay data elements plus one slot for
+  // the next output element
+  srcBuffer_.set_capacity(propagationDelay + 1);
+
+  // Initialize delay data elements
+  size_t dataBufferSize = dataElementCount *
+                          BasicType::getSize(dataElementType);
+
+  for(size_t i=0; i < propagationDelay; i++)
+  {
+    Array arrayTemplate(dataElementType);
+
+    srcBuffer_.push_back(arrayTemplate);
+
+    // Allocate 0-initialized data for current element
+    srcBuffer_[i].allocateBuffer(dataElementCount);
+    ::memset(srcBuffer_[i].getBuffer(), 0, dataBufferSize);
+  }
+}
+
 
 void Link::initialize(size_t destinationOffset)
 {
@@ -170,31 +209,9 @@ void Link::initialize(size_t destinationOffset)
   // ---
   // Initialize the propagation delay buffer
   // ---
-
-  // Establish capacity for the requested delay data elements plus one slot for
-  // the next output element
-  srcBuffer_.set_capacity(propagationDelay_ + 1);
-
-  // Initialize delay data elements
-  const Array & srcArray = src_->getData();
-  size_t dataElementCount = srcArray.getCount();
-  auto dataElementType = srcArray.getType();
-  size_t dataBufferSize = dataElementCount *
-                          BasicType::getSize(dataElementType);
-
-  Array arrayTemplate(dataElementType);
-
-  for(size_t i = 0; i < propagationDelay_; i++)
-  {
-    srcBuffer_.push_back(arrayTemplate);
-
-    if(dataElementCount != 0)
-    {
-      // Allocate 0-initialized data for current element
-      srcBuffer_[i].allocateBuffer(dataElementCount);
-      ::memset(srcBuffer_[i].getBuffer(), 0, dataBufferSize);
-    }
-  }
+  initPropagationDelayBuffer_(propagationDelay_,
+                              src_->getData().getType(),
+                              src_->getData().getCount());
 
   initialized_ = true;
 
@@ -290,7 +307,6 @@ const std::string Link::toString() const
   return ss.str();
 }
 
-// called only by Input::addLink()
 void Link::connectToNetwork(Output *src, Input *dest)
 {
   NTA_CHECK(src != nullptr);
@@ -298,8 +314,6 @@ void Link::connectToNetwork(Output *src, Input *dest)
 
   src_ = src;
   dest_ = dest;
-
-
 }
 
 
@@ -396,16 +410,48 @@ void Link::write(LinkProto::Builder& proto) const
   proto.setSrcOutput(srcOutputName_.c_str());
   proto.setDestRegion(destRegionName_.c_str());
   proto.setDestInput(destInputName_.c_str());
+
+  // Save delayed outputs
+  auto delayedOutputsBuilder = proto.initDelayedOutputs(propagationDelay_);
+  for (size_t i=0; i < propagationDelay_; ++i)
+  {
+    ArrayProtoUtils::copyArrayToArrayProto(srcBuffer_[i],
+                                           delayedOutputsBuilder[i]);
+  }
 }
+
 
 void Link::read(LinkProto::Reader& proto)
 {
+  const auto delayedOutputsReader = proto.getDelayedOutputs();
+
   commonConstructorInit_(
       proto.getType().cStr(), proto.getParams().cStr(),
       proto.getSrcRegion().cStr(), proto.getDestRegion().cStr(),
       proto.getSrcOutput().cStr(), proto.getDestInput().cStr(),
-      0/*propagationDelay ZZZ TODO get from proto*/);
+      delayedOutputsReader.size()/*propagationDelay*/);
+
+  if (delayedOutputsReader.size())
+  {
+    // Initialize the propagation delay buffer with delay array buffers having 0
+    // elements that deserialization logic will replace with appropriately-sized
+    // buffers.
+    initPropagationDelayBuffer_(
+      propagationDelay_,
+      ArrayProtoUtils::getArrayTypeFromArrayProtoReader(delayedOutputsReader[0]),
+      0);
+
+    // Populate delayed outputs
+
+    for (size_t i=0; i < propagationDelay_; ++i)
+    {
+      ArrayProtoUtils::copyArrayProtoToArray(delayedOutputsReader[i],
+                                             srcBuffer_[i],
+                                             true/*allocArrayBuffer*/);
+    }
+  }
 }
+
 
 namespace nupic
 {

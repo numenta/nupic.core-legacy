@@ -1,6 +1,6 @@
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
+ * Copyright (C) 2013-2017, Numenta, Inc.  Unless you have an agreement
  * with Numenta, Inc., for a separate license for this software code, the
  * following terms and conditions apply:
  *
@@ -46,6 +46,8 @@
  * ----------------------------------------------------------------------
 */
 
+#include <nupic/engine/Input.hpp>
+#include <nupic/engine/Link.hpp>
 
 #include <nupic/types/Types.hpp>
 #include <nupic/types/Types.h>
@@ -170,8 +172,10 @@
   %}
 }
 
+
 %extend nupic::Region
 {
+
   PyObject * getSelf()
   {
     nupic::Handle h = self->getParameterHandle("self");
@@ -187,6 +191,18 @@
   PyObject * getOutputArray(std::string name)
   {
     return nupic::PyArrayRef<nupic::Byte>(self->getOutputData(name)).asNumpyArray();
+  }
+
+  // Purge heads of the region's input link buffers
+  void purgeInputLinkBufferHeads()
+  {
+    for (auto & input : self->getInputs())
+    {
+      for (auto link : input.second->getLinks())
+      {
+        link->purgeBufferHead();
+      }
+    }
   }
 }
 
