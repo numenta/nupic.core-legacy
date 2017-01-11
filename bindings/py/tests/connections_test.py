@@ -30,7 +30,7 @@ from nupic.bindings.math import Random, SparseMatrixConnections
 class ConnectionsTest(unittest.TestCase):
 
   def test_computeActivity(self):
-    for (name, cells, axons, activeAxons,
+    for (name, cells, inputs, activeInputs,
          initialPermanence,
          expected) in (("Basic test",
                         [1, 2, 3], [42, 43, 44],
@@ -44,7 +44,7 @@ class ConnectionsTest(unittest.TestCase):
                         [], [42, 43, 44],
                         [42, 44], 0.45,
                         []),
-                       ("No active axons",
+                       ("No active inputs",
                         [1, 2, 3], [42, 43, 44],
                         [], 0.45,
                         [0, 0, 0])
@@ -52,14 +52,14 @@ class ConnectionsTest(unittest.TestCase):
 
       connections = SparseMatrixConnections(2048, 2048)
       segments = connections.createSegments(cells)
-      connections.growSynapses(segments, axons, initialPermanence)
+      connections.growSynapses(segments, inputs, initialPermanence)
 
-      overlaps = connections.computeActivity(activeAxons)
+      overlaps = connections.computeActivity(activeInputs)
       np.testing.assert_equal(overlaps[segments], expected, name)
 
 
   def test_computeActivity_thresholded(self):
-    for (name, cells, axons, activeAxons,
+    for (name, cells, inputs, activeInputs,
          initialPermanence, connectedPermanence,
          expected) in (("Accepted",
                         [1, 2, 3], [42, 43, 44],
@@ -73,7 +73,7 @@ class ConnectionsTest(unittest.TestCase):
                         [], [42, 43, 44],
                         [42, 44], 0.55, 0.5,
                         []),
-                       ("No active axons",
+                       ("No active inputs",
                         [1, 2, 3], [42, 43, 44],
                         [], 0.55, 0.5,
                         [0, 0, 0])
@@ -81,15 +81,15 @@ class ConnectionsTest(unittest.TestCase):
 
       connections = SparseMatrixConnections(2048, 2048)
       segments = connections.createSegments(cells)
-      connections.growSynapses(segments, axons, initialPermanence)
+      connections.growSynapses(segments, inputs, initialPermanence)
 
-      overlaps = connections.computeActivity(activeAxons, connectedPermanence)
+      overlaps = connections.computeActivity(activeInputs, connectedPermanence)
       np.testing.assert_equal(overlaps[segments], expected, name)
 
 
   def test_adjustSynapses(self):
-    for (name, cells, axons,
-         adjustedSegments, activeAxons,
+    for (name, cells, inputs,
+         adjustedSegments, activeInputs,
          initialPermanence, activeDelta, inactiveDelta, connectedPermanence,
          expected) in (("Basic test",
                         [1, 2, 3], [42, 43, 44],
@@ -122,18 +122,18 @@ class ConnectionsTest(unittest.TestCase):
 
       segments = connections.createSegments(cells)
 
-      connections.growSynapses(segments, axons, initialPermanence)
+      connections.growSynapses(segments, inputs, initialPermanence)
       connections.adjustSynapses(segments[adjustedSegments],
-                                 activeAxons, activeDelta, inactiveDelta)
+                                 activeInputs, activeDelta, inactiveDelta)
 
-      overlaps = connections.computeActivity(axons, connectedPermanence)
+      overlaps = connections.computeActivity(inputs, connectedPermanence)
 
       np.testing.assert_equal(overlaps[segments], expected, name)
 
 
   def test_adjustActiveSynapses(self):
-    for (name, cells, axons,
-         adjustedSegments, activeAxons,
+    for (name, cells, inputs,
+         adjustedSegments, activeInputs,
          initialPermanence, delta, connectedPermanence,
          expected) in (("Basic test",
                         [1, 2, 3], [42, 43, 44],
@@ -166,18 +166,18 @@ class ConnectionsTest(unittest.TestCase):
 
       segments = connections.createSegments(cells)
 
-      connections.growSynapses(segments, axons, initialPermanence)
+      connections.growSynapses(segments, inputs, initialPermanence)
       connections.adjustActiveSynapses(segments[adjustedSegments],
-                                       activeAxons, delta)
+                                       activeInputs, delta)
 
-      overlaps = connections.computeActivity(axons, connectedPermanence)
+      overlaps = connections.computeActivity(inputs, connectedPermanence)
 
       np.testing.assert_equal(overlaps[segments], expected, name)
 
 
   def test_adjustInactiveSynapses(self):
-    for (name, cells, axons,
-         adjustedSegments, activeAxons,
+    for (name, cells, inputs,
+         adjustedSegments, activeInputs,
          initialPermanence, delta, connectedPermanence,
          expected) in (("Basic test",
                         [1, 2, 3], [42, 43, 44],
@@ -210,11 +210,11 @@ class ConnectionsTest(unittest.TestCase):
 
       segments = connections.createSegments(cells)
 
-      connections.growSynapses(segments, axons, initialPermanence)
+      connections.growSynapses(segments, inputs, initialPermanence)
       connections.adjustInactiveSynapses(segments[adjustedSegments],
-                                         activeAxons, delta)
+                                         activeInputs, delta)
 
-      overlaps = connections.computeActivity(axons, connectedPermanence)
+      overlaps = connections.computeActivity(inputs, connectedPermanence)
 
       np.testing.assert_equal(overlaps[segments], expected, name)
 
@@ -248,7 +248,7 @@ class ConnectionsTest(unittest.TestCase):
   def test_growSynapses(self):
     for (name,
          cells, growingSegments,
-         presynapticAxons, activeAxons,
+         presynapticInputs, activeInputs,
          initialPermanence, connectedPermanence,
          expected) in (("Basic test",
                         [1, 2, 3], [0, 2],
@@ -260,7 +260,7 @@ class ConnectionsTest(unittest.TestCase):
                         [42, 43, 44], [42, 43],
                         0.55, 0.5,
                         [0, 0, 0]),
-                       ("No axons selected",
+                       ("No inputs selected",
                         [1, 2, 3], [0, 2],
                         [], [42, 43],
                         0.55, 0.5,
@@ -271,10 +271,10 @@ class ConnectionsTest(unittest.TestCase):
 
       segments = connections.createSegments(cells)
 
-      connections.growSynapses(segments[growingSegments], presynapticAxons,
+      connections.growSynapses(segments[growingSegments], presynapticInputs,
                                initialPermanence)
 
-      overlaps = connections.computeActivity(activeAxons, connectedPermanence)
+      overlaps = connections.computeActivity(activeInputs, connectedPermanence)
 
       np.testing.assert_equal(overlaps[segments], expected, name)
 
@@ -285,7 +285,7 @@ class ConnectionsTest(unittest.TestCase):
 
     for (name,
          cells, growingSegments,
-         initialConnectedAxons, presynapticAxons, activeAxons,
+         initialConnectedInputs, presynapticInputs, activeInputs,
          initialPermanence, connectedPermanence, sampleSize,
          expected) in (("Basic test",
                         [1, 2, 3], [0, 2],
@@ -314,20 +314,20 @@ class ConnectionsTest(unittest.TestCase):
       segments = connections.createSegments(cells)
 
       connections.growSynapses(
-        segments[growingSegments], initialConnectedAxons, initialPermanence)
+        segments[growingSegments], initialConnectedInputs, initialPermanence)
 
       connections.growSynapsesToSample(
-        segments[growingSegments], presynapticAxons,
+        segments[growingSegments], presynapticInputs,
         sampleSize, initialPermanence, rng)
 
-      overlaps = connections.computeActivity(activeAxons, connectedPermanence)
+      overlaps = connections.computeActivity(activeInputs, connectedPermanence)
 
       np.testing.assert_equal(overlaps[segments], expected, name)
 
 
     for (name,
          cells, growingSegments,
-         initialConnectedAxons, presynapticAxons, activeAxons,
+         initialConnectedInputs, presynapticInputs, activeInputs,
          initialPermanence, connectedPermanence,
          sampleSize) in (("Basic randomness test",
                           [1, 2, 3], [0, 2],
@@ -335,7 +335,7 @@ class ConnectionsTest(unittest.TestCase):
                           [42, 43], 0.55, 0.5, 2),
          ):
 
-      # Activate a subset of the axons. The resulting overlaps should
+      # Activate a subset of the inputs. The resulting overlaps should
       # differ on various trials.
 
       firstResult = None
@@ -347,13 +347,14 @@ class ConnectionsTest(unittest.TestCase):
         segments = connections.createSegments(cells)
 
         connections.growSynapses(
-          segments[growingSegments], initialConnectedAxons, initialPermanence)
+          segments[growingSegments], initialConnectedInputs, initialPermanence)
 
         connections.growSynapsesToSample(
-          segments[growingSegments], presynapticAxons,
+          segments[growingSegments], presynapticInputs,
           sampleSize, initialPermanence, rng)
 
-        overlaps = connections.computeActivity(activeAxons, connectedPermanence)
+        overlaps = connections.computeActivity(activeInputs,
+                                               connectedPermanence)
 
         if firstResult is None:
           firstResult = overlaps[segments]
@@ -371,7 +372,7 @@ class ConnectionsTest(unittest.TestCase):
 
     for (name,
          cells, growingSegments,
-         initialConnectedAxons, presynapticAxons, activeAxons,
+         initialConnectedInputs, presynapticInputs, activeInputs,
          initialPermanence, connectedPermanence, sampleSizes,
          expected) in (("Basic test",
                         [1, 2, 3], [0, 2],
@@ -404,20 +405,20 @@ class ConnectionsTest(unittest.TestCase):
       segments = connections.createSegments(cells)
 
       connections.growSynapses(
-        segments[growingSegments], initialConnectedAxons, initialPermanence)
+        segments[growingSegments], initialConnectedInputs, initialPermanence)
 
       connections.growSynapsesToSample(
-        segments[growingSegments], presynapticAxons,
+        segments[growingSegments], presynapticInputs,
         sampleSizes, initialPermanence, rng)
 
-      overlaps = connections.computeActivity(activeAxons, connectedPermanence)
+      overlaps = connections.computeActivity(activeInputs, connectedPermanence)
 
       np.testing.assert_equal(overlaps[segments], expected, name)
 
 
     for (name,
          cells, growingSegments,
-         initialConnectedAxons, presynapticAxons, activeAxons,
+         initialConnectedInputs, presynapticInputs, activeInputs,
          initialPermanence, connectedPermanence,
          sampleSizes) in (("Basic randomness test",
                            [1, 2, 3], [0, 2],
@@ -425,7 +426,7 @@ class ConnectionsTest(unittest.TestCase):
                            [42, 43], 0.55, 0.5, [2, 3]),
          ):
 
-      # Activate a subset of the axons. The resulting overlaps should
+      # Activate a subset of the inputs. The resulting overlaps should
       # differ on various trials.
 
       firstResult = None
@@ -437,13 +438,14 @@ class ConnectionsTest(unittest.TestCase):
         segments = connections.createSegments(cells)
 
         connections.growSynapses(
-          segments[growingSegments], initialConnectedAxons, initialPermanence)
+          segments[growingSegments], initialConnectedInputs, initialPermanence)
 
         connections.growSynapsesToSample(
-          segments[growingSegments], presynapticAxons,
+          segments[growingSegments], presynapticInputs,
           sampleSizes, initialPermanence, rng)
 
-        overlaps = connections.computeActivity(activeAxons, connectedPermanence)
+        overlaps = connections.computeActivity(activeInputs,
+                                               connectedPermanence)
 
         if firstResult is None:
           firstResult = overlaps[segments]

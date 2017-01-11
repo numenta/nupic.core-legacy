@@ -4578,8 +4578,8 @@ def __setstate__(self, inString):
 {
 
   %pythoncode %{
-    def computeActivity(self, activeAxons, permanenceThreshold=None, out=None):
-      activeAxons = numpy.asarray(activeAxons, dtype="uint32")
+    def computeActivity(self, activeInputs, permanenceThreshold=None, out=None):
+      activeInputs = numpy.asarray(activeInputs, dtype="uint32")
 
       if out is None:
         out = numpy.empty(self.matrix.nRows(), dtype="int32")
@@ -4587,173 +4587,173 @@ def __setstate__(self, inString):
         assert out.dtype == "int32"
 
       if permanenceThreshold is None:
-        self._computeActivity(activeAxons, out)
+        self._computeActivity(activeInputs, out)
       else:
-        self._permanenceThresholdedComputeActivity(activeAxons,
+        self._permanenceThresholdedComputeActivity(activeInputs,
                                                    permanenceThreshold, out)
 
       return out
   %}
 
-  inline void _computeActivity(PyObject* py_activeAxons,
+  inline void _computeActivity(PyObject* py_activeInputs,
                                PyObject* py_overlaps) const
   {
-    nupic::NumpyVectorWeakRefT<nupic::UInt32> activeAxons(py_activeAxons);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> activeInputs(py_activeInputs);
     nupic::NumpyVectorWeakRefT<nupic::Int32> overlaps(py_overlaps);
 
     NTA_ASSERT(overlaps.size() >= self->matrix.nRows());
 
-    self->computeActivity(activeAxons.begin(), activeAxons.end(),
+    self->computeActivity(activeInputs.begin(), activeInputs.end(),
                           overlaps.begin());
   }
 
   inline void _permanenceThresholdedComputeActivity(
-    PyObject* py_activeAxons, nupic::Real32 permanenceThreshold,
+    PyObject* py_activeInputs, nupic::Real32 permanenceThreshold,
     PyObject* py_overlaps) const
   {
-    nupic::NumpyVectorWeakRefT<nupic::UInt32> activeAxons(py_activeAxons);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> activeInputs(py_activeInputs);
     nupic::NumpyVectorWeakRefT<nupic::Int32> overlaps(py_overlaps);
 
     NTA_ASSERT(overlaps.size() >= self->matrix.nRows());
 
-    self->computeActivity(activeAxons.begin(), activeAxons.end(),
+    self->computeActivity(activeInputs.begin(), activeInputs.end(),
                           permanenceThreshold, overlaps.begin());
   }
 
 
   %pythoncode %{
-    def adjustSynapses(self, segments, activeAxons, activePermanenceDelta,
+    def adjustSynapses(self, segments, activeInputs, activePermanenceDelta,
                        inactivePermanenceDelta):
       self._adjustSynapses(numpy.asarray(segments, dtype="uint32"),
-                           numpy.asarray(activeAxons, dtype="uint32"),
+                           numpy.asarray(activeInputs, dtype="uint32"),
                            activePermanenceDelta, inactivePermanenceDelta)
   %}
 
-  void _adjustSynapses(PyObject* py_segments, PyObject* py_activeAxons,
+  void _adjustSynapses(PyObject* py_segments, PyObject* py_activeInputs,
                        nupic::Real32 activePermanenceDelta,
                        nupic::Real32 inactivePermanenceDelta)
   {
     nupic::NumpyVectorWeakRefT<nupic::UInt32> segments(py_segments);
-    nupic::NumpyVectorWeakRefT<nupic::UInt32> activeAxons(py_activeAxons);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> activeInputs(py_activeInputs);
 
     self->adjustSynapses(segments.begin(), segments.end(),
-                         activeAxons.begin(), activeAxons.end(),
+                         activeInputs.begin(), activeInputs.end(),
                          activePermanenceDelta, inactivePermanenceDelta);
   }
 
 
   %pythoncode %{
-    def adjustActiveSynapses(self, segments, activeAxons, permanenceDelta):
+    def adjustActiveSynapses(self, segments, activeInputs, permanenceDelta):
       self._adjustActiveSynapses(numpy.asarray(segments, dtype="uint32"),
-                                 numpy.asarray(activeAxons, dtype="uint32"),
+                                 numpy.asarray(activeInputs, dtype="uint32"),
                                  permanenceDelta)
   %}
 
-  void _adjustActiveSynapses(PyObject* py_segments, PyObject* py_activeAxons,
+  void _adjustActiveSynapses(PyObject* py_segments, PyObject* py_activeInputs,
                              nupic::Real32 permanenceDelta)
   {
     nupic::NumpyVectorWeakRefT<nupic::UInt32> segments(py_segments);
-    nupic::NumpyVectorWeakRefT<nupic::UInt32> activeAxons(py_activeAxons);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> activeInputs(py_activeInputs);
 
     self->adjustActiveSynapses(segments.begin(), segments.end(),
-                               activeAxons.begin(), activeAxons.end(),
+                               activeInputs.begin(), activeInputs.end(),
                                permanenceDelta);
   }
 
 
   %pythoncode %{
-    def adjustInactiveSynapses(self, segments, activeAxons, permanenceDelta):
+    def adjustInactiveSynapses(self, segments, activeInputs, permanenceDelta):
       self._adjustInactiveSynapses(numpy.asarray(segments, dtype="uint32"),
-                                   numpy.asarray(activeAxons, dtype="uint32"),
+                                   numpy.asarray(activeInputs, dtype="uint32"),
                                    permanenceDelta)
   %}
 
-  void _adjustInactiveSynapses(PyObject* py_segments, PyObject* py_activeAxons,
+  void _adjustInactiveSynapses(PyObject* py_segments, PyObject* py_activeInputs,
                                nupic::Real32 permanenceDelta)
   {
     nupic::NumpyVectorWeakRefT<nupic::UInt32> segments(py_segments);
-    nupic::NumpyVectorWeakRefT<nupic::UInt32> activeAxons(py_activeAxons);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> activeInputs(py_activeInputs);
 
     self->adjustInactiveSynapses(segments.begin(), segments.end(),
-                                 activeAxons.begin(), activeAxons.end(),
+                                 activeInputs.begin(), activeInputs.end(),
                                  permanenceDelta);
   }
 
 
   %pythoncode %{
-    def growSynapses(self, segments, activeAxons, initialPermanence,
-                     assumeAxonsSorted=False):
-      if not assumeAxonsSorted:
-        activeAxons = numpy.sort(activeAxons)
+    def growSynapses(self, segments, activeInputs, initialPermanence,
+                     assumeInputsSorted=False):
+      if not assumeInputsSorted:
+        activeInputs = numpy.sort(activeInputs)
 
       self._growSynapses(
           numpy.asarray(segments, dtype="uint32"),
-          numpy.asarray(activeAxons, dtype="uint32"),
+          numpy.asarray(activeInputs, dtype="uint32"),
           initialPermanence)
   %}
 
   void _growSynapses(PyObject* py_segments,
-                     PyObject* py_activeAxons,
+                     PyObject* py_activeInputs,
                      nupic::Real32 initialPermanence)
   {
     nupic::NumpyVectorWeakRefT<nupic::UInt32> segments(py_segments);
-    nupic::NumpyVectorWeakRefT<nupic::UInt32> activeAxons(py_activeAxons);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> activeInputs(py_activeInputs);
 
     self->growSynapses(segments.begin(), segments.end(),
-                       activeAxons.begin(), activeAxons.end(),
+                       activeInputs.begin(), activeInputs.end(),
                        initialPermanence);
   }
 
 
   %pythoncode %{
-    def growSynapsesToSample(self, segments, activeAxons, sampleSize,
-                             initialPermanence, rng, assumeAxonsSorted=False):
-      if not assumeAxonsSorted:
-        activeAxons = numpy.sort(activeAxons)
+    def growSynapsesToSample(self, segments, activeInputs, sampleSize,
+                             initialPermanence, rng, assumeInputsSorted=False):
+      if not assumeInputsSorted:
+        activeInputs = numpy.sort(activeInputs)
 
       if isinstance(sampleSize, numbers.Number):
         self._growSynapsesToSample_singleCount(
           numpy.asarray(segments, dtype="uint32"),
-          numpy.asarray(activeAxons, dtype="uint32"),
+          numpy.asarray(activeInputs, dtype="uint32"),
           sampleSize,
           initialPermanence,
           rng)
       else:
         self._growSynapsesToSample_multipleCounts(
           numpy.asarray(segments, dtype="uint32"),
-          numpy.asarray(activeAxons, dtype="uint32"),
+          numpy.asarray(activeInputs, dtype="uint32"),
           numpy.asarray(sampleSize, dtype="int32"),
           initialPermanence,
           rng)
   %}
 
   void _growSynapsesToSample_singleCount(PyObject* py_segments,
-                                         PyObject* py_activeAxons,
+                                         PyObject* py_activeInputs,
                                          nupic::Int32 sampleSize,
                                          nupic::Real32 initialPermanence,
                                          nupic::Random& rng)
   {
     nupic::NumpyVectorWeakRefT<nupic::UInt32> segments(py_segments);
-    nupic::NumpyVectorWeakRefT<nupic::UInt32> activeAxons(py_activeAxons);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> activeInputs(py_activeInputs);
 
     self->growSynapsesToSample(segments.begin(), segments.end(),
-                               activeAxons.begin(), activeAxons.end(),
+                               activeInputs.begin(), activeInputs.end(),
                                sampleSize,
                                initialPermanence, rng);
   }
 
   void _growSynapsesToSample_multipleCounts(PyObject* py_segments,
-                                            PyObject* py_activeAxons,
+                                            PyObject* py_activeInputs,
                                             PyObject* py_sampleSizes,
                                             nupic::Real32 initialPermanence,
                                             nupic::Random& rng)
   {
     nupic::NumpyVectorWeakRefT<nupic::UInt32> segments(py_segments);
-    nupic::NumpyVectorWeakRefT<nupic::UInt32> activeAxons(py_activeAxons);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> activeInputs(py_activeInputs);
     nupic::NumpyVectorWeakRefT<nupic::Int32> sampleSizes(py_sampleSizes);
 
     self->growSynapsesToSample(segments.begin(), segments.end(),
-                               activeAxons.begin(), activeAxons.end(),
+                               activeInputs.begin(), activeInputs.end(),
                                sampleSizes.begin(), sampleSizes.end(),
                                initialPermanence, rng);
   }
