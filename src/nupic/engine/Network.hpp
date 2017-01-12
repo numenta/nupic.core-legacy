@@ -35,6 +35,7 @@
 #include <vector>
 
 #include <nupic/ntypes/Collection.hpp>
+
 #include <nupic/proto/NetworkProto.capnp.h>
 #include <nupic/proto/RegionProto.capnp.h>
 #include <nupic/types/Types.hpp>
@@ -46,7 +47,7 @@ namespace nupic
   class Region;
   class Dimensions;
   class GenericRegisteredRegionImpl;
-
+  class Link;
 
   /**
    * Represents an HTM network. A network is a collection of regions.
@@ -253,6 +254,9 @@ namespace nupic
      */
     const Collection<Region*>&
     getRegions() const;
+
+    Collection<Link *>
+    getLinks();
 
     /**
      * Set phases for a region.
@@ -465,6 +469,7 @@ namespace nupic
 
     //number of elapsed iterations
     UInt64 iteration_;
+
   };
 
 } // namespace nupic

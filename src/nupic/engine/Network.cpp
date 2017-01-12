@@ -469,7 +469,6 @@ Network::run(int n)
   return;
 }
 
-
 void
 Network::initialize()
 {
@@ -602,6 +601,31 @@ const Collection<Region*>&
 Network::getRegions() const
 {
   return regions_;
+}
+
+Collection<Link *>
+Network::getLinks()
+{
+  // For tracking input links of enabled regions in this iteration
+  Collection<Link *> links;
+
+  // compute on all enabled regions in phase order
+  for (UInt32 phase = minEnabledPhase_; phase <= maxEnabledPhase_; phase++)
+  {
+    for (auto r : phaseInfo_[phase])
+    {
+      // Accummulate input links of computed regions
+      for (auto & input : r->getInputs())
+      {
+        for (auto & link: input.second->getLinks())
+        {
+          links.add(link->toString(), link);
+        }
+      }
+    }
+  }
+
+  return links;
 }
 
 Collection<Network::callbackItem>& Network::getCallbacks()
@@ -1141,6 +1165,5 @@ void Network::unregisterCPPRegion(const std::string name)
 {
   Region::unregisterCPPRegion(name);
 }
-
 
 } // namespace nupic

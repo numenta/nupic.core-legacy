@@ -66,7 +66,6 @@
 
 #include <nupic/engine/NuPIC.hpp>
 #include <nupic/engine/Network.hpp>
-
 #include <nupic/proto/NetworkProto.capnp.h>
 
 #if !CAPNP_LITE
@@ -114,6 +113,7 @@
 %template(ParameterCollection) nupic::Collection<nupic::ParameterSpec>;
 %template(CommandCollection) nupic::Collection<nupic::CommandSpec>;
 %template(RegionCollection) nupic::Collection<nupic::Region *>;
+%template(LinkCollection) nupic::Collection<nupic::Link *>;
 
 %include <nupic/engine/NuPIC.hpp>
 %include <nupic/engine/Network.hpp>
@@ -128,6 +128,7 @@
 %template(ParameterPair) std::pair<std::string, nupic::ParameterSpec>;
 %template(CommandPair) std::pair<std::string, nupic::CommandSpec>;
 %template(RegionPair) std::pair<std::string, nupic::Region *>;
+%template(LinkPair) std::pair<std::string, nupic::Link *>;
 
 %include <nupic/os/Timer.hpp>
 
@@ -198,6 +199,7 @@
       instance = cls()
       instance.convertedRead(proto)
       return instance
+
   %}
 
   inline void write(PyObject* pyBuilder) const
