@@ -68,16 +68,39 @@ function(COMBINE_UNIX_ARCHIVES
 
     # Extract objects from current source lib
     execute_process(COMMAND ${CMAKE_AR} -x ${lib}
-                    WORKING_DIRECTORY ${working_dir})
+                    WORKING_DIRECTORY ${working_dir}
+                    RESULT_VARIABLE exe_result)
+    if(NOT "${exe_result}" STREQUAL "0")
+      message(FATAL_ERROR "COMBINE_UNIX_ARCHIVES: obj extraction process failed exe_result='${exe_result}'")
+    endif()
 
     # Accumulate objects
-    file(GLOB_RECURSE objects "${working_dir}/*")
+    if(UNIX)
+      # Linux or OS X
+      set(globbing_ext "o")
+    else()
+      # i.e., Windows with MINGW toolchain
+      set(globbing_ext "obj")
+    endif()
+
+    file(GLOB_RECURSE objects "${working_dir}/*.${globbing_ext}")
+    if (NOT objects)
+      file(GLOB_RECURSE working_dir_listing "${working_dir}/*")
+      message(FATAL_ERROR
+              "COMBINE_UNIX_ARCHIVES: no extracted obj files from ${lib} "
+              "found in ${working_dir} using globbing_ext=${globbing_ext}, "
+              "but the following entries were found: ${working_dir_listing}.")
+    endif()
     list(APPEND all_object_locations ${objects})
   endforeach()
 
   # Generate the target static library from all source objects
   file(TO_NATIVE_PATH ${TARGET_LOCATION} TARGET_LOCATION)
-  execute_process(COMMAND ${CMAKE_AR} rcs ${TARGET_LOCATION} ${all_object_locations})
+  execute_process(COMMAND ${CMAKE_AR} rcs ${TARGET_LOCATION} ${all_object_locations}
+                  RESULT_VARIABLE exe_result)
+  if(NOT "${exe_result}" STREQUAL "0")
+    message(FATAL_ERROR "COMBINE_UNIX_ARCHIVES: archive construction process failed exe_result='${exe_result}'")
+  endif()
 
   # Remove scratch directory
   file(REMOVE_RECURSE ${scratch_dir})
