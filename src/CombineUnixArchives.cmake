@@ -75,7 +75,21 @@ function(COMBINE_UNIX_ARCHIVES
     endif()
 
     # Accumulate objects
-    file(GLOB_RECURSE objects "${working_dir}/*.o")
+    if(UNIX)
+      set(globbing_ext "o")
+    else()
+      # i.e., Windows
+      set(globbing_ext "obj")
+    endif()
+
+    file(GLOB_RECURSE objects "${working_dir}/*.${globbing_ext}")
+    if (NOT objects)
+      file(GLOB_RECURSE working_dir_listing "${working_dir}/*")
+      message(FATAL_ERROR
+              "COMBINE_UNIX_ARCHIVES: no extracted obj files from ${lib} "
+              "found in ${working_dir} using globbing_ext=${globbing_ext}, "
+              "but the following entries were found: ${working_dir_listing}.")
+    endif()
     list(APPEND all_object_locations ${objects})
   endforeach()
 
