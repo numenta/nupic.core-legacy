@@ -68,16 +68,24 @@ function(COMBINE_UNIX_ARCHIVES
 
     # Extract objects from current source lib
     execute_process(COMMAND ${CMAKE_AR} -x ${lib}
-                    WORKING_DIRECTORY ${working_dir})
+                    WORKING_DIRECTORY ${working_dir}
+                    RESULT_VARIABLE exe_result)
+    if(NOT "${exe_result}" STREQUAL "0")
+      message(FATAL_ERROR "COMBINE_UNIX_ARCHIVES: obj extraction process failed exe_result='${exe_result}'")
+    endif()
 
     # Accumulate objects
-    file(GLOB_RECURSE objects "${working_dir}/*")
+    file(GLOB_RECURSE objects "${working_dir}/*.o")
     list(APPEND all_object_locations ${objects})
   endforeach()
 
   # Generate the target static library from all source objects
   file(TO_NATIVE_PATH ${TARGET_LOCATION} TARGET_LOCATION)
-  execute_process(COMMAND ${CMAKE_AR} rcs ${TARGET_LOCATION} ${all_object_locations})
+  execute_process(COMMAND ${CMAKE_AR} rcs ${TARGET_LOCATION} ${all_object_locations}
+                  RESULT_VARIABLE exe_result)
+  if(NOT "${exe_result}" STREQUAL "0")
+    message(FATAL_ERROR "COMBINE_UNIX_ARCHIVES: archive construction process failed exe_result='${exe_result}'")
+  endif()
 
   # Remove scratch directory
   file(REMOVE_RECURSE ${scratch_dir})
