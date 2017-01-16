@@ -58,7 +58,6 @@ namespace nupic
   class Network;
   class GenericRegisteredRegionImpl;
 
-
   /**
    * Represents a set of one or more "identical" nodes in a Network.
    *

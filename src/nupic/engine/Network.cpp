@@ -471,6 +471,7 @@ Network::run(int n)
   return;
 }
 
+
 void
 Network::initialize()
 {
@@ -1168,5 +1169,6 @@ void Network::unregisterCPPRegion(const std::string name)
 {
   Region::unregisterCPPRegion(name);
 }
+
 
 } // namespace nupic

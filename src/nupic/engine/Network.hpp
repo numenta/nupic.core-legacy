@@ -474,7 +474,6 @@ namespace nupic
 
     //number of elapsed iterations
     UInt64 iteration_;
-
   };
 
 } // namespace nupic

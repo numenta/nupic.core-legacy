@@ -62,12 +62,11 @@
 #include <nupic/utils/LogItem.hpp>
 #include <nupic/utils/LoggingException.hpp>
 
-
-
 #include <nupic/py_support/PyArray.hpp>
 
 #include <nupic/engine/NuPIC.hpp>
 #include <nupic/engine/Network.hpp>
+
 #include <nupic/proto/NetworkProto.capnp.h>
 
 #if !CAPNP_LITE
@@ -81,7 +80,6 @@
 #include <nupic/os/Timer.hpp>
 
 #include <yaml-cpp/yaml.h>
-
 %}
 
 
@@ -110,8 +108,8 @@
 %include <nupic/ntypes/Dimensions.hpp>
 %include <nupic/ntypes/Array.hpp>
 %include <nupic/ntypes/ArrayRef.hpp>
-%include <nupic/ntypes/Collection.hpp>
 
+%include <nupic/ntypes/Collection.hpp>
 %template(InputCollection) nupic::Collection<nupic::InputSpec>;
 %template(OutputCollection) nupic::Collection<nupic::OutputSpec>;
 %template(ParameterCollection) nupic::Collection<nupic::ParameterSpec>;
@@ -169,7 +167,6 @@
 %template(Real32ArrayRef) nupic::PyArrayRef<nupic::Real32>;
 %template(BoolArrayRef) nupic::PyArrayRef<bool>;
 
-
 %extend nupic::Timer
 {
   // Extend here (engine_internal) rather than nupic.engine because
@@ -226,7 +223,6 @@
       instance = cls()
       instance.convertedRead(proto)
       return instance
-
   %}
 
   inline void write(PyObject* pyBuilder) const
@@ -247,6 +243,7 @@
   %#endif
   }
 }
+
 
 %{
 #include <nupic/os/OS.hpp>

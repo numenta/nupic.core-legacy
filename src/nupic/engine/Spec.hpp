@@ -114,6 +114,7 @@ namespace nupic
 
   };
 
+
   struct Spec
   {
     // Return a printable string with Spec information
