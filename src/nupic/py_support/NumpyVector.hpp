@@ -28,6 +28,7 @@
  */
 
 #include <nupic/types/Types.hpp> // For nupic::Real.
+#include <nupic/utils/Log.hpp> // For NTA_ASSERT
 #include <algorithm> // For std::copy.
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include <numpy/arrayobject.h>
@@ -45,7 +46,7 @@ namespace nupic {
   extern int LookupNumpyDType(const nupic::Real32 *);
   extern int LookupNumpyDType(const nupic::Real64 *);
   /**
-   * Concrete Numpy multi-d array wrapper who's implementation cannot be visible
+   * Concrete Numpy multi-d array wrapper whose implementation cannot be visible
    * due to the specifics of dynamically loading the Numpy C function API.
    */
   class NumpyArray
@@ -124,8 +125,9 @@ namespace nupic {
   /// using a slow and feature-poor set of SWIG typemap definitions
   /// provided as an example with the numpy documentation.
   /// This class bypasses that method of access, in favor of
-  /// a faster interface that nags (warns) about potential performance
-  /// problems. This wrapper should only be used within Python bindings,
+  /// a faster interface.
+  ///
+  /// This wrapper should only be used within Python bindings,
   /// as numpy data structures will only be passed in from Python code.
   /// For an example of its use, see the nupic::SparseMatrix Python bindings
   /// in nupic/python/bindings/math/SparseMatrix.i
@@ -163,14 +165,6 @@ namespace nupic {
     /// the appropriate format (1D contiguous numpy array of type
     /// equivalent to nupic::Real). If nupic::Real is float,
     /// the incoming array should have been created with dtype=numpy.float32
-    ///
-    /// @note I do not believe the data is copied unless necessary.
-    ///       This has not been confirmed.
-    ///       This means that ownership has two very different semantics:
-    ///       if the data is not copied, then any modifications to this
-    ///       vector affect the original.
-    ///       If the data is copied (slow), then any modifications do not
-    ///       affect the original.
     ///////////////////////////////////////////////////////////
     NumpyVectorT(PyObject *p)
       : NumpyArray(p, LookupNumpyDType((const T *) 0), 1)
@@ -416,9 +410,41 @@ namespace nupic {
     return p;
   }
 
-  //--------------------------------------------------------------------------------
+
+  /**
+   * Extract a 1D Numpy array's buffer.
+   */
+  template<typename T>
+  class NumpyVectorWeakRefT
+  {
+  public:
+    NumpyVectorWeakRefT(PyObject* pyArray)
+      : pyArray_((PyArrayObject*)pyArray)
+    {
+      NTA_ASSERT(PyArray_NDIM(pyArray_) == 1);
+      NTA_ASSERT(PyArray_EquivTypenums(
+                   PyArray_TYPE(pyArray_), LookupNumpyDType((const T *) 0)));
+    }
+
+    T* begin() const
+    {
+      return (T*) PyArray_DATA(pyArray_);
+    }
+
+    T* end() const
+    {
+      return (T*) PyArray_DATA(pyArray_) + size();
+    }
+
+    size_t size() const
+    {
+      return PyArray_DIMS(pyArray_)[0];
+    }
+
+  protected:
+    PyArrayObject* pyArray_;
+  };
 
 } // End namespace nupic.
 
 #endif
-

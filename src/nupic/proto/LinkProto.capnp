@@ -1,6 +1,8 @@
 @0x9d7ec2149bcaf713;
 
-# Next ID: 6
+using import "/nupic/proto/ArrayProto.capnp".ArrayProto;
+
+# Next ID: 7
 struct LinkProto {
   type @0 :Text;
   params @1 :Text;
@@ -10,4 +12,6 @@ struct LinkProto {
 
   destRegion @4 :Text;
   destInput @5 :Text;
+
+  delayedOutputs @6 :List(ArrayProto);
 }

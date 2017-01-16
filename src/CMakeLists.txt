@@ -239,6 +239,7 @@ endif()
 # List all .capnp files here. The C++ files will be generated and included
 # when compiling later on.
 set(src_capnp_specs_rel
+  nupic/proto/ArrayProto.capnp
   nupic/proto/BitHistory.capnp
   nupic/proto/ClaClassifier.capnp
   nupic/proto/ConnectionsProto.capnp
@@ -374,6 +375,7 @@ set(src_nupiccore_srcs
     nupic/regions/VectorFileSensor.cpp
     nupic/types/BasicType.cpp
     nupic/types/Fraction.cpp
+    nupic/utils/ArrayProtoUtils.cpp
     nupic/utils/LoggingException.cpp
     nupic/utils/LogItem.cpp
     nupic/utils/MovingAverage.cpp

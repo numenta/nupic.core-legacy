@@ -1,6 +1,6 @@
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
+ * Copyright (C) 2013-2017, Numenta, Inc.  Unless you have an agreement
  * with Numenta, Inc., for a separate license for this software code, the
  * following terms and conditions apply:
  *
@@ -23,6 +23,8 @@
 /** @file
  * Implementation of Input test
  */
+
+#include <sstream>
 
 #include <nupic/engine/Input.hpp>
 #include <nupic/engine/Network.hpp>
@@ -180,6 +182,11 @@ TEST(InputTest, DelayedLink)
     :  TestNode(proto, region)
     {}
 
+    std::string getNodeType()
+    {
+      return "MyTestNode";
+    };
+
     void compute() override
     {
       // Replace with no-op to preserve output
@@ -294,6 +301,165 @@ TEST(InputTest, DelayedLink)
       ASSERT_EQ(100, idata[i]);
   }
 
+}
+
+
+TEST(InputTest, DelayedLinkCapnpSerialization)
+{
+  // Cap'n Proto serialization test of delayed link.
+
+  class MyTestNode : public TestNode
+  {
+  public:
+    MyTestNode(const ValueMap& params, Region *region)
+    :  TestNode(params, region)
+    {}
+
+    MyTestNode(BundleIO& bundle, Region* region)
+    :  TestNode(bundle, region)
+    {}
+
+    MyTestNode(capnp::AnyPointer::Reader& proto, Region* region)
+    :  TestNode(proto, region)
+    {}
+
+    std::string getNodeType()
+    {
+      return "MyTestNode";
+    };
+
+    void compute() override
+    {
+      // Replace with no-op to preserve output
+    }
+  };
+
+  RegionImplFactory::registerCPPRegion("MyTestNode",
+                                       new RegisteredRegionImpl<MyTestNode>());
+
+  Network net;
+  Region * region1 = net.addRegion("region1", "MyTestNode", "");
+  Region * region2 = net.addRegion("region2", "TestNode", "");
+
+  Dimensions d1;
+  d1.push_back(8);
+  d1.push_back(4);
+  region1->setDimensions(d1);
+
+  // NOTE: initial delayed values are set to all 0's
+  net.link("region1", "region2", "TestFanIn2", "", "", "",
+           2/*propagationDelay*/);
+
+  net.initialize();
+
+  Input * in1 = region1->getInput("bottomUpIn");
+  Input * in2 = region2->getInput("bottomUpIn");
+  Output * out1 = region1->getOutput("bottomUpOut");
+
+  //test isInitialized()
+  ASSERT_TRUE(in1->isInitialized());
+  ASSERT_TRUE(in2->isInitialized());
+
+  //test evaluateLinks(), in1 already initialized
+  ASSERT_EQ(0u, in1->evaluateLinks());
+  ASSERT_EQ(0u, in2->evaluateLinks());
+
+  //set in2 to all 1's, to detect if net.run fails to update the input.
+  {
+    const ArrayBase * ai2 = &(in2->getData());
+    Real64* idata = (Real64*)(ai2->getBuffer());
+    for (UInt i = 0; i < 64; i++)
+      idata[i] = 1;
+  }
+
+  //set out1 to all 10's
+  {
+    const ArrayBase * ao1 = &(out1->getData());
+    Real64* idata = (Real64*)(ao1->getBuffer());
+    for (UInt i = 0; i < 64; i++)
+      idata[i] = 10;
+  }
+
+  // Check extraction of first delayed value
+  {
+    // This run should also pick up the 10s
+    net.run(1);
+
+    //confirm that in2 is all zeroes
+    const ArrayBase * ai2 = &(in2->getData());
+    Real64* idata = (Real64*)(ai2->getBuffer());
+    //only test 4 instead of 64 to cut down on number of tests
+    for (UInt i = 0; i < 4; i++)
+      ASSERT_EQ(0, idata[i]);
+  }
+
+
+  //set out1 to all 100's
+  {
+    const ArrayBase * ao1 = &(out1->getData());
+    Real64* idata = (Real64*)(ao1->getBuffer());
+    for (UInt i = 0; i < 64; i++)
+      idata[i] = 100;
+  }
+
+
+  // Check extraction of second delayed value
+  {
+    net.run(1);
+
+    //confirm that in2 is all zeroes
+    const ArrayBase * ai2 = &(in2->getData());
+    Real64* idata = (Real64*)(ai2->getBuffer());
+    //only test 4 instead of 64 to cut down on number of tests
+    for (UInt i = 0; i < 4; i++)
+      ASSERT_EQ(0, idata[i]);
+  }
+
+
+  // We should now have two delayed array values: 10's and 100's
+
+  // Serialize the current net
+  std::stringstream ss;
+  net.write(ss);
+
+  // De-serialize into a new net2
+  Network net2;
+  net2.read(ss);
+
+  net2.initialize();
+
+  region1 = net2.getRegions().getByName("region1");
+  region2 = net2.getRegions().getByName("region2");
+
+  in2 = region2->getInput("bottomUpIn");
+
+
+  // Check extraction of first "generated" value
+  {
+    net2.run(1);
+
+    //confirm that in2 is now all 10's
+    const ArrayBase * ai2 = &(in2->getData());
+    Real64* idata = (Real64*)(ai2->getBuffer());
+    //only test 4 instead of 64 to cut down on number of tests
+    for (UInt i = 0; i < 4; i++)
+      ASSERT_EQ(10, idata[i]);
+  }
+
+  // Check extraction of second "generated" value
+  {
+    net2.run(1);
+
+    //confirm that in2 is now all 100's
+    const ArrayBase * ai2 = &(in2->getData());
+    Real64* idata = (Real64*)(ai2->getBuffer());
+    //only test 4 instead of 64 to cut down on number of tests
+    for (UInt i = 0; i < 4; i++)
+      ASSERT_EQ(100, idata[i]);
+  }
+
+
+  RegionImplFactory::unregisterCPPRegion("MyTestNode");
 }
 
 

@@ -1,6 +1,6 @@
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
+ * Copyright (C) 2013-2017, Numenta, Inc.  Unless you have an agreement
  * with Numenta, Inc., for a separate license for this software code, the
  * following terms and conditions apply:
  *
@@ -53,9 +53,9 @@ Input::~Input()
   }
 }
 
+
 void
-Input::addLink(const std::string& linkType, const std::string& linkParams,
-               Output* srcOutput, const size_t propagationDelay)
+Input::addLink(Link* link, Output* srcOutput)
 {
   if (initialized_)
     NTA_THROW << "Attempt to add link to input " << name_
@@ -74,7 +74,6 @@ Input::addLink(const std::string& linkType, const std::string& linkParams,
     }
   }
 
-  auto link = new Link(linkType, linkParams, srcOutput, this, propagationDelay);
   links_.push_back(link);
 
   srcOutput->addLink(link);
