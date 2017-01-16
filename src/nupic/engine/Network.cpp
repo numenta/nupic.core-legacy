@@ -603,18 +603,16 @@ Network::getRegions() const
   return regions_;
 }
 
-Collection<Link *>
-Network::getLinks()
+
+const Collection<Link *>
+Network::getLinks() const
 {
-  // For tracking input links of enabled regions in this iteration
   Collection<Link *> links;
 
-  // compute on all enabled regions in phase order
   for (UInt32 phase = minEnabledPhase_; phase <= maxEnabledPhase_; phase++)
   {
     for (auto r : phaseInfo_[phase])
     {
-      // Accummulate input links of computed regions
       for (auto & input : r->getInputs())
       {
         for (auto & link: input.second->getLinks())

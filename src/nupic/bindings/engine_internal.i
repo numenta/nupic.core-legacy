@@ -75,9 +75,11 @@
 #include <nupic/engine/Spec.hpp>
 #include <nupic/utils/Watcher.hpp>
 #include <nupic/engine/Region.hpp>
+#include <nupic/engine/Link.hpp>
 #include <nupic/os/Timer.hpp>
 
 #include <yaml-cpp/yaml.h>
+
 %}
 
 
@@ -106,8 +108,8 @@
 %include <nupic/ntypes/Dimensions.hpp>
 %include <nupic/ntypes/Array.hpp>
 %include <nupic/ntypes/ArrayRef.hpp>
-
 %include <nupic/ntypes/Collection.hpp>
+
 %template(InputCollection) nupic::Collection<nupic::InputSpec>;
 %template(OutputCollection) nupic::Collection<nupic::OutputSpec>;
 %template(ParameterCollection) nupic::Collection<nupic::ParameterSpec>;
@@ -122,6 +124,14 @@
 %include <nupic/engine/Region.hpp>
 %include <nupic/utils/Watcher.hpp>
 %include <nupic/engine/Spec.hpp>
+%ignore nupic::Link::connectToNetwork;
+%ignore nupic::Link::setSrcDimensions;
+%ignore nupic::Link::setDestDimensions;
+%ignore nupic::Link::initialize;
+%ignore nupic::Link::compute;
+%ignore nupic::Link::buildSplitterMap;
+%ignore nupic::Link::purgeBufferHead;
+%include <nupic/engine/Link.hpp>
 
 %template(InputPair) std::pair<std::string, nupic::InputSpec>;
 %template(OutputPair) std::pair<std::string, nupic::OutputSpec>;
@@ -156,6 +166,7 @@
 %template(UInt64ArrayRef) nupic::PyArrayRef<nupic::UInt64>;
 %template(Real32ArrayRef) nupic::PyArrayRef<nupic::Real32>;
 %template(BoolArrayRef) nupic::PyArrayRef<bool>;
+
 
 %extend nupic::Timer
 {
@@ -220,7 +231,6 @@
   %#endif
   }
 }
-
 
 %{
 #include <nupic/os/OS.hpp>

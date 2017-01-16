@@ -255,8 +255,13 @@ namespace nupic
     const Collection<Region*>&
     getRegions() const;
 
-    Collection<Link *>
-    getLinks();
+    /**
+     * Get all links between regions
+     *
+     * @returns A Collection of Link objects in the network
+     */
+    const Collection<Link *>
+    getLinks() const;
 
     /**
      * Set phases for a region.
