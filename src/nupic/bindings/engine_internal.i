@@ -82,6 +82,39 @@
 #include <yaml-cpp/yaml.h>
 %}
 
+%pythoncode %{
+
+# Support iteration of swig-generated collections in Python.
+
+class IterableCollection(object):
+  def __init__(self, collection):
+    self._position = 0
+    self._collection = collection
+
+  def next(self):
+    if self._position == self._collection.getCount():
+      raise StopIteration
+
+    val = self._collection.getByIndex(self._position)
+    self._position += 1
+    return val
+
+
+
+class IterablePair(object):
+  def __init__(self, pair):
+    self._position = 0
+    self._pair = pair
+
+  def next(self):
+    if self._position == 2:
+      raise StopIteration
+
+    val = getattr(self._pair, "first" if self._position == 0 else "second")
+    self._position += 1
+    return val
+
+%}
 
 %include "std_pair.i"
 %include "std_string.i"
@@ -116,6 +149,13 @@
 %template(CommandCollection) nupic::Collection<nupic::CommandSpec>;
 %template(RegionCollection) nupic::Collection<nupic::Region *>;
 %template(LinkCollection) nupic::Collection<nupic::Link *>;
+%extend nupic::Collection< nupic::Link * >
+{
+  %pythoncode %{
+    def __iter__(self):
+      return IterableCollection(self)
+  %}
+}
 
 %include <nupic/engine/NuPIC.hpp>
 %include <nupic/engine/Network.hpp>
@@ -132,6 +172,13 @@
 %template(CommandPair) std::pair<std::string, nupic::CommandSpec>;
 %template(RegionPair) std::pair<std::string, nupic::Region *>;
 %template(LinkPair) std::pair<std::string, nupic::Link *>;
+%extend std::pair<std::string, nupic::Link *>
+{
+  %pythoncode %{
+    def __iter__(self):
+      return IterablePair(self)
+  %}
+}
 
 %include <nupic/os/Timer.hpp>
 
@@ -236,7 +283,6 @@
   %#endif
   }
 }
-
 
 %{
 #include <nupic/os/OS.hpp>
