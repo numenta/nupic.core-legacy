@@ -37,8 +37,10 @@ fi
 export PATH=$HOME/Library/Python/2.7/bin:$PATH
 export PYTHONPATH=$HOME/Library/Python/2.7/lib/python/site-packages:$PYTHONPATH
 
-echo "Installing wheel..."
-pip install wheel==0.25.0 --user || exit
+echo "Installing pip, setuptools, and wheel"
+curl --silent --show-error --retry 5 -O http://releases.numenta.org/pip/1ebd3cb7a5a3073058d0c9552ab074bd/get-pip.py
+python get-pip.py --user pip setuptools wheel
+
 echo "Installing Python dependencies"
 pip install --use-wheel --user -r bindings/py/requirements.txt --quiet || exit
 
