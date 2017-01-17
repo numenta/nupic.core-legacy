@@ -607,8 +607,8 @@ Network::getRegions() const
 }
 
 
-const Collection<Link *>
-Network::getLinks() const
+Collection<Link *>
+Network::getLinks()
 {
   Collection<Link *> links;
 

@@ -124,13 +124,6 @@
 %include <nupic/engine/Region.hpp>
 %include <nupic/utils/Watcher.hpp>
 %include <nupic/engine/Spec.hpp>
-%ignore nupic::Link::connectToNetwork;
-%ignore nupic::Link::setSrcDimensions;
-%ignore nupic::Link::setDestDimensions;
-%ignore nupic::Link::initialize;
-%ignore nupic::Link::compute;
-%ignore nupic::Link::buildSplitterMap;
-%ignore nupic::Link::purgeBufferHead;
 %include <nupic/engine/Link.hpp>
 
 %template(InputPair) std::pair<std::string, nupic::InputSpec>;

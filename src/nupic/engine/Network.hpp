@@ -1,6 +1,6 @@
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2013-2015, Numenta, Inc.  Unless you have an agreement
+ * Copyright (C) 2013-2017, Numenta, Inc.  Unless you have an agreement
  * with Numenta, Inc., for a separate license for this software code, the
  * following terms and conditions apply:
  *
@@ -260,8 +260,8 @@ namespace nupic
      *
      * @returns A Collection of Link objects in the network
      */
-    const Collection<Link *>
-    getLinks() const;
+    Collection<Link *>
+    getLinks();
 
     /**
      * Set phases for a region.
