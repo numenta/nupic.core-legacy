@@ -225,7 +225,7 @@ Input::evaluateLinks()
 
           // Set the dimensions and record that we set them
           srcRegion.setDimensions(srcLinkDims);
-          srcRegionDims = srcRegionDims;
+          srcRegionDims = srcRegion.getDimensions();
 
           std::stringstream ss;
           ss << "Specified by source dimensions on link "
@@ -507,7 +507,9 @@ Input::evaluateLinks()
     }
 
     if (linkIsIncomplete)
+    {
       nIncompleteLinks++;
+    }
 
   } // loop over all links connected to this Input
 
