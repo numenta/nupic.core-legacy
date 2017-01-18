@@ -44,8 +44,9 @@ class NetworkTest(unittest.TestCase):
     # Initialize network
     network.initialize()
 
-    for _, link in network.getLinks():
+    for linkName, link in network.getLinks():
       # Compare Link API to what we know about the network
+      self.assertEqual(link.toString(), linkName)
       self.assertEqual(link.getDestRegionName(), "region2")
       self.assertEqual(link.getSrcRegionName(), "region1")
       self.assertEqual(link.getLinkType(), "UniformLink")
