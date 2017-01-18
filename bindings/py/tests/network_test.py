@@ -21,7 +21,7 @@
 
 import unittest
 
-from nupic import engine
+import nupic.bindings.engine_internal as engine
 
 
 
@@ -35,8 +35,10 @@ class NetworkTest(unittest.TestCase):
     network.addRegion("region1", "TestNode", "")
     network.addRegion("region2", "TestNode", "")
 
+    region1 = network.getRegions().getByName("region1")
+    region1.setDimensions(engine.Dimensions([1, 1]))
+
     # Set dimensions on first region
-    network.regions["region1"].setDimensions(engine.Dimensions([1, 1]))
 
     # Link region1 and region2
     network.link("region1", "region2", "UniformLink", "")
