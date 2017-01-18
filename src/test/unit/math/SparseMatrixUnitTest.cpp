@@ -329,7 +329,7 @@ namespace
     vector<Real32> before;
     vector<UInt32> outerRows;
     vector<UInt32> outerCols;
-    UInt32 numNewNonZerosPerRow;
+    Int32 numNewNonZerosPerRow;
     Real32 value;
   };
 
@@ -419,8 +419,8 @@ namespace
 
       for (UInt32 row = 0; row < test.nrows; row++)
       {
-        UInt32 numSelectedZeros = 0;
-        UInt32 numConvertedZeros = 0;
+        Int32 numSelectedZeros = 0;
+        Int32 numConvertedZeros = 0;
 
         for (UInt32 col = 0; col < test.ncols; col++)
         {
@@ -470,7 +470,7 @@ namespace
     vector<Real32> before;
     vector<UInt32> outerRows;
     vector<UInt32> outerCols;
-    vector<UInt32> numNewNonZerosPerRow;
+    vector<Int32> numNewNonZerosPerRow;
     Real32 value;
   };
 
@@ -561,12 +561,12 @@ namespace
 
       for (UInt32 row = 0; row < test.nrows; row++)
       {
-        UInt32 numSelectedZeros = 0;
-        UInt32 numConvertedZeros = 0;
+        Int32 numSelectedZeros = 0;
+        Int32 numConvertedZeros = 0;
 
         auto rowInSelection = std::find(test.outerRows.begin(),
                                         test.outerRows.end(), row);
-        const UInt32 requestedNumNewZeros =
+        const Int32 requestedNumNewZeros =
           rowInSelection != test.outerRows.end()
           ? test.numNewNonZerosPerRow[rowInSelection - test.outerRows.begin()]
           : 0;

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # ----------------------------------------------------------------------
 # Numenta Platform for Intelligent Computing (NuPIC)
-# Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
+# Copyright (C) 2013-2017, Numenta, Inc.  Unless you have an agreement
 # with Numenta, Inc., for a separate license for this software code, the
 # following terms and conditions apply:
 #
@@ -1615,7 +1615,7 @@ class SparseMatrixTest(unittest.TestCase):
 
       y = mat.rightVecSumAtNZSparse(xSparse)
       numpy.testing.assert_equal(y, expected, 'rightVecSumAtNZSparse')
-      y2 = zeros((nRows)).astype(float32)
+      y2 = zeros((nRows)).astype(int32)
       mat.rightVecSumAtNZSparse(xSparse, out=y2)
       numpy.testing.assert_equal(y2, expected, 'rightVecSumAtNZSparse with out')
 

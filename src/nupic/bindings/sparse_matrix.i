@@ -1,6 +1,6 @@
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
+ * Copyright (C) 2013-2017, Numenta, Inc.  Unless you have an agreement
  * with Numenta, Inc., for a separate license for this software code, the
  * following terms and conditions apply:
  *
@@ -895,14 +895,14 @@ def __div__(self, other):
         self._setRandomZerosOnOuter_multipleCounts(
           numpy.asarray(rows, dtype="uint32"),
           numpy.asarray(cols, dtype="uint32"),
-          numpy.asarray(numNewNonZeros, dtype="uint32"),
+          numpy.asarray(numNewNonZeros, dtype="int32"),
           value,
           rng)
   %}
 
   void _setRandomZerosOnOuter_singleCount(PyObject* py_rows,
                                           PyObject* py_cols,
-                                          nupic::UInt ## N1 numNewNonZeros,
+                                          nupic::Int ## N1 numNewNonZeros,
                                           nupic::Real ## N2 value,
                                           nupic::Random& rng)
   {
@@ -923,7 +923,7 @@ def __div__(self, other):
   {
     nupic::NumpyVectorWeakRefT<nupic::UInt32> rows(py_rows);
     nupic::NumpyVectorWeakRefT<nupic::UInt32> cols(py_cols);
-    nupic::NumpyVectorWeakRefT<nupic::UInt32>
+    nupic::NumpyVectorWeakRefT<nupic::Int32>
       newNonZeroCounts(py_newNonZeroCounts);
 
     self->setRandomZerosOnOuter(rows.begin(), rows.end(),
@@ -932,6 +932,7 @@ def __div__(self, other):
                                 newNonZeroCounts.end(),
                                 value, rng);
   }
+
 
   %pythoncode %{
     def increaseRowNonZeroCountsOnOuterTo(self, rows, cols, numDesiredNonZeros,
@@ -943,7 +944,7 @@ def __div__(self, other):
   %}
 
   void _increaseRowNonZeroCountsOnOuterTo(PyObject* py_rows, PyObject* py_cols,
-                                          nupic::UInt ## N1 numDesiredNonZeros,
+                                          nupic::Int ## N1 numDesiredNonZeros,
                                           nupic::Real ## N2 initialValue,
                                           nupic::Random& rng)
   {
@@ -1582,9 +1583,9 @@ def __div__(self, other):
       sparseBinaryArray = numpy.asarray(sparseBinaryArray, dtype="uint32")
 
       if out is None:
-        out = numpy.empty(self.nRows(), dtype="float32")
+        out = numpy.empty(self.nRows(), dtype="int32")
       else:
-        assert out.dtype == "float32"
+        assert out.dtype == "int32"
 
       self._rightVecSumAtNZSparse(sparseBinaryArray, out)
 
@@ -1596,7 +1597,7 @@ def __div__(self, other):
   {
     nupic::NumpyVectorWeakRefT<nupic::UInt ## N1>
       sparseBinaryArray(py_sparseBinaryArray);
-    nupic::NumpyVectorWeakRefT<nupic::Real ## N2> out(py_out);
+    nupic::NumpyVectorWeakRefT<nupic::Int ## N1> out(py_out);
 
     NTA_ASSERT(out.size() >= self->nRows());
 
@@ -1646,9 +1647,9 @@ def __div__(self, other):
       sparseBinaryArray = numpy.asarray(sparseBinaryArray, dtype="uint32")
 
       if out is None:
-        out = numpy.empty(self.nRows(), dtype="float32")
+        out = numpy.empty(self.nRows(), dtype="int32")
       else:
-        assert out.dtype == "float32"
+        assert out.dtype == "int32"
 
       self._rightVecSumAtNZGtThresholdSparse(sparseBinaryArray, threshold, out)
 
@@ -1661,7 +1662,7 @@ def __div__(self, other):
   {
     nupic::NumpyVectorWeakRefT<nupic::UInt ## N1>
       sparseBinaryArray(py_sparseBinaryArray);
-    nupic::NumpyVectorWeakRefT<nupic::Real ## N2> out(py_out);
+    nupic::NumpyVectorWeakRefT<nupic::Int ## N1> out(py_out);
 
     NTA_ASSERT(out.size() >= self->nRows());
 
@@ -1704,9 +1705,9 @@ def __div__(self, other):
       sparseBinaryArray = numpy.asarray(sparseBinaryArray, dtype="uint32")
 
       if out is None:
-        out = numpy.empty(self.nRows(), dtype="float32")
+        out = numpy.empty(self.nRows(), dtype="int32")
       else:
-        assert out.dtype == "float32"
+        assert out.dtype == "int32"
 
       self._rightVecSumAtNZGteThresholdSparse(sparseBinaryArray, threshold, out)
 
@@ -1719,7 +1720,7 @@ def __div__(self, other):
   {
     nupic::NumpyVectorWeakRefT<nupic::UInt ## N1>
       sparseBinaryArray(py_sparseBinaryArray);
-    nupic::NumpyVectorWeakRefT<nupic::Real ## N2> out(py_out);
+    nupic::NumpyVectorWeakRefT<nupic::Int ## N1> out(py_out);
 
     NTA_ASSERT(out.size() >= self->nRows());
 
@@ -4415,4 +4416,377 @@ def __setstate__(self, inString):
     return _Set(*args)
 %}
 
+
 //--------------------------------------------------------------------------------
+// Segment Sparse Matrix
+//--------------------------------------------------------------------------------
+
+%include <nupic/math/SegmentMatrixAdapter.hpp>
+
+%{
+#include <nupic/math/SegmentMatrixAdapter.hpp>
+%}
+
+%template(SegmentSparseMatrix32) nupic::SegmentMatrixAdapter<nupic::SparseMatrix<nupic::UInt32,nupic::Real32,nupic::Int32,nupic::Real64,nupic::DistanceToZero<nupic::Real32 > > >;
+
+%extend nupic::SegmentMatrixAdapter<nupic::SparseMatrix<nupic::UInt32, nupic::Real32, nupic::Int32, nupic::Real64, nupic::DistanceToZero<nupic::Real32> > >
+{
+  %pythoncode %{
+    def createSegments(self, cells):
+      return self._createSegments(numpy.asarray(cells, dtype="uint32"))
+  %}
+
+  PyObject* _createSegments(PyObject *py_cells)
+  {
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> cells(py_cells);
+
+    nupic::NumpyVectorT<nupic::UInt32> segmentsOut(cells.size());
+    self->createSegments(cells.begin(), cells.end(), segmentsOut.begin());
+
+    return segmentsOut.forPython();
+  }
+
+
+  %pythoncode %{
+    def destroySegments(self, segments):
+      self._destroySegments(numpy.asarray(segments, dtype="uint32"))
+  %}
+
+  void _destroySegments(PyObject *py_segments)
+  {
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> segments(py_segments);
+
+    self->destroySegments(segments.begin(), segments.end());
+  }
+
+
+  %pythoncode %{
+    def getSegmentCounts(self, cells):
+      return self._getSegmentCounts(numpy.asarray(cells, dtype="uint32"))
+  %}
+
+  PyObject* _getSegmentCounts(PyObject *py_cells) const
+  {
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> cells(py_cells);
+
+    nupic::NumpyVectorT<nupic::Int32> countsOut(cells.size());
+    self->getSegmentCounts(cells.begin(), cells.end(), countsOut.begin());
+
+    return countsOut.forPython();
+  }
+
+
+  %pythoncode %{
+    def getSegmentsForCell(self, cell):
+      return self._getSegmentsForCell(cell)
+  %}
+
+  PyObject* _getSegmentsForCell(nupic::UInt32 cell) const
+  {
+    const std::vector<nupic::UInt32>& segments = self->getSegmentsForCell(cell);
+    nupic::NumpyVectorT<nupic::UInt32> npSegments(segments.size(),
+                                                  segments.data());
+    return npSegments.forPython();
+  }
+
+
+  %pythoncode %{
+    def sortSegmentsByCell(self, segments):
+      # Can't convert it, since we're sorting it in place.
+      assert segments.dtype == "uint32"
+      self._sortSegmentsByCell(segments)
+  %}
+
+  void _sortSegmentsByCell(PyObject *py_segments) const
+  {
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> segments(py_segments);
+
+    self->sortSegmentsByCell(segments.begin(), segments.end());
+  }
+
+
+  %pythoncode %{
+    def filterSegmentsByCell(self, segments, cells, assumeSorted=False):
+      segments = numpy.asarray(segments, dtype="uint32")
+      cells = numpy.asarray(cells, dtype="uint32")
+
+      if not assumeSorted:
+        segments = numpy.copy(segments)
+        self.sortSegmentsByCell(segments)
+        cells = numpy.sort(cells)
+
+      return self._filterSegmentsByCell(segments, cells)
+  %}
+
+  PyObject* _filterSegmentsByCell(PyObject *py_segments,
+                                  PyObject *py_cells) const
+  {
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> segments(py_segments);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> cells(py_cells);
+
+    std::vector<nupic::UInt32> filtered =
+      self->filterSegmentsByCell(segments.begin(), segments.end(),
+                                 cells.begin(), cells.end());
+
+    nupic::NumpyVectorT<nupic::UInt32> npFiltered(filtered.size(),
+                                                  filtered.data());
+    return npFiltered.forPython();
+  }
+
+
+  %pythoncode %{
+    def mapSegmentsToCells(self, segments):
+      segments = numpy.asarray(segments, dtype="uint32")
+      return self._mapSegmentsToCells(segments)
+  %}
+
+  PyObject* _mapSegmentsToCells(PyObject *py_segments) const
+  {
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> segments(py_segments);
+
+    nupic::NumpyVectorT<nupic::UInt32> cellsOut(segments.size());
+    self->mapSegmentsToCells(segments.begin(), segments.end(),
+                             cellsOut.begin());
+
+    return cellsOut.forPython();
+  }
+
+} // End extend SegmentMatrixAdapter
+
+%pythoncode %{
+  def SegmentSparseMatrix(*args, **kwargs):
+    if "dtype" in kwargs:
+      dtype = keywords.pop("dtype")
+      assert dtype == "Float32"
+
+    return SegmentSparseMatrix32(*args, **kwargs)
+%}
+
+
+//--------------------------------------------------------------------------------
+// SparseMatrixConnections
+//--------------------------------------------------------------------------------
+
+%{
+#include <nupic/math/SparseMatrixConnections.hpp>
+%}
+
+%include <nupic/math/SparseMatrixConnections.hpp>
+
+
+%extend nupic::SparseMatrixConnections
+{
+
+  %pythoncode %{
+    def computeActivity(self, activeInputs, permanenceThreshold=None, out=None):
+      activeInputs = numpy.asarray(activeInputs, dtype="uint32")
+
+      if out is None:
+        out = numpy.empty(self.matrix.nRows(), dtype="int32")
+      else:
+        assert out.dtype == "int32"
+
+      if permanenceThreshold is None:
+        self._computeActivity(activeInputs, out)
+      else:
+        self._permanenceThresholdedComputeActivity(activeInputs,
+                                                   permanenceThreshold, out)
+
+      return out
+  %}
+
+  inline void _computeActivity(PyObject* py_activeInputs,
+                               PyObject* py_overlaps) const
+  {
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> activeInputs(py_activeInputs);
+    nupic::NumpyVectorWeakRefT<nupic::Int32> overlaps(py_overlaps);
+
+    NTA_ASSERT(overlaps.size() >= self->matrix.nRows());
+
+    self->computeActivity(activeInputs.begin(), activeInputs.end(),
+                          overlaps.begin());
+  }
+
+  inline void _permanenceThresholdedComputeActivity(
+    PyObject* py_activeInputs, nupic::Real32 permanenceThreshold,
+    PyObject* py_overlaps) const
+  {
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> activeInputs(py_activeInputs);
+    nupic::NumpyVectorWeakRefT<nupic::Int32> overlaps(py_overlaps);
+
+    NTA_ASSERT(overlaps.size() >= self->matrix.nRows());
+
+    self->computeActivity(activeInputs.begin(), activeInputs.end(),
+                          permanenceThreshold, overlaps.begin());
+  }
+
+
+  %pythoncode %{
+    def adjustSynapses(self, segments, activeInputs, activePermanenceDelta,
+                       inactivePermanenceDelta):
+      self._adjustSynapses(numpy.asarray(segments, dtype="uint32"),
+                           numpy.asarray(activeInputs, dtype="uint32"),
+                           activePermanenceDelta, inactivePermanenceDelta)
+  %}
+
+  void _adjustSynapses(PyObject* py_segments, PyObject* py_activeInputs,
+                       nupic::Real32 activePermanenceDelta,
+                       nupic::Real32 inactivePermanenceDelta)
+  {
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> segments(py_segments);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> activeInputs(py_activeInputs);
+
+    self->adjustSynapses(segments.begin(), segments.end(),
+                         activeInputs.begin(), activeInputs.end(),
+                         activePermanenceDelta, inactivePermanenceDelta);
+  }
+
+
+  %pythoncode %{
+    def adjustActiveSynapses(self, segments, activeInputs, permanenceDelta):
+      self._adjustActiveSynapses(numpy.asarray(segments, dtype="uint32"),
+                                 numpy.asarray(activeInputs, dtype="uint32"),
+                                 permanenceDelta)
+  %}
+
+  void _adjustActiveSynapses(PyObject* py_segments, PyObject* py_activeInputs,
+                             nupic::Real32 permanenceDelta)
+  {
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> segments(py_segments);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> activeInputs(py_activeInputs);
+
+    self->adjustActiveSynapses(segments.begin(), segments.end(),
+                               activeInputs.begin(), activeInputs.end(),
+                               permanenceDelta);
+  }
+
+
+  %pythoncode %{
+    def adjustInactiveSynapses(self, segments, activeInputs, permanenceDelta):
+      self._adjustInactiveSynapses(numpy.asarray(segments, dtype="uint32"),
+                                   numpy.asarray(activeInputs, dtype="uint32"),
+                                   permanenceDelta)
+  %}
+
+  void _adjustInactiveSynapses(PyObject* py_segments, PyObject* py_activeInputs,
+                               nupic::Real32 permanenceDelta)
+  {
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> segments(py_segments);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> activeInputs(py_activeInputs);
+
+    self->adjustInactiveSynapses(segments.begin(), segments.end(),
+                                 activeInputs.begin(), activeInputs.end(),
+                                 permanenceDelta);
+  }
+
+
+  %pythoncode %{
+    def growSynapses(self, segments, activeInputs, initialPermanence,
+                     assumeInputsSorted=False):
+      if not assumeInputsSorted:
+        activeInputs = numpy.sort(activeInputs)
+
+      self._growSynapses(
+          numpy.asarray(segments, dtype="uint32"),
+          numpy.asarray(activeInputs, dtype="uint32"),
+          initialPermanence)
+  %}
+
+  void _growSynapses(PyObject* py_segments,
+                     PyObject* py_activeInputs,
+                     nupic::Real32 initialPermanence)
+  {
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> segments(py_segments);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> activeInputs(py_activeInputs);
+
+    self->growSynapses(segments.begin(), segments.end(),
+                       activeInputs.begin(), activeInputs.end(),
+                       initialPermanence);
+  }
+
+
+  %pythoncode %{
+    def growSynapsesToSample(self, segments, activeInputs, sampleSize,
+                             initialPermanence, rng, assumeInputsSorted=False):
+      if not assumeInputsSorted:
+        activeInputs = numpy.sort(activeInputs)
+
+      if isinstance(sampleSize, numbers.Number):
+        self._growSynapsesToSample_singleCount(
+          numpy.asarray(segments, dtype="uint32"),
+          numpy.asarray(activeInputs, dtype="uint32"),
+          sampleSize,
+          initialPermanence,
+          rng)
+      else:
+        self._growSynapsesToSample_multipleCounts(
+          numpy.asarray(segments, dtype="uint32"),
+          numpy.asarray(activeInputs, dtype="uint32"),
+          numpy.asarray(sampleSize, dtype="int32"),
+          initialPermanence,
+          rng)
+  %}
+
+  void _growSynapsesToSample_singleCount(PyObject* py_segments,
+                                         PyObject* py_activeInputs,
+                                         nupic::Int32 sampleSize,
+                                         nupic::Real32 initialPermanence,
+                                         nupic::Random& rng)
+  {
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> segments(py_segments);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> activeInputs(py_activeInputs);
+
+    self->growSynapsesToSample(segments.begin(), segments.end(),
+                               activeInputs.begin(), activeInputs.end(),
+                               sampleSize,
+                               initialPermanence, rng);
+  }
+
+  void _growSynapsesToSample_multipleCounts(PyObject* py_segments,
+                                            PyObject* py_activeInputs,
+                                            PyObject* py_sampleSizes,
+                                            nupic::Real32 initialPermanence,
+                                            nupic::Random& rng)
+  {
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> segments(py_segments);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> activeInputs(py_activeInputs);
+    nupic::NumpyVectorWeakRefT<nupic::Int32> sampleSizes(py_sampleSizes);
+
+    self->growSynapsesToSample(segments.begin(), segments.end(),
+                               activeInputs.begin(), activeInputs.end(),
+                               sampleSizes.begin(), sampleSizes.end(),
+                               initialPermanence, rng);
+  }
+
+
+  %pythoncode %{
+    def clipPermanences(self, segments):
+      self._clipPermanences(numpy.asarray(segments, dtype="uint32"))
+  %}
+
+  void _clipPermanences(PyObject* py_segments)
+  {
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> segments(py_segments);
+
+    self->clipPermanences(segments.begin(), segments.end());
+  }
+
+
+  %pythoncode %{
+    def mapSegmentsToSynapseCounts(self, segments):
+      return self._mapSegmentsToSynapseCounts(
+        numpy.asarray(segments, dtype="uint32"))
+  %}
+
+  PyObject* _mapSegmentsToSynapseCounts(PyObject* py_segments) const
+  {
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> segments(py_segments);
+
+    nupic::NumpyVectorT<nupic::Int32> out(segments.size());
+    self->mapSegmentsToSynapseCounts(segments.begin(), segments.end(),
+                                     out.begin());
+
+    return out.forPython();
+  }
+
+} // End extend SparseMatrixConnections
