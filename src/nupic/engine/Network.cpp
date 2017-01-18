@@ -606,6 +606,29 @@ Network::getRegions() const
   return regions_;
 }
 
+
+Collection<Link *>
+Network::getLinks()
+{
+  Collection<Link *> links;
+
+  for (UInt32 phase = minEnabledPhase_; phase <= maxEnabledPhase_; phase++)
+  {
+    for (auto r : phaseInfo_[phase])
+    {
+      for (auto & input : r->getInputs())
+      {
+        for (auto & link: input.second->getLinks())
+        {
+          links.add(link->toString(), link);
+        }
+      }
+    }
+  }
+
+  return links;
+}
+
 Collection<Network::callbackItem>& Network::getCallbacks()
 {
   return callbacks_;

@@ -1,6 +1,6 @@
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2013-2015, Numenta, Inc.  Unless you have an agreement
+ * Copyright (C) 2013-2017, Numenta, Inc.  Unless you have an agreement
  * with Numenta, Inc., for a separate license for this software code, the
  * following terms and conditions apply:
  *
@@ -35,6 +35,7 @@
 #include <vector>
 
 #include <nupic/ntypes/Collection.hpp>
+
 #include <nupic/proto/NetworkProto.capnp.h>
 #include <nupic/proto/RegionProto.capnp.h>
 #include <nupic/types/Types.hpp>
@@ -46,7 +47,7 @@ namespace nupic
   class Region;
   class Dimensions;
   class GenericRegisteredRegionImpl;
-
+  class Link;
 
   /**
    * Represents an HTM network. A network is a collection of regions.
@@ -253,6 +254,14 @@ namespace nupic
      */
     const Collection<Region*>&
     getRegions() const;
+
+    /**
+     * Get all links between regions
+     *
+     * @returns A Collection of Link objects in the network
+     */
+    Collection<Link *>
+    getLinks();
 
     /**
      * Set phases for a region.
