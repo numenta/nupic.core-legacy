@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.5.1
+
+* Improved network API introspection
+* Fix bug with region dimensions inference in network API. fixes #1212
+* Updates to info in RELEASE.md
+* Fixup import favoring native unittest
+* Use xcode6.4 image per documentation at https://docs.travis-ci.com/user/osx-ci-environment/#OS-X-Version
+* NUP-2316 Fixed OS X build failure on xcode 8 caused by included some files in static library that shouldn't have been included.
+* Misc. changes for sparse matrices and using them in Connections. Moving loops to C++.
+
 ## 0.5.0
 
 * Link: Implemented delayed links. NOTE: this is not backwards compatible with CLAModel class, so Nupic will be updated as well.
