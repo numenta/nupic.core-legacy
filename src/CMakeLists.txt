@@ -387,7 +387,6 @@ set(src_nupiccore_srcs
 
 set(src_lib_static_nupiccore_srcs
     ${src_capnp_generated_srcs}
-    ${src_py_support_files}
     ${src_nupiccore_srcs})
 
 set(src_lib_static_nupiccore_compile_flags
@@ -415,6 +414,31 @@ if(${NUPIC_IWYU})
     PROPERTIES CXX_INCLUDE_WHAT_YOU_USE ${iwyu_path})
 endif()
 
+
+#
+# Create py_support "object" library that contains python support object files
+# for linking into python extensions.
+#
+set(src_lib_py_support_objects py_support_objects)
+
+add_library(${src_lib_py_support_objects} OBJECT
+            ${src_py_support_files})
+add_dependencies(${src_lib_py_support_objects}
+                 ${src_lib_static_nupiccore_solo})
+set_target_properties(${src_lib_py_support_objects} PROPERTIES COMPILE_FLAGS
+                      ${src_lib_static_nupiccore_compile_flags})
+if(${NUPIC_IWYU})
+  # TODO: Create a target that doesn't include the generated capnp schema files
+  # since we don't want to run iwyu on them and iwyu can only be applied to
+  # CMake targets (not source files directly).
+  set_target_properties(${src_lib_py_support_objects}
+    PROPERTIES CXX_INCLUDE_WHAT_YOU_USE ${iwyu_path})
+endif()
+
+# We use this generator value to add the python support objects to the
+# source lists of the modules that rely on it.
+set(src_py_support_object_list_gen
+    "$<TARGET_OBJECTS:${src_lib_py_support_objects}>")
 
 #
 # Create the nupic_core "combined" static library by merging nupic_core_solo
@@ -472,7 +496,9 @@ message(STATUS "src_common_test_exe_libs = ${src_common_test_exe_libs}")
 # Setup test_cpp_region
 #
 set(src_executable_cppregiontest cpp_region_test)
-add_executable(${src_executable_cppregiontest} test/integration/CppRegionTest.cpp)
+add_executable(${src_executable_cppregiontest}
+               test/integration/CppRegionTest.cpp
+               ${src_py_support_object_list_gen})
 target_link_libraries(${src_executable_cppregiontest} ${src_common_test_exe_libs})
 set_target_properties(${src_executable_cppregiontest} PROPERTIES COMPILE_FLAGS ${src_compile_flags})
 set_target_properties(${src_executable_cppregiontest} PROPERTIES LINK_FLAGS "${INTERNAL_LINKER_FLAGS_OPTIMIZED}")
@@ -486,7 +512,9 @@ add_custom_target(tests_cpp_region
 # Setup test_py_region
 #
 set(src_executable_pyregiontest py_region_test)
-add_executable(${src_executable_pyregiontest} test/integration/PyRegionTest.cpp)
+add_executable(${src_executable_pyregiontest}
+               test/integration/PyRegionTest.cpp
+               ${src_py_support_object_list_gen})
 target_link_libraries(${src_executable_pyregiontest} ${src_common_test_exe_libs})
 set_target_properties(${src_executable_pyregiontest}
                       PROPERTIES COMPILE_FLAGS ${src_compile_flags})
@@ -520,7 +548,9 @@ add_custom_target(tests_connections_performance
 # Setup helloregion example
 #
 set(src_executable_helloregion helloregion)
-add_executable(${src_executable_helloregion} examples/regions/HelloRegions.cpp)
+add_executable(${src_executable_helloregion}
+               examples/regions/HelloRegions.cpp
+               ${src_py_support_object_list_gen})
 target_link_libraries(${src_executable_helloregion} ${src_common_test_exe_libs})
 set_target_properties(${src_executable_helloregion}
                       PROPERTIES COMPILE_FLAGS ${src_compile_flags})
@@ -555,6 +585,7 @@ set_target_properties(${src_executable_hellosptp}
 #
 set(src_executable_gtests unit_tests)
 add_executable(${src_executable_gtests}
+               ${src_py_support_object_list_gen}
                test/unit/algorithms/AnomalyTest.cpp
                test/unit/algorithms/CondProbTableTest.cpp
                test/unit/algorithms/ConnectionsTest.cpp
@@ -769,7 +800,9 @@ if (NUPIC_BUILD_PYEXT_MODULES)
     #
 
     # Note: swig_add_module outputs ${swig_generated_file_fullname}
-    swig_add_module(${MODULE_NAME} python ${source_interface_file})
+    swig_add_module(${MODULE_NAME} python
+                    ${source_interface_file}
+                    ${src_py_support_object_list_gen})
 
     set_source_files_properties(
       ${swig_generated_file_fullname} PROPERTIES
