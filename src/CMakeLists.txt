@@ -19,7 +19,7 @@
 # http://numenta.org/licenses/
 # -----------------------------------------------------------------------------
 
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8.12)
 project(nupic_core CXX)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
@@ -302,15 +302,16 @@ message(STATUS "src_common_os_libs        = ${src_common_os_libs}")
 
 
 #
-# Setup nupic_core_solo static library, consisting of our own sources;
+# Setup a library of objects, generated from our own sources without py support
 #
-# this is an intermediate archive that will be merged with external static
-# libraries in a subsequent step to produce the nupic_core "combined" static
-# library.
-#
-set(src_lib_static_nupiccore_solo nupic_core_solo)
+set(src_lib_object_nupiccore_internals nupic_core_internal_objects)
 
-set(src_nupiccore_srcs
+# We use this generator value to add the nupic core internal objects to the
+# source lists of the modules that rely on them.
+set(src_nupiccore_internal_object_list_gen
+    "$<TARGET_OBJECTS:${src_lib_object_nupiccore_internals}>")
+
+set(src_nupiccore_internal_srcs
     nupic/algorithms/Anomaly.cpp
     nupic/algorithms/BitHistory.cpp
     nupic/algorithms/Cell.cpp
@@ -385,48 +386,46 @@ set(src_nupiccore_srcs
     nupic/utils/TRandom.cpp
     nupic/utils/Watcher.cpp)
 
-set(src_lib_static_nupiccore_srcs
-    ${src_capnp_generated_srcs}
-    ${src_nupiccore_srcs})
+list(APPEND src_nupiccore_internal_srcs ${src_capnp_generated_srcs})
 
-set(src_lib_static_nupiccore_compile_flags
+set(src_lib_object_nupiccore_internals_compile_flags
     "${src_compile_flags} -I${src_numpy_core}/include")
 
 message(STATUS "src_compile_flags = ${src_compile_flags}")
-message(STATUS "src_lib_static_nupiccore_compile_flags = ${src_lib_static_nupiccore_compile_flags}")
+message(STATUS "src_lib_object_nupiccore_internals_compile_flags = ${src_lib_object_nupiccore_internals_compile_flags}")
 
-add_library(${src_lib_static_nupiccore_solo} STATIC
-            ${src_lib_static_nupiccore_srcs})
+add_library(${src_lib_object_nupiccore_internals} OBJECT
+            ${src_nupiccore_internal_srcs})
 # nupic_core_solo sources depend on headers installed by these external projects
-add_dependencies(${src_lib_static_nupiccore_solo}
+add_dependencies(${src_lib_object_nupiccore_internals}
                  ${YAML_CPP_STATIC_LIB_TARGET}
                  ${YAML_STATIC_LIB_TARGET}
                  ${APR1_STATIC_LIB_TARGET}
                  ${APRUTIL1_STATIC_LIB_TARGET}
                  ${Z_STATIC_LIB_TARGET})
-set_target_properties(${src_lib_static_nupiccore_solo} PROPERTIES COMPILE_FLAGS
-                      ${src_lib_static_nupiccore_compile_flags})
+set_target_properties(${src_lib_object_nupiccore_internals} PROPERTIES COMPILE_FLAGS
+                      ${src_lib_object_nupiccore_internals_compile_flags})
 if(${NUPIC_IWYU})
   # TODO: Create a target that doesn't include the generated capnp schema files
   # since we don't want to run iwyu on them and iwyu can only be applied to
   # CMake targets (not source files directly).
-  set_target_properties(${src_lib_static_nupiccore_solo}
+  set_target_properties(${src_lib_object_nupiccore_internals}
     PROPERTIES CXX_INCLUDE_WHAT_YOU_USE ${iwyu_path})
 endif()
 
 
 #
-# Create py_support "object" library that contains python support object files
-# for linking into python extensions.
+# Create py_support "object" library that generates python support object files
+# for linking into python extensions and c++ tests that need it.
 #
 set(src_lib_py_support_objects py_support_objects)
 
 add_library(${src_lib_py_support_objects} OBJECT
             ${src_py_support_files})
 add_dependencies(${src_lib_py_support_objects}
-                 ${src_lib_static_nupiccore_solo})
+                 ${src_lib_object_nupiccore_internals})
 set_target_properties(${src_lib_py_support_objects} PROPERTIES COMPILE_FLAGS
-                      ${src_lib_static_nupiccore_compile_flags})
+                      ${src_lib_object_nupiccore_internals_compile_flags})
 if(${NUPIC_IWYU})
   # TODO: Create a target that doesn't include the generated capnp schema files
   # since we don't want to run iwyu on them and iwyu can only be applied to
@@ -436,18 +435,16 @@ if(${NUPIC_IWYU})
 endif()
 
 # We use this generator value to add the python support objects to the
-# source lists of the modules that rely on it.
+# source lists of the modules that rely on them.
 set(src_py_support_object_list_gen
     "$<TARGET_OBJECTS:${src_lib_py_support_objects}>")
 
 #
-# Create the nupic_core "combined" static library by merging nupic_core_solo
-# with our external static libraries
+# Create the nupic_core shared library containing nupic core internals (sans
+# python support) and our externals
 #
 
-include(src/NupicLibraryUtils) # for MERGE_STATIC_LIBRARIES
-
-set(src_lib_static_nupiccore_combined nupic_core)
+set(src_lib_shared_nupiccore nupic_core)
 
 set(src_external_static_libs
     ${YAML_CPP_STATIC_LIB_TARGET}
@@ -456,29 +453,57 @@ set(src_external_static_libs
     ${APRUTIL1_STATIC_LIB_TARGET}
     ${Z_STATIC_LIB_TARGET})
 
-# Add capnproto static lib when building nupic_core static lib without python
-# extensions. The extensions have their own logic governing whether to include
-# it.
 if (NOT NUPIC_BUILD_PYEXT_MODULES)
+  # When building a standalone shared lib that will run without our python
+  # extensions, add capnproto static lib. Our python extensions have their own
+  # logic governing whether to include capnproto.
   list(APPEND src_external_static_libs ${CAPNP_STATIC_LIB_TARGET})
 endif()
 
-set(src_combined_nupiccore_source_archives
-    ${src_lib_static_nupiccore_solo}
-    ${src_external_static_libs})
+set(src_lib_shared_nupiccore_link_libraries ${src_external_static_libs})
+if (NOT NUPIC_BUILD_PYEXT_MODULES)
+  # When building a standalone shared lib that will run outside the python
+  # environment, add dependency on python lib to resolve python symbol
+  # references (e.g., from PyRegion)
+  list(APPEND src_lib_shared_nupiccore_link_libraries ${PYTHON_LIBRARIES})
+endif()
 
-# Create a top-level library target for the combined static lib
-merge_static_libraries(${src_lib_static_nupiccore_combined}
-                       "${src_combined_nupiccore_source_archives}")
+add_library(${src_lib_shared_nupiccore} SHARED
+            ${src_nupiccore_internal_object_list_gen})
 
+target_link_libraries(${src_lib_shared_nupiccore}
+                      ${src_lib_shared_nupiccore_link_libraries})
+
+if (NUPIC_BUILD_PYEXT_MODULES)
+  # When building a shared lib for use by our pythone extensions, allow building
+  # without resolving all symbols. This addresses resolution of python symbols
+  # that will be provided by the python runtime as well as capnproto symbols
+  # that will be provided by pycapnp.
+  set_target_properties(${src_lib_shared_nupiccore} PROPERTIES LINK_FLAGS
+                        "${PYEXT_LINKER_FLAGS_OPTIMIZED}")
+else()
+  # When building a standalone shared library, specifically don't allow link
+  # with undefined symbols
+  set_target_properties(${src_lib_shared_nupiccore} PROPERTIES LINK_FLAGS
+                        "${INTERNAL_LINKER_FLAGS_OPTIMIZED}")
+endif()
+
+if (APPLE)
+  set_target_properties(${src_lib_shared_nupiccore} PROPERTIES MACOSX_RPATH ON)
+endif()
+
+if (NUPIC_BUILD_PYEXT_MODULES AND PY_EXTENSIONS_DIR)
+  set_target_properties(${src_lib_shared_nupiccore} PROPERTIES
+                        LIBRARY_OUTPUT_DIRECTORY ${PY_EXTENSIONS_DIR})
+endif()
 
 #
-# Build tests of the nupic_core "combined" static library
+# Build tests of the nupic_core shared library
 #
 
 # Common libs for test executables
 set(src_common_test_exe_libs
-    ${src_lib_static_nupiccore_combined}
+    ${src_lib_shared_nupiccore}
     ${PYTHON_LIBRARIES}
     ${src_common_os_libs})
 
@@ -729,7 +754,7 @@ if (NUPIC_BUILD_PYEXT_MODULES)
   # python proxy modules, thus avoiding the conflict from executing the methods
   # in our own compilation of capnproto on objects created by pycapnp's.
   set(_SRC_SWIG_LINK_LIBRARIES
-      ${src_lib_static_nupiccore_combined}
+      ${src_lib_shared_nupiccore}
       ${src_common_os_libs})
 
   # Common dependencies for our python extensions for use with
@@ -882,7 +907,7 @@ endif() # NUPIC_BUILD_PYEXT_MODULES
 # Install targets into CMAKE_INSTALL_PREFIX
 #
 install(TARGETS
-        ${src_lib_static_nupiccore_combined}
+        ${src_lib_shared_nupiccore}
         ${src_lib_static_gtest}
         ${src_executable_helloregion}
         ${src_executable_cppregiontest}
