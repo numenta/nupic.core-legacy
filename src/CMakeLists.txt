@@ -197,22 +197,19 @@ message(STATUS "PYTHON_LIBRARIES    = ${PYTHON_LIBRARIES}")
 
 
 #
-# Python support
+# Source files that support Python-specific logic in nupic_core shared lib (e.g.,
+# PyRegion)
 #
-set(src_py_support_files
+set(src_core_py_support_sources
     nupic/py_support/NumpyVector.cpp
     nupic/py_support/PyArray.cpp
     nupic/py_support/PyHelpers.cpp
-    nupic/py_support/PythonStream.cpp
     nupic/py_support/PyCapnp.cpp
-    nupic/bindings/PySparseTensor.cpp
 )
 
-#
 # pycapnp integration
-#
 if(NOT "${PLATFORM}" STREQUAL "windows")
-  list(APPEND src_py_support_files nupic/py_support/CapnpToPycapnp.cpp)
+  list(APPEND src_core_py_support_sources nupic/py_support/CapnpToPycapnp.cpp)
 
   # Add the pycapnp Python package headers to includes
   execute_process(
@@ -234,6 +231,7 @@ if(NOT "${PLATFORM}" STREQUAL "windows")
 
   include_directories(SYSTEM ${src_pycapnp_include_dir})
 endif()
+
 
 
 # List all .capnp files here. The C++ files will be generated and included
@@ -387,14 +385,15 @@ set(src_nupiccore_internals_compile_flags
 message(STATUS "src_compile_flags = ${src_compile_flags}")
 message(STATUS "src_nupiccore_internals_compile_flags = ${src_nupiccore_internals_compile_flags}")
 
+
 #
 # Create the nupic_core shared library containing nupic core internals (sans
-# python support) and our externals
+# python binding support) as well as our externals
 #
 
 set(src_lib_shared_nupiccore nupic_core)
 
-set(src_external_static_libs
+set(src_lib_shared_nupiccore_link_libraries
     ${YAML_CPP_STATIC_LIB_TARGET}
     ${YAML_STATIC_LIB_TARGET}
     ${APR1_STATIC_LIB_TARGET}
@@ -405,10 +404,9 @@ if (NOT NUPIC_BUILD_PYEXT_MODULES)
   # When building a standalone shared lib that will run without our python
   # extensions, add capnproto static lib. Our python extensions have their own
   # logic governing whether to include capnproto.
-  list(APPEND src_external_static_libs ${CAPNP_STATIC_LIB_TARGET})
+  list(APPEND src_lib_shared_nupiccore_link_libraries ${CAPNP_STATIC_LIB_TARGET})
 endif()
 
-set(src_lib_shared_nupiccore_link_libraries ${src_external_static_libs})
 if (NOT NUPIC_BUILD_PYEXT_MODULES)
   # When building a standalone shared lib that will run outside the python
   # environment, add dependency on python lib to resolve python symbol
@@ -416,7 +414,9 @@ if (NOT NUPIC_BUILD_PYEXT_MODULES)
   list(APPEND src_lib_shared_nupiccore_link_libraries ${PYTHON_LIBRARIES})
 endif()
 
-add_library(${src_lib_shared_nupiccore} SHARED ${src_nupiccore_internal_srcs})
+add_library(${src_lib_shared_nupiccore} SHARED
+            ${src_nupiccore_internal_srcs}
+            ${src_core_py_support_sources})
 
 target_link_libraries(${src_lib_shared_nupiccore}
                       ${src_lib_shared_nupiccore_link_libraries})
@@ -457,31 +457,29 @@ endif()
 
 
 #
-# Create py_support "object" library that generates python support object files
-# for linking into python extensions and c++ tests that need it.
+# Archive that supports Python extensions (also included in our C++ tests)
 #
-set(src_lib_py_support_objects py_support_objects)
+set(src_py_binding_support_sources
+    nupic/py_support/PythonStream.cpp
+    nupic/bindings/PySparseTensor.cpp)
 
-# We use this generator value to add the python support objects to the
-# source lists of the modules that rely on them.
-set(src_py_support_object_list_gen
-    "$<TARGET_OBJECTS:${src_lib_py_support_objects}>")
+set(src_lib_static_py_binding_support py_binding_support_archive)
 
-add_library(${src_lib_py_support_objects} OBJECT
-            ${src_py_support_files})
+add_library(${src_lib_static_py_binding_support} STATIC
+            ${src_py_binding_support_sources})
 
 # We rely on artifacts from building of nupic_core shared lib (e.g.,
 # capnp schema C++ headers)
-add_dependencies(${src_lib_py_support_objects}
-                 ${src_lib_shared_nupiccore})
+#add_dependencies(${src_lib_static_py_binding_support}
+#                 ${src_lib_shared_nupiccore})
 
-set_target_properties(${src_lib_py_support_objects} PROPERTIES COMPILE_FLAGS
+set_target_properties(${src_lib_static_py_binding_support} PROPERTIES COMPILE_FLAGS
                       ${src_nupiccore_internals_compile_flags})
 if(${NUPIC_IWYU})
   # TODO: Create a target that doesn't include the generated capnp schema files
   # since we don't want to run iwyu on them and iwyu can only be applied to
   # CMake targets (not source files directly).
-  set_target_properties(${src_lib_py_support_objects}
+  set_target_properties(${src_lib_static_py_binding_support}
     PROPERTIES CXX_INCLUDE_WHAT_YOU_USE ${iwyu_path})
 endif()
 
@@ -495,7 +493,8 @@ endif()
 set(src_common_test_exe_libs
     ${src_lib_shared_nupiccore}
     ${PYTHON_LIBRARIES}
-    ${src_common_os_libs})
+    ${src_common_os_libs}
+    ${src_lib_static_py_binding_support})
 
 # Add capnproto static lib to our C/C++ test apps when building python
 # extensions, since capnproto objects are excluded from nupic_core combined lib
@@ -512,8 +511,7 @@ message(STATUS "src_common_test_exe_libs = ${src_common_test_exe_libs}")
 #
 set(src_executable_cppregiontest cpp_region_test)
 add_executable(${src_executable_cppregiontest}
-               test/integration/CppRegionTest.cpp
-               ${src_py_support_object_list_gen})
+               test/integration/CppRegionTest.cpp)
 target_link_libraries(${src_executable_cppregiontest} ${src_common_test_exe_libs})
 set_target_properties(${src_executable_cppregiontest} PROPERTIES COMPILE_FLAGS ${src_compile_flags})
 set_target_properties(${src_executable_cppregiontest} PROPERTIES LINK_FLAGS "${INTERNAL_LINKER_FLAGS_OPTIMIZED}")
@@ -528,8 +526,7 @@ add_custom_target(tests_cpp_region
 #
 set(src_executable_pyregiontest py_region_test)
 add_executable(${src_executable_pyregiontest}
-               test/integration/PyRegionTest.cpp
-               ${src_py_support_object_list_gen})
+               test/integration/PyRegionTest.cpp)
 target_link_libraries(${src_executable_pyregiontest} ${src_common_test_exe_libs})
 set_target_properties(${src_executable_pyregiontest}
                       PROPERTIES COMPILE_FLAGS ${src_compile_flags})
@@ -546,8 +543,7 @@ add_custom_target(tests_py_region
 #
 set(src_executable_connectionsperformancetest connections_performance_test)
 add_executable(${src_executable_connectionsperformancetest}
-               test/integration/ConnectionsPerformanceTest.cpp
-               ${src_py_support_object_list_gen})
+               test/integration/ConnectionsPerformanceTest.cpp)
 target_link_libraries(${src_executable_connectionsperformancetest}
                       ${src_common_test_exe_libs})
 set_target_properties(${src_executable_connectionsperformancetest}
@@ -565,8 +561,7 @@ add_custom_target(tests_connections_performance
 #
 set(src_executable_helloregion helloregion)
 add_executable(${src_executable_helloregion}
-               examples/regions/HelloRegions.cpp
-               ${src_py_support_object_list_gen})
+               examples/regions/HelloRegions.cpp)
 target_link_libraries(${src_executable_helloregion} ${src_common_test_exe_libs})
 set_target_properties(${src_executable_helloregion}
                       PROPERTIES COMPILE_FLAGS ${src_compile_flags})
@@ -578,8 +573,7 @@ set_target_properties(${src_executable_helloregion}
 #
 set(src_executable_prototest prototest)
 add_executable(${src_executable_prototest}
-               examples/prototest.cpp
-               ${src_py_support_object_list_gen})
+               examples/prototest.cpp)
 target_link_libraries(${src_executable_prototest} ${src_common_test_exe_libs})
 set_target_properties(${src_executable_prototest}
                       PROPERTIES COMPILE_FLAGS ${src_compile_flags})
@@ -591,8 +585,7 @@ set_target_properties(${src_executable_prototest}
 #
 set(src_executable_hellosptp hello_sp_tp)
 add_executable(${src_executable_hellosptp}
-               examples/algorithms/HelloSP_TP.cpp
-               ${src_py_support_object_list_gen})
+               examples/algorithms/HelloSP_TP.cpp)
 target_link_libraries(${src_executable_hellosptp} ${src_common_test_exe_libs})
 set_target_properties(${src_executable_hellosptp}
                       PROPERTIES COMPILE_FLAGS ${src_compile_flags})
@@ -605,7 +598,6 @@ set_target_properties(${src_executable_hellosptp}
 #
 set(src_executable_gtests unit_tests)
 add_executable(${src_executable_gtests}
-               ${src_py_support_object_list_gen}
                test/unit/algorithms/AnomalyTest.cpp
                test/unit/algorithms/CondProbTableTest.cpp
                test/unit/algorithms/ConnectionsTest.cpp
@@ -748,7 +740,8 @@ if (NUPIC_BUILD_PYEXT_MODULES)
   # in our own compilation of capnproto on objects created by pycapnp's.
   set(_SRC_SWIG_LINK_LIBRARIES
       ${src_lib_shared_nupiccore}
-      ${src_common_os_libs})
+      ${src_common_os_libs}
+      ${src_lib_static_py_binding_support})
 
   # Common dependencies for our python extensions for use with
   # SWIG_MODULE_name_EXTRA_DEPS
@@ -819,8 +812,7 @@ if (NUPIC_BUILD_PYEXT_MODULES)
 
     # Note: swig_add_module outputs ${swig_generated_file_fullname}
     swig_add_module(${MODULE_NAME} python
-                    ${source_interface_file}
-                    ${src_py_support_object_list_gen})
+                    ${source_interface_file})
 
     set_source_files_properties(
       ${swig_generated_file_fullname} PROPERTIES
