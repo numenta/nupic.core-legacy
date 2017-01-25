@@ -577,7 +577,9 @@ set_target_properties(${src_executable_helloregion}
 # Setup prototest example
 #
 set(src_executable_prototest prototest)
-add_executable(${src_executable_prototest} examples/prototest.cpp)
+add_executable(${src_executable_prototest}
+               examples/prototest.cpp
+               ${src_py_support_object_list_gen})
 target_link_libraries(${src_executable_prototest} ${src_common_test_exe_libs})
 set_target_properties(${src_executable_prototest}
                       PROPERTIES COMPILE_FLAGS ${src_compile_flags})
@@ -588,7 +590,9 @@ set_target_properties(${src_executable_prototest}
 # Setup HelloSP_TP example
 #
 set(src_executable_hellosptp hello_sp_tp)
-add_executable(${src_executable_hellosptp} examples/algorithms/HelloSP_TP.cpp)
+add_executable(${src_executable_hellosptp}
+               examples/algorithms/HelloSP_TP.cpp
+               ${src_py_support_object_list_gen})
 target_link_libraries(${src_executable_hellosptp} ${src_common_test_exe_libs})
 set_target_properties(${src_executable_hellosptp}
                       PROPERTIES COMPILE_FLAGS ${src_compile_flags})
@@ -911,9 +915,8 @@ install(TARGETS
 
 # Install a copy of nupic_core shared lib into bin to facilitate running tests
 # in bin that depend on it.
-install(TARGETS
-        ${src_lib_shared_nupiccore}
-        LIBRARY DESTINATION bin)
+install(TARGETS ${src_lib_shared_nupiccore}
+        DESTINATION bin)
 
 
 install(DIRECTORY nupic/ DESTINATION include/nupic
