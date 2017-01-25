@@ -60,7 +60,7 @@ endif()
 #
 
 set(src_compile_flags "${INTERNAL_CXX_FLAGS_OPTIMIZED}")
-set(src_swig_generated_file_compile_flags "${EXTERNAL_CXX_FLAGS_OPTIMIZED}")
+set(src_swig_generated_file_compile_flags "${PYEXT_CXX_FLAGS_OPTIMIZED}")
 
 if(MINGW)
   # This is for GCC 4.8.x
@@ -302,15 +302,8 @@ message(STATUS "src_common_os_libs        = ${src_common_os_libs}")
 
 
 #
-# Setup a library of objects, generated from our own sources without py support
+# Setup a list of our own sources without py support
 #
-set(src_lib_object_nupiccore_internals nupic_core_internal_objects)
-
-# We use this generator value to add the nupic core internal objects to the
-# source lists of the modules that rely on them.
-set(src_nupiccore_internal_object_list_gen
-    "$<TARGET_OBJECTS:${src_lib_object_nupiccore_internals}>")
-
 set(src_nupiccore_internal_srcs
     nupic/algorithms/Anomaly.cpp
     nupic/algorithms/BitHistory.cpp
@@ -388,56 +381,11 @@ set(src_nupiccore_internal_srcs
 
 list(APPEND src_nupiccore_internal_srcs ${src_capnp_generated_srcs})
 
-set(src_lib_object_nupiccore_internals_compile_flags
+set(src_nupiccore_internals_compile_flags
     "${src_compile_flags} -I${src_numpy_core}/include")
 
 message(STATUS "src_compile_flags = ${src_compile_flags}")
-message(STATUS "src_lib_object_nupiccore_internals_compile_flags = ${src_lib_object_nupiccore_internals_compile_flags}")
-
-add_library(${src_lib_object_nupiccore_internals} OBJECT
-            ${src_nupiccore_internal_srcs})
-# nupic_core_solo sources depend on headers installed by these external projects
-add_dependencies(${src_lib_object_nupiccore_internals}
-                 ${YAML_CPP_STATIC_LIB_TARGET}
-                 ${YAML_STATIC_LIB_TARGET}
-                 ${APR1_STATIC_LIB_TARGET}
-                 ${APRUTIL1_STATIC_LIB_TARGET}
-                 ${Z_STATIC_LIB_TARGET})
-set_target_properties(${src_lib_object_nupiccore_internals} PROPERTIES COMPILE_FLAGS
-                      ${src_lib_object_nupiccore_internals_compile_flags})
-if(${NUPIC_IWYU})
-  # TODO: Create a target that doesn't include the generated capnp schema files
-  # since we don't want to run iwyu on them and iwyu can only be applied to
-  # CMake targets (not source files directly).
-  set_target_properties(${src_lib_object_nupiccore_internals}
-    PROPERTIES CXX_INCLUDE_WHAT_YOU_USE ${iwyu_path})
-endif()
-
-
-#
-# Create py_support "object" library that generates python support object files
-# for linking into python extensions and c++ tests that need it.
-#
-set(src_lib_py_support_objects py_support_objects)
-
-add_library(${src_lib_py_support_objects} OBJECT
-            ${src_py_support_files})
-add_dependencies(${src_lib_py_support_objects}
-                 ${src_lib_object_nupiccore_internals})
-set_target_properties(${src_lib_py_support_objects} PROPERTIES COMPILE_FLAGS
-                      ${src_lib_object_nupiccore_internals_compile_flags})
-if(${NUPIC_IWYU})
-  # TODO: Create a target that doesn't include the generated capnp schema files
-  # since we don't want to run iwyu on them and iwyu can only be applied to
-  # CMake targets (not source files directly).
-  set_target_properties(${src_lib_py_support_objects}
-    PROPERTIES CXX_INCLUDE_WHAT_YOU_USE ${iwyu_path})
-endif()
-
-# We use this generator value to add the python support objects to the
-# source lists of the modules that rely on them.
-set(src_py_support_object_list_gen
-    "$<TARGET_OBJECTS:${src_lib_py_support_objects}>")
+message(STATUS "src_nupiccore_internals_compile_flags = ${src_nupiccore_internals_compile_flags}")
 
 #
 # Create the nupic_core shared library containing nupic core internals (sans
@@ -468,11 +416,20 @@ if (NOT NUPIC_BUILD_PYEXT_MODULES)
   list(APPEND src_lib_shared_nupiccore_link_libraries ${PYTHON_LIBRARIES})
 endif()
 
-add_library(${src_lib_shared_nupiccore} SHARED
-            ${src_nupiccore_internal_object_list_gen})
+add_library(${src_lib_shared_nupiccore} SHARED ${src_nupiccore_internal_srcs})
 
 target_link_libraries(${src_lib_shared_nupiccore}
                       ${src_lib_shared_nupiccore_link_libraries})
+
+set_target_properties(${src_lib_shared_nupiccore} PROPERTIES COMPILE_FLAGS
+                      ${src_nupiccore_internals_compile_flags})
+if(${NUPIC_IWYU})
+  # TODO: Create a target that doesn't include the generated capnp schema files
+  # since we don't want to run iwyu on them and iwyu can only be applied to
+  # CMake targets (not source files directly).
+  set_target_properties(${src_lib_shared_nupiccore}
+    PROPERTIES CXX_INCLUDE_WHAT_YOU_USE ${iwyu_path})
+endif()
 
 if (NUPIC_BUILD_PYEXT_MODULES)
   # When building a shared lib for use by our pythone extensions, allow building
@@ -489,13 +446,46 @@ else()
 endif()
 
 if (APPLE)
-  set_target_properties(${src_lib_shared_nupiccore} PROPERTIES MACOSX_RPATH ON)
+  set_target_properties(${src_lib_shared_nupiccore} PROPERTIES MACOSX_RPATH OFF)
 endif()
 
 if (NUPIC_BUILD_PYEXT_MODULES AND PY_EXTENSIONS_DIR)
   set_target_properties(${src_lib_shared_nupiccore} PROPERTIES
                         LIBRARY_OUTPUT_DIRECTORY ${PY_EXTENSIONS_DIR})
 endif()
+
+
+
+#
+# Create py_support "object" library that generates python support object files
+# for linking into python extensions and c++ tests that need it.
+#
+set(src_lib_py_support_objects py_support_objects)
+
+add_library(${src_lib_py_support_objects} OBJECT
+            ${src_py_support_files})
+
+# We rely on artifacts from building of nupic_core shared lib (e.g.,
+# capnp schema C++ headers)
+add_dependencies(${src_lib_py_support_objects}
+                 ${src_lib_shared_nupiccore})
+
+set_target_properties(${src_lib_py_support_objects} PROPERTIES COMPILE_FLAGS
+                      ${src_nupiccore_internals_compile_flags})
+if(${NUPIC_IWYU})
+  # TODO: Create a target that doesn't include the generated capnp schema files
+  # since we don't want to run iwyu on them and iwyu can only be applied to
+  # CMake targets (not source files directly).
+  set_target_properties(${src_lib_py_support_objects}
+    PROPERTIES CXX_INCLUDE_WHAT_YOU_USE ${iwyu_path})
+endif()
+
+# We use this generator value to add the python support objects to the
+# source lists of the modules that rely on them.
+set(src_py_support_object_list_gen
+    "$<TARGET_OBJECTS:${src_lib_py_support_objects}>")
+
+
 
 #
 # Build tests of the nupic_core shared library
@@ -700,8 +690,6 @@ if (NUPIC_BUILD_PYEXT_MODULES)
 
   # Make sure the directory exists for the generated C++ files.
   file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/nupic/bindings)
-
-  # TODO ZZZ set COMPILE_FLAGS on swig targets
 
   # SWIG options from:
   # https://github.com/swig/swig/blob/master/Source/Modules/python.cxx#L111
@@ -919,6 +907,13 @@ install(TARGETS
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)
+
+# Install a copy of nupic_core shared lib into bin to facilitate running tests
+# in bin that depend on it.
+install(TARGETS
+        ${src_lib_shared_nupiccore}
+        LIBRARY DESTINATION bin)
+
 
 install(DIRECTORY nupic/ DESTINATION include/nupic
         FILES_MATCHING PATTERN "*.h*"

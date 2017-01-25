@@ -66,9 +66,12 @@
 #                      and shared libraries (DLLs) with optimizations that are
 #                      compatible with INTERNAL_CXX_FLAGS_OPTIMIZED
 #
+# PYEXT_CXX_FLAGS_OPTIMIZED: string of C++ flags with explicit optimization
+#                      flags for compiling python extension sources.
+#
 # PYEXT_LINKER_FLAGS_OPTIMIZED: string of linker flags for linking python extension
 #                      shared libraries (DLLs) with optimizations that are
-#                      compatible with EXTERNAL_CXX_FLAGS_OPTIMIZED.
+#                      compatible with PYEXT_CXX_FLAGS_OPTIMIZED.
 #
 # CMAKE_AR: Name of archiving tool (ar) for static libraries. See cmake documentation
 #
@@ -96,6 +99,7 @@ set(COMMON_COMPILER_DEFINITIONS_STR)
 set(INTERNAL_CXX_FLAGS_OPTIMIZED)
 set(INTERNAL_LINKER_FLAGS_OPTIMIZED)
 
+set(PYEXT_CXX_FLAGS_OPTIMIZED)
 set(PYEXT_LINKER_FLAGS_OPTIMIZED)
 
 set(EXTERNAL_C_FLAGS_UNOPTIMIZED)
@@ -237,6 +241,8 @@ set(cxx_flags_unoptimized "")
 set(shared_linker_flags_unoptimized "")
 set(fail_link_on_undefined_symbols_flags "")
 set(allow_link_with_undefined_symbols_flags "")
+set(cxx_hidden_vis_compile_flags "")
+set(shared_hidden_vis_compile_flags "")
 
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
   # MS Visual C
@@ -252,12 +258,10 @@ else()
   # LLVM Clang / Gnu GCC
   set(cxx_flags_unoptimized "${cxx_flags_unoptimized} ${stdlib_cxx} -std=c++11")
 
-  if (${NUPIC_BUILD_PYEXT_MODULES})
-    # Hide all symbols in DLLs except the ones with explicit visibility;
-    # see https://gcc.gnu.org/wiki/Visibility
-    set(cxx_flags_unoptimized "${cxx_flags_unoptimized} -fvisibility-inlines-hidden")
-    set(shared_compile_flags "${shared_compile_flags} -fvisibility=hidden")
-  endif()
+  # Hide all symbols in DLLs except the ones with explicit visibility;
+  # see https://gcc.gnu.org/wiki/Visibility
+  set(cxx_hidden_vis_compile_flags "${cxx_hidden_vis_compile_flags} -fvisibility-inlines-hidden")
+  set(shared_hidden_vis_compile_flags "${shared_hidden_vis_compile_flags} -fvisibility=hidden")
 
   set(shared_compile_flags "${shared_compile_flags} ${stdlib_common} -fdiagnostics-show-option")
   set (internal_compiler_warning_flags "${internal_compiler_warning_flags} -Werror -Wextra -Wreturn-type -Wunused -Wno-unused-variable -Wno-unused-parameter -Wno-missing-field-initializers")
@@ -370,15 +374,18 @@ set(INTERNAL_LINKER_FLAGS_OPTIMIZED "${complete_linker_flags_unoptimized} ${opti
 set(EXTERNAL_C_FLAGS_UNOPTIMIZED "${build_type_specific_compile_flags} ${shared_compile_flags} ${external_compiler_warning_flags}")
 set(EXTERNAL_C_FLAGS_OPTIMIZED "${EXTERNAL_C_FLAGS_UNOPTIMIZED} ${optimization_flags_cc}")
 
-set(PYEXT_LINKER_FLAGS_OPTIMIZED "${build_type_specific_linker_flags} ${shared_linker_flags_unoptimized}")
-set(PYEXT_LINKER_FLAGS_OPTIMIZED "${PYEXT_LINKER_FLAGS_OPTIMIZED} ${optimization_flags_lt}")
-set(PYEXT_LINKER_FLAGS_OPTIMIZED "${PYEXT_LINKER_FLAGS_OPTIMIZED} ${allow_link_with_undefined_symbols_flags}")
-
 set(EXTERNAL_CXX_FLAGS_UNOPTIMIZED "${build_type_specific_compile_flags} ${shared_compile_flags} ${external_compiler_warning_flags} ${cxx_flags_unoptimized}")
 set(EXTERNAL_CXX_FLAGS_OPTIMIZED "${EXTERNAL_CXX_FLAGS_UNOPTIMIZED} ${optimization_flags_cc}")
 
 set(EXTERNAL_LINKER_FLAGS_UNOPTIMIZED "${complete_linker_flags_unoptimized}")
 set(EXTERNAL_LINKER_FLAGS_OPTIMIZED "${INTERNAL_LINKER_FLAGS_OPTIMIZED}")
+
+set(PYEXT_CXX_FLAGS_OPTIMIZED "${EXTERNAL_CXX_FLAGS_OPTIMIZED} ${shared_hidden_vis_compile_flags}")
+set(PYEXT_CXX_FLAGS_OPTIMIZED "${PYEXT_CXX_FLAGS_OPTIMIZED} ${cxx_hidden_vis_compile_flags}")
+
+set(PYEXT_LINKER_FLAGS_OPTIMIZED "${build_type_specific_linker_flags} ${shared_linker_flags_unoptimized}")
+set(PYEXT_LINKER_FLAGS_OPTIMIZED "${PYEXT_LINKER_FLAGS_OPTIMIZED} ${optimization_flags_lt}")
+set(PYEXT_LINKER_FLAGS_OPTIMIZED "${PYEXT_LINKER_FLAGS_OPTIMIZED} ${allow_link_with_undefined_symbols_flags}")
 
 
 #
@@ -393,6 +400,7 @@ message(STATUS "INTERNAL_CXX_FLAGS_OPTIMIZED=${INTERNAL_CXX_FLAGS_OPTIMIZED}")
 message(STATUS "INTERNAL_LINKER_FLAGS_OPTIMIZED=${INTERNAL_LINKER_FLAGS_OPTIMIZED}")
 message(STATUS "EXTERNAL_C_FLAGS_UNOPTIMIZED=${EXTERNAL_C_FLAGS_UNOPTIMIZED}")
 message(STATUS "EXTERNAL_C_FLAGS_OPTIMIZED=${EXTERNAL_C_FLAGS_OPTIMIZED}")
+message(STATUS "PYEXT_CXX_FLAGS_OPTIMIZED=${PYEXT_CXX_FLAGS_OPTIMIZED}")
 message(STATUS "PYEXT_LINKER_FLAGS_OPTIMIZED=${PYEXT_LINKER_FLAGS_OPTIMIZED}")
 message(STATUS "EXTERNAL_CXX_FLAGS_UNOPTIMIZED=${EXTERNAL_CXX_FLAGS_UNOPTIMIZED}")
 message(STATUS "EXTERNAL_CXX_FLAGS_OPTIMIZED=${EXTERNAL_CXX_FLAGS_OPTIMIZED}")
