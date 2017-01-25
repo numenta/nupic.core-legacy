@@ -462,6 +462,11 @@ endif()
 #
 set(src_lib_py_support_objects py_support_objects)
 
+# We use this generator value to add the python support objects to the
+# source lists of the modules that rely on them.
+set(src_py_support_object_list_gen
+    "$<TARGET_OBJECTS:${src_lib_py_support_objects}>")
+
 add_library(${src_lib_py_support_objects} OBJECT
             ${src_py_support_files})
 
@@ -479,11 +484,6 @@ if(${NUPIC_IWYU})
   set_target_properties(${src_lib_py_support_objects}
     PROPERTIES CXX_INCLUDE_WHAT_YOU_USE ${iwyu_path})
 endif()
-
-# We use this generator value to add the python support objects to the
-# source lists of the modules that rely on them.
-set(src_py_support_object_list_gen
-    "$<TARGET_OBJECTS:${src_lib_py_support_objects}>")
 
 
 
@@ -546,7 +546,8 @@ add_custom_target(tests_py_region
 #
 set(src_executable_connectionsperformancetest connections_performance_test)
 add_executable(${src_executable_connectionsperformancetest}
-               test/integration/ConnectionsPerformanceTest.cpp)
+               test/integration/ConnectionsPerformanceTest.cpp
+               ${src_py_support_object_list_gen})
 target_link_libraries(${src_executable_connectionsperformancetest}
                       ${src_common_test_exe_libs})
 set_target_properties(${src_executable_connectionsperformancetest}
