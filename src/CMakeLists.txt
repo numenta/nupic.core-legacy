@@ -495,8 +495,8 @@ add_library(${src_lib_static_py_binding_support} STATIC
 
 # We rely on artifacts from building of nupic_core shared lib (e.g.,
 # capnp schema C++ headers)
-#add_dependencies(${src_lib_static_py_binding_support}
-#                 ${src_lib_shared_nupiccore})
+add_dependencies(${src_lib_static_py_binding_support}
+                 ${src_lib_shared_nupiccore})
 
 set_target_properties(${src_lib_static_py_binding_support} PROPERTIES COMPILE_FLAGS
                       ${src_nupiccore_internals_compile_flags})
