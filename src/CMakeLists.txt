@@ -446,8 +446,11 @@ add_library(${src_lib_shared_nupiccore} SHARED
 target_link_libraries(${src_lib_shared_nupiccore}
                       ${src_lib_shared_nupiccore_link_libraries})
 
+# NOTE We use INTERNAL_CXX_FLAGS_NO_HIDE to force visibility of symbols that
+# have default visibility. This is necessary for the Windows build, where
+# symbols default to hidden visibility.
 set_target_properties(${src_lib_shared_nupiccore} PROPERTIES COMPILE_FLAGS
-                      ${src_nupiccore_internals_compile_flags})
+                      "${src_nupiccore_internals_compile_flags} ${INTERNAL_CXX_FLAGS_NO_HIDE}")
 if(${NUPIC_IWYU})
   # TODO: Create a target that doesn't include the generated capnp schema files
   # since we don't want to run iwyu on them and iwyu can only be applied to
@@ -516,10 +519,10 @@ endif()
 
 # Common libs for test executables
 set(src_common_test_exe_libs
+    ${src_lib_static_py_binding_support}
     ${src_lib_shared_nupiccore}
     ${PYTHON_LIBRARIES}
-    ${src_common_os_libs}
-    ${src_lib_static_py_binding_support})
+    ${src_common_os_libs})
 
 # Add capnproto static lib to our C/C++ test apps when building python
 # extensions, since capnproto objects are excluded from nupic_core combined lib

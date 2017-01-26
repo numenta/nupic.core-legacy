@@ -62,6 +62,10 @@
 #
 # INTERNAL_CXX_FLAGS_OPTIMIZED: string of C++ flags with explicit optimization flags for internal sources
 #
+# INTERNAL_CXX_FLAGS_NO_HIDE: string of C++ flags that may be appended to
+#                      INTERNAL_CXX_FLAGS_NO_HIDE to force visibility of symbols
+#                      that have default visibility.
+#
 # INTERNAL_LINKER_FLAGS_OPTIMIZED: string of linker flags for linking internal executables
 #                      and shared libraries (DLLs) with optimizations that are
 #                      compatible with INTERNAL_CXX_FLAGS_OPTIMIZED
@@ -97,6 +101,7 @@ set(COMMON_COMPILER_DEFINITIONS)
 set(COMMON_COMPILER_DEFINITIONS_STR)
 
 set(INTERNAL_CXX_FLAGS_OPTIMIZED)
+set(INTERNAL_CXX_FLAGS_NO_HIDE)
 set(INTERNAL_LINKER_FLAGS_OPTIMIZED)
 
 set(PYEXT_CXX_FLAGS_OPTIMIZED)
@@ -243,6 +248,7 @@ set(fail_link_on_undefined_symbols_flags "")
 set(allow_link_with_undefined_symbols_flags "")
 set(cxx_hidden_vis_compile_flags "")
 set(shared_hidden_vis_compile_flags "")
+set(shared_default_to_vis_compile_flags "")
 
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
   # MS Visual C
@@ -262,6 +268,10 @@ else()
   # see https://gcc.gnu.org/wiki/Visibility
   set(cxx_hidden_vis_compile_flags "${cxx_hidden_vis_compile_flags} -fvisibility-inlines-hidden")
   set(shared_hidden_vis_compile_flags "${shared_hidden_vis_compile_flags} -fvisibility=hidden")
+
+  # Per https://gcc.gnu.org/onlinedocs/gcc-4.1.2/gcc/Code-Gen-Options.html:
+  # "Despite the nomenclature, default always means public"
+  set(shared_default_to_vis_compile_flags "${shared_default_to_vis_compile_flags} -fvisibility=default")
 
   set(shared_compile_flags "${shared_compile_flags} ${stdlib_common} -fdiagnostics-show-option")
   set (internal_compiler_warning_flags "${internal_compiler_warning_flags} -Werror -Wextra -Wreturn-type -Wunused -Wno-unused-variable -Wno-unused-parameter -Wno-missing-field-initializers")
@@ -363,6 +373,7 @@ endif()
 
 # Settings for internal nupic.core code
 set(INTERNAL_CXX_FLAGS_OPTIMIZED "${build_type_specific_compile_flags} ${shared_compile_flags} ${cxx_flags_unoptimized} ${internal_compiler_warning_flags} ${optimization_flags_cc}")
+set(INTERNAL_CXX_FLAGS_NO_HIDE "${shared_default_to_vis_compile_flags}")
 
 set(complete_linker_flags_unoptimized "${build_type_specific_linker_flags} ${shared_linker_flags_unoptimized}")
 set(complete_linker_flags_unoptimized "${complete_linker_flags_unoptimized} ${fail_link_on_undefined_symbols_flags}")
