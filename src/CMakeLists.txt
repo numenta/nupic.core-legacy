@@ -412,7 +412,19 @@ if (NOT NUPIC_BUILD_PYEXT_MODULES)
   # environment, add dependency on python lib to resolve python symbol
   # references (e.g., from PyRegion)
   list(APPEND src_lib_shared_nupiccore_link_libraries ${PYTHON_LIBRARIES})
+elseif("${PLATFORM}" STREQUAL "windows")
+  # NOTE Windows DLLs are shared executables with their own main; they require
+  # all symbols to resolve at link time, so we have to add libpython for this
+  # platform
+  #
+  # NOTE On Windows builds, we include capnproto because we
+  # presently build self-contained CAPNP_LITE on Windows, and Windows
+  # nupic/nupic.bindings presently have no dependency on pycapnp.
+  list(APPEND src_lib_shared_nupiccore_link_libraries
+       ${PYTHON_LIBRARIES}
+       ${CAPNP_STATIC_LIB_TARGET})
 endif()
+
 
 add_library(${src_lib_shared_nupiccore} SHARED
             ${src_nupiccore_internal_srcs}
