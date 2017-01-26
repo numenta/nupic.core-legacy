@@ -393,6 +393,17 @@ message(STATUS "src_nupiccore_internals_compile_flags = ${src_nupiccore_internal
 
 set(src_lib_shared_nupiccore nupic_core)
 
+# NOTE Non-Windows shared lib shouldn't be linking agains libpython;
+# symbols should be available automatically when python loads the extension.
+#
+# NOTE We don't link our non-Windows shared lib with capnproto static
+# lib in order to force runtime linkage to pycapnp's capnproto symbols thus
+# avoiding the conflict of executing the methods in our own
+# compilation of capnproto (different compiler/STL/version, flags, etc.) on
+# objects created by pycapnp's. We force runtime linking to pycapnp's
+# capnproto symbols by preloading the pycapnp extension in our extension
+# python proxy modules, thus avoiding the conflict from executing the methods
+# in our own compilation of capnproto on objects created by pycapnp's.
 set(src_lib_shared_nupiccore_link_libraries
     ${YAML_CPP_STATIC_LIB_TARGET}
     ${YAML_STATIC_LIB_TARGET}
@@ -424,6 +435,8 @@ elseif("${PLATFORM}" STREQUAL "windows")
        ${PYTHON_LIBRARIES}
        ${CAPNP_STATIC_LIB_TARGET})
 endif()
+
+list(APPEND src_lib_shared_nupiccore_link_libraries ${src_common_os_libs})
 
 
 add_library(${src_lib_shared_nupiccore} SHARED
@@ -751,9 +764,9 @@ if (NUPIC_BUILD_PYEXT_MODULES)
   # python proxy modules, thus avoiding the conflict from executing the methods
   # in our own compilation of capnproto on objects created by pycapnp's.
   set(_SRC_SWIG_LINK_LIBRARIES
+      ${src_lib_static_py_binding_support}
       ${src_lib_shared_nupiccore}
-      ${src_common_os_libs}
-      ${src_lib_static_py_binding_support})
+      ${src_common_os_libs})
 
   # Common dependencies for our python extensions for use with
   # SWIG_MODULE_name_EXTRA_DEPS
