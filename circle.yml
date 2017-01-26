@@ -15,20 +15,15 @@ machine:
     - ln -s ~/Library/Python/2.7/bin/virtualenv /usr/local/bin/virtualenv
 
 dependencies:
-  pre:
-    - cat ~/.circlerc
-    #- sed -i '' -e '$ d' ~/.circlerc
-    # Make sure that the user site-packages is first on the PATH
-    #- echo 'export PATH=$HOME/Library/Python/2.7/bin:$PATH' >> ~/.bash_profile
-    #- echo 'export PATH=$HOME/Library/Python/2.7/bin:$PATH' >> ~/.bashrc
   override:
-    - pip install --user --upgrade pip setuptools wheel
+    - curl --silent --show-error --retry 5 -O http://releases.numenta.org/pip/1ebd3cb7a5a3073058d0c9552ab074bd/get-pip.py
+    - python get-pip.py --user --upgrade --ignore-installed pip setuptools wheel
+    # Still don't get the user-installed version of pip, but this seems manageable.
     - pip --version
     - pip install --use-wheel --user -r bindings/py/requirements.txt --quiet || exit
     - pip install --user pycapnp==0.5.8
     - pip install --user pytest
 
-#database:
 compile:
   override:
     - mkdir -p build/scripts
