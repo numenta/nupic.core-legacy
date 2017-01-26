@@ -43,3 +43,6 @@ test:
     - echo $PATH
     - ls -la $HOME/Library/Python/2.7/bin/
     - py.test bindings/py/tests
+  post:
+    mv dist/*.whl $CIRCLE_ARTIFACTS/
+    ls -l $CIRCLE_ARTIFACTS/
