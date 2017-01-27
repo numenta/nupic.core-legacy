@@ -12,7 +12,8 @@ machine:
     PYBIN: "$HOME/Library/Python/2.7/bin"
   pre:
     - pip install --user --ignore-installed --upgrade --verbose virtualenv
-    - "[ ! -e /usr/local/bin/virtualenv ] && ln -s ~/Library/Python/2.7/bin/virtualenv /usr/local/bin/virtualenv"
+    # Link virtualenv to /usr/local/bin if it doesn't exist and always give exit status of 0.
+    - "([ ! -e /usr/local/bin/virtualenv ] && ln -s ~/Library/Python/2.7/bin/virtualenv /usr/local/bin/virtualenv) || true"
 
 dependencies:
   override:
