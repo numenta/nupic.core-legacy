@@ -12,7 +12,7 @@ machine:
     PYBIN: "$HOME/Library/Python/2.7/bin"
   pre:
     - pip install --user --ignore-installed --upgrade --verbose virtualenv
-    - "[ ! -d /usr/local/bin/virtualenv ] && ln -s ~/Library/Python/2.7/bin/virtualenv /usr/local/bin/virtualenv"
+    - "[ ! -e /usr/local/bin/virtualenv ] && ln -s ~/Library/Python/2.7/bin/virtualenv /usr/local/bin/virtualenv"
 
 dependencies:
   override:
