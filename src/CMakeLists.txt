@@ -546,11 +546,22 @@ set(src_common_test_exe_libs
     ${PYTHON_LIBRARIES}
     ${src_common_os_libs})
 
-# Add capnproto static lib to our C/C++ test apps when building python
+# Add capnproto lib to our C/C++ test apps when building python
 # extensions, since capnproto objects are excluded from nupic_core combined lib
 # to avoid conflict with capnproto methods compiled into the pycapnp extension
 if (NUPIC_BUILD_PYEXT_MODULES)
-  list(APPEND src_common_test_exe_libs ${CAPNP_STATIC_LIB_TARGET})
+  add_library("capnprotoshared" SHARED)
+  target_link_libraries("capnprotoshared" ${CAPNP_STATIC_LIB_TARGET})
+  set_target_properties("capnprotoshared" PROPERTIES LINK_FLAGS
+                        "${INTERNAL_LINKER_FLAGS_OPTIMIZED}")
+  if (APPLE)
+    set_target_properties("capnprotoshared" PROPERTIES MACOSX_RPATH ON)
+  endif()
+
+  install(TARGETS "capnprotoshared"
+          DESTINATION bin)
+
+  list(APPEND src_common_test_exe_libs "capnprotoshared")
 endif()
 
 message(STATUS "src_common_test_exe_libs = ${src_common_test_exe_libs}")
