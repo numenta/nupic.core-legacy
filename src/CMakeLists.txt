@@ -393,6 +393,19 @@ message(STATUS "src_nupiccore_internals_compile_flags = ${src_nupiccore_internal
 
 set(src_lib_shared_nupiccore nupic_core)
 
+# Define install_rpath for Unix systems (e.g., Apple and Linux); NOTE Windows
+# doesn't have the equivalent of rpath.
+if(UNIX)
+  # Set INSTALL_RPATH to the relocatable location where nupic_core shared
+  # lib may be found
+  if(APPLE)
+    set(_SRC_LIB_SHARED_NUPICCORE_INSTALL_RPATH "@loader_path")
+  else()
+    # non-apple Unix, such as Linux
+    set(_SRC_LIB_SHARED_NUPICCORE_INSTALL_RPATH "\$ORIGIN")
+  endif()
+endif()
+
 # NOTE Non-Windows shared lib shouldn't be linking agains libpython;
 # symbols should be available automatically when python loads the extension.
 #
@@ -474,12 +487,21 @@ else()
 endif()
 
 if (APPLE)
-  set_target_properties(${src_lib_shared_nupiccore} PROPERTIES MACOSX_RPATH OFF)
+  # Enable MACOSX_RPATH to use @rpath as install_name of this shared lib to
+  # allow client binary (app or lib) to locate it via the RPATH mechanism.
+  # This is specific to OS X; linux simply requires setting of RPATH in the
+  # client binary. NOTE The RPATH mechanism facilitates relocatable installation
+  # of packages.
+  set_target_properties(${src_lib_shared_nupiccore} PROPERTIES MACOSX_RPATH ON)
 endif()
 
 if (NUPIC_BUILD_PYEXT_MODULES AND PY_EXTENSIONS_DIR)
-  set_target_properties(${src_lib_shared_nupiccore} PROPERTIES
-                        LIBRARY_OUTPUT_DIRECTORY ${PY_EXTENSIONS_DIR})
+  # Request installtion into nupic.bindings's tree. We install it into the same
+  # directory as our extensions in order to facilitate relocatable loading on
+  # Windows, which doesn't support the RPATH mechanism.
+  install(TARGETS ${src_lib_shared_nupiccore}
+          DESTINATION ${PY_EXTENSIONS_DIR})
+
 endif()
 
 
@@ -543,6 +565,11 @@ add_executable(${src_executable_cppregiontest}
 target_link_libraries(${src_executable_cppregiontest} ${src_common_test_exe_libs})
 set_target_properties(${src_executable_cppregiontest} PROPERTIES COMPILE_FLAGS ${src_compile_flags})
 set_target_properties(${src_executable_cppregiontest} PROPERTIES LINK_FLAGS "${INTERNAL_LINKER_FLAGS_OPTIMIZED}")
+if(UNIX)
+  set_target_properties(
+    ${src_executable_cppregiontest} PROPERTIES
+    INSTALL_RPATH "${_SRC_LIB_SHARED_NUPICCORE_INSTALL_RPATH}")
+endif()
 add_custom_target(tests_cpp_region
                   COMMAND ${src_executable_cppregiontest}
                   DEPENDS ${src_executable_cppregiontest}
@@ -560,6 +587,11 @@ set_target_properties(${src_executable_pyregiontest}
                       PROPERTIES COMPILE_FLAGS ${src_compile_flags})
 set_target_properties(${src_executable_pyregiontest}
                       PROPERTIES LINK_FLAGS "${INTERNAL_LINKER_FLAGS_OPTIMIZED}")
+if(UNIX)
+  set_target_properties(
+    ${src_executable_pyregiontest} PROPERTIES
+    INSTALL_RPATH "${_SRC_LIB_SHARED_NUPICCORE_INSTALL_RPATH}")
+endif()
 add_custom_target(tests_py_region
                   COMMAND ${src_executable_pyregiontest}
                   DEPENDS ${src_executable_pyregiontest}
@@ -578,6 +610,11 @@ set_target_properties(${src_executable_connectionsperformancetest}
                       PROPERTIES COMPILE_FLAGS ${src_compile_flags})
 set_target_properties(${src_executable_connectionsperformancetest}
                       PROPERTIES LINK_FLAGS "${INTERNAL_LINKER_FLAGS_OPTIMIZED}")
+if(UNIX)
+  set_target_properties(
+    ${src_executable_connectionsperformancetest} PROPERTIES
+    INSTALL_RPATH "${_SRC_LIB_SHARED_NUPICCORE_INSTALL_RPATH}")
+endif()
 add_custom_target(tests_connections_performance
                   COMMAND ${src_executable_connectionsperformancetest}
                   DEPENDS ${src_executable_connectionsperformancetest}
@@ -595,6 +632,11 @@ set_target_properties(${src_executable_helloregion}
                       PROPERTIES COMPILE_FLAGS ${src_compile_flags})
 set_target_properties(${src_executable_helloregion}
                       PROPERTIES LINK_FLAGS "${INTERNAL_LINKER_FLAGS_OPTIMIZED}")
+if(UNIX)
+  set_target_properties(
+    ${src_executable_helloregion} PROPERTIES
+    INSTALL_RPATH "${_SRC_LIB_SHARED_NUPICCORE_INSTALL_RPATH}")
+endif()
 
 #
 # Setup prototest example
@@ -607,6 +649,11 @@ set_target_properties(${src_executable_prototest}
                       PROPERTIES COMPILE_FLAGS ${src_compile_flags})
 set_target_properties(${src_executable_prototest}
                       PROPERTIES LINK_FLAGS "${INTERNAL_LINKER_FLAGS_OPTIMIZED}")
+if(UNIX)
+  set_target_properties(
+    ${src_executable_prototest} PROPERTIES
+    INSTALL_RPATH "${_SRC_LIB_SHARED_NUPICCORE_INSTALL_RPATH}")
+endif()
 
 #
 # Setup HelloSP_TP example
@@ -619,6 +666,11 @@ set_target_properties(${src_executable_hellosptp}
                       PROPERTIES COMPILE_FLAGS ${src_compile_flags})
 set_target_properties(${src_executable_hellosptp}
                       PROPERTIES LINK_FLAGS "${INTERNAL_LINKER_FLAGS_OPTIMIZED}")
+if(UNIX)
+  set_target_properties(
+    ${src_executable_hellosptp} PROPERTIES
+    INSTALL_RPATH "${_SRC_LIB_SHARED_NUPICCORE_INSTALL_RPATH}")
+endif()
 
 
 #
@@ -681,6 +733,11 @@ target_link_libraries(${src_executable_gtests}
 set_target_properties(${src_executable_gtests}
                       PROPERTIES COMPILE_FLAGS ${src_compile_flags}
                                  LINK_FLAGS "${INTERNAL_LINKER_FLAGS_OPTIMIZED}")
+if(UNIX)
+  set_target_properties(
+    ${src_executable_gtests} PROPERTIES
+    INSTALL_RPATH "${_SRC_LIB_SHARED_NUPICCORE_INSTALL_RPATH}")
+endif()
 add_custom_target(tests_unit
                   COMMAND ${src_executable_gtests}
                   DEPENDS ${src_executable_gtests}
@@ -889,6 +946,13 @@ if (NUPIC_BUILD_PYEXT_MODULES)
 
     # If a path is specified, copy extensions files to proper location.
     if (PY_EXTENSIONS_DIR)
+      if(UNIX)
+        # NOTE Windows doesn't have the equivalent of rpath.
+        set_target_properties(
+          ${real_target} PROPERTIES
+          INSTALL_RPATH "${_SRC_LIB_SHARED_NUPICCORE_INSTALL_RPATH}")
+      endif()
+
       install(TARGETS
               ${real_target}
               LIBRARY DESTINATION ${PY_EXTENSIONS_DIR})
