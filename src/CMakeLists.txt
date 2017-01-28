@@ -58,13 +58,15 @@ endif()
 #
 # Linker options
 #
-if(MSVC)
-  set(_SRC_WHOLE_ARCHIVE_LINKER_OPTION "/WHOLEARCHIVE")
-elseif(APPLE)
-  set(_SRC_WHOLE_ARCHIVE_LINKER_OPTION "-all_load")
-else()
+if(APPLE)
+  set(_SRC_WHOLE_ARCHIVE_START "-Wl,-force_load")
+  set(_SRC_WHOLE_ARCHIVE_END)
+elseif(CMAKE_COMPILER_IS_GNUCXX)
   # Linux and MINGW
-  set(_SRC_WHOLE_ARCHIVE_LINKER_OPTION "-Wl,--whole-archive")
+  set(_SRC_WHOLE_ARCHIVE_START "-Wl,--whole-archive")
+  set(_SRC_WHOLE_ARCHIVE_END "-Wl,--no-whole-archive")
+else()
+  message (FATAL_ERROR "Unsupported compiler!")
 endif()
 
 
@@ -459,7 +461,9 @@ elseif("${PLATFORM}" STREQUAL "windows")
   # nupic/nupic.bindings presently have no dependency on pycapnp.
   list(APPEND _SRC_LIB_SHARED_NUPICCORE_LINK_LIBRARIES
        ${PYTHON_LIBRARIES}
-       ${CAPNP_STATIC_LIB_TARGET})
+       ${_SRC_WHOLE_ARCHIVE_START}
+       ${CAPNP_STATIC_LIB_TARGET}
+       ${_SRC_WHOLE_ARCHIVE_END})
 endif()
 
 list(APPEND _SRC_LIB_SHARED_NUPICCORE_LINK_LIBRARIES ${src_common_os_libs})
@@ -468,8 +472,8 @@ add_library(${_SRC_LIB_SHARED_NUPICCORE} SHARED
             ${_SRC_NUPICCORE_INTERNAL_SRCS}
             ${_SRC_CORE_PY_SUPPORT_SRCS})
 
-target_link_libraries(${_SRC_LIB_SHARED_NUPICCORE}
-                      PRIVATE ${_SRC_LIB_SHARED_NUPICCORE_LINK_LIBRARIES})
+target_link_libraries(${_SRC_LIB_SHARED_NUPICCORE} PRIVATE
+                      ${_SRC_LIB_SHARED_NUPICCORE_LINK_LIBRARIES})
 
 # NOTE We use INTERNAL_CXX_FLAGS_NO_HIDE to force visibility of symbols that
 # have default visibility. This is necessary for the Windows build, where
@@ -490,12 +494,12 @@ if (NUPIC_BUILD_PYEXT_MODULES)
   # that will be provided by the python runtime as well as capnproto symbols
   # that will be provided by pycapnp.
   set_target_properties(${_SRC_LIB_SHARED_NUPICCORE} PROPERTIES LINK_FLAGS
-                        "${PYEXT_LINKER_FLAGS_OPTIMIZED} ${_SRC_WHOLE_ARCHIVE_LINKER_OPTION}")
+                        "${PYEXT_LINKER_FLAGS_OPTIMIZED}")
 else()
   # When building a standalone shared library, specifically don't allow link
   # with undefined symbols
   set_target_properties(${_SRC_LIB_SHARED_NUPICCORE} PROPERTIES LINK_FLAGS
-                        "${INTERNAL_LINKER_FLAGS_OPTIMIZED} ${_SRC_WHOLE_ARCHIVE_LINKER_OPTION}")
+                        ${INTERNAL_LINKER_FLAGS_OPTIMIZED})
 endif()
 
 if (APPLE)
@@ -568,11 +572,14 @@ if (NUPIC_BUILD_PYEXT_MODULES)
   set_target_properties(${_SRC_LIB_SHARED_CAPNPROTO} PROPERTIES COMPILE_FLAGS
                         "${src_nupiccore_internals_compile_flags}")
 
-  target_link_libraries(${_SRC_LIB_SHARED_CAPNPROTO} PRIVATE ${CAPNP_STATIC_LIB_TARGET})
+  target_link_libraries(${_SRC_LIB_SHARED_CAPNPROTO} PRIVATE
+                        ${_SRC_WHOLE_ARCHIVE_START}
+                        ${CAPNP_STATIC_LIB_TARGET}
+                        ${_SRC_WHOLE_ARCHIVE_END})
 
   # Make sure the entire capnproto archive is added to the shared lib
   set_target_properties(${_SRC_LIB_SHARED_CAPNPROTO} PROPERTIES LINK_FLAGS
-                        "${INTERNAL_LINKER_FLAGS_OPTIMIZED} ${_SRC_WHOLE_ARCHIVE_LINKER_OPTION}")
+                        ${INTERNAL_LINKER_FLAGS_OPTIMIZED})
 
   if (APPLE)
     set_target_properties(${_SRC_LIB_SHARED_CAPNPROTO} PROPERTIES MACOSX_RPATH ON)
