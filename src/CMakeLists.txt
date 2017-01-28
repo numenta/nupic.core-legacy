@@ -56,6 +56,19 @@ endif()
 
 
 #
+# Linker options
+#
+if(MSVC)
+  set(_SRC_WHOLE_ARCHIVE_LINKER_OPTION "/WHOLEARCHIVE")
+elseif(APPLE)
+  set(_SRC_WHOLE_ARCHIVE_LINKER_OPTION "-all_load")
+else()
+  # Linux and MINGW
+  set(_SRC_WHOLE_ARCHIVE_LINKER_OPTION "--whole-archive")
+endif()
+
+
+#
 # Set up compile flags for internal sources and for swig-generated sources
 #
 
@@ -418,24 +431,24 @@ endif()
 # python proxy modules, thus avoiding the conflict from executing the methods
 # in our own compilation of capnproto on objects created by pycapnp's.
 set(src_lib_shared_nupiccore_link_libraries
-    ${YAML_CPP_STATIC_LIB_TARGET}
-    ${YAML_STATIC_LIB_TARGET}
-    ${APR1_STATIC_LIB_TARGET}
-    ${APRUTIL1_STATIC_LIB_TARGET}
-    ${Z_STATIC_LIB_TARGET})
+    PRIVATE ${YAML_CPP_STATIC_LIB_TARGET}
+    PRIVATE ${YAML_STATIC_LIB_TARGET}
+    PRIVATE ${APR1_STATIC_LIB_TARGET}
+    PRIVATE ${APRUTIL1_STATIC_LIB_TARGET}
+    PRIVATE ${Z_STATIC_LIB_TARGET})
 
 if (NOT NUPIC_BUILD_PYEXT_MODULES)
   # When building a standalone shared lib that will run without our python
   # extensions, add capnproto static lib. Our python extensions have their own
   # logic governing whether to include capnproto.
-  list(APPEND src_lib_shared_nupiccore_link_libraries ${CAPNP_STATIC_LIB_TARGET})
+  list(APPEND src_lib_shared_nupiccore_link_libraries "PRIVATE ${CAPNP_STATIC_LIB_TARGET}")
 endif()
 
 if (NOT NUPIC_BUILD_PYEXT_MODULES)
   # When building a standalone shared lib that will run outside the python
   # environment, add dependency on python lib to resolve python symbol
   # references (e.g., from PyRegion)
-  list(APPEND src_lib_shared_nupiccore_link_libraries ${PYTHON_LIBRARIES})
+  list(APPEND src_lib_shared_nupiccore_link_libraries "PRIVATE ${PYTHON_LIBRARIES}")
 elseif("${PLATFORM}" STREQUAL "windows")
   # NOTE Windows DLLs are shared executables with their own main; they require
   # all symbols to resolve at link time, so we have to add libpython for this
@@ -445,12 +458,11 @@ elseif("${PLATFORM}" STREQUAL "windows")
   # presently build self-contained CAPNP_LITE on Windows, and Windows
   # nupic/nupic.bindings presently have no dependency on pycapnp.
   list(APPEND src_lib_shared_nupiccore_link_libraries
-       ${PYTHON_LIBRARIES}
-       ${CAPNP_STATIC_LIB_TARGET})
+       "PRIVATE ${PYTHON_LIBRARIES}"
+       "PRIVATE ${CAPNP_STATIC_LIB_TARGET}")
 endif()
 
 list(APPEND src_lib_shared_nupiccore_link_libraries ${src_common_os_libs})
-
 
 add_library(${src_lib_shared_nupiccore} SHARED
             ${src_nupiccore_internal_srcs}
@@ -478,12 +490,12 @@ if (NUPIC_BUILD_PYEXT_MODULES)
   # that will be provided by the python runtime as well as capnproto symbols
   # that will be provided by pycapnp.
   set_target_properties(${src_lib_shared_nupiccore} PROPERTIES LINK_FLAGS
-                        "${PYEXT_LINKER_FLAGS_OPTIMIZED}")
+                        "${PYEXT_LINKER_FLAGS_OPTIMIZED} ${_SRC_WHOLE_ARCHIVE_LINKER_OPTION}")
 else()
   # When building a standalone shared library, specifically don't allow link
   # with undefined symbols
   set_target_properties(${src_lib_shared_nupiccore} PROPERTIES LINK_FLAGS
-                        "${INTERNAL_LINKER_FLAGS_OPTIMIZED}")
+                        "${INTERNAL_LINKER_FLAGS_OPTIMIZED} ${_SRC_WHOLE_ARCHIVE_LINKER_OPTION}")
 endif()
 
 if (APPLE)
@@ -547,21 +559,31 @@ set(src_common_test_exe_libs
     ${src_common_os_libs})
 
 # Add capnproto lib to our C/C++ test apps when building python
-# extensions, since capnproto objects are excluded from nupic_core combined lib
-# to avoid conflict with capnproto methods compiled into the pycapnp extension
+# extensions, since capnproto objects are excluded from nupic_core shared lib
+# in this case to avoid conflict with capnproto methods compiled into the
+# pycapnp extension
 if (NUPIC_BUILD_PYEXT_MODULES)
-  add_library("capnprotoshared" SHARED)
-  target_link_libraries("capnprotoshared" ${CAPNP_STATIC_LIB_TARGET})
-  set_target_properties("capnprotoshared" PROPERTIES LINK_FLAGS
-                        "${INTERNAL_LINKER_FLAGS_OPTIMIZED}")
+  set(_SRC_LIB_SHARED_CAPNPROTO capnproto_shared)
+  add_library(${_SRC_LIB_SHARED_CAPNPROTO} SHARED "empty.cpp")
+  set_target_properties(${_SRC_LIB_SHARED_CAPNPROTO} PROPERTIES COMPILE_FLAGS
+                        "${src_nupiccore_internals_compile_flags}")
+
+  target_link_libraries(${_SRC_LIB_SHARED_CAPNPROTO} PRIVATE ${CAPNP_STATIC_LIB_TARGET})
+
+  # Make sure the entire capnproto archive is added to the shared lib
+  set_target_properties(${_SRC_LIB_SHARED_CAPNPROTO} PROPERTIES LINK_FLAGS
+                        "${INTERNAL_LINKER_FLAGS_OPTIMIZED} ${_SRC_WHOLE_ARCHIVE_LINKER_OPTION}")
+
   if (APPLE)
-    set_target_properties("capnprotoshared" PROPERTIES MACOSX_RPATH ON)
+    set_target_properties(${_SRC_LIB_SHARED_CAPNPROTO} PROPERTIES MACOSX_RPATH ON)
   endif()
 
-  install(TARGETS "capnprotoshared"
+  install(TARGETS ${_SRC_LIB_SHARED_CAPNPROTO}
           DESTINATION bin)
 
-  list(APPEND src_common_test_exe_libs "capnprotoshared")
+  set(src_common_test_exe_libs
+      ${_SRC_LIB_SHARED_CAPNPROTO}
+      ${src_common_test_exe_libs})
 endif()
 
 message(STATUS "src_common_test_exe_libs = ${src_common_test_exe_libs}")
