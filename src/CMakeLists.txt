@@ -213,7 +213,7 @@ message(STATUS "PYTHON_LIBRARIES    = ${PYTHON_LIBRARIES}")
 # Source files that support Python-specific logic in nupic_core shared lib (e.g.,
 # PyRegion)
 #
-set(src_core_py_support_srcs
+set(_SRC_CORE_PY_SUPPORT_SRCS
     nupic/py_support/NumpyVector.cpp
     nupic/py_support/PyArray.cpp
     nupic/py_support/PyHelpers.cpp
@@ -222,7 +222,7 @@ set(src_core_py_support_srcs
 
 # pycapnp integration
 if(NOT "${PLATFORM}" STREQUAL "windows")
-  list(APPEND src_core_py_support_srcs nupic/py_support/CapnpToPycapnp.cpp)
+  list(APPEND _SRC_CORE_PY_SUPPORT_SRCS nupic/py_support/CapnpToPycapnp.cpp)
 
   # Add the pycapnp Python package headers to includes
   execute_process(
@@ -315,7 +315,7 @@ message(STATUS "src_common_os_libs        = ${src_common_os_libs}")
 #
 # Setup a list of our own sources without py support
 #
-set(src_nupiccore_internal_srcs
+set(_SRC_NUPICCORE_INTERNAL_SRCS
     nupic/algorithms/Anomaly.cpp
     nupic/algorithms/BitHistory.cpp
     nupic/algorithms/Cell.cpp
@@ -390,7 +390,7 @@ set(src_nupiccore_internal_srcs
     nupic/utils/TRandom.cpp
     nupic/utils/Watcher.cpp)
 
-list(APPEND src_nupiccore_internal_srcs ${src_capnp_generated_srcs})
+list(APPEND _SRC_NUPICCORE_INTERNAL_SRCS ${src_capnp_generated_srcs})
 
 set(src_nupiccore_internals_compile_flags
     "${src_compile_flags} -I${src_numpy_core}/include")
@@ -404,7 +404,7 @@ message(STATUS "src_nupiccore_internals_compile_flags = ${src_nupiccore_internal
 # python binding support) as well as our externals
 #
 
-set(src_lib_shared_nupiccore nupic_core)
+set(_SRC_LIB_SHARED_NUPICCORE nupic_core)
 
 # Define install_rpath for Unix systems (e.g., Apple and Linux); NOTE Windows
 # doesn't have the equivalent of rpath.
@@ -430,7 +430,7 @@ endif()
 # capnproto symbols by preloading the pycapnp extension in our extension
 # python proxy modules, thus avoiding the conflict from executing the methods
 # in our own compilation of capnproto on objects created by pycapnp's.
-set(src_lib_shared_nupiccore_link_libraries
+set(_SRC_LIB_SHARED_NUPICCORE_LINK_LIBRARIES
     ${YAML_CPP_STATIC_LIB_TARGET}
     ${YAML_STATIC_LIB_TARGET}
     ${APR1_STATIC_LIB_TARGET}
@@ -441,14 +441,14 @@ if (NOT NUPIC_BUILD_PYEXT_MODULES)
   # When building a standalone shared lib that will run without our python
   # extensions, add capnproto static lib. Our python extensions have their own
   # logic governing whether to include capnproto.
-  list(APPEND src_lib_shared_nupiccore_link_libraries ${CAPNP_STATIC_LIB_TARGET})
+  list(APPEND _SRC_LIB_SHARED_NUPICCORE_LINK_LIBRARIES ${CAPNP_STATIC_LIB_TARGET})
 endif()
 
 if (NOT NUPIC_BUILD_PYEXT_MODULES)
   # When building a standalone shared lib that will run outside the python
   # environment, add dependency on python lib to resolve python symbol
   # references (e.g., from PyRegion)
-  list(APPEND src_lib_shared_nupiccore_link_libraries ${PYTHON_LIBRARIES})
+  list(APPEND _SRC_LIB_SHARED_NUPICCORE_LINK_LIBRARIES ${PYTHON_LIBRARIES})
 elseif("${PLATFORM}" STREQUAL "windows")
   # NOTE Windows DLLs are shared executables with their own main; they require
   # all symbols to resolve at link time, so we have to add libpython for this
@@ -457,30 +457,30 @@ elseif("${PLATFORM}" STREQUAL "windows")
   # NOTE On Windows builds, we include capnproto because we
   # presently build self-contained CAPNP_LITE on Windows, and Windows
   # nupic/nupic.bindings presently have no dependency on pycapnp.
-  list(APPEND src_lib_shared_nupiccore_link_libraries
+  list(APPEND _SRC_LIB_SHARED_NUPICCORE_LINK_LIBRARIES
        ${PYTHON_LIBRARIES}
        ${CAPNP_STATIC_LIB_TARGET})
 endif()
 
-list(APPEND src_lib_shared_nupiccore_link_libraries ${src_common_os_libs})
+list(APPEND _SRC_LIB_SHARED_NUPICCORE_LINK_LIBRARIES ${src_common_os_libs})
 
-add_library(${src_lib_shared_nupiccore} SHARED
-            ${src_nupiccore_internal_srcs}
-            ${src_core_py_support_srcs})
+add_library(${_SRC_LIB_SHARED_NUPICCORE} SHARED
+            ${_SRC_NUPICCORE_INTERNAL_SRCS}
+            ${_SRC_CORE_PY_SUPPORT_SRCS})
 
-target_link_libraries(${src_lib_shared_nupiccore}
-                      PRIVATE ${src_lib_shared_nupiccore_link_libraries})
+target_link_libraries(${_SRC_LIB_SHARED_NUPICCORE}
+                      PRIVATE ${_SRC_LIB_SHARED_NUPICCORE_LINK_LIBRARIES})
 
 # NOTE We use INTERNAL_CXX_FLAGS_NO_HIDE to force visibility of symbols that
 # have default visibility. This is necessary for the Windows build, where
 # symbols default to hidden visibility.
-set_target_properties(${src_lib_shared_nupiccore} PROPERTIES COMPILE_FLAGS
+set_target_properties(${_SRC_LIB_SHARED_NUPICCORE} PROPERTIES COMPILE_FLAGS
                       "${src_nupiccore_internals_compile_flags} ${INTERNAL_CXX_FLAGS_NO_HIDE}")
 if(${NUPIC_IWYU})
   # TODO: Create a target that doesn't include the generated capnp schema files
   # since we don't want to run iwyu on them and iwyu can only be applied to
   # CMake targets (not source files directly).
-  set_target_properties(${src_lib_shared_nupiccore}
+  set_target_properties(${_SRC_LIB_SHARED_NUPICCORE}
     PROPERTIES CXX_INCLUDE_WHAT_YOU_USE ${iwyu_path})
 endif()
 
@@ -489,12 +489,12 @@ if (NUPIC_BUILD_PYEXT_MODULES)
   # without resolving all symbols. This addresses resolution of python symbols
   # that will be provided by the python runtime as well as capnproto symbols
   # that will be provided by pycapnp.
-  set_target_properties(${src_lib_shared_nupiccore} PROPERTIES LINK_FLAGS
+  set_target_properties(${_SRC_LIB_SHARED_NUPICCORE} PROPERTIES LINK_FLAGS
                         "${PYEXT_LINKER_FLAGS_OPTIMIZED} ${_SRC_WHOLE_ARCHIVE_LINKER_OPTION}")
 else()
   # When building a standalone shared library, specifically don't allow link
   # with undefined symbols
-  set_target_properties(${src_lib_shared_nupiccore} PROPERTIES LINK_FLAGS
+  set_target_properties(${_SRC_LIB_SHARED_NUPICCORE} PROPERTIES LINK_FLAGS
                         "${INTERNAL_LINKER_FLAGS_OPTIMIZED} ${_SRC_WHOLE_ARCHIVE_LINKER_OPTION}")
 endif()
 
@@ -504,14 +504,14 @@ if (APPLE)
   # This is specific to OS X; linux simply requires setting of RPATH in the
   # client binary. NOTE The RPATH mechanism facilitates relocatable installation
   # of packages.
-  set_target_properties(${src_lib_shared_nupiccore} PROPERTIES MACOSX_RPATH ON)
+  set_target_properties(${_SRC_LIB_SHARED_NUPICCORE} PROPERTIES MACOSX_RPATH ON)
 endif()
 
 if (NUPIC_BUILD_PYEXT_MODULES AND PY_EXTENSIONS_DIR)
   # Request installtion into nupic.bindings's tree. We install it into the same
   # directory as our extensions in order to facilitate relocatable loading on
   # Windows, which doesn't support the RPATH mechanism.
-  install(TARGETS ${src_lib_shared_nupiccore}
+  install(TARGETS ${_SRC_LIB_SHARED_NUPICCORE}
           DESTINATION ${PY_EXTENSIONS_DIR})
 
 endif()
@@ -533,7 +533,7 @@ add_library(${src_lib_static_py_binding_support} STATIC
 # We rely on artifacts from building of nupic_core shared lib (e.g.,
 # capnp schema C++ headers)
 add_dependencies(${src_lib_static_py_binding_support}
-                 ${src_lib_shared_nupiccore})
+                 ${_SRC_LIB_SHARED_NUPICCORE})
 
 set_target_properties(${src_lib_static_py_binding_support} PROPERTIES COMPILE_FLAGS
                       ${src_nupiccore_internals_compile_flags})
@@ -554,7 +554,7 @@ endif()
 # Common libs for test executables
 set(src_common_test_exe_libs
     ${src_lib_static_py_binding_support}
-    ${src_lib_shared_nupiccore}
+    ${_SRC_LIB_SHARED_NUPICCORE}
     ${PYTHON_LIBRARIES}
     ${src_common_os_libs})
 
@@ -858,7 +858,7 @@ if (NUPIC_BUILD_PYEXT_MODULES)
   # in our own compilation of capnproto on objects created by pycapnp's.
   set(_SRC_SWIG_LINK_LIBRARIES
       ${src_lib_static_py_binding_support}
-      ${src_lib_shared_nupiccore}
+      ${_SRC_LIB_SHARED_NUPICCORE}
       ${src_common_os_libs})
 
   # Common dependencies for our python extensions for use with
@@ -1017,7 +1017,7 @@ endif() # NUPIC_BUILD_PYEXT_MODULES
 # Install targets into CMAKE_INSTALL_PREFIX
 #
 install(TARGETS
-        ${src_lib_shared_nupiccore}
+        ${_SRC_LIB_SHARED_NUPICCORE}
         ${src_lib_static_gtest}
         ${src_executable_helloregion}
         ${src_executable_cppregiontest}
@@ -1032,7 +1032,7 @@ install(TARGETS
 
 # Install a copy of nupic_core shared lib into bin to facilitate running tests
 # in bin that depend on it.
-install(TARGETS ${src_lib_shared_nupiccore}
+install(TARGETS ${_SRC_LIB_SHARED_NUPICCORE}
         DESTINATION bin)
 
 
