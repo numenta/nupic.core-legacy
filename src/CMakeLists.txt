@@ -64,7 +64,7 @@ elseif(APPLE)
   set(_SRC_WHOLE_ARCHIVE_LINKER_OPTION "-all_load")
 else()
   # Linux and MINGW
-  set(_SRC_WHOLE_ARCHIVE_LINKER_OPTION "--whole-archive")
+  set(_SRC_WHOLE_ARCHIVE_LINKER_OPTION "-Wl,--whole-archive")
 endif()
 
 
