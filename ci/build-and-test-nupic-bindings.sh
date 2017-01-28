@@ -141,7 +141,6 @@ pip install ${PIP_USER} \
 
 # Run the nupic.core c++ tests
 cd ${NUPIC_CORE_ROOT}/build/release/bin
-ls # ZZZ checking for presence of libnupic_core.so to debug no such file or directory error on Bamboo build
 ./cpp_region_test
 ./py_region_test
 ./unit_tests

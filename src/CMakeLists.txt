@@ -213,7 +213,7 @@ message(STATUS "PYTHON_LIBRARIES    = ${PYTHON_LIBRARIES}")
 # Source files that support Python-specific logic in nupic_core shared lib (e.g.,
 # PyRegion)
 #
-set(src_core_py_support_sources
+set(src_core_py_support_srcs
     nupic/py_support/NumpyVector.cpp
     nupic/py_support/PyArray.cpp
     nupic/py_support/PyHelpers.cpp
@@ -222,7 +222,7 @@ set(src_core_py_support_sources
 
 # pycapnp integration
 if(NOT "${PLATFORM}" STREQUAL "windows")
-  list(APPEND src_core_py_support_sources nupic/py_support/CapnpToPycapnp.cpp)
+  list(APPEND src_core_py_support_srcs nupic/py_support/CapnpToPycapnp.cpp)
 
   # Add the pycapnp Python package headers to includes
   execute_process(
@@ -431,24 +431,24 @@ endif()
 # python proxy modules, thus avoiding the conflict from executing the methods
 # in our own compilation of capnproto on objects created by pycapnp's.
 set(src_lib_shared_nupiccore_link_libraries
-    PRIVATE ${YAML_CPP_STATIC_LIB_TARGET}
-    PRIVATE ${YAML_STATIC_LIB_TARGET}
-    PRIVATE ${APR1_STATIC_LIB_TARGET}
-    PRIVATE ${APRUTIL1_STATIC_LIB_TARGET}
-    PRIVATE ${Z_STATIC_LIB_TARGET})
+    ${YAML_CPP_STATIC_LIB_TARGET}
+    ${YAML_STATIC_LIB_TARGET}
+    ${APR1_STATIC_LIB_TARGET}
+    ${APRUTIL1_STATIC_LIB_TARGET}
+    ${Z_STATIC_LIB_TARGET})
 
 if (NOT NUPIC_BUILD_PYEXT_MODULES)
   # When building a standalone shared lib that will run without our python
   # extensions, add capnproto static lib. Our python extensions have their own
   # logic governing whether to include capnproto.
-  list(APPEND src_lib_shared_nupiccore_link_libraries "PRIVATE ${CAPNP_STATIC_LIB_TARGET}")
+  list(APPEND src_lib_shared_nupiccore_link_libraries ${CAPNP_STATIC_LIB_TARGET})
 endif()
 
 if (NOT NUPIC_BUILD_PYEXT_MODULES)
   # When building a standalone shared lib that will run outside the python
   # environment, add dependency on python lib to resolve python symbol
   # references (e.g., from PyRegion)
-  list(APPEND src_lib_shared_nupiccore_link_libraries "PRIVATE ${PYTHON_LIBRARIES}")
+  list(APPEND src_lib_shared_nupiccore_link_libraries ${PYTHON_LIBRARIES})
 elseif("${PLATFORM}" STREQUAL "windows")
   # NOTE Windows DLLs are shared executables with their own main; they require
   # all symbols to resolve at link time, so we have to add libpython for this
@@ -458,18 +458,18 @@ elseif("${PLATFORM}" STREQUAL "windows")
   # presently build self-contained CAPNP_LITE on Windows, and Windows
   # nupic/nupic.bindings presently have no dependency on pycapnp.
   list(APPEND src_lib_shared_nupiccore_link_libraries
-       "PRIVATE ${PYTHON_LIBRARIES}"
-       "PRIVATE ${CAPNP_STATIC_LIB_TARGET}")
+       ${PYTHON_LIBRARIES}
+       ${CAPNP_STATIC_LIB_TARGET})
 endif()
 
 list(APPEND src_lib_shared_nupiccore_link_libraries ${src_common_os_libs})
 
 add_library(${src_lib_shared_nupiccore} SHARED
             ${src_nupiccore_internal_srcs}
-            ${src_core_py_support_sources})
+            ${src_core_py_support_srcs})
 
 target_link_libraries(${src_lib_shared_nupiccore}
-                      ${src_lib_shared_nupiccore_link_libraries})
+                      PRIVATE ${src_lib_shared_nupiccore_link_libraries})
 
 # NOTE We use INTERNAL_CXX_FLAGS_NO_HIDE to force visibility of symbols that
 # have default visibility. This is necessary for the Windows build, where
@@ -521,14 +521,14 @@ endif()
 #
 # Archive that supports Python extensions (also included in our C++ tests)
 #
-set(src_py_binding_support_sources
+set(src_py_binding_support_srcs
     nupic/py_support/PythonStream.cpp
     nupic/bindings/PySparseTensor.cpp)
 
 set(src_lib_static_py_binding_support py_binding_support_archive)
 
 add_library(${src_lib_static_py_binding_support} STATIC
-            ${src_py_binding_support_sources})
+            ${src_py_binding_support_srcs})
 
 # We rely on artifacts from building of nupic_core shared lib (e.g.,
 # capnp schema C++ headers)
