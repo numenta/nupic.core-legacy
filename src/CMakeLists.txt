@@ -58,11 +58,11 @@ endif()
 #
 # Linker options
 #
-if(${APPLE)
+if(${APPLE})
   set(_SRC_WHOLE_ARCHIVE_START "-Wl,-force_load")
   set(_SRC_WHOLE_ARCHIVE_END)
 elseif(CMAKE_COMPILER_IS_GNUCXX OR "${PLATFORM}" STREQUAL "linux")
-  # Linux and MINGW
+  # MINGW or any compiler on linux
   set(_SRC_WHOLE_ARCHIVE_START "-Wl,--whole-archive")
   set(_SRC_WHOLE_ARCHIVE_END "-Wl,--no-whole-archive")
 else()
