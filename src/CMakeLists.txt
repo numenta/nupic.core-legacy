@@ -58,15 +58,15 @@ endif()
 #
 # Linker options
 #
-if(APPLE)
+if(${APPLE)
   set(_SRC_WHOLE_ARCHIVE_START "-Wl,-force_load")
   set(_SRC_WHOLE_ARCHIVE_END)
-elseif(CMAKE_COMPILER_IS_GNUCXX)
+elseif(CMAKE_COMPILER_IS_GNUCXX OR "${PLATFORM}" STREQUAL "linux")
   # Linux and MINGW
   set(_SRC_WHOLE_ARCHIVE_START "-Wl,--whole-archive")
   set(_SRC_WHOLE_ARCHIVE_END "-Wl,--no-whole-archive")
 else()
-  message (FATAL_ERROR "Unsupported compiler!")
+  message (FATAL_ERROR "Unsupported compiler! CMAKE_CXX_COMPILER_ID=${CMAKE_CXX_COMPILER_ID}")
 endif()
 
 
@@ -576,7 +576,7 @@ if (NUPIC_BUILD_PYEXT_MODULES)
                         ${_SRC_WHOLE_ARCHIVE_START}
                         ${CAPNP_STATIC_LIB_TARGET}
                         ${_SRC_WHOLE_ARCHIVE_END}
-                        src_common_os_libs)
+                        ${src_common_os_libs})
 
   # Make sure the entire capnproto archive is added to the shared lib
   set_target_properties(${_SRC_LIB_SHARED_CAPNPROTO} PROPERTIES LINK_FLAGS
