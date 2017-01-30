@@ -575,7 +575,8 @@ if (NUPIC_BUILD_PYEXT_MODULES)
   target_link_libraries(${_SRC_LIB_SHARED_CAPNPROTO} PRIVATE
                         ${_SRC_WHOLE_ARCHIVE_START}
                         ${CAPNP_STATIC_LIB_TARGET}
-                        ${_SRC_WHOLE_ARCHIVE_END})
+                        ${_SRC_WHOLE_ARCHIVE_END}
+                        src_common_os_libs)
 
   # Make sure the entire capnproto archive is added to the shared lib
   set_target_properties(${_SRC_LIB_SHARED_CAPNPROTO} PROPERTIES LINK_FLAGS
