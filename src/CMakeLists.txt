@@ -58,13 +58,16 @@ endif()
 #
 # Linker options
 #
-if(${APPLE})
+if(APPLE)
   set(_SRC_WHOLE_ARCHIVE_START "-Wl,-force_load")
   set(_SRC_WHOLE_ARCHIVE_END)
-elseif(CMAKE_COMPILER_IS_GNUCXX OR "${PLATFORM}" STREQUAL "linux")
-  # MINGW or any compiler on linux
-  set(_SRC_WHOLE_ARCHIVE_START "-Wl,--whole-archive")
-  set(_SRC_WHOLE_ARCHIVE_END "-Wl,--no-whole-archive")
+elseif(WIN32)
+  set(_SRC_WHOLE_ARCHIVE_START "/WHOLEARCHIVE:")
+  set(_SRC_WHOLE_ARCHIVE_END)
+elseif("${PLATFORM}" STREQUAL "linux")
+  # Any compiler on linux
+  set(_SRC_WHOLE_ARCHIVE_START "-Wl,--whole-archive ")
+  set(_SRC_WHOLE_ARCHIVE_END " -Wl,--no-whole-archive")
 else()
   message (FATAL_ERROR "Unsupported compiler! CMAKE_CXX_COMPILER_ID=${CMAKE_CXX_COMPILER_ID}")
 endif()
@@ -461,12 +464,13 @@ elseif("${PLATFORM}" STREQUAL "windows")
   # nupic/nupic.bindings presently have no dependency on pycapnp.
   list(APPEND _SRC_LIB_SHARED_NUPICCORE_LINK_LIBRARIES
        ${PYTHON_LIBRARIES}
-       ${_SRC_WHOLE_ARCHIVE_START}
-       ${CAPNP_STATIC_LIB_TARGET}
-       ${_SRC_WHOLE_ARCHIVE_END})
+       ${_SRC_WHOLE_ARCHIVE_START}${CAPNP_STATIC_LIB_TARGET}${_SRC_WHOLE_ARCHIVE_END})
 endif()
 
 list(APPEND _SRC_LIB_SHARED_NUPICCORE_LINK_LIBRARIES ${src_common_os_libs})
+
+message(STATUS "_SRC_LIB_SHARED_NUPICCORE_LINK_LIBRARIES = ${_SRC_LIB_SHARED_NUPICCORE_LINK_LIBRARIES}")
+
 
 add_library(${_SRC_LIB_SHARED_NUPICCORE} SHARED
             ${_SRC_NUPICCORE_INTERNAL_SRCS}
@@ -572,11 +576,15 @@ if (NUPIC_BUILD_PYEXT_MODULES)
   set_target_properties(${_SRC_LIB_SHARED_CAPNPROTO} PROPERTIES COMPILE_FLAGS
                         "${src_nupiccore_internals_compile_flags}")
 
-  target_link_libraries(${_SRC_LIB_SHARED_CAPNPROTO} PRIVATE
-                        ${_SRC_WHOLE_ARCHIVE_START}
-                        ${CAPNP_STATIC_LIB_TARGET}
-                        ${_SRC_WHOLE_ARCHIVE_END}
-                        ${src_common_os_libs})
+  set(_SRC_SHARED_CAPNPROTO_LIBS
+      ${_SRC_WHOLE_ARCHIVE_START}${CAPNP_STATIC_LIB_TARGET}${_SRC_WHOLE_ARCHIVE_END}
+      ${src_common_os_libs})
+
+  message(STATUS "_SRC_SHARED_CAPNPROTO_LIBS = ${_SRC_SHARED_CAPNPROTO_LIBS}")
+
+  target_link_libraries(
+    ${_SRC_LIB_SHARED_CAPNPROTO} PRIVATE
+    ${_SRC_SHARED_CAPNPROTO_LIBS})
 
   # Make sure the entire capnproto archive is added to the shared lib
   set_target_properties(${_SRC_LIB_SHARED_CAPNPROTO} PROPERTIES LINK_FLAGS
