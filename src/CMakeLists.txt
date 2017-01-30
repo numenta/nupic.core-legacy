@@ -59,15 +59,17 @@ endif()
 # Linker options
 #
 if(APPLE)
+  # Any compiler on OS X
   set(_SRC_WHOLE_ARCHIVE_START "-Wl,-force_load")
   set(_SRC_WHOLE_ARCHIVE_END)
 elseif(WIN32)
+  # Any compiler on Windows
   set(_SRC_WHOLE_ARCHIVE_START "/WHOLEARCHIVE:")
   set(_SRC_WHOLE_ARCHIVE_END)
 elseif("${PLATFORM}" STREQUAL "linux")
-  # Any compiler on linux
-  set(_SRC_WHOLE_ARCHIVE_START "-Wl,--whole-archive ")
-  set(_SRC_WHOLE_ARCHIVE_END " -Wl,--no-whole-archive")
+  # Any compiler on Linux
+  set(_SRC_WHOLE_ARCHIVE_START "-Wl,--whole-archive")
+  set(_SRC_WHOLE_ARCHIVE_END "-Wl,--no-whole-archive")
 else()
   message (FATAL_ERROR "Unsupported compiler! CMAKE_CXX_COMPILER_ID=${CMAKE_CXX_COMPILER_ID}")
 endif()
@@ -459,12 +461,14 @@ elseif("${PLATFORM}" STREQUAL "windows")
   # all symbols to resolve at link time, so we have to add libpython for this
   # platform
   #
-  # NOTE On Windows builds, we include capnproto because we
-  # presently build self-contained CAPNP_LITE on Windows, and Windows
-  # nupic/nupic.bindings presently have no dependency on pycapnp.
+  # NOTE On Windows builds, we include capnproto because we presently build
+  # self-contained CAPNP_LITE on Windows, and Windows nupic/nupic.bindings
+  # presently have no dependency on pycapnp.
   list(APPEND _SRC_LIB_SHARED_NUPICCORE_LINK_LIBRARIES
        ${PYTHON_LIBRARIES}
-       ${_SRC_WHOLE_ARCHIVE_START}${CAPNP_STATIC_LIB_TARGET}${_SRC_WHOLE_ARCHIVE_END})
+       ${_SRC_WHOLE_ARCHIVE_START}
+       ${CAPNP_STATIC_LIB_TARGET}
+       ${_SRC_WHOLE_ARCHIVE_END})
 endif()
 
 list(APPEND _SRC_LIB_SHARED_NUPICCORE_LINK_LIBRARIES ${src_common_os_libs})
@@ -567,17 +571,19 @@ set(src_common_test_exe_libs
     ${src_common_os_libs})
 
 # Add capnproto lib to our C/C++ test apps when building python
-# extensions, since capnproto objects are excluded from nupic_core shared lib
-# in this case to avoid conflict with capnproto methods compiled into the
-# pycapnp extension
-if (NUPIC_BUILD_PYEXT_MODULES)
+# extensions, since capnproto objects are excluded from non-Nindows nupic_core
+# shared lib in this case to avoid conflict with capnproto methods compiled into
+# the pycapnp extension
+if (NUPIC_BUILD_PYEXT_MODULES AND NOT WIN32)
   set(_SRC_LIB_SHARED_CAPNPROTO capnproto_shared)
   add_library(${_SRC_LIB_SHARED_CAPNPROTO} SHARED "empty.cpp")
   set_target_properties(${_SRC_LIB_SHARED_CAPNPROTO} PROPERTIES COMPILE_FLAGS
                         "${src_nupiccore_internals_compile_flags}")
 
   set(_SRC_SHARED_CAPNPROTO_LIBS
-      ${_SRC_WHOLE_ARCHIVE_START}${CAPNP_STATIC_LIB_TARGET}${_SRC_WHOLE_ARCHIVE_END}
+      ${_SRC_WHOLE_ARCHIVE_START}
+      ${CAPNP_STATIC_LIB_TARGET}
+      ${_SRC_WHOLE_ARCHIVE_END}
       ${src_common_os_libs})
 
   message(STATUS "_SRC_SHARED_CAPNPROTO_LIBS = ${_SRC_SHARED_CAPNPROTO_LIBS}")
