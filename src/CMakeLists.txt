@@ -454,7 +454,7 @@ if (NOT NUPIC_BUILD_PYEXT_MODULES)
   # environment, add dependency on python lib to resolve python symbol
   # references (e.g., from PyRegion)
   list(APPEND _SRC_LIB_SHARED_NUPICCORE_LINK_LIBRARIES ${PYTHON_LIBRARIES})
-elseif("${PLATFORM}" STREQUAL "windows")
+elseif(WIN32)
   # NOTE Windows DLLs are shared executables with their own main; they require
   # all symbols to resolve at link time, so we have to add libpython for this
   # platform
@@ -464,7 +464,9 @@ elseif("${PLATFORM}" STREQUAL "windows")
   # nupic/nupic.bindings presently have no dependency on pycapnp.
   list(APPEND _SRC_LIB_SHARED_NUPICCORE_LINK_LIBRARIES
        ${PYTHON_LIBRARIES}
-       ${_SRC_WHOLE_ARCHIVE_START}${CAPNP_STATIC_LIB_TARGET}${_SRC_WHOLE_ARCHIVE_END})
+       ${_SRC_WHOLE_ARCHIVE_START}
+       ${CAPNP_STATIC_LIB_TARGET}
+       ${_SRC_WHOLE_ARCHIVE_END})
 endif()
 
 list(APPEND _SRC_LIB_SHARED_NUPICCORE_LINK_LIBRARIES ${src_common_os_libs})
@@ -492,19 +494,29 @@ if(${NUPIC_IWYU})
     PROPERTIES CXX_INCLUDE_WHAT_YOU_USE ${iwyu_path})
 endif()
 
+set(_SRC_SHARED_NUPIC_CORE_LINK_FLAGS)
+
 if (NUPIC_BUILD_PYEXT_MODULES)
   # When building a shared lib for use by our pythone extensions, allow building
   # without resolving all symbols. This addresses resolution of python symbols
   # that will be provided by the python runtime as well as capnproto symbols
   # that will be provided by pycapnp.
-  set_target_properties(${_SRC_LIB_SHARED_NUPICCORE} PROPERTIES LINK_FLAGS
-                        "${PYEXT_LINKER_FLAGS_OPTIMIZED}")
+  set(_SRC_SHARED_NUPICCORE_LINK_FLAGS
+      "${_SRC_SHARED_NUPICCORE_LINK_FLAGS} ${PYEXT_LINKER_FLAGS_OPTIMIZED}")
 else()
   # When building a standalone shared library, specifically don't allow link
   # with undefined symbols
-  set_target_properties(${_SRC_LIB_SHARED_NUPICCORE} PROPERTIES LINK_FLAGS
-                        ${INTERNAL_LINKER_FLAGS_OPTIMIZED})
+  set(_SRC_SHARED_NUPICCORE_LINK_FLAGS
+      "${_SRC_SHARED_NUPICCORE_LINK_FLAGS} ${INTERNAL_LINKER_FLAGS_OPTIMIZED}")
 endif()
+
+if(CMAKE_COMPILER_IS_GNUCXX)
+  set(_SRC_SHARED_NUPICCORE_LINK_FLAGS
+      "${_SRC_SHARED_NUPICCORE_LINK_FLAGS} --export-all-symbols")
+endif()
+
+set_target_properties(${_SRC_LIB_SHARED_NUPICCORE} PROPERTIES LINK_FLAGS
+                      ${_SRC_SHARED_NUPICCORE_LINK_FLAGS})
 
 if (APPLE)
   # Enable MACOSX_RPATH to use @rpath as install_name of this shared lib to
@@ -566,18 +578,20 @@ set(src_common_test_exe_libs
     ${PYTHON_LIBRARIES}
     ${src_common_os_libs})
 
-# Add capnproto lib to our C/C++ test apps when building python
+# Add capnproto lib to our C/C++ test apps when building non-Windows python
 # extensions, since capnproto objects are excluded from nupic_core shared lib
 # in this case to avoid conflict with capnproto methods compiled into the
 # pycapnp extension
-if (NUPIC_BUILD_PYEXT_MODULES)
+if (NUPIC_BUILD_PYEXT_MODULES AND NOT WIN32)
   set(_SRC_LIB_SHARED_CAPNPROTO capnproto_shared)
   add_library(${_SRC_LIB_SHARED_CAPNPROTO} SHARED "empty.cpp")
   set_target_properties(${_SRC_LIB_SHARED_CAPNPROTO} PROPERTIES COMPILE_FLAGS
                         "${src_nupiccore_internals_compile_flags}")
 
   set(_SRC_SHARED_CAPNPROTO_LIBS
-      ${_SRC_WHOLE_ARCHIVE_START}${CAPNP_STATIC_LIB_TARGET}${_SRC_WHOLE_ARCHIVE_END}
+      ${_SRC_WHOLE_ARCHIVE_START}
+      ${CAPNP_STATIC_LIB_TARGET}
+      ${_SRC_WHOLE_ARCHIVE_END}
       ${src_common_os_libs})
 
   message(STATUS "_SRC_SHARED_CAPNPROTO_LIBS = ${_SRC_SHARED_CAPNPROTO_LIBS}")
