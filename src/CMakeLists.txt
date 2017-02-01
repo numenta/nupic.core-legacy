@@ -64,7 +64,7 @@ if(MSVC)
 elseif(APPLE)
   set(_SRC_WHOLE_ARCHIVE_START "-Wl,-force_load")
   set(_SRC_WHOLE_ARCHIVE_END)
-elseif((CMAKE_COMPILER_IS_GNUCXX AND WIN32) OR "${PLATFORM}" STREQUAL "linux")
+elseif(MINGW OR "${PLATFORM}" STREQUAL "linux")
   # GNU on Windows (e.g. MINGW) or any compiler on linux
   set(_SRC_WHOLE_ARCHIVE_START "-Wl,--whole-archive")
   set(_SRC_WHOLE_ARCHIVE_END "-Wl,--no-whole-archive")
@@ -442,14 +442,12 @@ set(_SRC_LIB_SHARED_NUPICCORE_LINK_LIBRARIES
     ${APRUTIL1_STATIC_LIB_TARGET}
     ${Z_STATIC_LIB_TARGET})
 
-if (NOT NUPIC_BUILD_PYEXT_MODULES)
+if(NOT NUPIC_BUILD_PYEXT_MODULES)
   # When building a standalone shared lib that will run without our python
   # extensions, add capnproto static lib. Our python extensions have their own
   # logic governing whether to include capnproto.
   list(APPEND _SRC_LIB_SHARED_NUPICCORE_LINK_LIBRARIES ${CAPNP_STATIC_LIB_TARGET})
-endif()
 
-if (NOT NUPIC_BUILD_PYEXT_MODULES)
   # When building a standalone shared lib that will run outside the python
   # environment, add dependency on python lib to resolve python symbol
   # references (e.g., from PyRegion)
@@ -462,11 +460,16 @@ elseif(WIN32)
   # NOTE On Windows builds, we include capnproto because we
   # presently build self-contained CAPNP_LITE on Windows, and Windows
   # nupic/nupic.bindings presently have no dependency on pycapnp.
-  list(APPEND _SRC_LIB_SHARED_NUPICCORE_LINK_LIBRARIES
-       ${PYTHON_LIBRARIES}
-       ${_SRC_WHOLE_ARCHIVE_START}
-       ${CAPNP_STATIC_LIB_TARGET}
-       ${_SRC_WHOLE_ARCHIVE_END})
+
+  if(MINGW)
+    list(APPEND _SRC_LIB_SHARED_NUPICCORE_LINK_LIBRARIES
+         ${_SRC_WHOLE_ARCHIVE_START}
+         ${CAPNP_STATIC_LIB_TARGET}
+         ${_SRC_WHOLE_ARCHIVE_END}
+         ${PYTHON_LIBRARIES})
+  else()
+    message (FATAL_ERROR "Unsupported compiler! CMAKE_CXX_COMPILER_ID=${CMAKE_CXX_COMPILER_ID}")
+  endif()
 endif()
 
 list(APPEND _SRC_LIB_SHARED_NUPICCORE_LINK_LIBRARIES ${src_common_os_libs})
@@ -494,15 +497,32 @@ if(${NUPIC_IWYU})
     PROPERTIES CXX_INCLUDE_WHAT_YOU_USE ${iwyu_path})
 endif()
 
-set(_SRC_SHARED_NUPIC_CORE_LINK_FLAGS)
+set(_SRC_SHARED_NUPICCORE_LINK_FLAGS)
+
+if(WIN32)
+  if(MINGW)
+    # Turn on explicit -export-all-symbols on MINGW. The implicit one is
+    # disabled if any symbol in any object is marked with the
+    # __declspec(dllexport) attribute
+    set(_SRC_SHARED_NUPICCORE_LINK_FLAGS
+        "${_SRC_SHARED_NUPICCORE_LINK_FLAGS} -Wl,-export-all-symbols")
+  endif()
+endif()
 
 if (NUPIC_BUILD_PYEXT_MODULES)
-  # When building a shared lib for use by our pythone extensions, allow building
-  # without resolving all symbols. This addresses resolution of python symbols
-  # that will be provided by the python runtime as well as capnproto symbols
-  # that will be provided by pycapnp.
-  set(_SRC_SHARED_NUPICCORE_LINK_FLAGS
-      "${_SRC_SHARED_NUPICCORE_LINK_FLAGS} ${PYEXT_LINKER_FLAGS_OPTIMIZED}")
+  if(WIN32)
+    # On Windows, a self-contained DLL executable is built, so it has to resolve
+    # all symbols
+    set(_SRC_SHARED_NUPICCORE_LINK_FLAGS
+        "${_SRC_SHARED_NUPICCORE_LINK_FLAGS} ${INTERNAL_LINKER_FLAGS_OPTIMIZED}")
+  else()
+    # When building a shared lib for use by our pythone extensions, allow building
+    # without resolving all symbols. This addresses resolution of python symbols
+    # that will be provided by the python runtime as well as capnproto symbols
+    # that will be provided by pycapnp.
+    set(_SRC_SHARED_NUPICCORE_LINK_FLAGS
+        "${_SRC_SHARED_NUPICCORE_LINK_FLAGS} ${PYEXT_LINKER_FLAGS_OPTIMIZED}")
+  endif()
 else()
   # When building a standalone shared library, specifically don't allow link
   # with undefined symbols
