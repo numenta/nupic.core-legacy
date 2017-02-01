@@ -497,15 +497,17 @@ if(${NUPIC_IWYU})
     PROPERTIES CXX_INCLUDE_WHAT_YOU_USE ${iwyu_path})
 endif()
 
-if(WIN32)
-  # Turn on explicit export of all symbols. The implicit one is
-  # disabled by MINGW if any symbol in any object is marked with the
-  # __declspec(dllexport) attribute
-  set_target_properties(${_SRC_LIB_SHARED_NUPICCORE} PROPERTIES
-                        WINDOWS_EXPORT_ALL_SYMBOLS ON)
-endif()
-
 set(_SRC_SHARED_NUPICCORE_LINK_FLAGS)
+
+if(WIN32)
+  if(MINGW)
+    # Turn on explicit -export-all-symbols on MINGW. The implicit one is
+    # disabled if any symbol in any object is marked with the
+    # __declspec(dllexport) attribute
+    set(_SRC_SHARED_NUPICCORE_LINK_FLAGS
+        "${_SRC_SHARED_NUPICCORE_LINK_FLAGS} -Wl,-export-all-symbols")
+  endif()
+endif()
 
 if (NUPIC_BUILD_PYEXT_MODULES)
   if(WIN32)
