@@ -191,6 +191,11 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif()
 
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
+  # NOTE We need to use shared libgcc to be able to throw and catch exceptions
+  # across different shared libraries, as may be the case when our python
+  # extensions runtime-link to capnproto symbols in pycapnp's extension.
+  set(stdlib_common "${stdlib_common} -shared-libgcc")
+
   if (${NUPIC_BUILD_PYEXT_MODULES} AND "${PLATFORM}" STREQUAL "linux")
     # NOTE When building manylinux python extensions, we want the static
     # libstdc++ due to differences in c++ ABI between the older toolchain in the
@@ -199,13 +204,7 @@ if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
     # manylinux-built extension is unable to catch std::ios::failure exception
     # raised by the shared libstdc++.so while running on Ubuntu 16.04.
     set(stdlib_cxx "${stdlib_cxx} -static-libstdc++")
-
-    # NOTE We need to use shared libgcc to be able to throw and catch exceptions
-    # across different shared libraries, as may be the case when our python
-    # extensions runtime-link to capnproto symbols in pycapnp's extension.
-    set(stdlib_common "${stdlib_common} -shared-libgcc")
   else()
-    set(stdlib_common "${stdlib_common} -static-libgcc")
     set(stdlib_cxx "${stdlib_cxx} -static-libstdc++")
   endif()
 endif()
