@@ -506,6 +506,11 @@ if(WIN32)
     # __declspec(dllexport) attribute
     set(_SRC_SHARED_NUPICCORE_LINK_FLAGS
         "${_SRC_SHARED_NUPICCORE_LINK_FLAGS} -Wl,-export-all-symbols")
+  elseif(MSVC)
+    set_target_properties(${_SRC_LIB_SHARED_NUPICCORE} PROPERTIES
+                          WINDOWS_EXPORT_ALL_SYMBOLS ON)
+  else()
+    message (FATAL_ERROR "Unsupported compiler! CMAKE_CXX_COMPILER_ID=${CMAKE_CXX_COMPILER_ID}")
   endif()
 endif()
 
