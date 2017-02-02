@@ -496,6 +496,7 @@ int realmain(bool leakTest)
   NTA_CHECK(rval == 77.7);
 
   // should fail because network has not been initialized
+  std::cerr << "ZZZ BEFORE SHOULDFAIL(n.run(1))" << std::endl << std::flush;
   SHOULDFAIL(n.run(1));
   std::cerr << "ZZZ Survived SHOULDFAIL(n.run(1))" << std::endl << std::flush;
 
