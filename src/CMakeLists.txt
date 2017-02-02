@@ -481,7 +481,7 @@ add_library(${_SRC_LIB_SHARED_NUPICCORE} SHARED
             ${_SRC_NUPICCORE_INTERNAL_SRCS}
             ${_SRC_CORE_PY_SUPPORT_SRCS})
 
-target_link_libraries(${_SRC_LIB_SHARED_NUPICCORE}  # PRIVATE
+target_link_libraries(${_SRC_LIB_SHARED_NUPICCORE} PRIVATE
                       ${_SRC_LIB_SHARED_NUPICCORE_LINK_LIBRARIES})
 
 # NOTE We use INTERNAL_CXX_FLAGS_NO_HIDE to force visibility of symbols that
@@ -615,7 +615,7 @@ if (NUPIC_BUILD_PYEXT_MODULES AND NOT WIN32)
   message(STATUS "_SRC_SHARED_CAPNPROTO_LIBS = ${_SRC_SHARED_CAPNPROTO_LIBS}")
 
   target_link_libraries(
-    ${_SRC_LIB_SHARED_CAPNPROTO}    # PRIVATE
+    ${_SRC_LIB_SHARED_CAPNPROTO} PRIVATE
     ${_SRC_SHARED_CAPNPROTO_LIBS})
 
   # Make sure the entire capnproto archive is added to the shared lib
