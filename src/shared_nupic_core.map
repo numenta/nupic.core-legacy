@@ -1,6 +1,9 @@
 {
   global:
     apr_*;
+    adjustBox;
+    accessPixels;
+    extractAuxInfo;
     extern "C++" {
       *nupic::*;
       nupic::*;
