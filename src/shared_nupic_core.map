@@ -1,0 +1,14 @@
+{
+  global:
+    apr_*;
+    extern "C++" {
+      *nupic::*;
+      nupic::*;
+      *capnp::*;
+      capnp::*;
+      *kj::*;
+      kj::*
+    };
+  local: *;
+};
+

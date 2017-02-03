@@ -515,7 +515,15 @@ if(WIN32)
 endif()
 
 if (NUPIC_BUILD_PYEXT_MODULES)
+  if ("${PLATFORM}" STREQUAL "linux" OR MINGW)
+    # Don't export more than needed
+    set(_SRC_SHARED_NUPICCORE_LINK_FLAGS
+        "${_SRC_SHARED_NUPICCORE_LINK_FLAGS} -Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/shared_nupic_core.map")
+    add_dependencies(${_SRC_LIB_SHARED_NUPICCORE} ${CMAKE_CURRENT_SOURCE_DIR}/shared_nupic_core.map)
+  endif()
+
   if(WIN32)
+
     # On Windows, a self-contained DLL executable is built, so it has to resolve
     # all symbols
     set(_SRC_SHARED_NUPICCORE_LINK_FLAGS
