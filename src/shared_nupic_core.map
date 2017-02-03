@@ -4,6 +4,7 @@
     adjustBox;
     accessPixels;
     extractAuxInfo;
+    gaborCompute;
     extern "C++" {
       *nupic::*;
       nupic::*;
