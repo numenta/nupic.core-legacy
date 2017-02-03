@@ -488,7 +488,7 @@ target_link_libraries(${_SRC_LIB_SHARED_NUPICCORE} PRIVATE
 # have default visibility. This is necessary for the Windows build, where
 # symbols default to hidden visibility.
 set_target_properties(${_SRC_LIB_SHARED_NUPICCORE} PROPERTIES COMPILE_FLAGS
-                      "${src_nupiccore_internals_compile_flags} ${INTERNAL_CXX_FLAGS_NO_HIDE}")
+                      "${src_nupiccore_internals_compile_flags}")
 if(${NUPIC_IWYU})
   # TODO: Create a target that doesn't include the generated capnp schema files
   # since we don't want to run iwyu on them and iwyu can only be applied to
