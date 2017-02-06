@@ -529,7 +529,7 @@ if (NUPIC_BUILD_PYEXT_MODULES)
     set(_SRC_SHARED_NUPICCORE_LINK_FLAGS
         "${_SRC_SHARED_NUPICCORE_LINK_FLAGS} ${INTERNAL_LINKER_FLAGS_OPTIMIZED}")
   else()
-    # When building a shared lib for use by our pythone extensions, allow building
+    # When building a shared lib for use by our python extensions, allow building
     # without resolving all symbols. This addresses resolution of python symbols
     # that will be provided by the python runtime as well as capnproto symbols
     # that will be provided by pycapnp.
