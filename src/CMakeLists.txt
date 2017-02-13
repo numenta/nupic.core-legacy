@@ -243,7 +243,6 @@ set(src_capnp_specs_rel
   nupic/proto/BitHistory.capnp
   nupic/proto/ClaClassifier.capnp
   nupic/proto/ConnectionsProto.capnp
-  nupic/proto/ExtendedTemporalMemoryProto.capnp
   nupic/proto/LinkProto.capnp
   nupic/proto/Map.capnp
   nupic/proto/NetworkProto.capnp
