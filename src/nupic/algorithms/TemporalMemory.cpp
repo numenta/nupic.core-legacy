@@ -175,7 +175,7 @@ void TemporalMemory::initialize(
 
   // Initialize member variables
   connections = Connections(
-    numberOfCells(),
+    numberOfColumns() * cellsPerColumn_,
     maxSegmentsPerCell,
     maxSynapsesPerSegment);
   seed_((UInt64)(seed < 0 ? rand() : seed));
@@ -244,6 +244,8 @@ static void adaptSegment(
   for (SynapseIdx i = 0; i < synapses.size();)
   {
     const SynapseData& synapseData = connections.dataForSynapse(synapses[i]);
+
+    NTA_ASSERT(synapseData.presynapticCell < connections.numCells());
 
     Permanence permanence = synapseData.permanence;
     if (prevActiveCellsDense[synapseData.presynapticCell])
@@ -638,7 +640,7 @@ vector<CellIdx> TemporalMemory::cellsForColumn(Int column)
 
 UInt TemporalMemory::numberOfCells(void)
 {
-  return numberOfColumns() * cellsPerColumn_;
+  return connections.numCells();
 }
 
 vector<CellIdx> TemporalMemory::getActiveCells() const

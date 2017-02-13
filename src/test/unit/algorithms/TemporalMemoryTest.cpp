@@ -910,16 +910,20 @@ namespace {
     const UInt activeColumns[1] = {4};
 
     Segment matchingSegment = tm.connections.createSegment(4);
-    tm.connections.createSynapse(matchingSegment, 81, 0.6);
+
+    // Create a synapse with a high permanence.
+    tm.connections.createSynapse(matchingSegment, 31, 0.6);
 
     // Create a synapse that is still the weakest after adding
     // permanenceIncrement.
     tm.connections.createSynapse(matchingSegment, 0, 0.11);
 
+    // Activate a synapse on the segment, making it "matching".
     tm.compute(3, previousActiveColumns);
 
     ASSERT_EQ(prevWinnerCells, tm.getWinnerCells());
 
+    // Now mark the segment as "correct" by activating its cell.
     tm.compute(1, activeColumns);
 
     // There should now be 3 synapses, and none of them should be to cell 0.
