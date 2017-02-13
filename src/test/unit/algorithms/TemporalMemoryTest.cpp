@@ -47,6 +47,7 @@ namespace {
     ASSERT_EQ(tm1.getActivationThreshold(), tm2.getActivationThreshold());
     ASSERT_EQ(tm1.getMinThreshold(), tm2.getMinThreshold());
     ASSERT_EQ(tm1.getMaxNewSynapseCount(), tm2.getMaxNewSynapseCount());
+    ASSERT_EQ(tm1.getCheckInputs(), tm2.getCheckInputs());
     ASSERT_NEAR(tm1.getInitialPermanence(), tm2.getInitialPermanence(), EPSILON);
     ASSERT_NEAR(tm1.getConnectedPermanence(), tm2.getConnectedPermanence(), EPSILON);
     ASSERT_NEAR(tm1.getPermanenceIncrement(), tm2.getPermanenceIncrement(), EPSILON);

@@ -98,7 +98,8 @@ TemporalMemory::TemporalMemory(
   Permanence predictedSegmentDecrement,
   Int seed,
   UInt maxSegmentsPerCell,
-  UInt maxSynapsesPerSegment)
+  UInt maxSynapsesPerSegment,
+  bool checkInputs)
 {
   initialize(
     columnDimensions,
@@ -113,7 +114,8 @@ TemporalMemory::TemporalMemory(
     predictedSegmentDecrement,
     seed,
     maxSegmentsPerCell,
-    maxSynapsesPerSegment);
+    maxSynapsesPerSegment,
+    checkInputs);
 }
 
 TemporalMemory::~TemporalMemory()
@@ -133,7 +135,8 @@ void TemporalMemory::initialize(
   Permanence predictedSegmentDecrement,
   Int seed,
   UInt maxSegmentsPerCell,
-  UInt maxSynapsesPerSegment)
+  UInt maxSynapsesPerSegment,
+  bool checkInputs)
 {
   // Validate all input parameters
 
@@ -169,6 +172,7 @@ void TemporalMemory::initialize(
   connectedPermanence_ = connectedPermanence;
   minThreshold_ = minThreshold;
   maxNewSynapseCount_ = maxNewSynapseCount;
+  checkInputs_ = checkInputs;
   permanenceIncrement_ = permanenceIncrement;
   permanenceDecrement_ = permanenceDecrement;
   predictedSegmentDecrement_ = predictedSegmentDecrement;
@@ -473,9 +477,12 @@ void TemporalMemory::activateCells(
   const UInt activeColumns[],
   bool learn)
 {
-  NTA_CHECK(isSortedWithoutDuplicates(activeColumns,
-                                      activeColumns + activeColumnsSize))
-    << "The activeColumns must be a sorted list of indices without duplicates.";
+  if (checkInputs_)
+  {
+    NTA_CHECK(isSortedWithoutDuplicates(activeColumns,
+                                        activeColumns + activeColumnsSize))
+      << "The activeColumns must be a sorted list of indices without duplicates.";
+  }
 
   const vector<CellIdx> prevActiveCells = std::move(activeCells_);
   const vector<CellIdx> prevWinnerCells = std::move(winnerCells_);
@@ -769,6 +776,16 @@ void TemporalMemory::setMaxNewSynapseCount(UInt maxNewSynapseCount)
   maxNewSynapseCount_ = maxNewSynapseCount;
 }
 
+bool TemporalMemory::getCheckInputs() const
+{
+  return checkInputs_;
+}
+
+void TemporalMemory::setCheckInputs(bool checkInputs)
+{
+  checkInputs_ = checkInputs;
+}
+
 Permanence TemporalMemory::getPermanenceIncrement() const
 {
   return permanenceIncrement_;
@@ -843,7 +860,8 @@ void TemporalMemory::save(ostream& outStream) const
   saveFloat_(outStream, connectedPermanence_);
 
   outStream << minThreshold_ << " "
-            << maxNewSynapseCount_ << " ";
+            << maxNewSynapseCount_ << " "
+            << checkInputs_ << " ";
 
   saveFloat_(outStream, permanenceIncrement_);
   saveFloat_(outStream, permanenceDecrement_);
@@ -926,6 +944,7 @@ void TemporalMemory::write(TemporalMemoryProto::Builder& proto) const
   proto.setConnectedPermanence(connectedPermanence_);
   proto.setMinThreshold(minThreshold_);
   proto.setMaxNewSynapseCount(maxNewSynapseCount_);
+  proto.setCheckInputs(checkInputs_);
   proto.setPermanenceIncrement(permanenceIncrement_);
   proto.setPermanenceDecrement(permanenceDecrement_);
   proto.setPredictedSegmentDecrement(predictedSegmentDecrement_);
@@ -1006,6 +1025,7 @@ void TemporalMemory::read(TemporalMemoryProto::Reader& proto)
   connectedPermanence_ = proto.getConnectedPermanence();
   minThreshold_ = proto.getMinThreshold();
   maxNewSynapseCount_ = proto.getMaxNewSynapseCount();
+  checkInputs_ = proto.getCheckInputs();
   permanenceIncrement_ = proto.getPermanenceIncrement();
   permanenceDecrement_ = proto.getPermanenceDecrement();
   predictedSegmentDecrement_ = proto.getPredictedSegmentDecrement();
@@ -1086,6 +1106,7 @@ void TemporalMemory::load(istream& inStream)
     >> connectedPermanence_
     >> minThreshold_
     >> maxNewSynapseCount_
+    >> checkInputs_
     >> permanenceIncrement_
     >> permanenceDecrement_
     >> predictedSegmentDecrement_;

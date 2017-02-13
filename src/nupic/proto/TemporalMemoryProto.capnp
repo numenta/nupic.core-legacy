@@ -17,7 +17,7 @@ struct TemporalMemoryProto {
   minThreshold @6 :UInt32;
   maxNewSynapseCount @7 :UInt32;
   permanenceIncrement @8 :Float32;
-  permanenceDecrement @9 :Float32;  
+  permanenceDecrement @9 :Float32;
 
   connections @10 :ConnectionsProto;
   random @11 :RandomProto;
@@ -42,4 +42,6 @@ struct TemporalMemoryProto {
   predictedSegmentDecrement @18 :Float32;
   activeSegmentOverlaps @19 :List(SegmentOverlapProto);
   matchingSegmentOverlaps @20 :List(SegmentOverlapProto);
+
+  checkInputs @21 :Bool;
 }

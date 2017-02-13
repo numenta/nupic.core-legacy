@@ -117,6 +117,10 @@ namespace nupic {
          * @param maxSynapsesPerSegment
          * The maximum number of synapses per segment.
          *
+         * @param checkInputs
+         * Whether to check that the activeColumns are sorted without
+         * duplicates. Disable this for a small speed boost.
+         *
          * Notes:
          *
          * predictedSegmentDecrement: A good value is just a bit larger than
@@ -137,7 +141,8 @@ namespace nupic {
           Permanence predictedSegmentDecrement = 0.0,
           Int seed = 42,
           UInt maxSegmentsPerCell=255,
-          UInt maxSynapsesPerSegment=255);
+          UInt maxSynapsesPerSegment=255,
+          bool checkInputs=true);
 
         virtual void initialize(
           vector<UInt> columnDimensions = { 2048 },
@@ -152,7 +157,8 @@ namespace nupic {
           Permanence predictedSegmentDecrement = 0.0,
           Int seed = 42,
           UInt maxSegmentsPerCell=255,
-          UInt maxSynapsesPerSegment=255);
+          UInt maxSynapsesPerSegment=255,
+          bool checkInputs=true);
 
         virtual ~TemporalMemory();
 
@@ -344,6 +350,12 @@ namespace nupic {
         void setMaxNewSynapseCount(UInt);
 
         /**
+         * Get and set the checkInputs parameter.
+         */
+        bool getCheckInputs() const;
+        void setCheckInputs(bool);
+
+        /**
          * Returns the permanence increment.
          *
          * @returns Returns the Permanence increment
@@ -440,6 +452,7 @@ namespace nupic {
         UInt activationThreshold_;
         UInt minThreshold_;
         UInt maxNewSynapseCount_;
+        bool checkInputs_;
         Permanence initialPermanence_;
         Permanence connectedPermanence_;
         Permanence permanenceIncrement_;
