@@ -351,6 +351,8 @@ void Segment::freeNSynapses(UInt numToFree,
                             std::vector<UInt>& removed, UInt verbosity,
                             UInt nCellsPerCol, Real permMax)
 {
+  // ZZZ inactiveSynapseIndices, activeSynapseIndices, and nCellsPerCol are not
+  // needed by this function.
 
   NTA_CHECK(inactiveSegmentIndices.size() == inactiveSynapseIndices.size());
 

@@ -1629,10 +1629,10 @@ void Cells4::adaptSegment(const SegmentUpdate& update)
     // synapses sorted.
 
     // Accumulate list of synapses to decrement, increment, add, and remove
-    std::set<UInt> synapsesSet(update.begin(), update.end());
+    std::set<UInt> synapsesSet(update.begin(), update.end()); // srcCellIdx
     static std::vector<UInt> removed; // srcCellIdx
-    static std::vector<UInt> synToDec, synToInc,
-                             inactiveSegmentIndices, activeSegmentIndices;
+    static std::vector<UInt> synToDec, synToInc; // srcCellIdx
+    static std::vector<UInt> inactiveSegmentIndices, activeSegmentIndices; // syn idx
     removed.clear() ;                       // purge residual data
     synToDec.clear() ;                      // purge residual data
     synToInc.clear() ;                      // purge residual data
@@ -1654,7 +1654,38 @@ void Cells4::adaptSegment(const SegmentUpdate& update)
     // Now update synapses which need to be decremented or incremented
     // TODO: Why can't we just do this inline in the above loop?
     segment.updateSynapses(synToDec, - _permDec, _permMax, _permConnected, removed);
+    const UInt numRemovedByPermDec = removed.size();
+    if (numRemovedByPermDec) {
+      // Purge removed source cell indexes
+      synToDec.erase(
+        std::remove_if(
+          synToDec.begin(),
+          synToDec.end(),
+          [](UInt srcCellIdx){return is_in(srcCellIdx, removed);}),
+        synToDec.end());
+
+      // Regenerate synapse indexes, because removal may have affected
+      // existing index values
+      inactiveSegmentIndices.clear();
+      activeSegmentIndices.clear();
+      for (UInt synIdx = 0; synIdx != segment.size(); ++synIdx) {
+        const UInt srcCellIdx = segment[synIdx].srcCellIdx();
+        if (is_in(srcCellIdx, synToDec)) {
+          inactiveSegmentIndices.push_back(synIdx);
+        }
+        else {
+          activeSegmentIndices.push_back(synIdx);
+        }
+      }
+
+      NTA_ASSERT(inactiveSegmentIndices.size() == synToDec.size());
+      NTA_ASSERT(activeSegmentIndices.size() == synToInc.size());
+    }
+
     segment.updateSynapses(synToInc, _permInc, _permMax, _permConnected, removed);
+    // Incrementing of permanences shouldn't remove synapses
+    NTA_ASSERT(removed.size() == numRemovedByPermDec);
+
 
     // Add any new synapses, add these to Outlist, and update delta objects
 
