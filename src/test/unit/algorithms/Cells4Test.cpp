@@ -88,6 +88,33 @@ TEST(Cells4Test, fixupIndexesInAdaptSegmentWithNoRemovals)
 
 
 /*
+ * Test Cells4::_fixupIndexesAfterSynapseRemovalsInAdaptSegment with
+ * consecutive removals.
+ */
+TEST(Cells4Test, fixupIndexesInAdaptSegmentWithConsecutiveRemovals)
+{
+  std::vector<UInt> removedSrcCellIdxs  {    88, 77,         44};
+  std::vector<UInt> inactiveSrcCellIdxs {99, 88, 77, 66, 55, 44};
+  std::vector<UInt> inactiveSynapseIdxs { 1,  3,  7, 11, 12, 23};
+  std::vector<UInt> activeSynapseIdxs {2, 4, 6, 9, 10, 50, 60};
+
+  const std::vector<UInt> expectedRemovedSrcCellIdxs {88, 77, 44};
+  const std::vector<UInt> expectedInactiveSrcCellIdxs {99, 66, 55};
+  const std::vector<UInt> expectedInactiveSynapseIdxs {1, 9, 10};
+  const std::vector<UInt> expectedActiveSynapseIdxs {2, 3, 5, 7, 8, 47, 57};
+
+  Cells4::_fixupIndexesAfterSynapseRemovalsInAdaptSegment(removedSrcCellIdxs,
+                                                          inactiveSrcCellIdxs,
+                                                          inactiveSynapseIdxs,
+                                                          activeSynapseIdxs);
+  ASSERT_EQ(expectedRemovedSrcCellIdxs, removedSrcCellIdxs);
+  ASSERT_EQ(expectedInactiveSrcCellIdxs, inactiveSrcCellIdxs);
+  ASSERT_EQ(expectedInactiveSynapseIdxs, inactiveSynapseIdxs);
+  ASSERT_EQ(expectedActiveSynapseIdxs, activeSynapseIdxs);
+}
+
+
+/*
  * Test Cells4::_fixupIndexesAfterSynapseRemovalsInAdaptSegment without inactive
  * synapses.
  */
