@@ -555,6 +555,7 @@ set_target_properties(${src_executable_hellosptp}
 set(src_executable_gtests unit_tests)
 add_executable(${src_executable_gtests}
                test/unit/algorithms/AnomalyTest.cpp
+               test/unit/algorithms/Cells4Test.cpp
                test/unit/algorithms/CondProbTableTest.cpp
                test/unit/algorithms/ConnectionsTest.cpp
                test/unit/algorithms/FastCLAClassifierTest.cpp

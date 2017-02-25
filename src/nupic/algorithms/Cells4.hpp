@@ -960,6 +960,52 @@ namespace nupic {
          */
         void applyGlobalDecay();
 
+        /**
+         * This private function contains specialized logic used by
+         * Cells4::adaptSegment to fix up several internal containers after
+         * deletion of synapses. We break it out into a separate function to
+         * facilitate unit testing.
+         *
+         * Parameters:
+         *
+         * removedSrcCellIdxs: Source cell indexes corresponding to inactive
+         *                     synapses that were removed by
+         *                     Segment::updateSynapses. Ordered by relative
+         *                     position of the corresponding InSynapses in the
+         *                     segment. The contents are a subset of the values
+         *                     in inactiveSrcCellIdxs arg.
+         *
+         * inactiveSrcCellIdxs: Source cell indexes corresponding to all
+         *                     inactive synapses prior to removal of some
+         *                     synapses by Segment::updateSynapses. Ordered by
+         *                     relative position of the corresponding InSynapses
+         *                     in the segment. The elements here match
+         *                     corresponding elements in the inactiveSynapseIdxs
+         *                     arg. We will remove elements matching the ones in
+         *                     the removedSrcCellIdxs arg.
+         *
+         * inactiveSynapseIdxs: Synapse indexes corresponding to all inactive
+         *                     synapses prior to removal of some inactive
+         *                     synapses by Segment::updateSynapses. Sorted in
+         *                     ascending order. The elements here match
+         *                     corresponding elements in the inactiveSrcCellIdxs
+         *                     arg. We will remove elements corresponding to the
+         *                     ones removed from the inactiveSrcCellIdxs arg and
+         *                     adjust the remaining indexes to account for the
+         *                     removals.
+         *
+         * activeSynapseIdxs:  Synapse indexes corresponding to all active
+         *                     synapses in the segment prior to removal of some
+         *                     inactive synapses by Segment::updateSynapses. In
+         *                     ascending order. We will adjust these indexes to
+         *                     account for the removals of inactive synapses.
+         */
+        static void _fixupIndexesAfterSynapseRemovalsInAdaptSegment(
+          std::vector<UInt>& removedSrcCellIdxs,
+          std::vector<UInt>& inactiveSrcCellIdxs,
+          std::vector<UInt>& inactiveSynapseIdxs,
+          std::vector<UInt>& activeSynapseIdxs);
+
         //-----------------------------------------------------------------------
         /**
          * Applies segment update information to a segment in a cell as follows:
