@@ -41,12 +41,12 @@ TEST(Cells4Test, fixupIndexesInAdaptSegmentWithRemovalsInMiddleAndEdges)
   std::vector<UInt> removedSrcCellIdxs {99, 77, 44};
   std::vector<UInt> inactiveSrcCellIdxs {99, 88, 77, 66, 55, 44};
   std::vector<UInt> inactiveSynapseIdxs { 1,  3,  7, 11, 12, 23};
-  std::vector<UInt> activeSynapseIdxs {0, 2, 4, 8, 9, 50, 60};
+  std::vector<UInt> activeSynapseIdxs {0, 2, 4, 6, 9, 10, 50, 60};
 
   const std::vector<UInt> expectedRemovedSrcCellIdxs {99, 77, 44};
   const std::vector<UInt> expectedInactiveSrcCellIdxs {88, 66, 55};
   const std::vector<UInt> expectedInactiveSynapseIdxs { 2,  9, 10};
-  const std::vector<UInt> expectedActiveSynapseIdxs {0,  1, 3, 6, 7, 47, 57};
+  const std::vector<UInt> expectedActiveSynapseIdxs {0,  1, 3, 5, 7, 8, 47, 57};
 
   Cells4::_fixupIndexesAfterSynapseRemovalsInAdaptSegment(removedSrcCellIdxs,
                                                           inactiveSrcCellIdxs,
@@ -88,8 +88,8 @@ TEST(Cells4Test, fixupIndexesInAdaptSegmentWithNoRemovals)
 
 
 /*
- * Test Cells4::_fixupIndexesAfterSynapseRemovalsInAdaptSegment with removals,
- * inactive, and active synapses.
+ * Test Cells4::_fixupIndexesAfterSynapseRemovalsInAdaptSegment without inactive
+ * synapses.
  */
 TEST(Cells4Test, fixupIndexesInAdaptSegmentWithNoInactiveSynapses)
 {
