@@ -1740,11 +1740,11 @@ void Cells4::adaptSegment(const SegmentUpdate& update)
 
     if (!removed.empty()) {
       // Fix up inactive and active synapse indexes and inactive source cells
-    _fixupIndexesAfterSynapseRemovalsInAdaptSegment(
-      removed /*removedSrcCellIdxs*/,
-      synToDec /*inactiveSrcCellIdxs*/,
-      inactiveSegmentIndices /*inactiveSynapseIdxs*/,
-      activeSegmentIndices /*activeSynapseIdxs*/);
+      _fixupIndexesAfterSynapseRemovalsInAdaptSegment(
+        removed /*removedSrcCellIdxs*/,
+        synToDec /*inactiveSrcCellIdxs*/,
+        inactiveSegmentIndices /*inactiveSynapseIdxs*/,
+        activeSegmentIndices /*activeSynapseIdxs*/);
     }
 
     // Update synapses which need to be incremented
