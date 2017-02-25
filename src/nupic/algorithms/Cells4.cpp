@@ -1739,7 +1739,8 @@ void Cells4::adaptSegment(const SegmentUpdate& update)
     segment.updateSynapses(synToDec, - _permDec, _permMax, _permConnected, removed);
 
     if (!removed.empty()) {
-      // Fix up inactive and active synapse indexes and inactive source cells
+      // Fix up inactive source cell indexes and inactive and active synapse
+      // indexes
       _fixupIndexesAfterSynapseRemovalsInAdaptSegment(
         removed /*removedSrcCellIdxs*/,
         synToDec /*inactiveSrcCellIdxs*/,
