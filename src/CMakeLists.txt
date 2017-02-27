@@ -677,6 +677,8 @@ if (NUPIC_BUILD_PYEXT_MODULES)
       ${src_compiler_definitions}
   )
 
+  file(GLOB_RECURSE swig_header_deps *.i *.hpp *.h)
+
   message(STATUS "src_swig_flags = ${src_swig_flags}")
 
   # Tell swig which command-line options to use, allowing user to override
@@ -762,6 +764,9 @@ if (NUPIC_BUILD_PYEXT_MODULES)
     set_source_files_properties(${source_interface_file} PROPERTIES
                                 CPLUSPLUS ON
                                 SWIG_MODULE_NAME ${MODULE_NAME})
+
+    # Regenerate SWIG bindings if any headers change.
+    set(SWIG_MODULE_${MODULE_NAME}_EXTRA_DEPS ${swig_header_deps})
 
     #
     # Create custom command for generating files from SWIG
