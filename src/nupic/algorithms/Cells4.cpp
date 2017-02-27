@@ -1577,6 +1577,9 @@ void Cells4::applyGlobalDecay()
 /**
  * Helper function for Cells4::adaptSegment. Fixes up several internal
  * containers after deletion of synapses by Segment::updateSynapses.
+ *
+ * IMPLEMENTATION NOTE: The implementation makes a single pass through the
+ * containers for O(n) complexity.
  */
 void Cells4::_fixupIndexesAfterSynapseRemovalsInAdaptSegment(
   std::vector<UInt>& removedSrcCellIdxs,
@@ -1588,16 +1591,24 @@ void Cells4::_fixupIndexesAfterSynapseRemovalsInAdaptSegment(
   const auto finalSrcCellIdxMarker = std::numeric_limits<UInt>::max();
   removedSrcCellIdxs.push_back(finalSrcCellIdxMarker);
 
+  // Synapse index range for adjusting activeSynapseIdxs within current
+  // adjustment interval
   UInt lowerSynapseIdxIncl = 0;  // inclusive lower range (<= synIdx)
   UInt upperSynapseIdxExcl = (UInt)0 - 1; // exclusive upper range (synIdx <)
+
+  // Synapse index adjustment amount for the current adjustment interval
   Int synapseAdjustment = 0;
 
+  // Indexes for in-place shifting of synapse index values as we purge indexes
+  // corresponding to removed synapses.
   UInt inactiveDstIdx = 0, inactiveSrcIdx = 0;
   UInt inactiveScanLimit = 0;
 
-  // Only one index for active synapse vector, since we don't purge from it
+  // Only one index for the active synapse vector, since we don't purge from it
   UInt activeSynAdjIdx = 0;
 
+  // Purge removed source cell indexes from inactiveSrcCellIdxs vector and
+  // adjust vectors of inactive and active synapse indexes in a single O(n) pass.
   for (auto removedSrcCellIdx: removedSrcCellIdxs) {
     lowerSynapseIdxIncl = upperSynapseIdxExcl + 1;
 
