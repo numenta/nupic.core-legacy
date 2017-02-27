@@ -166,7 +166,8 @@ namespace nupic {
           }
 
           // Sort segments according to activation frequency
-          // ZZZ Where is the sort?
+          // TODO Comment not backed by code. Investigate whether the
+          //      above-mentioned sort is needed.
 
           // Redo free segments list
           _freeSegments.clear();
