@@ -960,50 +960,56 @@ namespace nupic {
          */
         void applyGlobalDecay();
 
+
+        //-----------------------------------------------------------------------
         /**
-         * This private function contains specialized logic used by
-         * Cells4::adaptSegment to fix up several internal containers after
-         * deletion of synapses. We break it out into a separate function to
-         * facilitate unit testing.
+         * Private Helper function for Cells4::adaptSegment. Generates lists of
+         * synapses to decrement, increment, add, and remove.
          *
-         * Parameters:
+         * We break it out into a separate function to facilitate unit testing.
          *
-         * removedSrcCellIdxs: Source cell indexes corresponding to inactive
-         *                     synapses that were removed by
-         *                     Segment::updateSynapses. Ordered by relative
-         *                     position of the corresponding InSynapses in the
-         *                     segment. The contents are a subset of the values
-         *                     in inactiveSrcCellIdxs arg.
+         * On Entry, purges resudual data from inactiveSrcCellIdxs,
+         * inactiveSynapseIdxs, activeSrcCellIdxs, and activeSynapseIdxs.
          *
-         * inactiveSrcCellIdxs: Source cell indexes corresponding to all
-         *                     inactive synapses prior to removal of some
-         *                     synapses by Segment::updateSynapses. Ordered by
+         * segment:            The segment being adapted.
+         *
+         * synapsesSet:        IN/OUT On entry, the union of source cell indexes
+         *                     corresponding to existing active synapses in the
+         *                     segment as well as new synapses to be created. On
+         *                     return, it's former self sans elements returned
+         *                     in activeSrcCellIdxs. The remaining elements
+         *                     correspond to new synapses to be created within
+         *                     the segment.
+         *
+         * inactiveSrcCellIdxs: OUT Source cell indexes corresponding to
+         *                     inactive synapses in the segment. Ordered by
          *                     relative position of the corresponding InSynapses
-         *                     in the segment. The elements here match
-         *                     corresponding elements in the inactiveSynapseIdxs
-         *                     arg. We will remove elements matching the ones in
-         *                     the removedSrcCellIdxs arg.
+         *                     in the segment. The elements here correlate to
+         *                     elements in inactiveSynapseIdxs.
          *
-         * inactiveSynapseIdxs: Synapse indexes corresponding to all inactive
-         *                     synapses prior to removal of some inactive
-         *                     synapses by Segment::updateSynapses. Sorted in
-         *                     ascending order. The elements here match
-         *                     corresponding elements in the inactiveSrcCellIdxs
-         *                     arg. We will remove elements corresponding to the
-         *                     ones removed from the inactiveSrcCellIdxs arg and
-         *                     adjust the remaining indexes to account for the
-         *                     removals.
+         * inactiveSynapseIdxs: OUT Synapse indexes corresponding to inactive
+         *                     synapses in the segment. Sorted in
+         *                     ascending order. The elements here correlate to
+         *                     elements in inactiveSrcCellIdxs.
          *
-         * activeSynapseIdxs:  Synapse indexes corresponding to all active
-         *                     synapses in the segment prior to removal of some
-         *                     inactive synapses by Segment::updateSynapses. In
-         *                     ascending order. We will adjust these indexes to
-         *                     account for the removals of inactive synapses.
+         * activeSrcCellIdxs:  OUT Source cell indexes corresponding to
+         *                     active synapses in the segment. Ordered by
+         *                     relative position of the corresponding InSynapses
+         *                     in the segment. The elements correlate to
+         *                     elements in activeSynapseIdxs.
+         *
+         * activeSynapseIdxs:  OUT Synapse indexes corresponding to active
+         *                     synapses in the segment. In ascending order. The
+         *                     elements correlate to elements in
+         *                     activeSrcCellIdxs.
+         *
          */
-        static void _fixupIndexesAfterSynapseRemovalsInAdaptSegment(
-          std::vector<UInt>& removedSrcCellIdxs,
+        static void _generateListsOfSynapsesToAdjustForAdaptSegment(
+          const Segment& segment,
+          std::set<UInt>& synapsesSet,
           std::vector<UInt>& inactiveSrcCellIdxs,
           std::vector<UInt>& inactiveSynapseIdxs,
+          std::vector<UInt>& activeSrcCellIdxs,
           std::vector<UInt>& activeSynapseIdxs);
 
         //-----------------------------------------------------------------------

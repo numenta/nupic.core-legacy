@@ -1575,94 +1575,39 @@ void Cells4::applyGlobalDecay()
 
 //--------------------------------------------------------------------------------
 /**
- * Helper function for Cells4::adaptSegment. Fixes up several internal
- * containers after deletion of synapses by Segment::updateSynapses.
+ * Helper function for Cells4::adaptSegment. Generates lists of synapses to
+ * decrement, increment, add, and remove.
  *
  * IMPLEMENTATION NOTE: The implementation makes a single pass through the
  * containers for O(n) complexity.
+ *
  */
-void Cells4::_fixupIndexesAfterSynapseRemovalsInAdaptSegment(
-  std::vector<UInt>& removedSrcCellIdxs,
+void Cells4::_generateListsOfSynapsesToAdjustForAdaptSegment(
+  const Segment& segment,
+  std::set<UInt>& synapsesSet,
   std::vector<UInt>& inactiveSrcCellIdxs,
   std::vector<UInt>& inactiveSynapseIdxs,
+  std::vector<UInt>& activeSrcCellIdxs,
   std::vector<UInt>& activeSynapseIdxs)
 {
-  // Append an artificial source cell index for the final adjustment range
-  const auto finalSrcCellIdxMarker = std::numeric_limits<UInt>::max();
-  removedSrcCellIdxs.push_back(finalSrcCellIdxMarker);
+  // Purge residual data
+  inactiveSrcCellIdxs.clear();
+  inactiveSynapseIdxs.clear();
+  activeSrcCellIdxs.clear();
+  activeSynapseIdxs.clear();
 
-  // Synapse index range for adjusting activeSynapseIdxs within current
-  // adjustment interval
-  UInt lowerSynapseIdxIncl = 0;  // inclusive lower range (<= synIdx)
-  UInt upperSynapseIdxExcl = (UInt)0 - 1; // exclusive upper range (synIdx <)
-
-  // Synapse index adjustment amount for the current adjustment interval
-  Int synapseAdjustment = 0;
-
-  // Indexes for in-place shifting of synapse index values as we purge indexes
-  // corresponding to removed synapses.
-  UInt inactiveDstIdx = 0, inactiveSrcIdx = 0;
-  UInt inactiveScanLimit = 0;
-
-  // Only one index for the active synapse vector, since we don't purge from it
-  UInt activeSynAdjIdx = 0;
-
-  // Purge removed source cell indexes from inactiveSrcCellIdxs vector and
-  // adjust vectors of inactive and active synapse indexes in a single O(n) pass.
-  for (auto removedSrcCellIdx: removedSrcCellIdxs) {
-    lowerSynapseIdxIncl = upperSynapseIdxExcl + 1;
-
-    auto removedCellIt = std::find(inactiveSrcCellIdxs.begin() + inactiveSrcIdx,
-                                   inactiveSrcCellIdxs.end(),
-                                   removedSrcCellIdx);
-    if (removedCellIt != inactiveSrcCellIdxs.end()) {
-      NTA_CHECK(removedSrcCellIdx != finalSrcCellIdxMarker);
-      const UInt inactiveRemovedAt = removedCellIt - inactiveSrcCellIdxs.begin();
-      upperSynapseIdxExcl = inactiveSynapseIdxs[inactiveRemovedAt];
-      inactiveScanLimit = inactiveRemovedAt;
+  for (UInt i = 0; i != segment.size(); ++i) {
+    UInt srcCellIdx = segment[i].srcCellIdx();
+    if (not_in(srcCellIdx, synapsesSet)) {
+      inactiveSrcCellIdxs.push_back(srcCellIdx);  // TODO: Check synapse still exists!
+      inactiveSynapseIdxs.push_back(i);
     }
     else {
-      NTA_CHECK(removedSrcCellIdx == finalSrcCellIdxMarker);
-      upperSynapseIdxExcl = std::numeric_limits<UInt>::max();
-      inactiveScanLimit = inactiveSrcCellIdxs.size();
+      activeSrcCellIdxs.push_back(srcCellIdx);
+      synapsesSet.erase(srcCellIdx); // those that remain will be created
+      activeSynapseIdxs.push_back(i);
     }
-
-    // Adjust active synapse index values in range:
-    //   lowerSynapseIdxIncl <= val < upperSynapseIdxExcl
-    for (; activeSynAdjIdx < activeSynapseIdxs.size() &&
-           activeSynapseIdxs[activeSynAdjIdx] < upperSynapseIdxExcl
-         ; ++activeSynAdjIdx) {
-      if (activeSynapseIdxs[activeSynAdjIdx] >= lowerSynapseIdxIncl) {
-        activeSynapseIdxs[activeSynAdjIdx] += synapseAdjustment;
-      }
-    }
-
-    // Update inactive synapse and source cell indexes
-    for (; inactiveSrcIdx < inactiveScanLimit
-         ; ++inactiveDstIdx, ++inactiveSrcIdx) {
-      // Shift and update inactive synapse indexes
-      inactiveSynapseIdxs[inactiveDstIdx] =
-        inactiveSynapseIdxs[inactiveSrcIdx] + synapseAdjustment;
-
-      // Shift inactive source cell indexes
-      inactiveSrcCellIdxs[inactiveDstIdx] = inactiveSrcCellIdxs[inactiveSrcIdx];
-    }
-
-    // Purge the inactive synapse and source cell elements corresponding to
-    // the current removed synapse
-    ++inactiveSrcIdx;
-
-    // Update synapse adjustment for next range
-    --synapseAdjustment;
   }
-
-  // Resize inactive synapse containers
-  inactiveSrcCellIdxs.resize(inactiveDstIdx);
-  inactiveSynapseIdxs.resize(inactiveDstIdx);
-
-  // Remove artificial source cell index that we added at the start of
-  // this block
-  removedSrcCellIdxs.pop_back();
 }
 
 
@@ -1722,55 +1667,45 @@ void Cells4::adaptSegment(const SegmentUpdate& update)
     // updateSynapses? It would be cleaner and avoid the need to keep the
     // synapses sorted.
 
-    // Accumulate list of synapses to decrement, increment, add, and remove
+    // Accumulate lists of synapses to decrement, increment, add, and remove
     std::set<UInt> synapsesSet(update.begin(), update.end()); // srcCellIdx
     static std::vector<UInt> removed; // srcCellIdx
     static std::vector<UInt> synToDec, synToInc; // srcCellIdx
     static std::vector<UInt> inactiveSegmentIndices, activeSegmentIndices; // syn idx
-    removed.clear() ;                       // purge residual data
-    synToDec.clear() ;                      // purge residual data
-    synToInc.clear() ;                      // purge residual data
-    inactiveSegmentIndices.clear() ;        // purge residual data
-    activeSegmentIndices.clear() ;          // purge residual data
-    for (UInt i = 0; i != segment.size(); ++i) {
-      UInt srcCellIdx = segment[i].srcCellIdx();
-      if (not_in(srcCellIdx, synapsesSet)) {
-        synToDec.push_back(srcCellIdx);  // TODO: Check synapse still exists!
-        inactiveSegmentIndices.push_back(i);
-      }
-      else {
-        synToInc.push_back(srcCellIdx);
-        synapsesSet.erase(srcCellIdx);
-        activeSegmentIndices.push_back(i);
-      }
-    }
+    removed.clear();                        // purge residual data
 
-    // Update synapses which need to be decremented
+    _generateListsOfSynapsesToAdjustForAdaptSegment(
+      segment, synapsesSet,
+      synToDec, inactiveSegmentIndices,
+      synToInc, activeSegmentIndices);
+
+    // Decrement permanences of inactive synapses
     // TODO: Why can't we just do this inline in the above loop?
     segment.updateSynapses(synToDec, - _permDec, _permMax, _permConnected, removed);
 
+    // If any synapses were removed as the result of permanence decrements,
+    // regenerate affected parameters
     if (!removed.empty()) {
-      // Fix up inactive source cell indexes and inactive and active synapse
-      // indexes
-      _fixupIndexesAfterSynapseRemovalsInAdaptSegment(
-        removed /*removedSrcCellIdxs*/,
-        synToDec /*inactiveSrcCellIdxs*/,
-        inactiveSegmentIndices /*inactiveSynapseIdxs*/,
-        activeSegmentIndices /*activeSynapseIdxs*/);
+      synapsesSet.insert(synToInc.begin(), synToInc.end());
+
+      _generateListsOfSynapsesToAdjustForAdaptSegment(
+        segment, synapsesSet,
+        synToDec, inactiveSegmentIndices,
+        synToInc, activeSegmentIndices);
     }
 
-    // Update synapses which need to be incremented
+    // Increment permanences of active synapses
     const UInt numRemovedBeforePermInc = removed.size();
     segment.updateSynapses(synToInc, _permInc, _permMax, _permConnected, removed);
     // Incrementing of permanences shouldn't remove synapses
     NTA_CHECK(removed.size() == numRemovedBeforePermInc);
 
-
-    // Add any new synapses, add these to Outlist, and update delta objects
-
-    // If we have fixed resources, get rid of some old syns if necessary
+    // If we have fixed resources, get rid of some old synapses, if necessary
     if ( (_maxSynapsesPerSegment > 0) &&
          (synapsesSet.size() + segment.size() > (UInt) _maxSynapsesPerSegment) ) {
+      // TODO: What's preventing numToFree from exceeding segment.size()? If you
+      // know, add a comment explaining it. If it exceeds, it will cause memory
+      // corruption in Segment::freeNSynapses.
       UInt numToFree = synapsesSet.size() + segment.size() - _maxSynapsesPerSegment;
       segment.freeNSynapses(numToFree,
                             synToDec, inactiveSegmentIndices,
@@ -1778,6 +1713,8 @@ void Cells4::adaptSegment(const SegmentUpdate& update)
                             removed, _verbosity,
                             _nCellsPerCol, _permMax);
     }
+
+    // Add any new synapses, add these to Outlist, and update delta objects
     segment.addSynapses(synapsesSet, _permInitial, _permConnected);
     addOutSynapses(cellIdx, segIdx, synapsesSet.begin(), synapsesSet.end());
 

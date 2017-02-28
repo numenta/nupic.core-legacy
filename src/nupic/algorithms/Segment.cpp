@@ -353,6 +353,9 @@ void Segment::freeNSynapses(UInt numToFree,
 {
   NTA_CHECK(inactiveSegmentIndices.size() == inactiveSynapseIndices.size());
   NTA_CHECK(activeSegmentIndices.size() == activeSynapseIndices.size());
+  NTA_ASSERT(numToFree <= _synapses.size());
+  NTA_ASSERT(numToFree <=
+             (inactiveSegmentIndices.size() + activeSegmentIndices.size()));
 
   if (verbosity >= 4) {
     std::cout << "\nIn CPP freeNSynapses with numToFree = " << numToFree
