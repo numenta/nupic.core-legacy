@@ -1686,7 +1686,8 @@ void Cells4::adaptSegment(const SegmentUpdate& update)
     // If any synapses were removed as the result of permanence decrements,
     // regenerate affected parameters
     if (!removed.empty()) {
-      synapsesSet.insert(synToInc.begin(), synToInc.end());
+      synapsesSet.clear();
+      synapsesSet.insert(update.begin(), update.end());
 
       _generateListsOfSynapsesToAdjustForAdaptSegment(
         segment, synapsesSet,
