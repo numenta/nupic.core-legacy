@@ -1671,6 +1671,12 @@ void Cells4::adaptSegment(const SegmentUpdate& update)
     // Union of source cell indexes corresponding to existing active synapses in
     // the given segment plus new synapses to be added to the segment
     std::set<UInt> synapsesSet(update.begin(), update.end());
+
+    // NOTE: the following variables were declared static as a performance
+    // optimization in the legacy code in order to reduce memory allocations.
+    // The side effect is that this code is not thread-safe. At the time,
+    // processes were the mechanism for parllelizing execution of the algorithms.
+
     // Tracks source cell indexes corresponding to synapses in
     // the given segment that have been removed during execution of this method
     static std::vector<UInt> removed;
