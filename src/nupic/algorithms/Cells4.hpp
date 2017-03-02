@@ -960,6 +960,58 @@ namespace nupic {
          */
         void applyGlobalDecay();
 
+
+        //-----------------------------------------------------------------------
+        /**
+         * Private Helper function for Cells4::adaptSegment. Generates lists of
+         * synapses to decrement, increment, add, and remove.
+         *
+         * We break it out into a separate function to facilitate unit testing.
+         *
+         * On Entry, purges resudual data from inactiveSrcCellIdxs,
+         * inactiveSynapseIdxs, activeSrcCellIdxs, and activeSynapseIdxs.
+         *
+         * segment:            The segment being adapted.
+         *
+         * synapsesSet:        IN/OUT On entry, the union of source cell indexes
+         *                     corresponding to existing active synapses in the
+         *                     segment as well as new synapses to be created. On
+         *                     return, it's former self sans elements returned
+         *                     in activeSrcCellIdxs. The remaining elements
+         *                     correspond to new synapses to be created within
+         *                     the segment.
+         *
+         * inactiveSrcCellIdxs: OUT Source cell indexes corresponding to
+         *                     inactive synapses in the segment. Ordered by
+         *                     relative position of the corresponding InSynapses
+         *                     in the segment. The elements here correlate to
+         *                     elements in inactiveSynapseIdxs.
+         *
+         * inactiveSynapseIdxs: OUT Synapse indexes corresponding to inactive
+         *                     synapses in the segment. Sorted in
+         *                     ascending order. The elements here correlate to
+         *                     elements in inactiveSrcCellIdxs.
+         *
+         * activeSrcCellIdxs:  OUT Source cell indexes corresponding to
+         *                     active synapses in the segment. Ordered by
+         *                     relative position of the corresponding InSynapses
+         *                     in the segment. The elements correlate to
+         *                     elements in activeSynapseIdxs.
+         *
+         * activeSynapseIdxs:  OUT Synapse indexes corresponding to active
+         *                     synapses in the segment. In ascending order. The
+         *                     elements correlate to elements in
+         *                     activeSrcCellIdxs.
+         *
+         */
+        static void _generateListsOfSynapsesToAdjustForAdaptSegment(
+          const Segment& segment,
+          std::set<UInt>& synapsesSet,
+          std::vector<UInt>& inactiveSrcCellIdxs,
+          std::vector<UInt>& inactiveSynapseIdxs,
+          std::vector<UInt>& activeSrcCellIdxs,
+          std::vector<UInt>& activeSynapseIdxs);
+
         //-----------------------------------------------------------------------
         /**
          * Applies segment update information to a segment in a cell as follows:

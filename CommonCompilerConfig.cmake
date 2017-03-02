@@ -345,6 +345,10 @@ if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
     # to examine containers in gdb.
     # See https://gcc.gnu.org/onlinedocs/libstdc++/manual/debug_mode_using.html
     list(APPEND COMMON_COMPILER_DEFINITIONS -D_GLIBCXX_DEBUG)
+  elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
+    # NOTE: debug mode is immature in Clang, and values of _LIBCPP_DEBUG above 0
+    # require  the debug build of libc++ to be present at linktime on OS X.
+    list(APPEND COMMON_COMPILER_DEFINITIONS -D_LIBCPP_DEBUG=0)
   endif()
 
   # Disable optimizations

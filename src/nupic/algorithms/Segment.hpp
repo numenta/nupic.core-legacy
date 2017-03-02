@@ -622,7 +622,7 @@ namespace nupic {
         //-----------------------------------------------------------------------
         /**
          * Updates synapses permanences, possibly removing synapses from the segment if their
-         * permanence drops below 0.
+         * permanence drops to or below 0.
          *
          * Parameters:
          * ==========
