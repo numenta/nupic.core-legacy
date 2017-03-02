@@ -1597,9 +1597,9 @@ void Cells4::_generateListsOfSynapsesToAdjustForAdaptSegment(
   activeSynapseIdxs.clear();
 
   for (UInt i = 0; i != segment.size(); ++i) {
-    UInt srcCellIdx = segment[i].srcCellIdx();
+    const UInt srcCellIdx = segment[i].srcCellIdx();
     if (not_in(srcCellIdx, synapsesSet)) {
-      inactiveSrcCellIdxs.push_back(srcCellIdx);  // TODO: Check synapse still exists!
+      inactiveSrcCellIdxs.push_back(srcCellIdx);
       inactiveSynapseIdxs.push_back(i);
     }
     else {
@@ -1632,8 +1632,7 @@ void Cells4::adaptSegment(const SegmentUpdate& update)
   UInt cellIdx = update.cellIdx();
   UInt segIdx = update.segIdx();
 
-  // Modify an existing segment?
-  if (! update.isNewSegment()) {
+  if (! update.isNewSegment()) { // modify an existing segment
 
     // Sometimes you can have a pending update after a segment has already
     // been released. It's cheaper to deal with it here rather than do
@@ -1668,11 +1667,14 @@ void Cells4::adaptSegment(const SegmentUpdate& update)
     // synapses sorted.
 
     // Accumulate lists of synapses to decrement, increment, add, and remove
-    std::set<UInt> synapsesSet(update.begin(), update.end()); // srcCellIdx
-    static std::vector<UInt> removed; // srcCellIdx
-    static std::vector<UInt> synToDec, synToInc; // srcCellIdx
-    static std::vector<UInt> inactiveSegmentIndices, activeSegmentIndices; // syn idx
-    removed.clear();                        // purge residual data
+    std::set<UInt> synapsesSet(update.begin(), update.end()); // src cell indexes
+    static std::vector<UInt> removed; // src cell indexes
+    static std::vector<UInt> synToDec, synToInc; // src cell indexes
+    static std::vector<UInt> inactiveSegmentIndices, // synapse indexes
+                             activeSegmentIndices;
+    // Purge residual data from static variable; the others will be purged by
+    // _generateListsOfSynapsesToAdjustForAdaptSegment
+    removed.clear();
 
     _generateListsOfSynapsesToAdjustForAdaptSegment(
       segment, synapsesSet,
@@ -1680,7 +1682,6 @@ void Cells4::adaptSegment(const SegmentUpdate& update)
       synToInc, activeSegmentIndices);
 
     // Decrement permanences of inactive synapses
-    // TODO: Why can't we just do this inline in the above loop?
     segment.updateSynapses(synToDec, - _permDec, _permMax, _permConnected, removed);
 
     // If any synapses were removed as the result of permanence decrements,
