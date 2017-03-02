@@ -1667,11 +1667,24 @@ void Cells4::adaptSegment(const SegmentUpdate& update)
     // synapses sorted.
 
     // Accumulate lists of synapses to decrement, increment, add, and remove
-    std::set<UInt> synapsesSet(update.begin(), update.end()); // src cell indexes
-    static std::vector<UInt> removed; // src cell indexes
-    static std::vector<UInt> synToDec, synToInc; // src cell indexes
-    static std::vector<UInt> inactiveSegmentIndices, // synapse indexes
+
+    // Union of source cell indexes corresponding to existing
+    // active synapses in the given segment plus new synapses to be added to the
+    // segment
+    std::set<UInt> synapsesSet(update.begin(), update.end());
+    // Tracks source cell indexes corresponding to synapses in
+    // the given segment that have been removed during execution of this method
+    static std::vector<UInt> removed;
+    // Source cell indexes corresponding to synapses in the given segment whose
+    // permances are to be decremented/incremented; ordered by index of those
+    // synapses within the segment
+    static std::vector<UInt> synToDec, synToInc;
+    // Indexes of synapses within the current segment corresponding to synapses
+    // that are inactive/active in ascending order; these variables correlate
+    // with synToDec and synToInc.
+    static std::vector<UInt> inactiveSegmentIndices,
                              activeSegmentIndices;
+
     // Purge residual data from static variable; the others will be purged by
     // _generateListsOfSynapsesToAdjustForAdaptSegment
     removed.clear();
