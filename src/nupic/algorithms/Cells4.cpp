@@ -1668,9 +1668,8 @@ void Cells4::adaptSegment(const SegmentUpdate& update)
 
     // Accumulate lists of synapses to decrement, increment, add, and remove
 
-    // Union of source cell indexes corresponding to existing
-    // active synapses in the given segment plus new synapses to be added to the
-    // segment
+    // Union of source cell indexes corresponding to existing active synapses in
+    // the given segment plus new synapses to be added to the segment
     std::set<UInt> synapsesSet(update.begin(), update.end());
     // Tracks source cell indexes corresponding to synapses in
     // the given segment that have been removed during execution of this method
