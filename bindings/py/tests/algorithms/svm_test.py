@@ -1,6 +1,6 @@
 # ----------------------------------------------------------------------
 # Numenta Platform for Intelligent Computing (NuPIC)
-# Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
+# Copyright (C) 2013-2017, Numenta, Inc.  Unless you have an agreement
 # with Numenta, Inc., for a separate license for this software code, the
 # following terms and conditions apply:
 #
@@ -26,7 +26,7 @@ import hashlib
 import os
 
 import numpy as np
-import unittest2 as unittest
+import unittest
 
 from nupic.bindings.algorithms import svm_dense, svm_01
 from nupic.bindings.math import GetNumpyDataType
@@ -37,8 +37,22 @@ _RGEN = np.random.RandomState(_SEED)
 _DTYPE = GetNumpyDataType("NTA_Real")
 
 
+
 class SVMTest(unittest.TestCase):
   """Unit tests for the SVM classifier."""
+
+
+  def testAddSampleBadArrayType(self):
+    nDims = 32 # need multiple of 8, because of sse
+    nClass = 2
+    size = 2
+    labels = _RGEN.random_integers(0, nClass - 1, size)
+    sample = np.zeros(nDims, dtype=np.float64)
+
+    classifier = svm_dense(0, nDims, seed=_SEED, probability=True)
+
+    with self.assertRaises(TypeError):
+      classifier.add_sample(float(labels[0]), sample)
 
 
   def testGetstateSetstate(self):
