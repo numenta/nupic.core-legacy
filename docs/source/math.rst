@@ -65,7 +65,7 @@ Neighborhood
    :members:
 
 WrappingNeighborhood
-++++++++++++
+++++++++++++++++++++
 
 .. doxygenclass:: nupic::math::topology::WrappingNeighborhood
    :members:

@@ -761,7 +761,6 @@ INPUT                  = . \
                          ../src/nupic/algorithms/TemporalMemory.hpp \
                          ../src/nupic/algorithms/Connections.hpp \
                          ../src/nupic/algorithms/SDRClassifier.hpp \
-                         ../src/nupic/algorithms/FastClaClassifier.hpp \
                          ../src/nupic/algorithms/ClassifierResult.hpp \
                          ../src/nupic/engine/NuPIC.hpp \
                          ../src/nupic/engine/Network.hpp \
