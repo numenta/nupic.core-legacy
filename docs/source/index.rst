@@ -3,16 +3,18 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to NuPIC Core's documentation!
-======================================
-
-Contents:
+NuPIC Core API Documentation
+============================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 4
 
-.. doxygenclass:: nupic::algorithms::spatial_pooler::SpatialPooler
-   :members:
+   encoders
+   algorithms
+   network
+   types
+   math
+   utils
 
 
 Indices and tables
