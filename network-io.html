@@ -1,0 +1,534 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Input / Output &#8212; NuPIC Core 0.5.2.dev0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.5.2.dev0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Types" href="types.html" />
+    <link rel="prev" title="Links" href="network-links.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="types.html" title="Types"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="network-links.html" title="Links"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NuPIC Core 0.5.2.dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="network.html" accesskey="U">Network API</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="input-output">
+<h1>Input / Output<a class="headerlink" href="#input-output" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="input">
+<h2>Input<a class="headerlink" href="#input" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="_CPPv2N5nupic5InputE">
+<span id="nupic::Input"></span><span class="target" id="nupic.coreclassnupic_1_1_input"></span><em class="property">class </em><code class="descclassname">nupic::</code><code class="descname">Input</code><a class="headerlink" href="#_CPPv2N5nupic5InputE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Represents a named input to a <a class="reference internal" href="network-regions.html#nupic.coreclassnupic_1_1_region"><span class="std std-ref">Region</span></a>. </p>
+<p>(e.g. bottomUpIn)</p>
+<p><dl class="docutils">
+<dt><strong>Note</strong></dt>
+<dd><a class="reference internal" href="#nupic.coreclassnupic_1_1_input"><span class="std std-ref">Input</span></a> is not available in the public API, but is visible by the RegionImpl.</dd>
+</dl>
+</p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Types</p>
+<dl class="type">
+<dt id="_CPPv2N5nupic5Input11SplitterMapE">
+<span id="nupic::Input::SplitterMap"></span><span class="target" id="nupic.coreclassnupic_1_1_input_1a5b3a1fa2957bcac14e6eab73b5e14d8e"></span><em class="property">typedef </em>std::vector&lt;std::vector&lt;size_t&gt;&gt; <code class="descname">SplitterMap</code><a class="headerlink" href="#_CPPv2N5nupic5Input11SplitterMapE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p><dl class="docutils">
+<dt><strong>See</strong></dt>
+<dd><a class="reference internal" href="network-links.html#nupic.coreclassnupic_1_1_link_1a9c0b70790b1358ac9d588cb659f2f3cd"><span class="std std-ref">Link.buildSplitterMap()</span></a> </dd>
+</dl>
+</p>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Functions</p>
+<dl class="function">
+<dt id="_CPPv2N5nupic5Input5InputER6Region13NTA_BasicTypeb">
+<span id="nupic::Input::Input__RegionR.NTA_BasicType.b"></span><span class="target" id="nupic.coreclassnupic_1_1_input_1a14c086c940483dab5c23441ad1fa6b06"></span><code class="descname">Input</code><span class="sig-paren">(</span><a class="reference internal" href="engine.html#_CPPv2N5nupic6RegionE" title="nupic::Region">Region</a> &amp;<em>region</em>, NTA_BasicType <em>type</em>, bool <em>isRegionLevel</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic5Input5InputER6Region13NTA_BasicTypeb" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Constructor. </p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">region</span></code>: The region that the input belongs to. </li>
+<li><code class="docutils literal"><span class="pre">type</span></code>: The type of the input, i.e. TODO </li>
+<li><code class="docutils literal"><span class="pre">isRegionLevel</span></code>: Whether the input is region level, i.e. TODO </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic5InputD0Ev">
+<span id="nupic::Input::~Input"></span><span class="target" id="nupic.coreclassnupic_1_1_input_1ac5f0db34fc6e5f47fcdea0e2608b00fc"></span><code class="descname">~Input</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic5InputD0Ev" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Destructor. </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic5Input7setNameERKNSt6stringE">
+<span id="nupic::Input::setName__ssCR"></span><span class="target" id="nupic.coreclassnupic_1_1_input_1a124bdb41272345e18e6fcd7e241c3573"></span>void <code class="descname">setName</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic5Input7setNameERKNSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Set the name for the input. </p>
+<p>Inputs need to know their own name for error messages.</p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">name</span></code>: The name of the input </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2NK5nupic5Input7getNameEv">
+<span id="nupic::Input::getNameC"></span><span class="target" id="nupic.coreclassnupic_1_1_input_1abbf02ace2dc3e1f6802cccab70e988f1"></span><em class="property">const</em> std::string &amp;<code class="descname">getName</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic5Input7getNameEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get the name of the input. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>The name of the input </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic5Input7addLinkEP4LinkP6Output">
+<span id="nupic::Input::addLink__LinkP.OutputP"></span><span class="target" id="nupic.coreclassnupic_1_1_input_1a11376068de153b24bb3db6ae7f7bb07e"></span>void <code class="descname">addLink</code><span class="sig-paren">(</span><a class="reference internal" href="engine.html#_CPPv2N5nupic4LinkE" title="nupic::Link">Link</a> *<em>link</em>, <a class="reference internal" href="engine.html#_CPPv2N5nupic6OutputE" title="nupic::Output">Output</a> *<em>srcOutput</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic5Input7addLinkEP4LinkP6Output" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Add the given link to this input and to the list of links on the output. </p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">link</span></code>: The link to add. </li>
+<li><code class="docutils literal"><span class="pre">srcOutput</span></code>: The output of previous <a class="reference internal" href="network-regions.html#nupic.coreclassnupic_1_1_region"><span class="std std-ref">Region</span></a>, which is also the source of the input </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic5Input8findLinkERKNSt6stringERKNSt6stringE">
+<span id="nupic::Input::findLink__ssCR.ssCR"></span><span class="target" id="nupic.coreclassnupic_1_1_input_1a66686ddc3e5a784398eb4387403b4530"></span><a class="reference internal" href="engine.html#_CPPv2N5nupic4LinkE" title="nupic::Link">Link</a> *<code class="descname">findLink</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>srcRegionName</em>, <em class="property">const</em> std::string &amp;<em>srcOutputName</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic5Input8findLinkERKNSt6stringERKNSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Locate an existing <a class="reference internal" href="network-links.html#nupic.coreclassnupic_1_1_link"><span class="std std-ref">Link</span></a> to the input. </p>
+<p>It&#8217;s called by <a class="reference internal" href="network-network.html#nupic.coreclassnupic_1_1_network_1a414f5b213e4abc07bfc31842168ba19c"><span class="std std-ref">Network.removeLink()</span></a> and internally when adding a link</p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>The link if found or <code class="docutils literal"><span class="pre">NULL</span></code> if no such link exists </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">srcRegionName</span></code>: The name of the source <a class="reference internal" href="network-regions.html#nupic.coreclassnupic_1_1_region"><span class="std std-ref">Region</span></a> </li>
+<li><code class="docutils literal"><span class="pre">srcOutputName</span></code>: The name of the source <a class="reference internal" href="#nupic.coreclassnupic_1_1_output"><span class="std std-ref">Output</span></a></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic5Input10removeLinkERP4Link">
+<span id="nupic::Input::removeLink__LinkPR"></span><span class="target" id="nupic.coreclassnupic_1_1_input_1a9fca320c9d49e3d01aea3d7ae5d17ff5"></span>void <code class="descname">removeLink</code><span class="sig-paren">(</span><a class="reference internal" href="engine.html#_CPPv2N5nupic4LinkE" title="nupic::Link">Link</a> *&amp;<em>link</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic5Input10removeLinkERP4Link" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Removing an existing link from the input. </p>
+<p>It&#8217;s called in four cases:</p>
+<p><ol class="arabic simple">
+<li><a class="reference internal" href="network-network.html#nupic.coreclassnupic_1_1_network_1a414f5b213e4abc07bfc31842168ba19c"><span class="std std-ref">Network.removeLink()</span></a></li>
+<li><a class="reference internal" href="network-network.html#nupic.coreclassnupic_1_1_network_1a666e9947d3b3d5eb4bdc4769c03dfb75"><span class="std std-ref">Network.removeRegion()</span></a> when given <em>srcRegion</em> </li>
+<li><a class="reference internal" href="network-network.html#nupic.coreclassnupic_1_1_network_1a666e9947d3b3d5eb4bdc4769c03dfb75"><span class="std std-ref">Network.removeRegion()</span></a> when given <em>destRegion</em> </li>
+<li><a class="reference internal" href="network-network.html#nupic.coreclassnupic_1_1_network_1a34d607156243d271f965dfebe1773fbd"><span class="std std-ref">Network.~Network()</span></a></li>
+</ol>
+</p>
+<p>It is an error to call this if our containing region is uninitialized.</p>
+<p><dl class="docutils">
+<dt><strong>Note</strong></dt>
+<dd>This method will set the <a class="reference internal" href="network-links.html#nupic.coreclassnupic_1_1_link"><span class="std std-ref">Link</span></a> pointer to NULL on return (to avoid a dangling reference)</dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">link</span></code>: The <a class="reference internal" href="network-links.html#nupic.coreclassnupic_1_1_link"><span class="std std-ref">Link</span></a> to remove, possibly retrieved by <a class="reference internal" href="#nupic.coreclassnupic_1_1_input_1a66686ddc3e5a784398eb4387403b4530"><span class="std std-ref">findLink()</span></a>, note that it is a reference to the pointer, not the pointer itself. </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic5Input7prepareEv">
+<span id="nupic::Input::prepare"></span><span class="target" id="nupic.coreclassnupic_1_1_input_1ac1f4f1d4b5662293733dd08324bdeaf7"></span>void <code class="descname">prepare</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic5Input7prepareEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Make input data available. </p>
+<p>Called by <a class="reference internal" href="network-regions.html#nupic.coreclassnupic_1_1_region_1a169689684483ed1b80ed05b8f51aa612"><span class="std std-ref">Region.prepareInputs()</span></a> </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2NK5nupic5Input7getDataEv">
+<span id="nupic::Input::getDataC"></span><span class="target" id="nupic.coreclassnupic_1_1_input_1a4797075e80f37fa67a9f007d7b63e3a1"></span><em class="property">const</em> Array &amp;<code class="descname">getData</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic5Input7getDataEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get the data of the input. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>A mutable reference to the data of the input as an <code class="docutils literal"><span class="pre">Array</span></code> </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic5Input9getRegionEv">
+<span id="nupic::Input::getRegion"></span><span class="target" id="nupic.coreclassnupic_1_1_input_1aef710b02c6fd17c8faf4d762f0bfddf4"></span><a class="reference internal" href="engine.html#_CPPv2N5nupic6RegionE" title="nupic::Region">Region</a> &amp;<code class="descname">getRegion</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic5Input9getRegionEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get the <a class="reference internal" href="network-regions.html#nupic.coreclassnupic_1_1_region"><span class="std std-ref">Region</span></a> that the input belongs to. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>The mutable reference to the <a class="reference internal" href="network-regions.html#nupic.coreclassnupic_1_1_region"><span class="std std-ref">Region</span></a> that the input belongs to </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic5Input8getLinksEv">
+<span id="nupic::Input::getLinks"></span><span class="target" id="nupic.coreclassnupic_1_1_input_1a8238a06907082e25559e652bc47f29b5"></span><em class="property">const</em> std::vector&lt;<a class="reference internal" href="engine.html#_CPPv2N5nupic4LinkE" title="nupic::Link">Link</a> *&gt; &amp;<code class="descname">getLinks</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic5Input8getLinksEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get all the <a class="reference internal" href="network-links.html#nupic.coreclassnupic_1_1_link"><span class="std std-ref">Link</span></a> objects added to the input. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>All the <a class="reference internal" href="network-links.html#nupic.coreclassnupic_1_1_link"><span class="std std-ref">Link</span></a> objects added to the input </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic5Input13isRegionLevelEv">
+<span id="nupic::Input::isRegionLevel"></span><span class="target" id="nupic.coreclassnupic_1_1_input_1a2db01a2817c241cc264c8063dd1af159"></span>bool <code class="descname">isRegionLevel</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic5Input13isRegionLevelEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Tells whether the input is region level. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>Whether the input is region level, i.e. TODO </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic5Input13evaluateLinksEv">
+<span id="nupic::Input::evaluateLinks"></span><span class="target" id="nupic.coreclassnupic_1_1_input_1a4cbe61f4b8e525a383ff0d30e50722da"></span>size_t <code class="descname">evaluateLinks</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic5Input13evaluateLinksEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Called by Region.evaluateLinks() as part of network initialization. </p>
+<p><ol class="arabic simple">
+<li>Tries to make sure that dimensions at both ends of a link are specified by calling setSourceDimensions() if possible, and then calling getDestDimensions()</li>
+<li>Ensures that region dimensions are consistent with either by setting destination region dimensions (this is where links &#8220;induce&#8221; dimensions) or by raising an exception if they are inconsistent.</li>
+</ol>
+</p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>Number of links that could not be fully evaluated, i.e. incomplete </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic5Input10initializeEv">
+<span id="nupic::Input::initialize"></span><span class="target" id="nupic.coreclassnupic_1_1_input_1ac16d718c02179533057e1e4b137cb910"></span>void <code class="descname">initialize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic5Input10initializeEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Initialize the <a class="reference internal" href="#nupic.coreclassnupic_1_1_input"><span class="std std-ref">Input</span></a> . </p>
+<p>After the input has all the information it needs, it is initialized by this method. Volatile data structures (e.g. the input buffer) are set up。 </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic5Input13isInitializedEv">
+<span id="nupic::Input::isInitialized"></span><span class="target" id="nupic.coreclassnupic_1_1_input_1a7754cc58c47d8ec6f86a50bb937dadbd"></span>bool <code class="descname">isInitialized</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic5Input13isInitializedEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Tells whether the <a class="reference internal" href="#nupic.coreclassnupic_1_1_input"><span class="std std-ref">Input</span></a> is initialized. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>Whether the <a class="reference internal" href="#nupic.coreclassnupic_1_1_input"><span class="std std-ref">Input</span></a> is initialized </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2NK5nupic5Input14getSplitterMapEv">
+<span id="nupic::Input::getSplitterMapC"></span><span class="target" id="nupic.coreclassnupic_1_1_input_1a6d6e3328afeaaf211e0de1e3f9ec49c2"></span><em class="property">const</em> <a class="reference internal" href="engine.html#_CPPv2N5nupic5Input11SplitterMapE" title="nupic::Input::SplitterMap">SplitterMap</a> &amp;<code class="descname">getSplitterMap</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic5Input14getSplitterMapEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get splitter map from an initialized input. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>The splitter map </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<em class="property">template </em>&lt;<em class="property">typename</em> T&gt;</dt>
+<dt id="_CPPv2NK5nupic5Input15getInputForNodeE6size_tRNSt6vectorI1TEE">
+<span id="nupic::Input::getInputForNode__s.std::vector:T:RC"></span><span class="target" id="nupic.coreclassnupic_1_1_input_1ae58ff9f42c1d0c34401cc77272bff094"></span>void <code class="descname">getInputForNode</code><span class="sig-paren">(</span>size_t <em>nodeIndex</em>, std::vector&lt;T&gt; &amp;<em>input</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic5Input15getInputForNodeE6size_tRNSt6vectorI1TEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>explicitly instantiated for various types </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="output">
+<h2>Output<a class="headerlink" href="#output" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="_CPPv2N5nupic6OutputE">
+<span id="nupic::Output"></span><span class="target" id="nupic.coreclassnupic_1_1_output"></span><em class="property">class </em><code class="descclassname">nupic::</code><code class="descname">Output</code><a class="headerlink" href="#_CPPv2N5nupic6OutputE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Represents a named output to a <a class="reference internal" href="network-regions.html#nupic.coreclassnupic_1_1_region"><span class="std std-ref">Region</span></a>. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Functions</p>
+<dl class="function">
+<dt id="_CPPv2N5nupic6Output6OutputER6Region13NTA_BasicTypeb">
+<span id="nupic::Output::Output__RegionR.NTA_BasicType.b"></span><span class="target" id="nupic.coreclassnupic_1_1_output_1af9f39746951038e234e39d486e220b1d"></span><code class="descname">Output</code><span class="sig-paren">(</span><a class="reference internal" href="engine.html#_CPPv2N5nupic6RegionE" title="nupic::Region">Region</a> &amp;<em>region</em>, NTA_BasicType <em>type</em>, bool <em>isRegionLevel</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic6Output6OutputER6Region13NTA_BasicTypeb" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Constructor. </p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">region</span></code>: The region that the output belongs to. </li>
+<li><code class="docutils literal"><span class="pre">type</span></code>: The type of the output, TODO </li>
+<li><code class="docutils literal"><span class="pre">isRegionLevel</span></code>: Whether the output is region level, i.e. TODO </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic6OutputD0Ev">
+<span id="nupic::Output::~Output"></span><span class="target" id="nupic.coreclassnupic_1_1_output_1ac341ca5395f7a808b32e85ccd4437bdb"></span><code class="descname">~Output</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic6OutputD0Ev" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Destructor. </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic6Output7setNameERKNSt6stringE">
+<span id="nupic::Output::setName__ssCR"></span><span class="target" id="nupic.coreclassnupic_1_1_output_1a66de6e29dcf2f0fa9c8169c51b6b8134"></span>void <code class="descname">setName</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic6Output7setNameERKNSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Set the name for the output. </p>
+<p><a class="reference internal" href="#nupic.coreclassnupic_1_1_output"><span class="std std-ref">Output</span></a> need to know their own name for error messages.</p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">name</span></code>: The name of the output </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2NK5nupic6Output7getNameEv">
+<span id="nupic::Output::getNameC"></span><span class="target" id="nupic.coreclassnupic_1_1_output_1a7ca63eeed43fd44db900957fd9256d55"></span><em class="property">const</em> std::string &amp;<code class="descname">getName</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic6Output7getNameEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get the name of the output. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>The name of the output </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic6Output10initializeE6size_t">
+<span id="nupic::Output::initialize__s"></span><span class="target" id="nupic.coreclassnupic_1_1_output_1a2d3ef2344bac170e995f07d154f16518"></span>void <code class="descname">initialize</code><span class="sig-paren">(</span>size_t <em>size</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic6Output10initializeE6size_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Initialize the <a class="reference internal" href="#nupic.coreclassnupic_1_1_output"><span class="std std-ref">Output</span></a> . </p>
+<p><dl class="docutils">
+<dt><strong>Note</strong></dt>
+<dd>It&#8217;s safe to reinitialize an initialized <a class="reference internal" href="#nupic.coreclassnupic_1_1_output"><span class="std std-ref">Output</span></a> with the same parameters. </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">size</span></code>: The count of node output element, i.e. TODO</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic6Output7addLinkEP4Link">
+<span id="nupic::Output::addLink__LinkP"></span><span class="target" id="nupic.coreclassnupic_1_1_output_1a42aaed86afe9ae233169fc0eeba25e4d"></span>void <code class="descname">addLink</code><span class="sig-paren">(</span><a class="reference internal" href="engine.html#_CPPv2N5nupic4LinkE" title="nupic::Link">Link</a> *<em>link</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic6Output7addLinkEP4Link" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Add a <a class="reference internal" href="network-links.html#nupic.coreclassnupic_1_1_link"><span class="std std-ref">Link</span></a> to the <a class="reference internal" href="#nupic.coreclassnupic_1_1_output"><span class="std std-ref">Output</span></a> . </p>
+<p>
+Called by <a class="reference internal" href="#nupic.coreclassnupic_1_1_input_1a11376068de153b24bb3db6ae7f7bb07e"><span class="std std-ref">Input.addLink()</span></a><dl class="docutils">
+<dt><strong>Note</strong></dt>
+<dd>The <a class="reference internal" href="#nupic.coreclassnupic_1_1_output"><span class="std std-ref">Output</span></a> does NOT take ownership of <em>link</em>, it&#8217;s created and owned by an <a class="reference internal" href="#nupic.coreclassnupic_1_1_input"><span class="std std-ref">Input</span></a> Object.</dd>
+</dl>
+</p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">link</span></code>: The <a class="reference internal" href="network-links.html#nupic.coreclassnupic_1_1_link"><span class="std std-ref">Link</span></a> to add </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic6Output10removeLinkEP4Link">
+<span id="nupic::Output::removeLink__LinkP"></span><span class="target" id="nupic.coreclassnupic_1_1_output_1a41b086a3aeeae1bf3d8cba01a8fccc02"></span>void <code class="descname">removeLink</code><span class="sig-paren">(</span><a class="reference internal" href="engine.html#_CPPv2N5nupic4LinkE" title="nupic::Link">Link</a> *<em>link</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic6Output10removeLinkEP4Link" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Removing an existing link from the output. </p>
+<p><dl class="docutils">
+<dt><strong>Note</strong></dt>
+<dd>Called only by <a class="reference internal" href="#nupic.coreclassnupic_1_1_input_1a9fca320c9d49e3d01aea3d7ae5d17ff5"><span class="std std-ref">Input.removeLink()</span></a> even if triggered by <a class="reference internal" href="network-network.html#nupic.coreclassnupic_1_1_network_1a666e9947d3b3d5eb4bdc4769c03dfb75"><span class="std std-ref">Network.removeRegion()</span></a> while removing the region that contains us.</dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">link</span></code>: The <a class="reference internal" href="network-links.html#nupic.coreclassnupic_1_1_link"><span class="std std-ref">Link</span></a> to remove </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic6Output16hasOutgoingLinksEv">
+<span id="nupic::Output::hasOutgoingLinks"></span><span class="target" id="nupic.coreclassnupic_1_1_output_1a649d9976a8ef3f673dbb3f17e0b0764d"></span>bool <code class="descname">hasOutgoingLinks</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic6Output16hasOutgoingLinksEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Tells whether the output has outgoing links. </p>
+<p><dl class="docutils">
+<dt><strong>Note</strong></dt>
+<dd>We cannot delete a region if there are any outgoing links This allows us to check in <a class="reference internal" href="network-network.html#nupic.coreclassnupic_1_1_network_1a666e9947d3b3d5eb4bdc4769c03dfb75"><span class="std std-ref">Network.removeRegion()</span></a> and <a class="reference internal" href="network-network.html#nupic.coreclassnupic_1_1_network_1a34d607156243d271f965dfebe1773fbd"><span class="std std-ref">Network.~Network()</span></a>. </dd>
+<dt><strong>Return</strong></dt>
+<dd>Whether the output has outgoing links </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2NK5nupic6Output7getDataEv">
+<span id="nupic::Output::getDataC"></span><span class="target" id="nupic.coreclassnupic_1_1_output_1a58520d72b7bfcce56786b5dfe827c8c9"></span><em class="property">const</em> Array &amp;<code class="descname">getData</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic6Output7getDataEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get the data of the output. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>A constant reference to the data of the output as an <code class="docutils literal"><span class="pre">Array</span></code> </dd>
+<dt><strong>Note</strong></dt>
+<dd>It&#8217;s mportant to return a const array so caller can&#8217;t reallocate the buffer. </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2NK5nupic6Output13isRegionLevelEv">
+<span id="nupic::Output::isRegionLevelC"></span><span class="target" id="nupic.coreclassnupic_1_1_output_1aa72dcad35e5c6902dfdd376f1cc48fb6"></span>bool <code class="descname">isRegionLevel</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic6Output13isRegionLevelEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Tells whether the output is region level. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>Whether the output is region level, i.e. TODO </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2NK5nupic6Output9getRegionEv">
+<span id="nupic::Output::getRegionC"></span><span class="target" id="nupic.coreclassnupic_1_1_output_1afc23a290429f934efe77dc815a07ffca"></span><a class="reference internal" href="engine.html#_CPPv2N5nupic6RegionE" title="nupic::Region">Region</a> &amp;<code class="descname">getRegion</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic6Output9getRegionEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get the <a class="reference internal" href="network-regions.html#nupic.coreclassnupic_1_1_region"><span class="std std-ref">Region</span></a> that the output belongs to. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>The mutable reference to the <a class="reference internal" href="network-regions.html#nupic.coreclassnupic_1_1_region"><span class="std std-ref">Region</span></a> that the output belongs to </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2NK5nupic6Output25getNodeOutputElementCountEv">
+<span id="nupic::Output::getNodeOutputElementCountC"></span><span class="target" id="nupic.coreclassnupic_1_1_output_1a2b04e0b82279beea6c3d41974fc305f7"></span>size_t <code class="descname">getNodeOutputElementCount</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic6Output25getNodeOutputElementCountEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get the count of node output element. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>The count of node output element, previously set by <a class="reference internal" href="#nupic.coreclassnupic_1_1_output_1a2d3ef2344bac170e995f07d154f16518"><span class="std std-ref">initialize()</span></a>. </dd>
+</dl>
+</p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Input / Output</a><ul>
+<li><a class="reference internal" href="#input">Input</a></li>
+<li><a class="reference internal" href="#output">Output</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="network-links.html"
+                        title="previous chapter">Links</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="types.html"
+                        title="next chapter">Types</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/network-io.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="types.html" title="Types"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="network-links.html" title="Links"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NuPIC Core 0.5.2.dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="network.html" >Network API</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Numenta.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.3.
+    </div>
+  </body>
+</html>

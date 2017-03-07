@@ -1,0 +1,831 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Regions &#8212; NuPIC Core 0.5.2.dev0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.5.2.dev0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Sensors" href="network-sensors.html" />
+    <link rel="prev" title="Network" href="network-network.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="network-sensors.html" title="Sensors"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="network-network.html" title="Network"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NuPIC Core 0.5.2.dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="network.html" accesskey="U">Network API</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="regions">
+<h1>Regions<a class="headerlink" href="#regions" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="region">
+<h2>Region<a class="headerlink" href="#region" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="_CPPv2N5nupic6RegionE">
+<span id="nupic::Region"></span><span class="target" id="nupic.coreclassnupic_1_1_region"></span><em class="property">class </em><code class="descclassname">nupic::</code><code class="descname">Region</code><a class="headerlink" href="#_CPPv2N5nupic6RegionE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Represents a set of one or more &#8220;identical&#8221; nodes in a <a class="reference internal" href="network-network.html#nupic.coreclassnupic_1_1_network"><span class="std std-ref">Network</span></a>. </p>
+<p><em>Constructors</em></p>
+<p><dl class="docutils">
+<dt><strong>Note</strong></dt>
+<dd><a class="reference internal" href="#nupic.coreclassnupic_1_1_region"><span class="std std-ref">Region</span></a> constructors are not available in the public API. Internally regions are created and owned by <a class="reference internal" href="network-network.html#nupic.coreclassnupic_1_1_network"><span class="std std-ref">Network</span></a>. </dd>
+</dl>
+</p>
+<p>Inherits from <a class="reference internal" href="types.html#nupic.coreclassnupic_1_1_serializable"><span class="std std-ref">nupic::Serializable&lt; RegionProto &gt;</span></a></p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Region information</p>
+<dl class="function">
+<dt id="_CPPv2N5nupic6Region10getNetworkEv">
+<span id="nupic::Region::getNetwork"></span><span class="target" id="nupic.coreclassnupic_1_1_region_1a9c844ae07c92ddeedfe5bfbb56ad84e7"></span><a class="reference internal" href="engine.html#_CPPv2N5nupic7NetworkE" title="nupic::Network">Network</a> *<code class="descname">getNetwork</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic6Region10getNetworkEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get the network containing this region. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>The network containing this region </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2NK5nupic6Region7getNameEv">
+<span id="nupic::Region::getNameC"></span><span class="target" id="nupic.coreclassnupic_1_1_region_1affda8b582ffdfa2779b00eec4d8282b4"></span><em class="property">const</em> std::string &amp;<code class="descname">getName</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic6Region7getNameEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get the name of the region. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>The region&#8217;s name </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2NK5nupic6Region13getDimensionsEv">
+<span id="nupic::Region::getDimensionsC"></span><span class="target" id="nupic.coreclassnupic_1_1_region_1a8ff7809719be8940bc940c52a1351478"></span><em class="property">const</em> <a class="reference internal" href="types.html#_CPPv2N5nupic10DimensionsE" title="nupic::Dimensions">Dimensions</a> &amp;<code class="descname">getDimensions</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic6Region13getDimensionsEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get the dimensions of the region. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>The region&#8217;s dimensions </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic6Region13setDimensionsER10Dimensions">
+<span id="nupic::Region::setDimensions__DimensionsR"></span><span class="target" id="nupic.coreclassnupic_1_1_region_1ab447eac0323654d91a24015e24e37873"></span>void <code class="descname">setDimensions</code><span class="sig-paren">(</span><a class="reference internal" href="types.html#_CPPv2N5nupic10DimensionsE" title="nupic::Dimensions">Dimensions</a> &amp;<em>dimensions</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic6Region13setDimensionsER10Dimensions" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Assign width and height to the region. </p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">dimensions</span></code>: A <a class="reference internal" href="types.html#nupic.coreclassnupic_1_1_dimensions"><span class="std std-ref">Dimensions</span></a> object that describes the width and height </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Element interface methods</p>
+<p></p>
+<dl class="function">
+<dt id="_CPPv2NK5nupic6Region7getTypeEv">
+<span id="nupic::Region::getTypeC"></span><span class="target" id="nupic.coreclassnupic_1_1_region_1a82d2ebd7743597172d962fa0a153b806"></span><em class="property">const</em> std::string &amp;<code class="descname">getType</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic6Region7getTypeEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get the type of the region. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>The node type as a string </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2NK5nupic6Region7getSpecEv">
+<span id="nupic::Region::getSpecC"></span><span class="target" id="nupic.coreclassnupic_1_1_region_1ae7301d59b30217e7c880a5f6b02efde9"></span><em class="property">const</em> Spec *<code class="descname">getSpec</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic6Region7getSpecEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get the spec of the region. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>The spec that describes this region </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic6Region15getSpecFromTypeERKNSt6stringE">
+<span id="nupic::Region::getSpecFromType__ssCR"></span><span class="target" id="nupic.coreclassnupic_1_1_region_1aa7676f00dbe434236e3c5b39fa712404"></span><em class="property">static</em> <em class="property">const</em> Spec *<code class="descname">getSpecFromType</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>nodeType</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic6Region15getSpecFromTypeERKNSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get the Spec of a region type without an instance. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>The Spec that describes this region type </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">nodeType</span></code>: A region type as a string</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Parameter getters and setters</p>
+<dl class="function">
+<dt id="_CPPv2NK5nupic6Region17getParameterInt32ERKNSt6stringE">
+<span id="nupic::Region::getParameterInt32__ssCRC"></span><span class="target" id="nupic.coreclassnupic_1_1_region_1a736be2fbd632553406ff8eaeb22ace7b"></span>Int32 <code class="descname">getParameterInt32</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>name</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic6Region17getParameterInt32ERKNSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get the parameter as an <code class="docutils literal"><span class="pre">Int32</span></code> value. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>The value of the parameter </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">name</span></code>: The name of the parameter</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2NK5nupic6Region18getParameterUInt32ERKNSt6stringE">
+<span id="nupic::Region::getParameterUInt32__ssCRC"></span><span class="target" id="nupic.coreclassnupic_1_1_region_1ac82206963799813eba88b9dfad25b34f"></span>UInt32 <code class="descname">getParameterUInt32</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>name</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic6Region18getParameterUInt32ERKNSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get the parameter as an <code class="docutils literal"><span class="pre">UInt32</span></code> value. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>The value of the parameter </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">name</span></code>: The name of the parameter</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2NK5nupic6Region17getParameterInt64ERKNSt6stringE">
+<span id="nupic::Region::getParameterInt64__ssCRC"></span><span class="target" id="nupic.coreclassnupic_1_1_region_1ac40c233a53ef8992490b516f024bab99"></span>Int64 <code class="descname">getParameterInt64</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>name</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic6Region17getParameterInt64ERKNSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get the parameter as an <code class="docutils literal"><span class="pre">Int64</span></code> value. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>The value of the parameter </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">name</span></code>: The name of the parameter</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2NK5nupic6Region18getParameterUInt64ERKNSt6stringE">
+<span id="nupic::Region::getParameterUInt64__ssCRC"></span><span class="target" id="nupic.coreclassnupic_1_1_region_1a83d33ddfeb276ea5672c0d07eac36a9a"></span>UInt64 <code class="descname">getParameterUInt64</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>name</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic6Region18getParameterUInt64ERKNSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get the parameter as an <code class="docutils literal"><span class="pre">UInt64</span></code> value. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>The value of the parameter </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">name</span></code>: The name of the parameter</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2NK5nupic6Region18getParameterReal32ERKNSt6stringE">
+<span id="nupic::Region::getParameterReal32__ssCRC"></span><span class="target" id="nupic.coreclassnupic_1_1_region_1a4114d91d375e27a72867259090914a70"></span>Real32 <code class="descname">getParameterReal32</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>name</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic6Region18getParameterReal32ERKNSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get the parameter as an <code class="docutils literal"><span class="pre">Real32</span></code> value. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>The value of the parameter </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">name</span></code>: The name of the parameter</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2NK5nupic6Region18getParameterReal64ERKNSt6stringE">
+<span id="nupic::Region::getParameterReal64__ssCRC"></span><span class="target" id="nupic.coreclassnupic_1_1_region_1a8ff75fe59cb7db9e9cb57bb7598e300a"></span>Real64 <code class="descname">getParameterReal64</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>name</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic6Region18getParameterReal64ERKNSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get the parameter as an <code class="docutils literal"><span class="pre">Real64</span></code> value. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>The value of the parameter </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">name</span></code>: The name of the parameter</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2NK5nupic6Region18getParameterHandleERKNSt6stringE">
+<span id="nupic::Region::getParameterHandle__ssCRC"></span><span class="target" id="nupic.coreclassnupic_1_1_region_1a83cb8066edd90a8764c61ee3b927d7d9"></span>Handle <code class="descname">getParameterHandle</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>name</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic6Region18getParameterHandleERKNSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get the parameter as an <code class="docutils literal"><span class="pre">Handle</span></code> value. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>The value of the parameter </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">name</span></code>: The name of the parameter</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2NK5nupic6Region16getParameterBoolERKNSt6stringE">
+<span id="nupic::Region::getParameterBool__ssCRC"></span><span class="target" id="nupic.coreclassnupic_1_1_region_1a714c532854cfc5b01fc969e3b3451aa8"></span>bool <code class="descname">getParameterBool</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>name</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic6Region16getParameterBoolERKNSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get a bool parameter. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>The value of the parameter </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">name</span></code>: The name of the parameter</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic6Region17setParameterInt32ERKNSt6stringE5Int32">
+<span id="nupic::Region::setParameterInt32__ssCR.Int32"></span><span class="target" id="nupic.coreclassnupic_1_1_region_1aec26178dd0d89e21843090c78e3dbb97"></span>void <code class="descname">setParameterInt32</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>name</em>, Int32 <em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic6Region17setParameterInt32ERKNSt6stringE5Int32" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Set the parameter to an Int32 value. </p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">name</span></code>: The name of the parameter</li>
+<li><code class="docutils literal"><span class="pre">value</span></code>: The value of the parameter </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic6Region18setParameterUInt32ERKNSt6stringE6UInt32">
+<span id="nupic::Region::setParameterUInt32__ssCR.UInt32"></span><span class="target" id="nupic.coreclassnupic_1_1_region_1a03fc0e074a674ef17b4b8bbd543f75d5"></span>void <code class="descname">setParameterUInt32</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>name</em>, UInt32 <em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic6Region18setParameterUInt32ERKNSt6stringE6UInt32" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Set the parameter to an UInt32 value. </p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">name</span></code>: The name of the parameter</li>
+<li><code class="docutils literal"><span class="pre">value</span></code>: The value of the parameter </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic6Region17setParameterInt64ERKNSt6stringE5Int64">
+<span id="nupic::Region::setParameterInt64__ssCR.Int64"></span><span class="target" id="nupic.coreclassnupic_1_1_region_1a29b933f7e807c32fe59cd76d78f33eda"></span>void <code class="descname">setParameterInt64</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>name</em>, Int64 <em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic6Region17setParameterInt64ERKNSt6stringE5Int64" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Set the parameter to an Int64 value. </p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">name</span></code>: The name of the parameter</li>
+<li><code class="docutils literal"><span class="pre">value</span></code>: The value of the parameter </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic6Region18setParameterUInt64ERKNSt6stringE6UInt64">
+<span id="nupic::Region::setParameterUInt64__ssCR.UInt64"></span><span class="target" id="nupic.coreclassnupic_1_1_region_1aa3231edb54e31c4250633ee195763e33"></span>void <code class="descname">setParameterUInt64</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>name</em>, UInt64 <em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic6Region18setParameterUInt64ERKNSt6stringE6UInt64" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Set the parameter to an UInt64 value. </p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">name</span></code>: The name of the parameter</li>
+<li><code class="docutils literal"><span class="pre">value</span></code>: The value of the parameter </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic6Region18setParameterReal32ERKNSt6stringE6Real32">
+<span id="nupic::Region::setParameterReal32__ssCR.Real32"></span><span class="target" id="nupic.coreclassnupic_1_1_region_1a44ede7fc778bef7d784dbc290c328829"></span>void <code class="descname">setParameterReal32</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>name</em>, Real32 <em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic6Region18setParameterReal32ERKNSt6stringE6Real32" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Set the parameter to a Real32 value. </p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">name</span></code>: The name of the parameter</li>
+<li><code class="docutils literal"><span class="pre">value</span></code>: The value of the parameter </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic6Region18setParameterReal64ERKNSt6stringE6Real64">
+<span id="nupic::Region::setParameterReal64__ssCR.Real64"></span><span class="target" id="nupic.coreclassnupic_1_1_region_1ae5a9fd4c0765e353f6f583fd6e13c84c"></span>void <code class="descname">setParameterReal64</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>name</em>, Real64 <em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic6Region18setParameterReal64ERKNSt6stringE6Real64" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Set the parameter to a Real64 value. </p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">name</span></code>: The name of the parameter</li>
+<li><code class="docutils literal"><span class="pre">value</span></code>: The value of the parameter </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic6Region18setParameterHandleERKNSt6stringE6Handle">
+<span id="nupic::Region::setParameterHandle__ssCR.Handle"></span><span class="target" id="nupic.coreclassnupic_1_1_region_1ac7dab5c140ceaae208e40342a8e25df2"></span>void <code class="descname">setParameterHandle</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>name</em>, Handle <em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic6Region18setParameterHandleERKNSt6stringE6Handle" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Set the parameter to a Handle value. </p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">name</span></code>: The name of the parameter</li>
+<li><code class="docutils literal"><span class="pre">value</span></code>: The value of the parameter </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic6Region16setParameterBoolERKNSt6stringEb">
+<span id="nupic::Region::setParameterBool__ssCR.b"></span><span class="target" id="nupic.coreclassnupic_1_1_region_1a4eb97fac8223fcfc95b376341b71279d"></span>void <code class="descname">setParameterBool</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>name</em>, bool <em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic6Region16setParameterBoolERKNSt6stringEb" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Set the parameter to a bool value. </p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">name</span></code>: The name of the parameter</li>
+<li><code class="docutils literal"><span class="pre">value</span></code>: The value of the parameter </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2NK5nupic6Region17getParameterArrayERKNSt6stringER5Array">
+<span id="nupic::Region::getParameterArray__ssCR.ArrayRC"></span><span class="target" id="nupic.coreclassnupic_1_1_region_1a36e58a00b71a6edb14222868e9246df0"></span>void <code class="descname">getParameterArray</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>name</em>, Array &amp;<em>array</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic6Region17getParameterArrayERKNSt6stringER5Array" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get the parameter as an <code class="docutils literal"><span class="pre">Array</span></code> value. </p>
+<p><em>array</em> is a memory buffer. If the buffer is allocated, the value is copied into the supplied buffer; otherwise <em>array</em> would be asked to allocate the buffer and copy into it.<dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">name</span></code>: The name of the parameter</li>
+<li><code class="docutils literal"><span class="pre">array</span></code>: The value of the parameter</li>
+</ul>
+</dd>
+</dl>
+</p>
+<p>A typical use might be that the caller would supply an unallocated buffer on the first call and then reuse the memory buffer on subsequent calls, i.e.</p>
+<p><div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="o">//</span> <span class="n">no</span> <span class="n">buffer</span> <span class="n">allocated</span>
+  <span class="n">Array</span> <span class="n">buffer</span><span class="p">(</span><span class="n">NTA_BasicTypeInt64</span><span class="p">);</span>
+
+  <span class="o">//</span> <span class="n">buffer</span> <span class="ow">is</span> <span class="n">allocated</span><span class="p">,</span> <span class="ow">and</span> <span class="n">owned</span> <span class="n">by</span> <span class="n">Array</span> <span class="nb">object</span>
+  <span class="n">getParameterArray</span><span class="p">(</span><span class="s2">&quot;foo&quot;</span><span class="p">,</span> <span class="n">buffer</span><span class="p">);</span>
+
+  <span class="o">//</span> <span class="n">uses</span> <span class="n">already</span><span class="o">-</span><span class="n">allocated</span> <span class="n">buffer</span>
+  <span class="n">getParameterArray</span><span class="p">(</span><span class="s2">&quot;foo&quot;</span><span class="p">,</span> <span class="n">buffer</span><span class="p">);</span>
+
+<span class="p">}</span> <span class="o">//</span> <span class="n">Array</span> <span class="n">destructor</span> <span class="n">called</span> <span class="o">--</span> <span class="n">frees</span> <span class="n">the</span> <span class="n">buffer</span>
+</pre></div>
+</div>
+</p>
+<p>Throws an exception if the supplied <em>array</em> is not big enough. </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic6Region17setParameterArrayERKNSt6stringERK5Array">
+<span id="nupic::Region::setParameterArray__ssCR.ArrayCR"></span><span class="target" id="nupic.coreclassnupic_1_1_region_1a3ec88f5b62ec752b21e23eed88913a95"></span>void <code class="descname">setParameterArray</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>name</em>, <em class="property">const</em> Array &amp;<em>array</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic6Region17setParameterArrayERKNSt6stringERK5Array" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Set the parameter to an <code class="docutils literal"><span class="pre">Array</span></code> value. </p>
+<p><dl class="docutils">
+<dt><strong>Note</strong></dt>
+<dd><em>array</em> must be initialized before calling <a class="reference internal" href="#nupic.coreclassnupic_1_1_region_1a3ec88f5b62ec752b21e23eed88913a95"><span class="std std-ref">setParameterArray()</span></a>. </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">name</span></code>: The name of the parameter</li>
+<li><code class="docutils literal"><span class="pre">array</span></code>: The value of the parameter</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic6Region18setParameterStringERKNSt6stringERKNSt6stringE">
+<span id="nupic::Region::setParameterString__ssCR.ssCR"></span><span class="target" id="nupic.coreclassnupic_1_1_region_1a57225cb3b846a1e43ad80e0c451ff043"></span>void <code class="descname">setParameterString</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>name</em>, <em class="property">const</em> std::string &amp;<em>s</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic6Region18setParameterStringERKNSt6stringERKNSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Set the parameter to a <code class="docutils literal"><span class="pre">std::string</span></code> value. </p>
+<p>
+Strings are handled internally as Byte Arrays, but this interface is clumsy. <a class="reference internal" href="#nupic.coreclassnupic_1_1_region_1a57225cb3b846a1e43ad80e0c451ff043"><span class="std std-ref">setParameterString()</span></a> and <a class="reference internal" href="#nupic.coreclassnupic_1_1_region_1a30b6cfed965f247ac66fbe2a855f3e6f"><span class="std std-ref">getParameterString()</span></a> internally use byte arrays but converts to/from strings.<dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">name</span></code>: The name of the parameter</li>
+<li><code class="docutils literal"><span class="pre">s</span></code>: The value of the parameter</li>
+</ul>
+</dd>
+</dl>
+</p>
+<p><a class="reference internal" href="#nupic.coreclassnupic_1_1_region_1a57225cb3b846a1e43ad80e0c451ff043"><span class="std std-ref">setParameterString()</span></a> is implemented with one copy (from the string into the node) but <a class="reference internal" href="#nupic.coreclassnupic_1_1_region_1a30b6cfed965f247ac66fbe2a855f3e6f"><span class="std std-ref">getParameterString()</span></a> requires a second copy so that there are temporarily three copies of the data in memory (in the node, in an internal Array object, and in the string returned to the user) </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic6Region18getParameterStringERKNSt6stringE">
+<span id="nupic::Region::getParameterString__ssCR"></span><span class="target" id="nupic.coreclassnupic_1_1_region_1a30b6cfed965f247ac66fbe2a855f3e6f"></span>std::string <code class="descname">getParameterString</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic6Region18getParameterStringERKNSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get the parameter as a <code class="docutils literal"><span class="pre">std::string</span></code> value. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>The value of the parameter</dd>
+<dt><strong>See</strong></dt>
+<dd><a class="reference internal" href="#nupic.coreclassnupic_1_1_region_1a57225cb3b846a1e43ad80e0c451ff043"><span class="std std-ref">setParameterString()</span></a> </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">name</span></code>: The name of the parameter</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2NK5nupic6Region17isParameterSharedERKNSt6stringE">
+<span id="nupic::Region::isParameterShared__ssCRC"></span><span class="target" id="nupic.coreclassnupic_1_1_region_1a573e6a64859058aed186412aecdb9171"></span>bool <code class="descname">isParameterShared</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>name</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic6Region17isParameterSharedERKNSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Tells whether the parameter is shared. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>Whether the parameter is shared</dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">name</span></code>: The name of the parameter</li>
+</ul>
+</dd>
+</dl>
+</p>
+<p>
+Throws an exception if it&#8217;s not overridden <dl class="docutils">
+<dt><strong>Note</strong></dt>
+<dd>This method must be overridden by subclasses.</dd>
+</dl>
+</p>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Inputs and outputs</p>
+<dl class="function">
+<dt id="_CPPv2N5nupic6Region13prepareInputsEv">
+<span id="nupic::Region::prepareInputs"></span><span class="target" id="nupic.coreclassnupic_1_1_region_1a169689684483ed1b80ed05b8f51aa612"></span>void <code class="descname">prepareInputs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic6Region13prepareInputsEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Copies data into the inputs of this region, using the links that are attached to each input. </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2NK5nupic6Region12getInputDataERKNSt6stringE">
+<span id="nupic::Region::getInputData__ssCRC"></span><span class="target" id="nupic.coreclassnupic_1_1_region_1acc4aabda2a6417d040474041c333dd7a"></span><em class="property">virtual</em> ArrayRef <code class="descname">getInputData</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>inputName</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic6Region12getInputDataERKNSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get the input data. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>An <code class="docutils literal"><span class="pre">ArrayRef</span></code> that contains the input data.</dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">inputName</span></code>: The name of the target input</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2NK5nupic6Region13getOutputDataERKNSt6stringE">
+<span id="nupic::Region::getOutputData__ssCRC"></span><span class="target" id="nupic.coreclassnupic_1_1_region_1a7cea6d28c6ac561948d0c3e9b2cdacbc"></span><em class="property">virtual</em> ArrayRef <code class="descname">getOutputData</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>outputName</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic6Region13getOutputDataERKNSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get the output data. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>An <code class="docutils literal"><span class="pre">ArrayRef</span></code> that contains the output data.</dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">outputName</span></code>: The name of the target output</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2NK5nupic6Region13getInputCountERKNSt6stringE">
+<span id="nupic::Region::getInputCount__ssCRC"></span><span class="target" id="nupic.coreclassnupic_1_1_region_1ab5b7d681cbcd217d36eea3d59c2fec6e"></span><em class="property">virtual</em> size_t <code class="descname">getInputCount</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>inputName</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic6Region13getInputCountERKNSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get the count of input data. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>The count of input data</dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">inputName</span></code>: The name of the target input</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2NK5nupic6Region14getOutputCountERKNSt6stringE">
+<span id="nupic::Region::getOutputCount__ssCRC"></span><span class="target" id="nupic.coreclassnupic_1_1_region_1a22901fad9e37e45ef4a9c6f769283b26"></span><em class="property">virtual</em> size_t <code class="descname">getOutputCount</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>outputName</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic6Region14getOutputCountERKNSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get the count of output data. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>The count of output data</dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">outputName</span></code>: The name of the target output</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Operations</p>
+<dl class="function">
+<dt id="_CPPv2N5nupic6Region6enableEv">
+<span id="nupic::Region::enable"></span><span class="target" id="nupic.coreclassnupic_1_1_region_1a4760ce6f80cdb9735076db5c60906dde"></span><em class="property">virtual</em> void <code class="descname">enable</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic6Region6enableEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic6Region7disableEv">
+<span id="nupic::Region::disable"></span><span class="target" id="nupic.coreclassnupic_1_1_region_1a068562f6fe476c0801dd8be459b604f1"></span><em class="property">virtual</em> void <code class="descname">disable</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic6Region7disableEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic6Region14executeCommandERKNSt6vectorINSt6stringEEE">
+<span id="nupic::Region::executeCommand__std::vector:ss:CR"></span><span class="target" id="nupic.coreclassnupic_1_1_region_1a6f4af1b8c9f0c58f820861187e4925fb"></span><em class="property">virtual</em> std::string <code class="descname">executeCommand</code><span class="sig-paren">(</span><em class="property">const</em> std::vector&lt;std::string&gt; &amp;<em>args</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic6Region14executeCommandERKNSt6vectorINSt6stringEEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Request the underlying region to execute a command. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>The result value of command execution is a string determined by the underlying region. </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">args</span></code>: A list of strings that the actual region will interpret. The first string is the command name. The other arguments are optional.</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic6Region7computeEv">
+<span id="nupic::Region::compute"></span><span class="target" id="nupic.coreclassnupic_1_1_region_1a844780055745f0a91277885e9022f089"></span>void <code class="descname">compute</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic6Region7computeEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Perform one step of the region computation. </p>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Profiling</p>
+<dl class="function">
+<dt id="_CPPv2N5nupic6Region15enableProfilingEv">
+<span id="nupic::Region::enableProfiling"></span><span class="target" id="nupic.coreclassnupic_1_1_region_1aee7e69103893bdd3ea91948ed6cc2572"></span>void <code class="descname">enableProfiling</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic6Region15enableProfilingEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Enable profiling of the compute and execute operations. </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic6Region16disableProfilingEv">
+<span id="nupic::Region::disableProfiling"></span><span class="target" id="nupic.coreclassnupic_1_1_region_1a75f9c0aa632a3938ac0d87d061780507"></span>void <code class="descname">disableProfiling</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic6Region16disableProfilingEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Disable profiling of the compute and execute operations. </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic6Region14resetProfilingEv">
+<span id="nupic::Region::resetProfiling"></span><span class="target" id="nupic.coreclassnupic_1_1_region_1a6387dd673ef1e38c2c92ad651191135e"></span>void <code class="descname">resetProfiling</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic6Region14resetProfilingEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Reset the compute and execute timers. </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2NK5nupic6Region15getComputeTimerEv">
+<span id="nupic::Region::getComputeTimerC"></span><span class="target" id="nupic.coreclassnupic_1_1_region_1adc547b24ccab501d6a9e5e3c3c4b8895"></span><em class="property">const</em> Timer &amp;<code class="descname">getComputeTimer</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic6Region15getComputeTimerEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get the timer used to profile the compute operation. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>The Timer object used to profile the compute operation </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2NK5nupic6Region15getExecuteTimerEv">
+<span id="nupic::Region::getExecuteTimerC"></span><span class="target" id="nupic.coreclassnupic_1_1_region_1a39fc4e849e83a3f11a10795a7c1fcbd1"></span><em class="property">const</em> Timer &amp;<code class="descname">getExecuteTimer</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic6Region15getExecuteTimerEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get the timer used to profile the execute operation. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>The Timer object used to profile the execute operation </dd>
+</dl>
+</p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="regionimpl">
+<h2>RegionImpl<a class="headerlink" href="#regionimpl" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="_CPPv2N5nupic10RegionImplE">
+<span id="nupic::RegionImpl"></span><span class="target" id="nupic.coreclassnupic_1_1_region_impl"></span><em class="property">class </em><code class="descclassname">nupic::</code><code class="descname">RegionImpl</code><a class="headerlink" href="#_CPPv2N5nupic10RegionImplE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Inherits from <a class="reference internal" href="types.html#nupic.coreclassnupic_1_1_serializable"><span class="std std-ref">nupic::Serializable&lt; capnp::AnyPointer &gt;</span></a></p>
+<p>Subclassed by nupic::ScalarSensor</p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Functions</p>
+<dl class="function">
+<dt id="_CPPv2N5nupic10RegionImpl9serializeER8BundleIO">
+<span id="nupic::RegionImpl::serialize__BundleIOR"></span><span class="target" id="nupic.coreclassnupic_1_1_region_impl_1a0d8511f657db6ff83aeeb861e0b8839a"></span><em class="property">virtual</em> void <code class="descname">serialize</code><span class="sig-paren">(</span>BundleIO &amp;<em>bundle</em><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv2N5nupic10RegionImpl9serializeER8BundleIO" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Can&#8217;t declare a static method in an interface. </p>
+<p>But RegionFactory expects to find this method. Caller gets ownership. </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic10RegionImpl10initializeEv">
+<span id="nupic::RegionImpl::initialize"></span><span class="target" id="nupic.coreclassnupic_1_1_region_impl_1ae79ab7611f6ae99e58bd3ca325bfe1fe"></span><em class="property">virtual</em> void <code class="descname">initialize</code><span class="sig-paren">(</span><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv2N5nupic10RegionImpl10initializeEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Inputs/Outputs are made available in initialize() It is always called after the constructor (or load from serialized state) </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic10RegionImpl22getParameterFromBufferERKNSt6stringE5Int64R12IWriteBuffer">
+<span id="nupic::RegionImpl::getParameterFromBuffer__ssCR.Int64.IWriteBufferR"></span><span class="target" id="nupic.coreclassnupic_1_1_region_impl_1a0c87c476c29d40cb8ac1a47f5b0354d3"></span><em class="property">virtual</em> void <code class="descname">getParameterFromBuffer</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>name</em>, Int64 <em>index</em>, IWriteBuffer &amp;<em>value</em><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv2N5nupic10RegionImpl22getParameterFromBufferERKNSt6stringE5Int64R12IWriteBuffer" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get a parameter from a write buffer. </p>
+<p>This method is called only by the typed getParameter* methods in the RegionImpl base class</p>
+<p>Must be implemented by all subclasses.</p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">index</span></code>: A node index. (-1) indicates a region-level parameter </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic10RegionImpl22setParameterFromBufferERKNSt6stringE5Int64R11IReadBuffer">
+<span id="nupic::RegionImpl::setParameterFromBuffer__ssCR.Int64.IReadBufferR"></span><span class="target" id="nupic.coreclassnupic_1_1_region_impl_1ab063dab6251091a44624dce7fa47ebcd"></span><em class="property">virtual</em> void <code class="descname">setParameterFromBuffer</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>name</em>, Int64 <em>index</em>, IReadBuffer &amp;<em>value</em><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv2N5nupic10RegionImpl22setParameterFromBufferERKNSt6stringE5Int64R11IReadBuffer" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Set a parameter from a read buffer. </p>
+<p>This method is called only by the RegionImpl base class type-specific setParameter* methods Must be implemented by all subclasses.</p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">index</span></code>: A node index. (-1) indicates a region-level parameter </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic10RegionImpl22getParameterArrayCountERKNSt6stringE5Int64">
+<span id="nupic::RegionImpl::getParameterArrayCount__ssCR.Int64"></span><span class="target" id="nupic.coreclassnupic_1_1_region_impl_1af381906c66fbc9748191d5e36734dcaa"></span><em class="property">virtual</em> size_t <code class="descname">getParameterArrayCount</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>name</em>, Int64 <em>index</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10RegionImpl22getParameterArrayCountERKNSt6stringE5Int64" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Array-valued parameters may have a size determined at runtime. </p>
+<p>This method returns the number of elements in the named parameter. If parameter is not an array type, may throw an exception or return 1.</p>
+<p>Must be implemented only if the node has one or more array parameters with a dynamically-determined length. </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic10RegionImpl17isParameterSharedERKNSt6stringE">
+<span id="nupic::RegionImpl::isParameterShared__ssCR"></span><span class="target" id="nupic.coreclassnupic_1_1_region_impl_1aee11adef9dbed6e635a9bcbdb3e04d9a"></span><em class="property">virtual</em> bool <code class="descname">isParameterShared</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10RegionImpl17isParameterSharedERKNSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>isParameterShared must be available after construction Default implementation  all parameters are shared Tests whether a parameter is node or region level </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="registeredregionimpl">
+<h2>RegisteredRegionImpl<a class="headerlink" href="#registeredregionimpl" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt>
+<span class="target" id="nupic.coreclassnupic_1_1_registered_region_impl"></span><em class="property">template </em>&lt;<em class="property">class</em> T&gt;</dt>
+<dt id="_CPPv2N5nupic20RegisteredRegionImplE">
+<span id="nupic::RegisteredRegionImpl"></span><em class="property">class </em><code class="descclassname">nupic::</code><code class="descname">RegisteredRegionImpl</code><a class="headerlink" href="#_CPPv2N5nupic20RegisteredRegionImplE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Inherits from nupic::GenericRegisteredRegionImpl</p>
+</dd></dl>
+
+</div>
+<div class="section" id="regionimplfactory">
+<h2>RegionImplFactory<a class="headerlink" href="#regionimplfactory" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="_CPPv2N5nupic17RegionImplFactoryE">
+<span id="nupic::RegionImplFactory"></span><span class="target" id="nupic.coreclassnupic_1_1_region_impl_factory"></span><em class="property">class </em><code class="descclassname">nupic::</code><code class="descname">RegionImplFactory</code><a class="headerlink" href="#_CPPv2N5nupic17RegionImplFactoryE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Regions</a><ul>
+<li><a class="reference internal" href="#region">Region</a></li>
+<li><a class="reference internal" href="#regionimpl">RegionImpl</a></li>
+<li><a class="reference internal" href="#registeredregionimpl">RegisteredRegionImpl</a></li>
+<li><a class="reference internal" href="#regionimplfactory">RegionImplFactory</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="network-network.html"
+                        title="previous chapter">Network</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="network-sensors.html"
+                        title="next chapter">Sensors</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/network-regions.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="network-sensors.html" title="Sensors"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="network-network.html" title="Network"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NuPIC Core 0.5.2.dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="network.html" >Network API</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Numenta.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.3.
+    </div>
+  </body>
+</html>

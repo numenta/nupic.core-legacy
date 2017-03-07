@@ -1,0 +1,521 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Temporal Memory &#8212; NuPIC Core 0.5.2.dev0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.5.2.dev0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Connections" href="connections.html" />
+    <link rel="prev" title="Spatial Pooler" href="spatial-pooler.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="connections.html" title="Connections"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="spatial-pooler.html" title="Spatial Pooler"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NuPIC Core 0.5.2.dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="algorithms.html" accesskey="U">Algorithms</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="temporal-memory">
+<h1>Temporal Memory<a class="headerlink" href="#temporal-memory" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="_CPPv2N5nupic10algorithms15temporal_memory14TemporalMemoryE">
+<span id="nupic::algorithms::temporal_memory::TemporalMemory"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1temporal__memory_1_1_temporal_memory"></span><em class="property">class </em><code class="descclassname">nupic::algorithms::temporal_memory::</code><code class="descname">TemporalMemory</code><a class="headerlink" href="#_CPPv2N5nupic10algorithms15temporal_memory14TemporalMemoryE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Temporal Memory implementation in C++. </p>
+<p>Example usage: <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">SpatialPooler</span> <span class="n">sp</span><span class="p">(</span><span class="n">inputDimensions</span><span class="p">,</span> <span class="n">columnDimensions</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">parameters</span><span class="o">&gt;</span><span class="p">);</span>
+<span class="n">TemporalMemory</span> <span class="n">tm</span><span class="p">(</span><span class="n">columnDimensions</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">parameters</span><span class="o">&gt;</span><span class="p">);</span>
+
+<span class="k">while</span> <span class="p">(</span><span class="n">true</span><span class="p">)</span> <span class="p">{</span>
+   <span class="o">&lt;</span><span class="n">get</span> <span class="nb">input</span> <span class="n">vector</span><span class="p">,</span> <span class="n">streaming</span> <span class="n">spatiotemporal</span> <span class="n">information</span><span class="o">&gt;</span>
+   <span class="n">sp</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">inputVector</span><span class="p">,</span> <span class="n">learn</span><span class="p">,</span> <span class="n">activeColumns</span><span class="p">)</span>
+   <span class="n">tm</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">number</span> <span class="n">of</span> <span class="n">activeColumns</span><span class="p">,</span> <span class="n">activeColumns</span><span class="p">,</span> <span class="n">learn</span><span class="p">)</span>
+   <span class="o">&lt;</span><span class="n">do</span> <span class="n">something</span> <span class="k">with</span> <span class="n">the</span> <span class="n">tm</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">g</span><span class="o">.</span> <span class="n">classify</span> <span class="n">tm</span><span class="o">.</span><span class="n">getActiveCells</span><span class="p">()</span><span class="o">&gt;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</p>
+<p>The public API uses C arrays, not std::vectors, as inputs. C arrays are a good lowest common denominator. You can get a C array from a vector, but you can&#8217;t get a vector from a C array without copying it. This is important, for example, when using numpy arrays. The only way to convert a numpy array into a std::vector is to copy it, but you can access a numpy array&#8217;s internal C array directly. </p>
+<p>Inherits from <a class="reference internal" href="types.html#nupic.coreclassnupic_1_1_serializable"><span class="std std-ref">nupic::Serializable&lt; TemporalMemoryProto &gt;</span></a></p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Functions</p>
+<dl class="function">
+<dt id="_CPPv2N5nupic10algorithms15temporal_memory14TemporalMemory14TemporalMemoryE6vectorI4UIntE4UInt4UInt10Permanence10Permanence4UInt4UInt10Permanence10Permanence10Permanence3Int4UInt4UInt">
+<span id="nupic::algorithms::temporal_memory::TemporalMemory::TemporalMemory__vector:UInt:.UInt.UInt.Permanence.Permanence.UInt.UInt.Permanence.Permanence.Permanence.Int.UInt.UInt"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1temporal__memory_1_1_temporal_memory_1afa56e4570fa9aa6441e0e5ef9736fb24"></span><code class="descname">TemporalMemory</code><span class="sig-paren">(</span>vector&lt;UInt&gt; <em>columnDimensions</em>, UInt <em>cellsPerColumn</em> = 32, UInt <em>activationThreshold</em> = 13, Permanence <em>initialPermanence</em> = 0.21, Permanence <em>connectedPermanence</em> = 0.50, UInt <em>minThreshold</em> = 10, UInt <em>maxNewSynapseCount</em> = 20, Permanence <em>permanenceIncrement</em> = 0.10, Permanence <em>permanenceDecrement</em> = 0.10, Permanence <em>predictedSegmentDecrement</em> = 0.0, Int <em>seed</em> = 42, UInt <em>maxSegmentsPerCell</em> = 255, UInt <em>maxSynapsesPerSegment</em> = 255<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms15temporal_memory14TemporalMemory14TemporalMemoryE6vectorI4UIntE4UInt4UInt10Permanence10Permanence4UInt4UInt10Permanence10Permanence10Permanence3Int4UInt4UInt" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Initialize the temporal memory (TM) using the given parameters. </p>
+<p>
+Notes:<dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">columnDimensions</span></code>: <a class="reference internal" href="types.html#nupic.coreclassnupic_1_1_dimensions"><span class="std std-ref">Dimensions</span></a> of the column space</li>
+<li><code class="docutils literal"><span class="pre">cellsPerColumn</span></code>: Number of cells per column</li>
+<li><code class="docutils literal"><span class="pre">activationThreshold</span></code>: If the number of active connected synapses on a segment is at least this threshold, the segment is said to be active.</li>
+<li><code class="docutils literal"><span class="pre">initialPermanence</span></code>: Initial permanence of a new synapse.</li>
+<li><code class="docutils literal"><span class="pre">connectedPermanence</span></code>: If the permanence value for a synapse is greater than this value, it is said to be connected.</li>
+<li><code class="docutils literal"><span class="pre">minThreshold</span></code>: If the number of potential synapses active on a segment is at least this threshold, it is said to be &#8220;matching&#8221; and is eligible for learning.</li>
+<li><code class="docutils literal"><span class="pre">maxNewSynapseCount</span></code>: The maximum number of synapses added to a segment during learning.</li>
+<li><code class="docutils literal"><span class="pre">permanenceIncrement</span></code>: Amount by which permanences of synapses are incremented during learning.</li>
+<li><code class="docutils literal"><span class="pre">permanenceDecrement</span></code>: Amount by which permanences of synapses are decremented during learning.</li>
+<li><code class="docutils literal"><span class="pre">predictedSegmentDecrement</span></code>: Amount by which segments are punished for incorrect predictions.</li>
+<li><code class="docutils literal"><span class="pre">seed</span></code>: Seed for the random number generator.</li>
+<li><code class="docutils literal"><span class="pre">maxSegmentsPerCell</span></code>: The maximum number of segments per cell.</li>
+<li><code class="docutils literal"><span class="pre">maxSynapsesPerSegment</span></code>: The maximum number of synapses per segment.</li>
+</ul>
+</dd>
+</dl>
+</p>
+<p>predictedSegmentDecrement: A good value is just a bit larger than (the column-level sparsity * permanenceIncrement). So, if column-level sparsity is 2% and permanenceIncrement is 0.01, this parameter should be something like 4% * 0.01 = 0.0004). </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2NK5nupic10algorithms15temporal_memory14TemporalMemory7versionEv">
+<span id="nupic::algorithms::temporal_memory::TemporalMemory::versionC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1temporal__memory_1_1_temporal_memory_1a98ddd266250192ff9698bb618f442bd9"></span><em class="property">virtual</em> UInt <code class="descname">version</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms15temporal_memory14TemporalMemory7versionEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get the version number of for the TM implementation. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>Integer version number. </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic10algorithms15temporal_memory14TemporalMemory5seed_E6UInt64">
+<span id="nupic::algorithms::temporal_memory::TemporalMemory::seed___UInt64"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1temporal__memory_1_1_temporal_memory_1aaec20bbc2a07531feb6e04ed8e8f4b37"></span>void <code class="descname">seed_</code><span class="sig-paren">(</span>UInt64 <em>seed</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms15temporal_memory14TemporalMemory5seed_E6UInt64" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>This <em>only</em> updates _rng to a new Random using seed. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>Integer version number. </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic10algorithms15temporal_memory14TemporalMemory5resetEv">
+<span id="nupic::algorithms::temporal_memory::TemporalMemory::reset"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1temporal__memory_1_1_temporal_memory_1a05c6a4ddbb6ebe28b1127bf885d88e40"></span><em class="property">virtual</em> void <code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms15temporal_memory14TemporalMemory5resetEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Indicates the start of a new sequence. </p>
+<p>Resets sequence state of the TM. </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic10algorithms15temporal_memory14TemporalMemory13activateCellsE6size_tA_K4UIntb">
+<span id="nupic::algorithms::temporal_memory::TemporalMemory::activateCells__s.UIntCA.b"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1temporal__memory_1_1_temporal_memory_1a7e7babad55d43e9d573abd49603ed2d9"></span>void <code class="descname">activateCells</code><span class="sig-paren">(</span>size_t <em>activeColumnsSize</em>, <em class="property">const</em> UInt <em>activeColumns</em>[], bool <em>learn</em> = true<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms15temporal_memory14TemporalMemory13activateCellsE6size_tA_K4UIntb" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Calculate the active cells, using the current active columns and dendrite segments. </p>
+<p>Grow and reinforce synapses.</p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">activeColumnsSize</span></code>: Size of activeColumns.</li>
+<li><code class="docutils literal"><span class="pre">activeColumns</span></code>: A sorted list of active column indices.</li>
+<li><code class="docutils literal"><span class="pre">learn</span></code>: If true, reinforce / punish / grow synapses. </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic10algorithms15temporal_memory14TemporalMemory17activateDendritesEb">
+<span id="nupic::algorithms::temporal_memory::TemporalMemory::activateDendrites__b"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1temporal__memory_1_1_temporal_memory_1a5f2c507f1d7f23554d764987e4be6c31"></span>void <code class="descname">activateDendrites</code><span class="sig-paren">(</span>bool <em>learn</em> = true<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms15temporal_memory14TemporalMemory17activateDendritesEb" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Calculate dendrite segment activity, using the current active cells. </p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">learn</span></code>: If true, segment activations will be recorded. This information is used during segment cleanup. </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic10algorithms15temporal_memory14TemporalMemory7computeE6size_tA_K4UIntb">
+<span id="nupic::algorithms::temporal_memory::TemporalMemory::compute__s.UIntCA.b"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1temporal__memory_1_1_temporal_memory_1a79a2c36a2b987d6be8dd5c7a6462d09d"></span><em class="property">virtual</em> void <code class="descname">compute</code><span class="sig-paren">(</span>size_t <em>activeColumnsSize</em>, <em class="property">const</em> UInt <em>activeColumns</em>[], bool <em>learn</em> = true<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms15temporal_memory14TemporalMemory7computeE6size_tA_K4UIntb" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Perform one time step of the Temporal Memory algorithm. </p>
+<p>This method calls activateCells, then calls activateDendrites. Using the <a class="reference internal" href="#nupic.coreclassnupic_1_1algorithms_1_1temporal__memory_1_1_temporal_memory"><span class="std std-ref">TemporalMemory</span></a> via its compute method ensures that you&#8217;ll always be able to call getPredictiveCells to get predictions for the next time step.</p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">activeColumnsSize</span></code>: Number of active columns.</li>
+<li><code class="docutils literal"><span class="pre">activeColumns</span></code>: Sorted list of indices of active columns.</li>
+<li><code class="docutils literal"><span class="pre">learn</span></code>: Whether or not learning is enabled. </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic10algorithms15temporal_memory14TemporalMemory14cellsForColumnE3Int">
+<span id="nupic::algorithms::temporal_memory::TemporalMemory::cellsForColumn__Int"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1temporal__memory_1_1_temporal_memory_1a6cdedee66264eb846e3ecc631d84b5f0"></span>vector&lt;CellIdx&gt; <code class="descname">cellsForColumn</code><span class="sig-paren">(</span>Int <em>column</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms15temporal_memory14TemporalMemory14cellsForColumnE3Int" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns the indices of cells that belong to a column. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>(vector&lt;CellIdx&gt;) Cell indices </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">column</span></code>: Column index</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic10algorithms15temporal_memory14TemporalMemory13numberOfCellsEv">
+<span id="nupic::algorithms::temporal_memory::TemporalMemory::numberOfCells__void"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1temporal__memory_1_1_temporal_memory_1a4ed0983e0a6ea40e62cea3e03ea0df5d"></span>UInt <code class="descname">numberOfCells</code><span class="sig-paren">(</span>void<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms15temporal_memory14TemporalMemory13numberOfCellsEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns the number of cells in this layer. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>(int) Number of cells </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2NK5nupic10algorithms15temporal_memory14TemporalMemory14getActiveCellsEv">
+<span id="nupic::algorithms::temporal_memory::TemporalMemory::getActiveCellsC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1temporal__memory_1_1_temporal_memory_1ad87b45df3a189aa715ae1c2d31952844"></span>vector&lt;CellIdx&gt; <code class="descname">getActiveCells</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms15temporal_memory14TemporalMemory14getActiveCellsEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns the indices of the active cells. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>(std::vector&lt;CellIdx&gt;) Vector of indices of active cells. </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2NK5nupic10algorithms15temporal_memory14TemporalMemory18getPredictiveCellsEv">
+<span id="nupic::algorithms::temporal_memory::TemporalMemory::getPredictiveCellsC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1temporal__memory_1_1_temporal_memory_1ad7853ee913774795eab508bca3d43bf1"></span>vector&lt;CellIdx&gt; <code class="descname">getPredictiveCells</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms15temporal_memory14TemporalMemory18getPredictiveCellsEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns the indices of the predictive cells. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>(std::vector&lt;CellIdx&gt;) Vector of indices of predictive cells. </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2NK5nupic10algorithms15temporal_memory14TemporalMemory14getWinnerCellsEv">
+<span id="nupic::algorithms::temporal_memory::TemporalMemory::getWinnerCellsC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1temporal__memory_1_1_temporal_memory_1a731f15e145301a88b0fd2fe71f150aad"></span>vector&lt;CellIdx&gt; <code class="descname">getWinnerCells</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms15temporal_memory14TemporalMemory14getWinnerCellsEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns the indices of the winner cells. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>(std::vector&lt;CellIdx&gt;) Vector of indices of winner cells. </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2NK5nupic10algorithms15temporal_memory14TemporalMemory16getMatchingCellsEv">
+<span id="nupic::algorithms::temporal_memory::TemporalMemory::getMatchingCellsC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1temporal__memory_1_1_temporal_memory_1a6f08589328d7fa13a6a3d532722e6d14"></span>vector&lt;CellIdx&gt; <code class="descname">getMatchingCells</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms15temporal_memory14TemporalMemory16getMatchingCellsEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns the indices of the matching cells. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>(std::vector&lt;CellIdx&gt;) Vector of indices of matching cells. </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2NK5nupic10algorithms15temporal_memory14TemporalMemory19getColumnDimensionsEv">
+<span id="nupic::algorithms::temporal_memory::TemporalMemory::getColumnDimensionsC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1temporal__memory_1_1_temporal_memory_1abe77d4733e0e008342a002226b8212eb"></span>vector&lt;UInt&gt; <code class="descname">getColumnDimensions</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms15temporal_memory14TemporalMemory19getColumnDimensionsEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns the dimensions of the columns in the region. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>Integer number of column dimension </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2NK5nupic10algorithms15temporal_memory14TemporalMemory15numberOfColumnsEv">
+<span id="nupic::algorithms::temporal_memory::TemporalMemory::numberOfColumnsC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1temporal__memory_1_1_temporal_memory_1acf3c43ff2ec1d9bef2ac86b1d0eb94f4"></span>UInt <code class="descname">numberOfColumns</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms15temporal_memory14TemporalMemory15numberOfColumnsEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns the total number of columns. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>Integer number of column numbers </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2NK5nupic10algorithms15temporal_memory14TemporalMemory17getCellsPerColumnEv">
+<span id="nupic::algorithms::temporal_memory::TemporalMemory::getCellsPerColumnC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1temporal__memory_1_1_temporal_memory_1aedad3ed6b237edba530d4b4e2e3ed077"></span>UInt <code class="descname">getCellsPerColumn</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms15temporal_memory14TemporalMemory17getCellsPerColumnEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns the number of cells per column. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>Integer number of cells per column </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2NK5nupic10algorithms15temporal_memory14TemporalMemory22getActivationThresholdEv">
+<span id="nupic::algorithms::temporal_memory::TemporalMemory::getActivationThresholdC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1temporal__memory_1_1_temporal_memory_1af7fadd8c221fd2f8d1f732630ae838d7"></span>UInt <code class="descname">getActivationThreshold</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms15temporal_memory14TemporalMemory22getActivationThresholdEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns the activation threshold. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>Integer number of the activation threshold </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2NK5nupic10algorithms15temporal_memory14TemporalMemory20getInitialPermanenceEv">
+<span id="nupic::algorithms::temporal_memory::TemporalMemory::getInitialPermanenceC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1temporal__memory_1_1_temporal_memory_1acd572a3675f0c8b87a50d87a46b35e76"></span>Permanence <code class="descname">getInitialPermanence</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms15temporal_memory14TemporalMemory20getInitialPermanenceEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns the initial permanence. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>Initial permanence </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2NK5nupic10algorithms15temporal_memory14TemporalMemory22getConnectedPermanenceEv">
+<span id="nupic::algorithms::temporal_memory::TemporalMemory::getConnectedPermanenceC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1temporal__memory_1_1_temporal_memory_1a8be649a4223600bc0392ef9d9757b760"></span>Permanence <code class="descname">getConnectedPermanence</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms15temporal_memory14TemporalMemory22getConnectedPermanenceEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns the connected permanance. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>Returns the connected permanance </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2NK5nupic10algorithms15temporal_memory14TemporalMemory15getMinThresholdEv">
+<span id="nupic::algorithms::temporal_memory::TemporalMemory::getMinThresholdC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1temporal__memory_1_1_temporal_memory_1a66052678c935d9d895764a5336311c36"></span>UInt <code class="descname">getMinThreshold</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms15temporal_memory14TemporalMemory15getMinThresholdEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns the minimum threshold. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>Integer number of minimum threshold </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2NK5nupic10algorithms15temporal_memory14TemporalMemory21getMaxNewSynapseCountEv">
+<span id="nupic::algorithms::temporal_memory::TemporalMemory::getMaxNewSynapseCountC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1temporal__memory_1_1_temporal_memory_1afc3335dab1cb71469a6fe4fcfb4f5932"></span>UInt <code class="descname">getMaxNewSynapseCount</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms15temporal_memory14TemporalMemory21getMaxNewSynapseCountEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns the maximum number of synapses that can be added to a segment in a single time step. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>Integer number of maximum new synapse count </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2NK5nupic10algorithms15temporal_memory14TemporalMemory22getPermanenceIncrementEv">
+<span id="nupic::algorithms::temporal_memory::TemporalMemory::getPermanenceIncrementC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1temporal__memory_1_1_temporal_memory_1aac01dae5fbc9efd9494477d3977545ee"></span>Permanence <code class="descname">getPermanenceIncrement</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms15temporal_memory14TemporalMemory22getPermanenceIncrementEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns the permanence increment. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>Returns the Permanence increment </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2NK5nupic10algorithms15temporal_memory14TemporalMemory22getPermanenceDecrementEv">
+<span id="nupic::algorithms::temporal_memory::TemporalMemory::getPermanenceDecrementC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1temporal__memory_1_1_temporal_memory_1a7f16c3a28cd098ecf194da1d2bd26974"></span>Permanence <code class="descname">getPermanenceDecrement</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms15temporal_memory14TemporalMemory22getPermanenceDecrementEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns the permanence decrement. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>Returns the Permanence decrement </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2NK5nupic10algorithms15temporal_memory14TemporalMemory28getPredictedSegmentDecrementEv">
+<span id="nupic::algorithms::temporal_memory::TemporalMemory::getPredictedSegmentDecrementC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1temporal__memory_1_1_temporal_memory_1acace01a6515924b1a5ea697b3d675b09"></span>Permanence <code class="descname">getPredictedSegmentDecrement</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms15temporal_memory14TemporalMemory28getPredictedSegmentDecrementEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns the predicted Segment decrement. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>Returns the segment decrement </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic10algorithms15temporal_memory14TemporalMemory13_validateCellE7CellIdx">
+<span id="nupic::algorithms::temporal_memory::TemporalMemory::_validateCell__CellIdx"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1temporal__memory_1_1_temporal_memory_1a1d9dfd24a9ab213255bae829d8354c9a"></span>bool <code class="descname">_validateCell</code><span class="sig-paren">(</span>CellIdx <em>cell</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms15temporal_memory14TemporalMemory13_validateCellE7CellIdx" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Raises an error if cell index is invalid. </p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">cell</span></code>: Cell index </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2NK5nupic10algorithms15temporal_memory14TemporalMemory4saveER7ostream">
+<span id="nupic::algorithms::temporal_memory::TemporalMemory::save__ostreamRC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1temporal__memory_1_1_temporal_memory_1a29ae6b2bbabeff34d3dad4f8fecf85ef"></span><em class="property">virtual</em> void <code class="descname">save</code><span class="sig-paren">(</span>ostream &amp;<em>outStream</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms15temporal_memory14TemporalMemory4saveER7ostream" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Save (serialize) the current state of the spatial pooler to the specified file. </p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">fd</span></code>: A valid file descriptor. </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic10algorithms15temporal_memory14TemporalMemory4loadER7istream">
+<span id="nupic::algorithms::temporal_memory::TemporalMemory::load__istreamR"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1temporal__memory_1_1_temporal_memory_1ad987a4646625572b9a0c2d3dea042b07"></span><em class="property">virtual</em> void <code class="descname">load</code><span class="sig-paren">(</span>istream &amp;<em>inStream</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms15temporal_memory14TemporalMemory4loadER7istream" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Load (deserialize) and initialize the spatial pooler from the specified input stream. </p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">inStream</span></code>: A valid istream. </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2NK5nupic10algorithms15temporal_memory14TemporalMemory14persistentSizeEv">
+<span id="nupic::algorithms::temporal_memory::TemporalMemory::persistentSizeC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1temporal__memory_1_1_temporal_memory_1adeb4e6e26147aa562dd3b158cf33ae7f"></span><em class="property">virtual</em> UInt <code class="descname">persistentSize</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms15temporal_memory14TemporalMemory14persistentSizeEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns the number of bytes that a save operation would result in. </p>
+<p>Note: this method is currently somewhat inefficient as it just does a full save into an ostream and counts the resulting size.</p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>Integer number of bytes </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic10algorithms15temporal_memory14TemporalMemory15printParametersEv">
+<span id="nupic::algorithms::temporal_memory::TemporalMemory::printParameters"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1temporal__memory_1_1_temporal_memory_1aa18eb1c995bf3419e841b4541834183d"></span>void <code class="descname">printParameters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms15temporal_memory14TemporalMemory15printParametersEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Print the main TM creation parameters. </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic10algorithms15temporal_memory14TemporalMemory13columnForCellE7CellIdx">
+<span id="nupic::algorithms::temporal_memory::TemporalMemory::columnForCell__CellIdx"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1temporal__memory_1_1_temporal_memory_1a730a1633c6d1f6a3e3f565cd6ae14b23"></span>Int <code class="descname">columnForCell</code><span class="sig-paren">(</span>CellIdx <em>cell</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms15temporal_memory14TemporalMemory13columnForCellE7CellIdx" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns the index of the column that a cell belongs to. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>(int) Column index </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">cell</span></code>: Cell index</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic10algorithms15temporal_memory14TemporalMemory10printStateER6vectorI4UIntE">
+<span id="nupic::algorithms::temporal_memory::TemporalMemory::printState__vector:UInt:R"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1temporal__memory_1_1_temporal_memory_1a636b2a955cb4f21925545faa1f2734f5"></span>void <code class="descname">printState</code><span class="sig-paren">(</span>vector&lt;UInt&gt; &amp;<em>state</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms15temporal_memory14TemporalMemory10printStateER6vectorI4UIntE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Print the given UInt array in a nice format. </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic10algorithms15temporal_memory14TemporalMemory10printStateER6vectorI4RealE">
+<span id="nupic::algorithms::temporal_memory::TemporalMemory::printState__vector:Real:R"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1temporal__memory_1_1_temporal_memory_1a7391e37e9f44c6844751f80a853c1f82"></span>void <code class="descname">printState</code><span class="sig-paren">(</span>vector&lt;Real&gt; &amp;<em>state</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms15temporal_memory14TemporalMemory10printStateER6vectorI4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Print the given Real array in a nice format. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="spatial-pooler.html"
+                        title="previous chapter">Spatial Pooler</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="connections.html"
+                        title="next chapter">Connections</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/temporal-memory.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="connections.html" title="Connections"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="spatial-pooler.html" title="Spatial Pooler"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NuPIC Core 0.5.2.dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="algorithms.html" >Algorithms</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Numenta.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.3.
+    </div>
+  </body>
+</html>

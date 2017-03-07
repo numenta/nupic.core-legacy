@@ -1,0 +1,557 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Network &#8212; NuPIC Core 0.5.2.dev0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.5.2.dev0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Regions" href="network-regions.html" />
+    <link rel="prev" title="Network API" href="network.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="network-regions.html" title="Regions"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="network.html" title="Network API"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NuPIC Core 0.5.2.dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="network.html" accesskey="U">Network API</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="network">
+<h1>Network<a class="headerlink" href="#network" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="nupic">
+<h2>NuPIC<a class="headerlink" href="#nupic" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="_CPPv2N5nupic5NuPICE">
+<span id="nupic::NuPIC"></span><span class="target" id="nupic.coreclassnupic_1_1_nu_p_i_c"></span><em class="property">class </em><code class="descclassname">nupic::</code><code class="descname">NuPIC</code><a class="headerlink" href="#_CPPv2N5nupic5NuPICE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Initialization and shutdown operations for <a class="reference internal" href="#nupic.coreclassnupic_1_1_nu_p_i_c"><span class="std std-ref">NuPIC</span></a> engine. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Static Functions</p>
+<dl class="function">
+<dt id="_CPPv2N5nupic5NuPIC4initEv">
+<span id="nupic::NuPIC::init"></span><span class="target" id="nupic.coreclassnupic_1_1_nu_p_i_c_1a7973f4ef3818b96ed5fdfd81023599ed"></span><em class="property">static</em> void <code class="descname">init</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic5NuPIC4initEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Initialize <a class="reference internal" href="#nupic.coreclassnupic_1_1_nu_p_i_c"><span class="std std-ref">NuPIC</span></a>. </p>
+<p><dl class="docutils">
+<dt><strong>Note</strong></dt>
+<dd><p class="first">It&#8217;s safe to reinitialize an initialized <a class="reference internal" href="#nupic.coreclassnupic_1_1_nu_p_i_c"><span class="std std-ref">NuPIC</span></a>. </p>
+<p class="last">Creating a <a class="reference internal" href="#nupic.coreclassnupic_1_1_network"><span class="std std-ref">Network</span></a> will auto-initialize <a class="reference internal" href="#nupic.coreclassnupic_1_1_nu_p_i_c"><span class="std std-ref">NuPIC</span></a>. </p>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic5NuPIC8shutdownEv">
+<span id="nupic::NuPIC::shutdown"></span><span class="target" id="nupic.coreclassnupic_1_1_nu_p_i_c_1aaec47a923bdac56c6b3f16bd3a48e11c"></span><em class="property">static</em> void <code class="descname">shutdown</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic5NuPIC8shutdownEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Shutdown <a class="reference internal" href="#nupic.coreclassnupic_1_1_nu_p_i_c"><span class="std std-ref">NuPIC</span></a>. </p>
+<p><dl class="docutils">
+<dt><strong>Note</strong></dt>
+<dd>As a safety measure, <a class="reference internal" href="#nupic.coreclassnupic_1_1_nu_p_i_c"><span class="std std-ref">NuPIC</span></a> with any <a class="reference internal" href="#nupic.coreclassnupic_1_1_network"><span class="std std-ref">Network</span></a> still registered to it is not allowed to be shut down. </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic5NuPIC13isInitializedEv">
+<span id="nupic::NuPIC::isInitialized"></span><span class="target" id="nupic.coreclassnupic_1_1_nu_p_i_c_1a26dd1dcd59486a98480dd7a6d1f0120c"></span><em class="property">static</em> bool <code class="descname">isInitialized</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic5NuPIC13isInitializedEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>Whether <a class="reference internal" href="#nupic.coreclassnupic_1_1_nu_p_i_c"><span class="std std-ref">NuPIC</span></a> is initialized successfully. </dd>
+</dl>
+</p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="id1">
+<h2>Network<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="_CPPv2N5nupic7NetworkE">
+<span id="nupic::Network"></span><span class="target" id="nupic.coreclassnupic_1_1_network"></span><em class="property">class </em><code class="descclassname">nupic::</code><code class="descname">Network</code><a class="headerlink" href="#_CPPv2N5nupic7NetworkE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Represents an HTM network. </p>
+<p>A network is a collection of regions. </p>
+<p>Inherits from <a class="reference internal" href="types.html#nupic.coreclassnupic_1_1_serializable"><span class="std std-ref">nupic::Serializable&lt; NetworkProto &gt;</span></a></p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Construction and destruction</p>
+<dl class="function">
+<dt id="_CPPv2N5nupic7Network7NetworkEv">
+<span id="nupic::Network::Network"></span><span class="target" id="nupic.coreclassnupic_1_1_network_1a90003ea022b9f1f760bfeb91f92a9175"></span><code class="descname">Network</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic7Network7NetworkEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Create an new <a class="reference internal" href="#nupic.coreclassnupic_1_1_network"><span class="std std-ref">Network</span></a> and register it to <a class="reference internal" href="#nupic.coreclassnupic_1_1_nu_p_i_c"><span class="std std-ref">NuPIC</span></a>. </p>
+<p><dl class="docutils">
+<dt><strong>Note</strong></dt>
+<dd>Creating a <a class="reference internal" href="#nupic.coreclassnupic_1_1_network"><span class="std std-ref">Network</span></a> will auto-initialize <a class="reference internal" href="#nupic.coreclassnupic_1_1_nu_p_i_c"><span class="std std-ref">NuPIC</span></a>. </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic7Network7NetworkERKNSt6stringE">
+<span id="nupic::Network::Network__ssCR"></span><span class="target" id="nupic.coreclassnupic_1_1_network_1a33ba635278c568888c99bef97b280005"></span><code class="descname">Network</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic7Network7NetworkERKNSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Create a <a class="reference internal" href="#nupic.coreclassnupic_1_1_network"><span class="std std-ref">Network</span></a> by loading previously saved bundle, and register it to <a class="reference internal" href="#nupic.coreclassnupic_1_1_nu_p_i_c"><span class="std std-ref">NuPIC</span></a>. </p>
+<p><dl class="docutils">
+<dt><strong>Note</strong></dt>
+<dd>Creating a <a class="reference internal" href="#nupic.coreclassnupic_1_1_network"><span class="std std-ref">Network</span></a> will auto-initialize <a class="reference internal" href="#nupic.coreclassnupic_1_1_nu_p_i_c"><span class="std std-ref">NuPIC</span></a>. </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">path</span></code>: The path to the previously saved bundle file, currently only support files with <code class="docutils literal"><span class="pre">.nta</span></code> extension.</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic7NetworkD0Ev">
+<span id="nupic::Network::~Network"></span><span class="target" id="nupic.coreclassnupic_1_1_network_1a34d607156243d271f965dfebe1773fbd"></span><code class="descname">~Network</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic7NetworkD0Ev" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Destructor. </p>
+<p>Destruct the network and unregister it from <a class="reference internal" href="#nupic.coreclassnupic_1_1_nu_p_i_c"><span class="std std-ref">NuPIC</span></a>:</p>
+<p><ul class="simple">
+<li>Uninitialize all regions</li>
+<li>Remove all links</li>
+<li>Delete the regions themselves</li>
+</ul>
+</p>
+<p></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic7Network10initializeEv">
+<span id="nupic::Network::initialize"></span><span class="target" id="nupic.coreclassnupic_1_1_network_1af0db66fb1c3b87ddf0c9f1a18751a3c1"></span>void <code class="descname">initialize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic7Network10initializeEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Initialize all elements of a network so that it can run. </p>
+<p><dl class="docutils">
+<dt><strong>Note</strong></dt>
+<dd>This can be called after the <a class="reference internal" href="#nupic.coreclassnupic_1_1_network"><span class="std std-ref">Network</span></a> structure has been set and before <a class="reference internal" href="#nupic.coreclassnupic_1_1_network_1a934e319ecf18dd08bd2ff1e86d21b0e5"><span class="std std-ref">Network.run()</span></a>. However, if you don&#8217;t call it, <a class="reference internal" href="#nupic.coreclassnupic_1_1_network_1a934e319ecf18dd08bd2ff1e86d21b0e5"><span class="std std-ref">Network.run()</span></a> will call it for you. Also sets up various memory buffers etc. once the <a class="reference internal" href="#nupic.coreclassnupic_1_1_network"><span class="std std-ref">Network</span></a> structure has been finalized. </dd>
+</dl>
+</p>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Serialization</p>
+<dl class="function">
+<dt id="_CPPv2N5nupic7Network4saveERKNSt6stringE">
+<span id="nupic::Network::save__ssCR"></span><span class="target" id="nupic.coreclassnupic_1_1_network_1a4c7514ea5ed8edf3f74e7ea4da48920b"></span>void <code class="descname">save</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic7Network4saveERKNSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Save the network to a network bundle (extension <code class="docutils literal"><span class="pre">.nta</span></code>). </p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">name</span></code>: Name of the bundle </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Region and Link operations</p>
+<dl class="function">
+<dt id="_CPPv2N5nupic7Network9addRegionERKNSt6stringERKNSt6stringERKNSt6stringE">
+<span id="nupic::Network::addRegion__ssCR.ssCR.ssCR"></span><span class="target" id="nupic.coreclassnupic_1_1_network_1aa7352f8543b9ffae058487a55d3ab8e9"></span><a class="reference internal" href="engine.html#_CPPv2N5nupic6RegionE" title="nupic::Region">Region</a> *<code class="descname">addRegion</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>name</em>, <em class="property">const</em> std::string &amp;<em>nodeType</em>, <em class="property">const</em> std::string &amp;<em>nodeParams</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic7Network9addRegionERKNSt6stringERKNSt6stringERKNSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Create a new region in a network. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>A pointer to the newly created <a class="reference internal" href="network-regions.html#nupic.coreclassnupic_1_1_region"><span class="std std-ref">Region</span></a> </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">name</span></code>: Name of the region, Must be unique in the network </li>
+<li><code class="docutils literal"><span class="pre">nodeType</span></code>: Type of node in the region, e.g. &#8220;FDRNode&#8221; </li>
+<li><code class="docutils literal"><span class="pre">nodeParams</span></code>: A JSON-encoded string specifying writable params</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic7Network19addRegionFromBundleERKNSt6stringERKNSt6stringERK10DimensionsRKNSt6stringERKNSt6stringE">
+<span id="nupic::Network::addRegionFromBundle__ssCR.ssCR.DimensionsCR.ssCR.ssCR"></span><span class="target" id="nupic.coreclassnupic_1_1_network_1a8288637d586dfe5406a309f418fe88b2"></span><a class="reference internal" href="engine.html#_CPPv2N5nupic6RegionE" title="nupic::Region">Region</a> *<code class="descname">addRegionFromBundle</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>name</em>, <em class="property">const</em> std::string &amp;<em>nodeType</em>, <em class="property">const</em> <a class="reference internal" href="types.html#_CPPv2N5nupic10DimensionsE" title="nupic::Dimensions">Dimensions</a> &amp;<em>dimensions</em>, <em class="property">const</em> std::string &amp;<em>bundlePath</em>, <em class="property">const</em> std::string &amp;<em>label</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic7Network19addRegionFromBundleERKNSt6stringERKNSt6stringERK10DimensionsRKNSt6stringERKNSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Create a new region from saved state. </p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">name</span></code>: Name of the region, Must be unique in the network </li>
+<li><code class="docutils literal"><span class="pre">nodeType</span></code>: Type of node in the region, e.g. &#8220;FDRNode&#8221; </li>
+<li><code class="docutils literal"><span class="pre">dimensions</span></code>: <a class="reference internal" href="types.html#nupic.coreclassnupic_1_1_dimensions"><span class="std std-ref">Dimensions</span></a> of the region </li>
+<li><code class="docutils literal"><span class="pre">bundlePath</span></code>: The path to the bundle </li>
+<li><code class="docutils literal"><span class="pre">label</span></code>: The label of the bundle</li>
+</ul>
+</dd>
+</dl>
+</p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>A pointer to the newly created <a class="reference internal" href="network-regions.html#nupic.coreclassnupic_1_1_region"><span class="std std-ref">Region</span></a> </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic7Network18addRegionFromProtoERKNSt6stringERN11RegionProto6ReaderE">
+<span id="nupic::Network::addRegionFromProto__ssCR.RegionProto::ReaderR"></span><span class="target" id="nupic.coreclassnupic_1_1_network_1a03a9153e6249b930af323b0849629dac"></span><a class="reference internal" href="engine.html#_CPPv2N5nupic6RegionE" title="nupic::Region">Region</a> *<code class="descname">addRegionFromProto</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>name</em>, RegionProto::Reader &amp;<em>proto</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic7Network18addRegionFromProtoERKNSt6stringERN11RegionProto6ReaderE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Create a new region from saved Cap&#8217;n Proto state. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>A pointer to the newly created <a class="reference internal" href="network-regions.html#nupic.coreclassnupic_1_1_region"><span class="std std-ref">Region</span></a> </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">name</span></code>: Name of the region, Must be unique in the network </li>
+<li><code class="docutils literal"><span class="pre">proto</span></code>: The capnp proto reader</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic7Network12removeRegionERKNSt6stringE">
+<span id="nupic::Network::removeRegion__ssCR"></span><span class="target" id="nupic.coreclassnupic_1_1_network_1a666e9947d3b3d5eb4bdc4769c03dfb75"></span>void <code class="descname">removeRegion</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic7Network12removeRegionERKNSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Removes an existing region from the network. </p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">name</span></code>: Name of the <a class="reference internal" href="network-regions.html#nupic.coreclassnupic_1_1_region"><span class="std std-ref">Region</span></a> </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic7Network4linkERKNSt6stringERKNSt6stringERKNSt6stringERKNSt6stringERKNSt6stringERKNSt6stringEK6size_t">
+<span id="nupic::Network::link__ssCR.ssCR.ssCR.ssCR.ssCR.ssCR.sC"></span><span class="target" id="nupic.coreclassnupic_1_1_network_1a6ca56a575e1c6dbac7ad0ba55a796f3c"></span>void <code class="descname">link</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>srcName</em>, <em class="property">const</em> std::string &amp;<em>destName</em>, <em class="property">const</em> std::string &amp;<em>linkType</em>, <em class="property">const</em> std::string &amp;<em>linkParams</em>, <em class="property">const</em> std::string &amp;<em>srcOutput</em> = &quot;&quot;, <em class="property">const</em> std::string &amp;<em>destInput</em> = &quot;&quot;, <em class="property">const</em> size_t <em>propagationDelay</em> = 0<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic7Network4linkERKNSt6stringERKNSt6stringERKNSt6stringERKNSt6stringERKNSt6stringERKNSt6stringEK6size_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Create a link and add it to the network. </p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">srcName</span></code>: Name of the source region </li>
+<li><code class="docutils literal"><span class="pre">destName</span></code>: Name of the destination region </li>
+<li><code class="docutils literal"><span class="pre">linkType</span></code>: Type of the link </li>
+<li><code class="docutils literal"><span class="pre">linkParams</span></code>: Parameters of the link </li>
+<li><code class="docutils literal"><span class="pre">srcOutput</span></code>: Name of the source output </li>
+<li><code class="docutils literal"><span class="pre">destInput</span></code>: Name of the destination input </li>
+<li><code class="docutils literal"><span class="pre">propagationDelay</span></code>: Propagation delay of the link as number of network run iterations involving the link as input; the delay vectors, if any, are initially populated with 0&#8217;s. Defaults to 0=no delay </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic7Network10removeLinkERKNSt6stringERKNSt6stringERKNSt6stringERKNSt6stringE">
+<span id="nupic::Network::removeLink__ssCR.ssCR.ssCR.ssCR"></span><span class="target" id="nupic.coreclassnupic_1_1_network_1a414f5b213e4abc07bfc31842168ba19c"></span>void <code class="descname">removeLink</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>srcName</em>, <em class="property">const</em> std::string &amp;<em>destName</em>, <em class="property">const</em> std::string &amp;<em>srcOutputName</em> = &quot;&quot;, <em class="property">const</em> std::string &amp;<em>destInputName</em> = &quot;&quot;<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic7Network10removeLinkERKNSt6stringERKNSt6stringERKNSt6stringERKNSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Removes a link. </p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">srcName</span></code>: Name of the source region </li>
+<li><code class="docutils literal"><span class="pre">destName</span></code>: Name of the destination region </li>
+<li><code class="docutils literal"><span class="pre">srcOutputName</span></code>: Name of the source output </li>
+<li><code class="docutils literal"><span class="pre">destInputName</span></code>: Name of the destination input </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Access to components</p>
+<dl class="function">
+<dt id="_CPPv2NK5nupic7Network10getRegionsEv">
+<span id="nupic::Network::getRegionsC"></span><span class="target" id="nupic.coreclassnupic_1_1_network_1a050af05f09b4e968542f1945b11e972c"></span><em class="property">const</em> Collection&lt;<a class="reference internal" href="engine.html#_CPPv2N5nupic6RegionE" title="nupic::Region">Region</a> *&gt; &amp;<code class="descname">getRegions</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic7Network10getRegionsEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get all regions. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>A Collection of <a class="reference internal" href="network-regions.html#nupic.coreclassnupic_1_1_region"><span class="std std-ref">Region</span></a> objects in the network </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic7Network8getLinksEv">
+<span id="nupic::Network::getLinks"></span><span class="target" id="nupic.coreclassnupic_1_1_network_1a193b179104d6f3c00bc04bd890cd812e"></span>Collection&lt;<a class="reference internal" href="engine.html#_CPPv2N5nupic4LinkE" title="nupic::Link">Link</a> *&gt; <code class="descname">getLinks</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic7Network8getLinksEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get all links between regions. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>A Collection of <a class="reference internal" href="network-links.html#nupic.coreclassnupic_1_1_link"><span class="std std-ref">Link</span></a> objects in the network </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic7Network9setPhasesERKNSt6stringERNSt3setI6UInt32EE">
+<span id="nupic::Network::setPhases__ssCR.std::set:UInt32:R"></span><span class="target" id="nupic.coreclassnupic_1_1_network_1a7f93cc875215e456f93902842adfcefd"></span>void <code class="descname">setPhases</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>name</em>, std::set&lt;UInt32&gt; &amp;<em>phases</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic7Network9setPhasesERKNSt6stringERNSt3setI6UInt32EE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Set phases for a region. </p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">name</span></code>: Name of the region </li>
+<li><code class="docutils literal"><span class="pre">phases</span></code>: A tuple of phases (must be positive integers) </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2NK5nupic7Network9getPhasesERKNSt6stringE">
+<span id="nupic::Network::getPhases__ssCRC"></span><span class="target" id="nupic.coreclassnupic_1_1_network_1a3d85c67aaaa3d2c82cff8fe20ccd52ea"></span>std::set&lt;UInt32&gt; <code class="descname">getPhases</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>name</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic7Network9getPhasesERKNSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get phases for a region. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>Set of phases for the region </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">name</span></code>: Name of the region</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2NK5nupic7Network11getMinPhaseEv">
+<span id="nupic::Network::getMinPhaseC"></span><span class="target" id="nupic.coreclassnupic_1_1_network_1a0cfec133a8dc9b3b9682df4378c1ac4e"></span>UInt32 <code class="descname">getMinPhase</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic7Network11getMinPhaseEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get minimum phase for regions in this network. </p>
+<p>If no regions, then min = 0.</p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>Minimum phase </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2NK5nupic7Network11getMaxPhaseEv">
+<span id="nupic::Network::getMaxPhaseC"></span><span class="target" id="nupic.coreclassnupic_1_1_network_1aa0558c170b8b4bd21e638716adef2690"></span>UInt32 <code class="descname">getMaxPhase</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic7Network11getMaxPhaseEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get maximum phase for regions in this network. </p>
+<p>If no regions, then max = 0.</p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>Maximum phase </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic7Network18setMinEnabledPhaseE6UInt32">
+<span id="nupic::Network::setMinEnabledPhase__UInt32"></span><span class="target" id="nupic.coreclassnupic_1_1_network_1a6be68a46b971cb7fc40f05ce5d598e67"></span>void <code class="descname">setMinEnabledPhase</code><span class="sig-paren">(</span>UInt32 <em>minPhase</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic7Network18setMinEnabledPhaseE6UInt32" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Set the minimum enabled phase for this network. </p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">minPhase</span></code>: Minimum enabled phase </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic7Network18setMaxEnabledPhaseE6UInt32">
+<span id="nupic::Network::setMaxEnabledPhase__UInt32"></span><span class="target" id="nupic.coreclassnupic_1_1_network_1a7ab09ad417e61aadaa1955b31c9c69de"></span>void <code class="descname">setMaxEnabledPhase</code><span class="sig-paren">(</span>UInt32 <em>minPhase</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic7Network18setMaxEnabledPhaseE6UInt32" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Set the maximum enabled phase for this network. </p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">minPhase</span></code>: Maximum enabled phase </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2NK5nupic7Network18getMinEnabledPhaseEv">
+<span id="nupic::Network::getMinEnabledPhaseC"></span><span class="target" id="nupic.coreclassnupic_1_1_network_1aba80a209a1e1d5b8dd44457227c5b22e"></span>UInt32 <code class="descname">getMinEnabledPhase</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic7Network18getMinEnabledPhaseEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get the minimum enabled phase for this network. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>Minimum enabled phase for this network </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2NK5nupic7Network18getMaxEnabledPhaseEv">
+<span id="nupic::Network::getMaxEnabledPhaseC"></span><span class="target" id="nupic.coreclassnupic_1_1_network_1a9b5c235be040be8d988b0cb7c795b612"></span>UInt32 <code class="descname">getMaxEnabledPhase</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic7Network18getMaxEnabledPhaseEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get the maximum enabled phase for this network. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>Maximum enabled phase for this network </dd>
+</dl>
+</p>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Running</p>
+<dl class="type">
+<dt id="_CPPv2N5nupic7Network19runCallbackFunctionE">
+<span id="nupic::Network::runCallbackFunction"></span><span class="target" id="nupic.coreclassnupic_1_1_network_1aacb08bce2e1f3cc5fd4c4505f9c0dcf4"></span><em class="property">typedef </em>void (*<code class="descname">runCallbackFunction</code>)<span class="sig-paren">(</span><a class="reference internal" href="engine.html#_CPPv2N5nupic7NetworkE" title="nupic::Network">Network</a> *, UInt64 iteration, void *<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic7Network19runCallbackFunctionE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>The type of run callback function. </p>
+<p>You can attach a callback function to a network, and the callback function is called after every iteration of <a class="reference internal" href="#nupic.coreclassnupic_1_1_network_1a934e319ecf18dd08bd2ff1e86d21b0e5"><span class="std std-ref">run()</span></a>.</p>
+<p>To attach a callback, just get a reference to the callback collection with <a class="reference internal" href="#nupic.coreclassnupic_1_1_network_1aefd8e5fdb02c0286883be7fb9dddee82"><span class="std std-ref">getCallbacks()</span></a> , and add a callback. </p>
+</dd></dl>
+
+<dl class="type">
+<dt id="_CPPv2N5nupic7Network12callbackItemE">
+<span id="nupic::Network::callbackItem"></span><span class="target" id="nupic.coreclassnupic_1_1_network_1ab725010cfbf9f2889f791c0c3bca6385"></span><em class="property">typedef </em>std::pair&lt;<a class="reference internal" href="engine.html#_CPPv2N5nupic7Network19runCallbackFunctionE" title="nupic::Network::runCallbackFunction">runCallbackFunction</a>, void *&gt; <code class="descname">callbackItem</code><a class="headerlink" href="#_CPPv2N5nupic7Network12callbackItemE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Type definition for a callback item, combines a <code class="docutils literal"><span class="pre">runCallbackFunction</span></code> and a <code class="docutils literal"><span class="pre">void*</span></code> pointer to the associated data. </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic7Network3runEi">
+<span id="nupic::Network::run__i"></span><span class="target" id="nupic.coreclassnupic_1_1_network_1a934e319ecf18dd08bd2ff1e86d21b0e5"></span>void <code class="descname">run</code><span class="sig-paren">(</span>int <em>n</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic7Network3runEi" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Run the network for the given number of iterations of compute for each <a class="reference internal" href="network-regions.html#nupic.coreclassnupic_1_1_region"><span class="std std-ref">Region</span></a> in the correct order. </p>
+<p>For each iteration, <a class="reference internal" href="network-regions.html#nupic.coreclassnupic_1_1_region_1a844780055745f0a91277885e9022f089"><span class="std std-ref">Region.compute()</span></a> is called.</p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">n</span></code>: Number of iterations </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic7Network12getCallbacksEv">
+<span id="nupic::Network::getCallbacks"></span><span class="target" id="nupic.coreclassnupic_1_1_network_1aefd8e5fdb02c0286883be7fb9dddee82"></span>Collection&lt;<a class="reference internal" href="engine.html#_CPPv2N5nupic7Network12callbackItemE" title="nupic::Network::callbackItem">callbackItem</a>&gt; &amp;<code class="descname">getCallbacks</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic7Network12getCallbacksEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get reference to callback Collection. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>Reference to callback Collection </dd>
+</dl>
+</p>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Profiling</p>
+<dl class="function">
+<dt id="_CPPv2N5nupic7Network15enableProfilingEv">
+<span id="nupic::Network::enableProfiling"></span><span class="target" id="nupic.coreclassnupic_1_1_network_1a525d47f4b62310f89f81cbb4c1fee169"></span>void <code class="descname">enableProfiling</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic7Network15enableProfilingEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Start profiling for all regions of this network. </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic7Network16disableProfilingEv">
+<span id="nupic::Network::disableProfiling"></span><span class="target" id="nupic.coreclassnupic_1_1_network_1a0febaeda87c287de543007baa48ead24"></span>void <code class="descname">disableProfiling</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic7Network16disableProfilingEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Stop profiling for all regions of this network. </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N5nupic7Network14resetProfilingEv">
+<span id="nupic::Network::resetProfiling"></span><span class="target" id="nupic.coreclassnupic_1_1_network_1aef65a383b509d5d056899d4e15c6af4e"></span>void <code class="descname">resetProfiling</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic7Network14resetProfilingEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Reset profiling timers for all regions of this network. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Network</a><ul>
+<li><a class="reference internal" href="#nupic">NuPIC</a></li>
+<li><a class="reference internal" href="#id1">Network</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="network.html"
+                        title="previous chapter">Network API</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="network-regions.html"
+                        title="next chapter">Regions</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/network-network.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="network-regions.html" title="Regions"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="network.html" title="Network API"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NuPIC Core 0.5.2.dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="network.html" >Network API</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Numenta.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.3.
+    </div>
+  </body>
+</html>
