@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.5.2
+## 0.5.3
 
 * Added comment explaining the nuance of the static variables in Cells4::adaptSegment
 * Improved explanation of containers in Cells4::adaptSegment implementation.
