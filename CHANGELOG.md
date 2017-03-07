@@ -25,7 +25,7 @@
 ## 0.4.16
 
 * SpatialPooler: Stop rounding the boost factors
-* SpatialPooler: Rename "maxBoost" to "boostingStrength"
+* SpatialPooler: Rename "maxBoost" to "boostStrength"
 * SpatialPooler: Remove minActiveDutyCycles and minPctActiveDutyCycles from spatial pooler
 
 ## 0.4.15
