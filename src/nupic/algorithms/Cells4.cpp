@@ -22,6 +22,7 @@
 
 #include <nupic/utils/Random.hpp>
 
+#include <algorithm>
 #include <iomanip>
 #include <vector>
 #include <iostream>
@@ -1574,6 +1575,44 @@ void Cells4::applyGlobalDecay()
 
 //--------------------------------------------------------------------------------
 /**
+ * Helper function for Cells4::adaptSegment. Generates lists of synapses to
+ * decrement, increment, add, and remove.
+ *
+ * IMPLEMENTATION NOTE: The implementation makes a single pass through the
+ * containers for O(n) complexity.
+ *
+ */
+void Cells4::_generateListsOfSynapsesToAdjustForAdaptSegment(
+  const Segment& segment,
+  std::set<UInt>& synapsesSet,
+  std::vector<UInt>& inactiveSrcCellIdxs,
+  std::vector<UInt>& inactiveSynapseIdxs,
+  std::vector<UInt>& activeSrcCellIdxs,
+  std::vector<UInt>& activeSynapseIdxs)
+{
+  // Purge residual data
+  inactiveSrcCellIdxs.clear();
+  inactiveSynapseIdxs.clear();
+  activeSrcCellIdxs.clear();
+  activeSynapseIdxs.clear();
+
+  for (UInt i = 0; i != segment.size(); ++i) {
+    const UInt srcCellIdx = segment[i].srcCellIdx();
+    if (not_in(srcCellIdx, synapsesSet)) {
+      inactiveSrcCellIdxs.push_back(srcCellIdx);
+      inactiveSynapseIdxs.push_back(i);
+    }
+    else {
+      activeSrcCellIdxs.push_back(srcCellIdx);
+      synapsesSet.erase(srcCellIdx); // those that remain will be created
+      activeSynapseIdxs.push_back(i);
+    }
+  }
+}
+
+
+//--------------------------------------------------------------------------------
+/**
  * Applies segment update information to a segment in a cell.
  *
  * Implementation issues: we need to maintain the OutSynapses correctly.
@@ -1593,8 +1632,7 @@ void Cells4::adaptSegment(const SegmentUpdate& update)
   UInt cellIdx = update.cellIdx();
   UInt segIdx = update.segIdx();
 
-  // Modify an existing segment?
-  if (! update.isNewSegment()) {
+  if (! update.isNewSegment()) { // modify an existing segment
 
     // Sometimes you can have a pending update after a segment has already
     // been released. It's cheaper to deal with it here rather than do
@@ -1628,39 +1666,66 @@ void Cells4::adaptSegment(const SegmentUpdate& update)
     // updateSynapses? It would be cleaner and avoid the need to keep the
     // synapses sorted.
 
-    // Accumulate list of synapses to decrement, increment, add, and remove
+    // Accumulate lists of synapses to decrement, increment, add, and remove
+
+    // Union of source cell indexes corresponding to existing active synapses in
+    // the given segment plus new synapses to be added to the segment
     std::set<UInt> synapsesSet(update.begin(), update.end());
-    static std::vector<UInt> removed; // srcCellIdx
-    static std::vector<UInt> synToDec, synToInc,
-                             inactiveSegmentIndices, activeSegmentIndices;
-    removed.clear() ;                       // purge residual data
-    synToDec.clear() ;                      // purge residual data
-    synToInc.clear() ;                      // purge residual data
-    inactiveSegmentIndices.clear() ;        // purge residual data
-    activeSegmentIndices.clear() ;          // purge residual data
-    for (UInt i = 0; i != segment.size(); ++i) {
-      UInt srcCellIdx = segment[i].srcCellIdx();
-      if (not_in(srcCellIdx, synapsesSet)) {
-        synToDec.push_back(srcCellIdx);  // TODO: Check synapse still exists!
-        inactiveSegmentIndices.push_back(i);
-      }
-      else {
-        synToInc.push_back(srcCellIdx);
-        synapsesSet.erase(srcCellIdx);
-        activeSegmentIndices.push_back(i);
-      }
+
+    // NOTE: the following variables were declared static as a performance
+    // optimization in the legacy code in order to reduce memory allocations.
+    // The side effect is that this code is not thread-safe. At the time,
+    // processes were the mechanism for parllelizing execution of the algorithms.
+
+    // Tracks source cell indexes corresponding to synapses in
+    // the given segment that have been removed during execution of this method
+    static std::vector<UInt> removed;
+    // Source cell indexes corresponding to synapses in the given segment whose
+    // permances are to be decremented/incremented; ordered by index of those
+    // synapses within the segment
+    static std::vector<UInt> synToDec, synToInc;
+    // Indexes of synapses within the current segment corresponding to synapses
+    // that are inactive/active in ascending order; these variables correlate
+    // with synToDec and synToInc.
+    static std::vector<UInt> inactiveSegmentIndices,
+                             activeSegmentIndices;
+
+    // Purge residual data from static variable; the others will be purged by
+    // _generateListsOfSynapsesToAdjustForAdaptSegment
+    removed.clear();
+
+    _generateListsOfSynapsesToAdjustForAdaptSegment(
+      segment, synapsesSet,
+      synToDec, inactiveSegmentIndices,
+      synToInc, activeSegmentIndices);
+
+    // Decrement permanences of inactive synapses
+    segment.updateSynapses(synToDec, - _permDec, _permMax, _permConnected, removed);
+
+    // If any synapses were removed as the result of permanence decrements,
+    // regenerate affected parameters
+    if (!removed.empty()) {
+      synapsesSet.clear();
+      synapsesSet.insert(update.begin(), update.end());
+
+      _generateListsOfSynapsesToAdjustForAdaptSegment(
+        segment, synapsesSet,
+        synToDec, inactiveSegmentIndices,
+        synToInc, activeSegmentIndices);
     }
 
-    // Now update synapses which need to be decremented or incremented
-    // TODO: Why can't we just do this inline in the above loop?
-    segment.updateSynapses(synToDec, - _permDec, _permMax, _permConnected, removed);
+    // Increment permanences of active synapses
+    const UInt numRemovedBeforePermInc = removed.size();
     segment.updateSynapses(synToInc, _permInc, _permMax, _permConnected, removed);
+    // Incrementing of permanences shouldn't remove synapses
+    NTA_CHECK(removed.size() == numRemovedBeforePermInc);
 
-    // Add any new synapses, add these to Outlist, and update delta objects
-
-    // If we have fixed resources, get rid of some old syns if necessary
+    // If we have fixed resources, get rid of some old synapses, if necessary
     if ( (_maxSynapsesPerSegment > 0) &&
          (synapsesSet.size() + segment.size() > (UInt) _maxSynapsesPerSegment) ) {
+      // TODO: What's preventing numToFree from exceeding segment.size()? If you
+      // know, add a comment explaining it. If it exceeds, it will cause memory
+      // corruption in Segment::freeNSynapses.
       UInt numToFree = synapsesSet.size() + segment.size() - _maxSynapsesPerSegment;
       segment.freeNSynapses(numToFree,
                             synToDec, inactiveSegmentIndices,
@@ -1668,6 +1733,8 @@ void Cells4::adaptSegment(const SegmentUpdate& update)
                             removed, _verbosity,
                             _nCellsPerCol, _permMax);
     }
+
+    // Add any new synapses, add these to Outlist, and update delta objects
     segment.addSynapses(synapsesSet, _permInitial, _permConnected);
     addOutSynapses(cellIdx, segIdx, synapsesSet.begin(), synapsesSet.end());
 

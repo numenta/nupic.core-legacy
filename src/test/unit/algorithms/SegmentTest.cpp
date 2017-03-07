@@ -32,7 +32,7 @@ using namespace nupic::algorithms::Cells4;
 using namespace std;
 
 
-void setUpSegment(Segment &segment, 
+void setUpSegment(Segment &segment,
                   vector<UInt> &inactiveSegmentIndices,
                   vector<UInt> &activeSegmentIndices,
                   vector<UInt> &activeSynapseIndices,
@@ -76,7 +76,7 @@ TEST(SegmentTest, freeNSynapsesInactiveFirst)
   vector<UInt> inactiveSynapseIndices;
   vector<UInt> removed;
 
-  setUpSegment(segment, 
+  setUpSegment(segment,
                inactiveSegmentIndices,
                activeSegmentIndices,
                activeSynapseIndices,
@@ -100,7 +100,7 @@ TEST(SegmentTest, freeNSynapsesInactiveFirst)
 }
 
 /*
-* Test that active synapses are removed once all active synapses are
+* Test that active synapses are removed once all inactive synapses are
 * exhausted.
 */
 TEST(SegmentTest, freeNSynapsesActiveFallback)
@@ -114,7 +114,7 @@ TEST(SegmentTest, freeNSynapsesActiveFallback)
   vector<UInt> inactiveSynapseIndices;
   vector<UInt> removed;
 
-  setUpSegment(segment, 
+  setUpSegment(segment,
                inactiveSegmentIndices,
                activeSegmentIndices,
                activeSynapseIndices,
@@ -150,7 +150,7 @@ TEST(SegmentTest, freeNSynapsesStableSort)
   vector<UInt> inactiveSynapseIndices;
   vector<UInt> removed;
 
-  setUpSegment(segment, 
+  setUpSegment(segment,
                inactiveSegmentIndices,
                activeSegmentIndices,
                activeSynapseIndices,
