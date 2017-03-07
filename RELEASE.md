@@ -4,7 +4,7 @@
 discourse.numenta.org and ask reviewers not to merge PRs in nupic.core until
 you're done with the release.
 2. Create a PR that includes:
-    - Release notes added to CHANGELOG.md
+    - Release notes added to CHANGELOG.md (start with `git log <last-release-tag>..HEAD --oneline`)
     - Change to the VERSION file so it matches the intended release version
 3. Wait for the PR to be approved and merged, and the Bamboo build to complete
 successfully, along with the corresponding AppVeyor and Travis builds.
