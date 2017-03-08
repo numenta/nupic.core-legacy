@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-NuPIC Core API Documentation
+NuPIC Core |release| API Documentation
 ============================
 
 .. toctree::
