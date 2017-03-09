@@ -1,6 +1,6 @@
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2013-2015, Numenta, Inc.  Unless you have an agreement
+ * Copyright (C) 2013-2017, Numenta, Inc.  Unless you have an agreement
  * with Numenta, Inc., for a separate license for this software code, the
  * following terms and conditions apply:
  *
@@ -33,7 +33,7 @@ _ALGORITHMS = _algorithms
 %{
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2013-2015, Numenta, Inc.  Unless you have an agreement
+ * Copyright (C) 2013-2017, Numenta, Inc.  Unless you have an agreement
  * with Numenta, Inc., for a separate license for this software code, the
  * following terms and conditions apply:
  *
@@ -299,10 +299,18 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
     self->load(inStream);
   }
 
-  inline void add_sample(float y_val, PyObject* x_vector)
+  inline PyObject* add_sample(float y_val, PyObject* x_vector)
   {
-    PyArrayObject* x = (PyArrayObject*) x_vector;
+    PyArrayObject* x = (PyArrayObject*)x_vector;
+    if (!PyArray_ISFLOAT(x) || PyArray_ITEMSIZE(x) != sizeof(float))
+    {
+      PyErr_SetString(
+          PyExc_TypeError,
+          "Expected x_vector dtype to be numpy.float32.");
+      return nullptr;
+    }
     self->add_sample(y_val, (float*)PyArray_DATA(x));
+    Py_RETURN_NONE;
   }
 
   inline float predict(PyObject* x_vector)
