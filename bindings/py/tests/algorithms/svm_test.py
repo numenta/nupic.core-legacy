@@ -1,6 +1,6 @@
 # ----------------------------------------------------------------------
 # Numenta Platform for Intelligent Computing (NuPIC)
-# Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
+# Copyright (C) 2013-2017, Numenta, Inc.  Unless you have an agreement
 # with Numenta, Inc., for a separate license for this software code, the
 # following terms and conditions apply:
 #
@@ -26,7 +26,7 @@ import hashlib
 import os
 
 import numpy as np
-import unittest2 as unittest
+import unittest
 
 from nupic.bindings.algorithms import svm_dense, svm_01
 from nupic.bindings.math import GetNumpyDataType
@@ -35,6 +35,7 @@ _SEED = 42
 _RGEN = np.random.RandomState(_SEED)
 # 32 bits for sse
 _DTYPE = GetNumpyDataType("NTA_Real")
+
 
 
 class SVMTest(unittest.TestCase):
@@ -145,8 +146,3 @@ class SVMTest(unittest.TestCase):
 
     print "cross validation"
     classifier.cross_validate(2, gamma=0.5, C=10, eps=1e-3)
-
-
-
-if __name__ == "__main__":
-  unittest.main()

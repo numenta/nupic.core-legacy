@@ -1,6 +1,6 @@
 # ----------------------------------------------------------------------
 # Numenta Platform for Intelligent Computing (NuPIC)
-# Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
+# Copyright (C) 2013-2017, Numenta, Inc.  Unless you have an agreement
 # with Numenta, Inc., for a separate license for this software code, the
 # following terms and conditions apply:
 #
@@ -25,7 +25,7 @@ import cPickle as pickle
 import os
 
 import numpy
-import unittest2 as unittest
+import unittest
 
 from nupic.bindings.math import Random
 from nupic.bindings.algorithms import Cells4
@@ -41,7 +41,7 @@ class Cells4Test(unittest.TestCase):
   def _cellsDiff(cell1, cell2):
     """Test that the two cell instances have the same segments and synapses."""
     result = True
-  
+
     # Check that each cell has the same number of segments and synapses
     for c in xrange(cell1.nColumns()):
       if not result:
@@ -205,8 +205,3 @@ class Cells4Test(unittest.TestCase):
       cells.compute(x, True, False)
 
     self._testPersistence(cells)
-
-
-
-if __name__ == "__main__":
-  unittest.main()
