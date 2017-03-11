@@ -55,9 +55,19 @@ import numbers
 //--------------------------------------------------------------------------------
 %include <nupic/math/Math.hpp>
 %include <nupic/math/Domain.hpp>
+
+%template(SerializableSparseMatrixProto) nupic::Serializable<SparseMatrixProto>;
+%ignore nupic::SparseMatrix::read;
+%ignore nupic::SparseMatrix::write;
 %include <nupic/math/SparseMatrix.hpp>
+
 %include <nupic/math/SparseMatrixAlgorithms.hpp>
+
+%template(SerializableSparseBinaryMatrixProto) nupic::Serializable<SparseBinaryMatrixProto>;
+%ignore nupic::SparseBinaryMatrix::read;
+%ignore nupic::SparseBinaryMatrix::write;
 %include <nupic/math/SparseBinaryMatrix.hpp>
+
  //%include <nupic/math/SparseRLEMatrix.hpp>
 
 %template(_Domain32) nupic::Domain<nupic::UInt32>;

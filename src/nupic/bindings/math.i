@@ -84,10 +84,11 @@ import_array();
 %include <nupic/bindings/types.i>
 %include <nupic/bindings/reals.i>
 
+%import "nupic/types/Serializable.hpp"
+
 ///////////////////////////////////////////////////////////////////
 /// Utility functions that are expensive in Python but fast in C.
 ///////////////////////////////////////////////////////////////////
-
 
 %include <nupic/bindings/sparse_matrix.i>
 %include <nupic/bindings/sparse_tensor.i>
@@ -169,9 +170,15 @@ import_array();
 
 %include <nupic/math/Functions.hpp>
 
+%import <nupic/types/Exception.hpp>
+%include <nupic/utils/LoggingException.hpp>
+
 // ----- Random -----
 
-%include <nupic/utils/LoggingException.hpp>
+%template(SerializableRandomProto) nupic::Serializable<RandomProto>;
+%ignore nupic::Random::read;
+%ignore nupic::Random::write;
+
 %include <nupic/utils/Random.hpp>
 
 %extend nupic::Random {
