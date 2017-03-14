@@ -1642,9 +1642,7 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
 //--------------------------------------------------------------------------------
 // Data structures (Connections)
 %rename(ConnectionsSynapse) nupic::algorithms::connections::Synapse;
-%rename(ConnectionsSegment) nupic::algorithms::connections::Segment;
 %template(ConnectionsSynapseVector) vector<nupic::algorithms::connections::Synapse>;
-%template(ConnectionsSegmentVector) vector<nupic::algorithms::connections::Segment>;
 %feature("director") nupic::algorithms::connections::ConnectionsEventHandler;
 %include <nupic/algorithms/Connections.hpp>
 
@@ -1693,6 +1691,23 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
     throw std::logic_error(
         "Connections.read is not implemented when compiled with CAPNP_LITE=1.");
   %#endif
+  }
+
+  %pythoncode %{
+    def mapSegmentsToCells(self, segments):
+      segments = numpy.asarray(segments, dtype="uint32")
+      return self._mapSegmentsToCells(segments)
+  %}
+
+  PyObject* _mapSegmentsToCells(PyObject *py_segments) const
+  {
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> segments(py_segments);
+
+    nupic::NumpyVectorT<nupic::UInt32> cellsOut(segments.size());
+    self->mapSegmentsToCells(segments.begin(), segments.end(),
+                             cellsOut.begin());
+
+    return cellsOut.forPython();
   }
 
 }
@@ -1850,32 +1865,56 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
 
   inline PyObject* getActiveCells()
   {
-    const vector<CellIdx> cellIdxs = self->getActiveCells();
-    return vectorToList(cellIdxs);
+    const vector<CellIdx> activeCells = self->getActiveCells();
+
+    return nupic::NumpyVectorT<nupic::UInt32>(
+      activeCells.size(), activeCells.data()
+    ).forPython();
   }
 
   inline PyObject* getPredictiveCells()
   {
-    const vector<CellIdx> cellIdxs = self->getPredictiveCells();
-    return vectorToList(cellIdxs);
+    const vector<CellIdx> predictiveCells = self->getPredictiveCells();
+
+    return nupic::NumpyVectorT<nupic::UInt32>(
+      predictiveCells.size(), predictiveCells.data()
+    ).forPython();
   }
 
   inline PyObject* getWinnerCells()
   {
-    const vector<CellIdx> cellIdxs = self->getWinnerCells();
-    return vectorToList(cellIdxs);
+    const vector<CellIdx> winnerCells = self->getWinnerCells();
+
+    return nupic::NumpyVectorT<nupic::UInt32>(
+      winnerCells.size(), winnerCells.data()
+    ).forPython();
   }
 
-  inline PyObject* getMatchingCells()
+  inline PyObject* getActiveSegments()
   {
-    const vector<CellIdx> cellIdxs = self->getMatchingCells();
-    return vectorToList(cellIdxs);
+    const vector<UInt32> activeSegments = self->getActiveSegments();
+
+    return nupic::NumpyVectorT<nupic::UInt32>(
+      activeSegments.size(), activeSegments.data()
+    ).forPython();
+  }
+
+  inline PyObject* getMatchingSegments()
+  {
+    const vector<UInt32> matchingSegments = self->getMatchingSegments();
+
+    return nupic::NumpyVectorT<nupic::UInt32>(
+      matchingSegments.size(), matchingSegments.data()
+    ).forPython();
   }
 
   inline PyObject* cellsForColumn(UInt columnIdx)
   {
-    const vector<CellIdx> cellIdxs = self->cellsForColumn(columnIdx);
-    return vectorToList(cellIdxs);
+    const vector<CellIdx> cells = self->cellsForColumn(columnIdx);
+
+    return nupic::NumpyVectorT<nupic::UInt32>(
+      cells.size(), cells.data()
+    ).forPython();
   }
 
   inline void convertedActivateCells(PyObject *py_activeColumns,
@@ -1951,7 +1990,8 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
 %ignore nupic::algorithms::temporal_memory::TemporalMemory::getActiveCells;
 %ignore nupic::algorithms::temporal_memory::TemporalMemory::getPredictiveCells;
 %ignore nupic::algorithms::temporal_memory::TemporalMemory::getWinnerCells;
-%ignore nupic::algorithms::temporal_memory::TemporalMemory::getMatchingCells;
+%ignore nupic::algorithms::temporal_memory::TemporalMemory::getActiveSegments;
+%ignore nupic::algorithms::temporal_memory::TemporalMemory::getMatchingSegments;
 %ignore nupic::algorithms::temporal_memory::TemporalMemory::cellsForColumn;
 
 

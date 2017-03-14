@@ -261,8 +261,8 @@ namespace {
                                 {80, 81, 82},
                                 0.5);
 
-    ASSERT_EQ(0, numActiveConnectedSynapsesForSegment[segment2.flatIdx]);
-    ASSERT_EQ(0, numActivePotentialSynapsesForSegment[segment2.flatIdx]);
+    ASSERT_EQ(0, numActiveConnectedSynapsesForSegment[segment2]);
+    ASSERT_EQ(0, numActivePotentialSynapsesForSegment[segment2]);
   }
 
   /**
@@ -294,8 +294,8 @@ namespace {
                                 {80, 81, 82},
                                 0.5);
 
-    ASSERT_EQ(1, numActiveConnectedSynapsesForSegment[segment.flatIdx]);
-    ASSERT_EQ(2, numActivePotentialSynapsesForSegment[segment.flatIdx]);
+    ASSERT_EQ(1, numActiveConnectedSynapsesForSegment[segment]);
+    ASSERT_EQ(2, numActivePotentialSynapsesForSegment[segment]);
   }
 
   /**
@@ -537,11 +537,11 @@ namespace {
                                 input,
                                 0.5);
 
-    ASSERT_EQ(1, numActiveConnectedSynapsesForSegment[segment1_1.flatIdx]);
-    ASSERT_EQ(2, numActivePotentialSynapsesForSegment[segment1_1.flatIdx]);
+    ASSERT_EQ(1, numActiveConnectedSynapsesForSegment[segment1_1]);
+    ASSERT_EQ(2, numActivePotentialSynapsesForSegment[segment1_1]);
 
-    ASSERT_EQ(2, numActiveConnectedSynapsesForSegment[segment2_1.flatIdx]);
-    ASSERT_EQ(3, numActivePotentialSynapsesForSegment[segment2_1.flatIdx]);
+    ASSERT_EQ(2, numActiveConnectedSynapsesForSegment[segment2_1]);
+    ASSERT_EQ(3, numActivePotentialSynapsesForSegment[segment2_1]);
   }
 
 

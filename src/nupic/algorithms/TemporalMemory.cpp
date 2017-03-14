@@ -353,7 +353,7 @@ static void activatePredictedColumn(
                      permanenceIncrement, permanenceDecrement);
 
         const Int32 nGrowDesired = maxNewSynapseCount -
-          numActivePotentialSynapsesForSegment[activeSegment->flatIdx];
+          numActivePotentialSynapsesForSegment[*activeSegment];
         if (nGrowDesired > 0)
         {
           growSynapses(connections, rng,
@@ -397,8 +397,8 @@ static void burstColumn(
     columnMatchingSegmentsBegin, columnMatchingSegmentsEnd,
     [&](Segment a, Segment b)
     {
-      return (numActivePotentialSynapsesForSegment[a.flatIdx] <
-              numActivePotentialSynapsesForSegment[b.flatIdx]);
+      return (numActivePotentialSynapsesForSegment[a] <
+              numActivePotentialSynapsesForSegment[b]);
     });
 
   const CellIdx winnerCell = (bestMatchingSegment != columnMatchingSegmentsEnd)
@@ -419,7 +419,7 @@ static void burstColumn(
                    permanenceIncrement, permanenceDecrement);
 
       const Int32 nGrowDesired = maxNewSynapseCount -
-        numActivePotentialSynapsesForSegment[bestMatchingSegment->flatIdx];
+        numActivePotentialSynapsesForSegment[*bestMatchingSegment];
       if (nGrowDesired > 0)
       {
         growSynapses(connections, rng,
@@ -557,11 +557,13 @@ void TemporalMemory::activateDendrites(bool learn)
 
   // Active segments, connected synapses.
   activeSegments_.clear();
-  for (size_t i = 0; i < numActiveConnectedSynapsesForSegment_.size(); i++)
+  for (Segment segment = 0;
+       segment < numActiveConnectedSynapsesForSegment_.size();
+       segment++)
   {
-    if (numActiveConnectedSynapsesForSegment_[i] >= activationThreshold_)
+    if (numActiveConnectedSynapsesForSegment_[segment] >= activationThreshold_)
     {
-      activeSegments_.push_back(connections.segmentForFlatIdx(i));
+      activeSegments_.push_back(segment);
     }
   }
   std::sort(activeSegments_.begin(), activeSegments_.end(),
@@ -572,11 +574,13 @@ void TemporalMemory::activateDendrites(bool learn)
 
   // Matching segments, potential synapses.
   matchingSegments_.clear();
-  for (size_t i = 0; i < numActivePotentialSynapsesForSegment_.size(); i++)
+  for (Segment segment = 0;
+       segment < numActivePotentialSynapsesForSegment_.size();
+       segment++)
   {
-    if (numActivePotentialSynapsesForSegment_[i] >= minThreshold_)
+    if (numActivePotentialSynapsesForSegment_[segment] >= minThreshold_)
     {
-      matchingSegments_.push_back(connections.segmentForFlatIdx(i));
+      matchingSegments_.push_back(segment);
     }
   }
   std::sort(matchingSegments_.begin(), matchingSegments_.end(),
@@ -669,25 +673,6 @@ vector<CellIdx> TemporalMemory::getPredictiveCells() const
 vector<CellIdx> TemporalMemory::getWinnerCells() const
 {
   return winnerCells_;
-}
-
-vector<CellIdx> TemporalMemory::getMatchingCells() const
-{
-  vector<CellIdx> matchingCells;
-
-  for (auto segment = matchingSegments_.begin();
-       segment != matchingSegments_.end();
-       segment++)
-  {
-    CellIdx cell = connections.cellForSegment(*segment);
-    if (segment == matchingSegments_.begin() ||
-        cell != matchingCells.back())
-    {
-      matchingCells.push_back(cell);
-    }
-  }
-
-  return matchingCells;
 }
 
 vector<Segment> TemporalMemory::getActiveSegments() const
@@ -894,7 +879,7 @@ void TemporalMemory::save(ostream& outStream) const
 
     outStream << idx << " ";
     outStream << cell << " ";
-    outStream << numActiveConnectedSynapsesForSegment_[segment.flatIdx] << " ";
+    outStream << numActiveConnectedSynapsesForSegment_[segment] << " ";
   }
   outStream << endl;
 
@@ -910,7 +895,7 @@ void TemporalMemory::save(ostream& outStream) const
 
     outStream << idx << " ";
     outStream << cell << " ";
-    outStream << numActivePotentialSynapsesForSegment_[segment.flatIdx] << " ";
+    outStream << numActivePotentialSynapsesForSegment_[segment] << " ";
   }
   outStream << endl;
 
@@ -963,7 +948,7 @@ void TemporalMemory::write(TemporalMemoryProto::Builder& proto) const
     activeSegmentOverlaps[i].setCell(cell);
     activeSegmentOverlaps[i].setSegment(idx);
     activeSegmentOverlaps[i].setOverlap(
-      numActiveConnectedSynapsesForSegment_[segment.flatIdx]);
+      numActiveConnectedSynapsesForSegment_[segment]);
   }
 
   auto winnerCells = proto.initWinnerCells(winnerCells_.size());
@@ -988,7 +973,7 @@ void TemporalMemory::write(TemporalMemoryProto::Builder& proto) const
     matchingSegmentOverlaps[i].setCell(cell);
     matchingSegmentOverlaps[i].setSegment(idx);
     matchingSegmentOverlaps[i].setOverlap(
-      numActivePotentialSynapsesForSegment_[segment.flatIdx]);
+      numActivePotentialSynapsesForSegment_[segment]);
   }
 }
 
@@ -1045,7 +1030,7 @@ void TemporalMemory::read(TemporalMemoryProto::Reader& proto)
     const Segment segment = connections.getSegment(value.getCell(),
                                                    value.getSegment());
     activeSegments_.push_back(segment);
-    numActiveConnectedSynapsesForSegment_[segment.flatIdx] = value.getOverlap();
+    numActiveConnectedSynapsesForSegment_[segment] = value.getOverlap();
   }
 
   winnerCells_.clear();
@@ -1067,7 +1052,7 @@ void TemporalMemory::read(TemporalMemoryProto::Reader& proto)
     const Segment segment = connections.getSegment(value.getCell(),
                                                    value.getSegment());
     matchingSegments_.push_back(segment);
-    numActivePotentialSynapsesForSegment_[segment.flatIdx] = value.getOverlap();
+    numActivePotentialSynapsesForSegment_[segment] = value.getOverlap();
   }
 }
 
@@ -1158,11 +1143,11 @@ void TemporalMemory::load(istream& inStream)
 
     if (version < 2)
     {
-      numActiveConnectedSynapsesForSegment_[segment.flatIdx] = 0; // Unknown
+      numActiveConnectedSynapsesForSegment_[segment] = 0; // Unknown
     }
     else
     {
-      inStream >> numActiveConnectedSynapsesForSegment_[segment.flatIdx];
+      inStream >> numActiveConnectedSynapsesForSegment_[segment];
     }
   }
 
@@ -1182,11 +1167,11 @@ void TemporalMemory::load(istream& inStream)
 
     if (version < 2)
     {
-      numActivePotentialSynapsesForSegment_[segment.flatIdx] = 0; // Unknown
+      numActivePotentialSynapsesForSegment_[segment] = 0; // Unknown
     }
     else
     {
-      inStream >> numActivePotentialSynapsesForSegment_[segment.flatIdx];
+      inStream >> numActivePotentialSynapsesForSegment_[segment];
     }
   }
 

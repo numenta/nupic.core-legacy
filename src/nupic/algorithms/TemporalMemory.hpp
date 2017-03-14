@@ -271,13 +271,6 @@ namespace nupic {
         */
         vector<CellIdx> getWinnerCells() const;
 
-        /**
-        * Returns the indices of the matching cells.
-        *
-        * @returns (std::vector<CellIdx>) Vector of indices of matching cells.
-        */
-        vector<CellIdx> getMatchingCells() const;
-
         vector<Segment> getActiveSegments() const;
         vector<Segment> getMatchingSegments() const;
 

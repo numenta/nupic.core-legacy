@@ -45,7 +45,7 @@ namespace nupic
 
     namespace connections
     {
-      struct Segment;
+      typedef UInt32 Segment;
     }
   }
 
