@@ -261,8 +261,8 @@ namespace {
                                 {80, 81, 82},
                                 0.5);
 
-    ASSERT_EQ(0, numActiveConnectedSynapsesForSegment[segment2.flatIdx]);
-    ASSERT_EQ(0, numActivePotentialSynapsesForSegment[segment2.flatIdx]);
+    ASSERT_EQ(0, numActiveConnectedSynapsesForSegment[segment2]);
+    ASSERT_EQ(0, numActivePotentialSynapsesForSegment[segment2]);
   }
 
   /**
@@ -294,8 +294,8 @@ namespace {
                                 {80, 81, 82},
                                 0.5);
 
-    ASSERT_EQ(1, numActiveConnectedSynapsesForSegment[segment.flatIdx]);
-    ASSERT_EQ(2, numActivePotentialSynapsesForSegment[segment.flatIdx]);
+    ASSERT_EQ(1, numActiveConnectedSynapsesForSegment[segment]);
+    ASSERT_EQ(2, numActivePotentialSynapsesForSegment[segment]);
   }
 
   /**
@@ -537,11 +537,34 @@ namespace {
                                 input,
                                 0.5);
 
-    ASSERT_EQ(1, numActiveConnectedSynapsesForSegment[segment1_1.flatIdx]);
-    ASSERT_EQ(2, numActivePotentialSynapsesForSegment[segment1_1.flatIdx]);
+    ASSERT_EQ(1, numActiveConnectedSynapsesForSegment[segment1_1]);
+    ASSERT_EQ(2, numActivePotentialSynapsesForSegment[segment1_1]);
 
-    ASSERT_EQ(2, numActiveConnectedSynapsesForSegment[segment2_1.flatIdx]);
-    ASSERT_EQ(3, numActivePotentialSynapsesForSegment[segment2_1.flatIdx]);
+    ASSERT_EQ(2, numActiveConnectedSynapsesForSegment[segment2_1]);
+    ASSERT_EQ(3, numActivePotentialSynapsesForSegment[segment2_1]);
+  }
+
+
+  /**
+   * Test the mapSegmentsToCells method.
+   */
+  TEST(ConnectionsTest, testMapSegmentsToCells)
+  {
+    Connections connections(1024);
+
+    const Segment segment1 = connections.createSegment(42);
+    const Segment segment2 = connections.createSegment(42);
+    const Segment segment3 = connections.createSegment(43);
+
+    const vector<Segment> segments = {segment1, segment2, segment3, segment1};
+    vector<CellIdx> cells(segments.size());
+
+    connections.mapSegmentsToCells(segments.data(),
+                                   segments.data() + segments.size(),
+                                   cells.data());
+
+    const vector<CellIdx> expected = {42, 42, 43, 42};
+    ASSERT_EQ(expected, cells);
   }
 
 

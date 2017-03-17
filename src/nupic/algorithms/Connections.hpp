@@ -49,30 +49,7 @@ namespace nupic
       typedef UInt16 SynapseIdx;
       typedef Real32 Permanence;
       typedef UInt64 Iteration;
-
-      /**
-       * Segment struct used by Connections consumers.
-       *
-       * @b Description
-       * The Segment struct is used to refer to a segment. It contains a path to
-       * a SegmentData.
-       *
-       * @param flatIdx This segment's index in flattened lists of all segments.
-       */
-      struct Segment
-      {
-        UInt32 flatIdx;
-
-        // Use Segments as vector indices.
-        operator unsigned long() const { return flatIdx; };
-
-      private:
-        // The flatIdx ordering is not meaningful.
-        bool operator<=(const Segment &other) const;
-        bool operator<(const Segment &other) const;
-        bool operator>=(const Segment &other) const;
-        bool operator>(const Segment &other) const;
-      };
+      typedef UInt32 Segment;
 
       /**
        * Synapse struct used by Connections consumers.
@@ -216,8 +193,7 @@ namespace nupic
        * This class assigns each segment a unique "flatIdx" so that it's
        * possible to use a simple vector to associate segments with values.
        * Create a vector of length `connections.segmentFlatListLength()`,
-       * iterate over segments and update the vector at index `segment.flatIdx`,
-       * and then recover the segments using `connections.segmentForFlatIdx(i)`.
+       * iterate over segments and update the vector at index `segment`.
        *
        */
       class Connections : public Serializable<ConnectionsProto>
@@ -328,6 +304,19 @@ namespace nupic
         CellIdx cellForSegment(Segment segment) const;
 
         /**
+         * Get the cell for each provided segment.
+         *
+         * @param segments
+         * The segments to query
+         *
+         * @param cells
+         * Output array with the same length as 'segments'
+         */
+        void mapSegmentsToCells(
+          const Segment* segments_begin, const Segment* segments_end,
+          CellIdx* cells_begin) const;
+
+        /**
          * Gets the segment that this synapse is on.
          *
          * @param synapse Synapse to get Segment for.
@@ -365,17 +354,7 @@ namespace nupic
         Segment getSegment(CellIdx cell, SegmentIdx idx) const;
 
         /**
-         * Do a reverse-lookup of a segment from its flatIdx.
-         *
-         * @param flatIdx the flatIdx of the segment
-         *
-         * @retval Segment
-         */
-        Segment segmentForFlatIdx(UInt32 flatIdx) const;
-
-        /**
-         * Get the vector length needed to use the segments' flatIdx for
-         * indexing.
+         * Get the vector length needed to use segments as indices.
          *
          * @retval A vector length
          */

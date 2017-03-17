@@ -97,12 +97,12 @@ Segment Connections::createSegment(CellIdx cell)
   }
   else
   {
-    segment.flatIdx = segments_.size();
+    segment = segments_.size();
     segments_.push_back(SegmentData());
     segmentOrdinals_.push_back(0);
   }
 
-  SegmentData& segmentData = segments_[segment.flatIdx];
+  SegmentData& segmentData = segments_[segment];
   segmentData.cell = cell;
   segmentData.lastUsedIteration = iteration_;
 
@@ -287,6 +287,21 @@ CellIdx Connections::cellForSegment(Segment segment) const
   return segments_[segment].cell;
 }
 
+void Connections::mapSegmentsToCells(
+  const Segment* segments_begin, const Segment* segments_end,
+  CellIdx* cells_begin) const
+{
+  CellIdx* out = cells_begin;
+
+  for (auto segment = segments_begin;
+       segment != segments_end;
+       ++segment, ++out)
+  {
+    NTA_ASSERT(segmentExists_(*segment));
+    *out = segments_[*segment].cell;
+  }
+}
+
 Segment Connections::segmentForSynapse(Synapse synapse) const
 {
   return synapses_[synapse].segment;
@@ -300,11 +315,6 @@ const SegmentData& Connections::dataForSegment(Segment segment) const
 const SynapseData& Connections::dataForSynapse(Synapse synapse) const
 {
   return synapses_[synapse];
-}
-
-Segment Connections::segmentForFlatIdx(UInt32 flatIdx) const
-{
-  return {flatIdx};
 }
 
 UInt32 Connections::segmentFlatListLength() const
@@ -571,7 +581,7 @@ void Connections::load(std::istream& inStream)
 
         if (!destroyedSegment)
         {
-          segment.flatIdx = segments_.size();
+          segment = segments_.size();
           cellData.segments.push_back(segment);
           segments_.push_back(segmentData);
           segmentOrdinals_.push_back(nextSegmentOrdinal_++);
@@ -647,7 +657,7 @@ void Connections::read(ConnectionsProto::Reader& proto)
         const SegmentData segmentData = {vector<Synapse>(),
                                          protoSegments[j].getLastUsedIteration(),
                                          cell};
-        segment.flatIdx = segments_.size();
+        segment = segments_.size();
         cellData.segments.push_back(segment);
         segments_.push_back(segmentData);
         segmentOrdinals_.push_back(nextSegmentOrdinal_++);
