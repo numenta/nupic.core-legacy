@@ -1395,7 +1395,7 @@ corresponding to indices for which the mask value is 1. <dl class="docutils">
 <p>Its main utility is to provide a common, optimized data structure that all HTM learning algorithms can use. It is flexible enough to support any learning algorithm that operates on a collection of cells.</p>
 <p>Each type of connection (proximal, distal basal, apical) should be represented by a different instantiation of this class. This class will help compute the activity along those connections due to active input cells. The responsibility for what effect that activity has on the cells and connections lies in the user of this class.</p>
 <p>This class is optimized to store connections between cells, and compute the activity of cells due to input over the connections.</p>
-<p>This class assigns each segment a unique &#8220;flatIdx&#8221; so that it&#8217;s possible to use a simple vector to associate segments with values. Create a vector of length <code class="docutils literal"><span class="pre">connections.segmentFlatListLength()</span></code>, iterate over segments and update the vector at index <code class="docutils literal"><span class="pre">segment.flatIdx</span></code>, and then recover the segments using <code class="docutils literal"><span class="pre">connections.segmentForFlatIdx(i)</span></code>. </p>
+<p>This class assigns each segment a unique &#8220;flatIdx&#8221; so that it&#8217;s possible to use a simple vector to associate segments with values. Create a vector of length <code class="docutils literal"><span class="pre">connections.segmentFlatListLength()</span></code>, iterate over segments and update the vector at index <code class="docutils literal"><span class="pre">segment</span></code>. </p>
 <p>Inherits from <a class="reference internal" href="types.html#nupic.coreclassnupic_1_1_serializable"><span class="std std-ref">nupic::Serializable&lt; ConnectionsProto &gt;</span></a></p>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Public Functions</p>
@@ -1575,6 +1575,21 @@ Created synapse. <dl class="docutils">
 </dd></dl>
 
 <dl class="function">
+<dt id="_CPPv2NK5nupic10algorithms11connections11Connections18mapSegmentsToCellsEPK7SegmentPK7SegmentP7CellIdx">
+<span id="nupic::algorithms::connections::Connections::mapSegmentsToCells__SegmentCP.SegmentCP.CellIdxPC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1connections_1_1_connections_1a0ea62e25b320616b5d60ed6c0d283220"></span>void <code class="descname">mapSegmentsToCells</code><span class="sig-paren">(</span><em class="property">const</em> Segment *<em>segments_begin</em>, <em class="property">const</em> Segment *<em>segments_end</em>, CellIdx *<em>cells_begin</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms11connections11Connections18mapSegmentsToCellsEPK7SegmentPK7SegmentP7CellIdx" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get the cell for each provided segment. </p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">segments</span></code>: The segments to query</li>
+<li><code class="docutils literal"><span class="pre">cells</span></code>: <a class="reference internal" href="network-io.html#nupic.coreclassnupic_1_1_output"><span class="std std-ref">Output</span></a> array with the same length as &#8216;segments&#8217; </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms11connections11Connections17segmentForSynapseE7Synapse">
 <span id="nupic::algorithms::connections::Connections::segmentForSynapse__SynapseC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1connections_1_1_connections_1a4e5034a7dfb00c7d16ce9297a4b992ad"></span>Segment <code class="descname">segmentForSynapse</code><span class="sig-paren">(</span>Synapse <em>synapse</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms11connections11Connections17segmentForSynapseE7Synapse" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Gets the segment that this synapse is on. </p>
@@ -1652,28 +1667,9 @@ Created synapse. <dl class="docutils">
 </dd></dl>
 
 <dl class="function">
-<dt id="_CPPv2NK5nupic10algorithms11connections11Connections17segmentForFlatIdxE6UInt32">
-<span id="nupic::algorithms::connections::Connections::segmentForFlatIdx__UInt32C"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1connections_1_1_connections_1aa40a35ba4b9847a2716b64879f8d2242"></span>Segment <code class="descname">segmentForFlatIdx</code><span class="sig-paren">(</span>UInt32 <em>flatIdx</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms11connections11Connections17segmentForFlatIdxE6UInt32" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Do a reverse-lookup of a segment from its flatIdx. </p>
-<p><dl class="docutils">
-<dt><strong>Parameters</strong></dt>
-<dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal"><span class="pre">flatIdx</span></code>: the flatIdx of the segment</li>
-</ul>
-</dd>
-<dt><strong>Return Value</strong></dt>
-<dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal"><span class="pre">Segment</span></code>: </li>
-</ul>
-</dd>
-</dl>
-</p>
-</dd></dl>
-
-<dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms11connections11Connections21segmentFlatListLengthEv">
 <span id="nupic::algorithms::connections::Connections::segmentFlatListLengthC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1connections_1_1_connections_1a2269339604609021e1117a84d38ffa3b"></span>UInt32 <code class="descname">segmentFlatListLength</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms11connections11Connections21segmentFlatListLengthEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Get the vector length needed to use the segments&#8217; flatIdx for indexing. </p>
+<dd><p>Get the vector length needed to use segments as indices. </p>
 <p><dl class="docutils">
 <dt><strong>Return Value</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
