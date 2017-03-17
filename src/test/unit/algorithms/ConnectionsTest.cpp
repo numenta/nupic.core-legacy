@@ -545,6 +545,29 @@ namespace {
   }
 
 
+  /**
+   * Test the mapSegmentsToCells method.
+   */
+  TEST(ConnectionsTest, testMapSegmentsToCells)
+  {
+    Connections connections(1024);
+
+    const Segment segment1 = connections.createSegment(42);
+    const Segment segment2 = connections.createSegment(42);
+    const Segment segment3 = connections.createSegment(43);
+
+    const vector<Segment> segments = {segment1, segment2, segment3, segment1};
+    vector<CellIdx> cells(segments.size());
+
+    connections.mapSegmentsToCells(segments.data(),
+                                   segments.data() + segments.size(),
+                                   cells.data());
+
+    const vector<CellIdx> expected = {42, 42, 43, 42};
+    ASSERT_EQ(expected, cells);
+  }
+
+
 
   bool TEST_EVENT_HANDLER_DESTRUCTED = false;
 

@@ -313,7 +313,7 @@ namespace nupic
          * Output array with the same length as 'segments'
          */
         void mapSegmentsToCells(
-          Segment* segments_begin, Segment* segments_end,
+          const Segment* segments_begin, const Segment* segments_end,
           CellIdx* cells_begin) const;
 
         /**

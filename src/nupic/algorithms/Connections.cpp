@@ -288,12 +288,12 @@ CellIdx Connections::cellForSegment(Segment segment) const
 }
 
 void Connections::mapSegmentsToCells(
-  Segment* segments_begin, Segment* segments_end,
+  const Segment* segments_begin, const Segment* segments_end,
   CellIdx* cells_begin) const
 {
   CellIdx* out = cells_begin;
 
-  for (Segment* segment = segments_begin;
+  for (auto segment = segments_begin;
        segment != segments_end;
        ++segment, ++out)
   {
