@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.6.0
+
+* NUP-2366 Remove no-longer-relevent test code
+* NUP-2366 Do not pass arguments in initialize, remove conflicting docstring
+* Add a unit test for mapSegmentsToCells
+* Change segments to UInt32 to speed up the bindings
+* Fix up fetch_remote script to properly poll until the build is complete.
+* Updates to tests moved over from nupic
+* removed shebangs
+* Changed all copyright headers on all files to AGPL.
+* Tests folder refactored
+* Reads version from VERSION for doc output
+* Fixing travis-ci unit tests
+* Doxygen only creates XML, used by Breathe to create docs.
+
 ## 0.5.3
 
 * Added comment explaining the nuance of the static variables in Cells4::adaptSegment
