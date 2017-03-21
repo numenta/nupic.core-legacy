@@ -950,6 +950,8 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
 // Spatial Pooler
 //----------------------------------------------------------------------
 
+// Ensure constructor is generated even if SWIG thinks the class is abstract
+%feature("notabstract") nupic::algorithms::spatial_pooler::SpatialPooler;
 %template(SerializableSpatialPoolerProto) nupic::Serializable<SpatialPoolerProto>;
 %ignore nupic::algorithms::spatial_pooler::SpatialPooler::read;
 %ignore nupic::algorithms::spatial_pooler::SpatialPooler::write;
@@ -1265,6 +1267,8 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
 // CLA Classifier
 //----------------------------------------------------------------------
 
+// Ensure constructor is generated even if SWIG thinks the class is abstract
+%feature("notabstract") nupic::algorithms::cla_classifier::FastCLAClassifier;
 %template(SerializableClaClassifierProto) nupic::Serializable<ClaClassifierProto>;
 %ignore nupic::algorithms::cla_classifier::FastCLAClassifier::read;
 %ignore nupic::algorithms::cla_classifier::FastCLAClassifier::write;
@@ -1437,6 +1441,8 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
 // SDR Classifier
 //----------------------------------------------------------------------
 
+// Ensure constructor is generated even if SWIG thinks the class is abstract
+%feature("notabstract") nupic::algorithms::sdr_classifier::SDRClassifier;
 %template(SerializableSdrClassifierProto) nupic::Serializable<SdrClassifierProto>;
 %ignore nupic::algorithms::sdr_classifier::SDRClassifier::read;
 %ignore nupic::algorithms::sdr_classifier::SDRClassifier::write;
@@ -1609,6 +1615,8 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
 // Connections
 //----------------------------------------------------------------------
 
+// Ensure constructor is generated even if SWIG thinks the class is abstract
+%feature("notabstract") nupic::algorithms::connections::Connections;
 %template(SerializableConnectionsProto) nupic::Serializable<ConnectionsProto>;
 %ignore nupic::algorithms::connections::Connections::read;
 %ignore nupic::algorithms::connections::Connections::write;
@@ -1720,6 +1728,8 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
 // Temporal Memory
 //----------------------------------------------------------------------
 
+// Ensure constructor is generated even if SWIG thinks the class is abstract
+%feature("notabstract") nupic::algorithms::temporal_memory::TemporalMemory;
 %template(SerializableTemporalMemoryProto) nupic::Serializable<TemporalMemoryProto>;
 %ignore nupic::algorithms::temporal_memory::TemporalMemory::read;
 %ignore nupic::algorithms::temporal_memory::TemporalMemory::write;

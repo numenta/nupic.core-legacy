@@ -175,6 +175,8 @@ import_array();
 
 // ----- Random -----
 
+// Ensure constructor is generated even if SWIG thinks the class is abstract
+%feature("notabstract") nupic::Random;
 %template(SerializableRandomProto) nupic::Serializable<RandomProto>;
 %ignore nupic::Random::read;
 %ignore nupic::Random::write;

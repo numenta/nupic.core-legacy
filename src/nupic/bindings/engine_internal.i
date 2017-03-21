@@ -151,6 +151,8 @@ class IterablePair(object):
 %template(CommandCollection) nupic::Collection<nupic::CommandSpec>;
 %template(RegionCollection) nupic::Collection<nupic::Region *>;
 
+// Ensure constructor is generated even if SWIG thinks the class is abstract
+%feature("notabstract") nupic::Link;
 %template(SerializableLinkProto) nupic::Serializable<LinkProto>;
 %ignore nupic::Link::read;
 %ignore nupic::Link::write;
@@ -165,6 +167,8 @@ class IterablePair(object):
 
 %include <nupic/engine/NuPIC.hpp>
 
+// Ensure constructor is generated even if SWIG thinks the class is abstract
+%feature("notabstract") nupic::Network;
 %template(SerializableNetworkProto) nupic::Serializable<NetworkProto>;
 %ignore nupic::Network::read;
 %ignore nupic::Network::write;
@@ -173,6 +177,8 @@ class IterablePair(object):
 %ignore nupic::Region::getInputData;
 %ignore nupic::Region::getOutputData;
 
+// Ensure constructor is generated even if SWIG thinks the class is abstract
+%feature("notabstract") nupic::Region;
 %template(SerializableRegionProto) nupic::Serializable<RegionProto>;
 %include <nupic/engine/Region.hpp>
 

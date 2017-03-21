@@ -56,17 +56,20 @@ import numbers
 %include <nupic/math/Math.hpp>
 %include <nupic/math/Domain.hpp>
 
+// Ensure constructor is generated even if SWIG thinks the class is abstract
+%feature("notabstract") nupic::SparseMatrix;
 %template(SerializableSparseMatrixProto) nupic::Serializable<SparseMatrixProto>;
 %ignore nupic::SparseMatrix::read;
 %ignore nupic::SparseMatrix::write;
-%include <nupic/math/SparseMatrix.hpp>
-
-%include <nupic/math/SparseMatrixAlgorithms.hpp>
-
+// Ensure constructor is generated even if SWIG thinks the class is abstract
+%feature("notabstract") nupic::SparseBinaryMatrix;
 %template(SerializableSparseBinaryMatrixProto) nupic::Serializable<SparseBinaryMatrixProto>;
 %ignore nupic::SparseBinaryMatrix::read;
 %ignore nupic::SparseBinaryMatrix::write;
+%include <nupic/math/SparseMatrix.hpp>
 %include <nupic/math/SparseBinaryMatrix.hpp>
+
+%include <nupic/math/SparseMatrixAlgorithms.hpp>
 
  //%include <nupic/math/SparseRLEMatrix.hpp>
 
