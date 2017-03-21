@@ -145,16 +145,12 @@ class PyRegion(object):
 
 
   @abstractmethod
-  def initialize(self, inputs, outputs):
+  def initialize(self):
     """Initialize the node after the network is fully linked
-
     It is called once by NuPIC before the first call to compute(). It is
     a good place to perform one time initialization that depend on the inputs
     and/or outputs. The region may also remember its inputs and outputs here
     because they will not change.
-
-    inputs: dict of numpy arrays (one per input)
-    outputs: dict of numpy arrays (one per output)
     """
 
 

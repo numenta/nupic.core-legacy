@@ -113,30 +113,6 @@ struct MemoryMonitor
   size_t diff_vmem;
 };
 
-void testExceptionBug()
-{
-  Network n;
-  Region *l1 = n.addRegion("l1", "py.TestNode", "");
-  //Dimensions d(1);
-  Dimensions d(1);
-  l1->setDimensions(d);
-  bool caughtException = false;
-  try
-  {
-    n.run(1);
-  } catch (std::exception& e) {
-    NTA_DEBUG << "Caught exception as expected: '" << e.what() << "'";
-    caughtException = true;
-  }
-  if (caughtException)
-  {
-    NTA_DEBUG << "testExceptionBug passed";
-  } else {
-    NTA_THROW << "testExceptionBug did not throw an exception as expected";
-  }
-
-}
-
 
 void testPynodeInputOutputAccess(Region * level2)
 {
@@ -513,7 +489,6 @@ int realmain(bool leakTest)
   std::cout << "Initializing again..." << std::endl;
   n.initialize();
 
-  testExceptionBug();
   testPynodeInputOutputAccess(level2);
   testPynodeArrayParameters(level2);
   testPynodeLinking();

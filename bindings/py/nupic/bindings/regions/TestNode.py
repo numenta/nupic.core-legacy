@@ -19,8 +19,6 @@
 # http://numenta.org/licenses/
 # ----------------------------------------------------------------------
 
-from pprint import pprint as pp
-
 import numpy
 
 from nupic.bindings.regions.PyRegion import PyRegion
@@ -51,7 +49,7 @@ class TestNode(PyRegion):
           required=True,
           regionLevel=False,
           isDefaultInput=True,
-          requireSplitterMap=True
+          requireSplitterMap=False
           )
         ),
       outputs=dict(
@@ -224,72 +222,13 @@ class TestNode(PyRegion):
     self.parameters[name] = value
 
 
-  def initialize(self, dims, splitterMaps):
+  def initialize(self):
     print 'TestNode.initialize() here.'
-    assert len(dims) == 2
-    self.dims = dims
-    self.nodeCount = dims[0] * dims[1]
-    self.splitterMap = splitterMaps['bottomUpIn']
-    print 'self.nodeCount:', self.nodeCount
-    print 'self.splitterMap:', self.splitterMap
-    print
-
-
-  def _getInputForNode(self, input, index):
-    #from dbgp.client import brk; brk(port=9019)
-    #indices = self.splitterMap[index * 8: index * 8 + 8]
-    indices = self.splitterMap[index]
-    v = []
-    for i in indices:
-      v.append(input[i])
-
-    return v
 
 
   def compute(self, inputs, outputs):
     if self._failInCompute:
       assert False, 'TestNode.compute() Failing on purpose as requested'
-
-    print 'TestNode.compute() here.'
-    print 'splitter map:',
-    pp(self.splitterMap)
-    print
-
-    print 'inputs:',
-    pp(inputs)
-    print
-
-    if not 'bottomUpIn' in inputs:
-      bottomUpIn = [0] * 8
-    else:
-      bottomUpIn = inputs['bottomUpIn']
-    bottomUpOut = outputs['bottomUpOut']
-    assert len(bottomUpOut) == self.nodeCount * self.outputElementCount
-
-    for node in range(self.nodeCount):
-      input = self._getInputForNode(bottomUpIn, node)
-      if len(input) > 0:
-        try:
-          input = numpy.concatenate(input)
-        except ValueError: # 0-d dimensioned inputs don't need concatenation
-          #from dbgp.client import brk; brk(port=9019)
-          pass
-
-      base = node * self.outputElementCount
-      bottomUpOut[base] = len(input) + self._iter
-      x = sum(input)
-      for i in range(1, self.outputElementCount):
-        value = node + x + (i - 1) * self._delta
-        bottomUpOut[base+i] = value
-        print 'index, value:', base+i, value
-        print bottomUpOut[:base+i+1]
-        print '-----'
-
-    self._iter += 1
-
-    print 'outputs:',
-    pp(outputs)
-    print
 
 
   def getOutputElementCount(self, name):
