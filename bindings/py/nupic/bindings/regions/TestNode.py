@@ -49,7 +49,7 @@ class TestNode(PyRegion):
           required=True,
           regionLevel=False,
           isDefaultInput=True,
-          requireSplitterMap=True
+          requireSplitterMap=False
           )
         ),
       outputs=dict(
