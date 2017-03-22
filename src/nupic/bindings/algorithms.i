@@ -24,6 +24,8 @@
 %include <nupic/bindings/exception.i>
 %import <nupic/bindings/math.i>
 
+%import "nupic/types/Serializable.hpp"
+
 %pythoncode %{
 import os
 
@@ -636,68 +638,6 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
 }
 
 //--------------------------------------------------------------------------------
-// LearningSet for continuous FDR TP
-//--------------------------------------------------------------------------------
-%extend nupic::algorithms::Inhibition
-{
-  %pythoncode %{
-
-    def __init__(self, *args):
-      this = _ALGORITHMS.new_Inhibition(*args)
-      try:
-        self.this.append(this)
-      except:
-        self.this = this
-  %}
-
-  inline
-    nupic::UInt32 compute(PyObject* py_x, PyObject* py_y, nupic::UInt32 stimulus_threshold,
-                          nupic::Real32 k =.95f)
-  {
-    PyArrayObject* _x = (PyArrayObject*) py_x;
-    CHECKSIZE(_x);
-    nupic::Real32* x = (nupic::Real32*)(PyArray_DATA(_x));
-
-    PyArrayObject* _y = (PyArrayObject*) py_y;
-    CHECKSIZE(_y);
-    nupic::UInt32* y = (nupic::UInt32*)(PyArray_DATA(_y));
-
-    return self->compute(x, y, stimulus_threshold, k);
-  }
-
-}; // end extend nupic::Inhibition
-
-//--------------------------------------------------------------------------------
-%extend nupic::algorithms::Inhibition2
-{
-  %pythoncode %{
-
-    def __init__(self, *args):
-      this = _ALGORITHMS.new_Inhibition2(*args)
-      try:
-        self.this.append(this)
-      except:
-        self.this = this
-  %}
-
-  inline
-    nupic::UInt32 compute(PyObject* py_x, PyObject* py_y,
-        nupic::Real32 stimulus_threshold, nupic::Real32 add_to_winners)
-  {
-    PyArrayObject* _x = (PyArrayObject*) py_x;
-    CHECKSIZE(_x);
-    nupic::Real32* x = (nupic::Real32*)(PyArray_DATA(_x));
-
-    PyArrayObject* _y = (PyArrayObject*) py_y;
-    CHECKSIZE(_y);
-    nupic::UInt32* y = (nupic::UInt32*)(PyArray_DATA(_y));
-
-    return self->compute(x, y, stimulus_threshold, add_to_winners);
-  }
-
-}; // end extend nupic::Inhibition2
-
-//--------------------------------------------------------------------------------
 %inline {
 
 inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 ncols,
@@ -1004,6 +944,17 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
     return y.forPython();
   }
 }
+
+
+//----------------------------------------------------------------------
+// Spatial Pooler
+//----------------------------------------------------------------------
+
+// Ensure constructor is generated even if SWIG thinks the class is abstract
+%feature("notabstract") nupic::algorithms::spatial_pooler::SpatialPooler;
+%template(SerializableSpatialPoolerProto) nupic::Serializable<SpatialPoolerProto>;
+%ignore nupic::algorithms::spatial_pooler::SpatialPooler::read;
+%ignore nupic::algorithms::spatial_pooler::SpatialPooler::write;
 
 // In these SWIG wrapper methods, don't use the `const` qualifier. There has to
 // be some difference in the method signature so that C++ function overloading
@@ -1312,6 +1263,16 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
 }
 
 
+//----------------------------------------------------------------------
+// CLA Classifier
+//----------------------------------------------------------------------
+
+// Ensure constructor is generated even if SWIG thinks the class is abstract
+%feature("notabstract") nupic::algorithms::cla_classifier::FastCLAClassifier;
+%template(SerializableClaClassifierProto) nupic::Serializable<ClaClassifierProto>;
+%ignore nupic::algorithms::cla_classifier::FastCLAClassifier::read;
+%ignore nupic::algorithms::cla_classifier::FastCLAClassifier::write;
+
 %include <nupic/algorithms/FastClaClassifier.hpp>
 
 %pythoncode %{
@@ -1476,6 +1437,16 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
 }
 
 
+//----------------------------------------------------------------------
+// SDR Classifier
+//----------------------------------------------------------------------
+
+// Ensure constructor is generated even if SWIG thinks the class is abstract
+%feature("notabstract") nupic::algorithms::sdr_classifier::SDRClassifier;
+%template(SerializableSdrClassifierProto) nupic::Serializable<SdrClassifierProto>;
+%ignore nupic::algorithms::sdr_classifier::SDRClassifier::read;
+%ignore nupic::algorithms::sdr_classifier::SDRClassifier::write;
+
 %include <nupic/algorithms/SDRClassifier.hpp>
 
 %pythoncode %{
@@ -1639,6 +1610,17 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
 
 }
 
+
+//----------------------------------------------------------------------
+// Connections
+//----------------------------------------------------------------------
+
+// Ensure constructor is generated even if SWIG thinks the class is abstract
+%feature("notabstract") nupic::algorithms::connections::Connections;
+%template(SerializableConnectionsProto) nupic::Serializable<ConnectionsProto>;
+%ignore nupic::algorithms::connections::Connections::read;
+%ignore nupic::algorithms::connections::Connections::write;
+
 //--------------------------------------------------------------------------------
 // Data structures (Connections)
 %rename(ConnectionsSynapse) nupic::algorithms::connections::Synapse;
@@ -1757,9 +1739,16 @@ inline PyObject* generate2DGaussianSample(nupic::UInt32 nrows, nupic::UInt32 nco
 }
 
 
-//--------------------------------------------------------------------------------
+//----------------------------------------------------------------------
 // Temporal Memory
-//--------------------------------------------------------------------------------
+//----------------------------------------------------------------------
+
+// Ensure constructor is generated even if SWIG thinks the class is abstract
+%feature("notabstract") nupic::algorithms::temporal_memory::TemporalMemory;
+%template(SerializableTemporalMemoryProto) nupic::Serializable<TemporalMemoryProto>;
+%ignore nupic::algorithms::temporal_memory::TemporalMemory::read;
+%ignore nupic::algorithms::temporal_memory::TemporalMemory::write;
+
 %inline %{
   template <typename IntType>
   inline PyObject* vectorToList(const vector<IntType> &cellIdxs)

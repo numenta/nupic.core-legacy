@@ -46,9 +46,6 @@
  * ----------------------------------------------------------------------
 */
 
-#include <nupic/engine/Input.hpp>
-#include <nupic/engine/Link.hpp>
-
 #include <nupic/types/Types.hpp>
 #include <nupic/types/Types.h>
 #include <nupic/types/BasicType.hpp>
@@ -75,6 +72,7 @@
 
 #include <nupic/engine/Spec.hpp>
 #include <nupic/utils/Watcher.hpp>
+#include <nupic/engine/Input.hpp>
 #include <nupic/engine/Region.hpp>
 #include <nupic/engine/Link.hpp>
 #include <nupic/os/Timer.hpp>
@@ -129,6 +127,10 @@ class IterablePair(object):
 %include <nupic/types/BasicType.hpp>
 %include <nupic/types/Exception.hpp>
 
+// Needed so SWIG knows about the base class but doesn't actually wrap
+// the class.
+%import "nupic/types/Serializable.hpp"
+
 // For Network::get/setPhases()
 %template(UInt32Set) std::set<nupic::UInt32>;
 
@@ -148,6 +150,12 @@ class IterablePair(object):
 %template(ParameterCollection) nupic::Collection<nupic::ParameterSpec>;
 %template(CommandCollection) nupic::Collection<nupic::CommandSpec>;
 %template(RegionCollection) nupic::Collection<nupic::Region *>;
+
+// Ensure constructor is generated even if SWIG thinks the class is abstract
+%feature("notabstract") nupic::Link;
+%template(SerializableLinkProto) nupic::Serializable<LinkProto>;
+%ignore nupic::Link::read;
+%ignore nupic::Link::write;
 %template(LinkCollection) nupic::Collection<nupic::Link *>;
 %extend nupic::Collection< nupic::Link * >
 {
@@ -158,10 +166,22 @@ class IterablePair(object):
 }
 
 %include <nupic/engine/NuPIC.hpp>
+
+// Ensure constructor is generated even if SWIG thinks the class is abstract
+%feature("notabstract") nupic::Network;
+%template(SerializableNetworkProto) nupic::Serializable<NetworkProto>;
+%ignore nupic::Network::read;
+%ignore nupic::Network::write;
 %include <nupic/engine/Network.hpp>
+
 %ignore nupic::Region::getInputData;
 %ignore nupic::Region::getOutputData;
+
+// Ensure constructor is generated even if SWIG thinks the class is abstract
+%feature("notabstract") nupic::Region;
+%template(SerializableRegionProto) nupic::Serializable<RegionProto>;
 %include <nupic/engine/Region.hpp>
+
 %include <nupic/utils/Watcher.hpp>
 %include <nupic/engine/Spec.hpp>
 %include <nupic/engine/Link.hpp>
@@ -171,6 +191,7 @@ class IterablePair(object):
 %template(ParameterPair) std::pair<std::string, nupic::ParameterSpec>;
 %template(CommandPair) std::pair<std::string, nupic::CommandSpec>;
 %template(RegionPair) std::pair<std::string, nupic::Region *>;
+
 %template(LinkPair) std::pair<std::string, nupic::Link *>;
 %extend std::pair<std::string, nupic::Link *>
 {
@@ -222,6 +243,10 @@ class IterablePair(object):
 }
 
 
+//----------------------------------------------------------------------
+// Region
+//----------------------------------------------------------------------
+
 %extend nupic::Region
 {
 
@@ -254,6 +279,11 @@ class IterablePair(object):
     }
   }
 }
+
+
+//----------------------------------------------------------------------
+// Network
+//----------------------------------------------------------------------
 
 %extend nupic::Network
 {
