@@ -26,7 +26,7 @@
 %{
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
+ * Copyright (C) 2013-2017, Numenta, Inc.  Unless you have an agreement
  * with Numenta, Inc., for a separate license for this software code, the
  * following terms and conditions apply:
  *
@@ -45,9 +45,6 @@
  * http://numenta.org/licenses/
  * ----------------------------------------------------------------------
 */
-
-#include <nupic/engine/Input.hpp>
-#include <nupic/engine/Link.hpp>
 
 #include <nupic/types/Types.hpp>
 #include <nupic/types/Types.h>
@@ -73,11 +70,12 @@
 #include <nupic/py_support/PyCapnp.hpp>
 #endif
 
-#include <nupic/engine/Spec.hpp>
-#include <nupic/utils/Watcher.hpp>
-#include <nupic/engine/Region.hpp>
+#include <nupic/engine/Input.hpp>
 #include <nupic/engine/Link.hpp>
+#include <nupic/engine/Region.hpp>
+#include <nupic/engine/Spec.hpp>
 #include <nupic/os/Timer.hpp>
+#include <nupic/utils/Watcher.hpp>
 
 #include <yaml-cpp/yaml.h>
 %}
@@ -222,6 +220,10 @@ class IterablePair(object):
 }
 
 
+//----------------------------------------------------------------------
+// Region
+//----------------------------------------------------------------------
+
 %extend nupic::Region
 {
 
@@ -254,6 +256,11 @@ class IterablePair(object):
     }
   }
 }
+
+
+//----------------------------------------------------------------------
+// Network
+//----------------------------------------------------------------------
 
 %extend nupic::Network
 {
