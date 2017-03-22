@@ -53,17 +53,6 @@ option(NUPIC_BUILD_PYEXT_MODULES
 message(STATUS "NUPIC_BUILD_PYEXT_MODULES = ${NUPIC_BUILD_PYEXT_MODULES}")
 message(STATUS "PY_EXTENSIONS_DIR         = ${PY_EXTENSIONS_DIR}")
 
-#
-# Identify build type - local or deployment (Travis)
-# the variable NUPIC_DEPLOYMENT_BUILD must be set in travis CI scripts
-#
-if($ENV{NUPIC_DEPLOYMENT_BUILD})
-  message("Doing a deployment build in TravisCI")
-else()
-  message("Doing a local build")
-endif()
-
-
 message(STATUS "CMAKE_CXX_COMPILER_ID = ${CMAKE_CXX_COMPILER_ID}")
 message(STATUS "CMAKE_C_COMPILER      = ${CMAKE_C_COMPILER}")
 message(STATUS "CMAKE_CXX_COMPILER    = ${CMAKE_CXX_COMPILER}")

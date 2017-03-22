@@ -20,11 +20,6 @@ env:
     - AWS_ACCESS_KEY_ID=AKIAIGHYSEHV3WFKOWNQ
     # AWS_SECRET_ACCESS_KEY encrypted below
     - secure: "Ixm9TYZAZbCQicUTIZTY7XKNK82WF+f1jsaGtIxnGQmn0LKhKBjQnsZmhzQ7LDQeLUjRY3wM6xrX3YdP5T7WWiiqBiNCRz8oFxl/fBSm7LyuNo2CEGD9rsG6ZAY/sKKYNX5TuG78giJXwYZpq4LbVwy3W5ZlC626H7iXLQ6xDxw="
-    # PyPi credentials for manual uploads to Pypi on release.
-    - PYPI_USERNAME=numenta
-    # PYPI_PASSWD encrypted below.
-    - secure: "oFaHJoYEq/w13o3MANKGeM/qKYhy3A8Mu2HdxhBCbRXgOhzNDLtujFKUoERmAmWLW8ARHexZWHa+0SS378+Gqgv0fgG8C7RMToBXgLWFXrv6ih0H5aFn4P2v1pYttEk1Gp+HFKFrbbmhHvDOiM+i6t78gIrt3w+raXzONgRbj2I="
-    - NUPIC_DEPLOYMENT_BUILD=true
 
 virtualenv:
   system_site_packages: true
@@ -110,9 +105,3 @@ script:
   - "cd $TRAVIS_BUILD_DIR/build/artifacts/"
   # transform the JUnit-style xml report to html
   - "xsltproc $TRAVIS_BUILD_DIR/docs/xunit.xslt unit_tests_report.xml > unit_tests_report.html"
-
-after_success:
-  - "cd $TRAVIS_BUILD_DIR"
-  # # Send test coverage report to http://coveralls.io under only linux
-  # - "if [ ${TRAVIS_OS_NAME:-'linux'} = 'linux' ]; then coveralls --gcov /usr/bin/gcov-4.8 --exclude external --exclude doc --exclude src/test > /dev/null 2>/dev/stdout|grep -v 'gcno:version'|grep -v 'gcda:version'; fi"
-  - "if [ -n \"${TRAVIS_TAG}\" -a \"${TRAVIS_OS_NAME}--${CC}\" = 'osx--clang' ]; then . ./ci/travis/after_success-release-osx.sh; fi"
