@@ -213,13 +213,13 @@ if __name__ == "__main__":
     # This distribution contains platform-specific C++ libraries, but they are not
     # built with distutils. So we must create a dummy Extension object so when we
     # create a binary file it knows to make it platform-specific.
-    ext_modules=[Extension('nupic.dummy', sources = ['dummy.c'])], 
+    ext_modules=[Extension('nupic.dummy', sources = ['dummy.c'])],
     namespace_packages=["nupic"],
     install_requires=findRequirements(platform),
     packages=find_packages(),
     package_data={
         "nupic.proto": ["*.capnp"],
-        "nupic.bindings": ["*.so", "*.pyd"],
+        "nupic.bindings": ["*.so", "*.dylib", "*.pyd"],
     },
     extras_require = {"capnp": ["pycapnp==0.5.8"]},
     zip_safe=False,

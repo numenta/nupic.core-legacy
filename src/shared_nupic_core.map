@@ -1,0 +1,18 @@
+{
+  global:
+    apr_*;
+    adjustBox;
+    accessPixels;
+    extractAuxInfo;
+    gaborCompute;
+    extern "C++" {
+      *nupic::*;
+      nupic::*;
+      *capnp::*;
+      capnp::*;
+      *kj::*;
+      kj::*
+    };
+  local: *;
+};
+

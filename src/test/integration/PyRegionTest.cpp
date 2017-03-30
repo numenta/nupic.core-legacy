@@ -472,10 +472,13 @@ int realmain(bool leakTest)
   NTA_CHECK(rval == 77.7);
 
   // should fail because network has not been initialized
+  std::cerr << "ZZZ BEFORE SHOULDFAIL(n.run(1))" << std::endl << std::flush;
   SHOULDFAIL(n.run(1));
+  std::cerr << "ZZZ Survived SHOULDFAIL(n.run(1))" << std::endl << std::flush;
 
   // should fail because network can't be initialized
   SHOULDFAIL (n.initialize() );
+  std::cerr << "ZZZ Survived SHOULDFAIL (n.initialize() )" << std::endl << std::flush;
 
   std::cout << "Setting dimensions of level1..." << std::endl;
   Dimensions d;
@@ -488,6 +491,7 @@ int realmain(bool leakTest)
 
   std::cout << "Initializing again..." << std::endl;
   n.initialize();
+  std::cerr << "ZZZ Survived n.initialize()" << std::endl << std::flush;
 
   testPynodeInputOutputAccess(level2);
   testPynodeArrayParameters(level2);

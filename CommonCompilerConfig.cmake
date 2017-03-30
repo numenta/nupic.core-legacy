@@ -62,13 +62,20 @@
 #
 # INTERNAL_CXX_FLAGS_OPTIMIZED: string of C++ flags with explicit optimization flags for internal sources
 #
+# INTERNAL_CXX_FLAGS_NO_HIDE: string of C++ flags that may be appended to
+#                      INTERNAL_CXX_FLAGS_NO_HIDE to force visibility of symbols
+#                      that have default visibility.
+#
 # INTERNAL_LINKER_FLAGS_OPTIMIZED: string of linker flags for linking internal executables
 #                      and shared libraries (DLLs) with optimizations that are
 #                      compatible with INTERNAL_CXX_FLAGS_OPTIMIZED
 #
+# PYEXT_CXX_FLAGS_OPTIMIZED: string of C++ flags with explicit optimization
+#                      flags for compiling python extension sources.
+#
 # PYEXT_LINKER_FLAGS_OPTIMIZED: string of linker flags for linking python extension
 #                      shared libraries (DLLs) with optimizations that are
-#                      compatible with EXTERNAL_CXX_FLAGS_OPTIMIZED.
+#                      compatible with PYEXT_CXX_FLAGS_OPTIMIZED.
 #
 # CMAKE_AR: Name of archiving tool (ar) for static libraries. See cmake documentation
 #
@@ -94,8 +101,10 @@ set(COMMON_COMPILER_DEFINITIONS)
 set(COMMON_COMPILER_DEFINITIONS_STR)
 
 set(INTERNAL_CXX_FLAGS_OPTIMIZED)
+set(INTERNAL_CXX_FLAGS_NO_HIDE)
 set(INTERNAL_LINKER_FLAGS_OPTIMIZED)
 
+set(PYEXT_CXX_FLAGS_OPTIMIZED)
 set(PYEXT_LINKER_FLAGS_OPTIMIZED)
 
 set(EXTERNAL_C_FLAGS_UNOPTIMIZED)
@@ -182,6 +191,11 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif()
 
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
+  # NOTE We need to use shared libgcc to be able to throw and catch exceptions
+  # across different shared libraries, as may be the case when our python
+  # extensions runtime-link to capnproto symbols in pycapnp's extension.
+  #set(stdlib_common "${stdlib_common} -shared-libgcc")
+
   if (${NUPIC_BUILD_PYEXT_MODULES} AND "${PLATFORM}" STREQUAL "linux")
     # NOTE When building manylinux python extensions, we want the static
     # libstdc++ due to differences in c++ ABI between the older toolchain in the
@@ -189,15 +203,9 @@ if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
     # compiled with the c++11 ABI. for example, with shared libstdc++, the
     # manylinux-built extension is unable to catch std::ios::failure exception
     # raised by the shared libstdc++.so while running on Ubuntu 16.04.
-    set(stdlib_cxx "${stdlib_cxx} -static-libstdc++")
-
-    # NOTE We need to use shared libgcc to be able to throw and catch exceptions
-    # across different shared libraries, as may be the case when our python
-    # extensions runtime-link to capnproto symbols in pycapnp's extension.
-    set(stdlib_common "${stdlib_common} -shared-libgcc")
+    #set(stdlib_cxx "${stdlib_cxx} -static-libstdc++")
   else()
-    set(stdlib_common "${stdlib_common} -static-libgcc")
-    set(stdlib_cxx "${stdlib_cxx} -static-libstdc++")
+    #set(stdlib_cxx "${stdlib_cxx} -static-libstdc++")
   endif()
 endif()
 
@@ -237,6 +245,9 @@ set(cxx_flags_unoptimized "")
 set(shared_linker_flags_unoptimized "")
 set(fail_link_on_undefined_symbols_flags "")
 set(allow_link_with_undefined_symbols_flags "")
+set(cxx_hidden_vis_compile_flags "")
+set(shared_hidden_vis_compile_flags "")
+set(shared_default_to_vis_compile_flags "")
 
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
   # MS Visual C
@@ -252,12 +263,14 @@ else()
   # LLVM Clang / Gnu GCC
   set(cxx_flags_unoptimized "${cxx_flags_unoptimized} ${stdlib_cxx} -std=c++11")
 
-  if (${NUPIC_BUILD_PYEXT_MODULES})
-    # Hide all symbols in DLLs except the ones with explicit visibility;
-    # see https://gcc.gnu.org/wiki/Visibility
-    set(cxx_flags_unoptimized "${cxx_flags_unoptimized} -fvisibility-inlines-hidden")
-    set(shared_compile_flags "${shared_compile_flags} -fvisibility=hidden")
-  endif()
+  # Hide all symbols in DLLs except the ones with explicit visibility;
+  # see https://gcc.gnu.org/wiki/Visibility
+  set(cxx_hidden_vis_compile_flags "${cxx_hidden_vis_compile_flags} -fvisibility-inlines-hidden")
+  set(shared_hidden_vis_compile_flags "${shared_hidden_vis_compile_flags} -fvisibility=hidden")
+
+  # Per https://gcc.gnu.org/onlinedocs/gcc-4.1.2/gcc/Code-Gen-Options.html:
+  # "Despite the nomenclature, default always means public"
+  set(shared_default_to_vis_compile_flags "${shared_default_to_vis_compile_flags} -fvisibility=default")
 
   set(shared_compile_flags "${shared_compile_flags} ${stdlib_common} -fdiagnostics-show-option")
   set (internal_compiler_warning_flags "${internal_compiler_warning_flags} -Werror -Wextra -Wreturn-type -Wunused -Wno-unused-variable -Wno-unused-parameter -Wno-missing-field-initializers")
@@ -363,6 +376,7 @@ endif()
 
 # Settings for internal nupic.core code
 set(INTERNAL_CXX_FLAGS_OPTIMIZED "${build_type_specific_compile_flags} ${shared_compile_flags} ${cxx_flags_unoptimized} ${internal_compiler_warning_flags} ${optimization_flags_cc}")
+set(INTERNAL_CXX_FLAGS_NO_HIDE "${shared_default_to_vis_compile_flags}")
 
 set(complete_linker_flags_unoptimized "${build_type_specific_linker_flags} ${shared_linker_flags_unoptimized}")
 set(complete_linker_flags_unoptimized "${complete_linker_flags_unoptimized} ${fail_link_on_undefined_symbols_flags}")
@@ -374,15 +388,18 @@ set(INTERNAL_LINKER_FLAGS_OPTIMIZED "${complete_linker_flags_unoptimized} ${opti
 set(EXTERNAL_C_FLAGS_UNOPTIMIZED "${build_type_specific_compile_flags} ${shared_compile_flags} ${external_compiler_warning_flags}")
 set(EXTERNAL_C_FLAGS_OPTIMIZED "${EXTERNAL_C_FLAGS_UNOPTIMIZED} ${optimization_flags_cc}")
 
-set(PYEXT_LINKER_FLAGS_OPTIMIZED "${build_type_specific_linker_flags} ${shared_linker_flags_unoptimized}")
-set(PYEXT_LINKER_FLAGS_OPTIMIZED "${PYEXT_LINKER_FLAGS_OPTIMIZED} ${optimization_flags_lt}")
-set(PYEXT_LINKER_FLAGS_OPTIMIZED "${PYEXT_LINKER_FLAGS_OPTIMIZED} ${allow_link_with_undefined_symbols_flags}")
-
 set(EXTERNAL_CXX_FLAGS_UNOPTIMIZED "${build_type_specific_compile_flags} ${shared_compile_flags} ${external_compiler_warning_flags} ${cxx_flags_unoptimized}")
 set(EXTERNAL_CXX_FLAGS_OPTIMIZED "${EXTERNAL_CXX_FLAGS_UNOPTIMIZED} ${optimization_flags_cc}")
 
 set(EXTERNAL_LINKER_FLAGS_UNOPTIMIZED "${complete_linker_flags_unoptimized}")
 set(EXTERNAL_LINKER_FLAGS_OPTIMIZED "${INTERNAL_LINKER_FLAGS_OPTIMIZED}")
+
+set(PYEXT_CXX_FLAGS_OPTIMIZED "${EXTERNAL_CXX_FLAGS_OPTIMIZED} ${shared_hidden_vis_compile_flags}")
+set(PYEXT_CXX_FLAGS_OPTIMIZED "${PYEXT_CXX_FLAGS_OPTIMIZED} ${cxx_hidden_vis_compile_flags}")
+
+set(PYEXT_LINKER_FLAGS_OPTIMIZED "${build_type_specific_linker_flags} ${shared_linker_flags_unoptimized}")
+set(PYEXT_LINKER_FLAGS_OPTIMIZED "${PYEXT_LINKER_FLAGS_OPTIMIZED} ${optimization_flags_lt}")
+set(PYEXT_LINKER_FLAGS_OPTIMIZED "${PYEXT_LINKER_FLAGS_OPTIMIZED} ${allow_link_with_undefined_symbols_flags}")
 
 
 #
@@ -397,6 +414,7 @@ message(STATUS "INTERNAL_CXX_FLAGS_OPTIMIZED=${INTERNAL_CXX_FLAGS_OPTIMIZED}")
 message(STATUS "INTERNAL_LINKER_FLAGS_OPTIMIZED=${INTERNAL_LINKER_FLAGS_OPTIMIZED}")
 message(STATUS "EXTERNAL_C_FLAGS_UNOPTIMIZED=${EXTERNAL_C_FLAGS_UNOPTIMIZED}")
 message(STATUS "EXTERNAL_C_FLAGS_OPTIMIZED=${EXTERNAL_C_FLAGS_OPTIMIZED}")
+message(STATUS "PYEXT_CXX_FLAGS_OPTIMIZED=${PYEXT_CXX_FLAGS_OPTIMIZED}")
 message(STATUS "PYEXT_LINKER_FLAGS_OPTIMIZED=${PYEXT_LINKER_FLAGS_OPTIMIZED}")
 message(STATUS "EXTERNAL_CXX_FLAGS_UNOPTIMIZED=${EXTERNAL_CXX_FLAGS_UNOPTIMIZED}")
 message(STATUS "EXTERNAL_CXX_FLAGS_OPTIMIZED=${EXTERNAL_CXX_FLAGS_OPTIMIZED}")
