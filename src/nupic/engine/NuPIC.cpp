@@ -23,7 +23,6 @@
 /* @file Implementation of NuPIC init/shutdown operations */
 
 // TODO -- thread safety
-// TODO -- add license check
 
 #include <nupic/engine/NuPIC.hpp>
 #include <nupic/engine/RegionImplFactory.hpp>
@@ -49,8 +48,6 @@ void NuPIC::init()
   int result = apr_initialize();
   if (result)
     NTA_THROW << "Error initializing APR (code " << result << ")";
-
-  // TODO: license checking will be done in NuPIC::init()
 
   initialized_ = true;
 }
