@@ -28,12 +28,16 @@
 
 #include <nupic/engine/Input.hpp>
 #include <nupic/engine/Network.hpp>
-#include <nupic/ntypes/Dimensions.hpp>
-#include <nupic/engine/Region.hpp>
 #include <nupic/engine/Output.hpp>
+#include <nupic/engine/Region.hpp>
+#include <nupic/engine/RegionImpl.hpp>
 #include <nupic/engine/RegionImplFactory.hpp>
 #include <nupic/engine/RegisteredRegionImpl.hpp>
+#include <nupic/engine/Spec.hpp>
 #include <nupic/engine/TestNode.hpp>
+#include <nupic/ntypes/BundleIO.hpp>
+#include <nupic/ntypes/Dimensions.hpp>
+#include <nupic/utils/Log.hpp>
 #include "gtest/gtest.h"
 
 using namespace nupic;
@@ -165,6 +169,456 @@ TEST(InputTest, Links)
 }
 
 
+class TestRegionBase: public RegionImpl
+{
+public:
+  TestRegionBase(const ValueMap& params, Region *region) :
+    RegionImpl(region)
+  {
+
+    outputElementCount_ = 1;
+  }
+
+  TestRegionBase(BundleIO& bundle, Region* region) :
+    RegionImpl(region)
+  {
+  }
+
+  TestRegionBase(capnp::AnyPointer::Reader& proto, Region* region) :
+    RegionImpl(region)
+  {
+  }
+
+  virtual ~TestRegionBase()
+  {
+  }
+
+  // Serialize state.
+  void serialize(BundleIO& bundle) override
+  {
+  }
+
+  // De-serialize state. Must be called from deserializing constructor
+  void deserialize(BundleIO& bundle) override
+  {
+  }
+
+  // Serialize state with capnp
+  using RegionImpl::write;
+  void write(capnp::AnyPointer::Builder& anyProto) const override
+  {
+  }
+
+  // Deserialize state from capnp. Must be called from deserializing
+  // constructor.
+  using RegionImpl::read;
+  void read(capnp::AnyPointer::Reader& anyProto) override
+  {
+  }
+
+  // Execute a command
+  std::string executeCommand(const std::vector<std::string>& args, Int64 index) override
+  {
+    return "";
+  }
+
+  // Per-node size (in elements) of the given output.
+  // For per-region outputs, it is the total element count.
+  // This method is called only for outputs whose size is not
+  // specified in the nodespec.
+  size_t getNodeOutputElementCount(const std::string& outputName) override
+  {
+    if (outputName == "out")
+    {
+      return outputElementCount_;
+    }
+    NTA_THROW << "TestRegionBase::getOutputSize -- unknown output " << outputName;
+  }
+
+  /**
+   * Get a parameter from a write buffer.
+   * This method is called only by the typed getParameter*
+   * methods in the RegionImpl base class
+   *
+   * Must be implemented by all subclasses.
+   *
+   * @param index A node index. (-1) indicates a region-level parameter
+   *
+   */
+  void getParameterFromBuffer(const std::string& name,
+                              Int64 index,
+                              IWriteBuffer& value) override
+  {
+  }
+
+  /**
+   * Set a parameter from a read buffer.
+   * This method is called only by the RegionImpl base class
+   * type-specific setParameter* methods
+   * Must be implemented by all subclasses.
+   *
+   * @param index A node index. (-1) indicates a region-level parameter
+   */
+  void setParameterFromBuffer(const std::string& name,
+                            Int64 index,
+                            IReadBuffer& value) override
+  {
+  }
+
+private:
+  TestRegionBase();
+
+  // Constructor param specifying per-node output size
+  UInt32 outputElementCount_;
+};
+
+
+/*
+ * This region's output is computed as: feedForwardIn + lateralIn
+ */
+class L2TestRegion: public TestRegionBase
+{
+public:
+  L2TestRegion(const ValueMap& params, Region *region) :
+    TestRegionBase(params, region)
+  {
+  }
+
+  L2TestRegion(BundleIO& bundle, Region* region) :
+    TestRegionBase(bundle, region)
+  {
+  }
+
+  L2TestRegion(capnp::AnyPointer::Reader& proto, Region* region) :
+    TestRegionBase(proto, region)
+  {
+  }
+
+  virtual ~L2TestRegion()
+  {
+  }
+
+  std::string getNodeType()
+  {
+    return "L2TestRegion";
+  }
+
+  // Used by RegionImplFactory to create and cache
+  // a nodespec. Ownership is transferred to the caller.
+  static Spec* createSpec()
+  {
+    auto ns = new Spec;
+
+    /* ----- inputs ------- */
+    ns->inputs.add(
+      "feedForwardIn",
+      InputSpec(
+        "Feed-forward input for the node",
+        NTA_BasicType_Real64,
+        0, // count. omit?
+        true, // required?
+        false, // isRegionLevel,
+        false  // isDefaultInput
+        ));
+
+    ns->inputs.add(
+      "lateralIn",
+      InputSpec(
+        "Lateral input for the node",
+        NTA_BasicType_Real64,
+        0, // count. omit?
+        true, // required?
+        false, // isRegionLevel,
+        false  // isDefaultInput
+        ));
+
+    /* ----- outputs ------ */
+    ns->outputs.add(
+      "out",
+      OutputSpec(
+        "Primary output for the node",
+        NTA_BasicType_Real64,
+        0, // count is dynamic
+        false, // isRegionLevel
+        true // isDefaultOutput
+        ));
+
+    return ns;
+  }
+
+  /**
+   * Inputs/Outputs are made available in initialize()
+   * It is always called after the constructor (or load from serialized state)
+   */
+  void initialize() override
+  {
+    nodeCount_ = getDimensions().getCount();
+    out_ = getOutput("out");
+    feedForwardIn_ = getInput("feedForwardIn");
+    lateralIn_ = getInput("lateralIn");
+  }
+
+  // Compute outputs from inputs and internal state
+  void compute() override
+  {
+    //TODO
+    const Array & outputArray = out_->getData();
+    NTA_CHECK(outputArray.getCount() == 1);
+    NTA_CHECK(outputArray.getType() == NTA_BasicType_UInt64);
+    UInt64 *baseOutputBuffer = (UInt64*)outputArray.getBuffer();
+
+    std::vector<UInt64> ffInput;
+    feedForwardIn_->getInputForNode(0, ffInput);
+    NTA_CHECK(ffInput.size() == 1);
+
+    std::vector<UInt64> latInput;
+    lateralIn_->getInputForNode(0, latInput);
+    NTA_CHECK(latInput.size() == 1);
+
+    *baseOutputBuffer = ffInput[0] + latInput[0];
+  }
+
+private:
+  L2TestRegion();
+
+  /* ----- cached info from region ----- */
+  size_t nodeCount_;
+
+  // Input/output buffers for the whole region
+  const Input *feedForwardIn_;
+  const Input *lateralIn_;
+  const Output *out_;
+
+};
+
+
+class L4TestRegion: public TestRegionBase
+{
+public:
+  /*
+   * This region's output is computed as: k + feedbackIn
+   */
+  L4TestRegion(const ValueMap& params, Region *region) :
+    TestRegionBase(params, region),
+    k_(params.getScalarT<UInt64>("k"))
+  {
+  }
+
+  L4TestRegion(BundleIO& bundle, Region* region) :
+    TestRegionBase(bundle, region),
+    k_(0)
+  {
+  }
+
+  L4TestRegion(capnp::AnyPointer::Reader& proto, Region* region) :
+    TestRegionBase(proto, region),
+    k_(0)
+  {
+  }
+
+  virtual ~L4TestRegion()
+  {
+  }
+
+  std::string getNodeType()
+  {
+    return "L4TestRegion";
+  }
+
+  // Used by RegionImplFactory to create and cache
+  // a nodespec. Ownership is transferred to the caller.
+  static Spec* createSpec()
+  {
+    auto ns = new Spec;
+    /* ---- parameters ------ */
+    ns->parameters.add(
+      "k",
+      ParameterSpec(
+        "Constant k valud for output computation", // description
+        NTA_BasicType_UInt64,
+        1,                         // elementCount
+        "",                        // constraints
+        "",                        // defaultValue
+        ParameterSpec::ReadWriteAccess));
+
+    /* ----- inputs ------- */
+    ns->inputs.add(
+      "feedbackIn",
+      InputSpec(
+        "Feedback input for the node",
+        NTA_BasicType_Real64,
+        0, // count. omit?
+        true, // required?
+        false, // isRegionLevel,
+        false  // isDefaultInput
+        ));
+
+    /* ----- outputs ------ */
+    ns->outputs.add(
+      "out",
+      OutputSpec(
+        "Primary output for the node",
+        NTA_BasicType_Real64,
+        0, // count is dynamic
+        false, // isRegionLevel
+        true // isDefaultOutput
+        ));
+
+    return ns;
+  }
+
+  /**
+   * Inputs/Outputs are made available in initialize()
+   * It is always called after the constructor (or load from serialized state)
+   */
+  void initialize() override
+  {
+    nodeCount_ = getDimensions().getCount();
+    NTA_CHECK(nodeCount_ == 1);
+    out_ = getOutput("out");
+    feedbackIn_ = getInput("feedbackIn");
+  }
+
+  // Compute outputs from inputs and internal state
+  void compute() override
+  {
+    const Array & outputArray = out_->getData();
+    NTA_CHECK(outputArray.getCount() == 1);
+    NTA_CHECK(outputArray.getType() == NTA_BasicType_UInt64);
+    UInt64 *baseOutputBuffer = (UInt64*)outputArray.getBuffer();
+
+    std::vector<UInt64> nodeInput;
+    feedbackIn_->getInputForNode(0, nodeInput);
+    NTA_CHECK(nodeInput.size() == 1);
+
+    *baseOutputBuffer = k_ + nodeInput[0];
+  }
+
+private:
+  L4TestRegion();
+
+  const UInt64 k_;
+
+  /* ----- cached info from region ----- */
+  size_t nodeCount_;
+
+  // Input/output buffers for the whole region
+  const Input *feedbackIn_;
+  const Output *out_;
+
+};
+
+
+TEST(InputTest, L2L4WithDelayedLinksAndPhases)
+{
+  Network net;
+
+  RegionImplFactory::registerCPPRegion("L4TestRegion",
+                                       new RegisteredRegionImpl<L4TestRegion>());
+  Region * r1 = net.addRegion("R1", "L4TestRegion", "{\"k\": 1}");
+  Region * r2 = net.addRegion("R2", "L4TestRegion", "{\"k\": 5}");
+  RegionImplFactory::unregisterCPPRegion("L4TestRegion");
+
+  RegionImplFactory::registerCPPRegion("L2TestRegion",
+                                       new RegisteredRegionImpl<L2TestRegion>());
+  Region * r3 = net.addRegion("R3", "L2TestRegion", "");
+  Region * r4 = net.addRegion("R4", "L2TestRegion", "");
+  RegionImplFactory::unregisterCPPRegion("L2TestRegion");
+
+  // NOTE Dimensions must be multiples of 2
+  Dimensions d1;
+  d1.push_back(2);
+  d1.push_back(2);
+  r1->setDimensions(d1);
+  r2->setDimensions(d1);
+  r3->setDimensions(d1);
+  r4->setDimensions(d1);
+
+  /* Set region phases */
+
+  std::set<UInt32> phases;
+  phases.insert(1);
+  net.setPhases("R1", phases);
+  net.setPhases("R2", phases);
+
+  phases.clear();
+  phases.insert(2);
+  net.setPhases("R3", phases);
+  net.setPhases("R4", phases);
+
+
+  /* Link up the network */
+
+  // R1 output
+  net.link(
+    "R1", // srcName
+    "R3", // destName
+    "TestFanIn2", // linkType
+    "",   // linkParams
+    "out",           // srcOutput
+    "feedForwardIn", // destInput
+    0 //propagationDelay
+  );
+
+  // R2 output
+  net.link(
+    "R2", // srcName
+    "R4", // destName
+    "TestFanIn2", // linkType
+    "",   // linkParams
+    "out",           // srcOutput
+    "feedForwardIn", // destInput
+    0 //propagationDelay
+  );
+
+  // R3 outputs
+  net.link(
+    "R3", // srcName
+    "R1", // destName
+    "TestFanIn2", // linkType
+    "",   // linkParams
+    "out",        // srcOutput
+    "feedbackIn", // destInput
+    1 //propagationDelay
+  );
+
+  net.link(
+    "R3", // srcName
+    "R4", // destName
+    "TestFanIn2", // linkType
+    "",   // linkParams
+    "out",        // srcOutput
+    "lateralIn",  // destInput
+    1 //propagationDelay
+  );
+
+  // R4 outputs
+  net.link(
+    "R4", // srcName
+    "R2", // destName
+    "TestFanIn2", // linkType
+    "",   // linkParams
+    "out",        // srcOutput
+    "feedbackIn", // destInput
+    1 //propagationDelay
+  );
+
+  net.link(
+    "R4", // srcName
+    "R3", // destName
+    "TestFanIn2", // linkType
+    "",   // linkParams
+    "out",        // srcOutput
+    "lateralIn",  // destInput
+    1 //propagationDelay
+  );
+
+  // Initialize the network
+  net.initialize();
+
+}
+
+
 TEST(InputTest, DelayedLink)
 {
   class MyTestNode : public TestNode
@@ -185,7 +639,7 @@ TEST(InputTest, DelayedLink)
     std::string getNodeType()
     {
       return "MyTestNode";
-    };
+    }
 
     void compute() override
     {
