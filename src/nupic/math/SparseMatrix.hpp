@@ -1650,6 +1650,66 @@ public:
   }
 
   /**
+   * Returns the number of non-zeros for each each specified row on the
+   * specified columns.
+   *
+   * @param rows
+   * The rows to query
+   *
+   * @param cols
+   * The columns to query
+   *
+   * @param out
+   * Output array that will store the counts
+   *
+   * @b Complexity:
+   *  @li O(number of nonzeros on the specified rows)
+   */
+  template <typename InputIterator, typename OutputIterator>
+  inline void nNonZerosPerRowOnCols(InputIterator rows_begin,
+                                    InputIterator rows_end,
+                                    InputIterator cols_begin,
+                                    InputIterator cols_end,
+                                    OutputIterator out_begin) const {
+    { // Pre-conditions
+      assert_valid_row_it_range_(rows_begin, rows_end,
+                                 "nNonZerosPerRowOnCols");
+      assert_valid_sorted_index_range_(nCols(), cols_begin, cols_end,
+                                       "nNonZerosPerRowOnCols");
+      ASSERT_OUTPUT_ITERATOR(OutputIterator, size_type);
+    } // End pre-conditions
+
+    InputIterator row;
+    OutputIterator out;
+    for (row = rows_begin, out = out_begin;
+         row != rows_end;
+         ++row, ++out) {
+
+      size_type numNonZeros = 0;
+
+      size_type *ind = ind_begin_(*row);
+      const size_type *ind_end = ind_end_(*row);
+      InputIterator col = cols_begin;
+
+      while (ind != ind_end && col != cols_end) {
+        if (*ind < *col) {
+          ++ind;
+        }
+        else if (*ind == *col) {
+          ++numNonZeros;
+          ++ind;
+          ++col;
+        }
+        else {
+          ++col;
+        }
+      }
+
+      *out = numNonZeros;
+    }
+  }
+
+  /**
    * Returns the number of non-zeros on each column of this SparseMatrix,
    * for all columns simultaneously.
    *

@@ -1002,6 +1002,27 @@ def __div__(self, other):
   }
 
 
+  %pythoncode %{
+    def nNonZerosPerRowOnCols(self, rows, cols):
+      rows = numpy.asarray(rows, dtype="uint32")
+      cols = numpy.asarray(cols, dtype="uint32")
+      return self._nNonZerosPerRowOnCols(rows, cols)
+  %}
+
+  PyObject* _nNonZerosPerRowOnCols(PyObject* py_rows, PyObject* py_cols)
+  {
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> rows(py_rows);
+    nupic::NumpyVectorWeakRefT<nupic::UInt32> cols(py_cols);
+
+    nupic::NumpyVectorT<nupic::UInt ## N1> out(rows.size());
+    self->nNonZerosPerRowOnCols(rows.begin(), rows.end(),
+                                cols.begin(), cols.end(),
+                                out.begin());
+
+    return out.forPython();
+  }
+
+
   // Returns the number of non-zeros per col, for all cols
   PyObject* nNonZerosPerCol() const
   {
