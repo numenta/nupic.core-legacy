@@ -530,6 +530,12 @@ private:
 
 TEST(InputTest, L2L4WithDelayedLinksAndPhases)
 {
+  // This test simulates a network with L2 and L4, structured as follows:
+  // o R1/R2 ("L4") are in phase 1; R3/R4 ("L2") are in phase 2;
+  // o feed-forward links with delay=0 from R1/R2 to R3/R4, respectively;
+  // o lateral links with delay=1 between R3 and R4;
+  // o feedback links with delay=1 from R3/R4 to R1/R2, respectively
+
   Network net;
 
   RegionImplFactory::registerCPPRegion("L4TestRegion",
@@ -642,68 +648,63 @@ TEST(InputTest, L2L4WithDelayedLinksAndPhases)
   net.run(1);
 
   // Validate R1
-  ASSERT_EQ(0u, r1OutBuf[1]); // feedbackIn
+  ASSERT_EQ(0u, r1OutBuf[1]); // feedbackIn from R3; delay=1
   ASSERT_EQ(1u, r1OutBuf[0]); // out
 
   // Validate R2
-  ASSERT_EQ(0u, r2OutBuf[1]); // feedbackIn
+  ASSERT_EQ(0u, r2OutBuf[1]); // feedbackIn from R4; delay=1
   ASSERT_EQ(5u, r2OutBuf[0]); // out
 
   // Validate R3
-  ASSERT_EQ(1u, r3OutBuf[1]); // feedForwardIn
-  ASSERT_EQ(0u, r3OutBuf[2]); // lateralIn
+  ASSERT_EQ(1u, r3OutBuf[1]); // feedForwardIn from R1; delay=0
+  ASSERT_EQ(0u, r3OutBuf[2]); // lateralIn from R4; delay=1
   ASSERT_EQ(1u, r3OutBuf[0]); // out
 
   // Validate R4
-  ASSERT_EQ(5u, r4OutBuf[1]); // feedForwardIn
-  ASSERT_EQ(0u, r4OutBuf[2]); // lateralIn
+  ASSERT_EQ(5u, r4OutBuf[1]); // feedForwardIn from R2; delay=0
+  ASSERT_EQ(0u, r4OutBuf[2]); // lateralIn from R3; delay=1
   ASSERT_EQ(5u, r4OutBuf[0]); // out
 
 
   /* ITERATION #2 */
   net.run(1);
 
-  r1OutBuf = (UInt64*)(r1->getOutput("out")->getData().getBuffer());
-  r2OutBuf = (UInt64*)(r2->getOutput("out")->getData().getBuffer());
-  r3OutBuf = (UInt64*)(r3->getOutput("out")->getData().getBuffer());
-  r4OutBuf = (UInt64*)(r4->getOutput("out")->getData().getBuffer());
-
-  ASSERT_EQ(1u, r1OutBuf[1]); // feedbackIn
+  ASSERT_EQ(1u, r1OutBuf[1]); // feedbackIn from R3; delay=1
   ASSERT_EQ(2u, r1OutBuf[0]); // out
 
   // Validate R2
-  ASSERT_EQ(5u, r2OutBuf[1]);  // feedbackIn
+  ASSERT_EQ(5u, r2OutBuf[1]);  // feedbackIn from R4; delay=1
   ASSERT_EQ(10u, r2OutBuf[0]); // out
 
   // Validate R3
-  ASSERT_EQ(2u, r3OutBuf[1]); // feedForwardIn
-  ASSERT_EQ(5u, r3OutBuf[2]); // lateralIn
+  ASSERT_EQ(2u, r3OutBuf[1]); // feedForwardIn from R1; delay=0
+  ASSERT_EQ(5u, r3OutBuf[2]); // lateralIn from R4; delay=1
   ASSERT_EQ(7u, r3OutBuf[0]); // out
 
   // Validate R4
-  ASSERT_EQ(10u, r4OutBuf[1]); // feedForwardIn
-  ASSERT_EQ(1u, r4OutBuf[2]);  // lateralIn
+  ASSERT_EQ(10u, r4OutBuf[1]); // feedForwardIn from R2; delay=0
+  ASSERT_EQ(1u, r4OutBuf[2]);  // lateralIn from R3; delay=1
   ASSERT_EQ(11u, r4OutBuf[0]); // out
 
 
   /* ITERATION #3 */
   net.run(1);
 
-  ASSERT_EQ(7u, r1OutBuf[1]); // feedbackIn
+  ASSERT_EQ(7u, r1OutBuf[1]); // feedbackIn from R3; delay=1
   ASSERT_EQ(8u, r1OutBuf[0]); // out
 
   // Validate R2
-  ASSERT_EQ(11u, r2OutBuf[1]); // feedbackIn
+  ASSERT_EQ(11u, r2OutBuf[1]); // feedbackIn from R4; delay=1
   ASSERT_EQ(16u, r2OutBuf[0]); // out
 
   // Validate R3
-  ASSERT_EQ(8u, r3OutBuf[1]);  // feedForwardIn
-  ASSERT_EQ(11u, r3OutBuf[2]); // lateralIn
+  ASSERT_EQ(8u, r3OutBuf[1]);  // feedForwardIn from R1; delay=0
+  ASSERT_EQ(11u, r3OutBuf[2]); // lateralIn from R4; delay=1
   ASSERT_EQ(19u, r3OutBuf[0]); // out
 
   // Validate R4
-  ASSERT_EQ(17u, r4OutBuf[1]); // feedForwardIn
-  ASSERT_EQ(7u, r4OutBuf[2]);  // lateralIn
+  ASSERT_EQ(17u, r4OutBuf[1]); // feedForwardIn from R2; delay=0
+  ASSERT_EQ(7u, r4OutBuf[2]);  // lateralIn from R3; delay=1
   ASSERT_EQ(23u, r4OutBuf[0]); // out
 }
 
