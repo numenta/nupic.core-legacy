@@ -649,63 +649,65 @@ TEST(InputTest, L2L4WithDelayedLinksAndPhases)
 
   // Validate R1
   ASSERT_EQ(0u, r1OutBuf[1]); // feedbackIn from R3; delay=1
-  ASSERT_EQ(1u, r1OutBuf[0]); // out
+  ASSERT_EQ(1u, r1OutBuf[0]); // out (1 + 0)
 
   // Validate R2
   ASSERT_EQ(0u, r2OutBuf[1]); // feedbackIn from R4; delay=1
-  ASSERT_EQ(5u, r2OutBuf[0]); // out
+  ASSERT_EQ(5u, r2OutBuf[0]); // out (5 + 0)
 
   // Validate R3
   ASSERT_EQ(1u, r3OutBuf[1]); // feedForwardIn from R1; delay=0
   ASSERT_EQ(0u, r3OutBuf[2]); // lateralIn from R4; delay=1
-  ASSERT_EQ(1u, r3OutBuf[0]); // out
+  ASSERT_EQ(1u, r3OutBuf[0]); // out (1 + 0)
 
   // Validate R4
   ASSERT_EQ(5u, r4OutBuf[1]); // feedForwardIn from R2; delay=0
   ASSERT_EQ(0u, r4OutBuf[2]); // lateralIn from R3; delay=1
-  ASSERT_EQ(5u, r4OutBuf[0]); // out
+  ASSERT_EQ(5u, r4OutBuf[0]); // out (5 + 0)
 
 
   /* ITERATION #2 */
   net.run(1);
 
+  // Validate R1
   ASSERT_EQ(1u, r1OutBuf[1]); // feedbackIn from R3; delay=1
-  ASSERT_EQ(2u, r1OutBuf[0]); // out
+  ASSERT_EQ(2u, r1OutBuf[0]); // out (1 + 1)
 
   // Validate R2
   ASSERT_EQ(5u, r2OutBuf[1]);  // feedbackIn from R4; delay=1
-  ASSERT_EQ(10u, r2OutBuf[0]); // out
+  ASSERT_EQ(10u, r2OutBuf[0]); // out (5 + 5)
 
   // Validate R3
   ASSERT_EQ(2u, r3OutBuf[1]); // feedForwardIn from R1; delay=0
   ASSERT_EQ(5u, r3OutBuf[2]); // lateralIn from R4; delay=1
-  ASSERT_EQ(7u, r3OutBuf[0]); // out
+  ASSERT_EQ(7u, r3OutBuf[0]); // out (2 + 5)
 
   // Validate R4
   ASSERT_EQ(10u, r4OutBuf[1]); // feedForwardIn from R2; delay=0
   ASSERT_EQ(1u, r4OutBuf[2]);  // lateralIn from R3; delay=1
-  ASSERT_EQ(11u, r4OutBuf[0]); // out
+  ASSERT_EQ(11u, r4OutBuf[0]); // out (10 + 1)
 
 
   /* ITERATION #3 */
   net.run(1);
 
+  // Validate R1
   ASSERT_EQ(7u, r1OutBuf[1]); // feedbackIn from R3; delay=1
-  ASSERT_EQ(8u, r1OutBuf[0]); // out
+  ASSERT_EQ(8u, r1OutBuf[0]); // out (1 + 7)
 
   // Validate R2
   ASSERT_EQ(11u, r2OutBuf[1]); // feedbackIn from R4; delay=1
-  ASSERT_EQ(16u, r2OutBuf[0]); // out
+  ASSERT_EQ(16u, r2OutBuf[0]); // out (5 + 11)
 
   // Validate R3
   ASSERT_EQ(8u, r3OutBuf[1]);  // feedForwardIn from R1; delay=0
   ASSERT_EQ(11u, r3OutBuf[2]); // lateralIn from R4; delay=1
-  ASSERT_EQ(19u, r3OutBuf[0]); // out
+  ASSERT_EQ(19u, r3OutBuf[0]); // out (8 + 1)
 
   // Validate R4
-  ASSERT_EQ(17u, r4OutBuf[1]); // feedForwardIn from R2; delay=0
+  ASSERT_EQ(16u, r4OutBuf[1]); // feedForwardIn from R2; delay=0
   ASSERT_EQ(7u, r4OutBuf[2]);  // lateralIn from R3; delay=1
-  ASSERT_EQ(23u, r4OutBuf[0]); // out
+  ASSERT_EQ(23u, r4OutBuf[0]); // out (16 + 7)
 }
 
 
