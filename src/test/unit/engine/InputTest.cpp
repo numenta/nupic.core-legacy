@@ -314,7 +314,7 @@ public:
       "feedForwardIn",
       InputSpec(
         "Feed-forward input for the node",
-        NTA_BasicType_Real64,
+        NTA_BasicType_UInt64,
         0, // count. omit?
         true, // required?
         false, // isRegionLevel,
@@ -325,7 +325,7 @@ public:
       "lateralIn",
       InputSpec(
         "Lateral input for the node",
-        NTA_BasicType_Real64,
+        NTA_BasicType_UInt64,
         0, // count. omit?
         true, // required?
         false, // isRegionLevel,
@@ -337,8 +337,8 @@ public:
       "out",
       OutputSpec(
         "Primary output for the node",
-        NTA_BasicType_Real64,
-        0, // count is dynamic
+        NTA_BasicType_UInt64,
+        3, // 1st is output; 2nd is the given feedForwardIn; 3rd is lateralIn
         false, // isRegionLevel
         true // isDefaultOutput
         ));
@@ -361,21 +361,32 @@ public:
   // Compute outputs from inputs and internal state
   void compute() override
   {
-    //TODO
+    NTA_DEBUG << "Computing: " << getName();
+
     const Array & outputArray = out_->getData();
-    NTA_CHECK(outputArray.getCount() == 1);
+    NTA_CHECK(outputArray.getCount() == 3);
     NTA_CHECK(outputArray.getType() == NTA_BasicType_UInt64);
     UInt64 *baseOutputBuffer = (UInt64*)outputArray.getBuffer();
 
     std::vector<UInt64> ffInput;
     feedForwardIn_->getInputForNode(0, ffInput);
-    NTA_CHECK(ffInput.size() == 1);
+    NTA_CHECK(ffInput.size() > 1);
+
+    NTA_DEBUG << getName() << ".compute: ffInput size=" << ffInput.size()
+              << "; inputValue=" << ffInput[0];
 
     std::vector<UInt64> latInput;
     lateralIn_->getInputForNode(0, latInput);
-    NTA_CHECK(latInput.size() == 1);
+    NTA_CHECK(latInput.size() > 1);
 
-    *baseOutputBuffer = ffInput[0] + latInput[0];
+    NTA_DEBUG << getName() << ".compute: latInput size=" << latInput.size()
+              << "; inputValue=" << latInput[0];
+
+    baseOutputBuffer[0] = ffInput[0] + latInput[0];
+    baseOutputBuffer[1] = ffInput[0];
+    baseOutputBuffer[2] = latInput[0];
+
+    NTA_DEBUG << getName() << ".compute: out=" << baseOutputBuffer[0];
   }
 
 private:
@@ -446,7 +457,7 @@ public:
       "feedbackIn",
       InputSpec(
         "Feedback input for the node",
-        NTA_BasicType_Real64,
+        NTA_BasicType_UInt64,
         0, // count. omit?
         true, // required?
         false, // isRegionLevel,
@@ -458,8 +469,8 @@ public:
       "out",
       OutputSpec(
         "Primary output for the node",
-        NTA_BasicType_Real64,
-        0, // count is dynamic
+        NTA_BasicType_UInt64,
+        2, // 2 elements: 1st is output; 2nd is the given feedbackIn value
         false, // isRegionLevel
         true // isDefaultOutput
         ));
@@ -482,16 +493,24 @@ public:
   // Compute outputs from inputs and internal state
   void compute() override
   {
+    NTA_DEBUG << "Computing: " << getName();
+
     const Array & outputArray = out_->getData();
-    NTA_CHECK(outputArray.getCount() == 1);
+    NTA_CHECK(outputArray.getCount() == 2);
     NTA_CHECK(outputArray.getType() == NTA_BasicType_UInt64);
     UInt64 *baseOutputBuffer = (UInt64*)outputArray.getBuffer();
 
     std::vector<UInt64> nodeInput;
     feedbackIn_->getInputForNode(0, nodeInput);
-    NTA_CHECK(nodeInput.size() == 1);
+    NTA_CHECK(nodeInput.size() >= 1);
 
-    *baseOutputBuffer = k_ + nodeInput[0];
+    NTA_DEBUG << getName() << ".compute: fbInput size=" << nodeInput.size()
+              << "; inputValue=" << nodeInput[0];
+
+    baseOutputBuffer[0] = k_ + nodeInput[0];
+    baseOutputBuffer[1] = nodeInput[0];
+
+    NTA_DEBUG << getName() << ".compute: out=" << baseOutputBuffer[0];
   }
 
 private:
@@ -527,8 +546,7 @@ TEST(InputTest, L2L4WithDelayedLinksAndPhases)
 
   // NOTE Dimensions must be multiples of 2
   Dimensions d1;
-  d1.push_back(2);
-  d1.push_back(2);
+  d1.push_back(1);
   r1->setDimensions(d1);
   r2->setDimensions(d1);
   r3->setDimensions(d1);
@@ -546,14 +564,13 @@ TEST(InputTest, L2L4WithDelayedLinksAndPhases)
   net.setPhases("R3", phases);
   net.setPhases("R4", phases);
 
-
   /* Link up the network */
 
   // R1 output
   net.link(
     "R1", // srcName
     "R3", // destName
-    "TestFanIn2", // linkType
+    "UniformLink", // linkType
     "",   // linkParams
     "out",           // srcOutput
     "feedForwardIn", // destInput
@@ -564,7 +581,7 @@ TEST(InputTest, L2L4WithDelayedLinksAndPhases)
   net.link(
     "R2", // srcName
     "R4", // destName
-    "TestFanIn2", // linkType
+    "UniformLink", // linkType
     "",   // linkParams
     "out",           // srcOutput
     "feedForwardIn", // destInput
@@ -575,7 +592,7 @@ TEST(InputTest, L2L4WithDelayedLinksAndPhases)
   net.link(
     "R3", // srcName
     "R1", // destName
-    "TestFanIn2", // linkType
+    "UniformLink", // linkType
     "",   // linkParams
     "out",        // srcOutput
     "feedbackIn", // destInput
@@ -585,7 +602,7 @@ TEST(InputTest, L2L4WithDelayedLinksAndPhases)
   net.link(
     "R3", // srcName
     "R4", // destName
-    "TestFanIn2", // linkType
+    "UniformLink", // linkType
     "",   // linkParams
     "out",        // srcOutput
     "lateralIn",  // destInput
@@ -596,7 +613,7 @@ TEST(InputTest, L2L4WithDelayedLinksAndPhases)
   net.link(
     "R4", // srcName
     "R2", // destName
-    "TestFanIn2", // linkType
+    "UniformLink", // linkType
     "",   // linkParams
     "out",        // srcOutput
     "feedbackIn", // destInput
@@ -606,7 +623,7 @@ TEST(InputTest, L2L4WithDelayedLinksAndPhases)
   net.link(
     "R4", // srcName
     "R3", // destName
-    "TestFanIn2", // linkType
+    "UniformLink", // linkType
     "",   // linkParams
     "out",        // srcOutput
     "lateralIn",  // destInput
@@ -616,6 +633,78 @@ TEST(InputTest, L2L4WithDelayedLinksAndPhases)
   // Initialize the network
   net.initialize();
 
+  UInt64* r1OutBuf = (UInt64*)(r1->getOutput("out")->getData().getBuffer());
+  UInt64* r2OutBuf = (UInt64*)(r2->getOutput("out")->getData().getBuffer());
+  UInt64* r3OutBuf = (UInt64*)(r3->getOutput("out")->getData().getBuffer());
+  UInt64* r4OutBuf = (UInt64*)(r4->getOutput("out")->getData().getBuffer());
+
+  /* ITERATION #1 */
+  net.run(1);
+
+  // Validate R1
+  ASSERT_EQ(0u, r1OutBuf[1]); // feedbackIn
+  ASSERT_EQ(1u, r1OutBuf[0]); // out
+
+  // Validate R2
+  ASSERT_EQ(0u, r2OutBuf[1]); // feedbackIn
+  ASSERT_EQ(5u, r2OutBuf[0]); // out
+
+  // Validate R3
+  ASSERT_EQ(1u, r3OutBuf[1]); // feedForwardIn
+  ASSERT_EQ(0u, r3OutBuf[2]); // lateralIn
+  ASSERT_EQ(1u, r3OutBuf[0]); // out
+
+  // Validate R4
+  ASSERT_EQ(5u, r4OutBuf[1]); // feedForwardIn
+  ASSERT_EQ(0u, r4OutBuf[2]); // lateralIn
+  ASSERT_EQ(5u, r4OutBuf[0]); // out
+
+
+  /* ITERATION #2 */
+  net.run(1);
+
+  r1OutBuf = (UInt64*)(r1->getOutput("out")->getData().getBuffer());
+  r2OutBuf = (UInt64*)(r2->getOutput("out")->getData().getBuffer());
+  r3OutBuf = (UInt64*)(r3->getOutput("out")->getData().getBuffer());
+  r4OutBuf = (UInt64*)(r4->getOutput("out")->getData().getBuffer());
+
+  ASSERT_EQ(1u, r1OutBuf[1]); // feedbackIn
+  ASSERT_EQ(2u, r1OutBuf[0]); // out
+
+  // Validate R2
+  ASSERT_EQ(5u, r2OutBuf[1]);  // feedbackIn
+  ASSERT_EQ(10u, r2OutBuf[0]); // out
+
+  // Validate R3
+  ASSERT_EQ(2u, r3OutBuf[1]); // feedForwardIn
+  ASSERT_EQ(5u, r3OutBuf[2]); // lateralIn
+  ASSERT_EQ(7u, r3OutBuf[0]); // out
+
+  // Validate R4
+  ASSERT_EQ(10u, r4OutBuf[1]); // feedForwardIn
+  ASSERT_EQ(1u, r4OutBuf[2]);  // lateralIn
+  ASSERT_EQ(11u, r4OutBuf[0]); // out
+
+
+  /* ITERATION #3 */
+  net.run(1);
+
+  ASSERT_EQ(7u, r1OutBuf[1]); // feedbackIn
+  ASSERT_EQ(8u, r1OutBuf[0]); // out
+
+  // Validate R2
+  ASSERT_EQ(11u, r2OutBuf[1]); // feedbackIn
+  ASSERT_EQ(16u, r2OutBuf[0]); // out
+
+  // Validate R3
+  ASSERT_EQ(8u, r3OutBuf[1]);  // feedForwardIn
+  ASSERT_EQ(11u, r3OutBuf[2]); // lateralIn
+  ASSERT_EQ(19u, r3OutBuf[0]); // out
+
+  // Validate R4
+  ASSERT_EQ(17u, r4OutBuf[1]); // feedForwardIn
+  ASSERT_EQ(7u, r4OutBuf[2]);  // lateralIn
+  ASSERT_EQ(23u, r4OutBuf[0]); // out
 }
 
 
