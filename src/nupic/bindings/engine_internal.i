@@ -243,18 +243,6 @@ class IterablePair(object):
   {
     return nupic::PyArrayRef<nupic::Byte>(self->getOutputData(name)).asNumpyArray();
   }
-
-  // Purge heads of the region's input link buffers
-  void purgeInputLinkBufferHeads()
-  {
-    for (auto & input : self->getInputs())
-    {
-      for (auto link : input.second->getLinks())
-      {
-        link->purgeBufferHead();
-      }
-    }
-  }
 }
 
 

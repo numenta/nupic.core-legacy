@@ -278,6 +278,13 @@ namespace nupic
 
     /**
      *
+     * Get a generated name of the link in the form
+     * RegName.outName --> RegName.inName for debug logging purposes only.
+     */
+    std::string getMoniker() const;
+
+    /**
+     *
      * Get the source Output of the link.
      *
      * @returns
@@ -364,11 +371,13 @@ namespace nupic
     /*
      * FOR INTERNAL USE ONLY
      *
-     * Remove head element of the propagation delay buffer
+     * No-op for links without delay; for delayed links, remove head element of
+     * the propagation delay buffer and push back the current value from source.
+     *
+     * NOTE It's intended that this method be called exactly once on all links
+     * within a network at the end of every time step.
      */
-    void
-    purgeBufferHead();
-
+    void shiftBufferedData();
 
     /**
      * Convert the Link to a human-readable string.

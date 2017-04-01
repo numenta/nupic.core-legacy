@@ -361,7 +361,7 @@ public:
   // Compute outputs from inputs and internal state
   void compute() override
   {
-    NTA_DEBUG << "Computing: " << getName();
+    NTA_DEBUG << "> Computing: " << getName() << " <";
 
     const Array & outputArray = out_->getData();
     NTA_CHECK(outputArray.getCount() == 3);
@@ -493,7 +493,7 @@ public:
   // Compute outputs from inputs and internal state
   void compute() override
   {
-    NTA_DEBUG << "Computing: " << getName();
+    NTA_DEBUG << "> Computing: " << getName() << " <";
 
     const Array & outputArray = out_->getData();
     NTA_CHECK(outputArray.getCount() == 2);
