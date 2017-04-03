@@ -445,7 +445,7 @@ public:
     ns->parameters.add(
       "k",
       ParameterSpec(
-        "Constant k valud for output computation", // description
+        "Constant k value for output computation", // description
         NTA_BasicType_UInt64,
         1,                         // elementCount
         "",                        // constraints
@@ -649,21 +649,21 @@ TEST(InputTest, L2L4WithDelayedLinksAndPhases)
 
   // Validate R1
   ASSERT_EQ(0u, r1OutBuf[1]); // feedbackIn from R3; delay=1
-  ASSERT_EQ(1u, r1OutBuf[0]); // out (1 + 0)
+  ASSERT_EQ(1u, r1OutBuf[0]); // out (1 + feedbackIn)
 
   // Validate R2
   ASSERT_EQ(0u, r2OutBuf[1]); // feedbackIn from R4; delay=1
-  ASSERT_EQ(5u, r2OutBuf[0]); // out (5 + 0)
+  ASSERT_EQ(5u, r2OutBuf[0]); // out (5 + feedbackIn)
 
   // Validate R3
   ASSERT_EQ(1u, r3OutBuf[1]); // feedForwardIn from R1; delay=0
   ASSERT_EQ(0u, r3OutBuf[2]); // lateralIn from R4; delay=1
-  ASSERT_EQ(1u, r3OutBuf[0]); // out (1 + 0)
+  ASSERT_EQ(1u, r3OutBuf[0]); // out (feedForwardIn + lateralIn)
 
   // Validate R4
   ASSERT_EQ(5u, r4OutBuf[1]); // feedForwardIn from R2; delay=0
   ASSERT_EQ(0u, r4OutBuf[2]); // lateralIn from R3; delay=1
-  ASSERT_EQ(5u, r4OutBuf[0]); // out (5 + 0)
+  ASSERT_EQ(5u, r4OutBuf[0]); // out (feedForwardIn + lateralIn)
 
 
   /* ITERATION #2 */
@@ -671,21 +671,21 @@ TEST(InputTest, L2L4WithDelayedLinksAndPhases)
 
   // Validate R1
   ASSERT_EQ(1u, r1OutBuf[1]); // feedbackIn from R3; delay=1
-  ASSERT_EQ(2u, r1OutBuf[0]); // out (1 + 1)
+  ASSERT_EQ(2u, r1OutBuf[0]); // out (1 + feedbackIn)
 
   // Validate R2
   ASSERT_EQ(5u, r2OutBuf[1]);  // feedbackIn from R4; delay=1
-  ASSERT_EQ(10u, r2OutBuf[0]); // out (5 + 5)
+  ASSERT_EQ(10u, r2OutBuf[0]); // out (5 + feedbackIn)
 
   // Validate R3
   ASSERT_EQ(2u, r3OutBuf[1]); // feedForwardIn from R1; delay=0
   ASSERT_EQ(5u, r3OutBuf[2]); // lateralIn from R4; delay=1
-  ASSERT_EQ(7u, r3OutBuf[0]); // out (2 + 5)
+  ASSERT_EQ(7u, r3OutBuf[0]); // out (feedForwardIn + lateralIn)
 
   // Validate R4
   ASSERT_EQ(10u, r4OutBuf[1]); // feedForwardIn from R2; delay=0
   ASSERT_EQ(1u, r4OutBuf[2]);  // lateralIn from R3; delay=1
-  ASSERT_EQ(11u, r4OutBuf[0]); // out (10 + 1)
+  ASSERT_EQ(11u, r4OutBuf[0]); // out (feedForwardIn + lateralIn)
 
 
   /* ITERATION #3 */
@@ -693,23 +693,177 @@ TEST(InputTest, L2L4WithDelayedLinksAndPhases)
 
   // Validate R1
   ASSERT_EQ(7u, r1OutBuf[1]); // feedbackIn from R3; delay=1
-  ASSERT_EQ(8u, r1OutBuf[0]); // out (1 + 7)
+  ASSERT_EQ(8u, r1OutBuf[0]); // out (1 + feedbackIn)
 
   // Validate R2
   ASSERT_EQ(11u, r2OutBuf[1]); // feedbackIn from R4; delay=1
-  ASSERT_EQ(16u, r2OutBuf[0]); // out (5 + 11)
+  ASSERT_EQ(16u, r2OutBuf[0]); // out (5 + feedbackIn)
 
   // Validate R3
   ASSERT_EQ(8u, r3OutBuf[1]);  // feedForwardIn from R1; delay=0
   ASSERT_EQ(11u, r3OutBuf[2]); // lateralIn from R4; delay=1
-  ASSERT_EQ(19u, r3OutBuf[0]); // out (8 + 1)
+  ASSERT_EQ(19u, r3OutBuf[0]); // out (feedForwardIn + lateralIn)
 
   // Validate R4
   ASSERT_EQ(16u, r4OutBuf[1]); // feedForwardIn from R2; delay=0
   ASSERT_EQ(7u, r4OutBuf[2]);  // lateralIn from R3; delay=1
-  ASSERT_EQ(23u, r4OutBuf[0]); // out (16 + 7)
+  ASSERT_EQ(23u, r4OutBuf[0]); // out (feedForwardIn + lateralIn)
 }
 
+
+TEST(InputTest, L2L4With1ColDelayedLinksAndPhase1OnOffOn)
+{
+  // This test simulates a network with a single L2/L4 column, structured as
+  // follows:
+  // o R1 ("L4") is in phase 1; R3 ("L2") is in phase 2;
+  // o feed-forward link with delay=0 from R1 to R3
+  // o lateral link with delay=1 looping back from R3 to itself
+  // o feedback link with delay=1 from R3 to R1
+  //
+  // Running the network:
+  // o Run 1 time step with both phases enabled
+  // o Disable phase 1 and run two time steps
+  // o Enable phase 1 and run two time steps
+
+  Network net;
+
+  RegionImplFactory::registerCPPRegion("L4TestRegion",
+                                       new RegisteredRegionImpl<L4TestRegion>());
+  Region * r1 = net.addRegion("R1", "L4TestRegion", "{\"k\": 1}");
+  RegionImplFactory::unregisterCPPRegion("L4TestRegion");
+
+  RegionImplFactory::registerCPPRegion("L2TestRegion",
+                                       new RegisteredRegionImpl<L2TestRegion>());
+  Region * r3 = net.addRegion("R3", "L2TestRegion", "");
+  RegionImplFactory::unregisterCPPRegion("L2TestRegion");
+
+  // NOTE Dimensions must be multiples of 2
+  Dimensions d1;
+  d1.push_back(1);
+  r1->setDimensions(d1);
+  r3->setDimensions(d1);
+
+  /* Set region phases */
+
+  std::set<UInt32> phases;
+  phases.insert(1);
+  net.setPhases("R1", phases);
+
+  phases.clear();
+  phases.insert(2);
+  net.setPhases("R3", phases);
+
+  /* Link up the network */
+
+  // R1 output
+  net.link(
+    "R1", // srcName
+    "R3", // destName
+    "UniformLink", // linkType
+    "",   // linkParams
+    "out",           // srcOutput
+    "feedForwardIn", // destInput
+    0 //propagationDelay
+  );
+
+  // R3 outputs
+  net.link(
+    "R3", // srcName
+    "R1", // destName
+    "UniformLink", // linkType
+    "",   // linkParams
+    "out",        // srcOutput
+    "feedbackIn", // destInput
+    1 //propagationDelay
+  );
+
+  net.link(
+    "R3", // srcName
+    "R3", // destName
+    "UniformLink", // linkType
+    "",   // linkParams
+    "out",        // srcOutput
+    "lateralIn",  // destInput
+    1 //propagationDelay
+  );
+
+
+  // Initialize the network
+  net.initialize();
+
+  UInt64* r1OutBuf = (UInt64*)(r1->getOutput("out")->getData().getBuffer());
+  UInt64* r3OutBuf = (UInt64*)(r3->getOutput("out")->getData().getBuffer());
+
+  /* ITERATION #1 with all phases enabled */
+  net.run(1);
+
+  // Validate R1
+  ASSERT_EQ(0u, r1OutBuf[1]); // feedbackIn from R3; delay=1
+  ASSERT_EQ(1u, r1OutBuf[0]); // out (1 + feedbackIn)
+
+  // Validate R3
+  ASSERT_EQ(1u, r3OutBuf[1]); // feedForwardIn from R1; delay=0
+  ASSERT_EQ(0u, r3OutBuf[2]); // lateralIn loopback from R3; delay=1
+  ASSERT_EQ(1u, r3OutBuf[0]); // out (feedForwardIn + lateralIn)
+
+
+  /* Disable Phase 1, containing R1 */
+  net.setMinEnabledPhase(2);
+
+  /* ITERATION #2 with Phase 1 disabled */
+  net.run(1);
+
+  // Validate R1 (it's in a disabled phase, so should be stuck at prior values)
+  ASSERT_EQ(0u, r1OutBuf[1]); // feedbackIn
+  ASSERT_EQ(1u, r1OutBuf[0]); // out
+
+  // Validate R3
+  ASSERT_EQ(1u, r3OutBuf[1]); // feedForwardIn from R1; delay=0
+  ASSERT_EQ(1u, r3OutBuf[2]); // lateralIn loopback from R3; delay=1
+  ASSERT_EQ(2u, r3OutBuf[0]); // out (feedForwardIn + lateralIn)
+
+
+  /* ITERATION #3 with Phase 1 disabled */
+  net.run(1);
+
+  // Validate R1 (it's in a disabled phase, so should be stuck at prior values)
+  ASSERT_EQ(0u, r1OutBuf[1]); // feedbackIn
+  ASSERT_EQ(1u, r1OutBuf[0]); // out
+
+  // Validate R3
+  ASSERT_EQ(1u, r3OutBuf[1]); // feedForwardIn from R1; delay=0
+  ASSERT_EQ(2u, r3OutBuf[2]); // lateralIn loopback from R3; delay=1
+  ASSERT_EQ(3u, r3OutBuf[0]); // out (feedForwardIn + lateralIn)
+
+
+  /* Enable Phase 1, containing R1 */
+  net.setMinEnabledPhase(1);
+
+  /* ITERATION #4 with all phases enabled */
+  net.run(1);
+
+  // Validate R1
+  ASSERT_EQ(3u, r1OutBuf[1]); // feedbackIn from R3; delay=1
+  ASSERT_EQ(4u, r1OutBuf[0]); // out (1 + feedbackIn)
+
+  // Validate R3
+  ASSERT_EQ(4u, r3OutBuf[1]); // feedForwardIn from R1; delay=0
+  ASSERT_EQ(3u, r3OutBuf[2]); // lateralIn loopback from R3; delay=1
+  ASSERT_EQ(7u, r3OutBuf[0]); // out (feedForwardIn + lateralIn)
+
+  /* ITERATION #5 with all phases enabled */
+  net.run(1);
+
+  // Validate R1
+  ASSERT_EQ(7u, r1OutBuf[1]); // feedbackIn from R3; delay=1
+  ASSERT_EQ(8u, r1OutBuf[0]); // out (1 + feedbackIn)
+
+  // Validate R3
+  ASSERT_EQ(8u, r3OutBuf[1]); // feedForwardIn from R1; delay=0
+  ASSERT_EQ(7u, r3OutBuf[2]); // lateralIn loopback from R3; delay=1
+  ASSERT_EQ(15u, r3OutBuf[0]); // out (feedForwardIn + lateralIn)
+
+}
 
 TEST(InputTest, DelayedLink)
 {
