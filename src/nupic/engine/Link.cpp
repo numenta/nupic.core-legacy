@@ -36,6 +36,12 @@
 #include <nupic/types/BasicType.hpp>
 #include <nupic/utils/ArrayUtils.hpp>
 
+
+// Set this to true when debugging to enable handy debug-level logging of data
+// moving through the links, including the delayed link transitions.
+#define _LINK_DEBUG false
+
+
 namespace nupic
 {
 
@@ -392,10 +398,13 @@ Link::compute()
   size_t srcSize = src.getCount() * typeSize;
   size_t destByteOffset = destOffset_ * typeSize;
 
-  NTA_DEBUG << "Link::compute: " << getMoniker()
-            << "; copying to dest input"
-            << "; delay=" << propagationDelay_ << "; "
-            << src.getCount() << " elements=" << ArrayUtils::arrayToString(src);
+  if (_LINK_DEBUG)
+  {
+    NTA_DEBUG << "Link::compute: " << getMoniker()
+              << "; copying to dest input"
+              << "; delay=" << propagationDelay_ << "; "
+              << src.getCount() << " elements=" << ArrayUtils::arrayToString(src);
+  }
 
   ::memcpy((char*)(dest.getBuffer()) + destByteOffset, src.getBuffer(), srcSize);
 }
@@ -416,10 +425,13 @@ void Link::shiftBufferedData()
 
   // Pop head of circular queue
 
-  NTA_DEBUG << "Link::shiftBufferedData: " << getMoniker()
-            << "; popping head; "
-            << srcBuffer_[0].getCount() << " elements="
-            << ArrayUtils::arrayToString(srcBuffer_[0]);
+  if (_LINK_DEBUG)
+  {
+    NTA_DEBUG << "Link::shiftBufferedData: " << getMoniker()
+              << "; popping head; "
+              << srcBuffer_[0].getCount() << " elements="
+              << ArrayUtils::arrayToString(srcBuffer_[0]);
+  }
 
   srcBuffer_.pop_front();
 
@@ -430,14 +442,17 @@ void Link::shiftBufferedData()
   size_t elementCount = srcArray.getCount();
   auto elementType = srcArray.getType();
 
-  NTA_DEBUG << "Link::shiftBufferedData: " << getMoniker()
-            << "; appending src to circular buffer; "
-            << elementCount << " elements="
-            << ArrayUtils::arrayToString(srcArray);
+  if (_LINK_DEBUG)
+  {
+    NTA_DEBUG << "Link::shiftBufferedData: " << getMoniker()
+              << "; appending src to circular buffer; "
+              << elementCount << " elements="
+              << ArrayUtils::arrayToString(srcArray);
 
-  NTA_DEBUG << "Link::shiftBufferedData: " << getMoniker()
-            << "; num arrays in circular buffer before append; "
-            << srcBuffer_.size() << "; capacity=" << srcBuffer_.capacity();
+    NTA_DEBUG << "Link::shiftBufferedData: " << getMoniker()
+              << "; num arrays in circular buffer before append; "
+              << srcBuffer_.size() << "; capacity=" << srcBuffer_.capacity();
+  }
 
   Array array(elementType);
   srcBuffer_.push_back(array);
@@ -447,10 +462,13 @@ void Link::shiftBufferedData()
   ::memcpy(lastElement.getBuffer(), srcArray.getBuffer(),
            elementCount * BasicType::getSize(elementType));
 
-  NTA_DEBUG << "Link::shiftBufferedData: " << getMoniker()
-            << "; circular buffer head after append is: "
-            << srcBuffer_[0].getCount() << " elements="
-            << ArrayUtils::arrayToString(srcBuffer_[0]);
+  if (_LINK_DEBUG)
+  {
+    NTA_DEBUG << "Link::shiftBufferedData: " << getMoniker()
+              << "; circular buffer head after append is: "
+              << srcBuffer_[0].getCount() << " elements="
+              << ArrayUtils::arrayToString(srcBuffer_[0]);
+  }
 }
 
 

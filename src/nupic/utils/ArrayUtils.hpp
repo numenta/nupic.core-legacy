@@ -135,10 +135,7 @@ namespace nupic
 
       return ss.str();
     }
-  };
-
-
-
+  }; // class ArrayUtils
 
 } // namespace nupic
 
