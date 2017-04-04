@@ -27,12 +27,12 @@
 #ifndef NTA_ARRAY_UTILS_HPP
 #define NTA_ARRAY_UTILS_HPP
 
-#include <string>
+#include <iostream> // for ostream
+//#include <string>
 #include <stdlib.h> // for size_t
 
 #include <nupic/ntypes/Array.hpp>
 #include <nupic/types/Types.hpp>
-#include <nupic/utils/Log.hpp>
 
 
 namespace nupic
@@ -42,99 +42,96 @@ namespace nupic
   {
   public:
     /**
-     * Dump an NTA Array to string for debugging.
+     * Stream a buffer of NTA_BasicType for debugging.
      *
      * NOTE: presently, only numeric element types are supported.
      *
-     * @param array         source array
-     *
-     * @returns Comma-separated values
-     */
-    static std::string arrayToString(const Array& array)
-    {
-      return bufferOfBasicTypeToString(array.getBuffer(),
-                                       array.getCount(),
-                                       array.getType());
-    }
-
-
-    /**
-     * Dump a buffer of NTA_BasicType to string for debugging.
-     *
-     * NOTE: presently, only numeric element types are supported.
-     *
+     * @param outStream   output stream
      * @param inbuf       input buffer
      * @param numElements number of elements to use from the beginning of buffer
      * @param elementType type of the elements
      *
-     * @returns Comma-separated values
+     * @returns The given outStream reference
      */
-    static std::string bufferOfBasicTypeToString(const void* inbuf,
+    static std::ostream& streamBufferOfBasicType(std::ostream& outStream,
+                                                 const void* inbuf,
                                                  size_t numElements,
                                                  NTA_BasicType elementType)
     {
       switch (elementType)
       {
       case NTA_BasicType_Byte:
-        return _templatedDumpBufferToString<NTA_Byte>(inbuf, numElements);
+        _templatedStreamBuffer<NTA_Byte>(outStream, inbuf, numElements);
         break;
       case NTA_BasicType_Int16:
-        return _templatedDumpBufferToString<NTA_Int16>(inbuf, numElements);
+        _templatedStreamBuffer<NTA_Int16>(outStream, inbuf, numElements);
         break;
       case NTA_BasicType_UInt16:
-        return _templatedDumpBufferToString<NTA_UInt16>(inbuf, numElements);
+        _templatedStreamBuffer<NTA_UInt16>(outStream, inbuf, numElements);
         break;
       case NTA_BasicType_Int32:
-        return _templatedDumpBufferToString<NTA_Int32>(inbuf, numElements);
+        _templatedStreamBuffer<NTA_Int32>(outStream, inbuf, numElements);
         break;
       case NTA_BasicType_UInt32:
-        return _templatedDumpBufferToString<NTA_UInt32>(inbuf, numElements);
+        _templatedStreamBuffer<NTA_UInt32>(outStream, inbuf, numElements);
         break;
       case NTA_BasicType_Int64:
-        return _templatedDumpBufferToString<NTA_Int64>(inbuf, numElements);
+        _templatedStreamBuffer<NTA_Int64>(outStream, inbuf, numElements);
         break;
       case NTA_BasicType_UInt64:
-        return _templatedDumpBufferToString<NTA_UInt64>(inbuf, numElements);
+        _templatedStreamBuffer<NTA_UInt64>(outStream, inbuf, numElements);
         break;
       case NTA_BasicType_Real32:
-        return _templatedDumpBufferToString<NTA_Real32>(inbuf, numElements);
+        _templatedStreamBuffer<NTA_Real32>(outStream, inbuf, numElements);
         break;
       case NTA_BasicType_Real64:
-        return _templatedDumpBufferToString<NTA_Real64>(inbuf, numElements);
+        _templatedStreamBuffer<NTA_Real64>(outStream, inbuf, numElements);
         break;
+      case NTA_BasicType_Handle:
+        _templatedStreamBuffer<NTA_Handle>(outStream, inbuf, numElements);
+        break;
+      case NTA_BasicType_Bool:
+        _templatedStreamBuffer<bool>(outStream, inbuf, numElements);
+        break;
+
       default:
         NTA_THROW << "Unexpected Element Type: " << elementType;
         break;
       }
+
+      return outStream;
     }
 
   private:
     /**
-     * Element type-specific templated function dumping elements to string.
+     * Element-type-specific templated function for streaming elements to
+     * ostream.
      *
+     * @param outStream   output stream
      * @param inbuf       input buffer
      * @param numElements number of elements to use from the beginning of buffer
-     *
-     * @returns std::string of comma-separated values
      */
     template <typename SourceElementT>
-    static std::string _templatedDumpBufferToString(const void* inbuf,
-                                                    size_t numElements)
+    static void _templatedStreamBuffer(std::ostream& outStream,
+                                       const void* inbuf,
+                                       size_t numElements)
     {
-      auto srcData = (SourceElementT*)inbuf;
-      std::stringstream ss;
+      const auto srcData = (const SourceElementT*)inbuf;
 
-      for (size_t i=0; i < numElements; ++i)
+      outStream << "(";
+
+      auto it=srcData;
+      for (; it < srcData + numElements - 1; ++it)
       {
-        ss << *srcData++;
-        if (i < (numElements - 1))
-        {
-          ss << ", ";
-        }
+        outStream << *it << ", ";
       }
 
-      return ss.str();
+      outStream << *it;  // emit final element (without the comma)
+
+      outStream << ")";
+
     }
+
   }; // class ArrayUtils
 
 } // namespace nupic

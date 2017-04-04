@@ -20,21 +20,24 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file 
+/** @file
  * Implementation of the ArrayBase class
  */
+
+#include <iostream> // for ostream
 
 #include <nupic/types/Types.hpp>
 #include <nupic/types/BasicType.hpp>
 #include <nupic/ntypes/ArrayBase.hpp>
+#include <nupic/utils/ArrayUtils.hpp>
 #include <nupic/utils/Log.hpp>
 
 using namespace nupic;
 
 /**
- * Caller provides a buffer to use. 
+ * Caller provides a buffer to use.
  * NuPIC always copies data into this buffer
- * Caller frees buffer when no longer needed. 
+ * Caller frees buffer when no longer needed.
  */
 ArrayBase::ArrayBase(NTA_BasicType type, void* buffer, size_t count) :
   buffer_((char*)buffer), count_(count), type_(type), own_(false)
@@ -47,7 +50,7 @@ ArrayBase::ArrayBase(NTA_BasicType type, void* buffer, size_t count) :
 
 /**
  * Caller does not provide a buffer --
- * Nupic will either provide a buffer via setBuffer or 
+ * Nupic will either provide a buffer via setBuffer or
  * ask the ArrayBase to allocate a buffer via allocateBuffer.
  */
 ArrayBase::ArrayBase(NTA_BasicType type) :
@@ -87,7 +90,7 @@ ArrayBase::allocateBuffer(size_t count)
   buffer_ = new char[count_ * BasicType::getSize(type_)];
   own_ = true;
 }
-  
+
 void
 ArrayBase::setBuffer(void *buffer, size_t count)
 {
@@ -110,25 +113,37 @@ ArrayBase::releaseBuffer()
   buffer_ = nullptr;
   count_ = 0;
 }
-       
-void* 
+
+void*
 ArrayBase::getBuffer() const
-{ 
-  return buffer_; 
+{
+  return buffer_;
 }
 
 // number of elements of given type in the buffer
 size_t
 ArrayBase::getCount() const
-{ 
-  return count_; 
+{
+  return count_;
 };
-     
-NTA_BasicType 
+
+NTA_BasicType
 ArrayBase::getType() const
-{ 
-  return type_; 
+{
+  return type_;
 };
 
 
 
+namespace nupic
+{
+  std::ostream& operator<<(std::ostream& outStream, const ArrayBase& a)
+  {
+
+    return ArrayUtils::streamBufferOfBasicType(outStream,
+                                               a.getBuffer(),
+                                               a.getCount(),
+                                               a.getType());
+  }
+
+} // namespace nupic

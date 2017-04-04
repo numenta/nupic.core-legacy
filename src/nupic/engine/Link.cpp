@@ -403,7 +403,7 @@ Link::compute()
     NTA_DEBUG << "Link::compute: " << getMoniker()
               << "; copying to dest input"
               << "; delay=" << propagationDelay_ << "; "
-              << src.getCount() << " elements=" << ArrayUtils::arrayToString(src);
+              << src.getCount() << " elements=" << src;
   }
 
   ::memcpy((char*)(dest.getBuffer()) + destByteOffset, src.getBuffer(), srcSize);
@@ -430,7 +430,7 @@ void Link::shiftBufferedData()
     NTA_DEBUG << "Link::shiftBufferedData: " << getMoniker()
               << "; popping head; "
               << srcBuffer_[0].getCount() << " elements="
-              << ArrayUtils::arrayToString(srcBuffer_[0]);
+              << srcBuffer_[0];
   }
 
   srcBuffer_.pop_front();
@@ -447,7 +447,7 @@ void Link::shiftBufferedData()
     NTA_DEBUG << "Link::shiftBufferedData: " << getMoniker()
               << "; appending src to circular buffer; "
               << elementCount << " elements="
-              << ArrayUtils::arrayToString(srcArray);
+              << srcArray;
 
     NTA_DEBUG << "Link::shiftBufferedData: " << getMoniker()
               << "; num arrays in circular buffer before append; "
@@ -467,7 +467,7 @@ void Link::shiftBufferedData()
     NTA_DEBUG << "Link::shiftBufferedData: " << getMoniker()
               << "; circular buffer head after append is: "
               << srcBuffer_[0].getCount() << " elements="
-              << ArrayUtils::arrayToString(srcBuffer_[0]);
+              << srcBuffer_[0];
   }
 }
 
