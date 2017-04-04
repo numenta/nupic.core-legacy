@@ -116,20 +116,16 @@ namespace nupic
                                        const void* inbuf,
                                        size_t numElements)
     {
-      const auto srcData = (const SourceElementT*)inbuf;
-
       outStream << "(";
 
-      auto it=srcData;
-      for (; it < srcData + numElements - 1; ++it)
+      auto it = (const SourceElementT*)inbuf;
+      auto end = it + numElements;
+      for (; it < end - 1; ++it)
       {
         outStream << *it << ", ";
       }
 
-      outStream << *it;  // emit final element (without the comma)
-
-      outStream << ")";
-
+      outStream << *it << ")";  // final element without the comma
     }
 
   }; // class ArrayUtils
