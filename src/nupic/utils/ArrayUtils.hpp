@@ -119,7 +119,7 @@ namespace nupic
       outStream << "(";
 
       auto it = (const SourceElementT*)inbuf;
-      auto end = it + numElements;
+      auto const end = it + numElements;
       for (; it < end - 1; ++it)
       {
         outStream << *it << ", ";
