@@ -448,12 +448,6 @@ Network::run(int n)
       callback.second.first(this, iteration_, callback.second.second);
     }
 
-  for (size_t i = 0; i < regions_.getCount(); i++)
-  {
-    Region *r = regions_.getByIndex(i).second;
-    r->initialize();
-  }
-
     // Refresh all links in the network at the end of every timestamp so that
     // data in delayed links appears to change atomically between iterations
     for (size_t i = 0; i < regions_.getCount(); i++)
