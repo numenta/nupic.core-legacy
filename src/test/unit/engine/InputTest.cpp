@@ -382,6 +382,9 @@ public:
     NTA_DEBUG << getName() << ".compute: latInput size=" << latInput.size()
               << "; inputValue=" << latInput[0];
 
+    // Only the first element of baseOutputBuffer represents region output. We
+    // keep track of inputs to the region using the rest of the baseOutputBuffer
+    // vector. These inputs are used in the tests.
     baseOutputBuffer[0] = ffInput[0] + latInput[0];
     baseOutputBuffer[1] = ffInput[0];
     baseOutputBuffer[2] = latInput[0];
@@ -507,6 +510,9 @@ public:
     NTA_DEBUG << getName() << ".compute: fbInput size=" << nodeInput.size()
               << "; inputValue=" << nodeInput[0];
 
+    // Only the first element of baseOutputBuffer represents region output. We
+    // keep track of inputs to the region using the rest of the baseOutputBuffer
+    // vector. These inputs are used in the tests.
     baseOutputBuffer[0] = k_ + nodeInput[0];
     baseOutputBuffer[1] = nodeInput[0];
 
@@ -872,12 +878,12 @@ TEST(InputTest, L2L4With1ColDelayedLinksAndPhase1OnOffOn)
 TEST(InputTest, SingleL4RegionWithDelayedLoopbackInAndPhaseOnOffOn)
 {
   // Validates processing of outgoing/incoming delayed link in the context of a
-  // region within a dispabled phase.
+  // region within a disabled phase.
   //
   // This test simulates a network with a single L4 region, structured as
   // follows:
   // o R1 ("L4") is in phase 1
-  // o feedback link with delay=1 from R1 to R1 (loopback)
+  // o Loopback link with delay=1 from R1 to itself
   //
   // Running the network:
   // o Run 1 time step with phase 1 enabled
