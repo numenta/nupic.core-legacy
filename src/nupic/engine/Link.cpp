@@ -35,6 +35,12 @@
 #include <nupic/ntypes/Array.hpp>
 #include <nupic/types/BasicType.hpp>
 
+
+// Set this to true when debugging to enable handy debug-level logging of data
+// moving through the links, including the delayed link transitions.
+#define _LINK_DEBUG false
+
+
 namespace nupic
 {
 
@@ -106,15 +112,15 @@ void Link::initPropagationDelayBuffer_(size_t propagationDelay,
                                        NTA_BasicType dataElementType,
                                        size_t dataElementCount)
 {
-  if (srcBuffer_.capacity() != 0)
+  if (srcBuffer_.capacity() != 0 || !propagationDelay)
   {
-    // Already initialized; e.g., as result of de-serialization
+    // Already initialized(e.g., as result of deserialization); or a 0-delay
+    // link, which doesn't use buffering.
     return;
   }
 
-  // Establish capacity for the requested delay data elements plus one slot for
-  // the next output element
-  srcBuffer_.set_capacity(propagationDelay + 1);
+  // Establish capacity for the requested delay data elements
+  srcBuffer_.set_capacity(propagationDelay);
 
   // Initialize delay data elements
   size_t dataBufferSize = dataElementCount *
@@ -290,6 +296,14 @@ const std::string& Link::getDestInputName() const
   return destInputName_;
 }
 
+std::string Link::getMoniker() const
+{
+  std::stringstream ss;
+  ss << getSrcRegionName() << "." << getSrcOutputName() << "-->"
+     << getDestRegionName() << "." << getDestInputName();
+  return ss.str();
+}
+
 const std::string Link::toString() const
 {
   std::stringstream ss;
@@ -368,39 +382,94 @@ Link::compute()
 {
   NTA_CHECK(initialized_);
 
-  // If first compute during current network run iteration, append src to
-  // circular buffer
-  if (!srcBuffer_.full())
+  if (propagationDelay_)
   {
-    const Array & srcArray = src_->getData();
-    size_t elementCount = srcArray.getCount();
-    auto elementType = srcArray.getType();
-
-    Array array(elementType);
-    srcBuffer_.push_back(array);
-
-    auto & lastElement = srcBuffer_.back();
-    lastElement.allocateBuffer(elementCount);
-    ::memcpy(lastElement.getBuffer(), srcArray.getBuffer(),
-             elementCount * BasicType::getSize(elementType));
+    NTA_CHECK(!srcBuffer_.empty());
   }
 
-  // Copy data from source to destination.
-  const Array & src = srcBuffer_[0];
+  // Copy data from source to destination. For delayed links, will copy from
+  // head of circular queue; otherwise directly from source.
+  const Array & src = propagationDelay_ ? srcBuffer_[0] : src_->getData();
+
   const Array & dest = dest_->getData();
 
   size_t typeSize = BasicType::getSize(src.getType());
   size_t srcSize = src.getCount() * typeSize;
   size_t destByteOffset = destOffset_ * typeSize;
+
+  if (_LINK_DEBUG)
+  {
+    NTA_DEBUG << "Link::compute: " << getMoniker()
+              << "; copying to dest input"
+              << "; delay=" << propagationDelay_ << "; "
+              << src.getCount() << " elements=" << src;
+  }
+
   ::memcpy((char*)(dest.getBuffer()) + destByteOffset, src.getBuffer(), srcSize);
 }
 
-void Link::purgeBufferHead()
+
+void Link::shiftBufferedData()
 {
-  NTA_CHECK(!srcBuffer_.empty());
+  if (!propagationDelay_)
+  {
+    // Source buffering is not used in 0-delay links
+    return;
+  }
+
+  // A delayed link's circular buffer should always be at capacity, because
+  // it starts out full in link initialization and we always append the new
+  // source value after shifting out the head.
+  NTA_CHECK(srcBuffer_.full());
+
+  // Pop head of circular queue
+
+  if (_LINK_DEBUG)
+  {
+    NTA_DEBUG << "Link::shiftBufferedData: " << getMoniker()
+              << "; popping head; "
+              << srcBuffer_[0].getCount() << " elements="
+              << srcBuffer_[0];
+  }
 
   srcBuffer_.pop_front();
+
+
+  // Append the current src value to circular queue
+
+  const Array & srcArray = src_->getData();
+  size_t elementCount = srcArray.getCount();
+  auto elementType = srcArray.getType();
+
+  if (_LINK_DEBUG)
+  {
+    NTA_DEBUG << "Link::shiftBufferedData: " << getMoniker()
+              << "; appending src to circular buffer; "
+              << elementCount << " elements="
+              << srcArray;
+
+    NTA_DEBUG << "Link::shiftBufferedData: " << getMoniker()
+              << "; num arrays in circular buffer before append; "
+              << srcBuffer_.size() << "; capacity=" << srcBuffer_.capacity();
+  }
+
+  Array array(elementType);
+  srcBuffer_.push_back(array);
+
+  auto & lastElement = srcBuffer_.back();
+  lastElement.allocateBuffer(elementCount);
+  ::memcpy(lastElement.getBuffer(), srcArray.getBuffer(),
+           elementCount * BasicType::getSize(elementType));
+
+  if (_LINK_DEBUG)
+  {
+    NTA_DEBUG << "Link::shiftBufferedData: " << getMoniker()
+              << "; circular buffer head after append is: "
+              << srcBuffer_[0].getCount() << " elements="
+              << srcBuffer_[0];
+  }
 }
+
 
 void Link::write(LinkProto::Builder& proto) const
 {
@@ -433,7 +502,7 @@ void Link::read(LinkProto::Reader& proto)
 
   if (delayedOutputsReader.size())
   {
-    // Initialize the propagation delay buffer with delay array buffers having 0
+    // Initialize the propagation delay buffer with delay arrays having 0
     // elements that deserialization logic will replace with appropriately-sized
     // buffers.
     initPropagationDelayBuffer_(

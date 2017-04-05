@@ -431,9 +431,6 @@ Network::run(int n)
   {
     iteration_++;
 
-    // For tracking input links of enabled regions in this iteration
-    std::set<Link*> inputLinks;
-
     // compute on all enabled regions in phase order
     for (UInt32 phase = minEnabledPhase_; phase <= maxEnabledPhase_; phase++)
     {
@@ -441,13 +438,6 @@ Network::run(int n)
       {
         r->prepareInputs();
         r->compute();
-
-        // Accummulate input links of computed regions
-        for (auto & input : r->getInputs())
-        {
-          auto & links = input.second->getLinks();
-          inputLinks.insert(links.begin(), links.end());
-        }
       }
     }
 
@@ -458,15 +448,22 @@ Network::run(int n)
       callback.second.first(this, iteration_, callback.second.second);
     }
 
-    // Purge head element in each input link belonging to regions computed in
-    // this iteration. An empty slot in the source buffer signals to
-    // Link::compute() to append the source array to the buffer.
-    for (auto pLink : inputLinks)
+    // Refresh all links in the network at the end of every timestamp so that
+    // data in delayed links appears to change atomically between iterations
+    for (size_t i = 0; i < regions_.getCount(); i++)
     {
-      pLink->purgeBufferHead();
+      const Region *r = regions_.getByIndex(i).second;
+
+      for (const auto & inputTuple: r->getInputs())
+      {
+        for (const auto pLink: inputTuple.second->getLinks())
+        {
+          pLink->shiftBufferedData();
+        }
+      }
     }
 
-  }
+  } // End of outer run-loop
 
   return;
 }
