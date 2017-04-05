@@ -566,6 +566,7 @@ add_executable(${src_executable_gtests}
                test/unit/algorithms/TemporalMemoryTest.cpp
                test/unit/encoders/ScalarEncoderTest.cpp
                test/unit/engine/InputTest.cpp
+               test/unit/engine/LinkTest.cpp
                test/unit/engine/NetworkTest.cpp
                test/unit/engine/UniformLinkPolicyTest.cpp
                test/unit/engine/YAMLUtilsTest.cpp

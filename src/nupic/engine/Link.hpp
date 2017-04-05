@@ -100,7 +100,11 @@ namespace nupic
      * @param propagationDelay
      *            Propagation delay of the link as number of network run
      *            iterations involving the link as input; the delay vectors, if
-     *            any, are initially populated with 0's. Defaults to 0=no delay
+     *            any, are initially populated with 0's. Defaults to 0=no delay.
+     *            Per design, data on no-delay links is to become available to
+     *            destination inputs within the same time step, while data on
+     *            delayed links (propagationDelay > 0) is to be updated
+     *            "atomically" between time steps.
      *
      * @internal
      *
@@ -369,13 +373,12 @@ namespace nupic
     buildSplitterMap(Input::SplitterMap& splitter);
 
     /*
-     * FOR INTERNAL USE ONLY
-     *
      * No-op for links without delay; for delayed links, remove head element of
      * the propagation delay buffer and push back the current value from source.
      *
      * NOTE It's intended that this method be called exactly once on all links
-     * within a network at the end of every time step.
+     * within a network at the end of every time step. Network::run calls it
+     * automatically on all links at the end of each time step.
      */
     void shiftBufferedData();
 
