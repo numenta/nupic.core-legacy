@@ -25,11 +25,11 @@
  */
 
 #include <iostream> // for ostream
+#include <stdlib.h> // for size_t
 
 #include <nupic/types/Types.hpp>
 #include <nupic/types/BasicType.hpp>
 #include <nupic/ntypes/ArrayBase.hpp>
-#include <nupic/utils/ArrayUtils.hpp>
 #include <nupic/utils/Log.hpp>
 
 using namespace nupic;
@@ -139,11 +139,62 @@ namespace nupic
 {
   std::ostream& operator<<(std::ostream& outStream, const ArrayBase& a)
   {
+    auto const inbuf = a.getBuffer();
+    auto const numElements = a.getCount();
+    auto const elementType = a.getType();
 
-    return ArrayUtils::streamBufferOfBasicType(outStream,
-                                               a.getBuffer(),
-                                               a.getCount(),
-                                               a.getType());
+    switch (elementType)
+    {
+    case NTA_BasicType_Byte:
+      ArrayBase::_templatedStreamBuffer<NTA_Byte>(outStream, inbuf,
+                                                  numElements);
+      break;
+    case NTA_BasicType_Int16:
+      ArrayBase::_templatedStreamBuffer<NTA_Int16>(outStream, inbuf,
+                                                   numElements);
+      break;
+    case NTA_BasicType_UInt16:
+      ArrayBase::_templatedStreamBuffer<NTA_UInt16>(outStream, inbuf,
+                                                    numElements);
+      break;
+    case NTA_BasicType_Int32:
+      ArrayBase::_templatedStreamBuffer<NTA_Int32>(outStream, inbuf,
+                                                   numElements);
+      break;
+    case NTA_BasicType_UInt32:
+      ArrayBase::_templatedStreamBuffer<NTA_UInt32>(outStream, inbuf,
+                                                    numElements);
+      break;
+    case NTA_BasicType_Int64:
+      ArrayBase::_templatedStreamBuffer<NTA_Int64>(outStream, inbuf,
+                                                   numElements);
+      break;
+    case NTA_BasicType_UInt64:
+      ArrayBase::_templatedStreamBuffer<NTA_UInt64>(outStream, inbuf,
+                                                    numElements);
+      break;
+    case NTA_BasicType_Real32:
+      ArrayBase::_templatedStreamBuffer<NTA_Real32>(outStream, inbuf,
+                                                    numElements);
+      break;
+    case NTA_BasicType_Real64:
+      ArrayBase::_templatedStreamBuffer<NTA_Real64>(outStream, inbuf,
+                                                    numElements);
+      break;
+    case NTA_BasicType_Handle:
+      ArrayBase::_templatedStreamBuffer<NTA_Handle>(outStream, inbuf,
+                                                    numElements);
+      break;
+    case NTA_BasicType_Bool:
+      ArrayBase::_templatedStreamBuffer<bool>(outStream, inbuf,
+                                              numElements);
+      break;
+    default:
+      NTA_THROW << "Unexpected Element Type: " << elementType;
+      break;
+    }
+
+    return outStream;
   }
 
 } // namespace nupic

@@ -36,6 +36,7 @@
 #define NTA_ARRAY_BASE_HPP
 
 #include <iostream> // for ostream
+#include <stdlib.h> // for size_t
 #include <string>
 
 #include <nupic/types/Types.h>
@@ -100,6 +101,34 @@ namespace nupic
     size_t count_;
     NTA_BasicType type_;
     bool own_;
+
+  private:
+    /**
+     * Element-type-specific templated function for streaming elements to
+     * ostream.
+     *
+     * @param outStream   output stream
+     * @param inbuf       input buffer
+     * @param numElements number of elements to use from the beginning of buffer
+     */
+    template <typename SourceElementT>
+    static void _templatedStreamBuffer(std::ostream& outStream,
+                                       const void* inbuf,
+                                       size_t numElements)
+    {
+      outStream << "(";
+
+      auto it = (const SourceElementT*)inbuf;
+      auto const end = it + numElements;
+      for (; it < end - 1; ++it)
+      {
+        outStream << *it << ", ";
+      }
+
+      outStream << *it << ")";  // final element without the comma
+    }
+
+    friend std::ostream& operator<<(std::ostream&, const ArrayBase&);
   };
 
   // Serialization for diagnostic purposes

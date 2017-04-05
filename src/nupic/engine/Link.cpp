@@ -34,7 +34,6 @@
 #include <nupic/engine/Output.hpp>
 #include <nupic/ntypes/Array.hpp>
 #include <nupic/types/BasicType.hpp>
-#include <nupic/utils/ArrayUtils.hpp>
 
 
 // Set this to true when debugging to enable handy debug-level logging of data
