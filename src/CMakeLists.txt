@@ -867,6 +867,10 @@ install(TARGETS
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)
 
+# Version.hpp is also used by the nupic.bindings release/deployment system
+install(FILES ${PROJECT_BINARY_DIR}/Version.hpp
+        DESTINATION include/nupic/)
+
 if (NOT NUPIC_BUILD_PYEXT_MODULES)
   install(DIRECTORY nupic/ DESTINATION include/nupic
           FILES_MATCHING PATTERN "*.h*"
@@ -879,9 +883,6 @@ if (NOT NUPIC_BUILD_PYEXT_MODULES)
   install(DIRECTORY ${REPOSITORY_DIR}/external/common/include/gtest
           DESTINATION include/gtest
           FILES_MATCHING PATTERN "*.h*")
-
-  install(FILES ${PROJECT_BINARY_DIR}/Version.hpp
-          DESTINATION include/nupic/)
 
   install(DIRECTORY "${REPOSITORY_DIR}/external/common/include/"
           DESTINATION include)
