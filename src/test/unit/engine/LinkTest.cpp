@@ -1219,4 +1219,3 @@ TEST(LinkTest, SingleL4RegionWithDelayedLoopbackInAndPhaseOnOffOn)
   ASSERT_EQ(2u, r1OutBuf[1]); // feedbackIn from R3; delay=1
   ASSERT_EQ(3u, r1OutBuf[0]); // out (1 + feedbackIn)
 }
-
