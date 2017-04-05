@@ -867,40 +867,42 @@ install(TARGETS
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)
 
-install(DIRECTORY nupic/ DESTINATION include/nupic
-        FILES_MATCHING PATTERN "*.h*"
-        PATTERN "*.hpp.in" EXCLUDE)
-install(DIRECTORY nupic/ DESTINATION include/nupic
-        FILES_MATCHING PATTERN "*.capnp")
-install(DIRECTORY ${PROJECT_BINARY_DIR}/nupic/ DESTINATION include/nupic/
-        FILES_MATCHING PATTERN "*.capnp.h")
+if (NOT NUPIC_BUILD_PYEXT_MODULES)
+  install(DIRECTORY nupic/ DESTINATION include/nupic
+          FILES_MATCHING PATTERN "*.h*"
+          PATTERN "*.hpp.in" EXCLUDE)
+  install(DIRECTORY nupic/ DESTINATION include/nupic
+          FILES_MATCHING PATTERN "*.capnp")
+  install(DIRECTORY ${PROJECT_BINARY_DIR}/nupic/ DESTINATION include/nupic/
+          FILES_MATCHING PATTERN "*.capnp.h")
 
-install(DIRECTORY ${REPOSITORY_DIR}/external/common/include/gtest
-        DESTINATION include/gtest
-        FILES_MATCHING PATTERN "*.h*")
+  install(DIRECTORY ${REPOSITORY_DIR}/external/common/include/gtest
+          DESTINATION include/gtest
+          FILES_MATCHING PATTERN "*.h*")
 
-install(FILES ${PROJECT_BINARY_DIR}/Version.hpp
-        DESTINATION include/nupic/)
+  install(FILES ${PROJECT_BINARY_DIR}/Version.hpp
+          DESTINATION include/nupic/)
 
-install(DIRECTORY "${REPOSITORY_DIR}/external/common/include/"
-        DESTINATION include)
-
-install(DIRECTORY "${src_numpy_core}/lib/"
-        DESTINATION lib)
-install(DIRECTORY "${src_numpy_core}/include/"
-        DESTINATION include)
-
-foreach(directory ${CAPNP_INCLUDE_DIRS})
-  install(DIRECTORY "${directory}/capnp"
+  install(DIRECTORY "${REPOSITORY_DIR}/external/common/include/"
           DESTINATION include)
-  install(DIRECTORY "${directory}/kj"
-          DESTINATION include)
-endforeach()
 
-install(DIRECTORY nupic/py_support DESTINATION include/nupic
-        FILES_MATCHING PATTERN "*.c*")
-install(DIRECTORY nupic DESTINATION include/nupic
-        FILES_MATCHING PATTERN "*.py")
+  install(DIRECTORY "${src_numpy_core}/lib/"
+          DESTINATION lib)
+  install(DIRECTORY "${src_numpy_core}/include/"
+          DESTINATION include)
+
+  foreach(directory ${CAPNP_INCLUDE_DIRS})
+    install(DIRECTORY "${directory}/capnp"
+            DESTINATION include)
+    install(DIRECTORY "${directory}/kj"
+            DESTINATION include)
+  endforeach()
+
+  install(DIRECTORY nupic/py_support DESTINATION include/nupic
+          FILES_MATCHING PATTERN "*.c*")
+  install(DIRECTORY nupic DESTINATION include/nupic
+          FILES_MATCHING PATTERN "*.py")
+endif (NOT NUPIC_BUILD_PYEXT_MODULES)
 
 #
 # `make package` results in
