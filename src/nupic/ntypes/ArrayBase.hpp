@@ -105,7 +105,7 @@ namespace nupic
   private:
     /**
      * Element-type-specific templated function for streaming elements to
-     * ostream.
+     * ostream. Elements are comma+space-separated and enclosed in braces.
      *
      * @param outStream   output stream
      * @param inbuf       input buffer
@@ -118,14 +118,20 @@ namespace nupic
     {
       outStream << "(";
 
+      // Stream the elements
       auto it = (const SourceElementT*)inbuf;
       auto const end = it + numElements;
-      for (; it < end - 1; ++it)
+      if (it < end)
       {
-        outStream << *it << ", ";
+        for (; it < end - 1; ++it)
+        {
+          outStream << *it << ", ";
+        }
+
+        outStream << *it;  // final element without the comma
       }
 
-      outStream << *it << ")";  // final element without the comma
+      outStream << ")";
     }
 
     friend std::ostream& operator<<(std::ostream&, const ArrayBase&);
