@@ -90,7 +90,7 @@
 <li><code class="docutils literal"><span class="pre">destRegionName</span></code>: The name of the destination <a class="reference internal" href="network-regions.html#nupic.coreclassnupic_1_1_region"><span class="std std-ref">Region</span></a> </li>
 <li><code class="docutils literal"><span class="pre">srcOutputName</span></code>: The name of the source <a class="reference internal" href="network-io.html#nupic.coreclassnupic_1_1_output"><span class="std std-ref">Output</span></a> </li>
 <li><code class="docutils literal"><span class="pre">destInputName</span></code>: The name of the destination <a class="reference internal" href="network-io.html#nupic.coreclassnupic_1_1_input"><span class="std std-ref">Input</span></a> </li>
-<li><code class="docutils literal"><span class="pre">propagationDelay</span></code>: Propagation delay of the link as number of network run iterations involving the link as input; the delay vectors, if any, are initially populated with 0&#8217;s. Defaults to 0=no delay</li>
+<li><code class="docutils literal"><span class="pre">propagationDelay</span></code>: Propagation delay of the link as number of network run iterations involving the link as input; the delay vectors, if any, are initially populated with 0&#8217;s. Defaults to 0=no delay. Per design, data on no-delay links is to become available to destination inputs within the same time step, while data on delayed links (propagationDelay &gt; 0) is to be updated &#8220;atomically&#8221; between time steps.</li>
 </ul>
 </dd>
 </dl>
@@ -269,6 +269,12 @@
 </div>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Misc</p>
+<dl class="function">
+<dt id="_CPPv2NK5nupic4Link10getMonikerEv">
+<span id="nupic::Link::getMonikerC"></span><span class="target" id="nupic.coreclassnupic_1_1_link_1a39b4283d5bf3a30f11057d153ad3c233"></span>std::string <code class="descname">getMoniker</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic4Link10getMonikerEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get a generated name of the link in the form RegName.outName &gt; RegName.inName for debug logging purposes only. </p>
+</dd></dl>
+
 <dl class="function">
 <dt id="_CPPv2NK5nupic4Link6getSrcEv">
 <span id="nupic::Link::getSrcC"></span><span class="target" id="nupic.coreclassnupic_1_1_link_1a474bbe96b85ea3a150331241c94596e5"></span><a class="reference internal" href="engine.html#_CPPv2N5nupic6OutputE" title="nupic::Output">Output</a> &amp;<code class="descname">getSrc</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic4Link6getSrcEv" title="Permalink to this definition">¶</a><br /></dt>
