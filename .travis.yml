@@ -24,7 +24,7 @@ env:
 virtualenv:
   system_site_packages: true
 
-# Successful builds are archived and uploaded to S3 for nupic builds.
+# Successful builds are archived and uploaded to S3 for bamboo releases.
 before_deploy:
   - "PLATFORM='darwin'"
   - cd $TRAVIS_BUILD_DIR
