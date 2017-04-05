@@ -93,7 +93,6 @@ namespace nupic
       case NTA_BasicType_Bool:
         _templatedStreamBuffer<bool>(outStream, inbuf, numElements);
         break;
-
       default:
         NTA_THROW << "Unexpected Element Type: " << elementType;
         break;
