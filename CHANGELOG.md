@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.6.1
+
+* Eliminate installation of unnecessary header files when building nupic.bindings. Install Version.hpp unconditionally for the sake of the deployment usage in .travis.yaml
+* Fixed servicing of delayed links such that the circular buffers of all links within a network are refreshed at the end of each time step; and 0-delay links copy data directly from src to dest, bypassing the circular buffer altogether.
+* Add a nNonZerosPerRowOnCols SparseMatrix method
+* Fix up some out of date SWIG interface code
+
 ## 0.6.0
 
 * NUP-2366 Remove no-longer-relevent test code
