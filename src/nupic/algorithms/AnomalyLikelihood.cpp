@@ -174,14 +174,16 @@ public:
       return 0.5f;
     } //else {
 
+    auto anomalies = circularBufferToVector(this->runningAverageAnomalies); 
+    
       // On a rolling basis we re-estimate the distribution
       if ( this->iteration == 0 || (this->iteration % this->reestimationPeriod) == 0  || this->distribution.name == "unknown" ) {
 
-        auto numSkipRecords = this->calcSkipRecords_(this->iteration, this->averagedAnomaly.getMaxSize(), this->learningPeriod); //FIXME this erase (numSkipRecords) is a problem when we use sliding window (as opposed to vector)! - should we skip only once on beginning, or on each call of this fn?
-        estimateAnomalyLikelihoods(this->runningAverageAnomalies, numSkipRecords);  // called to update this->distribution;  
+        auto numSkipRecords = this->calcSkipRecords_(this->iteration, this->runningAverageAnomalies.capacity(), this->learningPeriod); //FIXME this erase (numSkipRecords) is a problem when we use sliding window (as opposed to vector)! - should we skip only once on beginning, or on each call of this fn?
+        estimateAnomalyLikelihoods(anomalies, numSkipRecords);  // called to update this->distribution;  
       }
     
-    auto likelihoods = updateAnomalyLikelihoods(this->averagedAnomaly.getSlidingWindow());
+    auto likelihoods = updateAnomalyLikelihoods(anomalies);
 
       assert(likelihoods.size() > 0); 
       likelihood = 1.0 - likelihoods[0]; 
@@ -484,7 +486,7 @@ vector<Real>  updateAnomalyLikelihoods(vector<Real> anomalyScores, UInt verbosit
 }
 
 
-vector<Real> estimateAnomalyLikelihoods(vector<Real> anomalyScores, UInt averagingWindow=10, UInt skipRecords=0, UInt verbosity=0) { //FIXME averagingWindow not used, I guess it's not a sliding window, but aggregating window (discrete steps)!
+vector<Real> estimateAnomalyLikelihoods(vector<Real> anomalyScores, UInt skipRecords=0, UInt verbosity=0) { //FIXME averagingWindow not used, I guess it's not a sliding window, but aggregating window (discrete steps)!
   /**
   Given a series of anomaly scores, compute the likelihood for each score. This
   function should be called once on a bunch of historical anomaly scores for an
@@ -573,6 +575,17 @@ vector<Real> estimateAnomalyLikelihoods(vector<Real> anomalyScores, UInt averagi
 */
 
   return filteredLikelihoods;
+}
+
+vector<Real> circularBufferToVector(boost::circular_buffer<Real> cb) const {
+  cb.linearize();
+  auto d1 = cb.array_one();
+  vector<Real> data(d1.first, d1.first+d1.second);
+  auto d2 = cb.array_two();
+  data.insert(end(data), d2.first, d2.first+d2.second);
+
+  assert(data.size() == cb.size() && data.front() == cb.front() && data.back() == cb.back() );
+  return data;
 }
 
 };
