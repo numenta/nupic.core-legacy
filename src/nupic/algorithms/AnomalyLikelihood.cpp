@@ -125,17 +125,18 @@ public:
       processed.
 
   **/
-    AnomalyLikelihood(UInt learningPeriod=288, UInt estimationSamples=100, UInt historicWindowSize=8640, UInt reestimationPeriod=100) :
+    AnomalyLikelihood(UInt learningPeriod=288, UInt estimationSamples=100, UInt historicWindowSize=8640, UInt reestimationPeriod=100, UInt aggregationWindow=10) :
     learningPeriod(learningPeriod),
     reestimationPeriod(reestimationPeriod),
-    historicalScores(historicWindowSize)  {
+    averagedAnomaly(aggregationWindow)  {
         iteration = 0;
         probationaryPeriod = learningPeriod+estimationSamples;
         assert(historicWindowSize >= estimationSamples); // cerr << "estimationSamples exceeds historicWindowSize";
+        assert(aggregationWindow < reestimationPeriod && reestimationPeriod < historicWindowSize);
     }
 
     
-    Real anomalyProbability(Real rawValue, Real anomalyScore, int timestamp=-1) { //TODO "rawValue" could be typed to T rawValue
+    Real anomalyProbability(Real rawValue, Real anomalyScore, int timestamp=-1) { //TODO "rawValue" could be typed to T rawValue; //TODO is rawValue ever used?
     /**
     Compute the probability that the current value plus anomaly score represents
     an anomaly given the historical distribution of anomaly scores. The closer
@@ -154,31 +155,31 @@ public:
       timestamp = this->iteration;
     }
 
+    // store into relevant variables
+    this->runningRawAnomalyScores.push_back(anomalyScore); //TODO implement these vectors as sliding windows
+    auto newAvg = this->averagedAnomaly.compute(anomalyScore); 
+    this->runningAverageAnomalies.push_back(newAvg);
+    this->iteration++;
+    this->runningRawValues.push_back(rawValue); 
+    this->runningLikelihoods.push_back(likelihood);
+    
     // We ignore the first probationaryPeriod data points - as we cannot reliably compute distribution statistics for estimating likelihood
     if (this->iteration < this->probationaryPeriod) {
       return 0.5f;
     } //else {
 
-    vector<Real> likes;
       // On a rolling basis we re-estimate the distribution
       if ( this->iteration == 0 || (this->iteration % this->reestimationPeriod) == 0  || this->distribution.name == "unknown" ) {
 
-        auto numSkipRecords = this->calcSkipRecords_(this->iteration, this->historicalScores.getMaxSize(), this->learningPeriod);
-        likes = estimateAnomalyLikelihoods(this->historicalScores.getSlidingWindow(), numSkipRecords);  // updates this->distribution; 
+        auto numSkipRecords = this->calcSkipRecords_(this->iteration, this->averagedAnomaly.getMaxSize(), this->learningPeriod); //FIXME this erase (numSkipRecords) is a problem when we use sliding window (as opposed to vector)! - should we skip only once on beginning, or on each call of this fn?
+        estimateAnomalyLikelihoods(this->runningAverageAnomalies, numSkipRecords);  // called to update this->distribution;  
       }
-
-      auto likelihoods = updateAnomalyLikelihoods(likes, this->distribution); //TODO use likes or this->historicalScores.getSlidingWindow() here?
+    
+    auto likelihoods = updateAnomalyLikelihoods(this->averagedAnomaly.getSlidingWindow());
 
       assert(likelihoods.size() > 0); 
       likelihood = 1.0 - likelihoods[0]; 
       assert(likelihood >= 0.0 && likelihood <= 1.0);
-
-    // Before we exit update historical scores and iteration
-    // this->historicalScores.compute(anomalyScore);  - is already computed in updateAnomalyLikelihoods() above
-    // this->runningAveragedAnomalies.append() - also already computed above
-    this->iteration++;
-    this->runningRawValues.push_back(rawValue); 
-    this->historicalLikelihoods.push_back(likelihood);
 
     return likelihood;
     }
@@ -190,8 +191,9 @@ private:
     DistributionParams distribution ={ "unknown", 0.0, 0.0, 0.0};   
     UInt probationaryPeriod;
     UInt iteration;
-    MovingAverage historicalScores; // running average of anomaly scores
-    vector<Real> historicalLikelihoods; // sliding window of the likelihoods
+    MovingAverage averagedAnomaly; // running average of anomaly scores
+    vector<Real> runningLikelihoods; // sliding window of the likelihoods
+    vector<Real> runningRawAnomalyScores; 
     vector<Real> runningAverageAnomalies; //sliding window of running averages of anomaly scores
     vector<Real> runningRawValues; // sliding window of the raw values
 
@@ -267,7 +269,7 @@ private:
     return DistributionParams("normal", 0.5, 1e6, 1e3);
   }
 
- Real32 tailProbability(Real32 x, DistributionParams params) {
+ Real32 tailProbability(Real32 x) const {
  /**
   Given the normal distribution specified by the mean and standard deviation
   in distributionParams, return the probability of getting samples further
@@ -277,15 +279,18 @@ private:
 
   :param distributionParams: dict with 'mean' and 'stdev' of the distribution
   **/
-  if (x < params.mean) {
+     assert(distribution.name != "unknown" && distribution.stdev > 0);
+     
+  if (x < distribution.mean) {
     // Gaussian is symmetrical around mean, so flip to get the tail probability
-    Real32 xp = 2 * params.mean - x;
-    return tailProbability(xp, params);
+    Real32 xp = 2 * distribution.mean - x;
+    assert(xp != x);
+    return tailProbability(xp);
   }
 
   // Calculate the Q function with the complementary error function, explained
   // here: http://www.gaussianwaves.com/2012/07/q-function-and-error-functions
-  Real32 z = (x - params.mean) / params.stdev;
+  Real32 z = (x - distribution.mean) / distribution.stdev;
   return 0.5 * erfc(z/1.4142);
   }
 
@@ -341,7 +346,7 @@ DistributionParams estimateNormal(vector<Real> sampleData, bool performLowerBoun
   return params;
 }
 
-Real compute_mean(vector<Real> v) const {
+Real compute_mean(vector<Real> v) const { //TODO do we have a (more comp. stable) implementation of mean/variance?
     Real sum = std::accumulate(v.begin(), v.end(), 0.0);
     return sum / v.size();
 }
@@ -408,7 +413,7 @@ inline UInt calcSkipRecords_(UInt numIngested, UInt windowSize, UInt learningPer
 }
 
 
-vector<Real>  updateAnomalyLikelihoods(vector<Real> anomalyScores, DistributionParams params, UInt verbosity=0) {
+vector<Real>  updateAnomalyLikelihoods(vector<Real> anomalyScores, UInt verbosity=0) { 
   /**
   Compute updated probabilities for anomalyScores using the given params.
 
@@ -442,7 +447,7 @@ vector<Real>  updateAnomalyLikelihoods(vector<Real> anomalyScores, DistributionP
     cout << "In updateAnomalyLikelihoods."<< endl;
     cout << "Number of anomaly scores: "<<  anomalyScores.size() << endl;
 //    cout << "First 20:", anomalyScores[0:min(20, len(anomalyScores))])
-    cout << "Params: name=" <<  params.name << " mean="<<params.mean <<" var="<<params.variance <<" stdev="<<params.stdev <<endl;
+    cout << "Params: name=" <<  distribution.name << " mean="<<distribution.mean <<" var="<<distribution.variance <<" stdev="<<distribution.stdev <<endl;
   }
 
  assert(anomalyScores.size() > 0); // "Must have at least one anomalyScore"
@@ -450,19 +455,16 @@ vector<Real>  updateAnomalyLikelihoods(vector<Real> anomalyScores, DistributionP
   // Compute moving averages of these new scores using the previous values
   // as well as likelihood for these scores using the old estimator 
   vector<Real> likelihoods;
-  for (auto v : anomalyScores) {
-    auto newAverage = historicalScores.compute(v); 
-    this->runningAverageAnomalies.push_back(newAverage);
-    likelihoods.push_back(tailProbability(newAverage, params));
+  for (auto newAverage : runningAverageAnomalies) {
+    likelihoods.push_back(tailProbability(newAverage)); 
   }
 
   // Filter the likelihood values. First we prepend the historical likelihoods
   // to the current set. Then we filter the values.  We peel off the likelihoods
   // to return and the last windowSize values to store for later.
-  this->historicalLikelihoods.insert(historicalLikelihoods.end(), likelihoods.begin(),likelihoods.end()); //append
-  UInt toCrop = max((unsigned long)0, min((unsigned long)this->historicalScores.getMaxSize(), historicalLikelihoods.size())); //TODO review, the max(0, does not make sense here
-  this->historicalLikelihoods.erase(historicalLikelihoods.begin(), historicalLikelihoods.begin() + toCrop); 
-  assert(this->historicalLikelihoods.size() <= this->historicalScores.getMaxSize());
+  UInt toCrop = min((unsigned long)this->averagedAnomaly.getMaxSize(), runningLikelihoods.size());
+  this->runningLikelihoods.insert(runningLikelihoods.end() - toCrop, likelihoods.begin(),likelihoods.end()); //append & crop
+  assert(this->runningLikelihoods.size() <= this->averagedAnomaly.getMaxSize());
 
   auto filteredLikelihoods = filterLikelihoods_(likelihoods);
 
@@ -476,13 +478,12 @@ vector<Real>  updateAnomalyLikelihoods(vector<Real> anomalyScores, DistributionP
 }
 
 
-
-vector<Real> estimateAnomalyLikelihoods(vector<Real> anomalyScores, UInt averagingWindow=10, UInt skipRecords=0, UInt verbosity=0) {
+vector<Real> estimateAnomalyLikelihoods(vector<Real> anomalyScores, UInt averagingWindow=10, UInt skipRecords=0, UInt verbosity=0) { //FIXME averagingWindow not used, I guess it's not a sliding window, but aggregating window (discrete steps)!
   /**
   Given a series of anomaly scores, compute the likelihood for each score. This
   function should be called once on a bunch of historical anomaly scores for an
   initial estimate of the distribution. It should be called again every so often
-  (say every 50 records) to update the estimate.
+  (say every 50 records) to update the estimate. 
 
   :param anomalyScores: a list of records. Each record is a list with the
                         following three elements: [timestamp, value, score]
@@ -526,16 +527,16 @@ vector<Real> estimateAnomalyLikelihoods(vector<Real> anomalyScores, UInt averagi
   }
 
   assert(anomalyScores.size() >= 0); // "Must have at least one anomalyScore"
-  auto dataValues = historicalScores.getSlidingWindow();  //FIXME the "data" for distrib estimation - should it be raw values, or anomaly scores?
+  auto dataValues = anomalyScores; //FIXME the "data" should be anomaly scores, or raw values? 
 
   // Estimate the distribution of anomaly scores based on aggregated records
   if (dataValues.size()  <= skipRecords) {
     this->distribution = nullDistribution();
   } else {
-    dataValues.erase(dataValues.begin(), dataValues.begin() + skipRecords);// remove first skipRecords 
+    dataValues.erase(dataValues.begin(), dataValues.begin() + skipRecords);// remove first skipRecords
     this->distribution = estimateNormal(dataValues);
   
-    /* HACK ALERT! The CLA model currently does not handle constant metric values //FIXME - this is unrelated to anomalies and should be removed from this code!!
+    /* HACK ALERT! The CLA model currently does not handle constant metric values //TODO can this be removed now? 4/2017
      very well (time of day encoder changes sometimes lead to unstable SDR's
      even though the metric is constant). Until this is resolved, we explicitly
      detect and handle completely flat metric values by reporting them as not
@@ -550,7 +551,7 @@ vector<Real> estimateAnomalyLikelihoods(vector<Real> anomalyScores, UInt averagi
   // Estimate likelihoods based on this distribution
   vector<Real> likelihoods;
   for (auto s : dataValues) {
-    likelihoods.push_back(tailProbability(s, distribution));
+    likelihoods.push_back(tailProbability(s));
   }
   // Filter likelihood values
   auto filteredLikelihoods = filterLikelihoods_(likelihoods);
