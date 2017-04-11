@@ -41,7 +41,7 @@ TEST(MovingAverage, Instance)
     m.compute(3);
     newAverage = m.getCurrentAvg();
     ASSERT_EQ(newAverage, 3.0);
-    ASSERT_EQ(m.getSlidingWindow(), expectedWindow);
+    ASSERT_EQ(m.getData(), expectedWindow);
     ASSERT_EQ(m.getTotal(), 3.0);
   }
 
@@ -50,7 +50,7 @@ TEST(MovingAverage, Instance)
     m.compute(4);
     newAverage = m.getCurrentAvg();
     ASSERT_EQ(newAverage, 3.5);
-    ASSERT_EQ(m.getSlidingWindow(), expectedWindow);
+    ASSERT_EQ(m.getData(), expectedWindow);
     ASSERT_EQ(m.getTotal(), 7.0);
   }
 
@@ -59,7 +59,7 @@ TEST(MovingAverage, Instance)
     m.compute(5);
     newAverage = m.getCurrentAvg();
     ASSERT_EQ(newAverage, 4.0);
-    ASSERT_EQ(m.getSlidingWindow(), expectedWindow);
+    ASSERT_EQ(m.getData(), expectedWindow);
     ASSERT_EQ(m.getTotal(), 12.0);
   }
 
@@ -68,7 +68,7 @@ TEST(MovingAverage, Instance)
     m.compute(6);
     newAverage = m.getCurrentAvg();
     ASSERT_EQ(newAverage, 5.0);
-    ASSERT_EQ(m.getSlidingWindow(), expectedWindow);
+    ASSERT_EQ(m.getData(), expectedWindow);
     ASSERT_EQ(m.getTotal(), 15.0);
   }
 };
@@ -78,11 +78,11 @@ TEST(MovingAverage, SlidingWindowInit)
 {
   std::vector<Real32> existingHistorical = {3.0, 4.0, 5.0};
   MovingAverage m{3, existingHistorical};
-  ASSERT_EQ(m.getSlidingWindow(), existingHistorical);
+  ASSERT_EQ(m.getData(), existingHistorical);
 
   MovingAverage m2{3};
   std::vector<Real32> emptyVector;
-  ASSERT_EQ(m2.getSlidingWindow(), emptyVector);
+  ASSERT_EQ(m2.getData(), emptyVector);
 }
 
 
