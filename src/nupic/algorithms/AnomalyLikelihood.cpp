@@ -128,11 +128,17 @@ public:
     AnomalyLikelihood(UInt learningPeriod=288, UInt estimationSamples=100, UInt historicWindowSize=8640, UInt reestimationPeriod=100, UInt aggregationWindow=10) :
     learningPeriod(learningPeriod),
     reestimationPeriod(reestimationPeriod),
-    averagedAnomaly(aggregationWindow)  {
+    averagedAnomaly(aggregationWindow) {
         iteration = 0;
         probationaryPeriod = learningPeriod+estimationSamples;
         assert(historicWindowSize >= estimationSamples); // cerr << "estimationSamples exceeds historicWindowSize";
         assert(aggregationWindow < reestimationPeriod && reestimationPeriod < historicWindowSize);
+        
+        runningAverageAnomalies.set_capacity(historicWindowSize); 
+        runningLikelihoods.set_capacity(historicWindowSize);
+        runningRawAnomalyScores.set_capacity(historicWindowSize);
+        runningRawValues.set_capacity(historicWindowSize);
+        assert(runningLikelihoods.capacity() == historicWindowSize);
     }
 
     
@@ -192,10 +198,10 @@ private:
     UInt probationaryPeriod;
     UInt iteration;
     MovingAverage averagedAnomaly; // running average of anomaly scores
-    vector<Real> runningLikelihoods; // sliding window of the likelihoods
-    vector<Real> runningRawAnomalyScores; 
-    vector<Real> runningAverageAnomalies; //sliding window of running averages of anomaly scores
-    vector<Real> runningRawValues; // sliding window of the raw values
+    boost::circular_buffer<Real> runningLikelihoods; // sliding window of the likelihoods
+    boost::circular_buffer<Real> runningRawAnomalyScores; 
+    boost::circular_buffer<Real> runningAverageAnomalies; //sliding window of running averages of anomaly scores
+    boost::circular_buffer<Real> runningRawValues; // sliding window of the raw values
 
 
 /**
