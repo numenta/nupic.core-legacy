@@ -27,15 +27,20 @@
 #include <iterator>
 #include <numeric>
 
+#include <iostream>
+
 using namespace std;
 using namespace::nupic;
 using namespace nupic::util;
 
 
 MovingAverage::MovingAverage(UInt wSize, const vector<Real32>& historicalValues)
-    : slidingWindow_(wSize, historicalValues)
+    : slidingWindow_(wSize)
 {
- auto window = slidingWindow_.getData();
+ for(auto v: historicalValues) {
+  slidingWindow_.push_back(v);
+ }
+ auto window = this->getData();
   total_ = Real32(accumulate(begin(window), end(window), 0));
 }
 
@@ -46,20 +51,28 @@ MovingAverage::MovingAverage(UInt wSize) :
 
 Real32 MovingAverage::compute(Real32 newVal)
 {
-
-  auto popped = slidingWindow_.append(newVal);
-  total_ -= popped;
+  if(slidingWindow_.full()) {
+    total_ -= slidingWindow_.front();
+    slidingWindow_.pop_front();
+  }
+  slidingWindow_.push_back(newVal);
   total_ += newVal;
   return getCurrentAvg();
 }
 
 
-std::vector<Real32> MovingAverage::getData() const
+std::vector<Real32> MovingAverage::getData() const 
 {
-  return slidingWindow_.getData();
+//  slidingWindow_.linearize();
+  auto d1 = slidingWindow_.array_one();
+  vector<Real32> data(d1.first, d1.first+d1.second); //TODO improve this copy data
+  auto d2 = slidingWindow_.array_two();
+  data.insert(end(data), d2.first, d2.first+d2.second);
+
+  return data;
 }
 
-SlidingWindow MovingAverage::getSlidingWindow() const
+boost::circular_buffer<Real32> MovingAverage::getSlidingWindow() const
 {
   return slidingWindow_;
 }
@@ -73,8 +86,14 @@ Real32 MovingAverage::getCurrentAvg() const
 
 bool MovingAverage::operator==(const MovingAverage& r2) const
 {
-  return (slidingWindow_ == r2.slidingWindow_ &&
-          total_ == r2.total_);
+
+ for(UInt i=0; i< slidingWindow_.size(); i++) 
+   cout << i << ": " << slidingWindow_[i] << " vs " << r2.slidingWindow_[i] << endl;
+
+  return ( //! slidingWindow_ == r2.slidingWindow_ &&
+        //  total_ == r2.total_ && 
+       //   slidingWindow_.front() == r2.slidingWindow_.front() && 
+      this->getData() == r2.getData() );
 }
 
 
