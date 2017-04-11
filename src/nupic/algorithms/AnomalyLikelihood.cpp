@@ -162,7 +162,7 @@ public:
     }
 
     // store into relevant variables
-    this->runningRawAnomalyScores.push_back(anomalyScore); //TODO implement these vectors as sliding windows
+    this->runningRawAnomalyScores.push_back(anomalyScore); 
     auto newAvg = this->averagedAnomaly.compute(anomalyScore); 
     this->runningAverageAnomalies.push_back(newAvg);
     this->iteration++;
