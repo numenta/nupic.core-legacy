@@ -35,7 +35,7 @@ before_deploy:
   - mkdir -p $TRAVIS_BUILD_DIR/bindings/py/dist/bin
   - cp ${TRAVIS_BUILD_DIR}/build/release/bin/py_region_test $TRAVIS_BUILD_DIR/bindings/py/dist/bin
   - mkdir -p $TRAVIS_BUILD_DIR/release
-  - tar -zcvf $TRAVIS_BUILD_DIR/release/nupic_core-${TRAVIS_COMMIT}-${PLATFORM}64.tar.gz $TRAVIS_BUILD_DIR/bindings/py/dist
+  - tar -zcvf $TRAVIS_BUILD_DIR/release/nupic_core-${TRAVIS_COMMIT}-${PLATFORM}64.tar.gz --transform s/^bindings\/py\/dist/nupic_core-${TRAVIS_COMMIT}-${PLATFORM}64/ -C ${TRAVIS_BUILD_DIR} bindings/py/dist
 
 deploy:
   provider: s3
