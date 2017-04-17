@@ -303,16 +303,6 @@ class PyRegion(object):
     pass
 
 
-  @staticmethod
-  def getProtoType():
-    """Return the pycapnp proto type that the class uses for serialization.
-
-    This is used to convert the proto into the proper type before passing it
-    into the read or write method of the subclass.
-    """
-    raise NotImplementedError()
-
-
   def write(self, proto):
     """Calls writeToProto on subclass after converting proto to specific type
     using getProtoType().
@@ -337,7 +327,7 @@ class PyRegion(object):
   def writeToProto(self, proto):
     """Write state to proto object.
 
-    The type of proto is determined by getProtoType().
+    proto: PyRegionProto capnproto object
     """
     raise NotImplementedError()
 
@@ -346,7 +336,7 @@ class PyRegion(object):
   def readFromProto(cls, proto):
     """Read state from proto object.
 
-    The type of proto is determined by getProtoType().
+    proto: PyRegionProto capnproto object
     """
     raise NotImplementedError()
 
