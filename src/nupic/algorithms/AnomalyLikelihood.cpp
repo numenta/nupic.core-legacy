@@ -20,6 +20,7 @@
  * ---------------------------------------------------------------------
  */
 
+#include <nupic/algorithms/AnomalyLikelihood.hpp>
 
 #include <iostream>
 #include <vector>
@@ -29,7 +30,6 @@
 
 #include <boost/circular_buffer.hpp>
 
-#include <nupic/types/Types.hpp>
 #include <nupic/utils/MovingAverage.hpp>
 
 /**
@@ -73,22 +73,10 @@ updateAnomalyLikelihoods. The details of these are described below.
 
 **/
 
-namespace nupic {
-  namespace algorithms { 
-    namespace anomaly {
-
 using namespace std;
 using namespace nupic;
 using namespace nupic::util;
-
-struct DistributionParams {
-  DistributionParams(string name, Real32 mean, Real32 variance, Real32 stdev) :
-    name(name),mean(mean), variance(variance), stdev(stdev) {}
-  string name;
-  Real32 mean;
-  Real32 variance;
-  Real32 stdev;
-};
+using namespace nupic::algorithms::anomaly;
 
 class AnomalyLikelihood {
 public:
@@ -590,4 +578,3 @@ vector<Real> circularBufferToVector(boost::circular_buffer<Real> cb) const {
 }
 
 };
-}}} //ns
