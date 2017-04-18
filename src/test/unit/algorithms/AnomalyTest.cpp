@@ -152,3 +152,17 @@ TEST(Anomaly, SelectModePure)
   std::vector<UInt> predicted = {3, 5, 7};
   ASSERT_FLOAT_EQ(a.compute(active, predicted), 2.0 / 3.0);
 };
+
+
+TEST(Anomaly, SelectModeLikelihood)
+{
+  Anomaly a{0, AnomalyMode::LIKELIHOOD, 0};
+  std::vector<UInt> active = {2, 3, 6};
+  std::vector<UInt> predicted = {3, 5, 7};
+  Real rawInputValue = 2.1; //the value is made up here
+  int ts = 1; //timestamp
+  Real likelihood = a.compute(active, predicted, rawInputValue, ts);
+  ASSERT_FLOAT_EQ(likelihood, 2.0 / 3.0);
+};
+
+
