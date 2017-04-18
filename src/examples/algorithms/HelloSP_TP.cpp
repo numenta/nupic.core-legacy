@@ -30,9 +30,11 @@
 #include "nupic/algorithms/SpatialPooler.hpp"
 #include "nupic/algorithms/Cells4.hpp"
 #include "nupic/os/Timer.hpp"
+#include "nupic/utils/VectorHelpers.hpp"
 
 using namespace std;
 using namespace nupic;
+using namespace nupic::utils;
 using nupic::algorithms::spatial_pooler::SpatialPooler;
 using nupic::algorithms::Cells4::Cells4;
 
@@ -41,28 +43,28 @@ int RandomNumber01 () { return (rand()%2); } // returns random (binary) numbers 
 
 int main(int argc, const char * argv[])
 {
-const UInt DIM = 2048; // number of columns in SP, TP
+const UInt COLS = 2048; // number of columns in SP, TP
 const UInt DIM_INPUT = 10000;
-const UInt TP_CELLS_PER_COL = 10; // cells per column in TP
+const UInt CELLS = 10; // cells per column in TP
 const UInt EPOCHS = pow(10, 4); // number of iterations (calls to SP/TP compute() )
 
   vector<UInt> inputDim = {DIM_INPUT};
-  vector<UInt> colDim = {DIM};
-
-  // generate random input
-  vector<UInt> input(DIM_INPUT);
-  vector<UInt> outSP(DIM); // active array, output of SP/TP
-  const int _CELLS = DIM * TP_CELLS_PER_COL;
-  vector<UInt> outTP(_CELLS);   
-  Real rIn[DIM] = {}; // input for TP (must be Reals)
-  Real rOut[_CELLS] = {};
+  vector<UInt> colDim = {COLS};
 
   // initialize SP, TP
   SpatialPooler sp(inputDim, colDim);
-  Cells4 tp(DIM, TP_CELLS_PER_COL, 12, 8, 15, 5, .5, .8, 1.0, .1, .1, 0.0, false, 42, true, false);
+  Cells4 tp(COLS, CELLS, 12, 8, 15, 5, .5, .8, 1.0, .1, .1, 0.0, false, 42, true, false);
+
+  // generate random input
+  vector<UInt> input(DIM_INPUT);
+  vector<UInt> outSP(COLS); // active array, output of SP/TP
+  vector<UInt> outTP(tp.nCells());
+  vector<Real> rIn(COLS); // input for TP (must be Reals)
+  vector<Real> rOut(tp.nCells());
 
   // Start a stopwatch timer
   Timer stopwatch(true);
+
 
   //run
   for (UInt e = 0; e < EPOCHS; e++) {
@@ -71,21 +73,15 @@ const UInt EPOCHS = pow(10, 4); // number of iterations (calls to SP/TP compute(
     sp.compute(input.data(), true, outSP.data());
     sp.stripUnlearnedColumns(outSP.data());
 
-    for (UInt i = 0; i < DIM; i++) {
-      rIn[i] = (Real)(outSP[i]);
-    }
-
-    tp.compute(rIn, rOut, true, true);
-
-    for (UInt i=0; i< _CELLS; i++) {
-      outTP[i] = (UInt)rOut[i];
-    }
+    rIn = VectorHelpers::castVectorType<UInt, Real>(outSP);
+    tp.compute(rIn.data(), rOut.data(), true, true);
+    outTP = VectorHelpers::castVectorType<Real, UInt>(rOut);
 
     // print
     if (e == EPOCHS-1) {
       cout << "Epoch = " << e << endl;
-      cout << "SP=" << outSP << endl;
-      cout << "TP=" << outTP << endl;
+      VectorHelpers::print_vector(VectorHelpers::binaryToSparse<UInt>(outSP), ",", "SP= ");
+      VectorHelpers::print_vector(VectorHelpers::binaryToSparse<UInt>(VectorHelpers::cellsToColumns(outTP, CELLS)), ",", "TP= ");
     }
   }
 
