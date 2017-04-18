@@ -27,6 +27,8 @@
 #ifndef NTA_ENCODERS_SCALAR
 #define NTA_ENCODERS_SCALAR
 
+#include <vector>
+
 #include <nupic/types/Types.hpp>
 
 namespace nupic
@@ -42,22 +44,29 @@ namespace nupic
       {}
 
     /**
-     * Encodes input, puts the encoded value into output, and returns the a
+     * Encodes input, puts the encoded binary value into output, and returns the a
      * bucket number for the encoding.
      *
      * The bucket number is essentially the input encoded into an integer rather
      * than an array. A bucket number is easier to "decode" or to use inside a
      * classifier.
      *
-     * @param input The value to encode
-     * @param output Should have length of at least getOutputWidth()
+     * @param input The value to encode (Real)
+     * @param output Should have length of at least getOutputWidth(), binary output, (UInt[])
+     * @return id of bin where assigned (int)
      */
-    virtual int encodeIntoArray(Real64 input, Real32 output[]) = 0;
+    virtual int encodeIntoArray(Real input, UInt output[]) = 0;
 
     /**
      * Returns the output width, in bits.
      */
-    virtual int getOutputWidth() const = 0;
+    virtual UInt getOutputWidth() const = 0;
+
+    /**
+     * public wrapper method for the encodeIntoArray()
+     * @return binary representation of the input
+     */
+    std::vector<UInt> encode(Real input);
   };
 
   /** Encodes a floating point number as a contiguous block of 1s.
@@ -106,8 +115,8 @@ namespace nupic
                   double resolution, bool clipInput);
     ~ScalarEncoder() override;
 
-    virtual int encodeIntoArray(Real64 input, Real32 output[]) override;
-    virtual int getOutputWidth() const override { return n_; }
+    virtual int encodeIntoArray(Real input, UInt output[]) override;
+    virtual UInt getOutputWidth() const override { return n_; }
 
   private:
     int w_;
@@ -164,8 +173,8 @@ namespace nupic
                           double radius, double resolution);
     virtual ~PeriodicScalarEncoder() override;
 
-    virtual int encodeIntoArray(Real64 input, Real32 output[]) override;
-    virtual int getOutputWidth() const override { return n_; }
+    virtual int encodeIntoArray(Real input, UInt output[]) override;
+    virtual UInt getOutputWidth() const override { return n_; }
 
   private:
     int w_;

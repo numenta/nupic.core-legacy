@@ -35,27 +35,27 @@ template <typename T>
 std::string vec2str(std::vector<T> vec)
 {
   std::ostringstream oss("");
-  for (size_t i = 0; i < vec.size(); i++)
+  for (size_t i = 0; i < vec.size(); i++) //FIXME VectorHelper would have been used eg. here
     oss << vec[i];
   return oss.str();
 }
 
-std::vector<Real32> getEncoding(ScalarEncoderBase& e, Real64 input)
+std::vector<UInt> getEncoding(ScalarEncoderBase& e, Real input)
 {
-  auto actualOutput = std::vector<Real32>(e.getOutputWidth());
+  auto actualOutput = std::vector<UInt>(e.getOutputWidth());
   e.encodeIntoArray(input, &actualOutput[0]);
   return actualOutput;
 }
 
 struct ScalarValueCase
 {
-  Real64 input;
-  std::vector<Real32> expectedOutput;
+  Real input;
+  std::vector<UInt> expectedOutput;
 };
 
-std::vector<Real32> patternFromNZ(int n, std::vector<size_t> patternNZ)
+std::vector<UInt> patternFromNZ(int n, std::vector<size_t> patternNZ)
 {
-  auto v = std::vector<Real32>(n, 0);
+  auto v = std::vector<UInt>(n, 0);
   for (auto it = patternNZ.begin(); it != patternNZ.end(); it++)
     {
       v[*it] = 1;
@@ -68,7 +68,7 @@ void doScalarValueCases(ScalarEncoderBase& e, std::vector<ScalarValueCase> cases
   for (auto c = cases.begin(); c != cases.end(); c++)
     {
       auto actualOutput = getEncoding(e, c->input);
-      for (int i = 0; i < e.getOutputWidth(); i++)
+      for (UInt i = 0; i < e.getOutputWidth(); i++)
         {
           EXPECT_EQ(c->expectedOutput[i], actualOutput[i])
             << "For input " << c->input << " and index " << i << std::endl
