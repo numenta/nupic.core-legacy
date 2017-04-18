@@ -26,6 +26,7 @@
 
 #include <vector>
 #include <memory> // Needed for smart pointer templates
+#include <nupic/algorithms/AnomalyLikelihood.hpp>
 #include <nupic/utils/MovingAverage.hpp> // Needed for for smart pointer templates
 #include <nupic/types/Types.hpp>
 
@@ -69,7 +70,7 @@ namespace nupic
          * Supported modes:
          *    PURE - the raw anomaly score as computed by computeRawAnomalyScore
          *    LIKELIHOOD - uses the AnomalyLikelihood class on top of the raw
-         *        anomaly scores (not implemented in C++)
+         *        anomaly scores
          *    WEIGHTED - multiplies the likelihood result with the raw anomaly
          *        score that was used to generate the likelihood (not
          *        implemented in C++)
@@ -112,10 +113,16 @@ namespace nupic
                        const std::vector<UInt>& predicted,
                        Real64 inputValue=0, UInt timestamp=0);
 
+//helper
+        void setLikelihood(AnomalyLikelihood newInstance) {
+          this->likelihood_ = newInstance;
+        }
+
       private:
         AnomalyMode mode_;
         Real32 binaryThreshold_;
         std::unique_ptr<nupic::util::MovingAverage> movingAverage_;
+        AnomalyLikelihood likelihood_; //TODO which params/how pass them to constructor?
 
       };
     } // namespace anomaly

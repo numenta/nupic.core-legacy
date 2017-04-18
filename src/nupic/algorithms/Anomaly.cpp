@@ -75,10 +75,6 @@ Anomaly::Anomaly(UInt slidingWindowSize, AnomalyMode mode,
   {
     movingAverage_.reset(new nupic::util::MovingAverage(slidingWindowSize));
   }
-
-  // Not implemented. Fail.
-  NTA_ASSERT(mode_ == AnomalyMode::PURE)
-      << "C++ Anomaly implemented only for PURE mode!";
 }
 
 
@@ -87,6 +83,7 @@ Real32 Anomaly::compute(
     Real64 inputValue, UInt timestamp)
 {
   Real32 anomalyScore = computeRawAnomalyScore(active, predicted);
+  Real likelihood;
   Real32 score = anomalyScore;
   switch(mode_)
   {
@@ -94,10 +91,11 @@ Real32 Anomaly::compute(
       score = anomalyScore;
       break;
     case AnomalyMode::LIKELIHOOD:
+      likelihood = likelihood_.anomalyProbability((Real)inputValue, (Real)anomalyScore, (int)timestamp);
+      score = likelihood;
+      break;
     case AnomalyMode::WEIGHTED:
-      // Not implemented. Fail
-      NTA_ASSERT(mode_ == AnomalyMode::PURE)
-          << "C++ Anomaly implemented only for PURE mode!";
+      score = anomalyScore * likelihood;
       break;
   }
 
