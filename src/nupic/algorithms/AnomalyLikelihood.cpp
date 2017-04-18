@@ -535,7 +535,7 @@ vector<Real> estimateAnomalyLikelihoods(vector<Real> anomalyScores, UInt skipRec
 //    print("First 20:", anomalyScores[0:min(20, len(anomalyScores))])
   }
 
-  assert(anomalyScores.size() >= 0); // "Must have at least one anomalyScore"
+  assert(anomalyScores.size() > 0); // "Must have at least one anomalyScore"
   auto dataValues = anomalyScores; //FIXME the "data" should be anomaly scores, or raw values? 
 
   // Estimate the distribution of anomaly scores based on aggregated records
