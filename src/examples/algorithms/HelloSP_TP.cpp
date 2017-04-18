@@ -36,6 +36,7 @@ using namespace nupic;
 using nupic::algorithms::spatial_pooler::SpatialPooler;
 using nupic::algorithms::Cells4::Cells4;
 
+
 // function generator:
 int RandomNumber01 () { return (rand()%2); } // returns random (binary) numbers from {0,1}
 
