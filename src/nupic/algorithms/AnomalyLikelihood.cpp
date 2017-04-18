@@ -25,6 +25,7 @@
 #include <vector>
 #include <cassert>
 #include <cmath>
+#include <numeric> //accumulate, inner_product
 
 #include <boost/circular_buffer.hpp>
 
