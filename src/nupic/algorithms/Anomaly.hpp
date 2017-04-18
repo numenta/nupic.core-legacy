@@ -112,10 +112,14 @@ namespace nupic
                        const std::vector<UInt>& predicted,
                        Real64 inputValue=0, UInt timestamp=0);
 
+        static Real getPrecision();
+
       private:
         AnomalyMode mode_;
         Real32 binaryThreshold_;
         std::unique_ptr<nupic::util::MovingAverage> movingAverage_;
+        static constexpr Real PRECISION = 10000; // 10^4 = we care only to about 4th decimal place
+
 
       };
     } // namespace anomaly

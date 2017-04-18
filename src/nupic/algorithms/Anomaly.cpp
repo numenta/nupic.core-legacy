@@ -20,15 +20,14 @@
  * ---------------------------------------------------------------------
  */
 
-#include <vector>
 #include <numeric>
 #include <algorithm>
 #include <iterator>
 #include <set>
+#include <math.h>
 
 #include "nupic/algorithms/Anomaly.hpp"
 #include "nupic/utils/Log.hpp"
-#include "nupic/utils/MovingAverage.hpp"
 
 using namespace std;
 
@@ -110,8 +109,15 @@ Real32 Anomaly::compute(
   {
     score = (score >= binaryThreshold_) ? 1.0 : 0.0;
   }
+  // round result (to avoid near zero rounding errors)
+  score = roundf(score*(1/PRECISION))/PRECISION;
 
   return score;
+}
+
+Real Anomaly::getPrecision()
+{
+  return 1.0/PRECISION;
 }
 
 } // namespace anomaly
