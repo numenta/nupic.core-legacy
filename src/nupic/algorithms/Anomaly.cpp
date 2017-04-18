@@ -83,7 +83,7 @@ Real32 Anomaly::compute(
     Real64 inputValue, UInt timestamp)
 {
   Real32 anomalyScore = computeRawAnomalyScore(active, predicted);
-  Real likelihood;
+  Real likelihood = 0.5;
   Real32 score = anomalyScore;
   switch(mode_)
   {
@@ -95,6 +95,7 @@ Real32 Anomaly::compute(
       score = likelihood;
       break;
     case AnomalyMode::WEIGHTED:
+      likelihood = likelihood_.anomalyProbability((Real)inputValue, (Real)anomalyScore, (int)timestamp);
       score = anomalyScore * likelihood;
       break;
   }
