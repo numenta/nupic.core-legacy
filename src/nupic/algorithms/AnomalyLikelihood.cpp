@@ -23,14 +23,7 @@
 #include <nupic/algorithms/AnomalyLikelihood.hpp>
 
 #include <iostream>
-#include <vector>
-#include <cassert>
-#include <cmath>
 #include <numeric> //accumulate, inner_product
-
-#include <boost/circular_buffer.hpp>
-
-#include <nupic/utils/MovingAverage.hpp>
 
 /**
 Note: this is an implementation from python in nupic repository. 
@@ -78,9 +71,10 @@ using namespace nupic;
 using namespace nupic::util;
 using namespace nupic::algorithms::anomaly;
 
-class AnomalyLikelihood {
-public:
-    //Constructors
+namespace nupic {
+  namespace algorithms {
+    namespace anomaly {
+
 
   /**
       NOTE: Anomaly likelihood scores are reported at a flat 0.5 for
@@ -114,7 +108,7 @@ public:
       processed.
 
   **/
-    AnomalyLikelihood(UInt learningPeriod=288, UInt estimationSamples=100, UInt historicWindowSize=8640, UInt reestimationPeriod=100, UInt aggregationWindow=10) :
+AnomalyLikelihood::AnomalyLikelihood(UInt learningPeriod, UInt estimationSamples, UInt historicWindowSize, UInt reestimationPeriod, UInt aggregationWindow) :
     learningPeriod(learningPeriod),
     reestimationPeriod(reestimationPeriod),
     averagedAnomaly(aggregationWindow) {
@@ -131,7 +125,7 @@ public:
     }
 
     
-    Real anomalyProbability(Real rawValue, Real anomalyScore, int timestamp=-1) { //TODO "rawValue" could be typed to T rawValue; //TODO is rawValue ever used?
+Real AnomalyLikelihood::anomalyProbability(Real rawValue, Real anomalyScore, int timestamp) { //TODO "rawValue" could be typed to T rawValue; //TODO is rawValue ever used?
     /**
     Compute the probability that the current value plus anomaly score represents
     an anomaly given the historical distribution of anomaly scores. The closer
@@ -168,7 +162,7 @@ public:
       // On a rolling basis we re-estimate the distribution
       if ( this->iteration == 0 || (this->iteration % this->reestimationPeriod) == 0  || this->distribution.name == "unknown" ) {
 
-        auto numSkipRecords = this->calcSkipRecords_(this->iteration, this->runningAverageAnomalies.capacity(), this->learningPeriod); //FIXME this erase (numSkipRecords) is a problem when we use sliding window (as opposed to vector)! - should we skip only once on beginning, or on each call of this fn?
+        auto numSkipRecords = calcSkipRecords_(this->iteration, this->runningAverageAnomalies.capacity(), this->learningPeriod); //FIXME this erase (numSkipRecords) is a problem when we use sliding window (as opposed to vector)! - should we skip only once on beginning, or on each call of this fn?
         estimateAnomalyLikelihoods(anomalies, numSkipRecords);  // called to update this->distribution;  
       }
     
@@ -181,19 +175,6 @@ public:
     return likelihood;
     }
     
-private:
-    UInt learningPeriod = 288;
-    UInt reestimationPeriod = 100;
-  
-    DistributionParams distribution ={ "unknown", 0.0, 0.0, 0.0};   
-    UInt probationaryPeriod;
-    UInt iteration;
-    MovingAverage averagedAnomaly; // running average of anomaly scores
-    boost::circular_buffer<Real> runningLikelihoods; // sliding window of the likelihoods
-    boost::circular_buffer<Real> runningRawAnomalyScores; 
-    boost::circular_buffer<Real> runningAverageAnomalies; //sliding window of running averages of anomaly scores
-    boost::circular_buffer<Real> runningRawValues; // sliding window of the raw values
-
 
 /**
 #
@@ -262,11 +243,11 @@ private:
 
 **/
   /** returns parameters of a Null distribution **/
-  DistributionParams nullDistribution() const {
+DistributionParams AnomalyLikelihood::nullDistribution() const {
     return DistributionParams("normal", 0.5, 1e6, 1e3);
-  }
+}
 
- Real32 tailProbability(Real32 x) const {
+Real32 AnomalyLikelihood::tailProbability(Real32 x) const {
  /**
   Given the normal distribution specified by the mean and standard deviation
   in distributionParams, return the probability of getting samples further
@@ -292,20 +273,7 @@ private:
   }
 
 
-inline Real  computeLogLikelihood(Real likelihood) const {
-  /**
-    Compute a log scale representation of the likelihood value. Since the
-    likelihood computations return low probabilities that often go into four 9's
-    or five 9's, a log value is more useful for visualization, thresholding,
-    etc.
-   **/
-    // The log formula is:
-    //     Math.log(1.0000000001 - likelihood) / Math.log(1.0 - 0.9999999999)
-    return log(1.0000000001f - likelihood) / -23.02585084720009f;
-}
-
-
-DistributionParams estimateNormal(vector<Real> sampleData, bool performLowerBoundCheck=true) {
+DistributionParams AnomalyLikelihood::estimateNormal(vector<Real> sampleData, bool performLowerBoundCheck) {
   /** 
   :param sampleData:
   :type sampleData: Numpy array.
@@ -343,17 +311,7 @@ DistributionParams estimateNormal(vector<Real> sampleData, bool performLowerBoun
   return params;
 }
 
-Real compute_mean(vector<Real> v) const { //TODO do we have a (more comp. stable) implementation of mean/variance?
-    Real sum = std::accumulate(v.begin(), v.end(), 0.0);
-    return sum / v.size();
-}
-
-Real compute_var(vector<Real> v, Real mean) const {
-    Real sq_sum = std::inner_product(v.begin(), v.end(), v.begin(), 0.0);
-    return sq_sum / v.size() - mean * mean;
-}
-
-vector<Real> filterLikelihoods_(vector<Real> likelihoods, Real redThreshold=0.99999, Real yellowThreshold=0.999) {
+static vector<Real> filterLikelihoods_(vector<Real> likelihoods, Real redThreshold=0.99999, Real yellowThreshold=0.999){ //TODO make the redThreshold params of AnomalyLikelihood constructor() 
   /**
   Filter the list of raw (pre-filtered) likelihoods so that we only preserve
   sharp increases in likelihood. 'likelihoods' can be a numpy array of floats or
@@ -388,29 +346,7 @@ vector<Real> filterLikelihoods_(vector<Real> likelihoods, Real redThreshold=0.99
 }
 
 
-inline UInt calcSkipRecords_(UInt numIngested, UInt windowSize, UInt learningPeriod) const {
-    /** Return the value of skipRecords for passing to estimateAnomalyLikelihoods 
-
-    If `windowSize` is very large (bigger than the amount of data) then this
-    could just return `learningPeriod`. But when some values have fallen out of
-    the historical sliding window of anomaly records, then we have to take those
-    into account as well so we return the `learningPeriod` minus the number
-    shifted out.
-
-    @param numIngested - (int) number of data points that have been added to the
-      sliding window of historical data points.
-    @param windowSize - (int) size of sliding window of historical data points.
-    @param learningPeriod - (int) the number of iterations required for the
-      algorithm to learn the basic patterns in the dataset and for the anomaly
-      score to 'settle down'.
-    **/
-    int diff = numIngested - (int)windowSize;
-    UInt numShiftedOut = max(0, diff);
-    return min(numIngested, max((UInt)0, learningPeriod - numShiftedOut));
-}
-
-
-vector<Real>  updateAnomalyLikelihoods(vector<Real> anomalyScores, UInt verbosity=0) { 
+vector<Real>  AnomalyLikelihood::updateAnomalyLikelihoods(vector<Real> anomalyScores, UInt verbosity) { 
   /**
   Compute updated probabilities for anomalyScores using the given params.
 
@@ -475,7 +411,7 @@ vector<Real>  updateAnomalyLikelihoods(vector<Real> anomalyScores, UInt verbosit
 }
 
 
-vector<Real> estimateAnomalyLikelihoods(vector<Real> anomalyScores, UInt skipRecords=0, UInt verbosity=0) { //FIXME averagingWindow not used, I guess it's not a sliding window, but aggregating window (discrete steps)!
+vector<Real> AnomalyLikelihood::estimateAnomalyLikelihoods(vector<Real> anomalyScores, UInt skipRecords, UInt verbosity) { //FIXME averagingWindow not used, I guess it's not a sliding window, but aggregating window (discrete steps)!
   /**
   Given a series of anomaly scores, compute the likelihood for each score. This
   function should be called once on a bunch of historical anomaly scores for an
@@ -566,15 +502,4 @@ vector<Real> estimateAnomalyLikelihoods(vector<Real> anomalyScores, UInt skipRec
   return filteredLikelihoods;
 }
 
-vector<Real> circularBufferToVector(boost::circular_buffer<Real> cb) const {
-  cb.linearize();
-  auto d1 = cb.array_one();
-  vector<Real> data(d1.first, d1.first+d1.second);
-  auto d2 = cb.array_two();
-  data.insert(end(data), d2.first, d2.first+d2.second);
-
-  assert(data.size() == cb.size() && data.front() == cb.front() && data.back() == cb.back() );
-  return data;
-}
-
-};
+}}} //ns
