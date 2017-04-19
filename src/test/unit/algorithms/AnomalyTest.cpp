@@ -153,8 +153,8 @@ TEST(Anomaly, SelectModePure)
   ASSERT_FLOAT_EQ(a.compute(active, predicted), 2.0 / 3.0);
 };
 
-
-TEST(Anomaly, SelectModeLikelihood)
+// Anomaly Likelihood tests
+TEST(AnomalyLikelihood, SelectModeLikelihood)
 {
   Anomaly a{0, AnomalyMode::LIKELIHOOD, 0};
   std::vector<UInt> active = {2, 3, 6};
@@ -162,7 +162,13 @@ TEST(Anomaly, SelectModeLikelihood)
   Real rawInputValue = 2.1; //the value is made up here
   int ts = 1; //timestamp
   Real likelihood = a.compute(active, predicted, rawInputValue, ts);
-  ASSERT_FLOAT_EQ(likelihood, 2.0 / 3.0);
+  ASSERT_FLOAT_EQ(likelihood, 0.5); //first (<=500) rounds likelihood=0.5
+
+  for(int i=0; i< 500; i++) {
+     likelihood = a.compute(active, predicted, rawInputValue, ++ts);
+  }
+  ASSERT_FLOAT_EQ(likelihood, 0.5); //TODO port likelihood tests here
+
 };
 
 
