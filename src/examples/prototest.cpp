@@ -41,7 +41,6 @@ using namespace nupic::algorithms::spatial_pooler;
 void testSP()
 {
   Random random(10);
-  nupic::Timer testTimer;
 
   const UInt inputSize = 500;
   const UInt numColumns = 500;
@@ -93,7 +92,7 @@ void testSP()
 
   SpatialPooler sp2;
 
-  long timeA = 0, timeC = 0;
+  Real64 timeA = 0.0, timeC = 0.0;
 
   for (UInt i = 0; i < 100; ++i)
   {
@@ -109,6 +108,7 @@ void testSP()
     {
       SpatialPooler spTemp;
 
+      nupic::Timer testTimer;
       testTimer.start();
 
       // Deserialize
@@ -138,6 +138,7 @@ void testSP()
     {
       SpatialPooler spTemp;
 
+      nupic::Timer testTimer;
       testTimer.start();
 
       // Deserialize
@@ -167,8 +168,8 @@ void testSP()
   remove("outA.proto");
   remove("outC.proto");
 
-  cout << "Time for iostream capnp: " << ((Real)timeA / 1000.0) << endl;
-  cout << "Time for old method: " << ((Real)timeC / 1000.0) << endl;
+  cout << "Time for iostream capnp: " << timeA << endl;
+  cout << "Time for old method: " << timeC << endl;
 }
 
 void testRandomIOStream(UInt n)
@@ -204,7 +205,7 @@ void testRandomIOStream(UInt n)
 
   remove("random2.proto");
 
-  cout << "Stream time: " << ((Real)testTimer.getElapsed() / 1000.0) << endl;
+  cout << "Stream time: " << testTimer.getElapsed() << endl;
 }
 
 void testRandomManual(UInt n)
@@ -240,7 +241,7 @@ void testRandomManual(UInt n)
 
   remove("random3.proto");
 
-  cout << "Manual time: " << ((Real)testTimer.getElapsed() / 1000.0) << endl;
+  cout << "Manual time: " << testTimer.getElapsed() << endl;
 }
 
 int main(int argc, const char * argv[])
