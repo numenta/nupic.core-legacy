@@ -678,6 +678,7 @@ if (NUPIC_BUILD_PYEXT_MODULES)
   if("${PLATFORM}" STREQUAL "windows")
     list(APPEND _SRC_SWIG_LINK_LIBRARIES
          ${PYTHON_LIBRARIES}
+    )
   endif()
 
   message(STATUS "_SRC_SWIG_EXTRA_DEPS     = ${_SRC_SWIG_EXTRA_DEPS}")
