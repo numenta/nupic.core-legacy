@@ -208,6 +208,12 @@ set(src_py_support_files
     nupic/bindings/PySparseTensor.cpp
 )
 
+# pycapnp integration
+if(NOT "${PLATFORM}" STREQUAL "windows")
+  list(APPEND src_py_support_files nupic/py_support/CapnpToPycapnp.cpp)
+endif()
+
+
 # List all .capnp files here. The C++ files will be generated and included
 # when compiling later on.
 set(src_capnp_specs_rel
