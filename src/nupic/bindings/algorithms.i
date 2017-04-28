@@ -35,8 +35,8 @@ except ImportError:
   capnp = None
 else:
   from nupic.proto.SpatialPoolerProto_capnp import SpatialPoolerProto
-  from nupic.proto.ClaClassifierProto_capnp import ClaClassifierProto
-  from nupic.proto.SdrClassifierProto_capnp import SdrClassifierProto
+  from nupic.proto.ClaClassifier_capnp import ClaClassifierProto
+  from nupic.proto.SdrClassifier_capnp import SdrClassifierProto
   from nupic.proto.ConnectionsProto_capnp import ConnectionsProto
   from nupic.proto.TemporalMemoryProto_capnp import TemporalMemoryProto
 
