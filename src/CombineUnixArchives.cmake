@@ -99,8 +99,9 @@ function(COMBINE_UNIX_ARCHIVES
     # if same-named objects exist in one archive.
     foreach(old_obj_file_path ${objects})
       get_filename_component(old_obj_file_name ${old_obj_file_path} NAME)
-      set(new_obj_file_path "${working_dir}/${basename}.${old_obj_file_name}")
+      set(new_obj_file_path "${working_dir}/${basename}-${old_obj_file_name}")
       file(RENAME ${old_obj_file_path} ${new_obj_file_path})
+      file(RELATIVE_PATH new_obj_file_path ${scratch_dir} ${new_obj_file_path})
       list(APPEND all_object_locations ${new_obj_file_path})
     endforeach()
   endforeach()
@@ -110,7 +111,7 @@ function(COMBINE_UNIX_ARCHIVES
   message(STATUS "ZZZ COMBINE_UNIX_ARCHIVES: TARGET_LOCATION=${TARGET_LOCATION},
           all_object_locations=${all_object_locations}")
   execute_process(COMMAND ${CMAKE_AR} rcs ${TARGET_LOCATION} ${all_object_locations}
-                  RESULT_VARIABLE exe_result)
+                  WORKING_DIRECTORY ${scratch_dir} RESULT_VARIABLE exe_result)
   if(NOT "${exe_result}" STREQUAL "0")
     message(FATAL_ERROR "COMBINE_UNIX_ARCHIVES: archive construction process failed exe_result='${exe_result}'")
   endif()
