@@ -233,7 +233,7 @@ void __Pyx_call_destructor(T* x) {
 #include <math.h>
 #define __PYX_HAVE__capnpToPycapnp
 #define __PYX_HAVE_API__capnpToPycapnp
-#include "capnp/helpers/checkCompiler.h"
+//#include "capnp/helpers/checkCompiler.h"
 #include "stdint.h"
 //#include "capnp/helpers/capabilityHelper.h"
 //#include "capnp/helpers/rpcHelper.h"
@@ -264,8 +264,8 @@ void __Pyx_call_destructor(T* x) {
 //#include "capnp/rpc-twoparty.h"
 #include "capnp/schema-parser.h"
 #include "capnp/orphan.h"
-#include "capnp/helpers/fixMaybe.h"
-#include "capnp/helpers/serialize.h"
+//#include "capnp/helpers/fixMaybe.h"
+//#include "capnp/helpers/serialize.h"
 #ifdef _OPENMP
 #include <omp.h>
 #endif /* _OPENMP */
