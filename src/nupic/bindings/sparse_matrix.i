@@ -27,9 +27,7 @@
 #include <nupic/math/NearestNeighbor.hpp>
 #include <nupic/proto/SparseMatrixProto.capnp.h>
 #include <nupic/proto/SparseBinaryMatrixProto.capnp.h>
-#if !CAPNP_LITE
 #include <nupic/py_support/PyCapnp.hpp>
-#endif
 #include <nupic/py_support/NumpyVector.hpp>
 #include <nupic/py_support/PythonStream.hpp>
 

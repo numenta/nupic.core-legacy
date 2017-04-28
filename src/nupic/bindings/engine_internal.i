@@ -79,9 +79,7 @@ else:
 
 #include <nupic/proto/NetworkProto.capnp.h>
 
-#if !CAPNP_LITE
 #include <nupic/py_support/PyCapnp.hpp>
-#endif
 
 #include <nupic/engine/Input.hpp>
 #include <nupic/engine/Link.hpp>

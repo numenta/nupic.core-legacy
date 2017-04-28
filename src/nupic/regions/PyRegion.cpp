@@ -47,9 +47,7 @@
 #include <nupic/utils/Log.hpp>
 #include <nupic/os/Path.hpp>
 #include <nupic/py_support/PyArray.hpp>
-#if !CAPNP_LITE
 #include <nupic/py_support/PyCapnp.hpp>
-#endif
 
 using namespace nupic;
 using ::capnp::DynamicStruct;
