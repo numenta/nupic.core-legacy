@@ -107,6 +107,8 @@ function(COMBINE_UNIX_ARCHIVES
 
   # Generate the target static library from all source objects
   file(TO_NATIVE_PATH ${TARGET_LOCATION} TARGET_LOCATION)
+  message(STATUS "ZZZ COMBINE_UNIX_ARCHIVES: TARGET_LOCATION=${TARGET_LOCATION},
+          all_object_locations=${all_object_locations}")
   execute_process(COMMAND ${CMAKE_AR} rcs ${TARGET_LOCATION} ${all_object_locations}
                   RESULT_VARIABLE exe_result)
   if(NOT "${exe_result}" STREQUAL "0")
