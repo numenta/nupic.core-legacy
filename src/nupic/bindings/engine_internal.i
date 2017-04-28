@@ -23,6 +23,19 @@
 %module(package="bindings") engine_internal
 %include <nupic/bindings/exception.i>
 
+
+%pythoncode %{
+
+try:
+  # NOTE need to import capnp first to activate the magic necessary for
+  # NetworkProto_capnp, etc.
+  import capnp
+except ImportError:
+  capnp = None
+else:
+  from nupic.proto.NetworkProto_capnp import NetworkProto
+%}
+
 %{
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
@@ -79,6 +92,8 @@
 
 #include <yaml-cpp/yaml.h>
 %}
+
+
 
 %pythoncode %{
 
@@ -205,6 +220,7 @@ class IterablePair(object):
 %template(Real32ArrayRef) nupic::PyArrayRef<nupic::Real32>;
 %template(BoolArrayRef) nupic::PyArrayRef<bool>;
 
+
 %extend nupic::Timer
 {
   // Extend here (engine_internal) rather than nupic.engine because
@@ -258,24 +274,35 @@ class IterablePair(object):
       instance = cls()
       instance.convertedRead(proto)
       return instance
+
+    def write(self, pyBuilder):
+      """Serialize the Network instance using capnp.
+
+      :param: Destination NetworkProto message builder
+      """
+      reader = NetworkProto.from_bytes(self._writeAsCapnpPyBytes()) # copy
+      pyBuilder.from_dict(reader.to_dict())  # copy
+
+
+    def convertedRead(self, proto):
+      """Initialize the Network instance from the given NetworkProto
+      reader.
+
+      :param proto: NetworkProto message reader containing data from a
+                    previously serialized Network instance.
+
+      """
+      self._initFromCapnpPyBytes(proto.as_builder().to_bytes()) # copy * 2
   %}
 
-  inline void write(PyObject* pyBuilder) const
+  inline PyObject* _writeAsCapnpPyBytes() const
   {
-  %#if !CAPNP_LITE
-    NetworkProto::Builder proto =
-        nupic::getBuilder<NetworkProto>(pyBuilder);
-    self->write(proto);
-  %#endif
+    return nupic::PyCapnpHelper::writeAsPyBytes(*self);
   }
 
-  inline void convertedRead(PyObject* pyReader)
+  inline void _initFromCapnpPyBytes(PyObject* pyBytes)
   {
-  %#if !CAPNP_LITE
-    NetworkProto::Reader proto =
-        nupic::getReader<NetworkProto>(pyReader);
-    self->read(proto);
-  %#endif
+    nupic::PyCapnpHelper::initFromPyBytes(*self, pyBytes);
   }
 }
 

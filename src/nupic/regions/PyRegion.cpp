@@ -518,7 +518,7 @@ void PyRegion::read(capnp::AnyPointer::Reader& proto)
 
   py::Dict kwargs;
 
-  // Instantiate a class and assign it  to the node_ member
+  // Instantiate a class and assign it to the node_ member
   py::Class *cls = new py::Class(module_, realClassName);
 
   // Call the classmethod "read" on it and assign the created instance to the node_ member

@@ -37,6 +37,16 @@
 
 %pythoncode %{
 import numbers
+
+try:
+	# NOTE need to import capnp first to activate the magic necessary for
+	# NetworkProto_capnp, etc.
+	import capnp
+except ImportError:
+	capnp = None
+else:
+	from nupic.proto.SparseMatrixProto_capnp import SparseMatrixProto
+	from nupic.proto.SparseBinaryMatrixProto_capnp import SparseBinaryMatrixProto
 %}
 
 
@@ -409,6 +419,23 @@ def __div__(self, other):
     return result
   else:
     raise Exception("Can't use type: " + t)
+
+def write(self, pyBuilder):
+	"""Serialize the SparseMatrix instance using capnp.
+
+	:param: Destination SparseMatrixProto message builder
+	"""
+	reader = SparseMatrixProto.from_bytes(self._writeAsCapnpPyBytes()) # copy
+	pyBuilder.from_dict(reader.to_dict())  # copy
+
+def read(self, proto):
+	"""Initialize the SparseMatrix instance from the given SparseMatrixProto
+	reader.
+
+	:param proto: SparseMatrixProto message reader containing data from a previously
+								serialized SparseMatrix instance.
+	"""
+	self._initFromCapnpPyBytes(proto.as_builder().to_bytes()) # copy * 2
 %}
 
   void __initializeWithRows(const SparseMatrix ##N2& other, PyObject* py_take)
@@ -489,29 +516,15 @@ def __div__(self, other):
     load_file.close();
   }
 
-  inline void write(PyObject* pyBuilder) const
-  {
-  %#if !CAPNP_LITE
-    SparseMatrixProto::Builder proto =
-        nupic::getBuilder<SparseMatrixProto>(pyBuilder);
-    self->write(proto);
-  %#else
-    throw std::logic_error(
-        "SparseMatrix.write is not implemented when compiled with CAPNP_LITE=1.");
-  %#endif
-  }
+	inline PyObject* _writeAsCapnpPyBytes() const
+	{
+		return nupic::PyCapnpHelper::writeAsPyBytes(*self);
+	}
 
-  inline void read(PyObject* pyReader)
-  {
-  %#if !CAPNP_LITE
-    SparseMatrixProto::Reader proto =
-        nupic::getReader<SparseMatrixProto>(pyReader);
-    self->read(proto);
-  %#else
-    throw std::logic_error(
-        "SparseMatrix.read is not implemented when compiled with CAPNP_LITE=1.");
-  %#endif
-  }
+	inline void _initFromCapnpPyBytes(PyObject* pyBytes)
+	{
+		nupic::PyCapnpHelper::initFromPyBytes(*self, pyBytes);
+	}
 
   void addRow(PyObject *row)
   {
@@ -2949,6 +2962,25 @@ def __setstate__(self, inString):
     self.this = _MATH.new__SM_01_32_16(1)
     self.thisown = 1
     self.fromCSR(inString)
+
+def write(self, pyBuilder):
+	"""Serialize the SparseBinaryMatrix instance using capnp.
+
+	:param: Destination SparseBinaryMatrixProto message builder
+	"""
+	reader = SparseBinaryMatrixProto.from_bytes(self._writeAsCapnpPyBytes()) # copy
+	pyBuilder.from_dict(reader.to_dict())  # copy
+
+def read(self, proto):
+	"""Initialize the SparseBinaryMatrix instance from the given SparseBinaryMatrixProto
+	reader.
+
+	:param proto: SparseBinaryMatrixProto message reader containing data from a previously
+								serialized SparseBinaryMatrix instance.
+
+	"""
+	self._initFromCapnpPyBytes(proto.as_builder().to_bytes()) # copy * 2
+
 %}
 
   PyObject* __getstate__()
@@ -3230,29 +3262,15 @@ def __setstate__(self, inString):
     load_file.close();
   }
 
-  inline void write(PyObject* pyBuilder) const
-  {
-  %#if !CAPNP_LITE
-    SparseBinaryMatrixProto::Builder proto =
-        nupic::getBuilder<SparseBinaryMatrixProto>(pyBuilder);
-    self->write(proto);
-  %#else
-    throw std::logic_error(
-        "SparseBinaryMatrix.write is not implemented when compiled with CAPNP_LITE=1.");
-  %#endif
-  }
+	inline PyObject* _writeAsCapnpPyBytes() const
+	{
+		return nupic::PyCapnpHelper::writeAsPyBytes(*self);
+	}
 
-  inline void read(PyObject* pyReader)
-  {
-  %#if !CAPNP_LITE
-    SparseBinaryMatrixProto::Reader proto =
-        nupic::getReader<SparseBinaryMatrixProto>(pyReader);
-    self->read(proto);
-  %#else
-    throw std::logic_error(
-        "SparseBinaryMatrix.read is not implemented when compiled with CAPNP_LITE=1.");
-  %#endif
-  }
+	inline void _initFromCapnpPyBytes(PyObject* pyBytes)
+	{
+		nupic::PyCapnpHelper::initFromPyBytes(*self, pyBytes);
+	}
 
   inline void fromSparseVector(nupic::UInt32 nrows, nupic::UInt16 ncols,
 			       PyObject *py_x, nupic::UInt16 offset =0)
@@ -3455,6 +3473,24 @@ def __setstate__(self, inString):
     self.this = _MATH.new__SM_01_32_32(1)
     self.thisown = 1
     self.fromCSR(inString)
+
+def write(self, pyBuilder):
+	"""Serialize the SparseBinaryMatrix instance using capnp.
+
+	:param: Destination SparseBinaryMatrixProto message builder
+	"""
+	reader = SparseBinaryMatrixProto.from_bytes(self._writeAsCapnpPyBytes()) # copy
+	pyBuilder.from_dict(reader.to_dict())  # copy
+
+def read(self, proto):
+	"""Initialize the SparseBinaryMatrix instance from the given SparseBinaryMatrixProto
+	reader.
+
+	:param proto: SparseBinaryMatrixProto message reader containing data from a previously
+								serialized SparseBinaryMatrix instance.
+
+	"""
+	self._initFromCapnpPyBytes(proto.as_builder().to_bytes()) # copy * 2
 %}
 
   PyObject* __getstate__()
@@ -3759,29 +3795,15 @@ def __setstate__(self, inString):
     load_file.close();
   }
 
-  inline void write(PyObject* pyBuilder) const
-  {
-  %#if !CAPNP_LITE
-    SparseBinaryMatrixProto::Builder proto =
-        nupic::getBuilder<SparseBinaryMatrixProto>(pyBuilder);
-    self->write(proto);
-  %#else
-    throw std::logic_error(
-        "SparseBinaryMatrix.write is not implemented when compiled with CAPNP_LITE=1.");
-  %#endif
-  }
+	inline PyObject* _writeAsCapnpPyBytes() const
+	{
+		return nupic::PyCapnpHelper::writeAsPyBytes(*self);
+	}
 
-  inline void read(PyObject* pyReader)
-  {
-  %#if !CAPNP_LITE
-    SparseBinaryMatrixProto::Reader proto =
-        nupic::getReader<SparseBinaryMatrixProto>(pyReader);
-    self->read(proto);
-  %#else
-    throw std::logic_error(
-        "SparseBinaryMatrix.read is not implemented when compiled with CAPNP_LITE=1.");
-  %#endif
-  }
+	inline void _initFromCapnpPyBytes(PyObject* pyBytes)
+	{
+		nupic::PyCapnpHelper::initFromPyBytes(*self, pyBytes);
+	}
 
   inline void fromSparseVector(nupic::UInt32 nrows, nupic::UInt32 ncols,
 			       PyObject *py_x, nupic::UInt32 offset =0)

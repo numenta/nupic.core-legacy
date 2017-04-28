@@ -1,6 +1,6 @@
 # ----------------------------------------------------------------------
 # Numenta Platform for Intelligent Computing (NuPIC)
-# Copyright (C) 2013-2016, Numenta, Inc.  Unless you have an agreement
+# Copyright (C) 2013-2017, Numenta, Inc.  Unless you have an agreement
 # with Numenta, Inc., for a separate license for this software code, the
 # following terms and conditions apply:
 #
@@ -19,6 +19,9 @@
 # http://numenta.org/licenses/
 # ----------------------------------------------------------------------
 
+
+# TODO ZZZ Don't need the rest of this once capnproto is linked into extensions!
+# But keep the file header!
 
 # The build prepends this module verbatim to each nupic.bindings python
 # extension proxy module to load pycapnp's extension shared library in global
