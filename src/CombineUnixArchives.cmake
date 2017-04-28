@@ -99,7 +99,7 @@ function(COMBINE_UNIX_ARCHIVES
     # if same-named objects exist in one archive.
     foreach(old_obj_file_path ${objects})
       get_filename_component(old_obj_file_name ${old_obj_file_path} NAME)
-      set(new_obj_file_path "${working_dir}/${basename}-${old_obj_file_name}")
+      set(new_obj_file_path "${working_dir}/${basename}.${old_obj_file_name}")
       file(RENAME ${old_obj_file_path} ${new_obj_file_path})
       list(APPEND all_object_locations ${new_obj_file_path})
     endforeach()
