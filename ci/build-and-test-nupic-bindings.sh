@@ -116,7 +116,7 @@ cmake ${NUPIC_CORE_ROOT} \
     -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
     ${EXTRA_CMAKE_DEFINITIONS} \
     -DCMAKE_INSTALL_PREFIX=${NUPIC_CORE_ROOT}/build/release \
-    -DPY_EXTENSIONS_DIR=${NUPIC_CORE_ROOT}/bindings/py/nupic/bindings
+    -DPY_EXTENSIONS_DIR=${NUPIC_CORE_ROOT}/bindings/py/staging/nupic/bindings
 
 # Build nupic.core
 make install
