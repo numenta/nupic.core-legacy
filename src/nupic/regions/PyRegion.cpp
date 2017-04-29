@@ -30,9 +30,6 @@
 #include <cstring> // std::memcpy
 
 #include <capnp/any.h>
-#if !CAPNP_LITE
-#include <capnp/dynamic.h>
-#endif
 
 #include <nupic/engine/Spec.hpp>
 #include <nupic/engine/Region.hpp>
@@ -51,7 +48,6 @@
 #include <nupic/py_support/PyCapnp.hpp>
 
 using namespace nupic;
-using ::capnp::DynamicStruct;
 
 #define LAST_ERROR_LENGTH 1024
 static char lastError[LAST_ERROR_LENGTH];
