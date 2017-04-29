@@ -27,6 +27,7 @@
 #include <iostream>
 #include <sstream>
 #include <memory>
+#include <cstring> // std::memcpy
 
 #include <capnp/any.h>
 #if !CAPNP_LITE
