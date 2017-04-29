@@ -204,14 +204,8 @@ set(src_py_support_files
     nupic/py_support/PyArray.cpp
     nupic/py_support/PyHelpers.cpp
     nupic/py_support/PythonStream.cpp
-    nupic/py_support/PyCapnp.cpp
     nupic/bindings/PySparseTensor.cpp
 )
-
-# pycapnp integration
-if(NOT "${PLATFORM}" STREQUAL "windows")
-  list(APPEND src_py_support_files nupic/py_support/CapnpToPycapnp.cpp)
-endif()
 
 
 # List all .capnp files here. The C++ files will be generated and included
@@ -654,17 +648,9 @@ if (NUPIC_BUILD_PYEXT_MODULES)
   # Set up linker flags for python extension shared libraries
   set(_SRC_SWIG_EXTENSION_LINK_FLAGS "${PYEXT_LINKER_FLAGS_OPTIMIZED}")
 
-  # NOTE Non-Windows Python extensions shouldn't be linking agains libpython;
+  # NOTE Non-Windows Python extensions shouldn't be linking against libpython;
   # symbols should be available automatically when python loads the extension.
   #
-  # NOTE We don't link our non-Windows python extensions with capnproto static
-  # lib in order to force runtime linkage to pycapnp's capnproto symbols thus
-  # avoiding the conflict of executing the methods in our own
-  # compilation of capnproto (different compiler/STL/version, flags, etc.) on
-  # objects created by pycapnp's. We force runtime linking to pycapnp's
-  # capnproto symbols by preloading the pycapnp extension in our extension
-  # python proxy modules, thus avoiding the conflict from executing the methods
-  # in our own compilation of capnproto on objects created by pycapnp's.
   set(_SRC_SWIG_LINK_LIBRARIES
       ${src_lib_static_nupiccore_combined}
       ${src_common_os_libs})
@@ -679,7 +665,7 @@ if (NUPIC_BUILD_PYEXT_MODULES)
   # platform
   #
   # NOTE On Windows nupic.bindings builds we presently build self-contained
-  # CAPNP_LITE on Windows, and Windows nupic/nupic.bindings presently has no
+  # CAPNP_LITE, and Windows nupic/nupic.bindings presently has no
   # dependency on pycapnp.
   if("${PLATFORM}" STREQUAL "windows")
     list(APPEND _SRC_SWIG_LINK_LIBRARIES
@@ -696,8 +682,7 @@ if (NUPIC_BUILD_PYEXT_MODULES)
            MODULE_NAME)
     # Add a custom command to the Swig target to prepend boilerplate to the
     # swig-generated python proxy module
-    # ${CMAKE_SWIG_OUTDIR}/${MODULE_NAME}.py. The boilerplate preloads
-    # the pycapnp extension shared library on Unix platforms.
+    # ${CMAKE_SWIG_OUTDIR}/${MODULE_NAME}.py.
     #
     # :param MODULE_NAME: the custom command will be added to the target
     #   corresponding to this Swig module name.

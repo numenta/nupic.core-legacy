@@ -37,8 +37,6 @@
   #include <capnp/dynamic.h>
   #include <capnp/message.h>
   #include <capnp/schema-parser.h>
-
-  #include <nupic/py_support/CapnpToPycapnp.hpp>
 #endif // !CAPNP_LITE
 
 #include <nupic/types/Serializable.hpp>
@@ -135,14 +133,6 @@ namespace nupic
     }
 
   }; // class PyCapnpHelper
-
-
-  // TODO ZZZ Get rid of the schema converters once byte-buffer-passing
-  // implementation is fully integrated.
-#if !CAPNP_LITE
-  PyObject* getPyReader(capnp::DynamicStruct::Reader reader);
-  PyObject* getPyBuilder(capnp::DynamicStruct::Builder builder);
-#endif
 
 }  // namespace nupic
 

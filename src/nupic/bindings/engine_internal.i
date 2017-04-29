@@ -34,6 +34,7 @@ except ImportError:
   capnp = None
 else:
   from nupic.proto.NetworkProto_capnp import NetworkProto
+  from nupic.proto.PyRegionProto_capnp import PyRegionProto
 %}
 
 %{
@@ -316,3 +317,48 @@ class nupic::OS
 public:
   static void OS::getProcessMemoryUsage(size_t& OUTPUT, size_t& OUTPUT);
 };
+
+
+
+%pythoncode %{
+
+class _PyCapnpHelper(object):
+  """Only for use by the extension layer. Wraps certain serialization requests
+  from the C++ extension to the python layer to simplify python-side
+  implementation
+  """
+
+  @staticmethod
+  def writePyRegion(region, methodName):
+    """ Serialize the given python region using the given method name
+
+    :param region: Python region instance
+    :param methodName: Name of method to invoke on the region to serialize it.
+
+    :returns: Data bytes corresponding to the serialized PyRegionProto message
+    """
+    builderProto = PyRegionProto.new_message()
+    # Serialize
+    getattr(region, methodName)(builderProto)
+
+    return builderProto.to_bytes()
+
+
+  @staticmethod
+  def readPyRegion(pyRegionProtoBytes, regionCls, methodName):
+    """ Deserialize the given python region data bytes using the given method
+    name on the given class
+
+    :param pyRegionProtoBytes: data bytes string corresponding to the
+                               PyRegionProto message.
+    :param regionCls: Python region class
+    :param methodName: Name of method to invoke on the region to deserialize it.
+
+    :returns: The deserialized python region instance.
+    """
+    pyRegionProto = PyRegionProto.from_bytes(pyRegionProtoBytes)
+
+    return getattr(regionCls, methodName)(pyRegionProto)
+
+
+%} // pythoncode
