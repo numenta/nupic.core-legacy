@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # ----------------------------------------------------------------------
 # Numenta Platform for Intelligent Computing (NuPIC)
-# Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
+# Copyright (C) 2017, Numenta, Inc.  Unless you have an agreement
 # with Numenta, Inc., for a separate license for this software code, the
 # following terms and conditions apply:
 #
@@ -50,15 +50,16 @@ class TestNupicRandom(unittest.TestCase):
     """Test capnp serialization of NuPIC randomness."""
 
     # Simple test: make sure that dumping / loading works...
-    r = Random(42)
+    r = Random(99)
 
     builderProto = RandomProto.new_message()
     r.write(builderProto)
     readerProto = RandomProto.from_bytes(builderProto.to_bytes())
 
     test1 = [r.getUInt32() for _ in xrange(10)]
-    r = Random();
+    r = Random(1);
     r.read(readerProto)
+    self.assertEqual(r.getSeed(), 99)
     test2 = [r.getUInt32() for _ in xrange(10)]
 
     self.assertEqual(test1, test2,
@@ -75,6 +76,7 @@ class TestNupicRandom(unittest.TestCase):
     test3 = [r.getUInt32() for _ in xrange(10)]
     r = Random();
     r.read(readerProto)
+    self.assertEqual(r.getSeed(), 99)
     test4 = [r.getUInt32() for _ in xrange(10)]
 
     self.assertEqual(
