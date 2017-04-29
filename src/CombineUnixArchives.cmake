@@ -101,6 +101,8 @@ function(COMBINE_UNIX_ARCHIVES
       get_filename_component(old_obj_file_name ${old_obj_file_path} NAME)
       set(new_obj_file_path "${working_dir}/${basename}-${old_obj_file_name}")
       file(RENAME ${old_obj_file_path} ${new_obj_file_path})
+      # Use relative paths to work around too-long command failure when building
+      # on Windows in AppVeyor
       file(RELATIVE_PATH new_obj_file_path ${scratch_dir} ${new_obj_file_path})
       list(APPEND all_object_locations ${new_obj_file_path})
     endforeach()
@@ -108,8 +110,6 @@ function(COMBINE_UNIX_ARCHIVES
 
   # Generate the target static library from all source objects
   file(TO_NATIVE_PATH ${TARGET_LOCATION} TARGET_LOCATION)
-  message(STATUS "ZZZ COMBINE_UNIX_ARCHIVES: TARGET_LOCATION=${TARGET_LOCATION},
-          all_object_locations=${all_object_locations}")
   execute_process(COMMAND ${CMAKE_AR} rcs ${TARGET_LOCATION} ${all_object_locations}
                   WORKING_DIRECTORY ${scratch_dir} RESULT_VARIABLE exe_result)
   if(NOT "${exe_result}" STREQUAL "0")
