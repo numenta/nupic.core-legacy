@@ -100,7 +100,7 @@ class SerializationTestPyRegion(PyRegion):
     return obj
 
 
-  def initialize(self, dims, splitterMaps):
+  def initialize(self, dims=None, splitterMaps=None):
     pass
 
 
