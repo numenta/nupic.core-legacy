@@ -49,8 +49,7 @@ def main():
   for i in xrange(_SERIALIZATION_LOOPS):
     r.write(builderProto)
 
-  endSerializationTime = time.time()
-  elapsedSerializationTime = endSerializationTime - startSerializationTime
+  elapsedSerializationTime = time.time() - startSerializationTime
 
 
   readerProto = RandomProto.from_bytes(builderProto.to_bytes())
@@ -60,10 +59,9 @@ def main():
   startDeserializationTime = time.time()
 
   for i in xrange(_DESERIALIZATION_LOOPS):
-    r.read(readerProto)
+    print r.read(readerProto)
 
-  endDeserializationTime = time.time()
-  elapsedDeserializationTime = endDeserializationTime - startDeserializationTime
+  elapsedDeserializationTime = time.time() - startDeserializationTime
 
   # Print report
   print _SERIALIZATION_LOOPS, "Serialization loops in", \
