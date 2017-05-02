@@ -168,8 +168,9 @@ void testSP()
   remove("outA.proto");
   remove("outC.proto");
 
-  cout << "Time for iostream capnp: " << timeA << endl;
-  cout << "Time for old method: " << timeC << endl;
+  cout << "Timing for SpatialPooler serialization (smaller is better):" << endl;
+  cout << "Cap'n Proto: " << timeA << endl;
+  cout << "Manual: " << timeC << endl;
 }
 
 void testRandomIOStream(UInt n)
@@ -205,7 +206,7 @@ void testRandomIOStream(UInt n)
 
   remove("random2.proto");
 
-  cout << "Stream time: " << testTimer.getElapsed() << endl;
+  cout << "Cap'n Proto: " << testTimer.getElapsed() << endl;
 }
 
 void testRandomManual(UInt n)
@@ -241,12 +242,13 @@ void testRandomManual(UInt n)
 
   remove("random3.proto");
 
-  cout << "Manual time: " << testTimer.getElapsed() << endl;
+  cout << "Manual: " << testTimer.getElapsed() << endl;
 }
 
 int main(int argc, const char * argv[])
 {
   UInt n = 1000;
+  cout << "Timing for Random serialization (smaller is better):" << endl;
   testRandomIOStream(n);
   testRandomManual(n);
 
