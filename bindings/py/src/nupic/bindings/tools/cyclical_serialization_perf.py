@@ -20,17 +20,21 @@
 # http://numenta.org/licenses/
 # ----------------------------------------------------------------------
 
-"""Capnp serialization performance test of the extension-based Random class.
+"""Capnp serialization performance test that involves a network that contains
+a simple PyRegion which in turn contains an extension-based Random instance.
 """
 
+import json
 import time
 
 # NOTE need to import capnp first to activate the magic necessary for
-# RandomProto_capnp, etc.
+# NetworkProto_capnp, etc.
 import capnp
-from nupic.proto.RandomProto_capnp import RandomProto
+from nupic.proto.NetworkProto_capnp import NetworkProto
 
-from nupic.bindings.math import Random
+import nupic.bindings.engine_internal as engine
+from nupic.bindings.tools.serialization_test_py_region import \
+     SerializationTestPyRegion
 
 
 
@@ -39,29 +43,33 @@ _DESERIALIZATION_LOOPS = 100000
 
 
 
-def main():
-  """Measure capnp serialization performance of Random
-  """
-  r = Random(42)
+def _runTest():
+  net = engine.Network()
+  net.addRegion(SerializationTestPyRegion.__name__,
+                "py." + SerializationTestPyRegion.__name__,
+                json.dumps({
+                  "dataWidth": 128,
+                  "randomSeed": 99,
+                }))
 
   # Measure serialization
   startSerializationTime = time.time()
 
-  builderProto = RandomProto.new_message()
+  builderProto = NetworkProto.new_message()
   for i in xrange(_SERIALIZATION_LOOPS):
-    r.write(builderProto)
+    net.write(builderProto)
 
   elapsedSerializationTime = time.time() - startSerializationTime
 
 
-  readerProto = RandomProto.from_bytes(builderProto.to_bytes())
+  readerProto = NetworkProto.from_bytes(builderProto.to_bytes())
 
 
   # Measure deserialization
   startDeserializationTime = time.time()
 
   for i in xrange(_DESERIALIZATION_LOOPS):
-    r.read(readerProto)
+    net.read(readerProto)
 
   elapsedDeserializationTime = time.time() - startDeserializationTime
 
@@ -73,6 +81,20 @@ def main():
   print _DESERIALIZATION_LOOPS, "Deserialization loops in", \
         elapsedDeserializationTime, "seconds."
   print "\t", elapsedDeserializationTime/_DESERIALIZATION_LOOPS, "seconds per loop."
+
+
+
+def main():
+  """Measure capnp serialization performance of a network containing a simple
+  python region that in-turn contains a Random instance.
+  """
+  engine.Network.registerPyRegion(__name__,
+                                    SerializationTestPyRegion.__name__)
+
+  try:
+    _runTest()
+  finally:
+    engine.Network.unregisterPyRegion(SerializationTestPyRegion.__name__)
 
 if __name__ == "__main__":
   main()
