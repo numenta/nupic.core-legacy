@@ -59,7 +59,7 @@ def main():
   startDeserializationTime = time.time()
 
   for i in xrange(_DESERIALIZATION_LOOPS):
-    print r.read(readerProto)
+    r.read(readerProto)
 
   elapsedDeserializationTime = time.time() - startDeserializationTime
 
