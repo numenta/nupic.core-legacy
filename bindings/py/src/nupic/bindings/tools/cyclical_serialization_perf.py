@@ -69,7 +69,7 @@ def _runTest():
   startDeserializationTime = time.time()
 
   for i in xrange(_DESERIALIZATION_LOOPS):
-    net.read(readerProto)
+    engine.Network.read(readerProto)
 
   elapsedDeserializationTime = time.time() - startDeserializationTime
 
