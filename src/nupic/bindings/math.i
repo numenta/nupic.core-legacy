@@ -25,13 +25,13 @@
 
 %pythoncode %{
 try:
-	# NOTE need to import capnp first to activate the magic necessary for
-	# RandomProto_capnp, etc.
-	import capnp
+  # NOTE need to import capnp first to activate the magic necessary for
+  # RandomProto_capnp, etc.
+  import capnp
 except ImportError:
-	capnp = None
+  capnp = None
 else:
-	from nupic.proto.RandomProto_capnp import RandomProto
+  from nupic.proto.RandomProto_capnp import RandomProto
 
 _MATH = _math
 %}
@@ -149,7 +149,7 @@ import_array();
   {
     nupic::NumpyVectorT<nupic::Real32> x(py_x), y(x.size());
     nupic::quantize(x.begin(), x.end(), y.begin(), y.end(),
-		  x_min, x_max, 1, 255);
+                    x_min, x_max, 1, 255);
     return y.forPython();
   }
 
@@ -157,7 +157,7 @@ import_array();
   {
     nupic::NumpyVectorT<nupic::Real32> x(py_x), y(x.size());
     nupic::quantize(x.begin(), x.end(), y.begin(), y.end(),
-		  x_min, x_max, 1, 65535);
+                    x_min, x_max, 1, 65535);
     return y.forPython();
   }
   */
@@ -168,7 +168,7 @@ import_array();
     std::vector<int> ind;
     std::vector<nupic::Real32> nz;
     nupic::winnerTakesAll3(k, seg_size, x.begin(), x.end(),
-		    std::back_inserter(ind), std::back_inserter(nz));
+        std::back_inserter(ind), std::back_inserter(nz));
     PyObject *toReturn = PyTuple_New(2);
     PyTuple_SET_ITEM(toReturn, 0, nupic::PyInt32Vector(ind.begin(), ind.end()));
     PyTuple_SET_ITEM(toReturn, 1, nupic::PyFloatVector(nz.begin(), nz.end()));
@@ -196,22 +196,22 @@ def __setstate__(self, state):
 
 
 def write(self, pyBuilder):
-	"""Serialize the Random instance using capnp.
+  """Serialize the Random instance using capnp.
 
-	:param: Destination RandomProto message builder
-	"""
-	reader = RandomProto.from_bytes(self._writeAsCapnpPyBytes()) # copy
-	pyBuilder.from_dict(reader.to_dict())  # copy
+  :param: Destination RandomProto message builder
+  """
+  reader = RandomProto.from_bytes(self._writeAsCapnpPyBytes()) # copy
+  pyBuilder.from_dict(reader.to_dict())  # copy
 
 
 def read(self, proto):
-	"""Initialize the Random instance from the given RandomProto reader.
+  """Initialize the Random instance from the given RandomProto reader.
 
-	:param proto: RandomProto message reader containing data from a previously
-								serialized Random instance.
+  :param proto: RandomProto message reader containing data from a previously
+                serialized Random instance.
 
-	"""
-	self._initFromCapnpPyBytes(proto.as_builder().to_bytes()) # copy * 2
+  """
+  self._initFromCapnpPyBytes(proto.as_builder().to_bytes()) # copy * 2
 
 %}
 
@@ -379,12 +379,12 @@ inline PyObject* shuffle(PyObject* obj)
 
 inline PyObject* _writeAsCapnpPyBytes() const
 {
-	return nupic::PyCapnpHelper::writeAsPyBytes(*self);
+  return nupic::PyCapnpHelper::writeAsPyBytes(*self);
 }
 
 inline void _initFromCapnpPyBytes(PyObject* pyBytes)
 {
-	nupic::PyCapnpHelper::initFromPyBytes(*self, pyBytes);
+  nupic::PyCapnpHelper::initFromPyBytes(*self, pyBytes);
 }
 
 } // End extend nupic::Random.
