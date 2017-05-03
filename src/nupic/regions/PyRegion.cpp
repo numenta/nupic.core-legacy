@@ -572,7 +572,10 @@ void PyRegion::read(capnp::AnyPointer::Reader& proto)
 
   // Deserialize the data into a new python region and assign it to node_
   py::Class pyCapnpHelperCls("nupic.bindings.engine_internal", "_PyCapnpHelper");
-  node_.assign(pyCapnpHelperCls.invoke("readPyRegion", args, kwargs));
+  // NOTE: wrap result in py::Ptr so that unnecessary refcount will be
+  // decremented upon it going out of scope and after node_.assign increments it
+  py::Ptr pyRegionImpl(pyCapnpHelperCls.invoke("readPyRegion", args, kwargs));
+  node_.assign(pyRegionImpl);
   NTA_CHECK(node_);
 #else
   throw std::logic_error(
