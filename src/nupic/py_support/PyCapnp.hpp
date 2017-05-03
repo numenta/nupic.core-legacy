@@ -64,8 +64,7 @@ namespace nupic
     {
     #if !CAPNP_LITE
       capnp::MallocMessageBuilder message;
-      typename MessageType::Builder proto =
-        message.initRoot<MessageType>();
+      typename MessageType::Builder proto = message.initRoot<MessageType>();
 
       obj.write(proto);
 

@@ -42,6 +42,17 @@ _SERIALIZATION_LOOPS = 100000
 _DESERIALIZATION_LOOPS = 100000
 
 
+# Capnp reader traveral limit (see capnp::ReaderOptions)
+_TRAVERSAL_LIMIT_IN_WORDS = 1 << 63
+
+# Capnp reader nesting limit (see capnp::ReaderOptions)
+_NESTING_LIMIT = 1 << 31
+
+# Empirically-derived value of maximum deserialization calls on a single reader
+# instance for our network to avoid hitting the capnp kj exception
+# "Exceeded message traversal limit". (see capnp::ReaderOptions)
+_MAX_DESERIALIZATION_LOOPS_PER_READER = 100000
+
 
 def _runTest():
   net = engine.Network()
@@ -55,21 +66,36 @@ def _runTest():
   # Measure serialization
   startSerializationTime = time.time()
 
-  builderProto = NetworkProto.new_message()
   for i in xrange(_SERIALIZATION_LOOPS):
+    # NOTE pycapnp's builder.from_dict (used in nupic.bindings) leaks
+    # memory if called on the same builder more than once, so we construct a
+    # fresh builder here
+    builderProto = NetworkProto.new_message()
     net.write(builderProto)
 
   elapsedSerializationTime = time.time() - startSerializationTime
 
-
-  readerProto = NetworkProto.from_bytes(builderProto.to_bytes())
+  builderBytes = builderProto.to_bytes()
 
 
   # Measure deserialization
   startDeserializationTime = time.time()
 
-  for i in xrange(_DESERIALIZATION_LOOPS):
-    engine.Network.read(readerProto)
+  deserializationCount = 0
+  while deserializationCount < _DESERIALIZATION_LOOPS:
+    # NOTE: periodicaly create a new reader to avoid "Exceeded message traversal
+    # limit" error
+    readerProto = NetworkProto.from_bytes(
+      builderBytes,
+      traversal_limit_in_words=_TRAVERSAL_LIMIT_IN_WORDS,
+      nesting_limit=_NESTING_LIMIT)
+
+    numReads = min(_DESERIALIZATION_LOOPS - deserializationCount,
+                   _MAX_DESERIALIZATION_LOOPS_PER_READER)
+    for _ in xrange(numReads):
+      engine.Network.read(readerProto)
+
+    deserializationCount += numReads
 
   elapsedDeserializationTime = time.time() - startDeserializationTime
 
@@ -78,9 +104,9 @@ def _runTest():
         elapsedSerializationTime, "seconds."
   print "\t", elapsedSerializationTime/_SERIALIZATION_LOOPS, "seconds per loop."
 
-  print _DESERIALIZATION_LOOPS, "Deserialization loops in", \
+  print deserializationCount, "Deserialization loops in", \
         elapsedDeserializationTime, "seconds."
-  print "\t", elapsedDeserializationTime/_DESERIALIZATION_LOOPS, "seconds per loop."
+  print "\t", elapsedDeserializationTime/deserializationCount, "seconds per loop."
 
 
 
