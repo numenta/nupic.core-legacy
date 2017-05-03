@@ -27,6 +27,20 @@
 %pythoncode %{
 import os
 
+try:
+  # NOTE need to import capnp first to activate the magic necessary for
+  # SpatialPoolerProto_capnp, etc.
+  import capnp
+except ImportError:
+  capnp = None
+else:
+  from nupic.proto.SpatialPoolerProto_capnp import SpatialPoolerProto
+  from nupic.proto.ClaClassifier_capnp import ClaClassifierProto
+  from nupic.proto.SdrClassifier_capnp import SdrClassifierProto
+  from nupic.proto.ConnectionsProto_capnp import ConnectionsProto
+  from nupic.proto.TemporalMemoryProto_capnp import TemporalMemoryProto
+
+
 _ALGORITHMS = _algorithms
 %}
 
@@ -91,9 +105,7 @@ _ALGORITHMS = _algorithms
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include <numpy/arrayobject.h>
 #include <nupic/py_support/NumpyVector.hpp>
-#if !CAPNP_LITE
 #include <nupic/py_support/PyCapnp.hpp>
-#endif
 #include <nupic/py_support/PythonStream.hpp>
 #include <nupic/py_support/PyHelpers.hpp>
 
@@ -184,6 +196,7 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
   );
 }
 }
+
 
 //--------------------------------------------------------------------------------
 // SVM
@@ -1013,6 +1026,24 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
       instance.convertedRead(proto)
       return instance
 
+    def write(self, pyBuilder):
+      """Serialize the SpatialPooler instance using capnp.
+
+      :param: Destination SpatialPoolerProto message builder
+      """
+      reader = SpatialPoolerProto.from_bytes(self._writeAsCapnpPyBytes()) # copy
+      pyBuilder.from_dict(reader.to_dict())  # copy
+
+
+    def convertedRead(self, proto):
+      """Initialize the SpatialPooler instance from the given SpatialPoolerProto
+      reader.
+
+      :param proto: SpatialPoolerProto message reader containing data from a
+                    previously serialized SpatialPooler instance.
+
+      """
+      self._initFromCapnpPyBytes(proto.as_builder().to_bytes()) # copy * 2
   %}
 
   inline void compute(PyObject *py_x, bool learn, PyObject *py_y)
@@ -1028,27 +1059,14 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
     self->stripUnlearnedColumns((nupic::UInt*) PyArray_DATA(x));
   }
 
-  inline void write(PyObject* pyBuilder) const
+  inline PyObject* _writeAsCapnpPyBytes() const
   {
-  %#if !CAPNP_LITE
-    SpatialPoolerProto::Builder proto =
-        getBuilder<SpatialPoolerProto>(pyBuilder);
-    self->write(proto);
-  %#else
-    throw std::logic_error(
-        "SpatialPooler.write is not implemented when compiled with CAPNP_LITE=1.");
-  %#endif
+    return nupic::PyCapnpHelper::writeAsPyBytes(*self);
   }
 
-  inline void convertedRead(PyObject* pyReader)
+  inline void _initFromCapnpPyBytes(PyObject* pyBytes)
   {
-  %#if !CAPNP_LITE
-    SpatialPoolerProto::Reader proto = getReader<SpatialPoolerProto>(pyReader);
-    self->read(proto);
-  %#else
-    throw std::logic_error(
-        "SpatialPooler.read is not implemented when compiled with CAPNP_LITE=1.");
-  %#endif
+    nupic::PyCapnpHelper::initFromPyBytes(*self, pyBytes);
   }
 
   void loadFromString(const std::string& inString)
@@ -1313,6 +1331,25 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
       instance = cls()
       instance.convertedRead(proto)
       return instance
+
+    def write(self, pyBuilder):
+      """Serialize the FastCLAClassifier instance using capnp.
+
+      :param: Destination ClaClassifierProto message builder
+      """
+      reader = ClaClassifierProto.from_bytes(self._writeAsCapnpPyBytes()) # copy
+      pyBuilder.from_dict(reader.to_dict())  # copy
+
+
+    def convertedRead(self, proto):
+      """Initialize the FastCLAClassifier instance from the given
+      ClaClassifierProto reader.
+
+      :param proto: ClaClassifierProto message reader containing data from a
+                    previously serialized SpatialPooler instance.
+
+      """
+      self._initFromCapnpPyBytes(proto.as_builder().to_bytes()) # copy * 2
   %}
 
   void loadFromString(const std::string& inString)
@@ -1364,28 +1401,14 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
     return d;
   }
 
-  inline void write(PyObject* pyBuilder) const
+  inline PyObject* _writeAsCapnpPyBytes() const
   {
-  %#if !CAPNP_LITE
-    ClaClassifierProto::Builder proto =
-        getBuilder<ClaClassifierProto>(pyBuilder);
-    self->write(proto);
-  %#else
-    throw std::logic_error(
-        "FastCLAClassifier.write is not implemented when compiled with CAPNP_LITE=1.");
-  %#endif
+    return nupic::PyCapnpHelper::writeAsPyBytes(*self);
   }
 
-  inline void convertedRead(PyObject* pyReader)
+  inline void _initFromCapnpPyBytes(PyObject* pyBytes)
   {
-  %#if !CAPNP_LITE
-    ClaClassifierProto::Reader proto =
-        getReader<ClaClassifierProto>(pyReader);
-    self->read(proto);
-  %#else
-    throw std::logic_error(
-        "FastCLAClassifier.read is not implemented when compiled with CAPNP_LITE=1.");
-  %#endif
+    nupic::PyCapnpHelper::initFromPyBytes(*self, pyBytes);
   }
 
 }
@@ -1477,6 +1500,25 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
       instance = cls()
       instance.convertedRead(proto)
       return instance
+
+    def write(self, pyBuilder):
+      """Serialize the SDRClassifier instance using capnp.
+
+      :param: Destination SdrClassifierProto message builder
+      """
+      reader = SdrClassifierProto.from_bytes(self._writeAsCapnpPyBytes()) # copy
+      pyBuilder.from_dict(reader.to_dict())  # copy
+
+
+    def convertedRead(self, proto):
+      """Initialize the SDRClassifier instance from the given SdrClassifierProto
+      reader.
+
+      :param proto: SdrClassifierProto message reader containing data from a
+                    previously serialized SDRClassifier instance.
+
+      """
+      self._initFromCapnpPyBytes(proto.as_builder().to_bytes()) # copy * 2
   %}
 
   void loadFromString(const std::string& inString)
@@ -1528,28 +1570,14 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
     return d;
   }
 
-  inline void write(PyObject* pyBuilder) const
+  inline PyObject* _writeAsCapnpPyBytes() const
   {
-  %#if !CAPNP_LITE
-    SdrClassifierProto::Builder proto =
-        getBuilder<SdrClassifierProto>(pyBuilder);
-    self->write(proto);
-  %#else
-    throw std::logic_error(
-        "SDRClassifier.write is not implemented when compiled with CAPNP_LITE=1.");
-  %#endif
+    return nupic::PyCapnpHelper::writeAsPyBytes(*self);
   }
 
-  inline void convertedRead(PyObject* pyReader)
+  inline void _initFromCapnpPyBytes(PyObject* pyBytes)
   {
-  %#if !CAPNP_LITE
-    SdrClassifierProto::Reader proto =
-        getReader<SdrClassifierProto>(pyReader);
-    self->read(proto);
-  %#else
-    throw std::logic_error(
-        "SDRClassifier.read is not implemented when compiled with CAPNP_LITE=1.");
-  %#endif
+    nupic::PyCapnpHelper::initFromPyBytes(*self, pyBytes);
   }
 
 }
@@ -1582,30 +1610,35 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
       instance.convertedRead(proto)
       return instance
 
+    def write(self, pyBuilder):
+      """Serialize the Connections instance using capnp.
+
+      :param: Destination ConnectionsProto message builder
+      """
+      reader = ConnectionsProto.from_bytes(self._writeAsCapnpPyBytes()) # copy
+      pyBuilder.from_dict(reader.to_dict())  # copy
+
+
+    def convertedRead(self, proto):
+      """Initialize the Connections instance from the given ConnectionsProto
+      reader.
+
+      :param proto: ConnectionsProto message reader containing data from a
+                    previously serialized Connections instance.
+
+      """
+      self._initFromCapnpPyBytes(proto.as_builder().to_bytes()) # copy * 2
+
   %}
 
-  inline void write(PyObject* pyBuilder) const
+  inline PyObject* _writeAsCapnpPyBytes() const
   {
-%#if !CAPNP_LITE
-    ConnectionsProto::Builder proto =
-        getBuilder<ConnectionsProto>(pyBuilder);
-    self->write(proto);
-  %#else
-    throw std::logic_error(
-        "Connections.write is not implemented when compiled with CAPNP_LITE=1.");
-  %#endif
+    return nupic::PyCapnpHelper::writeAsPyBytes(*self);
   }
 
-  inline void convertedRead(PyObject* pyReader)
+  inline void _initFromCapnpPyBytes(PyObject* pyBytes)
   {
-%#if !CAPNP_LITE
-    ConnectionsProto::Reader proto =
-        getReader<ConnectionsProto>(pyReader);
-    self->read(proto);
-  %#else
-    throw std::logic_error(
-        "Connections.read is not implemented when compiled with CAPNP_LITE=1.");
-  %#endif
+    nupic::PyCapnpHelper::initFromPyBytes(*self, pyBytes);
   }
 
   %pythoncode %{
@@ -1776,6 +1809,26 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
       instance = cls()
       instance.convertedRead(proto)
       return instance
+
+    def write(self, pyBuilder):
+      """Serialize the TemporalMemory instance using capnp.
+
+      :param: Destination TemporalMemoryProto message builder
+      """
+      reader = TemporalMemoryProto.from_bytes(self._writeAsCapnpPyBytes()) # copy
+      pyBuilder.from_dict(reader.to_dict())  # copy
+
+
+    def convertedRead(self, proto):
+      """Initialize the TemporalMemory instance from the given TemporalMemoryProto
+      reader.
+
+      :param proto: TemporalMemoryProto message reader containing data from a
+                    previously serialized TemporalMemory instance.
+
+      """
+      self._initFromCapnpPyBytes(proto.as_builder().to_bytes()) # copy * 2
+
   %}
 
   inline PyObject* getActiveCells()
@@ -1860,28 +1913,14 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
     self->compute(activeColumnsSize, activeColumns, learn);
   }
 
-  inline void write(PyObject* pyBuilder) const
+  inline PyObject* _writeAsCapnpPyBytes() const
   {
-%#if !CAPNP_LITE
-    TemporalMemoryProto::Builder proto =
-        getBuilder<TemporalMemoryProto>(pyBuilder);
-    self->write(proto);
-  %#else
-    throw std::logic_error(
-        "TemporalMemory.write is not implemented when compiled with CAPNP_LITE=1.");
-  %#endif
+    return nupic::PyCapnpHelper::writeAsPyBytes(*self);
   }
 
-  inline void convertedRead(PyObject* pyReader)
+  inline void _initFromCapnpPyBytes(PyObject* pyBytes)
   {
-%#if !CAPNP_LITE
-    TemporalMemoryProto::Reader proto =
-        getReader<TemporalMemoryProto>(pyReader);
-    self->read(proto);
-  %#else
-    throw std::logic_error(
-        "TemporalMemory.read is not implemented when compiled with CAPNP_LITE=1.");
-  %#endif
+    nupic::PyCapnpHelper::initFromPyBytes(*self, pyBytes);
   }
 
   void loadFromString(const std::string& inString)

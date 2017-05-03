@@ -33,7 +33,7 @@ The following table shows example CMake common settings;
 | Source code | `%NUPIC_CORE%` |
 | Binaries | `%NUPIC_CORE%/build/scripts` |
 | CMAKE_INSTALL_PREFIX | `%NUPIC_CORE%/build/release` |
-| PY_EXTENSIONS_DIR | `%NUPIC_CORE%/bindings/py/nupic/bindings` |
+| PY_EXTENSIONS_DIR | `%NUPIC_CORE%/bindings/py/src/nupic/bindings` |
 
 </center>
 
@@ -54,7 +54,7 @@ cd build\scripts
 rem Run cmake to generator MSVC 2015 solution and project files
 cmake -G "Visual Studio 14 2015 Win64"
 	-DCMAKE_INSTALL_PREFIX=..\release
-	-DPY_EXTENSIONS_DIR=..\..\bindings\py\nupic\bindings
+	-DPY_EXTENSIONS_DIR=..\..\bindings\py\src\nupic\bindings
 	..\..
 ```
 

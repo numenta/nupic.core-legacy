@@ -63,7 +63,7 @@ This option is for developers that would like the ability to do incremental buil
 
     mkdir -p $NUPIC_CORE/build/scripts
     cd $NUPIC_CORE/build/scripts
-    cmake $NUPIC_CORE -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../release -DPY_EXTENSIONS_DIR=$NUPIC_CORE/bindings/py/nupic/bindings
+    cmake $NUPIC_CORE -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../release -DPY_EXTENSIONS_DIR=$NUPIC_CORE/bindings/py/src/nupic/bindings
 
 Notes:
 

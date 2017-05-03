@@ -161,7 +161,7 @@ install:
   - cmake -G "%NC_CMAKE_GENERATOR%"
       -DCMAKE_BUILD_TYPE=%configuration%
       -DCMAKE_INSTALL_PREFIX=%NUPIC_CORE%\build\release
-      -DPY_EXTENSIONS_DIR=%NUPIC_CORE%\bindings\py\nupic\bindings
+      -DPY_EXTENSIONS_DIR=%NUPIC_CORE%\bindings\py\src\nupic\bindings
       %NUPIC_CORE%
 
 build_script:

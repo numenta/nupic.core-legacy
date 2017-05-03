@@ -91,13 +91,27 @@ function(COMBINE_UNIX_ARCHIVES
               "found in ${working_dir} using globbing_ext=${globbing_ext}, "
               "but the following entries were found: ${working_dir_listing}.")
     endif()
-    list(APPEND all_object_locations ${objects})
+
+    # Prepend source lib name to object name to help prevent collisions during
+    # subsequent archive extractions. This helps guard against obj file
+    # overwrites during object extraction in cases where the same object name
+    # existed in two different source archives, but does not prevent the issue
+    # if same-named objects exist in one archive.
+    foreach(old_obj_file_path ${objects})
+      get_filename_component(old_obj_file_name ${old_obj_file_path} NAME)
+      set(new_obj_file_path "${working_dir}/${basename}-${old_obj_file_name}")
+      file(RENAME ${old_obj_file_path} ${new_obj_file_path})
+      # Use relative paths to work around too-long command failure when building
+      # on Windows in AppVeyor
+      file(RELATIVE_PATH new_obj_file_path ${scratch_dir} ${new_obj_file_path})
+      list(APPEND all_object_locations ${new_obj_file_path})
+    endforeach()
   endforeach()
 
   # Generate the target static library from all source objects
   file(TO_NATIVE_PATH ${TARGET_LOCATION} TARGET_LOCATION)
   execute_process(COMMAND ${CMAKE_AR} rcs ${TARGET_LOCATION} ${all_object_locations}
-                  RESULT_VARIABLE exe_result)
+                  WORKING_DIRECTORY ${scratch_dir} RESULT_VARIABLE exe_result)
   if(NOT "${exe_result}" STREQUAL "0")
     message(FATAL_ERROR "COMBINE_UNIX_ARCHIVES: archive construction process failed exe_result='${exe_result}'")
   endif()

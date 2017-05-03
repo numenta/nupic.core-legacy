@@ -23,6 +23,20 @@
 %module(package="bindings") engine_internal
 %include <nupic/bindings/exception.i>
 
+
+%pythoncode %{
+
+try:
+  # NOTE need to import capnp first to activate the magic necessary for
+  # NetworkProto_capnp, etc.
+  import capnp
+except ImportError:
+  capnp = None
+else:
+  from nupic.proto.NetworkProto_capnp import NetworkProto
+  from nupic.proto.PyRegionProto_capnp import PyRegionProto
+%}
+
 %{
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
@@ -66,9 +80,7 @@
 
 #include <nupic/proto/NetworkProto.capnp.h>
 
-#if !CAPNP_LITE
 #include <nupic/py_support/PyCapnp.hpp>
-#endif
 
 #include <nupic/engine/Input.hpp>
 #include <nupic/engine/Link.hpp>
@@ -79,6 +91,8 @@
 
 #include <yaml-cpp/yaml.h>
 %}
+
+
 
 %pythoncode %{
 
@@ -205,6 +219,7 @@ class IterablePair(object):
 %template(Real32ArrayRef) nupic::PyArrayRef<nupic::Real32>;
 %template(BoolArrayRef) nupic::PyArrayRef<bool>;
 
+
 %extend nupic::Timer
 {
   // Extend here (engine_internal) rather than nupic.engine because
@@ -258,24 +273,35 @@ class IterablePair(object):
       instance = cls()
       instance.convertedRead(proto)
       return instance
+
+    def write(self, pyBuilder):
+      """Serialize the Network instance using capnp.
+
+      :param: Destination NetworkProto message builder
+      """
+      reader = NetworkProto.from_bytes(self._writeAsCapnpPyBytes()) # copy
+      pyBuilder.from_dict(reader.to_dict())  # copy
+
+
+    def convertedRead(self, proto):
+      """Initialize the Network instance from the given NetworkProto
+      reader.
+
+      :param proto: NetworkProto message reader containing data from a
+                    previously serialized Network instance.
+
+      """
+      self._initFromCapnpPyBytes(proto.as_builder().to_bytes()) # copy * 2
   %}
 
-  inline void write(PyObject* pyBuilder) const
+  inline PyObject* _writeAsCapnpPyBytes() const
   {
-  %#if !CAPNP_LITE
-    NetworkProto::Builder proto =
-        nupic::getBuilder<NetworkProto>(pyBuilder);
-    self->write(proto);
-  %#endif
+    return nupic::PyCapnpHelper::writeAsPyBytes(*self);
   }
 
-  inline void convertedRead(PyObject* pyReader)
+  inline void _initFromCapnpPyBytes(PyObject* pyBytes)
   {
-  %#if !CAPNP_LITE
-    NetworkProto::Reader proto =
-        nupic::getReader<NetworkProto>(pyReader);
-    self->read(proto);
-  %#endif
+    nupic::PyCapnpHelper::initFromPyBytes(*self, pyBytes);
   }
 }
 
@@ -291,3 +317,48 @@ class nupic::OS
 public:
   static void OS::getProcessMemoryUsage(size_t& OUTPUT, size_t& OUTPUT);
 };
+
+
+
+%pythoncode %{
+
+class _PyCapnpHelper(object):
+  """Only for use by the extension layer. Wraps certain serialization requests
+  from the C++ extension to the python layer to simplify python-side
+  implementation
+  """
+
+  @staticmethod
+  def writePyRegion(region, methodName):
+    """ Serialize the given python region using the given method name
+
+    :param region: Python region instance
+    :param methodName: Name of method to invoke on the region to serialize it.
+
+    :returns: Data bytes corresponding to the serialized PyRegionProto message
+    """
+    builderProto = PyRegionProto.new_message()
+    # Serialize
+    getattr(region, methodName)(builderProto)
+
+    return builderProto.to_bytes()
+
+
+  @staticmethod
+  def readPyRegion(pyRegionProtoBytes, regionCls, methodName):
+    """ Deserialize the given python region data bytes using the given method
+    name on the given class
+
+    :param pyRegionProtoBytes: data bytes string corresponding to the
+                               PyRegionProto message.
+    :param regionCls: Python region class
+    :param methodName: Name of method to invoke on the region to deserialize it.
+
+    :returns: The deserialized python region instance.
+    """
+    pyRegionProto = PyRegionProto.from_bytes(pyRegionProtoBytes)
+
+    return getattr(regionCls, methodName)(pyRegionProto)
+
+
+%} // pythoncode

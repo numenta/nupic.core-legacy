@@ -165,7 +165,7 @@ WrapCmd {
     -DCMAKE_BUILD_TYPE="Release" `
     -DCMAKE_INSTALL_PREFIX:PATH="..\release" `
     -DNUPIC_BUILD_PYEXT_MODULES="ON" `
-    -DPY_EXTENSIONS_DIR:PATH="..\..\bindings\py\nupic\bindings" `
+    -DPY_EXTENSIONS_DIR:PATH="..\..\bindings\py\src\nupic\bindings" `
     "..\.."
 }
 

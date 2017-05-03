@@ -30,7 +30,7 @@ dependencies:
 compile:
   override:
     - mkdir -p build/scripts
-    - cd build/scripts && cmake ../.. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../release -DPY_EXTENSIONS_DIR=../../bindings/py/nupic/bindings
+    - cd build/scripts && cmake ../.. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../release -DPY_EXTENSIONS_DIR=../../bindings/py/src/nupic/bindings
     - cd build/scripts && make -j6
     - cd build/scripts && make install
     - python setup.py bdist_wheel

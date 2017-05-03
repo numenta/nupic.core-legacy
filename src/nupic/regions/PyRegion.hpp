@@ -40,16 +40,16 @@ namespace nupic
 {
   struct Spec;
 
-  class PyRegion : public RegionImpl 
+  class PyRegion : public RegionImpl
   {
-    typedef std::map<std::string, Spec> SpecMap;    
+    typedef std::map<std::string, Spec> SpecMap;
   public:
     // Used by RegionImplFactory to create and cache a nodespec
     static Spec * createSpec(const char * nodeType, const char* className="");
 
     // Used by RegionImplFactory to destroy a node spec when clearing its cache
     static void destroySpec(const char * nodeType, const char* className="");
-    
+
     PyRegion(const char * module, const ValueMap & nodeParams, Region * region, const char* className="");
     PyRegion(const char * module, BundleIO& bundle, Region * region, const char* className="");
     PyRegion(const char * module, capnp::AnyPointer::Reader& proto, Region * region, const char* className="");
@@ -76,9 +76,19 @@ namespace nupic
     // method will replace serialize/deserialize once fully implemented
     // throughout codebase.
     using RegionImpl::write;
+    /**
+     * Serialize instance to the given message builder
+     *
+     * :param proto: PyRegionProto builder masquerading as AnyPointer builder
+     */
     void write(capnp::AnyPointer::Builder& proto) const override;
 
     using RegionImpl::read;
+    /**
+     * Initialize instance from the given message reader
+     *
+     * :param proto: PyRegionProto reader masquerading as AnyPointer reader
+     */
     void read(capnp::AnyPointer::Reader& proto) override;
 
     const Spec & getSpec();
@@ -86,7 +96,7 @@ namespace nupic
     static void createSpec(const char * nodeType, Spec & ns, const char* className="");
 
     // RegionImpl interface
-    
+
     size_t getNodeOutputElementCount(const std::string& outputName) override;
     void getParameterFromBuffer(const std::string& name, Int64 index, IWriteBuffer& value) override;
     void setParameterFromBuffer(const std::string& name, Int64 index, IReadBuffer& value) override;
@@ -140,7 +150,7 @@ namespace nupic
     virtual void setParameterString(
         const std::string& name, Int64 index, const std::string& value)
         override;
-    
+
     virtual void getParameterArray(
         const std::string& name, Int64 index, Array & array) override;
     virtual void setParameterArray(
@@ -149,7 +159,7 @@ namespace nupic
     // Helper methods
     template <typename T, typename PyT>
     T getParameterT(const std::string & name, Int64 index);
-    
+
     template <typename T, typename PyT>
     void setParameterT(const std::string & name, Int64 index, T value);
 

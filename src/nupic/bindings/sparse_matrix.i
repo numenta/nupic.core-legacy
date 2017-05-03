@@ -27,9 +27,7 @@
 #include <nupic/math/NearestNeighbor.hpp>
 #include <nupic/proto/SparseMatrixProto.capnp.h>
 #include <nupic/proto/SparseBinaryMatrixProto.capnp.h>
-#if !CAPNP_LITE
 #include <nupic/py_support/PyCapnp.hpp>
-#endif
 #include <nupic/py_support/NumpyVector.hpp>
 #include <nupic/py_support/PythonStream.hpp>
 
@@ -37,6 +35,16 @@
 
 %pythoncode %{
 import numbers
+
+try:
+  # NOTE need to import capnp first to activate the magic necessary for
+  # NetworkProto_capnp, etc.
+  import capnp
+except ImportError:
+  capnp = None
+else:
+  from nupic.proto.SparseMatrixProto_capnp import SparseMatrixProto
+  from nupic.proto.SparseBinaryMatrixProto_capnp import SparseBinaryMatrixProto
 %}
 
 
@@ -409,6 +417,23 @@ def __div__(self, other):
     return result
   else:
     raise Exception("Can't use type: " + t)
+
+def write(self, pyBuilder):
+  """Serialize the SparseMatrix instance using capnp.
+
+  :param: Destination SparseMatrixProto message builder
+  """
+  reader = SparseMatrixProto.from_bytes(self._writeAsCapnpPyBytes()) # copy
+  pyBuilder.from_dict(reader.to_dict())  # copy
+
+def read(self, proto):
+  """Initialize the SparseMatrix instance from the given SparseMatrixProto
+  reader.
+
+  :param proto: SparseMatrixProto message reader containing data from a previously
+                serialized SparseMatrix instance.
+  """
+  self._initFromCapnpPyBytes(proto.as_builder().to_bytes()) # copy * 2
 %}
 
   void __initializeWithRows(const SparseMatrix ##N2& other, PyObject* py_take)
@@ -489,28 +514,14 @@ def __div__(self, other):
     load_file.close();
   }
 
-  inline void write(PyObject* pyBuilder) const
+  inline PyObject* _writeAsCapnpPyBytes() const
   {
-  %#if !CAPNP_LITE
-    SparseMatrixProto::Builder proto =
-        nupic::getBuilder<SparseMatrixProto>(pyBuilder);
-    self->write(proto);
-  %#else
-    throw std::logic_error(
-        "SparseMatrix.write is not implemented when compiled with CAPNP_LITE=1.");
-  %#endif
+    return nupic::PyCapnpHelper::writeAsPyBytes(*self);
   }
 
-  inline void read(PyObject* pyReader)
+  inline void _initFromCapnpPyBytes(PyObject* pyBytes)
   {
-  %#if !CAPNP_LITE
-    SparseMatrixProto::Reader proto =
-        nupic::getReader<SparseMatrixProto>(pyReader);
-    self->read(proto);
-  %#else
-    throw std::logic_error(
-        "SparseMatrix.read is not implemented when compiled with CAPNP_LITE=1.");
-  %#endif
+    nupic::PyCapnpHelper::initFromPyBytes(*self, pyBytes);
   }
 
   void addRow(PyObject *row)
@@ -524,7 +535,7 @@ def __div__(self, other):
     nupic::NumpyVectorT<nupic::UInt ## N1> cpp_ind(ind);
     nupic::NumpyVectorT<nupic::Real ## N2> cpp_nz(nz);
     self->addRow(cpp_ind.begin(), cpp_ind.end(), cpp_nz.begin(),
-		 zero_permissive);
+                 zero_permissive);
   }
 
   void addCol(PyObject *col)
@@ -698,8 +709,8 @@ def __div__(self, other):
       // Return one list of triples
       toReturn = PyTuple_New(nnz);
       for (nupic::UInt ## N1 i = 0; i != nnz; ++i) {
-	PyObject* tuple = nupic::createTriplet ## N1(rows.get(i), cols.get(i), vals.get(i));
-	PyTuple_SET_ITEM(toReturn, i, tuple);
+  PyObject* tuple = nupic::createTriplet ## N1(rows.get(i), cols.get(i), vals.get(i));
+  PyTuple_SET_ITEM(toReturn, i, tuple);
       }
     } else {
       // Return three lists
@@ -713,26 +724,26 @@ def __div__(self, other):
   }
 
   void setAllNonZeros(nupic::UInt ## N1 nrows, nupic::UInt ## N1 ncols,
-		      PyObject* py_i, PyObject* py_j, PyObject* py_v, bool sorted =true)
+          PyObject* py_i, PyObject* py_j, PyObject* py_v, bool sorted =true)
   {
     nupic::NumpyVectorT<nupic::UInt ## N1> i(py_i), j(py_j);
     nupic::NumpyVectorT<nupic::Real ## N2> v(py_v);
     self->setAllNonZeros(nrows, ncols,
-			 i.begin(), i.end(),
-			 j.begin(), j.end(),
-			 v.begin(), v.end(),
-			 sorted);
+       i.begin(), i.end(),
+       j.begin(), j.end(),
+       v.begin(), v.end(),
+       sorted);
   }
 
   PyObject* getNonZerosInBox(nupic::UInt ## N1 row_begin, nupic::UInt ## N1 row_end,
-			     nupic::UInt ## N1 col_begin, nupic::UInt ## N1 col_end) const
+           nupic::UInt ## N1 col_begin, nupic::UInt ## N1 col_end) const
   {
     std::vector<nupic::UInt ## N1> rows, cols;
     std::vector<nupic::Real ## N2> vals;
     self->getNonZerosInBox(row_begin, row_end, col_begin, col_end,
-			   std::back_inserter(rows),
-			   std::back_inserter(cols),
-			   std::back_inserter(vals));
+         std::back_inserter(rows),
+         std::back_inserter(cols),
+         std::back_inserter(vals));
     PyObject* toReturn = PyList_New(rows.size());
     for (nupic::UInt ## N1 i = 0; i != rows.size(); ++i) {
       PyObject* tuple = nupic::createTriplet ## N1(rows[i], cols[i], vals[i]);
@@ -762,13 +773,13 @@ def __div__(self, other):
   }
 
   void setSlice(nupic::UInt ## N1 i_begin, nupic::UInt ## N1 j_begin,
-		const SparseMatrix ## N2& other)
+    const SparseMatrix ## N2& other)
   {
     self->setSlice(i_begin, j_begin, other);
   }
 
   void setSlice(nupic::UInt ## N1 i_begin, nupic::UInt ## N1 j_begin,
-		PyObject* py_other)
+    PyObject* py_other)
   {
     nupic::NumpyMatrixT<nupic::Real ## N2> other(py_other);
     self->setSlice(i_begin, j_begin, other);
@@ -776,7 +787,7 @@ def __div__(self, other):
 
   SparseMatrix ## N2
     getSlice(nupic::UInt ## N1 i_begin, nupic::UInt ## N1 i_end,
-	     nupic::UInt ## N1 j_begin, nupic::UInt ## N1 j_end) const
+       nupic::UInt ## N1 j_begin, nupic::UInt ## N1 j_end) const
   {
     SparseMatrix ## N2 other(i_end - i_begin, j_end - j_begin);
     self->getSlice(i_begin, i_end, j_begin, j_end, other);
@@ -785,7 +796,7 @@ def __div__(self, other):
 
   SparseMatrix ## N2
     getSlice2(nupic::UInt ## N1 i_begin, nupic::UInt ## N1 i_end,
-	     nupic::UInt ## N1 j_begin, nupic::UInt ## N1 j_end) const
+       nupic::UInt ## N1 j_begin, nupic::UInt ## N1 j_end) const
   {
     SparseMatrix ## N2 other(i_end - i_begin, j_end - j_begin);
     self->getSlice2(i_begin, i_end, j_begin, j_end, other);
@@ -1052,8 +1063,8 @@ def __div__(self, other):
       nupic::NumpyVectorT<nupic::UInt ## N1> bounds_j(box_j);
       SparseMatrix ## N1 result(bounds_i.size(), bounds_j.size());
       self->nNonZerosPerBox(bounds_i.begin(), bounds_i.end(),
-			    bounds_j.begin(), bounds_j.end(),
-			    result);
+          bounds_j.begin(), bounds_j.end(),
+          result);
       return result;
     }
 
@@ -1154,7 +1165,7 @@ def __div__(self, other):
   }
 
   PyObject* boxMin(nupic::UInt ## N1 begin_row, nupic::UInt ## N1 end_row,
-		   nupic::UInt ## N1 begin_col, nupic::UInt ## N1 end_col) const
+       nupic::UInt ## N1 begin_col, nupic::UInt ## N1 end_col) const
   {
     nupic::UInt ## N1 min_row, min_col;
     nupic::Real ## N2 min_val;
@@ -1163,7 +1174,7 @@ def __div__(self, other):
   }
 
   PyObject* boxMax(nupic::UInt ## N1 begin_row, nupic::UInt ## N1 end_row,
-		   nupic::UInt ## N1 begin_col, nupic::UInt ## N1 end_col) const
+       nupic::UInt ## N1 begin_col, nupic::UInt ## N1 end_col) const
   {
     nupic::UInt ## N1 max_row, max_col;
     nupic::Real ## N2 max_val;
@@ -1172,12 +1183,12 @@ def __div__(self, other):
   }
 
   PyObject* whereEqual(nupic::UInt ## N1 begin_row, nupic::UInt ## N1 end_row,
-		       nupic::UInt ## N1 begin_col, nupic::UInt ## N1 end_col,
-		       const nupic::Real ## N2& value) const
+           nupic::UInt ## N1 begin_col, nupic::UInt ## N1 end_col,
+           const nupic::Real ## N2& value) const
   {
     std::vector<nupic::UInt ## N1> rows, cols;
     self->whereEqual(begin_row, end_row, begin_col, end_col, value,
-		     std::back_inserter(rows), std::back_inserter(cols));
+         std::back_inserter(rows), std::back_inserter(cols));
 
     PyObject* toReturn = PyTuple_New(rows.size());
 
@@ -1192,12 +1203,12 @@ def __div__(self, other):
   }
 
   PyObject* whereGreater(nupic::UInt ## N1 begin_row, nupic::UInt ## N1 end_row,
-			 nupic::UInt ## N1 begin_col, nupic::UInt ## N1 end_col,
-			 const nupic::Real ## N2& value) const
+       nupic::UInt ## N1 begin_col, nupic::UInt ## N1 end_col,
+       const nupic::Real ## N2& value) const
   {
     std::vector<nupic::UInt ## N1> rows, cols;
     self->whereGreater(begin_row, end_row, begin_col, end_col, value,
-		       std::back_inserter(rows), std::back_inserter(cols));
+           std::back_inserter(rows), std::back_inserter(cols));
 
     int dims[] = {static_cast<int>(rows.size()), 2};
     nupic::NumpyMatrixT<nupic::UInt ## N1> toReturn(dims);
@@ -1342,14 +1353,14 @@ def __div__(self, other):
   }
 
   void normalizeBlockByRows(PyObject* py_inds,
-			    nupic::Real ## N2 val=-1.0, nupic::Real ## N2 eps_n=1e-6)
+          nupic::Real ## N2 val=-1.0, nupic::Real ## N2 eps_n=1e-6)
   {
     nupic::NumpyVectorT<nupic::UInt ## N2> inds(py_inds);
     self->normalizeBlockByRows(inds.begin(), inds.end(), val, eps_n);
   }
 
   void normalizeBlockByRows_binary(PyObject* py_inds,
-				   nupic::Real ## N2 val=-1.0, nupic::Real ## N2 eps_n=1e-6)
+           nupic::Real ## N2 val=-1.0, nupic::Real ## N2 eps_n=1e-6)
   {
     nupic::NumpyVectorT<nupic::UInt ## N2> inds(py_inds);
     self->normalizeBlockByRows_binary(inds.begin(), inds.end(), val, eps_n);
@@ -1900,7 +1911,7 @@ def __div__(self, other):
     PyObject* toReturn = PyTuple_New(N);
     for (nupic::UInt ## N1 i = 0; i != N; ++i) {
       PyObject* tuple =
-	nupic::createTriplet ## N1(ijvs[i].i(), ijvs[i].j(), ijvs[i].v());
+  nupic::createTriplet ## N1(ijvs[i].i(), ijvs[i].j(), ijvs[i].v());
       PyTuple_SET_ITEM(toReturn, i, tuple);
     }
     return toReturn;
@@ -1918,9 +1929,9 @@ def __div__(self, other):
     std::vector<nupic::Real ## N2> cut_nz;
     nupic::UInt ## N1 c = 0;
     c = self->threshold(threshold,
-			std::back_inserter(cut_i),
-			std::back_inserter(cut_j),
-			std::back_inserter(cut_nz));
+      std::back_inserter(cut_i),
+      std::back_inserter(cut_j),
+      std::back_inserter(cut_nz));
     PyObject* toReturn = PyTuple_New(c);
     for (nupic::UInt ## N1 i = 0; i != c; ++i) {
       PyObject* tuple = nupic::createTriplet ## N1(cut_i[i], cut_j[i], cut_nz[i]);
@@ -2135,9 +2146,9 @@ inline nupic::UInt32 nNonZeroCols_01(nupic::UInt32 nrows, nupic::UInt32 ncols, P
   {
     nupic::NumpyVectorT<nupic::Real32> e_rows(sm.nRows()), e_cols(sm.nCols());
     nupic::SparseMatrixAlgorithms::matrix_entropy(sm,
-						e_rows.begin(), e_rows.end(),
-						e_cols.begin(), e_cols.end(),
-						s);
+            e_rows.begin(), e_rows.end(),
+            e_cols.begin(), e_cols.end(),
+            s);
     PyObject *toReturn = PyTuple_New(2);
     PyTuple_SET_ITEM(toReturn, 0, e_rows.forPython());
     PyTuple_SET_ITEM(toReturn, 1, e_cols.forPython());
@@ -2150,9 +2161,9 @@ inline nupic::UInt32 nNonZeroCols_01(nupic::UInt32 nrows, nupic::UInt32 ncols, P
   {
     nupic::NumpyVectorT<nupic::Real64> e_rows(sm.nRows()), e_cols(sm.nCols());
     nupic::SparseMatrixAlgorithms::matrix_entropy(sm,
-						e_rows.begin(), e_rows.end(),
-						e_cols.begin(), e_cols.end(),
-						s);
+            e_rows.begin(), e_rows.end(),
+            e_cols.begin(), e_cols.end(),
+            s);
     PyObject *toReturn = PyTuple_New(2);
     PyTuple_SET_ITEM(toReturn, 0, e_rows.forPython());
     PyTuple_SET_ITEM(toReturn, 1, e_cols.forPython());
@@ -2195,7 +2206,7 @@ inline nupic::UInt32 nNonZeroCols_01(nupic::UInt32 nrows, nupic::UInt32 ncols, P
 
   //--------------------------------------------------------------------------------
   void SM_subtractNoAlloc(nupic::SparseMatrix<nupic::UInt32,nupic::Real32,nupic::Int32,nupic::Real64,nupic::DistanceToZero<nupic::Real32 > >& A,
-			  const nupic::SparseMatrix<nupic::UInt32,nupic::Real32,nupic::Int32,nupic::Real64,nupic::DistanceToZero<nupic::Real32 > >& B, double min_floor =0)
+        const nupic::SparseMatrix<nupic::UInt32,nupic::Real32,nupic::Int32,nupic::Real64,nupic::DistanceToZero<nupic::Real32 > >& B, double min_floor =0)
   {
     nupic::SparseMatrixAlgorithms::subtractNoAlloc(A, B, min_floor);
   }
@@ -2203,7 +2214,7 @@ inline nupic::UInt32 nNonZeroCols_01(nupic::UInt32 nrows, nupic::UInt32 ncols, P
   //--------------------------------------------------------------------------------
   /*
   void SM_subtractNoAlloc(nupic::SparseMatrix<nupic::UInt32,nupic::Real64,nupic::Int32,nupic::Real64,nupic::DistanceToZero<nupic::Real64 > >& A,
-			  nupic::SparseMatrix<nupic::UInt32,nupic::Real64,nupic::Int32,nupic::Real64,nupic::DistanceToZero<nupic::Real64 > >& B, double min_floor =0)
+        nupic::SparseMatrix<nupic::UInt32,nupic::Real64,nupic::Int32,nupic::Real64,nupic::DistanceToZero<nupic::Real64 > >& B, double min_floor =0)
   {
     nupic::SparseMatrixAlgorithms::subtractNoAlloc(A, B, min_floor);
   }
@@ -2211,7 +2222,7 @@ inline nupic::UInt32 nNonZeroCols_01(nupic::UInt32 nrows, nupic::UInt32 ncols, P
 
   //--------------------------------------------------------------------------------
   void SM_assignNoAlloc(nupic::SparseMatrix<nupic::UInt32,nupic::Real32,nupic::Int32,nupic::Real64,nupic::DistanceToZero<nupic::Real32 > >& A,
-		     const nupic::SparseMatrix<nupic::UInt32,nupic::Real32,nupic::Int32,nupic::Real64,nupic::DistanceToZero<nupic::Real32 > >& B)
+         const nupic::SparseMatrix<nupic::UInt32,nupic::Real32,nupic::Int32,nupic::Real64,nupic::DistanceToZero<nupic::Real32 > >& B)
   {
     nupic::SparseMatrixAlgorithms::assignNoAlloc(A, B);
   }
@@ -2219,7 +2230,7 @@ inline nupic::UInt32 nNonZeroCols_01(nupic::UInt32 nrows, nupic::UInt32 ncols, P
   //--------------------------------------------------------------------------------
   /*
   void SM_assignNoAlloc(nupic::SparseMatrix<nupic::UInt32,nupic::Real64,nupic::Int32,nupic::Real64,nupic::DistanceToZero<nupic::Real64 > >& A,
-		     nupic::SparseMatrix<nupic::UInt32,nupic::Real64,nupic::Int32,nupic::Real64,nupic::DistanceToZero<nupic::Real64 > >& B)
+         nupic::SparseMatrix<nupic::UInt32,nupic::Real64,nupic::Int32,nupic::Real64,nupic::DistanceToZero<nupic::Real64 > >& B)
   {
     nupic::SparseMatrixAlgorithms::assignNoAlloc(A, B);
   }
@@ -2238,27 +2249,27 @@ inline nupic::UInt32 nNonZeroCols_01(nupic::UInt32 nrows, nupic::UInt32 ncols, P
     nupic::SparseMatrixAlgorithms::assignNoAllocFromBinary(A, B);
   }
   */
-	//--------------------------------------------------------------------------------
-	void SM_addConstantOnNonZeros(nupic::SparseMatrix<nupic::UInt32,nupic::Real32,nupic::Int32,nupic::Real64,nupic::DistanceToZero<nupic::Real32 > >& A,
-								  const nupic::SparseBinaryMatrix<nupic::UInt32,nupic::UInt32>& B,
-								  double cval)
-	{
-		nupic::SparseMatrixAlgorithms::addConstantOnNonZeros(A, B, cval);
-	}
+  //--------------------------------------------------------------------------------
+  void SM_addConstantOnNonZeros(nupic::SparseMatrix<nupic::UInt32,nupic::Real32,nupic::Int32,nupic::Real64,nupic::DistanceToZero<nupic::Real32 > >& A,
+                  const nupic::SparseBinaryMatrix<nupic::UInt32,nupic::UInt32>& B,
+                  double cval)
+  {
+    nupic::SparseMatrixAlgorithms::addConstantOnNonZeros(A, B, cval);
+  }
 
-	//--------------------------------------------------------------------------------
-	/*
-	 void SM_addConstantOnNonZeros(nupic::SparseMatrix<nupic::UInt32,nupic::Real32,nupic::Int32,nupic::Real64,nupic::DistanceToZero<nupic::Real32 > >& A,
-								   const nupic::SparseBinaryMatrix<nupic::UInt32,nupic::UInt32>& B,
-								   nupic::Real32 cval)
-	 {
-	 nupic::SparseMatrixAlgorithms::addConstantOnNonZeros(A, B, cval);
-	 }
-	 */
+  //--------------------------------------------------------------------------------
+  /*
+   void SM_addConstantOnNonZeros(nupic::SparseMatrix<nupic::UInt32,nupic::Real32,nupic::Int32,nupic::Real64,nupic::DistanceToZero<nupic::Real32 > >& A,
+                   const nupic::SparseBinaryMatrix<nupic::UInt32,nupic::UInt32>& B,
+                   nupic::Real32 cval)
+   {
+   nupic::SparseMatrixAlgorithms::addConstantOnNonZeros(A, B, cval);
+   }
+   */
 
   //--------------------------------------------------------------------------------
   void SM_logSumNoAlloc(nupic::SparseMatrix<nupic::UInt32,nupic::Real32,nupic::Int32,nupic::Real64,nupic::DistanceToZero<nupic::Real32 > >& A,
-			const nupic::SparseMatrix<nupic::UInt32,nupic::Real32,nupic::Int32,nupic::Real64,nupic::DistanceToZero<nupic::Real32 > >& B, double min_floor =0)
+      const nupic::SparseMatrix<nupic::UInt32,nupic::Real32,nupic::Int32,nupic::Real64,nupic::DistanceToZero<nupic::Real32 > >& B, double min_floor =0)
   {
     nupic::SparseMatrixAlgorithms::logSumNoAlloc(A, B, min_floor);
   }
@@ -2266,7 +2277,7 @@ inline nupic::UInt32 nNonZeroCols_01(nupic::UInt32 nrows, nupic::UInt32 ncols, P
   //--------------------------------------------------------------------------------
   /*
   void SM_logSumNoAlloc(nupic::SparseMatrix<nupic::UInt32,nupic::Real64,nupic::Int32,nupic::Real64,nupic::DistanceToZero<nupic::Real64 > >& A,
-		     nupic::SparseMatrix<nupic::UInt32,nupic::Real64,nupic::Int32,nupic::Real64,nupic::DistanceToZero<nupic::Real64 > >& B, double min_floor =0)
+         nupic::SparseMatrix<nupic::UInt32,nupic::Real64,nupic::Int32,nupic::Real64,nupic::DistanceToZero<nupic::Real64 > >& B, double min_floor =0)
   {
     nupic::SparseMatrixAlgorithms::logSumNoAlloc(A, B, min_floor);
   }
@@ -2288,7 +2299,7 @@ inline nupic::UInt32 nNonZeroCols_01(nupic::UInt32 nrows, nupic::UInt32 ncols, P
 
   //--------------------------------------------------------------------------------
   void SM_logDiffNoAlloc(nupic::SparseMatrix<nupic::UInt32,nupic::Real32,nupic::Int32,nupic::Real64,nupic::DistanceToZero<nupic::Real32 > >& A,
-		     nupic::SparseMatrix<nupic::UInt32,nupic::Real32,nupic::Int32,nupic::Real64,nupic::DistanceToZero<nupic::Real32 > >& B, double min_floor =0)
+         nupic::SparseMatrix<nupic::UInt32,nupic::Real32,nupic::Int32,nupic::Real64,nupic::DistanceToZero<nupic::Real32 > >& B, double min_floor =0)
   {
     nupic::SparseMatrixAlgorithms::logDiffNoAlloc(A, B, min_floor);
   }
@@ -2296,7 +2307,7 @@ inline nupic::UInt32 nNonZeroCols_01(nupic::UInt32 nrows, nupic::UInt32 ncols, P
   /*
   //--------------------------------------------------------------------------------
   void SM_logDiffNoAlloc(nupic::SparseMatrix<nupic::UInt32,nupic::Real64,nupic::Int32,nupic::Real64,nupic::DistanceToZero<nupic::Real64 > >& A,
-		     nupic::SparseMatrix<nupic::UInt32,nupic::Real64,nupic::Int32,nupic::Real64,nupic::DistanceToZero<nupic::Real64 > >& B, double min_floor =0)
+         nupic::SparseMatrix<nupic::UInt32,nupic::Real64,nupic::Int32,nupic::Real64,nupic::DistanceToZero<nupic::Real64 > >& B, double min_floor =0)
   {
     nupic::SparseMatrixAlgorithms::logDiffNoAlloc(A, B, min_floor);
   }
@@ -2701,7 +2712,7 @@ def __str__(self):
   }
 
   PyObject *LpNearest(nupic::Real ## N2 p, PyObject *row,
-		      nupic::UInt ## N1 k =1, bool take_root =true) const
+          nupic::UInt ## N1 k =1, bool take_root =true) const
   {
     nupic::NumpyVectorT<nupic::Real ## N2> x(row);
     std::vector<std::pair<nupic::UInt ## N1, nupic::Real ## N2> > nn(k);
@@ -2728,7 +2739,7 @@ def __str__(self):
   }
 
   PyObject* projLpNearest(nupic::Real ## N2 p, PyObject* py_x,
-			  nupic::UInt ## N1 k =1, bool take_root =false) const
+      nupic::UInt ## N1 k =1, bool take_root =false) const
   {
     nupic::NumpyVectorT<nupic::Real ## N2> x(py_x);
     std::vector<std::pair<nupic::UInt ## N1, nupic::Real ## N2> > nn(k);
@@ -2796,12 +2807,12 @@ NearestNeighbor_(32, 32, 32, 64)
       std::list<std::vector<nupic::UInt32> >::const_iterator it;
       nupic::UInt32 i = 0;
       for (it = sequences.begin(); it != sequences.end(); ++it, ++i) {
-	const std::vector<nupic::UInt32>& seq = *it;
-	nupic::UInt32 M = it->size();
-	PyObject* py_seq = PyList_New(M);
-	for (nupic::UInt32 j = 0; j != M; ++j)
-	  PyList_SET_ITEM(py_seq, j, PyInt_FromLong(seq[j]));
-	PyList_SET_ITEM(toReturn, i, py_seq);
+  const std::vector<nupic::UInt32>& seq = *it;
+  nupic::UInt32 M = it->size();
+  PyObject* py_seq = PyList_New(M);
+  for (nupic::UInt32 j = 0; j != M; ++j)
+    PyList_SET_ITEM(py_seq, j, PyInt_FromLong(seq[j]));
+  PyList_SET_ITEM(toReturn, i, py_seq);
       }
       return toReturn;
 
@@ -2949,6 +2960,25 @@ def __setstate__(self, inString):
     self.this = _MATH.new__SM_01_32_16(1)
     self.thisown = 1
     self.fromCSR(inString)
+
+def write(self, pyBuilder):
+  """Serialize the SparseBinaryMatrix instance using capnp.
+
+  :param: Destination SparseBinaryMatrixProto message builder
+  """
+  reader = SparseBinaryMatrixProto.from_bytes(self._writeAsCapnpPyBytes()) # copy
+  pyBuilder.from_dict(reader.to_dict())  # copy
+
+def read(self, proto):
+  """Initialize the SparseBinaryMatrix instance from the given SparseBinaryMatrixProto
+  reader.
+
+  :param proto: SparseBinaryMatrixProto message reader containing data from a previously
+                serialized SparseBinaryMatrix instance.
+
+  """
+  self._initFromCapnpPyBytes(proto.as_builder().to_bytes()) # copy * 2
+
 %}
 
   PyObject* __getstate__()
@@ -2968,8 +2998,8 @@ def __setstate__(self, inString):
       std::istringstream s(std::string(buf, n));
       self->fromCSR(s);
     } else {
-      throw
-	std::runtime_error("Failed to read SparseBinaryMatrix state from string.");
+      throw std::runtime_error(
+        "Failed to read SparseBinaryMatrix state from string.");
     }
   }
 
@@ -3003,10 +3033,10 @@ def __setstate__(self, inString):
       // Return one list of triples
       toReturn = PyTuple_New(nnz);
       for (nupic::UInt32 i = 0; i != nnz; ++i) {
-	PyObject* tuple = PyTuple_New(2);
-	PyTuple_SET_ITEM(tuple, 0, PyInt_FromLong(rows.get(i)));
-	PyTuple_SET_ITEM(tuple, 1, PyInt_FromLong(cols.get(i)));
-	PyTuple_SET_ITEM(toReturn, i, tuple);
+        PyObject* tuple = PyTuple_New(2);
+        PyTuple_SET_ITEM(tuple, 0, PyInt_FromLong(rows.get(i)));
+        PyTuple_SET_ITEM(tuple, 1, PyInt_FromLong(cols.get(i)));
+        PyTuple_SET_ITEM(toReturn, i, tuple);
       }
     } else {
       // Return two lists
@@ -3019,7 +3049,7 @@ def __setstate__(self, inString):
   }
 
   inline void setAllNonZeros(nupic::UInt32 nrows, nupic::UInt16 ncols,
-		      PyObject* py_i, PyObject* py_j, bool sorted =true)
+          PyObject* py_i, PyObject* py_j, bool sorted =true)
   {
     nupic::NumpyVectorT<nupic::UInt32> i(py_i);
     nupic::NumpyVectorT<nupic::UInt16> j(py_j);
@@ -3087,8 +3117,8 @@ def __setstate__(self, inString):
       nupic::NumpyVectorT<nupic::UInt32> bounds_j(box_j);
       nupic::SparseMatrix<nupic::UInt32,nupic::Real32> result(bounds_i.size(), bounds_j.size());
       self->nNonZerosPerBox(bounds_i.begin(), bounds_i.end(),
-			    bounds_j.begin(), bounds_j.end(),
-			    result);
+          bounds_j.begin(), bounds_j.end(),
+          result);
       return result;
     }
 
@@ -3170,7 +3200,7 @@ def __setstate__(self, inString):
   {
     nupic::NumpyMatrixT<nupic::UInt32> m(py_m);
     self->fromDense(m.rows(), m.columns(),
-		    m.addressOf(0,0), m.addressOf(0,0) + m.rows() * m.columns());
+        m.addressOf(0,0), m.addressOf(0,0) + m.rows() * m.columns());
   }
 
   inline PyObject* toDense() const
@@ -3230,32 +3260,18 @@ def __setstate__(self, inString):
     load_file.close();
   }
 
-  inline void write(PyObject* pyBuilder) const
+  inline PyObject* _writeAsCapnpPyBytes() const
   {
-  %#if !CAPNP_LITE
-    SparseBinaryMatrixProto::Builder proto =
-        nupic::getBuilder<SparseBinaryMatrixProto>(pyBuilder);
-    self->write(proto);
-  %#else
-    throw std::logic_error(
-        "SparseBinaryMatrix.write is not implemented when compiled with CAPNP_LITE=1.");
-  %#endif
+    return nupic::PyCapnpHelper::writeAsPyBytes(*self);
   }
 
-  inline void read(PyObject* pyReader)
+  inline void _initFromCapnpPyBytes(PyObject* pyBytes)
   {
-  %#if !CAPNP_LITE
-    SparseBinaryMatrixProto::Reader proto =
-        nupic::getReader<SparseBinaryMatrixProto>(pyReader);
-    self->read(proto);
-  %#else
-    throw std::logic_error(
-        "SparseBinaryMatrix.read is not implemented when compiled with CAPNP_LITE=1.");
-  %#endif
-  }
+    nupic::PyCapnpHelper::initFromPyBytes(*self, pyBytes);
+}
 
   inline void fromSparseVector(nupic::UInt32 nrows, nupic::UInt16 ncols,
-			       PyObject *py_x, nupic::UInt16 offset =0)
+             PyObject *py_x, nupic::UInt16 offset =0)
   {
     nupic::NumpyVectorT<nupic::UInt32> x(py_x);
     self->fromSparseVector(nrows, ncols, x.begin(), x.end(), offset);
@@ -3455,6 +3471,24 @@ def __setstate__(self, inString):
     self.this = _MATH.new__SM_01_32_32(1)
     self.thisown = 1
     self.fromCSR(inString)
+
+def write(self, pyBuilder):
+  """Serialize the SparseBinaryMatrix instance using capnp.
+
+  :param: Destination SparseBinaryMatrixProto message builder
+  """
+  reader = SparseBinaryMatrixProto.from_bytes(self._writeAsCapnpPyBytes()) # copy
+  pyBuilder.from_dict(reader.to_dict())  # copy
+
+def read(self, proto):
+  """Initialize the SparseBinaryMatrix instance from the given SparseBinaryMatrixProto
+  reader.
+
+  :param proto: SparseBinaryMatrixProto message reader containing data from a previously
+                serialized SparseBinaryMatrix instance.
+
+  """
+  self._initFromCapnpPyBytes(proto.as_builder().to_bytes()) # copy * 2
 %}
 
   PyObject* __getstate__()
@@ -3475,7 +3509,7 @@ def __setstate__(self, inString):
       self->fromCSR(s);
     } else {
       throw
-	std::runtime_error("Failed to read SparseBinaryMatrix state from string.");
+  std::runtime_error("Failed to read SparseBinaryMatrix state from string.");
     }
   }
 
@@ -3509,10 +3543,10 @@ def __setstate__(self, inString):
       // Return one list of triples
       toReturn = PyTuple_New(nnz);
       for (nupic::UInt32 i = 0; i != nnz; ++i) {
-	PyObject* tuple = PyTuple_New(2);
-	PyTuple_SET_ITEM(tuple, 0, PyInt_FromLong(rows.get(i)));
-	PyTuple_SET_ITEM(tuple, 1, PyInt_FromLong(cols.get(i)));
-	PyTuple_SET_ITEM(toReturn, i, tuple);
+  PyObject* tuple = PyTuple_New(2);
+  PyTuple_SET_ITEM(tuple, 0, PyInt_FromLong(rows.get(i)));
+  PyTuple_SET_ITEM(tuple, 1, PyInt_FromLong(cols.get(i)));
+  PyTuple_SET_ITEM(toReturn, i, tuple);
       }
     } else {
       // Return two lists
@@ -3525,7 +3559,7 @@ def __setstate__(self, inString):
   }
 
   inline void setAllNonZeros(nupic::UInt32 nrows, nupic::UInt32 ncols,
-		      PyObject* py_i, PyObject* py_j, bool sorted =true)
+          PyObject* py_i, PyObject* py_j, bool sorted =true)
   {
     nupic::NumpyVectorT<nupic::UInt32> i(py_i), j(py_j);
     self->setAllNonZeros(nrows, ncols, i.begin(), i.end(), j.begin(), j.end(), sorted);
@@ -3592,8 +3626,8 @@ def __setstate__(self, inString):
       nupic::NumpyVectorT<nupic::UInt32> bounds_j(box_j);
       nupic::SparseMatrix<nupic::UInt32,nupic::Real32> result(bounds_i.size(), bounds_j.size());
       self->nNonZerosPerBox(bounds_i.begin(), bounds_i.end(),
-			    bounds_j.begin(), bounds_j.end(),
-			    result);
+          bounds_j.begin(), bounds_j.end(),
+          result);
       return result;
     }
 
@@ -3675,7 +3709,7 @@ def __setstate__(self, inString):
   {
     nupic::NumpyMatrixT<nupic::UInt32> m(py_m);
     self->fromDense(m.rows(), m.columns(),
-		    m.addressOf(0,0), m.addressOf(0,0) + m.rows() * m.columns());
+        m.addressOf(0,0), m.addressOf(0,0) + m.rows() * m.columns());
   }
 
   inline PyObject* toDense() const
@@ -3759,32 +3793,18 @@ def __setstate__(self, inString):
     load_file.close();
   }
 
-  inline void write(PyObject* pyBuilder) const
+  inline PyObject* _writeAsCapnpPyBytes() const
   {
-  %#if !CAPNP_LITE
-    SparseBinaryMatrixProto::Builder proto =
-        nupic::getBuilder<SparseBinaryMatrixProto>(pyBuilder);
-    self->write(proto);
-  %#else
-    throw std::logic_error(
-        "SparseBinaryMatrix.write is not implemented when compiled with CAPNP_LITE=1.");
-  %#endif
+    return nupic::PyCapnpHelper::writeAsPyBytes(*self);
   }
 
-  inline void read(PyObject* pyReader)
+  inline void _initFromCapnpPyBytes(PyObject* pyBytes)
   {
-  %#if !CAPNP_LITE
-    SparseBinaryMatrixProto::Reader proto =
-        nupic::getReader<SparseBinaryMatrixProto>(pyReader);
-    self->read(proto);
-  %#else
-    throw std::logic_error(
-        "SparseBinaryMatrix.read is not implemented when compiled with CAPNP_LITE=1.");
-  %#endif
+    nupic::PyCapnpHelper::initFromPyBytes(*self, pyBytes);
   }
 
   inline void fromSparseVector(nupic::UInt32 nrows, nupic::UInt32 ncols,
-			       PyObject *py_x, nupic::UInt32 offset =0)
+             PyObject *py_x, nupic::UInt32 offset =0)
   {
     nupic::NumpyVectorT<nupic::UInt32> x(py_x);
     self->fromSparseVector(nrows, ncols, x.begin(), x.end(), offset);
@@ -4040,7 +4060,7 @@ def __setstate__(self, inString):
   {
     nupic::NumpyMatrixT<nupic::Real32> m(py_m);
     self->fromDense(m.rows(), m.columns(),
-		    m.addressOf(0,0), m.addressOf(0,0) + m.rows() * m.columns());
+        m.addressOf(0,0), m.addressOf(0,0) + m.rows() * m.columns());
   }
 
   inline PyObject* toDense() const
@@ -4157,7 +4177,7 @@ def __setstate__(self, inString):
   {
     nupic::NumpyMatrixT<nupic::Real32> m(py_m);
     self->fromDense(m.rows(), m.columns(),
-		    m.addressOf(0,0), m.addressOf(0,0) + m.rows() * m.columns());
+        m.addressOf(0,0), m.addressOf(0,0) + m.rows() * m.columns());
   }
 
   inline PyObject* toDense() const
@@ -4276,7 +4296,7 @@ def __setstate__(self, inString):
   {
     nupic::NumpyMatrixT<nupic::Real32> m(py_m);
     self->fromDense(m.rows(), m.columns(),
-		    m.addressOf(0,0), m.addressOf(0,0) + m.rows() * m.columns());
+        m.addressOf(0,0), m.addressOf(0,0) + m.rows() * m.columns());
   }
 
   inline PyObject* toDense() const

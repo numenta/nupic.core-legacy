@@ -29,10 +29,6 @@ Implementation of the Network class
 #include <sstream>
 #include <stdexcept>
 
-#include <capnp/message.h>
-#include <capnp/serialize.h>
-#include <kj/std/iostream.h>
-
 #include <nupic/engine/Network.hpp>
 #include <nupic/engine/Region.hpp>
 #include <nupic/engine/Spec.hpp>

@@ -27,83 +27,113 @@
 #ifndef NTA_PY_CAPNP_HPP
 #define NTA_PY_CAPNP_HPP
 
-#if !CAPNP_LITE
+#include <stdexcept>  // for std::logic_error
+
 #include <Python.h>
 
-#include <capnp/any.h>
-#include <capnp/dynamic.h>
-#include <capnp/message.h>
-#include <capnp/schema-parser.h>
+#if !CAPNP_LITE
 
-#include <nupic/py_support/CapnpToPycapnp.hpp>
+  #include <capnp/any.h>
+  #include <capnp/dynamic.h>
+  #include <capnp/message.h>
+  #include <capnp/schema-parser.h>
+#endif // !CAPNP_LITE
+
+#include <nupic/types/Serializable.hpp>
+
+
 
 namespace nupic
 {
 
-  struct pycapnp_SchemaParser {
-    PyObject_HEAD
-    void *__pyx_vtab;
-     ::capnp::SchemaParser *thisptr;
-    PyObject *modules_by_id;
-  };
-
-  struct pycapnp_DynamicStructBuilder {
-    PyObject_HEAD
-    void *__pyx_vtab;
-     ::capnp::DynamicStruct::Builder thisptr;
-    PyObject *_parent;
-    int is_root;
-    int _is_written;
-    PyObject *_schema;
-  };
-
-  struct pycapnp_DynamicStructReader {
-    PyObject_HEAD
-    void *__pyx_vtab;
-     ::capnp::DynamicStruct::Reader thisptr;
-    PyObject *_parent;
-    int is_root;
-    PyObject *_obj_to_pin;
-    PyObject *_schema;
-  };
-
-  template<class T>
-  typename T::Builder getBuilder(PyObject* pyBuilder)
+  class PyCapnpHelper
   {
-    PyObject* capnpModule = PyImport_AddModule("capnp.lib.capnp");
-    PyObject* pySchemaParser = PyObject_GetAttrString(capnpModule,
-                                                      "_global_schema_parser");
-    pycapnp_SchemaParser* schemaParser = (pycapnp_SchemaParser*)pySchemaParser;
-    schemaParser->thisptr->loadCompiledTypeAndDependencies<T>();
+  public:
+    /**
+     * Serialize the given nupic::Serializable-based instance, returning a capnp
+     * byte buffer as python byte string.
+     *
+     * :param obj: The Serializable object
+     *
+     * :returns: capnp byte buffer encoded as python byte string.
+     *
+     * :example: PyObject* pyBytes = PyCapnpHelper::writeAsPyBytes(*netPtr);
+     */
+    template<class MessageType>
+    static PyObject* writeAsPyBytes(const nupic::Serializable<MessageType>& obj)
+    {
+    #if !CAPNP_LITE
+      capnp::MallocMessageBuilder message;
+      typename MessageType::Builder proto = message.initRoot<MessageType>();
 
-    pycapnp_DynamicStructBuilder* dynamicStruct =
-        (pycapnp_DynamicStructBuilder*)pyBuilder;
-    capnp::DynamicStruct::Builder& builder = dynamicStruct->thisptr;
-    typename T::Builder proto = builder.as<T>();
-    return proto;
-  }
+      obj.write(proto);
 
-  template<class T>
-  typename T::Reader getReader(PyObject* pyReader)
-  {
-    PyObject* capnpModule = PyImport_AddModule("capnp.lib.capnp");
-    PyObject* pySchemaParser = PyObject_GetAttrString(capnpModule,
-                                                      "_global_schema_parser");
-    pycapnp_SchemaParser* schemaParser = (pycapnp_SchemaParser*)pySchemaParser;
-    schemaParser->thisptr->loadCompiledTypeAndDependencies<T>();
+      // Extract message data and convert to Python byte object
+      kj::Array<capnp::word> array = capnp::messageToFlatArray(message); // copy
+      kj::ArrayPtr<kj::byte> byteArray = array.asBytes();
+      PyObject* result = PyString_FromStringAndSize(
+        (const char*)byteArray.begin(),
+        byteArray.size()); // copy
+      return result;
+    #else
+      throw std::logic_error(
+        "PyCapnpHelper::writeAsPyBytes is not implemented when "
+        "compiled with CAPNP_LITE=1.");
+    #endif
+    }
 
-    pycapnp_DynamicStructReader* dynamicStruct =
-        (pycapnp_DynamicStructReader*)pyReader;
-    capnp::DynamicStruct::Reader& reader = dynamicStruct->thisptr;
-    typename T::Reader proto = reader.as<T>();
-    return proto;
-  }
+    /**
+     * Initialize the given nupic::Serializable-based instance from the given
+     * Capnp message reader.
+     *
+     * :param pyBytes: The Serializable object
+     *
+     * :returns: capnp byte buffer encoded as python byte string.
+     *
+     * :example: PyCapnpHelper::initFromPyBytes(network, pyBytes);
+     */
+    template<class MessageType>
+    static void initFromPyBytes(
+      nupic::Serializable<MessageType>& obj,
+      const PyObject* pyBytes)
+    {
+    #if !CAPNP_LITE
+      const char* srcBytes = nullptr;
+      Py_ssize_t srcNumBytes = 0;
 
-  PyObject* getPyReader(capnp::DynamicStruct::Reader reader);
-  PyObject* getPyBuilder(capnp::DynamicStruct::Builder builder);
+      // NOTE: srcBytes will be set to point to the internal buffer inside
+      // pyRegionProtoBytes'
+      PyString_AsStringAndSize(const_cast<PyObject*>(pyBytes),
+                               const_cast<char**>(&srcBytes),
+                               &srcNumBytes);
+
+      if (srcNumBytes % sizeof(capnp::word) != 0)
+      {
+        throw std::logic_error(
+          "PyCapnpHelper.initFromPyBytes input length must be a multiple of "
+          "capnp::word.");
+      }
+      const int srcNumWords = srcNumBytes / sizeof(capnp::word);
+
+      // Ensure alignment on capnp::word boundary; TODO can we do w/o this copy or
+      // make copy conditional on alignment like pycapnp does?
+      kj::Array<capnp::word> array = kj::heapArray<capnp::word>(srcNumWords);
+      memcpy(array.asBytes().begin(), srcBytes, srcNumBytes); // copy
+
+      capnp::FlatArrayMessageReader reader(array.asPtr()); // copy ?
+      typename MessageType::Reader proto = reader.getRoot<MessageType>();
+      obj.read(proto);
+    #else
+      throw std::logic_error(
+        "PyCapnpHelper::initFromPyBytes is not implemented when "
+        "compiled with CAPNP_LITE=1.");
+
+    #endif
+    }
+
+  }; // class PyCapnpHelper
 
 }  // namespace nupic
 
-#endif // !CAPNP_LITE
 
 #endif  // NTA_PY_CAPNP_HPP

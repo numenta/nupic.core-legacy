@@ -44,7 +44,7 @@ The following table shows example CMake common settings;
 | Source code | `%NUPIC_CORE%` |
 | Binaries | `%NUPIC_CORE%/build/scripts` |
 | CMAKE_INSTALL_PREFIX | `%NUPIC_CORE%/build/release` |
-| PY_EXTENSIONS_DIR | `%NUPIC_CORE%/bindings/py/nupic/bindings` |
+| PY_EXTENSIONS_DIR | `%NUPIC_CORE%/bindings/py/src/nupic/bindings` |
 
 </center>
 
@@ -68,7 +68,7 @@ rem Run cmake to generator MinGW Makefiles
 cmake -G "MinGW Makefiles"
     -DCMAKE_BUILD_TYPE=Debug
     -DCMAKE_INSTALL_PREFIX=..\release
-    -DPY_EXTENSIONS_DIR=..\..\bindings\py\nupic\bindings
+    -DPY_EXTENSIONS_DIR=..\..\bindings\py\src\nupic\bindings
     ..\..
 
 rem Build and install NuPIC.core, and build SWIG binding libraries

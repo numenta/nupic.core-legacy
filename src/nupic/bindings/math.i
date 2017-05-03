@@ -24,6 +24,15 @@
 %include <nupic/bindings/exception.i>
 
 %pythoncode %{
+try:
+  # NOTE need to import capnp first to activate the magic necessary for
+  # RandomProto_capnp, etc.
+  import capnp
+except ImportError:
+  capnp = None
+else:
+  from nupic.proto.RandomProto_capnp import RandomProto
+
 _MATH = _math
 %}
 
@@ -51,6 +60,9 @@ _MATH = _math
  */
 
 #include <cmath>
+
+#include <Python.h>
+
 #include <nupic/types/Types.hpp>
 #include <nupic/math/Utils.hpp>
 #include <nupic/math/Math.hpp>
@@ -61,9 +73,7 @@ _MATH = _math
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include <numpy/arrayobject.h>
 
-#if !CAPNP_LITE
 #include <nupic/py_support/PyCapnp.hpp>
-#endif
 %}
 
 %naturalvar;
@@ -80,6 +90,7 @@ _MATH = _math
 import_array();
 
 %}
+
 
 %include <nupic/bindings/types.i>
 %include <nupic/bindings/reals.i>
@@ -138,7 +149,7 @@ import_array();
   {
     nupic::NumpyVectorT<nupic::Real32> x(py_x), y(x.size());
     nupic::quantize(x.begin(), x.end(), y.begin(), y.end(),
-		  x_min, x_max, 1, 255);
+                    x_min, x_max, 1, 255);
     return y.forPython();
   }
 
@@ -146,7 +157,7 @@ import_array();
   {
     nupic::NumpyVectorT<nupic::Real32> x(py_x), y(x.size());
     nupic::quantize(x.begin(), x.end(), y.begin(), y.end(),
-		  x_min, x_max, 1, 65535);
+                    x_min, x_max, 1, 65535);
     return y.forPython();
   }
   */
@@ -157,7 +168,7 @@ import_array();
     std::vector<int> ind;
     std::vector<nupic::Real32> nz;
     nupic::winnerTakesAll3(k, seg_size, x.begin(), x.end(),
-		    std::back_inserter(ind), std::back_inserter(nz));
+        std::back_inserter(ind), std::back_inserter(nz));
     PyObject *toReturn = PyTuple_New(2);
     PyTuple_SET_ITEM(toReturn, 0, nupic::PyInt32Vector(ind.begin(), ind.end()));
     PyTuple_SET_ITEM(toReturn, 1, nupic::PyFloatVector(nz.begin(), nz.end()));
@@ -182,6 +193,26 @@ def __setstate__(self, state):
   self.this = _MATH.new_Random(1)
   self.thisown = 1
   self.setState(state)
+
+
+def write(self, pyBuilder):
+  """Serialize the Random instance using capnp.
+
+  :param: Destination RandomProto message builder
+  """
+  reader = RandomProto.from_bytes(self._writeAsCapnpPyBytes()) # copy
+  pyBuilder.from_dict(reader.to_dict())  # copy
+
+
+def read(self, proto):
+  """Initialize the Random instance from the given RandomProto reader.
+
+  :param proto: RandomProto message reader containing data from a previously
+                serialized Random instance.
+
+  """
+  self._initFromCapnpPyBytes(proto.as_builder().to_bytes()) # copy * 2
+
 %}
 
 // For pickling (should be compatible with setState()).
@@ -346,26 +377,14 @@ inline PyObject* shuffle(PyObject* obj)
   return obj;
 }
 
-inline void write(PyObject* pyBuilder) const
+inline PyObject* _writeAsCapnpPyBytes() const
 {
-%#if !CAPNP_LITE
-  RandomProto::Builder proto = nupic::getBuilder<RandomProto>(pyBuilder);
-  self->write(proto);
-%#else
-  throw std::logic_error(
-      "Random.write is not implemented when compiled with CAPNP_LITE=1.");
-%#endif
+  return nupic::PyCapnpHelper::writeAsPyBytes(*self);
 }
 
-inline void read(PyObject* pyReader)
+inline void _initFromCapnpPyBytes(PyObject* pyBytes)
 {
-%#if !CAPNP_LITE
-  RandomProto::Reader proto = nupic::getReader<RandomProto>(pyReader);
-  self->read(proto);
-%#else
-  throw std::logic_error(
-      "Random.read is not implemented when compiled with CAPNP_LITE=1.");
-%#endif
+  nupic::PyCapnpHelper::initFromPyBytes(*self, pyBytes);
 }
 
 } // End extend nupic::Random.
