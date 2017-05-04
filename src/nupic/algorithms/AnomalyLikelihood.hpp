@@ -46,23 +46,10 @@ and 40 minutes. A likelihood of 0.0001 or 0.01% means we see it once out of
 USAGE
 -----
 
-There are two ways to use the code: using the AnomalyLikelihood helper class or
-using the raw individual functions.
-
-
-Helper Class
-------------
-The helper class AnomalyLikelihood is the easiest to use.  To use it simply
-create an instance and then feed it successive anomaly scores:
-
-anomalyLikelihood = AnomalyLikelihood()
-while still_have_data:
-  # Get anomaly score from model
-
-  # Compute probability that an anomaly has ocurred
-  anomalyProbability = anomalyLikelihood.anomalyProbability(
-      value, anomalyScore, timestamp)
-
+There are 3 ways to use the code: 
+- using the convenience Anomaly class with `mode=LIKELIHOOD` (method `compute()`),
+- using the AnomalyLikelihood helper class (method `anomalyProbability()`), or
+- using the raw individual functions.
 **/
 
 using namespace std;
@@ -83,17 +70,117 @@ struct DistributionParams {
 class AnomalyLikelihood {
 
   public:
+
+  /**
+      NOTE: Anomaly likelihood scores are reported at a flat 0.5 for
+    learningPeriod + estimationSamples iterations.
+
+    claLearningPeriod and learningPeriod are specifying the same variable,
+    although claLearningPeriod is a deprecated name for it.
+
+    @param learningPeriod (claLearningPeriod: deprecated) - (int) the number of
+      iterations required for the algorithm to learn the basic patterns in the
+      dataset and for the anomaly score to 'settle down'. The default is based
+      on empirical observations but in reality this could be larger for more
+      complex domains. The downside if this is too large is that real anomalies
+      might get ignored and not flagged.
+
+    @param estimationSamples - (int) the number of reasonable anomaly scores
+      required for the initial estimate of the Gaussian. The default of 100
+      records is reasonable - we just need sufficient samples to get a decent
+      estimate for the Gaussian. It's unlikely you will need to tune this since
+      the Gaussian is re-estimated every 10 iterations by default.
+
+    @param historicWindowSize - (int) size of sliding window of historical
+      data points to maintain for periodic reestimation of the Gaussian. Note:
+      the default of 8640 is based on a month's worth of history at 5-minute
+      intervals.
+
+    @param reestimationPeriod - (int) how often we re-estimate the Gaussian
+      distribution. The ideal is to re-estimate every iteration but this is a
+      performance hit. In general the system is not very sensitive to this
+      number as long as it is small relative to the total number of records
+      processed.
+
+  **/
     AnomalyLikelihood(UInt learningPeriod=288, UInt estimationSamples=100, UInt historicWindowSize=8640, UInt reestimationPeriod=100, UInt aggregationWindow=10);
 
+
+    /**
+    This is the main "compute" method. 
+
+    Compute the probability that the current anomaly score represents
+    an anomaly given the historical distribution of anomaly scores. The closer
+    the number is to 1, the higher the chance it is an anomaly.
+
+    @param anomalyScore - the current anomaly score
+    @param timestamp - (optional) timestamp of the ocurrence,
+                       default (-1) results in using iteration step.
+    @return the anomalyLikelihood for this record.
+    **/
     Real anomalyProbability(Real anomalyScore, int timestamp=-1);
 
   private:
     //methods:
+
+  /**
+  Given a series of anomaly scores, compute the likelihood for each score. This
+  function should be called once on a bunch of historical anomaly scores for an
+  initial estimate of the distribution. It should be called again every so often
+  (say every 50 records) to update the estimate.
+
+  :param anomalyScores: a list of anomaly scores
+
+                        For best results, the list should be between 1000
+                        and 10,000 records
+  :param averagingWindow: integer number of records to average over
+  :param skipRecords: integer specifying number of records to skip when
+                      estimating distributions. If skip records are >=
+                      len(anomalyScores), a very broad distribution is returned
+                      that makes everything pretty likely.
+  :param verbosity: integer controlling extent of printouts for debugging
+
+                      0 = none
+                      1 = occasional information
+                      2 = print every record
+
+  :returns: vector of lilelihoods: , one for each aggregated point
+  **/
     vector<Real> estimateAnomalyLikelihoods(vector<Real> anomalyScores, UInt skipRecords=0, UInt verbosity=0);
+
+  /**
+  Compute updated probabilities for anomalyScores using the given params.
+
+  :param anomalyScores: a list of records. Each record is a list with the
+
+  :param verbosity: integer controlling extent of printouts for debugging
+  :type verbosity: UInt
+
+  :returns: a vector of likelihoods, one for each aggregated point
+  **/
     vector<Real>  updateAnomalyLikelihoods(vector<Real> anomalyScores, UInt verbosity=0);
+ /**
+  Given the normal distribution specified by the mean and standard deviation
+  in distributionParams (the distribution is an instance member of the class), 
+  return the probability of getting samples further from the mean. 
+  For values above the mean, this is the probability of getting
+  samples > x and for values below the mean, the probability of getting
+  samples < x. This is the Q-function: the tail probability of the normal distribution.
+  **/
     Real32 tailProbability(Real32 x) const;
+  /**
+  :param sampleData:
+  :type sampleData: vector array //TODO of what? likelihoods? rawScores? ....?
+  :param performLowerBoundCheck:
+  :type performLowerBoundCheck: bool
+  :returns: A DistributionParams (struct) containing the parameters of a normal distribution based on
+      the ``sampleData``.
+  **/
     DistributionParams estimateNormal(vector<Real> sampleData, bool performLowerBoundCheck=true);
-    DistributionParams nullDistribution() const;
+  /** returns parameters of a Null distribution **/
+    DistributionParams nullDistribution() const {
+    return DistributionParams("normal", 0.5, 1e6, 1e3);
+}
 
     //private static methods
 static Real  computeLogLikelihood(Real likelihood)  {

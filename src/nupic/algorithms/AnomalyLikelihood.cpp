@@ -27,47 +27,6 @@
 
 #include <nupic/utils/Log.hpp> // NTA_CHECK
 
-/**
-Note: this is an implementation from python in nupic repository. 
-
-This module analyzes and estimates the distribution of averaged anomaly scores
-from a given model. Given a new anomaly score `s`, estimates `P(score >= s)`.
-
-The number `P(score >= s)` represents the likelihood of the current state of
-predictability. For example, a likelihood of 0.01 or 1% means we see this much
-predictability about one out of every 100 records. The number is not as unusual
-as it seems. For records that arrive every minute, this means once every hour
-and 40 minutes. A likelihood of 0.0001 or 0.01% means we see it once out of
-10,000 records, or about once every 7 days.
-
-USAGE
------
-
-There are two ways to use the code: using the AnomalyLikelihood helper class or
-using the raw individual functions.
-
-
-Helper Class
-------------
-The helper class AnomalyLikelihood is the easiest to use.  To use it simply
-create an instance and then feed it successive anomaly scores:
-
-anomalyLikelihood = AnomalyLikelihood()
-while still_have_data:
-  # Get anomaly score from model
-
-  # Compute probability that an anomaly has ocurred
-  anomalyProbability = anomalyLikelihood.anomalyProbability(
-      value, anomalyScore, timestamp)
-
-
-Raw functions
--------------
-There are two lower level functions, estimateAnomalyLikelihoods and
-updateAnomalyLikelihoods. The details of these are described below.
-
-**/
-
 using namespace std;
 using namespace nupic;
 using namespace nupic::util;
@@ -80,38 +39,6 @@ namespace nupic {
       Real compute_mean(vector<Real> v); //forward declaration
       Real compute_var(vector<Real> v, Real mean); 
 
-  /**
-      NOTE: Anomaly likelihood scores are reported at a flat 0.5 for
-    learningPeriod + estimationSamples iterations.
-
-    claLearningPeriod and learningPeriod are specifying the same variable,
-    although claLearningPeriod is a deprecated name for it.
-
-    @param learningPeriod (claLearningPeriod: deprecated) - (int) the number of
-      iterations required for the algorithm to learn the basic patterns in the
-      dataset and for the anomaly score to 'settle down'. The default is based
-      on empirical observations but in reality this could be larger for more
-      complex domains. The downside if this is too large is that real anomalies
-      might get ignored and not flagged.
-
-    @param estimationSamples - (int) the number of reasonable anomaly scores
-      required for the initial estimate of the Gaussian. The default of 100
-      records is reasonable - we just need sufficient samples to get a decent
-      estimate for the Gaussian. It's unlikely you will need to tune this since
-      the Gaussian is re-estimated every 10 iterations by default.
-
-    @param historicWindowSize - (int) size of sliding window of historical
-      data points to maintain for periodic reestimation of the Gaussian. Note:
-      the default of 8640 is based on a month's worth of history at 5-minute
-      intervals.
-
-    @param reestimationPeriod - (int) how often we re-estimate the Gaussian
-      distribution. The ideal is to re-estimate every iteration but this is a
-      performance hit. In general the system is not very sensitive to this
-      number as long as it is small relative to the total number of records
-      processed.
-
-  **/
 AnomalyLikelihood::AnomalyLikelihood(UInt learningPeriod, UInt estimationSamples, UInt historicWindowSize, UInt reestimationPeriod, UInt aggregationWindow) :
     learningPeriod(learningPeriod),
     reestimationPeriod(reestimationPeriod),
@@ -129,16 +56,6 @@ AnomalyLikelihood::AnomalyLikelihood(UInt learningPeriod, UInt estimationSamples
 
     
 Real AnomalyLikelihood::anomalyProbability(Real anomalyScore, int timestamp) {
-    /**
-    Compute the probability that the current anomaly score represents
-    an anomaly given the historical distribution of anomaly scores. The closer
-    the number is to 1, the higher the chance it is an anomaly.
-
-    @param anomalyScore - the current anomaly score
-    @param timestamp - (optional) timestamp of the ocurrence,
-                       default (-1) results in using iteration step.
-    @return the anomalyLikelihood for this record.
-    **/
     Real likelihood = 0.5f;
 
     if (timestamp == -1) {
@@ -154,7 +71,7 @@ Real AnomalyLikelihood::anomalyProbability(Real anomalyScore, int timestamp) {
     
     // We ignore the first probationaryPeriod data points - as we cannot reliably compute distribution statistics for estimating likelihood
     if (this->iteration < this->probationaryPeriod) {
-      return 0.5f;
+      return 0.5;
     } //else {
 
     auto anomalies = circularBufferToVector(this->runningAverageAnomalies); 
@@ -208,55 +125,9 @@ Real AnomalyLikelihood::anomalyProbability(Real anomalyScore, int timestamp) {
 #    likelihoods, avgRecordList, estimatorParams = \
 # estimateAnomalyLikelihoods(lots_of_metric_data)
 #
-#
-# PARAMS
-# ~~~~~~
-#
-# The parameters dict returned by the above functions has the following
-# structure. Note: the client does not need to know the details of this.
-#
-# ::
-#
-#  {
-#    "distribution":               # describes the distribution
-#      {
-#        "name": STRING,           # name of the distribution, such as 'normal'
-#        "mean": SCALAR,           # mean of the distribution
-#        "variance": SCALAR,       # variance of the distribution
-#
-#        # There may also be some keys that are specific to the distribution
-#      },
-#
-#    "historicalLikelihoods": []   # Contains the last windowSize likelihood
-#                                  # values returned
-#
-#    "movingAverage":              # stuff needed to compute a rolling average
-#                                  # of the anomaly scores
-#      {
-#        "windowSize": SCALAR,     # the size of the averaging window
-#        "historicalValues": [],   # list with the last windowSize anomaly
-#                                  # scores
-#        "total": SCALAR,          # the total of the values in historicalValues
-#      },
-#
-#  }
-
 **/
-  /** returns parameters of a Null distribution **/
-DistributionParams AnomalyLikelihood::nullDistribution() const {
-    return DistributionParams("normal", 0.5, 1e6, 1e3);
-}
 
 Real32 AnomalyLikelihood::tailProbability(Real32 x) const {
- /**
-  Given the normal distribution specified by the mean and standard deviation
-  in distributionParams, return the probability of getting samples further
-  from the mean. For values above the mean, this is the probability of getting
-  samples > x and for values below the mean, the probability of getting
-  samples < x. This is the Q-function: the tail probability of the normal distribution.
-
-  :param distributionParams: dict with 'mean' and 'stdev' of the distribution
-  **/
      NTA_CHECK(distribution.name != "unknown" && distribution.stdev > 0);
      
   if (x < distribution.mean) {
@@ -274,14 +145,6 @@ Real32 AnomalyLikelihood::tailProbability(Real32 x) const {
 
 
 DistributionParams AnomalyLikelihood::estimateNormal(vector<Real> sampleData, bool performLowerBoundCheck) {
-  /** 
-  :param sampleData:
-  :type sampleData: Numpy array.
-  :param performLowerBoundCheck:
-  :type performLowerBoundCheck: bool
-  :returns: A dict containing the parameters of a normal distribution based on
-      the ``sampleData``.
-  **/
     auto mean = compute_mean(sampleData);
     auto var = compute_var(sampleData, mean);
   DistributionParams params = DistributionParams("normal", mean, var, 0.0); 
@@ -291,7 +154,7 @@ DistributionParams AnomalyLikelihood::estimateNormal(vector<Real> sampleData, bo
      find that such low anomaly means can happen, but then the slightest blip
      of anomaly score can cause the likelihood to jump up to red.
      */
-    if (params.mean < 0.03) {
+    if (params.mean < 0.03) { //TODO make these magic numbers a constructor parameter, or at least a const variable
       params.mean= 0.03;
     }
 
@@ -311,7 +174,6 @@ DistributionParams AnomalyLikelihood::estimateNormal(vector<Real> sampleData, bo
   return params;
 }
 
-static vector<Real> filterLikelihoods_(vector<Real> likelihoods, Real redThreshold=0.99999, Real yellowThreshold=0.999){ //TODO make the redThreshold params of AnomalyLikelihood constructor() 
   /**
   Filter the list of raw (pre-filtered) likelihoods so that we only preserve
   sharp increases in likelihood. 'likelihoods' can be a numpy array of floats or
@@ -319,7 +181,8 @@ static vector<Real> filterLikelihoods_(vector<Real> likelihoods, Real redThresho
 
   :returns: A new list of floats likelihoods containing the filtered values.
   **/
-  redThreshold    = 1.0 - redThreshold;
+static vector<Real> filterLikelihoods_(vector<Real> likelihoods, Real redThreshold=0.99999, Real yellowThreshold=0.999){ //TODO make the redThreshold params of AnomalyLikelihood constructor() 
+  redThreshold    = 1.0 - redThreshold;  //TODO maybe we could use the true meaning already in the parameters
   yellowThreshold = 1.0 - yellowThreshold;
 
   // The first value is untouched
@@ -347,35 +210,6 @@ static vector<Real> filterLikelihoods_(vector<Real> likelihoods, Real redThresho
 
 
 vector<Real>  AnomalyLikelihood::updateAnomalyLikelihoods(vector<Real> anomalyScores, UInt verbosity) { 
-  /**
-  Compute updated probabilities for anomalyScores using the given params.
-
-  :param anomalyScores: a list of records. Each record is a list with the
-                        following three elements: [timestamp, value, score]
-
-                        Example::
-
-                            [datetime.datetime(2013, 8, 10, 23, 0), 6.0, 1.0]
-
-  :param params: the JSON dict returned by estimateAnomalyLikelihoods
-  :param verbosity: integer controlling extent of printouts for debugging
-  :type verbosity: int
-
-  :returns: 3-tuple consisting of:
-
-            - likelihoods
-
-              numpy array of likelihoods, one for each aggregated point
-
-            - avgRecordList 
-
-              list of averaged input records - stored in runningAverageAnomalies instance member
-
-            - params
-
-              an updated JSON object containing the state of this metric.-- available from historicalScores.getXXX()
-
-  **/
   if (verbosity > 3) {
     cout << "In updateAnomalyLikelihoods."<< endl;
     cout << "Number of anomaly scores: "<<  anomalyScores.size() << endl;
@@ -412,46 +246,6 @@ vector<Real>  AnomalyLikelihood::updateAnomalyLikelihoods(vector<Real> anomalySc
 
 
 vector<Real> AnomalyLikelihood::estimateAnomalyLikelihoods(vector<Real> anomalyScores, UInt skipRecords, UInt verbosity) { //FIXME averagingWindow not used, I guess it's not a sliding window, but aggregating window (discrete steps)!
-  /**
-  Given a series of anomaly scores, compute the likelihood for each score. This
-  function should be called once on a bunch of historical anomaly scores for an
-  initial estimate of the distribution. It should be called again every so often
-  (say every 50 records) to update the estimate. 
-
-  :param anomalyScores: a list of records. Each record is a list with the
-                        following three elements: [timestamp, value, score]
-
-                        Example::
-
-                            [datetime.datetime(2013, 8, 10, 23, 0), 6.0, 1.0]
-
-                        For best results, the list should be between 1000
-                        and 10,000 records
-  :param averagingWindow: integer number of records to average over
-  :param skipRecords: integer specifying number of records to skip when
-                      estimating distributions. If skip records are >=
-                      len(anomalyScores), a very broad distribution is returned
-                      that makes everything pretty likely.
-  :param verbosity: integer controlling extent of printouts for debugging
-
-                      0 = none
-                      1 = occasional information
-                      2 = print every record
-
-  :returns: 3-tuple consisting of:
-
-            - likelihoods
-
-              numpy array of likelihoods, one for each aggregated point
-
-            - avgRecordList
-
-              list of averaged input records
-
-            - params
-              a small JSON dict that contains the state of the estimator
-
-  **/
   if (verbosity > 1) {
     cout << "In estimateAnomalyLikelihoods."<<endl;
     cout << "Number of anomaly scores:" <<  anomalyScores.size() << endl;
