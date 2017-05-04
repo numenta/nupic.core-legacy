@@ -167,7 +167,7 @@ TEST(AnomalyLikelihood, SelectModeLikelihood)
   for(int i=0; i< 500; i++) {
      likelihood = a.compute(active, predicted, rawInputValue, ++ts);
   }
-  ASSERT_FLOAT_EQ(likelihood, 0.5); //TODO port likelihood tests here
+  ASSERT_FLOAT_EQ(likelihood, 0.0); //TODO port likelihood tests here
 
 };
 
