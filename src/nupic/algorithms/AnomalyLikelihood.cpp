@@ -75,6 +75,8 @@ namespace nupic {
   namespace algorithms {
     namespace anomaly {
 
+      Real compute_mean(vector<Real> v); //forward declaration
+      Real compute_var(vector<Real> v, Real mean); 
 
   /**
       NOTE: Anomaly likelihood scores are reported at a flat 0.5 for
@@ -487,4 +489,15 @@ vector<Real> AnomalyLikelihood::estimateAnomalyLikelihoods(vector<Real> anomalyS
   return filteredLikelihoods;
 }
 
+
+/// HELPER methods (only used internaly in this cpp file)
+Real compute_mean(vector<Real> v)  { //TODO do we have a (more comp. stable) implementation of mean/variance?
+    Real sum = std::accumulate(v.begin(), v.end(), 0.0);
+    return sum / v.size();
+}
+
+Real compute_var(vector<Real> v, Real mean)  {
+    Real sq_sum = std::inner_product(v.begin(), v.end(), v.begin(), 0.0);
+    return (sq_sum / v.size()) - (mean * mean);
+}
 }}} //ns

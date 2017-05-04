@@ -130,15 +130,6 @@ static UInt calcSkipRecords_(UInt numIngested, UInt windowSize, UInt learningPer
     return min(numIngested, max((UInt)0, learningPeriod - numShiftedOut));
 }
 
-static Real compute_mean(vector<Real> v)  { //TODO do we have a (more comp. stable) implementation of mean/variance?
-    Real sum = std::accumulate(v.begin(), v.end(), 0.0);
-    return sum / v.size();
-}
-
-static Real compute_var(vector<Real> v, Real mean)  {
-    Real sq_sum = std::inner_product(v.begin(), v.end(), v.begin(), 0.0);
-    return sq_sum / v.size() - mean * mean;
-}
 
 static std::vector<Real> circularBufferToVector(boost::circular_buffer<Real> cb) {
   cb.linearize();
