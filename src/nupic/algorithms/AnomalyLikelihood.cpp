@@ -185,26 +185,22 @@ static vector<Real> filterLikelihoods_(vector<Real> likelihoods, Real redThresho
   redThreshold    = 1.0 - redThreshold;  //TODO maybe we could use the true meaning already in the parameters
   yellowThreshold = 1.0 - yellowThreshold;
 
-  // The first value is untouched
-  vector<Real> filteredLikelihoods; 
-  filteredLikelihoods.push_back(likelihoods.front()); 
+  NTA_CHECK(redThreshold > 0.0 && redThreshold < 1.0);
+  NTA_CHECK(yellowThreshold > 0.0 && yellowThreshold < 1.0);
+  NTA_CHECK(yellowThreshold >= redThreshold); 
 
-  for (Real v: likelihoods) { 
-   
-    if (v <= redThreshold) { //TODO review the IFs
-      // Value is in the redzone
-        
-      if (filteredLikelihoods.back() > redThreshold) {
-        // Previous value is not in redzone, so leave as-is
-          filteredLikelihoods.push_back(v);
-      } else { 
-        filteredLikelihoods.push_back(yellowThreshold);
-      }
-    } else {
-      // Value is below the redzone, so leave as-is
-      filteredLikelihoods.push_back(v);
+  NTA_ASSERT(likelihoods.size() >= 1);
+  // The first value is untouched
+  vector<Real> filteredLikelihoods(likelihoods); 
+
+  for (size_t i=1; i< likelihoods.size(); i++) { 
+    // value is in the redzone & so was previous 
+    if (likelihoods[i] <= redThreshold && filteredLikelihoods[i-1] <= redThreshold) { //TODO review the (original) IFs
+      filteredLikelihoods[i] = yellowThreshold;
     }
   }
+
+  NTA_ASSERT(filteredLikelihoods.size()==likelihoods.size());
   return filteredLikelihoods;
 }
 
