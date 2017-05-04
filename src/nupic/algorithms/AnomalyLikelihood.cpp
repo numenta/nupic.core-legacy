@@ -55,7 +55,7 @@ AnomalyLikelihood::AnomalyLikelihood(UInt learningPeriod, UInt estimationSamples
     }
 
     
-Real AnomalyLikelihood::anomalyProbability(Real anomalyScore, int timestamp) {
+Real AnomalyLikelihood::anomalyProbability(Real anomalyScore, int timestamp) {  //FIXME even timestamp is not really used, remove too? 
     Real likelihood = 0.5f;
 
     if (timestamp == -1) {
