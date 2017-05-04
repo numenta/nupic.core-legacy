@@ -91,11 +91,11 @@ Real32 Anomaly::compute(
       score = anomalyScore;
       break;
     case AnomalyMode::LIKELIHOOD:
-      likelihood = likelihood_.anomalyProbability((Real)inputValue, (Real)anomalyScore, (int)timestamp);
+      likelihood = likelihood_.anomalyProbability((Real)anomalyScore, (int)timestamp);
       score = 1 - likelihood;
       break;
     case AnomalyMode::WEIGHTED:
-      likelihood = likelihood_.anomalyProbability((Real)inputValue, (Real)anomalyScore, (int)timestamp);
+      likelihood = likelihood_.anomalyProbability((Real)anomalyScore, (int)timestamp);
       score = anomalyScore * (1 - likelihood);
       break;
   }

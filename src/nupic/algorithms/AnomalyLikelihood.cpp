@@ -120,19 +120,16 @@ AnomalyLikelihood::AnomalyLikelihood(UInt learningPeriod, UInt estimationSamples
         runningAverageAnomalies.set_capacity(historicWindowSize); 
         runningLikelihoods.set_capacity(historicWindowSize);
         runningRawAnomalyScores.set_capacity(historicWindowSize);
-        runningRawValues.set_capacity(historicWindowSize);
         assert(runningLikelihoods.capacity() == historicWindowSize);
     }
 
     
-Real AnomalyLikelihood::anomalyProbability(Real rawValue, Real anomalyScore, int timestamp) { //TODO "rawValue" could be typed to T rawValue; //TODO is rawValue ever used?
+Real AnomalyLikelihood::anomalyProbability(Real anomalyScore, int timestamp) {
     /**
-    Compute the probability that the current value plus anomaly score represents
+    Compute the probability that the current anomaly score represents
     an anomaly given the historical distribution of anomaly scores. The closer
     the number is to 1, the higher the chance it is an anomaly.
 
-    @param value - the current metric ("raw") input value, eg. "orange", or
-                   '21.2' (deg. Celsius), ...
     @param anomalyScore - the current anomaly score
     @param timestamp - (optional) timestamp of the ocurrence,
                        default (-1) results in using iteration step.
@@ -149,7 +146,6 @@ Real AnomalyLikelihood::anomalyProbability(Real rawValue, Real anomalyScore, int
     auto newAvg = this->averagedAnomaly.compute(anomalyScore); 
     this->runningAverageAnomalies.push_back(newAvg);
     this->iteration++;
-    this->runningRawValues.push_back(rawValue); 
     this->runningLikelihoods.push_back(likelihood);
     
     // We ignore the first probationaryPeriod data points - as we cannot reliably compute distribution statistics for estimating likelihood
@@ -468,17 +464,6 @@ vector<Real> AnomalyLikelihood::estimateAnomalyLikelihoods(vector<Real> anomalyS
   } else {
     dataValues.erase(dataValues.begin(), dataValues.begin() + skipRecords);// remove first skipRecords
     this->distribution = estimateNormal(dataValues);
-  
-    /* HACK ALERT! The CLA model currently does not handle constant metric values //TODO can this be removed now? 4/2017
-     very well (time of day encoder changes sometimes lead to unstable SDR's
-     even though the metric is constant). Until this is resolved, we explicitly
-     detect and handle completely flat metric values by reporting them as not
-     anomalous.
-    */
-      auto metricDistribution = estimateNormal(dataValues, false);
-      if (metricDistribution.variance < 1.5e-5) {
-        this->distribution = nullDistribution();
-      } //end of hack
   }
 
   // Estimate likelihoods based on this distribution

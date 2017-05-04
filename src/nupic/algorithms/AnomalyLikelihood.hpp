@@ -86,7 +86,7 @@ class AnomalyLikelihood {
   public:
     AnomalyLikelihood(UInt learningPeriod=288, UInt estimationSamples=100, UInt historicWindowSize=8640, UInt reestimationPeriod=100, UInt aggregationWindow=10);
 
-    Real anomalyProbability(Real rawValue, Real anomalyScore, int timestamp=-1);
+    Real anomalyProbability(Real anomalyScore, int timestamp=-1);
 
   private:
     //methods:
@@ -163,7 +163,6 @@ static std::vector<Real> circularBufferToVector(boost::circular_buffer<Real> cb)
     boost::circular_buffer<Real> runningLikelihoods; // sliding window of the likelihoods
     boost::circular_buffer<Real> runningRawAnomalyScores;
     boost::circular_buffer<Real> runningAverageAnomalies; //sliding window of running averages of anomaly scores
-    boost::circular_buffer<Real> runningRawValues; // sliding window of the raw values
 
 };
 
