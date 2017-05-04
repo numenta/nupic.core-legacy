@@ -25,6 +25,8 @@
 #include <iostream>
 #include <numeric> //accumulate, inner_product
 
+#include <nupic/utils/Log.hpp> // NTA_CHECK
+
 /**
 Note: this is an implementation from python in nupic repository. 
 
@@ -116,13 +118,13 @@ AnomalyLikelihood::AnomalyLikelihood(UInt learningPeriod, UInt estimationSamples
     averagedAnomaly(aggregationWindow) {
         iteration = 0;
         probationaryPeriod = learningPeriod+estimationSamples;
-        assert(historicWindowSize >= estimationSamples); // cerr << "estimationSamples exceeds historicWindowSize";
-        assert(aggregationWindow < reestimationPeriod && reestimationPeriod < historicWindowSize);
+        NTA_CHECK(historicWindowSize >= estimationSamples); // cerr << "estimationSamples exceeds historicWindowSize";
+        NTA_CHECK(aggregationWindow < reestimationPeriod && reestimationPeriod < historicWindowSize);
         
         runningAverageAnomalies.set_capacity(historicWindowSize); 
         runningLikelihoods.set_capacity(historicWindowSize);
         runningRawAnomalyScores.set_capacity(historicWindowSize);
-        assert(runningLikelihoods.capacity() == historicWindowSize);
+        NTA_CHECK(runningLikelihoods.capacity() == historicWindowSize);
     }
 
     
@@ -166,9 +168,9 @@ Real AnomalyLikelihood::anomalyProbability(Real anomalyScore, int timestamp) {
     
     auto likelihoods = updateAnomalyLikelihoods(anomalies);
 
-      assert(likelihoods.size() > 0); 
+      NTA_CHECK(likelihoods.size() > 0); 
       likelihood = 1.0 - likelihoods[0]; 
-      assert(likelihood >= 0.0 && likelihood <= 1.0);
+      NTA_CHECK(likelihood >= 0.0 && likelihood <= 1.0);
 
     return likelihood;
     }
@@ -255,12 +257,12 @@ Real32 AnomalyLikelihood::tailProbability(Real32 x) const {
 
   :param distributionParams: dict with 'mean' and 'stdev' of the distribution
   **/
-     assert(distribution.name != "unknown" && distribution.stdev > 0);
+     NTA_CHECK(distribution.name != "unknown" && distribution.stdev > 0);
      
   if (x < distribution.mean) {
     // Gaussian is symmetrical around mean, so flip to get the tail probability
     Real32 xp = 2 * distribution.mean - x;
-    assert(xp != x);
+    NTA_CHECK(xp != x);
     return tailProbability(xp);
   }
 
@@ -381,7 +383,7 @@ vector<Real>  AnomalyLikelihood::updateAnomalyLikelihoods(vector<Real> anomalySc
     cout << "Params: name=" <<  distribution.name << " mean="<<distribution.mean <<" var="<<distribution.variance <<" stdev="<<distribution.stdev <<endl;
   }
 
- assert(anomalyScores.size() > 0); // "Must have at least one anomalyScore"
+ NTA_CHECK(anomalyScores.size() > 0); // "Must have at least one anomalyScore"
 
   // Compute moving averages of these new scores using the previous values
   // as well as likelihood for these scores using the old estimator 
@@ -395,7 +397,7 @@ vector<Real>  AnomalyLikelihood::updateAnomalyLikelihoods(vector<Real> anomalySc
   // to return and the last windowSize values to store for later.
   UInt toCrop = min((unsigned long)this->averagedAnomaly.getMaxWindowSize(), (unsigned long)runningLikelihoods.size());
   this->runningLikelihoods.insert(runningLikelihoods.end() - toCrop, likelihoods.begin(),likelihoods.end()); //append & crop
-  assert(this->runningLikelihoods.size() <= this->averagedAnomaly.getMaxWindowSize());
+  NTA_CHECK(this->runningLikelihoods.size() <= this->averagedAnomaly.getMaxWindowSize());
 
   auto filteredLikelihoods = filterLikelihoods_(likelihoods);
 
@@ -457,7 +459,7 @@ vector<Real> AnomalyLikelihood::estimateAnomalyLikelihoods(vector<Real> anomalyS
 //    print("First 20:", anomalyScores[0:min(20, len(anomalyScores))])
   }
 
-  assert(anomalyScores.size() > 0); // "Must have at least one anomalyScore"
+  NTA_CHECK(anomalyScores.size() > 0); // "Must have at least one anomalyScore"
   auto dataValues = anomalyScores; //FIXME the "data" should be anomaly scores, or raw values? 
 
   // Estimate the distribution of anomaly scores based on aggregated records

@@ -29,7 +29,6 @@
 #include <boost/circular_buffer.hpp>
 #include <vector>
 #include <cmath>
-#include <cassert>
 
 /**
 Note: this is an implementation from python in nupic repository.
