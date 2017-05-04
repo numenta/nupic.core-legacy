@@ -24,9 +24,9 @@
 #define NUPIC_UTIL_MOVING_AVERAGE_HPP
 
 #include <vector>
-#include <boost/circular_buffer.hpp>
 
 #include <nupic/types/Types.hpp>
+#include <nupic/utils/SlidingWindow.hpp>
 
 namespace nupic
 {
@@ -40,14 +40,14 @@ namespace nupic
       MovingAverage(UInt wSize, const std::vector<Real32>& historicalValues);
       MovingAverage(UInt wSize);
       std::vector<Real32> getData() const;
-      boost::circular_buffer<Real32> getSlidingWindow() const;
+      SlidingWindow getSlidingWindow() const;
       Real32 getCurrentAvg() const;
       Real32 compute(Real32 newValue);
       Real32 getTotal() const;
       bool operator==(const MovingAverage& r2) const;
       bool operator!=(const MovingAverage& r2) const;
     private:
-      boost::circular_buffer<Real32> slidingWindow_;
+      SlidingWindow slidingWindow_;
       Real32 total_;
     };
   }
