@@ -43,7 +43,7 @@ namespace nupic
       Real32 getCurrentAvg() const;
       Real32 compute(Real32 newValue);
       Real32 getTotal() const;
-      UInt getMaxSize() const;
+      UInt getMaxWindowSize() const;
       bool operator==(const MovingAverage& r2) const;
       bool operator!=(const MovingAverage& r2) const;
     private:

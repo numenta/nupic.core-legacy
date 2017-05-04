@@ -391,9 +391,9 @@ vector<Real>  AnomalyLikelihood::updateAnomalyLikelihoods(vector<Real> anomalySc
   // Filter the likelihood values. First we prepend the historical likelihoods
   // to the current set. Then we filter the values.  We peel off the likelihoods
   // to return and the last windowSize values to store for later.
-  UInt toCrop = min((unsigned long)this->averagedAnomaly.getMaxSize(), (unsigned long)runningLikelihoods.size());
+  UInt toCrop = min((unsigned long)this->averagedAnomaly.getMaxWindowSize(), (unsigned long)runningLikelihoods.size());
   this->runningLikelihoods.insert(runningLikelihoods.end() - toCrop, likelihoods.begin(),likelihoods.end()); //append & crop
-  assert(this->runningLikelihoods.size() <= this->averagedAnomaly.getMaxSize());
+  assert(this->runningLikelihoods.size() <= this->averagedAnomaly.getMaxWindowSize());
 
   auto filteredLikelihoods = filterLikelihoods_(likelihoods);
 
