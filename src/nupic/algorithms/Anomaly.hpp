@@ -113,10 +113,6 @@ namespace nupic
                        const std::vector<UInt>& predicted,
                        Real64 inputValue=0, UInt timestamp=0);
 
-//helper
-        void setLikelihood(AnomalyLikelihood newInstance) {
-          this->likelihood_ = newInstance;
-        }
 
       private:
         AnomalyMode mode_;

@@ -56,7 +56,7 @@ AnomalyLikelihood::AnomalyLikelihood(UInt learningPeriod, UInt estimationSamples
 
     
 Real AnomalyLikelihood::anomalyProbability(Real anomalyScore, int timestamp) {  //FIXME even timestamp is not really used, remove too? 
-    Real likelihood = 0.5f;
+    Real likelihood = DEFAULT_ANOMALY;
 
     if (timestamp == -1) {
       timestamp = this->iteration;
@@ -71,7 +71,7 @@ Real AnomalyLikelihood::anomalyProbability(Real anomalyScore, int timestamp) {  
     
     // We ignore the first probationaryPeriod data points - as we cannot reliably compute distribution statistics for estimating likelihood
     if (this->iteration < this->probationaryPeriod) {
-      return 0.5;
+      return DEFAULT_ANOMALY;
     } //else {
 
     auto anomalies = circularBufferToVector(this->runningAverageAnomalies); 

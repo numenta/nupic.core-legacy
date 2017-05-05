@@ -24,6 +24,7 @@
 
 #include <nupic/types/Types.hpp>
 #include <nupic/utils/MovingAverage.hpp>
+#include <nupic/utils/Log.hpp>
 
 #include <string>
 #include <boost/circular_buffer.hpp>
@@ -119,6 +120,13 @@ class AnomalyLikelihood {
     @return the anomalyLikelihood for this record.
     **/
     Real anomalyProbability(Real anomalyScore, int timestamp=-1);
+
+  //public constants:
+  /** "neutral" anomalous value; 
+    * returned at the beginning until the system is burned-in; 
+    * 0.5 (from <0..1>) means "neither anomalous, neither expected"
+    */
+    const Real DEFAULT_ANOMALY = 0.5;  
 
   private:
     //methods:
@@ -224,7 +232,7 @@ static std::vector<Real> circularBufferToVector(boost::circular_buffer<Real> cb)
   auto d2 = cb.array_two();
   data.insert(end(data), d2.first, d2.first+d2.second);
 
-  assert(data.size() == cb.size() && data.front() == cb.front() && data.back() == cb.back() );
+  NTA_ASSERT(data.size() == cb.size() && data.front() == cb.front() && data.back() == cb.back() );
   return data;
 }
 
