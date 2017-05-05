@@ -42,7 +42,7 @@ namespace nupic {
         /** append new value to the end of the buffer and handle the "overflows"-may pop the first element if full. 
          :return addition(+) neutral value (that is 0) when size()< maxCapacity; when full - return the value of the dropped element  
         */
-        Real append(T newValue);
+        T append(T newValue);
         /**
         :return unordered content (data ) of this sl. window; call linearize() if you need them oredered from oldest->newest
         */
@@ -101,7 +101,7 @@ UInt SlidingWindow<T>::size() const {
 
 
 template<class T>
-Real SlidingWindow<T>::append(T newValue) {
+T SlidingWindow<T>::append(T newValue) {
   Real old = NEUTRAL_VALUE;
   if(firstRun_ && size() == maxCapacity) {
     firstRun_ = false;
