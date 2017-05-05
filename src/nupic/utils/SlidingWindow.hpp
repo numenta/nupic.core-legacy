@@ -26,7 +26,7 @@
 #include <vector>
 
 #include <nupic/types/Types.hpp>
-
+#include <nupic/utils/Log.hpp>
 
 namespace nupic {
   namespace util {
@@ -45,10 +45,20 @@ namespace nupic {
         /**
         :return unordered content (data ) of this sl. window; call linearize() if you need them oredered from oldest->newest
         */
-        std::vector<Real> getData() const;
+        const std::vector<Real>& getData() const;
 
         bool operator==(const SlidingWindow& r2) const;
         bool operator!=(const SlidingWindow& r2) const;
+
+    // HELPER:
+     static std::vector<Real> getLastNValues(std::vector<Real> biggerData, nupic::UInt n) {
+      NTA_CHECK(n >=0 && n <= biggerData.size()); 
+    std::vector<Real> v;
+    v.reserve(n);
+    v.insert(begin(v), end(biggerData) - n, end(biggerData));
+    NTA_ASSERT(v.size() == n);
+    return v;
+    };
 
       private:
         std::vector<Real> buffer_;

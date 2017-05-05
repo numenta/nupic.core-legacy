@@ -22,7 +22,6 @@
 #include <cmath>
 
 #include <nupic/utils/SlidingWindow.hpp> 
-#include <nupic/utils/Log.hpp>
 
 using namespace std;
 using namespace nupic;
@@ -63,7 +62,7 @@ Real SlidingWindow::append(Real newValue) {
   return old;
 }
 
-vector<Real> SlidingWindow::getData() const {
+const vector<Real>& SlidingWindow::getData() const {
   return buffer_;
 }
 
