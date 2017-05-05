@@ -218,7 +218,7 @@ vector<Real>  AnomalyLikelihood::updateAnomalyLikelihoods(vector<Real> anomalySc
   // Compute moving averages of these new scores using the previous values
   // as well as likelihood for these scores using the old estimator 
   vector<Real> likelihoods;
-  likelihoods.resize(runningAverageAnomalies.size()); 
+  likelihoods.reserve(runningAverageAnomalies.size()); 
   for (auto newAverage : runningAverageAnomalies) { //TODO we could use transform() here (? or would it be less clear?) 
     likelihoods.push_back(tailProbability(newAverage)); 
   }
@@ -264,7 +264,7 @@ vector<Real> AnomalyLikelihood::estimateAnomalyLikelihoods(vector<Real> anomalyS
 
   // Estimate likelihoods based on this distribution
   vector<Real> likelihoods;
-  likelihoods.resize(dataValues.size());
+  likelihoods.reserve(dataValues.size());
   for (auto s : dataValues) {
     likelihoods.push_back(tailProbability(s));
   }
