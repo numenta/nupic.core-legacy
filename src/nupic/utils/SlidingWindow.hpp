@@ -42,13 +42,18 @@ namespace nupic {
          :return addition(+) neutral value (that is 0) when size()< maxCapacity; when full - return the value of the dropped element  
         */
         Real append(Real newValue);
+        /**
+        :return unordered content (data ) of this sl. window; call linearize() if you need them oredered from oldest->newest
+        */
         std::vector<Real> getData() const;
 
         bool operator==(const SlidingWindow& r2) const;
         bool operator!=(const SlidingWindow& r2) const;
 
       private:
-        std::vector<Real> buffer;
+        std::vector<Real> buffer_;
+        UInt idxNext_;
+        bool firstRun_ = true; //fill be false once "first run" (=size reaches maxCapacity for the first time) is completed
 }; 
 }} //end ns
 #endif //header

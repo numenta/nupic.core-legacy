@@ -1,5 +1,5 @@
 /* Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2016, Numenta, Inc.  Unless you have an agreement
+ * Copyright (C) 2017, Numenta, Inc.  Unless you have an agreement
  * with Numenta, Inc., for a separate license for this software code, the
  * following terms and conditions apply:
  *
@@ -20,44 +20,51 @@
  */
 
 #include <cmath>
-#include <cassert>
 
 #include <nupic/utils/SlidingWindow.hpp> 
+#include <nupic/utils/Log.hpp>
 
 using namespace std;
 using namespace nupic;
 using namespace nupic::util;
 
 SlidingWindow::SlidingWindow(UInt maxCapacity) :
-  maxCapacity(maxCapacity) {}
+  maxCapacity(maxCapacity) {
+  NTA_CHECK(maxCapacity > 0);
+  buffer_.reserve(maxCapacity);
+  idxNext_ = 0;
+}
 
 SlidingWindow::SlidingWindow(UInt maxCapacity, vector<Real> initialData)  :
   SlidingWindow(maxCapacity) {
-  this->buffer.insert(std::end(buffer), std::begin(initialData), std::end(initialData));
-  UInt toRemove = max(0ul, initialData.size() - maxCapacity); //crop to maxCapacity
-  if(toRemove > 0) {
-    buffer.erase(begin(buffer), end(buffer) + toRemove);
-  }
-  assert(this->size() <= this->maxCapacity);
+  NTA_CHECK(initialData.size() <= maxCapacity); 
+  buffer_.insert(begin(buffer_), begin(initialData), end(initialData));
+  idxNext_ = initialData.size();
 }
 
 UInt SlidingWindow::size() const {
-  return buffer.size();
+  NTA_ASSERT(buffer_.size() <= maxCapacity);
+  return buffer_.size();
 }
 
 Real SlidingWindow::append(Real newValue) {
-  buffer.push_back(newValue);
   Real old = NEUTRAL_VALUE;
-
-  if(size() > maxCapacity) { //pop oldest to remove space
-    old = buffer.front();
-    buffer.erase(begin(buffer)); 
+  if(firstRun_ && size() == maxCapacity) {
+    firstRun_ = false;
   }
+
+  if(firstRun_) { 
+    buffer_.emplace_back(newValue);
+  } else {
+    old = buffer_[idxNext_];  //FIXME this IF is here only because size() wouldn't work w/o it or similar hack
+    buffer_[idxNext_] = newValue;
+  }
+  idxNext_ = ++idxNext_ % maxCapacity;
   return old;
 }
 
 vector<Real> SlidingWindow::getData() const {
-  return buffer;
+  return buffer_;
 }
 
 bool SlidingWindow::operator==(const SlidingWindow& r2) const

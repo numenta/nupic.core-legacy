@@ -64,7 +64,7 @@ TEST(MovingAverage, Instance)
   }
 
   {
-    std::vector<Real32> expectedWindow = {4.0, 5.0, 6.0};
+    std::vector<Real32> expectedWindow = {6.0 ,4.0, 5.0};
     m.compute(6);
     newAverage = m.getCurrentAvg();
     ASSERT_EQ(newAverage, 5.0);
