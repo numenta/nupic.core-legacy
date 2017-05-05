@@ -97,7 +97,7 @@ TEST(MovingAverage, EqualsOperator)
   MovingAverage maN{10};
   ASSERT_NE(ma, maN);
 
-  std::vector<Real> croppedV =  nupic::util::SlidingWindow::getLastNValues(std::vector<Real>{3.0, 4.0, 5.0}, 2); 
+  std::vector<Real32> croppedV =  nupic::util::SlidingWindow<Real32>::getLastNValues(std::vector<Real32>{3.0, 4.0, 5.0}, 2); //use Real32 as MA internally uses that too 
   MovingAverage mb{2, croppedV};
   MovingAverage mbP{2, {4.0, 5.0}};
   ASSERT_EQ(mb, mbP);

@@ -59,7 +59,7 @@ std::vector<Real32> MovingAverage::getData() const
   return slidingWindow_.getData();
 }
 
-SlidingWindow MovingAverage::getSlidingWindow() const
+SlidingWindow<Real32> MovingAverage::getSlidingWindow() const
 {
   return slidingWindow_;
 }

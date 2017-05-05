@@ -40,14 +40,14 @@ namespace nupic
       MovingAverage(UInt wSize, const std::vector<Real32>& historicalValues);
       MovingAverage(UInt wSize);
       std::vector<Real32> getData() const;
-      SlidingWindow getSlidingWindow() const;
+      SlidingWindow<Real32> getSlidingWindow() const; //TODO why is real32, and not real used here?
       Real32 getCurrentAvg() const;
       Real32 compute(Real32 newValue);
       Real32 getTotal() const;
       bool operator==(const MovingAverage& r2) const;
       bool operator!=(const MovingAverage& r2) const;
     private:
-      SlidingWindow slidingWindow_;
+      SlidingWindow<Real32> slidingWindow_;
       Real32 total_;
     };
   }
