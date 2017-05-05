@@ -154,13 +154,13 @@ DistributionParams AnomalyLikelihood::estimateNormal(vector<Real> sampleData, bo
      find that such low anomaly means can happen, but then the slightest blip
      of anomaly score can cause the likelihood to jump up to red.
      */
-    if (params.mean < 0.03) { //TODO make these magic numbers a constructor parameter, or at least a const variable
-      params.mean= 0.03;
+    if (params.mean < THRESHOLD_MEAN) { //TODO make these magic numbers a constructor parameter, or at least a const variable
+      params.mean= THRESHOLD_MEAN;
     }
 
     // Catch all for super low variance to handle numerical precision issues
-    if (params.variance < 0.0003) {
-      params.variance = 0.0003;
+    if (params.variance < THRESHOLD_VARIANCE) {
+      params.variance = THRESHOLD_VARIANCE;
     }
   }
 
