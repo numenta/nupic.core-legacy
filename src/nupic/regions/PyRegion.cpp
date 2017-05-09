@@ -485,43 +485,55 @@ void PyRegion::deserialize(BundleIO& bundle)
 void PyRegion::write(capnp::AnyPointer::Builder& proto) const
 {
 #if !CAPNP_LITE
-  // Request python object to write itself out and return PyRegionProto
-  // serialized as a python byte array
+  class Helper
+  {
+  public:
+    /**
+     * NOTE: We wrap several operations in this method to reduce the number of
+     * region data copies (could be huge memory size) that coexist on the heap.
+     */
+    static kj::Array<capnp::word> serialize(const py::Instance& node)
+    {
+      // Request python object to write itself out and return PyRegionProto
+      // serialized as a python byte array
+      py::Class pyCapnpHelperCls("nupic.bindings.engine_internal",
+                                 "_PyCapnpHelper");
+      py::Tuple args((Py_ssize_t)0);
+      py::Dict kwargs;
+      // NOTE py::Dict::setItem doesn't accept a const PyObject*, however we
+      // know that we won't modify it, so casting trickery is okay here
+      kwargs.setItem("region",
+                     const_cast<PyObject*>(static_cast<const PyObject*>(node)));
+      kwargs.setItem("methodName", py::String("write"));
 
-  // NOTE Wrap the operation in our _PyCapnpHelper class to simplify the
-  // interface for the targer python region implementation
-  py::Class pyCapnpHelperCls("nupic.bindings.engine_internal",
-                             "_PyCapnpHelper");
-  py::Tuple args((Py_ssize_t)0);
-  py::Dict kwargs;
-  // NOTE py::Dict::setItem doesn't accept a const PyObject*, however we know
-  // that we won't modify it, so casting trickery is okay here
-  kwargs.setItem("region",
-                 const_cast<PyObject*>(static_cast<const PyObject*>(node_)));
-  kwargs.setItem("methodName", py::String("write"));
+      // Wrap result in py::Ptr to force dereferencing when going out of scope
+      py::Ptr pyRegionProtoBytes(
+        pyCapnpHelperCls.invoke("writePyRegion", args, kwargs));
 
-  // NOTE Wrap result in py::Ptr to force dereferencing when going out of scope
-  py::Ptr pyRegionProtoBytes(
-    pyCapnpHelperCls.invoke("writePyRegion", args, kwargs));
+      char * srcBytes = nullptr;
+      Py_ssize_t srcNumBytes = 0;
+      // NOTE: srcBytes will be set to point to the internal buffer inside
+      // pyRegionProtoBytes
+      PyString_AsStringAndSize(pyRegionProtoBytes, &srcBytes, &srcNumBytes);
 
-  char * srcBytes = nullptr;
-  Py_ssize_t srcNumBytes = 0;
-  // NOTE: srcBytes will be set to point to the internal buffer inside
-  // pyRegionProtoBytes
-  PyString_AsStringAndSize(pyRegionProtoBytes, &srcBytes, &srcNumBytes);
+      // Ensure alignment on capnp::word boundary;
+      const int srcNumWords = srcNumBytes / sizeof(capnp::word);
+      kj::Array<capnp::word> array = kj::heapArray<capnp::word>(srcNumWords);
+      std::memcpy(array.asBytes().begin(), srcBytes, srcNumBytes); // copy
 
-  // Ensure alignment on capnp::word boundary;
-  //
-  // TODO can we do w/o this copy or make copy conditional on existing alignment
-  // like pycapnp does?
-  const int srcNumWords = srcNumBytes / sizeof(capnp::word);
-  kj::Array<capnp::word> array = kj::heapArray<capnp::word>(srcNumWords);
-  std::memcpy(array.asBytes().begin(), srcBytes, srcNumBytes); // copy
+      return array;
+    }
+  };
 
+  // Get flat array representation of python region's serialization
+  kj::Array<capnp::word> array = Helper::serialize(node_);
+
+  // Initialize PyRegionProto::Reader from serialized python region
   capnp::FlatArrayMessageReader reader(array.asPtr());
   PyRegionProto::Reader pyRegionReader = reader.getRoot<PyRegionProto>();
 
-  proto.setAs<PyRegionProto>(pyRegionReader);
+  // Assign python region's serialization output to the builder
+  proto.setAs<PyRegionProto>(pyRegionReader); // copy
 #else
   throw std::logic_error(
       "PyRegion::write is not implemented because NuPIC was compiled with "
@@ -532,26 +544,42 @@ void PyRegion::write(capnp::AnyPointer::Builder& proto) const
 void PyRegion::read(capnp::AnyPointer::Reader& proto)
 {
 #if !CAPNP_LITE
+
+  class Helper
+  {
+  public:
+    static kj::Array<capnp::word> flatArrayFromReader(
+      PyRegionProto::Reader& reader)
+    {
+      // NOTE: this requires conversion to builder, which incurs an additional
+      // copy, because readers aren't supported by capnp::messageToFlatArray
+      capnp::MallocMessageBuilder builder;
+      builder.setRoot(reader); // copy
+      return capnp::messageToFlatArray(builder); // copy
+    }
+
+    static PyObject* pyBytesFromFlatArray(kj::Array<capnp::word> flatArray)
+    {
+      kj::ArrayPtr<kj::byte> byteArray = flatArray.asBytes();
+      // Copy from array to PyObject so that we can pass it to the Python layer
+      py::String pyRegionBytes((const char *)byteArray.begin(),
+                               byteArray.size()); // copy
+      return pyRegionBytes.release();
+    }
+  };
+
+  // Cast AnyPointer::Reader to PyRegionProto::Reader
   PyRegionProto::Reader pyRegionReader = proto.getAs<PyRegionProto>();
 
-  // See PyRegion::read implementation for reference
-
-  // Extract data bytes from reader to pass to python layer
+  // Extract data bytes from reader into PyObject so that we can pass it to the
+  // Python layer portably
   //
-  // NOTE: this requires conversion to builder, because readers don't have the
-  // method messageToFlatArray. TODO check if we could do something with
-  // `getSegment` on readers)
-  //
-  // TODO Need to look into reducing the number of copy operations as well as
-  // the number of data copies present simultaneously, since regions can be very
-  // large.
-  capnp::MallocMessageBuilder builder;
-  builder.setRoot(pyRegionReader); // copy
-  kj::Array<capnp::word> wordArray = capnp::messageToFlatArray(builder); // copy
-  kj::ArrayPtr<kj::byte> byteArray = wordArray.asBytes();
-  // Copy from array to PyObject so that we can pass it to the Python layer
-  py::String pyRegionImplBytes((const char *)byteArray.begin(),
-                               byteArray.size()); // copy
+  // NOTE: the intention of this nested call is to reduce the number of
+  // sumulatneously present copies of data to no more than two at any given
+  // moment.
+  py::String pyRegionBytes(
+    Helper::pyBytesFromFlatArray(
+      Helper::flatArrayFromReader(pyRegionReader)));
 
   // Construct the python region instance by thunking into python
   std::string realClassName(className_);
@@ -566,7 +594,7 @@ void PyRegion::read(capnp::AnyPointer::Reader& proto)
 
   py::Tuple args((Py_ssize_t)0);
   py::Dict kwargs;
-  kwargs.setItem("pyRegionProtoBytes", pyRegionImplBytes);
+  kwargs.setItem("pyRegionProtoBytes", pyRegionBytes);
   kwargs.setItem("regionCls", regionCls);
   kwargs.setItem("methodName", py::String("read"));
 
