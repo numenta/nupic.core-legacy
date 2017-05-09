@@ -72,6 +72,7 @@ namespace nupic {
       private:
         std::vector<T> buffer_;
         UInt idxNext_;
+        size_t size_;
 }; 
 }} //end ns
 
@@ -87,33 +88,35 @@ SlidingWindow<T>::SlidingWindow(UInt maxCapacity) :
   maxCapacity(maxCapacity) {
   NTA_CHECK(maxCapacity > 0);
   buffer_.reserve(maxCapacity);
+  buffer_.resize(maxCapacity);
   idxNext_ = 0;
+  size_ = 0;
 }
 
 
 template<class T>
 SlidingWindow<T>::SlidingWindow(UInt maxCapacity, vector<T> initialData)  :
   SlidingWindow(maxCapacity) {
-  buffer_.insert(begin(buffer_), end(initialData) - std::min(initialData.size(), (size_t)maxCapacity), end(initialData));
-  idxNext_ = initialData.size();
+  auto sz = std::min(initialData.size(), (size_t)maxCapacity);
+  buffer_.insert(begin(buffer_), end(initialData) - sz, end(initialData));
+  buffer_.resize(sz);
+  idxNext_ = sz % maxCapacity;
+  size_ = sz;
 }
 
 
 template<class T>
 size_t SlidingWindow<T>::size() const {
   NTA_ASSERT(buffer_.size() <= maxCapacity);
-  return buffer_.size();
+  return std::min(size_, (size_t)maxCapacity);
 }
 
 
 template<class T>
 void SlidingWindow<T>::append(T newValue) {
-  if(buffer_.size() < maxCapacity) {
-    buffer_.emplace_back(newValue); //FIXME this IF is here only because size() wouldn't work w/o it or similar hack
-  } else {
     buffer_[idxNext_] = newValue;
     idxNext_ = ++idxNext_ %maxCapacity;//the assignment must be out of the [] above -not [idxNext_++%maxCap]- because we want to store the value %maxCap, not only ++
-  }
+  ++size_;
 }
 
 
@@ -128,7 +131,7 @@ T SlidingWindow<T>::append(T newValue, bool& isValid) {
 
 template<class T>
 const vector<T>& SlidingWindow<T>::getData() const {
-  return buffer_;
+  return buffer_; //may contain trailing "zeros"
 }
 
 
