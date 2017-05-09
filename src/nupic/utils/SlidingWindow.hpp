@@ -79,12 +79,10 @@ namespace nupic {
 /// IMPLEMENTATION
 #include <cmath>
 
-using namespace std;
-using namespace nupic;
-using namespace nupic::util;
+using nupic::util::SlidingWindow;
 
 template<class T>
-SlidingWindow<T>::SlidingWindow(UInt maxCapacity) :
+SlidingWindow<T>::SlidingWindow(nupic::UInt maxCapacity) :
   maxCapacity(maxCapacity) {
   NTA_CHECK(maxCapacity > 0);
   buffer_.reserve(maxCapacity);
@@ -95,10 +93,10 @@ SlidingWindow<T>::SlidingWindow(UInt maxCapacity) :
 
 
 template<class T>
-SlidingWindow<T>::SlidingWindow(UInt maxCapacity, vector<T> initialData)  :
+SlidingWindow<T>::SlidingWindow(nupic::UInt maxCapacity, std::vector<T> initialData)  :
   SlidingWindow(maxCapacity) {
   auto sz = std::min(initialData.size(), (size_t)maxCapacity);
-  buffer_.insert(begin(buffer_), end(initialData) - sz, end(initialData));
+  buffer_.insert(std::begin(buffer_), std::end(initialData) - sz, std::end(initialData));
   buffer_.resize(sz);
   idxNext_ = sz % maxCapacity;
   size_ = sz;
@@ -130,18 +128,18 @@ T SlidingWindow<T>::append(T newValue, bool& isValid) {
 
 
 template<class T>
-const vector<T>& SlidingWindow<T>::getData() const {
+const std::vector<T>& SlidingWindow<T>::getData() const {
   return buffer_; //may contain trailing "zeros"
 }
 
 
 template<class T>
-vector<T> SlidingWindow<T>::getLinearizedData() const {
-  vector<T> lin;
+std::vector<T> SlidingWindow<T>::getLinearizedData() const {
+  std::vector<T> lin;
   lin.reserve(buffer_.size());
 
-  lin.insert(begin(lin), begin(buffer_) + idxNext_, end(buffer_)); //insert the "older" part at the beginning
-  lin.insert(end(lin), begin(buffer_), begin(buffer_) + idxNext_); //append the "newer" part to the end of the constructed vect
+  lin.insert(std::begin(lin), std::begin(buffer_) + idxNext_, std::end(buffer_)); //insert the "older" part at the beginning
+  lin.insert(std::end(lin), std::begin(buffer_), std::begin(buffer_) + idxNext_); //append the "newer" part to the end of the constructed vect
  return lin;
 }
 
@@ -162,13 +160,13 @@ bool SlidingWindow<T>::operator!=(const SlidingWindow& r2) const
 
 
 template<class T> 
-T& SlidingWindow<T>::operator[](UInt index) {
+T& SlidingWindow<T>::operator[](nupic::UInt index) {
   NTA_ASSERT(index <= size());
   return &buffer_[index];
 }
 
 template<class T>
-const T& SlidingWindow<T>::operator[](UInt index) const {
+const T& SlidingWindow<T>::operator[](nupic::UInt index) const {
   return this->operator[](index); //call the overloaded operator[] above 
 }
 
