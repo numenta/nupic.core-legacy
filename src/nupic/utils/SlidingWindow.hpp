@@ -126,12 +126,9 @@ vector<T> SlidingWindow<T>::getLinearizedData() const {
   vector<T> lin;
   lin.reserve(buffer_.size());
 
-  if(size() ==0) return lin; //empty buffer
   lin.insert(begin(lin), begin(buffer_) + idxNext_, end(buffer_)); //insert the "older" part at the beginning
-  if(idxNext_ != 0) { //need to append second (unlinear) part
-    lin.insert(end(lin), begin(buffer_), begin(buffer_) + idxNext_); //append the "newer" part to the end of the constructed vect
-  }
-  return lin;
+  lin.insert(end(lin), begin(buffer_), begin(buffer_) + idxNext_); //append the "newer" part to the end of the constructed vect
+ return lin;
 }
 
 
