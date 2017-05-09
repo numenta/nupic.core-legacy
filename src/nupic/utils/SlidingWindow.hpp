@@ -38,12 +38,18 @@ namespace nupic {
         SlidingWindow(UInt maxCapacity);
         SlidingWindow(UInt maxCapacity, std::vector<T> initialData);
         const UInt maxCapacity;
-        const T NEUTRAL_VALUE = 0.0;
-        UInt size() const;
+        size_t size() const;
         /** append new value to the end of the buffer and handle the "overflows"-may pop the first element if full. 
-         :return addition(+) neutral value (that is 0) when size()< maxCapacity; when full - return the value of the dropped element  
         */
-        T append(T newValue);
+        void append(T newValue);
+
+        /** like append, but return the dropped value. isValid indicates if the return value is valid (not while size()< maxCapacity)
+          :param T newValue - new value to append to the sliding window
+          :param bool isValid - a return pass-by-value that indicates validity of the return T value. for first maxCapacity items it is false, later always true.
+          :return T dropped value (past oldest element) if isValid; if not valid, this field holds the oldest value (but still contained in the window!)
+        */
+//        T append(T newValue, const bool& isValid);
+
         /**
         * :return unordered content (data ) of this sl. window; call getLinearizedData() if you need them oredered from oldest->newest
         * This direct access method is fast.
@@ -94,24 +100,19 @@ SlidingWindow<T>::SlidingWindow(UInt maxCapacity, vector<T> initialData)  :
 
 
 template<class T>
-UInt SlidingWindow<T>::size() const {
+size_t SlidingWindow<T>::size() const {
   NTA_ASSERT(buffer_.size() <= maxCapacity);
   return buffer_.size();
 }
 
 
 template<class T>
-T SlidingWindow<T>::append(T newValue) {
-  Real old = NEUTRAL_VALUE;
-
+void SlidingWindow<T>::append(T newValue) {
   if(buffer_.size() < maxCapacity) {
-    buffer_.emplace_back(newValue);
+    buffer_.emplace_back(newValue); //FIXME this IF is here only because size() wouldn't work w/o it or similar hack
   } else {
-    old = buffer_[idxNext_];  //FIXME this IF is here only because size() wouldn't work w/o it or similar hack
-    buffer_[idxNext_] = newValue;
+    buffer_[idxNext_++ % maxCapacity] = newValue;
   }
-  idxNext_ = ++idxNext_ % maxCapacity;
-  return old;
 }
 
 
