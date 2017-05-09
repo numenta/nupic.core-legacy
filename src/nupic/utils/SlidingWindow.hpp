@@ -65,7 +65,6 @@ namespace nupic {
       private:
         std::vector<T> buffer_;
         UInt idxNext_;
-        bool firstRun_ = true; //fill be false once "first run" (=size reaches maxCapacity for the first time) is completed
 }; 
 }} //end ns
 
@@ -104,11 +103,8 @@ UInt SlidingWindow<T>::size() const {
 template<class T>
 T SlidingWindow<T>::append(T newValue) {
   Real old = NEUTRAL_VALUE;
-  if(firstRun_ && size() == maxCapacity) {
-    firstRun_ = false;
-  }
 
-  if(firstRun_) {
+  if(buffer_.size() < maxCapacity) {
     buffer_.emplace_back(newValue);
   } else {
     old = buffer_[idxNext_];  //FIXME this IF is here only because size() wouldn't work w/o it or similar hack
