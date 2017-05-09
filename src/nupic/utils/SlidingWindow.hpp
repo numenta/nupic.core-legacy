@@ -1,5 +1,5 @@
 /* Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2016, Numenta, Inc.  Unless you have an agreement
+ * Copyright (C) 2017, Numenta, Inc.  Unless you have an agreement
  * with Numenta, Inc., for a separate license for this software code, the
  * following terms and conditions apply:
  *
@@ -58,7 +58,9 @@ namespace nupic {
 
         bool operator==(const SlidingWindow& r2) const;
         bool operator!=(const SlidingWindow& r2) const;
-
+        T& operator[](UInt index);
+        const T& operator[](UInt index) const;
+  
     // HELPER:
      static std::vector<T> getLastNValues(std::vector<T> biggerData, nupic::UInt n) {
       NTA_CHECK(n >=0 && n <= biggerData.size()); 
@@ -158,6 +160,18 @@ template<class T>
 bool SlidingWindow<T>::operator!=(const SlidingWindow& r2) const
 {
   return !operator==(r2);
+}
+
+
+template<class T> 
+T& SlidingWindow<T>::operator[](UInt index) {
+  NTA_ASSERT(index <= size());
+  return &buffer_[index];
+}
+
+template<class T>
+const T& SlidingWindow<T>::operator[](UInt index) const {
+  return this->operator[](index); //call the overloaded operator[] above 
 }
 
 #endif //header
