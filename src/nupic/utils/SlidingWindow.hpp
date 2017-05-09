@@ -44,7 +44,7 @@ namespace nupic {
         */
         T append(T newValue);
         /**
-        * :return unordered content (data ) of this sl. window; call linearize() if you need them oredered from oldest->newest
+        * :return unordered content (data ) of this sl. window; call getLinearizedData() if you need them oredered from oldest->newest
         * This direct access method is fast.
         */
         const std::vector<T>& getData() const;
@@ -54,7 +54,7 @@ namespace nupic {
          * This handles case of |5,6;1,2,3,4| => |1,2,3,4,5,6|
          * :return new linearized vector
         */
-        std::vector<T> linearize() const;
+        std::vector<T> getLinearizedData() const;
 
         bool operator==(const SlidingWindow& r2) const;
         bool operator!=(const SlidingWindow& r2) const;
@@ -135,7 +135,7 @@ const vector<T>& SlidingWindow<T>::getData() const {
 
 
 template<class T>
-vector<T> SlidingWindow<T>::linearize() const {
+vector<T> SlidingWindow<T>::getLinearizedData() const {
   vector<T> lin;
   lin.reserve(buffer_.size());
 
