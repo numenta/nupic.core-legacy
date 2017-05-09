@@ -96,8 +96,4 @@ TEST(MovingAverage, EqualsOperator)
 
   MovingAverage maN{10};
   ASSERT_NE(ma, maN);
-
-  mbP.compute(6);
-  mb.compute(6);
-  ASSERT_EQ(mb, mbP);
 }

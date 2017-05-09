@@ -44,6 +44,13 @@ MovingAverage::MovingAverage(UInt wSize) :
   slidingWindow_(wSize), total_(0) {}
 
 
+MovingAverage::MovingAverage(const SlidingWindow<Real>& internalSlidingWindow) :
+  slidingWindow_(internalSlidingWindow) {
+ auto window = slidingWindow_.getData();
+  total_ = Real(accumulate(begin(window), end(window), 0));
+}
+
+
 Real MovingAverage::compute(Real newVal)
 {
 
@@ -57,11 +64,6 @@ Real MovingAverage::compute(Real newVal)
 std::vector<Real> MovingAverage::getData() const
 {
   return slidingWindow_.getData();
-}
-
-SlidingWindow<Real> MovingAverage::getSlidingWindow() const
-{
-  return slidingWindow_;
 }
 
 

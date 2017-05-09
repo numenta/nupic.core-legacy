@@ -39,8 +39,8 @@ namespace nupic
     public:
       MovingAverage(UInt wSize, const std::vector<Real>& historicalValues);
       MovingAverage(UInt wSize);
+      MovingAverage(const SlidingWindow<Real>& internalSlidingWindow);
       std::vector<Real> getData() const;
-      SlidingWindow<Real> getSlidingWindow() const;
       Real getCurrentAvg() const;
       Real compute(Real newValue);
       Real getTotal() const;
