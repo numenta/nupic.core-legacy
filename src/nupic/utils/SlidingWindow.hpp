@@ -60,16 +60,7 @@ namespace nupic {
         bool operator!=(const SlidingWindow& r2) const;
         T& operator[](UInt index);
         const T& operator[](UInt index) const;
-  
-    // HELPER:
-     static std::vector<T> getLastNValues(std::vector<T> biggerData, nupic::UInt n) {
-      NTA_CHECK(n >=0 && n <= biggerData.size()); 
-    std::vector<T> v;
-    v.reserve(n);
-    v.insert(begin(v), end(biggerData) - n, end(biggerData));
-    NTA_ASSERT(v.size() == n);
-    return v;
-    };
+
 
       private:
         std::vector<T> buffer_;
