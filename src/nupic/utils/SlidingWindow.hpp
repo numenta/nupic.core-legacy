@@ -48,7 +48,7 @@ namespace nupic {
           :param bool isValid - a return pass-by-value that indicates validity of the return T value. for first maxCapacity items it is false, later always true.
           :return T dropped value (past oldest element) if isValid; if not valid, this field holds the oldest value (but still contained in the window!)
         */
-//        T append(T newValue, const bool& isValid);
+        T append(T newValue, bool& isValid);
 
         /**
         * :return unordered content (data ) of this sl. window; call getLinearizedData() if you need them oredered from oldest->newest
@@ -111,8 +111,18 @@ void SlidingWindow<T>::append(T newValue) {
   if(buffer_.size() < maxCapacity) {
     buffer_.emplace_back(newValue); //FIXME this IF is here only because size() wouldn't work w/o it or similar hack
   } else {
-    buffer_[idxNext_++ % maxCapacity] = newValue;
+    buffer_[idxNext_] = newValue;
+    idxNext_ = ++idxNext_ %maxCapacity;//the assignment must be out of the [] above -not [idxNext_++%maxCap]- because we want to store the value %maxCap, not only ++
   }
+}
+
+
+template<class T>
+T SlidingWindow<T>::append(T newValue, bool& isValid) {
+  T old = buffer_.empty() ? newValue : buffer_[idxNext_]; //handle case of empty buffer (access buff[0]), otherwise return oldest elem
+  isValid = (buffer_.size()==maxCapacity); //only in this case we drop oldest; this happens always after first maxCap steps ; must be checked before append()
+  append(newValue);
+  return old; 
 }
 
 
