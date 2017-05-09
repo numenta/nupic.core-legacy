@@ -24,6 +24,7 @@
 #define NUPIC_UTIL_SLIDING_WINDOW_HPP
 
 #include <vector>
+#include <algorithm>
 
 #include <nupic/types/Types.hpp>
 #include <nupic/utils/Log.hpp>
@@ -87,8 +88,7 @@ SlidingWindow<T>::SlidingWindow(UInt maxCapacity) :
 template<class T>
 SlidingWindow<T>::SlidingWindow(UInt maxCapacity, vector<T> initialData)  :
   SlidingWindow(maxCapacity) {
-  NTA_CHECK(initialData.size() <= maxCapacity);
-  buffer_.insert(begin(buffer_), begin(initialData), end(initialData));
+  buffer_.insert(begin(buffer_), end(initialData) - std::min(initialData.size(), (size_t)maxCapacity), end(initialData));
   idxNext_ = initialData.size();
 }
 
