@@ -135,8 +135,8 @@ vector<T> SlidingWindow<T>::getLinearizedData() const {
 template<class T>
 bool SlidingWindow<T>::operator==(const SlidingWindow& r2) const //FIXME review the ==, on my machine it randomly passes/fails the test!
 {
-  bool sameData = this->getData()== r2.getData();
-  return ((this->size() == r2.size()) && (this->maxCapacity == r2.maxCapacity) && sameData);
+  return ((this->size() == r2.size()) && (this->maxCapacity == r2.maxCapacity) && 
+    (this->getData()== r2.getData()) );
 }
 
 
