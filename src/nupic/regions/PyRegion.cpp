@@ -571,11 +571,6 @@ void PyRegion::read(capnp::AnyPointer::Reader& proto)
   // Cast AnyPointer::Reader to PyRegionProto::Reader
   PyRegionProto::Reader pyRegionReader = proto.getAs<PyRegionProto>();
 
-  // TODO Need to look into reducing the number of copy operations since regions
-  // can be very  large. It would be great if capnp::messageToFlatArray allowed
-  // extraction directly from the reader into the buffer inside the python byte
-  // string.
-
   // Extract data bytes from reader into PyObject so that we can pass it to the
   // Python layer portably
   //
