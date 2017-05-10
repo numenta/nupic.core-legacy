@@ -27,7 +27,7 @@
 #   SWIG_DIR: the directory where swig is installed (.i files, etc.) as defined
 #             by FindSWIG.
 
-set(swig_path "${REPOSITORY_DIR}/external/common/src/swig-3.0.2.tar.gz")
+set(swig_path "${REPOSITORY_DIR}/external/common/src/swig-3.0.12.tar.gz")
 set(pcre_path "${REPOSITORY_DIR}/external/common/src/pcre-8.37.tar.gz")
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -35,7 +35,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   add_custom_target(Swig)
   set(swig_executable
       ${PROJECT_SOURCE_DIR}/${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}/bin/swig.exe)
-  set(swig_dir ${PROJECT_SOURCE_DIR}/common/share/swig/3.0.2)
+  set(swig_dir ${PROJECT_SOURCE_DIR}/common/share/swig/3.0.12)
 else()
   # Build Swig from source on non-Windows (e.g., Linux and OS X)
   ExternalProject_Add(
@@ -49,7 +49,7 @@ else()
       ${EP_BASE}/Source/Swig/configure --prefix=${EP_BASE}/Install --enable-cpp11-testing
   )
   set(swig_executable ${EP_BASE}/Install/bin/swig)
-  set(swig_dir ${EP_BASE}/Install/share/swig/3.0.2)
+  set(swig_dir ${EP_BASE}/Install/share/swig/3.0.12)
 endif()
 
 set(SWIG_EXECUTABLE ${swig_executable} PARENT_SCOPE)
