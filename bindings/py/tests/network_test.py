@@ -33,8 +33,8 @@ else:
 
 
 import nupic.bindings.engine_internal as engine
-from nupic.bindings.tools.serialization_test_py_region import \
-     SerializationTestPyRegion
+# from nupic.bindings.tools.serialization_test_py_region import \
+#     SerializationTestPyRegion
 
 
 
