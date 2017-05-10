@@ -7,9 +7,9 @@ machine:
     XCODE_SCHEME: nupic
     XCODE_WORKSPACE: nupic
     ARCHFLAGS: "-arch x86_64"
-    # PYTHONPATH: "$HOME/Library/Python/2.7/lib/python/site-packages"
-    # PATH: "$HOME/Library/Python/2.7/bin:$PATH"
-    # PYBIN: "$HOME/Library/Python/2.7/bin"
+    PYTHONPATH: "$HOME/Library/Python/2.7/lib/python/site-packages"
+    PATH: "$HOME/Library/Python/2.7/bin:$PATH"
+    PYBIN: "$HOME/Library/Python/2.7/bin"
   pre:
     pip install --user --ignore-installed --upgrade --verbose virtualenv
     # Link virtualenv to /usr/local/bin if it doesn't exist and always give exit status of 0.
