@@ -20,7 +20,6 @@ dependencies:
     # TODO: Use get-pip.py
     #- curl --silent --show-error --retry 5 -O http://releases.numenta.org/pip/1ebd3cb7a5a3073058d0c9552ab074bd/get-pip.py
     #- python get-pip.py --user --upgrade --ignore-installed pip setuptools wheel
-
     - pwd
     - pip -V
     - pip install --user --ignore-installed --upgrade pip setuptools wheel
