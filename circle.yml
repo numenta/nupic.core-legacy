@@ -17,14 +17,9 @@ machine:
 
 dependencies:
   override:
-    - curl --silent --show-error --retry 5 -O http://releases.numenta.org/pip/1ebd3cb7a5a3073058d0c9552ab074bd/get-pip.py
-    # deactivate && sudo -H python get-pip.py --upgrade --ignore-installed pip setuptools wheel
+    # Force system to install latest pip before proceeding
     - sudo pip install --upgrade pip
-    - sudo pip install --upgrade --ignore-installed setuptools wheel
-    - pip install --upgrade --user --ignore-installed wheel
-    # pip install --user --ignore-installed --upgrade pip setuptools wheel
-    # Still don't get the user-installed version of pip, but this seems manageable.
-    - pip --version
+    - pip install --upgrade --user --ignore-installed setuptools wheel
     - pip install --use-wheel --user -r bindings/py/requirements.txt || exit
 
 compile:
@@ -35,7 +30,6 @@ compile:
     - cd build/scripts && make install
     - python setup.py bdist_wheel
     - mkdir dist && mv bindings/py/dist/*.whl dist/
-    - ls dist
     - pip install --use-wheel --user --no-index --find-links=`pwd`/dist/ nupic.bindings
 test:
   override:
