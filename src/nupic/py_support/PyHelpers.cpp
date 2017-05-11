@@ -385,11 +385,13 @@ namespace nupic { namespace py
 
   Bool::Bool(bool b) : Ptr(b ? Py_True : Py_False)
   {
+    Py_XINCREF(p_);
   }
 
   Bool::Bool(PyObject * p) : Ptr(p)
   {
     NTA_CHECK(PyBool_Check(p_));
+    Py_XINCREF(p_);
   }
 
   Bool::operator bool()
