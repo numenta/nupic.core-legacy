@@ -33,7 +33,6 @@ compile:
     - pip install --use-wheel --user --no-index --find-links=`pwd`/dist/ nupic.bindings
 test:
   override:
-    - echo $PATH
     - ls -la $HOME/Library/Python/2.7/bin/
     - py.test bindings/py/tests
   post:
