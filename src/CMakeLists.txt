@@ -46,8 +46,7 @@ endif()
 #
 option(NUPIC_IWYU "Enable include-what-you-use
   (http://include-what-you-use.org/). This requires the iwyu binary to be
-  discoverable by CMake's find_program.  The easiest way to install iwyu on
-  OS X is to use https://github.com/jasonmp85/homebrew-iwyu")
+  discoverable by CMake's find_program, with a minimum CMake version of 3.3.")
 if(${NUPIC_IWYU})
   find_program(iwyu_path NAMES include-what-you-use iwyu)
   if(NOT iwyu_path)
