@@ -115,8 +115,8 @@ namespace nupic
       }
       const int srcNumWords = srcNumBytes / sizeof(capnp::word);
 
-      // Ensure alignment on capnp::word boundary; TODO can we do w/o this copy or
-      // make copy conditional on alignment like pycapnp does?
+      // Ensure alignment on capnp::word boundary; the buffer inside PyObject appears
+      // to be unaligned on capnp::word boundary.
       kj::Array<capnp::word> array = kj::heapArray<capnp::word>(srcNumWords);
       memcpy(array.asBytes().begin(), srcBytes, srcNumBytes); // copy
 
