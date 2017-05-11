@@ -188,8 +188,8 @@ TEST_F(PyHelpersTest, pyFloat)
 
 TEST_F(PyHelpersTest, pyBool)
 {
-  const auto trueRefcount = Py_True->ob_refcnt;
-  const auto falseRefcount = Py_False->ob_refcnt;
+  const auto trueRefcount = Py_REFCNT(Py_True);
+  const auto falseRefcount = Py_REFCNT(Py_False);
 
   // Construct from true.
   {
@@ -198,8 +198,8 @@ TEST_F(PyHelpersTest, pyBool)
   }
 
   // Verify refcounts were preserved.
-  ASSERT_EQ(trueRefcount, Py_True->ob_refcnt);
-  ASSERT_EQ(falseRefcount, Py_False->ob_refcnt);
+  ASSERT_EQ(trueRefcount, Py_REFCNT(Py_True));
+  ASSERT_EQ(falseRefcount, Py_REFCNT(Py_False));
 
   // Construct from false.
   {
@@ -208,8 +208,8 @@ TEST_F(PyHelpersTest, pyBool)
   }
 
   // Verify refcounts were preserved.
-  ASSERT_EQ(trueRefcount, Py_True->ob_refcnt);
-  ASSERT_EQ(falseRefcount, Py_False->ob_refcnt);
+  ASSERT_EQ(trueRefcount, Py_REFCNT(Py_True));
+  ASSERT_EQ(falseRefcount, Py_REFCNT(Py_False));
 
   // Construct from an existing PyObject.
   {
@@ -219,8 +219,8 @@ TEST_F(PyHelpersTest, pyBool)
   }
 
   // Verify refcounts were preserved.
-  ASSERT_EQ(trueRefcount, Py_True->ob_refcnt);
-  ASSERT_EQ(falseRefcount, Py_False->ob_refcnt);
+  ASSERT_EQ(trueRefcount, Py_REFCNT(Py_True));
+  ASSERT_EQ(falseRefcount, Py_REFCNT(Py_False));
 }
 
 TEST_F(PyHelpersTest, pyTupleEmpty)
