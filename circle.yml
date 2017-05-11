@@ -22,7 +22,7 @@ dependencies:
     # deactivate && sudo -H python get-pip.py --upgrade --ignore-installed pip setuptools wheel
     - which pip
     - sudo pip install --upgrade pip
-    - sudo pip install --upgrade ignore-installed setuptools wheel
+    - sudo pip install --upgrade --ignore-installed setuptools wheel
     - which pip
     # pip install --user --ignore-installed --upgrade pip setuptools wheel
     # Still don't get the user-installed version of pip, but this seems manageable.
