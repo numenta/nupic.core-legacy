@@ -186,6 +186,30 @@ TEST_F(PyHelpersTest, pyFloat)
   ASSERT_TRUE(n5 == 0.02);
 }
 
+TEST_F(PyHelpersTest, pyBool)
+{
+  const auto trueRefcount = Py_True->ob_refcnt;
+  const auto falseRefcount = Py_False->ob_refcnt;
+
+  {
+    py::Bool t(true);
+    ASSERT_TRUE((bool)t);
+  }
+
+  // Verify refcounts were preserved.
+  ASSERT_EQ(trueRefcount, Py_True->ob_refcnt);
+  ASSERT_EQ(falseRefcount, Py_False->ob_refcnt);
+
+  {
+    py::Bool f(false);
+    ASSERT_FALSE((bool)f);
+  }
+
+  // Verify refcounts were preserved.
+  ASSERT_EQ(trueRefcount, Py_True->ob_refcnt);
+  ASSERT_EQ(falseRefcount, Py_False->ob_refcnt);
+}
+
 TEST_F(PyHelpersTest, pyTupleEmpty)
 {
   py::String s1("item_1");
