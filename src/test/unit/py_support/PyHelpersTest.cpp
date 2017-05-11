@@ -213,9 +213,9 @@ TEST_F(PyHelpersTest, pyBool)
 
   // Construct from an existing PyObject.
   {
-    py::Bool t1(true);
-    py::Bool t2(&*t1);
-    ASSERT_TRUE((bool)t2);
+    Py_XINCREF(Py_True);
+    py::Bool t(Py_True);
+    ASSERT_TRUE((bool)t);
   }
 
   // Verify refcounts were preserved.
