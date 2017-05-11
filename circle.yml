@@ -22,6 +22,8 @@ dependencies:
     # pip install --user --ignore-installed --upgrade pip setuptools wheel
     # Still don't get the user-installed version of pip, but this seems manageable.
     - pip --version
+    # Check to see if virtualenv affects pip version
+    - deactivate && pip --version
     - pip install --use-wheel --user -r bindings/py/requirements.txt || exit
 
 compile:
