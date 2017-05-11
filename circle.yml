@@ -33,7 +33,7 @@ compile:
     - python setup.py bdist_wheel
     - mkdir dist && mv bindings/py/dist/*.whl dist/
     - ls dist
-    - pip install --use-wheel --user --find-links=`pwd`/dist/ nupic.bindings
+    - pip install --use-wheel --user --no-index --find-links=`pwd`/dist/ nupic.bindings
 test:
   override:
     - echo $PATH
