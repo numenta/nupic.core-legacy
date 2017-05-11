@@ -17,6 +17,8 @@ machine:
 
 dependencies:
   override:
+    # Try to uninstall old pip version
+    - deactivate && sudo -H pip uninstall pip
     - curl --silent --show-error --retry 5 -O http://releases.numenta.org/pip/1ebd3cb7a5a3073058d0c9552ab074bd/get-pip.py
     - deactivate && sudo -H python get-pip.py --upgrade --ignore-installed pip setuptools wheel
     # pip install --user --ignore-installed --upgrade pip setuptools wheel
