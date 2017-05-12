@@ -35,6 +35,5 @@ test:
     - py.test bindings/py/tests
   post:
     - ./ci/circle/before_deploy.sh
-    - ls /dist/whl
     # mv dist/*.whl $CIRCLE_ARTIFACTS/
     # ls -l $CIRCLE_ARTIFACTS/

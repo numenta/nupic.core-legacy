@@ -28,7 +28,7 @@ set -o xtrace
 
 # If this branch is master, this is an iterative deployment, so we'll package
 # wheels ourselves for deployment to S3. No need to build docs.
-if [ "${CIRCLE_BRANCH}" = "master" ]; then
+if [ "${CIRCLE_BRANCH}" = "master" || "${CIRCLE_BRANCH}" = "DEVOPS-291-Integrate-Circle"]; then
 
     # Upgrading pip -- sudo is necessary due to virtualenv issues on Circle
     sudo pip install --upgrade pip
@@ -40,7 +40,10 @@ if [ "${CIRCLE_BRANCH}" = "master" ]; then
     cd /bindings/py/ && pip wheel --wheel-dir=dist/wheels -r requirements.txt
     cd /bindings/py/ && python setup.py bdist_wheel -d dist/wheels
     cd /bindings/py/ && python setup.py bdist_egg -d dist
+    
     # The dist/wheels folder is expected to be deployed to S3.
+    ls /dist/whl
+
 
 # If this is a tag, we're doing a release deployment, so we want to build docs
 # for pypi...
