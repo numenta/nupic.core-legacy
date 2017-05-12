@@ -18,7 +18,7 @@ machine:
 dependencies:
   override:
     # Install all dependencies
-    - ./ci/circle/before_install.sh
+    - ./ci/circle/before_install-osx.sh
 
 compile:
   override:
