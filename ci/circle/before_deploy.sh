@@ -35,13 +35,11 @@ if [ "${CIRCLE_BRANCH}" = "master" ]; then
     # Assuming pip 1.5.X+ is installed.
     pip install --upgrade --ignore-installed --user wheel
 
-    cd ${TRAVIS_BUILD_DIR}/bindings/py
-
     # Build all NuPIC and all required python packages into dist/wheels as .whl
     # files.
-    pip wheel --wheel-dir=dist/wheels -r requirements.txt
-    python setup.py bdist_wheel -d dist/wheels
-    python setup.py bdist_egg -d dist
+    cd /bindings/py/ && pip wheel --wheel-dir=dist/wheels -r requirements.txt
+    cd /bindings/py/ && python setup.py bdist_wheel -d dist/wheels
+    cd /bindings/py/ && python setup.py bdist_egg -d dist
     # The dist/wheels folder is expected to be deployed to S3.
 
 # If this is a tag, we're doing a release deployment, so we want to build docs
