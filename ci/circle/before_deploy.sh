@@ -28,7 +28,7 @@ set -o xtrace
 
 # If this branch is master, this is an iterative deployment, so we'll package
 # wheels ourselves for deployment to S3. No need to build docs.
-if [ "${CIRCLE_BRANCH}" = "master" || "${CIRCLE_BRANCH}" = "DEVOPS-291-Integrate-Circle" ]; then
+if [ "${CIRCLE_BRANCH}" = "DEVOPS-291-Integrate-Circle" ]; then
 
     # Upgrading pip -- sudo is necessary due to virtualenv issues on Circle
     sudo pip install --upgrade pip
