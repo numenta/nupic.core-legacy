@@ -24,8 +24,8 @@ compile:
   override:
     - mkdir -p build/scripts
     - cd build/scripts && cmake ../.. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../release -DPY_EXTENSIONS_DIR=../../bindings/py/src/nupic/bindings
-    - VERBOSE=1 cd build/scripts && set -o pipefail && "make|grep -v -F '\\-\\- Installing:'"
-    - VERBOSE=1 cd build/scripts && set -o pipefail && "make install 2>&1|grep -v -F 'Installing:'"
+    - VERBOSE=1 cd build/scripts && set -o pipefail && make | grep -v -F '\\-\\- Installing:'
+    - VERBOSE=1 cd build/scripts && set -o pipefail && make install 2>&1 | grep -v -F 'Installing:'
     - python setup.py bdist_wheel
     - mkdir dist && mv bindings/py/dist/*.whl dist/
     - pip install --use-wheel --user --no-index --find-links=`pwd`/dist/ nupic.bindings
