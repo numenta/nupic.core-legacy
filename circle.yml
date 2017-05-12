@@ -37,3 +37,9 @@ test:
     - ./ci/circle/before_deploy.sh
     # mv dist/*.whl $CIRCLE_ARTIFACTS/
     # ls -l $CIRCLE_ARTIFACTS/
+
+deployment:
+ aws:
+  branch: master
+  commands:
+    - ./ci/deploy-wheel-to-s3.py /whl/dst

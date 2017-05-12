@@ -37,9 +37,9 @@ if [ "${CIRCLE_BRANCH}" = "DEVOPS-291-Integrate-Circle" ]; then
 
     # Build all NuPIC and all required python packages into dist/wheels as .whl
     # files.
-    cd /bindings/py/ && pip wheel --wheel-dir=dist/wheels -r requirements.txt
-    cd /bindings/py/ && python setup.py bdist_wheel -d dist/wheels
-    cd /bindings/py/ && python setup.py bdist_egg -d dist
+    cd /build/scripts/bindings/py/ && pip wheel --wheel-dir=dist/wheels -r requirements.txt
+    cd /build/scripts/bindings/py/ && python setup.py bdist_wheel -d dist/wheels
+    cd /build/scripts/bindings/py/ && python setup.py bdist_egg -d dist
 
     # The dist/wheels folder is expected to be deployed to S3.
     ls /dist/whl
