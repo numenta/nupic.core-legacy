@@ -17,17 +17,15 @@ machine:
 
 dependencies:
   override:
-    # Force system to install latest pip before proceeding
-    - sudo pip install --upgrade pip
-    - pip install --upgrade --user --ignore-installed setuptools wheel
-    - pip install --use-wheel --user -r bindings/py/requirements.txt || exit
+    # Install all dependencies
+    - ./ci/circle/before_install.sh
 
 compile:
   override:
     - mkdir -p build/scripts
     - cd build/scripts && cmake ../.. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../release -DPY_EXTENSIONS_DIR=../../bindings/py/src/nupic/bindings
-    - cd build/scripts && make -j6
-    - cd build/scripts && make install
+    - cd build/scripts && set -o pipefail && "VERBOSE=1 make|grep -v -F '\\-\\- Installing:'"
+    - cd build/scripts && set -o pipefail && "make install 2>&1|grep -v -F 'Installing:'"
     - python setup.py bdist_wheel
     - mkdir dist && mv bindings/py/dist/*.whl dist/
     - pip install --use-wheel --user --no-index --find-links=`pwd`/dist/ nupic.bindings
@@ -36,5 +34,7 @@ test:
     - ls -la $HOME/Library/Python/2.7/bin/
     - py.test bindings/py/tests
   post:
-    - mv dist/*.whl $CIRCLE_ARTIFACTS/
-    - ls -l $CIRCLE_ARTIFACTS/
+    - ./ci/circle/before_deploy.sh
+    - ls /dist/whl
+    # mv dist/*.whl $CIRCLE_ARTIFACTS/
+    # ls -l $CIRCLE_ARTIFACTS/
