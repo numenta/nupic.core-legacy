@@ -34,12 +34,11 @@ test:
     - ls -la $HOME/Library/Python/2.7/bin/
     - py.test bindings/py/tests
   post:
-    - ./ci/circle/before_deploy.sh
-    # mv dist/*.whl $CIRCLE_ARTIFACTS/
-    # ls -l $CIRCLE_ARTIFACTS/
+    - mv dist/*.whl $CIRCLE_ARTIFACTS/
+    - ls -l $CIRCLE_ARTIFACTS/
 
 deployment:
  aws:
   branch: master
   commands:
-    - ./ci/deploy-wheel-to-s3.py /whl/dst
+    - ./ci/deploy-wheel-to-s3.py $CIRCLE_ARTIFACTS
