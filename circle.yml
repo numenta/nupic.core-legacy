@@ -39,6 +39,6 @@ test:
 
 deployment:
  aws:
-  branch: master
+  branch: DEVOPS-291-Integrate-Circle
   commands:
     - ./ci/deploy-wheel-to-s3.py $CIRCLE_ARTIFACTS
