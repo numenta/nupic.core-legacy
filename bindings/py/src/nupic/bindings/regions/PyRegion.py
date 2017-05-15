@@ -59,13 +59,14 @@ class PyRegion(object):
   If a subclass doesn't implement all its abstract methods it can't be
   instantiated. Note, that the signature of implemented abstract method in the
   subclass doesn't need to match the signature of the abstract method in the
-  base class. This is very important for ``__init__`` in this case.
+  base class. This is very important for
+  :meth:`~nupic.bindings.regions.PyRegion.PyRegion.__init__` in this case.
 
   The abstract methods (decorated with ``@abstract`` method) are:
 
-  * ``__init__``
-  * ``initialize``
-  * ``compute``
+  * :meth:`~nupic.bindings.regions.PyRegion.PyRegion.__init__`
+  * :meth:`~nupic.bindings.regions.PyRegion.PyRegion.initialize`
+  * :meth:`~nupic.bindings.regions.PyRegion.PyRegion.compute`
 
   In addition, some PyRegion methods raise ``NotImplementedError`` which throws
   an exception if called. A sub-class may opt not to implement these
@@ -75,12 +76,13 @@ class PyRegion(object):
 
   The not implemented methods are:
 
-  * :meth:`getSpec` (class method)
-  * :meth:`setParameter`
-  * :meth:`setParameterArray`
-  * :meth:`getOutputElementCount`
+  * :meth:`~nupic.bindings.regions.PyRegion.PyRegion.getSpec` (class method)
+  * :meth:`~nupic.bindings.regions.PyRegion.PyRegion.setParameter`
+  * :meth:`~nupic.bindings.regions.PyRegion.PyRegion.setParameterArray`
+  * :meth:`~nupic.bindings.regions.PyRegion.PyRegion.getOutputElementCount`
 
-  The :meth:`getSpec` is a class method, which is actually required but since
+  The :meth:`~nupic.bindings.regions.PyRegion.PyRegion.getSpec` is a class
+  method, which is actually required but since
   it's not an instance method the ``@abstractmethod`` decorator doesn't apply.
 
   Finally, PyRegion provides reasonable default implementation to some methods.
@@ -89,10 +91,10 @@ class PyRegion(object):
 
   The implemented methods are:
 
-  * :meth:`getParameter`
-  * :meth:`getParameterArray`
-  * :meth:`getParameterArrayCount`
-  * :meth:`executeMethod`
+  * :meth:`~nupic.bindings.regions.PyRegion.PyRegion.getParameter`
+  * :meth:`~nupic.bindings.regions.PyRegion.PyRegion.getParameterArray`
+  * :meth:`~nupic.bindings.regions.PyRegion.PyRegion.getParameterArrayCount`
+  * :meth:`~nupic.bindings.regions.PyRegion.PyRegion.executeMethod`
 
   """
   __metaclass__ = ABCMeta
@@ -153,7 +155,8 @@ class PyRegion(object):
   @abstractmethod
   def initialize(self):
     """Initialize the node after the network is fully linked
-    It is called once by NuPIC before the first call to :meth:`compute`. It is
+    It is called once by NuPIC before the first call to
+    :meth:`~nupic.bindings.regions.PyRegion.PyRegion.compute`. It is
     a good place to perform one time initialization that depend on the inputs
     and/or outputs. The region may also remember its inputs and outputs here
     because they will not change.
@@ -195,7 +198,8 @@ class PyRegion(object):
   def getParameter(self, name, index):
     """Default implementation that return an attribute with the requested name.
 
-    This method provides a default implementation of :meth:`getParameter` that
+    This method provides a default implementation of
+    :meth:`~nupic.bindings.regions.PyRegion.PyRegion.getParameter` that
     simply returns an attribute with the parameter name. If the Region
     conceptually contains multiple nodes with separate state, the ``index``
     argument is used to request a parameter of a specific node inside the
@@ -219,8 +223,9 @@ class PyRegion(object):
     """Default implementation that return the length of the attribute.
 
     This default implementation goes hand in hand with
-    :meth:`getParameterArray`. If you override one of them in your subclass, you
-    should probably override both of them.
+    :meth:`~nupic.bindings.regions.PyRegion.PyRegion.getParameterArray`.
+    If you override one of them in your subclass, you should probably override
+    both of them.
 
     The implementation prevents accessing parameters names that start with
     ``_``. It may be better to enforce this convention at the node spec level.
@@ -238,14 +243,17 @@ class PyRegion(object):
   def getParameterArray(self, name, index, array):
     """Default implementation that return an attribute with the requested name.
 
-    This method provides a default implementation of :meth:`getParameterArray`
+    This method provides a default implementation of
+    :meth:`~nupic.bindings.regions.PyRegion.PyRegion.getParameterArray`
     that returns an attribute with the parameter name. If the Region
     conceptually contains multiple nodes with separate state the ``index``
     argument is used to request a parameter of a specific node inside the
     region. The attribute value is written into the output array. No type or
     sanity checks are performed for performance reasons. If something goes awry
     it will result in a low-level exception. If you are unhappy about it you can
-    implement your own :meth:`getParameterArray` method in the subclass.
+    implement your own
+    :meth:`~nupic.bindings.regions.PyRegion.PyRegion.getParameterArray`
+    method in the subclass.
 
     The implementation prevents accessing parameters names that start with
     ``_``. It may be better to enforce this convention at the node spec level.
@@ -327,8 +335,10 @@ class PyRegion(object):
 
 
   def write(self, proto):
-    """Calls :meth:`writeToProto` on subclass after converting proto to specific
-    type using :meth:`getProtoType`.
+    """
+    Calls :meth:`~nupic.bindings.regions.PyRegion.PyRegion.writeToProto`
+    on subclass after converting proto to specific type using
+    :meth:`~nupic.bindings.regions.PyRegion.PyRegion.getProtoType`.
 
     :param proto: PyRegionProto capnproto object
     """
@@ -338,8 +348,10 @@ class PyRegion(object):
 
   @classmethod
   def read(cls, proto):
-    """Calls :meth:`readFromProto` on subclass after converting proto to
-    specific type using :meth:`getProtoType`.
+    """
+    Calls :meth:`~nupic.bindings.regions.PyRegion.PyRegion.readFromProto`
+    on subclass after converting proto to specific type using
+    :meth:`~nupic.bindings.regions.PyRegion.PyRegion.getProtoType`.
 
     :param proto: PyRegionProto capnproto object
     """
@@ -350,7 +362,8 @@ class PyRegion(object):
   def writeToProto(self, proto):
     """Write state to proto object.
 
-    The type of proto is determined by :meth:`getProtoType`.
+    The type of proto is determined by
+    :meth:`~nupic.bindings.regions.PyRegion.PyRegion.getProtoType`.
 
     :raises: NotImplementedError if function is not implemented in subclass
     """
@@ -361,7 +374,8 @@ class PyRegion(object):
   def readFromProto(cls, proto):
     """Read state from proto object.
 
-    The type of proto is determined by :meth:`getProtoType`.
+    The type of proto is determined by
+    :meth:`~nupic.bindings.regions.PyRegion.PyRegion.getProtoType`.
 
     :raises: NotImplementedError if function is not implemented in subclass
     """
