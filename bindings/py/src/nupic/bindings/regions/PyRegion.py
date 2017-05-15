@@ -59,29 +59,29 @@ class PyRegion(object):
   If a subclass doesn't implement all its abstract methods it can't be
   instantiated. Note, that the signature of implemented abstract method in the
   subclass doesn't need to match the signature of the abstract method in the
-  base class. This is very important for __init__() in this case.
+  base class. This is very important for ``__init__`` in this case.
 
-  The abstract methods (decorated with @abstract method) are:
+  The abstract methods (decorated with ``@abstract`` method) are:
 
-  * __init__
-  * initialize
-  * compute
+  * ``__init__``
+  * ``initialize``
+  * ``compute``
 
-  In addition, some PyRegion methods raise NotImplementedError which throws
+  In addition, some PyRegion methods raise ``NotImplementedError`` which throws
   an exception if called. A sub-class may opt not to implement these
-  methods, but if such a methods is called then a NotImplementedError will be
-  raised. This is useful for methods like setParameterArray if a particular
-  subclass has no array parameters.
+  methods, but if such a methods is called then a ``NotImplementedError`` will
+  be raised. This is useful for methods like :meth:`setParameterArray` if a
+  particular subclass has no array parameters.
 
   The not implemented methods are:
 
-  * getSpec (class method)
-  * setParameter
-  * setParameterArray
-  * getOutputElementCount
+  * :meth:`getSpec` (class method)
+  * :meth:`setParameter`
+  * :meth:`setParameterArray`
+  * :meth:`getOutputElementCount`
 
-  The getSpec is a class method, which is actually required but since it's
-  not an instance method the @abstractmethod decorator doesn't apply.
+  The :meth:`getSpec` is a class method, which is actually required but since
+  it's not an instance method the ``@abstractmethod`` decorator doesn't apply.
 
   Finally, PyRegion provides reasonable default implementation to some methods.
   Sub-classes may opt to override these methods or use the default
@@ -89,10 +89,10 @@ class PyRegion(object):
 
   The implemented methods are:
 
-  * getParameter
-  * getParameterArray
-  * getParameterArrayCount
-  * executeMethod
+  * :meth:`getParameter`
+  * :meth:`getParameterArray`
+  * :meth:`getParameterArrayCount`
+  * :meth:`executeMethod`
 
   """
   __metaclass__ = ABCMeta
@@ -100,38 +100,44 @@ class PyRegion(object):
 
   @classmethod
   def getSpec(cls):
-    """Returns the region spec for this region. The Region Spec is a dictionary
-    with the following keys:
-    description -- a string
-
-    singleNodeOnly -- a boolean (True if this Region supports only a single node)
-
-    inputs -- a dictionary in which the keys are the names of the inputs and
-    the values are dictionaries with these keys:
-         description - string
-         regionLevel -- True if this is a "region-level" input.
-         dataType - a string describing the data type, usually 'Real32'
-         count - the number of items in the input. 0 means unspecified.
-         required -- boolean - whether the input is must be connected
-         isDefaultInput -- must be True for exactly one input
-         requireSplitterMap -- [just set this to False.]
-
-    outputs -- a dictionary with similar structure to inputs. The keys
-    are:
-         description
-         dataType
-         count
-         regionLevel
-         isDefaultOutput
-
-    parameters -- a dictionary of dictionaries with the following keys:
-         description
-         dataType
-         count
-         constraints (optional)
-         accessMode (one of "ReadWrite", "Read", "Create")
-
+    """
     This class method is called by NuPIC before creating a Region.
+
+    :returns: (dict) the region spec for this region. Keys described below:
+
+      - ``description`` (string) user-provided description
+
+      - ``singleNodeOnly`` (bool) True if this Region supports only a single
+        node
+
+      - ``inputs`` (dict) keys are the names of the inputs and the values are
+        dictionaries with these keys:
+
+           - ``description`` (string) user-provided description
+           - ``regionLevel`` (bool) True if this is a "region-level" input
+           - ``dataType`` (string) describing the data type, usually ``Real32``
+           - ``count`` (int) items in the input. 0 means unspecified.
+           - ``required`` (bool) whether the input is must be connected
+           - ``isDefaultInput`` (bool) must be True for exactly one input
+           - ``requireSplitterMap`` (bool) [just set this to False.]
+
+      - ``outputs`` (dict) similar structure to inputs. The keys
+        are:
+
+           - ``description``
+           - ``dataType``
+           - ``count``
+           - ``regionLevel``
+           - ``isDefaultOutput``
+
+      - ``parameters`` (dict) of dicts with the following keys:
+
+           - ``description``
+           - ``dataType``
+           - ``count``
+           - ``constraints`` (optional)
+           - ``accessMode`` (one of "ReadWrite", "Read", "Create")
+
     """
     raise NotImplementedError()
 
@@ -147,7 +153,7 @@ class PyRegion(object):
   @abstractmethod
   def initialize(self):
     """Initialize the node after the network is fully linked
-    It is called once by NuPIC before the first call to compute(). It is
+    It is called once by NuPIC before the first call to :meth:`compute`. It is
     a good place to perform one time initialization that depend on the inputs
     and/or outputs. The region may also remember its inputs and outputs here
     because they will not change.
@@ -156,50 +162,50 @@ class PyRegion(object):
 
   @abstractmethod
   def compute(self, inputs, outputs):
-    """Perform the main computation
+    """Perform the main computation.
 
     This method is called in each iteration for each phase the node supports.
 
-    inputs: dict of numpy arrays (one per input)
-    outputs: dict of numpy arrays (one per output)
+    :param inputs: (dict) of numpy arrays (one per input)
+    :param outputs: (dict) of numpy arrays (one per output)
     """
 
 
   def guardedCompute(self, inputs, outputs):
     """The C++ entry point to compute.
 
-    inputs: dict of numpy arrays (one per input)
-    outputs: dict of numpy arrays (one per output)
+    :param inputs: (dict) of numpy arrays (one per input)
+    :param outputs: (dict) of numpy arrays (one per output)
     """
     return self.compute(inputs, DictReadOnlyWrapper(outputs))
 
 
   def getOutputElementCount(self, name):
-    """Return the number of elements in the output of a single node
-
+    """
     If the region has multiple nodes (all must have the same output
     size) then just the number of output elements of a single node
     should be returned.
 
-    name: the name of the output
+    :param name: (string) the name of the output
+    :returns: (int) number of elements in the output of a single node.
     """
     raise NotImplementedError()
 
 
   def getParameter(self, name, index):
-    """Default implementation that return an attribute with the requested name
+    """Default implementation that return an attribute with the requested name.
 
-    This method provides a default implementation of getParameter() that simply
-    returns an attribute with the parameter name. If the Region conceptually
-    contains multiple nodes with separate state the 'index' argument is used
-    to request a parameter of a specific node inside the region. In case of
-    a region-level parameter the index should be -1
+    This method provides a default implementation of :meth:`getParameter` that
+    simply returns an attribute with the parameter name. If the Region
+    conceptually contains multiple nodes with separate state, the ``index``
+    argument is used to request a parameter of a specific node inside the
+    region. In case of a region-level parameter the index should be ``-1``.
 
-    The implementation prevents accessing parameters names that start with '_'.
-    It may be better to enforce this convention at the node spec level.
+    The implementation prevents accessing parameters names that start with
+    ``_``. It may be better to enforce this convention at the node spec level.
 
-    name: name of requested parameter
-    index: index of node inside the region (if relevant)
+    :param name: (string) name of requested parameter
+    :param index: (int) index of node inside the region (if relevant)
 
     """
     if name.startswith('_'):
@@ -210,17 +216,18 @@ class PyRegion(object):
 
 
   def getParameterArrayCount(self, name, index):
-    """Default implementation that return the length of the attribute
+    """Default implementation that return the length of the attribute.
 
-    This default implementation goes hand in hand with getParameterArray().
-    If you override one of them in your subclass, you should probably override
-    both of them.
+    This default implementation goes hand in hand with
+    :meth:`getParameterArray`. If you override one of them in your subclass, you
+    should probably override both of them.
 
-    The implementation prevents accessing parameters names that start with '_'.
-    It may be better to enforce this convention at the node spec level.
+    The implementation prevents accessing parameters names that start with
+    ``_``. It may be better to enforce this convention at the node spec level.
 
-    name: name of requested parameter
-    index: index of node inside the region (if relevant)
+    :param name: (string) name of requested parameter
+    :param index: (int) index of node inside the region (if relevant)
+    :raises: Exception if parameter starts with ``_``.
     """
     if name.startswith('_'):
       raise Exception('Parameter name must not start with an underscore')
@@ -229,23 +236,24 @@ class PyRegion(object):
 
 
   def getParameterArray(self, name, index, array):
-    """Default implementation that return an attribute with the requested name
+    """Default implementation that return an attribute with the requested name.
 
-    This method provides a default implementation of getParameterArray() that
-    returns an attribute with the parameter name. If the Region conceptually
-    contains multiple nodes with separate state the 'index' argument is used
-    to request a parameter of a specific node inside the region. The attribute
-    value is written into the output array. No type or sanity checks are
-    performed for performance reasons. If something goes awry it will result
-    in a low-level exception. If you are unhappy about it you can implement
-    your own getParameterArray() method in the subclass.
+    This method provides a default implementation of :meth:`getParameterArray`
+    that returns an attribute with the parameter name. If the Region
+    conceptually contains multiple nodes with separate state the ``index``
+    argument is used to request a parameter of a specific node inside the
+    region. The attribute value is written into the output array. No type or
+    sanity checks are performed for performance reasons. If something goes awry
+    it will result in a low-level exception. If you are unhappy about it you can
+    implement your own :meth:`getParameterArray` method in the subclass.
 
-    The implementation prevents accessing parameters names that start with '_'.
-    It may be better to enforce this convention at the node spec level.
+    The implementation prevents accessing parameters names that start with
+    ``_``. It may be better to enforce this convention at the node spec level.
 
-    name: name of requested parameter
-    index: index of node inside the region (if relevant)
-    array: output numpy array that the value is written to
+    :param name: (string) name of requested parameter
+    :param index: (int) index of node inside the region (if relevant)
+    :param array: output numpy array that the value is written to
+    :raises: Exception if parameter starts with ``_``.
     """
     if name.startswith('_'):
       raise Exception('Parameter name must not start with an underscore')
@@ -258,15 +266,16 @@ class PyRegion(object):
 
 
   def setParameter(self, name, index, value):
-    """Set the value of a parameter
+    """Set the value of a parameter.
 
     If the Region conceptually contains multiple nodes with separate state
-    the 'index' argument is used set a parameter of a specific node inside
+    the ``index`` argument is used set a parameter of a specific node inside
     the region.
 
-    name: name of requested parameter
-    index: index of node inside the region (if relevant)
-    value: the value to assign to the requested parameter
+    :param name: (string) name of requested parameter
+    :param index: (int) index of node inside the region (if relevant)
+    :param value: (object) the value to assign to the requested parameter
+    :raises: NotImplementedError if function is not implemented in subclass
     """
     raise NotImplementedError("The method setParameter is not implemented.")
 
@@ -278,9 +287,10 @@ class PyRegion(object):
     the 'index' argument is used set a parameter of a specific node inside
     the region.
 
-    name: name of requested parameter
-    index: index of node inside the region (if relevant)
-    array: the value to assign to the requested parameter (a numpy array)
+    :param name: (string) name of requested parameter
+    :param index: (int) index of node inside the region (if relevant)
+    :param array: the value to assign to the requested parameter (a numpy array)
+    :raises: NotImplementedError if function is not implemented in subclass
     """
     raise NotImplementedError()
 
@@ -289,7 +299,7 @@ class PyRegion(object):
     """This method is called during network serialization with an external
     filename that can be used to bypass pickle for saving large binary states.
 
-    filePath: full filepath and name
+    :param filePath: (string) full filepath and name
     """
     pass
 
@@ -298,7 +308,7 @@ class PyRegion(object):
     """This method is called during network deserialization with an external
     filename that can be used to bypass pickle for loading large binary states.
 
-    filePath: full filepath and name
+    :param filePath: (string) full filepath and name
     """
     pass
 
@@ -309,15 +319,18 @@ class PyRegion(object):
 
     This is used to convert the proto into the proper type before passing it
     into the read or write method of the subclass.
+
+    :returns: PyRegionProto prototype object
+    :raises: NotImplementedError if function is not implemented in subclass
     """
     raise NotImplementedError()
 
 
   def write(self, proto):
-    """Calls writeToProto on subclass after converting proto to specific type
-    using getProtoType().
+    """Calls :meth:`writeToProto` on subclass after converting proto to specific
+    type using :meth:`getProtoType`.
 
-    proto: PyRegionProto capnproto object
+    :param proto: PyRegionProto capnproto object
     """
     regionImpl = proto.regionImpl.as_struct(self.getProtoType())
     self.writeToProto(regionImpl)
@@ -325,10 +338,10 @@ class PyRegion(object):
 
   @classmethod
   def read(cls, proto):
-    """Calls readFromProto on subclass after converting proto to specific type
-    using getProtoType().
+    """Calls :meth:`readFromProto` on subclass after converting proto to
+    specific type using :meth:`getProtoType`.
 
-    proto: PyRegionProto capnproto object
+    :param proto: PyRegionProto capnproto object
     """
     regionImpl = proto.regionImpl.as_struct(cls.getProtoType())
     return cls.readFromProto(regionImpl)
@@ -337,7 +350,9 @@ class PyRegion(object):
   def writeToProto(self, proto):
     """Write state to proto object.
 
-    The type of proto is determined by getProtoType().
+    The type of proto is determined by :meth:`getProtoType`.
+
+    :raises: NotImplementedError if function is not implemented in subclass
     """
     raise NotImplementedError()
 
@@ -346,13 +361,15 @@ class PyRegion(object):
   def readFromProto(cls, proto):
     """Read state from proto object.
 
-    The type of proto is determined by getProtoType().
+    The type of proto is determined by :meth:`getProtoType`.
+
+    :raises: NotImplementedError if function is not implemented in subclass
     """
     raise NotImplementedError()
 
 
   def executeMethod(self, methodName, args):
-    """Executes a method named 'methodName' with the specified arguments.
+    """Executes a method named ``methodName`` with the specified arguments.
 
     This method is called when the user executes a command as defined in
     the node spec. It provides a perfectly reasonble implementation
@@ -360,8 +377,9 @@ class PyRegion(object):
     implement a method for each command in the node spec. Note that due to
     the command mechanism only unnamed argument are supported.
 
-    methodName: the name of the method that correspond to a command in the spec
-    args: list of arguments that will be passed to the method
+    :param methodName: (string) the name of the method that correspond to a
+           command in the spec.
+    :param args: (list) of arguments that will be passed to the method
     """
     if not hasattr(self, methodName):
       raise Exception('Missing command method: ' + methodName)
