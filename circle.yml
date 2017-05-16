@@ -37,7 +37,7 @@ test:
     # legacy binary tests.  Need to cd to build/release/bin to ensure test success; see Readme.md
     - cd build/release/bin && ./connections_performance_test
     - cd build/release/bin && ./cpp_region_test
-    - cd build/release/bin && ./py_region_test
+    # cd build/release/bin && ./py_region_test
     - cd build/release/bin && ./helloregion
     - cd build/release/bin && ./hello_sp_tp
     - cd build/release/bin && ./prototest
