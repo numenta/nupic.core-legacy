@@ -23,7 +23,7 @@ dependencies:
 compile:
   override:
     - mkdir -p build/scripts
-    - cd build/scripts && cmake ../.. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../release -DPY_EXTENSIONS_DIR=../../bindings/py/src/nupic/bindings
+    - cd build/scripts && cmake ../.. -DCMAKE_BUILD_TYPE=Release -DNTA_COV_ENABLED=ON -DCMAKE_INSTALL_PREFIX=../release -DPY_EXTENSIONS_DIR=../../bindings/py/src/nupic/bindings
     - VERBOSE=1 cd build/scripts && set -o pipefail && make -j8 | grep -v -F '\\-\\- Installing:'
     - VERBOSE=1 cd build/scripts && set -o pipefail && make install 2>&1 | grep -v -F 'Installing:'
     - python setup.py bdist_wheel
@@ -37,7 +37,7 @@ test:
     # legacy binary tests.  Need to cd to build/release/bin to ensure test success; see Readme.md
     - cd build/release/bin && ./connections_performance_test
     - cd build/release/bin && ./cpp_region_test
-    # cd build/release/bin && ./py_region_test
+    - cd build/release/bin && ./py_region_test
     - cd build/release/bin && ./helloregion
     - cd build/release/bin && ./hello_sp_tp
     - cd build/release/bin && ./prototest
