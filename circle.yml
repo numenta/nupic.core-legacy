@@ -53,7 +53,7 @@ test:
 
 deployment:
  aws:
-  branch: DEVOPS-291-Integrate-Circle
+  branch: master
   commands:
     - cp bindings/py/requirements.txt dist/
     - mkdir -p dist/include/nupic
