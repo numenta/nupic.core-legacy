@@ -22,7 +22,7 @@ dependencies:
 
 compile:
   override:
-    # Kill the virtualenv before it can
+    # Kill the virtualenv before it can cause problems.  As of May 2017 the CircleCI virtualenv/path setup causes some tests to fail unnecessarily.
     - rm -r ~/virtualenvs
     - mkdir -p build/scripts
     - cd build/scripts && cmake ../.. -DCMAKE_BUILD_TYPE=Release -DNTA_COV_ENABLED=ON -DCMAKE_INSTALL_PREFIX=../release -DPY_EXTENSIONS_DIR=../../bindings/py/src/nupic/bindings
