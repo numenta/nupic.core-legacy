@@ -33,7 +33,7 @@ test:
   override:
     - ls -la $HOME/Library/Python/2.7/bin/
     - py.test bindings/py/tests
-    - /build/release/bin/unit_tests --gtest_output=xml:/build/artifacts/unit_tests_report.xml"
+    - /build/release/bin/unit_tests --gtest_output=xml:/build/artifacts/unit_tests_report.xml
   post:
     - cp /build/artifacts/unit_tests_report.xml /dist/
     - cp /build/artifacts/unit_tests_report.xml $CIRCLE_ARTIFACTS/
