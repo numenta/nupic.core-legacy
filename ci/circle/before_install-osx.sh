@@ -24,15 +24,15 @@ echo
 echo Running before_install-osx.sh...
 echo
 
-if [ $CC = 'gcc' ]; then
-    export CC='gcc-4.8'
-    export CXX='g++-4.8'
-fi
+#if [ $CC = 'gcc' ]; then
+#    export CC='gcc-4.8'
+#    export CXX='g++-4.8'
+#fi
 
-if [ $CC = 'clang' ]; then
-    export CC='clang'
-    export CXX='clang++'
-fi
+#if [ $CC = 'clang' ]; then
+#    export CC='clang'
+#    export CXX='clang++'
+#fi
 
 echo "Installing pip, setuptools, and wheel"
 sudo pip install --upgrade pip
