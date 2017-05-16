@@ -13,9 +13,7 @@ machine:
   pre:
     - sudo pip install --ignore-installed --upgrade --verbose virtualenv
     # Link virtualenv to /usr/local/bin if it doesn't exist and always give exit status of 0.
-    - "([ ! -e /usr/local/bin/virtualenv ] && ln -s ~/Library/Python/2.7/bin/virtualenv /usr/local/bin/virtualenv) || true"
-    # But stop the virtualenv from being seen.
-    - rm -r ~/virtualenvs
+    - "([ ! -e /usr/local/bin/virtualenv ] && ln -s ~/Library/Python/2.7/bin/virtualenv /usr/local/bin/virtualenv) || true" 
 
 dependencies:
   override:
@@ -24,6 +22,8 @@ dependencies:
 
 compile:
   override:
+    # Kill the virtualenv before it can
+    - rm -r ~/virtualenvs
     - mkdir -p build/scripts
     - cd build/scripts && cmake ../.. -DCMAKE_BUILD_TYPE=Release -DNTA_COV_ENABLED=ON -DCMAKE_INSTALL_PREFIX=../release -DPY_EXTENSIONS_DIR=../../bindings/py/src/nupic/bindings
     - VERBOSE=1 cd build/scripts && set -o pipefail && make -j8 | grep -v -F '\\-\\- Installing:'
