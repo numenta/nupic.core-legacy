@@ -39,7 +39,7 @@ TEST(MovingAverage, Instance)
   Real32 newAverage;
 
   {
-    std::vector<Real32> expectedWindow = {3.0, 0, 0};
+    std::vector<Real32> expectedWindow = {3.0};
     m.compute(3);
     newAverage = m.getCurrentAvg();
     ASSERT_EQ(newAverage, 3.0);
@@ -48,7 +48,7 @@ TEST(MovingAverage, Instance)
   }
 
   {
-    std::vector<Real32> expectedWindow = {3.0, 4.0, 0};
+    std::vector<Real32> expectedWindow = {3.0, 4.0};
     m.compute(4);
     newAverage = m.getCurrentAvg();
     ASSERT_EQ(newAverage, 3.5);
@@ -83,7 +83,7 @@ TEST(MovingAverage, SlidingWindowInit)
   ASSERT_EQ(m.getData(), existingHistorical);
 
   MovingAverage m2{3};
-  std::vector<Real32> emptyVector{0, 0 , 0};
+  std::vector<Real32> emptyVector{};
   ASSERT_EQ(m2.getData(), emptyVector);
 }
 
