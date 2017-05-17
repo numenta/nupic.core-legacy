@@ -39,25 +39,34 @@ namespace nupic {
         SlidingWindow(UInt maxCapacity, std::vector<T> initialData);
         const UInt maxCapacity;
         size_t size() const;
-        /** append new value to the end of the buffer and handle the "overflows"-may pop the first element if full. 
+        /** append new value to the end of the buffer and handle the 
+           "overflows"-may pop the first element if full. 
         */
         void append(T newValue);
 
-        /** like append, but return the dropped value. isValid indicates if the return value is valid (not while size()< maxCapacity)
+        /** like append, but return the dropped value. isValid indicates 
+            if the return value is valid (not while size()< maxCapacity)
           :param T newValue - new value to append to the sliding window
-          :param bool isValid - a return pass-by-value that indicates validity of the return T value. for first maxCapacity items it is false, later always true.
-          :return T dropped value (past oldest element) if isValid; if not valid, this field holds the oldest value (but still contained in the window!)
+          :param bool isValid - a return pass-by-value that indicates validity
+             of the return T value. for first maxCapacity items it is false, 
+             later always true.
+          :return T dropped value (past oldest element) if isValid; 
+             if not valid, this field holds the oldest value 
+             (but still contained in the window!)
         */
         T append(T newValue, bool& isValid);
 
         /**
-        * :return unordered content (data ) of this sl. window; call getLinearizedData() if you need them oredered from oldest->newest
+        * :return unordered content (data ) of this sl. window; 
+             call getLinearizedData() if you need them oredered from 
+             oldest->newest
         * This direct access method is fast.
         */
         const std::vector<T>& getData() const;
 
-        /** linearize method for the internal buffer; this is slower than the pure getData() but ensures that the data are ordered (oldest at the 
-         * beginning, newest at the end of the vector
+        /** linearize method for the internal buffer; this is slower than 
+            the pure getData() but ensures that the data are ordered (oldest at
+             the beginning, newest at the end of the vector
          * This handles case of |5,6;1,2,3,4| => |1,2,3,4,5,6|
          * :return new linearized vector
         */
@@ -112,16 +121,21 @@ size_t SlidingWindow<T>::size() const {
 
 template<class T>
 void SlidingWindow<T>::append(T newValue) {
-    buffer_[idxNext_] = newValue;
-    idxNext_ = ++idxNext_ %maxCapacity;//the assignment must be out of the [] above -not [idxNext_++%maxCap]- because we want to store the value %maxCap, not only ++
+  buffer_[idxNext_] = newValue;
+  //the assignment must be out of the [] above, so not [idxNext_++%maxCap],
+  // because we want to store the value %maxCap, not only ++
+  idxNext_ = ++idxNext_ %maxCapacity;
   ++size_;
 }
 
 
 template<class T>
 T SlidingWindow<T>::append(T newValue, bool& isValid) {
-  T old = buffer_.empty() ? newValue : buffer_[idxNext_]; //handle case of empty buffer (access buff[0]), otherwise return oldest elem
-  isValid = (buffer_.size()==maxCapacity); //only in this case we drop oldest; this happens always after first maxCap steps ; must be checked before append()
+  //handle case of empty buffer (access buff[0]), otherwise return oldest elem
+  T old = buffer_.empty() ? newValue : buffer_[idxNext_]; 
+  //only in this case we drop oldest; this happens always after 
+  //first maxCap steps ; must be checked before append()
+  isValid = (buffer_.size()==maxCapacity); 
   append(newValue);
   return old; 
 }
@@ -138,23 +152,24 @@ std::vector<T> SlidingWindow<T>::getLinearizedData() const {
   std::vector<T> lin;
   lin.reserve(buffer_.size());
 
-  lin.insert(std::begin(lin), std::begin(buffer_) + idxNext_, std::end(buffer_)); //insert the "older" part at the beginning
-  lin.insert(std::end(lin), std::begin(buffer_), std::begin(buffer_) + idxNext_); //append the "newer" part to the end of the constructed vect
+  //insert the "older" part at the beginning
+  lin.insert(std::begin(lin), std::begin(buffer_) + idxNext_, std::end(buffer_));
+  //append the "newer" part to the end of the constructed vect
+  lin.insert(std::end(lin), std::begin(buffer_), std::begin(buffer_) + idxNext_);
  return lin;
 }
 
 
 template<class T>
-bool SlidingWindow<T>::operator==(const SlidingWindow& r2) const //FIXME review the ==, on my machine it randomly passes/fails the test!
-{
+bool SlidingWindow<T>::operator==(const SlidingWindow& r2) const {
   return ((this->size() == r2.size()) && (this->maxCapacity == r2.maxCapacity) && 
-    (this->getData()== r2.getData()) );
+    (this->getData()== r2.getData()) ); 
+  //FIXME review the ==, on my machine it randomly passes/fails the test!
 }
 
 
 template<class T>
-bool SlidingWindow<T>::operator!=(const SlidingWindow& r2) const
-{
+bool SlidingWindow<T>::operator!=(const SlidingWindow& r2) const {
   return !operator==(r2);
 }
 
