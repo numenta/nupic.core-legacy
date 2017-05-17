@@ -25,6 +25,7 @@
 
 #include <vector>
 #include <algorithm>
+#include <iterator>
 
 #include <nupic/types/Types.hpp>
 #include <nupic/utils/Log.hpp>
@@ -36,7 +37,15 @@ namespace nupic {
     class SlidingWindow {
       public:
         SlidingWindow(UInt maxCapacity);
-        SlidingWindow(UInt maxCapacity, std::vector<T> initialData);
+        template<class IteratorT> //TODO is there a way to enforce IteratorT is actually a subclass of std::iterator?
+        SlidingWindow(UInt maxCapacity, IteratorT initialData_begin, IteratorT initialData_end): 
+          SlidingWindow(maxCapacity) {
+  //TODO if there is huge data and small window, we wastefully loop through all data
+  for(IteratorT it = initialData_begin; it != initialData_end; ++it) {
+    append(*it);
+  }
+  idxNext_ = buffer_.size() % maxCapacity;
+        }
         const UInt maxCapacity;
         size_t size() const;
         /** append new value to the end of the buffer and handle the 
@@ -95,15 +104,6 @@ SlidingWindow<T>::SlidingWindow(nupic::UInt maxCapacity) :
   NTA_CHECK(maxCapacity > 0);
   buffer_.reserve(maxCapacity);
   idxNext_ = 0;
-}
-
-
-template<class T>
-SlidingWindow<T>::SlidingWindow(nupic::UInt maxCapacity, std::vector<T> initialData)  :
-  SlidingWindow(maxCapacity) {
-  auto sz = std::min(initialData.size(), (size_t)maxCapacity);
-  buffer_.insert(std::begin(buffer_), std::end(initialData) - sz, std::end(initialData));
-  idxNext_ = sz % maxCapacity;
 }
 
 
