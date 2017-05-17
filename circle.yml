@@ -34,7 +34,6 @@ compile:
     
 test:
   override:
-    - ls -la $HOME/Library/Python/2.7/bin/
     - py.test bindings/py/tests
     # legacy binary tests.  Need to cd to build/release/bin to ensure test success; see Readme.md
     - cd build/release/bin && ./cpp_region_test
@@ -50,8 +49,6 @@ test:
     - cp build/artifacts/unit_tests_report.xml dist/
     - cp build/artifacts/unit_tests_report.xml $CIRCLE_ARTIFACTS/
     - cp dist/*.whl $CIRCLE_ARTIFACTS/
-    - ls dist
-    - ls -l $CIRCLE_ARTIFACTS/
 
 deployment:
  aws:
