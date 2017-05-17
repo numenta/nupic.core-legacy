@@ -11,36 +11,56 @@ machine:
     PATH: "$HOME/Library/Python/2.7/bin:$PATH"
     PYBIN: "$HOME/Library/Python/2.7/bin"
   pre:
-    - pip install --user --ignore-installed --upgrade --verbose virtualenv
+    - sudo pip install --ignore-installed --upgrade --verbose virtualenv
     # Link virtualenv to /usr/local/bin if it doesn't exist and always give exit status of 0.
-    - "([ ! -e /usr/local/bin/virtualenv ] && ln -s ~/Library/Python/2.7/bin/virtualenv /usr/local/bin/virtualenv) || true"
+    - "([ ! -e /usr/local/bin/virtualenv ] && ln -s ~/Library/Python/2.7/bin/virtualenv /usr/local/bin/virtualenv) || true" 
 
 dependencies:
   override:
-    # TODO: Use get-pip.py
-    #- curl --silent --show-error --retry 5 -O http://releases.numenta.org/pip/1ebd3cb7a5a3073058d0c9552ab074bd/get-pip.py
-    #- python get-pip.py --user --upgrade --ignore-installed pip setuptools wheel
-    - pip install --user --ignore-installed --upgrade pip setuptools wheel
-    # Still don't get the user-installed version of pip, but this seems manageable.
-    - pip --version
-    - pip install --use-wheel --user -r bindings/py/requirements.txt --quiet || exit
-    - pip install --user pycapnp==0.5.8
-    - pip install --user pytest
+    # Install all dependencies
+    - ./ci/circle/before_install-osx.sh
 
 compile:
   override:
+    # Remove the virtualenv before it can cause problems.  As of May 2017 the CircleCI virtualenv/path setup causes some tests to fail unnecessarily.
+    - rm -r ~/virtualenvs
     - mkdir -p build/scripts
-    - cd build/scripts && cmake ../.. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../release -DPY_EXTENSIONS_DIR=../../bindings/py/src/nupic/bindings
-    - cd build/scripts && make -j6
-    - cd build/scripts && make install
+    - cd build/scripts && cmake ../.. -DCMAKE_BUILD_TYPE=Release -DNTA_COV_ENABLED=ON -DCMAKE_INSTALL_PREFIX=../release -DPY_EXTENSIONS_DIR=../../bindings/py/src/nupic/bindings
+    - VERBOSE=1 cd build/scripts && set -o pipefail && make -j8 | grep -v -F '\\-\\- Installing:'
+    - VERBOSE=1 cd build/scripts && set -o pipefail && make install 2>&1 | grep -v -F 'Installing:'
     - python setup.py bdist_wheel
     - mkdir dist && mv bindings/py/dist/*.whl dist/
-    - pip install --use-wheel --user --find-links=`pwd`/dist/ nupic.bindings
+    - pip install --use-wheel --user --no-index --find-links=`pwd`/dist/ nupic.bindings
+    
 test:
   override:
-    - echo $PATH
-    - ls -la $HOME/Library/Python/2.7/bin/
     - py.test bindings/py/tests
+    # legacy binary tests.  Need to cd to build/release/bin to ensure test success; see Readme.md
+    - cd build/release/bin && ./cpp_region_test
+    - cd build/release/bin && ./py_region_test
+    - cd build/release/bin && ./helloregion
+    - cd build/release/bin && ./hello_sp_tp
+    - cd build/release/bin && ./prototest
+    # connections_performance_test disabled for build speed reasons (Takes over a minute to run)
+    # cd build/release/bin && ./connections_performance_test
+    # main unit tests
+    - build/release/bin/unit_tests --gtest_output=xml:build/artifacts/unit_tests_report.xml
   post:
-    - mv dist/*.whl $CIRCLE_ARTIFACTS/
-    - ls -l $CIRCLE_ARTIFACTS/
+    # We want to have the test report and wheel in both Circle_Artifacts as
+    # well as dist, for the sake of debugging
+    - cp build/artifacts/unit_tests_report.xml dist/
+    - cp build/artifacts/unit_tests_report.xml $CIRCLE_ARTIFACTS/
+    - cp dist/*.whl $CIRCLE_ARTIFACTS/
+
+deployment:
+ aws:
+  branch: master
+  commands:
+    - cp bindings/py/requirements.txt dist/
+    - mkdir -p dist/include/nupic
+    - mkdir release
+    - cp build/release/include/nupic/Version.hpp dist/include/nupic/
+    - tar -zcv -f release/nupic_core-${CIRCLE_SHA1}-darwin64.tar.gz dist
+    # awscli needs to be manually installed on Circle's OS X
+    - pip install awscli --user
+    - aws s3 cp release/nupic_core-${CIRCLE_SHA1}-darwin64.tar.gz s3://artifacts.numenta.org/numenta/nupic.core/circle/
