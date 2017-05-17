@@ -175,8 +175,12 @@ bool SlidingWindow<T>::operator!=(const SlidingWindow& r2) const {
 template<class T> 
 T& SlidingWindow<T>::operator[](nupic::UInt index) {
   NTA_ASSERT(index <= size());
-  return &buffer_[index];
+  //get last updated position, "current"+index(offset)
+  //avoid calling getLinearizeData() as it involves copy() 
+  nupic::UInt currentIdx = (idxNext_ -1 + maxCapacity + index) % maxCapacity;
+  return &buffer_[currentIdx];
 }
+
 
 template<class T>
 const T& SlidingWindow<T>::operator[](nupic::UInt index) const {
