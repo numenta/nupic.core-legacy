@@ -13,7 +13,8 @@ machine:
   pre:
     - sudo pip install --ignore-installed --upgrade --verbose virtualenv
     # Link virtualenv to /usr/local/bin if it doesn't exist and always give exit status of 0.
-    - "([ ! -e /usr/local/bin/virtualenv ] && ln -s ~/Library/Python/2.7/bin/virtualenv /usr/local/bin/virtualenv) || true" 
+    - "([ ! -e /usr/local/bin/virtualenv ] && ln -s ~/Library/Python/2.7/bin/virtualenv /usr/local/bin/virtualenv) || true"
+    - echo $OSTYPE
 
 dependencies:
   override:
