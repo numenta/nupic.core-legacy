@@ -57,11 +57,5 @@ deployment:
  aws:
   branch: master
   commands:
-    - cp bindings/py/requirements.txt dist/
-    - mkdir -p dist/include/nupic
-    - mkdir release
-    - cp build/release/include/nupic/Version.hpp dist/include/nupic/
-    - tar -zcv -f release/nupic_core-${CIRCLE_SHA1}-darwin64.tar.gz dist
-    # awscli needs to be manually installed on Circle's OS X
-    - pip install awscli --user
-    - aws s3 cp release/nupic_core-${CIRCLE_SHA1}-darwin64.tar.gz s3://artifacts.numenta.org/numenta/nupic.core/circle/
+    # Don't want to attempt to deploy on a fork, as it will fail the build.
+    - if [[$CIRCLE_REPOSITORY_URL == "https://github.com/numenta/nupic.core"]]; ci/circle/upload_s3-osx.sh; fi
