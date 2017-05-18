@@ -58,4 +58,4 @@ deployment:
   branch: DEVOPS-291-Integrate-Circle
   commands:
     # Don't want to attempt to deploy on a fork, as it will fail the build.
-    - if [[$CIRCLE_REPOSITORY_URL != "https://github.com/numenta/nupic.core"]]; ci/circle/upload_s3-osx.sh; fi
+    - if [[ "$CIRCLE_REPOSITORY_URL" != "https://github.com/numenta/nupic.core" ]]; then ci/circle/upload_s3-osx.sh; fi
