@@ -55,7 +55,7 @@ test:
 
 deployment:
  aws:
-  branch: DEVOPS-291-Integrate-Circle
+  branch: master
   commands:
-    # Don't want to attempt to deploy on a fork, as it will fail the build.
-    - if [[ "$CIRCLE_REPOSITORY_URL" != "https://github.com/numenta/nupic.core" ]]; then ci/circle/deploy_s3-osx.sh; fi
+    # Don't want to attempt to deploy on a fork's master, as it will fail the build.
+    - if [[ "$CIRCLE_REPOSITORY_URL" == "https://github.com/numenta/nupic.core" ]]; then ci/circle/deploy_s3-osx.sh; fi
