@@ -102,16 +102,13 @@ namespace nupic
          * @param active: array of active column indices
          * @param predicted: array of columns indices predicted in this step
          *        (used for anomaly in step T+1)
-         * @param inputValue: (optional) value of current input to encoders
-         *                    (eg "cat" for category encoder)
-         *                    (used in anomaly-likelihood)
          * @param timestamp: (optional) date timestamp when the sample occured
          *                   (used in anomaly-likelihood)
          * @return the computed anomaly score; Real32 0..1
          */
         Real32 compute(const std::vector<UInt>& active,
                        const std::vector<UInt>& predicted,
-                       Real64 inputValue=0, UInt timestamp=0);
+                       UInt timestamp=0);
 
 
       private:

@@ -79,23 +79,22 @@ Anomaly::Anomaly(UInt slidingWindowSize, AnomalyMode mode,
 
 
 Real32 Anomaly::compute(
-    const vector<UInt>& active, const vector<UInt>& predicted,
-    Real64 inputValue, UInt timestamp)
+    const vector<UInt>& active, const vector<UInt>& predicted, UInt timestamp)
 {
-  Real32 anomalyScore = computeRawAnomalyScore(active, predicted);
+  Real anomalyScore = computeRawAnomalyScore(active, predicted);
   Real likelihood = 0.5;
-  Real32 score = anomalyScore;
+  Real score = anomalyScore;
   switch(mode_)
   {
     case AnomalyMode::PURE:
       score = anomalyScore;
       break;
     case AnomalyMode::LIKELIHOOD:
-      likelihood = likelihood_.anomalyProbability((Real)anomalyScore, (int)timestamp);
+      likelihood = likelihood_.anomalyProbability(anomalyScore, (int)timestamp);
       score = 1 - likelihood;
       break;
     case AnomalyMode::WEIGHTED:
-      likelihood = likelihood_.anomalyProbability((Real)anomalyScore, (int)timestamp);
+      likelihood = likelihood_.anomalyProbability(anomalyScore, (int)timestamp);
       score = anomalyScore * (1 - likelihood);
       break;
   }
