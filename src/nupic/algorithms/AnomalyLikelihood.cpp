@@ -36,8 +36,8 @@ namespace nupic {
   namespace algorithms {
     namespace anomaly {
 
-      Real compute_mean(vector<Real> v); //forward declaration
-      Real compute_var(vector<Real> v, Real mean); 
+      Real compute_mean(const vector<Real>& v); //forward declaration
+      Real compute_var(const vector<Real>& v, Real mean); 
    static std::vector<Real> circularBufferToVector(boost::circular_buffer<Real> cb); //TODO replace with SlidingWindow
    static UInt calcSkipRecords_(UInt numIngested, UInt windowSize, UInt learningPeriod);
 
@@ -148,7 +148,7 @@ Real AnomalyLikelihood::tailProbability_(Real x) const {
   if (x < distribution_.mean) {
     // Gaussian is symmetrical around mean, so flip to get the tail probability
     Real xp = 2 * distribution_.mean - x;
-    NTA_CHECK(xp != x);
+    NTA_ASSERT(xp != x);
     return tailProbability_(xp);
   }
 
@@ -159,7 +159,7 @@ Real AnomalyLikelihood::tailProbability_(Real x) const {
   }
 
 
-DistributionParams AnomalyLikelihood::estimateNormal_(vector<Real> anomalyScores, bool performLowerBoundCheck) {
+DistributionParams AnomalyLikelihood::estimateNormal_(const vector<Real>& anomalyScores, bool performLowerBoundCheck) {
     auto mean = compute_mean(anomalyScores);
     auto var = compute_var(anomalyScores, mean);
   DistributionParams params = DistributionParams("normal", mean, var, 0.0); 
@@ -196,7 +196,7 @@ DistributionParams AnomalyLikelihood::estimateNormal_(vector<Real> anomalyScores
 
   :returns: A new list of floats likelihoods containing the filtered values.
   **/
-static vector<Real> filterLikelihoods_(vector<Real> likelihoods, Real redThreshold=0.99999, Real yellowThreshold=0.999){ //TODO make the redThreshold params of AnomalyLikelihood constructor() 
+static vector<Real> filterLikelihoods_(const vector<Real>& likelihoods, Real redThreshold=0.99999, Real yellowThreshold=0.999){ //TODO make the redThreshold params of AnomalyLikelihood constructor() 
   redThreshold    = 1.0 - redThreshold;  //TODO maybe we could use the true meaning already in the parameters
   yellowThreshold = 1.0 - yellowThreshold;
 
@@ -220,7 +220,7 @@ static vector<Real> filterLikelihoods_(vector<Real> likelihoods, Real redThresho
 }
 
 
-vector<Real>  AnomalyLikelihood::updateAnomalyLikelihoods_(vector<Real> anomalyScores, UInt verbosity) { 
+vector<Real>  AnomalyLikelihood::updateAnomalyLikelihoods_(const vector<Real>& anomalyScores, UInt verbosity) { 
   if (verbosity > 3) {
     cout << "In updateAnomalyLikelihoods."<< endl;
     cout << "Number of anomaly scores: "<<  anomalyScores.size() << endl;
@@ -258,7 +258,7 @@ vector<Real>  AnomalyLikelihood::updateAnomalyLikelihoods_(vector<Real> anomalyS
 }
 
 
-vector<Real> AnomalyLikelihood::estimateAnomalyLikelihoods_(vector<Real> anomalyScores, UInt skipRecords, UInt verbosity) { //FIXME averagingWindow not used, I guess it's not a sliding window, but aggregating window (discrete steps)!
+vector<Real> AnomalyLikelihood::estimateAnomalyLikelihoods_(const vector<Real>& anomalyScores, UInt skipRecords, UInt verbosity) { //FIXME averagingWindow not used, I guess it's not a sliding window, but aggregating window (discrete steps)!
   if (verbosity > 1) {
     cout << "In estimateAnomalyLikelihoods_."<<endl;
     cout << "Number of anomaly scores:" <<  anomalyScores.size() << endl;
@@ -301,15 +301,15 @@ vector<Real> AnomalyLikelihood::estimateAnomalyLikelihoods_(vector<Real> anomaly
 
 
 /// HELPER methods (only used internaly in this cpp file)
-Real compute_mean(vector<Real> v)  { //TODO do we have a (more comp. stable) implementation of mean/variance?
-  NTA_CHECK(v.size() > 0); //avoid division by zero! 
+Real compute_mean(const vector<Real>& v)  { //TODO do we have a (more comp. stable) implementation of mean/variance?
+  NTA_ASSERT(v.size() > 0); //avoid division by zero! 
     Real sum = std::accumulate(v.begin(), v.end(), 0.0);
     return sum / v.size();
 }
 
 
-Real compute_var(vector<Real> v, Real mean)  {
-  NTA_CHECK(v.size() > 0); //avoid division by zero!
+Real compute_var(const vector<Real>& v, Real mean)  {
+  NTA_ASSERT(v.size() > 0); //avoid division by zero!
     Real sq_sum = std::inner_product(v.begin(), v.end(), v.begin(), 0.0);
     return (sq_sum / v.size()) - (mean * mean);
 }

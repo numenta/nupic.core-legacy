@@ -179,7 +179,7 @@ class AnomalyLikelihood {
 
   :returns: vector of lilelihoods: , one for each aggregated point
   **/
-    vector<Real> estimateAnomalyLikelihoods_(vector<Real> anomalyScores, UInt skipRecords=0, UInt verbosity=0);
+    vector<Real> estimateAnomalyLikelihoods_(const vector<Real>& anomalyScores, UInt skipRecords=0, UInt verbosity=0);
 
 
   /**
@@ -189,7 +189,7 @@ class AnomalyLikelihood {
   :type verbosity: UInt
   :returns: a vector of likelihoods, one for each aggregated point
   **/
-    vector<Real>  updateAnomalyLikelihoods_(vector<Real> anomalyScores, UInt verbosity=0);
+    vector<Real>  updateAnomalyLikelihoods_(const vector<Real>& anomalyScores, UInt verbosity=0);
 
 
  /**
@@ -209,7 +209,7 @@ class AnomalyLikelihood {
   :returns: A DistributionParams (struct) containing the parameters of a normal distribution based on
       the ``anomalyScores``.
   **/
-    DistributionParams estimateNormal_(vector<Real> anomalyScores, bool performLowerBoundCheck=true);
+    DistributionParams estimateNormal_(const vector<Real>& anomalyScores, bool performLowerBoundCheck=true);
 
 
     //private variables
