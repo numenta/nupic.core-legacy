@@ -121,6 +121,19 @@ class AnomalyLikelihood {
     **/
     Real anomalyProbability(Real anomalyScore, int timestamp=-1);
 
+  static Real  computeLogLikelihood(Real likelihood)  { //public - for visualizations, debug,...
+  /**
+    Compute a log scale representation of the likelihood value. Since the
+    likelihood computations return low probabilities that often go into four 9's
+    or five 9's, a log value is more useful for visualization, thresholding,
+    etc.
+   **/
+    // The log formula is:
+    //     Math.log(1.0000000001 - likelihood) / Math.log(1.0 - 0.9999999999)
+    return log(1.0000000001f - likelihood) / -23.02585084720009f;
+  }
+
+
   //public constants:
   /** "neutral" anomalous value; 
     * returned at the beginning until the system is burned-in; 
@@ -194,19 +207,6 @@ class AnomalyLikelihood {
   /** returns parameters of a Null distribution **/
     DistributionParams nullDistribution() const { //TODO remove
     return DistributionParams("normal", 0.5, 1e6, 1e3);
-}
-
-    //private static methods
-static Real  computeLogLikelihood(Real likelihood)  {
-  /**
-    Compute a log scale representation of the likelihood value. Since the
-    likelihood computations return low probabilities that often go into four 9's
-    or five 9's, a log value is more useful for visualization, thresholding,
-    etc.
-   **/
-    // The log formula is:
-    //     Math.log(1.0000000001 - likelihood) / Math.log(1.0 - 0.9999999999)
-    return log(1.0000000001f - likelihood) / -23.02585084720009f;
 }
 
 
