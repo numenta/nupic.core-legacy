@@ -29,6 +29,7 @@
 
 #include <nupic/types/Types.hpp>
 #include <nupic/utils/Log.hpp>
+#include <nupic/math/Math.hpp> //for macro ASSERT_INPUT_ITERATOR
 
 namespace nupic {
   namespace util {
@@ -37,10 +38,11 @@ namespace nupic {
     class SlidingWindow {
       public:
         SlidingWindow(UInt maxCapacity);
-        template<class IteratorT> //TODO is there a way to enforce IteratorT is actually a subclass of std::iterator?
+        template<class IteratorT> 
         SlidingWindow(UInt maxCapacity, IteratorT initialData_begin, IteratorT initialData_end): 
           SlidingWindow(maxCapacity) {
-  //TODO if there is huge data and small window, we wastefully loop through all data
+  // Assert that It obeys the STL forward iterator concept
+  ASSERT_INPUT_ITERATOR(IteratorT);
   for(IteratorT it = initialData_begin; it != initialData_end; ++it) {
     append(*it);
   }
