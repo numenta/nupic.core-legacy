@@ -39,6 +39,7 @@ namespace nupic {
       Real compute_mean(vector<Real> v); //forward declaration
       Real compute_var(vector<Real> v, Real mean); 
    static std::vector<Real> circularBufferToVector(boost::circular_buffer<Real> cb); //TODO replace with SlidingWindow
+   static UInt calcSkipRecords_(UInt numIngested, UInt windowSize, UInt learningPeriod);
 
 
 AnomalyLikelihood::AnomalyLikelihood(UInt learningPeriod, UInt estimationSamples, UInt historicWindowSize, UInt reestimationPeriod, UInt aggregationWindow) :
@@ -294,6 +295,7 @@ Real compute_mean(vector<Real> v)  { //TODO do we have a (more comp. stable) imp
     return sum / v.size();
 }
 
+
 Real compute_var(vector<Real> v, Real mean)  {
   NTA_CHECK(v.size() > 0); //avoid division by zero!
     Real sq_sum = std::inner_product(v.begin(), v.end(), v.begin(), 0.0);
@@ -310,6 +312,28 @@ static std::vector<Real> circularBufferToVector(boost::circular_buffer<Real> cb)
 
   NTA_ASSERT(data.size() == cb.size() && data.front() == cb.front() && data.back() == cb.back() );
   return data;
+}
+
+
+static UInt calcSkipRecords_(UInt numIngested, UInt windowSize, UInt learningPeriod)  {
+    /** Return the value of skipRecords for passing to estimateAnomalyLikelihoods
+
+    If `windowSize` is very large (bigger than the amount of data) then this
+    could just return `learningPeriod`. But when some values have fallen out of
+    the historical sliding window of anomaly records, then we have to take those
+    into account as well so we return the `learningPeriod` minus the number
+    shifted out.
+
+    @param numIngested - (int) number of data points that have been added to the
+      sliding window of historical data points.
+    @param windowSize - (int) size of sliding window of historical data points.
+    @param learningPeriod - (int) the number of iterations required for the
+      algorithm to learn the basic patterns in the dataset and for the anomaly
+      score to 'settle down'.
+    **/
+    int diff = numIngested - (int)windowSize;
+    UInt numShiftedOut = max(0, diff);
+    return min(numIngested, max((UInt)0, learningPeriod - numShiftedOut));
 }
 
 
