@@ -121,13 +121,14 @@ class AnomalyLikelihood {
     **/
     Real anomalyProbability(Real anomalyScore, int timestamp=-1);
 
-  static Real  computeLogLikelihood(Real likelihood)  { //public - for visualizations, debug,...
+
   /**
     Compute a log scale representation of the likelihood value. Since the
     likelihood computations return low probabilities that often go into four 9's
     or five 9's, a log value is more useful for visualization, thresholding,
     etc.
    **/
+  static Real  computeLogLikelihood(Real likelihood)  { //public - for visualizations, debug,...
     // The log formula is:
     //     Math.log(1.0000000001 - likelihood) / Math.log(1.0 - 0.9999999999)
     return log(1.0000000001f - likelihood) / -23.02585084720009f;
@@ -140,6 +141,7 @@ class AnomalyLikelihood {
     * 0.5 (from <0..1>) means "neither anomalous, neither expected"
     */
     const Real DEFAULT_ANOMALY = 0.5; 
+
     /**
      * minimal thresholds of standard distribution, if values get lower (rounding err, constant values)
      * we round to these minimal defaults
@@ -179,17 +181,17 @@ class AnomalyLikelihood {
   **/
     vector<Real> estimateAnomalyLikelihoods_(vector<Real> anomalyScores, UInt skipRecords=0, UInt verbosity=0);
 
+
   /**
   Compute updated probabilities for anomalyScores using the given params.
-
   :param anomalyScores: a list of records. Each record is a list with the
-
   :param verbosity: integer controlling extent of printouts for debugging
   :type verbosity: UInt
-
   :returns: a vector of likelihoods, one for each aggregated point
   **/
     vector<Real>  updateAnomalyLikelihoods_(vector<Real> anomalyScores, UInt verbosity=0);
+
+
  /**
   Given the normal distribution specified by the mean and standard deviation
   in distributionParams (the distribution is an instance member of the class), 
@@ -199,6 +201,8 @@ class AnomalyLikelihood {
   samples < x. This is the Q-function: the tail probability of the normal distribution.
   **/
     Real tailProbability_(Real x) const;
+
+
   /**
   :param sampleData:
   :type sampleData: vector array //TODO of what? likelihoods? rawScores? ....?
