@@ -71,25 +71,25 @@ Real AnomalyLikelihood::anomalyProbability(Real anomalyScore, int timestamp) {  
     if(initialTimestamp_ == -1) { // (re)set first,initial timestamp
       initialTimestamp_ = timestamp;
     }
+    //if timestamp is not used (-1), this is iteration_
     UInt timeElapsed = (UInt)(timestamp - initialTimestamp_);  //this will be used, relative time since first timestamp (the "first" can be reseted)
-cout <<"Elapsed "<<timeElapsed<<endl;
 
     // store into relevant variables
-    this->runningRawAnomalyScores_.push_back(anomalyScore); 
-    auto newAvg = this->averagedAnomaly_.compute(anomalyScore); 
+    this->runningRawAnomalyScores_.push_back(anomalyScore);
+    auto newAvg = this->averagedAnomaly_.compute(anomalyScore);
     this->runningAverageAnomalies_.push_back(newAvg);
     this->iteration_++;
-    this->runningLikelihoods_.push_back(likelihood);//FIXME always pushes 0.5 !
-    
+ 
     // We ignore the first probationaryPeriod data points - as we cannot reliably compute distribution statistics for estimating likelihood
     if (timeElapsed < this->probationaryPeriod) {
+      this->runningLikelihoods_.push_back(likelihood); //after that, pushed below with real likelihood; here just 0.5
       return DEFAULT_ANOMALY;
     } //else {
 
     auto anomalies = circularBufferToVector(this->runningAverageAnomalies_); 
     
       // On a rolling basis we re-estimate the distribution
-      if ( timeElapsed == 0 || (timeElapsed >= initialTimestamp_ + reestimationPeriod)   || distribution_.name == "unknown" ) {
+      if ((timeElapsed >= initialTimestamp_ + reestimationPeriod)   || distribution_.name == "unknown" ) {
 
         auto numSkipRecords = calcSkipRecords_(this->iteration_, this->runningAverageAnomalies_.capacity(), this->learningPeriod); //FIXME this erase (numSkipRecords) is a problem when we use sliding window (as opposed to vector)! - should we skip only once on beginning, or on each call of this fn?
         estimateAnomalyLikelihoods_(anomalies, numSkipRecords);  // called to update this->distribution_; 
@@ -101,6 +101,8 @@ cout <<"Elapsed "<<timeElapsed<<endl;
       NTA_CHECK(likelihoods.size() > 0); 
       likelihood = 1.0 - likelihoods[0]; 
       NTA_CHECK(likelihood >= 0.0 && likelihood <= 1.0);
+
+    this->runningLikelihoods_.push_back(likelihood);
 
     return likelihood;
     }
