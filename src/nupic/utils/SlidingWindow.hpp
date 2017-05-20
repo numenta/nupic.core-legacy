@@ -32,6 +32,9 @@
 #include <nupic/types/Types.hpp>
 #include <nupic/utils/Log.hpp>
 #include <nupic/math/Math.hpp> //for macro ASSERT_INPUT_ITERATOR
+#include <nupic/utils/VectorHelpers.hpp> //printVector
+
+using nupic::utils::VectorHelpers;
 
 namespace nupic {
   namespace util {
@@ -172,7 +175,10 @@ class SlidingWindow {
 
 
       std::ostream& operator<<(std::ostream& os) {
-        return os << ID << std::endl;
+        os << ID;
+        if(DEBUG>0) os << "["<<VectorHelpers::printVector(buffer_) <<"]";
+        os << std::endl;
+        return os;
       }
 
 

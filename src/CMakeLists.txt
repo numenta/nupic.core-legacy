@@ -383,6 +383,7 @@ set(src_nupiccore_srcs
     nupic/utils/StringUtils.cpp
     nupic/utils/SlidingWindow.hpp
     nupic/utils/TRandom.cpp
+    nupic/utils/VectorHelpers.hpp
     nupic/utils/Watcher.cpp)
 
 set(src_lib_static_nupiccore_srcs
