@@ -27,6 +27,7 @@
 #include <algorithm>
 #include <iterator>
 #include <cmath>
+#include <string>
 
 #include <nupic/types/Types.hpp>
 #include <nupic/utils/Log.hpp>
@@ -38,24 +39,29 @@ namespace nupic {
 template<class T> 
 class SlidingWindow {
   public:
-    SlidingWindow(UInt maxCapacity) : maxCapacity(maxCapacity) {
+    SlidingWindow(UInt maxCapacity, std::string id="SlidingWindow") : 
+      maxCapacity(maxCapacity),
+      ID(id)
+{
       buffer_.reserve(maxCapacity);
       idxNext_ = 0;
-  } 
+} 
 
 
     template<class IteratorT> 
-    SlidingWindow(UInt maxCapacity, IteratorT initialData_begin, IteratorT initialData_end): 
-      SlidingWindow(maxCapacity) {
+    SlidingWindow(UInt maxCapacity, IteratorT initialData_begin, 
+      IteratorT initialData_end, std::string id="SlidingWindow"): 
+      SlidingWindow(maxCapacity, id) {
       // Assert that It obeys the STL forward iterator concept
       ASSERT_INPUT_ITERATOR(IteratorT);
       for(IteratorT it = initialData_begin; it != initialData_end; ++it) {
         append(*it);
       }
-      idxNext_ = buffer_.size() % maxCapacity;
+      idxNext_ = buffer_.size() % maxCapacity; //TODO remove, not needed
     }
 
     const UInt maxCapacity;
+    const std::string ID; //name of this object
 
     size_t size() const {
       NTA_ASSERT(buffer_.size() <= maxCapacity);
@@ -161,6 +167,12 @@ class SlidingWindow {
       const T& operator[](UInt index) const {
         return this->operator[](index); //call the overloaded operator[] above
       }
+
+
+      std::ostream& operator<<(std::ostream& os) {
+        return os << ID << std::endl;
+      }
+
 
 
       private:
