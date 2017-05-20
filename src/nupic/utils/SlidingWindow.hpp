@@ -125,7 +125,7 @@ void SlidingWindow<T>::append(T newValue) {
   }
   //the assignment must be out of the [] above, so not [idxNext_++%maxCap],
   // because we want to store the value %maxCap, not only ++
-  idxNext_ = ++idxNext_ %maxCapacity;
+  idxNext_ = (idxNext_ +1 ) %maxCapacity;
 }
 
 
