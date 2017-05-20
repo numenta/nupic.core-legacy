@@ -53,11 +53,10 @@ MovingAverage::MovingAverage(const SlidingWindow<Real>& internalSlidingWindow) :
 
 Real MovingAverage::compute(Real newVal)
 {
-
-  bool hasReturnedValue = false;
-  Real popped = slidingWindow_.append(newVal, hasReturnedValue);
-  if(hasReturnedValue) {
-    total_ -= popped;
+  Real droppedVal = 0.0;
+  bool hasDropped = slidingWindow_.append(newVal, droppedVal);
+  if(hasDropped) {
+    total_ -= droppedVal;
   }
   total_ += newVal;
   return getCurrentAvg();

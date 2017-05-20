@@ -55,17 +55,14 @@ namespace nupic {
         */
         void append(T newValue);
 
-        /** like append, but return the dropped value. isValid indicates 
-            if the return value is valid (not while size()< maxCapacity)
+        /** like append, but return the dropped value if it was dropped.
           :param T newValue - new value to append to the sliding window
-          :param bool isValid - a return pass-by-value that indicates validity
-             of the return T value. for first maxCapacity items it is false, 
-             later always true.
-          :return T dropped value (past oldest element) if isValid; 
-             if not valid, this field holds the oldest value 
-             (but still contained in the window!)
+          :param T& - a return pass-by-value with the removed element,
+             if this function returns false, this value will remain unchanged.
+          :return bool if some value has been dropped (and updated as 
+       droppedValue) 
         */
-        T append(T newValue, bool& isValid);
+        bool append(T newValue, T& droppedValue);
 
         /**
         * :return unordered content (data ) of this sl. window; 
@@ -130,20 +127,21 @@ void SlidingWindow<T>::append(T newValue) {
 
 
 template<class T>
-T SlidingWindow<T>::append(T newValue, bool& isValid) {
-  //handle case of empty buffer (access buff[0]), otherwise return oldest elem
-  T old = buffer_.empty() ? newValue : buffer_[idxNext_]; 
+bool SlidingWindow<T>::append(T newValue, T& droppedValue) {
   //only in this case we drop oldest; this happens always after 
   //first maxCap steps ; must be checked before append()
-  isValid = (buffer_.size()==maxCapacity); 
+  bool isFull = (buffer_.size()==maxCapacity); 
+  if(isFull) { 
+    droppedValue = buffer_[idxNext_]; 
+  }
   append(newValue);
-  return old; 
+  return isFull;
 }
 
 
 template<class T>
 const std::vector<T>& SlidingWindow<T>::getData() const {
-  return buffer_; //may contain trailing "zeros"
+  return buffer_; 
 }
 
 
