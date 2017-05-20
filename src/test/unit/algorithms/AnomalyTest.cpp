@@ -164,7 +164,7 @@ TEST(AnomalyLikelihood, SelectModeLikelihood)
 
   for(int i=0; i< 388; i++) {
      likelihood = a.compute(active, predicted,  ++ts);
-     ASSERT_FLOAT_EQ(likelihood, 0.5); //first (<=388) rounds likelihood=0.5
+     ASSERT_FLOAT_EQ(likelihood, 0.5); //first (<=388) probationaryPeriod rounds likelihood=0.5
   }
 
   //real likelihood returned here

@@ -147,6 +147,10 @@ class AnomalyLikelihood {
     const Real THRESHOLD_MEAN = 0.03;
     const Real THRESHOLD_VARIANCE = 0.0003; 
 
+    const UInt learningPeriod; //these 3 are from constructor
+    const UInt reestimationPeriod;
+    const UInt probationaryPeriod;
+
   private:
     //methods:
 
@@ -206,11 +210,7 @@ class AnomalyLikelihood {
     DistributionParams estimateNormal_(vector<Real> sampleData, bool performLowerBoundCheck=true);
 
 
-    // variables
-    const UInt learningPeriod_; //these 3 are from constructor
-    const UInt reestimationPeriod_;
-    const UInt probationaryPeriod_;
-
+    //private variables
     DistributionParams distribution_ ={ "unknown", 0.0, 0.0, 0.0}; //distribution passed around the class
 
     UInt iteration_; 

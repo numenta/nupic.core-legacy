@@ -43,9 +43,9 @@ namespace nupic {
 
 
 AnomalyLikelihood::AnomalyLikelihood(UInt learningPeriod, UInt estimationSamples, UInt historicWindowSize, UInt reestimationPeriod, UInt aggregationWindow) :
-    learningPeriod_(learningPeriod),
-    reestimationPeriod_(reestimationPeriod),
-    probationaryPeriod_(learningPeriod_+estimationSamples),
+    learningPeriod(learningPeriod),
+    reestimationPeriod(reestimationPeriod),
+    probationaryPeriod(learningPeriod+estimationSamples),
     averagedAnomaly_(aggregationWindow) {
         iteration_ = 0;
         NTA_CHECK(historicWindowSize >= estimationSamples); // cerr << "estimationSamples exceeds historicWindowSize";
@@ -82,18 +82,18 @@ cout <<"Elapsed "<<timeElapsed<<endl;
     this->runningLikelihoods_.push_back(likelihood);//FIXME always pushes 0.5 !
     
     // We ignore the first probationaryPeriod data points - as we cannot reliably compute distribution statistics for estimating likelihood
-    if (timeElapsed < this->probationaryPeriod_) {
+    if (timeElapsed < this->probationaryPeriod) {
       return DEFAULT_ANOMALY;
     } //else {
 
     auto anomalies = circularBufferToVector(this->runningAverageAnomalies_); 
     
       // On a rolling basis we re-estimate the distribution
-      if ( timeElapsed == 0 || (timeElapsed >= initialTimestamp_ + reestimationPeriod_)   || distribution_.name == "unknown" ) {
+      if ( timeElapsed == 0 || (timeElapsed >= initialTimestamp_ + reestimationPeriod)   || distribution_.name == "unknown" ) {
 
-        auto numSkipRecords = calcSkipRecords_(this->iteration_, this->runningAverageAnomalies_.capacity(), this->learningPeriod_); //FIXME this erase (numSkipRecords) is a problem when we use sliding window (as opposed to vector)! - should we skip only once on beginning, or on each call of this fn?
+        auto numSkipRecords = calcSkipRecords_(this->iteration_, this->runningAverageAnomalies_.capacity(), this->learningPeriod); //FIXME this erase (numSkipRecords) is a problem when we use sliding window (as opposed to vector)! - should we skip only once on beginning, or on each call of this fn?
         estimateAnomalyLikelihoods_(anomalies, numSkipRecords);  // called to update this->distribution_; 
-        if  (timeElapsed >= initialTimestamp_ + reestimationPeriod_)  { initialTimestamp_ = -1; } //reset init T
+        if  (timeElapsed >= initialTimestamp_ + reestimationPeriod)  { initialTimestamp_ = -1; } //reset init T
       }
     
     auto likelihoods = updateAnomalyLikelihoods_(anomalies);
