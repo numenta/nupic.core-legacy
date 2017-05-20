@@ -39,9 +39,10 @@ namespace nupic {
 template<class T> 
 class SlidingWindow {
   public:
-    SlidingWindow(UInt maxCapacity, std::string id="SlidingWindow") : 
+    SlidingWindow(UInt maxCapacity, std::string id="SlidingWindow", int debug=0) : 
       maxCapacity(maxCapacity),
-      ID(id)
+      ID(id),
+      DEBUG(debug)
 {
       buffer_.reserve(maxCapacity);
       idxNext_ = 0;
@@ -50,8 +51,8 @@ class SlidingWindow {
 
     template<class IteratorT> 
     SlidingWindow(UInt maxCapacity, IteratorT initialData_begin, 
-      IteratorT initialData_end, std::string id="SlidingWindow"): 
-      SlidingWindow(maxCapacity, id) {
+      IteratorT initialData_end, std::string id="SlidingWindow", int debug=0): 
+      SlidingWindow(maxCapacity, id, debug) {
       // Assert that It obeys the STL forward iterator concept
       ASSERT_INPUT_ITERATOR(IteratorT);
       for(IteratorT it = initialData_begin; it != initialData_end; ++it) {
@@ -62,6 +63,7 @@ class SlidingWindow {
 
     const UInt maxCapacity;
     const std::string ID; //name of this object
+    const int DEBUG;
 
     size_t size() const {
       NTA_ASSERT(buffer_.size() <= maxCapacity);
