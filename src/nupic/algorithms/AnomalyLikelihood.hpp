@@ -160,7 +160,7 @@ class AnomalyLikelihood {
 
   :returns: vector of lilelihoods: , one for each aggregated point
   **/
-    vector<Real> estimateAnomalyLikelihoods(vector<Real> anomalyScores, UInt skipRecords=0, UInt verbosity=0);
+    vector<Real> estimateAnomalyLikelihoods_(vector<Real> anomalyScores, UInt skipRecords=0, UInt verbosity=0);
 
   /**
   Compute updated probabilities for anomalyScores using the given params.
@@ -172,7 +172,7 @@ class AnomalyLikelihood {
 
   :returns: a vector of likelihoods, one for each aggregated point
   **/
-    vector<Real>  updateAnomalyLikelihoods(vector<Real> anomalyScores, UInt verbosity=0);
+    vector<Real>  updateAnomalyLikelihoods_(vector<Real> anomalyScores, UInt verbosity=0);
  /**
   Given the normal distribution specified by the mean and standard deviation
   in distributionParams (the distribution is an instance member of the class), 
@@ -181,7 +181,7 @@ class AnomalyLikelihood {
   samples > x and for values below the mean, the probability of getting
   samples < x. This is the Q-function: the tail probability of the normal distribution.
   **/
-    Real32 tailProbability(Real32 x) const;
+    Real32 tailProbability_(Real32 x) const;
   /**
   :param sampleData:
   :type sampleData: vector array //TODO of what? likelihoods? rawScores? ....?
@@ -190,9 +190,9 @@ class AnomalyLikelihood {
   :returns: A DistributionParams (struct) containing the parameters of a normal distribution based on
       the ``sampleData``.
   **/
-    DistributionParams estimateNormal(vector<Real> sampleData, bool performLowerBoundCheck=true);
+    DistributionParams estimateNormal_(vector<Real> sampleData, bool performLowerBoundCheck=true);
   /** returns parameters of a Null distribution **/
-    DistributionParams nullDistribution() const {
+    DistributionParams nullDistribution() const { //TODO remove
     return DistributionParams("normal", 0.5, 1e6, 1e3);
 }
 
@@ -244,16 +244,16 @@ static std::vector<Real> circularBufferToVector(boost::circular_buffer<Real> cb)
 
 
     // variables
-    UInt learningPeriod = 288;
-    UInt reestimationPeriod = 100;
+    const UInt learningPeriod_ = 288;
+    const UInt reestimationPeriod_ = 100;
 
-    DistributionParams distribution ={ "unknown", 0.0, 0.0, 0.0};
-    UInt probationaryPeriod;
-    UInt iteration;
-    nupic::util::MovingAverage averagedAnomaly; // running average of anomaly scores
-    boost::circular_buffer<Real> runningLikelihoods; // sliding window of the likelihoods
-    boost::circular_buffer<Real> runningRawAnomalyScores;
-    boost::circular_buffer<Real> runningAverageAnomalies; //sliding window of running averages of anomaly scores
+    DistributionParams distribution_ ={ "unknown", 0.0, 0.0, 0.0};
+    const UInt probationaryPeriod_;
+    UInt iteration_;
+    nupic::util::MovingAverage averagedAnomaly_; // running average of anomaly scores
+    boost::circular_buffer<Real> runningLikelihoods_; // sliding window of the likelihoods
+    boost::circular_buffer<Real> runningRawAnomalyScores_;
+    boost::circular_buffer<Real> runningAverageAnomalies_; //sliding window of running averages of anomaly scores
 
 };
 

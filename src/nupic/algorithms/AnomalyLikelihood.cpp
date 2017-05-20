@@ -40,18 +40,18 @@ namespace nupic {
       Real compute_var(vector<Real> v, Real mean); 
 
 AnomalyLikelihood::AnomalyLikelihood(UInt learningPeriod, UInt estimationSamples, UInt historicWindowSize, UInt reestimationPeriod, UInt aggregationWindow) :
-    learningPeriod(learningPeriod),
-    reestimationPeriod(reestimationPeriod),
-    averagedAnomaly(aggregationWindow) {
-        iteration = 0;
-        probationaryPeriod = learningPeriod+estimationSamples;
+    learningPeriod_(learningPeriod),
+    reestimationPeriod_(reestimationPeriod),
+    probationaryPeriod_(learningPeriod_+estimationSamples),
+    averagedAnomaly_(aggregationWindow) {
+        iteration_ = 0;
         NTA_CHECK(historicWindowSize >= estimationSamples); // cerr << "estimationSamples exceeds historicWindowSize";
         NTA_CHECK(aggregationWindow < reestimationPeriod && reestimationPeriod < historicWindowSize);
         
-        runningAverageAnomalies.set_capacity(historicWindowSize); 
-        runningLikelihoods.set_capacity(historicWindowSize);
-        runningRawAnomalyScores.set_capacity(historicWindowSize);
-        NTA_CHECK(runningLikelihoods.capacity() == historicWindowSize);
+        runningAverageAnomalies_.set_capacity(historicWindowSize); 
+        runningLikelihoods_.set_capacity(historicWindowSize);
+        runningRawAnomalyScores_.set_capacity(historicWindowSize);
+        NTA_CHECK(runningLikelihoods_.capacity() == historicWindowSize);
     }
 
     
@@ -59,31 +59,31 @@ Real AnomalyLikelihood::anomalyProbability(Real anomalyScore, int timestamp) {  
     Real likelihood = DEFAULT_ANOMALY;
 
     if (timestamp == -1) {
-      timestamp = this->iteration;
+      timestamp = this->iteration_;
     }
 
     // store into relevant variables
-    this->runningRawAnomalyScores.push_back(anomalyScore); 
-    auto newAvg = this->averagedAnomaly.compute(anomalyScore); 
-    this->runningAverageAnomalies.push_back(newAvg);
-    this->iteration++;
-    this->runningLikelihoods.push_back(likelihood);
+    this->runningRawAnomalyScores_.push_back(anomalyScore); 
+    auto newAvg = this->averagedAnomaly_.compute(anomalyScore); 
+    this->runningAverageAnomalies_.push_back(newAvg);
+    this->iteration_++;
+    this->runningLikelihoods_.push_back(likelihood);
     
     // We ignore the first probationaryPeriod data points - as we cannot reliably compute distribution statistics for estimating likelihood
-    if (this->iteration < this->probationaryPeriod) {
+    if (this->iteration_ < this->probationaryPeriod_) {
       return DEFAULT_ANOMALY;
     } //else {
 
-    auto anomalies = circularBufferToVector(this->runningAverageAnomalies); 
+    auto anomalies = circularBufferToVector(this->runningAverageAnomalies_); 
     
       // On a rolling basis we re-estimate the distribution
-      if ( this->iteration == 0 || (this->iteration % this->reestimationPeriod) == 0  || this->distribution.name == "unknown" ) {
+      if ( this->iteration_ == 0 || (this->iteration_ % reestimationPeriod_) == 0  || distribution_.name == "unknown" ) {
 
-        auto numSkipRecords = calcSkipRecords_(this->iteration, this->runningAverageAnomalies.capacity(), this->learningPeriod); //FIXME this erase (numSkipRecords) is a problem when we use sliding window (as opposed to vector)! - should we skip only once on beginning, or on each call of this fn?
-        estimateAnomalyLikelihoods(anomalies, numSkipRecords);  // called to update this->distribution;  
+        auto numSkipRecords = calcSkipRecords_(this->iteration_, this->runningAverageAnomalies_.capacity(), this->learningPeriod_); //FIXME this erase (numSkipRecords) is a problem when we use sliding window (as opposed to vector)! - should we skip only once on beginning, or on each call of this fn?
+        estimateAnomalyLikelihoods_(anomalies, numSkipRecords);  // called to update this->distribution_;  
       }
     
-    auto likelihoods = updateAnomalyLikelihoods(anomalies);
+    auto likelihoods = updateAnomalyLikelihoods_(anomalies);
 
       NTA_CHECK(likelihoods.size() > 0); 
       likelihood = 1.0 - likelihoods[0]; 
@@ -100,14 +100,14 @@ Real AnomalyLikelihood::anomalyProbability(Real anomalyScore, int timestamp) {  
 #
 # There are two primary interface routines:
 #
-# estimateAnomalyLikelihoods: batch routine, called initially and once in a
+# estimateAnomalyLikelihoods_: batch routine, called initially and once in a
 #                                while
 # updateAnomalyLikelihoods: online routine, called for every new data point
 #
 # 1. Initially::
 #
 #    likelihoods, avgRecordList, estimatorParams = \
-# estimateAnomalyLikelihoods(metric_data)
+# estimateAnomalyLikelihoods_(metric_data)
 #
 # 2. Whenever you get new data::
 #
@@ -123,28 +123,28 @@ Real AnomalyLikelihood::anomalyProbability(Real anomalyScore, int timestamp) {  
 # 4. Every once in a while update estimator with a lot of recent data::
 #
 #    likelihoods, avgRecordList, estimatorParams = \
-# estimateAnomalyLikelihoods(lots_of_metric_data)
+# estimateAnomalyLikelihoods_(lots_of_metric_data)
 #
 **/
 
-Real32 AnomalyLikelihood::tailProbability(Real32 x) const {
-     NTA_CHECK(distribution.name != "unknown" && distribution.stdev > 0);
+Real32 AnomalyLikelihood::tailProbability_(Real32 x) const {
+     NTA_CHECK(distribution_.name != "unknown" && distribution_.stdev > 0);
      
-  if (x < distribution.mean) {
+  if (x < distribution_.mean) {
     // Gaussian is symmetrical around mean, so flip to get the tail probability
-    Real32 xp = 2 * distribution.mean - x;
+    Real32 xp = 2 * distribution_.mean - x;
     NTA_CHECK(xp != x);
-    return tailProbability(xp);
+    return tailProbability_(xp);
   }
 
   // Calculate the Q function with the complementary error function, explained
   // here: http://www.gaussianwaves.com/2012/07/q-function-and-error-functions
-  Real32 z = (x - distribution.mean) / distribution.stdev;
+  Real32 z = (x - distribution_.mean) / distribution_.stdev;
   return 0.5 * erfc(z/1.4142);
   }
 
 
-DistributionParams AnomalyLikelihood::estimateNormal(vector<Real> sampleData, bool performLowerBoundCheck) {
+DistributionParams AnomalyLikelihood::estimateNormal_(vector<Real> sampleData, bool performLowerBoundCheck) {
     auto mean = compute_mean(sampleData);
     auto var = compute_var(sampleData, mean);
   DistributionParams params = DistributionParams("normal", mean, var, 0.0); 
@@ -205,12 +205,12 @@ static vector<Real> filterLikelihoods_(vector<Real> likelihoods, Real redThresho
 }
 
 
-vector<Real>  AnomalyLikelihood::updateAnomalyLikelihoods(vector<Real> anomalyScores, UInt verbosity) { 
+vector<Real>  AnomalyLikelihood::updateAnomalyLikelihoods_(vector<Real> anomalyScores, UInt verbosity) { 
   if (verbosity > 3) {
     cout << "In updateAnomalyLikelihoods."<< endl;
     cout << "Number of anomaly scores: "<<  anomalyScores.size() << endl;
 //    cout << "First 20:", anomalyScores[0:min(20, len(anomalyScores))])
-    cout << "Params: name=" <<  distribution.name << " mean="<<distribution.mean <<" var="<<distribution.variance <<" stdev="<<distribution.stdev <<endl;
+    cout << "Params: name=" <<  distribution_.name << " mean="<<distribution_.mean <<" var="<<distribution_.variance <<" stdev="<<distribution_.stdev <<endl;
   }
 
  NTA_CHECK(anomalyScores.size() > 0); // "Must have at least one anomalyScore"
@@ -218,18 +218,18 @@ vector<Real>  AnomalyLikelihood::updateAnomalyLikelihoods(vector<Real> anomalySc
   // Compute moving averages of these new scores using the previous values
   // as well as likelihood for these scores using the old estimator 
   vector<Real> likelihoods;
-  likelihoods.reserve(runningAverageAnomalies.size()); 
-  for (auto newAverage : runningAverageAnomalies) { //TODO we could use transform() here (? or would it be less clear?) 
-    likelihoods.push_back(tailProbability(newAverage)); 
+  likelihoods.reserve(runningAverageAnomalies_.size()); 
+  for (auto newAverage : runningAverageAnomalies_) { //TODO we could use transform() here (? or would it be less clear?) 
+    likelihoods.push_back(tailProbability_(newAverage)); 
   }
 
   // Filter the likelihood values. First we prepend the historical likelihoods
   // to the current set. Then we filter the values.  We peel off the likelihoods
   // to return and the last windowSize values to store for later.
-  UInt toCrop = min((UInt)this->averagedAnomaly.getMaxWindowSize(), (UInt)runningLikelihoods.size());
-  this->runningLikelihoods.insert(runningLikelihoods.end() - toCrop, likelihoods.begin(),likelihoods.end()); //append & crop
-  cerr << "FUU " << this->runningLikelihoods.size() << "  <= " << this->averagedAnomaly.getMaxWindowSize() << endl; 
-//!  NTA_CHECK(this->runningLikelihoods.size() <= this->averagedAnomaly.getMaxWindowSize()); //FIXME fix this check, returns ~"14xx <= 10"
+  UInt toCrop = min((UInt)this->averagedAnomaly_.getMaxWindowSize(), (UInt)runningLikelihoods_.size());
+  this->runningLikelihoods_.insert(runningLikelihoods_.end() - toCrop, likelihoods.begin(),likelihoods.end()); //append & crop
+  cerr << "FUU " << this->runningLikelihoods_.size() << "  <= " << this->averagedAnomaly_.getMaxWindowSize() << endl; 
+//!  NTA_CHECK(this->runningLikelihoods_.size() <= this->averagedAnomaly_.getMaxWindowSize()); //FIXME fix this check, returns ~"14xx <= 10"
 
   auto filteredLikelihoods = filterLikelihoods_(likelihoods);
 
@@ -243,9 +243,9 @@ vector<Real>  AnomalyLikelihood::updateAnomalyLikelihoods(vector<Real> anomalySc
 }
 
 
-vector<Real> AnomalyLikelihood::estimateAnomalyLikelihoods(vector<Real> anomalyScores, UInt skipRecords, UInt verbosity) { //FIXME averagingWindow not used, I guess it's not a sliding window, but aggregating window (discrete steps)!
+vector<Real> AnomalyLikelihood::estimateAnomalyLikelihoods_(vector<Real> anomalyScores, UInt skipRecords, UInt verbosity) { //FIXME averagingWindow not used, I guess it's not a sliding window, but aggregating window (discrete steps)!
   if (verbosity > 1) {
-    cout << "In estimateAnomalyLikelihoods."<<endl;
+    cout << "In estimateAnomalyLikelihoods_."<<endl;
     cout << "Number of anomaly scores:" <<  anomalyScores.size() << endl;
     cout << "Skip records="<<  skipRecords << endl;
 //    print("First 20:", anomalyScores[0:min(20, len(anomalyScores))])
@@ -256,17 +256,17 @@ vector<Real> AnomalyLikelihood::estimateAnomalyLikelihoods(vector<Real> anomalyS
 
   // Estimate the distribution of anomaly scores based on aggregated records
   if (dataValues.size()  <= skipRecords) {
-    this->distribution = nullDistribution();
+    this->distribution_ = nullDistribution();
   } else {
     dataValues.erase(dataValues.begin(), dataValues.begin() + skipRecords);// remove first skipRecords
-    this->distribution = estimateNormal(dataValues);
+    this->distribution_ = estimateNormal_(dataValues);
   }
 
   // Estimate likelihoods based on this distribution
   vector<Real> likelihoods;
   likelihoods.reserve(dataValues.size());
   for (auto s : dataValues) {
-    likelihoods.push_back(tailProbability(s));
+    likelihoods.push_back(tailProbability_(s));
   }
   // Filter likelihood values
   auto filteredLikelihoods = filterLikelihoods_(likelihoods);
@@ -278,7 +278,7 @@ vector<Real> AnomalyLikelihood::estimateAnomalyLikelihoods(vector<Real> anomalyS
     print("Number of likelihoods:", len(likelihoods))
     print("First 20 likelihoods:", (
       filteredLikelihoods[0:min(20, len(filteredLikelihoods))] ))
-    print("leaving estimateAnomalyLikelihoods")
+    print("leaving estimateAnomalyLikelihoods_")
 */
 
   return filteredLikelihoods;
