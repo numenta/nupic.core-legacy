@@ -130,19 +130,19 @@ Real AnomalyLikelihood::anomalyProbability(Real anomalyScore, int timestamp) {  
 #
 **/
 
-Real32 AnomalyLikelihood::tailProbability_(Real32 x) const {
+Real AnomalyLikelihood::tailProbability_(Real x) const {
      NTA_CHECK(distribution_.name != "unknown" && distribution_.stdev > 0);
      
   if (x < distribution_.mean) {
     // Gaussian is symmetrical around mean, so flip to get the tail probability
-    Real32 xp = 2 * distribution_.mean - x;
+    Real xp = 2 * distribution_.mean - x;
     NTA_CHECK(xp != x);
     return tailProbability_(xp);
   }
 
   // Calculate the Q function with the complementary error function, explained
   // here: http://www.gaussianwaves.com/2012/07/q-function-and-error-functions
-  Real32 z = (x - distribution_.mean) / distribution_.stdev;
+  Real z = (x - distribution_.mean) / distribution_.stdev;
   return 0.5 * erfc(z/1.4142);
   }
 

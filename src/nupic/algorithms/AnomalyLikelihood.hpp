@@ -60,12 +60,12 @@ namespace nupic {
     namespace anomaly {
 
 struct DistributionParams {
-  DistributionParams(std::string name, Real32 mean, Real32 variance, Real32 stdev) :
+  DistributionParams(std::string name, Real mean, Real variance, Real stdev) :
     name(name),mean(mean), variance(variance), stdev(stdev) {}
   std::string name;
-  Real32 mean;
-  Real32 variance;
-  Real32 stdev;
+  Real mean;
+  Real variance;
+  Real stdev;
 };
 
 class AnomalyLikelihood {
@@ -194,7 +194,7 @@ class AnomalyLikelihood {
   samples > x and for values below the mean, the probability of getting
   samples < x. This is the Q-function: the tail probability of the normal distribution.
   **/
-    Real32 tailProbability_(Real32 x) const;
+    Real tailProbability_(Real x) const;
   /**
   :param sampleData:
   :type sampleData: vector array //TODO of what? likelihoods? rawScores? ....?
