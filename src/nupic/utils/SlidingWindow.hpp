@@ -82,6 +82,13 @@ namespace nupic {
 
         bool operator==(const SlidingWindow& r2) const;
         bool operator!=(const SlidingWindow& r2) const;
+        /** operator[] provides fast access to the elements indexed relatively
+          to the oldest element. So slidingWindow[0] returns oldest element, 
+          slidingWindow[size()] returns the newest. 
+        :param UInt index - index/offset from the oldest element, values 0..size()
+        :return T - i-th oldest value in the buffer
+        :throws 0<=index<=size()
+        */ 
         T& operator[](UInt index);
         const T& operator[](UInt index) const;
 
@@ -175,10 +182,15 @@ bool SlidingWindow<T>::operator!=(const SlidingWindow& r2) const {
 template<class T> 
 T& SlidingWindow<T>::operator[](nupic::UInt index) {
   NTA_ASSERT(index <= size());
+  NTA_ASSERT(size() > 0);
   //get last updated position, "current"+index(offset)
-  //avoid calling getLinearizeData() as it involves copy() 
-  nupic::UInt currentIdx = (idxNext_ -1 + maxCapacity + index) % maxCapacity;
-  return &buffer_[currentIdx];
+  //avoid calling getLinearizeData() as it involves copy()
+  if (size() == maxCapacity) {
+    return &buffer_[(idxNext_ + index) % maxCapacity];
+  }
+  else {
+    return &buffer_[index];
+  } 
 }
 
 
