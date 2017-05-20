@@ -204,10 +204,6 @@ class AnomalyLikelihood {
       the ``sampleData``.
   **/
     DistributionParams estimateNormal_(vector<Real> sampleData, bool performLowerBoundCheck=true);
-  /** returns parameters of a Null distribution **/
-    DistributionParams nullDistribution() const { //TODO remove
-    return DistributionParams("normal", 0.5, 1e6, 1e3);
-}
 
 
     // variables

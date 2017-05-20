@@ -259,7 +259,7 @@ vector<Real> AnomalyLikelihood::estimateAnomalyLikelihoods_(vector<Real> anomaly
 
   // Estimate the distribution of anomaly scores based on aggregated records
   if (dataValues.size()  <= skipRecords) {
-    this->distribution_ = nullDistribution();
+    this->distribution_ =  DistributionParams("normal", 0.5, 1e6, 1e3); //null distribution
   } else {
     dataValues.erase(dataValues.begin(), dataValues.begin() + skipRecords);// remove first skipRecords
     this->distribution_ = estimateNormal_(dataValues);
