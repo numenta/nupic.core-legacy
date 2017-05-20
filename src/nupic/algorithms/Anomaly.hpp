@@ -52,9 +52,9 @@ namespace nupic
        * @param activeColumns: array of active column indices
        * @param prevPredictedColumns: array of columns indices predicted in
        *     prev step
-       * @return anomaly score 0..1 (Real32)
+       * @return anomaly score 0..1 (Real)
        */
-      Real32 computeRawAnomalyScore(const std::vector<UInt>& active,
+      Real computeRawAnomalyScore(const std::vector<UInt>& active,
                                     const std::vector<UInt>& predicted);
 
 
@@ -81,7 +81,7 @@ namespace nupic
          *    @param mode (optional) - (enum) how to compute anomaly;
          *        possible values are AnomalyMode::
          *          - PURE - the default, how much anomal the value is;
-         *              Real32 0..1 where 1=totally unexpected
+         *              Real 0..1 where 1=totally unexpected
          *          - LIKELIHOOD - uses the anomaly_likelihood code;
          *              models probability of receiving this value and
          *              anomalyScore
@@ -93,7 +93,7 @@ namespace nupic
          *        applied after moving average is computed.
          */
         Anomaly(UInt slidingWindowSize=0, AnomalyMode mode=AnomalyMode::PURE,
-                Real32 binaryAnomalyThreshold=0);
+                Real binaryAnomalyThreshold=0);
 
         /**
          * Compute the anomaly score as the percent of active columns not
@@ -104,16 +104,16 @@ namespace nupic
          *        (used for anomaly in step T+1)
          * @param timestamp: (optional) date timestamp when the sample occured
          *                   (used in anomaly-likelihood)
-         * @return the computed anomaly score; Real32 0..1
+         * @return the computed anomaly score; Real 0..1
          */
-        Real32 compute(const std::vector<UInt>& active,
+        Real compute(const std::vector<UInt>& active,
                        const std::vector<UInt>& predicted,
                        UInt timestamp=0);
 
 
       private:
         AnomalyMode mode_;
-        Real32 binaryThreshold_;
+        Real binaryThreshold_;
         std::unique_ptr<nupic::util::MovingAverage> movingAverage_;
         AnomalyLikelihood likelihood_; //TODO which params/how pass them to constructor?
 

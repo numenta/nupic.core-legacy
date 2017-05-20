@@ -42,7 +42,7 @@ namespace anomaly
 {
 
 
-Real32 computeRawAnomalyScore(const vector<UInt>& active,
+Real computeRawAnomalyScore(const vector<UInt>& active,
                               const vector<UInt>& predicted)
 {
   // Return 0 if no active columns are present
@@ -60,12 +60,12 @@ Real32 computeRawAnomalyScore(const vector<UInt>& active,
                    predicted_.begin(), predicted_.end(),
                    back_inserter(predictedActiveCols));
 
-  return (active.size() - predictedActiveCols.size()) / Real32(active.size());
+  return (active.size() - predictedActiveCols.size()) / Real(active.size());
 }
 
 
 Anomaly::Anomaly(UInt slidingWindowSize, AnomalyMode mode,
-                 Real32 binaryAnomalyThreshold)
+                 Real binaryAnomalyThreshold)
     : binaryThreshold_(binaryAnomalyThreshold)
 {
   NTA_ASSERT(binaryAnomalyThreshold >= 0 && binaryAnomalyThreshold <= 1)
@@ -78,7 +78,7 @@ Anomaly::Anomaly(UInt slidingWindowSize, AnomalyMode mode,
 }
 
 
-Real32 Anomaly::compute(
+Real Anomaly::compute(
     const vector<UInt>& active, const vector<UInt>& predicted, UInt timestamp)
 {
   Real anomalyScore = computeRawAnomalyScore(active, predicted);
