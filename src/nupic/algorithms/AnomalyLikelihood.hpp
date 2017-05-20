@@ -207,12 +207,15 @@ class AnomalyLikelihood {
 
 
     // variables
-    const UInt learningPeriod_ = 288;
-    const UInt reestimationPeriod_ = 100;
-
-    DistributionParams distribution_ ={ "unknown", 0.0, 0.0, 0.0};
+    const UInt learningPeriod_; //these 3 are from constructor
+    const UInt reestimationPeriod_;
     const UInt probationaryPeriod_;
-    UInt iteration_;
+
+    DistributionParams distribution_ ={ "unknown", 0.0, 0.0, 0.0}; //distribution passed around the class
+
+    UInt iteration_; 
+    int lastTimestamp_ = -1;  //helper for time measurements
+
     nupic::util::MovingAverage averagedAnomaly_; // running average of anomaly scores
     boost::circular_buffer<Real> runningLikelihoods_; // sliding window of the likelihoods
     boost::circular_buffer<Real> runningRawAnomalyScores_;

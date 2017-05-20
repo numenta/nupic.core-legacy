@@ -61,8 +61,11 @@ AnomalyLikelihood::AnomalyLikelihood(UInt learningPeriod, UInt estimationSamples
 Real AnomalyLikelihood::anomalyProbability(Real anomalyScore, int timestamp) {  //FIXME even timestamp is not really used, remove too? 
     Real likelihood = DEFAULT_ANOMALY;
 
-    if (timestamp == -1) {
+    if (timestamp == -1) { //use iterations
       timestamp = this->iteration_;
+    } else { //use time
+      NTA_ASSERT(timestamp > lastTimestamp_); //monotonic time! 
+      lastTimestamp_ = timestamp;
     }
 
     // store into relevant variables
