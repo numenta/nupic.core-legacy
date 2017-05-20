@@ -103,12 +103,12 @@ namespace nupic
          * @param predicted: array of columns indices predicted in this step
          *        (used for anomaly in step T+1)
          * @param timestamp: (optional) date timestamp when the sample occured
-         *                   (used in anomaly-likelihood)
+         *      (used in anomaly-likelihood), default -1 uses iteration instead
          * @return the computed anomaly score; Real 0..1
          */
         Real compute(const std::vector<UInt>& active,
                        const std::vector<UInt>& predicted,
-                       UInt timestamp=0);
+                       int timestamp=-1);
 
 
       private:
