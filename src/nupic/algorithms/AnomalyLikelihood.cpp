@@ -61,32 +61,39 @@ AnomalyLikelihood::AnomalyLikelihood(UInt learningPeriod, UInt estimationSamples
 Real AnomalyLikelihood::anomalyProbability(Real anomalyScore, int timestamp) {  //FIXME even timestamp is not really used, remove too? 
     Real likelihood = DEFAULT_ANOMALY;
 
-    if (timestamp == -1) { //use iterations
+    //time handling:
+    if (timestamp <0) { //use iterations
       timestamp = this->iteration_;
     } else { //use time
       NTA_ASSERT(timestamp > lastTimestamp_); //monotonic time! 
-      lastTimestamp_ = timestamp;
+      lastTimestamp_ = timestamp;//lastTimestamp_ is used just for this check
     }
+    if(initialTimestamp_ == -1) { // (re)set first,initial timestamp
+      initialTimestamp_ = timestamp;
+    }
+    UInt timeElapsed = (UInt)(timestamp - initialTimestamp_);  //this will be used, relative time since first timestamp (the "first" can be reseted)
+cout <<"Elapsed "<<timeElapsed<<endl;
 
     // store into relevant variables
     this->runningRawAnomalyScores_.push_back(anomalyScore); 
     auto newAvg = this->averagedAnomaly_.compute(anomalyScore); 
     this->runningAverageAnomalies_.push_back(newAvg);
     this->iteration_++;
-    this->runningLikelihoods_.push_back(likelihood);
+    this->runningLikelihoods_.push_back(likelihood);//FIXME always pushes 0.5 !
     
     // We ignore the first probationaryPeriod data points - as we cannot reliably compute distribution statistics for estimating likelihood
-    if (this->iteration_ < this->probationaryPeriod_) {
+    if (timeElapsed < this->probationaryPeriod_) {
       return DEFAULT_ANOMALY;
     } //else {
 
     auto anomalies = circularBufferToVector(this->runningAverageAnomalies_); 
     
       // On a rolling basis we re-estimate the distribution
-      if ( this->iteration_ == 0 || (this->iteration_ % reestimationPeriod_) == 0  || distribution_.name == "unknown" ) {
+      if ( timeElapsed == 0 || (timeElapsed >= initialTimestamp_ + reestimationPeriod_)   || distribution_.name == "unknown" ) {
 
         auto numSkipRecords = calcSkipRecords_(this->iteration_, this->runningAverageAnomalies_.capacity(), this->learningPeriod_); //FIXME this erase (numSkipRecords) is a problem when we use sliding window (as opposed to vector)! - should we skip only once on beginning, or on each call of this fn?
-        estimateAnomalyLikelihoods_(anomalies, numSkipRecords);  // called to update this->distribution_;  
+        estimateAnomalyLikelihoods_(anomalies, numSkipRecords);  // called to update this->distribution_; 
+        if  (timeElapsed >= initialTimestamp_ + reestimationPeriod_)  { initialTimestamp_ = -1; } //reset init T
       }
     
     auto likelihoods = updateAnomalyLikelihoods_(anomalies);

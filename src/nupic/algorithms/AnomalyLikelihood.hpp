@@ -215,6 +215,7 @@ class AnomalyLikelihood {
 
     UInt iteration_; 
     int lastTimestamp_ = -1;  //helper for time measurements
+    int initialTimestamp_ = -1;
 
     nupic::util::MovingAverage averagedAnomaly_; // running average of anomaly scores
     boost::circular_buffer<Real> runningLikelihoods_; // sliding window of the likelihoods
