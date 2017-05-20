@@ -38,6 +38,8 @@ namespace nupic {
 
       Real compute_mean(vector<Real> v); //forward declaration
       Real compute_var(vector<Real> v, Real mean); 
+   static std::vector<Real> circularBufferToVector(boost::circular_buffer<Real> cb); //TODO replace with SlidingWindow
+
 
 AnomalyLikelihood::AnomalyLikelihood(UInt learningPeriod, UInt estimationSamples, UInt historicWindowSize, UInt reestimationPeriod, UInt aggregationWindow) :
     learningPeriod_(learningPeriod),
@@ -297,4 +299,18 @@ Real compute_var(vector<Real> v, Real mean)  {
     Real sq_sum = std::inner_product(v.begin(), v.end(), v.begin(), 0.0);
     return (sq_sum / v.size()) - (mean * mean);
 }
+
+
+static std::vector<Real> circularBufferToVector(boost::circular_buffer<Real> cb) {
+  cb.linearize();
+  auto d1 = cb.array_one();
+  vector<Real> data(d1.first, d1.first+d1.second);
+  auto d2 = cb.array_two();
+  data.insert(end(data), d2.first, d2.first+d2.second);
+
+  NTA_ASSERT(data.size() == cb.size() && data.front() == cb.front() && data.back() == cb.back() );
+  return data;
+}
+
+
 }}} //ns
