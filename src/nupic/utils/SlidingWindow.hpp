@@ -119,7 +119,7 @@ size_t SlidingWindow<T>::size() const {
 template<class T>
 void SlidingWindow<T>::append(T newValue) {
   if(size() < maxCapacity) {
-    buffer_.emplace_back(newValue);
+    buffer_.push_back(newValue);
   } else {
   buffer_[idxNext_] = newValue;
   }
