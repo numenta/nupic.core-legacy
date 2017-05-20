@@ -204,14 +204,12 @@ class AnomalyLikelihood {
 
 
   /**
-  :param sampleData:
-  :type sampleData: vector array //TODO of what? likelihoods? rawScores? ....?
-  :param performLowerBoundCheck:
-  :type performLowerBoundCheck: bool
+  :param anomalyScores: vector of (raw) anomaly scores
+  :param performLowerBoundCheck (bool)
   :returns: A DistributionParams (struct) containing the parameters of a normal distribution based on
-      the ``sampleData``.
+      the ``anomalyScores``.
   **/
-    DistributionParams estimateNormal_(vector<Real> sampleData, bool performLowerBoundCheck=true);
+    DistributionParams estimateNormal_(vector<Real> anomalyScores, bool performLowerBoundCheck=true);
 
 
     //private variables

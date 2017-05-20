@@ -159,9 +159,9 @@ Real AnomalyLikelihood::tailProbability_(Real x) const {
   }
 
 
-DistributionParams AnomalyLikelihood::estimateNormal_(vector<Real> sampleData, bool performLowerBoundCheck) {
-    auto mean = compute_mean(sampleData);
-    auto var = compute_var(sampleData, mean);
+DistributionParams AnomalyLikelihood::estimateNormal_(vector<Real> anomalyScores, bool performLowerBoundCheck) {
+    auto mean = compute_mean(anomalyScores);
+    auto var = compute_var(anomalyScores, mean);
   DistributionParams params = DistributionParams("normal", mean, var, 0.0); 
 
   if (performLowerBoundCheck) {
