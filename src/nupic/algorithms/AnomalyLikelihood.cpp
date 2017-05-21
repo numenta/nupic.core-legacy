@@ -103,7 +103,7 @@ Real AnomalyLikelihood::anomalyProbability(Real anomalyScore, int timestamp) {  
       NTA_CHECK(likelihood >= 0.0 && likelihood <= 1.0);
 
     this->runningLikelihoods_.push_back(likelihood);
-    NTA_ASSERT(runningLikelihoods_.size()==runningRawAnomalies_.size()==runningAverageAnomalies_.size());
+    NTA_ASSERT(runningLikelihoods_.size()==runningRawAnomalyScores_.size()==runningAverageAnomalies_.size());
 
     return likelihood;
     }
