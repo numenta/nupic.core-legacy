@@ -46,7 +46,7 @@ AnomalyLikelihood::AnomalyLikelihood(UInt learningPeriod, UInt estimationSamples
     learningPeriod(learningPeriod),
     reestimationPeriod(reestimationPeriod),
     probationaryPeriod(learningPeriod+estimationSamples),
-    averagedAnomaly_(aggregationWindow) {
+    averagedAnomaly_(aggregationWindow) { //FIXME discuss aggregationWindow (python aggregates 20(window5)->4, here 20(w5)->20smooth
         iteration_ = 0;
         NTA_CHECK(historicWindowSize >= estimationSamples); // cerr << "estimationSamples exceeds historicWindowSize";
         NTA_CHECK(aggregationWindow < reestimationPeriod && reestimationPeriod < historicWindowSize);
@@ -57,7 +57,7 @@ AnomalyLikelihood::AnomalyLikelihood(UInt learningPeriod, UInt estimationSamples
         NTA_CHECK(runningLikelihoods_.capacity() == historicWindowSize);
     }
 
-    
+
 Real AnomalyLikelihood::anomalyProbability(Real anomalyScore, int timestamp) {  //FIXME even timestamp is not really used, remove too? 
     Real likelihood = DEFAULT_ANOMALY;
 
@@ -103,6 +103,7 @@ Real AnomalyLikelihood::anomalyProbability(Real anomalyScore, int timestamp) {  
       NTA_CHECK(likelihood >= 0.0 && likelihood <= 1.0);
 
     this->runningLikelihoods_.push_back(likelihood);
+    NTA_ASSERT(runningLikelihoods_.size()==runningRawAnomalies_.size()==runningAverageAnomalies_.size());
 
     return likelihood;
     }
