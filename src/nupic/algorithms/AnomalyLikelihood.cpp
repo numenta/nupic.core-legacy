@@ -103,7 +103,8 @@ Real AnomalyLikelihood::anomalyProbability(Real anomalyScore, int timestamp) {  
       NTA_CHECK(likelihood >= 0.0 && likelihood <= 1.0);
 
     this->runningLikelihoods_.push_back(likelihood);
-    NTA_ASSERT(runningLikelihoods_.size()==runningRawAnomalyScores_.size()==runningAverageAnomalies_.size());
+    NTA_ASSERT(runningLikelihoods_.size()==runningRawAnomalyScores_.size() &&
+             runningLikelihoods_.size()==runningAverageAnomalies_.size());
 
     return likelihood;
     }
@@ -244,8 +245,6 @@ vector<Real>  AnomalyLikelihood::updateAnomalyLikelihoods_(const vector<Real>& a
   // to return and the last windowSize values to store for later.
   UInt toCrop = min((UInt)this->averagedAnomaly_.getMaxWindowSize(), (UInt)runningLikelihoods_.size());
   this->runningLikelihoods_.insert(runningLikelihoods_.end() - toCrop, likelihoods.begin(),likelihoods.end()); //append & crop
-  cerr << "FUU " << this->runningLikelihoods_.size() << "  <= " << this->averagedAnomaly_.getMaxWindowSize() << endl; 
-//!  NTA_CHECK(this->runningLikelihoods_.size() <= this->averagedAnomaly_.getMaxWindowSize()); //FIXME fix this check, returns ~"14xx <= 10"
 
   auto filteredLikelihoods = filterLikelihoods_(likelihoods);
 
