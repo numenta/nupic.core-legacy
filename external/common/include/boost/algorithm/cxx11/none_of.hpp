@@ -12,16 +12,11 @@
 #ifndef BOOST_ALGORITHM_NONE_OF_HPP
 #define BOOST_ALGORITHM_NONE_OF_HPP
 
-#include <algorithm>    // for std::none_of, if available
 #include <boost/range/begin.hpp>
 #include <boost/range/end.hpp>
 
 namespace boost { namespace algorithm {
 
-//  Use the C++11 versions of the none_of if it is available
-#if __cplusplus >= 201103L
-using std::none_of;     // Section 25.2.3
-#else
 /// \fn none_of ( InputIterator first, InputIterator last, Predicate p )
 /// \return true if none of the elements in [first, last) satisfy the predicate 'p'
 /// \note returns true on an empty range
@@ -33,12 +28,11 @@ using std::none_of;     // Section 25.2.3
 template<typename InputIterator, typename Predicate> 
 bool none_of ( InputIterator first, InputIterator last, Predicate p )
 {
-for ( ; first != last; ++first )
-    if ( p(*first)) 
-        return false;
+    for ( ; first != last; ++first )
+        if ( p(*first)) 
+            return false;
     return true;
 } 
-#endif
 
 /// \fn none_of ( const Range &r, Predicate p )
 /// \return true if none of the elements in the range satisfy the predicate 'p'

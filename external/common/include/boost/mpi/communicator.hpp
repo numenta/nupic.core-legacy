@@ -1,4 +1,5 @@
 // Copyright (C) 2005, 2006 Douglas Gregor <doug.gregor -at- gmail.com>.
+// Copyright (C) 2016 K. Noel Belcourt <kbelco -at- sandia.gov>.
 
 // Use, modification and distribution is subject to the Boost Software
 // License, Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
@@ -13,14 +14,17 @@
 #ifndef BOOST_MPI_COMMUNICATOR_HPP
 #define BOOST_MPI_COMMUNICATOR_HPP
 
+#include <boost/assert.hpp>
 #include <boost/mpi/config.hpp>
 #include <boost/mpi/exception.hpp>
 #include <boost/optional.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/mpi/datatype.hpp>
+#include <boost/mpi/nonblocking.hpp>
 #include <utility>
 #include <iterator>
 #include <stdexcept> // for std::range_error
+#include <vector>
 
 // For (de-)serializing sends and receives
 #include <boost/mpi/packed_oarchive.hpp>
@@ -270,6 +274,17 @@ class BOOST_MPI_DECL communicator
   template<typename T>
   void send(int dest, int tag, const T& value) const;
 
+  template<typename T, typename A>
+  void send(int dest, int tag, const std::vector<T,A>& value) const;
+
+  template<typename T, typename A>
+  void send_vector(int dest, int tag, const std::vector<T,A>& value, 
+    mpl::true_) const;
+
+  template<typename T, typename A>
+  void send_vector(int dest, int tag, const std::vector<T,A>& value, 
+    mpl::false_) const;
+
   /**
    *  @brief Send the skeleton of an object.
    *
@@ -382,6 +397,17 @@ class BOOST_MPI_DECL communicator
   template<typename T>
   status recv(int source, int tag, T& value) const;
 
+  template<typename T, typename A>
+  status recv(int source, int tag, std::vector<T,A>& value) const;
+
+  template<typename T, typename A>
+  status recv_vector(int source, int tag, std::vector<T,A>& value,
+    mpl::true_) const;
+
+  template<typename T, typename A>
+  status recv_vector(int source, int tag, std::vector<T,A>& value,
+    mpl::false_) const;
+
   /**
    *  @brief Receive a skeleton from a remote process.
    *
@@ -485,6 +511,12 @@ class BOOST_MPI_DECL communicator
    */
   status recv(int source, int tag) const;
 
+  /** @brief Send a message to remote process nd receive another message 
+   *  from another process.
+   */
+  template<typename T>
+  status sendrecv(int dest, int stag, const T& sval, int src, int rtag, T& rval) const;
+  
   /**
    *  @brief Send a message to a remote process without blocking.
    *
@@ -858,6 +890,25 @@ class BOOST_MPI_DECL communicator
   void abort(int errcode) const;
 
  protected:
+  
+  /**
+   * INTERNAL ONLY
+   *
+   * Implementation of sendrecv for mpi type.
+   */
+  template<typename T>
+  status sendrecv_impl(int dest, int stag, const T& sval, int src, int rtag, T& rval,
+                       mpl::true_) const;
+
+  /**
+   * INTERNAL ONLY
+   *
+   * Implementation of sendrecv for complex types, which must be passed as archives.
+   */
+  template<typename T>
+  status sendrecv_impl(int dest, int stag, const T& sval, int src, int rtag, T& rval,
+                       mpl::false_) const;
+
   /**
    * INTERNAL ONLY
    *
@@ -869,6 +920,8 @@ class BOOST_MPI_DECL communicator
   {
     void operator()(MPI_Comm* comm) const
     {
+      BOOST_ASSERT( comm != 0 );
+      BOOST_ASSERT(*comm != MPI_COMM_NULL);
       int finalized;
       BOOST_MPI_CHECK_RESULT(MPI_Finalized, (&finalized));
       if (!finalized)
@@ -1158,6 +1211,30 @@ communicator::array_send_impl(int dest, int tag, const T* values, int n,
   send(dest, tag, oa);
 }
 
+template<typename T, typename A>
+void communicator::send_vector(int dest, int tag, 
+  const std::vector<T,A>& value, mpl::true_ true_type) const
+{
+  // send the vector size
+  typename std::vector<T,A>::size_type size = value.size();
+  send(dest, tag, size);
+  // send the data
+  this->array_send_impl(dest, tag, value.data(), size, true_type);
+}
+
+template<typename T, typename A>
+void communicator::send_vector(int dest, int tag, 
+  const std::vector<T,A>& value, mpl::false_ false_type) const
+{
+  this->send_impl(dest, tag, value, false_type);
+}
+
+template<typename T, typename A>
+void communicator::send(int dest, int tag, const std::vector<T,A>& value) const
+{
+  send_vector(dest, tag, value, is_mpi_datatype<T>());
+}
+
 // Array send must send the elements directly
 template<typename T>
 void communicator::send(int dest, int tag, const T* values, int n) const
@@ -1228,7 +1305,7 @@ communicator::array_recv_impl(int source, int tag, T* values, int n,
   ia >> count;
 
   // Deserialize the data in the message
-  boost::serialization::array<T> arr(values, count > n? n : count);
+  boost::serialization::array_wrapper<T> arr(values, count > n? n : count);
   ia >> arr;
 
   if (count > n) {
@@ -1240,12 +1317,76 @@ communicator::array_recv_impl(int source, int tag, T* values, int n,
   return stat;
 }
 
+template<typename T, typename A>
+status communicator::recv_vector(int source, int tag, 
+  std::vector<T,A>& value, mpl::true_ true_type) const
+{
+  // receive the vector size
+  typename std::vector<T,A>::size_type size = 0;
+  recv(source, tag, size);
+  // size the vector
+  value.resize(size);
+  // receive the data
+  return this->array_recv_impl(source, tag, value.data(), size, true_type);
+}
+
+template<typename T, typename A>
+status communicator::recv_vector(int source, int tag, 
+  std::vector<T,A>& value, mpl::false_ false_type) const
+{
+  return this->recv_impl(source, tag, value, false_type);
+}
+
+template<typename T, typename A>
+status communicator::recv(int source, int tag, std::vector<T,A>& value) const
+{
+  return recv_vector(source, tag, value, is_mpi_datatype<T>());
+}
+
 // Array receive must receive the elements directly into a buffer.
 template<typename T>
 status communicator::recv(int source, int tag, T* values, int n) const
 {
   return this->array_recv_impl(source, tag, values, n, is_mpi_datatype<T>());
 }
+
+ 
+template<typename T>
+status communicator::sendrecv_impl(int dest, int stag, const T& sval, int src, int rtag, T& rval,
+                                    mpl::true_) const
+{
+  status stat;
+  BOOST_MPI_CHECK_RESULT(MPI_Sendrecv,
+                         (const_cast<T*>(&sval), 1, 
+                          get_mpi_datatype<T>(sval),
+                          dest, stag, 
+                          &rval, 1,
+                          get_mpi_datatype<T>(rval),
+                          src, rtag,
+                          MPI_Comm(*this), &stat.m_status));
+  return stat;
+}
+
+template<typename T>
+status communicator::sendrecv_impl(int dest, int stag, const T& sval, int src, int rtag, T& rval,
+                                   mpl::false_) const
+{
+  int const SEND = 0;
+  int const RECV = 1;
+  request srrequests[2];
+  srrequests[SEND] = this->isend_impl(dest, stag, sval, mpl::false_());
+  srrequests[RECV] = this->irecv_impl(src,  rtag, rval, mpl::false_());
+  status srstatuses[2];
+  wait_all(srrequests, srrequests + 2, srstatuses);
+  return srstatuses[RECV];
+}
+
+template<typename T>
+status communicator::sendrecv(int dest, int stag, const T& sval, int src, int rtag, T& rval) const
+{
+  return this->sendrecv_impl(dest, stag, sval, src, rtag, rval, is_mpi_datatype<T>());
+}
+
 
 // We're sending a type that has an associated MPI datatype, so we
 // map directly to that datatype.
@@ -1392,7 +1533,7 @@ namespace detail {
     ia >> count;
     
     // Deserialize the data in the message
-    boost::serialization::array<T> arr(values, count > n? n : count);
+    boost::serialization::array_wrapper<T> arr(values, count > n? n : count);
     ia >> arr;
     
     if (count > n) {

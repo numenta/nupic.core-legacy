@@ -14,16 +14,11 @@
 #ifndef BOOST_ALGORITHM_ANY_OF_HPP
 #define BOOST_ALGORITHM_ANY_OF_HPP
 
-#include <algorithm>    // for std::any_of, if available
 #include <boost/range/begin.hpp>
 #include <boost/range/end.hpp>
 
 namespace boost { namespace algorithm {
 
-//  Use the C++11 versions of any_of if it is available
-#if __cplusplus >= 201103L
-using std::any_of;      // Section 25.2.2
-#else
 /// \fn any_of ( InputIterator first, InputIterator last, Predicate p )
 /// \return true if any of the elements in [first, last) satisfy the predicate
 /// \note returns false on an empty range
@@ -40,7 +35,6 @@ bool any_of ( InputIterator first, InputIterator last, Predicate p )
             return true;
     return false; 
 } 
-#endif
 
 /// \fn any_of ( const Range &r, Predicate p )
 /// \return true if any elements in the range satisfy the predicate 'p'

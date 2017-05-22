@@ -12,16 +12,11 @@
 #ifndef BOOST_ALGORITHM_ALL_OF_HPP
 #define BOOST_ALGORITHM_ALL_OF_HPP
 
-#include <algorithm>    // for std::all_of, if available
 #include <boost/range/begin.hpp>
 #include <boost/range/end.hpp>
 
 namespace boost { namespace algorithm {
 
-#if __cplusplus >= 201103L
-//  Use the C++11 versions of all_of if it is available
-using std::all_of;      // Section 25.2.1
-#else
 /// \fn all_of ( InputIterator first, InputIterator last, Predicate p )
 /// \return true if all elements in [first, last) satisfy the predicate 'p'
 /// \note returns true on an empty range
@@ -31,8 +26,6 @@ using std::all_of;      // Section 25.2.1
 /// \param p     A predicate for testing the elements of the sequence
 ///
 /// \note           This function is part of the C++2011 standard library.
-///  We will use the standard one if it is available, 
-///  otherwise we have our own implementation.
 template<typename InputIterator, typename Predicate> 
 bool all_of ( InputIterator first, InputIterator last, Predicate p )
 {
@@ -41,7 +34,6 @@ bool all_of ( InputIterator first, InputIterator last, Predicate p )
             return false;
     return true; 
 } 
-#endif
 
 /// \fn all_of ( const Range &r, Predicate p )
 /// \return true if all elements in the range satisfy the predicate 'p'

@@ -12,11 +12,7 @@
 
 #include <cstddef>
 
-
-#include <boost/assert.hpp>
 #include <boost/range.hpp>
-
-
 
 #include <boost/geometry/algorithms/detail/ring_identifier.hpp>
 
@@ -137,7 +133,7 @@ inline bool check_graph(TurnPoints& turn_points, operation_type for_operation)
          it != boost::end(meta_turns);
          ++it)
     {
-        if (! (it->turn->blocked() || it->turn->is_discarded()))
+        if (! (it->turn->blocked() || it->turn->discarded))
         {
             for (int i = 0 ; i < 2; i++)
             {

@@ -1,9 +1,11 @@
 #ifndef BOOST_INTERPROCESS_DETAIL_SP_COUNTED_IMPL_HPP_INCLUDED
 #define BOOST_INTERPROCESS_DETAIL_SP_COUNTED_IMPL_HPP_INCLUDED
 
-// MS compatible compilers support #pragma once
-
-#if defined(_MSC_VER) && (_MSC_VER >= 1020)
+#ifndef BOOST_CONFIG_HPP
+#  include <boost/config.hpp>
+#endif
+#
+#if defined(BOOST_HAS_PRAGMA_ONCE)
 # pragma once
 #endif
 
@@ -23,6 +25,7 @@
 #include <boost/interprocess/detail/config_begin.hpp>
 #include <boost/interprocess/detail/workaround.hpp>
 
+#include <boost/interprocess/containers/version_type.hpp>
 #include <boost/interprocess/smart_ptr/detail/sp_counted_base.hpp>
 #include <boost/interprocess/smart_ptr/scoped_ptr.hpp>
 #include <boost/interprocess/detail/utilities.hpp>
@@ -63,7 +66,7 @@ struct scoped_ptr_dealloc_functor
    {  if (ptr) priv_deallocate(ptr, alloc_version());  }
 };
 
-  
+
 
 template<class A, class D>
 class sp_counted_impl_pd
@@ -83,6 +86,8 @@ class sp_counted_impl_pd
          portable_rebind_alloc
             < const this_type >::type        const_this_allocator;
    typedef typename this_allocator::pointer  this_pointer;
+   typedef typename boost::intrusive::
+      pointer_traits<this_pointer>           this_pointer_traits;
 
    sp_counted_impl_pd( sp_counted_impl_pd const & );
    sp_counted_impl_pd & operator= ( sp_counted_impl_pd const & );
@@ -115,14 +120,13 @@ class sp_counted_impl_pd
 
    void destroy() // nothrow
    {
-      //Self destruction, so get a copy of the allocator
-      //(in the future we could move it)
-      this_allocator a_copy(*this);
+      //Self destruction, so move the allocator
+      this_allocator a_copy(::boost::move(static_cast<this_allocator&>(*this)));
       BOOST_ASSERT(a_copy == *this);
-      this_pointer this_ptr (this);
+      this_pointer this_ptr(this_pointer_traits::pointer_to(*this));
       //Do it now!
       scoped_ptr< this_type, scoped_ptr_dealloc_functor<this_allocator> >
-         deleter(this_ptr, a_copy);
+         deleter_ptr(this_ptr, a_copy);
       typedef typename this_allocator::value_type value_type;
       ipcdetail::to_raw_pointer(this_ptr)->~value_type();
    }

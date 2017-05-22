@@ -2,6 +2,10 @@
 
 // Copyright (c) 2007-2012 Barend Gehrels, Amsterdam, the Netherlands.
 
+// This file was modified by Oracle on 2016.
+// Modifications copyright (c) 2016 Oracle and/or its affiliates.
+// Contributed and/or modified by Adam Wulkiewicz, on behalf of Oracle
+
 // Use, modification and distribution is subject to the Boost Software License,
 // Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -13,15 +17,10 @@
 #include <algorithm>
 #include <string>
 
-#include <boost/concept_check.hpp>
-#include <boost/numeric/conversion/cast.hpp>
-
-#include <boost/geometry/arithmetic/determinant.hpp>
+#include <boost/geometry/algorithms/detail/assign_indexed_point.hpp>
 #include <boost/geometry/core/access.hpp>
+#include <boost/geometry/core/assert.hpp>
 #include <boost/geometry/strategies/side_info.hpp>
-#include <boost/geometry/util/select_calculation_type.hpp>
-#include <boost/geometry/util/select_most_precise.hpp>
-
 
 namespace boost { namespace geometry
 {
@@ -30,106 +29,150 @@ namespace policies { namespace relate
 {
 
 
-template <typename S1, typename S2, typename ReturnType, typename CalculationType = void>
+/*!
+\brief Policy calculating the intersection points themselves
+ */
+template
+<
+    typename ReturnType
+>
 struct segments_intersection_points
 {
     typedef ReturnType return_type;
-    typedef S1 segment_type1;
-    typedef S2 segment_type2;
 
-    typedef typename select_calculation_type
-        <
-            S1, S2, CalculationType
-        >::type coordinate_type;
-
-	template <typename R>
-    static inline return_type segments_intersect(side_info const&,
-					R const& r,
-                    coordinate_type const& dx1, coordinate_type const& dy1,
-                    coordinate_type const& dx2, coordinate_type const& dy2,
-                    S1 const& s1, S2 const& s2)
-    {
-        typedef typename geometry::coordinate_type
-            <
-                typename return_type::point_type
-            >::type return_coordinate_type;
-
-        coordinate_type const s1x = get<0, 0>(s1);
-        coordinate_type const s1y = get<0, 1>(s1);
-
-        return_type result;
-        result.count = 1;
-        set<0>(result.intersections[0],
-            boost::numeric_cast<return_coordinate_type>(R(s1x) + r * R(dx1)));
-        set<1>(result.intersections[0],
-            boost::numeric_cast<return_coordinate_type>(R(s1y) + r * R(dy1)));
-
-        return result;
-    }
-
-    static inline return_type collinear_touch(coordinate_type const& x,
-                coordinate_type const& y, int, int)
+    template
+    <
+        typename Segment1,
+        typename Segment2,
+        typename SegmentIntersectionInfo
+    >
+    static inline return_type segments_crosses(side_info const&,
+                    SegmentIntersectionInfo const& sinfo,
+                    Segment1 const& s1, Segment2 const& s2)
     {
         return_type result;
         result.count = 1;
-        set<0>(result.intersections[0], x);
-        set<1>(result.intersections[0], y);
+
+        bool use_a = true;
+
+        // Prefer one segment if one is on or near an endpoint
+        bool const a_near_end = sinfo.robust_ra.near_end();
+        bool const b_near_end = sinfo.robust_rb.near_end();
+        if (a_near_end && ! b_near_end)
+        {
+            use_a = true;
+        }
+        else if (b_near_end && ! a_near_end)
+        {
+            use_a = false;
+        }
+        else
+        {
+            // Prefer shorter segment
+            typedef typename SegmentIntersectionInfo::promoted_type ptype;
+            ptype const len_a = sinfo.comparable_length_a();
+            ptype const len_b = sinfo.comparable_length_b();
+            if (len_b < len_a)
+            {
+                use_a = false;
+            }
+            // else use_a is true but was already assigned like that
+        }
+
+        if (use_a)
+        {
+            sinfo.assign_a(result.intersections[0], s1, s2);
+        }
+        else
+        {
+            sinfo.assign_b(result.intersections[0], s1, s2);
+        }
+
+        result.fractions[0].assign(sinfo);
+
         return result;
     }
 
-    template <typename S>
-    static inline return_type collinear_inside(S const& s, int index1 = 0, int index2 = 1)
+    template <typename Segment1, typename Segment2, typename Ratio>
+    static inline return_type segments_collinear(
+        Segment1 const& a, Segment2 const& b, bool /*opposite*/,
+        int a1_wrt_b, int a2_wrt_b, int b1_wrt_a, int b2_wrt_a,
+        Ratio const& ra_from_wrt_b, Ratio const& ra_to_wrt_b,
+        Ratio const& rb_from_wrt_a, Ratio const& rb_to_wrt_a)
     {
         return_type result;
-        result.count = 2;
-        set<0>(result.intersections[index1], get<0, 0>(s));
-        set<1>(result.intersections[index1], get<0, 1>(s));
-        set<0>(result.intersections[index2], get<1, 0>(s));
-        set<1>(result.intersections[index2], get<1, 1>(s));
-        return result;
-    }
+        unsigned int index = 0, count_a = 0, count_b = 0;
+        Ratio on_a[2];
 
-    template <typename S>
-    static inline return_type collinear_interior_boundary_intersect(S const& s, bool a_in_b,
-                int, int, bool opposite)
-    {
-        int index1 = opposite && ! a_in_b ? 1 : 0;
-        return collinear_inside(s, index1, 1 - index1);
-    }
+        // The conditions "index < 2" are necessary for non-robust handling,
+        // if index would be 2 this indicate an (currently uncatched) error
 
-    static inline return_type collinear_a_in_b(S1 const& s, bool)
-    {
-        return collinear_inside(s);
-    }
-    static inline return_type collinear_b_in_a(S2 const& s, bool opposite)
-    {
-        int index1 = opposite ? 1 : 0;
-        return collinear_inside(s, index1, 1 - index1);
-    }
+        // IMPORTANT: the order of conditions is different as in direction.hpp
+        if (a1_wrt_b >= 1 && a1_wrt_b <= 3 // ra_from_wrt_b.on_segment()
+            && index < 2)
+        {
+            //     a1--------->a2
+            // b1----->b2
+            //
+            // ra1 (relative to b) is between 0/1:
+            // -> First point of A is intersection point
+            detail::assign_point_from_index<0>(a, result.intersections[index]);
+            result.fractions[index].assign(Ratio::zero(), ra_from_wrt_b);
+            on_a[index] = Ratio::zero();
+            index++;
+            count_a++;
+        }
+        if (b1_wrt_a == 2 //rb_from_wrt_a.in_segment()
+            && index < 2)
+        {
+            // We take the first intersection point of B
+            // a1--------->a2
+            //         b1----->b2
+            // But only if it is not located on A
+            // a1--------->a2
+            // b1----->b2      rb_from_wrt_a == 0/1 -> a already taken
 
-    static inline return_type collinear_overlaps(
-                coordinate_type const& x1, coordinate_type const& y1,
-                coordinate_type const& x2, coordinate_type const& y2,
-                int, int, bool)
-    {
-        return_type result;
-        result.count = 2;
-        set<0>(result.intersections[0], x1);
-        set<1>(result.intersections[0], y1);
-        set<0>(result.intersections[1], x2);
-        set<1>(result.intersections[1], y2);
-        return result;
-    }
+            detail::assign_point_from_index<0>(b, result.intersections[index]);
+            result.fractions[index].assign(rb_from_wrt_a, Ratio::zero());
+            on_a[index] = rb_from_wrt_a;
+            index++;
+            count_b++;
+        }
 
-    static inline return_type segment_equal(S1 const& s, bool)
-    {
-        return_type result;
-        result.count = 2;
-        // TODO: order of IP's
-        set<0>(result.intersections[0], get<0, 0>(s));
-        set<1>(result.intersections[0], get<0, 1>(s));
-        set<0>(result.intersections[1], get<1, 0>(s));
-        set<1>(result.intersections[1], get<1, 1>(s));
+        if (a2_wrt_b >= 1 && a2_wrt_b <= 3 //ra_to_wrt_b.on_segment()
+            && index < 2)
+        {
+            // Similarly, second IP (here a2)
+            // a1--------->a2
+            //         b1----->b2
+            detail::assign_point_from_index<1>(a, result.intersections[index]);
+            result.fractions[index].assign(Ratio::one(), ra_to_wrt_b);
+            on_a[index] = Ratio::one();
+            index++;
+            count_a++;
+        }
+        if (b2_wrt_a == 2 // rb_to_wrt_a.in_segment()
+            && index < 2)
+        {
+            detail::assign_point_from_index<1>(b, result.intersections[index]);
+            result.fractions[index].assign(rb_to_wrt_a, Ratio::one());
+            on_a[index] = rb_to_wrt_a;
+            index++;
+            count_b++;
+        }
+
+        // TEMPORARY
+        // If both are from b, and b is reversed w.r.t. a, we swap IP's
+        // to align them w.r.t. a
+        // get_turn_info still relies on some order (in some collinear cases)
+        if (index == 2 && on_a[1] < on_a[0])
+        {
+            std::swap(result.fractions[0], result.fractions[1]);
+            std::swap(result.intersections[0], result.intersections[1]);
+        }
+
+        result.count = index;
+
         return result;
     }
 
@@ -142,17 +185,35 @@ struct segments_intersection_points
         return return_type();
     }
 
-    static inline return_type collinear_disjoint()
-    {
-        return return_type();
-    }
-
-    static inline return_type degenerate(S1 const& s, bool)
+    // Both degenerate
+    template <typename Segment>
+    static inline return_type degenerate(Segment const& segment, bool)
     {
         return_type result;
         result.count = 1;
-        set<0>(result.intersections[0], get<0, 0>(s));
-        set<1>(result.intersections[0], get<0, 1>(s));
+        set<0>(result.intersections[0], get<0, 0>(segment));
+        set<1>(result.intersections[0], get<0, 1>(segment));
+        return result;
+    }
+
+    // One degenerate
+    template <typename Segment, typename Ratio>
+    static inline return_type one_degenerate(Segment const& degenerate_segment,
+            Ratio const& ratio, bool a_degenerate)
+    {
+        return_type result;
+        result.count = 1;
+        set<0>(result.intersections[0], get<0, 0>(degenerate_segment));
+        set<1>(result.intersections[0], get<0, 1>(degenerate_segment));
+        if (a_degenerate)
+        {
+            // IP lies on ratio w.r.t. segment b
+            result.fractions[0].assign(Ratio::zero(), ratio);
+        }
+        else
+        {
+            result.fractions[0].assign(ratio, Ratio::zero());
+        }
         return result;
     }
 };
