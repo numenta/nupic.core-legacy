@@ -7,7 +7,7 @@
  *
  * See http://www.boost.org for most recent version including documentation.
  *
- * $Id: binomial_distribution.hpp 71018 2011-04-05 21:27:52Z steven_watanabe $
+ * $Id$
  */
 
 #ifndef BOOST_RANDOM_BINOMIAL_DISTRIBUTION_HPP_INCLUDED
@@ -304,7 +304,7 @@ private:
             RealType u;
             RealType v = uniform_01<RealType>()(urng);
             if(v <= btrd.u_rv_r) {
-                RealType u = v/btrd.v_r - 0.43;
+                u = v/btrd.v_r - 0.43;
                 return static_cast<IntType>(floor(
                     (2*btrd.a/(0.5 - abs(u)) + btrd.b)*u + btrd.c));
             }
@@ -378,7 +378,19 @@ private:
         while(u > r) {
             u = u - r;
             ++x;
-            r = ((a/x) - s) * r;
+            RealType r1 = ((a/x) - s) * r;
+            // If r gets too small then the round-off error
+            // becomes a problem.  At this point, p(i) is
+            // decreasing exponentially, so if we just call
+            // it 0, it's close enough.  Note that the
+            // minimum value of q_n is about 1e-7, so we
+            // may need to be a little careful to make sure that
+            // we don't terminate the first time through the loop
+            // for float.  (Hence the test that r is decreasing)
+            if(r1 < std::numeric_limits<RealType>::epsilon() && r1 < r) {
+                break;
+            }
+            r = r1;
         }
         return x;
     }

@@ -2,7 +2,7 @@
 #define BOOST_SERIALIZATION_HASH_SET_HPP
 
 // MS compatible compilers support #pragma once
-#if defined(_MSC_VER) && (_MSC_VER >= 1020)
+#if defined(_MSC_VER)
 # pragma once
 #endif
 
@@ -23,6 +23,7 @@
 #include <boost/serialization/hash_collections_save_imp.hpp>
 #include <boost/serialization/hash_collections_load_imp.hpp>
 #include <boost/serialization/split_free.hpp>
+#include <boost/move/utility_core.hpp>
 
 namespace boost { 
 namespace serialization {
@@ -38,12 +39,12 @@ struct archive_input_hash_set
         Container &s, 
         const unsigned int v
     ){
-        typedef BOOST_DEDUCED_TYPENAME Container::value_type type;
+        typedef typename Container::value_type type;
         detail::stack_construct<Archive, type> t(ar, v);
         // borland fails silently w/o full namespace
         ar >> boost::serialization::make_nvp("item", t.reference());
-        std::pair<BOOST_DEDUCED_TYPENAME Container::const_iterator, bool> result = 
-            s.insert(t.reference());
+        std::pair<typename Container::const_iterator, bool> result = 
+            s.insert(boost::move(t.reference()));
         if(result.second)
             ar.reset_object_address(& (* result.first), & t.reference());
     }
@@ -58,12 +59,12 @@ struct archive_input_hash_multiset
         Container &s, 
         const unsigned int v
     ){
-        typedef BOOST_DEDUCED_TYPENAME Container::value_type type;
+        typedef typename Container::value_type type;
         detail::stack_construct<Archive, type> t(ar, v);
         // borland fails silently w/o full namespace
         ar >> boost::serialization::make_nvp("item", t.reference());
-        BOOST_DEDUCED_TYPENAME Container::const_iterator result 
-            = s.insert(t.reference());
+        typename Container::const_iterator result 
+            = s.insert(boost::move(t.reference()));
         ar.reset_object_address(& (* result), & t.reference());
     }
 };

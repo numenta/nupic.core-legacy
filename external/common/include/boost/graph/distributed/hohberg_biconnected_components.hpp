@@ -163,7 +163,7 @@ namespace hohberg_detail {
     typedef typename std::vector<T>::const_iterator iterator;
     iterator first = parent_path.begin(), last = parent_path.end();
 
-#if defined(PBGL_HOHBERG_DEBUG) and PBGL_HOHBERG_DEBUG > 2
+#if defined(PBGL_HOHBERG_DEBUG) && PBGL_HOHBERG_DEBUG > 2
     std::cerr << "infimum(";
     for (iterator i = first; i != last; ++i) {
       if (i != first) std::cerr << ' ';
@@ -198,7 +198,7 @@ namespace hohberg_detail {
     // Try to find b (which may originally have been a)
     while (*last != b) {
       if (last == first) {
-#if defined(PBGL_HOHBERG_DEBUG) and PBGL_HOHBERG_DEBUG > 2
+#if defined(PBGL_HOHBERG_DEBUG) && PBGL_HOHBERG_DEBUG > 2
         std::cerr << local(*first) << '@' << owner(*first) << std::endl;
 #endif
         return *first;
@@ -912,7 +912,6 @@ hohberg_biconnected_components
   BOOST_CONCEPT_ASSERT(( IncidenceGraphConcept<Graph> ));
 
   typedef typename graph_traits<Graph>::edges_size_type edges_size_type;
-  typedef typename graph_traits<Graph>::degree_size_type degree_size_type;
   typedef typename graph_traits<Graph>::vertex_descriptor vertex_descriptor;
   typedef typename graph_traits<Graph>::edge_descriptor edge_descriptor;
 
@@ -942,7 +941,6 @@ hohberg_biconnected_components
   std::size_t path_length = 1;
 
   typedef std::vector<vertex_descriptor> path_t;
-  typedef typename path_t::iterator path_iterator;
 
   unsigned char minimum_phase = 5;
   do {

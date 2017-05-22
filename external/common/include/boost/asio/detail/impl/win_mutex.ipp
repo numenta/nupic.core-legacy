@@ -2,7 +2,7 @@
 // detail/impl/win_mutex.ipp
 // ~~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2012 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2017 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -17,7 +17,7 @@
 
 #include <boost/asio/detail/config.hpp>
 
-#if defined(BOOST_WINDOWS)
+#if defined(BOOST_ASIO_WINDOWS)
 
 #include <boost/asio/detail/throw_error.hpp>
 #include <boost/asio/detail/win_mutex.hpp>
@@ -44,6 +44,9 @@ int win_mutex::do_init()
   // we'll just call the Windows API and hope.
 # if defined(UNDER_CE)
   ::InitializeCriticalSection(&crit_section_);
+# elif defined(BOOST_ASIO_WINDOWS_APP)
+  if (!::InitializeCriticalSectionEx(&crit_section_, 0, 0))
+    return ::GetLastError();
 # else
   if (!::InitializeCriticalSectionAndSpinCount(&crit_section_, 0x80000000))
     return ::GetLastError();
@@ -54,6 +57,9 @@ int win_mutex::do_init()
   {
 # if defined(UNDER_CE)
     ::InitializeCriticalSection(&crit_section_);
+# elif defined(BOOST_ASIO_WINDOWS_APP)
+    if (!::InitializeCriticalSectionEx(&crit_section_, 0, 0))
+      return ::GetLastError();
 # else
     if (!::InitializeCriticalSectionAndSpinCount(&crit_section_, 0x80000000))
       return ::GetLastError();
@@ -75,6 +81,6 @@ int win_mutex::do_init()
 
 #include <boost/asio/detail/pop_options.hpp>
 
-#endif // defined(BOOST_WINDOWS)
+#endif // defined(BOOST_ASIO_WINDOWS)
 
 #endif // BOOST_ASIO_DETAIL_IMPL_WIN_MUTEX_IPP

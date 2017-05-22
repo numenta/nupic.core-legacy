@@ -22,7 +22,6 @@ Copyright (c) 2007-2011: Joachim Faulhaber
 #endif
 
 #include <string>
-#include <boost/type_traits/ice.hpp>
 #include <boost/call_traits.hpp> 
 #include <boost/icl/detail/notate.hpp>
 #include <boost/icl/detail/design_config.hpp>
@@ -34,9 +33,9 @@ Copyright (c) 2007-2011: Joachim Faulhaber
 #include <boost/icl/type_traits/is_element_container.hpp>
 #include <boost/icl/type_traits/has_inverse.hpp>
 #include <boost/icl/type_traits/to_string.hpp>
-#include <boost/icl/functors.hpp>
 
 #include <boost/icl/associative_element_container.hpp>
+#include <boost/icl/functors.hpp>
 
 namespace boost{namespace icl
 {
@@ -192,13 +191,7 @@ public:
         insert(key_value_pair); 
     }
 
-    map& operator = (const map& src) 
-    { 
-        base_type::operator=(src);
-        return *this; 
-    } 
-
-#   ifndef BOOST_NO_RVALUE_REFERENCES
+#   ifndef BOOST_ICL_NO_CXX11_RVALUE_REFERENCES
     //==========================================================================
     //= Move semantics
     //==========================================================================
@@ -212,13 +205,21 @@ public:
         BOOST_CONCEPT_ASSERT((EqualComparableConcept<CodomainT>));
     }
 
-    map& operator = (map&& src) 
+    map& operator = (map src) 
+    { 
+        base_type::operator=(boost::move(src));
+        return *this; 
+    } 
+    //==========================================================================
+#   else
+
+    map& operator = (const map& src) 
     { 
         base_type::operator=(src);
         return *this; 
     } 
-    //==========================================================================
-#   endif // BOOST_NO_RVALUE_REFERENCES
+
+#   endif // BOOST_ICL_NO_CXX11_RVALUE_REFERENCES
 
     void swap(map& src) { base_type::swap(src); }
 

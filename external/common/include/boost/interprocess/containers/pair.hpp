@@ -11,7 +11,11 @@
 #ifndef BOOST_INTERPROCESS_CONTAINERS_PAIR_HPP
 #define BOOST_INTERPROCESS_CONTAINERS_PAIR_HPP
 
-#if (defined _MSC_VER) && (_MSC_VER >= 1200)
+#ifndef BOOST_CONFIG_HPP
+#  include <boost/config.hpp>
+#endif
+#
+#if defined(BOOST_HAS_PRAGMA_ONCE)
 #  pragma once
 #endif
 
@@ -23,7 +27,6 @@ namespace boost {
 namespace interprocess {
 
 using boost::container::container_detail::pair;
-using boost::container::container_detail::piecewise_construct;
 
 }  //namespace interprocess {
 }  //namespace boost {
