@@ -53,5 +53,4 @@ test:
     - cp build/artifacts/unit_tests_report.xml $CIRCLE_ARTIFACTS/
     - cp dist/*.whl $CIRCLE_ARTIFACTS/
     # If not on a fork, upload artifacts to S3
-    - if [[ "$CIRCLE_REPOSITORY_URL" == "https://github.com/MaxASchwarzer/nupic.core" ]]; then ci/circle/deploy_s3-osx.sh; else echo "Skipping deployment, as this is a fork"; fi
-    
+    - if [[ "$CIRCLE_REPOSITORY_URL" == "https://github.com/numenta/nupic.core" ]]; then ci/circle/deploy_s3-osx.sh; else echo "Skipping deployment, as this is a fork"; fi
