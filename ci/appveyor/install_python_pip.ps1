@@ -97,8 +97,8 @@ function main () {
     Write-Host "pip install " twine
     & $pip_path install twine
 
-    Write-Host "pip install " numpy==1.11.2
-    & $pip_path install numpy==1.11.2
+    Write-Host "pip install " numpy==1.12.1
+    & $pip_path install numpy==1.12.1
 }
 
 main
