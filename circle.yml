@@ -52,10 +52,6 @@ test:
     - cp build/artifacts/unit_tests_report.xml dist/
     - cp build/artifacts/unit_tests_report.xml $CIRCLE_ARTIFACTS/
     - cp dist/*.whl $CIRCLE_ARTIFACTS/
-
-deployment:
- aws:
-  branch: master
-  commands:
-    # Don't want to attempt to deploy on a fork's master, as it will fail the build.
-    - if [[ "$CIRCLE_REPOSITORY_URL" == "https://github.com/numenta/nupic.core" ]]; then ci/circle/deploy_s3-osx.sh; else echo "Skipping deployment, as this is a fork"; fi
+    # If not on a fork, upload artifacts to S3
+    - if [[ "$CIRCLE_REPOSITORY_URL" == "https://github.com/MaxASchwarzer/nupic.core" ]]; then ci/circle/deploy_s3-osx.sh; else echo "Skipping deployment, as this is a fork"; fi
+    
