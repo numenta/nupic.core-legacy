@@ -88,17 +88,17 @@ class SlidingWindow {
 
       /** like append, but return the dropped value if it was dropped.
         :param T newValue - new value to append to the sliding window
-        :param T& - a return pass-by-value with the removed element,
+        :param T* - a return pass-by-value with the removed element,
           if this function returns false, this value will remain unchanged.
         :return bool if some value has been dropped (and updated as 
           droppedValue) 
       */
-      bool append(T newValue, T& droppedValue) {
+      bool append(T newValue, T* droppedValue) {
         //only in this case we drop oldest; this happens always after
         //first maxCap steps ; must be checked before append()
         bool isFull = (buffer_.size()==maxCapacity);
         if(isFull) {
-          droppedValue = buffer_[idxNext_];
+          *droppedValue = buffer_[idxNext_];
         }
         append(newValue);
         return isFull;
