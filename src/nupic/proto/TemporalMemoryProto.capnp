@@ -5,7 +5,7 @@ using import "/nupic/proto/ConnectionsProto.capnp".ConnectionsProto;
 using import "/nupic/proto/ConnectionsProto.capnp".ConnectionsProto.SegmentOverlapProto;
 using import "/nupic/proto/RandomProto.capnp".RandomProto;
 
-# Next ID: 21
+# Next ID: 23
 struct TemporalMemoryProto {
 
   columnDimensions @0 :List(UInt32);
@@ -44,4 +44,5 @@ struct TemporalMemoryProto {
   matchingSegmentOverlaps @20 :List(SegmentOverlapProto);
 
   maxSegmentsPerCell @21 :UInt16;
+  maxSynapsesPerSegment @22 :UInt16;
 }

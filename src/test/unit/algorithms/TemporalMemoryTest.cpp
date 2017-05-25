@@ -901,22 +901,25 @@ namespace {
       /*predictedSegmentDecrement*/ 0.0,
       /*seed*/ 42,
       /*maxSegmentsPerCell*/ 255,
-      /*maxSynapsesPerSegment*/ 3
+      /*maxSynapsesPerSegment*/ 4
       );
 
     // Use 1 cell per column so that we have easy control over the winner cells.
-    const UInt previousActiveColumns[3] = {0, 1, 2};
-    const vector<CellIdx> prevWinnerCells = {0, 1, 2};
+    const UInt previousActiveColumns[3] = {1, 2, 3};
+    const vector<CellIdx> prevWinnerCells = {1, 2, 3};
     const UInt activeColumns[1] = {4};
 
     Segment matchingSegment = tm.createSegment(4);
 
+    // Create a weak synapse. Make sure it's not so weak that
+    // permanenceDecrement destroys it.
+    tm.connections.createSynapse(matchingSegment, 0, 0.11);
+
+    // Create a synapse that will match.
+    tm.connections.createSynapse(matchingSegment, 1, 0.20);
+
     // Create a synapse with a high permanence.
     tm.connections.createSynapse(matchingSegment, 31, 0.6);
-
-    // Create a synapse that is still the weakest after adding
-    // permanenceIncrement.
-    tm.connections.createSynapse(matchingSegment, 0, 0.11);
 
     // Activate a synapse on the segment, making it "matching".
     tm.compute(3, previousActiveColumns);
@@ -929,10 +932,17 @@ namespace {
     // There should now be 3 synapses, and none of them should be to cell 0.
     const vector<Synapse>& synapses =
       tm.connections.synapsesForSegment(matchingSegment);
-    ASSERT_EQ(3, synapses.size());
-    EXPECT_NE(0, tm.connections.dataForSynapse(synapses[0]).presynapticCell);
-    EXPECT_NE(0, tm.connections.dataForSynapse(synapses[1]).presynapticCell);
-    EXPECT_NE(0, tm.connections.dataForSynapse(synapses[2]).presynapticCell);
+    ASSERT_EQ(4, synapses.size());
+
+    std::set<CellIdx> presynapticCells;
+    for (Synapse synapse : synapses)
+    {
+      presynapticCells.insert(
+        tm.connections.dataForSynapse(synapse).presynapticCell);
+    }
+
+    std::set<CellIdx> expected = {1, 2, 3, 31};
+    EXPECT_EQ(expected, presynapticCells);
   }
 
   /**

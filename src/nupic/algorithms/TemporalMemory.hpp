@@ -375,6 +375,20 @@ namespace nupic {
         void setPredictedSegmentDecrement(Permanence);
 
         /**
+         * Returns the maxSegmentsPerCell.
+         *
+         * @returns Max segments per cell
+         */
+        Permanence getMaxSegmentsPerCell() const;
+
+        /**
+         * Returns the maxSynapsesPerSegment.
+         *
+         * @returns Max synapses per segment
+         */
+        Permanence getMaxSynapsesPerSegment() const;
+
+        /**
          * Raises an error if cell index is invalid.
          *
          * @param cell Cell index
@@ -461,6 +475,7 @@ namespace nupic {
         vector<UInt32> numActivePotentialSynapsesForSegment_;
 
         UInt maxSegmentsPerCell_;
+        UInt maxSynapsesPerSegment_;
         UInt64 iteration_;
         vector<UInt64> lastUsedIterationForSegment_;
 

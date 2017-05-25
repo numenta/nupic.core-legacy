@@ -43,17 +43,14 @@ using namespace nupic::algorithms::connections;
 
 static const Permanence EPSILON = 0.00001;
 
-Connections::Connections(CellIdx numCells,
-                         SynapseIdx maxSynapsesPerSegment)
+Connections::Connections(CellIdx numCells)
 {
-  initialize(numCells, maxSynapsesPerSegment);
+  initialize(numCells);
 }
 
-void Connections::initialize(CellIdx numCells,
-                             SynapseIdx maxSynapsesPerSegment)
+void Connections::initialize(CellIdx numCells)
 {
   cells_ = vector<CellData>(numCells);
-  maxSynapsesPerSegment_ = maxSynapsesPerSegment;
 
   // Every time a segment or synapse is created, we assign it an ordinal and
   // increment the nextOrdinal. Ordinals are never recycled, so they can be used
@@ -111,12 +108,7 @@ Synapse Connections::createSynapse(Segment segment,
                                    CellIdx presynapticCell,
                                    Permanence permanence)
 {
-  NTA_CHECK(maxSynapsesPerSegment_ > 0);
   NTA_CHECK(permanence > 0);
-  while (numSynapses(segment) >= maxSynapsesPerSegment_)
-  {
-    destroySynapse(minPermanenceSynapse_(segment));
-  }
 
   Synapse synapse;
   if (destroyedSynapses_.size() > 0)
@@ -432,7 +424,6 @@ void Connections::save(std::ostream& outStream) const
   outStream << Connections::VERSION << endl;
 
   outStream << cells_.size() << " "
-            << maxSynapsesPerSegment_ << " "
             << endl;
 
   for (CellData cellData : cells_)
@@ -491,8 +482,6 @@ void Connections::write(ConnectionsProto::Builder& proto) const
       }
     }
   }
-
-  proto.setMaxSynapsesPerSegment(maxSynapsesPerSegment_);
 }
 
 void Connections::load(std::istream& inStream)
@@ -509,10 +498,9 @@ void Connections::load(std::istream& inStream)
 
   // Retrieve simple variables
   UInt numCells;
-  inStream >> numCells
-           >> maxSynapsesPerSegment_;
+  inStream >> numCells;
 
-  initialize(numCells, maxSynapsesPerSegment_);
+  initialize(numCells);
 
   // This logic is complicated by the fact that old versions of the Connections
   // serialized "destroyed" segments and synapses, which we now ignore.
@@ -591,8 +579,7 @@ void Connections::read(ConnectionsProto::Reader& proto)
 
   auto protoCells = proto.getCells();
 
-  initialize(protoCells.size(),
-             proto.getMaxSynapsesPerSegment());
+  initialize(protoCells.size());
 
   for (CellIdx cell = 0; cell < protoCells.size(); ++cell)
   {
@@ -670,8 +657,6 @@ UInt Connections::numSynapses(Segment segment) const
 
 bool Connections::operator==(const Connections &other) const
 {
-  if (maxSynapsesPerSegment_ != other.maxSynapsesPerSegment_) return false;
-
   if (cells_.size() != other.cells_.size()) return false;
 
   for (CellIdx i = 0; i < cells_.size(); ++i)

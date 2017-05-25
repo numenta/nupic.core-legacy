@@ -174,12 +174,11 @@ void TemporalMemory::initialize(
   predictedSegmentDecrement_ = predictedSegmentDecrement;
 
   // Initialize member variables
-  connections = Connections(
-    numberOfColumns() * cellsPerColumn_,
-    maxSynapsesPerSegment);
+  connections = Connections(numberOfColumns() * cellsPerColumn_);
   seed_((UInt64)(seed < 0 ? rand() : seed));
 
   maxSegmentsPerCell_ = maxSegmentsPerCell;
+  maxSynapsesPerSegment_ = maxSynapsesPerSegment;
   iteration_ = 0;
 
   activeCells_.clear();
@@ -280,13 +279,69 @@ static void adaptSegment(
   }
 }
 
+static void destroyMinPermanenceSynapses(
+  Connections& connections,
+  Random& rng,
+  Segment segment,
+  Int nDestroy,
+  const vector<CellIdx>& excludeCells)
+{
+  // Don't destroy any cells that are in excludeCells.
+  vector<Synapse> destroyCandidates;
+  for (Synapse synapse : connections.synapsesForSegment(segment))
+  {
+    const CellIdx presynapticCell =
+      connections.dataForSynapse(synapse).presynapticCell;
+
+    if (!std::binary_search(excludeCells.begin(), excludeCells.end(),
+                            presynapticCell))
+    {
+      destroyCandidates.push_back(synapse);
+    }
+  }
+
+  // Find cells one at a time. This is slow, but this code rarely runs, and it
+  // needs to work around floating point differences between environments.
+  vector<Synapse> toDestroy;
+  for (Int32 i = 0; i < nDestroy && !destroyCandidates.empty(); i++)
+  {
+    Permanence minPermanence = std::numeric_limits<Permanence>::max();
+    vector<Synapse>::iterator minSynapse = destroyCandidates.end();
+
+    for (auto synapse = destroyCandidates.begin();
+         synapse != destroyCandidates.end();
+         synapse++)
+    {
+      const Permanence permanence =
+        connections.dataForSynapse(*synapse).permanence;
+
+      // Use special EPSILON logic to compensate for floating point
+      // differences between C++ and other environments.
+      if (permanence < minPermanence - EPSILON)
+      {
+        minSynapse = synapse;
+        minPermanence = permanence;
+      }
+    }
+
+    toDestroy.push_back(*minSynapse);
+    destroyCandidates.erase(minSynapse);
+  }
+
+  for (Synapse synapse : toDestroy)
+  {
+    connections.destroySynapse(synapse);
+  }
+}
+
 static void growSynapses(
   Connections& connections,
   Random& rng,
   Segment segment,
   UInt32 nDesiredNewSynapses,
   const vector<CellIdx>& prevWinnerCells,
-  Permanence initialPermanence)
+  Permanence initialPermanence,
+  UInt maxSynapsesPerSegment)
 {
   // It's possible to optimize this, swapping candidates to the end as
   // they're used. But this is awkward to mimic in other
@@ -312,8 +367,22 @@ static void growSynapses(
   const UInt32 nActual = std::min(nDesiredNewSynapses,
                                   (UInt32)candidates.size());
 
+  // Check if we're going to surpass the maximum number of synapses.
+  const Int32 overrun = (connections.numSynapses(segment) +
+                         nDesiredNewSynapses - maxSynapsesPerSegment);
+  if (overrun > 0)
+  {
+    destroyMinPermanenceSynapses(connections, rng, segment, overrun,
+                                 prevWinnerCells);
+  }
+
+  // Recalculate in case we weren't able to destroy as many synapses as needed.
+  const UInt32 nActualWithMax = std::min(nActual,
+                                         maxSynapsesPerSegment -
+                                         connections.numSynapses(segment));
+
   // Pick nActual cells randomly.
-  for (UInt32 c = 0; c < nActual; c++)
+  for (UInt32 c = 0; c < nActualWithMax; c++)
   {
     size_t i = rng.getUInt32(candidates.size());
     connections.createSynapse(segment, candidates[i], initialPermanence);
@@ -335,6 +404,7 @@ static void activatePredictedColumn(
   Permanence initialPermanence,
   Permanence permanenceIncrement,
   Permanence permanenceDecrement,
+  UInt maxSynapsesPerSegment,
   bool learn)
 {
   auto activeSegment = columnActiveSegmentsBegin;
@@ -361,7 +431,7 @@ static void activatePredictedColumn(
           growSynapses(connections, rng,
                        *activeSegment, nGrowDesired,
                        prevWinnerCells,
-                       initialPermanence);
+                       initialPermanence, maxSynapsesPerSegment);
         }
       }
     } while (++activeSegment != columnActiveSegmentsEnd &&
@@ -418,6 +488,7 @@ static void burstColumn(
   Permanence permanenceIncrement,
   Permanence permanenceDecrement,
   UInt maxSegmentsPerCell,
+  UInt maxSynapsesPerSegment,
   bool learn)
 {
   // Calculate the active cells.
@@ -460,7 +531,7 @@ static void burstColumn(
         growSynapses(connections, rng,
                      *bestMatchingSegment, nGrowDesired,
                      prevWinnerCells,
-                     initialPermanence);
+                     initialPermanence, maxSynapsesPerSegment);
       }
     }
     else
@@ -480,7 +551,7 @@ static void burstColumn(
         growSynapses(connections, rng,
                      segment, nGrowExact,
                      prevWinnerCells,
-                     initialPermanence);
+                     initialPermanence, maxSynapsesPerSegment);
         NTA_ASSERT(connections.numSynapses(segment) == nGrowExact);
       }
     }
@@ -554,7 +625,7 @@ void TemporalMemory::activateCells(
           numActivePotentialSynapsesForSegment_,
           maxNewSynapseCount_,
           initialPermanence_, permanenceIncrement_, permanenceDecrement_,
-          learn);
+          maxSynapsesPerSegment_, learn);
       }
       else
       {
@@ -566,7 +637,7 @@ void TemporalMemory::activateCells(
           numActivePotentialSynapsesForSegment_, iteration_,
           cellsPerColumn_, maxNewSynapseCount_,
           initialPermanence_, permanenceIncrement_, permanenceDecrement_,
-          maxSegmentsPerCell_, learn);
+          maxSegmentsPerCell_, maxSynapsesPerSegment_, learn);
       }
     }
     else
@@ -834,6 +905,16 @@ void TemporalMemory::setPredictedSegmentDecrement(Permanence predictedSegmentDec
   predictedSegmentDecrement_ = predictedSegmentDecrement;
 }
 
+Permanence TemporalMemory::getMaxSegmentsPerCell() const
+{
+  return maxSegmentsPerCell_;
+}
+
+Permanence TemporalMemory::getMaxSynapsesPerSegment() const
+{
+  return maxSynapsesPerSegment_;
+}
+
 UInt TemporalMemory::version() const
 {
   return TM_VERSION;
@@ -966,6 +1047,7 @@ void TemporalMemory::write(TemporalMemoryProto::Builder& proto) const
   proto.setPredictedSegmentDecrement(predictedSegmentDecrement_);
 
   proto.setMaxSegmentsPerCell(maxSegmentsPerCell_);
+  proto.setMaxSynapsesPerSegment(maxSynapsesPerSegment_);
 
   auto _connections = proto.initConnections();
   connections.write(_connections);
@@ -1048,6 +1130,7 @@ void TemporalMemory::read(TemporalMemoryProto::Reader& proto)
   predictedSegmentDecrement_ = proto.getPredictedSegmentDecrement();
 
   maxSegmentsPerCell_ = proto.getMaxSegmentsPerCell();
+  maxSynapsesPerSegment_ = proto.getMaxSynapsesPerSegment();
 
   auto _connections = proto.getConnections();
   connections.read(_connections);
@@ -1259,7 +1342,9 @@ void TemporalMemory::printParameters()
     << "maxNewSynapseCount        = " << getMaxNewSynapseCount() << std::endl
     << "permanenceIncrement       = " << getPermanenceIncrement() << std::endl
     << "permanenceDecrement       = " << getPermanenceDecrement() << std::endl
-    << "predictedSegmentDecrement = " << getPredictedSegmentDecrement() << std::endl;
+    << "predictedSegmentDecrement = " << getPredictedSegmentDecrement() << std::endl
+    << "maxSegmentsPerCell        = " << getMaxSegmentsPerCell() << std::endl
+    << "maxSynapsesPerSegment     = " << getMaxSynapsesPerSegment() << std::endl;
 }
 
 void TemporalMemory::printState(vector<UInt> &state)

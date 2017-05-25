@@ -35,7 +35,6 @@ struct ConnectionsProto {
   }
 
   cells @0 :List(CellProto);
-  maxSynapsesPerSegment @1 :UInt16;
-  version @2 :UInt16;
+  version @1 :UInt16;
 
 }

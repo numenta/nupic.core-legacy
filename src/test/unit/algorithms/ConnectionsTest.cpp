@@ -143,48 +143,6 @@ namespace {
   }
 
   /**
-  * Creates a synapse over the synapses per segment limit, and verifies
-  * that the lowest permanence synapse is removed to make room for the new
-  * synapse. Synapses are ordered by age.
-  */
-  TEST(ConnectionsTest, testSynapseReuse)
-  {
-    // Limit to only two synapses per segment
-    Connections connections(1024, 2);
-    UInt32 cell = 10;
-    Segment segment = connections.createSegment(cell);
-    Synapse synapse;
-    vector<Synapse> synapses;
-    SynapseData synapseData;
-
-    synapse = connections.createSynapse(segment, 50, 0.34);
-    synapse = connections.createSynapse(segment, 51, 0.48);
-
-    // Verify that the synapses we added are there
-    synapses = connections.synapsesForSegment(segment);
-    ASSERT_EQ(2, synapses.size());
-    synapseData = connections.dataForSynapse(synapses[0]);
-    ASSERT_EQ(50, synapseData.presynapticCell);
-    ASSERT_NEAR((Permanence)0.34, synapseData.permanence, EPSILON);
-    synapseData = connections.dataForSynapse(synapses[1]);
-    ASSERT_EQ(51, synapseData.presynapticCell);
-    ASSERT_NEAR((Permanence)0.48, synapseData.permanence, EPSILON);
-
-    // Add an additional synapse over the limit
-    synapse = connections.createSynapse(segment, 52, 0.52);
-
-    // Verify that the lowest permanence synapse was removed
-    synapses = connections.synapsesForSegment(segment);
-    ASSERT_EQ(2, synapses.size());
-    synapseData = connections.dataForSynapse(synapses[0]);
-    ASSERT_EQ(51, synapseData.presynapticCell);
-    ASSERT_NEAR((Permanence)0.48, synapseData.permanence, EPSILON);
-    synapseData = connections.dataForSynapse(synapses[1]);
-    ASSERT_EQ(52, synapseData.presynapticCell);
-    ASSERT_NEAR((Permanence)0.52, synapseData.permanence, EPSILON);
-  }
-
-  /**
    * Creates a segment, destroys it, and makes sure it got destroyed along with
    * all of its synapses.
    */
@@ -341,56 +299,6 @@ namespace {
 
     EXPECT_EQ(0, connections.numSynapses(reincarnated));
     EXPECT_EQ(0, connections.synapsesForSegment(reincarnated).size());
-  }
-
-  /**
-   * Destroy some synapses then verify that the maxSynapsesPerSegment is still
-   * correctly applied.
-   */
-  TEST(ConnectionsTest, DestroySynapsesThenReachLimit)
-  {
-    Connections connections(1024, 2);
-
-    Segment segment = connections.createSegment(10);
-
-    {
-      Synapse synapse1 = connections.createSynapse(segment, 201, 0.85);
-      Synapse synapse2 = connections.createSynapse(segment, 202, 0.85);
-      ASSERT_EQ(2, connections.numSynapses());
-      connections.destroySynapse(synapse1);
-      connections.destroySynapse(synapse2);
-      ASSERT_EQ(0, connections.numSynapses());
-    }
-
-    {
-      connections.createSynapse(segment, 201, 0.85);
-      EXPECT_EQ(1, connections.numSynapses());
-      connections.createSynapse(segment, 202, 0.90);
-      EXPECT_EQ(2, connections.numSynapses());
-      connections.createSynapse(segment, 203, 0.80);
-      EXPECT_EQ(2, connections.numSynapses(segment));
-      EXPECT_EQ(2, connections.numSynapses());
-    }
-  }
-
-  /**
-   * Hit the maxSynapsesPerSegment threshold multiple times. Make sure it works
-   * more than once.
-   */
-  TEST(ConnectionsTest, ReachSynapseLimitMultipleTimes)
-  {
-    Connections connections(1024, 2);
-
-    Segment segment = connections.createSegment(10);
-    connections.createSynapse(segment, 201, 0.85);
-    ASSERT_EQ(1, connections.numSynapses());
-    connections.createSynapse(segment, 202, 0.90);
-    ASSERT_EQ(2, connections.numSynapses());
-    connections.createSynapse(segment, 203, 0.80);
-    ASSERT_EQ(2, connections.numSynapses());
-    connections.createSynapse(segment, 204, 0.80);
-    EXPECT_EQ(2, connections.numSynapses(segment));
-    EXPECT_EQ(2, connections.numSynapses());
   }
 
   /**
@@ -612,7 +520,7 @@ namespace {
   TEST(ConnectionsTest, testWriteRead)
   {
     const char* filename = "ConnectionsSerialization.tmp";
-    Connections c1(1024, 1024), c2;
+    Connections c1(1024), c2;
     setupSampleConnections(c1);
 
     Segment segment = c1.createSegment(10);
@@ -637,7 +545,7 @@ namespace {
 
   TEST(ConnectionsTest, testSaveLoad)
   {
-    Connections c1(1024, 1024), c2;
+    Connections c1(1024), c2;
     setupSampleConnections(c1);
 
     auto segment = c1.createSegment(10);

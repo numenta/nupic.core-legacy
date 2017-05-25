@@ -206,10 +206,8 @@ namespace nupic
          * Connections constructor.
          *
          * @param numCells              Number of cells.
-         * @param maxSynapsesPerSegment Maximum number of synapses per segment.
          */
-        Connections(CellIdx numCells,
-                    SynapseIdx maxSynapsesPerSegment=255);
+        Connections(CellIdx numCells);
 
         virtual ~Connections() {}
 
@@ -217,10 +215,8 @@ namespace nupic
          * Initialize connections.
          *
          * @param numCells              Number of cells.
-         * @param maxSynapsesPerSegment Maximum number of synapses per segment.
          */
-        void initialize(CellIdx numCells,
-                        SynapseIdx maxSynapsesPerSegment);
+        void initialize(CellIdx numCells);
 
         /**
          * Creates a segment on the specified cell.
@@ -573,7 +569,6 @@ namespace nupic
         UInt64 nextSegmentOrdinal_;
         UInt64 nextSynapseOrdinal_;
 
-        SynapseIdx maxSynapsesPerSegment_;
         UInt32 nextEventToken_;
         std::map<UInt32, ConnectionsEventHandler*> eventHandlers_;
       }; // end class Connections
