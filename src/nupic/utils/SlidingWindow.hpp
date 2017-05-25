@@ -132,9 +132,8 @@ class SlidingWindow {
 
 
       bool operator==(const SlidingWindow& r2) const {
-        return ((this->size() == r2.size()) && (this->maxCapacity == r2.maxCapacity) &&
-          (this->getData()== r2.getData()) && getLinearizedData() == r2.getLinearizedData());
-        //FIXME review the ==, on my machine it randomly passes/fails the test!
+        const bool sameSizes = (this->size() == r2.size()) && (this->maxCapacity == r2.maxCapacity);
+        return sameSizes && std::equal(this->buffer_.cbegin(), this->buffer_.cend(), r2.getData().cbegin()); //also content must be same
       }
 
 
