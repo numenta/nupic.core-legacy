@@ -93,7 +93,7 @@ class SlidingWindow {
       bool append(T newValue, T* droppedValue) {
         //only in this case we drop oldest; this happens always after
         //first maxCap steps ; must be checked before append()
-        bool isFull = (buffer_.size()==maxCapacity);
+        const bool isFull = (buffer_.size()==maxCapacity);
         if(isFull) {
           *droppedValue = buffer_[idxNext_];
         }
