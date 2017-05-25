@@ -58,7 +58,6 @@ class SlidingWindow {
       for(IteratorT it = initialData_begin; it != initialData_end; ++it) {
         append(*it);
       }
-      idxNext_ = buffer_.size() % maxCapacity; //TODO remove, not needed
     }
 
     const UInt maxCapacity;
@@ -80,8 +79,6 @@ class SlidingWindow {
       } else {
         buffer_[idxNext_] = newValue;
       }
-      //the assignment must be out of the [] above, so not [idxNext_++%maxCap],
-      // because we want to store the value %maxCap, not only ++
       idxNext_ = (idxNext_ +1 ) %maxCapacity;
     }
 
