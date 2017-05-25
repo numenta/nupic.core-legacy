@@ -156,7 +156,7 @@ namespace nupic
   {
     clock_t timer = clock();
 
-    Connections connections(numCells, 1, numInputs);
+    Connections connections(numCells, numInputs);
     Segment segment;
     vector<CellIdx> sdr;
 

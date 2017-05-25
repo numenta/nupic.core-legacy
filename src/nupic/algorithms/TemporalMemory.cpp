@@ -176,9 +176,11 @@ void TemporalMemory::initialize(
   // Initialize member variables
   connections = Connections(
     numberOfColumns() * cellsPerColumn_,
-    maxSegmentsPerCell,
     maxSynapsesPerSegment);
   seed_((UInt64)(seed < 0 ? rand() : seed));
+
+  maxSegmentsPerCell_ = maxSegmentsPerCell;
+  iteration_ = 0;
 
   activeCells_.clear();
   winnerCells_.clear();
@@ -367,22 +369,55 @@ static void activatePredictedColumn(
   } while (activeSegment != columnActiveSegmentsEnd);
 }
 
+static Segment createSegment(
+  Connections& connections,
+  vector<UInt64>& lastUsedIterationForSegment,
+  CellIdx cell,
+  UInt64 iteration,
+  UInt maxSegmentsPerCell)
+{
+  if (connections.numSegments(cell) >= maxSegmentsPerCell)
+  {
+    const vector<Segment>& destroyCandidates =
+      connections.segmentsForCell(cell);
+
+    auto leastRecentlyUsedSegment = std::min_element(
+      destroyCandidates.begin(), destroyCandidates.end(),
+      [&](Segment a, Segment b)
+      {
+        return (lastUsedIterationForSegment[a] <
+                lastUsedIterationForSegment[b]);
+      });
+
+    connections.destroySegment(*leastRecentlyUsedSegment);
+  }
+
+  const Segment segment = connections.createSegment(cell);
+  lastUsedIterationForSegment.resize(connections.segmentFlatListLength());
+  lastUsedIterationForSegment[segment] = iteration;
+
+  return segment;
+}
+
 static void burstColumn(
   vector<CellIdx>& activeCells,
   vector<CellIdx>& winnerCells,
   Connections& connections,
   Random& rng,
+  vector<UInt64>& lastUsedIterationForSegment,
   UInt column,
   vector<Segment>::const_iterator columnMatchingSegmentsBegin,
   vector<Segment>::const_iterator columnMatchingSegmentsEnd,
   const vector<bool>& prevActiveCellsDense,
   const vector<CellIdx>& prevWinnerCells,
   const vector<UInt32>& numActivePotentialSynapsesForSegment,
+  UInt64 iteration,
   UInt cellsPerColumn,
   UInt maxNewSynapseCount,
   Permanence initialPermanence,
   Permanence permanenceIncrement,
   Permanence permanenceDecrement,
+  UInt maxSegmentsPerCell,
   bool learn)
 {
   // Calculate the active cells.
@@ -438,7 +473,10 @@ static void burstColumn(
                                          (UInt32)prevWinnerCells.size());
       if (nGrowExact > 0)
       {
-        const Segment segment = connections.createSegment(winnerCell);
+        const Segment segment =
+          createSegment(connections, lastUsedIterationForSegment,
+                        winnerCell, iteration, maxSegmentsPerCell);
+
         growSynapses(connections, rng,
                      segment, nGrowExact,
                      prevWinnerCells,
@@ -522,12 +560,13 @@ void TemporalMemory::activateCells(
       {
         burstColumn(
           activeCells_, winnerCells_, connections, rng_,
+          lastUsedIterationForSegment_,
           column, columnMatchingSegmentsBegin, columnMatchingSegmentsEnd,
           prevActiveCellsDense, prevWinnerCells,
-          numActivePotentialSynapsesForSegment_,
+          numActivePotentialSynapsesForSegment_, iteration_,
           cellsPerColumn_, maxNewSynapseCount_,
           initialPermanence_, permanenceIncrement_, permanenceDecrement_,
-          learn);
+          maxSegmentsPerCell_, learn);
       }
     }
     else
@@ -593,10 +632,10 @@ void TemporalMemory::activateDendrites(bool learn)
   {
     for (Segment segment : activeSegments_)
     {
-      connections.recordSegmentActivity(segment);
+      lastUsedIterationForSegment_[segment] = iteration_;
     }
 
-    connections.startNewIteration();
+    iteration_++;
   }
 }
 
@@ -620,6 +659,12 @@ void TemporalMemory::reset(void)
 // ==============================
 //  Helper functions
 // ==============================
+
+Segment TemporalMemory::createSegment(CellIdx cell)
+{
+  return ::createSegment(connections, lastUsedIterationForSegment_,
+                         cell, iteration_, maxSegmentsPerCell_);
+}
 
 Int TemporalMemory::columnForCell(CellIdx cell)
 {
@@ -920,6 +965,8 @@ void TemporalMemory::write(TemporalMemoryProto::Builder& proto) const
   proto.setPermanenceDecrement(permanenceDecrement_);
   proto.setPredictedSegmentDecrement(predictedSegmentDecrement_);
 
+  proto.setMaxSegmentsPerCell(maxSegmentsPerCell_);
+
   auto _connections = proto.initConnections();
   connections.write(_connections);
 
@@ -999,6 +1046,8 @@ void TemporalMemory::read(TemporalMemoryProto::Reader& proto)
   permanenceIncrement_ = proto.getPermanenceIncrement();
   permanenceDecrement_ = proto.getPermanenceDecrement();
   predictedSegmentDecrement_ = proto.getPredictedSegmentDecrement();
+
+  maxSegmentsPerCell_ = proto.getMaxSegmentsPerCell();
 
   auto _connections = proto.getConnections();
   connections.read(_connections);

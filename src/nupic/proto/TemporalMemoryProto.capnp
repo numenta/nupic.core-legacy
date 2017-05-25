@@ -42,4 +42,6 @@ struct TemporalMemoryProto {
   predictedSegmentDecrement @18 :Float32;
   activeSegmentOverlaps @19 :List(SegmentOverlapProto);
   matchingSegmentOverlaps @20 :List(SegmentOverlapProto);
+
+  maxSegmentsPerCell @21 :UInt16;
 }

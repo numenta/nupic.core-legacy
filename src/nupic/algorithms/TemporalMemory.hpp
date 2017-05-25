@@ -235,6 +235,20 @@ namespace nupic {
         // ==============================
 
         /**
+         * Create a segment on the specified cell. This method calls
+         * createSegment on the underlying connections, and it does some extra
+         * bookkeeping. Unit tests should call this method, and not
+         * connections.createSegment().
+         *
+         * @param cell
+         * Cell to add a segment to.
+         *
+         * @return Segment
+         * The created segment.
+         */
+        Segment createSegment(CellIdx cell);
+
+        /**
          * Returns the indices of cells that belong to a column.
          *
          * @param column Column index
@@ -445,6 +459,10 @@ namespace nupic {
         vector<Segment> matchingSegments_;
         vector<UInt32> numActiveConnectedSynapsesForSegment_;
         vector<UInt32> numActivePotentialSynapsesForSegment_;
+
+        UInt maxSegmentsPerCell_;
+        UInt64 iteration_;
+        vector<UInt64> lastUsedIterationForSegment_;
 
         Random rng_;
 
