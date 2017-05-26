@@ -2,11 +2,27 @@
 
 # TODO: Use absolute path
 using import "/nupic/proto/ConnectionsProto.capnp".ConnectionsProto;
-using import "/nupic/proto/ConnectionsProto.capnp".ConnectionsProto.SegmentOverlapProto;
 using import "/nupic/proto/RandomProto.capnp".RandomProto;
 
-# Next ID: 21
+# Next ID: 22
 struct TemporalMemoryProto {
+
+  struct SegmentPath {
+    cell @0 :UInt32;
+    idxOnCell @1 :UInt32;
+  }
+
+  struct SegmentUInt32Pair {
+    cell @0 :UInt32;
+    idxOnCell @1 :UInt32;
+    number @2 :UInt32;
+  }
+
+  struct SegmentUInt64Pair {
+    cell @0 :UInt32;
+    idxOnCell @1 :UInt32;
+    number @2 :UInt64;
+  }
 
   columnDimensions @0 :List(UInt32);
   cellsPerColumn @1 :UInt32;
@@ -17,29 +33,23 @@ struct TemporalMemoryProto {
   minThreshold @6 :UInt32;
   maxNewSynapseCount @7 :UInt32;
   permanenceIncrement @8 :Float32;
-  permanenceDecrement @9 :Float32;  
+  permanenceDecrement @9 :Float32;
+  predictedSegmentDecrement @10 :Float32;
+  maxSegmentsPerCell @11 :UInt16;
+  maxSynapsesPerSegment @12 :UInt16;
 
-  connections @10 :ConnectionsProto;
-  random @11 :RandomProto;
+  connections @13 :ConnectionsProto;
+  random @14 :RandomProto;
 
   # Lists of indices
-  activeCells @12 :List(UInt32);
+  activeCells @15 :List(UInt32);
+  winnerCells @16 :List(UInt32);
 
-  # Obsolete, information contained in activeSegmentOverlaps
-  predictiveCells @13 :List(UInt32);
+  activeSegments @17 :List(SegmentPath);
+  matchingSegments @18 :List(SegmentPath);
 
-  # Obsolete, replaced by activeSegmentOverlaps
-  activeSegments @14 :List(UInt32);
+  numActivePotentialSynapsesForSegment @19 :List(SegmentUInt32Pair);
 
-  winnerCells @15 :List(UInt32);
-
-  # Obsolete, replaced by matchingSegmentOverlaps
-  matchingSegments @16 :List(UInt32);
-
-  # Obsolete, information contained in matchingSegmentOverlaps
-  matchingCells @17 :List(UInt32);
-
-  predictedSegmentDecrement @18 :Float32;
-  activeSegmentOverlaps @19 :List(SegmentOverlapProto);
-  matchingSegmentOverlaps @20 :List(SegmentOverlapProto);
+  iteration @20 :UInt64;
+  lastUsedIterationForSegment @21 :List(SegmentUInt64Pair);
 }
