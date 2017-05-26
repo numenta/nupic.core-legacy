@@ -268,6 +268,14 @@ CellIdx Connections::cellForSegment(Segment segment) const
   return segments_[segment].cell;
 }
 
+SegmentIdx Connections::idxOnCellForSegment(Segment segment) const
+{
+  const vector<Segment>& segments = segmentsForCell(cellForSegment(segment));
+  const auto it = std::find(segments.begin(), segments.end(), segment);
+  NTA_ASSERT(it != segments.end());
+  return std::distance(segments.begin(), it);
+}
+
 void Connections::mapSegmentsToCells(
   const Segment* segments_begin, const Segment* segments_end,
   CellIdx* cells_begin) const
@@ -470,7 +478,6 @@ void Connections::write(ConnectionsProto::Builder& proto) const
       const vector<Synapse>& synapses = segmentData.synapses;
 
       auto protoSynapses = protoSegments[j].initSynapses(synapses.size());
-      protoSegments[j].setDestroyed(false);
 
       for (SynapseIdx k = 0; k < synapses.size(); ++k)
       {
@@ -478,7 +485,6 @@ void Connections::write(ConnectionsProto::Builder& proto) const
 
         protoSynapses[k].setPresynapticCell(synapseData.presynapticCell);
         protoSynapses[k].setPermanence(synapseData.permanence);
-        protoSynapses[k].setDestroyed(false);
       }
     }
   }
@@ -589,11 +595,6 @@ void Connections::read(ConnectionsProto::Reader& proto)
 
     for (SegmentIdx j = 0; j < (SegmentIdx)protoSegments.size(); ++j)
     {
-      if (protoSegments[j].getDestroyed())
-      {
-        continue;
-      }
-
       Segment segment;
       {
         const SegmentData segmentData = {vector<Synapse>(),
@@ -610,11 +611,6 @@ void Connections::read(ConnectionsProto::Reader& proto)
 
       for (SynapseIdx k = 0; k < protoSynapses.size(); ++k)
       {
-        if (protoSynapses[k].getDestroyed())
-        {
-          continue;
-        }
-
         CellIdx presynapticCell = protoSynapses[k].getPresynapticCell();
         SynapseData synapseData = {presynapticCell,
                                    protoSynapses[k].getPermanence(),

@@ -291,6 +291,15 @@ namespace nupic
         CellIdx cellForSegment(Segment segment) const;
 
         /**
+         * Gets the index of this segment on its respective cell.
+         *
+         * @param segment Segment to get the idx for.
+         *
+         * @retval Index of the segment.
+         */
+        SegmentIdx idxOnCellForSegment(Segment segment) const;
+
+        /**
          * Get the cell for each provided segment.
          *
          * @param segments

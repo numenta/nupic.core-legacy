@@ -965,6 +965,10 @@ void TemporalMemory::save(ostream& outStream) const
   saveFloat_(outStream, permanenceDecrement_);
   saveFloat_(outStream, predictedSegmentDecrement_);
 
+  outStream << maxSegmentsPerCell_ << " "
+            << maxSynapsesPerSegment_ << " "
+            << iteration_ << " ";
+
   outStream << endl;
 
   connections.save(outStream);
@@ -1062,24 +1066,6 @@ void TemporalMemory::write(TemporalMemoryProto::Builder& proto) const
     activeCells.set(i++, cell);
   }
 
-  auto activeSegmentOverlaps =
-    proto.initActiveSegmentOverlaps(activeSegments_.size());
-  for (UInt i = 0; i < activeSegments_.size(); ++i)
-  {
-    const Segment segment = activeSegments_[i];
-    const CellIdx cell = connections.cellForSegment(segment);
-    const vector<Segment>& segments = connections.segmentsForCell(cell);
-
-    SegmentIdx idx = std::distance(
-      segments.begin(),
-      std::find(segments.begin(), segments.end(), segment));
-
-    activeSegmentOverlaps[i].setCell(cell);
-    activeSegmentOverlaps[i].setSegment(idx);
-    activeSegmentOverlaps[i].setOverlap(
-      numActiveConnectedSynapsesForSegment_[segment]);
-  }
-
   auto winnerCells = proto.initWinnerCells(winnerCells_.size());
   i = 0;
   for (CellIdx cell : winnerCells_)
@@ -1087,22 +1073,53 @@ void TemporalMemory::write(TemporalMemoryProto::Builder& proto) const
     winnerCells.set(i++, cell);
   }
 
-  auto matchingSegmentOverlaps =
-    proto.initMatchingSegmentOverlaps(matchingSegments_.size());
+  auto activeSegments = proto.initActiveSegments(activeSegments_.size());
+  for (UInt i = 0; i < activeSegments_.size(); ++i)
+  {
+    activeSegments[i].setCell(
+      connections.cellForSegment(matchingSegments_[i]));
+    activeSegments[i].setIdxOnCell(
+      connections.idxOnCellForSegment(activeSegments_[i]));
+  }
+
+  auto matchingSegments = proto.initMatchingSegments(matchingSegments_.size());
   for (UInt i = 0; i < matchingSegments_.size(); ++i)
   {
-    const Segment segment = matchingSegments_[i];
-    const CellIdx cell = connections.cellForSegment(segment);
-    const vector<Segment>& segments = connections.segmentsForCell(cell);
+    matchingSegments[i].setCell(
+      connections.cellForSegment(matchingSegments_[i]));
+    matchingSegments[i].setIdxOnCell(
+      connections.idxOnCellForSegment(matchingSegments_[i]));
+  }
 
-    SegmentIdx idx = std::distance(
-      segments.begin(),
-      std::find(segments.begin(), segments.end(), segment));
-
-    matchingSegmentOverlaps[i].setCell(cell);
-    matchingSegmentOverlaps[i].setSegment(idx);
-    matchingSegmentOverlaps[i].setOverlap(
+  auto numActivePotentialSynapsesForSegment =
+    proto.initNumActivePotentialSynapsesForSegment(
+      numActivePotentialSynapsesForSegment_.size());
+  for (Segment segment = 0;
+       segment < numActivePotentialSynapsesForSegment_.size();
+       segment++)
+  {
+    numActivePotentialSynapsesForSegment[segment].setCell(
+      connections.cellForSegment(segment));
+    numActivePotentialSynapsesForSegment[segment].setIdxOnCell(
+      connections.idxOnCellForSegment(segment));
+    numActivePotentialSynapsesForSegment[segment].setNumber(
       numActivePotentialSynapsesForSegment_[segment]);
+  }
+
+  proto.setIteration(iteration_);
+
+  auto lastUsedIterationForSegment =
+    proto.initLastUsedIterationForSegment(lastUsedIterationForSegment_.size());
+  for (Segment segment = 0;
+       segment < lastUsedIterationForSegment_.size();
+       ++segment)
+  {
+    lastUsedIterationForSegment[segment].setCell(
+      connections.cellForSegment(segment));
+    lastUsedIterationForSegment[segment].setIdxOnCell(
+      connections.idxOnCellForSegment(segment));
+    lastUsedIterationForSegment[segment].setNumber(
+      lastUsedIterationForSegment_[segment]);
   }
 }
 
@@ -1149,42 +1166,47 @@ void TemporalMemory::read(TemporalMemoryProto::Reader& proto)
     activeCells_.push_back(cell);
   }
 
-  if (proto.getActiveSegments().size())
-  {
-    // There's no way to convert a UInt32 to a segment. It never worked.
-    NTA_WARN << "TemporalMemory::read :: Obsolete field 'activeSegments' isn't usable. "
-             << "TemporalMemory results will be goofy for one timestep.";
-  }
-
-  activeSegments_.clear();
-  for (auto value : proto.getActiveSegmentOverlaps())
-  {
-    const Segment segment = connections.getSegment(value.getCell(),
-                                                   value.getSegment());
-    activeSegments_.push_back(segment);
-    numActiveConnectedSynapsesForSegment_[segment] = value.getOverlap();
-  }
-
   winnerCells_.clear();
   for (auto cell : proto.getWinnerCells())
   {
     winnerCells_.push_back(cell);
   }
 
-  if (proto.getMatchingSegments().size())
+  activeSegments_.clear();
+  for (auto value : proto.getActiveSegments())
   {
-    // There's no way to convert a UInt32 to a segment. It never worked.
-    NTA_WARN << "TemporalMemory::read :: Obsolete field 'matchingSegments' isn't usable. "
-             << "TemporalMemory results will be goofy for one timestep.";
+    const Segment segment = connections.getSegment(value.getCell(),
+                                                   value.getIdxOnCell());
+    activeSegments_.push_back(segment);
   }
 
   matchingSegments_.clear();
-  for (auto value : proto.getMatchingSegmentOverlaps())
+  for (auto value : proto.getMatchingSegments())
   {
     const Segment segment = connections.getSegment(value.getCell(),
-                                                   value.getSegment());
+                                                   value.getIdxOnCell());
     matchingSegments_.push_back(segment);
-    numActivePotentialSynapsesForSegment_[segment] = value.getOverlap();
+  }
+
+  numActivePotentialSynapsesForSegment_.clear();
+  numActivePotentialSynapsesForSegment_.resize(
+    connections.segmentFlatListLength());
+  for (auto segmentNumPair : proto.getNumActivePotentialSynapsesForSegment())
+  {
+    const Segment segment = connections.getSegment(
+      segmentNumPair.getCell(), segmentNumPair.getIdxOnCell());
+    numActivePotentialSynapsesForSegment_[segment] = segmentNumPair.getNumber();
+  }
+
+  iteration_ = proto.getIteration();
+
+  lastUsedIterationForSegment_.clear();
+  lastUsedIterationForSegment_.resize(connections.segmentFlatListLength());
+  for (auto segmentIterationPair : proto.getLastUsedIterationForSegment())
+  {
+    const Segment segment = connections.getSegment(
+      segmentIterationPair.getCell(), segmentIterationPair.getIdxOnCell());
+    lastUsedIterationForSegment_[segment] = segmentIterationPair.getNumber();
   }
 }
 
@@ -1210,7 +1232,10 @@ void TemporalMemory::load(istream& inStream)
     >> maxNewSynapseCount_
     >> permanenceIncrement_
     >> permanenceDecrement_
-    >> predictedSegmentDecrement_;
+    >> predictedSegmentDecrement_
+    >> maxSegmentsPerCell_
+    >> maxSynapsesPerSegment_
+    >> iteration_;
 
   connections.load(inStream);
 
@@ -1317,6 +1342,8 @@ void TemporalMemory::load(istream& inStream)
       inStream >> cell; // Ignore
     }
   }
+
+  lastUsedIterationForSegment_.resize(connections.segmentFlatListLength());
 
   inStream >> marker;
   NTA_CHECK(marker == "~TemporalMemory");
