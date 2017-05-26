@@ -182,6 +182,23 @@ Notes:<dl class="docutils">
 </dd></dl>
 
 <dl class="function">
+<dt id="_CPPv2N5nupic10algorithms15temporal_memory14TemporalMemory13createSegmentE7CellIdx">
+<span id="nupic::algorithms::temporal_memory::TemporalMemory::createSegment__CellIdx"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1temporal__memory_1_1_temporal_memory_1a8eca5125cf5f8e1affe83be60fb7a781"></span>Segment <code class="descname">createSegment</code><span class="sig-paren">(</span>CellIdx <em>cell</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms15temporal_memory14TemporalMemory13createSegmentE7CellIdx" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Create a segment on the specified cell. </p>
+<p>This method calls createSegment on the underlying connections, and it does some extra bookkeeping. Unit tests should call this method, and not connections.createSegment().</p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>Segment The created segment. </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">cell</span></code>: Cell to add a segment to.</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="_CPPv2N5nupic10algorithms15temporal_memory14TemporalMemory14cellsForColumnE3Int">
 <span id="nupic::algorithms::temporal_memory::TemporalMemory::cellsForColumn__Int"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1temporal__memory_1_1_temporal_memory_1a6cdedee66264eb846e3ecc631d84b5f0"></span>vector&lt;CellIdx&gt; <code class="descname">cellsForColumn</code><span class="sig-paren">(</span>Int <em>column</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms15temporal_memory14TemporalMemory14cellsForColumnE3Int" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Returns the indices of cells that belong to a column. </p>
@@ -358,6 +375,28 @@ Notes:<dl class="docutils">
 <p><dl class="docutils">
 <dt><strong>Return</strong></dt>
 <dd>Returns the segment decrement </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2NK5nupic10algorithms15temporal_memory14TemporalMemory21getMaxSegmentsPerCellEv">
+<span id="nupic::algorithms::temporal_memory::TemporalMemory::getMaxSegmentsPerCellC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1temporal__memory_1_1_temporal_memory_1a88644d3c57ec9738c5da38c5a195e222"></span>Permanence <code class="descname">getMaxSegmentsPerCell</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms15temporal_memory14TemporalMemory21getMaxSegmentsPerCellEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns the maxSegmentsPerCell. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>Max segments per cell </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2NK5nupic10algorithms15temporal_memory14TemporalMemory24getMaxSynapsesPerSegmentEv">
+<span id="nupic::algorithms::temporal_memory::TemporalMemory::getMaxSynapsesPerSegmentC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1temporal__memory_1_1_temporal_memory_1a0a498e70ce55902a1df0c4122397735a"></span>Permanence <code class="descname">getMaxSynapsesPerSegment</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms15temporal_memory14TemporalMemory24getMaxSynapsesPerSegmentEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns the maxSynapsesPerSegment. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>Max synapses per segment </dd>
 </dl>
 </p>
 </dd></dl>

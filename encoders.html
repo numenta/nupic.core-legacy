@@ -1407,15 +1407,13 @@ corresponding to indices for which the mask value is 1. <dl class="docutils">
 </dd></dl>
 
 <dl class="function">
-<dt id="_CPPv2N5nupic10algorithms11connections11Connections11ConnectionsE7CellIdx10SegmentIdx10SynapseIdx">
-<span id="nupic::algorithms::connections::Connections::Connections__CellIdx.SegmentIdx.SynapseIdx"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1connections_1_1_connections_1af3c7174f13c090b0d6090de8d6ddd19a"></span><code class="descname">Connections</code><span class="sig-paren">(</span>CellIdx <em>numCells</em>, SegmentIdx <em>maxSegmentsPerCell</em> = 255, SynapseIdx <em>maxSynapsesPerSegment</em> = 255<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms11connections11Connections11ConnectionsE7CellIdx10SegmentIdx10SynapseIdx" title="Permalink to this definition">¶</a><br /></dt>
+<dt id="_CPPv2N5nupic10algorithms11connections11Connections11ConnectionsE7CellIdx">
+<span id="nupic::algorithms::connections::Connections::Connections__CellIdx"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1connections_1_1_connections_1a69ab6cfa364f61cf7ca485b049910bc7"></span><code class="descname">Connections</code><span class="sig-paren">(</span>CellIdx <em>numCells</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms11connections11Connections11ConnectionsE7CellIdx" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p><a class="reference internal" href="#nupic.coreclassnupic_1_1algorithms_1_1connections_1_1_connections"><span class="std std-ref">Connections</span></a> constructor. </p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
 <li><code class="docutils literal"><span class="pre">numCells</span></code>: Number of cells. </li>
-<li><code class="docutils literal"><span class="pre">maxSegmentsPerCell</span></code>: Maximum number of segments per cell. </li>
-<li><code class="docutils literal"><span class="pre">maxSynapsesPerSegment</span></code>: Maximum number of synapses per segment. </li>
 </ul>
 </dd>
 </dl>
@@ -1423,15 +1421,13 @@ corresponding to indices for which the mask value is 1. <dl class="docutils">
 </dd></dl>
 
 <dl class="function">
-<dt id="_CPPv2N5nupic10algorithms11connections11Connections10initializeE7CellIdx10SegmentIdx10SynapseIdx">
-<span id="nupic::algorithms::connections::Connections::initialize__CellIdx.SegmentIdx.SynapseIdx"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1connections_1_1_connections_1a1df1d3eb628e58da35984a8e4548df3a"></span>void <code class="descname">initialize</code><span class="sig-paren">(</span>CellIdx <em>numCells</em>, SegmentIdx <em>maxSegmentsPerCell</em>, SynapseIdx <em>maxSynapsesPerSegment</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms11connections11Connections10initializeE7CellIdx10SegmentIdx10SynapseIdx" title="Permalink to this definition">¶</a><br /></dt>
+<dt id="_CPPv2N5nupic10algorithms11connections11Connections10initializeE7CellIdx">
+<span id="nupic::algorithms::connections::Connections::initialize__CellIdx"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1connections_1_1_connections_1a8f13b6535abd5888d2c5b7721992181b"></span>void <code class="descname">initialize</code><span class="sig-paren">(</span>CellIdx <em>numCells</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms11connections11Connections10initializeE7CellIdx" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Initialize connections. </p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
 <li><code class="docutils literal"><span class="pre">numCells</span></code>: Number of cells. </li>
-<li><code class="docutils literal"><span class="pre">maxSegmentsPerCell</span></code>: Maximum number of segments per cell. </li>
-<li><code class="docutils literal"><span class="pre">maxSynapsesPerSegment</span></code>: Maximum number of synapses per segment. </li>
 </ul>
 </dd>
 </dl>
@@ -1568,6 +1564,25 @@ Created synapse. <dl class="docutils">
 <dt><strong>Return Value</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
 <li><code class="docutils literal"><span class="pre">Cell</span></code>: that this segment is on. </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2NK5nupic10algorithms11connections11Connections19idxOnCellForSegmentE7Segment">
+<span id="nupic::algorithms::connections::Connections::idxOnCellForSegment__SegmentC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1connections_1_1_connections_1a8450a61ad017b145572e12c096fd1b27"></span>SegmentIdx <code class="descname">idxOnCellForSegment</code><span class="sig-paren">(</span>Segment <em>segment</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms11connections11Connections19idxOnCellForSegmentE7Segment" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Gets the index of this segment on its respective cell. </p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">segment</span></code>: Segment to get the idx for.</li>
+</ul>
+</dd>
+<dt><strong>Return Value</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><a class="reference internal" href="math.html#nupic.coreclassnupic_1_1_index"><span class="std std-ref"><span class="pre">Index</span></span></a></code>: of the segment. </li>
 </ul>
 </dd>
 </dl>
@@ -1752,28 +1767,6 @@ Created synapse. <dl class="docutils">
 </dd>
 </dl>
 </p>
-</dd></dl>
-
-<dl class="function">
-<dt id="_CPPv2N5nupic10algorithms11connections11Connections21recordSegmentActivityE7Segment">
-<span id="nupic::algorithms::connections::Connections::recordSegmentActivity__Segment"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1connections_1_1_connections_1a7a51b063be75dbb8bccc9091e9be5dca"></span>void <code class="descname">recordSegmentActivity</code><span class="sig-paren">(</span>Segment <em>segment</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms11connections11Connections21recordSegmentActivityE7Segment" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Record the fact that a segment had some activity. </p>
-<p>This information is used during segment cleanup.</p>
-<p><dl class="docutils">
-<dt><strong>Parameters</strong></dt>
-<dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal"><span class="pre">segment</span></code>: The segment that had some activity. </li>
-</ul>
-</dd>
-</dl>
-</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="_CPPv2N5nupic10algorithms11connections11Connections17startNewIterationEv">
-<span id="nupic::algorithms::connections::Connections::startNewIteration"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1connections_1_1_connections_1a7e87a0b59cda63dfea8d066701facc23"></span>void <code class="descname">startNewIteration</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms11connections11Connections17startNewIterationEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Mark the passage of time. </p>
-<p>This information is used during segment cleanup. </p>
 </dd></dl>
 
 <dl class="function">
