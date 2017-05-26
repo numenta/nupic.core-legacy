@@ -302,7 +302,6 @@ static void destroyMinPermanenceSynapses(
 
   // Find cells one at a time. This is slow, but this code rarely runs, and it
   // needs to work around floating point differences between environments.
-  vector<Synapse> toDestroy;
   for (Int32 i = 0; i < nDestroy && !destroyCandidates.empty(); i++)
   {
     Permanence minPermanence = std::numeric_limits<Permanence>::max();
@@ -324,13 +323,8 @@ static void destroyMinPermanenceSynapses(
       }
     }
 
-    toDestroy.push_back(*minSynapse);
+    connections.destroySynapse(*minSynapse);
     destroyCandidates.erase(minSynapse);
-  }
-
-  for (Synapse synapse : toDestroy)
-  {
-    connections.destroySynapse(synapse);
   }
 }
 
@@ -369,7 +363,7 @@ static void growSynapses(
 
   // Check if we're going to surpass the maximum number of synapses.
   const Int32 overrun = (connections.numSynapses(segment) +
-                         nDesiredNewSynapses - maxSynapsesPerSegment);
+                         nActual - maxSynapsesPerSegment);
   if (overrun > 0)
   {
     destroyMinPermanenceSynapses(connections, rng, segment, overrun,
@@ -446,7 +440,7 @@ static Segment createSegment(
   UInt64 iteration,
   UInt maxSegmentsPerCell)
 {
-  if (connections.numSegments(cell) >= maxSegmentsPerCell)
+  while (connections.numSegments(cell) >= maxSegmentsPerCell)
   {
     const vector<Segment>& destroyCandidates =
       connections.segmentsForCell(cell);
