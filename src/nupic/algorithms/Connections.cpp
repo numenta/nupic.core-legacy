@@ -729,3 +729,8 @@ bool Connections::operator==(const Connections &other) const
 
   return true;
 }
+
+bool Connections::operator!=(const Connections &other) const
+{
+  return !(*this == other);
+}

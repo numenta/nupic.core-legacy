@@ -379,14 +379,14 @@ namespace nupic {
          *
          * @returns Max segments per cell
          */
-        Permanence getMaxSegmentsPerCell() const;
+        UInt getMaxSegmentsPerCell() const;
 
         /**
          * Returns the maxSynapsesPerSegment.
          *
          * @returns Max synapses per segment
          */
-        Permanence getMaxSynapsesPerSegment() const;
+        UInt getMaxSynapsesPerSegment() const;
 
         /**
          * Raises an error if cell index is invalid.
@@ -425,6 +425,9 @@ namespace nupic {
          * @returns Integer number of bytes
          */
         virtual UInt persistentSize() const;
+
+        bool operator==(const TemporalMemory& other);
+        bool operator!=(const TemporalMemory& other);
 
         //----------------------------------------------------------------------
         // Debugging helpers

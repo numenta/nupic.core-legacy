@@ -899,12 +899,12 @@ void TemporalMemory::setPredictedSegmentDecrement(Permanence predictedSegmentDec
   predictedSegmentDecrement_ = predictedSegmentDecrement;
 }
 
-Permanence TemporalMemory::getMaxSegmentsPerCell() const
+UInt TemporalMemory::getMaxSegmentsPerCell() const
 {
   return maxSegmentsPerCell_;
 }
 
-Permanence TemporalMemory::getMaxSynapsesPerSegment() const
+UInt TemporalMemory::getMaxSynapsesPerSegment() const
 {
   return maxSynapsesPerSegment_;
 }
@@ -1071,7 +1071,7 @@ void TemporalMemory::write(TemporalMemoryProto::Builder& proto) const
   for (UInt i = 0; i < activeSegments_.size(); ++i)
   {
     activeSegments[i].setCell(
-      connections.cellForSegment(matchingSegments_[i]));
+      connections.cellForSegment(activeSegments_[i]));
     activeSegments[i].setIdxOnCell(
       connections.idxOnCellForSegment(activeSegments_[i]));
   }
@@ -1342,6 +1342,62 @@ void TemporalMemory::load(istream& inStream)
   inStream >> marker;
   NTA_CHECK(marker == "~TemporalMemory");
 
+}
+
+static set< pair<CellIdx,SynapseIdx> >
+getComparableSegmentSet(const Connections& connections,
+                        const vector<Segment>& segments)
+{
+  set< pair<CellIdx,SynapseIdx> > segmentSet;
+  for (Segment segment : segments)
+  {
+    segmentSet.emplace(connections.cellForSegment(segment),
+                       connections.idxOnCellForSegment(segment));
+  }
+  return segmentSet;
+}
+
+bool TemporalMemory::operator==(const TemporalMemory& other)
+{
+  if (numColumns_ != other.numColumns_ ||
+      columnDimensions_ != other.columnDimensions_ ||
+      cellsPerColumn_ != other.cellsPerColumn_ ||
+      activationThreshold_ != other.activationThreshold_ ||
+      minThreshold_ != other.minThreshold_ ||
+      maxNewSynapseCount_ != other.maxNewSynapseCount_ ||
+      initialPermanence_ != other.initialPermanence_ ||
+      connectedPermanence_ != other.connectedPermanence_ ||
+      permanenceIncrement_ != other.permanenceIncrement_ ||
+      permanenceDecrement_ != other.permanenceDecrement_ ||
+      predictedSegmentDecrement_ != other.predictedSegmentDecrement_ ||
+      activeCells_ != other.activeCells_ ||
+      winnerCells_ != other.winnerCells_ ||
+      maxSegmentsPerCell_ != other.maxSegmentsPerCell_ ||
+      maxSynapsesPerSegment_ != other.maxSynapsesPerSegment_ ||
+      iteration_ != other.iteration_)
+  {
+    return false;
+  }
+
+  if (connections != other.connections)
+  {
+    return false;
+  }
+
+  if (getComparableSegmentSet(connections, activeSegments_) !=
+      getComparableSegmentSet(other.connections, other.activeSegments_) ||
+      getComparableSegmentSet(connections, matchingSegments_) !=
+      getComparableSegmentSet(other.connections, other.matchingSegments_))
+  {
+    return false;
+  }
+
+  return true;
+}
+
+bool TemporalMemory::operator!=(const TemporalMemory& other)
+{
+  return !(*this == other);
 }
 
 //----------------------------------------------------------------------
