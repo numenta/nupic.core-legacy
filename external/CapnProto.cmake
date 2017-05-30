@@ -34,6 +34,7 @@
 #   CAPNP_COMPILER_DEFINITIONS: list of -D compiler defintions needed by apps
 #                               that are built against this library (e.g.,
 #                               -DCAPNP_LITE)
+#   CAPNP_BINARIES:          Binaries location
 #
 # EXPORTED FUNCTIONS:
 #
@@ -57,7 +58,6 @@ set(capnp_lib_capnpc ${LIB_PRE}/${STATIC_PRE}capnpc${STATIC_SUF})
 set(CAPNP_INCLUDE_DIRS ${INCLUDE_PRE})
 set(CAPNP_EXECUTABLE ${BIN_PRE}/capnp${CMAKE_EXECUTABLE_SUFFIX})
 set(CAPNPC_CXX_EXECUTABLE ${BIN_PRE}/capnpc-c++${CMAKE_EXECUTABLE_SUFFIX})
-
 
 set(CAPNP_COMPILER_DEFINITIONS)
 
@@ -154,6 +154,7 @@ set(CAPNP_EXECUTABLE ${CAPNP_EXECUTABLE} PARENT_SCOPE)
 set(CAPNPC_CXX_EXECUTABLE ${CAPNPC_CXX_EXECUTABLE} PARENT_SCOPE)
 set(CAPNP_CMAKE_DEFINITIONS ${CAPNP_CMAKE_DEFINITIONS} PARENT_SCOPE)
 set(CAPNP_COMPILER_DEFINITIONS ${CAPNP_COMPILER_DEFINITIONS} PARENT_SCOPE)
+set(CAPNP_BINARIES ${BIN_PRE} PARENT_SCOPE)
 
 ## Install headers and libraries.
 ## TODO It's confusing that these same INC and LIB installation steps are duplicated

@@ -253,7 +253,6 @@ message(STATUS "CAPNP_CMAKE_DEFINITIONS   = ${CAPNP_CMAKE_DEFINITIONS}")
 message(STATUS "CAPNP_INCLUDE_DIRS        = ${CAPNP_INCLUDE_DIRS}")
 message(STATUS "CAPNP_STATIC_LIB_TARGET   = ${CAPNP_STATIC_LIB_TARGET}")
 
-
 #
 # Common system libraries for shared libraries and executables
 #
@@ -853,6 +852,10 @@ if (NOT NUPIC_BUILD_PYEXT_MODULES)
           FILES_MATCHING PATTERN "*.c*")
   install(DIRECTORY nupic DESTINATION include/nupic
           FILES_MATCHING PATTERN "*.py")
+
+  install(DIRECTORY "${CAPNP_BINARIES}"
+          DESTINATION "${CMAKE_INSTALL_PREFIX}"
+          FILES_MATCHING PATTERN "capnp*")
 endif (NOT NUPIC_BUILD_PYEXT_MODULES)
 
 #
