@@ -502,6 +502,7 @@ namespace nupic
          * Comparison operator.
          */
         bool operator==(const Connections &other) const;
+        bool operator!=(const Connections &other) const;
 
         /**
          * Add a connections events handler.

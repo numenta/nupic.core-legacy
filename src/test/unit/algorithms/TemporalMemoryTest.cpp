@@ -40,18 +40,6 @@ using namespace std;
 #define EPSILON 0.0000001
 
 namespace {
-  void check_tm_eq(const TemporalMemory& tm1, const TemporalMemory& tm2)
-  {
-    ASSERT_EQ(tm1.numberOfColumns(), tm2.numberOfColumns());
-    ASSERT_EQ(tm1.getCellsPerColumn(), tm2.getCellsPerColumn());
-    ASSERT_EQ(tm1.getActivationThreshold(), tm2.getActivationThreshold());
-    ASSERT_EQ(tm1.getMinThreshold(), tm2.getMinThreshold());
-    ASSERT_EQ(tm1.getMaxNewSynapseCount(), tm2.getMaxNewSynapseCount());
-    ASSERT_NEAR(tm1.getInitialPermanence(), tm2.getInitialPermanence(), EPSILON);
-    ASSERT_NEAR(tm1.getConnectedPermanence(), tm2.getConnectedPermanence(), EPSILON);
-    ASSERT_NEAR(tm1.getPermanenceIncrement(), tm2.getPermanenceIncrement(), EPSILON);
-    ASSERT_NEAR(tm1.getPermanenceDecrement(), tm2.getPermanenceDecrement(), EPSILON);
-  }
 
   TEST(TemporalMemoryTest, testInitInvalidParams)
   {
@@ -1664,7 +1652,7 @@ namespace {
     TemporalMemory tm2;
     tm2.load(ss);
 
-    check_tm_eq(tm1, tm2);
+    ASSERT_TRUE(tm1 == tm2);
 
     serializationTestVerify(tm2);
   }
@@ -1694,8 +1682,7 @@ namespace {
     TemporalMemory tm2;
     tm2.read(ss);
 
-    // Check that the two temporal memory objects have the same attributes
-    check_tm_eq(tm1, tm2);
+    ASSERT_TRUE(tm1 == tm2);
 
     serializationTestVerify(tm2);
   }
