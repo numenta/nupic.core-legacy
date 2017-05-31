@@ -107,11 +107,10 @@ _ALGORITHMS = _algorithms
 // Numpy API
 //
 %{
-#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
-#include <numpy/arrayobject.h>
+#include <nupic/py_support/NumpyArrayObject.hpp>
 %}
 %init %{
-  import_array();
+  nupic::initializeNumpy();
 %}
 
 %{

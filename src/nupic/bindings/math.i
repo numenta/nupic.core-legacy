@@ -70,25 +70,20 @@ _MATH = _math
 #include <nupic/math/ArrayAlgo.hpp>
 #include <nupic/proto/RandomProto.capnp.h>
 #include <nupic/utils/Random.hpp>
-#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
-#include <numpy/arrayobject.h>
 
 #include <nupic/py_support/PyCapnp.hpp>
 %}
 
 %naturalvar;
 
+//
+// Numpy API
+//
 %{
-#define SWIG_FILE_WITH_INIT
+#include <nupic/py_support/NumpyArrayObject.hpp>
 %}
-
-%include <nupic/bindings/numpy.i> // %import does not work.
-
 %init %{
-
-// Perform necessary library initialization (in C++).
-import_array();
-
+  nupic::initializeNumpy();
 %}
 
 

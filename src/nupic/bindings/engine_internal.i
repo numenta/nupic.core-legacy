@@ -194,7 +194,15 @@ class IterablePair(object):
 
 %include <nupic/os/Timer.hpp>
 
-%include <nupic/bindings/numpy.i>
+//
+// Numpy API
+//
+%{
+#include <nupic/py_support/NumpyArrayObject.hpp>
+%}
+%init %{
+  nupic::initializeNumpy();
+%}
 
 
 %include <nupic/py_support/PyArray.hpp>
