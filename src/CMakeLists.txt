@@ -253,6 +253,9 @@ message(STATUS "CAPNP_CMAKE_DEFINITIONS   = ${CAPNP_CMAKE_DEFINITIONS}")
 message(STATUS "CAPNP_INCLUDE_DIRS        = ${CAPNP_INCLUDE_DIRS}")
 message(STATUS "CAPNP_STATIC_LIB_TARGET   = ${CAPNP_STATIC_LIB_TARGET}")
 
+message(STATUS "SWIG_EXECUTABLE           = ${SWIG_EXECUTABLE}")
+message(STATUS "SWIG_DIR                  = ${SWIG_DIR}")
+
 #
 # Common system libraries for shared libraries and executables
 #
@@ -856,6 +859,12 @@ if (NOT NUPIC_BUILD_PYEXT_MODULES)
   install(DIRECTORY "${CAPNP_BINARIES}"
           DESTINATION "${CMAKE_INSTALL_PREFIX}"
           FILES_MATCHING PATTERN "capnp*")
+
+  install(DIRECTORY "${SWIG_DIR}"
+          DESTINATION share/swig)
+  install(FILES "${SWIG_EXECUTABLE}"
+          DESTINATION bin)
+
 endif (NOT NUPIC_BUILD_PYEXT_MODULES)
 
 #
