@@ -235,6 +235,20 @@ namespace nupic {
         // ==============================
 
         /**
+         * Create a segment on the specified cell. This method calls
+         * createSegment on the underlying connections, and it does some extra
+         * bookkeeping. Unit tests should call this method, and not
+         * connections.createSegment().
+         *
+         * @param cell
+         * Cell to add a segment to.
+         *
+         * @return Segment
+         * The created segment.
+         */
+        Segment createSegment(CellIdx cell);
+
+        /**
          * Returns the indices of cells that belong to a column.
          *
          * @param column Column index
@@ -361,6 +375,20 @@ namespace nupic {
         void setPredictedSegmentDecrement(Permanence);
 
         /**
+         * Returns the maxSegmentsPerCell.
+         *
+         * @returns Max segments per cell
+         */
+        UInt getMaxSegmentsPerCell() const;
+
+        /**
+         * Returns the maxSynapsesPerSegment.
+         *
+         * @returns Max synapses per segment
+         */
+        UInt getMaxSynapsesPerSegment() const;
+
+        /**
          * Raises an error if cell index is invalid.
          *
          * @param cell Cell index
@@ -397,6 +425,9 @@ namespace nupic {
          * @returns Integer number of bytes
          */
         virtual UInt persistentSize() const;
+
+        bool operator==(const TemporalMemory& other);
+        bool operator!=(const TemporalMemory& other);
 
         //----------------------------------------------------------------------
         // Debugging helpers
@@ -445,6 +476,11 @@ namespace nupic {
         vector<Segment> matchingSegments_;
         vector<UInt32> numActiveConnectedSynapsesForSegment_;
         vector<UInt32> numActivePotentialSynapsesForSegment_;
+
+        UInt maxSegmentsPerCell_;
+        UInt maxSynapsesPerSegment_;
+        UInt64 iteration_;
+        vector<UInt64> lastUsedIterationForSegment_;
 
         Random rng_;
 

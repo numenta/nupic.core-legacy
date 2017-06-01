@@ -48,7 +48,6 @@ namespace nupic
       typedef UInt16 SegmentIdx;
       typedef UInt16 SynapseIdx;
       typedef Real32 Permanence;
-      typedef UInt64 Iteration;
       typedef UInt32 Segment;
 
       /**
@@ -102,16 +101,12 @@ namespace nupic
        * @param synapses
        * Synapses on this segment.
        *
-       * @param lastUsedIteration
-       * The iteration that this segment was last used.
-       *
        * @param cell
        * The cell that this segment is on.
        */
       struct SegmentData
       {
         std::vector<Synapse> synapses;
-        Iteration lastUsedIteration;
         CellIdx cell;
       };
 
@@ -211,12 +206,8 @@ namespace nupic
          * Connections constructor.
          *
          * @param numCells              Number of cells.
-         * @param maxSegmentsPerCell    Maximum number of segments per cell.
-         * @param maxSynapsesPerSegment Maximum number of synapses per segment.
          */
-        Connections(CellIdx numCells,
-                    SegmentIdx maxSegmentsPerCell=255,
-                    SynapseIdx maxSynapsesPerSegment=255);
+        Connections(CellIdx numCells);
 
         virtual ~Connections() {}
 
@@ -224,12 +215,8 @@ namespace nupic
          * Initialize connections.
          *
          * @param numCells              Number of cells.
-         * @param maxSegmentsPerCell    Maximum number of segments per cell.
-         * @param maxSynapsesPerSegment Maximum number of synapses per segment.
          */
-        void initialize(CellIdx numCells,
-                        SegmentIdx maxSegmentsPerCell,
-                        SynapseIdx maxSynapsesPerSegment);
+        void initialize(CellIdx numCells);
 
         /**
          * Creates a segment on the specified cell.
@@ -302,6 +289,15 @@ namespace nupic
          * @retval Cell that this segment is on.
          */
         CellIdx cellForSegment(Segment segment) const;
+
+        /**
+         * Gets the index of this segment on its respective cell.
+         *
+         * @param segment Segment to get the idx for.
+         *
+         * @retval Index of the segment.
+         */
+        SegmentIdx idxOnCellForSegment(Segment segment) const;
 
         /**
          * Get the cell for each provided segment.
@@ -433,21 +429,6 @@ namespace nupic
           CellIdx activePresynapticCell,
           Permanence connectedPermanence) const;
 
-        /**
-         * Record the fact that a segment had some activity. This information is
-         * used during segment cleanup.
-         *
-         * @param segment
-         * The segment that had some activity.
-         */
-        void recordSegmentActivity(Segment segment);
-
-        /**
-         * Mark the passage of time. This information is used during segment
-         * cleanup.
-         */
-        void startNewIteration();
-
         // Serialization
 
         /**
@@ -521,6 +502,7 @@ namespace nupic
          * Comparison operator.
          */
         bool operator==(const Connections &other) const;
+        bool operator!=(const Connections &other) const;
 
         /**
          * Add a connections events handler.
@@ -547,16 +529,6 @@ namespace nupic
         void unsubscribe(UInt32 token);
 
       protected:
-
-        /**
-         * Gets the segment that was least recently used from among all the
-         * segments on the given cell.
-         *
-         * @param cell Cell whose segments to consider.
-         *
-         * @retval The least recently used segment.
-         */
-        Segment leastRecentlyUsedSegment_(CellIdx cell) const;
 
         /**
          * Gets the synapse with the lowest permanence on the segment.
@@ -607,9 +579,6 @@ namespace nupic
         UInt64 nextSegmentOrdinal_;
         UInt64 nextSynapseOrdinal_;
 
-        SegmentIdx maxSegmentsPerCell_;
-        SynapseIdx maxSynapsesPerSegment_;
-        Iteration iteration_;
         UInt32 nextEventToken_;
         std::map<UInt32, ConnectionsEventHandler*> eventHandlers_;
       }; // end class Connections
