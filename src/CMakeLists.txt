@@ -200,6 +200,7 @@ message(STATUS "PYTHON_LIBRARIES    = ${PYTHON_LIBRARIES}")
 # Python support
 #
 set(src_py_support_files
+    nupic/py_support/NumpyArrayObject.cpp
     nupic/py_support/NumpyVector.cpp
     nupic/py_support/PyArray.cpp
     nupic/py_support/PyHelpers.cpp

@@ -101,9 +101,19 @@ _ALGORITHMS = _algorithms
 #include <nupic/proto/ConnectionsProto.capnp.h>
 #include <nupic/proto/SpatialPoolerProto.capnp.h>
 #include <nupic/proto/TemporalMemoryProto.capnp.h>
+%}
 
-#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
-#include <numpy/arrayobject.h>
+//
+// Numpy API
+//
+%{
+#include <nupic/py_support/NumpyArrayObject.hpp>
+%}
+%init %{
+  nupic::initializeNumpy();
+%}
+
+%{
 #include <nupic/py_support/NumpyVector.hpp>
 #include <nupic/py_support/PyCapnp.hpp>
 #include <nupic/py_support/PythonStream.hpp>
