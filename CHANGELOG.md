@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.6.3
+
+* Change the Connections to stop doing automatic segment / synapse cleanup
+* Revamp the TemporalMemory proto so that it captures all information
+* For numpy, use a single PyArray_API symbol per binary rather than one per cpp file
+* Use numpy 1.12.1
+* Use pycapnp 0.5.12
+* Use latest pytest 3.0.7, pytest-cov 2.5.0, pytest-xdist 1.16.0
+
 ## 0.6.2
 
 * Updated Circle CI configuration and switch to that for OS X builds (instead of Travis CI)
