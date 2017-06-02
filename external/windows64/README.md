@@ -20,7 +20,7 @@ The following applications are required when rebuilding the core C++ library, an
 For re-building the nupic.core C++ library the following are required;
 
 - [Microsoft Visual Studio 2015](https://www.visualstudio.com/en-us/downloads/visual-studio-2015-downloads-vs) - Community Free edition (or Enterprise edition)
-- [NumPy C++ headers](https://pypi.python.org/pypi/numpy/) - pip install numpy==1.11.2
+- [NumPy C++ headers](https://pypi.python.org/pypi/numpy/) - pip install numpy==1.12.1
 
 ## Rebuilding with CMake
 
