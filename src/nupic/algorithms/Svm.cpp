@@ -59,379 +59,324 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <nupic/algorithms/Svm.hpp>
 
 namespace nupic {
-  namespace algorithms {
-    namespace svm {
-      
-      using namespace std;
+namespace algorithms {
+namespace svm {
 
-      //--------------------------------------------------------------------------------
-      void svm_parameter::print() const
-      {
-	std::cout << "kernel = " << kernel << std::endl
-		  << "probability = " << probability << std::endl
-		  << "gamma = " << gamma << std::endl
-		  << "C = " << C << std::endl
-		  << "eps = " << eps << std::endl
-		  << "cache_size = " << cache_size << std::endl
-		  << "shrinking = " << shrinking << std::endl;
-      }
+using namespace std;
 
-      //--------------------------------------------------------------------------------
-      int svm_parameter::persistent_size() const
-      {
-	stringstream b;
-	b << kernel << ' '
-	  << probability << ' '
-	  << gamma << ' '
-	  << C << ' '
-	  << eps << ' '
-	  << cache_size << ' '
-	  << shrinking << ' '
-		<< weight_label << ' '
-		<< weight << ' ';
+//------------------------------------------------------------------------------
+void svm_parameter::print() const {
+  std::cout << "kernel = " << kernel << std::endl
+            << "probability = " << probability << std::endl
+            << "gamma = " << gamma << std::endl
+            << "C = " << C << std::endl
+            << "eps = " << eps << std::endl
+            << "cache_size = " << cache_size << std::endl
+            << "shrinking = " << shrinking << std::endl;
+}
 
-	return b.str().size();
-      }
+//------------------------------------------------------------------------------
+int svm_parameter::persistent_size() const {
+  stringstream b;
+  b << kernel << ' ' << probability << ' ' << gamma << ' ' << C << ' ' << eps
+    << ' ' << cache_size << ' ' << shrinking << ' ' << weight_label << ' '
+    << weight << ' ';
 
-      //--------------------------------------------------------------------------------
-      void svm_parameter::save(std::ostream& outStream) const
-      {
-	outStream << kernel << ' '
-		  << probability << ' '
-		  << gamma << ' '
-		  << C << ' '
-		  << eps << ' '
-		  << cache_size << ' '
-			<< shrinking << ' '
-			<< weight_label << ' '
-			<< weight << ' ';
-			}
+  return b.str().size();
+}
 
-      //--------------------------------------------------------------------------------
-      void svm_parameter::load(std::istream& inStream)
-      {
-	inStream >> kernel
-		 >> probability
-		 >> gamma
-		 >> C
-		 >> eps
-		 >> cache_size
-		 >> shrinking
-		 >> weight_label
-		 >> weight;
-			}
+//------------------------------------------------------------------------------
+void svm_parameter::save(std::ostream &outStream) const {
+  outStream << kernel << ' ' << probability << ' ' << gamma << ' ' << C << ' '
+            << eps << ' ' << cache_size << ' ' << shrinking << ' '
+            << weight_label << ' ' << weight << ' ';
+}
 
-      //--------------------------------------------------------------------------------
-      int svm_problem::persistent_size() const
-      {
-	stringstream b;
+//------------------------------------------------------------------------------
+void svm_parameter::load(std::istream &inStream) {
+  inStream >> kernel >> probability >> gamma >> C >> eps >> cache_size >>
+      shrinking >> weight_label >> weight;
+}
 
-	b << size() << " " << n_dims() << " ";
+//------------------------------------------------------------------------------
+int svm_problem::persistent_size() const {
+  stringstream b;
 
-	return b.str().size() 
-	  + y_.size() * sizeof(label_type)
-	  + size() * n_dims() * sizeof(feature_type) + 1;
-      }
+  b << size() << " " << n_dims() << " ";
 
-      //--------------------------------------------------------------------------------
-      void svm_problem::save(std::ostream& outStream) const
-      {
-	outStream << size() << " " << n_dims() << " ";
-  
-	nupic::binary_save(outStream, y_);
+  return b.str().size() + y_.size() * sizeof(label_type) +
+         size() * n_dims() * sizeof(feature_type) + 1;
+}
 
-	for (int i = 0; i < size(); ++i)
-	  nupic::binary_save(outStream, x_[i], x_[i] + n_dims());
-	outStream << " ";
-      }
+//------------------------------------------------------------------------------
+void svm_problem::save(std::ostream &outStream) const {
+  outStream << size() << " " << n_dims() << " ";
 
-      //--------------------------------------------------------------------------------
-      void svm_problem::load(std::istream& inStream)
-      {
-	int s = 0;
-	inStream >> s >> n_dims_;
-  
-	if (recover_)
-	  for (size_t i = 0; i != x_.size(); ++i)
-	    delete [] x_[i];
+  nupic::binary_save(outStream, y_);
 
-	y_.resize(s, 0);
-	x_.resize(s, nullptr);
+  for (int i = 0; i < size(); ++i)
+    nupic::binary_save(outStream, x_[i], x_[i] + n_dims());
+  outStream << " ";
+}
 
-	inStream.ignore(1);
-	nupic::binary_load(inStream, y_);
-	
-	for (int i = 0; i < size(); ++i) {
+//------------------------------------------------------------------------------
+void svm_problem::load(std::istream &inStream) {
+  int s = 0;
+  inStream >> s >> n_dims_;
 
+  if (recover_)
+    for (size_t i = 0; i != x_.size(); ++i)
+      delete[] x_[i];
+
+  y_.resize(s, 0);
+  x_.resize(s, nullptr);
+
+  inStream.ignore(1);
+  nupic::binary_load(inStream, y_);
+
+  for (int i = 0; i < size(); ++i) {
 #if defined(NTA_OS_WINDOWS) && defined(NTA_COMPILER_MSVC)
-          x_[i] = (float*) _aligned_malloc(4*n_dims(), 16);
+    x_[i] = (float *)_aligned_malloc(4 * n_dims(), 16);
 #else
-	  x_[i] = new feature_type[n_dims()];
+    x_[i] = new feature_type[n_dims()];
 #endif
 
-          std::fill(x_[i], x_[i] + n_dims(), (float) 0);
-	  nupic::binary_load(inStream, x_[i], x_[i] + n_dims());
-	}
-      }
-
-      //--------------------------------------------------------------------------------
-      int svm_problem01::persistent_size() const
-      {
-	stringstream b;
-	b  << size() << " " << n_dims() << " " << threshold_ << " ";
-	int n = b.str().size();
-
-	n += y_.size() * sizeof(float);
-	n += nnz_.size() * sizeof(int);
-
-	for (int i = 0; i != size(); ++i)
-	  n += nnz_[i] * sizeof(feature_type);
-
-	return n + 1;
-      }
-
-      //--------------------------------------------------------------------------------
-      void svm_problem01::save(std::ostream& outStream) const
-      {
-	outStream << size() << " " << n_dims() << " " << threshold_ << " ";
-  
-	nupic::binary_save(outStream, y_);
-	nupic::binary_save(outStream, nnz_);
-	
-	for (int i = 0; i < size(); ++i) 
-	  nupic::binary_save(outStream, x_[i], x_[i] + nnz_[i]);
-	outStream << " ";
-      }
-
-      //--------------------------------------------------------------------------------
-      void svm_problem01::load(std::istream& inStream)
-      {
-	int s = 0;
-	inStream >> s >> n_dims_ >> threshold_;
-  
-	if (recover_)
-	  for (auto & elem : x_)
-	    delete [] elem;
-
-	y_.resize(s, 0);
-	nnz_.resize(s, 0);  
-	x_.resize(s, nullptr);
-	
-	inStream.ignore(1);
-	nupic::binary_load(inStream, y_);
-	nupic::binary_load(inStream, nnz_);
-
-	for (int i = 0; i < s; ++i) {
-	  x_[i] = new feature_type[nnz_[i]];
-	  nupic::binary_load(inStream, x_[i], x_[i] + nnz_[i]);
-	}
-      }
-
-      //--------------------------------------------------------------------------------
-      svm_model::~svm_model()
-      {
-	// in all cases, ownership of the mem for the sv is with svm_model
-
-        if (sv_mem == nullptr) {
-          for (size_t i = 0; i != sv.size(); ++i)
-
-#if defined(NTA_OS_WINDOWS) && defined(NTA_COMPILER_MSVC)
-            _aligned_free(sv[i]);
-#else
-            delete [] sv[i];
-#endif
-
-        } else {
-
-#if defined(NTA_OS_WINDOWS) && defined(NTA_COMPILER_MSVC)
-          _aligned_free(sv_mem);
-#else
-          delete [] sv_mem;
-#endif
-
-          sv_mem = nullptr;
-          sv.clear();
-        }
-          
-	for (size_t i = 0; i != sv_coef.size(); ++i)
-	  delete [] sv_coef[i];
-      }
-
-      //--------------------------------------------------------------------------------
-      void svm_model::print() const
-      {
-	std::cout << "n classes = " << n_class()
-		  << " n sv = " << size()
-		  << " n dims = " << n_dims()
-		  << std::endl;
-	  
-	std::cout << "Support vectors: " << std::endl;
-	for (size_t i = 0; i != sv.size(); ++i) {
-	  for (int j = 0; j != n_dims(); ++j)
-	    std::cout << sv[i][j] << " ";
-	  std::cout << std::endl;
-	}
-	  
-	std::cout << "Support vector coefficients: " << std::endl;
-	for (size_t i = 0; i != sv_coef.size(); ++i) {
-	  for (int j = 0; j != size(); ++j)
-	    std::cout << sv_coef[i][j] << " ";
-	  std::cout << std::endl;
-	}
-
-	std::cout << "Rho: " << std::endl;
-	for (size_t i = 0; i != rho.size(); ++i) 
-	  std::cout << rho[i] << " ";
-	std::cout << std::endl;
-	  
-	if (! probA.empty()) {
-	  
-	  std::cout << "Probabilities A: " << std::endl;
-	  for (size_t i = 0; i != probA.size(); ++i)
-	    std::cout << probA[i] << " ";
-	  std::cout << std::endl;
-	  
-	  std::cout << "Probabilities B: " << std::endl;
-	  for (size_t i = 0; i != probB.size(); ++i)
-	    std::cout << probB[i] << " ";
-	  std::cout << std::endl;
-	}
-      }
-
-      //--------------------------------------------------------------------------------
-      int svm_model::persistent_size() const
-      {
-	stringstream b;
-	b << n_class() << " "
-	  << size() << " " 
-	  << n_dims() << " ";
-	
-	int n = b.str().size();
-	
-	n += sv.size() * n_dims() * sizeof(float) + 1;
-	
-	{
-	  stringstream b2;
-	  for (auto & elem : sv_coef) {
-	    for (int j = 0; j < size(); ++j) 
-	      b2 << elem[j] << " ";
-	  }
-	  n += b2.str().size();
-	}
-
-	{ 
-	  stringstream b2;
-          b2 << rho << " ";
-	  n += b2.str().size();
-	}
-
-	{ 
-	  stringstream b2;
-          b2 << label << " ";
-	  n += b2.str().size();
-	}
-
-	{ 
-	  stringstream b2;
-          b2 << n_sv << " ";
-	  n += b2.str().size();
-	}
-
-	{ 
-	  stringstream b2;
-          b2 << probA << " ";
-	  n += b2.str().size();
-	}
-
-	{ 
-	  stringstream b2;
-          b2 << probB << " ";
-	  n += b2.str().size();
-	}
-
-	{ 
-	  stringstream b2;
-          b2 << w << " ";
-	  n += b2.str().size();
-	}
-
-	return n;
-      }
-
-      //--------------------------------------------------------------------------------
-      void svm_model::save(std::ostream& outStream) const
-      {
-	outStream << n_class() << " "
-		  << size() << " " 
-		  << n_dims() << " ";
-  
-	for (auto & elem : sv) 
-	  nupic::binary_save(outStream, elem, elem + n_dims());
-	outStream << " ";
-  
-	for (auto & elem : sv_coef) 
-	  for (int j = 0; j < size(); ++j) 
-	    outStream << elem[j] << " ";
-  
-        outStream << rho << ' '
-                  << label << ' '
-                  << n_sv << ' '
-                  << probA << ' '
-                  << probB << ' '
-                  << w << ' ';
-      }
-
-      //--------------------------------------------------------------------------------
-      void svm_model::load(std::istream& inStream)
-      {
-	int n_class = 0, l = 0;
-	inStream >> n_class >> l >> n_dims_; 
-
-        if (sv_mem == nullptr) {
-
-          for (auto & elem : sv)
-            delete [] elem;
-
-        } else {
-
-          delete [] sv_mem;
-          sv_mem = nullptr;
-        }
-
-#if defined(NTA_OS_WINDOWS) && defined(NTA_COMPILER_MSVC)
-        sv_mem = (float*) _aligned_malloc(4 * l * n_dims(), 16);
-#else
-        sv_mem = new float [l * n_dims()];
-#endif
-
-        std::fill(sv_mem, sv_mem + l * n_dims(), (float)0);
-
-	sv.resize(l, nullptr);
-	inStream.ignore(1);
-	for (int i = 0; i < l; ++i) {
-	  sv[i] = sv_mem + i * n_dims();
-	  nupic::binary_load(inStream, sv[i], sv[i] + n_dims());
-	}
-
-	for (auto & elem : sv_coef)
-	  delete [] elem;
-  
-	sv_coef.resize(n_class-1, nullptr);
-	for (int i = 0; i < n_class-1; ++i) {
-	  sv_coef[i] = new float [l];
-	  for (int j = 0; j < l; ++j) 
-	    inStream >> sv_coef[i][j];
-	} 
-  
-        inStream >> rho
-                 >> label
-                 >> n_sv
-                 >> probA
-                 >> probB
-                 >> w;
-      }
-
-      //--------------------------------------------------------------------------------
-    }
+    std::fill(x_[i], x_[i] + n_dims(), (float)0);
+    nupic::binary_load(inStream, x_[i], x_[i] + n_dims());
   }
 }
+
+//------------------------------------------------------------------------------
+int svm_problem01::persistent_size() const {
+  stringstream b;
+  b << size() << " " << n_dims() << " " << threshold_ << " ";
+  int n = b.str().size();
+
+  n += y_.size() * sizeof(float);
+  n += nnz_.size() * sizeof(int);
+
+  for (int i = 0; i != size(); ++i)
+    n += nnz_[i] * sizeof(feature_type);
+
+  return n + 1;
+}
+
+//------------------------------------------------------------------------------
+void svm_problem01::save(std::ostream &outStream) const {
+  outStream << size() << " " << n_dims() << " " << threshold_ << " ";
+
+  nupic::binary_save(outStream, y_);
+  nupic::binary_save(outStream, nnz_);
+
+  for (int i = 0; i < size(); ++i)
+    nupic::binary_save(outStream, x_[i], x_[i] + nnz_[i]);
+  outStream << " ";
+}
+
+//------------------------------------------------------------------------------
+void svm_problem01::load(std::istream &inStream) {
+  int s = 0;
+  inStream >> s >> n_dims_ >> threshold_;
+
+  if (recover_)
+    for (auto &elem : x_)
+      delete[] elem;
+
+  y_.resize(s, 0);
+  nnz_.resize(s, 0);
+  x_.resize(s, nullptr);
+
+  inStream.ignore(1);
+  nupic::binary_load(inStream, y_);
+  nupic::binary_load(inStream, nnz_);
+
+  for (int i = 0; i < s; ++i) {
+    x_[i] = new feature_type[nnz_[i]];
+    nupic::binary_load(inStream, x_[i], x_[i] + nnz_[i]);
+  }
+}
+
+//------------------------------------------------------------------------------
+svm_model::~svm_model() {
+  // in all cases, ownership of the mem for the sv is with svm_model
+
+  if (sv_mem == nullptr) {
+    for (size_t i = 0; i != sv.size(); ++i)
+
+#if defined(NTA_OS_WINDOWS) && defined(NTA_COMPILER_MSVC)
+      _aligned_free(sv[i]);
+#else
+      delete[] sv[i];
+#endif
+
+  } else {
+#if defined(NTA_OS_WINDOWS) && defined(NTA_COMPILER_MSVC)
+    _aligned_free(sv_mem);
+#else
+    delete[] sv_mem;
+#endif
+
+    sv_mem = nullptr;
+    sv.clear();
+  }
+
+  for (size_t i = 0; i != sv_coef.size(); ++i)
+    delete[] sv_coef[i];
+}
+
+//------------------------------------------------------------------------------
+void svm_model::print() const {
+  std::cout << "n classes = " << n_class() << " n sv = " << size()
+            << " n dims = " << n_dims() << std::endl;
+
+  std::cout << "Support vectors: " << std::endl;
+  for (size_t i = 0; i != sv.size(); ++i) {
+    for (int j = 0; j != n_dims(); ++j)
+      std::cout << sv[i][j] << " ";
+    std::cout << std::endl;
+  }
+
+  std::cout << "Support vector coefficients: " << std::endl;
+  for (size_t i = 0; i != sv_coef.size(); ++i) {
+    for (int j = 0; j != size(); ++j)
+      std::cout << sv_coef[i][j] << " ";
+    std::cout << std::endl;
+  }
+
+  std::cout << "Rho: " << std::endl;
+  for (size_t i = 0; i != rho.size(); ++i)
+    std::cout << rho[i] << " ";
+  std::cout << std::endl;
+
+  if (!probA.empty()) {
+    std::cout << "Probabilities A: " << std::endl;
+    for (size_t i = 0; i != probA.size(); ++i)
+      std::cout << probA[i] << " ";
+    std::cout << std::endl;
+
+    std::cout << "Probabilities B: " << std::endl;
+    for (size_t i = 0; i != probB.size(); ++i)
+      std::cout << probB[i] << " ";
+    std::cout << std::endl;
+  }
+}
+
+//------------------------------------------------------------------------------
+int svm_model::persistent_size() const {
+  stringstream b;
+  b << n_class() << " " << size() << " " << n_dims() << " ";
+
+  int n = b.str().size();
+
+  n += sv.size() * n_dims() * sizeof(float) + 1;
+
+  {
+    stringstream b2;
+    for (auto &elem : sv_coef) {
+      for (int j = 0; j < size(); ++j)
+        b2 << elem[j] << " ";
+    }
+    n += b2.str().size();
+  }
+
+  {
+    stringstream b2;
+    b2 << rho << " ";
+    n += b2.str().size();
+  }
+
+  {
+    stringstream b2;
+    b2 << label << " ";
+    n += b2.str().size();
+  }
+
+  {
+    stringstream b2;
+    b2 << n_sv << " ";
+    n += b2.str().size();
+  }
+
+  {
+    stringstream b2;
+    b2 << probA << " ";
+    n += b2.str().size();
+  }
+
+  {
+    stringstream b2;
+    b2 << probB << " ";
+    n += b2.str().size();
+  }
+
+  {
+    stringstream b2;
+    b2 << w << " ";
+    n += b2.str().size();
+  }
+
+  return n;
+}
+
+//------------------------------------------------------------------------------
+void svm_model::save(std::ostream &outStream) const {
+  outStream << n_class() << " " << size() << " " << n_dims() << " ";
+
+  for (auto &elem : sv)
+    nupic::binary_save(outStream, elem, elem + n_dims());
+  outStream << " ";
+
+  for (auto &elem : sv_coef)
+    for (int j = 0; j < size(); ++j)
+      outStream << elem[j] << " ";
+
+  outStream << rho << ' ' << label << ' ' << n_sv << ' ' << probA << ' '
+            << probB << ' ' << w << ' ';
+}
+
+//------------------------------------------------------------------------------
+void svm_model::load(std::istream &inStream) {
+  int n_class = 0, l = 0;
+  inStream >> n_class >> l >> n_dims_;
+
+  if (sv_mem == nullptr) {
+    for (auto &elem : sv)
+      delete[] elem;
+
+  } else {
+    delete[] sv_mem;
+    sv_mem = nullptr;
+  }
+
+#if defined(NTA_OS_WINDOWS) && defined(NTA_COMPILER_MSVC)
+  sv_mem = (float *)_aligned_malloc(4 * l * n_dims(), 16);
+#else
+  sv_mem = new float[l * n_dims()];
+#endif
+
+  std::fill(sv_mem, sv_mem + l * n_dims(), (float)0);
+
+  sv.resize(l, nullptr);
+  inStream.ignore(1);
+  for (int i = 0; i < l; ++i) {
+    sv[i] = sv_mem + i * n_dims();
+    nupic::binary_load(inStream, sv[i], sv[i] + n_dims());
+  }
+
+  for (auto &elem : sv_coef)
+    delete[] elem;
+
+  sv_coef.resize(n_class - 1, nullptr);
+  for (int i = 0; i < n_class - 1; ++i) {
+    sv_coef[i] = new float[l];
+    for (int j = 0; j < l; ++j)
+      inStream >> sv_coef[i][j];
+  }
+
+  inStream >> rho >> label >> n_sv >> probA >> probB >> w;
+}
+
+//------------------------------------------------------------------------------
+} // namespace svm
+} // namespace algorithms
+} // namespace nupic
