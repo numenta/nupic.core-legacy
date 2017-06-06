@@ -188,11 +188,11 @@ TEST(SvmTest, svm_problem01_testWriteRead) {
 void setup(svm_model &obj) {
   obj.n_dims_ = 2;
 
-  obj.sv.push_back(new float[obj.n_dims_]{1.1, 1.2});
-  obj.sv.push_back(new float[obj.n_dims_]{3.1, 5.2});
+  obj.sv.push_back(new float[2]{1.1, 1.2});
+  obj.sv.push_back(new float[2]{3.1, 5.2});
 
-  obj.sv_coef.push_back(new float[obj.n_dims_]{5.1, 3.2});
-  obj.sv_coef.push_back(new float[obj.n_dims_]{6.1, 7.2});
+  obj.sv_coef.push_back(new float[2]{5.1, 3.2});
+  obj.sv_coef.push_back(new float[2]{6.1, 7.2});
 
   obj.w.resize(2);
   obj.w[0].push_back(33.1);
