@@ -109,12 +109,18 @@ void svm_parameter::read(SvmParameterProto::Reader &proto) {
   shrinking = proto.getShrinking();
 
   auto weightList = proto.getWeight();
-  weight.resize(weightList.size());
-  std::copy(weightList.begin(), weightList.end(), weight.begin());
+  size_t size = weightList.size();
+  weight.resize(size);
+  for (size_t i = 0; i < size; i++) {
+    weight[i] = weightList[i];
+  }
 
   auto labelList = proto.getWeightLabel();
-  weight_label.resize(labelList.size());
-  std::copy(labelList.begin(), labelList.begin(), weight_label.begin());
+  size = labelList.size();
+  weight_label.resize(size);
+  for (size_t i = 0; i < size; i++) {
+    weight_label[i] = labelList[i];
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -194,16 +200,22 @@ void svm_problem::read(SvmProblemProto::Reader &proto) {
   n_dims_ = proto.getNDims();
 
   auto yList = proto.getY();
-  y_.resize(yList.size());
-  std::copy(yList.begin(), yList.end(), y_.begin());
+  size_t size = yList.size();
+  y_.resize(size);
+  for (size_t i = 0; i < size; i++) {
+    y_[i] = yList[i];
+  }
 
   for (auto &elem : x_)
     delete[] elem;
 
   x_.clear();
   for (auto list : proto.getX()) {
-    float *values = new float[list.size()];
-    std::copy(list.begin(), list.end(), values);
+    size_t size = list.size();
+    float *values = new float[size];
+    for (size_t i = 0; i < size; i++) {
+      values[i] = list[i];
+    }
     x_.push_back(values);
   }
 }
@@ -286,20 +298,30 @@ void svm_problem01::read(SvmProblem01Proto::Reader &proto) {
   threshold_ = proto.getThreshold();
 
   auto yList = proto.getY();
-  y_.resize(yList.size());
-  std::copy(yList.begin(), yList.end(), y_.begin());
+  size_t size = yList.size();
+  y_.resize(size);
+  for (size_t i = 0; i < size; i++) {
+    y_[i] = yList[i];
+  }
 
   auto nnzList = proto.getNnz();
   nnz_.resize(nnzList.size());
-  std::copy(nnzList.begin(), nnzList.end(), nnz_.begin());
+  size = nnzList.size();
+  nnz_.resize(size);
+  for (size_t i = 0; i < size; i++) {
+    nnz_[i] = nnzList[i];
+  }
 
   for (auto &elem : x_)
     delete[] elem;
 
   x_.clear();
   for (auto list : proto.getX()) {
-    int *values = new int[list.size()];
-    std::copy(list.begin(), list.end(), values);
+    size_t size = list.size();
+    int *values = new int[size];
+    for (size_t i = 0; i < size; i++) {
+      values[i] = list[i];
+    }
     x_.push_back(values);
   }
 }
@@ -526,8 +548,11 @@ void svm_model::read(SvmModelProto::Reader &proto) {
   sv.clear();
 
   for (auto list : proto.getSv()) {
-    float *values = new float[list.size()];
-    std::copy(list.begin(), list.end(), values);
+    size_t size = list.size();
+    float *values = new float[size];
+    for (size_t i = 0; i < size; i++) {
+      values[i] = list[i];
+    }
     sv.push_back(values);
   }
 
@@ -536,8 +561,11 @@ void svm_model::read(SvmModelProto::Reader &proto) {
   sv_coef.clear();
 
   for (auto list : proto.getSvCoef()) {
-    float *values = new float[list.size()];
-    std::copy(list.begin(), list.end(), values);
+    size_t size = list.size();
+    float *values = new float[size];
+    for (size_t i = 0; i < size; i++) {
+      values[i] = list[i];
+    }
     sv_coef.push_back(values);
   }
 
@@ -546,29 +574,47 @@ void svm_model::read(SvmModelProto::Reader &proto) {
   w.resize(size);
   for (size_t i = 0; i < size; i++) {
     auto values = wList[i];
-    w[i].resize(values.size());
-    std::copy(values.begin(), values.end(), w[i].begin());
+    size_t len = values.size();
+    w[i].resize(len);
+    for (size_t j = 0; j < len; j++) {
+      w[i][j] = values[j];
+    }
   }
 
   auto rhoList = proto.getRho();
-  rho.resize(rhoList.size());
-  std::copy(rhoList.begin(), rhoList.end(), rho.begin());
+  size = rhoList.size();
+  rho.resize(size);
+  for (size_t i = 0; i < size; i++) {
+    rho[i] = rhoList[i];
+  }
 
   auto probAList = proto.getProbA();
-  probA.resize(probAList.size());
-  std::copy(probAList.begin(), probAList.end(), probA.begin());
+  size = probAList.size();
+  probA.resize(size);
+  for (size_t i = 0; i < size; i++) {
+    probA[i] = probAList[i];
+  }
 
   auto probBList = proto.getProbB();
-  probB.resize(probBList.size());
-  std::copy(probBList.begin(), probBList.end(), probB.begin());
+  size = probBList.size();
+  probB.resize(size);
+  for (size_t i = 0; i < size; i++) {
+    probB[i] = probBList[i];
+  }
 
   auto labelList = proto.getLabel();
-  label.resize(labelList.size());
-  std::copy(labelList.begin(), labelList.end(), label.begin());
+  size = labelList.size();
+  label.resize(size);
+  for (size_t i = 0; i < size; i++) {
+    label[i] = labelList[i];
+  }
 
   auto nsvList = proto.getNSv();
-  n_sv.resize(nsvList.size());
-  std::copy(nsvList.begin(), nsvList.end(), n_sv.begin());
+  size = nsvList.size();
+  n_sv.resize(size);
+  for (size_t i = 0; i < size; i++) {
+    n_sv[i] = nsvList[i];
+  }
 }
 
 //------------------------------------------------------------------------------
