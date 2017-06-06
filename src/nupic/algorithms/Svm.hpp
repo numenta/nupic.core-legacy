@@ -75,6 +75,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <nupic/math/ArrayAlgo.hpp> // for int checkSSE()
 #include <nupic/math/Math.hpp>
 #include <nupic/math/StlIo.hpp>
+#include <nupic/proto/SvmProto.capnp.h>
+#include <nupic/types/Serializable.hpp>
 #include <nupic/utils/Random.hpp>
 
 namespace nupic {
@@ -104,7 +106,7 @@ template <typename label_type, typename feature_type> struct sample {
 };
 
 //------------------------------------------------------------------------------
-class svm_problem {
+class svm_problem : public Serializable<SvmProblemProto> {
 public:
   typedef float label_type;
   typedef float feature_type;
@@ -181,6 +183,11 @@ public:
   void save(std::ostream &outStream) const;
   void load(std::istream &inStream);
 
+  using Serializable::read;
+  virtual void read(SvmProblemProto::Reader &proto) override;
+  using Serializable::write;
+  virtual void write(SvmProblemProto::Builder &proto) const override;
+
   void print() const {
     std::cout << "Size = " << size() << " n dims = " << n_dims() << std::endl;
 
@@ -199,7 +206,7 @@ private:
 };
 
 //------------------------------------------------------------------------------
-struct svm_problem01 {
+struct svm_problem01 : public Serializable<SvmProblem01Proto> {
   typedef float label_type;
   typedef int feature_type;
 
@@ -290,6 +297,10 @@ struct svm_problem01 {
   int persistent_size() const;
   void save(std::ostream &outStream) const;
   void load(std::istream &inStream);
+  using Serializable::read;
+  virtual void read(SvmProblem01Proto::Reader &proto) override;
+  using Serializable::write;
+  virtual void write(SvmProblem01Proto::Builder &proto) const override;
 
   void print() const {
     std::cout << "Size = " << size() << " n dims = " << n_dims() << std::endl;
@@ -322,7 +333,7 @@ struct decision_function {
  * n_sv = n_sv[n_class], number of SVs for each class
  * probA, probB = [n_class*(n_class-1)/2]
  */
-class svm_model {
+class svm_model : public Serializable<SvmModelProto> {
 public:
   int n_dims_;
   float *sv_mem;
@@ -346,6 +357,10 @@ public:
   int persistent_size() const;
   void save(std::ostream &outStream) const;
   void load(std::istream &inStream);
+  using Serializable::read;
+  virtual void read(SvmModelProto::Reader &proto) override;
+  using Serializable::write;
+  virtual void write(SvmModelProto::Builder &proto) const override;
   void print() const;
 
 private:
@@ -740,7 +755,7 @@ public:
 };
 
 //------------------------------------------------------------------------------
-struct svm_parameter {
+struct svm_parameter : public Serializable<SvmParameterProto> {
   svm_parameter(int k, bool p, float g, float c, float e, int cs, int s)
       : kernel(k), probability(p), gamma(g), C(c), eps(e), cache_size(cs),
         shrinking(s) {}
@@ -758,6 +773,12 @@ struct svm_parameter {
   int persistent_size() const;
   void save(std::ostream &outStream) const;
   void load(std::istream &inStream);
+
+  using Serializable::read;
+  virtual void read(SvmParameterProto::Reader &proto) override;
+  using Serializable::write;
+  virtual void write(SvmParameterProto::Builder &proto) const override;
+
   void print() const;
 };
 
@@ -890,7 +911,7 @@ private:
 };
 
 //------------------------------------------------------------------------------
-class svm_dense {
+class svm_dense : public Serializable<SvmDenseProto> {
   svm<svm_std_traits> svm_;
 
 public:
@@ -921,6 +942,7 @@ public:
 
   inline svm_problem &get_problem() { return *svm_.problem_; }
   inline svm_model &get_model() { return *svm_.model_; }
+  inline svm_parameter &get_parameter() { return svm_.param_; }
   inline void discard_problem() { svm_.discard_problem(); }
 
   template <typename InIter> inline float predict(InIter x) {
@@ -946,10 +968,14 @@ public:
   inline void save(std::ostream &outStream) const { svm_.save(outStream); }
 
   inline void load(std::istream &inStream) { svm_.load(inStream); }
+  using Serializable::read;
+  virtual void read(SvmDenseProto::Reader &proto) override;
+  using Serializable::write;
+  virtual void write(SvmDenseProto::Builder &proto) const override;
 };
 
 //------------------------------------------------------------------------------
-class svm_01 {
+class svm_01 : public Serializable<Svm01Proto> {
   svm<svm_01_traits> svm_;
 
 public:
@@ -979,6 +1005,7 @@ public:
 
   inline svm_problem01 &get_problem() { return *svm_.problem_; }
   inline svm_model &get_model() { return *svm_.model_; }
+  inline svm_parameter &get_parameter() { return svm_.param_; }
   inline void discard_problem() { svm_.discard_problem(); }
 
   template <typename InIter> inline float predict(InIter x) {
@@ -1004,6 +1031,10 @@ public:
   inline void save(std::ostream &outStream) const { svm_.save(outStream); }
 
   inline void load(std::istream &inStream) { svm_.load(inStream); }
+  using Serializable::read;
+  virtual void read(Svm01Proto::Reader &proto) override;
+  using Serializable::write;
+  virtual void write(Svm01Proto::Builder &proto) const override;
 };
 
 #include <nupic/algorithms/SvmT.hpp>
