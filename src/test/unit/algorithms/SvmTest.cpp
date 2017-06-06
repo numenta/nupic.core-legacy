@@ -259,8 +259,8 @@ TEST(SvmTest, svm_dense_testWriteRead) {
   const char *filename = "svm_dense.bin";
   svm_dense svm1, svm2;
 
-  obj.add_sample(0.5, new float[1]{11.0});
-  obj.train(1.1, 2.2, 3.3);
+  svm1.add_sample(0.5, new float[1]{11.0});
+  svm1.train(1.1, 2.2, 3.3);
 
   std::ofstream fout(filename, std::ios::binary);
   svm1.write(fout);
@@ -293,8 +293,8 @@ TEST(SvmTest, svm_01_testWriteRead) {
   const char *filename = "svm_01.bin";
   svm_01 svm1, svm2;
 
-  obj.add_sample(0.5, new float[1]{11.0});
-  obj.train(1.1, 2.2, 3.3);
+  svm1.add_sample(0.5, new float[1]{11.0});
+  svm1.train(1.1, 2.2, 3.3);
 
   std::ofstream fout(filename, std::ios::binary);
   svm1.write(fout);

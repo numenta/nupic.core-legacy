@@ -44,12 +44,14 @@ struct SvmModelProto {
   w @8 :List(List(Float32));
 }
 
+# Next ID: 3
 struct SvmDenseProto {
   model @0 :SvmModelProto;
   param @1 :SvmParameterProto;
   problem @2 :SvmProblemProto;
 }
 
+# Next ID: 3
 struct Svm01Proto {
   model @0 :SvmModelProto;
   param @1 :SvmParameterProto;
