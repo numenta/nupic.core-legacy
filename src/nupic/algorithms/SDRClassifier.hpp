@@ -96,8 +96,8 @@ namespace nupic
            *               used when predicting each bucket.
            */
           virtual void compute(
-            UInt recordNum, const vector<UInt>& patternNZ, UInt bucketIdx,
-            Real64 actValue, bool category, bool learn, bool infer,
+            UInt recordNum, const vector<UInt>& patternNZ, const vector<UInt>& bucketIdxList,
+            const vector<Real64>& actValueList, bool category, bool learn, bool infer,
             ClassifierResult* result);
 
           /**
@@ -161,12 +161,12 @@ namespace nupic
 
         private:
           // Helper function for inference mode
-          void infer_(const vector<UInt>& patternNZ, UInt bucketIdx,
-            Real64 actValue, ClassifierResult* result);
+          void infer_(const vector<UInt>& patternNZ,
+            const vector<Real64>& actValue, ClassifierResult* result);
 
           // Helper function to compute the error signal in learning mode
-          vector<Real64> calculateError_(UInt bucketIdx, const vector<UInt>, 
-            UInt step);
+          vector<Real64> calculateError_(const vector<UInt>& bucketIdxList, 
+            const vector<UInt> patternNZ, UInt step);
 
           // The list of prediction steps to learn and infer.
           vector<UInt> steps_;
