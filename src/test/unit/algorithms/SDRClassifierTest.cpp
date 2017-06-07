@@ -130,7 +130,7 @@ namespace
     vector<UInt> bucketIdxList;
     bucketIdxList.push_back(4);
     vector<Real64> actValueList;
-    actValueList.push_back(34.7);    
+    actValueList.push_back(34.7);
     ClassifierResult result1;
     for (UInt i = 0; i < 10; ++i)
     {
@@ -302,40 +302,40 @@ namespace
     for(int i=0; i<1000; i++)
     {
       ClassifierResult result1;
-      ClassifierResult result2;      
-      c.compute(recordNum, input1, bucketIdxList1, actValueList1, false, true, true, &result1);      
+      ClassifierResult result2;
+      c.compute(recordNum, input1, bucketIdxList1, actValueList1, false, true, true, &result1);
       recordNum += 1;
       c.compute(recordNum, input2, bucketIdxList2, actValueList2, false, true, true, &result2);
       recordNum += 1;
     }
 
     ClassifierResult result1;
-    ClassifierResult result2;      
-    c.compute(recordNum, input1, bucketIdxList1, actValueList1, false, true, true, &result1);      
+    ClassifierResult result2;
+    c.compute(recordNum, input1, bucketIdxList1, actValueList1, false, true, true, &result1);
     recordNum += 1;
     c.compute(recordNum, input2, bucketIdxList2, actValueList2, false, true, true, &result2);
     recordNum += 1;
-    
+
     for (auto it = result1.begin(); it != result1.end(); ++it)
     {
       if (it->first == 0) {
         ASSERT_LT(fabs(it->second->at(0) - 0.5), 0.1)
-        << "Incorrect prediction for bucket 0 (expected=0.5)";        
+        << "Incorrect prediction for bucket 0 (expected=0.5)";
         ASSERT_LT(fabs(it->second->at(1) - 0.5), 0.1)
-        << "Incorrect prediction for bucket 1 (expected=0.5)";                              
+        << "Incorrect prediction for bucket 1 (expected=0.5)";
       }
     }
-  
+
     for (auto it = result2.begin(); it != result2.end(); ++it)
     {
       if (it->first == 0) {
         ASSERT_LT(fabs(it->second->at(2) - 0.5), 0.1)
-        << "Incorrect prediction for bucket 2 (expected=0.5)";        
+        << "Incorrect prediction for bucket 2 (expected=0.5)";
         ASSERT_LT(fabs(it->second->at(3) - 0.5), 0.1)
-        << "Incorrect prediction for bucket 3 (expected=0.5)";                              
+        << "Incorrect prediction for bucket 3 (expected=0.5)";
       }
     }
-    
+
   }
 
   TEST(SDRClassifierTest, SaveLoad)
@@ -353,7 +353,7 @@ namespace
     vector<UInt> bucketIdxList1;
     bucketIdxList1.push_back(4);
     vector<Real64> actValueList1;
-    actValueList1.push_back(34.7);    
+    actValueList1.push_back(34.7);
     ClassifierResult result;
     c1.compute(0, input1, bucketIdxList1, actValueList1, false, true, true, &result);
 
@@ -388,7 +388,7 @@ namespace
     vector<UInt> bucketIdxList1;
     bucketIdxList1.push_back(4);
     vector<Real64> actValueList1;
-    actValueList1.push_back(34.7);        
+    actValueList1.push_back(34.7);
     ClassifierResult trainResult1;
     c1.compute(0, input1, bucketIdxList1, actValueList1, false, true, true, &trainResult1);
 
@@ -400,7 +400,7 @@ namespace
     vector<UInt> bucketIdxList2;
     bucketIdxList2.push_back(2);
     vector<Real64> actValueList2;
-    actValueList2.push_back(24.7);    
+    actValueList2.push_back(24.7);
     ClassifierResult trainResult2;
     c1.compute(1, input2, bucketIdxList2, actValueList2, false, true, true, &trainResult2);
 
