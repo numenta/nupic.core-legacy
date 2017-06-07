@@ -93,11 +93,11 @@ namespace nupic
         if (recordNumHistory_.size() > 0)
         {
           lastRecordNum = recordNumHistory_[recordNumHistory_.size()-1];
-          if(recordNum < lastRecordNum)
+          if (recordNum < lastRecordNum)
             NTA_THROW << "the record number has to increase monotonically";
         }
         // update pattern history if this is a new record
-        if(recordNumHistory_.size() ==0 || recordNum > lastRecordNum)
+        if (recordNumHistory_.size() == 0 || recordNum > lastRecordNum)
         {
           patternNZHistory_.emplace_back(patternNZ.begin(), patternNZ.end());
           recordNumHistory_.push_back(recordNum);
