@@ -163,7 +163,7 @@ namespace
     steps.push_back(1);
     SDRClassifier c = SDRClassifier(steps, 1.0, 0.1, 0);
 
-    // Create a input vectors
+    // Create a input vector
     vector<UInt> input1;
     input1.push_back(1);
     input1.push_back(5);
@@ -173,7 +173,7 @@ namespace
     vector<Real64> actValueList1;
     actValueList1.push_back(34.7);
 
-    // Create a input vectors
+    // Create a input vector
     vector<UInt> input2;
     input2.push_back(0);
     input2.push_back(6);
@@ -184,7 +184,7 @@ namespace
     vector<Real64> actValueList2;
     actValueList2.push_back(41.7);
 
-    // Create a input vectors
+    // Create input vectors
     vector<UInt> input3;
     input3.push_back(6);
     input3.push_back(9);
@@ -264,6 +264,78 @@ namespace
       ASSERT_TRUE(found1) << "Key 1 not found in classifier result";
     }
 
+  }
+
+  TEST(SDRClassifierTest, MultipleCategory)
+  {
+    // Test multiple category classification with single compute calls
+    // This test is ported from the Python unit test
+    vector<UInt> steps;
+    steps.push_back(0);
+    SDRClassifier c = SDRClassifier(steps, 1.0, 0.1, 0);
+
+    // Create a input vectors
+    vector<UInt> input1;
+    input1.push_back(1);
+    input1.push_back(3);
+    input1.push_back(5);
+    vector<UInt> bucketIdxList1;
+    bucketIdxList1.push_back(0);
+    bucketIdxList1.push_back(1);
+    vector<Real64> actValueList1;
+    actValueList1.push_back(0);
+    actValueList1.push_back(1);
+
+    // Create a input vectors
+    vector<UInt> input2;
+    input2.push_back(2);
+    input2.push_back(4);
+    input2.push_back(6);
+    vector<UInt> bucketIdxList2;
+    bucketIdxList2.push_back(2);
+    bucketIdxList2.push_back(3);
+    vector<Real64> actValueList2;
+    actValueList2.push_back(2);
+    actValueList2.push_back(3);
+
+    int recordNum=0;
+    for(int i=0; i<1000; i++)
+    {
+      ClassifierResult result1;
+      ClassifierResult result2;      
+      c.compute(recordNum, input1, bucketIdxList1, actValueList1, false, true, true, &result1);      
+      recordNum += 1;
+      c.compute(recordNum, input2, bucketIdxList2, actValueList2, false, true, true, &result2);
+      recordNum += 1;
+    }
+
+    ClassifierResult result1;
+    ClassifierResult result2;      
+    c.compute(recordNum, input1, bucketIdxList1, actValueList1, false, true, true, &result1);      
+    recordNum += 1;
+    c.compute(recordNum, input2, bucketIdxList2, actValueList2, false, true, true, &result2);
+    recordNum += 1;
+    
+    for (auto it = result1.begin(); it != result1.end(); ++it)
+    {
+      if (it->first == 0) {
+        ASSERT_LT(fabs(it->second->at(0) - 0.5), 0.1)
+        << "Incorrect prediction for bucket 0 (expected=0.5)";        
+        ASSERT_LT(fabs(it->second->at(1) - 0.5), 0.1)
+        << "Incorrect prediction for bucket 1 (expected=0.5)";                              
+      }
+    }
+  
+    for (auto it = result2.begin(); it != result2.end(); ++it)
+    {
+      if (it->first == 0) {
+        ASSERT_LT(fabs(it->second->at(2) - 0.5), 0.1)
+        << "Incorrect prediction for bucket 2 (expected=0.5)";        
+        ASSERT_LT(fabs(it->second->at(3) - 0.5), 0.1)
+        << "Incorrect prediction for bucket 3 (expected=0.5)";                              
+      }
+    }
+    
   }
 
   TEST(SDRClassifierTest, SaveLoad)
