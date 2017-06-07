@@ -1446,7 +1446,6 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
       noneSentinel = 3.14159
 
       if type(classification["actValue"]) in (int, float):
-        # actValue = classification["actValue"]
         actValueList = [classification["actValue"]]
         bucketIdxList = [classification["bucketIdx"]]
         category = False
@@ -1459,14 +1458,12 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
         category = False
         # This does not get used when learning is disabled anyway.
         bucketIdxList = [0]
-        # classification["bucketIdx"] = 0
         isNone = True
       elif type(classification["actValue"]) is list:
          actValueList = classification["actValue"]
          bucketIdxList = classification["bucketIdx"]
          category = False
       else:
-        # actValue = int(classification["bucketIdx"])
         actValueList = [int(classification["bucketIdx"])]
         bucketIdxList = [classification["bucketIdx"]]
         category = True
