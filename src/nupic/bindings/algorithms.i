@@ -1446,25 +1446,31 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
       noneSentinel = 3.14159
 
       if type(classification["actValue"]) in (int, float):
-        actValue = classification["actValue"]
+        actValueList = [classification["actValue"]]
+        bucketIdxList = [classification["bucketIdx"]]
         category = False
       elif classification["actValue"] is None:
         # Use the sentinel value so we know if it gets used in actualValues
         # returned.
-        actValue = noneSentinel
+        actValueList = [noneSentinel]
         # Turn learning off this step.
         learn = False
         category = False
         # This does not get used when learning is disabled anyway.
-        classification["bucketIdx"] = 0
+        bucketIdxList = [0]
         isNone = True
+      elif type(classification["actValue"]) is list:
+         actValueList = classification["actValue"]
+         bucketIdxList = classification["bucketIdx"]
+         category = False
       else:
-        actValue = int(classification["bucketIdx"])
+        actValueList = [int(classification["bucketIdx"])]
+        bucketIdxList = [classification["bucketIdx"]]
         category = True
 
       result = self.convertedCompute(
-          recordNum, patternNZ, int(classification["bucketIdx"]),
-          actValue, category, learn, infer)
+          recordNum, patternNZ, bucketIdxList,
+          actValueList, category, learn, infer)
 
       if isNone:
         for i, v in enumerate(result["actualValues"]):
@@ -1549,11 +1555,12 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
   }
 
   PyObject* convertedCompute(UInt recordNum, const vector<UInt>& patternNZ,
-                             UInt bucketIdx, Real64 actValue, bool category,
+                             const vector<UInt>& bucketIdxList, 
+                             const vector<Real64>& actValueList, bool category,
                              bool learn, bool infer)
   {
     ClassifierResult result;
-    self->compute(recordNum, patternNZ, bucketIdx, actValue, category,
+    self->compute(recordNum, patternNZ, bucketIdxList, actValueList, category,
                   learn, infer, &result);
     PyObject* d = PyDict_New();
     for (map<Int, vector<Real64>*>::const_iterator it = result.begin();
