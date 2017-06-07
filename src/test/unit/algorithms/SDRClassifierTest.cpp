@@ -299,16 +299,18 @@ namespace
     actValueList2.push_back(3);
 
     int recordNum=0;
-    ClassifierResult result1;
-    ClassifierResult result2;
     for(int i=0; i<1000; i++)
     {
+      ClassifierResult result1;
+      ClassifierResult result2;
       c.compute(recordNum, input1, bucketIdxList1, actValueList1, false, true, true, &result1);
       recordNum += 1;
       c.compute(recordNum, input2, bucketIdxList2, actValueList2, false, true, true, &result2);
       recordNum += 1;
     }
 
+    ClassifierResult result1;
+    ClassifierResult result2;
     c.compute(recordNum, input1, bucketIdxList1, actValueList1, false, true, true, &result1);
     recordNum += 1;
     c.compute(recordNum, input2, bucketIdxList2, actValueList2, false, true, true, &result2);
