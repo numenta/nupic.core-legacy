@@ -96,6 +96,7 @@ namespace nupic
           if (recordNum < lastRecordNum)
             NTA_THROW << "the record number has to increase monotonically";
         }
+
         // update pattern history if this is a new record
         if (recordNumHistory_.size() == 0 || recordNum > lastRecordNum)
         {
@@ -127,7 +128,7 @@ namespace nupic
         // if in inference mode, compute likelihood and update return value
         if (infer)
         {
-            infer_(patternNZ, actValueList, result);
+          infer_(patternNZ, actValueList, result);
         }
 
         // update weights if in learning mode
