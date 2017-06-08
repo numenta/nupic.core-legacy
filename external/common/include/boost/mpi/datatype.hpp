@@ -30,13 +30,17 @@
 #include <boost/serialization/item_version_type.hpp>
 #include <utility> // for std::pair
 
+#if defined(__cplusplus) && (201103L <= __cplusplus) 
+#include <array>
+#endif
+
 namespace boost { namespace mpi {
 
 /**
  *  @brief Type trait that determines if there exists a built-in
  *  integer MPI data type for a given C++ type.
  *
- *  This ytpe trait determines when there is a direct mapping from a
+ *  This type trait determines when there is a direct mapping from a
  *  C++ type to an MPI data type that is classified as an integer data
  *  type. See @c is_mpi_builtin_datatype for general information about
  *  built-in MPI data types.
@@ -49,7 +53,7 @@ struct is_mpi_integer_datatype
  *  @brief Type trait that determines if there exists a built-in
  *  floating point MPI data type for a given C++ type.
  *
- *  This ytpe trait determines when there is a direct mapping from a
+ *  This type trait determines when there is a direct mapping from a
  *  C++ type to an MPI data type that is classified as a floating
  *  point data type. See @c is_mpi_builtin_datatype for general
  *  information about built-in MPI data types.
@@ -62,7 +66,7 @@ struct is_mpi_floating_point_datatype
  *  @brief Type trait that determines if there exists a built-in
  *  logical MPI data type for a given C++ type.
  *
- *  This ytpe trait determines when there is a direct mapping from a
+ *  This type trait determines when there is a direct mapping from a
  *  C++ type to an MPI data type that is classified as an logical data
  *  type. See @c is_mpi_builtin_datatype for general information about
  *  built-in MPI data types.
@@ -75,7 +79,7 @@ struct is_mpi_logical_datatype
  *  @brief Type trait that determines if there exists a built-in
  *  complex MPI data type for a given C++ type.
  *
- *  This ytpe trait determines when there is a direct mapping from a
+ *  This type trait determines when there is a direct mapping from a
  *  C++ type to an MPI data type that is classified as an complex data
  *  type. See @c is_mpi_builtin_datatype for general information about
  *  built-in MPI data types.
@@ -88,7 +92,7 @@ struct is_mpi_complex_datatype
  *  @brief Type trait that determines if there exists a built-in
  *  byte MPI data type for a given C++ type.
  *
- *  This ytpe trait determines when there is a direct mapping from a
+ *  This type trait determines when there is a direct mapping from a
  *  C++ type to an MPI data type that is classified as an byte data
  *  type. See @c is_mpi_builtin_datatype for general information about
  *  built-in MPI data types.
@@ -198,7 +202,7 @@ get_mpi_datatype< CppType >(const CppType&) { return MPIType; }         \
                                                                         \
 template<>                                                              \
  struct BOOST_JOIN(is_mpi_,BOOST_JOIN(Kind,_datatype))< CppType >       \
-: boost::mpl::bool_<true>                                               \
+: boost::mpl::true_                                                     \
 {}
 
 /// INTERNAL ONLY
@@ -264,6 +268,15 @@ struct is_mpi_datatype<std::pair<T,U> >
  : public mpl::and_<is_mpi_datatype<T>,is_mpi_datatype<U> >
 {
 };
+
+/// specialization of is_mpi_datatype for arrays
+#if defined(__cplusplus) && (201103L <= __cplusplus)
+template<class T, std::size_t N>
+struct is_mpi_datatype<std::array<T, N> >
+ : public is_mpi_datatype<T>
+{
+};
+#endif
 
 // Define wchar_t specialization of is_mpi_datatype, if possible.
 #if !defined(BOOST_NO_INTRINSIC_WCHAR_T) && \

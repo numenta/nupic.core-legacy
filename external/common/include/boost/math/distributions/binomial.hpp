@@ -155,7 +155,7 @@ namespace boost
         template <class RealType, class Policy>
         inline bool check_dist_and_prob(const char* function, const RealType& N, RealType p, RealType prob, RealType* result, const Policy& pol)
         {
-           if(check_dist(function, N, p, result, pol) && detail::check_probability(function, prob, result, pol) == false)
+           if((check_dist(function, N, p, result, pol) && detail::check_probability(function, prob, result, pol)) == false)
               return false;
            return true;
         }
@@ -196,7 +196,7 @@ namespace boost
          }
 
       template <class RealType, class Policy>
-      RealType quantile_imp(const binomial_distribution<RealType, Policy>& dist, const RealType& p, const RealType& q)
+      RealType quantile_imp(const binomial_distribution<RealType, Policy>& dist, const RealType& p, const RealType& q, bool comp)
       { // Quantile or Percent Point Binomial function.
         // Return the number of expected successes k,
         // for a given probability p.
@@ -264,8 +264,8 @@ namespace boost
         boost::uintmax_t max_iter = policies::get_max_root_iterations<Policy>();
         return detail::inverse_discrete_quantile(
             dist,
-            p,
-            q,
+            comp ? q : p,
+            comp,
             guess,
             factor,
             RealType(1),
@@ -653,13 +653,13 @@ namespace boost
       template <class RealType, class Policy>
       inline RealType quantile(const binomial_distribution<RealType, Policy>& dist, const RealType& p)
       {
-         return binomial_detail::quantile_imp(dist, p, RealType(1-p));
+         return binomial_detail::quantile_imp(dist, p, RealType(1-p), false);
       } // quantile
 
       template <class RealType, class Policy>
       RealType quantile(const complemented2_type<binomial_distribution<RealType, Policy>, RealType>& c)
       {
-         return binomial_detail::quantile_imp(c.dist, RealType(1-c.param), c.param);
+         return binomial_detail::quantile_imp(c.dist, RealType(1-c.param), c.param, true);
       } // quantile
 
       template <class RealType, class Policy>

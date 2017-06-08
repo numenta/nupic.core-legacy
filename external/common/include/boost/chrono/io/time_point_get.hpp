@@ -126,7 +126,6 @@ namespace boost
         err = std::ios_base::goodbit;
         while (pattern != pat_end && err == std::ios_base::goodbit)
         {
-          //std::cerr << __FILE__ << ":" << __LINE__ << " err " << err << std::endl;
           if (s == end)
           {
             err |= std::ios_base::eofbit;
@@ -151,7 +150,6 @@ namespace boost
               }
               duration_found = true;
               s = get_duration(s, end, ios, err, d);
-              //std::cerr << __FILE__ << ":" << __LINE__ << " err " << err << std::endl;
               if (err & (std::ios_base::badbit | std::ios_base::failbit))
               {
                 return s;
@@ -167,7 +165,6 @@ namespace boost
               }
               epoch_found = true;
               s = get_epoch<Clock> (facet, s, end, ios, err);
-              //std::cerr << __FILE__ << ":" << __LINE__ << " err " << err << std::endl;
               if (err & (std::ios_base::badbit | std::ios_base::failbit))
               {
                 return s;
@@ -282,12 +279,12 @@ namespace boost
         if (std::has_facet<time_point_units<CharT> >(is.getloc()))
         {
           time_point_units<CharT> const &facet = std::use_facet<time_point_units<CharT> >(is.getloc());
-          return get_epoch(facet, i, e, is, err);
+          return get_epoch<Clock>(facet, i, e, is, err);
         }
         else
         {
           time_point_units_default<CharT> facet;
-          return get_epoch(facet, i, e, is, err);
+          return get_epoch<Clock>(facet, i, e, is, err);
         }
       }
 

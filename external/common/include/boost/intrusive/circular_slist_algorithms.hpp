@@ -1,7 +1,7 @@
 /////////////////////////////////////////////////////////////////////////////
 //
 // (C) Copyright Olaf Krzikalla 2004-2006.
-// (C) Copyright Ion Gaztanaga  2006-2012
+// (C) Copyright Ion Gaztanaga  2006-2014
 //
 // Distributed under the Boost Software License, Version 1.0.
 //    (See accompanying file LICENSE_1_0.txt or copy at
@@ -14,11 +14,15 @@
 #ifndef BOOST_INTRUSIVE_CIRCULAR_SLIST_ALGORITHMS_HPP
 #define BOOST_INTRUSIVE_CIRCULAR_SLIST_ALGORITHMS_HPP
 
+#include <cstddef>
 #include <boost/intrusive/detail/config_begin.hpp>
 #include <boost/intrusive/intrusive_fwd.hpp>
 #include <boost/intrusive/detail/common_slist_algorithms.hpp>
-#include <boost/intrusive/detail/assert.hpp>
-#include <cstddef>
+#include <boost/intrusive/detail/algo_type.hpp>
+
+#if defined(BOOST_HAS_PRAGMA_ONCE)
+#  pragma once
+#endif
 
 namespace boost {
 namespace intrusive {
@@ -137,7 +141,7 @@ class circular_slist_algorithms
    //! <b>Complexity</b>: Constant
    //!
    //! <b>Throws</b>: Nothing.
-   static void init_header(const node_ptr &this_node)
+   BOOST_INTRUSIVE_FORCEINLINE static void init_header(const node_ptr &this_node)
    {  NodeTraits::set_next(this_node, this_node);  }
 
    //! <b>Requires</b>: this_node and prev_init_node must be in the same circular list.
@@ -149,7 +153,7 @@ class circular_slist_algorithms
    //! <b>Complexity</b>: Linear to the number of elements between prev_init_node and this_node.
    //!
    //! <b>Throws</b>: Nothing.
-   static node_ptr get_previous_node(const node_ptr &prev_init_node, const node_ptr &this_node)
+   BOOST_INTRUSIVE_FORCEINLINE static node_ptr get_previous_node(const node_ptr &prev_init_node, const node_ptr &this_node)
    {  return base_t::get_previous_node(prev_init_node, this_node);   }
 
    //! <b>Requires</b>: this_node must be in a circular list or be an empty circular list.
@@ -159,7 +163,7 @@ class circular_slist_algorithms
    //! <b>Complexity</b>: Linear to the number of elements in the circular list.
    //!
    //! <b>Throws</b>: Nothing.
-   static node_ptr get_previous_node(const node_ptr & this_node)
+   BOOST_INTRUSIVE_FORCEINLINE static node_ptr get_previous_node(const node_ptr & this_node)
    {  return base_t::get_previous_node(this_node, this_node); }
 
    //! <b>Requires</b>: this_node must be in a circular list or be an empty circular list.
@@ -169,7 +173,7 @@ class circular_slist_algorithms
    //! <b>Complexity</b>: Linear to the number of elements in the circular list.
    //!
    //! <b>Throws</b>: Nothing.
-   static node_ptr get_previous_previous_node(const node_ptr & this_node)
+   BOOST_INTRUSIVE_FORCEINLINE static node_ptr get_previous_previous_node(const node_ptr & this_node)
    {  return get_previous_previous_node(this_node, this_node); }
 
    //! <b>Requires</b>: this_node and p must be in the same circular list.
@@ -219,7 +223,7 @@ class circular_slist_algorithms
    //! <b>Complexity</b>: Linear to the number of elements in the circular list
    //!
    //! <b>Throws</b>: Nothing.
-   static void unlink(const node_ptr & this_node)
+   BOOST_INTRUSIVE_FORCEINLINE static void unlink(const node_ptr & this_node)
    {
       if(NodeTraits::get_next(this_node))
          base_t::unlink_after(get_previous_node(this_node));
@@ -232,7 +236,7 @@ class circular_slist_algorithms
    //! <b>Complexity</b>: Linear to the number of elements in the circular list.
    //!
    //! <b>Throws</b>: Nothing.
-   static void link_before (const node_ptr & nxt_node, const node_ptr & this_node)
+   BOOST_INTRUSIVE_FORCEINLINE static void link_before (const node_ptr & nxt_node, const node_ptr & this_node)
    {  base_t::link_after(get_previous_node(nxt_node), this_node);   }
 
    //! <b>Requires</b>: this_node and other_node must be nodes inserted
@@ -249,33 +253,21 @@ class circular_slist_algorithms
    {
       if (other_node == this_node)
          return;
-      bool this_inited  = base_t::inited(this_node);
-      bool other_inited = base_t::inited(other_node);
-      if(this_inited){
-         base_t::init_header(this_node);
-      }
-      if(other_inited){
-         base_t::init_header(other_node);
-      }
+      const node_ptr this_next = NodeTraits::get_next(this_node);
+      const node_ptr other_next = NodeTraits::get_next(other_node);
+      const bool this_null   = !this_next;
+      const bool other_null  = !other_next;
+      const bool this_empty  = this_next == this_node;
+      const bool other_empty = other_next == other_node;
 
-      bool empty1 = base_t::unique(this_node);
-      bool empty2 = base_t::unique(other_node);
-      node_ptr prev_this (get_previous_node(this_node));
-      node_ptr prev_other(get_previous_node(other_node));
-
-      node_ptr this_next (NodeTraits::get_next(this_node));
-      node_ptr other_next(NodeTraits::get_next(other_node));
-      NodeTraits::set_next(this_node, other_next);
-      NodeTraits::set_next(other_node, this_next);
-      NodeTraits::set_next(empty1 ? other_node : prev_this, other_node);
-      NodeTraits::set_next(empty2 ? this_node  : prev_other, this_node);
-
-      if(this_inited){
-         base_t::init(other_node);
+      if(!(other_null || other_empty)){
+         NodeTraits::set_next(this_next == other_node ? other_node : get_previous_node(other_node), this_node );
       }
-      if(other_inited){
-         base_t::init(this_node);
+      if(!(this_null | this_empty)){
+         NodeTraits::set_next(other_next == this_node ? this_node  : get_previous_node(this_node), other_node );
       }
+      NodeTraits::set_next(this_node,  other_empty ? this_node  : (other_next == this_node ? other_node : other_next) );
+      NodeTraits::set_next(other_node, this_empty  ? other_node : (this_next == other_node ? this_node :  this_next ) );
    }
 
    //! <b>Effects</b>: Reverses the order of elements in the list.
@@ -395,6 +387,16 @@ class circular_slist_algorithms
       return new_last;
    }
 };
+
+/// @cond
+
+template<class NodeTraits>
+struct get_algo<CircularSListAlgorithms, NodeTraits>
+{
+   typedef circular_slist_algorithms<NodeTraits> type;
+};
+
+/// @endcond
 
 } //namespace intrusive
 } //namespace boost
