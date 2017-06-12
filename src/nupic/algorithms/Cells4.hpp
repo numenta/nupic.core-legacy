@@ -26,9 +26,11 @@
 #include <ostream>
 #include <sstream>
 #include <fstream>
-#include <nupic/types/Types.hpp>
 #include <nupic/algorithms/Segment.hpp>
 #include <nupic/algorithms/OutSynapse.hpp>
+#include <nupic/proto/Cells4Proto.capnp.h>
+#include <nupic/types/Serializable.hpp>
+#include <nupic/types/Types.hpp>
 #include <queue>
 #include <cstring>
 
@@ -262,7 +264,7 @@ namespace nupic {
         CBasicActivity<It> _seg;
       };
 
-      class Cells4
+      class Cells4 : public Serializable<Cells4Proto>
       {
       public:
 
@@ -1072,6 +1074,20 @@ namespace nupic {
           this->save(tmp);
           return tmp.str().size();
         }
+
+        //----------------------------------------------------------------------
+        /**
+         * Write the state to a proto or file
+         */
+        using Serializable::write;
+        virtual void write(Cells4Proto::Builder& proto) const override;
+
+        //----------------------------------------------------------------------
+        /**
+         * Read the state into a proto or file
+         */
+        using Serializable::read;
+        virtual void read(Cells4Proto::Reader& proto) override;
 
         //----------------------------------------------------------------------
         /**
