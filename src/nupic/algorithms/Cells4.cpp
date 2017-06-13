@@ -2023,7 +2023,7 @@ void Cells4::read(Cells4Proto::Reader& proto)
   _maxInfBacktrack = proto.getMaxInfBacktrack();
   _maxLrnBacktrack = proto.getMaxLrnBacktrack();
   _maxSeqLength = proto.getMaxSeqLength();
-  _learnedSeqLength = proto.getAvgLearnedSeqLength();
+  _learnedSeqLength = proto.getLearnedSeqLength();
   _avgLearnedSeqLength = proto.getAvgLearnedSeqLength();
   _maxAge = proto.getMaxAge();
   _verbosity = proto.getVerbosity();
