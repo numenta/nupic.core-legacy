@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.1
+
+* SP optimization using minmax_element (#1326)
+* Add capnp serialization to Cells4, Cell, Segment, SegmentUpdates, CState, etc. (#1346)
+* Fix missing actValue in SDR classifier SWIG interface (#1348)
+
 ## 0.7.0
 
 * Give clear exception when clients attempt to reuse ClassifierResult instance with SDRClassifier (PR #1342)
