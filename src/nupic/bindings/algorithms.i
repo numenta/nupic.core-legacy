@@ -1278,11 +1278,13 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
       if type(classification["actValue"]) in (int, float):
         actValueList = [classification["actValue"]]
         bucketIdxList = [classification["bucketIdx"]]
+        originalValueList = [classification["actValue"]]
         category = False
       elif classification["actValue"] is None:
         # Use the sentinel value so we know if it gets used in actualValues
         # returned.
         actValueList = [noneSentinel]
+        originalValueList = [noneSentinel]
         # Turn learning off this step.
         learn = False
         category = False
@@ -1292,9 +1294,11 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
       elif type(classification["actValue"]) is list:
          actValueList = classification["actValue"]
          bucketIdxList = classification["bucketIdx"]
+         originalValueList = classification["actValue"]
          category = False
       else:
         actValueList = [int(classification["bucketIdx"])]
+        originalValueList = [classification["actValue"]]
         bucketIdxList = [classification["bucketIdx"]]
         category = True
 
@@ -1316,7 +1320,8 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
             arrayResult["actualValues"][i] = self.valueToCategory.get(int(
                 arrayResult["actualValues"][i]), classification["actValue"])
 
-        self.valueToCategory[actValue] = classification["actValue"]
+        for i in range(len(actValueList)):
+          self.valueToCategory[actValueList[i]] = originalValueList[i]
 
       return arrayResult
 
