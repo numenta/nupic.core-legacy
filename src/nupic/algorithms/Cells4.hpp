@@ -28,7 +28,7 @@
 #include <fstream>
 #include <nupic/algorithms/Segment.hpp>
 #include <nupic/algorithms/OutSynapse.hpp>
-#include <nupic/proto/Cells4Proto.capnp.h>
+#include <nupic/proto/Cells4.capnp.h>
 #include <nupic/types/Serializable.hpp>
 #include <nupic/types/Types.hpp>
 #include <queue>

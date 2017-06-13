@@ -214,6 +214,8 @@ set(src_py_support_files
 set(src_capnp_specs_rel
   nupic/proto/ArrayProto.capnp
   nupic/proto/BitHistory.capnp
+  nupic/proto/Cell.capnp
+  nupic/proto/Cells4.capnp
   nupic/proto/ClaClassifier.capnp
   nupic/proto/ConnectionsProto.capnp
   nupic/proto/LinkProto.capnp
@@ -222,6 +224,8 @@ set(src_capnp_specs_rel
   nupic/proto/PyRegionProto.capnp
   nupic/proto/RandomProto.capnp
   nupic/proto/RegionProto.capnp
+  nupic/proto/Segment.capnp
+  nupic/proto/SegmentUpdate.capnp
   nupic/proto/SparseBinaryMatrixProto.capnp
   nupic/proto/SparseMatrixProto.capnp
   nupic/proto/SpatialPoolerProto.capnp

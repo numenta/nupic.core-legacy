@@ -27,11 +27,15 @@
 #include <set>
 #include <vector>
 
+#include <capnp/message.h>
+#include <capnp/serialize.h>
+#include <kj/std/iostream.h>
 #include <gtest/gtest.h>
 
 #include <nupic/algorithms/Cells4.hpp>
 #include <nupic/algorithms/Segment.hpp>
 #include <nupic/math/ArrayAlgo.hpp> // is_in
+#include <nupic/proto/Cells4.capnp.h>
 
 
 using namespace nupic::algorithms::Cells4;
@@ -75,6 +79,44 @@ std::vector<UInt> _getOrderedSynapseIndexesForSrcCells(const Segment& segment,
   }
 
   return result;
+}
+
+
+TEST(Cells4Test, capnpSerialization)
+{
+  Cells4 cells(
+      10, 2, 1, 1, 1, 1, 0.5, 0.8, 1, 0.1, 0.1, 0, false, -1, true, false);
+  std::vector<Real> input(10, 0.0);
+  input[1] = 1.0;
+  input[4] = 1.0;
+  input[5] = 1.0;
+  input[9] = 1.0;
+  std::vector<Real> output(10*2);
+  cells.compute(&input.front(), &output.front(), true, true);
+
+  Cells4 secondCells(
+      10, 2, 1, 1, 1, 1, 0.5, 0.8, 1, 0.1, 0.1, 0, false, -1, true, false);
+  {
+    capnp::MallocMessageBuilder message1;
+    Cells4Proto::Builder cells4Builder = message1.initRoot<Cells4Proto>();
+    cells.write(cells4Builder);
+    std::stringstream ss;
+    kj::std::StdOutputStream out(ss);
+    capnp::writeMessage(out, message1);
+
+    kj::std::StdInputStream in(ss);
+    capnp::InputStreamMessageReader message2(in);
+    Cells4Proto::Reader cells4Reader = message2.getRoot<Cells4Proto>();
+    secondCells.read(cells4Reader);
+  }
+
+  std::vector<Real> secondOutput(10*2);
+  cells.compute(&input.front(), &output.front(), true, true);
+  secondCells.compute(&input.front(), &secondOutput.front(), true, true);
+  for (UInt i = 0; i < 10; ++i)
+  {
+    ASSERT_EQ(output[i], secondOutput[i]) << "Outputs differ at index " << i;
+  }
 }
 
 
