@@ -2036,6 +2036,20 @@ void Cells4::read(Cells4Proto::Reader& proto)
   _avgInputDensity = proto.getAvgInputDensity();
   _pamCounter = proto.getPamCounter();
 
+  initialize(_nColumns, _nCellsPerCol,
+             _activationThreshold,
+             _minThreshold,
+             _newSynapseCount,
+             _segUpdateValidDuration,
+             _permInitial,
+             _permConnected,
+             _permMax,
+             _permDec,
+             _permInc,
+             _globalDecay,
+             _doPooling,
+             _ownsMemory);
+
   auto learnActiveStateTProto = proto.getLearnActiveStateT();
   _learnActiveStateT.read(learnActiveStateTProto);
   auto learnActiveStateT1Proto = proto.getLearnActiveStateT1();
