@@ -240,12 +240,13 @@ vector<Real>  AnomalyLikelihood::updateAnomalyLikelihoods_(const vector<Real>& a
     likelihoods.push_back(tailProbability_(newAverage)); 
   }
 
+/*
   // Filter the likelihood values. First we prepend the historical likelihoods
   // to the current set. Then we filter the values.  We peel off the likelihoods
   // to return and the last windowSize values to store for later.
   UInt toCrop = min((UInt)this->averagedAnomaly_.getMaxWindowSize(), (UInt)runningLikelihoods_.size());
-  this->runningLikelihoods_.insert(runningLikelihoods_.end() - toCrop, likelihoods.begin(),likelihoods.end()); //append & crop
-
+  this->runningLikelihoods_.insert(runningLikelihoods_.end() - toCrop, likelihoods.begin(),likelihoods.end()); //append & crop //We only update runningLikelihoods in the main loop, not here
+*/
   auto filteredLikelihoods = filterLikelihoods_(likelihoods);
 
   if (verbosity > 3) {
