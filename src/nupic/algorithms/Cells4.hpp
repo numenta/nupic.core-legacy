@@ -525,9 +525,9 @@ namespace nupic {
         UInt getMaxSeqLength() const        { return _maxSeqLength;}
         Real getAvgLearnedSeqLength() const { return _avgLearnedSeqLength;}
         UInt getNLrnIterations() const      { return _nLrnIterations;}
-        Int  getmaxSegmentsPerCell() const  { return _maxSegmentsPerCell;}
-        Int  getMaxSynapsesPerCell() const  { return _maxSynapsesPerSegment;}
-        bool getCheckSynapseConsistency()   { return _checkSynapseConsistency;}
+        Int  getMaxSegmentsPerCell() const  { return _maxSegmentsPerCell;}
+        Int  getMaxSynapsesPerSegment() const  { return _maxSynapsesPerSegment;}
+        bool getCheckSynapseConsistency() const   { return _checkSynapseConsistency;}
 
 
         //----------------------------------------------------------------------

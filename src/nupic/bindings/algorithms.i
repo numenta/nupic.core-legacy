@@ -34,10 +34,11 @@ try:
 except ImportError:
   capnp = None
 else:
-  from nupic.proto.SpatialPoolerProto_capnp import SpatialPoolerProto
+  from nupic.proto.Cells4_capnp import Cells4Proto
   from nupic.proto.ClaClassifier_capnp import ClaClassifierProto
-  from nupic.proto.SdrClassifier_capnp import SdrClassifierProto
   from nupic.proto.ConnectionsProto_capnp import ConnectionsProto
+  from nupic.proto.SdrClassifier_capnp import SdrClassifierProto
+  from nupic.proto.SpatialPoolerProto_capnp import SpatialPoolerProto
   from nupic.proto.TemporalMemoryProto_capnp import TemporalMemoryProto
 
 
@@ -97,6 +98,7 @@ _ALGORITHMS = _algorithms
 #include <nupic/algorithms/OutSynapse.hpp>
 #include <nupic/algorithms/SegmentUpdate.hpp>
 
+#include <nupic/proto/Cells4.capnp.h>
 #include <nupic/proto/ConnectionsProto.capnp.h>
 #include <nupic/proto/SpatialPoolerProto.capnp.h>
 #include <nupic/proto/TemporalMemoryProto.capnp.h>
@@ -804,7 +806,32 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
     def __setstate__(self, inString):
       self.this = _ALGORITHMS.new_Cells4()
       self.loadFromString(inString)
+
+    @classmethod
+    def read(cls, proto):
+      instance = cls()
+      instance._initFromCapnpPyBytes(proto.as_builder().to_bytes()) # copy * 2
+      return instance
+
+    def write(self, pyBuilder):
+      """Serialize the Cells4 instance using capnp.
+
+      :param: Destination Cells4Proto message builder
+      """
+      reader = Cells4Proto.from_bytes(self._writeAsCapnpPyBytes()) # copy
+      pyBuilder.from_dict(reader.to_dict())  # copy
+
   %}
+
+  inline PyObject* _writeAsCapnpPyBytes() const
+  {
+    return nupic::PyCapnpHelper::writeAsPyBytes(*self);
+  }
+
+  inline void _initFromCapnpPyBytes(PyObject* pyBytes)
+  {
+    nupic::PyCapnpHelper::initFromPyBytes(*self, pyBytes);
+  }
 
   void loadFromString(const std::string& inString)
   {

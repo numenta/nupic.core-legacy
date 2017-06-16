@@ -2000,25 +2000,26 @@ void Cells4::write(Cells4Proto::Builder& proto) const
 void Cells4::read(Cells4Proto::Reader& proto)
 {
   NTA_CHECK(proto.getVersion() == 2);
-  _ownsMemory = proto.getOwnsMemory();
+
+  initialize(proto.getNColumns(),
+             proto.getNCellsPerCol(),
+             proto.getActivationThreshold(),
+             proto.getMinThreshold(),
+             proto.getNewSynapseCount(),
+             proto.getSegUpdateValidDuration(),
+             proto.getPermInitial(),
+             proto.getPermConnected(),
+             proto.getPermMax(),
+             proto.getPermDec(),
+             proto.getPermInc(),
+             proto.getGlobalDecay(),
+             proto.getDoPooling(),
+             proto.getOwnsMemory());
   auto randomProto = proto.getRng();
   _rng.read(randomProto);
-  _nColumns = proto.getNColumns();
-  _nCellsPerCol = proto.getNCellsPerCol();
-  _activationThreshold = proto.getActivationThreshold();
-  _minThreshold = proto.getMinThreshold();
-  _newSynapseCount = proto.getNewSynapseCount();
   _nIterations = proto.getNIterations();
   _nLrnIterations = proto.getNLrnIterations();
-  _segUpdateValidDuration = proto.getSegUpdateValidDuration();
   _initSegFreq = proto.getInitSegFreq();
-  _permInitial = proto.getPermInitial();
-  _permConnected = proto.getPermConnected();
-  _permMax = proto.getPermMax();
-  _permDec = proto.getPermDec();
-  _permInc = proto.getPermInc();
-  _globalDecay = proto.getGlobalDecay();
-  _doPooling = proto.getDoPooling();
   _pamLength = proto.getPamLength();
   _maxInfBacktrack = proto.getMaxInfBacktrack();
   _maxLrnBacktrack = proto.getMaxLrnBacktrack();
