@@ -82,6 +82,39 @@ std::vector<UInt> _getOrderedSynapseIndexesForSrcCells(const Segment& segment,
 }
 
 
+/**
+ * Simple comparison function that does the easy checks. It can be expanded to
+ * cover more of the attributes of Cells4 in the future.
+ */
+bool checkCells4Attributes(const Cells4& c1, const Cells4& c2)
+{
+  if (c1.nSegments() != c2.nSegments() ||
+      c1.nCells() != c2.nCells() ||
+      c1.nColumns() != c2.nColumns() ||
+      c1.nCellsPerCol() != c2.nCellsPerCol() ||
+      c1.getMinThreshold() != c2.getMinThreshold() ||
+      c1.getPermConnected() != c2.getPermConnected() ||
+      c1.getVerbosity() != c2.getVerbosity() ||
+      c1.getMaxAge() != c2.getMaxAge() ||
+      c1.getPamLength() != c2.getPamLength() ||
+      c1.getMaxInfBacktrack() != c2.getMaxInfBacktrack() ||
+      c1.getMaxLrnBacktrack() != c2.getMaxLrnBacktrack() ||
+
+      c1.getPamCounter() != c2.getPamCounter() ||
+      c1.getMaxSeqLength() != c2.getMaxSeqLength() ||
+      c1.getAvgLearnedSeqLength() != c2.getAvgLearnedSeqLength() ||
+      c1.getNLrnIterations() != c2.getNLrnIterations() ||
+
+      c1.getMaxSegmentsPerCell() != c2.getMaxSegmentsPerCell() ||
+      c1.getMaxSynapsesPerSegment() != c2.getMaxSynapsesPerSegment() ||
+      c1.getCheckSynapseConsistency() != c2.getCheckSynapseConsistency())
+  {
+    return false;
+  }
+  return true;
+}
+
+
 TEST(Cells4Test, capnpSerialization)
 {
   Cells4 cells(
@@ -131,7 +164,7 @@ TEST(Cells4Test, capnpSerialization)
     secondCells.read(cells4Reader);
   }
 
-  NTA_CHECK(secondCells == cells);
+  NTA_CHECK(checkCells4Attributes(cells, secondCells));
 
   std::vector<Real> secondOutput(10*2);
   cells.compute(&input1.front(), &output.front(), true, true);
@@ -140,7 +173,7 @@ TEST(Cells4Test, capnpSerialization)
   {
     ASSERT_EQ(output[i], secondOutput[i]) << "Outputs differ at index " << i;
   }
-  NTA_CHECK(secondCells == cells);
+  NTA_CHECK(checkCells4Attributes(cells, secondCells));
 }
 
 

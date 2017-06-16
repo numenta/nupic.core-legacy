@@ -3177,37 +3177,3 @@ void Cells4::resetTimers()
   chooseCellsTimer.reset();
 #endif
 }
-
-bool Cells4::operator==(const Cells4& other) const
-{
-  // TODO: Add the rest of the fields!
-  if (this->nSegments() != other.nSegments() ||
-      this->nCells() != other.nCells() ||
-      this->nColumns() != other.nColumns() ||
-      this->nCellsPerCol() != other.nCellsPerCol() ||
-      this->getMinThreshold() != other.getMinThreshold() ||
-      this->getPermConnected() != other.getPermConnected() ||
-      this->getVerbosity() != other.getVerbosity() ||
-      this->getMaxAge() != other.getMaxAge() ||
-      this->getPamLength() != other.getPamLength() ||
-      this->getMaxInfBacktrack() != other.getMaxInfBacktrack() ||
-      this->getMaxLrnBacktrack() != other.getMaxLrnBacktrack() ||
-
-      this->getPamCounter() != other.getPamCounter() ||
-      this->getMaxSeqLength() != other.getMaxSeqLength() ||
-      this->getAvgLearnedSeqLength() != other.getAvgLearnedSeqLength() ||
-      this->getNLrnIterations() != other.getNLrnIterations() ||
-
-      this->getMaxSegmentsPerCell() != other.getMaxSegmentsPerCell() ||
-      this->getMaxSynapsesPerSegment() != other.getMaxSynapsesPerSegment() ||
-      this->getCheckSynapseConsistency() != other.getCheckSynapseConsistency())
-  {
-    return false;
-  }
-  return true;
-}
-
-bool Cells4::operator!=(const Cells4& other) const
-{
-  return !(*this == other);
-}

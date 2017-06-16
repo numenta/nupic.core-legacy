@@ -1193,17 +1193,6 @@ namespace nupic {
           return;
         }
 
-        //-----------------------------------------------------------------------
-        // Comparisons
-        //-----------------------------------------------------------------------
-        /**
-         * Performs a number of consistency checks. The test takes some time
-         * but is very helpful in development. The test is run during load/save.
-         * It is also run on every compute if _checkSynapseConsistency is true
-         */
-        bool operator==(const Cells4& other) const;
-        bool operator!=(const Cells4& other) const;
-
       };
 
       //-----------------------------------------------------------------------
