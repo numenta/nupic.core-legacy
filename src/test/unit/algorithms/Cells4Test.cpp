@@ -86,16 +86,37 @@ TEST(Cells4Test, capnpSerialization)
 {
   Cells4 cells(
       10, 2, 1, 1, 1, 1, 0.5, 0.8, 1, 0.1, 0.1, 0, false, -1, true, false);
-  std::vector<Real> input(10, 0.0);
-  input[1] = 1.0;
-  input[4] = 1.0;
-  input[5] = 1.0;
-  input[9] = 1.0;
+  std::vector<Real> input1(10, 0.0);
+  input1[1] = 1.0;
+  input1[4] = 1.0;
+  input1[5] = 1.0;
+  input1[9] = 1.0;
+  std::vector<Real> input2(10, 0.0);
+  input2[0] = 1.0;
+  input2[2] = 1.0;
+  input2[5] = 1.0;
+  input2[6] = 1.0;
+  std::vector<Real> input3(10, 0.0);
+  input3[1] = 1.0;
+  input3[3] = 1.0;
+  input3[6] = 1.0;
+  input3[7] = 1.0;
+  std::vector<Real> input4(10, 0.0);
+  input4[2] = 1.0;
+  input4[4] = 1.0;
+  input4[7] = 1.0;
+  input4[8] = 1.0;
   std::vector<Real> output(10*2);
-  cells.compute(&input.front(), &output.front(), true, true);
+  for (UInt i = 0; i < 10; ++i)
+  {
+    cells.compute(&input1.front(), &output.front(), true, true);
+    cells.compute(&input2.front(), &output.front(), true, true);
+    cells.compute(&input3.front(), &output.front(), true, true);
+    cells.compute(&input4.front(), &output.front(), true, true);
+    cells.reset();
+  }
 
-  Cells4 secondCells(
-      10, 2, 1, 1, 1, 1, 0.5, 0.8, 1, 0.1, 0.1, 0, false, -1, true, false);
+  Cells4 secondCells;
   {
     capnp::MallocMessageBuilder message1;
     Cells4Proto::Builder cells4Builder = message1.initRoot<Cells4Proto>();
@@ -110,13 +131,16 @@ TEST(Cells4Test, capnpSerialization)
     secondCells.read(cells4Reader);
   }
 
+  NTA_CHECK(secondCells == cells);
+
   std::vector<Real> secondOutput(10*2);
-  cells.compute(&input.front(), &output.front(), true, true);
-  secondCells.compute(&input.front(), &secondOutput.front(), true, true);
+  cells.compute(&input1.front(), &output.front(), true, true);
+  secondCells.compute(&input1.front(), &secondOutput.front(), true, true);
   for (UInt i = 0; i < 10; ++i)
   {
     ASSERT_EQ(output[i], secondOutput[i]) << "Outputs differ at index " << i;
   }
+  NTA_CHECK(secondCells == cells);
 }
 
 

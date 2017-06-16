@@ -2000,25 +2000,26 @@ void Cells4::write(Cells4Proto::Builder& proto) const
 void Cells4::read(Cells4Proto::Reader& proto)
 {
   NTA_CHECK(proto.getVersion() == 2);
-  _ownsMemory = proto.getOwnsMemory();
+
+  initialize(proto.getNColumns(),
+             proto.getNCellsPerCol(),
+             proto.getActivationThreshold(),
+             proto.getMinThreshold(),
+             proto.getNewSynapseCount(),
+             proto.getSegUpdateValidDuration(),
+             proto.getPermInitial(),
+             proto.getPermConnected(),
+             proto.getPermMax(),
+             proto.getPermDec(),
+             proto.getPermInc(),
+             proto.getGlobalDecay(),
+             proto.getDoPooling(),
+             proto.getOwnsMemory());
   auto randomProto = proto.getRng();
   _rng.read(randomProto);
-  _nColumns = proto.getNColumns();
-  _nCellsPerCol = proto.getNCellsPerCol();
-  _activationThreshold = proto.getActivationThreshold();
-  _minThreshold = proto.getMinThreshold();
-  _newSynapseCount = proto.getNewSynapseCount();
   _nIterations = proto.getNIterations();
   _nLrnIterations = proto.getNLrnIterations();
-  _segUpdateValidDuration = proto.getSegUpdateValidDuration();
   _initSegFreq = proto.getInitSegFreq();
-  _permInitial = proto.getPermInitial();
-  _permConnected = proto.getPermConnected();
-  _permMax = proto.getPermMax();
-  _permDec = proto.getPermDec();
-  _permInc = proto.getPermInc();
-  _globalDecay = proto.getGlobalDecay();
-  _doPooling = proto.getDoPooling();
   _pamLength = proto.getPamLength();
   _maxInfBacktrack = proto.getMaxInfBacktrack();
   _maxLrnBacktrack = proto.getMaxLrnBacktrack();
@@ -2035,20 +2036,6 @@ void Cells4::read(Cells4Proto::Reader& proto)
 
   _avgInputDensity = proto.getAvgInputDensity();
   _pamCounter = proto.getPamCounter();
-
-  initialize(_nColumns, _nCellsPerCol,
-             _activationThreshold,
-             _minThreshold,
-             _newSynapseCount,
-             _segUpdateValidDuration,
-             _permInitial,
-             _permConnected,
-             _permMax,
-             _permDec,
-             _permInc,
-             _globalDecay,
-             _doPooling,
-             _ownsMemory);
 
   auto learnActiveStateTProto = proto.getLearnActiveStateT();
   _learnActiveStateT.read(learnActiveStateTProto);
@@ -3189,4 +3176,38 @@ void Cells4::resetTimers()
   getNewCellTimer.reset();
   chooseCellsTimer.reset();
 #endif
+}
+
+bool Cells4::operator==(const Cells4& other) const
+{
+  // TODO: Add the rest of the fields!
+  if (this->nSegments() != other.nSegments() ||
+      this->nCells() != other.nCells() ||
+      this->nColumns() != other.nColumns() ||
+      this->nCellsPerCol() != other.nCellsPerCol() ||
+      this->getMinThreshold() != other.getMinThreshold() ||
+      this->getPermConnected() != other.getPermConnected() ||
+      this->getVerbosity() != other.getVerbosity() ||
+      this->getMaxAge() != other.getMaxAge() ||
+      this->getPamLength() != other.getPamLength() ||
+      this->getMaxInfBacktrack() != other.getMaxInfBacktrack() ||
+      this->getMaxLrnBacktrack() != other.getMaxLrnBacktrack() ||
+
+      this->getPamCounter() != other.getPamCounter() ||
+      this->getMaxSeqLength() != other.getMaxSeqLength() ||
+      this->getAvgLearnedSeqLength() != other.getAvgLearnedSeqLength() ||
+      this->getNLrnIterations() != other.getNLrnIterations() ||
+
+      this->getMaxSegmentsPerCell() != other.getMaxSegmentsPerCell() ||
+      this->getMaxSynapsesPerSegment() != other.getMaxSynapsesPerSegment() ||
+      this->getCheckSynapseConsistency() != other.getCheckSynapseConsistency())
+  {
+    return false;
+  }
+  return true;
+}
+
+bool Cells4::operator!=(const Cells4& other) const
+{
+  return !(*this == other);
 }

@@ -525,9 +525,9 @@ namespace nupic {
         UInt getMaxSeqLength() const        { return _maxSeqLength;}
         Real getAvgLearnedSeqLength() const { return _avgLearnedSeqLength;}
         UInt getNLrnIterations() const      { return _nLrnIterations;}
-        Int  getmaxSegmentsPerCell() const  { return _maxSegmentsPerCell;}
-        Int  getMaxSynapsesPerCell() const  { return _maxSynapsesPerSegment;}
-        bool getCheckSynapseConsistency()   { return _checkSynapseConsistency;}
+        Int  getMaxSegmentsPerCell() const  { return _maxSegmentsPerCell;}
+        Int  getMaxSynapsesPerSegment() const  { return _maxSynapsesPerSegment;}
+        bool getCheckSynapseConsistency() const   { return _checkSynapseConsistency;}
 
 
         //----------------------------------------------------------------------
@@ -1192,6 +1192,17 @@ namespace nupic {
         {
           return;
         }
+
+        //-----------------------------------------------------------------------
+        // Comparisons
+        //-----------------------------------------------------------------------
+        /**
+         * Performs a number of consistency checks. The test takes some time
+         * but is very helpful in development. The test is run during load/save.
+         * It is also run on every compute if _checkSynapseConsistency is true
+         */
+        bool operator==(const Cells4& other) const;
+        bool operator!=(const Cells4& other) const;
 
       };
 
