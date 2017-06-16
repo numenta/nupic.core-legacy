@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.2
+
+* Add SWIG support for Cells4 capnp serialization
+
 ## 0.7.1
 
 * SP optimization using minmax_element (#1326)
