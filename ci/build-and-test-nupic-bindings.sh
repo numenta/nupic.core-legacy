@@ -109,7 +109,7 @@ cd ${NUPIC_CORE_ROOT}/build/scripts
 
 # Configure nupic.core build
 if [[ "$BUILD_TYPE" == "Debug" ]]; then
-  EXTRA_CMAKE_DEFINITIONS="-DNUPIC_IWYU=ON -DNTA_COV_ENABLED=ON"
+  EXTRA_CMAKE_DEFINITIONS="-DNUPIC_IWYU=OFF -DNTA_COV_ENABLED=ON"
 fi
 
 cmake ${NUPIC_CORE_ROOT} \
