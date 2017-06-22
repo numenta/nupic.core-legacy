@@ -1387,6 +1387,12 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
       reader = SdrClassifierProto.from_bytes(self._writeAsCapnpPyBytes()) # copy
       pyBuilder.from_dict(reader.to_dict())  # copy
 
+    @classmethod
+    def getSchema(cls):
+      """ Get Cap'n Proto schema. 
+      :return: Cap'n Proto schema
+      """
+      return SdrClassifierProto
 
     def convertedRead(self, proto):
       """Initialize the SDRClassifier instance from the given SdrClassifierProto

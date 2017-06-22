@@ -426,6 +426,13 @@ def write(self, pyBuilder):
   reader = SparseMatrixProto.from_bytes(self._writeAsCapnpPyBytes()) # copy
   pyBuilder.from_dict(reader.to_dict())  # copy
 
+@classmethod
+def getSchema(cls):
+  """ Get Cap'n Proto schema. 
+  :return: Cap'n Proto schema
+  """
+  return SparseMatrixProto
+
 def read(self, proto):
   """Initialize the SparseMatrix instance from the given SparseMatrixProto
   reader.
