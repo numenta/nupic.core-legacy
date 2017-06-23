@@ -39,6 +39,7 @@ else:
   from nupic.proto.ConnectionsProto_capnp import ConnectionsProto
   from nupic.proto.SdrClassifier_capnp import SdrClassifierProto
   from nupic.proto.SpatialPoolerProto_capnp import SpatialPoolerProto
+  from nupic.proto.SvmProto_capnp import (SvmDenseProto, Svm01Proto)
   from nupic.proto.TemporalMemoryProto_capnp import TemporalMemoryProto
 
 
@@ -315,7 +316,46 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
       self.this = _ALGORITHMS.new_svm_dense()
       self.thisown = 1
       self.loadFromString(inString)
-      %}
+    
+    def convertedRead(self, proto):
+      """Initialize the svm_dense instance from the given SvmDenseProto
+      reader.
+
+      :param proto: SvmDenseProto message reader containing data from a
+                    previously serialized svm_dense instance.
+
+      """
+      self._initFromCapnpPyBytes(proto.as_builder().to_bytes()) # copy * 2
+
+    @classmethod
+    def read(cls, proto):
+      instance = cls()
+      instance.convertedRead(proto)
+      return instance
+
+    def write(self, pyBuilder):
+      """Serialize the svm_dense instance using capnp.
+
+      :param: Destination SvmDenseProto message builder
+      """
+      reader = SvmDenseProto.from_bytes(self._writeAsCapnpPyBytes()) # copy
+      pyBuilder.from_dict(reader.to_dict())  # copy
+    
+    @classmethod
+    def getSchema(cls):
+      """ Get Cap'n Proto schema. 
+      :return: Cap'n Proto schema
+      """
+      return SvmDenseProto  
+  %}
+  inline PyObject* _writeAsCapnpPyBytes() const
+  {
+    return nupic::PyCapnpHelper::writeAsPyBytes(*self);
+  }
+  inline void _initFromCapnpPyBytes(PyObject* pyBytes)
+  {
+    nupic::PyCapnpHelper::initFromPyBytes(*self, pyBytes);
+  }
 
   void loadFromString(const std::string& inString)
   {
@@ -388,7 +428,48 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
       self.this = _ALGORITHMS.new_svm_01()
       self.thisown = 1
       self.loadFromString(inString)
-      %}
+    
+    def convertedRead(self, proto):
+      """Initialize the svm_dense instance from the given Svm01Proto
+      reader.
+
+      :param proto: Svm01Proto message reader containing data from a
+                    previously serialized svm_dense instance.
+
+      """
+      self._initFromCapnpPyBytes(proto.as_builder().to_bytes()) # copy * 2
+
+    @classmethod
+    def read(cls, proto):
+      instance = cls()
+      instance.convertedRead(proto)
+      return instance
+
+    def write(self, pyBuilder):
+      """Serialize the svm_01 instance using capnp.
+
+      :param: Destination Svm01Proto message builder
+      """
+      reader = Svm01Proto.from_bytes(self._writeAsCapnpPyBytes()) # copy
+      pyBuilder.from_dict(reader.to_dict())  # copy
+    
+    @classmethod
+    def getSchema(cls):
+      """ Get Cap'n Proto schema. 
+      :return: Cap'n Proto schema
+      """
+      return Svm01Proto        
+  %}
+
+  inline PyObject* _writeAsCapnpPyBytes() const
+  {
+    return nupic::PyCapnpHelper::writeAsPyBytes(*self);
+  }
+  
+  inline void _initFromCapnpPyBytes(PyObject* pyBytes)
+  {
+    nupic::PyCapnpHelper::initFromPyBytes(*self, pyBytes);
+  }
 
   void loadFromString(const std::string& inString)
   {
