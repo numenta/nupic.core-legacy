@@ -88,7 +88,6 @@ echo "RUNNING NUPIC BINDINGS BUILD: BUILD_TYPE=${BUILD_TYPE}, " \
 # Install nupic.bindings dependencies; the nupic.core cmake build depends on
 # some of them (e.g., numpy).
 pip install \
-    --user \
     --ignore-installed \
     -r ${NUPIC_CORE_ROOT}/bindings/py/requirements.txt
 
@@ -130,7 +129,7 @@ python setup.py bdist_wheel --dist-dir ${DEST_WHEELHOUSE} ${EXTRA_WHEEL_OPTIONS}
 #
 
 # Install nupic.bindings before running c++ tests; py_region_test depends on it
-pip install --user \
+pip install \
     --ignore-installed \
     ${DEST_WHEELHOUSE}/nupic.bindings-*.whl
 
