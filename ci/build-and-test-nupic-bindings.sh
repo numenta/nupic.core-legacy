@@ -88,7 +88,7 @@ echo "RUNNING NUPIC BINDINGS BUILD: BUILD_TYPE=${BUILD_TYPE}, " \
 # Install nupic.bindings dependencies; the nupic.core cmake build depends on
 # some of them (e.g., numpy).
 pip install \
-    --user
+    --user \
     --ignore-installed \
     -r ${NUPIC_CORE_ROOT}/bindings/py/requirements.txt
 
