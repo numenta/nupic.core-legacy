@@ -46,7 +46,7 @@ endif()
 #
 option(NUPIC_IWYU "Enable include-what-you-use
   (http://include-what-you-use.org/). This requires the iwyu binary to be
-  discoverable by CMake's find_program.")
+  discoverable by CMake's find_program, with a minimum CMake version of 3.3.")
 if(${NUPIC_IWYU})
   find_program(iwyu_path NAMES include-what-you-use iwyu)
   if(NOT iwyu_path)
@@ -200,40 +200,13 @@ message(STATUS "PYTHON_LIBRARIES    = ${PYTHON_LIBRARIES}")
 # Python support
 #
 set(src_py_support_files
+    nupic/py_support/NumpyArrayObject.cpp
     nupic/py_support/NumpyVector.cpp
     nupic/py_support/PyArray.cpp
     nupic/py_support/PyHelpers.cpp
     nupic/py_support/PythonStream.cpp
-    nupic/py_support/PyCapnp.cpp
     nupic/bindings/PySparseTensor.cpp
 )
-
-#
-# pycapnp integration
-#
-if(NOT "${PLATFORM}" STREQUAL "windows")
-  list(APPEND src_py_support_files nupic/py_support/CapnpToPycapnp.cpp)
-
-  # Add the pycapnp Python package headers to includes
-  execute_process(
-    COMMAND "${PYTHON_EXECUTABLE}" "-c"
-        "import capnp; import os; import sys; sys.stdout.write(os.path.dirname(os.path.dirname(capnp.__file__)))"
-        RESULT_VARIABLE src_pycapnp_include_result_code
-        OUTPUT_VARIABLE src_pycapnp_include_dir)
-
-  if(src_pycapnp_include_result_code)
-    message(FATAL_ERROR "ERROR: getting capnproto headers location "
-            "(${src_pycapnp_include_result_code})")
-  endif()
-
-  if(NOT src_pycapnp_include_dir)
-    message(FATAL_ERROR "ERROR: pycapnp's capnproto headers not found.")
-  endif()
-
-  message(STATUS "src_pycapnp_include_dir      = ${src_pycapnp_include_dir}")
-
-  include_directories(SYSTEM ${src_pycapnp_include_dir})
-endif()
 
 
 # List all .capnp files here. The C++ files will be generated and included
@@ -241,19 +214,23 @@ endif()
 set(src_capnp_specs_rel
   nupic/proto/ArrayProto.capnp
   nupic/proto/BitHistory.capnp
+  nupic/proto/Cell.capnp
+  nupic/proto/Cells4.capnp
   nupic/proto/ClaClassifier.capnp
   nupic/proto/ConnectionsProto.capnp
-  nupic/proto/ExtendedTemporalMemoryProto.capnp
   nupic/proto/LinkProto.capnp
   nupic/proto/Map.capnp
   nupic/proto/NetworkProto.capnp
   nupic/proto/PyRegionProto.capnp
   nupic/proto/RandomProto.capnp
   nupic/proto/RegionProto.capnp
+  nupic/proto/Segment.capnp
+  nupic/proto/SegmentUpdate.capnp
   nupic/proto/SparseBinaryMatrixProto.capnp
   nupic/proto/SparseMatrixProto.capnp
   nupic/proto/SpatialPoolerProto.capnp
   nupic/proto/SdrClassifier.capnp
+  nupic/proto/SvmProto.capnp
   nupic/proto/TemporalMemoryProto.capnp
   nupic/proto/TestNodeProto.capnp
   nupic/proto/VectorFileSensorProto.capnp
@@ -282,6 +259,8 @@ message(STATUS "CAPNP_CMAKE_DEFINITIONS   = ${CAPNP_CMAKE_DEFINITIONS}")
 message(STATUS "CAPNP_INCLUDE_DIRS        = ${CAPNP_INCLUDE_DIRS}")
 message(STATUS "CAPNP_STATIC_LIB_TARGET   = ${CAPNP_STATIC_LIB_TARGET}")
 
+message(STATUS "SWIG_EXECUTABLE           = ${SWIG_EXECUTABLE}")
+message(STATUS "SWIG_DIR                  = ${SWIG_DIR}")
 
 #
 # Common system libraries for shared libraries and executables
@@ -318,7 +297,6 @@ set(src_nupiccore_srcs
     nupic/algorithms/ClassifierResult.cpp
     nupic/algorithms/CondProbTable.cpp
     nupic/algorithms/Connections.cpp
-    nupic/algorithms/FastClaClassifier.cpp
     nupic/algorithms/GaborNode.cpp
     nupic/algorithms/ImageSensorLite.cpp
     nupic/algorithms/InSynapse.cpp
@@ -426,18 +404,12 @@ include(src/NupicLibraryUtils) # for MERGE_STATIC_LIBRARIES
 set(src_lib_static_nupiccore_combined nupic_core)
 
 set(src_external_static_libs
+    ${CAPNP_STATIC_LIB_TARGET}
     ${YAML_CPP_STATIC_LIB_TARGET}
     ${YAML_STATIC_LIB_TARGET}
     ${APR1_STATIC_LIB_TARGET}
     ${APRUTIL1_STATIC_LIB_TARGET}
     ${Z_STATIC_LIB_TARGET})
-
-# Add capnproto static lib when building nupic_core static lib without python
-# extensions. The extensions have their own logic governing whether to include
-# it.
-if (NOT NUPIC_BUILD_PYEXT_MODULES)
-  list(APPEND src_external_static_libs ${CAPNP_STATIC_LIB_TARGET})
-endif()
 
 set(src_combined_nupiccore_source_archives
     ${src_lib_static_nupiccore_solo}
@@ -457,13 +429,6 @@ set(src_common_test_exe_libs
     ${src_lib_static_nupiccore_combined}
     ${PYTHON_LIBRARIES}
     ${src_common_os_libs})
-
-# Add capnproto static lib to our C/C++ test apps when building python
-# extensions, since capnproto objects are excluded from nupic_core combined lib
-# to avoid conflict with capnproto methods compiled into the pycapnp extension
-if (NUPIC_BUILD_PYEXT_MODULES)
-  list(APPEND src_common_test_exe_libs ${CAPNP_STATIC_LIB_TARGET})
-endif()
 
 message(STATUS "src_common_test_exe_libs = ${src_common_test_exe_libs}")
 
@@ -556,16 +521,18 @@ set_target_properties(${src_executable_hellosptp}
 set(src_executable_gtests unit_tests)
 add_executable(${src_executable_gtests}
                test/unit/algorithms/AnomalyTest.cpp
+               test/unit/algorithms/Cells4Test.cpp
                test/unit/algorithms/CondProbTableTest.cpp
                test/unit/algorithms/ConnectionsTest.cpp
-               test/unit/algorithms/FastCLAClassifierTest.cpp
                test/unit/algorithms/NearestNeighborUnitTest.cpp
                test/unit/algorithms/SDRClassifierTest.cpp
                test/unit/algorithms/SegmentTest.cpp
                test/unit/algorithms/SpatialPoolerTest.cpp
+               test/unit/algorithms/SvmTest.cpp
                test/unit/algorithms/TemporalMemoryTest.cpp
                test/unit/encoders/ScalarEncoderTest.cpp
                test/unit/engine/InputTest.cpp
+               test/unit/engine/LinkTest.cpp
                test/unit/engine/NetworkTest.cpp
                test/unit/engine/UniformLinkPolicyTest.cpp
                test/unit/engine/YAMLUtilsTest.cpp
@@ -678,6 +645,8 @@ if (NUPIC_BUILD_PYEXT_MODULES)
       ${src_compiler_definitions}
   )
 
+  file(GLOB_RECURSE swig_header_deps *.i *.hpp *.h)
+
   message(STATUS "src_swig_flags = ${src_swig_flags}")
 
   # Tell swig which command-line options to use, allowing user to override
@@ -686,17 +655,9 @@ if (NUPIC_BUILD_PYEXT_MODULES)
   # Set up linker flags for python extension shared libraries
   set(_SRC_SWIG_EXTENSION_LINK_FLAGS "${PYEXT_LINKER_FLAGS_OPTIMIZED}")
 
-  # NOTE Non-Windows Python extensions shouldn't be linking agains libpython;
+  # NOTE Non-Windows Python extensions shouldn't be linking against libpython;
   # symbols should be available automatically when python loads the extension.
   #
-  # NOTE We don't link our non-Windows python extensions with capnproto static
-  # lib in order to force runtime linkage to pycapnp's capnproto symbols thus
-  # avoiding the conflict of executing the methods in our own
-  # compilation of capnproto (different compiler/STL/version, flags, etc.) on
-  # objects created by pycapnp's. We force runtime linking to pycapnp's
-  # capnproto symbols by preloading the pycapnp extension in our extension
-  # python proxy modules, thus avoiding the conflict from executing the methods
-  # in our own compilation of capnproto on objects created by pycapnp's.
   set(_SRC_SWIG_LINK_LIBRARIES
       ${src_lib_static_nupiccore_combined}
       ${src_common_os_libs})
@@ -710,13 +671,12 @@ if (NUPIC_BUILD_PYEXT_MODULES)
   # all symbols to resolve at link time, so we have to add libpython for this
   # platform
   #
-  # NOTE On Windows nupic.bindings builds, we include capnproto because we
-  # presently build self-contained CAPNP_LITE on Windows, and Windows
-  # nupic/nupic.bindings presently have no dependency on pycapnp.
+  # NOTE On Windows nupic.bindings builds we presently build self-contained
+  # CAPNP_LITE, and Windows nupic/nupic.bindings presently has no
+  # dependency on pycapnp.
   if("${PLATFORM}" STREQUAL "windows")
     list(APPEND _SRC_SWIG_LINK_LIBRARIES
-         ${PYTHON_LIBRARIES}
-         ${CAPNP_STATIC_LIB_TARGET})
+         ${PYTHON_LIBRARIES})
   endif()
 
   message(STATUS "_SRC_SWIG_EXTRA_DEPS     = ${_SRC_SWIG_EXTRA_DEPS}")
@@ -729,8 +689,7 @@ if (NUPIC_BUILD_PYEXT_MODULES)
            MODULE_NAME)
     # Add a custom command to the Swig target to prepend boilerplate to the
     # swig-generated python proxy module
-    # ${CMAKE_SWIG_OUTDIR}/${MODULE_NAME}.py. The boilerplate preloads
-    # the pycapnp extension shared library on Unix platforms.
+    # ${CMAKE_SWIG_OUTDIR}/${MODULE_NAME}.py.
     #
     # :param MODULE_NAME: the custom command will be added to the target
     #   corresponding to this Swig module name.
@@ -763,6 +722,9 @@ if (NUPIC_BUILD_PYEXT_MODULES)
     set_source_files_properties(${source_interface_file} PROPERTIES
                                 CPLUSPLUS ON
                                 SWIG_MODULE_NAME ${MODULE_NAME})
+
+    # Regenerate SWIG bindings if any headers change.
+    set(SWIG_MODULE_${MODULE_NAME}_EXTRA_DEPS ${swig_header_deps})
 
     #
     # Create custom command for generating files from SWIG
@@ -862,40 +824,53 @@ install(TARGETS
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)
 
-install(DIRECTORY nupic/ DESTINATION include/nupic
-        FILES_MATCHING PATTERN "*.h*"
-        PATTERN "*.hpp.in" EXCLUDE)
-install(DIRECTORY nupic/ DESTINATION include/nupic
-        FILES_MATCHING PATTERN "*.capnp")
-install(DIRECTORY ${PROJECT_BINARY_DIR}/nupic/ DESTINATION include/nupic/
-        FILES_MATCHING PATTERN "*.capnp.h")
-
-install(DIRECTORY ${REPOSITORY_DIR}/external/common/include/gtest
-        DESTINATION include/gtest
-        FILES_MATCHING PATTERN "*.h*")
-
+# Version.hpp is also used by the nupic.bindings release/deployment system
 install(FILES ${PROJECT_BINARY_DIR}/Version.hpp
         DESTINATION include/nupic/)
 
-install(DIRECTORY "${REPOSITORY_DIR}/external/common/include/"
-        DESTINATION include)
+if (NOT NUPIC_BUILD_PYEXT_MODULES)
+  install(DIRECTORY nupic/ DESTINATION include/nupic
+          FILES_MATCHING PATTERN "*.h*"
+          PATTERN "*.hpp.in" EXCLUDE)
+  install(DIRECTORY nupic/ DESTINATION include/nupic
+          FILES_MATCHING PATTERN "*.capnp")
+  install(DIRECTORY ${PROJECT_BINARY_DIR}/nupic/ DESTINATION include/nupic/
+          FILES_MATCHING PATTERN "*.capnp.h")
 
-install(DIRECTORY "${src_numpy_core}/lib/"
-        DESTINATION lib)
-install(DIRECTORY "${src_numpy_core}/include/"
-        DESTINATION include)
+  install(DIRECTORY ${REPOSITORY_DIR}/external/common/include/gtest
+          DESTINATION include/gtest
+          FILES_MATCHING PATTERN "*.h*")
 
-foreach(directory ${CAPNP_INCLUDE_DIRS})
-  install(DIRECTORY "${directory}/capnp"
+  install(DIRECTORY "${REPOSITORY_DIR}/external/common/include/"
           DESTINATION include)
-  install(DIRECTORY "${directory}/kj"
-          DESTINATION include)
-endforeach()
 
-install(DIRECTORY nupic/py_support DESTINATION include/nupic
-        FILES_MATCHING PATTERN "*.c*")
-install(DIRECTORY nupic DESTINATION include/nupic
-        FILES_MATCHING PATTERN "*.py")
+  install(DIRECTORY "${src_numpy_core}/lib/"
+          DESTINATION lib)
+  install(DIRECTORY "${src_numpy_core}/include/"
+          DESTINATION include)
+
+  foreach(directory ${CAPNP_INCLUDE_DIRS})
+    install(DIRECTORY "${directory}/capnp"
+            DESTINATION include)
+    install(DIRECTORY "${directory}/kj"
+            DESTINATION include)
+  endforeach()
+
+  install(DIRECTORY nupic/py_support DESTINATION include/nupic
+          FILES_MATCHING PATTERN "*.c*")
+  install(DIRECTORY nupic DESTINATION include/nupic
+          FILES_MATCHING PATTERN "*.py")
+
+  install(DIRECTORY "${CAPNP_BINARIES}"
+          DESTINATION "${CMAKE_INSTALL_PREFIX}"
+          FILES_MATCHING PATTERN "capnp*")
+
+  install(DIRECTORY "${SWIG_DIR}"
+          DESTINATION share/swig)
+  install(FILES "${SWIG_EXECUTABLE}"
+          DESTINATION bin)
+
+endif (NOT NUPIC_BUILD_PYEXT_MODULES)
 
 #
 # `make package` results in

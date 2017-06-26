@@ -37,6 +37,7 @@
 #include <nupic/ntypes/Dimensions.hpp>
 #include <nupic/ntypes/Array.hpp>
 #include <nupic/ntypes/ArrayRef.hpp>
+#include <nupic/py_support/NumpyArrayObject.hpp>
 #include <nupic/types/Exception.hpp>
 #include <nupic/os/OS.hpp> // memory leak detection
 #include <nupic/os/Env.hpp>
@@ -112,30 +113,6 @@ struct MemoryMonitor
   size_t diff_rmem;
   size_t diff_vmem;
 };
-
-void testExceptionBug()
-{
-  Network n;
-  Region *l1 = n.addRegion("l1", "py.TestNode", "");
-  //Dimensions d(1);
-  Dimensions d(1);
-  l1->setDimensions(d);
-  bool caughtException = false;
-  try
-  {
-    n.run(1);
-  } catch (std::exception& e) {
-    NTA_DEBUG << "Caught exception as expected: '" << e.what() << "'";
-    caughtException = true;
-  }
-  if (caughtException)
-  {
-    NTA_DEBUG << "testExceptionBug passed";
-  } else {
-    NTA_THROW << "testExceptionBug did not throw an exception as expected";
-  }
-
-}
 
 
 void testPynodeInputOutputAccess(Region * level2)
@@ -513,7 +490,6 @@ int realmain(bool leakTest)
   std::cout << "Initializing again..." << std::endl;
   n.initialize();
 
-  testExceptionBug();
   testPynodeInputOutputAccess(level2);
   testPynodeArrayParameters(level2);
   testPynodeLinking();
@@ -542,6 +518,11 @@ int realmain(bool leakTest)
 
 int main(int argc, char *argv[])
 {
+  // This isn't running inside one of the SWIG modules, so we need to
+  // initialize the numpy C API.
+  Py_Initialize();
+  NTA_CHECK(Py_IsInitialized());
+  nupic::initializeNumpy();
 
   /*
    * Without arguments, this program is a simple end-to-end demo

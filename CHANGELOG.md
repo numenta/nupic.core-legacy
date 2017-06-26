@@ -1,5 +1,78 @@
 # Changelog
 
+## 0.7.2
+
+* Add SWIG support for Cells4 capnp serialization
+
+## 0.7.1
+
+* SP optimization using minmax_element (#1326)
+* Add capnp serialization to Cells4, Cell, Segment, SegmentUpdates, CState, etc. (#1346)
+* Fix missing actValue in SDR classifier SWIG interface (#1348)
+
+## 0.7.0
+
+* Give clear exception when clients attempt to reuse ClassifierResult instance with SDRClassifier (PR #1342)
+* Remove FastClaClassifier (PR #1341)
+* Allow SDR classifier to handle multiple category (PR #1339)
+* Add Cap'n Proto serialization to SVM (PR #1338)
+
+## 0.6.3
+
+* Change the Connections to stop doing automatic segment / synapse cleanup
+* Revamp the TemporalMemory proto so that it captures all information
+* For numpy, use a single PyArray_API symbol per binary rather than one per cpp file
+* Use numpy 1.12.1
+* Use pycapnp 0.5.12
+* Use latest pytest 3.0.7, pytest-cov 2.5.0, pytest-xdist 1.16.0
+
+## 0.6.2
+
+* Updated Circle CI configuration and switch to that for OS X builds (instead of Travis CI)
+* Documentation updates: PyRegion
+* IWYU documentation update
+* Fixed C++ boolean ref counting bug that caused segfaults when running Python projects
+* Update pytest and pycapnp dependency versions
+* Implemented byte buffer passing as alternative Python<->C++ strategy for capnp serialization logic. This has some memory/speed overhead but avoids ABI issues that could cause crashes
+* Fixed prototest to get meaningful comparison numbers
+
+## 0.6.1
+
+* Eliminate installation of unnecessary header files when building nupic.bindings. Install Version.hpp unconditionally for the sake of the deployment usage in .travis.yaml
+* Fixed servicing of delayed links such that the circular buffers of all links within a network are refreshed at the end of each time step; and 0-delay links copy data directly from src to dest, bypassing the circular buffer altogether.
+* Add a nNonZerosPerRowOnCols SparseMatrix method
+* Fix up some out of date SWIG interface code
+
+## 0.6.0
+
+* NUP-2366 Remove no-longer-relevent test code
+* NUP-2366 Do not pass arguments in initialize, remove conflicting docstring
+* Add a unit test for mapSegmentsToCells
+* Change segments to UInt32 to speed up the bindings
+* Fix up fetch_remote script to properly poll until the build is complete.
+* Updates to tests moved over from nupic
+* removed shebangs
+* Changed all copyright headers on all files to AGPL.
+* Tests folder refactored
+* Reads version from VERSION for doc output
+* Fixing travis-ci unit tests
+* Doxygen only creates XML, used by Breathe to create docs.
+
+## 0.5.3
+
+* Added comment explaining the nuance of the static variables in Cells4::adaptSegment
+* Improved explanation of containers in Cells4::adaptSegment implementation.
+* Regenerate SWIG bindings C++ files if any headers change.
+* Enable -D_LIBCPP_DEBUG=0 for debug-lite in Clang builds (e.g., OS X). NOTE: Clan't debug mode is not mature, and anything above level 0 appears to require debug build of libc++ during linking, which it not present by default on OS X.
+* Fixed deletion of wrong synapses and index-out-of-bounds in Cells4::adaptSegment/Segment::freeNSynapses.
+* corrected typo in CHANGELOG.md (boostingStrength -> boostStrength)
+* Remove ExtendedTemporalMemory proto
+* Fix bug in unit test, make TM catch this bug in DEBUG builds
+* Perf: Densify prevActiveCells rather than binary searching
+* Get POC of OS X build on circle.ci up and running.
+* Bump version to prerelease.
+
+
 ## 0.5.1
 
 * Improved network API introspection
@@ -25,7 +98,7 @@
 ## 0.4.16
 
 * SpatialPooler: Stop rounding the boost factors
-* SpatialPooler: Rename "maxBoost" to "boostingStrength"
+* SpatialPooler: Rename "maxBoost" to "boostStrength"
 * SpatialPooler: Remove minActiveDutyCycles and minPctActiveDutyCycles from spatial pooler
 
 ## 0.4.15

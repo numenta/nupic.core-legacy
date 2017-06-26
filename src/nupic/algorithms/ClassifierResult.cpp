@@ -26,6 +26,7 @@
 
 #include <nupic/algorithms/ClassifierResult.hpp>
 #include <nupic/types/Types.hpp>
+#include <nupic/utils/Log.hpp>
 
 using namespace std;
 
@@ -48,15 +49,10 @@ namespace nupic
       vector<Real64>* ClassifierResult::createVector(Int step, UInt size,
                                                 Real64 value)
       {
-        vector<Real64>* v;
-        map<Int, vector<Real64>*>::const_iterator it = result_.find(step);
-        if (it != result_.end())
-        {
-          v = it->second;
-        } else {
-          v = new vector<Real64>(size, value);
-          result_.insert(pair<Int, vector<Real64>*>(step, v));
-        }
+        NTA_CHECK(result_.count(step) == 0)
+          << "The ClassifierResult cannot be reused!";
+        vector<Real64>* v = new vector<Real64>(size, value);
+        result_.insert(pair<Int, vector<Real64>*>(step, v));
         return v;
       }
 

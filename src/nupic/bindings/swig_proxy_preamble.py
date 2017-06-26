@@ -1,6 +1,6 @@
 # ----------------------------------------------------------------------
 # Numenta Platform for Intelligent Computing (NuPIC)
-# Copyright (C) 2013-2016, Numenta, Inc.  Unless you have an agreement
+# Copyright (C) 2013-2017, Numenta, Inc.  Unless you have an agreement
 # with Numenta, Inc., for a separate license for this software code, the
 # following terms and conditions apply:
 #
@@ -19,26 +19,3 @@
 # http://numenta.org/licenses/
 # ----------------------------------------------------------------------
 
-
-# The build prepends this module verbatim to each nupic.bindings python
-# extension proxy module to load pycapnp's extension shared library in global
-# scope before loading our own extension DLL (that doesn't contain capnproto
-# code) so that our capnproto references will resolve against capnproto included
-# in pycapnp. This ensures that the methods of the same capnproto build that
-# creates the capnproto objects in nupic will be used on those objects from both
-# nupic and nupic.bindings shared objects.
-
-
-def _nupic_bindings_load_capnp_shared_object():
-  import platform
-  # Windows nupic.bindings extensions include CAPNP_LITE capnproto subset and
-  # must not depend on pycapnp
-  if platform.system() != "Windows":
-    import ctypes, imp, os
-    capnpPackageDir = imp.find_module('capnp')[1]
-    capnpDLLPath=os.path.join(capnpPackageDir, 'lib', 'capnp.so')
-    ctypes.CDLL(capnpDLLPath, ctypes.RTLD_GLOBAL)
-
-_nupic_bindings_load_capnp_shared_object()
-
-del _nupic_bindings_load_capnp_shared_object

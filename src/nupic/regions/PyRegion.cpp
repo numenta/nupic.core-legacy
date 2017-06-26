@@ -21,17 +21,14 @@
  */
 
 #include <nupic/regions/PyRegion.hpp>
-#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
-#include <numpy/arrayobject.h>
+
 #include <Python.h>
 #include <iostream>
 #include <sstream>
 #include <memory>
+#include <cstring> // std::memcpy
 
 #include <capnp/any.h>
-#if !CAPNP_LITE
-#include <capnp/dynamic.h>
-#endif
 
 #include <nupic/engine/Spec.hpp>
 #include <nupic/engine/Region.hpp>
@@ -46,13 +43,11 @@
 #include <nupic/ntypes/BundleIO.hpp>
 #include <nupic/utils/Log.hpp>
 #include <nupic/os/Path.hpp>
+#include <nupic/py_support/NumpyArrayObject.hpp>
 #include <nupic/py_support/PyArray.hpp>
-#if !CAPNP_LITE
 #include <nupic/py_support/PyCapnp.hpp>
-#endif
 
 using namespace nupic;
-using ::capnp::DynamicStruct;
 
 #define LAST_ERROR_LENGTH 1024
 static char lastError[LAST_ERROR_LENGTH];
@@ -64,39 +59,13 @@ extern "C"
   // NTA_createPyNode()
   void PyRegion::NTA_initPython()
   {
-    finalizePython = false;
-    // Initialize Python if it is not initialized already. Python will be initialized
-    // if NuPIC is accessed through the Python bindings and hence is already runnning
-    // inside a Python process.
-    if (!Py_IsInitialized())
-    {
-      //NTA_DEBUG << "Called Py_Initialize()";
-      Py_Initialize();
-      NTA_ASSERT(Py_IsInitialized());
-      finalizePython = true;
-    }
-    else
+    if(Py_IsInitialized())
     {
       // Set the PyHelpers flag so it knows its running under Python.
       // This is necessary for PyHelpers to determine if it should
       // clear or restore Python exceptions (see NPC-113)
       py::setRunningUnderPython();
-    }
-
-    // Important! the following statements must be outside the PyInitialize()
-    // conditional block because Python may already be initialized if used
-    // through the Python bindings.
-
-    // NOTE we use the function _import_array directly (just like in
-    // NumpyVector.cpp) because import_array is a macro that incorporates a
-    // return statement on failure, intended to be used directly in
-    // a python extension's init function rather than deeply nested.
-    if (_import_array() != 0)
-    {
-      // _import_array sets PyErr on failure
-      PyErr_Print();
-
-      NTA_THROW << "numpy _import_array failed";
+      finalizePython = true;
     }
   }
 
@@ -490,11 +459,55 @@ void PyRegion::deserialize(BundleIO& bundle)
 void PyRegion::write(capnp::AnyPointer::Builder& proto) const
 {
 #if !CAPNP_LITE
-  PyRegionProto::Builder pyRegionProto = proto.getAs<PyRegionProto>();
-  PyObject* pyBuilder = getPyBuilder(capnp::toDynamic(pyRegionProto));
-  py::Tuple args(1);
-  args.setItem(0, pyBuilder);
-  py::Ptr _none(node_.invoke("write", args));
+  class Helper
+  {
+  public:
+    /**
+     * NOTE: We wrap several operations in this method to reduce the number of
+     * region data copies (could be huge memory size) that coexist on the heap.
+     */
+    static kj::Array<capnp::word> serialize(const py::Instance& node)
+    {
+      // Request python object to write itself out and return PyRegionProto
+      // serialized as a python byte array
+      py::Class pyCapnpHelperCls("nupic.bindings.engine_internal",
+                                 "_PyCapnpHelper");
+      py::Tuple args((Py_ssize_t)0);
+      py::Dict kwargs;
+      // NOTE py::Dict::setItem doesn't accept a const PyObject*, however we
+      // know that we won't modify it, so casting trickery is okay here
+      kwargs.setItem("region",
+                     const_cast<PyObject*>(static_cast<const PyObject*>(node)));
+      kwargs.setItem("methodName", py::String("write"));
+
+      // Wrap result in py::Ptr to force dereferencing when going out of scope
+      py::Ptr pyRegionProtoBytes(
+        pyCapnpHelperCls.invoke("writePyRegion", args, kwargs));
+
+      char * srcBytes = nullptr;
+      Py_ssize_t srcNumBytes = 0;
+      // NOTE: srcBytes will be set to point to the internal buffer inside
+      // pyRegionProtoBytes
+      PyString_AsStringAndSize(pyRegionProtoBytes, &srcBytes, &srcNumBytes);
+
+      // Ensure alignment on capnp::word boundary;
+      const int srcNumWords = srcNumBytes / sizeof(capnp::word);
+      kj::Array<capnp::word> array = kj::heapArray<capnp::word>(srcNumWords);
+      std::memcpy(array.asBytes().begin(), srcBytes, srcNumBytes); // copy
+
+      return array;
+    }
+  };
+
+  // Get flat array representation of python region's serialization
+  kj::Array<capnp::word> array = Helper::serialize(node_);
+
+  // Initialize PyRegionProto::Reader from serialized python region
+  capnp::FlatArrayMessageReader reader(array.asPtr());
+  PyRegionProto::Reader pyRegionReader = reader.getRoot<PyRegionProto>();
+
+  // Assign python region's serialization output to the builder
+  proto.setAs<PyRegionProto>(pyRegionReader); // copy
 #else
   throw std::logic_error(
       "PyRegion::write is not implemented because NuPIC was compiled with "
@@ -505,25 +518,66 @@ void PyRegion::write(capnp::AnyPointer::Builder& proto) const
 void PyRegion::read(capnp::AnyPointer::Reader& proto)
 {
 #if !CAPNP_LITE
+
+  class Helper
+  {
+  public:
+    static kj::Array<capnp::word> flatArrayFromReader(
+      PyRegionProto::Reader& reader)
+    {
+      // NOTE: this requires conversion to builder, which incurs an additional
+      // copy, because readers aren't supported by capnp::messageToFlatArray
+      capnp::MallocMessageBuilder builder;
+      builder.setRoot(reader); // copy
+      return capnp::messageToFlatArray(builder); // copy
+    }
+
+    static PyObject* pyBytesFromFlatArray(kj::Array<capnp::word> flatArray)
+    {
+      kj::ArrayPtr<kj::byte> byteArray = flatArray.asBytes();
+      // Copy from array to PyObject so that we can pass it to the Python layer
+      py::String pyRegionBytes((const char *)byteArray.begin(),
+                               byteArray.size()); // copy
+      return pyRegionBytes.release();
+    }
+  };
+
+  // Cast AnyPointer::Reader to PyRegionProto::Reader
+  PyRegionProto::Reader pyRegionReader = proto.getAs<PyRegionProto>();
+
+  // Extract data bytes from reader into PyObject so that we can pass it to the
+  // Python layer portably
+  //
+  // NOTE: the intention of this nested call is to reduce the number of
+  // sumulatneously present copies of data to no more than two at any given
+  // moment.
+  py::String pyRegionBytes(
+    Helper::pyBytesFromFlatArray(
+      Helper::flatArrayFromReader(pyRegionReader)));
+
+  // Construct the python region instance by thunking into python
   std::string realClassName(className_);
   if (realClassName.empty())
   {
     realClassName = Path::getExtension(module_);
   }
 
-  PyRegionProto::Reader pyRegionProto = proto.getAs<PyRegionProto>();
-  PyObject* pyReader = getPyReader(capnp::toDynamic(pyRegionProto));
-  py::Tuple args(1);
-  args.setItem(0, pyReader);
+  // Wrap the operation in _PyCapnpHelper.readPyRegion to simplify the interface
+  // for the target python region implementation
+  py::Class regionCls(module_, realClassName);
 
+  py::Tuple args((Py_ssize_t)0);
   py::Dict kwargs;
+  kwargs.setItem("pyRegionProtoBytes", pyRegionBytes);
+  kwargs.setItem("regionCls", regionCls);
+  kwargs.setItem("methodName", py::String("read"));
 
-  // Instantiate a class and assign it  to the node_ member
-  py::Class *cls = new py::Class(module_, realClassName);
-
-  // Call the classmethod "read" on it and assign the created instance to the node_ member
-  node_.assign(cls->invoke("read", args, kwargs));
-
+  // Deserialize the data into a new python region and assign it to node_
+  py::Class pyCapnpHelperCls("nupic.bindings.engine_internal", "_PyCapnpHelper");
+  // NOTE: wrap result in py::Ptr so that unnecessary refcount will be
+  // decremented upon it going out of scope and after node_.assign increments it
+  py::Ptr pyRegionImpl(pyCapnpHelperCls.invoke("readPyRegion", args, kwargs));
+  node_.assign(pyRegionImpl);
   NTA_CHECK(node_);
 #else
   throw std::logic_error(
@@ -1293,136 +1347,11 @@ void PyRegion::createSpec(const char * nodeType, Spec & ns, const char* classNam
   }
 }
 
-// Return the size of the longest raw in a slitter map
-// which is the max number of inputs that go into one node
-static size_t getMaxInputCount(const nupic::Input::SplitterMap & sm)
-{
-  size_t maxInputCount = 0;
-  for (size_t i = 0; i < sm.size(); ++i)
-  {
-    size_t inputCount = sm[i].size();
-    if (inputCount > maxInputCount)
-      maxInputCount = inputCount;
-  }
-
-  return maxInputCount;
-}
-
 void PyRegion::initialize()
 {
-  // Prepare the dimensions tuple
-  Dimensions d = region_->getDimensions();
-  size_t dimCount = d.getDimensionCount();
-  py::Tuple dims(dimCount);
-  for (size_t i = 0; i < dimCount; ++i)
-  {
-    dims.setItem(i, py::UnsignedLong(d[i]));
-  }
-
-  // Prepare the splitter map dict - each input
-  // gets its own splitter map. The splitter map
-  // for an input is represented as a tuple of
-  // tuples of longs in Python.
-  const Spec & ns = getSpec();
-
-  // The dict that contains the input maps for all inputs
-  py::Dict splitterMaps;
-  for (size_t i = 0; i < ns.inputs.getCount(); ++i)
-  {
-    // Get the current InputSpec object
-    const std::pair<std::string, InputSpec> & p =
-      ns.inputs.getByIndex(i);
-
-    // Skip splitter map generation if not required
-    if (!p.second.requireSplitterMap)
-      continue;
-
-    // Get the corresponding input buffer
-    Input * inp = region_->getInput(p.first);
-    NTA_CHECK(inp);
-
-
-    NTA_CHECK(inputArrays_.find(p.first) == inputArrays_.end());
-
-    // Create an input array for inputs that require a splitter map
-    // The input array must be larger by one element than the actual input
-    // to hold the sentinel value for the splitter map
-    inputArrays_[p.first] = new Array(p.second.dataType);
-    Array & a = *(inputArrays_[p.first]);
-    a.allocateBuffer(inp->getData().getCount() + 1);
-
-    const nupic::Input::SplitterMap & sm = inp->getSplitterMap();
-    size_t rawSize = getMaxInputCount(sm);
-
-    // The sentinel is padding each input raw
-    // in the splitter map after the end of useful input
-    UInt64 sentinel = inp->getData().getCount();
-
-    // Create the splitterMap backing store as an ArrayBase object
-    size_t mapSize = sm.size() * rawSize;
-    boost::shared_ptr<PyArray<UInt64> > splitterMap(new PyArray<UInt64>(mapSize));
-    UInt64 * begin = (UInt64 *)(splitterMap->getBuffer());
-    for (size_t j = 0; j < sm.size(); ++j)
-    {
-      //std::cout << "sm[j]:" << std::endl;
-      //for (size_t k = 0; k < sm[j].size(); ++k)
-      //{
-      //  std::cout << " " << sm[j][k];
-      //}
-      //std::cout << std::endl;
-
-      // Copy current raw into the splitter map
-      std::copy(sm[j].begin(),
-                sm[j].end(),
-                begin + j * rawSize);
-
-      // Fill the rest of the raw (up to maxInputSize) with the sentinel
-      std::fill(begin + j * rawSize + sm[j].size(),
-                begin + (j + 1) * rawSize,
-                sentinel);
-
-
-      //std::cout << "begin[j * rawSizse]:" << std::endl;
-      //for (UInt64 k = 0; k < rawSize; ++k)
-      //{
-      //  std::cout << " " << begin[j * rawSize + k];
-      //}
-      //std::cout << std::endl;
-    }
-
-
-    // Store all splitter maps in a set so they persist
-    splitterMaps_.insert(splitterMap);
-
-    // Create a numpy array version of the serialized splitter map
-    py::Instance serialized(splitterMap->asNumpyArray());
-
-    // Reshape the array to the real shape of the padded splitter map
-    py::Tuple args(2);
-    args.setItem(0, py::UnsignedLong(sm.size()));
-    args.setItem(1, py::UnsignedLong(rawSize));
-    py::Ptr shaped(serialized.invoke("reshape", args));
-
-    // Add the shaped splitter map of input i
-    splitterMaps.setItem(p.first.c_str(), shaped);
-  }
-
   // Call the Python initialize() method
-  py::Tuple args(2);
-  args.setItem(0, dims);
-  args.setItem(1, splitterMaps);
-
-
-  //py::Dict dd(args.getItem(1));
-  //py::Ptr m(dd.getItem("bottomUpIn"));
-  //for (size_t k = 0; k < 10; ++k)
-  //{
-  //  UInt64 * p = (UInt64 *)(PyArray_GETPTR1((PyObject *)m, k));
-  //  std::cout << " " << *p;
-  //}
-
   // Need to put the None result in py::Ptr, so decrement the ref count
-  py::Ptr none(node_.invoke("initialize", args));
+  py::Ptr none(node_.invoke("initialize", py::Tuple()));
 }
 
 

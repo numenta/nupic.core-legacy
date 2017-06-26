@@ -207,6 +207,44 @@ class SparseMatrixTest(unittest.TestCase):
     numpy.testing.assert_equal(m.nNonZerosPerRow([]), [])
 
 
+  def test_nNonZerosPerRowOnCols(self):
+
+    m = SparseMatrix([[1, 1, 0, 0, 1, 1],
+                      [0, 0, 1, 1, 0, 0],
+                      [0, 0, 1, 0, 0, 1],
+                      [1, 0, 1, 1, 0, 0],
+                      [0, 0, 0, 0, 0, 1],
+                      [0, 0, 0, 0, 0, 0],
+                      [1, 1, 1, 1, 1, 1],
+                      [0, 0, 1, 1, 0, 1]])
+
+    # Basic test
+    numpy.testing.assert_equal(m.nNonZerosPerRowOnCols([0, 5, 6, 7],
+                                                       [0, 1, 3, 4]),
+                               [3, 0, 4, 1])
+
+    # All columns
+    numpy.testing.assert_equal(m.nNonZerosPerRowOnCols([0, 5, 6, 7],
+                                                       [0, 1, 2, 3, 4, 5]),
+                               [4, 0, 6, 3])
+
+    # No selected rows
+    numpy.testing.assert_equal(m.nNonZerosPerRowOnCols([],
+                                                       [0, 1, 3, 4]),
+                               [])
+
+    # No selected cols
+    numpy.testing.assert_equal(m.nNonZerosPerRowOnCols([0, 5, 6, 7],
+                                                       []),
+                               [0, 0, 0, 0])
+
+    # No rows
+    m = SparseMatrix(numpy.zeros((0,0), dtype="float32"))
+    numpy.testing.assert_equal(m.nNonZerosPerRowOnCols([],
+                                                       []),
+                               [])
+
+
   def test_nNonZerosPerBox(self):
 
     print 'Testing nNonZerosPerBox'

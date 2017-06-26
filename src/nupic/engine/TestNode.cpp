@@ -341,7 +341,7 @@ namespace nupic
         0, // count. omit?
         true, // required?
         false, // isRegionLevel,
-        true  // isDefaultOutput
+        true  // isDefaultInput
         ));
 
     /* ----- outputs ------ */

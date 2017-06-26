@@ -26,9 +26,11 @@
 #include <ostream>
 #include <sstream>
 #include <fstream>
-#include <nupic/types/Types.hpp>
 #include <nupic/algorithms/Segment.hpp>
 #include <nupic/algorithms/OutSynapse.hpp>
+#include <nupic/proto/Cells4.capnp.h>
+#include <nupic/types/Serializable.hpp>
+#include <nupic/types/Types.hpp>
 #include <queue>
 #include <cstring>
 
@@ -262,7 +264,7 @@ namespace nupic {
         CBasicActivity<It> _seg;
       };
 
-      class Cells4
+      class Cells4 : public Serializable<Cells4Proto>
       {
       public:
 
@@ -523,9 +525,9 @@ namespace nupic {
         UInt getMaxSeqLength() const        { return _maxSeqLength;}
         Real getAvgLearnedSeqLength() const { return _avgLearnedSeqLength;}
         UInt getNLrnIterations() const      { return _nLrnIterations;}
-        Int  getmaxSegmentsPerCell() const  { return _maxSegmentsPerCell;}
-        Int  getMaxSynapsesPerCell() const  { return _maxSynapsesPerSegment;}
-        bool getCheckSynapseConsistency()   { return _checkSynapseConsistency;}
+        Int  getMaxSegmentsPerCell() const  { return _maxSegmentsPerCell;}
+        Int  getMaxSynapsesPerSegment() const  { return _maxSynapsesPerSegment;}
+        bool getCheckSynapseConsistency() const   { return _checkSynapseConsistency;}
 
 
         //----------------------------------------------------------------------
@@ -960,6 +962,58 @@ namespace nupic {
          */
         void applyGlobalDecay();
 
+
+        //-----------------------------------------------------------------------
+        /**
+         * Private Helper function for Cells4::adaptSegment. Generates lists of
+         * synapses to decrement, increment, add, and remove.
+         *
+         * We break it out into a separate function to facilitate unit testing.
+         *
+         * On Entry, purges resudual data from inactiveSrcCellIdxs,
+         * inactiveSynapseIdxs, activeSrcCellIdxs, and activeSynapseIdxs.
+         *
+         * segment:            The segment being adapted.
+         *
+         * synapsesSet:        IN/OUT On entry, the union of source cell indexes
+         *                     corresponding to existing active synapses in the
+         *                     segment as well as new synapses to be created. On
+         *                     return, it's former self sans elements returned
+         *                     in activeSrcCellIdxs. The remaining elements
+         *                     correspond to new synapses to be created within
+         *                     the segment.
+         *
+         * inactiveSrcCellIdxs: OUT Source cell indexes corresponding to
+         *                     inactive synapses in the segment. Ordered by
+         *                     relative position of the corresponding InSynapses
+         *                     in the segment. The elements here correlate to
+         *                     elements in inactiveSynapseIdxs.
+         *
+         * inactiveSynapseIdxs: OUT Synapse indexes corresponding to inactive
+         *                     synapses in the segment. Sorted in
+         *                     ascending order. The elements here correlate to
+         *                     elements in inactiveSrcCellIdxs.
+         *
+         * activeSrcCellIdxs:  OUT Source cell indexes corresponding to
+         *                     active synapses in the segment. Ordered by
+         *                     relative position of the corresponding InSynapses
+         *                     in the segment. The elements correlate to
+         *                     elements in activeSynapseIdxs.
+         *
+         * activeSynapseIdxs:  OUT Synapse indexes corresponding to active
+         *                     synapses in the segment. In ascending order. The
+         *                     elements correlate to elements in
+         *                     activeSrcCellIdxs.
+         *
+         */
+        static void _generateListsOfSynapsesToAdjustForAdaptSegment(
+          const Segment& segment,
+          std::set<UInt>& synapsesSet,
+          std::vector<UInt>& inactiveSrcCellIdxs,
+          std::vector<UInt>& inactiveSynapseIdxs,
+          std::vector<UInt>& activeSrcCellIdxs,
+          std::vector<UInt>& activeSynapseIdxs);
+
         //-----------------------------------------------------------------------
         /**
          * Applies segment update information to a segment in a cell as follows:
@@ -1020,6 +1074,20 @@ namespace nupic {
           this->save(tmp);
           return tmp.str().size();
         }
+
+        //----------------------------------------------------------------------
+        /**
+         * Write the state to a proto or file
+         */
+        using Serializable::write;
+        virtual void write(Cells4Proto::Builder& proto) const override;
+
+        //----------------------------------------------------------------------
+        /**
+         * Read the state into a proto or file
+         */
+        using Serializable::read;
+        virtual void read(Cells4Proto::Reader& proto) override;
 
         //----------------------------------------------------------------------
         /**

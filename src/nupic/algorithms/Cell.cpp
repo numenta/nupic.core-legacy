@@ -20,6 +20,7 @@
  * ---------------------------------------------------------------------
  */
 
+#include <nupic/proto/Cell.capnp.h>
 #include <nupic/algorithms/Cell.hpp>
 
 using namespace nupic::algorithms::Cells4;
@@ -117,6 +118,34 @@ void Cell::updateDutyCycle(UInt iterations)
     if (!_segments[i].empty())
     {
       _segments[i].dutyCycle(iterations, false, false);
+    }
+  }
+}
+
+//-----------------------------------------------------------------------------
+void Cell::write(CellProto::Builder& proto) const
+{
+  auto segmentsProto = proto.initSegments(_segments.size());
+  for (UInt i = 0; i < _segments.size(); ++i)
+  {
+    auto segProto = segmentsProto[i];
+    _segments[i].write(segProto);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void Cell::read(CellProto::Reader& proto)
+{
+  auto segmentsProto = proto.getSegments();
+  _segments.resize(segmentsProto.size());
+  _freeSegments.resize(0);
+  for (UInt i = 0; i < segmentsProto.size(); ++i)
+  {
+    auto segProto = segmentsProto[i];
+    _segments[i].read(segProto);
+    if (_segments[i].empty())
+    {
+      _freeSegments.push_back(i);
     }
   }
 }

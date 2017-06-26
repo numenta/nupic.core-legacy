@@ -24,6 +24,7 @@
 import argparse
 import os
 import sys
+import time
 
 import requests
 
@@ -34,6 +35,12 @@ PLATFORMS = {
   "windows": "continuous-integration/appveyor/branch",
 }
 
+# Time in seconds to check for completion before failing.
+MAX_WAIT = 2*60*60
+
+# Time to wait before retrying unfinished build.
+RETRY_DELAY = 60
+
 
 
 class _Status(object):
@@ -41,6 +48,7 @@ class _Status(object):
   FAILURE = "failure"
   ERROR = "error"
   PENDING = "pending"
+  MISSING = "missing"
 
 
 
@@ -49,6 +57,7 @@ def _downloadArtifacts(artifacts, artifactDir):
     artifactFilename = artifactUrl.split("/")[-1]
     outputPath = os.path.join(artifactDir, artifactFilename)
 
+    print "Downloading artifact from URL: ", artifactUrl
     r = requests.get(artifactUrl, stream=True)
     r.raise_for_status()
     if r.status_code != 200:
@@ -65,7 +74,12 @@ def _checkStatus(platform, sha):
   print "Getting status from URL: {}".format(formattedUrl)
   response = requests.get(formattedUrl)
   nupicCoreStatus = response.json()["numenta/nupic.core"]
-  overallStatus = nupicCoreStatus["status"]
+
+  found = nupicCoreStatus["shaMatch"]
+  if not found or platform not in nupicCoreStatus["builds"]:
+    status = _Status.MISSING
+    artifacts = []
+    return status, artifacts
 
   build = nupicCoreStatus["builds"][platform]
   status = build["state"]
@@ -97,14 +111,16 @@ def main():
       raise
 
   artifacts = None
-  while True:
+  timeout = time.time() + MAX_WAIT
+  while time.time() < timeout:
+    print "Checking status... ",
     status, artifacts = _checkStatus(platform, sha)
     if status == _Status.SUCCESS:
       print "Build succeeded."
       break
-    elif status == _Status.PENDING:
-      print "Build is pending."
-      os.wait(_WAIT)
+    elif status == _Status.PENDING or status == _Status.MISSING:
+      print "Build is pending or not started. Waiting for {} seconds...".format(RETRY_DELAY)
+      time.sleep(RETRY_DELAY)
       continue
     elif status == _Status.FAILURE:
       print "Build failed."

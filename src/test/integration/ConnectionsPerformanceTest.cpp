@@ -156,7 +156,7 @@ namespace nupic
   {
     clock_t timer = clock();
 
-    Connections connections(numCells, 1, numInputs);
+    Connections connections(numCells);
     Segment segment;
     vector<CellIdx> sdr;
 
@@ -300,9 +300,11 @@ namespace nupic
   {
     // Activate every segment, then choose the top few.
     vector<Segment> activeSegments;
-    for (size_t i = 0; i < numActiveSynapsesForSegment.size(); i++)
+    for (Segment segment = 0;
+         segment < numActiveSynapsesForSegment.size();
+         segment++)
     {
-      activeSegments.push_back(connections.segmentForFlatIdx(i));
+      activeSegments.push_back(segment);
     }
 
     set<CellIdx> winnerCells;
@@ -310,8 +312,8 @@ namespace nupic
               [&](Segment a, Segment b)
               {
                 return
-                  numActiveSynapsesForSegment[a.flatIdx] >
-                  numActiveSynapsesForSegment[b.flatIdx];
+                  numActiveSynapsesForSegment[a] >
+                  numActiveSynapsesForSegment[b];
               });
 
     for (Segment segment : activeSegments)

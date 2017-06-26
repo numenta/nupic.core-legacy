@@ -1,6 +1,6 @@
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2015, Numenta, Inc.  Unless you have an agreement
+ * Copyright (C) 2017, Numenta, Inc.  Unless you have an agreement
  * with Numenta, Inc., for a separate license for this software code, the
  * following terms and conditions apply:
  *
@@ -20,35 +20,24 @@
  * ---------------------------------------------------------------------
  */
 
-#if !CAPNP_LITE
+/** @file
+ * The home of the NTA_NumpyArray_API symbol
+ */
 
-#include <nupic/py_support/PyCapnp.hpp>
-#include <nupic/py_support/PyHelpers.hpp>
+#define NTA_OVERRIDE_NO_IMPORT_ARRAY
+#include <nupic/py_support/NumpyArrayObject.hpp>
 
-namespace nupic
-{
-  bool pyCapnpInitialized = false;
+#include <stdexcept>
 
-  PyObject* getPyReader(capnp::DynamicStruct::Reader reader)
+namespace nupic {
+  void initializeNumpy()
   {
-    if (!pyCapnpInitialized) {
-      initCapnpToPycapnp();
-      pyCapnpInitialized = true;
+    // Use _import_array() because import_array() is a macro that contains a
+    // return statement.
+    if (_import_array() != 0)
+    {
+      throw std::runtime_error(
+        "initializeNumpy: numpy.core.multiarray failed to import.");
     }
-    py::Ptr parent(Py_None);
-    return createReader(reader, parent);
   }
-
-  PyObject* getPyBuilder(capnp::DynamicStruct::Builder builder)
-  {
-    if (!pyCapnpInitialized) {
-      initCapnpToPycapnp();
-      pyCapnpInitialized = true;
-    }
-    py::Ptr parent(Py_None);
-    return createBuilder(builder, parent);
-  }
-
-} // namespace nupic
-
-#endif // !CAPNP_LITE
+}
