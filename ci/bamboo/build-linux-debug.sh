@@ -39,5 +39,6 @@ ${DIR}/setup-dependencies-linux.sh
 apt-get install -y iwyu
 
 # Build and test
+PIP_USER=1 \
 BUILD_TYPE="Debug" \
   ${DIR}/../build-and-test-nupic-bindings.sh "$@"
