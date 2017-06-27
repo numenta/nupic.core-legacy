@@ -59,9 +59,9 @@
 <dd><p>Initialize <a class="reference internal" href="network-network.html#nupic.coreclassnupic_1_1_nu_p_i_c"><span class="std std-ref">NuPIC</span></a>. </p>
 <p><dl class="docutils">
 <dt><strong>Note</strong></dt>
-<dd><p class="first">It&#8217;s safe to reinitialize an initialized <a class="reference internal" href="network-network.html#nupic.coreclassnupic_1_1_nu_p_i_c"><span class="std std-ref">NuPIC</span></a>. </p>
-<p class="last">Creating a <a class="reference internal" href="network-network.html#nupic.coreclassnupic_1_1_network"><span class="std std-ref">Network</span></a> will auto-initialize <a class="reference internal" href="network-network.html#nupic.coreclassnupic_1_1_nu_p_i_c"><span class="std std-ref">NuPIC</span></a>. </p>
-</dd>
+<dd>It&#8217;s safe to reinitialize an initialized <a class="reference internal" href="network-network.html#nupic.coreclassnupic_1_1_nu_p_i_c"><span class="std std-ref">NuPIC</span></a>. </dd>
+<dt><strong>Note</strong></dt>
+<dd>Creating a <a class="reference internal" href="network-network.html#nupic.coreclassnupic_1_1_network"><span class="std std-ref">Network</span></a> will auto-initialize <a class="reference internal" href="network-network.html#nupic.coreclassnupic_1_1_nu_p_i_c"><span class="std std-ref">NuPIC</span></a>. </dd>
 </dl>
 </p>
 </dd></dl>
@@ -414,7 +414,7 @@
 <p class="breathe-sectiondef-title rubric">Running</p>
 <dl class="type">
 <dt id="_CPPv2N5nupic7Network19runCallbackFunctionE">
-<span id="nupic::Network::runCallbackFunction"></span><span class="target" id="nupic.coreclassnupic_1_1_network_1aacb08bce2e1f3cc5fd4c4505f9c0dcf4"></span><em class="property">typedef </em>void (*<code class="descname">runCallbackFunction</code>)<span class="sig-paren">(</span><a class="reference internal" href="#_CPPv2N5nupic7NetworkE" title="nupic::Network">Network</a> *, UInt64 iteration, void *<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic7Network19runCallbackFunctionE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::Network::runCallbackFunction"></span><span class="target" id="nupic.coreclassnupic_1_1_network_1a6aa6a107c5cc4843ef6df31d7d6d5beb"></span><em class="property">typedef </em>void (*<code class="descname">runCallbackFunction</code>)<span class="sig-paren">(</span><a class="reference internal" href="#_CPPv2N5nupic7NetworkE" title="nupic::Network">Network</a> *, UInt64 iteration, void *<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic7Network19runCallbackFunctionE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>The type of run callback function. </p>
 <p>You can attach a callback function to a network, and the callback function is called after every iteration of <a class="reference internal" href="network-network.html#nupic.coreclassnupic_1_1_network_1a934e319ecf18dd08bd2ff1e86d21b0e5"><span class="std std-ref">run()</span></a>.</p>
 <p>To attach a callback, just get a reference to the callback collection with <a class="reference internal" href="network-network.html#nupic.coreclassnupic_1_1_network_1aefd8e5fdb02c0286883be7fb9dddee82"><span class="std std-ref">getCallbacks()</span></a> , and add a callback. </p>
