@@ -97,6 +97,7 @@ class PyRegion(object):
   * :meth:`~nupic.bindings.regions.PyRegion.PyRegion.executeMethod`
 
   """
+
   __metaclass__ = ABCMeta
 
 
@@ -322,7 +323,7 @@ class PyRegion(object):
 
 
   @staticmethod
-  def getProtoType():
+  def getSchema():
     """Return the pycapnp proto type that the class uses for serialization.
 
     This is used to convert the proto into the proper type before passing it
@@ -338,11 +339,11 @@ class PyRegion(object):
     """
     Calls :meth:`~nupic.bindings.regions.PyRegion.PyRegion.writeToProto`
     on subclass after converting proto to specific type using
-    :meth:`~nupic.bindings.regions.PyRegion.PyRegion.getProtoType`.
+    :meth:`~nupic.bindings.regions.PyRegion.PyRegion.getSchema`.
 
     :param proto: PyRegionProto capnproto object
     """
-    regionImpl = proto.regionImpl.as_struct(self.getProtoType())
+    regionImpl = proto.regionImpl.as_struct(self.getSchema())
     self.writeToProto(regionImpl)
 
 
@@ -351,11 +352,11 @@ class PyRegion(object):
     """
     Calls :meth:`~nupic.bindings.regions.PyRegion.PyRegion.readFromProto`
     on subclass after converting proto to specific type using
-    :meth:`~nupic.bindings.regions.PyRegion.PyRegion.getProtoType`.
+    :meth:`~nupic.bindings.regions.PyRegion.PyRegion.getSchema`.
 
     :param proto: PyRegionProto capnproto object
     """
-    regionImpl = proto.regionImpl.as_struct(cls.getProtoType())
+    regionImpl = proto.regionImpl.as_struct(cls.getSchema())
     return cls.readFromProto(regionImpl)
 
 
@@ -363,7 +364,7 @@ class PyRegion(object):
     """Write state to proto object.
 
     The type of proto is determined by
-    :meth:`~nupic.bindings.regions.PyRegion.PyRegion.getProtoType`.
+    :meth:`~nupic.bindings.regions.PyRegion.PyRegion.getSchema`.
 
     :raises: NotImplementedError if function is not implemented in subclass
     """
@@ -375,7 +376,7 @@ class PyRegion(object):
     """Read state from proto object.
 
     The type of proto is determined by
-    :meth:`~nupic.bindings.regions.PyRegion.PyRegion.getProtoType`.
+    :meth:`~nupic.bindings.regions.PyRegion.PyRegion.getSchema`.
 
     :raises: NotImplementedError if function is not implemented in subclass
     """
