@@ -41,10 +41,8 @@ namespace boost
     
     typedef typename graph_traits<Graph>::vertex_descriptor vertex_t;
     typedef typename graph_traits<Graph>::edge_descriptor edge_t;
-    typedef typename graph_traits<Graph>::vertex_iterator vertex_iterator_t;
     typedef typename graph_traits<Graph>::adjacency_iterator
       adjacency_iterator_t;
-    typedef typename std::pair<vertex_t, vertex_t> vertex_pair_t;
     typedef typename property_traits<PlanarEmbedding>::value_type 
       embedding_value_t;
     typedef typename embedding_value_t::const_iterator embedding_iterator_t;
@@ -65,7 +63,7 @@ namespace boost
     std::list<vertex_t> ready_to_be_processed;
     
     vertex_t first_vertex = *vertices(g).first;
-    vertex_t second_vertex;
+    vertex_t second_vertex = first_vertex;
     adjacency_iterator_t ai, ai_end;
     for(boost::tie(ai,ai_end) = adjacent_vertices(first_vertex,g); ai != ai_end; ++ai)
       {

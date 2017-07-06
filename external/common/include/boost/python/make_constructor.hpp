@@ -45,8 +45,13 @@ namespace detail
       template <class U>
       void dispatch(U* x, mpl::true_) const
       {
-          std::auto_ptr<U> owner(x);
-          dispatch(owner, mpl::false_());
+#if __cplusplus < 201103L
+	std::auto_ptr<U> owner(x);
+	dispatch(owner, mpl::false_());
+#else
+	std::unique_ptr<U> owner(x);
+	dispatch(std::move(owner), mpl::false_());
+#endif
       }
       
       template <class Ptr>
@@ -58,7 +63,11 @@ namespace detail
 
           void* memory = holder::allocate(this->m_self, offsetof(instance_t, storage), sizeof(holder));
           try {
+#if __cplusplus < 201103L
               (new (memory) holder(x))->install(this->m_self);
+#else
+              (new (memory) holder(std::move(x)))->install(this->m_self);
+#endif
           }
           catch(...) {
               holder::deallocate(this->m_self, memory);
@@ -104,14 +113,6 @@ namespace detail
       
       // If the BasePolicy_ supplied a result converter it would be
       // ignored; issue an error if it's not the default.
-#if defined _MSC_VER && _MSC_VER < 1300
-      typedef is_same<
-              typename BasePolicy_::result_converter
-            , default_result_converter
-          > same_result_converter;
-      //see above for explanation
-      BOOST_STATIC_ASSERT(same_result_converter::value) ;
-#else
       BOOST_MPL_ASSERT_MSG(
          (is_same<
               typename BasePolicy_::result_converter
@@ -120,7 +121,6 @@ namespace detail
         , MAKE_CONSTRUCTOR_SUPPLIES_ITS_OWN_RESULT_CONVERTER_THAT_WOULD_OVERRIDE_YOURS
         , (typename BasePolicy_::result_converter)
       );
-#endif
       typedef constructor_result_converter result_converter;
       typedef offset_args<typename BasePolicy_::argument_package, mpl::int_<1> > argument_package;
   };
@@ -183,7 +183,7 @@ namespace detail
       
       typedef typename detail::error::more_keywords_than_function_arguments<
           NumKeywords::value, arity
-          >::too_many_keywords assertion;
+          >::too_many_keywords assertion BOOST_ATTRIBUTE_UNUSED;
     
       typedef typename outer_constructor_signature<Sig>::type outer_signature;
 

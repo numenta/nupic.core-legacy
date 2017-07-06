@@ -8,7 +8,7 @@
 
 #include <boost/detail/workaround.hpp>
 
-#if defined(_MSC_VER) && (_MSC_VER >= 1200)
+#if defined(_MSC_VER)
 # pragma once
 #endif
 
@@ -23,7 +23,6 @@
 #include <boost/mpl/if.hpp>
 #include <boost/multi_index/detail/scope_guard.hpp>
 #include <boost/swap.hpp>
-#include <boost/throw_exception.hpp>
 #include <boost/type_traits/aligned_storage.hpp>
 #include <boost/type_traits/alignment_of.hpp>
 #include <boost/type_traits/has_nothrow_copy.hpp>
@@ -99,7 +98,7 @@ namespace detail
         }
 
         template< class SizeType >
-        static bool should_shrink( SizeType size, SizeType capacity )
+        static bool should_shrink( SizeType, SizeType )
         {
             //
             // @remark: when defining a new grow policy, one might
@@ -258,7 +257,7 @@ namespace detail
                 auto_buffer_destroy( buffer );
         }
 
-        void destroy_back_n( size_type n, const boost::true_type& )
+        void destroy_back_n( size_type, const boost::true_type& )
         { }
 
         void destroy_back_n( size_type n )
@@ -972,7 +971,7 @@ namespace detail
 
         pointer uninitialized_grow( size_type n ) // strong
         {
-            if( size_ + n <= members_.capacity_ )
+            if( size_ + n > members_.capacity_ )
                 reserve( size_ + n );
 
             pointer res = end();
@@ -1117,7 +1116,7 @@ namespace detail
     inline bool operator<=( const auto_buffer<T,SBP,GP,A>& l,
                             const auto_buffer<T,SBP,GP,A>& r )
     {
-        return !(r > l);
+        return !(l > r);
     }
 
     template< class T, class SBP, class GP, class A >

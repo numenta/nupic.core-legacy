@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////////
 //
-// (C) Copyright Ion Gaztanaga 2008-2012. Distributed under the Boost
+// (C) Copyright Ion Gaztanaga 2008-2013. Distributed under the Boost
 // Software License, Version 1.0. (See accompanying file
 // LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
@@ -11,437 +11,466 @@
 #ifndef BOOST_CONTAINER_ADVANCED_INSERT_INT_HPP
 #define BOOST_CONTAINER_ADVANCED_INSERT_INT_HPP
 
-#if (defined _MSC_VER) && (_MSC_VER >= 1200)
+#ifndef BOOST_CONFIG_HPP
+#  include <boost/config.hpp>
+#endif
+
+#if defined(BOOST_HAS_PRAGMA_ONCE)
 #  pragma once
 #endif
 
-#include "config_begin.hpp"
+#include <boost/container/detail/config_begin.hpp>
 #include <boost/container/detail/workaround.hpp>
+
+// container
 #include <boost/container/allocator_traits.hpp>
+// container/detail
+#include <boost/container/detail/copy_move_algo.hpp>
 #include <boost/container/detail/destroyers.hpp>
-#include <boost/aligned_storage.hpp>
-#include <boost/move/move.hpp>
-#include <iterator>  //std::iterator_traits
+#include <boost/container/detail/mpl.hpp>
+#include <boost/container/detail/type_traits.hpp>
+#include <boost/container/detail/iterator.hpp>
+#include <boost/container/detail/iterators.hpp>
+#include <boost/container/detail/iterator_to_raw_pointer.hpp>
+#if defined(BOOST_NO_CXX11_VARIADIC_TEMPLATES)
+#include <boost/move/detail/fwd_macros.hpp>
+#endif
+// move
+#include <boost/move/utility_core.hpp>
+// other
 #include <boost/assert.hpp>
+#include <boost/core/no_exceptions_support.hpp>
 
 namespace boost { namespace container { namespace container_detail {
 
-//This class will be interface for operations dependent on FwdIt types used advanced_insert_aux_impl
-template<class Iterator>
-struct advanced_insert_aux_int
+template<class Allocator, class FwdIt, class Iterator>
+struct move_insert_range_proxy
 {
-   typedef typename std::iterator_traits<Iterator>::difference_type difference_type;
-   virtual void copy_remaining_to(Iterator p) = 0;
-   virtual void uninitialized_copy_remaining_to(Iterator p) = 0;
-   virtual void uninitialized_copy_some_and_update(Iterator pos, difference_type division_count, bool first) = 0;
-   virtual void copy_some_and_update(Iterator pos, difference_type division_count, bool first) = 0;
-   virtual ~advanced_insert_aux_int() {}
+   typedef typename allocator_traits<Allocator>::size_type size_type;
+   typedef typename allocator_traits<Allocator>::value_type value_type;
+
+   explicit move_insert_range_proxy(FwdIt first)
+      :  first_(first)
+   {}
+
+   void uninitialized_copy_n_and_update(Allocator &a, Iterator p, size_type n)
+   {
+      this->first_ = ::boost::container::uninitialized_move_alloc_n_source
+         (a, this->first_, n, p);
+   }
+
+   void copy_n_and_update(Allocator &, Iterator p, size_type n)
+   {
+      this->first_ = ::boost::container::move_n_source(this->first_, n, p);
+   }
+
+   FwdIt first_;
 };
 
-//This class template will adapt each FwIt types to advanced_insert_aux_int
-template<class A, class FwdIt, class Iterator>
-struct advanced_insert_aux_proxy
-   :  public advanced_insert_aux_int<Iterator>
+
+template<class Allocator, class FwdIt, class Iterator>
+struct insert_range_proxy
 {
-   typedef typename allocator_traits<A>::size_type size_type;
-   typedef typename allocator_traits<A>::value_type value_type;
-   typedef typename advanced_insert_aux_int<Iterator>::difference_type difference_type;
+   typedef typename allocator_traits<Allocator>::size_type size_type;
+   typedef typename allocator_traits<Allocator>::value_type value_type;
 
-   advanced_insert_aux_proxy(A& a, FwdIt first, FwdIt last)
-      :  a_(a), first_(first), last_(last)
+   explicit insert_range_proxy(FwdIt first)
+      :  first_(first)
    {}
 
-   virtual ~advanced_insert_aux_proxy()
-   {}
-
-   virtual void copy_remaining_to(Iterator p)
-   {  ::boost::copy_or_move(this->first_, this->last_, p);  }
-
-   virtual void uninitialized_copy_remaining_to(Iterator p)
-   {  ::boost::container::uninitialized_copy_or_move_alloc(this->a_, this->first_, this->last_, p);  }
-
-   virtual void uninitialized_copy_some_and_update(Iterator pos, difference_type division_count, bool first_n)
+   void uninitialized_copy_n_and_update(Allocator &a, Iterator p, size_type n)
    {
-      FwdIt mid = this->first_;
-      std::advance(mid, division_count);
-      if(first_n){
-         ::boost::container::uninitialized_copy_or_move_alloc(this->a_, this->first_, mid, pos);
-         this->first_ = mid;
-      }
-      else{
-         ::boost::container::uninitialized_copy_or_move_alloc(this->a_, mid, this->last_, pos);
-         this->last_ = mid;
-      }
+      this->first_ = ::boost::container::uninitialized_copy_alloc_n_source(a, this->first_, n, p);
    }
 
-   virtual void copy_some_and_update(Iterator pos, difference_type division_count, bool first_n)
+   void copy_n_and_update(Allocator &, Iterator p, size_type n)
    {
-      FwdIt mid = this->first_;
-      std::advance(mid, division_count);
-      if(first_n){
-         ::boost::copy_or_move(this->first_, mid, pos);
-         this->first_ = mid;
-      }
-      else{
-         ::boost::copy_or_move(mid, this->last_, pos);
-         this->last_ = mid;
-      }
+      this->first_ = ::boost::container::copy_n_source(this->first_, n, p);
    }
-   A &a_;
-   FwdIt first_, last_;
+
+   FwdIt first_;
 };
 
-//This class template will adapt default construction insertions to advanced_insert_aux_int
-template<class A, class Iterator>
-struct default_construct_aux_proxy
-   :  public advanced_insert_aux_int<Iterator>
+
+template<class Allocator, class Iterator>
+struct insert_n_copies_proxy
 {
-   typedef ::boost::container::allocator_traits<A> alloc_traits;
-   typedef typename allocator_traits<A>::size_type size_type;
-   typedef typename allocator_traits<A>::value_type value_type;
-   typedef typename advanced_insert_aux_int<Iterator>::difference_type difference_type;
+   typedef typename allocator_traits<Allocator>::size_type size_type;
+   typedef typename allocator_traits<Allocator>::value_type value_type;
 
-   default_construct_aux_proxy(A &a, size_type count)
-      :  a_(a), count_(count)
+   explicit insert_n_copies_proxy(const value_type &v)
+      :  v_(v)
    {}
 
-   virtual ~default_construct_aux_proxy()
-   {}
+   void uninitialized_copy_n_and_update(Allocator &a, Iterator p, size_type n) const
+   {  boost::container::uninitialized_fill_alloc_n(a, v_, n, p);  }
 
-   virtual void copy_remaining_to(Iterator)
-   {  //This should never be called with any count
-      BOOST_ASSERT(this->count_ == 0);
-   }
-
-   virtual void uninitialized_copy_remaining_to(Iterator p)
-   {  this->priv_uninitialized_copy(p, this->count_); }
-
-   virtual void uninitialized_copy_some_and_update(Iterator pos, difference_type division_count, bool first_n)
+   void copy_n_and_update(Allocator &, Iterator p, size_type n) const
    {
-      size_type new_count;
-      if(first_n){
-         new_count = division_count;
+      for (; 0 < n; --n, ++p){
+         *p = v_;
       }
-      else{
-         BOOST_ASSERT(difference_type(this->count_)>= division_count);
-         new_count = this->count_ - division_count;
-      }
-      this->priv_uninitialized_copy(pos, new_count);
    }
 
-   virtual void copy_some_and_update(Iterator , difference_type division_count, bool first_n)
-   {
-      BOOST_ASSERT(this->count_ == 0);
-      size_type new_count;
-      if(first_n){
-         new_count = division_count;
-      }
-      else{
-         BOOST_ASSERT(difference_type(this->count_)>= division_count);
-         new_count = this->count_ - division_count;
-      }
-      //This function should never called with a count different to zero
-      BOOST_ASSERT(new_count == 0);
-      (void)new_count;
-   }
-
-   private:
-   void priv_uninitialized_copy(Iterator p, const size_type n)
-   {
-      BOOST_ASSERT(n <= this->count_);
-      Iterator orig_p = p;
-      size_type i = 0;
-      try{
-         for(; i < n; ++i, ++p){
-            alloc_traits::construct(this->a_, container_detail::to_raw_pointer(&*p));
-         }
-      }
-      catch(...){
-         while(i--){
-            alloc_traits::destroy(this->a_, container_detail::to_raw_pointer(&*orig_p++));
-         }
-         throw;
-      }
-      this->count_ -= n;
-   }
-   A &a_;
-   size_type count_;
+   const value_type &v_;
 };
+
+template<class Allocator, class Iterator>
+struct insert_value_initialized_n_proxy
+{
+   typedef ::boost::container::allocator_traits<Allocator> alloc_traits;
+   typedef typename allocator_traits<Allocator>::size_type size_type;
+   typedef typename allocator_traits<Allocator>::value_type value_type;
+
+   void uninitialized_copy_n_and_update(Allocator &a, Iterator p, size_type n) const
+   {  boost::container::uninitialized_value_init_alloc_n(a, n, p);  }
+
+   void copy_n_and_update(Allocator &, Iterator, size_type) const
+   {  BOOST_ASSERT(false); }
+};
+
+template<class Allocator, class Iterator>
+struct insert_default_initialized_n_proxy
+{
+   typedef ::boost::container::allocator_traits<Allocator> alloc_traits;
+   typedef typename allocator_traits<Allocator>::size_type size_type;
+   typedef typename allocator_traits<Allocator>::value_type value_type;
+
+   void uninitialized_copy_n_and_update(Allocator &a, Iterator p, size_type n) const
+   {  boost::container::uninitialized_default_init_alloc_n(a, n, p);  }
+
+   void copy_n_and_update(Allocator &, Iterator, size_type) const
+   {  BOOST_ASSERT(false); }
+};
+
+template<class Allocator, class Iterator>
+struct insert_copy_proxy
+{
+   typedef boost::container::allocator_traits<Allocator> alloc_traits;
+   typedef typename alloc_traits::size_type size_type;
+   typedef typename alloc_traits::value_type value_type;
+
+   explicit insert_copy_proxy(const value_type &v)
+      :  v_(v)
+   {}
+
+   void uninitialized_copy_n_and_update(Allocator &a, Iterator p, size_type n) const
+   {
+      BOOST_ASSERT(n == 1);  (void)n;
+      alloc_traits::construct( a, iterator_to_raw_pointer(p), v_);
+   }
+
+   void copy_n_and_update(Allocator &, Iterator p, size_type n) const
+   {
+      BOOST_ASSERT(n == 1);  (void)n;
+      *p =v_;
+   }
+
+   const value_type &v_;
+};
+
+
+template<class Allocator, class Iterator>
+struct insert_move_proxy
+{
+   typedef boost::container::allocator_traits<Allocator> alloc_traits;
+   typedef typename alloc_traits::size_type size_type;
+   typedef typename alloc_traits::value_type value_type;
+
+   explicit insert_move_proxy(value_type &v)
+      :  v_(v)
+   {}
+
+   void uninitialized_copy_n_and_update(Allocator &a, Iterator p, size_type n) const
+   {
+      BOOST_ASSERT(n == 1);  (void)n;
+      alloc_traits::construct( a, iterator_to_raw_pointer(p), ::boost::move(v_) );
+   }
+
+   void copy_n_and_update(Allocator &, Iterator p, size_type n) const
+   {
+      BOOST_ASSERT(n == 1);  (void)n;
+      *p = ::boost::move(v_);
+   }
+
+   value_type &v_;
+};
+
+template<class It, class Allocator>
+insert_move_proxy<Allocator, It> get_insert_value_proxy(BOOST_RV_REF(typename boost::container::iterator_traits<It>::value_type) v)
+{
+   return insert_move_proxy<Allocator, It>(v);
+}
+
+template<class It, class Allocator>
+insert_copy_proxy<Allocator, It> get_insert_value_proxy(const typename boost::container::iterator_traits<It>::value_type &v)
+{
+   return insert_copy_proxy<Allocator, It>(v);
+}
 
 }}}   //namespace boost { namespace container { namespace container_detail {
 
-#ifdef BOOST_CONTAINER_PERFECT_FORWARDING
+#if !defined(BOOST_NO_CXX11_VARIADIC_TEMPLATES)
 
 #include <boost/container/detail/variadic_templates_tools.hpp>
-#include <boost/move/move.hpp>
-#include <typeinfo>
-//#include <iostream> //For debugging purposes
+#include <boost/move/utility_core.hpp>
 
 namespace boost {
 namespace container {
 namespace container_detail {
 
-
-//This class template will adapt emplace construction insertions of movable types
-//to advanced_insert_aux_int
-template<class A, class Iterator, class ...Args>
-struct advanced_insert_aux_non_movable_emplace
-   :  public advanced_insert_aux_int<Iterator>
+template<class Allocator, class Iterator, class ...Args>
+struct insert_nonmovable_emplace_proxy
 {
-   typedef boost::container::allocator_traits<A> alloc_traits;
-   typedef typename allocator_traits<A>::size_type size_type;
-   typedef typename allocator_traits<A>::value_type value_type;
-   typedef typename advanced_insert_aux_int<Iterator>::difference_type difference_type;
-   typedef typename build_number_seq<sizeof...(Args)>::type             index_tuple_t;
+   typedef boost::container::allocator_traits<Allocator>   alloc_traits;
+   typedef typename alloc_traits::size_type        size_type;
+   typedef typename alloc_traits::value_type       value_type;
 
-   explicit advanced_insert_aux_non_movable_emplace(A &a, Args&&... args)
-      : a_(a)
-      , args_(args...)
-      , used_(false)
+   typedef typename build_number_seq<sizeof...(Args)>::type index_tuple_t;
+
+   explicit insert_nonmovable_emplace_proxy(BOOST_FWD_REF(Args)... args)
+      : args_(args...)
    {}
 
-   ~advanced_insert_aux_non_movable_emplace()
-   {}
-
-   virtual void copy_remaining_to(Iterator)
-   //This code can't be called since value_type is not movable or copyable
-   {  BOOST_ASSERT(false);   }
-
-   virtual void uninitialized_copy_remaining_to(Iterator p)
-   {  this->priv_uninitialized_copy_remaining_to(index_tuple_t(), p);   }
-
-   virtual void uninitialized_copy_some_and_update(Iterator p, difference_type division_count, bool first_n)
-   {  this->priv_uninitialized_copy_some_and_update(index_tuple_t(), p, division_count, first_n);  }
-
-   virtual void copy_some_and_update(Iterator, difference_type, bool )
-   //This code can't be called since value_type is not movable or copyable
-   {  BOOST_ASSERT(false);   }
+   void uninitialized_copy_n_and_update(Allocator &a, Iterator p, size_type n)
+   {  this->priv_uninitialized_copy_some_and_update(a, index_tuple_t(), p, n);  }
 
    private:
-   template<int ...IdxPack>
-   void priv_uninitialized_copy_some_and_update(const index_tuple<IdxPack...>&, Iterator p, difference_type division_count, bool first_n)
+   template<std::size_t ...IdxPack>
+   void priv_uninitialized_copy_some_and_update(Allocator &a, const index_tuple<IdxPack...>&, Iterator p, size_type n)
    {
-      BOOST_ASSERT(division_count <=1);
-      if((first_n && division_count == 1) || (!first_n && division_count == 0)){
-         if(!this->used_){
-            alloc_traits::construct( this->a_
-                                   , container_detail::to_raw_pointer(&*p)
-                                   , ::boost::forward<Args>(get<IdxPack>(this->args_))...
-                                   );
-            this->used_ = true;
-         }
-      }
-   }
-
-   template<int ...IdxPack>
-   void priv_uninitialized_copy_remaining_to(const index_tuple<IdxPack...>&, Iterator p)
-   {
-      if(!this->used_){
-         alloc_traits::construct( this->a_
-                                , container_detail::to_raw_pointer(&*p)
-                                  , ::boost::forward<Args>(get<IdxPack>(this->args_))...
-                                );
-         this->used_ = true;
-      }
+      BOOST_ASSERT(n == 1); (void)n;
+      alloc_traits::construct( a, iterator_to_raw_pointer(p), ::boost::forward<Args>(get<IdxPack>(this->args_))... );
    }
 
    protected:
-   A &a_;
    tuple<Args&...> args_;
-   bool used_;
 };
 
-//This class template will adapt emplace construction insertions of movable types
-//to advanced_insert_aux_int
-template<class A, class Iterator, class ...Args>
-struct advanced_insert_aux_emplace
-   :  public advanced_insert_aux_non_movable_emplace<A, Iterator, Args...>
+template<class Allocator, class Iterator, class ...Args>
+struct insert_emplace_proxy
+   :  public insert_nonmovable_emplace_proxy<Allocator, Iterator, Args...>
 {
-   typedef advanced_insert_aux_non_movable_emplace<A, Iterator, Args...> base_t;
-   typedef boost::container::allocator_traits<A> alloc_traits;
-   typedef typename base_t::value_type       value_type;
-   typedef typename base_t::difference_type  difference_type;
-   typedef typename base_t::index_tuple_t    index_tuple_t;
+   typedef insert_nonmovable_emplace_proxy<Allocator, Iterator, Args...> base_t;
+   typedef boost::container::allocator_traits<Allocator>   alloc_traits;
+   typedef typename base_t::value_type             value_type;
+   typedef typename base_t::size_type              size_type;
+   typedef typename base_t::index_tuple_t          index_tuple_t;
 
-   explicit advanced_insert_aux_emplace(A &a, Args&&... args)
-      : base_t(a, ::boost::forward<Args>(args)...)
+   explicit insert_emplace_proxy(BOOST_FWD_REF(Args)... args)
+      : base_t(::boost::forward<Args>(args)...)
    {}
 
-   ~advanced_insert_aux_emplace()
-   {}
-
-   //Override only needed functions
-   virtual void copy_remaining_to(Iterator p)
-   {  this->priv_copy_remaining_to(index_tuple_t(), p);   }
-
-   virtual void copy_some_and_update(Iterator p, difference_type division_count, bool first_n)
-   {  this->priv_copy_some_and_update(index_tuple_t(), p, division_count, first_n);  }
+   void copy_n_and_update(Allocator &a, Iterator p, size_type n)
+   {  this->priv_copy_some_and_update(a, index_tuple_t(), p, n);  }
 
    private:
-   template<int ...IdxPack>
-   void priv_copy_remaining_to(const index_tuple<IdxPack...>&, Iterator p)
-   {
-      if(!this->used_){
-         aligned_storage<sizeof(value_type), alignment_of<value_type>::value> v;
-         value_type *vp = static_cast<value_type *>(static_cast<void *>(&v));
-         alloc_traits::construct(this->a_, vp,
-            ::boost::forward<Args>(get<IdxPack>(this->args_))...);
-         scoped_destructor<A> d(this->a_, vp);
-         *p = ::boost::move(*vp);
-         d.release();
-         this->used_ = true;
-      }
-   }
 
-   template<int ...IdxPack>
-   void priv_copy_some_and_update(const index_tuple<IdxPack...>&, Iterator p, difference_type division_count, bool first_n)
+   template<std::size_t ...IdxPack>
+   void priv_copy_some_and_update(Allocator &a, const index_tuple<IdxPack...>&, Iterator p, size_type n)
    {
-      BOOST_ASSERT(division_count <=1);
-      if((first_n && division_count == 1) || (!first_n && division_count == 0)){
-         if(!this->used_){
-            aligned_storage<sizeof(value_type), alignment_of<value_type>::value> v;
-            value_type *vp = static_cast<value_type *>(static_cast<void *>(&v));
-            alloc_traits::construct(this->a_, vp,
-               ::boost::forward<Args>(get<IdxPack>(this->args_))...);
-            try {
-               *p = ::boost::move(*vp);
-            } catch (...) {
-               alloc_traits::destroy(this->a_, vp);
-               throw;
-            }
-            alloc_traits::destroy(this->a_, vp);
-            this->used_ = true;
-         }
+      BOOST_ASSERT(n ==1); (void)n;
+      typename aligned_storage<sizeof(value_type), alignment_of<value_type>::value>::type v;
+      value_type *vp = static_cast<value_type *>(static_cast<void *>(&v));
+      alloc_traits::construct(a, vp,
+         ::boost::forward<Args>(get<IdxPack>(this->args_))...);
+      BOOST_TRY{
+         *p = ::boost::move(*vp);
       }
+      BOOST_CATCH(...){
+         alloc_traits::destroy(a, vp);
+         BOOST_RETHROW
+      }
+      BOOST_CATCH_END
+      alloc_traits::destroy(a, vp);
    }
+};
+
+//Specializations to avoid an unneeded temporary when emplacing from a single argument o type value_type
+template<class Allocator, class Iterator>
+struct insert_emplace_proxy<Allocator, Iterator, typename boost::container::allocator_traits<Allocator>::value_type>
+   : public insert_move_proxy<Allocator, Iterator>
+{
+   explicit insert_emplace_proxy(typename boost::container::allocator_traits<Allocator>::value_type &&v)
+   : insert_move_proxy<Allocator, Iterator>(v)
+   {}
+};
+
+//We use "add_const" here as adding "const" only confuses MSVC12(and maybe later) provoking
+//compiler error C2752 ("more than one partial specialization matches").
+//Any problem is solvable with an extra layer of indirection? ;-)
+template<class Allocator, class Iterator>
+struct insert_emplace_proxy<Allocator, Iterator
+   , typename boost::container::container_detail::add_const<typename boost::container::allocator_traits<Allocator>::value_type>::type
+   >
+   : public insert_copy_proxy<Allocator, Iterator>
+{
+   explicit insert_emplace_proxy(const typename boost::container::allocator_traits<Allocator>::value_type &v)
+   : insert_copy_proxy<Allocator, Iterator>(v)
+   {}
+};
+
+template<class Allocator, class Iterator>
+struct insert_emplace_proxy<Allocator, Iterator, typename boost::container::allocator_traits<Allocator>::value_type &>
+   : public insert_copy_proxy<Allocator, Iterator>
+{
+   explicit insert_emplace_proxy(const typename boost::container::allocator_traits<Allocator>::value_type &v)
+   : insert_copy_proxy<Allocator, Iterator>(v)
+   {}
+};
+
+template<class Allocator, class Iterator>
+struct insert_emplace_proxy<Allocator, Iterator
+   , typename boost::container::container_detail::add_const<typename boost::container::allocator_traits<Allocator>::value_type>::type &
+   >
+   : public insert_copy_proxy<Allocator, Iterator>
+{
+   explicit insert_emplace_proxy(const typename boost::container::allocator_traits<Allocator>::value_type &v)
+   : insert_copy_proxy<Allocator, Iterator>(v)
+   {}
 };
 
 }}}   //namespace boost { namespace container { namespace container_detail {
 
-#else //#ifdef BOOST_CONTAINER_PERFECT_FORWARDING
+#else // !defined(BOOST_NO_CXX11_VARIADIC_TEMPLATES)
 
-#include <boost/container/detail/preprocessor.hpp>
 #include <boost/container/detail/value_init.hpp>
 
 namespace boost {
 namespace container {
 namespace container_detail {
 
-#define BOOST_PP_LOCAL_MACRO(n)                                                     \
-template<class A, class Iterator BOOST_PP_ENUM_TRAILING_PARAMS(n, class P) >        \
-struct BOOST_PP_CAT(BOOST_PP_CAT(advanced_insert_aux_non_movable_emplace, n), arg)  \
-   :  public advanced_insert_aux_int<Iterator>                                      \
-{                                                                                   \
-   typedef boost::container::allocator_traits<A> alloc_traits;                      \
-   typedef typename allocator_traits<A>::size_type size_type;                       \
-   typedef typename allocator_traits<A>::value_type value_type;                     \
-   typedef typename advanced_insert_aux_int<Iterator>::difference_type              \
-      difference_type;                                                              \
-                                                                                    \
-   BOOST_PP_CAT(BOOST_PP_CAT(advanced_insert_aux_non_movable_emplace, n), arg)      \
-      ( A &a BOOST_PP_ENUM_TRAILING(n, BOOST_CONTAINER_PP_PARAM_LIST, _) )          \
-      : a_(a)                                                                       \
-      , used_(false)                                                                \
-      BOOST_PP_ENUM_TRAILING(n, BOOST_CONTAINER_PP_PARAM_INIT, _)                   \
-    {}                                                                              \
-                                                                                    \
-   virtual void copy_remaining_to(Iterator)                                         \
-   {  BOOST_ASSERT(false);   }                                                      \
-                                                                                    \
-   virtual void uninitialized_copy_remaining_to(Iterator p)                         \
-   {                                                                                \
-      if(!this->used_){                                                             \
-         alloc_traits::construct                                                    \
-            ( this->a_                                                              \
-            , container_detail::to_raw_pointer(&*p)                                 \
-            BOOST_PP_ENUM_TRAILING(n, BOOST_CONTAINER_PP_MEMBER_FORWARD, _)         \
-            );                                                                      \
-         this->used_ = true;                                                        \
-      }                                                                             \
-   }                                                                                \
-                                                                                    \
-   virtual void uninitialized_copy_some_and_update                                  \
-      (Iterator p, difference_type division_count, bool first_n)                    \
-   {                                                                                \
-      BOOST_ASSERT(division_count <=1);                                             \
-      if((first_n && division_count == 1) || (!first_n && division_count == 0)){    \
-         if(!this->used_){                                                          \
-            alloc_traits::construct                                                 \
-               ( this->a_                                                           \
-               , container_detail::to_raw_pointer(&*p)                              \
-               BOOST_PP_ENUM_TRAILING(n, BOOST_CONTAINER_PP_MEMBER_FORWARD, _)      \
-               );                                                                   \
-            this->used_ = true;                                                     \
-         }                                                                          \
-      }                                                                             \
-   }                                                                                \
-                                                                                    \
-   virtual void copy_some_and_update(Iterator, difference_type, bool)               \
-   {  BOOST_ASSERT(false);   }                                                      \
-                                                                                    \
-   A &a_;                                                                           \
-   bool used_;                                                                      \
-   BOOST_PP_REPEAT(n, BOOST_CONTAINER_PP_PARAM_DEFINE, _)                           \
-};                                                                                  \
-                                                                                    \
-template<class A, class Iterator BOOST_PP_ENUM_TRAILING_PARAMS(n, class P) >        \
-struct BOOST_PP_CAT(BOOST_PP_CAT(advanced_insert_aux_emplace, n), arg)              \
-   : BOOST_PP_CAT(BOOST_PP_CAT(                                                     \
-      advanced_insert_aux_non_movable_emplace, n), arg)                             \
-         < A, Iterator BOOST_PP_ENUM_TRAILING_PARAMS(n, P) >                        \
-{                                                                                   \
-   typedef BOOST_PP_CAT(BOOST_PP_CAT(                                               \
-      advanced_insert_aux_non_movable_emplace, n), arg)                             \
-         <A, Iterator BOOST_PP_ENUM_TRAILING_PARAMS(n, P) > base_t;                 \
-   typedef typename base_t::value_type       value_type;                            \
-   typedef typename base_t::difference_type  difference_type;                       \
-   typedef boost::container::allocator_traits<A> alloc_traits;                      \
-                                                                                    \
-   BOOST_PP_CAT(BOOST_PP_CAT(advanced_insert_aux_emplace, n), arg)                  \
-      ( A &a BOOST_PP_ENUM_TRAILING(n, BOOST_CONTAINER_PP_PARAM_LIST, _) )          \
-      : base_t(a BOOST_PP_ENUM_TRAILING(n, BOOST_CONTAINER_PP_PARAM_FORWARD, _) )   \
-    {}                                                                              \
-                                                                                    \
-   virtual void copy_remaining_to(Iterator p)                                       \
-   {                                                                                \
-      if(!this->used_){                                                             \
-         aligned_storage<sizeof(value_type), alignment_of<value_type>::value> v;    \
-         value_type *vp = static_cast<value_type *>(static_cast<void *>(&v));       \
-         alloc_traits::construct(this->a_, vp                                       \
-            BOOST_PP_ENUM_TRAILING(n, BOOST_CONTAINER_PP_MEMBER_FORWARD, _));       \
-         scoped_destructor<A> d(this->a_, vp);                                      \
-         *p = ::boost::move(*vp);                                                   \
-         d.release();                                                               \
-         this->used_ = true;                                                        \
-      }                                                                             \
-   }                                                                                \
-                                                                                    \
-   virtual void copy_some_and_update                                                \
-      (Iterator p, difference_type division_count, bool first_n)                    \
-   {                                                                                \
-      BOOST_ASSERT(division_count <=1);                                             \
-      if((first_n && division_count == 1) || (!first_n && division_count == 0)){    \
-         if(!this->used_){                                                          \
-            aligned_storage<sizeof(value_type), alignment_of<value_type>::value> v; \
-            value_type *vp = static_cast<value_type *>(static_cast<void *>(&v));    \
-            alloc_traits::construct(this->a_, vp                                    \
-               BOOST_PP_ENUM_TRAILING(n, BOOST_CONTAINER_PP_MEMBER_FORWARD, _));    \
-            scoped_destructor<A> d(this->a_, vp);                                   \
-            *p = ::boost::move(*vp);                                                \
-            d.release();                                                            \
-            this->used_ = true;                                                     \
-         }                                                                          \
-      }                                                                             \
-   }                                                                                \
-};                                                                                  \
-//!
+#define BOOST_CONTAINER_ADVANCED_INSERT_INT_CODE(N) \
+template< class Allocator, class Iterator BOOST_MOVE_I##N BOOST_MOVE_CLASS##N >\
+struct insert_nonmovable_emplace_proxy##N\
+{\
+   typedef boost::container::allocator_traits<Allocator> alloc_traits;\
+   typedef typename alloc_traits::size_type size_type;\
+   typedef typename alloc_traits::value_type value_type;\
+   \
+   explicit insert_nonmovable_emplace_proxy##N(BOOST_MOVE_UREF##N)\
+      BOOST_MOVE_COLON##N BOOST_MOVE_FWD_INIT##N {}\
+   \
+   void uninitialized_copy_n_and_update(Allocator &a, Iterator p, size_type n)\
+   {\
+      BOOST_ASSERT(n == 1); (void)n;\
+      alloc_traits::construct(a, iterator_to_raw_pointer(p) BOOST_MOVE_I##N BOOST_MOVE_MFWD##N);\
+   }\
+   \
+   void copy_n_and_update(Allocator &, Iterator, size_type)\
+   {  BOOST_ASSERT(false);   }\
+   \
+   protected:\
+   BOOST_MOVE_MREF##N\
+};\
+\
+template< class Allocator, class Iterator BOOST_MOVE_I##N BOOST_MOVE_CLASS##N >\
+struct insert_emplace_proxy_arg##N\
+   : insert_nonmovable_emplace_proxy##N< Allocator, Iterator BOOST_MOVE_I##N BOOST_MOVE_TARG##N >\
+{\
+   typedef insert_nonmovable_emplace_proxy##N\
+      < Allocator, Iterator BOOST_MOVE_I##N BOOST_MOVE_TARG##N > base_t;\
+   typedef typename base_t::value_type value_type;\
+   typedef typename base_t::size_type size_type;\
+   typedef boost::container::allocator_traits<Allocator> alloc_traits;\
+   \
+   explicit insert_emplace_proxy_arg##N(BOOST_MOVE_UREF##N)\
+      : base_t(BOOST_MOVE_FWD##N){}\
+   \
+   void copy_n_and_update(Allocator &a, Iterator p, size_type n)\
+   {\
+      BOOST_ASSERT(n == 1); (void)n;\
+      typename aligned_storage<sizeof(value_type), alignment_of<value_type>::value>::type v;\
+      BOOST_ASSERT((((size_type)(&v)) % alignment_of<value_type>::value) == 0);\
+      value_type *vp = static_cast<value_type *>(static_cast<void *>(&v));\
+      alloc_traits::construct(a, vp BOOST_MOVE_I##N BOOST_MOVE_MFWD##N);\
+      BOOST_TRY{\
+         *p = ::boost::move(*vp);\
+      }\
+      BOOST_CATCH(...){\
+         alloc_traits::destroy(a, vp);\
+         BOOST_RETHROW\
+      }\
+      BOOST_CATCH_END\
+      alloc_traits::destroy(a, vp);\
+   }\
+};\
+//
+BOOST_MOVE_ITERATE_0TO9(BOOST_CONTAINER_ADVANCED_INSERT_INT_CODE)
+#undef BOOST_CONTAINER_ADVANCED_INSERT_INT_CODE
 
-#define BOOST_PP_LOCAL_LIMITS (0, BOOST_CONTAINER_MAX_CONSTRUCTOR_PARAMETERS)
-#include BOOST_PP_LOCAL_ITERATE()
+#if defined(BOOST_NO_CXX11_RVALUE_REFERENCES)
+
+//Specializations to avoid an unneeded temporary when emplacing from a single argument o type value_type
+template<class Allocator, class Iterator>
+struct insert_emplace_proxy_arg1<Allocator, Iterator, ::boost::rv<typename boost::container::allocator_traits<Allocator>::value_type> >
+   : public insert_move_proxy<Allocator, Iterator>
+{
+   explicit insert_emplace_proxy_arg1(typename boost::container::allocator_traits<Allocator>::value_type &v)
+   : insert_move_proxy<Allocator, Iterator>(v)
+   {}
+};
+
+template<class Allocator, class Iterator>
+struct insert_emplace_proxy_arg1<Allocator, Iterator, typename boost::container::allocator_traits<Allocator>::value_type>
+   : public insert_copy_proxy<Allocator, Iterator>
+{
+   explicit insert_emplace_proxy_arg1(const typename boost::container::allocator_traits<Allocator>::value_type &v)
+   : insert_copy_proxy<Allocator, Iterator>(v)
+   {}
+};
+
+#else //e.g. MSVC10 & MSVC11
+
+//Specializations to avoid an unneeded temporary when emplacing from a single argument o type value_type
+template<class Allocator, class Iterator>
+struct insert_emplace_proxy_arg1<Allocator, Iterator, typename boost::container::allocator_traits<Allocator>::value_type>
+   : public insert_move_proxy<Allocator, Iterator>
+{
+   explicit insert_emplace_proxy_arg1(typename boost::container::allocator_traits<Allocator>::value_type &&v)
+   : insert_move_proxy<Allocator, Iterator>(v)
+   {}
+};
+
+//We use "add_const" here as adding "const" only confuses MSVC10&11 provoking
+//compiler error C2752 ("more than one partial specialization matches").
+//Any problem is solvable with an extra layer of indirection? ;-)
+template<class Allocator, class Iterator>
+struct insert_emplace_proxy_arg1<Allocator, Iterator
+   , typename boost::container::container_detail::add_const<typename boost::container::allocator_traits<Allocator>::value_type>::type
+   >
+   : public insert_copy_proxy<Allocator, Iterator>
+{
+   explicit insert_emplace_proxy_arg1(const typename boost::container::allocator_traits<Allocator>::value_type &v)
+   : insert_copy_proxy<Allocator, Iterator>(v)
+   {}
+};
+
+template<class Allocator, class Iterator>
+struct insert_emplace_proxy_arg1<Allocator, Iterator, typename boost::container::allocator_traits<Allocator>::value_type &>
+   : public insert_copy_proxy<Allocator, Iterator>
+{
+   explicit insert_emplace_proxy_arg1(const typename boost::container::allocator_traits<Allocator>::value_type &v)
+   : insert_copy_proxy<Allocator, Iterator>(v)
+   {}
+};
+
+template<class Allocator, class Iterator>
+struct insert_emplace_proxy_arg1<Allocator, Iterator
+   , typename boost::container::container_detail::add_const<typename boost::container::allocator_traits<Allocator>::value_type>::type &
+   >
+   : public insert_copy_proxy<Allocator, Iterator>
+{
+   explicit insert_emplace_proxy_arg1(const typename boost::container::allocator_traits<Allocator>::value_type &v)
+   : insert_copy_proxy<Allocator, Iterator>(v)
+   {}
+};
+
+#endif
 
 }}}   //namespace boost { namespace container { namespace container_detail {
 
-#endif   //#ifdef BOOST_CONTAINER_PERFECT_FORWARDING
+#endif   // !defined(BOOST_NO_CXX11_VARIADIC_TEMPLATES)
 
 #include <boost/container/detail/config_end.hpp>
 

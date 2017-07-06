@@ -1,5 +1,6 @@
 //  (C) Copyright Howard Hinnant
 //  (C) Copyright 2011 Vicente J. Botet Escriba
+//  Copyright (c) Microsoft Corporation 2014
 //  Use, modification and distribution are subject to the Boost Software License,
 //  Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
 //  http://www.boost.org/LICENSE_1_0.txt).
@@ -23,6 +24,16 @@ namespace boost
 {
   namespace chrono
   {
+    /**
+     * customization point to the epoch associated to the clock @c Clock
+     * The default calls @c f.do_get_epoch(Clock()). The user can overload this function.
+     * @return the string epoch associated to the @c Clock
+     */
+    template <typename CharT, typename Clock, typename TPUFacet>
+    std::basic_string<CharT> get_epoch_custom(Clock, TPUFacet& f)
+    {
+      return f.do_get_epoch(Clock());
+    }
 
     /**
      * @c time_point_units facet gives useful information about the time_point pattern,
@@ -73,7 +84,7 @@ namespace boost
       template <typename Clock>
       string_type get_epoch() const
       {
-        return do_get_epoch(Clock());
+        return get_epoch_custom<CharT>(Clock(), *this);
       }
 
     protected:
@@ -82,6 +93,7 @@ namespace boost
        */
       virtual ~time_point_units() {}
 
+    public:
 
       /**
        *
@@ -104,6 +116,7 @@ namespace boost
        * @return The epoch string associated to the @c process_real_cpu_clock.
        */
       virtual string_type do_get_epoch(process_real_cpu_clock) const=0;
+#if ! BOOST_OS_WINDOWS || BOOST_PLAT_WINDOWS_DESKTOP
       /**
        *
        * @param c a dummy instance of @c process_user_cpu_clock.
@@ -122,6 +135,7 @@ namespace boost
        * @return The epoch string associated to the @c process_cpu_clock.
        */
       virtual string_type do_get_epoch(process_cpu_clock) const=0;
+#endif
 #endif
 #if defined(BOOST_CHRONO_HAS_THREAD_CLOCK)
       /**
@@ -170,7 +184,7 @@ namespace boost
         return pattern;
       }
 
-    protected:
+    //protected:
       /**
        * @param c a dummy instance of @c system_clock.
        * @return The epoch string returned by @c clock_string<system_clock,CharT>::since().
@@ -197,6 +211,7 @@ namespace boost
       {
         return clock_string<process_real_cpu_clock,CharT>::since();
       }
+#if ! BOOST_OS_WINDOWS || BOOST_PLAT_WINDOWS_DESKTOP
       /**
        * @param c a dummy instance of @c process_user_cpu_clock.
        * @return The epoch string returned by @c clock_string<process_user_cpu_clock,CharT>::since().
@@ -222,6 +237,7 @@ namespace boost
         return clock_string<process_cpu_clock,CharT>::since();
       }
 
+#endif
 #endif
 #if defined(BOOST_CHRONO_HAS_THREAD_CLOCK)
       /**

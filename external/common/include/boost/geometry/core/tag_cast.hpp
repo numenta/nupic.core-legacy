@@ -16,7 +16,7 @@
 
 
 #include <boost/mpl/if.hpp>
-#include <boost/type_traits.hpp>
+#include <boost/type_traits/is_base_of.hpp>
 
 namespace boost { namespace geometry
 {
@@ -25,10 +25,10 @@ namespace boost { namespace geometry
 \brief Metafunction defining a type being either the specified tag, or one
     of the specified basetags if the type inherits from them.
 \details Tags can inherit each other. A multi_point inherits, for example,
-    both the multi_tag and the pointlike tag. Often behaviour can be shared
+    both the multi_tag and the pointlike_tag. Often behaviour can be shared
     between different geometry types. A tag, found by the metafunction tag,
     can be casted to a more basic tag, and then dispatched by that tag.
-\ingroup core    
+\ingroup core
 \tparam Tag The tag to be casted to one of the base tags
 \tparam BaseTag First base tag
 \tparam BaseTag2 Optional second base tag
