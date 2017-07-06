@@ -52,4 +52,6 @@ struct TemporalMemoryProto {
 
   iteration @20 :UInt64;
   lastUsedIterationForSegment @21 :List(SegmentUInt64Pair);
+
+  checkInputs @22 :Bool;
 }
