@@ -258,7 +258,7 @@ class TestNode(PyRegion):
     self.parameters[name] = numpy.array(array)
 
 
-  def getProtoType():
+  def getSchema():
     return None
 
 
