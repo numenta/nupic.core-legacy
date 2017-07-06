@@ -2,7 +2,7 @@
 // detail/win_event.ipp
 // ~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2012 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2017 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -17,7 +17,7 @@
 
 #include <boost/asio/detail/config.hpp>
 
-#if defined(BOOST_WINDOWS)
+#if defined(BOOST_ASIO_WINDOWS)
 
 #include <boost/asio/detail/throw_error.hpp>
 #include <boost/asio/detail/win_event.hpp>
@@ -30,15 +30,40 @@ namespace asio {
 namespace detail {
 
 win_event::win_event()
-  : event_(::CreateEvent(0, true, false, 0))
+  : state_(0)
 {
-  if (!event_)
+#if defined(BOOST_ASIO_WINDOWS_APP)
+  events_[0] = ::CreateEventExW(0, 0, CREATE_EVENT_MANUAL_RESET, 0);
+#else // defined(BOOST_ASIO_WINDOWS_APP)
+  events_[0] = ::CreateEventW(0, true, false, 0);
+#endif // defined(BOOST_ASIO_WINDOWS_APP)
+  if (!events_[0])
   {
     DWORD last_error = ::GetLastError();
     boost::system::error_code ec(last_error,
         boost::asio::error::get_system_category());
     boost::asio::detail::throw_error(ec, "event");
   }
+
+#if defined(BOOST_ASIO_WINDOWS_APP)
+  events_[1] = ::CreateEventExW(0, 0, 0, 0);
+#else // defined(BOOST_ASIO_WINDOWS_APP)
+  events_[1] = ::CreateEventW(0, false, false, 0);
+#endif // defined(BOOST_ASIO_WINDOWS_APP)
+  if (!events_[1])
+  {
+    DWORD last_error = ::GetLastError();
+    ::CloseHandle(events_[0]);
+    boost::system::error_code ec(last_error,
+        boost::asio::error::get_system_category());
+    boost::asio::detail::throw_error(ec, "event");
+  }
+}
+
+win_event::~win_event()
+{
+  ::CloseHandle(events_[0]);
+  ::CloseHandle(events_[1]);
 }
 
 } // namespace detail
@@ -47,6 +72,6 @@ win_event::win_event()
 
 #include <boost/asio/detail/pop_options.hpp>
 
-#endif // defined(BOOST_WINDOWS)
+#endif // defined(BOOST_ASIO_WINDOWS)
 
 #endif // BOOST_ASIO_DETAIL_IMPL_WIN_EVENT_IPP

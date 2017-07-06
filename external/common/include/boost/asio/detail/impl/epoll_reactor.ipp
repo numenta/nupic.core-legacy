@@ -2,7 +2,7 @@
 // detail/impl/epoll_reactor.ipp
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2012 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2017 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -164,7 +164,18 @@ int epoll_reactor::register_descriptor(socket_type descriptor,
   ev.data.ptr = descriptor_data;
   int result = epoll_ctl(epoll_fd_, EPOLL_CTL_ADD, descriptor, &ev);
   if (result != 0)
+  {
+    if (errno == EPERM)
+    {
+      // This file descriptor type is not supported by epoll. However, if it is
+      // a regular file then operations on it will not block. We will allow
+      // this descriptor to be used and fail later if an operation on it would
+      // otherwise require a trip through the reactor.
+      descriptor_data->registered_events_ = 0;
+      return 0;
+    }
     return errno;
+  }
 
   return 0;
 }
@@ -204,13 +215,13 @@ void epoll_reactor::move_descriptor(socket_type,
 }
 
 void epoll_reactor::start_op(int op_type, socket_type descriptor,
-    epoll_reactor::per_descriptor_data& descriptor_data,
-    reactor_op* op, bool allow_speculative)
+    epoll_reactor::per_descriptor_data& descriptor_data, reactor_op* op,
+    bool is_continuation, bool allow_speculative)
 {
   if (!descriptor_data)
   {
     op->ec_ = boost::asio::error::bad_descriptor;
-    post_immediate_completion(op);
+    post_immediate_completion(op, is_continuation);
     return;
   }
 
@@ -218,7 +229,7 @@ void epoll_reactor::start_op(int op_type, socket_type descriptor,
 
   if (descriptor_data->shutdown_)
   {
-    post_immediate_completion(op);
+    post_immediate_completion(op, is_continuation);
     return;
   }
 
@@ -231,7 +242,14 @@ void epoll_reactor::start_op(int op_type, socket_type descriptor,
       if (op->perform())
       {
         descriptor_lock.unlock();
-        io_service_.post_immediate_completion(op);
+        io_service_.post_immediate_completion(op, is_continuation);
+        return;
+      }
+
+      if (descriptor_data->registered_events_ == 0)
+      {
+        op->ec_ = boost::asio::error::operation_not_supported;
+        io_service_.post_immediate_completion(op, is_continuation);
         return;
       }
 
@@ -250,11 +268,17 @@ void epoll_reactor::start_op(int op_type, socket_type descriptor,
           {
             op->ec_ = boost::system::error_code(errno,
                 boost::asio::error::get_system_category());
-            io_service_.post_immediate_completion(op);
+            io_service_.post_immediate_completion(op, is_continuation);
             return;
           }
         }
       }
+    }
+    else if (descriptor_data->registered_events_ == 0)
+    {
+      op->ec_ = boost::asio::error::operation_not_supported;
+      io_service_.post_immediate_completion(op, is_continuation);
+      return;
     }
     else
     {
@@ -313,7 +337,7 @@ void epoll_reactor::deregister_descriptor(socket_type descriptor,
       // The descriptor will be automatically removed from the epoll set when
       // it is closed.
     }
-    else
+    else if (descriptor_data->registered_events_ != 0)
     {
       epoll_event ev = { 0, { 0 } };
       epoll_ctl(epoll_fd_, EPOLL_CTL_DEL, descriptor, &ev);
@@ -607,8 +631,9 @@ epoll_reactor::descriptor_state::descriptor_state()
 
 operation* epoll_reactor::descriptor_state::perform_io(uint32_t events)
 {
+  mutex_.lock();
   perform_io_cleanup_on_block_exit io_cleanup(reactor_);
-  mutex::scoped_lock descriptor_lock(mutex_);
+  mutex::scoped_lock descriptor_lock(mutex_, mutex::scoped_lock::adopt_lock);
 
   // Exception operations must be processed first to ensure that any
   // out-of-band data is read before normal data.

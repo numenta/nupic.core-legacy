@@ -7,9 +7,9 @@
 #if !defined(FUSION_INSERT_07222005_0730)
 #define FUSION_INSERT_07222005_0730
 
+#include <boost/fusion/support/config.hpp>
 #include <boost/fusion/support/detail/as_fusion_element.hpp>
 #include <boost/fusion/iterator/mpl/convert_iterator.hpp>
-#include <boost/fusion/container/vector/vector10.hpp>
 #include <boost/fusion/view/joint_view/joint_view.hpp>
 #include <boost/fusion/view/single_view/single_view.hpp>
 #include <boost/fusion/view/iterator_range/iterator_range.hpp>
@@ -40,8 +40,8 @@ namespace boost { namespace fusion
     }
 
     template <typename Sequence, typename Position, typename T>
-    inline 
-    typename
+    BOOST_CXX14_CONSTEXPR BOOST_FUSION_GPU_ENABLED
+    inline typename
         lazy_enable_if<
             traits::is_sequence<Sequence>
           , result_of::insert<Sequence const, Position, T>

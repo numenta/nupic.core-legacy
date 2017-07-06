@@ -6,13 +6,13 @@
  * Boost Software License, Version 1.0. (See accompanying
  * file LICENSE_1_0.txt or http://www.boost.org/LICENSE_1_0.txt)
  * Author: Jeff Garland, Bart Garst
- * $Date: 2008-02-27 12:00:24 -0800 (Wed, 27 Feb 2008) $
+ * $Date$
  */
 
-#include "boost/date_time/constrained_value.hpp"
-#include "boost/date_time/date_defs.hpp"
-#include "boost/shared_ptr.hpp"
-#include "boost/date_time/compiler_config.hpp"
+#include <boost/date_time/constrained_value.hpp>
+#include <boost/date_time/date_defs.hpp>
+#include <boost/shared_ptr.hpp>
+#include <boost/date_time/compiler_config.hpp>
 #include <stdexcept>
 #include <string>
 #include <map>
@@ -41,7 +41,7 @@ namespace gregorian {
   using date_time::NumMonths;
   
   //! Exception thrown if a greg_month is constructed with a value out of range
-  struct bad_month : public std::out_of_range
+  struct BOOST_SYMBOL_VISIBLE bad_month : public std::out_of_range
   {
     bad_month() : std::out_of_range(std::string("Month number is out of range 1..12")) {}
   };

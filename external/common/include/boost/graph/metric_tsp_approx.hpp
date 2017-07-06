@@ -53,13 +53,13 @@ namespace boost
             Visitor vis(vis_);  // require copy construction
             Graph g(1);
             Vertex v(*vertices(g).first);
-            vis_.visit_vertex(v, g); // require visit_vertex
+            vis.visit_vertex(v, g); // require visit_vertex
         }
     };
 
     // Tree visitor that keeps track of a preorder traversal of a tree
     // TODO: Consider migrating this to the graph_as_tree header.
-    // TODO: Parameterize the underlying stores o it doesn't have to be a vector.
+    // TODO: Parameterize the underlying stores so it doesn't have to be a vector.
     template<typename Node, typename Tree> class PreorderTraverser
     {
     private:
@@ -173,7 +173,6 @@ namespace boost
 
         // We build a custom graph in this algorithm.
         typedef adjacency_list <vecS, vecS, directedS, no_property, no_property > MSTImpl;
-        typedef graph_traits<MSTImpl>::edge_descriptor Edge;
         typedef graph_traits<MSTImpl>::vertex_descriptor Vertex;
         typedef graph_traits<MSTImpl>::vertex_iterator VItr;
 
@@ -216,7 +215,7 @@ namespace boost
         // Create tour using a preorder traversal of the mst
         vector<Node> tour;
         PreorderTraverser<Node, Tree> tvis(tour);
-        traverse_tree(0, t, tvis);
+        traverse_tree(indexmap[start], t, tvis);
 
         pair<GVItr, GVItr> g_verts(vertices(g));
         for(PreorderTraverser<Node, Tree>::const_iterator curr(tvis.begin());
@@ -228,7 +227,7 @@ namespace boost
         }
 
         // Connect back to the start of the tour
-        vis.visit_vertex(*g_verts.first, g);
+        vis.visit_vertex(start, g);
     }
 
     // Default tsp tour visitor that puts the tour in an OutputIterator
@@ -267,7 +266,7 @@ namespace boost
         { return graph_traits<Graph>::null_vertex(); }
 
     public:
-        tsp_tour_len_visitor(Graph const&, OutIter iter, Length& l, WeightMap map)
+        tsp_tour_len_visitor(Graph const&, OutIter iter, Length& l, WeightMap& map)
             : iter_(iter), tourlen_(l), wmap_(map), previous_(null())
         { }
 

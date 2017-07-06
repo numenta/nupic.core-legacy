@@ -19,14 +19,14 @@
 
 #include <boost/geometry/geometries/concepts/check.hpp>
 #include <boost/geometry/algorithms/detail/assign_values.hpp>
-
+#include <boost/geometry/util/range.hpp>
 
 
 namespace boost { namespace geometry
 {
 
 #ifndef DOXYGEN_NO_DETAIL
-namespace detail 
+namespace detail
 {
 // Note: this is moved to namespace detail because the names and parameter orders
 // are not yet 100% clear.
@@ -54,8 +54,8 @@ inline void assign_box_corners(Box const& box,
         Point& lower_left, Point& lower_right,
         Point& upper_left, Point& upper_right)
 {
-    concept::check<Box const>();
-    concept::check<Point>();
+    concepts::check<Box const>();
+    concepts::check<Point>();
 
     detail::assign::assign_box_2d_corner
             <min_corner, min_corner>(box, lower_left);
@@ -67,20 +67,34 @@ inline void assign_box_corners(Box const& box,
             <max_corner, max_corner>(box, upper_right);
 }
 
+// Silence warning C4127: conditional expression is constant
+#if defined(_MSC_VER)
+#pragma warning(push)
+#pragma warning(disable : 4127)
+#endif
+
+
 template <bool Reverse, typename Box, typename Range>
 inline void assign_box_corners_oriented(Box const& box, Range& corners)
 {
     if (Reverse)
     {
         // make counterclockwise ll,lr,ur,ul
-        assign_box_corners(box, corners[0], corners[1], corners[3], corners[2]);
+        assign_box_corners(box,
+                           range::at(corners, 0), range::at(corners, 1),
+                           range::at(corners, 3), range::at(corners, 2));
     }
     else
     {
         // make clockwise ll,ul,ur,lr
-        assign_box_corners(box, corners[0], corners[3], corners[1], corners[2]);
+        assign_box_corners(box,
+                           range::at(corners, 0), range::at(corners, 3),
+                           range::at(corners, 1), range::at(corners, 2));
     }
 }
+#if defined(_MSC_VER)
+#pragma warning(pop)
+#endif
 
 
 } // namespace detail

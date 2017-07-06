@@ -17,6 +17,7 @@
 
 
 #include <boost/mpl/assert.hpp>
+#include <boost/type_traits/is_const.hpp>
 #include <boost/type_traits/remove_const.hpp>
 
 
@@ -101,7 +102,7 @@ struct exterior_ring<polygon_tag, Polygon>
     \brief Function to get the exterior_ring ring of a polygon
     \ingroup exterior_ring
     \note OGC compliance: instead of ExteriorRing
-    \tparam P polygon type
+    \tparam Polygon polygon type
     \param polygon the polygon to get the exterior ring from
     \return a reference to the exterior ring
 */

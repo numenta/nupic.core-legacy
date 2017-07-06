@@ -8,6 +8,12 @@
 #define BOOST_STATS_TRIANGULAR_HPP
 
 // http://mathworld.wolfram.com/TriangularDistribution.html
+// Note that the 'constructors' defined by Wolfram are difference from those here,
+// for example
+// N[variance[triangulardistribution{1, +2}, 1.5], 50] computes 
+// 0.041666666666666666666666666666666666666666666666667
+// TriangularDistribution{1, +2}, 1.5 is the analog of triangular_distribution(1, 1.5, 2)
+
 // http://en.wikipedia.org/wiki/Triangular_distribution
 
 #include <boost/math/distributions/fwd.hpp>
@@ -147,14 +153,14 @@ namespace boost{ namespace math
     typedef RealType value_type;
     typedef Policy policy_type;
 
-    triangular_distribution(RealType lower = -1, RealType mode = 0, RealType upper = 1)
-      : m_lower(lower), m_mode(mode), m_upper(upper) // Constructor.
+    triangular_distribution(RealType l_lower = -1, RealType l_mode = 0, RealType l_upper = 1)
+      : m_lower(l_lower), m_mode(l_mode), m_upper(l_upper) // Constructor.
     { // Evans says 'standard triangular' is lower 0, mode 1/2, upper 1,
       // has median sqrt(c/2) for c <=1/2 and 1 - sqrt(1-c)/2 for c >= 1/2
       // But this -1, 0, 1 is more useful in most applications to approximate normal distribution,
       // where the central value is the most likely and deviations either side equally likely.
       RealType result;
-      detail::check_triangular("boost::math::triangular_distribution<%1%>::triangular_distribution",lower, mode, upper, &result, Policy());
+      detail::check_triangular("boost::math::triangular_distribution<%1%>::triangular_distribution",l_lower, l_mode, l_upper, &result, Policy());
     }
     // Accessor functions.
     RealType lower()const
@@ -449,7 +455,7 @@ namespace boost{ namespace math
     }
     RealType lower = dist.lower();
     RealType upper = dist.upper();
-    if (mode < (upper - lower) / 2)
+    if (mode >= (upper + lower) / 2)
     {
       return lower + sqrt((upper - lower) * (mode - lower)) / constants::root_two<RealType>();
     }
@@ -475,7 +481,9 @@ namespace boost{ namespace math
       return result;
     }
     return root_two<RealType>() * (lower + upper - 2 * mode) * (2 * lower - upper - mode) * (lower - 2 * upper + mode) /
-      (5 * pow((lower * lower + upper + upper + mode * mode - lower * upper - lower * mode - upper * mode), RealType(3)/RealType(2)));
+      (5 * pow((lower * lower + upper * upper + mode * mode 
+        - lower * upper - lower * mode - upper * mode), RealType(3)/RealType(2)));
+    // #11768: Skewness formula for triangular distribution is incorrect -  corrected 29 Oct 2015 for release 1.61.
   } // RealType skewness(const triangular_distribution<RealType, Policy>& dist)
 
   template <class RealType, class Policy>
