@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.0.0
+
+* Convert getProtoType to getSchema to be consistent with Python interface in nupic
+* Add Circle badge to README
+* Make --user optional since manylinux doens't use it
+* Remove build tools setup for Linux CI jobs since new base image already provides these tools
+* NUP-2341: Expose capnp serialization to SVM swig interface
+* NUP-2341: Add missing 'getSchema'
+* update boost to 1.64.0 stable release
+* Add a "checkInputs" param to the TemporalMemory
+
 ## 0.7.2
 
 * Add SWIG support for Cells4 capnp serialization
