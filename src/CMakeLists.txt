@@ -54,7 +54,7 @@ if(${NUPIC_IWYU})
   endif()
 endif()
 
-option(NUPIC_INSTALL_INCLUDES "Force installation of include files")
+option(NUPIC_TOGGLE_INSTALL "Toggle whether to install headers, libraries, and executables to the install location for C++ clients" OFF)
 
 #
 # Set up compile flags for internal sources and for swig-generated sources
@@ -829,7 +829,7 @@ install(TARGETS
 install(FILES ${PROJECT_BINARY_DIR}/Version.hpp
         DESTINATION include/nupic)
 
-if (NOT NUPIC_BUILD_PYEXT_MODULES OR NUPIC_INSTALL_INCLUDES)
+if ((NOT NUPIC_BUILD_PYEXT_MODULES) OR NUPIC_TOGGLE_INSTALL)
   install(DIRECTORY nupic DESTINATION include
           MESSAGE_NEVER
           FILES_MATCHING PATTERN "*.h*"
