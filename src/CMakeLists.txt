@@ -836,6 +836,9 @@ if ((NOT NUPIC_BUILD_PYEXT_MODULES) OR NUPIC_TOGGLE_INSTALL)
           PATTERN "*.hpp.in" EXCLUDE)
   install(DIRECTORY nupic DESTINATION include
           MESSAGE_NEVER
+          FILES_MATCHING PATTERN "*.i")
+  install(DIRECTORY nupic DESTINATION include
+          MESSAGE_NEVER
           FILES_MATCHING PATTERN "*.capnp")
   install(DIRECTORY ${PROJECT_BINARY_DIR}/nupic DESTINATION include
           MESSAGE_NEVER
@@ -885,7 +888,14 @@ if ((NOT NUPIC_BUILD_PYEXT_MODULES) OR NUPIC_TOGGLE_INSTALL)
   install(PROGRAMS "${SWIG_EXECUTABLE}"
           DESTINATION bin)
 
-endif (NOT NUPIC_BUILD_PYEXT_MODULES)
+  install(DIRECTORY "${APR1_STATIC_LIB_INC_DIR}/"
+          MESSAGE_NEVER
+          DESTINATION include)
+  install(DIRECTORY "${APRUTIL1_STATIC_LIB_INC_DIR}/"
+          MESSAGE_NEVER
+          DESTINATION include)
+          
+endif ((NOT NUPIC_BUILD_PYEXT_MODULES) OR NUPIC_TOGGLE_INSTALL)
 
 #
 # `make package` results in
