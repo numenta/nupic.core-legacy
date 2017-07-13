@@ -859,10 +859,10 @@ if ((NOT NUPIC_BUILD_PYEXT_MODULES) OR NUPIC_TOGGLE_INSTALL)
 
   foreach(directory ${CAPNP_INCLUDE_DIRS})
     install(DIRECTORY "${directory}/capnp"
-          MESSAGE_NEVER
+            MESSAGE_NEVER
             DESTINATION include)
     install(DIRECTORY "${directory}/kj"
-          MESSAGE_NEVER
+            MESSAGE_NEVER
             DESTINATION include)
   endforeach()
 
