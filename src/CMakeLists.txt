@@ -19,7 +19,7 @@
 # http://numenta.org/licenses/
 # -----------------------------------------------------------------------------
 
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.3)
 project(nupic_core CXX)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
@@ -27,7 +27,7 @@ set(CMAKE_VERBOSE_MAKEFILE OFF) # toggle for cmake debug
 
 
 if( POLICY CMP0046 )
-  cmake_policy(VERSION 2.8)
+  cmake_policy(VERSION 3.3)
   # The new policy for add_dependencies is to now error if a dependency target
   # is not found. The old policy didn't care and continued through configuration
   cmake_policy(SET CMP0046 OLD)
