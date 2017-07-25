@@ -30,7 +30,8 @@ USAGE="Usage:
 This script builds and tests the nupic.bindings Python extension.
 
 In Debug builds, also
-  - Turns on the Include What You Use check (assumes iwyu is installed)
+  - Turns on the Include What You Use check if clang is being used (assumes
+    iwyu is installed)
 
 ASUMPTION: Expects a pristine nupic.core source tree without any remnant build
    artifacts from prior build attempts. Otherwise, behavior is undefined.
@@ -103,7 +104,12 @@ cd ${NUPIC_CORE_ROOT}/build/scripts
 
 # Configure nupic.core build
 if [[ "$BUILD_TYPE" == "Debug" ]]; then
-  EXTRA_CMAKE_DEFINITIONS="-DNUPIC_IWYU=ON -DNTA_COV_ENABLED=ON"
+  EXTRA_CMAKE_DEFINITIONS="-DNTA_COV_ENABLED=ON"
+
+  # Only add iwyu for clang builds
+  if [[ $CC == *"clang"* ]]; then
+    EXTRA_CMAKE_DEFINITIONS="-DNUPIC_IWYU=ON ${EXTRA_CMAKE_DEFINITIONS}"
+  fi
 fi
 
 cmake ${NUPIC_CORE_ROOT} \
