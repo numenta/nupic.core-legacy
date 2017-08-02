@@ -47,9 +47,9 @@ include(../src/NupicLibraryUtils) # for MERGE_STATIC_LIBRARIES
 set(CAPNP_STATIC_LIB_TARGET capnp-bundle)
 
 set(capnp_lib_url
-    "${REPOSITORY_DIR}/external/common/share/capnproto/capnproto-c++-0.5.3.tar.gz")
+    "${REPOSITORY_DIR}/external/common/share/capnproto/capnproto-c++-0.5.3.1.tar.gz")
 set(capnp_win32_tools_url
-    "${REPOSITORY_DIR}/external/common/share/capnproto/capnproto-c++-win32-0.5.3.zip")
+    "${REPOSITORY_DIR}/external/common/share/capnproto/capnproto-c++-win32-0.5.3.1.zip")
 
 set(capnp_lib_kj ${LIB_PRE}/${STATIC_PRE}kj${STATIC_SUF})
 set(capnp_lib_capnp ${LIB_PRE}/${STATIC_PRE}capnp${STATIC_SUF})
@@ -119,7 +119,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
       ${CMAKE_COMMAND} -E make_directory ${BIN_PRE}
     INSTALL_COMMAND
       ${CMAKE_COMMAND} -E copy_directory
-        "<SOURCE_DIR>/capnproto-tools-win32-0.5.3"
+        "<SOURCE_DIR>/capnproto-tools-win32-0.5.3.1"
         ${BIN_PRE}
   )
 endif()
