@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.1
+
+* NUP-2481: Update capnp to 0.6.1
+* Don't run iwyu if doing gcc build
+* RES-571 Explicitly declare cmake 3.3 minimum requirement
+
 ## 1.0.0
 
 * Convert getProtoType to getSchema to be consistent with Python interface in nupic
