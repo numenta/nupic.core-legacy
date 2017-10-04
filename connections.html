@@ -58,27 +58,27 @@
 <h1>Connections<a class="headerlink" href="#connections" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="_CPPv2N5nupic10algorithms11connections11ConnectionsE">
-<span id="nupic::algorithms::connections::Connections"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1connections_1_1_connections"></span><em class="property">class </em><code class="descclassname">nupic::algorithms::connections::</code><code class="descname">Connections</code><a class="headerlink" href="#_CPPv2N5nupic10algorithms11connections11ConnectionsE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p><a class="reference internal" href="encoders.html#nupic.coreclassnupic_1_1algorithms_1_1connections_1_1_connections"><span class="std std-ref">Connections</span></a> implementation in C++. </p>
-<p><strong>Description</strong> The <a class="reference internal" href="encoders.html#nupic.coreclassnupic_1_1algorithms_1_1connections_1_1_connections"><span class="std std-ref">Connections</span></a> class is a data structure that represents the connections of a collection of cells. It is used in the HTM learning algorithms to store and access data related to the connectivity of cells.</p>
+<span id="nupic::algorithms::connections::Connections"></span><span class="target" id="classnupic_1_1algorithms_1_1connections_1_1_connections"></span><em class="property">class </em><code class="descclassname">nupic::algorithms::connections::</code><code class="descname">Connections</code><a class="headerlink" href="#_CPPv2N5nupic10algorithms11connections11ConnectionsE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p><a class="reference internal" href="encoders.html#classnupic_1_1algorithms_1_1connections_1_1_connections"><span class="std std-ref">Connections</span></a> implementation in C++. </p>
+<p><strong>Description</strong> The <a class="reference internal" href="encoders.html#classnupic_1_1algorithms_1_1connections_1_1_connections"><span class="std std-ref">Connections</span></a> class is a data structure that represents the connections of a collection of cells. It is used in the HTM learning algorithms to store and access data related to the connectivity of cells.</p>
 <p>Its main utility is to provide a common, optimized data structure that all HTM learning algorithms can use. It is flexible enough to support any learning algorithm that operates on a collection of cells.</p>
 <p>Each type of connection (proximal, distal basal, apical) should be represented by a different instantiation of this class. This class will help compute the activity along those connections due to active input cells. The responsibility for what effect that activity has on the cells and connections lies in the user of this class.</p>
 <p>This class is optimized to store connections between cells, and compute the activity of cells due to input over the connections.</p>
 <p>This class assigns each segment a unique &#8220;flatIdx&#8221; so that it&#8217;s possible to use a simple vector to associate segments with values. Create a vector of length <code class="docutils literal"><span class="pre">connections.segmentFlatListLength()</span></code>, iterate over segments and update the vector at index <code class="docutils literal"><span class="pre">segment</span></code>. </p>
-<p>Inherits from <a class="reference internal" href="types.html#nupic.coreclassnupic_1_1_serializable"><span class="std std-ref">nupic::Serializable&lt; ConnectionsProto &gt;</span></a></p>
+<p>Inherits from <a class="reference internal" href="types.html#classnupic_1_1_serializable"><span class="std std-ref">nupic::Serializable&lt; ConnectionsProto &gt;</span></a></p>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Public Functions</p>
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms11connections11Connections11ConnectionsEv">
-<span id="nupic::algorithms::connections::Connections::Connections"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1connections_1_1_connections_1a70c3a396446742bb8a7a8161da7f93c0"></span><code class="descname">Connections</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms11connections11Connections11ConnectionsEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p><a class="reference internal" href="encoders.html#nupic.coreclassnupic_1_1algorithms_1_1connections_1_1_connections"><span class="std std-ref">Connections</span></a> empty constructor. </p>
+<span id="nupic::algorithms::connections::Connections::Connections"></span><span class="target" id="classnupic_1_1algorithms_1_1connections_1_1_connections_1a70c3a396446742bb8a7a8161da7f93c0"></span><code class="descname">Connections</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms11connections11Connections11ConnectionsEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p><a class="reference internal" href="encoders.html#classnupic_1_1algorithms_1_1connections_1_1_connections"><span class="std std-ref">Connections</span></a> empty constructor. </p>
 <p>(Does not call <code class="docutils literal"><span class="pre">initialize</span></code>.) </p>
 </dd></dl>
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms11connections11Connections11ConnectionsE7CellIdx">
-<span id="nupic::algorithms::connections::Connections::Connections__CellIdx"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1connections_1_1_connections_1a69ab6cfa364f61cf7ca485b049910bc7"></span><code class="descname">Connections</code><span class="sig-paren">(</span>CellIdx <em>numCells</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms11connections11Connections11ConnectionsE7CellIdx" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p><a class="reference internal" href="encoders.html#nupic.coreclassnupic_1_1algorithms_1_1connections_1_1_connections"><span class="std std-ref">Connections</span></a> constructor. </p>
+<span id="nupic::algorithms::connections::Connections::Connections__CellIdx"></span><span class="target" id="classnupic_1_1algorithms_1_1connections_1_1_connections_1a69ab6cfa364f61cf7ca485b049910bc7"></span><code class="descname">Connections</code><span class="sig-paren">(</span>CellIdx <em>numCells</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms11connections11Connections11ConnectionsE7CellIdx" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p><a class="reference internal" href="encoders.html#classnupic_1_1algorithms_1_1connections_1_1_connections"><span class="std std-ref">Connections</span></a> constructor. </p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
@@ -91,7 +91,7 @@
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms11connections11Connections10initializeE7CellIdx">
-<span id="nupic::algorithms::connections::Connections::initialize__CellIdx"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1connections_1_1_connections_1a8f13b6535abd5888d2c5b7721992181b"></span>void <code class="descname">initialize</code><span class="sig-paren">(</span>CellIdx <em>numCells</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms11connections11Connections10initializeE7CellIdx" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::connections::Connections::initialize__CellIdx"></span><span class="target" id="classnupic_1_1algorithms_1_1connections_1_1_connections_1a8f13b6535abd5888d2c5b7721992181b"></span>void <code class="descname">initialize</code><span class="sig-paren">(</span>CellIdx <em>numCells</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms11connections11Connections10initializeE7CellIdx" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Initialize connections. </p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
@@ -105,7 +105,7 @@
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms11connections11Connections13createSegmentE7CellIdx">
-<span id="nupic::algorithms::connections::Connections::createSegment__CellIdx"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1connections_1_1_connections_1a5df6c77e5e81dc13e35113e80accab4f"></span>Segment <code class="descname">createSegment</code><span class="sig-paren">(</span>CellIdx <em>cell</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms11connections11Connections13createSegmentE7CellIdx" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::connections::Connections::createSegment__CellIdx"></span><span class="target" id="classnupic_1_1algorithms_1_1connections_1_1_connections_1a5df6c77e5e81dc13e35113e80accab4f"></span>Segment <code class="descname">createSegment</code><span class="sig-paren">(</span>CellIdx <em>cell</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms11connections11Connections13createSegmentE7CellIdx" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Creates a segment on the specified cell. </p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
@@ -124,7 +124,7 @@
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms11connections11Connections13createSynapseE7Segment7CellIdx10Permanence">
-<span id="nupic::algorithms::connections::Connections::createSynapse__Segment.CellIdx.Permanence"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1connections_1_1_connections_1a83962714464b757562127a943d19d20e"></span>Synapse <code class="descname">createSynapse</code><span class="sig-paren">(</span>Segment <em>segment</em>, CellIdx <em>presynapticCell</em>, Permanence <em>permanence</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms11connections11Connections13createSynapseE7Segment7CellIdx10Permanence" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::connections::Connections::createSynapse__Segment.CellIdx.Permanence"></span><span class="target" id="classnupic_1_1algorithms_1_1connections_1_1_connections_1a83962714464b757562127a943d19d20e"></span>Synapse <code class="descname">createSynapse</code><span class="sig-paren">(</span>Segment <em>segment</em>, CellIdx <em>presynapticCell</em>, Permanence <em>permanence</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms11connections11Connections13createSynapseE7Segment7CellIdx10Permanence" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Creates a synapse on the specified segment. </p>
 <p>
 Created synapse. <dl class="docutils">
@@ -141,7 +141,7 @@ Created synapse. <dl class="docutils">
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms11connections11Connections14destroySegmentE7Segment">
-<span id="nupic::algorithms::connections::Connections::destroySegment__Segment"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1connections_1_1_connections_1a213f4e8f3e8ef3f19378c93982dc471e"></span>void <code class="descname">destroySegment</code><span class="sig-paren">(</span>Segment <em>segment</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms11connections11Connections14destroySegmentE7Segment" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::connections::Connections::destroySegment__Segment"></span><span class="target" id="classnupic_1_1algorithms_1_1connections_1_1_connections_1a213f4e8f3e8ef3f19378c93982dc471e"></span>void <code class="descname">destroySegment</code><span class="sig-paren">(</span>Segment <em>segment</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms11connections11Connections14destroySegmentE7Segment" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Destroys segment. </p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
@@ -155,7 +155,7 @@ Created synapse. <dl class="docutils">
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms11connections11Connections14destroySynapseE7Synapse">
-<span id="nupic::algorithms::connections::Connections::destroySynapse__Synapse"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1connections_1_1_connections_1a3b5e8d5a69474ee7b0c13190b333b290"></span>void <code class="descname">destroySynapse</code><span class="sig-paren">(</span>Synapse <em>synapse</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms11connections11Connections14destroySynapseE7Synapse" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::connections::Connections::destroySynapse__Synapse"></span><span class="target" id="classnupic_1_1algorithms_1_1connections_1_1_connections_1a3b5e8d5a69474ee7b0c13190b333b290"></span>void <code class="descname">destroySynapse</code><span class="sig-paren">(</span>Synapse <em>synapse</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms11connections11Connections14destroySynapseE7Synapse" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Destroys synapse. </p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
@@ -169,7 +169,7 @@ Created synapse. <dl class="docutils">
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms11connections11Connections23updateSynapsePermanenceE7Synapse10Permanence">
-<span id="nupic::algorithms::connections::Connections::updateSynapsePermanence__Synapse.Permanence"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1connections_1_1_connections_1a565a0f7343c5926dd8aaf3365855dee9"></span>void <code class="descname">updateSynapsePermanence</code><span class="sig-paren">(</span>Synapse <em>synapse</em>, Permanence <em>permanence</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms11connections11Connections23updateSynapsePermanenceE7Synapse10Permanence" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::connections::Connections::updateSynapsePermanence__Synapse.Permanence"></span><span class="target" id="classnupic_1_1algorithms_1_1connections_1_1_connections_1a565a0f7343c5926dd8aaf3365855dee9"></span>void <code class="descname">updateSynapsePermanence</code><span class="sig-paren">(</span>Synapse <em>synapse</em>, Permanence <em>permanence</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms11connections11Connections23updateSynapsePermanenceE7Synapse10Permanence" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Updates a synapse&#8217;s permanence. </p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
@@ -184,7 +184,7 @@ Created synapse. <dl class="docutils">
 
 <dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms11connections11Connections15segmentsForCellE7CellIdx">
-<span id="nupic::algorithms::connections::Connections::segmentsForCell__CellIdxC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1connections_1_1_connections_1a551de968dbf2ec2a5ddc650cf36b1030"></span><em class="property">const</em> std::vector&lt;Segment&gt; &amp;<code class="descname">segmentsForCell</code><span class="sig-paren">(</span>CellIdx <em>cell</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms11connections11Connections15segmentsForCellE7CellIdx" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::connections::Connections::segmentsForCell__CellIdxC"></span><span class="target" id="classnupic_1_1algorithms_1_1connections_1_1_connections_1a551de968dbf2ec2a5ddc650cf36b1030"></span><em class="property">const</em> std::vector&lt;Segment&gt; &amp;<code class="descname">segmentsForCell</code><span class="sig-paren">(</span>CellIdx <em>cell</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms11connections11Connections15segmentsForCellE7CellIdx" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Gets the segments for a cell. </p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
@@ -203,7 +203,7 @@ Created synapse. <dl class="docutils">
 
 <dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms11connections11Connections18synapsesForSegmentE7Segment">
-<span id="nupic::algorithms::connections::Connections::synapsesForSegment__SegmentC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1connections_1_1_connections_1ac470594a5fc8902f4786b736f99217cc"></span><em class="property">const</em> std::vector&lt;Synapse&gt; &amp;<code class="descname">synapsesForSegment</code><span class="sig-paren">(</span>Segment <em>segment</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms11connections11Connections18synapsesForSegmentE7Segment" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::connections::Connections::synapsesForSegment__SegmentC"></span><span class="target" id="classnupic_1_1algorithms_1_1connections_1_1_connections_1ac470594a5fc8902f4786b736f99217cc"></span><em class="property">const</em> std::vector&lt;Synapse&gt; &amp;<code class="descname">synapsesForSegment</code><span class="sig-paren">(</span>Segment <em>segment</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms11connections11Connections18synapsesForSegmentE7Segment" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Gets the synapses for a segment. </p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
@@ -222,7 +222,7 @@ Created synapse. <dl class="docutils">
 
 <dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms11connections11Connections14cellForSegmentE7Segment">
-<span id="nupic::algorithms::connections::Connections::cellForSegment__SegmentC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1connections_1_1_connections_1a19d34dc9463a69ceba607c1509e4773b"></span>CellIdx <code class="descname">cellForSegment</code><span class="sig-paren">(</span>Segment <em>segment</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms11connections11Connections14cellForSegmentE7Segment" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::connections::Connections::cellForSegment__SegmentC"></span><span class="target" id="classnupic_1_1algorithms_1_1connections_1_1_connections_1a19d34dc9463a69ceba607c1509e4773b"></span>CellIdx <code class="descname">cellForSegment</code><span class="sig-paren">(</span>Segment <em>segment</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms11connections11Connections14cellForSegmentE7Segment" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Gets the cell that this segment is on. </p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
@@ -241,7 +241,7 @@ Created synapse. <dl class="docutils">
 
 <dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms11connections11Connections19idxOnCellForSegmentE7Segment">
-<span id="nupic::algorithms::connections::Connections::idxOnCellForSegment__SegmentC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1connections_1_1_connections_1a8450a61ad017b145572e12c096fd1b27"></span>SegmentIdx <code class="descname">idxOnCellForSegment</code><span class="sig-paren">(</span>Segment <em>segment</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms11connections11Connections19idxOnCellForSegmentE7Segment" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::connections::Connections::idxOnCellForSegment__SegmentC"></span><span class="target" id="classnupic_1_1algorithms_1_1connections_1_1_connections_1a8450a61ad017b145572e12c096fd1b27"></span>SegmentIdx <code class="descname">idxOnCellForSegment</code><span class="sig-paren">(</span>Segment <em>segment</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms11connections11Connections19idxOnCellForSegmentE7Segment" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Gets the index of this segment on its respective cell. </p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
@@ -251,7 +251,7 @@ Created synapse. <dl class="docutils">
 </dd>
 <dt><strong>Return Value</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal"><a class="reference internal" href="math.html#nupic.coreclassnupic_1_1_index"><span class="std std-ref"><span class="pre">Index</span></span></a></code>: of the segment. </li>
+<li><code class="docutils literal"><a class="reference internal" href="math.html#classnupic_1_1_index"><span class="std std-ref"><span class="pre">Index</span></span></a></code>: of the segment. </li>
 </ul>
 </dd>
 </dl>
@@ -260,13 +260,13 @@ Created synapse. <dl class="docutils">
 
 <dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms11connections11Connections18mapSegmentsToCellsEPK7SegmentPK7SegmentP7CellIdx">
-<span id="nupic::algorithms::connections::Connections::mapSegmentsToCells__SegmentCP.SegmentCP.CellIdxPC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1connections_1_1_connections_1a0ea62e25b320616b5d60ed6c0d283220"></span>void <code class="descname">mapSegmentsToCells</code><span class="sig-paren">(</span><em class="property">const</em> Segment *<em>segments_begin</em>, <em class="property">const</em> Segment *<em>segments_end</em>, CellIdx *<em>cells_begin</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms11connections11Connections18mapSegmentsToCellsEPK7SegmentPK7SegmentP7CellIdx" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::connections::Connections::mapSegmentsToCells__SegmentCP.SegmentCP.CellIdxPC"></span><span class="target" id="classnupic_1_1algorithms_1_1connections_1_1_connections_1a0ea62e25b320616b5d60ed6c0d283220"></span>void <code class="descname">mapSegmentsToCells</code><span class="sig-paren">(</span><em class="property">const</em> Segment *<em>segments_begin</em>, <em class="property">const</em> Segment *<em>segments_end</em>, CellIdx *<em>cells_begin</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms11connections11Connections18mapSegmentsToCellsEPK7SegmentPK7SegmentP7CellIdx" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Get the cell for each provided segment. </p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
 <li><code class="docutils literal"><span class="pre">segments</span></code>: The segments to query</li>
-<li><code class="docutils literal"><span class="pre">cells</span></code>: <a class="reference internal" href="network-io.html#nupic.coreclassnupic_1_1_output"><span class="std std-ref">Output</span></a> array with the same length as &#8216;segments&#8217; </li>
+<li><code class="docutils literal"><span class="pre">cells</span></code>: <a class="reference internal" href="network-io.html#classnupic_1_1_output"><span class="std std-ref">Output</span></a> array with the same length as &#8216;segments&#8217; </li>
 </ul>
 </dd>
 </dl>
@@ -275,7 +275,7 @@ Created synapse. <dl class="docutils">
 
 <dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms11connections11Connections17segmentForSynapseE7Synapse">
-<span id="nupic::algorithms::connections::Connections::segmentForSynapse__SynapseC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1connections_1_1_connections_1a4e5034a7dfb00c7d16ce9297a4b992ad"></span>Segment <code class="descname">segmentForSynapse</code><span class="sig-paren">(</span>Synapse <em>synapse</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms11connections11Connections17segmentForSynapseE7Synapse" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::connections::Connections::segmentForSynapse__SynapseC"></span><span class="target" id="classnupic_1_1algorithms_1_1connections_1_1_connections_1a4e5034a7dfb00c7d16ce9297a4b992ad"></span>Segment <code class="descname">segmentForSynapse</code><span class="sig-paren">(</span>Synapse <em>synapse</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms11connections11Connections17segmentForSynapseE7Synapse" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Gets the segment that this synapse is on. </p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
@@ -294,7 +294,7 @@ Created synapse. <dl class="docutils">
 
 <dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms11connections11Connections14dataForSegmentE7Segment">
-<span id="nupic::algorithms::connections::Connections::dataForSegment__SegmentC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1connections_1_1_connections_1aacfb60647771e743d21a9378db165b7b"></span><em class="property">const</em> SegmentData &amp;<code class="descname">dataForSegment</code><span class="sig-paren">(</span>Segment <em>segment</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms11connections11Connections14dataForSegmentE7Segment" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::connections::Connections::dataForSegment__SegmentC"></span><span class="target" id="classnupic_1_1algorithms_1_1connections_1_1_connections_1aacfb60647771e743d21a9378db165b7b"></span><em class="property">const</em> SegmentData &amp;<code class="descname">dataForSegment</code><span class="sig-paren">(</span>Segment <em>segment</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms11connections11Connections14dataForSegmentE7Segment" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Gets the data for a segment. </p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
@@ -313,7 +313,7 @@ Created synapse. <dl class="docutils">
 
 <dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms11connections11Connections14dataForSynapseE7Synapse">
-<span id="nupic::algorithms::connections::Connections::dataForSynapse__SynapseC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1connections_1_1_connections_1a0e5068693e3b719842133659b90d2ec2"></span><em class="property">const</em> SynapseData &amp;<code class="descname">dataForSynapse</code><span class="sig-paren">(</span>Synapse <em>synapse</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms11connections11Connections14dataForSynapseE7Synapse" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::connections::Connections::dataForSynapse__SynapseC"></span><span class="target" id="classnupic_1_1algorithms_1_1connections_1_1_connections_1a0e5068693e3b719842133659b90d2ec2"></span><em class="property">const</em> SynapseData &amp;<code class="descname">dataForSynapse</code><span class="sig-paren">(</span>Synapse <em>synapse</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms11connections11Connections14dataForSynapseE7Synapse" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Gets the data for a synapse. </p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
@@ -332,7 +332,7 @@ Created synapse. <dl class="docutils">
 
 <dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms11connections11Connections10getSegmentE7CellIdx10SegmentIdx">
-<span id="nupic::algorithms::connections::Connections::getSegment__CellIdx.SegmentIdxC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1connections_1_1_connections_1a9b6b1059eccc63ba94d168713ed1ac0b"></span>Segment <code class="descname">getSegment</code><span class="sig-paren">(</span>CellIdx <em>cell</em>, SegmentIdx <em>idx</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms11connections11Connections10getSegmentE7CellIdx10SegmentIdx" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::connections::Connections::getSegment__CellIdx.SegmentIdxC"></span><span class="target" id="classnupic_1_1algorithms_1_1connections_1_1_connections_1a9b6b1059eccc63ba94d168713ed1ac0b"></span>Segment <code class="descname">getSegment</code><span class="sig-paren">(</span>CellIdx <em>cell</em>, SegmentIdx <em>idx</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms11connections11Connections10getSegmentE7CellIdx10SegmentIdx" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Get the segment at the specified cell and offset. </p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
@@ -352,7 +352,7 @@ Created synapse. <dl class="docutils">
 
 <dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms11connections11Connections21segmentFlatListLengthEv">
-<span id="nupic::algorithms::connections::Connections::segmentFlatListLengthC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1connections_1_1_connections_1a2269339604609021e1117a84d38ffa3b"></span>UInt32 <code class="descname">segmentFlatListLength</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms11connections11Connections21segmentFlatListLengthEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::connections::Connections::segmentFlatListLengthC"></span><span class="target" id="classnupic_1_1algorithms_1_1connections_1_1_connections_1a2269339604609021e1117a84d38ffa3b"></span>UInt32 <code class="descname">segmentFlatListLength</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms11connections11Connections21segmentFlatListLengthEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Get the vector length needed to use segments as indices. </p>
 <p><dl class="docutils">
 <dt><strong>Return Value</strong></dt>
@@ -366,7 +366,7 @@ Created synapse. <dl class="docutils">
 
 <dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms11connections11Connections15compareSegmentsE7Segment7Segment">
-<span id="nupic::algorithms::connections::Connections::compareSegments__Segment.SegmentC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1connections_1_1_connections_1a486cdaba46fe5baf5fe6d82049a58492"></span>bool <code class="descname">compareSegments</code><span class="sig-paren">(</span>Segment <em>a</em>, Segment <em>b</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms11connections11Connections15compareSegmentsE7Segment7Segment" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::connections::Connections::compareSegments__Segment.SegmentC"></span><span class="target" id="classnupic_1_1algorithms_1_1connections_1_1_connections_1a486cdaba46fe5baf5fe6d82049a58492"></span>bool <code class="descname">compareSegments</code><span class="sig-paren">(</span>Segment <em>a</em>, Segment <em>b</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms11connections11Connections15compareSegmentsE7Segment7Segment" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Compare two segments. </p>
 <p>Returns true if a &lt; b.</p>
 <p>Segments are ordered first by cell, then by their order on the cell.</p>
@@ -388,7 +388,7 @@ Created synapse. <dl class="docutils">
 
 <dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms11connections11Connections26synapsesForPresynapticCellE7CellIdx">
-<span id="nupic::algorithms::connections::Connections::synapsesForPresynapticCell__CellIdxC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1connections_1_1_connections_1ae016324d9521585fc10113c5d5fc9e26"></span>std::vector&lt;Synapse&gt; <code class="descname">synapsesForPresynapticCell</code><span class="sig-paren">(</span>CellIdx <em>presynapticCell</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms11connections11Connections26synapsesForPresynapticCellE7CellIdx" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::connections::Connections::synapsesForPresynapticCell__CellIdxC"></span><span class="target" id="classnupic_1_1algorithms_1_1connections_1_1_connections_1ae016324d9521585fc10113c5d5fc9e26"></span>std::vector&lt;Synapse&gt; <code class="descname">synapsesForPresynapticCell</code><span class="sig-paren">(</span>CellIdx <em>presynapticCell</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms11connections11Connections26synapsesForPresynapticCellE7CellIdx" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Returns the synapses for the source cell that they synapse on. </p>
 <p><dl class="docutils">
 <dt><strong>Return</strong></dt>
@@ -404,7 +404,7 @@ Created synapse. <dl class="docutils">
 
 <dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms11connections11Connections15computeActivityERNSt6vectorI6UInt32EERNSt6vectorI6UInt32EERKNSt6vectorI7CellIdxEE10Permanence">
-<span id="nupic::algorithms::connections::Connections::computeActivity__std::vector:UInt32:R.std::vector:UInt32:R.std::vector:CellIdx:CR.PermanenceC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1connections_1_1_connections_1a8d645b2a544eda4c73d63b951fe5a4f6"></span>void <code class="descname">computeActivity</code><span class="sig-paren">(</span>std::vector&lt;UInt32&gt; &amp;<em>numActiveConnectedSynapsesForSegment</em>, std::vector&lt;UInt32&gt; &amp;<em>numActivePotentialSynapsesForSegment</em>, <em class="property">const</em> std::vector&lt;CellIdx&gt; &amp;<em>activePresynapticCells</em>, Permanence <em>connectedPermanence</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms11connections11Connections15computeActivityERNSt6vectorI6UInt32EERNSt6vectorI6UInt32EERKNSt6vectorI7CellIdxEE10Permanence" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::connections::Connections::computeActivity__std::vector:UInt32:R.std::vector:UInt32:R.std::vector:CellIdx:CR.PermanenceC"></span><span class="target" id="classnupic_1_1algorithms_1_1connections_1_1_connections_1a8d645b2a544eda4c73d63b951fe5a4f6"></span>void <code class="descname">computeActivity</code><span class="sig-paren">(</span>std::vector&lt;UInt32&gt; &amp;<em>numActiveConnectedSynapsesForSegment</em>, std::vector&lt;UInt32&gt; &amp;<em>numActivePotentialSynapsesForSegment</em>, <em class="property">const</em> std::vector&lt;CellIdx&gt; &amp;<em>activePresynapticCells</em>, Permanence <em>connectedPermanence</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms11connections11Connections15computeActivityERNSt6vectorI6UInt32EERNSt6vectorI6UInt32EERKNSt6vectorI7CellIdxEE10Permanence" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Compute the segment excitations for a vector of active presynaptic cells. </p>
 <p>The output vectors aren&#8217;t grown or cleared. They must be preinitialized with the length returned by getSegmentFlatVectorLength().</p>
 <p><dl class="docutils">
@@ -422,7 +422,7 @@ Created synapse. <dl class="docutils">
 
 <dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms11connections11Connections15computeActivityERNSt6vectorI6UInt32EERNSt6vectorI6UInt32EE7CellIdx10Permanence">
-<span id="nupic::algorithms::connections::Connections::computeActivity__std::vector:UInt32:R.std::vector:UInt32:R.CellIdx.PermanenceC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1connections_1_1_connections_1aa7e45fe0d00b90395417a2ea22cc7e1b"></span>void <code class="descname">computeActivity</code><span class="sig-paren">(</span>std::vector&lt;UInt32&gt; &amp;<em>numActiveConnectedSynapsesForSegment</em>, std::vector&lt;UInt32&gt; &amp;<em>numActivePotentialSynapsesForSegment</em>, CellIdx <em>activePresynapticCell</em>, Permanence <em>connectedPermanence</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms11connections11Connections15computeActivityERNSt6vectorI6UInt32EERNSt6vectorI6UInt32EE7CellIdx10Permanence" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::connections::Connections::computeActivity__std::vector:UInt32:R.std::vector:UInt32:R.CellIdx.PermanenceC"></span><span class="target" id="classnupic_1_1algorithms_1_1connections_1_1_connections_1aa7e45fe0d00b90395417a2ea22cc7e1b"></span>void <code class="descname">computeActivity</code><span class="sig-paren">(</span>std::vector&lt;UInt32&gt; &amp;<em>numActiveConnectedSynapsesForSegment</em>, std::vector&lt;UInt32&gt; &amp;<em>numActivePotentialSynapsesForSegment</em>, CellIdx <em>activePresynapticCell</em>, Permanence <em>connectedPermanence</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms11connections11Connections15computeActivityERNSt6vectorI6UInt32EERNSt6vectorI6UInt32EE7CellIdx10Permanence" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Compute the segment excitations for a single active presynaptic cell. </p>
 <p>The output vectors aren&#8217;t grown or cleared. They must be preinitialized with the length returned by getSegmentFlatVectorLength().</p>
 <p><dl class="docutils">
@@ -440,31 +440,31 @@ Created synapse. <dl class="docutils">
 
 <dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms11connections11Connections4saveERNSt7ostreamE">
-<span id="nupic::algorithms::connections::Connections::save__osRC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1connections_1_1_connections_1aaffaab79521b1b797e94f6a4462320df"></span><em class="property">virtual</em> void <code class="descname">save</code><span class="sig-paren">(</span>std::ostream &amp;<em>outStream</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms11connections11Connections4saveERNSt7ostreamE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::connections::Connections::save__osRC"></span><span class="target" id="classnupic_1_1algorithms_1_1connections_1_1_connections_1aaffaab79521b1b797e94f6a4462320df"></span><em class="property">virtual</em> void <code class="descname">save</code><span class="sig-paren">(</span>std::ostream &amp;<em>outStream</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms11connections11Connections4saveERNSt7ostreamE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Saves serialized data to output stream. </p>
 </dd></dl>
 
 <dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms11connections11Connections5writeERN16ConnectionsProto7BuilderE">
-<span id="nupic::algorithms::connections::Connections::write__ConnectionsProto::BuilderRC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1connections_1_1_connections_1aa646ebaa457fe9fb97b991b8689ebe08"></span><em class="property">virtual</em> void <code class="descname">write</code><span class="sig-paren">(</span>ConnectionsProto::Builder &amp;<em>proto</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms11connections11Connections5writeERN16ConnectionsProto7BuilderE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::connections::Connections::write__ConnectionsProto::BuilderRC"></span><span class="target" id="classnupic_1_1algorithms_1_1connections_1_1_connections_1aa646ebaa457fe9fb97b991b8689ebe08"></span><em class="property">virtual</em> void <code class="descname">write</code><span class="sig-paren">(</span>ConnectionsProto::Builder &amp;<em>proto</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms11connections11Connections5writeERN16ConnectionsProto7BuilderE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Writes serialized data to proto object. </p>
 </dd></dl>
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms11connections11Connections4loadERNSt7istreamE">
-<span id="nupic::algorithms::connections::Connections::load__isR"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1connections_1_1_connections_1a6f4147967984d314781fd7839a46a902"></span><em class="property">virtual</em> void <code class="descname">load</code><span class="sig-paren">(</span>std::istream &amp;<em>inStream</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms11connections11Connections4loadERNSt7istreamE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::connections::Connections::load__isR"></span><span class="target" id="classnupic_1_1algorithms_1_1connections_1_1_connections_1a6f4147967984d314781fd7839a46a902"></span><em class="property">virtual</em> void <code class="descname">load</code><span class="sig-paren">(</span>std::istream &amp;<em>inStream</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms11connections11Connections4loadERNSt7istreamE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Loads serialized data from input stream. </p>
 </dd></dl>
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms11connections11Connections4readERN16ConnectionsProto6ReaderE">
-<span id="nupic::algorithms::connections::Connections::read__ConnectionsProto::ReaderR"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1connections_1_1_connections_1ad99f61b708b05ec8fe2695b2991abf6b"></span><em class="property">virtual</em> void <code class="descname">read</code><span class="sig-paren">(</span>ConnectionsProto::Reader &amp;<em>proto</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms11connections11Connections4readERN16ConnectionsProto6ReaderE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::connections::Connections::read__ConnectionsProto::ReaderR"></span><span class="target" id="classnupic_1_1algorithms_1_1connections_1_1_connections_1ad99f61b708b05ec8fe2695b2991abf6b"></span><em class="property">virtual</em> void <code class="descname">read</code><span class="sig-paren">(</span>ConnectionsProto::Reader &amp;<em>proto</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms11connections11Connections4readERN16ConnectionsProto6ReaderE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Reads serialized data from proto object. </p>
 </dd></dl>
 
 <dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms11connections11Connections8numCellsEv">
-<span id="nupic::algorithms::connections::Connections::numCellsC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1connections_1_1_connections_1ade901679aedfb733fd42e878a5f7a3bf"></span>CellIdx <code class="descname">numCells</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms11connections11Connections8numCellsEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::connections::Connections::numCellsC"></span><span class="target" id="classnupic_1_1algorithms_1_1connections_1_1_connections_1ade901679aedfb733fd42e878a5f7a3bf"></span>CellIdx <code class="descname">numCells</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms11connections11Connections8numCellsEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Gets the number of cells. </p>
 <p><dl class="docutils">
 <dt><strong>Return Value</strong></dt>
@@ -478,7 +478,7 @@ Created synapse. <dl class="docutils">
 
 <dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms11connections11Connections11numSegmentsEv">
-<span id="nupic::algorithms::connections::Connections::numSegmentsC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1connections_1_1_connections_1a5cf2c91fd9f3889165d208d772bff44c"></span>UInt <code class="descname">numSegments</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms11connections11Connections11numSegmentsEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::connections::Connections::numSegmentsC"></span><span class="target" id="classnupic_1_1algorithms_1_1connections_1_1_connections_1a5cf2c91fd9f3889165d208d772bff44c"></span>UInt <code class="descname">numSegments</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms11connections11Connections11numSegmentsEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Gets the number of segments. </p>
 <p><dl class="docutils">
 <dt><strong>Return Value</strong></dt>
@@ -492,7 +492,7 @@ Created synapse. <dl class="docutils">
 
 <dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms11connections11Connections11numSegmentsE7CellIdx">
-<span id="nupic::algorithms::connections::Connections::numSegments__CellIdxC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1connections_1_1_connections_1a4cc0b77cc1dddd8941f4b7a7751ad200"></span>UInt <code class="descname">numSegments</code><span class="sig-paren">(</span>CellIdx <em>cell</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms11connections11Connections11numSegmentsE7CellIdx" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::connections::Connections::numSegments__CellIdxC"></span><span class="target" id="classnupic_1_1algorithms_1_1connections_1_1_connections_1a4cc0b77cc1dddd8941f4b7a7751ad200"></span>UInt <code class="descname">numSegments</code><span class="sig-paren">(</span>CellIdx <em>cell</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms11connections11Connections11numSegmentsE7CellIdx" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Gets the number of segments on a cell. </p>
 <p><dl class="docutils">
 <dt><strong>Return Value</strong></dt>
@@ -506,7 +506,7 @@ Created synapse. <dl class="docutils">
 
 <dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms11connections11Connections11numSynapsesEv">
-<span id="nupic::algorithms::connections::Connections::numSynapsesC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1connections_1_1_connections_1a40a5354267455341a263c67c1d2bda35"></span>UInt <code class="descname">numSynapses</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms11connections11Connections11numSynapsesEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::connections::Connections::numSynapsesC"></span><span class="target" id="classnupic_1_1algorithms_1_1connections_1_1_connections_1a40a5354267455341a263c67c1d2bda35"></span>UInt <code class="descname">numSynapses</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms11connections11Connections11numSynapsesEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Gets the number of synapses. </p>
 <p><dl class="docutils">
 <dt><strong>Return Value</strong></dt>
@@ -520,7 +520,7 @@ Created synapse. <dl class="docutils">
 
 <dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms11connections11Connections11numSynapsesE7Segment">
-<span id="nupic::algorithms::connections::Connections::numSynapses__SegmentC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1connections_1_1_connections_1a5f266dca9a7e437375ebd66de84e18f4"></span>UInt <code class="descname">numSynapses</code><span class="sig-paren">(</span>Segment <em>segment</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms11connections11Connections11numSynapsesE7Segment" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::connections::Connections::numSynapses__SegmentC"></span><span class="target" id="classnupic_1_1algorithms_1_1connections_1_1_connections_1a5f266dca9a7e437375ebd66de84e18f4"></span>UInt <code class="descname">numSynapses</code><span class="sig-paren">(</span>Segment <em>segment</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms11connections11Connections11numSynapsesE7Segment" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Gets the number of synapses on a segment. </p>
 <p><dl class="docutils">
 <dt><strong>Return Value</strong></dt>
@@ -534,15 +534,15 @@ Created synapse. <dl class="docutils">
 
 <dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms11connections11ConnectionseqERK11Connections">
-<span id="nupic::algorithms::connections::Connections::eq-operator__ConnectionsCRC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1connections_1_1_connections_1a3aaa7519009ec84658e4cf4085e57c46"></span>bool <code class="descname">operator==</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv2N5nupic10algorithms11connections11ConnectionsE" title="nupic::algorithms::connections::Connections">Connections</a> &amp;<em>other</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms11connections11ConnectionseqERK11Connections" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::connections::Connections::eq-operator__ConnectionsCRC"></span><span class="target" id="classnupic_1_1algorithms_1_1connections_1_1_connections_1a3aaa7519009ec84658e4cf4085e57c46"></span>bool <code class="descname">operator==</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv2N5nupic10algorithms11connections11ConnectionsE" title="nupic::algorithms::connections::Connections">Connections</a> &amp;<em>other</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms11connections11ConnectionseqERK11Connections" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Comparison operator. </p>
 </dd></dl>
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms11connections11Connections9subscribeEP23ConnectionsEventHandler">
-<span id="nupic::algorithms::connections::Connections::subscribe__ConnectionsEventHandlerP"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1connections_1_1_connections_1a6f5e83265ebe7a1e6f1cae65399d5fad"></span>UInt32 <code class="descname">subscribe</code><span class="sig-paren">(</span>ConnectionsEventHandler *<em>handler</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms11connections11Connections9subscribeEP23ConnectionsEventHandler" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::connections::Connections::subscribe__ConnectionsEventHandlerP"></span><span class="target" id="classnupic_1_1algorithms_1_1connections_1_1_connections_1a6f5e83265ebe7a1e6f1cae65399d5fad"></span>UInt32 <code class="descname">subscribe</code><span class="sig-paren">(</span>ConnectionsEventHandler *<em>handler</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms11connections11Connections9subscribeEP23ConnectionsEventHandler" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Add a connections events handler. </p>
-<p>The <a class="reference internal" href="encoders.html#nupic.coreclassnupic_1_1algorithms_1_1connections_1_1_connections"><span class="std std-ref">Connections</span></a> instance takes ownership of the eventHandlers object. Don&#8217;t delete it. When calling from Python, call eventHandlers.__disown__() to avoid garbage-collecting the object while this instance is still using it. It will be deleted on <code class="docutils literal"><span class="pre">unsubscribe</span></code>.</p>
+<p>The <a class="reference internal" href="encoders.html#classnupic_1_1algorithms_1_1connections_1_1_connections"><span class="std std-ref">Connections</span></a> instance takes ownership of the eventHandlers object. Don&#8217;t delete it. When calling from Python, call eventHandlers.__disown__() to avoid garbage-collecting the object while this instance is still using it. It will be deleted on <code class="docutils literal"><span class="pre">unsubscribe</span></code>.</p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
@@ -560,7 +560,7 @@ Created synapse. <dl class="docutils">
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms11connections11Connections11unsubscribeE6UInt32">
-<span id="nupic::algorithms::connections::Connections::unsubscribe__UInt32"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1connections_1_1_connections_1a40e4da9bfd6fb0f1eec10baaa4321065"></span>void <code class="descname">unsubscribe</code><span class="sig-paren">(</span>UInt32 <em>token</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms11connections11Connections11unsubscribeE6UInt32" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::connections::Connections::unsubscribe__UInt32"></span><span class="target" id="classnupic_1_1algorithms_1_1connections_1_1_connections_1a40e4da9bfd6fb0f1eec10baaa4321065"></span>void <code class="descname">unsubscribe</code><span class="sig-paren">(</span>UInt32 <em>token</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms11connections11Connections11unsubscribeE6UInt32" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Remove an event handler. </p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>

@@ -58,7 +58,7 @@
 <h1>Spatial Pooler<a class="headerlink" href="#spatial-pooler" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPoolerE">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler"></span><em class="property">class </em><code class="descclassname">nupic::algorithms::spatial_pooler::</code><code class="descname">SpatialPooler</code><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPoolerE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler"></span><em class="property">class </em><code class="descclassname">nupic::algorithms::spatial_pooler::</code><code class="descname">SpatialPooler</code><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPoolerE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>CLA spatial pooler implementation in C++. </p>
 <p><em>Description</em></p>
 <p>The Spatial Pooler is responsible for creating a sparse distributed representation of the input. Given an input it computes a set of sparse active columns and simultaneously updates its permanences, duty cycles, etc.</p>
@@ -73,12 +73,12 @@
 </pre></div>
 </div>
  </p>
-<p>Inherits from <a class="reference internal" href="types.html#nupic.coreclassnupic_1_1_serializable"><span class="std std-ref">nupic::Serializable&lt; SpatialPoolerProto &gt;</span></a></p>
+<p>Inherits from <a class="reference internal" href="types.html#classnupic_1_1_serializable"><span class="std std-ref">nupic::Serializable&lt; SpatialPoolerProto &gt;</span></a></p>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Public Functions</p>
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler10initializeE6vectorI4UIntE6vectorI4UIntE4UInt4Realb4Real4UInt4UInt4Real4Real4Real4Real4UInt4Real3Int4UIntb">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::initialize__vector:UInt:.vector:UInt:.UInt.Real.b.Real.UInt.UInt.Real.Real.Real.Real.UInt.Real.Int.UInt.b"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a9a96c0fa45073c09261eaadf4c243cea"></span><em class="property">virtual</em> void <code class="descname">initialize</code><span class="sig-paren">(</span>vector&lt;UInt&gt; <em>inputDimensions</em>, vector&lt;UInt&gt; <em>columnDimensions</em>, UInt <em>potentialRadius</em> = 16, Real <em>potentialPct</em> = 0.5, bool <em>globalInhibition</em> = true, Real <em>localAreaDensity</em> = -1.0, UInt <em>numActiveColumnsPerInhArea</em> = 10, UInt <em>stimulusThreshold</em> = 0, Real <em>synPermInactiveDec</em> = 0.01, Real <em>synPermActiveInc</em> = 0.1, Real <em>synPermConnected</em> = 0.1, Real <em>minPctOverlapDutyCycles</em> = 0.001, UInt <em>dutyCyclePeriod</em> = 1000, Real <em>boostStrength</em> = 0.0, Int <em>seed</em> = 1, UInt <em>spVerbosity</em> = 0, bool <em>wrapAround</em> = true<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler10initializeE6vectorI4UIntE6vectorI4UIntE4UInt4Realb4Real4UInt4UInt4Real4Real4Real4Real4UInt4Real3Int4UIntb" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::initialize__vector:UInt:.vector:UInt:.UInt.Real.b.Real.UInt.UInt.Real.Real.Real.Real.UInt.Real.Int.UInt.b"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a9a96c0fa45073c09261eaadf4c243cea"></span><em class="property">virtual</em> void <code class="descname">initialize</code><span class="sig-paren">(</span>vector&lt;UInt&gt; <em>inputDimensions</em>, vector&lt;UInt&gt; <em>columnDimensions</em>, UInt <em>potentialRadius</em> = 16, Real <em>potentialPct</em> = 0.5, bool <em>globalInhibition</em> = true, Real <em>localAreaDensity</em> = -1.0, UInt <em>numActiveColumnsPerInhArea</em> = 10, UInt <em>stimulusThreshold</em> = 0, Real <em>synPermInactiveDec</em> = 0.01, Real <em>synPermActiveInc</em> = 0.1, Real <em>synPermConnected</em> = 0.1, Real <em>minPctOverlapDutyCycles</em> = 0.001, UInt <em>dutyCyclePeriod</em> = 1000, Real <em>boostStrength</em> = 0.0, Int <em>seed</em> = 1, UInt <em>spVerbosity</em> = 0, bool <em>wrapAround</em> = true<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler10initializeE6vectorI4UIntE6vectorI4UIntE4UInt4Realb4Real4UInt4UInt4Real4Real4Real4Real4UInt4Real3Int4UIntb" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Initialize the spatial pooler using the given parameters. </p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
@@ -108,8 +108,8 @@
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler7computeEA_4UIntbA_4UInt">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::compute__UIntA.b.UIntA"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a18d4f917343d4fcd55a2551f2fc9453e"></span><em class="property">virtual</em> void <code class="descname">compute</code><span class="sig-paren">(</span>UInt <em>inputVector</em>[], bool <em>learn</em>, UInt <em>activeVector</em>[]<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler7computeEA_4UIntbA_4UInt" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>This is the main workshorse method of the <a class="reference internal" href="#nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler"><span class="std std-ref">SpatialPooler</span></a> class. </p>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::compute__UIntA.b.UIntA"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a18d4f917343d4fcd55a2551f2fc9453e"></span><em class="property">virtual</em> void <code class="descname">compute</code><span class="sig-paren">(</span>UInt <em>inputVector</em>[], bool <em>learn</em>, UInt <em>activeVector</em>[]<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler7computeEA_4UIntbA_4UInt" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>This is the main workshorse method of the <a class="reference internal" href="#classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler"><span class="std std-ref">SpatialPooler</span></a> class. </p>
 <p>This method takes an input vector and computes the set of output active columns. If &#8216;learn&#8217; is set to True, this method also performs learning.</p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
@@ -125,7 +125,7 @@
 
 <dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler21stripUnlearnedColumnsEA_4UInt">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::stripUnlearnedColumns__UIntAC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1aa3aca48d02a2c8348bfbab9fd4eabb77"></span>void <code class="descname">stripUnlearnedColumns</code><span class="sig-paren">(</span>UInt <em>activeArray</em>[]<span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler21stripUnlearnedColumnsEA_4UInt" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::stripUnlearnedColumns__UIntAC"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1aa3aca48d02a2c8348bfbab9fd4eabb77"></span>void <code class="descname">stripUnlearnedColumns</code><span class="sig-paren">(</span>UInt <em>activeArray</em>[]<span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler21stripUnlearnedColumnsEA_4UInt" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Removes the set of columns who have never been active from the set of active columns selected in the inhibition round. </p>
 <p>Such columns cannot represent learned pattern and are therefore meaningless if only inference is required.</p>
 <p><dl class="docutils">
@@ -140,7 +140,7 @@
 
 <dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler7versionEv">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::versionC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1ab86e05f32eec0be7bed7c71c2e3860fb"></span><em class="property">virtual</em> UInt <code class="descname">version</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler7versionEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::versionC"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1ab86e05f32eec0be7bed7c71c2e3860fb"></span><em class="property">virtual</em> UInt <code class="descname">version</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler7versionEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Get the version number of this spatial pooler. </p>
 <p><dl class="docutils">
 <dt><strong>Return</strong></dt>
@@ -151,7 +151,7 @@
 
 <dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler4saveER7ostream">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::save__ostreamRC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a4fe92707e8ef62c7d834e427c9d39be6"></span><em class="property">virtual</em> void <code class="descname">save</code><span class="sig-paren">(</span>ostream &amp;<em>outStream</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler4saveER7ostream" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::save__ostreamRC"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a4fe92707e8ef62c7d834e427c9d39be6"></span><em class="property">virtual</em> void <code class="descname">save</code><span class="sig-paren">(</span>ostream &amp;<em>outStream</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler4saveER7ostream" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Save (serialize) the current state of the spatial pooler to the specified file. </p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
@@ -165,7 +165,7 @@
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler4loadER7istream">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::load__istreamR"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1ab03a95128e7a6ae1619b88a0001fff92"></span><em class="property">virtual</em> void <code class="descname">load</code><span class="sig-paren">(</span>istream &amp;<em>inStream</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler4loadER7istream" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::load__istreamR"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1ab03a95128e7a6ae1619b88a0001fff92"></span><em class="property">virtual</em> void <code class="descname">load</code><span class="sig-paren">(</span>istream &amp;<em>inStream</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler4loadER7istream" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Load (deserialize) and initialize the spatial pooler from the specified input stream. </p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
@@ -179,7 +179,7 @@
 
 <dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler14persistentSizeEv">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::persistentSizeC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1af69a071cf6a49e2250291319397a78f8"></span><em class="property">virtual</em> UInt <code class="descname">persistentSize</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler14persistentSizeEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::persistentSizeC"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1af69a071cf6a49e2250291319397a78f8"></span><em class="property">virtual</em> UInt <code class="descname">persistentSize</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler14persistentSizeEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Returns the number of bytes that a save operation would result in. </p>
 <p>Note: this method is currently somewhat inefficient as it just does a full save into an ostream and counts the resulting size.</p>
 <p><dl class="docutils">
@@ -191,7 +191,7 @@
 
 <dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler19getColumnDimensionsEv">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getColumnDimensionsC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a445c0c6c946d8b4f545cfe1e260594a6"></span>vector&lt;UInt&gt; <code class="descname">getColumnDimensions</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler19getColumnDimensionsEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getColumnDimensionsC"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a445c0c6c946d8b4f545cfe1e260594a6"></span>vector&lt;UInt&gt; <code class="descname">getColumnDimensions</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler19getColumnDimensionsEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Returns the dimensions of the columns in the region. </p>
 <p><dl class="docutils">
 <dt><strong>Return</strong></dt>
@@ -202,7 +202,7 @@
 
 <dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler18getInputDimensionsEv">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getInputDimensionsC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a8cbd085c67012ffc8ba8a388bab7323a"></span>vector&lt;UInt&gt; <code class="descname">getInputDimensions</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler18getInputDimensionsEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getInputDimensionsC"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a8cbd085c67012ffc8ba8a388bab7323a"></span>vector&lt;UInt&gt; <code class="descname">getInputDimensions</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler18getInputDimensionsEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Returns the dimensions of the input vector. </p>
 <p><dl class="docutils">
 <dt><strong>Return</strong></dt>
@@ -213,7 +213,7 @@
 
 <dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler13getNumColumnsEv">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getNumColumnsC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a3d0cf9a0ccdf5693e6f27d39903a578a"></span>UInt <code class="descname">getNumColumns</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler13getNumColumnsEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getNumColumnsC"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a3d0cf9a0ccdf5693e6f27d39903a578a"></span>UInt <code class="descname">getNumColumns</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler13getNumColumnsEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Returns the total number of columns. </p>
 <p><dl class="docutils">
 <dt><strong>Return</strong></dt>
@@ -224,7 +224,7 @@
 
 <dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler12getNumInputsEv">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getNumInputsC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a11a1c455501e53e0ba98216c33d27f13"></span>UInt <code class="descname">getNumInputs</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler12getNumInputsEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getNumInputsC"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a11a1c455501e53e0ba98216c33d27f13"></span>UInt <code class="descname">getNumInputs</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler12getNumInputsEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Returns the total number of inputs. </p>
 <p><dl class="docutils">
 <dt><strong>Return</strong></dt>
@@ -235,7 +235,7 @@
 
 <dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler18getPotentialRadiusEv">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getPotentialRadiusC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a5e69cba24fa0b066c4419cdb48f2316c"></span>UInt <code class="descname">getPotentialRadius</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler18getPotentialRadiusEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getPotentialRadiusC"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a5e69cba24fa0b066c4419cdb48f2316c"></span>UInt <code class="descname">getPotentialRadius</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler18getPotentialRadiusEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Returns the potential radius. </p>
 <p><dl class="docutils">
 <dt><strong>Return</strong></dt>
@@ -246,7 +246,7 @@
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler18setPotentialRadiusE4UInt">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::setPotentialRadius__UInt"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1ab77f7595e343829fdaa9b51d6affe1a6"></span>void <code class="descname">setPotentialRadius</code><span class="sig-paren">(</span>UInt <em>potentialRadius</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler18setPotentialRadiusE4UInt" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::setPotentialRadius__UInt"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1ab77f7595e343829fdaa9b51d6affe1a6"></span>void <code class="descname">setPotentialRadius</code><span class="sig-paren">(</span>UInt <em>potentialRadius</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler18setPotentialRadiusE4UInt" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Sets the potential radius. </p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
@@ -260,7 +260,7 @@
 
 <dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler15getPotentialPctEv">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getPotentialPctC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a8ae4a409b62502ccc071060b329de4c3"></span>Real <code class="descname">getPotentialPct</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler15getPotentialPctEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getPotentialPctC"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a8ae4a409b62502ccc071060b329de4c3"></span>Real <code class="descname">getPotentialPct</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler15getPotentialPctEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Returns the potential percent. </p>
 <p><dl class="docutils">
 <dt><strong>Return</strong></dt>
@@ -271,7 +271,7 @@
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler15setPotentialPctE4Real">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::setPotentialPct__Real"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a3820fb3a6b8737d550e532ae072e4b5c"></span>void <code class="descname">setPotentialPct</code><span class="sig-paren">(</span>Real <em>potentialPct</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler15setPotentialPctE4Real" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::setPotentialPct__Real"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a3820fb3a6b8737d550e532ae072e4b5c"></span>void <code class="descname">setPotentialPct</code><span class="sig-paren">(</span>Real <em>potentialPct</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler15setPotentialPctE4Real" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Sets the potential percent. </p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
@@ -285,7 +285,7 @@
 
 <dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler19getGlobalInhibitionEv">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getGlobalInhibitionC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1aa43ebba30ae9f8eec04122289acc2efd"></span>bool <code class="descname">getGlobalInhibition</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler19getGlobalInhibitionEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getGlobalInhibitionC"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1aa43ebba30ae9f8eec04122289acc2efd"></span>bool <code class="descname">getGlobalInhibition</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler19getGlobalInhibitionEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p><dl class="docutils">
 <dt><strong>Return</strong></dt>
 <dd>boolen value of whether global inhibition is enabled. </dd>
@@ -295,7 +295,7 @@
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler19setGlobalInhibitionEb">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::setGlobalInhibition__b"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1ac65b7a8cb492c3c736bd04e8edf6c3de"></span>void <code class="descname">setGlobalInhibition</code><span class="sig-paren">(</span>bool <em>globalInhibition</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler19setGlobalInhibitionEb" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::setGlobalInhibition__b"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1ac65b7a8cb492c3c736bd04e8edf6c3de"></span>void <code class="descname">setGlobalInhibition</code><span class="sig-paren">(</span>bool <em>globalInhibition</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler19setGlobalInhibitionEb" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Sets global inhibition. </p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
@@ -309,7 +309,7 @@
 
 <dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler29getNumActiveColumnsPerInhAreaEv">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getNumActiveColumnsPerInhAreaC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a535af3e3515c20c27db5652c8ca3da6f"></span>Int <code class="descname">getNumActiveColumnsPerInhArea</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler29getNumActiveColumnsPerInhAreaEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getNumActiveColumnsPerInhAreaC"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a535af3e3515c20c27db5652c8ca3da6f"></span>Int <code class="descname">getNumActiveColumnsPerInhArea</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler29getNumActiveColumnsPerInhAreaEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Returns the number of active columns per inhibition area. </p>
 <p><dl class="docutils">
 <dt><strong>Return</strong></dt>
@@ -320,7 +320,7 @@
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler29setNumActiveColumnsPerInhAreaE4UInt">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::setNumActiveColumnsPerInhArea__UInt"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1ac298870c29eaadd74e9a1f8d3fe7484d"></span>void <code class="descname">setNumActiveColumnsPerInhArea</code><span class="sig-paren">(</span>UInt <em>numActiveColumnsPerInhArea</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler29setNumActiveColumnsPerInhAreaE4UInt" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::setNumActiveColumnsPerInhArea__UInt"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1ac298870c29eaadd74e9a1f8d3fe7484d"></span>void <code class="descname">setNumActiveColumnsPerInhArea</code><span class="sig-paren">(</span>UInt <em>numActiveColumnsPerInhArea</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler29setNumActiveColumnsPerInhAreaE4UInt" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Sets the number of active columns per inhibition area. </p>
 <p>Invalidates the &#8216;localAreaDensity&#8217; parameter.</p>
 <p><dl class="docutils">
@@ -335,7 +335,7 @@
 
 <dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler19getLocalAreaDensityEv">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getLocalAreaDensityC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a04930d4de21a082b6af0a915461596e7"></span>Real <code class="descname">getLocalAreaDensity</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler19getLocalAreaDensityEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getLocalAreaDensityC"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a04930d4de21a082b6af0a915461596e7"></span>Real <code class="descname">getLocalAreaDensity</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler19getLocalAreaDensityEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Returns the local area density. </p>
 <p>Returns a value less than 0 if parameter is unused&#8221;.</p>
 <p><dl class="docutils">
@@ -347,7 +347,7 @@
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler19setLocalAreaDensityE4Real">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::setLocalAreaDensity__Real"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1abbefb02097f5407226fb68f1db373a49"></span>void <code class="descname">setLocalAreaDensity</code><span class="sig-paren">(</span>Real <em>localAreaDensity</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler19setLocalAreaDensityE4Real" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::setLocalAreaDensity__Real"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1abbefb02097f5407226fb68f1db373a49"></span>void <code class="descname">setLocalAreaDensity</code><span class="sig-paren">(</span>Real <em>localAreaDensity</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler19setLocalAreaDensityE4Real" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Sets the local area density. </p>
 <p>Invalidates the &#8216;numActivePerInhArea&#8217; parameter&#8221;.</p>
 <p><dl class="docutils">
@@ -362,7 +362,7 @@
 
 <dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler20getStimulusThresholdEv">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getStimulusThresholdC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a69d66b0a5ece9d52377fd6a36e05ee87"></span>UInt <code class="descname">getStimulusThreshold</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler20getStimulusThresholdEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getStimulusThresholdC"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a69d66b0a5ece9d52377fd6a36e05ee87"></span>UInt <code class="descname">getStimulusThreshold</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler20getStimulusThresholdEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Returns the stimulus threshold. </p>
 <p><dl class="docutils">
 <dt><strong>Return</strong></dt>
@@ -373,7 +373,7 @@
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler20setStimulusThresholdE4UInt">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::setStimulusThreshold__UInt"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1ac2cabf2e6b1d0fd67293f3485bebf1d9"></span>void <code class="descname">setStimulusThreshold</code><span class="sig-paren">(</span>UInt <em>stimulusThreshold</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler20setStimulusThresholdE4UInt" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::setStimulusThreshold__UInt"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1ac2cabf2e6b1d0fd67293f3485bebf1d9"></span>void <code class="descname">setStimulusThreshold</code><span class="sig-paren">(</span>UInt <em>stimulusThreshold</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler20setStimulusThresholdE4UInt" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Sets the stimulus threshold. </p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
@@ -387,7 +387,7 @@
 
 <dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler19getInhibitionRadiusEv">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getInhibitionRadiusC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a9ace8f82829853e5c683022fefa0d348"></span>UInt <code class="descname">getInhibitionRadius</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler19getInhibitionRadiusEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getInhibitionRadiusC"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a9ace8f82829853e5c683022fefa0d348"></span>UInt <code class="descname">getInhibitionRadius</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler19getInhibitionRadiusEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Returns the inhibition radius. </p>
 <p><dl class="docutils">
 <dt><strong>Return</strong></dt>
@@ -398,7 +398,7 @@
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler19setInhibitionRadiusE4UInt">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::setInhibitionRadius__UInt"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1adad7f6a1702f3eaecb622d8c7e47b60e"></span>void <code class="descname">setInhibitionRadius</code><span class="sig-paren">(</span>UInt <em>inhibitionRadius</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler19setInhibitionRadiusE4UInt" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::setInhibitionRadius__UInt"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1adad7f6a1702f3eaecb622d8c7e47b60e"></span>void <code class="descname">setInhibitionRadius</code><span class="sig-paren">(</span>UInt <em>inhibitionRadius</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler19setInhibitionRadiusE4UInt" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Sets the inhibition radius. </p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
@@ -412,7 +412,7 @@
 
 <dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler18getDutyCyclePeriodEv">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getDutyCyclePeriodC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a31d9cccc82a9dc02b86172dbf59eda30"></span>UInt <code class="descname">getDutyCyclePeriod</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler18getDutyCyclePeriodEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getDutyCyclePeriodC"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a31d9cccc82a9dc02b86172dbf59eda30"></span>UInt <code class="descname">getDutyCyclePeriod</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler18getDutyCyclePeriodEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Returns the duty cycle period. </p>
 <p><dl class="docutils">
 <dt><strong>Return</strong></dt>
@@ -423,7 +423,7 @@
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler18setDutyCyclePeriodE4UInt">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::setDutyCyclePeriod__UInt"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a9d70dc490f7879151a9ddd14cba66d09"></span>void <code class="descname">setDutyCyclePeriod</code><span class="sig-paren">(</span>UInt <em>dutyCyclePeriod</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler18setDutyCyclePeriodE4UInt" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::setDutyCyclePeriod__UInt"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a9d70dc490f7879151a9ddd14cba66d09"></span>void <code class="descname">setDutyCyclePeriod</code><span class="sig-paren">(</span>UInt <em>dutyCyclePeriod</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler18setDutyCyclePeriodE4UInt" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Sets the duty cycle period. </p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
@@ -437,7 +437,7 @@
 
 <dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler16getBoostStrengthEv">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getBoostStrengthC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1ac35aa7e6462885300feeb4bf2fb7389d"></span>Real <code class="descname">getBoostStrength</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler16getBoostStrengthEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getBoostStrengthC"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1ac35aa7e6462885300feeb4bf2fb7389d"></span>Real <code class="descname">getBoostStrength</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler16getBoostStrengthEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Returns the maximum boost value. </p>
 <p><dl class="docutils">
 <dt><strong>Return</strong></dt>
@@ -448,7 +448,7 @@
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler16setBoostStrengthE4Real">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::setBoostStrength__Real"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1aaac7dcd42c665e1593430386020d4f15"></span>void <code class="descname">setBoostStrength</code><span class="sig-paren">(</span>Real <em>boostStrength</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler16setBoostStrengthE4Real" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::setBoostStrength__Real"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1aaac7dcd42c665e1593430386020d4f15"></span>void <code class="descname">setBoostStrength</code><span class="sig-paren">(</span>Real <em>boostStrength</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler16setBoostStrengthE4Real" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Sets the strength of boost. </p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
@@ -462,7 +462,7 @@
 
 <dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler15getIterationNumEv">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getIterationNumC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a7cab441da1917806bef4aa226425f0e9"></span>UInt <code class="descname">getIterationNum</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler15getIterationNumEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getIterationNumC"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a7cab441da1917806bef4aa226425f0e9"></span>UInt <code class="descname">getIterationNum</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler15getIterationNumEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Returns the iteration number. </p>
 <p><dl class="docutils">
 <dt><strong>Return</strong></dt>
@@ -473,7 +473,7 @@
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler15setIterationNumE4UInt">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::setIterationNum__UInt"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1aca6d3b0d4d475fa79e794ad402312207"></span>void <code class="descname">setIterationNum</code><span class="sig-paren">(</span>UInt <em>iterationNum</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler15setIterationNumE4UInt" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::setIterationNum__UInt"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1aca6d3b0d4d475fa79e794ad402312207"></span>void <code class="descname">setIterationNum</code><span class="sig-paren">(</span>UInt <em>iterationNum</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler15setIterationNumE4UInt" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Sets the iteration number. </p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
@@ -487,7 +487,7 @@
 
 <dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler20getIterationLearnNumEv">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getIterationLearnNumC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a8ecbf4dfc6d65630a7daaace79e5b002"></span>UInt <code class="descname">getIterationLearnNum</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler20getIterationLearnNumEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getIterationLearnNumC"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a8ecbf4dfc6d65630a7daaace79e5b002"></span>UInt <code class="descname">getIterationLearnNum</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler20getIterationLearnNumEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Returns the learning iteration number. </p>
 <p><dl class="docutils">
 <dt><strong>Return</strong></dt>
@@ -498,7 +498,7 @@
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler20setIterationLearnNumE4UInt">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::setIterationLearnNum__UInt"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a604c668c215baaf2b7b4a38604092a19"></span>void <code class="descname">setIterationLearnNum</code><span class="sig-paren">(</span>UInt <em>iterationLearnNum</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler20setIterationLearnNumE4UInt" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::setIterationLearnNum__UInt"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a604c668c215baaf2b7b4a38604092a19"></span>void <code class="descname">setIterationLearnNum</code><span class="sig-paren">(</span>UInt <em>iterationLearnNum</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler20setIterationLearnNumE4UInt" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Sets the learning iteration number. </p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
@@ -512,7 +512,7 @@
 
 <dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler14getSpVerbosityEv">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getSpVerbosityC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a35a86648ef2cf6347222141ed83e9ee1"></span>UInt <code class="descname">getSpVerbosity</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler14getSpVerbosityEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getSpVerbosityC"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a35a86648ef2cf6347222141ed83e9ee1"></span>UInt <code class="descname">getSpVerbosity</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler14getSpVerbosityEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Returns the verbosity level. </p>
 <p><dl class="docutils">
 <dt><strong>Return</strong></dt>
@@ -523,7 +523,7 @@
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler14setSpVerbosityE4UInt">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::setSpVerbosity__UInt"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a94da0259fd031c30ced2dc09de500ae8"></span>void <code class="descname">setSpVerbosity</code><span class="sig-paren">(</span>UInt <em>spVerbosity</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler14setSpVerbosityE4UInt" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::setSpVerbosity__UInt"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a94da0259fd031c30ced2dc09de500ae8"></span>void <code class="descname">setSpVerbosity</code><span class="sig-paren">(</span>UInt <em>spVerbosity</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler14setSpVerbosityE4UInt" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Sets the verbosity level. </p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
@@ -537,7 +537,7 @@
 
 <dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler13getWrapAroundEv">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getWrapAroundC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a219414e9342042148bb7a5ca51532152"></span>bool <code class="descname">getWrapAround</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler13getWrapAroundEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getWrapAroundC"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a219414e9342042148bb7a5ca51532152"></span>bool <code class="descname">getWrapAround</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler13getWrapAroundEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Returns boolean value of wrapAround which indicates if receptive fields should wrap around from the beginning the input dimensions to the end. </p>
 <p><dl class="docutils">
 <dt><strong>Return</strong></dt>
@@ -548,7 +548,7 @@
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler13setWrapAroundEb">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::setWrapAround__b"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a7ce38074cf3944aafdad1edcf0ac51a7"></span>void <code class="descname">setWrapAround</code><span class="sig-paren">(</span>bool <em>wrapAround</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler13setWrapAroundEb" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::setWrapAround__b"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a7ce38074cf3944aafdad1edcf0ac51a7"></span>void <code class="descname">setWrapAround</code><span class="sig-paren">(</span>bool <em>wrapAround</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler13setWrapAroundEb" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Sets wrapAround. </p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
@@ -562,7 +562,7 @@
 
 <dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler15getUpdatePeriodEv">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getUpdatePeriodC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a38794dfd4ce83c56c48d4f946f30e7cc"></span>UInt <code class="descname">getUpdatePeriod</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler15getUpdatePeriodEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getUpdatePeriodC"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a38794dfd4ce83c56c48d4f946f30e7cc"></span>UInt <code class="descname">getUpdatePeriod</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler15getUpdatePeriodEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Returns the update period. </p>
 <p><dl class="docutils">
 <dt><strong>Return</strong></dt>
@@ -573,7 +573,7 @@
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler15setUpdatePeriodE4UInt">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::setUpdatePeriod__UInt"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a270f3234fbdee51de95949647c13b27c"></span>void <code class="descname">setUpdatePeriod</code><span class="sig-paren">(</span>UInt <em>updatePeriod</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler15setUpdatePeriodE4UInt" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::setUpdatePeriod__UInt"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a270f3234fbdee51de95949647c13b27c"></span>void <code class="descname">setUpdatePeriod</code><span class="sig-paren">(</span>UInt <em>updatePeriod</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler15setUpdatePeriodE4UInt" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Sets the update period. </p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
@@ -587,7 +587,7 @@
 
 <dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler23getSynPermTrimThresholdEv">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getSynPermTrimThresholdC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1ac909281d08a4bf9561167a91cad67bfd"></span>Real <code class="descname">getSynPermTrimThreshold</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler23getSynPermTrimThresholdEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getSynPermTrimThresholdC"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1ac909281d08a4bf9561167a91cad67bfd"></span>Real <code class="descname">getSynPermTrimThreshold</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler23getSynPermTrimThresholdEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Returns the permanence trim threshold. </p>
 <p><dl class="docutils">
 <dt><strong>Return</strong></dt>
@@ -598,7 +598,7 @@
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler23setSynPermTrimThresholdE4Real">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::setSynPermTrimThreshold__Real"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1ac4bc92768cd394a2ca716a64287b2160"></span>void <code class="descname">setSynPermTrimThreshold</code><span class="sig-paren">(</span>Real <em>synPermTrimThreshold</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler23setSynPermTrimThresholdE4Real" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::setSynPermTrimThreshold__Real"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1ac4bc92768cd394a2ca716a64287b2160"></span>void <code class="descname">setSynPermTrimThreshold</code><span class="sig-paren">(</span>Real <em>synPermTrimThreshold</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler23setSynPermTrimThresholdE4Real" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Sets the permanence trim threshold. </p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
@@ -612,7 +612,7 @@
 
 <dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler19getSynPermActiveIncEv">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getSynPermActiveIncC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a65c79bd814affd1a73ece58213c84e48"></span>Real <code class="descname">getSynPermActiveInc</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler19getSynPermActiveIncEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getSynPermActiveIncC"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a65c79bd814affd1a73ece58213c84e48"></span>Real <code class="descname">getSynPermActiveInc</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler19getSynPermActiveIncEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Returns the permanence increment amount for active synapses inputs. </p>
 <p><dl class="docutils">
 <dt><strong>Return</strong></dt>
@@ -623,7 +623,7 @@
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler19setSynPermActiveIncE4Real">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::setSynPermActiveInc__Real"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a594580152618c218408655c6ed0a78c9"></span>void <code class="descname">setSynPermActiveInc</code><span class="sig-paren">(</span>Real <em>synPermActiveInc</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler19setSynPermActiveIncE4Real" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::setSynPermActiveInc__Real"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a594580152618c218408655c6ed0a78c9"></span>void <code class="descname">setSynPermActiveInc</code><span class="sig-paren">(</span>Real <em>synPermActiveInc</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler19setSynPermActiveIncE4Real" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Sets the permanence increment amount for active synapses inputs. </p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
@@ -637,7 +637,7 @@
 
 <dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler21getSynPermInactiveDecEv">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getSynPermInactiveDecC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a2de59e67d225fb99c363ef013fafe01e"></span>Real <code class="descname">getSynPermInactiveDec</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler21getSynPermInactiveDecEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getSynPermInactiveDecC"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a2de59e67d225fb99c363ef013fafe01e"></span>Real <code class="descname">getSynPermInactiveDec</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler21getSynPermInactiveDecEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Returns the permanence decrement amount for inactive synapses. </p>
 <p><dl class="docutils">
 <dt><strong>Return</strong></dt>
@@ -648,7 +648,7 @@
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler21setSynPermInactiveDecE4Real">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::setSynPermInactiveDec__Real"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a56a66ee45ec9b2d4f8bc9e5c4e3cfa0d"></span>void <code class="descname">setSynPermInactiveDec</code><span class="sig-paren">(</span>Real <em>synPermInactiveDec</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler21setSynPermInactiveDecE4Real" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::setSynPermInactiveDec__Real"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a56a66ee45ec9b2d4f8bc9e5c4e3cfa0d"></span>void <code class="descname">setSynPermInactiveDec</code><span class="sig-paren">(</span>Real <em>synPermInactiveDec</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler21setSynPermInactiveDecE4Real" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Returns the permanence decrement amount for inactive synapses. </p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
@@ -662,7 +662,7 @@
 
 <dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler26getSynPermBelowStimulusIncEv">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getSynPermBelowStimulusIncC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1af94dc430982178ee0b6ac19422286e45"></span>Real <code class="descname">getSynPermBelowStimulusInc</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler26getSynPermBelowStimulusIncEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getSynPermBelowStimulusIncC"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1af94dc430982178ee0b6ac19422286e45"></span>Real <code class="descname">getSynPermBelowStimulusInc</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler26getSynPermBelowStimulusIncEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Returns the permanence increment amount for columns that have not been recently active. </p>
 <p><dl class="docutils">
 <dt><strong>Return</strong></dt>
@@ -673,7 +673,7 @@
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler26setSynPermBelowStimulusIncE4Real">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::setSynPermBelowStimulusInc__Real"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a8ad59689909a6b5561db1f9e68f4c961"></span>void <code class="descname">setSynPermBelowStimulusInc</code><span class="sig-paren">(</span>Real <em>synPermBelowStimulusInc</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler26setSynPermBelowStimulusIncE4Real" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::setSynPermBelowStimulusInc__Real"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a8ad59689909a6b5561db1f9e68f4c961"></span>void <code class="descname">setSynPermBelowStimulusInc</code><span class="sig-paren">(</span>Real <em>synPermBelowStimulusInc</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler26setSynPermBelowStimulusIncE4Real" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Sets the permanence increment amount for columns that have not been recently active. </p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
@@ -687,7 +687,7 @@
 
 <dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler19getSynPermConnectedEv">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getSynPermConnectedC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a8d117b85bc00677cec118e0ffc9547d7"></span>Real <code class="descname">getSynPermConnected</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler19getSynPermConnectedEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getSynPermConnectedC"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a8d117b85bc00677cec118e0ffc9547d7"></span>Real <code class="descname">getSynPermConnected</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler19getSynPermConnectedEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Returns the permanence amount that qualifies a synapse as being connected. </p>
 <p><dl class="docutils">
 <dt><strong>Return</strong></dt>
@@ -698,7 +698,7 @@
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler19setSynPermConnectedE4Real">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::setSynPermConnected__Real"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1acb56aee1b7f025209a78cefbe3ca8f2f"></span>void <code class="descname">setSynPermConnected</code><span class="sig-paren">(</span>Real <em>synPermConnected</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler19setSynPermConnectedE4Real" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::setSynPermConnected__Real"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1acb56aee1b7f025209a78cefbe3ca8f2f"></span>void <code class="descname">setSynPermConnected</code><span class="sig-paren">(</span>Real <em>synPermConnected</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler19setSynPermConnectedE4Real" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Sets the permanence amount that qualifies a synapse as being connected. </p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
@@ -712,7 +712,7 @@
 
 <dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler13getSynPermMaxEv">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getSynPermMaxC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1acfa14dd706f7b15eaa375f9f14f7e53c"></span>Real <code class="descname">getSynPermMax</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler13getSynPermMaxEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getSynPermMaxC"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1acfa14dd706f7b15eaa375f9f14f7e53c"></span>Real <code class="descname">getSynPermMax</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler13getSynPermMaxEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Returns the maximum permanence amount a synapse can achieve. </p>
 <p><dl class="docutils">
 <dt><strong>Return</strong></dt>
@@ -723,7 +723,7 @@
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler13setSynPermMaxE4Real">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::setSynPermMax__Real"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1aae423ee85f46a664146d27ef45610b11"></span>void <code class="descname">setSynPermMax</code><span class="sig-paren">(</span>Real <em>synPermMax</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler13setSynPermMaxE4Real" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::setSynPermMax__Real"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1aae423ee85f46a664146d27ef45610b11"></span>void <code class="descname">setSynPermMax</code><span class="sig-paren">(</span>Real <em>synPermMax</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler13setSynPermMaxE4Real" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Sets the maximum permanence amount a synapse can achieve. </p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
@@ -737,7 +737,7 @@
 
 <dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler26getMinPctOverlapDutyCyclesEv">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getMinPctOverlapDutyCyclesC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a075c3801204301fd7fe01618a956b7a5"></span>Real <code class="descname">getMinPctOverlapDutyCycles</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler26getMinPctOverlapDutyCyclesEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getMinPctOverlapDutyCyclesC"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a075c3801204301fd7fe01618a956b7a5"></span>Real <code class="descname">getMinPctOverlapDutyCycles</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler26getMinPctOverlapDutyCyclesEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Returns the minimum tolerated overlaps, given as percent of neighbors overlap score. </p>
 <p><dl class="docutils">
 <dt><strong>Return</strong></dt>
@@ -748,7 +748,7 @@
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler26setMinPctOverlapDutyCyclesE4Real">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::setMinPctOverlapDutyCycles__Real"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1ae70813687b0e935ca18dba5c86b243d5"></span>void <code class="descname">setMinPctOverlapDutyCycles</code><span class="sig-paren">(</span>Real <em>minPctOverlapDutyCycles</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler26setMinPctOverlapDutyCyclesE4Real" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::setMinPctOverlapDutyCycles__Real"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1ae70813687b0e935ca18dba5c86b243d5"></span>void <code class="descname">setMinPctOverlapDutyCycles</code><span class="sig-paren">(</span>Real <em>minPctOverlapDutyCycles</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler26setMinPctOverlapDutyCyclesE4Real" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Sets the minimum tolerated overlaps, given as percent of neighbors overlap score. </p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
@@ -762,7 +762,7 @@
 
 <dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler15getBoostFactorsEA_4Real">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getBoostFactors__RealAC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a4383236a04fb68acb18891a577745c9d"></span>void <code class="descname">getBoostFactors</code><span class="sig-paren">(</span>Real <em>boostFactors</em>[]<span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler15getBoostFactorsEA_4Real" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getBoostFactors__RealAC"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a4383236a04fb68acb18891a577745c9d"></span>void <code class="descname">getBoostFactors</code><span class="sig-paren">(</span>Real <em>boostFactors</em>[]<span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler15getBoostFactorsEA_4Real" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Returns the boost factors for all columns. </p>
 <p>&#8216;boostFactors&#8217; size must match the number of columns.</p>
 <p><dl class="docutils">
@@ -777,7 +777,7 @@
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler15setBoostFactorsEA_4Real">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::setBoostFactors__RealA"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a5fdf2788b98e03aa36c8895a5be3e6d1"></span>void <code class="descname">setBoostFactors</code><span class="sig-paren">(</span>Real <em>boostFactors</em>[]<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler15setBoostFactorsEA_4Real" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::setBoostFactors__RealA"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a5fdf2788b98e03aa36c8895a5be3e6d1"></span>void <code class="descname">setBoostFactors</code><span class="sig-paren">(</span>Real <em>boostFactors</em>[]<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler15setBoostFactorsEA_4Real" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Sets the boost factors for all columns. </p>
 <p>&#8216;boostFactors&#8217; size must match the number of columns.</p>
 <p><dl class="docutils">
@@ -792,7 +792,7 @@
 
 <dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler20getOverlapDutyCyclesEA_4Real">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getOverlapDutyCycles__RealAC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a1770b44b3838d5f1dd7716c101f30d00"></span>void <code class="descname">getOverlapDutyCycles</code><span class="sig-paren">(</span>Real <em>overlapDutyCycles</em>[]<span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler20getOverlapDutyCyclesEA_4Real" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getOverlapDutyCycles__RealAC"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a1770b44b3838d5f1dd7716c101f30d00"></span>void <code class="descname">getOverlapDutyCycles</code><span class="sig-paren">(</span>Real <em>overlapDutyCycles</em>[]<span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler20getOverlapDutyCyclesEA_4Real" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Returns the overlap duty cycles for all columns. </p>
 <p>&#8216;overlapDutyCycles&#8217; size must match the number of columns.</p>
 <p><dl class="docutils">
@@ -807,7 +807,7 @@
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler20setOverlapDutyCyclesEA_4Real">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::setOverlapDutyCycles__RealA"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1ace33d17ba0f2f9f832c7020b80d477d2"></span>void <code class="descname">setOverlapDutyCycles</code><span class="sig-paren">(</span>Real <em>overlapDutyCycles</em>[]<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler20setOverlapDutyCyclesEA_4Real" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::setOverlapDutyCycles__RealA"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1ace33d17ba0f2f9f832c7020b80d477d2"></span>void <code class="descname">setOverlapDutyCycles</code><span class="sig-paren">(</span>Real <em>overlapDutyCycles</em>[]<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler20setOverlapDutyCyclesEA_4Real" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Sets the overlap duty cycles for all columns. </p>
 <p>&#8216;overlapDutyCycles&#8217; size must match the number of columns.</p>
 <p><dl class="docutils">
@@ -822,7 +822,7 @@
 
 <dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler19getActiveDutyCyclesEA_4Real">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getActiveDutyCycles__RealAC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1ad584aa5606ad84cd87804908e50a6ecd"></span>void <code class="descname">getActiveDutyCycles</code><span class="sig-paren">(</span>Real <em>activeDutyCycles</em>[]<span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler19getActiveDutyCyclesEA_4Real" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getActiveDutyCycles__RealAC"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1ad584aa5606ad84cd87804908e50a6ecd"></span>void <code class="descname">getActiveDutyCycles</code><span class="sig-paren">(</span>Real <em>activeDutyCycles</em>[]<span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler19getActiveDutyCyclesEA_4Real" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Returns the activity duty cycles for all columns. </p>
 <p>&#8216;activeDutyCycles&#8217; size must match the number of columns.</p>
 <p><dl class="docutils">
@@ -837,7 +837,7 @@
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler19setActiveDutyCyclesEA_4Real">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::setActiveDutyCycles__RealA"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a02af53b6075dea26ac1ce53e9ddacba4"></span>void <code class="descname">setActiveDutyCycles</code><span class="sig-paren">(</span>Real <em>activeDutyCycles</em>[]<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler19setActiveDutyCyclesEA_4Real" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::setActiveDutyCycles__RealA"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a02af53b6075dea26ac1ce53e9ddacba4"></span>void <code class="descname">setActiveDutyCycles</code><span class="sig-paren">(</span>Real <em>activeDutyCycles</em>[]<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler19setActiveDutyCyclesEA_4Real" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Sets the activity duty cycles for all columns. </p>
 <p>&#8216;activeDutyCycles&#8217; size must match the number of columns.</p>
 <p><dl class="docutils">
@@ -852,7 +852,7 @@
 
 <dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler23getMinOverlapDutyCyclesEA_4Real">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getMinOverlapDutyCycles__RealAC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a9510807c9eee62e8cff30b613450bdea"></span>void <code class="descname">getMinOverlapDutyCycles</code><span class="sig-paren">(</span>Real <em>minOverlapDutyCycles</em>[]<span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler23getMinOverlapDutyCyclesEA_4Real" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getMinOverlapDutyCycles__RealAC"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a9510807c9eee62e8cff30b613450bdea"></span>void <code class="descname">getMinOverlapDutyCycles</code><span class="sig-paren">(</span>Real <em>minOverlapDutyCycles</em>[]<span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler23getMinOverlapDutyCyclesEA_4Real" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Returns the minimum overlap duty cycles for all columns. </p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
@@ -866,7 +866,7 @@
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler23setMinOverlapDutyCyclesEA_4Real">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::setMinOverlapDutyCycles__RealA"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a37933c632b1f99e8422e05ae0b7a5212"></span>void <code class="descname">setMinOverlapDutyCycles</code><span class="sig-paren">(</span>Real <em>minOverlapDutyCycles</em>[]<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler23setMinOverlapDutyCyclesEA_4Real" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::setMinOverlapDutyCycles__RealA"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a37933c632b1f99e8422e05ae0b7a5212"></span>void <code class="descname">setMinOverlapDutyCycles</code><span class="sig-paren">(</span>Real <em>minOverlapDutyCycles</em>[]<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler23setMinOverlapDutyCyclesEA_4Real" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Sets the minimum overlap duty cycles for all columns. </p>
 <p>&#8216;_minOverlapDutyCycles&#8217; size must match the number of columns.</p>
 <p><dl class="docutils">
@@ -881,7 +881,7 @@
 
 <dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler12getPotentialE4UIntA_4UInt">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getPotential__UInt.UIntAC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1ab65e3fbbb2423795746a9e11bb1d4a3a"></span>void <code class="descname">getPotential</code><span class="sig-paren">(</span>UInt <em>column</em>, UInt <em>potential</em>[]<span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler12getPotentialE4UIntA_4UInt" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getPotential__UInt.UIntAC"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1ab65e3fbbb2423795746a9e11bb1d4a3a"></span>void <code class="descname">getPotential</code><span class="sig-paren">(</span>UInt <em>column</em>, UInt <em>potential</em>[]<span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler12getPotentialE4UIntA_4UInt" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Returns the potential mapping for a given column. </p>
 <p>&#8216;potential&#8217; size must match the number of inputs.</p>
 <p><dl class="docutils">
@@ -897,7 +897,7 @@
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler12setPotentialE4UIntA_4UInt">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::setPotential__UInt.UIntA"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1aa3b6248a0aaa4a1dbe7a3926378e514e"></span>void <code class="descname">setPotential</code><span class="sig-paren">(</span>UInt <em>column</em>, UInt <em>potential</em>[]<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler12setPotentialE4UIntA_4UInt" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::setPotential__UInt.UIntA"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1aa3b6248a0aaa4a1dbe7a3926378e514e"></span>void <code class="descname">setPotential</code><span class="sig-paren">(</span>UInt <em>column</em>, UInt <em>potential</em>[]<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler12setPotentialE4UIntA_4UInt" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Sets the potential mapping for a given column. </p>
 <p>&#8216;potential&#8217; size must match the number of inputs.</p>
 <p><dl class="docutils">
@@ -913,7 +913,7 @@
 
 <dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler13getPermanenceE4UIntA_4Real">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getPermanence__UInt.RealAC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1afc2c2ecc383a2a8ec17d755e277878ad"></span>void <code class="descname">getPermanence</code><span class="sig-paren">(</span>UInt <em>column</em>, Real <em>permanence</em>[]<span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler13getPermanenceE4UIntA_4Real" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getPermanence__UInt.RealAC"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1afc2c2ecc383a2a8ec17d755e277878ad"></span>void <code class="descname">getPermanence</code><span class="sig-paren">(</span>UInt <em>column</em>, Real <em>permanence</em>[]<span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler13getPermanenceE4UIntA_4Real" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Returns the permanence values for a given column. </p>
 <p>&#8216;permanence&#8217; size must match the number of inputs.</p>
 <p><dl class="docutils">
@@ -929,7 +929,7 @@
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler13setPermanenceE4UIntA_4Real">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::setPermanence__UInt.RealA"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1aaf2c2233453c506d77455933af4a57de"></span>void <code class="descname">setPermanence</code><span class="sig-paren">(</span>UInt <em>column</em>, Real <em>permanence</em>[]<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler13setPermanenceE4UIntA_4Real" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::setPermanence__UInt.RealA"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1aaf2c2233453c506d77455933af4a57de"></span>void <code class="descname">setPermanence</code><span class="sig-paren">(</span>UInt <em>column</em>, Real <em>permanence</em>[]<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler13setPermanenceE4UIntA_4Real" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Sets the permanence values for a given column. </p>
 <p>&#8216;permanence&#8217; size must match the number of inputs.</p>
 <p><dl class="docutils">
@@ -945,7 +945,7 @@
 
 <dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler20getConnectedSynapsesE4UIntA_4UInt">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getConnectedSynapses__UInt.UIntAC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1afb2c8bb7ec0863e3aa824f250d3b7976"></span>void <code class="descname">getConnectedSynapses</code><span class="sig-paren">(</span>UInt <em>column</em>, UInt <em>connectedSynapses</em>[]<span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler20getConnectedSynapsesE4UIntA_4UInt" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getConnectedSynapses__UInt.UIntAC"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1afb2c8bb7ec0863e3aa824f250d3b7976"></span>void <code class="descname">getConnectedSynapses</code><span class="sig-paren">(</span>UInt <em>column</em>, UInt <em>connectedSynapses</em>[]<span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler20getConnectedSynapsesE4UIntA_4UInt" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Returns the connected synapses for a given column. </p>
 <p>&#8216;connectedSynapses&#8217; size must match the number of inputs.</p>
 <p><dl class="docutils">
@@ -961,7 +961,7 @@
 
 <dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler18getConnectedCountsEA_4UInt">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getConnectedCounts__UIntAC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a7755f7faabcfa48048ae83b7f4188be8"></span>void <code class="descname">getConnectedCounts</code><span class="sig-paren">(</span>UInt <em>connectedCounts</em>[]<span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler18getConnectedCountsEA_4UInt" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getConnectedCounts__UIntAC"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a7755f7faabcfa48048ae83b7f4188be8"></span>void <code class="descname">getConnectedCounts</code><span class="sig-paren">(</span>UInt <em>connectedCounts</em>[]<span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler18getConnectedCountsEA_4UInt" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Returns the number of connected synapses for all columns. </p>
 <p>&#8216;connectedCounts&#8217; size must match the number of columns.</p>
 <p><dl class="docutils">
@@ -976,25 +976,25 @@
 
 <dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler15printParametersEv">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::printParametersC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a1a3246357717b8c544412d9711c2cc52"></span>void <code class="descname">printParameters</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler15printParametersEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::printParametersC"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a1a3246357717b8c544412d9711c2cc52"></span>void <code class="descname">printParameters</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler15printParametersEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Print the main SP creation parameters to stdout. </p>
 </dd></dl>
 
 <dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler11getOverlapsEv">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getOverlapsC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a988934b5d8209bb3455985d2e31f0a2b"></span><em class="property">const</em> vector&lt;UInt&gt; &amp;<code class="descname">getOverlaps</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler11getOverlapsEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getOverlapsC"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a988934b5d8209bb3455985d2e31f0a2b"></span><em class="property">const</em> vector&lt;UInt&gt; &amp;<code class="descname">getOverlaps</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler11getOverlapsEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Returns the overlap score for each column. </p>
 </dd></dl>
 
 <dl class="function">
 <dt id="_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler18getBoostedOverlapsEv">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getBoostedOverlapsC"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a569f03105d6101fb55474d185d9fb842"></span><em class="property">const</em> vector&lt;Real&gt; &amp;<code class="descname">getBoostedOverlaps</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler18getBoostedOverlapsEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::getBoostedOverlapsC"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a569f03105d6101fb55474d185d9fb842"></span><em class="property">const</em> vector&lt;Real&gt; &amp;<code class="descname">getBoostedOverlaps</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic10algorithms14spatial_pooler13SpatialPooler18getBoostedOverlapsEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Returns the boosted overlap score for each column. </p>
 </dd></dl>
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler10mapColumn_E4UInt">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::mapColumn___UInt"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a127216eeb2fe2a0ee1f5c1580d82c7ea"></span>UInt <code class="descname">mapColumn_</code><span class="sig-paren">(</span>UInt <em>column</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler10mapColumn_E4UInt" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::mapColumn___UInt"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a127216eeb2fe2a0ee1f5c1580d82c7ea"></span>UInt <code class="descname">mapColumn_</code><span class="sig-paren">(</span>UInt <em>column</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler10mapColumn_E4UInt" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Maps a column to its respective input index, keeping to the topology of the region. </p>
 <p>It takes the index of the column as an argument and determines what is the index of the flattened input vector that is to be the center of the column&#8217;s potential pool. It distributes the columns over the inputs uniformly. The return value is an integer representing the index of the input bit. Examples of the expected output of this method: If the topology is one dimensional, and the column index is 0, this method will return the input index 0. If the column index is 1, and there are 3 columns over 7 inputs, this method will return the input index 3. If the topology is two dimensional, with column dimensions [3, 5] and input dimensions [7, 11], and the column index is 3, the method returns input index 8. <dl class="docutils">
 <dt><strong>Parameters</strong></dt>
@@ -1009,7 +1009,7 @@
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler13mapPotential_E4UIntb">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::mapPotential___UInt.b"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a109c496c5dfbb07d9c686099941e4871"></span>vector&lt;UInt&gt; <code class="descname">mapPotential_</code><span class="sig-paren">(</span>UInt <em>column</em>, bool <em>wrapAround</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler13mapPotential_E4UIntb" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::mapPotential___UInt.b"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a109c496c5dfbb07d9c686099941e4871"></span>vector&lt;UInt&gt; <code class="descname">mapPotential_</code><span class="sig-paren">(</span>UInt <em>column</em>, bool <em>wrapAround</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler13mapPotential_E4UIntb" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Maps a column to its input bits. </p>
 <p>This method encapsultes the topology of the region. It takes the index of the column as an argument and determines what are the indices of the input vector that are located within the column&#8217;s potential pool. The return value is a list containing the indices of the input bits. The current implementation of the base class only supports a 1 dimensional topology of columns with a 1 dimensional topology of inputs. To extend this class to support 2-D topology you will need to override this method. Examples of the expected output of this method: If the potentialRadius is greater than or equal to the entire input space, (global visibility), then this method returns an array filled with all the indices If the topology is one dimensional, and the potentialRadius is 5, this method will return an array containing 5 consecutive values centered on the index of the column (wrapping around if necessary). If the topology is two dimensional (not implemented), and the potentialRadius is 5, the method should return an array containing 25 &#8216;1&#8217;s, where the exact indices are to be determined by the mapping from 1-D index to 2-D position. <dl class="docutils">
 <dt><strong>Parameters</strong></dt>
@@ -1024,7 +1024,7 @@
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler18initPermConnected_Ev">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::initPermConnected_"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a3aa27e7503a5d82d1bcf296c81f92d23"></span>Real <code class="descname">initPermConnected_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler18initPermConnected_Ev" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::initPermConnected_"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a3aa27e7503a5d82d1bcf296c81f92d23"></span>Real <code class="descname">initPermConnected_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler18initPermConnected_Ev" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Returns a randomly generated permanence value for a synapses that is initialized in a connected state. </p>
 <p>The basic idea here is to initialize permanence values very close to synPermConnected so that a small number of learning steps could make it disconnected or connected.</p>
 <p>Note: experimentation was done a long time ago on the best way to initialize permanence values, but the history for this particular scheme has been lost.</p>
@@ -1037,7 +1037,7 @@
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler21initPermNonConnected_Ev">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::initPermNonConnected_"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a8f8cc93f4648a7eba31dda44ab0a1132"></span>Real <code class="descname">initPermNonConnected_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler21initPermNonConnected_Ev" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::initPermNonConnected_"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a8f8cc93f4648a7eba31dda44ab0a1132"></span>Real <code class="descname">initPermNonConnected_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler21initPermNonConnected_Ev" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Returns a randomly generated permanence value for a synapses that is to be initialized in a non-connected state. </p>
 <p><dl class="docutils">
 <dt><strong>Return</strong></dt>
@@ -1048,7 +1048,7 @@
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler15initPermanence_ER6vectorI4UIntE4Real">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::initPermanence___vector:UInt:R.Real"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a957b014f0eab769b81b446b086a73178"></span>vector&lt;Real&gt; <code class="descname">initPermanence_</code><span class="sig-paren">(</span>vector&lt;UInt&gt; &amp;<em>potential</em>, Real <em>connectedPct</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler15initPermanence_ER6vectorI4UIntE4Real" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::initPermanence___vector:UInt:R.Real"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a957b014f0eab769b81b446b086a73178"></span>vector&lt;Real&gt; <code class="descname">initPermanence_</code><span class="sig-paren">(</span>vector&lt;UInt&gt; &amp;<em>potential</em>, Real <em>connectedPct</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler15initPermanence_ER6vectorI4UIntE4Real" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Initializes the permanences of a column. </p>
 <p>The method returns a 1-D array the size of the input, where each entry in the array represents the initial permanence value between the input bit at the particular index in the array, and the column represented by the &#8216;index&#8217; parameter.</p>
 <p>
@@ -1069,7 +1069,7 @@ corresponding to indices for which the mask value is 1. <dl class="docutils">
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler27updatePermanencesForColumn_ER6vectorI4RealE4UIntb">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::updatePermanencesForColumn___vector:Real:R.UInt.b"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a31b93ebc813f634f3b989fb98c9ad9a8"></span>void <code class="descname">updatePermanencesForColumn_</code><span class="sig-paren">(</span>vector&lt;Real&gt; &amp;<em>perm</em>, UInt <em>column</em>, bool <em>raisePerm</em> = true<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler27updatePermanencesForColumn_ER6vectorI4RealE4UIntb" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::updatePermanencesForColumn___vector:Real:R.UInt.b"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a31b93ebc813f634f3b989fb98c9ad9a8"></span>void <code class="descname">updatePermanencesForColumn_</code><span class="sig-paren">(</span>vector&lt;Real&gt; &amp;<em>perm</em>, UInt <em>column</em>, bool <em>raisePerm</em> = true<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler27updatePermanencesForColumn_ER6vectorI4RealE4UIntb" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>This method updates the permanence matrix with a column&#8217;s new permanence values. </p>
 <p>The column is identified by its index, which reflects the row in the matrix, and the permanence is given in &#8216;dense&#8217; form, i.e. a full array containing all the zeros as well as the non-zero values. It is in charge of implementing &#8216;clipping&#8217; - ensuring that the permanence values are always between 0 and 1 - and &#8216;trimming&#8217; - enforcing sparsity by zeroing out all permanence values below &#8216;_synPermTrimThreshold&#8217;. It also maintains the consistency between &#8216;self._permanences&#8217; (the matrix storing the permanence values), &#8216;self._connectedSynapses&#8217;, (the matrix storing the bits each column is connected to), and &#8216;self._connectedCounts&#8217; (an array storing the number of input bits each column is connected to). Every method wishing to modify the permanence matrix should do so through this method. <dl class="docutils">
 <dt><strong>Parameters</strong></dt>
@@ -1085,7 +1085,7 @@ corresponding to indices for which the mask value is 1. <dl class="docutils">
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler17calculateOverlap_EA_4UIntR6vectorI4UIntE">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::calculateOverlap___UIntA.vector:UInt:R"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a12173f5ce8f6189deccc43a9d7f45ace"></span>void <code class="descname">calculateOverlap_</code><span class="sig-paren">(</span>UInt <em>inputVector</em>[], vector&lt;UInt&gt; &amp;<em>overlap</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler17calculateOverlap_EA_4UIntR6vectorI4UIntE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::calculateOverlap___UIntA.vector:UInt:R"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a12173f5ce8f6189deccc43a9d7f45ace"></span>void <code class="descname">calculateOverlap_</code><span class="sig-paren">(</span>UInt <em>inputVector</em>[], vector&lt;UInt&gt; &amp;<em>overlap</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler17calculateOverlap_EA_4UIntR6vectorI4UIntE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>This function determines each column&#8217;s overlap with the current input vector. </p>
 <p>The overlap of a column is the number of synapses for that column that are connected (permanence value is greater than &#8216;_synPermConnected&#8217;) to input bits which are turned on. The implementation takes advantage of the SparseBinaryMatrix class to perform this calculation efficiently.</p>
 <p><dl class="docutils">
@@ -1101,7 +1101,7 @@ corresponding to indices for which the mask value is 1. <dl class="docutils">
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler15inhibitColumns_ERK6vectorI4RealER6vectorI4UIntE">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::inhibitColumns___vector:Real:CR.vector:UInt:R"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1abc19b89377afb302bf4ee182d80d36e5"></span>void <code class="descname">inhibitColumns_</code><span class="sig-paren">(</span><em class="property">const</em> vector&lt;Real&gt; &amp;<em>overlaps</em>, vector&lt;UInt&gt; &amp;<em>activeColumns</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler15inhibitColumns_ERK6vectorI4RealER6vectorI4UIntE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::inhibitColumns___vector:Real:CR.vector:UInt:R"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1abc19b89377afb302bf4ee182d80d36e5"></span>void <code class="descname">inhibitColumns_</code><span class="sig-paren">(</span><em class="property">const</em> vector&lt;Real&gt; &amp;<em>overlaps</em>, vector&lt;UInt&gt; &amp;<em>activeColumns</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler15inhibitColumns_ERK6vectorI4RealER6vectorI4UIntE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Performs inhibition. </p>
 <p>This method calculates the necessary values needed to actually perform inhibition and then delegates the task of picking the active columns to helper functions.</p>
 <p><dl class="docutils">
@@ -1117,7 +1117,7 @@ corresponding to indices for which the mask value is 1. <dl class="docutils">
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler21inhibitColumnsGlobal_ERK6vectorI4RealE4RealR6vectorI4UIntE">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::inhibitColumnsGlobal___vector:Real:CR.Real.vector:UInt:R"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a17063609463a842f5f6a049885980b14"></span>void <code class="descname">inhibitColumnsGlobal_</code><span class="sig-paren">(</span><em class="property">const</em> vector&lt;Real&gt; &amp;<em>overlaps</em>, Real <em>density</em>, vector&lt;UInt&gt; &amp;<em>activeColumns</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler21inhibitColumnsGlobal_ERK6vectorI4RealE4RealR6vectorI4UIntE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::inhibitColumnsGlobal___vector:Real:CR.Real.vector:UInt:R"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a17063609463a842f5f6a049885980b14"></span>void <code class="descname">inhibitColumnsGlobal_</code><span class="sig-paren">(</span><em class="property">const</em> vector&lt;Real&gt; &amp;<em>overlaps</em>, Real <em>density</em>, vector&lt;UInt&gt; &amp;<em>activeColumns</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler21inhibitColumnsGlobal_ERK6vectorI4RealE4RealR6vectorI4UIntE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Perform global inhibition. </p>
 <p>Performing global inhibition entails picking the top &#8216;numActive&#8217; columns with the highest overlap score in the entire region. At most half of the columns in a local neighborhood are allowed to be active. Columns with an overlap score below the &#8216;stimulusThreshold&#8217; are always inhibited.</p>
 <p><dl class="docutils">
@@ -1134,7 +1134,7 @@ corresponding to indices for which the mask value is 1. <dl class="docutils">
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler20inhibitColumnsLocal_ERK6vectorI4RealE4RealR6vectorI4UIntE">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::inhibitColumnsLocal___vector:Real:CR.Real.vector:UInt:R"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a17fe4454f0e74d2a302307e6b2a21b35"></span>void <code class="descname">inhibitColumnsLocal_</code><span class="sig-paren">(</span><em class="property">const</em> vector&lt;Real&gt; &amp;<em>overlaps</em>, Real <em>density</em>, vector&lt;UInt&gt; &amp;<em>activeColumns</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler20inhibitColumnsLocal_ERK6vectorI4RealE4RealR6vectorI4UIntE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::inhibitColumnsLocal___vector:Real:CR.Real.vector:UInt:R"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a17fe4454f0e74d2a302307e6b2a21b35"></span>void <code class="descname">inhibitColumnsLocal_</code><span class="sig-paren">(</span><em class="property">const</em> vector&lt;Real&gt; &amp;<em>overlaps</em>, Real <em>density</em>, vector&lt;UInt&gt; &amp;<em>activeColumns</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler20inhibitColumnsLocal_ERK6vectorI4RealE4RealR6vectorI4UIntE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Performs local inhibition. </p>
 <p>Local inhibition is performed on a column by column basis. Each column observes the overlaps of its neighbors and is selected if its overlap score is within the top &#8216;numActive&#8217; in its local neighborhood. At most half of the columns in a local neighborhood are allowed to be active. Columns with an overlap score below the &#8216;stimulusThreshold&#8217; are always inhibited. <dl class="docutils">
 <dt><strong>Parameters</strong></dt>
@@ -1150,7 +1150,7 @@ corresponding to indices for which the mask value is 1. <dl class="docutils">
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler14adaptSynapses_EA_4UIntR6vectorI4UIntE">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::adaptSynapses___UIntA.vector:UInt:R"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1af2a17cbf43c49f3394216725917fe80e"></span>void <code class="descname">adaptSynapses_</code><span class="sig-paren">(</span>UInt <em>inputVector</em>[], vector&lt;UInt&gt; &amp;<em>activeColumns</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler14adaptSynapses_EA_4UIntR6vectorI4UIntE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::adaptSynapses___UIntA.vector:UInt:R"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1af2a17cbf43c49f3394216725917fe80e"></span>void <code class="descname">adaptSynapses_</code><span class="sig-paren">(</span>UInt <em>inputVector</em>[], vector&lt;UInt&gt; &amp;<em>activeColumns</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler14adaptSynapses_EA_4UIntR6vectorI4UIntE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>The primary method in charge of learning. </p>
 <p>Adapts the permanence values of the synapses based on the input vector, and the chosen columns after inhibition round. Permanence values are increased for synapses connected to input bits that are turned on, and decreased for synapses connected to inputs bits that are turned off. <dl class="docutils">
 <dt><strong>Parameters</strong></dt>
@@ -1165,21 +1165,21 @@ corresponding to indices for which the mask value is 1. <dl class="docutils">
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler18bumpUpWeakColumns_Ev">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::bumpUpWeakColumns_"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a7b33b2292009e1501d5b54b5bb85f65d"></span>void <code class="descname">bumpUpWeakColumns_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler18bumpUpWeakColumns_Ev" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::bumpUpWeakColumns_"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a7b33b2292009e1501d5b54b5bb85f65d"></span>void <code class="descname">bumpUpWeakColumns_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler18bumpUpWeakColumns_Ev" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>This method increases the permanence values of synapses of columns whose activity level has been too low. </p>
 <p>Such columns are identified by having an overlap duty cycle that drops too much below those of their peers. The permanence values for such columns are increased. </p>
 </dd></dl>
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler23updateInhibitionRadius_Ev">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::updateInhibitionRadius_"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1add1534dfedcc0b38d3901e86f562aa7a"></span>void <code class="descname">updateInhibitionRadius_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler23updateInhibitionRadius_Ev" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::updateInhibitionRadius_"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1add1534dfedcc0b38d3901e86f562aa7a"></span>void <code class="descname">updateInhibitionRadius_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler23updateInhibitionRadius_Ev" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Update the inhibition radius. </p>
 <p>The inhibition radius is a meausre of the square (or hypersquare) of columns that each a column is &#8220;connected to&#8221; on average. Since columns are not connected to each other directly, we determine this quantity by first figuring out how many <em>inputs</em> a column is connected to, and then multiplying it by the total number of columns that exist for each input. For multiple dimension the aforementioned calculations are averaged over all dimensions of inputs and columns. This value is meaningless if global inhibition is enabled. </p>
 </dd></dl>
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler19avgColumnsPerInput_Ev">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::avgColumnsPerInput_"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a144b1c57249087670f98095bf810d1a2"></span>Real <code class="descname">avgColumnsPerInput_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler19avgColumnsPerInput_Ev" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::avgColumnsPerInput_"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a144b1c57249087670f98095bf810d1a2"></span>Real <code class="descname">avgColumnsPerInput_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler19avgColumnsPerInput_Ev" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>REturns the average number of columns per input, taking into account the topology of the inputs and columns. </p>
 <p>This value is used to calculate the inhibition radius. This function supports an arbitrary number of dimensions. If the number of column dimensions does not match the number of input dimensions, we treat the missing, or phantom dimensions as &#8216;ones&#8217;.</p>
 <p><dl class="docutils">
@@ -1191,7 +1191,7 @@ corresponding to indices for which the mask value is 1. <dl class="docutils">
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler28avgConnectedSpanForColumn1D_E4UInt">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::avgConnectedSpanForColumn1D___UInt"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a8b20c36ec006d29e7170067c42c80ddd"></span>Real <code class="descname">avgConnectedSpanForColumn1D_</code><span class="sig-paren">(</span>UInt <em>column</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler28avgConnectedSpanForColumn1D_E4UInt" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::avgConnectedSpanForColumn1D___UInt"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a8b20c36ec006d29e7170067c42c80ddd"></span>Real <code class="descname">avgConnectedSpanForColumn1D_</code><span class="sig-paren">(</span>UInt <em>column</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler28avgConnectedSpanForColumn1D_E4UInt" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>The range of connected synapses for column. </p>
 <p>This is used to calculate the inhibition radius. This variation of the function only supports a 1 dimensional column topology.</p>
 <p><dl class="docutils">
@@ -1206,7 +1206,7 @@ corresponding to indices for which the mask value is 1. <dl class="docutils">
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler28avgConnectedSpanForColumn2D_E4UInt">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::avgConnectedSpanForColumn2D___UInt"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a1349b8ad52a7621b1d48e4bd91edefff"></span>Real <code class="descname">avgConnectedSpanForColumn2D_</code><span class="sig-paren">(</span>UInt <em>column</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler28avgConnectedSpanForColumn2D_E4UInt" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::avgConnectedSpanForColumn2D___UInt"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a1349b8ad52a7621b1d48e4bd91edefff"></span>Real <code class="descname">avgConnectedSpanForColumn2D_</code><span class="sig-paren">(</span>UInt <em>column</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler28avgConnectedSpanForColumn2D_E4UInt" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>The range of connectedSynapses per column, averaged for each dimension. </p>
 <p>This vaule is used to calculate the inhibition radius. This variation of the function only supports a 2 dimensional column topology.</p>
 <p><dl class="docutils">
@@ -1221,7 +1221,7 @@ corresponding to indices for which the mask value is 1. <dl class="docutils">
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler28avgConnectedSpanForColumnND_E4UInt">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::avgConnectedSpanForColumnND___UInt"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1ad1d28a065a4fb2267fba44edb6e8e43d"></span>Real <code class="descname">avgConnectedSpanForColumnND_</code><span class="sig-paren">(</span>UInt <em>column</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler28avgConnectedSpanForColumnND_E4UInt" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::avgConnectedSpanForColumnND___UInt"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1ad1d28a065a4fb2267fba44edb6e8e43d"></span>Real <code class="descname">avgConnectedSpanForColumnND_</code><span class="sig-paren">(</span>UInt <em>column</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler28avgConnectedSpanForColumnND_E4UInt" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>The range of connectedSynapses per column, averaged for each dimension. </p>
 <p>This vaule is used to calculate the inhibition radius. This variation of the function supports arbitrary column dimensions.</p>
 <p><dl class="docutils">
@@ -1236,28 +1236,28 @@ corresponding to indices for which the mask value is 1. <dl class="docutils">
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler20updateMinDutyCycles_Ev">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::updateMinDutyCycles_"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a1f4362f1f3add0fbb168655ccfcde0a5"></span>void <code class="descname">updateMinDutyCycles_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler20updateMinDutyCycles_Ev" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::updateMinDutyCycles_"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a1f4362f1f3add0fbb168655ccfcde0a5"></span>void <code class="descname">updateMinDutyCycles_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler20updateMinDutyCycles_Ev" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Updates the minimum duty cycles defining normal activity for a column. </p>
 <p>A column with activity duty cycle below this minimum threshold is boosted. </p>
 </dd></dl>
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler26updateMinDutyCyclesGlobal_Ev">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::updateMinDutyCyclesGlobal_"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a44c401b1a32c110a4a436f5e1faad643"></span>void <code class="descname">updateMinDutyCyclesGlobal_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler26updateMinDutyCyclesGlobal_Ev" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::updateMinDutyCyclesGlobal_"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a44c401b1a32c110a4a436f5e1faad643"></span>void <code class="descname">updateMinDutyCyclesGlobal_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler26updateMinDutyCyclesGlobal_Ev" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Updates the minimum duty cycles in a global fashion. </p>
 <p>Sets the minimum duty cycles for the overlap and activation of all columns to be a percent of the maximum in the region, specified by minPctOverlapDutyCycle and minPctActiveDutyCycle respectively. Functionally it is equivalent to _updateMinDutyCyclesLocal, but this function exploits the globalilty of the computation to perform it in a straightforward, and more efficient manner. </p>
 </dd></dl>
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler25updateMinDutyCyclesLocal_Ev">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::updateMinDutyCyclesLocal_"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1ac0319b775b53ef3fd6a53c9494eb4973"></span>void <code class="descname">updateMinDutyCyclesLocal_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler25updateMinDutyCyclesLocal_Ev" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::updateMinDutyCyclesLocal_"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1ac0319b775b53ef3fd6a53c9494eb4973"></span>void <code class="descname">updateMinDutyCyclesLocal_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler25updateMinDutyCyclesLocal_Ev" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Updates the minimum duty cycles. </p>
 <p>The minimum duty cycles are determined locally. Each column&#8217;s minimum duty cycles are set to be a percent of the maximum duty cycles in the column&#8217;s neighborhood. Unlike _updateMinDutyCycles </p>
 </dd></dl>
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler17updateDutyCycles_ER6vectorI4UIntEA_4UInt">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::updateDutyCycles___vector:UInt:R.UIntA"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a7ccc68f6ab1de1ac34135641372703ef"></span>void <code class="descname">updateDutyCycles_</code><span class="sig-paren">(</span>vector&lt;UInt&gt; &amp;<em>overlaps</em>, UInt <em>activeArray</em>[]<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler17updateDutyCycles_ER6vectorI4UIntEA_4UInt" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::updateDutyCycles___vector:UInt:R.UIntA"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a7ccc68f6ab1de1ac34135641372703ef"></span>void <code class="descname">updateDutyCycles_</code><span class="sig-paren">(</span>vector&lt;UInt&gt; &amp;<em>overlaps</em>, UInt <em>activeArray</em>[]<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler17updateDutyCycles_ER6vectorI4UIntEA_4UInt" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Updates the duty cycles for each column. </p>
 <p>The OVERLAP duty cycle is a moving average of the number of inputs which overlapped with the each column. The ACTIVITY duty cycles is a moving average of the frequency of activation for each column.</p>
 <p><dl class="docutils">
@@ -1273,7 +1273,7 @@ corresponding to indices for which the mask value is 1. <dl class="docutils">
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler19updateBoostFactors_Ev">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::updateBoostFactors_"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a6a376fa6a4a7ff54dd79e60b741ca982"></span>void <code class="descname">updateBoostFactors_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler19updateBoostFactors_Ev" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::updateBoostFactors_"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a6a376fa6a4a7ff54dd79e60b741ca982"></span>void <code class="descname">updateBoostFactors_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler19updateBoostFactors_Ev" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Update the boost factors for all columns. </p>
 <p>The boost factors are used to increase the overlap of inactive columns to improve their chances of becoming active, and hence encourage participation of more columns in the learning process. The boosting function is a curve defined as: boostFactors = exp[ - boostStrength * (dutyCycle - targetDensity)] Intuitively this means that columns that have been active at the target activation level have a boost factor of 1, meaning their overlap is not boosted. Columns whose active duty cycle drops too much below that of their neighbors are boosted depending on how infrequently they have been active. Columns that has been active more than the target activation level have a boost factor below 1, meaning their overlap is suppressed</p>
 <p>The boostFactor depends on the activeDutyCycle via an exponential function: <div class="highlight-default"><div class="highlight"><pre><span></span>        <span class="n">boostFactor</span>
@@ -1295,21 +1295,21 @@ corresponding to indices for which the mask value is 1. <dl class="docutils">
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler24updateBoostFactorsLocal_Ev">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::updateBoostFactorsLocal_"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1ab5bcdc2e514d7e11bcca219b81d88aea"></span>void <code class="descname">updateBoostFactorsLocal_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler24updateBoostFactorsLocal_Ev" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::updateBoostFactorsLocal_"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1ab5bcdc2e514d7e11bcca219b81d88aea"></span>void <code class="descname">updateBoostFactorsLocal_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler24updateBoostFactorsLocal_Ev" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Update boost factors when local inhibition is enabled. </p>
 <p>In this case, the target activation level for each column is estimated as the average activation level for columns in its neighborhood. </p>
 </dd></dl>
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler25updateBoostFactorsGlobal_Ev">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::updateBoostFactorsGlobal_"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a3bf0af5f2e4e12314767eab142b2e3df"></span>void <code class="descname">updateBoostFactorsGlobal_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler25updateBoostFactorsGlobal_Ev" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::updateBoostFactorsGlobal_"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a3bf0af5f2e4e12314767eab142b2e3df"></span>void <code class="descname">updateBoostFactorsGlobal_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler25updateBoostFactorsGlobal_Ev" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Update boost factors when global inhibition is enabled. </p>
 <p>All columns share the same target activation level in this case, which is the sparsity of spatial pooler. </p>
 </dd></dl>
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler21updateBookeepingVars_Eb">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::updateBookeepingVars___b"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1aac43493eec5d82bc373075b66280e701"></span>void <code class="descname">updateBookeepingVars_</code><span class="sig-paren">(</span>bool <em>learn</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler21updateBookeepingVars_Eb" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::updateBookeepingVars___b"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1aac43493eec5d82bc373075b66280e701"></span>void <code class="descname">updateBookeepingVars_</code><span class="sig-paren">(</span>bool <em>learn</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler21updateBookeepingVars_Eb" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Updates counter instance variables each round. </p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
@@ -1323,7 +1323,7 @@ corresponding to indices for which the mask value is 1. <dl class="docutils">
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler14isUpdateRound_Ev">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::isUpdateRound_"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1ab1017990aab102c592afa7b621a0e332"></span>bool <code class="descname">isUpdateRound_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler14isUpdateRound_Ev" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::isUpdateRound_"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1ab1017990aab102c592afa7b621a0e332"></span>bool <code class="descname">isUpdateRound_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler14isUpdateRound_Ev" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p><dl class="docutils">
 <dt><strong>Return</strong></dt>
 <dd>boolean value indicating whether enough rounds have passed to warrant updates of duty cycles </dd>
@@ -1333,7 +1333,7 @@ corresponding to indices for which the mask value is 1. <dl class="docutils">
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler5seed_E6UInt64">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::seed___UInt64"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a0bd2eb8f00e82fe7fe05bc448e874831"></span>void <code class="descname">seed_</code><span class="sig-paren">(</span>UInt64 <em>seed</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler5seed_E6UInt64" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::seed___UInt64"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a0bd2eb8f00e82fe7fe05bc448e874831"></span>void <code class="descname">seed_</code><span class="sig-paren">(</span>UInt64 <em>seed</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler5seed_E6UInt64" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Initialize the random seed. </p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
@@ -1347,13 +1347,13 @@ corresponding to indices for which the mask value is 1. <dl class="docutils">
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler10printStateER6vectorI4UIntE">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::printState__vector:UInt:R"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a86b45a504abfb6b4f1e187ba61a67568"></span>void <code class="descname">printState</code><span class="sig-paren">(</span>vector&lt;UInt&gt; &amp;<em>state</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler10printStateER6vectorI4UIntE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::printState__vector:UInt:R"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a86b45a504abfb6b4f1e187ba61a67568"></span>void <code class="descname">printState</code><span class="sig-paren">(</span>vector&lt;UInt&gt; &amp;<em>state</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler10printStateER6vectorI4UIntE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Print the given UInt array in a nice format. </p>
 </dd></dl>
 
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler10printStateER6vectorI4RealE">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::printState__vector:Real:R"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a0b4ffea383d0fdc62f91db0ecdc98637"></span>void <code class="descname">printState</code><span class="sig-paren">(</span>vector&lt;Real&gt; &amp;<em>state</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler10printStateER6vectorI4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::printState__vector:Real:R"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a0b4ffea383d0fdc62f91db0ecdc98637"></span>void <code class="descname">printState</code><span class="sig-paren">(</span>vector&lt;Real&gt; &amp;<em>state</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler10printStateER6vectorI4RealE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Print the given Real array in a nice format. </p>
 </dd></dl>
 
@@ -1362,7 +1362,7 @@ corresponding to indices for which the mask value is 1. <dl class="docutils">
 <p class="breathe-sectiondef-title rubric">Public Static Functions</p>
 <dl class="function">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler23updateDutyCyclesHelper_ER6vectorI4RealER6vectorI4UIntE4UInt">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler::updateDutyCyclesHelper___vector:Real:R.vector:UInt:R.UInt"></span><span class="target" id="nupic.coreclassnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1ad1faeed8d29a96f49db2a60707e271f3"></span><em class="property">static</em> void <code class="descname">updateDutyCyclesHelper_</code><span class="sig-paren">(</span>vector&lt;Real&gt; &amp;<em>dutyCycles</em>, vector&lt;UInt&gt; &amp;<em>newValues</em>, UInt <em>period</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler23updateDutyCyclesHelper_ER6vectorI4RealER6vectorI4UIntE4UInt" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler::updateDutyCyclesHelper___vector:Real:R.vector:UInt:R.UInt"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1ad1faeed8d29a96f49db2a60707e271f3"></span><em class="property">static</em> void <code class="descname">updateDutyCyclesHelper_</code><span class="sig-paren">(</span>vector&lt;Real&gt; &amp;<em>dutyCycles</em>, vector&lt;UInt&gt; &amp;<em>newValues</em>, UInt <em>period</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler23updateDutyCyclesHelper_ER6vectorI4RealER6vectorI4UIntE4UInt" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Updates a duty cycle estimate with a new value. </p>
 <p>This is a helper function that is used to update several duty cycle variables in the Column class, such as: overlapDutyCucle, activeDutyCycle, minPctDutyCycleBeforeInh, minPctDutyCycleAfterInh, etc. returns the updated duty cycle. Duty cycles are updated according to the following formula: <div class="highlight-default"><div class="highlight"><pre><span></span>              <span class="p">(</span><span class="n">period</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">dutyCycle</span> <span class="o">+</span> <span class="n">newValue</span>
   <span class="n">dutyCycle</span> <span class="p">:</span><span class="o">=</span> <span class="o">----------------------------------</span>
