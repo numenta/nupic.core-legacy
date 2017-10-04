@@ -67,10 +67,13 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   # NOTE nupic.core's swig wraps depend on the macro CAPNP_LITE to have a value
   set(CAPNP_COMPILER_DEFINITIONS ${CAPNP_COMPILER_DEFINITIONS} -DCAPNP_LITE=1)
   set(capnp_link_libraries ${capnp_lib_capnp} ${capnp_lib_kj})
+  set(capn_patch_file "${REPOSITORY_DIR}/external/common/share/capnproto/capnproto-0.6.1.patch")
+  set(capnp_patch_command patch -p2 -i ${capn_patch_file})
 else()
   set(CAPNP_CMAKE_DEFINITIONS -DCAPNP_LITE=0)
   set(capnp_link_libraries ${capnp_lib_capnpc} ${capnp_lib_capnp} ${capnp_lib_kj})
 endif()
+message(STATUS "CapnProto capnp_patch_command=${capnp_patch_command}")
 
 
 # NOTE Capnproto link fails with segfault on Travis and Ubuntu when using
@@ -88,6 +91,8 @@ ExternalProject_Add(CapnProto
 
   UPDATE_COMMAND ""
 
+  PATCH_COMMAND ${capnp_patch_command}
+  
   CMAKE_GENERATOR ${CMAKE_GENERATOR}
 
   CMAKE_ARGS
