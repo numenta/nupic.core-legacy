@@ -29,7 +29,13 @@
 #include <nupic/utils/Log.hpp>
 #include <nupic/os/Timer.hpp>
 #include <math.h> // fabs
+
+#ifdef  NTA_VS_2017
+#include <apr_time.h>
+#else
 #include <apr-1/apr_time.h>
+#endif //  NTA_VS_2017
+
 #include <gtest/gtest.h>
 
 using namespace nupic;

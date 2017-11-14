@@ -109,8 +109,8 @@ TEST(SvmTest, svm_parameter_testWriteRead) {
 void setup(svm_problem &obj) {
   obj.recover_ = true;
   obj.n_dims_ = 2;
-  obj.x_.push_back(new float[2]{2.2, 3.3});
-  obj.x_.push_back(new float[2]{0.2, 13.3});
+  obj.x_.push_back(new float[2]{2.2f, 3.3f});
+  obj.x_.push_back(new float[2]{0.2f, 13.3f});
   obj.y_.push_back(4);
   obj.y_.push_back(14);
 }
@@ -188,11 +188,11 @@ TEST(SvmTest, svm_problem01_testWriteRead) {
 void setup(svm_model &obj) {
   obj.n_dims_ = 2;
 
-  obj.sv.push_back(new float[2]{1.1, 1.2});
-  obj.sv.push_back(new float[2]{3.1, 5.2});
+  obj.sv.push_back(new float[2]{1.1f, 1.2f});
+  obj.sv.push_back(new float[2]{3.1f, 5.2f});
 
-  obj.sv_coef.push_back(new float[2]{5.1, 3.2});
-  obj.sv_coef.push_back(new float[2]{6.1, 7.2});
+  obj.sv_coef.push_back(new float[2]{5.1f, 3.2f});
+  obj.sv_coef.push_back(new float[2]{6.1f, 7.2f});
 
   obj.w.resize(2);
   obj.w[0].push_back(33.1);

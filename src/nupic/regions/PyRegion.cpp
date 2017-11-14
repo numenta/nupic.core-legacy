@@ -22,7 +22,17 @@
 
 #include <nupic/regions/PyRegion.hpp>
 
+#ifdef  NTA_VS_2017
+#include <python3.6/Python.h>
+#else
 #include <Python.h>
+#endif
+
+#if PY_MAJOR_VERSION >= 3
+#define PyString_AsStringAndSize PyBytes_AsStringAndSize
+#endif
+
+
 #include <iostream>
 #include <sstream>
 #include <memory>

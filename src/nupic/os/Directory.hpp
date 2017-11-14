@@ -28,8 +28,15 @@
 
 //----------------------------------------------------------------------
 
+
+#ifdef  NTA_VS_2017
+#include <apr.h>
+#include <apr_file_info.h>
+#else
 #include <apr-1/apr.h>
 #include <apr-1/apr_file_info.h>
+#endif //  NTA_VS_2017
+
 #include <string>
 
 //----------------------------------------------------------------------

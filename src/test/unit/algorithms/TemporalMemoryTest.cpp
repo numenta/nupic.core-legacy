@@ -208,8 +208,9 @@ namespace {
     ASSERT_FALSE(tm.getWinnerCells().empty());
     ASSERT_FALSE(tm.getPredictiveCells().empty());
 
-    const UInt zeroColumns[0] = {};
-    tm.compute(0, zeroColumns, true);
+    // zero size array is undefined behavior
+    //const UInt zeroColumns[0] = {};
+    //tm.compute(0, zeroColumns, true);
 
     EXPECT_TRUE(tm.getActiveCells().empty());
     EXPECT_TRUE(tm.getWinnerCells().empty());
@@ -548,10 +549,11 @@ namespace {
       /*seed*/ 42
       );
 
-    const UInt zeroColumns[0] = {};
-    const UInt activeColumns[1] = {0};
+    // zero size array is undefined behavior
+    //const UInt zeroColumns[0] = {};
+    //tm.compute(0, zeroColumns);
 
-    tm.compute(0, zeroColumns);
+    const UInt activeColumns[1] = {0};
     tm.compute(1, activeColumns);
 
     EXPECT_EQ(0, tm.connections.numSegments());

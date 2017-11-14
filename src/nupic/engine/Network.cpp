@@ -832,6 +832,7 @@ void Network::load(const std::string& path)
 
 void Network::loadFromBundle(const std::string& name)
 {
+#ifndef NTA_VS_2017
   if (! StringUtils::endsWith(name, ".nta"))
     NTA_THROW << "loadFromBundle: bundle extension must be \".nta\"";
 
@@ -1027,6 +1028,7 @@ void Network::loadFromBundle(const std::string& name)
     destInput->addLink(newLink, srcOutput);
   } // links
 
+#endif // NTA_VS_2017
 }
 
 void Network::write(NetworkProto::Builder& proto) const

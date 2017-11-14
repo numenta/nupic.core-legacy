@@ -24,6 +24,8 @@
  * Topology helpers
  */
 
+#include <algorithm> //std::max
+
 #include <nupic/math/Topology.hpp>
 #include <nupic/utils/Log.hpp>
 
@@ -92,7 +94,7 @@ Neighborhood::Neighborhood(UInt centerIndex, UInt radius,
 
 Neighborhood::Iterator::Iterator(const Neighborhood& neighborhood, bool end)
   : neighborhood_(neighborhood),
-    offset_(neighborhood.dimensions_.size(), -neighborhood.radius_),
+    offset_(neighborhood.dimensions_.size(), -((Int)neighborhood.radius_)),
     finished_(end)
 {
   // Choose the first offset that has positive resulting coordinates.
@@ -193,7 +195,7 @@ WrappingNeighborhood::WrappingNeighborhood(
 WrappingNeighborhood::Iterator::Iterator(
   const WrappingNeighborhood& neighborhood, bool end)
   : neighborhood_(neighborhood),
-    offset_(neighborhood.dimensions_.size(), -neighborhood.radius_),
+    offset_(neighborhood.dimensions_.size(), -((Int)neighborhood.radius_)),
     finished_(end)
 {
 }
@@ -255,7 +257,7 @@ void WrappingNeighborhood::Iterator::advance_()
 
     if (overflowed)
     {
-      offset_[i] = -neighborhood_.radius_;
+      offset_[i] = -((Int)neighborhood_.radius_);
     }
     else
     {

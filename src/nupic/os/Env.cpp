@@ -26,8 +26,15 @@ Environment Implementation
 
 #include <nupic/os/Env.hpp>
 #include <nupic/utils/Log.hpp>
+
+#ifdef  NTA_VS_2017
+#include <apr_general.h>
+#include <apr_env.h>
+#else
 #include <apr-1/apr_general.h>
 #include <apr-1/apr_env.h>
+#endif //  NTA_VS_2017
+
 #include <cctype> // toupper
 #include <algorithm> // std::transform
 

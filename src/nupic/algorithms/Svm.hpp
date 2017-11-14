@@ -133,7 +133,7 @@ public:
   inline ~svm_problem() {
     if (recover_)
       for (int i = 0; i != size(); ++i)
-#if defined(NTA_OS_WINDOWS) && defined(NTA_COMPILER_MSVC)
+#if defined(NTA_OS_WINDOWS) && defined(NTA_COMPILER_MSVC) && !(NTA_VS_2017)
         _aligned_free(x_[i]);
 #else
         delete[] x_[i];
@@ -156,7 +156,7 @@ public:
       NTA_ASSERT(-HUGE_VAL < x[i] && x[i] < HUGE_VAL);
 #endif
 
-#if defined(NTA_OS_WINDOWS) && defined(NTA_COMPILER_MSVC)
+#if defined(NTA_OS_WINDOWS) && defined(NTA_COMPILER_MSVC) && !(NTA_VS_2017)
     feature_type *new_x = (feature_type *)_aligned_malloc(4 * n_dims(), 16);
 #else
     auto new_x = new feature_type[n_dims()];
@@ -859,7 +859,7 @@ public:
     delete model_;
     model_ = nullptr;
 
-#if defined(NTA_OS_WINDOWS) && defined(NTA_COMPILER_MSVC)
+#if defined(NTA_OS_WINDOWS) && defined(NTA_COMPILER_MSVC) && !(NTA_VS_2017)
     _aligned_free(x_tmp_);
 #else
     delete[] x_tmp_;

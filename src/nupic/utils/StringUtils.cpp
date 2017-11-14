@@ -26,7 +26,13 @@
 
 #include <nupic/utils/StringUtils.hpp>
 #include <nupic/utils/Log.hpp>
+#ifdef  NTA_VS_2017
+#include <apr_base64.h>
+#else
 #include <apr-1/apr_base64.h>
+#endif //  NTA_VS_2017
+
+
 
 using namespace nupic;
 

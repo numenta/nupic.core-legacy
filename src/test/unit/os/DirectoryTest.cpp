@@ -29,7 +29,15 @@
 #include <nupic/os/Path.hpp>
 #include <nupic/os/OS.hpp>
 #include <nupic/os/FStream.hpp>
+
+#ifdef  NTA_VS_2017
+#include <apr.h>
+#else
 #include <apr-1/apr.h>
+#endif //  NTA_VS_2017
+
+
+
 #include <gtest/gtest.h>
 #include <nupic/utils/Log.hpp>
 

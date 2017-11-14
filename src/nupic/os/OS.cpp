@@ -30,9 +30,17 @@
 #include <nupic/os/Directory.hpp>
 #include <nupic/os/Env.hpp>
 #include <nupic/utils/Log.hpp>
+
+#ifdef  NTA_VS_2017
+#include <apr_errno.h>
+#include <apr_time.h>
+#include <apr_network_io.h>
+#else
 #include <apr-1/apr_errno.h>
 #include <apr-1/apr_time.h>
 #include <apr-1/apr_network_io.h>
+#endif //  NTA_VS_2017
+
 
 
 #if defined(NTA_OS_DARWIN)

@@ -221,7 +221,6 @@ ValueMap toValueMap(const char* yamlstring,
                                const std::string & nodeType,
                                const std::string & regionName)
 {
-    
   ValueMap vm;
 
   // yaml-cpp bug: append a space if it is only one character
