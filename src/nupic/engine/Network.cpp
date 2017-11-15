@@ -1026,7 +1026,6 @@ void Network::loadFromBundle(const std::string& name)
                             0/*propagationDelay*/);
     destInput->addLink(newLink, srcOutput);
   } // links
-
 }
 
 void Network::write(NetworkProto::Builder& proto) const

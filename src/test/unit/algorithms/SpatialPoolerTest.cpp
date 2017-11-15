@@ -1076,7 +1076,7 @@ namespace {
     Real initBoostFactors2[] =
       {0, 0, 0, 0, 0, 0};
     vector<Real> trueBoostFactors2 =
-      {3.10599, 0.42035, 6.91251, 5.65949, 0.00769898, 2.54297};
+      {3.10599f, 0.42035f, 6.91251f, 5.65949f, 0.00769898f, 2.54297f};
     vector<Real> resultBoostFactors2(6, 0);
     sp.setGlobalInhibition(false);
     sp.setBoostStrength(10);
@@ -1092,7 +1092,7 @@ namespace {
     Real initBoostFactors3[] =
       {0, 0, 0, 0, 0, 0};
     vector<Real> trueBoostFactors3 =
-      { 1.25441, 0.840857, 1.47207, 1.41435, 0.377822, 1.20523 };
+      { 1.25441f, 0.840857f, 1.47207f, 1.41435f, 0.377822f, 1.20523f };
     vector<Real> resultBoostFactors3(6, 0);
     sp.setWrapAround(true);
     sp.setGlobalInhibition(false);
@@ -1111,7 +1111,7 @@ namespace {
     Real initBoostFactors4[] =
       {0, 0, 0, 0, 0, 0};
     vector<Real> trueBoostFactors4 =
-      { 1.94773, 0.263597, 4.33476, 3.549, 0.00482795, 1.59467 };
+      { 1.94773f, 0.263597f, 4.33476f, 3.549f, 0.00482795f, 1.59467f };
     vector<Real> resultBoostFactors4(6, 0);
     sp.setGlobalInhibition(true);
     sp.setBoostStrength(10);

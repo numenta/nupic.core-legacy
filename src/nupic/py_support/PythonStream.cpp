@@ -23,6 +23,10 @@
 #include <nupic/py_support/PythonStream.hpp>
 #include <nupic/utils/Log.hpp>
 
+#if PY_MAJOR_VERSION >= 3
+#define PyString_FromStringAndSize PyUnicode_FromStringAndSize
+#endif
+
 /**
  * Bumps up size to a nicely aligned larger size.
  * Taken for NuPIC2 from PythonUtils.hpp

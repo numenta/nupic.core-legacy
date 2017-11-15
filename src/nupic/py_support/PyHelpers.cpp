@@ -23,6 +23,20 @@
 
 #include "PyHelpers.hpp"
 
+#if PY_MAJOR_VERSION >= 3
+
+ // String
+#define PyString_AsString PyUnicode_AS_DATA 
+#define PyString_FromString PyUnicode_FromString 
+#define PyString_Check PyUnicode_Check 
+#define PyString_FromStringAndSize PyUnicode_FromStringAndSize
+
+ // Integer
+#define PyInt_Check PyLong_Check
+#define PyInt_FromLong PyLong_FromLong
+#define PyInt_AsLong PyLong_AsLong
+#endif
+
 // Nested namespace nupic::py
 namespace nupic { namespace py
 {
@@ -349,9 +363,15 @@ namespace nupic { namespace py
   // --- 
   // Implementation of Float class
   // ---
+#if PY_MAJOR_VERSION < 3
   Float::Float(const char * n) : Ptr(PyFloat_FromString(String(n), NULL))
   {
   }
+#else
+  Float::Float(const char * n) : Ptr(PyFloat_FromString(String(n)))
+  {
+  }
+#endif
 
   Float::Float(double n) : Ptr(PyFloat_FromDouble(n))
   {

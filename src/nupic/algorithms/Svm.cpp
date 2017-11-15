@@ -361,7 +361,7 @@ svm_model::~svm_model() {
   if (sv_mem == nullptr) {
     for (size_t i = 0; i != sv.size(); ++i)
 
-#if defined(NTA_OS_WINDOWS) && defined(NTA_COMPILER_MSVC)
+#if defined(NTA_OS_WINDOWS) && defined(NTA_COMPILER_MSVC) && !defined(NTA_VS_2017)
       _aligned_free(sv[i]);
 #else
       delete[] sv[i];

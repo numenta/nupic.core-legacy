@@ -36,7 +36,12 @@ using namespace std;
 using namespace nupic;
 
 // APR must be explicit initialized
+
+#ifdef  NTA_VS_2017
+#include <apr_general.h>
+#else
 #include <apr-1/apr_general.h>
+#endif //  NTA_VS_2017
 
 int main(int argc, char ** argv) {
 

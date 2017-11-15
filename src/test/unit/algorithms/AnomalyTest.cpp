@@ -119,7 +119,7 @@ TEST(Anomaly, ComputeScorePartialMatch)
 
 TEST(Anomaly, Cumulative)
 {
-  const int TEST_COUNT = 9;
+  const UInt TEST_COUNT = 9;
   Anomaly a{3};
   std::vector< std::vector<UInt> > preds{TEST_COUNT, {1, 2, 6}};
 
@@ -135,10 +135,10 @@ TEST(Anomaly, Cumulative)
     {1, 2, 6}
   };
 
-  std::vector<float> expected = {0.0, 0.0, 1.0/9.0, 3.0/9.0, 2.0/3.0, 8.0/9.0,
-                                 1.0, 2.0/3.0, 1.0/3.0};
+  std::vector<float> expected = {0.0f, 0.0f, 1.0f/9.0f, 3.0f/9.0f, 2.0f/3.0f, 8.0f/9.0f,
+                                 1.0f, 2.0f/3.0f, 1.0f/3.0f};
 
-  for (int index = 0; index < TEST_COUNT; index++)
+  for (UInt index = 0; index < TEST_COUNT; index++)
   {
     ASSERT_FLOAT_EQ(a.compute(acts[index],  preds[index]), expected[index]);
   }

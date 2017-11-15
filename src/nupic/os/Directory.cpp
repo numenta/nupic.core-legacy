@@ -29,8 +29,15 @@
 #include <nupic/os/Path.hpp>
 #include <nupic/os/OS.hpp>
 #include <nupic/utils/Log.hpp>
+
+#ifdef  NTA_VS_2017
+#include <apr_file_io.h>
+#include <apr_time.h>
+#else
 #include <apr-1/apr_file_io.h>
 #include <apr-1/apr_time.h>
+#endif //  NTA_VS_2017
+
 
 #if defined(NTA_OS_WINDOWS)
   #include <windows.h>

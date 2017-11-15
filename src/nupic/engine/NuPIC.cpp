@@ -27,7 +27,14 @@
 #include <nupic/engine/NuPIC.hpp>
 #include <nupic/engine/RegionImplFactory.hpp>
 #include <nupic/utils/Log.hpp>
+
+#ifdef  NTA_VS_2017
+#include <apr_general.h>
+#else
 #include <apr-1/apr_general.h>
+#endif //  NTA_VS_2017
+
+
 
 namespace nupic
 {
