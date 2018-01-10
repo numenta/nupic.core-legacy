@@ -572,6 +572,7 @@ add_executable(${src_executable_gtests}
                test/unit/utils/GroupByTest.cpp
                test/unit/utils/MovingAverageTest.cpp
                test/unit/utils/RandomTest.cpp
+               test/unit/utils/SlidingWindowTest.cpp
                test/unit/utils/WatcherTest.cpp)
 target_link_libraries(${src_executable_gtests}
                       ${src_lib_static_gtest}
