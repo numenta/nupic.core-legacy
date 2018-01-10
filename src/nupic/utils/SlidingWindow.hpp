@@ -130,7 +130,10 @@ class SlidingWindow {
 
       bool operator==(const SlidingWindow& r2) const {
         const bool sameSizes = (this->size() == r2.size()) && (this->maxCapacity == r2.maxCapacity);
-        return sameSizes && std::equal(this->buffer_.cbegin(), this->buffer_.cend(), r2.getData().cbegin()); //also content must be same
+        if(!sameSizes) return false; 
+        const std::vector<T> v1 = this->getLinearizedData(); 
+        const std::vector<T> v2 = r2.getLinearizedData();
+        return sameSizes && std::equal(v1.cbegin(), v1.cend(), v2.cbegin()); //also content must be same
       }
 
 
