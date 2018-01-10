@@ -167,11 +167,6 @@ class SlidingWindow {
       }
 
 
-      std::ostream& operator<<(std::ostream& os) {
-        return os << ID << std::endl;
-      }
-
-
       public: 
         const UInt maxCapacity;
         const std::string ID; //name of this object
