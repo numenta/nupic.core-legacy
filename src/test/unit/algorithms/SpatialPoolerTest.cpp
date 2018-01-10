@@ -2222,6 +2222,23 @@ namespace {
     EXPECT_EQ(0, countNonzero(activeColumns));
   }
 
+
+  TEST(SpatialPoolerTest, testSameOutputForSameInputNoLearningNoBoosting)
+  {
+    const UInt inputSize = 10;
+    const UInt nColumns = 20;
+    SpatialPooler sp;
+    sp.initialize({inputSize}, {nColumns});
+    sp.setBoostStrength(0);
+
+    vector<UInt> input = { 1, 1, 0, 0, 1, 1, 0, 0, 1, 1 };
+    vector<UInt> out1(nColumns, 0);
+    vector<UInt> out2(nColumns, 0);
+    sp.compute(input.data(), false, out1.data());
+    sp.compute(input.data(), false, out2.data());
+    EXPECT_EQ(out1, out2);
+  }
+
   TEST(SpatialPoolerTest, testSaveLoad)
   {
     const char* filename = "SpatialPoolerSerialization.tmp";
