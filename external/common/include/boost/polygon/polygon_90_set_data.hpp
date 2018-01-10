@@ -9,7 +9,6 @@
 #define BOOST_POLYGON_POLYGON_90_SET_DATA_HPP
 #include "isotropy.hpp"
 #include "point_concept.hpp"
-#include "point_3d_concept.hpp"
 #include "transform.hpp"
 #include "interval_concept.hpp"
 #include "rectangle_concept.hpp"
@@ -47,7 +46,7 @@ namespace boost { namespace polygon{
 
     // constructor from an iterator pair over vertex data
     template <typename iT>
-    inline polygon_90_set_data(orientation_2d orient, iT input_begin, iT input_end) :
+    inline polygon_90_set_data(orientation_2d, iT input_begin, iT input_end) :
       orient_(HORIZONTAL), data_(), dirty_(false), unsorted_(false) {
       dirty_ = true;
       unsorted_ = true;
@@ -120,7 +119,7 @@ namespace boost { namespace polygon{
     }
 
     inline void insert(const std::pair<std::pair<point_data<coordinate_type>, point_data<coordinate_type> >, int>& edge, bool is_hole = false,
-                       orientation_2d orient = HORIZONTAL) {
+                       orientation_2d = HORIZONTAL) {
       std::pair<coordinate_type, std::pair<coordinate_type, int> > vertex;
       vertex.first = edge.first.first.x();
       vertex.second.first = edge.first.first.y();
@@ -163,6 +162,12 @@ namespace boost { namespace polygon{
     inline void get(output_container& output) const {
       get_dispatch(output, typename geometry_concept<typename output_container::value_type>::type());
     }
+
+    template <typename output_container>
+    inline void get(output_container& output, size_t vthreshold) const {
+      get_dispatch(output, typename geometry_concept<typename output_container::value_type>::type(), vthreshold);
+    }
+
 
     template <typename output_container>
     inline void get_polygons(output_container& output) const {
@@ -830,10 +835,25 @@ namespace boost { namespace polygon{
     void get_dispatch(output_container& output, polygon_90_concept tag) const {
       get_fracture(output, true, tag);
     }
+
+    template <typename output_container>
+    void get_dispatch(output_container& output, polygon_90_concept tag,
+      size_t vthreshold) const {
+      get_fracture(output, true, tag, vthreshold);
+    }
+
     template <typename output_container>
     void get_dispatch(output_container& output, polygon_90_with_holes_concept tag) const {
       get_fracture(output, false, tag);
     }
+
+    template <typename output_container>
+    void get_dispatch(output_container& output, polygon_90_with_holes_concept tag,
+      size_t vthreshold) const {
+      get_fracture(output, false, tag, vthreshold);
+    }
+
+
     template <typename output_container>
     void get_dispatch(output_container& output, polygon_45_concept tag) const {
       get_fracture(output, true, tag);
@@ -854,6 +874,13 @@ namespace boost { namespace polygon{
     void get_fracture(output_container& container, bool fracture_holes, concept_type tag) const {
       clean();
       ::boost::polygon::get_polygons(container, data_.begin(), data_.end(), orient_, fracture_holes, tag);
+    }
+
+    template <typename output_container, typename concept_type>
+    void get_fracture(output_container& container, bool fracture_holes, concept_type tag,
+      size_t vthreshold) const {
+      clean();
+      ::boost::polygon::get_polygons(container, data_.begin(), data_.end(), orient_, fracture_holes, tag, vthreshold);
     }
   };
 

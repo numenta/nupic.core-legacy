@@ -23,6 +23,8 @@
 #ifndef NTA_SEGMENTUPDATE_HPP
 #define NTA_SEGMENTUPDATE_HPP
 
+#include <nupic/proto/SegmentUpdate.capnp.h>
+#include <nupic/types/Serializable.hpp>
 #include <nupic/types/Types.hpp>
 #include <vector>
 using namespace nupic;
@@ -43,7 +45,7 @@ namespace nupic {
        * than the iteration they were created in. SegmentUpdates have a timeStamp,
        * and they are discarded without being applied if they become 'stale'.
        */
-      class SegmentUpdate
+      class SegmentUpdate : Serializable<SegmentUpdateProto>
       {
       public:
         typedef std::vector<UInt>::const_iterator const_iterator;
@@ -109,6 +111,41 @@ namespace nupic {
           * are unique and sorted.
           */
          bool invariants(Cells4* cells =nullptr) const;
+
+         //---------------------------------------------------------------------
+         using Serializable::write;
+         void write(SegmentUpdateProto::Builder& proto) const override
+         {
+           proto.setSequenceSegment(_sequenceSegment);
+           proto.setCellIdx(_cellIdx);
+           proto.setSegIdx(_segIdx);
+           proto.setTimestamp(_timeStamp);
+           auto synapsesProto = proto.initSynapses(_synapses.size());
+           for (UInt i = 0; i < _synapses.size(); ++i)
+           {
+             synapsesProto.set(i, _synapses[i]);
+           }
+           proto.setPhase1Flag(_phase1Flag);
+           proto.setWeaklyPredicting(_weaklyPredicting);
+         }
+
+         //---------------------------------------------------------------------
+         using Serializable::read;
+         void read(SegmentUpdateProto::Reader& proto) override
+         {
+           _sequenceSegment = proto.getSequenceSegment();
+           _cellIdx = proto.getCellIdx();
+           _segIdx = proto.getSegIdx();
+           _timeStamp = proto.getTimestamp();
+           auto synapsesProto = proto.getSynapses();
+           _synapses.resize(synapsesProto.size());
+           for (UInt i = 0; i < synapsesProto.size(); ++i)
+           {
+             _synapses[i] = synapsesProto[i];
+           }
+           _phase1Flag = proto.getPhase1Flag();
+           _weaklyPredicting = proto.getWeaklyPredicting();
+         }
 
          //---------------------------------------------------------------------
          void save(std::ostream& outStream) const

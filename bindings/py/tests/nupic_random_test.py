@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # ----------------------------------------------------------------------
 # Numenta Platform for Intelligent Computing (NuPIC)
-# Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
+# Copyright (C) 2017, Numenta, Inc.  Unless you have an agreement
 # with Numenta, Inc., for a separate license for this software code, the
 # following terms and conditions apply:
 #
@@ -23,15 +23,70 @@
 """NuPIC random module tests."""
 
 import cPickle as pickle
+import tempfile
 import unittest
 
 import numpy
+
+try:
+  # NOTE need to import capnp first to activate the magic necessary for
+  # RandomProto_capnp, etc.
+  import capnp
+except ImportError:
+  capnp = None
+else:
+  from nupic.proto.RandomProto_capnp import RandomProto
 
 from nupic.bindings.math import Random
 
 
 
 class TestNupicRandom(unittest.TestCase):
+
+
+  @unittest.skipUnless(
+    capnp, "pycapnp is not installed, skipping serialization test.")
+  def testCapnpSerialization(self):
+    """Test capnp serialization of NuPIC randomness."""
+
+    # Simple test: make sure that dumping / loading works...
+    r = Random(99)
+
+    builderProto = RandomProto.new_message()
+    r.write(builderProto)
+    readerProto = RandomProto.from_bytes(builderProto.to_bytes())
+
+    test1 = [r.getUInt32() for _ in xrange(10)]
+    r = Random(1);
+    r.read(readerProto)
+    self.assertEqual(r.getSeed(), 99)
+    test2 = [r.getUInt32() for _ in xrange(10)]
+
+    self.assertEqual(test1, test2,
+                     "Simple NuPIC random capnp serialization check failed.")
+
+    # A little tricker: dump / load _after_ some numbers have been generated
+    # (in the first test).  Things should still work...
+    # ...the idea of this test is to make sure that the pickle code isn't just
+    # saving the initial seed...
+    builderProto = RandomProto.new_message()
+    r.write(builderProto)
+    readerProto = RandomProto.from_bytes(builderProto.to_bytes())
+
+    test3 = [r.getUInt32() for _ in xrange(10)]
+    r = Random();
+    r.read(readerProto)
+    self.assertEqual(r.getSeed(), 99)
+    test4 = [r.getUInt32() for _ in xrange(10)]
+
+    self.assertEqual(
+      test3, test4,
+      "NuPIC random capnp serialization check didn't work for saving later "
+      "state.")
+
+    self.assertNotEqual(
+      test1, test3,
+      "NuPIC random serialization test gave the same result twice?!?")
 
 
   def testNupicRandomPickling(self):

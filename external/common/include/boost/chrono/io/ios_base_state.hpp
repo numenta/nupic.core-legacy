@@ -23,6 +23,7 @@ namespace boost
     class fmt_masks : public ios_flags<fmt_masks>
     {
       typedef ios_flags<fmt_masks> base_type;
+      fmt_masks& operator=(fmt_masks const& rhs) ;
 
     public:
       fmt_masks(std::ios_base& ios): base_type(ios) {}
@@ -112,9 +113,10 @@ namespace boost
         std::basic_string<CharT> duration_fmt;
       public:
 
-        ios_base_data_aux() :
-          time_fmt(""),
-          duration_fmt("")
+        ios_base_data_aux()
+        //:
+        //  time_fmt(""),
+        //  duration_fmt("")
         {
         }
       };

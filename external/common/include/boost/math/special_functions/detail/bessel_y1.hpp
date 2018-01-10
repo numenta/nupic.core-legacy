@@ -8,6 +8,8 @@
 
 #ifdef _MSC_VER
 #pragma once
+#pragma warning(push)
+#pragma warning(disable:4702) // Unreachable code (release mode only warning)
 #endif
 
 #include <boost/math/special_functions/detail/bessel_j1.hpp>
@@ -170,17 +172,31 @@ T bessel_y1(T x, const Policy& pol)
     {
         T y = 8 / x;
         T y2 = y * y;
-        T z = x - 0.75f * pi<T>();
         rc = evaluate_rational(PC, QC, y2);
         rs = evaluate_rational(PS, QS, y2);
-        factor = sqrt(2 / (x * pi<T>()));
-        value = factor * (rc * sin(z) + y * rs * cos(z));
+        factor = 1 / (sqrt(x) * root_pi<T>());
+        //
+        // This code is really just:
+        //
+        // T z = x - 0.75f * pi<T>();
+        // value = factor * (rc * sin(z) + y * rs * cos(z));
+        //
+        // But using the sin/cos addition rules, plus constants for sin/cos of 3PI/4
+        // which then cancel out with corresponding terms in "factor".
+        //
+        T sx = sin(x);
+        T cx = cos(x);
+        value = factor * (y * rs * (sx - cx) - rc * (sx + cx));
     }
 
     return value;
 }
 
 }}} // namespaces
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 #endif // BOOST_MATH_BESSEL_Y1_HPP
 

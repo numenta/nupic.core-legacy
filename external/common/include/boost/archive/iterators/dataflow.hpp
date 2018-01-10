@@ -2,7 +2,7 @@
 #define BOOST_ARCHIVE_ITERATORS_DATAFLOW_HPP
 
 // MS compatible compilers support #pragma once
-#if defined(_MSC_VER) && (_MSC_VER >= 1020)
+#if defined(_MSC_VER)
 # pragma once
 #endif
 
@@ -18,11 +18,8 @@
 
 #include <boost/assert.hpp>
 
-#include <boost/config.hpp> // for BOOST_DEDUCED_TYPENAME
-
 #include <boost/mpl/eval_if.hpp>
 #include <boost/mpl/if.hpp>
-#include <boost/mpl/bool.hpp>
 #include <boost/mpl/apply.hpp>
 #include <boost/mpl/plus.hpp>
 #include <boost/mpl/int.hpp>

@@ -976,11 +976,11 @@ Real SpatialPooler::avgConnectedSpanForColumn2D_(UInt column)
     return 0;
   }
 
-  auto minmaxRows = minmax_element(rows.begin(),rows.end());
-  UInt rowSpan = *minmaxRows.second /*max*/ - *minmaxRows.first /*min*/ +1;
+  auto minmaxRows = minmax_element(rows.begin(), rows.end());
+  UInt rowSpan = *minmaxRows.second /*max*/ - *minmaxRows.first /*min*/ + 1;
 
-  auto minmaxCols = minmax_element(cols.begin(),cols.end());
-  UInt colSpan = *minmaxCols.second - *minmaxCols.first +1; 
+  auto minmaxCols = minmax_element(cols.begin(), cols.end());
+  UInt colSpan = *minmaxCols.second - *minmaxCols.first + 1; 
 
   return (rowSpan + colSpan) / 2.0;
 

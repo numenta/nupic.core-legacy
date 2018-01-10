@@ -34,6 +34,7 @@
 #   CAPNP_COMPILER_DEFINITIONS: list of -D compiler defintions needed by apps
 #                               that are built against this library (e.g.,
 #                               -DCAPNP_LITE)
+#   CAPNP_BINARIES:          Binaries location
 #
 # EXPORTED FUNCTIONS:
 #
@@ -46,9 +47,9 @@ include(../src/NupicLibraryUtils) # for MERGE_STATIC_LIBRARIES
 set(CAPNP_STATIC_LIB_TARGET capnp-bundle)
 
 set(capnp_lib_url
-    "${REPOSITORY_DIR}/external/common/share/capnproto/capnproto-c++-0.5.3.tar.gz")
+    "${REPOSITORY_DIR}/external/common/share/capnproto/capnproto-c++-0.6.1.tar.gz")
 set(capnp_win32_tools_url
-    "${REPOSITORY_DIR}/external/common/share/capnproto/capnproto-c++-win32-0.5.3.zip")
+    "${REPOSITORY_DIR}/external/common/share/capnproto/capnproto-c++-win32-0.6.1.zip")
 
 set(capnp_lib_kj ${LIB_PRE}/${STATIC_PRE}kj${STATIC_SUF})
 set(capnp_lib_capnp ${LIB_PRE}/${STATIC_PRE}capnp${STATIC_SUF})
@@ -58,7 +59,6 @@ set(CAPNP_INCLUDE_DIRS ${INCLUDE_PRE})
 set(CAPNP_EXECUTABLE ${BIN_PRE}/capnp${CMAKE_EXECUTABLE_SUFFIX})
 set(CAPNPC_CXX_EXECUTABLE ${BIN_PRE}/capnpc-c++${CMAKE_EXECUTABLE_SUFFIX})
 
-
 set(CAPNP_COMPILER_DEFINITIONS)
 
 
@@ -67,10 +67,13 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   # NOTE nupic.core's swig wraps depend on the macro CAPNP_LITE to have a value
   set(CAPNP_COMPILER_DEFINITIONS ${CAPNP_COMPILER_DEFINITIONS} -DCAPNP_LITE=1)
   set(capnp_link_libraries ${capnp_lib_capnp} ${capnp_lib_kj})
+  set(capn_patch_file "${REPOSITORY_DIR}/external/common/share/capnproto/capnproto-0.6.1.patch")
+  set(capnp_patch_command patch -p2 -i ${capn_patch_file})
 else()
   set(CAPNP_CMAKE_DEFINITIONS -DCAPNP_LITE=0)
   set(capnp_link_libraries ${capnp_lib_capnpc} ${capnp_lib_capnp} ${capnp_lib_kj})
 endif()
+message(STATUS "CapnProto capnp_patch_command=${capnp_patch_command}")
 
 
 # NOTE Capnproto link fails with segfault on Travis and Ubuntu when using
@@ -88,6 +91,8 @@ ExternalProject_Add(CapnProto
 
   UPDATE_COMMAND ""
 
+  PATCH_COMMAND ${capnp_patch_command}
+  
   CMAKE_GENERATOR ${CMAKE_GENERATOR}
 
   CMAKE_ARGS
@@ -119,7 +124,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
       ${CMAKE_COMMAND} -E make_directory ${BIN_PRE}
     INSTALL_COMMAND
       ${CMAKE_COMMAND} -E copy_directory
-        "<SOURCE_DIR>/capnproto-tools-win32-0.5.3"
+        "<SOURCE_DIR>/capnproto-tools-win32-0.6.1"
         ${BIN_PRE}
   )
 endif()
@@ -154,6 +159,7 @@ set(CAPNP_EXECUTABLE ${CAPNP_EXECUTABLE} PARENT_SCOPE)
 set(CAPNPC_CXX_EXECUTABLE ${CAPNPC_CXX_EXECUTABLE} PARENT_SCOPE)
 set(CAPNP_CMAKE_DEFINITIONS ${CAPNP_CMAKE_DEFINITIONS} PARENT_SCOPE)
 set(CAPNP_COMPILER_DEFINITIONS ${CAPNP_COMPILER_DEFINITIONS} PARENT_SCOPE)
+set(CAPNP_BINARIES ${BIN_PRE} PARENT_SCOPE)
 
 ## Install headers and libraries.
 ## TODO It's confusing that these same INC and LIB installation steps are duplicated

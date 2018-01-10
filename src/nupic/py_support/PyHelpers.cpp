@@ -385,6 +385,7 @@ namespace nupic { namespace py
 
   Bool::Bool(bool b) : Ptr(b ? Py_True : Py_False)
   {
+    Py_XINCREF(p_);
   }
 
   Bool::Bool(PyObject * p) : Ptr(p)

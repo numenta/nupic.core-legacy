@@ -37,6 +37,7 @@
 #include <nupic/ntypes/Dimensions.hpp>
 #include <nupic/ntypes/Array.hpp>
 #include <nupic/ntypes/ArrayRef.hpp>
+#include <nupic/py_support/NumpyArrayObject.hpp>
 #include <nupic/types/Exception.hpp>
 #include <nupic/os/OS.hpp> // memory leak detection
 #include <nupic/os/Env.hpp>
@@ -517,6 +518,11 @@ int realmain(bool leakTest)
 
 int main(int argc, char *argv[])
 {
+  // This isn't running inside one of the SWIG modules, so we need to
+  // initialize the numpy C API.
+  Py_Initialize();
+  NTA_CHECK(Py_IsInitialized());
+  nupic::initializeNumpy();
 
   /*
    * Without arguments, this program is a simple end-to-end demo

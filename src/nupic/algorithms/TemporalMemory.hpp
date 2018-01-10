@@ -117,6 +117,10 @@ namespace nupic {
          * @param maxSynapsesPerSegment
          * The maximum number of synapses per segment.
          *
+         * @param checkInputs
+         * Whether to check that the activeColumns are sorted without
+         * duplicates. Disable this for a small speed boost.
+         *
          * Notes:
          *
          * predictedSegmentDecrement: A good value is just a bit larger than
@@ -137,7 +141,8 @@ namespace nupic {
           Permanence predictedSegmentDecrement = 0.0,
           Int seed = 42,
           UInt maxSegmentsPerCell=255,
-          UInt maxSynapsesPerSegment=255);
+          UInt maxSynapsesPerSegment=255,
+          bool checkInputs=true);
 
         virtual void initialize(
           vector<UInt> columnDimensions = { 2048 },
@@ -152,7 +157,8 @@ namespace nupic {
           Permanence predictedSegmentDecrement = 0.0,
           Int seed = 42,
           UInt maxSegmentsPerCell=255,
-          UInt maxSynapsesPerSegment=255);
+          UInt maxSynapsesPerSegment=255,
+          bool checkInputs=true);
 
         virtual ~TemporalMemory();
 
@@ -233,6 +239,20 @@ namespace nupic {
         // ==============================
         //  Helper functions
         // ==============================
+
+        /**
+         * Create a segment on the specified cell. This method calls
+         * createSegment on the underlying connections, and it does some extra
+         * bookkeeping. Unit tests should call this method, and not
+         * connections.createSegment().
+         *
+         * @param cell
+         * Cell to add a segment to.
+         *
+         * @return Segment
+         * The created segment.
+         */
+        Segment createSegment(CellIdx cell);
 
         /**
          * Returns the indices of cells that belong to a column.
@@ -337,6 +357,12 @@ namespace nupic {
         void setMaxNewSynapseCount(UInt);
 
         /**
+         * Get and set the checkInputs parameter.
+         */
+        bool getCheckInputs() const;
+        void setCheckInputs(bool);
+
+        /**
          * Returns the permanence increment.
          *
          * @returns Returns the Permanence increment
@@ -359,6 +385,20 @@ namespace nupic {
          */
         Permanence getPredictedSegmentDecrement() const;
         void setPredictedSegmentDecrement(Permanence);
+
+        /**
+         * Returns the maxSegmentsPerCell.
+         *
+         * @returns Max segments per cell
+         */
+        UInt getMaxSegmentsPerCell() const;
+
+        /**
+         * Returns the maxSynapsesPerSegment.
+         *
+         * @returns Max synapses per segment
+         */
+        UInt getMaxSynapsesPerSegment() const;
 
         /**
          * Raises an error if cell index is invalid.
@@ -398,6 +438,9 @@ namespace nupic {
          */
         virtual UInt persistentSize() const;
 
+        bool operator==(const TemporalMemory& other);
+        bool operator!=(const TemporalMemory& other);
+
         //----------------------------------------------------------------------
         // Debugging helpers
         //----------------------------------------------------------------------
@@ -433,6 +476,7 @@ namespace nupic {
         UInt activationThreshold_;
         UInt minThreshold_;
         UInt maxNewSynapseCount_;
+        bool checkInputs_;
         Permanence initialPermanence_;
         Permanence connectedPermanence_;
         Permanence permanenceIncrement_;
@@ -445,6 +489,11 @@ namespace nupic {
         vector<Segment> matchingSegments_;
         vector<UInt32> numActiveConnectedSynapsesForSegment_;
         vector<UInt32> numActivePotentialSynapsesForSegment_;
+
+        UInt maxSegmentsPerCell_;
+        UInt maxSynapsesPerSegment_;
+        UInt64 iteration_;
+        vector<UInt64> lastUsedIterationForSegment_;
 
         Random rng_;
 

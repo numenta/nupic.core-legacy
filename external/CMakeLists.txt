@@ -19,10 +19,11 @@
 # http://numenta.org/licenses/
 # -----------------------------------------------------------------------------
 
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.3)
 project(nupic_core_main CXX)
 
 set(CMAKE_VERBOSE_MAKEFILE OFF)
+include(GNUInstallDirs)
 
 set_directory_properties(PROPERTIES EP_BASE "${EP_BASE}")
 
@@ -30,7 +31,7 @@ set_directory_properties(PROPERTIES EP_BASE "${EP_BASE}")
 set(STATIC_PRE ${CMAKE_STATIC_LIBRARY_PREFIX})
 set(STATIC_SUF ${CMAKE_STATIC_LIBRARY_SUFFIX})
 # This is the library prefix path.
-set(LIB_PRE ${EP_BASE}/Install/lib)
+set(LIB_PRE ${EP_BASE}/Install/${CMAKE_INSTALL_LIBDIR})
 # This is the include path.
 set(INCLUDE_PRE ${EP_BASE}/Install/include)
 # The full prefix path for binaries.

@@ -11,7 +11,11 @@
 #ifndef BOOST_INTERPROCESS_ALLOCATOR_HPP
 #define BOOST_INTERPROCESS_ALLOCATOR_HPP
 
-#if (defined _MSC_VER) && (_MSC_VER >= 1200)
+#ifndef BOOST_CONFIG_HPP
+#  include <boost/config.hpp>
+#endif
+#
+#if defined(BOOST_HAS_PRAGMA_ONCE)
 #  pragma once
 #endif
 
@@ -30,10 +34,8 @@
 #include <boost/assert.hpp>
 #include <boost/utility/addressof.hpp>
 #include <boost/interprocess/detail/type_traits.hpp>
+#include <boost/container/detail/placement_new.hpp>
 
-#include <memory>
-#include <new>
-#include <algorithm>
 #include <cstddef>
 #include <stdexcept>
 
@@ -57,7 +59,7 @@ class allocator
    typedef SegmentManager                                segment_manager;
    typedef typename SegmentManager::void_pointer         void_pointer;
 
-   /// @cond
+   #if !defined(BOOST_INTERPROCESS_DOXYGEN_INVOKED)
    private:
 
    //Self type
@@ -85,7 +87,7 @@ class allocator
 
    //Pointer to the allocator
    alloc_ptr_t mp_mngr;
-   /// @endcond
+   #endif   //#ifndef BOOST_INTERPROCESS_DOXYGEN_INVOKED
 
    public:
    typedef T                                    value_type;
@@ -104,12 +106,12 @@ class allocator
 
    typedef boost::interprocess::version_type<allocator, 2>   version;
 
-   /// @cond
+   #if !defined(BOOST_INTERPROCESS_DOXYGEN_INVOKED)
 
    //Experimental. Don't use.
    typedef boost::container::container_detail::transform_multiallocation_chain
       <typename SegmentManager::multiallocation_chain, T>multiallocation_chain;
-   /// @endcond
+   #endif   //#ifndef BOOST_INTERPROCESS_DOXYGEN_INVOKED
 
    //!Obtains an allocator that allocates
    //!objects of type T2
@@ -164,7 +166,7 @@ class allocator
    //!Swap segment manager. Does not throw. If each allocator is placed in
    //!different memory segments, the result is undefined.
    friend void swap(self_t &alloc1, self_t &alloc2)
-   {  ipcdetail::do_swap(alloc1.mp_mngr, alloc2.mp_mngr);   }
+   {  boost::adl_move_swap(alloc1.mp_mngr, alloc2.mp_mngr);   }
 
    //!Returns maximum the number of objects the previously allocated memory
    //!pointed by p can hold. This size only works for memory allocated with
@@ -174,14 +176,13 @@ class allocator
       return (size_type)mp_mngr->size(ipcdetail::to_raw_pointer(p))/sizeof(T);
    }
 
-   std::pair<pointer, bool>
-      allocation_command(boost::interprocess::allocation_type command,
-                         size_type limit_size,
-                         size_type preferred_size,
-                         size_type &received_size, const pointer &reuse = 0)
+   pointer allocation_command(boost::interprocess::allocation_type command,
+                           size_type limit_size, size_type &prefer_in_recvd_out_size, pointer &reuse)
    {
-      return mp_mngr->allocation_command
-         (command, limit_size, preferred_size, received_size, ipcdetail::to_raw_pointer(reuse));
+      value_type *reuse_raw = ipcdetail::to_raw_pointer(reuse);
+      pointer const p = mp_mngr->allocation_command(command, limit_size, prefer_in_recvd_out_size, reuse_raw);
+      reuse = reuse_raw;
+      return p;
    }
 
    //!Allocates many elements of size elem_size in a contiguous block
@@ -190,22 +191,20 @@ class allocator
    //!preferred_elements. The number of actually allocated elements is
    //!will be assigned to received_size. The elements must be deallocated
    //!with deallocate(...)
-   multiallocation_chain allocate_many
-      (size_type elem_size, size_type num_elements)
+   void allocate_many(size_type elem_size, size_type num_elements, multiallocation_chain &chain)
    {
       if(size_overflows<sizeof(T)>(elem_size)){
          throw bad_alloc();
       }
-      return multiallocation_chain(mp_mngr->allocate_many(elem_size*sizeof(T), num_elements));
+      mp_mngr->allocate_many(elem_size*sizeof(T), num_elements, chain);
    }
 
    //!Allocates n_elements elements, each one of size elem_sizes[i]in a
    //!contiguous block
    //!of memory. The elements must be deallocated
-   multiallocation_chain allocate_many
-      (const size_type *elem_sizes, size_type n_elements)
+   void allocate_many(const size_type *elem_sizes, size_type n_elements, multiallocation_chain &chain)
    {
-      multiallocation_chain(mp_mngr->allocate_many(elem_sizes, n_elements, sizeof(T)));
+      mp_mngr->allocate_many(elem_sizes, n_elements, sizeof(T), chain);
    }
 
    //!Allocates many elements of size elem_size in a contiguous block
@@ -214,10 +213,8 @@ class allocator
    //!preferred_elements. The number of actually allocated elements is
    //!will be assigned to received_size. The elements must be deallocated
    //!with deallocate(...)
-   void deallocate_many(multiallocation_chain chain)
-   {
-      return mp_mngr->deallocate_many(chain.extract_multiallocation_chain());
-   }
+   void deallocate_many(multiallocation_chain &chain)
+   {  mp_mngr->deallocate_many(chain); }
 
    //!Allocates just one object. Memory allocated with this function
    //!must be deallocated only with deallocate_one().
@@ -231,9 +228,8 @@ class allocator
    //!preferred_elements. The number of actually allocated elements is
    //!will be assigned to received_size. Memory allocated with this function
    //!must be deallocated only with deallocate_one().
-   multiallocation_chain allocate_individual
-      (size_type num_elements)
-   {  return this->allocate_many(1, num_elements); }
+   void allocate_individual(size_type num_elements, multiallocation_chain &chain)
+   {  this->allocate_many(1, num_elements, chain); }
 
    //!Deallocates memory previously allocated with allocate_one().
    //!You should never use deallocate_one to deallocate memory allocated
@@ -247,8 +243,8 @@ class allocator
    //!preferred_elements. The number of actually allocated elements is
    //!will be assigned to received_size. Memory allocated with this function
    //!must be deallocated only with deallocate_one().
-   void deallocate_individual(multiallocation_chain chain)
-   {  return this->deallocate_many(boost::move(chain)); }
+   void deallocate_individual(multiallocation_chain &chain)
+   {  this->deallocate_many(chain); }
 
    //!Returns address of mutable object.
    //!Never throws
@@ -265,7 +261,7 @@ class allocator
    //!For backwards compatibility with libraries using C++03 allocators
    template<class P>
    void construct(const pointer &ptr, BOOST_FWD_REF(P) p)
-   {  ::new((void*)ipcdetail::to_raw_pointer(ptr)) value_type(::boost::forward<P>(p));  }
+   {  ::new((void*)ipcdetail::to_raw_pointer(ptr), boost_container_new_t()) value_type(::boost::forward<P>(p));  }
 
    //!Destroys object. Throws if object's
    //!destructor throws
@@ -290,7 +286,7 @@ bool operator!=(const allocator<T, SegmentManager>  &alloc1,
 
 }  //namespace interprocess {
 
-/// @cond
+#if !defined(BOOST_INTERPROCESS_DOXYGEN_INVOKED)
 
 template<class T>
 struct has_trivial_destructor;
@@ -301,7 +297,7 @@ struct has_trivial_destructor
 {
    static const bool value = true;
 };
-/// @endcond
+#endif   //#ifndef BOOST_INTERPROCESS_DOXYGEN_INVOKED
 
 }  //namespace boost {
 

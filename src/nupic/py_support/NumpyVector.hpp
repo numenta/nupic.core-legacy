@@ -27,11 +27,10 @@
  * Contains the NumpyArray class, a wrapper for Python numpy arrays.
  */
 
+#include <nupic/py_support/NumpyArrayObject.hpp>
 #include <nupic/types/Types.hpp> // For nupic::Real.
 #include <nupic/utils/Log.hpp> // For NTA_ASSERT
 #include <algorithm> // For std::copy.
-#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
-#include <numpy/arrayobject.h>
 
 namespace nupic {
 
@@ -74,12 +73,6 @@ namespace nupic {
     /// Releases the reference to the internal numpy array.
     ///////////////////////////////////////////////////////////
     virtual ~NumpyArray();
-
-    ///////////////////////////////////////////////////////////
-    /// Initializes the numpy library.
-    /// Called automatically when constructing a NumpyArray.
-    ///////////////////////////////////////////////////////////
-    static void init();
 
     ///////////////////////////////////////////////////////////
     /// The number of dimensions of the internal numpy array.

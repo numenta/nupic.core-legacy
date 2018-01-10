@@ -21,11 +21,11 @@
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/int.hpp>
 #include <boost/mpl/plus.hpp>
-#include <boost/type_traits.hpp>
+#include <boost/type_traits/remove_reference.hpp>
 
 
 namespace boost { namespace geometry
-{ 
+{
 
 
 /*!
@@ -46,7 +46,7 @@ struct parameter_type_of
             boost::mpl::int_<1>,
             boost::mpl::int_<0>
         >::type base_index_type;
-        
+
     typedef typename boost::mpl::if_c
         <
             Index == 0,
