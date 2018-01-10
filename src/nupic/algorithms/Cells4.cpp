@@ -35,14 +35,14 @@
 #include <assert.h>
 #include <cstring>
 #include <map>
-#include <nupic/math/ArrayAlgo.hpp> // is_in
-#include <nupic/math/StlIo.hpp> // binary_save
+#include <nupic/algorithms/Cell.hpp>
 #include <nupic/algorithms/Cells4.hpp>
 #include <nupic/algorithms/SegmentUpdate.hpp>
-#include <nupic/algorithms/Cell.hpp>
+#include <nupic/math/ArrayAlgo.hpp> // is_in
+#include <nupic/math/StlIo.hpp> // binary_save
 #include <nupic/os/FStream.hpp>
-
 #include <nupic/os/Timer.hpp>
+#include <nupic/proto/Cells4.capnp.h>
 
 using namespace nupic::algorithms::Cells4;
 
@@ -1930,6 +1930,149 @@ void Cells4::reset()
   //  //_rebalance();
   //}
 }
+
+
+//--------------------------------------------------------------------------------
+void Cells4::write(Cells4Proto::Builder& proto) const
+{
+  proto.setVersion(version());
+  proto.setOwnsMemory(_ownsMemory);
+  auto randomProto = proto.initRng();
+  _rng.write(randomProto);
+  proto.setNColumns(_nColumns);
+  proto.setNCellsPerCol(_nCellsPerCol);
+  proto.setActivationThreshold(_activationThreshold);
+  proto.setMinThreshold(_minThreshold);
+  proto.setNewSynapseCount(_newSynapseCount);
+  proto.setNIterations(_nIterations);
+  proto.setNLrnIterations(_nLrnIterations);
+  proto.setSegUpdateValidDuration(_segUpdateValidDuration);
+  proto.setInitSegFreq(_initSegFreq);
+  proto.setPermInitial(_permInitial);
+  proto.setPermConnected(_permConnected);
+  proto.setPermMax(_permMax);
+  proto.setPermDec(_permDec);
+  proto.setPermInc(_permInc);
+  proto.setGlobalDecay(_globalDecay);
+  proto.setDoPooling(_doPooling);
+  proto.setPamLength(_pamLength);
+  proto.setMaxInfBacktrack(_maxInfBacktrack);
+  proto.setMaxLrnBacktrack(_maxLrnBacktrack);
+  proto.setMaxSeqLength(_maxSeqLength);
+  proto.setLearnedSeqLength(_learnedSeqLength);
+  proto.setAvgLearnedSeqLength(_avgLearnedSeqLength);
+  proto.setMaxAge(_maxAge);
+  proto.setVerbosity(_verbosity);
+  proto.setMaxSegmentsPerCell(_maxSegmentsPerCell);
+  proto.setMaxSynapsesPerSegment(_maxSynapsesPerSegment);
+  proto.setCheckSynapseConsistency(_checkSynapseConsistency);
+  proto.setResetCalled(_resetCalled);
+  proto.setAvgInputDensity(_avgInputDensity);
+  proto.setPamCounter(_pamCounter);
+
+  auto learnActiveStateTProto = proto.initLearnActiveStateT();
+  _learnActiveStateT.write(learnActiveStateTProto);
+  auto learnActiveStateT1Proto = proto.initLearnActiveStateT1();
+  _learnActiveStateT1.write(learnActiveStateT1Proto);
+  auto learnPredictedStateTProto = proto.initLearnPredictedStateT();
+  _learnPredictedStateT.write(learnPredictedStateTProto);
+  auto learnPredictedStateT1Proto = proto.initLearnPredictedStateT1();
+  _learnPredictedStateT1.write(learnPredictedStateT1Proto);
+
+  auto cellListProto = proto.initCells(_nCells);
+  for (UInt i = 0; i < _nCells; ++i)
+  {
+    auto cellProto = cellListProto[i];
+    _cells[i].write(cellProto);
+  }
+
+  auto segmentUpdatesListProto = proto.initSegmentUpdates(
+      _segmentUpdates.size());
+  for (UInt i = 0; i < _segmentUpdates.size(); ++i)
+  {
+    auto segmentUpdateProto = segmentUpdatesListProto[i];
+    _segmentUpdates[i].write(segmentUpdateProto);
+  }
+}
+
+
+//--------------------------------------------------------------------------------
+void Cells4::read(Cells4Proto::Reader& proto)
+{
+  NTA_CHECK(proto.getVersion() == 2);
+
+  initialize(proto.getNColumns(),
+             proto.getNCellsPerCol(),
+             proto.getActivationThreshold(),
+             proto.getMinThreshold(),
+             proto.getNewSynapseCount(),
+             proto.getSegUpdateValidDuration(),
+             proto.getPermInitial(),
+             proto.getPermConnected(),
+             proto.getPermMax(),
+             proto.getPermDec(),
+             proto.getPermInc(),
+             proto.getGlobalDecay(),
+             proto.getDoPooling(),
+             proto.getOwnsMemory());
+  auto randomProto = proto.getRng();
+  _rng.read(randomProto);
+  _nIterations = proto.getNIterations();
+  _nLrnIterations = proto.getNLrnIterations();
+  _initSegFreq = proto.getInitSegFreq();
+  _pamLength = proto.getPamLength();
+  _maxInfBacktrack = proto.getMaxInfBacktrack();
+  _maxLrnBacktrack = proto.getMaxLrnBacktrack();
+  _maxSeqLength = proto.getMaxSeqLength();
+  _learnedSeqLength = proto.getLearnedSeqLength();
+  _avgLearnedSeqLength = proto.getAvgLearnedSeqLength();
+  _maxAge = proto.getMaxAge();
+  _verbosity = proto.getVerbosity();
+  _maxSegmentsPerCell = proto.getMaxSegmentsPerCell();
+  _maxSynapsesPerSegment = proto.getMaxSynapsesPerSegment();
+  _checkSynapseConsistency = proto.getCheckSynapseConsistency();
+
+  _resetCalled = proto.getResetCalled();
+
+  _avgInputDensity = proto.getAvgInputDensity();
+  _pamCounter = proto.getPamCounter();
+
+  auto learnActiveStateTProto = proto.getLearnActiveStateT();
+  _learnActiveStateT.read(learnActiveStateTProto);
+  auto learnActiveStateT1Proto = proto.getLearnActiveStateT1();
+  _learnActiveStateT1.read(learnActiveStateT1Proto);
+  auto learnPredictedStateTProto = proto.getLearnPredictedStateT();
+  _learnPredictedStateT.read(learnPredictedStateTProto);
+  auto learnPredictedStateT1Proto = proto.getLearnPredictedStateT1();
+  _learnPredictedStateT1.read(learnPredictedStateT1Proto);
+
+  auto cellListProto = proto.getCells();
+  _nCells = cellListProto.size();
+  _cells.resize(_nCells);
+  for (UInt i = 0; i < cellListProto.size(); ++i)
+  {
+    auto cellProto = cellListProto[i];
+    _cells[i].read(cellProto);
+  }
+
+  auto segmentUpdatesListProto = proto.getSegmentUpdates();
+  _segmentUpdates.clear();
+  _segmentUpdates.resize(segmentUpdatesListProto.size());
+  for (UInt i = 0; i < segmentUpdatesListProto.size(); ++i)
+  {
+    auto segmentUpdateProto = segmentUpdatesListProto[i];
+    _segmentUpdates[i].read(segmentUpdateProto);
+  }
+
+  rebuildOutSynapses();
+  if (_checkSynapseConsistency || (_nCells * _maxSegmentsPerCell < 100000))
+  {
+    NTA_CHECK(invariants(true));
+  }
+
+  _version = VERSION;
+}
+
 
 //--------------------------------------------------------------------------------
 void Cells4::save(std::ostream& outStream) const

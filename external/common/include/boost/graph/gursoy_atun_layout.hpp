@@ -10,10 +10,11 @@
 #ifndef BOOST_GRAPH_GURSOY_ATUN_LAYOUT_HPP
 #define BOOST_GRAPH_GURSOY_ATUN_LAYOUT_HPP
 
-// Gursoy-Atun graph layout, based on:
+// Gürsoy-Atun graph layout, based on:
 // "Neighbourhood Preserving Load Balancing: A Self-Organizing Approach"
-// in EuroPar 2000, p. 234 of LNCS 1900
-// http://springerlink.metapress.com/link.asp?id=pcu07ew5rhexp9yt
+// in 6th International Euro-Par Conference Munich, Germany, August 29 – September 1, 2000 Proceedings,
+// pp 234-241
+// http://dx.doi.org/10.1007/3-540-44520-X_32
 
 #include <boost/config/no_tr1/cmath.hpp>
 #include <boost/throw_exception.hpp>
@@ -208,9 +209,6 @@ void gursoy_atun_refine(const VertexListAndIncidenceGraph& graph,
 
   typedef typename graph_traits<VertexListAndIncidenceGraph>::vertex_iterator
     vertex_iterator;
-  typedef typename graph_traits<VertexListAndIncidenceGraph>::vertex_descriptor
-    vertex_descriptor;
-  typedef typename Topology::point_type point_type;
   vertex_iterator i, iend;
   double diameter_ratio = (double)diameter_final / diameter_initial;
   double learning_constant_ratio = 
@@ -230,6 +228,7 @@ void gursoy_atun_refine(const VertexListAndIncidenceGraph& graph,
                                 vertex_index_map);
   for (int round = 0; round < nsteps; ++round) {
     double part_done = (double)round / (nsteps - 1);
+    // fprintf(stderr, "%2d%% done\n", int(rint(part_done * 100.)));
     int diameter = (int)(diameter_initial * pow(diameter_ratio, part_done));
     double learning_constant = 
       learning_constant_initial * pow(learning_constant_ratio, part_done);

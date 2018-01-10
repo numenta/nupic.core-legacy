@@ -30,7 +30,8 @@ USAGE="Usage:
 This script builds and tests the nupic.bindings Python extension.
 
 In Debug builds, also
-  - Turns on the Include What You Use check (assumes iwyu is installed)
+  - Turns on the Include What You Use check if clang is being used (assumes
+    iwyu is installed)
 
 ASUMPTION: Expects a pristine nupic.core source tree without any remnant build
    artifacts from prior build attempts. Otherwise, behavior is undefined.
@@ -85,16 +86,10 @@ TEST_RESULTS_DIR="${NUPIC_CORE_ROOT}/test_results"
 echo "RUNNING NUPIC BINDINGS BUILD: BUILD_TYPE=${BUILD_TYPE}, " \
      "DEST_WHEELHOUSE=${DEST_WHEELHOUSE}" >&2
 
-# Install pycapnp to get the matching capnproto headers for nupic.core build
-# NOTE Conditional pycapnp dependency should be incorporated into
-# bindings/py/requirements.txt to abstract it from upstream scripts.
-pip install pycapnp==0.5.8
-
 # Install nupic.bindings dependencies; the nupic.core cmake build depends on
 # some of them (e.g., numpy).
 pip install \
     --ignore-installed \
-    --timeout=30 \
     -r ${NUPIC_CORE_ROOT}/bindings/py/requirements.txt
 
 #
@@ -109,14 +104,19 @@ cd ${NUPIC_CORE_ROOT}/build/scripts
 
 # Configure nupic.core build
 if [[ "$BUILD_TYPE" == "Debug" ]]; then
-  EXTRA_CMAKE_DEFINITIONS="-DNUPIC_IWYU=ON -DNTA_COV_ENABLED=ON"
+  EXTRA_CMAKE_DEFINITIONS="-DNTA_COV_ENABLED=ON"
+
+  # Only add iwyu for clang builds
+  if [[ $CC == *"clang"* ]]; then
+    EXTRA_CMAKE_DEFINITIONS="-DNUPIC_IWYU=ON ${EXTRA_CMAKE_DEFINITIONS}"
+  fi
 fi
 
 cmake ${NUPIC_CORE_ROOT} \
     -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
     ${EXTRA_CMAKE_DEFINITIONS} \
     -DCMAKE_INSTALL_PREFIX=${NUPIC_CORE_ROOT}/build/release \
-    -DPY_EXTENSIONS_DIR=${NUPIC_CORE_ROOT}/bindings/py/nupic/bindings
+    -DPY_EXTENSIONS_DIR=${NUPIC_CORE_ROOT}/bindings/py/src/nupic/bindings
 
 # Build nupic.core
 make install
@@ -135,7 +135,7 @@ python setup.py bdist_wheel --dist-dir ${DEST_WHEELHOUSE} ${EXTRA_WHEEL_OPTIONS}
 #
 
 # Install nupic.bindings before running c++ tests; py_region_test depends on it
-pip install ${PIP_USER} \
+pip install \
     --ignore-installed \
     ${DEST_WHEELHOUSE}/nupic.bindings-*.whl
 

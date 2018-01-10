@@ -106,7 +106,7 @@ namespace boost {
     template <>
     struct linear_solver<3> {
       template <typename Vec>
-      static Vec solve(double mat[2][2], Vec rhs) {
+      static Vec solve(double mat[3][3], Vec rhs) {
         double denom = mat[0][0] * (mat[1][1] * mat[2][2] - mat[2][1] * mat[1][2])
                      - mat[1][0] * (mat[0][1] * mat[2][2] - mat[2][1] * mat[0][2])
                      + mat[2][0] * (mat[0][1] * mat[1][2] - mat[1][1] * mat[0][2]);
@@ -475,12 +475,12 @@ namespace boost {
    * from every vertex to every other vertex, which is computed in the
    * first stages of the algorithm. This value's type must be a model
    * of BasicMatrix with value type equal to the value type of the
-   * weight map. The default is a a vector of vectors.
+   * weight map. The default is a vector of vectors.
    *
    * \param spring_strength (UTIL/OUT) will be used to store the
    * strength of the spring between every pair of vertices. This
    * value's type must be a model of BasicMatrix with value type equal
-   * to the value type of the weight map. The default is a a vector of
+   * to the value type of the weight map. The default is a vector of
    * vectors.
    *
    * \param partial_derivatives (UTIL) will be used to store the

@@ -322,7 +322,6 @@ namespace nupic
   }
 
 
-
   /**
    * These internal methods are called by Network as
    * part of initialization.
@@ -411,9 +410,6 @@ namespace nupic
       i->second->initialize();
     }
   }
-
-
-
 
 
   void

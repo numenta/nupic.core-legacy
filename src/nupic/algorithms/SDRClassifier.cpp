@@ -84,17 +84,29 @@ namespace nupic
       }
 
       void SDRClassifier::compute(
-        UInt recordNum, const vector<UInt>& patternNZ, UInt bucketIdx,
-        Real64 actValue, bool category, bool learn, bool infer,
+        UInt recordNum, const vector<UInt>& patternNZ, const vector<UInt>& bucketIdxList,
+        const vector<Real64>& actValueList, bool category, bool learn, bool infer,
         ClassifierResult* result)
       {
-        // update pattern history
-        patternNZHistory_.emplace_back(patternNZ.begin(), patternNZ.end());
-        recordNumHistory_.push_back(recordNum);
-        if (patternNZHistory_.size() > maxSteps_)
+        // ensures that recordNum increases monotonically
+        UInt lastRecordNum = -1;
+        if (recordNumHistory_.size() > 0)
         {
-          patternNZHistory_.pop_front();
-          recordNumHistory_.pop_front();
+          lastRecordNum = recordNumHistory_[recordNumHistory_.size()-1];
+          if (recordNum < lastRecordNum)
+            NTA_THROW << "the record number has to increase monotonically";
+        }
+
+        // update pattern history if this is a new record
+        if (recordNumHistory_.size() == 0 || recordNum > lastRecordNum)
+        {
+          patternNZHistory_.emplace_back(patternNZ.begin(), patternNZ.end());
+          recordNumHistory_.push_back(recordNum);
+          if (patternNZHistory_.size() > maxSteps_)
+          {
+            patternNZHistory_.pop_front();
+            recordNumHistory_.pop_front();
+          }
         }
 
         // if input pattern has greater index than previously seen, update 
@@ -116,38 +128,43 @@ namespace nupic
         // if in inference mode, compute likelihood and update return value
         if (infer)
         {
-            infer_(patternNZ, bucketIdx, actValue, result);
+          infer_(patternNZ, actValueList, result);
         }
 
         // update weights if in learning mode
         if (learn)
         {
-          // if bucket is greater, update maxBucketIdx_ and augment weight
-          // matrix with zero-padding
-          if (bucketIdx > maxBucketIdx_) 
+          for(size_t categoryI=0; categoryI < bucketIdxList.size(); categoryI++)
           {
-            maxBucketIdx_ = bucketIdx;
-            for (const auto& step : steps_)
+            UInt bucketIdx = bucketIdxList[categoryI];
+            Real64 actValue = actValueList[categoryI];
+            // if bucket is greater, update maxBucketIdx_ and augment weight
+            // matrix with zero-padding
+            if (bucketIdx > maxBucketIdx_) 
             {
-              Matrix& weights = weightMatrix_.at(step);
-              weights.resize(maxInputIdx_ + 1, maxBucketIdx_ + 1);
+              maxBucketIdx_ = bucketIdx;
+              for (const auto& step : steps_)
+              {
+                Matrix& weights = weightMatrix_.at(step);
+                weights.resize(maxInputIdx_ + 1, maxBucketIdx_ + 1);
+              }
             }
-          }
 
-          // update rolling averages of bucket values
-          while (actualValues_.size() <= maxBucketIdx_)
-          {
-            actualValues_.push_back(0.0);
-            actualValuesSet_.push_back(false);
-          }
-          if (!actualValuesSet_[bucketIdx] || category)
-          {
-            actualValues_[bucketIdx] = actValue;
-            actualValuesSet_[bucketIdx] = true;
-          } else {
-            actualValues_[bucketIdx] =
-                ((1.0 - actValueAlpha_) * actualValues_[bucketIdx]) +
-                (actValueAlpha_ * actValue);
+            // update rolling averages of bucket values
+            while (actualValues_.size() <= maxBucketIdx_)
+            {
+              actualValues_.push_back(0.0);
+              actualValuesSet_.push_back(false);
+            }
+            if (!actualValuesSet_[bucketIdx] || category)
+            {
+              actualValues_[bucketIdx] = actValue;
+              actualValuesSet_[bucketIdx] = true;
+            } else {
+              actualValues_[bucketIdx] =
+                  ((1.0 - actValueAlpha_) * actualValues_[bucketIdx]) +
+                  (actValueAlpha_ * actValue);
+            }            
           }
 
           // compute errors and update weights
@@ -162,7 +179,7 @@ namespace nupic
             // update weights
             if (binary_search(steps_.begin(), steps_.end(), nSteps))
             {
-              vector<Real64> error = calculateError_(bucketIdx, 
+              vector<Real64> error = calculateError_(bucketIdxList, 
                 learnPatternNZ, nSteps);
               Matrix& weights = weightMatrix_.at(nSteps);
               for (auto& bit : learnPatternNZ)
@@ -184,8 +201,8 @@ namespace nupic
         return s.str().size();
       }
 
-      void SDRClassifier::infer_(const vector<UInt>& patternNZ, UInt bucketIdx, 
-        Real64 actValue, ClassifierResult* result)
+      void SDRClassifier::infer_(const vector<UInt>& patternNZ, 
+        const vector<Real64>&  actValue, ClassifierResult* result)
       {
         // add the actual values to the return value. For buckets that haven't
         // been seen yet, the actual value doesn't matter since it will have
@@ -204,7 +221,7 @@ namespace nupic
             {
               (*actValueVector)[i] = 0;
             } else {
-              (*actValueVector)[i] = actValue;
+              (*actValueVector)[i] = actValue[0];
             }
           }
         }
@@ -227,7 +244,7 @@ namespace nupic
         }
       }
 
-      vector<Real64> SDRClassifier::calculateError_(UInt bucketIdx, 
+      vector<Real64> SDRClassifier::calculateError_(const vector<UInt>& bucketIdxList, 
         const vector<UInt> patternNZ, UInt step)
       {
         // compute predicted likelihoods
@@ -244,7 +261,9 @@ namespace nupic
 
         // compute target likelihoods
         vector<Real64> targetDistribution (maxBucketIdx_ + 1, 0.0);
-        targetDistribution[bucketIdx] = 1.0;
+        Real64 numCategories = (Real64)bucketIdxList.size();
+        for(size_t i=0; i<bucketIdxList.size(); i++)
+          targetDistribution[bucketIdxList[i]] = 1.0 / numCategories;
 
         axby(-1.0, likelihoods, 1.0, targetDistribution);
         return likelihoods;

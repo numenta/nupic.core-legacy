@@ -27,6 +27,22 @@
 %pythoncode %{
 import os
 
+try:
+  # NOTE need to import capnp first to activate the magic necessary for
+  # SpatialPoolerProto_capnp, etc.
+  import capnp
+except ImportError:
+  capnp = None
+else:
+  from nupic.proto.Cells4_capnp import Cells4Proto
+  from nupic.proto.ClaClassifier_capnp import ClaClassifierProto
+  from nupic.proto.ConnectionsProto_capnp import ConnectionsProto
+  from nupic.proto.SdrClassifier_capnp import SdrClassifierProto
+  from nupic.proto.SpatialPoolerProto_capnp import SpatialPoolerProto
+  from nupic.proto.SvmProto_capnp import (SvmDenseProto, Svm01Proto)
+  from nupic.proto.TemporalMemoryProto_capnp import TemporalMemoryProto
+
+
 _ALGORITHMS = _algorithms
 %}
 
@@ -78,22 +94,30 @@ _ALGORITHMS = _algorithms
 #include <nupic/algorithms/Cells4.hpp>
 #include <nupic/algorithms/ClassifierResult.hpp>
 #include <nupic/algorithms/Connections.hpp>
-#include <nupic/algorithms/FastClaClassifier.hpp>
 #include <nupic/algorithms/SDRClassifier.hpp>
 #include <nupic/algorithms/InSynapse.hpp>
 #include <nupic/algorithms/OutSynapse.hpp>
 #include <nupic/algorithms/SegmentUpdate.hpp>
 
+#include <nupic/proto/Cells4.capnp.h>
 #include <nupic/proto/ConnectionsProto.capnp.h>
 #include <nupic/proto/SpatialPoolerProto.capnp.h>
 #include <nupic/proto/TemporalMemoryProto.capnp.h>
+%}
 
-#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
-#include <numpy/arrayobject.h>
+//
+// Numpy API
+//
+%{
+#include <nupic/py_support/NumpyArrayObject.hpp>
+%}
+%init %{
+  nupic::initializeNumpy();
+%}
+
+%{
 #include <nupic/py_support/NumpyVector.hpp>
-#if !CAPNP_LITE
 #include <nupic/py_support/PyCapnp.hpp>
-#endif
 #include <nupic/py_support/PythonStream.hpp>
 #include <nupic/py_support/PyHelpers.hpp>
 
@@ -184,6 +208,7 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
   );
 }
 }
+
 
 //--------------------------------------------------------------------------------
 // SVM
@@ -291,7 +316,46 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
       self.this = _ALGORITHMS.new_svm_dense()
       self.thisown = 1
       self.loadFromString(inString)
-      %}
+    
+    def convertedRead(self, proto):
+      """Initialize the svm_dense instance from the given SvmDenseProto
+      reader.
+
+      :param proto: SvmDenseProto message reader containing data from a
+                    previously serialized svm_dense instance.
+
+      """
+      self._initFromCapnpPyBytes(proto.as_builder().to_bytes()) # copy * 2
+
+    @classmethod
+    def read(cls, proto):
+      instance = cls()
+      instance.convertedRead(proto)
+      return instance
+
+    def write(self, pyBuilder):
+      """Serialize the svm_dense instance using capnp.
+
+      :param: Destination SvmDenseProto message builder
+      """
+      reader = SvmDenseProto.from_bytes(self._writeAsCapnpPyBytes()) # copy
+      pyBuilder.from_dict(reader.to_dict())  # copy
+    
+    @classmethod
+    def getSchema(cls):
+      """ Get Cap'n Proto schema. 
+      :return: Cap'n Proto schema
+      """
+      return SvmDenseProto  
+  %}
+  inline PyObject* _writeAsCapnpPyBytes() const
+  {
+    return nupic::PyCapnpHelper::writeAsPyBytes(*self);
+  }
+  inline void _initFromCapnpPyBytes(PyObject* pyBytes)
+  {
+    nupic::PyCapnpHelper::initFromPyBytes(*self, pyBytes);
+  }
 
   void loadFromString(const std::string& inString)
   {
@@ -364,7 +428,48 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
       self.this = _ALGORITHMS.new_svm_01()
       self.thisown = 1
       self.loadFromString(inString)
-      %}
+    
+    def convertedRead(self, proto):
+      """Initialize the svm_dense instance from the given Svm01Proto
+      reader.
+
+      :param proto: Svm01Proto message reader containing data from a
+                    previously serialized svm_dense instance.
+
+      """
+      self._initFromCapnpPyBytes(proto.as_builder().to_bytes()) # copy * 2
+
+    @classmethod
+    def read(cls, proto):
+      instance = cls()
+      instance.convertedRead(proto)
+      return instance
+
+    def write(self, pyBuilder):
+      """Serialize the svm_01 instance using capnp.
+
+      :param: Destination Svm01Proto message builder
+      """
+      reader = Svm01Proto.from_bytes(self._writeAsCapnpPyBytes()) # copy
+      pyBuilder.from_dict(reader.to_dict())  # copy
+    
+    @classmethod
+    def getSchema(cls):
+      """ Get Cap'n Proto schema. 
+      :return: Cap'n Proto schema
+      """
+      return Svm01Proto        
+  %}
+
+  inline PyObject* _writeAsCapnpPyBytes() const
+  {
+    return nupic::PyCapnpHelper::writeAsPyBytes(*self);
+  }
+  
+  inline void _initFromCapnpPyBytes(PyObject* pyBytes)
+  {
+    nupic::PyCapnpHelper::initFromPyBytes(*self, pyBytes);
+  }
 
   void loadFromString(const std::string& inString)
   {
@@ -782,7 +887,32 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
     def __setstate__(self, inString):
       self.this = _ALGORITHMS.new_Cells4()
       self.loadFromString(inString)
+
+    @classmethod
+    def read(cls, proto):
+      instance = cls()
+      instance._initFromCapnpPyBytes(proto.as_builder().to_bytes()) # copy * 2
+      return instance
+
+    def write(self, pyBuilder):
+      """Serialize the Cells4 instance using capnp.
+
+      :param: Destination Cells4Proto message builder
+      """
+      reader = Cells4Proto.from_bytes(self._writeAsCapnpPyBytes()) # copy
+      pyBuilder.from_dict(reader.to_dict())  # copy
+
   %}
+
+  inline PyObject* _writeAsCapnpPyBytes() const
+  {
+    return nupic::PyCapnpHelper::writeAsPyBytes(*self);
+  }
+
+  inline void _initFromCapnpPyBytes(PyObject* pyBytes)
+  {
+    nupic::PyCapnpHelper::initFromPyBytes(*self, pyBytes);
+  }
 
   void loadFromString(const std::string& inString)
   {
@@ -1013,6 +1143,24 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
       instance.convertedRead(proto)
       return instance
 
+    def write(self, pyBuilder):
+      """Serialize the SpatialPooler instance using capnp.
+
+      :param: Destination SpatialPoolerProto message builder
+      """
+      reader = SpatialPoolerProto.from_bytes(self._writeAsCapnpPyBytes()) # copy
+      pyBuilder.from_dict(reader.to_dict())  # copy
+
+
+    def convertedRead(self, proto):
+      """Initialize the SpatialPooler instance from the given SpatialPoolerProto
+      reader.
+
+      :param proto: SpatialPoolerProto message reader containing data from a
+                    previously serialized SpatialPooler instance.
+
+      """
+      self._initFromCapnpPyBytes(proto.as_builder().to_bytes()) # copy * 2
   %}
 
   inline void compute(PyObject *py_x, bool learn, PyObject *py_y)
@@ -1028,27 +1176,14 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
     self->stripUnlearnedColumns((nupic::UInt*) PyArray_DATA(x));
   }
 
-  inline void write(PyObject* pyBuilder) const
+  inline PyObject* _writeAsCapnpPyBytes() const
   {
-  %#if !CAPNP_LITE
-    SpatialPoolerProto::Builder proto =
-        getBuilder<SpatialPoolerProto>(pyBuilder);
-    self->write(proto);
-  %#else
-    throw std::logic_error(
-        "SpatialPooler.write is not implemented when compiled with CAPNP_LITE=1.");
-  %#endif
+    return nupic::PyCapnpHelper::writeAsPyBytes(*self);
   }
 
-  inline void convertedRead(PyObject* pyReader)
+  inline void _initFromCapnpPyBytes(PyObject* pyBytes)
   {
-  %#if !CAPNP_LITE
-    SpatialPoolerProto::Reader proto = getReader<SpatialPoolerProto>(pyReader);
-    self->read(proto);
-  %#else
-    throw std::logic_error(
-        "SpatialPooler.read is not implemented when compiled with CAPNP_LITE=1.");
-  %#endif
+    nupic::PyCapnpHelper::initFromPyBytes(*self, pyBytes);
   }
 
   void loadFromString(const std::string& inString)
@@ -1227,170 +1362,6 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
 }
 
 
-%include <nupic/algorithms/FastClaClassifier.hpp>
-
-%pythoncode %{
-  import numpy
-%}
-
-%extend nupic::algorithms::cla_classifier::FastCLAClassifier
-{
-  %pythoncode %{
-    VERSION = 0
-
-    def __init__(self, steps=(1,), alpha=0.001, actValueAlpha=0.3, verbosity=0):
-      self.this = _ALGORITHMS.new_FastCLAClassifier(
-          steps, alpha, actValueAlpha, verbosity)
-      self.valueToCategory = {}
-      self.version = FastCLAClassifier.VERSION
-
-    def compute(self, recordNum, patternNZ, classification, learn, infer):
-      isNone = False
-      noneSentinel = 3.14159
-
-      if type(classification["actValue"]) in (int, float):
-        actValue = classification["actValue"]
-        category = False
-      elif classification["actValue"] is None:
-        # Use the sentinel value so we know if it gets used in actualValues
-        # returned.
-        actValue = noneSentinel
-        # Turn learning off this step.
-        learn = False
-        category = False
-        # This does not get used when learning is disabled anyway.
-        classification["bucketIdx"] = 0
-        isNone = True
-      else:
-        actValue = int(classification["bucketIdx"])
-        category = True
-
-      result = self.convertedCompute(
-          recordNum, patternNZ, int(classification["bucketIdx"]),
-          actValue, category, learn, infer)
-
-      if isNone:
-        for i, v in enumerate(result["actualValues"]):
-          if v - noneSentinel < 0.00001:
-            result["actualValues"][i] = None
-      arrayResult = dict((k, numpy.array(v)) if k != "actualValues" else (k, v)
-                         for k, v in result.iteritems())
-
-      if self.valueToCategory or isinstance(classification["actValue"], basestring):
-        # Convert the bucketIdx back to the original value.
-        for i in xrange(len(arrayResult["actualValues"])):
-          if arrayResult["actualValues"][i] is not None:
-            arrayResult["actualValues"][i] = self.valueToCategory.get(int(
-                arrayResult["actualValues"][i]), classification["actValue"])
-
-        self.valueToCategory[actValue] = classification["actValue"]
-
-      return arrayResult
-
-    def __getstate__(self):
-      # Save the local attributes but override the C++ classifier with the
-      # string representation.
-      d = dict(self.__dict__)
-      d["this"] = self.getCState()
-      return d
-
-    def __setstate__(self, state):
-      # Create an empty C++ classifier and populate it from the serialized
-      # string.
-      self.this = _ALGORITHMS.new_FastCLAClassifier()
-      if isinstance(state, str):
-        self.loadFromString(state)
-        self.valueToCategory = {}
-      else:
-        assert state["version"] == 0
-        self.loadFromString(state["this"])
-        # Use the rest of the state to set local Python attributes.
-        del state["this"]
-        self.__dict__.update(state)
-
-    @classmethod
-    def read(cls, proto):
-      instance = cls()
-      instance.convertedRead(proto)
-      return instance
-  %}
-
-  void loadFromString(const std::string& inString)
-  {
-    std::istringstream inStream(inString);
-    self->load(inStream);
-  }
-
-  PyObject* getCState()
-  {
-    SharedPythonOStream py_s(self->persistentSize());
-    std::ostream& s = py_s.getStream();
-    // TODO: Consider writing floats as binary instead.
-    s.flags(ios::scientific);
-    s.precision(numeric_limits<double>::digits10 + 1);
-    self->save(s);
-    return py_s.close();
-  }
-
-  PyObject* convertedCompute(UInt recordNum, const vector<UInt>& patternNZ,
-                             UInt bucketIdx, Real64 actValue, bool category,
-                             bool learn, bool infer)
-  {
-    ClassifierResult result;
-    self->fastCompute(recordNum, patternNZ, bucketIdx, actValue, category,
-                      learn, infer, &result);
-    PyObject* d = PyDict_New();
-    for (map<Int, vector<Real64>*>::const_iterator it = result.begin();
-         it != result.end(); ++it)
-    {
-      PyObject* key;
-      if (it->first == -1)
-      {
-        key = PyString_FromString("actualValues");
-      } else {
-        key = PyInt_FromLong(it->first);
-      }
-
-      PyObject* value = PyList_New(it->second->size());
-      for (UInt i = 0; i < it->second->size(); ++i)
-      {
-        PyObject* pyActValue = PyFloat_FromDouble(it->second->at(i));
-        PyList_SetItem(value, i, pyActValue);
-      }
-
-      PyDict_SetItem(d, key, value);
-      Py_DECREF(value);
-    }
-    return d;
-  }
-
-  inline void write(PyObject* pyBuilder) const
-  {
-  %#if !CAPNP_LITE
-    ClaClassifierProto::Builder proto =
-        getBuilder<ClaClassifierProto>(pyBuilder);
-    self->write(proto);
-  %#else
-    throw std::logic_error(
-        "FastCLAClassifier.write is not implemented when compiled with CAPNP_LITE=1.");
-  %#endif
-  }
-
-  inline void convertedRead(PyObject* pyReader)
-  {
-  %#if !CAPNP_LITE
-    ClaClassifierProto::Reader proto =
-        getReader<ClaClassifierProto>(pyReader);
-    self->read(proto);
-  %#else
-    throw std::logic_error(
-        "FastCLAClassifier.read is not implemented when compiled with CAPNP_LITE=1.");
-  %#endif
-  }
-
-}
-
-
 %include <nupic/algorithms/SDRClassifier.hpp>
 
 %pythoncode %{
@@ -1413,25 +1384,35 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
       noneSentinel = 3.14159
 
       if type(classification["actValue"]) in (int, float):
-        actValue = classification["actValue"]
+        actValueList = [classification["actValue"]]
+        bucketIdxList = [classification["bucketIdx"]]
+        originalValueList = [classification["actValue"]]
         category = False
       elif classification["actValue"] is None:
         # Use the sentinel value so we know if it gets used in actualValues
         # returned.
-        actValue = noneSentinel
+        actValueList = [noneSentinel]
+        originalValueList = [noneSentinel]
         # Turn learning off this step.
         learn = False
         category = False
         # This does not get used when learning is disabled anyway.
-        classification["bucketIdx"] = 0
+        bucketIdxList = [0]
         isNone = True
+      elif type(classification["actValue"]) is list:
+         actValueList = classification["actValue"]
+         bucketIdxList = classification["bucketIdx"]
+         originalValueList = classification["actValue"]
+         category = False
       else:
-        actValue = int(classification["bucketIdx"])
+        actValueList = [int(classification["bucketIdx"])]
+        originalValueList = [classification["actValue"]]
+        bucketIdxList = [classification["bucketIdx"]]
         category = True
 
       result = self.convertedCompute(
-          recordNum, patternNZ, int(classification["bucketIdx"]),
-          actValue, category, learn, infer)
+          recordNum, patternNZ, bucketIdxList,
+          actValueList, category, learn, infer)
 
       if isNone:
         for i, v in enumerate(result["actualValues"]):
@@ -1447,7 +1428,8 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
             arrayResult["actualValues"][i] = self.valueToCategory.get(int(
                 arrayResult["actualValues"][i]), classification["actValue"])
 
-        self.valueToCategory[actValue] = classification["actValue"]
+        for i in range(len(actValueList)):
+          self.valueToCategory[actValueList[i]] = originalValueList[i]
 
       return arrayResult
 
@@ -1477,6 +1459,31 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
       instance = cls()
       instance.convertedRead(proto)
       return instance
+
+    def write(self, pyBuilder):
+      """Serialize the SDRClassifier instance using capnp.
+
+      :param: Destination SdrClassifierProto message builder
+      """
+      reader = SdrClassifierProto.from_bytes(self._writeAsCapnpPyBytes()) # copy
+      pyBuilder.from_dict(reader.to_dict())  # copy
+
+    @classmethod
+    def getSchema(cls):
+      """ Get Cap'n Proto schema. 
+      :return: Cap'n Proto schema
+      """
+      return SdrClassifierProto
+
+    def convertedRead(self, proto):
+      """Initialize the SDRClassifier instance from the given SdrClassifierProto
+      reader.
+
+      :param proto: SdrClassifierProto message reader containing data from a
+                    previously serialized SDRClassifier instance.
+
+      """
+      self._initFromCapnpPyBytes(proto.as_builder().to_bytes()) # copy * 2
   %}
 
   void loadFromString(const std::string& inString)
@@ -1497,11 +1504,12 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
   }
 
   PyObject* convertedCompute(UInt recordNum, const vector<UInt>& patternNZ,
-                             UInt bucketIdx, Real64 actValue, bool category,
+                             const vector<UInt>& bucketIdxList, 
+                             const vector<Real64>& actValueList, bool category,
                              bool learn, bool infer)
   {
     ClassifierResult result;
-    self->compute(recordNum, patternNZ, bucketIdx, actValue, category,
+    self->compute(recordNum, patternNZ, bucketIdxList, actValueList, category,
                   learn, infer, &result);
     PyObject* d = PyDict_New();
     for (map<Int, vector<Real64>*>::const_iterator it = result.begin();
@@ -1528,28 +1536,14 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
     return d;
   }
 
-  inline void write(PyObject* pyBuilder) const
+  inline PyObject* _writeAsCapnpPyBytes() const
   {
-  %#if !CAPNP_LITE
-    SdrClassifierProto::Builder proto =
-        getBuilder<SdrClassifierProto>(pyBuilder);
-    self->write(proto);
-  %#else
-    throw std::logic_error(
-        "SDRClassifier.write is not implemented when compiled with CAPNP_LITE=1.");
-  %#endif
+    return nupic::PyCapnpHelper::writeAsPyBytes(*self);
   }
 
-  inline void convertedRead(PyObject* pyReader)
+  inline void _initFromCapnpPyBytes(PyObject* pyBytes)
   {
-  %#if !CAPNP_LITE
-    SdrClassifierProto::Reader proto =
-        getReader<SdrClassifierProto>(pyReader);
-    self->read(proto);
-  %#else
-    throw std::logic_error(
-        "SDRClassifier.read is not implemented when compiled with CAPNP_LITE=1.");
-  %#endif
+    nupic::PyCapnpHelper::initFromPyBytes(*self, pyBytes);
   }
 
 }
@@ -1582,30 +1576,35 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
       instance.convertedRead(proto)
       return instance
 
+    def write(self, pyBuilder):
+      """Serialize the Connections instance using capnp.
+
+      :param: Destination ConnectionsProto message builder
+      """
+      reader = ConnectionsProto.from_bytes(self._writeAsCapnpPyBytes()) # copy
+      pyBuilder.from_dict(reader.to_dict())  # copy
+
+
+    def convertedRead(self, proto):
+      """Initialize the Connections instance from the given ConnectionsProto
+      reader.
+
+      :param proto: ConnectionsProto message reader containing data from a
+                    previously serialized Connections instance.
+
+      """
+      self._initFromCapnpPyBytes(proto.as_builder().to_bytes()) # copy * 2
+
   %}
 
-  inline void write(PyObject* pyBuilder) const
+  inline PyObject* _writeAsCapnpPyBytes() const
   {
-%#if !CAPNP_LITE
-    ConnectionsProto::Builder proto =
-        getBuilder<ConnectionsProto>(pyBuilder);
-    self->write(proto);
-  %#else
-    throw std::logic_error(
-        "Connections.write is not implemented when compiled with CAPNP_LITE=1.");
-  %#endif
+    return nupic::PyCapnpHelper::writeAsPyBytes(*self);
   }
 
-  inline void convertedRead(PyObject* pyReader)
+  inline void _initFromCapnpPyBytes(PyObject* pyBytes)
   {
-%#if !CAPNP_LITE
-    ConnectionsProto::Reader proto =
-        getReader<ConnectionsProto>(pyReader);
-    self->read(proto);
-  %#else
-    throw std::logic_error(
-        "Connections.read is not implemented when compiled with CAPNP_LITE=1.");
-  %#endif
+    nupic::PyCapnpHelper::initFromPyBytes(*self, pyBytes);
   }
 
   %pythoncode %{
@@ -1705,14 +1704,15 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
                  predictedSegmentDecrement=0.00,
                  maxSegmentsPerCell=255,
                  maxSynapsesPerSegment=255,
-                 seed=42):
+                 seed=42,
+                 checkInputs=True):
       self.this = _ALGORITHMS.new_TemporalMemory()
       _ALGORITHMS.TemporalMemory_initialize(
         self, columnDimensions, cellsPerColumn, activationThreshold,
         initialPermanence, connectedPermanence,
         minThreshold, maxNewSynapseCount, permanenceIncrement,
         permanenceDecrement, predictedSegmentDecrement, seed,
-        maxSegmentsPerCell, maxSynapsesPerSegment)
+        maxSegmentsPerCell, maxSynapsesPerSegment, checkInputs)
 
     def __getstate__(self):
       # Save the local attributes but override the C++ temporal memory with the
@@ -1776,6 +1776,26 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
       instance = cls()
       instance.convertedRead(proto)
       return instance
+
+    def write(self, pyBuilder):
+      """Serialize the TemporalMemory instance using capnp.
+
+      :param: Destination TemporalMemoryProto message builder
+      """
+      reader = TemporalMemoryProto.from_bytes(self._writeAsCapnpPyBytes()) # copy
+      pyBuilder.from_dict(reader.to_dict())  # copy
+
+
+    def convertedRead(self, proto):
+      """Initialize the TemporalMemory instance from the given TemporalMemoryProto
+      reader.
+
+      :param proto: TemporalMemoryProto message reader containing data from a
+                    previously serialized TemporalMemory instance.
+
+      """
+      self._initFromCapnpPyBytes(proto.as_builder().to_bytes()) # copy * 2
+
   %}
 
   inline PyObject* getActiveCells()
@@ -1860,28 +1880,14 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
     self->compute(activeColumnsSize, activeColumns, learn);
   }
 
-  inline void write(PyObject* pyBuilder) const
+  inline PyObject* _writeAsCapnpPyBytes() const
   {
-%#if !CAPNP_LITE
-    TemporalMemoryProto::Builder proto =
-        getBuilder<TemporalMemoryProto>(pyBuilder);
-    self->write(proto);
-  %#else
-    throw std::logic_error(
-        "TemporalMemory.write is not implemented when compiled with CAPNP_LITE=1.");
-  %#endif
+    return nupic::PyCapnpHelper::writeAsPyBytes(*self);
   }
 
-  inline void convertedRead(PyObject* pyReader)
+  inline void _initFromCapnpPyBytes(PyObject* pyBytes)
   {
-%#if !CAPNP_LITE
-    TemporalMemoryProto::Reader proto =
-        getReader<TemporalMemoryProto>(pyReader);
-    self->read(proto);
-  %#else
-    throw std::logic_error(
-        "TemporalMemory.read is not implemented when compiled with CAPNP_LITE=1.");
-  %#endif
+    nupic::PyCapnpHelper::initFromPyBytes(*self, pyBytes);
   }
 
   void loadFromString(const std::string& inString)

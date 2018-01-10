@@ -11,6 +11,14 @@
 #ifndef BOOST_INTERPROCESS_MANAGED_OPEN_OR_CREATE_IMPL
 #define BOOST_INTERPROCESS_MANAGED_OPEN_OR_CREATE_IMPL
 
+#ifndef BOOST_CONFIG_HPP
+#  include <boost/config.hpp>
+#endif
+#
+#if defined(BOOST_HAS_PRAGMA_ONCE)
+#  pragma once
+#endif
+
 #include <boost/interprocess/detail/config_begin.hpp>
 #include <boost/interprocess/detail/os_thread_functions.hpp>
 #include <boost/interprocess/detail/os_file_functions.hpp>
@@ -23,15 +31,15 @@
 #include <boost/interprocess/creation_tags.hpp>
 #include <boost/interprocess/detail/mpl.hpp>
 #include <boost/interprocess/permissions.hpp>
-#include <boost/type_traits/alignment_of.hpp>
-#include <boost/type_traits/type_with_alignment.hpp>
+#include <boost/container/detail/type_traits.hpp>  //alignment_of, aligned_storage
+#include <boost/interprocess/sync/spin/wait.hpp>
 #include <boost/move/move.hpp>
 #include <boost/cstdint.hpp>
 
 namespace boost {
 namespace interprocess {
 
-/// @cond
+#if !defined(BOOST_INTERPROCESS_DOXYGEN_INVOKED)
 namespace ipcdetail{ class interprocess_tester; }
 
 
@@ -54,7 +62,7 @@ struct managed_open_or_create_impl_device_id_t<xsi_shared_memory_file_wrapper>
 
 #endif   //BOOST_INTERPROCESS_XSI_SHARED_MEMORY_OBJECTS
 
-/// @endcond
+#endif   //#ifndef BOOST_INTERPROCESS_DOXYGEN_INVOKED
 
 namespace ipcdetail {
 
@@ -84,7 +92,7 @@ class managed_open_or_create_impl_device_holder<true, DeviceAbstraction>
    DeviceAbstraction dev;
 };
 
-template<class DeviceAbstraction, std::size_t MemAlignment = 0, bool FileBased = true, bool StoreDevice = true>
+template<class DeviceAbstraction, std::size_t MemAlignment, bool FileBased, bool StoreDevice>
 class managed_open_or_create_impl
    : public managed_open_or_create_impl_device_holder<StoreDevice, DeviceAbstraction>
 {
@@ -107,7 +115,8 @@ class managed_open_or_create_impl
          ct_rounded_size
             < sizeof(boost::uint32_t)
             , MemAlignment ? (MemAlignment) :
-               (::boost::alignment_of< ::boost::detail::max_align >::value)
+               (::boost::container::container_detail::alignment_of
+                  < ::boost::container::container_detail::max_align_t >::value)
             >::value;
 
    managed_open_or_create_impl()
@@ -309,14 +318,18 @@ class managed_open_or_create_impl
    {
       typedef bool_<FileBased> file_like_t;
       (void)mode;
-      error_info err;
       bool created = false;
       bool ronly   = false;
       bool cow     = false;
       DeviceAbstraction dev;
 
-      if(type != DoOpen && size < ManagedOpenOrCreateUserOffset){
-         throw interprocess_exception(error_info(size_error));
+      if(type != DoOpen){
+         //Check if the requested size is enough to build the managed metadata
+         const std::size_t func_min_size = construct_func.get_min_size();
+         if( (std::size_t(-1) - ManagedOpenOrCreateUserOffset) < func_min_size ||
+             size < (func_min_size + ManagedOpenOrCreateUserOffset) ){
+            throw interprocess_exception(error_info(size_error));
+         }
       }
       //Check size can be represented by offset_t (used by truncate)
       if(type != DoOpen && !check_offset_t_size<FileBased>(size, file_like_t())){
@@ -349,6 +362,7 @@ class managed_open_or_create_impl
          //file and know if we have really created it or just open it
          //drop me a e-mail!
          bool completed = false;
+         spin_wait swait;
          while(!completed){
             try{
                create_device<FileBased>(dev, id, size, perm, file_like_t());
@@ -366,8 +380,8 @@ class managed_open_or_create_impl
                      created     = false;
                      completed   = true;
                   }
-                  catch(interprocess_exception &ex){
-                     if(ex.get_error_code() != not_found_error){
+                  catch(interprocess_exception &e){
+                     if(e.get_error_code() != not_found_error){
                         throw;
                      }
                   }
@@ -379,7 +393,7 @@ class managed_open_or_create_impl
             catch(...){
                throw;
             }
-            thread_yield();
+            swait.yield();
          }
       }
 
@@ -426,11 +440,13 @@ class managed_open_or_create_impl
       else{
          if(FileBased){
             offset_t filesize = 0;
+            spin_wait swait;
             while(filesize == 0){
                if(!get_file_size(file_handle_from_mapping_handle(dev.get_mapping_handle()), filesize)){
-                  throw interprocess_exception(error_info(system_error_code()));
+                  error_info err = system_error_code();
+                  throw interprocess_exception(err);
                }
-               thread_yield();
+               swait.yield();
             }
             if(filesize == 1){
                throw interprocess_exception(error_info(corrupted_error));
@@ -442,8 +458,9 @@ class managed_open_or_create_impl
          boost::uint32_t *patomic_word = static_cast<boost::uint32_t*>(region.get_address());
          boost::uint32_t value = atomic_read32(patomic_word);
 
+         spin_wait swait;
          while(value == InitializingSegment || value == UninitializedSegment){
-            thread_yield();
+            swait.yield();
             value = atomic_read32(patomic_word);
          }
 
@@ -461,6 +478,11 @@ class managed_open_or_create_impl
       }
    }
 
+   friend void swap(managed_open_or_create_impl &left, managed_open_or_create_impl &right)
+   {
+      left.swap(right);
+   }
+
    private:
    friend class interprocess_tester;
    void dont_close_on_destruction()
@@ -468,11 +490,6 @@ class managed_open_or_create_impl
 
    mapped_region     m_mapped_region;
 };
-
-template<class DeviceAbstraction>
-inline void swap(managed_open_or_create_impl<DeviceAbstraction> &x
-                ,managed_open_or_create_impl<DeviceAbstraction> &y)
-{  x.swap(y);  }
 
 }  //namespace ipcdetail {
 

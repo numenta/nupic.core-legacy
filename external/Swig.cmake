@@ -46,7 +46,7 @@ else()
       mkdir -p ${EP_BASE}/Source/Swig/Tools/ &&
       cp ${pcre_path} ${EP_BASE}/Build/Swig/ &&
       ${EP_BASE}/Source/Swig/Tools/pcre-build.sh &&
-      ${EP_BASE}/Source/Swig/configure --prefix=${EP_BASE}/Install --enable-cpp11-testing
+      ${EP_BASE}/Source/Swig/configure --prefix=${EP_BASE}/Install --disable-ccache --enable-cpp11-testing
   )
   set(swig_executable ${EP_BASE}/Install/bin/swig)
   set(swig_dir ${EP_BASE}/Install/share/swig/3.0.2)

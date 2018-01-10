@@ -1,5 +1,58 @@
 # Changelog
 
+## 1.0.1
+
+* NUP-2481: Update capnp to 0.6.1
+* Don't run iwyu if doing gcc build
+* RES-571 Explicitly declare cmake 3.3 minimum requirement
+
+## 1.0.0
+
+* Convert getProtoType to getSchema to be consistent with Python interface in nupic
+* Add Circle badge to README
+* Make --user optional since manylinux doens't use it
+* Remove build tools setup for Linux CI jobs since new base image already provides these tools
+* NUP-2341: Expose capnp serialization to SVM swig interface
+* NUP-2341: Add missing 'getSchema'
+* update boost to 1.64.0 stable release
+* Add a "checkInputs" param to the TemporalMemory
+
+## 0.7.2
+
+* Add SWIG support for Cells4 capnp serialization
+
+## 0.7.1
+
+* SP optimization using minmax_element (#1326)
+* Add capnp serialization to Cells4, Cell, Segment, SegmentUpdates, CState, etc. (#1346)
+* Fix missing actValue in SDR classifier SWIG interface (#1348)
+
+## 0.7.0
+
+* Give clear exception when clients attempt to reuse ClassifierResult instance with SDRClassifier (PR #1342)
+* Remove FastClaClassifier (PR #1341)
+* Allow SDR classifier to handle multiple category (PR #1339)
+* Add Cap'n Proto serialization to SVM (PR #1338)
+
+## 0.6.3
+
+* Change the Connections to stop doing automatic segment / synapse cleanup
+* Revamp the TemporalMemory proto so that it captures all information
+* For numpy, use a single PyArray_API symbol per binary rather than one per cpp file
+* Use numpy 1.12.1
+* Use pycapnp 0.5.12
+* Use latest pytest 3.0.7, pytest-cov 2.5.0, pytest-xdist 1.16.0
+
+## 0.6.2
+
+* Updated Circle CI configuration and switch to that for OS X builds (instead of Travis CI)
+* Documentation updates: PyRegion
+* IWYU documentation update
+* Fixed C++ boolean ref counting bug that caused segfaults when running Python projects
+* Update pytest and pycapnp dependency versions
+* Implemented byte buffer passing as alternative Python<->C++ strategy for capnp serialization logic. This has some memory/speed overhead but avoids ABI issues that could cause crashes
+* Fixed prototest to get meaningful comparison numbers
+
 ## 0.6.1
 
 * Eliminate installation of unnecessary header files when building nupic.bindings. Install Version.hpp unconditionally for the sake of the deployment usage in .travis.yaml

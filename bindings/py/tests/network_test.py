@@ -19,13 +19,62 @@
 # http://numenta.org/licenses/
 # ----------------------------------------------------------------------
 
+import json
 import unittest
 
+try:
+  # NOTE need to import capnp first to activate the magic necessary for
+  # PythonDummyRegion_capnp, etc.
+  import capnp
+except ImportError:
+  capnp = None
+else:
+  from nupic.proto.NetworkProto_capnp import NetworkProto
+
+
 import nupic.bindings.engine_internal as engine
+from nupic.bindings.tools.serialization_test_py_region import \
+     SerializationTestPyRegion
 
 
 
 class NetworkTest(unittest.TestCase):
+
+
+  @unittest.skipUnless(
+    capnp, "pycapnp is not installed, skipping serialization test.")
+  def testCapnpSerializationWithPyRegion(self):
+    """Test capnp (de)serialization of network containing a python region"""
+    engine.Network.registerPyRegion(__name__,
+                                    SerializationTestPyRegion.__name__)
+    try:
+      srcNet = engine.Network()
+      srcNet.addRegion(SerializationTestPyRegion.__name__,
+                       "py." + SerializationTestPyRegion.__name__,
+                       json.dumps({
+                         "dataWidth": 128,
+                         "randomSeed": 99,
+                       }))
+
+      # Serialize
+      builderProto = NetworkProto.new_message()
+      srcNet.write(builderProto)
+
+      # Construct NetworkProto reader from populated builder
+      readerProto = NetworkProto.from_bytes(builderProto.to_bytes())
+
+      # Deserialize
+      destNet = engine.Network.read(readerProto)
+
+      destRegion = destNet.getRegions().getByName(
+        SerializationTestPyRegion.__name__)
+
+      self.assertEqual(destRegion.getParameterUInt32("dataWidth"), 128)
+      self.assertEqual(destRegion.getParameterUInt32("randomSeed"), 99)
+
+    finally:
+      engine.Network.unregisterPyRegion(SerializationTestPyRegion.__name__)
+
 
   def testSimpleTwoRegionNetworkIntrospection(self):
     # Create Network instance

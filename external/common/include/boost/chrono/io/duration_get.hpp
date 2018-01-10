@@ -14,9 +14,10 @@
 #include <boost/utility/enable_if.hpp>
 #include <boost/type_traits/is_signed.hpp>
 #include <boost/mpl/if.hpp>
-#include <boost/math/common_factor_rt.hpp>
+#include <boost/integer/common_factor_rt.hpp>
 #include <boost/chrono/detail/scan_keyword.hpp>
 #include <boost/chrono/detail/no_warning/signed_unsigned_cmp.hpp>
+#include <boost/chrono/process_cpu_clocks.hpp>
 
 #include <boost/assert.hpp>
 #include <locale>
@@ -44,6 +45,12 @@ namespace boost
             is_signed<Rep>::value, long long, unsigned long long>::type>::type type;
       };
 
+      template <class Rep>
+      struct duration_io_intermediate<process_times<Rep>, false>
+      {
+        typedef process_times<typename duration_io_intermediate<Rep>::type> type;
+      };
+
       template <typename intermediate_type>
       typename enable_if<is_integral<intermediate_type> , bool>::type reduce(intermediate_type& r,
           unsigned long long& den, std::ios_base::iostate& err)
@@ -51,7 +58,7 @@ namespace boost
         typedef typename common_type<intermediate_type, unsigned long long>::type common_type_t;
 
         // Reduce r * num / den
-        common_type_t t = math::gcd<common_type_t>(common_type_t(r), common_type_t(den));
+        common_type_t t = integer::gcd<common_type_t>(common_type_t(r), common_type_t(den));
         r /= t;
         den /= t;
         if (den != 1)
@@ -271,8 +278,8 @@ namespace boost
 
         // r should be multiplied by (num/den) / Period
         // Reduce (num/den) / Period to lowest terms
-        unsigned long long gcd_n1_n2 = math::gcd<unsigned long long>(num, Period::num);
-        unsigned long long gcd_d1_d2 = math::gcd<unsigned long long>(den, Period::den);
+        unsigned long long gcd_n1_n2 = integer::gcd<unsigned long long>(num, Period::num);
+        unsigned long long gcd_d1_d2 = integer::gcd<unsigned long long>(den, Period::den);
         num /= gcd_n1_n2;
         den /= gcd_d1_d2;
         unsigned long long n2 = Period::num / gcd_n1_n2;
@@ -300,7 +307,7 @@ namespace boost
         }
         common_type_t t = r * num;
         t /= den;
-        if (t > 0)
+        if (t > duration_values<common_type_t>::zero())
         {
           Rep pt = t;
           if ( (duration_values<Rep>::max)() < pt)
@@ -366,6 +373,45 @@ namespace boost
       iter_type get_value(iter_type s, iter_type end, std::ios_base& ios, std::ios_base::iostate& err, Rep& r) const
       {
         return std::use_facet<std::num_get<CharT, iter_type> >(ios.getloc()).get(s, end, ios, err, r);
+      }
+      template <typename Rep>
+      iter_type get_value(iter_type s, iter_type end, std::ios_base& ios, std::ios_base::iostate& err, process_times<Rep>& r) const
+      {
+        if (s == end) {
+            err |= std::ios_base::eofbit;
+            return s;
+        } else if (*s != '{') { // mandatory '{'
+            err |= std::ios_base::failbit;
+            return s;
+        }
+        ++s;
+        s = std::use_facet<std::num_get<CharT, iter_type> >(ios.getloc()).get(s, end, ios, err, r.real);
+        if (s == end) {
+            err |= std::ios_base::eofbit;
+            return s;
+        } else if (*s != ';') { // mandatory ';'
+            err |= std::ios_base::failbit;
+            return s;
+        }
+        ++s;
+        s = std::use_facet<std::num_get<CharT, iter_type> >(ios.getloc()).get(s, end, ios, err, r.user);
+        if (s == end) {
+            err |= std::ios_base::eofbit;
+            return s;
+        } else if (*s != ';') { // mandatory ';'
+            err |= std::ios_base::failbit;
+            return s;
+        }
+        ++s;
+        s = std::use_facet<std::num_get<CharT, iter_type> >(ios.getloc()).get(s, end, ios, err, r.system);
+        if (s == end) {
+            err |= std::ios_base::eofbit;
+            return s;
+        } else if (*s != '}') { // mandatory '}'
+            err |= std::ios_base::failbit;
+            return s;
+        }
+        return s;
       }
 
       /**
@@ -467,7 +513,7 @@ namespace boost
        * translation in other contexts, as e.g. days and weeks.
        *
        * @param facet the duration_units facet
-       * @param s start input stream iterator.
+       * @param i start input stream iterator.
        * @param e end input stream iterator.
        * @param ios a reference to a ios_base.
        * @param err the ios_base state.
@@ -484,11 +530,14 @@ namespace boost
         const string_type* k = chrono_detail::scan_keyword(i, e, units, units_end,
         //~ std::use_facet<std::ctype<CharT> >(loc),
             err);
+        if (err & (std::ios_base::badbit | std::ios_base::failbit))
+        {
+          return i;
+        }
         if (!facet.match_n_d_valid_unit(k))
         {
           err |= std::ios_base::failbit;
         }
-
         return i;
       }
 
@@ -499,7 +548,7 @@ namespace boost
        * translation in other contexts, as e.g. days and weeks.
        *
        * @param facet the duration_units facet
-       * @param s start input stream iterator.
+       * @param i start input stream iterator.
        * @param e end input stream iterator.
        * @param ios a reference to a ios_base.
        * @param err the ios_base state.
@@ -519,13 +568,15 @@ namespace boost
         const string_type* k = chrono_detail::scan_keyword(i, e, units, units_end,
         //~ std::use_facet<std::ctype<CharT> >(loc),
             err);
-
+        if (err & (std::ios_base::badbit | std::ios_base::failbit))
+        {
+          return i;
+        }
         if (!facet.match_valid_unit(k, rt))
         {
           err |= std::ios_base::failbit;
         }
         return i;
-
       }
     };
 

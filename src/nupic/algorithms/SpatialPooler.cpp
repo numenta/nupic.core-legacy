@@ -947,11 +947,9 @@ Real SpatialPooler::avgConnectedSpanForColumn1D_(UInt column)
   vector<UInt> connectedSparse = connectedSynapses_.getSparseRow(column);
   if (connectedSparse.empty())
     return 0;
-  UInt minIndex = *min_element(connectedSparse.begin(),
+  auto minmax = minmax_element(connectedSparse.begin(),
                                connectedSparse.end());
-  UInt maxIndex = *max_element(connectedSparse.begin(),
-                               connectedSparse.end());
-  return maxIndex - minIndex + 1;
+  return *minmax.second /*max*/ - *minmax.first /*min*/ + 1;
 }
 
 Real SpatialPooler::avgConnectedSpanForColumn2D_(UInt column)
@@ -978,11 +976,11 @@ Real SpatialPooler::avgConnectedSpanForColumn2D_(UInt column)
     return 0;
   }
 
-  UInt rowSpan = *max_element(rows.begin(),rows.end()) -
-                 *min_element(rows.begin(),rows.end()) + 1;
+  auto minmaxRows = minmax_element(rows.begin(), rows.end());
+  UInt rowSpan = *minmaxRows.second /*max*/ - *minmaxRows.first /*min*/ + 1;
 
-  UInt colSpan = *max_element(cols.begin(),cols.end()) -
-                 *min_element(cols.begin(),cols.end()) + 1;
+  auto minmaxCols = minmax_element(cols.begin(), cols.end());
+  UInt colSpan = *minmaxCols.second - *minmaxCols.first + 1; 
 
   return (rowSpan + colSpan) / 2.0;
 
