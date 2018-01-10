@@ -20,17 +20,14 @@
  * ---------------------------------------------------------------------
  */
 
-#include <tuple>
 
 #include "gtest/gtest.h"
 
 #include "nupic/types/Types.hpp"
 #include "nupic/utils/MovingAverage.hpp"
-#include "nupic/utils/SlidingWindow.hpp"
 
-using namespace std;
-using namespace nupic;
-using namespace nupic::util;
+using nupic::Real32;
+using nupic::util::MovingAverage;
 
 
 TEST(MovingAverage, Instance)

@@ -23,9 +23,7 @@
 #include "gtest/gtest.h"
 #include "nupic/utils/SlidingWindow.hpp"
 
-using namespace std;
-using namespace nupic;
-using namespace nupic::util;
+using nupic::util::SlidingWindow;
 
 
 TEST(SlidingWindow, Instance)
