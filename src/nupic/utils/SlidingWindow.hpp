@@ -60,9 +60,6 @@ class SlidingWindow {
       }
     }
 
-    const UInt maxCapacity;
-    const std::string ID; //name of this object
-    const int DEBUG;
 
     size_t size() const {
       NTA_ASSERT(buffer_.size() <= maxCapacity);
@@ -172,7 +169,10 @@ class SlidingWindow {
       }
 
 
-
+      public: 
+        const UInt maxCapacity;
+        const std::string ID; //name of this object
+        const int DEBUG;
       private:
         std::vector<T> buffer_;
         UInt idxNext_;
