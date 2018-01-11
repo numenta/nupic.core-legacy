@@ -787,6 +787,12 @@ namespace nupic
           const vector<Real>& getBoostedOverlaps() const;
 
 
+          /** 
+          Equals operator
+          */
+          bool operator==(const SpatialPooler &sp) const;
+
+
           ///////////////////////////////////////////////////////////
           //
           // Implementation methods. all methods below this line are
