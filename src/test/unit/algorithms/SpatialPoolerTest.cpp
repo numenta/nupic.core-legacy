@@ -2223,21 +2223,30 @@ namespace {
   }
 
 
-  TEST(SpatialPoolerTest, testSameOutputForSameInputNoLearningNoBoosting)
+  TEST(SpatialPoolerTest, testConstructorInitParamsUnstable)
   {
-    const UInt inputSize = 10;
-    const UInt nColumns = 20;
-    SpatialPooler sp;
-    sp.initialize({inputSize}, {nColumns});
-    sp.setBoostStrength(0);
+  /** this test exposes bug where c++ SP (wrongly) produces
+  different output for the same input. 
+  XXX sensitive - marks (empirically!) discovered set of parameter 
+  that produce the err behavior; changing any of the XXX params 
+  may cause the SP to behave "normally"
+  */
+    SpatialPooler sp{std::vector<UInt>{10} /* input*/, std::vector<UInt>{2048}/* SP output cols XXX sensitive*/, 
+                        /*pot radius*/ 20, //each col sees
+                        /*pot pct*/ 0.5, //XXX sensitive
+                        /*global inhibition*/ false, //XXX sensitive
+                       /*Real localAreaDensity=*/0.02, //2% active cols
+                       /*UInt numActiveColumnsPerInhArea=*/0, //mutex with above ^^ //XXX sensitive
+};
 
-    vector<UInt> input = { 1, 1, 0, 0, 1, 1, 0, 0, 1, 1 };
-    vector<UInt> out1(nColumns, 0);
-    vector<UInt> out2(nColumns, 0);
-    sp.compute(input.data(), false, out1.data());
-    sp.compute(input.data(), false, out2.data());
+    vector<UInt> input = { 1, 1, 0, 0, 1, 1, 0, 0, 1, 1};
+    vector<UInt> out1(sp.getNumColumns(), 0); 
+    vector<UInt> out2(sp.getNumColumns(), 0); 
+    sp.compute(input.data(), true, out1.data());
+    sp.compute(input.data(), true, out2.data());
     EXPECT_EQ(out1, out2);
-  }
+}
+
 
   TEST(SpatialPoolerTest, testSaveLoad)
   {
