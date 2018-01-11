@@ -2244,7 +2244,7 @@ namespace {
     vector<UInt> out2(sp.getNumColumns(), 0); 
     sp.compute(input.data(), true, out1.data());
     sp.compute(input.data(), true, out2.data());
-    EXPECT_EQ(out1, out2);
+    EXPECT_EQ(out1, out2); //not necessary with the check in SP initialize(), but keep here as example
 }
 
 
