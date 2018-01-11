@@ -2222,6 +2222,34 @@ namespace {
     EXPECT_EQ(0, countNonzero(activeColumns));
   }
 
+
+  TEST(SpatialPoolerTest, testDifferentConstructorVsSetterBehavior)
+  {
+  /** this test exposes wrong behavior, where SP created via constructor
+  behaves differently to a SP via setters (setXXX()), both with the same
+  params. 
+  */
+    SpatialPooler spConstruct{std::vector<UInt>{10} /* input*/, std::vector<UInt>{2048}/* SP output cols XXX sensitive*/,
+                        /*pot radius*/ 20, //each col sees
+                        /*pot pct*/ 0.5, //XXX sensitive
+                        /*global inhibition*/ false, //XXX sensitive
+                       /*Real localAreaDensity=*/0.02, //2% active cols
+                       /*UInt numActiveColumnsPerInhArea=*/0, //mutex with above ^^ //XXX sensitive
+};
+
+    SpatialPooler  sp{std::vector<UInt>{10} /* input*/, std::vector<UInt>{2048}/* SP output cols */};
+sp.setPotentialRadius(20);
+sp.setPotentialPct(0.5);
+sp.setGlobalInhibition(false);
+sp.setLocalAreaDensity(0.02); //2% active cols
+sp.setNumActiveColumnsPerInhArea(0); //mutex with above ^^
+
+
+//    EXPECT_EQ(spConstruct, sp);  //FIXME how compare 2 SP
+check_spatial_eq(spConstruct, sp);
+}
+
+
   TEST(SpatialPoolerTest, testSaveLoad)
   {
     const char* filename = "SpatialPoolerSerialization.tmp";
