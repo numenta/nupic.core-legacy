@@ -488,6 +488,16 @@ const vector<Real>& SpatialPooler::getBoostedOverlaps() const
   return boostedOverlaps_;
 }
 
+/** helper method that checks SP output is stable for given configuration */
+bool checkUnstableParams_(SpatialPooler &sp) {
+  vector<UInt> input(sp.getNumInputs(), 1); //auto size of input
+  vector<UInt> out1(sp.getNumColumns(), 0); 
+  vector<UInt> out2(sp.getNumColumns(), 0); 
+  sp.compute(input.data(), false, out1.data());
+  sp.compute(input.data(), false, out2.data());
+  return std::equal(std::begin(out1), std::end(out1), std::begin(out2)); //compare all, element wise
+}
+
 void SpatialPooler::initialize(vector<UInt> inputDimensions,
   vector<UInt> columnDimensions,
   UInt potentialRadius,
@@ -593,6 +603,9 @@ void SpatialPooler::initialize(vector<UInt> inputDimensions,
     printParameters();
     std::cout << "CPP SP seed                 = " << seed << std::endl;
   }
+
+  //check for reasonable params
+  NTA_CHECK(checkUnstableParams_(*this)); //TODO the assert runs only at debug builds, make mandatory?
 }
 
 void SpatialPooler::compute(UInt inputArray[], bool learn,
