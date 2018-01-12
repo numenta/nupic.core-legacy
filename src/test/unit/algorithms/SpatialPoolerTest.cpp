@@ -24,6 +24,8 @@
  * Implementation of unit tests for SpatialPooler
  */
 
+#include <algorithm> //generate
+#include <cstdlib> //rand
 #include <cstring>
 #include <fstream>
 #include <stdio.h>
@@ -2223,6 +2225,9 @@ namespace {
   }
 
 
+  // function generator:
+  int RandomNumber01 () { return (rand()%2); } // returns random (binary) numbers from {0,1}
+
   TEST(SpatialPoolerTest, testConstructorInitParamsUnstable)
   {
   /** this test exposes bug where c++ SP (wrongly) produces
@@ -2231,20 +2236,39 @@ namespace {
   that produce the err behavior; changing any of the XXX params 
   may cause the SP to behave "normally"
   */
-    SpatialPooler sp{std::vector<UInt>{10} /* input*/, std::vector<UInt>{2048}/* SP output cols XXX sensitive*/, 
+  SpatialPooler sp{std::vector<UInt>{1000} /* input*/, std::vector<UInt>{20}/* SP output cols XXX sensitive*/,
                         /*pot radius*/ 20, //each col sees
                         /*pot pct*/ 0.5, //XXX sensitive
                         /*global inhibition*/ false, //XXX sensitive
                        /*Real localAreaDensity=*/0.02, //2% active cols
                        /*UInt numActiveColumnsPerInhArea=*/0, //mutex with above ^^ //XXX sensitive
 };
+  sp.setBoostStrength(0.0); 
 
-    vector<UInt> input = { 1, 1, 0, 0, 1, 1, 0, 0, 1, 1};
-    vector<UInt> out1(sp.getNumColumns(), 0); 
-    vector<UInt> out2(sp.getNumColumns(), 0); 
-    sp.compute(input.data(), true, out1.data());
-    sp.compute(input.data(), true, out2.data());
-    EXPECT_EQ(out1, out2); //not necessary with the check in SP initialize(), but keep here as example
+    vector<UInt> input(sp.getNumInputs(), 1);
+   vector<UInt> out1(sp.getNumColumns(), 0);
+    vector<UInt> out2(sp.getNumColumns(), 0);
+
+  for(UInt i=0; i< 1800; i++) { //epochs
+    //burn in
+    for (UInt burnIn=1; burnIn < 90; burnIn++) {
+      generate(input.begin(), input.end(),  RandomNumber01); //random input
+      sp.compute(input.data(), true, out1.data()); //burn in
+      cout<<".";
+      cout.flush();
+    }
+
+    //compare
+    for (UInt noLearn=1; noLearn < 90; noLearn++) {
+      generate(input.begin(), input.end(),  RandomNumber01); //random input
+      sp.compute(input.data(), false, out1.data());
+      sp.compute(input.data(), false, out2.data());
+      EXPECT_EQ(out1, out2); //not necessary with the check in SP initialize(), but keep here as example
+      cout<<"=";
+      cout.flush();
+    }
+  cout<<endl;
+  }
 }
 
 
