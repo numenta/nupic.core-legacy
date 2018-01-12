@@ -31,6 +31,7 @@
 #include <nupic/types/Types.hpp> // For nupic::Real.
 #include <nupic/utils/Log.hpp> // For NTA_ASSERT
 #include <algorithm> // For std::copy.
+#include <boost/compute/type_traits/type_name.hpp> // for 'type_name'
 
 namespace nupic {
 
@@ -438,6 +439,29 @@ namespace nupic {
     PyArrayObject* pyArray_;
   };
 
+  /**
+   * Similar to NumpyVectorWeakRefT but also provides extra type checking
+   */  
+  template<typename T>
+  class CheckedNumpyVectorWeakRefT : public NumpyVectorWeakRefT<T>
+  {
+    public:
+      CheckedNumpyVectorWeakRefT(PyObject* pyArray) 
+        : NumpyVectorWeakRefT<T>(pyArray)
+      {
+        if (PyArray_NDIM(this->pyArray_) != 1)
+        {
+          NTA_THROW << "Expecting 1D array " 
+                    << "but got " << PyArray_NDIM(this->pyArray_) << "D array";
+        }
+        if (!PyArray_EquivTypenums(
+              PyArray_TYPE(this->pyArray_), LookupNumpyDType((const T *) 0)))
+        {
+          NTA_THROW << "Expecting '" << boost::compute::type_name<T>() << "' "
+                    << "but got '" << PyArray_DTYPE(this->pyArray_)->type << "'";
+        }
+      }
+  };
 } // End namespace nupic.
 
 #endif

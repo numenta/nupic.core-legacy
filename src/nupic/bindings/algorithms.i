@@ -1165,21 +1165,9 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
 
   inline void compute(PyObject *py_inputArray, bool learn, PyObject *py_activeArray)
   {
-    PyArrayObject* x = (PyArrayObject*) py_inputArray;
-    PyArrayObject* y = (PyArrayObject*) py_activeArray;
-    if (!PyArray_ISUNSIGNED(x) || PyArray_DTYPE(x)->elsize != sizeof(nupic::UInt))
-    {
-      NTA_THROW << "Invalid data type given for input array."
-                << " Expecting 'uint" << sizeof(nupic::UInt) * 8 << "'"
-                << " but got '" << PyArray_DTYPE(x)->type << "'";
-    }
-    if (!PyArray_ISUNSIGNED(y) || PyArray_DTYPE(y)->elsize != sizeof(nupic::UInt))
-    {
-      NTA_THROW << "Invalid data type given for active array."
-                << " Expecting 'uint" << sizeof(nupic::UInt) * 8 << "'"
-                << " but got '" << PyArray_DTYPE(y)->type << "'";
-    }
-    self->compute((nupic::UInt*) PyArray_DATA(x), (bool)learn, (nupic::UInt*) PyArray_DATA(y));
+    nupic::CheckedNumpyVectorWeakRefT<nupic::UInt32> inputArray(py_inputArray);
+    nupic::CheckedNumpyVectorWeakRefT<nupic::UInt32> activeArray(py_activeArray);
+    self->compute(inputArray.begin(), learn, activeArray.begin());
   }
 
   inline void stripUnlearnedColumns(PyObject *py_x)
