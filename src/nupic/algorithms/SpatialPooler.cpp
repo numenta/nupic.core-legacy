@@ -219,7 +219,7 @@ void SpatialPooler::setNumActiveColumnsPerInhArea(
 {
   NTA_ASSERT(numActiveColumnsPerInhArea > 0);
   numActiveColumnsPerInhArea_ = numActiveColumnsPerInhArea;
-  localAreaDensity_ = 0;
+  localAreaDensity_ = -1; //disabling
 }
 
 Real SpatialPooler::getLocalAreaDensity() const
@@ -231,7 +231,7 @@ void SpatialPooler::setLocalAreaDensity(Real localAreaDensity)
 {
   NTA_ASSERT(localAreaDensity > 0 && localAreaDensity <= 1);
   localAreaDensity_ = localAreaDensity;
-  numActiveColumnsPerInhArea_ = 0;
+  numActiveColumnsPerInhArea_ = 0; //disabling
 }
 
 UInt SpatialPooler::getStimulusThreshold() const
