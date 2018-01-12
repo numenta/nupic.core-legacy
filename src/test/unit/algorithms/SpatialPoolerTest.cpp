@@ -2222,6 +2222,27 @@ namespace {
     EXPECT_EQ(0, countNonzero(activeColumns));
   }
 
+
+  TEST(SpatialPoolerTest, testComputeWrongInput)
+  {
+  /** this test checks behavior when user passes arrays of incorrect
+  size to the compute() */
+    SpatialPooler  sp{std::vector<UInt>{5} /* input*/, std::vector<UInt>{10}/* SP output cols */};
+  std::vector<UInt> inputOK = {1, 2, 3, 4, 5};  //true size is 5
+  std::vector<UInt> inputFail = {1,2};
+  
+
+  std::vector<UInt> outOK(sp.getNumColumns(), 0); //true size is 10
+  std::vector<UInt> outFail(4, 0); //fails size is 4 < 10, this could write to other data memory -> crash
+  std::vector<UInt> outFailButNoFail(100, 0); //wrong size, but 100>10 so no address space violation (just wasteful), should pass
+
+  EXPECT_NO_THROW(sp.compute(inputOK.data(), true, outOK.data()));
+//FIXME EXPECT_ANY does not handle the malloc fail caused here, crashes! 
+//!  EXPECT_ANY_THROW(sp.compute(inputFail.data(), true, outOK.data()));
+//!  EXPECT_ANY_THROW(sp.compute(inputOK.data(), true, outFail.data()));
+  EXPECT_NO_THROW(sp.compute(inputOK.data(), true, outFailButNoFail.data()));
+}
+
   TEST(SpatialPoolerTest, testSaveLoad)
   {
     const char* filename = "SpatialPoolerSerialization.tmp";
