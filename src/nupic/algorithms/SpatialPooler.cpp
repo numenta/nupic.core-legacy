@@ -493,9 +493,8 @@ bool checkUnstableParams_(SpatialPooler &sp) {
   vector<UInt> input(sp.getNumInputs(), 1); //auto size of input
   vector<UInt> out1(sp.getNumColumns(), 0); 
   vector<UInt> out2(sp.getNumColumns(), 0); 
-  sp.compute(input.data(), true, out1.data());
-  sp.compute(input.data(), true, out2.data());
-  //TODO should we add SP.reset() and call it here? 
+  sp.compute(input.data(), false, out1.data());
+  sp.compute(input.data(), false, out2.data());
   return std::equal(std::begin(out1), std::end(out1), std::begin(out2)); //compare all, element wise
 }
 
