@@ -2242,11 +2242,23 @@ sp.setPotentialRadius(20);
 sp.setPotentialPct(0.5);
 sp.setGlobalInhibition(false);
 sp.setLocalAreaDensity(0.02); //2% active cols
-sp.setNumActiveColumnsPerInhArea(0); //mutex with above ^^
+//! sp.setNumActiveColumnsPerInhArea(0); //mutex with above ^^
 
+  // test 1: these two mutex settings had err compared to the API 
+  // (localAreaDensity & numActiveColumnsPerInhArea)
+  sp.setNumActiveColumnsPerInhArea(5);
+  EXPECT_EQ(sp.getNumActiveColumnsPerInhArea(), 5);
+  EXPECT_FLOAT_EQ(sp.getLocalAreaDensity(), -1); //-1 means disabled
 
-//    EXPECT_EQ(spConstruct, sp);  //FIXME how compare 2 SP
-check_spatial_eq(spConstruct, sp);
+  sp.setLocalAreaDensity(0.02);
+  EXPECT_EQ(sp.getNumActiveColumnsPerInhArea(), 0); //0 means disabled
+  EXPECT_FLOAT_EQ(sp.getLocalAreaDensity(), 0.02);
+
+  //test 2: compare potentialRadius
+  EXPECT_EQ(sp.getPotentialRadius(), spConstruct.getPotentialRadius());
+
+  //    EXPECT_EQ(spConstruct, sp);  //FIXME how compare 2 SP
+  check_spatial_eq(spConstruct, sp);
 }
 
 
