@@ -1165,8 +1165,8 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
 
   inline void compute(PyObject *py_inputArray, bool learn, PyObject *py_activeArray)
   {
-    nupic::CheckedNumpyVectorWeakRefT<nupic::UInt32> inputArray(py_inputArray);
-    nupic::CheckedNumpyVectorWeakRefT<nupic::UInt32> activeArray(py_activeArray);
+    nupic::CheckedNumpyVectorWeakRefT<nupic::UInt> inputArray(py_inputArray);
+    nupic::CheckedNumpyVectorWeakRefT<nupic::UInt> activeArray(py_activeArray);
     self->compute(inputArray.begin(), learn, activeArray.begin());
   }
 

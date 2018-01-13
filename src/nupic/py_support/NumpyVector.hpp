@@ -31,7 +31,7 @@
 #include <nupic/types/Types.hpp> // For nupic::Real.
 #include <nupic/utils/Log.hpp> // For NTA_ASSERT
 #include <algorithm> // For std::copy.
-#include <boost/compute/type_traits/type_name.hpp> // for 'type_name'
+#include <boost/type_index/stl_type_index.hpp> // for 'type_id'
 
 namespace nupic {
 
@@ -457,7 +457,9 @@ namespace nupic {
         if (!PyArray_EquivTypenums(
               PyArray_TYPE(this->pyArray_), LookupNumpyDType((const T *) 0)))
         {
-          NTA_THROW << "Expecting '" << boost::compute::type_name<T>() << "' "
+          boost::typeindex::stl_type_index expectedType = 
+            boost::typeindex::stl_type_index::type_id<T>();
+          NTA_THROW << "Expecting '" << expectedType.pretty_name() << "' "
                     << "but got '" << PyArray_DTYPE(this->pyArray_)->type << "'";
         }
       }
