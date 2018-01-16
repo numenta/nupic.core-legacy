@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.3
+
+* https://github.com/numenta/nupic.core/issues/1380 Added stronger type checking for SP compute input.
+
+## 1.0.2
+
 ## 1.0.1
 
 * NUP-2481: Update capnp to 0.6.1
