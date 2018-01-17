@@ -643,11 +643,6 @@ if (NUPIC_BUILD_PYEXT_MODULES)
       -DSWIG_PYTHON_LEGACY_BOOL
       -I${SWIG_DIR}/python
       -I${SWIG_DIR}
-   # fix for swig python.swg not found on MinGW
-   # https://github.com/numenta/nupic.core/pull/1321#issuecomment-356665619
-   -python 
-   -I${SWIG_PATH}/Lib 
-   -I${SWIG_PATH}/Lib/python
       ${src_compiler_definitions}
   )
 
