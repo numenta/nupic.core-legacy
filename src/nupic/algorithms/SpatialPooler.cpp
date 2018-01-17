@@ -186,7 +186,7 @@ UInt SpatialPooler::getPotentialRadius() const
 
 void SpatialPooler::setPotentialRadius(UInt potentialRadius)
 {
-  potentialRadius_ = potentialRadius;
+  potentialRadius_ = std::min(potentialRadius, numInputs_); //crop to numInputs (input size)
 }
 
 Real SpatialPooler::getPotentialPct() const
@@ -196,6 +196,7 @@ Real SpatialPooler::getPotentialPct() const
 
 void SpatialPooler::setPotentialPct(Real potentialPct)
 {
+  NTA_ASSERT(potentialPct > 0 && potentialPct <= 1); //bounds check
   potentialPct_ = potentialPct;
 }
 
@@ -219,7 +220,7 @@ void SpatialPooler::setNumActiveColumnsPerInhArea(
 {
   NTA_ASSERT(numActiveColumnsPerInhArea > 0);
   numActiveColumnsPerInhArea_ = numActiveColumnsPerInhArea;
-  localAreaDensity_ = 0;
+  localAreaDensity_ = -1; //disabling
 }
 
 Real SpatialPooler::getLocalAreaDensity() const
@@ -231,7 +232,7 @@ void SpatialPooler::setLocalAreaDensity(Real localAreaDensity)
 {
   NTA_ASSERT(localAreaDensity > 0 && localAreaDensity <= 1);
   localAreaDensity_ = localAreaDensity;
-  numActiveColumnsPerInhArea_ = 0;
+  numActiveColumnsPerInhArea_ = 0; //disabling
 }
 
 UInt SpatialPooler::getStimulusThreshold() const

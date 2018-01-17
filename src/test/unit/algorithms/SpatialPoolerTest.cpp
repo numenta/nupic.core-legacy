@@ -2222,6 +2222,46 @@ namespace {
     EXPECT_EQ(0, countNonzero(activeColumns));
   }
 
+
+  TEST(SpatialPoolerTest, testDifferentConstructorVsSetterBehavior)
+  {
+  /** this test exposes wrong behavior, where SP created via constructor
+  behaves differently to a SP via setters (setXXX()), both with the same
+  params. 
+  */
+    SpatialPooler spConstruct{std::vector<UInt>{10} /* input*/, std::vector<UInt>{2048}/* SP output cols XXX sensitive*/,
+                        /*pot radius*/ 20, //each col sees
+                        /*pot pct*/ 0.5, //XXX sensitive
+                        /*global inhibition*/ false, //XXX sensitive
+                       /*Real localAreaDensity=*/0.02, //2% active cols
+                       /*UInt numActiveColumnsPerInhArea=*/0, //mutex with above ^^ //XXX sensitive
+};
+
+    SpatialPooler  sp{std::vector<UInt>{10} /* input*/, std::vector<UInt>{2048}/* SP output cols */};
+sp.setPotentialRadius(20);
+sp.setPotentialPct(0.5);
+sp.setGlobalInhibition(false);
+sp.setLocalAreaDensity(0.02); //2% active cols
+//! sp.setNumActiveColumnsPerInhArea(0); //mutex with above ^^
+
+  // test 1: these two mutex settings had err compared to the API 
+  // (localAreaDensity & numActiveColumnsPerInhArea)
+  sp.setNumActiveColumnsPerInhArea(5);
+  EXPECT_EQ(sp.getNumActiveColumnsPerInhArea(), 5);
+  EXPECT_FLOAT_EQ(sp.getLocalAreaDensity(), -1); //-1 means disabled
+
+  sp.setLocalAreaDensity(0.02);
+  EXPECT_EQ(sp.getNumActiveColumnsPerInhArea(), 0); //0 means disabled
+  EXPECT_FLOAT_EQ(sp.getLocalAreaDensity(), 0.02);
+
+  //test 2: compare potentialRadius
+  EXPECT_EQ(sp.getPotentialRadius(), spConstruct.getPotentialRadius());
+
+  //    EXPECT_EQ(spConstruct, sp);  //FIXME how compare 2 SP
+  check_spatial_eq(spConstruct, sp);
+}
+
+
   TEST(SpatialPoolerTest, testSaveLoad)
   {
     const char* filename = "SpatialPoolerSerialization.tmp";
