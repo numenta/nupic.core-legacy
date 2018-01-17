@@ -1218,17 +1218,17 @@ void SpatialPooler::inhibitColumns_(
 bool SpatialPooler::isWinner_(Real score, vector<pair<UInt, Real> >& winners,
                               UInt numWinners)
 {
-  if (score < stimulusThreshold_)
+  if (score < stimulusThreshold_) //does not pass threshold, cannot win
   {
     return false;
   }
 
-  if (winners.size() < numWinners)
+  if (winners.size() < numWinners)  //we haven't populated enough winners yet, accept everybody
   {
     return true;
   }
 
-  if (score >= winners[numWinners-1].second)
+  if (winners.size() > 0 && score >= winners.back().second)  //winners full, see if better than last accepted, replace
   {
     return true;
   }
