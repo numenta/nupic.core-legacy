@@ -598,6 +598,11 @@ void SpatialPooler::initialize(vector<UInt> inputDimensions,
 void SpatialPooler::compute(UInt inputArray[], bool learn,
                             UInt activeArray[])
 {
+  // check size of input/output arrays
+  //TODO since c++17 there is std::size() in <iterator> for arrays
+//  NTA_ASSERT(this->getNumInputs() == std::vector<UInt>(inputArray).size()); //FIXME get size of the array (T*) ?
+//  NTA_ASSERT(this->getNumColumns() == sizeof(*activeArray)/sizeof(UInt));
+
   updateBookeepingVars_(learn);
   calculateOverlap_(inputArray, overlaps_);
   calculateOverlapPct_(overlaps_, overlapsPct_);
