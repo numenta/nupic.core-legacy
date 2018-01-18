@@ -34,6 +34,11 @@ namespace nupic
   namespace YAMLUtils
   {
     /* 
+     * For converting default values
+     */
+    Value toValue(const std::string& yamlstring, NTA_BasicType dataType);
+
+    /* 
      * For converting param specs for Regions and LinkPolicies
      */
     ValueMap toValueMap(
