@@ -54,39 +54,38 @@ static void _toScalar(const YAML::Node& node, boost::shared_ptr<Scalar>& s)
     NTA_THROW << "Internal error: attempting to convert YAML string to scalar of type Byte";
     break;
   case NTA_BasicType_UInt16:
-    node >> s->value.uint16;
+    s->value.uint16 = node.as<NTA_UInt16>(); 
     break;
   case NTA_BasicType_Int16:
-    node >> s->value.int16;
+    s->value.int16 = node.as<NTA_Int16>();
     break;
   case NTA_BasicType_UInt32:
-    node >> s->value.uint32;
+    s->value.uint32 = node.as<NTA_UInt32>(); 
     break;
   case NTA_BasicType_Int32:
-    node >> s->value.int32;
+    s->value.int32 = node.as<NTA_Int32>();
     break;
   case NTA_BasicType_UInt64:
-    node >> s->value.uint64;
+    s->value.uint64 = node.as<NTA_UInt64>();
     break;
   case NTA_BasicType_Int64:
-    node >> s->value.int64;
+    s->value.int64 = node.as<NTA_Int64>();
     break;
   case NTA_BasicType_Real32:
-    node >> s->value.real32;
+    s->value.real32 = node.as<NTA_Real32>();
     break;
   case NTA_BasicType_Real64:
-    node >> s->value.real64;
+    s->value.real64 = node.as<NTA_Real64>();
     break;
   case NTA_BasicType_Bool:
-    node >> s->value.boolean;
+    s->value.boolean = node.as<bool>();
     break;
   case NTA_BasicType_Handle:
     NTA_THROW << "Attempt to specify a YAML value for a scalar of type Handle";
     break;
   default:
     // should not happen
-    std::string val;
-    node >> val;
+    const std::string val = node.as<std::string>();
     NTA_THROW << "Unknown data type " << s->getType() << " for yaml node '" << val << "'";
   }
 }
