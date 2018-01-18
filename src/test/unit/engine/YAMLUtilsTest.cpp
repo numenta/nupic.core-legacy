@@ -45,6 +45,12 @@ TEST(YAMLUtilsTest, toValueTestInt)
   ASSERT_EQ(10, i);
 }
 
+TEST(YAMLUtilsTest, handle1LetterInputString)
+{
+  const char* s1 = "1";
+  EXPECT_NO_THROW(YAMLUtils::toValue(s1, NTA_BasicType_Int32));
+}
+
 TEST(YAMLUtilsTest, toValueTestReal32)
 {
   const char* s1 = "10.1";
