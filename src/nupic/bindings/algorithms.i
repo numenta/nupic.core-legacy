@@ -1163,11 +1163,11 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
       self._initFromCapnpPyBytes(proto.as_builder().to_bytes()) # copy * 2
   %}
 
-  inline void compute(PyObject *py_x, bool learn, PyObject *py_y)
+  inline void compute(PyObject *py_inputArray, bool learn, PyObject *py_activeArray)
   {
-    PyArrayObject* x = (PyArrayObject*) py_x;
-    PyArrayObject* y = (PyArrayObject*) py_y;
-    self->compute((nupic::UInt*) PyArray_DATA(x), (bool)learn, (nupic::UInt*) PyArray_DATA(y));
+    nupic::CheckedNumpyVectorWeakRefT<nupic::UInt> inputArray(py_inputArray);
+    nupic::CheckedNumpyVectorWeakRefT<nupic::UInt> activeArray(py_activeArray);
+    self->compute(inputArray.begin(), learn, activeArray.begin());
   }
 
   inline void stripUnlearnedColumns(PyObject *py_x)

@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.0.3
+
+* https://github.com/numenta/nupic.core/issues/1380 Added stronger type checking for SP compute input.
+
+## 1.0.2
+
+* NUP-2481: Update capnp to 0.6.1
+* NUP-2469: Mark version as pre-release
+* Don't run iwyu if doing gcc build
+* RES-571 Explicitly declare cmake 3.3 minimum requirement
+
 ## 1.0.1
 
 * NUP-2481: Update capnp to 0.6.1
