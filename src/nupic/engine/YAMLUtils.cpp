@@ -182,33 +182,15 @@ Value toValue(const std::string& yamlstring, NTA_BasicType dataType)
   // yaml-cpp bug: append a space if it is only one character
   // This is very inefficient, but should be ok since it is 
   // just used at construction time for short strings
+  //FIXME try remove now
   std::string paddedstring(yamlstring);
   if (paddedstring.size() < 2)
     paddedstring = paddedstring + " ";
   std::stringstream s(paddedstring);
 
   // TODO -- return value? exceptions?
-  bool success = false;
-  YAML::Node doc;
-  try
-  {
-    YAML::Parser parser(s);
-    success = parser.GetNextDocument(doc);
-    // } catch(YAML::ParserException& e) {
-  } catch(...) {
-    success = false;
-  }
-  if (!success)
-  {
-    std::string ys(paddedstring);
-    if (ys.size() > 30)
-    {
-      ys = ys.substr(0, 30) + "...";
-    }
-    NTA_THROW << "Unable to parse YAML string '" << ys << "' for a scalar value";
-  }
-  Value v = toValue(doc, dataType);
-  return v;
+  const YAML::Node doc = YAML::LoadFile(yamlstring);
+  return toValue(doc, dataType);
 }
 
 /* 
@@ -228,21 +210,14 @@ ValueMap toValueMap(const char* yamlstring,
   std::string paddedstring(yamlstring);
   // TODO: strip white space to determine if empty
   bool empty = (paddedstring.size() == 0);
+  if(!empty)  NTA_THROW << "YAML got empty input string \n";
 
+//FIXME try removing this
   if (paddedstring.size() < 2)
     paddedstring = paddedstring + " ";
-  std::stringstream s(paddedstring);
-  // IMemStream s(yamlstring, ::strlen(yamlstring));
 
   // TODO: utf-8 compatible?
-  YAML::Node doc;
-  if (!empty)
-  {
-    YAML::Parser parser(s);
-    bool success = parser.GetNextDocument(doc);
-
-    if (!success)
-      NTA_THROW << "Unable to find document in YAML string";
+  const YAML::Node doc = YAML::LoadFile(paddedstring);
 
     // A ValueMap is specified as a dictionary
     if (doc.Type() != YAML::NodeType::Map)
@@ -256,29 +231,23 @@ ValueMap toValueMap(const char* yamlstring,
                 << "' does not not specify a dictionary of key-value pairs. "
                 << "Region and Link parameters must be specified at a dictionary";
     }
-  }
 
   // Grab each value out of the YAML dictionary and put into the ValueMap
   // if it is allowed by the nodespec.
-  YAML::Iterator i;
-  for (i = doc.begin(); i != doc.end(); i++)
+  for (auto i = doc.begin(); i != doc.end(); i++)
   {
-    const std::string key = i.first().to<std::string>();
+    const auto key = i->first.as<std::string>();
     if (!parameters.contains(key))
     {
       std::stringstream ss;
-      for (UInt j = 0; j < parameters.getCount(); j++)
-      {
+      for (UInt j = 0; j < parameters.getCount(); j++){
         ss << "   " << parameters.getByIndex(j).first << "\n";
       }
             
-      if (nodeType == std::string(""))
-      {
+      if (nodeType == std::string("")) {
         NTA_THROW << "Unknown parameter '" << key << "'\n" 
                   << "Valid parameters are:\n" << ss.str();
-      }
-      else
-      {
+      } else {
         NTA_CHECK(regionName != std::string(""));
         NTA_THROW << "Unknown parameter '" << key << "' for region '"
                   << regionName << "' of type '" << nodeType << "'\n" 
@@ -290,7 +259,7 @@ ValueMap toValueMap(const char* yamlstring,
     ParameterSpec spec = parameters.getByName(key);
     try
     {
-      Value v = toValue(i.second(), spec.dataType);
+      Value v = toValue(i->second, spec.dataType);
       if (v.isScalar() && spec.count != 1)
       {
         throw std::runtime_error("Expected array value but got scalar value");
@@ -303,7 +272,7 @@ ValueMap toValueMap(const char* yamlstring,
     } catch (std::runtime_error& e) {
       NTA_THROW << "Unable to set parameter '" << key << "'. " << e.what();
     }
-  }
+  } //end for
 
   // Populate ValueMap with default values if they were not specified in the YAML dictionary.
   for (size_t i = 0; i < parameters.getCount(); i++)
@@ -314,7 +283,7 @@ ValueMap toValueMap(const char* yamlstring,
       ParameterSpec & ps = item.second;
       if (ps.defaultValue != "")
       {
-        // TODO: This check should be uncommented after dropping NuPIC 1.x nodes (which don't comply)
+        // TODO: This check should be uncommented after dropping NuPIC 1.x nodes (which don't comply) //FIXME try this
         // if (ps.accessMode != ParameterSpec::CreateAccess)
         // {
         //   NTA_THROW << "Default value for non-create parameter: " << item.first;
@@ -343,6 +312,4 @@ ValueMap toValueMap(const char* yamlstring,
 }
 
 } // end of YAMLUtils namespace
-
 } // end of namespace nupic
-
