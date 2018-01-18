@@ -177,18 +177,8 @@ static Value toValue(const YAML::Node& node, NTA_BasicType dataType)
  */
 Value toValue(const std::string& yamlstring, NTA_BasicType dataType)
 {
-  // IMemStream s(yamlstring, ::strlen(yamlstring));
-
-  // yaml-cpp bug: append a space if it is only one character
-  // This is very inefficient, but should be ok since it is 
-  // just used at construction time for short strings
-  //FIXME try remove now
-  std::string paddedstring(yamlstring);
-  if (paddedstring.size() < 2)
-    paddedstring = paddedstring + " ";
-
   // TODO -- return value? exceptions?
-  const YAML::Node doc = YAML::Load(paddedstring);
+  const YAML::Node doc = YAML::Load(yamlstring);
   return toValue(doc, dataType);
 }
 
@@ -203,16 +193,9 @@ ValueMap toValueMap(const char* yamlstring,
     
   ValueMap vm;
 
-  // yaml-cpp bug: append a space if it is only one character
-  // This is very inefficient, but should be ok since it is 
-  // just used at construction time for short strings
   std::string paddedstring(yamlstring);
   // TODO: strip white space to determine if empty
   bool empty = (paddedstring.size() == 0);
-
-//FIXME try removing this
-  if (paddedstring.size() < 2)
-    paddedstring = paddedstring + " ";
 
   // TODO: utf-8 compatible?
   const YAML::Node doc = YAML::Load(paddedstring);
