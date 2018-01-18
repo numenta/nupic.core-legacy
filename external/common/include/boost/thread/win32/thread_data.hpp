@@ -11,6 +11,8 @@
 #include <boost/thread/win32/thread_primitives.hpp>
 #include <boost/thread/win32/thread_heap_alloc.hpp>
 
+#include <boost/predef/platform.h>
+
 #include <boost/intrusive_ptr.hpp>
 #ifdef BOOST_THREAD_USES_CHRONO
 #include <boost/chrono/system_clocks.hpp>
@@ -21,6 +23,11 @@
 #include <utility>
 
 #include <boost/config/abi_prefix.hpp>
+
+#ifdef BOOST_MSVC
+#pragma warning(push)
+#pragma warning(disable:4251)
+#endif
 
 namespace boost
 {
@@ -67,6 +74,7 @@ namespace boost
 
     namespace detail
     {
+        struct shared_state_base;
         struct tss_cleanup_function;
         struct thread_exit_callback_node;
         struct tss_data_node
@@ -87,25 +95,45 @@ namespace boost
         struct BOOST_THREAD_DECL thread_data_base
         {
             long count;
+
+            // Win32 threading APIs are not available in store apps so
+            // use abstraction on top of Windows::System::Threading.
+#if BOOST_PLAT_WINDOWS_RUNTIME
+            detail::win32::scoped_winrt_thread thread_handle;
+#else
             detail::win32::handle_manager thread_handle;
-            detail::win32::handle_manager interruption_handle;
+#endif
+
             boost::detail::thread_exit_callback_node* thread_exit_callbacks;
-            std::map<void const*,boost::detail::tss_data_node> tss_data;
-            bool interruption_enabled;
             unsigned id;
+            std::map<void const*,boost::detail::tss_data_node> tss_data;
             typedef std::vector<std::pair<condition_variable*, mutex*>
             //, hidden_allocator<std::pair<condition_variable*, mutex*> >
             > notify_list_t;
             notify_list_t notify;
 
+            typedef std::vector<shared_ptr<shared_state_base> > async_states_t;
+            async_states_t async_states_;
+//#if defined BOOST_THREAD_PROVIDES_INTERRUPTIONS
+            // These data must be at the end so that the access to the other fields doesn't change
+            // when BOOST_THREAD_PROVIDES_INTERRUPTIONS is defined
+            // Another option is to have them always
+            detail::win32::handle_manager interruption_handle;
+            bool interruption_enabled;
+//#endif
 
             thread_data_base():
-                count(0),thread_handle(detail::win32::invalid_handle_value),
-                interruption_handle(create_anonymous_event(detail::win32::manual_reset_event,detail::win32::event_initially_reset)),
-                thread_exit_callbacks(0),tss_data(),
-                interruption_enabled(true),
+                count(0),
+                thread_handle(),
+                thread_exit_callbacks(0),
                 id(0),
-                notify()
+                tss_data(),
+                notify(),
+                async_states_()
+//#if defined BOOST_THREAD_PROVIDES_INTERRUPTIONS
+                , interruption_handle(create_anonymous_event(detail::win32::manual_reset_event,detail::win32::event_initially_reset))
+                , interruption_enabled(true)
+//#endif
             {}
             virtual ~thread_data_base();
 
@@ -122,27 +150,34 @@ namespace boost
                 }
             }
 
+#if defined BOOST_THREAD_PROVIDES_INTERRUPTIONS
             void interrupt()
             {
                 BOOST_VERIFY(detail::win32::SetEvent(interruption_handle)!=0);
             }
-
+#endif
             typedef detail::win32::handle native_handle_type;
 
             virtual void run()=0;
 
-            void notify_all_at_thread_exit(condition_variable* cv, mutex* m)
+            virtual void notify_all_at_thread_exit(condition_variable* cv, mutex* m)
             {
               notify.push_back(std::pair<condition_variable*, mutex*>(cv, m));
             }
 
+            void make_ready_at_thread_exit(shared_ptr<shared_state_base> as)
+            {
+              async_states_.push_back(as);
+            }
+
         };
+        BOOST_THREAD_DECL thread_data_base* get_current_thread_data();
 
         typedef boost::intrusive_ptr<detail::thread_data_base> thread_data_ptr;
 
         struct BOOST_SYMBOL_VISIBLE timeout
         {
-            unsigned long start;
+            win32::ticks_type start;
             uintmax_t milliseconds;
             bool relative;
             boost::system_time abs_time;
@@ -150,14 +185,15 @@ namespace boost
             static unsigned long const max_non_infinite_wait=0xfffffffe;
 
             timeout(uintmax_t milliseconds_):
-                start(win32::GetTickCount()),
+                start(win32::GetTickCount64_()()),
                 milliseconds(milliseconds_),
-                relative(true),
-                abs_time(boost::get_system_time())
+                relative(true)
+            //,
+            //    abs_time(boost::get_system_time())
             {}
 
             timeout(boost::system_time const& abs_time_):
-                start(win32::GetTickCount()),
+                start(win32::GetTickCount64_()()),
                 milliseconds(0),
                 relative(false),
                 abs_time(abs_time_)
@@ -182,8 +218,8 @@ namespace boost
                 }
                 else if(relative)
                 {
-                    unsigned long const now=win32::GetTickCount();
-                    unsigned long const elapsed=now-start;
+                    win32::ticks_type const now=win32::GetTickCount64_()();
+                    win32::ticks_type const elapsed=now-start;
                     return remaining_time((elapsed<milliseconds)?(milliseconds-elapsed):0);
                 }
                 else
@@ -235,7 +271,6 @@ namespace boost
         {
             interruptible_wait(detail::win32::invalid_handle_value,abs_time);
         }
-
         template<typename TimeDuration>
         inline BOOST_SYMBOL_VISIBLE void sleep(TimeDuration const& rel_time)
         {
@@ -245,15 +280,48 @@ namespace boost
         {
             interruptible_wait(abs_time);
         }
-#ifdef BOOST_THREAD_USES_CHRONO
-        inline void BOOST_SYMBOL_VISIBLE sleep_for(const chrono::nanoseconds& ns)
+// #11322   sleep_for() nanoseconds overload will always return too early on windows
+//#ifdef BOOST_THREAD_USES_CHRONO
+//        inline void BOOST_SYMBOL_VISIBLE sleep_for(const chrono::nanoseconds& ns)
+//        {
+//          interruptible_wait(chrono::duration_cast<chrono::milliseconds>(ns).count());
+//        }
+//#endif
+        namespace no_interruption_point
         {
-          interruptible_wait(chrono::duration_cast<chrono::milliseconds>(ns).count());
+          bool BOOST_THREAD_DECL non_interruptible_wait(detail::win32::handle handle_to_wait_for,detail::timeout target_time);
+          inline void non_interruptible_wait(uintmax_t milliseconds)
+          {
+            non_interruptible_wait(detail::win32::invalid_handle_value,milliseconds);
+          }
+          inline BOOST_SYMBOL_VISIBLE void non_interruptible_wait(system_time const& abs_time)
+          {
+            non_interruptible_wait(detail::win32::invalid_handle_value,abs_time);
+          }
+          template<typename TimeDuration>
+          inline BOOST_SYMBOL_VISIBLE void sleep(TimeDuration const& rel_time)
+          {
+            non_interruptible_wait(detail::pin_to_zero(rel_time.total_milliseconds()));
+          }
+          inline BOOST_SYMBOL_VISIBLE void sleep(system_time const& abs_time)
+          {
+            non_interruptible_wait(abs_time);
+          }
+// #11322   sleep_for() nanoseconds overload will always return too early on windows
+//#ifdef BOOST_THREAD_USES_CHRONO
+//          inline void BOOST_SYMBOL_VISIBLE sleep_for(const chrono::nanoseconds& ns)
+//          {
+//            non_interruptible_wait(chrono::duration_cast<chrono::milliseconds>(ns).count());
+//          }
+//#endif
         }
-#endif
     }
 
 }
+
+#ifdef BOOST_MSVC
+#pragma warning(pop)
+#endif
 
 #include <boost/config/abi_suffix.hpp>
 

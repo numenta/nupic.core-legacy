@@ -37,6 +37,7 @@
 #include <nupic/ntypes/Dimensions.hpp>
 #include <nupic/ntypes/Array.hpp>
 #include <nupic/ntypes/ArrayRef.hpp>
+#include <nupic/py_support/NumpyArrayObject.hpp>
 #include <nupic/types/Exception.hpp>
 #include <nupic/os/OS.hpp> // memory leak detection
 #include <nupic/os/Env.hpp>
@@ -85,8 +86,8 @@ struct MemoryMonitor
   {
     if (hasMemoryLeaks())
     {
-      NTA_DEBUG 
-        << "Memory leaks detected. " 
+      NTA_DEBUG
+        << "Memory leaks detected. "
         << "Real Memory: " << diff_rmem
         << ", Virtual Memory: " << diff_vmem;
     }
@@ -113,30 +114,6 @@ struct MemoryMonitor
   size_t diff_vmem;
 };
 
-void testExceptionBug()
-{
-  Network n;
-  Region *l1 = n.addRegion("l1", "py.TestNode", "");
-  //Dimensions d(1);
-  Dimensions d(1);
-  l1->setDimensions(d);
-  bool caughtException = false;
-  try
-  {
-    n.run(1);
-  } catch (std::exception& e) {
-    NTA_DEBUG << "Caught exception as expected: '" << e.what() << "'";
-    caughtException = true;
-  }
-  if (caughtException)
-  {
-    NTA_DEBUG << "testExceptionBug passed";
-  } else {
-    NTA_THROW << "testExceptionBug did not throw an exception as expected";
-  }
-    
-}
-
 
 void testPynodeInputOutputAccess(Region * level2)
 {
@@ -149,7 +126,7 @@ void testPynodeInputOutputAccess(Region * level2)
   std::cout << "Element count in bottomUpOut is " << output.getCount() << "" << std::endl;
   Real64 *data_actual = (Real64*)output.getBuffer();
   // set the actual output
-  data_actual[12] = 54321;  
+  data_actual[12] = 54321;
 }
 
 void testPynodeArrayParameters(Region * level2)
@@ -163,7 +140,7 @@ void testPynodeArrayParameters(Region * level2)
   for (int i = 0; i < int(a.getCount()); ++i)
     std::cout << buff[i] << " ";
   std::cout << "]" << std::endl;
-  
+
   // --- test setParameterInt64Array ---
   std::cout << "Setting level2.int64ArrayParam to [ 1 2 3 4 ]" << std::endl;
   std::vector<Int64> v(4);
@@ -207,7 +184,7 @@ void testPynodeLinking()
   NTA_CHECK(r2dims.size() == 2) << " actual dims: " << r2dims.toString();
   NTA_CHECK(r2dims[0] == 3) << " actual dims: " << r2dims.toString();
   NTA_CHECK(r2dims[1] == 2) << " actual dims: " << r2dims.toString();
-  
+
   ArrayRef r1OutputArray = region1->getOutputData("bottomUpOut");
 
   region1->compute();
@@ -266,7 +243,7 @@ void testPynodeLinking()
     NTA_CHECK(r2NodeInput[4] == 0);
     NTA_CHECK(r2NodeInput[6] == 0);
     // these values are specific to the fanin2 link policy
-    NTA_CHECK(r2NodeInput[1] == row * 12    + col * 2) 
+    NTA_CHECK(r2NodeInput[1] == row * 12    + col * 2)
       << "row: " << row << " col: " << col << " val: " << r2NodeInput[1];
     NTA_CHECK(r2NodeInput[3] == row * 12    + col * 2 + 1)
       << "row: " << row << " col: " << col << " val: " << r2NodeInput[3];
@@ -286,26 +263,54 @@ void testSecondTimeLeak()
   n.addRegion("r2", "py.TestNode", "");
 }
 
-void testFailOnRegisterDuplicateRegion()
+void testRegionDuplicateRegister()
 {
-  bool caughtException = false;
+  // Register a region
   Network::registerPyRegion("nupic.regions.TestDuplicateNodes",
                             "TestDuplicateNodes");
+  // Validate that the same region can be registered multiple times
   try
   {
     Network::registerPyRegion("nupic.regions.TestDuplicateNodes",
                               "TestDuplicateNodes");
   } catch (std::exception& e) {
-    NTA_DEBUG << "Caught exception as expected: '" << e.what() << "'";
-    caughtException = true;
+    NTA_THROW << "testRegionDuplicateRegister failed with exception: '"
+              << e.what() << "'";
   }
-  if (caughtException)
+  // Validate that a region from a different module but with the same name
+  // cannot be registered
+  try
   {
-    NTA_DEBUG << "testFailOnRegisterDuplicateRegion passed";
-  } else {
-    NTA_THROW << "testFailOnRegisterDuplicateRegion did not "
-              << "throw an exception as expected";
+    Network::registerPyRegion("nupic.regions.DifferentModule",
+                              "TestDuplicateNodes");
+    NTA_THROW << "testRegionDuplicateRegister failed to throw exception for "
+              << "region with same name but different module as existing "
+              << "registered region";
+  } catch (std::exception& e) {
   }
+}
+
+void testCreationParamTypes()
+{
+  // Verify that parameters of all types can be passed in through the creation
+  // params.
+
+  Network n;
+  Region* region = n.addRegion("test", "py.TestNode",
+                               "{"
+                               "int32Param: -2000000000, uint32Param: 3000000000, "
+                               "int64Param: -5000000000, uint64Param: 5000000001, "
+                               "real32Param: 10.5, real64Param: 11.5, "
+                               "boolParam: true"
+                               "}");
+
+  NTA_CHECK(region->getParameterInt32("int32Param") == -2000000000);
+  NTA_CHECK(region->getParameterUInt32("uint32Param") == 3000000000);
+  NTA_CHECK(region->getParameterInt64("int64Param") == -5000000000);
+  NTA_CHECK(region->getParameterUInt64("uint64Param") == 5000000001);
+  NTA_CHECK(region->getParameterReal32("real32Param") == 10.5);
+  NTA_CHECK(region->getParameterReal64("real64Param") == 11.5);
+  NTA_CHECK(region->getParameterBool("boolParam") == true);
 }
 
 void testUnregisterRegion()
@@ -434,13 +439,13 @@ void testWriteRead()
 int realmain(bool leakTest)
 {
   // verbose == true turns on extra output that is useful for
-  // debugging the test (e.g. when the TestNode compute() 
+  // debugging the test (e.g. when the TestNode compute()
   // algorithm changes)
 
 
   std::cout << "Creating network..." << std::endl;
   Network n;
-  
+
   std::cout << "Region count is " << n.getRegions().getCount() << "" << std::endl;
 
   std::cout << "Adding a PyNode region..." << std::endl;
@@ -450,7 +455,7 @@ int realmain(bool leakTest)
   std::cout << "Region count is " << n.getRegions().getCount() << "" << std::endl;
   std::cout << "Node type: " << level2->getType() << "" << std::endl;
   std::cout << "Nodespec is:\n"  << level2->getSpec()->toString() << "" << std::endl;
-  
+
   Real64 rval;
   std::string int64Param("int64Param");
   std::string real64Param("real64Param");
@@ -459,13 +464,13 @@ int realmain(bool leakTest)
 
   // --- Test getParameterReal64 of a PyNode
   rval = level2->getParameterReal64("real64Param");
-  NTA_CHECK(rval == 64.1); 
+  NTA_CHECK(rval == 64.1);
   std::cout << "level2 getParameterReal64() returned: " << rval << std::endl;
 
   // --- Test setParameterReal64 of a PyNode
   level2->setParameterReal64("real64Param", 77.7);
   rval = level2->getParameterReal64("real64Param");
-  NTA_CHECK(rval == 77.7); 
+  NTA_CHECK(rval == 77.7);
 
   // should fail because network has not been initialized
   SHOULDFAIL(n.run(1));
@@ -485,17 +490,22 @@ int realmain(bool leakTest)
   std::cout << "Initializing again..." << std::endl;
   n.initialize();
 
-  testExceptionBug();
   testPynodeInputOutputAccess(level2);
   testPynodeArrayParameters(level2);
   testPynodeLinking();
-  testFailOnRegisterDuplicateRegion();
+  testRegionDuplicateRegister();
+  testCreationParamTypes();
+
   if (!leakTest)
   {
     //testNuPIC1x();
     //testPynode1xLinking();
   }
+#if !CAPNP_LITE
+  // PyRegion::write is implemented only when nupic.core is compiled with
+  // CAPNP_LITE=0
   testWriteRead();
+#endif
 
   // testUnregisterRegion needs to be the last test run as it will unregister
   // the region 'TestNode'.
@@ -508,18 +518,23 @@ int realmain(bool leakTest)
 
 int main(int argc, char *argv[])
 {
-  
-  /* 
+  // This isn't running inside one of the SWIG modules, so we need to
+  // initialize the numpy C API.
+  Py_Initialize();
+  NTA_CHECK(Py_IsInitialized());
+  nupic::initializeNumpy();
+
+  /*
    * Without arguments, this program is a simple end-to-end demo
-   * of NuPIC 2 functionality, used as a developer tool (when 
-   * we add a feature, we add it to this program. 
+   * of NuPIC 2 functionality, used as a developer tool (when
+   * we add a feature, we add it to this program.
    * With an integer argument N, runs the same test N times
    * and requires that memory use stay constant -- it can't
-   * grow by even one byte. 
+   * grow by even one byte.
    */
 
   // TODO: real argument parsing
-  // Optional arg is number of iterations to do. 
+  // Optional arg is number of iterations to do.
   NTA_CHECK(argc == 1 || argc == 2);
   size_t count = 1;
   if (argc == 2)
@@ -527,7 +542,7 @@ int main(int argc, char *argv[])
     std::stringstream ss(argv[1]);
     ss >> count;
   }
-  // Start checking memory usage after this many iterations. 
+  // Start checking memory usage after this many iterations.
 #if defined(NTA_OS_WINDOWS)
   // takes longer to settle down on win32
   size_t memoryLeakStartIter = 6000;
@@ -535,7 +550,7 @@ int main(int argc, char *argv[])
   size_t memoryLeakStartIter = 150;
 #endif
 
-  // This determines how frequently we check. 
+  // This determines how frequently we check.
   size_t memoryLeakDeltaIterCheck = 10;
 
   size_t minCount = memoryLeakStartIter + 5 * memoryLeakDeltaIterCheck;
@@ -546,7 +561,7 @@ int main(int argc, char *argv[])
     std::cout << "When run in leak detection mode, count must be at least " << minCount << "\n";
     ::exit(1);
   }
-   
+
 
   size_t initial_vmem = 0;
   size_t initial_rmem = 0;
@@ -576,7 +591,7 @@ int main(int argc, char *argv[])
           initial_rmem = current_rmem;
           initial_vmem = current_vmem;
         }
-        std::cout << "Memory usage: " << current_vmem << " (virtual) " 
+        std::cout << "Memory usage: " << current_vmem << " (virtual) "
                   << current_rmem << " (real) at iteration " << i << std::endl;
 
         if(i >= memoryLeakStartIter)
@@ -593,8 +608,8 @@ int main(int argc, char *argv[])
     }
 
   } catch (nupic::Exception& e) {
-    std::cout 
-      << "Exception: " << e.getMessage() 
+    std::cout
+      << "Exception: " << e.getMessage()
       << " at: " << e.getFilename() << ":" << e.getLineNumber()
       << std::endl;
     return 1;

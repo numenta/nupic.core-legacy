@@ -20,7 +20,7 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file 
+/** @file
  * Definition of the LinkPolicy class
  */
 
@@ -50,19 +50,18 @@ namespace nupic
     virtual const Dimensions& getSrcDimensions() const = 0;
     virtual const Dimensions& getDestDimensions() const = 0;
     // initialization is probably unnecessary, but it lets
-    // us do a sanity check before generating the splitter map. 
+    // us do a sanity check before generating the splitter map.
     virtual void initialize() = 0;
     virtual bool isInitialized() const = 0;
     virtual void setNodeOutputElementCount(size_t elementCount) = 0;
 
 
-    // A "protoSplitterMap" specifies which source output nodes send 
-    // data to which dest input nodes. 
-    // if protoSplitter[destNode][x] == srcNode for some x, then 
-    // srcNode sends its output to destNode. 
+    // A "protoSplitterMap" specifies which source output nodes send
+    // data to which dest input nodes.
+    // if protoSplitter[destNode][x] == srcNode for some x, then
+    // srcNode sends its output to destNode.
     //
     virtual void buildProtoSplitterMap(Input::SplitterMap& splitter) const = 0;
-
   };
 
 

@@ -33,7 +33,7 @@
 #include <iterator>
 #include <algorithm>
 
-#if defined(NTA_OS_WINDOWS) && defined(NTA_COMPILER_MSVC) 
+#if defined(NTA_OS_WINDOWS) && defined(NTA_COMPILER_MSVC)
   #include <array>
   #include <intrin.h>
 #endif
@@ -45,11 +45,11 @@
 namespace nupic {
 
   //--------------------------------------------------------------------------------
-  // Checks whether the SSE supports the operations we need, i.e. SSE3 and SSE4. 
+  // Checks whether the SSE supports the operations we need, i.e. SSE3 and SSE4.
   // Returns highest SSE level supported by the CPU: 1, 2, 3 or 41 or 42. It also
   // returns -1 if SSE is not present at all.
   //
-  // Refer to Intel manuals for details. Basically, after call to cpuid, the 
+  // Refer to Intel manuals for details. Basically, after call to cpuid, the
   // interesting bits are set to 1 in either ecx or edx:
   // If 25th bit of edx is 1, we have sse: 2^25 = 33554432 = 1<<25
   // If 26th bit of edx is 1, we have sse2.
@@ -60,7 +60,7 @@ namespace nupic {
   static int checkSSE()
   {
     unsigned int        c = 0, d = 0;
-    const unsigned int SSE = 1<<25, 
+    const unsigned int SSE = 1<<25,
             SSE2  = 1<<26,
             SSE3  = 1<<0,
             SSE41 = 1<<19,
@@ -130,13 +130,13 @@ namespace nupic {
     if (c & SSE42) ret = 42;
 
     return ret;
-  } 
+  }
 
   //--------------------------------------------------------------------------------
   // Highest SSE level supported by the CPU: 1, 2, 3 or 41 or 42.
-  // Note that the asm routines are written for gcc only so far, so we turn them 
+  // Note that the asm routines are written for gcc only so far, so we turn them
   // off for all platforms except darwin86. Also, they won't work properly on 64 bits
-  // platforms for now. 
+  // platforms for now.
   //--------------------------------------------------------------------------------
   static const int SSE_LEVEL = checkSSE();
 
@@ -225,7 +225,7 @@ namespace nupic {
   // DENSE isZero
   //--------------------------------------------------------------------------------
   /**
-   * Scans a binary 0/1 vector to decide whether it is uniformly zero, 
+   * Scans a binary 0/1 vector to decide whether it is uniformly zero,
    * or if it contains non-zeros (4X faster than C++ loop).
    *
    * If vector x is not aligned on a 16 bytes boundary, the function
@@ -246,7 +246,7 @@ namespace nupic {
 
     // This test can be moved to compile time using a template with an int
     // parameter, and partial specializations that will match the static
-    // const int SSE_LEVEL. 
+    // const int SSE_LEVEL.
     if (SSE_LEVEL >= 41) { // ptest is a SSE 4.1 instruction
 
     // On win32, the asm syntax is not correct.
@@ -254,13 +254,13 @@ namespace nupic {
 
       // n is the total number of floats to process.
       // n1 is the number of floats we can process in parallel using SSE.
-      // If x is not aligned on a 4 bytes boundary, we eschew all asm. 
+      // If x is not aligned on a 4 bytes boundary, we eschew all asm.
       int result = 0;
       int n = (int)(x_end - x);
       int n1 = 0;
       if (((long)x) % 16 == 0)
         n1 = 8 * (n / 8); // we are going to process 2x4 floats at a time
-    
+
       if (n1 > 0) {
 
         __asm__ __volatile__(
@@ -278,7 +278,7 @@ namespace nupic {
                      "addl $16, %%esp\n\t" // deallocate 4 floats on the stack
 
                      "0:\n\t"
-                     // esi and edi point to the same x, but staggered, so 
+                     // esi and edi point to the same x, but staggered, so
                      // that we can load 2x4 bytes into xmm0 and xmm1
                      "movaps (%%edi), %%xmm0\n\t" // move 4 floats from x
                      "movaps (%%esi), %%xmm1\n\t" // move another 4 floats from same x
@@ -286,30 +286,30 @@ namespace nupic {
                      "jne 1f\n\t" // jump if ZF = 0, some bit is not zero
                      "ptest %%xmm4, %%xmm1\n\t"   // ptest second 4 floats, in xmm1
                      "jne 1f\n\t" // jump if ZF = 0, some bit is not zero
-                   
+
                      "addl $32, %%edi\n\t"  // jump over 4 floats
                      "addl $32, %%esi\n\t"  // and another 4 floats here
                      "subl $8, %%ecx\n\t" // processed 8 floats
                      "ja 0b\n\t"
-                   
+
                      "movl $0, %0\n\t" // didn't find anything, result = 0 (int)
                      "jmp 2f\n\t" // exit
-                   
+
                      "1:\n\t" // found something
                      "movl $0x1, %0\n\t" // result = 1 (int)
-                   
+
                      "2:\n\t" // exit
                      "popa\n\t" // restore all registers
-                   
+
                      : "=m" (result), "=D" (x)
                      : "D" (x), "S" (x + 4), "c" (n1)
                      :
                      );
-      
+
         if (result == 1)
           return false;
       } // n1>0 end
-      
+
       // Complete computation by iterating over "stragglers" one by one.
       for (int i = n1; i != n; ++i)
         if (*(x+i) > 0)
@@ -390,7 +390,7 @@ namespace nupic {
 #endif
 
     } else { // not SSE4.2
-    
+
       for (; x != x_end; ++x)
         if (*x > 0)
           return false;
@@ -402,7 +402,7 @@ namespace nupic {
   /**
    * 10X faster than function just above.
    */
-  inline bool 
+  inline bool
   is_zero_01(const ByteVector& x, size_t begin, size_t end)
   {
     const Byte* x_beg = &x[begin];
@@ -412,20 +412,20 @@ namespace nupic {
 
     // This test can be moved to compile time using a template with an int
     // parameter, and partial specializations that will match the static
-    // const int SSE_LEVEL. 
+    // const int SSE_LEVEL.
     if (SSE_LEVEL >= 41) { // ptest is a SSE 4.1 instruction
 
 #if defined(NTA_ASM) && defined(NTA_ARCH_32) && !defined(NTA_OS_WINDOWS)
 
       // n is the total number of floats to process.
       // n1 is the number of floats we can process in parallel using SSE.
-      // If x is not aligned on a 4 bytes boundary, we eschew all asm. 
+      // If x is not aligned on a 4 bytes boundary, we eschew all asm.
       int result = 0;
       int n = (int)(x_end - x_beg);
       int n1 = 0;
       if (((long)x_beg) % 16 == 0)
         n1 = 32 * (n / 32); // we are going to process 32 bytes at a time
-    
+
       if (n1 > 0) {
 
         __asm__ __volatile__(
@@ -443,7 +443,7 @@ namespace nupic {
                      "addl $16, %%esp\n\t" // deallocate 4 floats on the stack
 
                      "0:\n\t"
-                     // esi and edi point to the same x, but staggered, so 
+                     // esi and edi point to the same x, but staggered, so
                      // that we can load 2x4 bytes into xmm0 and xmm1
                      "movaps (%%edi), %%xmm0\n\t" // move 4 floats from x
                      "movaps (%%esi), %%xmm1\n\t" // move another 4 floats from same x
@@ -451,30 +451,30 @@ namespace nupic {
                      "jne 1f\n\t" // jump if ZF = 0, some bit is not zero
                      "ptest %%xmm4, %%xmm1\n\t"   // ptest second 4 floats, in xmm1
                      "jne 1f\n\t" // jump if ZF = 0, some bit is not zero
-                   
+
                      "addl $32, %%edi\n\t"  // jump 32 bytes (16 in xmm0 + 16 in xmm1)
                      "addl $32, %%esi\n\t"  // and another 32 bytes
                      "subl $32, %%ecx\n\t" // processed 32 bytes
                      "ja 0b\n\t"
-                   
+
                      "movl $0, %0\n\t" // didn't find anything, result = 0 (int)
                      "jmp 2f\n\t" // exit
-                   
+
                      "1:\n\t" // found something
                      "movl $0x1, %0\n\t" // result = 1 (int)
-                   
+
                      "2:\n\t" // exit
                      "popa\n\t" // restore all registers
-                   
+
                      : "=m" (result), "=D" (x_beg)
                      : "D" (x_beg), "S" (x_beg + 16), "c" (n1)
                      :
                      );
-      
+
         if (result == 1)
           return false;
       }
-      
+
       // Complete computation by iterating over "stragglers" one by one.
       for (int i = n1; i != n; ++i)
         if (*(x_beg+i) > 0)
@@ -548,7 +548,7 @@ namespace nupic {
       return true;
 #endif
     } else {   // SSE 4.1
-    
+
       for (; x_beg != x_end; ++x_beg)
         if (*x_beg > 0)
           return false;
@@ -590,7 +590,7 @@ namespace nupic {
       std::cout << ' ';
     }
   }
-  
+
   //--------------------------------------------------------------------------------
   // N BYTES
   //--------------------------------------------------------------------------------
@@ -613,16 +613,16 @@ namespace nupic {
 
   //--------------------------------------------------------------------------------
   /**
-   * For more bytes for alignment on x86 with darwin: darwin32 always allocates on 
+   * For more bytes for alignment on x86 with darwin: darwin32 always allocates on
    * 16 bytes boundaries, so the three pointers in the STL vectors (of 32 bits each
-   * in -m32), become: 3 * 4 + 4 = 16 bytes. The capacity similarly needs to be 
+   * in -m32), become: 3 * 4 + 4 = 16 bytes. The capacity similarly needs to be
    * adjusted for aligment. On other platforms, the alignment might be different.
    *
    * NOTE/WARNING: this is really "accurate" only on darwin32. And even, it's probably
    * only approximate.
    */
   template <typename T>
-  inline size_t n_bytes(const std::vector<T>& a, size_t alignment =16) 
+  inline size_t n_bytes(const std::vector<T>& a, size_t alignment =16)
   {
     size_t n1 = a.capacity() * sizeof(T);
     if (n1 % alignment != 0)
@@ -695,7 +695,7 @@ namespace nupic {
     append(a, b);
     return b;
   }
-  
+
   //--------------------------------------------------------------------------------
   template <typename T>
   inline void append(const std::set<T>& a, std::set<T>& b)
@@ -732,15 +732,15 @@ namespace nupic {
 
   //--------------------------------------------------------------------------------
   // Deriving from std::map to add frequently used functionality
-  template <typename K, typename V, typename C =std::less<K>, 
+  template <typename K, typename V, typename C =std::less<K>,
             typename A =std::allocator<std::pair<const K, V> > >
   struct dict : public std::map<K,V,C,A>
   {
-    inline bool has_key(const K& key) const 
+    inline bool has_key(const K& key) const
     {
       return is_in(key, *this);
     }
-    
+
     // Often useful for histograms, where V is an integral type
     inline void increment(const K& key, const V& init =1)
     {
@@ -761,13 +761,13 @@ namespace nupic {
     /*
     // Returns an existing value for the key, if it is in the dict already,
     // or creates one and returns it. (operator[] on std::map does that?)
-    inline V& operator(const K& key) 
-    { 
+    inline V& operator(const K& key)
+    {
       iterator it = this->find(key);
       if (key == end) {
-        (*this)[key] = V(); 
-        return (*this)[key]; 
-      } else 
+        (*this)[key] = V();
+        return (*this)[key];
+      } else
         return *it;
     }
     */
@@ -780,11 +780,11 @@ namespace nupic {
   struct vector_init_list
   {
     std::vector<T>& v;
-    
+
     inline vector_init_list(std::vector<T>& v_ref) : v(v_ref) {}
     inline vector_init_list(const vector_init_list& o) : v(o.v) {}
 
-    inline vector_init_list& operator=(const vector_init_list& o) 
+    inline vector_init_list& operator=(const vector_init_list& o)
     { v(o.v); return *this; }
 
     template <typename T2>
@@ -794,7 +794,7 @@ namespace nupic {
       return *this;
     }
   };
-  
+
   //--------------------------------------------------------------------------------
   template <typename T, typename T2>
   inline vector_init_list<T> operator+=(std::vector<T>& v, const T2& x)
@@ -810,11 +810,11 @@ namespace nupic {
   struct set_init_list
   {
     std::set<T>& v;
-    
+
     inline set_init_list(std::set<T>& v_ref) : v(v_ref) {}
     inline set_init_list(const set_init_list& o) : v(o.v) {}
 
-    inline set_init_list& operator=(const set_init_list& o) 
+    inline set_init_list& operator=(const set_init_list& o)
     { v(o.v); return *this; }
 
     template <typename T2>
@@ -824,7 +824,7 @@ namespace nupic {
       return *this;
     }
   };
-  
+
   //--------------------------------------------------------------------------------
   template <typename T, typename T2>
   inline set_init_list<T> operator+=(std::set<T>& v, const T2& x)
@@ -906,25 +906,27 @@ namespace nupic {
   template <typename It>
   inline bool is_sorted(It begin, It end, bool ascending =true, bool unique =true)
   {
-    for (It prev = begin, it = ++begin; it < end; ++it, ++prev)
+    if (begin < end) {
+      for (It prev = begin, it = ++begin; it < end; ++it, ++prev)
 
-      if (ascending) {
-        if (unique) {
-          if (*prev >= *it) 
-            return false;
+        if (ascending) {
+          if (unique) {
+            if (*prev >= *it)
+						  return false;
+          } else {
+            if (*prev > *it)
+              return false;
+          }
         } else {
-          if (*prev > *it) 
-            return false;
-        }
-      } else {
-        if (unique) {
-          if (*prev <= *it)
-            return false;
-        } else {
-          if (*prev < *it)
-            return false;
-        }
+          if (unique) {
+            if (*prev <= *it)
+              return false;
+          } else {
+            if (*prev < *it)
+              return false;
+          }
       }
+    }
 
     return true;
   }
@@ -948,7 +950,7 @@ namespace nupic {
         return false;
     return true;
   }
-  
+
   //--------------------------------------------------------------------------------
   template <typename T>
   inline bool operator!=(const std::vector<T>& a, const std::vector<T>& b)
@@ -1002,8 +1004,8 @@ namespace nupic {
   //--------------------------------------------------------------------------------
   /**
    * Proxy for an insert iterator that allows inserting at the second element when
-   * iterating over a container of pairs, while setting the first element to the 
-   * current index value (watch out if iterator passed to constructor is not 
+   * iterating over a container of pairs, while setting the first element to the
+   * current index value (watch out if iterator passed to constructor is not
    * pointing to the beginning of the container!)
    */
   template <typename Iterator>
@@ -1016,7 +1018,7 @@ namespace nupic {
     Iterator it;
     size_t i;
 
-    inline inserter_second_incrementer_first(Iterator _it) 
+    inline inserter_second_incrementer_first(Iterator _it)
       : it(_it), i(0) {}
     inline second_type& operator*() { return it->second; }
     inline void operator++() { it->first = i++; ++it; }
@@ -1034,8 +1036,8 @@ namespace nupic {
   {
     size_t n1 = x.size(), n2 = y.nnz, i1 = 0, i2 = 0;
     T2 s = 0;
-    
-    while (i1 != n1 && i2 != n2) 
+
+    while (i1 != n1 && i2 != n2)
       if (x[i1] < y[i2]) {
         ++i1;
       } else if (y[i2] < x[i1]) {
@@ -1056,7 +1058,7 @@ namespace nupic {
       result += *x * *y;
     return result;
   }
-  
+
   //--------------------------------------------------------------------------------
   // copy
   //--------------------------------------------------------------------------------
@@ -1116,7 +1118,7 @@ namespace nupic {
       y[i] = x[i].first;
     y.nnz = x.nnz;
   }
-  
+
   //--------------------------------------------------------------------------------
   // TO DENSE
   //--------------------------------------------------------------------------------
@@ -1137,7 +1139,7 @@ namespace nupic {
     // TODO: make faster with single pass?
     // (but if's for all the elements might be slower)
     std::fill(dense, dense_end, (value_type) 0);
-    
+
     for (; ind != ind_end; ++ind)
       *(dense + *ind) = (value_type) 1;
   }
@@ -1173,7 +1175,7 @@ namespace nupic {
   inline void to_dense_1st_01(const SparseVector<I,T>& x, OutIt y, OutIt y_end)
   {
     typedef typename std::iterator_traits<OutIt>::value_type value_type;
-    
+
     std::fill(y, y_end, (value_type) 0);
 
     for (size_t i = 0; i != x.nnz; ++i)
@@ -1182,7 +1184,7 @@ namespace nupic {
 
   //--------------------------------------------------------------------------------
   template <typename T, typename OutIt>
-  inline void 
+  inline void
   to_dense_01(size_t n, const std::vector<T>& buffer, OutIt y, OutIt y_end)
   {
     NTA_ASSERT(n <= buffer.size());
@@ -1190,7 +1192,7 @@ namespace nupic {
     typedef typename std::iterator_traits<OutIt>::value_type value_type;
 
     std::fill(y, y_end, (value_type) 0);
-    
+
     const T* b = &buffer[0], *b_end = b + n;
     for (; b != b_end; ++b) {
       NTA_ASSERT(*b < (size_t)(y_end - y));
@@ -1297,7 +1299,7 @@ namespace nupic {
 
     typename Buffer<T>::iterator it2 = buffer.begin();
 
-    for (It it = begin; it != end; ++it) 
+    for (It it = begin; it != end; ++it)
       if (*it != 0) {
         *it2++ = (T)(it - begin);
       }
@@ -1357,16 +1359,16 @@ namespace nupic {
   /**
    * Given a vector of indices, removes the elements of a at those indices (indices
    * before any removal is carried out), where a is a vector of pairs.
-   * 
+   *
    * Need to pass in non-empty vector of sorted, unique indices to delete.
    */
   // TODO: remove this? Should be covered just below??
   template <typename I, typename T1, typename T2>
-  inline void 
+  inline void
   remove_for_pairs(const std::vector<I>& del, std::vector<std::pair<T1, T2> >& a)
   {
     NTA_ASSERT(std::set<I>(del.begin(),del.end()).size() == del.size());
-    
+
     if (del.empty())
       return;
 
@@ -1382,7 +1384,7 @@ namespace nupic {
       }
     }
 
-    while (old < a.size()) 
+    while (old < a.size())
       a[cur++] = a[old++];
 
     a.resize(a.size() - del.size());
@@ -1390,21 +1392,21 @@ namespace nupic {
 
   //--------------------------------------------------------------------------------
   /**
-   * Remove several elements from a vector, the elements to remove being specified 
-   * by their index (in del). After this call, a's size is reduced. Requires 
+   * Remove several elements from a vector, the elements to remove being specified
+   * by their index (in del). After this call, a's size is reduced. Requires
    * default constructor on T to be defined (for resize). O(n).
    */
   template <typename I, typename T>
-  inline void 
+  inline void
   remove_at(const std::vector<I>& del, std::vector<T>& a)
   {
     NTA_ASSERT(std::set<I>(del.begin(),del.end()).size() == del.size());
-    
+
     if (del.empty())
       return;
-    
+
     size_t old = del[0] + 1, cur = del[0], d = 1;
-    
+
     while (old < a.size() && d < del.size()) {
       if (old == (size_t) del[d]) {
         ++d; ++old;
@@ -1414,13 +1416,13 @@ namespace nupic {
         a[cur++] = a[old++];
       }
     }
-    
-    while (old < a.size()) 
+
+    while (old < a.size())
       a[cur++] = a[old++];
-    
+
     a.resize(a.size() - del.size());
   }
-  
+
   //--------------------------------------------------------------------------------
   /**
    * Finds index of elt in ref, and removes corresponding element of a.
@@ -1474,11 +1476,11 @@ namespace nupic {
   // DIFFERENCES
   //--------------------------------------------------------------------------------
   /**
-   * Returns a vector that contains the indices of the positions where x and y 
+   * Returns a vector that contains the indices of the positions where x and y
    * have different values.
    */
   template <typename T>
-  inline void 
+  inline void
   find_all_differences(const std::vector<T>& x, const std::vector<T>& y,
                        std::vector<size_t>& diffs)
   {
@@ -2223,7 +2225,7 @@ namespace nupic {
     std::random_shuffle(aa.begin(), aa.end());
     std::copy(aa.begin(), aa.begin() + b.size(), b.begin());
   }
-  
+
   //--------------------------------------------------------------------------------
   template <typename T>
   inline void random_binary(float proba, std::vector<T>& x)
@@ -2242,9 +2244,9 @@ namespace nupic {
    * of the non-zero bits.
    */
   template <typename T1, typename T2>
-  inline void 
-  random_pair_sample(size_t nrows, size_t ncols, size_t nnzpr, 
-                     std::vector<std::pair<T1, T2> >& a, 
+  inline void
+  random_pair_sample(size_t nrows, size_t ncols, size_t nnzpr,
+                     std::vector<std::pair<T1, T2> >& a,
                      const T2& init_nz_val,
                      int seed =-1,
                      bool sorted =true)
@@ -2262,7 +2264,7 @@ namespace nupic {
     nupic::Random rng(seed == -1 ? rand() : seed);
 #endif
 
-    std::vector<size_t> x(ncols); 
+    std::vector<size_t> x(ncols);
     for (size_t i = 0; i != ncols; ++i)
       x[i] = i;
     for (size_t i = 0; i != nrows; ++i) {
@@ -2280,23 +2282,23 @@ namespace nupic {
    * Generates a matrix of random (index,value) pairs from [0..ncols], with
    * nnzpr numbers per row, and n columns [generates a constant sparse matrix
    * with constant number of non-zeros per row]. This uses a 2D Gaussian distribution
-   * for the on bits of each coincidence. That is, each coincidence is seen as a 
+   * for the on bits of each coincidence. That is, each coincidence is seen as a
    * folded 2D array, and a 2D Gaussian is used to distribute the on bits of each
    * coincidence.
-   * 
+   *
    * Each row is seen as an image of size (ncols / rf_x) by rf_x.
-   * 'sigma' is the parameter of the Gaussian, which is centered at the center of 
+   * 'sigma' is the parameter of the Gaussian, which is centered at the center of
    * the image. Uses a symmetric Gaussian, specified only by the location of its
-   * max and a single sigma parameter (no Sigma matrix). We use the symmetry of the 
-   * 2d gaussian to simplify computations. The conditional distribution obtained 
+   * max and a single sigma parameter (no Sigma matrix). We use the symmetry of the
+   * 2d gaussian to simplify computations. The conditional distribution obtained
    * from the 2d gaussian by fixing y is again a gaussian, with parameters than can
    * be easily deduced from the original 2d gaussian.
    */
   template <typename T1, typename T2>
-  inline void 
+  inline void
   gaussian_2d_pair_sample(size_t nrows, size_t ncols, size_t nnzpr, size_t rf_x,
                           T2 sigma,
-                          std::vector<std::pair<T1, T2> >& a, 
+                          std::vector<std::pair<T1, T2> >& a,
                           const T2& init_nz_val,
                           int seed =-1,
                           bool sorted =true)
@@ -2320,7 +2322,7 @@ namespace nupic {
     Gaussian2D<float> sg2d(c_x, c_y, sigma*sigma, 0, 0, sigma*sigma);
     std::vector<float> z(ncols);
 
-    // Renormalize because we've lost some mass 
+    // Renormalize because we've lost some mass
     // with a compact domain of definition.
     float s = 0;
     for (size_t j = 0; j != ncols; ++j)
@@ -2352,7 +2354,7 @@ namespace nupic {
       for (size_t j = 0; j != nnzpr; ++j, ++it)
         a[offset + j] = std::pair<T1,T2>(*it, init_nz_val);
     }
-    
+
     /*
     for (size_t i = 0; i != counts.size(); ++i)
       std::cout << counts[i] << " ";
@@ -2521,7 +2523,7 @@ namespace nupic {
 
   //--------------------------------------------------------------------------------
   /**
-   * Given a threshold and a dense vector x, returns another dense vectors with 1's 
+   * Given a threshold and a dense vector x, returns another dense vectors with 1's
    * where the value of x is > threshold, and 0 elsewhere. Also returns the count
    * of 1's.
    */
@@ -2541,7 +2543,7 @@ namespace nupic {
       if (*x > threshold) {
         *y = 1;
         ++count;
-      } else 
+      } else
         *y = 0;
 
     return count;
@@ -2555,7 +2557,7 @@ namespace nupic {
   /**
    * Given a dense 2D array of 0 and 1, return a vector that has as many rows as x
    * a 1 wherever x as a non-zero row, and a 0 elsewhere. I.e. the result is the
-   * indicator of non-zero rows. Gets fast by not scanning a row more than is 
+   * indicator of non-zero rows. Gets fast by not scanning a row more than is
    * necessary, i.e. stops as soon as a 1 is found on the row.
    */
   template <typename InputIterator, typename OutputIterator>
@@ -2574,23 +2576,23 @@ namespace nupic {
         NTA_ASSERT(x[i] == 0 || x[i] == 1);
 #endif
     }
-    
+
     for (nupic::UInt32 r = 0; r != nrows; ++r, ++y) {
-      
+
       InputIterator it = x + r * ncols, it_end = it + ncols;
       nupic::UInt32 found = 0;
 
-      while (it != it_end && found == 0) 
+      while (it != it_end && found == 0)
         found = nupic::UInt32(*it++);
-      
+
       *y = found;
     }
   }
 
   //--------------------------------------------------------------------------------
   /**
-   * Given a dense 2D array of 0 and 1, return the number of rows that have 
-   * at least one non-zero. Gets fast by not scanning a row more than is 
+   * Given a dense 2D array of 0 and 1, return the number of rows that have
+   * at least one non-zero. Gets fast by not scanning a row more than is
    * necessary, i.e. stops as soon as a 1 is found on the row.
    */
   template <typename InputIterator>
@@ -2607,17 +2609,17 @@ namespace nupic {
         NTA_ASSERT(x[i] == 0 || x[i] == 1);
 #endif
     }
-    
+
     nupic::UInt32 count = 0;
-    
+
     for (nupic::UInt32 r = 0; r != nrows; ++r) {
-      
+
       InputIterator it = x + r * ncols, it_end = it + ncols;
       nupic::UInt32 found = 0;
 
-      while (it != it_end && found == 0) 
+      while (it != it_end && found == 0)
         found = nupic::UInt32(*it++);
-      
+
       count += found;
     }
 
@@ -2628,7 +2630,7 @@ namespace nupic {
   /**
    * Given a dense 2D array of 0 and 1 x, return a vector that has as many cols as x
    * a 1 wherever x as a non-zero col, and a 0 elsewhere. I.e. the result is the
-   * indicator of non-zero cols. Gets fast by not scanning a row more than is 
+   * indicator of non-zero cols. Gets fast by not scanning a row more than is
    * necessary, i.e. stops as soon as a 1 is found on the col.
    */
   template <typename InputIterator, typename OutputIterator>
@@ -2647,11 +2649,11 @@ namespace nupic {
         NTA_ASSERT(x[i] == 0 || x[i] == 1);
 #endif
     }
-    
+
     nupic::UInt32 N = nrows*ncols;
-    
+
     for (nupic::UInt32 c = 0; c != ncols; ++c, ++y) {
-      
+
       InputIterator it = x + c, it_end = it + N;
       nupic::UInt32 found = 0;
 
@@ -2659,16 +2661,16 @@ namespace nupic {
         found = nupic::UInt32(*it);
         it += ncols;
       }
-      
+
       *y = found;
     }
   }
 
   //--------------------------------------------------------------------------------
   /**
-   * Given a dense 2D array of 0 and 1, return the number of columns that have 
+   * Given a dense 2D array of 0 and 1, return the number of columns that have
    * at least one non-zero.
-   * Gets fast by not scanning a col more than is necessary, i.e. stops as soon as 
+   * Gets fast by not scanning a col more than is necessary, i.e. stops as soon as
    * a 1 is found on the col.
    */
   template <typename InputIterator>
@@ -2685,12 +2687,12 @@ namespace nupic {
         NTA_ASSERT(x[i] == 0 || x[i] == 1);
 #endif
     }
-    
+
     nupic::UInt32 count = 0;
     nupic::UInt32 N = nrows*ncols;
-    
+
     for (nupic::UInt32 c = 0; c != ncols; ++c) {
-      
+
       InputIterator it = x + c, it_end = it + N;
       nupic::UInt32 found = 0;
 
@@ -2698,7 +2700,7 @@ namespace nupic {
         found = nupic::UInt32(*it);
         it += ncols;
       }
-      
+
       count += found;
     }
 
@@ -2980,7 +2982,7 @@ namespace nupic {
   /**
    * Euclidean norm.
    */
-  
+
   //--------------------------------------------------------------------------------
   template <typename It>
   inline typename std::iterator_traits<It>::value_type
@@ -2998,10 +3000,10 @@ namespace nupic {
 
     for (; begin != end; ++begin)
       lp2(n, *begin);
-   
+
     if (take_root)
       n = lp2.root(n);
-    
+
     return n;
   }
 
@@ -3120,7 +3122,7 @@ namespace nupic {
     else
       return lp_norm(p, begin, end, take_root);
   }
-  
+
   //--------------------------------------------------------------------------------
   /**
    */
@@ -3240,7 +3242,7 @@ namespace nupic {
   {
     normalize_max(x.begin(), x.end(), n);
   }
-  
+
   //--------------------------------------------------------------------------------
   /**
    * Fills the container with a range of values.
@@ -3755,9 +3757,9 @@ namespace nupic {
    * is probably very good for the CPU front-end.
    *
    * This is not as general as a count_gt that would be parameterized on the type
-   * of the elements in the range, and it requires passing in a Python arrays 
+   * of the elements in the range, and it requires passing in a Python arrays
    * that are .astype(float32).
-   * 
+   *
    * Doesn't work on win32.
    */
   inline nupic::UInt32
@@ -3765,14 +3767,14 @@ namespace nupic {
   {
     NTA_ASSERT(begin <= end);
 
-    // Need this, because the asm syntax is not correct for win32, 
+    // Need this, because the asm syntax is not correct for win32,
     // we simply can't compile the code as is on win32.
 
-    // Need this, because even on darwin32 (which is darwin86), some older machines might 
+    // Need this, because even on darwin32 (which is darwin86), some older machines might
     // not have the right SSE instructions.
     if (SSE_LEVEL >= 3) {
 
-      // Compute offsets into array [begin..end): 
+      // Compute offsets into array [begin..end):
       // start is the first 4 bytes aligned address (to start movaps)
       // n0 is the number of floats before we reach start and can use parallel
       //  xmm operations
@@ -3910,20 +3912,20 @@ namespace nupic {
 
   //--------------------------------------------------------------------------------
   /**
-   * Counts the number of values greater than or equal to a given threshold in a 
+   * Counts the number of values greater than or equal to a given threshold in a
    *  given range.
    *
    * This is not as general as a count_gt that would be parameterized on the type
-   * of the elements in the range, and it requires passing in a Python arrays 
+   * of the elements in the range, and it requires passing in a Python arrays
    * that are .astype(float32).
-   * 
+   *
    */
   inline nupic::UInt32
   count_gte(nupic::Real32* begin, nupic::Real32* end, nupic::Real32 threshold)
   {
     NTA_ASSERT(begin <= end);
 
-    return std::count_if(begin, end, 
+    return std::count_if(begin, end,
                          std::bind2nd(std::greater_equal<nupic::Real32>(),
                          threshold));
   }
@@ -3955,7 +3957,7 @@ namespace nupic {
 
   //--------------------------------------------------------------------------------
   /**
-   * TODO: Use SSE. Maybe requires having our own vector<bool> so that we can avoid 
+   * TODO: Use SSE. Maybe requires having our own vector<bool> so that we can avoid
    * the shenanigans with the bit references and iterators.
    */
   template <>
@@ -3977,13 +3979,13 @@ namespace nupic {
         ++count;
     return count;
   }
-  
+
   //--------------------------------------------------------------------------------
   /**
    * Counts the number of values less than a given threshold in a given range.
    */
   template <typename It>
-  inline size_t 
+  inline size_t
   count_lt(It begin, It end, const typename std::iterator_traits<It>::value_type& thres)
   {
     typedef typename std::iterator_traits<It>::value_type value_type;
@@ -4032,13 +4034,13 @@ namespace nupic {
   //--------------------------------------------------------------------------------
   /**
    * Computes the sum of the elements in a range.
-   * 
+   *
 	 * Note: a previous version used veclib on Mac's and vDSP. vDSP is much faster
 	 * than C++, even optimized by gcc, but for now this works
 	 * only with float (rather than double), and only on darwin86. With these
 	 * restrictions the speed-up is usually better than 5X over optimized C++.
 	 * vDSP also handles unaligned vectors correctly, and has good performance
-	 * also when the vectors are small, not just when they are big. 
+	 * also when the vectors are small, not just when they are big.
    */
   inline nupic::Real32 sum(nupic::Real32* begin, nupic::Real32* end)
   {
@@ -4073,7 +4075,7 @@ namespace nupic {
 
   //--------------------------------------------------------------------------------
   template <typename T1, typename T2, typename T3>
-  inline void sum(const std::vector<T1>& a, const std::vector<T2>& b, 
+  inline void sum(const std::vector<T1>& a, const std::vector<T2>& b,
                   size_t begin, size_t end, std::vector<T3>& c)
   {
     for (size_t i = begin; i != end; ++i)
@@ -4322,7 +4324,7 @@ namespace nupic {
    * in order of increasing indices.
    */
   template <typename I, typename T>
-  inline void 
+  inline void
   multiply_val(T val, const Buffer<I>& indices, SparseVector<I,T>& x)
   {
     I n1 = indices.nnz, n2 = x.nnz, i1 = 0, i2 =0;
@@ -4947,7 +4949,7 @@ namespace nupic {
 
   //--------------------------------------------------------------------------------
   // DENSE LOGICAL AND/OR
-  //-------------------------------------------------------------------------------- 
+  //--------------------------------------------------------------------------------
   /**
    * For each corresponding elements of x and y, put the logical and of those two
    * elements at the corresponding position in z. This is faster than the numpy
@@ -4974,9 +4976,9 @@ namespace nupic {
       NTA_ASSERT(x_end - x == z_end - z);
     }
 
-    // See comments in count_gt. We need both conditional compilation and 
+    // See comments in count_gt. We need both conditional compilation and
     // SSE_LEVEL check.
-#if !defined(NTA_OS_WINDOWS)
+#if !defined(NTA_OS_WINDOWS) && defined(NTA_ASM)
 
     if (SSE_LEVEL >= 3) {
 
@@ -4990,13 +4992,13 @@ namespace nupic {
         n1 = 16 * (n / 16);
 
       // If we are not aligned on 4 bytes, n1 == 0, and we simply
-      // skip the asm. 
-      if (n1 > 0) { 
+      // skip the asm.
+      if (n1 > 0) {
 
   #if defined(NTA_ARCH_32)
         __asm__ __volatile__(
                      "pusha\n\t"                   // save all registers
-                 
+
                      "0:\n\t"
                      "movaps (%%esi), %%xmm0\n\t"  // move 4 floats of x to xmm0
                      "andps (%%edi), %%xmm0\n\t"   // parallel and with 4 floats of y
@@ -5011,18 +5013,18 @@ namespace nupic {
                      "movaps %%xmm1, 16(%%ecx)\n\t"// and next 4 floats
                      "movaps %%xmm2, 32(%%ecx)\n\t"// and next 4 floats
                      "movaps %%xmm3, 48(%%ecx)\n\t"// and next 4: moved 16 floats to z
-                 
+
                      "addl $64, %%esi\n\t"         // increment pointer into x by 16 floats
                      "addl $64, %%edi\n\t"         // increment pointer into y
                      "addl $64, %%ecx\n\t"         // increment pointer into z
                      "subl $16, %%edx\n\t"         // we've processed 16 floats
                      "ja 0b\n\t"                   // loop
-                 
+
                      "popa\n\t"                    // restore registers
-               
-                     : 
+
+                     :
                      : "S" (x), "D" (y), "c" (z), "d" (n1)
-                     : 
+                     :
                      );
 
   #else
@@ -5067,13 +5069,13 @@ namespace nupic {
   #endif
       }
 
-      // Finish up for stragglers in case the array length was not 
+      // Finish up for stragglers in case the array length was not
       // evenly divisible by 4
       for (int i = n1; i != n; ++i)
         *(z+i) = *(x+i) && *(y+i);
 
     } else {
-    
+
       for (; x != x_end; ++x, ++y, ++z)
         *z = (*x) && (*y);
 
@@ -5099,7 +5101,7 @@ namespace nupic {
 
     // See comments in count_gt. We need conditional compilation
     // _AND_ SSE_LEVEL check.
-#if defined(NTA_OS_LINUX) || defined(NTA_OS_DARWIN)
+#if (defined(NTA_OS_LINUX) || defined(NTA_OS_DARWIN)) && defined(NTA_ASM)
 
     if (SSE_LEVEL >= 3) {
 
@@ -5108,13 +5110,13 @@ namespace nupic {
       int n1 = 0;
       if (((long)x) % 16 == 0 && ((long)y) % 16 == 0)
         n1 = 16 * (n / 16);
-    
+
       if (n1 > 0) {
 
   #if defined(NTA_ARCH_32)
         __asm__ __volatile__(
                      "pusha\n\t"
-                 
+
                      "0:\n\t"
                      "movaps (%%esi), %%xmm0\n\t"
                      "movaps 16(%%esi), %%xmm1\n\t"
@@ -5132,14 +5134,14 @@ namespace nupic {
                      "addl $64, %%esi\n\t"
                      "addl $64, %%edi\n\t"
                      "subl $16, %%edx\n\t"
-                     "prefetch (%%esi)\n\t"                 
+                     "prefetch (%%esi)\n\t"
                      "ja 0b\n\t"
-                 
+
                      "popa\n\t"
-               
-                     : 
+
+                     :
                      : "S" (x), "D" (y), "d" (n1)
-                     : 
+                     :
                      );
 
   #else //64bit
@@ -5185,7 +5187,7 @@ namespace nupic {
         *(y+i) = *(x+i) && *(y+i);
 
     } else {
-    
+
       for (; x != x_end; ++x, ++y)
         *y = (*x) && *(y);
     }
@@ -5197,8 +5199,8 @@ namespace nupic {
 
   //--------------------------------------------------------------------------------
   /**
-   * A specialization tuned for unsigned char. 
-   * TODO: keep only one code that computes the right offsets based on 
+   * A specialization tuned for unsigned char.
+   * TODO: keep only one code that computes the right offsets based on
    * the iterator value type?
    * TODO: vectorize, but watch out for alignments
    */
@@ -5233,7 +5235,7 @@ namespace nupic {
   }
 
   //--------------------------------------------------------------------------------
-  inline void 
+  inline void
   logical_or(size_t n, const ByteVector& x, const ByteVector& y, ByteVector& z)
   {
     for (size_t i = 0; i != n; ++i)
@@ -5416,7 +5418,7 @@ namespace nupic {
     typedef typename P::second_type F;
 
     typedef select1st<std::pair<I,F> > sel1st;
-    
+
     if (direction == -1) {
       std::sort(x_begin, x_end, predicate_compose<std::greater<I>, sel1st>());
     } else {
@@ -5426,7 +5428,7 @@ namespace nupic {
 
   //--------------------------------------------------------------------------------
   template <typename I, typename F>
-  inline void sort_on_first(size_t n, std::vector<std::pair<I,F> >& x, 
+  inline void sort_on_first(size_t n, std::vector<std::pair<I,F> >& x,
                             int direction =1)
   {
     sort_on_first(x.begin(), x.begin() + n, direction);
@@ -5465,7 +5467,7 @@ namespace nupic {
             typename OutputIterator,
             typename Order>
   inline void
-  partial_sort_2nd(size_type k, 
+  partial_sort_2nd(size_type k,
                    InputIterator in_begin, InputIterator in_end,
                    OutputIterator out_begin, Order)
   {
@@ -5544,20 +5546,20 @@ namespace nupic {
    * In place.
    */
   template <typename I0, typename I, typename T>
-  inline void 
+  inline void
   partial_argsort(I0 k, SparseVector<I,T>& x, int direction =-1)
   {
     {
-      NTA_ASSERT(0 < k);   
+      NTA_ASSERT(0 < k);
       NTA_ASSERT(k <= x.size());
       NTA_ASSERT(direction == -1 || direction == 1);
     }
-    
+
     typedef I size_type;
     typedef T value_type;
-    
+
     if (direction == -1) {
-      
+
       greater_2nd_no_ties<size_type, value_type> order;
       std::partial_sort(x.begin(), x.begin() + k, x.begin() + x.nnz, order);
 
@@ -5575,7 +5577,7 @@ namespace nupic {
   static SparseVector<size_t, float> partial_argsort_buffer;
 
   //--------------------------------------------------------------------------------
-  // A partial argsort that can use an already allocated buffer to avoid creating 
+  // A partial argsort that can use an already allocated buffer to avoid creating
   // a data structure each time it's called. Assumes that the elements to be sorted
   // are nupic::Real32, or at least that they have the same size.
   //
@@ -5585,7 +5587,7 @@ namespace nupic {
   // If direction is 1, the sort is in increasing order.
   //
   // The result is returned in the first k positions of the buffer for speed.
-  // 
+  //
   // Uses a pre-allocated buffer to avoid allocating memory each time a sort
   // is needed.
   //--------------------------------------------------------------------------------
@@ -5622,19 +5624,19 @@ namespace nupic {
     }
 
     partial_argsort(k, buff, direction);
-    
-    for (size_type i = 0; i != k; ++i) 
+
+    for (size_type i = 0; i != k; ++i)
       sorted[i] = buff[i].first;
   }
 
   //--------------------------------------------------------------------------------
   /**
-   * Specialized partial argsort with selective random noise for breaking ties, to 
+   * Specialized partial argsort with selective random noise for breaking ties, to
    * speed-up FDR C SP.
    */
   template <typename InIter, typename OutIter>
-  inline void 
-  partial_argsort_rnd_tie_break(size_t k, 
+  inline void
+  partial_argsort_rnd_tie_break(size_t k,
                                 InIter begin, InIter end,
                                 OutIter sorted, OutIter sorted_end,
                                 Random& rng,
@@ -5671,10 +5673,10 @@ namespace nupic {
       std::partial_sort(buff.begin(), buff.begin() + k, buff.begin() + buff.nnz, order);
     } else {
       greater_2nd_rnd_ties<size_type, value_type, Random> order(rng);
-      std::partial_sort(buff.begin(), buff.begin() + k, buff.begin() + buff.nnz, order);      
+      std::partial_sort(buff.begin(), buff.begin() + k, buff.begin() + buff.nnz, order);
     }
-    
-    for (size_type i = 0; i != k; ++i) 
+
+    for (size_type i = 0; i != k; ++i)
       sorted[i] = buff[i].first;
   }
 
@@ -5682,14 +5684,14 @@ namespace nupic {
   // QUANTIZE
   //--------------------------------------------------------------------------------
   template <typename It1>
-  inline void 
+  inline void
   update_with_indices_of_non_zeros(nupic::UInt32 segment_size,
                                    It1 input_begin, It1 input_end,
-                                   It1 prev_begin, It1 prev_end, 
+                                   It1 prev_begin, It1 prev_end,
                                    It1 curr_begin, It1 curr_end)
   {
     typedef nupic::UInt32 size_type;
-    
+
     size_type input_size = (size_type)(input_end - input_begin);
 
     std::fill(curr_begin, curr_end, 0);
@@ -5711,7 +5713,7 @@ namespace nupic {
         }
       }
 
-      if (all_zero) 
+      if (all_zero)
         std::fill(curr_begin + begin, curr_begin + end, 1);
     }
   }
@@ -5863,33 +5865,33 @@ namespace nupic {
   // Dendritic tree activation
   //
   // Given a window size, a threshold, an array of indices and a vector of values,
-  // scans the vector of values with a sliding window on each row of the array of 
-  // indices, and as soon as the activation in one window is above the threshold, 
+  // scans the vector of values with a sliding window on each row of the array of
+  // indices, and as soon as the activation in one window is above the threshold,
   // declare that the corresponding line of the array of indices has "fired". Real
   // dendrites branch, but we are not modelling that here. Learning of the synapses,
   // i.e. populating the list of indices for each neuron, is not done here. Here,
-  // we just compute which neurons fire in a collection of neurons, given the 
-  // synaspes on the dendrites for each neuron. 
+  // we just compute which neurons fire in a collection of neurons, given the
+  // synaspes on the dendrites for each neuron.
   //
   // The array of indices represents multiple neurons, one per row, and each row
   // represents multiple segments of the dendritic tree of each neuron. However,
   // the indices are not contiguous (a dendritic segment looks at random positions
   // in its input vector). As soon as the activation in any window in any segment
   // of the dendritic tree reaches the threshold, the neuron fires. Indices are added
-  // to the list of indices for a given neuron in a specific order, tying position to 
+  // to the list of indices for a given neuron in a specific order, tying position to
   // to time of activation of the synapses: the farther away the synapses, the earlier
-  // the signal was. 
+  // the signal was.
   //
   // ncells and max_dendrite_size are the number of rows and columns, respectively,
   // of the indices matrix. If ncells is 10,000, max_dendrite_size would be,
   // typically, 100, meaning that a given neuron has synapses in its dendritic
   // tree with at most 100 other neurons. Those synapses are learnt, so during
   // learning, there are actually less than 100 synapses in the dendritic tree.
-  // 
+  //
   // window_size is the size of the sliding window, i.e. the number of indices
-  // we use to sum up activation in dendritic neighborhood. In biology, activation 
-  // might be "superlinear" for synapses further down the dendrite. 
-  // 
+  // we use to sum up activation in dendritic neighborhood. In biology, activation
+  // might be "superlinear" for synapses further down the dendrite.
+  //
   // threshold is the value which, if reached in any given dendritic neighborhood,
   // triggers activation of the neuron.
   //
@@ -5900,7 +5902,7 @@ namespace nupic {
   // neuron. If ncells is 10,000, the values of the indices range from 0 to 9,999.
   //
   // input and input_end are a pointer to the vector of input, and one past the end
-  // of that vector. That vector is of size ncells. The inputs are real valued. 
+  // of that vector. That vector is of size ncells. The inputs are real valued.
   //
   // output and output_end are a pointer to the vector of output, and one past the
   // end of that vector. That vector is of size ncells. That vector contains either
@@ -5911,7 +5913,7 @@ namespace nupic {
   //--------------------------------------------------------------------------------
   /*
   template <typename I, typename S, typename T>
-  inline void 
+  inline void
   dendritic_activation(S nsegs, S max_dendrite_size,
                        S window_size, T threshold,
                        S* indices, S* indices_end,
@@ -5939,21 +5941,21 @@ namespace nupic {
         NTA_ASSERT(n_indices[c] == 0 || window_size <= n_indices[c]);
 #endif
     } // End pre-conditions
-    
+
     for (size_type seg = 0; seg != nsegs; ++seg) {
 
       output[seg] = (int) -1;
-    
-      if (n_indices[seg] == 0) 
+
+      if (n_indices[seg] == 0)
         continue;
 
       // w_end is how far we can move the window down the dendritic segment
       value_type activation = 0;
       size_type seg_start = seg*max_dendrite_size;
-    
-      for (size_type i = 0; i != window_size; ++i) 
+
+      for (size_type i = 0; i != window_size; ++i)
         activation += input[indices[seg_start + i]];
-    
+
       if (activation >= threshold) {
 
         output[seg] = (int) 0;
@@ -5985,28 +5987,28 @@ namespace nupic {
        // }
 
        // size_type w_end = n_indices[cell] - window_size + 1;
-      
+
        // for (size_type w_start = 0; w_start < w_end; ++w_start) {
-        
+
        // size_type w_end1 = w_start + window_size;
        // value_type activation = 0;
-        
+
        // // Maintain activation with +/-
-       // for (size_type i = w_start; i < w_end1; ++i) 
-       // activation += input[indices[cell*max_dendrite_size+i]];        
-        
+       // for (size_type i = w_start; i < w_end1; ++i)
+       // activation += input[indices[cell*max_dendrite_size+i]];
+
        // if (activation >= threshold) {
        // *output = (int) w_start;
        // break;
        // }
-        
+
        // *output = (int) -1;
        // }
        // }
-    
+
   }
 */
-  
+
   //--------------------------------------------------------------------------------
 } // end namespace nupic
 

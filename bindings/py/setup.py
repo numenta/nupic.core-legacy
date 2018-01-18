@@ -153,7 +153,7 @@ def getExtensionFileNames(platform):
   libNames = ("algorithms", "engine_internal", "math")
   swigPythonFiles = ["{}.py".format(name) for name in libNames]
   swigLibFiles = ["_{}.{}".format(name, libExtension) for name in libNames]
-  files = [os.path.join(PY_BINDINGS, "nupic", "bindings", name)
+  files = [os.path.join(PY_BINDINGS, "src", "nupic", "bindings", name)
            for name in list(swigPythonFiles + swigLibFiles)]
   return files
 
@@ -176,7 +176,7 @@ def generateExtensions():
   try:
     scriptsDir = os.path.join(tmpDir, "scripts")
     releaseDir = os.path.join(tmpDir, "release")
-    pyExtensionsDir = os.path.join(PY_BINDINGS, "nupic", "bindings")
+    pyExtensionsDir = os.path.join(PY_BINDINGS, "src", "nupic", "bindings")
     os.mkdir(scriptsDir)
     os.chdir(scriptsDir)
     subprocess.check_call(
@@ -201,7 +201,7 @@ if __name__ == "__main__":
   getExtensionFiles(platform)
 
   # Copy the proto files into the proto Python package.
-  destDir = os.path.relpath(os.path.join("nupic", "proto"))
+  destDir = os.path.relpath(os.path.join("src", "nupic", "proto"))
   for protoPath in glob.glob(os.path.relpath(os.path.join(
       "..", "..", "src", "nupic", "proto", "*.capnp"))):
     shutil.copy(protoPath, destDir)
@@ -213,15 +213,17 @@ if __name__ == "__main__":
     # This distribution contains platform-specific C++ libraries, but they are not
     # built with distutils. So we must create a dummy Extension object so when we
     # create a binary file it knows to make it platform-specific.
-    ext_modules=[Extension('nupic.dummy', sources = ['dummy.c'])], 
+    ext_modules=[Extension('nupic.dummy', sources = ['dummy.c'])],
+    package_dir = {"": "src"},
+    packages=find_packages("src"),
     namespace_packages=["nupic"],
     install_requires=findRequirements(platform),
-    packages=find_packages(),
     package_data={
         "nupic.proto": ["*.capnp"],
         "nupic.bindings": ["*.so", "*.pyd"],
+        "nupic.bindings.tools": ["*.capnp"],
     },
-    extras_require = {"capnp": ["pycapnp==0.5.5"]},
+    extras_require = {"capnp": ["pycapnp==0.5.8"]},
     zip_safe=False,
     cmdclass={
       "clean": CleanCommand,

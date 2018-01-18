@@ -1,4 +1,6 @@
-# NuPIC Core [![Unix-like Build Status](https://travis-ci.org/numenta/nupic.core.png?branch=master)](https://travis-ci.org/numenta/nupic.core) [![Windows Build Status](https://ci.appveyor.com/api/projects/status/px32pcil23vunml0/branch/master?svg=true)](https://ci.appveyor.com/project/numenta-ci/nupic-core/branch/master) [![Coverage Status](https://coveralls.io/repos/numenta/nupic.core/badge.png?branch=master)](https://coveralls.io/r/numenta/nupic.core?branch=master)
+<img src="http://numenta.org/87b23beb8a4b7dea7d88099bfb28d182.svg" alt="NuPIC Logo" width=100/>
+
+# NuPIC Core [![Unix-like Build Status](https://travis-ci.org/numenta/nupic.core.png?branch=master)](https://travis-ci.org/numenta/nupic.core) [![Windows Build Status](https://ci.appveyor.com/api/projects/status/px32pcil23vunml0/branch/master?svg=true)](https://ci.appveyor.com/project/numenta-ci/nupic-core/branch/master) [![CircleCI](https://circleci.com/gh/numenta/nupic.core.svg?style=svg)](https://circleci.com/gh/numenta/nupic.core) [![Coverage Status](https://coveralls.io/repos/numenta/nupic.core/badge.png?branch=master)](https://coveralls.io/r/numenta/nupic.core?branch=master)
 
 This repository contains the C++ source code for the Numenta Platform for Intelligent Computing ([NuPIC](http://numenta.org/nupic.html)). It will eventually contain all algorithms for NuPIC, but is currently in a transition period. For details on building NuPIC within the python environment, please see http://github.com/numenta/nupic.
 
@@ -7,7 +9,7 @@ This repository contains the C++ source code for the Numenta Platform for Intell
 You can install the `nupic.bindings` Python package from PyPI:
 
     pip install nupic.bindings
-    
+
 Optionally include `--user` or other flags to determine where the package is installed.
 
 > **Note**: On Linux this will do a source installation and will require that the prerequisites specified below are installed.
@@ -25,9 +27,9 @@ Important notes:
 - Python - We recommend you use the system version where possibly.
     - Version 2.7
 - [NumPy](http://www.numpy.org/) - Can be installed through some system package managers or via [pip](https://pip.pypa.io/)
-    - Version 1.9.2
+    - Version 1.12.1
 - [pycapnp](http://jparyani.github.io/pycapnp/)
-    - Version 0.5.5 (_Linux and OSX only_)
+    - Version 0.5.8 (_Linux and OSX only_)
 - [CMake](http://www.cmake.org/)
 
 > **Note**: On Windows, Python package dependencies require the following compiler package to be installed: [Microsoft Visual C++ Compiler for Python 2.7](https://www.microsoft.com/en-gb/download/details.aspx?id=44266)
@@ -60,14 +62,20 @@ This option is for developers that would like the ability to do incremental buil
 
     mkdir -p $NUPIC_CORE/build/scripts
     cd $NUPIC_CORE/build/scripts
-    cmake $NUPIC_CORE -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../release -DPY_EXTENSIONS_DIR=$NUPIC_CORE/bindings/py/nupic/bindings
+    cmake $NUPIC_CORE -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../release -DPY_EXTENSIONS_DIR=$NUPIC_CORE/bindings/py/src/nupic/bindings
 
 Notes:
 
 - This will generate Release build files. For a debug build, change `-DCMAKE_BUILD_TYPE` to `Debug`.
+- To build nupic.core for generating the nupic.bindings python extension, pass `-DNUPIC_BUILD_PYEXT_MODULES=ON`; it is the default at this time.
+- To build nupic.core as a standalone static library, pass `-DNUPIC_BUILD_PYEXT_MODULES=OFF`.
 - If you have dependencies precompiled but not in standard system locations then you can specify where to find them with `-DCMAKE_PREFIX_PATH` (for bin/lib) and `-DCMAKE_INCLUDE_PATH` (for header files).
-- The `-DCMAKE_INSTALL_PREFIX=../release` option shown above is optional, and specifies the location where `nupic.core` should be installed. If omitted, `nupic.core` will be installed in a system location. Using this option is useful when testing versions of `nupic.core` with `nupic` (see [NuPIC's Dependency on nupic.core](https://github.com/numenta/nupic/wiki/NuPIC's-Dependency-on-nupic.core)).
+- The `-DCMAKE_INSTALL_PREFIX=../release` option shown above is optional, and specifies the location where `nupic.core` should be installed. If omitted, `nupic.core` will be installed in a system location. Using this option is useful when testing versions of `nupic.core` language bindings in [`bindings`](bindings).
 - Setting `-DPY_EXTENSIONS_DIR` copies the Python exension files to the specified directory. If the extensions aren't present when the Python build/installation is invoked then the setup.py file will run the cmake/make process to generate them. Make sure to include this flag if you want to do incremental builds of the Python extensions.
+- On OSX with multiple Python installs (e.g. via brew) cmake might erroneously pick various pieces from different installs which will likely produce abort trap at runtime. Remove cmake cache and re-run cmake with  `-DPYTHON_LIBRARY=/path/to/lib/libpython2.7.dylib` and  `-DPYTHON_INCLUDE_DIR=/path/to/include/python2.7` options to override with desired Python install path.
+- To use Include What You Use during compilation, pass `-DNUPIC-IWYU=ON`. This requires that IWYU is installed and findable by CMake, with a minimum CMake version of 3.3. IWYU can be installed from https://include-what-you-use.org/ for Windows and Linux, and on OS X using https://github.com/jasonmp85/homebrew-iwyu.
+- If you would like to install all headers, libraries, and executables to the install location for C++ clients when building the nupic.binding python extensions, pass `-NUPIC_TOGGLE_INSTALL=ON`.
+
 
 #### Build:
 
@@ -86,6 +94,7 @@ Notes:
     cd $NUPIC_CORE/build/release/bin
     ./cpp_region_test
     ./unit_tests
+    ...
 
 #### Install nupic.bindings Python library:
 
@@ -135,3 +144,10 @@ You can run the nupic.bindings tests via `setup.py`:
 
  * Run any `tests_*` project from your IDE (check `output` panel to see the results).
 
+## Build Documentation
+
+Run doxygen, optionally specifying the version as an environment variable:
+
+    PROJECT_VERSION=`cat VERSION` doxygen
+
+The results will be written out to the `html` directory.

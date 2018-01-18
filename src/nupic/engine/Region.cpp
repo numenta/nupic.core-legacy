@@ -58,7 +58,8 @@ namespace nupic
     type_(nodeType),
     initialized_(false),
     enabledNodes_(nullptr),
-    network_(network)
+    network_(network),
+    profilingEnabled_(false)
   {
     // Set region info before creating the RegionImpl so that the
     // Impl has access to the region info in its constructor.
@@ -87,7 +88,8 @@ namespace nupic
     type_(nodeType),
     initialized_(false),
     enabledNodes_(nullptr),
-    network_(network)
+    network_(network),
+    profilingEnabled_(false)
   {
     // Set region info before creating the RegionImpl so that the
     // Impl has access to the region info in its constructor.
@@ -116,7 +118,8 @@ namespace nupic
     type_(proto.getNodeType().cStr()),
     initialized_(false),
     enabledNodes_(nullptr),
-    network_(network)
+    network_(network),
+    profilingEnabled_(false)
   {
     read(proto);
     createInputsAndOutputs_();
@@ -319,7 +322,6 @@ namespace nupic
   }
 
 
-
   /**
    * These internal methods are called by Network as
    * part of initialization.
@@ -408,9 +410,6 @@ namespace nupic
       i->second->initialize();
     }
   }
-
-
-
 
 
   void

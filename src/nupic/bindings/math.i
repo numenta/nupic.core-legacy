@@ -24,29 +24,16 @@
 %include <nupic/bindings/exception.i>
 
 %pythoncode %{
-# ----------------------------------------------------------------------
-# Numenta Platform for Intelligent Computing (NuPIC)
-# Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
-# with Numenta, Inc., for a separate license for this software code, the
-# following terms and conditions apply:
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero Public License version 3 as
-# published by the Free Software Foundation.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-# See the GNU Affero Public License for more details.
-#
-# You should have received a copy of the GNU Affero Public License
-# along with this program.  If not, see http://www.gnu.org/licenses.
-#
-# http://numenta.org/licenses/
-# ----------------------------------------------------------------------
+try:
+  # NOTE need to import capnp first to activate the magic necessary for
+  # RandomProto_capnp, etc.
+  import capnp
+except ImportError:
+  capnp = None
+else:
+  from nupic.proto.RandomProto_capnp import RandomProto
 
 _MATH = _math
-
 %}
 
 %{
@@ -73,6 +60,9 @@ _MATH = _math
  */
 
 #include <cmath>
+
+#include <Python.h>
+
 #include <nupic/types/Types.hpp>
 #include <nupic/math/Utils.hpp>
 #include <nupic/math/Math.hpp>
@@ -80,28 +70,22 @@ _MATH = _math
 #include <nupic/math/ArrayAlgo.hpp>
 #include <nupic/proto/RandomProto.capnp.h>
 #include <nupic/utils/Random.hpp>
-#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
-#include <numpy/arrayobject.h>
 
-#if !CAPNP_LITE
 #include <nupic/py_support/PyCapnp.hpp>
-#endif
 %}
 
 %naturalvar;
 
+//
+// Numpy API
+//
 %{
-#define SWIG_FILE_WITH_INIT
+#include <nupic/py_support/NumpyArrayObject.hpp>
 %}
-
-%include <nupic/bindings/numpy.i> // %import does not work.
-
 %init %{
-
-// Perform necessary library initialization (in C++).
-import_array();
-  
+  nupic::initializeNumpy();
 %}
+
 
 %include <nupic/bindings/types.i>
 %include <nupic/bindings/reals.i>
@@ -160,7 +144,7 @@ import_array();
   {
     nupic::NumpyVectorT<nupic::Real32> x(py_x), y(x.size());
     nupic::quantize(x.begin(), x.end(), y.begin(), y.end(),
-		  x_min, x_max, 1, 255);
+                    x_min, x_max, 1, 255);
     return y.forPython();
   }
 
@@ -168,10 +152,10 @@ import_array();
   {
     nupic::NumpyVectorT<nupic::Real32> x(py_x), y(x.size());
     nupic::quantize(x.begin(), x.end(), y.begin(), y.end(),
-		  x_min, x_max, 1, 65535);
+                    x_min, x_max, 1, 65535);
     return y.forPython();
   }
-  */ 
+  */
 
   PyObject* winnerTakesAll_3(size_t k, size_t seg_size, PyObject* py_x)
   {
@@ -179,7 +163,7 @@ import_array();
     std::vector<int> ind;
     std::vector<nupic::Real32> nz;
     nupic::winnerTakesAll3(k, seg_size, x.begin(), x.end(),
-		    std::back_inserter(ind), std::back_inserter(nz));
+        std::back_inserter(ind), std::back_inserter(nz));
     PyObject *toReturn = PyTuple_New(2);
     PyTuple_SET_ITEM(toReturn, 0, nupic::PyInt32Vector(ind.begin(), ind.end()));
     PyTuple_SET_ITEM(toReturn, 1, nupic::PyFloatVector(nz.begin(), nz.end()));
@@ -204,6 +188,26 @@ def __setstate__(self, state):
   self.this = _MATH.new_Random(1)
   self.thisown = 1
   self.setState(state)
+
+
+def write(self, pyBuilder):
+  """Serialize the Random instance using capnp.
+
+  :param: Destination RandomProto message builder
+  """
+  reader = RandomProto.from_bytes(self._writeAsCapnpPyBytes()) # copy
+  pyBuilder.from_dict(reader.to_dict())  # copy
+
+
+def read(self, proto):
+  """Initialize the Random instance from the given RandomProto reader.
+
+  :param proto: RandomProto message reader containing data from a previously
+                serialized Random instance.
+
+  """
+  self._initFromCapnpPyBytes(proto.as_builder().to_bytes()) # copy * 2
+
 %}
 
 // For pickling (should be compatible with setState()).
@@ -368,26 +372,14 @@ inline PyObject* shuffle(PyObject* obj)
   return obj;
 }
 
-inline void write(PyObject* pyBuilder) const
+inline PyObject* _writeAsCapnpPyBytes() const
 {
-%#if !CAPNP_LITE
-  RandomProto::Builder proto = nupic::getBuilder<RandomProto>(pyBuilder);
-  self->write(proto);
-%#else
-  throw std::logic_error(
-      "Random.write is not implemented when compiled with CAPNP_LITE=1.");
-%#endif
+  return nupic::PyCapnpHelper::writeAsPyBytes(*self);
 }
 
-inline void read(PyObject* pyReader)
+inline void _initFromCapnpPyBytes(PyObject* pyBytes)
 {
-%#if !CAPNP_LITE
-  RandomProto::Reader proto = nupic::getReader<RandomProto>(pyReader);
-  self->read(proto);
-%#else
-  throw std::logic_error(
-      "Random.read is not implemented when compiled with CAPNP_LITE=1.");
-%#endif
+  nupic::PyCapnpHelper::initFromPyBytes(*self, pyBytes);
 }
 
 } // End extend nupic::Random.

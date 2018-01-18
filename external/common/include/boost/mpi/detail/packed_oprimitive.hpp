@@ -54,7 +54,7 @@ public:
 
     // fast saving of arrays
     template<class T>
-    void save_array(serialization::array<T> const& x, unsigned int /* file_version */)
+    void save_array(serialization::array_wrapper<T> const& x, unsigned int /* file_version */)
     {
         if (x.count())
           save_impl(x.address(), get_mpi_datatype(*x.address()), x.count());
@@ -81,7 +81,8 @@ public:
     {
       unsigned int l = static_cast<unsigned int>(s.size());
       save(l);
-      save_impl(s.data(),get_mpi_datatype(CharType()),s.size());
+      if (l)
+        save_impl(s.data(),get_mpi_datatype(CharType()),s.size());
     }
 
 private:

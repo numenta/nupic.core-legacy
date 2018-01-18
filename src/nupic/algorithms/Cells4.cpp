@@ -22,6 +22,7 @@
 
 #include <nupic/utils/Random.hpp>
 
+#include <algorithm>
 #include <iomanip>
 #include <vector>
 #include <iostream>
@@ -34,14 +35,14 @@
 #include <assert.h>
 #include <cstring>
 #include <map>
-#include <nupic/math/ArrayAlgo.hpp> // is_in
-#include <nupic/math/StlIo.hpp> // binary_save
+#include <nupic/algorithms/Cell.hpp>
 #include <nupic/algorithms/Cells4.hpp>
 #include <nupic/algorithms/SegmentUpdate.hpp>
-#include <nupic/algorithms/Cell.hpp>
+#include <nupic/math/ArrayAlgo.hpp> // is_in
+#include <nupic/math/StlIo.hpp> // binary_save
 #include <nupic/os/FStream.hpp>
-
 #include <nupic/os/Timer.hpp>
+#include <nupic/proto/Cells4.capnp.h>
 
 using namespace nupic::algorithms::Cells4;
 
@@ -1574,6 +1575,44 @@ void Cells4::applyGlobalDecay()
 
 //--------------------------------------------------------------------------------
 /**
+ * Helper function for Cells4::adaptSegment. Generates lists of synapses to
+ * decrement, increment, add, and remove.
+ *
+ * IMPLEMENTATION NOTE: The implementation makes a single pass through the
+ * containers for O(n) complexity.
+ *
+ */
+void Cells4::_generateListsOfSynapsesToAdjustForAdaptSegment(
+  const Segment& segment,
+  std::set<UInt>& synapsesSet,
+  std::vector<UInt>& inactiveSrcCellIdxs,
+  std::vector<UInt>& inactiveSynapseIdxs,
+  std::vector<UInt>& activeSrcCellIdxs,
+  std::vector<UInt>& activeSynapseIdxs)
+{
+  // Purge residual data
+  inactiveSrcCellIdxs.clear();
+  inactiveSynapseIdxs.clear();
+  activeSrcCellIdxs.clear();
+  activeSynapseIdxs.clear();
+
+  for (UInt i = 0; i != segment.size(); ++i) {
+    const UInt srcCellIdx = segment[i].srcCellIdx();
+    if (not_in(srcCellIdx, synapsesSet)) {
+      inactiveSrcCellIdxs.push_back(srcCellIdx);
+      inactiveSynapseIdxs.push_back(i);
+    }
+    else {
+      activeSrcCellIdxs.push_back(srcCellIdx);
+      synapsesSet.erase(srcCellIdx); // those that remain will be created
+      activeSynapseIdxs.push_back(i);
+    }
+  }
+}
+
+
+//--------------------------------------------------------------------------------
+/**
  * Applies segment update information to a segment in a cell.
  *
  * Implementation issues: we need to maintain the OutSynapses correctly.
@@ -1593,8 +1632,7 @@ void Cells4::adaptSegment(const SegmentUpdate& update)
   UInt cellIdx = update.cellIdx();
   UInt segIdx = update.segIdx();
 
-  // Modify an existing segment?
-  if (! update.isNewSegment()) {
+  if (! update.isNewSegment()) { // modify an existing segment
 
     // Sometimes you can have a pending update after a segment has already
     // been released. It's cheaper to deal with it here rather than do
@@ -1628,39 +1666,66 @@ void Cells4::adaptSegment(const SegmentUpdate& update)
     // updateSynapses? It would be cleaner and avoid the need to keep the
     // synapses sorted.
 
-    // Accumulate list of synapses to decrement, increment, add, and remove
+    // Accumulate lists of synapses to decrement, increment, add, and remove
+
+    // Union of source cell indexes corresponding to existing active synapses in
+    // the given segment plus new synapses to be added to the segment
     std::set<UInt> synapsesSet(update.begin(), update.end());
-    static std::vector<UInt> removed; // srcCellIdx
-    static std::vector<UInt> synToDec, synToInc,
-                             inactiveSegmentIndices, activeSegmentIndices;
-    removed.clear() ;                       // purge residual data
-    synToDec.clear() ;                      // purge residual data
-    synToInc.clear() ;                      // purge residual data
-    inactiveSegmentIndices.clear() ;        // purge residual data
-    activeSegmentIndices.clear() ;          // purge residual data
-    for (UInt i = 0; i != segment.size(); ++i) {
-      UInt srcCellIdx = segment[i].srcCellIdx();
-      if (not_in(srcCellIdx, synapsesSet)) {
-        synToDec.push_back(srcCellIdx);  // TODO: Check synapse still exists!
-        inactiveSegmentIndices.push_back(i);
-      }
-      else {
-        synToInc.push_back(srcCellIdx);
-        synapsesSet.erase(srcCellIdx);
-        activeSegmentIndices.push_back(i);
-      }
+
+    // NOTE: the following variables were declared static as a performance
+    // optimization in the legacy code in order to reduce memory allocations.
+    // The side effect is that this code is not thread-safe. At the time,
+    // processes were the mechanism for parllelizing execution of the algorithms.
+
+    // Tracks source cell indexes corresponding to synapses in
+    // the given segment that have been removed during execution of this method
+    static std::vector<UInt> removed;
+    // Source cell indexes corresponding to synapses in the given segment whose
+    // permances are to be decremented/incremented; ordered by index of those
+    // synapses within the segment
+    static std::vector<UInt> synToDec, synToInc;
+    // Indexes of synapses within the current segment corresponding to synapses
+    // that are inactive/active in ascending order; these variables correlate
+    // with synToDec and synToInc.
+    static std::vector<UInt> inactiveSegmentIndices,
+                             activeSegmentIndices;
+
+    // Purge residual data from static variable; the others will be purged by
+    // _generateListsOfSynapsesToAdjustForAdaptSegment
+    removed.clear();
+
+    _generateListsOfSynapsesToAdjustForAdaptSegment(
+      segment, synapsesSet,
+      synToDec, inactiveSegmentIndices,
+      synToInc, activeSegmentIndices);
+
+    // Decrement permanences of inactive synapses
+    segment.updateSynapses(synToDec, - _permDec, _permMax, _permConnected, removed);
+
+    // If any synapses were removed as the result of permanence decrements,
+    // regenerate affected parameters
+    if (!removed.empty()) {
+      synapsesSet.clear();
+      synapsesSet.insert(update.begin(), update.end());
+
+      _generateListsOfSynapsesToAdjustForAdaptSegment(
+        segment, synapsesSet,
+        synToDec, inactiveSegmentIndices,
+        synToInc, activeSegmentIndices);
     }
 
-    // Now update synapses which need to be decremented or incremented
-    // TODO: Why can't we just do this inline in the above loop?
-    segment.updateSynapses(synToDec, - _permDec, _permMax, _permConnected, removed);
+    // Increment permanences of active synapses
+    const UInt numRemovedBeforePermInc = removed.size();
     segment.updateSynapses(synToInc, _permInc, _permMax, _permConnected, removed);
+    // Incrementing of permanences shouldn't remove synapses
+    NTA_CHECK(removed.size() == numRemovedBeforePermInc);
 
-    // Add any new synapses, add these to Outlist, and update delta objects
-
-    // If we have fixed resources, get rid of some old syns if necessary
+    // If we have fixed resources, get rid of some old synapses, if necessary
     if ( (_maxSynapsesPerSegment > 0) &&
          (synapsesSet.size() + segment.size() > (UInt) _maxSynapsesPerSegment) ) {
+      // TODO: What's preventing numToFree from exceeding segment.size()? If you
+      // know, add a comment explaining it. If it exceeds, it will cause memory
+      // corruption in Segment::freeNSynapses.
       UInt numToFree = synapsesSet.size() + segment.size() - _maxSynapsesPerSegment;
       segment.freeNSynapses(numToFree,
                             synToDec, inactiveSegmentIndices,
@@ -1668,6 +1733,8 @@ void Cells4::adaptSegment(const SegmentUpdate& update)
                             removed, _verbosity,
                             _nCellsPerCol, _permMax);
     }
+
+    // Add any new synapses, add these to Outlist, and update delta objects
     segment.addSynapses(synapsesSet, _permInitial, _permConnected);
     addOutSynapses(cellIdx, segIdx, synapsesSet.begin(), synapsesSet.end());
 
@@ -1863,6 +1930,149 @@ void Cells4::reset()
   //  //_rebalance();
   //}
 }
+
+
+//--------------------------------------------------------------------------------
+void Cells4::write(Cells4Proto::Builder& proto) const
+{
+  proto.setVersion(version());
+  proto.setOwnsMemory(_ownsMemory);
+  auto randomProto = proto.initRng();
+  _rng.write(randomProto);
+  proto.setNColumns(_nColumns);
+  proto.setNCellsPerCol(_nCellsPerCol);
+  proto.setActivationThreshold(_activationThreshold);
+  proto.setMinThreshold(_minThreshold);
+  proto.setNewSynapseCount(_newSynapseCount);
+  proto.setNIterations(_nIterations);
+  proto.setNLrnIterations(_nLrnIterations);
+  proto.setSegUpdateValidDuration(_segUpdateValidDuration);
+  proto.setInitSegFreq(_initSegFreq);
+  proto.setPermInitial(_permInitial);
+  proto.setPermConnected(_permConnected);
+  proto.setPermMax(_permMax);
+  proto.setPermDec(_permDec);
+  proto.setPermInc(_permInc);
+  proto.setGlobalDecay(_globalDecay);
+  proto.setDoPooling(_doPooling);
+  proto.setPamLength(_pamLength);
+  proto.setMaxInfBacktrack(_maxInfBacktrack);
+  proto.setMaxLrnBacktrack(_maxLrnBacktrack);
+  proto.setMaxSeqLength(_maxSeqLength);
+  proto.setLearnedSeqLength(_learnedSeqLength);
+  proto.setAvgLearnedSeqLength(_avgLearnedSeqLength);
+  proto.setMaxAge(_maxAge);
+  proto.setVerbosity(_verbosity);
+  proto.setMaxSegmentsPerCell(_maxSegmentsPerCell);
+  proto.setMaxSynapsesPerSegment(_maxSynapsesPerSegment);
+  proto.setCheckSynapseConsistency(_checkSynapseConsistency);
+  proto.setResetCalled(_resetCalled);
+  proto.setAvgInputDensity(_avgInputDensity);
+  proto.setPamCounter(_pamCounter);
+
+  auto learnActiveStateTProto = proto.initLearnActiveStateT();
+  _learnActiveStateT.write(learnActiveStateTProto);
+  auto learnActiveStateT1Proto = proto.initLearnActiveStateT1();
+  _learnActiveStateT1.write(learnActiveStateT1Proto);
+  auto learnPredictedStateTProto = proto.initLearnPredictedStateT();
+  _learnPredictedStateT.write(learnPredictedStateTProto);
+  auto learnPredictedStateT1Proto = proto.initLearnPredictedStateT1();
+  _learnPredictedStateT1.write(learnPredictedStateT1Proto);
+
+  auto cellListProto = proto.initCells(_nCells);
+  for (UInt i = 0; i < _nCells; ++i)
+  {
+    auto cellProto = cellListProto[i];
+    _cells[i].write(cellProto);
+  }
+
+  auto segmentUpdatesListProto = proto.initSegmentUpdates(
+      _segmentUpdates.size());
+  for (UInt i = 0; i < _segmentUpdates.size(); ++i)
+  {
+    auto segmentUpdateProto = segmentUpdatesListProto[i];
+    _segmentUpdates[i].write(segmentUpdateProto);
+  }
+}
+
+
+//--------------------------------------------------------------------------------
+void Cells4::read(Cells4Proto::Reader& proto)
+{
+  NTA_CHECK(proto.getVersion() == 2);
+
+  initialize(proto.getNColumns(),
+             proto.getNCellsPerCol(),
+             proto.getActivationThreshold(),
+             proto.getMinThreshold(),
+             proto.getNewSynapseCount(),
+             proto.getSegUpdateValidDuration(),
+             proto.getPermInitial(),
+             proto.getPermConnected(),
+             proto.getPermMax(),
+             proto.getPermDec(),
+             proto.getPermInc(),
+             proto.getGlobalDecay(),
+             proto.getDoPooling(),
+             proto.getOwnsMemory());
+  auto randomProto = proto.getRng();
+  _rng.read(randomProto);
+  _nIterations = proto.getNIterations();
+  _nLrnIterations = proto.getNLrnIterations();
+  _initSegFreq = proto.getInitSegFreq();
+  _pamLength = proto.getPamLength();
+  _maxInfBacktrack = proto.getMaxInfBacktrack();
+  _maxLrnBacktrack = proto.getMaxLrnBacktrack();
+  _maxSeqLength = proto.getMaxSeqLength();
+  _learnedSeqLength = proto.getLearnedSeqLength();
+  _avgLearnedSeqLength = proto.getAvgLearnedSeqLength();
+  _maxAge = proto.getMaxAge();
+  _verbosity = proto.getVerbosity();
+  _maxSegmentsPerCell = proto.getMaxSegmentsPerCell();
+  _maxSynapsesPerSegment = proto.getMaxSynapsesPerSegment();
+  _checkSynapseConsistency = proto.getCheckSynapseConsistency();
+
+  _resetCalled = proto.getResetCalled();
+
+  _avgInputDensity = proto.getAvgInputDensity();
+  _pamCounter = proto.getPamCounter();
+
+  auto learnActiveStateTProto = proto.getLearnActiveStateT();
+  _learnActiveStateT.read(learnActiveStateTProto);
+  auto learnActiveStateT1Proto = proto.getLearnActiveStateT1();
+  _learnActiveStateT1.read(learnActiveStateT1Proto);
+  auto learnPredictedStateTProto = proto.getLearnPredictedStateT();
+  _learnPredictedStateT.read(learnPredictedStateTProto);
+  auto learnPredictedStateT1Proto = proto.getLearnPredictedStateT1();
+  _learnPredictedStateT1.read(learnPredictedStateT1Proto);
+
+  auto cellListProto = proto.getCells();
+  _nCells = cellListProto.size();
+  _cells.resize(_nCells);
+  for (UInt i = 0; i < cellListProto.size(); ++i)
+  {
+    auto cellProto = cellListProto[i];
+    _cells[i].read(cellProto);
+  }
+
+  auto segmentUpdatesListProto = proto.getSegmentUpdates();
+  _segmentUpdates.clear();
+  _segmentUpdates.resize(segmentUpdatesListProto.size());
+  for (UInt i = 0; i < segmentUpdatesListProto.size(); ++i)
+  {
+    auto segmentUpdateProto = segmentUpdatesListProto[i];
+    _segmentUpdates[i].read(segmentUpdateProto);
+  }
+
+  rebuildOutSynapses();
+  if (_checkSynapseConsistency || (_nCells * _maxSegmentsPerCell < 100000))
+  {
+    NTA_CHECK(invariants(true));
+  }
+
+  _version = VERSION;
+}
+
 
 //--------------------------------------------------------------------------------
 void Cells4::save(std::ostream& outStream) const

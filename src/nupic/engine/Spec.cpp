@@ -89,7 +89,6 @@ std::string Spec::getDefaultOutputName() const
   return name;
 }
 
-
 InputSpec::InputSpec(std::string description, 
                      NTA_BasicType  dataType, 
                      UInt32 count,

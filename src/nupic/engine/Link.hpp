@@ -1,6 +1,6 @@
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
+ * Copyright (C) 2013-2017, Numenta, Inc.  Unless you have an agreement
  * with Numenta, Inc., for a separate license for this software code, the
  * following terms and conditions apply:
  *
@@ -29,8 +29,11 @@
 
 #include <string>
 
+#include <boost/circular_buffer.hpp>
+
 #include <nupic/engine/LinkPolicy.hpp>
 #include <nupic/engine/Input.hpp> // needed for splitter map
+#include <nupic/ntypes/Array.hpp>
 #include <nupic/ntypes/Dimensions.hpp>
 #include <nupic/proto/LinkProto.capnp.h>
 #include <nupic/types/Serializable.hpp>
@@ -94,6 +97,14 @@ namespace nupic
      *            The name of the source Output
      * @param destInputName
      *            The name of the destination Input
+     * @param propagationDelay
+     *            Propagation delay of the link as number of network run
+     *            iterations involving the link as input; the delay vectors, if
+     *            any, are initially populated with 0's. Defaults to 0=no delay.
+     *            Per design, data on no-delay links is to become available to
+     *            destination inputs within the same time step, while data on
+     *            delayed links (propagationDelay > 0) is to be updated
+     *            "atomically" between time steps.
      *
      * @internal
      *
@@ -108,7 +119,19 @@ namespace nupic
      */
     Link(const std::string& linkType, const std::string& linkParams,
          const std::string& srcRegionName, const std::string& destRegionName,
-         const std::string& srcOutputName="", const std::string& destInputName="");
+         const std::string& srcOutputName="",
+         const std::string& destInputName="",
+         const size_t propagationDelay=0);
+
+    /**
+     * De-serialization use case. Creates a "blank" link. The caller must follow
+     * up with Link::read and Link::connectToNetwork
+     *
+     * @param proto
+     *            LinkProto::Reader
+     */
+    Link();
+
 
     /**
      * Initialization Phase 2: connecting inputs/outputs to
@@ -132,9 +155,13 @@ namespace nupic
      *            The source Output of the link
      * @param destInput
      *            The destination Input of the link
+     * @param propagationDelay
+     *            Propagation delay of the link as number of network run
+     *            iterations involving the link as input; the delay vectors, if
+     *            any, are initially populated with 0's. Defaults to 0=no delay
      */
     Link(const std::string& linkType, const std::string& linkParams,
-         Output* srcOutput, Input* destInput);
+         Output* srcOutput, Input* destInput, size_t propagationDelay=0);
 
     /**
      * Initialization Phase 3: set the Dimensions for the source Output, and
@@ -255,6 +282,13 @@ namespace nupic
 
     /**
      *
+     * Get a generated name of the link in the form
+     * RegName.outName --> RegName.inName for debug logging purposes only.
+     */
+    std::string getMoniker() const;
+
+    /**
+     *
      * Get the source Output of the link.
      *
      * @returns
@@ -338,6 +372,16 @@ namespace nupic
     void
     buildSplitterMap(Input::SplitterMap& splitter);
 
+    /*
+     * No-op for links without delay; for delayed links, remove head element of
+     * the propagation delay buffer and push back the current value from source.
+     *
+     * NOTE It's intended that this method be called exactly once on all links
+     * within a network at the end of every time step. Network::run calls it
+     * automatically on all links at the end of each time step.
+     */
+    void shiftBufferedData();
+
     /**
      * Convert the Link to a human-readable string.
      *
@@ -362,70 +406,6 @@ namespace nupic
     using Serializable::read;
     void read(LinkProto::Reader& proto);
 
-
-    /**
-     *
-     * @}
-     *
-     * @name Not implemented
-     *
-     * @{
-     */
-
-    /**
-     * Get the size of the input contributed by this link for a single node.
-     *
-     * @param nodeIndex
-     *            The index of the node
-     *
-     * @returns
-     *         The size of the input contributed by this link for a single node.
-     *
-     * @todo index=-1 for region-level input?
-     *
-     * @todo not implemented;  necessary?
-     */
-    size_t
-    getNodeInputSize(size_t nodeIndex);
-
-    /**
-     * Tells whether the Input is contiguous.
-     *
-     * @returns
-     *         Whether the Input is contiguous, i.e. TODO
-     *
-     * If the input for a particular node is a contiguous subset
-     * of the src output, then the splitter map is overkill, and
-     * all we need to know is the offset/size (per node)
-     * Returns true if and only if the input for each node
-     * is a contiguous chunk of the input buffer.
-     *
-     * @todo not implemented;  necessary?
-     */
-    bool
-    isInputContiguous();
-
-    /**
-     * Locate the contiguous input for a node.
-     *
-     * This method is used only if the input is contiguous
-     *
-     * @param nodeIndex
-     *            The index of the node
-     *
-     * @returns
-     *         The Input offset of the node
-     *
-     * @todo not implemented;  necessary?
-     */
-    size_t
-    getInputOffset(size_t nodeIndex);
-
-    /**
-     * @}
-     */
-
-
   private:
     // common initialization for the two constructors.
     void commonConstructorInit_(const std::string& linkType,
@@ -433,7 +413,12 @@ namespace nupic
                                 const std::string& srcRegionName,
                                 const std::string& destRegionName,
                                 const std::string& srcOutputName,
-                                const std::string& destInputName);
+                                const std::string& destInputName,
+                                const size_t propagationDelay);
+
+    void initPropagationDelayBuffer_(size_t propagationDelay,
+                                     NTA_BasicType dataElementType,
+                                     size_t dataElementCount);
 
     // TODO: The strings with src/dest names are redundant with
     // the src_ and dest_ objects. For unit testing links,
@@ -471,6 +456,11 @@ namespace nupic
     // may not equal the size of the source output.
     size_t srcOffset_;
     size_t srcSize_;
+
+    // Circular buffer for delayed source data buffering
+    boost::circular_buffer<Array> srcBuffer_;
+    // Number of delay slots
+    size_t propagationDelay_;
 
     // link must be initialized before it can compute()
     bool initialized_;

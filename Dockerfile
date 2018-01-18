@@ -15,7 +15,7 @@ RUN apt-get update && \
     bzip2 \
     libyaml-dev \
     libyaml-0-2
-RUN wget https://bootstrap.pypa.io/get-pip.py -O - | python
+RUN wget http://releases.numenta.org/pip/1ebd3cb7a5a3073058d0c9552ab074bd/get-pip.py -O - | python
 RUN pip install --upgrade setuptools
 RUN pip install wheel
 
@@ -34,6 +34,6 @@ RUN pip install \
         --cache-dir /usr/local/src/nupic.core/pip-cache \
         --build /usr/local/src/nupic.core/pip-build \
         --no-clean \
-        pycapnp==0.5.5 \
+        pycapnp==0.5.8 \
         -r bindings/py/requirements.txt && \
     python setup.py bdist bdist_dumb bdist_wheel sdist

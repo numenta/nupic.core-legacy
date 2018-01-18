@@ -20,14 +20,21 @@
 #include <mpi.h>
 #include <boost/config.hpp>
 
-/** @brief Define this macro to avoid expensice MPI_Pack/Unpack calls on 
- *  homogeneous machines.
-*/
-//#define BOOST_MPI_HOMOGENEOUS
+/** @brief Comment this macro is you are running in an heterogeneous environment.
+ *
+ * When this flag is enabled, we assume some simple, POD-like, type can be 
+ * transmitted without paying the cost of portable serialization. 
+ *
+ * Comment this if your platform is not homogeneous and that portable 
+ * serialization/deserialization must be performed.
+ *
+ * It you do so, check that your MPI implementation supports thats kind of environment.
+ */
+#define BOOST_MPI_HOMOGENEOUS
 
 // If this is an MPI-2 implementation, define configuration macros for
 // the features we are interested in.
-#if defined(MPI_VERSION) && MPI_VERSION == 2
+#if defined(MPI_VERSION) && MPI_VERSION >= 2
 /** @brief Determine if the MPI implementation has support for memory
  *  allocation.
  *
@@ -48,6 +55,11 @@
  *  environment class will provide a default constructor. This macro is 
  *  always defined for MPI-2 implementations. */
 #  define BOOST_MPI_HAS_NOARG_INITIALIZATION
+#else
+// If this is an MPI-1.x implementation, no arg initialization for
+// mpi environment could still be available, but not mandatory.
+// Undef this if no arg init is available:
+//#  define BOOST_MPI_HAS_NOARG_INITIALIZATION
 #endif
 
 #if defined(MPIAPI)
@@ -66,10 +78,20 @@
 #  define BOOST_MPI_CALLING_CONVENTION
 #endif
 
+/** @brief Indicates that MPI_Bcast supports MPI_BOTTOM.
+ *
+ * Some implementations have a broken MPI_Bcast wrt to MPI_BOTTOM.
+ * BullX MPI and LAM seems to be among them, at least for some versions.
+ * The `broacast_test.cpp` test `test_skeleton_and_content` can be used to 
+ * detect that.
+ */
+#define BOOST_MPI_BCAST_BOTTOM_WORKS_FINE
+
 #if defined(LAM_MPI)
 // Configuration for LAM/MPI
 #  define BOOST_MPI_HAS_MEMORY_ALLOCATION
 #  define BOOST_MPI_HAS_NOARG_INITIALIZATION
+#  undef  BOOST_MPI_BCAST_BOTTOM_WORKS_FINE
 #elif defined(MPICH_NAME)
 // Configuration for MPICH
 #endif
@@ -80,12 +102,12 @@
  *                                                                           *
  *****************************************************************************/
 
-#if defined(BOOST_HAS_DECLSPEC) && (defined(BOOST_MPI_DYN_LINK) || defined(BOOST_ALL_DYN_LINK)) && !defined(BOOST_MPI_STATIC_LINK)
+#if (defined(BOOST_MPI_DYN_LINK) || defined(BOOST_ALL_DYN_LINK)) && !defined(BOOST_MPI_STATIC_LINK)
 #  if defined(BOOST_MPI_SOURCE)
-#     define BOOST_MPI_DECL __declspec(dllexport)
+#     define BOOST_MPI_DECL BOOST_SYMBOL_EXPORT
 #     define BOOST_MPI_BUILD_DLL
 #  else
-#     define BOOST_MPI_DECL __declspec(dllimport)
+#     define BOOST_MPI_DECL BOOST_SYMBOL_IMPORT
 #  endif
 #endif
 

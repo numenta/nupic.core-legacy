@@ -23,7 +23,6 @@
 /* @file Implementation of NuPIC init/shutdown operations */
 
 // TODO -- thread safety
-// TODO -- add license check
 
 #include <nupic/engine/NuPIC.hpp>
 #include <nupic/engine/RegionImplFactory.hpp>
@@ -40,19 +39,15 @@ void NuPIC::init()
 {
   if (isInitialized())
     return;
-  
-  // internal consistency check. Nonzero should be impossible. 
-  NTA_CHECK(networks_.size() == 0) << "Internal error in NuPIC::init()";
-  
-  // Initialize APR
-  int argc=1;
-  const char *argv[1] = {"NuPIC"};
-  // TODO: move to OS::initialize()?
-  int result = apr_app_initialize(&argc, (const char* const **)&argv, nullptr /*env*/);
-  if (result) 
-    NTA_THROW << "Error initializing APR (code " << result << ")";
 
-  // TODO: license checking will be done in NuPIC::init()
+  // internal consistency check. Nonzero should be impossible.
+  NTA_CHECK(networks_.size() == 0) << "Internal error in NuPIC::init()";
+
+  // Initialize APR as a library client
+  // TODO: move to OS::initialize()?
+  int result = apr_initialize();
+  if (result)
+    NTA_THROW << "Error initializing APR (code " << result << ")";
 
   initialized_ = true;
 }
@@ -67,7 +62,7 @@ void NuPIC::shutdown()
 
   if (!networks_.empty())
   {
-    NTA_THROW << "NuPIC::shutdown -- cannot shut down NuPIC because " 
+    NTA_THROW << "NuPIC::shutdown -- cannot shut down NuPIC because "
               << networks_.size() << " networks still exist.";
   }
 

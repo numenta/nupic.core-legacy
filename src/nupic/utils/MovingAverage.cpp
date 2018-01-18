@@ -24,6 +24,7 @@
 #include "nupic/utils/Log.hpp"
 
 #include <algorithm>
+#include <iterator>
 #include <numeric>
 
 using namespace std;

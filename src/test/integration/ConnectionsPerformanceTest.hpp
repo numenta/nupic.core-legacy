@@ -45,8 +45,7 @@ namespace nupic
 
     namespace connections
     {
-      struct SegmentOverlap;
-      struct Cell;
+      typedef UInt32 Segment;
     }
   }
 
@@ -77,14 +76,14 @@ namespace nupic
                               std::string label);
 
     void checkpoint(clock_t timer, std::string text);
-    std::vector<algorithms::connections::Cell> randomSDR(UInt n, UInt w);
+    std::vector<UInt32> randomSDR(UInt n, UInt w);
     void feedTM(algorithms::temporal_memory::TemporalMemory &tm,
-                std::vector<algorithms::connections::Cell> sdr,
+                std::vector<CellIdx> sdr,
                 bool learn = true);
-    std::vector<algorithms::connections::Cell> computeSPWinnerCells(
+    std::vector<CellIdx> computeSPWinnerCells(
       Connections& connections,
       UInt numCells,
-      vector<algorithms::connections::SegmentOverlap> activeSegments);
+      const vector<UInt>& numActiveSynapsesForSegment);
 
   }; // end class ConnectionsPerformanceTest
 

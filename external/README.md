@@ -7,17 +7,16 @@ build of nupic.core.
 
 These libraries are found in the nupic.core sources under external/common/share.
 
+The C++ library is linked to other languages using SWIG, such as Python x64.
 
-NuPICs dependency on NuPIC Core
-===============================
+The NuPIC.Core repository consists of two parts;
 
-NuPIC's dependency on the Core library can be found here - https://github.com/numenta/nupic/wiki/NuPIC's-Dependency-on-nupic.core
+- Main C++ core library ([`src`](../src))
+- Python SWIG based bindings for Algorithms and Network API
+  ([`bindings/py`](../bindings/py))
 
-It describes how the C++ library is linked to other languages using SWIG, such as Python x64. The NuPIC.Core repository consist of two parts;
-
-- Main C++ core library, and
-- Python SWIG based bindings.
-
+Please put any new SWIG bindings in the [`bindings`](../bindings) folder named by
+language.
 
 NuPIC Core build overview
 ========================
@@ -36,4 +35,3 @@ CMake based build files are used to define the entire build process. The nupic.b
 For build information on Unix platforms (e.g., Mac OS X and linux), refer to https://github.com/numenta/nupic.core#developer-installation.
 
 Platform- and toolchain-specific information may be found in README.md files located in platform/toolchain-specific subdirectories under nupic.core/external. E.g., the nupic.core/external/windows64-gcc directory contains information specific to Windows 64-bit builds using the mingwpy "gcc" toolchain.
-

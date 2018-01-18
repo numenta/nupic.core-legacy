@@ -20,9 +20,12 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file 
+/** @file
  * Implementation of the ArrayBase class
  */
+
+#include <iostream> // for ostream
+#include <stdlib.h> // for size_t
 
 #include <nupic/types/Types.hpp>
 #include <nupic/types/BasicType.hpp>
@@ -32,9 +35,9 @@
 using namespace nupic;
 
 /**
- * Caller provides a buffer to use. 
+ * Caller provides a buffer to use.
  * NuPIC always copies data into this buffer
- * Caller frees buffer when no longer needed. 
+ * Caller frees buffer when no longer needed.
  */
 ArrayBase::ArrayBase(NTA_BasicType type, void* buffer, size_t count) :
   buffer_((char*)buffer), count_(count), type_(type), own_(false)
@@ -47,7 +50,7 @@ ArrayBase::ArrayBase(NTA_BasicType type, void* buffer, size_t count) :
 
 /**
  * Caller does not provide a buffer --
- * Nupic will either provide a buffer via setBuffer or 
+ * Nupic will either provide a buffer via setBuffer or
  * ask the ArrayBase to allocate a buffer via allocateBuffer.
  */
 ArrayBase::ArrayBase(NTA_BasicType type) :
@@ -87,7 +90,7 @@ ArrayBase::allocateBuffer(size_t count)
   buffer_ = new char[count_ * BasicType::getSize(type_)];
   own_ = true;
 }
-  
+
 void
 ArrayBase::setBuffer(void *buffer, size_t count)
 {
@@ -110,25 +113,88 @@ ArrayBase::releaseBuffer()
   buffer_ = nullptr;
   count_ = 0;
 }
-       
-void* 
+
+void*
 ArrayBase::getBuffer() const
-{ 
-  return buffer_; 
+{
+  return buffer_;
 }
 
 // number of elements of given type in the buffer
 size_t
 ArrayBase::getCount() const
-{ 
-  return count_; 
+{
+  return count_;
 };
-     
-NTA_BasicType 
+
+NTA_BasicType
 ArrayBase::getType() const
-{ 
-  return type_; 
+{
+  return type_;
 };
 
 
 
+namespace nupic
+{
+  std::ostream& operator<<(std::ostream& outStream, const ArrayBase& a)
+  {
+    auto const inbuf = a.getBuffer();
+    auto const numElements = a.getCount();
+    auto const elementType = a.getType();
+
+    switch (elementType)
+    {
+    case NTA_BasicType_Byte:
+      ArrayBase::_templatedStreamBuffer<NTA_Byte>(outStream, inbuf,
+                                                  numElements);
+      break;
+    case NTA_BasicType_Int16:
+      ArrayBase::_templatedStreamBuffer<NTA_Int16>(outStream, inbuf,
+                                                   numElements);
+      break;
+    case NTA_BasicType_UInt16:
+      ArrayBase::_templatedStreamBuffer<NTA_UInt16>(outStream, inbuf,
+                                                    numElements);
+      break;
+    case NTA_BasicType_Int32:
+      ArrayBase::_templatedStreamBuffer<NTA_Int32>(outStream, inbuf,
+                                                   numElements);
+      break;
+    case NTA_BasicType_UInt32:
+      ArrayBase::_templatedStreamBuffer<NTA_UInt32>(outStream, inbuf,
+                                                    numElements);
+      break;
+    case NTA_BasicType_Int64:
+      ArrayBase::_templatedStreamBuffer<NTA_Int64>(outStream, inbuf,
+                                                   numElements);
+      break;
+    case NTA_BasicType_UInt64:
+      ArrayBase::_templatedStreamBuffer<NTA_UInt64>(outStream, inbuf,
+                                                    numElements);
+      break;
+    case NTA_BasicType_Real32:
+      ArrayBase::_templatedStreamBuffer<NTA_Real32>(outStream, inbuf,
+                                                    numElements);
+      break;
+    case NTA_BasicType_Real64:
+      ArrayBase::_templatedStreamBuffer<NTA_Real64>(outStream, inbuf,
+                                                    numElements);
+      break;
+    case NTA_BasicType_Handle:
+      ArrayBase::_templatedStreamBuffer<NTA_Handle>(outStream, inbuf,
+                                                    numElements);
+      break;
+    case NTA_BasicType_Bool:
+      ArrayBase::_templatedStreamBuffer<bool>(outStream, inbuf,
+                                              numElements);
+      break;
+    default:
+      NTA_THROW << "Unexpected Element Type: " << elementType;
+      break;
+    }
+
+    return outStream;
+  }
+
+} // namespace nupic

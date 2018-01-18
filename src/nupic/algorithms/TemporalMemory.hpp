@@ -44,26 +44,26 @@ namespace nupic {
     namespace temporal_memory {
 
       /**
-       * CLA temporal memory implementation in C++.
-       *
-       * The primary public interfaces to this function are the "initialize"
-       * and "compute" methods.
+       * Temporal Memory implementation in C++.
        *
        * Example usage:
        *
-       *     SpatialPooler sp;
-       *     sp.initialize(inputDimensions, columnDimensions, <parameters>);
-       *
-       *     TemporalMemory tm;
-       *     tm.initialize(columnDimensions, <parameters>);
+       *     SpatialPooler sp(inputDimensions, columnDimensions, <parameters>);
+       *     TemporalMemory tm(columnDimensions, <parameters>);
        *
        *     while (true) {
        *        <get input vector, streaming spatiotemporal information>
        *        sp.compute(inputVector, learn, activeColumns)
        *        tm.compute(number of activeColumns, activeColumns, learn)
-       *        <do something with output, e.g. classify it>
+       *        <do something with the tm, e.g. classify tm.getActiveCells()>
        *     }
        *
+       * The public API uses C arrays, not std::vectors, as inputs. C arrays are
+       * a good lowest common denominator. You can get a C array from a vector,
+       * but you can't get a vector from a C array without copying it. This is
+       * important, for example, when using numpy arrays. The only way to
+       * convert a numpy array into a std::vector is to copy it, but you can
+       * access a numpy array's internal C array directly.
        */
       class TemporalMemory : public Serializable<TemporalMemoryProto> {
       public:
@@ -90,9 +90,9 @@ namespace nupic {
          * is said to be connected.
          *
          * @param minThreshold
-         * If the number of synapses active on a segment is at least this
-         * threshold, it is selected as the best matching cell in a bursting
-         * column.
+         * If the number of potential synapses active on a segment is at least
+         * this threshold, it is said to be "matching" and is eligible for
+         * learning.
          *
          * @param maxNewSynapseCount
          * The maximum number of synapses added to a segment during learning.
@@ -106,8 +106,7 @@ namespace nupic {
          * learning.
          *
          * @param predictedSegmentDecrement
-         * Amount by which active permanences of synapses of previously
-         * predicted but inactive segments are decremented.
+         * Amount by which segments are punished for incorrect predictions.
          *
          * @param seed
          * Seed for the random number generator.
@@ -117,6 +116,10 @@ namespace nupic {
          *
          * @param maxSynapsesPerSegment
          * The maximum number of synapses per segment.
+         *
+         * @param checkInputs
+         * Whether to check that the activeColumns are sorted without
+         * duplicates. Disable this for a small speed boost.
          *
          * Notes:
          *
@@ -137,8 +140,9 @@ namespace nupic {
           Permanence permanenceDecrement = 0.10,
           Permanence predictedSegmentDecrement = 0.0,
           Int seed = 42,
-          UInt maxSegmentsPerCell=MAX_SEGMENTS_PER_CELL,
-          UInt maxSynapsesPerSegment=MAX_SYNAPSES_PER_SEGMENT);
+          UInt maxSegmentsPerCell=255,
+          UInt maxSynapsesPerSegment=255,
+          bool checkInputs=true);
 
         virtual void initialize(
           vector<UInt> columnDimensions = { 2048 },
@@ -152,8 +156,9 @@ namespace nupic {
           Permanence permanenceDecrement = 0.10,
           Permanence predictedSegmentDecrement = 0.0,
           Int seed = 42,
-          UInt maxSegmentsPerCell=MAX_SEGMENTS_PER_CELL,
-          UInt maxSynapsesPerSegment=MAX_SYNAPSES_PER_SEGMENT);
+          UInt maxSegmentsPerCell=255,
+          UInt maxSynapsesPerSegment=255,
+          bool checkInputs=true);
 
         virtual ~TemporalMemory();
 
@@ -166,9 +171,7 @@ namespace nupic {
          *
          * @returns Integer version number.
          */
-        virtual UInt version() const {
-          return version_;
-        };
+        virtual UInt version() const;
 
         /**
          * This *only* updates _rng to a new Random using seed.
@@ -184,25 +187,72 @@ namespace nupic {
         virtual void reset();
 
         /**
-         * Feeds input record through TM, performing inference and learning.
+         * Calculate the active cells, using the current active columns and
+         * dendrite segments. Grow and reinforce synapses.
          *
-         * @param activeColumnsSize Number of active columns
-         * @param activeColumns     Indices of active columns
-         * @param learn             Whether or not learning is enabled
+         * @param activeColumnsSize
+         * Size of activeColumns.
          *
-         * Updates member variables:
-         * - `activeCells`
-         * - `winnerCells`
-         * - `activeSegments`
-         * - `matchingSegments`
+         * @param activeColumns
+         * A sorted list of active column indices.
+         *
+         * @param learn
+         * If true, reinforce / punish / grow synapses.
+         */
+        void activateCells(
+          size_t activeColumnsSize,
+          const UInt activeColumns[],
+          bool learn = true);
+
+        /**
+         * Calculate dendrite segment activity, using the current active cells.
+         *
+         * @param learn
+         * If true, segment activations will be recorded. This information is
+         * used during segment cleanup.
+         */
+        void activateDendrites(bool learn = true);
+
+        /**
+         * Perform one time step of the Temporal Memory algorithm.
+         *
+         * This method calls activateCells, then calls activateDendrites. Using
+         * the TemporalMemory via its compute method ensures that you'll always
+         * be able to call getPredictiveCells to get predictions for the next
+         * time step.
+         *
+         * @param activeColumnsSize
+         * Number of active columns.
+         *
+         * @param activeColumns
+         * Sorted list of indices of active columns.
+         *
+         * @param learn
+         * Whether or not learning is enabled.
          */
         virtual void compute(
-          UInt activeColumnsSize, const UInt activeColumns[], bool learn = true);
+          size_t activeColumnsSize,
+          const UInt activeColumns[],
+          bool learn = true);
 
 
         // ==============================
         //  Helper functions
         // ==============================
+
+        /**
+         * Create a segment on the specified cell. This method calls
+         * createSegment on the underlying connections, and it does some extra
+         * bookkeeping. Unit tests should call this method, and not
+         * connections.createSegment().
+         *
+         * @param cell
+         * Cell to add a segment to.
+         *
+         * @return Segment
+         * The created segment.
+         */
+        Segment createSegment(CellIdx cell);
 
         /**
          * Returns the indices of cells that belong to a column.
@@ -240,13 +290,6 @@ namespace nupic {
         * @returns (std::vector<CellIdx>) Vector of indices of winner cells.
         */
         vector<CellIdx> getWinnerCells() const;
-
-        /**
-        * Returns the indices of the matching cells.
-        *
-        * @returns (std::vector<CellIdx>) Vector of indices of matching cells.
-        */
-        vector<CellIdx> getMatchingCells() const;
 
         vector<Segment> getActiveSegments() const;
         vector<Segment> getMatchingSegments() const;
@@ -305,12 +348,19 @@ namespace nupic {
         void setMinThreshold(UInt);
 
         /**
-         * Returns the maximum new synapse count.
+         * Returns the maximum number of synapses that can be added to a segment
+         * in a single time step.
          *
          * @returns Integer number of maximum new synapse count
          */
         UInt getMaxNewSynapseCount() const;
         void setMaxNewSynapseCount(UInt);
+
+        /**
+         * Get and set the checkInputs parameter.
+         */
+        bool getCheckInputs() const;
+        void setCheckInputs(bool);
 
         /**
          * Returns the permanence increment.
@@ -336,23 +386,26 @@ namespace nupic {
         Permanence getPredictedSegmentDecrement() const;
         void setPredictedSegmentDecrement(Permanence);
 
-       /**
-        * Extracts a vector<CellIdx> from a Iterable of Cells.
-        *
-        * @param Iterable<Cell> Iterable of Cells
-        *                       (.e.g. set<Cell>, vector<Cell>).
-        *
-        * @returns vector<CellIdx> The indices of the Cells in the Iterable.
-        */
-        template <typename Iterable>
-        vector<CellIdx> _cellsToIndices(const Iterable &cellSet) const;
+        /**
+         * Returns the maxSegmentsPerCell.
+         *
+         * @returns Max segments per cell
+         */
+        UInt getMaxSegmentsPerCell() const;
+
+        /**
+         * Returns the maxSynapsesPerSegment.
+         *
+         * @returns Max synapses per segment
+         */
+        UInt getMaxSynapsesPerSegment() const;
 
         /**
          * Raises an error if cell index is invalid.
          *
          * @param cell Cell index
          */
-        bool _validateCell(Cell& cell);
+        bool _validateCell(CellIdx cell);
 
         /**
          * Save (serialize) the current state of the spatial pooler to the
@@ -385,6 +438,9 @@ namespace nupic {
          */
         virtual UInt persistentSize() const;
 
+        bool operator==(const TemporalMemory& other);
+        bool operator!=(const TemporalMemory& other);
+
         //----------------------------------------------------------------------
         // Debugging helpers
         //----------------------------------------------------------------------
@@ -401,7 +457,7 @@ namespace nupic {
          *
          * @return (int) Column index
          */
-        Int columnForCell(Cell& cell);
+        Int columnForCell(CellIdx cell);
 
         /**
          * Print the given UInt array in a nice format
@@ -420,18 +476,25 @@ namespace nupic {
         UInt activationThreshold_;
         UInt minThreshold_;
         UInt maxNewSynapseCount_;
+        bool checkInputs_;
         Permanence initialPermanence_;
         Permanence connectedPermanence_;
         Permanence permanenceIncrement_;
         Permanence permanenceDecrement_;
         Permanence predictedSegmentDecrement_;
 
-        vector<Cell> activeCells_;
-        vector<Cell> winnerCells_;
-        vector<SegmentOverlap> activeSegments_;
-        vector<SegmentOverlap> matchingSegments_;
+        vector<CellIdx> activeCells_;
+        vector<CellIdx> winnerCells_;
+        vector<Segment> activeSegments_;
+        vector<Segment> matchingSegments_;
+        vector<UInt32> numActiveConnectedSynapsesForSegment_;
+        vector<UInt32> numActivePotentialSynapsesForSegment_;
 
-        UInt version_;
+        UInt maxSegmentsPerCell_;
+        UInt maxSynapsesPerSegment_;
+        UInt64 iteration_;
+        vector<UInt64> lastUsedIterationForSegment_;
+
         Random rng_;
 
       public:

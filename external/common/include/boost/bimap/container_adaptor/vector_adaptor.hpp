@@ -12,7 +12,7 @@
 #ifndef BOOST_BIMAP_CONTAINER_ADAPTOR_VECTOR_ADAPTOR_HPP
 #define BOOST_BIMAP_CONTAINER_ADAPTOR_VECTOR_ADAPTOR_HPP
 
-#if defined(_MSC_VER) && (_MSC_VER>=1200)
+#if defined(_MSC_VER)
 #pragma once
 #endif
 
@@ -109,25 +109,33 @@ class vector_adaptor :
     BOOST_DEDUCED_TYPENAME base_::const_reference
         operator[](BOOST_DEDUCED_TYPENAME base_::size_type n) const
     {
-        return this->base().operator[](n);
+        return this->template functor<BOOST_DEDUCED_TYPENAME base_::value_from_base>()(
+            this->base().operator[](n)
+        );
     }
 
     BOOST_DEDUCED_TYPENAME base_::const_reference
         at(BOOST_DEDUCED_TYPENAME base_::size_type n) const
     {
-        return this->base().at(n);
+        return this->template functor<BOOST_DEDUCED_TYPENAME base_::value_from_base>()(
+            this->base().at(n)
+        );
     }
 
     BOOST_DEDUCED_TYPENAME base_::reference
         operator[](BOOST_DEDUCED_TYPENAME base_::size_type n)
     {
-        return this->base().operator[](n);
+        return this->template functor<BOOST_DEDUCED_TYPENAME base_::value_from_base>()(
+            this->base().operator[](n)
+        );
     }
 
     BOOST_DEDUCED_TYPENAME base_::reference
         at(BOOST_DEDUCED_TYPENAME base_::size_type n)
     {
-        return this->base().at(n);
+        return this->template functor<BOOST_DEDUCED_TYPENAME base_::value_from_base>()(
+            this->base().at(n)
+        );
     }
 };
 

@@ -17,6 +17,7 @@
 #include <boost/config.hpp>
 #include <boost/function.hpp>
 #include <boost/mpl/identity.hpp>
+#include <boost/noncopyable.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/signals2/connection.hpp>
 #include <boost/signals2/detail/unique_lock.hpp>
@@ -29,13 +30,33 @@
 #include <boost/signals2/optional_last_value.hpp>
 #include <boost/signals2/mutex.hpp>
 #include <boost/signals2/slot.hpp>
-#include <boost/throw_exception.hpp>
 #include <functional>
 
-#ifdef BOOST_NO_VARIADIC_TEMPLATES
+#ifdef BOOST_NO_CXX11_VARIADIC_TEMPLATES
 #include <boost/signals2/preprocessed_signal.hpp>
 #else
 #include <boost/signals2/variadic_signal.hpp>
 #endif
+
+namespace boost
+{
+  namespace signals2
+  {
+    // free swap function, findable by ADL
+    template<typename Signature,
+      typename Combiner,
+      typename Group,
+      typename GroupCompare,
+      typename SlotFunction,
+      typename ExtendedSlotFunction,
+      typename Mutex>
+      void swap(
+        signal<Signature, Combiner, Group, GroupCompare, SlotFunction, ExtendedSlotFunction, Mutex> &sig1,
+        signal<Signature, Combiner, Group, GroupCompare, SlotFunction, ExtendedSlotFunction, Mutex> &sig2)
+    {
+      sig1.swap(sig2);
+    }
+  }
+}
 
 #endif // BOOST_SIGNALS2_SIGNAL_HPP

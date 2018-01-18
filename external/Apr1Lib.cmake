@@ -22,18 +22,28 @@
 # Creates ExternalProject for building the apr-1 static library
 # (apache public runtime)
 #
-# Exports:
-#   LIB_STATIC_APR1_INC_DIR: directory of installed apr-1 lib headers
-#   LIB_STATIC_APR1_LOC: path to installed static apr-1 lib
+# OUTPUT VARIABLES:
+#
+#   APR1_STATIC_LIB_TARGET: name of static library target that contains all
+#                           of the apr-1 library objects.
+#   APR1_STATIC_LIB_INC_DIR: directory of installed apr-1 lib headers
+
+include(../src/NupicLibraryUtils) # for MERGE_STATIC_LIBRARIES
+
+
+# Output static library target for linking and dependencies
+set(APR1_STATIC_LIB_TARGET apr-1-bundle)
+
 
 set(aprlib_install_prefix "${EP_BASE}/Install/Apr1StaticLib")
 set(aprlib_install_lib_dir "${aprlib_install_prefix}/lib")
 
 # Export directory of installed apr-1 lib headers
-set(LIB_STATIC_APR1_INC_DIR "${aprlib_install_prefix}/include")
+set(APR1_STATIC_LIB_INC_DIR "${aprlib_install_prefix}/include")
 
-# Export path to installed static apr-1 lib
-set(LIB_STATIC_APR1_LOC "${aprlib_install_lib_dir}/${STATIC_PRE}apr-1${STATIC_SUF}")
+# Path to static apr-1 lib installed by external project
+set(aprlib_built_archive_file
+    "${aprlib_install_lib_dir}/${STATIC_PRE}apr-1${STATIC_SUF}")
 
 # NOTE -DCOM_NO_WINDOWS_H fixes a bunch of OLE-related build errors on Win32
 # (reference: https://bz.apache.org/bugzilla/show_bug.cgi?id=56342)
@@ -59,6 +69,7 @@ if (UNIX)
 
         CONFIGURE_COMMAND
             <SOURCE_DIR>/configure
+                ${EXTERNAL_STATICLIB_CONFIGURE_DEFINITIONS_OPTIMIZED}
                 --prefix=${aprlib_install_prefix}
                 ${aprlib_config_options}
                 CFLAGS=${aprlib_cflags}
@@ -108,18 +119,21 @@ else()
         ALWAYS 0
         #LOG 1
 
-        # Move the installed ${LIB_STATIC_APR1_INC_DIR}/*.h to
-        # ${LIB_STATIC_APR1_INC_DIR}/apr-1
+        # Move the installed ${APR1_STATIC_LIB_INC_DIR}/*.h to
+        # ${APR1_STATIC_LIB_INC_DIR}/apr-1
         COMMAND
-            ${CMAKE_COMMAND} -DGLOBBING_EXPR=${LIB_STATIC_APR1_INC_DIR}/*.h
-                -DDEST_DIR_PATH=${LIB_STATIC_APR1_INC_DIR}/apr-1
+            ${CMAKE_COMMAND} -DGLOBBING_EXPR=${APR1_STATIC_LIB_INC_DIR}/*.h
+                -DDEST_DIR_PATH=${APR1_STATIC_LIB_INC_DIR}/apr-1
                 -P ${CMAKE_SOURCE_DIR}/external/MoveFilesToNewDir.cmake
-        # Copy <SOURCE_DIR>/include/arch to ${LIB_STATIC_APR1_INC_DIR}/apr-1 as
+        # Copy <SOURCE_DIR>/include/arch to ${APR1_STATIC_LIB_INC_DIR}/apr-1 as
         # expected by nupic.core
         COMMAND
-            ${CMAKE_COMMAND} -E make_directory ${LIB_STATIC_APR1_INC_DIR}/apr-1/arch
+            ${CMAKE_COMMAND} -E make_directory
+                             ${APR1_STATIC_LIB_INC_DIR}/apr-1/arch
         COMMAND
-            ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/include/arch ${LIB_STATIC_APR1_INC_DIR}/apr-1/arch
+            ${CMAKE_COMMAND} -E copy_directory
+                             <SOURCE_DIR>/include/arch
+                             ${APR1_STATIC_LIB_INC_DIR}/apr-1/arch
     )
 endif()
 
@@ -142,3 +156,9 @@ ExternalProject_Add_Step(Apr1StaticLib patch_sources
     COMMAND
         patch -f -p1 --directory=<SOURCE_DIR> --input=${aprlib_patch_file}
 )
+
+
+# Wrap external project-generated static library in an `add_library` target.
+merge_static_libraries(${APR1_STATIC_LIB_TARGET}
+                       ${aprlib_built_archive_file})
+add_dependencies(${APR1_STATIC_LIB_TARGET} Apr1StaticLib)

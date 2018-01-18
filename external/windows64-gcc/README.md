@@ -17,7 +17,7 @@ The following applications are required when rebuilding the core C++ library, Py
 - [CMake](http://www.cmake.org/) - version 3.1+
 - [Python 2.7.9+](https://www.python.org/downloads/windows/) - x86-64 version
 - [MinGW GCC for Python](`%PYTHONHOME%\\Scripts\\pip.exe install -i https://pypi.anaconda.org/carlkl/simple mingwpy`)
-- [NumPy C++ headers](`%PYTHONHOME%\\Scripts\\pip.exe install -i https://pypi.anaconda.org/mingwpy/simple numpy==1.9.2`)
+- [NumPy C++ headers](`%PYTHONHOME%\\Scripts\\pip.exe install numpy==1.11.2`)
 
 ## Rebuilding with CMake
 
@@ -30,7 +30,7 @@ The following table shows example CMake common settings;
 | Source code | `%NUPIC_CORE%` |
 | Binaries | `%NUPIC_CORE%/build/scripts` |
 | CMAKE_INSTALL_PREFIX | `%NUPIC_CORE%/build/release` |
-| PY_EXTENSIONS_DIR | `%NUPIC_CORE%/bindings/py/nupic/bindings` |
+| PY_EXTENSIONS_DIR | `%NUPIC_CORE%/bindings/py/src/nupic/bindings` |
 
 </center>
 
@@ -54,7 +54,7 @@ rem Run cmake to generator MinGW Makefiles
 cmake -G "MinGW Makefiles"
 	-DCMAKE_BUILD_TYPE=Debug
 	-DCMAKE_INSTALL_PREFIX=..\release
-	-DPY_EXTENSIONS_DIR=..\..\bindings\py\nupic\bindings
+	-DPY_EXTENSIONS_DIR=..\..\bindings\py\src\nupic\bindings
 	..\..
 
 rem Build and install NuPIC.core, and build SWIG binding libraries
@@ -97,4 +97,4 @@ Your `PATH` environment variable must include a directory of the cmake.exe (typi
 ##### NumPy Python package
 
 The C++ headers from NumPy can be installed via a pre-built NumPy Python package. For example:
-> `%PYTHONHOME%\\Scripts\\pip.exe install -i https://pypi.anaconda.org/mingwpy/simple numpy==1.9.2`.
+> `%PYTHONHOME%\\Scripts\\pip.exe install numpy==1.11.2`.

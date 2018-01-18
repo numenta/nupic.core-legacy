@@ -41,7 +41,6 @@ using namespace nupic::algorithms::spatial_pooler;
 void testSP()
 {
   Random random(10);
-  nupic::Timer testTimer;
 
   const UInt inputSize = 500;
   const UInt numColumns = 500;
@@ -93,7 +92,7 @@ void testSP()
 
   SpatialPooler sp2;
 
-  long timeA = 0, timeC = 0;
+  Real64 timeA = 0.0, timeC = 0.0;
 
   for (UInt i = 0; i < 100; ++i)
   {
@@ -104,13 +103,12 @@ void testSP()
     UInt outputBaseline[numColumns];
     sp1.compute(input, true, outputBaseline);
 
-    UInt outputA[numColumns];
-    UInt outputC[numColumns];
-
     // A - First do iostream version
+    UInt outputA[numColumns];
     {
       SpatialPooler spTemp;
 
+      nupic::Timer testTimer;
       testTimer.start();
 
       // Deserialize
@@ -129,10 +127,18 @@ void testSP()
       testTimer.stop();
       timeA = timeA + testTimer.getElapsed();
     }
+
+    for (UInt i = 0; i < numColumns; ++i)
+    {
+      NTA_CHECK(outputBaseline[i] == outputA[i]);
+    }
+
     // C - Next do old version
+    UInt outputC[numColumns];
     {
       SpatialPooler spTemp;
 
+      nupic::Timer testTimer;
       testTimer.start();
 
       // Deserialize
@@ -154,16 +160,17 @@ void testSP()
 
     for (UInt i = 0; i < numColumns; ++i)
     {
-      NTA_ASSERT(outputBaseline[i] == outputA[i]);
-      NTA_ASSERT(outputBaseline[i] == outputC[i]);
+      NTA_CHECK(outputBaseline[i] == outputC[i]);
     }
+
   }
 
   remove("outA.proto");
   remove("outC.proto");
 
-  cout << "Time for iostream capnp: " << ((Real)timeA / 1000.0) << endl;
-  cout << "Time for old method: " << ((Real)timeC / 1000.0) << endl;
+  cout << "Timing for SpatialPooler serialization (smaller is better):" << endl;
+  cout << "Cap'n Proto: " << timeA << endl;
+  cout << "Manual: " << timeC << endl;
 }
 
 void testRandomIOStream(UInt n)
@@ -189,17 +196,17 @@ void testRandomIOStream(UInt n)
     is.close();
 
     // Test
-    NTA_ASSERT(r1.getUInt32() == r2.getUInt32());
-    NTA_ASSERT(r1.getUInt32() == r2.getUInt32());
-    NTA_ASSERT(r1.getUInt32() == r2.getUInt32());
-    NTA_ASSERT(r1.getUInt32() == r2.getUInt32());
-    NTA_ASSERT(r1.getUInt32() == r2.getUInt32());
+    NTA_CHECK(r1.getUInt32() == r2.getUInt32());
+    NTA_CHECK(r1.getUInt32() == r2.getUInt32());
+    NTA_CHECK(r1.getUInt32() == r2.getUInt32());
+    NTA_CHECK(r1.getUInt32() == r2.getUInt32());
+    NTA_CHECK(r1.getUInt32() == r2.getUInt32());
   }
   testTimer.stop();
 
   remove("random2.proto");
 
-  cout << "Stream time: " << ((Real)testTimer.getElapsed() / 1000.0) << endl;
+  cout << "Cap'n Proto: " << testTimer.getElapsed() << endl;
 }
 
 void testRandomManual(UInt n)
@@ -225,22 +232,23 @@ void testRandomManual(UInt n)
     is.close();
 
     // Test
-    NTA_ASSERT(r1.getUInt32() == r2.getUInt32());
-    NTA_ASSERT(r1.getUInt32() == r2.getUInt32());
-    NTA_ASSERT(r1.getUInt32() == r2.getUInt32());
-    NTA_ASSERT(r1.getUInt32() == r2.getUInt32());
-    NTA_ASSERT(r1.getUInt32() == r2.getUInt32());
+    NTA_CHECK(r1.getUInt32() == r2.getUInt32());
+    NTA_CHECK(r1.getUInt32() == r2.getUInt32());
+    NTA_CHECK(r1.getUInt32() == r2.getUInt32());
+    NTA_CHECK(r1.getUInt32() == r2.getUInt32());
+    NTA_CHECK(r1.getUInt32() == r2.getUInt32());
   }
   testTimer.stop();
 
   remove("random3.proto");
 
-  cout << "Manual time: " << ((Real)testTimer.getElapsed() / 1000.0) << endl;
+  cout << "Manual: " << testTimer.getElapsed() << endl;
 }
 
 int main(int argc, const char * argv[])
 {
   UInt n = 1000;
+  cout << "Timing for Random serialization (smaller is better):" << endl;
   testRandomIOStream(n);
   testRandomManual(n);
 

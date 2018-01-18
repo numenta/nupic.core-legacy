@@ -10,16 +10,17 @@
 #ifndef BOOST_RANGE_DETAIL_ANY_ITERATOR_HPP_INCLUDED
 #define BOOST_RANGE_DETAIL_ANY_ITERATOR_HPP_INCLUDED
 
-#include <boost/cast.hpp>
 #include <boost/mpl/and.hpp>
 #include <boost/mpl/or.hpp>
 #include <boost/mpl/not.hpp>
+#include <boost/iterator/iterator_facade.hpp>
 #include <boost/type_traits/is_const.hpp>
 #include <boost/type_traits/is_reference.hpp>
 #include <boost/type_traits/remove_reference.hpp>
 #include <boost/range/detail/any_iterator_buffer.hpp>
 #include <boost/range/detail/any_iterator_interface.hpp>
 #include <boost/range/detail/any_iterator_wrapper.hpp>
+#include <boost/utility/enable_if.hpp>
 
 namespace boost
 {
@@ -113,6 +114,8 @@ namespace boost
         };
     } // namespace range_detail
 
+    namespace iterators
+    {
     namespace detail
     {
         // Rationale:
@@ -244,8 +247,8 @@ namespace boost
             any_iterator_type stored_iterator;
         };
 
-
-    }
+    } //namespace detail
+    } //namespace iterators
 
     namespace range_detail
     {
@@ -354,7 +357,7 @@ namespace boost
                                 OtherDifference,
                                 Buffer
                             >& other,
-                         typename enable_if<
+                         typename ::boost::enable_if<
                             typename mpl::and_<
                                 typename is_mutable_reference<OtherReference>::type,
                                 typename is_const_reference<Reference>::type
@@ -385,7 +388,7 @@ namespace boost
                               , OtherDifference
                               , Buffer
                             >& other,
-                         typename enable_if<
+                         typename ::boost::enable_if<
                             typename mpl::or_<
                                 typename mpl::and_<
                                     typename is_mutable_reference<OtherReference>::type,
@@ -421,7 +424,7 @@ namespace boost
                               , OtherDifference
                               , Buffer
                             >& other,
-                        typename enable_if<
+                        typename ::boost::enable_if<
                             typename is_convertible_to_value_as_reference<
                                         OtherReference
                                       , Reference
@@ -556,7 +559,7 @@ namespace boost
                 }
 
                 // If this is a non-null iterator then we need to put
-                // a clone of this iterators impementation into the other
+                // a clone of this iterators implementation into the other
                 // iterator.
                 // We can't just swap because of the small buffer optimization.
                 if (m_impl)

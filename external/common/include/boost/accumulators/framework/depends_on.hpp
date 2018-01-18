@@ -223,13 +223,13 @@ namespace boost { namespace accumulators
         template<typename First, typename Last>
         struct build_acc_list<First, Last, true>
         {
-            typedef fusion::nil type;
+            typedef fusion::nil_ type;
 
             template<typename Args>
-            static fusion::nil
+            static fusion::nil_
             call(Args const &, First const&, Last const&)
             {
-                return fusion::nil();
+                return fusion::nil_();
             }
         };
 
@@ -356,7 +356,7 @@ namespace boost { namespace accumulators
             type;
         };
 
-        // BUGBUG work around a MPL bug wrt map insertion
+        // BUGBUG work around an MPL bug wrt map insertion
         template<typename FeatureMap, typename Feature>
         struct insert_feature
           : mpl::eval_if<

@@ -1,3 +1,9 @@
+#ifdef BOOST_MSVC
+#pragma warning(push)
+#pragma warning(disable: 4512) // assignment operator could not be generated
+#pragma warning(disable: 4510) // default constructor could not be generated
+#pragma warning(disable: 4610) // can never be instantiated - user defined constructor required
+#endif
 #if !defined(BOOST_PHOENIX_DONT_USE_PREPROCESSED_FILES)
 
 #ifndef BOOST_PHOENIX_SUPPORT_VECTOR_HPP
@@ -64,6 +70,18 @@ namespace boost { namespace phoenix
         typedef mpl::int_<0> size_type;
         static const int size_value = 0;
     };
+
+    template <int> struct vector_chooser;
+
+    template <>
+    struct vector_chooser<0>
+    {
+        template <typename Dummy = void>
+        struct apply
+        {
+            typedef vector0<> type;
+        };
+    };
 }}
 
 
@@ -105,6 +123,16 @@ namespace boost { namespace phoenix
             return r;
         }
     };
+
+    template <>
+    struct vector_chooser<BOOST_PHOENIX_ITERATION>
+    {
+        template <BOOST_PHOENIX_typename_A>
+        struct apply
+        {
+            typedef BOOST_PP_CAT(vector, BOOST_PHOENIX_ITERATION)<BOOST_PHOENIX_A> type;
+        };
+    };
 }}
 
 #define BOOST_PHOENIX_SUPPORT_VECTOR_ADAT_PARAM0                                \
@@ -131,4 +159,8 @@ BOOST_FUSION_ADAPT_TPL_STRUCT_NO_PARTIAL(
 
 #endif
 
+#endif
+
+#ifdef BOOST_MSVC
+#pragma warning(pop)
 #endif

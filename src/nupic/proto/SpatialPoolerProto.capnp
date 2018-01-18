@@ -24,9 +24,10 @@ struct SpatialPoolerProto {
   synPermBelowStimulusInc @13 :Float32;
   synPermConnected @14 :Float32;
   minPctOverlapDutyCycles @15 :Float32;
+  # Obsolete, used in the old boosting rule  
   minPctActiveDutyCycles @16 :Float32;
-  dutyCyclePeriod @17 :UInt16;
-  maxBoost @18 :Float32;
+  dutyCyclePeriod @17 :UInt16;    
+  boostStrength @18 :Float32;
   wrapAround @36 :Bool;
   spVerbosity @19 :UInt8;
 
@@ -53,6 +54,7 @@ struct SpatialPoolerProto {
   overlapDutyCycles @30 :List(Float32);
   activeDutyCycles @31 :List(Float32);
   minOverlapDutyCycles @32 :List(Float32);
+  # Obsolete, used in the old boosting rule  
   minActiveDutyCycles @33 :List(Float32);
   boostFactors @34 :List(Float32);
 }

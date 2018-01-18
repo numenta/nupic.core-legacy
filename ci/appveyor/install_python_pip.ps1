@@ -7,7 +7,7 @@ $ErrorActionPreference = "Stop"
 
 $BASE_URL = "https://www.python.org/ftp/python/"
 
-$GET_PIP_URL = "https://bootstrap.pypa.io/get-pip.py"
+$GET_PIP_URL = "http://releases.numenta.org/pip/1ebd3cb7a5a3073058d0c9552ab074bd/get-pip.py"
 $GET_PIP_PATH = "C:\get-pip.py"
 
 
@@ -97,8 +97,8 @@ function main () {
     Write-Host "pip install " twine
     & $pip_path install twine
 
-    Write-Host "pip install " numpy==1.9.2
-    & $pip_path install -i https://pypi.anaconda.org/mingwpy/simple numpy==1.9.2
+    Write-Host "pip install " numpy==1.12.1
+    & $pip_path install numpy==1.12.1
 }
 
 main

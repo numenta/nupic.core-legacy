@@ -1,6 +1,6 @@
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
+ * Copyright (C) 2013-2017, Numenta, Inc.  Unless you have an agreement
  * with Numenta, Inc., for a separate license for this software code, the
  * following terms and conditions apply:
  *
@@ -26,9 +26,10 @@
 
 #include <nupic/engine/Input.hpp>
 #include <nupic/engine/Network.hpp>
-#include <nupic/ntypes/Dimensions.hpp>
-#include <nupic/engine/Region.hpp>
 #include <nupic/engine/Output.hpp>
+#include <nupic/engine/Region.hpp>
+#include <nupic/engine/TestNode.hpp>
+#include <nupic/ntypes/Dimensions.hpp>
 #include "gtest/gtest.h"
 
 using namespace nupic;
@@ -87,77 +88,6 @@ TEST(InputTest, BasicNetworkConstruction)
   ASSERT_TRUE(buf != nullptr);
 }
 
-TEST(InputTest, Links)
-{
-  Network net;
-  Region * region1 = net.addRegion("region1", "TestNode", "");
-  Region * region2 = net.addRegion("region2", "TestNode", "");
-
-  Dimensions d1;
-  d1.push_back(8);
-  d1.push_back(4);
-  region1->setDimensions(d1);
-
-  net.link("region1", "region2", "TestFanIn2", "");
-
-  //test initialize(), which is called by net.initialize()
-  //also test evaluateLinks() which is called here
-  net.initialize();
-  net.run(1);
-
-  //test that region has correct induced dimensions
-  Dimensions d2 = region2->getDimensions();
-  ASSERT_EQ(2u, d2.size());
-  ASSERT_EQ(4u, d2[0]);
-  ASSERT_EQ(2u, d2[1]);
-
-  //test getName() and setName()
-  Input * in1 = region1->getInput("bottomUpIn");
-  Input * in2 = region2->getInput("bottomUpIn");
-
-  EXPECT_STREQ("bottomUpIn", in1->getName().c_str());
-  EXPECT_STREQ("bottomUpIn", in2->getName().c_str());
-  in1->setName("uselessName");
-  EXPECT_STREQ("uselessName", in1->getName().c_str());
-  in1->setName("bottomUpIn");
-
-  //test isInitialized()
-  ASSERT_TRUE(in1->isInitialized());
-  ASSERT_TRUE(in2->isInitialized());
-
-  //test getLinks()
-  std::vector<Link*> links = in2->getLinks();
-  ASSERT_EQ(1u, links.size());
-  for(auto & link : links) {
-    //do something to make sure l[i] is a valid Link*
-    ASSERT_TRUE(link != nullptr);
-    //should fail because regions are initialized
-    EXPECT_THROW(in2->removeLink(link), std::exception);
-  }
-
-  //test findLink()
-  Link * l1 = in1->findLink("region1", "bottomUpOut");
-  ASSERT_TRUE(l1 == nullptr);
-  Link * l2 = in2->findLink("region1", "bottomUpOut");
-  ASSERT_TRUE(l2 != nullptr);
-
-
-  //test removeLink(), uninitialize()
-  //uninitialize() is called internally from removeLink()
-  {
-    //can't remove link b/c region1 initialized
-    EXPECT_THROW(in2->removeLink(l2), std::exception); 
-    //can't remove region b/c region1 has links
-    EXPECT_THROW(net.removeRegion("region1"), std::exception); 
-    region1->uninitialize();
-    region2->uninitialize();
-    EXPECT_THROW(in1->removeLink(l2), std::exception);
-    in2->removeLink(l2);
-    EXPECT_THROW(in2->removeLink(l2), std::exception);
-    //l1 == NULL
-    EXPECT_THROW(in1->removeLink(l1), std::exception);
-  }
-}
 
 TEST(InputTest, SplitterMap)
 {
@@ -190,7 +120,7 @@ TEST(InputTest, SplitterMap)
   ASSERT_EQ(0u, in2->evaluateLinks());
 
   //test prepare
-  {    
+  {
     //set in2 to all zeroes
     const ArrayBase * ai2 = &(in2->getData());
     Real64* idata = (Real64*)(ai2->getBuffer());

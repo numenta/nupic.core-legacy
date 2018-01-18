@@ -40,9 +40,12 @@
 
 using namespace std;
 
-namespace nupic {
-  namespace algorithms {
-    namespace spatial_pooler {
+namespace nupic
+{
+  namespace algorithms
+  {
+    namespace spatial_pooler
+    {
 
       /**
        * CLA spatial pooler implementation in C++.
@@ -67,7 +70,8 @@ namespace nupic {
        *     }
        *
        */
-      class SpatialPooler : public Serializable<SpatialPoolerProto> {
+      class SpatialPooler : public Serializable<SpatialPoolerProto>
+      {
         public:
           SpatialPooler();
           SpatialPooler(vector<UInt> inputDimensions,
@@ -82,9 +86,8 @@ namespace nupic {
                         Real synPermActiveInc=0.05,
                         Real synPermConnected=0.1,
                         Real minPctOverlapDutyCycles=0.001,
-                        Real minPctActiveDutyCycles=0.001,
                         UInt dutyCyclePeriod=1000,
-                        Real maxBoost=10.0,
+                        Real boostStrength=0.0,
                         Int seed=1,
                         UInt spVerbosity=0,
                         bool wrapAround=true);
@@ -189,30 +192,18 @@ namespace nupic {
                 its previously learned inputs are no longer ever active, or when
                 the vast majority of them have been "hijacked" by other columns.
 
-          @param minPctActiveDutyCycles A number between 0 and 1.0, used to set
-                a floor on how often a column should be activate. Periodically,
-                each column looks at the activity duty cycle of all other
-                columns within its inhibition radius and sets its own internal
-                minimal acceptable duty cycle to:
-
-                    minPctDutyCycleAfterInh * max(other columns' duty cycles).
-
-                On each iteration, any column whose duty cycle after inhibition
-                falls below this computed value will get its internal boost
-                factor increased.
-
           @param dutyCyclePeriod The period used to calculate duty cycles.
                 Higher values make it take longer to respond to changes in
                 boost. Shorter values make it potentially more unstable and
                 likely to oscillate.
 
-          @param maxBoost The maximum overlap boost factor. Each column's
-                overlap gets multiplied by a boost factor before it gets
-                considered for inhibition. The actual boost factor for a column
-                is a number between 1.0 and maxBoost. A boost factor of 1.0 is
-                used if the duty cycle is >= minOverlapDutyCycle, maxBoost is
-                used if the duty cycle is 0, and any duty cycle in between is
-                linearly extrapolated from these 2 endpoints.
+          @param boostStrength A number greater or equal than 0, used to 
+          control boosting strength. No boosting is applied if it is set to 0.
+          The strength of boosting increases as a function of boostStrength.
+          Boosting encourages columns to have similar activeDutyCycles as their
+          neighbors, which will lead to more efficient use of columns. However,
+          too much boosting may also lead to instability of SP outputs.
+
 
           @param seed Seed for our random number generator. If seed is < 0
                 a randomly generated seed is used. The behavior of the spatial
@@ -237,9 +228,8 @@ namespace nupic {
                                   Real synPermActiveInc=0.1,
                                   Real synPermConnected=0.1,
                                   Real minPctOverlapDutyCycles=0.001,
-                                  Real minPctActiveDutyCycles=0.001,
                                   UInt dutyCyclePeriod=1000,
-                                  Real maxBoost=10.0,
+                                  Real boostStrength=0.0,
                                   Int seed=1,
                                   UInt spVerbosity=0,
                                   bool wrapAround=true);
@@ -476,14 +466,15 @@ namespace nupic {
 
           @returns real number of the maximum boost value.
           */
-          Real getMaxBoost() const;
+          Real getBoostStrength() const;
 
           /**
-          Sets the maximum boost value.
+          Sets the strength of boost.
 
-          @param maxBoost real number of maximum boost value, must be larger than 1.0
+          @param boostStrength real number of boosting strength, 
+          must be larger than 0.0
           */
-          void setMaxBoost(Real maxBoost);
+          void setBoostStrength(Real boostStrength);
 
           /**
           Returns the iteration number.
@@ -665,21 +656,6 @@ namespace nupic {
           void setMinPctOverlapDutyCycles(Real minPctOverlapDutyCycles);
 
           /**
-          Returns the minimum tolerated activity duty cycle, given as percent of
-          neighbors' activity duty cycle.
-
-          @returns minPctOverlapDutyCycles real number of the minimum tolerated activity duty cycle.
-          */
-          Real getMinPctActiveDutyCycles() const;
-          /**
-          Sets the minimum tolerated activity duty cycle, given as percent of
-          neighbors' activity duty cycle.
-
-          @param minPctActiveDutyCycles real number of the minimum tolerated activity duty cycle.
-          */
-          void setMinPctActiveDutyCycles(Real minPctActiveDutyCycles);
-
-          /**
           Returns the boost factors for all columns. 'boostFactors' size must
           match the number of columns.
 
@@ -738,21 +714,6 @@ namespace nupic {
           @param minOverlapDutyCycles real array of the minimum overlap duty cycles for all columns.
           */
           void setMinOverlapDutyCycles(Real minOverlapDutyCycles[]);
-
-          /**
-          Returns the minimum activity duty cycles for all columns.
-          '_minActiveDutyCycles' size must match the number of columns.
-
-          @param minActiveDutyCycles real array to store the minimum activity duty cycles for all columns.
-          */
-          void getMinActiveDutyCycles(Real minActiveDutyCycles[]) const;
-          /**
-          Sets the minimum activity duty cycles for all columns.
-          '_minActiveDutyCycles' size must match the number of columns.
-
-          @param minActiveDutyCycles real array of the minimum activity duty cycles for all columns.
-          */
-          void setMinActiveDutyCycles(Real minActiveDutyCycles[]);
 
           /**
           Returns the potential mapping for a given column. 'potential' size
@@ -815,6 +776,16 @@ namespace nupic {
            */
           void printParameters() const;
 
+          /**
+          Returns the overlap score for each column.
+           */
+          const vector<UInt>& getOverlaps() const;
+
+          /**
+          Returns the boosted overlap score for each column.
+           */
+          const vector<Real>& getBoostedOverlaps() const;
+
 
           ///////////////////////////////////////////////////////////
           //
@@ -827,8 +798,6 @@ namespace nupic {
 
           void boostOverlaps_(vector<UInt>& overlaps,
                               vector<Real>& boostedOverlaps);
-          void range_(Int start, Int end, UInt ubound, bool wrapAround,
-                      vector<UInt>& rangeVector);
 
           /**
             Maps a column to its respective input index, keeping to the topology of
@@ -860,7 +829,7 @@ namespace nupic {
             what are the indices of the input vector that are located within the
             column's potential pool. The return value is a list containing the indices
             of the input bits. The current implementation of the base class only
-            supports a 1 dimensional topology of columsn with a 1 dimensional topology
+            supports a 1 dimensional topology of columns with a 1 dimensional topology
             of inputs. To extend this class to support 2-D topology you will need to
             override this method. Examples of the expected output of this method:
             * If the potentialRadius is greater than or equal to the entire input
@@ -878,8 +847,8 @@ namespace nupic {
             @param column         An int index identifying a column in the permanence, potential
                             and connectivity matrices.
 
-            @param wrapAround     A boolean value indicating that boundaries should be
-                            region boundaries ignored.
+            @param wrapAround  A boolean value indicating that boundaries should be
+                               ignored.
           */
           vector<UInt> mapPotential_(UInt column, bool wrapAround);
 
@@ -932,11 +901,11 @@ namespace nupic {
 
             The column is identified by its index, which reflects the row in
             the matrix, and the permanence is given in 'dense' form, i.e. a full
-            arrray containing all the zeros as well as the non-zero values. It is in
+            array containing all the zeros as well as the non-zero values. It is in
             charge of implementing 'clipping' - ensuring that the permanence values are
             always between 0 and 1 - and 'trimming' - enforcing sparsity by zeroing out
             all permanence values below '_synPermTrimThreshold'. It also maintains
-            the consistency between 'self._permanences' (the matrix storeing the
+            the consistency between 'self._permanences' (the matrix storing the
             permanence values), 'self._connectedSynapses', (the matrix storing the bits
             each column is connected to), and 'self._connectedCounts' (an array storing
             the number of input bits each column is connected to). Every method wishing
@@ -962,23 +931,24 @@ namespace nupic {
                                             vector<UInt>& potential);
 
           /**
-              This function determines each column's overlap with the current input
-              vector.
+             This function determines each column's overlap with the current
+             input vector.
 
-              The overlap of a column is the number of synapses for that column
-              that are connected (permance value is greater than '_synPermConnected')
-              to input bits which are turned on. Overlap values that are lower than
-              the 'stimulusThreshold' are ignored. The implementation takes advantage of
-              the SpraseBinaryMatrix class to perform this calculation efficiently.
+             The overlap of a column is the number of synapses for that column
+             that are connected (permanence value is greater than
+             '_synPermConnected') to input bits which are turned on. The
+             implementation takes advantage of the SparseBinaryMatrix class to
+             perform this calculation efficiently.
 
+             @param inputVector
+             a int array of 0's and 1's that comprises the input to the spatial
+             pooler.
 
-              @param inputVector    a int array of 0's and 1's that comprises the input to
-                              the spatial pooler.
-
-              @param overlap       an int vector containing the overlap score for each  column.
-                    The overlap score for a column is defined as the number
-                    of synapses in a "connected state" (connected synapses)
-                    that are connected to input bits which are turned on.
+             @param overlap
+             an int vector containing the overlap score for each column. The
+             overlap score for a column is defined as the number of synapses in
+             a "connected state" (connected synapses) that are connected to
+             input bits which are turned on.
           */
           void calculateOverlap_(UInt inputVector[],
                                  vector<UInt>& overlap);
@@ -1005,164 +975,66 @@ namespace nupic {
 
               @param activeColumns an int array containing the indices of the active columns.
           */
-          void inhibitColumns_(vector<Real>& overlaps,
-                               vector<UInt>& activeColumns);
+          void inhibitColumns_(
+            const vector<Real>& overlaps,
+            vector<UInt>& activeColumns);
 
           /**
-              Perform global inhibition.
+             Perform global inhibition.
 
-              Performing global inhibition entails picking the
-              top 'numActive' columns with the highest overlap score in the entire
-              region. At most half of the columns in a local neighborhood are allowed to
-              be active.
+             Performing global inhibition entails picking the top 'numActive'
+             columns with the highest overlap score in the entire region. At
+             most half of the columns in a local neighborhood are allowed to be
+             active. Columns with an overlap score below the 'stimulusThreshold'
+             are always inhibited.
 
-              @param overlaps       a real array containing the overlap score for each  column.
-                              The overlap score for a column is defined as the number
-                              of synapses in a "connected state" (connected synapses)
-                              that are connected to input bits which are turned on.
+             @param overlaps
+             a real array containing the overlap score for each column. The
+             overlap score for a column is defined as the number of synapses in
+             a "connected state" (connected synapses) that are connected to
+             input bits which are turned on.
 
-              @param density        a real number of the fraction of columns to survive inhibition.
+             @param density
+             a real number of the fraction of columns to survive inhibition.
 
-              @param activeColumns an int array containing the indices of the active columns.
-              */
-          void inhibitColumnsGlobal_(vector<Real>& overlaps, Real density,
-                                     vector<UInt>& activeColumns);
-
-          /**
-          Performs local inhibition.
-
-          Local inhibition is performed on a column by
-          column basis. Each column observes the overlaps of its neighbors and is
-          selected if its overlap score is within the top 'numActive' in its local
-          neighborhood. At most half of the columns in a local neighborhood are
-          allowed to be active.
-
-          ----------------------------
-          @param overlaps       an array containing the overlap score for each  column.
-                          The overlap score for a column is defined as the number
-                          of synapses in a "connected state" (connected synapses)
-                          that are connected to input bits which are turned on.
-
-          @param density        The fraction of columns to survive inhibition. This
-                          value is only an intended target. Since the surviving
-                          columns are picked in a local fashion, the exact fraction
-                          of survining columns is likely to vary.
-
-          @param activeColumns an int array containing the indices of the active columns.
+             @param activeColumns
+             an int array containing the indices of the active columns.
           */
-          void inhibitColumnsLocal_(vector<Real>& overlaps, Real density,
-                                    vector<UInt>& activeColumns);
+          void inhibitColumnsGlobal_(
+            const vector<Real>& overlaps,
+            Real density,
+            vector<UInt>& activeColumns);
 
           /**
-              Returns a list of indices corresponding to the neighbors of a given column.
+             Performs local inhibition.
 
-              In this variation of the method, which only supports a one dimensional
-              column toplogy, a column's neighbors are those neighbors who are 'radius'
-              indices away. This information is needed to perform inhibition. This method
-              is a subset of _getNeighborsND and is only included for illustration
-              purposes, and potentially enhanced performance for spatial pooler
-              implementations that only require a one-dimensional topology.
+             Local inhibition is performed on a column by column basis. Each
+             column observes the overlaps of its neighbors and is selected if
+             its overlap score is within the top 'numActive' in its local
+             neighborhood. At most half of the columns in a local neighborhood
+             are allowed to be active. Columns with an overlap score below the
+             'stimulusThreshold' are always inhibited.
 
-              ----------------------------
-              @param column  An integer number. The index identifying a column in the permanence, potential
-                              and connectivity matrices.
+             ----------------------------
+             @param overlaps
+             an array containing the overlap score for each column. The overlap
+             score for a column is defined as the number of synapses in a
+             "connected state" (connected synapses) that are connected to input
+             bits which are turned on.
 
-              @param  dimensions     An int array containg a dimensions for the column space. A 2x3
-                              grid will be represented by [2,3].
+             @param density
+             The fraction of columns to survive inhibition. This value is only
+             an intended target. Since the surviving columns are picked in a
+             local fashion, the exact fraction of surviving columns is likely to
+             vary.
 
-              @param  radius      An integer number Indicates how far away from a given column are other
-                              columns to be considered its neighbors. In the previous 2x3
-                              example, each column with coordinates:
-                              [2+/-radius, 3+/-radius] is considered a neighbor.
-
-              @param  wrapAround     A boolean value indicating whether to consider columns at
-                              the border of a dimensions to be adjacent to columns at the
-                              other end of the dimension. For example, if the columns are
-                              layed out in one deimnsion, columns 1 and 10 will be
-                              considered adjacent if wrapAround is set to true:
-                              [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].
-
-              @param neighbors An int arrayof indices corresponding to the neighbors of a given column.
+             @param activeColumns
+             an int array containing the indices of the active columns.
           */
-          void getNeighbors1D_(UInt column, vector<UInt>& dimensions,
-                               UInt radius, bool wrapAround,
-                               vector<UInt>& neighbors);
-
-          /**
-              Returns a list of indices corresponding to the neighbors of a given column.
-
-              Since the permanence values are stored in such a way that information about
-              toplogy is lost, this method allows for reconstructing the toplogy of the
-              inputs, which are flattened to one array. Given a column's index, its
-              neighbors are defined as those columns that are 'radius' indices away from
-              it in each dimension. The method returns a list of the flat indices of
-              these columns. This method is a subset of _getNeighborsND and is only
-              included for illustration purposes, and potentially enhanced performance
-              for spatial pooler implementations that only require a two-dimensional
-              topology.
-
-              @param column   An integer number. The index identifying a column in the permanence, potential
-                              and connectivity matrices.
-
-              @param  dimensions     An int array containg a dimensions for the column space. A 2x3
-                              grid will be represented by [2,3].
-
-              @param  radius      An integer number Indicates how far away from a given column are other
-                              columns to be considered its neighbors. In the previous 2x3
-                              example, each column with coordinates:
-                              [2+/-radius, 3+/-radius] is considered a neighbor.
-
-              @param  wrapAround     A boolean value indicating whether to consider columns at
-                              the border of a dimensions to be adjacent to columns at the
-                              other end of the dimension. For example, if the columns are
-                              layed out in one deimnsion, columns 1 and 10 will be
-                              considered adjacent if wrapAround is set to true:
-                              [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].
-
-              @param neighbors An int array of indices corresponding to the neighbors of a given column.
-          */
-          void getNeighbors2D_(UInt column, vector<UInt>& dimensions,
-                               UInt radius, bool wrapAround,
-                               vector<UInt>& neighbors);
-          void cartesianProduct_(vector<vector<UInt> >& vecs,
-                                 vector<vector<UInt> >& product);
-
-          /**
-              Similar to _getNeighbors1D and _getNeighbors2D, this function returns a
-              list of indices corresponding to the neighbors of a given column.
-
-              Since the
-              permanence values are stored in such a way that information about toplogy
-              is lost. This method allows for reconstructing the toplogy of the inputs,
-              which are flattened to one array. Given a column's index, its neighbors are
-              defined as those columns that are 'radius' indices away from it in each
-              dimension. The method returns a list of the flat indices of these columns.
-
-              ----------------------------
-              @param column   An integer number. The index identifying a column in the permanence, potential
-                              and connectivity matrices.
-
-              @param  dimensions     An int array containg a dimensions for the column space. A 2x3
-                              grid will be represented by [2,3].
-
-              @param  radius      An integer number Indicates how far away from a given column are other
-                              columns to be considered its neighbors. In the previous 2x3
-                              example, each column with coordinates:
-                              [2+/-radius, 3+/-radius] is considered a neighbor.
-
-              @param  wrapAround     A boolean value indicating whether to consider columns at
-                              the border of a dimensions to be adjacent to columns at the
-                              other end of the dimension. For example, if the columns are
-                              layed out in one deimnsion, columns 1 and 10 will be
-                              considered adjacent if wrapAround is set to true:
-                              [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].
-
-              @param neighbors An int arrayof indices corresponding to the neighbors of a given column.
-          */
-          void getNeighborsND_(UInt column, vector<UInt>& dimensions,
-                               UInt radius, bool wrapAround,
-                               vector<UInt>& neighbors);
-
+          void inhibitColumnsLocal_(
+            const vector<Real>& overlaps,
+            Real density,
+            vector<UInt>& activeColumns);
 
           /**
               The primary method in charge of learning.
@@ -1194,7 +1066,7 @@ namespace nupic {
 
           /**
               Update the inhibition radius. The inhibition radius is a meausre of the
-              square (or hypersquare) of columns that each a column is "conencted to"
+              square (or hypersquare) of columns that each a column is "connected to"
               on average. Since columns are not connected to each other directly, we
               determine this quantity by first figuring out how many *inputs* a column is
               connected to, and then multiplying it by the total number of columns that
@@ -1218,7 +1090,7 @@ namespace nupic {
           /**
               The range of connected synapses for column. This is used to
               calculate the inhibition radius. This variation of the function only
-              supports a 1 dimensional column toplogy.
+              supports a 1 dimensional column topology.
 
               @param column An int number identifying a column in the permanence, potential
                               and connectivity matrices.
@@ -1256,9 +1128,9 @@ namespace nupic {
               Updates the minimum duty cycles in a global fashion. Sets the minimum duty
               cycles for the overlap and activation of all columns to be a percent of the
               maximum in the region, specified by minPctOverlapDutyCycle and
-              minPctActiveDutyCycle respectively. Functionaly it is equivalent to
+              minPctActiveDutyCycle respectively. Functionally it is equivalent to
               _updateMinDutyCyclesLocal, but this function exploits the globalilty of the
-              compuation to perform it in a straightforward, and more efficient manner.
+              computation to perform it in a straightforward, and more efficient manner.
           */
           void updateMinDutyCyclesGlobal_();
 
@@ -1317,32 +1189,49 @@ namespace nupic {
                                  UInt activeArray[]);
 
           /**
-              Update the boost factors for all columns. The boost factors are used to
-              increase the overlap of inactive columns to improve their chances of
-              becoming active. and hence encourage participation of more columns in the
-              learning process. This is a line defined as: y = mx + b boost =
-              (1-maxBoost)/minDuty * dutyCycle + maxFiringBoost. Intuitively this means
-              that columns that have been active enough have a boost factor of 1, meaning
-              their overlap is not boosted. Columns whose active duty cycle drops too much
-              below that of their neighbors are boosted depending on how infrequently they
-              have been active. The more infrequent, the more they are boosted. The exact
-              boost factor is linearly interpolated between the points (dutyCycle:0,
-              boost:maxFiringBoost) and (dutyCycle:minDuty, boost:1.0).
-              @verbatim
+            Update the boost factors for all columns. The boost factors are used to
+            increase the overlap of inactive columns to improve their chances of
+            becoming active, and hence encourage participation of more columns in the
+            learning process. The boosting function is a curve defined as:
+            boostFactors = exp[ - boostStrength * (dutyCycle - targetDensity)]
+            Intuitively this means that columns that have been active at the target
+            activation level have a boost factor of 1, meaning their overlap is not
+            boosted. Columns whose active duty cycle drops too much below that of their
+            neighbors are boosted depending on how infrequently they have been active.
+            Columns that has been active more than the target activation level have
+            a boost factor below 1, meaning their overlap is suppressed
 
-                      boostFactor
-                          ^
-              maxBoost _  |
-                          |\
-                          | \
-                    1  _  |  \ _ _ _ _ _ _ _
-                          |
-                          +--------------------> activeDutyCycle
-                             |
-                      minActiveDutyCycle
+            The boostFactor depends on the activeDutyCycle via an exponential function:
+
+                        boostFactor
+                        ^
+                        |
+                        |\
+                        | \
+                  1  _  |  \
+                        |    _
+                        |      _ _
+                        |          _ _ _ _
+                        +--------------------> activeDutyCycle
+                              |
+                        targetDensity
               @endverbatim
             */
           void updateBoostFactors_();
+
+          /**
+          Update boost factors when local inhibition is enabled. In this case,
+          the target activation level for each column is estimated as the
+          average activation level for columns in its neighborhood.
+          */
+          void updateBoostFactorsLocal_();
+
+          /**
+          Update boost factors when global inhibition is enabled. All columns
+          share the same target activation level in this case, which is the
+          sparsity of spatial pooler.
+          */
+          void updateBoostFactorsGlobal_();
 
           /**
           Updates counter instance variables each round.
@@ -1395,7 +1284,7 @@ namespace nupic {
           UInt stimulusThreshold_;
           UInt inhibitionRadius_;
           UInt dutyCyclePeriod_;
-          Real maxBoost_;
+          Real boostStrength_;
           UInt iterationNum_;
           UInt iterationLearnNum_;
           UInt spVerbosity_;
@@ -1417,7 +1306,6 @@ namespace nupic {
           vector<Real> minActiveDutyCycles_;
 
           Real minPctOverlapDutyCycles_;
-          Real minPctActiveDutyCycles_;
 
           SparseMatrix<UInt,Real,Int,Real64> permanences_;
           SparseBinaryMatrix<UInt, UInt> potentialPools_;
@@ -1434,6 +1322,7 @@ namespace nupic {
           Random rng_;
 
       };
+
     } // end namespace spatial_pooler
   } // end namespace algorithms
 } // end namespace nupic

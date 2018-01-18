@@ -28,10 +28,9 @@
 #include <Python.h>
 
 #include "PyArray.hpp"
+#include <nupic/py_support/NumpyArrayObject.hpp>
 #include <nupic/utils/Log.hpp>
 
-#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
-#include <numpy/arrayobject.h>
 #include <iostream>
 #include <string>
 #include <sstream>
@@ -61,16 +60,8 @@ namespace nupic
   //
   // -------------------------------------
   // Wrap an Array object with a numpy array PyObject
-
-  static void initNumpy()
-  {
-    import_array();
-  }
-
   PyObject * array2numpy(const ArrayBase & a)
   {
-    initNumpy();
-
     npy_intp dims[1];
     dims[0] = npy_intp(a.getCount());
 
