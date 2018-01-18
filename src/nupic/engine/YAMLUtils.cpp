@@ -39,16 +39,63 @@ namespace YAMLUtils
 /*
  * These functions are used internally by toValue and toValueMap
  */
+static void _toScalar(const YAML::Node& node, boost::shared_ptr<Scalar>& s);
 static void _toArray(const YAML::Node& node, boost::shared_ptr<Array>& a);
 static Value toValue(const YAML::Node& node, NTA_BasicType dataType);
 
+
+static void _toScalar(const YAML::Node& node, boost::shared_ptr<Scalar>& s)
+{
+  NTA_CHECK(node.Type() == YAML::NodeType::Scalar);
+  switch(s->getType())
+  {
+  case NTA_BasicType_Byte:
+    // We should have already detected this and gone down the string path
+    NTA_THROW << "Internal error: attempting to convert YAML string to scalar of type Byte";
+    break;
+  case NTA_BasicType_UInt16:
+    s->value.uint16 = node.as<NTA_UInt16>(); 
+    break;
+  case NTA_BasicType_Int16:
+    s->value.int16 = node.as<NTA_Int16>();
+    break;
+  case NTA_BasicType_UInt32:
+    s->value.uint32 = node.as<NTA_UInt32>(); 
+    break;
+  case NTA_BasicType_Int32:
+    s->value.int32 = node.as<NTA_Int32>();
+    break;
+  case NTA_BasicType_UInt64:
+    s->value.uint64 = node.as<NTA_UInt64>();
+    break;
+  case NTA_BasicType_Int64:
+    s->value.int64 = node.as<NTA_Int64>();
+    break;
+  case NTA_BasicType_Real32:
+    s->value.real32 = node.as<NTA_Real32>();
+    break;
+  case NTA_BasicType_Real64:
+    s->value.real64 = node.as<NTA_Real64>();
+    break;
+  case NTA_BasicType_Bool:
+    s->value.boolean = node.as<bool>();
+    break;
+  case NTA_BasicType_Handle:
+    NTA_THROW << "Attempt to specify a YAML value for a scalar of type Handle";
+    break;
+  default:
+    // should not happen
+    const std::string val = node.as<std::string>();
+    NTA_THROW << "Unknown data type " << s->getType() << " for yaml node '" << val << "'";
+  }
+}
     
 static void _toArray(const YAML::Node& node, boost::shared_ptr<Array>& a)
 {
   NTA_CHECK(node.Type() == YAML::NodeType::Sequence);
       
   a->allocateBuffer(node.size());
-  const void* buffer = a->getBuffer();
+  void* buffer = a->getBuffer();
       
   for (size_t i = 0; i < node.size(); i++)
   {
@@ -102,13 +149,20 @@ static Value toValue(const YAML::Node& node, NTA_BasicType dataType)
   }
   if (node.Type() == YAML::NodeType::Scalar)
   {
-    if (dataType == NTA_BasicType_Byte) //treat as string
+    if (dataType == NTA_BasicType_Byte)
     {
       // node >> *str;
-      dataType = std::string;
+      std::string val;
+      node.Read(val);
+      boost::shared_ptr<std::string> str(new std::string(val));
+      Value v(str);
+      return v;
+    } else {
+      boost::shared_ptr<Scalar> s(new Scalar(dataType));
+      _toScalar(node, s);
+      Value v(s);
+      return v;
     }
-
-    return Value(node.as<dataType>()); 
   } else {
     // array
     boost::shared_ptr<Array> a(new Array(dataType));
