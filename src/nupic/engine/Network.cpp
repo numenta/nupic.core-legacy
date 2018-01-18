@@ -852,7 +852,7 @@ void Network::loadFromBundle(const std::string& name)
               << doc.size() << " elements";
 
   // Extra version
-  const YAML::Node *node = doc.FindValue("Version");
+  const YAML::Node *node = doc["Version"];
   if (node == nullptr)
     NTA_THROW << "Invalid network structure file -- no version";
 
@@ -862,7 +862,7 @@ void Network::loadFromBundle(const std::string& name)
     NTA_THROW << "Invalid network structure file -- only version 2 supported";
 
   // Regions
-  const YAML::Node *regions = doc.FindValue("Regions");
+  const YAML::Node *regions = doc["Regions"];
   if (regions == nullptr)
     NTA_THROW << "Invalid network structure file -- no regions";
 
@@ -879,14 +879,14 @@ void Network::loadFromBundle(const std::string& name)
       NTA_THROW << "Invalid network structure file -- bad region (wrong size)";
 
     // 1. name
-    node = (*region).FindValue("name");
+    node = (*region)["name"];
     if (node == nullptr)
       NTA_THROW << "Invalid network structure file -- region has no name";
     std::string name;
     *node >> name;
 
     // 2. nodeType
-    node = (*region).FindValue("nodeType");
+    node = (*region)["nodeType"];
     if (node == nullptr)
       NTA_THROW << "Invalid network structure file -- region "
                 << name << " has no node type";
@@ -894,7 +894,7 @@ void Network::loadFromBundle(const std::string& name)
     *node >> nodeType;
 
     // 3. dimensions
-    node = (*region).FindValue("dimensions");
+    node = (*region)["dimensions"];
     if (node == nullptr)
       NTA_THROW << "Invalid network structure file -- region "
                 << name << " has no dimensions";
@@ -910,7 +910,7 @@ void Network::loadFromBundle(const std::string& name)
     }
 
     // 4. phases
-    node = (*region).FindValue("phases");
+    node = (*region)["phases"];
     if (node == nullptr)
       NTA_THROW << "Invalid network structure file -- region"
                 << name << "has no phases";
@@ -927,7 +927,7 @@ void Network::loadFromBundle(const std::string& name)
     }
 
     // 5. label
-    node = (*region).FindValue("label");
+    node = (*region)["label"];
     if (node == nullptr)
       NTA_THROW << "Invalid network structure file -- region"
                 << name << "has no label";
@@ -940,7 +940,7 @@ void Network::loadFromBundle(const std::string& name)
 
   }
 
-  const YAML::Node *links = doc.FindValue("Links");
+  const YAML::Node *links = doc["Links"];
   if (links == nullptr)
     NTA_THROW << "Invalid network structure file -- no links";
 
@@ -957,21 +957,21 @@ void Network::loadFromBundle(const std::string& name)
       NTA_THROW << "Invalid network structure file -- bad link (wrong size)";
 
     // 1. type
-    node = (*link).FindValue("type");
+    node = (*link)["type"];
     if (node == nullptr)
       NTA_THROW << "Invalid network structure file -- link does not have a type";
     std::string linkType;
     *node >> linkType;
 
     // 2. params
-    node = (*link).FindValue("params");
+    node = (*link)["params"];
     if (node == nullptr)
       NTA_THROW << "Invalid network structure file -- link does not have params";
     std::string params;
     *node >> params;
 
     // 3. srcRegion (name)
-    node = (*link).FindValue("srcRegion");
+    node = (*link)["srcRegion"];
     if (node == nullptr)
       NTA_THROW << "Invalid network structure file -- link does not have a srcRegion";
     std::string srcRegionName;
@@ -979,21 +979,21 @@ void Network::loadFromBundle(const std::string& name)
 
 
     // 4. srcOutput
-    node = (*link).FindValue("srcOutput");
+    node = (*link)["srcOutput"];
     if (node == nullptr)
       NTA_THROW << "Invalid network structure file -- link does not have a srcOutput";
     std::string srcOutputName;
     *node >> srcOutputName;
 
     // 5. destRegion
-    node = (*link).FindValue("destRegion");
+    node = (*link)["destRegion"];
     if (node == nullptr)
       NTA_THROW << "Invalid network structure file -- link does not have a destRegion";
     std::string destRegionName;
     *node >> destRegionName;
 
     // 6. destInput
-    node = (*link).FindValue("destInput");
+    node = (*link)["destInput"];
     if (node == nullptr)
       NTA_THROW << "Invalid network structure file -- link does not have a destInput";
     std::string destInputName;
