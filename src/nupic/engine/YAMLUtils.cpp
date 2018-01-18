@@ -108,31 +108,31 @@ static void _toArray(const YAML::Node& node, boost::shared_ptr<Array>& a)
       NTA_THROW << "Internal error: attempting to convert YAML string to array of type Byte";
       break;
     case NTA_BasicType_UInt16:
-      item.Read<UInt16>(((UInt16*)buffer)[i]);
+      ((UInt16*)buffer)[i] = item.as<UInt16>();
       break;
     case NTA_BasicType_Int16:
-      item.Read<Int16>(((Int16*)buffer)[i]);
+      ((Int16*)buffer)[i] = item.as<Int16>();
       break;
     case NTA_BasicType_UInt32:
-      item.Read<UInt32>(((UInt32*)buffer)[i]);
+     ((UInt32*)buffer)[i] = item.as<UInt32>();
       break;
     case NTA_BasicType_Int32:
-      item.Read<Int32>(((Int32*)buffer)[i]);
+     ((Int32*)buffer)[i] = item.as<Int32>();
       break;
     case NTA_BasicType_UInt64:
-      item.Read<UInt64>(((UInt64*)buffer)[i]);
+     ((UInt64*)buffer)[i] = item.as<UInt64>();
       break;
     case NTA_BasicType_Int64:
-      item.Read<Int64>(((Int64*)buffer)[i]);
+     ((Int64*)buffer)[i] = item.as<Int64>();
       break;
     case NTA_BasicType_Real32:
-      item.Read<Real32>(((Real32*)buffer)[i]);
+     ((Real32*)buffer)[i] = item.as<Real32>();
       break;
     case NTA_BasicType_Real64:
-      item.Read<Real64>(((Real64*)buffer)[i]);
+     ((Real64*)buffer)[i] = item.as<Real64>();
       break;
     case NTA_BasicType_Bool:
-      item.Read<bool>(((bool*)buffer)[i]);
+     ((bool*)buffer)[i] = item.as<bool>();
       break;
     default:
       // should not happen
@@ -152,8 +152,7 @@ static Value toValue(const YAML::Node& node, NTA_BasicType dataType)
     if (dataType == NTA_BasicType_Byte)
     {
       // node >> *str;
-      std::string val;
-      node.Read(val);
+      const std::string val = node.as<std::string>();
       boost::shared_ptr<std::string> str(new std::string(val));
       Value v(str);
       return v;
