@@ -869,7 +869,7 @@ void Network::loadFromBundle(const std::string& name)
   if (regions->Type() != YAML::NodeType::Sequence)
     NTA_THROW << "Invalid network structure file -- regions element is not a list";
 
-  for (YAML::Iterator region = regions->begin(); region != regions->end(); region++)
+  for (const auto & region : regions)
   {
     // Each region is a map -- extract the 5 values in the map
     if ((*region).Type() != YAML::NodeType::Map)
@@ -902,7 +902,7 @@ void Network::loadFromBundle(const std::string& name)
       NTA_THROW << "Invalid network structure file -- region "
                 << name << " dimensions specified incorrectly";
     Dimensions dimensions;
-    for (YAML::Iterator valiter = (*node).begin(); valiter != (*node).end(); valiter++)
+    for (const auto & valiter : (*node))
     {
       size_t val;
       (*valiter) >> val;
@@ -919,7 +919,7 @@ void Network::loadFromBundle(const std::string& name)
                 << name << " phases specified incorrectly";
 
     std::set<UInt32> phases;
-    for (YAML::Iterator valiter = (*node).begin(); valiter != (*node).end(); valiter++)
+    for (const auto & valiter : (*node))
     {
       UInt32 val;
       (*valiter) >> val;
@@ -947,7 +947,7 @@ void Network::loadFromBundle(const std::string& name)
   if (links->Type() != YAML::NodeType::Sequence)
     NTA_THROW << "Invalid network structure file -- links element is not a list";
 
-  for (YAML::Iterator link = links->begin(); link != links->end(); link++)
+  for (const auto & link : links)
   {
     // Each link is a map -- extract the 5 values in the map
     if ((*link).Type() != YAML::NodeType::Map)
