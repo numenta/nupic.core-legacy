@@ -209,7 +209,6 @@ ValueMap toValueMap(const char* yamlstring,
   std::string paddedstring(yamlstring);
   // TODO: strip white space to determine if empty
   bool empty = (paddedstring.size() == 0);
-  if(!empty)  NTA_THROW << "YAML got empty input string \n";
 
 //FIXME try removing this
   if (paddedstring.size() < 2)
@@ -217,6 +216,7 @@ ValueMap toValueMap(const char* yamlstring,
 
   // TODO: utf-8 compatible?
   const YAML::Node doc = YAML::Load(paddedstring);
+  if(!empty) {
 
     // A ValueMap is specified as a dictionary
     if (doc.Type() != YAML::NodeType::Map)
@@ -230,7 +230,7 @@ ValueMap toValueMap(const char* yamlstring,
                 << "' does not not specify a dictionary of key-value pairs. "
                 << "Region and Link parameters must be specified at a dictionary";
     }
-
+  }
   // Grab each value out of the YAML dictionary and put into the ValueMap
   // if it is allowed by the nodespec.
   for (auto i = doc.begin(); i != doc.end(); i++)
