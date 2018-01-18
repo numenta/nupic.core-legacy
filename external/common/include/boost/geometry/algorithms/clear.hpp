@@ -14,15 +14,20 @@
 #ifndef BOOST_GEOMETRY_ALGORITHMS_CLEAR_HPP
 #define BOOST_GEOMETRY_ALGORITHMS_CLEAR_HPP
 
-#include <boost/mpl/assert.hpp>
+
 #include <boost/type_traits/remove_const.hpp>
 
+#include <boost/variant/apply_visitor.hpp>
+#include <boost/variant/static_visitor.hpp>
+#include <boost/variant/variant_fwd.hpp>
+
+#include <boost/geometry/algorithms/not_implemented.hpp>
 #include <boost/geometry/core/access.hpp>
 #include <boost/geometry/core/exterior_ring.hpp>
 #include <boost/geometry/core/interior_rings.hpp>
 #include <boost/geometry/core/mutable_range.hpp>
 #include <boost/geometry/core/tag_cast.hpp>
-
+#include <boost/geometry/core/tags.hpp>
 #include <boost/geometry/geometries/concepts/check.hpp>
 
 
@@ -72,6 +77,7 @@ struct no_action
     }
 };
 
+
 }} // namespace detail::clear
 #endif // DOXYGEN_NO_DETAIL
 
@@ -84,14 +90,8 @@ template
     typename Geometry,
     typename Tag = typename tag_cast<typename tag<Geometry>::type, multi_tag>::type
 >
-struct clear
-{
-    BOOST_MPL_ASSERT_MSG
-        (
-            false, NOT_OR_NOT_YET_IMPLEMENTED_FOR_THIS_GEOMETRY_TYPE
-            , (types<Geometry>)
-        );
-};
+struct clear: not_implemented<Tag>
+{};
 
 // Point/box/segment do not have clear. So specialize to do nothing.
 template <typename Geometry>
@@ -127,8 +127,46 @@ struct clear<Polygon, polygon_tag>
 {};
 
 
+template <typename Geometry>
+struct clear<Geometry, multi_tag>
+    : detail::clear::collection_clear<Geometry>
+{};
+
+
 } // namespace dispatch
 #endif // DOXYGEN_NO_DISPATCH
+
+
+namespace resolve_variant {
+
+template <typename Geometry>
+struct clear
+{
+    static inline void apply(Geometry& geometry)
+    {
+        dispatch::clear<Geometry>::apply(geometry);
+    }
+};
+
+template <BOOST_VARIANT_ENUM_PARAMS(typename T)>
+struct clear<variant<BOOST_VARIANT_ENUM_PARAMS(T)> >
+{
+    struct visitor: static_visitor<void>
+    {
+        template <typename Geometry>
+        inline void operator()(Geometry& geometry) const
+        {
+            clear<Geometry>::apply(geometry);
+        }
+    };
+
+    static inline void apply(variant<BOOST_VARIANT_ENUM_PARAMS(T)>& geometry)
+    {
+        boost::apply_visitor(visitor(), geometry);
+    }
+};
+
+} // namespace resolve_variant
 
 
 /*!
@@ -147,9 +185,9 @@ struct clear<Polygon, polygon_tag>
 template <typename Geometry>
 inline void clear(Geometry& geometry)
 {
-    concept::check<Geometry>();
+    concepts::check<Geometry>();
 
-    dispatch::clear<Geometry>::apply(geometry);
+    resolve_variant::clear<Geometry>::apply(geometry);
 }
 
 

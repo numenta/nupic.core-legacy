@@ -27,11 +27,11 @@
  * Contains the NumpyArray class, a wrapper for Python numpy arrays.
  */
 
+#include <nupic/py_support/NumpyArrayObject.hpp>
 #include <nupic/types/Types.hpp> // For nupic::Real.
 #include <nupic/utils/Log.hpp> // For NTA_ASSERT
 #include <algorithm> // For std::copy.
-#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
-#include <numpy/arrayobject.h>
+#include <boost/type_index/stl_type_index.hpp> // for 'type_id'
 
 namespace nupic {
 
@@ -74,12 +74,6 @@ namespace nupic {
     /// Releases the reference to the internal numpy array.
     ///////////////////////////////////////////////////////////
     virtual ~NumpyArray();
-
-    ///////////////////////////////////////////////////////////
-    /// Initializes the numpy library.
-    /// Called automatically when constructing a NumpyArray.
-    ///////////////////////////////////////////////////////////
-    static void init();
 
     ///////////////////////////////////////////////////////////
     /// The number of dimensions of the internal numpy array.
@@ -445,6 +439,31 @@ namespace nupic {
     PyArrayObject* pyArray_;
   };
 
+  /**
+   * Similar to NumpyVectorWeakRefT but also provides extra type checking
+   */  
+  template<typename T>
+  class CheckedNumpyVectorWeakRefT : public NumpyVectorWeakRefT<T>
+  {
+    public:
+      CheckedNumpyVectorWeakRefT(PyObject* pyArray) 
+        : NumpyVectorWeakRefT<T>(pyArray)
+      {
+        if (PyArray_NDIM(this->pyArray_) != 1)
+        {
+          NTA_THROW << "Expecting 1D array " 
+                    << "but got " << PyArray_NDIM(this->pyArray_) << "D array";
+        }
+        if (!PyArray_EquivTypenums(
+              PyArray_TYPE(this->pyArray_), LookupNumpyDType((const T *) 0)))
+        {
+          boost::typeindex::stl_type_index expectedType = 
+            boost::typeindex::stl_type_index::type_id<T>();
+          NTA_THROW << "Expecting '" << expectedType.pretty_name() << "' "
+                    << "but got '" << PyArray_DTYPE(this->pyArray_)->type << "'";
+        }
+      }
+  };
 } // End namespace nupic.
 
 #endif

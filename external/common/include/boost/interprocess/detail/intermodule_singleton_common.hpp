@@ -11,7 +11,11 @@
 #ifndef BOOST_INTERPROCESS_INTERMODULE_SINGLETON_COMMON_HPP
 #define BOOST_INTERPROCESS_INTERMODULE_SINGLETON_COMMON_HPP
 
-#if defined(_MSC_VER)&&(_MSC_VER>=1200)
+#ifndef BOOST_CONFIG_HPP
+#  include <boost/config.hpp>
+#endif
+#
+#if defined(BOOST_HAS_PRAGMA_ONCE)
 #pragma once
 #endif
 
@@ -20,8 +24,10 @@
 
 #include <boost/interprocess/detail/atomic.hpp>
 #include <boost/interprocess/detail/os_thread_functions.hpp>
-#include <boost/type_traits/type_with_alignment.hpp>
+#include <boost/interprocess/exceptions.hpp>
+#include <boost/container/detail/type_traits.hpp>  //alignment_of, aligned_storage
 #include <boost/interprocess/detail/mpl.hpp>
+#include <boost/interprocess/sync/spin/wait.hpp>
 #include <boost/assert.hpp>
 #include <cstddef>
 #include <cstdio>
@@ -121,7 +127,8 @@ class intermodule_singleton_common
                //Now try to create the singleton in global map.
                //This function solves concurrency issues
                //between threads of several modules
-               void *tmp = constructor(get_map());
+               ThreadSafeGlobalMap *const pmap = get_map_ptr();
+               void *tmp = constructor(*pmap);
                //Increment the module reference count that reflects how many
                //singletons this module holds, so that we can safely destroy
                //module global map object when no singleton is left
@@ -144,6 +151,7 @@ class intermodule_singleton_common
          //If previous state was initializing, this means that another winner thread is
          //trying to initialize the singleton. Just wait until completes its work.
          else if(previous_module_singleton_initialized == Initializing){
+            spin_wait swait;
             while(1){
                previous_module_singleton_initialized = atomic_read32(&this_module_singleton_initialized);
                if(previous_module_singleton_initialized >= Initialized){
@@ -151,7 +159,7 @@ class intermodule_singleton_common
                   break;
                }
                else if(previous_module_singleton_initialized == Initializing){
-                  thread_yield();
+                  swait.yield();
                }
                else{
                   //This can't be happening!
@@ -178,7 +186,8 @@ class intermodule_singleton_common
          //Note: this destructor might provoke a Phoenix singleton
          //resurrection. This means that this_module_singleton_count
          //might change after this call.
-         destructor(ptr, get_map());
+         ThreadSafeGlobalMap * const pmap = get_map_ptr();
+         destructor(ptr, *pmap);
          ptr = 0;
 
          //Memory barrier to make sure pointer is nulled.
@@ -197,14 +206,15 @@ class intermodule_singleton_common
    }
 
    private:
-   static ThreadSafeGlobalMap &get_map()
+   static ThreadSafeGlobalMap *get_map_ptr()
    {
-      return *static_cast<ThreadSafeGlobalMap *>(static_cast<void *>(&mem_holder.map_mem[0]));
+      return static_cast<ThreadSafeGlobalMap *>(static_cast<void*>(mem_holder.map_mem));
    }
 
    static void initialize_global_map_handle()
    {
       //Obtain unique map name and size
+      spin_wait swait;
       while(1){
          //Try to pass map state to initializing
          ::boost::uint32_t tmp = atomic_cas32(&this_module_map_initialized, Initializing, Uninitialized);
@@ -217,7 +227,7 @@ class intermodule_singleton_common
          }
          //If some other thread is doing the work wait
          else if(tmp == Initializing){
-            thread_yield();
+            swait.yield();
          }
          else{ //(tmp == Uninitialized)
             //If not initialized try it again?
@@ -225,16 +235,17 @@ class intermodule_singleton_common
                //Remove old global map from the system
                intermodule_singleton_helpers::thread_safe_global_map_dependant<ThreadSafeGlobalMap>::remove_old_gmem();
                //in-place construction of the global map class
+               ThreadSafeGlobalMap * const pmap = get_map_ptr();
                intermodule_singleton_helpers::thread_safe_global_map_dependant
-                  <ThreadSafeGlobalMap>::construct_map(static_cast<void*>(&get_map()));
+                  <ThreadSafeGlobalMap>::construct_map(static_cast<void*>(pmap));
                //Use global map's internal lock to initialize the lock file
                //that will mark this gmem as "in use".
                typename intermodule_singleton_helpers::thread_safe_global_map_dependant<ThreadSafeGlobalMap>::
-                  lock_file_logic f(get_map());
+                  lock_file_logic f(*pmap);
                //If function failed (maybe a competing process has erased the shared
                //memory between creation and file locking), retry with a new instance.
                if(f.retry()){
-                  get_map().~ThreadSafeGlobalMap();
+                  pmap->~ThreadSafeGlobalMap();
                   atomic_write32(&this_module_map_initialized, Destroyed);
                }
                else{
@@ -257,9 +268,10 @@ class intermodule_singleton_common
          //This module is being unloaded, so destroy
          //the global map object of this module
          //and unlink the global map if it's the last
+         ThreadSafeGlobalMap * const pmap = get_map_ptr();
          typename intermodule_singleton_helpers::thread_safe_global_map_dependant<ThreadSafeGlobalMap>::
-            unlink_map_logic f(get_map());
-         (get_map()).~ThreadSafeGlobalMap();
+            unlink_map_logic f(*pmap);
+         pmap->~ThreadSafeGlobalMap();
          atomic_write32(&this_module_map_initialized, Destroyed);
          //Do some cleanup for other processes old gmem instances
          intermodule_singleton_helpers::thread_safe_global_map_dependant<ThreadSafeGlobalMap>::remove_old_gmem();
@@ -275,10 +287,10 @@ class intermodule_singleton_common
    static volatile boost::uint32_t this_module_map_initialized;
 
    //Raw memory to construct the global map manager
-   static struct mem_holder_t
+   static union mem_holder_t
    {
-      ::boost::detail::max_align aligner;
-      char map_mem [sizeof(ThreadSafeGlobalMap)];
+      unsigned char map_mem [sizeof(ThreadSafeGlobalMap)];
+      ::boost::container::container_detail::max_align_t aligner;
    } mem_holder;
 };
 
@@ -308,7 +320,7 @@ struct ref_count_ptr
 
 
 //Now this class is a singleton, initializing the singleton in
-//the first get() function call if LazyInit is false. If true
+//the first get() function call if LazyInit is true. If false
 //then the singleton will be initialized when loading the module.
 template<typename C, bool LazyInit, bool Phoenix, class ThreadSafeGlobalMap>
 class intermodule_singleton_impl
@@ -356,9 +368,9 @@ class intermodule_singleton_impl
 
       ~lifetime_type_lazy()
       {
-         if(!Phoenix){
-            atexit_work();
-         }
+         //if(!Phoenix){
+            //atexit_work();
+         //}
       }
 
       //Dummy volatile so that the compiler can't resolve its value at compile-time
@@ -384,7 +396,7 @@ class intermodule_singleton_impl
    struct init_atomic_func
    {
       init_atomic_func(ThreadSafeGlobalMap &m)
-         : m_map(m)
+         : m_map(m), ret_ptr()
       {}
 
       void operator()()
@@ -405,9 +417,9 @@ class intermodule_singleton_impl
                throw;
             }
          }
-         if(Phoenix){
+         //if(Phoenix){
             std::atexit(&atexit_work);
-         }
+         //}
          atomic_inc32(&rcount->singleton_ref_count);
          ret_ptr = rcount->ptr;
       }
@@ -446,12 +458,9 @@ class intermodule_singleton_impl
             delete pc;
          }
       }
-      void *data() const
-         { return ret_ptr;  }
 
       private:
       ThreadSafeGlobalMap &m_map;
-      void *ret_ptr;
    };
 
    //A wrapper to execute init_atomic_func

@@ -1,8 +1,13 @@
 // Boost.Geometry (aka GGL, Generic Geometry Library)
 
-// Copyright (c) 2007-2012 Barend Gehrels, Amsterdam, the Netherlands.
-// Copyright (c) 2008-2012 Bruno Lalande, Paris, France.
-// Copyright (c) 2009-2012 Mateusz Loskot, London, UK.
+// Copyright (c) 2007-2015 Barend Gehrels, Amsterdam, the Netherlands.
+// Copyright (c) 2008-2015 Bruno Lalande, Paris, France.
+// Copyright (c) 2009-2015 Mateusz Loskot, London, UK.
+
+// This file was modified by Oracle on 2014, 2015, 2017.
+// Modifications copyright (c) 2014-2017 Oracle and/or its affiliates.
+
+// Contributed and/or modified by Adam Wulkiewicz, on behalf of Oracle
 
 // Parts of Boost.Geometry are redesigned from Geodan's Geographic Library
 // (geolib/GGL), copyright (c) 1995-2010 Geodan, Amsterdam, the Netherlands.
@@ -17,11 +22,15 @@
 
 #include <cstddef>
 
-#include <boost/mpl/assert.hpp>
-
 #include <boost/geometry/core/access.hpp>
 
+#include <boost/geometry/algorithms/not_implemented.hpp>
+
 #include <boost/geometry/geometries/concepts/check.hpp>
+
+#include <boost/geometry/algorithms/relate.hpp>
+#include <boost/geometry/algorithms/detail/relate/relate_impl.hpp>
+
 
 namespace boost { namespace geometry
 {
@@ -32,13 +41,12 @@ namespace detail { namespace overlaps
 
 template
 <
-    typename Box1,
-    typename Box2,
     std::size_t Dimension,
     std::size_t DimensionCount
 >
 struct box_box_loop
 {
+    template <typename Box1, typename Box2>
     static inline void apply(Box1 const& b1, Box2 const& b2,
             bool& overlaps, bool& one_in_two, bool& two_in_one)
     {
@@ -76,6 +84,7 @@ struct box_box_loop
         {
             one_in_two = false;
         }
+
         // Same other way round
         if (min2 < min1 || max2 > max1)
         {
@@ -84,8 +93,6 @@ struct box_box_loop
 
         box_box_loop
             <
-                Box1,
-                Box2,
                 Dimension + 1,
                 DimensionCount
             >::apply(b1, b2, overlaps, one_in_two, two_in_one);
@@ -94,33 +101,26 @@ struct box_box_loop
 
 template
 <
-    typename Box1,
-    typename Box2,
     std::size_t DimensionCount
 >
-struct box_box_loop<Box1, Box2, DimensionCount, DimensionCount>
+struct box_box_loop<DimensionCount, DimensionCount>
 {
+    template <typename Box1, typename Box2>
     static inline void apply(Box1 const& , Box2 const&, bool&, bool&, bool&)
     {
     }
 };
 
-template
-<
-    typename Box1,
-    typename Box2
->
 struct box_box
 {
-    static inline bool apply(Box1 const& b1, Box2 const& b2)
+    template <typename Box1, typename Box2, typename Strategy>
+    static inline bool apply(Box1 const& b1, Box2 const& b2, Strategy const& /*strategy*/)
     {
         bool overlaps = true;
         bool within1 = true;
         bool within2 = true;
         box_box_loop
             <
-                Box1,
-                Box2,
                 0,
                 dimension<Box1>::type::value
             >::apply(b1, b2, overlaps, within1, within2);
@@ -134,12 +134,9 @@ struct box_box
     }
 };
 
-
-
 }} // namespace detail::overlaps
 #endif // DOXYGEN_NO_DETAIL
 
-//struct not_implemented_for_this_geometry_type : public boost::false_type {};
 
 #ifndef DOXYGEN_NO_DISPATCH
 namespace dispatch
@@ -148,28 +145,25 @@ namespace dispatch
 
 template
 <
-    typename Tag1,
-    typename Tag2,
     typename Geometry1,
-    typename Geometry2
+    typename Geometry2,
+    typename Tag1 = typename tag<Geometry1>::type,
+    typename Tag2 = typename tag<Geometry2>::type
 >
 struct overlaps
-{
-    BOOST_MPL_ASSERT_MSG
-        (
-            false, NOT_OR_NOT_YET_IMPLEMENTED_FOR_THIS_GEOMETRY_TYPE
-            , (types<Geometry1, Geometry2>)
-        );
-};
-
-
-template <typename Box1, typename Box2>
-struct overlaps<box_tag, box_tag, Box1, Box2>
-    : detail::overlaps::box_box<Box1, Box2>
+    : detail::relate::relate_impl
+        <
+            detail::de9im::static_mask_overlaps_type,
+            Geometry1,
+            Geometry2
+        >
 {};
 
 
-
+template <typename Box1, typename Box2>
+struct overlaps<Box1, Box2, box_tag, box_tag>
+    : detail::overlaps::box_box
+{};
 
 } // namespace dispatch
 #endif // DOXYGEN_NO_DISPATCH
@@ -178,6 +172,39 @@ struct overlaps<box_tag, box_tag, Box1, Box2>
 /*!
 \brief \brief_check2{overlap}
 \ingroup overlaps
+\tparam Geometry1 \tparam_geometry
+\tparam Geometry2 \tparam_geometry
+\tparam Strategy \tparam_strategy{Overlaps}
+\param geometry1 \param_geometry
+\param geometry2 \param_geometry
+\param strategy \param_strategy{overlaps}
+\return \return_check2{overlap}
+
+\qbk{distinguish,with strategy}
+\qbk{[include reference/algorithms/overlaps.qbk]}
+*/
+template <typename Geometry1, typename Geometry2, typename Strategy>
+inline bool overlaps(Geometry1 const& geometry1,
+                     Geometry2 const& geometry2,
+                     Strategy const& strategy)
+{
+    concepts::check<Geometry1 const>();
+    concepts::check<Geometry2 const>();
+
+    return dispatch::overlaps
+        <
+            Geometry1,
+            Geometry2
+        >::apply(geometry1, geometry2, strategy);
+}
+
+/*!
+\brief \brief_check2{overlap}
+\ingroup overlaps
+\tparam Geometry1 \tparam_geometry
+\tparam Geometry2 \tparam_geometry
+\param geometry1 \param_geometry
+\param geometry2 \param_geometry
 \return \return_check2{overlap}
 
 \qbk{[include reference/algorithms/overlaps.qbk]}
@@ -185,16 +212,20 @@ struct overlaps<box_tag, box_tag, Box1, Box2>
 template <typename Geometry1, typename Geometry2>
 inline bool overlaps(Geometry1 const& geometry1, Geometry2 const& geometry2)
 {
-    concept::check<Geometry1 const>();
-    concept::check<Geometry2 const>();
+    concepts::check<Geometry1 const>();
+    concepts::check<Geometry2 const>();
+
+    typedef typename strategy::relate::services::default_strategy
+            <
+                Geometry1,
+                Geometry2
+            >::type strategy_type;
 
     return dispatch::overlaps
         <
-            typename tag<Geometry1>::type,
-            typename tag<Geometry2>::type,
             Geometry1,
             Geometry2
-        >::apply(geometry1, geometry2);
+        >::apply(geometry1, geometry2, strategy_type());
 }
 
 }} // namespace boost::geometry

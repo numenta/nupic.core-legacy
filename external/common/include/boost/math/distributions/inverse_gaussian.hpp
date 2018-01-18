@@ -74,14 +74,15 @@ public:
    typedef RealType value_type;
    typedef Policy policy_type;
 
-   inverse_gaussian_distribution(RealType mean = 1, RealType scale = 1)
-      : m_mean(mean), m_scale(scale)
+   inverse_gaussian_distribution(RealType l_mean = 1, RealType l_scale = 1)
+      : m_mean(l_mean), m_scale(l_scale)
    { // Default is a 1,1 inverse_gaussian distribution.
      static const char* function = "boost::math::inverse_gaussian_distribution<%1%>::inverse_gaussian_distribution";
 
      RealType result;
-     detail::check_scale(function, scale, &result, Policy());
-     detail::check_location(function, mean, &result, Policy());
+     detail::check_scale(function, l_scale, &result, Policy());
+     detail::check_location(function, l_mean, &result, Policy());
+     detail::check_x_gt0(function, l_mean, &result, Policy());
    }
 
    RealType mean()const
@@ -146,6 +147,10 @@ inline RealType pdf(const inverse_gaussian_distribution<RealType, Policy>& dist,
    {
       return result;
    }
+   if(false == detail::check_x_gt0(function, mean, &result, Policy()))
+   {
+      return result;
+   }
    if(false == detail::check_positive_x(function, x, &result, Policy()))
    {
       return result;
@@ -176,6 +181,10 @@ inline RealType cdf(const inverse_gaussian_distribution<RealType, Policy>& dist,
       return result;
    }
    if(false == detail::check_location(function, mean, &result, Policy()))
+   {
+      return result;
+   }
+   if (false == detail::check_x_gt0(function, mean, &result, Policy()))
    {
       return result;
    }
@@ -286,7 +295,7 @@ namespace detail
       // Define the distribution, using gamma_nooverflow:
       typedef gamma_distribution<RealType, no_overthrow_policy> gamma_nooverflow;
 
-      gamma_distribution<RealType, no_overthrow_policy> g(static_cast<RealType>(0.5), static_cast<RealType>(1.));
+      gamma_nooverflow g(static_cast<RealType>(0.5), static_cast<RealType>(1.));
 
       // gamma_nooverflow g(static_cast<RealType>(0.5), static_cast<RealType>(1.));
       // R qgamma(0.2, 0.5, 1)  0.0320923
@@ -321,6 +330,8 @@ inline RealType quantile(const inverse_gaussian_distribution<RealType, Policy>& 
    if(false == detail::check_scale(function, scale, &result, Policy()))
       return result;
    if(false == detail::check_location(function, mean, &result, Policy()))
+      return result;
+   if (false == detail::check_x_gt0(function, mean, &result, Policy()))
       return result;
    if(false == detail::check_probability(function, p, &result, Policy()))
       return result;
@@ -380,6 +391,8 @@ inline RealType cdf(const complemented2_type<inverse_gaussian_distribution<RealT
       return result;
    if(false == detail::check_location(function, mean, &result, Policy()))
       return result;
+   if (false == detail::check_x_gt0(function, mean, &result, Policy()))
+      return result;
    if(false == detail::check_positive_x(function, x, &result, Policy()))
       return result;
 
@@ -411,6 +424,8 @@ inline RealType quantile(const complemented2_type<inverse_gaussian_distribution<
    if(false == detail::check_scale(function, scale, &result, Policy()))
       return result;
    if(false == detail::check_location(function, mean, &result, Policy()))
+      return result;
+   if (false == detail::check_x_gt0(function, mean, &result, Policy()))
       return result;
    RealType q = c.param;
    if(false == detail::check_probability(function, q, &result, Policy()))

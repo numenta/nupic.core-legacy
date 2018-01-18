@@ -21,8 +21,7 @@
  */
 
 #include <nupic/regions/PyRegion.hpp>
-#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
-#include <numpy/arrayobject.h>
+
 #include <Python.h>
 #include <iostream>
 #include <sstream>
@@ -44,6 +43,7 @@
 #include <nupic/ntypes/BundleIO.hpp>
 #include <nupic/utils/Log.hpp>
 #include <nupic/os/Path.hpp>
+#include <nupic/py_support/NumpyArrayObject.hpp>
 #include <nupic/py_support/PyArray.hpp>
 #include <nupic/py_support/PyCapnp.hpp>
 
@@ -59,39 +59,13 @@ extern "C"
   // NTA_createPyNode()
   void PyRegion::NTA_initPython()
   {
-    finalizePython = false;
-    // Initialize Python if it is not initialized already. Python will be initialized
-    // if NuPIC is accessed through the Python bindings and hence is already runnning
-    // inside a Python process.
-    if (!Py_IsInitialized())
-    {
-      //NTA_DEBUG << "Called Py_Initialize()";
-      Py_Initialize();
-      NTA_ASSERT(Py_IsInitialized());
-      finalizePython = true;
-    }
-    else
+    if(Py_IsInitialized())
     {
       // Set the PyHelpers flag so it knows its running under Python.
       // This is necessary for PyHelpers to determine if it should
       // clear or restore Python exceptions (see NPC-113)
       py::setRunningUnderPython();
-    }
-
-    // Important! the following statements must be outside the PyInitialize()
-    // conditional block because Python may already be initialized if used
-    // through the Python bindings.
-
-    // NOTE we use the function _import_array directly (just like in
-    // NumpyVector.cpp) because import_array is a macro that incorporates a
-    // return statement on failure, intended to be used directly in
-    // a python extension's init function rather than deeply nested.
-    if (_import_array() != 0)
-    {
-      // _import_array sets PyErr on failure
-      PyErr_Print();
-
-      NTA_THROW << "numpy _import_array failed";
+      finalizePython = true;
     }
   }
 

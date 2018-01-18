@@ -1,0 +1,15 @@
+diff --git a/c++/src/kj/CMakeLists.txt b/c++/src/kj/CMakeLists.txt
+index 2b7da310..e882a151 100644
+--- a/c++/src/kj/CMakeLists.txt
++++ b/c++/src/kj/CMakeLists.txt
+@@ -14,9 +14,9 @@ set(kj_sources_lite
+   main.c++
+   arena.c++
+   test-helpers.c++
++  units.c++
+ )
+ set(kj_sources_heavy
+-  units.c++
+   refcount.c++
+   string-tree.c++
+   parse/char.c++

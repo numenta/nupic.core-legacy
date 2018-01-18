@@ -36,5 +36,6 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 ${DIR}/setup-dependencies-linux.sh
 
 # Build and test
+PIP_USER=1 \
 BUILD_TYPE="Release" \
   ${DIR}/../build-and-test-nupic-bindings.sh "$@"

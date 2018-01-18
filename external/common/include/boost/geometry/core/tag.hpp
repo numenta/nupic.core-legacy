@@ -15,8 +15,6 @@
 #define BOOST_GEOMETRY_CORE_TAG_HPP
 
 
-#include <boost/mpl/assert.hpp>
-
 #include <boost/geometry/core/tags.hpp>
 #include <boost/geometry/util/bare_type.hpp>
 
@@ -52,7 +50,7 @@ struct tag
 \brief \brief_meta{type, tag, \meta_geometry_type}
 \details With Boost.Geometry, tags are the driving force of the tag dispatching
     mechanism. The tag metafunction is therefore used in every free function.
-\tparam Geometry \tparam_geometry 
+\tparam Geometry \tparam_geometry
 \ingroup core
 
 \qbk{[include reference/core/tag.qbk]}
@@ -62,7 +60,7 @@ struct tag
 {
     typedef typename traits::tag
         <
-			typename geometry::util::bare_type<Geometry>::type
+            typename geometry::util::bare_type<Geometry>::type
         >::type type;
 };
 

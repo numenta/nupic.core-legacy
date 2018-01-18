@@ -1,6 +1,6 @@
 <img src="http://numenta.org/87b23beb8a4b7dea7d88099bfb28d182.svg" alt="NuPIC Logo" width=100/>
 
-# NuPIC Core [![Unix-like Build Status](https://travis-ci.org/numenta/nupic.core.png?branch=master)](https://travis-ci.org/numenta/nupic.core) [![Windows Build Status](https://ci.appveyor.com/api/projects/status/px32pcil23vunml0/branch/master?svg=true)](https://ci.appveyor.com/project/numenta-ci/nupic-core/branch/master) [![Coverage Status](https://coveralls.io/repos/numenta/nupic.core/badge.png?branch=master)](https://coveralls.io/r/numenta/nupic.core?branch=master)
+# NuPIC Core [![Unix-like Build Status](https://travis-ci.org/numenta/nupic.core.png?branch=master)](https://travis-ci.org/numenta/nupic.core) [![Windows Build Status](https://ci.appveyor.com/api/projects/status/px32pcil23vunml0/branch/master?svg=true)](https://ci.appveyor.com/project/numenta-ci/nupic-core/branch/master) [![CircleCI](https://circleci.com/gh/numenta/nupic.core.svg?style=svg)](https://circleci.com/gh/numenta/nupic.core) [![Coverage Status](https://coveralls.io/repos/numenta/nupic.core/badge.png?branch=master)](https://coveralls.io/r/numenta/nupic.core?branch=master)
 
 This repository contains the C++ source code for the Numenta Platform for Intelligent Computing ([NuPIC](http://numenta.org/nupic.html)). It will eventually contain all algorithms for NuPIC, but is currently in a transition period. For details on building NuPIC within the python environment, please see http://github.com/numenta/nupic.
 
@@ -74,6 +74,7 @@ Notes:
 - Setting `-DPY_EXTENSIONS_DIR` copies the Python exension files to the specified directory. If the extensions aren't present when the Python build/installation is invoked then the setup.py file will run the cmake/make process to generate them. Make sure to include this flag if you want to do incremental builds of the Python extensions.
 - On OSX with multiple Python installs (e.g. via brew) cmake might erroneously pick various pieces from different installs which will likely produce abort trap at runtime. Remove cmake cache and re-run cmake with  `-DPYTHON_LIBRARY=/path/to/lib/libpython2.7.dylib` and  `-DPYTHON_INCLUDE_DIR=/path/to/include/python2.7` options to override with desired Python install path.
 - To use Include What You Use during compilation, pass `-DNUPIC-IWYU=ON`. This requires that IWYU is installed and findable by CMake, with a minimum CMake version of 3.3. IWYU can be installed from https://include-what-you-use.org/ for Windows and Linux, and on OS X using https://github.com/jasonmp85/homebrew-iwyu.
+- If you would like to install all headers, libraries, and executables to the install location for C++ clients when building the nupic.binding python extensions, pass `-NUPIC_TOGGLE_INSTALL=ON`.
 
 
 #### Build:

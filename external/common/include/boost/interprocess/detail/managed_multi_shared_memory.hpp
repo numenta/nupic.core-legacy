@@ -11,7 +11,11 @@
 #ifndef BOOST_INTERPROCESS_MANAGED_MULTI_SHARED_MEMORY_HPP
 #define BOOST_INTERPROCESS_MANAGED_MULTI_SHARED_MEMORY_HPP
 
-#if (defined _MSC_VER) && (_MSC_VER >= 1200)
+#ifndef BOOST_CONFIG_HPP
+#  include <boost/config.hpp>
+#endif
+#
+#if defined(BOOST_HAS_PRAGMA_ONCE)
 #  pragma once
 #endif
 
@@ -20,7 +24,7 @@
 
 #include <boost/interprocess/detail/managed_memory_impl.hpp>
 #include <boost/interprocess/creation_tags.hpp>
-#include <boost/detail/no_exceptions_support.hpp>
+#include <boost/core/no_exceptions_support.hpp>
 #include <boost/interprocess/detail/multi_segment_services.hpp>
 #include <boost/interprocess/detail/utilities.hpp>
 #include <boost/interprocess/shared_memory_object.hpp>
@@ -29,10 +33,13 @@
 #include <boost/interprocess/shared_memory_object.hpp>
 #include <boost/interprocess/permissions.hpp>
 #include <boost/interprocess/detail/managed_open_or_create_impl.hpp> //managed_open_or_create_impl
-#include <new>
 #include <boost/interprocess/containers/string.hpp>
 #include <boost/interprocess/streams/vectorstream.hpp>
-#include <memory>
+#include <boost/intrusive/detail/minimal_pair_header.hpp>
+#include <string> //string
+#include <new>    //bad_alloc
+#include <ostream>//std::ends
+
 #include <boost/assert.hpp>
 //These includes needed to fulfill default template parameters of
 //predeclarations in interprocess_fwd.hpp
@@ -72,7 +79,7 @@ class basic_managed_multi_shared_memory
 
    typedef typename MemoryAlgorithm::void_pointer        void_pointer;
    typedef typename ipcdetail::
-      managed_open_or_create_impl<shared_memory_object, MemoryAlgorithm::Alignment>  managed_impl;
+      managed_open_or_create_impl<shared_memory_object, MemoryAlgorithm::Alignment, true, false>  managed_impl;
    typedef typename void_pointer::segment_group_id       segment_group_id;
    typedef typename base_t::size_type                   size_type;
 
@@ -211,9 +218,23 @@ class basic_managed_multi_shared_memory
          }
          return false;
       }
+
+      static std::size_t get_min_size()
+      {
+         const size_type sz = self_t::segment_manager::get_min_size();
+         if(sz > std::size_t(-1)){
+            //The minimum size is not representable by std::size_t
+            BOOST_ASSERT(false);
+            return std::size_t(-1);
+         }
+         else{
+            return static_cast<std::size_t>(sz);
+         }
+      }
+
       self_t * const    mp_frontend;
       type_t            m_type;
-      size_type       m_segment_number;
+      size_type         m_segment_number;
    };
 
    //!Functor to execute atomically when closing a shared memory segment.

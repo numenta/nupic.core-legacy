@@ -25,11 +25,7 @@
 
 
 
-//#define NO_IMPORT_ARRAY
 #include <Python.h>
-
-#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
-#include <numpy/arrayobject.h>
 
 // workaround for change in numpy config.h for python2.5 on windows
 // Must come after python includes.
@@ -93,27 +89,11 @@ NTA_DEF_NUMPY_DTYPE_TRAIT(nupic::Real64, NPY_FLOAT64);
 
 // --------------------------------------------------------------
 
-
-void NumpyArray::init()
-{
-  int rc = _import_array();
-  if (rc < 0) {
-    throw std::runtime_error("NumpyArray::init(): "
-      "numpy.core.multiarray failed to import.");
-  }
-}
-
-inline void CheckInit()
-  { NumpyArray::init(); }
-
 NumpyArray::NumpyArray(int nd, const int *ndims, int dtype)
   : p_(0), dtype_(dtype)
 {
-
   // declare static to avoid new/delete with every call
   static npy_intp ndims_intp[NPY_MAXDIMS];
-
-  CheckInit();
 
   if(nd < 0)
     throw runtime_error("Negative dimensioned arrays not supported.");
@@ -137,8 +117,6 @@ NumpyArray::NumpyArray(int nd, const int *ndims, int dtype)
 NumpyArray::NumpyArray(PyObject *p, int dtype, int requiredDimension)
   : p_(0), dtype_(dtype)
 {
-  CheckInit();
-
   PyObject *contiguous = PyArray_ContiguousFromObject(p, NPY_NOTYPE, 0, 0);
   if(!contiguous)
     throw std::runtime_error("Array could not be made contiguous.");

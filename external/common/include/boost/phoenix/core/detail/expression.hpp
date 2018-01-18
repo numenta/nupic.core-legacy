@@ -190,6 +190,7 @@ namespace boost { namespace phoenix                                             
 
 #define BOOST_PHOENIX_DEFINE_EXPRESSION_MAKE_EXPRESSION_DEFAULT(NAME_SEQ, GRAMMAR_SEQ, D) \
     template <BOOST_PHOENIX_typename_A(BOOST_PP_SEQ_SIZE(GRAMMAR_SEQ))>         \
+    inline                                                                      \
     typename                                                                    \
         result_of::BOOST_PP_CAT(                                                \
             make_                                                               \
@@ -197,7 +198,7 @@ namespace boost { namespace phoenix                                             
         )<                                                                      \
             BOOST_PHOENIX_A(BOOST_PP_SEQ_SIZE(GRAMMAR_SEQ))                     \
         >::type const                                                           \
-    inline BOOST_PP_CAT(                                                        \
+    BOOST_PP_CAT(                                                               \
         make_                                                                   \
       , BOOST_PP_SEQ_HEAD(BOOST_PP_SEQ_REVERSE(NAME_SEQ))                       \
     )(                                                                          \
@@ -213,6 +214,20 @@ namespace boost { namespace phoenix                                             
             );                                                                  \
     }                                                                           \
 /**/
+
+#ifndef BOOST_PHOENIX_NO_VARIADIC_EXPRESSION
+
+#define BOOST_PHOENIX_DEFINE_EXPRESSION_EXPRESSION_VARARG(NAME_SEQ, _G, _L)     \
+    template <typename A0, typename... A>                                       \
+    struct BOOST_PP_SEQ_HEAD(BOOST_PP_SEQ_REVERSE(NAME_SEQ))                    \
+        : boost::phoenix::expr<                                                 \
+            tag:: BOOST_PP_SEQ_HEAD(BOOST_PP_SEQ_REVERSE(NAME_SEQ))             \
+          , A0, A...                                                            \
+        >                                                                       \
+    {};                                                                         \
+/**/
+
+#else // BOOST_PHOENIX_NO_VARIADIC_EXPRESSION
 
 #define BOOST_PHOENIX_DEFINE_EXPRESSION_VARARG_R(_, N, NAME)                    \
     template <                                                                  \
@@ -260,6 +275,7 @@ namespace boost { namespace phoenix                                             
             )                                                                   \
         )                                                                       \
 /**/
+#endif // BOOST_PHOENIX_NO_VARIADIC_EXPRESSION
 
 #define BOOST_PHOENIX_DEFINE_EXPRESSION_RULE_VARARG(NAME_SEQ, GRAMMAR_SEQ, LIMIT) \
         struct BOOST_PP_SEQ_HEAD(BOOST_PP_SEQ_REVERSE(NAME_SEQ))                \
@@ -281,12 +297,27 @@ namespace boost { namespace phoenix                                             
             >                                                                   \
         {};                                                                     \
 /**/
-        
+
+#ifndef BOOST_PHOENIX_NO_VARIADIC_EXPRESSION
+
+#define BOOST_PHOENIX_DEFINE_EXPRESSION_RESULT_OF_MAKE_VARARG(NAME_SEQ, _G, _L) \
+    template <typename A0, typename... A>                                       \
+    struct BOOST_PP_CAT(make_, BOOST_PP_SEQ_HEAD(BOOST_PP_SEQ_REVERSE(NAME_SEQ))) \
+        : boost::result_of<                                                     \
+            functional:: BOOST_PP_CAT(make_, BOOST_PP_SEQ_HEAD(BOOST_PP_SEQ_REVERSE(NAME_SEQ)))( \
+                A0, A...                                                        \
+            )                                                                   \
+        >                                                                       \
+    {};                                                                         \
+/**/
+
+#else // BOOST_PHOENIX_NO_VARIADIC_EXPRESSION
+
 #define BOOST_PHOENIX_DEFINE_EXPRESSION_RESULT_OF_MAKE_VARARG_R(Z, N, NAME)     \
     template <BOOST_PHOENIX_typename_A(N)>                                      \
-    struct BOOST_PP_CAT(make_, NAME) <BOOST_PHOENIX_A(N)>                        \
+    struct BOOST_PP_CAT(make_, NAME) <BOOST_PHOENIX_A(N)>                       \
         : boost::result_of<                                                     \
-            functional:: BOOST_PP_CAT(make_, NAME)(                              \
+            functional:: BOOST_PP_CAT(make_, NAME)(                             \
                 BOOST_PHOENIX_A(N)                                              \
             )                                                                   \
         >                                                                       \
@@ -306,17 +337,37 @@ namespace boost { namespace phoenix                                             
       , BOOST_PP_SEQ_HEAD(BOOST_PP_SEQ_REVERSE(NAME_SEQ))                       \
     )                                                                           \
 /**/
+#endif // BOOST_PHOENIX_NO_VARIADIC_EXPRESSION
+
+#ifndef BOOST_PHOENIX_NO_VARIADIC_EXPRESSION
+
+#define BOOST_PHOENIX_DEFINE_EXPRESSION_MAKE_EXPRESSION_VARARG(NAME_SEQ, GRAMMAR_SEQ, LIMIT) \
+    template <typename A0, typename... A>                                       \
+    inline                                                                      \
+    typename                                                                    \
+        result_of:: BOOST_PP_CAT(make_, BOOST_PP_SEQ_HEAD(BOOST_PP_SEQ_REVERSE(NAME_SEQ)))< \
+            A0, A...                                                            \
+        >::type                                                                 \
+    BOOST_PP_CAT(make_, BOOST_PP_SEQ_HEAD(BOOST_PP_SEQ_REVERSE(NAME_SEQ)))(A0 const& a0, A const&... a) \
+    {                                                                           \
+        return functional::BOOST_PP_CAT(make_, BOOST_PP_SEQ_HEAD(BOOST_PP_SEQ_REVERSE(NAME_SEQ)))()(a0, a...); \
+    }                                                                           \
+/**/
+
+#else // BOOST_PHOENIX_NO_VARIADIC_EXPRESSION
 
 #define BOOST_PHOENIX_DEFINE_EXPRESSION_MAKE_EXPRESSION_VARARG_R(Z, N, NAME)    \
     template <BOOST_PHOENIX_typename_A(N)>                                      \
+    inline                                                                      \
     typename                                                                    \
         result_of:: BOOST_PP_CAT(make_, NAME)<                                  \
             BOOST_PHOENIX_A(N)                                                  \
         >::type                                                                 \
-    inline BOOST_PP_CAT(make_, NAME)(BOOST_PHOENIX_A_const_ref_a(N))            \
+    BOOST_PP_CAT(make_, NAME)(BOOST_PHOENIX_A_const_ref_a(N))                   \
     {                                                                           \
         return functional::BOOST_PP_CAT(make_, NAME)()(BOOST_PHOENIX_a(N));     \
     }                                                                           \
+/**/
 
 #define BOOST_PHOENIX_DEFINE_EXPRESSION_MAKE_EXPRESSION_VARARG(NAME_SEQ, GRAMMAR_SEQ, LIMIT) \
     BOOST_PP_REPEAT_FROM_TO(                                                    \
@@ -326,6 +377,7 @@ namespace boost { namespace phoenix                                             
       , BOOST_PP_SEQ_HEAD(BOOST_PP_SEQ_REVERSE(NAME_SEQ))                       \
     )                                                                           \
 /**/
+#endif // BOOST_PHOENIX_NO_VARIADIC_EXPRESSION
 
 #define BOOST_PHOENIX_DEFINE_EXPRESSION_EXPRESSION_EXT(NAME_SEQ, GRAMMAR_SEQ, ACTOR) \
         template <BOOST_PHOENIX_typename_A(BOOST_PP_SEQ_SIZE(GRAMMAR_SEQ))>     \

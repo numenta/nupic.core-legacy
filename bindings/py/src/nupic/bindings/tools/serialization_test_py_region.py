@@ -70,7 +70,7 @@ class SerializationTestPyRegion(PyRegion):
 
 
   @staticmethod
-  def getProtoType():
+  def getSchema():
     """Return the pycapnp proto type that the class uses for serialization.
 
     This is used to convert the proto into the proper type before passing it
@@ -82,7 +82,7 @@ class SerializationTestPyRegion(PyRegion):
   def writeToProto(self, proto):
     """Write state to proto object.
 
-    The type of proto is determined by getProtoType().
+    The type of proto is determined by getSchema().
     """
     proto.dataWidth = self._dataWidth
     self._rand.write(proto.random)
@@ -92,7 +92,7 @@ class SerializationTestPyRegion(PyRegion):
   def readFromProto(cls, proto):
     """Read state from proto object.
 
-    The type of proto is determined by getProtoType().
+    The type of proto is determined by getSchema().
 
     :returns: Instance of SerializationTestPyRegion initialized from proto
     """

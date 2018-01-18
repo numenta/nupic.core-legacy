@@ -19,7 +19,7 @@
 # http://numenta.org/licenses/
 # -----------------------------------------------------------------------------
 
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.3)
 project(nupic_core CXX)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
@@ -27,7 +27,7 @@ set(CMAKE_VERBOSE_MAKEFILE OFF) # toggle for cmake debug
 
 
 if( POLICY CMP0046 )
-  cmake_policy(VERSION 2.8)
+  cmake_policy(VERSION 3.3)
   # The new policy for add_dependencies is to now error if a dependency target
   # is not found. The old policy didn't care and continued through configuration
   cmake_policy(SET CMP0046 OLD)
@@ -54,6 +54,7 @@ if(${NUPIC_IWYU})
   endif()
 endif()
 
+option(NUPIC_TOGGLE_INSTALL "Toggle whether to install headers, libraries, and executables to the install location for C++ clients" OFF)
 
 #
 # Set up compile flags for internal sources and for swig-generated sources
@@ -200,6 +201,7 @@ message(STATUS "PYTHON_LIBRARIES    = ${PYTHON_LIBRARIES}")
 # Python support
 #
 set(src_py_support_files
+    nupic/py_support/NumpyArrayObject.cpp
     nupic/py_support/NumpyVector.cpp
     nupic/py_support/PyArray.cpp
     nupic/py_support/PyHelpers.cpp
@@ -213,6 +215,8 @@ set(src_py_support_files
 set(src_capnp_specs_rel
   nupic/proto/ArrayProto.capnp
   nupic/proto/BitHistory.capnp
+  nupic/proto/Cell.capnp
+  nupic/proto/Cells4.capnp
   nupic/proto/ClaClassifier.capnp
   nupic/proto/ConnectionsProto.capnp
   nupic/proto/LinkProto.capnp
@@ -221,10 +225,13 @@ set(src_capnp_specs_rel
   nupic/proto/PyRegionProto.capnp
   nupic/proto/RandomProto.capnp
   nupic/proto/RegionProto.capnp
+  nupic/proto/Segment.capnp
+  nupic/proto/SegmentUpdate.capnp
   nupic/proto/SparseBinaryMatrixProto.capnp
   nupic/proto/SparseMatrixProto.capnp
   nupic/proto/SpatialPoolerProto.capnp
   nupic/proto/SdrClassifier.capnp
+  nupic/proto/SvmProto.capnp
   nupic/proto/TemporalMemoryProto.capnp
   nupic/proto/TestNodeProto.capnp
   nupic/proto/VectorFileSensorProto.capnp
@@ -253,6 +260,8 @@ message(STATUS "CAPNP_CMAKE_DEFINITIONS   = ${CAPNP_CMAKE_DEFINITIONS}")
 message(STATUS "CAPNP_INCLUDE_DIRS        = ${CAPNP_INCLUDE_DIRS}")
 message(STATUS "CAPNP_STATIC_LIB_TARGET   = ${CAPNP_STATIC_LIB_TARGET}")
 
+message(STATUS "SWIG_EXECUTABLE           = ${SWIG_EXECUTABLE}")
+message(STATUS "SWIG_DIR                  = ${SWIG_DIR}")
 
 #
 # Common system libraries for shared libraries and executables
@@ -289,7 +298,6 @@ set(src_nupiccore_srcs
     nupic/algorithms/ClassifierResult.cpp
     nupic/algorithms/CondProbTable.cpp
     nupic/algorithms/Connections.cpp
-    nupic/algorithms/FastClaClassifier.cpp
     nupic/algorithms/GaborNode.cpp
     nupic/algorithms/ImageSensorLite.cpp
     nupic/algorithms/InSynapse.cpp
@@ -517,11 +525,11 @@ add_executable(${src_executable_gtests}
                test/unit/algorithms/Cells4Test.cpp
                test/unit/algorithms/CondProbTableTest.cpp
                test/unit/algorithms/ConnectionsTest.cpp
-               test/unit/algorithms/FastCLAClassifierTest.cpp
                test/unit/algorithms/NearestNeighborUnitTest.cpp
                test/unit/algorithms/SDRClassifierTest.cpp
                test/unit/algorithms/SegmentTest.cpp
                test/unit/algorithms/SpatialPoolerTest.cpp
+               test/unit/algorithms/SvmTest.cpp
                test/unit/algorithms/TemporalMemoryTest.cpp
                test/unit/encoders/ScalarEncoderTest.cpp
                test/unit/engine/InputTest.cpp
@@ -819,41 +827,75 @@ install(TARGETS
 
 # Version.hpp is also used by the nupic.bindings release/deployment system
 install(FILES ${PROJECT_BINARY_DIR}/Version.hpp
-        DESTINATION include/nupic/)
+        DESTINATION include/nupic)
 
-if (NOT NUPIC_BUILD_PYEXT_MODULES)
-  install(DIRECTORY nupic/ DESTINATION include/nupic
+if ((NOT NUPIC_BUILD_PYEXT_MODULES) OR NUPIC_TOGGLE_INSTALL)
+  install(DIRECTORY nupic DESTINATION include
+          MESSAGE_NEVER
           FILES_MATCHING PATTERN "*.h*"
           PATTERN "*.hpp.in" EXCLUDE)
-  install(DIRECTORY nupic/ DESTINATION include/nupic
+  install(DIRECTORY nupic DESTINATION include
+          MESSAGE_NEVER
+          FILES_MATCHING PATTERN "*.i")
+  install(DIRECTORY nupic DESTINATION include
+          MESSAGE_NEVER
           FILES_MATCHING PATTERN "*.capnp")
-  install(DIRECTORY ${PROJECT_BINARY_DIR}/nupic/ DESTINATION include/nupic/
+  install(DIRECTORY ${PROJECT_BINARY_DIR}/nupic DESTINATION include
+          MESSAGE_NEVER
           FILES_MATCHING PATTERN "*.capnp.h")
 
   install(DIRECTORY ${REPOSITORY_DIR}/external/common/include/gtest
+          MESSAGE_NEVER
           DESTINATION include/gtest
           FILES_MATCHING PATTERN "*.h*")
 
   install(DIRECTORY "${REPOSITORY_DIR}/external/common/include/"
+          MESSAGE_NEVER
           DESTINATION include)
 
   install(DIRECTORY "${src_numpy_core}/lib/"
+          MESSAGE_NEVER
           DESTINATION lib)
   install(DIRECTORY "${src_numpy_core}/include/"
+          MESSAGE_NEVER
           DESTINATION include)
 
   foreach(directory ${CAPNP_INCLUDE_DIRS})
     install(DIRECTORY "${directory}/capnp"
+            MESSAGE_NEVER
             DESTINATION include)
     install(DIRECTORY "${directory}/kj"
+            MESSAGE_NEVER
             DESTINATION include)
   endforeach()
 
   install(DIRECTORY nupic/py_support DESTINATION include/nupic
+          MESSAGE_NEVER
           FILES_MATCHING PATTERN "*.c*")
   install(DIRECTORY nupic DESTINATION include/nupic
+          MESSAGE_NEVER
           FILES_MATCHING PATTERN "*.py")
-endif (NOT NUPIC_BUILD_PYEXT_MODULES)
+
+  install(DIRECTORY "${CAPNP_BINARIES}"
+          MESSAGE_NEVER
+          DESTINATION "${CMAKE_INSTALL_PREFIX}"
+          USE_SOURCE_PERMISSIONS
+          FILES_MATCHING PATTERN "capnp*")
+
+  install(DIRECTORY "${SWIG_DIR}"
+          MESSAGE_NEVER
+          DESTINATION share/swig)
+  install(PROGRAMS "${SWIG_EXECUTABLE}"
+          DESTINATION bin)
+
+  install(DIRECTORY "${APR1_STATIC_LIB_INC_DIR}/"
+          MESSAGE_NEVER
+          DESTINATION include)
+  install(DIRECTORY "${APRUTIL1_STATIC_LIB_INC_DIR}/"
+          MESSAGE_NEVER
+          DESTINATION include)
+          
+endif ((NOT NUPIC_BUILD_PYEXT_MODULES) OR NUPIC_TOGGLE_INSTALL)
 
 #
 # `make package` results in
