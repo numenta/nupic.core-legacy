@@ -835,19 +835,13 @@ void Network::loadFromBundle(const std::string& name)
   if (! StringUtils::endsWith(name, ".nta"))
     NTA_THROW << "loadFromBundle: bundle extension must be \".nta\"";
 
-  std::string fullPath = Path::normalize(Path::makeAbsolute(name));
+  const std::string fullPath = Path::normalize(Path::makeAbsolute(name));
 
   if (! Path::exists(fullPath))
     NTA_THROW << "Path " << fullPath << " does not exist";
 
-  std::string networkStructureFilename = Path::join(fullPath, "network.yaml");
-  std::ifstream f(networkStructureFilename.c_str());
-  YAML::Parser parser(f);
-  YAML::Node doc;
-  bool success = parser.GetNextDocument(doc);
-  if (!success)
-    NTA_THROW << "Unable to find YAML document in network structure file "
-              << networkStructureFilename;
+  const std::string networkStructureFilename = Path::join(fullPath, "network.yaml");
+  const YAML::Node doc = YAML::LoadFile(networkStructureFilename);
 
   if (doc.Type() != YAML::NodeType::Map)
     NTA_THROW << "Invalid network structure file -- does not contain a map";
