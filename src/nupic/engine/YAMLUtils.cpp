@@ -186,10 +186,9 @@ Value toValue(const std::string& yamlstring, NTA_BasicType dataType)
   std::string paddedstring(yamlstring);
   if (paddedstring.size() < 2)
     paddedstring = paddedstring + " ";
-  std::stringstream s(paddedstring);
 
   // TODO -- return value? exceptions?
-  const YAML::Node doc = YAML::LoadFile(yamlstring);
+  const YAML::Node doc = YAML::Load(paddedstring);
   return toValue(doc, dataType);
 }
 
@@ -217,7 +216,7 @@ ValueMap toValueMap(const char* yamlstring,
     paddedstring = paddedstring + " ";
 
   // TODO: utf-8 compatible?
-  const YAML::Node doc = YAML::LoadFile(paddedstring);
+  const YAML::Node doc = YAML::Load(paddedstring);
 
     // A ValueMap is specified as a dictionary
     if (doc.Type() != YAML::NodeType::Map)
