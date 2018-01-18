@@ -926,7 +926,6 @@ namespace nupic
         */
           void updatePermanencesForColumn_(vector<Real>& perm, UInt column,
                                            bool raisePerm=true);
-          UInt countConnected_(vector<Real>& perm);
           UInt raisePermanencesToThreshold_(vector<Real>& perm,
                                             vector<UInt>& potential);
 

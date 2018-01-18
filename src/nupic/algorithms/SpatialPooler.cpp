@@ -707,15 +707,10 @@ vector<UInt> SpatialPooler::mapPotential_(UInt column, bool wrapAround)
   rng_.sample(&columnInputs.front(), columnInputs.size(),
               &selectedInputs.front(), numPotential);
 
-<<<<<<< HEAD
   vector<UInt> potential(numInputs_, 0);
   for (UInt input : selectedInputs)
   {
     potential[input] = 1;
-=======
-  for (UInt i : selectedIndices) {
-    potential[i] = 1;
->>>>>>> 54ec0d5... SP cleanup - small
   }
 
   return potential;
@@ -803,19 +798,6 @@ void SpatialPooler::updatePermanencesForColumn_(vector<Real>& perm,
   connectedCounts_[column] = numConnected;
 }
 
-UInt SpatialPooler::countConnected_(vector<Real>& perm)
-{
-  UInt numConnected = 0;
-  for (auto & elem : perm)
-  {
-     if (elem >= synPermConnected_ - PERMANENCE_EPSILON)
-     {
-       ++numConnected;
-     }
-   }
-  return numConnected;
-}
-
 UInt SpatialPooler::raisePermanencesToThreshold_(vector<Real>& perm,
                                                  vector<UInt>& potential)
 {
@@ -823,14 +805,12 @@ UInt SpatialPooler::raisePermanencesToThreshold_(vector<Real>& perm,
   UInt numConnected;
   while (true) //TODO avoid the while-true loop, grow syns in 1 step
   {
-    numConnected = countConnected_(perm);
+    numConnected = VectorHelpers::binaryToSparse<Real>(perm, synPermConnected_).size();
     if (numConnected >= stimulusThreshold_)
       break;
 
-    for (auto & elem : potential)
-    {
-      UInt index = elem;
-      perm[index] += synPermBelowStimulusInc_;
+    for (auto & elem : potential) {
+      perm[elem] += synPermBelowStimulusInc_;
     }
   }
   return numConnected;
