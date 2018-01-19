@@ -93,3 +93,8 @@ Real32 MovingAverage::getTotal() const
 {
   return total_;
 }
+
+UInt MovingAverage::getMaxWindowSize() const 
+{
+  return windowSize_; 
+}

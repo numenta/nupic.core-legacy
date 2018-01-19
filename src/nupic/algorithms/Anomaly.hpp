@@ -26,6 +26,7 @@
 
 #include <vector>
 #include <memory> // Needed for smart pointer templates
+#include <nupic/algorithms/AnomalyLikelihood.hpp>
 #include <nupic/utils/MovingAverage.hpp> // Needed for for smart pointer templates
 #include <nupic/types/Types.hpp>
 
@@ -51,9 +52,9 @@ namespace nupic
        * @param activeColumns: array of active column indices
        * @param prevPredictedColumns: array of columns indices predicted in
        *     prev step
-       * @return anomaly score 0..1 (Real32)
+       * @return anomaly score 0..1 (Real)
        */
-      Real32 computeRawAnomalyScore(const std::vector<UInt>& active,
+      Real computeRawAnomalyScore(const std::vector<UInt>& active,
                                     const std::vector<UInt>& predicted);
 
 
@@ -69,7 +70,7 @@ namespace nupic
          * Supported modes:
          *    PURE - the raw anomaly score as computed by computeRawAnomalyScore
          *    LIKELIHOOD - uses the AnomalyLikelihood class on top of the raw
-         *        anomaly scores (not implemented in C++)
+         *        anomaly scores
          *    WEIGHTED - multiplies the likelihood result with the raw anomaly
          *        score that was used to generate the likelihood (not
          *        implemented in C++)
@@ -80,7 +81,7 @@ namespace nupic
          *    @param mode (optional) - (enum) how to compute anomaly;
          *        possible values are AnomalyMode::
          *          - PURE - the default, how much anomal the value is;
-         *              Real32 0..1 where 1=totally unexpected
+         *              Real 0..1 where 1=totally unexpected
          *          - LIKELIHOOD - uses the anomaly_likelihood code;
          *              models probability of receiving this value and
          *              anomalyScore
@@ -92,7 +93,7 @@ namespace nupic
          *        applied after moving average is computed.
          */
         Anomaly(UInt slidingWindowSize=0, AnomalyMode mode=AnomalyMode::PURE,
-                Real32 binaryAnomalyThreshold=0);
+                Real binaryAnomalyThreshold=0);
 
         /**
          * Compute the anomaly score as the percent of active columns not
@@ -101,21 +102,20 @@ namespace nupic
          * @param active: array of active column indices
          * @param predicted: array of columns indices predicted in this step
          *        (used for anomaly in step T+1)
-         * @param inputValue: (optional) value of current input to encoders
-         *                    (eg "cat" for category encoder)
-         *                    (used in anomaly-likelihood)
          * @param timestamp: (optional) date timestamp when the sample occured
-         *                   (used in anomaly-likelihood)
-         * @return the computed anomaly score; Real32 0..1
+         *      (used in anomaly-likelihood), default -1 uses iteration instead
+         * @return the computed anomaly score; Real 0..1
          */
-        Real32 compute(const std::vector<UInt>& active,
+        Real compute(const std::vector<UInt>& active,
                        const std::vector<UInt>& predicted,
-                       Real64 inputValue=0, UInt timestamp=0);
+                       int timestamp=-1);
+
 
       private:
         AnomalyMode mode_;
-        Real32 binaryThreshold_;
+        Real binaryThreshold_;
         std::unique_ptr<nupic::util::MovingAverage> movingAverage_;
+        AnomalyLikelihood likelihood_; //TODO which params/how pass them to constructor?
 
       };
     } // namespace anomaly

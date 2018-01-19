@@ -42,7 +42,7 @@ namespace anomaly
 {
 
 
-Real32 computeRawAnomalyScore(const vector<UInt>& active,
+Real computeRawAnomalyScore(const vector<UInt>& active,
                               const vector<UInt>& predicted)
 {
   // Return 0 if no active columns are present
@@ -60,12 +60,12 @@ Real32 computeRawAnomalyScore(const vector<UInt>& active,
                    predicted_.begin(), predicted_.end(),
                    back_inserter(predictedActiveCols));
 
-  return (active.size() - predictedActiveCols.size()) / Real32(active.size());
+  return (active.size() - predictedActiveCols.size()) / Real(active.size());
 }
 
 
 Anomaly::Anomaly(UInt slidingWindowSize, AnomalyMode mode,
-                 Real32 binaryAnomalyThreshold)
+                 Real binaryAnomalyThreshold)
     : binaryThreshold_(binaryAnomalyThreshold)
 {
   NTA_ASSERT(binaryAnomalyThreshold >= 0 && binaryAnomalyThreshold <= 1)
@@ -75,29 +75,27 @@ Anomaly::Anomaly(UInt slidingWindowSize, AnomalyMode mode,
   {
     movingAverage_.reset(new nupic::util::MovingAverage(slidingWindowSize));
   }
-
-  // Not implemented. Fail.
-  NTA_ASSERT(mode_ == AnomalyMode::PURE)
-      << "C++ Anomaly implemented only for PURE mode!";
 }
 
 
-Real32 Anomaly::compute(
-    const vector<UInt>& active, const vector<UInt>& predicted,
-    Real64 inputValue, UInt timestamp)
+Real Anomaly::compute(
+    const vector<UInt>& active, const vector<UInt>& predicted, int timestamp)
 {
-  Real32 anomalyScore = computeRawAnomalyScore(active, predicted);
-  Real32 score = anomalyScore;
+  Real anomalyScore = computeRawAnomalyScore(active, predicted);
+  Real likelihood = 0.5;
+  Real score = anomalyScore;
   switch(mode_)
   {
     case AnomalyMode::PURE:
       score = anomalyScore;
       break;
     case AnomalyMode::LIKELIHOOD:
+      likelihood = likelihood_.anomalyProbability(anomalyScore, timestamp);
+      score = 1 - likelihood;
+      break;
     case AnomalyMode::WEIGHTED:
-      // Not implemented. Fail
-      NTA_ASSERT(mode_ == AnomalyMode::PURE)
-          << "C++ Anomaly implemented only for PURE mode!";
+      likelihood = likelihood_.anomalyProbability(anomalyScore, timestamp);
+      score = anomalyScore * (1 - likelihood);
       break;
   }
 
