@@ -43,5 +43,3 @@ python get-pip.py --user pip setuptools wheel
 
 echo "Installing Python dependencies"
 pip install --use-wheel --user -r bindings/py/requirements.txt --quiet || exit
-
-pip install pycapnp==0.5.12 --user || exit
