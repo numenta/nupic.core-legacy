@@ -639,6 +639,119 @@ void SpatialPooler::stripUnlearnedColumns(UInt activeArray[]) const
   }
 }
 
+bool SpatialPooler::operator==(const SpatialPooler &sp) const
+{
+    const UInt numColumns = this->getNumColumns();
+    const UInt numInputs = this->getNumInputs();
+
+    ASSERT_TRUE(this->getNumColumns() == sp.getNumColumns());
+    ASSERT_TRUE(this->getNumInputs() == sp.getNumInputs());
+    ASSERT_TRUE(this->getPotentialRadius() ==
+              sp.getPotentialRadius());
+    ASSERT_TRUE(this->getPotentialPct() == sp.getPotentialPct());
+    ASSERT_TRUE(this->getGlobalInhibition() ==
+              sp.getGlobalInhibition());
+    ASSERT_TRUE(this->getNumActiveColumnsPerInhArea() ==
+              sp.getNumActiveColumnsPerInhArea());
+    ASSERT_TRUE(almost_eq(this->getLocalAreaDensity(),
+              sp.getLocalAreaDensity()));
+    ASSERT_TRUE(this->getStimulusThreshold() ==
+              sp.getStimulusThreshold());
+    ASSERT_TRUE(this->getDutyCyclePeriod() == sp.getDutyCyclePeriod());
+    ASSERT_TRUE(almost_eq(this->getBoostStrength(), sp.getBoostStrength()));
+    ASSERT_TRUE(this->getIterationNum() == sp.getIterationNum());
+    ASSERT_TRUE(this->getIterationLearnNum() ==
+              sp.getIterationLearnNum());
+    ASSERT_TRUE(this->getSpVerbosity() == sp.getSpVerbosity());
+    ASSERT_TRUE(this->getWrapAround() == sp.getWrapAround());
+    ASSERT_TRUE(this->getUpdatePeriod() == sp.getUpdatePeriod());
+    ASSERT_TRUE(almost_eq(this->getSynPermTrimThreshold(),
+              sp.getSynPermTrimThreshold()));
+    cout << "check: " << this->getSynPermActiveInc() << " " <<
+      sp.getSynPermActiveInc() << endl;
+    ASSERT_TRUE(almost_eq(this->getSynPermActiveInc(),
+              sp.getSynPermActiveInc()));
+    ASSERT_TRUE(almost_eq(this->getSynPermInactiveDec(),
+              sp.getSynPermInactiveDec()));
+    ASSERT_TRUE(almost_eq(this->getSynPermBelowStimulusInc(),
+              sp.getSynPermBelowStimulusInc()));
+    ASSERT_TRUE(almost_eq(this->getSynPermConnected(),
+              sp.getSynPermConnected()));
+    ASSERT_TRUE(almost_eq(this->getMinPctOverlapDutyCycles(),
+              sp.getMinPctOverlapDutyCycles()));
+
+
+    auto boostFactors1 = new Real[numColumns];
+    auto boostFactors2 = new Real[numColumns];
+    this->getBoostFactors(boostFactors1);
+    sp.getBoostFactors(boostFactors2);
+    ASSERT_TRUE(check_vector_eq(boostFactors1, boostFactors2, numColumns));
+    delete[] boostFactors1;
+    delete[] boostFactors2;
+
+    auto overlapDutyCycles1 = new Real[numColumns];
+    auto overlapDutyCycles2 = new Real[numColumns];
+    this->getOverlapDutyCycles(overlapDutyCycles1);
+    sp.getOverlapDutyCycles(overlapDutyCycles2);
+    ASSERT_TRUE(check_vector_eq(overlapDutyCycles1, overlapDutyCycles2, numColumns));
+    delete[] overlapDutyCycles1;
+    delete[] overlapDutyCycles2;
+
+    auto activeDutyCycles1 = new Real[numColumns];
+    auto activeDutyCycles2 = new Real[numColumns];
+    this->getActiveDutyCycles(activeDutyCycles1);
+    sp.getActiveDutyCycles(activeDutyCycles2);
+    ASSERT_TRUE(check_vector_eq(activeDutyCycles1, activeDutyCycles2, numColumns));
+    delete[] activeDutyCycles1;
+    delete[] activeDutyCycles2;
+
+    auto minOverlapDutyCycles1 = new Real[numColumns];
+    auto minOverlapDutyCycles2 = new Real[numColumns];
+    this->getMinOverlapDutyCycles(minOverlapDutyCycles1);
+    sp.getMinOverlapDutyCycles(minOverlapDutyCycles2);
+    ASSERT_TRUE(check_vector_eq(minOverlapDutyCycles1, minOverlapDutyCycles2, numColumns));
+    delete[] minOverlapDutyCycles1;
+    delete[] minOverlapDutyCycles2;
+
+    for (UInt i = 0; i < numColumns; i++) {
+      auto potential1 = new UInt[numInputs];
+      auto potential2 = new UInt[numInputs];
+      this->getPotential(i, potential1);
+      sp.getPotential(i, potential2);
+      ASSERT_TRUE(check_vector_eq(potential1, potential2, numInputs));
+      delete[] potential1;
+      delete[] potential2;
+    }
+
+    for (UInt i = 0; i < numColumns; i++) {
+      auto perm1 = new Real[numInputs];
+      auto perm2 = new Real[numInputs];
+      this->getPermanence(i, perm1);
+      sp.getPermanence(i, perm2);
+      ASSERT_TRUE(check_vector_eq(perm1, perm2, numInputs));
+      delete[] perm1;
+      delete[] perm2;
+    }
+
+    for (UInt i = 0; i < numColumns; i++) {
+      auto con1 = new UInt[numInputs];
+      auto con2 = new UInt[numInputs];
+      this->getConnectedSynapses(i, con1);
+      sp.getConnectedSynapses(i, con2);
+      ASSERT_TRUE(check_vector_eq(con1, con2, numInputs));
+      delete[] con1;
+      delete[] con2;
+    }
+    auto conCounts1 = new UInt[numColumns];
+    auto conCounts2 = new UInt[numColumns];
+    this->getConnectedCounts(conCounts1);
+    sp.getConnectedCounts(conCounts2);
+    ASSERT_TRUE(check_vector_eq(conCounts1, conCounts2, numColumns));
+    delete[] conCounts1;
+    delete[] conCounts2;
+
+  return true;
+}
 
 void SpatialPooler::toDense_(vector<UInt>& sparse,
                             UInt dense[],
