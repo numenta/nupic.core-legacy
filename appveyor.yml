@@ -109,10 +109,22 @@ install:
   - echo %PATH%
 
   #
-  # Install Python 2.7.x, Pip, Wheel, and NumPy
+  # Install Wheel, and NumPy
   #
-  - cd %NUPIC_CORE%\ci\appveyor
-  - ps: .\install_python_pip.ps1
+  - ps:  $python_path = $env:PYTHONHOME + "/python.exe"
+  - ps:   $pip_path = $env:PYTHONHOME + "/Scripts/pip.exe"
+
+  - ps:  Write-Host "pip install " wheel==0.25.0
+  - ps:  "& $pip_path install wheel==0.25.0"
+
+  - ps:  Write-Host "pip install " boto
+  - ps:  & $pip_path install boto
+
+  - ps:  Write-Host "pip install " twine
+  - ps:  & $pip_path install twine
+
+  - ps:  Write-Host "pip install " numpy==1.12.1
+  - ps:  "& $pip_path install numpy==1.12.1"
 
   #
   # Install mingwpy toolchain
