@@ -133,7 +133,7 @@ install:
   # Install the version of mingwpy toolchain that generates targets compatible
   # with the installed python (Win32 vs. Win64). The compiler tools are
   # installed into %PYTHONHOME%/Scripts/
-  - cmd: "%PYTHONHOME%\\Scripts\\pip.exe install -i https://pypi.anaconda.org/carlkl/simple mingwpy==0.1.0b3"
+  - cmd: "%PYTHONHOME%\\Scripts\\pip.exe install -i https://pypi.anaconda.org/carlkl/simple mingwpy"
   - cmd: "where g++"
   - cmd: "g++ --version"
   - cmd: "dir %PYTHONHOME%\\share\\mingwpy"
