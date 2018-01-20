@@ -33,10 +33,13 @@ shallow_clone: false
 
 environment:
   COMPILER_FAMILY: GCC
+
+## AWS S3 support (pip install boto)
 #  AWS_ACCESS_KEY_ID:
 #    secure: /9U0mCHp3k1U8Y5CY/kDqwCKG2gqchG/T/UlVWo8SME=
 #  AWS_SECRET_ACCESS_KEY:
 #    secure: /8wO17Gir0XAiecJkHeE3jxOJzvyl0+uWcl7BKCuN0FC795golsL8905VmNuRl1o
+## PyPI support (pip install twine)
 #  PYPI_USERNAME: numenta
 #  PYPI_PASSWORD:
 #    secure: UgABryPYZg823OcD1XRosA==
@@ -117,11 +120,11 @@ install:
   - ps:  Write-Host "pip install " wheel==0.25.0
   - ps:  "& $pip_path install wheel==0.25.0"
 
-  - ps:  Write-Host "pip install " boto
-  - ps:  & $pip_path install boto
+#  - ps:  Write-Host "pip install " boto
+#  - ps:  & $pip_path install boto
 
-  - ps:  Write-Host "pip install " twine
-  - ps:  & $pip_path install twine
+#  - ps:  Write-Host "pip install " twine
+#  - ps:  & $pip_path install twine
 
   - ps:  Write-Host "pip install " numpy==1.12.1
   - ps:  "& $pip_path install numpy==1.12.1"
@@ -238,14 +241,15 @@ artifacts:
 
 deploy:
   # Iterative builds
-  - provider: S3
+## AWS S3 deployment
+#  - provider: S3
 #    access_key_id: AKIAIGHYSEHV3WFKOWNQ
 #    secret_access_key:
 #      secure: /8wO17Gir0XAiecJkHeE3jxOJzvyl0+uWcl7BKCuN0FC795golsL8905VmNuRl1o
-    bucket: "artifacts.numenta.org"
-    region: us-west-2
-    set_public: true
-    artifact: "nupic.bindings-$(APPVEYOR_REPO_COMMIT)-cp27-none-$(wheel_name_suffix).whl"
-    folder: "numenta/nupic.core/releases/nupic.bindings"
-    on:
-      branch: master
+#    bucket: "artifacts.numenta.org"
+#    region: us-west-2
+#    set_public: true
+#    artifact: "nupic.bindings-$(APPVEYOR_REPO_COMMIT)-cp27-none-$(wheel_name_suffix).whl"
+#    folder: "numenta/nupic.core/releases/nupic.bindings"
+#    on:
+#      branch: master
