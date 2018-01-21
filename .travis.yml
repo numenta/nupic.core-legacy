@@ -2,13 +2,17 @@ sudo: false
 
 language: cpp
 
-osx_image: xcode6.4
+matrix:
+  include: 
+    - os: osx
+      osx_image: xcode6.4 #TODO upgrade to latest xcode8 
+      compiler: clang
+      env:
+        - MATRIX_EVAL="CC=clang && CXX=clang++"
+        - PLATFORM="darwin"
+        - PATH="$HOME/Library/Python/2.7/bin:$PATH"
+        - PYTHONPATH="$HOME/Library/Python/2.7/lib/python/site-packages:$PYTHONPATH"
 
-os:
-  - osx
-
-compiler:
-  - clang
 
 env:
   global:
@@ -26,7 +30,6 @@ virtualenv:
 
 # Successful builds are archived and uploaded to S3 for bamboo releases.
 before_deploy:
-  - "PLATFORM='darwin'"
   - cd $TRAVIS_BUILD_DIR
   - ./ci/travis/before_deploy.sh
   - cp $TRAVIS_BUILD_DIR/bindings/py/requirements.txt $TRAVIS_BUILD_DIR/bindings/py/dist/
@@ -69,7 +72,15 @@ notifications:
 #        - https://api.keen.io/3.0/projects/5555161e2fd4b1326f14444a/events/travis-webhooks?api_key=a2e613bbb19b9b1f71a5543b7b677563551b4c3fe98534269546ff666ae453f82505791772faefc48682ee882ac7e99d2c3bfae7c7c19db7b5e7bbda34039119e4b42f5bf41bcea62d4ea9731db4a455141be7d5e8c715cb06366922eae0358e84abc2704ce16bb77b01fec3476cbac6
 
 before_install:
-  - ". ./ci/travis/before_install-osx.sh"
+  - eval "${MATRIX_EVAL}"
+  - $CXX --version
+
+  - echo "Installing pip, setuptools, and wheel"
+  - curl --silent --show-error --retry 5 -O http://releases.numenta.org/pip/1ebd3cb7a5a3073058d0c9552ab074bd/get-pip.py
+  - python get-pip.py --user pip setuptools wheel
+
+  - echo "Installing Python dependencies"
+  - pip install --use-wheel --user -r bindings/py/requirements.txt --quiet || exit
 
 install:
   - "mkdir -p $TRAVIS_BUILD_DIR/build/scripts"
