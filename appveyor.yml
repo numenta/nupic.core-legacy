@@ -33,6 +33,14 @@ shallow_clone: false
 
 environment:
   COMPILER_FAMILY: GCC
+  PYTHON_VERSION: "2.7.9"
+  PYTHON_ARCH: "64"
+  PYTHONHOME: "C:\\Python27-x64"
+  NUPIC_CORE: "C:\\projects\\nupic-core"
+  EXTERNAL_WINDOWS_DIR: "%NUPIC_CORE%\\external\\%external_static_subdir%"
+  ARTIFACTS_DIR: "%NUPIC_CORE%\\build\\artifacts"
+  PYTHONPATH: "%PYTHONHOME%"
+  PATH: "%PYTHONHOME%\\Scripts;%PYTHONHOME%;%PATH%"
 
 ## AWS S3 support (pip install boto)
 #  AWS_ACCESS_KEY_ID:
@@ -46,10 +54,7 @@ environment:
 
   matrix:
     # Win64-gcc
-    - PYTHON_VERSION: "2.7.9"
-      PYTHON_ARCH: "64"
-      PYTHONHOME: "C:\\Python27-x64"
-      NC_CMAKE_GENERATOR: "MinGW Makefiles"
+    - NC_CMAKE_GENERATOR: "MinGW Makefiles"
       external_static_subdir: "windows64-gcc"
       wheel_name_suffix: "win_amd64"
 
@@ -68,7 +73,6 @@ environment:
 #      NC_CMAKE_GENERATOR: "Visual Studio 14 2015 Win64"
 #      external_static_subdir: "windows64"
 #      wheel_name_suffix: "win_amd64"
-
 
 matrix:
   allow_failures:
@@ -89,15 +93,8 @@ install:
   - "ECHO APPVEYOR_FORCED_BUILD: %APPVEYOR_FORCED_BUILD%"
   - "ECHO APPVEYOR_RE_BUILD: %APPVEYOR_RE_BUILD%"
 
-  - set NUPIC_CORE=c:\projects\nupic-core
-  - set EXTERNAL_WINDOWS_DIR=%NUPIC_CORE%\external\%external_static_subdir%
-
-  - set ARTIFACTS_DIR=%NUPIC_CORE%\build\artifacts
   - for /f %%i in ('type VERSION') do set BINDINGS_VERSION=%%i
   - echo Binding version = %BINDINGS_VERSION%
-
-  - set PYTHONPATH=%PYTHONHOME%
-  - set PATH=%PYTHONHOME%\Scripts;%PYTHONHOME%;%PATH%
 
   # Make unix-compatible patch.exe available to the build by copying it from
   # Git\usr\bin (that we remove from PATH) to another directory and adding it to
