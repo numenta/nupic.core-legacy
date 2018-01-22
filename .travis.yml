@@ -4,6 +4,11 @@ language: cpp
 
 matrix:
   include: 
+    - os: linux
+      compiler: gcc
+      env:
+        - MATRIX_EVAL="CC=gcc-4.9 && CXX=g++-4.9"
+        - PLATFORM="linux"
     - os: osx
       osx_image: xcode8
       compiler: clang
