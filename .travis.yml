@@ -10,13 +10,15 @@ matrix:
       # https://docs.travis-ci.com/user/languages/cpp/
       addons:
         apt:
-          sources:
-            - ubuntu-toolchain-r-test
+#          sources:
+#            - ubuntu-toolchain-r-test
           packages:
-            - g++-4.9
+#            - g++-4.9
+            - xsltproc
       env:
-        - MATRIX_EVAL="CC=gcc-4.9 && CXX=g++-4.9"
+        - MATRIX_EVAL="CC=gcc-4.8 && CXX=g++-4.8"
         - PLATFORM="linux"
+    ## OSX builds take very long to start on OSX
     - os: osx
       osx_image: xcode8
       compiler: clang
