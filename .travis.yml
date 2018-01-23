@@ -2,13 +2,34 @@ sudo: false
 
 language: cpp
 
-osx_image: xcode6.4
+matrix:
+  include: 
+    - os: linux
+      compiler: gcc
+      # update required packages from Travis setup
+      # https://docs.travis-ci.com/user/languages/cpp/
+      addons:
+        apt:
+#          sources:
+#            - ubuntu-toolchain-r-test
+          packages:
+#            - g++-4.9
+            - xsltproc #only for doc transform to html , can be removed
+            - python-pip-whl
+            - python2.7 
+      env:
+        - MATRIX_EVAL="CC=gcc-4.8 && CXX=g++-4.8"
+        - PLATFORM="linux"
+    ## OSX builds take very long to start on OSX
+    - os: osx
+      osx_image: xcode8
+      compiler: clang
+      env:
+        - MATRIX_EVAL="CC=clang && CXX=clang++"
+        - PLATFORM="darwin"
+        - PATH="$HOME/Library/Python/2.7/bin:$PATH"
+        - PYTHONPATH="$HOME/Library/Python/2.7/lib/python/site-packages:$PYTHONPATH"
 
-os:
-  - osx
-
-compiler:
-  - clang
 
 env:
   global:
@@ -16,17 +37,16 @@ env:
     - PATH=${TRAVIS_BUILD_DIR}/python/bin:$PATH
     - PLATFORM=${TRAVIS_OS_NAME}
     - ARCHFLAGS="-arch x86_64"
-    # AWS keys are for manual uploads of wheel to S3.
-    - AWS_ACCESS_KEY_ID=AKIAIGHYSEHV3WFKOWNQ
-    # AWS_SECRET_ACCESS_KEY encrypted below
-    - secure: "Ixm9TYZAZbCQicUTIZTY7XKNK82WF+f1jsaGtIxnGQmn0LKhKBjQnsZmhzQ7LDQeLUjRY3wM6xrX3YdP5T7WWiiqBiNCRz8oFxl/fBSm7LyuNo2CEGD9rsG6ZAY/sKKYNX5TuG78giJXwYZpq4LbVwy3W5ZlC626H7iXLQ6xDxw="
+#    # AWS keys are for manual uploads of wheel to S3.
+#    - AWS_ACCESS_KEY_ID=AKIAIGHYSEHV3WFKOWNQ
+#    # AWS_SECRET_ACCESS_KEY encrypted below
+#    - secure: "Ixm9TYZAZbCQicUTIZTY7XKNK82WF+f1jsaGtIxnGQmn0LKhKBjQnsZmhzQ7LDQeLUjRY3wM6xrX3YdP5T7WWiiqBiNCRz8oFxl/fBSm7LyuNo2CEGD9rsG6ZAY/sKKYNX5TuG78giJXwYZpq4LbVwy3W5ZlC626H7iXLQ6xDxw="
 
 virtualenv:
   system_site_packages: true
 
 # Successful builds are archived and uploaded to S3 for bamboo releases.
 before_deploy:
-  - "PLATFORM='darwin'"
   - cd $TRAVIS_BUILD_DIR
   - ./ci/travis/before_deploy.sh
   - cp $TRAVIS_BUILD_DIR/bindings/py/requirements.txt $TRAVIS_BUILD_DIR/bindings/py/dist/
@@ -38,37 +58,53 @@ before_deploy:
   - tar -zcvf $TRAVIS_BUILD_DIR/release/nupic_core-${TRAVIS_COMMIT}-${PLATFORM}64.tar.gz $TRAVIS_BUILD_DIR/bindings/py/dist
 
 deploy:
-  provider: s3
-  access_key_id: AKIAIGHYSEHV3WFKOWNQ
-  secret_access_key:
-    secure: YhyY/6r2LNya8OZEmVOj+fv0lY5bBPqvy8MnsdLlptXa2uqwvezkCMNKiQ+wA+tOu+BS7VRRp86DhUqCpTZ3jUM2Mwdhud/Smq7D2X8vtZBiTVcOKfQcaypDE6Zu9Zp0SjMOSf6yiq6Ruu7D5QtZ4rtaq+5uPlvbgUXRZoZm0Po=
-  bucket: artifacts.numenta.org
-  region: us-west-2
-  local-dir: "$TRAVIS_BUILD_DIR/release"
-  upload-dir: "numenta/nupic.core"
+## AWS S3 
+#  provider: s3
+#  access_key_id: AKIAIGHYSEHV3WFKOWNQ
+#  secret_access_key:
+#    secure: YhyY/6r2LNya8OZEmVOj+fv0lY5bBPqvy8MnsdLlptXa2uqwvezkCMNKiQ+wA+tOu+BS7VRRp86DhUqCpTZ3jUM2Mwdhud/Smq7D2X8vtZBiTVcOKfQcaypDE6Zu9Zp0SjMOSf6yiq6Ruu7D5QtZ4rtaq+5uPlvbgUXRZoZm0Po=
+#  bucket: artifacts.numenta.org
+#  region: us-west-2
+#  local-dir: "$TRAVIS_BUILD_DIR/release"
+#  upload-dir: "numenta/nupic.core"
+#  skip_cleanup: true
+#  # Deploying on master branch from osx/clang
+#  on:
+#    branch: master
+#    condition:
+#      - "( ${TRAVIS_OS_NAME}--${CC} = 'osx--clang' )"
+## Github releases
+  provider: releases
+  api_key:
+      secure: "HyRy03LIiUriPFW3HPmO+rRqmL1uxfsPLj6fqMykMq/Kmy478ROW/uOdNj42OEhsb6GwLngdjcHJtEzMGevnlNbWLLbTCuT2ykebysSt/oIKb/zAc/jYUI3OKuVWVEYFHlZa6fvkWZHKtWCcwa/jeF6bJFuPKkc3c3842aaW1SdEJG6osLGhJM+JtO1zD8+Z6RwL6T1Xbj+RYP/L28mejbphKxYL34bfLYse1lQ6/cFHzw8SdbvkDxWW+MRFHw8Ta8QiiV/7E83Z6N0+IRNi0s//3Affmkcs25modB4Auy8nrkUI4LQQr0NcUQZdo1RrylX9MH1B5KHs1hyNJvhRFiQlSBvXv0ezq6F5N8wamnBX12/2FDFI1nWl05hofQ7X07aWyQLu5v7Q34xX/pW5lca1G3H14auye8gSzC80692fOyId1F4QwcDIkeWiQwAMgE1qSifgTD3dEGJeDbAOPLd7I/fskxUjIvpEWR6dM3IKzMzr1dFilImhdvVsEEeROldpE0JleZFrv39NyMWTx6sGo9MLrtep+5/iRz1T0zKLfQjwUnAm/LW66g9vQ+lnhL9ktElnitnvaj1x5auAIsPNVdfagdwvGdeuZ65uJGtgEVAjOjspCDeYu9ztqPSZ3Hj3SAyELJkuu/RFScLOQayazg03O+zsvhDTtw8xfdo="
+  file: "$TRAVIS_BUILD_DIR/release/nupic_core-${TRAVIS_COMMIT}-${PLATFORM}64.tar.gz"
   skip_cleanup: true
-  # Deploying on master branch from osx/clang
   on:
+    tags: true
     branch: master
-    condition:
-      - "( ${TRAVIS_OS_NAME}--${CC} = 'osx--clang' )"
+    repo: htm-community/nupic.cpp
 
 notifications:
-  email:
-    recipients:
-      - "discourse-nupic-developers@numenta.org"
-    on_success: never
-    on_failure: change
+#  email:
+#    recipients:
+#      - "discourse-nupic-developers@numenta.org"
+#    on_success: never
+#    on_failure: change
   irc:
     channels:
       - "irc.freenode.net#nupic-hackers"
-  webhooks:
-    - urls:
-        - https://webhooks.gitter.im/e/68f77bae61efa5c931f8
-        - https://api.keen.io/3.0/projects/5555161e2fd4b1326f14444a/events/travis-webhooks?api_key=a2e613bbb19b9b1f71a5543b7b677563551b4c3fe98534269546ff666ae453f82505791772faefc48682ee882ac7e99d2c3bfae7c7c19db7b5e7bbda34039119e4b42f5bf41bcea62d4ea9731db4a455141be7d5e8c715cb06366922eae0358e84abc2704ce16bb77b01fec3476cbac6
+#  webhooks:
+#    - urls:
+#        - https://webhooks.gitter.im/e/68f77bae61efa5c931f8
+#        - https://api.keen.io/3.0/projects/5555161e2fd4b1326f14444a/events/travis-webhooks?api_key=a2e613bbb19b9b1f71a5543b7b677563551b4c3fe98534269546ff666ae453f82505791772faefc48682ee882ac7e99d2c3bfae7c7c19db7b5e7bbda34039119e4b42f5bf41bcea62d4ea9731db4a455141be7d5e8c715cb06366922eae0358e84abc2704ce16bb77b01fec3476cbac6
 
 before_install:
-  - ". ./ci/travis/before_install-osx.sh"
+  - eval "${MATRIX_EVAL}"
+  - $CXX --version
+  - echo "Installing pip, setuptools, and wheel"
+  - pip install  --user pip setuptools wheel || exit
+  - echo "Installing Python dependencies"
+  - pip install --use-wheel --user -r bindings/py/requirements.txt --quiet || exit
 
 install:
   - "mkdir -p $TRAVIS_BUILD_DIR/build/scripts"
@@ -82,7 +118,8 @@ install:
   - "VERBOSE=1 make|grep -v -F '\\-\\- Installing:'"
   - "make install 2>&1|grep -v -F 'Installing:'"
   - "cd $TRAVIS_BUILD_DIR"
-  - "python setup.py install --user"
+  # TODO later remove, --prefix= is workaround for https://stackoverflow.com/questions/4495120/combine-user-with-prefix-error-with-setup-py-install
+  - "python setup.py install --user --prefix="
 
 script:
   # Some tests (e.g., helloregion) expect this to be the current directory and
