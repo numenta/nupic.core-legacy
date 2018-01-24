@@ -22,16 +22,16 @@ matrix:
       env:
         - MATRIX_EVAL="CC=gcc-4.8 && CXX=g++-4.8"
         - PLATFORM="linux"
-    ## OSX builds take very long to start on OSX
-    - os: osx
-      osx_image: xcode8.3 #default
-      compiler: clang
-      env:
-        - MATRIX_EVAL="CC=clang && CXX=clang++"
-        - PLATFORM="darwin"
-        - PATH="$HOME/Library/Python/2.7/bin:$PATH"
-        - PYTHONPATH="$HOME/Library/Python/2.7/lib/python/site-packages:$PYTHONPATH"
-
+#    ## OSX builds take very long to start on OSX
+#    # moved to CircleCI for OSX
+#    - os: osx
+#      osx_image: xcode8.3 #default
+#      compiler: clang
+#      env:
+#        - MATRIX_EVAL="CC=clang && CXX=clang++"
+#        - PLATFORM="darwin"
+#        - PATH="$HOME/Library/Python/2.7/bin:$PATH"
+#        - PYTHONPATH="$HOME/Library/Python/2.7/lib/python/site-packages:$PYTHONPATH"
 
 env:
   global:
