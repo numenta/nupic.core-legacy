@@ -1,6 +1,8 @@
 sudo: false
 
 language: cpp
+python: 
+ - 2.7 #TODO change  to 3.x later
 
 matrix:
   include: 
@@ -20,16 +22,16 @@ matrix:
       env:
         - MATRIX_EVAL="CC=gcc-4.8 && CXX=g++-4.8"
         - PLATFORM="linux"
-    ## OSX builds take very long to start on OSX
-    - os: osx
-      osx_image: xcode8
-      compiler: clang
-      env:
-        - MATRIX_EVAL="CC=clang && CXX=clang++"
-        - PLATFORM="darwin"
-        - PATH="$HOME/Library/Python/2.7/bin:$PATH"
-        - PYTHONPATH="$HOME/Library/Python/2.7/lib/python/site-packages:$PYTHONPATH"
-
+#    ## OSX builds take very long to start on OSX
+#    # moved to CircleCI for OSX
+#    - os: osx
+#      osx_image: xcode8.3 #default
+#      compiler: clang
+#      env:
+#        - MATRIX_EVAL="CC=clang && CXX=clang++"
+#        - PLATFORM="darwin"
+#        - PATH="$HOME/Library/Python/2.7/bin:$PATH"
+#        - PYTHONPATH="$HOME/Library/Python/2.7/lib/python/site-packages:$PYTHONPATH"
 
 env:
   global:
@@ -102,9 +104,9 @@ before_install:
   - eval "${MATRIX_EVAL}"
   - $CXX --version
   - echo "Installing pip, setuptools, and wheel"
-  - pip install  --user pip setuptools wheel || exit
+  - pip2 install  --user pip setuptools wheel || exit
   - echo "Installing Python dependencies"
-  - pip install --use-wheel --user -r bindings/py/requirements.txt --quiet || exit
+  - pip2 install --use-wheel --user -r bindings/py/requirements.txt --quiet || exit
 
 install:
   - "mkdir -p $TRAVIS_BUILD_DIR/build/scripts"
@@ -133,8 +135,6 @@ script:
   - "${TRAVIS_BUILD_DIR}/build/release/bin/hello_sp_tp"
   - "${TRAVIS_BUILD_DIR}/build/release/bin/prototest"
   # unit tests
-  # TODO Why does it mkdir build/scripts/artifacts, but then points gtest_otput to build/artifacts?
-  - "mkdir -p $TRAVIS_BUILD_DIR/build/scripts/artifacts"
   - "${TRAVIS_BUILD_DIR}/build/release/bin/unit_tests --gtest_output=xml:${TRAVIS_BUILD_DIR}/build/artifacts/unit_tests_report.xml"
   # run python tests
   - "py.test ${TRAVIS_BUILD_DIR}/bindings/py/tests"
