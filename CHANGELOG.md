@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.0
+
+* Comunity release
+*  4a9c8a2..0c4a30a
+* added CI for Win, OSX, Linux
+* testing binary releases
+
 ## 1.0.3
 
 * https://github.com/numenta/nupic.core/issues/1380 Added stronger type checking for SP compute input.
