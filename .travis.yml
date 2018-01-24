@@ -120,8 +120,7 @@ install:
   - "VERBOSE=1 make|grep -v -F '\\-\\- Installing:'"
   - "make install 2>&1|grep -v -F 'Installing:'"
   - "cd $TRAVIS_BUILD_DIR"
-  # TODO later remove, --prefix= is workaround for https://stackoverflow.com/questions/4495120/combine-user-with-prefix-error-with-setup-py-install
-  - "python setup.py install --user --prefix="
+  - "python setup.py install "
 
 script:
   # Some tests (e.g., helloregion) expect this to be the current directory and
