@@ -1,6 +1,6 @@
 <img src="http://numenta.org/87b23beb8a4b7dea7d88099bfb28d182.svg" alt="NuPIC Logo" width=100/>
 
-# NuPIC Core [![Unix-like Build Status](https://travis-ci.org/numenta/nupic.core.png?branch=master)](https://travis-ci.org/numenta/nupic.core) [![Windows Build status](https://ci.appveyor.com/api/projects/status/nec8cml3n3klxf88/branch/master?svg=true)](https://ci.appveyor.com/project/breznak/nupic-cpp/branch/master) [![CircleCI](https://circleci.com/gh/numenta/nupic.core.svg?style=svg)](https://circleci.com/gh/numenta/nupic.core) [![Coverage Status](https://coveralls.io/repos/numenta/nupic.core/badge.png?branch=master)](https://coveralls.io/r/numenta/nupic.core?branch=master)
+# NuPIC Core [![Linux/OSX Build Status](https://travis-ci.org/htm-community/nupic.cpp.svg?branch=master)](https://travis-ci.org/htm-community/nupic.cpp) [![Windows Build status](https://ci.appveyor.com/api/projects/status/nec8cml3n3klxf88/branch/master?svg=true)](https://ci.appveyor.com/project/breznak/nupic-cpp/branch/master) [![CircleCI](https://circleci.com/gh/numenta/nupic.core.svg?style=svg)](https://circleci.com/gh/numenta/nupic.core) [![Coverage Status](https://coveralls.io/repos/numenta/nupic.core/badge.png?branch=master)](https://coveralls.io/r/numenta/nupic.core?branch=master)
 
 # Community NuPIC.cpp (former nupic.core) repository
 
