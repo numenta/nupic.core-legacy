@@ -141,6 +141,8 @@ get_filename_component(src_numpy_core ${src_numpy_core}/include/.. ABSOLUTE)
 
 message(STATUS "src_numpy_core   = ${src_numpy_core}")
 
+# Boost
+set(BOOST_INCLUDE_DIR "${REPOSITORY_DIR}/include/")
 
 #
 # Setup include paths
