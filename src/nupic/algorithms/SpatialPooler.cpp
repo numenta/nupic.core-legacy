@@ -1259,6 +1259,9 @@ void SpatialPooler::inhibitColumnsGlobal_(
 {
   activeColumns.clear();
   const UInt numDesired = (UInt) (density * numColumns_);
+  NTA_CHECK(numDesired > 0) 
+    << "Not enough columns (" << numColumns_ << ") "
+    << "for desired density (" << density << ").";
   vector<pair<UInt, Real> > winners;
   for (UInt i = 0; i < numColumns_; i++)
   {

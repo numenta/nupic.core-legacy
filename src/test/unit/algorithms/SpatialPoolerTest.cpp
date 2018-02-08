@@ -1463,6 +1463,18 @@ namespace {
     ASSERT_TRUE(check_vector_eq(trueActive,active));
   }
 
+  TEST(SpatialPoolerTest, testValidateGlobalInhibitionParameters) {
+    // With 10 columns the minimum sparsity for global inhibition is 10%
+    // Setting sparsity to 2% should throw an exception
+    SpatialPooler sp;
+    setup(sp, 10, 10);
+    sp.setGlobalInhibition(true);
+    sp.setLocalAreaDensity(0.02);
+    vector<UInt> input(sp.getNumInputs(), 1);
+    vector<UInt> out1(sp.getNumColumns(), 0);
+    EXPECT_THROW(sp.compute(input.data(), false, out1.data()), nupic::LoggingException);
+  }
+
   TEST(SpatialPoolerTest, testInhibitColumnsLocal)
   {
     // wrapAround = false
