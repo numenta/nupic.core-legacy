@@ -2269,4 +2269,51 @@ namespace {
     ASSERT_TRUE(ret == 0) << "Failed to delete " << filename;
   }
 
+  TEST(SpatialPoolerTest, testConstructorVsInitialize)
+  {
+    // Initialize SP using the constructor
+    SpatialPooler sp1(
+      /*inputDimensions*/{100},
+      /*columnDimensions*/{100},
+      /*potentialRadius*/ 16,
+      /*potentialPct*/ 0.5,
+      /*globalInhibition*/ true,
+      /*localAreaDensity*/ -1.0,
+      /*numActiveColumnsPerInhArea*/ 10,
+      /*stimulusThreshold*/ 0,
+      /*synPermInactiveDec*/ 0.008,
+      /*synPermActiveInc*/ 0.05,
+      /*synPermConnected*/ 0.1,
+      /*minPctOverlapDutyCycles*/ 0.001,
+      /*dutyCyclePeriod*/ 1000,
+      /*boostStrength*/ 0.0,
+      /*seed*/ 1,
+      /*spVerbosity*/ 0,
+      /*wrapAround*/ true);
+
+    // Initialize SP using the "initialize" method
+    SpatialPooler sp2;
+    sp2.initialize(
+      /*inputDimensions*/{100},
+      /*columnDimensions*/{100},
+      /*potentialRadius*/ 16,
+      /*potentialPct*/ 0.5,
+      /*globalInhibition*/ true,
+      /*localAreaDensity*/ -1.0,
+      /*numActiveColumnsPerInhArea*/ 10,
+      /*stimulusThreshold*/ 0,
+      /*synPermInactiveDec*/ 0.008,
+      /*synPermActiveInc*/ 0.05,
+      /*synPermConnected*/ 0.1,
+      /*minPctOverlapDutyCycles*/ 0.001,
+      /*dutyCyclePeriod*/ 1000,
+      /*boostStrength*/ 0.0,
+      /*seed*/ 1,
+      /*spVerbosity*/ 0,
+      /*wrapAround*/ true);
+
+    // The two SP should be the same  
+    check_spatial_eq(sp1, sp2);
+  }
+
 } // end anonymous namespace
