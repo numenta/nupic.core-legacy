@@ -26,33 +26,24 @@
 
 #include "gtest/gtest.h"
 
-#include <nupic/utils/Log.hpp>
 #include <nupic/ntypes/Dimensions.hpp>
 #include <nupic/types/Fraction.hpp>
+#include <nupic/utils/Log.hpp>
 #include <utility>
 
 #include <nupic/engine/UniformLinkPolicy.hpp>
 
 using namespace nupic;
 
-enum LinkSide
-{
-  srcLinkSide,
-  destLinkSide
-};
+enum LinkSide { srcLinkSide, destLinkSide };
 
-struct CoordBounds
-{
+struct CoordBounds {
   Coordinate coord;
   size_t dimension;
   std::pair<Fraction, Fraction> bounds;
 
-  CoordBounds(Coordinate c, size_t dim, std::pair<Fraction, Fraction> b) :
-    coord(std::move(c)),
-    dimension(dim),
-    bounds(std::move(b))
-  {
-  }
+  CoordBounds(Coordinate c, size_t dim, std::pair<Fraction, Fraction> b)
+      : coord(std::move(c)), dimension(dim), bounds(std::move(b)) {}
 };
 
 // ---
@@ -61,238 +52,199 @@ struct CoordBounds
 // class in UniformLinkPolicy.
 // ---
 namespace nupic {
-  class UniformLinkPolicyInspector
-  {
-    public:
-      bool setAndCheckDimensions(LinkSide setLinkSide,
-                                 Dimensions setDimensions,
-                                 Dimensions checkDimensions,
-                                 std::string linkParams,
-                                 size_t elementCount = 1)
-      {
-        Link dummyLink("UnitTestLink", "", "", "");
-        UniformLinkPolicy test(linkParams, &dummyLink);
+class UniformLinkPolicyInspector {
+public:
+  bool setAndCheckDimensions(LinkSide setLinkSide, Dimensions setDimensions,
+                             Dimensions checkDimensions, std::string linkParams,
+                             size_t elementCount = 1) {
+    Link dummyLink("UnitTestLink", "", "", "");
+    UniformLinkPolicy test(linkParams, &dummyLink);
 
-        // ---
-        // Since we're a unit test working in isolation, the infrastructure won't
-        // invoke setNodeOutputElementCount() for us; consequently we'll do that
-        // directly here.
-        // ---
-        test.setNodeOutputElementCount(elementCount);
+    // ---
+    // Since we're a unit test working in isolation, the infrastructure won't
+    // invoke setNodeOutputElementCount() for us; consequently we'll do that
+    // directly here.
+    // ---
+    test.setNodeOutputElementCount(elementCount);
 
-        setLinkSide == srcLinkSide ? test.setSrcDimensions(setDimensions) :
-                                     test.setDestDimensions(setDimensions);
+    setLinkSide == srcLinkSide ? test.setSrcDimensions(setDimensions)
+                               : test.setDestDimensions(setDimensions);
 
-        Dimensions destDims = test.getDestDimensions();
-        Dimensions srcDims = test.getSrcDimensions();
+    Dimensions destDims = test.getDestDimensions();
+    Dimensions srcDims = test.getSrcDimensions();
 
-        bool wasExpectedDimensions;
+    bool wasExpectedDimensions;
 
-        setLinkSide == srcLinkSide ? (wasExpectedDimensions =
-                                       (srcDims == setDimensions && 
-                                        destDims == checkDimensions)) :
-                                     (wasExpectedDimensions =
-                                       (srcDims == checkDimensions &&
-                                        destDims == setDimensions));
+    setLinkSide == srcLinkSide
+        ? (wasExpectedDimensions =
+               (srcDims == setDimensions && destDims == checkDimensions))
+        : (wasExpectedDimensions =
+               (srcDims == checkDimensions && destDims == setDimensions));
 
-        return(wasExpectedDimensions);
+    return (wasExpectedDimensions);
+  }
+
+  bool setDimensionsAndCheckBounds(LinkSide setLinkSide,
+                                   Dimensions setDimensions,
+                                   std::vector<CoordBounds> checkBoundsVec,
+                                   std::string linkParams,
+                                   size_t elementCount = 1) {
+    Link dummyLink("UnitTestLink", "", "", "");
+    UniformLinkPolicy test(linkParams, &dummyLink);
+
+    // ---
+    // Since we're a unit test working in isolation, the infrastructure won't
+    // invoke setNodeOutputElementCount() for us; consequently we'll do that
+    // directly here.
+    // ---
+    test.setNodeOutputElementCount(elementCount);
+
+    setLinkSide == srcLinkSide ? test.setSrcDimensions(setDimensions)
+                               : test.setDestDimensions(setDimensions);
+
+    // ---
+    // Since we're a unit test working in isolation, the infrastructure won't
+    // invoke initialize() for us; consequently we'll do that directly here.
+    // ---
+    test.initialize();
+
+    bool allBoundsEqual = true;
+
+    for (auto &elem : checkBoundsVec) {
+      std::pair<Fraction, Fraction> testBounds;
+
+      testBounds = test.getInputBoundsForNode(elem.coord, elem.dimension);
+
+      if (testBounds != elem.bounds) {
+        allBoundsEqual = false;
       }
+    }
 
-      bool setDimensionsAndCheckBounds(
-             LinkSide setLinkSide,
-             Dimensions setDimensions,
-             std::vector<CoordBounds> checkBoundsVec,
-             std::string linkParams,
-             size_t elementCount = 1)
-      {
-        Link dummyLink("UnitTestLink", "", "", "");
-        UniformLinkPolicy test(linkParams, &dummyLink);
-
-        // ---
-        // Since we're a unit test working in isolation, the infrastructure won't
-        // invoke setNodeOutputElementCount() for us; consequently we'll do that
-        // directly here.
-        // ---
-        test.setNodeOutputElementCount(elementCount);
-
-        setLinkSide == srcLinkSide ? test.setSrcDimensions(setDimensions) :
-                                     test.setDestDimensions(setDimensions);
-
-        // ---
-        // Since we're a unit test working in isolation, the infrastructure won't
-        // invoke initialize() for us; consequently we'll do that directly here.
-        // ---
-        test.initialize();
-
-        bool allBoundsEqual = true;
-
-        for(auto & elem : checkBoundsVec)
-        {
-          std::pair<Fraction, Fraction> testBounds;
-
-          testBounds = test.getInputBoundsForNode(elem.coord,
-                                                  elem.dimension);
-
-          if(testBounds != elem.bounds)
-          {
-            allBoundsEqual = false;
-          }
-        }
-
-        return(allBoundsEqual);
-      }
-  };
+    return (allBoundsEqual);
+  }
+};
 } // end namespace nupic
 
 UniformLinkPolicyInspector inspector;
 
-Coordinate makeCoordinate(size_t x, size_t y)
-{
+Coordinate makeCoordinate(size_t x, size_t y) {
   Coordinate coord;
 
   coord.push_back(x);
   coord.push_back(y);
 
-  return(coord);
+  return (coord);
 }
 
-TEST(UniformLinkPolicyTest, StrictMappingOddSource)
-{
+TEST(UniformLinkPolicyTest, StrictMappingOddSource) {
   // ---
   // Check that a strict mapping with an rfSize of 2 fails on odd source
   // dimensions
   // ---
-  EXPECT_THROW(
-    inspector.setAndCheckDimensions(srcLinkSide,
-                          Dimensions(9,6),
-                          Dimensions(0,0),
-                          "{mapping: in, "
-                           "rfSize: [2]}"),
-    std::exception);
+  EXPECT_THROW(inspector.setAndCheckDimensions(srcLinkSide, Dimensions(9, 6),
+                                               Dimensions(0, 0),
+                                               "{mapping: in, "
+                                               "rfSize: [2]}"),
+               std::exception);
 }
 
-TEST(UniformLinkPolicyTest, StrictMappingDimensions)
-{
+TEST(UniformLinkPolicyTest, StrictMappingDimensions) {
   // ---
   // Check that a strict mapping with an rfSize of 2 calculates proper
   // dimensions when setting the source
   // ---
-  EXPECT_TRUE(
-    inspector.setAndCheckDimensions(srcLinkSide,
-                          Dimensions(8,6),
-                          Dimensions(4,3),
-                          "{mapping: in, "
-                           "rfSize: [2]}"));
+  EXPECT_TRUE(inspector.setAndCheckDimensions(srcLinkSide, Dimensions(8, 6),
+                                              Dimensions(4, 3),
+                                              "{mapping: in, "
+                                              "rfSize: [2]}"));
 }
 
-TEST(UniformLinkPolicyTest, SpanNoImpactSource)
-{
+TEST(UniformLinkPolicyTest, SpanNoImpactSource) {
   // ---
   // Check that adding in a span with size equal to the source dimensions has
   // no impact on the calculated destination dimensions when setting the source
   // ---
-  EXPECT_TRUE(
-    inspector.setAndCheckDimensions(srcLinkSide,
-                          Dimensions(8,6),
-                          Dimensions(4,3),
-                          "{mapping: in, "
-                           "rfSize: [2], "
-                           "span: [8,6]}"));
+  EXPECT_TRUE(inspector.setAndCheckDimensions(srcLinkSide, Dimensions(8, 6),
+                                              Dimensions(4, 3),
+                                              "{mapping: in, "
+                                              "rfSize: [2], "
+                                              "span: [8,6]}"));
 }
 
-TEST(UniformLinkPolicyTest, StrictMappingDestination)
-{
+TEST(UniformLinkPolicyTest, StrictMappingDestination) {
   // ---
   // Check that a strict mapping with an rfSize of 2 calculates proper
   // dimensions when setting the destination
   // ---
-  EXPECT_TRUE(
-    inspector.setAndCheckDimensions(destLinkSide,
-                          Dimensions(4,3),
-                          Dimensions(8,6),
-                          "{mapping: in, "
-                           "rfSize: [2]}"));
+  EXPECT_TRUE(inspector.setAndCheckDimensions(destLinkSide, Dimensions(4, 3),
+                                              Dimensions(8, 6),
+                                              "{mapping: in, "
+                                              "rfSize: [2]}"));
 }
 
-TEST(UniformLinkPolicyTest, SpanNoImpactDestination)
-{
+TEST(UniformLinkPolicyTest, SpanNoImpactDestination) {
   // ---
   // Check that adding in a span with size equal to the source dimensions has
   // no impact on the calculated destination dimensions when setting the
   // destination
   // ---
-  EXPECT_TRUE(
-    inspector.setAndCheckDimensions(destLinkSide,
-                          Dimensions(4,3),
-                          Dimensions(8,6),
-                          "{mapping: in, "
-                           "rfSize: [2], "
-                           "span: [8,6]}"));
+  EXPECT_TRUE(inspector.setAndCheckDimensions(destLinkSide, Dimensions(4, 3),
+                                              Dimensions(8, 6),
+                                              "{mapping: in, "
+                                              "rfSize: [2], "
+                                              "span: [8,6]}"));
 }
 
-TEST(UniformLinkPolicyTest, StrictMappingGranularityDestFails)
-{
+TEST(UniformLinkPolicyTest, StrictMappingGranularityDestFails) {
   // ---
   // Check that using a fractional rfSize with a granularity of elements fails
   // when the number of elements is inconsistent with a strict mapping
   // ---
-  EXPECT_THROW(
-    inspector.setAndCheckDimensions(destLinkSide,
-                          Dimensions(7),
-                          Dimensions(10),
-                          "{mapping: in, "
-                           "rfSize: [1.42857], "
-                           "rfGranularity: elements}",
-                          1),
-    std::exception);
+  EXPECT_THROW(inspector.setAndCheckDimensions(destLinkSide, Dimensions(7),
+                                               Dimensions(10),
+                                               "{mapping: in, "
+                                               "rfSize: [1.42857], "
+                                               "rfGranularity: elements}",
+                                               1),
+               std::exception);
 }
 
-TEST(UniformLinkPolicyTest, StrictMappingGranularityDestPasses)
-{
+TEST(UniformLinkPolicyTest, StrictMappingGranularityDestPasses) {
   // ---
   // Check that when using a compatible number of elements, the above test
   // passes
   // ---
-  EXPECT_TRUE(
-    inspector.setAndCheckDimensions(destLinkSide,
-                          Dimensions(7),
-                          Dimensions(10),
-                          "{mapping: in, "
-                           "rfSize: [1.42857], "
-                           "rfGranularity: elements}",
-                          7));
+  EXPECT_TRUE(inspector.setAndCheckDimensions(destLinkSide, Dimensions(7),
+                                              Dimensions(10),
+                                              "{mapping: in, "
+                                              "rfSize: [1.42857], "
+                                              "rfGranularity: elements}",
+                                              7));
 }
 
-TEST(UniformLinkPolicyTest, StrictMappingGranularitySourceFails)
-{
+TEST(UniformLinkPolicyTest, StrictMappingGranularitySourceFails) {
   // ---
   // Repeat the above two tests setting the source instead of the destination
   // ---
-  EXPECT_THROW(
-    inspector.setAndCheckDimensions(srcLinkSide,
-                          Dimensions(10),
-                          Dimensions(7),
-                          "{mapping: in, "
-                           "rfSize: [1.42857], "
-                           "rfGranularity: elements}",
-                          1),
-    std::exception);
+  EXPECT_THROW(inspector.setAndCheckDimensions(srcLinkSide, Dimensions(10),
+                                               Dimensions(7),
+                                               "{mapping: in, "
+                                               "rfSize: [1.42857], "
+                                               "rfGranularity: elements}",
+                                               1),
+               std::exception);
 }
 
-TEST(UniformLinkPolicyTest, StrictMappingGranularitySourcePasses)
-{
-  EXPECT_TRUE(
-    inspector.setAndCheckDimensions(srcLinkSide,
-                          Dimensions(10),
-                          Dimensions(7),
-                          "{mapping: in, "
-                           "rfSize: [1.42857], "
-                           "rfGranularity: elements}",
-                          7));
+TEST(UniformLinkPolicyTest, StrictMappingGranularitySourcePasses) {
+  EXPECT_TRUE(inspector.setAndCheckDimensions(srcLinkSide, Dimensions(10),
+                                              Dimensions(7),
+                                              "{mapping: in, "
+                                              "rfSize: [1.42857], "
+                                              "rfGranularity: elements}",
+                                              7));
 }
 
-TEST(UniformLinkPolicyTest, NonStrictMappingSourcePasses)
-{
+TEST(UniformLinkPolicyTest, NonStrictMappingSourcePasses) {
   // ---
   // Check that a non-strict mapping with an rfSize of 2 succeeds on odd source
   // dimensions and returns the expected values.  Specifically, when working in
@@ -301,17 +253,14 @@ TEST(UniformLinkPolicyTest, NonStrictMappingSourcePasses)
   // for source dimensions of [9, 6] and a rfSize of [2] we would expect
   // dimensions of [4, 3] instead of [5, 3].
   // ---
-  EXPECT_TRUE(
-    inspector.setAndCheckDimensions(srcLinkSide,
-                          Dimensions(9,6),
-                          Dimensions(4,3),
-                          "{mapping: in, "
-                           "rfSize: [2], "
-                           "strict: false}"));
+  EXPECT_TRUE(inspector.setAndCheckDimensions(srcLinkSide, Dimensions(9, 6),
+                                              Dimensions(4, 3),
+                                              "{mapping: in, "
+                                              "rfSize: [2], "
+                                              "strict: false}"));
 }
 
-TEST(UniformLinkPolicyTest, NonStrictMappingExpectedDimensions)
-{
+TEST(UniformLinkPolicyTest, NonStrictMappingExpectedDimensions) {
   // ---
   // Check that a non-strict mapping with overlap and a span has the expected
   // dimensions.
@@ -325,37 +274,31 @@ TEST(UniformLinkPolicyTest, NonStrictMappingExpectedDimensions)
   // nodes in a given destination node than fewer, be packed into one of the
   // two spans.  Therefore we expect the first dimension to be of size 4.
   // ---
-  EXPECT_TRUE(
-    inspector.setAndCheckDimensions(srcLinkSide,
-                          Dimensions(9,6),
-                          Dimensions(4,2),
-                          "{mapping: in, "
-                           "rfSize: [3], "
-                           "rfOverlap: [2, 0], "
-                           "span: [4, 0], "
-                           "strict: false}"));
+  EXPECT_TRUE(inspector.setAndCheckDimensions(srcLinkSide, Dimensions(9, 6),
+                                              Dimensions(4, 2),
+                                              "{mapping: in, "
+                                              "rfSize: [3], "
+                                              "rfOverlap: [2, 0], "
+                                              "span: [4, 0], "
+                                              "strict: false}"));
 }
 
-TEST(UniformLinkPolicyTest, NonStrictMappingExpectedDimensions2)
-{
+TEST(UniformLinkPolicyTest, NonStrictMappingExpectedDimensions2) {
   // ---
   // Repeat the above test using source dimensions of [10, 6].  In this case
   // The remaining 9th and 10th node should, be packed into one each of the
   // two spans.  Therefore we expect the first dimension to be of size 4.
   // ---
-  EXPECT_TRUE(
-    inspector.setAndCheckDimensions(srcLinkSide,
-                          Dimensions(10,6),
-                          Dimensions(4,2),
-                          "{mapping: in, "
-                           "rfSize: [3], "
-                           "rfOverlap: [2, 0], "
-                           "span: [4, 0], "
-                           "strict: false}"));
+  EXPECT_TRUE(inspector.setAndCheckDimensions(srcLinkSide, Dimensions(10, 6),
+                                              Dimensions(4, 2),
+                                              "{mapping: in, "
+                                              "rfSize: [3], "
+                                              "rfOverlap: [2, 0], "
+                                              "span: [4, 0], "
+                                              "strict: false}"));
 }
 
-TEST(UniformLinkPolicyTest, NonStrictMappingExpectedDimensionsEdge)
-{
+TEST(UniformLinkPolicyTest, NonStrictMappingExpectedDimensionsEdge) {
   // ---
   // Check the same condition as above, but setting the destination and
   // inducing the source dimensions.  We will test using destination dimensions
@@ -382,19 +325,16 @@ TEST(UniformLinkPolicyTest, NonStrictMappingExpectedDimensionsEdge)
   // being honored due to strict=false, will result in the 5th destination
   // node receiving no input.
   // ---
-  EXPECT_TRUE(
-    inspector.setAndCheckDimensions(destLinkSide,
-                          Dimensions(5,2),
-                          Dimensions(10,6),
-                          "{mapping: in, "
-                           "rfSize: [3], "
-                           "rfOverlap: [2, 0], "
-                           "span: [4, 0], "
-                           "strict: false}"));
+  EXPECT_TRUE(inspector.setAndCheckDimensions(destLinkSide, Dimensions(5, 2),
+                                              Dimensions(10, 6),
+                                              "{mapping: in, "
+                                              "rfSize: [3], "
+                                              "rfOverlap: [2, 0], "
+                                              "span: [4, 0], "
+                                              "strict: false}"));
 }
 
-TEST(UniformLinkPolicyTest, NonStrictMappingSourceDimensions)
-{
+TEST(UniformLinkPolicyTest, NonStrictMappingSourceDimensions) {
   // ---
   // Test basic non-strict mapping when setting source dimensions.
   //
@@ -403,46 +343,37 @@ TEST(UniformLinkPolicyTest, NonStrictMappingSourceDimensions)
   // fewer; consequently we expect dimensions of [4, 3] instead of [5, 4] for
   // the following settings.
   // ---
-  EXPECT_TRUE(
-    inspector.setAndCheckDimensions(srcLinkSide,
-                          Dimensions(8,6),
-                          Dimensions(4,3),
-                          "{mapping: in, "
-                           "rfSize: [1.7], "
-                           "strict: false}"));
+  EXPECT_TRUE(inspector.setAndCheckDimensions(srcLinkSide, Dimensions(8, 6),
+                                              Dimensions(4, 3),
+                                              "{mapping: in, "
+                                              "rfSize: [1.7], "
+                                              "strict: false}"));
 }
 
-TEST(UniformLinkPolicyTest, NonStrictMappingDestinationDimensions)
-{
+TEST(UniformLinkPolicyTest, NonStrictMappingDestinationDimensions) {
   // ---
   // Test basic non-strict mapping when setting destination dimensions.
   // ---
-  EXPECT_TRUE(
-    inspector.setAndCheckDimensions(destLinkSide,
-                          Dimensions(4,3),
-                          Dimensions(7,6),
-                          "{mapping: in, "
-                           "rfSize: [1.7], "
-                           "strict: false}"));
+  EXPECT_TRUE(inspector.setAndCheckDimensions(destLinkSide, Dimensions(4, 3),
+                                              Dimensions(7, 6),
+                                              "{mapping: in, "
+                                              "rfSize: [1.7], "
+                                              "strict: false}"));
 }
 
-TEST(UniformLinkPolicyTest, OverlapOverhangRealisticDimensions)
-{
+TEST(UniformLinkPolicyTest, OverlapOverhangRealisticDimensions) {
   // ---
   // Test overhang and overlap while using realistic image size dimensions.
   // ---
-  EXPECT_TRUE(
-    inspector.setAndCheckDimensions(srcLinkSide,
-                          Dimensions(320,240),
-                          Dimensions(41,31),
-                          "{mapping: in, "
-                           "rfSize: [16], "
-                           "rfOverlap: [8], "
-                           "overhang: [8]}"));
+  EXPECT_TRUE(inspector.setAndCheckDimensions(srcLinkSide, Dimensions(320, 240),
+                                              Dimensions(41, 31),
+                                              "{mapping: in, "
+                                              "rfSize: [16], "
+                                              "rfOverlap: [8], "
+                                              "overhang: [8]}"));
 }
 
-TEST(UniformLinkPolicyTest, StrictMappingSplitOverReceptiveFields)
-{
+TEST(UniformLinkPolicyTest, StrictMappingSplitOverReceptiveFields) {
   // ---
   // Test a strict mapping to make sure the elements are split across
   // receptive fields as expected
@@ -450,36 +381,25 @@ TEST(UniformLinkPolicyTest, StrictMappingSplitOverReceptiveFields)
   std::vector<CoordBounds> expectedBoundVec;
 
   expectedBoundVec.push_back(
-    CoordBounds(makeCoordinate(0,0),
-                0,
-                std::pair<size_t, size_t>(0, 1)));
+      CoordBounds(makeCoordinate(0, 0), 0, std::pair<size_t, size_t>(0, 1)));
 
   expectedBoundVec.push_back(
-    CoordBounds(makeCoordinate(1,0),
-                0,
-                std::pair<size_t, size_t>(2, 3)));
+      CoordBounds(makeCoordinate(1, 0), 0, std::pair<size_t, size_t>(2, 3)));
 
   expectedBoundVec.push_back(
-    CoordBounds(makeCoordinate(2,0),
-                0,
-                std::pair<size_t, size_t>(4, 5)));
+      CoordBounds(makeCoordinate(2, 0), 0, std::pair<size_t, size_t>(4, 5)));
 
   expectedBoundVec.push_back(
-    CoordBounds(makeCoordinate(3,0),
-                0,
-                std::pair<size_t, size_t>(6, 7)));
+      CoordBounds(makeCoordinate(3, 0), 0, std::pair<size_t, size_t>(6, 7)));
 
-  EXPECT_TRUE(
-    inspector.setDimensionsAndCheckBounds(srcLinkSide,
-                                Dimensions(8,6),
-                                expectedBoundVec,
-                                "{mapping: in, "
-                                 "rfSize: [2], "
-                                 "strict: false}"));
+  EXPECT_TRUE(inspector.setDimensionsAndCheckBounds(
+      srcLinkSide, Dimensions(8, 6), expectedBoundVec,
+      "{mapping: in, "
+      "rfSize: [2], "
+      "strict: false}"));
 }
 
-TEST(UniformLinkPolicyTest, NonStrictMappingSplitOverReceptiveFields)
-{
+TEST(UniformLinkPolicyTest, NonStrictMappingSplitOverReceptiveFields) {
   // ---
   // Test a non-strict mapping to make sure the elements are split across
   // receptive fields as expected
@@ -487,30 +407,20 @@ TEST(UniformLinkPolicyTest, NonStrictMappingSplitOverReceptiveFields)
   std::vector<CoordBounds> expectedBoundVec;
 
   expectedBoundVec.push_back(
-    CoordBounds(makeCoordinate(0,0),
-                0,
-                std::pair<size_t, size_t>(0, 1)));
+      CoordBounds(makeCoordinate(0, 0), 0, std::pair<size_t, size_t>(0, 1)));
 
   expectedBoundVec.push_back(
-    CoordBounds(makeCoordinate(1,0),
-                0,
-                std::pair<size_t, size_t>(2, 3)));
+      CoordBounds(makeCoordinate(1, 0), 0, std::pair<size_t, size_t>(2, 3)));
 
   expectedBoundVec.push_back(
-    CoordBounds(makeCoordinate(2,0),
-                0,
-                std::pair<size_t, size_t>(4, 5)));
+      CoordBounds(makeCoordinate(2, 0), 0, std::pair<size_t, size_t>(4, 5)));
 
   expectedBoundVec.push_back(
-    CoordBounds(makeCoordinate(3,0),
-                0,
-                std::pair<size_t, size_t>(6, 8)));
+      CoordBounds(makeCoordinate(3, 0), 0, std::pair<size_t, size_t>(6, 8)));
 
-  EXPECT_TRUE(
-    inspector.setDimensionsAndCheckBounds(srcLinkSide,
-                                Dimensions(9,6),
-                                expectedBoundVec,
-                                "{mapping: in, "
-                                 "rfSize: [2], "
-                                 "strict: false}"));
+  EXPECT_TRUE(inspector.setDimensionsAndCheckBounds(
+      srcLinkSide, Dimensions(9, 6), expectedBoundVec,
+      "{mapping: in, "
+      "rfSize: [2], "
+      "strict: false}"));
 }

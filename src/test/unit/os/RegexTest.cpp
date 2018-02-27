@@ -24,54 +24,43 @@
  * Implementation for Directory test
  */
 
-
-#include <nupic/os/Regex.hpp>
 #include <gtest/gtest.h>
+#include <nupic/os/Regex.hpp>
 
 using namespace std;
 using namespace nupic;
 
+TEST(RegexTest, Basic) {
 
-TEST(RegexTest, Basic)
-{
-  
   ASSERT_TRUE(regex::match(".*", ""));
   ASSERT_TRUE(regex::match(".*", "dddddfsdsgregegr"));
-  ASSERT_TRUE(regex::match("d.*", "d"));  
+  ASSERT_TRUE(regex::match("d.*", "d"));
   ASSERT_TRUE(regex::match("^d.*", "ddsfffdg"));
   ASSERT_TRUE(!regex::match("d.*", ""));
   ASSERT_TRUE(!regex::match("d.*", "a"));
   ASSERT_TRUE(!regex::match("^d.*", "ad"));
   ASSERT_TRUE(!regex::match("Sensor", "CategorySensor"));
-  
-  
-  ASSERT_TRUE(regex::match("\\\\", "\\"));  
-                
-//  ASSERT_TRUE(regex::match("\\w", "a"));  
-//  ASSERT_TRUE(regex::match("\\d", "3"));    
-//  ASSERT_TRUE(regex::match("\\w{3}", "abc"));
-//  ASSERT_TRUE(regex::match("^\\w{3}$", "abc"));  
-//  ASSERT_TRUE(regex::match("[\\w]{3}", "abc"));  
-  
+
+  ASSERT_TRUE(regex::match("\\\\", "\\"));
+
+  //  ASSERT_TRUE(regex::match("\\w", "a"));
+  //  ASSERT_TRUE(regex::match("\\d", "3"));
+  //  ASSERT_TRUE(regex::match("\\w{3}", "abc"));
+  //  ASSERT_TRUE(regex::match("^\\w{3}$", "abc"));
+  //  ASSERT_TRUE(regex::match("[\\w]{3}", "abc"));
+
   ASSERT_TRUE(regex::match("[A-Za-z0-9_]{3}", "abc"));
-  
+
   // Invalid expression tests (should throw)
-  try
-  {
+  try {
     ASSERT_TRUE(regex::match("", ""));
     ASSERT_TRUE(false);
+  } catch (...) {
   }
-  catch (...)
-  {
-  }
-   
-  try
-  {
+
+  try {
     ASSERT_TRUE(regex::match("xyz[", ""));
     ASSERT_TRUE(false);
-  }
-  catch (...)
-  {
+  } catch (...) {
   }
 }
-

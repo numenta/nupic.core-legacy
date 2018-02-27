@@ -19,11 +19,11 @@
  * http://numenta.org/licenses/
  * ---------------------------------------------------------------------
  */
-      
+
 /** @file
  * Implementation of unit testing for class SparseMatrix01
- */         
-              
+ */
+
 //#include <nupic/common/version.hpp>
 
 // #include <nupic/math/ArrayAlgo.hpp>
@@ -35,10 +35,9 @@
 //
 // namespace nupic {
 //
-#define TEST_LOOP(M)                                  \
-  for (nrows = 0, ncols = M, zr = 15;                 \
-       nrows < M;                                     \
-       nrows += M/10, ncols -= M/10, zr = ncols/10)   \
+#define TEST_LOOP(M)                                                           \
+  for (nrows = 0, ncols = M, zr = 15; nrows < M;                               \
+       nrows += M / 10, ncols -= M / 10, zr = ncols / 10)
 
 #define M 256
 //
@@ -61,7 +60,7 @@
 //    // Tests:
 //    // all constructors, destructors, nNonZeros, nCols, nRows
 //    // toDense, compact, isZero, nNonZerosRow
-//    UInt ncols, nrows, zr;    
+//    UInt ncols, nrows, zr;
 //
 //    { // Rectangular shape, no zeros
 //      nrows = 3; ncols = 4;
@@ -72,7 +71,7 @@
 //      sm.compact();
 //      Compare(dense, sm, "ctor 1 - compact");
 //      Test("isZero 1 - compact", sm.isZero(), false);
-//    }    
+//    }
 //
 //    { // Rectangular shape, zeros
 //      nrows = 3; ncols = 4;
@@ -83,9 +82,9 @@
 //      sm.compact();
 //      Compare(dense, sm, "ctor 2 - compact");
 //      Test("isZero 2 - compact", sm.isZero(), false);
-//    }   
-//      
-//    { // Rectangular the other way, no zeros     
+//    }
+//
+//    { // Rectangular the other way, no zeros
 //      nrows = 4; ncols = 3;
 //      Dense01<UInt, Real> dense(nrows, ncols, 0);
 //      SparseMatrix01<UInt, Real> sm(nrows, ncols, dense.begin(), 0);
@@ -127,7 +126,7 @@
 //      sm.compact();
 //      Compare(dense, sm, "ctor 6 - compact");
 //      Test("isZero 6 - compact", sm.isZero(), false);
-//    }  
+//    }
 //
 //    { // Small values, zeros and empty rows
 //      nrows = 7; ncols = 5;
@@ -138,7 +137,7 @@
 //      sm.compact();
 //      Compare(dense, sm, "ctor 7 - compact");
 //      Test("isZero 7 - compact", sm.isZero(), false);
-//    }    
+//    }
 //
 //    { // Small values, zeros and empty rows, other constructor
 //      nrows = 10; ncols = 10;
@@ -167,26 +166,26 @@
 //    }
 //
 //    { // Small values, zeros and empty rows, other constructor
-//      nrows = 10; ncols = 10;   
+//      nrows = 10; ncols = 10;
 //      Dense01<UInt, Real> dense(nrows, ncols, 2, true, true);
 //      SparseMatrix01<UInt, Real> sm(ncols, 2);
 //      for (UInt i = 0; i < nrows; ++i)
 //        sm.addRow(dense.begin(i));
 //      Compare(dense, sm, "ctor 10");
-//      Test("isZero 10", sm.isZero(), false);   
+//      Test("isZero 10", sm.isZero(), false);
 //      sm.compact();
 //      Compare(dense, sm, "ctor 10 - compact");
 //      Test("isZero 10 - compact", sm.isZero(), false);
 //    }
-//    
+//
 //    { // Empty
 //      Dense01<UInt, Real> dense(10, 10, 10);
 //      SparseMatrix01<UInt, Real> sm(10, 10, dense.begin(), 0);
 //      Compare(dense, sm, "ctor from empty dense - non compact");
-//      Test("isZero 11", sm.isZero(), true);     
+//      Test("isZero 11", sm.isZero(), true);
 //      sm.compact();
 //      Compare(dense, sm, "ctor from empty dense - compact");
-//      Test("isZero 11 - compact", sm.isZero(), true); 
+//      Test("isZero 11 - compact", sm.isZero(), true);
 //    }
 //
 //    { // Empty, other constructor
@@ -195,10 +194,10 @@
 //      for (UInt i = 0; i < nrows; ++i)
 //        sm.addRow(dense.begin(i));
 //      Compare(dense, sm, "ctor from empty dense - non compact");
-//      Test("isZero 12", sm.isZero(), true); 
+//      Test("isZero 12", sm.isZero(), true);
 //      sm.compact();
 //      Compare(dense, sm, "ctor from empty dense - compact");
-//      Test("isZero 12 - compact", sm.isZero(), true); 
+//      Test("isZero 12 - compact", sm.isZero(), true);
 //    }
 //
 //    { // Full
@@ -213,13 +212,13 @@
 //
 //    { // Various rectangular sizes
 //      TEST_LOOP(M) {
-//            
+//
 //        Dense01<UInt, Real> dense(nrows, ncols, zr);
 //        SparseMatrix01<UInt, Real> sm(ncols, nrows);
-//      
+//
 //        for (UInt i = 0; i < nrows; ++i)
 //          sm.addRow(dense.begin(i));
-//      
+//
 //        {
 //          stringstream str;
 //          str << "ctor " << nrows << "X" << ncols << "/" << zr
@@ -240,46 +239,58 @@
 //
 //    try {
 //      SparseMatrix01<int, Real> sme1(0, 0);
-//      Test("SparseMatrix01::SparseMatrix01(Int, Int) exception 1", true, false);
+//      Test("SparseMatrix01::SparseMatrix01(Int, Int) exception 1", true,
+//      false);
 //    } catch (std::exception&) {
-//      Test("SparseMatrix01::SparseMatrix01(Int, Int) exception 1", true, true);
+//      Test("SparseMatrix01::SparseMatrix01(Int, Int) exception 1", true,
+//      true);
 //    }
 //
 //    try {
 //      SparseMatrix01<int, Real> sme1(-1, 0);
-//      Test("SparseMatrix01::SparseMatrix01(Int, Int) exception 2", true, false);
+//      Test("SparseMatrix01::SparseMatrix01(Int, Int) exception 2", true,
+//      false);
 //    } catch (std::exception&) {
-//      Test("SparseMatrix01::SparseMatrix01(Int, Int) exception 2", true, true);
+//      Test("SparseMatrix01::SparseMatrix01(Int, Int) exception 2", true,
+//      true);
 //    }
 //
 //    try {
 //      SparseMatrix01<int, Real> sme1(1, -1);
-//      Test("SparseMatrix01::SparseMatrix01(Int, Int) exception 3", true, false);
+//      Test("SparseMatrix01::SparseMatrix01(Int, Int) exception 3", true,
+//      false);
 //    } catch (std::exception&) {
-//      Test("SparseMatrix01::SparseMatrix01(Int, Int) exception 3", true, true);
+//      Test("SparseMatrix01::SparseMatrix01(Int, Int) exception 3", true,
+//      true);
 //    }
 //
 //    std::vector<Real> mat(16, 0);
-//    
+//
 //    try {
 //      SparseMatrix01<int, Real> sme1(-1, 1, mat.begin(), 0);
-//      Test("SparseMatrix01::SparseMatrix01(Int, Int, Iter) exception 1", true, false);
+//      Test("SparseMatrix01::SparseMatrix01(Int, Int, Iter) exception 1", true,
+//      false);
 //    } catch (std::exception&) {
-//      Test("SparseMatrix01::SparseMatrix01(Int, Iter) exception 1", true, true);
-//    }    
+//      Test("SparseMatrix01::SparseMatrix01(Int, Iter) exception 1", true,
+//      true);
+//    }
 //
 //    try {
 //      SparseMatrix01<int, Real> sme1(1, -1, mat.begin(), 0);
-//      Test("SparseMatrix01::SparseMatrix01(Int, Int, Iter) exception 2", true, false);
+//      Test("SparseMatrix01::SparseMatrix01(Int, Int, Iter) exception 2", true,
+//      false);
 //    } catch (std::exception&) {
-//      Test("SparseMatrix01::SparseMatrix01(Int, Iter) exception 2", true, true);
+//      Test("SparseMatrix01::SparseMatrix01(Int, Iter) exception 2", true,
+//      true);
 //    }
-//     
+//
 //    try {
 //      SparseMatrix01<int, Real> sme1(1, 0, mat.begin(), 0);
-//      Test("SparseMatrix01::SparseMatrix01(Int, Int, Iter) exception 3", true, false);
+//      Test("SparseMatrix01::SparseMatrix01(Int, Int, Iter) exception 3", true,
+//      false);
 //    } catch (std::exception&) {
-//      Test("SparseMatrix01::SparseMatrix01(Int, Iter) exception 3", true, true);
+//      Test("SparseMatrix01::SparseMatrix01(Int, Iter) exception 3", true,
+//      true);
 //    }
 //  }
 //
@@ -287,28 +298,28 @@
 //  void SparseMatrix01UnitTest::unit_test_csr()
 //  {
 //    UInt nrows, ncols, zr;
-//                  
+//
 //    {
 //      TEST_LOOP(M) {
-//                  
+//
 //        Dense01<UInt, Real> dense3(nrows, ncols, zr);
 //        SparseMatrix01<UInt, Real> sm3(nrows, ncols, dense3.begin(), 0);
-//        
+//
 //        stringstream buf;
 //        sm3.toCSR(buf);
 //        sm3.fromCSR(buf);
-//    
-//        {  
+//
+//        {
 //          stringstream str;
 //          str << "toCSR/fromCSR A " << nrows << "X" << ncols << "/" << zr;
 //          Compare(dense3, sm3, str.str().c_str());
-//        }   
+//        }
 //
 //        SparseMatrix01<UInt, Real> sm4(ncols, nrows);
 //        stringstream buf1;
 //        sm3.toCSR(buf1);
 //        sm4.fromCSR(buf1);
-//  
+//
 //        {
 //          stringstream str;
 //          str << "toCSR/fromCSR B " << nrows << "X" << ncols << "/" << zr;
@@ -320,7 +331,7 @@
 //        sm3.toCSR(buf2);
 //        sm4.fromCSR(buf2);
 //
-//        {  
+//        {
 //          stringstream str;
 //          str << "toCSR/fromCSR C " << nrows << "X" << ncols << "/" << zr;
 //          Compare(dense3, sm4, str.str().c_str());
@@ -341,7 +352,7 @@
 //    { // Is resizing happening correctly?
 //      Dense01<UInt, Real> dense(3, 4, 2);
 //      SparseMatrix01<UInt, Real> sm(3, 4, dense.begin(), 0);
-//      
+//
 //      { // Smaller size
 //        stringstream buf1, buf2;
 //        buf1 << "csr01 0 3 3 9 0 3 0 1 2 3 0 1 2 3 0 1 2";
@@ -390,7 +401,7 @@
 //    // Exceptions
 //    SparseMatrix01<int, Real> sme1(1, 1);
 //
-//    { 
+//    {
 //      stringstream s1;
 //      s1 << "ijv";
 //      try {
@@ -422,7 +433,7 @@
 //        Test("SparseMatrix01::fromCSR() exception 3", true, true);
 //      }
 //    }
-//   
+//
 //    {
 //      stringstream s1;
 //      s1 << "csr01 0 1 0";
@@ -472,7 +483,7 @@
 //      s1 << "csr01 0 2 3 1 0 1 -1";
 //      try {
 //        sme1.fromCSR(s1);
-//        Test("SparseMatrix01::fromCSR() exception 8", true, false); 
+//        Test("SparseMatrix01::fromCSR() exception 8", true, false);
 //      } catch (runtime_error&) {
 //        Test("SparseMatrix01::fromCSR() exception 8", true, true);
 //      }
@@ -497,7 +508,7 @@
 //    ncols = 5;
 //    nrows = 7;
 //    zr = 2;
-//  
+//
 //    Dense01<UInt, Real> dense(nrows, ncols, zr);
 //    SparseMatrix01<UInt, Real> sm4(ncols, nrows);
 //    sm4.fromDense(nrows, ncols, dense.begin());
@@ -517,14 +528,14 @@
 //    Compare(dense2, sm5, "fromDense 4");
 //
 //    std::vector<Real> mat((nrows+1)*(ncols+1), 0);
-//  
+//
 //    sm5.toDense(mat.begin());
 //    sm5.fromDense(nrows+1, ncols+1, mat.begin());
 //    Compare(dense2, sm5, "toDense 1");
-//  
+//
 //    {
 //      TEST_LOOP(M) {
-//      
+//
 //        Dense01<UInt, Real> dense3(nrows, ncols, zr);
 //        SparseMatrix01<UInt, Real> sm3(nrows, ncols, dense3.begin(), 0);
 //        std::vector<Real> mat3(nrows*ncols, 0);
@@ -555,37 +566,37 @@
 //      Dense01<UInt, Real> dense(nrows, ncols, zr);
 //      SparseMatrix01<UInt, Real> sm(nrows, ncols, dense.begin(), 0);
 //      std::vector<Real> mat3(nrows*ncols, 0);
-//      
+//
 //      sm.toDense(mat3.begin());
 //      sm.fromDense(nrows, ncols, mat3.begin());
-//    
+//
 //      Compare(dense, sm, "toDense/fromDense from dense");
-//    }  
+//    }
 //
 //    { // What happens if dense matrix is empty?
 //      nrows = ncols = 10; zr = 10;
 //      Dense01<UInt, Real> dense(nrows, ncols, zr);
 //      SparseMatrix01<UInt, Real> sm(nrows, ncols, dense.begin(), 0);
 //      std::vector<Real> mat3(nrows*ncols, 0);
-//      
+//
 //      sm.toDense(mat3.begin());
 //      sm.fromDense(nrows, ncols, mat3.begin());
-//    
+//
 //      Compare(dense, sm, "toDense/fromDense from dense");
 //    }
 //
 //    { // What happens if there are empty rows?
 //      nrows = ncols = 10; zr = 2;
 //      Dense01<UInt, Real> dense(nrows, ncols, zr);
-//      for (UInt i = 0; i < ncols; ++i) 
+//      for (UInt i = 0; i < ncols; ++i)
 //        dense.at(2,i) = dense.at(4,i) = dense.at(9,i) = 0;
-//        
+//
 //      SparseMatrix01<UInt, Real> sm(nrows, ncols, dense.begin(), 0);
 //      std::vector<Real> mat3(nrows*ncols, 0);
-//    
+//
 //      sm.toDense(mat3.begin());
 //      sm.fromDense(nrows, ncols, mat3.begin());
-//    
+//
 //      Compare(dense, sm, "toDense/fromDense from dense");
 //    }
 //
@@ -605,10 +616,10 @@
 //      sm.fromDense(10, 10, dense4.begin());
 //      Compare(dense4, sm, "fromDense/redim/3");
 //    }
-//    
+//
 //    // Exceptions
 //    SparseMatrix01<int, Real> sme1(1, 1);
-//    
+//
 //    try {
 //      sme1.fromDense(-1, 0, dense.begin());
 //      Test("SparseMatrix01::fromDense() exception 1", true, false);
@@ -641,23 +652,23 @@
 //
 //    Dense01<UInt, Real> dense(nrows, ncols, zr);
 //    SparseMatrix01<UInt, Real> sm4(nrows, ncols, dense.begin(), 0);
-//  
+//
 //    sm4.decompact();
 //    Compare(dense, sm4, "decompact 1");
-//  
+//
 //    sm4.compact();
 //    Compare(dense, sm4, "compact 1");
 //
 //    sm4.decompact();
 //    Compare(dense, sm4, "decompact 2");
-//  
+//
 //    sm4.compact();
 //    Compare(dense, sm4, "compact 2");
 //
 //    sm4.decompact();
 //    sm4.decompact();
 //    Compare(dense, sm4, "decompact twice");
-//  
+//
 //    sm4.compact();
 //    sm4.compact();
 //    Compare(dense, sm4, "compact twice");
@@ -671,7 +682,7 @@
 //        SparseMatrix01<UInt, Real> sm3(nrows, ncols, dense3.begin(), 0);
 //
 //        sm3.decompact();
-//      
+//
 //        {
 //          stringstream str;
 //          str << "compact/decompact A " << nrows << "X" << ncols << "/" << zr
@@ -695,7 +706,7 @@
 //      Dense01<UInt, Real> dense(nrows, ncols, zr);
 //      SparseMatrix01<UInt, Real> sm(nrows, ncols, dense.begin(), 0);
 //      std::vector<Real> mat3(nrows*ncols, 0);
-//    
+//
 //      sm.decompact();
 //      Compare(dense, sm, "decompact on dense");
 //
@@ -708,38 +719,38 @@
 //  void SparseMatrix01UnitTest::unit_test_getRowSparse()
 //  {
 //    UInt ncols, nrows, zr, i, k;
-//  
+//
 //    {
 //      TEST_LOOP(M) {
-//        
+//
 //        Dense01<UInt, Real> dense(nrows, ncols, zr);
 //        SparseMatrix01<UInt, Real> sm(nrows, ncols, dense.begin(), 0);
 //
 //        for (i = 0; i < nrows; ++i) {
-//          
+//
 //          stringstream str;
-//          str << "getRowSparse A " << nrows << "X" << ncols 
+//          str << "getRowSparse A " << nrows << "X" << ncols
 //              << "/" << zr << " " << i;
-//  
+//
 //          vector<UInt> ind; ;
 //          sm.getRowSparse(i, back_inserter(ind));
-//          
+//
 //          std::vector<Real> d(ncols, 0);
 //          for (k = 0; k < ind.size(); ++k)
 //            d[ind[k]] = 1.0;
-//          
+//
 //          CompareVectors(ncols, d.begin(), dense.begin(i), str.str().c_str());
 //        }
-//      }  
-//    }  
+//      }
+//    }
 //  }
 //
 //  //--------------------------------------------------------------------------------
 //  void SparseMatrix01UnitTest::unit_test_addRow()
 //  {
 //    // addRow, compact
-//    UInt nrows, ncols, zr;   
-//  
+//    UInt nrows, ncols, zr;
+//
 //    {
 //      TEST_LOOP(M) {
 //
@@ -750,16 +761,16 @@
 //          sm.addRow(dense.begin(i));
 //          sm.compact();
 //        }
-//      
+//
 //        sm.decompact();
-//      
+//
 //        {
 //          stringstream str;
 //          str << "addRow A " << nrows << "X" << ncols << "/" << zr
 //              << " - non compact";
 //          Compare(dense, sm, str.str().c_str());
 //        }
-//      
+//
 //        sm.compact();
 //
 //        {
@@ -770,8 +781,8 @@
 //        }
 //      }
 //    }
-//    
-//    // These tests compiled conditionally, because they are 
+//
+//    // These tests compiled conditionally, because they are
 //    // based on asserts rather than checks
 //
 //#ifdef NTA_ASSERTIONS_ON
@@ -814,7 +825,8 @@
 //
 //  //--------------------------------------------------------------------------------
 //  /**
-//   * The vector of all zeros is indistinguishable from the vector where the maxima
+//   * The vector of all zeros is indistinguishable from the vector where the
+//   maxima
 //   * are the first elements of each section!
 //   */
 //  void SparseMatrix01UnitTest::unit_test_addUniqueFilteredRow()
@@ -828,42 +840,44 @@
 //    UInt winner, winner_ref;
 //
 //    typedef map<vector<Real>, pair<UInt, UInt> > Check;
-//    Check control; Check::iterator it;    
-//    
+//    Check control; Check::iterator it;
+//
 //    for (UInt i = 0; i < nreps; ++i) {
-//      
-//      for (UInt j = 0; j < ncols; ++j)   
+//
+//      for (UInt j = 0; j < ncols; ++j)
 //        x[j] = rng_->getReal64();
 //
 //      winnerTakesAll2(boundaries, x.begin(), v.begin());
 //
-//      it = control.find(v);  
-//      if (it == control.end()) { 
+//      it = control.find(v);
+//      if (it == control.end()) {
 //        winner_ref = (UInt)control.size();
-//        control[v] = make_pair(winner_ref, 1);   
-//      } else {   
+//        control[v] = make_pair(winner_ref, 1);
+//      } else {
 //        winner_ref = control[v].first;
-//        control[v].second += 1;      
-//      }    
+//        control[v].second += 1;
+//      }
 //
 //      winner = sm01.addUniqueFilteredRow(boundaries.begin(), x.begin());
 //      Test("SparseMatrix01 addUniqueFilteredRow 1", winner, winner_ref);
 //    }
-//      
-//    Test("SparseMatrix01 addUniqueFilteredRow 2", sm01.nRows(), control.size());
+//
+//    Test("SparseMatrix01 addUniqueFilteredRow 2", sm01.nRows(),
+//    control.size());
 //
 //    SparseMatrix01<UInt, Real>::RowCounts rc = sm01.getRowCounts();
-//      
+//
 //    for (UInt i = 0; i < rc.size(); ++i) {
 //      sm01.getRow(rc[i].first, x.begin());
-//      Test("SparseMatrix01 addUniqueFilteredRow 3", rc[i].second, control[x].second);
+//      Test("SparseMatrix01 addUniqueFilteredRow 3", rc[i].second,
+//      control[x].second);
 //    }
 //
 //    /*
 //      x[0]=.5;x[1]=.7;x[2]=.3;x[3]=.1;x[4]=.7;x[5]=.1;x[6]=.1;x[7]=0;
 //      sm01.addUniqueFilteredRow(boundaries.begin(), x.begin());
-//      cout << sm01 << endl;    
-//    
+//      cout << sm01 << endl;
+//
 //      x[0]=.9;x[1]=.7;x[2]=.3;x[3]=.1;x[4]=.9;x[5]=.1;x[6]=.1;x[7]=0;
 //      sm01.addUniqueFilteredRow(boundaries.begin(), x.begin());
 //      cout << sm01 << endl;
@@ -877,7 +891,7 @@
 //      cout << sm01 << endl;
 //    */
 //  }
-//   
+//
 //  //--------------------------------------------------------------------------------
 //  void SparseMatrix01UnitTest::unit_test_addMinHamming()
 //  {
@@ -892,20 +906,20 @@
 //    UInt winner, winner_ref, hamming, min_hamming, max_distance;
 //
 //    typedef map<vector<UInt>, pair<UInt, UInt> > Check;
-//    Check control; Check::iterator it, arg_it;    
-//    
+//    Check control; Check::iterator it, arg_it;
+//
 //    for (UInt i = 0; i < nreps; ++i) {
-//      
+//
 //      max_distance = rng_->getUInt32(nnzr);
 //
-//      for (UInt j = 0; j < ncols; ++j)   
+//      for (UInt j = 0; j < ncols; ++j)
 //        x[j] = rng_->getUInt32(100);
 //
 //      winnerTakesAll2(boundaries, x.begin(), v.begin());
 //
 //      min_hamming = std::numeric_limits<UInt>::max();
 //      arg_it = control.begin();
-//      
+//
 //      for (it = control.begin(); it != control.end(); ++it) {
 //	hamming = 0;
 //	for (UInt k = 0; k < ncols; ++k) {
@@ -917,8 +931,8 @@
 //	  min_hamming = hamming;
 //	  arg_it = it;
 //	}
-//      }   
-//      
+//      }
+//
 //      if (min_hamming <= max_distance) {
 //	++ (arg_it->second.second);
 //	winner_ref = arg_it->second.first;
@@ -927,21 +941,21 @@
 //	control[v] = std::make_pair(winner_ref, 1);
 //      }
 //
-//      winner = sm01.addMinHamming(boundaries.begin(), x.begin(), max_distance);
-//      Test("SparseMatrix01 addMinHamming 1", winner, winner_ref);
-//      if (winner != winner_ref) {
+//      winner = sm01.addMinHamming(boundaries.begin(), x.begin(),
+//      max_distance); Test("SparseMatrix01 addMinHamming 1", winner,
+//      winner_ref); if (winner != winner_ref) {
 //	cout << winner << " - " << winner_ref << endl << endl;
 //	for (UInt k = 0; k < ncols; ++k)
 //	  cout << v[k] << " ";
 //	cout << endl << endl;
-//	cout << sm01 << endl; 
+//	cout << sm01 << endl;
 //      }
 //    }
-//      
+//
 //    Test("SparseMatrix01 addMinHamming 2", sm01.nRows(), control.size());
 //
 //    SparseMatrix01<UInt, Real>::RowCounts rc = sm01.getRowCounts();
-//      
+//
 //    for (UInt i = 0; i < rc.size(); ++i) {
 //      sm01.getRow(rc[i].first, x.begin());
 //      Test("SparseMatrix01 addMinHamming 3", rc[i].second, control[x].second);
@@ -950,11 +964,11 @@
 //    /*
 //    x[0]=.5;x[1]=.7;x[2]=.3;x[3]=.1;x[4]=.7;x[5]=.1;x[6]=.1;x[7]=0;
 //    sm01.addMinHamming(boundaries.begin(), x.begin(), 2);
-//    cout << sm01 << endl;    
+//    cout << sm01 << endl;
 //
 //    sm01.addMinHamming(boundaries.begin(), x.begin(), 2);
-//    cout << sm01 << endl;    
-//    
+//    cout << sm01 << endl;
+//
 //    x[0]=.9;x[1]=.7;x[2]=.3;x[3]=.1;x[4]=.9;x[5]=.1;x[6]=.1;x[7]=0;
 //    sm01.addMinHamming(boundaries.begin(), x.begin(), 2);
 //    cout << sm01 << endl;
@@ -971,10 +985,10 @@
 //
 //  //--------------------------------------------------------------------------------
 //  void SparseMatrix01UnitTest::unit_test_deleteRows()
-//  {     
+//  {
 //    { // Empty matrix
 //      UInt nrows = 3, ncols = 3;
-//    
+//
 //      { // Empty matrix, empty del
 //	SparseMatrix01<UInt, Real> sm(ncols, nrows);
 //	vector<UInt> del;
@@ -1002,7 +1016,7 @@
 //
 //      TEST_LOOP(M) {
 //
-//	Dense01<UInt, Real> dense(nrows, ncols, zr);   
+//	Dense01<UInt, Real> dense(nrows, ncols, zr);
 //
 //	{ // Empty del
 //	  SparseMatrix01<UInt, Real> sm(nrows, ncols, dense.begin(), 0);
@@ -1018,18 +1032,18 @@
 //	      for (UInt j = 0; j < ncols; ++j)
 //		dense2.at(i,j) = 0;
 //	    }
-//	  }   
+//	  }
 //	  SparseMatrix01<UInt, Real> sm(nrows, ncols, dense2.begin(), 0);
 //	  vector<UInt> del;
 //	  if (nrows > 2) {
-//	    for (UInt i = 2; i < nrows-2; i += 2)    
+//	    for (UInt i = 2; i < nrows-2; i += 2)
 //	      del.push_back(i);
 //	    sm.deleteRows(del.begin(), del.end());
 //	    dense2.deleteRows(del.begin(), del.end());
 //	    Compare(dense2, sm, "SparseMatrix01::deleteRows() 5A");
 //	  }
 //	}
-//	
+//
 //	{ // Rows of all zeros 2
 //	  Dense01<UInt, Real> dense2(nrows, ncols, zr);
 //	  ITER_1(nrows) {
@@ -1041,7 +1055,7 @@
 //	  SparseMatrix01<UInt, Real> sm(nrows, ncols, dense2.begin(), 0);
 //	  vector<UInt> del;
 //	  if (nrows > 2) {
-//	    for (UInt i = 1; i < nrows-2; i += 2)    
+//	    for (UInt i = 1; i < nrows-2; i += 2)
 //	      del.push_back(i);
 //	    sm.deleteRows(del.begin(), del.end());
 //	    dense2.deleteRows(del.begin(), del.end());
@@ -1054,7 +1068,7 @@
 //            SparseMatrix01<UInt, Real> sm(nrows, ncols, dense.begin(), 0);
 //            Dense01<UInt, Real> dense2(nrows, ncols, zr);
 //            vector<UInt> del;
-//	    for (UInt i = 2; i < nrows-2; ++i)    
+//	    for (UInt i = 2; i < nrows-2; ++i)
 //	      del.push_back(i);
 //	    sm.deleteRows(del.begin(), del.end());
 //	    dense2.deleteRows(del.begin(), del.end());
@@ -1067,7 +1081,7 @@
 //            SparseMatrix01<UInt, Real> sm(nrows, ncols, dense.begin(), 0);
 //            Dense01<UInt, Real> dense2(nrows, ncols, zr);
 //            UInt* del = new UInt[nrows-1];
-//	    for (UInt i = 0; i < nrows-1; ++i)    
+//	    for (UInt i = 0; i < nrows-1; ++i)
 //              del[i] = i + 1;
 //	    sm.deleteRows(del, del + nrows-2);
 //	    dense2.deleteRows(del, del + nrows-2);
@@ -1089,7 +1103,7 @@
 //
 //	{ // All rows
 //	  SparseMatrix01<UInt, Real> sm(nrows, ncols, dense.begin(), 0);
-//	  vector<UInt> del; 
+//	  vector<UInt> del;
 //	  for (UInt i = 0; i < nrows; ++i)
 //	    del.push_back(i);
 //	  sm.deleteRows(del.begin(), del.end());
@@ -1099,7 +1113,7 @@
 //	{ // More than all rows => exceptions in assert mode
 //          /*
 //	    SparseMatrix01<UInt, Real> sm(nrows, ncols, dense.begin(), 0);
-//	    vector<UInt> del; 
+//	    vector<UInt> del;
 //	    for (UInt i = 0; i < 2*nrows; ++i)
 //	    del.push_back(i);
 //	    sm.deleteRows(del.begin(), del.end());
@@ -1112,12 +1126,13 @@
 //	  for (UInt i = 0; i < nrows; ++i) {
 //	    vector<UInt> del(1); del[0] = 0;
 //	    sm.deleteRows(del.begin(), del.end());
-//	    Test("SparseMatrix01::deleteRows() 10", sm.nRows(), UInt(nrows-i-1));
+//	    Test("SparseMatrix01::deleteRows() 10", sm.nRows(),
+// UInt(nrows-i-1));
 //	  }
 //      	}
 //      }
-//    } 
-//	
+//    }
+//
 //    { // Test with unique rows
 //      UInt nrows = 10;
 //      std::vector<UInt> boundaries(2);
@@ -1128,21 +1143,21 @@
 //
 //      for (UInt i = 0; i < nrows; ++i) {
 //
-//	for (UInt j = 0; j < ncols; ++j)   
+//	for (UInt j = 0; j < ncols; ++j)
 //	  x[j] = rng_->getReal64();
 //
 //	sm01.addUniqueFilteredRow(boundaries.begin(), x.begin());
 //      }
 //
 //      SparseMatrix01<UInt, Real>::RowCounts rc = sm01.getRowCounts();
-//      vector<UInt> del; del.push_back(1); del.push_back(3); 
-//      UInt nrows_new = sm01.nRows() - del.size();	
+//      vector<UInt> del; del.push_back(1); del.push_back(3);
+//      UInt nrows_new = sm01.nRows() - del.size();
 //      sm01.deleteRows(del.begin(), del.end());
 //      Test("SparseMatrix01::deleteRows 11", sm01.nRows(), nrows_new);
 //      rc = sm01.getRowCounts();
 //      UInt s = (UInt)rc.size();
 //      Test("SparseMatrix01::deleteRows 12", s, nrows_new);
-//			
+//
 //      // Remove last row
 //      del.clear();
 //      del.push_back(sm01.nRows()-1);
@@ -1151,7 +1166,7 @@
 //      Test("SparseMatrix01::deleteRows 13", sm01.nRows(), nrows_new);
 //      rc = sm01.getRowCounts();
 //      s = (UInt)rc.size();
-//      Test("SparseMatrix01::deleteRows 14", s, nrows_new);	
+//      Test("SparseMatrix01::deleteRows 14", s, nrows_new);
 //    }
 //
 //    { // Delete with threshold
@@ -1164,7 +1179,7 @@
 //
 //      for (UInt i = 0; i < nrows; ++i) {
 //
-//	for (UInt j = 0; j < ncols; ++j)   
+//	for (UInt j = 0; j < ncols; ++j)
 //	  x[j] = rng_->getReal64();
 //
 //	sm01.addUniqueFilteredRow(boundaries.begin(), x.begin());
@@ -1178,8 +1193,9 @@
 //          ++keep;
 //      vector<pair<UInt, UInt> > del_rows;
 //      sm01.deleteRows(threshold, back_inserter(del_rows));
-//      Test("SparseMatrix01::deleteRows(threshold) 15", del_rows.size(), nrows - keep);
-//      Test("SparseMatrix01::deleteRows(threshold) 16", sm01.nRows(), keep);
+//      Test("SparseMatrix01::deleteRows(threshold) 15", del_rows.size(), nrows
+//      - keep); Test("SparseMatrix01::deleteRows(threshold) 16", sm01.nRows(),
+//      keep);
 //    }
 //
 //    { // Delete with threshold - make sure counts are adjusted
@@ -1200,7 +1216,7 @@
 //
 //      vector<pair<UInt, UInt> > del_rows;
 //      sm01.deleteRows(2, back_inserter(del_rows));
-//      
+//
 //      Test("SparseMatrix01::deleteRows(threshold) 17", sm01.nRows(), UInt(1));
 //      SparseMatrix01<UInt, Real>::RowCounts rc = sm01.getRowCounts();
 //      UInt idx = rc[0].first, count = rc[0].second;
@@ -1225,13 +1241,13 @@
 //      Test("SparseMatrix01::deleteRows(threshold) 22", count, UInt(3));
 //    }
 //  }
-// 
+//
 //  //--------------------------------------------------------------------------------
 //  void SparseMatrix01UnitTest::unit_test_deleteColumns()
-//  {    
+//  {
 //    { // Empty matrix
 //      UInt nrows = 3, ncols = 3;
-//    
+//
 //      { // Empty matrix, empty del
 //	SparseMatrix01<UInt, Real> sm(ncols, nrows);
 //	vector<UInt> del;
@@ -1244,23 +1260,23 @@
 //	vector<UInt> del(1); del[0] = 0;
 //	sm.deleteColumns(del.begin(), del.end());
 //	Test("SparseMatrix01::deleteColumns() 2", sm.nCols(), UInt(2));
-//      }        
-//                                                  
+//      }
+//
 //      { // Empty matrix, many dels
 //	SparseMatrix01<UInt, Real> sm(ncols, nrows);
 //	vector<UInt> del(2); del[0] = 0; del[1] = 2;
 //	sm.deleteColumns(del.begin(), del.end());
 //	Test("SparseMatrix01::deleteColumns() 3", sm.nCols(), UInt(1));
 //      }
-//    } // End empty matrix     
-//     
+//    } // End empty matrix
+//
 //    {
-//      UInt nrows, ncols, zr;   
-//    
+//      UInt nrows, ncols, zr;
+//
 //      TEST_LOOP(M) {
 //
-//	Dense01<UInt, Real> dense(nrows, ncols, zr);   
-// 
+//	Dense01<UInt, Real> dense(nrows, ncols, zr);
+//
 //	{ // Empty del
 //	  SparseMatrix01<UInt, Real> sm(nrows, ncols, dense.begin(), 0);
 //	  vector<UInt> del;
@@ -1273,14 +1289,14 @@
 //	  Dense01<UInt, Real> dense2(nrows, ncols, zr);
 //	  vector<UInt> del;
 //	  if (ncols > 2) {
-//	    for (UInt i = 2; i < ncols-2; ++i)    
+//	    for (UInt i = 2; i < ncols-2; ++i)
 //	      del.push_back(i);
 //	    sm.deleteColumns(del.begin(), del.end());
 //	    dense2.deleteColumns(del.begin(), del.end());
 //	    Compare(dense2, sm, "SparseMatrix01::deleteColumns() 6");
 //	  }
 //	}
-//      
+//
 //	{ // Many dels discontiguous
 //	  SparseMatrix01<UInt, Real> sm(nrows, ncols, dense.begin(), 0);
 //	  Dense01<UInt, Real> dense2(nrows, ncols, zr);
@@ -1294,7 +1310,7 @@
 //
 //	{ // All rows
 //	  SparseMatrix01<UInt, Real> sm(nrows, ncols, dense.begin(), 0);
-//	  vector<UInt> del; 
+//	  vector<UInt> del;
 //	  for (UInt i = 0; i < ncols; ++i)
 //	    del.push_back(i);
 //	  sm.deleteColumns(del.begin(), del.end());
@@ -1304,7 +1320,7 @@
 //	{ // More than all rows => exception in assert mode
 //          /*
 //	    SparseMatrix01<UInt, Real> sm(nrows, ncols, dense.begin(), 0);
-//	    vector<UInt> del; 
+//	    vector<UInt> del;
 //	    for (UInt i = 0; i < 2*ncols; ++i)
 //	    del.push_back(i);
 //	    sm.deleteColumns(del.begin(), del.end());
@@ -1317,15 +1333,16 @@
 //	  for (UInt i = 0; i < ncols; ++i) {
 //	    vector<UInt> del(1); del[0] = 0;
 //	    sm.deleteColumns(del.begin(), del.end());
-//	    Test("SparseMatrix01::deleteColumns() 10", sm.nCols(), UInt(ncols-i-1));
+//	    Test("SparseMatrix01::deleteColumns() 10", sm.nCols(),
+// UInt(ncols-i-1));
 //	  }
 //	}
 //      }
-//    } 
-//	
+//    }
+//
 //    // Test with unique rows
 //    {
-//      UInt nrows = 10;   
+//      UInt nrows = 10;
 //      std::vector<UInt> boundaries(2);
 //      boundaries[0] = 4; boundaries[1] = 8;
 //      UInt nnzr = (UInt)boundaries.size(), ncols = boundaries[nnzr-1];
@@ -1334,19 +1351,20 @@
 //
 //      for (UInt i = 0; i < nrows; ++i) {
 //
-//	for (UInt j = 0; j < ncols; ++j)   
+//	for (UInt j = 0; j < ncols; ++j)
 //	  x[j] = rng_->getReal64();
 //
 //	sm01.addUniqueFilteredRow(boundaries.begin(), x.begin());
 //      }
-//			
+//
 //      nrows = sm01.nRows();
 //      SparseMatrix01<UInt, Real>::RowCounts rc = sm01.getRowCounts();
 //      vector<UInt> del; del.push_back(1); del.push_back(3); del.push_back(5);
-//      UInt ncols_new = sm01.nCols() - del.size();	
+//      UInt ncols_new = sm01.nCols() - del.size();
 //      sm01.deleteColumns(del.begin(), del.end());
 //      Test("SparseMatrix01::deleteColumns 11", sm01.nCols(), ncols_new);
-//      Test("SparseMatrix01::deleteColumns 12", sm01.getRowCounts().size(), nrows);	
+//      Test("SparseMatrix01::deleteColumns 12", sm01.getRowCounts().size(),
+//      nrows);
 //    }
 //  }
 //
@@ -1369,19 +1387,22 @@
 //    SparseMatrix01<UInt, Real> smc(nrows, ncols, dense.begin(), 0);
 //    vector<Real> y(nrows, 0);
 //    smc.vecDistSquared(x.begin(), y.begin());
-//    CompareVectors(nrows, y.begin(), yref.begin(), "vecDistSquared compact 1");
+//    CompareVectors(nrows, y.begin(), yref.begin(), "vecDistSquared compact
+//    1");
 //
 //    SparseMatrix01<UInt, Real> smnc(ncols, nrows);
 //    for (UInt i = 0; i < nrows; ++i)
 //      smnc.addRow(dense.begin(i));
 //    fill(y.begin(), y.end(), Real(0));
 //    smnc.vecDistSquared(x.begin(), y.begin());
-//    CompareVectors(nrows, y.begin(), yref.begin(), "vecDistSquared non-compact");
+//    CompareVectors(nrows, y.begin(), yref.begin(), "vecDistSquared
+//    non-compact");
 //
 //    smnc.compact();
 //    fill(y.begin(), y.end(), Real(0));
 //    smnc.vecDistSquared(x.begin(), y.begin());
-//    CompareVectors(nrows, y.begin(), yref.begin(), "vecDistSquared compact 2");
+//    CompareVectors(nrows, y.begin(), yref.begin(), "vecDistSquared compact
+//    2");
 //
 //    {
 //      TEST_LOOP(M) {
@@ -1481,7 +1502,7 @@
 //              << " - non compact";
 //          CompareVectors(nrows, y2.begin(), yref2.begin(), str.str().c_str());
 //        }
-//   
+//
 //        sm2.compact();
 //        fill(y2.begin(), y2.end(), Real(0));
 //        sm2.vecDist(x2.begin(), y2.begin());
@@ -1515,7 +1536,8 @@
 //    for (UInt i = 0; i < nrows; ++i)
 //      smnc.addRow(dense.begin(i));
 //    smnc.vecMaxProd(x.begin(), y.begin());
-//    CompareVectors(nrows, y.begin(), yref.begin(), "vecMaxProd non compact 1");
+//    CompareVectors(nrows, y.begin(), yref.begin(), "vecMaxProd non compact
+//    1");
 //
 //    smnc.compact();
 //    fill(y.begin(), y.end(), Real(0));
@@ -1580,7 +1602,8 @@
 //    for (UInt i = 0; i < nrows; ++i)
 //      smnc.addRow(dense.begin(i));
 //    smnc.rightVecProd(x.begin(), y.begin());
-//    CompareVectors(nrows, y.begin(), yref.begin(), "rightVecProd non compact 1");
+//    CompareVectors(nrows, y.begin(), yref.begin(), "rightVecProd non compact
+//    1");
 //
 //    smnc.compact();
 //    fill(y.begin(), y.end(), Real(0));
@@ -1728,7 +1751,7 @@
 //    res.first = 0; res.second = 0;
 //    res = smnc.closestEuclidean(x.begin());
 //    ComparePair(res, ref, "closestEuclidean compact 2");
-//  
+//
 //    {
 //      TEST_LOOP(M) {
 //
@@ -1743,7 +1766,7 @@
 //        ref = dense2.closestEuclidean(x2.begin());
 //        res.first = 0; res.second = 0;
 //        res = sm2.closestEuclidean(x2.begin());
-//        {    
+//        {
 //          stringstream str;
 //          str << "closestEuclidean A " << nrows << "X" << ncols << "/" << zr
 //              << " - non compact";
@@ -1824,13 +1847,13 @@
 //    ncols = 5;
 //    nrows = 7;
 //    zr = 2;
-//  
+//
 //    Dense01<UInt, Real> dense(nrows, ncols, zr);
 //    SparseMatrix01<UInt, Real> sm4c(nrows, ncols, dense.begin(), 0);
 //
 //    {
 //      TEST_LOOP(M) {
-//        
+//
 //        Dense01<UInt, Real> dense2(nrows, ncols, zr);
 //        SparseMatrix01<UInt, Real> sm2(nrows, ncols, dense2.begin(), 0);
 //
@@ -1841,14 +1864,14 @@
 //        sm2.decompact();
 //        dense2.rowMax(x2.begin(), y2.begin());
 //        sm2.rowMax(x2.begin(), yref2.begin());
-//      
+//
 //        {
 //          stringstream str;
 //          str << "rowMax A " << nrows << "X" << ncols << "/" << zr
 //              << " - non compact";
 //          CompareVectors(nrows, y2.begin(), yref2.begin(), str.str().c_str());
 //        }
-//      
+//
 //        sm2.compact();
 //        dense2.rowMax(x2.begin(), y2.begin());
 //        sm2.rowMax(x2.begin(), yref2.begin());
@@ -1867,13 +1890,13 @@
 //  {
 //    UInt ncols, nrows, zr, i;
 //    ncols = 5;
-//    nrows = 7;      
+//    nrows = 7;
 //    zr = 2;
 //
 //    Dense01<UInt, Real> dense(nrows, ncols, zr);
 //    SparseMatrix01<UInt, Real> sm4c(nrows, ncols, dense.begin(), 0);
 //
-//    {   
+//    {
 //      TEST_LOOP(M) {
 //
 //        Dense01<UInt, Real> dense2(nrows, ncols, zr);
@@ -1886,14 +1909,14 @@
 //        sm2.decompact();
 //        dense2.rowProd(x2.begin(), y2.begin());
 //        sm2.rowProd(x2.begin(), yref2.begin());
-//      
-//        {     
+//
+//        {
 //          stringstream str;
 //          str << "rowProd A " << nrows << "X" << ncols << "/" << zr
 //              << " - non compact";
 //          CompareVectors(nrows, y2.begin(), yref2.begin(), str.str().c_str());
-//        }      
-//               
+//        }
+//
 //        sm2.compact();
 //        dense2.rowProd(x2.begin(), y2.begin());
 //        sm2.rowProd(x2.begin(), yref2.begin());
@@ -1906,20 +1929,20 @@
 //      }
 //    }
 //
-//  
-//  }   
+//
+//  }
 //
 //  //--------------------------------------------------------------------------------
 //  struct RowCounter : public map<vector<Real>, UInt>
 //  {
 //    inline void addRow(vector<Real>& v) {
-//         
+//
 //      iterator it = find(v);
 //      if (it == end())
 //        (*this)[v] = 1;
 //      else
 //        ++ it->second;
-//    }    
+//    }
 //
 //    inline void checkRowCounts(Tester& t, SparseMatrix01<UInt, Real>& sm01,
 //                               const char* str)
@@ -1938,7 +1961,7 @@
 //        stringstream buf2;
 //        buf2 << "SparseMatrix01 row counts equal counts " << str;
 //        t.Test(buf2.str(), rc[i].second, it->second);
-//      }  
+//      }
 //    }
 //  };
 //
@@ -1948,18 +1971,18 @@
 //    { // Testing the comparison function
 //      const UInt rowSize = 4;
 //      UInt row1[rowSize], row2[rowSize];
-//      
+//
 //      RowCompare<UInt> comp(rowSize);
-//      
-//      for (UInt i = 0; i < rowSize; ++i) 
+//
+//      for (UInt i = 0; i < rowSize; ++i)
 //        row1[i] = row2[i] = i;
-//      
+//
 //      Test("SparseMatrix01 row counts 1", comp(row1, row2), false);
-//      
+//
 //      row2[1] = 3; row2[2] = 5; row2[3] = 7;
 //      Test("SparseMatrix01 row counts 2", comp(row1, row2), false);
 //      Test("SparseMatrix01 row counts 3", comp(row2, row1), true);
-//    }   
+//    }
 //
 //    { // Testing the comparison function with a set
 //      UInt ncols, nrows, nchildren, w, n;
@@ -1968,9 +1991,9 @@
 //      n = 1000;
 //
 //      vector<UInt> boundaries(nchildren, 0);
-//      
+//
 //      boundaries[0] = rng_->getUInt32(w) + 1;
-//      for (UInt i = 1; i < nchildren-1; ++i) 
+//      for (UInt i = 1; i < nchildren-1; ++i)
 //        boundaries[i] = boundaries[i-1] + (rng_->getUInt32(w) + 1);
 //      boundaries[nchildren-1] = ncols;
 //
@@ -1994,9 +2017,10 @@
 //            comp[k++] = j;
 //        myset.insert(comp);
 //      }
-//   
-//      for (UInt i = 0; i < v.size(); ++i) 
-//        Test("SparseMatrix01 row counts 4", (myset.find(v[i]) != myset.end()), true);
+//
+//      for (UInt i = 0; i < v.size(); ++i)
+//        Test("SparseMatrix01 row counts 4", (myset.find(v[i]) != myset.end()),
+//        true);
 //
 //      for (UInt i = 0; i < v.size(); ++i)
 //        delete [] v[i];
@@ -2007,21 +2031,21 @@
 //
 //      RowCounter control;
 //      SparseMatrix01<UInt, Real> sm(ncols, 1, nnzr);
-//    
+//
 //      for (UInt n = 0; n < nreps; ++n) {
-//        vector<Real> v(ncols, 0);    
+//        vector<Real> v(ncols, 0);
 //        GenerateRand01Vector(rng_, nnzr, v);
-//        sm.addRow(v.begin());     
+//        sm.addRow(v.begin());
 //        control.addRow(v);
-//      }       
-//  
+//      }
+//
 //      control.checkRowCounts(*this, sm, "1");
 //
 //      Test("SparseMatrix01 row counts ", sm.getRowCounts().size() > 0, true);
 //
 //      // checking that counts are intact after decompact and recompact
 //      // that manipulate row pointers
-//      sm.decompact();    
+//      sm.decompact();
 //
 //      control.checkRowCounts(*this, sm, "2");
 //
@@ -2030,7 +2054,7 @@
 //        GenerateRand01Vector(rng_, nnzr, v);
 //        sm.addRow(v.begin());
 //        control.addRow(v);
-//      }    
+//      }
 //
 //      sm.compact();
 //
@@ -2045,41 +2069,41 @@
 //
 //      control.checkRowCounts(*this, sm2, "4");
 //    }
-//  }    
+//  }
 //
 //  //--------------------------------------------------------------------------------
 //  void SparseMatrix01UnitTest::unit_test_print()
 //  {
-//    UInt nrows, ncols, zr;    
+//    UInt nrows, ncols, zr;
 //    nrows = 225; ncols = 31; zr = 30;
 //
 //    TEST_LOOP(M) {
 //      std::stringstream buf1, buf2;
-//           
+//
 //      Dense01<UInt, Real> d(nrows, ncols, zr);
 //      SparseMatrix01<UInt, Real> sm(nrows, ncols, d.begin(), 0);
-//      
+//
 //      std::vector<Real> d2(nrows*ncols);
 //      sm.toDense(d2.begin());
 //      for (UInt i = 0; i < nrows; ++i) {
 //        for (UInt j = 0; j < ncols; ++j)
 //          buf1 << d2[i*ncols+j] << " ";
 //        buf1 << endl;
-//      }     
-//   
+//      }
+//
 //      sm.print(buf2);
 //      Test("SparseMatrix01 print 1", buf1.str(), buf2.str());
 //    }
-//  }   
+//  }
 //
 //  //--------------------------------------------------------------------------------
 //  /* Performance
-//     UInt nrows = 30000, ncols = 128, zr = 0;   
-//     Dense01<UInt, Real> d(nrows, ncols, zr);       
+//     UInt nrows = 30000, ncols = 128, zr = 0;
+//     Dense01<UInt, Real> d(nrows, ncols, zr);
 //     SparseMatrix01<UInt, Real> sm01(nrows, ncols, d.begin(), 0);
 //     std::vector<Real> x(ncols, 1), y(nrows, 0);
-//     sm01.compact();                               
-//                
+//     sm01.compact();
+//
 //     { // 3000 iterations, 30000x128, 69.6% of total time, darwin86
 //     // 22.6 without hand unrolling by 4 of loop on k
 //     // 15.62s straight loops
@@ -2087,16 +2111,16 @@
 //     // 14.85s with iterator++ instead of indexing into x
 //     // 14.79s with iterator++ and 4-unrolled loop on i
 //     // 14.75s with compact
-//     // 14.89s with pointer while, 4-unrolled loop on i   
+//     // 14.89s with pointer while, 4-unrolled loop on i
 //     // 14.82s with pointer while, 2-unrolled loop on i
 //     // 14.78s with pointer while, not unrolled loop on i
 //     // 12.39s with pre-fetching x into nzb_
-//     boost::timer t;   
-//     ITER_1(3000) 
+//     boost::timer t;
+//     ITER_1(3000)
 //     sm01.rowProd(x.begin(), y.begin());
-//     cout << t.elapsed() << endl;   
+//     cout << t.elapsed() << endl;
 //     }
-//  */  
+//  */
 //
 //  //--------------------------------------------------------------------------------
 //  void SparseMatrix01UnitTest::unit_test_numerical_accuracy()
@@ -2105,7 +2129,7 @@
 //
 //    { // Tests for accuracy/numerical stability/underflows
 //      nrows = 1; zr = 0;
-//      
+//
 //      for (ncols = 1; ncols < 128; ++ncols) {
 //        vector<Real> y_d_prod(nrows), y_d_sum(nrows);
 //        vector<float> y_f_prod(nrows), y_f_sum(nrows);
@@ -2120,7 +2144,7 @@
 //            x_d[i] = Real(ncols-i + 1e-5)/Real(ncols);
 //          sm_d.rowProd(x_d.begin(), y_d_prod.begin());
 //          sm_d.rightVecProd(x_d.begin(), y_d_sum.begin());
-//        }      
+//        }
 //
 //        { // float
 //          Dense01<UInt, float> dense_f(nrows, ncols, zr);
@@ -2140,9 +2164,9 @@
 //
 //        Real prod_rel_err = fabs((y_d_prod[0] - y_f_prod[0]) / y_d_prod[0]);
 //        Real sum_rel_err = fabs((y_d_sum[0] - y_f_sum[0]) / y_d_sum[0]);
-//        
+//
 //        cout << setprecision(0);
-//        cout << "ncols = " << ncols 
+//        cout << "ncols = " << ncols
 //          // << " Real = " << float(y_d_prod[0])
 //          // << " float = " << y_f[0]
 //          // << " error = " << (y_d[0] - y_f[0])
@@ -2151,37 +2175,38 @@
 //             << endl;
 //      }
 //    }
-//  }         
+//  }
 //
 //	//--------------------------------------------------------------------------------
 //  /**
-//   * A generator function object, that generates random numbers between 0 and 256.
-//   * It also has a threshold to control the sparsity of the vectors generated. 
+//   * A generator function object, that generates random numbers between 0 and
+//   256.
+//   * It also has a threshold to control the sparsity of the vectors generated.
 //   */
 //  template <typename T>
-//  struct rand_init 
+//  struct rand_init
 //  {
 //    Random *r_;
 //    int threshold_;
-//    
+//
 //    inline rand_init(Random *r, int threshold =100)
 //      : r_(r), threshold_(threshold)
 //    {}
-//    
-//    inline T operator()() 
-//    { 
+//
+//    inline T operator()()
+//    {
 //      return T(r_->getUInt32(100) > threshold_ ? 0 : 1 + r_->getUInt32(255));
 //    }
 //  };
-//  
-//  
+//
+//
 //  //--------------------------------------------------------------------------------
 //  // THERE IS NO addRow WRITTEN YET for Dense01
 //  // THERE IS NO rowProd WRITTEN YET for Dense01
 //  void SparseMatrix01UnitTest::unit_test_usage()
 //  {
 //    /*
-//    SparseMatrix01<size_t, float>* sm = 
+//    SparseMatrix01<size_t, float>* sm =
 //      new SparseMatrix01<size_t, float>(16,0);
 //
 //    Dense01<size_t, float>* smDense =
@@ -2192,13 +2217,13 @@
 //      size_t r = 1000;
 //      while(r==1000 || r==5)
 //	r = rng_->get() % 18;
-//      
+//
 //      if (r == 0) {
 //
 //	sm->compact();
 //	// no compact for Dense
 //
-//      } else if (r == 1) {    
+//      } else if (r == 1) {
 //
 //	sm->decompact();
 //	// no decompact for Dense
@@ -2219,7 +2244,7 @@
 //	}
 //	Compare(*smDense, *sm, "deleteRows");
 //
-//      } else if (r == 3) {    
+//      } else if (r == 3) {
 //
 //	vector<size_t> del;
 //	if (rng_->get() % 100 < 90) {
@@ -2235,25 +2260,26 @@
 //	}
 //	Compare(*smDense, *sm, "deleteColumns");
 //
-//      }  
+//      }
 //      else if (r == 4) {
-//	
+//
 //	vector<float> new_row(sm->nCols(), 0);
 //	size_t n = rng_->get() % 16;
-//	for (size_t z = 0; z < n; ++z) {			
+//	for (size_t z = 0; z < n; ++z) {
 //	  if (rng_->get() % 100 < 90) {
 //	    for (size_t ii = 0; ii < new_row.size(); ++ii)
-//	      new_row[ii] = (float) (rng_->get() % 100 > 70 ? 0 : rng_->get() % 256);
-//	  } 
+//	      new_row[ii] = (float) (rng_->get() % 100 > 70 ? 0 : rng_->get() %
+// 256);
+//	  }
 //	  sm->addRow(new_row.begin());
 //	  // THERE IS NO addRow WRITTEN YET
 //	  //smDense->addRow(ne_row.begin());
 //	  //Compare(*smDense, *sm, "addRow");
 //	}
-//	
+//
 //      } else if (r == 5) {
-//	
-//	size_t nrows = rng_->get() % 32, ncols = rng_->get() % 32+1;	
+//
+//	size_t nrows = rng_->get() % 32, ncols = rng_->get() % 32+1;
 //	delete sm;
 //	delete smDense;
 //	sm = new SparseMatrix01<size_t, float>(ncols, nrows);
@@ -2261,14 +2287,14 @@
 //	Compare(*smDense, *sm, "constructor(ncols,nrows)");
 //
 //      } else if (r == 6) {
-//	
+//
 //	delete sm;
 //	delete smDense;
 //	sm = new SparseMatrix01<size_t, float>(16,0);
 //	smDense = new Dense01<size_t, float>(16,0);
 //	Compare(*smDense, *sm, "constructor(16,0)");
-//	
-//      } else if (r == 8) {				
+//
+//      } else if (r == 8) {
 //
 //	vector<float> x(sm->nCols()), y(sm->nRows());
 //	generate(x.begin(), x.end(), rand_init<float>(rng_, 50));
@@ -2277,7 +2303,7 @@
 //	Compare(*smDense, *sm, "vecDistSquared");
 //
 //      } else if (r == 9) {
-//	  
+//
 //	if(sm->nCols()==smDense->ncols && sm->nRows()==smDense->nrows){
 //	  vector<float> x(sm->nCols()), y(sm->nRows());
 //	 // vector<float> xDense(smDense->ncols), yDense(smDense->nrows);
@@ -2298,9 +2324,9 @@
 //	  smDense->rowDistSquared(randInt, x.begin());
 //	  Compare(*smDense, *sm, "rowDistSquared");
 //	}
-//	  
+//
 //      } else if (r == 11) {
-//	  
+//
 //	vector<float> x(sm->nCols());
 //	generate(x.begin(), x.end(), rand_init<float>(rng_, 50));
 //	sm->closestEuclidean(x.begin());
@@ -2311,9 +2337,9 @@
 //
 //	vector<float> x(sm->nCols());
 //	generate(x.begin(), x.end(), rand_init<float>(rng_, 50));
-//	for (size_t n = 0; n < sm->nCols(); ++n)	
+//	for (size_t n = 0; n < sm->nCols(); ++n)
 //	  x.push_back(float(rng_->get() % 256));
-//	sm->closestDot(x.begin()); 
+//	sm->closestDot(x.begin());
 //	smDense->closestDot(x.begin());
 //	Compare(*smDense, *sm, "closestDot");
 //
@@ -2328,7 +2354,7 @@
 //    }
 //
 //      } else if (r == 14) {
-//	  
+//
 //	if(sm->nCols()==smDense->ncols && sm->nRows()==smDense->nrows){
 //	  vector<float> x(sm->nCols()), y(sm->nRows());
 //	  generate(x.begin(), x.end(), rand_init<float>(rng_, 50));
@@ -2336,95 +2362,94 @@
 //	  smDense->vecMaxProd(x.begin(), y.begin());
 //	  Compare(*smDense, *sm, "vecMaxProd");
 //	}
-//	  
+//
 //      } else if (r == 15) {
-//	  
+//
 //	if(sm->nCols()==smDense->ncols && sm->nRows()==smDense->nrows){
 //	  vector<float> x(sm->nCols()), y(sm->nRows());
 //	  generate(x.begin(), x.end(), rand_init<float>(rng_, 50));
 //	  sm->rowMax(x.begin(), y.begin());
-//	  smDense->rowMax(x.begin(), y.begin()); 
+//	  smDense->rowMax(x.begin(), y.begin());
 //	  Compare(*smDense, *sm, "rowMax");
 //	}
 //
 //      } else if (r == 16) {
-//	  
+//
 //	if(sm->nCols()==smDense->ncols && sm->nRows()==smDense->nrows){
 //	  vector<float> x(sm->nCols()), y(sm->nRows());
 //	  generate(x.begin(), x.end(), rand_init<float>(rng_, 50));
-//	  sm->rowProd(x.begin(), y.begin()); 
-//	  smDense->rowProd(x.begin(), y.begin()); 
+//	  sm->rowProd(x.begin(), y.begin());
+//	  smDense->rowProd(x.begin(), y.begin());
 //	  Compare(*smDense, *sm, "rowProd(x.begin(), y.begin())");
 //	}
-//	  
+//
 //      } else if (r == 17) {
-//	  
+//
 //	vector<float> x(sm->nCols()), y(sm->nRows());
 //	generate(x.begin(), x.end(), rand_init<float>(rng_, 50));
 //	float theRandom = float(rng_->get() % 256);
 //	sm->rowProd(x.begin(), y.begin(),  theRandom);
 //	// THERE IS NO rowProd WRITTEN YET
 //	//smDense->rowProd(x.begin(), y.begin(), theRandom);
-//	//Compare(*smDense, *sm, "rowProd(x.begin(), y.begin(),  float(rng_->get() % 256))");
-//      } 
+//	//Compare(*smDense, *sm, "rowProd(x.begin(), y.begin(),
+// float(rng_->get() % 256))");
+//      }
 //
 //    }
-//    
-//    // transpose(SparseMatrix01<size_type, value_type, DTZ>& tr) 
-//    // vecDistSquared(InIter x, OutIter y) 
-//    // minVecDistSquared(InIter x, 
-//    // vecDist(InIter x, OutIter y) 
-//    // value_type rowDistSquared( size_type& row, InIter x) 
-//    // pair<size_type, value_type> closestEuclidean(InIter x) 
-//    // pair<size_type, value_type> closestDot(InIter x) 
-//    // rightVecProd(InIter x, OutIter y) 
-//    // vecMaxProd(InIter x, OutIter y) 
-//    // vecMaxProd01(InIter x, OutIter y) 
+//
+//    // transpose(SparseMatrix01<size_type, value_type, DTZ>& tr)
+//    // vecDistSquared(InIter x, OutIter y)
+//    // minVecDistSquared(InIter x,
+//    // vecDist(InIter x, OutIter y)
+//    // value_type rowDistSquared( size_type& row, InIter x)
+//    // pair<size_type, value_type> closestEuclidean(InIter x)
+//    // pair<size_type, value_type> closestDot(InIter x)
+//    // rightVecProd(InIter x, OutIter y)
+//    // vecMaxProd(InIter x, OutIter y)
+//    // vecMaxProd01(InIter x, OutIter y)
 //    // axby_2( size_type& row, value_type a, value_type b, InIter x)
 //    // axby_3(value_type a, value_type b, InIter x)
-//    // rowMax(OutIter maxima)      
-//    // colMax(OutIter maxima) 
+//    // rowMax(OutIter maxima)
+//    // colMax(OutIter maxima)
 //    // normalizeRows(bool exact =false)
-//    // value_type accumulate_nz( size_type& row, binary_functor f, 
-//    // value_type accumulate( size_type& row, binary_functor f, 
-//    // multiply( SparseMatrix01& B, SparseMatrix01& C) 
+//    // value_type accumulate_nz( size_type& row, binary_functor f,
+//    // value_type accumulate( size_type& row, binary_functor f,
+//    // multiply( SparseMatrix01& B, SparseMatrix01& C)
 //    // size_type findRow( size_type nnzr, IndIt ind_it, NzIt nz_it)
-//    // findRows(F f, MatchIt m_it) 
-//    // map( SparseMatrix01& B, SparseMatrix01& C) 
+//    // findRows(F f, MatchIt m_it)
+//    // map( SparseMatrix01& B, SparseMatrix01& C)
 //    */
-//  } 
+//  }
 //
-  //--------------------------------------------------------------------------------
-  // void SparseMatrix01UnitTest::RunTests()
-  // {
-           
-    //unit_test_construction();   
-    //unit_test_fromDense();      
-    //unit_test_csr();
-    //unit_test_compact();
-    //unit_test_getRowSparse();
-    //unit_test_addRow();
-    //unit_test_addUniqueFilteredRow();
-    //unit_test_addMinHamming();
-    //unit_test_deleteRows();
-    //unit_test_deleteColumns();
-    //unit_test_rowDistSquared();
-    //unit_test_vecDistSquared();
-    //unit_test_vecDist();
-    //unit_test_closestEuclidean();
-    //unit_test_closestDot();
-    //unit_test_vecMaxProd();
-    //unit_test_vecProd();
-    //unit_test_rowMax();
-    //unit_test_rowProd();
-    //unit_test_row_counts();
-    //unit_test_print();
-    ////unit_test_usage();
-    ////unit_test_numerical_accuracy();
-  // } 
+//--------------------------------------------------------------------------------
+// void SparseMatrix01UnitTest::RunTests()
+// {
 
-  //--------------------------------------------------------------------------------
-  
+// unit_test_construction();
+// unit_test_fromDense();
+// unit_test_csr();
+// unit_test_compact();
+// unit_test_getRowSparse();
+// unit_test_addRow();
+// unit_test_addUniqueFilteredRow();
+// unit_test_addMinHamming();
+// unit_test_deleteRows();
+// unit_test_deleteColumns();
+// unit_test_rowDistSquared();
+// unit_test_vecDistSquared();
+// unit_test_vecDist();
+// unit_test_closestEuclidean();
+// unit_test_closestDot();
+// unit_test_vecMaxProd();
+// unit_test_vecProd();
+// unit_test_rowMax();
+// unit_test_rowProd();
+// unit_test_row_counts();
+// unit_test_print();
+////unit_test_usage();
+////unit_test_numerical_accuracy();
+// }
+
+//--------------------------------------------------------------------------------
+
 // } // namespace nupic
-
-

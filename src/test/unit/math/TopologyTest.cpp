@@ -24,357 +24,355 @@
  * Unit tests for Topology.hpp
  */
 
-#include <nupic/math/Topology.hpp>
 #include "gtest/gtest.h"
+#include <nupic/math/Topology.hpp>
 
 using std::vector;
 using namespace nupic;
 using namespace nupic::math::topology;
 
 namespace {
-  TEST(TopologyTest, IndexFromCoordinates)
-  {
-    EXPECT_EQ(0, indexFromCoordinates({0}, {100}));
-    EXPECT_EQ(50, indexFromCoordinates({50}, {100}));
-    EXPECT_EQ(99, indexFromCoordinates({99}, {100}));
+TEST(TopologyTest, IndexFromCoordinates) {
+  EXPECT_EQ(0, indexFromCoordinates({0}, {100}));
+  EXPECT_EQ(50, indexFromCoordinates({50}, {100}));
+  EXPECT_EQ(99, indexFromCoordinates({99}, {100}));
 
-    EXPECT_EQ(0, indexFromCoordinates({0, 0}, {100, 80}));
-    EXPECT_EQ(10, indexFromCoordinates({0, 10}, {100, 80}));
-    EXPECT_EQ(80, indexFromCoordinates({1, 0}, {100, 80}));
-    EXPECT_EQ(90, indexFromCoordinates({1, 10}, {100, 80}));
+  EXPECT_EQ(0, indexFromCoordinates({0, 0}, {100, 80}));
+  EXPECT_EQ(10, indexFromCoordinates({0, 10}, {100, 80}));
+  EXPECT_EQ(80, indexFromCoordinates({1, 0}, {100, 80}));
+  EXPECT_EQ(90, indexFromCoordinates({1, 10}, {100, 80}));
 
-    EXPECT_EQ(0, indexFromCoordinates({0, 0, 0}, {100, 10, 8}));
-    EXPECT_EQ(7, indexFromCoordinates({0, 0, 7}, {100, 10, 8}));
-    EXPECT_EQ(8, indexFromCoordinates({0, 1, 0}, {100, 10, 8}));
-    EXPECT_EQ(80, indexFromCoordinates({1, 0, 0}, {100, 10, 8}));
-    EXPECT_EQ(88, indexFromCoordinates({1, 1, 0}, {100, 10, 8}));
-    EXPECT_EQ(89, indexFromCoordinates({1, 1, 1}, {100, 10, 8}));
+  EXPECT_EQ(0, indexFromCoordinates({0, 0, 0}, {100, 10, 8}));
+  EXPECT_EQ(7, indexFromCoordinates({0, 0, 7}, {100, 10, 8}));
+  EXPECT_EQ(8, indexFromCoordinates({0, 1, 0}, {100, 10, 8}));
+  EXPECT_EQ(80, indexFromCoordinates({1, 0, 0}, {100, 10, 8}));
+  EXPECT_EQ(88, indexFromCoordinates({1, 1, 0}, {100, 10, 8}));
+  EXPECT_EQ(89, indexFromCoordinates({1, 1, 1}, {100, 10, 8}));
+}
+
+TEST(TopologyTest, CoordinatesFromIndex) {
+  EXPECT_EQ(vector<UInt>({0}), coordinatesFromIndex(0, {100}));
+  EXPECT_EQ(vector<UInt>({50}), coordinatesFromIndex(50, {100}));
+  EXPECT_EQ(vector<UInt>({99}), coordinatesFromIndex(99, {100}));
+
+  EXPECT_EQ(vector<UInt>({0, 0}), coordinatesFromIndex(0, {100, 80}));
+  EXPECT_EQ(vector<UInt>({0, 10}), coordinatesFromIndex(10, {100, 80}));
+  EXPECT_EQ(vector<UInt>({1, 0}), coordinatesFromIndex(80, {100, 80}));
+  EXPECT_EQ(vector<UInt>({1, 10}), coordinatesFromIndex(90, {100, 80}));
+
+  EXPECT_EQ(vector<UInt>({0, 0, 0}), coordinatesFromIndex(0, {100, 10, 8}));
+  EXPECT_EQ(vector<UInt>({0, 0, 7}), coordinatesFromIndex(7, {100, 10, 8}));
+  EXPECT_EQ(vector<UInt>({0, 1, 0}), coordinatesFromIndex(8, {100, 10, 8}));
+  EXPECT_EQ(vector<UInt>({1, 0, 0}), coordinatesFromIndex(80, {100, 10, 8}));
+  EXPECT_EQ(vector<UInt>({1, 1, 0}), coordinatesFromIndex(88, {100, 10, 8}));
+  EXPECT_EQ(vector<UInt>({1, 1, 1}), coordinatesFromIndex(89, {100, 10, 8}));
+}
+
+// ==========================================================================
+// NEIGHBORHOOD
+// ==========================================================================
+
+void expectNeighborhoodIndices(const vector<UInt> &centerCoords,
+                               const vector<UInt> &dimensions, UInt radius,
+                               const vector<UInt> &expected) {
+  const UInt centerIndex = indexFromCoordinates(centerCoords, dimensions);
+
+  int i = 0;
+  for (UInt index : Neighborhood(centerIndex, radius, dimensions)) {
+    EXPECT_EQ(expected[i], index);
+    i++;
   }
 
-  TEST(TopologyTest, CoordinatesFromIndex)
-  {
-    EXPECT_EQ(vector<UInt>({0}), coordinatesFromIndex(0, {100}));
-    EXPECT_EQ(vector<UInt>({50}), coordinatesFromIndex(50, {100}));
-    EXPECT_EQ(vector<UInt>({99}), coordinatesFromIndex(99, {100}));
+  EXPECT_EQ(expected.size(), i);
+}
 
-    EXPECT_EQ(vector<UInt>({0, 0}), coordinatesFromIndex(0, {100, 80}));
-    EXPECT_EQ(vector<UInt>({0, 10}), coordinatesFromIndex(10, {100, 80}));
-    EXPECT_EQ(vector<UInt>({1, 0}), coordinatesFromIndex(80, {100, 80}));
-    EXPECT_EQ(vector<UInt>({1, 10}), coordinatesFromIndex(90, {100, 80}));
+void expectNeighborhoodCoords(const vector<UInt> &centerCoords,
+                              const vector<UInt> &dimensions, UInt radius,
+                              const vector<vector<UInt>> &expected) {
+  const UInt centerIndex = indexFromCoordinates(centerCoords, dimensions);
 
-    EXPECT_EQ(vector<UInt>({0, 0, 0}), coordinatesFromIndex(0, {100, 10, 8}));
-    EXPECT_EQ(vector<UInt>({0, 0, 7}), coordinatesFromIndex(7, {100, 10, 8}));
-    EXPECT_EQ(vector<UInt>({0, 1, 0}), coordinatesFromIndex(8, {100, 10, 8}));
-    EXPECT_EQ(vector<UInt>({1, 0, 0}), coordinatesFromIndex(80, {100, 10, 8}));
-    EXPECT_EQ(vector<UInt>({1, 1, 0}), coordinatesFromIndex(88, {100, 10, 8}));
-    EXPECT_EQ(vector<UInt>({1, 1, 1}), coordinatesFromIndex(89, {100, 10, 8}));
+  int i = 0;
+  for (UInt index : Neighborhood(centerIndex, radius, dimensions)) {
+    EXPECT_EQ(indexFromCoordinates(expected[i], dimensions), index);
+    i++;
   }
 
-  // ==========================================================================
-  // NEIGHBORHOOD
-  // ==========================================================================
+  EXPECT_EQ(expected.size(), i);
+}
 
-  void expectNeighborhoodIndices(
-    const vector<UInt>& centerCoords,
-    const vector<UInt>& dimensions,
-    UInt radius,
-    const vector<UInt>& expected)
-  {
-    const UInt centerIndex = indexFromCoordinates(centerCoords, dimensions);
-
-    int i = 0;
-    for (UInt index : Neighborhood(centerIndex, radius, dimensions))
-    {
-      EXPECT_EQ(expected[i], index);
-      i++;
-    }
-
-    EXPECT_EQ(expected.size(), i);
-  }
-
-  void expectNeighborhoodCoords(
-    const vector<UInt>& centerCoords,
-    const vector<UInt>& dimensions,
-    UInt radius,
-    const vector<vector<UInt> >& expected)
-  {
-    const UInt centerIndex = indexFromCoordinates(centerCoords, dimensions);
-
-    int i = 0;
-    for (UInt index : Neighborhood(centerIndex, radius, dimensions))
-    {
-      EXPECT_EQ(indexFromCoordinates(expected[i], dimensions), index);
-      i++;
-    }
-
-    EXPECT_EQ(expected.size(), i);
-  }
-
-  TEST(TopologyTest, NeighborhoodOfOrigin1D)
-  {
-    expectNeighborhoodIndices(
+TEST(TopologyTest, NeighborhoodOfOrigin1D) {
+  expectNeighborhoodIndices(
       /*centerCoords*/ {0},
       /*dimensions*/ {100},
       /*radius*/ 2,
       /*expected*/ {0, 1, 2});
-  }
+}
 
-  TEST(TopologyTest, NeighborhoodOfOrigin2D)
-  {
-    expectNeighborhoodCoords(
+TEST(TopologyTest, NeighborhoodOfOrigin2D) {
+  expectNeighborhoodCoords(
       /*centerCoords*/ {0, 0},
       /*dimensions*/ {100, 80},
       /*radius*/ 2,
-      /*expected*/ {{0, 0}, {0, 1}, {0, 2},
-                    {1, 0}, {1, 1}, {1, 2},
-                    {2, 0}, {2, 1}, {2, 2}});
-  }
+      /*expected*/
+      {{0, 0}, {0, 1}, {0, 2}, {1, 0}, {1, 1}, {1, 2}, {2, 0}, {2, 1}, {2, 2}});
+}
 
-  TEST(TopologyTest, NeighborhoodOfOrigin3D)
-  {
-    expectNeighborhoodCoords(
+TEST(TopologyTest, NeighborhoodOfOrigin3D) {
+  expectNeighborhoodCoords(
       /*centerCoords*/ {0, 0, 0},
       /*dimensions*/ {100, 80, 60},
       /*radius*/ 1,
-      /*expected*/ {{0, 0, 0}, {0, 0, 1},
-                    {0, 1, 0}, {0, 1, 1},
-                    {1, 0, 0}, {1, 0, 1},
-                    {1, 1, 0}, {1, 1, 1}});
-  }
+      /*expected*/
+      {{0, 0, 0},
+       {0, 0, 1},
+       {0, 1, 0},
+       {0, 1, 1},
+       {1, 0, 0},
+       {1, 0, 1},
+       {1, 1, 0},
+       {1, 1, 1}});
+}
 
-  TEST(TopologyTest, NeighborhoodOfMiddle1D)
-  {
-    expectNeighborhoodIndices(
+TEST(TopologyTest, NeighborhoodOfMiddle1D) {
+  expectNeighborhoodIndices(
       /*centerCoords*/ {50},
       /*dimensions*/ {100},
       /*radius*/ 1,
       /*expected*/ {49, 50, 51});
-  }
+}
 
-  TEST(TopologyTest, NeighborhoodOfMiddle2D)
-  {
-    expectNeighborhoodCoords(
+TEST(TopologyTest, NeighborhoodOfMiddle2D) {
+  expectNeighborhoodCoords(
       /*centerCoords*/ {50, 50},
       /*dimensions*/ {100, 80},
       /*radius*/ 1,
-      /*expected*/ {{49, 49}, {49, 50}, {49, 51},
-                    {50, 49}, {50, 50}, {50, 51},
-                    {51, 49}, {51, 50}, {51, 51}});
-  }
+      /*expected*/
+      {{49, 49},
+       {49, 50},
+       {49, 51},
+       {50, 49},
+       {50, 50},
+       {50, 51},
+       {51, 49},
+       {51, 50},
+       {51, 51}});
+}
 
-  TEST(TopologyTest, NeighborhoodOfEnd2D)
-  {
-    expectNeighborhoodCoords(
+TEST(TopologyTest, NeighborhoodOfEnd2D) {
+  expectNeighborhoodCoords(
       /*centerCoords*/ {99, 79},
       /*dimensions*/ {100, 80},
       /*radius*/ 2,
-      /*expected*/ {{97, 77}, {97, 78}, {97, 79},
-                    {98, 77}, {98, 78}, {98, 79},
-                    {99, 77}, {99, 78}, {99, 79}});
-  }
+      /*expected*/
+      {{97, 77},
+       {97, 78},
+       {97, 79},
+       {98, 77},
+       {98, 78},
+       {98, 79},
+       {99, 77},
+       {99, 78},
+       {99, 79}});
+}
 
-  TEST(TopologyTest, NeighborhoodWiderThanWorld)
-  {
-    expectNeighborhoodCoords(
+TEST(TopologyTest, NeighborhoodWiderThanWorld) {
+  expectNeighborhoodCoords(
       /*centerCoords*/ {0, 0},
       /*dimensions*/ {3, 2},
       /*radius*/ 3,
-      /*expected*/ {{0, 0}, {0, 1},
-                    {1, 0}, {1, 1},
-                    {2, 0}, {2, 1}});
-  }
+      /*expected*/ {{0, 0}, {0, 1}, {1, 0}, {1, 1}, {2, 0}, {2, 1}});
+}
 
-  TEST(TopologyTest, NeighborhoodRadiusZero)
-  {
-    expectNeighborhoodIndices(
+TEST(TopologyTest, NeighborhoodRadiusZero) {
+  expectNeighborhoodIndices(
       /*centerCoords*/ {0},
       /*dimensions*/ {100},
       /*radius*/ 0,
       /*expected*/ {0});
 
-    expectNeighborhoodCoords(
+  expectNeighborhoodCoords(
       /*centerCoords*/ {0, 0},
       /*dimensions*/ {100, 80},
       /*radius*/ 0,
       /*expected*/ {{0, 0}});
 
-    expectNeighborhoodCoords(
+  expectNeighborhoodCoords(
       /*centerCoords*/ {0, 0, 0},
       /*dimensions*/ {100, 80, 60},
       /*radius*/ 0,
       /*expected*/ {{0, 0, 0}});
-  }
+}
 
-  TEST(TopologyTest, NeighborhoodDimensionOne)
-  {
-    expectNeighborhoodCoords(
+TEST(TopologyTest, NeighborhoodDimensionOne) {
+  expectNeighborhoodCoords(
       /*centerCoords*/ {5, 0},
       /*dimensions*/ {10, 1},
       /*radius*/ 1,
       /*expected*/ {{4, 0}, {5, 0}, {6, 0}});
 
-    expectNeighborhoodCoords(
+  expectNeighborhoodCoords(
       /*centerCoords*/ {5, 0, 0},
       /*dimensions*/ {10, 1, 1},
       /*radius*/ 1,
       /*expected*/ {{4, 0, 0}, {5, 0, 0}, {6, 0, 0}});
+}
+
+// ==========================================================================
+// WRAPPING NEIGHBORHOOD
+// ==========================================================================
+
+void expectWrappingNeighborhoodIndices(const vector<UInt> &centerCoords,
+                                       const vector<UInt> &dimensions,
+                                       UInt radius,
+                                       const vector<UInt> &expected) {
+  const UInt centerIndex = indexFromCoordinates(centerCoords, dimensions);
+
+  int i = 0;
+  for (UInt index : WrappingNeighborhood(centerIndex, radius, dimensions)) {
+    EXPECT_EQ(expected[i], index);
+    i++;
   }
 
+  EXPECT_EQ(expected.size(), i);
+}
 
-  // ==========================================================================
-  // WRAPPING NEIGHBORHOOD
-  // ==========================================================================
+void expectWrappingNeighborhoodCoords(const vector<UInt> &centerCoords,
+                                      const vector<UInt> &dimensions,
+                                      UInt radius,
+                                      const vector<vector<UInt>> &expected) {
+  const UInt centerIndex = indexFromCoordinates(centerCoords, dimensions);
 
-  void expectWrappingNeighborhoodIndices(
-    const vector<UInt>& centerCoords,
-    const vector<UInt>& dimensions,
-    UInt radius,
-    const vector<UInt>& expected)
-  {
-    const UInt centerIndex = indexFromCoordinates(centerCoords, dimensions);
-
-    int i = 0;
-    for (UInt index : WrappingNeighborhood(centerIndex, radius, dimensions))
-    {
-      EXPECT_EQ(expected[i], index);
-      i++;
-    }
-
-    EXPECT_EQ(expected.size(), i);
+  int i = 0;
+  for (UInt index : WrappingNeighborhood(centerIndex, radius, dimensions)) {
+    EXPECT_EQ(indexFromCoordinates(expected[i], dimensions), index);
+    i++;
   }
 
-  void expectWrappingNeighborhoodCoords(
-    const vector<UInt>& centerCoords,
-    const vector<UInt>& dimensions,
-    UInt radius,
-    const vector<vector<UInt> >& expected)
-  {
-    const UInt centerIndex = indexFromCoordinates(centerCoords, dimensions);
+  EXPECT_EQ(expected.size(), i);
+}
 
-    int i = 0;
-    for (UInt index : WrappingNeighborhood(centerIndex, radius, dimensions))
-    {
-      EXPECT_EQ(indexFromCoordinates(expected[i], dimensions), index);
-      i++;
-    }
-
-    EXPECT_EQ(expected.size(), i);
-  }
-
-  TEST(TopologyTest, WrappingNeighborhoodOfOrigin1D)
-  {
-    expectWrappingNeighborhoodIndices(
+TEST(TopologyTest, WrappingNeighborhoodOfOrigin1D) {
+  expectWrappingNeighborhoodIndices(
       /*centerCoords*/ {0},
       /*dimensions*/ {100},
       /*radius*/ 1,
       /*expected*/ {99, 0, 1});
-  }
+}
 
-  TEST(TopologyTest, WrappingNeighborhoodOfOrigin2D)
-  {
-    expectWrappingNeighborhoodCoords(
+TEST(TopologyTest, WrappingNeighborhoodOfOrigin2D) {
+  expectWrappingNeighborhoodCoords(
       /*centerCoords*/ {0, 0},
       /*dimensions*/ {100, 80},
       /*radius*/ 1,
-      /*expected*/ {{99, 79}, {99, 0}, {99, 1},
-                    {0, 79}, {0, 0}, {0, 1},
-                    {1, 79}, {1, 0}, {1, 1}});
-  }
+      /*expected*/
+      {{99, 79},
+       {99, 0},
+       {99, 1},
+       {0, 79},
+       {0, 0},
+       {0, 1},
+       {1, 79},
+       {1, 0},
+       {1, 1}});
+}
 
-  TEST(TopologyTest, WrappingNeighborhoodOfOrigin3D)
-  {
-    expectWrappingNeighborhoodCoords(
+TEST(TopologyTest, WrappingNeighborhoodOfOrigin3D) {
+  expectWrappingNeighborhoodCoords(
       /*centerCoords*/ {0, 0, 0},
       /*dimensions*/ {100, 80, 60},
       /*radius*/ 1,
-      /*expected*/ {{99, 79, 59}, {99, 79, 0}, {99, 79, 1},
-                    {99, 0, 59}, {99, 0, 0}, {99, 0, 1},
-                    {99, 1, 59}, {99, 1, 0}, {99, 1, 1},
-                    {0, 79, 59}, {0, 79, 0}, {0, 79, 1},
-                    {0, 0, 59}, {0, 0, 0}, {0, 0, 1},
-                    {0, 1, 59}, {0, 1, 0}, {0, 1, 1},
-                    {1, 79, 59}, {1, 79, 0}, {1, 79, 1},
-                    {1, 0, 59}, {1, 0, 0}, {1, 0, 1},
-                    {1, 1, 59}, {1, 1, 0}, {1, 1, 1}});
-  }
+      /*expected*/ {{99, 79, 59}, {99, 79, 0}, {99, 79, 1}, {99, 0, 59},
+                    {99, 0, 0},   {99, 0, 1},  {99, 1, 59}, {99, 1, 0},
+                    {99, 1, 1},   {0, 79, 59}, {0, 79, 0},  {0, 79, 1},
+                    {0, 0, 59},   {0, 0, 0},   {0, 0, 1},   {0, 1, 59},
+                    {0, 1, 0},    {0, 1, 1},   {1, 79, 59}, {1, 79, 0},
+                    {1, 79, 1},   {1, 0, 59},  {1, 0, 0},   {1, 0, 1},
+                    {1, 1, 59},   {1, 1, 0},   {1, 1, 1}});
+}
 
-  TEST(TopologyTest, WrappingNeighborhoodOfMiddle1D)
-  {
-    expectWrappingNeighborhoodIndices(
+TEST(TopologyTest, WrappingNeighborhoodOfMiddle1D) {
+  expectWrappingNeighborhoodIndices(
       /*centerCoords*/ {50},
       /*dimensions*/ {100},
       /*radius*/ 1,
       /*expected*/ {49, 50, 51});
-  }
+}
 
-  TEST(TopologyTest, WrappingNeighborhoodOfMiddle2D)
-  {
-    expectWrappingNeighborhoodCoords(
+TEST(TopologyTest, WrappingNeighborhoodOfMiddle2D) {
+  expectWrappingNeighborhoodCoords(
       /*centerCoords*/ {50, 50},
       /*dimensions*/ {100, 80},
       /*radius*/ 1,
-      /*expected*/{{49, 49}, {49, 50}, {49, 51},
-                   {50, 49}, {50, 50}, {50, 51},
-                   {51, 49}, {51, 50}, {51, 51}});
-  }
+      /*expected*/
+      {{49, 49},
+       {49, 50},
+       {49, 51},
+       {50, 49},
+       {50, 50},
+       {50, 51},
+       {51, 49},
+       {51, 50},
+       {51, 51}});
+}
 
-  TEST(TopologyTest, WrappingNeighborhoodOfEnd2D)
-  {
-    expectWrappingNeighborhoodCoords(
+TEST(TopologyTest, WrappingNeighborhoodOfEnd2D) {
+  expectWrappingNeighborhoodCoords(
       /*centerCoords*/ {99, 79},
       /*dimensions*/ {100, 80},
       /*radius*/ 1,
-      /*expected*/{{98, 78}, {98, 79}, {98, 0},
-                   {99, 78}, {99, 79}, {99, 0},
-                   {0, 78}, {0, 79}, {0, 0}});
-  }
+      /*expected*/
+      {{98, 78},
+       {98, 79},
+       {98, 0},
+       {99, 78},
+       {99, 79},
+       {99, 0},
+       {0, 78},
+       {0, 79},
+       {0, 0}});
+}
 
-  TEST(TopologyTest, WrappingNeighborhoodWiderThanWorld)
-  {
-    // The order is weird because it starts walking from {-3, -3} and avoids
-    // walking the same point twice.
-    expectWrappingNeighborhoodCoords(
+TEST(TopologyTest, WrappingNeighborhoodWiderThanWorld) {
+  // The order is weird because it starts walking from {-3, -3} and avoids
+  // walking the same point twice.
+  expectWrappingNeighborhoodCoords(
       /*centerCoords*/ {0, 0},
       /*dimensions*/ {3, 2},
       /*radius*/ 3,
-      /*expected*/{{0, 1}, {0, 0},
-                   {1, 1}, {1, 0},
-                   {2, 1}, {2, 0}});
-  }
+      /*expected*/ {{0, 1}, {0, 0}, {1, 1}, {1, 0}, {2, 1}, {2, 0}});
+}
 
-  TEST(TopologyTest, WrappingNeighborhoodRadiusZero)
-  {
-    expectWrappingNeighborhoodIndices(
+TEST(TopologyTest, WrappingNeighborhoodRadiusZero) {
+  expectWrappingNeighborhoodIndices(
       /*centerCoords*/ {0},
       /*dimensions*/ {100},
       /*radius*/ 0,
       /*expected*/ {0});
 
-    expectWrappingNeighborhoodCoords(
+  expectWrappingNeighborhoodCoords(
       /*centerCoords*/ {0, 0},
       /*dimensions*/ {100, 80},
       /*radius*/ 0,
       /*expected*/ {{0, 0}});
 
-    expectWrappingNeighborhoodCoords(
+  expectWrappingNeighborhoodCoords(
       /*centerCoords*/ {0, 0, 0},
       /*dimensions*/ {100, 80, 60},
       /*radius*/ 0,
       /*expected*/ {{0, 0, 0}});
-  }
+}
 
-  TEST(TopologyTest, WrappingNeighborhoodDimensionOne)
-  {
-    expectWrappingNeighborhoodCoords(
+TEST(TopologyTest, WrappingNeighborhoodDimensionOne) {
+  expectWrappingNeighborhoodCoords(
       /*centerCoords*/ {5, 0},
       /*dimensions*/ {10, 1},
       /*radius*/ 1,
       /*expected*/ {{4, 0}, {5, 0}, {6, 0}});
 
-    expectWrappingNeighborhoodCoords(
+  expectWrappingNeighborhoodCoords(
       /*centerCoords*/ {5, 0, 0},
       /*dimensions*/ {10, 1, 1},
       /*radius*/ 1,
       /*expected*/ {{4, 0, 0}, {5, 0, 0}, {6, 0, 0}});
-  }
 }
+} // namespace
