@@ -30,6 +30,7 @@
 #include <algorithm>
 #include <nupic/types/Types.hpp>
 #include <vector>
+#include <nupic/utils/Log.hpp> // NTA_ASSERT
 
 namespace nupic {
 
