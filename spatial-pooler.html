@@ -1051,15 +1051,13 @@
 <span id="nupic::algorithms::spatial_pooler::SpatialPooler::initPermanence___vector:UInt:R.Real"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1a957b014f0eab769b81b446b086a73178"></span>vector&lt;Real&gt; <code class="descname">initPermanence_</code><span class="sig-paren">(</span>vector&lt;UInt&gt; &amp;<em>potential</em>, Real <em>connectedPct</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler15initPermanence_ER6vectorI4UIntE4Real" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Initializes the permanences of a column. </p>
 <p>The method returns a 1-D array the size of the input, where each entry in the array represents the initial permanence value between the input bit at the particular index in the array, and the column represented by the &#8216;index&#8217; parameter.</p>
-<p>
-corresponding to indices for which the mask value is 1. <dl class="docutils">
+<p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal"><span class="pre">potential</span></code>: A int vector specifying the potential pool of the column. Permanence values will only be generated for input bits</li>
-</ul>
-</dd>
-<dt><strong>Parameters</strong></dt>
-<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal"><span class="pre">potential</span></code>: A int vector specifying the potential pool of the column. Permanence values will only be generated for input bits <div class="highlight-default"><div class="highlight"><pre><span></span>            <span class="n">corresponding</span> <span class="n">to</span> <span class="n">indices</span> <span class="k">for</span> <span class="n">which</span> <span class="n">the</span> <span class="n">mask</span> <span class="n">value</span> <span class="ow">is</span> <span class="mf">1.</span>
+</pre></div>
+</div>
+ </li>
 <li><code class="docutils literal"><span class="pre">connectedPct</span></code>: A real value between 0 or 1 specifying the percent of the input bits that will start off in a connected state. </li>
 </ul>
 </dd>
@@ -1364,9 +1362,9 @@ corresponding to indices for which the mask value is 1. <dl class="docutils">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler23updateDutyCyclesHelper_ER6vectorI4RealER6vectorI4UIntE4UInt">
 <span id="nupic::algorithms::spatial_pooler::SpatialPooler::updateDutyCyclesHelper___vector:Real:R.vector:UInt:R.UInt"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler_1ad1faeed8d29a96f49db2a60707e271f3"></span><em class="property">static</em> void <code class="descname">updateDutyCyclesHelper_</code><span class="sig-paren">(</span>vector&lt;Real&gt; &amp;<em>dutyCycles</em>, vector&lt;UInt&gt; &amp;<em>newValues</em>, UInt <em>period</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPooler23updateDutyCyclesHelper_ER6vectorI4RealER6vectorI4UIntE4UInt" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Updates a duty cycle estimate with a new value. </p>
-<p>This is a helper function that is used to update several duty cycle variables in the Column class, such as: overlapDutyCucle, activeDutyCycle, minPctDutyCycleBeforeInh, minPctDutyCycleAfterInh, etc. returns the updated duty cycle. Duty cycles are updated according to the following formula: <div class="highlight-default"><div class="highlight"><pre><span></span>              <span class="p">(</span><span class="n">period</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">dutyCycle</span> <span class="o">+</span> <span class="n">newValue</span>
-  <span class="n">dutyCycle</span> <span class="p">:</span><span class="o">=</span> <span class="o">----------------------------------</span>
-                          <span class="n">period</span>
+<p>This is a helper function that is used to update several duty cycle variables in the Column class, such as: overlapDutyCucle, activeDutyCycle, minPctDutyCycleBeforeInh, minPctDutyCycleAfterInh, etc. returns the updated duty cycle. Duty cycles are updated according to the following formula: <div class="highlight-default"><div class="highlight"><pre><span></span>               <span class="p">(</span><span class="n">period</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">dutyCycle</span> <span class="o">+</span> <span class="n">newValue</span>
+   <span class="n">dutyCycle</span> <span class="p">:</span><span class="o">=</span> <span class="o">----------------------------------</span>
+                           <span class="n">period</span>
 </pre></div>
 </div>
  <dl class="docutils">
