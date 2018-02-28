@@ -23,27 +23,24 @@
 /** @file
  * Implementation of Output class
  *
-*/
+ */
 
-#include <cstring> // memset
-#include <nupic/types/BasicType.hpp>
-#include <nupic/ntypes/Array.hpp>
+#include <cstring>               // memset
+#include <nupic/engine/Link.hpp> // temporary
 #include <nupic/engine/Output.hpp>
 #include <nupic/engine/Region.hpp>
-#include <nupic/engine/Link.hpp> // temporary
+#include <nupic/ntypes/Array.hpp>
+#include <nupic/types/BasicType.hpp>
 
+namespace nupic {
 
-namespace nupic
-{
-
-Output::Output(Region& region, NTA_BasicType type, bool isRegionLevel) :
-  region_(region), isRegionLevel_(isRegionLevel), name_("Unnamed"), nodeOutputElementCount_(0)
-{
+Output::Output(Region &region, NTA_BasicType type, bool isRegionLevel)
+    : region_(region), isRegionLevel_(isRegionLevel), name_("Unnamed"),
+      nodeOutputElementCount_(0) {
   data_ = new Array(type);
 }
 
-Output::~Output()
-{
+Output::~Output() {
   // If we have any outgoing links, then there has been an
   // error in the shutdown process. Not good to thow an exception
   // from a destructor, but we need to catch this error, and it
@@ -53,9 +50,7 @@ Output::~Output()
 }
 
 // allocate buffer
-void
-Output::initialize(size_t count)
-{
+void Output::initialize(size_t count) {
   // reinitialization is ok
   // might happen if initial initialization failed with an
   // exception (elsewhere) and was retried.
@@ -68,8 +63,7 @@ Output::initialize(size_t count)
     dataCount = count;
   else
     dataCount = count * region_.getDimensions().getCount();
-  if (dataCount != 0)
-  {
+  if (dataCount != 0) {
     data_->allocateBuffer(dataCount);
     // Zero the buffer because unitialized outputs can screw up inspectors,
     // which look at the output before compute(). NPC-60
@@ -79,9 +73,7 @@ Output::initialize(size_t count)
   }
 }
 
-void
-Output::addLink(Link* link)
-{
+void Output::addLink(Link *link) {
   // Make sure we don't add the same link twice
   // It is a logic error if we add the same link twice here, since
   // this method should only be called from Input::addLink
@@ -91,9 +83,7 @@ Output::addLink(Link* link)
   links_.insert(link);
 }
 
-void
-Output::removeLink(Link* link)
-{
+void Output::removeLink(Link *link) {
   auto linkIter = links_.find(link);
   // Should only be called internally. Logic error if link not found
   NTA_CHECK(linkIter != links_.end());
@@ -102,48 +92,20 @@ Output::removeLink(Link* link)
   links_.erase(linkIter);
 }
 
-const Array &
-Output::getData() const
-{
-  return *data_;
-}
+const Array &Output::getData() const { return *data_; }
 
-bool
-Output::isRegionLevel() const
-{
-  return isRegionLevel_;
-}
+bool Output::isRegionLevel() const { return isRegionLevel_; }
 
+Region &Output::getRegion() const { return region_; }
 
-Region&
-Output::getRegion() const
-{
-  return region_;
-}
+void Output::setName(const std::string &name) { name_ = name; }
 
+const std::string &Output::getName() const { return name_; }
 
-void Output::setName(const std::string& name)
-{
-  name_ = name;
-}
-
-const std::string& Output::getName() const
-{
-  return  name_;
-}
-
-
-size_t
-Output::getNodeOutputElementCount() const
-{
+size_t Output::getNodeOutputElementCount() const {
   return nodeOutputElementCount_;
 }
 
-bool
-Output::hasOutgoingLinks()
-{
-  return (!links_.empty());
-}
+bool Output::hasOutgoingLinks() { return (!links_.empty()); }
 
-}
-
+} // namespace nupic

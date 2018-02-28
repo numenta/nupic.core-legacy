@@ -21,33 +21,26 @@
  */
 
 /** @file
-* LogItem implementation
-*/
+ * LogItem implementation
+ */
 
-
-#include <nupic/utils/LogItem.hpp>
+#include <iostream> // cerr
 #include <nupic/types/Exception.hpp>
-#include <iostream>  // cerr
+#include <nupic/utils/LogItem.hpp>
 #include <stdexcept> // runtime_error
 
 using namespace nupic;
 
-std::ostream* LogItem::ostream_ = nullptr;
+std::ostream *LogItem::ostream_ = nullptr;
 
-void LogItem::setOutputFile(std::ostream& ostream)
-{
-  ostream_ = &ostream;
-}
+void LogItem::setOutputFile(std::ostream &ostream) { ostream_ = &ostream; }
 
 LogItem::LogItem(const char *filename, int line, LogLevel level)
-  : filename_(filename), lineno_(line), level_(level), msg_("") 
-{}
+    : filename_(filename), lineno_(line), level_(level), msg_("") {}
 
-LogItem::~LogItem()
-{
+LogItem::~LogItem() {
   std::string slevel;
-  switch(level_)
-  {
+  switch (level_) {
   case debug:
     slevel = "DEBUG:";
     break;
@@ -74,11 +67,6 @@ LogItem::~LogItem()
     (*ostream_) << " [" << filename_ << " line " << lineno_ << "]";
 
   (*ostream_) << std::endl;
-
 }
 
-std::ostringstream& LogItem::stream() {
-  return msg_;
-}
-
-
+std::ostringstream &LogItem::stream() { return msg_; }

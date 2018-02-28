@@ -31,50 +31,48 @@
  *
  * Contains the primary NuPIC API.
  */
-namespace nupic
-{
-  class Network;
+namespace nupic {
+class Network;
+
+/**
+ * Initialization and shutdown operations for NuPIC engine.
+ */
+class NuPIC {
+public:
+  /**
+   * Initialize NuPIC.
+   *
+   * @note It's safe to reinitialize an initialized NuPIC.
+   * @note Creating a Network will auto-initialize NuPIC.
+   */
+  static void init();
 
   /**
-   * Initialization and shutdown operations for NuPIC engine.
+   * Shutdown NuPIC.
+   *
+   * @note As a safety measure, NuPIC with any Network still registered to it
+   * is not allowed to be shut down.
    */
-  class NuPIC 
-  {
-  public:
-    /** 
-     * Initialize NuPIC.
-     *
-     * @note It's safe to reinitialize an initialized NuPIC.
-     * @note Creating a Network will auto-initialize NuPIC. 
-     */
-    static void init();
+  static void shutdown();
 
-    /** 
-     * Shutdown NuPIC.
-     *
-     * @note As a safety measure, NuPIC with any Network still registered to it 
-     * is not allowed to be shut down.
-     */
-    static void shutdown();
+  /**
+   *
+   * @return Whether NuPIC is initialized successfully.
+   */
+  static bool isInitialized();
 
-    /** 
-     * 
-     * @return Whether NuPIC is initialized successfully.
-     */
-    static bool isInitialized();
-  private:
+private:
+  /**
+   * Having Network as friend class to allow Networks register/unregister
+   * themselves at creation and destruction time by calling non-public methods
+   * of NuPIC.
+   *
+   */
+  friend class Network;
 
-    /**
-     * Having Network as friend class to allow Networks register/unregister 
-     * themselves at creation and destruction time by calling non-public methods of NuPIC.
-     *
-     */    
-    friend class Network;
-
-    static void registerNetwork(Network* net);
-    static void unregisterNetwork(Network* net);
-    static std::set<Network*> networks_;
-    static bool initialized_;
-  };
+  static void registerNetwork(Network *net);
+  static void unregisterNetwork(Network *net);
+  static std::set<Network *> networks_;
+  static bool initialized_;
+};
 } // namespace nupic
-

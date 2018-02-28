@@ -30,14 +30,12 @@
 #include <stdexcept>
 
 namespace nupic {
-  void initializeNumpy()
-  {
-    // Use _import_array() because import_array() is a macro that contains a
-    // return statement.
-    if (_import_array() != 0)
-    {
-      throw std::runtime_error(
+void initializeNumpy() {
+  // Use _import_array() because import_array() is a macro that contains a
+  // return statement.
+  if (_import_array() != 0) {
+    throw std::runtime_error(
         "initializeNumpy: numpy.core.multiarray failed to import.");
-    }
   }
 }
+} // namespace nupic

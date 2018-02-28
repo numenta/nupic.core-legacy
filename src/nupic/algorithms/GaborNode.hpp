@@ -20,10 +20,10 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file 
+/** @file
  *  This header file defines the API for performing efficient
  *  Gabor processing.
- */ 
+ */
 
 #ifndef NTA_GABOR_NODE_HPP
 #define NTA_GABOR_NODE_HPP
@@ -32,22 +32,22 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif  // __cplusplus
+#endif // __cplusplus
 
-#include <nupic/types/Types.h>
 #include "ArrayBuffer.hpp"
+#include <nupic/types/Types.h>
 
 // Number of bits that our gabor filter coefficients are
 // shifted (to the left) for scaling purposes, when
 // using GABOR_METHOD_INTEGER8
-# define GABOR_SCALING_SHIFT          12
+#define GABOR_SCALING_SHIFT 12
 
 // For reasons of efficiency and simplicity, we'll store our
 // responses statistics (used for automated normalization) in
 // a static buffer of fixed size.  Because of this, we need to
 // impose a constraint on the maximum number of filters;
 // 64 should be enough for anyone...  :-)
-#define MAXNUM_FILTERS    64
+#define MAXNUM_FILTERS 64
 
 // Enumeration that specifies how we handle boundary
 // effects
@@ -99,36 +99,24 @@ typedef enum _POSTPROC_METHOD {
   POSTPROC_METHOD__LAST
 } POSTPROC_METHOD;
 
-
 // FUNCTION: gaborCompute()
 // PURPOSE: Implements efficient Gabor filtering.
 NTA_EXPORT
-int  gaborCompute(const NUMPY_ARRAY * psGaborBank,
-                  const NUMPY_ARRAY * psInput,
-                  const NUMPY_ARRAY * psAlpha,
-                  const NUMPY_ARRAY * psBBox,
-                  const NUMPY_ARRAY * psImageBox,
-                  const NUMPY_ARRAY * psOutput,
-                  float fGainConstant,
-                  EDGE_MODE eEdgeMode,
-                  float fOffImageFillValue,
-                  PHASE_MODE ePhaseMode,
-                  NORMALIZE_METHOD eNormalizeMethod, 
-                  NORMALIZE_MODE eNormalizeMode, 
-                  PHASENORM_MODE ePhaseNormMode, 
-                  POSTPROC_METHOD ePostProcMethod,
-                  float fPostProcSlope,
-                  float fPostProcMidpoint,
-                  float fPostProcMin,
-                  float fPostProcMax,
-                  const NUMPY_ARRAY * psBufferIn,
-                  const NUMPY_ARRAY * psBufferOut,
-                  const NUMPY_ARRAY * psPostProcLUT,
-                  float fPostProcScalar);
-
+int gaborCompute(const NUMPY_ARRAY *psGaborBank, const NUMPY_ARRAY *psInput,
+                 const NUMPY_ARRAY *psAlpha, const NUMPY_ARRAY *psBBox,
+                 const NUMPY_ARRAY *psImageBox, const NUMPY_ARRAY *psOutput,
+                 float fGainConstant, EDGE_MODE eEdgeMode,
+                 float fOffImageFillValue, PHASE_MODE ePhaseMode,
+                 NORMALIZE_METHOD eNormalizeMethod,
+                 NORMALIZE_MODE eNormalizeMode, PHASENORM_MODE ePhaseNormMode,
+                 POSTPROC_METHOD ePostProcMethod, float fPostProcSlope,
+                 float fPostProcMidpoint, float fPostProcMin,
+                 float fPostProcMax, const NUMPY_ARRAY *psBufferIn,
+                 const NUMPY_ARRAY *psBufferOut,
+                 const NUMPY_ARRAY *psPostProcLUT, float fPostProcScalar);
 
 #ifdef __cplusplus
 }
-#endif  // __cplusplus
+#endif // __cplusplus
 
 #endif // NTA_GABOR_NODE_HPP
