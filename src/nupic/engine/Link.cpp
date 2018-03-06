@@ -41,6 +41,10 @@
 
 namespace nupic {
 
+// Represents 'zero' scalar value used to compare Input/Output buffer contents
+// for non-zero values
+const static NTA_Real64 ZERO_VALUE = 0;
+
 Link::Link(const std::string &linkType, const std::string &linkParams,
            const std::string &srcRegionName, const std::string &destRegionName,
            const std::string &srcOutputName, const std::string &destInputName,
@@ -329,8 +333,8 @@ void Link::compute() {
 
   const Array &dest = dest_->getData();
 
+  size_t srcSize = src.getBufferSize();
   size_t typeSize = BasicType::getSize(src.getType());
-  size_t srcSize = src.getCount() * typeSize;
   size_t destByteOffset = destOffset_ * typeSize;
 
   if (_LINK_DEBUG) {
@@ -339,8 +343,56 @@ void Link::compute() {
               << " elements=" << src;
   }
 
-  ::memcpy((char *)(dest.getBuffer()) + destByteOffset, src.getBuffer(),
-           srcSize);
+  if (src_->isSparse() == dest_->isSparse()) {
+    // No conversion required, just copy the buffer over
+    ::memcpy((char *)(dest.getBuffer()) + destByteOffset, src.getBuffer(),
+             srcSize);
+    if (dest_->isSparse()) {
+      // Remove 'const' to update the variable lenght array
+      const_cast<Array &>(dest).setCount(src.getCount());
+    }
+  } else if (dest_->isSparse()) {
+    // Destination is sparse, convert source from dense to sparse
+
+    // Sparse Output must be NTA_UInt32. See "initialize".
+    NTA_UInt32 *destBuf =
+        (NTA_UInt32 *)((char *)(dest.getBuffer()) + destByteOffset);
+
+    // Dense source can be any scalar type. The scalar values will be lost
+    // and only the indexes of the non-zero values will be stored.
+    char *srcBuf = (char *)src.getBuffer();
+    size_t destLen = dest.getBufferSize();
+    size_t destIdx = 0;
+    for (size_t i = 0; i < srcSize; i++) {
+      // Check for any non-zero scalar value
+      if (::memcmp(srcBuf + i * typeSize, &ZERO_VALUE, typeSize)) {
+        NTA_CHECK(destIdx < destLen) << "Link destination is too small. "
+                                     << "It should be at least " << destIdx + 1;
+        destBuf[destIdx++] = i;
+      }
+    }
+    // Remove 'const' to update the variable lenght array
+    const_cast<Array &>(dest).setCount(destIdx);
+  } else {
+    // Destination is dense, convert source from sparse to dense
+
+    // Sparse Input must be NTA_UInt32. See "initialize".
+    NTA_UInt32 *srcBuf = (NTA_UInt32 *)src.getBuffer();
+
+    // Dense destination links must be bool. See "initialize".
+    bool *destBuf = (bool *)((char *)dest.getBuffer() + destByteOffset);
+
+    size_t srcLen = src.getCount();
+    size_t destLen = dest.getBufferSize();
+    ::memset(destBuf, 0, destLen * sizeof(bool));
+    size_t destIdx;
+    for (size_t i = 0; i < srcLen; i++) {
+      destIdx = srcBuf[i];
+      NTA_CHECK(destIdx < destLen) << "Link destination is too small. "
+                                   << "It should be at least " << destIdx + 1;
+      destBuf[destIdx] = true;
+    }
+  }
 }
 
 void Link::shiftBufferedData() {

@@ -936,6 +936,20 @@ void PyRegion::compute() {
 
     // Insert the buffer to the outputs py::Dict
     outputs.setItem(p.first, numpyArray);
+
+    // Add sparse output len placeholder field
+    if (out->isSparse()) {
+      // The region output memory is owned by the c++ and cannot be changed from
+      // python. We use a special attribule named "__{name}_len__" to pass
+      // the sparse array length back to c++
+      std::stringstream name;
+      name << "__" << p.first << "_len__";
+
+      // The outputs dict is immutable. Use a list to enable update from python
+      py::List len;
+      len.append(py::Int(data.getCount()));
+      outputs.setItem(name.str(), len);
+    }
   }
 
   // Call the Python compute() method
@@ -945,6 +959,26 @@ void PyRegion::compute() {
 
   // Need to put the None result in py::Ptr to decrement the ref count
   py::Ptr none(node_.invoke("guardedCompute", args));
+
+  // Resize sparse outputs
+  for (size_t i = 0; i < ns.outputs.getCount(); ++i) {
+    const std::pair<std::string, OutputSpec> &p = ns.outputs.getByIndex(i);
+    // Get the corresponding output buffer
+    Output *out = region_->getOutput(p.first);
+    // Skip optional outputs
+    if (!out)
+      continue;
+
+    if (out->isSparse()) {
+      std::stringstream name;
+      name << "__" << p.first << "_len__";
+      py::List len(outputs.getItem(name.str()));
+
+      // Remove 'const' to update the variable lenght array
+      Array &data = const_cast<Array &>(out->getData());
+      data.setCount(py::Int(len.getItem(0)));
+    }
+  }
 }
 
 //
