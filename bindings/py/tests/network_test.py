@@ -21,6 +21,7 @@
 
 import json
 import unittest
+import pytest
 
 try:
   # NOTE need to import capnp first to activate the magic necessary for
@@ -31,14 +32,66 @@ except ImportError:
 else:
   from nupic.proto.NetworkProto_capnp import NetworkProto
 
+from nupic.bindings.regions.PyRegion import PyRegion
 
 import nupic.bindings.engine_internal as engine
 from nupic.bindings.tools.serialization_test_py_region import \
      SerializationTestPyRegion
 
 
+class TestLinks(PyRegion):
+  """
+  Test region used to test link validation
+  """
+  def __init__(self): pass
+  def initialize(self): pass
+  def compute(self): pass
+  def getOutputElementCount(self): pass
+  @classmethod
+  def getSpec(cls):
+    return {
+      "description": TestLinks.__doc__,
+      "singleNodeOnly": True,
+      "inputs": {
+        "UInt32": {
+          "description": "UInt32 Data",
+          "dataType": "UInt32",
+          "isDefaultInput": True,
+          "required": False,
+          "count": 0
+        },
+        "Real32": {
+          "description": "Real32 Data",
+          "dataType": "Real32",
+          "isDefaultInput": False,
+          "required": False,
+          "count": 0
+        },        
+      },
+      "outputs": {
+        "UInt32": {
+          "description": "UInt32 Data",
+          "dataType": "UInt32",
+          "isDefaultOutput": True,
+          "required": False,
+          "count": 0
+        },
+        "Real32": {
+          "description": "Real32 Data",
+          "dataType": "Real32",
+          "isDefaultOutput": False,
+          "required": False,
+          "count": 0
+        },              
+      },
+      "parameters": { }
+    }
 
 class NetworkTest(unittest.TestCase):
+
+  def setUp(self):
+    """Register test region"""
+    engine.Network.registerPyRegion(TestLinks.__module__, TestLinks.__name__)
 
 
   @unittest.skipUnless(
@@ -107,3 +160,21 @@ class NetworkTest(unittest.TestCase):
       self.fail("Unable to iterate network links.")
 
 
+  def testNetworkLinkTypeValidation(self):
+    """
+    This tests whether the links source and destination dtypes match
+    """
+    network = engine.Network()
+    network.addRegion("from", "py.TestLinks", "")
+    network.addRegion("to", "py.TestLinks", "")
+
+    # Check for valid links
+    network.link("from", "to", "UniformLink", "", "UInt32", "UInt32")
+    network.link("from", "to", "UniformLink", "", "Real32", "Real32")
+
+    # Check for invalid links
+    with pytest.raises(RuntimeError):
+      network.link("from", "to", "UniformLink", "", "Real32", "UInt32")
+    with pytest.raises(RuntimeError):
+      network.link("from", "to", "UniformLink", "", "UInt32", "Real32")
+    

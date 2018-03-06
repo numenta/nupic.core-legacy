@@ -124,6 +124,8 @@ const Array &Input::getData() const {
   return data_;
 }
 
+NTA_BasicType Input::getDataType() const { return data_.getType(); }
+
 Region &Input::getRegion() { return region_; }
 
 const std::vector<Link *> &Input::getLinks() { return links_; }

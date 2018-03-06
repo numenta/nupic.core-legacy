@@ -108,4 +108,6 @@ size_t Output::getNodeOutputElementCount() const {
 
 bool Output::hasOutgoingLinks() { return (!links_.empty()); }
 
+NTA_BasicType Output::getDataType() const { return data_->getType(); }
+
 } // namespace nupic

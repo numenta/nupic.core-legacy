@@ -157,6 +157,11 @@ public:
   const Array &getData() const;
 
   /**
+   *  Get the data type
+   */
+  NTA_BasicType getDataType() const;
+
+  /**
    *
    * Get the Region that the input belongs to.
    *
