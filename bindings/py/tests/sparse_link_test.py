@@ -23,7 +23,7 @@ import unittest
 import numpy as np
 import numpy.testing
 from nupic.bindings.regions.PyRegion import PyRegion
-from nupic.engine import Network
+import nupic.bindings.engine_internal as engine
 
 TEST_DATA_SPARSE = np.array([4, 7])
 MAX_ACTIVE = TEST_DATA_SPARSE.size
@@ -170,7 +170,7 @@ class DenseRegion(PyRegion):
 
 def createNetwork(fromRegion, toRegion):
   """Create test network"""
-  network = Network()
+  network = engine.Network()
   config = str({"maxActive": MAX_ACTIVE, "outputWidth": OUTPUT_WIDTH})
   network.addRegion("from", fromRegion, config)
   network.addRegion("to", toRegion, config)
@@ -185,8 +185,8 @@ class SparseLinkTest(unittest.TestCase):
 
   def setUp(self):
     """Register test regions"""
-    Network.registerPyRegion(SparseRegion.__module__, SparseRegion.__name__)
-    Network.registerPyRegion(DenseRegion.__module__, DenseRegion.__name__)
+    engine.Network.registerPyRegion(SparseRegion.__module__, SparseRegion.__name__)
+    engine.Network.registerPyRegion(DenseRegion.__module__, DenseRegion.__name__)
 
   def testSparseToSparse(self):
     """Test links between sparse to sparse"""
@@ -194,7 +194,8 @@ class SparseLinkTest(unittest.TestCase):
     net.initialize()
     net.run(1)
 
-    actual = net.regions["to"].getOutputData("dataOut")
+    region = net.getRegions().getByName("to")
+    actual = region.getOutputArray("dataOut")
     np.testing.assert_array_equal(actual, TEST_DATA_SPARSE)
 
   def testSparseToDense(self):
@@ -203,7 +204,8 @@ class SparseLinkTest(unittest.TestCase):
     net.initialize()
     net.run(1)
 
-    actual = net.regions["to"].getOutputData("dataOut")
+    region = net.getRegions().getByName("to")
+    actual = region.getOutputArray("dataOut")
     np.testing.assert_array_equal(actual, TEST_DATA_DENSE)
 
   def testDenseToSparse(self):
@@ -212,7 +214,8 @@ class SparseLinkTest(unittest.TestCase):
     net.initialize()
     net.run(1)
 
-    actual = net.regions["to"].getOutputData("dataOut")
+    region = net.getRegions().getByName("to")
+    actual = region.getOutputArray("dataOut")
     np.testing.assert_array_equal(actual, TEST_DATA_SPARSE)
 
   def testDenseToDense(self):
@@ -221,7 +224,8 @@ class SparseLinkTest(unittest.TestCase):
     net.initialize()
     net.run(1)
 
-    actual = net.regions["to"].getOutputData("dataOut")
+    region = net.getRegions().getByName("to")
+    actual = region.getOutputArray("dataOut")
     np.testing.assert_array_equal(actual, TEST_DATA_DENSE)
 
 
