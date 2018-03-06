@@ -123,6 +123,7 @@ class PyRegion(object):
            - ``required`` (bool) whether the input is must be connected
            - ``isDefaultInput`` (bool) must be True for exactly one input
            - ``requireSplitterMap`` (bool) [just set this to False.]
+           - ``isSparse`` (bool) whether the input is sparse
 
       - ``outputs`` (dict) similar structure to inputs. The keys
         are:
@@ -132,6 +133,7 @@ class PyRegion(object):
            - ``count``
            - ``regionLevel``
            - ``isDefaultOutput``
+           - ``isSparse``
 
       - ``parameters`` (dict) of dicts with the following keys:
 

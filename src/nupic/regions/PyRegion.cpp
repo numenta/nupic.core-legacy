@@ -1048,9 +1048,15 @@ void PyRegion::createSpec(const char *nodeType, Spec &ns,
       requireSplitterMap = py::Int(input.getItem("requireSplitterMap")) != 0;
     }
 
+    // make sparse optional and default to false.
+    bool sparse = false;
+    if (input.getItem("sparse") != nullptr) {
+      sparse = py::Int(input.getItem("sparse")) != 0;
+    }
+
     ns.inputs.add(name,
                   InputSpec(description, dataType, count, required, regionLevel,
-                            isDefaultInput, requireSplitterMap));
+                            isDefaultInput, requireSplitterMap, sparse));
   }
 
   // Add outputs
@@ -1102,8 +1108,14 @@ void PyRegion::createSpec(const char *nodeType, Spec &ns,
         << outputMessagePrefix.str() << "isDefaultOutput";
     bool isDefaultOutput = py::Int(output.getItem("isDefaultOutput")) != 0;
 
+    // make sparse optional and default to true.
+    bool sparse = false;
+    if (output.getItem("sparse") != nullptr) {
+      sparse = py::Int(output.getItem("sparse")) != 0;
+    }
+
     ns.outputs.add(name, OutputSpec(description, dataType, count, regionLevel,
-                                    isDefaultOutput));
+                                    isDefaultOutput, sparse));
   }
 
   // Add parameters

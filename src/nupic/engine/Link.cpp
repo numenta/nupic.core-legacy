@@ -173,6 +173,17 @@ void Link::initialize(size_t destinationOffset) {
               destD == dest_->getRegion().getDimensions());
   }
 
+  // Validate sparse link
+  if (src_->isSparse() && !dest_->isSparse()) {
+    // Sparse to dense: unit32 -> bool
+    NTA_CHECK(dest_->getDataType() == NTA_BasicType_Bool)
+        << "Sparse to Dense link destination must be boolean";
+  } else if (!src_->isSparse() && dest_->isSparse()) {
+    // Dense to sparse:  NTA_BasicType -> uint32
+    NTA_CHECK(dest_->getDataType() == NTA_BasicType_UInt32)
+        << "Dense to Sparse link destination must be uint32";
+  }
+
   destOffset_ = destinationOffset;
   impl_->initialize();
 

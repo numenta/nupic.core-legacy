@@ -36,9 +36,10 @@
 
 namespace nupic {
 
-Input::Input(Region &region, NTA_BasicType dataType, bool isRegionLevel)
+Input::Input(Region &region, NTA_BasicType dataType, bool isRegionLevel,
+             bool isSparse)
     : region_(region), isRegionLevel_(isRegionLevel), initialized_(false),
-      data_(dataType), name_("Unnamed") {}
+      data_(dataType), name_("Unnamed"), isSparse_(isSparse) {}
 
 Input::~Input() {
   uninitialize();
@@ -124,11 +125,15 @@ const Array &Input::getData() const {
   return data_;
 }
 
+NTA_BasicType Input::getDataType() const { return data_.getType(); }
+
 Region &Input::getRegion() { return region_; }
 
 const std::vector<Link *> &Input::getLinks() { return links_; }
 
 bool Input::isRegionLevel() { return isRegionLevel_; }
+
+bool Input::isSparse() { return isSparse_; }
 
 // See header file for documentation
 size_t Input::evaluateLinks() {
@@ -455,6 +460,12 @@ void Input::initialize() {
         << "was called. Region's dimensions must be specified.";
   }
 
+  if (isSparse_) {
+    NTA_CHECK(isRegionLevel_) << "Sparse data must be region level";
+    NTA_CHECK(data_.getType() == NTA_BasicType_UInt32)
+        << "Sparse data must be uint32";
+  }
+
   // Calculate our size and the offset of each link
   size_t count = 0;
   for (std::vector<Link *>::const_iterator l = links_.begin();
@@ -473,8 +484,7 @@ void Input::initialize() {
   // Zero the inputs (required for inspectors)
   if (count != 0) {
     void *buffer = data_.getBuffer();
-    size_t byteCount = count * BasicType::getSize(data_.getType());
-    ::memset(buffer, 0, byteCount);
+    ::memset(buffer, 0, data_.getBufferSize());
   }
 
   NTA_CHECK(splitterMap_.size() == 0);
