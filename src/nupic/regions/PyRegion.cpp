@@ -974,7 +974,7 @@ void PyRegion::compute() {
       name << "__" << p.first << "_len__";
       py::List len(outputs.getItem(name.str()));
 
-      // Remove 'const' to update the variable lenght array
+      // Remove 'const' to update the variable length array
       Array &data = const_cast<Array &>(out->getData());
       data.setCount(py::Int(len.getItem(0)));
     }

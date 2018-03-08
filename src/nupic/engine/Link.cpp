@@ -348,7 +348,7 @@ void Link::compute() {
     ::memcpy((char *)(dest.getBuffer()) + destByteOffset, src.getBuffer(),
              srcSize);
     if (dest_->isSparse()) {
-      // Remove 'const' to update the variable lenght array
+      // Remove 'const' to update the variable length array
       const_cast<Array &>(dest).setCount(src.getCount());
     }
   } else if (dest_->isSparse()) {
@@ -371,7 +371,7 @@ void Link::compute() {
         destBuf[destIdx++] = i;
       }
     }
-    // Remove 'const' to update the variable lenght array
+    // Remove 'const' to update the variable length array
     const_cast<Array &>(dest).setCount(destIdx);
   } else {
     // Destination is dense, convert source from sparse to dense
