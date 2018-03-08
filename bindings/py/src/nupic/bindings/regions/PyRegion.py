@@ -432,7 +432,7 @@ class PyRegion(object):
     if outputs[name].size < value.size:
       raise Exception(
         "Output {} must be less than {}. Given value size is {}".format(
-          name, value.size))
+          name, outputs[name].size, value.size))
           
     outputs[lenAttr][0] = value.size
     outputs[name][:value.size] = value
