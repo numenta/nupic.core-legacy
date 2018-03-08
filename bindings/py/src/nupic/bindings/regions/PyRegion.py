@@ -416,7 +416,9 @@ class PyRegion(object):
     directly from python. Use this method to update the sparse output fields in  
     the "outputs" array so it can be resized from the c++ code.
 
-    :param outputs: (dict) of numpy arrays (one per output)
+    :param outputs: (dict) of numpy arrays. This is the original outputs dict 
+           owned by the C++ caller, passed to region via the compute method to 
+           be updated.
     :param name: (string) name of output
     :param value: (object) the sparse array to assign to the output
     """
