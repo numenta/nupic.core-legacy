@@ -384,7 +384,7 @@ void Link::compute() {
 
     size_t srcLen = src.getCount();
     size_t destLen = dest.getBufferSize();
-    ::memset(destBuf, 0, destLen * sizeof(bool));
+    ::memset(destBuf, 0, destLen);
     size_t destIdx;
     for (size_t i = 0; i < srcLen; i++) {
       destIdx = srcBuf[i];
