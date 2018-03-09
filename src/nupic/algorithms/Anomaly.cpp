@@ -32,7 +32,8 @@
 
 using namespace std;
 
-namespace nupic {
+namespace nupic 
+{
 
 namespace algorithms {
 
