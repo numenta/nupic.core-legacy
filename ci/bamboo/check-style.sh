@@ -22,12 +22,12 @@
 
 set -o errexit
 
-if git clang-format --diff -- | grep -q '^diff'
+if git clang-format --diff master | grep -q '^diff'
 then
-    echo "ERROR: Code changes do not comply with the clang-format rules."
+    echo "ERROR: Code changes do not comply with numenta's code style rules."
     echo "Please run 'git clang-format' before commit."
+    git clang-format --diff master
     exit 1
 fi
-
 exit 0
 
