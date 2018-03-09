@@ -21,7 +21,6 @@
 # ----------------------------------------------------------------------
 
 set -o errexit
-
 if git clang-format --diff HEAD~1 | grep -q '^diff'
 then
     echo "ERROR: Code changes do not comply with the clang-format rules."
