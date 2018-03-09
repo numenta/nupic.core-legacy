@@ -21,14 +21,12 @@
 # ----------------------------------------------------------------------
 
 set -o errexit
-set -o xtrace
 
-if git clang-format --diff HEAD~1 | grep -q '^diff'
+if git clang-format --diff master | grep -q '^diff'
 then
     echo "ERROR: Code changes do not comply with the clang-format rules."
     echo "Please run 'git clang-format' before commit."
     exit 1
 fi
-git-clang-format --diff HEAD~1
 exit 0
 
