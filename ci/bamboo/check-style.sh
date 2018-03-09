@@ -29,6 +29,6 @@ then
     echo "Please run 'git clang-format' before commit."
     exit 1
 fi
-
+git-clang-format --diff HEAD~1
 exit 0
 
