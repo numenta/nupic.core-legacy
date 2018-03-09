@@ -22,7 +22,7 @@
 
 set -o errexit
 
-if git clang-format --diff -- | grep -q '^diff'
+if git clang-format --diff master HEAD | grep -q '^diff'
 then
     echo "ERROR: Code changes do not comply with the clang-format rules."
     echo "Please run 'git clang-format' before commit."
