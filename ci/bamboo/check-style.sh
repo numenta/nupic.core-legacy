@@ -21,7 +21,6 @@
 # ----------------------------------------------------------------------
 
 set -o errexit
-set -o xtrace
 
 if git clang-format --diff HEAD~1 | grep -q '^diff'
 then
