@@ -82,15 +82,18 @@ std::string Spec::getDefaultOutputName() const {
 
 InputSpec::InputSpec(std::string description, NTA_BasicType dataType,
                      UInt32 count, bool required, bool regionLevel,
-                     bool isDefaultInput, bool requireSplitterMap)
+                     bool isDefaultInput, bool requireSplitterMap, bool sparse)
     : description(std::move(description)), dataType(dataType), count(count),
       required(required), regionLevel(regionLevel),
-      isDefaultInput(isDefaultInput), requireSplitterMap(requireSplitterMap) {}
+      isDefaultInput(isDefaultInput), requireSplitterMap(requireSplitterMap),
+      sparse(sparse) {}
 
 OutputSpec::OutputSpec(std::string description, NTA_BasicType dataType,
-                       size_t count, bool regionLevel, bool isDefaultOutput)
+                       size_t count, bool regionLevel, bool isDefaultOutput,
+                       bool sparse)
     : description(std::move(description)), dataType(dataType), count(count),
-      regionLevel(regionLevel), isDefaultOutput(isDefaultOutput) {}
+      regionLevel(regionLevel), isDefaultOutput(isDefaultOutput),
+      sparse(sparse) {}
 
 CommandSpec::CommandSpec(std::string description)
     : description(std::move(description)) {}

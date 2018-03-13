@@ -45,7 +45,8 @@ namespace nupic {
 /**
  * An ArrayBase is used for passing arrays of data back and forth between
  * a client application and NuPIC, minimizing copying. It facilitates
- * both zero-copy and one-copy operations.
+ * both zero-copy and one-copy operations. The array can be of variable length
+ * independent of buffer size. Array length cannot exceed buffer size.
  */
 class ArrayBase {
 public:
@@ -83,6 +84,17 @@ public:
   // number of elements of given type in the buffer
   size_t getCount() const;
 
+  /**
+   * Returns the allocated buffer size in bytes independent of array length
+   */
+  size_t getBufferSize() const;
+
+  /**
+   * Set array length independent of buffer size. Array length cannot exceed
+   * buffer size
+   */
+  void setCount(size_t count);
+
   NTA_BasicType getType() const;
 
 protected:
@@ -92,6 +104,7 @@ protected:
   size_t count_;
   NTA_BasicType type_;
   bool own_;
+  size_t bufferSize_;
 
 private:
   /**
