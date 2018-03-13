@@ -419,8 +419,9 @@ class PyRegion(object):
     :param outputs: (dict) of numpy arrays. This is the original outputs dict 
            owned by the C++ caller, passed to region via the compute method to 
            be updated.
-    :param name: (string) name of output
-    :param value: (object) the sparse array to assign to the output
+    :param name: (string) name of an existing output to modify
+    :param value: (list) list of UInt32 indices of all the nonzero entries 
+           representing the sparse array to be set 
     """
     # The region output memory is owned by the c++ and cannot be changed from
     # python. We use a special attribule named "__{name}_len__" to pass
