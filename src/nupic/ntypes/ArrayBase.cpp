@@ -40,7 +40,8 @@ using namespace nupic;
  * Caller frees buffer when no longer needed.
  */
 ArrayBase::ArrayBase(NTA_BasicType type, void *buffer, size_t count)
-    : buffer_((char *)buffer), count_(count), type_(type), own_(false) {
+    : buffer_((char *)buffer), count_(count), type_(type), own_(false),
+      bufferSize_(count) {
   if (!BasicType::isValid(type)) {
     NTA_THROW << "Invalid NTA_BasicType " << type
               << " used in array constructor";
@@ -53,7 +54,7 @@ ArrayBase::ArrayBase(NTA_BasicType type, void *buffer, size_t count)
  * ask the ArrayBase to allocate a buffer via allocateBuffer.
  */
 ArrayBase::ArrayBase(NTA_BasicType type)
-    : buffer_(nullptr), count_(0), type_(type), own_(false) {
+    : buffer_(nullptr), count_(0), type_(type), own_(false), bufferSize_(0) {
   if (!BasicType::isValid(type)) {
     NTA_THROW << "Invalid NTA_BasicType " << type
               << " used in array constructor";
@@ -80,7 +81,8 @@ void ArrayBase::allocateBuffer(size_t count) {
   // a non-NULL value which is safe to delete.  This allows us to
   // disambiguate uninitialized ArrayBases and ArrayBases initialized with
   // size zero.
-  buffer_ = new char[count_ * BasicType::getSize(type_)];
+  bufferSize_ = count_ * BasicType::getSize(type_);
+  buffer_ = new char[bufferSize_];
   own_ = true;
 }
 
@@ -91,6 +93,7 @@ void ArrayBase::setBuffer(void *buffer, size_t count) {
   buffer_ = (char *)buffer;
   count_ = count;
   own_ = false;
+  bufferSize_ = count_ * BasicType::getSize(type_);
 }
 
 void ArrayBase::releaseBuffer() {
@@ -100,12 +103,23 @@ void ArrayBase::releaseBuffer() {
     delete[] buffer_;
   buffer_ = nullptr;
   count_ = 0;
+  bufferSize_ = 0;
 }
 
 void *ArrayBase::getBuffer() const { return buffer_; }
 
+size_t ArrayBase::getBufferSize() const { return bufferSize_; }
+
 // number of elements of given type in the buffer
 size_t ArrayBase::getCount() const { return count_; };
+
+void ArrayBase::setCount(size_t count) {
+  NTA_CHECK(count * BasicType::getSize(type_) <= bufferSize_)
+      << "Invalid count value of " << count << " given, "
+      << "count must be " << bufferSize_ / BasicType::getSize(type_)
+      << " or less";
+  count_ = count;
+}
 
 NTA_BasicType ArrayBase::getType() const { return type_; };
 

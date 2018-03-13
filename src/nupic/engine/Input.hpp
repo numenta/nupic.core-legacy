@@ -62,8 +62,11 @@ public:
    *        The type of the input, i.e. TODO
    * @param isRegionLevel
    *        Whether the input is region level, i.e. TODO
+   * @param isSparse
+   *        Whether the input is sparse. Default false
    */
-  Input(Region &region, NTA_BasicType type, bool isRegionLevel);
+  Input(Region &region, NTA_BasicType type, bool isRegionLevel,
+        bool isSparse = false);
 
   /**
    *
@@ -157,7 +160,7 @@ public:
   const Array &getData() const;
 
   /**
-   *  Get the data type
+   *  Get the data type of the output
    */
   NTA_BasicType getDataType() const;
 
@@ -243,6 +246,14 @@ public:
   template <typename T>
   void getInputForNode(size_t nodeIndex, std::vector<T> &input) const;
 
+  /*
+   * Tells whether the input is sparse.
+   *
+   * @returns
+   *     Whether the input is sparse
+   */
+  bool isSparse();
+
 private:
   Region &region_;
   // buffer is concatenation of input buffers (after prepare), or,
@@ -273,6 +284,9 @@ private:
 
   // Useful for us to know our own name
   std::string name_;
+
+  // Whether or not to use sparse data
+  bool isSparse_;
 
   // Internal methods
 

@@ -1,0 +1,23 @@
+#!/bin/sh
+if git rev-parse --verify HEAD >/dev/null 2>&1
+then
+	against=HEAD
+else
+	# Initial commit: diff against an empty tree object
+	against=4b825dc642cb6eb9a060e54bf8d69288fbee4904
+fi
+
+# Redirect output to stderr.
+exec 1>&2
+
+# Validate code style using 'clang-format'
+type clang-format > /dev/null || echo "ERROR: Please install 'clang-format'" ; exit 1
+if git clang-format --diff --commit $against -- | grep -q '^diff'
+then
+    echo "ERROR: Code changes do not comply with the clang-format rules."
+    echo "Please run 'git clang-format' before commit."
+    exit 1
+fi
+
+exit 0
+
