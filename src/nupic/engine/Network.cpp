@@ -30,11 +30,10 @@ Implementation of the Network class
 #include <stdexcept>
 
 #include <nupic/engine/Input.hpp>
-#include <nupic/engine/Output.hpp>
-#include <nupic/types/BasicType.hpp>
 #include <nupic/engine/Link.hpp>
 #include <nupic/engine/Network.hpp>
 #include <nupic/engine/NuPIC.hpp> // for register/unregister
+#include <nupic/engine/Output.hpp>
 #include <nupic/engine/Region.hpp>
 #include <nupic/engine/Spec.hpp>
 #include <nupic/ntypes/BundleIO.hpp>
