@@ -203,11 +203,15 @@ void SDRClassifier::infer_(const vector<UInt> &patternNZ,
       add(likelihoods->begin(), likelihoods->end(), weights.begin(bit),
           weights.begin(bit + 1));
     }
-    // compute softmax of raw scores
-    // TODO: fix potential overflow problem by shifting scores by their
-    // maximal value across buckets
+    Real64 maxLikelihoods = *max_element(likelihoods->begin(), likelihoods->end());
+    for (auto likelihood : *likelihoods) {
+      likelihood -= maxLikelihoods;
+    }
     range_exp(1.0, *likelihoods);
-    normalize(*likelihoods, 1.0, 1.0);
+    Real64 sumLikelihoods = accumulate(likelihoods->begin(), likelihoods->end(), 0);
+    for (auto likelihood : *likelihoods) {
+      likelihood /= sumLikelihoods;
+    }
   }
 }
 
@@ -222,8 +226,15 @@ vector<Real64> SDRClassifier::calculateError_(const vector<UInt> &bucketIdxList,
     add(likelihoods.begin(), likelihoods.end(), weights.begin(bit),
         weights.begin(bit + 1));
   }
+  Real64 maxLikelihoods = *max_element(likelihoods.begin(), likelihoods.end());
+  for (auto likelihood : likelihoods) {
+    likelihood -= maxLikelihoods;
+  }
   range_exp(1.0, likelihoods);
-  normalize(likelihoods, 1.0, 1.0);
+  Real64 sumLikelihoods = accumulate(likelihoods.begin(), likelihoods.end(), 0);
+  for (auto likelihood : likelihoods) {
+    likelihood /= sumLikelihoods;
+  } 
 
   // compute target likelihoods
   vector<Real64> targetDistribution(maxBucketIdx_ + 1, 0.0);
