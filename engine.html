@@ -1430,8 +1430,8 @@ A splitter map is a matrix that maps the full input of a region to the inputs of
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Public Functions</p>
 <dl class="function">
-<dt id="_CPPv2N5nupic5Input5InputER6Region13NTA_BasicTypeb">
-<span id="nupic::Input::Input__RegionR.NTA_BasicType.b"></span><span class="target" id="classnupic_1_1_input_1a14c086c940483dab5c23441ad1fa6b06"></span><code class="descname">Input</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv2N5nupic6RegionE" title="nupic::Region">Region</a> &amp;<em>region</em>, NTA_BasicType <em>type</em>, bool <em>isRegionLevel</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic5Input5InputER6Region13NTA_BasicTypeb" title="Permalink to this definition">¶</a><br /></dt>
+<dt id="_CPPv2N5nupic5Input5InputER6Region13NTA_BasicTypebb">
+<span id="nupic::Input::Input__RegionR.NTA_BasicType.b.b"></span><span class="target" id="classnupic_1_1_input_1a50f8826c71628c0bf540c1bc0e83311e"></span><code class="descname">Input</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv2N5nupic6RegionE" title="nupic::Region">Region</a> &amp;<em>region</em>, NTA_BasicType <em>type</em>, bool <em>isRegionLevel</em>, bool <em>isSparse</em> = false<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic5Input5InputER6Region13NTA_BasicTypebb" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Constructor. </p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
@@ -1439,6 +1439,7 @@ A splitter map is a matrix that maps the full input of a region to the inputs of
 <li><code class="docutils literal"><span class="pre">region</span></code>: The region that the input belongs to. </li>
 <li><code class="docutils literal"><span class="pre">type</span></code>: The type of the input, i.e. TODO </li>
 <li><code class="docutils literal"><span class="pre">isRegionLevel</span></code>: Whether the input is region level, i.e. TODO </li>
+<li><code class="docutils literal"><span class="pre">isSparse</span></code>: Whether the input is sparse. Default false </li>
 </ul>
 </dd>
 </dl>
@@ -1554,6 +1555,12 @@ A splitter map is a matrix that maps the full input of a region to the inputs of
 </dd></dl>
 
 <dl class="function">
+<dt id="_CPPv2NK5nupic5Input11getDataTypeEv">
+<span id="nupic::Input::getDataTypeC"></span><span class="target" id="classnupic_1_1_input_1ac4859a95276320e0fb76c754b8a01873"></span>NTA_BasicType <code class="descname">getDataType</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic5Input11getDataTypeEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get the data type of the output. </p>
+</dd></dl>
+
+<dl class="function">
 <dt id="_CPPv2N5nupic5Input9getRegionEv">
 <span id="nupic::Input::getRegion"></span><span class="target" id="classnupic_1_1_input_1aef710b02c6fd17c8faf4d762f0bfddf4"></span><a class="reference internal" href="#_CPPv2N5nupic6RegionE" title="nupic::Region">Region</a> &amp;<code class="descname">getRegion</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic5Input9getRegionEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Get the <a class="reference internal" href="network-regions.html#classnupic_1_1_region"><span class="std std-ref">Region</span></a> that the input belongs to. </p>
@@ -1649,8 +1656,8 @@ A splitter map is a matrix that maps the full input of a region to the inputs of
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Public Functions</p>
 <dl class="function">
-<dt id="_CPPv2N5nupic6Output6OutputER6Region13NTA_BasicTypeb">
-<span id="nupic::Output::Output__RegionR.NTA_BasicType.b"></span><span class="target" id="classnupic_1_1_output_1af9f39746951038e234e39d486e220b1d"></span><code class="descname">Output</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv2N5nupic6RegionE" title="nupic::Region">Region</a> &amp;<em>region</em>, NTA_BasicType <em>type</em>, bool <em>isRegionLevel</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic6Output6OutputER6Region13NTA_BasicTypeb" title="Permalink to this definition">¶</a><br /></dt>
+<dt id="_CPPv2N5nupic6Output6OutputER6Region13NTA_BasicTypebb">
+<span id="nupic::Output::Output__RegionR.NTA_BasicType.b.b"></span><span class="target" id="classnupic_1_1_output_1aaf14111ba05119df5eae9f705f318e20"></span><code class="descname">Output</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv2N5nupic6RegionE" title="nupic::Region">Region</a> &amp;<em>region</em>, NTA_BasicType <em>type</em>, bool <em>isRegionLevel</em>, bool <em>isSparse</em> = false<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic6Output6OutputER6Region13NTA_BasicTypebb" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Constructor. </p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
@@ -1658,6 +1665,7 @@ A splitter map is a matrix that maps the full input of a region to the inputs of
 <li><code class="docutils literal"><span class="pre">region</span></code>: The region that the output belongs to. </li>
 <li><code class="docutils literal"><span class="pre">type</span></code>: The type of the output, TODO </li>
 <li><code class="docutils literal"><span class="pre">isRegionLevel</span></code>: Whether the output is region level, i.e. TODO </li>
+<li><code class="docutils literal"><span class="pre">isSparse</span></code>: Whether the output is sparse. Default false </li>
 </ul>
 </dd>
 </dl>
@@ -1769,9 +1777,15 @@ Called by <a class="reference internal" href="network-io.html#classnupic_1_1_inp
 <dt><strong>Return</strong></dt>
 <dd>A constant reference to the data of the output as an <code class="docutils literal"><span class="pre">Array</span></code> </dd>
 <dt><strong>Note</strong></dt>
-<dd>It&#8217;s mportant to return a const array so caller can&#8217;t reallocate the buffer. </dd>
+<dd>It&#8217;s important to return a const array so caller can&#8217;t reallocate the buffer. </dd>
 </dl>
 </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2NK5nupic6Output11getDataTypeEv">
+<span id="nupic::Output::getDataTypeC"></span><span class="target" id="classnupic_1_1_output_1ac808283cb62c4ed01fe7453e5b46248e"></span>NTA_BasicType <code class="descname">getDataType</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic6Output11getDataTypeEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get the data type of the output. </p>
 </dd></dl>
 
 <dl class="function">
@@ -1803,6 +1817,17 @@ Called by <a class="reference internal" href="network-io.html#classnupic_1_1_inp
 <p><dl class="docutils">
 <dt><strong>Return</strong></dt>
 <dd>The count of node output element, previously set by <a class="reference internal" href="network-io.html#classnupic_1_1_output_1a2d3ef2344bac170e995f07d154f16518"><span class="std std-ref">initialize()</span></a>. </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2NK5nupic6Output8isSparseEv">
+<span id="nupic::Output::isSparseC"></span><span class="target" id="classnupic_1_1_output_1a5528b7ab0a5e13e80d903c38d9294db3"></span>bool <code class="descname">isSparse</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK5nupic6Output8isSparseEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Tells whether the output is sparse. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>Whether the output is sparse. </dd>
 </dl>
 </p>
 </dd></dl>
