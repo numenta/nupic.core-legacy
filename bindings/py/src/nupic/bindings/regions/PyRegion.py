@@ -430,10 +430,12 @@ class PyRegion(object):
     if lenAttr not in outputs:
       raise Exception("Output {} is not a valid sparse output".format(name))
 
-    if outputs[name].size < value.size:
+    valueLen = len(value)
+    outputLen = len(outputs[name])
+    if outputLen < valueLen:
       raise Exception(
         "Output {} must be less than {}. Given value size is {}".format(
-          name, outputs[name].size, value.size))
+          name, outputLen, valueLen))
           
-    outputs[lenAttr][0] = value.size
-    outputs[name][:value.size] = value
+    outputs[lenAttr][0] = valueLen
+    outputs[name][:valueLen] = value
