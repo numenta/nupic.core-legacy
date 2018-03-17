@@ -27,8 +27,8 @@
 #   SWIG_DIR: the directory where swig is installed (.i files, etc.) as defined
 #             by FindSWIG.
 
-set(swig_path "${REPOSITORY_DIR}/external/common/src/swig-3.0.12.tar.gz")
-set(swigwin_path "${REPOSITORY_DIR}/external/common/src/swigwin-3.0.12.zip")
+set(swig_path "${REPOSITORY_DIR}/external/common/src/swig-3.0.2.tar.gz")
+set(swigwin_path "${REPOSITORY_DIR}/external/common/src/swigwin-3.0.2.zip")
 set(pcre_path "${REPOSITORY_DIR}/external/common/src/pcre-8.37.tar.gz")
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -56,7 +56,7 @@ else()
       ${EP_BASE}/Source/Swig/configure --prefix=${EP_BASE}/Install --disable-ccache --enable-cpp11-testing
   )
   set(swig_executable ${EP_BASE}/Install/bin/swig)
-  set(swig_dir ${EP_BASE}/Install/share/swig/3.0.12)
+  set(swig_dir ${EP_BASE}/Install/share/swig/3.0.2)
 endif()
 
 set(SWIG_EXECUTABLE ${swig_executable} PARENT_SCOPE)
