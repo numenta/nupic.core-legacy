@@ -112,6 +112,7 @@ private:
   void openFile(const std::string &filename);
 
   ArrayRef dataIn_;
+  ArrayRef sparseDataIn_;
   std::string filename_;     // Name of the output file
   nupic::OFStream *outFile_; // Handle to current file
 
