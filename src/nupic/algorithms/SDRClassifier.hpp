@@ -33,8 +33,8 @@
 #include <string>
 #include <vector>
 
-#include <nupic/math/DenseMatrix.hpp>
 #include <nupic/algorithms/ClassifierResult.hpp>
+#include <nupic/math/DenseMatrix.hpp>
 #include <nupic/proto/SdrClassifier.capnp.h>
 #include <nupic/types/Serializable.hpp>
 #include <nupic/types/Types.hpp>
