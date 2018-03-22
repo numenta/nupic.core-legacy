@@ -33,6 +33,7 @@ Implementation of the Network class
 #include <nupic/engine/Link.hpp>
 #include <nupic/engine/Network.hpp>
 #include <nupic/engine/NuPIC.hpp> // for register/unregister
+#include <nupic/engine/Output.hpp>
 #include <nupic/engine/Region.hpp>
 #include <nupic/engine/Spec.hpp>
 #include <nupic/ntypes/BundleIO.hpp>
@@ -41,6 +42,7 @@ Implementation of the Network class
 #include <nupic/os/Path.hpp>
 #include <nupic/proto/NetworkProto.capnp.h>
 #include <nupic/proto/RegionProto.capnp.h>
+#include <nupic/types/BasicType.hpp>
 #include <nupic/utils/Log.hpp>
 #include <nupic/utils/StringUtils.hpp>
 #include <yaml-cpp/yaml.h>
@@ -315,6 +317,24 @@ void Network::link(const std::string &srcRegionName,
   if (destInput == nullptr) {
     NTA_THROW << "Network::link -- input '" << inputName
               << " does not exist on region " << destRegionName;
+  }
+
+  // Validate link data types
+  if (srcOutput->isSparse() == destInput->isSparse()) {
+    NTA_CHECK(srcOutput->getDataType() == destInput->getDataType())
+        << "Network::link -- Mismatched data types."
+        << BasicType::getName(srcOutput->getDataType())
+        << " != " << BasicType::getName(destInput->getDataType());
+  } else if (srcOutput->isSparse()) {
+    // Sparse to dense: unit32 -> bool
+    NTA_CHECK(srcOutput->getDataType() == NTA_BasicType_UInt32 &&
+              destInput->getDataType() == NTA_BasicType_Bool)
+        << "Network::link -- Sparse to Dense link: source must be uint32 and "
+           "destination must be boolean";
+  } else if (destInput->isSparse()) {
+    // Dense to sparse:  NTA_BasicType -> uint32
+    NTA_CHECK(destInput->getDataType() == NTA_BasicType_UInt32)
+        << "Network::link -- Dense to Sparse link: destination must be uint32";
   }
 
   // Create the link itself

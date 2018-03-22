@@ -38,7 +38,7 @@ public:
   InputSpec() {}
   InputSpec(std::string description, NTA_BasicType dataType, UInt32 count,
             bool required, bool regionLevel, bool isDefaultInput,
-            bool requireSplitterMap = true);
+            bool requireSplitterMap = true, bool sparse = false);
 
   std::string description;
   NTA_BasicType dataType;
@@ -50,13 +50,15 @@ public:
   bool regionLevel;
   bool isDefaultInput;
   bool requireSplitterMap;
+  bool sparse;
 };
 
 class OutputSpec {
 public:
   OutputSpec() {}
   OutputSpec(std::string description, const NTA_BasicType dataType,
-             size_t count, bool regionLevel, bool isDefaultOutput);
+             size_t count, bool regionLevel, bool isDefaultOutput,
+             bool sparse = false);
 
   std::string description;
   NTA_BasicType dataType;
@@ -65,6 +67,7 @@ public:
   size_t count;
   bool regionLevel;
   bool isDefaultOutput;
+  bool sparse;
 };
 
 class CommandSpec {

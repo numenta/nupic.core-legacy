@@ -50,8 +50,11 @@ public:
    *        The type of the output, TODO
    * @param isRegionLevel
    *        Whether the output is region level, i.e. TODO
+   * @param isSparse
+   *        Whether the output is sparse. Default false
    */
-  Output(Region &region, NTA_BasicType type, bool isRegionLevel);
+  Output(Region &region, NTA_BasicType type, bool isRegionLevel,
+         bool isSparse = false);
 
   /**
    * Destructor
@@ -130,10 +133,15 @@ public:
    * @returns
    *         A constant reference to the data of the output as an @c Array
    *
-   * @note It's mportant to return a const array so caller can't
+   * @note It's important to return a const array so caller can't
    * reallocate the buffer.
    */
   const Array &getData() const;
+
+  /**
+   *  Get the data type of the output
+   */
+  NTA_BasicType getDataType() const;
 
   /**
    *
@@ -161,6 +169,15 @@ public:
    */
   size_t getNodeOutputElementCount() const;
 
+  /**
+   *
+   * Tells whether the output is sparse.
+   *
+   * @returns
+   *     Whether the output is sparse.
+   */
+  bool isSparse() const;
+
 private:
   Region &region_; // needed for number of nodes
   Array *data_;
@@ -170,6 +187,8 @@ private:
   std::set<Link *> links_;
   std::string name_;
   size_t nodeOutputElementCount_;
+  // Whether or not the output is sparse
+  bool isSparse_;
 };
 
 } // namespace nupic

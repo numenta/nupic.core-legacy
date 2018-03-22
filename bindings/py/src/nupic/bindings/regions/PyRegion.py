@@ -123,6 +123,7 @@ class PyRegion(object):
            - ``required`` (bool) whether the input is must be connected
            - ``isDefaultInput`` (bool) must be True for exactly one input
            - ``requireSplitterMap`` (bool) [just set this to False.]
+           - ``isSparse`` (bool) whether the input is sparse
 
       - ``outputs`` (dict) similar structure to inputs. The keys
         are:
@@ -132,6 +133,7 @@ class PyRegion(object):
            - ``count``
            - ``regionLevel``
            - ``isDefaultOutput``
+           - ``isSparse``
 
       - ``parameters`` (dict) of dicts with the following keys:
 
@@ -404,3 +406,34 @@ class PyRegion(object):
       raise Exception('Command: ' + methodName + ' must be callable')
 
     return m(*args)
+
+  @staticmethod
+  def setSparseOutput(outputs, name, value):
+    """
+    Set region sparse output value.
+
+    The region output memory is owned by the c++ caller and cannot be changed  
+    directly from python. Use this method to update the sparse output fields in  
+    the "outputs" array so it can be resized from the c++ code.
+
+    :param outputs: (dict) of numpy arrays. This is the original outputs dict 
+           owned by the C++ caller, passed to region via the compute method to 
+           be updated.
+    :param name: (string) name of an existing output to modify
+    :param value: (list) list of UInt32 indices of all the nonzero entries 
+           representing the sparse array to be set 
+    """
+    # The region output memory is owned by the c++ and cannot be changed from
+    # python. We use a special attribule named "__{name}_len__" to pass
+    # the sparse array length back to c++
+    lenAttr = "__{}_len__".format(name)
+    if lenAttr not in outputs:
+      raise Exception("Output {} is not a valid sparse output".format(name))
+
+    if outputs[name].size < value.size:
+      raise Exception(
+        "Output {} must be less than {}. Given value size is {}".format(
+          name, outputs[name].size, value.size))
+          
+    outputs[lenAttr][0] = value.size
+    outputs[name][:value.size] = value
