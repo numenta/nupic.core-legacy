@@ -203,15 +203,7 @@ void SDRClassifier::infer_(const vector<UInt> &patternNZ,
       add(likelihoods->begin(), likelihoods->end(), weights.begin(bit),
           weights.begin(bit + 1));
     }
-    Real64 maxLikelihoods = *max_element(likelihoods->begin(), likelihoods->end());
-    for (auto likelihood : *likelihoods) {
-      likelihood -= maxLikelihoods;
-    }
-    range_exp(1.0, *likelihoods);
-    Real64 sumLikelihoods = accumulate(likelihoods->begin(), likelihoods->end(), 0);
-    for (auto likelihood : *likelihoods) {
-      likelihood /= sumLikelihoods;
-    }
+    softmax_(likelihoods->begin(), likelihoods->end());
   }
 }
 
@@ -226,15 +218,7 @@ vector<Real64> SDRClassifier::calculateError_(const vector<UInt> &bucketIdxList,
     add(likelihoods.begin(), likelihoods.end(), weights.begin(bit),
         weights.begin(bit + 1));
   }
-  Real64 maxLikelihoods = *max_element(likelihoods.begin(), likelihoods.end());
-  for (auto likelihood : likelihoods) {
-    likelihood -= maxLikelihoods;
-  }
-  range_exp(1.0, likelihoods);
-  Real64 sumLikelihoods = accumulate(likelihoods.begin(), likelihoods.end(), 0);
-  for (auto likelihood : likelihoods) {
-    likelihood /= sumLikelihoods;
-  } 
+  softmax_(likelihoods.begin(), likelihoods.end());
 
   // compute target likelihoods
   vector<Real64> targetDistribution(maxBucketIdx_ + 1, 0.0);
@@ -244,6 +228,19 @@ vector<Real64> SDRClassifier::calculateError_(const vector<UInt> &bucketIdxList,
 
   axby(-1.0, likelihoods, 1.0, targetDistribution);
   return likelihoods;
+}
+
+template <typename Iterator>
+void SDRClassifier::softmax_(Iterator begin, Iterator end) {
+    Iterator maxItr= max_element(begin, end);
+    for (auto itr = begin; itr != end; ++itr) {
+      *itr -= *maxItr;
+    }
+    range_exp(1.0, begin, end);
+    typename std::iterator_traits<Iterator>::value_type sum = accumulate(begin, end, 0);
+    for (auto itr = begin; itr != end; ++itr) {
+      *itr /= sum;
+    }
 }
 
 UInt SDRClassifier::version() const { return version_; }

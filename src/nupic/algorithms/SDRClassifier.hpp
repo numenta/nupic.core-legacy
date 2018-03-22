@@ -163,6 +163,10 @@ private:
   vector<Real64> calculateError_(const vector<UInt> &bucketIdxList,
                                  const vector<UInt> patternNZ, UInt step);
 
+  // softmax function
+  template <typename Iterator>
+  void softmax_(Iterator begin, Iterator end);
+
   // The list of prediction steps to learn and infer.
   vector<UInt> steps_;
 
