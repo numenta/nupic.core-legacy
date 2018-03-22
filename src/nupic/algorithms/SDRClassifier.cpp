@@ -238,7 +238,7 @@ void SDRClassifier::softmax_(Iterator begin, Iterator end) {
   }
   range_exp(1.0, begin, end);
   typename std::iterator_traits<Iterator>::value_type sum =
-      accumulate(begin, end, 0);
+      accumulate(begin, end, 0.0);
   for (auto itr = begin; itr != end; ++itr) {
     *itr /= sum;
   }
