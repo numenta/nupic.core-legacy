@@ -82,6 +82,20 @@ Segment &Segment::operator=(const Segment &o) {
 }
 
 //--------------------------------------------------------------------------------
+bool Segment::operator==(const Segment &other) const {
+  if (_totalActivations != other._totalActivations ||
+      _positiveActivations != other._positiveActivations ||
+      _lastActiveIteration != other._lastActiveIteration ||
+      _lastPosDutyCycle != other._lastPosDutyCycle ||
+      _lastPosDutyCycleIteration != other._lastPosDutyCycleIteration ||
+      _seqSegFlag != other._seqSegFlag || _frequency != other._frequency ||
+      _nConnected != other._nConnected) {
+    return false;
+  }
+  return _synapses == other._synapses;
+}
+
+//--------------------------------------------------------------------------------
 Segment::Segment(const Segment &o)
     : _totalActivations(o._totalActivations),
       _positiveActivations(o._positiveActivations),

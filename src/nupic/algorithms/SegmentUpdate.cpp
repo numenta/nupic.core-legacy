@@ -71,3 +71,14 @@ bool SegmentUpdate::invariants(Cells4 *cells) const {
 
   return ok;
 }
+
+bool SegmentUpdate::operator==(const SegmentUpdate &o) const {
+
+  if (_cellIdx != o._cellIdx || _segIdx != o._segIdx ||
+      _sequenceSegment != o._sequenceSegment || _timeStamp != o._timeStamp ||
+      _phase1Flag != o._phase1Flag ||
+      _weaklyPredicting != o._weaklyPredicting) {
+    return false;
+  }
+  return _synapses == o._synapses;
+}

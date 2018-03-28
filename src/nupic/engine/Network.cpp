@@ -1061,4 +1061,23 @@ void Network::unregisterCPPRegion(const std::string name) {
   Region::unregisterCPPRegion(name);
 }
 
+bool Network::operator==(const Network &o) const {
+
+  if (initialized_ != o.initialized_ || iteration_ != o.iteration_ ||
+      minEnabledPhase_ != o.minEnabledPhase_ ||
+      maxEnabledPhase_ != o.maxEnabledPhase_ ||
+      regions_.getCount() != o.regions_.getCount()) {
+    return false;
+  }
+
+  for (size_t i = 0; i < regions_.getCount(); i++) {
+    Region *r1 = regions_.getByIndex(i).second;
+    Region *r2 = o.regions_.getByIndex(i).second;
+    if (*r1 != *r2) {
+      return false;
+    }
+  }
+  return true;
+}
+
 } // namespace nupic

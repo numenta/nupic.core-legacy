@@ -85,6 +85,11 @@ public:
     NTA_ASSERT(invariants());
     return *this;
   }
+  //---------------------------------------------------------------------
+  bool operator==(const SegmentUpdate &other) const;
+  inline bool operator!=(const SegmentUpdate &other) const {
+    return !operator==(other);
+  }
 
   //---------------------------------------------------------------------
   bool isSequenceSegment() const { return _sequenceSegment; }

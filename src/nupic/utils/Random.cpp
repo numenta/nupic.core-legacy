@@ -68,6 +68,10 @@ public:
   void write(RandomImplProto::Builder &proto) const;
   void read(RandomImplProto::Reader &proto);
   UInt32 getUInt32();
+  bool operator==(const RandomImpl &o) const;
+  inline bool operator!=(const RandomImpl &other) const {
+    return !operator==(other);
+  }
   // Note: copy constructor and operator= are needed
   // The default is ok.
 private:
@@ -123,6 +127,10 @@ Random &Random::operator=(const Random &other) {
     impl_ = new RandomImpl(*other.impl_);
   }
   return *this;
+}
+
+bool Random::operator==(const Random &o) const {
+  return seed_ == o.seed_ && (*impl_) == (*o.impl_);
 }
 
 Random::~Random() { delete impl_; }
@@ -376,6 +384,13 @@ std::istream &operator>>(std::istream &inStream, RandomImpl &r) {
   inStream >> r.rptr_;
   inStream >> r.fptr_;
   return inStream;
+}
+
+bool RandomImpl::operator==(const RandomImpl &o) const {
+  if (rptr_ != o.rptr_ || fptr_ != o.fptr_) {
+    return false;
+  }
+  return ::memcmp(state_, o.state_, sizeof(state_)) == 0;
 }
 
 // helper function for seeding RNGs across the plugin barrier

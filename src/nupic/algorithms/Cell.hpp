@@ -108,6 +108,10 @@ public:
     return _segments[segIdx];
   }
 
+  //----------------------------------------------------------------------
+  bool operator==(const Cell &other) const;
+  inline bool operator!=(const Cell &other) const { return !operator==(other); }
+
   //--------------------------------------------------------------------------------
   Segment &getSegment(UInt segIdx) {
     NTA_ASSERT(segIdx < _segments.size());

@@ -138,3 +138,23 @@ TEST(SegmentTest, freeNSynapsesStableSort) {
   sort(removed.begin(), removed.end());
   ASSERT_EQ(removed, removed_expected);
 }
+
+/**
+ * Test operator '=='
+ */
+TEST(SegmentTest, testEqualsOperator) {
+  Segment segment1;
+  Segment segment2;
+
+  vector<UInt> inactiveSegmentIndices;
+  vector<UInt> activeSegmentIndices;
+  vector<UInt> activeSynapseIndices;
+  vector<UInt> inactiveSynapseIndices;
+
+  setUpSegment(segment1, inactiveSegmentIndices, activeSegmentIndices,
+               activeSynapseIndices, inactiveSynapseIndices);
+  ASSERT_TRUE(segment1 != segment2);
+  setUpSegment(segment2, inactiveSegmentIndices, activeSegmentIndices,
+               activeSynapseIndices, inactiveSynapseIndices);
+  ASSERT_TRUE(segment1 == segment2);
+}

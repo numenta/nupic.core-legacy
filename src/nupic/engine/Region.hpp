@@ -609,6 +609,11 @@ public:
    */
   const Timer &getExecuteTimer() const;
 
+  bool operator==(const Region &other) const;
+  inline bool operator!=(const Region &other) const {
+    return !operator==(other);
+  }
+
   /**
    * @}
    */

@@ -170,6 +170,11 @@ public:
   static const UInt32 MAX32;
   static const UInt64 MAX64;
 
+  bool operator==(const Random &other) const;
+  inline bool operator!=(const Random &other) const {
+    return !operator==(other);
+  }
+
   // called by the plugin framework so that plugins
   // get the "global" seeder
   static void initSeeder(const RandomSeedFuncPtr r);

@@ -109,6 +109,19 @@ public:
     memcpy(_pData, o._pData, _nCells);
     return *this;
   }
+  bool operator==(const CState &other) const {
+    if (_version != other._version || _nCells != other._nCells ||
+        _fMemoryAllocatedByPython != other._fMemoryAllocatedByPython) {
+      return false;
+    }
+    if (_pData != nullptr && other._pData != nullptr) {
+      return ::memcmp(_pData, other._pData, _nCells) == 0;
+    }
+    return _pData == other._pData;
+  }
+  inline bool operator!=(const CState &other) const {
+    return !operator==(other);
+  }
   bool initialize(const UInt nCells) {
     if (_nCells != 0) // if already initialized
       return false;   // don't do it again
@@ -216,6 +229,19 @@ public:
     _countOn = o._countOn;
     _isSorted = o._isSorted;
     return *this;
+  }
+  bool operator==(const CStateIndexed &other) const {
+    if (_version != other._version || _countOn != other._countOn ||
+        _isSorted != other._isSorted) {
+      return false;
+    }
+    if (_cellsOn != other._cellsOn) {
+      return false;
+    }
+    return CState::operator==(other);
+  }
+  inline bool operator!=(const CStateIndexed &other) const {
+    return !operator==(other);
   }
   std::vector<UInt> cellsOn(bool fSorted = false) {
     // It's better for the caller to ask us to sort, rather than
@@ -341,6 +367,9 @@ public:
 
   Real _lastPosDutyCycle;
   UInt _lastPosDutyCycleIteration;
+
+  bool operator==(const Segment &o) const;
+  inline bool operator!=(const Segment &o) const { return !operator==(o); }
 
 private:
   bool _seqSegFlag;     // sequence segment flag
