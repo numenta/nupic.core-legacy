@@ -453,3 +453,20 @@ TEST(RandomTest, CapnpSerialization) {
   // clean up
   remove(outputPath);
 }
+
+/**
+ * Test operator '=='
+ */
+TEST(RandomTest, testEqualsOperator) {
+  Random r1(42), r2(42), r3(3);
+  ASSERT_TRUE(r1 == r2);
+  ASSERT_TRUE(r1 != r3);
+  ASSERT_TRUE(r2 != r3);
+
+  UInt32 v1, v2;
+  v1 = r1.getUInt32();
+  ASSERT_TRUE(r1 != r2);
+  v2 = r2.getUInt32();
+  ASSERT_TRUE(r1 == r2);
+  ASSERT_EQ(v1, v2);
+}

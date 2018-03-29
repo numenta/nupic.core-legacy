@@ -409,6 +409,11 @@ public:
    */
   static void unregisterCPPRegion(const std::string name);
 
+  bool operator==(const Network &other) const;
+  inline bool operator!=(const Network &other) const {
+    return !operator==(other);
+  }
+
 private:
   // Both constructors use this common initialization method
   void commonInit();

@@ -490,7 +490,18 @@ void Link::read(LinkProto::Reader &proto) {
     }
   }
 }
-
+bool Link::operator==(const Link &o) const {
+  if (initialized_ != o.initialized_ ||
+      propagationDelay_ != o.propagationDelay_ || linkType_ != o.linkType_ ||
+      linkParams_ != o.linkParams_ || destOffset_ != o.destOffset_ ||
+      srcRegionName_ != o.srcRegionName_ ||
+      destRegionName_ != o.destRegionName_ ||
+      srcOutputName_ != o.srcOutputName_ ||
+      destInputName_ != o.destInputName_) {
+    return false;
+  }
+  return true;
+}
 namespace nupic {
 std::ostream &operator<<(std::ostream &f, const Link &link) {
   f << "<Link>\n";

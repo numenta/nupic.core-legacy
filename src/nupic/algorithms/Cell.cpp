@@ -156,3 +156,9 @@ void Cell::load(std::istream &inStream) {
       _freeSegments.push_back(i);
   }
 }
+bool Cell::operator==(const Cell &other) const {
+  if (_freeSegments != other._freeSegments) {
+    return false;
+  }
+  return _segments == other._segments;
+}

@@ -541,3 +541,40 @@ TEST(NetworkTest, Callback) {
   EXPECT_STREQ("level2", mydata[4].c_str());
   EXPECT_STREQ("level3", mydata[5].c_str());
 }
+
+/**
+ * Test operator '=='
+ */
+TEST(NetworkTest, testEqualsOperator) {
+  Network n1;
+  Network n2;
+  ASSERT_TRUE(n1 == n2);
+  Dimensions d;
+  d.push_back(4);
+  d.push_back(4);
+
+  auto l1 = n1.addRegion("level1", "TestNode", "");
+  ASSERT_TRUE(n1 != n2);
+  auto l2 = n2.addRegion("level1", "TestNode", "");
+  ASSERT_TRUE(n1 == n2);
+
+  l1->setDimensions(d);
+  ASSERT_TRUE(n1 != n2);
+  l2->setDimensions(d);
+  ASSERT_TRUE(n1 == n2);
+
+  n1.addRegion("level2", "TestNode", "");
+  ASSERT_TRUE(n1 != n2);
+  n2.addRegion("level2", "TestNode", "");
+  ASSERT_TRUE(n1 == n2);
+
+  n1.link("level1", "level2", "TestFanIn2", "");
+  ASSERT_TRUE(n1 != n2);
+  n2.link("level1", "level2", "TestFanIn2", "");
+  ASSERT_TRUE(n1 == n2);
+
+  n1.run(1);
+  ASSERT_TRUE(n1 != n2);
+  n2.run(1);
+  ASSERT_TRUE(n1 == n2);
+}

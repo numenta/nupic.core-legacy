@@ -2801,6 +2801,58 @@ std::ostream &operator<<(std::ostream &outStream, const Cells4 &cells) {
   return outStream;
 }
 
+bool Cells4::operator==(const Cells4 &other) const {
+
+  if (_activationThreshold != other._activationThreshold ||
+      _avgInputDensity != other._avgInputDensity ||
+      _avgLearnedSeqLength != other._avgLearnedSeqLength ||
+      _checkSynapseConsistency != other._checkSynapseConsistency ||
+      _doPooling != other._doPooling || _globalDecay != other._globalDecay ||
+      _initSegFreq != other._initSegFreq ||
+      _learnedSeqLength != other._learnedSeqLength ||
+      _maxAge != other._maxAge || _maxInfBacktrack != other._maxInfBacktrack ||
+      _maxLrnBacktrack != other._maxLrnBacktrack ||
+      _maxSegmentsPerCell != other._maxSegmentsPerCell ||
+      _maxSeqLength != other._maxSeqLength ||
+      _maxSynapsesPerSegment != other._maxSynapsesPerSegment ||
+      _minThreshold != other._minThreshold || _nCells != other._nCells ||
+      _nCellsPerCol != other._nCellsPerCol || _nColumns != other._nColumns ||
+      _newSynapseCount != other._newSynapseCount ||
+      _nIterations != other._nIterations ||
+      _nLrnIterations != other._nLrnIterations ||
+      _ownsMemory != other._ownsMemory || _pamCounter != other._pamCounter ||
+      _pamLength != other._pamLength ||
+      _permConnected != other._permConnected || _permDec != other._permDec ||
+      _permInc != other._permInc || _permInitial != other._permInitial ||
+      _permMax != other._permMax || _resetCalled != other._resetCalled ||
+      _segUpdateValidDuration != other._segUpdateValidDuration ||
+      _verbosity != other._verbosity || _version != other._version) {
+    return false;
+  }
+  if (_rng != other._rng) {
+    return false;
+  }
+  if (_cells != other._cells) {
+    return false;
+  }
+  if (_segmentUpdates != other._segmentUpdates) {
+    return false;
+  }
+  if (_learnActiveStateT != other._learnActiveStateT) {
+    return false;
+  }
+  if (_learnActiveStateT1 != other._learnActiveStateT1) {
+    return false;
+  }
+  if (_learnPredictedStateT != other._learnPredictedStateT) {
+    return false;
+  }
+  if (_learnPredictedStateT1 != other._learnPredictedStateT1) {
+    return false;
+  }
+  return true;
+}
+
 //----------------------------------------------------------------------
 /**
  * Compute cell and segment activities using forward propagation

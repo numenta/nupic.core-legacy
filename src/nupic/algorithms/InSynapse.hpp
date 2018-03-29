@@ -63,6 +63,13 @@ public:
     return *this;
   }
 
+  inline bool operator==(const InSynapse &other) const {
+    return _srcCellIdx == other._srcCellIdx && _permanence == other._permanence;
+  }
+  inline bool operator!=(const InSynapse &other) const {
+    return !operator==(other);
+  }
+
   inline UInt srcCellIdx() const { return _srcCellIdx; }
   const inline Real &permanence() const { return _permanence; }
   inline Real &permanence() { return _permanence; }

@@ -398,6 +398,12 @@ public:
   ~Cells4();
 
   //----------------------------------------------------------------------
+  bool operator==(const Cells4 &other) const;
+  inline bool operator!=(const Cells4 &other) const {
+    return !operator==(other);
+  }
+
+  //----------------------------------------------------------------------
   UInt version() const { return _version; }
 
   //----------------------------------------------------------------------

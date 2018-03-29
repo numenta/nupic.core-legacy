@@ -401,6 +401,9 @@ public:
   using Serializable::read;
   void read(LinkProto::Reader &proto);
 
+  bool operator==(const Link &other) const;
+  inline bool operator!=(const Link &other) const { return !operator==(other); }
+
 private:
   // common initialization for the two constructors.
   void commonConstructorInit_(const std::string &linkType,

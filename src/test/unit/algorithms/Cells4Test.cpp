@@ -483,3 +483,61 @@ TEST(Cells4Test,
   ASSERT_EQ(expectedActiveSrcCellIdxs, activeSrcCellIdxs);
   ASSERT_EQ(expectedActiveSynapseIdxs, activeSynapseIdxs);
 }
+
+/**
+ * Test operator '=='
+ */
+TEST(Cells4Test, testEqualsOperator) {
+  Cells4 cells1(10, 2, 1, 1, 1, 1, 0.5, 0.8, 1, 0.1, 0.1, 0, false, 42, true,
+                false);
+  Cells4 cells2(10, 2, 1, 1, 1, 1, 0.5, 0.8, 1, 0.1, 0.1, 0, false, 42, true,
+                false);
+  ASSERT_TRUE(cells1 == cells2);
+  std::vector<Real> input1(10, 0.0);
+  input1[1] = 1.0;
+  input1[4] = 1.0;
+  input1[5] = 1.0;
+  input1[9] = 1.0;
+  std::vector<Real> input2(10, 0.0);
+  input2[0] = 1.0;
+  input2[2] = 1.0;
+  input2[5] = 1.0;
+  input2[6] = 1.0;
+  std::vector<Real> input3(10, 0.0);
+  input3[1] = 1.0;
+  input3[3] = 1.0;
+  input3[6] = 1.0;
+  input3[7] = 1.0;
+  std::vector<Real> input4(10, 0.0);
+  input4[2] = 1.0;
+  input4[4] = 1.0;
+  input4[7] = 1.0;
+  input4[8] = 1.0;
+  std::vector<Real> output(10 * 2);
+  for (UInt i = 0; i < 10; ++i) {
+    cells1.compute(&input1.front(), &output.front(), true, true);
+    ASSERT_TRUE(cells1 != cells2);
+    cells2.compute(&input1.front(), &output.front(), true, true);
+    ASSERT_TRUE(cells1 == cells2);
+
+    cells1.compute(&input2.front(), &output.front(), true, true);
+    ASSERT_TRUE(cells1 != cells2);
+    cells2.compute(&input2.front(), &output.front(), true, true);
+    ASSERT_TRUE(cells1 == cells2);
+
+    cells1.compute(&input3.front(), &output.front(), true, true);
+    ASSERT_TRUE(cells1 != cells2);
+    cells2.compute(&input3.front(), &output.front(), true, true);
+    ASSERT_TRUE(cells1 == cells2);
+
+    cells1.compute(&input4.front(), &output.front(), true, true);
+    ASSERT_TRUE(cells1 != cells2);
+    cells2.compute(&input4.front(), &output.front(), true, true);
+    ASSERT_TRUE(cells1 == cells2);
+
+    cells1.reset();
+    ASSERT_TRUE(cells1 != cells2);
+    cells2.reset();
+    ASSERT_TRUE(cells1 == cells2);
+  }
+}
