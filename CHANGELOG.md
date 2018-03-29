@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.0.4
+
+860459cf NUP-2506: Add operator '==' to classes used in tests
+ac43320f NUP-2505: Remove win32 build from CI
+6a580c06 Fix not include ClassifierResult.hpp error
+de567a4e NUP-2495: Update clang-format instructions
+2f027a7b NUP-2475: Add sparse link validation
+3071b8a5 DEVOPS-353: Update "setSparseOutput" documentation
+7ae0d64f NUP-2495: Check style using clang-format
+8a1d5eeb NUP-2475: Make sure Network API links use the same dtype at both ends
+4e800a64 DEVOPS-353: Fix tests to run with nupic.core directly instead of nupic
+9ae6155d DEVOPS-353: Implement sparse links
+de88baaa DEVOPS-353: Add 'isSparse' attribute to input/output
+1e486fde DEVOPS-353: Allow element count to be smaller than buffer size
+c9377d52 Fix cmake version and project name
+f069c310 Add missing include required for NTA_ASSERT
+a6c186ae reformat code using clang-format
+70d43da1 NUP-2492: Add constructor vs initialize test regarding Issue #1386
+dabd7f87 NUP-2491: Validate global inhibition parameters
+
 ## 1.0.3
 
 * https://github.com/numenta/nupic.core/issues/1380 Added stronger type checking for SP compute input.
