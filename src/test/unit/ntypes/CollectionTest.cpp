@@ -41,6 +41,10 @@ struct CollectionTest : public ::testing::Test {
     Item() : x(-1) {}
 
     Item(int x) : x(x) {}
+    inline bool operator==(const Item &other) const { return x == other.x; };
+    inline bool operator!=(const Item &other) const {
+      return !operator==(other);
+    }
   };
 };
 
