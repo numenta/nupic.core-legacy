@@ -111,7 +111,9 @@ public:
     kj::Array<capnp::word> array = kj::heapArray<capnp::word>(srcNumWords);
     memcpy(array.asBytes().begin(), srcBytes, srcNumBytes); // copy
 
-    capnp::FlatArrayMessageReader reader(array.asPtr()); // copy ?
+    capnp::ReaderOptions options;
+    options.traversalLimitInWords = kj::maxValue; // Don't limit.
+    capnp::FlatArrayMessageReader reader(array.asPtr(), options); // copy ?
     typename MessageType::Reader proto = reader.getRoot<MessageType>();
     obj.read(proto);
 #else

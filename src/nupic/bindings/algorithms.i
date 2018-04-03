@@ -42,6 +42,8 @@ else:
   from nupic.proto.SvmProto_capnp import (SvmDenseProto, Svm01Proto)
   from nupic.proto.TemporalMemoryProto_capnp import TemporalMemoryProto
 
+# Capnp reader traveral limit (see capnp::ReaderOptions)
+_TRAVERSAL_LIMIT_IN_WORDS = 1 << 63
 
 _ALGORITHMS = _algorithms
 %}
@@ -338,7 +340,8 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
 
       :param: Destination SvmDenseProto message builder
       """
-      reader = SvmDenseProto.from_bytes(self._writeAsCapnpPyBytes()) # copy
+      reader = SvmDenseProto.from_bytes(self._writeAsCapnpPyBytes(),
+                            traversal_limit_in_words=_TRAVERSAL_LIMIT_IN_WORDS)
       pyBuilder.from_dict(reader.to_dict())  # copy
     
     @classmethod
@@ -450,7 +453,8 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
 
       :param: Destination Svm01Proto message builder
       """
-      reader = Svm01Proto.from_bytes(self._writeAsCapnpPyBytes()) # copy
+      reader = Svm01Proto.from_bytes(self._writeAsCapnpPyBytes(),
+                            traversal_limit_in_words=_TRAVERSAL_LIMIT_IN_WORDS)
       pyBuilder.from_dict(reader.to_dict())  # copy
     
     @classmethod
@@ -899,7 +903,8 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
 
       :param: Destination Cells4Proto message builder
       """
-      reader = Cells4Proto.from_bytes(self._writeAsCapnpPyBytes()) # copy
+      reader = Cells4Proto.from_bytes(self._writeAsCapnpPyBytes(),
+                            traversal_limit_in_words=_TRAVERSAL_LIMIT_IN_WORDS)
       pyBuilder.from_dict(reader.to_dict())  # copy
 
   %}
@@ -1148,7 +1153,8 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
 
       :param: Destination SpatialPoolerProto message builder
       """
-      reader = SpatialPoolerProto.from_bytes(self._writeAsCapnpPyBytes()) # copy
+      reader = SpatialPoolerProto.from_bytes(self._writeAsCapnpPyBytes(),
+                            traversal_limit_in_words=_TRAVERSAL_LIMIT_IN_WORDS)
       pyBuilder.from_dict(reader.to_dict())  # copy
 
 
@@ -1465,7 +1471,8 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
 
       :param: Destination SdrClassifierProto message builder
       """
-      reader = SdrClassifierProto.from_bytes(self._writeAsCapnpPyBytes()) # copy
+      reader = SdrClassifierProto.from_bytes(self._writeAsCapnpPyBytes(),
+                            traversal_limit_in_words=_TRAVERSAL_LIMIT_IN_WORDS)
       pyBuilder.from_dict(reader.to_dict())  # copy
 
     @classmethod
@@ -1581,7 +1588,8 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
 
       :param: Destination ConnectionsProto message builder
       """
-      reader = ConnectionsProto.from_bytes(self._writeAsCapnpPyBytes()) # copy
+      reader = ConnectionsProto.from_bytes(self._writeAsCapnpPyBytes(),
+                            traversal_limit_in_words=_TRAVERSAL_LIMIT_IN_WORDS)
       pyBuilder.from_dict(reader.to_dict())  # copy
 
 
@@ -1782,7 +1790,8 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
 
       :param: Destination TemporalMemoryProto message builder
       """
-      reader = TemporalMemoryProto.from_bytes(self._writeAsCapnpPyBytes()) # copy
+      reader = TemporalMemoryProto.from_bytes(self._writeAsCapnpPyBytes(),
+                            traversal_limit_in_words=_TRAVERSAL_LIMIT_IN_WORDS)
       pyBuilder.from_dict(reader.to_dict())  # copy
 
 
