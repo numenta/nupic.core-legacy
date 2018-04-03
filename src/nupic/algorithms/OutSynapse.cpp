@@ -20,12 +20,14 @@
  * ---------------------------------------------------------------------
  */
 
-#include <nupic/algorithms/Cells4.hpp>
+
 #include <nupic/algorithms/OutSynapse.hpp>
+#include <nupic/algorithms/Cells4.hpp>
 using namespace nupic::algorithms::Cells4;
 using namespace nupic;
 
-bool OutSynapse::invariants(Cells4 *cells) const {
+bool OutSynapse::invariants(Cells4* cells) const
+{
   bool ok = true;
   if (cells) {
     ok &= _dstCellIdx < cells->nCells();
@@ -35,11 +37,12 @@ bool OutSynapse::invariants(Cells4 *cells) const {
 }
 
 namespace nupic {
-namespace algorithms {
-namespace Cells4 {
-bool operator==(const OutSynapse &a, const OutSynapse &b) {
-  return a.equals(b);
+  namespace algorithms {
+    namespace Cells4 {
+      bool operator==(const OutSynapse& a, const OutSynapse& b)
+      {
+        return a.equals(b);
+      }
+    }
+  }
 }
-} // namespace Cells4
-} // namespace algorithms
-} // namespace nupic

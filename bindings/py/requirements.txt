@@ -1,6 +1,0 @@
-#See http://www.pip-installer.org/en/latest/requirements.html for details
-numpy==1.12.1
-pytest==3.0.7
-pytest-cov==2.5.0
-pytest-xdist==1.16.0
-pycapnp==0.5.12

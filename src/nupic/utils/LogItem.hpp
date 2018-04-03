@@ -21,59 +21,66 @@
  */
 
 /** @file
- * LogItem interface
- */
+* LogItem interface
+*/
 
 #ifndef NTA_LOG_ITEM_HPP
 #define NTA_LOG_ITEM_HPP
 
-#include <iostream>
 #include <sstream>
+#include <iostream>
+
+#include <nupic/types/ptr_types.hpp>
 
 namespace nupic {
 
-/**
- * @b Description
- * A LogItem represents a single log entry. It contains a stream that
- * accumulates a log message, and its destructor calls the logger.
- *
- * A LogItem contains an internal stream
- * which is used for building up an application message using
- * << operators.
- *
- */
-
-class LogItem {
-public:
-  typedef enum { debug, info, warn, error } LogLevel;
   /**
-   * Record information to be logged
+   * @b Description
+   * A LogItem represents a single log entry. It contains a stream that accumulates
+   * a log message, and its destructor calls the logger. 
+   * 
+   * A LogItem contains an internal stream
+   * which is used for building up an application message using
+   * << operators. 
+   * 
    */
-  LogItem(const char *filename, int line, LogLevel level);
 
-  /**
-   * Destructor performs the logging
-   */
-  virtual ~LogItem();
 
-  /*
-   * Return the underlying stream object. Caller will use it to construct the
-   * log message.
-   */
-  std::ostringstream &stream();
+  class LogItem {
+  public:
 
-  static void setOutputFile(std::ostream &ostream);
+    typedef enum {debug, info, warn, error} LogLevel;
+    /**
+     * Record information to be logged
+     */
+    LogItem(const char *filename, int line, LogLevel level);
 
-protected:
-  const char *filename_; // name of file
-  int lineno_;           // line number in file
-  LogLevel level_;
-  std::ostringstream msg_;
+    /**
+     * Destructor performs the logging
+     */
+    virtual ~LogItem();
 
-private:
-  static std::ostream *ostream_;
-};
+    /*
+     * Return the underlying stream object. Caller will use it to construct the log message. 
+     */
+    std::ostringstream& stream();
 
-} // namespace nupic
+    static void setOutputFile(std::ostream& ostream);
+
+
+  protected:
+    const char *filename_;     // name of file
+    int  lineno_;              // line number in file
+    LogLevel level_;
+    std::ostringstream  msg_; 
+
+  private:
+    static std::ostream* ostream_;
+
+  };
+
+
+}
+
 
 #endif // NTA_LOG_ITEM_HPP

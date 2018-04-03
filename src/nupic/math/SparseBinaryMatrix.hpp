@@ -30,11 +30,9 @@
 #include <algorithm>
 #include <sstream>
 
-#include <nupic/math/ArrayAlgo.hpp>
 #include <nupic/math/Math.hpp>
 #include <nupic/math/StlIo.hpp>
-#include <nupic/proto/SparseBinaryMatrixProto.capnp.h>
-#include <nupic/types/Serializable.hpp>
+#include <nupic/math/ArrayAlgo.hpp>
 
 namespace nupic {
 
@@ -46,7 +44,8 @@ namespace nupic {
  *
  */
 template <typename UI1 = nupic::UInt32, typename UI2 = nupic::UInt32>
-class SparseBinaryMatrix : public Serializable<SparseBinaryMatrixProto> {
+class SparseBinaryMatrix
+{
 public:
   typedef UI1 size_type;
   typedef UI2 nz_index_type;
@@ -511,8 +510,8 @@ public:
       ASSERT_INPUT_ITERATOR(InputIterator1);
       ASSERT_INPUT_ITERATOR(InputIterator2);
 
-      NTA_ASSERT(nz_j_end - nz_j == nz_i_end - nz_i)
-          << where << "Invalid range";
+      NTA_ASSERT(nz_j_end - nz_j == nz_i_end - nz_i) << where
+                                                     << "Invalid range";
 
 #ifdef NTA_ASSERTIONS_ON
 
@@ -1119,7 +1118,7 @@ public:
         n += sprintf(buffer, "%ld ", (long)ind_[row][j]);
     }
     return n;
-  }
+   }
 
   inline void fromCSR(std::istream &inStream) {
     const std::string where = "SparseBinaryMatrix::readState: ";
@@ -1253,8 +1252,8 @@ public:
 
     std::string version;
     inStream >> version;
-    NTA_CHECK(version == getVersion(true))
-        << where << "Unknown format: " << version;
+    NTA_CHECK(version == getVersion(true)) << where
+                                           << "Unknown format: " << version;
 
     size_type nrows = 0;
     inStream >> nrows;
@@ -1292,33 +1291,6 @@ public:
     for (size_type row = 0; row != nRows(); ++row) {
       outStream << ind_[row].size() << " ";
       nupic::binary_save(outStream, ind_[row].begin(), ind_[row].end());
-    }
-  }
-
-  using Serializable::write;
-
-  inline void write(SparseBinaryMatrixProto::Builder &proto) const {
-    proto.setNumRows(nRows());
-    proto.setNumColumns(nCols());
-    auto indices = proto.initIndices(nRows());
-    for (UInt i = 0; i < nRows(); ++i) {
-      auto &sparseRow = getSparseRow(i);
-      auto rowProto = indices.init(i, sparseRow.size());
-      for (UInt j = 0; j < sparseRow.size(); ++j) {
-        rowProto.set(j, sparseRow[j]);
-      }
-    }
-  }
-
-  using Serializable::read;
-
-  inline void read(SparseBinaryMatrixProto::Reader &proto) {
-    auto rows = proto.getNumRows();
-    auto columns = proto.getNumColumns();
-    resize(rows, columns);
-    auto indices = proto.getIndices();
-    for (UInt i = 0; i < rows; ++i) {
-      replaceSparseRow(i, indices[i].begin(), indices[i].end());
     }
   }
 

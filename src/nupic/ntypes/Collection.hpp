@@ -26,44 +26,47 @@
 #include <string>
 #include <vector>
 
-namespace nupic {
-// A collection is a templated class that contains items of type t.
-// It supports lookup by name and by index. The items are stored in a map
-// and copies are also stored in a vector (it's Ok to use pointers).
-// You can add items using the add() method.
-//
-template <typename T> class Collection {
-public:
-  Collection();
-  virtual ~Collection();
-
-  size_t getCount() const;
-
-  // This method provides access by index to the contents of the collection
-  // The indices are in insertion order.
+namespace nupic
+{
+  // A collection is a templated class that contains items of type t.
+  // It supports lookup by name and by index. The items are stored in a map
+  // and copies are also stored in a vector (it's Ok to use pointers).
+  // You can add items using the add() method.
   //
+  template <typename T>
+  class Collection
+  {
+  public:
+    Collection();
+    virtual ~Collection();
+    
+    size_t getCount() const;
 
-  const std::pair<std::string, T> &getByIndex(size_t index) const;
+    // This method provides access by index to the contents of the collection
+    // The indices are in insertion order.
+    //
 
-  bool contains(const std::string &name) const;
+    const std::pair<std::string, T>& getByIndex(size_t index) const;
+  
+    bool contains(const std::string & name) const;
 
-  T getByName(const std::string &name) const;
+    T getByName(const std::string & name) const;
 
-  // TODO: move add/remove to a ModifiableCollection subclass
-  // This method should be internal but is currently tested
-  // in net_test.py in test_node_spec
-  void add(const std::string &name, const T &item);
+    // TODO: move add/remove to a ModifiableCollection subclass
+    // This method should be internal but is currently tested
+    // in net_test.py in test_node_spec
+    void add(const std::string & name, const T & item);
 
-  void remove(const std::string &name);
+    void remove(const std::string& name);
 
-#ifdef NTA_INTERNAL
-  std::pair<std::string, T> &getByIndex(size_t index);
+
+    std::pair<std::string, T>& getByIndex(size_t index);
+
+  private:
+    typedef std::vector<std::pair<std::string, T> > CollectionStorage;
+    CollectionStorage vec_; 
+  };
+}
+
 #endif
 
-private:
-  typedef std::vector<std::pair<std::string, T>> CollectionStorage;
-  CollectionStorage vec_;
-};
-} // namespace nupic
-
-#endif

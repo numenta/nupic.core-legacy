@@ -29,431 +29,456 @@
 
 #include <iostream>
 #include <map>
+#include <memory>
 #include <set>
 #include <string>
 #include <vector>
 
 #include <nupic/ntypes/Collection.hpp>
 
-#include <nupic/proto/NetworkProto.capnp.h>
-#include <nupic/proto/RegionProto.capnp.h>
-#include <nupic/types/Serializable.hpp>
+#include <nupic/types/ptr_types.hpp>
 #include <nupic/types/Types.hpp>
 
-namespace nupic {
+namespace nupic
+{
 
-class Region;
-class Dimensions;
-class GenericRegisteredRegionImpl;
-class Link;
-
-/**
- * Represents an HTM network. A network is a collection of regions.
- *
- * @nosubgrouping
- */
-class Network : public Serializable<NetworkProto> {
-public:
-  /**
-   * @name Construction and destruction
-   * @{
-   */
+  class Region;
+  class Dimensions;
+  class GenericRegisteredRegionImpl;
+  class Link;
 
   /**
+   * Represents an HTM network. A network is a collection of regions.
    *
-   * Create an new Network and register it to NuPIC.
-   *
-   * @note Creating a Network will auto-initialize NuPIC.
+   * @nosubgrouping
    */
-  Network();
+  class Network
+  {
+  public:
 
-  /**
-   * Create a Network by loading previously saved bundle,
-   * and register it to NuPIC.
-   *
-   * @param path The path to the previously saved bundle file, currently only
-   * support files with `.nta` extension.
-   *
-   * @note Creating a Network will auto-initialize NuPIC.
-   */
-  Network(const std::string &path);
+    /**
+     * @name Construction and destruction
+     * @{
+     */
 
-  /**
-   * Destructor.
-   *
-   * Destruct the network and unregister it from NuPIC:
-   *
-   * - Uninitialize all regions
-   * - Remove all links
-   * - Delete the regions themselves
-   *
-   * @todo Should we document the tear down steps above?
-   */
-  ~Network();
+    /**
+     *
+     * Create an new Network and register it to NuPIC.
+     *
+     * @note Creating a Network will auto-initialize NuPIC.
+     */
+    Network();
 
-  /**
-   * Initialize all elements of a network so that it can run.
-   *
-   * @note This can be called after the Network structure has been set and
-   * before Network.run(). However, if you don't call it, Network.run() will
-   * call it for you. Also sets up various memory buffers etc. once the Network
-   *  structure has been finalized.
-   */
-  void initialize();
+    /**
+     * Create a Network by loading previously saved bundle,
+     * and register it to NuPIC.
+     *
+     * @param path The path to the previously saved bundle file, currently only
+     * support files with `.nta` extension.
+     *
+     * @note Creating a Network will auto-initialize NuPIC.
+     */
+    Network(const std::string& path);
 
-  /**
-   * @}
-   *
-   * @name Serialization
-   *
-   * @{
-   */
+    /**
+     * Destructor.
+     *
+     * Destruct the network and unregister it from NuPIC:
+     *
+     * - Uninitialize all regions
+     * - Remove all links
+     * - Delete the regions themselves
+     *
+     * @todo Should we document the tear down steps above?
+     */
+    ~Network();
 
-  /**
-   * Save the network to a network bundle (extension `.nta`).
-   *
-   * @param name
-   *        Name of the bundle
-   */
-  void save(const std::string &name);
+    /**
+     * Initialize all elements of a network so that it can run.
+     *
+     * @note This can be called after the Network structure has been set and
+     * before Network.run(). However, if you don't call it, Network.run() will
+     * call it for you. Also sets up various memory buffers etc. once the Network
+     *  structure has been finalized.
+     */
+    void
+    initialize();
 
-  /**
-   * @}
-   *
-   * @name Region and Link operations
-   *
-   * @{
-   */
+    /**
+     * @}
+     *
+     * @name Serialization
+     *
+     * @{
+     */
 
-  /**
-   * Create a new region in a network.
-   *
-   * @param name
-   *        Name of the region, Must be unique in the network
-   * @param nodeType
-   *        Type of node in the region, e.g. "FDRNode"
-   * @param nodeParams
-   *        A JSON-encoded string specifying writable params
-   *
-   * @returns A pointer to the newly created Region
-   */
-  Region *addRegion(const std::string &name, const std::string &nodeType,
-                    const std::string &nodeParams);
+    /**
+     * Save the network to a network bundle (extension `.nta`).
+     *
+     * @param name
+     *        Name of the bundle
+     */
+    void save(const std::string& name);
 
-  /**
-   * Create a new region from saved state.
-   *
-   * @param name
-   *        Name of the region, Must be unique in the network
-   * @param nodeType
-   *        Type of node in the region, e.g. "FDRNode"
-   * @param dimensions
-   *        Dimensions of the region
-   * @param bundlePath
-   *        The path to the bundle
-   * @param label
-   *        The label of the bundle
-   *
-   * @todo @a label is the prefix of filename of the saved bundle, should this
-   * be documented?
-   *
-   * @returns A pointer to the newly created Region
-   */
-  Region *addRegionFromBundle(const std::string &name,
-                              const std::string &nodeType,
-                              const Dimensions &dimensions,
-                              const std::string &bundlePath,
-                              const std::string &label);
+    /**
+     * @}
+     *
+     * @name Region and Link operations
+     *
+     * @{
+     */
 
-  /**
-   * Create a new region from saved Cap'n Proto state.
-   *
-   * @param name
-   *        Name of the region, Must be unique in the network
-   * @param proto
-   *        The capnp proto reader
-   *
-   * @returns A pointer to the newly created Region
-   */
-  Region *addRegionFromProto(const std::string &name,
-                             RegionProto::Reader &proto);
+    /**
+     * Create a new region in a network.
+     *
+     * @param name
+     *        Name of the region, Must be unique in the network
+     * @param nodeType
+     *        Type of node in the region, e.g. "FDRNode"
+     * @param nodeParams
+     *        A JSON-encoded string specifying writable params
+     *
+     * @returns A pointer to the newly created Region
+     */
+    Region_Ptr_t
+    addRegion(const std::string& name,
+              const std::string& nodeType,
+              const std::string& nodeParams);
 
-  /**
-   * Removes an existing region from the network.
-   *
-   * @param name
-   *        Name of the Region
-   */
-  void removeRegion(const std::string &name);
+    /**
+     * Create a new region from saved state.
+     *
+     * @param name
+     *        Name of the region, Must be unique in the network
+     * @param nodeType
+     *        Type of node in the region, e.g. "FDRNode"
+     * @param dimensions
+     *        Dimensions of the region
+     * @param bundlePath
+     *        The path to the bundle
+     * @param label
+     *        The label of the bundle
+     *
+     * @todo @a label is the prefix of filename of the saved bundle, should this
+     * be documented?
+     *
+     * @returns A pointer to the newly created Region
+     */
+    Region_Ptr_t
+    addRegionFromBundle(const std::string& name,
+                        const std::string& nodeType,
+                        const Dimensions& dimensions,
+                        const std::string& bundlePath,
+                        const std::string& label);
 
-  /**
-   * Create a link and add it to the network.
-   *
-   * @param srcName
-   *        Name of the source region
-   * @param destName
-   *        Name of the destination region
-   * @param linkType
-   *        Type of the link
-   * @param linkParams
-   *        Parameters of the link
-   * @param srcOutput
-   *        Name of the source output
-   * @param destInput
-   *        Name of the destination input
-   * @param propagationDelay
-   *            Propagation delay of the link as number of network run
-   *            iterations involving the link as input; the delay vectors, if
-   *            any, are initially populated with 0's. Defaults to 0=no delay
-   */
-  void link(const std::string &srcName, const std::string &destName,
-            const std::string &linkType, const std::string &linkParams,
-            const std::string &srcOutput = "",
-            const std::string &destInput = "",
-            const size_t propagationDelay = 0);
+    /**
+     * Removes an existing region from the network.
+     *
+     * @param name
+     *        Name of the Region
+     */
+    void
+    removeRegion(const std::string& name);
 
-  /**
-   * Removes a link.
-   *
-   * @param srcName
-   *        Name of the source region
-   * @param destName
-   *        Name of the destination region
-   * @param srcOutputName
-   *        Name of the source output
-   * @param destInputName
-   *        Name of the destination input
-   */
-  void removeLink(const std::string &srcName, const std::string &destName,
-                  const std::string &srcOutputName = "",
-                  const std::string &destInputName = "");
+    /**
+     * Create a link and add it to the network.
+     *
+     * @param srcName
+     *        Name of the source region
+     * @param destName
+     *        Name of the destination region
+     * @param linkType
+     *        Type of the link
+     * @param linkParams
+     *        Parameters of the link
+     * @param srcOutput
+     *        Name of the source output
+     * @param destInput
+     *        Name of the destination input
+     * @param propagationDelay
+     *            Propagation delay of the link as number of network run
+     *            iterations involving the link as input; the delay vectors, if
+     *            any, are initially populated with 0's. Defaults to 0=no delay
+     */
+    void
+    link(const std::string& srcName, const std::string& destName,
+         const std::string& linkType, const std::string& linkParams,
+         const std::string& srcOutput="", const std::string& destInput="",
+         const size_t propagationDelay=0);
 
-  /**
-   * @}
-   *
-   * @name Access to components
-   *
-   * @{
-   */
 
-  /**
-   * Get all regions.
-   *
-   * @returns A Collection of Region objects in the network
-   */
-  const Collection<Region *> &getRegions() const;
+    /**
+     * Removes a link.
+     *
+     * @param srcName
+     *        Name of the source region
+     * @param destName
+     *        Name of the destination region
+     * @param srcOutputName
+     *        Name of the source output
+     * @param destInputName
+     *        Name of the destination input
+     */
+    void
+    removeLink(const std::string& srcName, const std::string& destName,
+               const std::string& srcOutputName="", const std::string& destInputName="");
 
-  /**
-   * Get all links between regions
-   *
-   * @returns A Collection of Link objects in the network
-   */
-  Collection<Link *> getLinks();
+    /**
+     * @}
+     *
+     * @name Access to components
+     *
+     * @{
+     */
 
-  /**
-   * Set phases for a region.
-   *
-   * @param name
-   *        Name of the region
-   * @param phases
-   *        A tuple of phases (must be positive integers)
-   */
-  void setPhases(const std::string &name, std::set<UInt32> &phases);
+    /**
+     * Get all regions.
+     *
+     * @returns A Collection of Region objects in the network
+     */
+    const Collection<Region_Ptr_t>&
+    getRegions() const;
 
-  /**
-   * Get phases for a region.
-   *
-   * @param name
-   *        Name of the region
-   *
-   * @returns Set of phases for the region
-   */
-  std::set<UInt32> getPhases(const std::string &name) const;
+    /**
+     * Get all links between regions
+     *
+     * @returns A Collection of Link objects in the network
+     */
+    Collection<Link_Ptr_t>
+    getLinks();
 
-  /**
-   * Get minimum phase for regions in this network. If no regions, then min = 0.
-   *
-   * @returns Minimum phase
-   */
-  UInt32 getMinPhase() const;
+    /**
+     * Set phases for a region.
+     *
+     * @param name
+     *        Name of the region
+     * @param phases
+     *        A tuple of phases (must be positive integers)
+     */
+    void
+    setPhases(const std::string& name, std::set<UInt32>& phases);
 
-  /**
-   * Get maximum phase for regions in this network. If no regions, then max = 0.
-   *
-   * @returns Maximum phase
-   */
-  UInt32 getMaxPhase() const;
+    /**
+     * Get phases for a region.
+     *
+     * @param name
+     *        Name of the region
+     *
+     * @returns Set of phases for the region
+     */
+    std::set<UInt32>
+    getPhases(const std::string& name) const;
 
-  /**
-   * Set the minimum enabled phase for this network.
-   *
-   * @param minPhase Minimum enabled phase
-   */
-  void setMinEnabledPhase(UInt32 minPhase);
+    /**
+     * Get minimum phase for regions in this network. If no regions, then min = 0.
+     *
+     * @returns Minimum phase
+     */
+    auto getMinPhase() const
+    {
+        UInt32 i = 0;
+        for (; i < phaseInfo_.size(); i++)
+        {
+            if (!phaseInfo_[i].empty())
+                break;
+        }
+        return i;
+    }
 
-  /**
-   * Set the maximum enabled phase for this network.
-   *
-   * @param minPhase Maximum enabled phase
-   */
-  void setMaxEnabledPhase(UInt32 minPhase);
+    /**
+     * Get maximum phase for regions in this network. If no regions, then max = 0.
+     *
+     * @returns Maximum phase
+     */
+    auto getMaxPhase() const
+    {
+        /*
+        * phaseInfo_ is always trimmed, so the max phase is
+        * phaseInfo_.size()-1
+        */
 
-  /**
-   * Get the minimum enabled phase for this network.
-   *
-   * @returns Minimum enabled phase for this network
-   */
-  UInt32 getMinEnabledPhase() const;
+        if (phaseInfo_.empty())
+            return (std::uint64_t) 0;
 
-  /**
-   * Get the maximum enabled phase for this network.
-   *
-   * @returns Maximum enabled phase for this network
-   */
-  UInt32 getMaxEnabledPhase() const;
+        return phaseInfo_.size() - 1;
+    }
 
-  /**
-   * @}
-   *
-   * @name Running
-   *
-   * @{
-   */
+    /**
+     * Set the minimum enabled phase for this network.
+     *
+     * @param minPhase Minimum enabled phase
+     */
+    void
+    setMinEnabledPhase(UInt32 minPhase);
 
-  /**
-   * Run the network for the given number of iterations of compute for each
-   * Region in the correct order.
-   *
-   * For each iteration, Region.compute() is called.
-   *
-   * @param n Number of iterations
-   */
-  void run(int n);
+    /**
+     * Set the maximum enabled phase for this network.
+     *
+     * @param minPhase Maximum enabled phase
+     */
+    void
+    setMaxEnabledPhase(UInt32 minPhase);
 
-  /**
-   * The type of run callback function.
-   *
-   * You can attach a callback function to a network, and the callback function
-   *  is called after every iteration of run().
-   *
-   * To attach a callback, just get a reference to the callback
-   * collection with getCallbacks() , and add a callback.
-   */
-  typedef void (*runCallbackFunction)(Network *, UInt64 iteration, void *);
+    /**
+     * Get the minimum enabled phase for this network.
+     *
+     * @returns Minimum enabled phase for this network
+     */
+    UInt32
+    getMinEnabledPhase() const;
 
-  /**
-   * Type definition for a callback item, combines a @c runCallbackFunction and
-   * a `void*` pointer to the associated data.
-   */
-  typedef std::pair<runCallbackFunction, void *> callbackItem;
+    /**
+     * Get the maximum enabled phase for this network.
+     *
+     * @returns Maximum enabled phase for this network
+     */
+    UInt32
+    getMaxEnabledPhase() const;
 
-  /**
-   * Get reference to callback Collection.
-   *
-   * @returns Reference to callback Collection
-   */
-  Collection<callbackItem> &getCallbacks();
+    /**
+     * @}
+     *
+     * @name Running
+     *
+     * @{
+     */
 
-  /**
-   * @}
-   *
-   * @name Profiling
-   *
-   * @{
-   */
+    /**
+     * Run the network for the given number of iterations of compute for each
+     * Region in the correct order.
+     *
+     * For each iteration, Region.compute() is called.
+     *
+     * @param n Number of iterations
+     */
+    void
+    run(int n);
 
-  /**
-   * Start profiling for all regions of this network.
-   */
-  void enableProfiling();
+    /**
+     * The type of run callback function.
+     *
+     * You can attach a callback function to a network, and the callback function
+     *  is called after every iteration of run().
+     *
+     * To attach a callback, just get a reference to the callback
+     * collection with getCallbacks() , and add a callback.
+     */
+    typedef void (*runCallbackFunction)(Network*, UInt64 iteration, void*);
 
-  /**
-   * Stop profiling for all regions of this network.
-   */
-  void disableProfiling();
+    /**
+     * Type definition for a callback item, combines a @c runCallbackFunction and
+     * a `void*` pointer to the associated data.
+     */
+    typedef std::pair<runCallbackFunction, void*> callbackItem;
 
-  /**
-   * Reset profiling timers for all regions of this network.
-   */
-  void resetProfiling();
+    /**
+     * Get reference to callback Collection.
+     *
+     * @returns Reference to callback Collection
+     */
+    Collection<callbackItem>& getCallbacks();
 
-  // Capnp serialization methods
-  using Serializable::write;
-  virtual void write(NetworkProto::Builder &proto) const override;
-  using Serializable::read;
-  virtual void read(NetworkProto::Reader &proto) override;
+    /**
+     * @}
+     *
+     * @name Profiling
+     *
+     * @{
+     */
 
-  /**
-   * @}
-   */
+    /**
+     * Start profiling for all regions of this network.
+     */
+    void
+    enableProfiling();
 
-  /*
-   * Adds user built region to list of regions
-   */
-  static void registerPyRegion(const std::string module,
-                               const std::string className);
+    /**
+     * Stop profiling for all regions of this network.
+     */
+    void
+    disableProfiling();
 
-  /*
-   * Adds a c++ region to the RegionImplFactory's packages
-   */
-  static void registerCPPRegion(const std::string name,
-                                GenericRegisteredRegionImpl *wrapper);
+    /**
+     * Reset profiling timers for all regions of this network.
+     */
+    void
+    resetProfiling();
 
-  /*
-   * Removes a region from RegionImplFactory's packages
-   */
-  static void unregisterPyRegion(const std::string className);
+    /**
+     * @}
+     */
 
-  /*
-   * Removes a c++ region from RegionImplFactory's packages
-   */
-  static void unregisterCPPRegion(const std::string name);
+    /*
+     * Adds user built region to list of regions
+     */
+    static void registerPyRegion(const std::string module,
+                                 const std::string className);
 
-  bool operator==(const Network &other) const;
-  inline bool operator!=(const Network &other) const {
-    return !operator==(other);
-  }
+    static void registerPyBindRegion(const std::string& module, const std::string& className);
 
-private:
-  // Both constructors use this common initialization method
-  void commonInit();
 
-  // Used by the path-based constructor
-  void load(const std::string &path);
+    /*
+     * Adds a c++ region to the RegionImplFactory's packages
+     */
+    static void registerCPPRegion(const std::string name,
+                                  GenericRegisteredRegionImpl* wrapper);
 
-  void loadFromBundle(const std::string &path);
+    /*
+     * Removes a region from RegionImplFactory's packages
+     */
+    static void unregisterPyRegion(const std::string className);
 
-  // save() always calls this internal method, which creates
-  // a .nta bundle
-  void saveToBundle(const std::string &bundleName);
+    static void unregisterPyBindRegion(const std::string& className);
 
-  // internal method using region pointer instead of name
-  void setPhases_(Region *r, std::set<UInt32> &phases);
 
-  // default phase assignment for a new region
-  void setDefaultPhase_(Region *region);
+    /*
+     * Removes a c++ region from RegionImplFactory's packages
+     */
+    static void unregisterCPPRegion(const std::string name);
 
-  // whenever we modify a network or change phase
-  // information, we set enabled phases to min/max for
-  // the network
-  void resetEnabledPhases_();
+  private:
 
-  bool initialized_;
-  Collection<Region *> regions_;
 
-  UInt32 minEnabledPhase_;
-  UInt32 maxEnabledPhase_;
+    // Both constructors use this common initialization method
+    void commonInit();
 
-  // This is main data structure used to choreograph
-  // network computation
-  std::vector<std::set<Region *>> phaseInfo_;
+    // Used by the path-based constructor
+    void load(const std::string& path);
 
-  // we invoke these callbacks at every iteration
-  Collection<callbackItem> callbacks_;
+    void loadFromBundle(const std::string& path);
 
-  // number of elapsed iterations
-  UInt64 iteration_;
-};
+    // save() always calls this internal method, which creates
+    // a .nta bundle
+    void saveToBundle(const std::string& bundleName);
+
+    // internal method using region pointer instead of name
+    void
+    setPhases_(Region_Ptr_t r, std::set<UInt32>& phases);
+
+    // default phase assignment for a new region
+    void setDefaultPhase_(Region_Ptr_t region);
+
+    // whenever we modify a network or change phase
+    // information, we set enabled phases to min/max for
+    // the network
+    void resetEnabledPhases_();
+
+    bool initialized_;
+    Collection<Region_Ptr_t> regions_;
+
+    UInt32 minEnabledPhase_;
+    UInt32 maxEnabledPhase_;
+
+    // This is main data structure used to choreograph
+    // network computation
+    std::vector< std::set<Region_Ptr_t> > phaseInfo_;
+
+    // we invoke these callbacks at every iteration
+    Collection<callbackItem> callbacks_;
+
+    //number of elapsed iterations
+    UInt64 iteration_;
+  };
 
 } // namespace nupic
 

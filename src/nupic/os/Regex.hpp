@@ -22,6 +22,7 @@
 
 /** @file */
 
+
 #ifndef NTA_REGEX_HPP
 #define NTA_REGEX_HPP
 
@@ -31,10 +32,14 @@
 
 //----------------------------------------------------------------------
 
-namespace nupic {
-namespace regex {
-bool match(const std::string &re, const std::string &text);
+namespace nupic
+{
+  namespace regex
+  {
+    bool match(const std::string & re, const std::string & text);
+  }
 }
-} // namespace nupic
 
 #endif // NTA_REGEX_HPP
+
+

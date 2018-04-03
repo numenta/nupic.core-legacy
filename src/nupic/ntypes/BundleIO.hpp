@@ -23,52 +23,55 @@
 #ifndef NTA_BUNDLEIO_HPP
 #define NTA_BUNDLEIO_HPP
 
-#include <nupic/os/FStream.hpp>
 #include <nupic/os/Path.hpp>
+#include <nupic/os/FStream.hpp>
 
-namespace nupic {
-class BundleIO {
-public:
-  BundleIO(const std::string &bundlePath, const std::string &label,
-           std::string regionName, bool isInput);
+namespace nupic
+{
+  class BundleIO
+  {
+  public:
+    BundleIO(const std::string& bundlePath, const std::string& label, 
+             std::string  regionName, bool isInput);
 
-  ~BundleIO();
+    ~BundleIO();
 
-  // These are {o,i}fstream instead of {o,i}stream so that
-  // the node can explicitly close() them.
-  std::ofstream &getOutputStream(const std::string &name) const;
+    // These are {o,i}fstream instead of {o,i}stream so that
+    // the node can explicitly close() them. 
+    std::ofstream& getOutputStream(const std::string& name) const;
 
-  std::ifstream &getInputStream(const std::string &name) const;
+    std::ifstream& getInputStream(const std::string& name) const;
 
-  std::string getPath(const std::string &name) const;
+    std::string getPath(const std::string& name) const;
 
-private:
-  // Before a request for a new stream,
-  // there should be no open streams.
-  void checkStreams_() const;
+  private:
 
-  // Should never read and write at the same time -- this helps
-  // to enforce.
-  bool isInput_;
+    // Before a request for a new stream, 
+    // there should be no open streams. 
+    void checkStreams_() const;
 
-  // We only need the file prefix, but store the bundle path
-  // for error messages
-  std::string bundlePath_;
+    // Should never read and write at the same time -- this helps
+    // to enforce.
+    bool isInput_;
 
-  // Store the whole prefix instead of just the label
-  std::string filePrefix_;
+    // We only need the file prefix, but store the bundle path
+    // for error messages
+    std::string bundlePath_;
 
-  // Store the region name for debugging
-  std::string regionName_;
+    // Store the whole prefix instead of just the label
+    std::string filePrefix_;
 
-  // We own the streams -- helps with finding errors
-  // and with enforcing one-stream-at-a-time
-  // These are mutable because the bundle doesn't conceptually
-  // change when you serialize/deserialize.
-  mutable std::ofstream *ostream_;
-  mutable std::ifstream *istream_;
+    // Store the region name for debugging
+    std::string regionName_; 
 
-}; // class BundleIO
+    // We own the streams -- helps with finding errors
+    // and with enforcing one-stream-at-a-time
+    // These are mutable because the bundle doesn't conceptually
+    // change when you serialize/deserialize. 
+    mutable std::ofstream *ostream_;
+    mutable std::ifstream *istream_;
+
+  }; // class BundleIO
 } // namespace nupic
 
 #endif // NTA_BUNDLEIO_HPP
