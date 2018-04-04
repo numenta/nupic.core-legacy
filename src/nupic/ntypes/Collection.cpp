@@ -42,7 +42,14 @@ namespace nupic {
 template <typename T> Collection<T>::Collection() {}
 
 template <typename T> Collection<T>::~Collection() {}
-
+template <typename T>
+bool Collection<T>::operator==(const Collection<T> &o) const {
+  const static auto compare = [](std::pair<std::string, T> a,
+                                 std::pair<std::string, T> b) {
+    return a.first == b.first && a.second == b.second;
+  };
+  return std::equal(vec_.begin(), vec_.end(), o.vec_.begin(), compare);
+}
 template <typename T> size_t Collection<T>::getCount() const {
   return vec_.size();
 }

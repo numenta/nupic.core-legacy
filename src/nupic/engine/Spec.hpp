@@ -39,7 +39,10 @@ public:
   InputSpec(std::string description, NTA_BasicType dataType, UInt32 count,
             bool required, bool regionLevel, bool isDefaultInput,
             bool requireSplitterMap = true, bool sparse = false);
-
+  bool operator==(const InputSpec &other) const;
+  inline bool operator!=(const InputSpec &other) const {
+    return !operator==(other);
+  }
   std::string description;
   NTA_BasicType dataType;
   // TBD: Omit? isn't it always of unknown size?
@@ -59,7 +62,10 @@ public:
   OutputSpec(std::string description, const NTA_BasicType dataType,
              size_t count, bool regionLevel, bool isDefaultOutput,
              bool sparse = false);
-
+  bool operator==(const OutputSpec &other) const;
+  inline bool operator!=(const OutputSpec &other) const {
+    return !operator==(other);
+  }
   std::string description;
   NTA_BasicType dataType;
   // Size, in number of elements. If size is fixed, specify it here.
@@ -74,7 +80,10 @@ class CommandSpec {
 public:
   CommandSpec() {}
   CommandSpec(std::string description);
-
+  bool operator==(const CommandSpec &other) const;
+  inline bool operator!=(const CommandSpec &other) const {
+    return !operator==(other);
+  }
   std::string description;
 };
 
@@ -89,7 +98,10 @@ public:
   ParameterSpec(std::string description, NTA_BasicType dataType, size_t count,
                 std::string constraints, std::string defaultValue,
                 AccessMode accessMode);
-
+  bool operator==(const ParameterSpec &other) const;
+  inline bool operator!=(const ParameterSpec &other) const {
+    return !operator==(other);
+  }
   std::string description;
 
   // [open: current basic types are bytes/{u}int16/32/64, real32/64, BytePtr. Is
@@ -109,7 +121,8 @@ struct Spec {
   // TODO: should this be in the base API or layered? In the API right
   // now since we do not build layered libraries.
   std::string toString() const;
-
+  bool operator==(const Spec &other) const;
+  inline bool operator!=(const Spec &other) const { return !operator==(other); }
   // Some RegionImpls support only a single node in a region.
   // Such regions always have dimension [1]
   bool singleNodeOnly;

@@ -52,8 +52,9 @@ public:
 
   void read(std::istream &stream) {
     kj::std::StdInputStream in(stream);
-
-    capnp::InputStreamMessageReader message(in);
+    capnp::ReaderOptions options;
+    options.traversalLimitInWords = kj::maxValue; // Don't limit.
+    capnp::InputStreamMessageReader message(in, options);
     typename ProtoT::Reader proto = message.getRoot<ProtoT>();
     read(proto);
   }

@@ -36,7 +36,10 @@ template <typename T> class Collection {
 public:
   Collection();
   virtual ~Collection();
-
+  bool operator==(const Collection<T> &other) const;
+  inline bool operator!=(const Collection<T> &other) const {
+    return !operator==(other);
+  }
   size_t getCount() const;
 
   // This method provides access by index to the contents of the collection
