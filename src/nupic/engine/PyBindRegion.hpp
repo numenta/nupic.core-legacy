@@ -5,7 +5,9 @@
 #include <vector>
 #include <set>
 
+/* CHH Python
 #include <pybind11/pybind11.h>
+*/
 
 #include <nupic/engine/RegionImpl.hpp>
 #include <nupic/engine/Spec.hpp>
@@ -84,7 +86,9 @@ namespace nupic
         virtual UInt64 getParameterUInt64(const std::string& name, Int64 index) override;
         virtual Real32 getParameterReal32(const std::string& name, Int64 index) override;
         virtual Real64 getParameterReal64(const std::string& name, Int64 index) override;
+        /* CHH Python
         virtual pybind11::object getParameterHandle(const std::string& name, Int64 index) override;
+        */
         virtual bool getParameterBool(const std::string& name, Int64 index) override;
         virtual std::string getParameterString(const std::string& name, Int64 index) override;
 
@@ -115,7 +119,9 @@ namespace nupic
         std::string module_;
         std::string className_;
 
+        /* CHH Python
         pybind11::object node_;
+        */
         //std::set<boost::shared_ptr<PyArray<UInt64> > > splitterMaps_;
         
         // pointers rather than objects because Array doesnt

@@ -124,11 +124,12 @@ setParameterT(Real64);
 setParameterInternalT(Bool, bool);
 
 // buffer mechanism can't handle Handles. RegionImpl must override these methods.
+/* CHH Python
 pybind11::object RegionImpl::getParameterHandle(const std::string& name, Int64 index)
 {
   NTA_THROW << "Unknown parameter '"  << name << "' of type Handle.";
 }
-
+*/
 void RegionImpl::setParameterHandle(const std::string& name, Int64 index, Handle h)
 {
   NTA_THROW << "Unknown parameter '"  << name << "' of type Handle.";

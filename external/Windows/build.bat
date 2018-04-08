@@ -20,6 +20,10 @@ pushd %BUILDDIR%
 
 "C:/Program Files/CMake/bin/cmake.exe" ^
     -A x64 ^
+    -DBOOST_ROOT:PATH=D:/boost ^
+    -DBOOST_LIBRARYDIR:PATH=D:/boost/stage/lib ^
+    -DCMAKE_TOOLCHAIN_FILE=D:/vcpkg_2017_2/vcpkg/scripts/buildsystems/vcpkg.cmake ^
+    -DVCPKG_TARGET_TRIPLET=x64-windows-static ^
     ..
 
 popd
