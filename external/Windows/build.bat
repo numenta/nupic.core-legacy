@@ -26,6 +26,9 @@ pushd %BUILDDIR%
     -DVCPKG_TARGET_TRIPLET=x64-windows-static ^
     ..
 
+rem Building
+rem msbuild.exe nupic.base.sln /p:Configuration=Release /p:Platform=x64
+
 popd
 popd
 goto :EOF

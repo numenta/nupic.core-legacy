@@ -30,12 +30,16 @@ if (MSVC)
     add_definitions(-DNTA_COMPILER_MSVC)
 endif()
 
-# Boost dependency
+# Boost 
 set(boost_components filesystem)
 find_package(Boost REQUIRED COMPONENTS ${boost_components})
 include_directories(${Boost_INCLUDE_DIRS})
 
-# yaml-cpps dependency
+# zlib
+find_package(ZLIB REQUIRED)
+include_directories(${ZLIB_INCLUDE_DIR})
+
+# yaml-cpps
 find_package(yaml-cpp REQUIRED)
 include_directories(${YAML_CPP_INCLUDE_DIR})
 
@@ -115,8 +119,8 @@ set(engine_files
     ${nupic_src}/engine/NuPIC.hpp
     ${nupic_src}/engine/Output.cpp
     ${nupic_src}/engine/Output.hpp
-    ${nupic_src}/engine/PyBindRegion.cpp
-    ${nupic_src}/engine/PyBindRegion.hpp
+    # ${nupic_src}/engine/PyBindRegion.cpp
+    # ${nupic_src}/engine/PyBindRegion.hpp
     ${nupic_src}/engine/Region.cpp
     ${nupic_src}/engine/Region.hpp
     ${nupic_src}/engine/RegionImpl.cpp
@@ -284,9 +288,27 @@ source_group("utils" FILES ${utils_files})
 
 
 # Test
+set(test_src ${CMAKE_SOURCE_DIR}/src/test)
 
+set(unit_test_files
+    ${test_src}/main.cpp
+)
 
-# target_link_libraries(main PRIVATE yaml-cpp)
+set(test_app unit_test)
 
-# target_link_libraries(main PRIVATE GTest::GTest GTest::Main)
+add_executable( ${test_app}
+    ${unit_test_files}
+)
+
+target_include_directories( ${test_app} PRIVATE 
+    ${_include_directories}
+)
+
+target_link_libraries(${test_app} PRIVATE 
+    yaml-cpp
+    GTest::GTest 
+    GTest::Main
+    ZLIB::ZLIB
+)
+
 # add_test(AllTestsInMain main)
