@@ -435,7 +435,9 @@ void PyRegion::write(capnp::AnyPointer::Builder &proto) const {
   kj::Array<capnp::word> array = Helper::serialize(node_);
 
   // Initialize PyRegionProto::Reader from serialized python region
-  capnp::FlatArrayMessageReader reader(array.asPtr());
+  capnp::ReaderOptions options;
+  options.traversalLimitInWords = kj::maxValue; // Don't limit.
+  capnp::FlatArrayMessageReader reader(array.asPtr(), options);
   PyRegionProto::Reader pyRegionReader = reader.getRoot<PyRegionProto>();
 
   // Assign python region's serialization output to the builder

@@ -314,6 +314,7 @@ public:
     UInt nCellsOn;
     inStream >> nCellsOn;
     UInt v;
+    _cellsOn.clear();
     for (UInt i = 0; i < nCellsOn; ++i) {
       inStream >> v;
       _cellsOn.push_back(v);

@@ -436,79 +436,14 @@ const Timer &Region::getExecuteTimer() const { return executeTimer_; }
 
 bool Region::operator==(const Region &o) const {
 
-  if (name_ != o.name_ || type_ != o.type_ || dims_ != o.dims_ ||
-      phases_ != o.phases_ || dimensionInfo_ != o.dimensionInfo_ ||
-      initialized_ != o.initialized_ || outputs_.size() != o.outputs_.size() ||
+  if (initialized_ != o.initialized_ || outputs_.size() != o.outputs_.size() ||
       inputs_.size() != o.inputs_.size()) {
     return false;
   }
-  if (spec_ != nullptr && o.spec_ != nullptr) {
-    // Compare specs
-    if (spec_->singleNodeOnly != o.spec_->singleNodeOnly ||
-        spec_->description != o.spec_->description) {
-      return false;
-    }
 
-    // Parameters
-    for (size_t i = 0; i < spec_->parameters.getCount(); ++i) {
-      const std::pair<std::string, ParameterSpec> &p1 =
-          spec_->parameters.getByIndex(i);
-      const std::pair<std::string, ParameterSpec> &p2 =
-          o.spec_->parameters.getByIndex(i);
-      if (p1.first != p2.first || p1.second.count != p2.second.count ||
-          p1.second.description != p2.second.description ||
-          p1.second.constraints != p2.second.constraints ||
-          p1.second.defaultValue != p2.second.defaultValue ||
-          p1.second.dataType != p2.second.dataType ||
-          p1.second.accessMode != p2.second.accessMode) {
-        return false;
-      }
-    }
-    // Outputs
-    for (size_t i = 0; i < spec_->outputs.getCount(); ++i) {
-      const std::pair<std::string, OutputSpec> &p1 =
-          spec_->outputs.getByIndex(i);
-      const std::pair<std::string, OutputSpec> &p2 =
-          o.spec_->outputs.getByIndex(i);
-      if (p1.first != p2.first || p1.second.count != p2.second.count ||
-          p1.second.regionLevel != p2.second.regionLevel ||
-          p1.second.isDefaultOutput != p2.second.isDefaultOutput ||
-          p1.second.sparse != p2.second.sparse ||
-          p1.second.description != p2.second.description ||
-          p1.second.dataType != p2.second.dataType) {
-        return false;
-      }
-    }
-
-    // Outputs
-    for (size_t i = 0; i < spec_->inputs.getCount(); ++i) {
-      const std::pair<std::string, InputSpec> &p1 = spec_->inputs.getByIndex(i);
-      const std::pair<std::string, InputSpec> &p2 =
-          o.spec_->inputs.getByIndex(i);
-      if (p1.first != p2.first || p1.second.count != p2.second.count ||
-          p1.second.regionLevel != p2.second.regionLevel ||
-          p1.second.isDefaultInput != p2.second.isDefaultInput ||
-          p1.second.sparse != p2.second.sparse ||
-          p1.second.requireSplitterMap != p2.second.requireSplitterMap ||
-          p1.second.required != p2.second.required ||
-          p1.second.description != p2.second.description ||
-          p1.second.dataType != p2.second.dataType) {
-        return false;
-      }
-    }
-    // Commands
-    for (size_t i = 0; i < spec_->commands.getCount(); ++i) {
-      const std::pair<std::string, CommandSpec> &p1 =
-          spec_->commands.getByIndex(i);
-      const std::pair<std::string, CommandSpec> &p2 =
-          o.spec_->commands.getByIndex(i);
-      if (p1.first != p2.first ||
-          p1.second.description != p2.second.description) {
-        return false;
-      }
-    }
-  } else if (spec_ != o.spec_) {
-    // One of them is not null
+  if (name_ != o.name_ || type_ != o.type_ || dims_ != o.dims_ ||
+      spec_ != o.spec_ || phases_ != o.phases_ ||
+      dimensionInfo_ != o.dimensionInfo_) {
     return false;
   }
 
@@ -552,6 +487,6 @@ bool Region::operator==(const Region &o) const {
   }
 
   return true;
-}
+} // namespace nupic
 
 } // namespace nupic

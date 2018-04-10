@@ -31,7 +31,14 @@ Implementation of Spec API
 namespace nupic {
 
 Spec::Spec() : singleNodeOnly(false), description("") {}
-
+bool Spec::operator==(const Spec &o) const {
+  if (singleNodeOnly != o.singleNodeOnly || description != o.description ||
+      parameters != o.parameters || outputs != o.outputs ||
+      inputs != o.inputs || commands != o.commands) {
+    return false;
+  }
+  return true;
+}
 std::string Spec::getDefaultInputName() const {
   if (inputs.getCount() == 0)
     return "";
@@ -87,16 +94,29 @@ InputSpec::InputSpec(std::string description, NTA_BasicType dataType,
       required(required), regionLevel(regionLevel),
       isDefaultInput(isDefaultInput), requireSplitterMap(requireSplitterMap),
       sparse(sparse) {}
-
+bool InputSpec::operator==(const InputSpec &o) const {
+  return required == o.required && regionLevel == o.regionLevel &&
+         isDefaultInput == o.isDefaultInput && sparse == o.sparse &&
+         requireSplitterMap == o.requireSplitterMap && dataType == o.dataType &&
+         count == o.count && description == o.description;
+}
 OutputSpec::OutputSpec(std::string description, NTA_BasicType dataType,
                        size_t count, bool regionLevel, bool isDefaultOutput,
                        bool sparse)
     : description(std::move(description)), dataType(dataType), count(count),
       regionLevel(regionLevel), isDefaultOutput(isDefaultOutput),
       sparse(sparse) {}
+bool OutputSpec::operator==(const OutputSpec &o) const {
+  return regionLevel == o.regionLevel && isDefaultOutput == o.isDefaultOutput &&
+         sparse == o.sparse && dataType == o.dataType && count == o.count &&
+         description == o.description;
+}
 
 CommandSpec::CommandSpec(std::string description)
     : description(std::move(description)) {}
+bool CommandSpec::operator==(const CommandSpec &o) const {
+  return description == o.description;
+}
 
 ParameterSpec::ParameterSpec(std::string description, NTA_BasicType dataType,
                              size_t count, std::string constraints,
@@ -108,6 +128,11 @@ ParameterSpec::ParameterSpec(std::string description, NTA_BasicType dataType,
   // Strings are specified as type byte, length = 0
   if (dataType == NTA_BasicType_Byte && count > 0)
     NTA_THROW << "Parameters of type 'byte' are not supported";
+}
+bool ParameterSpec::operator==(const ParameterSpec &o) const {
+  return dataType == o.dataType && count == o.count &&
+         description == o.description && constraints == o.constraints &&
+         defaultValue == o.defaultValue && accessMode == o.accessMode;
 }
 
 std::string Spec::toString() const {
