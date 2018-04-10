@@ -104,6 +104,81 @@ bool checkCells4Attributes(const Cells4 &c1, const Cells4 &c2) {
   return true;
 }
 
+TEST(Cells4Test, pickleSerialization) {
+  Cells4 cells(10, 2, 1, 1, 1, 1, 0.5, 0.8, 1, 0.1, 0.1, 0, false, -1, true,
+               false);
+  std::vector<Real> input1(10, 0.0);
+  input1[1] = 1.0;
+  input1[4] = 1.0;
+  input1[5] = 1.0;
+  input1[9] = 1.0;
+  std::vector<Real> input2(10, 0.0);
+  input2[0] = 1.0;
+  input2[2] = 1.0;
+  input2[5] = 1.0;
+  input2[6] = 1.0;
+  std::vector<Real> input3(10, 0.0);
+  input3[1] = 1.0;
+  input3[3] = 1.0;
+  input3[6] = 1.0;
+  input3[7] = 1.0;
+  std::vector<Real> input4(10, 0.0);
+  input4[2] = 1.0;
+  input4[4] = 1.0;
+  input4[7] = 1.0;
+  input4[8] = 1.0;
+  std::vector<Real> output(10 * 2);
+  for (UInt i = 0; i < 10; ++i) {
+    cells.compute(&input1.front(), &output.front(), true, true);
+    cells.compute(&input2.front(), &output.front(), true, true);
+    cells.compute(&input3.front(), &output.front(), true, true);
+    cells.compute(&input4.front(), &output.front(), true, true);
+    cells.reset();
+  }
+
+  Cells4 secondCells;
+  {
+    std::stringstream ss;
+    cells.save(ss);
+    ss.seekg(0);
+    secondCells.load(ss);
+  }
+  ASSERT_TRUE(cells == secondCells);
+
+  std::vector<Real> secondOutput(10 * 2);
+  cells.compute(&input1.front(), &output.front(), true, true);
+  secondCells.compute(&input1.front(), &secondOutput.front(), true, true);
+  ASSERT_TRUE(cells == secondCells);
+
+  for (UInt i = 0; i < 10; ++i) {
+    ASSERT_EQ(output[i], secondOutput[i]) << "Outputs differ at index " << i;
+  }
+
+  // Check serialization of cells4 before calling reset
+  cells.compute(&input1.front(), &output.front(), true, true);
+  cells.compute(&input2.front(), &output.front(), true, true);
+  cells.compute(&input3.front(), &output.front(), true, true);
+  cells.compute(&input4.front(), &output.front(), true, true);
+
+  Cells4 secondCellsNoReset;
+  {
+    std::stringstream ss;
+    cells.save(ss);
+    ss.seekg(0);
+    secondCellsNoReset.load(ss);
+  }
+  ASSERT_TRUE(cells == secondCellsNoReset);
+
+  cells.compute(&input1.front(), &output.front(), true, true);
+  secondCellsNoReset.compute(&input1.front(), &secondOutput.front(), true,
+                             true);
+  ASSERT_TRUE(cells == secondCellsNoReset);
+
+  for (UInt i = 0; i < 10; ++i) {
+    ASSERT_EQ(output[i], secondOutput[i]) << "Outputs differ at index " << i;
+  }
+}
+
 TEST(Cells4Test, capnpSerialization) {
   Cells4 cells(10, 2, 1, 1, 1, 1, 0.5, 0.8, 1, 0.1, 0.1, 0, false, -1, true,
                false);
@@ -151,7 +226,7 @@ TEST(Cells4Test, capnpSerialization) {
     secondCells.read(cells4Reader);
   }
 
-  NTA_CHECK(checkCells4Attributes(cells, secondCells));
+  ASSERT_TRUE(cells == secondCells);
 
   std::vector<Real> secondOutput(10 * 2);
   cells.compute(&input1.front(), &output.front(), true, true);
@@ -159,7 +234,38 @@ TEST(Cells4Test, capnpSerialization) {
   for (UInt i = 0; i < 10; ++i) {
     ASSERT_EQ(output[i], secondOutput[i]) << "Outputs differ at index " << i;
   }
-  NTA_CHECK(checkCells4Attributes(cells, secondCells));
+  ASSERT_TRUE(cells == secondCells);
+
+  // Check serialization of cells4 before calling reset
+  cells.compute(&input1.front(), &output.front(), true, true);
+  cells.compute(&input2.front(), &output.front(), true, true);
+  cells.compute(&input3.front(), &output.front(), true, true);
+  cells.compute(&input4.front(), &output.front(), true, true);
+
+  Cells4 secondCellsNoReset;
+  {
+    capnp::MallocMessageBuilder message1;
+    Cells4Proto::Builder cells4Builder = message1.initRoot<Cells4Proto>();
+    cells.write(cells4Builder);
+    std::stringstream ss;
+    kj::std::StdOutputStream out(ss);
+    capnp::writeMessage(out, message1);
+
+    kj::std::StdInputStream in(ss);
+    capnp::InputStreamMessageReader message2(in);
+    Cells4Proto::Reader cells4Reader = message2.getRoot<Cells4Proto>();
+    secondCellsNoReset.read(cells4Reader);
+  }
+
+  ASSERT_TRUE(cells == secondCellsNoReset);
+
+  cells.compute(&input1.front(), &output.front(), true, true);
+  secondCellsNoReset.compute(&input1.front(), &secondOutput.front(), true,
+                             true);
+  for (UInt i = 0; i < 10; ++i) {
+    ASSERT_EQ(output[i], secondOutput[i]) << "Outputs differ at index " << i;
+  }
+  ASSERT_TRUE(cells == secondCellsNoReset);
 }
 
 /*
