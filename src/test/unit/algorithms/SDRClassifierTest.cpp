@@ -24,25 +24,43 @@
  * Implementation of unit tests for SDRClassifier
  */
 
+#include <cmath> // isnan
 #include <iostream>
+#include <limits> // numeric_limits
 #include <sstream>
+#include <stdio.h>
+#include <string>
+#include <vector>
 
 #include <gtest/gtest.h>
+#include <kj/std/iostream.h>
 
 #include <nupic/algorithms/ClassifierResult.hpp>
 #include <nupic/algorithms/SDRClassifier.hpp>
-#include <nupic/math/StlIo.hpp>
-#include <nupic/types/Types.hpp>
 #include <nupic/utils/Log.hpp>
+
+namespace nupic {
+namespace algorithms {
+namespace sdr_classifier {
+
+// SDRClassifier friend class used to access private members
+class SDRClassifierTest : public ::testing::Test {
+protected:
+  typedef std::vector<double>::iterator Iterator;
+  void softmax_(SDRClassifier *self, Iterator begin, Iterator end) {
+    self->softmax_(begin, end);
+  };
+};
+} // namespace sdr_classifier
+} // namespace algorithms
+} // namespace nupic
 
 using namespace std;
 using namespace nupic;
 using namespace nupic::algorithms::cla_classifier;
 using namespace nupic::algorithms::sdr_classifier;
-
 namespace {
-
-TEST(SDRClassifierTest, Basic) {
+TEST_F(SDRClassifierTest, Basic) {
   vector<UInt> steps;
   steps.push_back(1);
   SDRClassifier c = SDRClassifier(steps, 0.1, 0.1, 0);
@@ -109,7 +127,7 @@ TEST(SDRClassifierTest, Basic) {
   }
 }
 
-TEST(SDRClassifierTest, SingleValue) {
+TEST_F(SDRClassifierTest, SingleValue) {
   // Feed the same input 10 times, the corresponding probability should be
   // very high
   vector<UInt> steps;
@@ -145,7 +163,7 @@ TEST(SDRClassifierTest, SingleValue) {
   }
 }
 
-TEST(SDRClassifierTest, ComputeComplex) {
+TEST_F(SDRClassifierTest, ComputeComplex) {
   // More complex classification
   // This test is ported from the Python unit test
   vector<UInt> steps;
@@ -255,7 +273,7 @@ TEST(SDRClassifierTest, ComputeComplex) {
   }
 }
 
-TEST(SDRClassifierTest, MultipleCategory) {
+TEST_F(SDRClassifierTest, MultipleCategory) {
   // Test multiple category classification with single compute calls
   // This test is ported from the Python unit test
   vector<UInt> steps;
@@ -326,7 +344,7 @@ TEST(SDRClassifierTest, MultipleCategory) {
   }
 }
 
-TEST(SDRClassifierTest, SaveLoad) {
+TEST_F(SDRClassifierTest, SaveLoad) {
   vector<UInt> steps;
   steps.push_back(1);
   SDRClassifier c1 = SDRClassifier(steps, 0.1, 0.1, 0);
@@ -362,7 +380,7 @@ TEST(SDRClassifierTest, SaveLoad) {
   ASSERT_TRUE(result1 == result2);
 }
 
-TEST(SDRClassifierTest, WriteRead) {
+TEST_F(SDRClassifierTest, WriteRead) {
   vector<UInt> steps;
   steps.push_back(1);
   steps.push_back(2);
@@ -410,6 +428,14 @@ TEST(SDRClassifierTest, WriteRead) {
              &result2);
 
   ASSERT_TRUE(result1 == result2);
+}
+
+TEST_F(SDRClassifierTest, testSoftmaxOverflow) {
+  SDRClassifier c = SDRClassifier({1}, 0.5, 0.5, 0);
+  std::vector<double> values = {numeric_limits<double>::max()};
+  softmax_(&c, values.begin(), values.end());
+  double result = values[0];
+  ASSERT_FALSE(std::isnan(result));
 }
 
 } // end namespace

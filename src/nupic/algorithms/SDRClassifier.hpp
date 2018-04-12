@@ -51,6 +51,9 @@ const UInt sdrClassifierVersion = 1;
 typedef Dense<UInt, Real64> Matrix;
 
 class SDRClassifier : public Serializable<SdrClassifierProto> {
+  // Make test class friend so it can unit test private members directly
+  friend class SDRClassifierTest;
+
 public:
   /**
    * Constructor for use when deserializing.
@@ -204,6 +207,7 @@ private:
   // Version and verbosity.
   UInt version_;
   UInt verbosity_;
+
 }; // end of SDRClassifier class
 
 } // end of namespace sdr_classifier
