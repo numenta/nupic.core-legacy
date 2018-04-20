@@ -21,7 +21,7 @@ dependencies:
   override:
     # Install all dependencies
     - pip install --user --upgrade --verbose setuptools setuptools-scm
-    - pip install --use-wheel --no-cache-dir --user -r bindings/py/requirements.txt  --verbose || exit
+    - pip install --no-cache-dir --user -r bindings/py/requirements.txt  --verbose || exit
 
 compile:
   override:
@@ -33,7 +33,7 @@ compile:
     - VERBOSE=1 cd build/scripts && set -o pipefail && make install 2>&1 | grep -v -F 'Installing:'
     - python setup.py bdist_wheel
     - mkdir dist && mv bindings/py/dist/*.whl dist/
-    - pip install --use-wheel --user --no-index --find-links=`pwd`/dist/ nupic.bindings
+    - pip install --user --no-index --find-links=`pwd`/dist/ nupic.bindings
     
 test:
   override:
