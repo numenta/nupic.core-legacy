@@ -230,15 +230,14 @@ vector<Real64> SDRClassifier::calculateError_(const vector<UInt> &bucketIdxList,
   return likelihoods;
 }
 
-template <typename Iterator>
-void SDRClassifier::softmax_(Iterator begin, Iterator end) {
-  Iterator maxItr = max_element(begin, end);
+void SDRClassifier::softmax_(vector<Real64>::iterator begin,
+                             vector<Real64>::iterator end) {
+  vector<Real64>::iterator maxItr = max_element(begin, end);
   for (auto itr = begin; itr != end; ++itr) {
     *itr -= *maxItr;
   }
   range_exp(1.0, begin, end);
-  typename std::iterator_traits<Iterator>::value_type sum =
-      accumulate(begin, end, 0.0);
+  Real64 sum = accumulate(begin, end, 0.0);
   for (auto itr = begin; itr != end; ++itr) {
     *itr /= sum;
   }

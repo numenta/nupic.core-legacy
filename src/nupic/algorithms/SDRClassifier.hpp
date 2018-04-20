@@ -168,7 +168,7 @@ private:
                                  const vector<UInt> patternNZ, UInt step);
 
   // softmax function
-  template <typename Iterator> void softmax_(Iterator begin, Iterator end);
+  void softmax_(vector<Real64>::iterator begin, vector<Real64>::iterator end);
 
   // The list of prediction steps to learn and infer.
   vector<UInt> steps_;

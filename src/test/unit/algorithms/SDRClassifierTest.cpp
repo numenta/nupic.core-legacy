@@ -432,9 +432,9 @@ TEST_F(SDRClassifierTest, WriteRead) {
 
 TEST_F(SDRClassifierTest, testSoftmaxOverflow) {
   SDRClassifier c = SDRClassifier({1}, 0.5, 0.5, 0);
-  std::vector<double> values = {numeric_limits<double>::max()};
+  std::vector<Real64> values = {numeric_limits<Real64>::max()};
   softmax_(&c, values.begin(), values.end());
-  double result = values[0];
+  Real64 result = values[0];
   ASSERT_FALSE(std::isnan(result));
 }
 
