@@ -15,6 +15,7 @@ htmlcov/
 # IDE project files
 /nbproject/
 .vscode
+.ycm_extra_conf.py
 
 # Build files
 build/
