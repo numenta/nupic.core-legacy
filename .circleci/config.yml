@@ -1,0 +1,133 @@
+version: 2
+jobs:
+  build:
+    working_directory: ~/numenta/nupic.core
+    parallelism: 1
+    shell: /bin/bash --login -o pipefail
+    # CircleCI 2.0 does not support environment variables that refer to each other the same way as 1.0 did.
+    # If any of these refer to each other, rewrite them so that they don't or see https://circleci.com/docs/2.0/env-vars/#interpolating-environment-variables-to-set-other-environment-variables .
+    environment:
+      CIRCLE_ARTIFACTS: /tmp/circleci-artifacts
+      CIRCLE_TEST_REPORTS: /tmp/circleci-test-results
+      XCODE_SCHEME: nupic
+      XCODE_WORKSPACE: nupic
+      ARCHFLAGS: -arch x86_64
+      PYTHONPATH: ~/Library/Python/2.7/lib/python/site-packages
+      PYBIN: ~/Library/Python/2.7/bin
+    macos:
+      xcode: '9.0.1'
+    steps:
+    # Machine Setup
+    #   If you break your build into multiple jobs with workflows, you will probably want to do the parts of this that are relevant in each
+    - run: sudo systemsetup -settimezone 'GMT'
+    # The following `checkout` command checks out your code to your working directory. In 1.0 we did this implicitly. In 2.0 you can choose where in the course of a job your code should be checked out.
+    - checkout
+    # Prepare for artifact and test results  collection equivalent to how it was done on 1.0.
+    # In many cases you can simplify this from what is generated here.
+    # 'See docs on artifact collection here https://circleci.com/docs/2.0/artifacts/'
+    - run: mkdir -p $CIRCLE_ARTIFACTS $CIRCLE_TEST_REPORTS
+    - run:
+          name: Update PATH and Define Environment Variable at Runtime
+          command: echo 'export PATH=$HOME/Library/Python/2.7/bin:$PATH' >> $BASH_ENV
+    - run:
+        name: Make sure to use OS X in CircleCI Web UI
+        command: |
+          if [[ "$OSTYPE" != "darwin"* ]]; then
+            echo "Must set option to use OS X in CircleCI Web UI" && exit 1;
+          fi
+    # Dependencies
+    #   This would typically go in either a build or a build-and-test job when using workflows
+    # Restore the dependency cache
+    - restore_cache:
+        keys:
+        # This branch if available
+        - v1-dep-{{ .Branch }}-
+        # Default branch if not
+        - v1-dep-master-
+        # Any branch if there are none on the default branch - this should be unnecessary if you have your default branch configured correctly
+        - v1-dep-
+
+    - run:
+        name: Installing dependencies
+        command: |
+          brew install cmake
+          pip install --user --upgrade --verbose setuptools setuptools-scm
+          pip install --no-cache-dir --user -r bindings/py/requirements.txt  --verbose || exit
+
+    # Save dependency cache
+    - save_cache:
+        key: v1-dep-{{ .Branch }}-{{ epoch }}
+        paths:
+        # This is a broad list of cache paths to include many possible development environments
+        # You can probably delete some of these entries
+        - vendor/bundle
+        - ~/virtualenvs
+        - ~/.m2
+        - ~/.ivy2
+        - ~/.bundle
+        - ~/.go_workspace
+        - ~/.gradle
+        - ~/.cache/bower
+    # Compile
+    #   This would typically go in either a build or a build-and-test job when using workflows
+    - run:
+        name: Compiling
+        environment:
+          VERBOSE: 1
+        command: |
+          mkdir -p build/scripts
+          cd build/scripts
+          cmake ../.. -DCMAKE_BUILD_TYPE=Release -DNTA_COV_ENABLED=ON -DCMAKE_INSTALL_PREFIX=../release -DPY_EXTENSIONS_DIR=../../bindings/py/src/nupic/bindings
+          make -j8 | grep -v -F '\\-\\- Installing:'
+          make install 2>&1 | grep -v -F 'Installing:'
+    - run:
+        name: Build wheel distribution
+        command: |
+          python setup.py bdist_wheel
+          mkdir dist
+          mv bindings/py/dist/*.whl dist/
+    # Test
+    #   This would typically be a build job when using workflows, possibly combined with build
+    - run:
+        name: Running C++ Tests
+        working_directory: ~/numenta/nupic.core/build/release/bin
+        command: |
+            ./cpp_region_test
+            ./py_region_test
+            ./helloregion
+            ./hello_sp_tp
+            ./prototest
+            ./unit_tests --gtest_output=xml:$CIRCLE_TEST_REPORTS/unit_tests_report.xml
+    - run:
+        name: Running python tests
+        command: |
+          pip install --user --no-index --find-links=`pwd`/dist/ nupic.bindings
+          py.test bindings/py/tests
+
+    # Collect artifacts
+    - run:
+        name: Collecting artifacts
+        command: |
+          cp $CIRCLE_TEST_REPORTS/unit_tests_report.xml $CIRCLE_ARTIFACTS/
+          cp dist/*.whl $CIRCLE_ARTIFACTS/
+    - run:
+        name: Deploying to S3
+        command: |
+          if [[ "$CIRCLE_REPOSITORY_URL" == "https://github.com/numenta/nupic.core" ]]; then
+            ci/circle/deploy_s3-osx.sh;
+          else
+            echo "Skipping deployment, as this is a fork";
+          fi
+
+    # Teardown
+    #   If you break your build into multiple jobs with workflows, you will probably want to do the parts of this that are relevant in each
+    # The following line was run implicitly in your 1.0 builds based on what CircleCI inferred about the structure of your project. In 2.0 you need to be explicit about which commands should be run. In some cases you can discard inferred commands if they are not relevant to your project.
+    - run:
+        name: Teardown
+        command: find ~/Library/Developer/Xcode/DerivedData -name '*.xcactivitylog' -exec cp {} $CIRCLE_ARTIFACTS/xcactivitylog \; || true
+    # Save test results
+    - store_test_results:
+        path: /tmp/circleci-test-results
+    # Save artifacts
+    - store_artifacts:
+        path: /tmp/circleci-artifacts
