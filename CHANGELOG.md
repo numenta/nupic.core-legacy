@@ -1,5 +1,27 @@
 # Changelog
 
+## 1.0.5
+
+* 54b3365c (HEAD -> master, upstream/master, upstream/HEAD) Merge pull request #1424 from lscheinkman/NUP-2519
+* 58754cf7 NUP-2519: Upgrade pycapnp to 0.6.3
+* f3f3a540 Merge pull request #1423 from lscheinkman/DEVOPS-383
+* 64fb803e DEVOPS-383: Move deploy to S3 job to circleci workflow
+* a05a5126 Merge pull request #1421 from lscheinkman/DEVOPS-383
+* 16dbf534 DEVOPS-383: Migrate CircleCI builds from 1.0 to 2.0
+* ec14f2f5 pip install --use-wheel" was deprecated. See https://pip.pypa.io/en/stable/news/#deprecations-and-removals
+* c2d31a95 ignore YCM configuration
+* 836564ef Merge pull request #1418 from lscheinkman/NUP-2504
+* f7b86e0f "pip install --use-wheel" was deprecated. See https://pip.pypa.io/en/stable/news/#deprecations-and-removals
+* 42df6caa NUP-2504: fix clang link optimization issue on private template function
+* f5bc76b6 NUP-2504: Add unit test to softmax overflow
+* 203493ed NUP-2506: Add missing state fields to serialization
+* 5f1ddcbb NUP-2514: fix traversal limit
+* 7e33ca44 NUP-2506: Add missing operator '==' to classes used in tests
+* e5e48c8e fix accumulate
+* b3513853 add softmax function
+* 0032fbf5 Fix softmax overflow
+
+
 ## 1.0.4
 
 * 860459cf NUP-2506: Add operator '==' to classes used in tests
