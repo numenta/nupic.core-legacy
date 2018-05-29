@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.6
+
+* This release was because of a deployment problem with 1.0.5 and issues with pypi.
+
 ## 1.0.5
 
 * 58754cf7 NUP-2519: Upgrade pycapnp to 0.6.3
