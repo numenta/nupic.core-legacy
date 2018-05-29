@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Encoders &#8212; NuPIC Core 1.0.5
+    <title>Encoders &#8212; NuPIC Core 1.0.6
  documentation</title>
     
     <link rel="stylesheet" href="_static/classic.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '1.0.5',
+        VERSION:     '1.0.6',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -28,7 +28,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Algorithms" href="algorithms.html" />
-    <link rel="prev" title="NuPIC Core 1.0.5 API Documentation" href="index.html" /> 
+    <link rel="prev" title="NuPIC Core 1.0.6 API Documentation" href="index.html" /> 
   </head>
   <body role="document">
     <div class="related" role="navigation" aria-label="related navigation">
@@ -41,9 +41,9 @@
           <a href="algorithms.html" title="Algorithms"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="index.html" title="NuPIC Core 1.0.5 API Documentation"
+          <a href="index.html" title="NuPIC Core 1.0.6 API Documentation"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NuPIC Core 1.0.5
+        <li class="nav-item nav-item-0"><a href="index.html">NuPIC Core 1.0.6
  documentation</a> &#187;</li> 
       </ul>
     </div>  
@@ -59,7 +59,7 @@
 <h2>ScalarEncoder<a class="headerlink" href="#scalarencoder" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPoolerE">
-<span id="nupic::algorithms::spatial_pooler::SpatialPooler"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler"></span><em class="property">class </em><code class="descclassname">nupic::algorithms::spatial_pooler::</code><code class="descname">SpatialPooler</code><a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPoolerE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::spatial_pooler::SpatialPooler"></span><span class="target" id="classnupic_1_1algorithms_1_1spatial__pooler_1_1_spatial_pooler"></span><em class="property">class </em><code class="descname">SpatialPooler</code> : <em class="property">public</em> nupic::<a class="reference internal" href="types.html#_CPPv2N5nupic12SerializableE" title="nupic::Serializable">Serializable</a>&lt;SpatialPoolerProto&gt;<a class="headerlink" href="#_CPPv2N5nupic10algorithms14spatial_pooler13SpatialPoolerE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>CLA spatial pooler implementation in C++. </p>
 <p><em>Description</em></p>
 <p>The Spatial Pooler is responsible for creating a sparse distributed representation of the input. Given an input it computes a set of sparse active columns and simultaneously updates its permanences, duty cycles, etc.</p>
@@ -74,7 +74,6 @@
 </pre></div>
 </div>
  </p>
-<p>Inherits from <a class="reference internal" href="types.html#classnupic_1_1_serializable"><span class="std std-ref">nupic::Serializable&lt; SpatialPoolerProto &gt;</span></a></p>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Public Functions</p>
 <dl class="function">
@@ -1388,14 +1387,13 @@
 <h2>ScalarSensor<a class="headerlink" href="#scalarsensor" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="_CPPv2N5nupic10algorithms11connections11ConnectionsE">
-<span id="nupic::algorithms::connections::Connections"></span><span class="target" id="classnupic_1_1algorithms_1_1connections_1_1_connections"></span><em class="property">class </em><code class="descclassname">nupic::algorithms::connections::</code><code class="descname">Connections</code><a class="headerlink" href="#_CPPv2N5nupic10algorithms11connections11ConnectionsE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::connections::Connections"></span><span class="target" id="classnupic_1_1algorithms_1_1connections_1_1_connections"></span><em class="property">class </em><code class="descname">Connections</code> : <em class="property">public</em> nupic::<a class="reference internal" href="types.html#_CPPv2N5nupic12SerializableE" title="nupic::Serializable">Serializable</a>&lt;ConnectionsProto&gt;<a class="headerlink" href="#_CPPv2N5nupic10algorithms11connections11ConnectionsE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p><a class="reference internal" href="#classnupic_1_1algorithms_1_1connections_1_1_connections"><span class="std std-ref">Connections</span></a> implementation in C++. </p>
 <p><strong>Description</strong> The <a class="reference internal" href="#classnupic_1_1algorithms_1_1connections_1_1_connections"><span class="std std-ref">Connections</span></a> class is a data structure that represents the connections of a collection of cells. It is used in the HTM learning algorithms to store and access data related to the connectivity of cells.</p>
 <p>Its main utility is to provide a common, optimized data structure that all HTM learning algorithms can use. It is flexible enough to support any learning algorithm that operates on a collection of cells.</p>
 <p>Each type of connection (proximal, distal basal, apical) should be represented by a different instantiation of this class. This class will help compute the activity along those connections due to active input cells. The responsibility for what effect that activity has on the cells and connections lies in the user of this class.</p>
 <p>This class is optimized to store connections between cells, and compute the activity of cells due to input over the connections.</p>
 <p>This class assigns each segment a unique &#8220;flatIdx&#8221; so that it&#8217;s possible to use a simple vector to associate segments with values. Create a vector of length <code class="docutils literal"><span class="pre">connections.segmentFlatListLength()</span></code>, iterate over segments and update the vector at index <code class="docutils literal"><span class="pre">segment</span></code>. </p>
-<p>Inherits from <a class="reference internal" href="types.html#classnupic_1_1_serializable"><span class="std std-ref">nupic::Serializable&lt; ConnectionsProto &gt;</span></a></p>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Public Functions</p>
 <dl class="function">
@@ -1925,7 +1923,7 @@ Created synapse. <dl class="docutils">
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="index.html"
-                        title="previous chapter">NuPIC Core 1.0.5 API Documentation</a></p>
+                        title="previous chapter">NuPIC Core 1.0.6 API Documentation</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="algorithms.html"
                         title="next chapter">Algorithms</a></p>
@@ -1960,9 +1958,9 @@ Created synapse. <dl class="docutils">
           <a href="algorithms.html" title="Algorithms"
              >next</a> |</li>
         <li class="right" >
-          <a href="index.html" title="NuPIC Core 1.0.5 API Documentation"
+          <a href="index.html" title="NuPIC Core 1.0.6 API Documentation"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NuPIC Core 1.0.5
+        <li class="nav-item nav-item-0"><a href="index.html">NuPIC Core 1.0.6
  documentation</a> &#187;</li> 
       </ul>
     </div>

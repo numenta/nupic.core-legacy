@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Links &#8212; NuPIC Core 1.0.5
+    <title>Links &#8212; NuPIC Core 1.0.6
  documentation</title>
     
     <link rel="stylesheet" href="_static/classic.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '1.0.5',
+        VERSION:     '1.0.6',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -43,7 +43,7 @@
         <li class="right" >
           <a href="network-sensors.html" title="Sensors"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NuPIC Core 1.0.5
+        <li class="nav-item nav-item-0"><a href="index.html">NuPIC Core 1.0.6
  documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="network.html" accesskey="U">Network API</a> &#187;</li> 
       </ul>
@@ -60,9 +60,8 @@
 <h2>Link<a class="headerlink" href="#link" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="_CPPv2N5nupic4LinkE">
-<span id="nupic::Link"></span><span class="target" id="classnupic_1_1_link"></span><em class="property">class </em><code class="descclassname">nupic::</code><code class="descname">Link</code><a class="headerlink" href="#_CPPv2N5nupic4LinkE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::Link"></span><span class="target" id="classnupic_1_1_link"></span><em class="property">class </em><code class="descname">Link</code> : <em class="property">public</em> nupic::<a class="reference internal" href="types.html#_CPPv2N5nupic12SerializableE" title="nupic::Serializable">Serializable</a>&lt;LinkProto&gt;<a class="headerlink" href="#_CPPv2N5nupic4LinkE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Represents a link between regions in a <a class="reference internal" href="network-network.html#classnupic_1_1_network"><span class="std std-ref">Network</span></a>. </p>
-<p>Inherits from <a class="reference internal" href="types.html#classnupic_1_1_serializable"><span class="std std-ref">nupic::Serializable&lt; LinkProto &gt;</span></a></p>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Initialization</p>
 <p>Links have four-phase initialization.</p>
@@ -377,7 +376,7 @@ A splitter map is a matrix that maps the full input of a region to the inputs of
 <h2>LinkPolicy<a class="headerlink" href="#linkpolicy" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="_CPPv2N5nupic10LinkPolicyE">
-<span id="nupic::LinkPolicy"></span><span class="target" id="classnupic_1_1_link_policy"></span><em class="property">class </em><code class="descclassname">nupic::</code><code class="descname">LinkPolicy</code><a class="headerlink" href="#_CPPv2N5nupic10LinkPolicyE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::LinkPolicy"></span><span class="target" id="classnupic_1_1_link_policy"></span><em class="property">class </em><code class="descname">LinkPolicy</code><a class="headerlink" href="#_CPPv2N5nupic10LinkPolicyE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Subclassed by <a class="reference internal" href="#classnupic_1_1_uniform_link_policy"><span class="std std-ref">nupic::UniformLinkPolicy</span></a></p>
 </dd></dl>
 
@@ -386,7 +385,7 @@ A splitter map is a matrix that maps the full input of a region to the inputs of
 <h2>LinkPolicyFactory<a class="headerlink" href="#linkpolicyfactory" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="_CPPv2N5nupic17LinkPolicyFactoryE">
-<span id="nupic::LinkPolicyFactory"></span><span class="target" id="classnupic_1_1_link_policy_factory"></span><em class="property">class </em><code class="descclassname">nupic::</code><code class="descname">LinkPolicyFactory</code><a class="headerlink" href="#_CPPv2N5nupic17LinkPolicyFactoryE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::LinkPolicyFactory"></span><span class="target" id="classnupic_1_1_link_policy_factory"></span><em class="property">class </em><code class="descname">LinkPolicyFactory</code><a class="headerlink" href="#_CPPv2N5nupic17LinkPolicyFactoryE" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 </div>
@@ -394,9 +393,8 @@ A splitter map is a matrix that maps the full input of a region to the inputs of
 <h2>UniformLinkPolicy<a class="headerlink" href="#uniformlinkpolicy" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="_CPPv2N5nupic17UniformLinkPolicyE">
-<span id="nupic::UniformLinkPolicy"></span><span class="target" id="classnupic_1_1_uniform_link_policy"></span><em class="property">class </em><code class="descclassname">nupic::</code><code class="descname">UniformLinkPolicy</code><a class="headerlink" href="#_CPPv2N5nupic17UniformLinkPolicyE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Inherits from nupic::LinkPolicy</p>
-</dd></dl>
+<span id="nupic::UniformLinkPolicy"></span><span class="target" id="classnupic_1_1_uniform_link_policy"></span><em class="property">class </em><code class="descname">UniformLinkPolicy</code> : <em class="property">public</em> nupic::<a class="reference internal" href="#_CPPv2N5nupic10LinkPolicyE" title="nupic::LinkPolicy">LinkPolicy</a><a class="headerlink" href="#_CPPv2N5nupic17UniformLinkPolicyE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
 
 </div>
 </div>
@@ -457,7 +455,7 @@ A splitter map is a matrix that maps the full input of a region to the inputs of
         <li class="right" >
           <a href="network-sensors.html" title="Sensors"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NuPIC Core 1.0.5
+        <li class="nav-item nav-item-0"><a href="index.html">NuPIC Core 1.0.6
  documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="network.html" >Network API</a> &#187;</li> 
       </ul>

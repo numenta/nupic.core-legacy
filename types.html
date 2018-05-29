@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Types &#8212; NuPIC Core 1.0.5
+    <title>Types &#8212; NuPIC Core 1.0.6
  documentation</title>
     
     <link rel="stylesheet" href="_static/classic.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '1.0.5',
+        VERSION:     '1.0.6',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -43,7 +43,7 @@
         <li class="right" >
           <a href="network-io.html" title="Input / Output"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NuPIC Core 1.0.5
+        <li class="nav-item nav-item-0"><a href="index.html">NuPIC Core 1.0.6
  documentation</a> &#187;</li> 
       </ul>
     </div>  
@@ -59,12 +59,11 @@
 <h2>Dimensions<a class="headerlink" href="#dimensions" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="_CPPv2N5nupic10DimensionsE">
-<span id="nupic::Dimensions"></span><span class="target" id="classnupic_1_1_dimensions"></span><em class="property">class </em><code class="descclassname">nupic::</code><code class="descname">Dimensions</code><a class="headerlink" href="#_CPPv2N5nupic10DimensionsE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::Dimensions"></span><span class="target" id="classnupic_1_1_dimensions"></span><em class="property">class </em><code class="descname">Dimensions</code> : <em class="property">public</em> std::vector&lt;size_t&gt;<a class="headerlink" href="#_CPPv2N5nupic10DimensionsE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Represents the dimensions of a <a class="reference internal" href="network-regions.html#classnupic_1_1_region"><span class="std std-ref">Region</span></a>. </p>
 <p>A <a class="reference internal" href="#classnupic_1_1_dimensions"><span class="std std-ref">Dimensions</span></a> object is an n-dimensional grid, consists of many cells, and each dimension has a size, i.e. how many cells can there be along this dimension.</p>
 <p>A node within a <a class="reference internal" href="network-regions.html#classnupic_1_1_region"><span class="std std-ref">Region</span></a> is represented by a cell of a n-dimensional grid, identified by a Coordinate.</p>
 <p>It&#8217;s implemented by a <code class="docutils literal"><span class="pre">vector</span></code> of <code class="docutils literal"><span class="pre">size_t</span></code> plus a few methods for convenience and for wrapping. </p>
-<p>Inherits from std::vector&lt; size_t &gt;</p>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Constructors</p>
 <dl class="function">
@@ -387,7 +386,7 @@ care&#8221;)</p>
 <h3>BasicType<a class="headerlink" href="#basictype" title="Permalink to this headline">¶</a></h3>
 <dl class="class">
 <dt id="_CPPv2N5nupic9BasicTypeE">
-<span id="nupic::BasicType"></span><span class="target" id="classnupic_1_1_basic_type"></span><em class="property">class </em><code class="descclassname">nupic::</code><code class="descname">BasicType</code><a class="headerlink" href="#_CPPv2N5nupic9BasicTypeE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::BasicType"></span><span class="target" id="classnupic_1_1_basic_type"></span><em class="property">class </em><code class="descname">BasicType</code><a class="headerlink" href="#_CPPv2N5nupic9BasicTypeE" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 </div>
@@ -395,17 +394,15 @@ care&#8221;)</p>
 <h3>Fraction<a class="headerlink" href="#fraction" title="Permalink to this headline">¶</a></h3>
 <dl class="class">
 <dt id="_CPPv2N5nupic8FractionE">
-<span id="nupic::Fraction"></span><span class="target" id="classnupic_1_1_fraction"></span><em class="property">class </em><code class="descclassname">nupic::</code><code class="descname">Fraction</code><a class="headerlink" href="#_CPPv2N5nupic8FractionE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::Fraction"></span><span class="target" id="classnupic_1_1_fraction"></span><em class="property">class </em><code class="descname">Fraction</code><a class="headerlink" href="#_CPPv2N5nupic8FractionE" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 </div>
 <div class="section" id="serializable">
 <h3>Serializable<a class="headerlink" href="#serializable" title="Permalink to this headline">¶</a></h3>
 <dl class="class">
-<dt>
-<span class="target" id="classnupic_1_1_serializable"></span><em class="property">template </em>&lt;class <em>ProtoT</em>&gt;</dt>
 <dt id="_CPPv2N5nupic12SerializableE">
-<span id="nupic::Serializable"></span><em class="property">class </em><code class="descclassname">nupic::</code><code class="descname">Serializable</code><a class="headerlink" href="#_CPPv2N5nupic12SerializableE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::Serializable"></span><span class="target" id="classnupic_1_1_serializable"></span><em class="property">template </em>&lt;class <em>ProtoT</em>&gt;<br /><em class="property">class </em><code class="descname">Serializable</code><a class="headerlink" href="#_CPPv2N5nupic12SerializableE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Base <a class="reference internal" href="#classnupic_1_1_serializable"><span class="std std-ref">Serializable</span></a> class that any serializable class should inherit from. </p>
 </dd></dl>
 
@@ -472,7 +469,7 @@ care&#8221;)</p>
         <li class="right" >
           <a href="network-io.html" title="Input / Output"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NuPIC Core 1.0.5
+        <li class="nav-item nav-item-0"><a href="index.html">NuPIC Core 1.0.6
  documentation</a> &#187;</li> 
       </ul>
     </div>

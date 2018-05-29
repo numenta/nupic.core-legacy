@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Temporal Memory &#8212; NuPIC Core 1.0.5
+    <title>Temporal Memory &#8212; NuPIC Core 1.0.6
  documentation</title>
     
     <link rel="stylesheet" href="_static/classic.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '1.0.5',
+        VERSION:     '1.0.6',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -43,7 +43,7 @@
         <li class="right" >
           <a href="spatial-pooler.html" title="Spatial Pooler"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NuPIC Core 1.0.5
+        <li class="nav-item nav-item-0"><a href="index.html">NuPIC Core 1.0.6
  documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="algorithms.html" accesskey="U">Algorithms</a> &#187;</li> 
       </ul>
@@ -58,7 +58,7 @@
 <h1>Temporal Memory<a class="headerlink" href="#temporal-memory" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="_CPPv2N5nupic10algorithms15temporal_memory14TemporalMemoryE">
-<span id="nupic::algorithms::temporal_memory::TemporalMemory"></span><span class="target" id="classnupic_1_1algorithms_1_1temporal__memory_1_1_temporal_memory"></span><em class="property">class </em><code class="descclassname">nupic::algorithms::temporal_memory::</code><code class="descname">TemporalMemory</code><a class="headerlink" href="#_CPPv2N5nupic10algorithms15temporal_memory14TemporalMemoryE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="nupic::algorithms::temporal_memory::TemporalMemory"></span><span class="target" id="classnupic_1_1algorithms_1_1temporal__memory_1_1_temporal_memory"></span><em class="property">class </em><code class="descname">TemporalMemory</code> : <em class="property">public</em> nupic::<a class="reference internal" href="types.html#_CPPv2N5nupic12SerializableE" title="nupic::Serializable">Serializable</a>&lt;TemporalMemoryProto&gt;<a class="headerlink" href="#_CPPv2N5nupic10algorithms15temporal_memory14TemporalMemoryE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Temporal Memory implementation in C++. </p>
 <p>Example usage: <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">SpatialPooler</span> <span class="n">sp</span><span class="p">(</span><span class="n">inputDimensions</span><span class="p">,</span> <span class="n">columnDimensions</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">parameters</span><span class="o">&gt;</span><span class="p">);</span>
 <span class="n">TemporalMemory</span> <span class="n">tm</span><span class="p">(</span><span class="n">columnDimensions</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">parameters</span><span class="o">&gt;</span><span class="p">);</span>
@@ -73,7 +73,6 @@
 </div>
 </p>
 <p>The public API uses C arrays, not std::vectors, as inputs. C arrays are a good lowest common denominator. You can get a C array from a vector, but you can&#8217;t get a vector from a C array without copying it. This is important, for example, when using numpy arrays. The only way to convert a numpy array into a std::vector is to copy it, but you can access a numpy array&#8217;s internal C array directly. </p>
-<p>Inherits from <a class="reference internal" href="types.html#classnupic_1_1_serializable"><span class="std std-ref">nupic::Serializable&lt; TemporalMemoryProto &gt;</span></a></p>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Public Functions</p>
 <dl class="function">
@@ -546,7 +545,7 @@ Notes:<dl class="docutils">
         <li class="right" >
           <a href="spatial-pooler.html" title="Spatial Pooler"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NuPIC Core 1.0.5
+        <li class="nav-item nav-item-0"><a href="index.html">NuPIC Core 1.0.6
  documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="algorithms.html" >Algorithms</a> &#187;</li> 
       </ul>
