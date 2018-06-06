@@ -485,6 +485,9 @@ void Input::initialize() {
   if (count != 0) {
     void *buffer = data_.getBuffer();
     ::memset(buffer, 0, data_.getBufferSize());
+    if (isSparse_) {
+        data_.setCount(0);
+    }
   }
 
   NTA_CHECK(splitterMap_.size() == 0);

@@ -415,8 +415,7 @@ private:
                               const size_t propagationDelay);
 
   void initPropagationDelayBuffer_(size_t propagationDelay,
-                                   NTA_BasicType dataElementType,
-                                   size_t dataElementCount);
+                                   const Array &original);
 
   // TODO: The strings with src/dest names are redundant with
   // the src_ and dest_ objects. For unit testing links,
