@@ -83,9 +83,9 @@ public:
 
   // number of elements of given type in the buffer
   size_t getCount() const;
-  
+
   // max number of elements this buffer can hold
-  size_t getMaxElementsCount() const ;
+  size_t getMaxElementsCount() const;
 
   /**
    * Returns the allocated buffer size in bytes independent of array length

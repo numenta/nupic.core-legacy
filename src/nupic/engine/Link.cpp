@@ -108,7 +108,8 @@ void Link::initPropagationDelayBuffer_(size_t propagationDelay,
   // Initialize delay data elements
   size_t dataBufferSize = original.getBufferSize();
   NTA_BasicType dataElementType = original.getType();
-  size_t dataElementCount = dataBufferSize / BasicType::getSize(dataElementType);
+  size_t dataElementCount =
+      dataBufferSize / BasicType::getSize(dataElementType);
   for (size_t i = 0; i < propagationDelay; i++) {
     Array arrayTemplate(dataElementType);
 

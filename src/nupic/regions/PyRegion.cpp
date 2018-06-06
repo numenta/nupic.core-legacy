@@ -877,7 +877,7 @@ void PyRegion::compute() {
     // Skip unlinked inputs
     if (inp->getLinks().empty())
       continue;
-    
+
     // Set pa to point to the original input array
     const Array *pa = &(inp->getData());
 
