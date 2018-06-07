@@ -40,12 +40,12 @@ using namespace nupic;
  * Caller frees buffer when no longer needed.
  */
 ArrayBase::ArrayBase(NTA_BasicType type, void *buffer, size_t count)
-    : buffer_((char *)buffer), count_(count), type_(type), own_(false),
-      bufferSize_(count) {
+    : buffer_((char *)buffer), count_(count), type_(type), own_(false) {
   if (!BasicType::isValid(type)) {
     NTA_THROW << "Invalid NTA_BasicType " << type
               << " used in array constructor";
   }
+  bufferSize_ = count * BasicType::getSize(type);
 }
 
 /**
@@ -112,6 +112,11 @@ size_t ArrayBase::getBufferSize() const { return bufferSize_; }
 
 // number of elements of given type in the buffer
 size_t ArrayBase::getCount() const { return count_; };
+
+// max number of elements this buffer can hold
+size_t ArrayBase::getMaxElementsCount() const {
+  return bufferSize_ / BasicType::getSize(type_);
+};
 
 void ArrayBase::setCount(size_t count) {
   NTA_CHECK(count * BasicType::getSize(type_) <= bufferSize_)

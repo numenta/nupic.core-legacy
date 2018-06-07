@@ -95,8 +95,7 @@ void Link::commonConstructorInit_(const std::string &linkType,
 Link::~Link() { delete impl_; }
 
 void Link::initPropagationDelayBuffer_(size_t propagationDelay,
-                                       NTA_BasicType dataElementType,
-                                       size_t dataElementCount) {
+                                       const Array &original) {
   if (srcBuffer_.capacity() != 0 || !propagationDelay) {
     // Already initialized(e.g., as result of deserialization); or a 0-delay
     // link, which doesn't use buffering.
@@ -107,9 +106,10 @@ void Link::initPropagationDelayBuffer_(size_t propagationDelay,
   srcBuffer_.set_capacity(propagationDelay);
 
   // Initialize delay data elements
-  size_t dataBufferSize =
-      dataElementCount * BasicType::getSize(dataElementType);
-
+  size_t dataBufferSize = original.getBufferSize();
+  NTA_BasicType dataElementType = original.getType();
+  size_t dataElementCount =
+      dataBufferSize / BasicType::getSize(dataElementType);
   for (size_t i = 0; i < propagationDelay; i++) {
     Array arrayTemplate(dataElementType);
 
@@ -118,6 +118,7 @@ void Link::initPropagationDelayBuffer_(size_t propagationDelay,
     // Allocate 0-initialized data for current element
     srcBuffer_[i].allocateBuffer(dataElementCount);
     ::memset(srcBuffer_[i].getBuffer(), 0, dataBufferSize);
+    srcBuffer_[i].setCount(0);
   }
 }
 
@@ -194,8 +195,7 @@ void Link::initialize(size_t destinationOffset) {
   // ---
   // Initialize the propagation delay buffer
   // ---
-  initPropagationDelayBuffer_(propagationDelay_, src_->getData().getType(),
-                              src_->getData().getCount());
+  initPropagationDelayBuffer_(propagationDelay_, src_->getData());
 
   initialized_ = true;
 }
@@ -421,6 +421,8 @@ void Link::shiftBufferedData() {
   const Array &srcArray = src_->getData();
   size_t elementCount = srcArray.getCount();
   auto elementType = srcArray.getType();
+  size_t bufferSize = srcArray.getBufferSize();
+  size_t maxElementCount = bufferSize / BasicType::getSize(elementType);
 
   if (_LINK_DEBUG) {
     NTA_DEBUG << "Link::shiftBufferedData: " << getMoniker()
@@ -436,9 +438,10 @@ void Link::shiftBufferedData() {
   srcBuffer_.push_back(array);
 
   auto &lastElement = srcBuffer_.back();
-  lastElement.allocateBuffer(elementCount);
+  lastElement.allocateBuffer(maxElementCount);
   ::memcpy(lastElement.getBuffer(), srcArray.getBuffer(),
            elementCount * BasicType::getSize(elementType));
+  lastElement.setCount(elementCount);
 
   if (_LINK_DEBUG) {
     NTA_DEBUG << "Link::shiftBufferedData: " << getMoniker()
@@ -478,9 +481,8 @@ void Link::read(LinkProto::Reader &proto) {
     // buffers.
     initPropagationDelayBuffer_(
         propagationDelay_,
-        ArrayProtoUtils::getArrayTypeFromArrayProtoReader(
-            delayedOutputsReader[0]),
-        0);
+        Array(ArrayProtoUtils::getArrayTypeFromArrayProtoReader(
+            delayedOutputsReader[0])));
 
     // Populate delayed outputs
 

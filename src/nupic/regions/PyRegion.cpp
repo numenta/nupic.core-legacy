@@ -874,11 +874,15 @@ void PyRegion::compute() {
     Input *inp = region_->getInput(p.first);
     NTA_CHECK(inp);
 
+    // Skip unlinked inputs
+    if (inp->getLinks().empty())
+      continue;
+
     // Set pa to point to the original input array
     const Array *pa = &(inp->getData());
 
-    // Skip unlinked inputs of size 0
-    if (pa->getCount() == 0)
+    // Skip dense inputs of size 0
+    if (!inp->isSparse() && pa->getCount() == 0)
       continue;
 
     // If the input requires a splitter map then
@@ -934,6 +938,13 @@ void PyRegion::compute() {
 
     const Array &data = out->getData();
 
+    // Resize sparse outputs to max count to reserve enough space in the
+    // numpyArray.
+    if (out->isSparse()) {
+      // Remove 'const' to update the variable length array
+      Array &data = const_cast<Array &>(out->getData());
+      data.setCount(data.getMaxElementsCount());
+    }
     py::Ptr numpyArray(array2numpy(data));
 
     // Insert the buffer to the outputs py::Dict
@@ -949,7 +960,7 @@ void PyRegion::compute() {
 
       // The outputs dict is immutable. Use a list to enable update from python
       py::List len;
-      len.append(py::Int(data.getCount()));
+      len.append(py::Int(0l));
       outputs.setItem(name.str(), len);
     }
   }

@@ -21,7 +21,7 @@
 import unittest
 
 import numpy as np
-import numpy.testing
+from numpy.testing import assert_array_equal
 from nupic.bindings.regions.PyRegion import PyRegion
 import nupic.bindings.engine_internal as engine
 
@@ -49,43 +49,43 @@ class SparseRegion(PyRegion):
   @classmethod
   def getSpec(cls):
     return {
-      "description": "Sparse Region",
-      "singleNodeOnly": True,
-      "inputs": {
-        "dataIn": {
-          "description": "Sparse Data In",
-          "dataType": "UInt32",
-          "isDefaultInput": True,
-          "required": False,
-          "sparse": True,
-          "count": 0
+        "description": "Sparse Region",
+        "singleNodeOnly": True,
+        "inputs": {
+            "dataIn": {
+                "description": "Sparse Data In",
+                "dataType": "UInt32",
+                "isDefaultInput": True,
+                "required": False,
+                "sparse": True,
+                "count": 0
+            },
         },
-      },
-      "outputs": {
-        "dataOut": {
-          "description": "Sparse Data Out",
-          "dataType": "UInt32",
-          "isDefaultOutput": True,
-          "sparse": True,
-          "count": 0
+        "outputs": {
+            "dataOut": {
+                "description": "Sparse Data Out",
+                "dataType": "UInt32",
+                "isDefaultOutput": True,
+                "sparse": True,
+                "count": 0
+            },
         },
-      },
-      "parameters": {
-        "maxActive": {
-          "description": "Max active bits in the sparse data",
-          "dataType": "UInt32",
-          "accessMode": "ReadWrite",
-          "count": 1,
-          "constraints": "",
-        },
-        "outputWidth": {
-          "description": "Size of output vector",
-          "dataType": "UInt32",
-          "accessMode": "ReadWrite",
-          "count": 1,
-          "constraints": "",
+        "parameters": {
+            "maxActive": {
+                "description": "Max active bits in the sparse data",
+                "dataType": "UInt32",
+                "accessMode": "ReadWrite",
+                "count": 1,
+                "constraints": "",
+            },
+            "outputWidth": {
+                "description": "Size of output vector",
+                "dataType": "UInt32",
+                "accessMode": "ReadWrite",
+                "count": 1,
+                "constraints": "",
+            }
         }
-      }
     }
 
   def compute(self, inputs, outputs):
@@ -118,41 +118,41 @@ class DenseRegion(PyRegion):
   @classmethod
   def getSpec(cls):
     return {
-      "description": "Dense Region",
-      "singleNodeOnly": True,
-      "inputs": {
-        "dataIn": {
-          "description": "Dense Data In",
-          "dataType": "Bool",
-          "isDefaultInput": True,
-          "required": False,
-          "count": 0
+        "description": "Dense Region",
+        "singleNodeOnly": True,
+        "inputs": {
+            "dataIn": {
+                "description": "Dense Data In",
+                "dataType": "Bool",
+                "isDefaultInput": True,
+                "required": False,
+                "count": 0
+            },
         },
-      },
-      "outputs": {
-        "dataOut": {
-          "description": "Dense Data Out",
-          "dataType": "Bool",
-          "isDefaultOutput": True,
-          "count": 0
+        "outputs": {
+            "dataOut": {
+                "description": "Dense Data Out",
+                "dataType": "Bool",
+                "isDefaultOutput": True,
+                "count": 0
+            },
         },
-      },
-      "parameters": {
-        "maxActive": {
-          "description": "Max active bits in the sparse data",
-          "dataType": "UInt32",
-          "accessMode": "ReadWrite",
-          "count": 1,
-          "constraints": "",
-        },
-        "outputWidth": {
-          "description": "Size of output vector",
-          "dataType": "UInt32",
-          "accessMode": "ReadWrite",
-          "count": 1,
-          "constraints": "",
+        "parameters": {
+            "maxActive": {
+                "description": "Max active bits in the sparse data",
+                "dataType": "UInt32",
+                "accessMode": "ReadWrite",
+                "count": 1,
+                "constraints": "",
+            },
+            "outputWidth": {
+                "description": "Size of output vector",
+                "dataType": "UInt32",
+                "accessMode": "ReadWrite",
+                "count": 1,
+                "constraints": "",
+            }
         }
-      }
     }
 
   def compute(self, inputs, outputs):
@@ -168,14 +168,32 @@ class DenseRegion(PyRegion):
     return self.outputWidth
 
 
-def createNetwork(fromRegion, toRegion):
+def createSimpleNetwork(region1, region2):
   """Create test network"""
   network = engine.Network()
   config = str({"maxActive": MAX_ACTIVE, "outputWidth": OUTPUT_WIDTH})
-  network.addRegion("from", fromRegion, config)
-  network.addRegion("to", toRegion, config)
+  network.addRegion("region1", region1, config)
+  network.addRegion("region2", region2, config)
 
-  network.link("from", "to", "UniformLink", "")
+  network.link("region1", "region2", "UniformLink", "")
+  return network
+
+
+def createDelayedNetwork(region1, region2, region3, propagationDelay=1):
+  """Create test network with propagation delay"""
+  network = engine.Network()
+  config = str({"maxActive": MAX_ACTIVE, "outputWidth": OUTPUT_WIDTH})
+  network.addRegion("region1", region1, config)
+  network.addRegion("region2", region2, config)
+  network.addRegion("region3", region3, config)
+
+  network.link("region1", "region2", "UniformLink", "")
+  network.link(
+      "region2",
+      "region3",
+      "UniformLink",
+      "",
+      propagationDelay=propagationDelay)
   return network
 
 
@@ -185,48 +203,118 @@ class SparseLinkTest(unittest.TestCase):
 
   def setUp(self):
     """Register test regions"""
-    engine.Network.registerPyRegion(SparseRegion.__module__, SparseRegion.__name__)
-    engine.Network.registerPyRegion(DenseRegion.__module__, DenseRegion.__name__)
+    engine.Network.registerPyRegion(SparseRegion.__module__,
+                                    SparseRegion.__name__)
+    engine.Network.registerPyRegion(DenseRegion.__module__,
+                                    DenseRegion.__name__)
 
   def testSparseToSparse(self):
     """Test links between sparse to sparse"""
-    net = createNetwork("py.SparseRegion", "py.SparseRegion")
+    net = createSimpleNetwork("py.SparseRegion", "py.SparseRegion")
     net.initialize()
     net.run(1)
 
-    region = net.getRegions().getByName("to")
+    region = net.getRegions().getByName("region2")
     actual = region.getOutputArray("dataOut")
-    np.testing.assert_array_equal(actual, TEST_DATA_SPARSE)
+    assert_array_equal(actual, TEST_DATA_SPARSE)
 
   def testSparseToDense(self):
     """Test links between sparse to dense"""
-    net = createNetwork("py.SparseRegion", "py.DenseRegion")
+    net = createSimpleNetwork("py.SparseRegion", "py.DenseRegion")
     net.initialize()
     net.run(1)
 
-    region = net.getRegions().getByName("to")
+    region = net.getRegions().getByName("region2")
     actual = region.getOutputArray("dataOut")
-    np.testing.assert_array_equal(actual, TEST_DATA_DENSE)
+    assert_array_equal(actual, TEST_DATA_DENSE)
 
   def testDenseToSparse(self):
     """Test links between dense to sparse"""
-    net = createNetwork("py.DenseRegion", "py.SparseRegion")
+    net = createSimpleNetwork("py.DenseRegion", "py.SparseRegion")
     net.initialize()
     net.run(1)
 
-    region = net.getRegions().getByName("to")
+    region = net.getRegions().getByName("region2")
     actual = region.getOutputArray("dataOut")
-    np.testing.assert_array_equal(actual, TEST_DATA_SPARSE)
+    assert_array_equal(actual, TEST_DATA_SPARSE)
 
   def testDenseToDense(self):
     """Test links between dense to dense"""
-    net = createNetwork("py.DenseRegion", "py.DenseRegion")
+    net = createSimpleNetwork("py.DenseRegion", "py.DenseRegion")
     net.initialize()
     net.run(1)
 
-    region = net.getRegions().getByName("to")
+    region = net.getRegions().getByName("region2")
     actual = region.getOutputArray("dataOut")
-    np.testing.assert_array_equal(actual, TEST_DATA_DENSE)
+    assert_array_equal(actual, TEST_DATA_DENSE)
+
+  def testDenseToDenseToDenseDelay(self):
+    net = createDelayedNetwork("py.DenseRegion", "py.DenseRegion",
+                               "py.DenseRegion")
+    net.initialize()
+    region = net.getRegions().getByName("region3")
+
+    # Data should not be ready on first run
+    net.run(1)
+    actual = region.getOutputArray("dataOut")
+    with self.assertRaises(AssertionError):
+      assert_array_equal(actual, TEST_DATA_DENSE)
+
+    # Data should be ready on second run
+    net.run(1)
+    actual = region.getOutputArray("dataOut")
+    assert_array_equal(actual, TEST_DATA_DENSE)
+
+  def testSparseToSparseToSparseDelay(self):
+    net = createDelayedNetwork("py.SparseRegion", "py.SparseRegion",
+                               "py.SparseRegion")
+    net.initialize()
+    region = net.getRegions().getByName("region3")
+
+    # Data should not be ready on first run
+    net.run(1)
+    actual = region.getOutputArray("dataOut")
+    with self.assertRaises(AssertionError):
+      assert_array_equal(actual, TEST_DATA_SPARSE)
+
+    # Data should be ready on second run
+    net.run(1)
+    actual = region.getOutputArray("dataOut")
+    assert_array_equal(actual, TEST_DATA_SPARSE)
+
+  def testDenseToDenseToSparseDelay(self):
+    net = createDelayedNetwork("py.DenseRegion", "py.DenseRegion",
+                               "py.SparseRegion")
+    net.initialize()
+    region = net.getRegions().getByName("region3")
+
+    # Data should not be ready on first run
+    net.run(1)
+    actual = region.getOutputArray("dataOut")
+    with self.assertRaises(AssertionError):
+      assert_array_equal(actual, TEST_DATA_SPARSE)
+
+    # Data should be ready on second run
+    net.run(1)
+    actual = region.getOutputArray("dataOut")
+    assert_array_equal(actual, TEST_DATA_SPARSE)
+
+  def testSparseToSparseToDenseDelay(self):
+    net = createDelayedNetwork("py.SparseRegion", "py.SparseRegion",
+                               "py.DenseRegion")
+    net.initialize()
+    region = net.getRegions().getByName("region3")
+
+    # Data should not be ready on first run
+    net.run(1)
+    actual = region.getOutputArray("dataOut")
+    with self.assertRaises(AssertionError):
+      assert_array_equal(actual, TEST_DATA_DENSE)
+
+    # Data should be ready on second run
+    net.run(1)
+    actual = region.getOutputArray("dataOut")
+    assert_array_equal(actual, TEST_DATA_DENSE)
 
 
 if __name__ == '__main__':
