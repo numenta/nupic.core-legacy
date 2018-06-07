@@ -879,8 +879,8 @@
 <dt id="_CPPv2N5nupic6Region18setParameterStringERKNSt6stringERKNSt6stringE">
 <span id="nupic::Region::setParameterString__ssCR.ssCR"></span><span class="target" id="classnupic_1_1_region_1a57225cb3b846a1e43ad80e0c451ff043"></span>void <code class="descname">setParameterString</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>name</em>, <em class="property">const</em> std::string &amp;<em>s</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic6Region18setParameterStringERKNSt6stringERKNSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Set the parameter to a <code class="docutils literal"><span class="pre">std::string</span></code> value. </p>
-<p>
-Strings are handled internally as Byte Arrays, but this interface is clumsy. <a class="reference internal" href="network-regions.html#classnupic_1_1_region_1a57225cb3b846a1e43ad80e0c451ff043"><span class="std std-ref">setParameterString()</span></a> and <a class="reference internal" href="network-regions.html#classnupic_1_1_region_1a30b6cfed965f247ac66fbe2a855f3e6f"><span class="std std-ref">getParameterString()</span></a> internally use byte arrays but converts to/from strings.<dl class="docutils">
+<p><p>Strings are handled internally as Byte Arrays, but this interface is clumsy. </p>
+<a class="reference internal" href="network-regions.html#classnupic_1_1_region_1a57225cb3b846a1e43ad80e0c451ff043"><span class="std std-ref">setParameterString()</span></a> and <a class="reference internal" href="network-regions.html#classnupic_1_1_region_1a30b6cfed965f247ac66fbe2a855f3e6f"><span class="std std-ref">getParameterString()</span></a> internally use byte arrays but converts to/from strings.<dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
 <li><code class="docutils literal"><span class="pre">name</span></code>: The name of the parameter</li>
@@ -924,8 +924,8 @@ Strings are handled internally as Byte Arrays, but this interface is clumsy. <a 
 </dd>
 </dl>
 </p>
-<p>
-Throws an exception if it&#8217;s not overridden <dl class="docutils">
+<p><p>Throws an exception if it&#8217;s not overridden </p>
+<dl class="docutils">
 <dt><strong>Note</strong></dt>
 <dd>This method must be overridden by subclasses.</dd>
 </dl>
@@ -1342,8 +1342,8 @@ Throws an exception if it&#8217;s not overridden <dl class="docutils">
 <dt id="_CPPv2N5nupic4Link16buildSplitterMapERN5Input11SplitterMapE">
 <span id="nupic::Link::buildSplitterMap__Input::SplitterMapR"></span><span class="target" id="classnupic_1_1_link_1a9c0b70790b1358ac9d588cb659f2f3cd"></span>void <code class="descname">buildSplitterMap</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv2N5nupic5InputE" title="nupic::Input">Input</a>::<a class="reference internal" href="#_CPPv2N5nupic5Input11SplitterMapE" title="nupic::Input::SplitterMap">SplitterMap</a> &amp;<em>splitter</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic4Link16buildSplitterMapERN5Input11SplitterMapE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Build a splitter map from the link. </p>
-<p>
-A splitter map is a matrix that maps the full input of a region to the inputs of individual nodes within the region. A splitter map &#8220;sm&#8221; is declared as: <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">vector</span><span class="o">&lt;</span> <span class="n">vector</span><span class="o">&lt;</span><span class="n">size_t</span><span class="o">&gt;</span> <span class="o">&gt;</span> <span class="n">sm</span><span class="p">;</span>
+<p><p>A splitter map is a matrix that maps the full input of a region to the inputs of individual nodes within the region. A splitter map &#8220;sm&#8221; is declared as: </p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">vector</span><span class="o">&lt;</span> <span class="n">vector</span><span class="o">&lt;</span><span class="n">size_t</span><span class="o">&gt;</span> <span class="o">&gt;</span> <span class="n">sm</span><span class="p">;</span>
 
 <span class="n">sm</span><span class="o">.</span><span class="n">length</span><span class="p">()</span> <span class="o">==</span> <span class="n">number</span> <span class="n">of</span> <span class="n">nodes</span>
 </pre></div>
@@ -1719,8 +1719,8 @@ A splitter map is a matrix that maps the full input of a region to the inputs of
 <dt id="_CPPv2N5nupic6Output7addLinkEP4Link">
 <span id="nupic::Output::addLink__LinkP"></span><span class="target" id="classnupic_1_1_output_1a42aaed86afe9ae233169fc0eeba25e4d"></span>void <code class="descname">addLink</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv2N5nupic4LinkE" title="nupic::Link">Link</a> *<em>link</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic6Output7addLinkEP4Link" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Add a <a class="reference internal" href="network-links.html#classnupic_1_1_link"><span class="std std-ref">Link</span></a> to the <a class="reference internal" href="network-io.html#classnupic_1_1_output"><span class="std std-ref">Output</span></a> . </p>
-<p>
-Called by <a class="reference internal" href="network-io.html#classnupic_1_1_input_1a11376068de153b24bb3db6ae7f7bb07e"><span class="std std-ref">Input.addLink()</span></a><dl class="docutils">
+<p><p>Called by </p>
+<a class="reference internal" href="network-io.html#classnupic_1_1_input_1a11376068de153b24bb3db6ae7f7bb07e"><span class="std std-ref">Input.addLink()</span></a><dl class="docutils">
 <dt><strong>Note</strong></dt>
 <dd>The <a class="reference internal" href="network-io.html#classnupic_1_1_output"><span class="std std-ref">Output</span></a> does NOT take ownership of <em>link</em>, it&#8217;s created and owned by an <a class="reference internal" href="network-io.html#classnupic_1_1_input"><span class="std std-ref">Input</span></a> Object.</dd>
 </dl>
