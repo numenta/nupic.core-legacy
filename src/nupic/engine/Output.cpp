@@ -77,6 +77,9 @@ void Output::initialize(size_t count) {
     void *buffer = data_->getBuffer();
     size_t byteCount = dataCount * BasicType::getSize(data_->getType());
     memset(buffer, 0, byteCount);
+    if (isSparse_) {
+      data_->setCount(0);
+    }
   }
 }
 
