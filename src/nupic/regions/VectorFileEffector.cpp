@@ -200,7 +200,7 @@ Spec *VectorFileEffector::createSpec() {
 
   auto ns = new Spec;
   ns->singleNodeOnly = true;
-  
+
   ns->description =
       "VectorFileEffector is a node that simply writes its\n"
       "input vectors to a text file. The target filename is specified\n"
