@@ -285,6 +285,7 @@ set(src_lib_static_nupiccore_solo nupic_core_solo)
 
 set(src_nupiccore_srcs
     nupic/algorithms/Anomaly.cpp
+    nupic/algorithms/BacktrackingTMCpp.cpp
     nupic/algorithms/BitHistory.cpp
     nupic/algorithms/Cell.cpp
     nupic/algorithms/Cells4.cpp
