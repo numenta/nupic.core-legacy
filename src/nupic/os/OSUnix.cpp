@@ -83,7 +83,7 @@ std::string OS::getErrorMessageFromErrorCode(int errorCode) {
   char errorBuffer[1024];
   errorBuffer[0] = '\0';
 
-#if defined(__APPLE__) || (defined(NTA_ARCH_64) && defined(NTA_OS_SPARC))
+#if defined(__APPLE__) || defined(NTA_OS_LINUX)
   int result = ::strerror_r(errorCode, errorBuffer, 1024);
   if (result == 0)
     errorMessage << errorBuffer;
