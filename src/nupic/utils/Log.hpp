@@ -51,7 +51,7 @@
   nupic::LogItem(__FILE__, __LINE__, nupic::LogItem::warn).stream()
 
 // For messages that indicate errors that are not exceptions.
-#define NTA_ERROR                                                               \
+#define NTA_ERROR                                                              \
   nupic::LogItem(__FILE__, __LINE__, nupic::LogItem::error).stream()
 
 // To throw an exception and make sure the exception message is logged
