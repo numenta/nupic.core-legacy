@@ -246,6 +246,13 @@ class TestNupicRandom(unittest.TestCase):
     self.assertRaises(ValueError, r.shuffle, arr)
 
 
+  def testEquals(self):
+    r1 = Random(42)
+    v1 = r1.getReal64()
+    r2 = Random(42)
+    v2 = r2.getReal64()
+    self.assertEquals(v1, v2)
+    self.assertEquals(r1, r2)
 
 if __name__ == "__main__":
   unittest.main()

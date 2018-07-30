@@ -20,7 +20,7 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file 
+/** @file
  * Declarations for convolutions
  */
 
@@ -31,9 +31,7 @@
 /**
  * Computes convolutions in 2D, for separable kernels.
  */
-template <typename T>
-struct SeparableConvolution2D
-{
+template <typename T> struct SeparableConvolution2D {
   typedef size_t size_type;
   typedef T value_type;
 
@@ -46,20 +44,19 @@ struct SeparableConvolution2D
   size_type f1_middle_;
   size_type f2_middle_;
 
-  T* f1_;
-  T* f2_;
+  T *f1_;
+  T *f2_;
   T *f1_end_;
   T *f2_end_;
 
-  T* buffer_;
+  T *buffer_;
 
   /**
    * nrows is the number of rows in the original image, and ncols
    * is the number of columns.
    */
-  inline void init(size_type nrows, size_type ncols,
-		   size_type f1_size, size_type f2_size,
-		   T* f1, T* f2)
+  inline void init(size_type nrows, size_type ncols, size_type f1_size,
+                   size_type f2_size, T *f1, T *f2)
   /*
     : nrows_(nrows), ncols_(ncols),
       f1_size_(f1_size), f2_size_(f2_size),
@@ -81,16 +78,13 @@ struct SeparableConvolution2D
     f2_ = f2;
     f1_end_ = f1 + f1_size;
     f2_end_ = f2 + f2_size;
-    buffer_ = new T[nrows*ncols];
+    buffer_ = new T[nrows * ncols];
   }
 
-  inline SeparableConvolution2D() : buffer_(NULL)
-  {
-  }
+  inline SeparableConvolution2D() : buffer_(NULL) {}
 
-  inline ~SeparableConvolution2D()
-  {
-    delete [] buffer_;
+  inline ~SeparableConvolution2D() {
+    delete[] buffer_;
     buffer_ = NULL;
   }
 
@@ -100,32 +94,31 @@ struct SeparableConvolution2D
    *
    * Down-sampling?
    */
-  inline void compute(T* data, T* convolved, bool rotated45 =false)
-  {
+  inline void compute(T *data, T *convolved, bool rotated45 = false) {
     for (size_type i = 0; i != nrows_; ++i) {
-      T* b = buffer_ + i*ncols_ + f1_middle_, *d_row = data + i*ncols_;
+      T *b = buffer_ + i * ncols_ + f1_middle_, *d_row = data + i * ncols_;
       for (size_type j = 0; j != f1_end_j_; ++j) {
-	register T dot = 0, *f = f1_, *d = d_row + j;
-	while (f != f1_end_) 
-	  dot += *f++ * *d++;
-	*b++ = dot;
+        register T dot = 0, *f = f1_, *d = d_row + j;
+        while (f != f1_end_)
+          dot += *f++ * *d++;
+        *b++ = dot;
       }
     }
 
     for (size_type i = 0; i != f2_end_i_; ++i) {
-      T* c = convolved + (i + f2_middle_)*ncols_, *b_row = buffer_ + i*ncols_;
+      T *c = convolved + (i + f2_middle_) * ncols_,
+        *b_row = buffer_ + i * ncols_;
       for (size_type j = 0; j != ncols_; ++j) {
-	register T dot = 0, *f = f2_, *b = b_row + j;
-	while (f != f2_end_) {
-	  dot += *f++ * *b;
-	  b += ncols_;
-	}
-	*c++ = dot;
+        register T dot = 0, *f = f2_, *b = b_row + j;
+        while (f != f2_end_) {
+          dot += *f++ * *b;
+          b += ncols_;
+        }
+        *c++ = dot;
       }
     }
   }
 };
 
 //--------------------------------------------------------------------------------
-#endif //NTA_CONVOLUTION_HPP
-
+#endif // NTA_CONVOLUTION_HPP

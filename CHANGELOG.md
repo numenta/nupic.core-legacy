@@ -7,6 +7,48 @@
 * added CI for Win, OSX, Linux
 * testing binary releases
 
+## 1.0.6
+
+* This release was because of a deployment problem with 1.0.5 and issues with pypi.
+
+## 1.0.5
+
+* 58754cf7 NUP-2519: Upgrade pycapnp to 0.6.3
+* 64fb803e DEVOPS-383: Move deploy to S3 job to circleci workflow
+* 16dbf534 DEVOPS-383: Migrate CircleCI builds from 1.0 to 2.0
+* ec14f2f5 pip install --use-wheel" was deprecated. See https://pip.pypa.io/en/stable/news/#deprecations-and-removals
+* c2d31a95 ignore YCM configuration
+* f7b86e0f "pip install --use-wheel" was deprecated. See https://pip.pypa.io/en/stable/news/#deprecations-and-removals
+* 42df6caa NUP-2504: fix clang link optimization issue on private template function
+* f5bc76b6 NUP-2504: Add unit test to softmax overflow
+* 203493ed NUP-2506: Add missing state fields to serialization
+* 5f1ddcbb NUP-2514: fix traversal limit
+* 7e33ca44 NUP-2506: Add missing operator '==' to classes used in tests
+* e5e48c8e fix accumulate
+* b3513853 add softmax function
+* 0032fbf5 Fix softmax overflow
+
+
+## 1.0.4
+
+* 860459cf NUP-2506: Add operator '==' to classes used in tests
+* ac43320f NUP-2505: Remove win32 build from CI
+* 6a580c06 Fix not include ClassifierResult.hpp error
+* de567a4e NUP-2495: Update clang-format instructions
+* 2f027a7b NUP-2475: Add sparse link validation
+* 3071b8a5 DEVOPS-353: Update "setSparseOutput" documentation
+* 7ae0d64f NUP-2495: Check style using clang-format
+* 8a1d5eeb NUP-2475: Make sure Network API links use the same dtype at both ends
+* 4e800a64 DEVOPS-353: Fix tests to run with nupic.core directly instead of nupic
+* 9ae6155d DEVOPS-353: Implement sparse links
+* de88baaa DEVOPS-353: Add 'isSparse' attribute to input/output
+* 1e486fde DEVOPS-353: Allow element count to be smaller than buffer size
+* c9377d52 Fix cmake version and project name
+* f069c310 Add missing include required for NTA_ASSERT
+* a6c186ae reformat code using clang-format
+* 70d43da1 NUP-2492: Add constructor vs initialize test regarding Issue #1386
+* dabd7f87 NUP-2491: Validate global inhibition parameters
+
 ## 1.0.3
 
 * https://github.com/numenta/nupic.core/issues/1380 Added stronger type checking for SP compute input.

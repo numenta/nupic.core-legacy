@@ -19,11 +19,11 @@
  * http://numenta.org/licenses/
  * ---------------------------------------------------------------------
  */
-   
-/** @file   
+
+/** @file
  * Implementation of unit testing for class Domain
- */  
-              
+ */
+
 //#include <nupic/common/version.hpp>
 // #include "DomainUnitTest.hpp"
 //
@@ -56,7 +56,7 @@
 //      Test("DimRange includes 2", dr.includes(1), true);
 //      Test("DimRange includes 3", dr.includes(2), true);
 //      Test("DimRange includes 4", dr.includes(3), false);
-//  
+//
 //      DimRange<UInt> dr2(0, 1, 1);
 //      Test("DimRange includes 4", dr2.includes(0), false);
 //      Test("DimRange includes 5", dr2.includes(1), true);
@@ -150,7 +150,8 @@
 //    }
 //
 //    {
-//      Domain<UInt> d(Index<UInt, 5>(1, 2, 4, 5, 6), Index<UInt, 5>(1, 5, 7, 5, 9));
+//      Domain<UInt> d(Index<UInt, 5>(1, 2, 4, 5, 6), Index<UInt, 5>(1, 5, 7, 5,
+//      9));
 //
 //      Index<UInt, 3> openDims;
 //      Test("Domain getOpenDims 1", d.getNOpenDims(), (UInt)3);
@@ -164,19 +165,20 @@
 //      d.getClosedDims(closedDims);
 //      Test("Domain getClosedDims 2", closedDims[0], (UInt) 0);
 //      Test("Domain getClosedDims 3", closedDims[1], (UInt) 3);
-//    }  
+//    }
 //
 //    {
-//      Domain<UInt> d(Index<UInt, 5>(1, 2, 4, 5, 6), Index<UInt, 5>(1, 5, 7, 5, 9));
+//      Domain<UInt> d(Index<UInt, 5>(1, 2, 4, 5, 6), Index<UInt, 5>(1, 5, 7, 5,
+//      9));
 //
 //      Index<UInt, 5> idx, lb(1, 2, 4, 5, 6), ub(1, 5, 7, 5, 9);
-// 
+//
 //      do {
 //        if (lb <= idx && idx < ub)
 //          Test("Domain includes 1", d.includes(idx), true);
 //        else
 //          Test("Domain includes 2", d.includes(idx), false);
-//          
+//
 //      } while (idx.increment(ub));
 //
 //      Domain<UInt> d1(Index<UInt,4>(0,0,0,0), Index<UInt,4>(1,0,1,0));
@@ -211,7 +213,7 @@
 //    }
 //
 //    {
-//      DimRange<UInt> r;   
+//      DimRange<UInt> r;
 //      r.set(1, 4, 7);
 //      Test("DimRange set 1", r.getDim(), (UInt)1);
 //      Test("DimRange set 2", r.getLB(), (UInt)4);
@@ -251,14 +253,12 @@
 //      Domain<UInt> d24(I2(1, 4), I2(9, 4));
 //      Test("Domain size_elts 4", d24.size_elts(), (UInt)0);
 //      Test("Domain empty 2", d24.empty(), true);
-//      
+//
 //      Domain<UInt> d31(I3(0, 1, 2), I3(10, 9, 8));
 //      Test("Domain size_elts 5", d31.size_elts(), (UInt)480);
 //    }
-  // } 
+// }
 
-  //--------------------------------------------------------------------------------
-  
+//--------------------------------------------------------------------------------
+
 // } // namespace nupic
-
-

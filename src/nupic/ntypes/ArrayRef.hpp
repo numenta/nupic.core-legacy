@@ -23,7 +23,7 @@
 // ---
 //
 // Definitions for the ArrayRef class
-//  
+//
 // It is a sub-class of ArrayBase that doesn't own its buffer
 //
 // ---
@@ -34,34 +34,26 @@
 #include <nupic/ntypes/ArrayBase.hpp>
 #include <nupic/utils/Log.hpp>
 
-namespace nupic
-{
-  class ArrayRef : public ArrayBase
-  {
-  public:
-    ArrayRef(NTA_BasicType type, void * buffer, size_t count) : ArrayBase(type)
-    {
-      setBuffer(buffer, count);
-    }
-    
-    explicit ArrayRef(NTA_BasicType type) : ArrayBase(type)
-    {
-    }
+namespace nupic {
+class ArrayRef : public ArrayBase {
+public:
+  ArrayRef(NTA_BasicType type, void *buffer, size_t count) : ArrayBase(type) {
+    setBuffer(buffer, count);
+  }
 
-    ArrayRef(const ArrayRef & other) : ArrayBase(other)
-    {
-    }
-  
-    void invariant()
-    {
-      if (own_)
-        NTA_THROW << "ArrayRef mmust not own its buffer";
-    }
-  private:
-    // Hide base class method (invalid for ArrayRef)
-    void allocateBuffer(void * buffer, size_t count);
-  };
-}
+  explicit ArrayRef(NTA_BasicType type) : ArrayBase(type) {}
+
+  ArrayRef(const ArrayRef &other) : ArrayBase(other) {}
+
+  void invariant() {
+    if (own_)
+      NTA_THROW << "ArrayRef mmust not own its buffer";
+  }
+
+private:
+  // Hide base class method (invalid for ArrayRef)
+  void allocateBuffer(void *buffer, size_t count);
+};
+} // namespace nupic
 
 #endif
-

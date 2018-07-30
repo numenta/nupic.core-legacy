@@ -20,29 +20,25 @@
  * ---------------------------------------------------------------------
  */
 
-
-/** @file 
+/** @file
  * Win32 Implementations for the OS class
  */
 
 #if defined(NTA_OS_WINDOWS)
-#include <windows.h>
 #include <shlobj.h>
+#include <windows.h>
 
-#include <nupic/os/OS.hpp>
-#include <nupic/os/Directory.hpp>
-#include <nupic/os/Path.hpp>
-#include <nupic/os/Directory.hpp>
-#include <nupic/os/Env.hpp>
-#include <nupic/utils/Log.hpp>
-#include <nupic/os/DynamicLibrary.hpp>
 #include <boost/shared_ptr.hpp>
-
+#include <nupic/os/Directory.hpp>
+#include <nupic/os/DynamicLibrary.hpp>
+#include <nupic/os/Env.hpp>
+#include <nupic/os/OS.hpp>
+#include <nupic/os/Path.hpp>
+#include <nupic/utils/Log.hpp>
 
 using namespace nupic;
 
-std::string OS::getHomeDir()
-{
+std::string OS::getHomeDir() {
   std::string homeDrive;
   std::string homePath;
   bool found = Env::get("HOMEDRIVE", homeDrive);
@@ -52,8 +48,7 @@ std::string OS::getHomeDir()
   return homeDrive + homePath;
 }
 
-std::string OS::getUserName()
-{
+std::string OS::getUserName() {
   std::string username;
   bool found = Env::get("USERNAME", username);
   NTA_CHECK(found) << "Environment variable USERNAME is not defined";
@@ -61,32 +56,22 @@ std::string OS::getUserName()
   return username;
 }
 
-int OS::getLastErrorCode()
-{
-  return ::GetLastError();
-}
+int OS::getLastErrorCode() { return ::GetLastError(); }
 
-std::string OS::getErrorMessageFromErrorCode(int errorCode)
-{ 
+std::string OS::getErrorMessageFromErrorCode(int errorCode) {
   // Retrieve the system error message for the last-error code
   LPVOID lpMsgBuf;
 
   DWORD msgLen = ::FormatMessageA(
-      FORMAT_MESSAGE_ALLOCATE_BUFFER | 
-      FORMAT_MESSAGE_FROM_SYSTEM |
-      FORMAT_MESSAGE_IGNORE_INSERTS,
-      NULL,
-      errorCode,
-      MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-      (LPSTR) &lpMsgBuf,
-      0, NULL
-    );
+      FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
+          FORMAT_MESSAGE_IGNORE_INSERTS,
+      NULL, errorCode, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+      (LPSTR)&lpMsgBuf, 0, NULL);
 
   std::ostringstream errMessage;
-  if(msgLen > 0) {
-    errMessage.write((LPSTR) lpMsgBuf, msgLen);
-  }
-  else {
+  if (msgLen > 0) {
+    errMessage.write((LPSTR)lpMsgBuf, msgLen);
+  } else {
     errMessage << "code: " << errorCode;
   }
 
@@ -95,11 +80,8 @@ std::string OS::getErrorMessageFromErrorCode(int errorCode)
   return errMessage.str();
 }
 
-std::string OS::getErrorMessage()
-{
-  return getErrorMessageFromErrorCode (getLastErrorCode());
+std::string OS::getErrorMessage() {
+  return getErrorMessageFromErrorCode(getLastErrorCode());
 }
 
-
 #endif //#if defined(NTA_OS_WINDOWS)
-
