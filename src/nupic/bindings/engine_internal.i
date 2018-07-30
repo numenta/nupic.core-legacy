@@ -35,6 +35,9 @@ except ImportError:
 else:
   from nupic.proto.NetworkProto_capnp import NetworkProto
   from nupic.proto.PyRegionProto_capnp import PyRegionProto
+
+# Capnp reader traveral limit (see capnp::ReaderOptions)
+_TRAVERSAL_LIMIT_IN_WORDS = 1 << 63
 %}
 
 %{
@@ -287,7 +290,8 @@ class IterablePair(object):
 
       :param: Destination NetworkProto message builder
       """
-      reader = NetworkProto.from_bytes(self._writeAsCapnpPyBytes()) # copy
+      reader = NetworkProto.from_bytes(self._writeAsCapnpPyBytes(), 
+                            traversal_limit_in_words=_TRAVERSAL_LIMIT_IN_WORDS)
       pyBuilder.from_dict(reader.to_dict())  # copy
 
 
@@ -364,7 +368,8 @@ class _PyCapnpHelper(object):
 
     :returns: The deserialized python region instance.
     """
-    pyRegionProto = PyRegionProto.from_bytes(pyRegionProtoBytes)
+    pyRegionProto = PyRegionProto.from_bytes(pyRegionProtoBytes,
+                            traversal_limit_in_words=_TRAVERSAL_LIMIT_IN_WORDS)
 
     return getattr(regionCls, methodName)(pyRegionProto)
 

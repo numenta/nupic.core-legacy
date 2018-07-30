@@ -24,42 +24,38 @@
  * Implementation of Collection test
  */
 
-#include <nupic/ntypes/Collection.hpp>
-#include <sstream>
 #include <algorithm>
 #include <gtest/gtest.h>
+#include <nupic/ntypes/Collection.hpp>
+#include <sstream>
 
 // Collection implementation needed for explicit instantiation
 #include <nupic/ntypes/Collection.cpp>
 
 using namespace nupic;
 
-struct CollectionTest : public ::testing::Test
-{
-  struct Item
-  {
+struct CollectionTest : public ::testing::Test {
+  struct Item {
     int x;
 
-    Item() : x(-1)
-    {
-    }
+    Item() : x(-1) {}
 
-    Item(int x) : x(x)
-    {
+    Item(int x) : x(x) {}
+    inline bool operator==(const Item &other) const { return x == other.x; };
+    inline bool operator!=(const Item &other) const {
+      return !operator==(other);
     }
   };
 };
 
 namespace nupic {
-  // The Collection class must be explicitly instantiated. 
-  template class Collection<int>;
-  template class Collection<CollectionTest::Item>;
-  template class Collection<CollectionTest::Item*>;
-}
+// The Collection class must be explicitly instantiated.
+template class Collection<int>;
+template class Collection<CollectionTest::Item>;
+template class Collection<CollectionTest::Item *>;
+} // namespace nupic
 
-
-TEST_F(CollectionTest, testEmptyCollection)
-{
+TEST_F(CollectionTest, testEmptyCollection) {
   Collection<int> c;
   ASSERT_TRUE(c.getCount() == 0);
   ASSERT_TRUE(c.contains("blah") == false);
@@ -67,8 +63,7 @@ TEST_F(CollectionTest, testEmptyCollection)
   ASSERT_ANY_THROW(c.getByName("blah"));
 }
 
-TEST_F(CollectionTest, testCollectionWith_1_Item)
-{
+TEST_F(CollectionTest, testCollectionWith_1_Item) {
   auto p = new Item(5);
   Collection<Item *> c;
   ASSERT_TRUE(c.contains("x") == false);
@@ -77,15 +72,14 @@ TEST_F(CollectionTest, testCollectionWith_1_Item)
   ASSERT_TRUE(c.getCount() == 1);
   ASSERT_TRUE(c.getByIndex(0).second->x == 5);
   ASSERT_TRUE(c.getByName("x")->x == 5);
-  
+
   ASSERT_ANY_THROW(c.getByIndex(1));
   ASSERT_ANY_THROW(c.getByName("blah"));
 
   delete p;
 }
 
-TEST_F(CollectionTest, testCollectionWith_2_Items)
-{
+TEST_F(CollectionTest, testCollectionWith_2_Items) {
   Collection<Item> c;
   c.add("x1", Item(1));
   c.add("x2", Item(2));
@@ -98,20 +92,17 @@ TEST_F(CollectionTest, testCollectionWith_2_Items)
 
   ASSERT_TRUE(c.contains("no such item") == false);
   ASSERT_TRUE(c.contains("x1") == true);
-    ASSERT_TRUE(c.contains("x2") == true);
+  ASSERT_TRUE(c.contains("x2") == true);
   ASSERT_TRUE(c.getByName("x1").x == 1);
   ASSERT_TRUE(c.getByName("x2").x == 2);
-  
+
   ASSERT_ANY_THROW(c.getByIndex(2));
-  ASSERT_ANY_THROW(c.getByName("blah"));    
+  ASSERT_ANY_THROW(c.getByName("blah"));
 }
 
-
-TEST_F(CollectionTest, testCollectionWith_137_Items)
-{
+TEST_F(CollectionTest, testCollectionWith_137_Items) {
   Collection<int> c;
-  for (int i = 0; i < 137; ++i)
-  {
+  for (int i = 0; i < 137; ++i) {
     std::stringstream ss;
     ss << i;
     c.add(ss.str(), i);
@@ -119,17 +110,15 @@ TEST_F(CollectionTest, testCollectionWith_137_Items)
 
   ASSERT_TRUE(c.getCount() == 137);
 
-  for (int i = 0; i < 137; ++i)
-  {
+  for (int i = 0; i < 137; ++i) {
     ASSERT_TRUE(c.getByIndex(i).second == i);
   }
 
   ASSERT_ANY_THROW(c.getByIndex(137));
-  ASSERT_ANY_THROW(c.getByName("blah"));    
+  ASSERT_ANY_THROW(c.getByName("blah"));
 }
 
-TEST_F(CollectionTest, testCollectionAddRemove)
-{
+TEST_F(CollectionTest, testCollectionAddRemove) {
   Collection<int> c;
   c.add("0", 0);
   c.add("1", 1);
@@ -139,7 +128,7 @@ TEST_F(CollectionTest, testCollectionAddRemove)
   ASSERT_TRUE(c.contains("1"));
   ASSERT_TRUE(c.contains("2"));
   ASSERT_TRUE(!c.contains("3"));
-    
+
   ASSERT_ANY_THROW(c.add("0", 0));
   ASSERT_ANY_THROW(c.add("1", 1));
   ASSERT_ANY_THROW(c.add("2", 2));
@@ -160,7 +149,7 @@ TEST_F(CollectionTest, testCollectionAddRemove)
   c.remove("1");
   // c is now 0, 2
   ASSERT_ANY_THROW(c.remove("1"));
-  
+
   ASSERT_TRUE(c.getCount() == 2);
   ASSERT_TRUE(c.contains("0"));
   ASSERT_TRUE(!c.contains("1"));
@@ -169,7 +158,7 @@ TEST_F(CollectionTest, testCollectionAddRemove)
   ASSERT_EQ(0, c.getByIndex(0).second);
   // item "2" has shifted into position 1
   ASSERT_EQ(2, c.getByIndex(1).second);
-  
+
   // should append to end of collection
   c.add("1", 1);
   // c is now 0, 2, 1
@@ -203,5 +192,4 @@ TEST_F(CollectionTest, testCollectionAddRemove)
   // c is now empty
   ASSERT_TRUE(c.getCount() == 0);
   ASSERT_TRUE(!c.contains("2"));
-
 }

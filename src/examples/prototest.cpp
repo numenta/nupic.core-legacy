@@ -20,8 +20,8 @@
  * ---------------------------------------------------------------------
  */
 
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include <stdio.h>
 #include <time.h>
 #include <vector>
@@ -38,8 +38,7 @@ using namespace std;
 using namespace nupic;
 using namespace nupic::algorithms::spatial_pooler;
 
-void testSP()
-{
+void testSP() {
   Random random(10);
 
   const UInt inputSize = 500;
@@ -53,10 +52,8 @@ void testSP()
   sp1.initialize(inputDims, colDims);
 
   UInt input[inputSize];
-  for (UInt i = 0; i < inputSize; ++i)
-  {
-    if (i < w)
-    {
+  for (UInt i = 0; i < inputSize; ++i) {
+    if (i < w) {
       input[i] = 1;
     } else {
       input[i] = 0;
@@ -64,8 +61,7 @@ void testSP()
   }
   UInt output[numColumns];
 
-  for (UInt i = 0; i < 10000; ++i)
-  {
+  for (UInt i = 0; i < 10000; ++i) {
     random.shuffle(input, input + inputSize);
     sp1.compute(input, true, output);
   }
@@ -73,10 +69,8 @@ void testSP()
   // Now we reuse the last input to test after serialization
 
   vector<UInt> activeColumnsBefore;
-  for (UInt i = 0; i < numColumns; ++i)
-  {
-    if (output[i] == 1)
-    {
+  for (UInt i = 0; i < numColumns; ++i) {
+    if (output[i] == 1) {
       activeColumnsBefore.push_back(i);
     }
   }
@@ -94,8 +88,7 @@ void testSP()
 
   Real64 timeA = 0.0, timeC = 0.0;
 
-  for (UInt i = 0; i < 100; ++i)
-  {
+  for (UInt i = 0; i < 100; ++i) {
     // Create new input
     random.shuffle(input, input + inputSize);
 
@@ -128,8 +121,7 @@ void testSP()
       timeA = timeA + testTimer.getElapsed();
     }
 
-    for (UInt i = 0; i < numColumns; ++i)
-    {
+    for (UInt i = 0; i < numColumns; ++i) {
       NTA_CHECK(outputBaseline[i] == outputA[i]);
     }
 
@@ -158,11 +150,9 @@ void testSP()
       timeC = timeC + testTimer.getElapsed();
     }
 
-    for (UInt i = 0; i < numColumns; ++i)
-    {
+    for (UInt i = 0; i < numColumns; ++i) {
       NTA_CHECK(outputBaseline[i] == outputC[i]);
     }
-
   }
 
   remove("outA.proto");
@@ -173,15 +163,13 @@ void testSP()
   cout << "Manual: " << timeC << endl;
 }
 
-void testRandomIOStream(UInt n)
-{
+void testRandomIOStream(UInt n) {
   Random r1(7);
   Random r2;
 
   nupic::Timer testTimer;
   testTimer.start();
-  for (UInt i = 0; i < n; ++i)
-  {
+  for (UInt i = 0; i < n; ++i) {
     r1.getUInt32();
 
     // Serialize
@@ -209,15 +197,13 @@ void testRandomIOStream(UInt n)
   cout << "Cap'n Proto: " << testTimer.getElapsed() << endl;
 }
 
-void testRandomManual(UInt n)
-{
+void testRandomManual(UInt n) {
   Random r1(7);
   Random r2;
 
   nupic::Timer testTimer;
   testTimer.start();
-  for (UInt i = 0; i < n; ++i)
-  {
+  for (UInt i = 0; i < n; ++i) {
     r1.getUInt32();
 
     // Serialize
@@ -245,8 +231,7 @@ void testRandomManual(UInt n)
   cout << "Manual: " << testTimer.getElapsed() << endl;
 }
 
-int main(int argc, const char * argv[])
-{
+int main(int argc, const char *argv[]) {
   UInt n = 1000;
   cout << "Timing for Random serialization (smaller is better):" << endl;
   testRandomIOStream(n);
