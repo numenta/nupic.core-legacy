@@ -114,6 +114,10 @@ install:
   - ps:  $python_path = $env:PYTHONHOME + "/python.exe"
   - ps:   $pip_path = $env:PYTHONHOME + "/Scripts/pip.exe"
 
+  # pip needs to be updated or Appveyor fails
+  - ps: Write-Host "pip install --upgrade pip"
+  - ps: "& $pip_path install --upgrade pip"
+
   - ps:  Write-Host "pip install " wheel==0.25.0
   - ps:  "& $pip_path install wheel==0.25.0"
 
