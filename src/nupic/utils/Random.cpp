@@ -184,7 +184,7 @@ void Random::shutdown() {
 }
 
 UInt32 Random::getUInt32(const UInt32 max) {
-  NTA_ASSERT(max > 0);
+  NTA_CHECK(max > 0);
   UInt32 smax = Random::MAX32 - (Random::MAX32 % max);
   UInt32 sample;
   do {
@@ -197,7 +197,7 @@ UInt32 Random::getUInt32(const UInt32 max) {
 }
 
 UInt64 Random::getUInt64(const UInt64 max) {
-  NTA_ASSERT(max > 0);
+  NTA_CHECK(max > 0);
   UInt64 smax = Random::MAX64 - (Random::MAX64 % max);
   UInt64 sample, lo, hi;
   do {
