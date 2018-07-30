@@ -41,7 +41,7 @@ Output::Output(Region &region, NTA_BasicType type, bool isRegionLevel,
   data_ = new Array(type);
 }
 
-Output::~Output() {
+Output::~Output() noexcept(false) {
   // If we have any outgoing links, then there has been an
   // error in the shutdown process. Not good to thow an exception
   // from a destructor, but we need to catch this error, and it
