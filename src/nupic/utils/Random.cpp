@@ -24,9 +24,9 @@
     Random Number Generator implementation
 */
 
+#include <cmath> // For ldexp.
 #include <cstdlib>
 #include <ctime>
-#include <cmath> // For ldexp.
 #include <iostream> // for istream, ostream
 
 #include <capnp/message.h>
@@ -39,15 +39,13 @@
 #include <nupic/utils/StringUtils.hpp>
 
 using namespace nupic;
-Random* Random::theInstanceP_ = nullptr;
+Random *Random::theInstanceP_ = nullptr;
 RandomSeedFuncPtr Random::seeder_ = nullptr;
 
 const UInt32 Random::MAX32 = (UInt32)((Int32)(-1));
 const UInt64 Random::MAX64 = (UInt64)((Int64)(-1));
 
-
-static NTA_UInt64 badSeeder()
-{
+static NTA_UInt64 badSeeder() {
   NTA_THROW << "Logic error in initialization of Random subsystem.";
   return 0;
 }
@@ -62,41 +60,40 @@ static NTA_UInt64 badSeeder()
 // When we have different algorithms RandomImpl will become an interface
 // class and subclasses will implement specific algorithms
 
-namespace nupic
-{
-  class RandomImpl
-  {
-  public:
-    RandomImpl(UInt64 seed);
-    ~RandomImpl() {};
-    void write(RandomImplProto::Builder& proto) const;
-    void read(RandomImplProto::Reader& proto);
-    UInt32 getUInt32();
-    // Note: copy constructor and operator= are needed
-    // The default is ok.
-  private:
-    friend std::ostream& operator<<(std::ostream& outStream, const RandomImpl& r);
-    friend std::istream& operator>>(std::istream& inStream, RandomImpl& r);
-    const static UInt32 VERSION = 2;
-    // internal state
-    static const int stateSize_ = 31;
-    static const int sep_ = 3;
-    UInt32 state_[stateSize_];
-    int rptr_;
-    int fptr_;
-
-  };
+namespace nupic {
+class RandomImpl {
+public:
+  RandomImpl(UInt64 seed);
+  ~RandomImpl(){};
+  void write(RandomImplProto::Builder &proto) const;
+  void read(RandomImplProto::Reader &proto);
+  UInt32 getUInt32();
+  bool operator==(const RandomImpl &o) const;
+  inline bool operator!=(const RandomImpl &other) const {
+    return !operator==(other);
+  }
+  // Note: copy constructor and operator= are needed
+  // The default is ok.
+private:
+  friend std::ostream &operator<<(std::ostream &outStream, const RandomImpl &r);
+  friend std::istream &operator>>(std::istream &inStream, RandomImpl &r);
+  const static UInt32 VERSION = 2;
+  // internal state
+  static const int stateSize_ = 31;
+  static const int sep_ = 3;
+  UInt32 state_[stateSize_];
+  int rptr_;
+  int fptr_;
 };
+}; // namespace nupic
 
-Random::Random(const Random& r)
-{
+Random::Random(const Random &r) {
   NTA_CHECK(r.impl_ != nullptr);
   seed_ = r.seed_;
   impl_ = new RandomImpl(*r.impl_);
 }
 
-void Random::write(RandomProto::Builder& proto) const
-{
+void Random::write(RandomProto::Builder &proto) const {
   // save Random state
   proto.setSeed(seed_);
 
@@ -105,8 +102,7 @@ void Random::write(RandomProto::Builder& proto) const
   impl_->write(implProto);
 }
 
-void Random::read(RandomProto::Reader& proto)
-{
+void Random::read(RandomProto::Reader &proto) {
   // load Random state
   seed_ = proto.getSeed();
 
@@ -115,19 +111,15 @@ void Random::read(RandomProto::Reader& proto)
   impl_->read(implProto);
 }
 
-void Random::reseed(UInt64 seed)
-{
+void Random::reseed(UInt64 seed) {
   seed_ = seed;
   if (impl_)
     delete impl_;
   impl_ = new RandomImpl(seed);
 }
 
-
-Random& Random::operator=(const Random& other)
-{
-  if (this != &other)
-  {
+Random &Random::operator=(const Random &other) {
+  if (this != &other) {
     seed_ = other.seed_;
     if (impl_)
       delete impl_;
@@ -137,14 +129,13 @@ Random& Random::operator=(const Random& other)
   return *this;
 }
 
-Random::~Random()
-{
-  delete impl_;
+bool Random::operator==(const Random &o) const {
+  return seed_ == o.seed_ && (*impl_) == (*o.impl_);
 }
 
+Random::~Random() { delete impl_; }
 
-Random::Random(UInt64 seed)
-{
+Random::Random(UInt64 seed) {
   // Get the seeder even if we don't need it, because
   // this will have the side effect of allocating the
   // singleton if necessary. The singleton will actuallly
@@ -167,11 +158,8 @@ Random::Random(UInt64 seed)
   impl_ = new RandomImpl(seed_);
 }
 
-
-RandomSeedFuncPtr Random::getSeeder()
-{
-  if (seeder_ == nullptr)
-  {
+RandomSeedFuncPtr Random::getSeeder() {
+  if (seeder_ == nullptr) {
     NTA_CHECK(theInstanceP_ == nullptr);
     // set the seeder to something not NULL
     // so the constructor below will not
@@ -183,24 +171,19 @@ RandomSeedFuncPtr Random::getSeeder()
   return seeder_;
 }
 
-void Random::initSeeder(const RandomSeedFuncPtr r)
-{
+void Random::initSeeder(const RandomSeedFuncPtr r) {
   NTA_CHECK(r != nullptr);
   seeder_ = r;
 }
 
-
-void Random::shutdown()
-{
-  if (theInstanceP_ != nullptr)
-  {
+void Random::shutdown() {
+  if (theInstanceP_ != nullptr) {
     delete theInstanceP_;
     theInstanceP_ = nullptr;
   }
 }
 
-UInt32 Random::getUInt32(const UInt32 max)
-{
+UInt32 Random::getUInt32(const UInt32 max) {
   NTA_ASSERT(max > 0);
   UInt32 smax = Random::MAX32 - (Random::MAX32 % max);
   UInt32 sample;
@@ -208,12 +191,12 @@ UInt32 Random::getUInt32(const UInt32 max)
     sample = impl_->getUInt32();
   } while (sample > smax);
 
-  // NTA_WARN << "Random32(" << max << ") -> " << sample % max << " smax = " << smax;
+  // NTA_WARN << "Random32(" << max << ") -> " << sample % max << " smax = " <<
+  // smax;
   return sample % max;
 }
 
-UInt64 Random::getUInt64(const UInt64 max)
-{
+UInt64 Random::getUInt64(const UInt64 max) {
   NTA_ASSERT(max > 0);
   UInt64 smax = Random::MAX64 - (Random::MAX64 % max);
   UInt64 sample, lo, hi;
@@ -221,39 +204,36 @@ UInt64 Random::getUInt64(const UInt64 max)
     lo = impl_->getUInt32();
     hi = impl_->getUInt32();
     sample = lo | (hi << 32);
-  } while(sample > smax);
-  // NTA_WARN << "Random64(" << max << ") -> " << sample % max << " smax = " << smax;
+  } while (sample > smax);
+  // NTA_WARN << "Random64(" << max << ") -> " << sample % max << " smax = " <<
+  // smax;
 
   return sample % max;
 }
 
-double Random::getReal64()
-{
+double Random::getReal64() {
   const int mantissaBits = 48;
   const UInt64 max = (UInt64)0x1U << mantissaBits;
   UInt64 value = getUInt64(max);
-  Real64 dvalue = (Real64) value; // No loss because we only need the 48 mantissa bits.
+  Real64 dvalue =
+      (Real64)value; // No loss because we only need the 48 mantissa bits.
   Real64 returnval = ::ldexp(dvalue, -mantissaBits);
   // NTA_WARN << "RandomReal -> " << returnval;
   return returnval;
 }
 
-
 // ---- RandomImpl follows ----
 
-
-
-
-UInt32 RandomImpl::getUInt32(void)
-{
+UInt32 RandomImpl::getUInt32(void) {
   UInt32 i;
 #ifdef RANDOM_SUPERDEBUG
-  printf("Random::get *fptr = %ld; *rptr = %ld fptr = %ld rptr = %ld\n", state_[fptr_], state_[rptr_], fptr_, rptr_);
+  printf("Random::get *fptr = %ld; *rptr = %ld fptr = %ld rptr = %ld\n",
+         state_[fptr_], state_[rptr_], fptr_, rptr_);
 #endif
-  state_[fptr_] = (UInt32)(
-    ((UInt64)state_[fptr_] + (UInt64)state_[rptr_]) % Random::MAX32);
+  state_[fptr_] =
+      (UInt32)(((UInt64)state_[fptr_] + (UInt64)state_[rptr_]) % Random::MAX32);
   i = state_[fptr_];
-  i = (i >> 1) & 0x7fffffff;	/* chucking least random bit */
+  i = (i >> 1) & 0x7fffffff; /* chucking least random bit */
   if (++fptr_ >= stateSize_) {
     fptr_ = 0;
     ++rptr_;
@@ -269,10 +249,7 @@ UInt32 RandomImpl::getUInt32(void)
   return i;
 }
 
-
-
-RandomImpl::RandomImpl(UInt64 seed)
-{
+RandomImpl::RandomImpl(UInt64 seed) {
 
   /**
    * Initialize our state. Taken from BSD source for random()
@@ -286,8 +263,8 @@ RandomImpl::RandomImpl(UInt64 seed)
      *
      *	2^31-1 (prime) = 2147483647 = 127773*16807+2836
      */
-    Int32 quot = state_[i-1] / 127773;
-    Int32 rem = state_[i-1] % 127773;
+    Int32 quot = state_[i - 1] / 127773;
+    Int32 rem = state_[i - 1] % 127773;
     Int32 test = 16807 * rem - 2836 * quot;
     state_[i] = (UInt32)((test + (test < 0 ? 2147483647 : 0)) % Random::MAX32);
   }
@@ -304,152 +281,126 @@ RandomImpl::RandomImpl(UInt64 seed)
     (void)getUInt32();
 #ifdef RANDOM_SUPERDEBUG
   printf("Random: after init for seed = %lu\n", seed);
-  printf("Random: *fptr = %ld; *rptr = %ld fptr = %ld rptr = %ld\n", state_[fptr_], state_[rptr_], fptr_, rptr_);
+  printf("Random: *fptr = %ld; *rptr = %ld fptr = %ld rptr = %ld\n",
+         state_[fptr_], state_[rptr_], fptr_, rptr_);
   for (long i = 0; i < stateSize_; i++) {
     printf("Random: %d  %ld\n", i, state_[i]);
   }
 #endif
 }
 
-
-void RandomImpl::write(RandomImplProto::Builder& proto) const
-{
+void RandomImpl::write(RandomImplProto::Builder &proto) const {
   auto state = proto.initState(stateSize_);
-  for (UInt i = 0; i < stateSize_; ++i)
-  {
+  for (UInt i = 0; i < stateSize_; ++i) {
     state.set(i, state_[i]);
   }
   proto.setRptr(rptr_);
   proto.setFptr(fptr_);
 }
 
-
-void RandomImpl::read(RandomImplProto::Reader& proto)
-{
+void RandomImpl::read(RandomImplProto::Reader &proto) {
   auto state = proto.getState();
-  for (UInt i = 0; i < state.size(); ++i)
-  {
+  for (UInt i = 0; i < state.size(); ++i) {
     state_[i] = state[i];
   }
   rptr_ = proto.getRptr();
   fptr_ = proto.getFptr();
 }
 
+namespace nupic {
+std::ostream &operator<<(std::ostream &outStream, const Random &r) {
+  outStream << "random-v1 ";
+  outStream << r.seed_ << " ";
+  NTA_CHECK(r.impl_ != nullptr);
+  outStream << *r.impl_;
+  outStream << " endrandom-v1";
+  return outStream;
+}
 
-namespace nupic
-{
-  std::ostream& operator<<(std::ostream& outStream, const Random& r)
-  {
-    outStream << "random-v1 ";
-    outStream << r.seed_ << " ";
-    NTA_CHECK(r.impl_ != nullptr);
-    outStream << *r.impl_;
-    outStream << " endrandom-v1";
-    return outStream;
+std::istream &operator>>(std::istream &inStream, Random &r) {
+  std::string version;
+
+  inStream >> version;
+  if (version != "random-v1") {
+    NTA_THROW << "Random() deserializer -- found unexpected version string '"
+              << version << "'";
+  }
+  inStream >> r.seed_;
+  if (!r.impl_)
+    r.impl_ = new RandomImpl(0);
+
+  inStream >> *r.impl_;
+
+  std::string endtag;
+  inStream >> endtag;
+  if (endtag != "endrandom-v1") {
+    NTA_THROW << "Random() deserializer -- found unexpected end tag '" << endtag
+              << "'";
   }
 
+  return inStream;
+}
 
-  std::istream& operator>>(std::istream& inStream, Random& r)
-  {
-    std::string version;
+std::ostream &operator<<(std::ostream &outStream, const RandomImpl &r) {
+  outStream << "RandomImpl " << RandomImpl::VERSION << " ";
+  outStream << RandomImpl::stateSize_ << " ";
+  for (auto &elem : r.state_) {
+    outStream << elem << " ";
+  }
+  outStream << r.rptr_ << " ";
+  outStream << r.fptr_;
+  return outStream;
+}
 
+std::istream &operator>>(std::istream &inStream, RandomImpl &r) {
+  std::string marker;
+  inStream >> marker;
+  UInt32 version;
+  if (marker == "RandomImpl") {
     inStream >> version;
-    if (version != "random-v1")
-    {
-      NTA_THROW << "Random() deserializer -- found unexpected version string '"
-                << version << "'";
+    if (version != 2) {
+      NTA_THROW << "RandomImpl deserialization found unexpected version: "
+                << version;
     }
-    inStream >> r.seed_;
-    if (! r.impl_)
-      r.impl_ = new RandomImpl(0);
-
-    inStream >> *r.impl_;
-
-    std::string endtag;
-    inStream >> endtag;
-    if (endtag != "endrandom-v1")
-    {
-      NTA_THROW << "Random() deserializer -- found unexpected end tag '"
-                << endtag << "'";
-    }
-
-    return inStream;
+  } else if (marker == "randomimpl-v1") {
+    version = 1;
+  } else {
+    NTA_THROW << "RandomImpl() deserializer -- found unexpected version "
+              << "string '" << marker << "'";
   }
+  UInt32 ss = 0;
+  inStream >> ss;
+  NTA_CHECK(ss == (UInt32)RandomImpl::stateSize_) << " ss = " << ss;
 
-  std::ostream& operator<<(std::ostream& outStream, const RandomImpl& r)
-  {
-    outStream << "RandomImpl " << RandomImpl::VERSION << " ";
-    outStream << RandomImpl::stateSize_ << " ";
-    for (auto & elem : r.state_)
-    {
-      outStream << elem << " ";
+  int tmp;
+  for (auto &elem : r.state_) {
+    if (version < 2) {
+      inStream >> tmp;
+      elem = (UInt32)tmp;
+    } else {
+      inStream >> elem;
     }
-    outStream << r.rptr_ << " ";
-    outStream << r.fptr_;
-    return outStream;
   }
+  inStream >> r.rptr_;
+  inStream >> r.fptr_;
+  return inStream;
+}
 
-  std::istream& operator>>(std::istream& inStream, RandomImpl& r)
-  {
-    std::string marker;
-    inStream >> marker;
-    UInt32 version;
-    if (marker == "RandomImpl")
-    {
-      inStream >> version;
-      if (version != 2)
-      {
-        NTA_THROW << "RandomImpl deserialization found unexpected version: "
-                  << version;
-      }
-    }
-    else if (marker == "randomimpl-v1")
-    {
-      version = 1;
-    }
-    else
-    {
-      NTA_THROW << "RandomImpl() deserializer -- found unexpected version "
-                << "string '" << marker << "'";
-    }
-    UInt32 ss = 0;
-    inStream >> ss;
-    NTA_CHECK(ss == (UInt32)RandomImpl::stateSize_) << " ss = " << ss;
-
-    int tmp;
-    for (auto & elem : r.state_)
-    {
-      if (version < 2)
-      {
-        inStream >> tmp;
-        elem = (UInt32)tmp;
-      }
-      else
-      {
-        inStream >> elem;
-      }
-    }
-    inStream >> r.rptr_;
-    inStream >> r.fptr_;
-    return inStream;
+bool RandomImpl::operator==(const RandomImpl &o) const {
+  if (rptr_ != o.rptr_ || fptr_ != o.fptr_) {
+    return false;
   }
+  return ::memcmp(state_, o.state_, sizeof(state_)) == 0;
+}
 
-  // helper function for seeding RNGs across the plugin barrier
-  // Unless there is a logic error, should not be called if
-  // the Random singleton has not been initialized.
-  NTA_UInt64 GetRandomSeed()
-  {
-    Random* r = nupic::Random::theInstanceP_;
-    NTA_CHECK(r != nullptr);
-    NTA_UInt64 result = r->getUInt64();
-    return result;
-  }
-
-
+// helper function for seeding RNGs across the plugin barrier
+// Unless there is a logic error, should not be called if
+// the Random singleton has not been initialized.
+NTA_UInt64 GetRandomSeed() {
+  Random *r = nupic::Random::theInstanceP_;
+  NTA_CHECK(r != nullptr);
+  NTA_UInt64 result = r->getUInt64();
+  return result;
+}
 
 } // namespace nupic
-
-
-
-
-
