@@ -1356,8 +1356,11 @@ TEST(TemporalMemoryTest, testColumnForCellInvalidCell) {
   tm.initialize(vector<UInt>{64, 64}, 4);
 
   EXPECT_NO_THROW(tm.columnForCell(16383));
+  //does not throw in Release build (as NTA_ASSERT)
+#ifndef NDEBUG 
   EXPECT_THROW(tm.columnForCell(16384), std::exception);
   EXPECT_THROW(tm.columnForCell(-1), std::exception);
+#endif
 }
 
 TEST(TemporalMemoryTest, testNumberOfColumns) {
