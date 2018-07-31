@@ -32,25 +32,25 @@ using namespace ::nupic;
 using namespace nupic::util;
 
 
-MovingAverage::MovingAverage(UInt wSize, const vector<Real>& historicalValues)
+MovingAverage::MovingAverage(UInt wSize, const vector<MA_t>& historicalValues)
     : slidingWindow_(wSize, begin(historicalValues), end(historicalValues)) {
- const std::vector<Real>&  window = slidingWindow_.getData();
-  total_ = Real(accumulate(begin(window), end(window), 0));
+ const std::vector<MA_t>&  window = slidingWindow_.getData();
+  total_ = MA_t(accumulate(begin(window), end(window), 0));
 }
 
 
 MovingAverage::MovingAverage(UInt wSize) : slidingWindow_(wSize), total_(0) {}
 
 
-MovingAverage::MovingAverage(const SlidingWindow<Real>& internalSlidingWindow) :
+MovingAverage::MovingAverage(const SlidingWindow<MA_t>& internalSlidingWindow) :
   slidingWindow_(internalSlidingWindow) {
- const std::vector<Real>&  window = slidingWindow_.getData();
-  total_ = Real(accumulate(begin(window), end(window), 0));
+ const std::vector<MA_t>&  window = slidingWindow_.getData();
+  total_ = MA_t(accumulate(begin(window), end(window), 0));
 }
 
 
-Real MovingAverage::compute(Real newVal) {
-  Real droppedVal = 0.0;
+Real MovingAverage::compute(MA_t newVal) {
+  MA_t droppedVal = 0.0;
   const bool hasDropped = slidingWindow_.append(newVal, &droppedVal);
   if(hasDropped) { total_ -= droppedVal; }
   total_ += newVal;
@@ -58,7 +58,7 @@ Real MovingAverage::compute(Real newVal) {
 }
 
 
-std::vector<Real> MovingAverage::getData() const {
+std::vector<MA_t> MovingAverage::getData() const {
   return slidingWindow_.getData();
 }
 
@@ -76,5 +76,3 @@ bool MovingAverage::operator==(const MovingAverage& r2) const {
 bool MovingAverage::operator!=(const MovingAverage &r2) const {
   return !operator==(r2);
 }
-
-Real MovingAverage::getTotal() const { return total_; }
