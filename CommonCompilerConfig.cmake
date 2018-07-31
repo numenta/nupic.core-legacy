@@ -208,8 +208,9 @@ endif()
 # try compiling without them.
 #
 if(NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
-  set(optimization_flags_cc "-pipe ${optimization_flags_cc} -O3") #TODO use -Ofast instead of -O3
-  set(optimization_flags_lt "-O3 ${optimization_flags_lt}")
+  set(optimization_flags_cc "${optimization_flags_cc} -O2")
+  set(optimization_flags_cc "-pipe ${optimization_flags_cc}") #TODO use -Ofast instead of -O3
+  set(optimization_flags_lt "-O2 ${optimization_flags_lt}")
 
   if(NOT ${CMAKE_SYSTEM_PROCESSOR} STREQUAL "armv7l")
     set(optimization_flags_cc "${optimization_flags_cc} -mtune=generic")
