@@ -134,7 +134,6 @@ get_filename_component(src_numpy_core ${src_numpy_core}/include/.. ABSOLUTE)
 
 message(STATUS "src_numpy_core   = ${src_numpy_core}")
 
-
 #
 # Setup include paths
 #
