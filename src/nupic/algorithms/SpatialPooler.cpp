@@ -955,9 +955,9 @@ bool SpatialPooler::isWinner_(const Real score, const vector<pair<UInt, Real> >&
   return false;
 }
 
-void SpatialPooler::addToWinners_(UInt index, Real score,
-                                  vector<pair<UInt, Real>> &winners) {
-  pair<UInt, Real> val = make_pair(index, score);
+void SpatialPooler::addToWinners_(const UInt index, const Real score,
+                                  vector<pair<UInt, Real>> &winners) const {
+  const pair<UInt, Real> val = make_pair(index, score);
   for (auto it = winners.begin(); it != winners.end(); it++) {
     if (score >= it->second) {
       winners.insert(it, val);

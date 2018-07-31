@@ -936,7 +936,7 @@ public:
   bool isWinner_(const Real score, const vector<pair<UInt, Real>> &winners,
                  const UInt numWinners) const;
 
-  void addToWinners_(UInt index, Real score, vector<pair<UInt, Real>> &winners);
+  void addToWinners_(const UInt index, const Real score, vector<pair<UInt, Real>> &winners) const;
 
   /**
       Performs inhibition. This method calculates the necessary values needed to
