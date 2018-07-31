@@ -32,7 +32,53 @@ from nupic.bindings.algorithms import Cells4
 
 _RGEN = Random(43)
 
+def createCells4(nCols=8,
+                nCellsPerCol=4,
+                activationThreshold=1,
+                minThreshold=1,
+                newSynapseCount=2,
+                segUpdateValidDuration=2,
+                permInitial=0.5,
+                permConnected=0.8,
+                permMax=1.0,
+                permDec=0.1,
+                permInc=0.2,
+                globalDecay=0.05,
+                doPooling=True,
+                pamLength=2,
+                maxAge=3,
+                seed=42,
+                initFromCpp=True,
+                checkSynapseConsistency=False):
 
+    cells = Cells4(nCols,
+                   nCellsPerCol,
+                   activationThreshold,
+                   minThreshold,
+                   newSynapseCount,
+                   segUpdateValidDuration,
+                   permInitial,
+                   permConnected,
+                   permMax,
+                   permDec,
+                   permInc,
+                   globalDecay,
+                   doPooling,
+                   seed,
+                   initFromCpp,
+                   checkSynapseConsistency)
+
+
+    cells.setPamLength(pamLength)
+    cells.setMaxAge(maxAge)
+    cells.setMaxInfBacktrack(4)
+
+    for i in xrange(nCols):
+      for j in xrange(nCellsPerCol):
+        cells.addNewSegment(i, j, True if j % 2 == 0 else False,
+                            [((i + 1) % nCols, (j + 1) % nCellsPerCol)])
+
+    return cells
 
 class Cells4Test(unittest.TestCase):
 
@@ -205,3 +251,35 @@ class Cells4Test(unittest.TestCase):
       cells.compute(x, True, False)
 
     self._testPersistence(cells)
+
+  def testEquals(self):
+    nCols = 10
+    c1 = createCells4(nCols)
+    c2 = createCells4(nCols)
+    self.assertEquals(c1, c2)
+    
+    # learn
+    data = [numpy.random.choice(nCols, nCols/3, False) for _ in xrange(10)]   
+    for idx in data:
+      x = numpy.zeros(nCols, dtype="float32")
+      x[idx] = 1.0
+      c1.compute(x, True, True)
+      c2.compute(x, True, True)
+      self.assertEquals(c1, c2)
+
+    self.assertEquals(c1, c2)
+
+    c1.rebuildOutSynapses()
+    c2.rebuildOutSynapses()
+    self.assertEquals(c1, c2)
+
+    # inference
+    data = [numpy.random.choice(nCols, nCols/3, False) for _ in xrange(100)]
+    for idx in data:
+      x = numpy.zeros(nCols, dtype="float32")
+      x[idx] = 1.0
+      c1.compute(x, True, False)   
+      c2.compute(x, True, False)
+      self.assertEquals(c1, c2)
+
+    self.assertEquals(c1, c2)

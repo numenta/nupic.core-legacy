@@ -20,7 +20,7 @@
 # -----------------------------------------------------------------------------
 
 cmake_minimum_required(VERSION 3.3)
-project(nupic_core_main CXX)
+project(nupic_core CXX)
 
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 include(GNUInstallDirs)

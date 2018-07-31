@@ -33,6 +33,9 @@ except ImportError:
 else:
   from nupic.proto.RandomProto_capnp import RandomProto
 
+# Capnp reader traveral limit (see capnp::ReaderOptions)
+_TRAVERSAL_LIMIT_IN_WORDS = 1 << 63
+
 _MATH = _math
 %}
 
@@ -195,7 +198,8 @@ def write(self, pyBuilder):
 
   :param: Destination RandomProto message builder
   """
-  reader = RandomProto.from_bytes(self._writeAsCapnpPyBytes()) # copy
+  reader = RandomProto.from_bytes(self._writeAsCapnpPyBytes(),
+                            traversal_limit_in_words=_TRAVERSAL_LIMIT_IN_WORDS)
   pyBuilder.from_dict(reader.to_dict())  # copy
 
 

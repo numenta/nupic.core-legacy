@@ -20,10 +20,10 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file 
+/** @file
  *  This header file defines the API for performing efficient
  *  VideoSensorNode processing.
- */ 
+ */
 
 #ifndef NTA_VIDEO_SENSOR_NODE_HPP
 #define NTA_VIDEO_SENSOR_NODE_HPP
@@ -32,36 +32,34 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif  // __cplusplus
+#endif // __cplusplus
 
-#include <nupic/types/Types.h>
 #include "ArrayBuffer.hpp"
-
+#include <nupic/types/Types.h>
 
 // ImageSensorLite control buffer
 typedef struct _ISL_CTLBUF {
   // Bounding box
-  int     nBoxLeft; 
-  int     nBoxTop; 
-  int     nBoxRight; 
-  int     nBoxBottom; 
+  int nBoxLeft;
+  int nBoxTop;
+  int nBoxRight;
+  int nBoxBottom;
   // Address of buffer holding actual pixel data
-  void *  pDataAddr;
+  void *pDataAddr;
   // Optional: partition ID
-  int     nPartitionID;
+  int nPartitionID;
   // Optional: category ID
-  int     nCategoryID;
+  int nCategoryID;
   // Optional: video ID
-  int     nVideoID;
+  int nVideoID;
   // Optional: address of buffer holding alpha data
-  void *  pAlphaAddr;
+  void *pAlphaAddr;
 } ISL_CTLBUF;
-
 
 /*
 // Compile-time assertion to make sure that
 // the ISL_CTLBUF is 32-bytes long on this
-// platform; if not, this code will 
+// platform; if not, this code will
 // generate a 'duplicate case value' error
 // at compile time.
 #define COMPILE_TIME_ASSERT(pred) \
@@ -73,16 +71,15 @@ void compile_time_assertions(void) {
 }
 */
 
-
 /*
-// Structure that wraps the essential elements of 
+// Structure that wraps the essential elements of
 // a numpy array object.
 typedef struct _NUMPY_ARRAY {
   int nNumDims;
   const int * pnDimensions;
   const int * pnStrides;
   const char * pData;
-} NUMPY_ARRAY; 
+} NUMPY_ARRAY;
 
 // Bounding box
 typedef struct _BBOX {
@@ -94,29 +91,29 @@ typedef struct _BBOX {
 */
 
 typedef struct _BOXFIXER_PARAMS {
-  int       nZonePreExpansionX;
-  int       nZonePreExpansionY;
-  int       nZonePostExpansionX;
-  int       nZonePostExpansionY;
-  int       nWindowLenX;
-  int       nWindowLenY;
-  int       nMinAbsZoneLenX;
-  int       nMinAbsZoneLenY;
-  float     fMinRelZoneLenX;
-  float     fMinRelZoneLenY;
-  int       nMinAbsWeakLenX;
-  int       nMinAbsWeakLenY;
-  float     fMinRelWeakLenX;
-  float     fMinRelWeakLenY;
-  float     fHeightThresh;
-  float     fWidthThresh;
-  float     fSecondaryHeightThresh;
-  float     fSecondaryWidthThresh;
-  int       nTakeBiggest;
+  int nZonePreExpansionX;
+  int nZonePreExpansionY;
+  int nZonePostExpansionX;
+  int nZonePostExpansionY;
+  int nWindowLenX;
+  int nWindowLenY;
+  int nMinAbsZoneLenX;
+  int nMinAbsZoneLenY;
+  float fMinRelZoneLenX;
+  float fMinRelZoneLenY;
+  int nMinAbsWeakLenX;
+  int nMinAbsWeakLenY;
+  float fMinRelWeakLenX;
+  float fMinRelWeakLenY;
+  float fHeightThresh;
+  float fWidthThresh;
+  float fSecondaryHeightThresh;
+  float fSecondaryWidthThresh;
+  int nTakeBiggest;
 } BOXFIXER_PARAMS;
 
-#define MAX_BBOX_WIDTH      640
-#define MAX_BBOX_HEIGHT     480
+#define MAX_BBOX_WIDTH 640
+#define MAX_BBOX_HEIGHT 480
 
 /*
 // Structure that wraps specification of the
@@ -125,48 +122,40 @@ typedef struct _BOXFIXER_PARAMS {
 typedef struct _TARGETSIZE {
   int   nWidth;
   int   nHeight;
-} TARGETSIZE; 
+} TARGETSIZE;
 typedef struct _TARGETSIZES {
   int          nNumScales;
   TARGETSIZE   anScales[MAXNUM_SCALES];
-} TARGETSIZES; 
+} TARGETSIZES;
 */
 
 // FUNCTION: adjustBox()
 // PURPOSE: Implements efficient adjustment of tracking box
 NTA_EXPORT
 int adjustBox( // Inputs:
-               const NUMPY_ARRAY * psSrcImage,
-               const BBOX * psBox,
-               // Parameters:
-               const BOXFIXER_PARAMS * psParams,
-               // Outputs:
-               BBOX * psFixedBox,
-               int * pnTotNumBoxes);
-
+    const NUMPY_ARRAY *psSrcImage, const BBOX *psBox,
+    // Parameters:
+    const BOXFIXER_PARAMS *psParams,
+    // Outputs:
+    BBOX *psFixedBox, int *pnTotNumBoxes);
 
 // FUNCTION: accessPixels()
 // PURPOSE: Access pixels of a numpy array
 NTA_EXPORT
-int accessPixels(// Inputs:
-                 const NUMPY_ARRAY * psSrcImage,
-                 // Outputs:
-                 const NUMPY_ARRAY * psDstImage);
-
+int accessPixels( // Inputs:
+    const NUMPY_ARRAY *psSrcImage,
+    // Outputs:
+    const NUMPY_ARRAY *psDstImage);
 
 // FUNCTION: extractAuxInfo()
 // PURPOSE: Extract auxiliary information
 NTA_EXPORT
-int extractAuxInfo(// Inputs:
-                   const char * pCtlBufAddr,
-                   //const NUMPY_ARRAY * psCtlBuf,
-                   // Outputs:
-                   BBOX * psBox,
-                   int * pnAddress,
-                   int * pnPartitionID,
-                   int * pnCategoryID,
-                   int * pnVideoID,
-                   int * pnAlphaAddress );
+int extractAuxInfo( // Inputs:
+    const char *pCtlBufAddr,
+    // const NUMPY_ARRAY * psCtlBuf,
+    // Outputs:
+    BBOX *psBox, int *pnAddress, int *pnPartitionID, int *pnCategoryID,
+    int *pnVideoID, int *pnAlphaAddress);
 /*
 int extractAuxInfo(// Inputs:
                    const NUMPY_ARRAY * psBBox,
@@ -200,6 +189,6 @@ int formHistogramY(// Inputs:
 
 #ifdef __cplusplus
 }
-#endif  // __cplusplus
+#endif // __cplusplus
 
 #endif // NTA_VIDEO_SENSOR_NODE_HPP

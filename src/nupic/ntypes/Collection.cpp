@@ -25,57 +25,51 @@
 #include <string>
 #include <vector>
 
-namespace nupic
-{
+namespace nupic {
 
 /*
- * Implementation of the templated Collection class. 
+ * Implementation of the templated Collection class.
  * This code is used to create explicit instantiations
- * of the Collection class. 
+ * of the Collection class.
  * It is not compiled into the types library because
- * we instantiate for classes outside of the types library. 
- * For example, Collection<OutputSpec> is built in the 
- * net library where OutputSpec is defined. 
+ * we instantiate for classes outside of the types library.
+ * For example, Collection<OutputSpec> is built in the
+ * net library where OutputSpec is defined.
  * See nupic/engine/Collections.cpp, which is where the
  * Collection classes are instantiated.
  */
 
-template <typename T> 
-Collection<T>::Collection()
-{
+template <typename T> Collection<T>::Collection() {}
+
+template <typename T> Collection<T>::~Collection() {}
+template <typename T>
+bool Collection<T>::operator==(const Collection<T> &o) const {
+  const static auto compare = [](std::pair<std::string, T> a,
+                                 std::pair<std::string, T> b) {
+    return a.first == b.first && a.second == b.second;
+  };
+  return std::equal(vec_.begin(), vec_.end(), o.vec_.begin(), compare);
 }
-    
-template <typename T> 
-Collection<T>::~Collection()
-{
-}
-    
-template <typename T> 
-size_t Collection<T>::getCount() const
-{
+template <typename T> size_t Collection<T>::getCount() const {
   return vec_.size();
 }
 
-template <typename T> const
-std::pair<std::string, T>& Collection<T>::getByIndex(size_t index) const
-{
+template <typename T>
+const std::pair<std::string, T> &Collection<T>::getByIndex(size_t index) const {
   NTA_CHECK(index < vec_.size());
   return vec_[index];
 }
 
-template <typename T> 
-std::pair<std::string, T>& Collection<T>::getByIndex(size_t index)
-{
+template <typename T>
+std::pair<std::string, T> &Collection<T>::getByIndex(size_t index) {
   NTA_CHECK(index < vec_.size());
   return vec_[index];
 }
 
-template <typename T> 
-bool Collection<T>::contains(const std::string & name) const
-{
+template <typename T>
+bool Collection<T>::contains(const std::string &name) const {
   typename CollectionStorage::const_iterator i;
-  for (i = vec_.begin(); i != vec_.end(); i++)
-  {
+  for (i = vec_.begin(); i != vec_.end(); i++) {
     if (i->first == name)
       return true;
   }
@@ -83,26 +77,21 @@ bool Collection<T>::contains(const std::string & name) const
 }
 
 template <typename T>
-T Collection<T>::getByName(const std::string & name) const
-{
+T Collection<T>::getByName(const std::string &name) const {
   typename CollectionStorage::const_iterator i;
-  for (i = vec_.begin(); i != vec_.end(); i++)
-  {
+  for (i = vec_.begin(); i != vec_.end(); i++) {
     if (i->first == name)
       return i->second;
-  }  
+  }
   NTA_THROW << "No item named: " << name;
 }
 
 template <typename T>
-void Collection<T>::add(const std::string & name, const T & item)
-{
+void Collection<T>::add(const std::string &name, const T &item) {
   // make sure we don't already have something with this name
   typename CollectionStorage::const_iterator i;
-  for (i = vec_.begin(); i != vec_.end(); i++)
-  {
-    if (i->first == name)
-    {
+  for (i = vec_.begin(); i != vec_.end(); i++) {
+    if (i->first == name) {
       NTA_THROW << "Unable to add item '" << name << "' to collection "
                 << "because it already exists";
     }
@@ -112,13 +101,9 @@ void Collection<T>::add(const std::string & name, const T & item)
   vec_.push_back(std::make_pair(name, item));
 }
 
-
-template <typename T>
-void Collection<T>::remove(const std::string & name)
-{
+template <typename T> void Collection<T>::remove(const std::string &name) {
   typename CollectionStorage::iterator i;
-  for (i = vec_.begin(); i != vec_.end(); i++)
-  {
+  for (i = vec_.begin(); i != vec_.end(); i++) {
     if (i->first == name)
       break;
   }
@@ -128,5 +113,4 @@ void Collection<T>::remove(const std::string & name)
   vec_.erase(i);
 }
 
-}
-
+} // namespace nupic

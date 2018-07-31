@@ -20,14 +20,15 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file STL IO 
- * This file contains functions to print out and save/load various STL data structures.
+/** @file STL IO
+ * This file contains functions to print out and save/load various STL data
+ * structures.
  */
 
 #include <nupic/math/StlIo.hpp>
 
 namespace nupic {
 
-  IOControl io_control;
+IOControl io_control;
 
 } // end namespace nupic

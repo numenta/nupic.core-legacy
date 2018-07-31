@@ -21,8 +21,8 @@
 
 # Utilities for manipulating libraries
 
-cmake_minimum_required(VERSION 2.8)
-project(nupic_core_library_utils CXX)
+cmake_minimum_required(VERSION 3.3)
+project(nupic_core CXX)
 
 
 # function MERGE_STATIC_LIBRARIES

@@ -26,18 +26,17 @@
 
 #define SLEEP_MICROSECONDS (100 * 1000)
 
-#include <nupic/utils/Log.hpp>
-#include <nupic/os/Timer.hpp>
-#include <math.h> // fabs
 #include <apr-1/apr_time.h>
 #include <gtest/gtest.h>
+#include <math.h> // fabs
+#include <nupic/os/Timer.hpp>
+#include <nupic/utils/Log.hpp>
 
 using namespace nupic;
 
-TEST(TimerTest, Basic)
-{
-// Tests are minimal because we have no way to run performance-sensitive tests in a controlled
-// environment.
+TEST(TimerTest, Basic) {
+  // Tests are minimal because we have no way to run performance-sensitive tests
+  // in a controlled environment.
 
   Timer t1;
   Timer t2(/* startme= */ true);
@@ -69,15 +68,14 @@ TEST(TimerTest, Basic)
   ASSERT_EQ(t1.getStartCount(), 2);
 }
 
-TEST(TimerTest, Drift)
-{
-// Test start/stop delay accumulation
+TEST(TimerTest, Drift) {
+  // Test start/stop delay accumulation
   Timer t;
   const UInt EPOCHS = 1000000; // 1M
-  const UInt EPSILON = 5; // tolerate 5us drift on 1M restarts
-  for(UInt i=0; i<EPOCHS; i++){
+  const UInt EPSILON = 5;      // tolerate 5us drift on 1M restarts
+  for (UInt i = 0; i < EPOCHS; i++) {
     t.start();
-    t.stop(); //immediately
+    t.stop(); // immediately
   }
   ASSERT_LT(t.getElapsed(), EPSILON);
 }

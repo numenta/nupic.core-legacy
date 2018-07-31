@@ -82,7 +82,8 @@
 //
 //     //--------------------------------------------------------------------------------
 //     template <typename InIter1, typename InIter2>
-//     inline void CompareVectors(UInt n, InIter1 y1, InIter2 y2, const char* str)
+//     inline void CompareVectors(UInt n, InIter1 y1, InIter2 y2, const char*
+//     str)
 //     {
 //       InIter1 y1_begin = y1;
 //       InIter2 y2_begin = y2;

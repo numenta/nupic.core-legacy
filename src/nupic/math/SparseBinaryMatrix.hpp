@@ -30,9 +30,9 @@
 #include <algorithm>
 #include <sstream>
 
+#include <nupic/math/ArrayAlgo.hpp>
 #include <nupic/math/Math.hpp>
 #include <nupic/math/StlIo.hpp>
-#include <nupic/math/ArrayAlgo.hpp>
 #include <nupic/proto/SparseBinaryMatrixProto.capnp.h>
 #include <nupic/types/Serializable.hpp>
 
@@ -511,8 +511,8 @@ public:
       ASSERT_INPUT_ITERATOR(InputIterator1);
       ASSERT_INPUT_ITERATOR(InputIterator2);
 
-      NTA_ASSERT(nz_j_end - nz_j == nz_i_end - nz_i) << where
-                                                     << "Invalid range";
+      NTA_ASSERT(nz_j_end - nz_j == nz_i_end - nz_i)
+          << where << "Invalid range";
 
 #ifdef NTA_ASSERTIONS_ON
 
@@ -1119,7 +1119,7 @@ public:
         n += sprintf(buffer, "%ld ", (long)ind_[row][j]);
     }
     return n;
-   }
+  }
 
   inline void fromCSR(std::istream &inStream) {
     const std::string where = "SparseBinaryMatrix::readState: ";
@@ -1253,8 +1253,8 @@ public:
 
     std::string version;
     inStream >> version;
-    NTA_CHECK(version == getVersion(true)) << where
-                                           << "Unknown format: " << version;
+    NTA_CHECK(version == getVersion(true))
+        << where << "Unknown format: " << version;
 
     size_type nrows = 0;
     inStream >> nrows;

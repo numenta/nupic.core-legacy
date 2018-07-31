@@ -23,7 +23,7 @@
 // ---
 //
 // Definitions for the Array class
-//  
+//
 // It is a sub-class of ArrayBase that owns its buffer
 //
 // ---
@@ -34,34 +34,27 @@
 #include <nupic/ntypes/ArrayBase.hpp>
 #include <nupic/utils/Log.hpp>
 
-namespace nupic
-{
-  class Array : public ArrayBase 
-  {
-  public:
-    Array(NTA_BasicType type, void * buffer, size_t count) :
-      ArrayBase(type, buffer, count)
-    {
-    }
-    
-    explicit Array(NTA_BasicType type) : ArrayBase(type)
-    {
-    }
+namespace nupic {
+class Array : public ArrayBase {
+public:
+  Array(NTA_BasicType type, void *buffer, size_t count)
+      : ArrayBase(type, buffer, count) {}
 
-    //Array(const Array & other) : ArrayBase(other)
-    //{
-    //}
+  explicit Array(NTA_BasicType type) : ArrayBase(type) {}
 
-    void invariant()
-    {
-      if (!own_)
-        NTA_THROW << "Array must own its buffer";
-    }
-  private:
-    // Hide base class method (invalid for Array)
-    void setBuffer(void * buffer, size_t count);
-  };
-}
+  // Array(const Array & other) : ArrayBase(other)
+  //{
+  //}
+
+  void invariant() {
+    if (!own_)
+      NTA_THROW << "Array must own its buffer";
+  }
+
+private:
+  // Hide base class method (invalid for Array)
+  void setBuffer(void *buffer, size_t count);
+};
+} // namespace nupic
 
 #endif
-
