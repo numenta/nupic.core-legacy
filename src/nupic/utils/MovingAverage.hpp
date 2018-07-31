@@ -32,24 +32,20 @@ namespace nupic {
 
 namespace util {
 
-using MA_t = Real;
-
 class MovingAverage {
-
 public:
-  MovingAverage(UInt wSize, const std::vector<MA_t> &historicalValues);
+  MovingAverage(UInt wSize, const std::vector<Real32> &historicalValues);
   MovingAverage(UInt wSize);
-  MovingAverage(const SlidingWindow<MA_t>& internalSlidingWindow);
-  std::vector<MA_t> getData() const;
+  std::vector<Real> getData() const;
   Real getCurrentAvg() const;
-  Real compute(MA_t newValue);
-  MA_t getTotal() const { return total_; };
+  Real compute(Real newValue);
+  Real getTotal() const;
   bool operator==(const MovingAverage &r2) const;
   bool operator!=(const MovingAverage &r2) const;
 
 private:
-  SlidingWindow<MA_t> slidingWindow_;
-  MA_t total_;
+  SlidingWindow<Real> slidingWindow_;
+  Real total_;
 };
 } // namespace util
 } // namespace nupic
