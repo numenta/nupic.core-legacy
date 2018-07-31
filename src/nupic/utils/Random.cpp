@@ -185,11 +185,7 @@ void Random::shutdown() {
 
 UInt32 Random::getUInt32(const UInt32 max) {
   NTA_CHECK(max > 0);
-  UInt32 smax = Random::MAX32 - (Random::MAX32 % max);
-  UInt32 sample;
-  do {
-    sample = impl_->getUInt32();
-  } while (sample > smax);
+  const UInt32 sample = impl_->getUInt32();
 
 //NTA_WARN << "Random32(" << max << ") -> " << sample % max << " smax = " << smax;
   return sample % max;
@@ -197,15 +193,9 @@ UInt32 Random::getUInt32(const UInt32 max) {
 
 UInt64 Random::getUInt64(const UInt64 max) {
   NTA_CHECK(max > 0);
-  UInt64 smax = Random::MAX64 - (Random::MAX64 % max);
-  UInt64 sample, lo, hi;
-  do {
-    lo = impl_->getUInt32();
-    hi = impl_->getUInt32();
-    sample = lo | (hi << 32);
-  } while (sample > smax);
-  // NTA_WARN << "Random64(" << max << ") -> " << sample % max << " smax = " <<
-  // smax;
+  const UInt64 lo = impl_->getUInt32();
+  const UInt64 hi = impl_->getUInt32();
+  const UInt64 sample = lo | (hi << 32);
 
   return sample % max;
 }
