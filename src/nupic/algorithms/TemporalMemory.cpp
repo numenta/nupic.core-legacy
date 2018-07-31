@@ -581,8 +581,8 @@ Segment TemporalMemory::createSegment(CellIdx cell) {
 }
 
 Int TemporalMemory::columnForCell(CellIdx cell) {
-  _validateCell(cell);
 
+  NTA_ASSERT(cell < numberOfCells());
   return cell / cellsPerColumn_;
 }
 
@@ -627,14 +627,6 @@ vector<Segment> TemporalMemory::getMatchingSegments() const {
 }
 
 UInt TemporalMemory::numberOfColumns() const { return numColumns_; }
-
-bool TemporalMemory::_validateCell(CellIdx cell) {
-  if (cell < numberOfCells())
-    return true;
-
-  NTA_THROW << "Invalid cell " << cell;
-  return false;
-}
 
 vector<UInt> TemporalMemory::getColumnDimensions() const {
   return columnDimensions_;
