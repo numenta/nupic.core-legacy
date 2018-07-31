@@ -25,7 +25,7 @@ init:
   - git config --global core.autocrlf input
 
 clone_folder: c:\projects\nupic-core
-clone_depth: 50
+clone_depth: 1
 
 # Can't have a shallow clone because the CMake process will be
 # calling into git to write the current SHA into the binaries.
@@ -33,30 +33,38 @@ shallow_clone: false
 
 environment:
   COMPILER_FAMILY: GCC
-  AWS_ACCESS_KEY_ID:
-    secure: /9U0mCHp3k1U8Y5CY/kDqwCKG2gqchG/T/UlVWo8SME=
-  AWS_SECRET_ACCESS_KEY:
-    secure: /8wO17Gir0XAiecJkHeE3jxOJzvyl0+uWcl7BKCuN0FC795golsL8905VmNuRl1o
-  PYPI_USERNAME: numenta
-  PYPI_PASSWORD:
-    secure: UgABryPYZg823OcD1XRosA==
+  PYTHON_VERSION: "2.7.9"
+  PYTHON_ARCH: "64"
+  PYTHONHOME: "C:\\Python27-x64"
+  NUPIC_CORE: "C:\\projects\\nupic-core"
+  EXTERNAL_WINDOWS_DIR: "%NUPIC_CORE%\\external\\%external_static_subdir%"
+  ARTIFACTS_DIR: "%NUPIC_CORE%\\build\\artifacts"
+  PYTHONPATH: "%PYTHONHOME%"
+  PATH: "%PYTHONHOME%\\Scripts;%PYTHONHOME%;%PATH%"
+
+## AWS S3 support (pip install boto)
+#  AWS_ACCESS_KEY_ID:
+#    secure: /9U0mCHp3k1U8Y5CY/kDqwCKG2gqchG/T/UlVWo8SME=
+#  AWS_SECRET_ACCESS_KEY:
+#    secure: /8wO17Gir0XAiecJkHeE3jxOJzvyl0+uWcl7BKCuN0FC795golsL8905VmNuRl1o
+## PyPI support (pip install twine)
+#  PYPI_USERNAME: numenta
+#  PYPI_PASSWORD:
+#    secure: UgABryPYZg823OcD1XRosA==
 
   matrix:
     # Win64-gcc
-    - PYTHON_VERSION: "2.7.9"
-      PYTHON_ARCH: "64"
-      PYTHONHOME: "C:\\Python27-x64"
-      NC_CMAKE_GENERATOR: "MinGW Makefiles"
+    - NC_CMAKE_GENERATOR: "MinGW Makefiles"
       external_static_subdir: "windows64-gcc"
       wheel_name_suffix: "win_amd64"
 
     # Win32-gcc
-    - PYTHON_VERSION: "2.7.9"
-      PYTHON_ARCH: "32"
-      PYTHONHOME: "C:\\Python27"
-      NC_CMAKE_GENERATOR: "MinGW Makefiles"
-      external_static_subdir: "windows32-gcc"
-      wheel_name_suffix: "win32"
+#    - PYTHON_VERSION: "2.7.9"
+#      PYTHON_ARCH: "32"
+#      PYTHONHOME: "C:\\Python27"
+#      NC_CMAKE_GENERATOR: "MinGW Makefiles"
+#      external_static_subdir: "windows32-gcc"
+#      wheel_name_suffix: "win32"
 
 #    # Win64-Visual Studio
 #    - PYTHON_VERSION: "2.7.9"
@@ -65,7 +73,6 @@ environment:
 #      NC_CMAKE_GENERATOR: "Visual Studio 14 2015 Win64"
 #      external_static_subdir: "windows64"
 #      wheel_name_suffix: "win_amd64"
-
 
 matrix:
   allow_failures:
@@ -86,15 +93,8 @@ install:
   - "ECHO APPVEYOR_FORCED_BUILD: %APPVEYOR_FORCED_BUILD%"
   - "ECHO APPVEYOR_RE_BUILD: %APPVEYOR_RE_BUILD%"
 
-  - set NUPIC_CORE=c:\projects\nupic-core
-  - set EXTERNAL_WINDOWS_DIR=%NUPIC_CORE%\external\%external_static_subdir%
-
-  - set ARTIFACTS_DIR=%NUPIC_CORE%\build\artifacts
   - for /f %%i in ('type VERSION') do set BINDINGS_VERSION=%%i
   - echo Binding version = %BINDINGS_VERSION%
-
-  - set PYTHONPATH=%PYTHONHOME%
-  - set PATH=%PYTHONHOME%\Scripts;%PYTHONHOME%;%PATH%
 
   # Make unix-compatible patch.exe available to the build by copying it from
   # Git\usr\bin (that we remove from PATH) to another directory and adding it to
@@ -109,10 +109,26 @@ install:
   - echo %PATH%
 
   #
-  # Install Python 2.7.x, Pip, Wheel, and NumPy
+  # Install Wheel, and NumPy
   #
-  - cd %NUPIC_CORE%\ci\appveyor
-  - ps: .\install_python_pip.ps1
+  - ps:  $python_path = $env:PYTHONHOME + "/python.exe"
+  - ps:   $pip_path = $env:PYTHONHOME + "/Scripts/pip.exe"
+
+  # pip needs to be updated or Appveyor fails
+  - ps: Write-Host "pip install --upgrade pip"
+  - ps: "& $python_path -m pip install --upgrade pip"
+
+  - ps:  Write-Host "pip install " wheel==0.25.0
+  - ps:  "& $pip_path install wheel==0.25.0"
+
+#  - ps:  Write-Host "pip install " boto
+#  - ps:  & $pip_path install boto
+
+#  - ps:  Write-Host "pip install " twine
+#  - ps:  & $pip_path install twine
+
+  - ps:  Write-Host "pip install " numpy==1.12.1
+  - ps:  "& $pip_path install numpy==1.12.1"
 
   #
   # Install mingwpy toolchain
@@ -121,7 +137,7 @@ install:
   # Install the version of mingwpy toolchain that generates targets compatible
   # with the installed python (Win32 vs. Win64). The compiler tools are
   # installed into %PYTHONHOME%/Scripts/
-  - cmd: "%PYTHONHOME%\\Scripts\\pip.exe install -i https://pypi.anaconda.org/carlkl/simple mingwpy==0.1.0b3"
+  - cmd: "%PYTHONHOME%\\Scripts\\pip.exe install -i https://pypi.anaconda.org/carlkl/simple mingwpy"
   - cmd: "where g++"
   - cmd: "g++ --version"
   - cmd: "dir %PYTHONHOME%\\share\\mingwpy"
@@ -226,14 +242,24 @@ artifacts:
 
 deploy:
   # Iterative builds
-  - provider: S3
-    access_key_id: AKIAIGHYSEHV3WFKOWNQ
-    secret_access_key:
-      secure: /8wO17Gir0XAiecJkHeE3jxOJzvyl0+uWcl7BKCuN0FC795golsL8905VmNuRl1o
-    bucket: "artifacts.numenta.org"
-    region: us-west-2
-    set_public: true
-    artifact: "nupic.bindings-$(APPVEYOR_REPO_COMMIT)-cp27-none-$(wheel_name_suffix).whl"
-    folder: "numenta/nupic.core/releases/nupic.bindings"
-    on:
-      branch: master
+## AWS S3 deployment
+#  - provider: S3
+#    access_key_id: AKIAIGHYSEHV3WFKOWNQ
+#    secret_access_key:
+#      secure: /8wO17Gir0XAiecJkHeE3jxOJzvyl0+uWcl7BKCuN0FC795golsL8905VmNuRl1o
+#    bucket: "artifacts.numenta.org"
+#    region: us-west-2
+#    set_public: true
+#    artifact: "nupic.bindings-$(APPVEYOR_REPO_COMMIT)-cp27-none-$(wheel_name_suffix).whl"
+#    folder: "numenta/nupic.core/releases/nupic.bindings"
+#    on:
+#      branch: master
+## GitHub
+# Deploy to GitHub Releases
+ - provider: GitHub
+   artifact: '*.whl'           # upload all NuGet packages to release assets
+   draft: false
+   prerelease: false
+   on:
+     branch: master                # release from master branch only
+     appveyor_repo_tag: true       # deploy on tag push only

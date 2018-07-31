@@ -1,56 +1,142 @@
-machine:
-  timezone:
-    GMT
-  xcode:
-    version: 8.0
-  environment:
-    XCODE_SCHEME: nupic
-    XCODE_WORKSPACE: nupic
-    ARCHFLAGS: "-arch x86_64"
-    PYTHONPATH: "$HOME/Library/Python/2.7/lib/python/site-packages"
-    PATH: "$HOME/Library/Python/2.7/bin:$PATH"
-    PYBIN: "$HOME/Library/Python/2.7/bin"
-  pre:
-    - sudo pip install --ignore-installed --upgrade --verbose virtualenv
-    # Link virtualenv to /usr/local/bin if it doesn't exist and always give exit status of 0.
-    - "([ ! -e /usr/local/bin/virtualenv ] && ln -s ~/Library/Python/2.7/bin/virtualenv /usr/local/bin/virtualenv) || true"
-    - if [[ "$OSTYPE" != "darwin"* ]]; then echo "Must set option to use OS X in CircleCI Web UI" && exit 1; fi
+version: 2
+jobs:
+  build-and-test:
+    macos:
+      xcode: '9.0.1'
+    working_directory: ~/numenta/nupic.core
+    parallelism: 1
+    environment:
+      XCODE_SCHEME: nupic
+      XCODE_WORKSPACE: nupic
+      ARCHFLAGS: -arch x86_64
+      PYTHONPATH: ~/Library/Python/2.7/lib/python/site-packages
+      PYBIN: ~/Library/Python/2.7/bin
+    steps:
+      # Machine Setup
+      - run:
+          name: Make sure to use OS X in CircleCI Web UI
+          command: |
+            if [[ "$OSTYPE" != "darwin"* ]]; then
+              echo "Must set option to use OS X in CircleCI Web UI" && exit 1;
+            fi
+      - run: sudo systemsetup -settimezone 'GMT'
+      - run:
+          name: Restoring system python
+          command: |
+            brew uninstall python
+            curl https://bootstrap.pypa.io/get-pip.py | python - --user
+            echo 'export PATH=$HOME/Library/Python/2.7/bin:$PATH' >> $BASH_ENV 
+      - run:
+          name: Installing cmake 
+          command: brew install cmake
+      
+      - checkout
 
-dependencies:
-  override:
-    # Install all dependencies
-    - ./ci/circle/before_install-osx.sh
+      # Dependencies
+      # Restore the dependency cache
+      - restore_cache:
+          keys:
+          # This branch if available
+          - v1-dep-{{ .Branch }}-
+          # Default branch if not
+          - v1-dep-master-
+          # Any branch if there are none on the default branch - this should be 
+          # unnecessary if you have your default branch configured correctly
+          - v1-dep-
 
-compile:
-  override:
-    # Remove the virtualenv before it can cause problems.  As of May 2017 the CircleCI virtualenv/path setup causes some tests to fail unnecessarily.
-    - rm -r ~/virtualenvs
-    - mkdir -p build/scripts
-    - cd build/scripts && cmake ../.. -DCMAKE_BUILD_TYPE=Release -DNTA_COV_ENABLED=ON -DCMAKE_INSTALL_PREFIX=../release -DPY_EXTENSIONS_DIR=../../bindings/py/src/nupic/bindings
-    - VERBOSE=1 cd build/scripts && set -o pipefail && make -j8 | grep -v -F '\\-\\- Installing:'
-    - VERBOSE=1 cd build/scripts && set -o pipefail && make install 2>&1 | grep -v -F 'Installing:'
-    - python setup.py bdist_wheel
-    - mkdir dist && mv bindings/py/dist/*.whl dist/
-    - pip install --use-wheel --user --no-index --find-links=`pwd`/dist/ nupic.bindings
+      - run:
+          name: Installing dependencies
+          command: |
+            pip install --user --upgrade --verbose pip setuptools setuptools-scm
+            pip install --no-cache-dir --user -r bindings/py/requirements.txt  --verbose || exit
+
+      # Save dependency cache
+      - save_cache:
+          key: v1-dep-{{ .Branch }}-{{ epoch }}
+          paths:
+          # This is a broad list of cache paths to include many possible 
+          # development environments.
+          - vendor/bundle
+          - ~/virtualenvs
+          - ~/.m2
+          - ~/.ivy2
+          - ~/.bundle
+          - ~/.go_workspace
+          - ~/.gradle
+          - ~/.cache/bower
+
+      # Build 
+      - run:
+          name: Compiling
+          environment:
+            VERBOSE: 1
+          command: |
+            mkdir -p build/scripts
+            cd build/scripts
+            cmake ../.. -DCMAKE_BUILD_TYPE=Release -DNTA_COV_ENABLED=ON -DCMAKE_INSTALL_PREFIX=../release -DPY_EXTENSIONS_DIR=../../bindings/py/src/nupic/bindings
+            make | grep -v -F '\\-\\- Installing:'
+            make install 2>&1 | grep -v -F 'Installing:'
+      - run:
+          name: Build distribution
+          command: |
+            python setup.py bdist_wheel
+            mkdir -p dist/include/nupic
+            mv bindings/py/dist/*.whl dist/
+            cp bindings/py/requirements.txt dist/
+            cp build/release/include/nupic/Version.hpp dist/include/nupic/
+      
+      # Test
+      - run:
+          name: Running python tests
+          command: |
+            mkdir -p tests/py
+            pip install --user --no-index --find-links=$CIRCLE_WORKING_DIRECTORY/dist/ nupic.bindings
+            py.test --junitxml tests/py/junit-test-results.xml bindings/py/tests
+      - run:
+          name: Running C++ Tests
+          command: |
+            mkdir -p tests/cpp
+            pushd build/release/bin
+            ./cpp_region_test
+            ./py_region_test
+            ./helloregion
+            ./hello_sp_tp
+            ./prototest
+            ./unit_tests --gtest_output=xml:$CIRCLE_WORKING_DIRECTORY/tests/cpp/unit_tests_report.xml
+
+      - store_test_results:
+          path: tests
     
-test:
-  override:
-    - py.test bindings/py/tests
-    # legacy binary tests.  Need to cd to build/release/bin to ensure test success; see Readme.md
-    - cd build/release/bin && ./cpp_region_test
-    - cd build/release/bin && ./py_region_test
-    - cd build/release/bin && ./helloregion
-    - cd build/release/bin && ./hello_sp_tp
-    - cd build/release/bin && ./prototest
-    # connections_performance_test disabled for build speed reasons (Takes over a minute to run)
-    # cd build/release/bin && ./connections_performance_test
-    # main unit tests
-    - build/release/bin/unit_tests --gtest_output=xml:build/artifacts/unit_tests_report.xml
-  post:
-    # We want to have the test report and wheel in both Circle_Artifacts as
-    # well as dist, for the sake of debugging
-    - cp build/artifacts/unit_tests_report.xml dist/
-    - cp build/artifacts/unit_tests_report.xml $CIRCLE_ARTIFACTS/
-    - cp dist/*.whl $CIRCLE_ARTIFACTS/
-    # If not on a fork, upload artifacts to S3
-    - if [[ "$CIRCLE_REPOSITORY_URL" == "https://github.com/numenta/nupic.core" ]]; then ci/circle/deploy_s3-osx.sh; else echo "Skipping deployment, as this is a fork"; fi
+      - store_artifacts:
+          path: dist/*.whl
+        
+      - persist_to_workspace:
+          root: dist
+          paths:
+          - nupic.bindings*.whl
+          - requirements.txt
+          - include/nupic
+
+  deploy-s3:
+    machine: true
+    steps:
+      - attach_workspace:
+          at: dist
+      - run:
+          name: Deploying to S3
+          command: |
+            pip install awscli --upgrade --user
+            tar -zcv -f nupic_core-${CIRCLE_SHA1}-darwin64.tar.gz dist
+            aws s3 cp nupic_core-${CIRCLE_SHA1}-darwin64.tar.gz s3://artifacts.numenta.org/numenta/nupic.core/circle/
+
+workflows:
+  version: 2
+  build-test-deploy:
+    jobs:
+      - build-and-test
+      - deploy-s3:
+          requires: 
+            - build-and-test
+          filters:
+            branches:
+              only: master

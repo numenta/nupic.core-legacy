@@ -23,29 +23,29 @@
 #include <nupic/regions/PyRegion.hpp>
 
 #include <Python.h>
-#include <iostream>
-#include <sstream>
-#include <memory>
 #include <cstring> // std::memcpy
+#include <iostream>
+#include <memory>
+#include <sstream>
 
 #include <capnp/any.h>
 
-#include <nupic/engine/Spec.hpp>
-#include <nupic/engine/Region.hpp>
 #include <nupic/engine/Input.hpp>
 #include <nupic/engine/Output.hpp>
-#include <nupic/proto/PyRegionProto.capnp.h>
-#include <nupic/ntypes/ObjectModel.hpp> // IWrite/ReadBuffer
-#include <nupic/ntypes/Value.hpp>
+#include <nupic/engine/Region.hpp>
+#include <nupic/engine/Spec.hpp>
 #include <nupic/ntypes/Array.hpp>
 #include <nupic/ntypes/ArrayRef.hpp>
-#include <nupic/types/BasicType.hpp>
 #include <nupic/ntypes/BundleIO.hpp>
-#include <nupic/utils/Log.hpp>
+#include <nupic/ntypes/ObjectModel.hpp> // IWrite/ReadBuffer
+#include <nupic/ntypes/Value.hpp>
 #include <nupic/os/Path.hpp>
+#include <nupic/proto/PyRegionProto.capnp.h>
 #include <nupic/py_support/NumpyArrayObject.hpp>
 #include <nupic/py_support/PyArray.hpp>
 #include <nupic/py_support/PyCapnp.hpp>
+#include <nupic/types/BasicType.hpp>
+#include <nupic/utils/Log.hpp>
 
 using namespace nupic;
 
@@ -53,159 +53,128 @@ using namespace nupic;
 static char lastError[LAST_ERROR_LENGTH];
 static bool finalizePython;
 
-extern "C"
-{
-  // NTA_initPython() must be called by the MultinodeFactory before any call to
-  // NTA_createPyNode()
-  void PyRegion::NTA_initPython()
-  {
-    if(Py_IsInitialized())
-    {
-      // Set the PyHelpers flag so it knows its running under Python.
-      // This is necessary for PyHelpers to determine if it should
-      // clear or restore Python exceptions (see NPC-113)
-      py::setRunningUnderPython();
-      finalizePython = true;
-    }
+extern "C" {
+// NTA_initPython() must be called by the MultinodeFactory before any call to
+// NTA_createPyNode()
+void PyRegion::NTA_initPython() {
+  if (Py_IsInitialized()) {
+    // Set the PyHelpers flag so it knows its running under Python.
+    // This is necessary for PyHelpers to determine if it should
+    // clear or restore Python exceptions (see NPC-113)
+    py::setRunningUnderPython();
+    finalizePython = true;
   }
+}
 
-  // NTA_finalizePython() must be called before unloading the pynode dynamic library
-  // to ensure proper cleanup.
-  void PyRegion::NTA_finalizePython()
-  {
-    if (finalizePython)
-    {
-      //NTA_DEBUG << "Called Py_Finalize()";
-      Py_Finalize();
-    }
+// NTA_finalizePython() must be called before unloading the pynode dynamic
+// library to ensure proper cleanup.
+void PyRegion::NTA_finalizePython() {
+  if (finalizePython) {
+    // NTA_DEBUG << "Called Py_Finalize()";
+    Py_Finalize();
   }
+}
 
-  // createPyNode is used by the MultinodeFactory to create a C++ PyNode instance
-  // That references a Python instance. The function tries to create a NuPIC 2.0
-  // Py node first and if it fails it tries to create a NuPIC 1.x Py node
-  void * PyRegion::NTA_createPyNode(const char * module, void * nodeParams,
-      void * region, void ** exception, const char* className)
-  {
-    try
-    {
-      NTA_CHECK(nodeParams != NULL);
-      NTA_CHECK(region != NULL);
+// createPyNode is used by the MultinodeFactory to create a C++ PyNode instance
+// That references a Python instance. The function tries to create a NuPIC 2.0
+// Py node first and if it fails it tries to create a NuPIC 1.x Py node
+void *PyRegion::NTA_createPyNode(const char *module, void *nodeParams,
+                                 void *region, void **exception,
+                                 const char *className) {
+  try {
+    NTA_CHECK(nodeParams != NULL);
+    NTA_CHECK(region != NULL);
 
-      ValueMap * valueMap = static_cast<nupic::ValueMap *>(nodeParams);
-      Region * r = static_cast<nupic::Region*>(region);
-      RegionImpl * p = NULL;
-      p = new nupic::PyRegion(module, *valueMap, r, className);
+    ValueMap *valueMap = static_cast<nupic::ValueMap *>(nodeParams);
+    Region *r = static_cast<nupic::Region *>(region);
+    RegionImpl *p = NULL;
+    p = new nupic::PyRegion(module, *valueMap, r, className);
 
-      return p;
-    }
-    catch (nupic::Exception & e)
-    {
-      *exception = new nupic::Exception(e);
-      return NULL;
-    }
-    catch (...)
-    {
-      return NULL;
-    }
+    return p;
+  } catch (nupic::Exception &e) {
+    *exception = new nupic::Exception(e);
+    return NULL;
+  } catch (...) {
+    return NULL;
   }
+}
 
-  // deserializePyNode is used by the MultinodeFactory to create a C++ PyNode instance
-  // that references a Python instance which has been deserialized from saved state
-  void * PyRegion::NTA_deserializePyNode(const char * module, void * bundle,
-      void * region, void ** exception, const char* className)
-  {
-    try
-    {
-      NTA_CHECK(region != NULL);
+// deserializePyNode is used by the MultinodeFactory to create a C++ PyNode
+// instance that references a Python instance which has been deserialized from
+// saved state
+void *PyRegion::NTA_deserializePyNode(const char *module, void *bundle,
+                                      void *region, void **exception,
+                                      const char *className) {
+  try {
+    NTA_CHECK(region != NULL);
 
-      Region * r = static_cast<nupic::Region*>(region);
-      BundleIO *b = static_cast<nupic::BundleIO*>(bundle);
-      RegionImpl * p = NULL;
-      p = new PyRegion(module, *b, r, className);
-      return p;
-    }
-    catch (nupic::Exception & e)
-    {
-      *exception = new nupic::Exception(e);
-      return NULL;
-    }
-    catch (...)
-    {
-      return NULL;
-    }
+    Region *r = static_cast<nupic::Region *>(region);
+    BundleIO *b = static_cast<nupic::BundleIO *>(bundle);
+    RegionImpl *p = NULL;
+    p = new PyRegion(module, *b, r, className);
+    return p;
+  } catch (nupic::Exception &e) {
+    *exception = new nupic::Exception(e);
+    return NULL;
+  } catch (...) {
+    return NULL;
   }
+}
 
-  void * PyRegion::NTA_deserializePyNodeProto(const char * module, void * proto,
-      void * region, void ** exception, const char* className)
-  {
-    try
-    {
-      NTA_CHECK(region != NULL);
+void *PyRegion::NTA_deserializePyNodeProto(const char *module, void *proto,
+                                           void *region, void **exception,
+                                           const char *className) {
+  try {
+    NTA_CHECK(region != NULL);
 
-      Region * r = static_cast<nupic::Region*>(region);
-      capnp::AnyPointer::Reader *c = static_cast<capnp::AnyPointer::Reader*>(proto);
-      RegionImpl * p = NULL;
-      p = new PyRegion(module, *c, r, className);
-      return p;
-    }
-    catch (nupic::Exception & e)
-    {
-      *exception = new nupic::Exception(e);
-      return NULL;
-    }
-    catch (...)
-    {
-      return NULL;
-    }
+    Region *r = static_cast<nupic::Region *>(region);
+    capnp::AnyPointer::Reader *c =
+        static_cast<capnp::AnyPointer::Reader *>(proto);
+    RegionImpl *p = NULL;
+    p = new PyRegion(module, *c, r, className);
+    return p;
+  } catch (nupic::Exception &e) {
+    *exception = new nupic::Exception(e);
+    return NULL;
+  } catch (...) {
+    return NULL;
   }
+}
 
-  // getLastError() returns the last error message
-  const char * PyRegion::NTA_getLastError()
-  {
-    return lastError;
+// getLastError() returns the last error message
+const char *PyRegion::NTA_getLastError() { return lastError; }
+
+// createSpec is used by the RegionImplFactory to get the node spec
+// and cache it. It is a static function so there is no need to instantiate
+// a dummy node, just to get its node spec.
+void *PyRegion::NTA_createSpec(const char *nodeType, void **exception,
+                               const char *className) {
+  try {
+    return PyRegion::createSpec(nodeType, className);
+  } catch (nupic::Exception &e) {
+    NTA_WARN << "PyRegion::createSpec failed: " << exception;
+
+    *exception = new nupic::Exception(e);
+    return NULL;
+  } catch (...) {
+    return NULL;
   }
+}
 
-  // createSpec is used by the RegionImplFactory to get the node spec
-  // and cache it. It is a static function so there is no need to instantiate
-  // a dummy node, just to get its node spec.
-  void * PyRegion::NTA_createSpec(const char * nodeType, void ** exception, const char* className)
-  {
-    try
-    {
-      return PyRegion::createSpec(nodeType, className);
-    }
-    catch (nupic::Exception & e)
-    {
-      NTA_WARN << "PyRegion::createSpec failed: " << exception;
-
-      *exception = new nupic::Exception(e);
-      return NULL;
-    }
-    catch (...)
-    {
-      return NULL;
-    }
+// destroySpec is used by the RegionImplFactory to destroy
+// a cached node spec.
+int PyRegion::NTA_destroySpec(const char *nodeType, const char *className) {
+  try {
+    PyRegion::destroySpec(nodeType, className);
+    return 0;
+  } catch (...) {
+    return -1;
   }
-
-  // destroySpec is used by the RegionImplFactory to destroy
-  // a cached node spec.
-  int PyRegion::NTA_destroySpec(const char * nodeType, const char* className)
-  {
-    try
-    {
-      PyRegion::destroySpec(nodeType, className);
-      return 0;
-    }
-    catch (...)
-    {
-      return -1;
-    }
-  }
+}
 }
 
 // This map stores the node specs for all the Python nodes
 std::map<std::string, Spec> PyRegion::specs_;
-
 
 //
 // Get the node spec from the underlying Python node
@@ -213,21 +182,18 @@ std::map<std::string, Spec> PyRegion::specs_;
 // Return the node spec pointer (that will be owned
 // by RegionImplFactory.
 //
-Spec * PyRegion::createSpec(const char * nodeType, const char* className)
-{
+Spec *PyRegion::createSpec(const char *nodeType, const char *className) {
   // If the node spec for a node type is requested more than once
   // return the exisiting one from the map.
   std::string name(nodeType);
   std::string realClassName(className);
   name = name + ".";
-  if (!realClassName.empty())
-  {
+  if (!realClassName.empty()) {
     name = name + realClassName;
   }
 
-  if (specs_.find(name) != specs_.end())
-  {
-    Spec & ns = specs_[name];
+  if (specs_.find(name) != specs_.end()) {
+    Spec &ns = specs_[name];
     return &ns;
   }
 
@@ -235,101 +201,87 @@ Spec * PyRegion::createSpec(const char * nodeType, const char* className)
   createSpec(nodeType, ns, className);
 
   specs_[name] = ns;
-  //NTA_DEBUG << "node type: " << nodeType << std::endl;
-  //NTA_DEBUG << specs_[name].toString() << std::endl;
+  // NTA_DEBUG << "node type: " << nodeType << std::endl;
+  // NTA_DEBUG << specs_[name].toString() << std::endl;
   return &specs_[name];
 }
 
-void PyRegion::destroySpec(const char * nodeType, const char* className)
-{
+void PyRegion::destroySpec(const char *nodeType, const char *className) {
   std::string name(nodeType);
   std::string realClassName(className);
   name = name + ".";
-  if (!realClassName.empty())
-  {
+  if (!realClassName.empty()) {
     name = name + realClassName;
   }
 
   specs_.erase(name);
 }
 
-namespace nupic
-{
+namespace nupic {
 
 class RegionImpl;
 
-static PyObject * makePyValue(const Value & v)
-{
+static PyObject *makePyValue(const Value &v) {
   if (v.isArray())
     return array2numpy(*(v.getArray().get()));
 
-  if (v.isString())
-  {
+  if (v.isString()) {
     return py::String(*(v.getString().get())).release();
   }
 
-  switch (v.getType())
-  {
-    case NTA_BasicType_Byte:
-      NTA_THROW << "Scalar parameters of type Byte are not supported";
-      break;
-    case NTA_BasicType_Int16:
-      return py::Long(v.getScalarT<NTA_Int16>()).release();
-    case NTA_BasicType_Int32:
-      return py::Long(v.getScalarT<NTA_Int32>()).release();
-    case NTA_BasicType_Int64:
-      return py::LongLong(v.getScalarT<NTA_Int64>()).release();
-    case NTA_BasicType_UInt16:
-      return py::UnsignedLong(v.getScalarT<NTA_UInt16>()).release();
-    case NTA_BasicType_UInt32:
-      return py::UnsignedLong(v.getScalarT<NTA_UInt32>()).release();
-    case NTA_BasicType_UInt64:
-      return py::UnsignedLongLong(v.getScalarT<NTA_UInt64>()).release();
-    case NTA_BasicType_Real32:
-    {
-      std::stringstream ss;
-      ss << v.getScalarT<NTA_Real32>();
-      return py::Float(ss.str().c_str()).release();
-    }
-    case NTA_BasicType_Real64:
-      return py::Float(v.getScalarT<NTA_Real64>()).release();
-    case NTA_BasicType_Bool:
-      return py::Bool(v.getScalarT<bool>()).release();
-    case NTA_BasicType_Handle:
-      return (PyObject *)(v.getScalarT<NTA_Handle>());
-    default:
-      NTA_THROW << "Invalid type: " << v.getType();
+  switch (v.getType()) {
+  case NTA_BasicType_Byte:
+    NTA_THROW << "Scalar parameters of type Byte are not supported";
+    break;
+  case NTA_BasicType_Int16:
+    return py::Long(v.getScalarT<NTA_Int16>()).release();
+  case NTA_BasicType_Int32:
+    return py::Long(v.getScalarT<NTA_Int32>()).release();
+  case NTA_BasicType_Int64:
+    return py::LongLong(v.getScalarT<NTA_Int64>()).release();
+  case NTA_BasicType_UInt16:
+    return py::UnsignedLong(v.getScalarT<NTA_UInt16>()).release();
+  case NTA_BasicType_UInt32:
+    return py::UnsignedLong(v.getScalarT<NTA_UInt32>()).release();
+  case NTA_BasicType_UInt64:
+    return py::UnsignedLongLong(v.getScalarT<NTA_UInt64>()).release();
+  case NTA_BasicType_Real32: {
+    std::stringstream ss;
+    ss << v.getScalarT<NTA_Real32>();
+    return py::Float(ss.str().c_str()).release();
+  }
+  case NTA_BasicType_Real64:
+    return py::Float(v.getScalarT<NTA_Real64>()).release();
+  case NTA_BasicType_Bool:
+    return py::Bool(v.getScalarT<bool>()).release();
+  case NTA_BasicType_Handle:
+    return (PyObject *)(v.getScalarT<NTA_Handle>());
+  default:
+    NTA_THROW << "Invalid type: " << v.getType();
   }
 }
 
-static void prepareCreationParams(const ValueMap & vm, py::Dict & d)
-{
+static void prepareCreationParams(const ValueMap &vm, py::Dict &d) {
   ValueMap::const_iterator it;
-  for (it = vm.begin(); it != vm.end(); ++it)
-  {
-    try
-    {
+  for (it = vm.begin(); it != vm.end(); ++it) {
+    try {
       py::Ptr v(makePyValue(*(it->second)));
       d.setItem(it->first, v);
-    } catch (Exception& e) {
+    } catch (Exception &e) {
       NTA_THROW << "Unable to create a Python object for parameter '"
                 << it->first << ": " << e.what();
     }
   }
 };
 
-PyRegion::PyRegion(const char * module, const ValueMap & nodeParams, Region *
-                   region, const char* className) :
-  RegionImpl(region),
-  module_(module),
-  className_(className)
-{
+PyRegion::PyRegion(const char *module, const ValueMap &nodeParams,
+                   Region *region, const char *className)
+    : RegionImpl(region), module_(module), className_(className) {
 
   NTA_CHECK(region != NULL);
 
   std::string realClassName(className);
-  if (realClassName.empty())
-  {
+  if (realClassName.empty()) {
     realClassName = Path::getExtension(module_);
   }
 
@@ -343,44 +295,32 @@ PyRegion::PyRegion(const char * module, const ValueMap & nodeParams, Region *
   NTA_CHECK(node_);
 }
 
-PyRegion::PyRegion(const char* module, BundleIO& bundle, Region * region, const
-                   char* className) :
-  RegionImpl(region),
-  module_(module),
-  className_(className)
+PyRegion::PyRegion(const char *module, BundleIO &bundle, Region *region,
+                   const char *className)
+    : RegionImpl(region), module_(module), className_(className)
 
 {
   deserialize(bundle);
   // XXX ADD CHECK TO MAKE SURE THE TYPE MATCHES!
 }
 
-PyRegion::PyRegion(const char * module,
-                   capnp::AnyPointer::Reader& proto,
-                   Region * region,
-                   const char* className):
-  RegionImpl(region),
-  module_(module),
-  className_(className)
-{
+PyRegion::PyRegion(const char *module, capnp::AnyPointer::Reader &proto,
+                   Region *region, const char *className)
+    : RegionImpl(region), module_(module), className_(className) {
   NTA_CHECK(region != NULL);
 
   read(proto);
 }
 
-PyRegion::~PyRegion()
-{
-  for (std::map<std::string, Array*>::iterator i = inputArrays_.begin();
-       i != inputArrays_.end();
-       i++)
-  {
+PyRegion::~PyRegion() {
+  for (std::map<std::string, Array *>::iterator i = inputArrays_.begin();
+       i != inputArrays_.end(); i++) {
     delete i->second;
     i->second = NULL;
   }
-
 }
 
-void PyRegion::serialize(BundleIO& bundle)
-{
+void PyRegion::serialize(BundleIO &bundle) {
   // 1. serialize main state using pickle
   // 2. call class method to serialize external state
 
@@ -415,15 +355,11 @@ void PyRegion::serialize(BundleIO& bundle)
 
   // Need to put the None result in py::Ptr to decrement the ref count
   py::Ptr none1(node_.invoke("serializeExtraData", args1));
-
-
 }
 
-void PyRegion::deserialize(BundleIO& bundle)
-{
+void PyRegion::deserialize(BundleIO &bundle) {
   // 1. deserialize main state using pickle
   // 2. call class method to deserialize external state
-
 
   // 1. de-serialize main state using pickle
   // f = open(path, "rb")  # binary mode needed on windows
@@ -453,21 +389,17 @@ void PyRegion::deserialize(BundleIO& bundle)
 
   // Need to put the None result in py::Ptr to decrement the ref count
   py::Ptr none1(node_.invoke("deSerializeExtraData", args1));
-
 }
 
-void PyRegion::write(capnp::AnyPointer::Builder& proto) const
-{
+void PyRegion::write(capnp::AnyPointer::Builder &proto) const {
 #if !CAPNP_LITE
-  class Helper
-  {
+  class Helper {
   public:
     /**
      * NOTE: We wrap several operations in this method to reduce the number of
      * region data copies (could be huge memory size) that coexist on the heap.
      */
-    static kj::Array<capnp::word> serialize(const py::Instance& node)
-    {
+    static kj::Array<capnp::word> serialize(const py::Instance &node) {
       // Request python object to write itself out and return PyRegionProto
       // serialized as a python byte array
       py::Class pyCapnpHelperCls("nupic.bindings.engine_internal",
@@ -476,15 +408,15 @@ void PyRegion::write(capnp::AnyPointer::Builder& proto) const
       py::Dict kwargs;
       // NOTE py::Dict::setItem doesn't accept a const PyObject*, however we
       // know that we won't modify it, so casting trickery is okay here
-      kwargs.setItem("region",
-                     const_cast<PyObject*>(static_cast<const PyObject*>(node)));
+      kwargs.setItem("region", const_cast<PyObject *>(
+                                   static_cast<const PyObject *>(node)));
       kwargs.setItem("methodName", py::String("write"));
 
       // Wrap result in py::Ptr to force dereferencing when going out of scope
       py::Ptr pyRegionProtoBytes(
-        pyCapnpHelperCls.invoke("writePyRegion", args, kwargs));
+          pyCapnpHelperCls.invoke("writePyRegion", args, kwargs));
 
-      char * srcBytes = nullptr;
+      char *srcBytes = nullptr;
       Py_ssize_t srcNumBytes = 0;
       // NOTE: srcBytes will be set to point to the internal buffer inside
       // pyRegionProtoBytes
@@ -503,7 +435,9 @@ void PyRegion::write(capnp::AnyPointer::Builder& proto) const
   kj::Array<capnp::word> array = Helper::serialize(node_);
 
   // Initialize PyRegionProto::Reader from serialized python region
-  capnp::FlatArrayMessageReader reader(array.asPtr());
+  capnp::ReaderOptions options;
+  options.traversalLimitInWords = kj::maxValue; // Don't limit.
+  capnp::FlatArrayMessageReader reader(array.asPtr(), options);
   PyRegionProto::Reader pyRegionReader = reader.getRoot<PyRegionProto>();
 
   // Assign python region's serialization output to the builder
@@ -515,25 +449,21 @@ void PyRegion::write(capnp::AnyPointer::Builder& proto) const
 #endif
 }
 
-void PyRegion::read(capnp::AnyPointer::Reader& proto)
-{
+void PyRegion::read(capnp::AnyPointer::Reader &proto) {
 #if !CAPNP_LITE
 
-  class Helper
-  {
+  class Helper {
   public:
-    static kj::Array<capnp::word> flatArrayFromReader(
-      PyRegionProto::Reader& reader)
-    {
+    static kj::Array<capnp::word>
+    flatArrayFromReader(PyRegionProto::Reader &reader) {
       // NOTE: this requires conversion to builder, which incurs an additional
       // copy, because readers aren't supported by capnp::messageToFlatArray
       capnp::MallocMessageBuilder builder;
-      builder.setRoot(reader); // copy
+      builder.setRoot(reader);                   // copy
       return capnp::messageToFlatArray(builder); // copy
     }
 
-    static PyObject* pyBytesFromFlatArray(kj::Array<capnp::word> flatArray)
-    {
+    static PyObject *pyBytesFromFlatArray(kj::Array<capnp::word> flatArray) {
       kj::ArrayPtr<kj::byte> byteArray = flatArray.asBytes();
       // Copy from array to PyObject so that we can pass it to the Python layer
       py::String pyRegionBytes((const char *)byteArray.begin(),
@@ -551,14 +481,12 @@ void PyRegion::read(capnp::AnyPointer::Reader& proto)
   // NOTE: the intention of this nested call is to reduce the number of
   // sumulatneously present copies of data to no more than two at any given
   // moment.
-  py::String pyRegionBytes(
-    Helper::pyBytesFromFlatArray(
+  py::String pyRegionBytes(Helper::pyBytesFromFlatArray(
       Helper::flatArrayFromReader(pyRegionReader)));
 
   // Construct the python region instance by thunking into python
   std::string realClassName(className_);
-  if (realClassName.empty())
-  {
+  if (realClassName.empty()) {
     realClassName = Path::getExtension(module_);
   }
 
@@ -573,7 +501,8 @@ void PyRegion::read(capnp::AnyPointer::Reader& proto)
   kwargs.setItem("methodName", py::String("read"));
 
   // Deserialize the data into a new python region and assign it to node_
-  py::Class pyCapnpHelperCls("nupic.bindings.engine_internal", "_PyCapnpHelper");
+  py::Class pyCapnpHelperCls("nupic.bindings.engine_internal",
+                             "_PyCapnpHelper");
   // NOTE: wrap result in py::Ptr so that unnecessary refcount will be
   // decremented upon it going out of scope and after node_.assign increments it
   py::Ptr pyRegionImpl(pyCapnpHelperCls.invoke("readPyRegion", args, kwargs));
@@ -586,8 +515,7 @@ void PyRegion::read(capnp::AnyPointer::Reader& proto)
 #endif
 }
 
-const Spec & PyRegion::getSpec()
-{
+const Spec &PyRegion::getSpec() {
   return *(PyRegion::createSpec(module_.c_str(), className_.c_str()));
 }
 
@@ -597,7 +525,7 @@ const Spec & PyRegion::getSpec()
 //// Return the node spec pointer (that will be owned
 //// by RegionImplFactory.
 ////
-//void PyRegion::createSpec(const char * nodeType, Spec & ns)
+// void PyRegion::createSpec(const char * nodeType, Spec & ns)
 //{
 //  // Get the Python class object
 //  std::string className = Path::getExtension(nodeType);
@@ -642,8 +570,8 @@ const Spec & PyRegion::getSpec()
 //    bool required = py::Int(input.getItem("required")) != 0;
 //    bool regionLevel = py::Int(input.getItem("regionLevel")) != 0;
 //    bool isDefaultInput = py::Int(input.getItem("isDefaultInput")) != 0;
-//    bool requireSplitterMap = py::Int(input.getItem("requireSplitterMap")) != 0;
-//    ns.inputs.add(
+//    bool requireSplitterMap = py::Int(input.getItem("requireSplitterMap")) !=
+//    0; ns.inputs.add(
 //      name,
 //      InputSpec(
 //        description,
@@ -732,8 +660,7 @@ const Spec & PyRegion::getSpec()
 //}
 
 template <typename T, typename PyT>
-T PyRegion::getParameterT(const std::string & name, Int64 index)
-{
+T PyRegion::getParameterT(const std::string &name, Int64 index) {
   py::Tuple args(2);
   args.setItem(0, py::String(name));
   args.setItem(1, py::LongLong(index));
@@ -743,8 +670,7 @@ T PyRegion::getParameterT(const std::string & name, Int64 index)
 }
 
 template <typename T, typename PyT>
-void PyRegion::setParameterT(const std::string & name, Int64 index, T value)
-{
+void PyRegion::setParameterT(const std::string &name, Int64 index, T value) {
   py::Tuple args(3);
   args.setItem(0, py::String(name));
   args.setItem(1, py::LongLong(index));
@@ -753,47 +679,38 @@ void PyRegion::setParameterT(const std::string & name, Int64 index, T value)
   py::Ptr none(node_.invoke("setParameter", args));
 }
 
-Byte PyRegion::getParameterByte(const std::string& name, Int64 index)
-{
+Byte PyRegion::getParameterByte(const std::string &name, Int64 index) {
   return getParameterT<Byte, py::Int>(name, index);
 }
 
-Int32 PyRegion::getParameterInt32(const std::string& name, Int64 index)
-{
-  //return getParameterT<Int32, py::Long>(name, index);
+Int32 PyRegion::getParameterInt32(const std::string &name, Int64 index) {
+  // return getParameterT<Int32, py::Long>(name, index);
   return getParameterT<Int32, py::Int>(name, index);
 }
 
-UInt32 PyRegion::getParameterUInt32(const std::string& name, Int64 index)
-{
+UInt32 PyRegion::getParameterUInt32(const std::string &name, Int64 index) {
   return getParameterT<UInt32, py::UnsignedLong>(name, index);
 }
 
-Int64 PyRegion::getParameterInt64(const std::string& name, Int64 index)
-{
+Int64 PyRegion::getParameterInt64(const std::string &name, Int64 index) {
   return getParameterT<Int64, py::LongLong>(name, index);
 }
 
-UInt64 PyRegion::getParameterUInt64(const std::string& name, Int64 index)
-{
+UInt64 PyRegion::getParameterUInt64(const std::string &name, Int64 index) {
   return getParameterT<UInt64, py::LongLong>(name, index);
 }
 
-Real32 PyRegion::getParameterReal32(const std::string& name, Int64 index)
-{
+Real32 PyRegion::getParameterReal32(const std::string &name, Int64 index) {
   return getParameterT<Real32, py::Float>(name, index);
 }
 
-Real64 PyRegion::getParameterReal64(const std::string& name, Int64 index)
-{
+Real64 PyRegion::getParameterReal64(const std::string &name, Int64 index) {
   return getParameterT<Real64, py::Float>(name, index);
 }
 
-Handle PyRegion::getParameterHandle(const std::string& name, Int64 index)
-{
-  if (name == std::string("self"))
-  {
-    PyObject * o = (PyObject *)node_;
+Handle PyRegion::getParameterHandle(const std::string &name, Int64 index) {
+  if (name == std::string("self")) {
+    PyObject *o = (PyObject *)node_;
     Py_INCREF(o);
     return o;
   }
@@ -801,58 +718,57 @@ Handle PyRegion::getParameterHandle(const std::string& name, Int64 index)
   return getParameterT<Handle, py::Ptr>(name, index);
 }
 
-bool PyRegion::getParameterBool(const std::string& name, Int64 index)
-{
+bool PyRegion::getParameterBool(const std::string &name, Int64 index) {
   return getParameterT<bool, py::Bool>(name, index);
 }
 
-void PyRegion::setParameterByte(const std::string& name, Int64 index, Byte value)
-{
+void PyRegion::setParameterByte(const std::string &name, Int64 index,
+                                Byte value) {
   setParameterT<Byte, py::Int>(name, index, value);
 }
 
-void PyRegion::setParameterInt32(const std::string& name, Int64 index, Int32 value)
-{
+void PyRegion::setParameterInt32(const std::string &name, Int64 index,
+                                 Int32 value) {
   setParameterT<Int32, py::Long>(name, index, value);
 }
 
-void PyRegion::setParameterUInt32(const std::string& name, Int64 index, UInt32 value)
-{
+void PyRegion::setParameterUInt32(const std::string &name, Int64 index,
+                                  UInt32 value) {
   setParameterT<UInt32, py::UnsignedLong>(name, index, value);
 }
 
-void PyRegion::setParameterInt64(const std::string& name, Int64 index, Int64 value)
-{
+void PyRegion::setParameterInt64(const std::string &name, Int64 index,
+                                 Int64 value) {
   setParameterT<Int64, py::LongLong>(name, index, value);
 }
 
-void PyRegion::setParameterUInt64(const std::string& name, Int64 index, UInt64 value)
-{
+void PyRegion::setParameterUInt64(const std::string &name, Int64 index,
+                                  UInt64 value) {
   setParameterT<UInt64, py::UnsignedLongLong>(name, index, value);
 }
 
-void PyRegion::setParameterReal32(const std::string& name, Int64 index, Real32 value)
-{
+void PyRegion::setParameterReal32(const std::string &name, Int64 index,
+                                  Real32 value) {
   setParameterT<Real32, py::Float>(name, index, value);
 }
 
-void PyRegion::setParameterReal64(const std::string& name, Int64 index, Real64 value)
-{
+void PyRegion::setParameterReal64(const std::string &name, Int64 index,
+                                  Real64 value) {
   setParameterT<Real64, py::Float>(name, index, value);
 }
 
-void PyRegion::setParameterHandle(const std::string& name, Int64 index, Handle value)
-{
+void PyRegion::setParameterHandle(const std::string &name, Int64 index,
+                                  Handle value) {
   setParameterT<PyObject *, py::Ptr>(name, index, (PyObject *)value);
 }
 
-void PyRegion::setParameterBool(const std::string& name, Int64 index, bool value)
-{
+void PyRegion::setParameterBool(const std::string &name, Int64 index,
+                                bool value) {
   setParameterT<bool, py::Bool>(name, index, value);
 }
 
-void PyRegion::getParameterArray(const std::string& name, Int64 index, Array & a)
-{
+void PyRegion::getParameterArray(const std::string &name, Int64 index,
+                                 Array &a) {
   py::Tuple args(3);
   args.setItem(0, py::String(name));
   args.setItem(1, py::LongLong(index));
@@ -862,8 +778,8 @@ void PyRegion::getParameterArray(const std::string& name, Int64 index, Array & a
   py::Ptr none(node_.invoke("getParameterArray", args));
 }
 
-void PyRegion::setParameterArray(const std::string& name, Int64 index, const Array & a)
-{
+void PyRegion::setParameterArray(const std::string &name, Int64 index,
+                                 const Array &a) {
   py::Tuple args(3);
   args.setItem(0, py::String(name));
   args.setItem(1, py::LongLong(index));
@@ -873,18 +789,17 @@ void PyRegion::setParameterArray(const std::string& name, Int64 index, const Arr
   py::Ptr none(node_.invoke("setParameterArray", args));
 }
 
-std::string PyRegion::getParameterString(const std::string& name, Int64 index)
-{
+std::string PyRegion::getParameterString(const std::string &name, Int64 index) {
   py::Tuple args(2);
   args.setItem(0, py::String(name));
   args.setItem(1, py::LongLong(index));
 
   py::String result(node_.invoke("getParameter", args));
-  return (const char*)result;
+  return (const char *)result;
 }
 
-void PyRegion::setParameterString(const std::string& name, Int64 index, const std::string& value)
-{
+void PyRegion::setParameterString(const std::string &name, Int64 index,
+                                  const std::string &value) {
   py::Tuple args(3);
   args.setItem(0, py::String(name));
   args.setItem(1, py::LongLong(index));
@@ -892,27 +807,21 @@ void PyRegion::setParameterString(const std::string& name, Int64 index, const st
   py::Ptr none(node_.invoke("setParameter", args));
 }
 
-void PyRegion::getParameterFromBuffer(const std::string& name,
-                                     Int64 index,
-                                     IWriteBuffer& value)
-{
+void PyRegion::getParameterFromBuffer(const std::string &name, Int64 index,
+                                      IWriteBuffer &value) {
   // we override getParameterX for every type, so this should never
   // be called
   NTA_THROW << "::getParameterFromBuffer should not have been called";
 }
 
-
-void PyRegion::setParameterFromBuffer(const std::string& name,
-                            Int64 index,
-                            IReadBuffer& value)
-{
+void PyRegion::setParameterFromBuffer(const std::string &name, Int64 index,
+                                      IReadBuffer &value) {
   // we override getParameterX for every type, so this should never
   // be called
   NTA_THROW << "::setParameterFromBuffer should not have been called";
 }
 
-size_t PyRegion::getParameterArrayCount(const std::string& name, Int64 index)
-{
+size_t PyRegion::getParameterArrayCount(const std::string &name, Int64 index) {
   py::Tuple args(2);
   args.setItem(0, py::String(name));
   args.setItem(1, py::LongLong(index));
@@ -922,8 +831,7 @@ size_t PyRegion::getParameterArrayCount(const std::string& name, Int64 index)
   return size_t(result);
 }
 
-size_t PyRegion::getNodeOutputElementCount(const std::string& outputName)
-{
+size_t PyRegion::getNodeOutputElementCount(const std::string &outputName) {
   py::Tuple args(1);
   args.setItem(0, py::String(outputName));
 
@@ -932,14 +840,13 @@ size_t PyRegion::getNodeOutputElementCount(const std::string& outputName)
   return size_t(result);
 }
 
-std::string PyRegion::executeCommand(const std::vector<std::string>& args, Int64 index)
-{
+std::string PyRegion::executeCommand(const std::vector<std::string> &args,
+                                     Int64 index) {
   py::String cmd(args[0]);
   py::Tuple t(args.size() - 1);
-  for (size_t i = 1; i < args.size(); ++i)
-  {
+  for (size_t i = 1; i < args.size(); ++i) {
     py::String s(args[i]);
-    t.setItem(i-1, s);
+    t.setItem(i - 1, s);
   }
 
   py::Tuple commandArgs(2);
@@ -949,54 +856,56 @@ std::string PyRegion::executeCommand(const std::vector<std::string>& args, Int64
   py::Instance res(node_.invoke("executeMethod", commandArgs));
 
   py::String s(res.invoke("__str__", py::Tuple()));
-  const char * ss = (const char *)s;
+  const char *ss = (const char *)s;
   std::string result(ss);
 
   return ss;
 }
 
-void PyRegion::compute()
-{
-  const Spec & ns = getSpec();
+void PyRegion::compute() {
+  const Spec &ns = getSpec();
   // Prepare the inputs dict
   py::Dict inputs;
-  for (size_t i = 0; i < ns.inputs.getCount(); ++i)
-  {
+  for (size_t i = 0; i < ns.inputs.getCount(); ++i) {
     // Get the current InputSpec object
-    const std::pair<std::string, InputSpec> & p =
-      ns.inputs.getByIndex(i);
+    const std::pair<std::string, InputSpec> &p = ns.inputs.getByIndex(i);
 
     // Get the corresponding input buffer
-    Input * inp = region_->getInput(p.first);
+    Input *inp = region_->getInput(p.first);
     NTA_CHECK(inp);
 
-    // Set pa to point to the original input array
-    const Array * pa = &(inp->getData());
+    // Skip unlinked inputs
+    if (inp->getLinks().empty())
+      continue;
 
-    // Skip unlinked inputs of size 0
-    if (pa->getCount() == 0)
+    // Set pa to point to the original input array
+    const Array *pa = &(inp->getData());
+
+    // Skip dense inputs of size 0
+    if (!inp->isSparse() && pa->getCount() == 0)
       continue;
 
     // If the input requires a splitter map then
     // Copy the original input array to the stored input array, which is larger
-    // by one element and put 0 in the extra element. This is needed for splitter map
-    // access.
-    if (p.second.requireSplitterMap)
-    {
+    // by one element and put 0 in the extra element. This is needed for
+    // splitter map access.
+    if (p.second.requireSplitterMap) {
       // Verify that this input has a stored input array
       NTA_ASSERT(inputArrays_.find(p.first) != inputArrays_.end());
-      Array & a = *(inputArrays_[p.first]);
+      Array &a = *(inputArrays_[p.first]);
 
-      // Verify that the stored input array is larger by 1  then the original input
+      // Verify that the stored input array is larger by 1  then the original
+      // input
       NTA_ASSERT(a.getCount() == pa->getCount() + 1);
 
       // Work at the char * level because there is no good way
-      // to work with the actual data type of the input (since the buffer is void *)
+      // to work with the actual data type of the input (since the buffer is
+      // void *)
       size_t itemSize = BasicType::getSize(p.second.dataType);
-      char * begin1 = (char *)pa->getBuffer();
-      char * end1 = begin1 + pa->getCount() * itemSize;
-      char * begin2 = (char *)a.getBuffer();
-      char * end2 = begin2 + a.getCount() * itemSize;
+      char *begin1 = (char *)pa->getBuffer();
+      char *end1 = begin1 + pa->getCount() * itemSize;
+      char *begin2 = (char *)a.getBuffer();
+      char *end2 = begin2 + a.getCount() * itemSize;
 
       // Copy the original input array to the stored array
       std::copy(begin1, end1, begin2);
@@ -1017,24 +926,43 @@ void PyRegion::compute()
 
   // Prepare the outputs dict
   py::Dict outputs;
-  for (size_t i = 0; i < ns.outputs.getCount(); ++i)
-  {
+  for (size_t i = 0; i < ns.outputs.getCount(); ++i) {
     // Get the current OutputSpec object
-    const std::pair<std::string, OutputSpec> & p =
-      ns.outputs.getByIndex(i);
+    const std::pair<std::string, OutputSpec> &p = ns.outputs.getByIndex(i);
 
     // Get the corresponding output buffer
-    Output * out = region_->getOutput(p.first);
+    Output *out = region_->getOutput(p.first);
     // Skip optional outputs
     if (!out)
       continue;
 
-    const Array & data = out->getData();
+    const Array &data = out->getData();
 
+    // Resize sparse outputs to max count to reserve enough space in the
+    // numpyArray.
+    if (out->isSparse()) {
+      // Remove 'const' to update the variable length array
+      Array &data = const_cast<Array &>(out->getData());
+      data.setCount(data.getMaxElementsCount());
+    }
     py::Ptr numpyArray(array2numpy(data));
 
     // Insert the buffer to the outputs py::Dict
     outputs.setItem(p.first, numpyArray);
+
+    // Add sparse output len placeholder field
+    if (out->isSparse()) {
+      // The region output memory is owned by the c++ and cannot be changed from
+      // python. We use a special attribule named "__{name}_len__" to pass
+      // the sparse array length back to c++
+      std::stringstream name;
+      name << "__" << p.first << "_len__";
+
+      // The outputs dict is immutable. Use a list to enable update from python
+      py::List len;
+      len.append(py::Int(0l));
+      outputs.setItem(name.str(), len);
+    }
   }
 
   // Call the Python compute() method
@@ -1044,8 +972,27 @@ void PyRegion::compute()
 
   // Need to put the None result in py::Ptr to decrement the ref count
   py::Ptr none(node_.invoke("guardedCompute", args));
-}
 
+  // Resize sparse outputs
+  for (size_t i = 0; i < ns.outputs.getCount(); ++i) {
+    const std::pair<std::string, OutputSpec> &p = ns.outputs.getByIndex(i);
+    // Get the corresponding output buffer
+    Output *out = region_->getOutput(p.first);
+    // Skip optional outputs
+    if (!out)
+      continue;
+
+    if (out->isSparse()) {
+      std::stringstream name;
+      name << "__" << p.first << "_len__";
+      py::List len(outputs.getItem(name.str()));
+
+      // Remove 'const' to update the variable length array
+      Array &data = const_cast<Array &>(out->getData());
+      data.setCount(py::Int(len.getItem(0)));
+    }
+  }
+}
 
 //
 // Get the node spec from the underlying Python node
@@ -1053,12 +1000,11 @@ void PyRegion::compute()
 // Return the node spec pointer (that will be owned
 // by RegionImplFactory.
 //
-void PyRegion::createSpec(const char * nodeType, Spec & ns, const char* className)
-{
+void PyRegion::createSpec(const char *nodeType, Spec &ns,
+                          const char *className) {
   // Get the Python class object
   std::string realClassName(className);
-  if (realClassName.empty())
-  {
+  if (realClassName.empty()) {
     realClassName = Path::getExtension(nodeType);
   }
 
@@ -1077,7 +1023,7 @@ void PyRegion::createSpec(const char * nodeType, Spec & ns, const char* classNam
 
   // Extract the 4 dicts from the node spec
   py::Dict inputs(nodeSpec.getItem("inputs", py::Dict()));
-  //NTA_DEBUG << "'inputs' type: " << inputs.getTypeName();
+  // NTA_DEBUG << "'inputs' type: " << inputs.getTypeName();
 
   py::Dict outputs(nodeSpec.getItem("outputs", py::Dict()));
   py::Dict parameters(nodeSpec.getItem("parameters", py::Dict()));
@@ -1086,14 +1032,13 @@ void PyRegion::createSpec(const char * nodeType, Spec & ns, const char* classNam
   // key, value and pos are used to iterate over the
   // inputs, outputs, parameters and commands dicts
   // of the Python node spec
-  PyObject * key;
-  PyObject * value;
+  PyObject *key;
+  PyObject *value;
   Py_ssize_t pos;
 
   // Add inputs
   pos = 0;
-  while (PyDict_Next(inputs, &pos, &key, &value))
-  {
+  while (PyDict_Next(inputs, &pos, &key, &value)) {
     // key and value are borrowed from the dict. Their ref count
     // must be incremented so they can be used with
     // the Py helpers safely
@@ -1106,7 +1051,8 @@ void PyRegion::createSpec(const char * nodeType, Spec & ns, const char* classNam
     // Add an InputSpec object for each input spec dict
     std::ostringstream inputMessagePrefix;
     inputMessagePrefix << "Region " << realClassName
-      << " spec has missing key for input section " << name << ": ";
+                       << " spec has missing key for input section " << name
+                       << ": ";
 
     NTA_ASSERT(input.getItem("description") != nullptr)
         << inputMessagePrefix.str() << "description";
@@ -1135,9 +1081,8 @@ void PyRegion::createSpec(const char * nodeType, Spec & ns, const char* classNam
 
     // make regionLevel optional and default to true.
     bool regionLevel = true;
-    if (input.getItem("regionLevel") != nullptr)
-    {
-       regionLevel = py::Int(input.getItem("regionLevel")) != 0;
+    if (input.getItem("regionLevel") != nullptr) {
+      regionLevel = py::Int(input.getItem("regionLevel")) != 0;
     }
 
     NTA_ASSERT(input.getItem("isDefaultInput") != nullptr)
@@ -1146,27 +1091,24 @@ void PyRegion::createSpec(const char * nodeType, Spec & ns, const char* classNam
 
     // make requireSplitterMap optional and default to false.
     bool requireSplitterMap = false;
-    if (input.getItem("requireSplitterMap") != nullptr)
-    {
-      requireSplitterMap =  py::Int(input.getItem("requireSplitterMap")) != 0;
+    if (input.getItem("requireSplitterMap") != nullptr) {
+      requireSplitterMap = py::Int(input.getItem("requireSplitterMap")) != 0;
     }
 
-    ns.inputs.add(
-      name,
-      InputSpec(
-        description,
-        dataType,
-        count,
-        required,
-        regionLevel,
-        isDefaultInput,
-        requireSplitterMap));
+    // make sparse optional and default to false.
+    bool sparse = false;
+    if (input.getItem("sparse") != nullptr) {
+      sparse = py::Int(input.getItem("sparse")) != 0;
+    }
+
+    ns.inputs.add(name,
+                  InputSpec(description, dataType, count, required, regionLevel,
+                            isDefaultInput, requireSplitterMap, sparse));
   }
 
   // Add outputs
   pos = 0;
-  while (PyDict_Next(outputs, &pos, &key, &value))
-  {
+  while (PyDict_Next(outputs, &pos, &key, &value)) {
     // key and value are borrowed from the dict. Their ref count
     // must be incremented so they can be used with
     // the Py helpers safely
@@ -1179,7 +1121,8 @@ void PyRegion::createSpec(const char * nodeType, Spec & ns, const char* classNam
     // Add an OutputSpec object for each output spec dict
     std::ostringstream outputMessagePrefix;
     outputMessagePrefix << "Region " << realClassName
-      << " spec has missing key for output section " << name << ": ";
+                        << " spec has missing key for output section " << name
+                        << ": ";
 
     NTA_ASSERT(output.getItem("description") != nullptr)
         << outputMessagePrefix.str() << "description";
@@ -1204,29 +1147,27 @@ void PyRegion::createSpec(const char * nodeType, Spec & ns, const char* classNam
 
     // make regionLevel optional and default to true.
     bool regionLevel = true;
-    if (output.getItem("regionLevel") != nullptr)
-    {
-       regionLevel = py::Int(output.getItem("regionLevel")) != 0;
+    if (output.getItem("regionLevel") != nullptr) {
+      regionLevel = py::Int(output.getItem("regionLevel")) != 0;
     }
 
     NTA_ASSERT(output.getItem("isDefaultOutput") != nullptr)
         << outputMessagePrefix.str() << "isDefaultOutput";
     bool isDefaultOutput = py::Int(output.getItem("isDefaultOutput")) != 0;
 
-    ns.outputs.add(
-      name,
-      OutputSpec(
-        description,
-        dataType,
-        count,
-        regionLevel,
-        isDefaultOutput));
+    // make sparse optional and default to true.
+    bool sparse = false;
+    if (output.getItem("sparse") != nullptr) {
+      sparse = py::Int(output.getItem("sparse")) != 0;
+    }
+
+    ns.outputs.add(name, OutputSpec(description, dataType, count, regionLevel,
+                                    isDefaultOutput, sparse));
   }
 
   // Add parameters
   pos = 0;
-  while (PyDict_Next(parameters, &pos, &key, &value))
-  {
+  while (PyDict_Next(parameters, &pos, &key, &value)) {
     // key and value are borrowed from the dict. Their ref count
     // must be incremented so they can be used with
     // the Py helpers safely
@@ -1239,7 +1180,8 @@ void PyRegion::createSpec(const char * nodeType, Spec & ns, const char* classNam
     // Add an ParameterSpec object for each output spec dict
     std::ostringstream parameterMessagePrefix;
     parameterMessagePrefix << "Region " << realClassName
-      << " spec has missing key for parameter section " << name << ": ";
+                           << " spec has missing key for parameter section "
+                           << name << ": ";
 
     NTA_ASSERT(parameter.getItem("description") != nullptr)
         << parameterMessagePrefix.str() << "description";
@@ -1262,10 +1204,9 @@ void PyRegion::createSpec(const char * nodeType, Spec & ns, const char* classNam
         << parameterMessagePrefix.str() << "count";
     UInt32 count = py::Int(parameter.getItem("count"));
 
-
     std::string constraints;
     // This parameter is optional
-    if (parameter.getItem("constraints") != nullptr){
+    if (parameter.getItem("constraints") != nullptr) {
       constraints = py::String(parameter.getItem("constraints"));
     } else {
       constraints = py::String("");
@@ -1286,8 +1227,7 @@ void PyRegion::createSpec(const char * nodeType, Spec & ns, const char* classNam
 
     // Get default value as a string if it's a create parameter
     std::string defaultValue;
-    if (am == "Create")
-    {
+    if (am == "Create") {
       NTA_ASSERT(parameter.getItem("defaultValue") != nullptr)
           << parameterMessagePrefix.str() << "defaultValue";
       py::Instance dv(parameter.getItem("defaultValue"));
@@ -1297,32 +1237,20 @@ void PyRegion::createSpec(const char * nodeType, Spec & ns, const char* classNam
     if (defaultValue == "None")
       defaultValue = "";
 
-    ns.parameters.add(
-      name,
-      ParameterSpec(
-        description,
-        dataType,
-        count,
-        constraints,
-        defaultValue,
-        accessMode));
+    ns.parameters.add(name,
+                      ParameterSpec(description, dataType, count, constraints,
+                                    defaultValue, accessMode));
   }
 
   // Add the automatic "self" parameter
   ns.parameters.add(
-    "self",
-    ParameterSpec(
-      "The PyObject * of the region's Python classd",
-      NTA_BasicType_Handle,
-      1,
-      "",
-      "",
-      ParameterSpec::ReadOnlyAccess));
+      "self", ParameterSpec("The PyObject * of the region's Python classd",
+                            NTA_BasicType_Handle, 1, "", "",
+                            ParameterSpec::ReadOnlyAccess));
 
   // Add commands
   pos = 0;
-  while (PyDict_Next(commands, &pos, &key, &value))
-  {
+  while (PyDict_Next(commands, &pos, &key, &value)) {
     // key and value are borrowed from the dict. Their ref count
     // must be incremented so they can be used with
     // the Py helpers safely
@@ -1335,24 +1263,21 @@ void PyRegion::createSpec(const char * nodeType, Spec & ns, const char* classNam
     // Add a CommandSpec object for each output spec dict
     std::ostringstream commandsMessagePrefix;
     commandsMessagePrefix << "Region " << realClassName
-      << " spec has missing key for commands section " << name << ": ";
+                          << " spec has missing key for commands section "
+                          << name << ": ";
 
     NTA_ASSERT(command.getItem("description") != nullptr)
         << commandsMessagePrefix.str() << "description";
     std::string description(py::String(command.getItem("description")));
 
-    ns.commands.add(
-      name,
-      CommandSpec(description));
+    ns.commands.add(name, CommandSpec(description));
   }
 }
 
-void PyRegion::initialize()
-{
+void PyRegion::initialize() {
   // Call the Python initialize() method
   // Need to put the None result in py::Ptr, so decrement the ref count
   py::Ptr none(node_.invoke("initialize", py::Tuple()));
 }
-
 
 } // end namespace nupic

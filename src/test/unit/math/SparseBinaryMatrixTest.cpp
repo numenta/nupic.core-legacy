@@ -26,18 +26,16 @@
 
 #include <capnp/message.h>
 #include <capnp/serialize.h>
-#include <kj/std/iostream.h>
 #include <gtest/gtest.h>
+#include <kj/std/iostream.h>
 
 #include <nupic/math/SparseBinaryMatrix.hpp>
 #include <nupic/proto/SparseBinaryMatrixProto.capnp.h>
 #include <nupic/types/Types.h>
 
-
 using namespace nupic;
 
-TEST(SparseBinaryMatrixReadWrite, EmptyMatrix)
-{
+TEST(SparseBinaryMatrixReadWrite, EmptyMatrix) {
   SparseBinaryMatrix<UInt32, UInt32> m1, m2;
 
   m1.resize(3, 4);
@@ -46,7 +44,8 @@ TEST(SparseBinaryMatrixReadWrite, EmptyMatrix)
 
   // write
   capnp::MallocMessageBuilder message1;
-  SparseBinaryMatrixProto::Builder protoBuilder = message1.initRoot<SparseBinaryMatrixProto>();
+  SparseBinaryMatrixProto::Builder protoBuilder =
+      message1.initRoot<SparseBinaryMatrixProto>();
   m1.write(protoBuilder);
   kj::std::StdOutputStream out(ss);
   capnp::writeMessage(out, message1);
@@ -54,7 +53,8 @@ TEST(SparseBinaryMatrixReadWrite, EmptyMatrix)
   // read
   kj::std::StdInputStream in(ss);
   capnp::InputStreamMessageReader message2(in);
-  SparseBinaryMatrixProto::Reader protoReader = message2.getRoot<SparseBinaryMatrixProto>();
+  SparseBinaryMatrixProto::Reader protoReader =
+      message2.getRoot<SparseBinaryMatrixProto>();
   m2.read(protoReader);
 
   // compare
@@ -62,8 +62,7 @@ TEST(SparseBinaryMatrixReadWrite, EmptyMatrix)
   ASSERT_EQ(m1.nCols(), m2.nCols()) << "Number of columns don't match";
 }
 
-TEST(SparseBinaryMatrixReadWrite, Basic)
-{
+TEST(SparseBinaryMatrixReadWrite, Basic) {
   SparseBinaryMatrix<UInt, Real> m1, m2;
 
   m1.resize(3, 4);
@@ -73,7 +72,8 @@ TEST(SparseBinaryMatrixReadWrite, Basic)
 
   // write
   capnp::MallocMessageBuilder message1;
-  SparseBinaryMatrixProto::Builder protoBuilder = message1.initRoot<SparseBinaryMatrixProto>();
+  SparseBinaryMatrixProto::Builder protoBuilder =
+      message1.initRoot<SparseBinaryMatrixProto>();
   m1.write(protoBuilder);
   kj::std::StdOutputStream out(ss);
   capnp::writeMessage(out, message1);
@@ -81,7 +81,8 @@ TEST(SparseBinaryMatrixReadWrite, Basic)
   // read
   kj::std::StdInputStream in(ss);
   capnp::InputStreamMessageReader message2(in);
-  SparseBinaryMatrixProto::Reader protoReader = message2.getRoot<SparseBinaryMatrixProto>();
+  SparseBinaryMatrixProto::Reader protoReader =
+      message2.getRoot<SparseBinaryMatrixProto>();
   m2.read(protoReader);
 
   // compare
@@ -96,4 +97,3 @@ TEST(SparseBinaryMatrixReadWrite, Basic)
   ASSERT_EQ(m1r1[0], 1) << "Invalid col index in original matrix";
   ASSERT_EQ(m1r1[0], m2r1[0]) << "Invalid col index in copied matrix";
 }
-

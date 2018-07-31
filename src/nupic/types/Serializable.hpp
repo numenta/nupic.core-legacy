@@ -35,37 +35,35 @@
 
 namespace nupic {
 
-  /**
-   * Base Serializable class that any serializable class
-   * should inherit from.
-   */
-  template <class ProtoT>
-  class Serializable {
-    public:
-      void write(std::ostream& stream) const
-      {
-        capnp::MallocMessageBuilder message;
-        typename ProtoT::Builder proto = message.initRoot<ProtoT>();
-        write(proto);
+/**
+ * Base Serializable class that any serializable class
+ * should inherit from.
+ */
+template <class ProtoT> class Serializable {
+public:
+  void write(std::ostream &stream) const {
+    capnp::MallocMessageBuilder message;
+    typename ProtoT::Builder proto = message.initRoot<ProtoT>();
+    write(proto);
 
-        kj::std::StdOutputStream out(stream);
-        capnp::writeMessage(out, message);
-      }
+    kj::std::StdOutputStream out(stream);
+    capnp::writeMessage(out, message);
+  }
 
-      void read(std::istream& stream)
-      {
-        kj::std::StdInputStream in(stream);
+  void read(std::istream &stream) {
+    kj::std::StdInputStream in(stream);
+    capnp::ReaderOptions options;
+    options.traversalLimitInWords = kj::maxValue; // Don't limit.
+    capnp::InputStreamMessageReader message(in, options);
+    typename ProtoT::Reader proto = message.getRoot<ProtoT>();
+    read(proto);
+  }
 
-        capnp::InputStreamMessageReader message(in);
-        typename ProtoT::Reader proto = message.getRoot<ProtoT>();
-        read(proto);
-      }
+  virtual void write(typename ProtoT::Builder &proto) const = 0;
+  virtual void read(typename ProtoT::Reader &proto) = 0;
 
-      virtual void write(typename ProtoT::Builder& proto) const = 0;
-      virtual void read(typename ProtoT::Reader& proto) = 0;
-
-      virtual ~Serializable() {}
-  };
+  virtual ~Serializable() {}
+};
 
 } // end namespace nupic
 #endif // NTA_serializable_HPP

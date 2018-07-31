@@ -29,9 +29,7 @@
 using nupic::Real32;
 using nupic::util::MovingAverage;
 
-
-TEST(MovingAverage, Instance)
-{
+TEST(MovingAverage, Instance) {
   MovingAverage m{3};
   Real32 newAverage;
 
@@ -72,9 +70,7 @@ TEST(MovingAverage, Instance)
   }
 };
 
-
-TEST(MovingAverage, SlidingWindowInit)
-{
+TEST(MovingAverage, SlidingWindowInit) {
   std::vector<Real32> existingHistorical = {3.0, 4.0, 5.0};
   MovingAverage m{3, existingHistorical};
   ASSERT_EQ(m.getData(), existingHistorical);
@@ -84,9 +80,7 @@ TEST(MovingAverage, SlidingWindowInit)
   ASSERT_EQ(m2.getData(), emptyVector);
 }
 
-
-TEST(MovingAverage, EqualsOperator)
-{
+TEST(MovingAverage, EqualsOperator) {
   MovingAverage ma{3};
   MovingAverage maP{3};
   ASSERT_EQ(ma, maP);

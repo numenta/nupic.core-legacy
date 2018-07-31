@@ -24,41 +24,40 @@
  * Implementation of Input test
  */
 
+#include "gtest/gtest.h"
 #include <nupic/engine/Input.hpp>
 #include <nupic/engine/Network.hpp>
 #include <nupic/engine/Output.hpp>
 #include <nupic/engine/Region.hpp>
 #include <nupic/engine/TestNode.hpp>
 #include <nupic/ntypes/Dimensions.hpp>
-#include "gtest/gtest.h"
 
 using namespace nupic;
 
-TEST(InputTest, BasicNetworkConstruction)
-{
+TEST(InputTest, BasicNetworkConstruction) {
   Network net;
-  Region * r1 = net.addRegion("r1", "TestNode", "");
-  Region * r2 = net.addRegion("r2", "TestNode", "");
+  Region *r1 = net.addRegion("r1", "TestNode", "");
+  Region *r2 = net.addRegion("r2", "TestNode", "");
 
-  //Test constructor
+  // Test constructor
   Input x(*r1, NTA_BasicType_Int32, true);
   Input y(*r2, NTA_BasicType_Byte, false);
   EXPECT_THROW(Input i(*r1, (NTA_BasicType)(NTA_BasicType_Last + 1), true),
                std::exception);
 
-  //test getRegion()
+  // test getRegion()
   ASSERT_EQ(r1, &(x.getRegion()));
   ASSERT_EQ(r2, &(y.getRegion()));
 
-  //test isRegionLevel()
+  // test isRegionLevel()
   ASSERT_TRUE(x.isRegionLevel());
-  ASSERT_TRUE(! y.isRegionLevel());
+  ASSERT_TRUE(!y.isRegionLevel());
 
-  //test isInitialized()
-  ASSERT_TRUE(! x.isInitialized());
-  ASSERT_TRUE(! y.isInitialized());
+  // test isInitialized()
+  ASSERT_TRUE(!x.isInitialized());
+  ASSERT_TRUE(!y.isInitialized());
 
-  //test one case of initialize()
+  // test one case of initialize()
   EXPECT_THROW(x.initialize(), std::exception);
   EXPECT_THROW(y.initialize(), std::exception);
 
@@ -75,85 +74,83 @@ TEST(InputTest, BasicNetworkConstruction)
   x.initialize();
   y.initialize();
 
-  //test evaluateLinks()
-  //should return 0 because x is initialized
+  // test evaluateLinks()
+  // should return 0 because x is initialized
   ASSERT_EQ(0u, x.evaluateLinks());
-  //should return 0 because there are no links
+  // should return 0 because there are no links
   ASSERT_EQ(0u, y.evaluateLinks());
 
-  //test getData()
-  const ArrayBase * pa = &(y.getData());
+  // test getData()
+  const ArrayBase *pa = &(y.getData());
   ASSERT_EQ(0u, pa->getCount());
-  Real64* buf = (Real64*)(pa->getBuffer());
+  Real64 *buf = (Real64 *)(pa->getBuffer());
   ASSERT_TRUE(buf != nullptr);
 }
 
-
-TEST(InputTest, SplitterMap)
-{
+TEST(InputTest, SplitterMap) {
   Network net;
-  Region * region1 = net.addRegion("region1", "TestNode", "");
-  Region * region2 = net.addRegion("region2", "TestNode", "");
+  Region *region1 = net.addRegion("region1", "TestNode", "");
+  Region *region2 = net.addRegion("region2", "TestNode", "");
 
   Dimensions d1;
   d1.push_back(8);
   d1.push_back(4);
   region1->setDimensions(d1);
 
-  //test addLink() indirectly - it is called by Network::link()
+  // test addLink() indirectly - it is called by Network::link()
   net.link("region1", "region2", "TestFanIn2", "");
 
-  //test initialize(), which is called by net.initialize()
+  // test initialize(), which is called by net.initialize()
   net.initialize();
 
   Dimensions d2 = region2->getDimensions();
-  Input * in1 = region1->getInput("bottomUpIn");
-  Input * in2 = region2->getInput("bottomUpIn");
-  Output * out1 = region1->getOutput("bottomUpOut");
+  Input *in1 = region1->getInput("bottomUpIn");
+  Input *in2 = region2->getInput("bottomUpIn");
+  Output *out1 = region1->getOutput("bottomUpOut");
 
-  //test isInitialized()
+  // test isInitialized()
   ASSERT_TRUE(in1->isInitialized());
   ASSERT_TRUE(in2->isInitialized());
 
-  //test evaluateLinks(), in1 already initialized
+  // test evaluateLinks(), in1 already initialized
   ASSERT_EQ(0u, in1->evaluateLinks());
   ASSERT_EQ(0u, in2->evaluateLinks());
 
-  //test prepare
+  // test prepare
   {
-    //set in2 to all zeroes
-    const ArrayBase * ai2 = &(in2->getData());
-    Real64* idata = (Real64*)(ai2->getBuffer());
+    // set in2 to all zeroes
+    const ArrayBase *ai2 = &(in2->getData());
+    Real64 *idata = (Real64 *)(ai2->getBuffer());
     for (UInt i = 0; i < 64; i++)
       idata[i] = 0;
 
-    //set out1 to all 10's
-    const ArrayBase * ao1 = &(out1->getData());
-    idata = (Real64*)(ao1->getBuffer());
+    // set out1 to all 10's
+    const ArrayBase *ao1 = &(out1->getData());
+    idata = (Real64 *)(ao1->getBuffer());
     for (UInt i = 0; i < 64; i++)
       idata[i] = 10;
 
-    //confirm that in2 is still all zeroes
+    // confirm that in2 is still all zeroes
     ai2 = &(in2->getData());
-    idata = (Real64*)(ai2->getBuffer());
-    //only test 4 instead of 64 to cut down on number of tests
+    idata = (Real64 *)(ai2->getBuffer());
+    // only test 4 instead of 64 to cut down on number of tests
     for (UInt i = 0; i < 4; i++)
       ASSERT_EQ(0, idata[i]);
 
     in2->prepare();
 
-    //confirm that in2 is now all 10's
+    // confirm that in2 is now all 10's
     ai2 = &(in2->getData());
-    idata = (Real64*)(ai2->getBuffer());
-    //only test 4 instead of 64 to cut down on number of tests
+    idata = (Real64 *)(ai2->getBuffer());
+    // only test 4 instead of 64 to cut down on number of tests
     for (UInt i = 0; i < 4; i++)
       ASSERT_EQ(10, idata[i]);
   }
 
   net.run(2);
 
-  //test getSplitterMap()
-  std::vector< std::vector<size_t> > sm;
+  // test getSplitterMap()
+  std::vector<std::vector<size_t>> sm;
   sm = in2->getSplitterMap();
   ASSERT_EQ(8u, sm.size());
   ASSERT_EQ(8u, sm[0].size());
@@ -161,7 +158,7 @@ TEST(InputTest, SplitterMap)
   ASSERT_EQ(12u, sm[3][0]);
   ASSERT_EQ(31u, sm[3][7]);
 
-  //test getInputForNode()
+  // test getInputForNode()
   std::vector<Real64> input;
   in2->getInputForNode(0, input);
   ASSERT_EQ(1, input[0]);
@@ -173,10 +170,10 @@ TEST(InputTest, SplitterMap)
   ASSERT_EQ(6, input[1]);
   ASSERT_EQ(15, input[7]);
 
-  //test getData()
-  const ArrayBase * pa = &(in2->getData());
+  // test getData()
+  const ArrayBase *pa = &(in2->getData());
   ASSERT_EQ(64u, pa->getCount());
-  Real64* data = (Real64*)(pa->getBuffer());
+  Real64 *data = (Real64 *)(pa->getBuffer());
   ASSERT_EQ(1, data[0]);
   ASSERT_EQ(0, data[1]);
   ASSERT_EQ(1, data[30]);
@@ -184,12 +181,11 @@ TEST(InputTest, SplitterMap)
   ASSERT_EQ(31, data[63]);
 }
 
-TEST(InputTest, LinkTwoRegionsOneInput)
-{
+TEST(InputTest, LinkTwoRegionsOneInput) {
   Network net;
-  Region * region1 = net.addRegion("region1", "TestNode", "");
-  Region * region2 = net.addRegion("region2", "TestNode", "");
-  Region * region3 = net.addRegion("region3", "TestNode", "");
+  Region *region1 = net.addRegion("region1", "TestNode", "");
+  Region *region2 = net.addRegion("region2", "TestNode", "");
+  Region *region3 = net.addRegion("region3", "TestNode", "");
 
   Dimensions d1;
   d1.push_back(8);
@@ -203,7 +199,7 @@ TEST(InputTest, LinkTwoRegionsOneInput)
   net.initialize();
 
   Dimensions d3 = region3->getDimensions();
-  Input * in3 = region3->getInput("bottomUpIn");
+  Input *in3 = region3->getInput("bottomUpIn");
 
   ASSERT_EQ(2u, d3.size());
   ASSERT_EQ(4u, d3[0]);
@@ -211,8 +207,8 @@ TEST(InputTest, LinkTwoRegionsOneInput)
 
   net.run(2);
 
-  //test getSplitterMap()
-  std::vector< std::vector<size_t> > sm;
+  // test getSplitterMap()
+  std::vector<std::vector<size_t>> sm;
   sm = in3->getSplitterMap();
   ASSERT_EQ(8u, sm.size());
   ASSERT_EQ(16u, sm[0].size());
@@ -220,7 +216,7 @@ TEST(InputTest, LinkTwoRegionsOneInput)
   ASSERT_EQ(12u, sm[3][0]);
   ASSERT_EQ(31u, sm[3][7]);
 
-  //test getInputForNode()
+  // test getInputForNode()
   std::vector<Real64> input;
   in3->getInputForNode(0, input);
   ASSERT_EQ(1, input[0]);
@@ -232,10 +228,10 @@ TEST(InputTest, LinkTwoRegionsOneInput)
   ASSERT_EQ(6, input[1]);
   ASSERT_EQ(15, input[7]);
 
-  //test getData()
-  const ArrayBase * pa = &(in3->getData());
+  // test getData()
+  const ArrayBase *pa = &(in3->getData());
   ASSERT_EQ(128u, pa->getCount());
-  Real64* data = (Real64*)(pa->getBuffer());
+  Real64 *data = (Real64 *)(pa->getBuffer());
   ASSERT_EQ(1, data[0]);
   ASSERT_EQ(0, data[1]);
   ASSERT_EQ(1, data[30]);
@@ -246,5 +242,4 @@ TEST(InputTest, LinkTwoRegionsOneInput)
   ASSERT_EQ(1, data[94]);
   ASSERT_EQ(15, data[95]);
   ASSERT_EQ(31, data[127]);
-
 }

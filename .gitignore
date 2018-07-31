@@ -6,12 +6,20 @@
 *.DS_Store
 *.swp
 *.pyc
+*.pkl
+
+# Coverage files 
+.coverage
+htmlcov/
 
 # IDE project files
 /nbproject/
+.vscode
+.ycm_extra_conf.py
 
 # Build files
 build/
+junit-test-results.xml
 
 # /
 /.gdb_history
@@ -20,6 +28,8 @@ build/
 html/
 
 # SWIG
-bindings/py/nupic/bindings/*.cxx
-bindings/py/nupic/bindings/*.py
-bindings/py/nupic/bindings/*.so
+bindings/py/src/nupic/bindings/*.cxx
+bindings/py/src/nupic/bindings/*.py
+bindings/py/src/nupic/bindings/*.so
+bindings/py/src/nupic/*.so
+bindings/py/src/nupic.bindings.egg-info
