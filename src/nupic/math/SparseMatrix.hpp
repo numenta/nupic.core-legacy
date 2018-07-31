@@ -192,8 +192,8 @@ protected:
   inline void assert_not_zero_value_(const value_type &val,
                                      const char *where) const {
 #ifdef NTA_ASSERTIONS_ON
-    NTA_ASSERT(!isZero_(val)) << "SparseMatrix " << where
-                              << ": Zero value should be != 0";
+    NTA_ASSERT(!isZero_(val))
+        << "SparseMatrix " << where << ": Zero value should be != 0";
 #endif
   }
 
@@ -235,10 +235,10 @@ protected:
     assert_valid_row_(row_begin, where);
     if (row_begin < row_end)
       assert_valid_row_(row_end - 1, where);
-    NTA_ASSERT(row_begin <= row_end) << "SparseMatrix " << where
-                                     << ": Invalid row range: [" << row_begin
-                                     << ".." << row_end << "): "
-                                     << "- Beginning should be <= end of range";
+    NTA_ASSERT(row_begin <= row_end)
+        << "SparseMatrix " << where << ": Invalid row range: [" << row_begin
+        << ".." << row_end << "): "
+        << "- Beginning should be <= end of range";
 #endif
   }
 
@@ -248,10 +248,10 @@ protected:
     assert_valid_col_(col_begin, where);
     if (col_begin < col_end)
       assert_valid_col_(col_end - 1, where);
-    NTA_ASSERT(col_begin <= col_end) << "SparseMatrix " << where
-                                     << ": Invalid col range: [" << col_begin
-                                     << ".." << col_end << "): "
-                                     << "- Beginning should be <= end of range";
+    NTA_ASSERT(col_begin <= col_end)
+        << "SparseMatrix " << where << ": Invalid col range: [" << col_begin
+        << ".." << col_end << "): "
+        << "- Beginning should be <= end of range";
 #endif
   }
 
@@ -299,16 +299,16 @@ protected:
 
     ASSERT_INPUT_ITERATOR(InputIterator1);
 
-    NTA_ASSERT(ind_end - ind_it >= 0) << "SparseMatrix " << where
-                                      << ": Invalid iterators";
+    NTA_ASSERT(ind_end - ind_it >= 0)
+        << "SparseMatrix " << where << ": Invalid iterators";
 
     for (size_type j = 0, prev = 0; ind_it != ind_end; ++ind_it, ++j) {
 
       size_type index = *ind_it;
 
-      NTA_ASSERT(0 <= index && index < m) << "SparseMatrix " << where
-                                          << ": Invalid index: " << index
-                                          << " - Should be >= 0 and < " << m;
+      NTA_ASSERT(0 <= index && index < m)
+          << "SparseMatrix " << where << ": Invalid index: " << index
+          << " - Should be >= 0 and < " << m;
 
       if (j > 0) {
         NTA_ASSERT(prev < index)
@@ -333,20 +333,20 @@ protected:
     ASSERT_INPUT_ITERATOR(InputIterator1);
     ASSERT_INPUT_ITERATOR(InputIterator2);
 
-    NTA_ASSERT(ind_end - ind_it >= 0) << "SparseMatrix " << where
-                                      << ": Invalid iterators";
+    NTA_ASSERT(ind_end - ind_it >= 0)
+        << "SparseMatrix " << where << ": Invalid iterators";
 
     for (size_type j = 0, prev = 0; ind_it != ind_end; ++ind_it, ++nz_it, ++j) {
 
       size_type index = *ind_it;
 
-      NTA_ASSERT(0 <= index && index < m) << "SparseMatrix " << where
-                                          << ": Invalid index: " << index
-                                          << " - Should be >= 0 and < " << m;
+      NTA_ASSERT(0 <= index && index < m)
+          << "SparseMatrix " << where << ": Invalid index: " << index
+          << " - Should be >= 0 and < " << m;
 
-      NTA_ASSERT(!isZero_(*nz_it)) << "SparseMatrix " << where
-                                   << ": Passed zero at index: " << j
-                                   << " - Should pass non-zeros only";
+      NTA_ASSERT(!isZero_(*nz_it))
+          << "SparseMatrix " << where << ": Passed zero at index: " << j
+          << " - Should pass non-zeros only";
 
       if (j > 0) {
         NTA_ASSERT(prev < index)
@@ -370,10 +370,10 @@ protected:
         NTA_ASSERT(!isZero_(*nz)) << where << "Near zero value: " << *nz
                                   << " at (" << row << ", " << *ind << ") "
                                   << "nupic::Epsilon= " << nupic::Epsilon;
-        NTA_ASSERT(row < nRows()) << where << "Invalid row index: " << row
-                                  << " nRows= " << nRows();
-        NTA_ASSERT(*ind < nCols()) << where << "Invalid col index: " << *ind
-                                   << " nCols= " << nCols();
+        NTA_ASSERT(row < nRows())
+            << where << "Invalid row index: " << row << " nRows= " << nRows();
+        NTA_ASSERT(*ind < nCols())
+            << where << "Invalid col index: " << *ind << " nCols= " << nCols();
       }
 
       assert_valid_sorted_index_range_(nCols(), ind_begin_(row), ind_end_(row),
@@ -438,8 +438,8 @@ protected:
    */
   inline void allocate_(size_type nrows_max, size_type ncols) {
     { // Pre-conditions
-      NTA_ASSERT(0 <= nrows_max) << "SparseMatrix allocate_: Bad nrows_max: "
-                                 << nrows_max;
+      NTA_ASSERT(0 <= nrows_max)
+          << "SparseMatrix allocate_: Bad nrows_max: " << nrows_max;
       NTA_ASSERT(0 <= ncols) << "SparseMatrix allocate_: Bad ncols: " << ncols;
     } // End pre-conditions
 
@@ -929,10 +929,8 @@ protected:
    *   @li Columns must be sorted
    */
   template <typename InputIterator>
-  inline size_type nZerosInRowOnColumns_(
-    size_type row,
-    InputIterator col_begin, InputIterator col_end)
-  {
+  inline size_type nZerosInRowOnColumns_(size_type row, InputIterator col_begin,
+                                         InputIterator col_end) {
     { // Pre-conditions
       ASSERT_INPUT_ITERATOR(InputIterator);
       assert_valid_row_(row, "nZerosInRowOnColumns_");
@@ -981,12 +979,11 @@ protected:
    *   @li The caller must correctly count the number of zeros in the selection
    */
   template <typename InputIterator, typename Random>
-  inline void insertRandomNonZerosIntoColumns_(
-    size_type row,
-    InputIterator col_begin, InputIterator col_end,
-    size_type numToInsert, size_type numZerosAvailable, value_type value,
-    Random& rng)
-  {
+  inline void
+  insertRandomNonZerosIntoColumns_(size_type row, InputIterator col_begin,
+                                   InputIterator col_end, size_type numToInsert,
+                                   size_type numZerosAvailable,
+                                   value_type value, Random &rng) {
     { // Pre-conditions
       ASSERT_INPUT_ITERATOR(InputIterator);
       NTA_ASSERT(numToInsert <= numZerosAvailable);
@@ -1010,10 +1007,12 @@ protected:
       InputIterator selected_col = col_begin;
       size_type *prev_it = prev_ind_begin;
 
-      size_type nextNonzeroCol = prev_it != prev_ind_end ?
-        *prev_it : std::numeric_limits<size_type>::max();
-      size_type nextSelectedCol = selected_col != col_end ?
-        *selected_col : std::numeric_limits<size_type>::max();
+      size_type nextNonzeroCol = prev_it != prev_ind_end
+                                     ? *prev_it
+                                     : std::numeric_limits<size_type>::max();
+      size_type nextSelectedCol = selected_col != col_end
+                                      ? *selected_col
+                                      : std::numeric_limits<size_type>::max();
 
       for (size_type pos = 0; pos < nnzr; ++pos) {
         while (true) {
@@ -1024,8 +1023,9 @@ protected:
             row_nz[pos] = nz_[row][prev_it - prev_ind_begin];
 
             ++prev_it;
-            nextNonzeroCol = prev_it != prev_ind_end ?
-              *prev_it : std::numeric_limits<size_type>::max();
+            nextNonzeroCol = prev_it != prev_ind_end
+                                 ? *prev_it
+                                 : std::numeric_limits<size_type>::max();
             break;
           } else if (nextNonzeroCol == nextSelectedCol) {
             // The next selected column is nonzero.
@@ -1035,17 +1035,19 @@ protected:
 
             ++prev_it;
             ++selected_col;
-            nextNonzeroCol = prev_it != prev_ind_end ?
-              *prev_it : std::numeric_limits<size_type>::max();
-            nextSelectedCol = selected_col != col_end ?
-              *selected_col : std::numeric_limits<size_type>::max();
+            nextNonzeroCol = prev_it != prev_ind_end
+                                 ? *prev_it
+                                 : std::numeric_limits<size_type>::max();
+            nextSelectedCol = selected_col != col_end
+                                  ? *selected_col
+                                  : std::numeric_limits<size_type>::max();
             break;
           } else {
             // The next selected column is a zero.
             // Maybe insert a nonzero.
             NTA_ASSERT(numRemainingAvailable > 0);
-            const bool insertNonzero = (rng.getUInt32(numRemainingAvailable) <
-                                        numRemainingToChoose);
+            const bool insertNonzero =
+                (rng.getUInt32(numRemainingAvailable) < numRemainingToChoose);
             if (insertNonzero) {
               row_ind[pos] = *selected_col;
               row_nz[pos] = value;
@@ -1056,8 +1058,9 @@ protected:
             --numRemainingAvailable;
 
             ++selected_col;
-            nextSelectedCol = selected_col != col_end ?
-              *selected_col : std::numeric_limits<size_type>::max();
+            nextSelectedCol = selected_col != col_end
+                                  ? *selected_col
+                                  : std::numeric_limits<size_type>::max();
 
             if (insertNonzero) {
               break;
@@ -1107,13 +1110,13 @@ public:
         nz_mem_(nullptr), ind_(nullptr), nz_(nullptr), indb_(nullptr),
         nzb_(nullptr), isZero_() {
     { // Pre-conditions
-      NTA_CHECK(nrows >= 0) << "SparseMatrix::SparseMatrix(nrows, ncols): "
-                            << "Invalid number of rows: " << nrows
-                            << " - Should be >= 0";
+      NTA_CHECK(nrows >= 0)
+          << "SparseMatrix::SparseMatrix(nrows, ncols): "
+          << "Invalid number of rows: " << nrows << " - Should be >= 0";
 
-      NTA_CHECK(ncols >= 0) << "SparseMatrix::SparseMatrix(nrows, ncols): "
-                            << "Invalid number of columns: " << ncols
-                            << " - Should be >= 0";
+      NTA_CHECK(ncols >= 0)
+          << "SparseMatrix::SparseMatrix(nrows, ncols): "
+          << "Invalid number of columns: " << ncols << " - Should be >= 0";
     } // End pre-conditions
 
     allocate_(nrows, ncols);
@@ -1208,17 +1211,8 @@ public:
   inline SparseMatrix(const SparseMatrix &other, InputIterator take,
                       InputIterator take_end,
                       int rowCol = 1) // cols
-      : nrows_(0),
-        nrows_max_(0),
-        ncols_(0),
-        nnzr_(0),
-        ind_mem_(0),
-        nz_mem_(0),
-        ind_(0),
-        nz_(0),
-        indb_(0),
-        nzb_(0),
-        isZero_() {
+      : nrows_(0), nrows_max_(0), ncols_(0), nnzr_(0), ind_mem_(0), nz_mem_(0),
+        ind_(0), nz_(0), indb_(0), nzb_(0), isZero_() {
     { // Pre-conditions
       NTA_ASSERT(rowCol == 0 || rowCol == 1)
           << "SparseMatrix: constructor from set of rows/cols: "
@@ -1266,7 +1260,7 @@ public:
 
   /**
    * Deallocates this instance and initializes its non-zeros only it with the
-    * non-zeros of specified cols from other. The number of rows and cols is
+   * non-zeros of specified cols from other. The number of rows and cols is
    * the same as other.
    * The vector passed is a binary vector with 1 at the indices of the
    * cols that need to be copied and 0 elsewhere.
@@ -1631,20 +1625,16 @@ public:
    *  @li O(rows_end - rows_begin)
    */
   template <typename InputIterator, typename OutputIterator>
-  inline void nNonZerosPerRow(InputIterator rows_begin,
-                              InputIterator rows_end,
+  inline void nNonZerosPerRow(InputIterator rows_begin, InputIterator rows_end,
                               OutputIterator out_begin) const {
     { // Pre-conditions
-      assert_valid_row_it_range_(rows_begin, rows_end,
-                                 "nNonZerosPerRow");
+      assert_valid_row_it_range_(rows_begin, rows_end, "nNonZerosPerRow");
       ASSERT_OUTPUT_ITERATOR(OutputIterator, size_type);
     } // End pre-conditions
 
     InputIterator row;
     OutputIterator out;
-    for (row = rows_begin, out = out_begin;
-         row != rows_end;
-         ++row, ++out) {
+    for (row = rows_begin, out = out_begin; row != rows_end; ++row, ++out) {
       *out = nNonZerosOnRow(*row);
     }
   }
@@ -1666,14 +1656,12 @@ public:
    *  @li O(number of nonzeros on the specified rows)
    */
   template <typename InputIterator, typename OutputIterator>
-  inline void nNonZerosPerRowOnCols(InputIterator rows_begin,
-                                    InputIterator rows_end,
-                                    InputIterator cols_begin,
-                                    InputIterator cols_end,
-                                    OutputIterator out_begin) const {
+  inline void
+  nNonZerosPerRowOnCols(InputIterator rows_begin, InputIterator rows_end,
+                        InputIterator cols_begin, InputIterator cols_end,
+                        OutputIterator out_begin) const {
     { // Pre-conditions
-      assert_valid_row_it_range_(rows_begin, rows_end,
-                                 "nNonZerosPerRowOnCols");
+      assert_valid_row_it_range_(rows_begin, rows_end, "nNonZerosPerRowOnCols");
       assert_valid_sorted_index_range_(nCols(), cols_begin, cols_end,
                                        "nNonZerosPerRowOnCols");
       ASSERT_OUTPUT_ITERATOR(OutputIterator, size_type);
@@ -1681,9 +1669,7 @@ public:
 
     InputIterator row;
     OutputIterator out;
-    for (row = rows_begin, out = out_begin;
-         row != rows_end;
-         ++row, ++out) {
+    for (row = rows_begin, out = out_begin; row != rows_end; ++row, ++out) {
 
       size_type numNonZeros = 0;
 
@@ -1694,13 +1680,11 @@ public:
       while (ind != ind_end && col != cols_end) {
         if (*ind < *col) {
           ++ind;
-        }
-        else if (*ind == *col) {
+        } else if (*ind == *col) {
           ++numNonZeros;
           ++ind;
           ++col;
-        }
-        else {
+        } else {
           ++col;
         }
       }
@@ -2684,13 +2668,13 @@ public:
     { // Pre-conditions
       ASSERT_INPUT_ITERATOR(InputIterator);
 
-      NTA_CHECK(nrows >= 0) << "SparseMatrix::fromDense(): "
-                            << "Invalid number of rows: " << nrows
-                            << " - Should be >= 0";
+      NTA_CHECK(nrows >= 0)
+          << "SparseMatrix::fromDense(): "
+          << "Invalid number of rows: " << nrows << " - Should be >= 0";
 
-      NTA_CHECK(ncols >= 0) << "SparseMatrix::fromDense(): "
-                            << "Invalid number of columns: " << ncols
-                            << " - Should be > 0";
+      NTA_CHECK(ncols >= 0)
+          << "SparseMatrix::fromDense(): "
+          << "Invalid number of columns: " << ncols << " - Should be > 0";
     } // End pre-conditions
 
     deallocate_();
@@ -3078,11 +3062,11 @@ public:
 
       NTA_CHECK(s2 == sizeof(value_type)) << where << "Bad value_type: " << s2;
 
-      NTA_CHECK(s3 == sizeof(difference_type)) << where
-                                               << "Bad difference_type: " << s3;
+      NTA_CHECK(s3 == sizeof(difference_type))
+          << where << "Bad difference_type: " << s3;
 
-      NTA_CHECK(s4 == sizeof(prec_value_type)) << where
-                                               << "Bad prec_value_type: " << s4;
+      NTA_CHECK(s4 == sizeof(prec_value_type))
+          << where << "Bad prec_value_type: " << s4;
     }
 
     size_type nrows, nrows_max, ncols, nnz;
@@ -3092,8 +3076,8 @@ public:
 
     {
       NTA_CHECK(0 <= nrows) << where << "Bad number of rows: " << nrows;
-      NTA_CHECK(0 <= nrows_max) << where
-                                << "Bad max number of rows: " << nrows_max;
+      NTA_CHECK(0 <= nrows_max)
+          << where << "Bad max number of rows: " << nrows_max;
       NTA_CHECK(nrows <= nrows_max)
           << where << "Number of rows: " << nrows
           << " should be less than max number of rows: " << nrows_max;
@@ -3188,13 +3172,13 @@ public:
   inline void resize(size_type new_nrows, size_type new_ncols,
                      bool setToZero = false) {
     { // Pre-conditions
-      NTA_ASSERT(0 <= new_nrows) << "SparseMatrix resize: "
-                                 << "New number of rows: " << new_nrows
-                                 << " should be positive";
+      NTA_ASSERT(0 <= new_nrows)
+          << "SparseMatrix resize: "
+          << "New number of rows: " << new_nrows << " should be positive";
 
-      NTA_ASSERT(0 <= new_ncols) << "SparseMatrix resize: "
-                                 << "New number of columns: " << new_ncols
-                                 << " should be positive";
+      NTA_ASSERT(0 <= new_ncols)
+          << "SparseMatrix resize: "
+          << "New number of columns: " << new_ncols << " should be positive";
     } // End pre-conditions
 
     const size_type nrows = nRows();
@@ -3248,13 +3232,13 @@ public:
    */
   inline void reshape(size_type new_nrows, size_type new_ncols) {
     { // Pre-conditions
-      NTA_ASSERT(0 <= new_nrows) << "SparseMatrix reshape: "
-                                 << "New number of rows: " << new_nrows
-                                 << " should be positive";
+      NTA_ASSERT(0 <= new_nrows)
+          << "SparseMatrix reshape: "
+          << "New number of rows: " << new_nrows << " should be positive";
 
-      NTA_ASSERT(0 <= new_ncols) << "SparseMatrix reshape: "
-                                 << "New number of columns: " << new_ncols
-                                 << " should be positive";
+      NTA_ASSERT(0 <= new_ncols)
+          << "SparseMatrix reshape: "
+          << "New number of columns: " << new_ncols << " should be positive";
 
       NTA_ASSERT((double)new_nrows * new_ncols == (double)nRows() * nCols())
           << "SparseMatrix reshape: "
@@ -3415,11 +3399,11 @@ public:
               << "SparseMatrix::deleteRows(): "
               << "Invalid row index: " << *d
               << " - Row indices should be between 0 and " << nRows();
-          NTA_CHECK(*d < *d_next) << "SparseMatrix::deleteRows(): "
-                                  << "Invalid row indices " << *d << " and "
-                                  << *d_next
-                                  << " - Row indices need to be passed "
-                                  << "in strictly increasing order";
+          NTA_CHECK(*d < *d_next)
+              << "SparseMatrix::deleteRows(): "
+              << "Invalid row indices " << *d << " and " << *d_next
+              << " - Row indices need to be passed "
+              << "in strictly increasing order";
           ++d;
           ++d_next;
         }
@@ -3577,11 +3561,11 @@ public:
               << "SparseMatrix::deleteCols(): "
               << "Invalid column index: " << *d
               << " - Col indices should be between 0 and " << nCols();
-          NTA_ASSERT(*d < *d_next) << "SparseMatrix::deleteCols(): "
-                                   << "Invalid column indices " << *d << " and "
-                                   << *d_next
-                                   << " - Col indices need to be passed "
-                                   << "in strictly increasing order";
+          NTA_ASSERT(*d < *d_next)
+              << "SparseMatrix::deleteCols(): "
+              << "Invalid column indices " << *d << " and " << *d_next
+              << " - Col indices need to be passed "
+              << "in strictly increasing order";
           ++d;
           ++d_next;
         }
@@ -4302,10 +4286,10 @@ public:
    * Amount to add to each selected nonzero
    */
   template <typename InputIterator1, typename InputIterator2>
-  inline void incrementNonZerosOnOuter(
-    InputIterator1 row_begin, InputIterator1 row_end,
-    InputIterator2 col_begin, InputIterator2 col_end,
-    value_type delta) {
+  inline void
+  incrementNonZerosOnOuter(InputIterator1 row_begin, InputIterator1 row_end,
+                           InputIterator2 col_begin, InputIterator2 col_end,
+                           value_type delta) {
     { // Pre-conditions
       ASSERT_INPUT_ITERATOR(InputIterator1);
       ASSERT_INPUT_ITERATOR(InputIterator2);
@@ -4324,10 +4308,8 @@ public:
       size_type *ind_begin = ind_begin_(*row);
       size_type *ind_end = ind_end_(*row);
 
-      for (size_type *ind = ind_begin; ind != ind_end; ++ind)
-      {
-        if (indb_[*ind] == 1)
-        {
+      for (size_type *ind = ind_begin; ind != ind_end; ++ind) {
+        if (indb_[*ind] == 1) {
           nz_[*row][ind - ind_begin] += delta;
         }
       }
@@ -4357,10 +4339,11 @@ public:
    * Amount to add to each selected nonzero
    */
   template <typename InputIterator1, typename InputIterator2>
-  inline void incrementNonZerosOnRowsExcludingCols(
-    InputIterator1 row_begin, InputIterator1 row_end,
-    InputIterator2 col_begin, InputIterator2 col_end,
-    value_type delta) {
+  inline void incrementNonZerosOnRowsExcludingCols(InputIterator1 row_begin,
+                                                   InputIterator1 row_end,
+                                                   InputIterator2 col_begin,
+                                                   InputIterator2 col_end,
+                                                   value_type delta) {
     { // Pre-conditions
       ASSERT_INPUT_ITERATOR(InputIterator1);
       ASSERT_INPUT_ITERATOR(InputIterator2);
@@ -4379,10 +4362,8 @@ public:
       size_type *ind_begin = ind_begin_(*row);
       size_type *ind_end = ind_end_(*row);
 
-      for (size_type *ind = ind_begin; ind != ind_end; ++ind)
-      {
-        if (indb_[*ind] != 1)
-        {
+      for (size_type *ind = ind_begin; ind != ind_end; ++ind) {
+        if (indb_[*ind] != 1) {
           nz_[*row][ind - ind_begin] += delta;
         }
       }
@@ -4416,9 +4397,9 @@ public:
    *  @li a <= b
    */
   template <typename InputIterator>
-  inline void clipRowsBelowAndAbove(
-    InputIterator row_begin, InputIterator row_end,
-    value_type a, value_type b) {
+  inline void clipRowsBelowAndAbove(InputIterator row_begin,
+                                    InputIterator row_end, value_type a,
+                                    value_type b) {
     { // Pre-conditions
       ASSERT_INPUT_ITERATOR(InputIterator);
       assert_valid_row_it_range_(row_begin, row_end, "clipRowsBelowAndAbove");
@@ -4456,16 +4437,13 @@ public:
    *  @li Columns must be sorted
    */
   template <typename InputIterator1, typename InputIterator2>
-  inline void setZerosOnOuter(
-    InputIterator1 row_begin, InputIterator1 row_end,
-    InputIterator2 col_begin, InputIterator2 col_end,
-    value_type value)
-  {
+  inline void setZerosOnOuter(InputIterator1 row_begin, InputIterator1 row_end,
+                              InputIterator2 col_begin, InputIterator2 col_end,
+                              value_type value) {
     { // Pre-conditions
       ASSERT_INPUT_ITERATOR(InputIterator1);
       ASSERT_INPUT_ITERATOR(InputIterator2);
-      assert_valid_row_it_range_(row_begin, row_end,
-                                 "setZerosOnOuter");
+      assert_valid_row_it_range_(row_begin, row_end, "setZerosOnOuter");
       assert_valid_sorted_index_range_(nCols(), col_begin, col_end,
                                        "setZerosOnOuter");
     } // End pre-conditions
@@ -4478,10 +4456,11 @@ public:
       InputIterator2 selected_col = col_begin;
       size_type *it = ind_begin;
 
-      size_type nextNonzeroCol = it != ind_end ?
-        *it : std::numeric_limits<size_type>::max();
-      size_type nextSelectedCol = selected_col != col_end ?
-        *selected_col : std::numeric_limits<size_type>::max();
+      size_type nextNonzeroCol =
+          it != ind_end ? *it : std::numeric_limits<size_type>::max();
+      size_type nextSelectedCol = selected_col != col_end
+                                      ? *selected_col
+                                      : std::numeric_limits<size_type>::max();
 
       size_type *indb_it = indb_;
       value_type *nzb_it = nzb_;
@@ -4493,8 +4472,8 @@ public:
           *nzb_it = nz_[*row][it - ind_begin];
 
           ++it;
-          nextNonzeroCol = it != ind_end ?
-            *it : std::numeric_limits<size_type>::max();
+          nextNonzeroCol =
+              it != ind_end ? *it : std::numeric_limits<size_type>::max();
         } else if (nextNonzeroCol == nextSelectedCol) {
           // The next selected column is nonzero.
           // Copy it.
@@ -4503,10 +4482,11 @@ public:
 
           ++it;
           ++selected_col;
-          nextNonzeroCol = it != ind_end ?
-            *it : std::numeric_limits<size_type>::max();
-          nextSelectedCol = selected_col != col_end ?
-            *selected_col : std::numeric_limits<size_type>::max();
+          nextNonzeroCol =
+              it != ind_end ? *it : std::numeric_limits<size_type>::max();
+          nextSelectedCol = selected_col != col_end
+                                ? *selected_col
+                                : std::numeric_limits<size_type>::max();
         } else {
           // The next selected column is a zero.
           // Insert a nonzero.
@@ -4514,8 +4494,9 @@ public:
           *nzb_it = value;
 
           ++selected_col;
-          nextSelectedCol = selected_col != col_end ?
-            *selected_col : std::numeric_limits<size_type>::max();
+          nextSelectedCol = selected_col != col_end
+                                ? *selected_col
+                                : std::numeric_limits<size_type>::max();
         }
       }
 
@@ -4574,28 +4555,26 @@ public:
    *  @li Columns must be sorted
    */
   template <typename InputIterator1, typename InputIterator2, typename Random>
-  inline void setRandomZerosOnOuter(
-    InputIterator1 row_begin, InputIterator1 row_end,
-    InputIterator2 col_begin, InputIterator2 col_end,
-    difference_type numNewNonZerosPerRow, value_type value, Random& rng) {
+  inline void
+  setRandomZerosOnOuter(InputIterator1 row_begin, InputIterator1 row_end,
+                        InputIterator2 col_begin, InputIterator2 col_end,
+                        difference_type numNewNonZerosPerRow, value_type value,
+                        Random &rng) {
     { // Pre-conditions
       ASSERT_INPUT_ITERATOR(InputIterator1);
       ASSERT_INPUT_ITERATOR(InputIterator2);
-      assert_valid_row_it_range_(row_begin, row_end,
-                                 "setRandomZerosOnOuter");
+      assert_valid_row_it_range_(row_begin, row_end, "setRandomZerosOnOuter");
       assert_valid_sorted_index_range_(nCols(), col_begin, col_end,
                                        "setRandomZerosOnOuter");
     } // End pre-conditions
 
     for (InputIterator1 row = row_begin; row != row_end; ++row) {
       size_type numZeros = nZerosInRowOnColumns_(*row, col_begin, col_end);
-      difference_type numNewNonZeros = std::min(numNewNonZerosPerRow,
-                                                (difference_type)numZeros);
-      if (numNewNonZeros > 0)
-      {
+      difference_type numNewNonZeros =
+          std::min(numNewNonZerosPerRow, (difference_type)numZeros);
+      if (numNewNonZeros > 0) {
         insertRandomNonZerosIntoColumns_(*row, col_begin, col_end,
-                                         numNewNonZeros, numZeros, value,
-                                         rng);
+                                         numNewNonZeros, numZeros, value, rng);
       }
     }
   }
@@ -4635,17 +4614,16 @@ public:
    */
   template <typename InputIterator1, typename InputIterator2,
             typename InputIterator3, typename Random>
-  inline void setRandomZerosOnOuter(
-    InputIterator1 row_begin, InputIterator1 row_end,
-    InputIterator2 col_begin, InputIterator2 col_end,
-    InputIterator3 numNew_begin, InputIterator3 numNew_end,
-    value_type value, Random& rng) {
+  inline void
+  setRandomZerosOnOuter(InputIterator1 row_begin, InputIterator1 row_end,
+                        InputIterator2 col_begin, InputIterator2 col_end,
+                        InputIterator3 numNew_begin, InputIterator3 numNew_end,
+                        value_type value, Random &rng) {
     { // Pre-conditions
       ASSERT_INPUT_ITERATOR(InputIterator1);
       ASSERT_INPUT_ITERATOR(InputIterator2);
       ASSERT_INPUT_ITERATOR(InputIterator3);
-      assert_valid_row_it_range_(row_begin, row_end,
-                                 "setRandomZerosOnOuter");
+      assert_valid_row_it_range_(row_begin, row_end, "setRandomZerosOnOuter");
       assert_valid_sorted_index_range_(nCols(), col_begin, col_end,
                                        "setRandomZerosOnOuter");
 
@@ -4655,18 +4633,15 @@ public:
 
     InputIterator1 row;
     InputIterator3 numNew;
-    for (row = row_begin, numNew = numNew_begin;
-         row != row_end;
+    for (row = row_begin, numNew = numNew_begin; row != row_end;
          ++row, ++numNew) {
       if (*numNew > 0) {
-        size_type numZeros =  nZerosInRowOnColumns_(*row, col_begin, col_end);
-        difference_type numNewNonZeros = std::min(*numNew,
-                                                  (difference_type)numZeros);
-        if (numNewNonZeros > 0)
-        {
-          insertRandomNonZerosIntoColumns_(*row, col_begin, col_end,
-                                           numNewNonZeros, numZeros, value,
-                                           rng);
+        size_type numZeros = nZerosInRowOnColumns_(*row, col_begin, col_end);
+        difference_type numNewNonZeros =
+            std::min(*numNew, (difference_type)numZeros);
+        if (numNewNonZeros > 0) {
+          insertRandomNonZerosIntoColumns_(
+              *row, col_begin, col_end, numNewNonZeros, numZeros, value, rng);
         }
       }
     }
@@ -4709,10 +4684,10 @@ public:
    */
   template <typename InputIterator1, typename InputIterator2, typename Random>
   inline void increaseRowNonZeroCountsOnOuterTo(
-    InputIterator1 row_begin, InputIterator1 row_end,
-    InputIterator2 col_begin, InputIterator2 col_end,
-    difference_type numDesiredNonzeros, value_type initialValue, Random& rng)
-  {
+      InputIterator1 row_begin, InputIterator1 row_end,
+      InputIterator2 col_begin, InputIterator2 col_end,
+      difference_type numDesiredNonzeros, value_type initialValue,
+      Random &rng) {
     { // Pre-conditions
       ASSERT_INPUT_ITERATOR(InputIterator1);
       ASSERT_INPUT_ITERATOR(InputIterator2);
@@ -4725,18 +4700,15 @@ public:
     for (InputIterator1 row = row_begin; row != row_end; ++row) {
       size_type numZeros = nZerosInRowOnColumns_(*row, col_begin, col_end);
       difference_type numNonZeros = (col_end - col_begin) - numZeros;
-      size_type numDesiredNewNonZeros =
-        (size_type) std::max((difference_type)0,
-                             (difference_type)(numDesiredNonzeros -
-                                               numNonZeros));
+      size_type numDesiredNewNonZeros = (size_type)std::max(
+          (difference_type)0,
+          (difference_type)(numDesiredNonzeros - numNonZeros));
       size_type numActualNewNonZeros =
-        std::min(numDesiredNewNonZeros, numZeros);
-      if (numActualNewNonZeros > 0)
-      {
+          std::min(numDesiredNewNonZeros, numZeros);
+      if (numActualNewNonZeros > 0) {
         insertRandomNonZerosIntoColumns_(*row, col_begin, col_end,
                                          (size_type)numActualNewNonZeros,
-                                         numZeros,
-                                         initialValue, rng);
+                                         numZeros, initialValue, rng);
       }
     }
   }
@@ -4833,10 +4805,10 @@ public:
           if (*ind >= col_begin && *ind < col_end) {
             ijv_iterator->i(row);
             ijv_iterator->j(*ind);
-            NTA_ASSERT(!isZero_(*nz)) << "SparseMatrix::getAllNonZeros (rect): "
-                                      << "Zero at " << row << ", " << *ind
-                                      << ": " << *nz
-                                      << " epsilon= " << nupic::Epsilon;
+            NTA_ASSERT(!isZero_(*nz))
+                << "SparseMatrix::getAllNonZeros (rect): "
+                << "Zero at " << row << ", " << *ind << ": " << *nz
+                << " epsilon= " << nupic::Epsilon;
             ijv_iterator->v(*nz);
             ++ijv_iterator;
           }
@@ -7512,8 +7484,8 @@ public:
    *  @li None.
    */
   inline void threshold(const value_type &threshold = nupic::Epsilon) {
-    filter(std::bind(std::greater_equal<value_type>(),
-                     std::placeholders::_1, threshold));
+    filter(std::bind(std::greater_equal<value_type>(), std::placeholders::_1,
+                     threshold));
   }
 
   template <typename OutputIterator1, typename OutputIterator2>
@@ -7801,9 +7773,9 @@ public:
     { // Pre-conditions
     } // End pre-conditions
 
-    return countWhere(begin_row, end_row, begin_col, end_col,
-                      std::bind(std::equal_to<value_type>(),
-                                std::placeholders::_1, value));
+    return countWhere(
+        begin_row, end_row, begin_col, end_col,
+        std::bind(std::equal_to<value_type>(), std::placeholders::_1, value));
   }
 
   /**
@@ -7837,10 +7809,10 @@ public:
       ASSERT_OUTPUT_ITERATOR(OutputIterator1, size_type);
     } // End pre-conditions
 
-    findIndices(begin_row, end_row, begin_col, end_col,
-                std::bind(std::equal_to<value_type>(),
-                          std::placeholders::_1, value),
-                row_it, col_it);
+    findIndices(
+        begin_row, end_row, begin_col, end_col,
+        std::bind(std::equal_to<value_type>(), std::placeholders::_1, value),
+        row_it, col_it);
   }
 
   /**
@@ -7868,9 +7840,9 @@ public:
     { // Pre-conditions
     } // End pre-conditions
 
-    return countWhere(begin_row, end_row, begin_col, end_col,
-                      std::bind(std::greater<value_type>(),
-                                std::placeholders::_1, value));
+    return countWhere(
+        begin_row, end_row, begin_col, end_col,
+        std::bind(std::greater<value_type>(), std::placeholders::_1, value));
   }
 
   /**
@@ -7904,10 +7876,10 @@ public:
       ASSERT_OUTPUT_ITERATOR(OutputIterator1, size_type);
     } // End pre-conditions
 
-    findIndices(begin_row, end_row, begin_col, end_col,
-                std::bind(std::greater<value_type>(),
-                          std::placeholders::_1, value),
-                row_it, col_it);
+    findIndices(
+        begin_row, end_row, begin_col, end_col,
+        std::bind(std::greater<value_type>(), std::placeholders::_1, value),
+        row_it, col_it);
   }
 
   /**
@@ -7992,20 +7964,20 @@ public:
       NTA_ASSERT(nnzr >= 0) << "SparseMatrix::findRow(): "
                             << "Passed in " << nnzr << " non-zeros";
 
-      NTA_ASSERT(nnzr <= nCols()) << "SparseMatrix::findRow(): "
-                                  << "Passed in " << nnzr << " non-zeros "
-                                  << "but there are only " << nCols()
-                                  << " columns";
+      NTA_ASSERT(nnzr <= nCols())
+          << "SparseMatrix::findRow(): "
+          << "Passed in " << nnzr << " non-zeros "
+          << "but there are only " << nCols() << " columns";
 
 #ifdef NTA_ASSERTIONS_ON // to avoid compilation of loop
       IndIt jj = ind_it;
       NzIt nn = nz_it;
       size_type j = 0, prev = 0;
       for (j = 0; j != nnzr; ++j, ++jj, ++nn) {
-        NTA_ASSERT(0 <= *jj && *jj < nCols()) << "SparseMatrix::findRow(): "
-                                              << "Invalid column index"
-                                              << " - Should be >= 0 and < "
-                                              << nCols();
+        NTA_ASSERT(0 <= *jj && *jj < nCols())
+            << "SparseMatrix::findRow(): "
+            << "Invalid column index"
+            << " - Should be >= 0 and < " << nCols();
         NTA_ASSERT(!isZero_(*nn)) << "SparseMatrix::findRow(): "
                                   << "Passed zero at index: " << *jj
                                   << " - Should pass non-zeros only";
@@ -10331,10 +10303,8 @@ public:
       size_type *ind_end = ind_begin + nnzr_[row];
       difference_type sum = 0;
 
-      for (size_type *ind = ind_begin; ind != ind_end; ++ind)
-      {
-        if (indb_[*ind])
-        {
+      for (size_type *ind = ind_begin; ind != ind_end; ++ind) {
+        if (indb_[*ind]) {
           ++sum;
         }
       }
@@ -10342,7 +10312,6 @@ public:
       *out++ = sum;
     }
   }
-
 
   /**
    * Like rightVecSumAtNZ, except that we add to the sum only if the value of
@@ -10373,9 +10342,10 @@ public:
    * than a float array.
    */
   template <typename InputIterator, typename OutputIterator>
-  inline void rightVecSumAtNZGtThresholdSparse(
-    InputIterator x_ones_begin, InputIterator x_ones_end,
-    OutputIterator out_begin, value_type threshold) const {
+  inline void rightVecSumAtNZGtThresholdSparse(InputIterator x_ones_begin,
+                                               InputIterator x_ones_end,
+                                               OutputIterator out_begin,
+                                               value_type threshold) const {
     { // Pre-conditions
       ASSERT_INPUT_ITERATOR(InputIterator);
       ASSERT_OUTPUT_ITERATOR(OutputIterator, difference_type);
@@ -10397,11 +10367,8 @@ public:
       value_type *nz = nz_[row];
       difference_type sum = 0;
 
-      for (size_type *ind = ind_begin; ind != ind_end; ++ind)
-      {
-        if (indb_[*ind] &&
-            nz[ind - ind_begin] > threshold)
-        {
+      for (size_type *ind = ind_begin; ind != ind_end; ++ind) {
+        if (indb_[*ind] && nz[ind - ind_begin] > threshold) {
           ++sum;
         }
       }
@@ -10438,9 +10405,10 @@ public:
    * than a float array.
    */
   template <typename InputIterator, typename OutputIterator>
-  inline void rightVecSumAtNZGteThresholdSparse(
-    InputIterator x_ones_begin, InputIterator x_ones_end,
-    OutputIterator out_begin, value_type threshold) const {
+  inline void rightVecSumAtNZGteThresholdSparse(InputIterator x_ones_begin,
+                                                InputIterator x_ones_end,
+                                                OutputIterator out_begin,
+                                                value_type threshold) const {
     { // Pre-conditions
       ASSERT_INPUT_ITERATOR(InputIterator);
       ASSERT_OUTPUT_ITERATOR(OutputIterator, difference_type);
@@ -10462,11 +10430,8 @@ public:
       value_type *nz = nz_[row];
       difference_type sum = 0;
 
-      for (size_type *ind = ind_begin; ind != ind_end; ++ind)
-      {
-        if (indb_[*ind] &&
-            nz[ind - ind_begin] >= threshold)
-        {
+      for (size_type *ind = ind_begin; ind != ind_end; ++ind) {
+        if (indb_[*ind] && nz[ind - ind_begin] >= threshold) {
           ++sum;
         }
       }
@@ -10915,9 +10880,9 @@ public:
       ASSERT_INPUT_ITERATOR(InputIterator);
     } // End pre-conditions
 
-    this->applyOuter(row_begin, row_end, col_begin, col_end,
-                     std::bind(nupic::Plus<value_type>(),
-                               std::placeholders::_1, val));
+    this->applyOuter(
+        row_begin, row_end, col_begin, col_end,
+        std::bind(nupic::Plus<value_type>(), std::placeholders::_1, val));
   }
 
   /**
@@ -11028,8 +10993,8 @@ public:
    * Replaces the non-zeros by the specified value.
    */
   inline void replaceNZ(const value_type &val = 1.0) {
-    elementNZApply(std::bind(nupic::Assign<value_type>(),
-                             std::placeholders::_1, val));
+    elementNZApply(
+        std::bind(nupic::Assign<value_type>(), std::placeholders::_1, val));
   }
 
   /**
@@ -11239,8 +11204,8 @@ public:
   }
 
   inline void multiply(const value_type &val) {
-    elementNZApply(std::bind(nupic::Multiplies<value_type>(),
-                             std::placeholders::_1, val));
+    elementNZApply(
+        std::bind(nupic::Multiplies<value_type>(), std::placeholders::_1, val));
   }
 
   inline void elementRowDivide(size_type idx, const value_type &val) {
@@ -11258,38 +11223,38 @@ public:
       NTA_ASSERT(!isZero_(val)) << "divide: Division by zero";
     } // End pre-conditions
 
-    elementNZApply(std::bind(nupic::Divides<value_type>(),
-                             std::placeholders::_1, val));
+    elementNZApply(
+        std::bind(nupic::Divides<value_type>(), std::placeholders::_1, val));
   }
 
   inline void elementRowNZPow(size_type idx, const value_type &val) {
-    elementRowNZApply(idx, std::bind(nupic::Pow<value_type>(),
-                                     std::placeholders::_1, val));
+    elementRowNZApply(
+        idx, std::bind(nupic::Pow<value_type>(), std::placeholders::_1, val));
   }
 
   inline void elementColNZPow(size_type idx, const value_type &val) {
-    elementColNZApply(idx, std::bind(nupic::Pow<value_type>(),
-                                     std::placeholders::_1, val));
+    elementColNZApply(
+        idx, std::bind(nupic::Pow<value_type>(), std::placeholders::_1, val));
   }
 
   inline void elementNZPow(const value_type &val) {
-    elementNZApply(std::bind(nupic::Pow<value_type>(),
-                             std::placeholders::_1, val));
+    elementNZApply(
+        std::bind(nupic::Pow<value_type>(), std::placeholders::_1, val));
   }
 
   inline void elementRowNZLogk(size_type idx, const value_type &val) {
-    elementRowNZApply(idx, std::bind(nupic::Logk<value_type>(),
-                                     std::placeholders::_1, val));
+    elementRowNZApply(
+        idx, std::bind(nupic::Logk<value_type>(), std::placeholders::_1, val));
   }
 
   inline void elementColNZLogk(size_type idx, const value_type &val) {
-    elementColNZApply(idx, std::bind(nupic::Logk<value_type>(),
-                                     std::placeholders::_1, val));
+    elementColNZApply(
+        idx, std::bind(nupic::Logk<value_type>(), std::placeholders::_1, val));
   }
 
   inline void elementNZLogk(const value_type &val) {
-    elementNZApply(std::bind(nupic::Logk<value_type>(),
-                             std::placeholders::_1, val));
+    elementNZApply(
+        std::bind(nupic::Logk<value_type>(), std::placeholders::_1, val));
   }
 
   template <typename InputIterator>
@@ -11323,38 +11288,38 @@ public:
   }
 
   inline void rowAdd(size_type idx, const value_type &val) {
-    elementRowApply(idx, std::bind(nupic::Plus<value_type>(),
-                                   std::placeholders::_1, val));
+    elementRowApply(
+        idx, std::bind(nupic::Plus<value_type>(), std::placeholders::_1, val));
   }
 
   inline void colAdd(size_type idx, const value_type &val) {
-    elementColApply(idx, std::bind(nupic::Plus<value_type>(),
-                                   std::placeholders::_1, val));
+    elementColApply(
+        idx, std::bind(nupic::Plus<value_type>(), std::placeholders::_1, val));
   }
 
   inline void add(const value_type &val) {
-    elementApply(std::bind(nupic::Plus<value_type>(),
-                           std::placeholders::_1, val));
+    elementApply(
+        std::bind(nupic::Plus<value_type>(), std::placeholders::_1, val));
   }
 
   inline void elementNZAdd(const value_type &val) {
-    elementNZApply(std::bind(nupic::Plus<value_type>(),
-                             std::placeholders::_1, val));
+    elementNZApply(
+        std::bind(nupic::Plus<value_type>(), std::placeholders::_1, val));
   }
 
   inline void rowSubtract(size_type idx, const value_type &val) {
-    elementRowApply(idx, std::bind(nupic::Minus<value_type>(),
-                                   std::placeholders::_1, val));
+    elementRowApply(
+        idx, std::bind(nupic::Minus<value_type>(), std::placeholders::_1, val));
   }
 
   inline void colSubtract(size_type idx, const value_type &val) {
-    elementColApply(idx, std::bind(nupic::Minus<value_type>(),
-                                   std::placeholders::_1, val));
+    elementColApply(
+        idx, std::bind(nupic::Minus<value_type>(), std::placeholders::_1, val));
   }
 
   inline void subtract(const value_type &val) {
-    elementApply(std::bind(nupic::Minus<value_type>(),
-                           std::placeholders::_1, val));
+    elementApply(
+        std::bind(nupic::Minus<value_type>(), std::placeholders::_1, val));
   }
 
   inline void elementNZMultiply(const SparseMatrix &other) {

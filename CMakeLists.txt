@@ -20,11 +20,13 @@
 # -----------------------------------------------------------------------------
 
 cmake_minimum_required(VERSION 3.3)
-project(nupic_core_main CXX)
+project(nupic_core CXX)
 
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}")
 
 set(CMAKE_VERBOSE_MAKEFILE OFF)
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 get_filename_component(REPOSITORY_DIR ${PROJECT_SOURCE_DIR} ABSOLUTE)
 

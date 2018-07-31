@@ -25,7 +25,7 @@ init:
   - git config --global core.autocrlf input
 
 clone_folder: c:\projects\nupic-core
-clone_depth: 50
+clone_depth: 1
 
 # Can't have a shallow clone because the CMake process will be
 # calling into git to write the current SHA into the binaries.
@@ -58,7 +58,7 @@ environment:
       external_static_subdir: "windows64-gcc"
       wheel_name_suffix: "win_amd64"
 
-#    # Win32-gcc
+    # Win32-gcc
 #    - PYTHON_VERSION: "2.7.9"
 #      PYTHON_ARCH: "32"
 #      PYTHONHOME: "C:\\Python27"
@@ -113,6 +113,10 @@ install:
   #
   - ps:  $python_path = $env:PYTHONHOME + "/python.exe"
   - ps:   $pip_path = $env:PYTHONHOME + "/Scripts/pip.exe"
+
+  # pip needs to be updated or Appveyor fails
+  - ps: Write-Host "pip install --upgrade pip"
+  - ps: "& $python_path -m pip install --upgrade pip"
 
   - ps:  Write-Host "pip install " wheel==0.25.0
   - ps:  "& $pip_path install wheel==0.25.0"

@@ -20,56 +20,51 @@
  * ---------------------------------------------------------------------
  */
 
-
 #ifndef NTA_TESTFANIN2LINKPOLICY_HPP
 #define NTA_TESTFANIN2LINKPOLICY_HPP
 
-#include <string>
 #include <nupic/engine/Link.hpp>
 #include <nupic/ntypes/Dimensions.hpp>
+#include <string>
 
-namespace nupic
-{
+namespace nupic {
 
-  class Link;
+class Link;
 
-  class TestFanIn2LinkPolicy : public LinkPolicy
-  {
-  public:
-    TestFanIn2LinkPolicy(const std::string params, Link* link);
+class TestFanIn2LinkPolicy : public LinkPolicy {
+public:
+  TestFanIn2LinkPolicy(const std::string params, Link *link);
 
-    ~TestFanIn2LinkPolicy();
+  ~TestFanIn2LinkPolicy();
 
-    void setSrcDimensions(Dimensions& dims) override;
+  void setSrcDimensions(Dimensions &dims) override;
 
-    void setDestDimensions(Dimensions& dims) override;
-  
-    const Dimensions& getSrcDimensions() const override;
+  void setDestDimensions(Dimensions &dims) override;
 
-    const Dimensions& getDestDimensions() const override;
+  const Dimensions &getSrcDimensions() const override;
 
-    void buildProtoSplitterMap(Input::SplitterMap& splitter) const override;
+  const Dimensions &getDestDimensions() const override;
 
-    void setNodeOutputElementCount(size_t elementCount) override;
+  void buildProtoSplitterMap(Input::SplitterMap &splitter) const override;
 
-    void initialize() override;
+  void setNodeOutputElementCount(size_t elementCount) override;
 
-    bool isInitialized() const override;
+  void initialize() override;
+
+  bool isInitialized() const override;
 
 private:
-    Link* link_;
-    
-    Dimensions srcDimensions_;
-    Dimensions destDimensions_;
+  Link *link_;
 
-    size_t elementCount_;
+  Dimensions srcDimensions_;
+  Dimensions destDimensions_;
 
-    bool initialized_;
+  size_t elementCount_;
 
+  bool initialized_;
 
-  }; // TestFanIn2
+}; // TestFanIn2
 
 } // namespace nupic
-
 
 #endif // NTA_TESTFANIN2LINKPOLICY_HPP

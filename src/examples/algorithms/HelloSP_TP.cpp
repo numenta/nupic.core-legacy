@@ -20,31 +20,28 @@
  * ---------------------------------------------------------------------
  */
 
+#include <algorithm> // std::generate
+#include <cmath>     // pow
+#include <ctime>     // std::time
 #include <iostream>
 #include <vector>
-#include <algorithm>    // std::generate
-#include <ctime>        // std::time
-#include <cstdlib>      // std::rand, std::srand
-#include <cmath> 	// pow
 
-#include "nupic/algorithms/SpatialPooler.hpp"
 #include "nupic/algorithms/Cells4.hpp"
+#include "nupic/algorithms/SpatialPooler.hpp"
 #include "nupic/os/Timer.hpp"
+#include "nupic/utils/Random.hpp"
 
 using namespace std;
 using namespace nupic;
-using nupic::algorithms::spatial_pooler::SpatialPooler;
 using nupic::algorithms::Cells4::Cells4;
+using nupic::algorithms::spatial_pooler::SpatialPooler;
 
-// function generator:
-int RandomNumber01 () { return (rand()%2); } // returns random (binary) numbers from {0,1}
-
-int main(int argc, const char * argv[])
-{
-const UInt DIM = 2048; // number of columns in SP, TP
-const UInt DIM_INPUT = 10000;
-const UInt TP_CELLS_PER_COL = 10; // cells per column in TP
-const UInt EPOCHS = pow(10, 4); // number of iterations (calls to SP/TP compute() )
+int main(int argc, const char *argv[]) {
+  const UInt DIM = 2048; // number of columns in SP, TP
+  const UInt DIM_INPUT = 10000;
+  const UInt TP_CELLS_PER_COL = 10; // cells per column in TP
+  const UInt EPOCHS =
+      pow(10, 4); // number of iterations (calls to SP/TP compute() )
 
   vector<UInt> inputDim = {DIM_INPUT};
   vector<UInt> colDim = {DIM};
@@ -53,20 +50,22 @@ const UInt EPOCHS = pow(10, 4); // number of iterations (calls to SP/TP compute(
   vector<UInt> input(DIM_INPUT);
   vector<UInt> outSP(DIM); // active array, output of SP/TP
   const int _CELLS = DIM * TP_CELLS_PER_COL;
-  vector<UInt> outTP(_CELLS);   
+  vector<UInt> outTP(_CELLS);
   Real rIn[DIM] = {}; // input for TP (must be Reals)
   Real rOut[_CELLS] = {};
+  Random rnd;
 
   // initialize SP, TP
   SpatialPooler sp(inputDim, colDim);
-  Cells4 tp(DIM, TP_CELLS_PER_COL, 12, 8, 15, 5, .5, .8, 1.0, .1, .1, 0.0, false, 42, true, false);
+  Cells4 tp(DIM, TP_CELLS_PER_COL, 12, 8, 15, 5, .5, .8, 1.0, .1, .1, 0.0,
+            false, 42, true, false);
 
   // Start a stopwatch timer
   Timer stopwatch(true);
 
-  //run
+  // run
   for (UInt e = 0; e < EPOCHS; e++) {
-    generate(input.begin(), input.end(), RandomNumber01);
+    generate(input.begin(), input.end(), [&] () { return rnd.getUInt32(2); });
     fill(outSP.begin(), outSP.end(), 0);
     sp.compute(input.data(), true, outSP.data());
     sp.stripUnlearnedColumns(outSP.data());
@@ -77,12 +76,12 @@ const UInt EPOCHS = pow(10, 4); // number of iterations (calls to SP/TP compute(
 
     tp.compute(rIn, rOut, true, true);
 
-    for (UInt i=0; i< _CELLS; i++) {
+    for (UInt i = 0; i < _CELLS; i++) {
       outTP[i] = (UInt)rOut[i];
     }
 
     // print
-    if (e == EPOCHS-1) {
+    if (e == EPOCHS - 1) {
       cout << "Epoch = " << e << endl;
       cout << "SP=" << outSP << endl;
       cout << "TP=" << outTP << endl;
@@ -90,7 +89,8 @@ const UInt EPOCHS = pow(10, 4); // number of iterations (calls to SP/TP compute(
   }
 
   stopwatch.stop();
-  cout << "Total elapsed time = " << stopwatch.getElapsed() << " seconds" << endl;
+  cout << "Total elapsed time = " << stopwatch.getElapsed() << " seconds"
+       << endl;
 
   return 0;
 }
