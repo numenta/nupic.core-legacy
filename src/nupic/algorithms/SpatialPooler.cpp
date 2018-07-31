@@ -937,26 +937,27 @@ void SpatialPooler::inhibitColumns_(const vector<Real> &overlaps,
   }
 }
 
-bool SpatialPooler::isWinner_(Real score, vector<pair<UInt, Real>> &winners,
-                              UInt numWinners) {
-  if (score < stimulusThreshold_) {
+bool SpatialPooler::isWinner_(const Real score, const vector<pair<UInt, Real> >& winners,
+                              const UInt numWinners) const {
+  if (score < stimulusThreshold_) { //does not pass threshold, cannot win
     return false;
   }
 
-  if (winners.size() < numWinners) {
+  NTA_ASSERT(numWinners > 0);
+  if (winners.size() < numWinners) { //we haven't populated enough winners yet, accept everybody
     return true;
   }
 
-  if (score >= winners[numWinners - 1].second) {
+  if (!winners.empty() && score >= winners.back().second) { //winners full, see if better than last accepted, replace
     return true;
   }
 
   return false;
 }
 
-void SpatialPooler::addToWinners_(UInt index, Real score,
-                                  vector<pair<UInt, Real>> &winners) {
-  pair<UInt, Real> val = make_pair(index, score);
+void SpatialPooler::addToWinners_(const UInt index, const Real score,
+                                  vector<pair<UInt, Real>> &winners) const {
+  const pair<UInt, Real> val = make_pair(index, score);
   for (auto it = winners.begin(); it != winners.end(); it++) {
     if (score >= it->second) {
       winners.insert(it, val);
