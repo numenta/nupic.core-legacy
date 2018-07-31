@@ -203,10 +203,10 @@ UInt64 Random::getUInt64(const UInt64 max) {
 double Random::getReal64() {
   const int mantissaBits = 48;
   const UInt64 max = (UInt64)0x1U << mantissaBits;
-  UInt64 value = getUInt64(max);
-  Real64 dvalue =
+  const UInt64 value = getUInt64(max);
+  const Real64 dvalue =
       (Real64)value; // No loss because we only need the 48 mantissa bits.
-  Real64 returnval = ::ldexp(dvalue, -mantissaBits);
+  const Real64 returnval = ::ldexp(dvalue, -mantissaBits);
   // NTA_WARN << "RandomReal -> " << returnval;
   return returnval;
 }
