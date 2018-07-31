@@ -937,7 +937,6 @@ void SpatialPooler::inhibitColumns_(const vector<Real> &overlaps,
   }
 }
 
-<<<<<<< HEAD
 bool SpatialPooler::isWinner_(Real score, vector<pair<UInt, Real> >& winners,
                               UInt numWinners) {
   if (score < stimulusThreshold_) { //does not pass threshold, cannot win

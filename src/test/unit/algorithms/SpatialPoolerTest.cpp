@@ -1369,7 +1369,7 @@ TEST(SpatialPoolerTest, testValidateGlobalInhibitionParameters) {
 
 TEST(SpatialPoolerTest, testFewColumnsGlobalInhibitionCrash) {
   /** this test exposes bug where too small (few columns) SP crashes with global inhibition  */
-  SpatialPooler sp{std::vector<UInt>{1000} /* input*/, std::vector<UInt>{20}/* SP output cols XXX sensitive*/ };
+  SpatialPooler sp{std::vector<UInt>{1000} /* input*/, std::vector<UInt>{200}/* SP output cols XXX sensitive*/ };
   sp.setBoostStrength(0.0);
   sp.setPotentialRadius(20);
   sp.setPotentialPct(0.5);
