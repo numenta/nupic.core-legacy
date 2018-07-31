@@ -933,8 +933,8 @@ public:
   void calculateOverlap_(UInt inputVector[], vector<UInt> &overlap);
   void calculateOverlapPct_(vector<UInt> &overlaps, vector<Real> &overlapPct);
 
-  bool isWinner_(Real score, vector<pair<UInt, Real>> &winners,
-                 UInt numWinners);
+  bool isWinner_(const Real score, const vector<pair<UInt, Real>> &winners,
+                 const UInt numWinners) const;
 
   void addToWinners_(UInt index, Real score, vector<pair<UInt, Real>> &winners);
 
