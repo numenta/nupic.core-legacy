@@ -38,6 +38,8 @@
 #include <intrin.h>
 #endif
 
+#include <Eigen/Dense>
+
 #include <nupic/math/Math.hpp>
 #include <nupic/math/Types.hpp>
 #include <nupic/utils/Random.hpp> // For the official Numenta RNG
@@ -198,12 +200,13 @@ inline bool is_zero(const std::pair<T1, T2> &x) {
 }
 
 //--------------------------------------------------------------------------------
-template <typename T> inline bool is_zero(const std::vector<T> &x) {
-  for (size_t i = 0; i != x.size(); ++i)
-    if (!is_zero(x[i]))
-      return false;
-  return true;
-}
+template <typename T>
+inline bool is_zero(const std::vector<T>& x)
+  {
+   size_t vector_size = x.size();
+   Eigen::Map<const Eigen::RowVectorXf> mx(x, vector_size);
+   return (mx.maxCoeff() == 0);
+  }
 
 //--------------------------------------------------------------------------------
 // DENSE isZero
@@ -224,10 +227,9 @@ template <typename InputIterator>
 inline bool isZero_01(InputIterator x, InputIterator x_end) {
   NTA_ASSERT(x <= x_end); 
 
-  for (; x != x_end; ++x)
-    if (*x > 0)
-      return false;
-  return true;
+    const size_t vector_size = (x_end - x) + 1;
+    Eigen::Map<const Eigen::RowVectorXf> mx(x, vector_size);
+    return (mx.maxCoeff() == 0);
 }
 
 //--------------------------------------------------------------------------------
@@ -665,10 +667,13 @@ inline T2 dot(const std::vector<T1> &x, const Buffer<T2> &y) {
 
 //--------------------------------------------------------------------------------
 inline float dot(const float *x, const float *x_end, const float *y) {
-  float result = 0;
-  for (; x != x_end; ++x, ++y)
-    result += *x * *y;
-  return result;
+    float result = 0;
+    const size_t vector_size = (x_end - x) + 1;
+    Eigen::Map<const Eigen::RowVectorXf> mx(x, vector_size);
+    Eigen::Map<const Eigen::RowVectorXf> my(y, vector_size);
+    result = mx.dot(my);
+
+    return result;
 }
 
 //--------------------------------------------------------------------------------
