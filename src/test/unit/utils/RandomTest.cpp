@@ -470,3 +470,13 @@ TEST(RandomTest, testEqualsOperator) {
   ASSERT_TRUE(r1 == r2);
   ASSERT_EQ(v1, v2);
 }
+
+TEST(RandomTest, testGetUIntSpeed) {
+ Random r1(42);
+ UInt32 rnd;
+ const int RUNS = 10000000;
+ for(int i=0; i<RUNS; i++) {
+   rnd = r1.getUInt32(10000); //get random int [0..1M)
+   NTA_CHECK(rnd < 1000001) << "Should never happen, just here so compiler won't optimize out this loop";
+ }
+}

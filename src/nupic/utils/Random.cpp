@@ -191,8 +191,7 @@ UInt32 Random::getUInt32(const UInt32 max) {
     sample = impl_->getUInt32();
   } while (sample > smax);
 
-  // NTA_WARN << "Random32(" << max << ") -> " << sample % max << " smax = " <<
-  // smax;
+//NTA_WARN << "Random32(" << max << ") -> " << sample % max << " smax = " << smax;
   return sample % max;
 }
 
