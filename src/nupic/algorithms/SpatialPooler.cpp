@@ -943,6 +943,7 @@ bool SpatialPooler::isWinner_(const Real score, const vector<pair<UInt, Real> >&
     return false;
   }
 
+  NTA_ASSERT(numWinners > 0);
   if (winners.size() < numWinners) { //we haven't populated enough winners yet, accept everybody
     return true;
   }
