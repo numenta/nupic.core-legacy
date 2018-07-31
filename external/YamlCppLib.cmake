@@ -34,7 +34,7 @@ include(../src/NupicLibraryUtils) # for MERGE_STATIC_LIBRARIES
 set(YAML_CPP_STATIC_LIB_TARGET yaml-cpp-bundle)
 
 
-set(yamlcpplib_url "${REPOSITORY_DIR}/external/common/share/yaml-cpp/yaml-cpp-release-0.5.3.tar.gz")
+set(yamlcpplib_url "${REPOSITORY_DIR}/external/common/share/yaml-cpp/yaml-cpp-release-0.6.2.tar.gz")
 set(yamlcpplib_install_prefix "${EP_BASE}/Install/YamlCppStaticLib")
 set(yamlcpplib_install_lib_dir "${yamlcpplib_install_prefix}/lib")
 
