@@ -24,17 +24,15 @@
  * Implementation of BasicType test
  */
 
-#include <nupic/utils/Log.hpp> // Only required because of issue #802
-#include <nupic/ntypes/NodeSet.hpp>
 #include <gtest/gtest.h>
-
+#include <nupic/ntypes/NodeSet.hpp>
+#include <nupic/utils/Log.hpp> // Only required because of issue #802
 
 using namespace nupic;
 
-TEST(NodeSetTest, Basic)
-{
+TEST(NodeSetTest, Basic) {
   NodeSet ns(4);
-  
+
   ASSERT_TRUE(ns.begin() == ns.end());
   ns.allOn();
   auto i = ns.begin();
@@ -47,10 +45,10 @@ TEST(NodeSetTest, Basic)
   ASSERT_TRUE(*i == 3);
   ++i;
   ASSERT_TRUE(i == ns.end());
-  
+
   ns.allOff();
   ASSERT_TRUE(ns.begin() == ns.end());
-  
+
   ns.add(1);
   ns.add(3);
   i = ns.begin();
@@ -69,9 +67,9 @@ TEST(NodeSetTest, Basic)
   ASSERT_TRUE(*i == 4);
   ++i;
   ASSERT_TRUE(i == ns.end());
-  
+
   ASSERT_ANY_THROW(ns.add(5));
-  
+
   ns.remove(3);
   i = ns.begin();
   ASSERT_TRUE(*i == 1);
@@ -88,5 +86,4 @@ TEST(NodeSetTest, Basic)
   ASSERT_TRUE(*i == 4);
   ++i;
   ASSERT_TRUE(i == ns.end());
-
 }

@@ -27,35 +27,25 @@
  * Bumps up size to a nicely aligned larger size.
  * Taken for NuPIC2 from PythonUtils.hpp
  */
-static size_t NextPythonSize(size_t n)
-{
+static size_t NextPythonSize(size_t n) {
   n += 1;
   n += 8 - (n % 8);
   return n;
 }
 
 // -------------------------------------------------------------
-SharedPythonOStream::SharedPythonOStream(size_t maxSize) :
-	target_size_(NextPythonSize(maxSize)),
-	ss_(std::ios_base::out)
-{
-}
+SharedPythonOStream::SharedPythonOStream(size_t maxSize)
+    : target_size_(NextPythonSize(maxSize)), ss_(std::ios_base::out) {}
 
 // -------------------------------------------------------------
-std::ostream &SharedPythonOStream::getStream()
-{
-	return ss_;
-}
+std::ostream &SharedPythonOStream::getStream() { return ss_; }
 
 // -------------------------------------------------------------
-PyObject * SharedPythonOStream::close()
-{
-	ss_.flush();
+PyObject *SharedPythonOStream::close() {
+  ss_.flush();
 
-	if (ss_.str().length() > target_size_)
+  if (ss_.str().length() > target_size_)
     throw std::runtime_error("Stream output larger than allocated buffer.");
 
   return PyString_FromStringAndSize(ss_.str().c_str(), ss_.str().length());
 }
-
-

@@ -24,9 +24,9 @@
  * Implementation of Watcher test
  */
 
-#include <string>
-#include <sstream>
 #include <exception>
+#include <sstream>
+#include <string>
 
 #include <nupic/engine/Network.hpp>
 #include <nupic/engine/NuPIC.hpp>
@@ -43,10 +43,8 @@
 
 using namespace nupic;
 
-
-TEST(WatcherTest, SampleNetwork)
-{
-  //generate sample network
+TEST(WatcherTest, SampleNetwork) {
+  // generate sample network
   Network n;
   n.addRegion("level1", "TestNode", "");
   n.addRegion("level2", "TestNode", "");
@@ -59,76 +57,76 @@ TEST(WatcherTest, SampleNetwork)
   n.link("level2", "level3", "TestFanIn2", "");
   n.initialize();
 
-  //erase any previous contents of testfile
+  // erase any previous contents of testfile
   OFStream o("testfile");
   o.close();
-  
-  //test creation
+
+  // test creation
   Watcher w("testfile");
 
-  //test uint32Params
+  // test uint32Params
   unsigned int id1 = w.watchParam("level1", "uint32Param");
   ASSERT_EQ(id1, (unsigned int)1);
-  //test uint64Params
+  // test uint64Params
   unsigned int id2 = w.watchParam("level1", "uint64Param");
   ASSERT_EQ(id2, (unsigned int)2);
-  //test int32Params
+  // test int32Params
   w.watchParam("level1", "int32Param");
-  //test int64Params
+  // test int64Params
   w.watchParam("level1", "int64Param");
-  //test real32Params
+  // test real32Params
   w.watchParam("level1", "real32Param");
-  //test real64Params
+  // test real64Params
   w.watchParam("level1", "real64Param");
-  //test stringParams
+  // test stringParams
   w.watchParam("level1", "stringParam");
-  //test unclonedParams
+  // test unclonedParams
   w.watchParam("level1", "unclonedParam", 0);
   w.watchParam("level1", "unclonedParam", 1);
-  
-  //test attachToNetwork()
+
+  // test attachToNetwork()
   w.attachToNetwork(n);
 
-  //test two simultaneous Watchers on the same network with different files
-  Watcher* w2 = new Watcher("testfile2");
+  // test two simultaneous Watchers on the same network with different files
+  Watcher *w2 = new Watcher("testfile2");
 
-  //test int64ArrayParam
+  // test int64ArrayParam
   w2->watchParam("level1", "int64ArrayParam");
-  //test real32ArrayParam
+  // test real32ArrayParam
   w2->watchParam("level1", "real32ArrayParam");
-  //test output
+  // test output
   w2->watchOutput("level1", "bottomUpOut");
-  //test int64ArrayParam, sparse = false
+  // test int64ArrayParam, sparse = false
   w2->watchParam("level1", "int64ArrayParam", -1, false);
 
   w2->attachToNetwork(n);
 
-  //set one of the uncloned parameters to 1 instead of 0
-  //n.getRegions().getByName("level1")->getNodeAtIndex(1).setParameterUInt32("unclonedParam", (UInt32)1);
-  //n.run(3);
-  //see if Watcher notices change in parameter values after 3 iterations
-  n.getRegions().getByName("level1")->setParameterUInt64("uint64Param", (UInt64)66);
+  // set one of the uncloned parameters to 1 instead of 0
+  // n.getRegions().getByName("level1")->getNodeAtIndex(1).setParameterUInt32("unclonedParam",
+  // (UInt32)1); n.run(3); see if Watcher notices change in parameter values
+  // after 3 iterations
+  n.getRegions().getByName("level1")->setParameterUInt64("uint64Param",
+                                                         (UInt64)66);
   n.run(3);
 
-  //test flushFile() - this should produce output
+  // test flushFile() - this should produce output
   w.flushFile();
 
-  //test closeFile()
+  // test closeFile()
   w.closeFile();
 
-  //test to make sure data is flushed when Watcher is deleted
+  // test to make sure data is flushed when Watcher is deleted
   delete w2;
 }
-  
-TEST(WatcherTest, FileTest1)
-{
-  //test file output
+
+TEST(WatcherTest, FileTest1) {
+  // test file output
   IFStream inStream("testfile");
   std::string tempString;
-  if (inStream.is_open())
-  {
+  if (inStream.is_open()) {
     getline(inStream, tempString);
-    ASSERT_EQ("Info: watchID, regionName, nodeType, nodeIndex, varName", tempString);
+    ASSERT_EQ("Info: watchID, regionName, nodeType, nodeIndex, varName",
+              tempString);
     getline(inStream, tempString);
     ASSERT_EQ("1, level1, TestNode, -1, uint32Param", tempString);
     getline(inStream, tempString);
@@ -149,30 +147,24 @@ TEST(WatcherTest, FileTest1)
     ASSERT_EQ("9, level1, TestNode, 1, unclonedParam", tempString);
     getline(inStream, tempString);
     ASSERT_EQ("Data: watchID, iteration, paramValue", tempString);
-    
+
     unsigned int i = 1;
-    while (! inStream.eof() )
-    {
+    while (!inStream.eof()) {
       std::stringstream stream;
       std::string value;
       getline(inStream, tempString);
-      if (tempString.size() == 0)
-      {
+      if (tempString.size() == 0) {
         break;
       }
-      switch (tempString.at(0))
-      {
+      switch (tempString.at(0)) {
       case '1':
         stream << "1, " << i << ", 33";
         break;
       case '2':
         stream << "2, " << i;
-        if (i < 4)
-        {
+        if (i < 4) {
           stream << ", 66";
-        }
-        else
-        {
+        } else {
           stream << ", 65";
         }
         break;
@@ -199,7 +191,7 @@ TEST(WatcherTest, FileTest1)
         i++;
         break;
       }
-    
+
       value = stream.str();
       ASSERT_EQ(value, tempString);
     }
@@ -208,15 +200,14 @@ TEST(WatcherTest, FileTest1)
 
   Path::remove("testfile");
 }
-  
-TEST(WatcherTest, FileTest2)
-{
+
+TEST(WatcherTest, FileTest2) {
   IFStream inStream2("testfile2");
   std::string tempString;
-  if (inStream2.is_open())
-  {
+  if (inStream2.is_open()) {
     getline(inStream2, tempString);
-    ASSERT_EQ("Info: watchID, regionName, nodeType, nodeIndex, varName", tempString);
+    ASSERT_EQ("Info: watchID, regionName, nodeType, nodeIndex, varName",
+              tempString);
     getline(inStream2, tempString);
     ASSERT_EQ("1, level1, TestNode, -1, int64ArrayParam", tempString);
     getline(inStream2, tempString);
@@ -227,19 +218,16 @@ TEST(WatcherTest, FileTest2)
     ASSERT_EQ("4, level1, TestNode, -1, int64ArrayParam", tempString);
     getline(inStream2, tempString);
     ASSERT_EQ("Data: watchID, iteration, paramValue", tempString);
-    
+
     unsigned int i = 1;
-    while (! inStream2.eof() )
-    {
+    while (!inStream2.eof()) {
       std::stringstream stream;
       std::string value;
       getline(inStream2, tempString);
-      if (tempString.size() == 0)
-      {
+      if (tempString.size() == 0) {
         break;
       }
-      switch (tempString.at(0))
-      {
+      switch (tempString.at(0)) {
       case '1':
         stream << "1, " << i << ", 4 1 2 3";
         break;
@@ -248,18 +236,13 @@ TEST(WatcherTest, FileTest2)
         break;
       case '3':
         stream << "3, " << i << ", 64";
-        if (i == 1)
-        {
-          for (unsigned int j = 3; j < 64; j+=2)
-          {
+        if (i == 1) {
+          for (unsigned int j = 3; j < 64; j += 2) {
             stream << " " << j;
           }
-        }
-        else
-        {
+        } else {
           stream << " 0";
-          for (unsigned int j = 2; j < 64; j++)
-          {
+          for (unsigned int j = 2; j < 64; j++) {
             stream << " " << j;
           }
         }
@@ -269,12 +252,12 @@ TEST(WatcherTest, FileTest2)
         i++;
         break;
       }
-      
+
       value = stream.str();
       ASSERT_EQ(value, tempString);
     }
   }
   inStream2.close();
-        
+
   Path::remove("testfile2");
 }

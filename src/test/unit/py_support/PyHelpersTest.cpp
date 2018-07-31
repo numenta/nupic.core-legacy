@@ -24,42 +24,36 @@
  * Implementation of PyHelpers test
  */
 
-#include <nupic/py_support/PyHelpers.hpp>
-#include <limits>
 #include <gtest/gtest.h>
+#include <limits>
+#include <nupic/py_support/PyHelpers.hpp>
 
 using namespace nupic;
 
-class PyHelpersTest : public ::testing::Test
-{ 
-  public:
-  PyHelpersTest()
-  {
+class PyHelpersTest : public ::testing::Test {
+public:
+  PyHelpersTest() {
     NTA_DEBUG << "Py_Initialize()";
     Py_Initialize();
   }
 
-  ~PyHelpersTest()
-  {
+  ~PyHelpersTest() {
     NTA_DEBUG << "Py_Finalize()";
     Py_Finalize();
   }
 };
 
+TEST_F(PyHelpersTest, pyPtrConstructionNULL) {
+  PyObject *p = NULL;
+  EXPECT_THROW(py::Ptr(p, /* allowNULL: */ false), std::exception);
 
-TEST_F(PyHelpersTest, pyPtrConstructionNULL)
-{
-  PyObject * p  = NULL;
-  EXPECT_THROW(py::Ptr(p, /* allowNULL: */false), std::exception);
-
-  py::Ptr pp1(p, /* allowNULL: */true);
+  py::Ptr pp1(p, /* allowNULL: */ true);
   ASSERT_TRUE((PyObject *)pp1 == NULL);
   ASSERT_TRUE(pp1.isNULL());
 }
 
-TEST_F(PyHelpersTest, pyPtrConstructionNonNULL)
-{
-  PyObject * p = PyTuple_New(1);
+TEST_F(PyHelpersTest, pyPtrConstructionNonNULL) {
+  PyObject *p = PyTuple_New(1);
   py::Ptr pp2(p);
   ASSERT_TRUE(!pp2.isNULL());
   ASSERT_TRUE((PyObject *)pp2 == p);
@@ -67,10 +61,9 @@ TEST_F(PyHelpersTest, pyPtrConstructionNonNULL)
   ASSERT_TRUE(pp2.isNULL());
   Py_DECREF(p);
 }
-  
-TEST_F(PyHelpersTest, pyPtrConstructionAssign)
-{
-  PyObject * p = PyTuple_New(1);
+
+TEST_F(PyHelpersTest, pyPtrConstructionAssign) {
+  PyObject *p = PyTuple_New(1);
   ASSERT_TRUE(p->ob_refcnt == 1);
   py::Ptr pp(NULL, /* allowNULL */ true);
   ASSERT_TRUE(pp.isNULL());
@@ -83,8 +76,7 @@ TEST_F(PyHelpersTest, pyPtrConstructionAssign)
   ASSERT_TRUE(p->ob_refcnt == 1);
 }
 
-TEST_F(PyHelpersTest, pyString)
-{
+TEST_F(PyHelpersTest, pyString) {
   py::String ps1(std::string("123"));
   ASSERT_TRUE(PyString_Check(ps1) != 0);
 
@@ -106,21 +98,20 @@ TEST_F(PyHelpersTest, pyString)
   ASSERT_TRUE(std::string(ps2) == expected);
   ASSERT_TRUE(std::string(ps3) == expected);
 
-  PyObject * p = PyString_FromString("777");
+  PyObject *p = PyString_FromString("777");
   py::String ps4(p);
   ASSERT_TRUE(std::string(ps4) == std::string("777"));
 }
 
-TEST_F(PyHelpersTest, pyInt)
-{
+TEST_F(PyHelpersTest, pyInt) {
   py::Int n1(-5);
   py::Int n2(-6666);
   py::Int n3(long(0));
   py::Int n4(555);
   py::Int n5(6666);
-  
+
   ASSERT_TRUE(n1 == -5);
-  int x = n2; 
+  int x = n2;
   int expected = -6666;
   ASSERT_TRUE(x == expected);
   ASSERT_TRUE(n3 == 0);
@@ -130,16 +121,15 @@ TEST_F(PyHelpersTest, pyInt)
   ASSERT_TRUE(x == expected);
 }
 
-TEST_F(PyHelpersTest, pyLong)
-{
+TEST_F(PyHelpersTest, pyLong) {
   py::Long n1(-5);
   py::Long n2(-66666666);
   py::Long n3(long(0));
   py::Long n4(555);
   py::Long n5(66666666);
-  
+
   ASSERT_TRUE(n1 == -5);
-  long x = n2; 
+  long x = n2;
   long expected = -66666666;
   ASSERT_TRUE(x == expected);
   ASSERT_TRUE(n3 == 0);
@@ -149,14 +139,13 @@ TEST_F(PyHelpersTest, pyLong)
   ASSERT_TRUE(x == expected);
 }
 
-TEST_F(PyHelpersTest, pyUnsignedLong)
-{
+TEST_F(PyHelpersTest, pyUnsignedLong) {
   py::UnsignedLong n1((unsigned long)(-5));
   py::UnsignedLong n2((unsigned long)(-66666666));
   py::UnsignedLong n3((unsigned long)(0));
   py::UnsignedLong n4(555);
   py::UnsignedLong n5(66666666);
-  
+
   ASSERT_TRUE(n1 == (unsigned long)(-5));
   ASSERT_TRUE(n2 == (unsigned long)(-66666666));
   ASSERT_TRUE(n3 == 0);
@@ -164,8 +153,7 @@ TEST_F(PyHelpersTest, pyUnsignedLong)
   ASSERT_TRUE(n5 == 66666666);
 }
 
-TEST_F(PyHelpersTest, pyFloat)
-{
+TEST_F(PyHelpersTest, pyFloat) {
   ASSERT_TRUE(py::Float::getMax() == std::numeric_limits<double>::max());
   ASSERT_TRUE(py::Float::getMin() == std::numeric_limits<double>::min());
 
@@ -176,7 +164,7 @@ TEST_F(PyHelpersTest, pyFloat)
   py::Float n3(333.555);
   py::Float n4(0.02);
   py::Float n5("0.02");
-  
+
   ASSERT_TRUE(max == py::Float::getMax());
   ASSERT_TRUE(min == py::Float::getMin());
   ASSERT_TRUE(n1 == -0.5);
@@ -186,8 +174,7 @@ TEST_F(PyHelpersTest, pyFloat)
   ASSERT_TRUE(n5 == 0.02);
 }
 
-TEST_F(PyHelpersTest, pyBool)
-{
+TEST_F(PyHelpersTest, pyBool) {
   const auto trueRefcount = Py_REFCNT(Py_True);
   const auto falseRefcount = Py_REFCNT(Py_False);
 
@@ -223,21 +210,19 @@ TEST_F(PyHelpersTest, pyBool)
   ASSERT_EQ(falseRefcount, Py_REFCNT(Py_False));
 }
 
-TEST_F(PyHelpersTest, pyTupleEmpty)
-{
+TEST_F(PyHelpersTest, pyTupleEmpty) {
   py::String s1("item_1");
   py::String s2("item_2");
-  
+
   py::Tuple empty;
   ASSERT_TRUE(PyTuple_Check(empty) != 0);
   ASSERT_TRUE(empty.getCount() == 0);
-  
+
   EXPECT_THROW(empty.setItem(0, s1), std::exception);
   EXPECT_THROW(empty.getItem(0), std::exception);
 }
 
-TEST_F(PyHelpersTest, pyTupleOneItem)
-{
+TEST_F(PyHelpersTest, pyTupleOneItem) {
   py::String s1("item_1");
   py::String s2("item_2");
 
@@ -248,19 +233,18 @@ TEST_F(PyHelpersTest, pyTupleOneItem)
   t1.setItem(0, s1);
   py::String item1(t1.getItem(0));
   ASSERT_TRUE(std::string(item1) == std::string(s1));
-  
+
   py::String fastItem1(t1.fastGetItem(0));
   ASSERT_TRUE(std::string(fastItem1) == std::string(s1));
   fastItem1.release();
-  
+
   EXPECT_THROW(t1.setItem(1, s2), std::exception);
   EXPECT_THROW(t1.getItem(1), std::exception);
 
   ASSERT_TRUE(t1.getCount() == 1);
 }
 
-TEST_F(PyHelpersTest, pyTupleTwoItems)
-{
+TEST_F(PyHelpersTest, pyTupleTwoItems) {
   py::String s1("item_1");
   py::String s2("item_2");
 
@@ -282,29 +266,25 @@ TEST_F(PyHelpersTest, pyTupleTwoItems)
   ASSERT_TRUE(std::string(fastItem2) == std::string(s2));
   fastItem2.release();
 
-
   EXPECT_THROW(t2.setItem(2, s2), std::exception);
   EXPECT_THROW(t2.getItem(2), std::exception);
 
   ASSERT_TRUE(t2.getCount() == 2);
 }
 
-
-TEST_F(PyHelpersTest, pyListEmpty)
-{
+TEST_F(PyHelpersTest, pyListEmpty) {
   py::String s1("item_1");
   py::String s2("item_2");
 
   py::List empty;
   ASSERT_TRUE(PyList_Check(empty) != 0);
   ASSERT_TRUE(empty.getCount() == 0);
-  
+
   EXPECT_THROW(empty.setItem(0, s1), std::exception);
   EXPECT_THROW(empty.getItem(0), std::exception);
 }
 
-TEST_F(PyHelpersTest, pyListOneItem)
-{
+TEST_F(PyHelpersTest, pyListOneItem) {
   py::String s1("item_1");
   py::String s2("item_2");
 
@@ -321,12 +301,11 @@ TEST_F(PyHelpersTest, pyListOneItem)
 
   ASSERT_TRUE(t1.getCount() == 1);
   ASSERT_TRUE(std::string(item1) == std::string(s1));
-  
+
   EXPECT_THROW(t1.getItem(1), std::exception);
 }
 
-TEST_F(PyHelpersTest, pyListTwoItems)
-{
+TEST_F(PyHelpersTest, pyListTwoItems) {
   py::String s1("item_1");
   py::String s2("item_2");
 
@@ -343,49 +322,42 @@ TEST_F(PyHelpersTest, pyListTwoItems)
 
   t2.append(s2);
   ASSERT_TRUE(t2.getCount() == 2);
-  
+
   py::String item2(t2.getItem(1));
   ASSERT_TRUE(std::string(item2) == std::string(s2));
   py::String fastItem2(t2.fastGetItem(1));
   ASSERT_TRUE(std::string(fastItem2) == std::string(s2));
   fastItem2.release();
 
-
   EXPECT_THROW(t2.getItem(2), std::exception);
 }
 
-TEST_F(PyHelpersTest, pyDictEmpty)
-{
+TEST_F(PyHelpersTest, pyDictEmpty) {
   py::Dict d;
   ASSERT_EQ(PyDict_Size(d), 0);
 
   ASSERT_TRUE(d.getItem("blah") == NULL);
 }
 
-TEST_F(PyHelpersTest, pyDictExternalPyObjectFailed)
-{
+TEST_F(PyHelpersTest, pyDictExternalPyObjectFailed) {
   // NULL object
   EXPECT_THROW(py::Dict(NULL), std::exception);
 
   // Wrong type (must be a dictionary)
   py::String s("1234");
-  try
-  {
+  try {
     py::Dict d(s.release());
     NTA_THROW << "py::Dict d(s) Should fail!!!";
-  }
-  catch(...)
-  {
+  } catch (...) {
   }
   // SHOULDFAIL fails to fail :-)
-  //SHOULDFAIL(py::Dict(s));
+  // SHOULDFAIL(py::Dict(s));
 }
 
-TEST_F(PyHelpersTest, pyDictExternalPyObjectSuccessful)
-{
-  PyObject * p = PyDict_New();
+TEST_F(PyHelpersTest, pyDictExternalPyObjectSuccessful) {
+  PyObject *p = PyDict_New();
   PyDict_SetItem(p, py::String("1234"), py::String("5678"));
-  
+
   py::Dict d(p);
 
   ASSERT_TRUE(PyDict_Contains(d, py::String("1234")) == 1);
@@ -394,41 +366,34 @@ TEST_F(PyHelpersTest, pyDictExternalPyObjectSuccessful)
 
   ASSERT_TRUE(PyDict_Contains(d, py::String("777")) == 1);
 }
-  
+
 // getItem with default (exisiting and non-exisitng key)
-TEST_F(PyHelpersTest, pyDictGetItem)
-{
+TEST_F(PyHelpersTest, pyDictGetItem) {
   py::Dict d;
   d.setItem("A", py::String("AAA"));
 
-  PyObject * defaultItem = (PyObject *)123;
-  
-  py::String A(d.getItem("A"));             
+  PyObject *defaultItem = (PyObject *)123;
+
+  py::String A(d.getItem("A"));
   ASSERT_TRUE(std::string(A) == std::string("AAA"));
 
   // No "B" in the dict, so expect to get the default item
-  PyObject * B = (d.getItem("B", defaultItem));
+  PyObject *B = (d.getItem("B", defaultItem));
   ASSERT_TRUE(B == defaultItem);
 
   PyDict_SetItem(d, py::String("777"), py::String("999"));
   ASSERT_TRUE(PyDict_Contains(d, py::String("777")) == 1);
 }
-  
 
-TEST_F(PyHelpersTest, pyModule)
-{
+TEST_F(PyHelpersTest, pyModule) {
   py::Module module("sys");
   ASSERT_TRUE(std::string(PyModule_GetName(module)) == std::string("sys"));
 }
 
-TEST_F(PyHelpersTest, pyClass)
-{
-  py::Class c("datetime", "date");
-}
+TEST_F(PyHelpersTest, pyClass) { py::Class c("datetime", "date"); }
 
-TEST_F(PyHelpersTest, pyInstance)
-{
-  
+TEST_F(PyHelpersTest, pyInstance) {
+
   py::Tuple args(3);
   args.setItem(0, py::Long(2000));
   args.setItem(1, py::Long(11));
@@ -466,8 +431,7 @@ TEST_F(PyHelpersTest, pyInstance)
   }
 }
 
-TEST_F(PyHelpersTest, pyCustomException)
-{
+TEST_F(PyHelpersTest, pyCustomException) {
   py::Tuple args(1);
   args.setItem(0, py::String("error message!"));
   py::Instance e(PyExc_RuntimeError, args);
@@ -475,12 +439,9 @@ TEST_F(PyHelpersTest, pyCustomException)
 
   PyErr_SetObject(PyExc_RuntimeError, e);
 
-  try
-  {
+  try {
     py::checkPyError(0);
-  }
-  catch (const nupic::Exception & e)
-  {
+  } catch (const nupic::Exception &e) {
     NTA_DEBUG << e.getMessage();
   }
 }

@@ -5,7 +5,7 @@ using import "/nupic/proto/RandomProto.capnp".RandomProto;
 using import "/nupic/proto/Segment.capnp".CStateProto;
 using import "/nupic/proto/SegmentUpdate.capnp".SegmentUpdateProto;
 
-# Next ID: 39
+# Next ID: 49
 struct Cells4Proto {
   version @0 :UInt16;
   ownsMemory @1 :Bool;
@@ -49,6 +49,19 @@ struct Cells4Proto {
   learnActiveStateT1 @34 :CStateProto;
   learnPredictedStateT @35 :CStateProto;
   learnPredictedStateT1 @36 :CStateProto;
+
+  infActiveStateT @39 :CStateProto;
+  infActiveStateT1 @40 :CStateProto;
+  infPredictedStateT @41 :CStateProto;
+  infPredictedStateT1 @42 :CStateProto;
+
+  cellConfidenceT @43 :List(Float32);
+  cellConfidenceT1 @44 :List(Float32);
+  colConfidenceT @45 :List(Float32);
+  colConfidenceT1 @46 :List(Float32);
+
+  prevInfPatterns @47 :List(List(UInt32));
+  prevLrnPatterns @48 :List(List(UInt32));
 
   cells @37 :List(CellProto);
   segmentUpdates @38 :List(SegmentUpdateProto);

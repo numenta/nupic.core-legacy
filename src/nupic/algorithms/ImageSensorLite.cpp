@@ -20,7 +20,7 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file 
+/** @file
  *  This module implements efficient video-related image extraction.
  *
  *  The C NUMPY_ARRAY structure mirrors an ARRAY class in
@@ -28,11 +28,10 @@
  *
  *  This exported C function is expected to be used in conjunction
  *  with ctypes wrappers around numpy array objects.
- */ 
+ */
 
-#include <stdio.h>
 #include <math.h>
-
+#include <stdio.h>
 
 // Enable debugging
 //#define DEBUG   1
@@ -46,11 +45,10 @@
 // Visual C++ (Windows) does not come with roundf() in
 // the standard library
 #if defined(NTA_OS_WINDOWS)
-#define ROUND(x)     ((x-floor(x))>0.5 ? ceil(x) : floor(x))
+#define ROUND(x) ((x - floor(x)) > 0.5 ? ceil(x) : floor(x))
 #else
-#define ROUND(x)     (roundf(x))
+#define ROUND(x) (roundf(x))
 #endif
-
 
 // if INIT_FROM_PYTHON is defined, this module can initialize
 // logging from a python system reference. This introduces
@@ -60,25 +58,25 @@
 #error "Unexpected Python dependency for imageSensorLite in NuPIC 2"
 #endif
 
-
 #ifdef __cplusplus
 extern "C" {
-#endif 
+#endif
 
-#define GET_CTLBUF_ELEM(ctlBufAddr, k)            (((int*)(ctlBufAddr))[k])
+#define GET_CTLBUF_ELEM(ctlBufAddr, k) (((int *)(ctlBufAddr))[k])
 
-#define BOX_LEFT(ctlBufAddr)              GET_CTLBUF_ELEM(ctlBufAddr, 0)
-#define BOX_TOP(ctlBufAddr)               GET_CTLBUF_ELEM(ctlBufAddr, 1)
-#define BOX_RIGHT(ctlBufAddr)             GET_CTLBUF_ELEM(ctlBufAddr, 2)
-#define BOX_BOTTOM(ctlBufAddr)            GET_CTLBUF_ELEM(ctlBufAddr, 3)
-#define DATA_ADDRESS(ctlBufAddr)          GET_CTLBUF_ELEM(ctlBufAddr, 4)
-#define DATA_ALPHA_ADDRESS(ctlBufAddr)    GET_CTLBUF_ELEM(ctlBufAddr, 8)
-#define PARTITION_ID(ctlBufAddr)          GET_CTLBUF_ELEM(ctlBufAddr, 5)
-#define CATEGORY_ID(ctlBufAddr)           GET_CTLBUF_ELEM(ctlBufAddr, 6)
-#define VIDEO_ID(ctlBufAddr)              GET_CTLBUF_ELEM(ctlBufAddr, 7)
+#define BOX_LEFT(ctlBufAddr) GET_CTLBUF_ELEM(ctlBufAddr, 0)
+#define BOX_TOP(ctlBufAddr) GET_CTLBUF_ELEM(ctlBufAddr, 1)
+#define BOX_RIGHT(ctlBufAddr) GET_CTLBUF_ELEM(ctlBufAddr, 2)
+#define BOX_BOTTOM(ctlBufAddr) GET_CTLBUF_ELEM(ctlBufAddr, 3)
+#define DATA_ADDRESS(ctlBufAddr) GET_CTLBUF_ELEM(ctlBufAddr, 4)
+#define DATA_ALPHA_ADDRESS(ctlBufAddr) GET_CTLBUF_ELEM(ctlBufAddr, 8)
+#define PARTITION_ID(ctlBufAddr) GET_CTLBUF_ELEM(ctlBufAddr, 5)
+#define CATEGORY_ID(ctlBufAddr) GET_CTLBUF_ELEM(ctlBufAddr, 6)
+#define VIDEO_ID(ctlBufAddr) GET_CTLBUF_ELEM(ctlBufAddr, 7)
 
 /*
-#define DST_BUF_LEN(psDstBuffer)    (((long int *)(psDstBuffer->pnDimensions))[0])
+#define DST_BUF_LEN(psDstBuffer)    (((long int
+*)(psDstBuffer->pnDimensions))[0])
 
 #define BBOX_ELEM(bbox, k)            (((int*)(bbox->pData))[k])
 #define BBOX_LEFT(bbox)               BBOX_ELEM(bbox, 0)
@@ -101,20 +99,19 @@ extern "C" {
 #define IMAGE_ROWSTRIDE(array)        IMAGE_STRIDE(array, 0)
 */
 
-
 /*
 // Hanning window of window length 9
 // @todo: don't both convolving against the first and
 //        last window elements because they're known
 //        to be zero.
 static const float afHanning[] = {
-  0.03661165,  
-  0.12500000,  
-  0.21338835,  
+  0.03661165,
+  0.12500000,
+  0.21338835,
   0.25000000,
-  0.21338835,  
-  0.12500000,  
-  0.03661165, 
+  0.21338835,
+  0.12500000,
+  0.03661165,
 };
 
 
@@ -125,7 +122,7 @@ static const float afHanning[] = {
 
 // FUNCTION: _smooth()
 // PURPOSE: Smooth a 1D histogram
-float _smoothHist1D(const float * pfHistogram, 
+float _smoothHist1D(const float * pfHistogram,
                     float * pfReflHist,
                     float * pfSmoothHist,
                     int nHistWidth) {
@@ -136,13 +133,13 @@ float _smoothHist1D(const float * pfHistogram,
   float fRef = 2.0 * (*pfHistogram);
 
   // Construct reflected (extended) histogrm
-  float * pfReflHistPtr = pfReflHist + HANNING_HALF_LEN; 
-  const float * pfHistPtr = pfHistogram; 
+  float * pfReflHistPtr = pfReflHist + HANNING_HALF_LEN;
+  const float * pfHistPtr = pfHistogram;
   // Reflect leading elements
   for (k=HANNING_HALF_LEN; k; k--)
     *--pfReflHistPtr = fRef - *++pfHistPtr;
   // Copy internal elemenents
-  pfHistPtr = pfHistogram; 
+  pfHistPtr = pfHistogram;
   pfReflHistPtr += HANNING_HALF_LEN;
   for (k=nHistWidth; k; k--)
     *pfReflHistPtr++ = *pfHistPtr++;
@@ -156,7 +153,7 @@ float _smoothHist1D(const float * pfHistogram,
   float * pfSmoothHistPtr = pfSmoothHist;
   for (k=nHistWidth; k; k--) {
     pfReflHistPtr = pfReflHist;
-    pfWindowPtr = afHanning; 
+    pfWindowPtr = afHanning;
     fAccum = 0.0f;
     for (i=HANNING_LEN; i; i--)
       fAccum += (*pfWindowPtr++) * (*pfReflHistPtr++);
@@ -191,13 +188,9 @@ void _formHistogramX(// Inputs:
     // shows, for each column, the number of pixels that
     // had non-zero SMotion.
     const float * pfSrc = (const float *)(psSrcImage->pData);
-    const float * pfSrcPtr = pfSrc + IMAGE_COLS(psSrcImage) * psBox->nTop + psBox->nLeft;
-    for (j=psBox->nBottom - psBox->nTop; j; j-- ) {
-      pfHistPtr = pfHist;
-      for (i=nBoxWidth; i; i-- )
-        if (*pfSrcPtr++)
-          *pfHistPtr++ += 1.0f;
-        else
+    const float * pfSrcPtr = pfSrc + IMAGE_COLS(psSrcImage) * psBox->nTop +
+psBox->nLeft; for (j=psBox->nBottom - psBox->nTop; j; j-- ) { pfHistPtr =
+pfHist; for (i=nBoxWidth; i; i-- ) if (*pfSrcPtr++) *pfHistPtr++ += 1.0f; else
           pfHistPtr++;
       pfSrcPtr += nRowAdvance;
     }
@@ -222,8 +215,8 @@ void _formHistogramY(// Inputs:
   // shows, for each column, the number of pixels that
   // had non-zero SMotion.
   const float * pfSrc = (const float *)(psSrcImage->pData);
-  const float * pfSrcPtr = pfSrc + IMAGE_COLS(psSrcImage) * psBox->nTop + psBox->nLeft;
-  NTA_ASSERT(psBox->nBottom - psBox->nTop >= 0);
+  const float * pfSrcPtr = pfSrc + IMAGE_COLS(psSrcImage) * psBox->nTop +
+psBox->nLeft; NTA_ASSERT(psBox->nBottom - psBox->nTop >= 0);
   NTA_ASSERT(nBoxWidth >= 0);
   for (j=psBox->nBottom - psBox->nTop; j; j-- ) {
     fAccum = 0.0f;
@@ -292,8 +285,9 @@ int adjustBox( // Inputs:
     BBOX boxExpanded;
     boxExpanded.nLeft   = MAX(0, psBox->nLeft - psParams->nZonePreExpansionX);
     boxExpanded.nTop    = MAX(0, psBox->nTop  - psParams->nZonePreExpansionY);
-    boxExpanded.nRight  = MIN(nImageWidth, psBox->nRight + psParams->nZonePreExpansionX);
-    boxExpanded.nBottom = MIN(nImageHeight, psBox->nBottom + psParams->nZonePreExpansionY);
+    boxExpanded.nRight  = MIN(nImageWidth, psBox->nRight +
+psParams->nZonePreExpansionX); boxExpanded.nBottom = MIN(nImageHeight,
+psBox->nBottom + psParams->nZonePreExpansionY);
 
     // Sanity checks
     NTA_ASSERT(boxExpanded.nBottom >= boxExpanded.nTop);
@@ -304,7 +298,7 @@ int adjustBox( // Inputs:
     float fExpandedWidth  = (float)nExpandedWidth;
     float fExpandedHeight = (float)nExpandedHeight;
 
-    // Generate a horizontal histogram 
+    // Generate a horizontal histogram
     _formHistogramX(psSrcImage, &boxExpanded, afHistogramX);
 
     // Smooth the horizontal histogram
@@ -320,12 +314,16 @@ int adjustBox( // Inputs:
     // zone that we'll accept.
     // This is the max of an absolute length and a
     // minimum fraction of the original box.
-    //nMinZoneLen = MAX(psParams->nMinAbsZoneLenX, (int)roundf(psParams->fMinRelZoneLenX * fExpandedWidth));
-    nMinZoneLen = MAX(psParams->nMinAbsZoneLenX, (int)ROUND(psParams->fMinRelZoneLenX * fExpandedWidth));
+    //nMinZoneLen = MAX(psParams->nMinAbsZoneLenX,
+(int)roundf(psParams->fMinRelZoneLenX * fExpandedWidth)); nMinZoneLen =
+MAX(psParams->nMinAbsZoneLenX, (int)ROUND(psParams->fMinRelZoneLenX *
+fExpandedWidth));
 
     // Minimum length for a weak gap
-    //nMinWeakLen = MAX(psParams->nMinAbsWeakLenX, (int)roundf(psParams->fMinRelWeakLenX * fExpandedWidth));
-    nMinWeakLen = MAX(psParams->nMinAbsWeakLenX, (int)ROUND(psParams->fMinRelWeakLenX * fExpandedWidth));
+    //nMinWeakLen = MAX(psParams->nMinAbsWeakLenX,
+(int)roundf(psParams->fMinRelWeakLenX * fExpandedWidth)); nMinWeakLen =
+MAX(psParams->nMinAbsWeakLenX, (int)ROUND(psParams->fMinRelWeakLenX *
+fExpandedWidth));
 
     // For now, simple threshold
     fThreshX = psParams->fHeightThresh * fMaxX;
@@ -340,7 +338,7 @@ int adjustBox( // Inputs:
         *pnStrongPtr++ = 0;
     }
 
-    // Pre-calculate the minimum peak strength for 
+    // Pre-calculate the minimum peak strength for
     // each lobe to avoid being culled
     float fMinStrength = fMaxX * psParams->fSecondaryHeightThresh;
 
@@ -357,7 +355,8 @@ int adjustBox( // Inputs:
       if (nAntiDelta < 0) {
         NTA_ASSERT(nCandidateBegin == -1);
         // Check if gap was too small
-        if (nNumStrongZonesX && ((k - anStrongEndX[nNumStrongZonesX-1]) <= nMinWeakLen)) {
+        if (nNumStrongZonesX && ((k - anStrongEndX[nNumStrongZonesX-1]) <=
+nMinWeakLen)) {
           // Re-start the previous strong zone
           nCandidateBegin = anStrongBeginX[--nNumStrongZonesX];
         } else {
@@ -389,13 +388,13 @@ int adjustBox( // Inputs:
 
     // Last one
     if (nCandidateBegin >= 0) {
-      if (nNumToCheck - nCandidateBegin >= nMinZoneLen && fPeakStrength >= fMinStrength) {
-          anStrongBeginX[nNumStrongZonesX] = nCandidateBegin;
+      if (nNumToCheck - nCandidateBegin >= nMinZoneLen && fPeakStrength >=
+fMinStrength) { anStrongBeginX[nNumStrongZonesX] = nCandidateBegin;
           anStrongEndX[nNumStrongZonesX++] = nNumToCheck;
         }
     }
 
-    
+
     //-----------------------------------------------------------------------
     // Apply tightening/splitting in vertical direction (to each strong zone)
     for (k=0; k<nNumStrongZonesX; k++) {
@@ -406,7 +405,7 @@ int adjustBox( // Inputs:
       boxStrong.nRight  = boxExpanded.nLeft + anStrongEndX[k];
       boxStrong.nBottom = boxExpanded.nBottom;
 
-      // Generate a vertical histogram 
+      // Generate a vertical histogram
       _formHistogramY(psSrcImage, &boxStrong, afHistogramY);
 
       // Smooth the horizontal histogram
@@ -419,12 +418,16 @@ int adjustBox( // Inputs:
       // zone that we'll accept.
       // This is the max of an absolute length and a
       // minimum fraction of the original box.
-      //nMinZoneLen = MAX(psParams->nMinAbsZoneLenY, (int)roundf(psParams->fMinRelZoneLenY * fExpandedHeight));
-      nMinZoneLen = MAX(psParams->nMinAbsZoneLenY, (int)ROUND(psParams->fMinRelZoneLenY * fExpandedHeight));
+      //nMinZoneLen = MAX(psParams->nMinAbsZoneLenY,
+(int)roundf(psParams->fMinRelZoneLenY * fExpandedHeight)); nMinZoneLen =
+MAX(psParams->nMinAbsZoneLenY, (int)ROUND(psParams->fMinRelZoneLenY *
+fExpandedHeight));
 
       // Minimum length for a weak gap
-      //nMinWeakLen = MAX(psParams->nMinAbsWeakLenY, (int)roundf(psParams->fMinRelWeakLenY * fExpandedHeight));
-      nMinWeakLen = MAX(psParams->nMinAbsWeakLenY, (int)ROUND(psParams->fMinRelWeakLenY * fExpandedHeight));
+      //nMinWeakLen = MAX(psParams->nMinAbsWeakLenY,
+(int)roundf(psParams->fMinRelWeakLenY * fExpandedHeight)); nMinWeakLen =
+MAX(psParams->nMinAbsWeakLenY, (int)ROUND(psParams->fMinRelWeakLenY *
+fExpandedHeight));
 
       // For now, simple threshold
       fThreshY = psParams->fWidthThresh * fMaxY;
@@ -439,7 +442,7 @@ int adjustBox( // Inputs:
           *pnStrongPtr++ = 0;
       }
 
-      // Pre-calculate the minimum peak strength for 
+      // Pre-calculate the minimum peak strength for
       // each lobe to avoid being culled
       fMinStrength = fMaxY * psParams->fSecondaryWidthThresh;
 
@@ -455,7 +458,8 @@ int adjustBox( // Inputs:
         if (nAntiDelta < 0) {
           NTA_ASSERT(nCandidateBegin == -1);
           // Check if gap was too small
-          if (nNumStrongZonesY && ((j - anStrongEndY[nNumStrongZonesY-1]) <= nMinWeakLen)) {
+          if (nNumStrongZonesY && ((j - anStrongEndY[nNumStrongZonesY-1]) <=
+nMinWeakLen)) {
             // Re-start the previous strong zone
             nCandidateBegin = anStrongBeginY[--nNumStrongZonesY];
           } else {
@@ -467,8 +471,8 @@ int adjustBox( // Inputs:
         else if (nAntiDelta > 0) {
           NTA_ASSERT(nCandidateBegin >= 0);
           // Accept or cull the zone
-          if (j-nCandidateBegin >= nMinZoneLen && fPeakStrength >= fMinStrength) {
-            anStrongBeginY[nNumStrongZonesY] = nCandidateBegin;
+          if (j-nCandidateBegin >= nMinZoneLen && fPeakStrength >= fMinStrength)
+{ anStrongBeginY[nNumStrongZonesY] = nCandidateBegin;
             anStrongEndY[nNumStrongZonesY++] = j;
             // Make sure we don't exceed our hard-coded limits
             // with a crazily fragmented pathological smotion image
@@ -487,8 +491,8 @@ int adjustBox( // Inputs:
 
       // Last one
       if (nCandidateBegin >= 0) {
-        if (nNumToCheck - nCandidateBegin >= nMinZoneLen && fPeakStrength >= fMinStrength) {
-            anStrongBeginY[nNumStrongZonesY] = nCandidateBegin;
+        if (nNumToCheck - nCandidateBegin >= nMinZoneLen && fPeakStrength >=
+fMinStrength) { anStrongBeginY[nNumStrongZonesY] = nCandidateBegin;
             anStrongEndY[nNumStrongZonesY++] = nNumToCheck;
           }
       }
@@ -499,10 +503,12 @@ int adjustBox( // Inputs:
       // pathological smotion image)
       for (j=0; j<nNumStrongZonesY && nNumFinalBoxes<MAXNUM_BOXES; j++) {
         BBOX * pboxNew = &aboxFinal[nNumFinalBoxes++];
-        pboxNew->nLeft = MAX(0, boxStrong.nLeft - psParams->nZonePostExpansionX);
-        pboxNew->nTop  = MAX(0, boxStrong.nTop + anStrongBeginY[j] - psParams->nZonePostExpansionY);
-        pboxNew->nRight = MIN(nImageWidth, boxStrong.nRight + psParams->nZonePostExpansionX);
-        pboxNew->nBottom = MIN(nImageHeight, boxStrong.nTop + anStrongEndY[j] + psParams->nZonePostExpansionY);
+        pboxNew->nLeft = MAX(0, boxStrong.nLeft -
+psParams->nZonePostExpansionX); pboxNew->nTop  = MAX(0, boxStrong.nTop +
+anStrongBeginY[j] - psParams->nZonePostExpansionY); pboxNew->nRight =
+MIN(nImageWidth, boxStrong.nRight + psParams->nZonePostExpansionX);
+        pboxNew->nBottom = MIN(nImageHeight, boxStrong.nTop + anStrongEndY[j] +
+psParams->nZonePostExpansionY);
       }
     }
 
@@ -518,9 +524,8 @@ int adjustBox( // Inputs:
       int nBiggestArea = 0;
       for (k=0; k<nNumFinalBoxes; k++) {
         const BBOX * pboxFinal = &aboxFinal[k];
-        nBoxArea = (pboxFinal->nRight - pboxFinal->nLeft) * (pboxFinal->nBottom - pboxFinal->nTop);
-        if (nBoxArea > nBiggestArea) {
-          nBiggestArea = nBoxArea;
+        nBoxArea = (pboxFinal->nRight - pboxFinal->nLeft) * (pboxFinal->nBottom
+- pboxFinal->nTop); if (nBoxArea > nBiggestArea) { nBiggestArea = nBoxArea;
           nBiggestIndex = k;
         }
       }
@@ -568,27 +573,20 @@ int adjustBox( // Inputs:
 }
 */
 
-
 // FUNCTION: extractAuxInfo()
 // PURPOSE: Extract auxiliary information
 NTA_EXPORT
-int extractAuxInfo(// Inputs:
-                   //const NUMPY_ARRAY * psCtlBuf,
-                   const char * pCtlBufAddr,
-                   //const NUMPY_ARRAY * psBBox,
-                   //const NUMPY_ARRAY * psCategoryBuf,
-                   //const NUMPY_ARRAY * psPartitionBuf,
-                   //const NUMPY_ARRAY * psAddressBuf,
-                   BBOX * psBox,
-                   int * pnAddress,
-                   int * pnPartitionID,
-                   int * pnCategoryID,
-                   int * pnVideoID,
-                   int * pnAlphaAddress
-                   ) {
+int extractAuxInfo( // Inputs:
+                    // const NUMPY_ARRAY * psCtlBuf,
+    const char *pCtlBufAddr,
+    // const NUMPY_ARRAY * psBBox,
+    // const NUMPY_ARRAY * psCategoryBuf,
+    // const NUMPY_ARRAY * psPartitionBuf,
+    // const NUMPY_ARRAY * psAddressBuf,
+    BBOX *psBox, int *pnAddress, int *pnPartitionID, int *pnCategoryID,
+    int *pnVideoID, int *pnAlphaAddress) {
 
-  try
-  {
+  try {
     /*
     // Extract partition and category IDs
     if (psPartitionBuf)
@@ -602,9 +600,9 @@ int extractAuxInfo(// Inputs:
     */
 
     // Extract BBOX
-    psBox->nLeft   = BOX_LEFT(pCtlBufAddr);
-    psBox->nTop    = BOX_TOP(pCtlBufAddr);
-    psBox->nRight  = BOX_RIGHT(pCtlBufAddr);
+    psBox->nLeft = BOX_LEFT(pCtlBufAddr);
+    psBox->nTop = BOX_TOP(pCtlBufAddr);
+    psBox->nRight = BOX_RIGHT(pCtlBufAddr);
     psBox->nBottom = BOX_BOTTOM(pCtlBufAddr);
 
     // Extract partition and category IDs
@@ -638,14 +636,12 @@ int extractAuxInfo(// Inputs:
     */
   }
 
-  catch(std::exception& e)
-  {
+  catch (std::exception &e) {
     NTA_WARN << "gaborNode -- returning error: " << e.what();
     return -1;
   }
   return 0;
 }
-
 
 /*
 // FUNCTION: accessPixels()
@@ -672,8 +668,7 @@ int accessPixels(// Inputs:
 }
 */
 
-
-/* 
+/*
 // OBSOLETE FUNCTION: formHistogramX()
 // PURPOSE: Form a histogram of non-zero SMotion
 NTA_EXPORT
@@ -681,7 +676,7 @@ int formHistogramX(// Inputs:
                    const NUMPY_ARRAY * psSrcImage,
                    const BBOX * psBox,
                    // Outputs:
-                   const NUMPY_ARRAY * psHistogram 
+                   const NUMPY_ARRAY * psHistogram
                    ) {
   try {
     float * pfHist = (float *)(psHistogram->pData);
@@ -703,7 +698,7 @@ int formHistogramY(// Inputs:
                    const NUMPY_ARRAY * psSrcImage,
                    const BBOX * psBox,
                    // Outputs:
-                   const NUMPY_ARRAY * psHistogram 
+                   const NUMPY_ARRAY * psHistogram
                    ) {
   try {
     float * pfHist = (float *)(psHistogram->pData);
@@ -718,7 +713,6 @@ int formHistogramY(// Inputs:
 }
 */
 
-
 #ifdef __cplusplus
 }
-#endif 
+#endif

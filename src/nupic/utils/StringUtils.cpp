@@ -20,18 +20,17 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file 
+/** @file
  * Implementation of utility functions for string conversion
  */
 
-#include <nupic/utils/StringUtils.hpp>
-#include <nupic/utils/Log.hpp>
 #include <apr-1/apr_base64.h>
+#include <nupic/utils/Log.hpp>
+#include <nupic/utils/StringUtils.hpp>
 
 using namespace nupic;
 
-bool StringUtils::toBool(const std::string& s, bool throwOnError, bool * fail)
-{
+bool StringUtils::toBool(const std::string &s, bool throwOnError, bool *fail) {
   if (fail)
     *fail = false;
   bool b = false;
@@ -41,31 +40,27 @@ bool StringUtils::toBool(const std::string& s, bool throwOnError, bool * fail)
     b = true;
   } else if (us == "false" || us == "no" || us == "0") {
     b = false;
-  } else if (! throwOnError) {
+  } else if (!throwOnError) {
     if (fail)
       *fail = true;
   } else {
-    NTA_THROW << "StringUtils::toBool: tried to parse non-boolean string \"" << s << "\"";
+    NTA_THROW << "StringUtils::toBool: tried to parse non-boolean string \""
+              << s << "\"";
   }
   return b;
 }
-  
 
-Real32 StringUtils::toReal32(const std::string& s, bool throwOnError, bool * fail)
-{
+Real32 StringUtils::toReal32(const std::string &s, bool throwOnError,
+                             bool *fail) {
   if (fail)
     *fail = false;
   Real32 r;
   std::istringstream ss(s);
   ss >> r;
-  if (ss.fail() || !ss.eof())
-  {
-    if (throwOnError) 
-    {
+  if (ss.fail() || !ss.eof()) {
+    if (throwOnError) {
       NTA_THROW << "StringUtils::toReal32 -- invalid string \"" << s << "\"";
-    }
-    else
-    {
+    } else {
       if (fail)
         *fail = true;
     }
@@ -74,21 +69,17 @@ Real32 StringUtils::toReal32(const std::string& s, bool throwOnError, bool * fai
   return r;
 }
 
-UInt32 StringUtils::toUInt32(const std::string& s, bool throwOnError, bool * fail)
-{
+UInt32 StringUtils::toUInt32(const std::string &s, bool throwOnError,
+                             bool *fail) {
   if (fail)
     *fail = false;
   UInt32 i;
   std::istringstream ss(s);
   ss >> i;
-  if (ss.fail() || !ss.eof())
-  {
-    if (throwOnError) 
-    {
+  if (ss.fail() || !ss.eof()) {
+    if (throwOnError) {
       NTA_THROW << "StringUtils::toInt -- invalid string \"" << s << "\"";
-    }
-    else
-    {
+    } else {
       if (fail)
         *fail = true;
     }
@@ -97,21 +88,17 @@ UInt32 StringUtils::toUInt32(const std::string& s, bool throwOnError, bool * fai
   return i;
 }
 
-Int32 StringUtils::toInt32(const std::string& s, bool throwOnError, bool * fail)
-{
+Int32 StringUtils::toInt32(const std::string &s, bool throwOnError,
+                           bool *fail) {
   if (fail)
     *fail = false;
   Int32 i;
   std::istringstream ss(s);
   ss >> i;
-  if (ss.fail() || !ss.eof())
-  {
-    if (throwOnError) 
-    {
+  if (ss.fail() || !ss.eof()) {
+    if (throwOnError) {
       NTA_THROW << "StringUtils::toInt -- invalid string \"" << s << "\"";
-    }
-    else
-    {
+    } else {
       if (fail)
         *fail = true;
     }
@@ -120,21 +107,17 @@ Int32 StringUtils::toInt32(const std::string& s, bool throwOnError, bool * fail)
   return i;
 }
 
-UInt64 StringUtils::toUInt64(const std::string& s, bool throwOnError, bool * fail)
-{
+UInt64 StringUtils::toUInt64(const std::string &s, bool throwOnError,
+                             bool *fail) {
   if (fail)
     *fail = false;
   UInt64 i;
   std::istringstream ss(s);
   ss >> i;
-  if (ss.fail() || !ss.eof())
-  {
-    if (throwOnError) 
-    {
+  if (ss.fail() || !ss.eof()) {
+    if (throwOnError) {
       NTA_THROW << "StringUtils::toInt -- invalid string \"" << s << "\"";
-    }
-    else
-    {
+    } else {
       if (fail)
         *fail = true;
     }
@@ -143,36 +126,29 @@ UInt64 StringUtils::toUInt64(const std::string& s, bool throwOnError, bool * fai
   return i;
 }
 
-
-size_t StringUtils::toSizeT(const std::string& s, bool throwOnError, bool * fail)
-{
+size_t StringUtils::toSizeT(const std::string &s, bool throwOnError,
+                            bool *fail) {
   if (fail)
     *fail = false;
   size_t i;
   std::istringstream ss(s);
   ss >> i;
-  if (ss.fail() || !ss.eof())
-  {
-    if (throwOnError) 
-    {
+  if (ss.fail() || !ss.eof()) {
+    if (throwOnError) {
       NTA_THROW << "StringUtils::toSizeT -- invalid string \"" << s << "\"";
-    }
-    else
-    {
+    } else {
       if (fail)
         *fail = true;
     }
-  }  
+  }
   return i;
 }
 
-bool StringUtils::startsWith(const std::string& s, const std::string& prefix)
-{
+bool StringUtils::startsWith(const std::string &s, const std::string &prefix) {
   return s.find(prefix) == 0;
 }
 
-bool StringUtils::endsWith(const std::string& s, const std::string& ending)
-{
+bool StringUtils::endsWith(const std::string &s, const std::string &ending) {
   if (ending.size() > s.size())
     return false;
   size_t found = s.rfind(ending);
@@ -183,102 +159,91 @@ bool StringUtils::endsWith(const std::string& s, const std::string& ending)
   return true;
 }
 
-
-std::string StringUtils::fromInt(long long i)
-{
+std::string StringUtils::fromInt(long long i) {
   std::stringstream ss;
   ss << i;
   return ss.str();
 }
 
-std::string StringUtils::base64Encode(const void* buf, Size inLen)
-{
+std::string StringUtils::base64Encode(const void *buf, Size inLen) {
   Size len = apr_base64_encode_len((int)inLen); // int-casting for win.
   std::string outS(len, '\0');
-  apr_base64_encode((char*)outS.data(), (const char*)buf, (int) inLen); // int-casting for win.
-  outS.resize(len-1); // len includes the NULL at the end
+  apr_base64_encode((char *)outS.data(), (const char *)buf,
+                    (int)inLen); // int-casting for win.
+  outS.resize(len - 1);          // len includes the NULL at the end
   return outS;
 }
 
-
-std::string StringUtils::base64Encode(const std::string& s)
-{
-  Size len = apr_base64_encode_len ( (int) s.size() );
+std::string StringUtils::base64Encode(const std::string &s) {
+  Size len = apr_base64_encode_len((int)s.size());
   std::string outS(len, '\0');
-  apr_base64_encode((char*)outS.data(), s.data(), (int) s.size());
-  outS.resize(len-1); // len includes the NULL at the end
+  apr_base64_encode((char *)outS.data(), s.data(), (int)s.size());
+  outS.resize(len - 1); // len includes the NULL at the end
   return outS;
 }
 
-std::string StringUtils::base64Decode(const void* buf, Size inLen)
-{
-  std::string outS(inLen+1, '\0');
-  size_t decodedLen = apr_base64_decode_binary ((unsigned char*)outS.data(), (const char*)buf);
+std::string StringUtils::base64Decode(const void *buf, Size inLen) {
+  std::string outS(inLen + 1, '\0');
+  size_t decodedLen =
+      apr_base64_decode_binary((unsigned char *)outS.data(), (const char *)buf);
   outS.resize(decodedLen);
   return outS;
 }
 
-
-std::string StringUtils::base64Decode(const std::string& s)
-{
-  std::string outS(s.size()+1, '\0');
-  size_t decodedLen = apr_base64_decode_binary ((unsigned char*)outS.data(), s.c_str());
+std::string StringUtils::base64Decode(const std::string &s) {
+  std::string outS(s.size() + 1, '\0');
+  size_t decodedLen =
+      apr_base64_decode_binary((unsigned char *)outS.data(), s.c_str());
   outS.resize(decodedLen);
   return outS;
 }
 
-#define HEXIFY(val) ((val) > 9 ? ('a' + (val) - 10) : ('0' + (val)))
+#define HEXIFY(val) ((val) > 9 ? ('a' + (val)-10) : ('0' + (val)))
 
-std::string StringUtils::hexEncode(const void* buf, Size inLen)
-{
-  std::string s(inLen*2, '\0');
-  const unsigned char *charbuf = (const unsigned char*)buf;
-  for (Size i = 0; i < inLen; i++)
-  {
+std::string StringUtils::hexEncode(const void *buf, Size inLen) {
+  std::string s(inLen * 2, '\0');
+  const unsigned char *charbuf = (const unsigned char *)buf;
+  for (Size i = 0; i < inLen; i++) {
     unsigned char x = charbuf[i];
     // high order bits
     unsigned char val = x >> 4;
-    s[i*2] = HEXIFY(val);
+    s[i * 2] = HEXIFY(val);
     val = x & 0xF;
-    s[i*2+1] = HEXIFY(val);
+    s[i * 2 + 1] = HEXIFY(val);
   }
   return s;
 }
 
-
-
 //--------------------------------------------------------------------------------
-void StringUtils::toIntList(const std::string& s, std::vector<Int>& list, bool allowAll,
-        bool asRanges)
-{
-  if(!toIntListNoThrow(s, list, allowAll, asRanges)) {
+void StringUtils::toIntList(const std::string &s, std::vector<Int> &list,
+                            bool allowAll, bool asRanges) {
+  if (!toIntListNoThrow(s, list, allowAll, asRanges)) {
     const std::string errPrefix = "StringUtils::toIntList() - ";
-    throw (std::runtime_error(errPrefix+"Invalid string: " + s));
+    throw(std::runtime_error(errPrefix + "Invalid string: " + s));
   }
 }
 
 //--------------------------------------------------------------------------------
-bool StringUtils::toIntListNoThrow(const std::string& s, std::vector<Int>& list, 
-  bool allowAll, bool asRanges)
-{
-        
+bool StringUtils::toIntListNoThrow(const std::string &s, std::vector<Int> &list,
+                                   bool allowAll, bool asRanges) {
+
   UInt startNum, endNum;
-  const char* startP = s.c_str();
-  char*   endP;
-    
-  // Set global errno to 0. strtoul sets this if a conversion error occurs. 
+  const char *startP = s.c_str();
+  char *endP;
+
+  // Set global errno to 0. strtoul sets this if a conversion error occurs.
   errno = 0;
-    
+
   // Loop through the string
   list.clear();
 
   // Skip white space at start
   while (*startP && isspace(*startP))
     startP++;
-      
+
   // Do we allow all?
   if (allowAll) {
-    if (!strncmp (startP, "all", 3) && startP[3] == 0)
+    if (!strncmp(startP, "all", 3) && startP[3] == 0)
       return true;
     if (startP[0] == 0)
       return true;
@@ -286,20 +251,19 @@ bool StringUtils::toIntListNoThrow(const std::string& s, std::vector<Int>& list,
     if (startP[0] == 0)
       return false;
   }
-             
-  while (*startP) 
-  {
+
+  while (*startP) {
     // ------------------------------------------------------------------------------
-    // Get first digit 
+    // Get first digit
     startNum = strtoul(startP, &endP, 10 /*base*/);
     if (errno != 0)
       return false;
     startP = endP;
-        
+
     // Skip white space
     while (*startP && isspace(*startP))
       startP++;
-        
+
     // ------------------------------------------------------------------------------
     // Do we have a '-'? If so, get the second number
     if (*startP == '-') {
@@ -308,7 +272,7 @@ bool StringUtils::toIntListNoThrow(const std::string& s, std::vector<Int>& list,
       if (errno != 0)
         return false;
       startP = endP;
-        
+
       // Store all number into the vector
       if (endNum < startNum)
         return false;
@@ -316,7 +280,7 @@ bool StringUtils::toIntListNoThrow(const std::string& s, std::vector<Int>& list,
         list.push_back((Int)startNum);
         list.push_back((Int)(endNum - startNum + 1));
       } else {
-        for (UInt i=startNum; i<=endNum; i++)
+        for (UInt i = startNum; i <= endNum; i++)
           list.push_back((Int)i);
       }
 
@@ -325,23 +289,23 @@ bool StringUtils::toIntListNoThrow(const std::string& s, std::vector<Int>& list,
         startP++;
     } else {
       list.push_back((Int)startNum);
-      if (asRanges) 
-        list.push_back((Int)1); 
+      if (asRanges)
+        list.push_back((Int)1);
     }
-      
+
     // Done if end of string
     if (*startP == 0)
       break;
-        
+
     // ------------------------------------------------------------------------------
-    // Must have a comma between entries 
-    if (*startP++ != ',') 
+    // Must have a comma between entries
+    if (*startP++ != ',')
       return false;
-        
+
     // Skip white space after the comma
     while (*startP && isspace(*startP))
       startP++;
-      
+
     // Must be more digits after the comma
     if (*startP == 0)
       return false;
@@ -349,32 +313,31 @@ bool StringUtils::toIntListNoThrow(const std::string& s, std::vector<Int>& list,
 
   return true;
 }
-    
-  
+
 //--------------------------------------------------------------------------------
-boost::shared_array<Byte> StringUtils::toByteArray(const std::string& s, Size bitCount)
-{
+boost::shared_array<Byte> StringUtils::toByteArray(const std::string &s,
+                                                   Size bitCount) {
   // Get list of integers
   std::vector<Int> list;
   StringUtils::toIntList(s, list, true /*allowAll*/);
   if (list.empty())
     return boost::shared_array<Byte>(nullptr);
-          
+
   // Put this into the mask
-  Size numBytes = (bitCount+7) / 8;
+  Size numBytes = (bitCount + 7) / 8;
   boost::shared_array<Byte> mask(new Byte[numBytes]);
-  Byte* maskP = mask.get();
+  Byte *maskP = mask.get();
   ::memset(maskP, 0, numBytes);
-  for (auto & elem : list) {
-    UInt  entry = elem;
+  for (auto &elem : list) {
+    UInt entry = elem;
     if (entry >= bitCount)
-      NTA_THROW << "StringUtils::toByteArray() - " << "The list " << s 
-                << " contains an entry greater than the max allowed of " << bitCount; 
-    maskP[entry/8] |= 1 << (entry%8);
+      NTA_THROW << "StringUtils::toByteArray() - "
+                << "The list " << s
+                << " contains an entry greater than the max allowed of "
+                << bitCount;
+    maskP[entry / 8] |= 1 << (entry % 8);
   }
-      
+
   // Return it
   return mask;
 }
-
-

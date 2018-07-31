@@ -29,8 +29,7 @@
 #include <iostream>
 using namespace nupic;
 
-LoggingException::~LoggingException() throw()
-{
+LoggingException::~LoggingException() throw() {
   if (!alreadyLogged_) {
     // Let LogItem do the work for us. This code is a bit complex
     // because LogItem was designed to be used from a logging macro

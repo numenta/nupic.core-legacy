@@ -25,22 +25,20 @@
 
 using namespace nupic::algorithms::Cells4;
 
-inline void InSynapse::print(std::ostream& outStream) const
-{
+inline void InSynapse::print(std::ostream &outStream) const {
   outStream << _srcCellIdx << ',' << std::setprecision(4) << _permanence;
 }
 
 //--------------------------------------------------------------------------------
 
 namespace nupic {
-  namespace algorithms {
-    namespace Cells4 {
+namespace algorithms {
+namespace Cells4 {
 
-      std::ostream& operator<<(std::ostream& outStream, const InSynapse& s)
-      {
-        s.print(outStream);
-        return outStream;
-      }
-    }
-  }
+std::ostream &operator<<(std::ostream &outStream, const InSynapse &s) {
+  s.print(outStream);
+  return outStream;
 }
+} // namespace Cells4
+} // namespace algorithms
+} // namespace nupic
