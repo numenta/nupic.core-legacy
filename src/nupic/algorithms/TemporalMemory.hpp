@@ -253,7 +253,7 @@ public:
    *
    * @return (int) Number of cells
    */
-  UInt numberOfCells(void);
+  UInt numberOfCells(void) const;
 
   /**
    * Returns the indices of the active cells.
@@ -386,13 +386,6 @@ public:
   UInt getMaxSynapsesPerSegment() const;
 
   /**
-   * Raises an error if cell index is invalid.
-   *
-   * @param cell Cell index
-   */
-  bool _validateCell(CellIdx cell);
-
-  /**
    * Save (serialize) the current state of the spatial pooler to the
    * specified file.
    *
@@ -442,7 +435,7 @@ public:
    *
    * @return (int) Column index
    */
-  Int columnForCell(CellIdx cell);
+  UInt columnForCell(const CellIdx cell) const;
 
   /**
    * Print the given UInt array in a nice format

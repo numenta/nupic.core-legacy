@@ -1366,6 +1366,23 @@ TEST(SpatialPoolerTest, testValidateGlobalInhibitionParameters) {
                nupic::LoggingException);
 }
 
+
+TEST(SpatialPoolerTest, testFewColumnsGlobalInhibitionCrash) {
+  /** this test exposes bug where too small (few columns) SP crashes with global inhibition  */
+  SpatialPooler sp{std::vector<UInt>{1000} /* input*/, std::vector<UInt>{200}/* SP output cols XXX sensitive*/ };
+  sp.setBoostStrength(0.0);
+  sp.setPotentialRadius(20);
+  sp.setPotentialPct(0.5);
+  sp.setGlobalInhibition(true);
+  sp.setLocalAreaDensity(0.02);
+
+  vector<UInt> input(sp.getNumInputs(), 1);
+  vector<UInt> out1(sp.getNumColumns(), 0);
+
+  EXPECT_NO_THROW(sp.compute(input.data(), false, out1.data()));
+}
+
+
 TEST(SpatialPoolerTest, testInhibitColumnsLocal) {
   // wrapAround = false
   {
