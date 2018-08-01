@@ -34,6 +34,7 @@
 #include <nupic/types/Types.hpp>
 #include <nupic/utils/Random.hpp>
 #include <vector>
+#include <string>
 
 using namespace std;
 using namespace nupic;
@@ -206,7 +207,7 @@ public:
                     UInt32 maxLrnBacktrack = 5, UInt32 maxAge = 100000,
                     UInt32 maxSeqLength = 32, Int32 maxSegmentsPerCell = -1,
                     Int32 maxSynapsesPerSegment = -1,
-                    const char *outputType = "normal");
+                    const std::string outputType = "normal");
 
   virtual ~BacktrackingTMCpp();
 

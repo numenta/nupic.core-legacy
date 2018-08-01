@@ -89,7 +89,7 @@ BacktrackingTMCpp::BacktrackingTMCpp(
     Int32 verbosity, bool checkSynapseConsistency, UInt32 pamLength,
     UInt32 maxInfBacktrack, UInt32 maxLrnBacktrack, UInt32 maxAge,
     UInt32 maxSeqLength, Int32 maxSegmentsPerCell, Int32 maxSynapsesPerSegment,
-    const char *outputType) {
+    const std::string outputType) {
   cells4_ = nullptr;
 
   // Check arguments
@@ -117,9 +117,7 @@ BacktrackingTMCpp::BacktrackingTMCpp(
   loc_.burnIn = burnIn;
   loc_.collectStats = collectStats;
   loc_.seed = seed;
-
-  memset(loc_.outputType, 0, sizeof(loc_.outputType));
-  strcpy_s(loc_.outputType, sizeof(loc_.outputType), outputType);
+  loc_.outputType = outputType;
 
   // Initialize local state data
   loc_.lrnIterationIdx = 0;
