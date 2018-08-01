@@ -1133,20 +1133,19 @@ void BacktrackingTMCpp::printCell(Size c, Size i, bool onlyActiveSegments,
     vector<UInt32> segList = cells4_->getNonEmptySegList((UInt)c, (UInt)i);
     out << "Col " << c << ", Cell " << i << " ("
         << (c * loc_.cellsPerColumn + i) << ") : " << nSegs << " segment(s)\n";
-    std::vector<UInt32>::iterator it;
-    for (it = segList.begin(); it != segList.end(); ++it) {
-      Segment &seg = cells4_->getSegment((UInt)c, (UInt)i, *it);
-      bool isActive = _slowIsSegmentActive(seg, "t");
+    for (const auto segIdx : segList) {
+      Segment &seg = *cells4_->getSegment((UInt)c, (UInt)i, segIdx);
+      const bool isActive = _slowIsSegmentActive(seg, "t");
       if (!onlyActiveSegments || isActive) {
         snprintf(buff, sizeof(buff), "%sSeg #%-3d %d %c %9.7f (%4d/%-4d) %4d ",
-                 ((isActive) ? "*" : " "), *it, (int)seg.size(),
+                 ((isActive) ? "*" : " "), segIdx, (int)seg.size(),
                  (seg.isSequenceSegment()) ? 'T' : 'F',
                  seg.dutyCycle(cells4_->getNLrnIterations(), false, true),
                  seg.getPositiveActivations(), seg.getTotalActivations(),
                  cells4_->getNLrnIterations() - seg.getLastActiveIteration());
         for (UInt idx = 0; idx < (UInt)seg.size(); idx++) {
-          Size len = sizeof(buff) - strlen(buff);
-          Size srcIdx = seg.getSrcCellIdx(idx);
+          const Size len = sizeof(buff) - strlen(buff);
+          const Size srcIdx = seg.getSrcCellIdx(idx);
           snprintf(buff + strlen(buff), len, "[%2d,%-2d]%4.2f ",
                    (int)_getCellCol(srcIdx), (int)_getCellIdx(srcIdx),
                    seg.getPermanence(idx));
@@ -1740,9 +1739,9 @@ BacktrackingTMCpp::getSegmentInfo(bool collectActiveData) const {
                 info.distPermValues[permanence] = 1;
             }
           }
-          Segment &segObj =cells4_->getSegment((UInt)c, (UInt)i, segList[segIdx]);
-          Size age = loc_.iterationIdx - segObj.getLastActiveIteration();
-          Size ageBucket = age / ageBucketSize;
+          const Segment &segObj = *cells4_->getSegment((UInt)c, (UInt)i, segList[segIdx]);
+          const Size age = loc_.iterationIdx - segObj.getLastActiveIteration();
+          const Size ageBucket = age / ageBucketSize;
           info.distAges[ageBucket].cnt += 1;
         }
       }
