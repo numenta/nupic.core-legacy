@@ -475,13 +475,22 @@ public:
   UInt nCells() const { return _nCells; }
   UInt nColumns() const { return _nColumns; }
   UInt nCellsPerCol() const { return _nCellsPerCol; }
+  Real getGlobalDecay() const { return _globalDecay; }
+  Real getActivationThreshold() const { return _activationThreshold; }
+  bool getDoPooling() const { return _doPooling; }
   UInt getMinThreshold() const { return _minThreshold; }
   Real getPermConnected() const { return _permConnected; }
+  Real getPermDec() const { return _permDec; }
+  Real getPermInc() const { return _permInc; }
+  Real getPermInitial() const { return _permInitial; }
+  Real getPermMax() const { return _permMax; }
+  UInt getSegUpdateValidDuration() const { return _segUpdateValidDuration; }
   UInt getVerbosity() const { return _verbosity; }
   UInt getMaxAge() const { return _maxAge; }
   UInt getPamLength() const { return _pamLength; }
   UInt getMaxInfBacktrack() const { return _maxInfBacktrack; }
   UInt getMaxLrnBacktrack() const { return _maxLrnBacktrack; }
+  UInt getNewSynapseCount() const { return _newSynapseCount; }
   UInt getPamCounter() const { return _pamCounter; }
   UInt getMaxSeqLength() const { return _maxSeqLength; }
   Real getAvgLearnedSeqLength() const { return _avgLearnedSeqLength; }
