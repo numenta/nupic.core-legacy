@@ -329,8 +329,8 @@
 
 <dl class="function">
 <dt id="_CPPv2N5nupic6OutputD0Ev">
-<span id="nupic::Output::~Output"></span><span class="target" id="classnupic_1_1_output_1ac341ca5395f7a808b32e85ccd4437bdb"></span><code class="descname">~Output</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic6OutputD0Ev" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Destructor. </p>
+<span id="nupic::Output::~Output"></span><span class="target" id="classnupic_1_1_output_1a2a054eed0a2968883d527dd9876f8497"></span><code class="descname">~Output</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N5nupic6OutputD0Ev" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Destructor noexcept(false) : as C++11 forces noexcept(true) in destructors by default, we override that here to throw NTA_CHECK. </p>
 </dd></dl>
 
 <dl class="function">
