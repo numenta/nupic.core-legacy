@@ -46,7 +46,8 @@ Output::~Output() noexcept(false) {
   // error in the shutdown process. Not good to thow an exception
   // from a destructor, but we need to catch this error, and it
   // should never occur if nupic internal logic is correct.
-  NTA_CHECK(links_.size() == 0) << "Internal error in region deletion";
+  if (links_.size() != 0)
+    NTA_ERROR << "Internal error in region deletion";
   delete data_;
 }
 
