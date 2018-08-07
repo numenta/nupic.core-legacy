@@ -179,3 +179,380 @@ NTA_BasicType BasicType::parse(const std::string &s) {
     throw Exception(__FILE__, __LINE__,
                     std::string("Invalid basic type name: ") + s);
 }
+
+
+
+template <typename T, typename F>
+static void cpyarray(void *toPtr, const void *fromPtr, size_t count) {
+  T *ptr1 = (T*)toPtr;
+  const F *ptr2 = (F*)fromPtr;
+  for (size_t i = 0; i < count; i++) {
+    *ptr1++ = (T) *ptr2++;
+  }
+}
+
+void BasicType::convertArray(void* ptr1, NTA_BasicType toType, const void* ptr2, NTA_BasicType fromType, size_t count) {
+  switch (fromType) {
+  case NTA_BasicType_Byte:
+    switch (toType) {
+    case NTA_BasicType_Byte:
+      cpyarray<Byte, Byte>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_Int16:
+    case NTA_BasicType_UInt16:
+      cpyarray<UInt16, Byte>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_Int32:
+    case NTA_BasicType_UInt32:
+      cpyarray<UInt32, Byte>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_Int64:
+    case NTA_BasicType_UInt64:
+      cpyarray<UInt64, Byte>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_Real32:
+      cpyarray<Real32, Byte>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_Real64:
+      cpyarray<Real64, Byte>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_Bool:
+      cpyarray<bool, Byte>(ptr1, ptr2, count);
+      break;
+    default:
+      break;
+    }
+    break;
+  case NTA_BasicType_Int16:
+    switch (toType) {
+    case NTA_BasicType_Byte:
+      cpyarray<Byte, Int16>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_Int16:
+      cpyarray<Int16, Int16>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_UInt16:
+      cpyarray<UInt16, Int16>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_Int32:
+      cpyarray<Int32, Int16>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_UInt32:
+      cpyarray<UInt32, UInt16>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_Int64:
+      cpyarray<Int64, Int16>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_UInt64:
+      cpyarray<UInt64, Int16>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_Real32:
+      cpyarray<Real32, Int16>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_Real64:
+      cpyarray<Real64, Int16>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_Bool:
+      cpyarray<bool, Int16>(ptr1, ptr2, count);
+      break;
+    default:
+      break;
+    }
+    break;
+
+  case NTA_BasicType_UInt16:
+    switch (toType) {
+    case NTA_BasicType_Byte:
+      cpyarray<Byte, UInt16>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_Int16:
+      cpyarray<Int16, UInt16>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_UInt16:
+      cpyarray<UInt16, UInt16>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_Int32:
+      cpyarray<Int32, UInt16>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_UInt32:
+      cpyarray<UInt32, UInt16>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_Int64:
+      cpyarray<Int64, UInt16>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_UInt64:
+      cpyarray<UInt64, UInt16>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_Real32:
+      cpyarray<Real32, UInt16>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_Real64:
+      cpyarray<Real64, UInt16>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_Bool:
+      cpyarray<bool, UInt16>(ptr1, ptr2, count);
+      break;
+    default:
+      break;
+    }
+    break;
+  case NTA_BasicType_Int32:
+    switch (toType) {
+    case NTA_BasicType_Byte:
+      cpyarray<Byte, Int32>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_Int16:
+      cpyarray<Int16, Int32>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_UInt16:
+      cpyarray<UInt16, Int32>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_Int32:
+      cpyarray<Int32, Int32>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_UInt32:
+      cpyarray<UInt32, Int32>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_Int64:
+      cpyarray<Int64, Int32>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_UInt64:
+      cpyarray<UInt64, Int32>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_Real32:
+      cpyarray<Real32, Int32>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_Real64:
+      cpyarray<Real64, Int32>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_Bool:
+      cpyarray<bool, Int32>(ptr1, ptr2, count);
+      break;
+    default:
+      break;
+    }
+    break;
+  case NTA_BasicType_UInt32:
+    switch (toType) {
+    case NTA_BasicType_Byte:
+      cpyarray<Byte, UInt32>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_Int16:
+      cpyarray<Int16, UInt32>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_UInt16:
+      cpyarray<UInt16, UInt32>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_Int32:
+      cpyarray<Int32, UInt32>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_UInt32:
+      cpyarray<UInt32, UInt32>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_Int64:
+      cpyarray<Int64, UInt32>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_UInt64:
+      cpyarray<UInt64, UInt32>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_Real32:
+      cpyarray<Real32, UInt32>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_Real64:
+      cpyarray<Real64, UInt32>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_Bool:
+      cpyarray<bool, UInt32>(ptr1, ptr2, count);
+      break;
+    default:
+      break;
+    }
+    break;
+  case NTA_BasicType_Int64:
+    switch (toType) {
+    case NTA_BasicType_Byte:
+      cpyarray<Byte, Int64>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_Int16:
+      cpyarray<Int16, Int64>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_UInt16:
+      cpyarray<UInt16, Int64>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_Int32:
+      cpyarray<Int32, Int64>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_UInt32:
+      cpyarray<UInt32, Int64>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_Int64:
+      cpyarray<Int64, Int64>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_UInt64:
+      cpyarray<UInt64, Int64>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_Real32:
+      cpyarray<Real32, Int64>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_Real64:
+      cpyarray<Real64, Int64>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_Bool:
+      cpyarray<bool, Int64>(ptr1, ptr2, count);
+      break;
+    default:
+      break;
+    }
+    break;
+
+  case NTA_BasicType_UInt64:
+    switch (toType) {
+    case NTA_BasicType_Byte:
+      cpyarray<Byte, UInt64>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_Int16:
+      cpyarray<Int16, UInt64>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_UInt16:
+      cpyarray<UInt16, UInt64>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_Int32:
+      cpyarray<Int32, UInt64>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_UInt32:
+      cpyarray<UInt32, UInt64>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_Int64:
+      cpyarray<Int64, UInt64>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_UInt64:
+      cpyarray<UInt64, UInt64>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_Real32:
+      cpyarray<Real32, UInt64>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_Real64:
+      cpyarray<Real64, UInt64>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_Bool:
+      cpyarray<bool, UInt64>(ptr1, ptr2, count);
+      break;
+    default:
+      break;
+    }
+    break;
+  case NTA_BasicType_Real32:
+    switch (toType) {
+    case NTA_BasicType_Byte:
+      cpyarray<Byte, Real32>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_Int16:
+      cpyarray<Int16, Real32>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_UInt16:
+      cpyarray<UInt16, Real32>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_Int32:
+      cpyarray<Int32, Real32>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_UInt32:
+      cpyarray<UInt32, Real32>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_Int64:
+      cpyarray<Int64, Real32>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_UInt64:
+      cpyarray<UInt64, Real32>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_Real32:
+      cpyarray<Real32, Real32>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_Real64:
+      cpyarray<Real64, Real32>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_Bool:
+      cpyarray<bool, Real32>(ptr1, ptr2, count);
+      break;
+    default:
+      break;
+    }
+    break;
+  case NTA_BasicType_Real64:
+    switch (toType) {
+    case NTA_BasicType_Byte:
+      cpyarray<Byte, Real64>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_Int16:
+      cpyarray<Int16, Real64>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_UInt16:
+      cpyarray<UInt16, Real64>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_Int32:
+      cpyarray<Int32, Real64>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_UInt32:
+      cpyarray<UInt32, Real64>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_Int64:
+      cpyarray<Int64, Real64>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_UInt64:
+      cpyarray<UInt64, Real64>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_Real32:
+      cpyarray<Real32, Real64>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_Real64:
+      cpyarray<Real64, Real64>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_Bool:
+      cpyarray<bool, Real64>(ptr1, ptr2, count);
+      break;
+    default:
+      break;
+    }
+    break;
+  case NTA_BasicType_Bool:
+    switch (toType) {
+    case NTA_BasicType_Byte:
+      cpyarray<Byte, bool>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_Int16:
+      cpyarray<Int16, bool>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_UInt16:
+      cpyarray<UInt16, bool>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_Int32:
+      cpyarray<Int32, bool>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_UInt32:
+      cpyarray<UInt32, bool>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_Int64:
+      cpyarray<Int64, bool>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_UInt64:
+      cpyarray<UInt64, bool>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_Real32:
+      cpyarray<Real32, bool>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_Real64:
+      cpyarray<Real64, bool>(ptr1, ptr2, count);
+      break;
+    case NTA_BasicType_Bool:
+      cpyarray<bool, bool>(ptr1, ptr2, count);
+      break;
+    default:
+      break;
+    }
+    break;
+  default:
+    break;
+  }
+}
+
+
+
