@@ -192,6 +192,7 @@ namespace nupic {
       memcpy(buffer_.get(), vect.data(), capacity_);
     }
 
+/***** for later
     // Type conversion
     // Note: this will reallocate the buffer
     //       Other instances will be disconnected.
@@ -201,6 +202,7 @@ namespace nupic {
       convertInto(a);
       return a;
     }
+******/
     // Type conversion
     // Note: this will attempt to reuse the same buffer
     //       so that the instances will not be disconnected.
