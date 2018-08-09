@@ -41,9 +41,11 @@
 #include <iomanip>
 #include <iostream>
 #include <iterator>
+#include <sstream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
+#include <typeinfo>
 #include <vector>
 
 #include <nupic/algorithms/BacktrackingTMCpp.hpp>
@@ -70,9 +72,13 @@ template <typename T> static UInt32 *nonzero(const T *dence_buffer, Size len) {
   return nz;
 }
 
-static const UInt TM_VERSION = 2;
+static const UInt TM_VERSION = 3; // - 7/14/2018 keeney
 
-BacktrackingTMCpp::BacktrackingTMCpp() {}
+BacktrackingTMCpp::BacktrackingTMCpp() 
+{
+    currentOutput_ = nullptr;
+    currentOutputOwn_ = true;
+}
 
 BacktrackingTMCpp::BacktrackingTMCpp(
     UInt32 numberOfCols, UInt32 cellsPerColumn, Real32 initialPerm,
@@ -84,6 +90,8 @@ BacktrackingTMCpp::BacktrackingTMCpp(
     UInt32 maxInfBacktrack, UInt32 maxLrnBacktrack, UInt32 maxAge,
     UInt32 maxSeqLength, Int32 maxSegmentsPerCell, Int32 maxSynapsesPerSegment,
     const char *outputType) {
+  cells4_ = nullptr;
+
   // Check arguments
   NTA_ASSERT(pamLength > 0) << "This implementation must have pamLength > 0";
   if (maxSegmentsPerCell != -1 or maxSynapsesPerSegment != -1) {
@@ -96,41 +104,24 @@ BacktrackingTMCpp::BacktrackingTMCpp(
         << ")";
   }
 
-  NTA_ASSERT(outputType == "normal" || outputType == "activeState" ||
-             outputType == "activeState1CellPerCol");
+  NTA_ASSERT(!strcmp(outputType, "normal") ||
+             !strcmp(outputType, "activeState") ||
+             !strcmp(outputType, "activeState1CellPerCol"));
+
+  segUpdateValidDuration = (doPooling) ? segUpdateValidDuration : 1;
 
   // Store creation parameters
-  param_.numberOfCols = numberOfCols;
-  param_.cellsPerColumn = cellsPerColumn;
-  param_.initialPerm = initialPerm;
-  param_.connectedPerm = connectedPerm;
-  param_.minThreshold = minThreshold;
-  param_.newSynapseCount = newSynapseCount;
-  param_.permanenceInc = permanenceInc;
-  param_.permanenceDec = permanenceDec;
-  param_.permanenceMax = permanenceMax;
-  param_.globalDecay = globalDecay;
-  param_.activationThreshold = activationThreshold;
-  param_.doPooling = doPooling;
-  param_.segUpdateValidDuration = (doPooling) ? segUpdateValidDuration : 1;
+  loc_.numberOfCols = numberOfCols;
+  loc_.cellsPerColumn = cellsPerColumn;
 
-  param_.burnIn = burnIn;
-  param_.collectStats = collectStats;
-  param_.seed = seed;
-  param_.verbosity = verbosity;
-  param_.checkSynapseConsistency = checkSynapseConsistency;
-  param_.pamLength = pamLength;
-  param_.maxInfBacktrack = maxInfBacktrack;
-  param_.maxLrnBacktrack = maxLrnBacktrack;
-  param_.maxAge = maxAge;
-  param_.maxSeqLength = maxSeqLength;
-  param_.maxSegmentsPerCell = maxSegmentsPerCell;
-  param_.maxSynapsesPerSegment = maxSynapsesPerSegment;
-  memset(param_.outputType, sizeof(param_.outputType), '0');
-  strcpy_s(param_.outputType, sizeof(param_.outputType), outputType);
+  loc_.burnIn = burnIn;
+  loc_.collectStats = collectStats;
+  loc_.seed = seed;
+
+  memset(loc_.outputType, 0, sizeof(loc_.outputType));
+  strcpy_s(loc_.outputType, sizeof(loc_.outputType), outputType);
 
   // Initialize local state data
-  loc_.numberOfCells = numberOfCols * cellsPerColumn;
   loc_.lrnIterationIdx = 0;
   loc_.iterationIdx = 0;
   // unique segment id, so we can put segments in hashes
@@ -141,7 +132,7 @@ BacktrackingTMCpp::BacktrackingTMCpp(
   // Whenever we do not make a good prediction, we decrement pamCounter.
   // When pamCounter reaches 0, we start the learn state over again at start
   // cells.
-  loc_.pamCounter = param_.pamLength;
+  loc_.pamCounter = pamLength;
 
   // If True, the TM will compute a signature for each sequence
   loc_.collectSequenceStats = false;
@@ -159,60 +150,31 @@ BacktrackingTMCpp::BacktrackingTMCpp(
   // Keeps track of the moving average of all learned sequence length.
   loc_.avgLearnedSeqLength = 0.0;
 
-  loc_.makeCells4Ephemeral = false;
-
-  _initEphemerals();
-}
-
-// These are the members that do not need to be saved during serialization.
-// However, to get a better resolution on the restore point we are serializing
-// these.
-void BacktrackingTMCpp::_initEphemerals() {
   loc_.allocateStatesInCPP = true;
   loc_.retrieveLearningStates = false;
-  nCells = param_.numberOfCols * param_.cellsPerColumn;
+  nCells = loc_.numberOfCols * loc_.cellsPerColumn;
 
   cells4_ = new Cells4::Cells4(
-      param_.numberOfCols, param_.cellsPerColumn, param_.activationThreshold,
-      param_.minThreshold, param_.newSynapseCount,
-      param_.segUpdateValidDuration, param_.initialPerm, param_.connectedPerm,
-      param_.permanenceMax, param_.permanenceDec, param_.permanenceInc,
-      param_.globalDecay, param_.doPooling, param_.seed,
-      loc_.allocateStatesInCPP, param_.checkSynapseConsistency);
+      loc_.numberOfCols, loc_.cellsPerColumn, activationThreshold, minThreshold,
+      newSynapseCount, segUpdateValidDuration, initialPerm, connectedPerm,
+      permanenceMax, permanenceDec, permanenceInc, globalDecay, doPooling,
+      loc_.seed, loc_.allocateStatesInCPP, checkSynapseConsistency);
 
-  cells4_->setVerbosity(param_.verbosity);
-  cells4_->setPamLength(param_.pamLength);
-  cells4_->setMaxAge(param_.maxAge);
-  cells4_->setMaxInfBacktrack(param_.maxInfBacktrack);
-  cells4_->setMaxLrnBacktrack(param_.maxLrnBacktrack);
-  cells4_->setMaxSeqLength(param_.maxSeqLength);
-  cells4_->setMaxSegmentsPerCell(param_.maxSegmentsPerCell);
-  cells4_->setMaxSynapsesPerCell(param_.maxSynapsesPerSegment);
+  cells4_->setVerbosity(verbosity);
+  cells4_->setPamLength(pamLength);
+  cells4_->setMaxAge(maxAge);
+  cells4_->setMaxInfBacktrack(maxInfBacktrack);
+  cells4_->setMaxLrnBacktrack(maxLrnBacktrack);
+  cells4_->setMaxSeqLength(maxSeqLength);
+  cells4_->setMaxSegmentsPerCell(maxSegmentsPerCell);
+  cells4_->setMaxSynapsesPerSegment(maxSynapsesPerSegment);
 
-  // get the buffers
-  Byte *activeT;
-  Byte *activeT1;
-  Byte *predT;
-  Byte *predT1;
-  Real *colConfidenceT;
-  Real *colConfidenceT1;
-  Real *confidenceT;
-  Real *confidenceT1;
-
-  cells4_->getStatePointers(activeT, activeT1, predT, predT1, colConfidenceT,
-                            colConfidenceT1, confidenceT, confidenceT1);
-  infActiveState_["t"] = activeT;
-  infActiveState_["t-1"] = activeT1;
-  infPredictedState_["t"] = predT;
-  infPredictedState_["t-1"] = predT1;
-  cellConfidence_["t"] = colConfidenceT;
-  colConfidence_["t-1"] = colConfidenceT1;
-  cellConfidence_["t"] = confidenceT;
-  cellConfidence_["t-1"] = confidenceT1;
+  // Note: State buffers are maintained by Cells4.
 
   // note: setOutputBuffer() may override this buffer.
-  currentOutput_.reset(new Real[nCells], std::default_delete<Real[]>());
-  memset(currentOutput_.get(), 0, nCells * sizeof(Real));
+  currentOutput_ = new Real[nCells];
+  memset(currentOutput_, 0, nCells * sizeof(Real));
+  currentOutputOwn_ = true;
 
   // initialize stats
   internalStats_["nPredictions"] = 0.0;
@@ -228,9 +190,28 @@ void BacktrackingTMCpp::_initEphemerals() {
   memset(confHistogram_.get(), 0, nCells * sizeof(Real));
 }
 
-// For backtrackingTMCpp we can let Cells4 allocate the buffers.
-// However, the interfaces might want to take control of the buffers.
-// This method can be called after creating the region to set the buffers.
+BacktrackingTMCpp::~BacktrackingTMCpp() { 
+  if (cells4_)
+    delete cells4_; 
+  if (currentOutputOwn_)
+    delete[] currentOutput_;
+  confHistogram_.reset();
+  prevSequenceSignature_.reset();
+}
+
+
+void BacktrackingTMCpp::setOutputBuffer(Real32 *buf) {
+    if (currentOutputOwn_)
+      delete[] currentOutput_;
+    currentOutput_ = buf;
+    currentOutputOwn_ = false;
+  };
+
+
+// For backtrackingTMCpp we let Cells4 allocate the buffers.
+// However, the language interfaces (Python) might want to take control of the
+// buffers. This method can be called after creating the region to set the
+// buffers.
 void BacktrackingTMCpp::setStatePointers(Byte *infActiveT, Byte *infActiveT1,
                                          Byte *infPredT, Byte *infPredT1,
                                          Real *colConfidenceT,
@@ -238,15 +219,6 @@ void BacktrackingTMCpp::setStatePointers(Byte *infActiveT, Byte *infActiveT1,
                                          Real *cellConfidenceT,
                                          Real *cellConfidenceT1) {
   loc_.allocateStatesInCPP = false;
-  infActiveState_["t"] = infActiveT;
-  infActiveState_["t-1"] = infActiveT1;
-  infPredictedState_["t"] = infPredT;
-  infPredictedState_["t-1"] = infPredT1;
-  cellConfidence_["t"] = colConfidenceT;
-  colConfidence_["t-1"] = colConfidenceT1;
-  cellConfidence_["t"] = cellConfidenceT;
-  cellConfidence_["t-1"] = cellConfidenceT1;
-
   cells4_->setStatePointers(infActiveT, infActiveT1, infPredT, infPredT1,
                             colConfidenceT, colConfidenceT1, cellConfidenceT,
                             cellConfidenceT1);
@@ -266,48 +238,31 @@ void BacktrackingTMCpp::getStatePointers(Byte *&activeT, Byte *&activeT1,
 
 UInt BacktrackingTMCpp::version() const { return TM_VERSION; }
 
-
-
-
 Real *BacktrackingTMCpp::compute(Real *bottomUpInput, bool enableLearn,
                                  bool enableInference) {
+  // Note: the expected width of bottomUpInput[] is number of columns.
   loc_.iterationIdx++;
 
   //  Run compute and retrieve selected state and member variables
-  cells4_->compute(bottomUpInput, currentOutput_.get(), enableInference,
+  cells4_->compute(bottomUpInput, currentOutput_, enableInference,
                    enableLearn);
   loc_.avgLearnedSeqLength = cells4_->getAvgLearnedSeqLength();
 
-  // Get learn states if we need to print them out
-  if (param_.verbosity > 1 || loc_.retrieveLearningStates) {
-    Byte *activeT;
-    Byte *activeT1;
-    Byte *predT;
-    Byte *predT1;
-    cells4_->getLearnStatePointers(activeT, activeT1, predT, predT1);
-
-    lrnActiveState_["t-1"] = activeT1;
-    lrnActiveState_["t"] = activeT;
-    lrnPredictedState_["t-1"] = predT1;
-    lrnPredictedState_["t"] = predT;
-  }
-
   Byte *predictedState;
-  if (param_.collectStats) {
-    UInt32 *activeColumns =
-        nonzero<Real>(bottomUpInput, (Size)param_.numberOfCols);
-    predictedState = (enableInference) ? infPredictedState_["t-1"]
-                                       : lrnPredictedState_["t-1"];
+  if (loc_.collectStats) {
+    UInt32 *activeColumns = nonzero<Real>(bottomUpInput, (Size)loc_.numberOfCols);
+    predictedState = (enableInference) ? cells4_->getInfPredictedStateT1()
+                                       : cells4_->getLearnPredictedStateT1();
     _updateStatsInferEnd(internalStats_, activeColumns, predictedState,
-                         colConfidence_["t-1"]);
+                         cells4_->getColConfidenceT1());
     delete activeColumns;
   }
 
   _computeOutput(); // note: modifies currentOutput_
 
-  printComputeEnd(currentOutput_.get(), enableLearn);
+  printComputeEnd(currentOutput_, enableLearn);
   loc_.resetCalled = false;
-  return currentOutput_.get();
+  return currentOutput_;
 }
 
 /********************
@@ -334,13 +289,13 @@ Real *BacktrackingTMCpp::compute(Real *bottomUpInput, bool enableLearn,
  *
  ********************************/
 std::shared_ptr<Real> BacktrackingTMCpp::predict(Size nSteps) {
-  Size nCells = param_.numberOfCols * param_.cellsPerColumn;
-  Size nCols = param_.numberOfCols;
+  Size nCells = loc_.numberOfCols * loc_.cellsPerColumn;
+  Size nCols = loc_.numberOfCols;
 
   tmSavedState_t pristineTPDynamicState;
 
   // Save the TM dynamic state, we will use to revert back in the end
-  _getTPDynamicState(&pristineTPDynamicState);
+  _getTPDynamicState(pristineTPDynamicState);
 
   NTA_ASSERT(nSteps > 0);
 
@@ -364,24 +319,28 @@ std::shared_ptr<Real> BacktrackingTMCpp::predict(Size nSteps) {
       break;
     step += 1;
 
-    // Copy t - 1 into t
-    fastbuffercopy<Byte>(infActiveState_["t-1"], infActiveState_["t"], nCells);
-    fastbuffercopy<Byte>(infPredictedState_["t-1"], infPredictedState_["t"],
-                         nCells);
-    fastbuffercopy<Real>(cellConfidence_["t-1"], cellConfidence_["t"], nCells);
+    // Copy t into t-1
+    fastbuffercopy<Byte>(cells4_->getInfActiveStateT1(),
+                         cells4_->getInfActiveStateT(), nCells * sizeof(Byte));
+    fastbuffercopy<Byte>(cells4_->getInfPredictedStateT1(),
+                         cells4_->getInfPredictedStateT(),
+                         nCells * sizeof(Byte));
+    fastbuffercopy<Real>(cells4_->getCellConfidenceT1(),
+                         cells4_->getCellConfidenceT(), nCells * sizeof(Byte));
 
     // Predicted state at "t-1" becomes the active state at "t"
-    fastbuffercopy<Byte>(infActiveState_["t"], infPredictedState_["t-1"],
-                         nCells);
+    fastbuffercopy<Byte>(cells4_->getInfActiveStateT(),
+                         cells4_->getInfPredictedStateT1(),
+                         nCells * sizeof(Byte));
 
     // Predicted state and confidence are set in phase2.
-    memset(infPredictedState_["t"], 0, nCells);
-    memset(cellConfidence_["t"], 0, nCells * sizeof(Real));
+    memset(cells4_->getInfPredictedStateT(), 0, nCells * sizeof(Byte));
+    memset(cells4_->getCellConfidenceT(), 0, nCells * sizeof(Real));
     _inferPhase2();
   }
 
   // Revert the dynamic state to the saved state
-  _setTPDynamicState(&pristineTPDynamicState);
+  _setTPDynamicState(pristineTPDynamicState);
 
   return multiStepColumnPredictions;
 }
@@ -390,7 +349,7 @@ Real *BacktrackingTMCpp::topDownCompute() {
   // For now,  we will assume there is no one above us and that bottomUpOut
   // is simply the output that corresponds to our currently stored column
   // confidences. Simply return the column confidences
-  return colConfidence_["t"];
+  return cells4_->getColConfidenceT();
 }
 
 void BacktrackingTMCpp::_inferPhase2() {
@@ -403,7 +362,7 @@ void BacktrackingTMCpp::_inferPhase2() {
 std::pair<UInt, UInt> BacktrackingTMCpp::trimSegments(Real minPermanence,
                                                       UInt32 minNumSyns) {
   // Print all cells if verbosity says to
-  if (param_.verbosity >= 5) {
+  if (cells4_->getVerbosity() >= 5) {
     std::cout << "Cells, all segments:\n";
     printCells(false);
   }
@@ -425,7 +384,7 @@ std::pair<UInt, UInt> BacktrackingTMCpp::trimSegments(Real minPermanence,
 void BacktrackingTMCpp::_updateStatsInferEnd(
     std::map<std::string, Real> internalStats, const UInt32 *bottomUpNZ,
     const Byte *predictedState, const Real *colConfidence) {
-  if (param_.collectStats) {
+  if (loc_.collectStats) {
     internalStats["nInfersSinceReset"] += 1;
 
     // Compute the prediction score, how well the prediction from the last
@@ -433,18 +392,15 @@ void BacktrackingTMCpp::_updateStatsInferEnd(
     // backtracking_tm.py
     std::vector<const UInt32 *> patternNZs;
     patternNZs.push_back(bottomUpNZ);
-    Size numExtra2;
-    Size numMissing2;
-    std::vector<struct score_tuple> confidences2;
-    _checkPrediction(patternNZs, predictedState, colConfidence, false,
-                     numExtra2, numMissing2, confidences2, nullptr);
+    std::shared_ptr<struct BacktrackingTMCpp::predictionResults_t> results;
+    results = _checkPrediction(patternNZs, predictedState, colConfidence, false);
 
     // Store the stats that don't depend on burn-in
-    internalStats["curPredictionScore2"] = confidences2[0].predictionScore;
-    internalStats["curFalseNegativeScore"] =  1.0f - confidences2[0].posPredictionScore;
-    internalStats["curFalsePositiveScore"] = confidences2[0].negPredictionScore;
-    internalStats["curMissing"] = (Real)numMissing2;
-    internalStats["curExtra"] = (Real)numExtra2;
+    internalStats["curPredictionScore2"] = results->conf[0].predictionScore;
+    internalStats["curFalseNegativeScore"] =  1.0f - results->conf[0].posPredictionScore;
+    internalStats["curFalsePositiveScore"] = results->conf[0].negPredictionScore;
+    internalStats["curMissing"] = (Real)results->totalMissing;
+    internalStats["curExtra"] = (Real)results->totalExtras;
 
     // If we are passed the burn-in period, update the accumulated stats
     // Here's what various burn-in values mean:
@@ -452,29 +408,28 @@ void BacktrackingTMCpp::_updateStatsInferEnd(
     //   subsequent 1 : try to predict the second element of each sequence and
     //   all subsequent
     //    etc.
-    if (internalStats["nInfersSinceReset"] > param_.burnIn) {
+    if (internalStats["nInfersSinceReset"] > loc_.burnIn) {
 
       // Burn - in related stats
-      Real numExpected =
-          std::max<Real>(1.0, (Real)bottomUpNZ[0]); // first element is length.
+      Real numExpected = std::max<Real>(1.0, (Real)bottomUpNZ[0]); // first element is length.
       internalStats["nPredictions"] += 1.0f;
-      internalStats["totalMissing"] += numMissing2;
-      internalStats["totalExtra"] += numExtra2;
-      internalStats["pctExtraTotal"] += 100.0f * numExtra2 / numExpected;
-      internalStats["pctMissingTotal"] += 100.0f * numMissing2 / numExpected;
-      internalStats["predictionScoreTotal2"] += confidences2[0].predictionScore;
-      internalStats["falseNegativeScoreTotal"] += 1.0f - confidences2[0].posPredictionScore;
-      internalStats["falsePositiveScoreTotal"] += confidences2[0].negPredictionScore;
+      internalStats["totalMissing"] += results->totalMissing;
+      internalStats["totalExtra"] += results->totalExtras;
+      internalStats["pctExtraTotal"] += 100.0f * results->totalExtras / numExpected;
+      internalStats["pctMissingTotal"] += 100.0f * results->totalMissing / numExpected;
+      internalStats["predictionScoreTotal2"] += results->conf[0].predictionScore;
+      internalStats["falseNegativeScoreTotal"] += 1.0f - results->conf[0].posPredictionScore;
+      internalStats["falsePositiveScoreTotal"] += results->conf[0].negPredictionScore;
 
       if (loc_.collectSequenceStats) {
         // Collect cell confidences for every cell that correctly predicted
         // current bottom up input. Normalize confidence across each column
         Real *cc = new Real[nCells];
-        Real *cellT1 = cellConfidence_["t-1"];
-        Byte *cellState = infActiveState_["t"];
-        for (Size i = 0; i < (Size)param_.numberOfCols; i++) {
+        Real *cellT1 = cells4_->getCellConfidenceT1();
+        Byte *cellState = cells4_->getInfActiveStateT();
+        for (Size i = 0; i < (Size)loc_.numberOfCols; i++) {
           Real sconf = 0;
-          for (Size j = 0; j < (Size)param_.cellsPerColumn; j++) {
+          for (Size j = 0; j < (Size)loc_.cellsPerColumn; j++) {
             // zero out confidence if state bit is zero
             cc[i * j] = cellT1[i * j] * cellState[i * j];
             // add up confidence of a column
@@ -482,7 +437,7 @@ void BacktrackingTMCpp::_updateStatsInferEnd(
           }
           if (sconf > 0) {
             // Normalize the confidence for each cell in the column
-            for (Size j = 0; j < (Size)param_.cellsPerColumn; j++) {
+            for (Size j = 0; j < (Size)loc_.cellsPerColumn; j++) {
               cc[i * j] /= sconf;
             }
           }
@@ -512,14 +467,14 @@ void BacktrackingTMCpp::_updateStatsInferEnd(
  *   @patternNZs[][] a list of input patterns that we want to check for. Each
  *              element is a list of the indexes of non-zeros in that
  *              pattern. First element of each pattern is length of pattern.
- *   @predicted The output of the TM (predictedState).
+ *   @output    The output of the TM (predictedState).
  *   @colConfidence The column confidences. If not specified, then use the
  *              TM's current colConfidence_. This can be specified
  *              if you are trying to check the prediction metrics
  *              for an output from the past.
  *   @details   if True, also include details of missing bits per pattern.
  *
- *   :returns:
+ *   :returns: struct predictionResults_t 
  *               totalExtras,
  *               totalMissing,
  *               [conf_1, conf_2, ...],        a vector of structures
@@ -541,13 +496,21 @@ void BacktrackingTMCpp::_updateStatsInferEnd(
  *                     in the output. caller allocates to size of output.
  *                     This list is only returned if details is true.
  **************************************************/
-void BacktrackingTMCpp::_checkPrediction(
-    std::vector<const UInt32 *> patternNZs, const Byte *predicted,
-    const Real *colConfidence, bool details, Size &totalExtras,
-    Size &totalMissing, std::vector<struct score_tuple> &conf, Real *missing) {
+std::shared_ptr<struct BacktrackingTMCpp::predictionResults_t> BacktrackingTMCpp::_checkPrediction(
+    std::vector<const UInt32 *> patternNZs, 
+    const Byte *output,
+    const Real *colConfidence, 
+    bool details) 
+{
+  std::shared_ptr<struct predictionResults_t> results(new struct predictionResults_t);
+
   if (details) {
-    NTA_ASSERT(missing != nullptr);
+    std::shared_ptr<Real> sp(new Real[nCells], std::default_delete<Real[]>());
+    memset(sp.get(), 0, nCells * sizeof(Real));
+    results->missing = sp;
   }
+
+
   // Compute the union of all the expected patterns
   std::set<UInt32> orAll;
   for (size_t i = 0; i < patternNZs.size(); i++) {
@@ -555,18 +518,26 @@ void BacktrackingTMCpp::_checkPrediction(
       orAll.insert(patternNZs[i][n]);
     }
   }
+
   // Get the list of active columns in the output
   std::set<UInt32> outputnz;
-  for (Size i = 0; i < nCells; i++) {
-    if (predicted[i] != 0)
-      outputnz.insert((UInt32)i);
-    if (details)
-      missing[i] = 0;
+  if (output) {
+    for (Size i = 0; i < nCells; i++) {
+      if (output[i] != 0)
+        outputnz.insert((UInt32)i);
+    }
+  } else {
+    NTA_CHECK(currentOutput_);
+    for (Size i = 0; i < nCells; i++) {
+      if (currentOutput_[i] != 0.0)
+        outputnz.insert((UInt32)i);
+    }
   }
 
+
   // Compute the total extra and missing in the output
-  totalExtras = 0;
-  totalMissing = 0;
+  results->totalExtras = 0;
+  results->totalMissing = 0;
   std::set<UInt32>::iterator first1 = outputnz.begin();
   std::set<UInt32>::iterator last1 = outputnz.end();
   std::set<UInt32>::iterator first2 = orAll.begin();
@@ -575,21 +546,21 @@ void BacktrackingTMCpp::_checkPrediction(
     if (first1 == last1) {
       if (first2 == last2)
         break;
-      totalMissing++; // it is in orAll but not in outputnz.
+      results->totalMissing++; // it is in orAll but not in outputnz.
       if (details)
-        missing[*first2] = 1;
+        results->missing.get()[*first2] = 1;
       ++first2;
     } else if (first2 == last2) {
-      totalExtras++; // it is in outputnz but not in orAll.
+      results->totalExtras++; // it is in outputnz but not in orAll.
       first1++;
     } else {
       if (*first1 < *first2) {
-        totalExtras++; // it is in outputnz but not in orAll.
+        results->totalExtras++; // it is in outputnz but not in orAll.
         ++first1;
       } else if (*first2 < *first1) {
-        totalMissing++; // it is in orAll but not in outputnz.
+        results->totalMissing++; // it is in orAll but not in outputnz.
         if (details)
-          missing[*first2] = 1;
+          results->missing.get()[*first2] = 1;
         ++first2;
       } else {
         ++first1;
@@ -605,7 +576,7 @@ void BacktrackingTMCpp::_checkPrediction(
   // confidence number is taken from the first active segment found in the cell.
   // Note that confidence will only be non-zero for predicted columns.
   if (colConfidence == nullptr)
-    colConfidence = colConfidence_["t"];
+    colConfidence = cells4_->getColConfidenceT();
   for (Size p = 0; p < patternNZs.size(); p++) {
     const UInt32 *pattern = patternNZs[p];
     struct score_tuple scores;
@@ -620,20 +591,22 @@ void BacktrackingTMCpp::_checkPrediction(
 
     // Sum of all the column confidences
     Real totalPredictionSum = 0;
-    for (Size i = 1; i < param_.numberOfCols; i++) {
+    for (Size i = 1; i < loc_.numberOfCols; i++) {
       totalPredictionSum += colConfidence[i];
     }
 
     // Total number of columns
-    Size totalColumnCount = param_.numberOfCols;
+    Size totalColumnCount = loc_.numberOfCols;
 
     Real negativePredictionSum = totalPredictionSum - positivePredictionSum;
     Size negativeColumnCount = totalColumnCount - positiveColumnCount;
 
     //  Compute the average confidence score per column for this pattern
     //  Compute the average confidence score per column for the other patterns
-    scores.posPredictionScore = (positiveColumnCount == 0) ? 0.0f : positivePredictionSum;
-    scores.negPredictionScore = (negativeColumnCount == 0) ? 0.0f : negativePredictionSum;
+    scores.posPredictionScore =
+        (positiveColumnCount == 0) ? 0.0f : positivePredictionSum;
+    scores.negPredictionScore =
+        (negativeColumnCount == 0) ? 0.0f : negativePredictionSum;
 
     // Scale the positive and negative prediction scores so that they sum to 1.0
     Real currentSum = scores.negPredictionScore + scores.posPredictionScore;
@@ -644,8 +617,9 @@ void BacktrackingTMCpp::_checkPrediction(
     scores.predictionScore =
         scores.posPredictionScore - scores.negPredictionScore;
 
-    conf.push_back(scores);
+    results->conf.push_back(scores);
   }
+  return results;
 }
 
 ////////////////////////////////////
@@ -654,70 +628,54 @@ void BacktrackingTMCpp::_checkPrediction(
 //    output is the boolean OR of 'activeState' and 'predictedState' at 't'.
 //    Stores 'currentOutput_'.
 Real32 *BacktrackingTMCpp::_computeOutput() {
-  auto currentOutput = currentOutput_.get();
-  if (param_.outputType == "activeState1CellPerCol") {
+  if (!strcmp(loc_.outputType, "activeState1CellPerCol")) {
     // Fire only the most confident cell in columns that have 2 or more active
     // cells Don't turn on anything in columns which are not active at all
-    Byte *active = infActiveState_["t"];
-    Real *cc = cellConfidence_["t"];
-    for (Size i = 0; i < (Size)param_.numberOfCols; i++) {
+    Byte *active = cells4_->getInfActiveStateT();
+    Real *cc = cells4_->getCellConfidenceT();
+    for (Size i = 0; i < (Size)loc_.numberOfCols; i++) {
       Size isColActive = 0;
       Size mostConfidentCell = 0;
       Real c = 0;
-      for (Size j = 0; j < param_.cellsPerColumn; j++) {
-        Size cellIdx = i * param_.cellsPerColumn + j;
+      for (Size j = 0; j < loc_.cellsPerColumn; j++) {
+        Size cellIdx = i * loc_.cellsPerColumn + j;
         if (cc[cellIdx] > c) {
           c = cc[cellIdx];
           mostConfidentCell = cellIdx;
         }
-        currentOutput[cellIdx] = 0; // zero the output
+        currentOutput_[cellIdx] = 0; // zero the output
         isColActive += active[cellIdx];
       }
-      if (c > 0 && isColActive) // set the most confident cell in this column
-                                // if active.
-        currentOutput[mostConfidentCell] = 1;
+      // set the most confident cell in this column if active.
+      if (c > 0 && isColActive) 
+        currentOutput_[mostConfidentCell] = 1.0f;
     }
 
-  } else if (param_.outputType == "activeState") {
-    Byte *active = infActiveState_["t"];
+  } else if (!strcmp(loc_.outputType, "activeState")) {
+    Byte *active = cells4_->getInfActiveStateT();
     for (Size i = 0; i < nCells; i++) {
-      currentOutput[i] = active[i];
+      currentOutput_[i] = active[i];
     }
 
-  } else if (param_.outputType == "normal") {
-    Byte *active = infActiveState_["t"];
-    Byte *predicted = infPredictedState_["t"];
+  } else if (!strcmp(loc_.outputType, "normal")) {
+    Byte *active = cells4_->getInfActiveStateT();
+    Byte *predicted = cells4_->getInfPredictedStateT();
     for (Size i = 0; i < nCells; i++) {
-      currentOutput[i] = (active[i] || predicted[i]) ? 1.0f : 0.0f;
+      currentOutput_[i] = (active[i] || predicted[i]) ? 1.0f : 0.0f;
     }
 
   } else {
-    NTA_THROW << "Unimplemented outputType '" << param_.outputType << "' ";
+    NTA_THROW << "Unimplemented outputType '" << loc_.outputType << "' ";
   }
-  return currentOutput;
+  return currentOutput_;
 }
 
 void BacktrackingTMCpp::reset() {
-  if (param_.verbosity >= 3)
+  if (cells4_->getVerbosity() >= 3)
     std::cout << "\n==== TM Reset =====" << std::endl;
   //_setStatePointers()
   cells4_->reset();
-
-  // ---from line 769 of backtracking_tm.py
-  // Reset the state of all cells.
-  // This is normally used between sequences while training.
-  // All internal states are reset to 0.
-  memset(lrnActiveState_["t-1"], 0, nCells);
-  memset(lrnActiveState_["t"], 0, nCells);
-  memset(lrnPredictedState_["t-1"], 0, nCells);
-  memset(lrnPredictedState_["t"], 0, nCells);
-  memset(infActiveState_["t-1"], 0, nCells);
-  memset(infActiveState_["t"], 0, nCells);
-  memset(infPredictedState_["t-1"], 0, nCells);
-  memset(infPredictedState_["t"], 0, nCells);
-  memset(cellConfidence_["t-1"], 0, nCells * sizeof(Real));
-  memset(cellConfidence_["t"], 0, nCells * sizeof(Real));
-
+  // All state buffers have been filled with 0's by the reset.
 
   internalStats_["nInfersSinceReset"] = 0;
 
@@ -741,7 +699,6 @@ void BacktrackingTMCpp::reset() {
     memset(confHistogram_.get(), 0, nCells * sizeof(Real));
   }
   loc_.resetCalled = true;
-
 }
 
 void BacktrackingTMCpp::resetStats() {
@@ -787,22 +744,24 @@ void BacktrackingTMCpp::resetStats() {
 //    @returns: (map) The following keys are returned in the map when
 //        ``collectStats`` is True:
 //
-//          - ``nPredictions``: the number of predictions. This is the total
+//          - 'nPredictions': the number of predictions. This is the total
 //                number of inferences excluding burn-in and the last inference.
-//          - ``curPredictionScore``: the score for predicting the current input
+//          - 'curPredictionScore': the score for predicting the current input
 //                (predicted during the previous inference)
-//          - ``curMissing``: the number of bits in the current input that were not predicted to be on.
-//          - ``curExtra``: the number of bits in the predicted output that are not in the next input
-//          - ``predictionScoreTotal``: the sum of every prediction score to date
-//          - ``predictionScoreAvg``: ``predictionScoreTotal / nPredictions``
-//          - ``pctMissingTotal``: the total number of bits that were missed over all predictions
-//          - ``pctMissingAvg``: ``pctMissingTotal / nPredictions``
-//      The map is empty if ``collectSequenceStats``
-//                is False.
+//          - 'curMissing': the number of bits in the current input that were
+//          not predicted to be on.
+//          - 'curExtra': the number of bits in the predicted output that are
+//          not in the next input
+//          - 'predictionScoreTotal': the sum of every prediction score to date
+//          - 'predictionScoreAvg': 'predictionScoreTotal / nPredictions'
+//          - 'pctMissingTotal': the total number of bits that were missed over
+//          all predictions
+//          - 'pctMissingAvg': 'pctMissingTotal / nPredictions``
+//      The map is empty if `'collectSequenceStats' is False.
 
 std::map<std::string, Real32> BacktrackingTMCpp::getStats() {
   std::map<std::string, Real32> stats;
-  if (!param_.collectStats) {
+  if (!loc_.collectStats) {
     return stats;
   }
 
@@ -815,17 +774,19 @@ std::map<std::string, Real32> BacktrackingTMCpp::getStats() {
 
   // New prediction score
   stats["curPredictionScore2"] = internalStats_["curPredictionScore2"];
-  stats["predictionScoreAvg2"] = internalStats_["predictionScoreTotal2"] / nPredictions;
+  stats["predictionScoreAvg2"] =
+      internalStats_["predictionScoreTotal2"] / nPredictions;
   stats["curFalseNegativeScore"] = internalStats_["curFalseNegativeScore"];
-  stats["falseNegativeAvg"] = internalStats_["falseNegativeScoreTotal"] / nPredictions;
+  stats["falseNegativeAvg"] =
+      internalStats_["falseNegativeScoreTotal"] / nPredictions;
   stats["curFalsePositiveScore"] = internalStats_["curFalsePositiveScore"];
-  stats["falsePositiveAvg"] = internalStats_["falsePositiveScoreTotal"] / nPredictions;
+  stats["falsePositiveAvg"] =
+      internalStats_["falsePositiveScoreTotal"] / nPredictions;
 
   stats["pctExtraAvg"] = internalStats_["pctExtraTotal"] / nPredictions;
   stats["pctMissingAvg"] = internalStats_["pctMissingTotal"] / nPredictions;
 
   return stats;
-
 }
 
 // returns the preivous value of confidence Histogram
@@ -841,332 +802,99 @@ std::shared_ptr<Real> BacktrackingTMCpp::getConfHistogram() {
   return confHistogram_;
 }
 
-
 /////////////// saving dynamic state for predict() //////////////
-void BacktrackingTMCpp::_getTPDynamicState(tmSavedState_t *ss) {
-
-  deepcopySave_<Byte>(infActiveState_, ss->infActiveState_, nCells);
-  deepcopySave_<Byte>(infPredictedState_, ss->infPredictedState_, nCells);
-  deepcopySave_<Real>(cellConfidence_, ss->cellConfidence_, nCells);
-  deepcopySave_<Real>(colConfidence_, ss->colConfidence_, param_.numberOfCols);
-  deepcopySave_<Byte>(lrnActiveState_, ss->lrnActiveState_, nCells);
-  deepcopySave_<Byte>(lrnPredictedState_, ss->lrnPredictedState_, nCells);
+void BacktrackingTMCpp::_getTPDynamicState(tmSavedState_t &ss) {
+  deepcopySave_<Byte>(ss, "infActiveStateT", cells4_->getInfActiveStateT(),
+                      nCells);
+  deepcopySave_<Byte>(ss, "infActiveStateT1", cells4_->getInfActiveStateT1(),
+                      nCells);
+  deepcopySave_<Byte>(ss, "infPredictedStateT",
+                      cells4_->getInfPredictedStateT(), nCells);
+  deepcopySave_<Byte>(ss, "infPredictedStateT1",
+                      cells4_->getInfPredictedStateT1(), nCells);
+  deepcopySave_<Byte>(ss, "learnActiveStateT", cells4_->getLearnActiveStateT(),
+                      nCells);
+  deepcopySave_<Byte>(ss, "learnActiveStateT1",
+                      cells4_->getLearnActiveStateT1(), nCells);
+  deepcopySave_<Byte>(ss, "learnPredictedStateT",
+                      cells4_->getLearnPredictedStateT(), nCells);
+  deepcopySave_<Byte>(ss, "learnPredictedStateT1",
+                      cells4_->getLearnPredictedStateT1(), nCells);
+  deepcopySave_<Real>(ss, "cellConfidenceT", cells4_->getCellConfidenceT(),
+                      nCells);
+  deepcopySave_<Real>(ss, "cellConfidenceT1", cells4_->getCellConfidenceT1(),
+                      nCells);
+  deepcopySave_<Real>(ss, "colConfidenceT", cells4_->getColConfidenceT(),
+                      loc_.numberOfCols);
+  deepcopySave_<Real>(ss, "colConfidenceT", cells4_->getColConfidenceT(),
+                      loc_.numberOfCols);
 }
 
-void BacktrackingTMCpp::_setTPDynamicState(tmSavedState_t *ss) {
-  deepcopyRestore_<Byte>(infActiveState_, ss->infActiveState_, nCells);
-  deepcopyRestore_<Byte>(infPredictedState_, ss->infPredictedState_, nCells);
-  deepcopyRestore_<Real>(cellConfidence_, ss->cellConfidence_, nCells);
-  deepcopyRestore_<Real>(colConfidence_, ss->colConfidence_,
-                         param_.numberOfCols);
-  deepcopyRestore_<Byte>(lrnActiveState_, ss->lrnActiveState_, nCells);
-  deepcopyRestore_<Byte>(lrnPredictedState_, ss->lrnPredictedState_, nCells);
+void BacktrackingTMCpp::_setTPDynamicState(tmSavedState_t &ss) {
+  deepcopyRestore_<Byte>(ss, "infActiveStateT", cells4_->getInfActiveStateT(),
+                         nCells);
+  deepcopyRestore_<Byte>(ss, "infActiveStateT1", cells4_->getInfActiveStateT1(),
+                         nCells);
+  deepcopyRestore_<Byte>(ss, "infPredictedStateT",
+                         cells4_->getInfPredictedStateT(), nCells);
+  deepcopyRestore_<Byte>(ss, "infPredictedStateT1",
+                         cells4_->getInfPredictedStateT1(), nCells);
+  deepcopyRestore_<Byte>(ss, "learnActiveStateT",
+                         cells4_->getLearnActiveStateT(), nCells);
+  deepcopyRestore_<Byte>(ss, "learnActiveStateT1",
+                         cells4_->getLearnActiveStateT1(), nCells);
+  deepcopyRestore_<Byte>(ss, "learnPredictedStateT",
+                         cells4_->getLearnPredictedStateT(), nCells);
+  deepcopyRestore_<Byte>(ss, "learnPredictedStateT1",
+                         cells4_->getLearnPredictedStateT1(), nCells);
+  deepcopyRestore_<Real>(ss, "cellConfidenceT", cells4_->getCellConfidenceT(),
+                         nCells);
+  deepcopyRestore_<Real>(ss, "cellConfidenceT1", cells4_->getCellConfidenceT1(),
+                         nCells);
+  deepcopyRestore_<Real>(ss, "colConfidenceT", cells4_->getColConfidenceT(),
+                         loc_.numberOfCols);
+  deepcopyRestore_<Real>(ss, "colConfidenceT", cells4_->getColConfidenceT(),
+                         loc_.numberOfCols);
 }
 
 template <typename T>
-void BacktrackingTMCpp::deepcopySave_(
-    std::map<std::string, T*> &fromstate,
-    std::map<std::string, std::shared_ptr<T>> &tostate, 
-    Size count) 
-{
-  tostate.clear();
-  typename std::map<std::string, T *>::iterator it;
-  for (it = fromstate.begin(); it != fromstate.end(); it++) {
-    std::shared_ptr<T> target(new T[count], std::default_delete<T[]>());
-    tostate[it->first] = target;
-    fastbuffercopy<T>(target.get(), it->second, count);
-  }
+void BacktrackingTMCpp::deepcopySave_(tmSavedState_t &ss, std::string name,
+                                      T *buf, Size count) {
+  std::shared_ptr<T> target(new T[count], std::default_delete<T[]>());
+  fastbuffercopy<T>(target.get(), buf, count);
+  ss[name] = target; // 'target' could be a shared_ptr<Byte> or shared_ptr<Real>
 }
 
 template <typename T>
-void BacktrackingTMCpp::deepcopyRestore_(
-    std::map<std::string, T*> &tostate,
-    std::map<std::string, std::shared_ptr<T>> &fromstate, Size count) 
-{
-  typename std::map<std::string, std::shared_ptr<T>>::iterator it;
-  typename std::map<std::string, T *>::iterator target;
-  for (it = fromstate.begin(); it != fromstate.end(); it++) {
-    target = tostate.find(it->first);
-    if (target != tostate.end()) {
-      fastbuffercopy<T>(target->second, it->second.get(), count);
-    }
-  }
+void BacktrackingTMCpp::deepcopyRestore_(tmSavedState_t &ss, std::string name,
+                                         T *buf, Size count) {
+  auto source = std::any_cast<std::shared_ptr<T>>(ss[name]);
+  fastbuffercopy<T>(buf, source.get(), count);
 }
 
 template <typename T>
-void BacktrackingTMCpp::fastbuffercopy(T* tobuf, T* frombuf, Size count) 
-{
+void BacktrackingTMCpp::fastbuffercopy(T *tobuf, T *frombuf, Size count) {
   memcpy(tobuf, frombuf, count * sizeof(T));
 }
 
-
-
-/////////////// getter/setter methods //////////////////////
-UInt32 BacktrackingTMCpp::getParameterUInt32(std::string name) {
-  switch (name[0]) {
-  case 'a':
-    if (name == "activationThreshold") {
-      return param_.activationThreshold;
-    }
-    break;
-  case 'b':
-    if (name == "burnIn")
-      return param_.burnIn;
-    break;
-
-  case 'c':
-    if (name == "cellsPerColumn")
-      return param_.cellsPerColumn;
-    if (name == "numberOfCols")
-      return param_.numberOfCols;
-    break;
-
-  case 'm':
-    if (name == "maxAge")
-      return param_.maxAge;
-    if (name == "maxInfBacktrack")
-      return param_.maxInfBacktrack;
-    if (name == "maxLrnBacktrack")
-      return param_.maxLrnBacktrack;
-    if (name == "minThreshold")
-      return param_.minThreshold;
-    if (name == "maxSeqLength")
-      return param_.maxSeqLength;
-    break;
-
-  case 'n':
-    if (name == "newSynapseCount")
-      return param_.newSynapseCount;
-    break;
-
-  case 'o':
-    if (name == "outputWidth")
-      return (UInt32)nCells;
-
-  case 'p':
-    if (name == "pamLength")
-      return param_.pamLength;
-    break;
-
-  case 's':
-    if (name == "segUpdateValidDuration")
-      return param_.segUpdateValidDuration;
-    break;
-  } // end switch
-  NTA_THROW << "parameter name '" << name << "' unknown.";
-}
-
-Int32 BacktrackingTMCpp::getParameterInt32(std::string name) {
-  if (name == "maxSegmentsPerCell")
-    return param_.maxSegmentsPerCell;
-  if (name == "maxSynapsesPerSegment")
-    return param_.maxSynapsesPerSegment;
-  if (name == "seed") {
-    return param_.seed;
-    if (name == "verbosity")
-      return param_.verbosity;
-  }
-  NTA_THROW << "parameter name '" << name << "' unknown.";
-}
-
-Real32 BacktrackingTMCpp::getParameterReal32(std::string name) {
-  switch (name[0]) {
-  case 'c':
-    if (name == "initialPerm")
-      return param_.initialPerm;
-    break;
-  case 'g':
-    if (name == "globalDecay")
-      return param_.globalDecay;
-    break;
-
-  case 'i':
-    if (name == "initialPerm")
-      return param_.initialPerm;
-    break;
-  case 'p':
-    if (name == "permanenceInc")
-      return param_.permanenceInc;
-    if (name == "permanenceDec")
-      return param_.permanenceDec;
-    if (name == "connectedPerm")
-      return param_.connectedPerm;
-    if (name == "permanenceMax")
-      return param_.permanenceMax;
-    break;
-  }
-  NTA_THROW << "parameter name '" << name << "' unknown.";
-}
-
-bool BacktrackingTMCpp::getParameterBool(std::string name) {
-  if (name == "collectStats")
-    return param_.collectStats;
-  if (name == "checkSynapseConsistency")
-    return param_.checkSynapseConsistency;
-  if (name == "doPooling")
-    return param_.doPooling;
-  NTA_THROW << "parameter name '" << name << "' unknown.";
-}
-
-std::string BacktrackingTMCpp::getParameterString(std::string name) {
-  if (name == "outputType") {
-    return param_.outputType;
-  }
-  NTA_THROW << "parameter name '" << name << "' unknown.";
-}
-
-void BacktrackingTMCpp::setParameter(std::string name, UInt32 value) {
-  switch (name[0]) {
-  case 'a':
-    if (name == "activationThreshold") {
-      param_.activationThreshold = value;
-      return;
-    }
-    break;
-  case 'b':
-    if (name == "burnIn") {
-      param_.burnIn = value;
-      return;
-    }
-    break;
-  case 'm':
-    if (name == "minThreshold") {
-      param_.minThreshold = value;
-      return;
-    }
-    if (name == "maxInfBacktrack") {
-      param_.maxInfBacktrack = value;
-      return;
-    }
-    if (name == "maxLrnBacktrack") {
-      param_.maxLrnBacktrack = value;
-      return;
-    }
-    if (name == "maxAge") {
-      param_.maxAge = value;
-      return;
-    }
-    if (name == "maxSeqLength") {
-      param_.maxSeqLength = value;
-      return;
-    }
-    break;
-  case 'n':
-    if (name == "newSynapseCount") {
-      param_.newSynapseCount = value;
-      return;
-    }
-    break;
-  case 'p':
-    if (name == "pamLength") {
-      param_.pamLength = value;
-      return;
-    }
-    break;
-  case 's':
-    if (name == "segUpdateValidDuration") {
-      param_.segUpdateValidDuration = value;
-      return;
-    }
-    break;
-  } // switch
-  NTA_THROW << "parameter name '" << name << "' unknown.";
-}
-
-void BacktrackingTMCpp::setParameter(std::string name, Int32 value) {
-  if (name == "maxSegmentsPerCell") {
-    param_.maxSegmentsPerCell = value;
-    return;
-  }
-  if (name == "maxSynapsesPerSegment") {
-    param_.maxSynapsesPerSegment = value;
-    return;
-  }
-  if (name == "verbosity") {
-    param_.verbosity = value;
-    return;
-  }
-  NTA_THROW << "parameter name '" << name << "' unknown.";
-}
-
-void BacktrackingTMCpp::setParameter(std::string name, Real32 value) {
-  switch (name[0]) {
-  case 'c':
-    if (name == "connectedPerm") {
-      param_.connectedPerm = value;
-      return;
-    }
-    break;
-  case 'g':
-    if (name == "globalDecay") {
-      param_.globalDecay = value;
-      return;
-    }
-    break;
-  case 'i':
-    if (name == "initialPerm") {
-      param_.initialPerm = value;
-      return;
-    }
-    break;
-  case 'p':
-    if (name == "permanenceInc") {
-      param_.permanenceInc = value;
-      return;
-    }
-    if (name == "permanenceDec") {
-      param_.permanenceDec = value;
-      return;
-    }
-    if (name == "permanenceMax") {
-      param_.permanenceMax = value;
-      return;
-    }
-    break;
-  } // switch
-  NTA_THROW << "parameter name '" << name << "' unknown.";
-}
-
-void BacktrackingTMCpp::setParameter(std::string name, bool value) {
-  if (name == "doPooling") {
-    param_.doPooling = value;
-    return;
-  }
-  if (name == "collectStats") {
-    param_.collectStats = value;
-    return;
-  }
-
-  if (name == "checkSynapseConsistency") {
-    param_.checkSynapseConsistency = value;
-    return;
-  }
-
-  NTA_THROW << "parameter name '" << name << "' unknown.";
-}
-void BacktrackingTMCpp::setParameter(std::string name, std::string val) {
-  if (name == "outputType") {
-    strncpy(param_.outputType, val.c_str(), sizeof(param_.outputType));
-  } else
-    NTA_THROW << "parameter name '" << name << "' unknown.";
-}
-
 ///////////////  printing routines for Debug  ///////////////
-void BacktrackingTMCpp::printComputeEnd(Real *output, bool learn) {
+void BacktrackingTMCpp::printComputeEnd(Real *output, bool learn,
+                                        std::ostream &out) const {
   // Called at the end of inference to print out various diagnostic information
   // based on the current verbosity level
 
-  if (param_.verbosity >= 3) {
-    std::cout << "----- computeEnd summary: \n";
-    std::cout << "learn:" << learn << "\n";
+  if (cells4_->getVerbosity() >= 3) {
+    out << "----- computeEnd summary: \n";
+    out << "learn:" << learn << "\n";
 
+    // Inferred Active State
     Size numBurstingCols = 0;
     Size numOn = 0;
-    Byte *ptr = infActiveState_["t"];
-    for (Size i = 0; i < param_.numberOfCols; i++) {
+    Byte *ptr = cells4_->getInfActiveStateT();
+    for (Size i = 0; i < loc_.numberOfCols; i++) {
       bool isbursting = true;
-      for (Size j = 0; j < param_.cellsPerColumn; j++) {
-        if (ptr[i * param_.cellsPerColumn + j] == 0) {
+      for (Size j = 0; j < loc_.cellsPerColumn; j++) {
+        if (ptr[i * loc_.cellsPerColumn + j] == 0) {
           isbursting = false;
           break;
         } else {
@@ -1176,219 +904,237 @@ void BacktrackingTMCpp::printComputeEnd(Real *output, bool learn) {
       if (isbursting)
         numBurstingCols++;
     }
-    std::cout << "numBurstingCols:    " << numBurstingCols << "\n";
-    std::cout << "curPredScore2:      " << internalStats_["curPredictionScore2"]
-              << "\n";
-    std::cout << "curFalsePosScore:   "
-              << internalStats_["curFalsePositiveScore"] << "\n";
-    std::cout << "1-curFalseNegScore: "
-              << (1 - internalStats_["curFalseNegativeScore"]) << "\n";
-    std::cout << "numSegments:        " << getNumSegments() << "\n";
-    std::cout << "avgLearnedSeqLength:" << loc_.avgLearnedSeqLength << "\n";
+    Real curPredictionScore2 =
+        internalStats_.find("curPredictionScore2")->second;
+    Real curFalsePositiveScore =
+        internalStats_.find("curFalsePositiveScore")->second;
+    Real curFalseNegativeScore =
+        internalStats_.find("curFalseNegativeScore")->second;
+    out << "numBurstingCols:    " << numBurstingCols << "\n";
+    out << "curPredScore2:      " << curPredictionScore2 << "\n";
+    out << "curFalsePosScore:   " << curFalsePositiveScore << "\n";
+    out << "1-curFalseNegScore: " << (1.0f - curFalseNegativeScore) << "\n";
+    out << "numSegments:        " << getNumSegments() << "\n";
+    out << "avgLearnedSeqLength:" << loc_.avgLearnedSeqLength << "\n";
 
-    std::cout << "\n----- infActiveState (" << numOn << " on) ------\n";
-    printActiveIndicesByte(infActiveState_["t"]);
-    if (param_.verbosity >= 6)
-      printState(infActiveState_["t"]);
+    out << "\n----- infActiveState (" << numOn << " on) ------\n";
+    ptr = cells4_->getInfActiveStateT();
+    printActiveIndicesByte(ptr, false, out);
+    if (cells4_->getVerbosity() >= 6)
+      printState(cells4_->getInfActiveStateT(), out);
 
-    ptr = infPredictedState_["t"];
+    // Inferred Predicted state
+    ptr = cells4_->getInfPredictedStateT();
     numOn = 0;
     for (Size i = 0; i < nCells; i++) {
       if (ptr[i])
         numOn++;
     }
-    std::cout << "\n----- infPredictedState (" << numOn << " on)-----\n";
-    printActiveIndicesByte(infPredictedState_["t"]);
-    if (param_.verbosity >= 6)
-      printState(infPredictedState_["t"]);
+    out << "\n----- infPredictedState (" << numOn << " on)-----\n";
+    printActiveIndicesByte(ptr, false, out);
+    if (cells4_->getVerbosity() >= 6)
+      printState(ptr, out);
 
-    ptr = lrnActiveState_["t"];
+    // Learned Active State
+    ptr = cells4_->getLearnActiveStateT();
     numOn = 0;
     for (Size i = 0; i < nCells; i++) {
       if (ptr[i])
         numOn++;
     }
-    std::cout << "\n----- lrnActiveState (" << numOn << " on) ------\n";
-    printActiveIndicesByte(lrnActiveState_["t"]);
-    if (param_.verbosity >= 6)
-      printState(lrnActiveState_["t"]);
+    out << "\n----- lrnActiveState (" << numOn << " on) ------\n";
+    printActiveIndicesByte(ptr, false, out);
+    if (cells4_->getVerbosity() >= 6)
+      printState(ptr, out);
 
-    ptr = lrnPredictedState_["t"];
+    // Learned predicted state
+    ptr = cells4_->getLearnPredictedStateT1();
     numOn = 0;
     for (Size i = 0; i < nCells; i++) {
       if (ptr[i])
         numOn++;
     }
-    std::cout << "\n----- lrnPredictedState (%d on)-----\n";
-    printActiveIndicesByte(lrnPredictedState_["t"]);
-    if (param_.verbosity >= 6)
-      printState(lrnPredictedState_["t"]);
+    out << "\n----- lrnPredictedState (" << numOn << " on)-----\n";
+    printActiveIndicesByte(ptr, false, out);
+    if (cells4_->getVerbosity() >= 6)
+      printState(ptr, out);
 
-    std::cout << "\n----- cellConfidence -----\n";
-    printActiveIndicesReal(cellConfidence_["t"], true);
-    if (param_.verbosity >= 6)
-      printConfidence(cellConfidence_["t"]);
+    // Cell Confidence
+    Real *rptr = cells4_->getCellConfidenceT();
+    out << "\n----- cellConfidence -----\n";
+    printActiveIndicesReal(rptr, true, out);
+    if (cells4_->getVerbosity() >= 6)
+      printConfidence(rptr, 20, out);
 
-    std::cout << "\n----- colConfidence -----\n";
-    printColActiveIndices(colConfidence_["t"], true);
+    // Column Confidence
+    rptr = cells4_->getColConfidenceT();
+    out << "\n----- colConfidence -----\n";
+    printColActiveIndices(rptr, true, out);
 
-    std::cout
-        << "\n----- cellConfidence[t-1] for currently active cells -----\n";
-    ptr = infActiveState_["t"];
-    Real *c = cellConfidence_["t-1"];
+    // T-1 cell confidence for active cells
+    out << "\n----- cellConfidence[t-1] for currently active cells -----\n";
+    ptr = cells4_->getInfActiveStateT();
+    Real *c = cells4_->getCellConfidenceT1();
     Real *cc = new Real[nCells];
     for (Size i = 0; i < nCells; i++) {
       cc[i] = (ptr[i]) ? c[i] : 0;
     }
-    printActiveIndicesReal(cc, true);
+    printActiveIndicesReal(cc, true, out);
     delete[] cc;
 
-    if (param_.verbosity >= 4) {
-      std::cout << "\nCells, predicted segments only:\n";
-      printCells(true);
-    } else if (param_.verbosity >= 5) {
-      std::cout << "\nCells, all segments:\n";
-      printCells(false);
+    if (cells4_->getVerbosity() >= 4) {
+      out << "\nCells, predicted segments only:\n";
+      printCells(true, out);
+    } else if (cells4_->getVerbosity() >= 5) {
+      out << "\nCells, all segments:\n";
+      printCells(false, out);
     }
-    std::cout << std::endl; // flush buffer
+    out << std::endl; // flush buffer
 
-  } else if (param_.verbosity >= 1) {
-    std::cout << "\nTM: learn:" << learn << "\n";
+  } else if (cells4_->getVerbosity() >= 1) {
+    out << "\nTM: learn:" << learn << "\n";
 
     UInt32 *outputnz = nonzero<Real>(output, nCells);
-    std::cout << "\nTM: active outputs(" << outputnz[0] << ")\n";
-    printActiveIndicesReal(output);
+    out << "\nTM: active outputs(" << outputnz[0] << ")\n";
+    printActiveIndicesReal(output, false, out);
     delete[] outputnz;
   }
 }
 
 // Print the list of '[column, cellIdx]' indices for each of the active cells in
 // state.
-void BacktrackingTMCpp::printActiveIndicesByte(const Byte *state, bool andValues) {
-  for (Size i = 0; i < param_.numberOfCols; i++) {
-    std::cout << "Col " << i << ": [";
+void BacktrackingTMCpp::printActiveIndicesByte(const Byte *state,
+                                               bool andValues,
+                                               std::ostream &out) const {
+  for (Size i = 0; i < loc_.numberOfCols; i++) {
+    out << "Col " << i << ": [";
     bool first = true;
-    for (Size j = 0; j < param_.cellsPerColumn; j++) {
-      if (state[i * param_.cellsPerColumn + j]) {
+    for (Size j = 0; j < loc_.cellsPerColumn; j++) {
+      if (state[i * loc_.cellsPerColumn + j]) {
         if (!first)
-          std::cout << ", ";
+          out << ", ";
         if (andValues)
-          std::cout << j << ": " << state[i * param_.cellsPerColumn + j];
+          out << j << ": " << state[i * loc_.cellsPerColumn + j];
         else
-          std::cout << j;
+          out << j;
         first = false;
       }
     }
-    std::cout << "]\n";
+    out << "]\n";
   }
 }
 // Print the list of '[column, cellIdx]' indices for each of the active cells in
 // confidence.
-void BacktrackingTMCpp::printActiveIndicesReal(const Real *confidence, bool andValues) {
-  for (Size i = 0; i < param_.numberOfCols; i++) {
-    std::cout << "Col " << i << ": [";
+void BacktrackingTMCpp::printActiveIndicesReal(const Real *confidence,
+                                               bool andValues,
+                                               std::ostream &out) const {
+  for (Size i = 0; i < loc_.numberOfCols; i++) {
+    out << "Col " << i << ": [";
     bool first = true;
-    for (Size j = 0; j < param_.cellsPerColumn; j++) {
-      if (confidence[i * param_.cellsPerColumn + j]) {
+    for (Size j = 0; j < loc_.cellsPerColumn; j++) {
+      if (confidence[i * loc_.cellsPerColumn + j]) {
         if (!first)
-          std::cout << ", ";
+          out << ", ";
         if (andValues)
-          std::cout << j << ": " << confidence[i * param_.cellsPerColumn + j];
+          out << j << ": " << confidence[i * loc_.cellsPerColumn + j];
         else
-          std::cout << j;
+          out << j;
         first = false;
       }
     }
-    std::cout << "]\n";
+    out << "]\n";
   }
 }
 // Print the list of '[column]' indices for each of the active cells in
 // ColConfidence.
-void BacktrackingTMCpp::printColActiveIndices(const Real *colconfidence, bool andValues) {
-  std::cout << "[";
+void BacktrackingTMCpp::printColActiveIndices(const Real *colconfidence,
+                                              bool andValues,
+                                              std::ostream &out) const {
+  out << "[";
   bool first = true;
-  for (Size j = 0; j < param_.numberOfCols; j++) {
+  for (Size j = 0; j < loc_.numberOfCols; j++) {
     if (colconfidence[j]) {
       if (!first)
-        std::cout << ", ";
+        out << ", ";
       if (andValues)
-        std::cout << j << ": " << colconfidence[j];
+        out << j << ": " << colconfidence[j];
       else
-        std::cout << j;
+        out << j;
       first = false;
     }
   }
-  std::cout << "]\n";
+  out << "]\n";
 }
 
 // Print an integer array that is the same shape as activeState.
-void BacktrackingTMCpp::printState(const Byte *aState) {
-  for (Size i = 0; i < param_.cellsPerColumn; i++) {
+void BacktrackingTMCpp::printState(const Byte *aState,
+                                   std::ostream &out) const {
+  for (Size i = 0; i < loc_.cellsPerColumn; i++) {
 
-    for (Size c = 0; c < param_.numberOfCols; c++) {
+    for (Size c = 0; c < loc_.numberOfCols; c++) {
       if (c % 10 == 0)
-        std::cout << " "; // add a spacer every 10
-      std::cout << aState[c * param_.cellsPerColumn + i] << " ";
+        out << " "; // add a spacer every 10
+      out << aState[c * loc_.cellsPerColumn + i] << " ";
     }
-    std::cout << "\n";
+    out << "\n";
   }
 }
 
 // Print a floating point array that is the same shape as activeState.
-void BacktrackingTMCpp::printConfidence(const Real *aState, Size maxCols) 
-{
+void BacktrackingTMCpp::printConfidence(const Real *aState, Size maxCols,
+                                        std::ostream &out) const {
   char buf[20];
-  for (Size i = 0; i < param_.cellsPerColumn; i++) {
-    for (Size c = 0; c < std::min(maxCols, (Size)param_.numberOfCols); c++) {
+  for (Size i = 0; i < loc_.cellsPerColumn; i++) {
+    for (Size c = 0; c < std::min(maxCols, (Size)loc_.numberOfCols); c++) {
       if (c % 10 == 0)
-        std::cout << "  "; // add a spacer every 10
-      sprintf(buf, " %5.3f", aState[c * param_.cellsPerColumn + i]);
-      std::cout << buf;
+        out << "  "; // add a spacer every 10
+      sprintf(buf, " %5.3f", aState[c * loc_.cellsPerColumn + i]);
+      out << buf;
     }
-    std::cout << "\n";
+    out << "\n";
   }
 }
 
 // Print up to maxCols number from a flat floating point array.
-void BacktrackingTMCpp::printColConfidence(const Real *aState, Size maxCols) 
-{
+void BacktrackingTMCpp::printColConfidence(const Real *aState, Size maxCols,
+                                           std::ostream &out) const {
   char buf[20];
-  for (Size c = 0; c < std::min(maxCols, (Size)param_.numberOfCols); c++) {
+  for (Size c = 0; c < std::min(maxCols, (Size)loc_.numberOfCols); c++) {
     if (c % 10 == 0)
-      std::cout << "  "; // add a spacer every 10
+      out << "  "; // add a spacer every 10
     sprintf(buf, " %5.3f", aState[c]);
-    std::cout << buf;
+    out << buf;
   }
-  std::cout << "\n";
+  out << "\n";
 }
 
-void BacktrackingTMCpp::printCells(bool predictedOnly) {
+void BacktrackingTMCpp::printCells(bool predictedOnly,
+                                   std::ostream &out) const {
   if (predictedOnly)
-    std::cout << "--- PREDICTED CELLS ---\n";
+    out << "--- PREDICTED CELLS ---\n";
   else
-    std::cout << "--- ALL CELLS ---\n";
-  std::cout << "Activation threshold=" << param_.activationThreshold << "\n";
-  std::cout << "min threshold=" << param_.minThreshold << "\n";
-  std::cout << "connected perm=" << param_.connectedPerm << "\n";
+    out << "--- ALL CELLS ---\n";
+  out << "Activation threshold=" << cells4_->getActivationThreshold() << "\n";
+  out << "min threshold=" << cells4_->getMinThreshold() << "\n";
+  out << "connected perm=" << cells4_->getPermConnected() << "\n";
 
-  for (Size c = 0; c < param_.numberOfCols; c++) {
-    for (Size i = 0; i < param_.cellsPerColumn; i++) {
-      if (!predictedOnly ||
-          infPredictedState_["t"][c * param_.cellsPerColumn + i])
-        printCell(c, i, predictedOnly);
+  Byte *ptr = cells4_->getInfPredictedStateT();
+  for (Size c = 0; c < loc_.numberOfCols; c++) {
+    for (Size i = 0; i < loc_.cellsPerColumn; i++) {
+      if (!predictedOnly || ptr[c * loc_.cellsPerColumn + i])
+        printCell(c, i, predictedOnly, out);
     }
   }
 }
 
-void BacktrackingTMCpp::printCell(Size c, Size i,  bool onlyActiveSegments) 
-{
+void BacktrackingTMCpp::printCell(Size c, Size i, bool onlyActiveSegments,
+                                  std::ostream &out) const {
   char buff[1000];
   Size nSegs = (Size)cells4_->nSegmentsOnCell((UInt)c, (UInt)i);
   if (nSegs > 0) {
     vector<UInt32> segList = cells4_->getNonEmptySegList((UInt)c, (UInt)i);
-    std::cout << "Col " << c << ", Cell " << i << " ("
-              << (c * param_.cellsPerColumn + i) << ") : " << nSegs
-              << " segment(s)\n";
+    out << "Col " << c << ", Cell " << i << " ("
+        << (c * loc_.cellsPerColumn + i) << ") : " << nSegs << " segment(s)\n";
     std::vector<UInt32>::iterator it;
     for (it = segList.begin(); it != segList.end(); ++it) {
       Segment &seg = cells4_->getSegment((UInt)c, (UInt)i, *it);
@@ -1407,78 +1153,60 @@ void BacktrackingTMCpp::printCell(Size c, Size i,  bool onlyActiveSegments)
                    (int)_getCellCol(srcIdx), (int)_getCellIdx(srcIdx),
                    seg.getPermanence(idx));
         }
-        std::cout << buff << "\n";
+        cout << buff << "\n";
       }
     }
   }
 }
 
-void BacktrackingTMCpp::printInput(const Real32 *x) {
-  std::cout << "Input\n";
-  for (Size c = 0; c < param_.numberOfCols; c++) {
-    std::cout << (int)x[c] << " ";
+void BacktrackingTMCpp::printInput(const Real32 *x, std::ostream &out) const {
+  out << "Input\n";
+  for (Size c = 0; c < loc_.numberOfCols; c++) {
+    out << (int)x[c] << " ";
   }
-  std::cout << std::endl;
+  out << std::endl;
 }
 
-void BacktrackingTMCpp::printOutput(const Real32 *y) {
+void BacktrackingTMCpp::printOutput(const Real32 *y, std::ostream &out) const {
   char buff[100];
-  std::cout << "Output\n";
-  for (Size i = 0; i < param_.cellsPerColumn; i++) {
+  out << "Output\n";
+  for (Size i = 0; i < loc_.cellsPerColumn; i++) {
     snprintf(buff, sizeof(buff), "[%3d] ", (int)i);
-    std::cout << buff;
-    for (Size c = 0; c < param_.numberOfCols; c++) {
-      std::cout << (int)y[c * param_.numberOfCols + i] << " ";
+    out << buff;
+    for (Size c = 0; c < loc_.numberOfCols; c++) {
+      out << (int)y[c * loc_.numberOfCols + i] << " ";
     }
-    std::cout << "\n";
+    out << "\n";
   }
-  std::cout << std::endl;
+  out << std::endl;
 }
 
 //     Print the parameter settings for the TM.
-void BacktrackingTMCpp::printParameters() {
-  std::cout << "numberOfCols=", param_.numberOfCols;
-  std::cout << "cellsPerColumn=", param_.cellsPerColumn;
-  std::cout << "minThreshold=", param_.minThreshold;
-  std::cout << "newSynapseCount=", param_.newSynapseCount;
-  std::cout << "activationThreshold=", param_.activationThreshold;
-  std::cout << "\n";
-  std::cout << "initialPerm=", param_.initialPerm;
-  std::cout << "connectedPerm=", param_.connectedPerm;
-  std::cout << "permanenceInc=", param_.permanenceInc;
-  std::cout << "permanenceDec=", param_.permanenceDec;
-  std::cout << "permanenceMax=", param_.permanenceMax;
-  std::cout << "globalDecay=", param_.globalDecay;
-  std::cout << "\n";
-  std::cout << "doPooling=", param_.doPooling;
-  std::cout << "segUpdateValidDuration=", param_.segUpdateValidDuration;
-  std::cout << "pamLength=", param_.pamLength;
-  std::cout << std::endl;
+void BacktrackingTMCpp::printParameters(std::ostream &out) const {
+  out << "numberOfCols=", loc_.numberOfCols;
+  out << "cellsPerColumn=", loc_.cellsPerColumn;
+  out << "minThreshold=", cells4_->getMinThreshold();
+  out << "newSynapseCount=", cells4_->getNewSynapseCount();
+  out << "activationThreshold=", cells4_->getActivationThreshold();
+  out << "\n";
+  out << "initialPerm=", cells4_->getPermInitial();
+  out << "connectedPerm=", cells4_->getPermConnected();
+  out << "permanenceInc=", cells4_->getPermInc();
+  out << "permanenceDec=", cells4_->getPermDec();
+  out << "permanenceMax=", cells4_->getPermMax();
+  out << "globalDecay=", cells4_->getGlobalDecay();
+  out << "\n";
+  out << "doPooling=", cells4_->getDoPooling();
+  out << "segUpdateValidDuration=", cells4_->getSegUpdateValidDuration();
+  out << "pamLength=", cells4_->getPamLength();
+  out << std::endl;
 }
-void BacktrackingTMCpp::printSegment(Segment &s) {
-  s.print(std::cout, param_.cellsPerColumn);
+void BacktrackingTMCpp::printSegment(Segment &s, std::ostream &out) const {
+  s.print(out, loc_.cellsPerColumn);
 }
-
-//void BacktrackingTMCpp::printSegmentUpdates() {
-//  std::map<Size, vector<Size>>::iterator it;
-//  std::cout << "=== SEGMENT UPDATES ===, Num = " << segmentUpdates_.size()
-//            << "\n";
-//  for (it = segmentUpdates_.begin(); it != segmentUpdates_.end(); it++) {
-//    Size c = it->first / param_.cellsPerColumn;
-//    Size i = it->first % param_.cellsPerColumn;
-//    vector<Size> &list = it->second;
-//    std::cout << "[c=" << c << " i=" << i << "] updateList: ";
-//    for (Size j = 0; j < list.size(); j++) {
-//      std::cout << list[j] << " ";
-//    }
-//    std::cout << "\n";
-//  }
-//  std::cout << std::endl;
-//}
 
 static char *formatRow(char *buffer, Size bufsize, const Byte *val, Size i,
-                       Size numberOfCols, Size cellsPerColumn) 
-{
+                       Size numberOfCols, Size cellsPerColumn) {
   char *ptr = buffer;
   Size len = bufsize - 4;
   for (Size c = 0; c < numberOfCols; c++) {
@@ -1495,110 +1223,464 @@ static char *formatRow(char *buffer, Size bufsize, const Byte *val, Size i,
   *ptr++ = '\0';
   return buffer;
 }
-void BacktrackingTMCpp::printStates(bool printPrevious, bool printLearnState) 
-{
+void BacktrackingTMCpp::printStates(bool printPrevious, bool printLearnState,
+                                    std::ostream &out) const {
   char buffer[5000]; // temporary scratch space
 
-  std::cout << "\nInference Active state\n";
-  for (Size i = 0; i < param_.cellsPerColumn; i++) {
+  out << "\nInference Active state\n";
+  for (Size i = 0; i < loc_.cellsPerColumn; i++) {
     if (printPrevious)
-      std::cout << formatRow(buffer, sizeof(buffer), infActiveState_["t-1"], i,
-                             param_.numberOfCols, param_.cellsPerColumn);
-    std::cout << formatRow(buffer, sizeof(buffer), infActiveState_["t"], i,
-                           param_.numberOfCols, param_.cellsPerColumn);
-    std::cout << "\n";
+      out << formatRow(buffer, sizeof(buffer), cells4_->getInfActiveStateT1(),
+                       i, loc_.numberOfCols, loc_.cellsPerColumn);
+    out << formatRow(buffer, sizeof(buffer), cells4_->getInfActiveStateT(), i,
+                     loc_.numberOfCols, loc_.cellsPerColumn);
+    out << "\n";
   }
-  std::cout << "\nInference Predicted state\n";
-  for (Size i = 0; i < param_.cellsPerColumn; i++) {
+  out << "\nInference Predicted state\n";
+  for (Size i = 0; i < loc_.cellsPerColumn; i++) {
     if (printPrevious)
-      std::cout << formatRow(buffer, sizeof(buffer), infPredictedState_["t-1"],
-                             i, param_.numberOfCols, param_.cellsPerColumn);
-    std::cout << formatRow(buffer, sizeof(buffer), infPredictedState_["t"], i,
-                           param_.numberOfCols, param_.cellsPerColumn);
-    std::cout << "\n";
+      out << formatRow(buffer, sizeof(buffer),
+                       cells4_->getInfPredictedStateT1(), i, loc_.numberOfCols,
+                       loc_.cellsPerColumn);
+    out << formatRow(buffer, sizeof(buffer), cells4_->getInfPredictedStateT(),
+                     i, loc_.numberOfCols, loc_.cellsPerColumn);
+    out << "\n";
   }
 
   if (printLearnState) {
-    std::cout << "\nLearn Active state\n";
-    for (Size i = 0; i < param_.cellsPerColumn; i++) {
+    out << "\nLearn Active state\n";
+    for (Size i = 0; i < loc_.cellsPerColumn; i++) {
       if (printPrevious)
-        std::cout << formatRow(buffer, sizeof(buffer), lrnActiveState_["t-1"],
-                               i, param_.numberOfCols, param_.cellsPerColumn);
-      std::cout << formatRow(buffer, sizeof(buffer), lrnActiveState_["t"], i,
-                             param_.numberOfCols, param_.cellsPerColumn);
-      std::cout << "\n";
+        out << formatRow(buffer, sizeof(buffer),
+                         cells4_->getLearnActiveStateT1(), i, loc_.numberOfCols,
+                         loc_.cellsPerColumn);
+      out << formatRow(buffer, sizeof(buffer), cells4_->getLearnActiveStateT(),
+                       i, loc_.numberOfCols, loc_.cellsPerColumn);
+      out << "\n";
     }
 
-    std::cout << "Learn Predicted state\n";
-    for (Size i = 0; i < param_.cellsPerColumn; i++) {
+    out << "Learn Predicted state\n";
+    for (Size i = 0; i < loc_.cellsPerColumn; i++) {
       if (printPrevious)
-        std::cout << formatRow(buffer, sizeof(buffer),
-                               lrnPredictedState_["t-1"], i,
-                               param_.numberOfCols, param_.cellsPerColumn);
-      std::cout << formatRow(buffer, sizeof(buffer), lrnPredictedState_["t"], i,
-                             param_.numberOfCols, param_.cellsPerColumn);
-      std::cout << "\n";
+        out << formatRow(buffer, sizeof(buffer),
+                         cells4_->getLearnPredictedStateT1(), i,
+                         loc_.numberOfCols, loc_.cellsPerColumn);
+      out << formatRow(buffer, sizeof(buffer),
+                       cells4_->getLearnPredictedStateT(), i, loc_.numberOfCols,
+                       loc_.cellsPerColumn);
+      out << "\n";
     }
   }
+}
+
+  ////////////////////////////////////////////////////////////////////////
+  ////       compare two TM's
+  ////////////////////////////////////////////////////////////////////////
+
+  // Given two TM instances, see if any parameters are different.
+  // If verbosity > 0 it will also print out the differences.
+
+#define PARAMETER_CHECK(name, call)                                            \
+  if (tm1.call != tm2.call) {                                                  \
+    result = false;                                                            \
+    if (verbosity > 0) {                                                       \
+      out << name ":  " << tm1.call << " != " << tm2.call << std::endl;        \
+    }                                                                          \
+  }
+
+bool BacktrackingTMCpp::sameTMParams(const BacktrackingTMCpp &tm1,
+                                     const BacktrackingTMCpp &tm2,
+                                     std::ostream &out, Int32 verbosity) {
+  bool result = true;
+  PARAMETER_CHECK("numberOfCols", getnumCol());
+  PARAMETER_CHECK("cellsPerColumn", getcellsPerCol());
+  PARAMETER_CHECK("initialPerm", getInitialPerm());
+  PARAMETER_CHECK("connectedPerm", getConnectedPerm());
+  PARAMETER_CHECK("minThreshold", getMinThreshold());
+  PARAMETER_CHECK("newSynapseCount", getNewSynapseCount());
+  PARAMETER_CHECK("permanenceInc", getPermanenceInc());
+  PARAMETER_CHECK("permanenceDec", getPermanenceDec());
+  PARAMETER_CHECK("permanenceMax", getPermanenceMax());
+  PARAMETER_CHECK("globalDecay", getGlobalDecay());
+  PARAMETER_CHECK("activationThreshold", getActivationThreshold());
+  PARAMETER_CHECK("doPooling", getDoPooling());
+  PARAMETER_CHECK("segUpdateValidDuration", getSegUpdateValidDuration());
+  PARAMETER_CHECK("verbosity", getVerbosity());
+  PARAMETER_CHECK("checkSynapseConsistency", getCheckSynapseConsistency());
+  PARAMETER_CHECK("pamLength", getPamLength());
+  PARAMETER_CHECK("maxInfBacktrack", getMaxInfBacktrack());
+  PARAMETER_CHECK("maxLrnBacktrack", getMaxLrnBacktrack());
+  PARAMETER_CHECK("maxAge", getMaxAge());
+  PARAMETER_CHECK("maxSeqLength", getMaxSeqLength());
+  PARAMETER_CHECK("maxSegmentsPerCell", getMaxSegmentsPerCell());
+  PARAMETER_CHECK("maxSynapsesPerSegment", getMaxSynapsesPerSegment());
+  PARAMETER_CHECK("burnIn", getBurnIn());
+  PARAMETER_CHECK("collectStats", getCollectStats());
+  PARAMETER_CHECK("seed", getSeed());
+  return result;
+}
+
+bool BacktrackingTMCpp::sameSegment(
+    const struct BacktrackingTMCpp::SegOnCellInfo_t &seg1,
+    const struct BacktrackingTMCpp::SegOnCellInfo_t &seg2, std::ostream &out,
+    Int32 verbosity) {
+  // Return true if segVect1 and segVect2 are identical, ignoring order of
+  // synapses
+  bool result = true;
+
+  // check sequence segment, total activations etc.
+  // For floats, check that they are within 0.001.
+  if (seg1.isSequenceSegment != seg2.isSequenceSegment) {
+    if (verbosity > 0)
+      out << "Segment[" << seg1.c << "," << seg1.i
+          << "].isSequenceSegment does not match: " << seg1.isSequenceSegment
+          << ", " << seg2.isSequenceSegment << "\n";
+    result = false;
+  }
+  if (seg1.positiveActivations != seg2.positiveActivations) {
+    if (verbosity > 0)
+      out << "Segment[" << seg1.c << "," << seg1.i
+          << "].positiveActivations does not match: "
+          << seg1.positiveActivations << ", " << seg2.positiveActivations
+          << "\n";
+    result = false;
+  }
+  if (seg1.totalActivations != seg2.totalActivations) {
+    if (verbosity > 0)
+      out << "Segment[" << seg1.c << "," << seg1.i
+          << "].totalActivations does not match: " << seg1.totalActivations
+          << ", " << seg2.totalActivations << "\n";
+    result = false;
+  }
+  if (seg1.lastActiveIteration != seg2.lastActiveIteration) {
+    if (verbosity > 0)
+      out << "Segment[" << seg1.c << "," << seg1.i
+          << "].lastActiveIteration does not match: "
+          << seg1.lastActiveIteration << ", " << seg2.lastActiveIteration
+          << "\n";
+    result = false;
+  }
+  if (abs(seg1.lastPosDutyCycle - seg2.lastPosDutyCycle) > 0.001) {
+    if (verbosity > 0)
+      out << "Segment[" << seg1.c << "," << seg1.i
+          << "].lastPosDutyCycle does not match: " << seg1.lastPosDutyCycle
+          << ", " << seg2.lastPosDutyCycle << "\n";
+    result = false;
+  }
+  if (seg1.lastPosDutyCycleIteration != seg2.lastPosDutyCycleIteration) {
+    if (verbosity > 0)
+      out << "Segment[" << seg1.c << "," << seg1.i
+          << "].lastPosDutyCycleIteration does not match: "
+          << seg1.lastPosDutyCycleIteration << ", "
+          << seg2.lastPosDutyCycleIteration << "\n";
+    result = false;
+  }
+
+  // Compare number of synapses
+  if (seg1.synapses.size() != seg2.synapses.size()) {
+    if (verbosity > 0)
+      out << "Number of synapses does not match: " << seg1.synapses.size()
+          << ", " << seg2.synapses.size() << "\n";
+    result = false;
+  }
+  // Now compare synapses, ignoring order of synapses
+  for (Size synIdx2 = 0; synIdx2 < seg2.synapses.size(); synIdx2++) {
+    Real permanence = std::get<2>(seg2.synapses[synIdx2]);
+    if (permanence <= 0.0f) {
+      if (verbosity > 0) {
+        Size c = std::get<0>(seg2.synapses[synIdx2]);
+        Size i = std::get<1>(seg2.synapses[synIdx2]);
+        out << "A synapse in TM2 Segment[" << seg2.c << "," << seg2.i << "] "
+            << "with zero permanence encountered. [" << c << "," << i << "]\n";
+      }
+      result = false;
+    }
+    for (Size synIdx1 = 0; synIdx1 < seg1.synapses.size(); synIdx1++) {
+      Size c1 = std::get<0>(seg1.synapses[synIdx1]);
+      Size i1 = std::get<1>(seg1.synapses[synIdx1]);
+      Real permanence1 = std::get<2>(seg1.synapses[synIdx1]);
+      if (permanence1 <= 0.0f) {
+        if (verbosity > 0) {
+          out << "A synapse in TM2 Segment[" << seg2.c << "," << seg2.i << "] "
+              << "with zero permanence encountered. [" << c1 << "," << i1
+              << "]\n";
+        }
+        result = false;
+      }
+
+      bool match = false;
+      for (Size synIdx2 = 1; synIdx2 < seg2.synapses.size(); synIdx2++) {
+        Size c2 = std::get<0>(seg2.synapses[synIdx2]);
+        Size i2 = std::get<1>(seg2.synapses[synIdx2]);
+        Real permanence2 = std::get<2>(seg2.synapses[synIdx2]);
+        if (c1 == c2 && i1 == i2) {
+          match = true;
+          if (abs(permanence1 - permanence2) > 0.001f) {
+            if (verbosity > 0)
+              out << "A synapse permanence does not match for Cell[" << c2
+                  << "," << i2 << "] " << permanence1 << ", " << permanence2
+                  << "\n";
+            result = false;
+          }
+          break;
+        }
+      }
+      if (!match) {
+        if (verbosity > 0)
+          out << "A synapse in TM1 Segment[" << seg1.c << "," << seg1.i << "]"
+              << " did not match with a synapse in TM2. synapse[" << c1 << ","
+              << i1 << "] ";
+        result = false;
+      }
+    }
+  }
+  return result;
+}
+
+bool BacktrackingTMCpp::tmDiff2(const BacktrackingTMCpp &tm1,
+                                const BacktrackingTMCpp &tm2, std::ostream &out,
+                                Int32 verbosity, bool relaxSegmentTests,
+                                bool checkLearn, bool checkStates) {
+  bool result = true;
+
+  // First check basic parameters. If we fail here, don't continue
+  if (!sameTMParams(tm1, tm2)) {
+    if (verbosity > 0)
+      out << "Two TM's have different parameters\n";
+    return false;
+  }
+  if (checkStates) {
+    Byte *state1;
+    Byte *state2;
+
+    // Compare states at T first, they usually diverge before the structure of
+    // the cells starts diverging  (infActiveStateT)
+    state1 = tm1.getActiveState();
+    state2 = tm2.getActiveState();
+    if (memcmp(state1, state2, tm1.getNumCells())) {
+      if (verbosity > 0)
+        out << "Active states diverged (infActiveStateT)\n";
+      result = false;
+    }
+    state1 = tm1.getPredictedState();
+    state2 = tm2.getPredictedState();
+    if (memcmp(state1, state2, tm1.getNumCells())) {
+      if (verbosity > 0)
+        out << "Predicted states diverged (infPredictedStateT)\n";
+      result = false;
+    }
+
+    if (checkLearn) {
+      state1 = tm1.getLearnActiveStateT();
+      state2 = tm2.getLearnActiveStateT();
+      if (memcmp(state1, state2, tm1.getNumCells())) {
+        if (verbosity > 0)
+          out << "Learn Active states diverged (lrnActiveStateT)\n";
+        result = false;
+      }
+      state1 = tm1.getLearnPredictedStateT();
+      state2 = tm2.getLearnPredictedStateT();
+      if (memcmp(state1, state2, tm1.getNumCells())) {
+        if (verbosity > 0)
+          out << "Learn Predicted states diverged (lrnPredictedStateT)\n";
+        result = false;
+      }
+      Real32 rstate1 = tm1.getAvgLearnedSeqLength();
+      Real32 rstate2 = tm2.getAvgLearnedSeqLength();
+      if (abs(rstate1 - rstate2) > 0.01f) {
+        if (verbosity > 0)
+          out << "Average learned sequence lengths differ: " << rstate1 << " "
+              << rstate2 << "\n";
+        result = false;
+      }
+    }
+    if (!result && verbosity > 1) {
+      out << "TM1: \n";
+      tm1.printStates(false, true, out);
+      out << "TM2: \n";
+      tm2.printStates(false, true, out);
+    }
+  }
+  // Now check some high level learned parameters
+  if (tm1.getNumSegments() != tm2.getNumSegments()) {
+    if (verbosity > 0)
+      out << "Number of segments are different: " << tm1.getNumSegments()
+          << ", " << tm2.getNumSegments();
+    result = false;
+  }
+
+  // Check that each cell has the same number of synapses
+  if (tm1.getNumSynapses() != tm2.getNumSynapses()) {
+    if (verbosity > 0) {
+      out << "Number of synapses are different: " << tm1.getNumSynapses()
+          << ", " << tm2.getNumSynapses();
+    }
+    if (verbosity >= 3) {
+      out << "TM1: ";
+      tm1.printCells(false, out);
+      out << "TM2: ";
+      tm2.printCells(false, out);
+      result = false;
+    }
+  }
+
+  // Check that each cell has the same number of segments
+  for (Size c = 0; c < tm1.getnumCol(); c++) {
+    for (Size i = 0; i < tm2.getcellsPerCol(); i++) {
+      if (tm1.getNumSegmentsInCell(c, i) != tm2.getNumSegmentsInCell(c, i)) {
+        out << "Num segments different in cell: [" << c << "," << i << "] "
+            << tm1.getNumSegmentsInCell(c, i)
+            << " != " << tm2.getNumSegmentsInCell(c, i) << std::endl;
+        result = false;
+      }
+    }
+  }
+
+  // If the above tests pass, then check each segment and report differences
+  // Note that segments in tm1 can be in a different order than tm2. Here we
+  // make sure that, for each segment in tm1, there is an identical segment in
+  // tm2.
+  if (result && !relaxSegmentTests && checkLearn) {
+    for (Size c = 0; c < tm1.getnumCol(); c++) {
+      for (Size i = 0; i < tm2.getcellsPerCol(); i++) {
+        UInt32 nSegs = tm1.getNumSegmentsInCell(c, i);
+        for (Size segIdx = 0; segIdx < nSegs; segIdx++) {
+          BacktrackingTMCpp::SegOnCellInfo_t tm1seg;
+          tm1seg = tm1.getSegmentOnCell(c, i, segIdx);
+
+          // Loop through all segments in tm2seg and see if any of them match
+          // tm1seg
+          bool res = false;
+          for (Size tm2segIdx = 0; tm2segIdx < nSegs; tm2segIdx++) {
+            BacktrackingTMCpp::SegOnCellInfo_t tm2seg;
+            tm2seg = tm2.getSegmentOnCell(c, i, tm2segIdx);
+            if (sameSegment(tm1seg, tm2seg) == true) {
+              res = true;
+              break;
+            }
+          }
+          if (!res) {
+            result = false;
+            if (verbosity >= 0) {
+              out << "\nSegments are different for cell: [" << c << ", " << i
+                  << "]\n";
+              out << "TM1: ";
+              tm1.printCell(c, i, false, out);
+              out << "TM2: ";
+              tm2.printCell(c, i, false, out);
+            }
+          }
+        }
+      }
+    }
+  }
+  if (result == true) {
+    if (verbosity > 1)
+      out << "TM's match" << std::endl;
+  } else {
+    if (verbosity > 1)
+      out << std::endl;
+  }
+  return result;
+}
+
+// identify the differences between this and another TM.
+// compare parameters and everything that is serializeable.
+// What does it mean for two tm's to be the same?
+// If the two TM's were run in parallel they will have different
+// results because the random number generator gives different numbers.
+// The only way to get the same numbers is the following:
+//    1) Run the first TM to some point.
+//    2) save the TM.
+//    3) Run the first TM to another point.
+//    4) Restore the saved TM.  The restore should restore the Random generator.
+//    5) Run the second TM to the same point using the same data.
+// Now you can use this function to compare the two tm's.
+// The two will be the same.
+
+bool BacktrackingTMCpp::diff(const BacktrackingTMCpp &tm1,
+                             const BacktrackingTMCpp &tm2) {
+  std::stringstream ss1;
+  std::stringstream ss2;
+  ss1.clear();
+  ss2.clear();
+  tm1.save(ss1);
+  tm2.save(ss2);
+  bool same = (ss1.str() == ss2.str());
+  return same;
 }
 
 /////////////////////////////////////////////////////////////
 
 // A segment is active if it has >= activationThreshold connected
-// synapses that are active due to infActiveState.
-bool BacktrackingTMCpp::_slowIsSegmentActive(Segment &seg, const char *timestep) 
-{
+// synapses that are active due to infActiveState. timestep is "t" or "t-1".
+bool BacktrackingTMCpp::_slowIsSegmentActive(Segment &seg,
+                                             const char *timestep) const {
   Size numActiveSyns = 0;
+  UInt32 threshold = cells4_->getActivationThreshold();
   for (UInt synIdx = 0; synIdx < (UInt)seg.size(); synIdx++) {
-    if (seg.getPermanence(synIdx) >= param_.connectedPerm) {
+    if (seg.getPermanence(synIdx) >= cells4_->getPermConnected()) {
       Size srcIdx = seg.getSrcCellIdx(synIdx);
-      Byte *state = infActiveState_[timestep];
+      Byte *state = (!strcmp(timestep, "t")) ? cells4_->getInfActiveStateT()
+                                             : cells4_->getInfActiveStateT1();
       if (state[srcIdx]) {
         numActiveSyns += 1;
-        if (numActiveSyns >= param_.activationThreshold)
+        if (numActiveSyns >= threshold)
           return true;
       }
     }
   }
-  return (numActiveSyns >= param_.activationThreshold);
+  return (numActiveSyns >= threshold);
 }
 
-vector<union BacktrackingTMCpp::segoncellinfo_t>
-BacktrackingTMCpp::getSegmentOnCell(Size c, Size i, Size segIdx) 
-{
+/**
+  struct SegOnCellInfo_t {
+      Size c;
+      Size i;
+      Size segIdx;
+      bool isSequenceSegment;
+      Size positiveActivations;
+      Size totalActivations;
+      Size lastActiveIteration;
+      Real lastPosDutyCycle;
+      Size lastPosDutyCycleIteration;
+      std::vector <std::tuple<Size,Size,Real>> synapses;
+  };
+**/
+
+struct BacktrackingTMCpp::SegOnCellInfo_t
+BacktrackingTMCpp::getSegmentOnCell(Size c, Size i, Size segIdx) const {
   std::vector<UInt32> segList = cells4_->getNonEmptySegList((UInt)c, (UInt)i);
   Segment &seg = cells4_->getSegment((UInt)c, (UInt)i, segList[segIdx]);
   Size numSyn = seg.size();
   NTA_ASSERT(numSyn != 0);
 
-  // Accumulate segment information
-  std::vector<union BacktrackingTMCpp::segoncellinfo_t> result;
+  // segment info
+  struct BacktrackingTMCpp::SegOnCellInfo_t info;
+  info.c = c;
+  info.i = i;
+  info.segIdx = segIdx;
+  info.isSequenceSegment = seg.isSequenceSegment();
+  info.positiveActivations = seg.getPositiveActivations();
+  info.totalActivations = seg.getTotalActivations();
+  info.lastActiveIteration = seg.getLastActiveIteration();
+  info.lastPosDutyCycle = seg.getLastPosDutyCycle();
+  info.lastPosDutyCycleIteration = seg.getLastPosDutyCycleIteration();
 
-  // first element is the segment info
-  union BacktrackingTMCpp::segoncellinfo_t info;
-  info.se.segIdx = segIdx;
-  info.se.isSequenceSegment = seg.isSequenceSegment();
-  info.se.positiveActivations = seg.getPositiveActivations();
-  info.se.totalActivations = seg.getTotalActivations();
-  info.se.lastActiveIteration = seg.getLastActiveIteration();
-  info.se.lastPosDutyCycle = seg.getLastPosDutyCycle();
-  info.se.lastPosDutyCycleIteration = seg.getLastPosDutyCycleIteration();
-  result.push_back(info);
-
-  // remaing elements are synapse info
+  // synapse info
   for (Size s = 0; s < numSyn; numSyn++) {
     UInt idx = seg.getSrcCellIdx((UInt)s);
-    info.sy.c = idx / param_.cellsPerColumn;
-    info.sy.i = idx % param_.cellsPerColumn;
-    info.sy.permanence = seg.getPermanence((UInt)s);
-    result.push_back(info);
+    Size c = idx / loc_.cellsPerColumn;
+    Size i = idx % loc_.cellsPerColumn;
+    Real permanence = seg.getPermanence((UInt)s);
+    std::tuple<Size, Size, Real> syn = make_tuple(c, i, permanence);
+    info.synapses.push_back(syn);
   }
-  return result;
+  return info;
 }
 
 struct BacktrackingTMCpp::seginfo_t
-BacktrackingTMCpp::getSegmentInfo(bool collectActiveData) 
-{
+BacktrackingTMCpp::getSegmentInfo(bool collectActiveData) const {
   NTA_ASSERT(collectActiveData == false) << " Requires appropriate accessors "
                                             "in C++ cells4 (currently "
                                             "unimplemented)";
@@ -1626,12 +1708,13 @@ BacktrackingTMCpp::getSegmentInfo(bool collectActiveData)
     info.distAges.push_back(bucket);
   }
 
-  for (Size c = 0; c < param_.numberOfCols; c++) {
-    for (Size i = 0; i < param_.cellsPerColumn; i++) {
+  for (Size c = 0; c < loc_.numberOfCols; c++) {
+    for (Size i = 0; i < loc_.cellsPerColumn; i++) {
       Size nSegmentsThisCell = getNumSegmentsInCell(c, i);
       if (nSegmentsThisCell > 0) {
         // Update histogram counting cell sizes
-        if (info.distNSegsPerCell.find(nSegmentsThisCell) != info.distNSegsPerCell.end())
+        if (info.distNSegsPerCell.find(nSegmentsThisCell) !=
+            info.distNSegsPerCell.end())
           info.distNSegsPerCell[nSegmentsThisCell] += 1;
         else
           info.distNSegsPerCell[nSegmentsThisCell] = 1;
@@ -1639,21 +1722,24 @@ BacktrackingTMCpp::getSegmentInfo(bool collectActiveData)
         // Update histogram counting segment sizes.
         vector<UInt32> segList = cells4_->getNonEmptySegList((UInt)c, (UInt)i);
         for (Size segIdx = 0; segIdx < nSegmentsThisCell; segIdx++) {
-          vector<union BacktrackingTMCpp::segoncellinfo_t> segcellinfo = getSegmentOnCell(c, i, segIdx);
-          Size nSynapsesThisSeg = segcellinfo.size() - 1;
+          struct SegOnCellInfo_t segcellinfo = getSegmentOnCell(c, i, segIdx);
+          Size nSynapsesThisSeg = segcellinfo.synapses.size();
           if (nSynapsesThisSeg > 0) {
-            if (info.distSegSizes.find(nSynapsesThisSeg) !=  info.distSegSizes.end())
+            if (info.distSegSizes.find(nSynapsesThisSeg) !=
+                info.distSegSizes.end())
               info.distSegSizes[nSynapsesThisSeg] += 1;
             else
               info.distSegSizes[nSynapsesThisSeg] = 1;
 
             // Accumulate permanence value histogram (scaled by 10)
             for (Size synIdx = 1; synIdx < nSynapsesThisSeg; synIdx++) {
-              Size p = (Size)(segcellinfo[synIdx].sy.permanence * 10.0);
-              if (info.distPermValues.find(p) != info.distPermValues.end())
-                info.distPermValues[p] += 1;
+              Size permanence =
+                  (Size)(std::get<2>(segcellinfo.synapses[synIdx]) * 10.0);
+              if (info.distPermValues.find(permanence) !=
+                  info.distPermValues.end())
+                info.distPermValues[permanence] += 1;
               else
-                info.distPermValues[p] = 1;
+                info.distPermValues[permanence] = 1;
             }
           }
           Segment &segObj =cells4_->getSegment((UInt)c, (UInt)i, segList[segIdx]);
@@ -1668,146 +1754,82 @@ BacktrackingTMCpp::getSegmentInfo(bool collectActiveData)
 }
 
 //////////////////  Serialization ///////////////////////
-void BacktrackingTMCpp::saveToFile(std::string filePath) 
-{
-  std::ofstream out(filePath.c_str(),  std::ios_base::out | std::ios_base::binary);
+void BacktrackingTMCpp::saveToFile(std::string filePath) {
+  std::ofstream out(filePath.c_str(),
+                    std::ios_base::out | std::ios_base::binary);
   out.exceptions(std::ifstream::failbit | std::ifstream::badbit);
   out.precision(std::numeric_limits<double>::digits10 + 1);
+  out.precision(std::numeric_limits<float>::digits10 + 1);
   save(out);
   out.close();
 }
-void BacktrackingTMCpp::loadFromFile(std::string filePath) 
-{
+void BacktrackingTMCpp::loadFromFile(std::string filePath) {
   std::ifstream in(filePath.c_str(), std::ios_base::in | std::ios_base::binary);
   load(in);
   in.close();
 }
 
+// Note: Most parts are saved in binary format. The file
+//       into which this is written must be opened in binary mode.
+//       This also means that it must be restored on a machine
+//       of the same architecture and compiled with the same bitness.
+void BacktrackingTMCpp::save(std::ostream &out) const {
+  cells4_->save(out);
+  out << "BacktrackingTMCpp " << TM_VERSION << " ";
 
-void BacktrackingTMCpp::save(std::ofstream& out) 
-{ 
-  cells4_->save(out); 
-  out << param_.burnIn;
-  out << param_.collectStats;
-  out << param_.seed;
-  std::string outputType(param_.outputType);
-  out << outputType;
-
-  out << loc_.lrnIterationIdx;
-  out << loc_.iterationIdx;
-  out << loc_.segID;
-  out << loc_.pamCounter;
-  out << loc_.collectSequenceStats;
-  out << loc_.resetCalled;
-  out << loc_.avgInputDensity;
-  out << loc_.learnedSeqLength;
-  out << loc_.avgLearnedSeqLength;
-  out << loc_.retrieveLearningStates;
+  out << "loc " << sizeof(loc_) << " ";
+  out.write((const char *)&loc_, sizeof(loc_));
   out << std::endl;
 
-  UInt* output = nonzero(currentOutput_.get(), nCells);
-  out << " CurrentOutput [ " << output[0];
-  for (Size i = 1; i < output[0]; i++) {
-    out << output[i] << " ";
-  }
-  out << "] ";
-  delete[] output;
+  out << "CurrentOutput " << nCells << "[";
+  out.write((const char*)currentOutput_, nCells * sizeof(UInt));
+  out << "]" << std::endl;
 }
 
-
-void BacktrackingTMCpp::load(std::ifstream& in) 
-{
+// if caller wants to own the buffers, it must
+// set the buffers before loading so they get
+// filled with the restored data.
+void BacktrackingTMCpp::load(std::istream &in) {
   std::string tag;
+  UInt version;
+  Size len;
 
   cells4_ = new Cells4::Cells4();
   cells4_->load(in);
 
-  // Fields restored by Cells4 that are needed here
-  // So this class does not need to serialize them.
-  nCells = cells4_->nCells();
-  param_.numberOfCols = cells4_->nColumns();
-  param_.cellsPerColumn = cells4_->nCellsPerCol();
-  param_.initialPerm = cells4_->getPermInitial();
-  param_.connectedPerm = cells4_->getPermConnected();
-  param_.minThreshold = cells4_->getMinThreshold();
-  param_.newSynapseCount = cells4_->getNewSynapseCount();
-  param_.permanenceInc = cells4_->getPermInc();
-  param_.permanenceDec = cells4_->getPermDec();
-  param_.permanenceMax = cells4_->getPermMax();
-  param_.globalDecay = cells4_->getGlobalDecay();
-  param_.activationThreshold = cells4_->getActivationThreshold();
-  param_.doPooling = cells4_->getDoPooling();
-  param_.segUpdateValidDuration = cells4_->getSegUpdateValidDuration();
-  param_.verbosity = cells4_->getVerbosity();
-  param_.checkSynapseConsistency = cells4_->getCheckSynapseConsistency();
-  param_.pamLength = cells4_->getPamLength();
-  param_.maxInfBacktrack = cells4_->getMaxInfBacktrack();
-  param_.maxLrnBacktrack = cells4_->getMaxLrnBacktrack();
-  param_.maxAge = cells4_->getMaxAge();
-  param_.maxSeqLength = cells4_->getMaxSeqLength();
-  param_.maxSegmentsPerCell = cells4_->getMaxSegmentsPerCell();
-  param_.maxSynapsesPerSegment = cells4_->getMaxSynapsesPerSegment();
+  loc_.numberOfCols = cells4_->nColumns();
+  loc_.cellsPerColumn = cells4_->nCellsPerCol();
 
   // Fields that this class needed to serialize
-  in >> param_.burnIn;
-  in >> param_.collectStats;
-  in >> param_.seed;
   in >> tag;
-  strncpy(param_.outputType, tag.c_str(), sizeof(param_.outputType));
+  NTA_ASSERT(tag == "BacktrackingTMCpp");
+  in >> version;
+  NTA_ASSERT(version >= 3);
 
-  in >> loc_.lrnIterationIdx;
-  in >> loc_.iterationIdx;
-  in >> loc_.segID;
-  in >> loc_.pamCounter;
-  in >> loc_.collectSequenceStats;
-  in >> loc_.resetCalled;
-  in >> loc_.avgInputDensity;
-  in >> loc_.learnedSeqLength;
-  in >> loc_.avgLearnedSeqLength;
-  in >> loc_.retrieveLearningStates;
+  // loc_ variables saved as binary
+  in >> tag;
+  NTA_ASSERT(tag == "loc");
+  in >> len;
+  NTA_ASSERT(len == sizeof(loc_));
+  in.ignore(1);
+  in.read((char *)&loc_, len);
+
+  NTA_ASSERT(loc_.numberOfCols = cells4_->nColumns());
+  NTA_ASSERT(loc_.cellsPerColumn = cells4_->nCellsPerCol());
+    nCells = cells4_->nCells();
 
   // restore the currentOutput_
-  // saved as non-zero indexes with first element the count of elements.
-  currentOutput_.reset(new Real[nCells], std::default_delete<Real[]>());
-  Real *ptr = currentOutput_.get();
-  memset(ptr, 0, nCells * sizeof(Real));
-  Size buflen;
-  UInt32 i;
+  if (currentOutputOwn_ && currentOutput_ == nullptr)
+      currentOutput_ = new Real[nCells];
   in >> tag;
   NTA_ASSERT(tag == "CurrentOutput");
-  in >> tag;
-  NTA_ASSERT(tag == "[");
-  in >> buflen;
-  for (Size idx = 1; idx < buflen; idx++) {
-    in >> i;
-    ptr[i] = 1;
-  }
+  in >> len;
+  NTA_ASSERT(len == nCells);
+  in.ignore(1); // '['
+  in.read((char *)currentOutput_, len * sizeof(Real));
   in >> tag;
   NTA_ASSERT(tag == "]");
-
-  loc_.allocateStatesInCPP = true;
-  loc_.makeCells4Ephemeral = false;
-
-  // get the buffers from Cells4.
-  Byte *activeT;
-  Byte *activeT1;
-  Byte *predT;
-  Byte *predT1;
-  Real *colConfidenceT;
-  Real *colConfidenceT1;
-  Real *confidenceT;
-  Real *confidenceT1;
-
-  cells4_->getStatePointers(activeT, activeT1, predT, predT1, colConfidenceT,
-                            colConfidenceT1, confidenceT, confidenceT1);
-  infActiveState_["t"] = activeT;
-  infActiveState_["t-1"] = activeT1;
-  infPredictedState_["t"] = predT;
-  infPredictedState_["t-1"] = predT1;
-  cellConfidence_["t"] = colConfidenceT;
-  colConfidence_["t-1"] = colConfidenceT1;
-  cellConfidence_["t"] = confidenceT;
-  cellConfidence_["t-1"] = confidenceT1;
+  in.ignore(1);
 
 
   // initialize stats
