@@ -52,7 +52,6 @@
 #include <nupic/os/Path.hpp>
 #include <nupic/os/FStream.hpp>
 #include <nupic/types/Exception.hpp>
-#include <nupic/utils/CSVReader.hpp>
 
 
 #include <gtest/gtest.h>
@@ -86,9 +85,9 @@ static Pattern_t generatePattern(Size numCols = 100, Size minOnes = 21,
   Pattern_t p(new Real32[numCols], std::default_delete<Real32[]>());
   memset(p.get(), 0, numCols);
 
-  Size numOnes = (Size)minOnes + std::rand() % (maxOnes - minOnes + 1);
+  int numOnes = (int)minOnes + std::rand() % (maxOnes - minOnes + 1);
   std::uniform_int_distribution<> distr(0, (int)numCols - 1); // define the range (requires C++11)
-  for (Size n = 0; n < numOnes; n++) {
+  for (int n = 0; n < numOnes; n++) {
     int idx = std::rand() % numCols;
     p.get()[idx] = 1.0f;
   }
@@ -110,6 +109,7 @@ static std::vector<Pattern_t> generateSequence(Size n = 10, Size numCols = 100,
   return seq;
 }
 
+/*
 static bool patternsEqual(const Real *pat1, const Real *pat2, Size len) {
   for (Size i = 0; i < len; i++) {
     if (pat1[i] != pat2[i])
@@ -117,6 +117,7 @@ static bool patternsEqual(const Real *pat1, const Real *pat2, Size len) {
   }
   return true;
 }
+*/
 
 //  Static function nonzero()
 // returns an array of the indexes of the non-zero elements.
