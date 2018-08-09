@@ -29,7 +29,9 @@
 #ifndef NTA_BACKTRACKINGTMCPP_HPP
 #define NTA_BACKTRACKINGTMCPP_HPP
 
-#include <any>
+//in c++17 only #include <any>
+#include <boost/any.hpp>
+
 #include <nupic/algorithms/Cells4.hpp>
 #include <nupic/types/Types.hpp>
 #include <nupic/utils/Random.hpp>
@@ -466,7 +468,7 @@ protected:
   virtual bool _slowIsSegmentActive(Segment &seg, const char *timestep) const;
 
   // Used by predict() to save/restore current state
-  typedef std::map<std::string, std::any> tmSavedState_t;
+  typedef std::map<std::string, boost::any> tmSavedState_t;
   virtual void _getTPDynamicState(tmSavedState_t &ss);
   virtual void _setTPDynamicState(tmSavedState_t &ss);
 
