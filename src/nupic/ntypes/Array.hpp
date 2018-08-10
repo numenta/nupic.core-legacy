@@ -196,7 +196,7 @@ namespace nupic {
     // Type conversion
     // Note: this will reallocate the buffer
     //       Other instances will be disconnected.
-    Array as(NTA_BasicType type) const { 
+    Array get_as(NTA_BasicType type) const { 
       Array a(type);
       a.allocateBuffer(count_); 
       convertInto(a);
