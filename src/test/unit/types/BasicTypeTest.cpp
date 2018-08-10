@@ -24,6 +24,8 @@
  * Implementation of BasicType test
  */
 
+#include <limits>
+
 #include <gtest/gtest.h>
 #include <nupic/types/Types.hpp>
 #include <nupic/types/BasicType.hpp>
@@ -114,10 +116,16 @@ public:
   UInt16 bufUInt16[8] = {0, 1, 2, 3, 4, 5, 0, 0xffff};
   Int32 bufInt32[8] = {0, 1, 2, 3, 4, 5, -2147483647L, 2147483647L};
   UInt32 bufUInt32[8] = {0, 1, 2, 3, 4, 5, 0, 0xffffffff};
-  Int64 bufInt64[8] = { 0, 1, 2, 3, 4, 5, -9223372036854775808LL, 9223372036854775807LL};
+  Int64 bufInt64[8] = { 0, 1, 2, 3, 4, 5, 
+			std::numeric_limits<Int64>::min(), 
+			std::numeric_limits<Int64>::max() };
   UInt64 bufUInt64[8] = {0, 1, 2, 3, 4, 5, 0, 0xffffffffffffffff};
-  Real32 bufReal32[8] = {0.0f, 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, -std::numeric_limits<Real32>::max(), std::numeric_limits<Real32>::max()};
-  Real64 bufReal64[8] = {0.0, 1.0, 2.0, 3.0, 4.0, 5.0, -std::numeric_limits<Real64>::max(), std::numeric_limits<Real32>::max()};
+  Real32 bufReal32[8] = {0.0f, 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 
+			-std::numeric_limits<Real32>::max(), 
+			std::numeric_limits<Real32>::max()};
+  Real64 bufReal64[8] = {0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 
+			-std::numeric_limits<Real64>::max(), 
+			std::numeric_limits<Real32>::max()};
   bool bufBool[8] = {false, true, true, true, true, true, true, false};
   char dest[8 * sizeof(Real64)]; // make sure there is enough room for any type.
 

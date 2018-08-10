@@ -20,6 +20,8 @@
  * ---------------------------------------------------------------------
  */
 
+#include <limits>
+
 #include <nupic/types/BasicType.hpp>
 #include <nupic/types/Exception.hpp>
 #include <nupic/utils/Log.hpp>
@@ -246,6 +248,8 @@ void BasicType::convertArray(void *ptr1, NTA_BasicType toType, const void *ptr2,
       case NTA_BasicType_Bool:
         cpyarray<bool, Byte>(ptr1, ptr2, count);
         break;
+      default:
+	break;
       }
       break;
     case NTA_BasicType_Int16:
@@ -280,6 +284,8 @@ void BasicType::convertArray(void *ptr1, NTA_BasicType toType, const void *ptr2,
       case NTA_BasicType_Bool:
         cpyarray<bool, Int16>(ptr1, ptr2, count);
         break;
+      default:
+	break;
       }
       break;
 
@@ -315,6 +321,8 @@ void BasicType::convertArray(void *ptr1, NTA_BasicType toType, const void *ptr2,
       case NTA_BasicType_Bool:
         cpyarray<bool, UInt16>(ptr1, ptr2, count);
         break;
+      default:
+	break;
       }
       break;
     case NTA_BasicType_Int32:
@@ -349,6 +357,8 @@ void BasicType::convertArray(void *ptr1, NTA_BasicType toType, const void *ptr2,
       case NTA_BasicType_Bool:
         cpyarray<bool, Int32>(ptr1, ptr2, count);
         break;
+      default:
+	break;
       }
       break;
     case NTA_BasicType_UInt32:
@@ -383,6 +393,8 @@ void BasicType::convertArray(void *ptr1, NTA_BasicType toType, const void *ptr2,
       case NTA_BasicType_Bool:
         cpyarray<bool, UInt32>(ptr1, ptr2, count);
         break;
+      default:
+	break;
       }
       break;
     case NTA_BasicType_Int64:
@@ -417,6 +429,8 @@ void BasicType::convertArray(void *ptr1, NTA_BasicType toType, const void *ptr2,
       case NTA_BasicType_Bool:
         cpyarray<bool, Int64>(ptr1, ptr2, count);
         break;
+      default:
+	break;
       }
       break;
 
@@ -452,6 +466,8 @@ void BasicType::convertArray(void *ptr1, NTA_BasicType toType, const void *ptr2,
       case NTA_BasicType_Bool:
         cpyarray<bool, UInt64>(ptr1, ptr2, count);
         break;
+      default:
+	break;
       }
       break;
     case NTA_BasicType_Real32:
@@ -486,6 +502,8 @@ void BasicType::convertArray(void *ptr1, NTA_BasicType toType, const void *ptr2,
       case NTA_BasicType_Bool:
         cpyarray<bool, Real32>(ptr1, ptr2, count);
         break;
+      default:
+	break;
       }
       break;
     case NTA_BasicType_Real64:
@@ -520,6 +538,8 @@ void BasicType::convertArray(void *ptr1, NTA_BasicType toType, const void *ptr2,
       case NTA_BasicType_Bool:
         cpyarray<bool, Real64>(ptr1, ptr2, count);
         break;
+      default:
+	break;
       }
       break;
     case NTA_BasicType_Bool:
@@ -554,7 +574,11 @@ void BasicType::convertArray(void *ptr1, NTA_BasicType toType, const void *ptr2,
       case NTA_BasicType_Bool:
         cpyarray<bool, bool>(ptr1, ptr2, count);
         break;
+      default:
+	break;
       }
+      break;
+    default:
       break;
     }
   } catch (nupic::Exception e) {
