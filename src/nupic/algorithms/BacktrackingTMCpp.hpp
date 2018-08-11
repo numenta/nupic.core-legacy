@@ -304,7 +304,7 @@ public:
   inline UInt32 getMaxSeqLength() const  { return cells4_->getMaxSeqLength(); }
   inline Int32  getMaxSegmentsPerCell() const  { return cells4_->getMaxSegmentsPerCell(); }
   inline Int32  getMaxSynapsesPerSegment() const  { return cells4_->getMaxSynapsesPerSegment(); }
-  inline const char *getOutputType() const  { return loc_.outputType; }
+  inline const std::string getOutputType() const  { return loc_.outputType; }
   inline Int32  getBurnIn() const  { return loc_.burnIn; }
   inline bool   getCollectStats() const  { return loc_.collectStats; }
   inline bool   getSeed() const  { return loc_.seed; }
@@ -520,7 +520,7 @@ protected:
     // If true, always fetch the learn state pointers after every compute().
     bool retrieveLearningStates;
 
-    char outputType[25];
+    std::string outputType;
 
   } loc_;
 

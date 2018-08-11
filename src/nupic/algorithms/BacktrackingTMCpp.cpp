@@ -626,7 +626,7 @@ std::shared_ptr<struct BacktrackingTMCpp::predictionResults_t> BacktrackingTMCpp
 //    output is the boolean OR of 'activeState' and 'predictedState' at 't'.
 //    Stores 'currentOutput_'.
 Real32 *BacktrackingTMCpp::_computeOutput() {
-  if (!strcmp(loc_.outputType, "activeState1CellPerCol")) {
+  if (!loc_.outputType.compare("activeState1CellPerCol")) {
     // Fire only the most confident cell in columns that have 2 or more active
     // cells Don't turn on anything in columns which are not active at all
     Byte *active = cells4_->getInfActiveStateT();
@@ -649,13 +649,13 @@ Real32 *BacktrackingTMCpp::_computeOutput() {
         currentOutput_[mostConfidentCell] = 1.0f;
     }
 
-  } else if (!strcmp(loc_.outputType, "activeState")) {
+  } else if (!loc_.outputType.compare("activeState")) {
     Byte *active = cells4_->getInfActiveStateT();
     for (Size i = 0; i < nCells; i++) {
       currentOutput_[i] = active[i];
     }
 
-  } else if (!strcmp(loc_.outputType, "normal")) {
+  } else if (!loc_.outputType.compare("normal")) {
     Byte *active = cells4_->getInfActiveStateT();
     Byte *predicted = cells4_->getInfPredictedStateT();
     for (Size i = 0; i < nCells; i++) {
@@ -866,7 +866,7 @@ void BacktrackingTMCpp::deepcopySave_(tmSavedState_t &ss, std::string name,
 template <typename T>
 void BacktrackingTMCpp::deepcopyRestore_(tmSavedState_t &ss, std::string name,
                                          T *buf, Size count) {
-  auto source = std::any_cast<std::shared_ptr<T>>(ss[name]);
+  auto source = boost::any_cast<std::shared_ptr<T>>(ss[name]);
   fastbuffercopy<T>(buf, source.get(), count);
 }
 
@@ -1134,7 +1134,7 @@ void BacktrackingTMCpp::printCell(Size c, Size i, bool onlyActiveSegments,
     out << "Col " << c << ", Cell " << i << " ("
         << (c * loc_.cellsPerColumn + i) << ") : " << nSegs << " segment(s)\n";
     for (const auto segIdx : segList) {
-      Segment &seg = *cells4_->getSegment((UInt)c, (UInt)i, segIdx);
+      Segment &seg = cells4_->getSegment((UInt)c, (UInt)i, segIdx);
       const bool isActive = _slowIsSegmentActive(seg, "t");
       if (!onlyActiveSegments || isActive) {
         snprintf(buff, sizeof(buff), "%sSeg #%-3d %d %c %9.7f (%4d/%-4d) %4d ",
@@ -1739,7 +1739,7 @@ BacktrackingTMCpp::getSegmentInfo(bool collectActiveData) const {
                 info.distPermValues[permanence] = 1;
             }
           }
-          const Segment &segObj = *cells4_->getSegment((UInt)c, (UInt)i, segList[segIdx]);
+          const Segment &segObj = cells4_->getSegment((UInt)c, (UInt)i, segList[segIdx]);
           const Size age = loc_.iterationIdx - segObj.getLastActiveIteration();
           const Size ageBucket = age / ageBucketSize;
           info.distAges[ageBucket].cnt += 1;
