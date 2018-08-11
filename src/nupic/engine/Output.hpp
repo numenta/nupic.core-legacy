@@ -58,7 +58,7 @@ public:
 
   /**
    * Destructor
-   * noexcept(false) : as C++11 forces noexcept(true) in destructors by default, 
+   * noexcept(false) : as C++11 forces noexcept(true) in destructors by default,
    * we override that here to throw NTA_CHECK
    */
   ~Output() noexcept(false);
