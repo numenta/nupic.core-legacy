@@ -203,56 +203,6 @@ set(src_py_support_files
 )
 
 
-# List all .capnp files here. The C++ files will be generated and included
-# when compiling later on.
-set(src_capnp_specs_rel
-  nupic/proto/ArrayProto.capnp
-  nupic/proto/BitHistory.capnp
-  nupic/proto/Cell.capnp
-  nupic/proto/Cells4.capnp
-  nupic/proto/ClaClassifier.capnp
-  nupic/proto/ConnectionsProto.capnp
-  nupic/proto/LinkProto.capnp
-  nupic/proto/Map.capnp
-  nupic/proto/NetworkProto.capnp
-  nupic/proto/PyRegionProto.capnp
-  nupic/proto/RandomProto.capnp
-  nupic/proto/RegionProto.capnp
-  nupic/proto/Segment.capnp
-  nupic/proto/SegmentUpdate.capnp
-  nupic/proto/SparseBinaryMatrixProto.capnp
-  nupic/proto/SparseMatrixProto.capnp
-  nupic/proto/SpatialPoolerProto.capnp
-  nupic/proto/SdrClassifier.capnp
-  nupic/proto/SvmProto.capnp
-  nupic/proto/TemporalMemoryProto.capnp
-  nupic/proto/TestNodeProto.capnp
-  nupic/proto/VectorFileSensorProto.capnp
-)
-
-# Create custom command for generating C++ code from .capnp schema files.
-
-foreach(spec ${src_capnp_specs_rel})
-  list(APPEND src_capnp_specs ${PROJECT_SOURCE_DIR}/${spec})
-  list(APPEND src_capnp_generated_hdrs ${PROJECT_BINARY_DIR}/${spec}.h)
-  list(APPEND src_capnp_generated_srcs ${PROJECT_BINARY_DIR}/${spec}.c++)
-endforeach(spec)
-set(src_capnp_all_spec_hdrs_and_srcs
-    ${src_capnp_generated_hdrs}
-    ${src_capnp_generated_srcs})
-
-create_capnpc_command("${src_capnp_specs}"
-                      ${PROJECT_SOURCE_DIR}
-                      ${PROJECT_SOURCE_DIR}
-                      ${PROJECT_BINARY_DIR}
-                      "${src_capnp_all_spec_hdrs_and_srcs}")
-
-
-message(STATUS "CAPNP_EXECUTABLE          = ${CAPNP_EXECUTABLE}")
-message(STATUS "CAPNP_CMAKE_DEFINITIONS   = ${CAPNP_CMAKE_DEFINITIONS}")
-message(STATUS "CAPNP_INCLUDE_DIRS        = ${CAPNP_INCLUDE_DIRS}")
-message(STATUS "CAPNP_STATIC_LIB_TARGET   = ${CAPNP_STATIC_LIB_TARGET}")
-
 message(STATUS "SWIG_EXECUTABLE           = ${SWIG_EXECUTABLE}")
 message(STATUS "SWIG_DIR                  = ${SWIG_DIR}")
 
@@ -358,7 +308,6 @@ set(src_nupiccore_srcs
     nupic/utils/Watcher.cpp)
 
 set(src_lib_static_nupiccore_srcs
-    ${src_capnp_generated_srcs}
     ${src_py_support_files}
     ${src_nupiccore_srcs})
 
@@ -398,7 +347,6 @@ include(src/NupicLibraryUtils) # for MERGE_STATIC_LIBRARIES
 set(src_lib_static_nupiccore_combined nupic_core)
 
 set(src_external_static_libs
-    ${CAPNP_STATIC_LIB_TARGET}
     ${YAML_CPP_STATIC_LIB_TARGET}
     ${YAML_STATIC_LIB_TARGET}
     ${APR1_STATIC_LIB_TARGET}
