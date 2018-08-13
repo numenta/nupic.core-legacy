@@ -725,7 +725,7 @@ UInt TemporalMemory::version() const { return TM_VERSION; }
  */
 void TemporalMemory::seed_(UInt64 seed) { rng_ = Random(seed); }
 
-UInt TemporalMemory::persistentSize() const {
+size_t TemporalMemory::persistentSize() const {
   stringstream s;
   s.flags(ios::scientific);
   s.precision(numeric_limits<double>::digits10 + 1);

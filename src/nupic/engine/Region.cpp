@@ -38,7 +38,6 @@ Methods related to inputs and outputs are in Region_io.cpp
 #include <nupic/engine/Spec.hpp>
 #include <nupic/ntypes/NodeSet.hpp>
 #include <nupic/os/Timer.hpp>
-#include <nupic/proto/RegionProto.capnp.h>
 #include <nupic/utils/Log.hpp>
 #include <set>
 #include <stdexcept>
@@ -95,13 +94,6 @@ Region::Region(std::string name, const std::string &nodeType,
   createInputsAndOutputs_();
 }
 
-Region::Region(std::string name, RegionProto::Reader &proto, Network *network)
-    : name_(std::move(name)), type_(proto.getNodeType().cStr()),
-      initialized_(false), enabledNodes_(nullptr), network_(network),
-      profilingEnabled_(false) {
-  read(proto);
-  createInputsAndOutputs_();
-}
 
 Network *Region::getNetwork() { return network_; }
 
@@ -388,38 +380,6 @@ std::set<UInt32> &Region::getPhases() { return phases_; }
 
 void Region::serializeImpl(BundleIO &bundle) { impl_->serialize(bundle); }
 
-void Region::write(RegionProto::Builder &proto) const {
-  auto dimensionsProto = proto.initDimensions(dims_.size());
-  for (UInt i = 0; i < dims_.size(); ++i) {
-    dimensionsProto.set(i, dims_[i]);
-  }
-  auto phasesProto = proto.initPhases(phases_.size());
-  UInt i = 0;
-  for (auto elem : phases_) {
-    phasesProto.set(i++, elem);
-  }
-  proto.setNodeType(type_.c_str());
-  auto implProto = proto.getRegionImpl();
-  impl_->write(implProto);
-}
-
-void Region::read(RegionProto::Reader &proto) {
-  dims_.clear();
-  for (auto elem : proto.getDimensions()) {
-    dims_.push_back(elem);
-  }
-
-  phases_.clear();
-  for (auto elem : proto.getPhases()) {
-    phases_.insert(elem);
-  }
-
-  auto implProto = proto.getRegionImpl();
-  RegionImplFactory &factory = RegionImplFactory::getInstance();
-  spec_ = factory.getSpec(type_);
-  impl_ = factory.deserializeRegionImpl(proto.getNodeType().cStr(), implProto,
-                                        this);
-}
 
 void Region::enableProfiling() { profilingEnabled_ = true; }
 

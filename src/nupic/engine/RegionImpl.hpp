@@ -38,10 +38,8 @@
 #include <string>
 #include <vector>
 
-#include <capnp/any.h>
 
 #include <nupic/ntypes/ObjectModel.hpp> // IWriteBuffer
-#include <nupic/types/Serializable.hpp>
 
 namespace nupic {
 
@@ -55,7 +53,8 @@ class ArrayRef;
 class NodeSet;
 class BundleIO;
 
-class RegionImpl : public Serializable<capnp::AnyPointer> {
+class RegionImpl
+{
 public:
   // All subclasses must call this constructor from their regular constructor
   RegionImpl(Region *region);
@@ -125,20 +124,11 @@ public:
   // De-serialize state. Must be called from deserializing constructor
   virtual void deserialize(BundleIO &bundle) = 0;
 
-  // Serialize state with capnp
-  using Serializable::write;
-  virtual void write(capnp::AnyPointer::Builder &anyProto) const = 0;
-
-  // Deserialize state from capnp. Must be called from deserializing
-  // constructor.
-  using Serializable::read;
-  virtual void read(capnp::AnyPointer::Reader &anyProto) = 0;
-
-  /**
-   * Inputs/Outputs are made available in initialize()
-   * It is always called after the constructor (or load from serialized state)
-   */
-  virtual void initialize() = 0;
+    /**
+     * Inputs/Outputs are made available in initialize()
+     * It is always called after the constructor (or load from serialized state)
+     */
+    virtual void initialize() = 0;
 
   // Compute outputs from inputs and internal state
   virtual void compute() = 0;
@@ -211,9 +201,9 @@ protected:
   /// getSerializationXStream a second time automatically closes the
   /// first stream. Any open stream is closed when serialize() returns.
   // ---
-  std::ostream &getSerializationOutputStream(const std::string &name);
-  std::istream &getSerializationInputStream(const std::string &name);
-  std::string getSerializationPath(const std::string &name);
+  //std::ostream &getSerializationOutputStream(const std::string &name);
+  //std::istream &getSerializationInputStream(const std::string &name);
+  //std::string getSerializationPath(const std::string &name);
 
   // These methods provide access to inputs and outputs
   // They raise an exception if the named input or output is

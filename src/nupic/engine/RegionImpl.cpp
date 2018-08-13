@@ -22,11 +22,6 @@
 
 #include <iostream>
 
-#include <capnp/any.h>
-#include <capnp/message.h>
-#include <capnp/serialize.h>
-#include <kj/std/iostream.h>
-
 #include <nupic/engine/Region.hpp>
 #include <nupic/engine/RegionImpl.hpp>
 #include <nupic/engine/Spec.hpp>

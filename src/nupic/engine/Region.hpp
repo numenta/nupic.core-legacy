@@ -39,8 +39,6 @@
 // objects are returned by value.
 #include <nupic/ntypes/Dimensions.hpp>
 #include <nupic/os/Timer.hpp>
-#include <nupic/proto/RegionProto.capnp.h>
-#include <nupic/types/Serializable.hpp>
 #include <nupic/types/Types.hpp>
 
 namespace nupic {
@@ -68,7 +66,8 @@ class GenericRegisteredRegionImpl;
  * Internally regions are created and owned by Network.
  *
  */
-class Region : public Serializable<RegionProto> {
+class Region
+{
 public:
   /**
    * @name Region information
@@ -630,9 +629,6 @@ public:
          const Dimensions &dimensions, BundleIO &bundle,
          Network *network = nullptr);
 
-  // New region from capnp struct
-  Region(std::string name, RegionProto::Reader &proto,
-         Network *network = nullptr);
 
   virtual ~Region();
 
@@ -691,11 +687,6 @@ public:
   // Called by Network for serialization
   void serializeImpl(BundleIO &bundle);
 
-  using Serializable::write;
-  void write(RegionProto::Builder &proto) const;
-
-  using Serializable::read;
-  void read(RegionProto::Reader &proto);
 
 #endif // NTA_INTERNAL
 
