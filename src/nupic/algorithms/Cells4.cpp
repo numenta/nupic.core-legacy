@@ -41,7 +41,6 @@
 #include <nupic/math/StlIo.hpp>     // binary_save
 #include <nupic/os/FStream.hpp>
 #include <nupic/os/Timer.hpp>
-#include <nupic/proto/Cells4.capnp.h>
 #include <nupic/utils/Log.hpp>
 
 using namespace nupic::algorithms::Cells4;
@@ -893,7 +892,6 @@ void Cells4::updateLearningState(const std::vector<UInt> &activeColumns,
   }
   _learnedSeqLength++;
 
-  // =========================================================================
   // Phase 1 - turn on predicted cells in each column receiving bottom-up
 
   //---------------------------------------------------------------------------
@@ -968,7 +966,6 @@ void Cells4::updateLearningState(const std::vector<UInt> &activeColumns,
 
   // Done computing active state
 
-  // =========================================================================
   // Phase 2 - Compute new predicted state. When computing predictions for
   // phase 2, we predict at  most one cell per column (the one with the best
   // matching segment).
@@ -1884,232 +1881,6 @@ void Cells4::reset() {
 }
 
 //--------------------------------------------------------------------------------
-void Cells4::write(Cells4Proto::Builder &proto) const {
-  proto.setVersion(version());
-  proto.setOwnsMemory(_ownsMemory);
-  auto randomProto = proto.initRng();
-  _rng.write(randomProto);
-  proto.setNColumns(_nColumns);
-  proto.setNCellsPerCol(_nCellsPerCol);
-  proto.setActivationThreshold(_activationThreshold);
-  proto.setMinThreshold(_minThreshold);
-  proto.setNewSynapseCount(_newSynapseCount);
-  proto.setNIterations(_nIterations);
-  proto.setNLrnIterations(_nLrnIterations);
-  proto.setSegUpdateValidDuration(_segUpdateValidDuration);
-  proto.setInitSegFreq(_initSegFreq);
-  proto.setPermInitial(_permInitial);
-  proto.setPermConnected(_permConnected);
-  proto.setPermMax(_permMax);
-  proto.setPermDec(_permDec);
-  proto.setPermInc(_permInc);
-  proto.setGlobalDecay(_globalDecay);
-  proto.setDoPooling(_doPooling);
-  proto.setPamLength(_pamLength);
-  proto.setMaxInfBacktrack(_maxInfBacktrack);
-  proto.setMaxLrnBacktrack(_maxLrnBacktrack);
-  proto.setMaxSeqLength(_maxSeqLength);
-  proto.setLearnedSeqLength(_learnedSeqLength);
-  proto.setAvgLearnedSeqLength(_avgLearnedSeqLength);
-  proto.setMaxAge(_maxAge);
-  proto.setVerbosity(_verbosity);
-  proto.setMaxSegmentsPerCell(_maxSegmentsPerCell);
-  proto.setMaxSynapsesPerSegment(_maxSynapsesPerSegment);
-  proto.setCheckSynapseConsistency(_checkSynapseConsistency);
-  proto.setResetCalled(_resetCalled);
-  proto.setAvgInputDensity(_avgInputDensity);
-  proto.setPamCounter(_pamCounter);
-
-  auto learnActiveStateTProto = proto.initLearnActiveStateT();
-  _learnActiveStateT.write(learnActiveStateTProto);
-  auto learnActiveStateT1Proto = proto.initLearnActiveStateT1();
-  _learnActiveStateT1.write(learnActiveStateT1Proto);
-  auto learnPredictedStateTProto = proto.initLearnPredictedStateT();
-  _learnPredictedStateT.write(learnPredictedStateTProto);
-  auto learnPredictedStateT1Proto = proto.initLearnPredictedStateT1();
-  _learnPredictedStateT1.write(learnPredictedStateT1Proto);
-
-  if (_ownsMemory) {
-    auto infActiveStateT = proto.initInfActiveStateT();
-    _infActiveStateT.write(infActiveStateT);
-    auto infActiveStateT1 = proto.initInfActiveStateT1();
-    _infActiveStateT1.write(infActiveStateT1);
-
-    auto infPredictedStateT = proto.initInfPredictedStateT();
-    _infPredictedStateT.write(infPredictedStateT);
-    auto infPredictedStateT1 = proto.initInfPredictedStateT1();
-    _infPredictedStateT1.write(infPredictedStateT1);
-
-    auto cellConfidenceT = proto.initCellConfidenceT(_nCells);
-    for (UInt i = 0; i < _nCells; ++i) {
-      cellConfidenceT.set(i, _cellConfidenceT[i]);
-    }
-    auto cellConfidenceT1 = proto.initCellConfidenceT1(_nCells);
-    for (UInt i = 0; i < _nCells; ++i) {
-      cellConfidenceT1.set(i, _cellConfidenceT1[i]);
-    }
-    auto colConfidenceT = proto.initColConfidenceT(_nColumns);
-    for (UInt i = 0; i < _nColumns; ++i) {
-      colConfidenceT.set(i, _colConfidenceT[i]);
-    }
-    auto colConfidenceT1 = proto.initColConfidenceT1(_nColumns);
-    for (UInt i = 0; i < _nColumns; ++i) {
-      colConfidenceT1.set(i, _colConfidenceT1[i]);
-    }
-  }
-
-  auto prevInfPatterns = proto.initPrevInfPatterns(_prevInfPatterns.size());
-  for (UInt i = 0; i < _prevInfPatterns.size(); ++i) {
-    const auto &pattern = _prevInfPatterns[i];
-    auto row = prevInfPatterns.init(i, pattern.size());
-    for (UInt j = 0; j < pattern.size(); j++) {
-      row.set(j, pattern[j]);
-    }
-  }
-  auto prevLrnPatterns = proto.initPrevLrnPatterns(_prevLrnPatterns.size());
-  for (UInt i = 0; i < _prevLrnPatterns.size(); ++i) {
-    const auto &pattern = _prevLrnPatterns[i];
-    auto row = prevLrnPatterns.init(i, pattern.size());
-    for (UInt j = 0; j < pattern.size(); j++) {
-      row.set(j, pattern[j]);
-    }
-  }
-
-  NTA_CHECK(_nCells == _cells.size());
-  auto cellListProto = proto.initCells(_nCells);
-  for (UInt i = 0; i < _nCells; ++i) {
-    auto cellProto = cellListProto[i];
-    _cells[i].write(cellProto);
-  }
-
-  auto segmentUpdatesListProto =
-      proto.initSegmentUpdates(_segmentUpdates.size());
-  for (UInt i = 0; i < _segmentUpdates.size(); ++i) {
-    auto segmentUpdateProto = segmentUpdatesListProto[i];
-    _segmentUpdates[i].write(segmentUpdateProto);
-  }
-}
-
-//--------------------------------------------------------------------------------
-void Cells4::read(Cells4Proto::Reader &proto) {
-  NTA_CHECK(proto.getVersion() == 2);
-
-  initialize(proto.getNColumns(), proto.getNCellsPerCol(),
-             proto.getActivationThreshold(), proto.getMinThreshold(),
-             proto.getNewSynapseCount(), proto.getSegUpdateValidDuration(),
-             proto.getPermInitial(), proto.getPermConnected(),
-             proto.getPermMax(), proto.getPermDec(), proto.getPermInc(),
-             proto.getGlobalDecay(), proto.getDoPooling(),
-             proto.getOwnsMemory());
-  auto randomProto = proto.getRng();
-  _rng.read(randomProto);
-  _nIterations = proto.getNIterations();
-  _nLrnIterations = proto.getNLrnIterations();
-  _initSegFreq = proto.getInitSegFreq();
-  _pamLength = proto.getPamLength();
-  _maxInfBacktrack = proto.getMaxInfBacktrack();
-  _maxLrnBacktrack = proto.getMaxLrnBacktrack();
-  _maxSeqLength = proto.getMaxSeqLength();
-  _learnedSeqLength = proto.getLearnedSeqLength();
-  _avgLearnedSeqLength = proto.getAvgLearnedSeqLength();
-  _maxAge = proto.getMaxAge();
-  _verbosity = proto.getVerbosity();
-  _maxSegmentsPerCell = proto.getMaxSegmentsPerCell();
-  _maxSynapsesPerSegment = proto.getMaxSynapsesPerSegment();
-  _checkSynapseConsistency = proto.getCheckSynapseConsistency();
-
-  _resetCalled = proto.getResetCalled();
-
-  _avgInputDensity = proto.getAvgInputDensity();
-  _pamCounter = proto.getPamCounter();
-
-  auto learnActiveStateTProto = proto.getLearnActiveStateT();
-  _learnActiveStateT.read(learnActiveStateTProto);
-  auto learnActiveStateT1Proto = proto.getLearnActiveStateT1();
-  _learnActiveStateT1.read(learnActiveStateT1Proto);
-  auto learnPredictedStateTProto = proto.getLearnPredictedStateT();
-  _learnPredictedStateT.read(learnPredictedStateTProto);
-  auto learnPredictedStateT1Proto = proto.getLearnPredictedStateT1();
-  _learnPredictedStateT1.read(learnPredictedStateT1Proto);
-
-  auto cellListProto = proto.getCells();
-  _nCells = cellListProto.size();
-  _cells.resize(_nCells);
-  for (UInt i = 0; i < cellListProto.size(); ++i) {
-    auto cellProto = cellListProto[i];
-    _cells[i].read(cellProto);
-  }
-
-  if (proto.getOwnsMemory()) {
-    _infActiveStateT.initialize(_nCells);
-    _infActiveStateT1.initialize(_nCells);
-    _infPredictedStateT.initialize(_nCells);
-    _infPredictedStateT1.initialize(_nCells);
-    auto infActiveStateT = proto.getInfActiveStateT();
-    _infActiveStateT.read(infActiveStateT);
-    auto infActiveStateT1 = proto.getInfActiveStateT1();
-    _infActiveStateT1.read(infActiveStateT1);
-    auto infPredictedStateT = proto.getInfPredictedStateT();
-    _infPredictedStateT.read(infPredictedStateT);
-    auto infPredictedStateT1 = proto.getInfPredictedStateT1();
-    _infPredictedStateT1.read(infPredictedStateT1);
-
-    allocateState(_cellConfidenceT, _nCells);
-    allocateState(_cellConfidenceT1, _nCells);
-    allocateState(_colConfidenceT, _nColumns);
-    allocateState(_colConfidenceT1, _nColumns);
-    auto cellConfidenceT = proto.getCellConfidenceT();
-    for (UInt i = 0; i < cellConfidenceT.size(); i++) {
-      _cellConfidenceT[i] = cellConfidenceT[i];
-    }
-    auto cellConfidenceT1 = proto.getCellConfidenceT1();
-    for (UInt i = 0; i < cellConfidenceT1.size(); i++) {
-      _cellConfidenceT1[i] = cellConfidenceT1[i];
-    }
-    auto colConfidenceT = proto.getColConfidenceT();
-    for (UInt i = 0; i < colConfidenceT.size(); i++) {
-      _colConfidenceT[i] = colConfidenceT[i];
-    }
-    auto colConfidenceT1 = proto.getColConfidenceT1();
-    for (UInt i = 0; i < colConfidenceT1.size(); i++) {
-      _colConfidenceT1[i] = colConfidenceT1[i];
-    }
-  }
-
-  _prevInfPatterns.clear();
-  auto prevInfPatterns = proto.getPrevInfPatterns();
-  for (UInt i = 0; i < prevInfPatterns.size(); i++) {
-    _prevInfPatterns.emplace_back(prevInfPatterns[i].size());
-    for (UInt j = 0; j < prevInfPatterns[i].size(); j++) {
-      _prevInfPatterns[i][j] = prevInfPatterns[i][j];
-    }
-  }
-
-  _prevLrnPatterns.clear();
-  auto prevLrnPatterns = proto.getPrevLrnPatterns();
-  for (UInt i = 0; i < prevLrnPatterns.size(); i++) {
-    _prevLrnPatterns.emplace_back(prevLrnPatterns[i].size());
-    for (UInt j = 0; j < prevLrnPatterns[i].size(); j++) {
-      _prevLrnPatterns[i][j] = prevLrnPatterns[i][j];
-    }
-  }
-  auto segmentUpdatesListProto = proto.getSegmentUpdates();
-  _segmentUpdates.clear();
-  _segmentUpdates.resize(segmentUpdatesListProto.size());
-  for (UInt i = 0; i < segmentUpdatesListProto.size(); ++i) {
-    auto segmentUpdateProto = segmentUpdatesListProto[i];
-    _segmentUpdates[i].read(segmentUpdateProto);
-  }
-
-  rebuildOutSynapses();
-  if (_checkSynapseConsistency || (_nCells * _maxSegmentsPerCell < 100000)) {
-    NTA_CHECK(invariants(true));
-  }
-
-  _version = VERSION;
-}
-
-//--------------------------------------------------------------------------------
 void Cells4::save(std::ostream &outStream) const {
   // Check invariants for smaller networks or if explicitly requested
   if (_checkSynapseConsistency || (_nCells * _maxSegmentsPerCell < 100000)) {
@@ -2183,16 +1954,14 @@ void Cells4::save(std::ostream &outStream) const {
  * Save the state to the given file
  */
 void Cells4::saveToFile(std::string filePath) const {
-  OFStream outStream(filePath.c_str(),
-                     std::ios_base::out | std::ios_base::binary);
-  // Request std::ios_base::failure exception upon logical or physical i/o error
-  outStream.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-
-  outStream.precision(std::numeric_limits<double>::digits10 + 1);
-  save(outStream);
-
-  // Explicitly close the stream so that we may get an exception on error
-  outStream.close();
+//do later  std::filesystem::path p(filePath.c_str());
+//do later  std::filesystem::create_directories(p.parent_path());
+  std::ofstream out(filePath.c_str(),std::ios_base::out | std::ios_base::binary);
+  out.exceptions(std::ofstream::failbit | std::ofstream::badbit);
+  out.precision(std::numeric_limits<double>::digits10 + 1);
+  out.precision(std::numeric_limits<float>::digits10 + 1);
+  save(out);
+  out.close();
 }
 
 //----------------------------------------------------------------------

@@ -32,8 +32,6 @@
 #include <vector>
 
 #include <nupic/math/Math.hpp>
-#include <nupic/proto/ConnectionsProto.capnp.h>
-#include <nupic/types/Serializable.hpp>
 #include <nupic/types/Types.hpp>
 
 namespace nupic {
@@ -183,7 +181,8 @@ public:
  * iterate over segments and update the vector at index `segment`.
  *
  */
-class Connections : public Serializable<ConnectionsProto> {
+class Connections
+ {
 public:
   static const UInt16 VERSION = 2;
 
@@ -227,7 +226,8 @@ public:
    *
    * @reval Created synapse.
    */
-  Synapse createSynapse(Segment segment, CellIdx presynapticCell,
+  Synapse createSynapse(Segment segment,
+                        CellIdx presynapticCell,
                         Permanence permanence);
 
   /**
@@ -425,30 +425,12 @@ public:
    */
   virtual void save(std::ostream &outStream) const;
 
-  /**
-   * Writes serialized data to output stream.
-   */
-  using Serializable::write;
-
-  /**
-   * Writes serialized data to proto object.
-   */
-  virtual void write(ConnectionsProto::Builder &proto) const override;
 
   /**
    * Loads serialized data from input stream.
    */
   virtual void load(std::istream &inStream);
 
-  /**
-   * Reads serialized data from input stream.
-   */
-  using Serializable::read;
-
-  /**
-   * Reads serialized data from proto object.
-   */
-  virtual void read(ConnectionsProto::Reader &proto) override;
 
   // Debugging
 

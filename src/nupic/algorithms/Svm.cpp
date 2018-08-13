@@ -76,7 +76,7 @@ void svm_parameter::print() const {
 }
 
 //------------------------------------------------------------------------------
-int svm_parameter::persistent_size() const {
+size_t svm_parameter::persistent_size() const {
   stringstream b;
   b << kernel << ' ' << probability << ' ' << gamma << ' ' << C << ' ' << eps
     << ' ' << cache_size << ' ' << shrinking << ' ' << weight_label << ' '
@@ -99,55 +99,7 @@ void svm_parameter::load(std::istream &inStream) {
 }
 
 //------------------------------------------------------------------------------
-void svm_parameter::read(SvmParameterProto::Reader &proto) {
-  kernel = proto.getKernel();
-  probability = proto.getProbability();
-  gamma = proto.getGamma();
-  C = proto.getC();
-  eps = proto.getEps();
-  cache_size = proto.getCacheSize();
-  shrinking = proto.getShrinking();
-
-  auto weightList = proto.getWeight();
-  size_t size = weightList.size();
-  weight.resize(size);
-  for (size_t i = 0; i < size; i++) {
-    weight[i] = weightList[i];
-  }
-
-  auto labelList = proto.getWeightLabel();
-  size = labelList.size();
-  weight_label.resize(size);
-  for (size_t i = 0; i < size; i++) {
-    weight_label[i] = labelList[i];
-  }
-}
-
-//------------------------------------------------------------------------------
-void svm_parameter::write(SvmParameterProto::Builder &proto) const {
-  proto.setKernel(kernel);
-  proto.setProbability(probability);
-  proto.setGamma(gamma);
-  proto.setC(C);
-  proto.setEps(eps);
-  proto.setCacheSize(cache_size);
-  proto.setShrinking(shrinking);
-
-  size_t size = weight.size();
-  auto weightList = proto.initWeight(size);
-  for (size_t i = 0; i < size; i++) {
-    weightList.set(i, weight[i]);
-  }
-
-  size = weight_label.size();
-  auto labelList = proto.initWeightLabel(size);
-  for (size_t i = 0; i < size; i++) {
-    labelList.set(i, weight_label[i]);
-  }
-}
-
-//------------------------------------------------------------------------------
-int svm_problem::persistent_size() const {
+size_t svm_problem::persistent_size() const {
   stringstream b;
 
   b << size() << " " << n_dims() << " ";
@@ -195,62 +147,15 @@ void svm_problem::load(std::istream &inStream) {
 }
 
 //------------------------------------------------------------------------------
-void svm_problem::read(SvmProblemProto::Reader &proto) {
-  recover_ = proto.getRecover();
-  n_dims_ = proto.getNDims();
-
-  auto yList = proto.getY();
-  size_t size = yList.size();
-  y_.resize(size);
-  for (size_t i = 0; i < size; i++) {
-    y_[i] = yList[i];
-  }
-
-  for (auto &elem : x_)
-    delete[] elem;
-
-  x_.clear();
-  for (auto list : proto.getX()) {
-    size_t size = list.size();
-    float *values = new float[size];
-    for (size_t i = 0; i < size; i++) {
-      values[i] = list[i];
-    }
-    x_.push_back(values);
-  }
-}
-
-//------------------------------------------------------------------------------
-void svm_problem::write(SvmProblemProto::Builder &proto) const {
-  proto.setRecover(recover_);
-  proto.setNDims(n_dims_);
-
-  size_t size = y_.size();
-  auto yList = proto.initY(size);
-  for (size_t i = 0; i < size; i++) {
-    yList.set(i, y_[i]);
-  }
-
-  size = x_.size();
-  auto xList = proto.initX(size);
-  for (size_t i = 0; i < size; i++) {
-    auto dims = xList.init(i, n_dims_);
-    for (int j = 0; j < n_dims_; j++) {
-      dims.set(j, x_[i][j]);
-    }
-  }
-}
-
-//------------------------------------------------------------------------------
-int svm_problem01::persistent_size() const {
+size_t svm_problem01::persistent_size() const {
   stringstream b;
   b << size() << " " << n_dims() << " " << threshold_ << " ";
-  int n = b.str().size();
+  size_t n = b.str().size();
 
   n += y_.size() * sizeof(float);
   n += nnz_.size() * sizeof(int);
 
-  for (int i = 0; i != size(); ++i)
+  for (size_t i = 0; i != size(); ++i)
     n += nnz_[i] * sizeof(feature_type);
 
   return n + 1;
@@ -291,68 +196,6 @@ void svm_problem01::load(std::istream &inStream) {
   }
 }
 
-//------------------------------------------------------------------------------
-void svm_problem01::read(SvmProblem01Proto::Reader &proto) {
-  recover_ = proto.getRecover();
-  n_dims_ = proto.getNDims();
-  threshold_ = proto.getThreshold();
-
-  auto yList = proto.getY();
-  size_t size = yList.size();
-  y_.resize(size);
-  for (size_t i = 0; i < size; i++) {
-    y_[i] = yList[i];
-  }
-
-  auto nnzList = proto.getNnz();
-  nnz_.resize(nnzList.size());
-  size = nnzList.size();
-  nnz_.resize(size);
-  for (size_t i = 0; i < size; i++) {
-    nnz_[i] = nnzList[i];
-  }
-
-  for (auto &elem : x_)
-    delete[] elem;
-
-  x_.clear();
-  for (auto list : proto.getX()) {
-    size_t size = list.size();
-    int *values = new int[size];
-    for (size_t i = 0; i < size; i++) {
-      values[i] = list[i];
-    }
-    x_.push_back(values);
-  }
-}
-
-//------------------------------------------------------------------------------
-void svm_problem01::write(SvmProblem01Proto::Builder &proto) const {
-  proto.setRecover(recover_);
-  proto.setNDims(n_dims_);
-  proto.setThreshold(threshold_);
-
-  size_t size = y_.size();
-  auto yList = proto.initY(size);
-  for (size_t i = 0; i < size; i++) {
-    yList.set(i, y_[i]);
-  }
-
-  size = nnz_.size();
-  auto nnzList = proto.initNnz(size);
-  for (size_t i = 0; i < size; i++) {
-    nnzList.set(i, nnz_[i]);
-  }
-
-  size = x_.size();
-  auto xList = proto.initX(size);
-  for (size_t i = 0; i < size; i++) {
-    auto dims = xList.init(i, n_dims_);
-    for (int j = 0; j < n_dims_; j++) {
-      dims.set(j, x_[i][j]);
-    }
-  }
-}
 
 //------------------------------------------------------------------------------
 svm_model::~svm_model() {
@@ -420,18 +263,18 @@ void svm_model::print() const {
 }
 
 //------------------------------------------------------------------------------
-int svm_model::persistent_size() const {
+size_t svm_model::persistent_size() const {
   stringstream b;
   b << n_class() << " " << size() << " " << n_dims() << " ";
 
-  int n = b.str().size();
+  size_t n = b.str().size();
 
   n += sv.size() * n_dims() * sizeof(float) + 1;
 
   {
     stringstream b2;
     for (auto &elem : sv_coef) {
-      for (int j = 0; j < size(); ++j)
+      for (size_t j = 0; j < size(); ++j)
         b2 << elem[j] << " ";
     }
     n += b2.str().size();
@@ -516,7 +359,7 @@ void svm_model::load(std::istream &inStream) {
 
   sv.resize(l, nullptr);
   inStream.ignore(1);
-  for (int i = 0; i < l; ++i) {
+  for (size_t i = 0; i < l; ++i) {
     sv[i] = sv_mem + i * n_dims();
     nupic::binary_load(inStream, sv[i], sv[i] + n_dims());
   }
@@ -525,241 +368,16 @@ void svm_model::load(std::istream &inStream) {
     delete[] elem;
 
   sv_coef.resize(n_class - 1, nullptr);
-  for (int i = 0; i < n_class - 1; ++i) {
+  for (size_t i = 0; i < n_class - 1; ++i) {
     sv_coef[i] = new float[l];
-    for (int j = 0; j < l; ++j)
+    for (size_t j = 0; j < l; ++j)
       inStream >> sv_coef[i][j];
   }
 
   inStream >> rho >> label >> n_sv >> probA >> probB >> w;
 }
 
-//------------------------------------------------------------------------------
-void svm_model::read(SvmModelProto::Reader &proto) {
-  n_dims_ = proto.getNDims();
 
-  if (sv_mem == nullptr) {
-    for (auto &elem : sv)
-      delete[] elem;
-  } else {
-    delete[] sv_mem;
-    sv_mem = nullptr;
-  }
-  sv.clear();
-
-  for (auto list : proto.getSv()) {
-    size_t size = list.size();
-    float *values = new float[size];
-    for (size_t i = 0; i < size; i++) {
-      values[i] = list[i];
-    }
-    sv.push_back(values);
-  }
-
-  for (auto &elem : sv_coef)
-    delete[] elem;
-  sv_coef.clear();
-
-  for (auto list : proto.getSvCoef()) {
-    size_t size = list.size();
-    float *values = new float[size];
-    for (size_t i = 0; i < size; i++) {
-      values[i] = list[i];
-    }
-    sv_coef.push_back(values);
-  }
-
-  auto wList = proto.getW();
-  size_t size = wList.size();
-  w.resize(size);
-  for (size_t i = 0; i < size; i++) {
-    auto values = wList[i];
-    size_t len = values.size();
-    w[i].resize(len);
-    for (size_t j = 0; j < len; j++) {
-      w[i][j] = values[j];
-    }
-  }
-
-  auto rhoList = proto.getRho();
-  size = rhoList.size();
-  rho.resize(size);
-  for (size_t i = 0; i < size; i++) {
-    rho[i] = rhoList[i];
-  }
-
-  auto probAList = proto.getProbA();
-  size = probAList.size();
-  probA.resize(size);
-  for (size_t i = 0; i < size; i++) {
-    probA[i] = probAList[i];
-  }
-
-  auto probBList = proto.getProbB();
-  size = probBList.size();
-  probB.resize(size);
-  for (size_t i = 0; i < size; i++) {
-    probB[i] = probBList[i];
-  }
-
-  auto labelList = proto.getLabel();
-  size = labelList.size();
-  label.resize(size);
-  for (size_t i = 0; i < size; i++) {
-    label[i] = labelList[i];
-  }
-
-  auto nsvList = proto.getNSv();
-  size = nsvList.size();
-  n_sv.resize(size);
-  for (size_t i = 0; i < size; i++) {
-    n_sv[i] = nsvList[i];
-  }
-}
-
-//------------------------------------------------------------------------------
-void svm_model::write(SvmModelProto::Builder &proto) const {
-
-  proto.setNDims(n_dims_);
-
-  size_t size = sv.size();
-  auto svList = proto.initSv(size);
-  for (size_t i = 0; i < size; i++) {
-    auto dims = svList.init(i, n_dims_);
-    for (int j = 0; j < n_dims_; j++) {
-      dims.set(j, sv[i][j]);
-    }
-  }
-
-  size = sv_coef.size();
-  auto svCoefList = proto.initSvCoef(size);
-  for (size_t i = 0; i < size; i++) {
-    auto dims = svCoefList.init(i, n_dims_);
-    for (int j = 0; j < n_dims_; j++) {
-      dims.set(j, sv_coef[i][j]);
-    }
-  }
-
-  size = rho.size();
-  auto rhoList = proto.initRho(size);
-  for (size_t i = 0; i < size; i++) {
-    rhoList.set(i, rho[i]);
-  }
-
-  size = label.size();
-  auto labelList = proto.initLabel(size);
-  for (size_t i = 0; i < size; i++) {
-    labelList.set(i, label[i]);
-  }
-
-  size = n_sv.size();
-  auto nsvList = proto.initNSv(size);
-  for (size_t i = 0; i < size; i++) {
-    nsvList.set(i, n_sv[i]);
-  }
-
-  size = probA.size();
-  auto probAList = proto.initProbA(size);
-  for (size_t i = 0; i < size; i++) {
-    probAList.set(i, probA[i]);
-  }
-
-  size = probB.size();
-  auto probBList = proto.initProbB(size);
-  for (size_t i = 0; i < size; i++) {
-    probBList.set(i, probB[i]);
-  }
-
-  size = w.size();
-  auto wList = proto.initW(size);
-  for (size_t i = 0; i < size; i++) {
-    size_t len = w[i].size();
-    auto dims = wList.init(i, len);
-    for (size_t j = 0; j < len; j++) {
-      dims.set(j, w[i][j]);
-    }
-  }
-}
-
-//------------------------------------------------------------------------------
-void svm_dense::write(SvmDenseProto::Builder &proto) const {
-  auto paramProto = proto.getParam();
-  svm_.param_.write(paramProto);
-
-  if (svm_.model_) {
-    auto modelProto = proto.getModel();
-    svm_.model_->write(modelProto);
-  }
-  if (svm_.problem_) {
-    auto problemProto = proto.getProblem();
-    svm_.problem_->write(problemProto);
-  }
-}
-
-//------------------------------------------------------------------------------
-void svm_dense::read(SvmDenseProto::Reader &proto) {
-  auto paramProto = proto.getParam();
-  svm_.param_.read(paramProto);
-
-  if (svm_.model_) {
-    delete svm_.model_;
-    svm_.model_ = nullptr;
-  }
-  if (proto.hasModel()) {
-    auto modelProto = proto.getModel();
-    svm_.model_ = new svm_model;
-    svm_.model_->read(modelProto);
-  }
-  if (svm_.problem_) {
-    delete svm_.problem_;
-    svm_.problem_ = nullptr;
-  }
-  if (proto.hasProblem()) {
-    auto problemProto = proto.getProblem();
-    svm_.problem_ = new svm_problem(1, false);
-    svm_.problem_->read(problemProto);
-  }
-}
-
-//------------------------------------------------------------------------------
-void svm_01::write(Svm01Proto::Builder &proto) const {
-  auto paramProto = proto.getParam();
-  svm_.param_.write(paramProto);
-
-  if (svm_.model_) {
-    auto modelProto = proto.getModel();
-    svm_.model_->write(modelProto);
-  }
-  if (svm_.problem_) {
-    auto problemProto = proto.getProblem();
-    svm_.problem_->write(problemProto);
-  }
-}
-
-//------------------------------------------------------------------------------
-void svm_01::read(Svm01Proto::Reader &proto) {
-  auto paramProto = proto.getParam();
-  svm_.param_.read(paramProto);
-
-  if (svm_.model_) {
-    delete svm_.model_;
-    svm_.model_ = nullptr;
-  }
-  if (proto.hasModel()) {
-    auto modelProto = proto.getModel();
-    svm_.model_ = new svm_model;
-    svm_.model_->read(modelProto);
-  }
-  if (svm_.problem_) {
-    delete svm_.problem_;
-    svm_.problem_ = nullptr;
-  }
-  if (proto.hasProblem()) {
-    auto problemProto = proto.getProblem();
-    svm_.problem_ = new svm_problem01(1, false);
-    svm_.problem_->read(problemProto);
-  }
-}
 } // namespace svm
 } // namespace algorithms
 } // namespace nupic

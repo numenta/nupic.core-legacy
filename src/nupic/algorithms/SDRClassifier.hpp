@@ -35,8 +35,6 @@
 
 #include <nupic/algorithms/ClassifierResult.hpp>
 #include <nupic/math/DenseMatrix.hpp>
-#include <nupic/proto/SdrClassifier.capnp.h>
-#include <nupic/types/Serializable.hpp>
 #include <nupic/types/Types.hpp>
 
 namespace nupic {
@@ -50,7 +48,8 @@ const UInt sdrClassifierVersion = 1;
 
 typedef Dense<UInt, Real64> Matrix;
 
-class SDRClassifier : public Serializable<SdrClassifierProto> {
+class SDRClassifier
+{
   // Make test class friend so it can unit test private members directly
   friend class SDRClassifierTest;
 
@@ -130,25 +129,6 @@ public:
    */
   void load(std::istream &inStream);
 
-  /**
-   * Save the state to the builder.
-   */
-  void write(SdrClassifierProto::Builder &proto) const override;
-
-  /**
-   * Save the state to the stream.
-   */
-  using Serializable::write;
-
-  /**
-   * Load state from reader.
-   */
-  void read(SdrClassifierProto::Reader &proto) override;
-
-  /**
-   * Load state from stream.
-   */
-  using Serializable::read;
 
   /**
    * Compare the other instance to this one.
